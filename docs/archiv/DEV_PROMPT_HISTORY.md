@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-56 entscheidungen-stufe-2
+
+### EINGELESEN
+- Manuel: „teil mir deine Entscheidungen mit, die kann man morgen ja nochmal
+  besprechen“. Beim Bauen von Stufe 2 (P-52, P-53) sind vier dazugekommen.
+
+### DATEIEN
+- `docs/spezifikation_werkzeugverwaltung.md` (Abschnitt 11, Entscheidungen
+  9 bis 12)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Alle Entscheidungen zu W-002 stehen mit Alternative in Abschnitt 11 der
+Spezifikation.
+
+### DONE
+- Eigene Bibliothek „CAM-Addon“, vollständig ersetzt; Gesamtlänge und Schaft
+  geschätzt; Eintauchvorschub ⅓; Einsatz-Vorschlag nach Name, dann
+  Operation.
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Push; Bericht an Manuel.
+
 ## P-2026-09-25-55 version-0-5-0
 
 ### EINGELESEN

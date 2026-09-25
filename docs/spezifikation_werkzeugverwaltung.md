@@ -324,6 +324,23 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
    Alternative: jede Eingabe sofort speichern – einfacher, aber ein
    versehentlicher Tastendruck wäre sofort in der Bibliothek.
 
+### Dazugekommen beim Bauen von Stufe 2
+
+9. **Übergabe als eigene Bibliothek „CAM-Addon“**, geschrieben über CAMs
+   Asset-Verwaltung; jede Übergabe ersetzt die vorige vollständig.
+   Alternative: in eine vorhandene Bibliothek des Benutzers mischen – dann
+   könnte das Addon beim Aktualisieren fremde Werkzeuge treffen.
+10. **Gesamtlänge und Schaft werden geschätzt** (Schneidenlänge + 2 × D,
+    Schaft = D) statt zwei weiterer Felder im Formular. Alternative: Felder
+    „Gesamtlänge“ und „Schaftdurchmesser“ – genauer für Simulation und
+    Kollision, aber mehr zu tippen. Leicht nachzurüsten.
+11. **Eintauchvorschub = ⅓ des Vorschubs** (FreeCADs Vorgabe für Presets),
+    beim Bohren der volle. Alternative: eine eigene Spalte je Einsatz.
+12. **Einsatz für einen Werkzeug-Controller** wird vorgeschlagen: erst nach
+    dem Namen des Controllers („T3 Schruppen dynamisch“), dann nach der
+    Operation (Adaptiv → dynamisch, Tasche → Schruppen, Kontur → Schlichten),
+    sonst die erste Zeile – immer änderbar.
+
 ## 12. Akzeptanzkriterien Stufe 1
 
 Je Patch einer, als Klickweg:
