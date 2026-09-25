@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-58 version-0-5-1
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: Korrektur → letzte Stelle. Neu seit 0.5.0:
+  Update-Suche ohne Git (P-57).
+
+### DATEIEN
+- `package.xml` (0.5.1)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.5.1.
+
+### DONE
+- Version 0.5.0 → 0.5.1.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; Bericht an Manuel.
+
 ## P-2026-09-25-57 update-ohne-git
 
 ### EINGELESEN

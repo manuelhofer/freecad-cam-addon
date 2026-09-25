@@ -3,7 +3,7 @@
     <name>CAM Addon</name>
     <description>Makes FreeCAD CAM easier to use. Describe a machine as an assembly - axes, spindles, tool and workpiece mounts - and hand it to CAM. Tool manager with a material list, cutting data per material and a comparison of milling strategies; hands tools and cutting data over to CAM.</description>
     <icon>resources/icons/camaddon.svg</icon>
-    <version>0.5.0</version>
+    <version>0.5.1</version>
     <date>2026-09-25</date>
     <maintainer>Manuel Hofer</maintainer>
     <license file="LICENSE">LGPL-2.1-or-later</license>
