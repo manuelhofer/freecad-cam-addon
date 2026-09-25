@@ -286,5 +286,16 @@
     "wv.spalte.q.tooltip": "Q – Zeitspanvolumen in cm³/min, gerechnet: ae · ap · vf / 1000. So viel Material ist je Minute weg.",
     "wv.hinweis.ae_zu_gross": "ae ist größer als der Durchmesser – mehr als eine Vollnut geht nicht.",
     "wv.hinweis.ap_zu_gross": "ap {ap} mm ist länger als die Schneide ({laenge} mm).",
-    "wv.hinweis.vc_fz_fehlen": "vc und fz fehlen noch – sie stehen im Katalog des Herstellers."
+    "wv.hinweis.vc_fz_fehlen": "vc und fz fehlen noch – sie stehen im Katalog des Herstellers.",
+    "wv.eingriff.bild.tooltip": "Links von oben: Fräser (blau), Material (grau), rot der Bogen, über den jeder Zahn im Material ist; Vorschub nach oben. Rechts von der Seite: rot der Teil der Schneide, der bei diesem ap arbeitet.",
+    "wv.eingriff.winkel": "Eingriff {winkel}° – jeder Zahn ist {anteil} % der Umdrehung im Material.",
+    "wv.eingriff.ae_ap_schneide": "ae {ae} mm = {ae_d} % von D · ap {ap} mm = {ap_d} × D ({ap_schneide} % der Schneide)",
+    "wv.eingriff.ae_ap": "ae {ae} mm = {ae_d} % von D · ap {ap} mm = {ap_d} × D",
+    "wv.eingriff.spandicke": "Größte Spandicke {hmax} mm, mittlere {hm} mm.",
+    "wv.ausgleich": "Spandicke ausgleichen: gewünscht",
+    "wv.ausgleich.tooltip": "Bei ae unter D/2 wird der Span dünner als fz. Trag hier die Spandicke ein, die du willst – meist das fz aus dem Katalog –, und das Addon rechnet das fz, das sie ergibt.",
+    "wv.ausgleich.ergebnis": "mm → fz {fz} mm",
+    "wv.ausgleich.knopf": "fz übernehmen",
+    "wv.ausgleich.knopf.tooltip": "Setzt fz in der gewählten Zeile auf den gerechneten Wert.",
+    "wv.hinweis.span_duenn": "Der Span ist nur {h} mm dick – die Schneide reibt mehr, als sie schneidet. fz erhöhen (Spandicke ausgleichen)."
 }

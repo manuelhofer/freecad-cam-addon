@@ -286,5 +286,16 @@
     "wv.spalte.q.tooltip": "Q – metal removal rate in cm³/min, calculated: ae · ap · vf / 1000. That much material is gone per minute.",
     "wv.hinweis.ae_zu_gross": "ae is larger than the diameter – more than a full slot is not possible.",
     "wv.hinweis.ap_zu_gross": "ap {ap} mm is longer than the flutes ({laenge} mm).",
-    "wv.hinweis.vc_fz_fehlen": "vc and fz are still missing – they are in the manufacturer's catalogue."
+    "wv.hinweis.vc_fz_fehlen": "vc and fz are still missing – they are in the manufacturer's catalogue.",
+    "wv.eingriff.bild.tooltip": "Left, from above: cutter (blue), material (grey), in red the arc over which each tooth is in the material; feed upwards. Right, from the side: in red the part of the flutes that works at this ap.",
+    "wv.eingriff.winkel": "Engagement {winkel}° – each tooth is in the material for {anteil} % of the revolution.",
+    "wv.eingriff.ae_ap_schneide": "ae {ae} mm = {ae_d} % of D · ap {ap} mm = {ap_d} × D ({ap_schneide} % of the flutes)",
+    "wv.eingriff.ae_ap": "ae {ae} mm = {ae_d} % of D · ap {ap} mm = {ap_d} × D",
+    "wv.eingriff.spandicke": "Largest chip thickness {hmax} mm, mean {hm} mm.",
+    "wv.ausgleich": "Chip thinning: wanted",
+    "wv.ausgleich.tooltip": "With ae below D/2 the chip gets thinner than fz. Enter the chip thickness you want – usually the fz from the catalogue – and the addon calculates the fz that gives it.",
+    "wv.ausgleich.ergebnis": "mm → fz {fz} mm",
+    "wv.ausgleich.knopf": "Apply fz",
+    "wv.ausgleich.knopf.tooltip": "Sets fz in the selected row to the calculated value.",
+    "wv.hinweis.span_duenn": "The chip is only {h} mm thick – the edge rubs more than it cuts. Increase fz (chip thinning)."
 }

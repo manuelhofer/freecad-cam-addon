@@ -8,10 +8,13 @@ bis man für den Werkstoff eigene Werte anlegt. Die Daten stehen in
 werkzeuge.py, das Rechnen in schnittdaten.py.
 """
 
+import math
+
 from PySide import QtCore, QtGui
 
 from . import schnittdaten as sd
 from . import werkzeuge as wz
+from .gui_eingriff import EingriffBild
 from .gui_hilfe import kopfzeile
 from .gui_zahlen import Zahlenpruefer, zahl_lesen, zahl_zeigen, zahlenformat
 from .sprache import tr
@@ -87,6 +90,42 @@ class SchnittwertBereich(QtGui.QWidget):
         self.hinweis.setWordWrap(True)
         self.hinweis.setStyleSheet("color: #c0392b;")
         aufbau.addWidget(self.hinweis)
+
+        # Zur gewählten Zeile: Bild des Eingriffs, die Werte dazu in Worten und
+        # der Spandickenausgleich.
+        self.eingriff = QtGui.QWidget()
+        zeile = QtGui.QHBoxLayout(self.eingriff)
+        zeile.setContentsMargins(0, 0, 0, 0)
+        self.bild = EingriffBild()
+        self.bild.setToolTip(tr("wv.eingriff.bild.tooltip"))
+        zeile.addWidget(self.bild)
+        rechts = QtGui.QVBoxLayout()
+        self.eingriff_text = QtGui.QLabel()
+        self.eingriff_text.setWordWrap(True)
+        rechts.addWidget(self.eingriff_text)
+        self.ausgleich = QtGui.QWidget()
+        ausgleich = QtGui.QHBoxLayout(self.ausgleich)
+        ausgleich.setContentsMargins(0, 0, 0, 0)
+        beschriftung = QtGui.QLabel(tr("wv.ausgleich"))
+        beschriftung.setToolTip(tr("wv.ausgleich.tooltip"))
+        ausgleich.addWidget(beschriftung)
+        self.feld_spandicke = QtGui.QLineEdit()
+        self.feld_spandicke.setValidator(Zahlenpruefer(self.feld_spandicke))
+        self.feld_spandicke.setFixedWidth(80)  # Platz für „0,090“
+        self.feld_spandicke.setToolTip(tr("wv.ausgleich.tooltip"))
+        self.feld_spandicke.textChanged.connect(self._ausgleich_rechnen)
+        ausgleich.addWidget(self.feld_spandicke)
+        self.ausgleich_ergebnis = QtGui.QLabel()
+        ausgleich.addWidget(self.ausgleich_ergebnis)
+        self.knopf_ausgleich = _knopf(
+            tr("wv.ausgleich.knopf"), tr("wv.ausgleich.knopf.tooltip"), self.spandicke_ausgleichen
+        )
+        ausgleich.addWidget(self.knopf_ausgleich)
+        ausgleich.addStretch()
+        rechts.addWidget(self.ausgleich)
+        rechts.addStretch()
+        zeile.addLayout(rechts, 1)
+        aufbau.addWidget(self.eingriff)
 
     # --- von außen ------------------------------------------------------------------
 
@@ -295,13 +334,17 @@ class SchnittwertBereich(QtGui.QWidget):
         self._hinweise()
 
     def _hinweise(self):
-        """Was an der gewählten Zeile nicht passt – sofort, als Satz."""
+        """Was an der gewählten Zeile nicht passt – sofort, als Satz. Dazu Bild und Eingriff."""
         einsatz = self.gewaehlt
         w = self.werkzeug
         saetze = []
+        self._eingriff_zeigen()
         if einsatz is not None and w is not None and not self._bohrer():
             if w.durchmesser and einsatz.ae > w.durchmesser:
                 saetze.append(tr("wv.hinweis.ae_zu_gross"))
+            h = sd.spandicke_max(einsatz.fz, einsatz.ae, w.durchmesser)
+            if 0 < h < sd.MINDEST_SPANDICKE:
+                saetze.append(tr("wv.hinweis.span_duenn", h=_zahl(h, 3)))
             if w.schneidenlaenge and einsatz.ap > w.schneidenlaenge:
                 saetze.append(
                     tr(
@@ -314,6 +357,96 @@ class SchnittwertBereich(QtGui.QWidget):
             saetze.append(tr("wv.hinweis.vc_fz_fehlen"))
         self.hinweis.setText("\n".join(saetze))
         self.hinweis.setVisible(bool(saetze))
+
+    # --- Eingriff ---------------------------------------------------------------------
+
+    def _eingriff_zeigen(self):
+        """Bild und Werte des Eingriffs zur gewählten Zeile; beim Bohrer nichts davon."""
+        einsatz, w = self.gewaehlt, self.werkzeug
+        if einsatz is None or w is None or self._bohrer() or not w.durchmesser:
+            self.eingriff.hide()
+            return
+        self.eingriff.show()
+        d = w.durchmesser
+        self.bild.zeige(d, w.schneidenlaenge, einsatz.ae, einsatz.ap)
+        phi = sd.eingriffswinkel(einsatz.ae, d)
+        zeilen = [
+            tr(
+                "wv.eingriff.winkel",
+                winkel=_zahl(math.degrees(phi), 0),
+                anteil=_zahl(math.degrees(phi) / 3.6, 0),
+            )
+        ]
+        if w.schneidenlaenge:
+            zeilen.append(
+                tr(
+                    "wv.eingriff.ae_ap_schneide",
+                    ae=zahl_zeigen(einsatz.ae),
+                    ae_d=_zahl(einsatz.ae / d * 100, 0),
+                    ap=zahl_zeigen(einsatz.ap),
+                    ap_d=_zahl(einsatz.ap / d, 1),
+                    ap_schneide=_zahl(einsatz.ap / w.schneidenlaenge * 100, 0),
+                )
+            )
+        else:
+            zeilen.append(
+                tr(
+                    "wv.eingriff.ae_ap",
+                    ae=zahl_zeigen(einsatz.ae),
+                    ae_d=_zahl(einsatz.ae / d * 100, 0),
+                    ap=zahl_zeigen(einsatz.ap),
+                    ap_d=_zahl(einsatz.ap / d, 1),
+                )
+            )
+        if einsatz.fz:
+            zeilen.append(
+                tr(
+                    "wv.eingriff.spandicke",
+                    hmax=_zahl(sd.spandicke_max(einsatz.fz, einsatz.ae, d), 3),
+                    hm=_zahl(sd.spandicke_mittel(einsatz.fz, einsatz.ae, d), 3),
+                )
+            )
+        self.eingriff_text.setText("\n".join(zeilen))
+        # Ausgleichen lohnt nur, wo der Span dünner wird als fz: bei ae < D/2.
+        duenner = 0 < einsatz.ae < d / 2 and einsatz.fz > 0
+        self.ausgleich.setVisible(duenner and self._bearbeitbar)
+        if duenner:
+            self.feld_spandicke.setText(_zahl(sd.spandicke_max(einsatz.fz, einsatz.ae, d), 3))
+
+    def _ausgleich_rechnen(self, *_):
+        """Zeigt beim Tippen, welches fz die gewünschte Spandicke ergibt."""
+        einsatz, w = self.gewaehlt, self.werkzeug
+        if einsatz is None or w is None:
+            return
+        try:
+            h = zahl_lesen(self.feld_spandicke.text())
+        except ValueError:
+            h = 0.0
+        fz = sd.fz_fuer_spandicke(h, einsatz.ae, w.durchmesser)
+        self.ausgleich_ergebnis.setText(tr("wv.ausgleich.ergebnis", fz=_zahl(fz, 3)) if fz else "")
+        self.knopf_ausgleich.setEnabled(fz > 0 and abs(fz - einsatz.fz) > 1e-4)
+
+    def spandicke_ausgleichen(self):
+        """Setzt fz so, dass die größte Spandicke dem Wert im Feld entspricht."""
+        einsatz, w = self.gewaehlt, self.werkzeug
+        if einsatz is None or w is None or not self._bearbeitbar:
+            return
+        h = zahl_lesen(self.feld_spandicke.text())
+        fz = sd.fz_fuer_spandicke(h, einsatz.ae, w.durchmesser)
+        if fz <= 0:
+            return
+        einsatz.fz = round(fz, 4)
+        zeile = self.tabelle.currentRow()
+        self._fuellt = True
+        self._zeile_schreiben(zeile, einsatz)
+        self._fuellt = False
+        self._geaendert()
+        self._hinweise()
+
+
+def _zahl(wert, stellen):
+    """Zahl mit fester Anzahl Nachkommastellen im Format der Oberfläche."""
+    return zahlenformat().toString(float(wert), "f", stellen)
 
 
 class _Zahlendelegat(QtGui.QStyledItemDelegate):

@@ -48,6 +48,25 @@ for werkzeug, einsatz, text in (
     if vf != 0 or q != 0:
         fehler.append(f"{text}: vf {vf}, Q {q} statt 0")
 
+# Eingriffswinkel: Vollnut 180°, halber Durchmesser 90°, 10 % von D 36,87°.
+ungefaehr(math.degrees(sd.eingriffswinkel(12, 12)), 180, "φ Vollnut")
+ungefaehr(math.degrees(sd.eingriffswinkel(20, 12)), 180, "φ ae > D")
+ungefaehr(math.degrees(sd.eingriffswinkel(6, 12)), 90, "φ ae = D/2")
+ungefaehr(math.degrees(sd.eingriffswinkel(1.2, 12)), 36.87, "φ ae = 10 %")
+ungefaehr(sd.eingriffswinkel(0, 12), 0, "φ ohne ae")
+
+# Spandicke: bei 10 % von D nur 60 % von fz; ab D/2 gleich fz.
+ungefaehr(sd.spandicke_max(0.15, 1.2, 12), 0.09, "h max dynamisch", 1e-6)
+ungefaehr(sd.spandicke_max(0.05, 12, 12), 0.05, "h max Vollnut", 1e-9)
+ungefaehr(sd.spandicke_max(0.05, 6, 12), 0.05, "h max ae = D/2", 1e-9)
+ungefaehr(sd.spandicke_mittel(0.05, 12, 12), 0.1 / math.pi, "h m Vollnut", 1e-6)
+ungefaehr(sd.spandicke_mittel(0.15, 1.2, 12), 0.0466, "h m dynamisch", 1e-4)
+
+# Ausgleich: gewünschte Spandicke 0,09 bei ae 1,2 → fz 0,15; ab D/2 unverändert.
+ungefaehr(sd.fz_fuer_spandicke(0.09, 1.2, 12), 0.15, "fz Ausgleich", 1e-6)
+ungefaehr(sd.fz_fuer_spandicke(0.05, 8, 12), 0.05, "fz Ausgleich ab D/2", 1e-9)
+ungefaehr(sd.fz_fuer_spandicke(0.05, 0, 12), 0, "fz Ausgleich ohne ae", 1e-9)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

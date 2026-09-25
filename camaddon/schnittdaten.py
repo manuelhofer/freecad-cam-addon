@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Rechnen mit Schnittwerten (W-002): Drehzahl, Vorschub, Zeitspanvolumen.
+"""Rechnen mit Schnittwerten (W-002): Drehzahl, Vorschub, Zeitspanvolumen, Eingriff.
 
 Eingegeben werden vc und fz – so stehen sie im Katalog des Herstellers –,
 Drehzahl und Vorschub rechnet das Addon. Alle Längen in mm, vc in m/min,
@@ -45,3 +45,46 @@ def rechne(werkzeug, einsatz):
     else:
         q = zeitspanvolumen(einsatz.ae, einsatz.ap, vf)
     return n, vf, q
+
+
+# --- Eingriff und Spandicke (P-2026-09-25-48) --------------------------------
+
+# Dünner als das schneidet eine Schneide kaum noch, sie reibt – Verschleiß
+# ohne Abtrag. Grobe Grenze für Hartmetall, nur für einen Hinweis.
+MINDEST_SPANDICKE = 0.01  # mm
+
+
+def eingriffswinkel(ae, durchmesser):
+    """Der Winkel φ, über den ein Zahn im Material ist, in Bogenmaß.
+
+    cos φ = 1 − 2 · ae / D; eine Vollnut (ae ≥ D) hat 180°.
+    """
+    if ae <= 0 or durchmesser <= 0:
+        return 0.0
+    return math.acos(1.0 - 2.0 * min(ae, durchmesser) / durchmesser)
+
+
+def spandicke_max(fz, ae, durchmesser):
+    """Die größte Spandicke: fz · sin φ bei ae < D/2, sonst fz."""
+    phi = eingriffswinkel(ae, durchmesser)
+    if phi >= math.pi / 2:
+        return fz
+    return fz * math.sin(phi)
+
+
+def spandicke_mittel(fz, ae, durchmesser):
+    """Die mittlere Spandicke über den Eingriff: fz · (1 − cos φ) / φ."""
+    phi = eingriffswinkel(ae, durchmesser)
+    if phi <= 0:
+        return 0.0
+    return fz * (1.0 - math.cos(phi)) / phi
+
+
+def fz_fuer_spandicke(spandicke, ae, durchmesser):
+    """Das fz, bei dem die größte Spandicke `spandicke` beträgt (Spandickenausgleich)."""
+    phi = eingriffswinkel(ae, durchmesser)
+    if phi <= 0:
+        return 0.0
+    if phi >= math.pi / 2:
+        return spandicke
+    return spandicke / math.sin(phi)

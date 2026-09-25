@@ -12,6 +12,63 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-48 eingriff-im-bild
+
+### EINGELESEN
+- W-002, Spezifikation Abschnitt 6.2: Bild des Eingriffs, Werte zur
+  gewählten Zeile, Spandicke ausgleichen; drittes Akzeptanzkriterium aus
+  Abschnitt 12. Arbeitsregeln Abschnitt 8: „Zeigen statt beschreiben“,
+  Animationen ohne Text.
+
+### DATEIEN
+- `camaddon/schnittdaten.py` (Eingriffswinkel, größte und mittlere
+  Spandicke, fz für eine gewünschte Spandicke, Mindestspandicke für den
+  Hinweis)
+- `camaddon/gui_eingriff.py` (neu: das Bild)
+- `camaddon/gui_schnittwerte.py` (Bild, Werte in Worten, Ausgleich,
+  Hinweis „Span zu dünn“)
+- `help/de|en/schnittwerte.html` (Abschnitt „Eingriff und Spandicke“)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_schnittdaten.py`, `tests/gui/szenario_schnittwerte.py`
+- `docs/aufbau.md`, `CHATSTART.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In der Zeile „Schruppen dynamisch“ des Ø-12-Fräsers ae 1,2 tippen → das Bild
+zeigt einen schmalen roten Bogen, daneben „Eingriff 37° – jeder Zahn ist
+10 % der Umdrehung im Material“; bei „Vollnut“ ist der Bogen ein Halbkreis
+und es steht 180° da.
+
+### DONE
+- **Bild** (ohne Text): links von oben Fräser, Material und roter
+  Eingriffsbogen, Vorschubpfeil; bei der Vollnut Material auf beiden
+  Seiten. Rechts von der Seite Schaft, Schneide mit angedeuteten Wendeln,
+  Werkstück so hoch wie ap und rot der arbeitende Teil der Schneide.
+  Schneidenlänge unbekannt: Schneide gestrichelt.
+- **In Worten daneben:** Eingriffswinkel und Anteil der Umdrehung, ae in %
+  von D, ap in × D und in % der Schneide, größte und mittlere Spandicke.
+- **Spandicke ausgleichen** (nur bei ae < D/2): Feld „gewünscht“ mit der
+  jetzigen größten Spandicke vorbelegt, daneben das fz, das die
+  gewünschte ergibt, Knopf „fz übernehmen“. Entscheidung: kein Knopf
+  „fz ausgleichen“ ohne Zielwert – der würde fz bei jedem Druck weiter
+  anheben. Mit Zielwert ist der Knopf beliebig oft ohne Überraschung.
+- **Hinweis**, wenn die größte Spandicke unter 0,01 mm liegt (Schneide
+  reibt).
+- Beim Bohrer kein Bild und keine Eingriffswerte.
+- **Gefundener Fehler im eigenen Entwurf:** Das Feld für die Spandicke war
+  zu schmal und zeigte „090“ statt „0,090“.
+
+### TEST
+- KI, FreeCADCmd (Wochen-Build): `test_schnittdaten` mit Eingriffswinkel
+  (180°, 90°, 36,87°), Spandicken und Ausgleich grün.
+- KI, Oberfläche (Wochen-Build): `szenario_schnittwerte` grün – Werte im
+  Text, Ausgleich 0,1 mm → fz 0,1667, Vollnut ohne Ausgleich. Bilder für
+  dynamisch und Vollnut angesehen.
+- Manuel: offen.
+
+### NEXT
+- Strategien vergleichen (Spezifikation Abschnitt 7).
+
 ## P-2026-09-25-47 schnittwerte-je-werkstoff
 
 ### EINGELESEN

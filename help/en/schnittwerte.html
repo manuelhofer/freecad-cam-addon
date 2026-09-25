@@ -53,6 +53,27 @@ this material.</li>
 values</b> returns to the values for all materials.</li>
 </ul>
 
+<h3>Engagement and chip thickness</h3>
+<p>Below the table there is a <b>picture</b> of the selected row: on the left,
+from above, the cutter with the material and, in red, the arc over which each
+tooth is in the material; on the right, from the side, the flutes and, in red,
+the part that works at this ap. Next to it the same values in words:</p>
+<ul>
+<li><b>Engagement</b> – the angle of that arc. Full slot: 180°, the tooth is in
+the material for half a revolution and gets hot. At ae = 10 % of D it is 37°:
+the tooth cuts briefly and cools down for the rest of the revolution.</li>
+<li><b>ae in % of D</b> and <b>ap in × D</b> – the way many catalogues state
+them; plus how much of the flutes is working.</li>
+<li><b>Largest chip thickness</b> – with ae below D/2 the chip gets <b>thinner
+than fz</b>: h max = fz · sin(engagement). At 10 % of D it is only 60 % as
+thick. If it is too thin, the edge rubs instead of cutting – it gets hot and
+wears without removing material.</li>
+</ul>
+<p><b>Chip thinning:</b> the fz values in catalogues usually apply from
+ae = D/2. Enter the chip thickness you want – usually exactly that fz – and
+the addon calculates the fz that gives it at the narrow engagement.
+Example Ø 12, ae 1.2: wanted 0.09 mm → fz 0.15 mm.</p>
+
 <h3>Where the values come from</h3>
 <p>From the manufacturer's catalogue, under the material's <b>ISO group</b>
 (the coloured box). For orientation only, for coated solid carbide end mills

@@ -78,6 +78,32 @@ def schritte(h):
     h.pruefe(not s.hinweis.isVisible(), f"Hinweis trotz passender Werte: {s.hinweis.text()!r}")
     h.bild("1_alle_werkstoffe", d)
 
+    # Eingriff der gewählten Zeile (dynamisch): Bild, Winkel, Spandicke.
+    text = s.eingriff_text.text()
+    h.pruefe(s.eingriff.isVisible() and s.bild.isVisible(), "Bild des Eingriffs fehlt")
+    for teil in ("Eingriff 37°", "10 % von D", "2,1 × D", "96 % der Schneide", "0,090"):
+        h.pruefe(teil in text, f"„{teil}“ fehlt im Eingriff: {text!r}")
+    h.pruefe(s.ausgleich.isVisible(), "Spandicke ausgleichen fehlt bei ae < D/2")
+    h.bild("1b_eingriff_dynamisch", s.eingriff)
+    # Gewünscht 0,1 mm → fz 0,167; übernehmen rechnet die Zeile neu.
+    s.feld_spandicke.setText("0,1")
+    yield 100
+    h.pruefe("0,167" in s.ausgleich_ergebnis.text(), f"Ausgleich: {s.ausgleich_ergebnis.text()!r}")
+    s.knopf_ausgleich.click()
+    yield 100
+    h.pruefe(abs(s.gewaehlt.fz - 0.1667) < 1e-4, f"fz nach Ausgleich {s.gewaehlt.fz}")
+    h.pruefe(zelle(d, 1, gs.FZ) == "0,1667", f"fz in der Zelle {zelle(d, 1, gs.FZ)!r}")
+    s.setze(1, gs.FZ, "0,15")
+    # Vollnut: 180°, kein Ausgleich.
+    s.tabelle.setCurrentCell(0, gs.EINSATZ)
+    yield 100
+    h.pruefe("Eingriff 180°" in s.eingriff_text.text(), f"Vollnut: {s.eingriff_text.text()!r}")
+    h.pruefe(not s.ausgleich.isVisible(), "Ausgleich bei Vollnut sichtbar")
+    h.bild("1c_eingriff_vollnut", s.eingriff)
+    s.tabelle.setCurrentCell(1, gs.EINSATZ)
+    yield 100
+    h.bild("1d_dialog_mit_eingriff", d)
+
     # 1.4301 ohne eigene Werte: grau, nicht bearbeitbar.
     d.waehle_werkstoff("1.4301")
     yield 200
