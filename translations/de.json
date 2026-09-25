@@ -126,5 +126,14 @@
     "aufnahme.beschriftung_werkstueck": "{name} · Werkstückaufnahme",
     "hilfe.knopf.tooltip": "Ausführliche Hilfe zu diesem Bereich",
     "hilfe.titel": "Hilfe – CAM-Addon",
-    "dialog.beschleunigung_ermitteln": "Wie finde ich die Beschleunigung heraus?"
+    "dialog.beschleunigung_ermitteln": "Wie finde ich die Beschleunigung heraus?",
+    "export.beschreibung": "Vom CAM-Addon erzeugt aus „{dokument}“. Änderungen bitte dort vornehmen und neu übergeben.",
+    "export.rolle_unbekannt": "Bei „{name}“ ist unklar, ob die Achse im Tisch oder im Kopf sitzt (Werkzeug- und Werkstückaufnahme anlegen). Sie wurde als Tischachse übergeben.",
+    "export.linear": "Linearachse {name}, Eilgang {eilgang} mm/min",
+    "export.dreh": "Drehachse {name}, {geschwindigkeit} °/min",
+    "export.spindel": "Spindel {name}, bis {drehzahl} U/min",
+    "export.ohne_grenzen": "„{name}“ hat am Gelenk keine Begrenzung (Min/Max). CAM bekommt einen sehr großen Bereich – trage die Begrenzung in der Assembly ein.",
+    "export.wert_bleibt": "{wert} von „{name}“ kennt die CAM-Definition nicht – der Wert bleibt in der Maschine gespeichert.",
+    "export.revolver": "Revolver „{name}“ mit {anzahl} Plätzen kennt die CAM-Definition nicht – die Plätze bleiben in der Maschine gespeichert.",
+    "export.kette_fehler": "FreeCAD meldet einen Fehler in der Achsfolge: {fehler}"
 }

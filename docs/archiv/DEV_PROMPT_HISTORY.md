@@ -12,6 +12,65 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-20 export-cam-maschine
+
+### EINGELESEN
+- Spezifikation W-001, Stufe 2.
+- `Mod/CAM/Machine/models/machine.py`: `Machine`, `LinearAxis`,
+  `RotaryAxis`, `Toolhead`, `to_dict`/`from_dict`,
+  `MachineFactory.save_configuration`/`list_configurations`,
+  `validate_kinematic_chain`.
+
+### DATEIEN
+- `camaddon/export.py` (neu)
+- `tests/test_export.py` (neu), `tests/beispielmaschinen.py`
+  (`drehmaschine_komplett`)
+- `translations/de.json`, `translations/en.json`
+- `CHATSTART.md` (Lesekarte), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die fertig beschriebene Beispiel-Drehmaschine wird als `Testdrehmaschine.fcm`
+gespeichert. CAM listet sie danach, und neu geladen hat sie X1 (Richtung X,
+0–200 mm, 24000 mm/min, hängt an Z1, im Kopf), Z1, C4 (Tisch, 36000 °/min)
+und die Spindel S4.
+
+### DONE
+- `baue_cam_maschine()` übersetzt das Maschinenobjekt in FreeCADs `Machine`:
+  - Linear → `LinearAxis`, Positionieren → `RotaryAxis` (U/min × 360 =
+    °/min), Spindel → `Toolhead`.
+  - Tisch/Kopf aus `rollen()`.
+  - Die Eltern-Achse ist die nächste NC-Achse zum Bett hin. Gelenke nur mit
+    Spindel oder Revolver werden übersprungen.
+  - Die Grenzen kommen aus dem Gelenk. Fehlen sie, gibt es einen sehr großen
+    Bereich und einen Satz im Bericht.
+- `exportiere()` speichert über `MachineFactory.save_configuration` in den
+  Maschinenordner von CAM. Der Dateiname kommt aus dem Maschinennamen, ein
+  zweiter Export überschreibt dieselbe Datei.
+- **Bericht** in ganzen Sätzen: was übertragen wurde, und was CAM nicht kennt
+  und deshalb nur im Dokument bleibt (größter Vorschub, Beschleunigung, Ruck,
+  Revolver mit Plätzen, fehlende Grenzen, unklare Tisch/Kopf-Rolle, Fehler
+  aus `validate_kinematic_chain`).
+- **Befund: Fehler in FreeCAD.** `Machine.to_dict` schreibt eine Achse als
+  `[Ursprung, Richtung]`. `Machine.from_dict` hält bei Linearachsen aber den
+  Ursprung für die Richtung, sobald er nicht (0,0,0) ist. Jede solche
+  Linearachse kommt nach Speichern und Laden verdreht zurück; im Test wurde X1
+  von (1,0,0) zu (0,95, 0,25, 0,18). Umgangen, indem Linearachsen mit Ursprung
+  (0,0,0) übergeben werden. Für eine Linearachse zählt nur die Richtung. Der
+  Fehler sollte bei FreeCAD gemeldet werden; das ist ein eigener Punkt im
+  Snapshot.
+- Der Test schreibt nicht in Manuels echten CAM-Ordner
+  (`set_config_directory` auf einen Temp-Ordner) und stellt die Sprache für
+  seine Satzprüfungen fest auf Deutsch.
+
+### TEST
+- Von der KI ohne Fenster ausgeführt: alle sechs Prüfungen `ok`, volle
+  Ausgabe von `test_export.py` ohne Warnungen.
+- Ohne den Umweg über Ursprung 0 schlug `test_export.py` fehl: „X1: Richtung X
+  erwartet“. So wurde der FreeCAD-Fehler gefunden.
+
+### NEXT
+- Knopf „An CAM übergeben“ im Dialog mit Anzeige des Berichts.
+
 ## P-2026-09-25-19 hilfe-im-dialog
 
 ### EINGELESEN

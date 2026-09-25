@@ -126,5 +126,14 @@
     "aufnahme.beschriftung_werkstueck": "{name} · workpiece mount",
     "hilfe.knopf.tooltip": "Detailed help on this section",
     "hilfe.titel": "Help – CAM Addon",
-    "dialog.beschleunigung_ermitteln": "How do I find the acceleration?"
+    "dialog.beschleunigung_ermitteln": "How do I find the acceleration?",
+    "export.beschreibung": "Created by the CAM Addon from “{dokument}”. Make changes there and hand it over again.",
+    "export.rolle_unbekannt": "For “{name}” it is unclear whether the axis sits in the table or the head (add tool and workpiece mounts). It was handed over as a table axis.",
+    "export.linear": "Linear axis {name}, rapid {eilgang} mm/min",
+    "export.dreh": "Rotary axis {name}, {geschwindigkeit} °/min",
+    "export.spindel": "Spindle {name}, up to {drehzahl} rpm",
+    "export.ohne_grenzen": "“{name}” has no limits (min/max) on its joint. CAM gets a very large range – enter the limits in the assembly.",
+    "export.wert_bleibt": "The CAM definition does not know the {wert} of “{name}” – the value stays stored in the machine.",
+    "export.revolver": "The CAM definition does not know the turret “{name}” with {anzahl} stations – the stations stay stored in the machine.",
+    "export.kette_fehler": "FreeCAD reports an error in the axis order: {fehler}"
 }

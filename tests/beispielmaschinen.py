@@ -127,3 +127,27 @@ def fuenfachser(zweites_lager=True):
     b.gelenk("S", "Revolute", schlitten, "Face5", spindel, "Face2")
     b.gelenk("Abdeckung_zylindrisch", "Cylindrical", staender, "Face4", abdeckung, "Face3")
     return b.fertig()
+
+
+def drehmaschine_komplett():
+    """Die Drehmaschine mit fertig ausgefülltem Maschinenobjekt: Z1, X1, S4/C4
+    an der Spindel, Revolver T mit 12 Plätzen, Futter als Werkstückaufnahme."""
+    from camaddon import kette, maschine as m
+
+    asm = drehmaschine()
+    obj = asm.Document.getObject
+    ma = m.lege_maschine_an(asm)
+    ma.Label = "Testdrehmaschine"
+    z1 = m.neue_betriebsart(ma, obj("Z"), m.ART_LINEAR, "Z1")
+    z1.Eilgang = 30000
+    x1 = m.neue_betriebsart(ma, obj("X"), m.ART_LINEAR, "X1")
+    x1.Eilgang, x1.Beschleunigung = 24000, 5
+    s4 = m.neue_betriebsart(ma, obj("Spindel"), m.ART_SPINDEL, "S4")
+    s4.Drehzahl = 4000
+    c4 = m.neue_betriebsart(ma, obj("Spindel"), m.ART_POSITIONIEREN, "C4")
+    c4.Geschwindigkeit = 100
+    rev = m.neue_betriebsart(ma, obj("Revolverachse"), m.ART_REVOLVER, "T")
+    m.neue_aufnahme(ma, obj("Spannflaeche"), m.AUFNAHME_WERKSTUECK, "Futter")
+    m.verteile_plaetze(ma, kette.lies_kette(asm), rev, obj("Werkzeugplatz"), 12)
+    asm.Document.recompute()
+    return asm, ma
