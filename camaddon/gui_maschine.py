@@ -1,71 +1,56 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Dialog „Maschine bearbeiten“ (Spezifikation W-001, Abschnitt 11).
 
-Ein Aufgabenfenster links, damit die 3D-Ansicht sichtbar bleibt. Der ganze
-Dialog ist eine Transaktion: OK übernimmt alles als einen Schritt
-Rückgängig, Abbrechen verwirft alles.
+Ein Aufgabenfenster in FreeCADs Aufgabenbereich, damit die 3D-Ansicht
+sichtbar bleibt. Von oben nach unten:
+
+    Name          Name der Maschine
+    Achsen        die Gelenke der Assembly, darunter ihre Betriebsarten
+    (Details)     Felder der gewählten Betriebsart oder Aufnahme – gui_details
+    Aufnahmen     Werkzeug- und Werkstückaufnahmen, Revolverplätze gesammelt
+    Glieder       was sich gemeinsam bewegt
+    Hinweise      was fehlt oder nicht passt; ein Klick springt zur Zeile
+    An CAM übergeben
+
+Der ganze Dialog ist eine Transaktion: OK übernimmt alles als einen Schritt
+Rückgängig, Abbrechen verwirft alles. Jede Eingabe geht trotzdem sofort ins
+Dokument, damit Hinweise und 3D-Ansicht immer den aktuellen Stand zeigen.
 """
 
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import export, gui_zeigen, hilfe
+from . import export, gui_zeigen
 from . import kette as kette_modul
 from . import maschine as m
+from .gui_bericht import BerichtFenster
+from .gui_details import DetailKasten
+from .gui_hilfe import kopfzeile
 from .gui_start import symbol
+from .gui_verteilhilfe import VerteilDialog
 from .kette import HINWEIS, LINEAR
 from .sprache import tr
 
+# Jede Zeile in „Achsen“, „Aufnahmen“ und „Glieder“ trägt in ihren Daten
+# (Art der Zeile, Objekt).
 ROLLE = QtCore.Qt.UserRole
+ZEILE_GELENK = "gelenk"
+ZEILE_BETRIEBSART = "betriebsart"
+ZEILE_AUFNAHME = "aufnahme"
+ZEILE_REVOLVER = "revolver"  # Kopfzeile, unter der die Plätze eines Revolvers stehen
+ZEILE_GLIED = "glied"
 
-# Welche Kennwerte eine Einheit neben dem Feld brauchen (bei den anderen
-# steht sie schon im Namen) – abhängig davon, ob die Achse fährt oder dreht.
-EINHEIT_LINEAR = {"Beschleunigung": "m/s²", "Ruck": "m/s³"}
-EINHEIT_DREH = {"Beschleunigung": "U/s²", "Ruck": "U/s³"}
-
-
-# --- Maschine finden ------------------------------------------------------
-
-
-def _assemblies(doc):
-    return [o for o in doc.Objects if o.TypeId == "Assembly::AssemblyObject"]
-
-
-def _gewaehlte_assembly(doc):
-    """Assembly aus Auswahl, aktiver Assembly oder der einzigen im Dokument."""
-    for objekt in FreeCADGui.Selection.getSelection(doc.Name):
-        kandidaten = [objekt] + objekt.InListRecursive
-        for kandidat in kandidaten:
-            if kandidat.TypeId == "Assembly::AssemblyObject":
-                return kandidat
-    try:
-        import UtilsAssembly
-
-        aktiv = UtilsAssembly.activeAssembly()
-        if aktiv is not None:
-            return aktiv
-    except ImportError:
-        pass
-    alle = _assemblies(doc)
-    if len(alle) == 1:
-        return alle[0]
-    if len(alle) > 1:
-        namen = [a.Label for a in alle]
-        name, ok = QtGui.QInputDialog.getItem(
-            FreeCADGui.getMainWindow(),
-            tr("dialog.titel"),
-            tr("dialog.welche_baugruppe"),
-            namen,
-            0,
-            False,
-        )
-        if ok:
-            return alle[namen.index(name)]
-    return None
+# Gezeigt wird erst, wenn die Maus so lange auf einer Zeile verweilt – nicht
+# bei jedem Überstreichen.
+ZEIGEN_NACH_MS = 250
+MINDESTHOEHE_ACHSEN = 160  # Pixel
+MINDESTHOEHE_AUFNAHMEN = 110
 
 
 class BefehlMaschineBearbeiten:
+    """Befehl in der Werkzeugleiste: öffnet den Dialog für die gewählte Assembly."""
+
     def GetResources(self):
         return {
             "Pixmap": symbol("maschine.svg"),
@@ -74,9 +59,10 @@ class BefehlMaschineBearbeiten:
         }
 
     def IsActive(self):
-        # Immer bedienbar: Fehlt die Baugruppe, erklärt der Befehl, was zu tun
-        # ist – ein ausgegrauter Knopf erklärt nichts.
-        return FreeCADGui.Control.activeDialog() is False
+        # Immer bedienbar, solange kein anderes Aufgabenfenster offen ist: Fehlt
+        # die Assembly, erklärt der Befehl, was zu tun ist – ein ausgegrauter
+        # Knopf erklärt nichts.
+        return not FreeCADGui.Control.activeDialog()
 
     def Activated(self):
         doc = FreeCAD.ActiveDocument
@@ -91,298 +77,274 @@ class BefehlMaschineBearbeiten:
         FreeCADGui.Control.showDialog(MaschinenPanel(assembly, maschine))
 
 
-# --- Hilfen für den Aufbau ------------------------------------------------
+def _gewaehlte_assembly(doc):
+    """Die Assembly, um die es geht, oder None.
 
-
-def _kopfzeile(titel, thema=None):
-    """Überschrift eines Bereichs, rechts der Hilfe-Knopf (?) zum Thema."""
-    zeile = QtGui.QWidget()
-    aufbau = QtGui.QHBoxLayout(zeile)
-    aufbau.setContentsMargins(0, 0, 0, 0)
-    aufbau.addWidget(QtGui.QLabel(f"<b>{titel}</b>"))
-    aufbau.addStretch()
-    if thema:
-        knopf = QtGui.QToolButton()
-        knopf.setText("?")
-        knopf.setToolTip(tr("hilfe.knopf.tooltip"))
-        knopf.setObjectName("hilfe_" + thema)
-        knopf.clicked.connect(lambda: zeige_hilfe(zeile, thema))
-        aufbau.addWidget(knopf)
-    return zeile
-
-
-class HilfeFenster(QtGui.QDialog):
-    """Ausführliche Hilfe; Verweise zwischen den Seiten funktionieren."""
-
-    offen = None
-
-    def __init__(self, eltern, thema):
-        super().__init__(eltern)
-        HilfeFenster.offen = self
-        self.setWindowTitle(tr("hilfe.titel"))
-        self.resize(560, 520)
-        self.browser = QtGui.QTextBrowser()
-        self.browser.setSearchPaths([hilfe.hilfe_ordner()])
-        self.browser.setOpenExternalLinks(True)
-        pfad = hilfe.hilfe_datei(thema)
-        if pfad:
-            self.browser.setSource(QtCore.QUrl.fromLocalFile(pfad))
-        knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
-        knoepfe.rejected.connect(self.close)
-        aufbau = QtGui.QVBoxLayout(self)
-        aufbau.addWidget(self.browser)
-        aufbau.addWidget(knoepfe)
-
-
-def zeige_hilfe(eltern, thema):
-    # Nicht modal: Man soll lesen und gleichzeitig im Dialog weiterarbeiten können.
-    fenster = HilfeFenster(eltern, thema)
-    fenster.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-    fenster.show()
-
-
-def _zahlenformat():
-    """Das Zahlenformat der Oberfläche, aber ohne Tausendertrennzeichen.
-
-    Auf einem deutschen System stellt FreeCAD das deutsche Format ein. Mit
-    Tausenderpunkten zeigte das Feld „30.000“, und zurückgelesen ergab das 30
-    statt 30000 (B-004). Ohne sie ist jede Eingabe eindeutig: Auf Deutsch ist
-    das Komma das Dezimalzeichen, einen Punkt lässt das Feld nicht zu.
+    Der Reihe nach: die gewählte (oder die, in der etwas Gewähltes liegt), die
+    gerade bearbeitete, die einzige im Dokument. Gibt es mehrere, wird gefragt.
     """
-    zahlenformat = QtCore.QLocale()
-    zahlenformat.setNumberOptions(
-        QtCore.QLocale.OmitGroupSeparator | QtCore.QLocale.RejectGroupSeparator
+    for objekt in FreeCADGui.Selection.getSelection(doc.Name):
+        for kandidat in [objekt, *objekt.InListRecursive]:
+            if _ist_assembly(kandidat):
+                return kandidat
+    aktiv = _aktive_assembly()
+    if aktiv is not None:
+        return aktiv
+    alle = [o for o in doc.Objects if _ist_assembly(o)]
+    if len(alle) > 1:
+        return _frage_nach_assembly(alle)
+    return alle[0] if alle else None
+
+
+def _ist_assembly(objekt):
+    return objekt.TypeId == "Assembly::AssemblyObject"
+
+
+def _aktive_assembly():
+    """Die Assembly, die gerade bearbeitet wird (Doppelklick im Baum), oder None."""
+    try:
+        import UtilsAssembly
+    except ImportError:  # ohne Assembly-Arbeitsbereich
+        return None
+    return UtilsAssembly.activeAssembly()
+
+
+def _frage_nach_assembly(alle):
+    namen = [a.Label for a in alle]
+    name, gewaehlt = QtGui.QInputDialog.getItem(
+        FreeCADGui.getMainWindow(),
+        tr("dialog.titel"),
+        tr("dialog.welche_baugruppe"),
+        namen,
+        0,  # vorgewählt: die erste
+        False,  # nur aus der Liste, kein freier Text
     )
-    return zahlenformat
-
-
-class _Zahlenpruefer(QtGui.QDoubleValidator):
-    """Lässt nur Zahlen ab 0 im Zahlenformat der Oberfläche zu – und ein leeres Feld.
-
-    Leer heißt „unbekannt“ (0). QDoubleValidator allein hält ein leeres Feld
-    für unfertig und meldet es nicht – den Wert zu löschen, bliebe wirkungslos.
-    """
-
-    def __init__(self, feld):
-        # feld als Qt-Eltern: Der Prüfer lebt so lange wie das Feld.
-        super().__init__(0, 1e9, 6, feld)  # kleinster Wert, größter Wert, Nachkommastellen
-        self.setLocale(_zahlenformat())
-
-    def validate(self, text, position):
-        if not text.strip():
-            return QtGui.QValidator.Acceptable, text, position
-        return super().validate(text, position)
-
-
-def _zahl_lesen(text):
-    """Liest eine Zahl im Zahlenformat der Oberfläche; ein leeres Feld ist 0 (unbekannt)."""
-    text = text.strip()
-    if not text:
-        return 0.0
-    wert, gelesen = _zahlenformat().toDouble(text)
-    if not gelesen:  # hinter dem _Zahlenpruefer nicht möglich
-        raise ValueError(f"keine Zahl: {text!r}")
-    return wert
-
-
-def _zahl_zeigen(wert):
-    """Zeigt eine Zahl im Zahlenformat der Oberfläche; 0 (unbekannt) als leeres Feld."""
-    if not wert:
-        return ""
-    return _zahlenformat().toString(float(wert), "g", 12)
-
-
-def _symbol_status(ok):
-    stil = QtGui.QApplication.style()
-    return stil.standardIcon(
-        QtGui.QStyle.SP_DialogApplyButton if ok else QtGui.QStyle.SP_MessageBoxWarning
-    )
-
-
-# --- Aufgabenfenster -------------------------------------------------------
+    return alle[namen.index(name)] if gewaehlt else None
 
 
 class MaschinenPanel:
-    # Das gerade offene Fenster – für die Oberflächen-Szenarien.
-    offen = None
+    """Das Aufgabenfenster. FreeCAD ruft `getStandardButtons`, `accept` und `reject` auf."""
+
+    offen = None  # das gerade offene Fenster – für die Oberflächen-Szenarien
 
     def __init__(self, assembly, maschine):
         MaschinenPanel.offen = self
-        self.geschlossen = False
         self.assembly = assembly
         self.maschine = maschine
         self.doc = assembly.Document
         self.kette = kette_modul.lies_kette(assembly)
-        self.wackeln = None
-        self._zeige_ziel = None
+        self.meldungen = []  # die gerade gezeigten Hinweise
+        self.geschlossen = False  # nach OK oder Abbrechen: keine späten Aufrufe mehr
+        self.wackeln = None  # die Bewegung beim Zeigen einer Achse
+
+        self._zeige_ziel = None  # die Zeile unter der Maus
         self._zeige_uhr = QtCore.QTimer()
         self._zeige_uhr.setSingleShot(True)
-        # Erst zeigen, wenn die Maus kurz auf einer Zeile verweilt – nicht bei
-        # jedem Überstreichen.
-        self._zeige_uhr.setInterval(250)
-        self._zeige_uhr.timeout.connect(lambda: self._zeige(self._zeige_ziel))
+        self._zeige_uhr.setInterval(ZEIGEN_NACH_MS)
+        self._zeige_uhr.timeout.connect(lambda: self.zeige(self._zeige_ziel))
+
         self.form = self._baue()
-        self._fuelle_alles()
-        # Gleich ein Gelenk gewählt, damit „+ Betriebsart“ sofort bedienbar ist.
+        self.neu_aufbauen()
+        # Gleich ein Gelenk wählen, damit „+ Betriebsart“ sofort bedienbar ist.
         if self.achsen.topLevelItemCount():
             self.achsen.setCurrentItem(self.achsen.topLevelItem(0))
 
-    # FreeCAD-Schnittstelle des Aufgabenfensters
+    # --- Schnittstelle zu FreeCAD ---------------------------------------------
+
     def getStandardButtons(self):
         return QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel
 
     def accept(self):
-        self.geschlossen = True
-        self._zeigen_beenden()
+        self._vor_dem_schliessen()
         self.doc.commitTransaction()
         FreeCADGui.Control.closeDialog()
         self.doc.recompute()
         return True
 
     def reject(self):
-        self.geschlossen = True
-        self._zeigen_beenden()
+        self._vor_dem_schliessen()
         self.doc.abortTransaction()
         FreeCADGui.Control.closeDialog()
         self.doc.recompute()
         return True
 
-    # Aufbau
+    def _vor_dem_schliessen(self):
+        """Bewegung anhalten und alles zurückstellen, Markierung in 3D weg."""
+        self.geschlossen = True
+        self._zeige_uhr.stop()
+        if self.wackeln:
+            self.wackeln.stopp()
+        FreeCADGui.Selection.clearSelection()
+
+    # --- Aufbau ---------------------------------------------------------------
+
     def _baue(self):
         form = QtGui.QWidget()
         form.setWindowTitle(tr("dialog.titel"))
         form.setWindowIcon(QtGui.QIcon(symbol("maschine.svg")))
-        aufbau = QtGui.QVBoxLayout(form)
-
-        name_zeile = QtGui.QHBoxLayout()
-        name_zeile.addWidget(QtGui.QLabel(tr("dialog.name")))
-        self.name = QtGui.QLineEdit(self.maschine.Label)
-        self.name.setToolTip(tr("dialog.name.tooltip"))
-        self.name.editingFinished.connect(self._name_geaendert)
-        name_zeile.addWidget(self.name)
-        aufbau.addLayout(name_zeile)
-
-        # Achsen
-        aufbau.addWidget(_kopfzeile(tr("dialog.achsen"), "achsen"))
-        self.achsen = QtGui.QTreeWidget()
-        self.achsen.setHeaderHidden(True)
-        self.achsen.setToolTip(tr("dialog.achsen.tooltip"))
-        self.achsen.setMouseTracking(True)
-        self.achsen.itemEntered.connect(
-            lambda eintrag, _s: self._zeige_spaeter(eintrag.data(0, ROLLE))
-        )
-        self.achsen.currentItemChanged.connect(self._achse_gewaehlt)
-        self.achsen.setMinimumHeight(160)
-        aufbau.addWidget(self.achsen)
-        self.achsen_knoepfe = QtGui.QWidget()
-        knoepfe = QtGui.QHBoxLayout(self.achsen_knoepfe)
-        knoepfe.setContentsMargins(0, 0, 0, 0)
-        self.knopf_betriebsart = QtGui.QPushButton(tr("dialog.betriebsart_neu"))
-        self.knopf_betriebsart.setToolTip(tr("dialog.betriebsart_neu.tooltip"))
-        self.knopf_betriebsart.clicked.connect(self._betriebsart_menue)
-        self.knopf_ba_weg = QtGui.QPushButton(tr("dialog.entfernen"))
-        self.knopf_ba_weg.clicked.connect(self._betriebsart_entfernen)
-        knoepfe.addWidget(self.knopf_betriebsart)
-        knoepfe.addWidget(self.knopf_ba_weg)
-        aufbau.addWidget(self.achsen_knoepfe)
-
-        # Details der gewählten Betriebsart oder Aufnahme – der Kasten wandert
-        # jeweils unter die Liste, in der gerade etwas gewählt ist.
-        self.detail_kasten = QtGui.QFrame()
-        self.detail_kasten.setFrameShape(QtGui.QFrame.StyledPanel)
-        kasten = QtGui.QVBoxLayout(self.detail_kasten)
-        self.detail_titel = QtGui.QLabel()
-        self.detail_titel.setWordWrap(True)
-        kasten.addWidget(self.detail_titel)
-        self.detail = QtGui.QWidget()
-        self.detail_aufbau = QtGui.QFormLayout(self.detail)
-        self.detail_aufbau.setContentsMargins(0, 0, 0, 0)
-        kasten.addWidget(self.detail)
-        self.detail_kasten.hide()
-        aufbau.addWidget(self.detail_kasten)
-        self._aufbau = aufbau
-
-        # Aufnahmen
-        aufbau.addWidget(_kopfzeile(tr("dialog.aufnahmen"), "aufnahmen"))
-        self.aufnahmen = QtGui.QTreeWidget()
-        self.aufnahmen.setHeaderHidden(True)
-        self.aufnahmen.setToolTip(tr("dialog.aufnahmen.tooltip"))
-        self.aufnahmen.setMouseTracking(True)
-        self.aufnahmen.itemEntered.connect(
-            lambda eintrag, _s: self._zeige_spaeter(eintrag.data(0, ROLLE))
-        )
-        self.aufnahmen.currentItemChanged.connect(self._aufnahme_gewaehlt)
-        self.aufnahmen.setMinimumHeight(110)
-        aufbau.addWidget(self.aufnahmen)
-        self.aufnahmen_knoepfe = QtGui.QWidget()
-        knoepfe = QtGui.QGridLayout(self.aufnahmen_knoepfe)
-        knoepfe.setContentsMargins(0, 0, 0, 0)
-        self.knopf_werkzeug = QtGui.QPushButton(tr("dialog.werkzeugaufnahme_neu"))
-        self.knopf_werkzeug.clicked.connect(lambda: self._aufnahme_neu(m.AUFNAHME_WERKZEUG))
-        self.knopf_werkstueck = QtGui.QPushButton(tr("dialog.werkstueckaufnahme_neu"))
-        self.knopf_werkstueck.clicked.connect(lambda: self._aufnahme_neu(m.AUFNAHME_WERKSTUECK))
-        self.knopf_verteilen = QtGui.QPushButton(tr("dialog.plaetze_verteilen"))
-        self.knopf_verteilen.setToolTip(tr("dialog.plaetze_verteilen.tooltip"))
-        self.knopf_verteilen.clicked.connect(self._plaetze_verteilen)
-        self.knopf_auf_weg = QtGui.QPushButton(tr("dialog.entfernen"))
-        self.knopf_auf_weg.clicked.connect(self._aufnahme_entfernen)
-        knoepfe.addWidget(self.knopf_werkzeug, 0, 0)
-        knoepfe.addWidget(self.knopf_werkstueck, 0, 1)
-        knoepfe.addWidget(self.knopf_verteilen, 1, 0)
-        knoepfe.addWidget(self.knopf_auf_weg, 1, 1)
-        aufbau.addWidget(self.aufnahmen_knoepfe)
-
-        # Glieder
-        aufbau.addWidget(_kopfzeile(tr("dialog.glieder"), "glieder"))
-        self.glieder = QtGui.QListWidget()
-        self.glieder.setToolTip(tr("dialog.glieder.tooltip"))
-        self.glieder.setMouseTracking(True)
-        self.glieder.itemEntered.connect(lambda eintrag: self._zeige_spaeter(eintrag.data(ROLLE)))
-        self.glieder.setWordWrap(True)
-        aufbau.addWidget(self.glieder)
-
-        # Hinweise
-        aufbau.addWidget(_kopfzeile(tr("dialog.hinweise")))
-        self.hinweise = QtGui.QListWidget()
-        self.hinweise.setWordWrap(True)
-        self.hinweise.itemClicked.connect(self._hinweis_geklickt)
-        aufbau.addWidget(self.hinweise)
-
-        self.knopf_uebergeben = QtGui.QPushButton(tr("dialog.uebergeben"))
-        self.knopf_uebergeben.setToolTip(
-            tr("dialog.uebergeben.tooltip")
-            if export.verfuegbar()
-            else tr("dialog.uebergeben.tooltip_fehlt")
-        )
-        self.knopf_uebergeben.clicked.connect(lambda: self._uebergeben())
-        aufbau.addWidget(self.knopf_uebergeben)
+        self._aufbau = QtGui.QVBoxLayout(form)
+        self._baue_namenszeile()
+        self._baue_achsen()
+        # Der Kasten wandert jeweils unter die Liste, in der gerade etwas
+        # gewählt ist (siehe _details_zeigen).
+        self.details = DetailKasten(self._setze)
+        self._aufbau.addWidget(self.details)
+        self._baue_aufnahmen()
+        self._baue_glieder()
+        self._baue_hinweise()
+        tooltip = tr("dialog.uebergeben.tooltip_fehlt")
+        if export.verfuegbar():
+            tooltip = tr("dialog.uebergeben.tooltip")
+        self.knopf_uebergeben = _knopf(tr("dialog.uebergeben"), self.uebergeben, tooltip)
+        self._aufbau.addWidget(self.knopf_uebergeben)
         return form
 
-    def _uebergeben(self, nachfragen=True):
-        """Maschine an CAM übergeben und zeigen, was angekommen ist."""
+    def _baue_namenszeile(self):
+        zeile = QtGui.QHBoxLayout()
+        zeile.addWidget(QtGui.QLabel(tr("dialog.name")))
+        self.name = QtGui.QLineEdit(self.maschine.Label)
+        self.name.setToolTip(tr("dialog.name.tooltip"))
+        self.name.editingFinished.connect(self._name_uebernehmen)
+        zeile.addWidget(self.name)
+        self._aufbau.addLayout(zeile)
+
+    def _baue_achsen(self):
+        self._aufbau.addWidget(kopfzeile(tr("dialog.achsen"), "achsen"))
+        self.achsen = self._baum(tr("dialog.achsen.tooltip"), MINDESTHOEHE_ACHSEN)
+        self.achsen.currentItemChanged.connect(self._achse_gewaehlt)
+        self._aufbau.addWidget(self.achsen)
+
+        self.knopf_betriebsart = QtGui.QPushButton(tr("dialog.betriebsart_neu"))
+        self.knopf_betriebsart.setToolTip(tr("dialog.betriebsart_neu.tooltip"))
+        # Der Knopf klappt ein Menü mit den Betriebsarten auf, die zum
+        # gewählten Gelenk passen; gefüllt wird es erst beim Aufklappen.
+        menue = QtGui.QMenu(self.knopf_betriebsart)
+        menue.aboutToShow.connect(lambda: self._fuelle_betriebsart_menue(menue))
+        self.knopf_betriebsart.setMenu(menue)
+        self.knopf_ba_weg = _knopf(tr("dialog.entfernen"), self.betriebsart_entfernen)
+        self.achsen_knoepfe = _knopfreihe([self.knopf_betriebsart, self.knopf_ba_weg])
+        self._aufbau.addWidget(self.achsen_knoepfe)
+
+    def _baue_aufnahmen(self):
+        self._aufbau.addWidget(kopfzeile(tr("dialog.aufnahmen"), "aufnahmen"))
+        self.aufnahmen = self._baum(tr("dialog.aufnahmen.tooltip"), MINDESTHOEHE_AUFNAHMEN)
+        self.aufnahmen.currentItemChanged.connect(self._aufnahme_gewaehlt)
+        self._aufbau.addWidget(self.aufnahmen)
+
+        self.knopf_werkzeug = _knopf(
+            tr("dialog.werkzeugaufnahme_neu"),
+            lambda: self.aufnahme_anlegen(m.AUFNAHME_WERKZEUG),
+        )
+        self.knopf_werkstueck = _knopf(
+            tr("dialog.werkstueckaufnahme_neu"),
+            lambda: self.aufnahme_anlegen(m.AUFNAHME_WERKSTUECK),
+        )
+        self.knopf_verteilen = _knopf(
+            tr("dialog.plaetze_verteilen"),
+            self.plaetze_verteilen,
+            tr("dialog.plaetze_verteilen.tooltip"),
+        )
+        self.knopf_auf_weg = _knopf(tr("dialog.entfernen"), self.aufnahme_entfernen)
+        self.aufnahmen_knoepfe = _knopfreihe(
+            [self.knopf_werkzeug, self.knopf_werkstueck, self.knopf_verteilen, self.knopf_auf_weg]
+        )
+        self._aufbau.addWidget(self.aufnahmen_knoepfe)
+
+    def _baue_glieder(self):
+        self._aufbau.addWidget(kopfzeile(tr("dialog.glieder"), "glieder"))
+        self.glieder = QtGui.QListWidget()
+        self.glieder.setToolTip(tr("dialog.glieder.tooltip"))
+        self.glieder.setWordWrap(True)
+        self.glieder.setMouseTracking(True)  # sonst kommt itemEntered nur mit gedrückter Taste
+        self.glieder.itemEntered.connect(lambda zeile: self._zeige_spaeter(zeile.data(ROLLE)))
+        self._aufbau.addWidget(self.glieder)
+
+    def _baue_hinweise(self):
+        self._aufbau.addWidget(kopfzeile(tr("dialog.hinweise")))
+        self.hinweise = QtGui.QListWidget()
+        self.hinweise.setWordWrap(True)
+        # Eine Hinweis-Zeile trägt das Objekt, um das es geht.
+        self.hinweise.itemClicked.connect(lambda zeile: self.springe_zu(zeile.data(ROLLE)))
+        self._aufbau.addWidget(self.hinweise)
+
+    def _baum(self, tooltip, mindesthoehe):
+        """Eine Liste mit eingerückten Zeilen; Verweilen mit der Maus zeigt die Zeile in 3D."""
+        baum = QtGui.QTreeWidget()
+        baum.setHeaderHidden(True)
+        baum.setToolTip(tooltip)
+        baum.setMinimumHeight(mindesthoehe)
+        baum.setMouseTracking(True)  # sonst kommt itemEntered nur mit gedrückter Taste
+        baum.itemEntered.connect(lambda zeile, _spalte: self._zeige_spaeter(zeile.data(0, ROLLE)))
+        return baum
+
+    # --- Aktionen: Knöpfe und Oberflächen-Szenarien rufen sie auf -------------
+
+    def betriebsart_anlegen(self, gelenk, art):
+        """Neue Betriebsart am Gelenk; danach steht der Cursor im Feld „NC-Name“."""
+        ba = m.neue_betriebsart(self.maschine, gelenk, art, "")
+        self.neu_aufbauen(auswahl=ba)
+        feld = self.details.feld(0)
+        if feld is not None:
+            feld.setFocus()
+
+    def betriebsart_entfernen(self):
+        """Entfernt die gewählte Betriebsart; was sie antrieb, hat danach keinen Antrieb."""
+        art, ba = _zeilendaten(self.achsen.currentItem())
+        if art != ZEILE_BETRIEBSART:
+            return
+        for aufnahme in m.aufnahmen(self.maschine):
+            if aufnahme.Spindel == ba:
+                aufnahme.Spindel = None
+        self.doc.removeObject(ba.Name)
+        self.neu_aufbauen()
+
+    def aufnahme_anlegen(self, art):
+        """Neue Aufnahme. Vorgewählt ist das LCS aus der 3D-Auswahl, sonst das erste freie."""
+        alle = self.alle_lcs()
+        if not alle:
+            QtGui.QMessageBox.information(self.form, tr("dialog.titel"), tr("dialog.kein_lcs"))
+            return
+        belegt = {a.Lcs for a in m.aufnahmen(self.maschine)}
+        gewaehlt = [o for o in FreeCADGui.Selection.getSelection() if o in alle]
+        lcs = gewaehlt[0] if gewaehlt else next((x for x in alle if x not in belegt), alle[0])
+        aufnahme = m.neue_aufnahme(self.maschine, lcs, art, m.aufnahmeart_text(art))
+        self.neu_aufbauen(auswahl=aufnahme)
+
+    def aufnahme_entfernen(self):
+        art, aufnahme = _zeilendaten(self.aufnahmen.currentItem())
+        if art != ZEILE_AUFNAHME:
+            return
+        self.doc.removeObject(aufnahme.Name)
+        self.neu_aufbauen()
+
+    def plaetze_verteilen(self):
+        """Fragt Revolver, ersten Platz und Anzahl ab und legt die Plätze an."""
+        revolver = self._revolver()
+        if not revolver:
+            return
+        dialog = VerteilDialog(self.form, revolver, self.lcs_im_revolver)
+        if dialog.exec_() != QtGui.QDialog.Accepted:
+            return
+        ba, erstes_lcs, anzahl = dialog.ergebnis()
+        m.verteile_plaetze(self.maschine, self.kette, ba, erstes_lcs, anzahl)
+        self.doc.recompute()
+        self.neu_aufbauen()
+
+    def uebergeben(self, nachfragen=True):
+        """Übergibt die Maschine an CAM und zeigt den Bericht.
+
+        Gibt den Bericht zurück, oder None, wenn nichts übergeben wurde.
+        `nachfragen=False` überspringt die Rückfrage bei offenen Warnungen.
+        """
         if not export.verfuegbar():
-            # Nicht blockierend (open statt exec), damit FreeCAD weiterläuft.
-            self.hinweis_fenster = QtGui.QMessageBox(
-                QtGui.QMessageBox.Information,
-                tr("dialog.uebergeben"),
-                tr("uebergeben.nicht_verfuegbar", version=".".join(FreeCAD.Version()[:3])),
-                QtGui.QMessageBox.Ok,
-                self.form,
-            )
-            self.hinweis_fenster.open()
+            self._erklaere_fehlende_maschinendefinition()
             return None
         warnungen = [x for x in self.meldungen if x.schwere != HINWEIS]
-        if warnungen and nachfragen:
-            antwort = QtGui.QMessageBox.question(
-                self.form,
-                tr("dialog.uebergeben"),
-                tr("uebergeben.trotz_hinweisen", anzahl=len(warnungen)),
-            )
-            if antwort != QtGui.QMessageBox.Yes:
-                return None
+        if warnungen and nachfragen and not self._trotzdem_uebergeben(len(warnungen)):
+            return None
         try:
             bericht = export.exportiere(self.maschine, self.kette)
-        except Exception as fehler:  # Schreibfehler o. ä.: sagen, nicht still scheitern
+        except Exception as fehler:  # z. B. Ordner nicht beschreibbar: sagen statt still scheitern
             FreeCAD.Console.PrintError(f"CAM-Addon: {fehler}\n")
             QtGui.QMessageBox.warning(
                 self.form, tr("dialog.uebergeben"), tr("uebergeben.fehler", fehler=str(fehler))
@@ -392,144 +354,248 @@ class MaschinenPanel:
         self.bericht_fenster.show()
         return bericht
 
-    # Füllen
-    def _fuelle_alles(self, auswahl=None):
-        self._detail_leeren()
+    def zeige(self, daten):
+        """Hebt in der 3D-Ansicht hervor, was eine Zeile meint; eine Achse wackelt kurz.
+
+        `daten` sind die Daten einer Zeile: (Art der Zeile, Objekt).
+        """
+        if self.geschlossen or not daten:
+            return
+        art, objekt = daten
+        if art == ZEILE_GELENK:
+            self._zeige_achse(self.kette.achse_von(objekt))
+        elif art == ZEILE_BETRIEBSART:
+            self._zeige_achse(self.kette.achse_von(objekt.Gelenk))
+        elif art == ZEILE_GLIED:
+            gui_zeigen.hervorheben(objekt.bauteile)
+        elif art == ZEILE_AUFNAHME:
+            gui_zeigen.hervorheben([objekt.Lcs])
+        elif art == ZEILE_REVOLVER:
+            gui_zeigen.hervorheben([p.Lcs for p in m.plaetze(self.maschine, self.kette, objekt)])
+
+    def springe_zu(self, bezug):
+        """Wählt die Zeile des Objekts `bezug` in „Achsen“ oder „Aufnahmen“."""
+        if bezug is None:
+            return
+        for baum in (self.achsen, self.aufnahmen):
+            for zeile in _alle_zeilen(baum):
+                if _zeilendaten(zeile)[1] == bezug:
+                    if zeile.parent() is not None:
+                        zeile.parent().setExpanded(True)
+                    baum.setCurrentItem(zeile)
+                    baum.scrollToItem(zeile)
+                    return
+
+    def neu_aufbauen(self, auswahl=None):
+        """Baut alle Listen neu auf und wählt `auswahl` (eine Betriebsart oder Aufnahme).
+
+        Nötig, wenn sich die Maschine von außen geändert hat.
+        """
+        self.details.leeren()
         self._fuelle_achsen(auswahl)
         self._fuelle_aufnahmen(auswahl)
         self._fuelle_glieder()
-        self._pruefen()
+        self._fuelle_hinweise()
         self._knoepfe_schalten()
 
+    def alle_lcs(self):
+        """Alle Koordinatensysteme der Assembly, die als Aufnahme taugen.
+
+        Der Ursprung eines Parts oder Körpers (App::Origin) ist für FreeCAD
+        ebenfalls ein LocalCoordinateSystem. Ihn als Aufnahme anzubieten
+        („Origin005“) verwirrt nur und würde bei der Vorauswahl sogar gewählt
+        (gefunden im Test mit FreeCAD 1.1.3, P-2026-09-25-25).
+        """
+        return [
+            o
+            for o in self.assembly.OutListRecursive
+            if o.isDerivedFrom("App::LocalCoordinateSystem") and not o.isDerivedFrom("App::Origin")
+        ]
+
+    def lcs_im_revolver(self, ba):
+        """Die Koordinatensysteme im Glied, das der Revolver `ba` dreht."""
+        achse = self.kette.achse_von(ba.Gelenk)
+        if achse is None:
+            return []
+        return [lcs for lcs in self.alle_lcs() if self.kette.glied_von(lcs) is achse.kind]
+
+    # --- Auswahl --------------------------------------------------------------
+
+    def _achse_gewaehlt(self, aktuell, _vorher):
+        if aktuell is not None:
+            _auswahl_aufheben(self.aufnahmen)  # gewählt ist immer nur in einer Liste
+        self._details_zeigen(*_zeilendaten(aktuell))
+        self._knoepfe_schalten()
+
+    def _aufnahme_gewaehlt(self, aktuell, _vorher):
+        if aktuell is not None:
+            _auswahl_aufheben(self.achsen)
+        self._details_zeigen(*_zeilendaten(aktuell))
+        self._knoepfe_schalten()
+
+    def _details_zeigen(self, art, objekt):
+        """Die Felder zur gewählten Zeile, direkt unter den Knöpfen ihrer Liste."""
+        self.details.leeren()
+        if art == ZEILE_BETRIEBSART:
+            self._details_unter(self.achsen_knoepfe)
+            self.details.zeige_betriebsart(objekt, linear=self._ist_linear(objekt))
+        elif art == ZEILE_AUFNAHME:
+            self._details_unter(self.aufnahmen_knoepfe)
+            self.details.zeige_aufnahme(objekt, self.alle_lcs(), self._spindeln())
+
+    def _details_unter(self, knopfreihe):
+        self._aufbau.removeWidget(self.details)
+        self._aufbau.insertWidget(self._aufbau.indexOf(knopfreihe) + 1, self.details)
+
+    def _gewaehltes_gelenk(self):
+        """Das Gelenk der gewählten Zeile in „Achsen“ – auch wenn eine Betriebsart gewählt ist."""
+        art, objekt = _zeilendaten(self.achsen.currentItem())
+        if art == ZEILE_GELENK:
+            return objekt
+        if art == ZEILE_BETRIEBSART:
+            return objekt.Gelenk
+        return None
+
+    def _knoepfe_schalten(self):
+        """Nur die Knöpfe bedienbar machen, die zur Auswahl passen."""
+        achse = self.kette.achse_von(self._gewaehltes_gelenk())
+        self.knopf_betriebsart.setEnabled(achse is not None)
+        art, _objekt = _zeilendaten(self.achsen.currentItem())
+        self.knopf_ba_weg.setEnabled(art == ZEILE_BETRIEBSART)
+        art, _objekt = _zeilendaten(self.aufnahmen.currentItem())
+        self.knopf_auf_weg.setEnabled(art == ZEILE_AUFNAHME)
+        self.knopf_verteilen.setEnabled(bool(self._revolver()))
+
+    def _fuelle_betriebsart_menue(self, menue):
+        """Die Betriebsarten, die zum gewählten Gelenk passen, jede mit einem Satz Erklärung."""
+        menue.clear()
+        achse = self.kette.achse_von(self._gewaehltes_gelenk())
+        if achse is None:
+            return
+        for art in m.ERLAUBT[achse.art]:
+            aktion = menue.addAction(f"{m.art_text(art)} – {_beschreibung(art)}")
+            # art=art hält den Wert dieses Durchlaufs fest.
+            aktion.triggered.connect(
+                lambda _an=False, art=art: self.betriebsart_anlegen(achse.gelenk, art)
+            )
+
+    # --- Eingaben übernehmen --------------------------------------------------
+
+    def _setze(self, objekt, eigenschaft, wert, beschriften=False):
+        """Übernimmt eine Eingabe ins Dokument und frischt die Anzeige auf.
+
+        `beschriften`: Die Eingabe ändert einen Namen – dann auch die
+        Beschriftung im Baum.
+        """
+        if getattr(objekt, eigenschaft) == wert:
+            return
+        setattr(objekt, eigenschaft, wert)
+        if beschriften:
+            m.beschrifte(objekt)
+        if eigenschaft in ("Lcs", "Platz"):
+            # Das kann eine Aufnahme in eine Revolvergruppe hinein- oder aus
+            # ihr herausschieben, dann werden die Listen neu aufgebaut –
+            # zeitversetzt, denn der Neuaufbau löscht auch das Feld, dessen
+            # Signal gerade läuft.
+            QtCore.QTimer.singleShot(0, lambda: self._spaeter_neu_aufbauen(objekt))
+        else:
+            self._auffrischen()
+
+    def _spaeter_neu_aufbauen(self, auswahl):
+        if not self.geschlossen:  # inzwischen OK oder Abbrechen gedrückt
+            self.neu_aufbauen(auswahl)
+
+    def _auffrischen(self):
+        """Texte, Status-Symbole und Hinweise der vorhandenen Zeilen erneuern.
+
+        Bewusst ohne Neuaufbau der Listen: Das nach jeder Eingabe zu tun, ließ
+        FreeCAD unter PySide6 gelegentlich abstürzen (gefunden im Szenario,
+        P-2026-09-25-17).
+        """
+        if self.geschlossen:
+            return
+        for baum in (self.achsen, self.aufnahmen):
+            for zeile in _alle_zeilen(baum):
+                art, objekt = _zeilendaten(zeile)
+                if art == ZEILE_BETRIEBSART:
+                    zeile.setText(0, _text_betriebsart(objekt))
+                elif art == ZEILE_AUFNAHME:
+                    zeile.setText(0, _text_aufnahme(objekt))
+        self._fuelle_hinweise()
+        self._knoepfe_schalten()
+
+    def _name_uebernehmen(self):
+        text = self.name.text().strip()
+        if text:  # ein geleertes Feld behält den bisherigen Namen
+            self.maschine.Label = text
+
+    # --- Listen füllen --------------------------------------------------------
+
     def _fuelle_achsen(self, auswahl=None):
+        """Je Achse der Kette eine Zeile, eingerückt darunter ihre Betriebsarten."""
         self.achsen.blockSignals(True)
         self.achsen.clear()
         je_gelenk = {}
         for ba in m.betriebsarten(self.maschine):
             je_gelenk.setdefault(ba.Gelenk, []).append(ba)
-        wahl_item = None
+        zu_waehlen = None
         for achse in self.kette.achsen:
-            zeichen = "↔" if achse.art == LINEAR else "⟳"
-            art = tr("gelenk.schiebe") if achse.art == LINEAR else tr("gelenk.dreh")
-            eintrag = QtGui.QTreeWidgetItem([f"{zeichen}  {achse.gelenk.Label}   ({art})"])
-            eintrag.setData(0, ROLLE, ("gelenk", achse.gelenk))
-            self.achsen.addTopLevelItem(eintrag)
-            liste = je_gelenk.pop(achse.gelenk, [])
-            if not liste:
-                leer = QtGui.QTreeWidgetItem([tr("dialog.noch_keine_betriebsart")])
-                leer.setToolTip(0, tr("dialog.noch_keine_betriebsart.tooltip"))
-                leer.setForeground(0, QtGui.QBrush(QtGui.QColor("gray")))
-                leer.setFlags(QtCore.Qt.NoItemFlags)
-                eintrag.addChild(leer)
-            for ba in liste:
-                kind = self._betriebsart_eintrag(ba)
-                eintrag.addChild(kind)
+            zeile = _zeile(_text_gelenk(achse), ZEILE_GELENK, achse.gelenk)
+            self.achsen.addTopLevelItem(zeile)
+            betriebsarten = je_gelenk.pop(achse.gelenk, [])
+            if not betriebsarten:
+                zeile.addChild(_leerzeile())
+            for ba in betriebsarten:
+                unterzeile = _zeile(_text_betriebsart(ba), ZEILE_BETRIEBSART, ba)
+                zeile.addChild(unterzeile)
                 if ba == auswahl:
-                    wahl_item = kind
-            eintrag.setExpanded(True)
-        # Betriebsarten, deren Gelenk fehlt oder keine Achse ist.
-        for liste in je_gelenk.values():
-            for ba in liste:
-                kind = self._betriebsart_eintrag(ba)
-                self.achsen.addTopLevelItem(kind)
+                    zu_waehlen = unterzeile
+            zeile.setExpanded(True)
+        # Übrig sind Betriebsarten, deren Gelenk fehlt oder keine Achse ist. Sie
+        # stehen einzeln darunter, damit man sie sieht und entfernen kann.
+        for betriebsarten in je_gelenk.values():
+            for ba in betriebsarten:
+                zeile = _zeile(_text_betriebsart(ba), ZEILE_BETRIEBSART, ba)
+                self.achsen.addTopLevelItem(zeile)
                 if ba == auswahl:
-                    wahl_item = kind
+                    zu_waehlen = zeile
         self.achsen.blockSignals(False)
-        if wahl_item is not None:
-            self.achsen.setCurrentItem(wahl_item)
-
-    def _betriebsart_eintrag(self, ba):
-        eintrag = QtGui.QTreeWidgetItem([self._text_betriebsart(ba)])
-        eintrag.setData(0, ROLLE, ("ba", ba))
-        return eintrag
-
-    @staticmethod
-    def _text_betriebsart(ba):
-        return f"{m.name_von(ba)}  ·  {m.art_text(ba.Art)}"
-
-    @staticmethod
-    def _text_aufnahme(auf):
-        lcs = auf.Lcs.Label if auf.Lcs is not None else "?"
-        teile = [m.name_von(auf), m.aufnahmeart_text(auf.Art), "→ " + lcs]
-        if auf.Spindel is not None:
-            teile.append(tr("aufnahme.angetrieben_von", spindel=m.name_von(auf.Spindel)))
-        return "  ·  ".join(teile)
+        if zu_waehlen is not None:
+            self.achsen.setCurrentItem(zu_waehlen)
 
     def _fuelle_aufnahmen(self, auswahl=None):
+        """Alle Aufnahmen; die Plätze eines Revolvers zugeklappt unter einer Kopfzeile.
+
+        Sonst würde die Liste bei 12 Plätzen unübersichtlich.
+        """
         self.aufnahmen.blockSignals(True)
         self.aufnahmen.clear()
-        wahl_item = None
-        # Revolverplätze stehen gesammelt unter ihrem Revolver (zugeklappt),
-        # sonst wird die Liste bei 12 Plätzen unübersichtlich.
-        gruppe_von = {}
-        for ba in m.betriebsarten(self.maschine):
-            if ba.Art == m.ART_REVOLVER:
-                liste = m.plaetze(self.maschine, self.kette, ba)
-                if liste:
-                    kopf = QtGui.QTreeWidgetItem(
-                        [tr("dialog.revolver_gruppe", name=m.name_von(ba), anzahl=len(liste))]
-                    )
-                    kopf.setData(0, ROLLE, ("revolver", ba))
-                    self.aufnahmen.addTopLevelItem(kopf)
-                    for auf in liste:
-                        gruppe_von[auf] = kopf
-        for auf in sorted(m.aufnahmen(self.maschine), key=lambda a: (a.Art, a.Platz, a.Label)):
-            eintrag = QtGui.QTreeWidgetItem([self._text_aufnahme(auf)])
-            eintrag.setData(0, ROLLE, ("auf", auf))
-            if auf in gruppe_von:
-                gruppe_von[auf].addChild(eintrag)
+        gruppe_von = {}  # Platz -> Kopfzeile seines Revolvers
+        for ba in self._revolver():
+            plaetze = m.plaetze(self.maschine, self.kette, ba)
+            if plaetze:
+                text = tr("dialog.revolver_gruppe", name=m.name_von(ba), anzahl=len(plaetze))
+                kopf = _zeile(text, ZEILE_REVOLVER, ba)
+                self.aufnahmen.addTopLevelItem(kopf)
+                for platz in plaetze:
+                    gruppe_von[platz] = kopf
+        zu_waehlen = None
+        for aufnahme in sorted(m.aufnahmen(self.maschine), key=lambda a: (a.Art, a.Platz, a.Label)):
+            zeile = _zeile(_text_aufnahme(aufnahme), ZEILE_AUFNAHME, aufnahme)
+            if aufnahme in gruppe_von:
+                gruppe_von[aufnahme].addChild(zeile)
             else:
-                self.aufnahmen.addTopLevelItem(eintrag)
-            if auf == auswahl:
-                wahl_item = eintrag
+                self.aufnahmen.addTopLevelItem(zeile)
+            if aufnahme == auswahl:
+                zu_waehlen = zeile
         self.aufnahmen.blockSignals(False)
-        if wahl_item is not None:
-            if wahl_item.parent() is not None:
-                wahl_item.parent().setExpanded(True)
-            self.aufnahmen.setCurrentItem(wahl_item)
-
-    # Zeigen in der 3D-Ansicht
-    def _zeige_spaeter(self, daten):
-        self._zeige_ziel = daten
-        self._zeige_uhr.start()
-
-    def _zeige(self, daten):
-        """Hebt hervor, worum es in der Zeile geht; ein Gelenk wackelt kurz."""
-        if self.geschlossen or not daten:
-            return
-        art, objekt = daten
-        gelenk = None
-        if art == "gelenk":
-            gelenk = objekt
-        elif art == "ba":
-            gelenk = objekt.Gelenk
-        if gelenk is not None:
-            achse = self.kette.achse_von(gelenk)
-            if achse is None:
-                return
-            gui_zeigen.hervorheben(gui_zeigen.bauteile_hinter(self.kette, achse))
-            # Läuft schon eine Bewegung für dieses Gelenk, nicht neu anfangen.
-            if self.wackeln and self.wackeln.laeuft() and self.wackeln.achse is achse:
-                return
-            if self.wackeln:
-                self.wackeln.stopp()
-            self.wackeln = gui_zeigen.Wackeln(self.assembly, self.kette, achse)
-            self.wackeln.start()
-        elif art == "glied":
-            gui_zeigen.hervorheben(objekt.bauteile)
-        elif art == "auf":
-            gui_zeigen.hervorheben([objekt.Lcs])
-        elif art == "revolver":
-            gui_zeigen.hervorheben([a.Lcs for a in m.plaetze(self.maschine, self.kette, objekt)])
-
-    def _zeigen_beenden(self):
-        """Vor dem Schließen: Bewegung anhalten, alles zurück, Markierung weg."""
-        self._zeige_uhr.stop()
-        if self.wackeln:
-            self.wackeln.stopp()
-        FreeCADGui.Selection.clearSelection()
+        if zu_waehlen is not None:
+            if zu_waehlen.parent() is not None:
+                zu_waehlen.parent().setExpanded(True)
+            self.aufnahmen.setCurrentItem(zu_waehlen)
 
     def _fuelle_glieder(self):
+        """„Bett (steht fest): …“, dann „Glied 2: …“ usw. – das Bett ist Glied 1."""
         self.glieder.clear()
         nummer = 1
         for glied in self.kette.glieder:
@@ -538,429 +604,191 @@ class MaschinenPanel:
             else:
                 nummer += 1
                 titel = tr("dialog.glied_nummer", nummer=nummer)
-            eintrag = QtGui.QListWidgetItem(f"{titel}: {glied.namen()}")
-            eintrag.setData(ROLLE, ("glied", glied))
-            self.glieder.addItem(eintrag)
+            zeile = QtGui.QListWidgetItem(f"{titel}: {glied.namen()}")
+            zeile.setData(ROLLE, (ZEILE_GLIED, glied))
+            self.glieder.addItem(zeile)
 
-    def _pruefen(self):
-        meldungen = list(self.kette.meldungen) + m.pruefe(self.maschine, self.kette)
-        self.meldungen = meldungen
+    def _fuelle_hinweise(self):
+        """Prüft Kette und Maschine, zeigt die Meldungen und markiert betroffene Zeilen."""
+        self.meldungen = list(self.kette.meldungen) + m.pruefe(self.maschine, self.kette)
         self.hinweise.clear()
-        if not meldungen:
-            eintrag = QtGui.QListWidgetItem(_symbol_status(True), tr("dialog.alles_gut"))
-            self.hinweise.addItem(eintrag)
-        stil = QtGui.QApplication.style()
-        for meldung in meldungen:
-            icon = stil.standardIcon(
-                QtGui.QStyle.SP_MessageBoxInformation
-                if meldung.schwere == HINWEIS
-                else QtGui.QStyle.SP_MessageBoxWarning
+        if not self.meldungen:
+            self.hinweise.addItem(
+                QtGui.QListWidgetItem(_status_symbol(True), tr("dialog.alles_gut"))
             )
-            eintrag = QtGui.QListWidgetItem(icon, meldung.text)
-            eintrag.setToolTip(meldung.text)
-            eintrag.setData(ROLLE, meldung.bezug)
-            self.hinweise.addItem(eintrag)
-        # Status-Symbol je Betriebsart: Warnung, wenn sich eine Meldung auf sie bezieht.
-        betroffen = {x.bezug for x in meldungen if x.bezug is not None}
+        for meldung in self.meldungen:
+            zeile = QtGui.QListWidgetItem(_meldungs_symbol(meldung), meldung.text)
+            zeile.setToolTip(meldung.text)
+            zeile.setData(ROLLE, meldung.bezug)
+            self.hinweise.addItem(zeile)
+
+        # Häkchen oder Warnzeichen vor jeder Betriebsart und Aufnahme.
+        betroffen = {x.bezug for x in self.meldungen if x.bezug is not None}
         for baum in (self.achsen, self.aufnahmen):
-            it = QtGui.QTreeWidgetItemIterator(baum)
-            while it.value():
-                art, objekt = it.value().data(0, ROLLE) or (None, None)
-                if art in ("ba", "auf"):
-                    it.value().setIcon(0, _symbol_status(objekt not in betroffen))
-                it += 1
+            for zeile in _alle_zeilen(baum):
+                art, objekt = _zeilendaten(zeile)
+                if art in (ZEILE_BETRIEBSART, ZEILE_AUFNAHME):
+                    zeile.setIcon(0, _status_symbol(objekt not in betroffen))
 
-    def _knoepfe_schalten(self):
-        eintrag = self.achsen.currentItem()
-        art, _objekt = (eintrag.data(0, ROLLE) if eintrag else None) or (None, None)
-        self.knopf_betriebsart.setEnabled(art in ("gelenk", "ba"))
-        self.knopf_ba_weg.setEnabled(art == "ba")
-        eintrag = self.aufnahmen.currentItem()
-        daten = eintrag.data(0, ROLLE) if eintrag is not None else None
-        self.knopf_auf_weg.setEnabled(bool(daten) and daten[0] == "auf")
-        revolver = [ba for ba in m.betriebsarten(self.maschine) if ba.Art == m.ART_REVOLVER]
-        self.knopf_verteilen.setEnabled(bool(revolver))
+    # --- Zeigen in der 3D-Ansicht ---------------------------------------------
 
-    # Auswahl und Details
-    def _gelenk_des_eintrags(self, eintrag):
-        art, objekt = eintrag.data(0, ROLLE) or (None, None)
-        if art == "gelenk":
-            return objekt
-        if art == "ba":
-            return objekt.Gelenk
-        return None
+    def _zeige_spaeter(self, daten):
+        """Merkt die Zeile unter der Maus vor; gezeigt wird erst nach kurzem Verweilen."""
+        self._zeige_ziel = daten
+        self._zeige_uhr.start()
 
-    def _achse_gewaehlt(self, aktuell, _vorher):
-        if aktuell is not None:
-            self.aufnahmen.blockSignals(True)
-            self.aufnahmen.setCurrentItem(None)
-            self.aufnahmen.blockSignals(False)
-        art, objekt = (aktuell.data(0, ROLLE) if aktuell else None) or (None, None)
-        self._detail_leeren()
-        if art == "ba":
-            self._detail_betriebsart(objekt)
-        self._knoepfe_schalten()
-
-    def _aufnahme_gewaehlt(self, aktuell, _vorher):
-        if aktuell is not None:
-            self.achsen.blockSignals(True)
-            self.achsen.setCurrentItem(None)
-            self.achsen.blockSignals(False)
-        self._detail_leeren()
-        daten = aktuell.data(0, ROLLE) if aktuell is not None else None
-        if daten and daten[0] == "auf":
-            self._detail_aufnahme(daten[1])
-        self._knoepfe_schalten()
-
-    def _detail_leeren(self):
-        self.detail_titel.setText("")
-        while self.detail_aufbau.rowCount():
-            self.detail_aufbau.removeRow(0)
-        self.detail_kasten.hide()
-
-    def _detail_unter(self, anker):
-        """Zeigt den Detailkasten direkt unter `anker` (einer Knopfzeile)."""
-        self._aufbau.removeWidget(self.detail_kasten)
-        self._aufbau.insertWidget(self._aufbau.indexOf(anker) + 1, self.detail_kasten)
-        self.detail_kasten.show()
-
-    def _detail_betriebsart(self, ba):
-        self._detail_unter(self.achsen_knoepfe)
-        gelenk = ba.Gelenk.Label if ba.Gelenk is not None else "?"
-        self.detail_titel.setText(
-            tr("dialog.detail_betriebsart", art=m.art_text(ba.Art), gelenk=gelenk)
-        )
-        name = QtGui.QLineEdit(ba.NcName)
-        name.setPlaceholderText(tr("dialog.ncname.platzhalter"))
-        name.setToolTip(tr("eigenschaft.ncname"))
-        name.editingFinished.connect(
-            lambda: self._setze(ba, "NcName", name.text().strip(), label=True)
-        )
-        self.detail_aufbau.addRow(tr("dialog.ncname"), name)
-
-        linear = self._gelenkart(ba) == LINEAR
-        einheiten = EINHEIT_LINEAR if linear else EINHEIT_DREH
-        for eigenschaft, pflicht in m.WERTE[ba.Art]:
-            beschriftung = m.wert_text(eigenschaft)
-            if eigenschaft in einheiten:
-                beschriftung += f" ({einheiten[eigenschaft]})"
-            if eigenschaft == "Endlos":
-                feld = QtGui.QCheckBox()
-                feld.setChecked(bool(ba.Endlos))
-                feld.toggled.connect(lambda wert, e=eigenschaft: self._setze(ba, e, bool(wert)))
-            else:
-                feld = QtGui.QLineEdit(_zahl_zeigen(getattr(ba, eigenschaft)))
-                feld.setValidator(_Zahlenpruefer(feld))
-                feld.setPlaceholderText(tr("feld.pflicht") if pflicht else tr("feld.unbekannt"))
-                feld.editingFinished.connect(
-                    lambda f=feld, e=eigenschaft: self._setze(ba, e, _zahl_lesen(f.text()))
-                )
-            feld.setToolTip(ba.getDocumentationOfProperty(eigenschaft))
-            label = QtGui.QLabel(beschriftung)
-            if pflicht:
-                schrift = label.font()
-                schrift.setBold(True)
-                label.setFont(schrift)
-            self.detail_aufbau.addRow(label, feld)
-        if any(e == "Beschleunigung" for e, _p in m.WERTE[ba.Art]):
-            verweis = QtGui.QLabel(
-                f'<a href="beschleunigung">{tr("dialog.beschleunigung_ermitteln")}</a>'
-            )
-            verweis.linkActivated.connect(lambda thema: zeige_hilfe(self.form, thema))
-            self.detail_aufbau.addRow(verweis)
-
-    def _detail_aufnahme(self, auf):
-        self._detail_unter(self.aufnahmen_knoepfe)
-        if auf.Art == m.AUFNAHME_WERKZEUG:
-            self.detail_titel.setText(tr("dialog.detail_werkzeugaufnahme", name=m.name_von(auf)))
-        else:
-            self.detail_titel.setText(tr("dialog.detail_werkstueckaufnahme", name=m.name_von(auf)))
-        name = QtGui.QLineEdit(m.name_von(auf))
-        name.setToolTip(tr("eigenschaft.bezeichnung"))
-        name.editingFinished.connect(
-            lambda: name.text().strip()
-            and self._setze(auf, "Bezeichnung", name.text().strip(), label=True)
-        )
-        self.detail_aufbau.addRow(tr("dialog.aufnahme_name"), name)
-
-        lcs_liste = QtGui.QComboBox()
-        for lcs in self._alle_lcs():
-            lcs_liste.addItem(lcs.Label, lcs.Name)
-        lcs_liste.setCurrentIndex(max(lcs_liste.findData(auf.Lcs.Name if auf.Lcs else ""), 0))
-        lcs_liste.setToolTip(tr("eigenschaft.lcs"))
-        lcs_liste.currentIndexChanged.connect(
-            lambda _i: self._setze(auf, "Lcs", self.doc.getObject(lcs_liste.currentData()))
-        )
-        self.detail_aufbau.addRow(tr("dialog.aufnahme_lcs"), lcs_liste)
-
-        if auf.Art == m.AUFNAHME_WERKZEUG:
-            antrieb = QtGui.QComboBox()
-            antrieb.addItem(tr("dialog.kein_antrieb"), "")
-            for ba in m.betriebsarten(self.maschine):
-                if ba.Art == m.ART_SPINDEL:
-                    antrieb.addItem(m.name_von(ba), ba.Name)
-            antrieb.setCurrentIndex(
-                max(antrieb.findData(auf.Spindel.Name if auf.Spindel else ""), 0)
-            )
-            antrieb.setToolTip(tr("eigenschaft.spindel"))
-            antrieb.currentIndexChanged.connect(
-                lambda _i: self._setze(
-                    auf,
-                    "Spindel",
-                    self.doc.getObject(antrieb.currentData()) if antrieb.currentData() else None,
-                )
-            )
-            self.detail_aufbau.addRow(tr("dialog.aufnahme_antrieb"), antrieb)
-
-            platz = QtGui.QSpinBox()
-            platz.setRange(0, 999)
-            platz.setSpecialValueText(tr("dialog.kein_platz"))
-            platz.setValue(auf.Platz)
-            platz.setPrefix("P")
-            platz.setToolTip(tr("eigenschaft.platz"))
-            platz.valueChanged.connect(lambda wert: self._setze(auf, "Platz", int(wert)))
-            self.detail_aufbau.addRow(tr("dialog.aufnahme_platz"), platz)
-
-    def _gelenkart(self, ba):
-        achse = self.kette.achse_von(ba.Gelenk)
-        return achse.art if achse else None
-
-    def _alle_lcs(self):
-        """Alle Koordinatensysteme der Baugruppe, die als Aufnahme taugen.
-
-        Der Ursprung eines Parts oder Körpers (App::Origin) ist für FreeCAD
-        ebenfalls ein LocalCoordinateSystem – ihn als Aufnahme anzubieten
-        („Origin005“) verwirrt nur und würde bei der Vorauswahl sogar
-        gewählt (gefunden im Test mit FreeCAD 1.1.3, P-2026-09-25-25).
-        """
-        return [
-            o
-            for o in self.assembly.OutListRecursive
-            if o.isDerivedFrom("App::LocalCoordinateSystem") and not o.isDerivedFrom("App::Origin")
-        ]
-
-    # Ändern
-    def _setze(self, objekt, eigenschaft, wert, label=False):
-        if getattr(objekt, eigenschaft) == wert:
-            return
-        setattr(objekt, eigenschaft, wert)
-        if label:
-            m.beschrifte(objekt)
-        if eigenschaft in ("Lcs", "Platz"):
-            # Kann eine Aufnahme in die Revolvergruppe hinein oder heraus
-            # bewegen – dann die Liste neu aufbauen.
-            QtCore.QTimer.singleShot(0, lambda: self._neu_aufbauen(objekt))
-        else:
-            self._auffrischen()
-
-    def _auffrischen(self):
-        """Texte, Status-Symbole und Hinweise der vorhandenen Zeilen erneuern.
-
-        Bewusst ohne clear() und Neuaufbau: Die Listen nach jeder Eingabe neu
-        zu bauen, ließ FreeCAD unter PySide6 gelegentlich abstürzen (gefunden
-        im Szenario, P-2026-09-25-17).
-        """
-        if self.geschlossen:
-            return
-        for baum in (self.achsen, self.aufnahmen):
-            it = QtGui.QTreeWidgetItemIterator(baum)
-            while it.value():
-                art, objekt = it.value().data(0, ROLLE) or (None, None)
-                if art == "ba":
-                    it.value().setText(0, self._text_betriebsart(objekt))
-                elif art == "auf":
-                    it.value().setText(0, self._text_aufnahme(objekt))
-                it += 1
-        self._pruefen()
-        self._knoepfe_schalten()
-
-    def _neu_aufbauen(self, auswahl):
-        if not self.geschlossen:
-            self._fuelle_alles(auswahl)
-
-    def _name_geaendert(self):
-        text = self.name.text().strip()
-        if text:
-            self.maschine.Label = text
-
-    def _betriebsart_menue(self):
-        eintrag = self.achsen.currentItem()
-        gelenk_objekt = self._gelenk_des_eintrags(eintrag) if eintrag else None
-        achse = self.kette.achse_von(gelenk_objekt)
+    def _zeige_achse(self, achse):
         if achse is None:
-            return
-        menue = QtGui.QMenu(self.form)
-        beschreibung = {
-            m.ART_LINEAR: tr("art.linear.beschreibung"),
-            m.ART_POSITIONIEREN: tr("art.positionieren.beschreibung"),
-            m.ART_SPINDEL: tr("art.spindel.beschreibung"),
-            m.ART_REVOLVER: tr("art.revolver.beschreibung"),
-        }
-        for art in m.ERLAUBT[achse.art]:
-            aktion = menue.addAction(f"{m.art_text(art)} – {beschreibung[art]}")
-            aktion.triggered.connect(lambda _c=False, a=art: self._betriebsart_neu(achse.gelenk, a))
-        self._letztes_menue = menue
-        menue.popup(
-            self.knopf_betriebsart.mapToGlobal(QtCore.QPoint(0, self.knopf_betriebsart.height()))
-        )
+            return  # z. B. eine Betriebsart ohne gültiges Gelenk
+        gui_zeigen.hervorheben(gui_zeigen.bauteile_hinter(self.kette, achse))
+        if self.wackeln and self.wackeln.laeuft() and self.wackeln.achse is achse:
+            return  # läuft schon für diese Achse – nicht von vorn anfangen
+        if self.wackeln:
+            self.wackeln.stopp()
+        self.wackeln = gui_zeigen.Wackeln(self.assembly, self.kette, achse)
+        self.wackeln.start()
 
-    def _betriebsart_neu(self, gelenk_objekt, art):
-        ba = m.neue_betriebsart(self.maschine, gelenk_objekt, art, "")
-        self._fuelle_alles(auswahl=ba)
-        self._fokus_auf_ncname()
+    # --- Abfragen -------------------------------------------------------------
 
-    def _fokus_auf_ncname(self):
-        if self.detail_aufbau.rowCount():
-            feld = self.detail_aufbau.itemAt(0, QtGui.QFormLayout.FieldRole).widget()
-            feld.setFocus()
+    def _revolver(self):
+        return [ba for ba in m.betriebsarten(self.maschine) if ba.Art == m.ART_REVOLVER]
 
-    def _betriebsart_entfernen(self):
-        eintrag = self.achsen.currentItem()
-        art, objekt = (eintrag.data(0, ROLLE) if eintrag else None) or (None, None)
-        if art != "ba":
-            return
-        for auf in m.aufnahmen(self.maschine):
-            if auf.Spindel == objekt:
-                auf.Spindel = None
-        self.doc.removeObject(objekt.Name)
-        self._detail_leeren()
-        self._fuelle_alles()
+    def _spindeln(self):
+        return [ba for ba in m.betriebsarten(self.maschine) if ba.Art == m.ART_SPINDEL]
 
-    def _aufnahme_neu(self, art):
-        alle = self._alle_lcs()
-        if not alle:
-            QtGui.QMessageBox.information(self.form, tr("dialog.titel"), tr("dialog.kein_lcs"))
-            return
-        # Vorauswahl: ein in der 3D-Ansicht gewähltes LCS, sonst das erste freie.
-        belegt = {a.Lcs for a in m.aufnahmen(self.maschine)}
-        gewaehlt = [o for o in FreeCADGui.Selection.getSelection() if o in alle]
-        lcs = gewaehlt[0] if gewaehlt else next((x for x in alle if x not in belegt), alle[0])
-        auf = m.neue_aufnahme(self.maschine, lcs, art, m.aufnahmeart_text(art))
-        self._fuelle_alles(auswahl=auf)
-
-    def _aufnahme_entfernen(self):
-        eintrag = self.aufnahmen.currentItem()
-        daten = eintrag.data(0, ROLLE) if eintrag is not None else None
-        if not daten or daten[0] != "auf":
-            return
-        self.doc.removeObject(daten[1].Name)
-        self._detail_leeren()
-        self._fuelle_alles()
-
-    def _plaetze_verteilen(self):
-        revolver = [ba for ba in m.betriebsarten(self.maschine) if ba.Art == m.ART_REVOLVER]
-        if not revolver:
-            return
-        dialog = VerteilDialog(self.form, revolver, self._lcs_im_revolver)
-        if dialog.exec_() != QtGui.QDialog.Accepted:
-            return
-        ba, lcs, anzahl = dialog.ergebnis()
-        m.verteile_plaetze(self.maschine, self.kette, ba, lcs, anzahl)
-        self.doc.recompute()
-        self._fuelle_alles()
-
-    def _lcs_im_revolver(self, ba):
+    def _ist_linear(self, ba):
         achse = self.kette.achse_von(ba.Gelenk)
-        if achse is None:
-            return []
-        return [lcs for lcs in self._alle_lcs() if self.kette.glied_von(lcs) is achse.kind]
+        return achse is not None and achse.art == LINEAR
 
-    def _hinweis_geklickt(self, eintrag):
-        bezug = eintrag.data(ROLLE)
-        if bezug is None:
-            return
-        for baum in (self.achsen, self.aufnahmen):
-            it = QtGui.QTreeWidgetItemIterator(baum)
-            while it.value():
-                daten = it.value().data(0, ROLLE)
-                if daten and daten[1] == bezug:
-                    if it.value().parent() is not None:
-                        it.value().parent().setExpanded(True)
-                    baum.setCurrentItem(it.value())
-                    baum.scrollToItem(it.value())
-                    return
-                it += 1
+    # --- Rückfragen -----------------------------------------------------------
 
-
-class VerteilDialog(QtGui.QDialog):
-    """Revolver, ersten Platz und Anzahl wählen."""
-
-    def __init__(self, eltern, revolver, lcs_fuer):
-        super().__init__(eltern)
-        self.setWindowTitle(tr("dialog.plaetze_verteilen"))
-        self.revolver = revolver
-        self.lcs_fuer = lcs_fuer
-        aufbau = QtGui.QFormLayout(self)
-        erklaerung = QtGui.QLabel(tr("verteilen.erklaerung"))
-        erklaerung.setWordWrap(True)
-        aufbau.addRow(erklaerung)
-        self.wahl_revolver = QtGui.QComboBox()
-        for ba in revolver:
-            self.wahl_revolver.addItem(m.name_von(ba))
-        self.wahl_revolver.currentIndexChanged.connect(self._lcs_fuellen)
-        aufbau.addRow(tr("verteilen.revolver"), self.wahl_revolver)
-        self.wahl_lcs = QtGui.QComboBox()
-        aufbau.addRow(tr("verteilen.erster_platz"), self.wahl_lcs)
-        self.anzahl = QtGui.QSpinBox()
-        self.anzahl.setRange(2, 96)
-        self.anzahl.setValue(12)
-        aufbau.addRow(tr("verteilen.anzahl"), self.anzahl)
-        self.hinweis = QtGui.QLabel()
-        self.hinweis.setWordWrap(True)
-        aufbau.addRow(self.hinweis)
-        self.knoepfe = QtGui.QDialogButtonBox(
-            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel
+    def _trotzdem_uebergeben(self, anzahl_warnungen):
+        antwort = QtGui.QMessageBox.question(
+            self.form,
+            tr("dialog.uebergeben"),
+            tr("uebergeben.trotz_hinweisen", anzahl=anzahl_warnungen),
         )
-        self.knoepfe.accepted.connect(self.accept)
-        self.knoepfe.rejected.connect(self.reject)
-        aufbau.addRow(self.knoepfe)
-        self._lcs_fuellen()
+        return antwort == QtGui.QMessageBox.Yes
 
-    def _lcs_fuellen(self, *_):
-        self.wahl_lcs.clear()
-        liste = self.lcs_fuer(self.revolver[self.wahl_revolver.currentIndex()])
-        # Von der Verteilhilfe selbst angelegte LCS nicht als „ersten Platz“ anbieten.
-        liste = [lcs for lcs in liste if "_P" not in lcs.Label]
-        self._lcs = liste
-        for lcs in liste:
-            self.wahl_lcs.addItem(lcs.Label)
-        ok = bool(liste)
-        self.hinweis.setText("" if ok else tr("verteilen.kein_lcs"))
-        self.knoepfe.button(QtGui.QDialogButtonBox.Ok).setEnabled(ok)
-
-    def ergebnis(self):
-        return (
-            self.revolver[self.wahl_revolver.currentIndex()],
-            self._lcs[self.wahl_lcs.currentIndex()],
-            self.anzahl.value(),
+    def _erklaere_fehlende_maschinendefinition(self):
+        """FreeCAD 1.1 hat keine CAM-Maschinendefinition: sagen, wo es sie gibt."""
+        self.hinweis_fenster = QtGui.QMessageBox(
+            QtGui.QMessageBox.Information,
+            tr("dialog.uebergeben"),
+            tr("uebergeben.nicht_verfuegbar", version=".".join(FreeCAD.Version()[:3])),
+            QtGui.QMessageBox.Ok,
+            self.form,
         )
+        # open() statt exec(): sperrt den Dialog darunter, hält aber den Ablauf
+        # nicht an – so kann das Szenario das Fenster prüfen und schließen.
+        self.hinweis_fenster.open()
 
 
-class BerichtFenster(QtGui.QDialog):
-    """Was bei der Übergabe an CAM angekommen ist – und was nicht."""
+# --- Zeilen der Listen --------------------------------------------------------
 
-    def __init__(self, eltern, name, bericht):
-        super().__init__(eltern)
-        self.setWindowTitle(tr("dialog.uebergeben"))
-        self.resize(520, 420)
-        teile = [f"<p><b>{tr('uebergeben.erfolg', name=name)}</b></p>"]
-        teile.append(f"<p>{tr('uebergeben.wo')}</p>")
-        teile.append(f"<h4>{tr('uebergeben.angekommen')}</h4><ul>")
-        teile += [f"<li>{satz}</li>" for satz in bericht.uebertragen]
-        teile.append("</ul>")
-        if bericht.zu_pruefen:
-            teile.append(f"<h4>{tr('uebergeben.pruefen')}</h4><ul>")
-            teile += [f"<li>{satz}</li>" for satz in bericht.zu_pruefen]
-            teile.append("</ul>")
-        if bericht.nicht_uebertragen:
-            teile.append(f"<h4>{tr('uebergeben.nur_im_dokument')}</h4><ul>")
-            teile += [f"<li>{satz}</li>" for satz in bericht.nicht_uebertragen]
-            teile.append("</ul>")
-        teile.append(f"<p><small>{tr('uebergeben.datei', datei=str(bericht.datei))}</small></p>")
-        self.text = QtGui.QTextBrowser()
-        self.text.setHtml("".join(teile))
-        knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
-        knoepfe.rejected.connect(self.close)
-        aufbau = QtGui.QVBoxLayout(self)
-        aufbau.addWidget(self.text)
-        aufbau.addWidget(knoepfe)
+
+def _zeile(text, art, objekt):
+    zeile = QtGui.QTreeWidgetItem([text])
+    zeile.setData(0, ROLLE, (art, objekt))
+    return zeile
+
+
+def _leerzeile():
+    """Graue, nicht wählbare Zeile „noch keine Betriebsart“ unter einem Gelenk."""
+    zeile = QtGui.QTreeWidgetItem([tr("dialog.noch_keine_betriebsart")])
+    zeile.setToolTip(0, tr("dialog.noch_keine_betriebsart.tooltip"))
+    zeile.setForeground(0, QtGui.QBrush(QtGui.QColor("gray")))
+    zeile.setFlags(QtCore.Qt.NoItemFlags)
+    return zeile
+
+
+def _zeilendaten(zeile):
+    """(Art der Zeile, Objekt); (None, None) für keine Zeile oder eine Leerzeile."""
+    daten = zeile.data(0, ROLLE) if zeile is not None else None
+    return daten or (None, None)
+
+
+def _alle_zeilen(baum):
+    """Alle Zeilen eines Baums, auch die eingerückten."""
+    zeiger = QtGui.QTreeWidgetItemIterator(baum)
+    while zeiger.value():
+        yield zeiger.value()
+        zeiger += 1
+
+
+def _auswahl_aufheben(baum):
+    """Hebt die Auswahl in `baum` auf, ohne dass seine Signale feuern."""
+    baum.blockSignals(True)
+    baum.setCurrentItem(None)
+    baum.blockSignals(False)
+
+
+def _text_gelenk(achse):
+    """„↔  X   (Schiebegelenk)“ – das Zeichen zeigt die Bewegung."""
+    if achse.art == LINEAR:
+        zeichen, art = "↔", tr("gelenk.schiebe")
+    else:
+        zeichen, art = "⟳", tr("gelenk.dreh")
+    return f"{zeichen}  {achse.gelenk.Label}   ({art})"
+
+
+def _text_betriebsart(ba):
+    """„X1  ·  Linear“"""
+    return f"{m.name_von(ba)}  ·  {m.art_text(ba.Art)}"
+
+
+def _text_aufnahme(aufnahme):
+    """„P3  ·  Werkzeug  ·  → Werkzeugplatz_P3  ·  angetrieben von S4“"""
+    lcs = aufnahme.Lcs.Label if aufnahme.Lcs is not None else "?"
+    teile = [m.name_von(aufnahme), m.aufnahmeart_text(aufnahme.Art), "→ " + lcs]
+    if aufnahme.Spindel is not None:
+        teile.append(tr("aufnahme.angetrieben_von", spindel=m.name_von(aufnahme.Spindel)))
+    return "  ·  ".join(teile)
+
+
+def _beschreibung(art):
+    """Ein Satz zur Betriebsart für das Menü unter „+ Betriebsart“."""
+    return {
+        m.ART_LINEAR: tr("art.linear.beschreibung"),
+        m.ART_POSITIONIEREN: tr("art.positionieren.beschreibung"),
+        m.ART_SPINDEL: tr("art.spindel.beschreibung"),
+        m.ART_REVOLVER: tr("art.revolver.beschreibung"),
+    }[art]
+
+
+def _status_symbol(in_ordnung):
+    """Häkchen oder Warnzeichen aus dem Qt-Stil – passt so zu jedem Farbschema."""
+    stil = QtGui.QApplication.style()
+    if in_ordnung:
+        return stil.standardIcon(QtGui.QStyle.SP_DialogApplyButton)
+    return stil.standardIcon(QtGui.QStyle.SP_MessageBoxWarning)
+
+
+def _meldungs_symbol(meldung):
+    stil = QtGui.QApplication.style()
+    if meldung.schwere == HINWEIS:
+        return stil.standardIcon(QtGui.QStyle.SP_MessageBoxInformation)
+    return stil.standardIcon(QtGui.QStyle.SP_MessageBoxWarning)
+
+
+# --- Knöpfe -------------------------------------------------------------------
+
+
+def _knopf(text, aktion, tooltip=""):
+    """Ein Knopf, der `aktion()` ohne Argumente aufruft."""
+    knopf = QtGui.QPushButton(text)
+    knopf.setToolTip(tooltip)
+    # Die Lambda schluckt das Argument „checked“ von clicked – sonst landete
+    # es etwa in uebergeben(nachfragen=…).
+    knopf.clicked.connect(lambda: aktion())
+    return knopf
+
+
+def _knopfreihe(knoepfe, spalten=2):
+    """Knöpfe nebeneinander, mit `spalten` Knöpfen je Reihe."""
+    reihe = QtGui.QWidget()
+    raster = QtGui.QGridLayout(reihe)
+    raster.setContentsMargins(0, 0, 0, 0)
+    for nummer, knopf in enumerate(knoepfe):
+        raster.addWidget(knopf, nummer // spalten, nummer % spalten)
+    return reihe

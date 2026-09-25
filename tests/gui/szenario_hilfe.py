@@ -20,7 +20,7 @@ def schritte(h):
 
     import beispielmaschinen
 
-    from camaddon import gui_maschine
+    from camaddon import gui_hilfe, gui_maschine
     from camaddon import maschine as m
 
     asm = beispielmaschinen.drehmaschine()
@@ -40,7 +40,7 @@ def schritte(h):
         )
     knopf.click()
     yield 500
-    fenster = gui_maschine.HilfeFenster.offen
+    fenster = gui_hilfe.HilfeFenster.offen
     h.pruefe(fenster is not None and fenster.isVisible(), "Hilfefenster öffnet sich nicht")
     text = fenster.browser.toPlainText()
     h.pruefe(
@@ -57,16 +57,16 @@ def schritte(h):
 
     # Verweis direkt bei den Feldern einer linearen Betriebsart.
     ba = m.neue_betriebsart(panel.maschine, doc.getObject("X"), m.ART_LINEAR, "X1")
-    panel._fuelle_alles(auswahl=ba)
+    panel.neu_aufbauen(auswahl=ba)
     yield 300
-    verweise = [w for w in panel.detail.findChildren(QtGui.QLabel) if "beschleunigung" in w.text()]
+    verweise = [w for w in panel.details.findChildren(QtGui.QLabel) if "beschleunigung" in w.text()]
     h.pruefe(
         len(verweise) == 1, f"{len(verweise)} Verweise auf die Beschleunigung im Detail statt 1"
     )
     if verweise:
         verweise[0].linkActivated.emit("beschleunigung")
         yield 500
-        text = gui_maschine.HilfeFenster.offen.browser.toPlainText()
+        text = gui_hilfe.HilfeFenster.offen.browser.toPlainText()
         h.pruefe("Beschleunigung ermitteln" in text, "Verweis im Detail öffnet die falsche Seite")
-        gui_maschine.HilfeFenster.offen.close()
+        gui_hilfe.HilfeFenster.offen.close()
     panel.reject()

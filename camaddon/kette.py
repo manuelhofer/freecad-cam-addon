@@ -143,7 +143,7 @@ def lies_kette(assembly):
     return Kette(glieder, achsen, meldungen)
 
 
-# --- Schritt 1: Gelenke sortieren -------------------------------------------
+# --- Schritt 1: Gelenke sortieren ---------------------------------------------
 
 
 @dataclass
@@ -221,7 +221,7 @@ def _sortiere_gelenke(assembly, bauteile):
     return gelenke, meldungen
 
 
-# --- Schritt 2: Glieder bilden ----------------------------------------------
+# --- Schritt 2: Glieder bilden ------------------------------------------------
 
 
 class _StarreGruppen:

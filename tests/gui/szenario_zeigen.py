@@ -49,7 +49,7 @@ def schritte(h):
     fest = ["Bett", "ZSchlitten", "Hauptspindel"]
     vorher = lagen(doc, beweglich + fest)
 
-    panel._zeige(eintrag_daten(panel.achsen, "X"))
+    panel.zeige(eintrag_daten(panel.achsen, "X"))
     yield 180
     h.bild("1_x_wackelt")
     mitten = lagen(doc, beweglich + fest)
@@ -82,14 +82,14 @@ def schritte(h):
         for i in range(panel.glieder.count())
         if "Hauptspindel" in panel.glieder.item(i).text()
     )
-    panel._zeige(glied_zeile.data(0x0100))
+    panel.zeige(glied_zeile.data(0x0100))
     yield 300
     gewaehlt = sorted(o.Name for o in Gui.Selection.getSelection())
     h.pruefe(gewaehlt == ["Futter", "Hauptspindel"], f"Glied hervorgehoben: {gewaehlt}")
     h.bild("2_glied_spindel")
 
     # Drehachse zeigen, dann mitten in der Bewegung OK.
-    panel._zeige(eintrag_daten(panel.achsen, "Revolverachse"))
+    panel.zeige(eintrag_daten(panel.achsen, "Revolverachse"))
     yield 150
     h.pruefe(
         not doc.getObject("Revolver").Placement.isSame(vorher["Revolver"], 1e-9),

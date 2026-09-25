@@ -20,8 +20,11 @@ def eintrag(baum, text_anfang):
     return None
 
 
-def feld(panel, zeile):
-    return panel.detail_aufbau.itemAt(zeile, QtGui.QFormLayout.FieldRole).widget()
+def betriebsart_waehlen(panel, art_text):
+    """„+ Betriebsart“ aufklappen und die Art wählen – wie ein Benutzer."""
+    menue = panel.knopf_betriebsart.menu()
+    menue.aboutToShow.emit()
+    next(a for a in menue.actions() if a.text().startswith(art_text)).trigger()
 
 
 def tippen(widget, text):
@@ -39,7 +42,7 @@ def schritte(h):
 
     import beispielmaschinen
 
-    from camaddon import gui_maschine
+    from camaddon import gui_maschine, gui_verteilhilfe
     from camaddon import maschine as m
 
     asm = beispielmaschinen.drehmaschine()
@@ -72,12 +75,12 @@ def schritte(h):
         ("Revolverachse", m.ART_REVOLVER, "T", []),
     ):
         panel.achsen.setCurrentItem(eintrag(panel.achsen, gelenk))
-        panel._betriebsart_neu(doc.getObject(gelenk), art)
+        betriebsart_waehlen(panel, m.art_text(art))
         yield 100
-        tippen(feld(panel, 0), name)
+        tippen(panel.details.feld(0), name)
         for i, wert in enumerate(werte, start=1):
             if wert is not None:
-                tippen(feld(panel, i), wert)
+                tippen(panel.details.feld(i), wert)
         yield 100
 
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
@@ -88,11 +91,11 @@ def schritte(h):
     # Werkzeugen; Revolverplätze über die Verteilhilfe.
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(doc.getObject("Spannflaeche"))
-    panel._aufnahme_neu(m.AUFNAHME_WERKSTUECK)
+    panel.knopf_werkstueck.click()
     yield 200
-    tippen(feld(panel, 0), "Futter")
+    tippen(panel.details.feld(0), "Futter")
     rev = next(ba for ba in m.betriebsarten(panel.maschine) if ba.Art == m.ART_REVOLVER)
-    dialog = gui_maschine.VerteilDialog(panel.form, [rev], panel._lcs_im_revolver)
+    dialog = gui_verteilhilfe.VerteilDialog(panel.form, [rev], panel.lcs_im_revolver)
     dialog.show()
     yield 300
     h.bild("3_verteilen", dialog)
@@ -101,7 +104,7 @@ def schritte(h):
         angeboten == ["Werkzeugplatz"],
         f"Verteilhilfe bietet {angeboten} an statt nur den Werkzeugplatz",
     )
-    alle = [o.Label for o in panel._alle_lcs()]
+    alle = [o.Label for o in panel.alle_lcs()]
     h.pruefe(
         not any(n.startswith("Origin") for n in alle),
         f"Ursprünge als Koordinatensystem angeboten: {alle}",
@@ -109,7 +112,7 @@ def schritte(h):
     dialog.accept()
     m.verteile_plaetze(panel.maschine, panel.kette, rev, doc.getObject("Werkzeugplatz"), 12)
     doc.recompute()
-    panel._fuelle_alles()
+    panel.neu_aufbauen()
     yield 500
 
     h.pruefe(
@@ -135,7 +138,7 @@ def schritte(h):
     # Ein Fehler: X1 ohne Eilgang -> Hinweis erscheint, Klick springt zur Achse.
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
     yield 100
-    tippen(feld(panel, 1), "")
+    tippen(panel.details.feld(1), "")
     yield 300
     texte = [panel.hinweise.item(i).text() for i in range(panel.hinweise.count())]
     h.pruefe(
@@ -143,14 +146,14 @@ def schritte(h):
         f"fehlender Eilgang nicht gemeldet: {texte}",
     )
     panel.aufnahmen.setCurrentItem(None)
-    panel._hinweis_geklickt(panel.hinweise.item(0))
+    panel.hinweise.itemClicked.emit(panel.hinweise.item(0))
     aktuell = panel.achsen.currentItem()
     h.pruefe(
         aktuell is not None and aktuell.text(0).startswith("X1"),
         "Klick auf Hinweis springt nicht zu X1",
     )
     del aktuell
-    tippen(feld(panel, 1), "24000")
+    tippen(panel.details.feld(1), "24000")
     yield 300
     h.bild("5_hinweis_geklickt")
 
@@ -169,7 +172,7 @@ def schritte(h):
     yield 1000
     panel = gui_maschine.MaschinenPanel.offen
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
-    tippen(feld(panel, 0), "X9")
+    tippen(panel.details.feld(0), "X9")
     panel.reject()
     yield 500
     namen = sorted(ba.NcName for ba in m.betriebsarten(ma))

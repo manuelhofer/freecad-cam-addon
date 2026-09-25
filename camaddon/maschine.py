@@ -81,7 +81,7 @@ KOPF = "kopf"
 TYP_MASCHINE = "CamAddon::Maschine"
 
 
-# --- Anzeigetexte -----------------------------------------------------------
+# --- Anzeigetexte -------------------------------------------------------------
 
 
 def art_text(art):
@@ -114,7 +114,7 @@ def wert_text(eigenschaft):
     }[eigenschaft]
 
 
-# --- Die drei Objektarten ---------------------------------------------------
+# --- Die drei Objektarten -----------------------------------------------------
 #
 # FreeCAD-Objekte aus Python bekommen einen „Proxy“: eine Python-Klasse, die
 # die Eigenschaften anlegt und auf Änderungen reagiert. Die Daten selbst

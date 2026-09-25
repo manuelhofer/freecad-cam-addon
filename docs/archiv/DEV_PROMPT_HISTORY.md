@@ -12,6 +12,92 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-32 dialog-maschine-aufgeteilt
+
+### EINGELESEN
+- Manuels Auftrag aus P-2026-09-25-27 (Code lesbar, „to the max“).
+- `gui_maschine.py` hatte 930 Zeilen: Befehl, Hilfe, Zahlenfelder, das
+  Aufgabenfenster mit 45 Methoden, Verteilhilfe und Bericht in einer Datei.
+- Die Szenarien riefen acht private Methoden des Fensters direkt auf.
+
+### DATEIEN
+- `camaddon/gui_maschine.py` (Befehl und Aufgabenfenster, neu gegliedert)
+- `camaddon/gui_details.py` (neu: Felder der gewählten Betriebsart oder
+  Aufnahme, Zahlenformat)
+- `camaddon/gui_hilfe.py` (neu: Knopf (?) und Hilfefenster)
+- `camaddon/gui_verteilhilfe.py` (neu: Revolverplätze verteilen)
+- `camaddon/gui_bericht.py` (neu: Bericht nach der Übergabe)
+- `camaddon/kette.py`, `maschine.py` (nur Trennlinien der Abschnitte)
+- `tests/gui/szenario_*.py` (neue Schnittstelle)
+- `tests/test_hilfe.py` (sucht in allen `gui_*.py`, Suchmuster repariert)
+- `CHATSTART.md` (Lesekarte: neue Module)
+- `package.xml` (Version 0.3.6)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Jede Datei hat ein Thema. Das Aufgabenfenster ist in benannte Abschnitte
+gegliedert. Die Szenarien benutzen nur öffentliche Methoden oder bedienen
+Knöpfe und Signale wie ein Benutzer. Alle Szenarien sind in beiden
+FreeCAD-Versionen grün.
+
+### DONE
+- **Aufteilung:**
+  - `gui_maschine.py`: Befehl, Suche nach der Assembly, Aufgabenfenster.
+  - `gui_details.py`: der Kasten mit den Feldern.
+  - `gui_hilfe.py`, `gui_verteilhilfe.py`, `gui_bericht.py`: je ein kleines
+    Fenster.
+- **Aufgabenfenster:**
+  - Benannte Abschnitte: Schnittstelle zu FreeCAD, Aufbau, Aktionen,
+    Auswahl, Eingaben übernehmen, Listen füllen, Zeigen, Abfragen,
+    Rückfragen.
+  - `_baue()` ist je Bereich aufgeteilt.
+  - Öffentliche „Aktionen“ stehen hinter den Knöpfen und dienen auch den
+    Szenarien: `betriebsart_anlegen`, `betriebsart_entfernen`,
+    `aufnahme_anlegen`, `aufnahme_entfernen`, `plaetze_verteilen`,
+    `uebergeben`, `zeige`, `springe_zu`, `neu_aufbauen`, `alle_lcs`,
+    `lcs_im_revolver`.
+  - Die Zeilenarten heißen `ZEILE_GELENK`, `ZEILE_BETRIEBSART` usw. statt
+    „ba“ und „auf“. `_zeilendaten()` und `_alle_zeilen()` ersetzen je vier
+    Wiederholungen.
+  - Benannte Konstanten statt Zahlen: `ZEIGEN_NACH_MS`, Mindesthöhen der
+    Listen, Fenstergrößen, Anzahl der Revolverplätze.
+  - Kein `lambda: x and …`-Trick und kein doppeltes Leeren der Details mehr.
+    `self.meldungen` wird in `__init__` angelegt, `IsActive` liest sich als
+    `not activeDialog()`.
+- **Sichtbar geändert, deshalb Version 0.3.6:**
+  - „+ Betriebsart“ ist ein Knopf mit Aufklappmenü, erkennbar am kleinen
+    Pfeil. Vorher öffnete der Code ein selbst positioniertes Menü, das bei
+    jedem Klick neu entstand und nie freigegeben wurde.
+  - „+ Betriebsart“ ist nur bedienbar, wenn zur Auswahl eine Achse gehört.
+    Bei einer Betriebsart ohne gültiges Gelenk kam vorher beim Klick einfach
+    nichts.
+  - Der Bericht zeigt keinen leeren Abschnitt „In CAM angekommen“ mehr.
+- **Szenarien:** Sie wählen die Betriebsart jetzt über das Menü des
+  Knopfs, legen Aufnahmen per Knopfdruck an und springen per
+  `itemClicked` zu einem Hinweis, also wie ein Benutzer.
+- Trennlinien der Abschnitte sind in allen Modulen 80 Zeichen breit.
+- **Befund in `test_hilfe.py`:** Das Muster für die Knöpfe (?)
+  (`_kopfzeile\([^)]*,…`) kam nie an der Klammer von `tr("…")` vorbei. Der
+  Test prüfte deshalb nur den Verweis `href="beschleunigung"`, die drei
+  Knöpfe nie. Aufgefallen ist das erst, weil nach der Aufteilung beide
+  Muster nichts mehr fanden. Jetzt durchsucht der Test alle `gui_*.py` und
+  schlägt fehl, wenn eines der beiden Muster nichts findet.
+
+### TEST
+- Von der KI ausgeführt:
+  - black und ruff sauber.
+  - Alle sieben Szenarien in beiden Versionen grün.
+  - `alle_tests.sh` in beiden Versionen grün.
+  - Screenshot angesehen: „+ Betriebsart“ mit Aufklapp-Pfeil, Felder
+    darunter wie vorher.
+  - `test_hilfe.py`: Das alte Muster findet im alten Code `set()`. Das neue
+    findet die Knöpfe `achsen`, `aufnahmen`, `glieder` und den Verweis
+    `beschleunigung`.
+
+### NEXT
+- Durchsicht von `gui_zeigen`, `gui_start`, `gui_sprachwahl` und
+  `gui_aktualisierung`.
+
 ## P-2026-09-25-31 zahlenfelder-eindeutig
 
 ### EINGELESEN

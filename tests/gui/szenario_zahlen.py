@@ -7,14 +7,10 @@ import os
 import sys
 
 import FreeCADGui as Gui
-from PySide import QtCore, QtGui
+from PySide import QtCore
 from PySide6 import QtTest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-
-def feld(panel, zeile):
-    return panel.detail_aufbau.itemAt(zeile, QtGui.QFormLayout.FieldRole).widget()
 
 
 def bestaetigen(widget):
@@ -59,9 +55,9 @@ def schritte(h):
     Gui.runCommand("CamAddon_MaschineBearbeiten")
     yield 1500
     panel = gui_maschine.MaschinenPanel.offen
-    panel._fuelle_alles(auswahl=x1)
+    panel.neu_aufbauen(auswahl=x1)
     yield 300
-    eilgang, beschleunigung = feld(panel, 1), feld(panel, 3)
+    eilgang, beschleunigung = panel.details.feld(1), panel.details.feld(3)
     h.pruefe(eilgang.text() == "30000", f"Eilgang zeigt {eilgang.text()!r} statt '30000'")
     h.pruefe(
         beschleunigung.text() == "2,5",

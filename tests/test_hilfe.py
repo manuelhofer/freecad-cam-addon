@@ -32,14 +32,17 @@ for code in ("de", "en"):
     if ueberzaehlig:
         fehler.append(f"help/{code}: Seiten ohne Thema in hilfe.THEMEN: {sorted(ueberzaehlig)}")
 
-# Themen, die der Dialog aufruft, müssen in THEMEN stehen.
-code = Path(ADDON, "camaddon", "gui_maschine.py").read_text("utf-8")
-benutzt = set(re.findall(r'_kopfzeile\([^)]*,\s*"([a-z_]+)"\)', code))
-benutzt |= set(re.findall(r'href="([a-z_]+)"', code))
-if not benutzt:
-    fehler.append("keine Hilfethemen im Dialog gefunden – Suchmuster veraltet?")
+# Themen, die die Oberfläche aufruft, müssen in THEMEN stehen: die Knöpfe (?)
+# in den Überschriften – kopfzeile(tr("…"), "thema") – und Verweise wie
+# href="beschleunigung". Findet eines der Muster nichts, ist es veraltet.
+code = "".join(p.read_text("utf-8") for p in sorted(Path(ADDON, "camaddon").glob("gui_*.py")))
+knoepfe = set(re.findall(r'\bkopfzeile\(tr\("[^"]*"\),\s*"([a-z_]+)"\)', code))
+verweise = set(re.findall(r'href="([a-z_]+)"', code))
+if not knoepfe or not verweise:
+    fehler.append(f"Suchmuster veraltet? Knöpfe {knoepfe}, Verweise {verweise}")
+benutzt = knoepfe | verweise
 if benutzt - set(hilfe.THEMEN):
-    fehler.append(f"im Dialog benutzt, aber keine Hilfe: {sorted(benutzt - set(hilfe.THEMEN))}")
+    fehler.append(f"benutzt, aber keine Hilfe: {sorted(benutzt - set(hilfe.THEMEN))}")
 
 assert not fehler, "\n".join(fehler)
 print("OK", os.path.basename(__file__))

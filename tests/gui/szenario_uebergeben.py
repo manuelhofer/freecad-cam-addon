@@ -37,7 +37,7 @@ def schritte(h):
 
     if not export.verfuegbar():
         # FreeCAD 1.1.x: statt eines Fehlers ein Satz, was fehlt und wo es das gibt.
-        h.pruefe(panel._uebergeben(nachfragen=False) is None, "Übergabe ohne Maschinendefinition")
+        h.pruefe(panel.uebergeben(nachfragen=False) is None, "Übergabe ohne Maschinendefinition")
         yield 500
         hinweis = h.modal()
         text = hinweis.text() if hinweis is not None else ""
@@ -51,7 +51,7 @@ def schritte(h):
         panel.accept()
         return
 
-    bericht = panel._uebergeben(nachfragen=False)
+    bericht = panel.uebergeben(nachfragen=False)
     yield 500
     h.pruefe(bericht is not None, "Übergabe fehlgeschlagen")
     fenster = getattr(panel, "bericht_fenster", None)
