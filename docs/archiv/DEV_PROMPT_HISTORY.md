@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-17 version-0-10-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Neu seit
+  0.9.0: Zeile kopieren (P-2026-09-26-12), Ebenen im Job-Dialog (-16); dazu
+  Einsatz am Namen (-11), Operationsnamen wie in FreeCAD (-13),
+  Fehlerbericht T-004 (-14), Git ohne Konsolenfenster (-15).
+
+### DATEIEN
+- `package.xml` (0.10.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.10.0.
+
+### DONE
+- Version 0.9.0 → 0.10.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push.
+
 ## P-2026-09-26-16 ebenen-im-job-dialog
 
 ### EINGELESEN
