@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-64 version-0-6-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Neu seit
+  0.5.1: Schruppwerte planen (P-60), Schrittweite und Zustelltiefe in die
+  Operationen (P-61), Gesamtlänge und Schaft (P-62), „rpm“ auf Englisch
+  (P-63).
+
+### DATEIEN
+- `package.xml` (0.6.0, Beschreibung)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.6.0.
+
+### DONE
+- Version 0.5.1 → 0.6.0; die Beschreibung nennt den Planer und die
+  Übergabe von Schrittweite und Zustelltiefe.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push.
+
 ## P-2026-09-25-63 englisch-rpm
 
 ### EINGELESEN
