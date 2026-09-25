@@ -80,7 +80,10 @@ def schritte(h):
     werte = (d.tabelle.item(z1, gj.N).text(), d.tabelle.item(z1, gj.VF).text())
     h.pruefe(werte == ("3183", "1432"), f"n/vf: {werte}")
     zustellung = d.tabelle.item(z1, gj.ZUSTELLUNG).text()
-    h.pruefe(zustellung == "Adaptiv: 10 % · 25 mm · Helix 3°", f"Zustellung: {zustellung!r}")
+    # Ohne Basisgeometrie reicht das Adaptiv vom Rohteil (11 mm) bis zum Quader (10 mm).
+    h.pruefe(
+        zustellung == "Adaptiv: 10 % · 25 mm · Helix 3° · 1 Ebene", f"Zustellung: {zustellung!r}"
+    )
     h.pruefe(d.tabelle.item(z2, gj.ZUSTELLUNG).text() == "", "fremder TC mit Zustellung")
     h.pruefe(not d.tabelle.cellWidget(z2, gj.EINSATZ).isEnabled(), "fremdes Werkzeug wählbar")
     h.pruefe("nicht in der Werkzeugverwaltung" in d.tabelle.item(z2, gj.WERKZEUG).text(), "fremd")

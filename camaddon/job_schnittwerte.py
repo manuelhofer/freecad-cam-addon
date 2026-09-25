@@ -61,6 +61,10 @@ ZUSTELLUNG_NACH_OPERATION = {
 # in 1.1.3 HelixAngle – beide in Grad.
 HELIX_WINKEL = ("HelixMaxRampAngle", "HelixAngle")
 
+# Dünner als dieser Anteil von ap ist die letzte Ebene nur ein Rest: ein
+# eigener Umlauf (im Adaptiv mit eigener Helix) für wenig Material.
+DUENNE_EBENE = 0.25
+
 
 @dataclass
 class Gesetzt:
@@ -234,6 +238,48 @@ def zustellung(operation, werkzeug, einsatz):
                 werte[eigenschaft] = round(werkzeug.eintauchwinkel, 2)
                 break
     return werte
+
+
+def ebenen(operation, zustelltiefe):
+    """Die Dicke der Ebenen in mm, die `operation` mit dieser Zustelltiefe fährt; [] wenn unbekannt.
+
+    Gezählt wird von ihrer Starttiefe – FreeCAD setzt dafür die Oberkante des
+    Rohteils – bis zur Endtiefe, mit FreeCADs eigener Rechnung
+    (PathUtils.depth_params). Ein 25 mm tiefes Loch unter 1 mm Rohteil mit
+    Zustelltiefe 25: [25, 1].
+    """
+    try:
+        from PathScripts import PathUtils
+
+        oben = float(operation.StartDepth.getValueAs("mm"))
+        tiefen = PathUtils.depth_params(
+            clearance_height=float(operation.ClearanceHeight.getValueAs("mm")),
+            safe_height=float(operation.SafeHeight.getValueAs("mm")),
+            start_depth=oben,
+            step_down=zustelltiefe,
+            z_finish_step=0.0,
+            final_depth=float(operation.FinalDepth.getValueAs("mm")),
+            user_depths=None,
+        ).data
+    except Exception:  # nur eine Anzeige – dann eben ohne Ebenen
+        return []
+    dicken = []
+    for tiefe in tiefen:
+        dicken.append(round(oben - float(tiefe), 3))
+        oben = float(tiefe)
+    return dicken
+
+
+def duenne_letzte_ebene(dicken, zustelltiefe):
+    """(Rest, ap ohne ihn), wenn die letzte Ebene nur ein Rest ist – sonst None.
+
+    „ap ohne ihn“ ist die Zustelltiefe, mit der dieselbe Tiefe eine Ebene
+    weniger braucht, auf 0,01 mm aufgerundet.
+    """
+    if len(dicken) < 2 or dicken[-1] >= DUENNE_EBENE * zustelltiefe:
+        return None
+    ohne = math.ceil(sum(dicken) / (len(dicken) - 1) * 100 - 1e-6) / 100
+    return dicken[-1], ohne
 
 
 def werte(werkzeug, einsatz):

@@ -150,6 +150,20 @@ helically to 25 mm once and then clears the level.</li>
 is entered in the tool manager, “Cutting data into the job” sets it in
 Adaptive as well (the column then shows e.g. “helix 3°”); otherwise FreeCAD's
 default of 5° stays.</p>
+<p><b>One level or two?</b> The step down counts from the top of the stock –
+and by default FreeCAD puts that 1 mm above the model. A 25 mm deep hole is
+26 mm deep from there, and with a step down of 25 Adaptive runs two levels:
+25 mm and 1 mm, each with its own helix. “Cutting data into the job” shows the
+levels beforehand (“2 levels (25 + 1 mm)”) and says in red how the thin one
+goes away:</p>
+<ul>
+<li>a little more ap in the use case (here 26 mm) – if the flute is that
+long;</li>
+<li>or the stock flush at the top: double-click the job, then <b>Setup →
+Stock</b>, and set the right field of <b>Ext. Z</b> – upwards – to 0. FreeCAD
+does not recompute the operation by itself afterwards: right-click it in the
+tree → <b>Recompute Object</b>.</li>
+</ul>
 
 <h3>Roughing an outer contour</h3>
 <p>The same from the outside: Adaptive clears the stock all around the part –

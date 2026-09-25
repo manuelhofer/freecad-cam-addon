@@ -503,5 +503,9 @@
     "wv.eintauchwinkel": "Eintauchwinkel",
     "wv.eintauchwinkel.tooltip": "Wie steil der Fräser höchstens eintauchen darf – auf einer Rampe oder Helix. Steht im Katalog des Herstellers. „Schnittwerte in den Job“ trägt ihn im Adaptiv als Eintauchwinkel der Helix ein. Leer: FreeCADs Vorgabe.",
     "sj.helix": "Helix {winkel}°",
-    "wv.einsatz.kopieren": "Gewählte Zeile kopieren"
+    "wv.einsatz.kopieren": "Gewählte Zeile kopieren",
+    "sj.ebene_eine": "1 Ebene",
+    "sj.ebenen": "{anzahl} Ebenen ({dicken} mm)",
+    "sj.ebene_duenn": "{operation}: Die letzte Ebene ist nur {rest} mm dick – ein eigener Umlauf für wenig Material. Die Ebenen zählen ab der Oberkante des Rohteils, und die legt FreeCAD von sich aus 1 mm über das Modell (im Job: Materialkörper, „Erw. Z“ rechts).",
+    "sj.ebene_duenn.ap": "Mit ap {ap} mm im Einsatz entfällt sie – die Schneide ist {laenge} mm lang."
 }

@@ -503,5 +503,9 @@
     "wv.eintauchwinkel": "Ramp angle",
     "wv.eintauchwinkel.tooltip": "How steeply the cutter may plunge at most – on a ramp or helix. Stated in the manufacturer's catalogue. “Cutting data into the job” sets it as the helix entry angle in Adaptive. Empty: FreeCAD's default.",
     "sj.helix": "helix {winkel}°",
-    "wv.einsatz.kopieren": "Copy the selected row"
+    "wv.einsatz.kopieren": "Copy the selected row",
+    "sj.ebene_eine": "1 level",
+    "sj.ebenen": "{anzahl} levels ({dicken} mm)",
+    "sj.ebene_duenn": "{operation}: the last level is only {rest} mm thick – a pass of its own for little material. Levels count from the top of the stock, and by default FreeCAD puts it 1 mm above the model (in the job: Stock, the right field of “Ext. Z”).",
+    "sj.ebene_duenn.ap": "With ap {ap} mm in the use case it goes away – the flute is {laenge} mm long."
 }

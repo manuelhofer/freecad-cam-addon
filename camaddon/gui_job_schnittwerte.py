@@ -20,14 +20,14 @@ from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
-from .gui_teile import grau
+from .gui_teile import grau, hinweiszeile
 from .gui_werkzeuge import werkstoffe_anbieten
 from .gui_zahlen import dezimal, zahl_zeigen, zahlenformat
 from .sprache import tr
 
 # Spalten der Tabelle.
 TC, WERKZEUG, EINSATZ, N, VF, ZUSTELLUNG, JETZT = range(7)
-FENSTER_GROESSE = (1000, 460)  # Pixel
+FENSTER_GROESSE = (1180, 480)  # Pixel – breit genug für „· 2 Ebenen (25 + 1 mm)“
 
 
 class BefehlSchnittwerteJob:
@@ -67,6 +67,19 @@ def _zustellung_text(werte):
     return " · ".join(teile)
 
 
+def _ebenen_text(dicken):
+    """„1 Ebene“, „2 Ebenen (25 + 1 mm)“, „5 Ebenen (4 × 25 + 3 mm)“."""
+    if len(dicken) == 1:
+        return tr("sj.ebene_eine")
+    if len(dicken) <= 3:
+        teile = " + ".join(zahl_zeigen(d) for d in dicken)
+    elif len(set(dicken)) == 1:
+        teile = f"{len(dicken)} × {zahl_zeigen(dicken[0])}"
+    else:
+        teile = f"{len(dicken) - 1} × {zahl_zeigen(dicken[0])} + {zahl_zeigen(dicken[-1])}"
+    return tr("sj.ebenen", anzahl=len(dicken), dicken=teile)
+
+
 def _jetzt(operation, eigenschaften):
     """Die jetzigen Werte dieser Eigenschaften einer Operation, in mm, % und Grad."""
     werte = {}
@@ -95,6 +108,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             )
             self.bibliothek = wz.Bibliothek()
         self._zeilen = []  # (tc, werkzeug oder None, Auswahl des Einsatzes)
+        self._duenn = {}  # Zeile → Sätze zu dünnen letzten Ebenen
         self.setWindowTitle(tr("sj.titel"))
         self.resize(*FENSTER_GROESSE)
 
@@ -142,6 +156,9 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         kopf.setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
         kopf.setSectionResizeMode(WERKZEUG, QtGui.QHeaderView.Stretch)
         aufbau.addWidget(self.tabelle, 1)
+        self.ebenen_hinweis = hinweiszeile()
+        self.ebenen_hinweis.hide()
+        aufbau.addWidget(self.ebenen_hinweis)
 
         # Ein Knopf mit Menü: je Werkzeug seine Einsätze – ein Klick legt an.
         self.knopf_tc_neu = QtGui.QPushButton(tr("sj.tc_neu"))
@@ -229,6 +246,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         tcs = js.werkzeug_controller(self.job) if self.job else []
         self.tabelle.setRowCount(len(tcs))
         self._zeilen = []
+        self._duenn = {}
         for zeile, tc in enumerate(tcs):
             werkzeug = js.werkzeug_von(tc, self.bibliothek)
             wahl = QtGui.QComboBox()
@@ -286,21 +304,49 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         self.tabelle.setItem(zeile, N, QtGui.QTableWidgetItem(n))
         self.tabelle.setItem(zeile, VF, QtGui.QTableWidgetItem(vf))
         self.tabelle.setItem(zeile, ZUSTELLUNG, self._zustellung_zelle(zeile, werkzeug, einsatz))
+        self._ebenen_hinweis_zeigen()
 
     def _zustellung_zelle(self, zeile, werkzeug, einsatz):
         """Welche Operationen des TC Schrittweite und Zustelltiefe bekommen – und ihr jetziger Wert."""
         tc = self._zeilen[zeile][0]
-        zeilen, jetzt = [], []
+        zeilen, jetzt, duenn = [], [], []
         for operation in js.operationen_mit(tc, self.job) if einsatz is not None else []:
             neu = js.zustellung(operation, werkzeug, einsatz)
-            if neu:
-                zeilen.append(f"{operation.Label}: {_zustellung_text(neu)}")
-                vorher = _zustellung_text(_jetzt(operation, neu))
-                jetzt.append(f"{operation.Label}: {vorher}")
+            if not neu:
+                continue
+            text = f"{operation.Label}: {_zustellung_text(neu)}"
+            dicken = js.ebenen(operation, neu["StepDown"]) if "StepDown" in neu else []
+            if dicken:
+                text += " · " + _ebenen_text(dicken)
+                rest = js.duenne_letzte_ebene(dicken, neu["StepDown"])
+                if rest is not None:
+                    duenn.append(self._duenn_satz(operation, werkzeug, *rest))
+            zeilen.append(text)
+            vorher = _zustellung_text(_jetzt(operation, neu))
+            jetzt.append(f"{operation.Label}: {vorher}")
+        self._duenn[zeile] = duenn
         zelle = QtGui.QTableWidgetItem("\n".join(zeilen))
         if jetzt:
             zelle.setToolTip(tr("sj.zustellung.jetzt", werte="\n".join(jetzt)))
         return zelle
+
+    @staticmethod
+    def _duenn_satz(operation, werkzeug, rest, ap_ohne):
+        """Der Satz zu einer dünnen letzten Ebene – mit ap, wenn die Schneide dafür reicht."""
+        satz = tr("sj.ebene_duenn", operation=operation.Label, rest=zahl_zeigen(rest))
+        if werkzeug.schneidenlaenge and ap_ohne <= werkzeug.schneidenlaenge:
+            satz += " " + tr(
+                "sj.ebene_duenn.ap",
+                ap=zahl_zeigen(ap_ohne),
+                laenge=zahl_zeigen(werkzeug.schneidenlaenge),
+            )
+        return satz
+
+    def _ebenen_hinweis_zeigen(self):
+        """Unter der Tabelle: welche Operation eine dünne letzte Ebene fahren würde."""
+        saetze = [s for zeile in sorted(self._duenn) for s in self._duenn[zeile]]
+        self.ebenen_hinweis.setText("\n".join(saetze))
+        self.ebenen_hinweis.setVisible(bool(saetze) and self.mit_zustellung.isChecked())
 
     def _zustellung_zeigen(self, *_):
         """Die Spalte Zustellung nur, wenn sie auch übernommen wird; die Wahl merken."""
@@ -308,6 +354,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         self.tabelle.setColumnHidden(ZUSTELLUNG, not an)
         _parameter().SetBool("SjZustellung", an)
         self.tabelle.resizeRowsToContents()
+        self._ebenen_hinweis_zeigen()
 
     def _menue_tc_neu_fuellen(self):
         """Je Werkzeug ein Untermenü mit den Einsätzen, die vc und fz haben."""

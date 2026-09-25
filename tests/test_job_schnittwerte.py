@@ -88,6 +88,17 @@ einsaetze = fraeser.einsaetze("1.4301")
 pruefe(js.vorgeschlagener_einsatz(tc1, einsaetze, job) == 1, "Einsatz aus dem Namen des TC")
 pruefe(js.vorgeschlagener_einsatz(tc2, bohrer.einsaetze("1.4301"), job) == 0, "erste Zeile")
 pruefe(js.vorgeschlagener_einsatz(tc2, [], job) == -1, "ohne Zeilen")
+# Ebenen einer Operation ab der Oberkante des Rohteils (61 mm, 1 mm über dem
+# Quader): Die Tasche geht bis 0, mit ap 25 also 25 + 25 + 11.
+tasche = operationen["Tasche"]
+pruefe(js.ebenen(tasche, 25) == [25, 25, 11], f"Ebenen der Tasche: {js.ebenen(tasche, 25)}")
+pruefe(js.ebenen(tasche, 30.5) == [30.5, 30.5], f"Ebenen bei 30,5: {js.ebenen(tasche, 30.5)}")
+pruefe(js.ebenen(object(), 25) == [], "Ebenen ohne Tiefen")
+pruefe(js.duenne_letzte_ebene([25, 1], 25) == (1, 26.0), "dünne letzte Ebene 25 + 1")
+pruefe(js.duenne_letzte_ebene([25, 25, 2], 25) == (2, 26.0), "dünne letzte Ebene 25 + 25 + 2")
+pruefe(js.duenne_letzte_ebene([25, 25, 11], 25) is None, "11 von 25 ist kein Rest")
+pruefe(js.duenne_letzte_ebene([25], 25) is None, "eine Ebene ist kein Rest")
+
 # Der längste passende Name gewinnt: „T3 Schruppen dynamisch“ enthält auch „Schruppen“.
 drei = [wz.Einsatz(art=wz.VOLLNUT), wz.Einsatz(art=wz.SCHRUPPEN), wz.Einsatz(art=wz.DYNAMISCH)]
 pruefe(js.vorgeschlagener_einsatz(tc1, drei, job) == 2, "„Schruppen“ statt „Schruppen dynamisch“")

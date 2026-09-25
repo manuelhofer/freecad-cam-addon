@@ -12,6 +12,67 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-16 ebenen-im-job-dialog
+
+### EINGELESEN
+- Manuels „einmal helikal ein Grundloch, dann ebenenweise mit voller
+  Schneide“ nachgestellt (FreeCADCmd, beide Versionen): Quader 60 × 60 × 30
+  mit Sackloch Ø 30, 25 tief, Adaptiv mit dem Boden als Basisgeometrie,
+  Zustelltiefe 25 → **zwei** Ebenen, 25 mm und 1 mm, jede mit eigener
+  Helix. Grund: Die Starttiefe ist die Oberkante des Rohteils, und FreeCAD
+  legt das Rohteil von sich aus 1 mm über das Modell.
+- Die Ebenen rechnet FreeCAD mit `PathUtils.depth_params` (in 1.1.3 und im
+  Wochen-Build gleich).
+- Ändert man das Rohteil, rechnet FreeCAD die Operation nicht von selbst
+  neu – sie behält die alte Starttiefe; eine Neuberechnung der Operation
+  genügt (geprüft).
+- Beschriftungen im deutschen FreeCAD ausgelesen: „Auftrag bearbeiten →
+  Einrichtung → Materialkörper → Erw. Z“ (linkes Feld nach unten, rechtes
+  nach oben), im Baum „Objekt neu berechnen“.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`ebenen()`, `duenne_letzte_ebene()`)
+- `camaddon/gui_job_schnittwerte.py` (Spalte „Schrittweite ·
+  Zustelltiefe“ mit „1 Ebene“ bzw. „2 Ebenen (25 + 1 mm)“; roter Satz unter
+  der Tabelle bei einer dünnen letzten Ebene; Fenster breiter)
+- `translations/de.json`, `translations/en.json`
+- `help/de|en/werkzeuge.html` („Eine Ebene oder zwei?“)
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`,
+  `tests/gui/szenario_loch_auffraesen.py` (neu)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Teil mit Sackloch 25 mm tief, Job mit FreeCADs Rohteil, Adaptiv auf den
+Boden des Lochs mit dem Controller „T3 Schruppen dynamisch“ (ap 25) →
+„Schnittwerte in den Job“ zeigt „… · 2 Ebenen (25 + 1 mm)“ und darunter in
+Rot, dass die letzte Ebene nur 1 mm dick ist, mit den zwei Auswegen. Im
+Job bei „Erw. Z“ rechts 0, Adaptiv neu berechnen → der Dialog zeigt
+„1 Ebene“, kein roter Satz → Übernehmen → das Adaptiv taucht einmal
+helikal bis zum Boden ein und räumt nur dort.
+
+### DONE
+- Ebenen je Operation in der Spalte, Hinweis bei dünner letzter Ebene
+  (dünner als ¼ ap), mit ap-Vorschlag nur, wenn die Schneide reicht.
+- Hilfe erklärt die Ursache und beide Auswege.
+
+### TEST
+- `tests/test_job_schnittwerte.py`: Ebenen der Tasche (25 + 25 + 11,
+  30,5 + 30,5), ohne Tiefen [], dünne letzte Ebene (25 + 1 → ap 26;
+  25 + 25 + 2 → ap 26; 11 von 25 und eine Ebene sind kein Rest).
+- `tests/gui/szenario_loch_auffraesen.py` (neu, beide Versionen): Controller
+  über den Dialog anlegen, 2 Ebenen mit Hinweis, Hinweis weg ohne
+  Zustellung, Rohteil bündig → 1 Ebene; nach Übernehmen hat die Bahn genau
+  eine Helix bis z = 5 und schneidet danach nur auf z = 5. Bilder
+  `1_zwei_ebenen`, `2_eine_ebene` angesehen. (Ein 3D-Bild der Bahn blieb
+  leer – eine per Skript angelegte Operation zeichnet ihre Bahn nicht; die
+  Bahn wird deshalb nur in Zahlen geprüft.)
+- `tests/gui/szenario_schnittwerte_job.py`: „· 1 Ebene“.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Manuel: an einem echten Teil ausprobieren. Stimmt der Satz unter der
+  Tabelle mit dem überein, was er in der Simulation sieht?
+
 ## P-2026-09-26-15 git-ohne-konsolenfenster
 
 ### EINGELESEN

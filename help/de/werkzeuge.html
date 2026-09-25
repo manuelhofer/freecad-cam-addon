@@ -156,6 +156,19 @@ dann die Ebene aus.</li>
 Werkzeugs: Steht er in der Werkzeugverwaltung, setzt „Schnittwerte in den
 Job“ ihn im Adaptiv mit (in der Spalte steht dann etwa „Helix 3°“); sonst
 bleibt FreeCADs Vorgabe von 5°.</p>
+<p><b>Eine Ebene oder zwei?</b> Die Zustelltiefe zählt ab der Oberkante des
+Rohteils – und die legt FreeCAD von sich aus 1 mm über das Modell. Ein 25 mm
+tiefes Loch ist von dort 26 mm tief, und mit Zustelltiefe 25 fährt das
+Adaptiv zwei Ebenen: 25 mm und 1 mm, jede mit eigener Helix. „Schnittwerte in
+den Job“ zeigt die Ebenen vorher („2 Ebenen (25 + 1 mm)“) und sagt in Rot,
+wie die dünne entfällt:</p>
+<ul>
+<li>im Einsatz etwas mehr ap (hier 26 mm) – wenn die Schneide so lang ist;</li>
+<li>oder das Rohteil oben bündig: im Job (<b>Auftrag bearbeiten →
+Einrichtung → Materialkörper</b>) bei <b>Erw. Z</b> das rechte Feld – nach
+oben – auf 0. Die Operation rechnet FreeCAD danach nicht von selbst neu: im
+Baum Rechtsklick auf sie → <b>Objekt neu berechnen</b>.</li>
+</ul>
 
 <h3>Eine Außenkontur schruppen</h3>
 <p>Dasselbe von außen: Das Adaptiv räumt das Rohteil rund um das Teil ab –
