@@ -390,7 +390,7 @@
     "sj.spalte.jetzt": "Currently set",
     "sj.jetzt": "{n} rpm · {vf} mm/min",
     "sj.kein_werkzeug": "– not in the tool manager",
-    "sj.kein_werkzeug.tooltip": "This tool does not come from the library “CAM-Addon”, and no tool in the tool manager has the same T number and diameter.",
+    "sj.kein_werkzeug.tooltip": "This tool does not come from the library “CAM-Addon”, and no tool in the tool manager has the same T number and diameter. Remedy: in the tool manager, “Import from CAM” – then number and diameter match – and enter use cases there; or “Add tool controller” here.",
     "sj.nicht_aendern": "– do not change",
     "sj.hinweis": "Spindle speed, feed rate and plunge feed are set (a third of the feed rate, the full one for drilling). Use cases without vc and fz are not suggested.",
     "sj.uebernehmen": "Apply",

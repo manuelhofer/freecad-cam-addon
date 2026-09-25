@@ -390,7 +390,7 @@
     "sj.spalte.jetzt": "Jetzt eingestellt",
     "sj.jetzt": "{n} U/min · {vf} mm/min",
     "sj.kein_werkzeug": "– nicht in der Werkzeugverwaltung",
-    "sj.kein_werkzeug.tooltip": "Dieses Werkzeug kommt nicht aus der Bibliothek „CAM-Addon“, und kein Werkzeug der Werkzeugverwaltung hat dieselbe T-Nummer und denselben Durchmesser.",
+    "sj.kein_werkzeug.tooltip": "Dieses Werkzeug kommt nicht aus der Bibliothek „CAM-Addon“, und kein Werkzeug der Werkzeugverwaltung hat dieselbe T-Nummer und denselben Durchmesser. Abhilfe: in der Werkzeugverwaltung „Aus CAM übernehmen“ – dann stimmen Nummer und Durchmesser – und dort Einsätze eintragen; oder hier „Werkzeug-Controller hinzufügen“.",
     "sj.nicht_aendern": "– nicht ändern",
     "sj.hinweis": "Übernommen werden Drehzahl, Vorschub und Eintauchvorschub (ein Drittel des Vorschubs, beim Bohren der volle). Einsätze ohne vc und fz schlägt der Dialog nicht vor.",
     "sj.uebernehmen": "Übernehmen",

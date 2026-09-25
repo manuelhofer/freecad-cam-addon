@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-25 kein-werkzeug-abhilfe
+
+### EINGELESEN
+- Die erste Zeile, die Manuel in seinen Jobs sieht, ist oft „TC: 5mm
+  Endmill – nicht in der Werkzeugverwaltung“. Der Tooltip sagte nur, warum,
+  nicht, was man tun kann.
+
+### DATEIEN
+- `translations/de.json`, `translations/en.json` (`sj.kein_werkzeug.tooltip`)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Schnittwerte in den Job“ → Maus auf „– nicht in der Werkzeugverwaltung“ →
+der Tooltip nennt die Abhilfe: „Aus CAM übernehmen“ in der
+Werkzeugverwaltung oder hier „Werkzeug-Controller hinzufügen“.
+
+### DONE
+- Tooltip um die Abhilfe ergänzt (de/en).
+
+### TEST
+- `tests/test_sprache.py` in beiden Versionen.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- —
+
 ## P-2026-09-26-24 aus-cam-robust
 
 ### EINGELESEN
