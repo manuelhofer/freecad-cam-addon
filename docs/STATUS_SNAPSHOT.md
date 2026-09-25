@@ -12,8 +12,8 @@ Wunschliste, offene Bugs und Tasks.
 
 Manuel liest den Entwurf
 [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
-und beantwortet die offenen Fragen dort (Abschnitt 9). Danach beginnt Stufe 1
-zusammen mit dem Grundgerüst des Addons (T-001).
+und gibt ihn frei. Danach beginnen das Grundgerüst des Addons (T-001), das
+Sprachsystem (T-003) und Stufe 1.
 
 ## Wunschliste
 

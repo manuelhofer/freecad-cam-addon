@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-10 spezifikation-bedienung
+
+### EINGELESEN
+- `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/arbeitsregeln.md`
+  Abschnitt 8 (aus P-2026-09-25-09).
+
+### DATEIEN
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Abschnitt 11 neu,
+  „Entschieden“ ergänzt)
+- `docs/STATUS_SNAPSHOT.md` (nächster Schritt), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation hat keine offenen Fragen mehr, und Abschnitt 11 beschreibt,
+wie der Dialog zeigt, welches Teil der Maschine gemeint ist.
+
+### DONE
+- Die offene Frage nach „weiteren Betriebsarten“ ist gestrichen. Ich hatte sie
+  unverständlich gestellt, und für Manuel gibt es dort nichts zu
+  entscheiden. Sie steht jetzt unter „Entschieden“: vorerst drei, erweiterbar.
+- Neuer Abschnitt 11 „Bedienung“ wendet die neue Regel auf diesen Dialog an:
+  Beim Überfahren eines Gelenks wird das Teil in der 3D-Ansicht hervorgehoben
+  und kurz bewegt. Nicht erlaubte Betriebsarten werden gar nicht erst
+  angeboten. Es gibt Hilfe je Bereich und Warnungen in ganzen Sätzen.
+- Im Snapshot stand noch „offene Fragen (Abschnitt 9)“. Das war nach dem
+  Umnummerieren in P-2026-09-25-08 falsch und ist jetzt korrigiert.
+
+### TEST
+- `grep` nach „Offene Fragen“ und nach Abschnittsverweisen in Spezifikation
+  und Snapshot.
+
+### NEXT
+- Freigabe der Spezifikation durch Manuel.
+
 ## P-2026-09-25-09 regel-bedienbarkeit-und-sprache
 
 ### EINGELESEN

@@ -1,6 +1,6 @@
 # Spezifikation W-001: Maschine aus Baugruppe
 
-Stand: Entwurf, noch nicht freigegeben. Offene Fragen stehen in Abschnitt 11.
+Stand: Entwurf, wartet auf Freigabe durch Manuel. Keine offenen Fragen.
 
 Das Addon ist für **beliebige Maschinen** gedacht – Fräsen, Drehmaschinen,
 Dreh-Fräszentren, 3- bis 5-Achser. Wo unten eine bestimmte Maschine genannt
@@ -208,14 +208,29 @@ Spezifikation, wenn Stufe 3 steht.
   Beispielmaschine als fertige `.FCStd`-Datei unter `tests/`.
 - Dialoge und das Aussehen prüft Manuel in FreeCAD.
 
-## 11. Offene Fragen
+## 11. Bedienung
 
-1. **Reichen die drei Betriebsarten** (Linear, Positionieren, Spindel)? Die
-   Liste ist so gebaut, dass weitere dazukommen können, ohne bestehende
-   Maschinen zu ändern – etwa für Achsen, die in Transformationen wie
-   TRANSMIT/TRACYL anders arbeiten. Bis jemand eine solche Achse braucht,
-   bleibt es bei drei.
+Es gilt `docs/arbeitsregeln.md`, Abschnitt 8 (Bedienbarkeit und Sprache). Für
+diesen Dialog heißt das konkret:
+
+- **Zeigen, welches Teil gemeint ist:** Fährt man in der Liste über ein
+  Gelenk, wird es in der 3D-Ansicht hervorgehoben und bewegt sich einmal kurz
+  hin und her – man sieht sofort, welche Achse das ist und in welche Richtung
+  sie fährt. Dasselbe für Glieder (alle Körper des Glieds leuchten auf) und
+  Aufnahmen (ein Pfeil zeigt die Werkzeugrichtung).
+- **Betriebsart wählen mit Bild:** Linear, Positionieren und Spindel werden
+  mit je einem kleinen Symbol und einem Satz angeboten; nicht erlaubte
+  Betriebsarten (Spindel an einem Slider) erscheinen gar nicht erst.
+- **Einheiten stehen am Feld**, Pflichtfelder sind als solche erkennbar,
+  optionale zeigen „unbekannt“ statt 0.
+- **Hilfe (?)** je Bereich: Betriebsarten, Glieder, Aufnahmen und
+  „Beschleunigung ermitteln“ (Abschnitt 8 dieser Spezifikation als Hilfetext).
+- **Warnungen in Worten**, z. B. „Der Körper *Schenkel links* hängt an keinem
+  Glied – er bleibt beim Schwenken stehen.“
 
 ## Entschieden
 
 - **Speicherort:** eigenes Maschinenobjekt (Manuel, P-2026-09-25-08).
+- **Betriebsarten:** vorerst Linear, Positionieren und Spindel. Die Liste ist
+  erweiterbar (etwa für TRANSMIT/TRACYL), sobald jemand das braucht
+  (P-2026-09-25-10).
