@@ -12,6 +12,78 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-49 strategien-vergleichen
+
+### EINGELESEN
+- W-002, Spezifikation Abschnitt 7 und viertes Akzeptanzkriterium aus
+  Abschnitt 12. Manuels Beispiel: Ø 12, ae 1,2 / ap 25 / fz 0,15 statt
+  ae 100 % / ap 3 / fz 0,05 – „geht schneller, weniger Verschleiß … dass
+  man im Nachhinein mit den Werten auch eine Beurteilung für verschiedene
+  Strategien herausziehen kann“.
+
+### DATEIEN
+- `camaddon/schnittdaten.py` (Schneidenweg je cm³, spezifische
+  Schnittkraft, Schnittleistung, Kennzahlen, Urteil)
+- `camaddon/gui_strategie.py` (neu: Dialog mit Balken und Urteil)
+- `camaddon/gui_schnittwerte.py` (Knopf „Strategien vergleichen…“,
+  Werkstoff für die Leistung)
+- `camaddon/gui_werkzeuge.py`, `camaddon/gui_zahlen.py` (`dezimal()` jetzt
+  gemeinsam in gui_zahlen – gui_strategie braucht es auch, ein Import aus
+  gui_werkzeuge wäre ein Kreis)
+- `camaddon/hilfe.py`, `help/de|en/strategien.html` (neu),
+  `help/de|en/schnittwerte.html` (Verweis darauf)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_schnittdaten.py`, `tests/gui/szenario_strategien.py` (neu)
+- `docs/aufbau.md` (Module, drei neue Stolpersteine), `CHATSTART.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Ø-12-Fräser mit Vollnut und Schruppen dynamisch →
+„Strategien vergleichen…“ → das Urteil sagt, dass dynamisches Schruppen
+2,5-mal so viel je Minute abträgt und jede Stelle der Schneide 12,2-mal
+weniger Weg durchs Material fährt, und warum (25 statt 3 mm Schneide,
+10 statt 50 % der Umdrehung im Material).
+
+### DONE
+- **Kennzahlen** je Einsatz: Q, Zeit für 100 cm³, Schneidenweg je cm³,
+  genutzte Schneide (ap von der Schneidenlänge), Anteil der Umdrehung im
+  Material, größte Spandicke, Schnittleistung und Drehmoment (nur mit
+  kc1.1 des Werkstoffs).
+- **Schneidenweg je cm³** = D · φ / (2 · ae · ap · fz · z) – Herleitung im
+  Docstring und auf der Hilfeseite, ausdrücklich als Faustregel (gleiches
+  vc angenommen).
+- **Dialog:** A (orange) gegen B (blau), je Kennzahl zwei Balken mit
+  Wert; Vorwahl Vollnut gegen Schruppen dynamisch, sonst die ersten beiden.
+  Darunter das **Urteil in Sätzen**, die Namen in der Farbe ihres Balkens:
+  wer mehr abträgt und um welchen Faktor, wie viel weniger (oder mehr)
+  Schneidenweg, warum (genutzte Schneide, Eingriff), Leistung, zu dünner
+  Span. Nur Aussagen, die die Zahlen tragen; unter 10 % Unterschied „etwa
+  gleich“.
+- **Hilfeseite „Strategien vergleichen“:** die Zahlen, warum der
+  Schneidenweg, Manuels Beispiel als Tabelle, was daraus folgt
+  (Konturen/Taschen dynamisch = „Adaptiv“ in FreeCAD CAM, Löcher: erst
+  helikal ein Grundloch, dann ebenenweise mit großem ap; Vollnut nur wo
+  nötig; Schlichten mit voller Wandhöhe), Grenzen der Faustregel.
+- **Gefundener Fehler im eigenen Entwurf:** Der Kopf des Vergleichs zeigte
+  „Werkstoff: 1,0503“ – `dezimal()` hielt die Werkstoffnummer für eine
+  Kommazahl. Werkstofftexte laufen jetzt nie durch `dezimal()`; das
+  Szenario prüft es. Als Stolperstein in docs/aufbau.md.
+- Bewusst nicht: ein Standzeitmodell (Taylor) – dafür fehlen die Werte
+  (Entscheidung 6 der Spezifikation).
+
+### TEST
+- KI, FreeCADCmd (Wochen-Build): `test_schnittdaten` (Schneidenweg 3,49 und
+  0,29 m, Kennzahlen, Urteil mit Faktoren 2,5 und 12,2, unabhängig von der
+  Reihenfolge, Leistung mit kc1.1, unvollständige Werte), `test_sprache`,
+  `test_hilfe` grün.
+- KI, Oberfläche (Wochen-Build): `szenario_strategien` grün – Vorwahl,
+  Urteil, Werte, Kopf mit „1.0503“, zweiter Vergleich Schlichten gegen
+  Vollnut. `szenario_schnittwerte` weiter grün. Screenshots angesehen.
+- Manuel: offen.
+
+### NEXT
+- Eigene Werkstoffe anlegen (Spezifikation Abschnitt 4).
+
 ## P-2026-09-25-48 eingriff-im-bild
 
 ### EINGELESEN

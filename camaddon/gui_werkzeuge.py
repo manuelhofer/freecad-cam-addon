@@ -17,7 +17,7 @@ from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
-from .gui_zahlen import Zahlenpruefer, zahl_lesen, zahl_zeigen, zahlenformat
+from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen
 from .sprache import tr
 
 FENSTER_GROESSE = (1100, 760)  # Breite, Höhe in Pixeln
@@ -80,11 +80,6 @@ def iso_symbol(iso):
     maler.drawText(bild.rect(), QtCore.Qt.AlignCenter, iso)
     maler.end()
     return QtGui.QIcon(bild)
-
-
-def dezimal(text):
-    """Setzt das Dezimalzeichen der Oberfläche in einen Text mit Punkt-Zahlen ein."""
-    return ws.mit_dezimalzeichen(text, zahlenformat().decimalPoint())
 
 
 def _parameter():
@@ -451,7 +446,7 @@ class WerkzeugDialog(QtGui.QDialog):
         kennung = self.werkstoff
         werkstoff = ws.finde(self.bibliothek.alle_werkstoffe(), kennung)
         kurz = (werkstoff.nummer or werkstoff.kurzname) if werkstoff else tr("wv.alle_werkstoffe")
-        self.schnittwerte.zeige(self.werkzeug, kennung, kurz)
+        self.schnittwerte.zeige(self.werkzeug, kennung, kurz, werkstoff)
 
     def _schnittwerte_geaendert(self):
         """Eine Änderung in der Tabelle; gespeichert wird erst mit OK oder Übernehmen."""

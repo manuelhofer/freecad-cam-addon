@@ -13,9 +13,11 @@ import math
 from PySide import QtCore, QtGui
 
 from . import schnittdaten as sd
+from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_eingriff import EingriffBild
 from .gui_hilfe import kopfzeile
+from .gui_strategie import StrategieDialog
 from .gui_zahlen import Zahlenpruefer, zahl_lesen, zahl_zeigen, zahlenformat
 from .sprache import tr
 
@@ -84,6 +86,10 @@ class SchnittwertBereich(QtGui.QWidget):
         )
         zeile.addWidget(self.knopf_minus)
         zeile.addStretch()
+        self.knopf_vergleich = _knopf(
+            tr("wv.strategie.knopf"), tr("wv.strategie.knopf.tooltip"), self.strategien_vergleichen
+        )
+        zeile.addWidget(self.knopf_vergleich)
         aufbau.addLayout(zeile)
 
         self.hinweis = QtGui.QLabel()
@@ -129,14 +135,17 @@ class SchnittwertBereich(QtGui.QWidget):
 
     # --- von außen ------------------------------------------------------------------
 
-    def zeige(self, werkzeug, werkstoff, werkstoff_kurz):
+    def zeige(self, werkzeug, werkstoff, werkstoff_kurz, werkstoff_objekt=None):
         """Zeigt die Tabelle, die für `werkzeug` und den Werkstoff (Kennung) gilt.
 
-        `werkstoff_kurz` steht auf dem Knopf: „Eigene Werte für 1.4301 anlegen“.
+        `werkstoff_kurz` steht auf dem Knopf: „Eigene Werte für 1.4301 anlegen“;
+        `werkstoff_objekt` (None bei „Alle Werkstoffe“) braucht der Vergleich
+        für die Schnittleistung.
         """
         self.werkzeug = werkzeug
         self.werkstoff = werkstoff
         self._werkstoff_kurz = werkstoff_kurz
+        self._werkstoff_objekt = werkstoff_objekt
         if werkzeug is None:
             self.hide()
             return
@@ -161,7 +170,7 @@ class SchnittwertBereich(QtGui.QWidget):
     def auffrischen(self):
         """Nach einer Änderung am Werkzeug (Durchmesser, Schneiden, Art): neu rechnen."""
         if self.werkzeug is not None:
-            self.zeige(self.werkzeug, self.werkstoff, self._werkstoff_kurz)
+            self.zeige(self.werkzeug, self.werkstoff, self._werkstoff_kurz, self._werkstoff_objekt)
 
     @property
     def gewaehlt(self):
@@ -213,6 +222,21 @@ class SchnittwertBereich(QtGui.QWidget):
         self._geaendert()
         self._fuellen()
         self.tabelle.setCurrentCell(min(zeile, len(self._liste) - 1), EINSATZ)
+
+    def strategien_vergleichen(self):
+        """„Strategien vergleichen…“: zwei Einsätze dieser Tabelle nebeneinander."""
+        if self._bohrer() or len(self._liste) < 2:
+            return
+        if self._werkstoff_objekt is not None:
+            text = ws.anzeige(self._werkstoff_objekt)
+        else:
+            text = tr("wv.alle_werkstoffe")
+        # Ohne dezimal(): Die Werkstoffnummer 1.0503 ist keine Kommazahl.
+        dialog = StrategieDialog(
+            self, self.werkzeug, list(self._liste), self._werkstoff_objekt, text
+        )
+        dialog.exec()
+        StrategieDialog.offen = None
 
     def setze(self, zeile, spalte, text):
         """Trägt `text` in eine Zelle ein, wie beim Tippen – für die Szenarien."""
@@ -273,6 +297,7 @@ class SchnittwertBereich(QtGui.QWidget):
             self._zeile_schreiben(zeile, einsatz)
         self._fuellt = False
         self.knopf_minus.setEnabled(self._bearbeitbar and bool(self._liste))
+        self.knopf_vergleich.setEnabled(not self._bohrer() and len(self._liste) >= 2)
         if self._liste:
             self.tabelle.setCurrentCell(max(0, min(zeile_vorher, len(self._liste) - 1)), EINSATZ)
         self._hinweise()

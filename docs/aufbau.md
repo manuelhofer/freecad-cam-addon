@@ -51,11 +51,11 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `aktualisierung.py` | Update-Suche per Git |
 | `werkstoffe.py` | Werkstoffliste (W-002): mitgelieferte aus `daten/werkstoffe.json`, Anzeige, Suche |
 | `werkzeuge.py` | Werkzeugbibliothek (W-002): Werkzeuge, Einsätze und Schnittwerte je Werkstoff, eigene Werkstoffe, Speichern als JSON |
-| `schnittdaten.py` | Rechnen mit Schnittwerten: n, vf, Zeitspanvolumen, Eingriffswinkel, Spandicke |
+| `schnittdaten.py` | Rechnen mit Schnittwerten: n, vf, Zeitspanvolumen, Eingriffswinkel, Spandicke; Kennzahlen und Urteil für den Strategievergleich |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“ |
 | `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
-| `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format ohne Tausenderpunkte, Prüfung, Lesen, Zeigen |
+| `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format ohne Tausenderpunkte, Prüfung, Lesen, Zeigen; Dezimalzeichen in Texten |
 | `gui_zeigen.py` | Hervorheben und kurzes Hin-und-her-Bewegen in der 3D-Ansicht |
 | `gui_hilfe.py` | Knopf (?) und Hilfefenster |
 | `gui_verteilhilfe.py` | Dialog „Revolverplätze verteilen“ |
@@ -65,6 +65,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_werkzeuge.py` | Befehl und Dialog „Werkzeugverwaltung“ |
 | `gui_schnittwerte.py` | Schnittwert-Tabelle in der Werkzeugverwaltung |
 | `gui_eingriff.py` | Bild des Eingriffs (Draufsicht und Seitenansicht) zur gewählten Zeile |
+| `gui_strategie.py` | Dialog „Strategien vergleichen“: zwei Einsätze mit Balken und Urteil |
 
 Zwei Regeln halten das zusammen:
 
@@ -174,3 +175,6 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | Enter in einem Feld löst im Aufgabenfenster „OK“ aus | der Dialog hält Enter an (`_EnterBleibtImDialog`) |
 | Beim Beenden fragt FreeCAD „Speichern?“ | Szenarien schließen ihre Dokumente |
 | `Machine.from_dict` liest den Ursprung einer Linearachse als Richtung | Ursprung 0 übergeben (T-004) |
+| Die Knopfleiste macht OK beim Zeigen selbst zum Standardknopf – Enter in einem Feld schließt dann einen QDialog | `keyPressEvent` hält Enter an (Werkzeugverwaltung) |
+| Werkstoffnummern wie „1.0503“ sehen aus wie Kommazahlen | `dezimal()` nur auf Zahlentexte, nie auf Werkstoffnamen |
+| QTest tippt nur ASCII | in Szenarien Text ohne Umlaute tippen |

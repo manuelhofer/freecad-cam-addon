@@ -1,0 +1,67 @@
+<h2>Strategien vergleichen</h2>
+<p>Derselbe Fräser kann ein Material auf ganz verschiedene Weise abtragen –
+breit und flach oder schmal und tief. Welche Weise besser ist, zeigen die
+Zahlen. Dieses Fenster stellt zwei Einsätze nebeneinander, <b>A</b> (orange)
+und <b>B</b> (blau), und sagt darunter in Sätzen, was daraus folgt.</p>
+
+<h3>Die Zahlen</h3>
+<ul>
+<li><b>Abtrag je Minute (Q)</b> und <b>Zeit für 100 cm³</b> – wie schnell das
+Material weg ist.</li>
+<li><b>Schneidenweg je cm³</b> – wie weit jede Stelle der Schneide durchs
+Material fährt, um 1 cm³ abzutragen. <b>Weniger heißt weniger
+Verschleiß.</b></li>
+<li><b>Genutzte Schneide</b> – wie viel der Schneidenlänge arbeitet. Auf so
+viel Schneide verteilt sich der Verschleiß.</li>
+<li><b>Zahn im Material</b> – welchen Teil einer Umdrehung jeder Zahn schneidet.
+Den Rest der Umdrehung kühlt er ab.</li>
+<li><b>Größte Spandicke</b> – zu dünn, und die Schneide reibt; zu dick, und sie
+bricht aus.</li>
+<li><b>Schnittleistung</b> – grob, aus dem kc1.1-Wert des Werkstoffs, ohne
+Wirkungsgrad der Maschine; dazu das Drehmoment. Nur für Werkstoffe mit
+kc1.1-Wert.</li>
+</ul>
+
+<h3>Warum der Schneidenweg</h3>
+<p>Je Umdrehung trägt der Fräser ae · ap · fz · z ab. Jede Stelle der Schneide,
+die im Eingriff ist, fährt dabei den Bogen D/2 · φ durchs Material (φ ist der
+Eingriffswinkel). Für 1 cm³ sind 1000 / (ae · ap · fz · z) Umdrehungen
+nötig. Zusammen:</p>
+<p><b>Schneidenweg je cm³ = D · φ / (2 · ae · ap · fz · z)</b> (in m, mit mm
+eingesetzt)</p>
+<p>Verschleiß wächst ungefähr mit diesem Weg. Das ist eine <b>Faustregel</b>:
+Sie nimmt dasselbe vc an – ein höheres vc lässt die Schneide schneller
+verschleißen –, und Hitze, Spanabfuhr, Schwingungen und die Steifigkeit von
+Maschine und Aufspannung spielen mit.</p>
+
+<h3>Beispiel: Ø 12, 3 Schneiden, vc 120 m/min</h3>
+<table cellpadding="3" border="1" style="border-collapse:collapse">
+<tr><th></th><th>A: Vollnut</th><th>B: Schruppen dynamisch</th></tr>
+<tr><td>ae / ap / fz</td><td>12 / 3 / 0,05 mm</td><td>1,2 / 25 / 0,15 mm</td></tr>
+<tr><td>Abtrag</td><td>17,2 cm³/min</td><td>43,0 cm³/min</td></tr>
+<tr><td>Zeit für 100 cm³</td><td>5,8 min</td><td>2,3 min</td></tr>
+<tr><td>Schneidenweg je cm³</td><td>3,49 m</td><td>0,29 m</td></tr>
+<tr><td>genutzte Schneide</td><td>3 mm</td><td>25 mm</td></tr>
+<tr><td>Zahn im Material</td><td>50 %</td><td>10 %</td></tr>
+</table>
+<p>B trägt 2,5-mal so viel je Minute ab, und jede Stelle der Schneide fährt
+dabei 12-mal weniger Weg durchs Material: Der Verschleiß verteilt sich auf
+25 statt 3 mm Schneide, und jeder Zahn kühlt 90 % der Umdrehung ab statt
+50 %.</p>
+
+<h3>Was daraus folgt</h3>
+<ul>
+<li><b>Außenkonturen und Taschen schruppen:</b> lieber schmal und tief als
+breit und flach. In FreeCAD CAM heißt das <b>Adaptiv</b>: die Schrittweite
+ist ae, die Stufentiefe ap. Das braucht eine stabile Aufspannung, eine kurze
+Auskragung, eine Maschine, die den Vorschub und die vielen
+Richtungswechsel schafft – und die Späne müssen raus.</li>
+<li><b>Löcher und Taschen auffräsen:</b> einmal helikal ein Grundloch
+eintauchen, dann ebenenweise mit großem ap – möglichst viel der Schneide –
+und kleinem ae erweitern. Das geht schneller und verschleißt weniger als
+viele flache Umläufe über die ganze Tiefe.</li>
+<li><b>Vollnut</b> nur, wo es eine Nut sein muss – dann flach und mit
+Blick auf die Späne, die in der Nut klemmen können.</li>
+<li><b>Schlichten:</b> kleines ae, ap über die ganze Wandhöhe – eine Schnittkante
+statt vieler Absätze.</li>
+</ul>

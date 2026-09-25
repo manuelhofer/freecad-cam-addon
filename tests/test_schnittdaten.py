@@ -67,6 +67,46 @@ ungefaehr(sd.fz_fuer_spandicke(0.09, 1.2, 12), 0.15, "fz Ausgleich", 1e-6)
 ungefaehr(sd.fz_fuer_spandicke(0.05, 8, 12), 0.05, "fz Ausgleich ab D/2", 1e-9)
 ungefaehr(sd.fz_fuer_spandicke(0.05, 0, 12), 0, "fz Ausgleich ohne ae", 1e-9)
 
+# --- Strategien vergleichen ------------------------------------------------
+ungefaehr(sd.schneidenweg_je_cm3(12, 3, 0.05, 3, 12), 3.4907, "Schneidenweg Vollnut", 1e-3)
+ungefaehr(sd.schneidenweg_je_cm3(1.2, 25, 0.15, 3, 12), 0.2860, "Schneidenweg dynamisch", 1e-3)
+ungefaehr(sd.schneidenweg_je_cm3(0, 25, 0.15, 3, 12), 0, "Schneidenweg ohne ae", 1e-9)
+
+a = sd.kennzahlen(fraeser, vollnut)
+b = sd.kennzahlen(fraeser, dynamisch)
+ungefaehr(a.zeit, 100 / 17.19, "Zeit Vollnut", 0.01)
+ungefaehr(a.eingriff, 0.5, "Eingriff Vollnut", 1e-9)
+ungefaehr(b.eingriff, 36.87 / 360, "Eingriff dynamisch", 1e-4)
+if a.leistung or b.leistung:
+    fehler.append("Leistung ohne Werkstoff")
+
+saetze = dict(sd.urteil(a, b, "A", "B"))
+ungefaehr(saetze.get("wv.urteil.q", {}).get("faktor", 0), 2.5, "Urteil Q-Faktor")
+ungefaehr(saetze.get("wv.urteil.weg_weniger", {}).get("faktor", 0), 12.2, "Urteil Weg", 0.05)
+if saetze.get("wv.urteil.q", {}).get("schnell") != "B":
+    fehler.append(f"schneller ist B, das Urteil sagt {saetze.get('wv.urteil.q')}")
+if saetze.get("wv.urteil.ap") != {"ap_viel": 25, "ap_wenig": 3}:
+    fehler.append(f"Urteil ap: {saetze.get('wv.urteil.ap')}")
+if "wv.urteil.eingriff" not in saetze or "wv.urteil.leistung" in saetze:
+    fehler.append(f"Urteil Eingriff/Leistung: {sorted(saetze)}")
+# Umgekehrt gefragt, dasselbe Urteil.
+if dict(sd.urteil(b, a, "B", "A")).get("wv.urteil.q", {}).get("schnell") != "B":
+    fehler.append("Urteil hängt von der Reihenfolge ab")
+
+# Mit kc1.1 (C45): Leistung = Q · kc / 60 000, kc aus der mittleren Spandicke.
+c45 = type("W", (), {"kc11": 2220.0, "mc": 0.14})()
+k = sd.kennzahlen(fraeser, vollnut, c45)
+kc = 2220.0 * sd.spandicke_mittel(0.05, 12, 12) ** -0.14
+ungefaehr(k.leistung, 17.19 * kc / 60000, "Leistung Vollnut C45", 0.01)
+ungefaehr(k.drehmoment, k.leistung * 9550 / 3183.1, "Drehmoment", 0.01)
+if "wv.urteil.leistung" not in dict(sd.urteil(k, sd.kennzahlen(fraeser, dynamisch, c45), "A", "B")):
+    fehler.append("Urteil ohne Leistung trotz kc1.1")
+
+# Fehlen Werte, sagt das Urteil nur das.
+leer = sd.kennzahlen(fraeser, wz.Einsatz(ae=12, ap=3))
+if sd.urteil(leer, b, "A", "B") != [("wv.urteil.unvollstaendig", {})]:
+    fehler.append("Urteil mit fehlenden Werten")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

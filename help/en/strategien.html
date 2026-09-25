@@ -1,0 +1,67 @@
+<h2>Compare strategies</h2>
+<p>The same cutter can remove material in very different ways – wide and
+shallow, or narrow and deep. Which way is better is shown by the numbers.
+This window puts two use cases side by side, <b>A</b> (orange) and <b>B</b>
+(blue), and states below in sentences what follows from them.</p>
+
+<h3>The numbers</h3>
+<ul>
+<li><b>Removal per minute (Q)</b> and <b>time for 100 cm³</b> – how fast the
+material is gone.</li>
+<li><b>Edge travel per cm³</b> – how far every point of the cutting edge
+travels through the material to remove 1 cm³. <b>Less means less
+wear.</b></li>
+<li><b>Flutes used</b> – how much of the flute length is working. The wear is
+spread over that much of the edge.</li>
+<li><b>Tooth in the material</b> – which part of a revolution each tooth cuts.
+It cools down for the rest of the revolution.</li>
+<li><b>Largest chip thickness</b> – too thin and the edge rubs; too thick and it
+chips.</li>
+<li><b>Cutting power</b> – rough, from the material's kc1.1 value, without
+machine efficiency; plus the torque. Only for materials with a kc1.1
+value.</li>
+</ul>
+
+<h3>Why edge travel</h3>
+<p>Per revolution the cutter removes ae · ap · fz · z. Every point of the edge
+that is engaged travels the arc D/2 · φ through the material (φ is the
+engagement angle). 1 cm³ needs 1000 / (ae · ap · fz · z) revolutions.
+Together:</p>
+<p><b>Edge travel per cm³ = D · φ / (2 · ae · ap · fz · z)</b> (in m, with mm
+inserted)</p>
+<p>Wear grows roughly with this distance. It is a <b>rule of thumb</b>: it
+assumes the same vc – a higher vc wears the edge faster – and heat, chip
+evacuation, vibration and the rigidity of machine and setup all play a
+part.</p>
+
+<h3>Example: Ø 12, 3 flutes, vc 120 m/min</h3>
+<table cellpadding="3" border="1" style="border-collapse:collapse">
+<tr><th></th><th>A: full slot</th><th>B: dynamic roughing</th></tr>
+<tr><td>ae / ap / fz</td><td>12 / 3 / 0.05 mm</td><td>1.2 / 25 / 0.15 mm</td></tr>
+<tr><td>removal</td><td>17.2 cm³/min</td><td>43.0 cm³/min</td></tr>
+<tr><td>time for 100 cm³</td><td>5.8 min</td><td>2.3 min</td></tr>
+<tr><td>edge travel per cm³</td><td>3.49 m</td><td>0.29 m</td></tr>
+<tr><td>flutes used</td><td>3 mm</td><td>25 mm</td></tr>
+<tr><td>tooth in the material</td><td>50 %</td><td>10 %</td></tr>
+</table>
+<p>B removes 2.5 times as much per minute, and every point of the edge travels
+12 times less through the material: the wear is spread over 25 instead of
+3 mm of edge, and each tooth cools down for 90 % of the revolution instead of
+50 %.</p>
+
+<h3>What follows</h3>
+<ul>
+<li><b>Roughing outer contours and pockets:</b> narrow and deep rather than
+wide and shallow. In FreeCAD CAM this is <b>Adaptive</b>: the step over is ae,
+the step down is ap. It needs a rigid setup, a short stick-out, a machine that
+manages the feed rate and the many changes of direction – and the chips must
+get out.</li>
+<li><b>Opening up holes and pockets:</b> helically plunge a starting hole once,
+then widen it level by level with a large ap – as much of the edge as
+possible – and a small ae. That is faster and wears less than many shallow
+passes over the whole depth.</li>
+<li><b>Full slot</b> only where it has to be a slot – then shallow, and mind the
+chips that can jam in the slot.</li>
+<li><b>Finishing:</b> small ae, ap over the full wall height – one cutting edge
+instead of many steps.</li>
+</ul>

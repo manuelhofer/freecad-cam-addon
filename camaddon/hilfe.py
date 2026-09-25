@@ -21,6 +21,7 @@ THEMEN = [
     "werkstoffe",
     "werkzeuge",
     "schnittwerte",
+    "strategien",
 ]
 
 

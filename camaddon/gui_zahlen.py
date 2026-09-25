@@ -8,6 +8,8 @@ Oberfläche ohne Tausendertrennzeichen, ein leeres Feld heißt „unbekannt“ (
 
 from PySide import QtCore, QtGui
 
+from .werkstoffe import mit_dezimalzeichen
+
 GROESSTER_WERT = 1e9  # obere Grenze der Zahlenfelder
 NACHKOMMASTELLEN = 6
 
@@ -61,3 +63,8 @@ def zahl_zeigen(wert):
     if not wert:
         return ""
     return zahlenformat().toString(float(wert), "g", 12)  # 12 gültige Stellen
+
+
+def dezimal(text):
+    """Setzt das Dezimalzeichen der Oberfläche in einen Text mit Punkt-Zahlen ein („Ø 8.5“ → „Ø 8,5“)."""
+    return mit_dezimalzeichen(text, zahlenformat().decimalPoint())
