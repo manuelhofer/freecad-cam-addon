@@ -14,7 +14,7 @@ Wunschliste, offene Bugs und Tasks.
 **W-001, Stufen 1 und 2 sind fertig und automatisch geprüft:** Maschine im
 Dialog beschreiben (mit Zeigen in 3D und Hilfe) und mit „An CAM übergeben“
 als `.fcm` in CAM bereitstellen. Beides wartet auf **Manuels Test in seinem
-FreeCAD** (README, „Installieren, solange das Repository privat ist“) – vor
+FreeCAD** (README, „Installieren“) – vor
 allem: Kommt beim Bedienen irgendwo eine Frage auf? Steht die Maschine danach
 im CAM-Job zur Auswahl? Und: Kommt die Update-Suche mit der Anmeldung von
 GitHub Desktop an das private Repo?
@@ -37,10 +37,11 @@ Keine bekannten.
 
 ## Offene Tasks
 
-- **T-005** Das Repo bleibt vorerst privat (Manuel). Wird es öffentlich
-  (Settings → Danger Zone → Change visibility), funktionieren die Updates
-  über den Addon-Manager (README); bis dahin Installation und Update mit
-  GitHub Desktop.
+- **T-005** Repo öffentlich stellen – Empfehlung Claude (P-2026-09-25-43:
+  Verlauf ohne Geheimnisse und ohne private Mail-Adressen, Lizenz LGPL).
+  Umstellen kann nur Manuel: GitHub → Settings → Danger Zone → Change
+  visibility → Public. Danach die Installationszeile aus dem README einmal
+  in FreeCAD ausprobieren.
 
 - **T-004** Fehler an FreeCAD melden: `Machine.from_dict` liest bei
   Linearachsen einen Ursprung ≠ (0,0,0) als Richtung (Befund und Beleg in

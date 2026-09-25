@@ -12,6 +12,83 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-43 installieren-einfach
+
+### EINGELESEN
+- Manuel zur Anleitung „Installieren, solange das Repository privat ist“:
+  „ich hätte hierfür gerne ein bash script oder sowas … einfacher“, und:
+  „das einfachste wäre die repo öffentlich zu stellen … wenn du denkst, das
+  geht zum Testen schon, dass andere es auch testen können, dann mach das“.
+- Er schläft, ich entscheide selbst und schreibe die Entscheidungen auf.
+
+### DATEIEN
+- `installieren.py` (neu)
+- `tests/test_installieren.py` (neu)
+- `README.md` (Abschnitte „Installieren“)
+- `translations/de.json`, `translations/en.json` (`update.kein_git_ordner`)
+- `docs/STATUS_SNAPSHOT.md` (T-005)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Bei öffentlichem Repository: In FreeCAD Ansicht → Fenster → Python-Konsole,
+die Zeile aus dem README einfügen, Enter → Meldung „CAM-Addon … ist
+installiert. Bitte FreeCAD neu starten.“; nach dem Neustart steht die
+Werkzeugleiste in Assembly und CAM.
+
+### DONE
+- **Entscheidung 1: Python-Zeile statt Bash-Skript.** Ein Bash-Skript
+  liefe nicht unter Windows, und es müsste den Addon-Ordner raten – der
+  hängt von Betriebssystem und FreeCAD-Version ab. Eine Zeile in der
+  Python-Konsole von FreeCAD kennt ihn (`App.getUserAppDataDir()`), läuft
+  überall und braucht weder Git noch GitHub Desktop.
+- **Entscheidung 2: öffentlich stellen – empfohlen, aber nicht von mir
+  umgestellt.** Geprüft: alle 42 Commits von „Claude <noreply@anthropic.com>“,
+  keine Schlüssel, Passwörter oder Mail-Adressen im ganzen Verlauf, keine
+  großen Dateien, Lizenz LGPL-2.1-or-later liegt bei, `package.xml` nennt
+  Manuel ohne Mail-Adresse. Für andere Tester reicht der Stand als frühe
+  Vorabversion. Die Sichtbarkeit eines Repositorys kann ich mit meinen
+  Werkzeugen nicht ändern – das ist ein Klick für Manuel (T-005).
+- `installieren.py` holt das ZIP von GitHub, packt es außerhalb von `Mod/`
+  aus (ein halber Ordner in `Mod/` würde beim nächsten Start als zweites
+  Addon geladen) und setzt es an die Stelle von `Mod/freecad-cam-addon`.
+  Misslingt das Ersetzen, kommt der alte Stand zurück.
+- Dieselbe Zeile noch einmal = aktualisieren. Ein Git-Klon (GitHub Desktop)
+  bleibt unberührt.
+- Die Zeile trägt das Repository im Addon-Manager ein („Eigene
+  Repositories“, Parameter `Addons/CustomRepositories`, Format wie dort:
+  „Adresse Zweig“ je Zeile). Nachgelesen im Quelltext des Addon-Managers
+  (1.1.3 und Wochen-Build, `addonmanager_workers_startup.py`): Liegt ein
+  Ordner mit dem Namen des Repositorys in `Mod/`, gilt das Addon als
+  installiert; ohne Git vergleicht er die Version in `package.xml`, mit Git
+  macht er aus dem Ordner einen Klon. Er meldet also neue Versionen, auch
+  wenn das Addon per ZIP kam.
+- Nicht gemacht, mit Absicht: Git in der Installationszeile. Das hätte die
+  Ausnahme „Git nur in `aktualisierung.py`“ (Arbeitsregeln, Abschnitt 7)
+  erweitert, und unter Windows fehlt Git meist ohnehin.
+- Nicht gemacht: die eigene Update-Suche beim Start auch für
+  ZIP-Installationen (per HTTPS statt Git). Bis dahin zeigt der
+  Addon-Manager die Updates; der Text `update.kein_git_ordner` sagt das
+  jetzt, statt nur aufs README zu verweisen.
+- Befund im README korrigiert: Die Python-Konsole heißt im deutschen FreeCAD
+  **Ansicht → Fenster → Python-Konsole** („&Panels“ → „Fenster“ laut
+  `FreeCAD_de.ts`), nicht „Ansicht → Ansichten“.
+- Texte von `installieren.py` stehen zweisprachig im Code: Die Datei läuft,
+  bevor das Addon und seine Sprachdateien da sind.
+
+### TEST
+- `tests/test_installieren.py` (KI, FreeCADCmd, Wochen-Build): frisch
+  installieren, noch einmal (ersetzt ganz, alte Dateien weg, kein doppelter
+  Eintrag, keine Reste in `Mod/`), kaputter Download, Archiv ohne
+  `package.xml` und kein ZIP (Installation bleibt unverändert), Git-Klon
+  bleibt unberührt, andere eigene Repositories bleiben, die Zeile im README
+  stimmt mit der Datei überein. „GitHub“ ist dabei ein ZIP im Temp-Ordner.
+- Echter Lauf gegen GitHub (KI): Das Repository ist noch privat → HTTP 404,
+  die Meldung verweist auf die Anleitung mit GitHub Desktop. Der Weg mit
+  öffentlichem Repository ist erst nach dem Umstellen prüfbar – von Manuel.
+
+### NEXT
+- Manuel stellt das Repository öffentlich und probiert die Zeile aus.
+
 ## P-2026-09-25-42 nur-noetige-tests
 
 ### EINGELESEN

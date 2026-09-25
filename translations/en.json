@@ -160,7 +160,7 @@
     "update.lokal_geaendert": "Version {neu} of the CAM Addon is available. But the add-on folder contains your own changes – so that nothing gets lost, the add-on does not update itself.\n\nPlease update with GitHub Desktop.",
     "update.kein_git": "The CAM Addon cannot look for updates itself: no Git was found on this computer.\n\nInstall GitHub Desktop (or Git) and sign in to GitHub once. Until then: update by hand. This note appears only once.",
     "update.fehler": "CAM Addon: cannot look for updates ({fehler}).",
-    "update.kein_git_ordner": "The CAM Addon is not installed via Git (e.g. from a ZIP) and therefore cannot update itself. See “Install” in the README.",
+    "update.kein_git_ordner": "The CAM Addon is installed without Git (e.g. with the line from the README), so it does not look for updates itself.\n\nTools → Addon Manager shows new versions. Or paste the same line from the README into the Python console again.",
     "update.aktuell": "You have the latest version of the CAM Addon ({jetzt}).",
     "update.gruppe": "Updates",
     "update.beim_start": "Look for updates when FreeCAD starts",
