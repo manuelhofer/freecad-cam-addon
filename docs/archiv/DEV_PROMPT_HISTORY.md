@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-59 stand-nach-der-nacht
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 10: Zum Abschluss den Snapshot auf den Stand
+  bringen, Erledigtes heraus, Links prüfen.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Nächster Schritt: W-002 Stufen 1 und 2,
+  Installation)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer den Snapshot liest, weiß, was auf Manuels Test wartet und wo die
+Klickwege stehen.
+
+### DONE
+- Nächster Schritt nennt W-002 Stufen 1 und 2 (Klickwege P-46 bis -53) und
+  die Installationszeile nach dem Öffentlichstellen (T-005).
+- Stand dieser Nacht: P-2026-09-25-43 bis -59, Version 0.5.1, alle Prüfungen
+  in 1.1.3 und im Wochen-Build grün (54 ok, 1 übersprungen: Export gibt es
+  in 1.1.3 nicht).
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Manuels Rückmeldung zu W-002 und den Entscheidungen; Repository
+  öffentlich stellen (T-005).
+
 ## P-2026-09-25-58 version-0-5-1
 
 ### EINGELESEN
