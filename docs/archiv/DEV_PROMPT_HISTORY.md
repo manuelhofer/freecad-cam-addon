@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-04 testumgebung-ohne-fenster
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 5 (die neue Regel aus P-2026-09-25-02).
+
+### DATEIEN
+- `scripts/testumgebung_einrichten.sh`, `scripts/tests_ausfuehren.sh`,
+  `tests/test_umgebung.py` (alle neu)
+- `CHATSTART.md` (Lesekarte), `docs/arbeitsregeln.md` (Abschnitt 5)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In einer frischen Cloud-Sitzung laufen `scripts/testumgebung_einrichten.sh`
+und danach `scripts/tests_ausfuehren.sh`. Die Ausgabe ist
+`ok test_umgebung.py` mit Exit-Code 0.
+
+### DONE
+- FreeCAD kommt über **micromamba aus conda-forge**. Das ist der einzige Weg,
+  den das Netzwerk der Cloud-Umgebung zulässt: GitHub-Releases (AppImage) und
+  gnu.org werden vom Proxy abgewiesen, `apt` kennt kein FreeCAD. micromamba
+  selbst wird als conda-forge-Paket geholt, weil `micro.mamba.pm` ebenfalls
+  gesperrt ist.
+- Die Installation belegt rund **3,7 GB** und dauert einige Minuten. Deshalb
+  liegt sie außerhalb des Repos unter `~/.cache/freecad-cam-addon/` und kann
+  über `FC_UMGEBUNG` umgelenkt werden.
+- **Falle, die ich beim Entwurf gefunden habe:** FreeCADCmd liefert bei einer
+  Ausnahme im Skript keinen verlässlichen Fehlercode. Deshalb endet jede
+  Prüfung mit der Zeile `OK <dateiname>`, und nur diese Zeile zählt als
+  bestanden.
+- `tests/test_umgebung.py` prüft das Fundament aller späteren Prüfungen:
+  FreeCAD startet, `Path.Main.Job` lässt sich importieren, und
+  Transaktion plus Rückgängig entfernt ein angelegtes Objekt wieder (Regel
+  „Strg+Z muss gehen").
+- Die Skripte sind reine Entwicklerwerkzeuge für Linux-Container. Das Addon
+  selbst bleibt plattformneutral.
+
+Bewusst **nicht** gemacht: keine CI auf GitHub (bisher nicht beauftragt), kein
+SessionStart-Hook, der die 3,7 GB in jeder Sitzung automatisch lädt.
+
+**Offene Frage (T-002):** conda-forge liefert nur den Wochen-Build
+26.3.0 dev (2026-09-16). Ob „neueste Version" stabil oder Wochen-Build meint,
+entscheidet Manuel.
+
+### TEST
+- Von der KI ohne Fenster ausgeführt: `scripts/tests_ausfuehren.sh` ergibt
+  `ok test_umgebung.py`, Exit 0.
+- Gegenprobe mit einer absichtlich fehlschlagenden Prüfung: `FEHLER`,
+  Ausgabe mit der Ausnahme, Exit 1. Die Prüfung ist danach wieder gelöscht.
+- `testumgebung_einrichten.sh` auf der vorhandenen Umgebung ausgeführt
+  (Zweig „update"). Den Zweig „create" habe ich mit demselben Befehl von Hand
+  ausgeführt, aber nicht über das Skript.
+- `sh -n` über beide Skripte, `py_compile` über die Prüfung.
+
+### NEXT
+- T-002 entscheiden; Wunschliste füllen.
+
 ## P-2026-09-25-03 lizenz-lgpl
 
 ### EINGELESEN

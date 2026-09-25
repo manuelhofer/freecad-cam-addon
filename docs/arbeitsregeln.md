@@ -85,7 +85,9 @@ ein ASCII-Entwurf des Dialogs reicht.
 - Was sich ohne Oberfläche prüfen lässt (Berechnungen, Vorlagen, Einlesen von
   Einstellungen, Anlegen von Jobs und Operationen), bekommt eine
   **wiederholbare** Prüfung unter `tests/`, die mit `FreeCADCmd` ohne Fenster
-  läuft. Alle Prüfungen laufen vor jedem Commit durch.
+  läuft. Alle Prüfungen laufen vor jedem Commit durch
+  (`scripts/tests_ausfuehren.sh`; in einer frischen Cloud-Sitzung vorher
+  einmal `scripts/testumgebung_einrichten.sh`).
 - Die Oberfläche prüft **Manuel** in FreeCAD. Der Patch nennt ihm den Klickweg
   aus dem Akzeptanzkriterium. Gilt er erst nach seiner Rückmeldung als getestet,
   steht das so im Verlauf.

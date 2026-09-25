@@ -54,7 +54,7 @@ neue Spezifikation unter `docs/` bekommt hier eine Zeile.
 
 | Du arbeitest an … | Dann lies |
 | --- | --- |
-| *(noch nichts)* | |
+| Prüfungen ohne Fenster, Testumgebung | `scripts/testumgebung_einrichten.sh`, dann `scripts/tests_ausfuehren.sh` – Aufbau einer Prüfung: `tests/test_umgebung.py` |
 
 `docs/archiv/DEV_PROMPT_HISTORY.md` ist **keine Startlektüre** – ein Eintrag je
 Patch. Nur gezielt aufschlagen (`grep -n "P-2026-09-25-01"`), nie am Stück.
