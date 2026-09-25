@@ -11,20 +11,25 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtGui
 
-from . import VERSION, gui_aktualisierung, gui_maschine, gui_sprachwahl, symbol
+from . import VERSION, gui_aktualisierung, gui_maschine, gui_sprachwahl, gui_werkzeuge, symbol
 from .sprache import tr
 
 # Arbeitsbereiche, an die die Werkzeugleiste angehängt wird.
 ZIEL_ARBEITSBEREICHE = ("AssemblyWorkbench", "CAMWorkbench")
 
 # Befehle der Werkzeugleiste, in Anzeigereihenfolge.
-WERKZEUGLEISTE = ["CamAddon_MaschineBearbeiten", "CamAddon_Ueber"]
+WERKZEUGLEISTE = [
+    "CamAddon_MaschineBearbeiten",
+    "CamAddon_Werkzeugverwaltung",
+    "CamAddon_Ueber",
+]
 
 
 def starten():
     """Meldet Befehle, Werkzeugleiste und Einstellungsseite an, fragt beim ersten
     Start nach der Sprache und sucht im Hintergrund nach Updates."""
     FreeCADGui.addCommand("CamAddon_MaschineBearbeiten", gui_maschine.BefehlMaschineBearbeiten())
+    FreeCADGui.addCommand("CamAddon_Werkzeugverwaltung", gui_werkzeuge.BefehlWerkzeugverwaltung())
     FreeCADGui.addCommand("CamAddon_Ueber", BefehlUeber())
     FreeCADGui.getMainWindow().workbenchActivated.connect(_werkzeugleiste_anhaengen)
     gui_sprachwahl.einstellungsseite_anmelden()

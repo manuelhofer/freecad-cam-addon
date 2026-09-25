@@ -12,6 +12,82 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-46 werkzeugverwaltung-werkzeuge
+
+### EINGELESEN
+- W-002, Spezifikation Abschnitte 4, 5, 8, 9 und das erste
+  Akzeptanzkriterium aus Abschnitt 12.
+
+### DATEIEN
+- `daten/werkstoffe.json` (neu: 51 Werkstoffe aller sechs ISO-Gruppen)
+- `camaddon/werkstoffe.py` (neu), `camaddon/werkzeuge.py` (neu),
+  `camaddon/gui_werkzeuge.py` (neu)
+- `camaddon/gui_start.py` (Befehl, Werkzeugleiste), `camaddon/hilfe.py`
+  (Themen „werkstoffe“, „werkzeuge“)
+- `resources/icons/werkzeugverwaltung.svg` (neu)
+- `help/de|en/werkstoffe.html`, `help/de|en/werkzeuge.html` (neu)
+- `translations/de.json`, `translations/en.json` (Texte der
+  Werkzeugverwaltung; „Über“ nennt sie)
+- `tests/test_werkstoffe.py`, `tests/test_werkzeuge.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py` (neu)
+- `docs/aufbau.md`, `CHATSTART.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+CAM → Werkzeugverwaltung → im Feld „Werkstoff“ „1.43“ tippen und 1.4301
+wählen → darunter stehen Zusammensetzung und Härte; „Neu“ → Durchmesser 12,
+Schneiden 3, OK → nach erneutem Öffnen steht „T1 Schaftfräser Ø 12 · z 3 ·
+VHM“ in der Liste. Manuel versteht das Fenster ohne Erklärung.
+
+### DONE
+- **Werkstoffliste:** 51 Einträge (Stahl, Edelstahl, Guss, Aluminium,
+  Kupfer, Messing, Bronze, Titan, Nickel, Kunststoffe; Werkzeugstahl
+  geglüht und gehärtet als zwei Einträge). Je Eintrag Nummer, Kurzname,
+  Gruppe, Zustand, ISO-Gruppe, alte Namen („V2A“, „GG-25“, „Ms 58“,
+  „AISI D2“), Zusammensetzung, Härte, Zugfestigkeit; kc1.1 und mc nur, wo
+  der Wert aus dem Tabellenbuch sicher ist (sonst 0 = unbekannt).
+- **Anzeige** wie in der Werkstatt: „1.4301  X5CrNi18-10 · Edelstahl,
+  austenitisch (V2A, AISI 304)“, davor ein Kästchen in der ISO-Farbe.
+  Darunter Zusammensetzung, Härte, Zugfestigkeit, ISO-Gruppe; Zahlen im
+  Format der Oberfläche (17,5–19,5).
+- **Suche** durch Tippen ins Feld (Nummer, Kurzname, Gruppe, alter Name).
+- **Werkzeuge:** Liste nach Nummer, Neu / Kopieren / Löschen (mit
+  Rückfrage), Felder Nummer, Art, Durchmesser, Schneiden, Schneidenlänge,
+  Eckradius (nur Torusfräser), Schneidstoff, Bezeichnung. Hinweise sofort am
+  Feld: fehlender Durchmesser, doppelte Nummer.
+- **Speichern** wie FreeCADs Einstellungen: OK, Übernehmen, Abbrechen (fragt
+  nach). Datei `CamAddon/werkzeugverwaltung.json` im Benutzerordner, erst in
+  eine Zwischendatei, die vorige Fassung als `.bak`. Eine unlesbare Datei
+  wird beiseitegelegt und gemeldet, nichts gelöscht.
+- Zuletzt gewählter Werkstoff und zuletzt gewähltes Werkzeug bleiben
+  gemerkt (Parameter `WvWerkstoff`, `WvWerkzeug`).
+- **Gefundene Fehler im eigenen Entwurf** (im Szenario):
+  - Enter in einem Feld schloss den Dialog: Die Knopfleiste macht OK beim
+    Zeigen selbst zum Standardknopf, `setDefault(False)` vorher hilft nicht.
+    Der Dialog hält Enter jetzt in `keyPressEvent` an (wie B-005).
+  - Doppelte Klammern in der Anzeige („(Ck45 (C45E = 1.1191))“): alte
+    Namen vereinfacht, US-Bezeichnungen einheitlich mit „AISI“.
+  - Der Hinweis „T1 gibt es schon: T1 …“ nannte die Nummer doppelt; jetzt
+    „T1 ist schon vergeben: Schaftfräser Ø 12“.
+- Bewusst nicht in diesem Patch: Schnittwerte (nächster Patch), eigene
+  Werkstoffe anlegen (eigener Patch; die Bibliothek kann sie schon
+  speichern).
+- Abweichung von FreeCAD-Gewohnheiten: keine. Die Knöpfe OK / Übernehmen /
+  Abbrechen sind die von Qt und erscheinen in der Sprache von FreeCAD.
+
+### TEST
+- KI, FreeCADCmd (Wochen-Build): `test_werkstoffe`, `test_werkzeuge`,
+  `test_sprache`, `test_hilfe` grün.
+- KI, Oberfläche in beiden Versionen (1.1.3 und Wochen-Build):
+  `szenario_werkzeugverwaltung` grün – Suche „1.43“ per Tastatur, Wahl aus
+  den Vorschlägen, Info mit deutschem Dezimalkomma, zwei Werkzeuge, Enter
+  im Feld, doppelte Nummer, OK speichert, Wiederöffnen, Abbrechen mit
+  Rückfrage und „Verwerfen“. Screenshots angesehen.
+- Manuel: offen.
+
+### NEXT
+- Schnittwerte je Werkstoff und Einsatz (Spezifikation Abschnitt 6).
+
 ## P-2026-09-25-45 zahlenfelder-gemeinsam
 
 ### EINGELESEN

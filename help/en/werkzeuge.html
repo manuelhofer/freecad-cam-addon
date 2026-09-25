@@ -1,0 +1,38 @@
+<h2>Tools</h2>
+<p>Your tools are on the left, sorted by number; the values of the selected
+tool are on the right. Each line of the list shows the essentials at a
+glance: <b>T3&nbsp;&nbsp;End mill Ø 12 · z 3 · Carbide</b>.</p>
+
+<h3>Add, copy, delete</h3>
+<ul>
+<li><b>New</b> adds an end mill with the next free number. Enter the diameter
+first.</li>
+<li><b>Copy</b> takes the selected tool with all its values – handy for the
+same cutter in another diameter.</li>
+<li><b>Delete</b> asks first.</li>
+</ul>
+
+<h3>The fields</h3>
+<ul>
+<li><b>Number</b> – the T number. Free to choose, each only once; if it is
+already taken, that is shown right below the fields.</li>
+<li><b>Type</b> – end mill, bull nose end mill (with corner radius), ball end
+mill, chamfer mill, drill.</li>
+<li><b>Diameter</b> and <b>Flutes</b> (bold) are needed for every
+calculation.</li>
+<li><b>Flute length</b> – the usable length of the cutting edge. It is the
+largest ap the tool can cut on its side, and later shows how much of the edge
+a use case actually uses.</li>
+<li><b>Tool material</b> – carbide or HSS.</li>
+<li><b>Description</b> – free text to find it again: manufacturer, order
+number, coating.</li>
+</ul>
+<p>An empty number field means “unknown”.</p>
+
+<h3>Saving</h3>
+<p>Like FreeCAD's preferences: <b>OK</b> saves and closes, <b>Apply</b> saves and
+keeps the window open, <b>Cancel</b> discards – and asks first if you changed
+anything.</p>
+<p>The tools are stored in your FreeCAD user folder under
+<b>CamAddon/werkzeugverwaltung.json</b> and survive every update of the addon.
+The previous version is kept next to it as <b>.bak</b>.</p>

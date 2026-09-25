@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „Werkzeugverwaltung“: Schaftfräser (Schaft oben, gewendelte Schneiden unten) vor einer Liste. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="30" y="8" width="30" height="8" rx="1" fill="#babdb6" stroke="#555753" stroke-width="1.5"/>
+  <rect x="30" y="22" width="30" height="8" rx="1" fill="#babdb6" stroke="#555753" stroke-width="1.5"/>
+  <rect x="30" y="36" width="30" height="8" rx="1" fill="#babdb6" stroke="#555753" stroke-width="1.5"/>
+  <rect x="30" y="50" width="30" height="8" rx="1" fill="#babdb6" stroke="#555753" stroke-width="1.5"/>
+  <rect x="8" y="3" width="14" height="26" fill="#d3d7cf" stroke="#2e3436" stroke-width="2"/>
+  <rect x="8" y="29" width="14" height="30" fill="#729fcf" stroke="#204a87" stroke-width="2"/>
+  <path d="M8 35 L22 29 M8 43 L22 37 M8 51 L22 45 M8 59 L22 53" stroke="#204a87" stroke-width="2.5"/>
+</svg>
