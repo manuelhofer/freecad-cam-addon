@@ -1,11 +1,15 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Nach Updates schauen, solange das Repository privat ist (P-2026-09-25-24).
+"""Nach Updates schauen – mit Git oder ohne (P-2026-09-25-24, P-2026-09-25-57).
 
-Der Addon-Manager von FreeCAD kann private Repositories nicht aktualisieren
-(ausprobiert, P-2026-09-25-23). Ist der Addon-Ordner ein Git-Klon – so legt
-ihn die Anleitung im README an –, fragt das Addon selbst per Git bei GitHub
-nach. Angemeldet wird mit dem, was auf dem Rechner schon eingerichtet ist
-(Git bzw. GitHub Desktop); im Addon liegt kein Schlüssel.
+Ist der Addon-Ordner ein Git-Klon (Anleitung mit GitHub Desktop im README),
+fragt das Addon per Git bei GitHub nach. Angemeldet wird mit dem, was auf dem
+Rechner schon eingerichtet ist (Git bzw. GitHub Desktop); im Addon liegt kein
+Schlüssel. So geht es auch, solange das Repository privat ist – der
+Addon-Manager von FreeCAD kann das nicht (ausprobiert, P-2026-09-25-23).
+
+Kam das Addon ohne Git (Zeile aus dem README, installieren.py), liest es die
+Version direkt aus der package.xml bei GitHub (HTTPS) und aktualisiert mit
+installieren.py – dafür muss das Repository öffentlich sein.
 
 Ausnahme von der Regel „keine Aufrufe externer Programme“: nur Git, nur hier.
 
@@ -13,21 +17,26 @@ Läuft ohne Oberfläche; die Oberfläche steht in gui_aktualisierung.py.
 """
 
 import glob
+import importlib.util
 import os
 import shutil
 import subprocess
+import urllib.request
 from dataclasses import dataclass
 
 from . import ADDON_ORDNER, version_aus_xml
 
 ZWEIG = "main"
 ZEITLIMIT_S = 30  # je Git-Aufruf; ohne Netz soll die Suche nicht ewig laufen
+# Ohne Git: die Version steht in der package.xml auf GitHub.
+ADRESSE_VERSION = (
+    f"https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/{ZWEIG}/package.xml"
+)
 
 # Mögliche Ergebnisse der Suche.
 AKTUELL = "aktuell"
 NEU = "neu"
 LOKAL_GEAENDERT = "lokal_geaendert"  # eigene Änderungen im Ordner: nicht blind überschreiben
-KEIN_GIT_ORDNER = "kein_git_ordner"  # z. B. als ZIP installiert
 KEIN_GIT = "kein_git"  # Git ist auf dem Rechner nicht zu finden
 FEHLER = "fehler"  # z. B. kein Netz, keine Anmeldung
 
@@ -59,14 +68,15 @@ def git_programm():
     return None
 
 
-def pruefe(ordner=ADDON_ORDNER):
+def pruefe(ordner=ADDON_ORDNER, adresse_version=ADRESSE_VERSION):
     """Schaut bei GitHub nach, ob es einen neueren Stand gibt.
 
-    Holt dafür den Stand von GitHub (git fetch), ändert aber keine Datei des
-    Addons – das tut erst `aktualisiere()`.
+    Mit Git holt es dafür den Stand von GitHub (git fetch), ohne Git nur die
+    package.xml. Keine Datei des Addons ändert sich – das tut erst
+    `aktualisiere()`.
     """
     if not os.path.isdir(os.path.join(ordner, ".git")):
-        return Ergebnis(KEIN_GIT_ORDNER)
+        return _vergleiche_per_https(ordner, adresse_version)
     git = git_programm()
     if git is None:
         return Ergebnis(KEIN_GIT)
@@ -76,9 +86,50 @@ def pruefe(ordner=ADDON_ORDNER):
         return Ergebnis(FEHLER, meldung=str(fehler))
 
 
-def aktualisiere(ordner=ADDON_ORDNER):
-    """Holt den neuen Stand – nur vorspulen, nie über eigene Änderungen hinweg."""
+def aktualisiere(ordner=ADDON_ORDNER, adresse_zip=None, parameter=None):
+    """Holt den neuen Stand.
+
+    Mit Git: nur vorspulen, nie über eigene Änderungen hinweg. Ohne Git: das
+    ZIP von GitHub an die Stelle des Ordners, wie mit der Zeile aus dem README
+    (installieren.py aus diesem Ordner; `adresse_zip` und `parameter` nur für
+    die Prüfungen).
+    """
+    if not os.path.isdir(os.path.join(ordner, ".git")):
+        installierer = _installierer(ordner)
+        weitere = {"parameter": parameter} if parameter else {}
+        installierer.installiere(adresse_zip or installierer.ZIP_ADRESSE, ziel=ordner, **weitere)
+        return
     _git(git_programm(), ordner, "merge", "--ff-only", "--quiet", f"origin/{ZWEIG}")
+
+
+def _vergleiche_per_https(ordner, adresse):
+    jetzt = _version_in(ordner)
+    try:
+        with urllib.request.urlopen(adresse, timeout=ZEITLIMIT_S) as antwort:
+            neu = version_aus_xml(antwort.read().decode("utf-8"))
+    except (OSError, ValueError) as fehler:  # kein Netz, privat (404), kaputt
+        return Ergebnis(FEHLER, meldung=str(fehler))
+    if not ist_neuer(neu, jetzt):
+        return Ergebnis(AKTUELL, version_jetzt=jetzt)
+    return Ergebnis(NEU, version_neu=neu, version_jetzt=jetzt)
+
+
+def _version_in(ordner):
+    try:
+        with open(os.path.join(ordner, "package.xml"), encoding="utf-8") as datei:
+            return version_aus_xml(datei.read())
+    except OSError:
+        return "?"
+
+
+def _installierer(ordner):
+    """installieren.py aus dem Addon-Ordner als Modul – dieselbe Datei wie für die Zeile im README."""
+    spec = importlib.util.spec_from_file_location(
+        "camaddon_installieren", os.path.join(ordner, "installieren.py")
+    )
+    modul = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(modul)
+    return modul
 
 
 def ist_neuer(neu, jetzt):

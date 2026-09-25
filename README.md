@@ -42,9 +42,11 @@ ist):
    **CAM**.
 
 Die Zeile legt das Addon in den Addon-Ordner von FreeCAD – ohne Git, ohne
-GitHub Desktop – und trägt es im Addon-Manager ein. **Aktualisieren:**
-dieselbe Zeile noch einmal, oder **Werkzeuge → Addon-Manager**, der zeigt
-neue Versionen an und kann das Addon auch wieder entfernen. Was die Zeile
+GitHub Desktop – und trägt es im Addon-Manager ein. **Aktualisieren:** Das
+Addon schaut beim Start selbst nach und fragt bei einer neuen Version
+„Jetzt aktualisieren?“ (abschalten: Bearbeiten → Einstellungen →
+CAM-Addon). Von Hand: dieselbe Zeile noch einmal, oder **Werkzeuge →
+Addon-Manager** – der kann das Addon auch wieder entfernen. Was die Zeile
 genau tut, steht oben in [installieren.py](installieren.py).
 
 **Oder ganz über den Addon-Manager:** **Bearbeiten → Einstellungen →

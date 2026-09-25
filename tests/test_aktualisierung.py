@@ -6,7 +6,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
+
+import FreeCAD
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -85,8 +88,48 @@ neue_version(arbeit, "9.9.1")
 e = a.pruefe(installiert)
 pruefe(e.status == a.LOKAL_GEAENDERT and e.version_neu == "9.9.1", f"mit eigener Änderung: {e}")
 
-# Kein Git-Ordner (z. B. als ZIP installiert) und kein Git auf dem Rechner.
-pruefe(a.pruefe(tempfile.mkdtemp()).status == a.KEIN_GIT_ORDNER, "ZIP-Installation nicht erkannt")
+
+# Ohne Git installiert (Zeile aus dem README): Version per HTTPS aus der
+# package.xml, Update per ZIP mit installieren.py. „GitHub“ sind Dateien im
+# Temp-Ordner, gelesen über file://.
+def package_xml(version):
+    return re.sub(
+        r"<version>[^<]+</version>",
+        f"<version>{version}</version>",
+        Path(ADDON, "package.xml").read_text("utf-8"),
+    )
+
+
+ohne_git = os.path.join(basis, "Mod2", "freecad-cam-addon")
+os.makedirs(ohne_git)
+shutil.copy(os.path.join(ADDON, "installieren.py"), ohne_git)
+Path(ohne_git, "package.xml").write_text(package_xml("1.0.0"), "utf-8")
+fern_xml = Path(basis, "fern_package.xml")
+fern_xml.write_text(package_xml("1.0.0"), "utf-8")
+e = a.pruefe(ohne_git, adresse_version=fern_xml.as_uri())
+pruefe(e.status == a.AKTUELL and e.version_jetzt == "1.0.0", f"ohne Git, gleiche Version: {e}")
+fern_xml.write_text(package_xml("1.1.0"), "utf-8")
+e = a.pruefe(ohne_git, adresse_version=fern_xml.as_uri())
+pruefe(
+    e.status == a.NEU and (e.version_neu, e.version_jetzt) == ("1.1.0", "1.0.0"),
+    f"ohne Git, neue Version: {e}",
+)
+fern_zip = Path(basis, "stand.zip")
+with zipfile.ZipFile(fern_zip, "w") as archiv:
+    archiv.writestr("freecad-cam-addon-main/package.xml", package_xml("1.1.0"))
+    archiv.writestr(
+        "freecad-cam-addon-main/installieren.py",
+        Path(ADDON, "installieren.py").read_text("utf-8"),
+    )
+parameter = "User parameter:BaseApp/Preferences/Mod/CamAddonTest/Addons"
+a.aktualisiere(ohne_git, adresse_zip=fern_zip.as_uri(), parameter=parameter)
+e = a.pruefe(ohne_git, adresse_version=fern_xml.as_uri())
+pruefe(e.status == a.AKTUELL and e.version_jetzt == "1.1.0", f"ohne Git nach dem Update: {e}")
+e = a.pruefe(ohne_git, adresse_version=Path(basis, "fehlt.xml").as_uri())
+pruefe(e.status == a.FEHLER and e.meldung, f"ohne Git, GitHub nicht erreichbar: {e}")
+FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod").RemGroup("CamAddonTest")
+
+# Kein Git auf dem Rechner.
 original = a.git_programm
 a.git_programm = lambda: None
 pruefe(a.pruefe(installiert).status == a.KEIN_GIT, "fehlendes Git nicht erkannt")

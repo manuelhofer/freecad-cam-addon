@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-57 update-ohne-git
+
+### EINGELESEN
+- Lücke aus P-2026-09-25-43: Eine mit der Zeile aus dem README (ohne Git)
+  installierte Kopie meldete neue Versionen nicht selbst – nur der
+  Addon-Manager zeigte sie. Die Update-Suche beim Start sagte bei
+  „kein Git-Ordner“ nichts.
+
+### DATEIEN
+- `camaddon/aktualisierung.py` (ohne Git: Version per HTTPS aus der
+  package.xml auf GitHub, Update per `installieren.py`; `KEIN_GIT_ORDNER`
+  entfällt)
+- `installieren.py` (`ziel=`: genau dieser Ordner)
+- `camaddon/gui_aktualisierung.py` (Zweig „kein Git-Ordner“ entfällt)
+- `translations/de.json`, `translations/en.json` (`update.kein_git_ordner`
+  entfällt; Tooltip und Fehlertext nennen beide Wege)
+- `README.md`, `CHATSTART.md`, `docs/aufbau.md`
+- `tests/test_aktualisierung.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Mit der Zeile aus dem README installiert (öffentliches Repository): Gibt es
+auf GitHub eine höhere Version, fragt FreeCAD beim nächsten Start „Jetzt
+aktualisieren?“; nach dem Klick und einem Neustart läuft die neue Version.
+
+### DONE
+- Ohne `.git` im Addon-Ordner liest die Suche
+  `https://raw.githubusercontent.com/…/main/package.xml` (Zeitlimit wie bei
+  Git) und vergleicht die Versionen wie bisher Zahl für Zahl. Fehler (kein
+  Netz, privat = 404) ergeben `FEHLER` wie bei Git: beim Start nur eine
+  Zeile im Report-Fenster, von Hand ein Fenster.
+- „Jetzt aktualisieren“ ohne Git lädt `installieren.py` **aus dem
+  Addon-Ordner** und ersetzt den Ordner durch das ZIP von GitHub – dieselbe
+  Datei und derselbe sichere Tausch wie bei der Installation.
+- Keine neue Ausnahme von „keine Aufrufe externer Programme“: HTTPS läuft
+  über Pythons urllib.
+
+### TEST
+- KI, FreeCADCmd in beiden Versionen: `test_aktualisierung` (neu: ohne Git
+  gleiche Version, neue Version, Update per ZIP, danach aktuell, GitHub
+  nicht erreichbar; die Git-Fälle wie bisher), `test_installieren`,
+  `test_sprache` grün.
+- KI, Oberfläche (Wochen-Build): `szenario_update`, `szenario_erster_start`
+  grün.
+- Der Weg gegen das echte GitHub geht erst, wenn das Repository öffentlich
+  ist (T-005).
+
+### NEXT
+- Push; Bericht an Manuel.
+
 ## P-2026-09-25-56 entscheidungen-stufe-2
 
 ### EINGELESEN

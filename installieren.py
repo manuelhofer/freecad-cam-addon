@@ -70,15 +70,21 @@ def mod_ordner():
     return os.path.join(FreeCAD.getUserAppDataDir(), "Mod")
 
 
-def installiere(adresse=ZIP_ADRESSE, mod=None, parameter=ADDON_MANAGER):
+def installiere(adresse=ZIP_ADRESSE, mod=None, parameter=ADDON_MANAGER, ziel=None):
     """Holt das Addon von `adresse` nach `mod`/freecad-cam-addon und trägt es im Addon-Manager ein.
+
+    `ziel` statt `mod`: genau dieser Ordner – so aktualisiert sich das Addon
+    selbst (aktualisierung.py), auch wenn sein Ordner anders heißt.
 
     Wirft OSError (auch urllib.error.URLError) oder ValueError, wenn der
     Download oder das Archiv nicht taugt – eine vorhandene Installation bleibt
     dann, wie sie war.
     """
-    mod = mod or mod_ordner()
-    ziel = os.path.join(mod, ORDNER_NAME)
+    if ziel is None:
+        mod = mod or mod_ordner()
+        ziel = os.path.join(mod, ORDNER_NAME)
+    else:
+        mod = os.path.dirname(os.path.abspath(ziel))
     if os.path.exists(os.path.join(ziel, ".git")):
         trage_in_addon_manager_ein(parameter)
         return Ergebnis(GIT_KLON, ziel, _version(ziel))

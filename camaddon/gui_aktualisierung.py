@@ -109,8 +109,6 @@ def zeige(ergebnis, von_hand=False, ordner=ADDON_ORDNER, eltern=None):
         FreeCAD.Console.PrintWarning(text + "\n")
         if von_hand:
             QtGui.QMessageBox.warning(eltern, tr("update.titel"), text)
-    elif von_hand and ergebnis.status == a.KEIN_GIT_ORDNER:
-        _hinweis(eltern, tr("update.kein_git_ordner"))
     elif von_hand:  # AKTUELL
         _hinweis(eltern, tr("update.aktuell", jetzt=ergebnis.version_jetzt))
     return None
@@ -149,7 +147,9 @@ class UpdateDialog(QtGui.QDialog):
         self.knopf_jetzt.hide()
         try:
             a.aktualisiere(self.ordner)
-        except Exception as fehler:  # jeder Fehler von Git: sagen statt still scheitern
+        except (
+            Exception
+        ) as fehler:  # jeder Fehler von Git oder Download: sagen statt still scheitern
             FreeCAD.Console.PrintError(f"CAM-Addon: {fehler}\n")
             self.text.setText(tr("update.fehlgeschlagen", fehler=str(fehler)))
             return
