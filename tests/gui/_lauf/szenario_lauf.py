@@ -40,6 +40,12 @@ def _ende(helfer, fehler=None):
     # Offene modale Dialoge zuerst schließen, sonst beendet quit() nicht.
     while QtGui.QApplication.activeModalWidget():
         QtGui.QApplication.activeModalWidget().done(0)
+    # Offenes Aufgabenfenster und geänderte Dokumente schließen – sonst fragt
+    # FreeCAD beim Beenden „Änderungen speichern?“ und wartet, bis das
+    # Zeitlimit des Skripts greift.
+    FreeCADGui.Control.closeDialog()
+    for name in list(FreeCAD.listDocuments()):
+        FreeCAD.closeDocument(name)
     QtGui.QApplication.quit()
 
 

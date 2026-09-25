@@ -32,7 +32,13 @@ for szenario in "$@"; do
     CAMADDON_OHNE_UPDATE=1 FREECAD_USER_HOME="$profil" CAMADDON_SZENARIO="$(cd "$(dirname "$szenario")" && pwd)/$(basename "$szenario")" \
         CAMADDON_AUSGABE="$ausgabe" \
         timeout 180 xvfb-run -a -s "-screen 0 1280x800x24" "$fc" > "$ausgabe/freecad.log" 2>&1
-    if [ "$(cat "$ausgabe/ergebnis.txt" 2>/dev/null)" = "OK" ]; then
+    rueckgabe=$?
+    if [ "$rueckgabe" -eq 124 ]; then
+        # Das Szenario beendet FreeCAD selbst; greift das Zeitlimit, haengt
+        # etwas (z. B. eine offene Rueckfrage) - auch wenn das Ergebnis OK war.
+        echo "FEHLER $name - FreeCAD hat sich nicht beendet (Zeitlimit 180 s)"
+        fehler=1
+    elif [ "$(cat "$ausgabe/ergebnis.txt" 2>/dev/null)" = "OK" ]; then
         echo "ok     $name"
     else
         echo "FEHLER $name"

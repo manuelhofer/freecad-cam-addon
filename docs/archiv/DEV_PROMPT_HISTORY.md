@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-28 szenarien-sauber-beenden
+
+### EINGELESEN
+- Zeitstempel der Ergebnisdateien aus dem Lauf von P-2026-09-25-27: Drei
+  Szenarien je Version brauchten genau 180 s, also das Zeitlimit.
+
+### DATEIEN
+- `tests/gui/_lauf/szenario_lauf.py` (am Ende Aufgabenfenster und Dokumente
+  schließen)
+- `scripts/oberflaeche_testen.sh` (Zeitlimit gilt als Fehler)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`scripts/alle_tests.sh` läuft in beiden FreeCAD-Versionen grün durch, in etwa
+2 statt 22 Minuten. Ein Szenario, nach dem FreeCAD sich nicht beendet, gilt
+als Fehler.
+
+### DONE
+- **Ursache:** Nach Szenarien mit geänderten Dokumenten fragte FreeCAD beim
+  Beenden „Änderungen speichern?“ und wartete, bis `timeout` nach 180 s
+  abbrach. Das Ergebnis war schon vorher geschrieben, deshalb blieb der
+  Fehler unsichtbar.
+- Der Läufer schließt jetzt vor dem Beenden das Aufgabenfenster und alle
+  Dokumente, ohne Rückfrage.
+- `oberflaeche_testen.sh` wertet einen Abbruch durch das Zeitlimit
+  (Rückgabe 124) als **Fehler**: „FreeCAD hat sich nicht beendet“. So bleibt
+  ein Hänger nie wieder unbemerkt.
+
+### TEST
+- Von der KI ausgeführt:
+  - `alle_tests.sh` in beiden Versionen grün, **130 s** für alles zusammen
+    (vorher etwa 22 Minuten).
+  - Gegenprobe ohne das Schließen der Dokumente:
+    `szenario_uebergeben` ergibt „FEHLER … FreeCAD hat sich nicht beendet
+    (Zeitlimit 180 s)“.
+
+### NEXT
+- Durchsicht von Hand: Kern-Module.
+
 ## P-2026-09-25-27 black-und-ruff
 
 ### EINGELESEN
