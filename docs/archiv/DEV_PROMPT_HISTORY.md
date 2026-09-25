@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-01 werkzeugbild
+
+### EINGELESEN
+- Manuels Wunsch nach einer „übersichtlicheren“ Werkzeugverwaltung, „etwa
+  wie die alte von InventorCAM“ – die zeigt zu jedem Werkzeug ein Bild.
+- Arbeitsregeln Abschnitt 8: Bilder ohne Text, damit sie in jeder Sprache
+  passen (wie das Eingriffsbild, P-2026-09-25-48).
+
+### DATEIEN
+- `camaddon/gui_werkzeugbild.py` (neu), `camaddon/gui_werkzeuge.py` (Bild
+  rechts neben den Feldern)
+- `help/de|en/werkzeuge.html`, `translations/de.json`,
+  `translations/en.json` (Tooltip)
+- `tests/gui/szenario_werkzeugverwaltung.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → ein Schaftfräser Ø 12, Schneidenlänge 26,
+Gesamtlänge 83 → rechts steht er schlank mit kurzer Schneide; Art auf
+„Radiusfräser“ → unten rund; „Fasenfräser“ → spitz; Gesamtlänge leeren →
+der Schaft ist gestrichelt.
+
+### DONE
+- Schaft, Schneide (mit angedeuteten Wendeln) und Spitze je Art: flach,
+  Eckradius, Kugel, 90°-Fase, 118°-Bohrerspitze – maßstäblich, geschätzte
+  Maße gestrichelt. Folgt jeder Eingabe.
+- **Gefundener Fehler im eigenen Entwurf:** Bei Fasenfräser und Bohrer war
+  die Spitze schief (ein Eckpunkt fehlte im Umriss) – am Screenshot
+  gesehen, behoben.
+
+### TEST
+- KI, Oberfläche in **beiden** Versionen: `szenario_werkzeugverwaltung`
+  grün; alle fünf Arten und ein Fräser mit dickerem Schaft als Screenshot
+  angesehen (Szenario nur zum Ansehen, nicht eingecheckt).
+- Manuel: offen.
+
+### NEXT
+- Beim Ansehen gefunden: Das bloße Anzeigen eines Werkzeugs ohne
+  Schnittwerte gilt als Änderung (falsche Rückfrage „Speichern?“) –
+  eigener Patch.
+
 ## P-2026-09-25-74 texte-ueber-und-leer
 
 ### EINGELESEN

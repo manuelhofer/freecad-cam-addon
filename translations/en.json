@@ -489,5 +489,6 @@
     "wv.suche.tooltip": "Shows only the tools whose row or description contains every word.",
     "sj.am_rohteil": "Set on the stock",
     "sj.am_rohteil.tooltip": "Sets the selected material as a FreeCAD material card on the job's stock (same material number). Then this dialog suggests it by itself next time – and in the weekly build FreeCAD's own feeds and speeds button does too. Ctrl+Z undoes it.",
-    "sp.von_maschine.vorbelegt": "Speed and feed from “{maschine}”."
+    "sp.von_maschine.vorbelegt": "Speed and feed from “{maschine}”.",
+    "wv.werkzeugbild.tooltip": "The tool in the right proportions: shank, flutes and tip. Dashed is what is estimated because the field is empty."
 }

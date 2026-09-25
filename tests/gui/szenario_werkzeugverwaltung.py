@@ -91,6 +91,7 @@ def schritte(h):
         f"Listenzeile: {d.liste.item(0).text()!r}",
     )
     h.pruefe(not d.hinweis.isVisible(), f"Hinweis trotz vollständiger Werte: {d.hinweis.text()!r}")
+    h.pruefe(d.werkzeugbild.werkzeug is d.werkzeug, "Werkzeugbild zeigt nicht das gewählte")
     # Gesamtlänge und Schaft leer: grau steht, was CAM stattdessen bekommt.
     grau = (d.feld_gesamtlaenge.placeholderText(), d.feld_schaft.placeholderText())
     h.pruefe(grau == ("geschätzt: 50", "wie D: 12"), f"Schätzung: {grau}")

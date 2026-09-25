@@ -21,6 +21,7 @@ from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
 from .gui_teile import fett, hinweiszeile, knopf, mit_einheit
 from .gui_werkstoffe import WerkstoffDialog
+from .gui_werkzeugbild import WerkzeugBild
 from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen
 from .sprache import tr
 
@@ -297,6 +298,10 @@ class WerkzeugDialog(QtGui.QDialog):
 
         self.hinweis = hinweiszeile()
         gitter.addWidget(self.hinweis, unten + 1, 0, 1, 4)
+        # Rechts neben den Feldern das Werkzeug im richtigen Verhältnis.
+        self.werkzeugbild = WerkzeugBild()
+        self.werkzeugbild.setToolTip(tr("wv.werkzeugbild.tooltip"))
+        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 2, 1, QtCore.Qt.AlignTop)
 
         aufbau.addWidget(self.formular_rahmen)
         self.schnittwerte = SchnittwertBereich(self._schnittwerte_geaendert)
@@ -503,6 +508,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self._fuellt = False
         self._eckradius_zeigen()
         self._schaetzung_zeigen()
+        self.werkzeugbild.zeige(w)
         self._hinweise()
         self._schnittwerte_zeigen()
 
@@ -560,6 +566,7 @@ class WerkzeugDialog(QtGui.QDialog):
         """Nach jeder Eingabe: Listenzeile, Hinweise und Schnittwerte auf den neuen Stand."""
         self._zeile_auffrischen()
         self._schaetzung_zeigen()
+        self.werkzeugbild.zeige(self.werkzeug)
         self._hinweise()
         self.schnittwerte.auffrischen()
 
