@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-74 texte-ueber-und-leer
+
+### EINGELESEN
+- „Über das CAM-Addon“ nannte noch den Stand vor dieser Nacht; der Hinweis
+  bei leerer Werkzeugliste kannte „Aus CAM übernehmen“ (P-66) nicht.
+
+### DATEIEN
+- `translations/de.json`, `translations/en.json` (`ueber.text`,
+  `wv.leer`)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Über das CAM-Addon“ nennt Verfahren, Schruppwert-Planer und Schrittweite/
+Zustelltiefe; eine leere Werkzeugverwaltung nennt „Neu“ und „Aus CAM
+übernehmen“.
+
+### DONE
+- Beide Texte deutsch und englisch nachgezogen.
+
+### TEST
+- KI: `test_sprache` in beiden Versionen grün (Platzhalter unverändert).
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-25-73 planer-maschine-vorbelegen
 
 ### EINGELESEN
