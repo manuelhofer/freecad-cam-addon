@@ -17,6 +17,7 @@ from . import (
     gui_job_schnittwerte,
     gui_maschine,
     gui_sprachwahl,
+    gui_verfahren,
     gui_werkzeuge,
     symbol,
 )
@@ -28,6 +29,7 @@ ZIEL_ARBEITSBEREICHE = ("AssemblyWorkbench", "CAMWorkbench")
 # Befehle der Werkzeugleiste, in Anzeigereihenfolge.
 WERKZEUGLEISTE = [
     "CamAddon_MaschineBearbeiten",
+    "CamAddon_MaschineVerfahren",
     "CamAddon_Werkzeugverwaltung",
     "CamAddon_SchnittwerteJob",
     "CamAddon_Ueber",
@@ -38,6 +40,7 @@ def starten():
     """Meldet Befehle, Werkzeugleiste und Einstellungsseite an, fragt beim ersten
     Start nach der Sprache und sucht im Hintergrund nach Updates."""
     FreeCADGui.addCommand("CamAddon_MaschineBearbeiten", gui_maschine.BefehlMaschineBearbeiten())
+    FreeCADGui.addCommand("CamAddon_MaschineVerfahren", gui_verfahren.BefehlMaschineVerfahren())
     FreeCADGui.addCommand("CamAddon_Werkzeugverwaltung", gui_werkzeuge.BefehlWerkzeugverwaltung())
     FreeCADGui.addCommand("CamAddon_SchnittwerteJob", gui_job_schnittwerte.BefehlSchnittwerteJob())
     FreeCADGui.addCommand("CamAddon_Ueber", BefehlUeber())

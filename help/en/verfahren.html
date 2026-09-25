@@ -1,0 +1,32 @@
+<h2>Move machine</h2>
+<p>One slider per axis: drag it or type a value, and the machine in the 3D view
+moves along – so you see whether the axes run the right way round, what moves
+with what, and where it gets tight. This is the basis for the simulation.</p>
+
+<h3>The rows</h3>
+<ul>
+<li><b>Name</b> – the NC name of the mode (e.g. X1, C4, T). Joints without a
+mode are shown with their name in the assembly – their position is also set by
+hand here. A spindle is listed under its positioning name (C4 instead of S4):
+turning here means positioning.</li>
+<li><b>Slider and number field</b> – mm for linear, degrees for rotary axes.
+Counted as in the assembly's joint: the position of the joint's second side
+relative to its first. That way the numbers match the limits.</li>
+<li><b>Limits</b> – from the joint's limits (minimum/maximum). It doesn't go
+further. If it says “no limit”, one can be entered in the joint.</li>
+</ul>
+
+<h3>What moves along</h3>
+<p>Everything behind the axis: its link and everything further out. When X1
+moves, the turret moves along; when the cradle A tilts, the rotary table C
+tilts with it – and still stays at its angle.</p>
+
+<h3>OK, Cancel, Home position</h3>
+<ul>
+<li><b>OK</b> keeps the position. One <b>Ctrl+Z</b> moves everything back.</li>
+<li><b>Cancel</b> moves everything back to where it was when the window
+opened.</li>
+<li><b>Home position</b> does the same without closing the window.</li>
+</ul>
+<p>The position also stays when FreeCAD recomputes the assembly – the joints
+keep it.</p>

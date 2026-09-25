@@ -12,6 +12,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
 
 - **Maschine bearbeiten:** eine Maschine als Baugruppe beschreiben –
   Achsen, Spindeln, Werkzeug- und Werkstückaufnahmen – und an CAM übergeben.
+- **Maschine verfahren:** je Achse ein Regler, die Baugruppe fährt mit –
+  bis zu den Grenzen der Gelenke.
 - **Werkzeugverwaltung:** Werkstoffliste mit deutschen Bezeichnungen
   („1.4301 X5CrNi18-10 · Edelstahl, austenitisch“), Zusammensetzung und
   Härte; Werkzeuge mit Schnittwerten je Werkstoff und Einsatz – vc und fz

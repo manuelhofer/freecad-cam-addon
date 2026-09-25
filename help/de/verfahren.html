@@ -1,0 +1,33 @@
+<h2>Maschine verfahren</h2>
+<p>Je Achse ein Regler: ziehen oder einen Wert eintippen, und die Maschine in
+der 3D-Ansicht fährt mit – so sieht man, ob die Achsen richtig herum laufen,
+was mit was mitfährt und wo es eng wird. Das ist die Grundlage für die
+Simulation.</p>
+
+<h3>Die Zeilen</h3>
+<ul>
+<li><b>Name</b> – der NC-Name der Betriebsart (etwa X1, C4, T). Gelenke ohne
+Betriebsart stehen mit ihrem Namen in der Baugruppe da – auch ihre Stellung
+setzt man hier von Hand. Eine Spindel steht unter ihrem Positionier-Namen
+(C4 statt S4): Drehen heißt hier Positionieren.</li>
+<li><b>Regler und Zahlenfeld</b> – mm bei Linear-, Grad bei Drehachsen.
+Gezählt wird wie am Gelenk der Baugruppe: die Lage der zweiten Seite des
+Gelenks gegenüber der ersten. So passen die Zahlen zu den Grenzen.</li>
+<li><b>Grenzen</b> – aus der Begrenzung des Gelenks (Minimum/Maximum). Weiter
+geht es nicht. Steht dort „ohne Grenze“, lässt sich eine im Gelenk
+eintragen.</li>
+</ul>
+
+<h3>Was mitfährt</h3>
+<p>Alles, was hinter der Achse hängt: ihr Glied und alles weiter außen.
+Fährt X1, fährt der Revolver mit; dreht die Wiege A, dreht der Rundtisch C
+mit – und steht danach trotzdem auf seinem Winkel.</p>
+
+<h3>OK, Abbrechen, Grundstellung</h3>
+<ul>
+<li><b>OK</b> behält die Stellung. Ein <b>Strg+Z</b> fährt alles zurück.</li>
+<li><b>Abbrechen</b> fährt alles dahin zurück, wo es beim Öffnen stand.</li>
+<li><b>Grundstellung</b> tut dasselbe, ohne das Fenster zu schließen.</li>
+</ul>
+<p>Die Stellung bleibt auch stehen, wenn FreeCAD die Baugruppe neu berechnet –
+die Gelenke halten sie ein.</p>

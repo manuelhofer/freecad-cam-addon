@@ -469,5 +469,19 @@
     "wv.aus_cam.bericht.neue_nummer": "Mit neuer Nummer, weil die alte hier schon vergeben ist: {liste}.",
     "wv.aus_cam.bericht.schon_da": "Schon da, unverändert: {namen}.",
     "wv.aus_cam.bericht.andere_form": "Nicht übernommen – diese Formen kennt die Werkzeugverwaltung nicht: {namen}.",
-    "wv.aus_cam.bericht.weiter": "Jetzt je Werkzeug die Einsätze mit vc und fz aus dem Katalog eintragen. Gespeichert wird mit OK oder Übernehmen."
+    "wv.aus_cam.bericht.weiter": "Jetzt je Werkzeug die Einsätze mit vc und fz aus dem Katalog eintragen. Gespeichert wird mit OK oder Übernehmen.",
+    "befehl.verfahren.titel": "Maschine verfahren",
+    "befehl.verfahren.tooltip": "Fährt die Achsen der Maschine von Hand – je Achse ein Regler, die Baugruppe bewegt sich mit.",
+    "vf.titel": "Maschine verfahren",
+    "vf.erklaerung": "Je Achse ein Regler: ziehen oder einen Wert eintippen, die Maschine fährt mit. Über die Grenzen des Gelenks geht es nicht hinaus. OK behält die Stellung, Abbrechen fährt alles zurück.",
+    "vf.keine_achsen": "Diese Baugruppe hat keine Achse, die sich verfahren lässt: kein Schiebe- oder Drehgelenk, das über andere Teile am festen Teil hängt.",
+    "vf.gelenk.tooltip": "Gelenk „{gelenk}“ der Baugruppe.",
+    "vf.regler.tooltip": "Ziehen, um die Achse zu verfahren. Mit den Pfeiltasten in kleinen Schritten.",
+    "vf.grenzen": "Grenzen: {min} … {max} {einheit}",
+    "vf.nur_min": "ab {min} {einheit}",
+    "vf.nur_max": "bis {max} {einheit}",
+    "vf.ohne_grenze": "ohne Grenze",
+    "vf.grundstellung": "Grundstellung",
+    "vf.grundstellung.tooltip": "Fährt alle Achsen auf die Stellung beim Öffnen des Fensters.",
+    "vf.grenzen.tooltip": "Die Grenzen stehen im Gelenk der Baugruppe (Minimum/Maximum der Länge bzw. des Winkels) – dort lassen sie sich eintragen oder ändern."
 }

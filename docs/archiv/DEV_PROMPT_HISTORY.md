@@ -12,6 +12,65 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-67 maschine-verfahren
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 9, Stufe 3: „Ein Fenster mit einem Regler
+  je Betriebsart (Name, Wert, Grenzen); die Baugruppe bewegt sich mit.“
+  Abschnitt 4: Auch Gelenke ohne Betriebsart setzt man in Stufe 3 von Hand.
+- FreeCAD 1.1.3 und Wochen-Build ausprobiert: Schiebe- und Drehgelenke der
+  Assembly haben keinen Sollwert – ihre Stellung ist, wo die Teile stehen.
+  Bewegt man alle Bauteile hinter einer Achse, lässt die Assembly die
+  Stellung beim Lösen und Neuberechnen stehen; bewegt man nur einen Teil,
+  zieht sie sie woanders hin. Ihre Grenzen setzt sie beim Lösen nicht durch.
+
+### DATEIEN
+- `camaddon/verfahren.py` (neu), `camaddon/gui_verfahren.py` (neu)
+- `camaddon/gui_maschine.py` (`gewaehlte_assembly()` öffentlich, damit
+  beide Befehle dieselbe Assembly finden)
+- `camaddon/gui_start.py` (Befehl, Werkzeugleiste), `camaddon/hilfe.py`
+- `resources/icons/verfahren.svg` (neu), `help/de|en/verfahren.html` (neu)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_verfahren.py`, `tests/gui/szenario_verfahren.py` (neu)
+- `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/aufbau.md`
+  (Module, Stolperstein), `CHATSTART.md`, `README.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine mit Maschinenobjekt (Z1, X1 mit Grenzen 0 … 200 mm,
+S4/C4, T) → Assembly wählen → Werkzeugleiste „Maschine verfahren“ → Zeilen
+C4, Z1, X1, T → Regler C4 auf 90° → das Futter dreht sich um 90° → X1 auf
+500 tippen → bleibt bei 200 mm stehen → Abbrechen → alles steht wie vorher;
+noch einmal öffnen, X1 auf 100, OK → X1 bleibt; Strg+Z → zurück.
+
+### DONE
+- Je Achse der Kette eine Zeile: Name (NC-Namen der Betriebsarten ohne die
+  Spindel, sonst das Gelenk), Regler (0,1 mm bzw. 0,1°), Zahlenfeld mit
+  Einheit, darunter grau die Grenzen oder „ohne Grenze“.
+- Stellung gezählt wie am Gelenk (Seite 2 gegenüber Seite 1): Linear
+  entlang Z von Seite 1, Dreh als Winkel der X-Achsen um Z. Das Vorzeichen
+  hängt davon ab, auf welcher Seite das bewegte Teil steht – geprüft mit
+  einem Gelenk, dessen bewegtes Teil Seite 1 ist.
+- Bewegt werden alle Bauteile hinter der Achse, gerechnet vom Stand beim
+  Öffnen aus – mehrere Achsen hintereinander ohne Fehler, die sich
+  aufsummieren (C auf der Wiege A bleibt auf 45°, auch bei A = ±30°).
+- OK = ein Schritt Rückgängig; Abbrechen und „Grundstellung“ fahren exakt
+  zurück.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_verfahren` grün –
+  Drehmaschine (Namen, Grenzen 0 … 200, Revolver fährt mit X1, vier Achsen
+  zugleich, Futter um 90°, Stellung nach Lösen und Neuberechnen, exakte
+  Grundstellung), Fünfachser (A/C), bewegtes Teil auf Seite 1.
+- KI, Oberfläche in **beiden** Versionen: `szenario_verfahren` grün,
+  Screenshot angesehen (Fenster mit vier Reglern, X1 an der Grenze).
+- Manuel: offen – vor allem, ob die Richtung der Achsen und der
+  Nullpunkt so sind, wie er sie an seiner Maschine erwartet.
+
+### NEXT
+- Alle Prüfungen, Version 0.7.0, Push. Stufe 4 braucht zuerst eine
+  eigene Spezifikation.
+
 ## P-2026-09-25-66 aus-cam-uebernehmen
 
 ### EINGELESEN

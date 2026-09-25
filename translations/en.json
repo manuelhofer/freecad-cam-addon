@@ -469,5 +469,19 @@
     "wv.aus_cam.bericht.neue_nummer": "With a new number, because the old one is already taken here: {liste}.",
     "wv.aus_cam.bericht.schon_da": "Already here, left unchanged: {namen}.",
     "wv.aus_cam.bericht.andere_form": "Not imported – the tool manager doesn't know these shapes: {namen}.",
-    "wv.aus_cam.bericht.weiter": "Now enter the use cases with vc and fz from the catalogue for each tool. Saved with OK or Apply."
+    "wv.aus_cam.bericht.weiter": "Now enter the use cases with vc and fz from the catalogue for each tool. Saved with OK or Apply.",
+    "befehl.verfahren.titel": "Move machine",
+    "befehl.verfahren.tooltip": "Moves the machine's axes by hand – one slider per axis, the assembly moves along.",
+    "vf.titel": "Move machine",
+    "vf.erklaerung": "One slider per axis: drag it or type a value, the machine moves along. It doesn't go beyond the joint's limits. OK keeps the position, Cancel moves everything back.",
+    "vf.keine_achsen": "This assembly has no axis that can be moved: no slider or revolute joint connected to the fixed part through other parts.",
+    "vf.gelenk.tooltip": "Joint “{gelenk}” of the assembly.",
+    "vf.regler.tooltip": "Drag to move the axis. With the arrow keys in small steps.",
+    "vf.grenzen": "Limits: {min} … {max} {einheit}",
+    "vf.nur_min": "from {min} {einheit}",
+    "vf.nur_max": "up to {max} {einheit}",
+    "vf.ohne_grenze": "no limit",
+    "vf.grundstellung": "Home position",
+    "vf.grundstellung.tooltip": "Moves all axes to the position they had when the window was opened.",
+    "vf.grenzen.tooltip": "The limits are set in the assembly's joint (minimum/maximum length or angle) – that is where they can be entered or changed."
 }

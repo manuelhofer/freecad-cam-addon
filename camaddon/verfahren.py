@@ -1,0 +1,163 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+"""Die Maschine von Hand verfahren (W-001, Stufe 3) – Grundlage der Simulation.
+
+Jede Achse der Kette hat eine Stellung: mm bei Linear-, Grad bei Drehachsen,
+gezählt wie die Begrenzung am Gelenk – als Lage von Seite 2 des Gelenks
+gegenüber Seite 1. So passen Anzeige und Grenzen zu dem, was im Gelenk steht.
+
+Verfahren heißt: alle Bauteile hinter der Achse verschieben bzw. drehen – ihr
+Glied und alles, was weiter außen hängt. Dann halten alle Gelenke, und die
+Assembly lässt die Stellung stehen, auch beim Neuberechnen (in 1.1.3 und im
+Wochen-Build ausprobiert). Ihre Grenzen setzt die Assembly selbst nicht
+durch – das tut `setze()`.
+
+Gerechnet wird immer vom Ausgang aus, der Lage beim Öffnen: Jede Achse sitzt
+fest an ihrem Eltern-Glied, also ist die Lage eines Bauteils
+
+    Lage = B1(w1) · B2(w2) · … · Lage im Ausgang
+
+mit den Achsen vom Bett nach außen, jede so, wie sie im Ausgang lag, und wi
+dem Weg seit dem Ausgang. So summieren sich keine Rundungsfehler auf, egal
+wie oft ein Regler bewegt wird.
+
+Läuft ohne Oberfläche.
+"""
+
+import math
+
+import FreeCAD
+
+from . import kette as kette_modul
+from . import maschine as m
+from .kette import LINEAR
+
+Z = FreeCAD.Vector(0, 0, 1)
+X = FreeCAD.Vector(1, 0, 0)
+
+
+def gelenkstellung(gelenk, art):
+    """Die Stellung eines Gelenks: Seite 2 gegenüber Seite 1, in mm bzw. Grad.
+
+    Linear: der Abstand der Ursprünge entlang der Z-Achse von Seite 1.
+    Dreh: der Winkel von der X-Achse der Seite 1 zur X-Achse der Seite 2 um Z.
+    """
+    import UtilsAssembly
+
+    seite1 = UtilsAssembly.getJcsGlobalPlc(gelenk.Placement1, gelenk.Reference1)
+    seite2 = UtilsAssembly.getJcsGlobalPlc(gelenk.Placement2, gelenk.Reference2)
+    z1 = seite1.Rotation.multVec(Z)
+    if art == LINEAR:
+        return (seite2.Base - seite1.Base).dot(z1)
+    x1, x2 = seite1.Rotation.multVec(X), seite2.Rotation.multVec(X)
+    return math.degrees(math.atan2(x1.cross(x2).dot(z1), x1.dot(x2)))
+
+
+class Verfahren:
+    """Die Stellungen der Achsen einer Assembly; `setze()` bewegt die Bauteile."""
+
+    def __init__(self, assembly, kette=None):
+        self.assembly = assembly
+        self.kette = kette or kette_modul.lies_kette(assembly)
+        self.achsen = list(self.kette.achsen)
+        self.ausgang = {
+            b: FreeCAD.Placement(b.Placement) for g in self.kette.glieder for b in g.bauteile
+        }
+        # Die Achsen in Koordinaten der Assembly – darin liegen die Bauteile.
+        in_assembly = assembly.Placement.inverse()
+        self._lage = {
+            a: (in_assembly.Rotation.multVec(a.richtung), in_assembly.multVec(a.ursprung))
+            for a in self.achsen
+        }
+        self.start = {a: gelenkstellung(a.gelenk, a.art) for a in self.achsen}
+        self._vorzeichen = {a: _vorzeichen(a) for a in self.achsen}
+        self.weg = dict.fromkeys(self.achsen, 0.0)  # seit dem Ausgang, in Achsrichtung
+        # Je Bauteil die Achsen vom Bett nach außen.
+        self._pfad = {}
+        for glied in self.kette.glieder:
+            pfad = list(reversed(self.kette.pfad_zum_bett(glied)))
+            for bauteil in glied.bauteile:
+                self._pfad[bauteil] = pfad
+
+    def stellung(self, achse):
+        """Die Stellung der Achse in mm bzw. Grad, gezählt wie am Gelenk."""
+        return self.start[achse] + self._vorzeichen[achse] * self.weg[achse]
+
+    def grenzen(self, achse):
+        """(Minimum, Maximum) aus der Begrenzung des Gelenks; None = keine."""
+        return achse.minimum, achse.maximum
+
+    def begrenzt(self, achse, stellung):
+        """Die Stellung, auf die Grenzen des Gelenks gesetzt."""
+        if achse.minimum is not None:
+            stellung = max(stellung, achse.minimum)
+        if achse.maximum is not None:
+            stellung = min(stellung, achse.maximum)
+        return stellung
+
+    def setze(self, achse, stellung):
+        """Fährt die Achse auf `stellung` (höchstens bis zu ihren Grenzen); gibt die Stellung zurück."""
+        stellung = self.begrenzt(achse, stellung)
+        self.weg[achse] = (stellung - self.start[achse]) * self._vorzeichen[achse]
+        self._bewege()
+        return stellung
+
+    def grundstellung(self):
+        """Alle Achsen zurück in die Stellung beim Öffnen."""
+        for achse in self.achsen:
+            self.weg[achse] = 0.0
+        self._bewege()
+
+    def _bewegung(self, achse):
+        richtung, ursprung = self._lage[achse]
+        weg = self.weg[achse]
+        if achse.art == LINEAR:
+            return FreeCAD.Placement(richtung * weg, FreeCAD.Rotation())
+        return FreeCAD.Placement(FreeCAD.Vector(), FreeCAD.Rotation(richtung, weg), ursprung)
+
+    def _bewege(self):
+        bewegung = {a: self._bewegung(a) for a in self.achsen}
+        for bauteil, lage in self.ausgang.items():
+            gesamt = FreeCAD.Placement()
+            for achse in self._pfad.get(bauteil, []):
+                gesamt = gesamt * bewegung[achse]
+            neu = gesamt * lage
+            if not neu.isSame(bauteil.Placement, 1e-9):
+                bauteil.Placement = neu
+
+
+def _vorzeichen(achse):
+    """+1, wenn ein Weg in Achsrichtung die Stellung am Gelenk wachsen lässt, sonst −1.
+
+    Die Achsrichtung ist die Z-Achse der Seite am Eltern-Glied. Bewegt sich
+    Seite 2, wächst die Stellung mit der Z-Achse von Seite 1; bewegt sich
+    Seite 1, schrumpft sie.
+    """
+    import UtilsAssembly
+
+    gelenk = achse.gelenk
+    seite1 = UtilsAssembly.getJcsGlobalPlc(gelenk.Placement1, gelenk.Reference1)
+    z1 = seite1.Rotation.multVec(Z)
+    gleich = achse.richtung.dot(z1)
+    kind_ist_seite2 = _seite_des_kinds(achse) == 2
+    return 1.0 if (gleich >= 0) == kind_ist_seite2 else -1.0
+
+
+def _seite_des_kinds(achse):
+    """Auf welcher Seite des Gelenks (1 oder 2) das Kind-Glied hängt.
+
+    Reference1/2 halten (Bauteil, [Element]) – wie beim Lesen der Kette.
+    """
+    referenz2 = achse.gelenk.Reference2
+    return 2 if referenz2 and referenz2[0] in achse.kind.bauteile else 1
+
+
+def namen(maschine, achse):
+    """Wie die Achse im Fenster heißt: die NC-Namen ihrer Betriebsarten, sonst das Gelenk."""
+    if maschine is None:
+        return achse.gelenk.Label
+    nc = [
+        b.NcName
+        for b in m.betriebsarten(maschine)
+        if b.Gelenk == achse.gelenk and b.NcName and b.Art != m.ART_SPINDEL
+    ]
+    return " / ".join(nc) if nc else achse.gelenk.Label

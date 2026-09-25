@@ -243,6 +243,16 @@ Patch.
   Baugruppe bewegt sich mit.
 - *Klickweg:* Regler „C4“ auf 90° → das Futter dreht sich um 90°; Regler über
   die Grenze hinaus geht nicht.
+- **Gebaut** (P-2026-09-25-67): Befehl „Maschine verfahren“, ein
+  Aufgabenfenster mit je Achse der Kette einem Regler und einem Zahlenfeld
+  (auch für Gelenke ohne Betriebsart; eine Spindel unter ihrem
+  Positionier-Namen). Gezählt wird wie am Gelenk (Seite 2 gegenüber
+  Seite 1), die Grenzen kommen aus der Begrenzung des Gelenks. Bewegt werden
+  alle Bauteile hinter der Achse, gerechnet immer vom Stand beim Öffnen aus
+  (Lage = B1(w1) · B2(w2) · … · Lage beim Öffnen). Die Assembly lässt die
+  Stellung beim Neuberechnen stehen (ausprobiert, 1.1.3 und Wochen-Build).
+  OK = ein Schritt Rückgängig, Abbrechen und „Grundstellung“ fahren
+  zurück.
 
 **Stufe 4 – Werkzeugbahn abfahren und Kollision prüfen** – eigene
 Spezifikation, wenn Stufe 3 steht.

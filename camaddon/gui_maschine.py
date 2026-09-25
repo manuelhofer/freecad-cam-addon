@@ -65,7 +65,7 @@ class BefehlMaschineBearbeiten:
 
     def Activated(self):
         doc = FreeCAD.ActiveDocument
-        assembly = _gewaehlte_assembly(doc) if doc else None
+        assembly = gewaehlte_assembly(doc) if doc else None
         if assembly is None:
             QtGui.QMessageBox.information(
                 FreeCADGui.getMainWindow(), tr("dialog.titel"), tr("dialog.keine_baugruppe")
@@ -76,7 +76,7 @@ class BefehlMaschineBearbeiten:
         FreeCADGui.Control.showDialog(MaschinenPanel(assembly, maschine))
 
 
-def _gewaehlte_assembly(doc):
+def gewaehlte_assembly(doc):
     """Die Assembly, um die es geht, oder None.
 
     Der Reihe nach: die gewählte (oder die, in der etwas Gewähltes liegt), die

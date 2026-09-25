@@ -23,6 +23,7 @@ THEMEN = [
     "schnittwerte",
     "strategien",
     "schruppwerte",
+    "verfahren",
 ]
 
 

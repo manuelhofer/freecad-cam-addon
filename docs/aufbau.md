@@ -47,6 +47,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `hilfe.py` | Hilfeseiten `help/<sprache>/<thema>.html` finden |
 | `kette.py` | Assembly lesen: Glieder, Achsen, Meldungen |
 | `maschine.py` | Maschinenobjekt: Objektarten, Anlegen, Revolverplätze, Prüfung, Tisch/Kopf |
+| `verfahren.py` | Maschine von Hand verfahren: Stellung wie am Gelenk, Grenzen, Bauteile hinter der Achse bewegen |
 | `export.py` | Übergabe an CAM mit Bericht |
 | `aktualisierung.py` | Update-Suche per Git, ohne Git per HTTPS (package.xml) und Update mit `installieren.py` |
 | `werkstoffe.py` | Werkstoffliste (W-002): mitgelieferte aus `daten/werkstoffe.json`, Anzeige, Suche |
@@ -58,6 +59,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `job_schnittwerte.py` | Schnittwerte in die Werkzeug-Controller eines Jobs: Werkstoff vom Rohteil, Werkzeug zum TC, Einsatz vorschlagen, dazu Schrittweite und Zustelltiefe der passenden Operationen; setzen in einer Transaktion |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“ |
+| `gui_verfahren.py` | Befehl und Aufgabenfenster „Maschine verfahren“: ein Regler je Achse |
 | `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
 | `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format ohne Tausenderpunkte, Prüfung, Lesen, Zeigen; Dezimalzeichen in Texten |
 | `gui_teile.py` | Kleine Bausteine der Werkzeugverwaltung: fette Beschriftung, Knopf, Feld mit Einheit, rote Hinweiszeile, Grau |
@@ -189,4 +191,5 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | FreeCADCmd 1.1.3 schreibt beim Neuberechnen einen Fortschrittsbalken ohne Zeilenende | Prüfungen, die neu berechnen, geben vor „OK“ eine Leerzeile aus |
 | Die Zustelltiefe (`StepDown`) einer Operation hängt an einer Formel aus dem SetupSheet (Vorgabe: Werkzeugdurchmesser) – ein gesetzter Wert ist nach dem Neuberechnen wieder weg | vor dem Setzen `setExpression("StepDown", None)` |
 | Die Schrittweite heißt in 1.1.3 `StepOver` (ganze Prozent), im Adaptive des Wochen-Builds `StepOverPercent` (Kommazahl) | `zustellung()` nimmt, was die Operation hat |
+| Die Assembly setzt die Begrenzung eines Gelenks beim Lösen nicht durch; bewegt man nur einen Teil der Bauteile hinter einer Achse, zieht sie die Stellung beim Lösen woanders hin | `verfahren.py` bewegt immer alle Bauteile hinter der Achse und hält die Grenzen selbst ein |
 | Eine Operation anlegen, wenn der Job mehrere Werkzeug-Controller hat: FreeCAD fragt welchen – in FreeCADCmd 1.1.3 ein Fehler | Prüfungen legen Operationen an, solange der Job nur einen hat |
