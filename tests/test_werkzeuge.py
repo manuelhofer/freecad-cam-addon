@@ -94,6 +94,46 @@ except wz.BeschaedigteDatei as f:
     pruefe(os.path.exists(f.beiseite) and not os.path.exists(pfad), "nicht beiseitegelegt")
     pruefe(Path(f.beiseite).read_text("utf-8") == "{kaputt", "Inhalt verändert")
 
+# --- Schnittwerte -----------------------------------------------------------
+f = wz.Werkzeug(durchmesser=12, schneiden=3, schneidenlaenge=26)
+pruefe(f.einsaetze("1.4301") == [], "ohne Werte nicht leer")
+pruefe(f.zum_bearbeiten("1.4301") is None, "ohne eigene Werte bearbeitbar")
+alle = f.zum_bearbeiten(wz.ALLE)
+alle.append(wz.vorlage(f, wz.VOLLNUT))
+alle.append(wz.vorlage(f, wz.DYNAMISCH))
+pruefe((alle[0].ae, alle[0].ap) == (12, 6), f"Vorlage Vollnut {alle[0]}")
+pruefe((alle[1].ae, alle[1].ap) == (1.2, 24), f"Vorlage dynamisch {alle[1]}")
+pruefe(
+    wz.vorlage(wz.Werkzeug(durchmesser=10), wz.SCHLICHTEN).ap == 10, "Vorlage ohne Schneidenlänge"
+)
+pruefe(f.einsaetze("1.4301") is alle, "ohne eigene Werte gelten die für alle")
+pruefe(not f.hat_eigene("1.4301") and not f.hat_eigene(wz.ALLE), "hat_eigene")
+
+eigene = f.eigene_anlegen("1.4301")
+eigene[0].vc = 80
+pruefe(alle[0].vc == 0 and f.einsaetze("1.4301")[0].vc == 80, "eigene Werte nicht unabhängig")
+pruefe(f.einsaetze("1.0503") is alle, "anderer Werkstoff erbt nicht")
+pruefe(f.hat_eigene("1.4301") and f.zum_bearbeiten("1.4301") is eigene, "eigene Werte")
+pruefe(wz.einsatz_name(eigene[1]) == "Schruppen dynamisch", wz.einsatz_name(eigene[1]))
+eigene[1].name = "HPC 2xD"
+pruefe(wz.einsatz_name(eigene[1]) == "HPC 2xD", "eigener Name")
+
+# Speichern und Laden mit Schnittwerten; Kopie nimmt sie mit.
+b2 = wz.Bibliothek([f])
+b2.speichern(pfad)
+g = wz.Bibliothek.laden(pfad).werkzeuge[0]
+pruefe(g.einsaetze("1.4301")[0].vc == 80 and g.einsaetze(wz.ALLE)[1].ae == 1.2, "Laden")
+pruefe(g.einsaetze("1.4301")[1].name == "HPC 2xD", "Name nach Laden")
+k = b2.kopiere(f)
+k.einsaetze("1.4301")[0].vc = 99
+pruefe(f.einsaetze("1.4301")[0].vc == 80, "Kopie teilt Schnittwerte")
+f.eigene_loeschen("1.4301")
+pruefe(not f.hat_eigene("1.4301") and f.einsaetze("1.4301") is alle, "eigene löschen")
+f.eigene_loeschen(wz.ALLE)
+pruefe(f.einsaetze(wz.ALLE) is alle, "„für alle“ lässt sich nicht als eigene löschen")
+e = wz.Einsatz.aus_dict({"art": "zaubern", "ae": "x", "vc": -5})
+pruefe((e.art, e.ae, e.vc) == (wz.EIGEN, 0.0, 0.0), f"unlesbarer Einsatz: {e}")
+
 sprache.setze_sprache(vorher)
 if fehler:
     raise AssertionError("\n".join(fehler))

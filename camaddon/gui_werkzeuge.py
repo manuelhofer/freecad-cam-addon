@@ -16,10 +16,11 @@ from . import PARAMETER_PFAD, symbol
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
+from .gui_schnittwerte import SchnittwertBereich
 from .gui_zahlen import Zahlenpruefer, zahl_lesen, zahl_zeigen, zahlenformat
 from .sprache import tr
 
-FENSTER_GROESSE = (1000, 640)  # Breite, Höhe in Pixeln
+FENSTER_GROESSE = (1100, 760)  # Breite, Höhe in Pixeln
 LISTE_BREITE = 300  # Pixel, Startbreite der Werkzeugliste
 GROESSTE_NUMMER = 9999
 GROESSTE_SCHNEIDENZAHL = 20
@@ -184,10 +185,13 @@ class WerkzeugDialog(QtGui.QDialog):
         self.leer.setWordWrap(True)
         aufbau.addWidget(self.leer)
 
+        # Zwei Spalten aus Beschriftung und Feld, damit unten Platz für die
+        # Schnittwerte bleibt.
         self.formular_rahmen = QtGui.QWidget()
-        formular = QtGui.QFormLayout(self.formular_rahmen)
-        formular.setContentsMargins(0, 0, 0, 0)
-        self.formular = formular
+        gitter = QtGui.QGridLayout(self.formular_rahmen)
+        gitter.setContentsMargins(0, 0, 0, 0)
+        gitter.setColumnStretch(1, 1)
+        gitter.setColumnStretch(3, 1)
 
         self.feld_nummer = QtGui.QSpinBox()
         self.feld_nummer.setRange(1, GROESSTE_NUMMER)
@@ -195,53 +199,65 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_nummer.setToolTip(tr("wv.nummer.tooltip"))
         self.feld_nummer.valueChanged.connect(self._nummer_geaendert)
         self.feld_nummer.editingFinished.connect(self._nach_nummer)
-        formular.addRow(tr("wv.nummer"), self.feld_nummer)
 
         self.feld_art = QtGui.QComboBox()
         for art in wz.ARTEN:
             self.feld_art.addItem(wz.art_text(art), art)
         self.feld_art.setToolTip(tr("wv.art.tooltip"))
         self.feld_art.currentIndexChanged.connect(self._art_geaendert)
-        formular.addRow(tr("wv.art"), self.feld_art)
 
         self.feld_durchmesser = self._zahlenfeld(tr("wv.durchmesser.tooltip"), "durchmesser")
-        formular.addRow(_fett(tr("wv.durchmesser")), _mit_einheit(self.feld_durchmesser, "mm"))
 
         self.feld_schneiden = QtGui.QSpinBox()
         self.feld_schneiden.setRange(1, GROESSTE_SCHNEIDENZAHL)
         self.feld_schneiden.setToolTip(tr("wv.schneiden.tooltip"))
         self.feld_schneiden.valueChanged.connect(self._schneiden_geaendert)
-        formular.addRow(_fett(tr("wv.schneiden")), self.feld_schneiden)
 
         self.feld_schneidenlaenge = self._zahlenfeld(
             tr("wv.schneidenlaenge.tooltip"), "schneidenlaenge"
         )
-        formular.addRow(tr("wv.schneidenlaenge"), _mit_einheit(self.feld_schneidenlaenge, "mm"))
-
         self.feld_eckradius = self._zahlenfeld(tr("wv.eckradius.tooltip"), "eckradius")
         self.zeile_eckradius = _mit_einheit(self.feld_eckradius, "mm")
-        formular.addRow(tr("wv.eckradius"), self.zeile_eckradius)
+        self.beschriftung_eckradius = QtGui.QLabel(tr("wv.eckradius"))
 
         self.feld_schneidstoff = QtGui.QComboBox()
         self.feld_schneidstoff.addItem(tr("wv.schneidstoff.vhm"), wz.VHM)
         self.feld_schneidstoff.addItem(tr("wv.schneidstoff.hss"), wz.HSS)
         self.feld_schneidstoff.setToolTip(tr("wv.schneidstoff.tooltip"))
         self.feld_schneidstoff.currentIndexChanged.connect(self._schneidstoff_geaendert)
-        formular.addRow(tr("wv.schneidstoff"), self.feld_schneidstoff)
 
         self.feld_bezeichnung = QtGui.QLineEdit()
         self.feld_bezeichnung.setPlaceholderText(tr("wv.bezeichnung.platzhalter"))
         self.feld_bezeichnung.setToolTip(tr("wv.bezeichnung.tooltip"))
         self.feld_bezeichnung.textEdited.connect(self._bezeichnung_geaendert)
-        formular.addRow(tr("wv.bezeichnung"), self.feld_bezeichnung)
+
+        zeilen = [
+            (QtGui.QLabel(tr("wv.nummer")), self.feld_nummer),
+            (QtGui.QLabel(tr("wv.art")), self.feld_art),
+            (_fett(tr("wv.durchmesser")), _mit_einheit(self.feld_durchmesser, "mm")),
+            (_fett(tr("wv.schneiden")), self.feld_schneiden),
+            (
+                QtGui.QLabel(tr("wv.schneidenlaenge")),
+                _mit_einheit(self.feld_schneidenlaenge, "mm"),
+            ),
+            (self.beschriftung_eckradius, self.zeile_eckradius),
+            (QtGui.QLabel(tr("wv.schneidstoff")), self.feld_schneidstoff),
+        ]
+        for i, (beschriftung, feld) in enumerate(zeilen):
+            gitter.addWidget(beschriftung, i // 2, 2 * (i % 2))
+            gitter.addWidget(feld, i // 2, 2 * (i % 2) + 1)
+        unten = (len(zeilen) + 1) // 2
+        gitter.addWidget(QtGui.QLabel(tr("wv.bezeichnung")), unten, 0)
+        gitter.addWidget(self.feld_bezeichnung, unten, 1, 1, 3)
 
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
         self.hinweis.setStyleSheet("color: #c0392b;")
-        formular.addRow(self.hinweis)
+        gitter.addWidget(self.hinweis, unten + 1, 0, 1, 4)
 
         aufbau.addWidget(self.formular_rahmen)
-        aufbau.addStretch()
+        self.schnittwerte = SchnittwertBereich(self._schnittwerte_geaendert)
+        aufbau.addWidget(self.schnittwerte, 1)
         return rahmen
 
     def _zahlenfeld(self, tooltip, eigenschaft):
@@ -310,6 +326,7 @@ class WerkzeugDialog(QtGui.QDialog):
         _parameter().SetString("WvWerkstoff", kennung)
         werkstoff = ws.finde(self.bibliothek.alle_werkstoffe(), kennung)
         self.werkstoff_info.setText(self._info_text(werkstoff))
+        self._schnittwerte_zeigen()
 
     def _werkstoff_text_zuruecksetzen(self):
         wahl = self.wahl_werkstoff
@@ -413,6 +430,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self.knopf_kopieren.setEnabled(w is not None)
         self.knopf_loeschen.setEnabled(w is not None)
         if w is None:
+            self._schnittwerte_zeigen()
             return
         self._fuellt = True
         self.feld_nummer.setValue(w.nummer)
@@ -426,12 +444,23 @@ class WerkzeugDialog(QtGui.QDialog):
         self._fuellt = False
         self._eckradius_zeigen()
         self._hinweise()
+        self._schnittwerte_zeigen()
+
+    def _schnittwerte_zeigen(self):
+        """Die Schnittwerte des gewählten Werkzeugs für den gewählten Werkstoff."""
+        kennung = self.werkstoff
+        werkstoff = ws.finde(self.bibliothek.alle_werkstoffe(), kennung)
+        kurz = (werkstoff.nummer or werkstoff.kurzname) if werkstoff else tr("wv.alle_werkstoffe")
+        self.schnittwerte.zeige(self.werkzeug, kennung, kurz)
+
+    def _schnittwerte_geaendert(self):
+        """Eine Änderung in der Tabelle; gespeichert wird erst mit OK oder Übernehmen."""
 
     def _eckradius_zeigen(self):
         """Den Eckradius gibt es nur beim Torusfräser."""
         sichtbar = self.werkzeug is not None and self.werkzeug.art == wz.TORUSFRAESER
         self.zeile_eckradius.setVisible(sichtbar)
-        self.formular.labelForField(self.zeile_eckradius).setVisible(sichtbar)
+        self.beschriftung_eckradius.setVisible(sichtbar)
 
     def _hinweise(self):
         """Zeigt am Werkzeug, was fehlt oder nicht passt – sofort, nicht erst beim Speichern."""
@@ -449,9 +478,10 @@ class WerkzeugDialog(QtGui.QDialog):
         self.hinweis.setVisible(bool(saetze))
 
     def _geaendert(self):
-        """Nach jeder Eingabe: Listenzeile und Hinweise auf den neuen Stand."""
+        """Nach jeder Eingabe: Listenzeile, Hinweise und Schnittwerte auf den neuen Stand."""
         self._zeile_auffrischen()
         self._hinweise()
+        self.schnittwerte.auffrischen()
 
     def _nummer_geaendert(self, wert):
         if self._fuellt or self.werkzeug is None:

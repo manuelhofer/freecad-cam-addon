@@ -1,0 +1,70 @@
+<h2>Cutting data</h2>
+<p>One row per <b>use case</b> – that is, per way the tool works. You enter
+the four values found in the manufacturer's catalogue; the addon calculates
+spindle speed, feed rate and metal removal rate from them (grey).</p>
+
+<h3>What you enter</h3>
+<ul>
+<li><b>ae</b> – the <b>radial depth of cut</b> in mm: how wide the cutter
+engages the material. In a full slot, ae is the whole diameter.</li>
+<li><b>ap</b> – the <b>axial depth of cut</b> in mm, along the tool axis: how
+much of the flute length is working.</li>
+<li><b>vc</b> – the <b>cutting speed</b> in m/min: how fast the edge moves
+through the material.</li>
+<li><b>fz</b> – the <b>feed per tooth</b> in mm: how thick a chip each tooth
+takes. For a drill, this column shows <b>f</b>, the feed per revolution.</li>
+</ul>
+
+<h3>What the addon calculates</h3>
+<ul>
+<li><b>n</b> (rpm) = vc · 1000 / (π · D)</li>
+<li><b>vf</b> (mm/min) = n · z · fz</li>
+<li><b>Q</b> (cm³/min) = ae · ap · vf / 1000 – that much material is gone per
+minute. For drilling: π · D² / 4 · vf / 1000.</li>
+</ul>
+<p><b>Example:</b> end mill Ø 12, 3 flutes, vc 120 m/min, fz 0.05 mm →
+n = 3183 rpm, vf = 477 mm/min. As a full slot (ae 12, ap 3) that is
+17.2 cm³/min.</p>
+
+<h3>The use cases</h3>
+<p><b>+ Use case</b> offers the usual ones and prefills ae and ap from the
+diameter. vc and fz stay empty – they are in the catalogue.</p>
+<ul>
+<li><b>Full slot</b> – ae = D, ap = D/2.</li>
+<li><b>Roughing</b> – pockets and faces the conventional way: ae = D/2,
+ap = D/2.</li>
+<li><b>Dynamic roughing</b> – narrow and deep: ae = 10 % of D, ap = the flute
+length (at most 2 × D). Trochoidal, HPC, “adaptive” – all the same idea.</li>
+<li><b>Finishing</b> – ae = 2 % of D, ap = the flute length.</li>
+<li><b>Own use case</b> – everything free. Double-click a row's name to
+change it.</li>
+</ul>
+
+<h3>For all materials – or for one</h3>
+<p>Which table you see depends on the <b>material at the top</b>:</p>
+<ul>
+<li><b>All materials</b>: the table that applies to every material for which
+the tool has none of its own. “The same for all” therefore means: enter it
+only here.</li>
+<li>A material <b>without own values</b>: you see the values for all materials
+in grey. <b>Add own values for …</b> copies them as a starting point for
+this material.</li>
+<li>A material <b>with own values</b>: you edit its table. <b>Delete own
+values</b> returns to the values for all materials.</li>
+</ul>
+
+<h3>Where the values come from</h3>
+<p>From the manufacturer's catalogue, under the material's <b>ISO group</b>
+(the coloured box). For orientation only, for coated solid carbide end mills
+when roughing:</p>
+<table cellpadding="3" border="1" style="border-collapse:collapse">
+<tr><th>ISO</th><th>Material</th><th>vc in m/min</th></tr>
+<tr><td>P</td><td>steel</td><td>120–250</td></tr>
+<tr><td>M</td><td>stainless steel, austenitic</td><td>60–120</td></tr>
+<tr><td>K</td><td>cast iron</td><td>100–200</td></tr>
+<tr><td>N</td><td>aluminium · brass, copper</td><td>300–1000 · 150–400</td></tr>
+<tr><td>S</td><td>titanium · nickel-based</td><td>30–80 · 20–50</td></tr>
+<tr><td>H</td><td>hardened, 50–60 HRC</td><td>60–150, only with tools made for it</td></tr>
+</table>
+<p>When roughing steel, fz is roughly 0.5–1 % of D. HSS takes about a quarter
+of the carbide vc. <b>Your cutter's catalogue always comes first.</b></p>

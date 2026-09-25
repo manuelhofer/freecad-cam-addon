@@ -12,6 +12,75 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-47 schnittwerte-je-werkstoff
+
+### EINGELESEN
+- W-002, Spezifikation Abschnitt 6 (Schnittwerte je Werkstoff, Einsätze,
+  Formeln) und das zweite Akzeptanzkriterium aus Abschnitt 12.
+- Manuel: „wenn ich vc eingeben will, vc haben“, „für jeden Werkstoff einzeln
+  einstellbar … auch so, dass man für alle die Schnittwerte gleich setzen
+  kann“, „ae und ap … als Tabelle“.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (Einsatz, Einsatzarten, Vorlagen, Schnittwerte je
+  Werkstoff am Werkzeug, Speichern)
+- `camaddon/schnittdaten.py` (neu: n, vf, Q)
+- `camaddon/gui_schnittwerte.py` (neu: Tabelle, Zustand, Knöpfe, Hinweise)
+- `camaddon/gui_werkzeuge.py` (Formular in zwei Spalten, Tabelle darunter,
+  Fenster größer)
+- `camaddon/hilfe.py`, `help/de|en/schnittwerte.html` (neu)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_schnittdaten.py` (neu), `tests/test_werkzeuge.py`,
+  `tests/gui/szenario_schnittwerte.py` (neu)
+- `docs/aufbau.md`, `CHATSTART.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Schaftfräser Ø 12 (3 Schneiden) wählen, Werkstoff
+„Alle Werkstoffe“, „+ Einsatz“ → Vollnut, ap 3, vc 120, fz 0,05 eintragen →
+grau daneben n 3183, vf 477, Q 17,2; Werkstoff 1.4301 wählen → dieselben
+Werte grau und „Eigene Werte für 1.4301 anlegen“; danach vc 80 → n 2122,
+und bei C45 stehen weiter 120.
+
+### DONE
+- **Tabelle je Einsatz:** Einsatz (Name änderbar), ae, ap, vc, fz
+  eingegeben; n, vf, Q gerechnet und grau. Beim Bohrer ohne ae/ap, dafür f je
+  Umdrehung (gespeichert wird fz = f / z, damit überall dieselbe Formel
+  gilt).
+- **„+ Einsatz“** mit Menü: Vollnut (ae = D, ap = D/2), Schruppen (D/2, D/2),
+  Schruppen dynamisch (10 % D, Schneidenlänge höchstens 2 × D), Schlichten
+  (2 % D, Schneidenlänge), beim Bohrer „Bohren“, immer „Eigener Einsatz“.
+  vc und fz bleiben leer (Entscheidung 5 der Spezifikation).
+- **Je Werkstoff oder für alle:** „Alle Werkstoffe“ bearbeitet die
+  gemeinsame Tabelle. Ein Werkstoff ohne eigene Werte zeigt sie grau und
+  nicht änderbar, mit „Eigene Werte für … anlegen“ (Kopie). Mit eigenen
+  Werten: „Eigene Werte löschen“ (Rückfrage).
+- **Hinweise zur gewählten Zeile:** ae größer als D, ap länger als die
+  Schneide, vc/fz fehlen.
+- Spaltenköpfe mit Einheit, jeder mit Tooltip samt Formel; Hilfeseite
+  „Schnittwerte“ mit Beispiel und Orientierungswerten je ISO-Gruppe (als
+  solche gekennzeichnet: „Der Katalog deines Fräsers geht immer vor.“).
+- Werkzeugfelder in zwei Spalten, damit die Tabelle Platz hat; das Fenster
+  ist jetzt 1100 × 760 Pixel groß.
+- **Gefundene Fehler im eigenen Entwurf:** „+ Einsatz“ als QToolButton
+  schob den Menüpfeil in den Text; jetzt ein QPushButton mit Menü.
+- Bewusst nicht: geerbte Werte beim Tippen automatisch zu eigenen machen –
+  das würde still eine zweite Tabelle anlegen. Der Knopf macht es sichtbar.
+
+### TEST
+- KI, FreeCADCmd (Wochen-Build): `test_schnittdaten` (Manuels Beispiel,
+  Bohren, fehlende Werte), `test_werkzeuge` (Vorlagen, Erben, eigene Werte
+  unabhängig, Speichern, Kopie), `test_sprache`, `test_hilfe` grün.
+- KI, Oberfläche (Wochen-Build): `szenario_schnittwerte` grün – fz per
+  Tastatur mit Komma in die Zelle getippt, Enter schließt den Dialog nicht,
+  gerechnete Werte, Hinweis bei ap > Schneide, geerbt grau, eigene Werte,
+  C45 unverändert, Bohrer, OK speichert. `szenario_werkzeugverwaltung`
+  weiter grün. Screenshots angesehen.
+- Manuel: offen.
+
+### NEXT
+- Bild des Eingriffs und Spandicke (Abschnitt 6.2).
+
 ## P-2026-09-25-46 werkzeugverwaltung-werkzeuge
 
 ### EINGELESEN

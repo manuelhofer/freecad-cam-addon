@@ -40,6 +40,15 @@ SCHNEIDSTOFFE = (VHM, HSS)
 # Werkstoff gelten, der keine eigenen hat.
 ALLE = "*"
 
+# Einsätze – wie ein Werkzeug arbeitet; gespeichert als diese festen Wörter.
+VOLLNUT = "vollnut"
+SCHRUPPEN = "schruppen"
+DYNAMISCH = "dynamisch"  # kleines ae, großes ap: trochoidal, HPC, adaptiv
+SCHLICHTEN = "schlichten"
+BOHREN = "bohren"
+EIGEN = "eigen"
+EINSATZARTEN = (VOLLNUT, SCHRUPPEN, DYNAMISCH, SCHLICHTEN, BOHREN, EIGEN)
+
 
 def datei_pfad():
     """Die Datei der Bibliothek beim Benutzer."""
@@ -62,13 +71,83 @@ def schneidstoff_text(schneidstoff):
     return {VHM: tr("wv.schneidstoff.vhm.kurz"), HSS: tr("wv.schneidstoff.hss.kurz")}[schneidstoff]
 
 
+def einsatzart_text(art):
+    """Anzeigename einer Einsatzart."""
+    return {
+        VOLLNUT: tr("wv.einsatz.vollnut"),
+        SCHRUPPEN: tr("wv.einsatz.schruppen"),
+        DYNAMISCH: tr("wv.einsatz.dynamisch"),
+        SCHLICHTEN: tr("wv.einsatz.schlichten"),
+        BOHREN: tr("wv.einsatz.bohren"),
+        EIGEN: tr("wv.einsatz.eigen"),
+    }[art]
+
+
+@dataclass
+class Einsatz:
+    """Eine Zeile der Schnittwert-Tabelle: wie das Werkzeug arbeitet, mit welchen Werten.
+
+    0 heißt „unbekannt“. Beim Bohrer ist fz der Vorschub je Schneide; die
+    Tabelle zeigt ihn als f je Umdrehung (fz · z).
+    """
+
+    art: str = EIGEN
+    name: str = ""  # eigener Name; leer = Name der Art
+    ae: float = 0.0  # seitliche Zustellung, mm
+    ap: float = 0.0  # Tiefe, mm
+    vc: float = 0.0  # Schnittgeschwindigkeit, m/min
+    fz: float = 0.0  # Vorschub je Zahn, mm
+
+    def als_dict(self):
+        return {
+            "art": self.art,
+            "name": self.name,
+            "ae": self.ae,
+            "ap": self.ap,
+            "vc": self.vc,
+            "fz": self.fz,
+        }
+
+    @classmethod
+    def aus_dict(cls, daten):
+        e = cls()
+        e.art = daten.get("art") if daten.get("art") in EINSATZARTEN else EIGEN
+        e.name = str(daten.get("name") or "")
+        for wert in ("ae", "ap", "vc", "fz"):
+            setattr(e, wert, max(_zahl(daten.get(wert), float, 0.0), 0.0))
+        return e
+
+
+def einsatz_name(einsatz):
+    """Was in der ersten Spalte steht: der eigene Name, sonst der der Art."""
+    return einsatz.name or einsatzart_text(einsatz.art)
+
+
+def vorlage(werkzeug, art):
+    """Ein neuer Einsatz mit ae und ap als übliche Anteile von D vorbelegt.
+
+    vc und fz bleiben leer – die stehen im Katalog des Herstellers.
+    Schneidenlänge unbekannt: für ap zählt dann höchstens 1 × D.
+    """
+    d = werkzeug.durchmesser
+    lang = min(werkzeug.schneidenlaenge, 2 * d) if werkzeug.schneidenlaenge else d
+    ae, ap = {
+        VOLLNUT: (d, d / 2),
+        SCHRUPPEN: (d / 2, d / 2),
+        DYNAMISCH: (d / 10, lang),
+        SCHLICHTEN: (d / 50, lang),
+        BOHREN: (0.0, 0.0),
+        EIGEN: (0.0, 0.0),
+    }[art]
+    return Einsatz(art=art, ae=round(ae, 2), ap=round(ap, 2))
+
+
 @dataclass
 class Werkzeug:
-    """Ein Fräser oder Bohrer mit seiner Geometrie. 0 heißt „unbekannt“."""
+    """Ein Fräser oder Bohrer mit seiner Geometrie und seinen Schnittwerten. 0 heißt „unbekannt“."""
 
-    kennung: str = field(
-        default_factory=lambda: uuid.uuid4().hex
-    )  # bleibt, auch wenn T sich ändert
+    # Bleibt, auch wenn sich die T-Nummer ändert.
+    kennung: str = field(default_factory=lambda: uuid.uuid4().hex)
     nummer: int = 1  # T-Nummer
     art: str = SCHAFTFRAESER
     durchmesser: float = 0.0  # mm
@@ -77,6 +156,40 @@ class Werkzeug:
     eckradius: float = 0.0  # mm, nur beim Torusfräser
     schneidstoff: str = VHM
     bezeichnung: str = ""  # frei: Hersteller, Bestellnummer, Beschichtung …
+    # Werkstoff-Kennung oder ALLE -> die Einsätze mit ihren Werten.
+    schnittwerte: dict = field(default_factory=dict)
+
+    def einsaetze(self, werkstoff):
+        """Die Tabelle, die für den Werkstoff gilt: seine eigene, sonst die für alle Werkstoffe."""
+        if werkstoff in self.schnittwerte:
+            return self.schnittwerte[werkstoff]
+        return self.schnittwerte.get(ALLE, [])
+
+    def hat_eigene(self, werkstoff):
+        """Hat das Werkzeug für diesen Werkstoff eigene Werte?"""
+        return werkstoff != ALLE and werkstoff in self.schnittwerte
+
+    def eigene_anlegen(self, werkstoff):
+        """Eigene Werte für den Werkstoff – als Kopie der Werte für alle Werkstoffe."""
+        vorlage_liste = self.schnittwerte.get(ALLE, [])
+        self.schnittwerte[werkstoff] = [Einsatz.aus_dict(e.als_dict()) for e in vorlage_liste]
+        return self.schnittwerte[werkstoff]
+
+    def eigene_loeschen(self, werkstoff):
+        """Eigene Werte weg – danach gelten wieder die für alle Werkstoffe."""
+        if werkstoff != ALLE:
+            self.schnittwerte.pop(werkstoff, None)
+
+    def zum_bearbeiten(self, werkstoff):
+        """Die Liste, die für diesen Werkstoff bearbeitet wird, oder None.
+
+        None heißt: Der Werkstoff hat keine eigenen Werte, gezeigt werden die
+        für alle Werkstoffe – ändern kann man sie dort oder nach „Eigene Werte
+        anlegen“.
+        """
+        if werkstoff == ALLE:
+            return self.schnittwerte.setdefault(ALLE, [])
+        return self.schnittwerte.get(werkstoff)
 
     def als_dict(self):
         return {
@@ -89,6 +202,10 @@ class Werkzeug:
             "eckradius": self.eckradius,
             "schneidstoff": self.schneidstoff,
             "bezeichnung": self.bezeichnung,
+            "schnittwerte": {
+                werkstoff: [e.als_dict() for e in liste]
+                for werkstoff, liste in self.schnittwerte.items()
+            },
         }
 
     @classmethod
@@ -106,6 +223,13 @@ class Werkzeug:
             daten.get("schneidstoff") if daten.get("schneidstoff") in SCHNEIDSTOFFE else VHM
         )
         w.bezeichnung = str(daten.get("bezeichnung") or "")
+        schnittwerte = daten.get("schnittwerte")
+        if isinstance(schnittwerte, dict):
+            w.schnittwerte = {
+                str(werkstoff): [Einsatz.aus_dict(e) for e in liste if isinstance(e, dict)]
+                for werkstoff, liste in schnittwerte.items()
+                if isinstance(liste, list)
+            }
         return w
 
 

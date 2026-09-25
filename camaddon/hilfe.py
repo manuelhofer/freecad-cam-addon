@@ -13,7 +13,15 @@ from . import ADDON_ORDNER, sprache
 HILFE_ORDNER = os.path.join(ADDON_ORDNER, "help")
 
 # Die Themen; jedes gibt es als eigene Seite.
-THEMEN = ["achsen", "beschleunigung", "aufnahmen", "glieder", "werkstoffe", "werkzeuge"]
+THEMEN = [
+    "achsen",
+    "beschleunigung",
+    "aufnahmen",
+    "glieder",
+    "werkstoffe",
+    "werkzeuge",
+    "schnittwerte",
+]
 
 
 def hilfe_ordner():

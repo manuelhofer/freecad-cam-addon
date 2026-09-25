@@ -50,7 +50,8 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `export.py` | Übergabe an CAM mit Bericht |
 | `aktualisierung.py` | Update-Suche per Git |
 | `werkstoffe.py` | Werkstoffliste (W-002): mitgelieferte aus `daten/werkstoffe.json`, Anzeige, Suche |
-| `werkzeuge.py` | Werkzeugbibliothek (W-002): Werkzeuge, eigene Werkstoffe, Speichern als JSON |
+| `werkzeuge.py` | Werkzeugbibliothek (W-002): Werkzeuge, Einsätze und Schnittwerte je Werkstoff, eigene Werkstoffe, Speichern als JSON |
+| `schnittdaten.py` | Rechnen mit Schnittwerten: n, vf, Zeitspanvolumen |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“ |
 | `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
@@ -62,6 +63,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_sprachwahl.py` | Sprachwahl beim ersten Start, Einstellungsseite |
 | `gui_aktualisierung.py` | Update-Hinweis, Gruppe „Updates“ in den Einstellungen |
 | `gui_werkzeuge.py` | Befehl und Dialog „Werkzeugverwaltung“ |
+| `gui_schnittwerte.py` | Schnittwert-Tabelle in der Werkzeugverwaltung |
 
 Zwei Regeln halten das zusammen:
 

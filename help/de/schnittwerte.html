@@ -1,0 +1,71 @@
+<h2>Schnittwerte</h2>
+<p>Eine Zeile je <b>Einsatz</b> – also je Art, wie das Werkzeug arbeitet. Du
+trägst die vier Werte ein, die im Katalog des Herstellers stehen; das Addon
+rechnet daraus Drehzahl, Vorschub und Zeitspanvolumen (grau).</p>
+
+<h3>Was du einträgst</h3>
+<ul>
+<li><b>ae</b> – die <b>seitliche Zustellung</b> in mm: wie breit der Fräser ins
+Material greift. Bei einer Vollnut ist ae der ganze Durchmesser.</li>
+<li><b>ap</b> – die <b>Schnitttiefe</b> in mm, in Richtung der Werkzeugachse:
+wie viel der Schneidenlänge arbeitet.</li>
+<li><b>vc</b> – die <b>Schnittgeschwindigkeit</b> in m/min: wie schnell die
+Schneide durchs Material läuft.</li>
+<li><b>fz</b> – der <b>Vorschub je Zahn</b> in mm: wie dick jeder Zahn
+abhebt. Beim Bohrer steht hier <b>f</b>, der Vorschub je Umdrehung.</li>
+</ul>
+
+<h3>Was das Addon rechnet</h3>
+<ul>
+<li><b>n</b> (U/min) = vc · 1000 / (π · D)</li>
+<li><b>vf</b> (mm/min) = n · z · fz</li>
+<li><b>Q</b> (cm³/min) = ae · ap · vf / 1000 – so viel Material ist je Minute
+weg. Beim Bohren: π · D² / 4 · vf / 1000.</li>
+</ul>
+<p><b>Beispiel:</b> Schaftfräser Ø 12, 3 Schneiden, vc 120 m/min, fz 0,05 mm
+→ n = 3183 U/min, vf = 477 mm/min. Als Vollnut (ae 12, ap 3) sind das
+17,2 cm³/min.</p>
+
+<h3>Die Einsätze</h3>
+<p><b>+ Einsatz</b> bietet die üblichen an und belegt ae und ap aus dem
+Durchmesser vor. vc und fz bleiben leer – die stehen im Katalog.</p>
+<ul>
+<li><b>Vollnut</b> – ae = D, ap = D/2.</li>
+<li><b>Schruppen</b> – Taschen und Flächen auf herkömmliche Art: ae = D/2,
+ap = D/2.</li>
+<li><b>Schruppen dynamisch</b> – schmal und tief: ae = 10 % von D, ap = die
+Schneidenlänge (höchstens 2 × D). Trochoidal, HPC, „adaptiv“ – alles
+dieselbe Idee.</li>
+<li><b>Schlichten</b> – ae = 2 % von D, ap = die Schneidenlänge.</li>
+<li><b>Eigener Einsatz</b> – alles frei. Den Namen jeder Zeile kannst du mit
+einem Doppelklick ändern.</li>
+</ul>
+
+<h3>Für alle Werkstoffe – oder für einen</h3>
+<p>Welche Tabelle du siehst, hängt vom <b>Werkstoff oben</b> ab:</p>
+<ul>
+<li><b>Alle Werkstoffe</b>: die Tabelle, die für jeden Werkstoff gilt, für den
+das Werkzeug keine eigene hat. „Für alle gleich“ heißt also: nur hier
+eintragen.</li>
+<li>Ein Werkstoff <b>ohne eigene Werte</b>: Du siehst die Werte für alle
+Werkstoffe grau. <b>Eigene Werte für … anlegen</b> kopiert sie als
+Ausgangspunkt für diesen Werkstoff.</li>
+<li>Ein Werkstoff <b>mit eigenen Werten</b>: Du bearbeitest seine Tabelle.
+<b>Eigene Werte löschen</b> kehrt zu den Werten für alle zurück.</li>
+</ul>
+
+<h3>Woher die Werte kommen</h3>
+<p>Aus dem Katalog des Herstellers, dort nach der <b>ISO-Gruppe</b> des
+Werkstoffs (das farbige Kästchen). Nur zur Orientierung, für beschichtete
+VHM-Schaftfräser beim Schruppen:</p>
+<table cellpadding="3" border="1" style="border-collapse:collapse">
+<tr><th>ISO</th><th>Werkstoff</th><th>vc in m/min</th></tr>
+<tr><td>P</td><td>Stahl</td><td>120–250</td></tr>
+<tr><td>M</td><td>Edelstahl, austenitisch</td><td>60–120</td></tr>
+<tr><td>K</td><td>Gusseisen</td><td>100–200</td></tr>
+<tr><td>N</td><td>Aluminium · Messing, Kupfer</td><td>300–1000 · 150–400</td></tr>
+<tr><td>S</td><td>Titan · Nickelbasis</td><td>30–80 · 20–50</td></tr>
+<tr><td>H</td><td>gehärtet, 50–60 HRC</td><td>60–150, nur mit Werkzeugen dafür</td></tr>
+</table>
+<p>fz liegt beim Schruppen in Stahl grob bei 0,5–1 % von D. HSS verträgt etwa
+ein Viertel des vc von VHM. <b>Der Katalog deines Fräsers geht immer vor.</b></p>

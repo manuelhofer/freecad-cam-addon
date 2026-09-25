@@ -1,0 +1,133 @@
+# Schnittwerte in der Werkzeugverwaltung (W-002): Einsätze für alle Werkstoffe
+# anlegen, n/vf/Q werden gerechnet; ein Werkstoff ohne eigene Werte zeigt sie
+# grau; „Eigene Werte anlegen“ macht eine unabhängige Kopie; Bohrer mit f je
+# Umdrehung; OK speichert alles.
+import os
+import sys
+
+import FreeCADGui as Gui
+from PySide import QtCore, QtGui
+from PySide6 import QtTest
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def zelle(d, zeile, spalte):
+    return d.schnittwerte.tabelle.item(zeile, spalte).text()
+
+
+def schritte(h):
+    yield 500
+    erster = h.modal()
+    if erster is not None:
+        erster.liste.setCurrentIndex(erster.liste.findData("de"))
+        erster.accept()
+    yield 300
+    QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.German, QtCore.QLocale.Germany))
+
+    from camaddon import gui_schnittwerte as gs
+    from camaddon import gui_werkzeuge
+    from camaddon import werkzeuge as wz
+
+    # Ein Fräser liegt schon in der Bibliothek.
+    wz.Bibliothek(
+        [wz.Werkzeug(nummer=3, durchmesser=12, schneiden=3, schneidenlaenge=26)]
+    ).speichern()
+    Gui.runCommand("CamAddon_Werkzeugverwaltung")
+    yield 800
+    d = gui_werkzeuge.WerkzeugDialog.offen
+    d.waehle_werkstoff(wz.ALLE)
+    yield 200
+    s = d.schnittwerte
+    h.pruefe(s.isVisible() and s.tabelle.rowCount() == 0, "Schnittwerte fehlen oder nicht leer")
+
+    # Vollnut: ae und ap vorbelegt; ap 3, vc 120, fz 0,05 → n 3183, vf 477, Q 17,2.
+    vollnut = s.einsatz_anlegen(wz.VOLLNUT)
+    yield 100
+    h.pruefe((vollnut.ae, vollnut.ap) == (12, 6), f"Vorlage Vollnut {vollnut}")
+    h.pruefe("vc und fz fehlen" in s.hinweis.text(), f"Hinweis vc/fz: {s.hinweis.text()!r}")
+    s.setze(0, gs.AP, "3")
+    s.setze(0, gs.VC, "120")
+    # fz wie ein Benutzer: Zelle öffnen, „0,05“ tippen, Enter.
+    s.tabelle.setCurrentCell(0, gs.FZ)
+    s.tabelle.editItem(s.tabelle.item(0, gs.FZ))
+    yield 200
+    # Der Editor ist ein Feld im Innern der Tabelle; unter Xvfb hat kein Fenster den Fokus.
+    feld = next(f for f in s.tabelle.findChildren(QtGui.QLineEdit) if f.isVisible())
+    QtTest.QTest.keyClicks(feld, "0,05")
+    QtTest.QTest.keyClick(feld, QtCore.Qt.Key_Return)
+    yield 200
+    h.pruefe(d.isVisible(), "Enter in der Tabelle hat den Dialog geschlossen")
+    h.pruefe(vollnut.fz == 0.05, f"getipptes fz ergibt {vollnut.fz}")
+    h.pruefe(
+        (zelle(d, 0, gs.N), zelle(d, 0, gs.VF), zelle(d, 0, gs.Q)) == ("3183", "477", "17,2"),
+        f"gerechnet: {zelle(d, 0, gs.N)}, {zelle(d, 0, gs.VF)}, {zelle(d, 0, gs.Q)}",
+    )
+
+    # Dynamisch schruppen: schmal und tief.
+    s.einsatz_anlegen(wz.DYNAMISCH)
+    yield 100
+    h.pruefe(zelle(d, 1, gs.AE) == "1,2", f"Vorlage ae {zelle(d, 1, gs.AE)!r}")
+    for spalte, text in ((gs.AP, "30"), (gs.VC, "120"), (gs.FZ, "0,15")):
+        s.setze(1, spalte, text)
+    yield 100
+    h.pruefe("länger als die Schneide" in s.hinweis.text(), f"ap > Schneide: {s.hinweis.text()!r}")
+    s.setze(1, gs.AP, "25")
+    yield 100
+    h.pruefe(zelle(d, 1, gs.Q) == "43,0", f"Q dynamisch {zelle(d, 1, gs.Q)!r}")
+    h.pruefe(not s.hinweis.isVisible(), f"Hinweis trotz passender Werte: {s.hinweis.text()!r}")
+    h.bild("1_alle_werkstoffe", d)
+
+    # 1.4301 ohne eigene Werte: grau, nicht bearbeitbar.
+    d.waehle_werkstoff("1.4301")
+    yield 200
+    h.pruefe("gelten die Werte für alle" in s.zustand.text(), f"Zustand: {s.zustand.text()!r}")
+    h.pruefe(
+        not (s.tabelle.item(0, gs.VC).flags() & QtCore.Qt.ItemIsEditable), "geerbte Werte änderbar"
+    )
+    h.pruefe(s.knopf_eigene.isVisible() and "1.4301" in s.knopf_eigene.text(), "Knopf „anlegen“")
+    h.bild("2_geerbt", d)
+
+    # Eigene Werte: Kopie, unabhängig von „für alle“.
+    s.knopf_eigene.click()
+    yield 200
+    h.pruefe(s.zustand.text() == "Eigene Werte für 1.4301.", f"Zustand: {s.zustand.text()!r}")
+    s.setze(0, gs.VC, "80")
+    yield 100
+    h.pruefe(zelle(d, 0, gs.N) == "2122", f"n bei vc 80: {zelle(d, 0, gs.N)!r}")
+    h.bild("3_eigene_werte", d)
+    d.waehle_werkstoff("1.0503")
+    yield 200
+    h.pruefe(zelle(d, 0, gs.VC) == "120", f"C45 zeigt vc {zelle(d, 0, gs.VC)!r} statt 120")
+    d.waehle_werkstoff("1.4301")
+    yield 200
+    h.pruefe(zelle(d, 0, gs.VC) == "80", f"1.4301 zeigt vc {zelle(d, 0, gs.VC)!r} statt 80")
+
+    # Bohrer: f je Umdrehung, ohne ae und ap.
+    bohrer = d.werkzeug_anlegen()
+    d.feld_art.setCurrentIndex(d.feld_art.findData(wz.BOHRER))
+    d.feld_durchmesser.setText("8,5")
+    d.feld_durchmesser.editingFinished.emit()
+    d.feld_schneiden.setValue(2)
+    d.waehle_werkstoff(wz.ALLE)
+    yield 200
+    s.einsatz_anlegen(wz.BOHREN)
+    s.setze(0, gs.VC, "80")
+    s.setze(0, gs.FZ, "0,2")
+    yield 100
+    h.pruefe(
+        s.tabelle.isColumnHidden(gs.AE) and s.tabelle.isColumnHidden(gs.AP), "ae/ap beim Bohrer"
+    )
+    h.pruefe(abs(bohrer.einsaetze(wz.ALLE)[0].fz - 0.1) < 1e-9, "f 0,2 bei z 2 ergibt nicht fz 0,1")
+    h.pruefe(
+        (zelle(d, 0, gs.N), zelle(d, 0, gs.VF), zelle(d, 0, gs.Q)) == ("2996", "599", "34,0"),
+        f"Bohrer: {zelle(d, 0, gs.N)}, {zelle(d, 0, gs.VF)}, {zelle(d, 0, gs.Q)}",
+    )
+    h.bild("4_bohrer", d)
+
+    # OK speichert alles.
+    d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
+    yield 500
+    fraeser = next(w for w in wz.Bibliothek.laden().werkzeuge if w.nummer == 3)
+    h.pruefe(fraeser.einsaetze("1.4301")[0].vc == 80, "eigene Werte nicht gespeichert")
+    h.pruefe(fraeser.einsaetze(wz.ALLE)[1].ap == 25, "Werte für alle nicht gespeichert")
