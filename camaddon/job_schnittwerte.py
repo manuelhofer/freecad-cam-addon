@@ -270,6 +270,19 @@ def ebenen(operation, zustelltiefe):
     return dicken
 
 
+def ohne_bahn(operation):
+    """True, wenn die Operation keine Basisgeometrie und deshalb keine Bahn hat.
+
+    Adaptiv, Tasche, Planfräsen und Nut rechnen ohne Basisgeometrie nichts
+    (ausprobiert in 1.1.3 und im Wochen-Build) – dann helfen auch
+    Schrittweite und Zustelltiefe nicht.
+    """
+    if not hasattr(operation, "Base") or operation.Base:
+        return False
+    befehle = getattr(getattr(operation, "Path", None), "Commands", [])
+    return not any(b.Name in ("G1", "G2", "G3") for b in befehle)
+
+
 def duenne_letzte_ebene(dicken, zustelltiefe):
     """(Rest, ap ohne ihn), wenn die letzte Ebene nur ein Rest ist – sonst None.
 

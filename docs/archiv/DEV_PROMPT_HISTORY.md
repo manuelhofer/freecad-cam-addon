@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-22 ohne-basisgeometrie
+
+### EINGELESEN
+- Ausprobiert (FreeCADCmd, 1.1.3 und Wochen-Build): Adaptiv (innen und
+  außen), Tasche, Taschenform, Fläche und Nut ohne Basisgeometrie rechnen
+  keine Bahn – keine einzige G1/G2/G3-Bewegung.
+- „Schnittwerte in den Job“ zeigte für eine solche Operation trotzdem
+  Ebenen, gerechnet aus den Vorgabetiefen – als würde sie fahren.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`ohne_bahn()`)
+- `camaddon/gui_job_schnittwerte.py` („keine Bahn: Basisgeometrie fehlt“
+  statt der Ebenen)
+- `translations/de.json`, `translations/en.json`
+- `help/de|en/werkzeuge.html`
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Job mit einem Adaptiv ohne Basisgeometrie und dem Controller
+„T3 Schruppen dynamisch“ → „Schnittwerte in den Job“: In der Spalte steht
+„Adaptiv: 10 % · 25 mm · Helix 3° · keine Bahn: Basisgeometrie fehlt“.
+Mit Basisgeometrie stehen dort wieder die Ebenen.
+
+### DONE
+- Als „ohne Bahn“ gilt eine Operation mit leerer Basisgeometrie und ohne
+  Bewegung in ihrer Bahn; dann keine Ebenen und kein Hinweis zu ihnen.
+
+### TEST
+- `tests/test_job_schnittwerte.py`: Adaptiv ohne Basisgeometrie → ohne
+  Bahn; ein Objekt ohne `Base` zählt nicht.
+- `tests/gui/szenario_schnittwerte_job.py` (beide Versionen): der Text in
+  der Spalte; `szenario_loch_auffraesen` (mit Basisgeometrie) unverändert
+  grün.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- —
+
 ## P-2026-09-26-21 hilfe-basisgeometrie
 
 ### EINGELESEN

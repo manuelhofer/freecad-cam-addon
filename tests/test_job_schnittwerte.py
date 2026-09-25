@@ -94,6 +94,9 @@ tasche = operationen["Tasche"]
 pruefe(js.ebenen(tasche, 25) == [25, 25, 11], f"Ebenen der Tasche: {js.ebenen(tasche, 25)}")
 pruefe(js.ebenen(tasche, 30.5) == [30.5, 30.5], f"Ebenen bei 30,5: {js.ebenen(tasche, 30.5)}")
 pruefe(js.ebenen(object(), 25) == [], "Ebenen ohne Tiefen")
+# Ohne Basisgeometrie rechnet FreeCAD keine Bahn – das sagt der Dialog.
+pruefe(js.ohne_bahn(operationen["Adaptiv"]), "Adaptiv ohne Basisgeometrie hat eine Bahn?")
+pruefe(not js.ohne_bahn(object()), "Objekt ohne Base gilt als ohne Bahn")
 pruefe(js.duenne_letzte_ebene([25, 1], 25) == (1, 26.0), "dünne letzte Ebene 25 + 1")
 pruefe(js.duenne_letzte_ebene([25, 25, 2], 25) == (2, 26.0), "dünne letzte Ebene 25 + 25 + 2")
 pruefe(js.duenne_letzte_ebene([25, 25, 11], 25) is None, "11 von 25 ist kein Rest")

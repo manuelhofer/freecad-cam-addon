@@ -315,8 +315,11 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             if not neu:
                 continue
             text = f"{operation.Label}: {_zustellung_text(neu)}"
+            ohne_bahn = js.ohne_bahn(operation)
+            if ohne_bahn:
+                text += " · " + tr("sj.ohne_basis")
             dicken = js.ebenen(operation, neu["StepDown"]) if "StepDown" in neu else []
-            if dicken:
+            if dicken and not ohne_bahn:
                 text += " · " + _ebenen_text(dicken)
                 rest = js.duenne_letzte_ebene(dicken, neu["StepDown"])
                 if rest is not None:
