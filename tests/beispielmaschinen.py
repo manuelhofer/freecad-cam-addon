@@ -10,6 +10,11 @@ import JointObject
 
 
 class Baukasten:
+    """Baut eine Assembly Schritt für Schritt: Körper, Bauteile mit LCS, Gelenke.
+
+    Maße und Lagen in mm; x, y, z ist die Lage der Ecke bzw. der Mitte unten.
+    """
+
     def __init__(self, name):
         self.doc = App.newDocument(name)
         self.assembly = self.doc.addObject("Assembly::AssemblyObject", "Assembly")
@@ -18,15 +23,13 @@ class Baukasten:
     def quader(self, name, laenge, breite, hoehe, x=0, y=0, z=0):
         teil = self.assembly.newObject("Part::Box", name)
         teil.Length, teil.Width, teil.Height = laenge, breite, hoehe
-        # Placement als Ganzes zuweisen – Placement.Base = … ändert nur eine Kopie.
-        teil.Placement = App.Placement(App.Vector(x, y, z), App.Rotation())
+        _stelle(teil, x, y, z)
         return teil
 
     def zylinder(self, name, radius, hoehe, x=0, y=0, z=0):
         teil = self.assembly.newObject("Part::Cylinder", name)
         teil.Radius, teil.Height = radius, hoehe
-        # Placement als Ganzes zuweisen – Placement.Base = … ändert nur eine Kopie.
-        teil.Placement = App.Placement(App.Vector(x, y, z), App.Rotation())
+        _stelle(teil, x, y, z)
         return teil
 
     def bauteil(self, name, koerper, lcs_name=None, lcs_hoehe=0):
@@ -66,20 +69,31 @@ class Baukasten:
         return self.assembly
 
 
+def _stelle(teil, x, y, z):
+    # Placement als Ganzes zuweisen: teil.Placement.Base = … änderte nur eine Kopie.
+    teil.Placement = App.Placement(App.Vector(x, y, z), App.Rotation())
+
+
 def drehmaschine():
     """Bett mit Spindelstock, Hauptspindel mit Futter, Z- und X-Schlitten mit
     drehbarem Revolver (ein Werkzeugplatz als LCS)."""
     b = Baukasten("Drehmaschine")
     bett = b.quader("Bett", 600, 200, 50)
     spindelstock = b.quader("Spindelstock", 150, 200, 250, z=50)
-    spindel = b.zylinder("Hauptspindel", 60, 80, 75, 100, 300)
+    spindel = b.zylinder("Hauptspindel", 60, 80, x=75, y=100, z=300)
     futter, spannflaeche = b.bauteil(
-        "Futter", b.zylinder("FutterKoerper", 90, 40, 75, 100, 380), "Spannflaeche", 40
+        "Futter",
+        b.zylinder("FutterKoerper", 90, 40, x=75, y=100, z=380),
+        lcs_name="Spannflaeche",
+        lcs_hoehe=40,
     )
-    z_schlitten = b.quader("ZSchlitten", 150, 200, 40, 300, 0, 50)
-    x_schlitten = b.quader("XSchlitten", 100, 150, 40, 300, 0, 90)
+    z_schlitten = b.quader("ZSchlitten", 150, 200, 40, x=300, z=50)
+    x_schlitten = b.quader("XSchlitten", 100, 150, 40, x=300, z=90)
     revolver, werkzeugplatz = b.bauteil(
-        "Revolver", b.quader("RevolverKoerper", 80, 80, 80, 300, 0, 130), "Werkzeugplatz", 80
+        "Revolver",
+        b.quader("RevolverKoerper", 80, 80, 80, x=300, z=130),
+        lcs_name="Werkzeugplatz",
+        lcs_hoehe=80,
     )
 
     b.fixieren(bett)
@@ -101,17 +115,17 @@ def fuenfachser(zweites_lager=True):
     unterstütztes Gelenk."""
     b = Baukasten("Fuenfachser")
     bett = b.quader("Bett", 600, 300, 50)
-    lager_l = b.quader("LagerbockLinks", 50, 100, 150, 0, 100, 50)
-    lager_r = b.quader("LagerbockRechts", 50, 100, 150, 450, 100, 50)
-    wiege = b.quader("Wiege", 400, 100, 150, 50, 100, 50)
-    schenkel_l = b.quader("SchenkelLinks", 30, 100, 120, 50, 100, 200)
-    schenkel_r = b.quader("SchenkelRechts", 30, 100, 120, 420, 100, 200)
-    rundtisch = b.zylinder("Rundtisch", 80, 30, 250, 150, 200)
-    staender = b.quader("Staender", 100, 100, 500, 250, 0, 50)
-    schlitten = b.quader("Schlitten", 80, 80, 100, 260, 20, 400)
-    spindel = b.zylinder("Spindel", 30, 100, 300, 60, 300)
-    b.quader("Spaenefoerderer", 100, 50, 30, 700, 0, 0)
-    abdeckung = b.quader("Abdeckung", 100, 10, 100, 250, 100, 550)
+    lager_l = b.quader("LagerbockLinks", 50, 100, 150, y=100, z=50)
+    lager_r = b.quader("LagerbockRechts", 50, 100, 150, x=450, y=100, z=50)
+    wiege = b.quader("Wiege", 400, 100, 150, x=50, y=100, z=50)
+    schenkel_l = b.quader("SchenkelLinks", 30, 100, 120, x=50, y=100, z=200)
+    schenkel_r = b.quader("SchenkelRechts", 30, 100, 120, x=420, y=100, z=200)
+    rundtisch = b.zylinder("Rundtisch", 80, 30, x=250, y=150, z=200)
+    staender = b.quader("Staender", 100, 100, 500, x=250, z=50)
+    schlitten = b.quader("Schlitten", 80, 80, 100, x=260, y=20, z=400)
+    spindel = b.zylinder("Spindel", 30, 100, x=300, y=60, z=300)
+    b.quader("Spaenefoerderer", 100, 50, 30, x=700)
+    abdeckung = b.quader("Abdeckung", 100, 10, 100, x=250, y=100, z=550)
 
     b.fixieren(bett)
     b.gelenk("LagerLinks_fest", "Fixed", bett, "Face6", lager_l, "Face5")

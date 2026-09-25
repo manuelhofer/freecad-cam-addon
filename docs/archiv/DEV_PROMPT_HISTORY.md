@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-34 tests-und-skripte-lesbar
+
+### EINGELESEN
+- Durchsicht von Hand: `tests/`, `tests/gui/_lauf/`, `scripts/`.
+
+### DATEIEN
+- `tests/test_maschine.py`, `tests/test_export.py`, `tests/beispielmaschinen.py`
+- `tests/gui/_lauf/szenario_lauf.py`
+- `scripts/oberflaeche_testen.sh`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Tests lesen sich ohne Rätsel: keine `__import__`-Tricks, keine
+gleichnamigen Funktionen und Variablen, Lagen der Beispielkörper mit Namen.
+Geprüft wird genau dasselbe wie vorher.
+
+### DONE
+- **test_maschine.py:** `import math` statt zweimal `__import__("math")`;
+  vier Kennwerte als vier Zuweisungen statt einer `setattr`-Schleife.
+- **test_export.py:** Die Funktion hieß `pruefen()` und hatte eine lokale
+  Variable `pruefen`. Jetzt heißen sie `pruefe_export()` und `zu_pruefen`;
+  dazu `uebertragen` und `nicht_uebertragen` statt `nicht`.
+- **beispielmaschinen.py:**
+  - Lagen mit Namen: `zylinder("Hauptspindel", 60, 80, x=75, y=100, z=300)`
+    statt `zylinder("Hauptspindel", 60, 80, 75, 100, 300)`. Dasselbe gilt
+    für LCS-Name und -Höhe bei `bauteil()`. Die Zahlen sind unverändert.
+  - Der Kommentar zu `Placement` stand zweimal; jetzt steht er einmal in
+    `_stelle()`.
+  - `Baukasten` hat eine Beschreibung.
+- **Szenario-Läufer:** `START_NACH_MS` statt `3000`.
+- **oberflaeche_testen.sh:** `zeitlimit_s` statt zweimal `180`.
+- Nicht geändert, mit Absicht: Jede Prüfung hat ihr eigenes dreizeiliges
+  `pruefe()`. Ein gemeinsames Modul würde keine Zeile der Pfad-Vorbereitung
+  sparen; so bleibt jede Prüfung für sich lesbar.
+
+### TEST
+- Von der KI ausgeführt: black und ruff sauber; `alle_tests.sh` in beiden
+  Versionen grün.
+
+### NEXT
+- Entwickler-Doku `docs/aufbau.md`.
+
 ## P-2026-09-25-33 oberflaeche-rest-lesbar
 
 ### EINGELESEN

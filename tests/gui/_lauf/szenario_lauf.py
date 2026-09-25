@@ -13,6 +13,9 @@ from PySide import QtCore, QtGui
 
 AUSGABE = os.environ["CAMADDON_AUSGABE"]
 
+# Erst loslegen, wenn das Hauptfenster steht.
+START_NACH_MS = 3000
+
 
 class Helfer:
     def __init__(self):
@@ -75,6 +78,5 @@ def starten():
             return
         QtCore.QTimer.singleShot(int(warten), weiter)
 
-    # Erst loslegen, wenn das Hauptfenster steht.
-    QtCore.QTimer.singleShot(3000, weiter)
+    QtCore.QTimer.singleShot(START_NACH_MS, weiter)
     FreeCAD.Console.PrintLog("Szenario geladen: " + pfad + "\n")

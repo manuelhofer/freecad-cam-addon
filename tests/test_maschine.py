@@ -1,6 +1,7 @@
 # Prüft das Maschinenobjekt: Anlegen in der Assembly, Betriebsarten (auch zwei
 # an einem Gelenk: S4/C4), Aufnahmen, Tisch/Kopf-Zuordnung, die Prüf-
 # meldungen, Speichern/Laden und Rückgängig.
+import math
 import os
 import sys
 import tempfile
@@ -50,13 +51,10 @@ z1 = m.neue_betriebsart(ma, obj("Z"), m.ART_LINEAR, "Z1")
 x1 = m.neue_betriebsart(ma, obj("X"), m.ART_LINEAR, "X1")
 s4 = m.neue_betriebsart(ma, obj("Spindel"), m.ART_SPINDEL, "S4")
 c4 = m.neue_betriebsart(ma, obj("Spindel"), m.ART_POSITIONIEREN, "C4")
-for ba, wert in (
-    (z1, ("Eilgang", 30000)),
-    (x1, ("Eilgang", 24000)),
-    (s4, ("Drehzahl", 4000)),
-    (c4, ("Geschwindigkeit", 100)),
-):
-    setattr(ba, *wert)
+z1.Eilgang = 30000
+x1.Eilgang = 24000
+s4.Drehzahl = 4000
+c4.Geschwindigkeit = 100
 futter = m.neue_aufnahme(ma, obj("Spannflaeche"), m.AUFNAHME_WERKSTUECK, "Futter", spindel=s4)
 pruefe(m.name_von(futter) == "Futter", f"Aufnahme heißt nicht „Futter“: {m.name_von(futter)}")
 rev = m.neue_betriebsart(ma, obj("Revolverachse"), m.ART_REVOLVER, "T")
@@ -91,11 +89,7 @@ pruefe(
     f"Plätze nicht auf einem Kreis um die Revolverachse: {[round(radius(p), 3) for p in punkte]}",
 )
 pruefe(
-    abs(
-        (punkte[1] - punkte[0]).Length
-        - 2 * radius(punkte[0]) * __import__("math").sin(__import__("math").pi / 12)
-    )
-    < 1e-6,
+    abs((punkte[1] - punkte[0]).Length - 2 * radius(punkte[0]) * math.sin(math.pi / 12)) < 1e-6,
     "Plätze nicht im 30°-Abstand",
 )
 # Nochmal verteilen (6 statt 12) ersetzt die alten Plätze und LCS restlos.

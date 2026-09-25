@@ -27,7 +27,7 @@ def parallel(v, x, y, z):
     return abs(abs(v.dot(App.Vector(x, y, z))) - 1) < 1e-6
 
 
-def pruefen():
+def pruefe_export():
     from Machine.models.machine import AxisRole, MachineFactory
 
     # Der Bericht wird unten auf deutsche Sätze geprüft.
@@ -70,23 +70,21 @@ def pruefen():
         pruefe(c4.max_velocity == 36000, f"C4: {c4.max_velocity} °/min statt 36000 (100 U/min)")
     pruefe(cam.validate_kinematic_chain() == [], f"Kette: {cam.validate_kinematic_chain()}")
 
-    nicht = " ".join(bericht.nicht_uebertragen)
-    pruefen = " ".join(bericht.zu_pruefen)
+    uebertragen = " ".join(bericht.uebertragen)
+    zu_pruefen = " ".join(bericht.zu_pruefen)
+    nicht_uebertragen = " ".join(bericht.nicht_uebertragen)
     pruefe(
-        "„Z1“ hat am Gelenk keine Begrenzung" in pruefen,
+        "„Z1“ hat am Gelenk keine Begrenzung" in zu_pruefen,
         "fehlende Grenzen an Z1 nicht unter „Bitte prüfen“",
     )
+    pruefe("Drehachse C4, bis 100 U/min" in uebertragen, "C4 nicht in U/min berichtet")
     pruefe(
-        "Drehachse C4, bis 100 U/min" in " ".join(bericht.uebertragen),
-        "C4 nicht in U/min berichtet",
-    )
-    pruefe(
-        "Beschleunigung von „X1“" in nicht,
+        "Beschleunigung von „X1“" in nicht_uebertragen,
         "Beschleunigung von X1 nicht als nicht übertragen berichtet",
     )
-    pruefe("Revolver „T“ mit 12 Plätzen" in nicht, "Revolver nicht berichtet")
+    pruefe("Revolver „T“ mit 12 Plätzen" in nicht_uebertragen, "Revolver nicht berichtet")
     pruefe(
-        "{" not in nicht + pruefen + " ".join(bericht.uebertragen),
+        "{" not in uebertragen + zu_pruefen + nicht_uebertragen,
         "Platzhalter im Bericht nicht gefüllt",
     )
 
@@ -110,6 +108,6 @@ if not export.verfuegbar():
         os.path.basename(__file__) + ": keine CAM-Maschinendefinition in dieser FreeCAD-Version",
     )
 else:
-    pruefen()
+    pruefe_export()
     assert not fehler, "\n".join(fehler)
     print("OK", os.path.basename(__file__))
