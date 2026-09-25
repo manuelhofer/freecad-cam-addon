@@ -10,11 +10,10 @@ Wunschliste, offene Bugs und Tasks.
 
 ## Nächster Schritt (konkret)
 
-Manuel sammelt die ersten Wünsche: **was an der CAM-Oberfläche stört und wie
-es sein soll**, am besten mit Screenshot oder Skizze. Jeder Wunsch kommt als
-ein Satz unter „Wunschliste". Danach wird der erste Wunsch beschrieben (siehe
-`arbeitsregeln.md`, Abschnitt 1) und zusammen mit dem Grundgerüst des Addons
-gebaut.
+Manuel liest den Entwurf
+[spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
+und beantwortet die offenen Fragen dort (Abschnitt 9). Danach beginnt Stufe 1
+zusammen mit dem Grundgerüst des Addons (T-001).
 
 ## Wunschliste
 
@@ -24,7 +23,7 @@ Ein Satz je Wunsch, W-ID fortlaufend.
   einer Assembly aufbauen, Slider- und Revolute-Gelenke als Achsen benennen
   und mit Kenndaten versehen (Eilgang, Drehzahl, Schwenkbereich …), daraus
   die CAM-Maschinendefinition von FreeCAD erzeugen; später Grundlage für
-  Simulation und Kollisionsprüfung. Erster Schritt: Spezifikation.
+  Simulation und Kollisionsprüfung. Spezifikation im Entwurf.
 
 ## Offene Bugs
 

@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-07 spezifikation-maschine-aus-baugruppe
+
+### EINGELESEN
+- `Mod/CAM/Machine/models/machine.py` (Wochen-Build 26.3.0 dev): `LinearAxis`,
+  `RotaryAxis`, `ToolheadType`, `MachineFactory` (Ablage als `.fcm`,
+  `register_addon_machine_dir`).
+- `Mod/Assembly/JointObject.py`: Gelenkarten und Begrenzungen.
+
+### DATEIEN
+- `docs/spezifikation_maschine_aus_baugruppe.md` (neu)
+- `CHATSTART.md` (Lesekarte), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer die Spezifikation liest, findet dort für jede Betriebsart (Linear,
+Positionieren, Spindel) die Werte mit Einheit und eine Anleitung, wie man die
+Beschleunigung ermittelt.
+
+### DONE
+Entwurf nach Manuels Vorgaben aus dem Gespräch:
+
+- **Namen immer von Hand.** Mein erster Vorschlag, Namen aus der Baugruppe
+  abzuleiten, war falsch. Manuels Gegenbeispiel: An der CLX 550 heißt die
+  Hauptspindel S4, wenn sie dreht, und C4, wenn sie positioniert.
+- Daraus entstand der Begriff **Betriebsart**: Ein Gelenk hat eine oder
+  mehrere Betriebsarten, jede mit eigenem Namen und eigenen Werten.
+- **Beschleunigung und Ruck** sind aufgenommen, dazu eine Anleitung, wie man
+  sie ermittelt (Maschinendaten Siemens/Fanuc/LinuxCNC, Datenblatt, Messen
+  mit a ≈ 4·s/t²).
+- Verfahrgrenzen werden **nicht doppelt** erfasst, sie kommen aus der
+  Min/Max-Begrenzung der Assembly-Gelenke.
+- Der Export geht in die vorhandene CAM-Maschinendefinition (`.fcm`) über
+  den offiziellen Addon-Weg. Werte, die FreeCAD dort nicht kennt
+  (Beschleunigung, Ruck, Vorschub, Mehrfach-Betriebsarten), bleiben im
+  Dokument.
+- Aus zwei Stufen wurden vier: beschreiben, exportieren, von Hand
+  verfahren, Kollision. Stufe 4 bekommt eine eigene Spezifikation.
+
+Zwei offene Fragen stehen in Abschnitt 9: der Speicherort (Empfehlung: als
+Eigenschaften direkt an Gelenken und LCS) und ob drei Betriebsarten reichen.
+
+**Nicht geprüft:** die Maschinendaten-Nummern für Siemens und Fanuc stammen
+aus meinem Wissen, nicht aus einem Handbuch. Manuel kann sie an der CLX 550
+gegenprüfen.
+
+### TEST
+- Links in `CHATSTART.md` und im Snapshot auf die neue Datei geprüft.
+
+### NEXT
+- Manuel beantwortet die offenen Fragen; dann Stufe 1 plus T-001.
+
 ## P-2026-09-25-06 wunsch-maschine-aus-baugruppe
 
 ### EINGELESEN

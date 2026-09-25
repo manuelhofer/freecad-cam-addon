@@ -55,6 +55,7 @@ neue Spezifikation unter `docs/` bekommt hier eine Zeile.
 
 | Du arbeitest an … | Dann lies |
 | --- | --- |
+| W-001 Maschine aus Baugruppe (Achsen, Betriebsarten, Export) | [docs/spezifikation_maschine_aus_baugruppe.md](docs/spezifikation_maschine_aus_baugruppe.md) |
 | Prüfungen ohne Fenster, Testumgebung | `scripts/testumgebung_einrichten.sh`, dann `scripts/tests_ausfuehren.sh` – Aufbau einer Prüfung: `tests/test_umgebung.py` |
 
 `docs/archiv/DEV_PROMPT_HISTORY.md` ist **keine Startlektüre** – ein Eintrag je
