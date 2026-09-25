@@ -11,5 +11,13 @@
     "einstellungen.titel": "General",
     "einstellungen.sprache.gruppe": "Language",
     "einstellungen.sprache.feld": "Add-on language:",
-    "einstellungen.sprache.neustart": "The new language fully applies after restarting FreeCAD."
+    "einstellungen.sprache.neustart": "The new language fully applies after restarting FreeCAD.",
+    "kette.gelenk_ohne_teile": "The joint “{gelenk}” does not connect two parts of this assembly and is skipped.",
+    "kette.gelenkart_nicht_unterstuetzt": "The joint “{gelenk}” is of type “{art}”. Machines only use Fixed, Slider and Revolute joints – this joint is skipped.",
+    "kette.kein_festes_teil": "No part is grounded. Ground the machine bed in the assembly so it is clear what stands still.",
+    "kette.koerper_lose": "The body “{koerper}” is not attached to any joint. It will stay behind when the machine moves.",
+    "kette.gelenk_im_glied": "The joint “{gelenk}” sits between two bodies that are already rigidly connected – it cannot move.",
+    "kette.geschlossene_schleife": "The joint “{gelenk}” closes the chain into a loop. Machine chains must be open (from the bed to the tool or workpiece) – this joint is skipped.",
+    "kette.glied_haengt_nicht_am_bett": "The bodies “{koerper}” are not connected to the grounded machine bed by any joint.",
+    "kette.doppelt_gelagert": "“{gelenk}” connects the same parts a second time, like “{erstes}”. The assembly cannot solve that – the parts will jump. An axis needs only one joint, even if it sits in two bearings: suppress or delete “{gelenk}”. The second bearing block still stays fixed to the bed."
 }

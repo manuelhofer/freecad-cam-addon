@@ -11,5 +11,13 @@
     "einstellungen.titel": "Allgemein",
     "einstellungen.sprache.gruppe": "Sprache",
     "einstellungen.sprache.feld": "Sprache des Addons:",
-    "einstellungen.sprache.neustart": "Die neue Sprache gilt vollständig nach einem Neustart von FreeCAD."
+    "einstellungen.sprache.neustart": "Die neue Sprache gilt vollständig nach einem Neustart von FreeCAD.",
+    "kette.gelenk_ohne_teile": "Das Gelenk „{gelenk}“ verbindet keine zwei Bauteile dieser Baugruppe und wird übergangen.",
+    "kette.gelenkart_nicht_unterstuetzt": "Das Gelenk „{gelenk}“ ist vom Typ „{art}“. Für Maschinen zählen nur Fest, Schiebe (Slider) und Dreh (Revolute) – dieses Gelenk wird übergangen.",
+    "kette.kein_festes_teil": "Kein Bauteil ist fixiert. Fixiere das Maschinenbett in der Assembly, damit klar ist, was stillsteht.",
+    "kette.koerper_lose": "Der Körper „{koerper}“ hängt an keinem Gelenk. Er bleibt stehen, wenn sich die Maschine bewegt.",
+    "kette.gelenk_im_glied": "Das Gelenk „{gelenk}“ liegt zwischen zwei Körpern, die schon fest miteinander verbunden sind – es kann sich nicht bewegen.",
+    "kette.geschlossene_schleife": "Das Gelenk „{gelenk}“ schließt die Kette zu einem Ring. Maschinenketten müssen offen sein (vom Bett bis zum Werkzeug bzw. Werkstück) – dieses Gelenk wird übergangen.",
+    "kette.glied_haengt_nicht_am_bett": "Die Körper „{koerper}“ sind über kein Gelenk mit dem fixierten Maschinenbett verbunden.",
+    "kette.doppelt_gelagert": "„{gelenk}“ verbindet dieselben Teile ein zweites Mal wie „{erstes}“. Das kann die Assembly nicht lösen – die Teile springen dann. Eine Achse braucht nur ein Gelenk, auch wenn sie in zwei Lagern sitzt: Unterdrücke oder lösche „{gelenk}“. Der zweite Lagerbock bleibt trotzdem fest am Bett."
 }

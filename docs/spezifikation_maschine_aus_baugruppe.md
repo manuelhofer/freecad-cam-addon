@@ -109,6 +109,12 @@ Bett ──fest── Lagerböcke ──Revolute (A)── Wiege ──Revolute 
                              Boden ──────────fest─┘
 ```
 
+- **Eine Achse, ein Gelenk:** Auch wenn die Wiege in zwei Lagerböcken
+  sitzt, bekommt nur **einer** das Drehgelenk; der zweite Lagerbock hängt nur
+  fest am Bett. Zwei Drehgelenke auf derselben Achse kann die Assembly nicht
+  lösen – die Teile springen (ausprobiert, P-2026-09-25-13). Das Addon
+  erkennt ein solches zweites Gelenk und sagt in Worten, welches zu
+  unterdrücken ist.
 - In der Assembly wird das mit **Fixed-Gelenken** gebaut (oder die Körper
   liegen gemeinsam in einer Unterbaugruppe). Das bewegt schon FreeCAD
   richtig mit; das Addon erfindet dafür nichts Eigenes.

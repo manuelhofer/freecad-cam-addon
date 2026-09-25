@@ -41,12 +41,13 @@ for pfad in glob.glob(os.path.join(ADDON, "translations", "*.json")):
         if schluessel in de and platzhalter(text) != platzhalter(de[schluessel]):
             fehler.append(f"{code}.json: Platzhalter weichen ab bei {schluessel}")
 
-# Schlüssel stehen im Code immer als fester Text in tr("..."), nie
-# zusammengesetzt – sonst könnte diese Prüfung sie nicht finden.
+# Schlüssel stehen im Code immer als fester Text in tr("...") oder
+# meldung("..."), nie zusammengesetzt – sonst könnte diese Prüfung sie nicht
+# finden.
 benutzt = set()
 for pfad in glob.glob(os.path.join(ADDON, "camaddon", "**", "*.py"), recursive=True):
     with open(pfad, encoding="utf-8") as datei:
-        benutzt |= set(re.findall(r"""\btr\(\s*["']([^"']+)["']""", datei.read()))
+        benutzt |= set(re.findall(r"""\b(?:tr|meldung)\(\s*["']([^"']+)["']""", datei.read()))
 fehlt = benutzt - set(de)
 if fehlt:
     fehler.append(f"im Code benutzt, aber nicht in de.json: {sorted(fehlt)}")

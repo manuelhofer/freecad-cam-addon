@@ -12,6 +12,76 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-13 kette-aus-baugruppe-lesen
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitte 3, 6 und 7.
+- `Mod/Assembly/UtilsAssembly.py` (`getMovablePartsWithin`, `getJointGroup`,
+  `getJcsGlobalPlc`, `findPlacement`) und `JointObject.py` (`Joint`,
+  `GroundedJoint`, `RigidGroupJoint`, `setJointConnectors`).
+
+### DATEIEN
+- `camaddon/kette.py` (neu)
+- `tests/beispielmaschinen.py`, `tests/test_kette.py` (neu)
+- `tests/test_sprache.py` (findet jetzt auch `meldung("…")`)
+- `translations/de.json`, `translations/en.json` (Meldungen)
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Abschnitt 6),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`test_kette.py` liest aus den Beispielmaschinen „Drehmaschine“ und
+„Fünfachser“ die richtigen Glieder, Achsen, Richtungen und Grenzen und meldet
+lose Körper, nicht unterstützte Gelenke und eine doppelt gelagerte Wiege.
+
+### DONE
+- `lies_kette(assembly)` liefert eine `Kette`:
+  - **Glieder:** Alle Körper, die über Fixed- oder RigidGroup-Gelenke starr
+    verbunden sind, werden zu einem Glied zusammengefasst (Union-Find).
+    Alle fixierten Körper zusammen bilden das feste Glied, also das Bett.
+  - **Achsen:** Slider- und Revolute-Gelenke, als Baum vom Bett aus
+    aufgebaut. Jede Achse kennt ihr Eltern- und Kind-Glied, ihre Richtung
+    (Z des Gelenk-Koordinatensystems) und ihre Grenzen aus der
+    Min/Max-Begrenzung.
+  - `glied_von(objekt)` findet das Glied auch für ein LCS in einem Körper.
+    `pfad_zum_festen_glied()` ist die Grundlage für die Tisch/Kopf-Zuordnung
+    im nächsten Patch.
+- **Meldungen** als ganze Sätze auf Deutsch und Englisch:
+  - Gelenk ohne zwei Bauteile
+  - nicht unterstützte Gelenkart
+  - kein fixiertes Teil
+  - loser Körper
+  - Gelenk innerhalb eines Glieds
+  - geschlossene Schleife
+  - Glied, das nicht am Bett hängt
+  - doppelte Lagerung
+- **Befund, doppelte Lagerung:** Eine Wiege mit je einem Drehgelenk in
+  beiden Lagerböcken kann der Löser der Assembly nicht lösen
+  („Solve failed“), die Teile springen. Ohne das zweite Gelenk stimmen alle
+  Richtungen. Mein erster Entwurf hat das zweite Gelenk geometrisch als
+  „zweites Lager derselben Achse“ erkannt. Das funktioniert nicht, weil die
+  Lage nach dem Scheitern unbrauchbar ist. Jetzt wird strukturell erkannt:
+  Ein zweites Gelenk zwischen denselben Gliedern ergibt eine Warnung, die
+  sagt, welches Gelenk zu unterdrücken ist. Die Spezifikation (Abschnitt 6)
+  schreibt dazu: eine Achse, ein Gelenk.
+- **Fallen im Testaufbau** (nicht im Addon, aber für jeden, der weitere
+  Beispielmaschinen baut):
+  - `Placement.Base = …` ändert nur eine Kopie.
+  - Gelenke brauchen neu berechnete Körper.
+  - `setJointConnectors` braucht je Seite zwei Namen, das Element und den
+    Bezugspunkt. Die Fläche zweimal genannt bedeutet Flächenmitte.
+  - Alle drei stehen als Kommentar in `tests/beispielmaschinen.py`.
+
+### TEST
+- Von der KI ohne Fenster ausgeführt: `tests_ausfuehren.sh` ergibt
+  `ok test_kette.py`, `ok test_sprache.py` und `ok test_umgebung.py`.
+- Gegenprobe: Werden Fixed-Gelenke nicht mehr als starr gewertet, schlägt die
+  Prüfung mit „Drehmaschine: 4 Glieder erwartet, 7 gefunden“ fehl.
+- Die Oberfläche ist nicht betroffen, deshalb gibt es kein Szenario.
+
+### NEXT
+- Maschinenobjekt mit Betriebsarten und Aufnahmen, Tisch/Kopf-Zuordnung,
+  Befehl „Maschine anlegen“.
+
 ## P-2026-09-25-12 grundgeruest-werkzeugleiste-sprachwahl
 
 ### EINGELESEN
