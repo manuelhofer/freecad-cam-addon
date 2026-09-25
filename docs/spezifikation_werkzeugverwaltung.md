@@ -147,7 +147,10 @@ gerechnet und grau:
   Anteilen von D vor (Vollnut: ae = D, ap = D/2; Schruppen dynamisch:
   ae = 10 % D, ap = Schneidenlänge; Schlichten: ae = 2 % D, ap =
   Schneidenlänge). vc und fz bleiben leer: Die kommen aus dem Katalog des
-  Herstellers.
+  Herstellers. Dazu **„Gewählte Zeile kopieren“** – für eine Variante zum
+  Vergleichen (P-2026-09-26-12). Gibt es den Namen einer neuen Zeile schon,
+  bekommt sie eine Nummer („Schruppen dynamisch 2“), damit Vergleich und
+  Job die Zeilen unterscheiden.
 - Unter der Tabelle stehen zur gewählten Zeile die Werte, die man sonst im
   Kopf rechnet: „ae 1,2 mm = 10 % von D · ap 25 mm = 2,1 × D · Eingriff 37° ·
   größte Spandicke 0,09 mm“.

@@ -123,6 +123,27 @@ def einsatz_name(einsatz):
     return einsatz.name or einsatzart_text(einsatz.art)
 
 
+def name_fuer_neuen(einsatz, einsaetze):
+    """Der eigene Name für einen Einsatz, der zu `einsaetze` dazukommt.
+
+    Gibt es seinen Namen dort noch nicht, bleibt er, wie er ist (leer = der
+    Name der Art, der mit der Sprache wechselt). Sonst bekommt er eine
+    Nummer: „Schruppen dynamisch 2“, „… 3“ – und die Kopie von „… 2“ wird
+    „… 3“. So bleiben die Zeilen im Vergleich und im Job unterscheidbar.
+    """
+    vergeben = {einsatz_name(e).lower() for e in einsaetze}
+    name = einsatz_name(einsatz)
+    if name.lower() not in vergeben:
+        return einsatz.name
+    stamm, zahl = name, 2
+    teile = name.rsplit(" ", 1)
+    if len(teile) == 2 and teile[1].isdecimal():
+        stamm, zahl = teile[0], int(teile[1]) + 1
+    while f"{stamm} {zahl}".lower() in vergeben:
+        zahl += 1
+    return f"{stamm} {zahl}"
+
+
 def vorlage(werkzeug, art):
     """Ein neuer Einsatz mit ae und ap als übliche Anteile von D vorbelegt.
 

@@ -264,7 +264,7 @@
     "wv.eigene_loeschen.tooltip": "Löscht die eigenen Werte für diesen Werkstoff; danach gelten wieder die Werte für alle Werkstoffe.",
     "wv.eigene_loeschen.frage": "Die eigenen Werte für {werkstoff} löschen? Danach gelten wieder die Werte für alle Werkstoffe.",
     "wv.einsatz.plus": "+ Einsatz",
-    "wv.einsatz.plus.tooltip": "Neue Zeile: ae und ap sind aus dem Durchmesser vorbelegt, vc und fz trägst du aus dem Katalog ein.",
+    "wv.einsatz.plus.tooltip": "Neue Zeile: ae und ap sind aus dem Durchmesser vorbelegt, vc und fz trägst du aus dem Katalog ein. Oder eine Kopie der gewählten Zeile – für eine Variante.",
     "wv.einsatz.minus": "− Einsatz",
     "wv.einsatz.minus.tooltip": "Löscht die gewählte Zeile.",
     "wv.einsatz.vollnut": "Vollnut",
@@ -502,5 +502,6 @@
     "wv.umrechnen.frage": "Der Durchmesser ändert sich von {alt} auf {neu} mm. Sollen ae und ap aller Einsätze mit umgerechnet werden – in demselben Verhältnis, für alle Werkstoffe? vc und fz bleiben, die stehen im Katalog.",
     "wv.eintauchwinkel": "Eintauchwinkel",
     "wv.eintauchwinkel.tooltip": "Wie steil der Fräser höchstens eintauchen darf – auf einer Rampe oder Helix. Steht im Katalog des Herstellers. „Schnittwerte in den Job“ trägt ihn im Adaptiv als Eintauchwinkel der Helix ein. Leer: FreeCADs Vorgabe.",
-    "sj.helix": "Helix {winkel}°"
+    "sj.helix": "Helix {winkel}°",
+    "wv.einsatz.kopieren": "Gewählte Zeile kopieren"
 }

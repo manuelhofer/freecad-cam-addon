@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-12 einsatz-kopieren
+
+### EINGELESEN
+- Manuels „Auswertung der Strategien aus den Werten“: Eine Variante (etwa
+  dynamisch mit ae 1,8 statt 1,2) musste man bisher als neue Zeile anlegen
+  und alle Werte abtippen. Zwei Zeilen hießen dann gleich – im Vergleich,
+  in „Schnittwerte in den Job“ und im Namen eines neuen
+  Werkzeug-Controllers nicht zu unterscheiden. Dasselbe passierte, wenn der
+  Planer ein zweites „Schruppen dynamisch“ anlegte.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`name_fuer_neuen()`: frei bleibt frei, sonst
+  „… 2“, „… 3“; die Kopie von „… 2“ wird „… 3“)
+- `camaddon/gui_schnittwerte.py` (Menü „+ Einsatz“ → „Gewählte Zeile
+  kopieren“, Kopie direkt unter der Zeile; neue Zeilen aus dem Menü und
+  vom Planer bekommen eine Nummer, wenn es den Namen schon gibt)
+- `translations/de.json`, `translations/en.json`
+- `help/de|en/schnittwerte.html`, `help/de|en/strategien.html`
+- `docs/spezifikation_werkzeugverwaltung.md` (Abschnitt 6.2)
+- `tests/test_werkzeuge.py`, `tests/gui/szenario_schnittwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Fräser mit „Schruppen dynamisch“ (ae 1,2) → Zeile
+wählen → „+ Einsatz ▾“ → „Gewählte Zeile kopieren“ → darunter steht
+„Schruppen dynamisch 2“ mit denselben Werten, die Kopie ist gewählt → dort
+ae 1,8 tippen → das Original behält 1,2 → „Strategien vergleichen…“ zeigt
+beide mit ihrem Namen.
+
+### DONE
+- Kopieren, Nummern für doppelte Namen, Hilfe (Varianten vergleichen).
+
+### TEST
+- `tests/test_werkzeuge.py`: Namen (frei, „… 2“, Kopie der 2, groß/klein,
+  „Vollnut 12“ → „Vollnut 13“).
+- `tests/gui/szenario_schnittwerte.py`: Vollnut kopieren → „Vollnut 2“
+  darunter und gewählt, ap 6 in der Kopie → Q 34,4, Original ap 3; Kopie
+  wieder löschen. Bild `1e_kopie`.
+- Menü offen und Kopie von „Schruppen dynamisch“ als Screenshot angesehen
+  (Wegwerf-Szenario, nicht im Repo).
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Manuel: Varianten anlegen und vergleichen – ist die Nummer im Namen
+  verständlich, oder lieber gleich ein eigener Name?
+
 ## P-2026-09-26-11 einsatz-am-namen
 
 ### EINGELESEN

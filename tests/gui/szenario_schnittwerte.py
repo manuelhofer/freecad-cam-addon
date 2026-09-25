@@ -104,6 +104,30 @@ def schritte(h):
     yield 100
     h.bild("1d_dialog_mit_eingriff", d)
 
+    # Gewählte Zeile kopieren: direkt darunter, mit Nummer im Namen, gleiche
+    # Werte; die Kopie ändern lässt das Original, wie es ist.
+    s.tabelle.setCurrentCell(0, gs.EINSATZ)
+    h.pruefe(s.aktion_kopieren.isEnabled(), "„Gewählte Zeile kopieren“ nicht bedienbar")
+    s.aktion_kopieren.trigger()
+    yield 100
+    h.pruefe(
+        s.tabelle.rowCount() == 3 and s.tabelle.currentRow() == 1,
+        f"Kopie: {s.tabelle.rowCount()} Zeilen, gewählt {s.tabelle.currentRow()}",
+    )
+    h.pruefe(zelle(d, 1, gs.EINSATZ) == "Vollnut 2", f"Name der Kopie {zelle(d, 1, gs.EINSATZ)!r}")
+    h.pruefe(zelle(d, 1, gs.Q) == "17,2", f"Q der Kopie {zelle(d, 1, gs.Q)!r}")
+    s.setze(1, gs.AP, "6")
+    yield 100
+    h.pruefe(
+        (zelle(d, 0, gs.AP), zelle(d, 1, gs.Q)) == ("3", "34,4"),
+        f"Original ap {zelle(d, 0, gs.AP)!r}, Kopie Q {zelle(d, 1, gs.Q)!r}",
+    )
+    h.bild("1e_kopie", d)
+    s.einsatz_entfernen()
+    yield 100
+    namen = [zelle(d, z, gs.EINSATZ) for z in range(s.tabelle.rowCount())]
+    h.pruefe(namen == ["Vollnut", "Schruppen dynamisch"], f"nach dem Löschen: {namen}")
+
     # 1.4301 ohne eigene Werte: grau, nicht bearbeitbar.
     d.waehle_werkstoff("1.4301")
     yield 200

@@ -8,6 +8,7 @@ bis man für den Werkstoff eigene Werte anlegt. Die Daten stehen in
 werkzeuge.py, das Rechnen in schnittdaten.py.
 """
 
+import dataclasses
 import math
 
 from PySide import QtCore, QtGui
@@ -82,6 +83,7 @@ class SchnittwertBereich(QtGui.QWidget):
         self.knopf_plus.setAutoDefault(False)
         self.menue_plus = QtGui.QMenu(self.knopf_plus)
         self.knopf_plus.setMenu(self.menue_plus)
+        self._menue_fuellen()
         zeile.addWidget(self.knopf_plus)
         self.knopf_minus = knopf(
             tr("wv.einsatz.minus"), tr("wv.einsatz.minus.tooltip"), self.einsatz_entfernen
@@ -209,11 +211,29 @@ class SchnittwertBereich(QtGui.QWidget):
         if not self._bearbeitbar:
             return None
         einsatz = wz.vorlage(self.werkzeug, art)
+        einsatz.name = wz.name_fuer_neuen(einsatz, self._liste)
         self._liste.append(einsatz)
         self._geaendert()
         self._fuellen()
         self.tabelle.setCurrentCell(len(self._liste) - 1, VC)
         return einsatz
+
+    def einsatz_kopieren(self):
+        """Kopie der gewählten Zeile direkt darunter, mit Nummer im Namen; gibt sie zurück.
+
+        Für Varianten: dieselben Werte, dann etwa ae ändern und beide unter
+        „Strategien vergleichen…“ nebeneinanderstellen.
+        """
+        einsatz = self.gewaehlt
+        if not self._bearbeitbar or einsatz is None:
+            return None
+        kopie = dataclasses.replace(einsatz, name=wz.name_fuer_neuen(einsatz, self._liste))
+        zeile = self.tabelle.currentRow() + 1
+        self._liste.insert(zeile, kopie)
+        self._geaendert()
+        self._fuellen()
+        self.tabelle.setCurrentCell(zeile, AE)
+        return kopie
 
     def einsatz_entfernen(self):
         """Entfernt die gewählte Zeile."""
@@ -272,6 +292,7 @@ class SchnittwertBereich(QtGui.QWidget):
         if not self._bearbeitbar:
             self.werkzeug.eigene_anlegen(self.werkstoff)
             self.auffrischen()
+        einsatz.name = wz.name_fuer_neuen(einsatz, self._liste)
         self._liste.append(einsatz)
         self._geaendert()
         self._fuellen()
@@ -326,6 +347,9 @@ class SchnittwertBereich(QtGui.QWidget):
         for art in arten:
             aktion = self.menue_plus.addAction(wz.einsatzart_text(art))
             aktion.triggered.connect(lambda _an=False, a=art: self.einsatz_anlegen(a))
+        self.menue_plus.addSeparator()
+        self.aktion_kopieren = self.menue_plus.addAction(tr("wv.einsatz.kopieren"))
+        self.aktion_kopieren.triggered.connect(lambda _an=False: self.einsatz_kopieren())
 
     def _fuellen(self):
         """Schreibt alle Zeilen neu; die gewählte Zeile bleibt gewählt."""
@@ -336,6 +360,7 @@ class SchnittwertBereich(QtGui.QWidget):
             self._zeile_schreiben(zeile, einsatz)
         self._fuellt = False
         self.knopf_minus.setEnabled(self._bearbeitbar and bool(self._liste))
+        self.aktion_kopieren.setEnabled(self._bearbeitbar and bool(self._liste))
         self.knopf_vergleich.setEnabled(not self._bohrer() and len(self._liste) >= 2)
         planbar = sw.moeglich(self.werkzeug)
         self.knopf_planen.setEnabled(planbar)

@@ -264,7 +264,7 @@
     "wv.eigene_loeschen.tooltip": "Deletes the own values for this material; the values for all materials apply again.",
     "wv.eigene_loeschen.frage": "Delete the own values for {werkstoff}? The values for all materials will apply again.",
     "wv.einsatz.plus": "+ Use case",
-    "wv.einsatz.plus.tooltip": "New row: ae and ap are prefilled from the diameter, you enter vc and fz from the catalogue.",
+    "wv.einsatz.plus.tooltip": "New row: ae and ap are prefilled from the diameter, you enter vc and fz from the catalogue. Or a copy of the selected row – for a variant.",
     "wv.einsatz.minus": "− Use case",
     "wv.einsatz.minus.tooltip": "Deletes the selected row.",
     "wv.einsatz.vollnut": "Full slot",
@@ -502,5 +502,6 @@
     "wv.umrechnen.frage": "The diameter changes from {alt} to {neu} mm. Should ae and ap of all use cases be converted as well – in the same ratio, for all materials? vc and fz stay, they come from the catalogue.",
     "wv.eintauchwinkel": "Ramp angle",
     "wv.eintauchwinkel.tooltip": "How steeply the cutter may plunge at most – on a ramp or helix. Stated in the manufacturer's catalogue. “Cutting data into the job” sets it as the helix entry angle in Adaptive. Empty: FreeCAD's default.",
-    "sj.helix": "helix {winkel}°"
+    "sj.helix": "helix {winkel}°",
+    "wv.einsatz.kopieren": "Copy the selected row"
 }

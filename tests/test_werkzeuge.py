@@ -166,6 +166,20 @@ pruefe(alle[0].vc == 0 and f.einsaetze("1.4301")[0].vc == 80, "eigene Werte nich
 pruefe(f.einsaetze("1.0503") is alle, "anderer Werkstoff erbt nicht")
 pruefe(f.hat_eigene("1.4301") and f.zum_bearbeiten("1.4301") is eigene, "eigene Werte")
 pruefe(wz.einsatz_name(eigene[1]) == "Schruppen dynamisch", wz.einsatz_name(eigene[1]))
+
+# Name einer neuen Zeile: frei bleibt er, sonst mit Nummer; die Kopie von „… 2“ wird „… 3“.
+pruefe(wz.name_fuer_neuen(wz.Einsatz(art=wz.SCHLICHTEN), eigene) == "", "freier Name nummeriert")
+pruefe(
+    wz.name_fuer_neuen(eigene[1], eigene) == "Schruppen dynamisch 2",
+    f"Kopie: {wz.name_fuer_neuen(eigene[1], eigene)!r}",
+)
+zweite = wz.Einsatz(art=wz.DYNAMISCH, name="Schruppen dynamisch 2")
+pruefe(wz.name_fuer_neuen(zweite, eigene + [zweite]) == "Schruppen dynamisch 3", "Kopie der 2")
+pruefe(wz.name_fuer_neuen(eigene[1], eigene + [zweite]) == "Schruppen dynamisch 3", "2 vergeben")
+pruefe(wz.name_fuer_neuen(wz.Einsatz(name="vollnut"), eigene) == "vollnut 2", "groß/klein gleich")
+zwoelf = wz.Einsatz(name="Vollnut 12")
+pruefe(wz.name_fuer_neuen(zwoelf, [zwoelf]) == "Vollnut 13", "Nummer am Ende weitergezählt")
+
 eigene[1].name = "HPC 2xD"
 pruefe(wz.einsatz_name(eigene[1]) == "HPC 2xD", "eigener Name")
 
