@@ -72,5 +72,7 @@ Keine bekannten.
 
 - **T-004** Fehler an FreeCAD melden: `Machine.from_dict` liest bei
   Linearachsen einen Ursprung ≠ (0,0,0) als Richtung (Befund und Beleg in
-  P-2026-09-25-20). Solange er besteht, übergibt das Addon Linearachsen mit
-  Ursprung 0.
+  P-2026-09-25-20, im Wochen-Build vom 2026-09-16 noch da). Solange er
+  besteht, übergibt das Addon Linearachsen mit Ursprung 0. **Der Bericht ist
+  fertig zum Einreichen:** [freecad_fehler_T-004.md](freecad_fehler_T-004.md)
+  – einreichen kann nur Manuel (GitHub-Konto).

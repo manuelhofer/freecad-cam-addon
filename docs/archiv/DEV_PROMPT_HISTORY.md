@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-14 t-004-fehlerbericht
+
+### EINGELESEN
+- T-004 im Snapshot: den Fehler in `Machine.from_dict` an FreeCAD melden.
+- Wochen-Build 26.3.0 dev vom 2026-09-16, `Mod/CAM/Machine/models/machine.py`:
+  `to_dict()` schreibt `[Ursprung, Richtung]`, `from_dict()` nimmt bei
+  Linearachsen den ersten Vektor als Richtung, sobald er nicht null ist –
+  der Fehler besteht weiter. FreeCAD 1.1.3 hat die Maschinenmodelle nicht.
+
+### DATEIEN
+- `docs/freecad_fehler_T-004.md` (neu: Weg zum Einreichen für Manuel, der
+  englische Text mit Nachstell-Skript, erwarteter und tatsächlicher Ausgabe
+  und einem Vorschlag zur Behebung)
+- `docs/STATUS_SNAPSHOT.md` (T-004 verweist darauf)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Manuel öffnet `docs/freecad_fehler_T-004.md`, folgt dem Link zu FreeCADs
+Issues und kann Titel und Abschnitte ohne Änderung übernehmen; das Skript
+im Text zeigt in der FreeCAD-Python-Konsole des Wochen-Builds genau die
+Ausgabe unter „Actual behavior“.
+
+### DONE
+- Bericht geschrieben, Skript und Vorschlag geprüft.
+
+### TEST
+- Das Skript aus dem Bericht (aus der Datei ausgeschnitten) in FreeCADCmd
+  des Wochen-Builds: Ausgabe Zeichen für Zeichen wie unter „Actual
+  behavior“.
+- Der Vorschlag an einer gepatchten Kopie von `machine.py`: Das Beispiel
+  kommt richtig zurück, ein alter Eintrag `[[0, 1, 0], [0, 0, 0]]` weiterhin
+  mit Richtung (0, 1, 0).
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Manuel reicht den Bericht ein und trägt die Nummer bei T-004 ein.
+
 ## P-2026-09-26-13 operationsnamen-wie-freecad
 
 ### EINGELESEN
