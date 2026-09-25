@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-70 entwurf-stufe-4
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 9: „Stufe 4 – Werkzeugbahn abfahren und
+  Kollision prüfen – eigene Spezifikation, wenn Stufe 3 steht.“ Stufe 3
+  steht (P-67, P-69).
+- FreeCAD: CAM-Simulator (Materialabtrag), Bahn der Operationen
+  (`op.Path.Commands`), Maschinendefinition des Wochen-Builds (Kinematik,
+  AxisRole).
+
+### DATEIEN
+- `docs/spezifikation_simulation.md` (neu, Entwurf)
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Verweis),
+  `CHATSTART.md` (Lesekarte), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Manuel liest den Entwurf und beantwortet die sechs Fragen in Abschnitt 9;
+danach ist klar, was 4a baut.
+
+### DONE
+- Zielbild (Reichweite, Abfahren, Kollision, Zeit), was es schon gibt,
+  Achsstellungen aus der Bahn (lineares Gleichungssystem für 3 Achsen,
+  Drehachsen zuerst bei 4/5 Achsen), Stufen 4a–4d, Oberfläche, Grenzen,
+  Prüfbarkeit, Fragen, Akzeptanzkriterien 4a.
+- Vorschlag: 4a „Reichweite prüfen“ zuerst – schnell gebaut, sofort
+  nützlich, und es klärt die Achszuordnung, die alle weiteren Stufen
+  brauchen.
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Manuels Antworten; dann 4a.
+
 ## P-2026-09-25-69 revolverplatz-waehlen
 
 ### EINGELESEN

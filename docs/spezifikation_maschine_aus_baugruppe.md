@@ -256,7 +256,8 @@ Patch.
   gewählte Platz dreht an die Stelle, an der beim Öffnen P1 stand.
 
 **Stufe 4 – Werkzeugbahn abfahren und Kollision prüfen** – eigene
-Spezifikation, wenn Stufe 3 steht.
+Spezifikation: [spezifikation_simulation.md](spezifikation_simulation.md)
+(Entwurf, P-2026-09-25-70, wartet auf Manuels Antworten).
 
 ## 10. Prüfbarkeit
 

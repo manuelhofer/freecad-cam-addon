@@ -22,8 +22,10 @@ GitHub Desktop an das private Repo?
 
 **Stufe 3 ist ebenfalls fertig** (P-2026-09-25-67): „Maschine verfahren“ –
 je Achse ein Regler, die Baugruppe fährt mit, Grenzen aus dem Gelenk.
-Danach Stufe 4: Werkzeugbahn abfahren und Kollision prüfen – dafür zuerst
-eine eigene Spezifikation.
+Danach Stufe 4: Werkzeugbahn abfahren und Kollision prüfen. Der Entwurf
+der Spezifikation steht ([spezifikation_simulation.md](spezifikation_simulation.md));
+**Manuel beantwortet die Fragen in Abschnitt 9**, dann geht es mit 4a
+(Reichweite prüfen) los.
 
 **W-002, Stufen 1 bis 3 sind fertig und automatisch geprüft:**
 Werkzeugverwaltung mit Werkstoffliste, Schnittwerten je Werkstoff und
