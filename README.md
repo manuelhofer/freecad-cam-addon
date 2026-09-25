@@ -18,6 +18,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   eingeben, Drehzahl, Vorschub und Zeitspanvolumen rechnet das Addon; ein
   Bild des Eingriffs; zwei Strategien vergleichen (Abtrag, Verschleiß) mit
   einem Urteil in Sätzen.
+- **An CAM übergeben:** die Werkzeuge als Werkzeugbibliothek „CAM-Addon“;
+  „Schnittwerte in den Job“ setzt Drehzahl und Vorschub der
+  Werkzeug-Controller eines Jobs passend zum Werkstoff des Rohteils.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).

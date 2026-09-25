@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-55 version-0-5-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Neu seit
+  0.4.0: Übergabe an CAM (P-52), Schnittwerte in den Job (P-53).
+
+### DATEIEN
+- `package.xml` (0.5.0, Beschreibung)
+- `README.md` („Was es kann“)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.5.0.
+
+### DONE
+- Version 0.4.0 → 0.5.0 für P-2026-09-25-52 bis -54.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; Bericht an Manuel.
+
 ## P-2026-09-25-54 gui-teile-gemeinsam
 
 ### EINGELESEN
