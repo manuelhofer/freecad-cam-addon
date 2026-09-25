@@ -20,7 +20,11 @@ gebaut.
 
 Ein Satz je Wunsch, W-ID fortlaufend.
 
-- *(noch leer)*
+- **W-001 Maschine aus Baugruppe** – die Maschine als grobes 3D-Modell in
+  einer Assembly aufbauen, Slider- und Revolute-Gelenke als Achsen benennen
+  und mit Kenndaten versehen (Eilgang, Drehzahl, Schwenkbereich …), daraus
+  die CAM-Maschinendefinition von FreeCAD erzeugen; später Grundlage für
+  Simulation und Kollisionsprüfung. Erster Schritt: Spezifikation.
 
 ## Offene Bugs
 

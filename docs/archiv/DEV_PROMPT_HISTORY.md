@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-06 wunsch-maschine-aus-baugruppe
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, Wunschliste.
+- FreeCAD-Quelltext (Wochen-Build 26.3.0 dev), um zu prüfen, ob es das schon
+  gibt: `Mod/CAM/Machine/models/machine.py` und `Mod/Assembly/JointObject.py`.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Wunschliste im Snapshot enthält W-001 „Maschine aus Baugruppe“.
+
+### DONE
+Manuels Vorstellung: Die Maschine wird grob in 3D nachgebaut und in einer
+Assembly zusammengesetzt. In die Bauteile gelegte Achsen bestimmen Richtung,
+Art (linear/drehend) und Namen, auch für mehrere Werkzeugachsen. Das soll das
+erste Addon werden.
+
+Befund aus dem FreeCAD-Check, damit die Spezifikation nicht bei null anfängt:
+
+- **Assembly** hat die passenden Gelenke `Slider` und `Revolute` mit
+  Min-/Max-Begrenzung und eine Simulation, die Gelenke antreibt.
+- **CAM** hat eine neue Maschinendefinition (`Mod/CAM/Machine/`) mit
+  kinematischer Kette (`AxisRole` Tisch/Kopf, `parent`, `joint_origin`),
+  Grenzen, `max_velocity` (linear in mm/min, Standard 10000; rotativ in °/min,
+  Standard 36000 = 100 U/min), `WrapStrategy` für endlose Rundachsen und
+  `tcp_supported`. **Keine Geometrie**, keine Beschleunigung.
+- Kollisionsprüfung gibt es nur für Eilgang-Verbindungen gegen Körper
+  (`Path/Base/Generator/linking.py`), nicht für Maschine oder Halter.
+
+Daraus ergibt sich die Richtung: Das Addon liest die Assembly aus und füllt
+die vorhandene CAM-Maschinendefinition. Es baut kein eigenes Format.
+
+### TEST
+- Keiner nötig (nur Snapshot).
+
+### NEXT
+- Spezifikation W-001: Achsparameter je Achsart klären.
+
 ## P-2026-09-25-05 zielversion-wochen-build
 
 ### EINGELESEN
