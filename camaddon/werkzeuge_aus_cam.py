@@ -38,6 +38,7 @@ class Bericht:
     schon_da: list = field(default_factory=list)  # gleiche Nummer, Art und Durchmesser
     neue_nummer: list = field(default_factory=list)  # (Name, Nummer in FreeCAD, neue Nummer)
     andere_form: list = field(default_factory=list)  # Formen, die es hier nicht gibt
+    unlesbar: list = field(default_factory=list)  # Fehler beim Lesen – steht im Bericht-Fenster
 
 
 def _assets():
@@ -117,33 +118,46 @@ def uebernehmen(bibliothek, adresse):
     Ein Werkzeug mit gleicher Nummer, Art und gleichem Durchmesser gibt es
     schon – es bleibt, wie es ist (mit seinen Schnittwerten). Ist nur die
     Nummer vergeben, bekommt das neue eine freie, die auch in der Quelle
-    nicht vorkommt – sonst schöbe es die folgenden Werkzeuge mit. Gespeichert
-    wird hier nichts – das macht der Dialog mit OK oder Übernehmen.
+    nicht vorkommt – sonst schöbe es die folgenden Werkzeuge mit. Ein
+    Werkzeug, das sich nicht lesen lässt, steht im Bericht; die anderen
+    kommen trotzdem. Gespeichert wird hier nichts – das macht der Dialog mit
+    OK oder Übernehmen.
     """
+    import FreeCAD
+
     quelle = _assets().get(adresse)
     bits = sorted(quelle.get_bits(), key=lambda b: quelle.get_bit_no_from_bit(b) or 0)
     in_der_quelle = {quelle.get_bit_no_from_bit(b) for b in bits}
     bericht = Bericht()
     for bit in bits:
         name = str(bit.label)
-        if str(bit.get_id()).startswith(PRAEFIX):
-            bericht.schon_da.append(name)  # vom Addon selbst übergeben
-            continue
-        nummer = quelle.get_bit_no_from_bit(bit) or _freie_nummer(bibliothek, in_der_quelle)
-        werkzeug = werkzeug_aus(bit, nummer)
-        if werkzeug is None:
-            bericht.andere_form.append(name)
-            continue
-        if _schon_da(bibliothek, werkzeug):
-            bericht.schon_da.append(name)
-            continue
-        if bibliothek.mit_nummer(werkzeug.nummer) is not None:
-            neue = _freie_nummer(bibliothek, in_der_quelle)
-            bericht.neue_nummer.append((name, werkzeug.nummer, neue))
-            werkzeug.nummer = neue
-        bibliothek.werkzeuge.append(werkzeug)
-        bericht.neu.append(werkzeug)
+        try:
+            _uebernehme_eines(bibliothek, bit, name, quelle, in_der_quelle, bericht)
+        except Exception as fehler:  # ein kaputtes Werkzeug soll die anderen nicht aufhalten
+            FreeCAD.Console.PrintWarning(f"CAM-Addon: Werkzeug {name}: {fehler}\n")
+            bericht.unlesbar.append(name)
     return bericht
+
+
+def _uebernehme_eines(bibliothek, bit, name, quelle, in_der_quelle, bericht):
+    """Ein Werkzeug der Quelle: übernehmen oder im Bericht sagen, warum nicht."""
+    if str(bit.get_id()).startswith(PRAEFIX):
+        bericht.schon_da.append(name)  # vom Addon selbst übergeben
+        return
+    nummer = quelle.get_bit_no_from_bit(bit) or _freie_nummer(bibliothek, in_der_quelle)
+    werkzeug = werkzeug_aus(bit, nummer)
+    if werkzeug is None:
+        bericht.andere_form.append(name)
+        return
+    if _schon_da(bibliothek, werkzeug):
+        bericht.schon_da.append(name)
+        return
+    if bibliothek.mit_nummer(werkzeug.nummer) is not None:
+        neue = _freie_nummer(bibliothek, in_der_quelle)
+        bericht.neue_nummer.append((name, werkzeug.nummer, neue))
+        werkzeug.nummer = neue
+    bibliothek.werkzeuge.append(werkzeug)
+    bericht.neu.append(werkzeug)
 
 
 def _schon_da(bibliothek, werkzeug):

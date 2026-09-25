@@ -88,6 +88,24 @@ pruefe(namen == ["Default"], f"mit kaputter Bibliothek: {namen}")
 bericht = aus_cam.uebernehmen(bibliothek, adresse)
 pruefe(not bericht.neu and len(bericht.schon_da) == 6, f"zweites Mal: {bericht}")
 
+# Ein Werkzeug, das sich nicht lesen lässt, hält die anderen nicht auf.
+original = aus_cam.werkzeug_aus
+
+
+def werkzeug_aus_mit_fehler(bit, nummer):
+    if str(bit.label) == "5mm Drill":
+        raise ValueError("kaputt")
+    return original(bit, nummer)
+
+
+aus_cam.werkzeug_aus = werkzeug_aus_mit_fehler
+leer = wz.Bibliothek()
+bericht = aus_cam.uebernehmen(leer, adresse)
+aus_cam.werkzeug_aus = original
+pruefe(bericht.unlesbar == ["5mm Drill"], f"unlesbar: {bericht.unlesbar}")
+# Sechs Werkzeuge in „Default“ haben eine bekannte Form, ohne den Bohrer fünf.
+pruefe(len(bericht.neu) == 5 and len(leer.werkzeuge) == 5, f"trotzdem übernommen: {bericht.neu}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()  # FreeCADCmd 1.1.3 schreibt Fortschritt ohne Zeilenende davor

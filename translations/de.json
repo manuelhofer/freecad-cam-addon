@@ -508,5 +508,6 @@
     "sj.ebenen": "{anzahl} Ebenen ({dicken} mm)",
     "sj.ebene_duenn": "{operation}: Die letzte Ebene ist nur {rest} mm dick – ein eigener Umlauf für wenig Material. Die Ebenen zählen ab der Oberkante des Rohteils, und die legt FreeCAD von sich aus 1 mm über das Modell (im Job: Materialkörper, „Erw. Z“ rechts).",
     "sj.ebene_duenn.ap": "Mit ap {ap} mm im Einsatz entfällt sie – die Schneide ist {laenge} mm lang.",
-    "sj.ohne_basis": "keine Bahn: Basisgeometrie fehlt"
+    "sj.ohne_basis": "keine Bahn: Basisgeometrie fehlt",
+    "wv.aus_cam.bericht.unlesbar": "Nicht lesbar – was FreeCAD dazu meldet, steht im Bericht-Fenster: {namen}."
 }

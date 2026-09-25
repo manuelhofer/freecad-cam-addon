@@ -508,5 +508,6 @@
     "sj.ebenen": "{anzahl} levels ({dicken} mm)",
     "sj.ebene_duenn": "{operation}: the last level is only {rest} mm thick – a pass of its own for little material. Levels count from the top of the stock, and by default FreeCAD puts it 1 mm above the model (in the job: Stock, the right field of “Ext. Z”).",
     "sj.ebene_duenn.ap": "With ap {ap} mm in the use case it goes away – the flute is {laenge} mm long.",
-    "sj.ohne_basis": "no path: base geometry missing"
+    "sj.ohne_basis": "no path: base geometry missing",
+    "wv.aus_cam.bericht.unlesbar": "Could not be read – what FreeCAD reports about it is in the Report view: {namen}."
 }

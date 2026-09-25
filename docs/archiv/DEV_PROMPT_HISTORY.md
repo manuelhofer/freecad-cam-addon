@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-24 aus-cam-robust
+
+### EINGELESEN
+- „Aus CAM übernehmen“ trifft morgen auf Manuels echte Bibliotheken. Warf
+  ein einzelnes Werkzeug beim Lesen einen Fehler, brach `uebernehmen()` ab:
+  Der Dialog meldete den Fehler, aber die schon übernommenen Werkzeuge
+  standen halb in der (ungespeicherten) Liste, ohne dass sie neu gezeigt
+  wurde.
+
+### DATEIEN
+- `camaddon/werkzeuge_aus_cam.py` (je Werkzeug abgesichert; Bericht
+  `unlesbar`, Meldung im Bericht-Fenster von FreeCAD)
+- `camaddon/gui_werkzeuge.py` (Rückmeldung nennt die unlesbaren)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_werkzeuge_aus_cam.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → „Aus CAM übernehmen ▾“ → eine Bibliothek, in der ein
+Werkzeug kaputt ist → die übrigen erscheinen in der Liste; die Rückmeldung
+sagt „Nicht lesbar – … Bericht-Fenster: <Name>“.
+
+### DONE
+- Ein Fehler betrifft nur sein Werkzeug; es steht im Bericht, die anderen
+  werden übernommen.
+
+### TEST
+- `tests/test_werkzeuge_aus_cam.py` (beide Versionen): ein Werkzeug, das
+  beim Lesen einen Fehler wirft („5mm Drill“) → `unlesbar`, die übrigen
+  fünf bekannten Formen übernommen. `szenario_aus_cam` weiter grün.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- —
+
 ## P-2026-09-26-23 version-0-11-0
 
 ### EINGELESEN

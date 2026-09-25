@@ -784,6 +784,8 @@ def aus_cam_text(bericht):
         absaetze.append(tr("wv.aus_cam.bericht.schon_da", namen=", ".join(bericht.schon_da)))
     if bericht.andere_form:
         absaetze.append(tr("wv.aus_cam.bericht.andere_form", namen=", ".join(bericht.andere_form)))
+    if bericht.unlesbar:
+        absaetze.append(tr("wv.aus_cam.bericht.unlesbar", namen=", ".join(bericht.unlesbar)))
     if bericht.neu:
         absaetze.append(tr("wv.aus_cam.bericht.weiter"))
     return "\n\n".join(absaetze)
