@@ -88,7 +88,10 @@ ein ASCII-Entwurf des Dialogs reicht.
 
 ## 5. Nach der Änderung: Pflichtprüfung
 
-- `python -m py_compile` über **alle** geänderten Python-Dateien.
+- **Einheitlich und ohne Befund:** `black .` formatiert, `ruff check .` meldet
+  nichts (Einstellungen in `pyproject.toml`, wie bei FreeCAD: Zeilenlänge
+  100). Ein `# noqa` braucht eine Begründung in derselben Zeile.
+  `scripts/alle_tests.sh` prüft das als Erstes.
 - Was sich ohne Oberfläche prüfen lässt (Berechnungen, Vorlagen, Einlesen von
   Einstellungen, Anlegen von Jobs und Operationen), bekommt eine
   **wiederholbare** Prüfung unter `tests/`, die mit `FreeCADCmd` ohne Fenster
@@ -175,7 +178,11 @@ Nur was dafür zu groß ist (z. B. ganze Vorlagensätze), kommt als Datei unter
 
 **Stil:**
 
-- Klein und lesbar, sinnvolles OOP ohne Vererbungsbäume.
+- Klein und lesbar, sinnvolles OOP ohne Vererbungsbäume. Geschrieben für
+  einen Menschen, der den Code zum ersten Mal liest: jedes Modul beginnt mit
+  einem Docstring, was es tut und wie es in das Ganze passt; jede
+  öffentliche Funktion und Klasse hat einen Docstring. Lieber eine kleine
+  Hilfsfunktion mit gutem Namen als dieselben drei Zeilen an drei Stellen.
 - **Deutsch:** eigene Bezeichner, Kommentare, Dokumentation. Namen aus
   FreeCAD und Qt bleiben, wie sie sind. Texte der Oberfläche stehen **nie** im
   Code, sondern in den Sprachdateien (Abschnitt 8).

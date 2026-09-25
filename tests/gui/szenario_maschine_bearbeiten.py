@@ -5,7 +5,6 @@
 import os
 import sys
 
-import FreeCAD as App
 import FreeCADGui as Gui
 from PySide import QtGui
 
@@ -39,7 +38,9 @@ def schritte(h):
     yield 500
 
     import beispielmaschinen
-    from camaddon import gui_maschine, maschine as m
+
+    from camaddon import gui_maschine
+    from camaddon import maschine as m
 
     asm = beispielmaschinen.drehmaschine()
     doc = asm.Document
@@ -57,7 +58,9 @@ def schritte(h):
     if panel is None:
         return
     h.bild("1_leer")
-    h.pruefe(panel.hinweise.count() == 2, f"leere Maschine: {panel.hinweise.count()} Hinweise statt 2")
+    h.pruefe(
+        panel.hinweise.count() == 2, f"leere Maschine: {panel.hinweise.count()} Hinweise statt 2"
+    )
     h.pruefe(panel.knopf_betriebsart.isEnabled(), "„+ Betriebsart“ ist beim Öffnen nicht bedienbar")
 
     # Betriebsarten anlegen – wie ein Benutzer: Gelenk wählen, Art wählen, Felder füllen.
@@ -94,23 +97,37 @@ def schritte(h):
     yield 300
     h.bild("3_verteilen", dialog)
     angeboten = [dialog.wahl_lcs.itemText(i) for i in range(dialog.wahl_lcs.count())]
-    h.pruefe(angeboten == ["Werkzeugplatz"], f"Verteilhilfe bietet {angeboten} an statt nur den Werkzeugplatz")
+    h.pruefe(
+        angeboten == ["Werkzeugplatz"],
+        f"Verteilhilfe bietet {angeboten} an statt nur den Werkzeugplatz",
+    )
     alle = [o.Label for o in panel._alle_lcs()]
-    h.pruefe(not any(n.startswith("Origin") for n in alle), f"Ursprünge als Koordinatensystem angeboten: {alle}")
+    h.pruefe(
+        not any(n.startswith("Origin") for n in alle),
+        f"Ursprünge als Koordinatensystem angeboten: {alle}",
+    )
     dialog.accept()
     m.verteile_plaetze(panel.maschine, panel.kette, rev, doc.getObject("Werkzeugplatz"), 12)
     doc.recompute()
     panel._fuelle_alles()
     yield 500
 
-    h.pruefe(panel.aufnahmen.topLevelItemCount() == 2, f"{panel.aufnahmen.topLevelItemCount()} Einträge oben statt 2 (Revolver-Gruppe, Futter)")
+    h.pruefe(
+        panel.aufnahmen.topLevelItemCount() == 2,
+        f"{panel.aufnahmen.topLevelItemCount()} Einträge oben statt 2 (Revolver-Gruppe, Futter)",
+    )
     gruppe = panel.aufnahmen.topLevelItem(0)
-    h.pruefe(gruppe.childCount() == 12 and "12" in gruppe.text(0), f"Revolver-Gruppe: {gruppe.text(0)}, {gruppe.childCount()} Plätze")
+    h.pruefe(
+        gruppe.childCount() == 12 and "12" in gruppe.text(0),
+        f"Revolver-Gruppe: {gruppe.text(0)}, {gruppe.childCount()} Plätze",
+    )
     del gruppe  # keine Zeilen-Objekte über einen Neuaufbau der Liste hinweg festhalten
     futter = panel.aufnahmen.topLevelItem(1).text(0)
     h.pruefe(futter.startswith("Futter  ·"), f"Aufnahme heißt nicht „Futter“: {futter}")
     texte = [panel.hinweise.item(i).text() for i in range(panel.hinweise.count())]
-    h.pruefe(texte == ["Alles vollständig – keine Hinweise."], f"Hinweise nach dem Ausfüllen: {texte}")
+    h.pruefe(
+        texte == ["Alles vollständig – keine Hinweise."], f"Hinweise nach dem Ausfüllen: {texte}"
+    )
     panel.aufnahmen.setCurrentItem(eintrag(panel.aufnahmen, "P3"))
     yield 300
     h.bild("4_vollstaendig_p3_gewaehlt")
@@ -121,11 +138,17 @@ def schritte(h):
     tippen(feld(panel, 1), "")
     yield 300
     texte = [panel.hinweise.item(i).text() for i in range(panel.hinweise.count())]
-    h.pruefe(any("X1" in t and "Eilgang" in t for t in texte), f"fehlender Eilgang nicht gemeldet: {texte}")
+    h.pruefe(
+        any("X1" in t and "Eilgang" in t for t in texte),
+        f"fehlender Eilgang nicht gemeldet: {texte}",
+    )
     panel.aufnahmen.setCurrentItem(None)
     panel._hinweis_geklickt(panel.hinweise.item(0))
     aktuell = panel.achsen.currentItem()
-    h.pruefe(aktuell is not None and aktuell.text(0).startswith("X1"), "Klick auf Hinweis springt nicht zu X1")
+    h.pruefe(
+        aktuell is not None and aktuell.text(0).startswith("X1"),
+        "Klick auf Hinweis springt nicht zu X1",
+    )
     del aktuell
     tippen(feld(panel, 1), "24000")
     yield 300
@@ -133,7 +156,10 @@ def schritte(h):
 
     panel.accept()
     yield 500
-    h.pruefe(len(doc.UndoNames) == undo_vorher + 1, f"OK ergibt {len(doc.UndoNames) - undo_vorher} Rückgängig-Schritte statt 1")
+    h.pruefe(
+        len(doc.UndoNames) == undo_vorher + 1,
+        f"OK ergibt {len(doc.UndoNames) - undo_vorher} Rückgängig-Schritte statt 1",
+    )
     ma = m.finde_maschine(asm)
     namen = sorted(ba.NcName for ba in m.betriebsarten(ma)) if ma else []
     h.pruefe(namen == ["C4", "S4", "T", "X1", "Z1"], f"nach OK: {namen}")

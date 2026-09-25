@@ -5,11 +5,12 @@ import glob
 import os
 import re
 import sys
+from pathlib import Path
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
-from camaddon import hilfe  # noqa: E402
+from camaddon import hilfe
 
 fehler = []
 for code in ("de", "en"):
@@ -18,19 +19,21 @@ for code in ("de", "en"):
         if not os.path.isfile(pfad):
             fehler.append(f"fehlt: help/{code}/{thema}.html")
             continue
-        text = open(pfad, encoding="utf-8").read()
+        text = Path(pfad).read_text("utf-8")
         if "<h2>" not in text:
             fehler.append(f"help/{code}/{thema}.html hat keine Überschrift")
         for ziel in re.findall(r'href="([^"#:]+)"', text):
             if not os.path.isfile(os.path.join(ADDON, "help", code, ziel)):
                 fehler.append(f"help/{code}/{thema}.html verweist auf fehlende Seite {ziel}")
-    ueberzaehlig = {os.path.basename(p)[:-5] for p in glob.glob(os.path.join(ADDON, "help", code, "*.html"))}
+    ueberzaehlig = {
+        os.path.basename(p)[:-5] for p in glob.glob(os.path.join(ADDON, "help", code, "*.html"))
+    }
     ueberzaehlig -= set(hilfe.THEMEN)
     if ueberzaehlig:
         fehler.append(f"help/{code}: Seiten ohne Thema in hilfe.THEMEN: {sorted(ueberzaehlig)}")
 
 # Themen, die der Dialog aufruft, müssen in THEMEN stehen.
-code = open(os.path.join(ADDON, "camaddon", "gui_maschine.py"), encoding="utf-8").read()
+code = Path(ADDON, "camaddon", "gui_maschine.py").read_text("utf-8")
 benutzt = set(re.findall(r'_kopfzeile\([^)]*,\s*"([a-z_]+)"\)', code))
 benutzt |= set(re.findall(r'href="([a-z_]+)"', code))
 if not benutzt:

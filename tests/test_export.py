@@ -9,11 +9,11 @@ HIER = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HIER))
 sys.path.insert(0, HIER)
 
-import FreeCAD as App  # noqa: E402
+import beispielmaschinen
+import FreeCAD as App
 
-import beispielmaschinen  # noqa: E402
-from camaddon import export, maschine as m, sprache  # noqa: E402
-
+from camaddon import export, sprache
+from camaddon import maschine as m
 
 fehler = []
 
@@ -37,7 +37,9 @@ def pruefen():
     MachineFactory.set_config_directory(tempfile.mkdtemp())
 
     asm, ma = beispielmaschinen.drehmaschine_komplett()
-    pruefe(m.pruefe(ma) == [], f"Beispielmaschine nicht vollständig: {[x.text for x in m.pruefe(ma)]}")
+    pruefe(
+        m.pruefe(ma) == [], f"Beispielmaschine nicht vollständig: {[x.text for x in m.pruefe(ma)]}"
+    )
     bericht = export.exportiere(ma)
     pruefe(bericht.datei is not None and bericht.datei.is_file(), "keine .fcm-Datei geschrieben")
     pruefe(bericht.datei.name == "Testdrehmaschine.fcm", f"Dateiname: {bericht.datei.name}")
@@ -45,17 +47,24 @@ def pruefen():
     cam = MachineFactory.load_configuration(bericht.datei)
     pruefe(sorted(cam.linear_axes) == ["X1", "Z1"], f"Linearachsen: {sorted(cam.linear_axes)}")
     pruefe(sorted(cam.rotary_axes) == ["C4"], f"Drehachsen: {sorted(cam.rotary_axes)}")
-    pruefe([t.name for t in cam.toolheads] == ["S4"] and cam.toolheads[0].max_rpm == 4000,
-           f"Spindeln: {[(t.name, t.max_rpm) for t in cam.toolheads]}")
+    pruefe(
+        [t.name for t in cam.toolheads] == ["S4"] and cam.toolheads[0].max_rpm == 4000,
+        f"Spindeln: {[(t.name, t.max_rpm) for t in cam.toolheads]}",
+    )
 
     x1, z1, c4 = cam.linear_axes.get("X1"), cam.linear_axes.get("Z1"), cam.rotary_axes.get("C4")
     if x1 and z1 and c4:
         pruefe(parallel(x1.direction_vector, 1, 0, 0), "X1: Richtung X erwartet")
-        pruefe((x1.min_limit, x1.max_limit) == (0, 200), f"X1: Grenzen {x1.min_limit}/{x1.max_limit}")
+        pruefe(
+            (x1.min_limit, x1.max_limit) == (0, 200), f"X1: Grenzen {x1.min_limit}/{x1.max_limit}"
+        )
         pruefe(x1.max_velocity == 24000, f"X1: Eilgang {x1.max_velocity}")
         pruefe(x1.parent == "Z1", f"X1 hängt an {x1.parent!r} statt Z1")
         pruefe(z1.parent is None, f"Z1 hängt an {z1.parent!r}")
-        pruefe(x1.role == AxisRole.HEAD_LINEAR and z1.role == AxisRole.HEAD_LINEAR, "X1/Z1 nicht im Kopf")
+        pruefe(
+            x1.role == AxisRole.HEAD_LINEAR and z1.role == AxisRole.HEAD_LINEAR,
+            "X1/Z1 nicht im Kopf",
+        )
         pruefe(c4.role == AxisRole.TABLE_ROTARY, "C4 nicht im Tisch")
         pruefe(parallel(c4.rotation_vector, 0, 0, 1), "C4: Drehachse Z erwartet")
         pruefe(c4.max_velocity == 36000, f"C4: {c4.max_velocity} °/min statt 36000 (100 U/min)")
@@ -63,15 +72,29 @@ def pruefen():
 
     nicht = " ".join(bericht.nicht_uebertragen)
     pruefen = " ".join(bericht.zu_pruefen)
-    pruefe("„Z1“ hat am Gelenk keine Begrenzung" in pruefen, "fehlende Grenzen an Z1 nicht unter „Bitte prüfen“")
-    pruefe("Drehachse C4, bis 100 U/min" in " ".join(bericht.uebertragen), "C4 nicht in U/min berichtet")
-    pruefe("Beschleunigung von „X1“" in nicht, "Beschleunigung von X1 nicht als nicht übertragen berichtet")
+    pruefe(
+        "„Z1“ hat am Gelenk keine Begrenzung" in pruefen,
+        "fehlende Grenzen an Z1 nicht unter „Bitte prüfen“",
+    )
+    pruefe(
+        "Drehachse C4, bis 100 U/min" in " ".join(bericht.uebertragen),
+        "C4 nicht in U/min berichtet",
+    )
+    pruefe(
+        "Beschleunigung von „X1“" in nicht,
+        "Beschleunigung von X1 nicht als nicht übertragen berichtet",
+    )
     pruefe("Revolver „T“ mit 12 Plätzen" in nicht, "Revolver nicht berichtet")
-    pruefe("{" not in nicht + pruefen + " ".join(bericht.uebertragen), "Platzhalter im Bericht nicht gefüllt")
+    pruefe(
+        "{" not in nicht + pruefen + " ".join(bericht.uebertragen),
+        "Platzhalter im Bericht nicht gefüllt",
+    )
 
     # CAM findet die Maschine; zweiter Export überschreibt statt zu verdoppeln.
-    pruefe("Testdrehmaschine" in MachineFactory.list_configurations(),
-           f"CAM kennt die Maschine nicht: {MachineFactory.list_configurations()}")
+    pruefe(
+        "Testdrehmaschine" in MachineFactory.list_configurations(),
+        f"CAM kennt die Maschine nicht: {MachineFactory.list_configurations()}",
+    )
     export.exportiere(ma)
     anzahl = len([n for n in MachineFactory.list_configurations() if n == "Testdrehmaschine"])
     pruefe(anzahl == 1, f"nach zweitem Export {anzahl}× in der Liste")
@@ -82,7 +105,10 @@ def pruefen():
 if not export.verfuegbar():
     # FreeCAD 1.1.x hat keine CAM-Maschinendefinition – dort erklärt der
     # Dialog das; geprüft wird es in szenario_uebergeben.
-    print("UEBERSPRUNGEN", os.path.basename(__file__) + ": keine CAM-Maschinendefinition in dieser FreeCAD-Version")
+    print(
+        "UEBERSPRUNGEN",
+        os.path.basename(__file__) + ": keine CAM-Maschinendefinition in dieser FreeCAD-Version",
+    )
 else:
     pruefen()
     assert not fehler, "\n".join(fehler)

@@ -52,8 +52,10 @@ class Wackeln:
         self.richtung = in_assembly.Rotation.multVec(gelenk.richtung)
         self.ursprung = in_assembly.multVec(gelenk.ursprung)
         if gelenk.art == LINEAR:
-            groesse = max((k.Shape.BoundBox.DiagonalLength for k in self.koerper if hasattr(k, "Shape")),
-                          default=100.0)
+            groesse = max(
+                (k.Shape.BoundBox.DiagonalLength for k in self.koerper if hasattr(k, "Shape")),
+                default=100.0,
+            )
             self.weite = min(max(groesse * WEG_ANTEIL, WEG_MIN), WEG_MAX)
         else:
             self.weite = WINKEL

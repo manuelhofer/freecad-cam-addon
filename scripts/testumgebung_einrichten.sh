@@ -4,6 +4,7 @@
 #   fcenv         aktueller Wochen-Build (Entwicklerversion)
 #   fcenv-stabil  aktuelle stabile Version (derzeit 1.1.x), mit Python 3.11
 #                 wie in den offiziellen Paketen
+#   werkzeuge     black und ruff (Formatierung und Pruefung des Codes)
 # Gedacht fuer Linux-Container (Cloud-Sitzung, CI); auf dem eigenen Rechner
 # reicht das normale FreeCAD.
 #
@@ -36,3 +37,10 @@ einrichten "$basis/fcenv" freecad "python=3.12" defusedxml
 # Wochen-Builds tragen ein Datum als Versionsnummer (2026.09.16), stabile
 # Versionen 1.x - "freecad<2000" ist also die neueste stabile.
 einrichten "$basis/fcenv-stabil" "freecad<2000" "python=3.11" defusedxml
+
+if [ -x "$basis/werkzeuge/bin/ruff" ]; then
+    "$basis/mm/bin/micromamba" update -y -q -p "$basis/werkzeuge" -c conda-forge black ruff
+else
+    "$basis/mm/bin/micromamba" create -y -q -p "$basis/werkzeuge" -c conda-forge black ruff "python=3.12"
+fi
+echo "Werkzeuge bereit: $basis/werkzeuge/bin/black, $basis/werkzeuge/bin/ruff"

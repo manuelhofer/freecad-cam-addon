@@ -6,11 +6,12 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from pathlib import Path
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
-from camaddon import aktualisierung as a  # noqa: E402
+from camaddon import aktualisierung as a
 
 fehler = []
 
@@ -28,10 +29,12 @@ def git(*argumente, ordner=None):
 
 
 def neue_version(arbeit, version):
-    pfad = os.path.join(arbeit, "package.xml")
-    text = open(pfad, encoding="utf-8").read()
-    text = re.sub(r"<version>[^<]+</version>", f"<version>{version}</version>", text)
-    open(pfad, "w", encoding="utf-8").write(text)
+    """Setzt in `arbeit` eine neue Version und schiebt sie nach „GitHub“."""
+    pfad = Path(arbeit, "package.xml")
+    text = re.sub(
+        r"<version>[^<]+</version>", f"<version>{version}</version>", pfad.read_text("utf-8")
+    )
+    pfad.write_text(text, "utf-8")
     git("commit", "-q", "-am", f"Version {version}", ordner=arbeit)
     git("push", "-q", "origin", "HEAD:main", ordner=arbeit)
 
@@ -43,14 +46,17 @@ arbeit = os.path.join(basis, "arbeit")
 git("clone", "-q", "--bare", "--branch", "main", ADDON, fern)
 git("clone", "-q", fern, installiert)
 git("clone", "-q", fern, arbeit)
-jetzt = a._version(open(os.path.join(installiert, "package.xml"), encoding="utf-8").read())
+jetzt = a._version(Path(installiert, "package.xml").read_text("utf-8"))
 
 e = a.pruefe(installiert)
 pruefe(e.status == a.AKTUELL and e.version_jetzt == jetzt, f"frisch geklont: {e}")
 
 neue_version(arbeit, "9.9.0")
 e = a.pruefe(installiert)
-pruefe(e.status == a.NEU and e.version_neu == "9.9.0" and e.version_jetzt == jetzt, f"nach neuer Version: {e}")
+pruefe(
+    e.status == a.NEU and e.version_neu == "9.9.0" and e.version_jetzt == jetzt,
+    f"nach neuer Version: {e}",
+)
 
 a.aktualisiere(installiert)
 e = a.pruefe(installiert)

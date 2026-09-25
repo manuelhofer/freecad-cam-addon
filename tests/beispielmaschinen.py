@@ -132,7 +132,8 @@ def fuenfachser(zweites_lager=True):
 def drehmaschine_komplett():
     """Die Drehmaschine mit fertig ausgefülltem Maschinenobjekt: Z1, X1, S4/C4
     an der Spindel, Revolver T mit 12 Plätzen, Futter als Werkstückaufnahme."""
-    from camaddon import kette, maschine as m
+    from camaddon import kette
+    from camaddon import maschine as m
 
     asm = drehmaschine()
     obj = asm.Document.getObject

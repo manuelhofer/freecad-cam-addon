@@ -20,6 +20,7 @@ def schritte(h):
     yield 300
 
     import beispielmaschinen
+
     from camaddon import export, gui_maschine
 
     if export.verfuegbar():
@@ -40,8 +41,10 @@ def schritte(h):
         yield 500
         hinweis = h.modal()
         text = hinweis.text() if hinweis is not None else ""
-        h.pruefe("kennt noch keine Maschinendefinition" in text and "Wochen-Build" in text,
-                 f"Erklärung fehlt oder falsch: {text!r}")
+        h.pruefe(
+            "kennt noch keine Maschinendefinition" in text and "Wochen-Build" in text,
+            f"Erklärung fehlt oder falsch: {text!r}",
+        )
         if hinweis is not None:
             h.bild("1_nicht_verfuegbar", hinweis)
             hinweis.done(0)
@@ -55,9 +58,13 @@ def schritte(h):
     h.pruefe(fenster is not None and fenster.isVisible(), "Berichtsfenster erscheint nicht")
     if fenster:
         text = fenster.text.toPlainText()
-        h.pruefe("„Testdrehmaschine“ steht jetzt in CAM zur Auswahl" in text, f"Bericht: {text[:120]!r}")
+        h.pruefe(
+            "„Testdrehmaschine“ steht jetzt in CAM zur Auswahl" in text, f"Bericht: {text[:120]!r}"
+        )
         h.pruefe("Linearachse X1" in text and "Spindel S4" in text, "Bericht nennt X1/S4 nicht")
         h.pruefe("Revolver „T“ mit 12 Plätzen" in text, "Bericht nennt den Revolver nicht")
         h.bild("1_bericht", fenster)
-    h.pruefe("Testdrehmaschine" in MachineFactory.list_configurations(), "CAM listet die Maschine nicht")
+    h.pruefe(
+        "Testdrehmaschine" in MachineFactory.list_configurations(), "CAM listet die Maschine nicht"
+    )
     panel.accept()

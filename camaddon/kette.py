@@ -26,6 +26,7 @@ STARR = {"Fixed"}
 HINWEIS = "hinweis"
 WARNUNG = "warnung"
 
+
 @dataclass
 class Meldung:
     schwere: str
@@ -125,7 +126,9 @@ def _grenzen(gelenk_objekt, art):
         return float(getattr(gelenk_objekt, name).getValueAs(einheit))
 
     if art == LINEAR:
-        return wert("EnableLengthMin", "LengthMin", "mm"), wert("EnableLengthMax", "LengthMax", "mm")
+        return wert("EnableLengthMin", "LengthMin", "mm"), wert(
+            "EnableLengthMax", "LengthMax", "mm"
+        )
     return wert("EnableAngleMin", "AngleMin", "deg"), wert("EnableAngleMax", "AngleMax", "deg")
 
 
@@ -236,7 +239,9 @@ def lies_kette(assembly):
                 if vorhanden:
                     meldungen.append(
                         meldung(
-                            "kette.doppelt_gelagert", gelenk=objekt.Label, erstes=vorhanden.objekt.Label
+                            "kette.doppelt_gelagert",
+                            gelenk=objekt.Label,
+                            erstes=vorhanden.objekt.Label,
                         )
                     )
                 else:

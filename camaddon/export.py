@@ -138,8 +138,10 @@ def baue_cam_maschine(maschine, kette=None):
                 # Im Bericht in der Einheit, in der sie eingegeben wurde.
                 tr("export.dreh", name=name, geschwindigkeit=_zahl(achse.max_velocity / 360.0))
             )
-        if gelenk.minimum is None and gelenk.maximum is None and not (
-            gelenk.art != LINEAR and ba.Endlos
+        if (
+            gelenk.minimum is None
+            and gelenk.maximum is None
+            and not (gelenk.art != LINEAR and ba.Endlos)
         ):
             bericht.zu_pruefen.append(tr("export.ohne_grenzen", name=name))
         for eigenschaft in ("VorschubMax", "Beschleunigung", "Ruck"):

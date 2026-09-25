@@ -1,0 +1,38 @@
+# Werkzeuge für einheitlichen, sauberen Python-Code – dieselben Einstellungen,
+# mit denen FreeCAD selbst arbeitet (black, Zeilenlänge 100).
+#
+#   black .        formatieren
+#   ruff check .   auf Fehler und unsaubere Stellen prüfen
+#
+# Beides ist Teil der Pflichtprüfung (docs/arbeitsregeln.md, Abschnitt 5).
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+# FreeCAD 1.1.x bringt Python 3.11 mit – nichts Neueres verwenden.
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E", "W",  # Stil nach PEP 8
+    "F",       # Fehler: unbenutzte Importe und Variablen, undefinierte Namen
+    "B",       # typische Fehlerquellen (bugbear)
+    "I",       # Reihenfolge der Importe
+    "UP",      # veraltete Schreibweisen für Python 3.11
+    "SIM",     # unnötig umständliche Konstrukte
+    "C4",      # Listen- und Dict-Ausdrücke
+]
+ignore = [
+    "E501",  # Zeilenlänge regelt black; lange Texte in Tests bleiben lesbar am Stück
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests setzen erst den Suchpfad (sys.path) und importieren danach das Addon.
+"tests/**" = ["E402"]
+
+[tool.ruff.lint.isort]
+# Diese Module kommen von FreeCAD, nicht aus der Python-Umgebung.
+known-third-party = ["FreeCAD", "FreeCADGui", "PySide", "Part", "JointObject", "UtilsAssembly"]

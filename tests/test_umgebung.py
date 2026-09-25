@@ -4,7 +4,7 @@
 import os
 
 import FreeCAD
-import Part
+import Part  # noqa: F401 – lädt das Part-Modul, damit es den Objekttyp „Part::Box“ gibt
 from Path.Main import Job  # noqa: F401 – der Import selbst ist die Prüfung
 
 print("FreeCAD", ".".join(FreeCAD.Version()[:3]), FreeCAD.Version()[3])

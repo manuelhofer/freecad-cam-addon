@@ -11,7 +11,7 @@ import sys
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
-from camaddon import sprache  # noqa: E402
+from camaddon import sprache
 
 fehler = []
 

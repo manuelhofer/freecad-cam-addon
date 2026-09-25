@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-27 black-und-ruff
+
+### EINGELESEN
+- Manuels Auftrag: Code gut dokumentiert, kommentiert, für jeden menschlichen
+  Programmierer leicht lesbar und sauber, „kein AI-Slop“. Das Vorhandene soll
+  kontrolliert und „to the max“ optimiert werden. Dieser Patch ist der erste,
+  mechanische Schritt dazu. Die Durchsicht von Hand folgt als eigene Patches.
+
+### DATEIEN
+- `pyproject.toml` (neu: Einstellungen für black und ruff)
+- Alle Python-Dateien (Formatierung, Reihenfolge der Importe)
+- Tests: Dateien über `Path.read_text`/`write_text` statt offener `open()`,
+  unbenutzte Importe entfernt oder begründet
+- `scripts/testumgebung_einrichten.sh` (installiert black und ruff mit),
+  `scripts/alle_tests.sh` (prüft sie als Erstes)
+- `docs/arbeitsregeln.md` (Abschnitte 5 und 7), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`black --check .` und `ruff check .` melden nichts, und `scripts/alle_tests.sh`
+ist in beiden FreeCAD-Versionen grün.
+
+### DONE
+- **Werkzeuge wie bei FreeCAD:** black (Zeilenlänge 100) und ruff. Geprüft
+  werden Stil, unbenutzte Namen, typische Fehlerquellen, Importreihenfolge,
+  veraltete Schreibweisen für Python 3.11 und unnötig umständliche
+  Konstrukte. Python 3.11 ist der Stand, den FreeCAD 1.1.x mitbringt.
+- **Ausgangslage:**
+  - 19 von 30 Dateien waren uneinheitlich formatiert.
+  - 23 Befunde, fast alle in den Tests:
+    - `open()` ohne `with`
+    - unsortierte Importe
+    - zwei unbenutzte Importe
+- **Behoben:**
+  - Dateien lesen die Tests jetzt über `Path(…).read_text("utf-8")`.
+  - Der Import von `Part` in `test_umgebung.py` ist nötig, weil er den
+    Objekttyp `Part::Box` registriert. Er bleibt, jetzt mit Begründung.
+  - Das offen bleibende Absturzprotokoll im Szenario-Läufer ist begründet
+    markiert.
+  - Die Tests müssen den Suchpfad vor dem Import setzen. Statt sieben
+    verstreuter `# noqa: E402` gibt es jetzt eine Ausnahme für `tests/` in
+    `pyproject.toml`.
+- **Neue Regeln** (Abschnitte 5 und 7):
+  - black und ruff ohne Befund
+  - jedes `noqa` mit Begründung
+  - Docstrings für Module und öffentliche Funktionen
+  - Hilfsfunktion statt Wiederholung
+
+### TEST
+- Von der KI ausgeführt: `scripts/alle_tests.sh` ergibt „ok black, ruff“,
+  in 1.1.3 und im Wochen-Build alle Prüfungen und Szenarien `ok` (Export in
+  1.1.3 übersprungen).
+- **Aufgefallen:** Drei Szenarien brauchen jeweils genau 180 s, also das
+  Zeitlimit. FreeCAD beendet sich nach dem Szenario nicht von selbst. Das
+  Ergebnis steht schon vorher fest, deshalb sind sie trotzdem grün. Behoben
+  als eigener Patch.
+
+### NEXT
+- Szenarien sauber beenden, dann die Durchsicht von Hand: Kern, Oberfläche,
+  Tests, Entwickler-Doku.
+
 ## P-2026-09-25-26 zwei-freecad-versionen
 
 ### EINGELESEN

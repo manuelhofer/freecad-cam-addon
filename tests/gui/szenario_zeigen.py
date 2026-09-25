@@ -32,6 +32,7 @@ def schritte(h):
     yield 300
 
     import beispielmaschinen
+
     from camaddon import gui_maschine
 
     asm = beispielmaschinen.drehmaschine()
@@ -53,20 +54,34 @@ def schritte(h):
     h.bild("1_x_wackelt")
     mitten = lagen(doc, beweglich + fest)
     for name in beweglich:
-        h.pruefe(not mitten[name].isSame(vorher[name], 1e-9), f"{name} bewegt sich beim Zeigen auf X nicht")
+        h.pruefe(
+            not mitten[name].isSame(vorher[name], 1e-9),
+            f"{name} bewegt sich beim Zeigen auf X nicht",
+        )
     for name in fest:
-        h.pruefe(mitten[name].isSame(vorher[name], 1e-9), f"{name} bewegt sich, obwohl es nicht an X hängt")
+        h.pruefe(
+            mitten[name].isSame(vorher[name], 1e-9),
+            f"{name} bewegt sich, obwohl es nicht an X hängt",
+        )
     gewaehlt = sorted(o.Name for o in Gui.Selection.getSelection())
-    h.pruefe(gewaehlt == sorted(beweglich), f"hervorgehoben: {gewaehlt}, erwartet {sorted(beweglich)}")
+    h.pruefe(
+        gewaehlt == sorted(beweglich), f"hervorgehoben: {gewaehlt}, erwartet {sorted(beweglich)}"
+    )
 
     yield 1200
     danach = lagen(doc, beweglich + fest)
     for name in beweglich + fest:
-        h.pruefe(danach[name].isSame(vorher[name], 1e-12), f"{name} steht nach dem Zeigen nicht wie vorher")
+        h.pruefe(
+            danach[name].isSame(vorher[name], 1e-12),
+            f"{name} steht nach dem Zeigen nicht wie vorher",
+        )
 
     # Glied zeigen: nur hervorheben, nichts bewegt sich.
-    glied_zeile = next(panel.glieder.item(i) for i in range(panel.glieder.count())
-                       if "Hauptspindel" in panel.glieder.item(i).text())
+    glied_zeile = next(
+        panel.glieder.item(i)
+        for i in range(panel.glieder.count())
+        if "Hauptspindel" in panel.glieder.item(i).text()
+    )
     panel._zeige(glied_zeile.data(0x0100))
     yield 300
     gewaehlt = sorted(o.Name for o in Gui.Selection.getSelection())
@@ -76,9 +91,13 @@ def schritte(h):
     # Drehachse zeigen, dann mitten in der Bewegung OK.
     panel._zeige(eintrag_daten(panel.achsen, "Revolverachse"))
     yield 150
-    h.pruefe(not doc.getObject("Revolver").Placement.isSame(vorher["Revolver"], 1e-9),
-             "Revolver dreht sich beim Zeigen nicht")
+    h.pruefe(
+        not doc.getObject("Revolver").Placement.isSame(vorher["Revolver"], 1e-9),
+        "Revolver dreht sich beim Zeigen nicht",
+    )
     panel.accept()
     yield 500
-    h.pruefe(doc.getObject("Revolver").Placement.isSame(vorher["Revolver"], 1e-12),
-             "OK mitten in der Bewegung lässt den Revolver verdreht zurück")
+    h.pruefe(
+        doc.getObject("Revolver").Placement.isSame(vorher["Revolver"], 1e-12),
+        "OK mitten in der Bewegung lässt den Revolver verdreht zurück",
+    )

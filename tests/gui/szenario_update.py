@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import tempfile
+from pathlib import Path
 
 ADDON = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -24,16 +25,20 @@ def schritte(h):
         erster.accept()
     yield 300
 
-    from camaddon import aktualisierung as a, gui_aktualisierung as ga, gui_sprachwahl
+    from camaddon import aktualisierung as a
+    from camaddon import gui_aktualisierung as ga
+    from camaddon import gui_sprachwahl
 
     basis = tempfile.mkdtemp()
-    fern, installiert, arbeit = (os.path.join(basis, n) for n in ("github.git", "installiert", "arbeit"))
+    fern, installiert, arbeit = (
+        os.path.join(basis, n) for n in ("github.git", "installiert", "arbeit")
+    )
     git("clone", "-q", "--bare", "--branch", "main", ADDON, fern)
     git("clone", "-q", fern, installiert)
     git("clone", "-q", fern, arbeit)
-    pfad = os.path.join(arbeit, "package.xml")
-    text = open(pfad, encoding="utf-8").read()
-    open(pfad, "w", encoding="utf-8").write(re.sub(r"<version>[^<]+</version>", "<version>9.9.0</version>", text))
+    pfad = Path(arbeit, "package.xml")
+    text = re.sub(r"<version>[^<]+</version>", "<version>9.9.0</version>", pfad.read_text("utf-8"))
+    pfad.write_text(text, "utf-8")
     git("commit", "-q", "-am", "neu", ordner=arbeit)
     git("push", "-q", "origin", "HEAD:main", ordner=arbeit)
 
@@ -45,16 +50,24 @@ def schritte(h):
         if gefunden:
             break
     dialog = ga.UpdateDialog.offen
-    h.pruefe(bool(gefunden) and dialog is not None and dialog.isVisible(), "Update-Hinweis erscheint nicht")
+    h.pruefe(
+        bool(gefunden) and dialog is not None and dialog.isVisible(),
+        "Update-Hinweis erscheint nicht",
+    )
     if dialog is None:
         return
-    h.pruefe("9.9.0" in dialog.text.text(), f"Hinweis nennt die neue Version nicht: {dialog.text.text()!r}")
+    h.pruefe(
+        "9.9.0" in dialog.text.text(),
+        f"Hinweis nennt die neue Version nicht: {dialog.text.text()!r}",
+    )
     h.bild("1_update_hinweis", dialog)
 
     dialog.knopf_jetzt.click()
     yield 500
     h.pruefe("neu starten" in dialog.text.text(), f"nach dem Aktualisieren: {dialog.text.text()!r}")
-    h.pruefe(a.pruefe(installiert).version_jetzt == "9.9.0", "Addon-Ordner wurde nicht aktualisiert")
+    h.pruefe(
+        a.pruefe(installiert).version_jetzt == "9.9.0", "Addon-Ordner wurde nicht aktualisiert"
+    )
     h.bild("2_aktualisiert", dialog)
     dialog.close()
 

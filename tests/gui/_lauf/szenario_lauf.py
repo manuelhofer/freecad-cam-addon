@@ -48,7 +48,8 @@ def starten():
     # Stack festhalten, sonst sieht man nur „Segmentation fault“.
     import faulthandler
 
-    starten.absturz = open(os.path.join(AUSGABE, "absturz.txt"), "w")
+    # Bleibt bis zum Ende offen – faulthandler schreibt erst beim Absturz hinein.
+    starten.absturz = open(os.path.join(AUSGABE, "absturz.txt"), "w")  # noqa: SIM115
     faulthandler.enable(starten.absturz)
     pfad = os.environ["CAMADDON_SZENARIO"]
     spec = importlib.util.spec_from_file_location("szenario", pfad)

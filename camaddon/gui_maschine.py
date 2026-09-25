@@ -231,7 +231,9 @@ class MaschinenPanel:
         self.achsen.setHeaderHidden(True)
         self.achsen.setToolTip(tr("dialog.achsen.tooltip"))
         self.achsen.setMouseTracking(True)
-        self.achsen.itemEntered.connect(lambda eintrag, _s: self._zeige_spaeter(eintrag.data(0, ROLLE)))
+        self.achsen.itemEntered.connect(
+            lambda eintrag, _s: self._zeige_spaeter(eintrag.data(0, ROLLE))
+        )
         self.achsen.currentItemChanged.connect(self._achse_gewaehlt)
         self.achsen.setMinimumHeight(160)
         aufbau.addWidget(self.achsen)
@@ -269,7 +271,9 @@ class MaschinenPanel:
         self.aufnahmen.setHeaderHidden(True)
         self.aufnahmen.setToolTip(tr("dialog.aufnahmen.tooltip"))
         self.aufnahmen.setMouseTracking(True)
-        self.aufnahmen.itemEntered.connect(lambda eintrag, _s: self._zeige_spaeter(eintrag.data(0, ROLLE)))
+        self.aufnahmen.itemEntered.connect(
+            lambda eintrag, _s: self._zeige_spaeter(eintrag.data(0, ROLLE))
+        )
         self.aufnahmen.currentItemChanged.connect(self._aufnahme_gewaehlt)
         self.aufnahmen.setMinimumHeight(110)
         aufbau.addWidget(self.aufnahmen)
@@ -309,7 +313,9 @@ class MaschinenPanel:
 
         self.knopf_uebergeben = QtGui.QPushButton(tr("dialog.uebergeben"))
         self.knopf_uebergeben.setToolTip(
-            tr("dialog.uebergeben.tooltip") if export.verfuegbar() else tr("dialog.uebergeben.tooltip_fehlt")
+            tr("dialog.uebergeben.tooltip")
+            if export.verfuegbar()
+            else tr("dialog.uebergeben.tooltip_fehlt")
         )
         self.knopf_uebergeben.clicked.connect(lambda: self._uebergeben())
         aufbau.addWidget(self.knopf_uebergeben)
@@ -406,7 +412,9 @@ class MaschinenPanel:
 
     @staticmethod
     def _text_aufnahme(auf):
-        art = tr("aufnahme.werkzeug") if auf.Art == m.AUFNAHME_WERKZEUG else tr("aufnahme.werkstueck")
+        art = (
+            tr("aufnahme.werkzeug") if auf.Art == m.AUFNAHME_WERKZEUG else tr("aufnahme.werkstueck")
+        )
         lcs = auf.Lcs.Label if auf.Lcs is not None else "?"
         teile = [m.name_von(auf), art, "→ " + lcs]
         if auf.Spindel is not None:
@@ -591,7 +599,9 @@ class MaschinenPanel:
         name = QtGui.QLineEdit(ba.NcName)
         name.setPlaceholderText(tr("dialog.ncname.platzhalter"))
         name.setToolTip(tr("eigenschaft.ncname"))
-        name.editingFinished.connect(lambda: self._setze(ba, "NcName", name.text().strip(), label=True))
+        name.editingFinished.connect(
+            lambda: self._setze(ba, "NcName", name.text().strip(), label=True)
+        )
         self.detail_aufbau.addRow(tr("dialog.ncname"), name)
 
         linear = self._gelenkart(ba) == LINEAR
@@ -619,7 +629,9 @@ class MaschinenPanel:
                 label.setFont(schrift)
             self.detail_aufbau.addRow(label, feld)
         if any(e == "Beschleunigung" for e, _p in m.WERTE[ba.Art]):
-            verweis = QtGui.QLabel(f'<a href="beschleunigung">{tr("dialog.beschleunigung_ermitteln")}</a>')
+            verweis = QtGui.QLabel(
+                f'<a href="beschleunigung">{tr("dialog.beschleunigung_ermitteln")}</a>'
+            )
             verweis.linkActivated.connect(lambda thema: zeige_hilfe(self.form, thema))
             self.detail_aufbau.addRow(verweis)
 
@@ -632,7 +644,8 @@ class MaschinenPanel:
         name = QtGui.QLineEdit(m.name_von(auf))
         name.setToolTip(tr("eigenschaft.bezeichnung"))
         name.editingFinished.connect(
-            lambda: name.text().strip() and self._setze(auf, "Bezeichnung", name.text().strip(), label=True)
+            lambda: name.text().strip()
+            and self._setze(auf, "Bezeichnung", name.text().strip(), label=True)
         )
         self.detail_aufbau.addRow(tr("dialog.aufnahme_name"), name)
 
@@ -652,11 +665,15 @@ class MaschinenPanel:
             for ba in m.betriebsarten(self.maschine):
                 if ba.Art == m.ART_SPINDEL:
                     antrieb.addItem(m.name_von(ba), ba.Name)
-            antrieb.setCurrentIndex(max(antrieb.findData(auf.Spindel.Name if auf.Spindel else ""), 0))
+            antrieb.setCurrentIndex(
+                max(antrieb.findData(auf.Spindel.Name if auf.Spindel else ""), 0)
+            )
             antrieb.setToolTip(tr("eigenschaft.spindel"))
             antrieb.currentIndexChanged.connect(
                 lambda _i: self._setze(
-                    auf, "Spindel", self.doc.getObject(antrieb.currentData()) if antrieb.currentData() else None
+                    auf,
+                    "Spindel",
+                    self.doc.getObject(antrieb.currentData()) if antrieb.currentData() else None,
                 )
             )
             self.detail_aufbau.addRow(tr("dialog.aufnahme_antrieb"), antrieb)
@@ -747,9 +764,13 @@ class MaschinenPanel:
         }
         for art in m.ERLAUBT[gelenk.art]:
             aktion = menue.addAction(f"{m.art_text(art)} – {beschreibung[art]}")
-            aktion.triggered.connect(lambda _c=False, a=art: self._betriebsart_neu(gelenk.objekt, a))
+            aktion.triggered.connect(
+                lambda _c=False, a=art: self._betriebsart_neu(gelenk.objekt, a)
+            )
         self._letztes_menue = menue
-        menue.popup(self.knopf_betriebsart.mapToGlobal(QtCore.QPoint(0, self.knopf_betriebsart.height())))
+        menue.popup(
+            self.knopf_betriebsart.mapToGlobal(QtCore.QPoint(0, self.knopf_betriebsart.height()))
+        )
 
     def _betriebsart_neu(self, gelenk_objekt, art):
         ba = m.neue_betriebsart(self.maschine, gelenk_objekt, art, "")
@@ -856,7 +877,9 @@ class VerteilDialog(QtGui.QDialog):
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
         aufbau.addRow(self.hinweis)
-        self.knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        self.knoepfe = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel
+        )
         self.knoepfe.accepted.connect(self.accept)
         self.knoepfe.rejected.connect(self.reject)
         aufbau.addRow(self.knoepfe)

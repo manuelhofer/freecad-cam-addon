@@ -37,7 +37,12 @@ ERLAUBT = {LINEAR: [ART_LINEAR], DREH: [ART_POSITIONIEREN, ART_SPINDEL, ART_REVO
 # Kennwerte je Betriebsart: (Eigenschaft, Pflicht). Einheiten wie im
 # Datenblatt, siehe Spezifikation Abschnitt 4.
 WERTE = {
-    ART_LINEAR: [("Eilgang", True), ("VorschubMax", False), ("Beschleunigung", False), ("Ruck", False)],
+    ART_LINEAR: [
+        ("Eilgang", True),
+        ("VorschubMax", False),
+        ("Beschleunigung", False),
+        ("Ruck", False),
+    ],
     ART_POSITIONIEREN: [
         ("Endlos", False),
         ("Geschwindigkeit", True),
@@ -92,7 +97,9 @@ class Maschine:
 
     def __init__(self, objekt):
         objekt.Proxy = self
-        _eigenschaft(objekt, "App::PropertyString", "Typ", "Maschine", tr("eigenschaft.maschine.typ"))
+        _eigenschaft(
+            objekt, "App::PropertyString", "Typ", "Maschine", tr("eigenschaft.maschine.typ")
+        )
         objekt.Typ = "CamAddon::Maschine"
         self.onDocumentRestored(objekt)
 
@@ -111,18 +118,40 @@ class Betriebsart:
     def __init__(self, objekt):
         objekt.Proxy = self
         _eigenschaft(objekt, "App::PropertyLink", "Gelenk", "Betriebsart", tr("eigenschaft.gelenk"))
-        _eigenschaft(objekt, "App::PropertyEnumeration", "Art", "Betriebsart", tr("eigenschaft.art"))
+        _eigenschaft(
+            objekt, "App::PropertyEnumeration", "Art", "Betriebsart", tr("eigenschaft.art")
+        )
         objekt.Art = BETRIEBSARTEN
-        _eigenschaft(objekt, "App::PropertyString", "NcName", "Betriebsart", tr("eigenschaft.ncname"))
+        _eigenschaft(
+            objekt, "App::PropertyString", "NcName", "Betriebsart", tr("eigenschaft.ncname")
+        )
         _eigenschaft(objekt, "App::PropertyFloat", "Eilgang", "Werte", tr("eigenschaft.eilgang"))
-        _eigenschaft(objekt, "App::PropertyFloat", "VorschubMax", "Werte", tr("eigenschaft.vorschubmax"))
-        _eigenschaft(objekt, "App::PropertyFloat", "Beschleunigung", "Werte", tr("eigenschaft.beschleunigung"))
+        _eigenschaft(
+            objekt, "App::PropertyFloat", "VorschubMax", "Werte", tr("eigenschaft.vorschubmax")
+        )
+        _eigenschaft(
+            objekt,
+            "App::PropertyFloat",
+            "Beschleunigung",
+            "Werte",
+            tr("eigenschaft.beschleunigung"),
+        )
         _eigenschaft(objekt, "App::PropertyFloat", "Ruck", "Werte", tr("eigenschaft.ruck"))
         _eigenschaft(objekt, "App::PropertyBool", "Endlos", "Werte", tr("eigenschaft.endlos"))
-        _eigenschaft(objekt, "App::PropertyFloat", "Geschwindigkeit", "Werte", tr("eigenschaft.geschwindigkeit"))
+        _eigenschaft(
+            objekt,
+            "App::PropertyFloat",
+            "Geschwindigkeit",
+            "Werte",
+            tr("eigenschaft.geschwindigkeit"),
+        )
         _eigenschaft(objekt, "App::PropertyFloat", "Drehzahl", "Werte", tr("eigenschaft.drehzahl"))
-        _eigenschaft(objekt, "App::PropertyFloat", "Hochlaufzeit", "Werte", tr("eigenschaft.hochlaufzeit"))
-        _eigenschaft(objekt, "App::PropertyFloat", "Schaltzeit", "Werte", tr("eigenschaft.schaltzeit"))
+        _eigenschaft(
+            objekt, "App::PropertyFloat", "Hochlaufzeit", "Werte", tr("eigenschaft.hochlaufzeit")
+        )
+        _eigenschaft(
+            objekt, "App::PropertyFloat", "Schaltzeit", "Werte", tr("eigenschaft.schaltzeit")
+        )
         self._sichtbarkeit(objekt)
 
     def onChanged(self, objekt, eigenschaft):
@@ -155,9 +184,13 @@ class Aufnahme:
         objekt.Proxy = self
         # Global: Das LCS liegt in einem Bauteil (eigener Gültigkeitsbereich),
         # das Maschinenobjekt daneben – ein einfacher Link wäre „out of scope“.
-        _eigenschaft(objekt, "App::PropertyString", "Bezeichnung", "Aufnahme", tr("eigenschaft.bezeichnung"))
+        _eigenschaft(
+            objekt, "App::PropertyString", "Bezeichnung", "Aufnahme", tr("eigenschaft.bezeichnung")
+        )
         _eigenschaft(objekt, "App::PropertyLinkGlobal", "Lcs", "Aufnahme", tr("eigenschaft.lcs"))
-        _eigenschaft(objekt, "App::PropertyEnumeration", "Art", "Aufnahme", tr("eigenschaft.aufnahmeart"))
+        _eigenschaft(
+            objekt, "App::PropertyEnumeration", "Art", "Aufnahme", tr("eigenschaft.aufnahmeart")
+        )
         objekt.Art = AUFNAHMEARTEN
         _eigenschaft(objekt, "App::PropertyLink", "Spindel", "Aufnahme", tr("eigenschaft.spindel"))
         _eigenschaft(objekt, "App::PropertyInteger", "Platz", "Aufnahme", tr("eigenschaft.platz"))
@@ -266,7 +299,9 @@ def plaetze(maschine, kette, revolver):
     liste = [
         a
         for a in aufnahmen(maschine)
-        if a.Art == AUFNAHME_WERKZEUG and a.Lcs is not None and kette.glied_von(a.Lcs) is gelenk.kind
+        if a.Art == AUFNAHME_WERKZEUG
+        and a.Lcs is not None
+        and kette.glied_von(a.Lcs) is gelenk.kind
     ]
     return sorted(liste, key=lambda a: a.Platz)
 
@@ -378,7 +413,14 @@ def pruefe(maschine, kette=None):
             continue
         art = gelenk_art.get(ba.Gelenk)
         if art is None:
-            meldungen.append(meldung("maschine.gelenk_keine_achse", bezug=ba, name=name_von(ba), gelenk=ba.Gelenk.Label))
+            meldungen.append(
+                meldung(
+                    "maschine.gelenk_keine_achse",
+                    bezug=ba,
+                    name=name_von(ba),
+                    gelenk=ba.Gelenk.Label,
+                )
+            )
             continue
         if ba.Art not in ERLAUBT[art]:
             meldungen.append(
@@ -404,7 +446,9 @@ def pruefe(maschine, kette=None):
 
     for gleiche in namen.values():
         if len(gleiche) > 1:
-            meldungen.append(meldung("maschine.name_doppelt", bezug=gleiche[1], name=gleiche[0].NcName.strip()))
+            meldungen.append(
+                meldung("maschine.name_doppelt", bezug=gleiche[1], name=gleiche[0].NcName.strip())
+            )
     for gelenk, liste in arten_je_gelenk.items():
         arten = [ba.Art for ba in liste]
         if len(set(arten)) < len(arten):
@@ -414,10 +458,14 @@ def pruefe(maschine, kette=None):
         if aufnahme.Lcs is None:
             meldungen.append(meldung("maschine.lcs_fehlt", bezug=aufnahme, name=name_von(aufnahme)))
         elif kette.glied_von(aufnahme.Lcs) is None:
-            meldungen.append(meldung("maschine.lcs_ausserhalb", bezug=aufnahme, name=name_von(aufnahme)))
+            meldungen.append(
+                meldung("maschine.lcs_ausserhalb", bezug=aufnahme, name=name_von(aufnahme))
+            )
         spindel = aufnahme.Spindel
         if spindel is not None and getattr(spindel, "Art", None) != ART_SPINDEL:
-            meldungen.append(meldung("maschine.spindel_keine_spindel", bezug=aufnahme, name=name_von(aufnahme)))
+            meldungen.append(
+                meldung("maschine.spindel_keine_spindel", bezug=aufnahme, name=name_von(aufnahme))
+            )
 
     for ba in betriebsarten(maschine):
         if ba.Art != ART_REVOLVER:
@@ -436,4 +484,3 @@ def pruefe(maschine, kette=None):
 
     meldungen += rollen(kette, maschine)[1]
     return meldungen
-

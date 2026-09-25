@@ -51,7 +51,9 @@ def git_programm():
     # GitHub Desktop legt sein Git nicht in den Suchpfad (Windows).
     lokal = os.environ.get("LOCALAPPDATA", "")
     if lokal:
-        muster = os.path.join(lokal, "GitHubDesktop", "app-*", "resources", "app", "git", "cmd", "git.exe")
+        muster = os.path.join(
+            lokal, "GitHubDesktop", "app-*", "resources", "app", "git", "cmd", "git.exe"
+        )
         kandidaten = sorted(glob.glob(muster))
         if kandidaten:
             return kandidaten[-1]

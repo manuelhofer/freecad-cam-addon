@@ -19,7 +19,9 @@ def schritte(h):
     yield 300
 
     import beispielmaschinen
-    from camaddon import gui_maschine, maschine as m
+
+    from camaddon import gui_maschine
+    from camaddon import maschine as m
 
     asm = beispielmaschinen.drehmaschine()
     doc = asm.Document
@@ -32,14 +34,18 @@ def schritte(h):
     knopf = panel.form.findChild(QtGui.QToolButton, "hilfe_achsen")
     h.pruefe(knopf is not None, "Hilfe-Knopf bei „Achsen“ fehlt")
     for thema in ("aufnahmen", "glieder"):
-        h.pruefe(panel.form.findChild(QtGui.QToolButton, "hilfe_" + thema) is not None,
-                 f"Hilfe-Knopf bei „{thema}“ fehlt")
+        h.pruefe(
+            panel.form.findChild(QtGui.QToolButton, "hilfe_" + thema) is not None,
+            f"Hilfe-Knopf bei „{thema}“ fehlt",
+        )
     knopf.click()
     yield 500
     fenster = gui_maschine.HilfeFenster.offen
     h.pruefe(fenster is not None and fenster.isVisible(), "Hilfefenster öffnet sich nicht")
     text = fenster.browser.toPlainText()
-    h.pruefe("Achsen und Betriebsarten" in text and "S4" in text, f"falsche Hilfeseite: {text[:80]!r}")
+    h.pruefe(
+        "Achsen und Betriebsarten" in text and "S4" in text, f"falsche Hilfeseite: {text[:80]!r}"
+    )
     h.bild("1_hilfe_achsen", fenster)
 
     fenster.browser.setSource(QtCore.QUrl("beschleunigung.html"))
@@ -54,7 +60,9 @@ def schritte(h):
     panel._fuelle_alles(auswahl=ba)
     yield 300
     verweise = [w for w in panel.detail.findChildren(QtGui.QLabel) if "beschleunigung" in w.text()]
-    h.pruefe(len(verweise) == 1, f"{len(verweise)} Verweise auf die Beschleunigung im Detail statt 1")
+    h.pruefe(
+        len(verweise) == 1, f"{len(verweise)} Verweise auf die Beschleunigung im Detail statt 1"
+    )
     if verweise:
         verweise[0].linkActivated.emit("beschleunigung")
         yield 500

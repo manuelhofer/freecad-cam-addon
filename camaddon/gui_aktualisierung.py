@@ -12,7 +12,8 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, aktualisierung as a
+from . import PARAMETER_PFAD
+from . import aktualisierung as a
 from .sprache import tr
 
 # Für die Oberflächen-Szenarien: kein Netzzugriff beim Start.
@@ -70,7 +71,9 @@ class UpdateDialog(QtGui.QDialog):
         )
         self.text.setWordWrap(True)
         self.knoepfe = QtGui.QDialogButtonBox()
-        self.knopf_jetzt = self.knoepfe.addButton(tr("update.jetzt"), QtGui.QDialogButtonBox.AcceptRole)
+        self.knopf_jetzt = self.knoepfe.addButton(
+            tr("update.jetzt"), QtGui.QDialogButtonBox.AcceptRole
+        )
         self.knoepfe.addButton(tr("update.spaeter"), QtGui.QDialogButtonBox.RejectRole)
         self.knoepfe.accepted.connect(self._aktualisieren)
         self.knoepfe.rejected.connect(self.close)
@@ -119,11 +122,15 @@ def zeige(ergebnis, von_hand=False, ordner=None, eltern=None):
         # Beim Start kein Fenster – oft ist nur gerade kein Netz da.
         FreeCAD.Console.PrintWarning(tr("update.fehler", fehler=ergebnis.meldung) + "\n")
         if von_hand:
-            QtGui.QMessageBox.warning(eltern, tr("update.titel"), tr("update.fehler", fehler=ergebnis.meldung))
+            QtGui.QMessageBox.warning(
+                eltern, tr("update.titel"), tr("update.fehler", fehler=ergebnis.meldung)
+            )
         return None
     if von_hand:
-        text = tr("update.kein_git_ordner") if ergebnis.status == a.KEIN_GIT_ORDNER else tr(
-            "update.aktuell", jetzt=ergebnis.version_jetzt
+        text = (
+            tr("update.kein_git_ordner")
+            if ergebnis.status == a.KEIN_GIT_ORDNER
+            else tr("update.aktuell", jetzt=ergebnis.version_jetzt)
         )
         QtGui.QMessageBox.information(eltern, tr("update.titel"), text)
     return None

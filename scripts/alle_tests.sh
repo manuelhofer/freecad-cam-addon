@@ -14,6 +14,18 @@ repo="$(cd "$(dirname "$0")/.." && pwd)"
 basis="${FC_BASIS:-$HOME/.cache/freecad-cam-addon}"
 
 fehler=0
+
+# Zuerst der Code selbst: einheitlich formatiert und ohne Befunde.
+werkzeuge="$basis/werkzeuge/bin"
+if [ -x "$werkzeuge/ruff" ]; then
+    echo "== Code: black und ruff"
+    (cd "$repo" && "$werkzeuge/black" --check --quiet . && "$werkzeuge/ruff" check --quiet .) \
+        && echo "ok     black, ruff" || { echo "FEHLER black/ruff - 'black .' und 'ruff check .' zeigen, was"; fehler=1; }
+else
+    echo "FEHLT  $werkzeuge - erst scripts/testumgebung_einrichten.sh" >&2
+    fehler=1
+fi
+
 for umgebung in "$basis/fcenv-stabil" "$basis/fcenv"; do
     if [ ! -x "$umgebung/bin/freecadcmd" ]; then
         echo "FEHLT  $umgebung - erst scripts/testumgebung_einrichten.sh" >&2

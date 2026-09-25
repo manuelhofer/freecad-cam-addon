@@ -27,15 +27,21 @@ def schritte(h):
 
     FreeCADGui.activateWorkbench("AssemblyWorkbench")
     yield 1500
-    leisten = [t.windowTitle() for t in FreeCADGui.getMainWindow().findChildren(QtGui.QToolBar)
-               if t.isVisible()]
+    leisten = [
+        t.windowTitle()
+        for t in FreeCADGui.getMainWindow().findChildren(QtGui.QToolBar)
+        if t.isVisible()
+    ]
     h.pruefe("CAM-Addon" in leisten, f"Werkzeugleiste fehlt in Assembly, da sind: {leisten}")
     h.bild("3_assembly_werkzeugleiste")
 
     FreeCADGui.activateWorkbench("CAMWorkbench")
     yield 2500
-    leisten = [t.windowTitle() for t in FreeCADGui.getMainWindow().findChildren(QtGui.QToolBar)
-               if t.isVisible()]
+    leisten = [
+        t.windowTitle()
+        for t in FreeCADGui.getMainWindow().findChildren(QtGui.QToolBar)
+        if t.isVisible()
+    ]
     h.pruefe("CAM-Addon" in leisten, f"Werkzeugleiste fehlt in CAM, da sind: {leisten}")
     h.bild("4_cam_werkzeugleiste")
 
@@ -44,7 +50,9 @@ def schritte(h):
 
     seite = gui_sprachwahl.Einstellungsseite()
     seite.loadSettings()
-    h.pruefe(seite.liste.currentData() == "de", "Einstellungsseite zeigt nicht die gewählte Sprache")
+    h.pruefe(
+        seite.liste.currentData() == "de", "Einstellungsseite zeigt nicht die gewählte Sprache"
+    )
     seite.form.resize(500, 200)
     seite.form.show()
     yield 300
