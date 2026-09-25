@@ -58,8 +58,18 @@ def schritte(h):
     h.pruefe((wert_a.text(), wert_b.text()) == ("3,49 m", "0,29 m"), "Schneidenweg")
     kopf = v.kopf.text()
     h.pruefe("1.0503  C45" in kopf, f"Werkstoffnummer im Kopf verändert: {kopf!r}")
+    # Übersicht: drei Zeilen, das meiste Q hat „Schruppen dynamisch“ (fett).
+    u = v.uebersicht
+    h.pruefe(u.rowCount() == 3, f"Übersicht: {u.rowCount()} Zeilen")
+    fett = [u.item(z, gui_strategie.UE_Q).font().bold() for z in range(u.rowCount())]
+    h.pruefe(fett == [False, False, True], f"fett in Q: {fett}")
+    h.pruefe(u.item(2, gui_strategie.UE_Q).text() == "43,0", f"Q: {u.item(2, 2).text()!r}")
     h.bild("1_vollnut_gegen_dynamisch", v)
 
+    # Klick in der Übersicht nimmt die Zeile als B.
+    v.als_b(1)
+    yield 100
+    h.pruefe(v.wahl_b.currentText() == "Schlichten", f"B: {v.wahl_b.currentText()!r}")
     # Schlichten gegen Vollnut: anderes Urteil, ohne Absturz.
     v.vergleiche(1, 0)
     yield 200

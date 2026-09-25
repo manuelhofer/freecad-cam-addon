@@ -3,8 +3,9 @@
 
 Zwei Einsätze desselben Werkzeugs nebeneinander: Abtrag, Zeit, Schneidenweg
 je cm³ (Verschleiß), genutzte Schneide, Eingriff, Spandicke, Leistung – jede
-Zahl mit einem Balken, darunter das Urteil in Sätzen. Gerechnet wird in
-schnittdaten.py.
+Zahl mit einem Balken, darunter das Urteil in Sätzen. Ganz unten alle
+Einsätze der Tabelle auf einen Blick, das Beste je Spalte fett; ein Klick
+nimmt die Zeile als B. Gerechnet wird in schnittdaten.py.
 """
 
 from PySide import QtCore, QtGui
@@ -19,6 +20,9 @@ FARBE_A = QtGui.QColor("#e67e22")
 FARBE_B = QtGui.QColor("#2e86c1")
 BALKEN_BREITE, BALKEN_HOEHE = 170, 14  # Pixel
 FENSTER_BREITE = 760  # Pixel
+
+# Spalten der Übersicht aller Einsätze.
+UE_NAME, UE_Q, UE_ZEIT, UE_WEG, UE_AP, UE_EINGRIFF, UE_SPAN, UE_LEISTUNG = range(8)
 
 
 def _zahl(wert, stellen):
@@ -97,6 +101,10 @@ class StrategieDialog(QtGui.QDialog):
         self.urteil.setMargin(8)
         aufbau.addWidget(self.urteil)
 
+        aufbau.addWidget(QtGui.QLabel(f"<b>{tr('wv.strategie.alle')}</b>"))
+        self.uebersicht = self._baue_uebersicht()
+        aufbau.addWidget(self.uebersicht)
+
         knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
         knoepfe.rejected.connect(self.reject)
         aufbau.addWidget(knoepfe)
@@ -117,6 +125,89 @@ class StrategieDialog(QtGui.QDialog):
             wahl.addItem(wz.einsatz_name(einsatz))
         zeile.addWidget(wahl)
         return wahl
+
+    def _baue_uebersicht(self):
+        """Alle Einsätze mit ihren Kennzahlen; das Beste je Spalte fett."""
+        tabelle = QtGui.QTableWidget(len(self.einsaetze), 8)
+        tabelle.verticalHeader().hide()
+        tabelle.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        tabelle.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+        tabelle.setToolTip(tr("wv.strategie.alle.tooltip"))
+        koepfe = [
+            (tr("wv.spalte.einsatz"), ""),
+            ("Q\ncm³/min", tr("wv.strategie.q.tooltip")),
+            (tr("wv.strategie.alle.zeit"), tr("wv.strategie.zeit.tooltip")),
+            (tr("wv.strategie.alle.weg"), tr("wv.strategie.weg.tooltip")),
+            (tr("wv.strategie.alle.ap"), tr("wv.strategie.ap.tooltip")),
+            (tr("wv.strategie.alle.eingriff"), tr("wv.strategie.eingriff.tooltip")),
+            (tr("wv.strategie.alle.span"), tr("wv.strategie.span.tooltip")),
+            ("P\nkW", tr("wv.strategie.leistung.tooltip")),
+        ]
+        for spalte, (text, tooltip) in enumerate(koepfe):
+            kopf = QtGui.QTableWidgetItem(text)
+            kopf.setToolTip(tooltip)
+            tabelle.setHorizontalHeaderItem(spalte, kopf)
+        kopfleiste = tabelle.horizontalHeader()
+        kopfleiste.setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
+        kopfleiste.setSectionResizeMode(UE_NAME, QtGui.QHeaderView.Stretch)
+
+        kennzahlen = [sd.kennzahlen(self.werkzeug, e, self.werkstoff) for e in self.einsaetze]
+        spalten = {
+            UE_Q: (lambda k: k.q, 1, max),
+            UE_ZEIT: (lambda k: k.zeit, 1, min),
+            UE_WEG: (lambda k: k.schneidenweg, 2, min),
+            UE_AP: (lambda k: k.ap, None, max),
+            UE_EINGRIFF: (lambda k: k.eingriff * 100, 0, None),
+            UE_SPAN: (lambda k: k.spandicke, 3, None),
+            UE_LEISTUNG: (lambda k: k.leistung, 1, None),
+        }
+        for zeile, (einsatz, k) in enumerate(zip(self.einsaetze, kennzahlen, strict=True)):
+            tabelle.setItem(zeile, UE_NAME, QtGui.QTableWidgetItem(wz.einsatz_name(einsatz)))
+            for spalte, (wert, stellen, _bestes) in spalten.items():
+                w = wert(k)
+                text = "" if not w else (zahl_zeigen(w) if stellen is None else _zahl(w, stellen))
+                zelle = QtGui.QTableWidgetItem(text)
+                zelle.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
+                tabelle.setItem(zeile, spalte, zelle)
+        # Das Beste je Spalte fett – nur unter Einsätzen mit Werten.
+        for spalte, (wert, _stellen, bestes) in spalten.items():
+            werte = [wert(k) for k in kennzahlen if wert(k)]
+            if bestes is None or len(werte) < 2:
+                continue
+            ziel = bestes(werte)
+            for zeile, k in enumerate(kennzahlen):
+                if wert(k) and abs(wert(k) - ziel) < 1e-9:
+                    zelle = tabelle.item(zeile, spalte)
+                    schrift = zelle.font()
+                    schrift.setBold(True)
+                    zelle.setFont(schrift)
+        tabelle.setColumnHidden(UE_LEISTUNG, not any(k.leistung for k in kennzahlen))
+        hoehe = tabelle.horizontalHeader().sizeHint().height() + 2
+        hoehe += sum(tabelle.rowHeight(z) for z in range(tabelle.rowCount()))
+        tabelle.setFixedHeight(min(hoehe + 2, 260))
+        tabelle.cellClicked.connect(lambda zeile, _spalte: self.als_b(zeile))
+        return tabelle
+
+    def als_b(self, zeile):
+        """Nimmt eine Zeile der Übersicht als B; war sie A, tauschen A und B."""
+        a, b = self.wahl_a.currentIndex(), self.wahl_b.currentIndex()
+        if zeile == a:
+            self.vergleiche(b, zeile)
+        else:
+            self.vergleiche(a, zeile)
+
+    def _uebersicht_markieren(self):
+        """Färbt in der Übersicht die Namen von A und B wie ihre Balken."""
+        a, b = self.wahl_a.currentIndex(), self.wahl_b.currentIndex()
+        for zeile in range(self.uebersicht.rowCount()):
+            zelle = self.uebersicht.item(zeile, UE_NAME)
+            farbe = FARBE_A if zeile == a else FARBE_B if zeile == b else None
+            if farbe is None:
+                zelle.setBackground(QtGui.QBrush())
+                zelle.setForeground(QtGui.QBrush())
+            else:
+                zelle.setBackground(farbe)
+                zelle.setForeground(QtGui.QColor("white"))
 
     def _kennzahlen(self):
         """(Schlüssel, Beschriftung, Tooltip) der Zeilen, in Anzeigereihenfolge."""
@@ -162,6 +253,7 @@ class StrategieDialog(QtGui.QDialog):
             feld_a.setText(text(a) if wert_a else "–")
             feld_b.setText(text(b) if wert_b else "–")
         self.urteil.setText(self._urteil_text(ea, eb))
+        self._uebersicht_markieren()
 
     def _schneide_text(self, k):
         if k.schneidenlaenge:

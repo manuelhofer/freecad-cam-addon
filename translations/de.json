@@ -491,5 +491,12 @@
     "sj.am_rohteil.tooltip": "Trägt den gewählten Werkstoff als Werkstoffkarte von FreeCAD am Rohteil des Jobs ein (gleiche Werkstoffnummer). Dann schlägt dieser Dialog ihn beim nächsten Mal selbst vor – und im Wochen-Build auch FreeCADs eigener Knopf für Vorschub und Drehzahl. Strg+Z nimmt es zurück.",
     "sp.von_maschine.vorbelegt": "Drehzahl und Vorschub von „{maschine}“.",
     "wv.werkzeugbild.tooltip": "Das Werkzeug im richtigen Verhältnis: Schaft, Schneide und Spitze. Gestrichelt ist, was geschätzt wird, weil das Feld leer ist.",
-    "sp.vergleich": "Zum Vergleich: {name} (ae {ae} mm, ap {ap_vollnut} mm) schafft {q_vollnut} cm³/min – der Vorschlag das {faktor}-Fache, mit {ap} statt {ap_vollnut} mm Schneide."
+    "sp.vergleich": "Zum Vergleich: {name} (ae {ae} mm, ap {ap_vollnut} mm) schafft {q_vollnut} cm³/min – der Vorschlag das {faktor}-Fache, mit {ap} statt {ap_vollnut} mm Schneide.",
+    "wv.strategie.alle": "Alle Einsätze dieser Tabelle",
+    "wv.strategie.alle.tooltip": "Jede Zeile ein Einsatz; fett ist das Beste je Spalte (am meisten Abtrag, am wenigsten Zeit und Schneidenweg, am meisten genutzte Schneide). Ein Klick nimmt die Zeile als B.",
+    "wv.strategie.alle.zeit": "Zeit für\n100 cm³ (min)",
+    "wv.strategie.alle.weg": "Weg je cm³\nm",
+    "wv.strategie.alle.ap": "Schneide\nmm",
+    "wv.strategie.alle.eingriff": "Im Material\n%",
+    "wv.strategie.alle.span": "h max\nmm"
 }

@@ -491,5 +491,12 @@
     "sj.am_rohteil.tooltip": "Sets the selected material as a FreeCAD material card on the job's stock (same material number). Then this dialog suggests it by itself next time – and in the weekly build FreeCAD's own feeds and speeds button does too. Ctrl+Z undoes it.",
     "sp.von_maschine.vorbelegt": "Speed and feed from “{maschine}”.",
     "wv.werkzeugbild.tooltip": "The tool in the right proportions: shank, flutes and tip. Dashed is what is estimated because the field is empty.",
-    "sp.vergleich": "For comparison: {name} (ae {ae} mm, ap {ap_vollnut} mm) removes {q_vollnut} cm³/min – the suggestion {faktor} times as much, with {ap} instead of {ap_vollnut} mm of edge."
+    "sp.vergleich": "For comparison: {name} (ae {ae} mm, ap {ap_vollnut} mm) removes {q_vollnut} cm³/min – the suggestion {faktor} times as much, with {ap} instead of {ap_vollnut} mm of edge.",
+    "wv.strategie.alle": "All use cases of this table",
+    "wv.strategie.alle.tooltip": "One use case per row; bold is the best per column (most removal, least time and edge travel, most edge used). A click takes the row as B.",
+    "wv.strategie.alle.zeit": "Time for\n100 cm³ (min)",
+    "wv.strategie.alle.weg": "Travel per cm³\nm",
+    "wv.strategie.alle.ap": "Edge\nmm",
+    "wv.strategie.alle.eingriff": "In the cut\n%",
+    "wv.strategie.alle.span": "h max\nmm"
 }

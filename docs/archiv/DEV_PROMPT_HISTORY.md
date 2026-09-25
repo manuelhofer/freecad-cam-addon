@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-05 alle-einsaetze-im-vergleich
+
+### EINGELESEN
+- Manuels Wunsch: „Beurteilung für verschiedene Strategien anhand der
+  Werte“. „Strategien vergleichen“ (P-2026-09-25-49) stellt zwei Einsätze
+  nebeneinander; bei vier oder fünf Zeilen fehlte der Überblick.
+
+### DATEIEN
+- `camaddon/gui_strategie.py` (Übersicht unten im Fenster)
+- `help/de|en/strategien.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/gui/szenario_strategien.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ø-12-Fräser mit Vollnut, Schlichten und Schruppen dynamisch, Werkstoff C45
+→ „Strategien vergleichen…“ → unten „Alle Einsätze dieser Tabelle“: drei
+Zeilen; bei „Schruppen dynamisch“ sind Q 43,0, Zeit 2,3, Weg 0,29 und
+Schneide 25 fett; Vollnut orange, Schruppen dynamisch blau → Klick auf
+„Schlichten“ → B ist Schlichten.
+
+### DONE
+- Je Einsatz Q, Zeit für 100 cm³, Schneidenweg je cm³, genutzte Schneide,
+  Anteil im Material, größte Spandicke, Leistung (nur mit kc1.1). Fett das
+  Beste je Spalte, wo „besser“ eindeutig ist; A und B in ihrer Farbe.
+- Ein Klick nimmt die Zeile als B (war sie A, tauschen A und B).
+
+### TEST
+- KI, Oberfläche in **beiden** Versionen: `szenario_strategien` grün
+  (Zeilen, Fettdruck, Klick), Screenshot angesehen.
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-26-04 planer-vergleich-vollnut
 
 ### EINGELESEN
