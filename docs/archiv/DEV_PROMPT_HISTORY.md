@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-26 version-0-11-1
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: Korrektur → letzte Stelle. Seit 0.11.0:
+  „Aus CAM übernehmen“ robust gegen einzelne kaputte Werkzeuge
+  (P-2026-09-26-24), Abhilfe im Tooltip „nicht in der Werkzeugverwaltung“
+  (-25).
+
+### DATEIEN
+- `package.xml` (0.11.1)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.11.1.
+
+### DONE
+- Version 0.11.0 → 0.11.1.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; Bericht an Manuel.
+
 ## P-2026-09-26-25 kein-werkzeug-abhilfe
 
 ### EINGELESEN
