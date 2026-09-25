@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-15 spezifikation-revolver-und-beispiele
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitte 4 und 7.
+- Ausprobiert: Eine Baugruppe in einer Baugruppe zählt in der äußeren als
+  **ein** Bauteil (`getMovablePartsWithin`). Die LCS darin findet
+  `Kette.glied_von` trotzdem.
+
+### DATEIEN
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Abschnitt 4, neu 7a und 7b,
+  „Entschieden“)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer die Spezifikation liest, erfährt, wie ein Revolver mit Plätzen P1 … Pn
+als eigene Baugruppe eingebunden wird und wie 4. Achse, Gegenspindel und
+Reitstock einzurichten sind.
+
+### DONE
+Manuels Idee: den Revolver als eigene Baugruppe mit den Plätzen bauen.
+Beantwortet hat er es über eine Auswahl:
+
+- **Schalten als Betriebsart „Revolver“:** gewählt. Dazu hat Manuel angemerkt,
+  dass ein Revolver wie eine Spindel auch auf Gradzahlen positionierbar sein
+  kann. Deshalb darf ein Drehgelenk jetzt allgemein mehrere Betriebsarten
+  haben (Revolver + Positionieren), nicht nur Spindel + Positionieren.
+- **Plätze:** einzeln als LCS, dazu eine Verteilhilfe. Die Namen sind P1 … Pn.
+  Welches Werkzeug auf einem Platz sitzt, kommt laut Manuel aus CAM und nicht
+  aus der Maschine.
+- Manuels Frage, ob sich Reitstock, Gegenspindel und 4. Achse damit
+  einrichten lassen: ja. Neuer Abschnitt 7b zeigt das als Tabelle. Dabei hat
+  sich gezeigt: Ein Gelenk **ohne** Betriebsart steht für eine von Hand
+  verstellte Achse, z. B. einen Reitstock ohne NC. Das ist jetzt ausdrücklich
+  erlaubt und so benannt.
+
+### TEST
+- Keiner (nur Spezifikation).
+
+### NEXT
+- Betriebsart „Revolver“ und Platznummern im Maschinenobjekt, danach der
+  Dialog.
+
 ## P-2026-09-25-14 maschinenobjekt
 
 ### EINGELESEN

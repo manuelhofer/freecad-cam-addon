@@ -63,6 +63,7 @@ Name innerhalb einer Maschine doppelt vorkommt.
 | **Linear** | Slider | Eilgang (mm/min), max. Bearbeitungsvorschub (mm/min), Beschleunigung (m/s²), Ruck (m/s³) | Eilgang |
 | **Positionieren** (Rund-/Schwenkachse) | Revolute | endlos ja/nein, max. Geschwindigkeit (U/min), Beschleunigung (U/s²), Ruck (U/s³) | Geschwindigkeit |
 | **Spindel** (dreht) | Revolute | max. Drehzahl (U/min), Hochlaufzeit 0 → max. Drehzahl (s) | Drehzahl |
+| **Revolver** (schaltet von Platz zu Platz) | Revolute | Schaltzeit je Platz (s); die Plätze selbst sind Werkzeugaufnahmen (Abschnitt 7a) | – |
 
 - **Verfahrweg bzw. Schwenkbereich** kommen aus der Min/Max-Begrenzung des
   Gelenks. Ist dort keine gesetzt, gilt die Achse als unbegrenzt bzw. endlos,
@@ -73,8 +74,12 @@ Name innerhalb einer Maschine doppelt vorkommt.
   1 U/min = 360 °/min).
 - **Optionale Werte** dürfen leer bleiben. Leer heißt „unbekannt“, nicht
   „null“ – die Simulation rechnet dann ohne diese Grenze und sagt das.
-- Ein Gelenk kann **gleichzeitig** Spindel und Positionieren sein, aber nicht
-  Linear und etwas anderes.
+- Ein Drehgelenk kann **mehrere** Betriebsarten gleichzeitig haben (Spindel
+  und Positionieren, Revolver und Positionieren); ein Schiebegelenk nur
+  Linear.
+- **Gelenke ohne Betriebsart** sind erlaubt: Sie werden von Hand verstellt
+  (z. B. ein Reitstock ohne NC-Achse). Ihre Stellung setzt man später von
+  Hand (Stufe 3), das NC-Programm kennt sie nicht.
 
 ## 5. Das Maschinenobjekt
 
@@ -146,6 +151,41 @@ der Kette der Glieder (Abschnitt 6): Liegt das Gelenk zwischen dem festen Glied 
 Assembly und einer Werkstückaufnahme, gehört es zum Tisch; liegt es zwischen
 dem festen Teil und einer Werkzeugaufnahme, zum Kopf. Die Reihenfolge in
 dieser Kette ergibt `parent`.
+
+## 7a. Revolver und Werkzeugplätze
+
+Ein Revolver wird am besten als **eigene Baugruppe** gebaut – Scheibe plus je
+Werkzeugplatz ein LCS – und in die Maschine eingefügt (auch als Verknüpfung,
+dann lässt er sich in mehreren Maschinen verwenden). In der Maschine hängt
+diese Baugruppe mit **einem Drehgelenk** am Schlitten.
+
+- Das Drehgelenk bekommt die Betriebsart **Revolver** (Schalten), bei
+  NC-positionierbaren Revolvern zusätzlich **Positionieren** (beliebige
+  Gradzahl).
+- **Jeder Platz ist eine Werkzeugaufnahme** mit einem eigenen LCS (Ursprung =
+  Werkzeugaufnahme, Z = Werkzeugrichtung; axial und radial gemischt geht).
+  Das Addon nummeriert die Plätze **P1 … Pn**; welches Werkzeug auf welchem
+  Platz sitzt, kommt aus dem CAM-Job, nicht aus der Maschine.
+- Die **Anzahl der Plätze** zählt das Addon selbst: alle Werkzeugaufnahmen im
+  Glied des Revolvers.
+- Angetriebene Plätze verweisen auf ihre Spindel-Betriebsart (Antrieb der
+  angetriebenen Werkzeuge).
+- **Verteilhilfe:** ersten Platz (LCS) auswählen, Anzahl eingeben – das Addon
+  legt die übrigen Plätze gleichmäßig im Kreis um die Revolverachse an und
+  nummeriert sie. Danach lässt sich jeder Platz einzeln verschieben oder
+  löschen.
+
+## 7b. Weitere Beispiele
+
+Alles mit denselben Bausteinen – Gelenk, Betriebsart, Aufnahme:
+
+| Maschinenteil | Gelenk | Betriebsarten | Aufnahme |
+| --- | --- | --- | --- |
+| **4. Achse** auf der Fräse | Drehgelenk am Tisch | Positionieren, endlos (z. B. A) | Werkstückaufnahme am Futter/Planscheibe |
+| **Gegenspindel** | Schiebegelenk am Bett, Drehgelenk am Schlitten | Linear (z. B. Z2); Spindel und Positionieren (z. B. S2/C2) | Werkstückaufnahme am Futter |
+| **Reitstock** mit NC | Schiebegelenk am Bett | Linear (z. B. Z3) | – (Spitze als Körper, für die Kollision) |
+| **Reitstock** von Hand | Schiebegelenk am Bett | keine – von Hand verstellt | – |
+| **Pinole** | Schiebegelenk im Reitstock | Linear oder keine | – |
 
 ## 8. Beschleunigung ermitteln (Hilfetext für den Dialog)
 
@@ -237,6 +277,9 @@ diesen Dialog heißt das konkret:
 ## Entschieden
 
 - **Speicherort:** eigenes Maschinenobjekt (Manuel, P-2026-09-25-08).
-- **Betriebsarten:** vorerst Linear, Positionieren und Spindel. Die Liste ist
-  erweiterbar (etwa für TRANSMIT/TRACYL), sobald jemand das braucht
-  (P-2026-09-25-10).
+- **Betriebsarten:** Linear, Positionieren, Spindel und – auf Manuels Wunsch
+  – Revolver (P-2026-09-25-15). Weitere (etwa für TRANSMIT/TRACYL), sobald
+  jemand sie braucht.
+- **Revolver:** eigene Baugruppe mit einem Drehgelenk; Plätze einzeln als
+  LCS plus Verteilhilfe; Platznamen P1 … Pn, Werkzeugzuordnung aus CAM
+  (Manuel, P-2026-09-25-15).
