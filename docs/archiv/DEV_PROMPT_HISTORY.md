@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-19 einsatz-kopieren-nachtrag
+
+### EINGELESEN
+- P-2026-09-26-12: Die Kopie einer Zeile wählt die Spalte ae – beim Bohrer
+  ist sie ausgeblendet; gewählt war dann eine unsichtbare Zelle.
+- Die Nummern für doppelte Namen aus „+ Einsatz“ und vom Planer
+  (`einsatz_hinzufuegen`) waren nur ohne Oberfläche geprüft.
+
+### DATEIEN
+- `camaddon/gui_schnittwerte.py` (Kopie beim Bohrer: Spalte vc)
+- `tests/gui/szenario_schnittwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Bohrer mit einer Zeile „Bohren“ → „+ Einsatz ▾ →
+Gewählte Zeile kopieren“ → darunter „Bohren 2“, und die Zelle vc ist
+gewählt.
+
+### DONE
+- Kopie beim Bohrer wählt vc.
+
+### TEST
+- `tests/gui/szenario_schnittwerte.py` (beide Versionen): „+ Einsatz“ und
+  `einsatz_hinzufuegen` bei vorhandenem „Schruppen dynamisch“ → „… 2“ und
+  „… 3“; Bohrer-Kopie „Bohren 2“ mit gewählter Spalte vc.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- —
+
 ## P-2026-09-26-18 stand-fuer-manuel-2
 
 ### EINGELESEN

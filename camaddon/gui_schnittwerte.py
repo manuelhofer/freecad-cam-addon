@@ -232,7 +232,8 @@ class SchnittwertBereich(QtGui.QWidget):
         self._liste.insert(zeile, kopie)
         self._geaendert()
         self._fuellen()
-        self.tabelle.setCurrentCell(zeile, AE)
+        # Meist ändert man in der Variante ae; beim Bohrer gibt es keine ae-Spalte.
+        self.tabelle.setCurrentCell(zeile, VC if self._bohrer() else AE)
         return kopie
 
     def einsatz_entfernen(self):

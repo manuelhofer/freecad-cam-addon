@@ -127,6 +127,19 @@ def schritte(h):
     yield 100
     namen = [zelle(d, z, gs.EINSATZ) for z in range(s.tabelle.rowCount())]
     h.pruefe(namen == ["Vollnut", "Schruppen dynamisch"], f"nach dem Löschen: {namen}")
+    # Auch „+ Einsatz“ und der Planer (einsatz_hinzufuegen) nummerieren doppelte Namen.
+    s.einsatz_anlegen(wz.DYNAMISCH)
+    s.einsatz_hinzufuegen(wz.Einsatz(art=wz.DYNAMISCH, ae=1.8, ap=25, vc=120, fz=0.13))
+    yield 100
+    namen = [zelle(d, z, gs.EINSATZ) for z in range(s.tabelle.rowCount())]
+    h.pruefe(
+        namen[2:] == ["Schruppen dynamisch 2", "Schruppen dynamisch 3"], f"doppelte Namen: {namen}"
+    )
+    for _ in range(2):
+        s.tabelle.setCurrentCell(2, gs.EINSATZ)
+        s.einsatz_entfernen()
+    yield 100
+    h.pruefe(s.tabelle.rowCount() == 2, f"{s.tabelle.rowCount()} Zeilen nach dem Aufräumen")
 
     # 1.4301 ohne eigene Werte: grau, nicht bearbeitbar.
     d.waehle_werkstoff("1.4301")
@@ -174,6 +187,16 @@ def schritte(h):
         f"Bohrer: {zelle(d, 0, gs.N)}, {zelle(d, 0, gs.VF)}, {zelle(d, 0, gs.Q)}",
     )
     h.bild("4_bohrer", d)
+    # Kopie einer Bohrer-Zeile: gewählt ist vc – ae gibt es beim Bohrer nicht.
+    s.einsatz_kopieren()
+    yield 100
+    h.pruefe(
+        (s.tabelle.currentRow(), s.tabelle.currentColumn()) == (1, gs.VC),
+        f"Bohrer-Kopie gewählt: {s.tabelle.currentRow()}, {s.tabelle.currentColumn()}",
+    )
+    h.pruefe(zelle(d, 1, gs.EINSATZ) == "Bohren 2", f"Name der Kopie {zelle(d, 1, gs.EINSATZ)!r}")
+    s.einsatz_entfernen()
+    yield 100
 
     # OK speichert alles.
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
