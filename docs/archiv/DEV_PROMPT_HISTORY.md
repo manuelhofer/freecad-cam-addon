@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-23 installieren-privat
+
+### EINGELESEN
+- `Mod/AddonManager`: `addonmanager_installer.py` (`_determine_install_method`,
+  `_install_by_copy`), `addonmanager_utilities.construct_git_url` (lokale
+  Pfade), `addonmanager_workers_startup.UpdateChecker`.
+
+### DATEIEN
+- `README.md` (Installieren in der privaten Phase mit GitHub Desktop, dazu
+  der Addon-Manager-Weg für später)
+- `docs/STATUS_SNAPSHOT.md` (T-005), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Das README führt als ersten Weg die Installation mit GitHub Desktop direkt in
+den Mod-Ordner; der Addon-Manager-Weg ist als „erst wenn öffentlich“
+gekennzeichnet.
+
+### DONE
+Manuel will das Repo vorerst **nicht veröffentlichen**. Zum Testen soll es
+lokal bleiben. Deshalb habe ich ausprobiert, ob der Addon-Manager mit einem
+**lokalen Ordner** als eigenem Repository arbeitet: unsichtbare Oberfläche,
+eigenes Profil, lokaler Klon des Repos.
+
+- Die **Installation** klappt. Der Addon-Manager kopiert den Ordner.
+  Allerdings liest er `package.xml` aus einem lokalen Pfad nicht und zeigt
+  das Addon deshalb ohne Beschreibung an.
+- **Updates** erkennt er nicht: Nach einem neuen Commit im lokalen Ordner
+  meldet er „No update available“. Der eingebaute Git-Stand zeigt weiter auf
+  GitHub, und dort kommt er nicht hin.
+- Ergebnis: In der privaten Phase bringt der Addon-Manager nichts. Der
+  einfachste Weg ist GitHub Desktop, das Repo direkt in den Mod-Ordner holen
+  und zum Aktualisieren „Pull“ drücken. Das README beschreibt das jetzt als
+  ersten Weg.
+- **Fehler im Testaufbau, gefunden und folgenlos:** Beim ersten Versuch lief
+  der Addon-Manager im Profil von `oberflaeche_testen.sh`. Dort ist unser
+  Repo als Verknüpfung im Mod-Ordner eingetragen, also kopierte der
+  Addon-Manager durch die Verknüpfung **in unser Repo**. Danach geprüft:
+  `git status` sauber, `git fsck` ohne Befund. Die Kopie war derselbe Stand.
+  Den sauberen Versuch habe ich in einem eigenen Profil ohne die Verknüpfung
+  gemacht. Für Tests des Addon-Managers darf dieses Skript nicht benutzt
+  werden.
+- Die Regel „was auf `main` liegt, kommt als Update an“ (P-2026-09-25-22)
+  bleibt, denn mit GitHub Desktop gilt sie genauso.
+
+### TEST
+- Von der KI ausgeführt, in einem eigenen Profil unter Xvfb:
+  `AddonInstaller.run()` mit lokalem Pfad ergibt `True`, der Ordner liegt im
+  Mod-Verzeichnis. `UpdateChecker.check_workbench` ergibt nach einem neuen
+  Commit im lokalen Ordner „No update available“.
+- Die Installation mit GitHub Desktop auf Manuels Rechner ist nicht
+  getestet.
+
+### NEXT
+- Manuel entscheidet, ob das Addon für die private Phase selbst nach Updates
+  schauen soll (Git im eigenen Ordner).
+
 ## P-2026-09-25-22 updates-ueber-addon-manager
 
 ### EINGELESEN

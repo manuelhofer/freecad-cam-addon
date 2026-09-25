@@ -34,9 +34,10 @@ Keine bekannten.
 
 ## Offene Tasks
 
-- **T-005** Manuel schaltet das Repo auf GitHub öffentlich (Settings →
-  General → Danger Zone → Change visibility). Erst danach funktioniert die
-  Installation mit automatischen Updates über den Addon-Manager (README).
+- **T-005** Das Repo bleibt vorerst privat (Manuel). Wird es öffentlich
+  (Settings → Danger Zone → Change visibility), funktionieren die Updates
+  über den Addon-Manager (README); bis dahin Installation und Update mit
+  GitHub Desktop.
 
 - **T-004** Fehler an FreeCAD melden: `Machine.from_dict` liest bei
   Linearachsen einen Ursprung ≠ (0,0,0) als Richtung (Befund und Beleg in

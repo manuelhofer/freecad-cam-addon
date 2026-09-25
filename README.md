@@ -8,45 +8,43 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).
 
-## Installieren mit automatischen Updates (empfohlen)
+## Installieren, solange das Repository privat ist (empfohlen)
 
-Über den Addon-Manager von FreeCAD – dann meldet FreeCAD neue Versionen selbst
-und installiert sie auf Knopfdruck.
-
-1. **Bearbeiten → Einstellungen → Addon-Manager**, dort unter
-   **Eigene Repositories** eine Zeile hinzufügen:
-   - Repository-URL: `https://github.com/manuelhofer/freecad-cam-addon`
-   - Branch: `main`
-2. **Werkzeuge → Addon-Manager** öffnen, nach **freecad-cam-addon** suchen,
-   **Installieren**.
-3. FreeCAD neu starten. Beim ersten Start fragt das Addon nach der Sprache.
-   Seine Werkzeugleiste erscheint in den Arbeitsbereichen **Assembly** und
-   **CAM**.
-
-Updates: Der Addon-Manager zeigt verfügbare Updates an (auch beim Start von
-FreeCAD, wenn in seinen Einstellungen die automatische Prüfung eingeschaltet
-ist); **Aktualisieren**, FreeCAD neu starten.
-
-## Installieren von Hand
-
-Ohne Addon-Manager, z. B. zum Ausprobieren eines bestimmten Stands:
+Das Repository ist privat. FreeCADs Addon-Manager kann sich nicht bei GitHub
+anmelden – er hilft deshalb erst, wenn es öffentlich ist (siehe unten). Bis
+dahin holt man das Addon mit **GitHub Desktop** (oder Git) direkt in den
+Addon-Ordner von FreeCAD:
 
 1. In FreeCAD die Python-Konsole öffnen (Ansicht → Ansichten →
    Python-Konsole) und eingeben:
    `App.getUserAppDataDir() + "Mod"`
    Das ist der Ordner für Addons – auf jedem Betriebssystem ein anderer, die
    Konsole nennt den richtigen.
-2. Dieses Repository dort hinein legen, als Ordner `freecad-cam-addon`:
-   - mit Git: `git clone https://github.com/manuelhofer/freecad-cam-addon`
-     im Mod-Ordner, oder
-   - auf GitHub **Code → Download ZIP**, entpacken und den Ordner in
-     `freecad-cam-addon` umbenennen.
+2. In GitHub Desktop: **File → Clone repository** →
+   `manuelhofer/freecad-cam-addon`, als **Local path** den Mod-Ordner aus
+   Schritt 1 wählen. Es entsteht der Ordner `freecad-cam-addon`.
+   (Mit Git: `git clone https://github.com/manuelhofer/freecad-cam-addon`
+   im Mod-Ordner.)
 3. FreeCAD neu starten. Beim ersten Start fragt das Addon nach der Sprache.
    Seine Werkzeugleiste erscheint in den Arbeitsbereichen **Assembly** und
    **CAM**.
 
-Aktualisieren von Hand: mit Git `git pull` im Ordner, sonst ZIP neu laden und
-den Ordner ersetzen.
+**Aktualisieren:** in GitHub Desktop **Fetch origin**, dann **Pull origin**
+(bzw. `git pull` im Ordner) und FreeCAD neu starten.
+
+## Installieren über den Addon-Manager (erst wenn das Repository öffentlich ist)
+
+Dann meldet FreeCAD neue Versionen selbst und installiert sie auf Knopfdruck.
+
+1. **Bearbeiten → Einstellungen → Addon-Manager**, unter
+   **Eigene Repositories** eine Zeile: URL
+   `https://github.com/manuelhofer/freecad-cam-addon`, Branch `main`.
+2. **Werkzeuge → Addon-Manager**, nach **freecad-cam-addon** suchen,
+   **Installieren**, FreeCAD neu starten.
+
+Ausprobiert (P-2026-09-25-23): Einen **lokalen Ordner** als eigenes
+Repository installiert der Addon-Manager zwar, erkennt dort aber keine
+Updates – für die private Phase bringt er deshalb nichts.
 
 ## Lizenz
 
