@@ -115,6 +115,22 @@ def pruefe_export():
         "Spindel S4, ohne größte Drehzahl" in uebertragen and "bis 0 U/min" not in uebertragen,
         f"Spindel ohne Drehzahl: {uebertragen}",
     )
+
+    # Nur eine Begrenzung am Gelenk: auch das steht unter „Bitte prüfen“ (B-002).
+    gelenk_z = asm.Document.getObject("Z")
+    gelenk_z.EnableLengthMax, gelenk_z.LengthMax = True, 500
+    cam, bericht = export.baue_cam_maschine(ma)
+    zu_pruefen = " ".join(bericht.zu_pruefen)
+    pruefe(
+        "„Z1“ hat am Gelenk nur eine Begrenzung" in zu_pruefen
+        and "„Z1“ hat am Gelenk keine Begrenzung" not in zu_pruefen,
+        f"eine fehlende Begrenzung an Z1: {zu_pruefen}",
+    )
+    z1 = cam.linear_axes["Z1"]
+    pruefe(
+        (z1.min_limit, z1.max_limit) == (-export.OHNE_GRENZE_MM, 500),
+        f"Z1: Grenzen {z1.min_limit}/{z1.max_limit}",
+    )
     App.closeDocument(asm.Document.Name)
     sprache.setze_sprache(sprache_vorher or "")
 

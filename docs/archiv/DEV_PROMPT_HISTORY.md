@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-41 eine-grenze-fehlt-im-bericht
+
+### EINGELESEN
+- B-002 aus P-2026-09-25-29: Hat ein Gelenk nur eine der beiden
+  Begrenzungen, bekam die andere Seite bei der Übergabe ohne Hinweis
+  ±100000 mm bzw. ±360°. Gemeldet wurde nur, wenn beide fehlten.
+
+### DATEIEN
+- `camaddon/export.py` (`_satz_fehlende_grenzen`)
+- `translations/de.json`, `translations/en.json` (`export.eine_grenze`)
+- `tests/test_export.py`
+- `docs/STATUS_SNAPSHOT.md` (B-002 entfernt, keine offenen Bugs mehr)
+- `package.xml` (Version 0.3.9)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Fehlt am Gelenk eine Begrenzung oder fehlen beide, steht das unter „Bitte
+prüfen“ – außer bei einer endlos drehenden Achse.
+
+### DONE
+- Neuer Satz „… hat am Gelenk nur eine Begrenzung (Min oder Max). Für die
+  andere Seite bekommt CAM einen sehr großen Bereich …“. Fehlen beide,
+  bleibt es beim bisherigen Satz.
+- Die Bedingung steht jetzt an einer Stelle:
+  `endlos = achse.art != LINEAR and ba.Endlos`. Dazu kommt
+  `_satz_fehlende_grenzen()`, das zwischen „keine“ und „nur eine“
+  unterscheidet. Die Hilfsvariable `ohne_grenzen`, die an zwei Stellen
+  gesetzt wurde, ist weg.
+- Version 0.3.9.
+
+### TEST
+- Von der KI ausgeführt:
+  - Neuer Abschnitt in `test_export.py`: Das Gelenk Z bekommt nur ein
+    Maximum (500 mm). Erwartet werden der Satz „nur eine Begrenzung“, nicht
+    „keine Begrenzung“, und die Grenzen −100000/500 mm in CAM.
+  - Gegenprobe mit dem alten Code: Der Satz fehlt.
+  - Mit dem neuen Code ist `alle_tests.sh` in beiden Versionen grün.
+
+### NEXT
+- Manuels Test in FreeCAD 1.1.3.
+- Danach W-001 Stufe 3: Maschine von Hand verfahren.
+
 ## P-2026-09-25-40 pflichtwert-fehlt-im-bericht
 
 ### EINGELESEN

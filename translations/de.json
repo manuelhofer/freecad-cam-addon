@@ -133,6 +133,7 @@
     "export.dreh": "Drehachse {name}, bis {geschwindigkeit} U/min",
     "export.spindel": "Spindel {name}, bis {drehzahl} U/min",
     "export.ohne_grenzen": "„{name}“ hat am Gelenk keine Begrenzung (Min/Max). CAM bekommt einen sehr großen Bereich – trage die Begrenzung in der Assembly ein.",
+    "export.eine_grenze": "„{name}“ hat am Gelenk nur eine Begrenzung (Min oder Max). Für die andere Seite bekommt CAM einen sehr großen Bereich – trage beide Begrenzungen in der Assembly ein.",
     "export.wert_bleibt": "{wert} von „{name}“ kennt die CAM-Definition nicht – der Wert bleibt in der Maschine gespeichert.",
     "export.revolver": "Revolver „{name}“ mit {anzahl} Plätzen kennt die CAM-Definition nicht – die Plätze bleiben in der Maschine gespeichert.",
     "export.kette_fehler": "FreeCAD meldet einen Fehler in der Achsfolge: {fehler}",

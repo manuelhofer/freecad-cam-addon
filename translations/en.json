@@ -133,6 +133,7 @@
     "export.dreh": "Rotary axis {name}, up to {geschwindigkeit} rpm",
     "export.spindel": "Spindle {name}, up to {drehzahl} rpm",
     "export.ohne_grenzen": "“{name}” has no limits (min/max) on its joint. CAM gets a very large range – enter the limits in the assembly.",
+    "export.eine_grenze": "“{name}” has only one limit (min or max) on its joint. For the other side CAM gets a very large range – enter both limits in the assembly.",
     "export.wert_bleibt": "The CAM definition does not know the {wert} of “{name}” – the value stays stored in the machine.",
     "export.revolver": "The CAM definition does not know the turret “{name}” with {anzahl} stations – the stations stay stored in the machine.",
     "export.kette_fehler": "FreeCAD reports an error in the axis order: {fehler}",

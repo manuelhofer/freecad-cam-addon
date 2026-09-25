@@ -91,8 +91,6 @@ def baue_cam_maschine(maschine, kette=None):
             "sequence": reihenfolge,
             "parent": _eltern_name(maschine, kette, achse),
         }
-        ohne_grenzen = achse.minimum is None and achse.maximum is None
-
         if achse.art == LINEAR:
             eilgang = ba.Eilgang or VORGABE_EILGANG
             cam.linear_axes[name] = _linearachse(achse, eilgang, im_kopf, **gemeinsam)
@@ -109,10 +107,10 @@ def baue_cam_maschine(maschine, kette=None):
                 bericht.zu_pruefen.append(
                     tr("export.geschwindigkeit_vorgabe", name=name, geschwindigkeit=_zahl(u_min))
                 )
-            ohne_grenzen = ohne_grenzen and not ba.Endlos  # endlos braucht keine Grenzen
 
-        if ohne_grenzen:
-            bericht.zu_pruefen.append(tr("export.ohne_grenzen", name=name))
+        endlos = achse.art != LINEAR and ba.Endlos  # braucht keine Begrenzung
+        if not endlos and (achse.minimum is None or achse.maximum is None):
+            bericht.zu_pruefen.append(_satz_fehlende_grenzen(name, achse))
         for eigenschaft in NICHT_IN_CAM:
             if getattr(ba, eigenschaft):
                 bericht.nicht_uebertragen.append(
@@ -184,6 +182,16 @@ def _eltern_name(maschine, kette, achse):
         if ba is not None:
             return m.name_von(ba)
     return None
+
+
+def _satz_fehlende_grenzen(name, achse):
+    """Hinweis, dass am Gelenk eine oder beide Begrenzungen fehlen.
+
+    Für eine fehlende Seite bekommt CAM OHNE_GRENZE_MM bzw. OHNE_GRENZE_GRAD.
+    """
+    if achse.minimum is None and achse.maximum is None:
+        return tr("export.ohne_grenzen", name=name)
+    return tr("export.eine_grenze", name=name)
 
 
 def _linearachse(achse, eilgang, im_kopf, **gemeinsam):

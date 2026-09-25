@@ -33,9 +33,7 @@ Ein Satz je Wunsch, W-ID fortlaufend.
 
 ## Offene Bugs
 
-- **B-002** Übergabe an CAM: Hat ein Gelenk nur eine der beiden Grenzen,
-  bekommt die andere Seite ohne Hinweis ±100000 mm bzw. ±360° (gefunden in
-  P-2026-09-25-29).
+Keine bekannten.
 
 ## Offene Tasks
 
