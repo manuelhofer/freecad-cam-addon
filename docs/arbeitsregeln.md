@@ -83,7 +83,9 @@ ein ASCII-Entwurf des Dialogs reicht.
 
 - `python -m py_compile` über **alle** geänderten Python-Dateien.
 - Was sich ohne Oberfläche prüfen lässt (Berechnungen, Vorlagen, Einlesen von
-  Einstellungen), bekommt eine **wiederholbare** Prüfung ohne GUI.
+  Einstellungen, Anlegen von Jobs und Operationen), bekommt eine
+  **wiederholbare** Prüfung unter `tests/`, die mit `FreeCADCmd` ohne Fenster
+  läuft. Alle Prüfungen laufen vor jedem Commit durch.
 - Die Oberfläche prüft **Manuel** in FreeCAD. Der Patch nennt ihm den Klickweg
   aus dem Akzeptanzkriterium. Gilt er erst nach seiner Rückmeldung als getestet,
   steht das so im Verlauf.
@@ -133,6 +135,17 @@ Python-API von FreeCAD und der CAM-Workbench. Kein Überschreiben von
 FreeCAD-Dateien, kein Monkey-Patching. Geht etwas nur über interne Funktionen,
 wird das **angesprochen** und im Code begründet.
 
+**Strg+Z muss gehen:** Jede Aktion des Addons, die das Dokument ändert, läuft
+in **einer** Transaktion (`doc.openTransaction(...)` / `commitTransaction()`,
+im Fehlerfall `abortTransaction()`). Ein Klick im Addon = ein Schritt
+Rückgängig, nie ein halb geänderter Job.
+
+**Einstellungen in FreeCAD:** Standardwerte und Vorlagen des Addons liegen im
+Parameter-System von FreeCAD (`FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod/<Addon>")`),
+nicht in eigenen Dateien. So überleben sie Updates und brauchen keinen Pfad.
+Nur was dafür zu groß ist (z. B. ganze Vorlagensätze), kommt als Datei unter
+`FreeCAD.getUserAppDataDir()`.
+
 **Installierbar wie jedes Addon:** Aufbau so, dass der Ordner in `Mod/` bzw.
 über den Addon-Manager geladen wird (`package.xml`, `InitGui.py`).
 
@@ -150,7 +163,17 @@ wird das **angesprochen** und im Code begründet.
 - Fehler landen im Report-Fenster (`FreeCAD.Console.PrintError` /
   `PrintWarning`), nicht still im Nichts.
 
-## 8. Am Ende: Kaltstart klein halten
+## 8. Neue FreeCAD-Version
+
+Weil immer auf die neueste Version gesetzt wird, gehört zu jeder neuen
+FreeCAD-Version ein **Versionscheck** als eigener Patch: Testumgebung auf die
+neue Version heben, alle Prüfungen unter `tests/` laufen lassen, im
+Report-Fenster auf Meldungen achten, und Manuel klickt die Akzeptanzkriterien
+der sichtbaren Funktionen einmal durch. Bricht etwas, wird es angepasst – ohne
+Rücksicht auf die alte Version. Welche Version zuletzt geprüft wurde, steht im
+Snapshot.
+
+## 9. Am Ende: Kaltstart klein halten
 
 Jeder neue Chat liest `CLAUDE.md`, `CHATSTART.md`, diese Datei und den
 Snapshot, **bevor** er irgendetwas tun kann. **So kurz wie möglich, aber nicht

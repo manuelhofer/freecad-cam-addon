@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-02 regeln-addon-zusatz
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitte 5 und 7.
+
+### DATEIEN
+- `docs/arbeitsregeln.md` (Abschnitt 5 und 7 ergänzt, neuer Abschnitt 8,
+  bisheriger 8 wird 9)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer `docs/arbeitsregeln.md` liest, findet dort die vier Zusatzregeln
+Rückgängig, Einstellungen, Versionscheck und automatische Tests.
+
+### DONE
+Manuel hat aus einer Auswahl alle vier vorgeschlagenen Zusatzregeln gewählt:
+
+- **Strg+Z muss gehen:** jede Aktion eine Transaktion.
+- **Einstellungen in FreeCAD:** Parameter-System statt eigener Dateien.
+- **Neue FreeCAD-Version prüfen:** eigener Patch je Version; die zuletzt
+  geprüfte Version steht im Snapshot.
+- **Automatische Tests:** Prüfungen unter `tests/`, die ohne Fenster mit
+  `FreeCADCmd` laufen. Die Testumgebung selbst ist ein eigener Patch.
+
+### TEST
+- Abschnittsnummern und Verweise gegengeprüft.
+
+### NEXT
+- Lizenz, dann Testumgebung.
+
 ## P-2026-09-25-01 projektregeln
 
 ### EINGELESEN

@@ -5,6 +5,7 @@ Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
 - **PLANUNG** – Regelwerk steht, noch kein Addon-Code.
+- **Zuletzt geprüfte FreeCAD-Version:** noch keine (es gibt noch keinen Code).
 
 ## Nächster Schritt (konkret)
 
