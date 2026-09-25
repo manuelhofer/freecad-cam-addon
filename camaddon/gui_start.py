@@ -1,21 +1,18 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Anmeldung des Addons in der FreeCAD-Oberfläche.
+"""Anmeldung des Addons in der FreeCAD-Oberfläche; InitGui.py ruft `starten()` auf.
 
 Das Addon hat keinen eigenen Arbeitsbereich: Die Maschine wird in einer
 Assembly gebaut und in CAM benutzt, also hängt eine Werkzeugleiste an genau
-diesen beiden Arbeitsbereichen (über die öffentliche Python-Schnittstelle der
-Arbeitsbereiche – nichts an FreeCAD wird überschrieben).
+diesen beiden Arbeitsbereichen – über die öffentliche Python-Schnittstelle
+der Arbeitsbereiche, nichts an FreeCAD wird überschrieben.
 """
-
-import os
 
 import FreeCAD
 import FreeCADGui
+from PySide import QtGui
 
-from . import ADDON_ORDNER
+from . import VERSION, gui_aktualisierung, gui_maschine, gui_sprachwahl, symbol
 from .sprache import tr
-
-SYMBOL_ORDNER = os.path.join(ADDON_ORDNER, "resources", "icons")
 
 # Arbeitsbereiche, an die die Werkzeugleiste angehängt wird.
 ZIEL_ARBEITSBEREICHE = ("AssemblyWorkbench", "CAMWorkbench")
@@ -24,8 +21,16 @@ ZIEL_ARBEITSBEREICHE = ("AssemblyWorkbench", "CAMWorkbench")
 WERKZEUGLEISTE = ["CamAddon_MaschineBearbeiten", "CamAddon_Ueber"]
 
 
-def symbol(name):
-    return os.path.join(SYMBOL_ORDNER, name)
+def starten():
+    """Meldet Befehle, Werkzeugleiste und Einstellungsseite an, fragt beim ersten
+    Start nach der Sprache und sucht im Hintergrund nach Updates."""
+    FreeCADGui.addCommand("CamAddon_MaschineBearbeiten", gui_maschine.BefehlMaschineBearbeiten())
+    FreeCADGui.addCommand("CamAddon_Ueber", BefehlUeber())
+    FreeCADGui.getMainWindow().workbenchActivated.connect(_werkzeugleiste_anhaengen)
+    gui_sprachwahl.einstellungsseite_anmelden()
+    gui_sprachwahl.beim_ersten_start_fragen()
+    gui_aktualisierung.beim_start()
+    FreeCAD.Console.PrintLog("CAM-Addon geladen\n")
 
 
 class BefehlUeber:
@@ -38,19 +43,13 @@ class BefehlUeber:
             "ToolTip": tr("befehl.ueber.tooltip"),
         }
 
-    def Activated(self):
-        from PySide import QtGui
-
-        from . import VERSION
-
-        QtGui.QMessageBox.about(
-            FreeCADGui.getMainWindow(),
-            tr("befehl.ueber.titel"),
-            tr("ueber.text", version=VERSION),
-        )
-
     def IsActive(self):
         return True
+
+    def Activated(self):
+        QtGui.QMessageBox.about(
+            FreeCADGui.getMainWindow(), tr("befehl.ueber.titel"), tr("ueber.text", version=VERSION)
+        )
 
 
 def _werkzeugleiste_anhaengen(name_arbeitsbereich):
@@ -67,23 +66,4 @@ def _werkzeugleiste_anhaengen(name_arbeitsbereich):
     if name in arbeitsbereich.listToolbars():
         return
     arbeitsbereich.appendToolbar(name, WERKZEUGLEISTE)
-    # Erst nach dem Neuladen erscheint die neue Leiste.
-    arbeitsbereich.reloadActive()
-
-
-def starten():
-    from . import gui_maschine
-
-    FreeCADGui.addCommand("CamAddon_MaschineBearbeiten", gui_maschine.BefehlMaschineBearbeiten())
-    FreeCADGui.addCommand("CamAddon_Ueber", BefehlUeber())
-    FreeCADGui.getMainWindow().workbenchActivated.connect(_werkzeugleiste_anhaengen)
-
-    from . import gui_sprachwahl
-
-    gui_sprachwahl.einstellungsseite_anmelden()
-    gui_sprachwahl.beim_ersten_start_fragen()
-
-    from . import gui_aktualisierung
-
-    gui_aktualisierung.beim_start()
-    FreeCAD.Console.PrintLog("CAM-Addon geladen\n")
+    arbeitsbereich.reloadActive()  # erst danach erscheint die neue Leiste

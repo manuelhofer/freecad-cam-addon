@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-33 oberflaeche-rest-lesbar
+
+### EINGELESEN
+- Durchsicht von Hand: `gui_zeigen`, `gui_start`, `gui_sprachwahl`,
+  `gui_aktualisierung`.
+
+### DATEIEN
+- `camaddon/__init__.py` (`symbol()` und `SYMBOL_ORDNER`, vorher in
+  `gui_start`)
+- `camaddon/gui_start.py`, `gui_sprachwahl.py`, `gui_aktualisierung.py`,
+  `gui_zeigen.py`
+- `camaddon/gui_maschine.py` (holt `symbol` aus dem Paket)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Alle Importe stehen oben in der Datei, und kein Modul importiert ein anderes
+im Kreis. Wartezeiten und Maße sind benannte Konstanten, jede Klasse sagt,
+wozu sie da ist. Das Verhalten bleibt gleich.
+
+### DONE
+- **Import-Kreis aufgelöst:** `gui_maschine` holte `symbol()` aus
+  `gui_start`, und `gui_start` importierte `gui_maschine`. Deshalb standen
+  die Importe in `gui_start` und `gui_sprachwahl` in den Funktionen.
+  `symbol()` liegt jetzt beim Paket, neben `ADDON_ORDNER`. Alle Importe
+  stehen oben.
+- **gui_aktualisierung:**
+  - `START_VERZOEGERUNG_MS`, `NACHSEHEN_MS`, `DIALOG_BREITE` statt Zahlen.
+  - `ordner` hat den Addon-Ordner als Vorgabe; die Verzweigungen
+    `if self.ordner: … else: …` entfallen.
+  - Beim Start entfernt `fertig` genau seine Suche aus der Liste; vorher
+    räumte ein Tupel-Lambda die ganze Liste leer.
+  - Erklärt ist, warum der Such-Thread `daemon` ist und warum die Liste der
+    laufenden Suchen nötig ist.
+- **gui_zeigen:** `GROESSE_OHNE_FORM` statt `100.0`; die Berechnung des
+  Ausschlags steht in `_weite()`.
+- **gui_start, gui_sprachwahl:** Docstrings; Kommentar, dass FreeCAD
+  `loadSettings` und `saveSettings` aufruft.
+- Keine sichtbare Änderung, deshalb bleibt die Version 0.3.6.
+
+### TEST
+- Von der KI ausgeführt:
+  - black und ruff sauber.
+  - `alle_tests.sh` in beiden Versionen grün, 30 von 30. Die geänderten
+    Importe beim Start laufen in jedem der sieben Szenarien mit.
+  - Protokolle aller 14 Szenario-Läufe: kein Traceback.
+
+### NEXT
+- Tests und Skripte durchsehen; Entwickler-Doku `docs/aufbau.md`.
+
 ## P-2026-09-25-32 dialog-maschine-aufgeteilt
 
 ### EINGELESEN

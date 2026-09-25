@@ -16,6 +16,13 @@ ADDON_ORDNER = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Die Einstellungen des Addons im Parameter-System von FreeCAD.
 PARAMETER_PFAD = "User parameter:BaseApp/Preferences/Mod/CamAddon"
 
+SYMBOL_ORDNER = os.path.join(ADDON_ORDNER, "resources", "icons")
+
+
+def symbol(name):
+    """Pfad zu einem Symbol aus resources/icons, z. B. symbol("maschine.svg")."""
+    return os.path.join(SYMBOL_ORDNER, name)
+
 
 def version_aus_xml(text):
     """Die Version aus dem Inhalt einer package.xml, oder „?“."""

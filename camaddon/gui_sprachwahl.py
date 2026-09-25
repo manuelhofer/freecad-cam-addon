@@ -4,12 +4,14 @@
 Der Dialog beim ersten Start beschriftet sich beim Durchblättern der Liste
 sofort in der markierten Sprache um – wer kein Englisch kann, sieht so, dass
 er richtig ist, bevor er bestätigt.
+
+Die Einstellungsseite enthält auch die Gruppe „Updates“ (gui_aktualisierung).
 """
 
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import sprache
+from . import gui_aktualisierung, sprache
 from .sprache import tr
 
 
@@ -24,6 +26,8 @@ def _sprachliste(auswahl):
 
 
 class ErsterStartDialog(QtGui.QDialog):
+    """Fragt beim ersten Start nach der Sprache der Oberfläche."""
+
     def __init__(self, eltern=None):
         super().__init__(eltern)
         self.liste = _sprachliste(sprache.STANDARD_SPRACHE)
@@ -45,6 +49,7 @@ class ErsterStartDialog(QtGui.QDialog):
         self._beschriften()
 
     def gewaehlt(self):
+        """Der Code der markierten Sprache, z. B. "de"."""
         return self.liste.currentData()
 
     def _beschriften(self, *_):
@@ -61,7 +66,7 @@ class ErsterStartDialog(QtGui.QDialog):
 
 def _erster_start():
     dialog = ErsterStartDialog(FreeCADGui.getMainWindow())
-    dialog.exec_()
+    dialog.exec_()  # wartet, bis eine Sprache gewählt ist
     sprache.setze_sprache(dialog.gewaehlt())
 
 
@@ -86,23 +91,18 @@ class Einstellungsseite:
         gruppen_aufbau.addRow(tr("einstellungen.sprache.feld"), self.liste)
         gruppen_aufbau.addRow(hinweis)
 
-        from . import gui_aktualisierung
-
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
         aufbau.addWidget(gui_aktualisierung.einstellungen_gruppe(self))
         aufbau.addStretch()
 
+    # loadSettings und saveSettings ruft FreeCAD beim Öffnen und bei OK auf.
     def loadSettings(self):
-        from . import gui_aktualisierung
-
         index = self.liste.findData(sprache.aktuelle_sprache())
         self.liste.setCurrentIndex(max(index, 0))
         gui_aktualisierung.einstellungen_laden(self)
 
     def saveSettings(self):
-        from . import gui_aktualisierung
-
         sprache.setze_sprache(self.liste.currentData())
         gui_aktualisierung.einstellungen_speichern(self)
 

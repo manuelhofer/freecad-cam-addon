@@ -21,13 +21,12 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import export, gui_zeigen
+from . import export, gui_zeigen, symbol
 from . import kette as kette_modul
 from . import maschine as m
 from .gui_bericht import BerichtFenster
 from .gui_details import DetailKasten
 from .gui_hilfe import kopfzeile
-from .gui_start import symbol
 from .gui_verteilhilfe import VerteilDialog
 from .kette import HINWEIS, LINEAR
 from .sprache import tr
