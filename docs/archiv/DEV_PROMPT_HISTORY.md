@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-09 regel-bedienbarkeit-und-sprache
+
+### EINGELESEN
+- `CHATSTART.md` (Festlegungen), `docs/arbeitsregeln.md` Abschnitt 7.
+
+### DATEIEN
+- `CHATSTART.md` (vierte Festlegung), `docs/arbeitsregeln.md` (neuer
+  Abschnitt 8, Stilregel „Deutsch“ angepasst, folgende Abschnitte umnummeriert)
+- `docs/STATUS_SNAPSHOT.md` (T-003), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer `CHATSTART.md` liest, erfährt als erste Festlegung, dass Bedienbarkeit
+vor allem geht. Abschnitt 8 der Arbeitsregeln sagt, wie eine neue Sprache
+hinzukommt.
+
+### DONE
+Manuel: „Das Allerwichtigste ist Bedienbarkeit und Benutzerfreundlichkeit. Es
+dürfen bei dem, was auf dem Bildschirm zu sehen ist, keine Fragen aufkommen.“
+Dazu selbsterklärend, kleine Animationen, ausführlicher Text hinter dem
+Hilfe-Feld, Deutsch und Englisch.
+
+Zur Sprache hatte ich gefragt, ob die Oberflächentexte im Code auf Englisch
+(wie bei FreeCAD) oder auf Deutsch stehen sollen. Manuels Antwort ging darüber
+hinaus:
+- **Deutsch ist die Hauptsprache** für alles, was wir machen.
+- **Bei der Erstinstallation gilt Englisch.** Die Sprache wird direkt nach der
+  Installation ausgewählt.
+- **Weitere Sprachen** soll jemand anderes übersetzen können, über eine
+  einfache Datei (JSON oder was üblich ist).
+
+Umsetzung als Regel:
+- Die Texte stehen nicht im Code, sondern als Schlüssel in `translations/<sprache>.json`,
+  mit `de.json` als führender Datei.
+- Eine neue Sprache heißt: `en.json` kopieren und übersetzen.
+- Fehlt ein Text in einer Sprache, wird er auf Englisch angezeigt.
+- Das Addon fragt beim ersten Start einmal nach der Sprache. Die
+  Installation selbst läuft über den Addon-Manager von FreeCAD und bietet
+  keinen eigenen Schritt, deshalb ist der erste Start der früheste Zeitpunkt.
+
+Bewusst **nicht** das FreeCAD-übliche Qt-Format (`.ts`/`.qm`): Es braucht
+Qt Linguist und einen Übersetzungsschritt, und Manuel wollte ausdrücklich eine
+einfache Datei. Nachteil: Die Übersetzungsplattform von FreeCAD (Crowdin)
+greift nicht. Wird das später gewünscht, lässt sich JSON in `.ts` umwandeln.
+
+Animationen enthalten keinen Text, damit keine Animation je Sprache
+gebraucht wird.
+
+### TEST
+- Abschnittsnummern und Verweise nach dem Umnummerieren gegengeprüft.
+
+### NEXT
+- Offene Frage in der Spezifikation streichen; Freigabe durch Manuel.
+
 ## P-2026-09-25-08 spezifikation-maschinenobjekt-glieder
 
 ### EINGELESEN

@@ -154,8 +154,9 @@ Nur was dafür zu groß ist (z. B. ganze Vorlagensätze), kommt als Datei unter
 **Stil:**
 
 - Klein und lesbar, sinnvolles OOP ohne Vererbungsbäume.
-- **Deutsch:** Oberfläche, eigene Bezeichner, Kommentare. Namen aus FreeCAD
-  und Qt bleiben, wie sie sind.
+- **Deutsch:** eigene Bezeichner, Kommentare, Dokumentation. Namen aus
+  FreeCAD und Qt bleiben, wie sie sind. Texte der Oberfläche stehen **nie** im
+  Code, sondern in den Sprachdateien (Abschnitt 8).
 - **Umlaute schreiben, nicht umschreiben:** `ä ö ü ß` überall, wo Text für
   Menschen steht – Oberfläche, Kommentare, Dokumentation, Verlauf. Nie
   `ae oe ue ss`. Ausgenommen bleiben Bezeichner, Dateinamen,
@@ -165,7 +166,47 @@ Nur was dafür zu groß ist (z. B. ganze Vorlagensätze), kommt als Datei unter
 - Fehler landen im Report-Fenster (`FreeCAD.Console.PrintError` /
   `PrintWarning`), nicht still im Nichts.
 
-## 8. Neue FreeCAD-Version
+## 8. Bedienbarkeit und Sprache
+
+**Bedienbarkeit ist das oberste Ziel** – vor Funktionsumfang und vor
+Eleganz im Code. Der Maßstab: Wer den Bildschirm sieht, hat keine Frage.
+
+- **Selbsterklärend:** Jedes Feld hat eine Beschriftung in Worten (nicht nur
+  ein Kürzel), die Einheit steht daneben, sinnvolle Standardwerte sind
+  vorbelegt. Ungültiges wird sofort am Feld gezeigt, mit einem Satz, was
+  stattdessen gilt – nicht erst beim Speichern.
+- **Zeigen statt beschreiben:** Wo ein Begriff ein Bild braucht (welche
+  Achse, welche Richtung, was ein Glied ist), erklärt es eine kleine
+  Animation – am besten direkt in der 3D-Ansicht (das betroffene Teil wird
+  hervorgehoben und bewegt sich kurz), sonst als kurze Animation im Dialog.
+  Animationen enthalten **keinen Text**, damit sie in jeder Sprache passen.
+- **Drei Stufen Hilfe:** (1) die Beschriftung selbst, (2) ein Tooltip mit einem
+  Satz, (3) ein Hilfe-Knopf (?) je Bereich, der einen ausführlichen Text mit
+  Beispielen öffnet. Stufe 3 darf lang sein, Stufe 1 und 2 nicht.
+- **Jede Abweichung von FreeCAD-Gewohnheiten** (Knopfreihenfolge, Farben,
+  Begriffe) braucht einen Grund im Verlauf.
+- Das Akzeptanzkriterium einer Oberfläche enthält immer auch: „Manuel versteht
+  den Dialog ohne Erklärung“ – das prüft nur er.
+
+**Sprache:**
+
+- Arbeitssprache (Code, Kommentare, Doku, Verlauf) ist **Deutsch**. Die
+  deutsche Sprachdatei ist die **führende**: Neue Texte entstehen zuerst dort.
+- Die Oberfläche gibt es mindestens auf **Deutsch und Englisch**; jeder Patch,
+  der einen Text anlegt oder ändert, pflegt beide.
+- **Neu installiert startet das Addon auf Englisch.** Beim ersten Start fragt
+  es einmal nach der Sprache; die Wahl lässt sich in den Einstellungen des
+  Addons jederzeit ändern (gespeichert im Parameter-System von FreeCAD).
+- **Übersetzungen** liegen als eine JSON-Datei je Sprache in
+  `translations/` (`de.json`, `en.json`, …): ein fester Schlüssel je Text, der
+  Wert ist der Text. Eine neue Sprache heißt: `en.json` kopieren, umbenennen
+  (z. B. `it.json`), Werte übersetzen – das Addon bietet sie dann in der
+  Auswahl an. Fehlt ein Text in einer Sprache, erscheint der englische.
+- Lange Hilfetexte liegen je Sprache als eigene Datei in `help/<sprache>/`.
+- Eine automatische Prüfung stellt sicher, dass `de.json` und `en.json`
+  dieselben Schlüssel haben und kein Schlüssel im Code fehlt.
+
+## 9. Neue FreeCAD-Version
 
 Weil immer auf den aktuellen Wochen-Build gesetzt wird, gehört zu jedem
 Wechsel auf einen neueren Build ein **Versionscheck** als eigener Patch –
@@ -177,7 +218,7 @@ der sichtbaren Funktionen einmal durch. Bricht etwas, wird es angepasst – ohne
 Rücksicht auf die alte Version. Welche Version zuletzt geprüft wurde, steht im
 Snapshot.
 
-## 9. Am Ende: Kaltstart klein halten
+## 10. Am Ende: Kaltstart klein halten
 
 Jeder neue Chat liest `CLAUDE.md`, `CHATSTART.md`, diese Datei und den
 Snapshot, **bevor** er irgendetwas tun kann. **So kurz wie möglich, aber nicht

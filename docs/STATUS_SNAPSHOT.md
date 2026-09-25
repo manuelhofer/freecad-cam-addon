@@ -33,3 +33,6 @@ Keine bekannten.
 
 - **T-001** Grundgerüst des Addons (`package.xml`, `InitGui.py`, leere
   Workbench oder Werkzeugleiste) – kommt mit dem ersten Wunsch, nicht vorher.
+- **T-003** Sprachsystem nach `arbeitsregeln.md` Abschnitt 8: JSON-Dateien je
+  Sprache, Sprachwahl beim ersten Start (Englisch vorbelegt), Prüfung auf
+  gleiche Schlüssel – gleich nach T-001, vor dem ersten Dialog.

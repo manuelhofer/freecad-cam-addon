@@ -17,8 +17,13 @@ so"), die KI setzt es um, Manuel testet es in FreeCAD.
 Reines Python mit PySide (Qt), aufgesetzt auf die Python-API von FreeCAD und
 der CAM-Workbench. Kein eigener C++-Code.
 
-**Drei Festlegungen, die alles andere bestimmen:**
+**Vier Festlegungen, die alles andere bestimmen:**
 
+- **Bedienbarkeit geht vor allem.** Auf dem Bildschirm darf keine Frage
+  aufkommen: Alles ist selbsterklärend, wo nötig mit einer kleinen Animation
+  erklärt, und hinter jedem Hilfe-Knopf steht ein ausführlicher Text.
+  Oberfläche auf Deutsch und Englisch, weitere Sprachen über eine einfache
+  Übersetzungsdatei. Details: `docs/arbeitsregeln.md`, Abschnitt 8.
 - **Immer der aktuelle Wochen-Build von FreeCAD** (Entwicklerversion, nicht
   die letzte stabile). Keine Rücksicht auf ältere Versionen, keine
   Kompatibilitätsschichten.
