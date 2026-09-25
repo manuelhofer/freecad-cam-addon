@@ -21,7 +21,7 @@ SYMBOL_ORDNER = os.path.join(ADDON_ORDNER, "resources", "icons")
 ZIEL_ARBEITSBEREICHE = ("AssemblyWorkbench", "CAMWorkbench")
 
 # Befehle der Werkzeugleiste, in Anzeigereihenfolge.
-WERKZEUGLEISTE = ["CamAddon_Ueber"]
+WERKZEUGLEISTE = ["CamAddon_MaschineBearbeiten", "CamAddon_Ueber"]
 
 
 def symbol(name):
@@ -72,6 +72,9 @@ def _werkzeugleiste_anhaengen(name_arbeitsbereich):
 
 
 def starten():
+    from . import gui_maschine
+
+    FreeCADGui.addCommand("CamAddon_MaschineBearbeiten", gui_maschine.BefehlMaschineBearbeiten())
     FreeCADGui.addCommand("CamAddon_Ueber", BefehlUeber())
     FreeCADGui.getMainWindow().workbenchActivated.connect(_werkzeugleiste_anhaengen)
 

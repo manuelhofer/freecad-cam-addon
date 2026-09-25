@@ -49,7 +49,8 @@ c4 = m.neue_betriebsart(ma, obj("Spindel"), m.ART_POSITIONIEREN, "C4")
 for ba, wert in ((z1, ("Eilgang", 30000)), (x1, ("Eilgang", 24000)), (s4, ("Drehzahl", 4000)),
                  (c4, ("Geschwindigkeit", 100))):
     setattr(ba, *wert)
-m.neue_aufnahme(ma, obj("Spannflaeche"), m.AUFNAHME_WERKSTUECK, "Futter", spindel=s4)
+futter = m.neue_aufnahme(ma, obj("Spannflaeche"), m.AUFNAHME_WERKSTUECK, "Futter", spindel=s4)
+pruefe(m.name_von(futter) == "Futter", f"Aufnahme heißt nicht „Futter“: {m.name_von(futter)}")
 rev = m.neue_betriebsart(ma, obj("Revolverachse"), m.ART_REVOLVER, "T")
 k = kette.lies_kette(asm)
 pruefe("maschine.revolver_ohne_plaetze" in schluessel(m.pruefe(ma, k)), "Revolver ohne Plätze nicht gemeldet")
@@ -58,8 +59,8 @@ pruefe("maschine.revolver_ohne_plaetze" in schluessel(m.pruefe(ma, k)), "Revolve
 lcs_vorher = len([o for o in doc.Objects if o.isDerivedFrom("App::LocalCoordinateSystem")])
 liste = m.verteile_plaetze(ma, k, rev, obj("Werkzeugplatz"), 12)
 doc.recompute()
-pruefe([a.Label for a in liste] == [f"P{i}" for i in range(1, 13)], f"Platznamen: {[a.Label for a in liste]}")
-pruefe([a.Label for a in m.plaetze(ma, k, rev)] == [f"P{i}" for i in range(1, 13)], "plaetze() findet nicht alle 12")
+pruefe([a.Bezeichnung for a in liste] == [f"P{i}" for i in range(1, 13)], f"Platznamen: {[a.Bezeichnung for a in liste]}")
+pruefe([a.Bezeichnung for a in m.plaetze(ma, k, rev)] == [f"P{i}" for i in range(1, 13)], "plaetze() findet nicht alle 12")
 achse = next(g for g in k.gelenke if g.objekt.Name == "Revolverachse")
 punkte = [m.globale_platzierung(a.Lcs).Base for a in liste]
 

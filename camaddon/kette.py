@@ -31,10 +31,11 @@ class Meldung:
     schwere: str
     schluessel: str
     text: str
+    bezug: object = None  # Objekt, auf das sich die Meldung bezieht (für den Dialog)
 
 
-def meldung(schluessel, schwere=WARNUNG, **werte):
-    return Meldung(schwere, schluessel, tr(schluessel, **werte))
+def meldung(schluessel, schwere=WARNUNG, bezug=None, **werte):
+    return Meldung(schwere, schluessel, tr(schluessel, **werte), bezug)
 
 
 @dataclass(eq=False)

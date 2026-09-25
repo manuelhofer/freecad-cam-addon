@@ -3,9 +3,10 @@
 # profil, laedt das Addon und fuehrt ein Szenario aus tests/gui/ aus.
 # Screenshots und ergebnis.txt landen im Ausgabeordner.
 #
-#   scripts/oberflaeche_testen.sh tests/gui/szenario_erster_start.py [ausgabe]
+#   scripts/oberflaeche_testen.sh [szenario.py ...]
 #
-# Ohne Szenario-Argument laufen alle tests/gui/szenario_*.py.
+# Ohne Argument laufen alle tests/gui/szenario_*.py. Ausgabeordner:
+# $AUSGABE, sonst tests/gui/ausgabe.
 set -u
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
@@ -16,7 +17,7 @@ command -v xvfb-run >/dev/null || { echo "xvfb-run fehlt" >&2; exit 2; }
 if [ $# -eq 0 ]; then
     set -- "$repo"/tests/gui/szenario_*.py
 fi
-ausgabe_basis="${2:-${AUSGABE:-$repo/tests/gui/ausgabe}}"
+ausgabe_basis="${AUSGABE:-$repo/tests/gui/ausgabe}"
 
 fehler=0
 for szenario in "$@"; do
@@ -35,6 +36,7 @@ for szenario in "$@"; do
     else
         echo "FEHLER $name"
         cat "$ausgabe/ergebnis.txt" 2>/dev/null || tail -20 "$ausgabe/freecad.log"
+        [ -s "$ausgabe/absturz.txt" ] && cat "$ausgabe/absturz.txt"
         fehler=1
     fi
     rm -rf "$profil"

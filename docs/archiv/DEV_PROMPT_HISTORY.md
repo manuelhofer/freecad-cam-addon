@@ -12,6 +12,98 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-17 dialog-maschine-bearbeiten
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitte 7a und 11. Die Skizze des Dialogs hat Manuel
+  im Chat mit „ganz ok“ freigegeben.
+
+### DATEIEN
+- `camaddon/gui_maschine.py` (neu), `resources/icons/maschine.svg` (neu)
+- `camaddon/gui_start.py` (Befehl in der Werkzeugleiste)
+- `camaddon/kette.py` (`Meldung.bezug`), `camaddon/maschine.py` (`bezug` an
+  den Meldungen, `Bezeichnung`, `name_von`, `beschrifte`)
+- `translations/de.json`, `translations/en.json`
+- `tests/gui/szenario_maschine_bearbeiten.py` (neu), `tests/test_maschine.py`
+- `tests/gui/_lauf/szenario_lauf.py` (Absturzprotokoll),
+  `scripts/oberflaeche_testen.sh` (Fehler bei mehreren Szenarien behoben)
+- `CHATSTART.md` (Lesekarte), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ablauf: Beispiel-Drehmaschine öffnen → „Maschine bearbeiten“ → Z1, X1, S4
+und C4 (an der Spindel) sowie Revolver T anlegen und ausfüllen → Futter als
+Werkstückaufnahme → 12 Plätze verteilen. Danach zeigt der Dialog „Alles
+vollständig – keine Hinweise.“, OK ergibt genau einen Schritt Rückgängig,
+Abbrechen verwirft.
+
+### DONE
+- **Befehl „Maschine bearbeiten“** in der Werkzeugleiste des Addons:
+  - Die Baugruppe kommt aus der Auswahl, sonst aus der aktiven Assembly,
+    sonst aus der einzigen im Dokument. Gibt es mehrere, fragt der Befehl.
+  - Gibt es keine, erklärt eine Meldung, was zu tun ist. Der Knopf ist dafür
+    nicht ausgegraut, denn ein grauer Knopf erklärt nichts.
+- **Aufgabenfenster** nach der freigegebenen Skizze, mit den Bereichen Name,
+  Achsen, Details, Aufnahmen, Glieder und Hinweise:
+  - Das ganze Fenster ist **eine Transaktion**. OK ergibt einen Schritt
+    Rückgängig, Abbrechen verwirft alles.
+  - „+ Betriebsart“ bietet nur Arten an, die zum Gelenk passen, jeweils mit
+    einem Satz Erklärung.
+  - Pflichtfelder sind fett, leere optionale Felder zeigen „unbekannt“, die
+    Einheit steht am Feld.
+  - Das erste Gelenk ist beim Öffnen gewählt, damit „+ Betriebsart“ sofort
+    bedienbar ist.
+  - Revolverplätze stehen zugeklappt unter „Revolver T – 12 Plätze“.
+  - Der Detailkasten erscheint unter der Liste, in der gerade gewählt ist.
+  - Ein Klick auf einen Hinweis springt zur betroffenen Zeile.
+  - „Plätze verteilen …“ öffnet einen kleinen Dialog für Revolver, ersten
+    Platz und Anzahl.
+- **Beim Durchsehen der Screenshots verbessert** (nach unserer Regel „keine
+  Frage auf dem Bildschirm“):
+  1. „+ Betriebsart“ war beim Öffnen ausgegraut.
+  2. „wird von Hand verstellt“ stand anfangs bei jedem Gelenk. Jetzt steht
+     dort „noch keine Betriebsart“, die Erklärung ist im Tooltip.
+  3. Die Details einer Aufnahme standen oben bei den Achsen.
+  4. Zwölf Plätze machten die Liste unübersichtlich.
+  5. Der Detailtitel sagte nur „Werkzeug“.
+- **Befund, Namen:** Eine Aufnahme „Futter“ hieß plötzlich „Futter001“, weil
+  FreeCAD kein Label doppelt erlaubt und das Bauteil schon „Futter“ heißt.
+  Deshalb gibt es jetzt `Bezeichnung` für Aufnahmen und `NcName` für
+  Betriebsarten als eigentliche Namen. Das Label im Baum wird daraus gebildet
+  („Futter · Werkstückaufnahme“, „X1 · Linear“), und die Meldungen nennen
+  den Namen, nicht das Label.
+- **Befund, Abstürze** (FreeCAD stürzte ab, gefunden mit dem neuen
+  Absturzprotokoll):
+  1. `int()` auf die Knopf-Konstanten scheitert unter PySide6. Jetzt werden
+     die Flags direkt zurückgegeben.
+  2. Das zeitversetzte Auffrischen nach einer Eingabe griff auf die Listen
+     eines schon geschlossenen Fensters zu. Das konnte auch in der Praxis
+     passieren: tippen und sofort OK. Jetzt wird geprüft, ob das Fenster
+     geschlossen ist.
+  3. Die Listen nach jeder Eingabe mit `clear()` neu aufzubauen, stürzte
+     gelegentlich ab. Jetzt werden bei Eingaben nur Texte und Symbole der
+     vorhandenen Zeilen erneuert. Neu gebaut wird nur, wenn Zeilen dazukommen
+     oder wegfallen.
+- **Testwerkzeug:**
+  - `szenario_lauf.py` schreibt bei einem Segfault den Python-Stack nach
+    `absturz.txt` (faulthandler).
+  - `oberflaeche_testen.sh` hielt ohne Argument das zweite Szenario für den
+    Ausgabeordner. Der Ordner kommt jetzt nur noch aus `$AUSGABE`.
+
+### TEST
+- Von der KI ausgeführt:
+  - `tests_ausfuehren.sh`: alle vier Prüfungen `ok`.
+  - `oberflaeche_testen.sh`: beide Szenarien, **fünfmal hintereinander**
+    `ok`. Das war nötig, weil der Absturz nur ab und zu auftrat.
+  - Screenshots angesehen: leer, X1 gewählt, Verteilen, vollständig mit P3
+    gewählt, Hinweis angeklickt.
+- **Nicht getestet:** Bedienung in Manuels FreeCAD. Die Aufgabenleiste liegt
+  im Test über der 3D-Ansicht und nicht links in der Kombiansicht. Das ist
+  eine Eigenheit des leeren Testprofils.
+
+### NEXT
+- Hervorheben und kurzes Bewegen in der 3D-Ansicht, danach die Hilfetexte.
+
 ## P-2026-09-25-16 revolver-plaetze-verteilhilfe
 
 ### EINGELESEN

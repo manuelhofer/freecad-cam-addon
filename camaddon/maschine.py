@@ -155,6 +155,7 @@ class Aufnahme:
         objekt.Proxy = self
         # Global: Das LCS liegt in einem Bauteil (eigener Gültigkeitsbereich),
         # das Maschinenobjekt daneben – ein einfacher Link wäre „out of scope“.
+        _eigenschaft(objekt, "App::PropertyString", "Bezeichnung", "Aufnahme", tr("eigenschaft.bezeichnung"))
         _eigenschaft(objekt, "App::PropertyLinkGlobal", "Lcs", "Aufnahme", tr("eigenschaft.lcs"))
         _eigenschaft(objekt, "App::PropertyEnumeration", "Art", "Aufnahme", tr("eigenschaft.aufnahmeart"))
         objekt.Art = AUFNAHMEARTEN
@@ -204,7 +205,7 @@ def neue_betriebsart(maschine, gelenk, art, nc_name):
     objekt.Gelenk = gelenk
     objekt.Art = art
     objekt.NcName = nc_name
-    objekt.Label = nc_name
+    beschrifte(objekt)
     return objekt
 
 
@@ -215,8 +216,31 @@ def neue_aufnahme(maschine, lcs, art, name, spindel=None, platz=0):
     objekt.Art = art
     objekt.Spindel = spindel
     objekt.Platz = platz
-    objekt.Label = name
+    objekt.Bezeichnung = name
+    beschrifte(objekt)
     return objekt
+
+
+def name_von(objekt):
+    """Der Name, den der Benutzer vergeben hat (NC-Name bzw. Bezeichnung)."""
+    if isinstance(getattr(objekt, "Proxy", None), Betriebsart):
+        return objekt.NcName.strip() or "?"
+    return getattr(objekt, "Bezeichnung", "") or objekt.Label
+
+
+def beschrifte(objekt):
+    """Setzt die Beschriftung im Baum aus den Daten.
+
+    Der Name allein taugt nicht als Label: FreeCAD erlaubt kein Label doppelt
+    und hängt sonst „001“ an – eine Aufnahme „Futter“ neben dem Bauteil
+    „Futter“ hieße dann „Futter001“ (gefunden im Szenario).
+    """
+    if isinstance(getattr(objekt, "Proxy", None), Betriebsart):
+        objekt.Label = f"{name_von(objekt)} · {art_text(objekt.Art)}"
+    elif objekt.Art == AUFNAHME_WERKZEUG:
+        objekt.Label = tr("aufnahme.beschriftung_werkzeug", name=name_von(objekt))
+    else:
+        objekt.Label = tr("aufnahme.beschriftung_werkstueck", name=name_von(objekt))
 
 
 def globale_platzierung(objekt):
@@ -346,21 +370,22 @@ def pruefe(maschine, kette=None):
     for ba in betriebsarten(maschine):
         name = ba.NcName.strip()
         if not name:
-            meldungen.append(meldung("maschine.name_fehlt", eintrag=ba.Label))
+            meldungen.append(meldung("maschine.name_fehlt", bezug=ba, eintrag=name_von(ba)))
         else:
             namen.setdefault(name.upper(), []).append(ba)
         if ba.Gelenk is None:
-            meldungen.append(meldung("maschine.gelenk_fehlt", name=ba.Label))
+            meldungen.append(meldung("maschine.gelenk_fehlt", bezug=ba, name=name_von(ba)))
             continue
         art = gelenk_art.get(ba.Gelenk)
         if art is None:
-            meldungen.append(meldung("maschine.gelenk_keine_achse", name=ba.Label, gelenk=ba.Gelenk.Label))
+            meldungen.append(meldung("maschine.gelenk_keine_achse", bezug=ba, name=name_von(ba), gelenk=ba.Gelenk.Label))
             continue
         if ba.Art not in ERLAUBT[art]:
             meldungen.append(
                 meldung(
                     "maschine.art_passt_nicht",
-                    name=ba.Label,
+                    bezug=ba,
+                    name=name_von(ba),
                     gelenk=ba.Gelenk.Label,
                     art=art_text(ba.Art),
                 )
@@ -371,36 +396,37 @@ def pruefe(maschine, kette=None):
                 meldungen.append(
                     meldung(
                         "maschine.pflichtwert_fehlt",
-                        name=ba.Label,
+                        bezug=ba,
+                        name=name_von(ba),
                         wert=wert_text(eigenschaft),
                     )
                 )
 
     for gleiche in namen.values():
         if len(gleiche) > 1:
-            meldungen.append(meldung("maschine.name_doppelt", name=gleiche[0].NcName.strip()))
+            meldungen.append(meldung("maschine.name_doppelt", bezug=gleiche[1], name=gleiche[0].NcName.strip()))
     for gelenk, liste in arten_je_gelenk.items():
         arten = [ba.Art for ba in liste]
         if len(set(arten)) < len(arten):
-            meldungen.append(meldung("maschine.art_doppelt", gelenk=gelenk.Label))
+            meldungen.append(meldung("maschine.art_doppelt", bezug=liste[-1], gelenk=gelenk.Label))
 
     for aufnahme in aufnahmen(maschine):
         if aufnahme.Lcs is None:
-            meldungen.append(meldung("maschine.lcs_fehlt", name=aufnahme.Label))
+            meldungen.append(meldung("maschine.lcs_fehlt", bezug=aufnahme, name=name_von(aufnahme)))
         elif kette.glied_von(aufnahme.Lcs) is None:
-            meldungen.append(meldung("maschine.lcs_ausserhalb", name=aufnahme.Label))
+            meldungen.append(meldung("maschine.lcs_ausserhalb", bezug=aufnahme, name=name_von(aufnahme)))
         spindel = aufnahme.Spindel
         if spindel is not None and getattr(spindel, "Art", None) != ART_SPINDEL:
-            meldungen.append(meldung("maschine.spindel_keine_spindel", name=aufnahme.Label))
+            meldungen.append(meldung("maschine.spindel_keine_spindel", bezug=aufnahme, name=name_von(aufnahme)))
 
     for ba in betriebsarten(maschine):
         if ba.Art != ART_REVOLVER:
             continue
         nummern = [a.Platz for a in plaetze(maschine, kette, ba)]
         if not nummern:
-            meldungen.append(meldung("maschine.revolver_ohne_plaetze", name=ba.Label))
+            meldungen.append(meldung("maschine.revolver_ohne_plaetze", bezug=ba, name=name_von(ba)))
         elif 0 in nummern or len(set(nummern)) < len(nummern):
-            meldungen.append(meldung("maschine.plaetze_nummern", name=ba.Label))
+            meldungen.append(meldung("maschine.plaetze_nummern", bezug=ba, name=name_von(ba)))
 
     arten = {a.Art for a in aufnahmen(maschine)}
     if AUFNAHME_WERKZEUG not in arten:

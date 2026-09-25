@@ -44,6 +44,12 @@ def _ende(helfer, fehler=None):
 
 
 def starten():
+    # Bei einem Absturz von FreeCAD selbst (Segfault) wenigstens den Python-
+    # Stack festhalten, sonst sieht man nur „Segmentation fault“.
+    import faulthandler
+
+    starten.absturz = open(os.path.join(AUSGABE, "absturz.txt"), "w")
+    faulthandler.enable(starten.absturz)
     pfad = os.environ["CAMADDON_SZENARIO"]
     spec = importlib.util.spec_from_file_location("szenario", pfad)
     modul = importlib.util.module_from_spec(spec)
