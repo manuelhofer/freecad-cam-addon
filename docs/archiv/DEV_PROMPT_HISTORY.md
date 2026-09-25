@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-37 readme-update-suche
+
+### EINGELESEN
+- README, Abschnitt „Aktualisieren“: Dort steht, das Addon frage beim Start
+  „Jetzt aktualisieren?“. Seit P-2026-09-25-30 fragt es aber nur bei einer
+  neuen Version.
+
+### DATEIEN
+- `README.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die README beschreibt die Update-Suche so, wie sie sich verhält.
+
+### DONE
+- „fragt bei einer neuen Version“. Dazu der Hinweis, dass „Pull“ von Hand
+  auch kleine Änderungen ohne neue Versionsnummer holt.
+
+### TEST
+- Nur Doku geändert. `alle_tests.sh` ohne Oberfläche ist in beiden
+  Versionen grün.
+
+### NEXT
+- B-005: Enter bestätigt nur das Feld.
+
 ## P-2026-09-25-36 push-bei-github-pruefen
 
 ### EINGELESEN

@@ -33,10 +33,12 @@ Addon-Ordner von FreeCAD:
    **CAM**.
 
 **Aktualisieren:** Das Addon schaut beim Start von FreeCAD selbst nach (per
-Git, mit der Anmeldung von GitHub Desktop bzw. Git) und fragt „Jetzt
-aktualisieren?“. Abschalten und „Jetzt nach Updates suchen“: Bearbeiten →
-Einstellungen → CAM-Addon. Von Hand: in GitHub Desktop **Fetch origin**, dann
-**Pull origin** (bzw. `git pull` im Ordner) und FreeCAD neu starten.
+Git, mit der Anmeldung von GitHub Desktop bzw. Git) und fragt bei einer neuen
+Version „Jetzt aktualisieren?“. Abschalten und „Jetzt nach Updates suchen“:
+Bearbeiten → Einstellungen → CAM-Addon. Von Hand: in GitHub Desktop **Fetch
+origin**, dann **Pull origin** (bzw. `git pull` im Ordner) und FreeCAD neu
+starten – so kommen auch kleine Änderungen an, die noch keine neue
+Versionsnummer haben.
 
 ## Installieren über den Addon-Manager (erst wenn das Repository öffentlich ist)
 
