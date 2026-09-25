@@ -58,6 +58,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“ |
 | `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
 | `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format ohne Tausenderpunkte, Prüfung, Lesen, Zeigen; Dezimalzeichen in Texten |
+| `gui_teile.py` | Kleine Bausteine der Werkzeugverwaltung: fette Beschriftung, Knopf, Feld mit Einheit, rote Hinweiszeile, Grau |
 | `gui_zeigen.py` | Hervorheben und kurzes Hin-und-her-Bewegen in der 3D-Ansicht |
 | `gui_hilfe.py` | Knopf (?) und Hilfefenster |
 | `gui_verteilhilfe.py` | Dialog „Revolverplätze verteilen“ |

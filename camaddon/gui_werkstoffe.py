@@ -14,6 +14,7 @@ from PySide import QtCore, QtGui
 
 from . import werkstoffe as ws
 from .gui_hilfe import kopfzeile
+from .gui_teile import fett, hinweiszeile, knopf
 from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen
 from .sprache import tr
 
@@ -109,19 +110,19 @@ class WerkstoffDialog(QtGui.QDialog):
         aufbau.addWidget(self.angaben)
 
         zeile = QtGui.QHBoxLayout()
-        self.knopf_neu = _knopf(tr("ws.neu"), tr("ws.neu.tooltip"), self.neu)
-        self.knopf_kopieren = _knopf(tr("ws.kopieren"), tr("ws.kopieren.tooltip"), self.kopieren)
-        self.knopf_bearbeiten = _knopf(
+        self.knopf_neu = knopf(tr("ws.neu"), tr("ws.neu.tooltip"), self.neu)
+        self.knopf_kopieren = knopf(tr("ws.kopieren"), tr("ws.kopieren.tooltip"), self.kopieren)
+        self.knopf_bearbeiten = knopf(
             tr("ws.bearbeiten"), tr("ws.bearbeiten.tooltip"), self.bearbeiten
         )
-        self.knopf_loeschen = _knopf(tr("ws.loeschen"), tr("ws.loeschen.tooltip"), self.loeschen)
-        for knopf in (
+        self.knopf_loeschen = knopf(tr("ws.loeschen"), tr("ws.loeschen.tooltip"), self.loeschen)
+        for element in (
             self.knopf_neu,
             self.knopf_kopieren,
             self.knopf_bearbeiten,
             self.knopf_loeschen,
         ):
-            zeile.addWidget(knopf)
+            zeile.addWidget(element)
         zeile.addStretch()
         aufbau.addLayout(zeile)
 
@@ -287,7 +288,7 @@ class WerkstoffBearbeiten(QtGui.QDialog):
         formular.addRow(tr("ws.spalte.nummer"), self.feld_nummer)
         self.feld_kurzname = _textfeld(w.kurzname, tr("ws.feld.kurzname.platzhalter"))
         self.feld_kurzname.textChanged.connect(self._pruefen)
-        formular.addRow(_fett(tr("ws.spalte.kurzname")), self.feld_kurzname)
+        formular.addRow(fett(tr("ws.spalte.kurzname")), self.feld_kurzname)
         self.feld_gruppe = _auswahl_frei(GRUPPEN, ws.gruppe_text, w.gruppe)
         formular.addRow(tr("ws.spalte.gruppe"), self.feld_gruppe)
         self.feld_zustand = _auswahl_frei(ZUSTAENDE, ws.zustand_text, w.zustand)
@@ -319,8 +320,7 @@ class WerkstoffBearbeiten(QtGui.QDialog):
         self.feld_mc.setToolTip(tr("ws.feld.kc.tooltip"))
         formular.addRow(tr("ws.feld.mc"), self.feld_mc)
 
-        self.hinweis = QtGui.QLabel(tr("ws.hinweis.kurzname"))
-        self.hinweis.setStyleSheet("color: #c0392b;")
+        self.hinweis = hinweiszeile(tr("ws.hinweis.kurzname"))
         formular.addRow(self.hinweis)
         self.knoepfe = QtGui.QDialogButtonBox(
             QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel
@@ -399,19 +399,3 @@ def _textfeld(text, platzhalter):
     feld = QtGui.QLineEdit(text)
     feld.setPlaceholderText(platzhalter)
     return feld
-
-
-def _fett(text):
-    beschriftung = QtGui.QLabel(text)
-    schrift = beschriftung.font()
-    schrift.setBold(True)
-    beschriftung.setFont(schrift)
-    return beschriftung
-
-
-def _knopf(text, tooltip, aktion):
-    knopf = QtGui.QPushButton(text)
-    knopf.setToolTip(tooltip)
-    knopf.setAutoDefault(False)
-    knopf.clicked.connect(lambda: aktion())
-    return knopf

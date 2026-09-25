@@ -18,6 +18,7 @@ from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
+from .gui_teile import fett, hinweiszeile, knopf, mit_einheit
 from .gui_werkstoffe import WerkstoffDialog
 from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen
 from .sprache import tr
@@ -134,7 +135,7 @@ class WerkzeugDialog(QtGui.QDialog):
         teilung.setSizes([LISTE_BREITE, FENSTER_GROESSE[0] - LISTE_BREITE])
         aufbau.addWidget(teilung, 1)
         unten = QtGui.QHBoxLayout()
-        self.knopf_cam = self._knopf(tr("wv.cam"), tr("wv.cam.tooltip"), self.an_cam_uebergeben)
+        self.knopf_cam = knopf(tr("wv.cam"), tr("wv.cam.tooltip"), self.an_cam_uebergeben)
         self.knopf_cam.setEnabled(ue.verfuegbar())
         unten.addWidget(self.knopf_cam)
         unten.addStretch()
@@ -167,7 +168,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self.wahl_werkstoff.lineEdit().editingFinished.connect(self._werkstoff_text_zuruecksetzen)
         zeile = QtGui.QHBoxLayout()
         zeile.addWidget(self.wahl_werkstoff, 1)
-        self.knopf_werkstoffe = self._knopf(
+        self.knopf_werkstoffe = knopf(
             tr("wv.werkstoffe"), tr("wv.werkstoffe.tooltip"), self.werkstoffe_zeigen
         )
         zeile.addWidget(self.knopf_werkstoffe)
@@ -187,24 +188,17 @@ class WerkzeugDialog(QtGui.QDialog):
         self.liste.currentRowChanged.connect(self._werkzeug_gewaehlt)
         aufbau.addWidget(self.liste, 1)
         zeile = QtGui.QHBoxLayout()
-        self.knopf_neu = self._knopf(tr("wv.neu"), tr("wv.neu.tooltip"), self.werkzeug_anlegen)
-        self.knopf_kopieren = self._knopf(
+        self.knopf_neu = knopf(tr("wv.neu"), tr("wv.neu.tooltip"), self.werkzeug_anlegen)
+        self.knopf_kopieren = knopf(
             tr("wv.kopieren"), tr("wv.kopieren.tooltip"), self.werkzeug_kopieren
         )
-        self.knopf_loeschen = self._knopf(
+        self.knopf_loeschen = knopf(
             tr("wv.loeschen"), tr("wv.loeschen.tooltip"), self.werkzeug_loeschen
         )
-        for knopf in (self.knopf_neu, self.knopf_kopieren, self.knopf_loeschen):
-            zeile.addWidget(knopf)
+        for element in (self.knopf_neu, self.knopf_kopieren, self.knopf_loeschen):
+            zeile.addWidget(element)
         aufbau.addLayout(zeile)
         return rahmen
-
-    def _knopf(self, text, tooltip, aktion):
-        knopf = QtGui.QPushButton(text)
-        knopf.setToolTip(tooltip)
-        knopf.setAutoDefault(False)  # Enter in einem Feld soll keinen Knopf auslösen
-        knopf.clicked.connect(aktion)
-        return knopf
 
     def _bereich_werkzeug(self):
         rahmen = QtGui.QWidget()
@@ -247,7 +241,7 @@ class WerkzeugDialog(QtGui.QDialog):
             tr("wv.schneidenlaenge.tooltip"), "schneidenlaenge"
         )
         self.feld_eckradius = self._zahlenfeld(tr("wv.eckradius.tooltip"), "eckradius")
-        self.zeile_eckradius = _mit_einheit(self.feld_eckradius, "mm")
+        self.zeile_eckradius = mit_einheit(self.feld_eckradius, "mm")
         self.beschriftung_eckradius = QtGui.QLabel(tr("wv.eckradius"))
 
         self.feld_schneidstoff = QtGui.QComboBox()
@@ -264,11 +258,11 @@ class WerkzeugDialog(QtGui.QDialog):
         zeilen = [
             (QtGui.QLabel(tr("wv.nummer")), self.feld_nummer),
             (QtGui.QLabel(tr("wv.art")), self.feld_art),
-            (_fett(tr("wv.durchmesser")), _mit_einheit(self.feld_durchmesser, "mm")),
-            (_fett(tr("wv.schneiden")), self.feld_schneiden),
+            (fett(tr("wv.durchmesser")), mit_einheit(self.feld_durchmesser, "mm")),
+            (fett(tr("wv.schneiden")), self.feld_schneiden),
             (
                 QtGui.QLabel(tr("wv.schneidenlaenge")),
-                _mit_einheit(self.feld_schneidenlaenge, "mm"),
+                mit_einheit(self.feld_schneidenlaenge, "mm"),
             ),
             (self.beschriftung_eckradius, self.zeile_eckradius),
             (QtGui.QLabel(tr("wv.schneidstoff")), self.feld_schneidstoff),
@@ -280,9 +274,7 @@ class WerkzeugDialog(QtGui.QDialog):
         gitter.addWidget(QtGui.QLabel(tr("wv.bezeichnung")), unten, 0)
         gitter.addWidget(self.feld_bezeichnung, unten, 1, 1, 3)
 
-        self.hinweis = QtGui.QLabel()
-        self.hinweis.setWordWrap(True)
-        self.hinweis.setStyleSheet("color: #c0392b;")
+        self.hinweis = hinweiszeile()
         gitter.addWidget(self.hinweis, unten + 1, 0, 1, 4)
 
         aufbau.addWidget(self.formular_rahmen)
@@ -653,21 +645,3 @@ def bericht_text(bericht):
         absaetze.append(tr("wv.cam.entfernt", anzahl=bericht.entfernt))
     absaetze.append(tr("wv.cam.weiter"))
     return "\n\n".join(absaetze)
-
-
-def _fett(text):
-    beschriftung = QtGui.QLabel(text)
-    schrift = beschriftung.font()
-    schrift.setBold(True)
-    beschriftung.setFont(schrift)
-    return beschriftung
-
-
-def _mit_einheit(feld, einheit):
-    """Feld mit der Einheit rechts daneben."""
-    zeile = QtGui.QWidget()
-    aufbau = QtGui.QHBoxLayout(zeile)
-    aufbau.setContentsMargins(0, 0, 0, 0)
-    aufbau.addWidget(feld)
-    aufbau.addWidget(QtGui.QLabel(einheit))
-    return zeile

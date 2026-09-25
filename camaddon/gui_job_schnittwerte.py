@@ -18,6 +18,7 @@ from . import symbol
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
+from .gui_teile import grau
 from .gui_werkzeuge import werkstoffe_anbieten
 from .gui_zahlen import dezimal, zahlenformat
 from .sprache import tr
@@ -25,7 +26,6 @@ from .sprache import tr
 # Spalten der Tabelle.
 TC, WERKZEUG, EINSATZ, N, VF, JETZT = range(6)
 FENSTER_GROESSE = (900, 420)  # Pixel
-GRAU = QtGui.QColor("#6d6d6d")
 
 
 class BefehlSchnittwerteJob:
@@ -160,7 +160,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             if werkzeug is not None:
                 zelle = QtGui.QTableWidgetItem(dezimal(wz.zeile(werkzeug)))
             else:
-                zelle = _grau(tr("sj.kein_werkzeug"))
+                zelle = grau(tr("sj.kein_werkzeug"))
                 zelle.setToolTip(tr("sj.kein_werkzeug.tooltip"))
             self.tabelle.setItem(zeile, WERKZEUG, zelle)
             self.tabelle.setCellWidget(zeile, EINSATZ, wahl)
@@ -169,7 +169,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
                 n=_zahl(tc.SpindleSpeed),
                 vf=_zahl(float(tc.HorizFeed.getValueAs("mm/min"))),
             )
-            self.tabelle.setItem(zeile, JETZT, _grau(jetzt))
+            self.tabelle.setItem(zeile, JETZT, grau(jetzt))
         self._rechnen()
 
     def _rechnen(self):
@@ -235,9 +235,3 @@ def _vollstaendig(werkzeug, einsatz):
     """Hat der Einsatz vc und fz? Sonst wird er nicht vorgeschlagen."""
     n, vf, _senkrecht = js.werte(werkzeug, einsatz)
     return n > 0 and vf > 0
-
-
-def _grau(text):
-    zelle = QtGui.QTableWidgetItem(text)
-    zelle.setForeground(GRAU)
-    return zelle

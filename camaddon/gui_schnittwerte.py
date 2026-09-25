@@ -18,6 +18,7 @@ from . import werkzeuge as wz
 from .gui_eingriff import EingriffBild
 from .gui_hilfe import kopfzeile
 from .gui_strategie import StrategieDialog
+from .gui_teile import GRAU, hinweiszeile, knopf
 from .gui_zahlen import Zahlenpruefer, zahl_lesen, zahl_zeigen, zahlenformat
 from .sprache import tr
 
@@ -25,7 +26,6 @@ from .sprache import tr
 EINSATZ, AE, AP, VC, FZ, N, VF, Q = range(8)
 EINGABE_SPALTEN = {AE: "ae", AP: "ap", VC: "vc", FZ: "fz"}
 TABELLE_MINDESTHOEHE = 150  # Pixel
-GRAU = QtGui.QColor("#6d6d6d")  # gerechnete Werte
 
 
 class SchnittwertBereich(QtGui.QWidget):
@@ -51,8 +51,8 @@ class SchnittwertBereich(QtGui.QWidget):
         self.zustand = QtGui.QLabel()
         self.zustand.setWordWrap(True)
         zeile.addWidget(self.zustand, 1)
-        self.knopf_eigene = _knopf("", tr("wv.eigene_anlegen.tooltip"), self.eigene_anlegen)
-        self.knopf_eigene_weg = _knopf(
+        self.knopf_eigene = knopf("", tr("wv.eigene_anlegen.tooltip"), self.eigene_anlegen)
+        self.knopf_eigene_weg = knopf(
             tr("wv.eigene_loeschen"), tr("wv.eigene_loeschen.tooltip"), self.eigene_loeschen
         )
         zeile.addWidget(self.knopf_eigene)
@@ -81,20 +81,18 @@ class SchnittwertBereich(QtGui.QWidget):
         self.menue_plus = QtGui.QMenu(self.knopf_plus)
         self.knopf_plus.setMenu(self.menue_plus)
         zeile.addWidget(self.knopf_plus)
-        self.knopf_minus = _knopf(
+        self.knopf_minus = knopf(
             tr("wv.einsatz.minus"), tr("wv.einsatz.minus.tooltip"), self.einsatz_entfernen
         )
         zeile.addWidget(self.knopf_minus)
         zeile.addStretch()
-        self.knopf_vergleich = _knopf(
+        self.knopf_vergleich = knopf(
             tr("wv.strategie.knopf"), tr("wv.strategie.knopf.tooltip"), self.strategien_vergleichen
         )
         zeile.addWidget(self.knopf_vergleich)
         aufbau.addLayout(zeile)
 
-        self.hinweis = QtGui.QLabel()
-        self.hinweis.setWordWrap(True)
-        self.hinweis.setStyleSheet("color: #c0392b;")
+        self.hinweis = hinweiszeile()
         aufbau.addWidget(self.hinweis)
 
         # Zur gewählten Zeile: Bild des Eingriffs, die Werte dazu in Worten und
@@ -123,7 +121,7 @@ class SchnittwertBereich(QtGui.QWidget):
         ausgleich.addWidget(self.feld_spandicke)
         self.ausgleich_ergebnis = QtGui.QLabel()
         ausgleich.addWidget(self.ausgleich_ergebnis)
-        self.knopf_ausgleich = _knopf(
+        self.knopf_ausgleich = knopf(
             tr("wv.ausgleich.knopf"), tr("wv.ausgleich.knopf.tooltip"), self.spandicke_ausgleichen
         )
         ausgleich.addWidget(self.knopf_ausgleich)
@@ -482,11 +480,3 @@ class _Zahlendelegat(QtGui.QStyledItemDelegate):
         if index.column() in EINGABE_SPALTEN and isinstance(feld, QtGui.QLineEdit):
             feld.setValidator(Zahlenpruefer(feld))
         return feld
-
-
-def _knopf(text, tooltip, aktion):
-    knopf = QtGui.QPushButton(text)
-    knopf.setToolTip(tooltip)
-    knopf.setAutoDefault(False)
-    knopf.clicked.connect(lambda: aktion())
-    return knopf

@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-54 gui-teile-gemeinsam
+
+### EINGELESEN
+- Beim Bauen von W-002 aufgefallen (Arbeitsregeln: notieren, eigener
+  Patch, möglichst gleich danach): `_fett`, `_knopf`, `_mit_einheit`, die
+  rote Hinweiszeile und das Grau für gerechnete Werte standen in bis zu
+  vier Modulen der Werkzeugverwaltung.
+
+### DATEIEN
+- `camaddon/gui_teile.py` (neu)
+- `camaddon/gui_werkzeuge.py`, `camaddon/gui_werkstoffe.py`,
+  `camaddon/gui_schnittwerte.py`, `camaddon/gui_job_schnittwerte.py`
+- `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nichts sichtbar anders: Werkzeugverwaltung, Werkstoffe, Vergleich und
+„Schnittwerte in den Job“ sehen aus und verhalten sich wie vorher.
+
+### DONE
+- Reines Zusammenlegen. Bewusst nicht angefasst: die ähnlichen Helfer in
+  `gui_maschine.py` und `gui_details.py` (W-001) – andere Signaturen, und
+  dort gibt es keinen Anlass, etwas zu ändern.
+- Gefunden von ruff: Eine Schleifenvariable `knopf` hätte die neue Funktion
+  `knopf()` verdeckt – umbenannt.
+
+### TEST
+- KI, Oberfläche (Wochen-Build): alle sechs Szenarien der
+  Werkzeugverwaltung grün, Screenshot verglichen.
+
+### NEXT
+- Version 0.5.0, alle Prüfungen, Push.
+
 ## P-2026-09-25-53 schnittwerte-in-den-job
 
 ### EINGELESEN
