@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-07 kaputte-bibliothek
+
+### EINGELESEN
+- „Aus CAM übernehmen“ (P-2026-09-25-66): Ließ sich eine einzige
+  FreeCAD-Werkzeugbibliothek nicht lesen, blieb das ganze Menü leer.
+
+### DATEIEN
+- `camaddon/werkzeuge_aus_cam.py` (`bibliotheken()`: je Bibliothek
+  abgefangen)
+- `tests/test_werkzeuge_aus_cam.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine kaputte `.fctl`-Datei neben „Default“ → „Aus CAM übernehmen“ bietet
+„Default“ weiter an; im Bericht-Fenster steht, welche Bibliothek nicht ging.
+
+### DONE
+- Je Bibliothek abgefangen, Warnung ins Bericht-Fenster, die übrigen
+  bleiben wählbar.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_werkzeuge_aus_cam` grün
+  (kaputte Bibliothek „kaputt“ neben „Default“).
+- Manuel: –
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-26-06 durchmesser-umrechnen
 
 ### EINGELESEN

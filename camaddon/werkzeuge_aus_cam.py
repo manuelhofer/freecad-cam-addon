@@ -50,14 +50,23 @@ def _assets():
 
 
 def bibliotheken():
-    """Die Werkzeugbibliotheken von FreeCAD CAM, ohne „CAM-Addon“: [(Adresse, Name, Anzahl)]."""
+    """Die Werkzeugbibliotheken von FreeCAD CAM, ohne „CAM-Addon“: [(Adresse, Name, Anzahl)].
+
+    Eine Bibliothek, die sich nicht lesen lässt, fehlt in der Liste und
+    steht im Bericht-Fenster von FreeCAD – die übrigen bleiben wählbar.
+    """
+    import FreeCAD
+
     assets = _assets()
     ergebnis = []
     for adresse in assets.list_assets(asset_type="toolbitlibrary"):
         if adresse.asset_id == BIBLIOTHEK_ID:
             continue
-        bibliothek = assets.get(adresse)
-        ergebnis.append((str(adresse), str(bibliothek.label), len(bibliothek.get_bits())))
+        try:
+            bibliothek = assets.get(adresse)
+            ergebnis.append((str(adresse), str(bibliothek.label), len(bibliothek.get_bits())))
+        except Exception as fehler:  # eine kaputte Datei soll die anderen nicht verstecken
+            FreeCAD.Console.PrintWarning(f"CAM-Addon: Bibliothek {adresse}: {fehler}\n")
     return sorted(ergebnis, key=lambda eintrag: eintrag[1].lower())
 
 

@@ -77,6 +77,13 @@ pruefe(kugel is not None and kugel.art == wz.RADIUSFRAESER, "Radiusfräser")
 fase = neu.get("45 Deg. Chamfer")
 pruefe(fase is not None and fase.art == wz.FASENFRAESER, "Fasenfräser")
 
+# Eine Bibliothek, die sich nicht lesen lässt, versteckt die anderen nicht.
+from Path.Tool.camassets import cam_assets  # noqa: E402
+
+cam_assets.add_raw("toolbitlibrary", "kaputt", b"{kein json")
+namen = [name for _a, name, _n in aus_cam.bibliotheken()]
+pruefe(namen == ["Default"], f"mit kaputter Bibliothek: {namen}")
+
 # Noch einmal: alles schon da.
 bericht = aus_cam.uebernehmen(bibliothek, adresse)
 pruefe(not bericht.neu and len(bericht.schon_da) == 6, f"zweites Mal: {bericht}")
