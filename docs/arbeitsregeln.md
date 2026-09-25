@@ -25,7 +25,7 @@ Die Freigabe eines Vorhabens ist **keine** Zustimmung zu einer Vorgabe, die
 darin mitgelaufen ist.
 
 **Fragen nur, wenn die Antwort etwas ändert.** Was durch die drei Festlegungen
-in `CHATSTART.md` schon entschieden ist (aktueller Wochen-Build, jedes
+in `CHATSTART.md` schon entschieden ist (stabile Version und Wochen-Build, jedes
 Betriebssystem, keine bestimmte Maschine), wird nicht noch einmal gefragt.
 
 ## 1. Wann überhaupt gearbeitet wird
@@ -92,9 +92,14 @@ ein ASCII-Entwurf des Dialogs reicht.
 - Was sich ohne Oberfläche prüfen lässt (Berechnungen, Vorlagen, Einlesen von
   Einstellungen, Anlegen von Jobs und Operationen), bekommt eine
   **wiederholbare** Prüfung unter `tests/`, die mit `FreeCADCmd` ohne Fenster
-  läuft. Alle Prüfungen laufen vor jedem Commit durch
-  (`scripts/tests_ausfuehren.sh`; in einer frischen Cloud-Sitzung vorher
-  einmal `scripts/testumgebung_einrichten.sh`).
+  läuft. Alle Prüfungen laufen vor jedem Push durch, **in beiden
+  FreeCAD-Versionen**: `scripts/alle_tests.sh` (in einer frischen
+  Cloud-Sitzung vorher einmal `scripts/testumgebung_einrichten.sh`; zwischen
+  zwei Patches reicht `OHNE_OBERFLAECHE=1` für die schnellen Prüfungen).
+- Gibt es eine Funktion in einer Version nicht, meldet die Prüfung
+  `UEBERSPRUNGEN <datei>: Grund` statt `OK` – nur dafür, nie um einen Fehler
+  zu verstecken. Das Szenario prüft in dieser Version stattdessen die
+  Erklärung, die der Benutzer sieht.
 - Jede neue oder geänderte Oberfläche bekommt ein **Szenario** unter
   `tests/gui/`, das sie in einer unsichtbaren FreeCAD-Oberfläche durchklickt,
   prüft und Screenshots macht (`scripts/oberflaeche_testen.sh`). Die
@@ -126,8 +131,11 @@ Was in den Eintrag gehört und oft vergessen wird:
 
 ## 7. Technik und Stil
 
-**Zielsystem:** der jeweils aktuelle **Wochen-Build von FreeCAD** auf jedem
-Betriebssystem. Die mitgelieferten Python- und Qt-Versionen von FreeCAD sind
+**Zielsystem:** die aktuelle **stabile Version** von FreeCAD (derzeit 1.1.3)
+**und** der aktuelle **Wochen-Build**, auf jedem Betriebssystem. Fehlt in der
+stabilen Version etwas, fragt der Code danach (z. B. `export.verfuegbar()`)
+statt nach Versionsnummern – so wird eine Funktion von selbst frei, sobald
+die stabile Version sie bekommt. Die mitgelieferten Python- und Qt-Versionen von FreeCAD sind
 die Baseline – keine zusätzlichen Pakete, die man mit `pip` nachinstallieren
 müsste.
 
@@ -222,14 +230,15 @@ Eleganz im Code. Der Maßstab: Wer den Bildschirm sieht, hat keine Frage.
 
 ## 9. Neue FreeCAD-Version
 
-Weil immer auf den aktuellen Wochen-Build gesetzt wird, gehört zu jedem
-Wechsel auf einen neueren Build ein **Versionscheck** als eigener Patch –
-sobald Manuel seinen Build aktualisiert oder die Testumgebung einen neueren
-zieht (sie installiert in jeder frischen Sitzung den aktuellen): Testumgebung
-auf den neuen Build heben, alle Prüfungen unter `tests/` laufen lassen, im
-Report-Fenster auf Meldungen achten, und Manuel klickt die Akzeptanzkriterien
-der sichtbaren Funktionen einmal durch. Bricht etwas, wird es angepasst – ohne
-Rücksicht auf die alte Version. Welche Version zuletzt geprüft wurde, steht im
+Zu jedem Wechsel auf eine neuere Version – eine neue stabile Version
+(1.1.4, 1.2 …) oder ein neuerer Wochen-Build – gehört ein **Versionscheck**
+als eigener Patch, sobald Manuel aktualisiert oder die Testumgebung eine
+neuere zieht: Testumgebung heben (`scripts/testumgebung_einrichten.sh`),
+`scripts/alle_tests.sh` laufen lassen, im Report-Fenster auf Meldungen achten,
+und Manuel klickt die Akzeptanzkriterien der sichtbaren Funktionen einmal
+durch. Bricht etwas, wird es angepasst. Ist eine neue stabile Version da,
+fällt die vorige heraus (unterstützt werden immer genau die aktuelle stabile
+und der Wochen-Build). Welche Versionen zuletzt geprüft wurden, steht im
 Snapshot.
 
 ## 10. Am Ende: Kaltstart klein halten

@@ -5,8 +5,9 @@ Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
 - **IN ARBEIT** – W-001, Stufen 1 und 2 fertig und automatisch geprüft; warten auf Manuels Test. Danach Stufe 3.
-- **Zuletzt geprüfte FreeCAD-Version:** 26.3.0 dev (Build 2026-09-16, conda-forge)
-  – Prüfungen ohne Fenster und Oberflächen-Szenario grün.
+- **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
+  und Wochen-Build 26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien
+  grün; in 1.1.3 ist der Export übersprungen (gibt es dort nicht).
 
 ## Nächster Schritt (konkret)
 

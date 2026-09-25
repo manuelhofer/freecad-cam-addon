@@ -160,5 +160,7 @@
     "update.gruppe": "Updates",
     "update.beim_start": "Look for updates when FreeCAD starts",
     "update.beim_start.tooltip": "Asks GitHub via Git in the background, using the sign-in already set up on this computer (Git or GitHub Desktop).",
-    "update.jetzt_suchen": "Look for updates now"
+    "update.jetzt_suchen": "Look for updates now",
+    "uebergeben.nicht_verfuegbar": "Your FreeCAD version ({version}) has no machine definition in CAM yet – the machine cannot be handed over there yet.\n\nThis works with the FreeCAD weekly build and from the next FreeCAD version on. Your machine stays fully stored here; with a suitable version one click will do.",
+    "dialog.uebergeben.tooltip_fehlt": "Needs the CAM machine definition – available in the weekly build and from the next FreeCAD version on."
 }

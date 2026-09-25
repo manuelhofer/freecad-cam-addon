@@ -33,6 +33,18 @@ class Bericht:
     datei: object = None
 
 
+def verfuegbar():
+    """Hat diese FreeCAD-Version die CAM-Maschinendefinition?
+
+    FreeCAD 1.1.x hat sie nicht, der Wochen-Build schon (P-2026-09-25-26).
+    """
+    try:
+        import Machine.models.machine  # noqa: F401
+    except ImportError:
+        return False
+    return True
+
+
 def _achs_betriebsart(maschine, gelenk_objekt):
     """Die Betriebsart eines Gelenks, die in CAM eine Achse ist (Linear/Positionieren)."""
     for ba in m.betriebsarten(maschine):

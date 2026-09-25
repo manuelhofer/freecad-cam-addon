@@ -2,7 +2,10 @@
 
 Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
 
-- Für den **aktuellen Wochen-Build** von FreeCAD, auf jedem Betriebssystem.
+- Für die **aktuelle stabile Version** von FreeCAD (derzeit 1.1.3) **und**
+  den **Wochen-Build**, auf jedem Betriebssystem. „An CAM übergeben“ braucht
+  die CAM-Maschinendefinition, die es derzeit nur im Wochen-Build gibt – in
+  1.1.3 erklärt das Addon das beim Klick.
 - Unabhängig von Maschine und Postprozessor.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).

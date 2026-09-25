@@ -4,13 +4,92 @@ language: de
 timezone: Europe/Berlin
 status: planung
 stack: Python, PySide (Qt), FreeCAD-API (CAM-Workbench)
-zielsystem: aktueller Wochen-Build von FreeCAD, jedes Betriebssystem, keine bestimmte Maschine
+zielsystem: stabile FreeCAD-Version (1.1.3) und Wochen-Build, jedes Betriebssystem, keine bestimmte Maschine
 patch_naming:
   pattern: "P-YYYY-MM-DD-XX <kurzbeschreibung>"   # im Commit-Betreff
   example: "P-2026-09-25-01 projektregeln"
 ---
 
 # Verlauf (LOG/ARCHIV)
+
+## P-2026-09-25-26 zwei-freecad-versionen
+
+### EINGELESEN
+- FreeCAD 1.1.3 aus conda-forge. Zuerst nur das Paket entpackt und dessen
+  Quelltext mit dem Wochen-Build verglichen, dann als volle Testumgebung.
+- `Mod/Assembly/UtilsAssembly.py` und `JointObject.py` in 1.1.3: Welche der
+  vom Addon genutzten Funktionen und Eigenschaften gibt es dort?
+
+### DATEIEN
+- `camaddon/export.py` (`verfuegbar()`), `camaddon/gui_maschine.py`
+  (Erklärung statt Fehler)
+- `tests/test_export.py` (übersprungen ohne Maschinendefinition),
+  `tests/gui/szenario_uebergeben.py` (prüft in 1.1.3 die Erklärung)
+- `scripts/testumgebung_einrichten.sh` (beide Versionen),
+  `scripts/alle_tests.sh` (neu), `scripts/tests_ausfuehren.sh` (versteht
+  „übersprungen“)
+- `translations/de.json`, `translations/en.json`
+- `CHATSTART.md` (Festlegung), `docs/arbeitsregeln.md` (Abschnitte 0, 5, 7, 9),
+  `README.md`, `docs/spezifikation_maschine_aus_baugruppe.md` (Abschnitt 2),
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md` (Kopf)
+- `package.xml` (0.3.2)
+
+### AKZEPTANZKRITERIUM
+`scripts/alle_tests.sh` läuft in FreeCAD 1.1.3 und im Wochen-Build grün. In
+1.1.3 zeigt „An CAM übergeben“ den Satz „Deine FreeCAD-Version (1.1.3) kennt
+noch keine Maschinendefinition in CAM …“ statt eines Fehlers.
+
+### DONE
+Manuel sitzt am PC und hat **FreeCAD 1.1.3** installiert, nicht den
+Wochen-Build. Er fragte, ob dort die 4-Achs-Funktionen fehlen. Das stimmt:
+In 1.1.3 fehlen die neuen Rundachs-Strategien (`rotary_*`) und die
+CAM-Maschinendefinition. Vorhanden sind nur die alten Hilfen (3D-Oberfläche
+„Rotational“, Dressup „Axis Map“).
+
+Die Entscheidung aus P-2026-09-25-05 (nur Wochen-Build) passte damit nicht
+mehr zu Manuels Rechner. Aus einer Auswahl hat er **„Beide unterstützen“**
+gewählt. Die Alternativen waren „Wochen-Build dazu“ (meine Empfehlung) und
+„auf 1.1.3 umstellen“.
+
+- **Befund 1.1.3:**
+  - Das Auslesen der Baugruppe, das Maschinenobjekt, der Dialog, das Zeigen,
+    die Hilfe und die Update-Suche laufen unverändert.
+  - Es fehlen die Eigenschaft `Suppressed` und die RigidGroup-Gelenke. Das
+    Addon fragt sie nur mit `getattr`/`hasattr` ab, deshalb schadet das nicht.
+  - Einziger echter Ausfall ist der Export, weil `Mod/CAM/Machine` fehlt.
+- **Der Export erklärt sich:** `export.verfuegbar()` prüft das Modul und nicht
+  eine Versionsnummer. So wird die Übergabe von selbst frei, sobald die
+  stabile Version sie bekommt. Der Knopf bleibt bedienbar und zeigt eine
+  Erklärung, weil ein grauer Knopf nichts erklärt. Die Erklärung ist nicht
+  blockierend (`open()` statt `exec()`).
+- **Tests in beiden Versionen:**
+  - `testumgebung_einrichten.sh` installiert beide: den Wochen-Build und
+    `freecad<2000` mit Python 3.11, wie in den offiziellen Paketen.
+    Wochen-Builds tragen ein Datum als Versionsnummer.
+  - `alle_tests.sh` lässt alles in beiden laufen.
+  - „Übersprungen“ ist nur für fehlende Funktionen einer Version erlaubt.
+    Das Szenario prüft dort stattdessen die Erklärung.
+- Die Regeln sind angepasst: Festlegung in `CHATSTART.md`, Zielsystem,
+  Pflichtprüfung in beiden Versionen, Versionscheck auch für neue stabile
+  Versionen. Die vorige stabile Version fällt heraus, sobald eine neue da ist.
+- Beim ersten Lauf gegen 1.1.3 kam ein Fehler ans Licht, der beide Versionen
+  betraf: Ursprünge wurden als Koordinatensystem angeboten. Er ist als
+  eigener Patch behoben (P-2026-09-25-25).
+
+### TEST
+- Von der KI ausgeführt, `scripts/alle_tests.sh`:
+  - 1.1.3: acht Prüfungen ohne Fenster, davon eine übersprungen (Export),
+    alle Szenarien `ok`
+  - Wochen-Build: alle Prüfungen `ok`, alle Szenarien `ok`
+  - Screenshot der Erklärung in 1.1.3 angesehen
+- `testumgebung_einrichten.sh` selbst ist nicht von Grund auf durchgelaufen.
+  Die beiden `micromamba create` darin habe ich von Hand mit denselben
+  Angaben ausgeführt.
+- **Nicht getestet:** Manuels FreeCAD 1.1.3 unter Windows.
+
+### NEXT
+- Manuels Test in 1.1.3: Installation mit GitHub Desktop, Dialog, Erklärung
+  bei „An CAM übergeben“, Update-Suche.
 
 ## P-2026-09-25-25 lcs-auswahl-ohne-ursprung
 

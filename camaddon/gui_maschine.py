@@ -308,13 +308,26 @@ class MaschinenPanel:
         aufbau.addWidget(self.hinweise)
 
         self.knopf_uebergeben = QtGui.QPushButton(tr("dialog.uebergeben"))
-        self.knopf_uebergeben.setToolTip(tr("dialog.uebergeben.tooltip"))
+        self.knopf_uebergeben.setToolTip(
+            tr("dialog.uebergeben.tooltip") if export.verfuegbar() else tr("dialog.uebergeben.tooltip_fehlt")
+        )
         self.knopf_uebergeben.clicked.connect(lambda: self._uebergeben())
         aufbau.addWidget(self.knopf_uebergeben)
         return form
 
     def _uebergeben(self, nachfragen=True):
         """Maschine an CAM übergeben und zeigen, was angekommen ist."""
+        if not export.verfuegbar():
+            # Nicht blockierend (open statt exec), damit FreeCAD weiterläuft.
+            self.hinweis_fenster = QtGui.QMessageBox(
+                QtGui.QMessageBox.Information,
+                tr("dialog.uebergeben"),
+                tr("uebergeben.nicht_verfuegbar", version=".".join(FreeCAD.Version()[:3])),
+                QtGui.QMessageBox.Ok,
+                self.form,
+            )
+            self.hinweis_fenster.open()
+            return None
         warnungen = [x for x in self.meldungen if x.schwere != HINWEIS]
         if warnungen and nachfragen:
             antwort = QtGui.QMessageBox.question(

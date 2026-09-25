@@ -21,6 +21,13 @@ nur so weit, dass Stufe 1 und 2 ihnen nichts verbauen.
 
 ## 2. Was FreeCAD schon kann (Stand Wochen-Build 26.3.0 dev)
 
+In **FreeCAD 1.1.3** (stabil) fehlen davon: die CAM-Maschinendefinition
+(`Mod/CAM/Machine/`, damit auch der Export in Stufe 2), die neuen
+Rundachs-Strategien, die Eigenschaft „Suppressed“ an Gelenken und die
+RigidGroup-Gelenke. Das Auslesen der Baugruppe und der Dialog laufen dort
+trotzdem (geprüft, P-2026-09-25-26); die Übergabe erklärt, dass sie den
+Wochen-Build bzw. die nächste Version braucht.
+
 | Baustein | Wo | Nutzen für uns |
 | --- | --- | --- |
 | Gelenke `Slider` (linear) und `Revolute` (drehend) mit Min/Max-Begrenzung | `Mod/Assembly/JointObject.py` | Richtung, Art und **Verfahrgrenzen** kommen von hier. Sie werden nicht doppelt erfasst. |
