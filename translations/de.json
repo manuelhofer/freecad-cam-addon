@@ -486,5 +486,7 @@
     "vf.grenzen.tooltip": "Die Grenzen stehen im Gelenk der Baugruppe (Minimum/Maximum der Länge bzw. des Winkels) – dort lassen sie sich eintragen oder ändern.",
     "vf.platz.tooltip": "Revolverplatz wählen: Der Revolver dreht, bis dieser Platz dort steht, wo beim Öffnen P1 stand.",
     "wv.suche.platzhalter": "Suchen: T3, Torus, 10,5, Hoffmann …",
-    "wv.suche.tooltip": "Zeigt nur die Werkzeuge, in deren Zeile oder Bezeichnung jedes Wort vorkommt."
+    "wv.suche.tooltip": "Zeigt nur die Werkzeuge, in deren Zeile oder Bezeichnung jedes Wort vorkommt.",
+    "sj.am_rohteil": "Am Rohteil eintragen",
+    "sj.am_rohteil.tooltip": "Trägt den gewählten Werkstoff als Werkstoffkarte von FreeCAD am Rohteil des Jobs ein (gleiche Werkstoffnummer). Dann schlägt dieser Dialog ihn beim nächsten Mal selbst vor – und im Wochen-Build auch FreeCADs eigener Knopf für Vorschub und Drehzahl. Strg+Z nimmt es zurück."
 }

@@ -486,5 +486,7 @@
     "vf.grenzen.tooltip": "The limits are set in the assembly's joint (minimum/maximum length or angle) – that is where they can be entered or changed.",
     "vf.platz.tooltip": "Choose a turret station: the turret turns until this station is where P1 was when the window opened.",
     "wv.suche.platzhalter": "Search: T3, bull nose, 10.5, Hoffmann …",
-    "wv.suche.tooltip": "Shows only the tools whose row or description contains every word."
+    "wv.suche.tooltip": "Shows only the tools whose row or description contains every word.",
+    "sj.am_rohteil": "Set on the stock",
+    "sj.am_rohteil.tooltip": "Sets the selected material as a FreeCAD material card on the job's stock (same material number). Then this dialog suggests it by itself next time – and in the weekly build FreeCAD's own feeds and speeds button does too. Ctrl+Z undoes it."
 }

@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-72 werkstoff-am-rohteil
+
+### EINGELESEN
+- „Schnittwerte in den Job“ (P-53) liest den Werkstoff vom Rohteil über die
+  Werkstoffnummer der FreeCAD-Karte. Hat das Rohteil keinen, wählt man ihn
+  jedes Mal neu – und FreeCADs eigener Vorschlag im Wochen-Build findet die
+  Presets nicht.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`nummer_am_rohteil()`, `karte_fuer()`,
+  `setze_werkstoff_am_rohteil()`)
+- `camaddon/gui_job_schnittwerte.py` (Knopf „Am Rohteil eintragen“)
+- `help/de|en/werkzeuge.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Job mit Rohteil 1.4301 → „Schnittwerte in den Job“ → oben „1.0503 C45“
+wählen → „Am Rohteil eintragen“ erscheint → klicken → darunter steht „Vom
+Rohteil des Jobs: 1.0503 C45 …“, der Knopf verschwindet; im Rohteil steht
+die FreeCAD-Karte C45; Strg+Z bringt 1.4301 zurück.
+
+### DONE
+- Der Knopf erscheint nur, wenn es für den gewählten Werkstoff eine
+  FreeCAD-Karte mit derselben Nummer gibt und das Rohteil sie noch nicht
+  hat. Eintragen in einer Transaktion.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_job_schnittwerte` grün –
+  C45 am Rohteil, Werkstoff des Jobs danach C45, Strg+Z, Nummer ohne Karte.
+- KI, Oberfläche in **beiden** Versionen: `szenario_schnittwerte_job` grün,
+  Screenshot angesehen.
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-25-71 werkzeuge-suchen
 
 ### EINGELESEN

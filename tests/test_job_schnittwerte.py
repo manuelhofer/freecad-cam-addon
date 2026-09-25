@@ -21,6 +21,7 @@ from Path.Tool.camassets import cam_assets, user_asset_store
 from camaddon import job_schnittwerte as js
 from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
+from camaddon import werkstoffe as ws
 from camaddon import werkzeuge as wz
 
 fehler = []
@@ -169,6 +170,20 @@ pruefe(
 pruefe(js.vorgeschlagener_einsatz(tc3, einsaetze, job) == 0, "Einsatz am Namen nicht erkannt")
 dok.undo()
 pruefe(len(dok.Objects) == objekte_vorher, f"Strg+Z: {len(dok.Objects)} statt {objekte_vorher}")
+
+# Werkstoff am Rohteil eintragen: C45 statt 1.4301, Strg+Z zurück; ohne
+# FreeCAD-Karte mit dieser Nummer geht es nicht.
+werkstoffe = bibliothek.alle_werkstoffe()
+c45 = next(w for w in werkstoffe if w.nummer == "1.0503")
+pruefe(js.nummer_am_rohteil(job) == "1.4301", f"Rohteil vorher: {js.nummer_am_rohteil(job)!r}")
+name = js.setze_werkstoff_am_rohteil(dok, job, c45)
+pruefe(name is not None and js.nummer_am_rohteil(job) == "1.0503", f"C45 am Rohteil: {name}")
+pruefe(js.werkstoff_des_jobs(job, werkstoffe) is c45, "Werkstoff des Jobs danach nicht C45")
+dok.undo()
+pruefe(js.nummer_am_rohteil(job) == "1.4301", "Strg+Z bringt 1.4301 nicht zurück")
+fantasie = ws.Werkstoff("eigen-9", nummer="9.9999", kurzname="Fantasie", eigen=True)
+pruefe(js.karte_fuer(fantasie) is None, "Karte für eine Nummer, die FreeCAD nicht kennt")
+pruefe(js.setze_werkstoff_am_rohteil(dok, job, fantasie) is None, "ohne Karte gesetzt")
 
 FreeCAD.closeDocument(dok.Name)
 sprache.setze_sprache(vorher_sprache)

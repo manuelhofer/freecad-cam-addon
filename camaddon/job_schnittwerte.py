@@ -22,7 +22,7 @@ import FreeCAD
 
 from . import schnittdaten as sd
 from . import werkzeuge as wz
-from .uebergabe_werkzeuge import PRAEFIX
+from .uebergabe_werkzeuge import PRAEFIX, freecad_werkstoffe
 
 # Anteil des Vorschubs beim Eintauchen und Rampen – wie FreeCADs Vorgabe für
 # neue Presets. Beim Bohren ist der senkrechte Vorschub der Vorschub selbst.
@@ -85,14 +85,53 @@ def werkstoff_des_jobs(job, werkstoffe):
     (MaterialNumber). Gibt es mehrere Einträge mit der Nummer (geglüht und
     gehärtet), gilt der erste – der Dialog lässt ihn ändern.
     """
-    rohteil = getattr(job, "Stock", None)
-    material = getattr(rohteil, "ShapeMaterial", None)
+    nummer = nummer_am_rohteil(job)
+    if not nummer:
+        return None
+    return next((w for w in werkstoffe if w.nummer == nummer), None)
+
+
+def nummer_am_rohteil(job):
+    """Die Werkstoffnummer der Werkstoffkarte am Rohteil, oder „“."""
+    material = getattr(getattr(job, "Stock", None), "ShapeMaterial", None)
     if material is None:
+        return ""
+    return str(
+        (getattr(material, "PhysicalProperties", {}) or {}).get("MaterialNumber", "")
+    ).strip()
+
+
+def karte_fuer(werkstoff):
+    """(UUID, Name) der FreeCAD-Werkstoffkarte mit der Nummer des Werkstoffs, oder None."""
+    if werkstoff is None or not werkstoff.nummer:
         return None
-    nummer = str((getattr(material, "PhysicalProperties", {}) or {}).get("MaterialNumber", ""))
-    if not nummer.strip():
+    return freecad_werkstoffe().get(werkstoff.nummer)
+
+
+def setze_werkstoff_am_rohteil(dokument, job, werkstoff):
+    """Trägt am Rohteil die FreeCAD-Werkstoffkarte mit der Nummer des Werkstoffs ein.
+
+    Dann schlägt „Schnittwerte in den Job“ den Werkstoff beim nächsten Mal
+    selbst vor, und im Wochen-Build findet FreeCADs eigener Vorschlag die
+    Schnittwerte. Gibt den Namen der Karte zurück, oder None, wenn FreeCAD
+    keine Karte mit dieser Nummer hat. Eine Transaktion (ein Strg+Z).
+    """
+    import Materials
+
+    karte = karte_fuer(werkstoff)
+    rohteil = getattr(job, "Stock", None)
+    if karte is None or rohteil is None or not hasattr(rohteil, "ShapeMaterial"):
         return None
-    return next((w for w in werkstoffe if w.nummer == nummer.strip()), None)
+    uuid, name = karte
+    dokument.openTransaction("Werkstoff am Rohteil")
+    try:
+        rohteil.ShapeMaterial = Materials.MaterialManager().getMaterial(uuid)
+    except Exception:
+        dokument.abortTransaction()
+        raise
+    dokument.commitTransaction()
+    dokument.recompute()
+    return name
 
 
 def werkzeug_von(tc, bibliothek):

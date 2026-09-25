@@ -105,11 +105,18 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         self.wahl_werkstoff = QtGui.QComboBox()
         self.wahl_werkstoff.setToolTip(tr("sj.werkstoff.tooltip"))
         werkstoffe_anbieten(self.wahl_werkstoff, self.bibliothek)
-        self.wahl_werkstoff.currentIndexChanged.connect(lambda *_: self._rechnen())
+        self.wahl_werkstoff.currentIndexChanged.connect(lambda *_: self._werkstoff_gewaehlt())
         formular.addRow(tr("wv.werkstoff"), self.wahl_werkstoff)
         self.herkunft = QtGui.QLabel()
         self.herkunft.setWordWrap(True)
-        formular.addRow("", self.herkunft)
+        self.knopf_am_rohteil = QtGui.QPushButton(tr("sj.am_rohteil"))
+        self.knopf_am_rohteil.setToolTip(tr("sj.am_rohteil.tooltip"))
+        self.knopf_am_rohteil.setAutoDefault(False)
+        self.knopf_am_rohteil.clicked.connect(self.werkstoff_am_rohteil)
+        zeile = QtGui.QHBoxLayout()
+        zeile.addWidget(self.herkunft, 1)
+        zeile.addWidget(self.knopf_am_rohteil)
+        formular.addRow("", zeile)
         aufbau.addLayout(formular)
 
         self.tabelle = QtGui.QTableWidget(0, 7)
@@ -188,7 +195,31 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             self.herkunft.setText(tr("sj.herkunft.rohteil", werkstoff=ws.anzeige(werkstoff)))
         else:
             self.herkunft.setText(tr("sj.herkunft.unbekannt"))
+        self._knopf_am_rohteil_zeigen()
         self._zeilen_aufbauen()
+
+    def _werkstoff_gewaehlt(self):
+        self._knopf_am_rohteil_zeigen()
+        self._rechnen()
+
+    def _gewaehlter_werkstoff(self):
+        return ws.finde(self.bibliothek.alle_werkstoffe(), self.werkstoff)
+
+    def _knopf_am_rohteil_zeigen(self):
+        """Nur, wenn es für den gewählten Werkstoff eine FreeCAD-Karte gibt und sie noch fehlt."""
+        werkstoff = self._gewaehlter_werkstoff()
+        passt = werkstoff is not None and self.job is not None and js.karte_fuer(werkstoff)
+        schon_da = passt and js.nummer_am_rohteil(self.job) == werkstoff.nummer
+        self.knopf_am_rohteil.setVisible(bool(passt) and not schon_da)
+
+    def werkstoff_am_rohteil(self):
+        """Trägt den gewählten Werkstoff als FreeCAD-Werkstoffkarte am Rohteil ein."""
+        werkstoff = self._gewaehlter_werkstoff()
+        if werkstoff is None or self.job is None:
+            return None
+        name = js.setze_werkstoff_am_rohteil(self.dokument, self.job, werkstoff)
+        self._job_gewaehlt()
+        return name
 
     def _zeilen_aufbauen(self):
         tcs = js.werkzeug_controller(self.job) if self.job else []

@@ -144,4 +144,15 @@ def schritte(h):
         )
         h.pruefe("2122" in d.tabelle.item(z, gj.JETZT).text(), "neuer TC ohne Drehzahl")
     h.bild("3_tc_neu", d)
+
+    # Anderen Werkstoff wählen und am Rohteil eintragen.
+    h.pruefe(d.knopf_am_rohteil.isHidden(), "„Am Rohteil eintragen“ für den Werkstoff, den es hat")
+    d.wahl_werkstoff.setCurrentIndex(d.wahl_werkstoff.findData("1.0503"))
+    yield 200
+    h.pruefe(not d.knopf_am_rohteil.isHidden(), "„Am Rohteil eintragen“ fehlt für C45")
+    d.knopf_am_rohteil.click()
+    yield 300
+    h.pruefe("1.0503" in d.herkunft.text(), f"Herkunft: {d.herkunft.text()!r}")
+    h.pruefe(d.knopf_am_rohteil.isHidden(), "Knopf nach dem Eintragen noch da")
+    h.bild("4_am_rohteil", d)
     d.reject()
