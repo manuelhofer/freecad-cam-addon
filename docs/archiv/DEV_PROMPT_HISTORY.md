@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-03 version-0-8-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Neu seit
+  0.7.0: Revolverplatz wählen (P-2026-09-25-69), Werkzeuge suchen (-71),
+  Werkstoff am Rohteil (-72), Planer vorbelegen (-73), Werkzeugbild
+  (P-2026-09-26-01) und der Fix gegen die grundlose Rückfrage (-02).
+
+### DATEIEN
+- `package.xml` (0.8.0, Datum)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.8.0.
+
+### DONE
+- Version 0.7.0 → 0.8.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push.
+
 ## P-2026-09-26-02 keine-scheinaenderung
 
 ### EINGELESEN
