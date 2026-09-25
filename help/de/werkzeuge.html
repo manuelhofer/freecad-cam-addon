@@ -28,6 +28,25 @@ Beschichtung.</li>
 </ul>
 <p>Ein leeres Zahlenfeld heißt „unbekannt“.</p>
 
+<h3>An CAM übergeben</h3>
+<p><b>Speichern und an CAM übergeben</b> (unten links) schreibt alle Werkzeuge
+als Werkzeugbibliothek <b>„CAM-Addon“</b> in FreeCAD CAM – mit ihren
+T-Nummern, Durchmesser, Schneiden, Schneidenlänge und Schneidstoff. In einem
+Job fügst du ein Werkzeug hinzu und wählst diese Bibliothek.</p>
+<ul>
+<li>Im <b>Wochen-Build</b> gehen die Schnittwerte als <b>Vorschläge</b> mit: je
+Einsatz vc und fz, mit Werkstoff und Bearbeitung (Vollnut → Nut,
+Schruppen dynamisch → Adaptiv, Schlichten → Kontur …). Im
+Werkzeug-Controller schlägt der Knopf für Vorschub und Drehzahl sie dann
+für den Werkstoff des Rohteils vor. Die stabile Version 1.1.3 übernimmt nur
+die Werkzeuge.</li>
+<li>Jede Übergabe <b>ersetzt</b> die vorige: Werkzeuge, die es hier nicht mehr
+gibt, verschwinden aus der Bibliothek. Werkzeuge, die du selbst in CAM
+angelegt hast, bleiben unberührt.</li>
+<li><b>Geschätzt</b> sind Gesamtlänge (Schneidenlänge + 2 × D) und Schaft
+(= D) – die Werkzeugverwaltung fragt sie (noch) nicht ab.</li>
+</ul>
+
 <h3>Speichern</h3>
 <p>Wie in den Einstellungen von FreeCAD: <b>OK</b> speichert und schließt,
 <b>Übernehmen</b> speichert und lässt das Fenster offen, <b>Abbrechen</b>

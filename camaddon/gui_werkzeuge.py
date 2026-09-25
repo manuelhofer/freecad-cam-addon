@@ -13,6 +13,7 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, symbol
+from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
@@ -111,7 +112,13 @@ class WerkzeugDialog(QtGui.QDialog):
         teilung.setStretchFactor(1, 1)
         teilung.setSizes([LISTE_BREITE, FENSTER_GROESSE[0] - LISTE_BREITE])
         aufbau.addWidget(teilung, 1)
-        aufbau.addWidget(self._knoepfe())
+        unten = QtGui.QHBoxLayout()
+        self.knopf_cam = self._knopf(tr("wv.cam"), tr("wv.cam.tooltip"), self.an_cam_uebergeben)
+        self.knopf_cam.setEnabled(ue.verfuegbar())
+        unten.addWidget(self.knopf_cam)
+        unten.addStretch()
+        unten.addWidget(self._knoepfe())
+        aufbau.addLayout(unten)
 
         self._werkstoffe_anbieten()
         self.waehle_werkstoff(_parameter().GetString("WvWerkstoff", wz.ALLE))
@@ -577,6 +584,27 @@ class WerkzeugDialog(QtGui.QDialog):
         self._gespeichert = self.bibliothek.kopie()
         return True
 
+    def an_cam_uebergeben(self):
+        """„Speichern und an CAM übergeben“: Werkzeuge als Bibliothek „CAM-Addon“ in CAM.
+
+        Gibt den Bericht zurück (oder None); das Fenster mit der Rückmeldung
+        zeigt `bericht_zeigen`, damit die Szenarien es ohne Fenster prüfen können.
+        """
+        if not self.uebernehmen():
+            return None
+        try:
+            bericht = ue.uebergeben(self.bibliothek)
+        except Exception as fehler:  # jeder Fehler von CAM soll als Satz ankommen
+            FreeCAD.Console.PrintError(f"CAM-Addon: Übergabe an CAM: {fehler}\n")
+            QtGui.QMessageBox.warning(self, tr("wv.titel"), tr("wv.cam.fehler", fehler=fehler))
+            return None
+        QtCore.QTimer.singleShot(0, lambda: self.bericht_zeigen(bericht))
+        return bericht
+
+    def bericht_zeigen(self, bericht):
+        """Was übergeben wurde und wie es in CAM weitergeht."""
+        QtGui.QMessageBox.information(self, tr("wv.cam.titel"), bericht_text(bericht))
+
     def accept(self):
         """OK: speichern und schließen – schließt nicht, wenn das Speichern scheitert."""
         if self.uebernehmen():
@@ -600,6 +628,25 @@ class WerkzeugDialog(QtGui.QDialog):
                 return
         WerkzeugDialog.offen = None
         super().reject()
+
+
+def bericht_text(bericht):
+    """Die Rückmeldung nach „An CAM übergeben“, Absatz für Absatz."""
+    absaetze = [tr("wv.cam.werkzeuge", anzahl=bericht.werkzeuge)]
+    if ue.presets_moeglich():
+        absaetze.append(tr("wv.cam.presets", anzahl=bericht.presets))
+        if bericht.werkstoffe_ohne_freecad:
+            absaetze.append(
+                tr("wv.cam.ohne_werkstoff", liste=", ".join(bericht.werkstoffe_ohne_freecad))
+            )
+    else:
+        absaetze.append(tr("wv.cam.ohne_presets"))
+    if bericht.ohne_durchmesser:
+        absaetze.append(tr("wv.cam.ohne_durchmesser", anzahl=bericht.ohne_durchmesser))
+    if bericht.entfernt:
+        absaetze.append(tr("wv.cam.entfernt", anzahl=bericht.entfernt))
+    absaetze.append(tr("wv.cam.weiter"))
+    return "\n\n".join(absaetze)
 
 
 def _fett(text):

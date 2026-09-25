@@ -12,6 +12,81 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-52 werkzeuge-an-cam
+
+### EINGELESEN
+- W-002, Spezifikation Abschnitt 10, Stufe 2 (Übergabe an CAM). Manuel:
+  „mach so viel fertig wie du kannst“ – ohne Übergabe bleibt die
+  Werkzeugverwaltung ein Rechner neben CAM.
+
+### DATEIEN
+- `camaddon/uebergabe_werkzeuge.py` (neu)
+- `camaddon/gui_werkzeuge.py` (Knopf „Speichern und an CAM übergeben“,
+  Rückmeldung)
+- `help/de|en/werkzeuge.html` (Abschnitt „An CAM übergeben“)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_uebergabe_werkzeuge.py`, `tests/gui/szenario_an_cam.py` (neu)
+- `docs/spezifikation_werkzeugverwaltung.md` (Stufe 2: was gebaut ist),
+  `docs/aufbau.md`, `CHATSTART.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → „Speichern und an CAM übergeben“ → Rückmeldung
+„Übergeben: …“; danach in einem CAM-Job „Werkzeug hinzufügen“ → Bibliothek
+„CAM-Addon“ zeigt die Werkzeuge mit ihren T-Nummern und Durchmessern. Im
+Wochen-Build schlägt der Knopf für Vorschub und Drehzahl im
+Werkzeug-Controller bei Rohteil-Werkstoff X5CrNi18-10 unsere Werte für
+1.4301 vor.
+
+### DONE
+- **FreeCAD-Check:** 1.1.3 und der Wochen-Build haben dieselbe
+  Asset-Verwaltung (`Path.Tool.camassets.cam_assets`), dasselbe Format für
+  ToolBits (`.fctb`, Version 2) und Bibliotheken (`.fctl`). Nur der
+  Wochen-Build kennt „Presets“ und behält unbekannte Schlüssel beim
+  Speichern (`_extra_attrs`). FreeCADs Werkstoffkarten findet das Addon
+  über die Werkstoffnummer (`PhysicalProperties["MaterialNumber"]`), etwa
+  1.4301 → „X5CrNi18-10“.
+- **Übergabe:** je Werkzeug ein ToolBit `camaddon_<Kennung>` (Form nach Art:
+  Endmill, Bullnose, Ballend, Chamfer, Drill; Diameter, Flutes,
+  CuttingEdgeHeight, Material, SpindleDirection, Chipload aus der ersten
+  Zeile „für alle“), dazu die Bibliothek „CAM-Addon“ mit den T-Nummern.
+  Geschrieben über `cam_assets.add_raw` – dort, wo der Benutzer seine
+  CAM-Werkzeuge eingestellt hat.
+- **Presets** (je Einsatz mit vc oder fz): Werkstoff-Hinweis mit UUID der
+  FreeCAD-Werkstoffkarte gleicher Nummer, sonst mit dem Kurznamen;
+  Bearbeitungsart nach Einsatz; Notiz mit ae und ap. „Für alle“ ohne
+  Werkstoff-Hinweis = gilt für jeden Werkstoff.
+- **Ersetzen statt anhäufen:** Eine neue Übergabe schreibt alle ToolBits neu
+  und entfernt `camaddon_…`-Werkzeuge, die es in der Werkzeugverwaltung nicht
+  mehr gibt. Fremde Werkzeuge bleiben.
+- **Annahmen** (in Rückmeldung und Hilfe genannt): Gesamtlänge =
+  Schneidenlänge + 2 × D (mindestens 3 × D), Schaft = D, Eckradius ohne
+  Angabe = D/10, Fasenfräser 90°, Bohrer 118°.
+- Knopf **„Speichern und an CAM übergeben“** unten links; speichert zuerst
+  (die Übergabe zeigt immer den gespeicherten Stand). Rückmeldung je
+  Version: Wochen-Build mit Anzahl der Vorschläge und wo man sie findet,
+  1.1.3 mit dem Satz, dass Schnittwerte erst mit der nächsten Version
+  übernommen werden.
+- Bewusst noch nicht: Werkzeug-Controller eines Jobs direkt setzen (für
+  1.1.3), Felder für Gesamtlänge und Schaft.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_uebergabe_werkzeuge` grün –
+  FreeCAD lädt Bibliothek (T3, T5, T7) und Werkzeuge mit Durchmesser,
+  Schneiden, Schneidenlänge, Eckradius, Schneidstoff; ohne Durchmesser
+  übersprungen; zweite Übergabe entfernt den gelöschten, das fremde bleibt.
+  Im Wochen-Build zusätzlich: vier Presets am Fräser, und FreeCADs eigener
+  Vorschlag (`FeedsSpeeds.resolve`) liefert für 1.4301/Nut vc 80 und für
+  andere Werkstoffe 120 bei 3183 U/min.
+- KI, Oberfläche in beiden Versionen: `szenario_an_cam` grün, Rückmeldungen
+  angesehen.
+- Manuel: offen – vor allem, ob die Bibliothek im Job so erscheint, wie er
+  sie erwartet.
+
+### NEXT
+- Werkzeug-Controller eines Jobs aus der Tabelle setzen (1.1.3) – oder
+  Manuels Rückmeldung.
+
 ## P-2026-09-25-51 version-0-4-0
 
 ### EINGELESEN

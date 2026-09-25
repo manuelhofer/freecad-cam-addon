@@ -5,7 +5,7 @@ Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
 - **IN ARBEIT** – W-001, Stufen 1 und 2 fertig und automatisch geprüft; warten auf Manuels Test. Danach Stufe 3.
-- **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufe 1 fertig und automatisch geprüft, wartet auf Manuels Test. Danach Stufe 2 (Übergabe an CAM).
+- **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufe 1 fertig und automatisch geprüft, wartet auf Manuels Test. Stufe 2: Werkzeuge an CAM übergeben fertig; offen: Schnittwerte in Werkzeug-Controller eines Jobs setzen (für 1.1.3).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
   und Wochen-Build 26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien
   grün; in 1.1.3 ist der Export übersprungen (gibt es dort nicht).
@@ -26,8 +26,8 @@ Danach Stufe 3: Maschine von Hand verfahren (je Betriebsart ein Regler).
 mit Werkstoffliste, Schnittwerten je Werkstoff und Einsatz, Bild des
 Eingriffs und Strategievergleich. Wartet auf **Manuels Test** (Klickwege in
 den Verlaufseinträgen P-2026-09-25-46 bis -50) und auf die Besprechung der
-Entscheidungen in der Spezifikation (Abschnitt 11). Danach Stufe 2:
-Übergabe an CAM.
+Entscheidungen in der Spezifikation (Abschnitt 11). Stufe 2, erster Teil
+(„Speichern und an CAM übergeben“, P-2026-09-25-52) ist ebenfalls fertig.
 
 ## Wunschliste
 

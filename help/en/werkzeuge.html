@@ -29,6 +29,24 @@ number, coating.</li>
 </ul>
 <p>An empty number field means “unknown”.</p>
 
+<h3>Hand over to CAM</h3>
+<p><b>Save and hand over to CAM</b> (bottom left) writes all tools as the tool
+library <b>“CAM-Addon”</b> into FreeCAD CAM – with their T numbers, diameter,
+flutes, flute length and tool material. In a job you add a tool and choose
+this library.</p>
+<ul>
+<li>In the <b>weekly build</b> the cutting data goes along as
+<b>suggestions</b>: per use case vc and fz, with material and operation
+(full slot → slot, dynamic roughing → adaptive, finishing → profile …). In the
+tool controller, the feeds and speeds button then suggests them for the
+stock material. The stable version 1.1.3 only takes the tools.</li>
+<li>Each hand-over <b>replaces</b> the previous one: tools that no longer exist
+here disappear from the library. Tools you created in CAM yourself are left
+alone.</li>
+<li>Overall length (flute length + 2 × D) and shank (= D) are
+<b>estimated</b> – the tool manager does not ask for them (yet).</li>
+</ul>
+
 <h3>Saving</h3>
 <p>Like FreeCAD's preferences: <b>OK</b> saves and closes, <b>Apply</b> saves and
 keeps the window open, <b>Cancel</b> discards – and asks first if you changed

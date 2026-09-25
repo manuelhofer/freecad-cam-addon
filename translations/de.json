@@ -367,5 +367,16 @@
     "ws.feld.kc": "kc1.1 (N/mm²)",
     "ws.feld.mc": "mc",
     "ws.feld.kc.tooltip": "Richtwerte für die Schnittkraft, aus dem Tabellenbuch. Nur für die Leistung im Strategievergleich; leer = unbekannt.",
-    "ws.hinweis.kurzname": "Der Kurzname fehlt – an ihm erkennt man den Werkstoff."
+    "ws.hinweis.kurzname": "Der Kurzname fehlt – an ihm erkennt man den Werkstoff.",
+    "wv.cam": "Speichern und an CAM übergeben",
+    "wv.cam.tooltip": "Speichert und schreibt alle Werkzeuge als Werkzeugbibliothek „CAM-Addon“ in FreeCAD CAM – im Wochen-Build mit den Schnittwerten als Vorschläge.",
+    "wv.cam.titel": "An CAM übergeben",
+    "wv.cam.werkzeuge": "Übergeben: {anzahl} – die Werkzeuge stehen jetzt in CAM, in der Werkzeugbibliothek „CAM-Addon“.",
+    "wv.cam.presets": "Schnittwert-Vorschläge dazu: {anzahl}. Im Werkzeug-Controller eines Jobs schlägt der Knopf für Vorschub und Drehzahl („Feeds and Speeds Wizard“) sie vor – passend zum Werkstoff des Rohteils und zur Bearbeitung.",
+    "wv.cam.ohne_werkstoff": "Für diese Werkstoffe hat FreeCAD keine Werkstoffkarte mit derselben Nummer – dort greift der Vorschlag nur, wenn das Rohteil einen Werkstoff mit demselben Namen hat: {liste}.",
+    "wv.cam.ohne_presets": "Die Schnittwerte übernimmt diese FreeCAD-Version noch nicht an den Werkzeugen – das kann der Wochen-Build und ab der nächsten Version. Die Werkzeuge selbst sind da.",
+    "wv.cam.ohne_durchmesser": "Nicht übergeben, weil der Durchmesser fehlt: {anzahl}.",
+    "wv.cam.entfernt": "Aus CAM entfernt, weil es sie hier nicht mehr gibt: {anzahl}.",
+    "wv.cam.weiter": "So geht es weiter: In einem CAM-Job ein Werkzeug hinzufügen und die Bibliothek „CAM-Addon“ wählen. Gesamtlänge und Schaft sind geschätzt (Schneidenlänge + 2 × D, Schaft = D).",
+    "wv.cam.fehler": "Die Übergabe an CAM hat nicht geklappt:\n{fehler}"
 }

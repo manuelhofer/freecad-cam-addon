@@ -274,6 +274,13 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    Werkzeug-Controller unsere Werte vor. In 1.1.3: ein Knopf im Addon, der
    Drehzahl und Vorschübe der Werkzeug-Controller eines Jobs aus der Tabelle
    setzt.
+   **Erster Teil gebaut** (P-2026-09-25-52): Knopf „Speichern und an CAM
+   übergeben“. Geschrieben wird über `cam_assets.add_raw` (CAMs eigene
+   Asset-Verwaltung, in beiden Versionen gleich); die ToolBits heißen
+   `camaddon_<Kennung>`, eine erneute Übergabe ersetzt sie und entfernt
+   gelöschte, fremde Werkzeuge bleiben. Gesamtlänge und Schaft sind
+   geschätzt (Schneidenlänge + 2 × D, Schaft = D). Offen: der Knopf für
+   Werkzeug-Controller in 1.1.3.
 3. **Schruppwerte vorschlagen:** aus Werkzeug, Werkstoff (kc1.1, mc) und
    Maschine (Leistung, Drehmoment, Höchstdrehzahl aus W-001) die
    Kombination aus ae, ap und fz mit dem größten Zeitspanvolumen, die die
