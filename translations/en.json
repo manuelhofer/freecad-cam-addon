@@ -386,7 +386,7 @@
     "sj.herkunft.rohteil": "From the job's stock: {werkstoff}.",
     "sj.herkunft.unbekannt": "The stock has no material the tool manager knows – the values for all materials apply. You can choose one above.",
     "sj.spalte.tc": "Tool controller",
-    "sj.spalte.werkzeug": "Tool in the tool manager",
+    "sj.spalte.werkzeug": "Tool",
     "sj.spalte.jetzt": "Currently set",
     "sj.jetzt": "{n} rpm · {vf} mm/min",
     "sj.kein_werkzeug": "– not in the tool manager",
@@ -394,7 +394,7 @@
     "sj.nicht_aendern": "– do not change",
     "sj.hinweis": "Spindle speed, feed rate and plunge feed are set (a third of the feed rate, the full one for drilling). Use cases without vc and fz are not suggested.",
     "sj.uebernehmen": "Apply",
-    "sj.gesetzt": "Set: {anzahl} tool controllers. Ctrl+Z undoes it in one step.",
+    "sj.gesetzt": "Tool controllers set: {anzahl}. Ctrl+Z undoes it in one step.",
     "sp.knopf": "Plan roughing values…",
     "sp.knopf.tooltip": "Works out how much material this cutter removes using the full flute length and a narrow ae – limited by tool and machine – and adds the result as a use case.",
     "sp.knopf.nicht_moeglich": "Only for flat and bull nose end mills with diameter and number of flutes.",
@@ -442,5 +442,10 @@
     "sp.leistung_unbekannt": "The planner only checks the spindle power if the material has a kc1.1 value – select such a material above or enter the value under “Materials…”.",
     "sp.uebernehmen": "Add as use case",
     "sp.uebernehmen.eigene": "Add as use case for {werkstoff}",
-    "sp.uebernehmen.tooltip": "Adds the selected row as “Dynamic roughing” to the table – if the material has no values of its own yet, they are created for it."
+    "sp.uebernehmen.tooltip": "Adds the selected row as “Dynamic roughing” to the table – if the material has no values of its own yet, they are created for it.",
+    "sj.spalte.zustellung": "Step over · step down",
+    "sj.zustellung": "Also set step over (ae) and step down (ap) of the matching operations",
+    "sj.zustellung.tooltip": "The operations that use the tool controller get ae as step over (in % of D, rounded down) and ap as step down – but only if the use case fits: Adaptive gets “Dynamic roughing” and “Roughing”, Pocket and Face “Roughing”, Slot “Full slot”. A Profile gets nothing – it is also used for cutting out, in a full slot.",
+    "sj.zustellung.jetzt": "Currently set:\n{werte}",
+    "sj.gesetzt.operationen": "Tool controllers set: {anzahl}, plus step over and step down in: {operationen}. Ctrl+Z undoes it in one step."
 }

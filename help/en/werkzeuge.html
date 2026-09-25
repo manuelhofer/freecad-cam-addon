@@ -62,7 +62,34 @@ operation (Adaptive → dynamic, Pocket → roughing, Profile → finishing,
 Drilling → drilling) –, the resulting n and vf, and what is set now.</li>
 <li>Plunging and ramping get a third of the feed rate, drilling the full
 one.</li>
+<li><b>Step over and step down:</b> The operations that use the tool
+controller get ae as step over (in % of D, rounded down) and ap as step down –
+if the use case fits them: <b>Adaptive</b> gets “Dynamic roughing” and
+“Roughing”, <b>Pocket</b> and <b>Face</b> “Roughing”, <b>Slot</b> “Full slot”. A
+<b>Profile</b> gets nothing – it is also used for cutting out, in a full slot,
+and the ap of another use case would be too much for that. The column
+“Step over · step down” shows beforehand what goes where; the checkbox below
+turns it off.</li>
 </ul>
+
+<h3>Opening up a hole or pocket</h3>
+<p>Plunge helically once to the step-down depth, then clear the level with a
+small ae and the full flute length – that is what the <b>Adaptive</b>
+operation does when its step down is the flute length:</p>
+<ol>
+<li>In the tool manager, add a <b>Dynamic roughing</b> use case for the cutter
+– for example with <b>Plan roughing values…</b> – and <b>Save and hand over to
+CAM</b>.</li>
+<li>In the job, add a tool controller with this cutter and name it so that
+the use case is in the name: “T3 Dynamic roughing”.</li>
+<li>Put an <b>Adaptive</b> operation on the hole or pocket, with this tool
+controller.</li>
+<li><b>Cutting data into the job</b> → Apply. The tool controller gets n and vf,
+Adaptive the step over (e.g. 10 %) and the step down (e.g. 25 mm): it plunges
+helically to 25 mm once and then clears the level.</li>
+</ol>
+<p>The helix plunge angle is set in the Adaptive operation; the cutter's
+manufacturer states how steeply it may plunge.</p>
 
 <h3>Saving</h3>
 <p>Like FreeCAD's preferences: <b>OK</b> saves and closes, <b>Apply</b> saves and

@@ -5,14 +5,18 @@ Ein Werkzeug-Controller (TC) hält in FreeCAD Drehzahl und Vorschübe für ein
 Werkzeug. Dieses Modul findet zu jedem TC das Werkzeug der
 Werkzeugverwaltung – über die ToolBit-ID „camaddon_…“ der übergebenen
 Bibliothek, sonst über T-Nummer und Durchmesser –, schlägt einen Einsatz
-vor und rechnet n und vf aus dessen vc und fz. Gesetzt wird in einer
-Transaktion (ein Strg+Z).
+vor und rechnet n und vf aus dessen vc und fz. Passt der Einsatz zu einer
+Operation, die den TC benutzt, bekommt sie auch ae und ap als Schrittweite
+und Zustelltiefe. Gesetzt wird in einer Transaktion (ein Strg+Z).
 
 Das ist der Weg für FreeCAD 1.1.3, das Schnittwerte am Werkzeug nicht kennt;
 im Wochen-Build geht es zusätzlich über FreeCADs eigenen Vorschlag.
 
 Läuft ohne Oberfläche.
 """
+
+import math
+from dataclasses import dataclass, field
 
 import FreeCAD
 
@@ -31,10 +35,34 @@ EINSATZ_NACH_OPERATION = {
     "Pocket": wz.SCHRUPPEN,
     "PocketShape": wz.SCHRUPPEN,
     "MillFace": wz.SCHRUPPEN,
+    "MillFacing": wz.SCHRUPPEN,  # Planfräsen im Wochen-Build
     "Profile": wz.SCHLICHTEN,
     "Slot": wz.VOLLNUT,
     "Drilling": wz.BOHREN,
 }
+
+
+# Operation → Einsätze, deren ae und ap als Schrittweite und Zustelltiefe
+# in sie passen. Dynamisch nur ins Adaptive: Nur dort hält FreeCAD den
+# Eingriff klein – eine Tasche fährt zuerst eine volle Nut, mit ap über die
+# ganze Schneide bräche der Fräser. Die Kontur bekommt nichts: Mit ihr wird
+# auch ausgeschnitten, also in voller Nut.
+ZUSTELLUNG_NACH_OPERATION = {
+    "Adaptive": (wz.DYNAMISCH, wz.SCHRUPPEN),
+    "Pocket": (wz.SCHRUPPEN,),
+    "PocketShape": (wz.SCHRUPPEN,),
+    "MillFace": (wz.SCHRUPPEN,),
+    "MillFacing": (wz.SCHRUPPEN,),
+    "Slot": (wz.VOLLNUT,),
+}
+
+
+@dataclass
+class Gesetzt:
+    """Was setze() geändert hat."""
+
+    controller: int = 0  # Anzahl
+    operationen: list = field(default_factory=list)  # Beschriftungen
 
 
 def jobs(dokument):
@@ -105,21 +133,53 @@ def vorgeschlagener_einsatz(tc, einsaetze, job):
     for i, einsatz in enumerate(einsaetze):
         if wz.einsatz_name(einsatz).lower() in beschriftung:
             return i
-    for operation in _operationen(job):
-        if getattr(operation, "ToolController", None) is not tc:
-            continue
-        art = EINSATZ_NACH_OPERATION.get(type(operation.Proxy).__module__.rsplit(".", 1)[-1])
+    for operation in operationen_mit(tc, job):
+        art = EINSATZ_NACH_OPERATION.get(operationsart(operation))
         for i, einsatz in enumerate(einsaetze):
             if einsatz.art == art:
                 return i
     return 0
 
 
-def _operationen(job):
+def operationen(job):
+    """Die Operationen des Jobs."""
     try:
         return job.Proxy.allOperations()
     except AttributeError:
         return []
+
+
+def operationen_mit(tc, job):
+    """Die Operationen des Jobs, die diesen Werkzeug-Controller benutzen."""
+    return [o for o in operationen(job) if getattr(o, "ToolController", None) is tc]
+
+
+def operationsart(operation):
+    """Die Art einer CAM-Operation – der Name ihres Moduls: „Adaptive“, „Pocket“ …"""
+    return type(getattr(operation, "Proxy", None)).__module__.rsplit(".", 1)[-1]
+
+
+def zustellung(operation, werkzeug, einsatz):
+    """{Eigenschaft: Wert} – Schrittweite und Zustelltiefe aus dem Einsatz, {} wenn er nicht passt.
+
+    Die Schrittweite steht in FreeCAD in Prozent von D: in 1.1.3 als ganze
+    Zahl (StepOver), im Adaptive des Wochen-Builds als Kommazahl
+    (StepOverPercent). Abgerundet – aufgerundet läge sie über dem ae, das
+    der Einsatz erlaubt.
+    """
+    if einsatz.art not in ZUSTELLUNG_NACH_OPERATION.get(operationsart(operation), ()):
+        return {}
+    werte = {}
+    d = werkzeug.durchmesser
+    if einsatz.ae > 0 and d > 0:
+        prozent = min(einsatz.ae / d * 100.0, 100.0)
+        if hasattr(operation, "StepOverPercent"):
+            werte["StepOverPercent"] = max(math.floor(prozent * 10 + 1e-9) / 10, 0.1)
+        elif hasattr(operation, "StepOver"):
+            werte["StepOver"] = max(math.floor(prozent + 1e-9), 1)
+    if einsatz.ap > 0 and hasattr(operation, "StepDown"):
+        werte["StepDown"] = round(einsatz.ap, 3)
+    return werte
 
 
 def werte(werkzeug, einsatz):
@@ -129,13 +189,15 @@ def werte(werkzeug, einsatz):
     return n, vf, senkrecht
 
 
-def setze(dokument, zuordnung):
+def setze(dokument, zuordnung, job=None):
     """Setzt Drehzahl und Vorschübe; `zuordnung` = [(tc, werkzeug, einsatz), …].
 
-    Alles in einer Transaktion: ein Strg+Z nimmt es zurück. Gibt die Zahl der
-    gesetzten TC zurück.
+    Mit `job` bekommen auch dessen Operationen, die einen der TC benutzen,
+    Schrittweite und Zustelltiefe aus dem Einsatz, wenn er zu ihnen passt
+    (zustellung()). Alles in einer Transaktion: ein Strg+Z nimmt es zurück.
+    Gibt zurück, wie viele TC und Operationen gesetzt wurden (Gesetzt).
     """
-    gesetzt = 0
+    gesetzt = Gesetzt()
     dokument.openTransaction("Schnittwerte übernehmen")
     try:
         for tc, werkzeug, einsatz in zuordnung:
@@ -145,7 +207,19 @@ def setze(dokument, zuordnung):
             tc.SpindleSpeed = float(round(n))
             tc.HorizFeed = FreeCAD.Units.Quantity(f"{round(vf)} mm/min")
             tc.VertFeed = FreeCAD.Units.Quantity(f"{round(senkrecht)} mm/min")
-            gesetzt += 1
+            gesetzt.controller += 1
+            for operation in operationen_mit(tc, job) if job is not None else []:
+                neu = zustellung(operation, werkzeug, einsatz)
+                for eigenschaft, wert in neu.items():
+                    # Die Zustelltiefe hängt in FreeCAD an einer Formel aus dem
+                    # SetupSheet (Vorgabe: Werkzeugdurchmesser) – mit ihr stünde
+                    # nach dem Neuberechnen wieder D da.
+                    operation.setExpression(eigenschaft, None)
+                    if eigenschaft == "StepDown":
+                        wert = FreeCAD.Units.Quantity(f"{wert} mm")
+                    setattr(operation, eigenschaft, wert)
+                if neu:
+                    gesetzt.operationen.append(operation.Label)
     except Exception:
         dokument.abortTransaction()
         raise

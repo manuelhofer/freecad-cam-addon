@@ -14,6 +14,7 @@ import FreeCAD
 import Materials
 import Part  # noqa: F401 – lädt das Part-Modul für „Part::Box“
 from Path.Main import Job
+from Path.Op import Adaptive, Pocket, Profile, Slot
 from Path.Tool import Controller
 from Path.Tool.camassets import cam_assets, user_asset_store
 
@@ -51,11 +52,17 @@ ue.uebergeben(bibliothek)
 dok = FreeCAD.newDocument("JobSchnittwerte")
 dok.UndoMode = 1
 quader = dok.addObject("Part::Box", "Quader")
+quader.Height = 60  # höher als jede Zustelltiefe: FreeCAD kürzt sie auf die Höhe
 dok.recompute()
 job = Job.Create("Job", [quader])
 job.Stock.ShapeMaterial = Materials.MaterialManager().getMaterial(
     ue.freecad_werkstoffe()["1.4301"][0]
 )
+# Die Operationen, solange der Job nur seinen ersten TC hat: Mit mehreren
+# fragt FreeCAD 1.1.3 beim Anlegen, welcher – ohne Oberfläche ein Fehler.
+operationen = {}
+for modul, name in ((Adaptive, "Adaptiv"), (Pocket, "Tasche"), (Profile, "Kontur"), (Slot, "Nut")):
+    operationen[name] = modul.Create(name, parentJob=job)
 
 # TC 1: Werkzeug aus der Bibliothek „CAM-Addon“ (ToolBit-ID camaddon_…).
 bit = cam_assets.get(f"toolbit://camaddon_{fraeser.kennung}").attach_to_doc(doc=dok)
@@ -90,7 +97,7 @@ gesetzt = js.setze(
         (tc2, fraeser, wz.Einsatz(vc=0, fz=0)),
     ],
 )
-pruefe(gesetzt == 2, f"{gesetzt} gesetzt statt 2 (ohne vc/fz nichts)")
+pruefe(gesetzt == js.Gesetzt(2, []), f"{gesetzt} statt 2 TC (ohne vc/fz nichts)")
 pruefe(
     tc1.SpindleSpeed == 2122 and round(mm_min(tc1.HorizFeed)) == 318,
     f"TC 1: {tc1.SpindleSpeed}, {tc1.HorizFeed}",
@@ -102,6 +109,51 @@ pruefe(
 )
 dok.undo()
 pruefe((tc1.SpindleSpeed, mm_min(tc1.HorizFeed)) == vorher, "Strg+Z nimmt nicht alles zurück")
+
+# Operationen: Adaptiv bekommt vom dynamischen Einsatz ae als Schrittweite und
+# ap als Zustelltiefe; die Tasche nicht (dynamisch nur ins Adaptive), die
+# Kontur nie, die Nut nur von der Vollnut.
+for operation in operationen.values():
+    operation.ToolController = tc1
+dok.recompute()
+adaptiv, nut = operationen["Adaptiv"], operationen["Nut"]
+schritt = "StepOverPercent" if hasattr(adaptiv, "StepOverPercent") else "StepOver"
+
+
+def tiefen():
+    return {n: float(o.StepDown.getValueAs("mm")) for n, o in operationen.items()}
+
+
+vorher = tiefen()
+gesetzt = js.setze(dok, [(tc1, fraeser, einsaetze[1])], job)
+pruefe(gesetzt == js.Gesetzt(1, ["Adaptiv"]), f"mit Operationen: {gesetzt}")
+pruefe(getattr(adaptiv, schritt) == 10, f"Adaptiv {schritt}: {getattr(adaptiv, schritt)}")
+nachher = tiefen()
+pruefe(nachher["Adaptiv"] == 25, f"Adaptiv Zustelltiefe: {nachher['Adaptiv']}")
+pruefe(
+    all(nachher[n] == vorher[n] for n in ("Tasche", "Kontur", "Nut")),
+    f"andere Operationen verändert: {vorher} → {nachher}",
+)
+pruefe(js.zustellung(nut, fraeser, einsaetze[0]) == {"StepDown": 3}, "Nut mit Vollnut")
+pruefe(js.zustellung(operationen["Kontur"], fraeser, einsaetze[1]) == {}, "Kontur bekommt etwas")
+# 0,88 mm von Ø 12 sind 7,33 %: abgerundet – in 1.1.3 ganze Prozent.
+schmal = js.zustellung(adaptiv, fraeser, wz.Einsatz(art=wz.DYNAMISCH, ae=0.88, ap=24))
+soll = 7.3 if schritt == "StepOverPercent" else 7
+pruefe(schmal.get(schritt) == soll, f"Schrittweite bei 0,88 mm: {schmal}")
+
+
+def formel(operation):
+    return dict(operation.ExpressionEngine).get("StepDown")
+
+
+pruefe(formel(adaptiv) is None, f"Formel an der Zustelltiefe: {formel(adaptiv)}")
+dok.undo()
+dok.recompute()
+pruefe(tiefen() == vorher, f"Strg+Z nimmt die Zustelltiefe nicht zurück: {tiefen()}")
+pruefe(formel(adaptiv) is not None, "Strg+Z bringt die Formel nicht zurück")
+# Ohne Job bleiben die Operationen, wie sie sind.
+js.setze(dok, [(tc1, fraeser, einsaetze[1])])
+pruefe(tiefen() == vorher, "ohne Job trotzdem Operationen gesetzt")
 
 FreeCAD.closeDocument(dok.Name)
 sprache.setze_sprache(vorher_sprache)

@@ -54,7 +54,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `schnittdaten.py` | Rechnen mit Schnittwerten: n, vf, Zeitspanvolumen, Eingriffswinkel, Spandicke; Kennzahlen und Urteil für den Strategievergleich |
 | `uebergabe_werkzeuge.py` | Werkzeuge an CAM übergeben: ToolBits und Bibliothek „CAM-Addon“ über `cam_assets`, Schnittwerte als Presets |
 | `schruppwerte.py` | Schruppwerte planen: fz je ae mit Spandickenausgleich, Grenzen von Werkzeug und Maschine (auch aus W-001), Vorschlag mit größtem Q |
-| `job_schnittwerte.py` | Schnittwerte in die Werkzeug-Controller eines Jobs: Werkstoff vom Rohteil, Werkzeug zum TC, Einsatz vorschlagen, setzen in einer Transaktion |
+| `job_schnittwerte.py` | Schnittwerte in die Werkzeug-Controller eines Jobs: Werkstoff vom Rohteil, Werkzeug zum TC, Einsatz vorschlagen, dazu Schrittweite und Zustelltiefe der passenden Operationen; setzen in einer Transaktion |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“ |
 | `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
@@ -186,3 +186,6 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | Werkstoffnummern wie „1.0503“ sehen aus wie Kommazahlen | `dezimal()` nur auf Zahlentexte, nie auf Werkstoffnamen |
 | QTest tippt nur ASCII | in Szenarien Text ohne Umlaute tippen |
 | FreeCADCmd 1.1.3 schreibt beim Neuberechnen einen Fortschrittsbalken ohne Zeilenende | Prüfungen, die neu berechnen, geben vor „OK“ eine Leerzeile aus |
+| Die Zustelltiefe (`StepDown`) einer Operation hängt an einer Formel aus dem SetupSheet (Vorgabe: Werkzeugdurchmesser) – ein gesetzter Wert ist nach dem Neuberechnen wieder weg | vor dem Setzen `setExpression("StepDown", None)` |
+| Die Schrittweite heißt in 1.1.3 `StepOver` (ganze Prozent), im Adaptive des Wochen-Builds `StepOverPercent` (Kommazahl) | `zustellung()` nimmt, was die Operation hat |
+| Eine Operation anlegen, wenn der Job mehrere Werkzeug-Controller hat: FreeCAD fragt welchen – in FreeCADCmd 1.1.3 ein Fehler | Prüfungen legen Operationen an, solange der Job nur einen hat |

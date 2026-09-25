@@ -3,29 +3,30 @@
 
 Für jeden Werkzeug-Controller des Jobs eine Zeile: welches Werkzeug der
 Werkzeugverwaltung dahintersteht, welcher Einsatz gelten soll (vorgeschlagen,
-änderbar), was daraus an Drehzahl und Vorschub wird – und was jetzt
-eingestellt ist. „Übernehmen“ setzt alles in einem Schritt (Strg+Z). Der
-Werkstoff kommt vom Rohteil des Jobs und lässt sich ändern. Die Logik steht
-in job_schnittwerte.py.
+änderbar), was daraus an Drehzahl und Vorschub wird, welche Operationen
+Schrittweite und Zustelltiefe bekommen – und was jetzt eingestellt ist.
+„Übernehmen“ setzt alles in einem Schritt (Strg+Z). Der Werkstoff kommt vom
+Rohteil des Jobs und lässt sich ändern. Die Logik steht in
+job_schnittwerte.py.
 """
 
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
+from . import PARAMETER_PFAD, symbol
 from . import job_schnittwerte as js
-from . import symbol
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_teile import grau
 from .gui_werkzeuge import werkstoffe_anbieten
-from .gui_zahlen import dezimal, zahlenformat
+from .gui_zahlen import dezimal, zahl_zeigen, zahlenformat
 from .sprache import tr
 
 # Spalten der Tabelle.
-TC, WERKZEUG, EINSATZ, N, VF, JETZT = range(6)
-FENSTER_GROESSE = (900, 420)  # Pixel
+TC, WERKZEUG, EINSATZ, N, VF, ZUSTELLUNG, JETZT = range(7)
+FENSTER_GROESSE = (1000, 460)  # Pixel
 
 
 class BefehlSchnittwerteJob:
@@ -49,6 +50,26 @@ class BefehlSchnittwerteJob:
 
 def _zahl(wert, stellen=0):
     return zahlenformat().toString(float(wert), "f", stellen)
+
+
+def _zustellung_text(werte):
+    """„10 % · 25 mm“ aus {Eigenschaft: Wert} von js.zustellung() oder den jetzigen Werten."""
+    teile = []
+    for eigenschaft in ("StepOver", "StepOverPercent"):
+        if eigenschaft in werte:
+            teile.append(f"{zahl_zeigen(float(werte[eigenschaft]))} %")
+    if "StepDown" in werte:
+        teile.append(f"{zahl_zeigen(float(werte['StepDown']))} mm")
+    return " · ".join(teile)
+
+
+def _jetzt(operation, eigenschaften):
+    """Die jetzigen Werte dieser Eigenschaften einer Operation, in mm und %."""
+    werte = {}
+    for eigenschaft in eigenschaften:
+        wert = getattr(operation, eigenschaft)
+        werte[eigenschaft] = wert.getValueAs("mm") if hasattr(wert, "getValueAs") else wert
+    return werte
 
 
 class SchnittwerteJobDialog(QtGui.QDialog):
@@ -90,7 +111,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         formular.addRow("", self.herkunft)
         aufbau.addLayout(formular)
 
-        self.tabelle = QtGui.QTableWidget(0, 6)
+        self.tabelle = QtGui.QTableWidget(0, 7)
         self.tabelle.setHorizontalHeaderLabels(
             [
                 tr("sj.spalte.tc"),
@@ -98,15 +119,23 @@ class SchnittwerteJobDialog(QtGui.QDialog):
                 tr("wv.spalte.einsatz"),
                 "n\nU/min",
                 "vf\nmm/min",
+                tr("sj.spalte.zustellung"),
                 tr("sj.spalte.jetzt"),
             ]
         )
+        self.tabelle.horizontalHeaderItem(ZUSTELLUNG).setToolTip(tr("sj.zustellung.tooltip"))
         self.tabelle.verticalHeader().hide()
         self.tabelle.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         kopf = self.tabelle.horizontalHeader()
         kopf.setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
         kopf.setSectionResizeMode(WERKZEUG, QtGui.QHeaderView.Stretch)
         aufbau.addWidget(self.tabelle, 1)
+
+        self.mit_zustellung = QtGui.QCheckBox(tr("sj.zustellung"))
+        self.mit_zustellung.setToolTip(tr("sj.zustellung.tooltip"))
+        self.mit_zustellung.setChecked(_parameter().GetBool("SjZustellung", True))
+        self.mit_zustellung.toggled.connect(self._zustellung_zeigen)
+        aufbau.addWidget(self.mit_zustellung)
 
         self.hinweis = QtGui.QLabel(tr("sj.hinweis"))
         self.hinweis.setWordWrap(True)
@@ -123,6 +152,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         self.wahl_job.setVisible(len(self.jobs) > 1)
         formular.labelForField(self.wahl_job).setVisible(len(self.jobs) > 1)
         self._job_gewaehlt()
+        self._zustellung_zeigen()
 
     @property
     def job(self):
@@ -207,6 +237,29 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             vf = _zahl(werte_vf) if werte_vf else ""
         self.tabelle.setItem(zeile, N, QtGui.QTableWidgetItem(n))
         self.tabelle.setItem(zeile, VF, QtGui.QTableWidgetItem(vf))
+        self.tabelle.setItem(zeile, ZUSTELLUNG, self._zustellung_zelle(zeile, werkzeug, einsatz))
+
+    def _zustellung_zelle(self, zeile, werkzeug, einsatz):
+        """Welche Operationen des TC Schrittweite und Zustelltiefe bekommen – und ihr jetziger Wert."""
+        tc = self._zeilen[zeile][0]
+        zeilen, jetzt = [], []
+        for operation in js.operationen_mit(tc, self.job) if einsatz is not None else []:
+            neu = js.zustellung(operation, werkzeug, einsatz)
+            if neu:
+                zeilen.append(f"{operation.Label}: {_zustellung_text(neu)}")
+                vorher = _zustellung_text(_jetzt(operation, neu))
+                jetzt.append(f"{operation.Label}: {vorher}")
+        zelle = QtGui.QTableWidgetItem("\n".join(zeilen))
+        if jetzt:
+            zelle.setToolTip(tr("sj.zustellung.jetzt", werte="\n".join(jetzt)))
+        return zelle
+
+    def _zustellung_zeigen(self, *_):
+        """Die Spalte Zustellung nur, wenn sie auch übernommen wird; die Wahl merken."""
+        an = self.mit_zustellung.isChecked()
+        self.tabelle.setColumnHidden(ZUSTELLUNG, not an)
+        _parameter().SetBool("SjZustellung", an)
+        self.tabelle.resizeRowsToContents()
 
     def waehle_einsatz(self, zeile, index):
         """Wählt in Zeile `zeile` den Einsatz `index` (-1 = nicht ändern) – für die Szenarien."""
@@ -220,15 +273,26 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             werkzeug, einsatz = self._gewaehlt(zeile)
             if einsatz is not None:
                 zuordnung.append((tc, werkzeug, einsatz))
-        anzahl = js.setze(self.dokument, zuordnung) if zuordnung else 0
-        self.gesetzt = anzahl
+        job = self.job if self.mit_zustellung.isChecked() else None
+        gesetzt = js.setze(self.dokument, zuordnung, job) if zuordnung else js.Gesetzt()
+        self.gesetzt = gesetzt
+        if gesetzt.operationen:
+            text = tr(
+                "sj.gesetzt.operationen",
+                anzahl=gesetzt.controller,
+                operationen=", ".join(gesetzt.operationen),
+            )
+        else:
+            text = tr("sj.gesetzt", anzahl=gesetzt.controller)
         QtCore.QTimer.singleShot(
             0,
-            lambda: QtGui.QMessageBox.information(
-                FreeCADGui.getMainWindow(), tr("sj.titel"), tr("sj.gesetzt", anzahl=anzahl)
-            ),
+            lambda: QtGui.QMessageBox.information(FreeCADGui.getMainWindow(), tr("sj.titel"), text),
         )
         self.accept()
+
+
+def _parameter():
+    return FreeCAD.ParamGet(PARAMETER_PFAD)
 
 
 def _vollstaendig(werkzeug, einsatz):

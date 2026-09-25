@@ -285,6 +285,13 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    Operation), Werkstoff vom Rohteil über die Werkstoffnummer, Drehzahl,
    Vorschub und Eintauchvorschub (⅓, beim Bohren voll) in einem Schritt.
    Geht in 1.1.3 und im Wochen-Build.
+   **Erweitert** (P-2026-09-25-61): Die Operationen, die den
+   Werkzeug-Controller benutzen, bekommen ae als Schrittweite (% von D,
+   abgerundet) und ap als Zustelltiefe, wenn der Einsatz passt (Adaptiv ←
+   dynamisch und Schruppen, Tasche und Planfräsen ← Schruppen, Nut ←
+   Vollnut, Kontur ← nichts). Damit geht Manuels „Loch auffräsen: einmal
+   helikal eintauchen, dann ebenenweise mit voller Schneide“ in einem
+   Schritt: Adaptiv mit Zustelltiefe = Schneidenlänge.
 3. **Schruppwerte vorschlagen:** aus Werkzeug, Werkstoff (kc1.1, mc) und
    Maschine (Leistung, Drehmoment, Höchstdrehzahl aus W-001) die
    Kombination aus ae, ap und fz mit dem größten Zeitspanvolumen, die die
@@ -376,6 +383,14 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     darüber.
 17. **Die Grenzen der Maschine merkt sich der Planer auch nach Abbrechen** –
     die Maschine ändert sich ja nicht, wenn man den Vorschlag verwirft.
+18. **Schrittweite und Zustelltiefe nur in passende Operationen.** Ein
+    dynamischer Einsatz (großes ap) kommt nur ins Adaptiv: Nur dort hält
+    FreeCAD den Eingriff klein; eine Tasche fährt zuerst eine volle Nut, und
+    mit ap über die ganze Schneide bräche der Fräser. Die Kontur bekommt
+    nie etwas, weil mit ihr auch ausgeschnitten wird. Die Formel des
+    SetupSheets an der Zustelltiefe wird dabei entfernt (sonst stünde nach
+    dem Neuberechnen wieder D da). Alternative: alle Operationen des TC
+    bekommen ae und ap – einfacher, aber gefährlich.
 
 ## 12. Akzeptanzkriterien Stufe 1
 

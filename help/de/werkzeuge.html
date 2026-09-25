@@ -64,7 +64,36 @@ dynamisch, Tasche → Schruppen, Kontur → Schlichten, Bohren → Bohren) –,
 daraus n und vf, und was jetzt eingestellt ist.</li>
 <li>Eintauchen und Rampen bekommen ein Drittel des Vorschubs, Bohren den
 vollen.</li>
+<li><b>Schrittweite und Zustelltiefe:</b> Die Operationen, die den
+Werkzeug-Controller benutzen, bekommen ae als Schrittweite (in % von D,
+abgerundet) und ap als Zustelltiefe – wenn der Einsatz zu ihnen passt:
+<b>Adaptiv</b> bekommt „Schruppen dynamisch“ und „Schruppen“, <b>Tasche</b>
+und <b>Planfräsen</b> „Schruppen“, <b>Nut</b> „Vollnut“. Eine <b>Kontur</b>
+bekommt nichts – mit ihr wird auch ausgeschnitten, also in voller Nut, und
+dafür wäre das ap eines anderen Einsatzes zu viel. Die Spalte
+„Schrittweite · Zustelltiefe“ zeigt vorher, was wohin kommt; der Haken
+darunter schaltet es ab.</li>
 </ul>
+
+<h3>Ein Loch oder eine Tasche auffräsen</h3>
+<p>Einmal helikal bis zur Zustelltiefe eintauchen und die Ebene dann mit
+kleinem ae und der ganzen Schneide ausräumen – so macht es die Operation
+<b>Adaptiv</b>, wenn ihre Zustelltiefe die Schneidenlänge ist:</p>
+<ol>
+<li>In der Werkzeugverwaltung für den Fräser einen Einsatz <b>Schruppen
+dynamisch</b> anlegen – etwa mit <b>Schruppwerte planen…</b> – und
+<b>Speichern und an CAM übergeben</b>.</li>
+<li>Im Job einen Werkzeug-Controller mit diesem Fräser anlegen und ihn so
+nennen, dass der Einsatz im Namen steht: „T3 Schruppen dynamisch“.</li>
+<li>Die Operation <b>Adaptiv</b> auf die Bohrung oder Tasche legen, mit diesem
+Werkzeug-Controller.</li>
+<li><b>Schnittwerte in den Job</b> → Übernehmen. Der Werkzeug-Controller
+bekommt n und vf, Adaptiv die Schrittweite (etwa 10 %) und die
+Zustelltiefe (etwa 25 mm): Es taucht einmal helikal bis 25 mm ein und räumt
+dann die Ebene aus.</li>
+</ol>
+<p>Den Eintauchwinkel der Helix stellt man in der Operation Adaptiv ein; der
+Hersteller des Fräsers nennt, wie steil er eintauchen darf.</p>
 
 <h3>Speichern</h3>
 <p>Wie in den Einstellungen von FreeCAD: <b>OK</b> speichert und schließt,

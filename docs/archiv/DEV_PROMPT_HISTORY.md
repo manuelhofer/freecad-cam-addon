@@ -12,6 +12,75 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-61 zustellung-in-die-operationen
+
+### EINGELESEN
+- Manuels Wunsch: „wenn ich ein Loch auffräsen will, dann einmal helikal
+  ein Grundloch und dann ebenenweise mit voller Schneide“. In FreeCAD CAM
+  macht das die Operation Adaptiv (Helix-Eintauchen bis zur Zustelltiefe,
+  dann die Ebene ausräumen) – wenn Schrittweite und Zustelltiefe stimmen.
+- FreeCAD 1.1.3 und Wochen-Build ausprobiert: Adaptiv hat `StepOver`
+  (ganze Prozent) bzw. `StepOverPercent` (Kommazahl), Tasche und
+  Planfräsen `StepOver`, alle `StepDown` – an dem eine Formel aus dem
+  SetupSheet hängt.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`zustellung()`, `operationen_mit()`,
+  `setze(…, job)` → `Gesetzt`; „MillFacing“ des Wochen-Builds im
+  Vorschlag)
+- `camaddon/gui_job_schnittwerte.py` (Spalte „Schrittweite ·
+  Zustelltiefe“, Haken, Meldung; Spalte „Werkzeug“ kürzer benannt)
+- `help/de|en/werkzeuge.html` (Abschnitt „Ein Loch oder eine Tasche
+  auffräsen“), `help/de|en/strategien.html` (Verweis darauf)
+- `translations/de.json`, `translations/en.json` (dazu die englische
+  Meldung ohne „1 tool controllers“)
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`
+- `docs/spezifikation_werkzeugverwaltung.md` (Stufe 2 erweitert,
+  Entscheidung 18), `docs/aufbau.md` (Modul, drei Stolpersteine),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Job mit Werkzeug-Controller „T3 Schruppen dynamisch“ (Ø-12-Fräser aus der
+Bibliothek „CAM-Addon“, Einsatz 1,2 / 25 / 120 / 0,15) und einer Operation
+Adaptiv mit diesem Controller → „Schnittwerte in den Job“ → in der Spalte
+„Schrittweite · Zustelltiefe“ steht „Adaptiv: 10 % · 25 mm“ → Übernehmen →
+Meldung „… dazu Schrittweite und Zustelltiefe in: Adaptiv“ → Adaptiv hat
+Schrittweite 10 % und Zustelltiefe 25 mm; Strg+Z nimmt alles zurück.
+
+### DONE
+- **Welche Operation was bekommt:** Adaptiv ← „Schruppen dynamisch“ und
+  „Schruppen“; Tasche, Taschenform, Planfräsen ← „Schruppen“; Nut ←
+  „Vollnut“; Kontur ← nichts (mit ihr wird auch ausgeschnitten, in voller
+  Nut). Schrittweite = ae in % von D, abgerundet (1.1.3: ganze Prozent),
+  Zustelltiefe = ap.
+- **Formel entfernt:** Die Zustelltiefe hängt in FreeCAD an „OpToolDiameter“
+  aus dem SetupSheet; ohne das Entfernen stand nach dem Neuberechnen wieder
+  12 mm da. Strg+Z bringt die Formel zurück (geprüft).
+- Im Dialog zeigt eine Spalte vorher, was wohin kommt (Tooltip: der jetzige
+  Wert); ein Haken schaltet es ab und wird gemerkt. Die Meldung nennt die
+  Operationen beim Namen – ohne „1 Operationen“.
+- Der Vorschlag des Einsatzes kennt jetzt auch „MillFacing“, das
+  Planfräsen des Wochen-Builds.
+- Hilfe: Schritt für Schritt „Ein Loch oder eine Tasche auffräsen“ mit
+  Adaptiv.
+- **Gefundene Fehler im eigenen Entwurf:** Zustelltiefe nach dem
+  Neuberechnen wieder D (Formel, siehe oben); in 1.1.3 scheitert das
+  Anlegen einer Operation ohne Oberfläche, wenn der Job mehrere
+  Werkzeug-Controller hat – die Prüfung legt sie vorher an (Stolperstein).
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_job_schnittwerte` grün –
+  Adaptiv bekommt 10 % bzw. 10,0 % und 25 mm, Tasche, Kontur und Nut
+  bleiben, Nut mit Vollnut 3 mm, 0,88 mm → 7 % (1.1.3) bzw. 7,3 %, die
+  Formel ist weg und kommt mit Strg+Z zurück, ohne Job bleiben die
+  Operationen.
+- KI, Oberfläche in **beiden** Versionen: `szenario_schnittwerte_job`
+  grün, Screenshots angesehen.
+- Manuel: offen.
+
+### NEXT
+- Alle Prüfungen, Version 0.6.0, Push.
+
 ## P-2026-09-25-60 schruppwerte-planen
 
 ### EINGELESEN
