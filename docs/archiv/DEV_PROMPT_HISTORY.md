@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-09 stand-fuer-manuel
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 10: Snapshot auf den Stand bringen; README „Was
+  es kann“ nennt, was dazukam.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Projektstatus W-002; „Nächster Schritt“ als
+  Reihenfolge zum Ausprobieren mit Verweisen auf die Klickwege)
+- `README.md` („Was es kann“)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer den Snapshot liest, weiß, in welcher Reihenfolge er was ausprobiert
+und wo die Klickwege stehen.
+
+### DONE
+- Nächster Schritt: Werkzeugverwaltung → CAM-Job (Loch auffräsen) →
+  Maschine verfahren → Besprechen (Entscheidungen 13–20, Fragen zu
+  Stufe 4).
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Version 0.9.0, alle Prüfungen, Push.
+
 ## P-2026-09-26-08 eintauchwinkel
 
 ### EINGELESEN
