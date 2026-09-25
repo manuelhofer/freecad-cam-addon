@@ -28,9 +28,5 @@ Keine bekannten.
 
 ## Offene Tasks
 
-- **T-002** Klären, ob „neueste Version" die neueste **stabile** Version oder den
-  **Wochen-Build** meint – conda-forge liefert der Testumgebung derzeit nur den
-  Wochen-Build (26.3.0 dev).
-
 - **T-001** Grundgerüst des Addons (`package.xml`, `InitGui.py`, leere
   Workbench oder Werkzeugleiste) – kommt mit dem ersten Wunsch, nicht vorher.

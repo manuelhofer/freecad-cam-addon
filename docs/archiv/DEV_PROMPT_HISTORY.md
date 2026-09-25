@@ -4,13 +4,43 @@ language: de
 timezone: Europe/Berlin
 status: planung
 stack: Python, PySide (Qt), FreeCAD-API (CAM-Workbench)
-zielsystem: neueste FreeCAD-Version, jedes Betriebssystem, keine bestimmte Maschine
+zielsystem: aktueller Wochen-Build von FreeCAD, jedes Betriebssystem, keine bestimmte Maschine
 patch_naming:
   pattern: "P-YYYY-MM-DD-XX <kurzbeschreibung>"   # im Commit-Betreff
   example: "P-2026-09-25-01 projektregeln"
 ---
 
 # Verlauf (LOG/ARCHIV)
+
+## P-2026-09-25-05 zielversion-wochen-build
+
+### EINGELESEN
+- Alle Stellen mit „neueste“ in der Doku (`grep -rn "neueste"`).
+
+### DATEIEN
+- `CHATSTART.md` (Festlegung 1), `README.md`
+- `docs/arbeitsregeln.md` (Abschnitte 0, 7 und 8)
+- `docs/STATUS_SNAPSHOT.md` (T-002 entfernt), `docs/archiv/DEV_PROMPT_HISTORY.md`
+  (Kopfzeile `zielsystem`)
+
+### AKZEPTANZKRITERIUM
+Wer `CHATSTART.md` liest, erfährt, dass das Addon für den aktuellen
+Wochen-Build von FreeCAD gebaut wird und nicht für die letzte stabile Version.
+
+### DONE
+T-002 ist entschieden. Manuel: **Wochen-Build**. Damit gilt dieselbe Version
+wie in der Testumgebung, die conda-forge ohnehin liefert.
+
+Folge für Abschnitt 8 (Versionscheck): Ein Wochen-Build erscheint jede Woche.
+Ein Versionscheck-Patch für jede Woche wäre Leerlauf. Deshalb fällt er an,
+sobald Manuel seinen Build aktualisiert oder die Testumgebung einen neueren
+zieht. Die Regel selbst bleibt bestehen, nur ihr Auslöser ist präzisiert.
+
+### TEST
+- `grep -rn "neueste"` findet nur noch Verlaufseinträge, die Historie sind.
+
+### NEXT
+- W-001 in die Wunschliste.
 
 ## P-2026-09-25-04 testumgebung-ohne-fenster
 

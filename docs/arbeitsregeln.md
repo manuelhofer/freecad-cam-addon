@@ -25,7 +25,7 @@ Die Freigabe eines Vorhabens ist **keine** Zustimmung zu einer Vorgabe, die
 darin mitgelaufen ist.
 
 **Fragen nur, wenn die Antwort etwas ändert.** Was durch die drei Festlegungen
-in `CHATSTART.md` schon entschieden ist (neueste FreeCAD-Version, jedes
+in `CHATSTART.md` schon entschieden ist (aktueller Wochen-Build, jedes
 Betriebssystem, keine bestimmte Maschine), wird nicht noch einmal gefragt.
 
 ## 1. Wann überhaupt gearbeitet wird
@@ -115,7 +115,7 @@ Was in den Eintrag gehört und oft vergessen wird:
 
 ## 7. Technik und Stil
 
-**Zielsystem:** die jeweils **neueste FreeCAD-Version** auf jedem
+**Zielsystem:** der jeweils aktuelle **Wochen-Build von FreeCAD** auf jedem
 Betriebssystem. Die mitgelieferten Python- und Qt-Versionen von FreeCAD sind
 die Baseline – keine zusätzlichen Pakete, die man mit `pip` nachinstallieren
 müsste.
@@ -167,9 +167,11 @@ Nur was dafür zu groß ist (z. B. ganze Vorlagensätze), kommt als Datei unter
 
 ## 8. Neue FreeCAD-Version
 
-Weil immer auf die neueste Version gesetzt wird, gehört zu jeder neuen
-FreeCAD-Version ein **Versionscheck** als eigener Patch: Testumgebung auf die
-neue Version heben, alle Prüfungen unter `tests/` laufen lassen, im
+Weil immer auf den aktuellen Wochen-Build gesetzt wird, gehört zu jedem
+Wechsel auf einen neueren Build ein **Versionscheck** als eigener Patch –
+sobald Manuel seinen Build aktualisiert oder die Testumgebung einen neueren
+zieht (sie installiert in jeder frischen Sitzung den aktuellen): Testumgebung
+auf den neuen Build heben, alle Prüfungen unter `tests/` laufen lassen, im
 Report-Fenster auf Meldungen achten, und Manuel klickt die Akzeptanzkriterien
 der sichtbaren Funktionen einmal durch. Bricht etwas, wird es angepasst – ohne
 Rücksicht auf die alte Version. Welche Version zuletzt geprüft wurde, steht im

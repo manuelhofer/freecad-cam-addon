@@ -19,8 +19,9 @@ der CAM-Workbench. Kein eigener C++-Code.
 
 **Drei Festlegungen, die alles andere bestimmen:**
 
-- **Immer die neueste FreeCAD-Version.** Keine Rücksicht auf ältere Versionen,
-  keine Kompatibilitätsschichten.
+- **Immer der aktuelle Wochen-Build von FreeCAD** (Entwicklerversion, nicht
+  die letzte stabile). Keine Rücksicht auf ältere Versionen, keine
+  Kompatibilitätsschichten.
 - **Betriebssystem egal.** Der Code läuft überall, wo FreeCAD läuft – keine
   Pfade, Shell-Aufrufe oder Bibliotheken, die an ein System gebunden sind.
 - **Maschine egal.** Das Addon verbessert die Bedienung, es kennt keine
