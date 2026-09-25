@@ -78,7 +78,7 @@ pruefe(
     [a.Bezeichnung for a in m.plaetze(ma, k, rev)] == [f"P{i}" for i in range(1, 13)],
     "plaetze() findet nicht alle 12",
 )
-achse = next(g for g in k.gelenke if g.objekt.Name == "Revolverachse")
+achse = k.achse_von(obj("Revolverachse"))
 punkte = [m.globale_platzierung(a.Lcs).Base for a in liste]
 
 

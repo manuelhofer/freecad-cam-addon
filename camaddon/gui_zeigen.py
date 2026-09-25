@@ -31,29 +31,29 @@ def hervorheben(objekte):
             FreeCADGui.Selection.addSelection(objekt)
 
 
-def koerper_hinter(kette, gelenk):
-    """Alle Körper, die sich mit `gelenk` bewegen (auch weiter hinten in der Kette)."""
+def bauteile_hinter(kette, achse):
+    """Alle Bauteile, die sich mit `achse` bewegen – auch die weiter außen in der Kette."""
     ergebnis = []
     for glied in kette.glieder:
-        if gelenk in kette.pfad_zum_festen_glied(glied):
-            ergebnis += glied.koerper
+        if achse in kette.pfad_zum_bett(glied):
+            ergebnis += glied.bauteile
     return ergebnis
 
 
 class Wackeln:
-    """Bewegt die Körper hinter einem Gelenk einmal hin und her."""
+    """Bewegt die Bauteile hinter einer Achse einmal hin und her."""
 
-    def __init__(self, assembly, kette, gelenk):
-        self.gelenk = gelenk
-        self.koerper = koerper_hinter(kette, gelenk)
-        self.vorher = {k: FreeCAD.Placement(k.Placement) for k in self.koerper}
+    def __init__(self, assembly, kette, achse):
+        self.achse = achse
+        self.bauteile = bauteile_hinter(kette, achse)
+        self.vorher = {b: FreeCAD.Placement(b.Placement) for b in self.bauteile}
         # Achse aus Weltkoordinaten in die der Assembly umrechnen.
         in_assembly = assembly.Placement.inverse()
-        self.richtung = in_assembly.Rotation.multVec(gelenk.richtung)
-        self.ursprung = in_assembly.multVec(gelenk.ursprung)
-        if gelenk.art == LINEAR:
+        self.richtung = in_assembly.Rotation.multVec(achse.richtung)
+        self.ursprung = in_assembly.multVec(achse.ursprung)
+        if achse.art == LINEAR:
             groesse = max(
-                (k.Shape.BoundBox.DiagonalLength for k in self.koerper if hasattr(k, "Shape")),
+                (b.Shape.BoundBox.DiagonalLength for b in self.bauteile if hasattr(b, "Shape")),
                 default=100.0,
             )
             self.weite = min(max(groesse * WEG_ANTEIL, WEG_MIN), WEG_MAX)
@@ -76,18 +76,18 @@ class Wackeln:
             self.stopp()
             return
         wert = self.weite * math.sin(2 * math.pi * self.schritt / SCHRITTE)
-        if self.gelenk.art == LINEAR:
+        if self.achse.art == LINEAR:
             bewegung = FreeCAD.Placement(self.richtung * wert, FreeCAD.Rotation())
         else:
             bewegung = FreeCAD.Placement(
                 FreeCAD.Vector(), FreeCAD.Rotation(self.richtung, wert), self.ursprung
             )
-        for koerper, lage in self.vorher.items():
-            koerper.Placement = bewegung * lage
+        for bauteil, lage in self.vorher.items():
+            bauteil.Placement = bewegung * lage
 
     def stopp(self):
         """Anhalten und alles exakt zurückstellen – auch mitten in der Bewegung."""
         self.uhr.stop()
-        for koerper, lage in self.vorher.items():
-            if koerper.Placement != lage:
-                koerper.Placement = lage
+        for bauteil, lage in self.vorher.items():
+            if bauteil.Placement != lage:
+                bauteil.Placement = lage

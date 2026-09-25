@@ -1,12 +1,21 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Export in die CAM-Maschinendefinition von FreeCAD (Spezifikation W-001, Stufe 2).
+"""Übergabe an die CAM-Maschinendefinition von FreeCAD (W-001, Stufe 2).
 
-Aus dem Maschinenobjekt wird ein `Machine` aus `Mod/CAM/Machine` gebaut und
-als `.fcm` dort gespeichert, wo CAM seine Maschinen sucht – danach steht die
-Maschine in CAM zur Auswahl.
+Aus dem Maschinenobjekt wird eine `Machine` aus `Mod/CAM/Machine` gebaut und
+als `.fcm`-Datei dort gespeichert, wo CAM seine Maschinen sucht. Danach steht
+die Maschine in CAM zur Auswahl. Übertragen wird je Betriebsart:
 
-Was die CAM-Definition nicht kennt (Beschleunigung, Ruck, größter Vorschub,
-Revolver), bleibt im Dokument; der Bericht sagt das in Worten.
+    Linear          -> LinearAxis
+    Positionieren   -> RotaryAxis
+    Spindel         -> Toolhead
+    Revolver        -> nichts, die CAM-Definition kennt keinen Revolver
+
+Was die CAM-Definition nicht kennt – Beschleunigung, Ruck, größter Vorschub,
+Revolver –, bleibt im Dokument. Der Bericht sagt dem Benutzer in Worten, was
+übertragen wurde und was nicht.
+
+Die CAM-Maschinendefinition gibt es erst im Wochen-Build, nicht in
+FreeCAD 1.1 – deshalb `verfuegbar()` und die Importe erst in den Funktionen.
 
 Läuft ohne Oberfläche.
 """
@@ -20,24 +29,31 @@ from . import maschine as m
 from .kette import LINEAR
 from .sprache import tr
 
-# Ohne Begrenzung am Gelenk: so weit, dass CAM nie daran stößt.
+# Ohne Begrenzung am Gelenk: ein Bereich so groß, dass CAM nie daran stößt.
 OHNE_GRENZE_MM = 100000.0
 OHNE_GRENZE_GRAD = 360.0
+
+# Fehlt ein Pflichtwert, gilt FreeCADs eigene Vorgabe. Der Dialog hat vor der
+# Übergabe schon gewarnt.
+VORGABE_EILGANG = 10000.0  # mm/min
+VORGABE_DREHGESCHWINDIGKEIT = 100.0  # U/min (in FreeCAD: 36000 °/min)
+
+# Kennwerte, die die CAM-Definition nicht kennt.
+NICHT_IN_CAM = ("VorschubMax", "Beschleunigung", "Ruck")
 
 
 @dataclass
 class Bericht:
-    uebertragen: list = field(default_factory=list)  # Sätze: was in CAM angekommen ist
-    zu_pruefen: list = field(default_factory=list)  # Sätze: angekommen, aber mit Ersatzwerten
-    nicht_uebertragen: list = field(default_factory=list)  # Sätze: was nur im Dokument bleibt
-    datei: object = None
+    """Was die Übergabe getan hat, in fertigen Sätzen für den Benutzer."""
+
+    uebertragen: list = field(default_factory=list)  # in CAM angekommen
+    zu_pruefen: list = field(default_factory=list)  # angekommen, aber mit Ersatzwerten
+    nicht_uebertragen: list = field(default_factory=list)  # bleibt nur im Dokument
+    datei: object = None  # Pfad der gespeicherten .fcm-Datei
 
 
 def verfuegbar():
-    """Hat diese FreeCAD-Version die CAM-Maschinendefinition?
-
-    FreeCAD 1.1.x hat sie nicht, der Wochen-Build schon (P-2026-09-25-26).
-    """
+    """Hat diese FreeCAD-Version die CAM-Maschinendefinition? FreeCAD 1.1 hat sie nicht."""
     try:
         import Machine.models.machine  # noqa: F401
     except ImportError:
@@ -45,29 +61,13 @@ def verfuegbar():
     return True
 
 
-def _achs_betriebsart(maschine, gelenk_objekt):
-    """Die Betriebsart eines Gelenks, die in CAM eine Achse ist (Linear/Positionieren)."""
-    for ba in m.betriebsarten(maschine):
-        if ba.Gelenk == gelenk_objekt and ba.Art in (m.ART_LINEAR, m.ART_POSITIONIEREN):
-            return ba
-    return None
-
-
 def baue_cam_maschine(maschine, kette=None):
-    """Baut die CAM-Maschine. Gibt (Machine, Bericht) zurück, speichert nichts."""
-    from Machine.models.machine import (
-        AxisRole,
-        LinearAxis,
-        Machine,
-        RotaryAxis,
-        Toolhead,
-        WrapStrategy,
-    )
+    """Baut die CAM-Maschine. Gibt (Machine, Bericht) zurück; gespeichert wird nichts."""
+    from Machine.models.machine import Machine, Toolhead
 
-    assembly = m.assembly_von(maschine)
     if kette is None:
-        kette = kette_modul.lies_kette(assembly)
-    rollen, _meldungen = m.rollen(kette, maschine)
+        kette = kette_modul.lies_kette(m.assembly_von(maschine))
+    rollen, _meldungen = m.rollen(kette, maschine)  # die Meldungen zeigt schon der Dialog
     bericht = Bericht()
 
     cam = Machine(name=maschine.Label)
@@ -76,76 +76,37 @@ def baue_cam_maschine(maschine, kette=None):
     cam.rotary_axes = {}
     cam.toolheads = []
 
-    eltern_von = {g.kind: g for g in kette.gelenke}
-
-    def eltern_achse(gelenk):
-        """NC-Name der nächsten Achse zum Bett hin (für die kinematische Kette)."""
-        vorher = eltern_von.get(gelenk.eltern)
-        while vorher is not None:
-            ba = _achs_betriebsart(maschine, vorher.objekt)
-            if ba is not None:
-                return m.name_von(ba)
-            vorher = eltern_von.get(vorher.eltern)
-        return None
-
-    for tiefe, gelenk in enumerate(kette.gelenke):
-        ba = _achs_betriebsart(maschine, gelenk.objekt)
+    # Die Achsen der Kette stehen vom Bett nach außen; das wird ihre
+    # Reihenfolge in CAM.
+    for reihenfolge, achse in enumerate(kette.achsen):
+        ba = _achs_betriebsart(maschine, achse.gelenk)
         if ba is None:
-            continue
+            continue  # z. B. eine reine Spindel: in CAM keine Achse
         name = m.name_von(ba)
-        rolle = rollen.get(gelenk.objekt)
-        if rolle is None:
+        if achse.gelenk not in rollen:
             bericht.zu_pruefen.append(tr("export.rolle_unbekannt", name=name))
-        ursprung = [gelenk.ursprung.x, gelenk.ursprung.y, gelenk.ursprung.z]
-        if gelenk.art == LINEAR:
-            # Fehler in FreeCAD (26.3 dev, Machine.from_dict): Ist der Ursprung
-            # einer Linearachse nicht (0,0,0), liest FreeCAD ihn beim Laden als
-            # Richtung – die Achse käme verdreht zurück. Für eine Linearachse
-            # zählt nur die Richtung, also Ursprung 0 (P-2026-09-25-20).
-            ursprung = [0.0, 0.0, 0.0]
-            achse = LinearAxis(
-                name,
-                FreeCAD.Vector(gelenk.richtung),
-                gelenk.minimum if gelenk.minimum is not None else -OHNE_GRENZE_MM,
-                gelenk.maximum if gelenk.maximum is not None else OHNE_GRENZE_MM,
-                ba.Eilgang or 10000,
-                tiefe,
-                AxisRole.HEAD_LINEAR if rolle == m.KOPF else AxisRole.TABLE_LINEAR,
-                eltern_achse(gelenk),
-                ursprung,
-            )
-            cam.linear_axes[name] = achse
-            bericht.uebertragen.append(
-                tr("export.linear", name=name, eilgang=_zahl(achse.max_velocity))
-            )
+        im_kopf = rollen.get(achse.gelenk) == m.KOPF
+        gemeinsam = {  # Felder, die beide Achsarten gleich haben
+            "name": name,
+            "sequence": reihenfolge,
+            "parent": _eltern_name(maschine, kette, achse),
+        }
+        ohne_grenzen = achse.minimum is None and achse.maximum is None
+
+        if achse.art == LINEAR:
+            eilgang = ba.Eilgang or VORGABE_EILGANG
+            cam.linear_axes[name] = _linearachse(achse, eilgang, im_kopf, **gemeinsam)
+            bericht.uebertragen.append(tr("export.linear", name=name, eilgang=_zahl(eilgang)))
         else:
-            endlos = bool(ba.Endlos)
-            achse = RotaryAxis(
-                name,
-                FreeCAD.Vector(gelenk.richtung),
-                gelenk.minimum if gelenk.minimum is not None else -OHNE_GRENZE_GRAD,
-                gelenk.maximum if gelenk.maximum is not None else OHNE_GRENZE_GRAD,
-                # CAM rechnet in °/min, eingegeben wird U/min.
-                (ba.Geschwindigkeit or 100) * 360.0,
-                tiefe,
-                role=AxisRole.HEAD_ROTARY if rolle == m.KOPF else AxisRole.TABLE_ROTARY,
-                parent=eltern_achse(gelenk),
-                joint_origin=ursprung,
-                wrap_strategy=WrapStrategy.MODULO if endlos else WrapStrategy.UNWOUND,
-            )
-            cam.rotary_axes[name] = achse
-            bericht.uebertragen.append(
-                # Im Bericht in der Einheit, in der sie eingegeben wurde.
-                tr("export.dreh", name=name, geschwindigkeit=_zahl(achse.max_velocity / 360.0))
-            )
-        if (
-            gelenk.minimum is None
-            and gelenk.maximum is None
-            and not (gelenk.art != LINEAR and ba.Endlos)
-        ):
+            u_min = ba.Geschwindigkeit or VORGABE_DREHGESCHWINDIGKEIT
+            cam.rotary_axes[name] = _drehachse(achse, u_min, ba.Endlos, im_kopf, **gemeinsam)
+            bericht.uebertragen.append(tr("export.dreh", name=name, geschwindigkeit=_zahl(u_min)))
+            ohne_grenzen = ohne_grenzen and not ba.Endlos  # endlos braucht keine Grenzen
+
+        if ohne_grenzen:
             bericht.zu_pruefen.append(tr("export.ohne_grenzen", name=name))
-        for eigenschaft in ("VorschubMax", "Beschleunigung", "Ruck"):
-            if eigenschaft in ba.PropertiesList and getattr(ba, eigenschaft):
+        for eigenschaft in NICHT_IN_CAM:
+            if getattr(ba, eigenschaft):
                 bericht.nicht_uebertragen.append(
                     tr("export.wert_bleibt", name=name, wert=m.wert_text(eigenschaft))
                 )
@@ -153,7 +114,7 @@ def baue_cam_maschine(maschine, kette=None):
     for ba in m.betriebsarten(maschine):
         name = m.name_von(ba)
         if ba.Art == m.ART_SPINDEL:
-            cam.toolheads.append(Toolhead(name, id=name, max_rpm=ba.Drehzahl))
+            cam.toolheads.append(Toolhead(name=name, id=name, max_rpm=ba.Drehzahl))
             bericht.uebertragen.append(tr("export.spindel", name=name, drehzahl=_zahl(ba.Drehzahl)))
         elif ba.Art == m.ART_REVOLVER:
             anzahl = len(m.plaetze(maschine, kette, ba))
@@ -165,7 +126,7 @@ def baue_cam_maschine(maschine, kette=None):
 
 
 def dateiname(maschine):
-    """Dateiname der .fcm – aus dem Namen der Maschine, ohne Sonderzeichen."""
+    """Dateiname der .fcm-Datei: der Name der Maschine, Sonderzeichen durch „_“ ersetzt."""
     erlaubt = [z if z.isalnum() or z in "-_" else "_" for z in maschine.Label.strip()]
     return ("".join(erlaubt) or "Maschine") + ".fcm"
 
@@ -173,7 +134,7 @@ def dateiname(maschine):
 def exportiere(maschine, kette=None):
     """Baut die CAM-Maschine und speichert sie in CAMs Maschinenordner.
 
-    Dieselbe Maschine wird beim nächsten Export überschrieben (gleicher Name).
+    Eine erneute Übergabe derselben Maschine überschreibt die Datei.
     """
     from Machine.models.machine import MachineFactory
 
@@ -182,5 +143,74 @@ def exportiere(maschine, kette=None):
     return bericht
 
 
+def _achs_betriebsart(maschine, gelenk):
+    """Die Betriebsart eines Gelenks, die in CAM eine Achse ist (Linear oder Positionieren).
+
+    An einer Hauptspindel mit S4 und C4 ist das C4; S4 wird ein Toolhead.
+    """
+    return next(
+        (
+            ba
+            for ba in m.betriebsarten(maschine)
+            if ba.Gelenk == gelenk and ba.Art in (m.ART_LINEAR, m.ART_POSITIONIEREN)
+        ),
+        None,
+    )
+
+
+def _eltern_name(maschine, kette, achse):
+    """NC-Name der nächsten Achse zum Bett hin, die in CAM eine Achse ist – oder None.
+
+    Daraus baut CAM seine kinematische Kette. Gelenke ohne CAM-Achse (etwa
+    eine reine Spindel) werden übersprungen.
+    """
+    for vorgaenger in kette.pfad_zum_bett(achse.eltern):
+        ba = _achs_betriebsart(maschine, vorgaenger.gelenk)
+        if ba is not None:
+            return m.name_von(ba)
+    return None
+
+
+def _linearachse(achse, eilgang, im_kopf, **gemeinsam):
+    from Machine.models.machine import AxisRole, LinearAxis
+
+    return LinearAxis(
+        direction_vector=FreeCAD.Vector(achse.richtung),
+        min_limit=_oder(achse.minimum, -OHNE_GRENZE_MM),
+        max_limit=_oder(achse.maximum, OHNE_GRENZE_MM),
+        max_velocity=eilgang,
+        role=AxisRole.HEAD_LINEAR if im_kopf else AxisRole.TABLE_LINEAR,
+        # Fehler in FreeCAD (26.3 dev, Machine.from_dict): Ist der Ursprung
+        # einer Linearachse nicht (0,0,0), liest FreeCAD ihn beim Laden als
+        # Richtung – die Achse käme verdreht zurück. Für eine Linearachse
+        # zählt nur die Richtung, also bleibt der Ursprung 0 (T-004).
+        joint_origin=[0.0, 0.0, 0.0],
+        **gemeinsam,
+    )
+
+
+def _drehachse(achse, u_min, endlos, im_kopf, **gemeinsam):
+    from Machine.models.machine import AxisRole, RotaryAxis, WrapStrategy
+
+    return RotaryAxis(
+        rotation_vector=FreeCAD.Vector(achse.richtung),
+        min_limit=_oder(achse.minimum, -OHNE_GRENZE_GRAD),
+        max_limit=_oder(achse.maximum, OHNE_GRENZE_GRAD),
+        max_velocity=u_min * 360.0,  # CAM rechnet in Grad je Minute
+        role=AxisRole.HEAD_ROTARY if im_kopf else AxisRole.TABLE_ROTARY,
+        joint_origin=[achse.ursprung.x, achse.ursprung.y, achse.ursprung.z],
+        # Endlos: CAM gibt Winkel zwischen 0 und 360° aus (MODULO).
+        # Sonst gibt es den Winkel ohne Umrechnung aus (UNWOUND).
+        wrap_strategy=WrapStrategy.MODULO if endlos else WrapStrategy.UNWOUND,
+        **gemeinsam,
+    )
+
+
+def _oder(wert, ersatz):
+    """`wert`, oder `ersatz`, wenn er fehlt (None). Anders als `or` bleibt 0 erhalten."""
+    return ersatz if wert is None else wert
+
+
 def _zahl(wert):
+    """Zahl für einen Satz: 10000.0 -> „10000“, 2.5 -> „2.5“."""
     return f"{wert:g}"

@@ -25,12 +25,16 @@ def parallel(vektor, x, y, z):
     return abs(abs(vektor.dot(App.Vector(x, y, z))) - 1) < 1e-6
 
 
-def gelenk(k, name):
-    return next((g for g in k.gelenke if g.objekt.Name == name), None)
+def achse(k, gelenk_name):
+    return next((a for a in k.achsen if a.gelenk.Name == gelenk_name), None)
 
 
-def glied(k, koerper_name):
-    return k.glied_von(App.ActiveDocument.getObject(koerper_name))
+def achsnamen(k):
+    return sorted(a.gelenk.Name for a in k.achsen)
+
+
+def glied(k, bauteil_name):
+    return k.glied_von(App.ActiveDocument.getObject(bauteil_name))
 
 
 def schluessel(k):
@@ -40,13 +44,13 @@ def schluessel(k):
 # --- Drehmaschine ---------------------------------------------------------
 k = kette.lies_kette(beispielmaschinen.drehmaschine())
 pruefe(len(k.glieder) == 5, f"Drehmaschine: 5 Glieder erwartet, {len(k.glieder)} gefunden")
-pruefe(len(k.gelenke) == 4, f"Drehmaschine: 4 Achsen erwartet, {len(k.gelenke)}")
+pruefe(len(k.achsen) == 4, f"Drehmaschine: 4 Achsen erwartet, {len(k.achsen)}")
 pruefe(
     k.meldungen == [], f"Drehmaschine: keine Meldungen erwartet: {[m.text for m in k.meldungen]}"
 )
-pruefe(glied(k, "Spindelstock") is k.festes_glied(), "Spindelstock gehört nicht zum Bett")
+pruefe(glied(k, "Spindelstock") is k.bett(), "Spindelstock gehört nicht zum Bett")
 pruefe(glied(k, "Futter") is glied(k, "Hauptspindel"), "Futter bildet kein Glied mit der Spindel")
-spindel, z, x = gelenk(k, "Spindel"), gelenk(k, "Z"), gelenk(k, "X")
+spindel, z, x = achse(k, "Spindel"), achse(k, "Z"), achse(k, "X")
 pruefe(
     spindel and spindel.art == kette.DREH and parallel(spindel.richtung, 0, 0, 1),
     "Spindel: Drehachse entlang Z erwartet",
@@ -60,8 +64,7 @@ pruefe(
 pruefe(z and (z.minimum, z.maximum) == (None, None), "Z: ohne Grenzen erwartet")
 pruefe(x and x.eltern is glied(k, "ZSchlitten"), "X hängt nicht am Z-Schlitten")
 pruefe(
-    [g.objekt.Name for g in k.pfad_zum_festen_glied(glied(k, "Revolver"))]
-    == ["Revolverachse", "X", "Z"],
+    [a.gelenk.Name for a in k.pfad_zum_bett(glied(k, "Revolver"))] == ["Revolverachse", "X", "Z"],
     "Pfad Revolver → Bett nicht Revolverachse, X, Z",
 )
 pruefe(
@@ -77,19 +80,18 @@ pruefe(
     wiege is glied(k, "SchenkelLinks") is glied(k, "SchenkelRechts"),
     "Schenkel bilden kein Glied mit der Wiege",
 )
-pruefe(glied(k, "LagerbockRechts") is k.festes_glied(), "Lagerbock rechts gehört nicht zum Bett")
-a = gelenk(k, "A")
+pruefe(glied(k, "LagerbockRechts") is k.bett(), "Lagerbock rechts gehört nicht zum Bett")
+a = achse(k, "A")
 pruefe(
-    a and a.eltern is k.festes_glied() and parallel(a.richtung, 1, 0, 0),
+    a and a.eltern is k.bett() and parallel(a.richtung, 1, 0, 0),
     "A: am Bett, Drehachse entlang X erwartet",
 )
-c = gelenk(k, "C")
+c = achse(k, "C")
 pruefe(
     c and c.eltern is wiege and parallel(c.richtung, 0, 0, 1), "C: auf der Wiege, Achse Z erwartet"
 )
 pruefe(
-    sorted(g.objekt.Name for g in k.gelenke) == ["A", "C", "S", "Z"],
-    f"Fünfachser: Achsen A, C, S, Z erwartet, {sorted(g.objekt.Name for g in k.gelenke)}",
+    achsnamen(k) == ["A", "C", "S", "Z"], f"Fünfachser: Achsen A, C, S, Z erwartet, {achsnamen(k)}"
 )
 erwartet = sorted(
     [
@@ -108,7 +110,7 @@ pruefe(
     "kette.doppelt_gelagert" in schluessel(k), f"doppelte Lagerung nicht gemeldet: {schluessel(k)}"
 )
 pruefe(
-    sorted(g.objekt.Name for g in k.gelenke) == ["A", "C", "S", "Z"],
+    achsnamen(k) == ["A", "C", "S", "Z"],
     "doppelte Lagerung: A_Lager2 darf keine eigene Achse werden",
 )
 App.closeDocument(App.ActiveDocument.Name)

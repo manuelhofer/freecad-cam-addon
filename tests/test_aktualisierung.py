@@ -12,6 +12,7 @@ ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
 from camaddon import aktualisierung as a
+from camaddon import version_aus_xml
 
 fehler = []
 
@@ -46,7 +47,7 @@ arbeit = os.path.join(basis, "arbeit")
 git("clone", "-q", "--bare", "--branch", "main", ADDON, fern)
 git("clone", "-q", fern, installiert)
 git("clone", "-q", fern, arbeit)
-jetzt = a._version(Path(installiert, "package.xml").read_text("utf-8"))
+jetzt = version_aus_xml(Path(installiert, "package.xml").read_text("utf-8"))
 
 e = a.pruefe(installiert)
 pruefe(e.status == a.AKTUELL and e.version_jetzt == jetzt, f"frisch geklont: {e}")

@@ -371,13 +371,13 @@ class MaschinenPanel:
         for ba in m.betriebsarten(self.maschine):
             je_gelenk.setdefault(ba.Gelenk, []).append(ba)
         wahl_item = None
-        for gelenk in self.kette.gelenke:
-            zeichen = "↔" if gelenk.art == LINEAR else "⟳"
-            art = tr("gelenk.schiebe") if gelenk.art == LINEAR else tr("gelenk.dreh")
-            eintrag = QtGui.QTreeWidgetItem([f"{zeichen}  {gelenk.objekt.Label}   ({art})"])
-            eintrag.setData(0, ROLLE, ("gelenk", gelenk.objekt))
+        for achse in self.kette.achsen:
+            zeichen = "↔" if achse.art == LINEAR else "⟳"
+            art = tr("gelenk.schiebe") if achse.art == LINEAR else tr("gelenk.dreh")
+            eintrag = QtGui.QTreeWidgetItem([f"{zeichen}  {achse.gelenk.Label}   ({art})"])
+            eintrag.setData(0, ROLLE, ("gelenk", achse.gelenk))
             self.achsen.addTopLevelItem(eintrag)
-            liste = je_gelenk.pop(gelenk.objekt, [])
+            liste = je_gelenk.pop(achse.gelenk, [])
             if not liste:
                 leer = QtGui.QTreeWidgetItem([tr("dialog.noch_keine_betriebsart")])
                 leer.setToolTip(0, tr("dialog.noch_keine_betriebsart.tooltip"))
@@ -412,11 +412,8 @@ class MaschinenPanel:
 
     @staticmethod
     def _text_aufnahme(auf):
-        art = (
-            tr("aufnahme.werkzeug") if auf.Art == m.AUFNAHME_WERKZEUG else tr("aufnahme.werkstueck")
-        )
         lcs = auf.Lcs.Label if auf.Lcs is not None else "?"
-        teile = [m.name_von(auf), art, "→ " + lcs]
+        teile = [m.name_von(auf), m.aufnahmeart_text(auf.Art), "→ " + lcs]
         if auf.Spindel is not None:
             teile.append(tr("aufnahme.angetrieben_von", spindel=m.name_von(auf.Spindel)))
         return "  ·  ".join(teile)
@@ -470,19 +467,19 @@ class MaschinenPanel:
         elif art == "ba":
             gelenk = objekt.Gelenk
         if gelenk is not None:
-            achse = next((g for g in self.kette.gelenke if g.objekt == gelenk), None)
+            achse = self.kette.achse_von(gelenk)
             if achse is None:
                 return
-            gui_zeigen.hervorheben(gui_zeigen.koerper_hinter(self.kette, achse))
+            gui_zeigen.hervorheben(gui_zeigen.bauteile_hinter(self.kette, achse))
             # Läuft schon eine Bewegung für dieses Gelenk, nicht neu anfangen.
-            if self.wackeln and self.wackeln.laeuft() and self.wackeln.gelenk is achse:
+            if self.wackeln and self.wackeln.laeuft() and self.wackeln.achse is achse:
                 return
             if self.wackeln:
                 self.wackeln.stopp()
             self.wackeln = gui_zeigen.Wackeln(self.assembly, self.kette, achse)
             self.wackeln.start()
         elif art == "glied":
-            gui_zeigen.hervorheben(objekt.koerper)
+            gui_zeigen.hervorheben(objekt.bauteile)
         elif art == "auf":
             gui_zeigen.hervorheben([objekt.Lcs])
         elif art == "revolver":
@@ -499,7 +496,7 @@ class MaschinenPanel:
         self.glieder.clear()
         nummer = 1
         for glied in self.kette.glieder:
-            if glied.fest:
+            if glied.ist_bett:
                 titel = tr("dialog.glied_bett")
             else:
                 nummer += 1
@@ -688,8 +685,8 @@ class MaschinenPanel:
             self.detail_aufbau.addRow(tr("dialog.aufnahme_platz"), platz)
 
     def _gelenkart(self, ba):
-        gelenk = next((g for g in self.kette.gelenke if g.objekt == ba.Gelenk), None)
-        return gelenk.art if gelenk else None
+        achse = self.kette.achse_von(ba.Gelenk)
+        return achse.art if achse else None
 
     def _alle_lcs(self):
         """Alle Koordinatensysteme der Baugruppe, die als Aufnahme taugen.
@@ -752,8 +749,8 @@ class MaschinenPanel:
     def _betriebsart_menue(self):
         eintrag = self.achsen.currentItem()
         gelenk_objekt = self._gelenk_des_eintrags(eintrag) if eintrag else None
-        gelenk = next((g for g in self.kette.gelenke if g.objekt == gelenk_objekt), None)
-        if gelenk is None:
+        achse = self.kette.achse_von(gelenk_objekt)
+        if achse is None:
             return
         menue = QtGui.QMenu(self.form)
         beschreibung = {
@@ -762,11 +759,9 @@ class MaschinenPanel:
             m.ART_SPINDEL: tr("art.spindel.beschreibung"),
             m.ART_REVOLVER: tr("art.revolver.beschreibung"),
         }
-        for art in m.ERLAUBT[gelenk.art]:
+        for art in m.ERLAUBT[achse.art]:
             aktion = menue.addAction(f"{m.art_text(art)} – {beschreibung[art]}")
-            aktion.triggered.connect(
-                lambda _c=False, a=art: self._betriebsart_neu(gelenk.objekt, a)
-            )
+            aktion.triggered.connect(lambda _c=False, a=art: self._betriebsart_neu(achse.gelenk, a))
         self._letztes_menue = menue
         menue.popup(
             self.knopf_betriebsart.mapToGlobal(QtCore.QPoint(0, self.knopf_betriebsart.height()))
@@ -803,8 +798,7 @@ class MaschinenPanel:
         belegt = {a.Lcs for a in m.aufnahmen(self.maschine)}
         gewaehlt = [o for o in FreeCADGui.Selection.getSelection() if o in alle]
         lcs = gewaehlt[0] if gewaehlt else next((x for x in alle if x not in belegt), alle[0])
-        name = tr("aufnahme.werkzeug") if art == m.AUFNAHME_WERKZEUG else tr("aufnahme.werkstueck")
-        auf = m.neue_aufnahme(self.maschine, lcs, art, name)
+        auf = m.neue_aufnahme(self.maschine, lcs, art, m.aufnahmeart_text(art))
         self._fuelle_alles(auswahl=auf)
 
     def _aufnahme_entfernen(self):
@@ -829,10 +823,10 @@ class MaschinenPanel:
         self._fuelle_alles()
 
     def _lcs_im_revolver(self, ba):
-        gelenk = next((g for g in self.kette.gelenke if g.objekt == ba.Gelenk), None)
-        if gelenk is None:
+        achse = self.kette.achse_von(ba.Gelenk)
+        if achse is None:
             return []
-        return [lcs for lcs in self._alle_lcs() if self.kette.glied_von(lcs) is gelenk.kind]
+        return [lcs for lcs in self._alle_lcs() if self.kette.glied_von(lcs) is achse.kind]
 
     def _hinweis_geklickt(self, eintrag):
         bezug = eintrag.data(ROLLE)

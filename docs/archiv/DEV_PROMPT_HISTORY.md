@@ -12,6 +12,101 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-29 kern-module-lesbar
+
+### EINGELESEN
+- Manuels Auftrag aus P-2026-09-25-27: Code gut dokumentiert und
+  kommentiert, für jeden menschlichen Programmierer leicht zu lesen, „kein
+  AI-Slop“, das Vorhandene „to the max“ optimieren.
+- Durchsicht von Hand: alle Module ohne Oberfläche (`kette`, `maschine`,
+  `export`, `sprache`, `hilfe`, `aktualisierung`, `__init__`).
+
+### DATEIEN
+- `camaddon/kette.py`, `maschine.py`, `export.py`, `sprache.py`, `hilfe.py`,
+  `aktualisierung.py`, `__init__.py` (überarbeitet)
+- `camaddon/gui_maschine.py`, `gui_zeigen.py` (nur auf die neuen Namen
+  umgestellt; die Durchsicht folgt als eigener Patch)
+- `tests/test_kette.py`, `test_maschine.py`, `test_aktualisierung.py` (neue
+  Namen)
+- `docs/STATUS_SNAPSHOT.md` (drei Befunde als B-001 bis B-003)
+- `package.xml` (Version 0.3.3)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Jedes Kern-Modul sagt oben, wozu es da ist; Funktionen und Namen sagen, was
+gemeint ist; nichts steht doppelt. Das Verhalten bleibt gleich: alle
+Prüfungen und Szenarien in beiden FreeCAD-Versionen grün.
+
+### DONE
+- **kette.py**
+  - `lies_kette()` besteht aus vier benannten Schritten, je eine Funktion:
+    Gelenke sortieren, Glieder bilden, Achsen als Baum, Nicht-Angebundenes
+    melden.
+  - Klarere Namen:
+    - `Gelenk` → `Achse`; das Gelenk-Objekt der Assembly steht in
+      `achse.gelenk`.
+    - `Kette.gelenke` → `achsen`, `festes_glied()` → `bett()`,
+      `pfad_zum_festen_glied()` → `pfad_zum_bett()`.
+    - `Glied.koerper` → `bauteile`, `Glied.fest` → `ist_bett`.
+  - Neu: `Kette.achse_von(gelenk)`. Sie ersetzt die an fünf Stellen
+    wiederholte Suche `next(g for g in kette.gelenke if g.objekt == …)`.
+  - `Glied.nummer` entfällt, es wurde nie gelesen.
+  - Die Zusammenfassung starr verbundener Bauteile (Union-Find) ist erklärt.
+- **maschine.py**
+  - Die drei Proxys erben `dumps`/`loads` von einer gemeinsamen Grundklasse.
+  - Die Eigenschaften stehen als Tabelle, je Gruppe im Eigenschaften-Editor.
+  - `ist_betriebsart()`, `ist_aufnahme()` und `aufnahmeart_text()` ersetzen
+    wiederholte Ausdrücke, auch in der Oberfläche.
+  - `pruefe()` ist in drei Teile zerlegt: Betriebsarten, Aufnahmen,
+    Revolver.
+  - Das Entfernen einer früheren Platzverteilung ist eine eigene Funktion.
+  - Die Editor-Modi heißen `_SICHTBAR` und `_AUSGEBLENDET` statt 0 und 2.
+  - Entfernt:
+    - Das Nachrüsten der Eigenschaft `Platz` beim Laden. Dateien ohne sie
+      gibt es nur aus der Entwicklung; das Addon war nie veröffentlicht.
+    - Eine Wächterzeile, deren Fall nie eintritt. Ausprobiert: FreeCAD ruft
+      `onChanged` weder beim Anlegen einer Eigenschaft noch beim Laden
+      einer Datei auf (1.1.3 und Wochen-Build).
+- **export.py**
+  - Linear- und Drehachse entstehen in eigenen Funktionen, mit
+    Schlüsselwort-Argumenten statt acht Positions-Argumenten.
+  - FreeCADs Vorgaben sind benannte Konstanten: `VORGABE_EILGANG`,
+    `VORGABE_DREHGESCHWINDIGKEIT`.
+  - Die Eltern-Achse wird über `pfad_zum_bett()` gesucht, nicht mehr über
+    ein eigenes Wörterbuch.
+- **sprache.py, hilfe.py:** `rueckfall_reihe()` ersetzt dreimal dieselbe
+  Sprachfolge.
+- **__init__.py, aktualisierung.py**
+  - `version_aus_xml()` ersetzt zwei Kopien desselben Codes.
+  - Der nie genutzte Parameter `git=` entfällt.
+  - `pruefe()` ist in benannte Teile zerlegt: `_vergleiche_mit_github`,
+    `_ist_vorfahr`.
+- **Sichtbar geändert, beides bewusst:**
+  - `pruefe()` liefert erst alle Warnungen, dann die Hinweise. Vorher stand
+    der Hinweis „keine Werkzeugaufnahme“ zwischen Warnungen.
+  - Die Meldungen der Kette folgen den vier Schritten. Ein loser Körper
+    steht jetzt nach „doppelt gelagert“, nicht mehr davor.
+- Version 0.3.3, weil sich die Reihenfolge der Meldungen sichtbar ändert.
+- **Drei Befunde**, als B-001 bis B-003 in den Snapshot aufgenommen. Sie
+  sind nicht behoben, weil 1 Patch = 1 Thema:
+  - B-001 und B-002: zwei Lücken im Bericht der Übergabe an CAM.
+  - B-003: P-2026-09-25-27 und -28 kamen ohne neue Version auf `main`. Die
+    Update-Suche hätte „neue Version 0.3.2 (installiert ist 0.3.2)“
+    angezeigt. Mit 0.3.3 ist das für diesmal erledigt, die Ursache bleibt.
+
+### TEST
+- Von der KI ausgeführt:
+  - black und ruff sauber.
+  - `alle_tests.sh` in beiden Versionen grün: 8 Prüfungen und 6 Szenarien;
+    in 1.1.3 wird der Export übersprungen.
+  - Probe in 1.1.3 und im Wochen-Build: Beim Anlegen einer
+    Aufzählungs-Eigenschaft und beim Laden einer Datei ruft FreeCAD
+    `onChanged` nicht auf, beim Laden nur `onDocumentRestored`.
+
+### NEXT
+- Oberflächen-Module: `gui_maschine` aufteilen und aufräumen, danach
+  `gui_zeigen`, `gui_start`, `gui_sprachwahl`, `gui_aktualisierung`.
+
 ## P-2026-09-25-28 szenarien-sauber-beenden
 
 ### EINGELESEN
