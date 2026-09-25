@@ -63,6 +63,7 @@ neue Spezifikation unter `docs/` bekommt hier eine Zeile.
 
 | Du arbeitest an … | Dann lies |
 | --- | --- |
+| Code allgemein: welches Modul was tut, wie die Daten fließen, Stolpersteine | [docs/aufbau.md](docs/aufbau.md) |
 | W-001 Maschine aus Baugruppe (Achsen, Betriebsarten, Export) | [docs/spezifikation_maschine_aus_baugruppe.md](docs/spezifikation_maschine_aus_baugruppe.md); Code: `camaddon/kette.py` (Baugruppe lesen), `camaddon/maschine.py` (Maschinenobjekt), `camaddon/gui_maschine.py` (Dialog; dazu `gui_details.py`, `gui_hilfe.py`, `gui_verteilhilfe.py`, `gui_bericht.py`, `gui_zeigen.py`), `camaddon/export.py` (Übergabe an CAM), Beispiele: `tests/beispielmaschinen.py` |
 | Update-Suche per Git (private Phase) | `camaddon/aktualisierung.py`, `camaddon/gui_aktualisierung.py` |
 | Ausführliche Hilfetexte | `help/<sprache>/*.html`, Themen in `camaddon/hilfe.py` |

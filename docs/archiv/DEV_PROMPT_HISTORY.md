@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-35 entwickler-doku
+
+### EINGELESEN
+- Manuels Auftrag aus P-2026-09-25-27: Der Code soll für jeden menschlichen
+  Programmierer leicht zu lesen sein. Dazu gehört ein Einstieg, der das
+  Ganze erklärt, bevor man in einzelne Dateien schaut.
+
+### DATEIEN
+- `docs/aufbau.md` (neu)
+- `CHATSTART.md` (Lesekarte: Zeile für `docs/aufbau.md`)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer den Code nicht kennt, findet in einer Datei: den Weg von der Assembly
+zur CAM-Maschine, welches Modul was tut, die Regeln für Importe und Texte,
+wie geprüft wird, und die Stolpersteine von FreeCAD und PySide.
+
+### DONE
+- `docs/aufbau.md` mit diesen Abschnitten:
+  - Weg der Daten als Bild: Assembly → Kette → Maschinenobjekt → Übergabe.
+  - Tabelle aller Module.
+  - Zwei Regeln: Kern-Module ohne Qt; Importe nur von `gui_*` zum Kern.
+  - Kette, Maschinenobjekt, Dialog, Texte, zwei FreeCAD-Versionen, Prüfen.
+  - Stolpersteine, jeder mit seiner Folge im Code.
+- Die Regeln sind am Code geprüft: Kein Kern-Modul importiert
+  `FreeCADGui`, Qt oder ein `gui_*`-Modul.
+
+### TEST
+- Von der KI ausgeführt: Verweise in `docs/aufbau.md` zeigen auf vorhandene
+  Dateien; `alle_tests.sh` ohne Oberfläche in beiden Versionen grün (nur
+  Doku geändert).
+
+### NEXT
+- Manuel: Push-Freigabe (P-2026-09-25-30 bis -35 liegen nur lokal),
+  Entscheidung zu B-005, Test in FreeCAD 1.1.3.
+- Danach B-001 und B-002 (Bericht der Übergabe).
+
 ## P-2026-09-25-34 tests-und-skripte-lesbar
 
 ### EINGELESEN
@@ -252,6 +289,14 @@ geleertes Feld setzt den Wert auf „unbekannt“ (0).
 - Dringend geworden, weil die nächsten Patches (Durchsicht der Oberfläche,
   Tests, Doku) nichts Sichtbares ändern und deshalb keine neue Version
   bekommen.
+- **Befund beim Push von P-2026-09-25-29:** `origin` zeigte im Klon auf den
+  Ordner selbst statt auf GitHub. Das hatte der Test mit dem Addon-Manager
+  in P-2026-09-25-23 verursacht. P-23 bis P-28 kamen deshalb nie bei GitHub
+  an: `git push` meldete „Everything up-to-date“, und die Kontrolle mit
+  `git ls-remote origin` fragte nur den Ordner selbst ab. `origin` zeigt
+  wieder auf GitHub. P-23 bis P-29 sind nachgeschoben (`b9e4932..999d46b`)
+  und bei GitHub selbst nachgeprüft. Weitere Pushes erst nach Manuels
+  ausdrücklicher Freigabe.
 
 ### DATEIEN
 - `camaddon/aktualisierung.py` (`ist_neuer()`, Vergleich der Versionen)
