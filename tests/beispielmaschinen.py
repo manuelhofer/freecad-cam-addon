@@ -67,7 +67,8 @@ class Baukasten:
 
 
 def drehmaschine():
-    """Bett mit Spindelstock, Hauptspindel mit Futter, Z- und X-Schlitten mit Revolver."""
+    """Bett mit Spindelstock, Hauptspindel mit Futter, Z- und X-Schlitten mit
+    drehbarem Revolver (ein Werkzeugplatz als LCS)."""
     b = Baukasten("Drehmaschine")
     bett = b.quader("Bett", 600, 200, 50)
     spindelstock = b.quader("Spindelstock", 150, 200, 250, z=50)
@@ -89,7 +90,8 @@ def drehmaschine():
     x = b.gelenk("X", "Slider", z_schlitten, "Face2", x_schlitten, "Face1")
     x.EnableLengthMin, x.LengthMin = True, 0
     x.EnableLengthMax, x.LengthMax = True, 200
-    b.gelenk("Revolver_fest", "Fixed", x_schlitten, "Face6", revolver, "RevolverKoerper.Face5")
+    # Revolver schaltet um die senkrechte Achse (Werkzeugplatz sitzt außen).
+    b.gelenk("Revolverachse", "Revolute", x_schlitten, "Face6", revolver, "RevolverKoerper.Face5")
     return b.fertig()
 
 

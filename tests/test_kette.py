@@ -39,8 +39,8 @@ def schluessel(k):
 
 # --- Drehmaschine ---------------------------------------------------------
 k = kette.lies_kette(beispielmaschinen.drehmaschine())
-pruefe(len(k.glieder) == 4, f"Drehmaschine: 4 Glieder erwartet, {len(k.glieder)} gefunden")
-pruefe(len(k.gelenke) == 3, f"Drehmaschine: 3 Achsen erwartet, {len(k.gelenke)}")
+pruefe(len(k.glieder) == 5, f"Drehmaschine: 5 Glieder erwartet, {len(k.glieder)} gefunden")
+pruefe(len(k.gelenke) == 4, f"Drehmaschine: 4 Achsen erwartet, {len(k.gelenke)}")
 pruefe(k.meldungen == [], f"Drehmaschine: keine Meldungen erwartet: {[m.text for m in k.meldungen]}")
 pruefe(glied(k, "Spindelstock") is k.festes_glied(), "Spindelstock gehört nicht zum Bett")
 pruefe(glied(k, "Futter") is glied(k, "Hauptspindel"), "Futter bildet kein Glied mit der Spindel")
@@ -52,8 +52,9 @@ pruefe(x and parallel(x.richtung, 1, 0, 0), "X: Richtung X erwartet")
 pruefe(x and (x.minimum, x.maximum) == (0, 200), f"X: Grenzen 0/200 erwartet, {x and (x.minimum, x.maximum)}")
 pruefe(z and (z.minimum, z.maximum) == (None, None), "Z: ohne Grenzen erwartet")
 pruefe(x and x.eltern is glied(k, "ZSchlitten"), "X hängt nicht am Z-Schlitten")
-pruefe([g.objekt.Name for g in k.pfad_zum_festen_glied(glied(k, "Revolver"))] == ["X", "Z"],
-       "Pfad Revolver → Bett nicht X, Z")
+pruefe([g.objekt.Name for g in k.pfad_zum_festen_glied(glied(k, "Revolver"))] == ["Revolverachse", "X", "Z"],
+       "Pfad Revolver → Bett nicht Revolverachse, X, Z")
+pruefe(glied(k, "Werkzeugplatz") is glied(k, "Revolver"), "LCS im Revolver-Part nicht dem Revolver zugeordnet")
 App.closeDocument(App.ActiveDocument.Name)
 
 # --- Fünfachser mit Schwenkbrücke, Wiege in einem Drehgelenk --------------

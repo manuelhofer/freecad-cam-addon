@@ -59,5 +59,11 @@
     "maschine.spindel_keine_spindel": "Bei der Aufnahme „{name}“ ist als Antrieb etwas eingetragen, das keine Spindel ist.",
     "maschine.keine_werkzeugaufnahme": "Es gibt noch keine Werkzeugaufnahme. Ohne sie weiß das Addon nicht, welche Achsen im Kopf sitzen.",
     "maschine.keine_werkstueckaufnahme": "Es gibt noch keine Werkstückaufnahme. Ohne sie weiß das Addon nicht, welche Achsen im Tisch sitzen.",
-    "maschine.rolle_mehrdeutig": "Das Gelenk „{gelenk}“ bewegt sowohl ein Werkzeug als auch ein Werkstück. Prüfe, ob die Aufnahmen im richtigen Bauteil liegen."
+    "maschine.rolle_mehrdeutig": "Das Gelenk „{gelenk}“ bewegt sowohl ein Werkzeug als auch ein Werkstück. Prüfe, ob die Aufnahmen im richtigen Bauteil liegen.",
+    "art.revolver": "Revolver",
+    "wert.schaltzeit": "Schaltzeit je Platz (s)",
+    "eigenschaft.schaltzeit": "Zeit, um den Revolver um einen Platz weiterzuschalten, in Sekunden. 0 = unbekannt.",
+    "eigenschaft.platz": "Nummer des Werkzeugplatzes im Revolver (P1, P2, …). 0 = kein Revolverplatz.",
+    "maschine.revolver_ohne_plaetze": "Der Revolver „{name}“ hat noch keine Werkzeugplätze. Lege Werkzeugaufnahmen im Revolver an oder nutze „Plätze verteilen“.",
+    "maschine.plaetze_nummern": "Die Plätze des Revolvers „{name}“ haben doppelte oder fehlende Nummern."
 }

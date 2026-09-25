@@ -28,10 +28,11 @@ from .sprache import tr
 ART_LINEAR = "Linear"
 ART_POSITIONIEREN = "Positionieren"
 ART_SPINDEL = "Spindel"
-BETRIEBSARTEN = [ART_LINEAR, ART_POSITIONIEREN, ART_SPINDEL]
+ART_REVOLVER = "Revolver"
+BETRIEBSARTEN = [ART_LINEAR, ART_POSITIONIEREN, ART_SPINDEL, ART_REVOLVER]
 
 # Welche Betriebsarten zu welcher Gelenkart passen.
-ERLAUBT = {LINEAR: [ART_LINEAR], DREH: [ART_POSITIONIEREN, ART_SPINDEL]}
+ERLAUBT = {LINEAR: [ART_LINEAR], DREH: [ART_POSITIONIEREN, ART_SPINDEL, ART_REVOLVER]}
 
 # Kennwerte je Betriebsart: (Eigenschaft, Pflicht). Einheiten wie im
 # Datenblatt, siehe Spezifikation Abschnitt 4.
@@ -44,6 +45,7 @@ WERTE = {
         ("Ruck", False),
     ],
     ART_SPINDEL: [("Drehzahl", True), ("Hochlaufzeit", False)],
+    ART_REVOLVER: [("Schaltzeit", False)],
 }
 
 AUFNAHME_WERKZEUG = "Werkzeug"
@@ -61,6 +63,7 @@ def art_text(art):
         ART_LINEAR: tr("art.linear"),
         ART_POSITIONIEREN: tr("art.positionieren"),
         ART_SPINDEL: tr("art.spindel"),
+        ART_REVOLVER: tr("art.revolver"),
     }[art]
 
 
@@ -75,6 +78,7 @@ def wert_text(eigenschaft):
         "Geschwindigkeit": tr("wert.geschwindigkeit"),
         "Drehzahl": tr("wert.drehzahl"),
         "Hochlaufzeit": tr("wert.hochlaufzeit"),
+        "Schaltzeit": tr("wert.schaltzeit"),
     }[eigenschaft]
 
 
@@ -118,6 +122,7 @@ class Betriebsart:
         _eigenschaft(objekt, "App::PropertyFloat", "Geschwindigkeit", "Werte", tr("eigenschaft.geschwindigkeit"))
         _eigenschaft(objekt, "App::PropertyFloat", "Drehzahl", "Werte", tr("eigenschaft.drehzahl"))
         _eigenschaft(objekt, "App::PropertyFloat", "Hochlaufzeit", "Werte", tr("eigenschaft.hochlaufzeit"))
+        _eigenschaft(objekt, "App::PropertyFloat", "Schaltzeit", "Werte", tr("eigenschaft.schaltzeit"))
         self._sichtbarkeit(objekt)
 
     def onChanged(self, objekt, eigenschaft):
@@ -148,10 +153,17 @@ class Betriebsart:
 class Aufnahme:
     def __init__(self, objekt):
         objekt.Proxy = self
-        _eigenschaft(objekt, "App::PropertyLink", "Lcs", "Aufnahme", tr("eigenschaft.lcs"))
+        # Global: Das LCS liegt in einem Bauteil (eigener Gültigkeitsbereich),
+        # das Maschinenobjekt daneben – ein einfacher Link wäre „out of scope“.
+        _eigenschaft(objekt, "App::PropertyLinkGlobal", "Lcs", "Aufnahme", tr("eigenschaft.lcs"))
         _eigenschaft(objekt, "App::PropertyEnumeration", "Art", "Aufnahme", tr("eigenschaft.aufnahmeart"))
         objekt.Art = AUFNAHMEARTEN
         _eigenschaft(objekt, "App::PropertyLink", "Spindel", "Aufnahme", tr("eigenschaft.spindel"))
+        _eigenschaft(objekt, "App::PropertyInteger", "Platz", "Aufnahme", tr("eigenschaft.platz"))
+
+    def onDocumentRestored(self, objekt):
+        # Ältere Dateien ohne Platz bekommen die Eigenschaft nachgereicht.
+        _eigenschaft(objekt, "App::PropertyInteger", "Platz", "Aufnahme", tr("eigenschaft.platz"))
 
     def dumps(self):
         return None
@@ -196,14 +208,93 @@ def neue_betriebsart(maschine, gelenk, art, nc_name):
     return objekt
 
 
-def neue_aufnahme(maschine, lcs, art, name, spindel=None):
+def neue_aufnahme(maschine, lcs, art, name, spindel=None, platz=0):
     objekt = maschine.newObject("App::FeaturePython", "Aufnahme")
     Aufnahme(objekt)
     objekt.Lcs = lcs
     objekt.Art = art
     objekt.Spindel = spindel
+    objekt.Platz = platz
     objekt.Label = name
     return objekt
+
+
+def globale_platzierung(objekt):
+    """Lage eines Objekts in der Welt, durch alle umgebenden Parts hindurch."""
+    eltern = objekt.Parents
+    if eltern:
+        wurzel, pfad = eltern[0]
+        return wurzel.getPlacementOf(pfad)
+    return objekt.Placement
+
+
+def platz_name(nummer):
+    """Anzeigename eines Revolverplatzes: P1, P2, …"""
+    return f"P{nummer}"
+
+
+def plaetze(maschine, kette, revolver):
+    """Die Werkzeugaufnahmen, die der Revolver (eine Betriebsart) trägt,
+    nach Platznummer sortiert – das sind alle im Glied hinter seinem Gelenk."""
+    gelenk = next((g for g in kette.gelenke if g.objekt == revolver.Gelenk), None)
+    if gelenk is None:
+        return []
+    liste = [
+        a
+        for a in aufnahmen(maschine)
+        if a.Art == AUFNAHME_WERKZEUG and a.Lcs is not None and kette.glied_von(a.Lcs) is gelenk.kind
+    ]
+    return sorted(liste, key=lambda a: a.Platz)
+
+
+def verteile_plaetze(maschine, kette, revolver, erstes_lcs, anzahl):
+    """Verteilhilfe: legt zum ersten Platz die übrigen gleichmäßig im Kreis um
+    die Revolverachse an (je ein neues LCS neben dem ersten) und nummeriert
+    alle als P1 … Pn. Bestehende Werkzeugaufnahmen dieses Revolvers werden
+    dabei ersetzt. Gibt die Aufnahmen in Platzreihenfolge zurück."""
+    import FreeCAD
+
+    gelenk = next((g for g in kette.gelenke if g.objekt == revolver.Gelenk), None)
+    if gelenk is None or anzahl < 1:
+        return []
+    doc = maschine.Document
+    # Frühere Verteilung ersetzen: alte Platz-Aufnahmen weg, und die LCS, die
+    # die Verteilhilfe selbst angelegt hatte (erkennbar am Namen), auch.
+    for alt in plaetze(maschine, kette, revolver):
+        doc.removeObject(alt.Name)
+    praefix = erstes_lcs.Label + "_P"
+    alte = [
+        o.Name
+        for o in doc.Objects
+        if o.isDerivedFrom("App::LocalCoordinateSystem") and o.Label.startswith(praefix)
+    ]
+    for name in alte:
+        # Ein LCS nimmt seine Achsen und Ebenen beim Löschen mit – daher
+        # über Namen, nicht über die (dann teils gelöschten) Objekte.
+        if doc.getObject(name) is not None:
+            doc.removeObject(name)
+
+    behaelter = erstes_lcs.getParentGeoFeatureGroup()
+    behaelter_global = globale_platzierung(behaelter) if behaelter else FreeCAD.Placement()
+    erstes_global = globale_platzierung(erstes_lcs)
+    ergebnis = []
+    for nummer in range(1, anzahl + 1):
+        if nummer == 1:
+            lcs = erstes_lcs
+        else:
+            winkel = 360.0 * (nummer - 1) / anzahl
+            drehung = FreeCAD.Placement(
+                FreeCAD.Vector(), FreeCAD.Rotation(gelenk.richtung, winkel), gelenk.ursprung
+            )
+            lcs = doc.addObject("App::LocalCoordinateSystem", erstes_lcs.Name + "_")
+            lcs.Label = f"{erstes_lcs.Label}_{platz_name(nummer)}"
+            if behaelter:
+                behaelter.addObject(lcs)
+            lcs.Placement = behaelter_global.inverse() * drehung * erstes_global
+        ergebnis.append(
+            neue_aufnahme(maschine, lcs, AUFNAHME_WERKZEUG, platz_name(nummer), platz=nummer)
+        )
+    return ergebnis
 
 
 def betriebsarten(maschine):
@@ -301,6 +392,15 @@ def pruefe(maschine, kette=None):
         spindel = aufnahme.Spindel
         if spindel is not None and getattr(spindel, "Art", None) != ART_SPINDEL:
             meldungen.append(meldung("maschine.spindel_keine_spindel", name=aufnahme.Label))
+
+    for ba in betriebsarten(maschine):
+        if ba.Art != ART_REVOLVER:
+            continue
+        nummern = [a.Platz for a in plaetze(maschine, kette, ba)]
+        if not nummern:
+            meldungen.append(meldung("maschine.revolver_ohne_plaetze", name=ba.Label))
+        elif 0 in nummern or len(set(nummern)) < len(nummern):
+            meldungen.append(meldung("maschine.plaetze_nummern", name=ba.Label))
 
     arten = {a.Art for a in aufnahmen(maschine)}
     if AUFNAHME_WERKZEUG not in arten:

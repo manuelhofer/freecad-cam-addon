@@ -59,5 +59,11 @@
     "maschine.spindel_keine_spindel": "The mount “{name}” names a drive that is not a spindle.",
     "maschine.keine_werkzeugaufnahme": "There is no tool mount yet. Without one the add-on cannot tell which axes sit in the head.",
     "maschine.keine_werkstueckaufnahme": "There is no workpiece mount yet. Without one the add-on cannot tell which axes sit in the table.",
-    "maschine.rolle_mehrdeutig": "The joint “{gelenk}” moves both a tool and a workpiece. Check that the mounts are in the right parts."
+    "maschine.rolle_mehrdeutig": "The joint “{gelenk}” moves both a tool and a workpiece. Check that the mounts are in the right parts.",
+    "art.revolver": "Turret",
+    "wert.schaltzeit": "indexing time per station (s)",
+    "eigenschaft.schaltzeit": "Time to index the turret by one station, in seconds. 0 = unknown.",
+    "eigenschaft.platz": "Station number in the turret (P1, P2, …). 0 = not a turret station.",
+    "maschine.revolver_ohne_plaetze": "The turret “{name}” has no tool stations yet. Add tool mounts in the turret or use “Distribute stations”.",
+    "maschine.plaetze_nummern": "The stations of the turret “{name}” have duplicate or missing numbers."
 }

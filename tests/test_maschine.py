@@ -49,14 +49,42 @@ c4 = m.neue_betriebsart(ma, obj("Spindel"), m.ART_POSITIONIEREN, "C4")
 for ba, wert in ((z1, ("Eilgang", 30000)), (x1, ("Eilgang", 24000)), (s4, ("Drehzahl", 4000)),
                  (c4, ("Geschwindigkeit", 100))):
     setattr(ba, *wert)
-m.neue_aufnahme(ma, obj("Werkzeugplatz"), m.AUFNAHME_WERKZEUG, "Revolver")
 m.neue_aufnahme(ma, obj("Spannflaeche"), m.AUFNAHME_WERKSTUECK, "Futter", spindel=s4)
+rev = m.neue_betriebsart(ma, obj("Revolverachse"), m.ART_REVOLVER, "T")
+k = kette.lies_kette(asm)
+pruefe("maschine.revolver_ohne_plaetze" in schluessel(m.pruefe(ma, k)), "Revolver ohne Plätze nicht gemeldet")
+
+# Verteilhilfe: 12 Plätze um die Revolverachse, P1 = der vorhandene Werkzeugplatz.
+lcs_vorher = len([o for o in doc.Objects if o.isDerivedFrom("App::LocalCoordinateSystem")])
+liste = m.verteile_plaetze(ma, k, rev, obj("Werkzeugplatz"), 12)
+doc.recompute()
+pruefe([a.Label for a in liste] == [f"P{i}" for i in range(1, 13)], f"Platznamen: {[a.Label for a in liste]}")
+pruefe([a.Label for a in m.plaetze(ma, k, rev)] == [f"P{i}" for i in range(1, 13)], "plaetze() findet nicht alle 12")
+achse = next(g for g in k.gelenke if g.objekt.Name == "Revolverachse")
+punkte = [m.globale_platzierung(a.Lcs).Base for a in liste]
+
+
+def radius(p):
+    return (p - achse.ursprung).cross(achse.richtung).Length
+
+
+pruefe(all(abs(radius(p) - radius(punkte[0])) < 1e-6 for p in punkte) and radius(punkte[0]) > 1,
+       f"Plätze nicht auf einem Kreis um die Revolverachse: {[round(radius(p), 3) for p in punkte]}")
+pruefe(abs((punkte[1] - punkte[0]).Length - 2 * radius(punkte[0]) * __import__("math").sin(__import__("math").pi / 12)) < 1e-6,
+       "Plätze nicht im 30°-Abstand")
+# Nochmal verteilen (6 statt 12) ersetzt die alten Plätze und LCS restlos.
+liste = m.verteile_plaetze(ma, k, rev, obj("Werkzeugplatz"), 6)
+doc.recompute()
+lcs_nachher = len([o for o in doc.Objects if o.isDerivedFrom("App::LocalCoordinateSystem")])
+pruefe(len(m.plaetze(ma, k, rev)) == 6 and lcs_nachher == lcs_vorher + 5,
+       f"Neu verteilen: {len(m.plaetze(ma, k, rev))} Plätze, {lcs_nachher - lcs_vorher} neue LCS")
 doc.recompute()
 
 pruefe(m.pruefe(ma) == [], f"vollständige Drehmaschine: {[x.text for x in m.pruefe(ma)]}")
 rollen, _ = m.rollen(kette.lies_kette(asm), ma)
 pruefe(rollen.get(obj("Spindel")) == m.TISCH, "Hauptspindel sitzt nicht im Tisch")
 pruefe(rollen.get(obj("X")) == m.KOPF and rollen.get(obj("Z")) == m.KOPF, "X/Z sitzen nicht im Kopf")
+pruefe(rollen.get(obj("Revolverachse")) == m.KOPF, "Revolverachse sitzt nicht im Kopf")
 
 # Sichtbarkeit im Eigenschaften-Editor folgt der Art.
 pruefe(s4.getEditorMode("Drehzahl") == [] and "Hidden" in s4.getEditorMode("Eilgang"),
@@ -92,7 +120,7 @@ ma = m.finde_maschine(doc.getObject("Assembly"))
 pruefe(ma is not None, "Maschine nach dem Laden nicht gefunden")
 if ma:
     namen = sorted(ba.NcName for ba in m.betriebsarten(ma))
-    pruefe(namen == ["C4", "S4", "X1", "Z1"], f"nach dem Laden: {namen}")
+    pruefe(namen == ["C4", "S4", "T", "X1", "Z1"], f"nach dem Laden: {namen}")
     pruefe(m.pruefe(ma) == [], f"nach dem Laden: {[x.text for x in m.pruefe(ma)]}")
     s4 = next(ba for ba in m.betriebsarten(ma) if ba.NcName == "S4")
     pruefe("Hidden" in s4.getEditorMode("Eilgang"), "Sichtbarkeit nach dem Laden verloren")

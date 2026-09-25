@@ -12,6 +12,65 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-16 revolver-plaetze-verteilhilfe
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 7a (P-2026-09-25-15).
+- `App.GeoFeature.getGlobalPlacementOf.__doc__` (Nachfolger der veralteten
+  `getGlobalPlacement`).
+
+### DATEIEN
+- `camaddon/maschine.py`
+- `tests/beispielmaschinen.py` (Revolver drehbar), `tests/test_kette.py`,
+  `tests/test_maschine.py`
+- `translations/de.json`, `translations/en.json`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+An der Beispiel-Drehmaschine legt `verteile_plaetze` zum Werkzeugplatz 11
+weitere an, gleichmäßig im 30°-Abstand um die Revolverachse und benannt als
+P1 … P12. Neu verteilt auf 6 Plätze bleiben genau 6, ohne übrig gebliebene
+LCS.
+
+### DONE
+- Neue Betriebsart **Revolver** (Kennwert: Schaltzeit je Platz). Sie passt
+  nur an Drehgelenke und lässt sich mit Positionieren kombinieren.
+- Werkzeugaufnahmen haben eine **Platznummer**. `plaetze()` liefert alle
+  Werkzeugaufnahmen im Glied hinter dem Revolvergelenk, nach Nummer
+  sortiert.
+- Die Prüfung meldet einen Revolver ohne Plätze sowie doppelte oder fehlende
+  Platznummern.
+- **Verteilhilfe** `verteile_plaetze()`: Sie dreht den ersten Platz um die
+  Revolverachse (aus der Kette: Ursprung und Richtung) und legt je Platz ein
+  LCS neben dem ersten im selben Bauteil an. Wird erneut verteilt, ersetzt
+  sie ihre eigenen früheren LCS, erkennbar am Namen `<erstes>_P…`. Von Hand
+  angelegte LCS fasst sie nicht an.
+- **Drei Befunde aus dem Test**, alle behoben:
+  1. Ein einfacher Link vom Maschinenobjekt auf ein LCS in einem Part ist für
+     FreeCAD „out of scope“. `Lcs` ist jetzt `PropertyLinkGlobal`, so macht
+     es die Assembly bei `ObjectToGround` auch.
+  2. `getGlobalPlacement()` ist seit 26.3 veraltet und hätte eine
+     Deprecation-Warnung erzeugt. Jetzt gibt es eine eigene Funktion
+     `globale_platzierung()` über `Parents` und `getPlacementOf`, wie
+     `UtilsAssembly.getGlobalPlacement`.
+  3. Beim Löschen alter LCS verschwinden deren Achsen und Ebenen mit. Die
+     Schleife arbeitet deshalb mit Namen statt mit Objekten.
+- Die Beispiel-Drehmaschine hat jetzt einen drehbaren Revolver
+  (`Revolverachse`). Die Erwartungen in `test_kette.py` sind entsprechend
+  angepasst: 5 Glieder, 4 Achsen, Pfad Revolver → Revolverachse, X, Z.
+
+### TEST
+- Von der KI ohne Fenster ausgeführt: alle vier Prüfungen `ok`.
+- Volle Ausgabe aller Prüfungen durchgesehen. Außer den erwarteten
+  „Solve failed“-Meldungen des absichtlich doppelt gelagerten Fünfachsers gibt
+  es keine Warnungen, auch kein „out of scope“ und keine Deprecation.
+- **Nicht geprüft:** ein Revolver als echte Unter-Baugruppe (Assembly in
+  Assembly). Dass die LCS darin gefunden werden, ist in P-2026-09-25-15 nur
+  von Hand ausprobiert. Eine Beispielmaschine dafür kommt mit dem Dialog.
+
+### NEXT
+- Dialog „Maschine bearbeiten“.
+
 ## P-2026-09-25-15 spezifikation-revolver-und-beispiele
 
 ### EINGELESEN
