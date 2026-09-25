@@ -45,7 +45,7 @@ EINSATZ_NACH_OPERATION = {
 # Operation → Einsätze, deren ae und ap als Schrittweite und Zustelltiefe
 # in sie passen. Dynamisch nur ins Adaptive: Nur dort hält FreeCAD den
 # Eingriff klein – eine Tasche fährt zuerst eine volle Nut, mit ap über die
-# ganze Schneide bräche der Fräser. Die Kontur bekommt nichts: Mit ihr wird
+# ganze Schneide bräche der Fräser. Das Profil bekommt nichts: Mit ihm wird
 # auch ausgeschnitten, also in voller Nut.
 ZUSTELLUNG_NACH_OPERATION = {
     "Adaptive": (wz.DYNAMISCH, wz.SCHRUPPEN),

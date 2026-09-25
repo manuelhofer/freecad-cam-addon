@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-20 hilfe-loch-verweis
+
+### EINGELESEN
+- Hilfe „Ein Loch oder eine Tasche auffräsen“, Schritt 4, versprach „taucht
+  einmal helikal bis 25 mm ein“ – mit FreeCADs Rohteil sind es meist zwei
+  Ebenen (P-2026-09-26-16).
+- Ein Kommentar in `job_schnittwerte.py` nannte das Profil noch „Kontur“
+  (P-2026-09-26-13).
+
+### DATEIEN
+- `help/de|en/werkzeuge.html` (Schritt 4 verweist auf „Eine Ebene oder
+  zwei?“)
+- `camaddon/job_schnittwerte.py` (nur Kommentar)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Hilfe der Werkzeugverwaltung → „Ein Loch oder eine Tasche auffräsen“,
+Schritt 4: kein Versprechen „einmal“ mehr, dafür der Verweis auf „Eine
+Ebene oder zwei?“.
+
+### DONE
+- Wortlaut angepasst, Kommentar angeglichen.
+
+### TEST
+- `tests/test_hilfe.py` in beiden Versionen, black und ruff.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- —
+
 ## P-2026-09-26-19 einsatz-kopieren-nachtrag
 
 ### EINGELESEN
