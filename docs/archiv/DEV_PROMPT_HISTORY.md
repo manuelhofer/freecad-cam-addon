@@ -12,6 +12,60 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-44 spezifikation-werkzeugverwaltung
+
+### EINGELESEN
+- Manuel: eine andere Werkzeugverwaltung ausdenken – bedienerfreundlich,
+  übersichtlich, „einfach GENIAL“, etwa wie die alte von InventorCAM.
+  Werkstoffliste zuerst, mit deutschen Bezeichnungen („1.4301 (Edelstahl,
+  chemische Zusammensetzung)“) und Härte; im Werkzeug Schnittwerte je
+  Werkstoff, auch für alle gleich; vc eingeben statt Drehzahl; ae und ap je
+  Einsatz, als Tabelle; Schruppstrategie mit größtem Zeitspanvolumen und eine
+  Beurteilung verschiedener Strategien (sein Beispiel: Ø 12, ae 1,2 / ap 25 /
+  fz 0,15 statt ae 100 % / ap 3 / fz 0,05). „Möglichst einfach und gut
+  erklärt.“
+- Er schläft; Entscheidungen treffe ich und schreibe sie auf.
+
+### DATEIEN
+- `docs/spezifikation_werkzeugverwaltung.md` (neu)
+- `docs/STATUS_SNAPSHOT.md` (W-002, Projektstatus)
+- `CHATSTART.md` (Lesekarte: W-002; Zeile Installieren/Update)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Manuel liest die Spezifikation und findet seinen Wunsch darin wieder –
+Abschnitt 1 in seinen Worten, Abschnitt 11 mit den Entscheidungen zur
+Besprechung.
+
+### DONE
+- FreeCAD-Check (Arbeitsregeln 2.3), im Quelltext beider Versionen:
+  - 1.1.3 hat Werkzeugbibliothek und Werkzeug-Controller, aber keine
+    Schnittwerte je Werkstoff.
+  - Der Wochen-Build hat neu `Path/Tool/FeedsSpeeds`: „Presets“ am
+    Werkzeug mit vc und fz je Werkstoff (UUID oder Name) und
+    Bearbeitungsart (profile, pocket, slot, drill, adaptive,
+    surface_finish), dazu einen Vorschlagsdialog im Werkzeug-Controller, der
+    den Werkstoff des Rohteils nimmt.
+  - FreeCADs Werkstoffkarten kennen die Werkstoffnummer
+    (`MaterialStandard/MaterialNumber`), aber weder Härte noch
+    Zusammensetzung; das Modell `Machinability` (vc HSS/VHM, kc1.1, mc)
+    haben nur sechs generische Werkstoffe.
+  - ae/ap und eine Beurteilung von Strategien gibt es in keiner Version.
+- Daraus die Spezifikation: Werkstoffliste mitgeliefert und erweiterbar,
+  Werkzeuge mit einer Tabelle der Einsätze „für alle Werkstoffe“ und je
+  Werkstoff, gerechnete Werte, Bild des Eingriffs, Strategievergleich mit
+  „Schneidenweg je cm³“ als Maß für den Verschleiß, Übergabe an FreeCADs
+  Presets als Stufe 2.
+- Manuels Beispiel durchgerechnet (Abschnitt 7): 2,5-faches
+  Zeitspanvolumen, ein Zwölftel des Schneidenwegs.
+- Acht Entscheidungen mit Alternative und Kosten in Abschnitt 11.
+
+### TEST
+- Nur Doku, kein Testlauf. Die Zahlen des Beispiels von Hand nachgerechnet.
+
+### NEXT
+- Stufe 1 bauen, Patch für Patch nach Abschnitt 12.
+
 ## P-2026-09-25-43 installieren-einfach
 
 ### EINGELESEN

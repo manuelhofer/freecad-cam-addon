@@ -65,7 +65,8 @@ neue Spezifikation unter `docs/` bekommt hier eine Zeile.
 | --- | --- |
 | Code allgemein: welches Modul was tut, wie die Daten fließen, Stolpersteine | [docs/aufbau.md](docs/aufbau.md) |
 | W-001 Maschine aus Baugruppe (Achsen, Betriebsarten, Export) | [docs/spezifikation_maschine_aus_baugruppe.md](docs/spezifikation_maschine_aus_baugruppe.md); Code: `camaddon/kette.py` (Baugruppe lesen), `camaddon/maschine.py` (Maschinenobjekt), `camaddon/gui_maschine.py` (Dialog; dazu `gui_details.py`, `gui_hilfe.py`, `gui_verteilhilfe.py`, `gui_bericht.py`, `gui_zeigen.py`), `camaddon/export.py` (Übergabe an CAM), Beispiele: `tests/beispielmaschinen.py` |
-| Update-Suche per Git (private Phase) | `camaddon/aktualisierung.py`, `camaddon/gui_aktualisierung.py` |
+| W-002 Werkzeugverwaltung (Werkstoffe, Werkzeuge, Schnittwerte, Strategien) | [docs/spezifikation_werkzeugverwaltung.md](docs/spezifikation_werkzeugverwaltung.md) |
+| Installieren und Update-Suche | `installieren.py` (eine Zeile, ohne Git), `camaddon/aktualisierung.py` und `camaddon/gui_aktualisierung.py` (per Git) |
 | Ausführliche Hilfetexte | `help/<sprache>/*.html`, Themen in `camaddon/hilfe.py` |
 | Texte der Oberfläche, Übersetzungen | `camaddon/sprache.py` (Kopfkommentar), [translations/README.md](translations/README.md) |
 | Oberfläche testen, Screenshots | `scripts/oberflaeche_testen.sh` (Kopfkommentar), Beispiel: `tests/gui/szenario_erster_start.py` |
