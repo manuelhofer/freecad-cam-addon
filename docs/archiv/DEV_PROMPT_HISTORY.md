@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-13 operationsnamen-wie-freecad
+
+### EINGELESEN
+- Hilfe und Tooltip von „Schnittwerte in den Job“ nannten FreeCADs
+  Operationen „Kontur“, „Tasche“, „Planfräsen“, „Nut“. Im deutschen FreeCAD
+  heißen sie anders – ausgelesen aus den Menüs (Wegwerf-Szenario mit
+  `Gui.setLocale`, beide Versionen): Adaptiv, **Profil**, **Taschenform**,
+  **Fläche** (Wochen-Build: **Fräsen**), **Nute**, Bohren. Englisch: Adaptive,
+  Profile, Pocket Shape, Face (Wochen-Build: Mill Facing), Slot, Drilling.
+- Die Felder im Aufgabenfenster des Adaptivs: 1.1.3 „Überlappungs-Prozentsatz“,
+  „Schritt runter“, „Wendel-Rampenwinkel“, „Schnittbereich: Außen/Innen“;
+  Wochen-Build „Prozedurschritt (Prozent)“, „Schritt runter“, „Maximaler
+  Rampenwinkel“, „Fräsbereich“.
+- Manuels Beispiel „Außenkonturen schruppen“ stand nur als Satz in
+  „Strategien vergleichen“. Geprüft in beiden Versionen (FreeCADCmd,
+  Quader 40 × 30 × 20): Adaptiv mit der Unterseite als Basisgeometrie und
+  „Außen“ fährt neben dem Rohteil gerade auf Tiefe und schneidet von der
+  Seite hinein, ohne Helix; „Innen“ taucht mit Helix ein; ohne
+  Basisgeometrie entsteht keine Bahn.
+
+### DATEIEN
+- `translations/de.json`, `translations/en.json` (`sj.zustellung.tooltip`)
+- `help/de|en/werkzeuge.html` (Namen, Felder des Adaptivs, neuer Abschnitt
+  „Eine Außenkontur schruppen“)
+- `help/de|en/strategien.html` (Verweis darauf; „Zustelltiefe“ statt
+  „Stufentiefe“), `help/de/schruppwerte.html`
+- `docs/spezifikation_werkzeugverwaltung.md` (Namen in Abschnitt 10 und 11)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Hilfe (?) → „Eine Außenkontur schruppen“: Die
+Schritte nennen genau die Wörter, die im deutschen FreeCAD 1.1.3 im Menü
+und im Aufgabenfenster des Adaptivs stehen (Adaptiv, Basisgeometrie,
+Bearbeitung, Schnittbereich, Außen), und dem Weg folgend entsteht eine
+Bahn rund um das Teil.
+
+### DONE
+- Namen angeglichen, Feldnamen genannt, Abschnitt Außenkontur.
+
+### TEST
+- `tests/test_sprache.py`, `tests/test_hilfe.py` in beiden Versionen; alle
+  Hilfeseiten auf geschlossene Tags geprüft; der Abschnitt im Hilfefenster
+  als Screenshot angesehen.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Manuel: Stimmen die Namen in seinem FreeCAD? Nennt er „Nute“ lieber
+  „Nut“, bleibt es trotzdem beim Wort aus dem Menü.
+
 ## P-2026-09-26-12 einsatz-kopieren
 
 ### EINGELESEN

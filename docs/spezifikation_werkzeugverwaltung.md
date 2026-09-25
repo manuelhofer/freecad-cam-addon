@@ -294,8 +294,9 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    **Erweitert** (P-2026-09-25-61): Die Operationen, die den
    Werkzeug-Controller benutzen, bekommen ae als Schrittweite (% von D,
    abgerundet) und ap als Zustelltiefe, wenn der Einsatz passt (Adaptiv ←
-   dynamisch und Schruppen, Tasche und Planfräsen ← Schruppen, Nut ←
-   Vollnut, Kontur ← nichts). Damit geht Manuels „Loch auffräsen: einmal
+   dynamisch und Schruppen, Taschenform und Fläche ← Schruppen, Nute ←
+   Vollnut, Profil ← nichts; die Namen wie im Menü des deutschen FreeCAD,
+   P-2026-09-26-13). Damit geht Manuels „Loch auffräsen: einmal
    helikal eintauchen, dann ebenenweise mit voller Schneide“ in einem
    Schritt: Adaptiv mit Zustelltiefe = Schneidenlänge.
    **Und umgekehrt** (P-2026-09-25-66): „Aus CAM übernehmen“ holt die
@@ -373,7 +374,7 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     beim Bohren der volle. Alternative: eine eigene Spalte je Einsatz.
 12. **Einsatz für einen Werkzeug-Controller** wird vorgeschlagen: erst nach
     dem Namen des Controllers („T3 Schruppen dynamisch“), dann nach der
-    Operation (Adaptiv → dynamisch, Tasche → Schruppen, Kontur → Schlichten),
+    Operation (Adaptiv → dynamisch, Taschenform → Schruppen, Profil → Schlichten),
     sonst die erste Zeile – immer änderbar.
 
 ### Dazugekommen beim Bauen von Stufe 3
@@ -399,9 +400,9 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     die Maschine ändert sich ja nicht, wenn man den Vorschlag verwirft.
 18. **Schrittweite und Zustelltiefe nur in passende Operationen.** Ein
     dynamischer Einsatz (großes ap) kommt nur ins Adaptiv: Nur dort hält
-    FreeCAD den Eingriff klein; eine Tasche fährt zuerst eine volle Nut, und
-    mit ap über die ganze Schneide bräche der Fräser. Die Kontur bekommt
-    nie etwas, weil mit ihr auch ausgeschnitten wird. Die Formel des
+    FreeCAD den Eingriff klein; eine Taschenform fährt zuerst eine volle Nut,
+    und mit ap über die ganze Schneide bräche der Fräser. Das Profil bekommt
+    nie etwas, weil mit ihm auch ausgeschnitten wird. Die Formel des
     SetupSheets an der Zustelltiefe wird dabei entfernt (sonst stünde nach
     dem Neuberechnen wieder D da). Alternative: alle Operationen des TC
     bekommen ae und ap – einfacher, aber gefährlich.

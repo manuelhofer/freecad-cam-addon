@@ -104,7 +104,7 @@ it is preselected next time.</li>
 <li>One row per tool controller: the tool manager's tool behind it (from the
 library “CAM-Addon”, otherwise same T number and diameter), the <b>use
 case</b> – suggested from the controller's name (“T3 Dynamic roughing”) or the
-operation (Adaptive → dynamic, Pocket → roughing, Profile → finishing,
+operation (Adaptive → dynamic, Pocket Shape → roughing, Profile → finishing,
 Drilling → drilling) –, the resulting n and vf, and what is set now.</li>
 <li>Plunging and ramping get a third of the feed rate, drilling the full
 one.</li>
@@ -117,9 +117,14 @@ the dialog afterwards; Ctrl+Z undoes it.</li>
 controller get ae as step over (in % of D, rounded down) and ap as step down,
 Adaptive also the tool's ramp angle –
 if the use case fits them: <b>Adaptive</b> gets “Dynamic roughing” and
-“Roughing”, <b>Pocket</b> and <b>Face</b> “Roughing”, <b>Slot</b> “Full slot”. A
-<b>Profile</b> gets nothing – it is also used for cutting out, in a full slot,
-and the ap of another use case would be too much for that. The column
+“Roughing”, <b>Pocket Shape</b> and <b>Face</b> (in the weekly build <b>Mill
+Facing</b>) “Roughing”, <b>Slot</b> “Full slot”. A <b>Profile</b> gets nothing –
+it is also used for cutting out, in a full slot, and the ap of another use
+case would be too much for that. In the Adaptive task panel the values are
+under <b>Operation</b> as <b>Step over percent</b> and under <b>Depths</b> as
+<b>Step down</b>, the ramp angle as <b>Helix ramp angle</b> (in the weekly
+build: <b>Step over (percent)</b>, <b>Step down</b>, <b>Max ramp
+angle</b>). The column
 “Step over · step down” shows beforehand what goes where; the checkbox below
 turns it off.</li>
 </ul>
@@ -145,6 +150,22 @@ helically to 25 mm once and then clears the level.</li>
 is entered in the tool manager, “Cutting data into the job” sets it in
 Adaptive as well (the column then shows e.g. “helix 3°”); otherwise FreeCAD's
 default of 5° stays.</p>
+
+<h3>Roughing an outer contour</h3>
+<p>The same from the outside: Adaptive clears the stock all around the part –
+narrow and with the full flute length. It needs no helix for this: it goes
+down to depth next to the stock and cuts its way in from the side.</p>
+<ol>
+<li>A <b>Dynamic roughing</b> use case and tool controller as above.</li>
+<li>Add <b>Adaptive</b>, under <b>Base Geometry</b> select the underside of the
+part, and under <b>Operation</b> set <b>Cut region</b> to <b>Outside</b>.
+Without base geometry Adaptive computes no path.</li>
+<li><b>Cutting data into the job</b> → Apply: step over and step down as for
+the hole.</li>
+</ol>
+<p>A <b>Profile</b> with a <b>Finishing</b> use case then finishes the contour:
+“Cutting data into the job” gives it spindle speed and feed, but no step
+over or step down (see above).</p>
 
 <h3>Saving</h3>
 <p>Like FreeCAD's preferences: <b>OK</b> saves and closes, <b>Apply</b> saves and
