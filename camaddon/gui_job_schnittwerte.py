@@ -16,6 +16,7 @@ from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, symbol
 from . import job_schnittwerte as js
+from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
@@ -130,6 +131,18 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         kopf.setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
         kopf.setSectionResizeMode(WERKZEUG, QtGui.QHeaderView.Stretch)
         aufbau.addWidget(self.tabelle, 1)
+
+        # Ein Knopf mit Menü: je Werkzeug seine Einsätze – ein Klick legt an.
+        self.knopf_tc_neu = QtGui.QPushButton(tr("sj.tc_neu"))
+        self.knopf_tc_neu.setToolTip(tr("sj.tc_neu.tooltip"))
+        self.knopf_tc_neu.setAutoDefault(False)
+        self.menue_tc_neu = QtGui.QMenu(self.knopf_tc_neu)
+        self.menue_tc_neu.aboutToShow.connect(self._menue_tc_neu_fuellen)
+        self.knopf_tc_neu.setMenu(self.menue_tc_neu)
+        zeile = QtGui.QHBoxLayout()
+        zeile.addWidget(self.knopf_tc_neu)
+        zeile.addStretch()
+        aufbau.addLayout(zeile)
 
         self.mit_zustellung = QtGui.QCheckBox(tr("sj.zustellung"))
         self.mit_zustellung.setToolTip(tr("sj.zustellung.tooltip"))
@@ -260,6 +273,44 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         self.tabelle.setColumnHidden(ZUSTELLUNG, not an)
         _parameter().SetBool("SjZustellung", an)
         self.tabelle.resizeRowsToContents()
+
+    def _menue_tc_neu_fuellen(self):
+        """Je Werkzeug ein Untermenü mit den Einsätzen, die vc und fz haben."""
+        self.menue_tc_neu.clear()
+        for werkzeug in self.bibliothek.sortierte_werkzeuge():
+            einsaetze = [
+                e for e in werkzeug.einsaetze(self.werkstoff) if _vollstaendig(werkzeug, e)
+            ]
+            if not einsaetze or not werkzeug.durchmesser:
+                continue
+            untermenue = self.menue_tc_neu.addMenu(dezimal(wz.zeile(werkzeug)))
+            for einsatz in einsaetze:
+                aktion = untermenue.addAction(wz.einsatz_name(einsatz))
+                aktion.triggered.connect(
+                    lambda _an=False, w=werkzeug, e=einsatz: self.controller_anlegen(w, e)
+                )
+        if self.menue_tc_neu.isEmpty():
+            leer = self.menue_tc_neu.addAction(tr("sj.tc_neu.leer"))
+            leer.setEnabled(False)
+
+    def controller_anlegen(self, werkzeug, einsatz):
+        """Neuer Werkzeug-Controller im Job, benannt nach dem Einsatz, mit n und vf.
+
+        Übergibt vorher alle Werkzeuge an CAM – so ist das Werkzeug in der
+        Bibliothek „CAM-Addon“ und auf dem gespeicherten Stand. Gibt den
+        Controller zurück (oder None).
+        """
+        if self.job is None:
+            return None
+        try:
+            ue.uebergeben(self.bibliothek)
+            tc = js.lege_controller_an(self.dokument, self.job, werkzeug, einsatz)
+        except Exception as fehler:  # jeder Fehler von CAM soll als Satz ankommen
+            FreeCAD.Console.PrintError(f"CAM-Addon: Werkzeug-Controller anlegen: {fehler}\n")
+            QtGui.QMessageBox.warning(self, tr("sj.titel"), tr("sj.tc_neu.fehler", fehler=fehler))
+            return None
+        self._zeilen_aufbauen()
+        return tc
 
     def waehle_einsatz(self, zeile, index):
         """Wählt in Zeile `zeile` den Einsatz `index` (-1 = nicht ändern) – für die Szenarien."""

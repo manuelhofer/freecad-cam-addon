@@ -27,9 +27,12 @@ Werkzeugverwaltung mit Werkstoffliste, Schnittwerten je Werkstoff und
 Einsatz, Bild des Eingriffs, Strategievergleich, „Schruppwerte planen“
 (größtes Zeitspanvolumen, das Werkzeug und Maschine einhalten), „Speichern
 und an CAM übergeben“ und „Schnittwerte in den Job“ (setzt auch in 1.1.3
-Drehzahl und Vorschub der Werkzeug-Controller). Wartet auf **Manuels Test**
-(Klickwege in den Verlaufseinträgen P-2026-09-25-46 bis -53 und -60) und auf
-die Besprechung der Entscheidungen in der Spezifikation (Abschnitt 11).
+Drehzahl und Vorschub der Werkzeug-Controller, Schrittweite und
+Zustelltiefe der passenden Operationen und legt Werkzeug-Controller an).
+Wartet auf **Manuels Test** (Klickwege in den Verlaufseinträgen
+P-2026-09-25-46 bis -53 und -60 bis -65; der schnellste Einstieg ist
+„Schritt für Schritt“ in der Hilfe der Werkzeugverwaltung) und auf die
+Besprechung der Entscheidungen in der Spezifikation (Abschnitt 11).
 
 **Installation:** Nach dem Öffentlichstellen (T-005) die Zeile aus dem
 README ausprobieren (P-2026-09-25-43, -57).

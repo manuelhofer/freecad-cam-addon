@@ -3,6 +3,28 @@
 gewählten Werkzeugs. Jede Zeile der Liste sagt das Wichtigste auf einen
 Blick: <b>T3&nbsp;&nbsp;Schaftfräser Ø 12 · z 3 · VHM</b>.</p>
 
+<h3>Schritt für Schritt: vom Katalog in den Job</h3>
+<ol>
+<li><b>Werkstoff wählen</b> – oben, etwa „1.4301“ tippen. Die Schnittwerte
+gelten für diesen Werkstoff; „Alle Werkstoffe“ gilt für jeden, der keine
+eigenen hat.</li>
+<li><b>Werkzeug anlegen</b> – <b>Neu</b>, dann Durchmesser, Schneiden und
+Schneidenlänge.</li>
+<li><b>Einsätze eintragen</b> – <b>+ Einsatz</b> → etwa „Vollnut“; vc und fz
+aus dem Katalog des Herstellers. Drehzahl, Vorschub und Abtrag rechnet das
+Addon.</li>
+<li><b>Schruppwerte planen…</b> – schlägt ae, ap und fz für das meiste
+Zeitspanvolumen vor und legt sie als „Schruppen dynamisch“ an.</li>
+<li><b>Speichern und an CAM übergeben</b> – die Werkzeuge stehen dann als
+Bibliothek „CAM-Addon“ in FreeCAD CAM.</li>
+<li>Im CAM-Job: <b>Schnittwerte in den Job</b> → <b>Werkzeug-Controller
+hinzufügen</b> → Werkzeug → Einsatz. Der Controller heißt dann etwa
+„T3 Schruppen dynamisch“ und hat Drehzahl und Vorschub.</li>
+<li>Operationen mit diesem Controller anlegen (etwa Adaptiv), dann noch
+einmal <b>Schnittwerte in den Job</b> → Übernehmen: Die Operationen bekommen
+Schrittweite und Zustelltiefe.</li>
+</ol>
+
 <h3>Anlegen, kopieren, löschen</h3>
 <ul>
 <li><b>Neu</b> legt einen Schaftfräser mit der nächsten freien Nummer an. Als
@@ -68,6 +90,12 @@ dynamisch, Tasche → Schruppen, Kontur → Schlichten, Bohren → Bohren) –,
 daraus n und vf, und was jetzt eingestellt ist.</li>
 <li>Eintauchen und Rampen bekommen ein Drittel des Vorschubs, Bohren den
 vollen.</li>
+<li><b>Werkzeug-Controller hinzufügen</b> (unter der Tabelle) → Werkzeug →
+Einsatz legt im Job einen neuen Controller an: benannt nach dem Einsatz
+(„T3 Schruppen dynamisch“), mit Drehzahl und Vorschub. Vorher werden die
+Werkzeuge an CAM übergeben, damit das Werkzeug in der Bibliothek
+„CAM-Addon“ steht. Der Controller bleibt auch, wenn man den Dialog danach
+abbricht; Strg+Z nimmt ihn zurück.</li>
 <li><b>Schrittweite und Zustelltiefe:</b> Die Operationen, die den
 Werkzeug-Controller benutzen, bekommen ae als Schrittweite (in % von D,
 abgerundet) und ap als Zustelltiefe – wenn der Einsatz zu ihnen passt:
@@ -87,8 +115,9 @@ kleinem ae und der ganzen Schneide ausräumen – so macht es die Operation
 <li>In der Werkzeugverwaltung für den Fräser einen Einsatz <b>Schruppen
 dynamisch</b> anlegen – etwa mit <b>Schruppwerte planen…</b> – und
 <b>Speichern und an CAM übergeben</b>.</li>
-<li>Im Job einen Werkzeug-Controller mit diesem Fräser anlegen und ihn so
-nennen, dass der Einsatz im Namen steht: „T3 Schruppen dynamisch“.</li>
+<li>Im Job <b>Schnittwerte in den Job</b> → <b>Werkzeug-Controller
+hinzufügen</b> → den Fräser → „Schruppen dynamisch“. (Oder von Hand einen
+Controller anlegen und so nennen, dass der Einsatz im Namen steht.)</li>
 <li>Die Operation <b>Adaptiv</b> auf die Bohrung oder Tasche legen, mit diesem
 Werkzeug-Controller.</li>
 <li><b>Schnittwerte in den Job</b> → Übernehmen. Der Werkzeug-Controller

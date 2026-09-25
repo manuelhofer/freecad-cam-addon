@@ -3,6 +3,28 @@
 tool are on the right. Each line of the list shows the essentials at a
 glance: <b>T3&nbsp;&nbsp;End mill Ø 12 · z 3 · Carbide</b>.</p>
 
+<h3>Step by step: from the catalogue into the job</h3>
+<ol>
+<li><b>Choose the material</b> – at the top, e.g. type “1.4301”. The cutting
+data apply to this material; “All materials” applies to every material that
+has no values of its own.</li>
+<li><b>Add a tool</b> – <b>New</b>, then diameter, flutes and flute
+length.</li>
+<li><b>Enter use cases</b> – <b>+ Use case</b> → e.g. “Full slot”; vc and fz
+from the manufacturer's catalogue. The addon calculates speed, feed and
+removal rate.</li>
+<li><b>Plan roughing values…</b> – suggests ae, ap and fz for the highest
+removal rate and adds them as “Dynamic roughing”.</li>
+<li><b>Save and hand over to CAM</b> – the tools are then in FreeCAD CAM as
+the library “CAM-Addon”.</li>
+<li>In the CAM job: <b>Cutting data into the job</b> → <b>Add tool
+controller</b> → tool → use case. The controller is then called e.g.
+“T3 Dynamic roughing” and has speed and feed.</li>
+<li>Add operations with this controller (e.g. Adaptive), then once more
+<b>Cutting data into the job</b> → Apply: the operations get step over and
+step down.</li>
+</ol>
+
 <h3>Add, copy, delete</h3>
 <ul>
 <li><b>New</b> adds an end mill with the next free number. Enter the diameter
@@ -66,6 +88,11 @@ operation (Adaptive → dynamic, Pocket → roughing, Profile → finishing,
 Drilling → drilling) –, the resulting n and vf, and what is set now.</li>
 <li>Plunging and ramping get a third of the feed rate, drilling the full
 one.</li>
+<li><b>Add tool controller</b> (below the table) → tool → use case adds a new
+controller to the job: named after the use case (“T3 Dynamic roughing”), with
+spindle speed and feed. The tools are handed over to CAM first, so that the
+tool is in the library “CAM-Addon”. The controller stays even if you cancel
+the dialog afterwards; Ctrl+Z undoes it.</li>
 <li><b>Step over and step down:</b> The operations that use the tool
 controller get ae as step over (in % of D, rounded down) and ap as step down –
 if the use case fits them: <b>Adaptive</b> gets “Dynamic roughing” and
@@ -84,8 +111,9 @@ operation does when its step down is the flute length:</p>
 <li>In the tool manager, add a <b>Dynamic roughing</b> use case for the cutter
 – for example with <b>Plan roughing values…</b> – and <b>Save and hand over to
 CAM</b>.</li>
-<li>In the job, add a tool controller with this cutter and name it so that
-the use case is in the name: “T3 Dynamic roughing”.</li>
+<li>In the job: <b>Cutting data into the job</b> → <b>Add tool
+controller</b> → the cutter → “Dynamic roughing”. (Or add a controller by
+hand and name it so that the use case is in the name.)</li>
 <li>Put an <b>Adaptive</b> operation on the hole or pocket, with this tool
 controller.</li>
 <li><b>Cutting data into the job</b> → Apply. The tool controller gets n and vf,

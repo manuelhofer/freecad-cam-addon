@@ -12,6 +12,60 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-65 werkzeug-controller-anlegen
+
+### EINGELESEN
+- Der Weg „Loch auffräsen“ (P-61) brauchte einen Werkzeug-Controller, den
+  man von Hand anlegt und so benennt, dass der Einsatz im Namen steht –
+  ein fehleranfälliger Schritt.
+- FreeCAD legt Controller mit `Controller.Create` im **aktiven** Dokument an
+  (1.1.3 und Wochen-Build); `cam_assets.get()` liefert je Aufruf ein neues
+  ToolBit, das sich einmal anhängen lässt.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`controller_name()`,
+  `lege_controller_an()`, `_setze_werte()` aus `setze()` gelöst)
+- `camaddon/gui_job_schnittwerte.py` (Knopf „Werkzeug-Controller
+  hinzufügen“ mit Menü je Werkzeug und Einsatz)
+- `help/de|en/werkzeuge.html` (Knopf; „Schritt für Schritt: vom Katalog in
+  den Job“ oben auf der Seite; der Weg „Loch auffräsen“ nutzt den Knopf)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`
+- `README.md` („Was es kann“), `docs/spezifikation_werkzeugverwaltung.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+CAM-Job, Rohteil 1.4301, Werkzeugverwaltung mit dem Ø-12-Fräser (Vollnut,
+Schruppen dynamisch) → „Schnittwerte in den Job“ → „Werkzeug-Controller
+hinzufügen“ → „T3 Schaftfräser Ø 12 · z 3 · VHM“ → „Vollnut“ → in der
+Tabelle steht eine neue Zeile „T3 Vollnut“, Einsatz Vollnut, jetzt
+eingestellt 2122 U/min · 318 mm/min; im Baum des Jobs steht der Controller
+mit dem Fräser; Strg+Z nimmt ihn zurück.
+
+### DONE
+- Menü je Werkzeug (nur solche mit D) mit seinen Einsätzen, die vc und fz
+  haben – für den gewählten Werkstoff. Ohne solche: ein grauer Eintrag
+  „Kein Werkzeug mit vc und fz“.
+- Anlegen: erst alle Werkzeuge an CAM übergeben (das Werkzeug soll auf dem
+  gespeicherten Stand in der Bibliothek stehen), dann ToolBit anhängen,
+  Controller „T<Nummer> <Einsatz>“ mit der T-Nummer, in den Job, n und vf
+  setzen – eine Transaktion. Die Zeile erscheint sofort, der Einsatz ist am
+  Namen erkannt.
+- Hilfe: „Schritt für Schritt: vom Katalog in den Job“ – sieben Schritte
+  vom Werkstoff bis zu Schrittweite und Zustelltiefe im Adaptiv.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_job_schnittwerte` grün –
+  neuer Controller „T3 Vollnut“, T3, Werkzeug aus der Bibliothek, 2122 U/min
+  und 318 mm/min, Einsatz am Namen erkannt, Strg+Z entfernt Controller und
+  Werkzeug.
+- KI, Oberfläche in **beiden** Versionen: `szenario_schnittwerte_job` grün
+  (Menü → „Vollnut“ ausgelöst), Screenshot angesehen.
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen, Version 0.6.1 oder höher.
+
 ## P-2026-09-25-64 version-0-6-0
 
 ### EINGELESEN

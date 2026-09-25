@@ -295,6 +295,9 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    Vollnut, Kontur ← nichts). Damit geht Manuels „Loch auffräsen: einmal
    helikal eintauchen, dann ebenenweise mit voller Schneide“ in einem
    Schritt: Adaptiv mit Zustelltiefe = Schneidenlänge.
+   **Dazu** (P-2026-09-25-65): „Werkzeug-Controller hinzufügen“ im selben
+   Dialog – Werkzeug und Einsatz wählen, der Controller heißt nach dem
+   Einsatz („T3 Schruppen dynamisch“) und hat gleich Drehzahl und Vorschub.
 3. **Schruppwerte vorschlagen:** aus Werkzeug, Werkstoff (kc1.1, mc) und
    Maschine (Leistung, Drehmoment, Höchstdrehzahl aus W-001) die
    Kombination aus ae, ap und fz mit dem größten Zeitspanvolumen, die die

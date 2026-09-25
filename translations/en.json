@@ -455,5 +455,9 @@
     "wv.schaft.tooltip": "Diameter of the shank – only for CAM. Empty: same as the diameter.",
     "wv.schaft.platzhalter": "as D: {wert}",
     "wv.hinweis.gesamtlaenge": "The overall length ({laenge} mm) is shorter than the flutes ({schneide} mm).",
-    "einheit.drehzahl": "rpm"
+    "einheit.drehzahl": "rpm",
+    "sj.tc_neu": "Add tool controller",
+    "sj.tc_neu.tooltip": "Adds a tool controller for a tool of the tool manager to the job – named after the use case (“T3 Dynamic roughing”), with spindle speed and feed. The tools are handed over to CAM first.",
+    "sj.tc_neu.leer": "No tool with vc and fz",
+    "sj.tc_neu.fehler": "The tool controller could not be added:\n{fehler}"
 }

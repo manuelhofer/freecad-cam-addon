@@ -189,6 +189,51 @@ def werte(werkzeug, einsatz):
     return n, vf, senkrecht
 
 
+def controller_name(werkzeug, einsatz):
+    """„T3 Schruppen dynamisch“ – am Einsatz im Namen erkennt vorgeschlagener_einsatz() ihn wieder."""
+    return f"T{werkzeug.nummer} {wz.einsatz_name(einsatz)}"
+
+
+def lege_controller_an(dokument, job, werkzeug, einsatz):
+    """Legt im Job einen Werkzeug-Controller für `werkzeug` an und setzt n und vf aus `einsatz`.
+
+    Das Werkzeug kommt aus der Bibliothek „CAM-Addon“ – es muss vorher
+    übergeben sein (uebergabe_werkzeuge.uebergeben). Der Name nennt den
+    Einsatz (controller_name). Eine Transaktion: Strg+Z nimmt Controller
+    und Werkzeug zurück. Gibt den neuen Controller zurück.
+    """
+    from Path.Tool import Controller
+    from Path.Tool.camassets import cam_assets
+
+    # Controller.Create legt im aktiven Dokument an.
+    FreeCAD.setActiveDocument(dokument.Name)
+    dokument.openTransaction("Werkzeug-Controller anlegen")
+    try:
+        bit = cam_assets.get(f"toolbit://{PRAEFIX}{werkzeug.kennung}").attach_to_doc(doc=dokument)
+        tc = Controller.Create(
+            controller_name(werkzeug, einsatz), tool=bit, toolNumber=werkzeug.nummer
+        )
+        job.Proxy.addToolController(tc)
+        _setze_werte(tc, werkzeug, einsatz)
+    except Exception:
+        dokument.abortTransaction()
+        raise
+    dokument.commitTransaction()
+    dokument.recompute()
+    return tc
+
+
+def _setze_werte(tc, werkzeug, einsatz):
+    """Drehzahl und Vorschübe eines TC aus dem Einsatz; False, wenn vc oder fz fehlen."""
+    n, vf, senkrecht = werte(werkzeug, einsatz)
+    if n <= 0 or vf <= 0:
+        return False  # ohne vc und fz lieber nichts als 0 U/min
+    tc.SpindleSpeed = float(round(n))
+    tc.HorizFeed = FreeCAD.Units.Quantity(f"{round(vf)} mm/min")
+    tc.VertFeed = FreeCAD.Units.Quantity(f"{round(senkrecht)} mm/min")
+    return True
+
+
 def setze(dokument, zuordnung, job=None):
     """Setzt Drehzahl und Vorschübe; `zuordnung` = [(tc, werkzeug, einsatz), …].
 
@@ -201,12 +246,8 @@ def setze(dokument, zuordnung, job=None):
     dokument.openTransaction("Schnittwerte übernehmen")
     try:
         for tc, werkzeug, einsatz in zuordnung:
-            n, vf, senkrecht = werte(werkzeug, einsatz)
-            if n <= 0 or vf <= 0:
-                continue  # ohne vc und fz lieber nichts als 0 U/min
-            tc.SpindleSpeed = float(round(n))
-            tc.HorizFeed = FreeCAD.Units.Quantity(f"{round(vf)} mm/min")
-            tc.VertFeed = FreeCAD.Units.Quantity(f"{round(senkrecht)} mm/min")
+            if not _setze_werte(tc, werkzeug, einsatz):
+                continue
             gesetzt.controller += 1
             for operation in operationen_mit(tc, job) if job is not None else []:
                 neu = zustellung(operation, werkzeug, einsatz)

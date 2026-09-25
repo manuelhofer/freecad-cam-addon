@@ -115,3 +115,33 @@ def schritte(h):
     h.pruefe(float(adaptiv.StepDown.getValueAs("mm")) == 25, f"Adaptiv: {adaptiv.StepDown}")
     dok.undo()
     h.pruefe(tc1.SpindleSpeed == vorher[0], "Strg+Z nimmt es nicht zurück")
+
+    # Werkzeug-Controller hinzufügen: Menü je Werkzeug mit seinen Einsätzen.
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_SchnittwerteJob"))
+    yield 1000
+    d = gj.SchnittwerteJobDialog.offen
+    h.pruefe(d is not None and d.isVisible(), "Dialog geht nicht wieder auf")
+    if d is None:
+        return
+    d._menue_tc_neu_fuellen()
+    werkzeuge = d.menue_tc_neu.actions()
+    h.pruefe(len(werkzeuge) == 1 and werkzeuge[0].menu() is not None, "Menü der Werkzeuge")
+    if len(werkzeuge) != 1 or werkzeuge[0].menu() is None:
+        return
+    einsaetze = {a.text(): a for a in werkzeuge[0].menu().actions()}
+    h.pruefe(
+        sorted(einsaetze) == ["Schruppen dynamisch", "Vollnut"], f"Einsätze: {sorted(einsaetze)}"
+    )
+    einsaetze["Vollnut"].trigger()
+    yield 500
+    zeilen = {d.tabelle.item(z, gj.TC).text(): z for z in range(d.tabelle.rowCount())}
+    h.pruefe("T3 Vollnut" in zeilen, f"neuer TC fehlt: {sorted(zeilen)}")
+    if "T3 Vollnut" in zeilen:
+        z = zeilen["T3 Vollnut"]
+        h.pruefe(
+            d.tabelle.cellWidget(z, gj.EINSATZ).currentText() == "Vollnut",
+            f"Einsatz des neuen TC: {d.tabelle.cellWidget(z, gj.EINSATZ).currentText()!r}",
+        )
+        h.pruefe("2122" in d.tabelle.item(z, gj.JETZT).text(), "neuer TC ohne Drehzahl")
+    h.bild("3_tc_neu", d)
+    d.reject()

@@ -155,6 +155,21 @@ pruefe(formel(adaptiv) is not None, "Strg+Z bringt die Formel nicht zurück")
 js.setze(dok, [(tc1, fraeser, einsaetze[1])])
 pruefe(tiefen() == vorher, "ohne Job trotzdem Operationen gesetzt")
 
+# Neuer Werkzeug-Controller: benannt nach dem Einsatz, Werkzeug aus der
+# Bibliothek, n und vf gesetzt; Strg+Z nimmt ihn samt Werkzeug zurück.
+objekte_vorher = len(dok.Objects)
+tc3 = js.lege_controller_an(dok, job, fraeser, einsaetze[0])
+pruefe((tc3.Label, tc3.ToolNumber) == ("T3 Vollnut", 3), f"neuer TC: {tc3.Label}, {tc3.ToolNumber}")
+pruefe(tc3 in js.werkzeug_controller(job), "neuer TC nicht im Job")
+pruefe(js.werkzeug_von(tc3, bibliothek) is fraeser, "Werkzeug des neuen TC")
+pruefe(
+    tc3.SpindleSpeed == 2122 and round(mm_min(tc3.HorizFeed)) == 318,
+    f"Werte des neuen TC: {tc3.SpindleSpeed}, {tc3.HorizFeed}",
+)
+pruefe(js.vorgeschlagener_einsatz(tc3, einsaetze, job) == 0, "Einsatz am Namen nicht erkannt")
+dok.undo()
+pruefe(len(dok.Objects) == objekte_vorher, f"Strg+Z: {len(dok.Objects)} statt {objekte_vorher}")
+
 FreeCAD.closeDocument(dok.Name)
 sprache.setze_sprache(vorher_sprache)
 if fehler:

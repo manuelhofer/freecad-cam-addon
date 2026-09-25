@@ -455,5 +455,9 @@
     "wv.schaft.tooltip": "Durchmesser des Schafts – nur für CAM. Leer: wie der Durchmesser.",
     "wv.schaft.platzhalter": "wie D: {wert}",
     "wv.hinweis.gesamtlaenge": "Die Gesamtlänge ({laenge} mm) ist kürzer als die Schneide ({schneide} mm).",
-    "einheit.drehzahl": "U/min"
+    "einheit.drehzahl": "U/min",
+    "sj.tc_neu": "Werkzeug-Controller hinzufügen",
+    "sj.tc_neu.tooltip": "Legt im Job einen Werkzeug-Controller für ein Werkzeug der Werkzeugverwaltung an – benannt nach dem Einsatz („T3 Schruppen dynamisch“), mit Drehzahl und Vorschub. Dafür werden die Werkzeuge vorher an CAM übergeben.",
+    "sj.tc_neu.leer": "Kein Werkzeug mit vc und fz",
+    "sj.tc_neu.fehler": "Der Werkzeug-Controller ließ sich nicht anlegen:\n{fehler}"
 }
