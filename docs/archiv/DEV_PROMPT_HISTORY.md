@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-19 hilfe-im-dialog
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitte 8 und 11. Die Anleitung „Beschleunigung
+  ermitteln“ ist aus Abschnitt 8 übernommen.
+- `docs/arbeitsregeln.md`, Abschnitt 8 (drei Stufen Hilfe).
+
+### DATEIEN
+- `help/de/*.html`, `help/en/*.html` (je vier Seiten, neu)
+- `camaddon/hilfe.py` (neu), `camaddon/gui_maschine.py`
+- `translations/de.json`, `translations/en.json`, `translations/README.md`
+- `tests/test_hilfe.py`, `tests/gui/szenario_hilfe.py` (neu)
+- `CHATSTART.md` (Lesekarte), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Klick auf (?) bei „Achsen“ öffnet die Seite „Achsen und Betriebsarten“.
+Ihr Verweis führt zu „Beschleunigung ermitteln“, und bei einer linearen
+Betriebsart steht unter den Feldern der Verweis „Wie finde ich die
+Beschleunigung heraus?“.
+
+### DONE
+- **Vier Hilfeseiten** auf Deutsch und Englisch:
+  - Achsen und Betriebsarten (mit S4/C4, Gelenken ohne Betriebsart, Kennwerten
+    und Zeigen)
+  - Beschleunigung ermitteln (Maschinendaten, Datenblatt, Messen mit
+    Beispiel)
+  - Aufnahmen und Revolver (LCS anlegen, Verteilhilfe)
+  - Glieder (Schwenkbrücke, eine Achse ein Gelenk)
+- **Knöpfe (?)** rechts neben den Überschriften Achsen, Aufnahmen und
+  Glieder. Das Hilfefenster ist nicht modal, damit man lesen und dabei
+  weiterarbeiten kann. Verweise zwischen den Seiten funktionieren.
+- Bei Betriebsarten mit Beschleunigung steht der Verweis „Wie finde ich die
+  Beschleunigung heraus?“ direkt unter den Feldern, also dort, wo die Frage
+  aufkommt.
+- Für die Hilfe gilt derselbe Rückfall wie für die kurzen Texte: gewählte
+  Sprache, Englisch, Deutsch. `translations/README.md` erklärt jetzt auch das
+  Übersetzen der Hilfe.
+- `test_hilfe.py` prüft:
+  - jedes Thema auf de und en vorhanden, mit Überschrift
+  - keine toten Verweise zwischen den Seiten
+  - keine Seite ohne Thema
+  - jedes vom Dialog benutzte Thema existiert
+- Die Hilfe zur Beschleunigung sagt ausdrücklich, dass die
+  Maschinendaten-Nummern aus allgemeinem Wissen stammen und im Handbuch zu
+  prüfen sind. Das Gleiche steht als offener Punkt in P-2026-09-25-07.
+
+### TEST
+- Von der KI ausgeführt: alle Prüfungen ohne Fenster `ok` (jetzt fünf),
+  alle vier Szenarien `ok`.
+- Screenshots beider Hilfeseiten angesehen: gut lesbar, Tabelle und Formel
+  werden sauber dargestellt.
+
+### NEXT
+- Manuels Test des Dialogs in seinem FreeCAD, danach Stufe 2 (Export).
+
 ## P-2026-09-25-18 zeigen-in-3d
 
 ### EINGELESEN

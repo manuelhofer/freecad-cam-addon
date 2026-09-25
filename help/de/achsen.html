@@ -1,0 +1,43 @@
+<h2>Achsen und Betriebsarten</h2>
+<p>Jedes <b>Schiebegelenk</b> und jedes <b>Drehgelenk</b> deiner Baugruppe steht in
+der Liste. Ein Gelenk ist erst dann eine NC-Achse, wenn es eine
+<b>Betriebsart</b> mit einem <b>NC-Namen</b> bekommt.</p>
+
+<h3>Die Betriebsarten</h3>
+<table cellpadding="4">
+<tr><td><b>Linear</b></td><td>Die Achse fährt. Nur an Schiebegelenken. Beispiele: X1, Z1, Y.</td></tr>
+<tr><td><b>Positionieren</b></td><td>Die Achse dreht auf einen Winkel. Nur an Drehgelenken. Beispiele: C4, B1, A.</td></tr>
+<tr><td><b>Spindel</b></td><td>Die Achse dreht mit einer Drehzahl. Nur an Drehgelenken. Beispiele: S1, S4.</td></tr>
+<tr><td><b>Revolver</b></td><td>Der Revolver schaltet von Werkzeugplatz zu Werkzeugplatz. Nur an Drehgelenken.</td></tr>
+</table>
+
+<h3>Mehrere Betriebsarten an einem Gelenk</h3>
+<p>Ein Drehgelenk kann mehrere Rollen haben. Die Hauptspindel einer
+Drehmaschine heißt zum Beispiel <b>S4</b>, wenn sie dreht, und <b>C4</b>, wenn
+sie auf einen Winkel positioniert. Lege dafür am selben Gelenk zwei
+Betriebsarten an. Genauso bei einem Revolver, der auf beliebige Gradzahlen
+fahren kann: <b>Revolver</b> und <b>Positionieren</b>.</p>
+
+<h3>Gelenke ohne Betriebsart</h3>
+<p>Das ist erlaubt. Ein solches Gelenk wird <b>von Hand verstellt</b>, zum Beispiel ein
+Reitstock ohne NC-Achse. Das NC-Programm kennt es nicht; seine Stellung setzt
+man später von Hand.</p>
+
+<h3>Die Kennwerte</h3>
+<ul>
+<li><b>Fett</b> beschriftete Felder sind Pflicht: Eilgang, Geschwindigkeit bzw. Drehzahl.</li>
+<li>Leere Felder bedeuten <b>unbekannt</b> – nicht null. Trage ein, was du weißt;
+der Rest lässt sich nachtragen.</li>
+<li>Die Einheiten sind die aus Datenblatt und Maschinendaten: mm/min, U/min,
+m/s² (linear), U/s² (drehend), Sekunden.</li>
+<li>Verfahrweg und Schwenkbereich trägst du <b>nicht</b> hier ein: Sie kommen aus
+der Begrenzung (Min/Max) des Gelenks in der Assembly.</li>
+</ul>
+<p>Wie man die Beschleunigung herausfindet, steht unter
+<a href="beschleunigung.html">Beschleunigung ermitteln</a>.</p>
+
+<h3>Zeigen</h3>
+<p>Fährst du mit der Maus über eine Achse, leuchtet in der 3D-Ansicht alles
+auf, was sich mit ihr bewegt, und bewegt sich einmal kurz hin und her. So
+siehst du, welche Achse gemeint ist und in welche Richtung sie fährt.
+Danach steht alles wieder genau wie vorher.</p>

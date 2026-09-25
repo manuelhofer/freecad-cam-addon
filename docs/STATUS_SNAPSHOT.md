@@ -4,21 +4,19 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufe 1: Dialog mit Zeigen in 3D steht; Hilfetexte fehlen noch.
+- **IN ARBEIT** – W-001, Stufe 1 fertig und automatisch geprüft; wartet auf Manuels Test. Danach Stufe 2 (Export).
 - **Zuletzt geprüfte FreeCAD-Version:** 26.3.0 dev (Build 2026-09-16, conda-forge)
   – Prüfungen ohne Fenster und Oberflächen-Szenario grün.
 
 ## Nächster Schritt (konkret)
 
-W-001, Stufe 1: Der Dialog „Maschine bearbeiten“ steht, ist geprüft und kann
-in FreeCAD ausprobiert werden (README, „Installieren“; eine Baugruppe öffnen,
-Knopf „Maschine bearbeiten“ in der Werkzeugleiste des Addons). Es fehlen noch
-aus Spezifikation Abschnitt 11:
+**W-001, Stufe 1 ist fertig:** Der Dialog „Maschine bearbeiten“ mit Zeigen in
+der 3D-Ansicht und Hilfe ist automatisch geprüft. Er wartet jetzt auf
+**Manuels Test in seinem FreeCAD** (README, „Installieren“; Baugruppe öffnen,
+Knopf „Maschine bearbeiten“) – vor allem: Kommt beim Bedienen irgendwo eine
+Frage auf?
 
-- **Hilfe (?)** je Bereich mit den ausführlichen Texten, dazu „Beschleunigung
-  ermitteln“.
-
-Danach Manuels Rückmeldung zum Dialog, dann Stufe 2 (Export).
+Danach Stufe 2: Export in die CAM-Maschinendefinition (`.fcm`).
 
 ## Wunschliste
 

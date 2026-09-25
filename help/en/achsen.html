@@ -1,0 +1,41 @@
+<h2>Axes and operating modes</h2>
+<p>Every <b>slider joint</b> and every <b>revolute joint</b> of your assembly is
+listed. A joint only becomes an NC axis once it gets an <b>operating mode</b>
+with an <b>NC name</b>.</p>
+
+<h3>The operating modes</h3>
+<table cellpadding="4">
+<tr><td><b>Linear</b></td><td>The axis travels. Slider joints only. Examples: X1, Z1, Y.</td></tr>
+<tr><td><b>Positioning</b></td><td>The axis turns to an angle. Revolute joints only. Examples: C4, B1, A.</td></tr>
+<tr><td><b>Spindle</b></td><td>The axis turns at a speed. Revolute joints only. Examples: S1, S4.</td></tr>
+<tr><td><b>Turret</b></td><td>The turret indexes from tool station to tool station. Revolute joints only.</td></tr>
+</table>
+
+<h3>Several operating modes on one joint</h3>
+<p>A revolute joint can play several roles. The main spindle of a lathe is
+called <b>S4</b> when it turns and <b>C4</b> when it positions to an angle, for
+example. Add two operating modes to the same joint. The same goes for a turret
+that can move to any angle: <b>Turret</b> and <b>Positioning</b>.</p>
+
+<h3>Joints without an operating mode</h3>
+<p>That is allowed. Such a joint is <b>adjusted by hand</b>, e.g. a tailstock
+without an NC axis. The NC program does not know it; its position is set by
+hand later.</p>
+
+<h3>The values</h3>
+<ul>
+<li>Fields with a <b>bold</b> label are required: rapid traverse, speed.</li>
+<li>Empty fields mean <b>unknown</b> – not zero. Enter what you know; the rest
+can be added later.</li>
+<li>Units are those of data sheets and machine data: mm/min, rpm, m/s²
+(linear), rev/s² (rotary), seconds.</li>
+<li>Travel range and swivel range are <b>not</b> entered here: they come from
+the joint's limits (min/max) in the assembly.</li>
+</ul>
+<p>How to find the acceleration is explained in
+<a href="beschleunigung.html">Finding the acceleration</a>.</p>
+
+<h3>Showing</h3>
+<p>Hover over an axis and everything that moves with it lights up in the 3D
+view and moves back and forth once. That shows which axis it is and which
+way it travels. Afterwards everything is exactly where it was.</p>

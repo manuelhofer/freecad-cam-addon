@@ -15,6 +15,10 @@ Sprache anlegen:
 Fehlt ein Text, zeigt das Addon ihn auf Englisch – eine halb fertige
 Übersetzung funktioniert also schon.
 
+Die ausführlichen Hilfetexte liegen in `help/<sprachcode>/` als HTML-Seiten.
+Für eine neue Sprache den Ordner `help/en` kopieren (z. B. nach `help/it`) und
+die Texte übersetzen; Dateinamen und Verweise (`href="…"`) nicht ändern.
+
 **English:** Every language is one JSON file in this folder. To add a
 language:
 
@@ -27,3 +31,7 @@ language:
    add-on's preferences.
 
 Missing texts are shown in English, so a partial translation already works.
+
+The detailed help pages live in `help/<language code>/` as HTML files. For a
+new language copy the folder `help/en` (e.g. to `help/it`) and translate the
+texts; do not change file names or links (`href="…"`).

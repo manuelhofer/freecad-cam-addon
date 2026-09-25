@@ -123,5 +123,8 @@
     "dialog.revolver_gruppe": "Revolver {name} – {anzahl} Plätze",
     "eigenschaft.bezeichnung": "Name der Aufnahme, z. B. Futter oder P3.",
     "aufnahme.beschriftung_werkzeug": "{name} · Werkzeugaufnahme",
-    "aufnahme.beschriftung_werkstueck": "{name} · Werkstückaufnahme"
+    "aufnahme.beschriftung_werkstueck": "{name} · Werkstückaufnahme",
+    "hilfe.knopf.tooltip": "Ausführliche Hilfe zu diesem Bereich",
+    "hilfe.titel": "Hilfe – CAM-Addon",
+    "dialog.beschleunigung_ermitteln": "Wie finde ich die Beschleunigung heraus?"
 }

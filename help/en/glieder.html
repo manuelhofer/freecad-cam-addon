@@ -1,0 +1,22 @@
+<h2>Links</h2>
+<p>A <b>link</b> is all bodies that are <b>rigidly connected</b> and therefore
+move together. The add-on builds them from the assembly: everything connected
+by a <b>fixed joint</b> or placed in a common sub-assembly forms one link. The
+grounded link is the <b>bed</b> – it stands still.</p>
+
+<h3>Example: trunnion table</h3>
+<p>The cradle of a 5-axis machine consists of a base and two arms – three
+bodies. If the arms are attached to the cradle with fixed joints, they swivel
+along as one link.</p>
+
+<h3>One axis, one joint</h3>
+<p>If the cradle sits in <b>two</b> bearing blocks, only <b>one</b> of them gets the
+revolute joint. The second bearing block is simply fixed to the bed. The
+assembly cannot solve two revolute joints on the same axis – the parts jump.
+The add-on reports such a second joint.</p>
+
+<h3>A body is missing?</h3>
+<p>If a body does not show up with the link it belongs to, it is not attached
+to any joint – it would stay behind when the machine moves. Connect it with a
+fixed joint. The notes below name such bodies.</p>
+<p>Hover over a link and its bodies light up in the 3D view.</p>

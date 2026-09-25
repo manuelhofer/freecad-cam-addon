@@ -1,0 +1,33 @@
+<h2>Werkzeug- und Werkstückaufnahmen</h2>
+<p>Eine Aufnahme sagt dem Addon, <b>wo ein Werkzeug sitzt</b> oder <b>wo ein
+Werkstück gespannt wird</b>. Daraus weiß es auch, welche Achsen im Kopf und
+welche im Tisch sitzen.</p>
+
+<h3>So legst du eine Aufnahme an</h3>
+<ol>
+<li>Lege im Bauteil ein <b>lokales Koordinatensystem (LCS)</b> an – im Revolver,
+im Spindelkopf, am Futter, auf dem Tisch.</li>
+<li><b>Ursprung</b> auf den Bezugspunkt: Spindelnase, Werkzeugaufnahme im
+Revolver, Planfläche des Futters, Tischmitte.</li>
+<li><b>Z-Achse</b> in Richtung des Werkzeugs bzw. senkrecht aus der Spannfläche heraus.</li>
+<li>Im Dialog <b>+ Werkzeugaufnahme</b> oder <b>+ Werkstückaufnahme</b> – ist das LCS
+in der 3D-Ansicht gewählt, wird es gleich übernommen.</li>
+</ol>
+
+<h3>Angetriebene Werkzeuge</h3>
+<p>Bei angetriebenen Werkzeugplätzen unter <b>Angetrieben von</b> die Spindel
+wählen, die das Werkzeug dreht.</p>
+
+<h3>Revolver</h3>
+<p>Am besten baust du den Revolver als <b>eigene Baugruppe</b>: Scheibe plus je
+Werkzeugplatz ein LCS. In der Maschine hängt er mit <b>einem Drehgelenk</b> am
+Schlitten; das Gelenk bekommt die Betriebsart <b>Revolver</b>.</p>
+<ul>
+<li>Jeder Platz ist eine Werkzeugaufnahme und heißt <b>P1, P2, …</b>. Welches
+Werkzeug dort sitzt, kommt später aus dem CAM-Job.</li>
+<li><b>Plätze verteilen …</b> nimmt ein erstes LCS und die Anzahl der Plätze und
+legt die übrigen gleichmäßig im Kreis um die Revolverachse an. Erneutes
+Verteilen ersetzt die frühere Verteilung.</li>
+<li>Gemischt axial/radial bestückte Revolver: Plätze einzeln anlegen und die
+Nummer unter <b>Revolverplatz</b> setzen.</li>
+</ul>

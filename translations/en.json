@@ -123,5 +123,8 @@
     "dialog.revolver_gruppe": "Turret {name} – {anzahl} stations",
     "eigenschaft.bezeichnung": "Name of the mount, e.g. Chuck or P3.",
     "aufnahme.beschriftung_werkzeug": "{name} · tool mount",
-    "aufnahme.beschriftung_werkstueck": "{name} · workpiece mount"
+    "aufnahme.beschriftung_werkstueck": "{name} · workpiece mount",
+    "hilfe.knopf.tooltip": "Detailed help on this section",
+    "hilfe.titel": "Help – CAM Addon",
+    "dialog.beschleunigung_ermitteln": "How do I find the acceleration?"
 }

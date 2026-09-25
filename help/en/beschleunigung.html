@@ -1,0 +1,36 @@
+<h2>Finding the acceleration</h2>
+<p>Without acceleration, run time and simulation are wrong: on short moves an
+axis never reaches its rapid speed. Three ways, from exact to rough:</p>
+
+<h3>1. The control's machine data</h3>
+<p>Most exact. <b>Read only, never change.</b> Often only visible with a key
+switch or password.</p>
+<ul>
+<li><b>Siemens 840D sl:</b> MD32000 <i>MAX_AX_VELO</i> (rapid),
+MD32300 <i>MAX_AX_ACCEL</i> (acceleration, m/s² or rev/s²),
+MD32431 <i>MAX_AX_JERK</i> (jerk),
+MD36100/36110 <i>POS_LIMIT_MINUS/PLUS</i> (software limits).</li>
+<li><b>Fanuc:</b> parameters 1420 (rapid) and 1620 (rapid time constant in ms).
+Acceleration ≈ rapid ÷ time constant. Match the units: mm/min ÷ 60,000 gives
+m/s, ms ÷ 1000 gives s.</li>
+<li><b>LinuxCNC:</b> <i>MAX_VELOCITY</i> and <i>MAX_ACCELERATION</i> in the INI file.</li>
+</ul>
+<p><i>Note:</i> these numbers come from general knowledge, not from your
+machine's manual – check there if in doubt.</p>
+
+<h3>2. Manual or data sheet</h3>
+<p>Rapid speeds are almost always listed, acceleration rarely.</p>
+
+<h3>3. Measure it</h3>
+<p>Move a short distance <b>s</b> at rapid and take the time <b>t</b> – ideally with
+the control's trace/oscilloscope function, otherwise with a stopwatch over many
+repetitions. If the distance is so short that the axis never reaches rapid
+speed:</p>
+<p align="center"><b>a ≈ 4 · s ÷ t²</b></p>
+<p>Example: 20 mm in 0.2 s → 4 · 0.02 m ÷ (0.2 s)² = <b>2 m/s²</b>.</p>
+<p>This is an approximation: jerk rounds off the ramps, so the measured value
+tends to be a little low.</p>
+
+<h3>Spindle</h3>
+<p>Instead of acceleration, use the <b>run-up time</b>: stopwatch from standstill
+to maximum speed.</p>

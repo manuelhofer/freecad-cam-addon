@@ -1,0 +1,36 @@
+<h2>Beschleunigung ermitteln</h2>
+<p>Ohne Beschleunigung stimmen Laufzeit und Simulation nicht: Auf kurzen Wegen
+erreicht eine Achse ihren Eilgang nie. Drei Wege, von genau nach grob:</p>
+
+<h3>1. Maschinendaten der Steuerung</h3>
+<p>Am genauesten. <b>Nur lesen, nichts ändern.</b> Oft nur mit Schlüsselschalter
+oder Kennwort sichtbar.</p>
+<ul>
+<li><b>Siemens 840D sl:</b> MD32000 <i>MAX_AX_VELO</i> (Eilgang),
+MD32300 <i>MAX_AX_ACCEL</i> (Beschleunigung, m/s² bzw. U/s²),
+MD32431 <i>MAX_AX_JERK</i> (Ruck),
+MD36100/36110 <i>POS_LIMIT_MINUS/PLUS</i> (Software-Endschalter).</li>
+<li><b>Fanuc:</b> Parameter 1420 (Eilgang) und 1620 (Zeitkonstante des Eilgangs in ms).
+Beschleunigung ≈ Eilgang ÷ Zeitkonstante. Einheiten angleichen: mm/min ÷ 60 000
+ergibt m/s, ms ÷ 1000 ergibt s.</li>
+<li><b>LinuxCNC:</b> <i>MAX_VELOCITY</i> und <i>MAX_ACCELERATION</i> in der INI-Datei.</li>
+</ul>
+<p><i>Hinweis:</i> Die Nummern stammen aus allgemeinem Wissen, nicht aus dem
+Handbuch deiner Maschine – im Zweifel dort nachsehen.</p>
+
+<h3>2. Handbuch oder Datenblatt</h3>
+<p>Eilgänge stehen fast immer drin, die Beschleunigung eher selten.</p>
+
+<h3>3. Selbst messen</h3>
+<p>Eine kurze Strecke <b>s</b> im Eilgang fahren und die Zeit <b>t</b> nehmen – am
+besten mit der Trace- bzw. Oszilloskop-Funktion der Steuerung, zur Not mit der
+Stoppuhr über viele Wiederholungen. Ist die Strecke so kurz, dass die Achse
+den Eilgang nicht erreicht, gilt:</p>
+<p align="center"><b>a ≈ 4 · s ÷ t²</b></p>
+<p>Beispiel: 20 mm in 0,2 s → 4 · 0,02 m ÷ (0,2 s)² = <b>2 m/s²</b>.</p>
+<p>Das ist eine Näherung: Der Ruck rundet die Rampen ab, der gemessene Wert
+liegt eher etwas zu niedrig.</p>
+
+<h3>Spindel</h3>
+<p>Statt der Beschleunigung die <b>Hochlaufzeit</b>: mit der Stoppuhr vom Stillstand
+bis zur größten Drehzahl.</p>

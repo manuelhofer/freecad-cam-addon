@@ -1,0 +1,33 @@
+<h2>Tool and workpiece mounts</h2>
+<p>A mount tells the add-on <b>where a tool sits</b> or <b>where a workpiece is
+clamped</b>. From that it also knows which axes sit in the head and which in
+the table.</p>
+
+<h3>Adding a mount</h3>
+<ol>
+<li>Add a <b>local coordinate system (LCS)</b> in the part – in the turret, the
+spindle head, on the chuck, on the table.</li>
+<li>Put its <b>origin</b> at the reference point: spindle nose, tool holder in
+the turret, chuck face, table centre.</li>
+<li>Point its <b>Z axis</b> along the tool, or straight out of the clamping face.</li>
+<li>In the dialog click <b>+ Tool mount</b> or <b>+ Workpiece mount</b> – if the LCS
+is selected in the 3D view, it is used right away.</li>
+</ol>
+
+<h3>Driven tools</h3>
+<p>For driven tool stations choose the spindle that turns the tool under
+<b>Driven by</b>.</p>
+
+<h3>Turret</h3>
+<p>Best build the turret as its <b>own assembly</b>: disc plus one LCS per tool
+station. In the machine it hangs on the slide with <b>one revolute joint</b>;
+that joint gets the operating mode <b>Turret</b>.</p>
+<ul>
+<li>Every station is a tool mount named <b>P1, P2, …</b>. Which tool sits there
+comes from the CAM job later.</li>
+<li><b>Distribute stations …</b> takes a first LCS and the number of stations and
+places the others evenly around the turret axis. Distributing again replaces
+the earlier distribution.</li>
+<li>Turrets with mixed axial/radial stations: add stations one by one and set
+the number under <b>Turret station</b>.</li>
+</ul>

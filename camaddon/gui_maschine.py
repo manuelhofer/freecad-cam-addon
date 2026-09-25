@@ -10,7 +10,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import gui_zeigen
+from . import gui_zeigen, hilfe
 from . import kette as kette_modul
 from . import maschine as m
 from .gui_start import symbol
@@ -94,9 +94,51 @@ class BefehlMaschineBearbeiten:
 # --- Hilfen für den Aufbau ------------------------------------------------
 
 
-def _kopfzeile(titel):
-    zeile = QtGui.QLabel(f"<b>{titel}</b>")
+def _kopfzeile(titel, thema=None):
+    """Überschrift eines Bereichs, rechts der Hilfe-Knopf (?) zum Thema."""
+    zeile = QtGui.QWidget()
+    aufbau = QtGui.QHBoxLayout(zeile)
+    aufbau.setContentsMargins(0, 0, 0, 0)
+    aufbau.addWidget(QtGui.QLabel(f"<b>{titel}</b>"))
+    aufbau.addStretch()
+    if thema:
+        knopf = QtGui.QToolButton()
+        knopf.setText("?")
+        knopf.setToolTip(tr("hilfe.knopf.tooltip"))
+        knopf.setObjectName("hilfe_" + thema)
+        knopf.clicked.connect(lambda: zeige_hilfe(zeile, thema))
+        aufbau.addWidget(knopf)
     return zeile
+
+
+class HilfeFenster(QtGui.QDialog):
+    """Ausführliche Hilfe; Verweise zwischen den Seiten funktionieren."""
+
+    offen = None
+
+    def __init__(self, eltern, thema):
+        super().__init__(eltern)
+        HilfeFenster.offen = self
+        self.setWindowTitle(tr("hilfe.titel"))
+        self.resize(560, 520)
+        self.browser = QtGui.QTextBrowser()
+        self.browser.setSearchPaths([hilfe.hilfe_ordner()])
+        self.browser.setOpenExternalLinks(True)
+        pfad = hilfe.hilfe_datei(thema)
+        if pfad:
+            self.browser.setSource(QtCore.QUrl.fromLocalFile(pfad))
+        knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
+        knoepfe.rejected.connect(self.close)
+        aufbau = QtGui.QVBoxLayout(self)
+        aufbau.addWidget(self.browser)
+        aufbau.addWidget(knoepfe)
+
+
+def zeige_hilfe(eltern, thema):
+    # Nicht modal: Man soll lesen und gleichzeitig im Dialog weiterarbeiten können.
+    fenster = HilfeFenster(eltern, thema)
+    fenster.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+    fenster.show()
 
 
 def _zahl_lesen(text):
@@ -184,7 +226,7 @@ class MaschinenPanel:
         aufbau.addLayout(name_zeile)
 
         # Achsen
-        aufbau.addWidget(_kopfzeile(tr("dialog.achsen")))
+        aufbau.addWidget(_kopfzeile(tr("dialog.achsen"), "achsen"))
         self.achsen = QtGui.QTreeWidget()
         self.achsen.setHeaderHidden(True)
         self.achsen.setToolTip(tr("dialog.achsen.tooltip"))
@@ -222,7 +264,7 @@ class MaschinenPanel:
         self._aufbau = aufbau
 
         # Aufnahmen
-        aufbau.addWidget(_kopfzeile(tr("dialog.aufnahmen")))
+        aufbau.addWidget(_kopfzeile(tr("dialog.aufnahmen"), "aufnahmen"))
         self.aufnahmen = QtGui.QTreeWidget()
         self.aufnahmen.setHeaderHidden(True)
         self.aufnahmen.setToolTip(tr("dialog.aufnahmen.tooltip"))
@@ -250,7 +292,7 @@ class MaschinenPanel:
         aufbau.addWidget(self.aufnahmen_knoepfe)
 
         # Glieder
-        aufbau.addWidget(_kopfzeile(tr("dialog.glieder")))
+        aufbau.addWidget(_kopfzeile(tr("dialog.glieder"), "glieder"))
         self.glieder = QtGui.QListWidget()
         self.glieder.setToolTip(tr("dialog.glieder.tooltip"))
         self.glieder.setMouseTracking(True)
@@ -535,6 +577,10 @@ class MaschinenPanel:
                 schrift.setBold(True)
                 label.setFont(schrift)
             self.detail_aufbau.addRow(label, feld)
+        if any(e == "Beschleunigung" for e, _p in m.WERTE[ba.Art]):
+            verweis = QtGui.QLabel(f'<a href="beschleunigung">{tr("dialog.beschleunigung_ermitteln")}</a>')
+            verweis.linkActivated.connect(lambda thema: zeige_hilfe(self.form, thema))
+            self.detail_aufbau.addRow(verweis)
 
     def _detail_aufnahme(self, auf):
         self._detail_unter(self.aufnahmen_knoepfe)
