@@ -407,6 +407,11 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     umnummerierte Werkzeug die folgenden mit (T2 → T3 → T4 …). Ein Gravierstichel
     wird nicht zum Fasenfräser: Den Spitzenwinkel kennt die
     Werkzeugverwaltung nicht, zurück an CAM käme er mit 90° an.
+20. **Neuer Durchmesser: ae und ap auf Nachfrage umrechnen, vc und fz nie.**
+    ae und ap sind Anteile von D (Vollnut = D, dynamisch 10 %); vc und fz
+    stehen im Katalog und hängen nicht einfach am Durchmesser. Alternative:
+    fz mit D mitskalieren – für kleine Fräser oft ungefähr richtig, aber
+    geraten.
 
 ## 12. Akzeptanzkriterien Stufe 1
 

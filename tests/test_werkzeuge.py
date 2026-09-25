@@ -114,6 +114,17 @@ pruefe(k_ansehen.gleich(b_ansehen), "Ansehen eines Werkzeugs gilt als Änderung"
 k_ansehen.werkzeuge[0].zum_bearbeiten(wz.ALLE).append(wz.Einsatz(art=wz.VOLLNUT))
 pruefe(not k_ansehen.gleich(b_ansehen), "neue Zeile gilt nicht als Änderung")
 
+# Neuer Durchmesser: ae und ap aller Werkstoffe mit umrechnen, vc und fz bleiben.
+zwoelf = wz.Werkzeug(durchmesser=12)
+zwoelf.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.VOLLNUT, ae=12, ap=6, vc=120, fz=0.05)]
+zwoelf.eigene_anlegen("1.4301")[0].vc = 80
+pruefe(zwoelf.hat_zustellungen(), "hat_zustellungen")
+zwoelf.zustellungen_umrechnen(10 / 12)
+for werkstoff, vc in ((wz.ALLE, 120), ("1.4301", 80)):
+    e = zwoelf.einsaetze(werkstoff)[0]
+    pruefe((e.ae, e.ap, e.vc, e.fz) == (10, 5, vc, 0.05), f"umgerechnet {werkstoff}: {e}")
+pruefe(not wz.Werkzeug(durchmesser=6).hat_zustellungen(), "ohne Einsätze")
+
 # Unlesbares im Eintrag: Standardwerte statt Absturz.
 w = wz.Werkzeug.aus_dict({"nummer": "x", "art": "Hammer", "durchmesser": None, "schneidstoff": 3})
 pruefe(

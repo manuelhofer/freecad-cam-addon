@@ -498,5 +498,6 @@
     "wv.strategie.alle.weg": "Weg je cm³\nm",
     "wv.strategie.alle.ap": "Schneide\nmm",
     "wv.strategie.alle.eingriff": "Im Material\n%",
-    "wv.strategie.alle.span": "h max\nmm"
+    "wv.strategie.alle.span": "h max\nmm",
+    "wv.umrechnen.frage": "Der Durchmesser ändert sich von {alt} auf {neu} mm. Sollen ae und ap aller Einsätze mit umgerechnet werden – in demselben Verhältnis, für alle Werkstoffe? vc und fz bleiben, die stehen im Katalog."
 }

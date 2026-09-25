@@ -498,5 +498,6 @@
     "wv.strategie.alle.weg": "Travel per cm³\nm",
     "wv.strategie.alle.ap": "Edge\nmm",
     "wv.strategie.alle.eingriff": "In the cut\n%",
-    "wv.strategie.alle.span": "h max\nmm"
+    "wv.strategie.alle.span": "h max\nmm",
+    "wv.umrechnen.frage": "The diameter changes from {alt} to {neu} mm. Should ae and ap of all use cases be converted as well – in the same ratio, for all materials? vc and fz stay, they come from the catalogue."
 }

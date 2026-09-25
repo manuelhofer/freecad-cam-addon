@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-06 durchmesser-umrechnen
+
+### EINGELESEN
+- Hilfe der Werkzeugverwaltung: „Kopieren – praktisch für denselben Fräser
+  in einem anderen Durchmesser“. Nach dem Kopieren standen ae und ap aber
+  noch für den alten Durchmesser da (Vollnut Ø 10 mit ae 12 → Hinweis „ae
+  größer als D“).
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`hat_zustellungen()`,
+  `zustellungen_umrechnen()`), `camaddon/gui_werkzeuge.py` (Frage beim
+  neuen Durchmesser)
+- `help/de|en/werkzeuge.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/test_werkzeuge.py`, `tests/gui/szenario_durchmesser.py` (neu)
+- `docs/spezifikation_werkzeugverwaltung.md` (Entscheidung 20),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ø-12-Fräser mit Vollnut 12 / 6 und Schruppen dynamisch 1,2 / 24 →
+Kopieren → Durchmesser 10 → Frage „… von 12 auf 10 mm … umrechnen?“ → Ja →
+Vollnut 10 / 5, dynamisch 1 / 20, vc und fz wie vorher, auch in den eigenen
+Werten für 1.4301; das Original bleibt Ø 12. Noch einmal auf 8 → Nein →
+nur der Durchmesser ändert sich.
+
+### DONE
+- Gefragt wird nur, wenn es Einsätze mit ae oder ap gibt und beide
+  Durchmesser bekannt sind; umgerechnet wird für alle Werkstoffe, auf
+  0,001 mm gerundet.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_werkzeuge` grün.
+- KI, Oberfläche in **beiden** Versionen: `szenario_durchmesser` (Ja,
+  Nein, Original unverändert) und `szenario_werkzeugverwaltung` grün,
+  Screenshots angesehen.
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-26-05 alle-einsaetze-im-vergleich
 
 ### EINGELESEN

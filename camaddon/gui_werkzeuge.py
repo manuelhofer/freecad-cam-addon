@@ -613,8 +613,33 @@ class WerkzeugDialog(QtGui.QDialog):
         # eine Änderung, die niemand gemacht hat.
         if feld.text().strip() == zahl_zeigen(getattr(self.werkzeug, eigenschaft)):
             return
-        setattr(self.werkzeug, eigenschaft, zahl_lesen(feld.text()))
+        neu = zahl_lesen(feld.text())
+        if eigenschaft == "durchmesser":
+            self._zustellungen_anpassen(self.werkzeug.durchmesser, neu)
+        setattr(self.werkzeug, eigenschaft, neu)
         self._geaendert()
+
+    def _zustellungen_anpassen(self, alt, neu, fragen=True):
+        """Neuer Durchmesser: ae und ap der Einsätze mit umrechnen? Fragt, wenn es welche gibt.
+
+        Gedacht für „Kopieren“ und dann einen anderen Durchmesser eintragen –
+        die Zeilen passen dann wieder zum Fräser. Gibt zurück, ob umgerechnet
+        wurde.
+        """
+        if alt <= 0 or neu <= 0 or alt == neu or not self.werkzeug.hat_zustellungen():
+            return False
+        if fragen:
+            antwort = QtGui.QMessageBox.question(
+                self,
+                tr("wv.titel"),
+                tr("wv.umrechnen.frage", alt=zahl_zeigen(alt), neu=zahl_zeigen(neu)),
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                QtGui.QMessageBox.Yes,
+            )
+            if antwort != QtGui.QMessageBox.Yes:
+                return False
+        self.werkzeug.zustellungen_umrechnen(neu / alt)
+        return True
 
     def _felder_uebernehmen(self):
         """Übernimmt, was noch im Zahlenfeld mit dem Fokus steht (vor dem Speichern)."""

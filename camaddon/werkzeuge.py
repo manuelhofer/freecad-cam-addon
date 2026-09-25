@@ -183,6 +183,21 @@ class Werkzeug:
         if werkstoff != ALLE:
             self.schnittwerte.pop(werkstoff, None)
 
+    def hat_zustellungen(self):
+        """Hat irgendein Einsatz (irgendeines Werkstoffs) ae oder ap?"""
+        return any(e.ae or e.ap for liste in self.schnittwerte.values() for e in liste)
+
+    def zustellungen_umrechnen(self, faktor):
+        """ae und ap aller Einsätze aller Werkstoffe mal `faktor` – für einen neuen Durchmesser.
+
+        vc und fz bleiben, wie sie sind: Die stehen im Katalog des Herstellers
+        und hängen nicht einfach am Durchmesser.
+        """
+        for liste in self.schnittwerte.values():
+            for einsatz in liste:
+                einsatz.ae = round(einsatz.ae * faktor, 3)
+                einsatz.ap = round(einsatz.ap * faktor, 3)
+
     def zum_bearbeiten(self, werkstoff):
         """Die Liste, die für diesen Werkstoff bearbeitet wird, oder None.
 
