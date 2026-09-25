@@ -499,5 +499,8 @@
     "wv.strategie.alle.ap": "Schneide\nmm",
     "wv.strategie.alle.eingriff": "Im Material\n%",
     "wv.strategie.alle.span": "h max\nmm",
-    "wv.umrechnen.frage": "Der Durchmesser ändert sich von {alt} auf {neu} mm. Sollen ae und ap aller Einsätze mit umgerechnet werden – in demselben Verhältnis, für alle Werkstoffe? vc und fz bleiben, die stehen im Katalog."
+    "wv.umrechnen.frage": "Der Durchmesser ändert sich von {alt} auf {neu} mm. Sollen ae und ap aller Einsätze mit umgerechnet werden – in demselben Verhältnis, für alle Werkstoffe? vc und fz bleiben, die stehen im Katalog.",
+    "wv.eintauchwinkel": "Eintauchwinkel",
+    "wv.eintauchwinkel.tooltip": "Wie steil der Fräser höchstens eintauchen darf – auf einer Rampe oder Helix. Steht im Katalog des Herstellers. „Schnittwerte in den Job“ trägt ihn im Adaptiv als Eintauchwinkel der Helix ein. Leer: FreeCADs Vorgabe.",
+    "sj.helix": "Helix {winkel}°"
 }

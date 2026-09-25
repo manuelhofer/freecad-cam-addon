@@ -157,6 +157,8 @@ class Werkzeug:
     # Nur für CAM (Simulation, Kollision); 0 = geschätzt, siehe laenge_fuer_cam().
     gesamtlaenge: float = 0.0  # mm
     schaft: float = 0.0  # Schaftdurchmesser, mm
+    # Wie steil der Fräser höchstens eintauchen darf (Rampe, Helix), Grad; 0 = unbekannt.
+    eintauchwinkel: float = 0.0
     schneidstoff: str = VHM
     bezeichnung: str = ""  # frei: Hersteller, Bestellnummer, Beschichtung …
     # Werkstoff-Kennung oder ALLE -> die Einsätze mit ihren Werten.
@@ -220,6 +222,7 @@ class Werkzeug:
             "eckradius": self.eckradius,
             "gesamtlaenge": self.gesamtlaenge,
             "schaft": self.schaft,
+            "eintauchwinkel": self.eintauchwinkel,
             "schneidstoff": self.schneidstoff,
             "bezeichnung": self.bezeichnung,
             # Eine leere Tabelle „für alle Werkstoffe“ ist dasselbe wie keine:
@@ -246,6 +249,7 @@ class Werkzeug:
         # Erst seit P-2026-09-25-62 – in älteren Dateien fehlen sie: 0, geschätzt.
         w.gesamtlaenge = max(_zahl(daten.get("gesamtlaenge"), float, 0.0), 0.0)
         w.schaft = max(_zahl(daten.get("schaft"), float, 0.0), 0.0)
+        w.eintauchwinkel = min(max(_zahl(daten.get("eintauchwinkel"), float, 0.0), 0.0), 90.0)
         w.schneidstoff = (
             daten.get("schneidstoff") if daten.get("schneidstoff") in SCHNEIDSTOFFE else VHM
         )

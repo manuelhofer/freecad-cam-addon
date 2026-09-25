@@ -28,7 +28,9 @@ def schritte(h):
     from camaddon import uebergabe_werkzeuge as ue
     from camaddon import werkzeuge as wz
 
-    fraeser = wz.Werkzeug(nummer=3, durchmesser=12, schneiden=3, schneidenlaenge=26)
+    fraeser = wz.Werkzeug(
+        nummer=3, durchmesser=12, schneiden=3, schneidenlaenge=26, eintauchwinkel=3
+    )
     fraeser.schnittwerte[wz.ALLE] = [
         wz.Einsatz(art=wz.VOLLNUT, ae=12, ap=3, vc=120, fz=0.05),
         wz.Einsatz(art=wz.DYNAMISCH, ae=1.2, ap=25, vc=120, fz=0.15),
@@ -78,7 +80,7 @@ def schritte(h):
     werte = (d.tabelle.item(z1, gj.N).text(), d.tabelle.item(z1, gj.VF).text())
     h.pruefe(werte == ("3183", "1432"), f"n/vf: {werte}")
     zustellung = d.tabelle.item(z1, gj.ZUSTELLUNG).text()
-    h.pruefe(zustellung == "Adaptiv: 10 % · 25 mm", f"Zustellung: {zustellung!r}")
+    h.pruefe(zustellung == "Adaptiv: 10 % · 25 mm · Helix 3°", f"Zustellung: {zustellung!r}")
     h.pruefe(d.tabelle.item(z2, gj.ZUSTELLUNG).text() == "", "fremder TC mit Zustellung")
     h.pruefe(not d.tabelle.cellWidget(z2, gj.EINSATZ).isEnabled(), "fremdes Werkzeug wählbar")
     h.pruefe("nicht in der Werkzeugverwaltung" in d.tabelle.item(z2, gj.WERKZEUG).text(), "fremd")
@@ -113,6 +115,8 @@ def schritte(h):
     )
     h.pruefe(tc2.SpindleSpeed == vorher[1], "fremder TC verändert")
     h.pruefe(float(adaptiv.StepDown.getValueAs("mm")) == 25, f"Adaptiv: {adaptiv.StepDown}")
+    helix = getattr(adaptiv, "HelixMaxRampAngle", None) or adaptiv.HelixAngle
+    h.pruefe(abs(float(helix.getValueAs("deg")) - 3) < 1e-9, f"Helixwinkel: {helix}")
     dok.undo()
     h.pruefe(tc1.SpindleSpeed == vorher[0], "Strg+Z nimmt es nicht zurück")
 

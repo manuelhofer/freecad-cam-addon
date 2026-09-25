@@ -259,6 +259,11 @@ class WerkzeugDialog(QtGui.QDialog):
         )
         self.feld_gesamtlaenge = self._zahlenfeld(tr("wv.gesamtlaenge.tooltip"), "gesamtlaenge")
         self.feld_schaft = self._zahlenfeld(tr("wv.schaft.tooltip"), "schaft")
+        self.feld_eintauchwinkel = self._zahlenfeld(
+            tr("wv.eintauchwinkel.tooltip"), "eintauchwinkel"
+        )
+        self.zeile_eintauchwinkel = mit_einheit(self.feld_eintauchwinkel, "°")
+        self.beschriftung_eintauchwinkel = QtGui.QLabel(tr("wv.eintauchwinkel"))
         self.feld_eckradius = self._zahlenfeld(tr("wv.eckradius.tooltip"), "eckradius")
         self.zeile_eckradius = mit_einheit(self.feld_eckradius, "mm")
         self.beschriftung_eckradius = QtGui.QLabel(tr("wv.eckradius"))
@@ -286,7 +291,8 @@ class WerkzeugDialog(QtGui.QDialog):
             (QtGui.QLabel(tr("wv.gesamtlaenge")), mit_einheit(self.feld_gesamtlaenge, "mm")),
             (QtGui.QLabel(tr("wv.schaft")), mit_einheit(self.feld_schaft, "mm")),
             (QtGui.QLabel(tr("wv.schneidstoff")), self.feld_schneidstoff),
-            # Zuletzt: Außer beim Torusfräser ausgeblendet, ohne eine Lücke zu lassen.
+            # Zuletzt, was nur manche Arten haben – ausgeblendet ohne Lücke davor.
+            (self.beschriftung_eintauchwinkel, self.zeile_eintauchwinkel),
             (self.beschriftung_eckradius, self.zeile_eckradius),
         ]
         for i, (beschriftung, feld) in enumerate(zeilen):
@@ -501,6 +507,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_schneiden.setValue(w.schneiden)
         self.feld_schneidenlaenge.setText(zahl_zeigen(w.schneidenlaenge))
         self.feld_eckradius.setText(zahl_zeigen(w.eckradius))
+        self.feld_eintauchwinkel.setText(zahl_zeigen(w.eintauchwinkel))
         self.feld_gesamtlaenge.setText(zahl_zeigen(w.gesamtlaenge))
         self.feld_schaft.setText(zahl_zeigen(w.schaft))
         self.feld_schneidstoff.setCurrentIndex(self.feld_schneidstoff.findData(w.schneidstoff))
@@ -523,10 +530,13 @@ class WerkzeugDialog(QtGui.QDialog):
         """Eine Änderung in der Tabelle; gespeichert wird erst mit OK oder Übernehmen."""
 
     def _eckradius_zeigen(self):
-        """Den Eckradius gibt es nur beim Torusfräser."""
-        sichtbar = self.werkzeug is not None and self.werkzeug.art == wz.TORUSFRAESER
-        self.zeile_eckradius.setVisible(sichtbar)
-        self.beschriftung_eckradius.setVisible(sichtbar)
+        """Den Eckradius gibt es nur beim Torusfräser, den Eintauchwinkel nicht beim Bohrer."""
+        art = self.werkzeug.art if self.werkzeug is not None else None
+        self.zeile_eckradius.setVisible(art == wz.TORUSFRAESER)
+        self.beschriftung_eckradius.setVisible(art == wz.TORUSFRAESER)
+        fraeser = art is not None and art != wz.BOHRER
+        self.zeile_eintauchwinkel.setVisible(fraeser)
+        self.beschriftung_eintauchwinkel.setVisible(fraeser)
 
     def _schaetzung_zeigen(self):
         """Leere Felder für Gesamtlänge und Schaft zeigen grau, was CAM stattdessen bekommt."""
@@ -647,6 +657,7 @@ class WerkzeugDialog(QtGui.QDialog):
             (self.feld_durchmesser, "durchmesser"),
             (self.feld_schneidenlaenge, "schneidenlaenge"),
             (self.feld_eckradius, "eckradius"),
+            (self.feld_eintauchwinkel, "eintauchwinkel"),
             (self.feld_gesamtlaenge, "gesamtlaenge"),
             (self.feld_schaft, "schaft"),
         ):

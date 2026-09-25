@@ -63,6 +63,9 @@ wird.</li>
 <li>Rechts neben den Feldern steht das <b>Bild des Werkzeugs</b> im richtigen
 Verhältnis – Schaft, Schneide und Spitze je nach Art. Gestrichelt ist, was
 geschätzt wird. So fällt ein Tippfehler bei den Maßen sofort auf.</li>
+<li><b>Eintauchwinkel</b> – wie steil der Fräser höchstens eintauchen darf,
+auf einer Rampe oder Helix (Katalog). „Schnittwerte in den Job“ trägt ihn im
+Adaptiv als Eintauchwinkel der Helix ein. Beim Bohrer gibt es ihn nicht.</li>
 <li><b>Schneidstoff</b> – VHM (Vollhartmetall) oder HSS.</li>
 <li><b>Bezeichnung</b> – frei, zum Wiederfinden: Hersteller, Bestellnummer,
 Beschichtung.</li>
@@ -116,7 +119,8 @@ Werkzeuge an CAM übergeben, damit das Werkzeug in der Bibliothek
 abbricht; Strg+Z nimmt ihn zurück.</li>
 <li><b>Schrittweite und Zustelltiefe:</b> Die Operationen, die den
 Werkzeug-Controller benutzen, bekommen ae als Schrittweite (in % von D,
-abgerundet) und ap als Zustelltiefe – wenn der Einsatz zu ihnen passt:
+abgerundet) und ap als Zustelltiefe, das Adaptiv dazu den Eintauchwinkel
+des Werkzeugs – wenn der Einsatz zu ihnen passt:
 <b>Adaptiv</b> bekommt „Schruppen dynamisch“ und „Schruppen“, <b>Tasche</b>
 und <b>Planfräsen</b> „Schruppen“, <b>Nut</b> „Vollnut“. Eine <b>Kontur</b>
 bekommt nichts – mit ihr wird auch ausgeschnitten, also in voller Nut, und
@@ -143,8 +147,10 @@ bekommt n und vf, Adaptiv die Schrittweite (etwa 10 %) und die
 Zustelltiefe (etwa 25 mm): Es taucht einmal helikal bis 25 mm ein und räumt
 dann die Ebene aus.</li>
 </ol>
-<p>Den Eintauchwinkel der Helix stellt man in der Operation Adaptiv ein; der
-Hersteller des Fräsers nennt, wie steil er eintauchen darf.</p>
+<p>Wie steil die Helix eintaucht, bestimmt der <b>Eintauchwinkel</b> des
+Werkzeugs: Steht er in der Werkzeugverwaltung, setzt „Schnittwerte in den
+Job“ ihn im Adaptiv mit (in der Spalte steht dann etwa „Helix 3°“); sonst
+bleibt FreeCADs Vorgabe von 5°.</p>
 
 <h3>Speichern</h3>
 <p>Wie in den Einstellungen von FreeCAD: <b>OK</b> speichert und schließt,

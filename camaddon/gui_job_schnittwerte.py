@@ -54,22 +54,26 @@ def _zahl(wert, stellen=0):
 
 
 def _zustellung_text(werte):
-    """„10 % · 25 mm“ aus {Eigenschaft: Wert} von js.zustellung() oder den jetzigen Werten."""
+    """„10 % · 25 mm · Helix 3°“ aus {Eigenschaft: Wert} von js.zustellung() oder den jetzigen."""
     teile = []
     for eigenschaft in ("StepOver", "StepOverPercent"):
         if eigenschaft in werte:
             teile.append(f"{zahl_zeigen(float(werte[eigenschaft]))} %")
     if "StepDown" in werte:
         teile.append(f"{zahl_zeigen(float(werte['StepDown']))} mm")
+    for eigenschaft in js.HELIX_WINKEL:
+        if eigenschaft in werte:
+            teile.append(tr("sj.helix", winkel=zahl_zeigen(float(werte[eigenschaft]))))
     return " · ".join(teile)
 
 
 def _jetzt(operation, eigenschaften):
-    """Die jetzigen Werte dieser Eigenschaften einer Operation, in mm und %."""
+    """Die jetzigen Werte dieser Eigenschaften einer Operation, in mm, % und Grad."""
     werte = {}
     for eigenschaft in eigenschaften:
         wert = getattr(operation, eigenschaft)
-        werte[eigenschaft] = wert.getValueAs("mm") if hasattr(wert, "getValueAs") else wert
+        einheit = "deg" if eigenschaft in js.HELIX_WINKEL else "mm"
+        werte[eigenschaft] = wert.getValueAs(einheit) if hasattr(wert, "getValueAs") else wert
     return werte
 
 

@@ -137,6 +137,15 @@ pruefe(
 )
 pruefe(js.zustellung(nut, fraeser, einsaetze[0]) == {"StepDown": 3}, "Nut mit Vollnut")
 pruefe(js.zustellung(operationen["Kontur"], fraeser, einsaetze[1]) == {}, "Kontur bekommt etwas")
+# Der Eintauchwinkel des Werkzeugs geht als Helixwinkel ins Adaptiv.
+fraeser.eintauchwinkel = 3
+helix = js.zustellung(adaptiv, fraeser, einsaetze[1])
+pruefe(
+    helix.get("HelixMaxRampAngle", helix.get("HelixAngle")) == 3,
+    f"Helixwinkel: {helix}",
+)
+pruefe("HelixMaxRampAngle" not in js.zustellung(nut, fraeser, einsaetze[0]), "Nut mit Helix")
+fraeser.eintauchwinkel = 0
 # 0,88 mm von Ø 12 sind 7,33 %: abgerundet – in 1.1.3 ganze Prozent.
 schmal = js.zustellung(adaptiv, fraeser, wz.Einsatz(art=wz.DYNAMISCH, ae=0.88, ap=24))
 soll = 7.3 if schritt == "StepOverPercent" else 7

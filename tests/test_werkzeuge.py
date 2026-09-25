@@ -114,6 +114,11 @@ pruefe(k_ansehen.gleich(b_ansehen), "Ansehen eines Werkzeugs gilt als Änderung"
 k_ansehen.werkzeuge[0].zum_bearbeiten(wz.ALLE).append(wz.Einsatz(art=wz.VOLLNUT))
 pruefe(not k_ansehen.gleich(b_ansehen), "neue Zeile gilt nicht als Änderung")
 
+# Eintauchwinkel: gespeichert, begrenzt auf 0 … 90°.
+steil = wz.Werkzeug(durchmesser=10, eintauchwinkel=3)
+pruefe(wz.Werkzeug.aus_dict(steil.als_dict()).eintauchwinkel == 3, "Eintauchwinkel gespeichert")
+pruefe(wz.Werkzeug.aus_dict({"eintauchwinkel": 120}).eintauchwinkel == 90, "über 90°")
+
 # Neuer Durchmesser: ae und ap aller Werkstoffe mit umrechnen, vc und fz bleiben.
 zwoelf = wz.Werkzeug(durchmesser=12)
 zwoelf.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.VOLLNUT, ae=12, ap=6, vc=120, fz=0.05)]

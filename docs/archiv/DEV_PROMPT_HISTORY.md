@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-08 eintauchwinkel
+
+### EINGELESEN
+- Manuels „einmal helikal ein Grundloch“: Das Adaptiv taucht helikal ein,
+  mit FreeCADs Vorgabe von 5° – wie steil ein Fräser eintauchen darf, steht
+  aber im Katalog und hängt am Werkzeug.
+- FreeCAD 1.1.3: `HelixAngle`, Wochen-Build: `HelixMaxRampAngle` (beide
+  Grad, Vorgabe 5°).
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (Feld `eintauchwinkel`, 0 … 90°),
+  `camaddon/gui_werkzeuge.py` (Feld im Formular, beim Bohrer
+  ausgeblendet)
+- `camaddon/job_schnittwerte.py` (`zustellung()` setzt den Helixwinkel),
+  `camaddon/gui_job_schnittwerte.py` („Helix 3°“ in der Spalte)
+- `help/de|en/werkzeuge.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/test_werkzeuge.py`, `tests/test_job_schnittwerte.py`,
+  `tests/gui/szenario_schnittwerte_job.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ø-12-Fräser mit Eintauchwinkel 3° → Job mit Adaptiv und Controller
+„T3 Schruppen dynamisch“ → „Schnittwerte in den Job“ → Spalte zeigt
+„Adaptiv: 10 % · 25 mm · Helix 3°“ → Übernehmen → im Adaptiv steht der
+Eintauchwinkel der Helix auf 3°.
+
+### DONE
+- Freiwilliges Feld am Werkzeug; leer bleibt FreeCADs Vorgabe.
+- Gesetzt nur im Adaptiv (und nur, wenn der Einsatz dorthin passt, siehe
+  Entscheidung 18) – in 1.1.3 als `HelixAngle`, im Wochen-Build als
+  `HelixMaxRampAngle`.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_werkzeuge` (gespeichert,
+  begrenzt), `test_job_schnittwerte` (Helixwinkel im Adaptiv, nicht in der
+  Nut) grün.
+- KI, Oberfläche in **beiden** Versionen: `szenario_schnittwerte_job`
+  (Spalte, gesetzter Winkel) und `szenario_werkzeugverwaltung` grün,
+  Screenshot angesehen.
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-26-07 kaputte-bibliothek
 
 ### EINGELESEN

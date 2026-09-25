@@ -499,5 +499,8 @@
     "wv.strategie.alle.ap": "Edge\nmm",
     "wv.strategie.alle.eingriff": "In the cut\n%",
     "wv.strategie.alle.span": "h max\nmm",
-    "wv.umrechnen.frage": "The diameter changes from {alt} to {neu} mm. Should ae and ap of all use cases be converted as well – in the same ratio, for all materials? vc and fz stay, they come from the catalogue."
+    "wv.umrechnen.frage": "The diameter changes from {alt} to {neu} mm. Should ae and ap of all use cases be converted as well – in the same ratio, for all materials? vc and fz stay, they come from the catalogue.",
+    "wv.eintauchwinkel": "Ramp angle",
+    "wv.eintauchwinkel.tooltip": "How steeply the cutter may plunge at most – on a ramp or helix. Stated in the manufacturer's catalogue. “Cutting data into the job” sets it as the helix entry angle in Adaptive. Empty: FreeCAD's default.",
+    "sj.helix": "helix {winkel}°"
 }

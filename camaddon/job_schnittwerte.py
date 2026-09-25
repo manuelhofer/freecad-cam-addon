@@ -57,6 +57,11 @@ ZUSTELLUNG_NACH_OPERATION = {
 }
 
 
+# Der Eintauchwinkel der Helix im Adaptiv: im Wochen-Build HelixMaxRampAngle,
+# in 1.1.3 HelixAngle – beide in Grad.
+HELIX_WINKEL = ("HelixMaxRampAngle", "HelixAngle")
+
+
 @dataclass
 class Gesetzt:
     """Was setze() geändert hat."""
@@ -218,6 +223,12 @@ def zustellung(operation, werkzeug, einsatz):
             werte["StepOver"] = max(math.floor(prozent + 1e-9), 1)
     if einsatz.ap > 0 and hasattr(operation, "StepDown"):
         werte["StepDown"] = round(einsatz.ap, 3)
+    # Der Eintauchwinkel gehört zum Werkzeug; das Adaptiv taucht helikal ein.
+    if werkzeug.eintauchwinkel > 0:
+        for eigenschaft in HELIX_WINKEL:
+            if hasattr(operation, eigenschaft):
+                werte[eigenschaft] = round(werkzeug.eintauchwinkel, 2)
+                break
     return werte
 
 
