@@ -12,6 +12,80 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-60 schruppwerte-planen
+
+### EINGELESEN
+- Manuels Wunsch zur Werkzeugverwaltung: „den maximalen Spanvolumen mit
+  diesem Fräser erreichen“ – Ø 12 mit ae 1,2 / ap 25 / fz 0,15 statt Vollnut
+  mit ap 3 / fz 0,05. Spezifikation W-002, Abschnitt 10, Stufe 3.
+- W-001: Kennwerte der Maschine – Spindel „Drehzahl“ (U/min), Linearachse
+  „VorschubMax“ (mm/min); die Werkzeugaufnahme verweist auf die Spindel,
+  die das Werkzeug antreibt.
+
+### DATEIEN
+- `camaddon/schruppwerte.py` (neu: Planen, Grenzen der Maschine)
+- `camaddon/gui_schruppwerte.py` (neu: Dialog)
+- `camaddon/gui_schnittwerte.py` (Knopf „Schruppwerte planen…“,
+  `einsatz_hinzufuegen()`)
+- `camaddon/hilfe.py`, `help/de|en/schruppwerte.html` (neu)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_schruppwerte.py`, `tests/gui/szenario_schruppwerte.py` (neu)
+- `docs/spezifikation_werkzeugverwaltung.md` (Stufe 3 gebaut,
+  Entscheidungen 13–17), `docs/aufbau.md`, `CHATSTART.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Werkstoff 1.0503 (C45) → Schaftfräser Ø 12, z 3,
+Schneidenlänge 26 mit Vollnut 12 / 3 / vc 120 / fz 0,05 → „Schruppwerte
+planen…“ → vc 120, Spandicke 0,05, ap 24, ae höchstens 10 % stehen da; die
+grüne Zeile ae 1,20 mm hat fz 0,083, vf 796, Q 22,9 und darunter steht,
+dass die Grenze von 10 % nicht breiter zulässt → Spindelleistung 1,5 kW →
+der Vorschlag rückt auf ae 0,88 mm, „Spindel voll ausgelastet“ → Feld
+leeren → „Als Einsatz für 1.0503 übernehmen“ → in der Tabelle steht eine
+neue Zeile „Schruppen dynamisch“ 1,2 / 24 / 120 / 0,083, und oben „Eigene
+Werte für 1.0503“.
+
+### DONE
+- **Rechnen** (`schruppwerte.py`, ohne Oberfläche): je ae von 2 bis 50 % von
+  D das fz für die gewünschte Spandicke (fz = h / sin φ), vf, Q, Leistung
+  und Drehmoment aus kc1.1. Grenzen: ae in % von D (die Grenze selbst wird
+  eine Zeile), Höchstdrehzahl (n gekappt, vc sinkt, wird gesagt),
+  Höchstvorschub (vf gekappt, der Span wird dünner, wird gesagt),
+  Spindelleistung × 80 % (die Grenze wird auf 0,01 mm gesucht und eine
+  Zeile). Vorschlag = größtes Q innerhalb aller Grenzen, dazu der Grund,
+  warum nicht breiter.
+- **Ausgang** ist die gewählte Zeile, wenn sie schruppt und vc und fz hat,
+  sonst dynamisch vor Vollnut vor Schruppen – eine Schlicht-Zeile taugt
+  nicht als Spandicke.
+- **Maschine:** Knopf „Von der Maschine“ (nur sichtbar, wenn ein offenes
+  Dokument eine W-001-Maschine mit Werten hat): Drehzahl der Spindel, die
+  ein Werkzeug antreibt (sonst die größte), kleinster Höchstvorschub der
+  Linearachsen. Die Grenzen merkt sich der Planer.
+- **Übernehmen:** die gewählte Zeile als „Schruppen dynamisch“, abgerundet;
+  ohne eigene Werte für den Werkstoff werden sie angelegt (der Knopf sagt
+  es: „Als Einsatz für 1.0503 übernehmen“).
+- Hilfeseite mit Formel, Feldern, Tabelle, Beispiel und dem, was der Planer
+  nicht weiß (Werkzeugsteifigkeit, Drehmoment).
+- Entscheidungen 13–17 in der Spezifikation, zur Besprechung.
+- **Gefundener Fehler im eigenen Entwurf:** Die Schlüssel der Felder
+  standen als Variablen in `tr()` – test_sprache fand sie nicht. Jetzt
+  feste Texte beim Aufruf.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_schruppwerte` grün –
+  Vorschlag an der ae-Grenze (fz 0,0833, vf 795,8, Q 22,92), Grenze
+  zwischen den Stufen (11 %), ohne Grenze bis D/2, Drehzahl-, Vorschub- und
+  Leistungsgrenze (C45, 1,5 kW: Zeile an der Grenze, 0,01 mm mehr wäre zu
+  viel), ohne kc1.1 keine Leistungsprüfung, Ausgangszeile, Grenzen einer
+  Drehmaschine mit angetriebenem Werkzeug.
+- KI, Oberfläche in **beiden** Versionen: `szenario_schruppwerte` grün,
+  Screenshots angesehen (Vorschlag, Leistungsgrenze, Maschine am Anschlag,
+  übernommen).
+- Manuel: offen.
+
+### NEXT
+- Alle Prüfungen, Version 0.6.0, Push.
+
 ## P-2026-09-25-59 stand-nach-der-nacht
 
 ### EINGELESEN

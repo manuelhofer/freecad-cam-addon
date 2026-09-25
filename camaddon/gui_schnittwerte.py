@@ -13,10 +13,12 @@ import math
 from PySide import QtCore, QtGui
 
 from . import schnittdaten as sd
+from . import schruppwerte as sw
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_eingriff import EingriffBild
 from .gui_hilfe import kopfzeile
+from .gui_schruppwerte import SchruppDialog
 from .gui_strategie import StrategieDialog
 from .gui_teile import GRAU, hinweiszeile, knopf
 from .gui_zahlen import Zahlenpruefer, zahl_lesen, zahl_zeigen, zahlenformat
@@ -86,6 +88,8 @@ class SchnittwertBereich(QtGui.QWidget):
         )
         zeile.addWidget(self.knopf_minus)
         zeile.addStretch()
+        self.knopf_planen = knopf(tr("sp.knopf"), "", self.schruppwerte_planen)
+        zeile.addWidget(self.knopf_planen)
         self.knopf_vergleich = knopf(
             tr("wv.strategie.knopf"), tr("wv.strategie.knopf.tooltip"), self.strategien_vergleichen
         )
@@ -236,6 +240,37 @@ class SchnittwertBereich(QtGui.QWidget):
         dialog.exec()
         StrategieDialog.offen = None
 
+    def schruppwerte_planen(self):
+        """„Schruppwerte planen…“: der Planer; was er vorschlägt, wird eine neue Zeile."""
+        if self.werkzeug is None or not sw.moeglich(self.werkzeug):
+            return
+        if self._werkstoff_objekt is not None:
+            text = ws.anzeige(self._werkstoff_objekt)
+        else:
+            text = tr("wv.alle_werkstoffe")
+        if self._bearbeitbar:
+            knopf_text = tr("sp.uebernehmen")
+        else:
+            knopf_text = tr("sp.uebernehmen.eigene", werkstoff=self._werkstoff_kurz)
+        ausgang = sw.ausgangszeile(self._liste, self.gewaehlt)
+        dialog = SchruppDialog(
+            self, self.werkzeug, ausgang, self._werkstoff_objekt, text, knopf_text
+        )
+        angenommen = dialog.exec()
+        SchruppDialog.offen = None
+        if angenommen and dialog.einsatz is not None:
+            self.einsatz_hinzufuegen(dialog.einsatz)
+
+    def einsatz_hinzufuegen(self, einsatz):
+        """Hängt einen fertigen Einsatz an; ohne eigene Werte für den Werkstoff legt es sie an."""
+        if not self._bearbeitbar:
+            self.werkzeug.eigene_anlegen(self.werkstoff)
+            self.auffrischen()
+        self._liste.append(einsatz)
+        self._geaendert()
+        self._fuellen()
+        self.tabelle.setCurrentCell(len(self._liste) - 1, EINSATZ)
+
     def setze(self, zeile, spalte, text):
         """Trägt `text` in eine Zelle ein, wie beim Tippen – für die Szenarien."""
         self.tabelle.item(zeile, spalte).setText(text)
@@ -296,6 +331,11 @@ class SchnittwertBereich(QtGui.QWidget):
         self._fuellt = False
         self.knopf_minus.setEnabled(self._bearbeitbar and bool(self._liste))
         self.knopf_vergleich.setEnabled(not self._bohrer() and len(self._liste) >= 2)
+        planbar = sw.moeglich(self.werkzeug)
+        self.knopf_planen.setEnabled(planbar)
+        self.knopf_planen.setToolTip(
+            tr("sp.knopf.tooltip") if planbar else tr("sp.knopf.nicht_moeglich")
+        )
         if self._liste:
             self.tabelle.setCurrentCell(max(0, min(zeile_vorher, len(self._liste) - 1)), EINSATZ)
         self._hinweise()

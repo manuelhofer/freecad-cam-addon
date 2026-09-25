@@ -1,0 +1,92 @@
+<h2>Schruppwerte planen</h2>
+<p>Die Frage dahinter: <b>Wie bekomme ich mit diesem Fräser in diesem Werkstoff
+am meisten Span herunter?</b> Die Antwort des dynamischen Fräsens ist: die
+ganze Schneide nutzen, schmal zustellen und dafür den Vorschub so weit
+anheben, dass jeder Zahn trotzdem einen ordentlichen Span abhebt. Der Planer
+rechnet das für eine Reihe von Breiten durch, prüft jede gegen die Grenzen von
+Werkzeug und Maschine und schlägt die mit dem größten Abtrag vor.</p>
+
+<h3>Warum fz steigt, wenn ae kleiner wird</h3>
+<p>Bei einer Vollnut ist jeder Zahn eine halbe Umdrehung im Material, und der
+Span ist in der Mitte so dick wie fz. Stellt der Fräser nur schmal zu, streift
+jeder Zahn das Material nur kurz – und der Span wird dünner als fz. Bei
+ae = 10 % von D ist er nur noch 60 % von fz dick. Zu dünne Späne schneiden
+nicht, sie reiben: Die Schneide wird heiß und stumpf, ohne dass viel
+passiert.</p>
+<p>Deshalb gibt man nicht fz vor, sondern die <b>Spandicke h</b>, die jeder Zahn
+abheben soll, und rechnet fz daraus zurück (Spandickenausgleich):</p>
+<p><b>fz = h / sin φ</b>, mit dem Eingriffswinkel φ aus cos φ = 1 − 2 · ae / D
+(ab ae = D/2 ist fz = h)</p>
+
+<h3>Die Felder</h3>
+<ul>
+<li><b>Schnittgeschwindigkeit vc</b> – aus dem Katalog des Herstellers. Viele
+Hersteller erlauben bei kleinem Eingriff mehr als beim Vollnutfräsen, weil
+die Schneide zwischen zwei Eingriffen abkühlt.</li>
+<li><b>Spandicke h</b> – vorbelegt aus der gewählten Zeile der Tabelle (bei einer
+Vollnut ist sie fz). Für dynamisches Fräsen geben die Hersteller oft etwas
+mehr an als für die Vollnut.</li>
+<li><b>Tiefe ap</b> – so viel Schneide arbeitet. Vorbelegt ist die
+Schneidenlänge, höchstens 2 × D. Mehr ap heißt: Der Verschleiß verteilt
+sich auf mehr Schneide.</li>
+<li><b>ae höchstens</b> – wie breit der Fräser bei voller Schneidenlänge
+zustellen darf. Die Hersteller nennen meist 5 bis 15 % von D – in Aluminium
+mehr, in Edelstahl, Titan und gehärtetem Stahl weniger. Vorbelegt sind 10 %.</li>
+<li><b>Maschine</b> – Höchstdrehzahl, höchster Bearbeitungsvorschub und
+Spindelleistung. Ein leeres Feld heißt: keine Grenze. Ist die Maschine mit
+<b>Maschine bearbeiten</b> beschrieben und ihr Dokument offen, übernimmt
+<b>Von der Maschine</b> Drehzahl und Vorschub. Die Werte merkt sich der
+Planer fürs nächste Mal.</li>
+</ul>
+
+<h3>Die Tabelle</h3>
+<p>Eine Zeile je Breite, von 2 % bis 50 % von D: das ausgeglichene fz, der
+Vorschub vf, der Abtrag Q und – wenn der Werkstoff einen kc1.1-Wert hat – die
+Schnittleistung an der Schneide. Die Drehzahl steht darüber; sie ist für alle
+Zeilen gleich.</p>
+<ul>
+<li><b>Grün</b> ist der Vorschlag: die Zeile mit dem größten Q, die alle
+Grenzen einhält. Der Satz darunter sagt, warum es nicht breiter geht.</li>
+<li><b>Grau</b> sind Zeilen jenseits einer Grenze – breiter als erlaubt oder
+mehr Leistung, als die Spindel hat.</li>
+<li><b>Vorschub am Anschlag</b>: Bei sehr schmalem ae wird fz groß; schafft die
+Maschine den Vorschub nicht, rechnet der Planer mit ihrem Höchstvorschub – der
+Span wird dann dünner als gewünscht.</li>
+<li><b>Spindel voll ausgelastet</b>: Liegt die Leistungsgrenze zwischen zwei
+Zeilen, sucht der Planer das ae genau an ihr (auf 0,01 mm) und fügt es als
+eigene Zeile ein.</li>
+</ul>
+<p>Eine andere Zeile anklicken und <b>Als Einsatz übernehmen</b> übernimmt diese
+statt des Vorschlags. Die Werte kommen als <b>Schruppen dynamisch</b> in die
+Tabelle, abgerundet: ae auf 0,01 mm, fz auf 0,001 mm. Hat der gewählte
+Werkstoff noch keine eigenen Werte, legt der Knopf sie dafür an.</p>
+
+<h3>Beispiel: Ø 12, 3 Schneiden, vc 120 m/min, h 0,05 mm, ap 24 mm</h3>
+<table cellpadding="3" border="1" style="border-collapse:collapse">
+<tr><th>ae</th><th>fz</th><th>vf</th><th>Q</th></tr>
+<tr><td>0,24 mm (2 %)</td><td>0,179 mm</td><td>1705 mm/min</td><td>9,8 cm³/min</td></tr>
+<tr><td>0,6 mm (5 %)</td><td>0,115 mm</td><td>1095 mm/min</td><td>15,8 cm³/min</td></tr>
+<tr><td><b>1,2 mm (10 %)</b></td><td><b>0,083 mm</b></td><td><b>796 mm/min</b></td><td><b>22,9 cm³/min</b></td></tr>
+<tr><td>3 mm (25 %)</td><td>0,058 mm</td><td>551 mm/min</td><td>39,7 cm³/min</td></tr>
+</table>
+<p>Zum Vergleich: Die Vollnut mit fz 0,05 mm und ap 3 mm schafft 17,2 cm³/min.
+Bei gleicher Spandicke bringt die schmale, tiefe Zeile also ein Drittel mehr –
+und schont dabei die Schneide: 24 statt 3 mm Schneide arbeiten, und jeder Zahn
+kühlt 90 % der Umdrehung ab. Deshalb erlauben die Hersteller für dynamisches
+Fräsen meist eine größere Spandicke und ein höheres vc. Mit h = 0,09 mm – bei
+ae 1,2 mm ist das fz 0,15 mm – sind es 41,2 cm³/min, das 2,4-Fache der
+Vollnut.</p>
+
+<h3>Was der Planer nicht weiß</h3>
+<ul>
+<li>Die Grenze für ae steht für das, was das Werkzeug verträgt – Biegung,
+Schwingungen, Spanraum. Das rechnet er nicht, dafür steht sie im Feld.</li>
+<li>Die Leistung ist grob (kc1.1-Modell), und viele Spindeln bringen ihre
+volle Leistung erst ab einer bestimmten Drehzahl. Das Drehmoment bei kleiner
+Drehzahl prüft er nicht.</li>
+<li>Eine stabile Aufspannung, eine kurze Auskragung und eine Maschine, die
+die vielen Richtungswechsel schafft, setzt dynamisches Fräsen voraus. In
+FreeCAD CAM heißt es <b>Adaptiv</b>: Schrittweite = ae, Stufentiefe = ap.</li>
+</ul>
+<p>Wie sich zwei Einsätze an Abtrag und Verschleiß unterscheiden, zeigt
+<a href="strategien.html">Strategien vergleichen</a>.</p>

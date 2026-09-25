@@ -289,6 +289,20 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    Maschine (Leistung, Drehmoment, Höchstdrehzahl aus W-001) die
    Kombination aus ae, ap und fz mit dem größten Zeitspanvolumen, die die
    Spandicke und die Maschine einhält.
+   **Gebaut** (P-2026-09-25-60): Knopf „Schruppwerte planen…“ unter der
+   Tabelle (Schaft- und Torusfräser). Eingaben: vc, Spandicke h, ap,
+   ae-Grenze in % von D (vorbelegt aus der gewählten Zeile bzw. 10 %),
+   dazu Höchstdrehzahl, höchster Vorschub und Spindelleistung der Maschine
+   (leer = keine Grenze, gemerkt; Drehzahl und Vorschub auf Knopfdruck von
+   einer W-001-Maschine). Gerechnet wird je ae von 2 bis 50 % von D mit
+   Spandickenausgleich (fz = h / sin φ); vf über der Grenze wird gekappt
+   (der Span wird dünner), die Leistung aus kc1.1 gegen 80 % der
+   Spindelleistung geprüft, die Leistungsgrenze auf 0,01 mm genau gesucht.
+   Vorschlag: größtes Q innerhalb aller Grenzen, mit einem Satz, warum nicht
+   breiter. „Als Einsatz übernehmen“ legt die gewählte Zeile als
+   „Schruppen dynamisch“ an (ohne eigene Werte für den Werkstoff werden sie
+   angelegt). Das Drehmoment bei kleiner Drehzahl prüft der Planer nicht –
+   W-001 kennt es nicht.
 
 ## 11. Entscheidungen (Claude, zur Besprechung)
 
@@ -340,6 +354,28 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     dem Namen des Controllers („T3 Schruppen dynamisch“), dann nach der
     Operation (Adaptiv → dynamisch, Tasche → Schruppen, Kontur → Schlichten),
     sonst die erste Zeile – immer änderbar.
+
+### Dazugekommen beim Bauen von Stufe 3
+
+13. **Der Planer hält ap fest und ändert ae.** Bei gleicher Spandicke braucht
+    derselbe Abtrag dieselbe Leistung, egal wie er auf ae und ap verteilt
+    ist; mit großem ap verteilt sich der Verschleiß auf mehr Schneide, mit
+    kleinem ae ist der Zahn kürzer im Material. Deshalb: ap so groß wie
+    sinnvoll (vorbelegt: Schneidenlänge, höchstens 2 × D), ae so groß, wie
+    die Grenzen erlauben. Alternative: auch ap durchrechnen – das Ergebnis
+    wäre immer „so viel ap wie möglich“.
+14. **ae-Grenze 10 % von D als Vorgabe**, im Feld änderbar und gemerkt. Das
+    ist Manuels Beispiel (1,2 mm bei Ø 12) und liegt in dem, was die
+    Hersteller für die volle Schneidenlänge nennen (5 bis 15 %).
+    Alternative: je ISO-Gruppe eine eigene Vorgabe – verlockend, aber ohne
+    Herstellerangaben geraten.
+15. **80 % der Spindelleistung an der Schneide**, fest. Alternative: ein
+    Feld für den Wirkungsgrad – mehr zu verstehen, kaum genauer.
+16. **Übernommen wird abgerundet** (ae auf 0,01 mm, fz auf 0,001 mm, vc auf
+    0,1 m/min): Aufgerundet läge ein Wert, der genau an einer Grenze liegt,
+    darüber.
+17. **Die Grenzen der Maschine merkt sich der Planer auch nach Abbrechen** –
+    die Maschine ändert sich ja nicht, wenn man den Vorschlag verwirft.
 
 ## 12. Akzeptanzkriterien Stufe 1
 

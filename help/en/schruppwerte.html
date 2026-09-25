@@ -1,0 +1,89 @@
+<h2>Plan roughing values</h2>
+<p>The question behind it: <b>How do I remove the most material with this
+cutter in this material?</b> The answer of dynamic milling is: use the full
+flute length, step over narrowly and raise the feed until each tooth still
+cuts a proper chip. The planner works this out for a series of widths, checks
+each against the limits of tool and machine and suggests the one with the
+highest removal rate.</p>
+
+<h3>Why fz rises when ae gets smaller</h3>
+<p>In a full slot each tooth is in the material for half a revolution, and the
+chip in the middle is as thick as fz. With a narrow step-over each tooth only
+brushes the material – and the chip gets thinner than fz. At ae = 10 % of D
+it is only 60 % of fz. Chips that are too thin don't cut, they rub: the edge
+gets hot and dull without much happening.</p>
+<p>So instead of fz you set the <b>chip thickness h</b> each tooth should cut,
+and fz is worked out from it (chip thinning compensation):</p>
+<p><b>fz = h / sin φ</b>, with the engagement angle φ from cos φ = 1 − 2 · ae / D
+(from ae = D/2 on, fz = h)</p>
+
+<h3>The fields</h3>
+<ul>
+<li><b>Cutting speed vc</b> – from the manufacturer's catalogue. Many
+manufacturers allow more with a small engagement than for slotting, because
+the edge cools down between two cuts.</li>
+<li><b>Chip thickness h</b> – taken from the selected row of the table (for a
+full slot it is fz). For dynamic milling manufacturers often state a little
+more than for slotting.</li>
+<li><b>Depth ap</b> – how much of the flute length cuts. The default is the
+flute length, at most 2 × D. More ap means: the wear spreads over more
+edge.</li>
+<li><b>ae at most</b> – how wide the cutter may step over at full flute length.
+Manufacturers usually state 5 to 15 % of D – more in aluminium, less in
+stainless steel, titanium and hardened steel. The default is 10 %.</li>
+<li><b>Machine</b> – maximum speed, maximum cutting feed and spindle power. An
+empty field means: no limit. If the machine is described with <b>Edit
+machine</b> and its document is open, <b>From the machine</b> takes speed and
+feed from it. The planner remembers the values for next time.</li>
+</ul>
+
+<h3>The table</h3>
+<p>One row per width, from 2 % to 50 % of D: the compensated fz, the feed vf, the
+removal rate Q and – if the material has a kc1.1 value – the cutting power at
+the edge. The spindle speed is shown above; it is the same for all rows.</p>
+<ul>
+<li><b>Green</b> is the suggestion: the row with the highest Q that keeps all
+limits. The sentence below says why it can't be wider.</li>
+<li><b>Grey</b> rows are beyond a limit – wider than allowed or more power than
+the spindle has.</li>
+<li><b>Feed at its limit</b>: with a very narrow ae, fz gets large; if the
+machine can't reach the feed, the planner uses its maximum feed – the chip
+then gets thinner than wanted.</li>
+<li><b>Spindle at full power</b>: if the power limit lies between two rows, the
+planner finds the ae right at it (to 0.01 mm) and adds it as a row of its
+own.</li>
+</ul>
+<p>Click another row and <b>Add as use case</b> takes that one instead of the
+suggestion. The values go into the table as <b>Dynamic roughing</b>, rounded
+down: ae to 0.01 mm, fz to 0.001 mm. If the selected material has no values of
+its own yet, the button creates them for it.</p>
+
+<h3>Example: Ø 12, 3 flutes, vc 120 m/min, h 0.05 mm, ap 24 mm</h3>
+<table cellpadding="3" border="1" style="border-collapse:collapse">
+<tr><th>ae</th><th>fz</th><th>vf</th><th>Q</th></tr>
+<tr><td>0.24 mm (2 %)</td><td>0.179 mm</td><td>1705 mm/min</td><td>9.8 cm³/min</td></tr>
+<tr><td>0.6 mm (5 %)</td><td>0.115 mm</td><td>1095 mm/min</td><td>15.8 cm³/min</td></tr>
+<tr><td><b>1.2 mm (10 %)</b></td><td><b>0.083 mm</b></td><td><b>796 mm/min</b></td><td><b>22.9 cm³/min</b></td></tr>
+<tr><td>3 mm (25 %)</td><td>0.058 mm</td><td>551 mm/min</td><td>39.7 cm³/min</td></tr>
+</table>
+<p>For comparison: the full slot with fz 0.05 mm and ap 3 mm removes
+17.2 cm³/min. With the same chip thickness the narrow, deep row removes a
+third more – and spares the edge: 24 instead of 3 mm of edge are cutting, and
+each tooth cools down for 90 % of the revolution. That is why manufacturers
+usually allow a larger chip thickness and a higher vc for dynamic milling.
+With h = 0.09 mm – at ae 1.2 mm that is fz 0.15 mm – it is 41.2 cm³/min,
+2.4 times the full slot.</p>
+
+<h3>What the planner doesn't know</h3>
+<ul>
+<li>The limit for ae stands for what the tool can take – bending, vibration,
+chip space. The planner doesn't calculate that, which is why it is a
+field.</li>
+<li>The power is rough (kc1.1 model), and many spindles only deliver their full
+power above a certain speed. The torque at low speed is not checked.</li>
+<li>Dynamic milling needs a rigid setup, a short stick-out and a machine that
+handles the many changes of direction. In FreeCAD CAM it is called
+<b>Adaptive</b>: step over = ae, step down = ap.</li>
+</ul>
+<p>How two use cases differ in removal rate and wear is shown by
+<a href="strategien.html">Compare strategies</a>.</p>
