@@ -7,8 +7,9 @@ werkzeugneutral in `CHATSTART.md`, damit keine zweite, driftende Fassung
 entsteht.
 
 - **Nicht pushen** ohne ausdrückliche Ansage. Lokal committen ist in Ordnung.
-- **Die Oberfläche siehst du nicht.** In der Cloud-Umgebung läuft kein
-  FreeCAD mit Fenster. Was du prüfen kannst (Syntax, Logik ohne GUI, ggf.
-  `FreeCADCmd`), prüfst du; alles Sichtbare testet Manuel. Schreib nie
-  „funktioniert", wenn du es nicht gesehen hast – schreib, was er klicken soll
-  und was er dann sehen muss.
+- **Die Oberfläche siehst du nur als Screenshot.** `scripts/oberflaeche_testen.sh`
+  startet FreeCAD unsichtbar (Xvfb) und spielt ein Szenario aus `tests/gui/`
+  durch; die Screenshots schaust du dir an und zeigst sie Manuel. Ob ein
+  Dialog **verständlich** ist und sich gut bedient, prüft trotzdem nur
+  Manuel in seinem FreeCAD. Schreib nie „funktioniert“, wenn du es nicht
+  gesehen hast – schreib, was er klicken soll und was er dann sehen muss.

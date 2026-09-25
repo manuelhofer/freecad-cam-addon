@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
+    <name>CAM Addon</name>
+    <description>Makes FreeCAD CAM easier to use. Describe a machine as an assembly - axes, spindles, tool and workpiece mounts - and hand it to CAM.</description>
+    <icon>resources/icons/camaddon.svg</icon>
+    <version>0.1.0</version>
+    <date>2026-09-25</date>
+    <maintainer>Manuel Hofer</maintainer>
+    <license file="LICENSE">LGPL-2.1-or-later</license>
+    <url type="repository" branch="main">https://github.com/manuelhofer/freecad-cam-addon</url>
+    <url type="readme">https://github.com/manuelhofer/freecad-cam-addon/blob/main/README.md</url>
+
+    <content>
+        <!-- Kein eigener Arbeitsbereich: Das Addon hängt seine Werkzeugleiste
+             an Assembly und CAM an. Als "workbench" deklariert, weil FreeCAD
+             nur dann InitGui.py lädt – so hält es auch der Addon-Manager
+             von FreeCAD selbst. -->
+        <workbench>
+            <name>CamAddon</name>
+            <subdirectory>./</subdirectory>
+        </workbench>
+    </content>
+</package>

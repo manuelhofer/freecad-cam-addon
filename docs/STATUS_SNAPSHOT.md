@@ -4,16 +4,19 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **PLANUNG** – Regelwerk steht, noch kein Addon-Code.
+- **IN ARBEIT** – Grundgerüst mit Sprachwahl steht; als Nächstes W-001, Stufe 1.
 - **Zuletzt geprüfte FreeCAD-Version:** 26.3.0 dev (Build 2026-09-16, conda-forge)
-  – bisher nur die Testumgebung selbst, noch kein Addon-Code.
+  – Prüfungen ohne Fenster und Oberflächen-Szenario grün.
 
 ## Nächster Schritt (konkret)
 
-Manuel liest den Entwurf
-[spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
-und gibt ihn frei. Danach beginnen das Grundgerüst des Addons (T-001), das
-Sprachsystem (T-003) und Stufe 1.
+W-001, Stufe 1 nach
+[spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md):
+zuerst das Maschinenobjekt mit dem Auslesen von Gelenken und Gliedern (ohne
+Oberfläche prüfbar), danach der Dialog.
+
+Manuel kann das Grundgerüst schon in seinem FreeCAD ausprobieren (README,
+„Installieren“).
 
 ## Wunschliste
 
@@ -31,7 +34,4 @@ Keine bekannten.
 
 ## Offene Tasks
 
-- **T-001** Grundgerüst des Addons (`package.xml`, `InitGui.py`, leere
-  Workbench oder Werkzeugleiste) – kommt mit dem ersten Wunsch, nicht vorher.
-- **T-003** Sprachsystem, Rest: Sprachwahl beim ersten Start (Englisch
-  vorbelegt) und Einstellungsseite – kommt mit dem Grundgerüst (T-001).
+Keine.

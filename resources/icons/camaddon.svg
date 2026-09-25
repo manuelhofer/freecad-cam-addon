@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Symbol des Addons: Portal mit Spindel über einem Schwenktisch. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="6" y="52" width="52" height="6" rx="1" fill="#555753"/>
+  <rect x="8" y="10" width="6" height="42" fill="#729fcf" stroke="#204a87" stroke-width="1.5"/>
+  <rect x="50" y="10" width="6" height="42" fill="#729fcf" stroke="#204a87" stroke-width="1.5"/>
+  <rect x="8" y="8" width="48" height="7" fill="#729fcf" stroke="#204a87" stroke-width="1.5"/>
+  <rect x="26" y="14" width="12" height="14" fill="#babdb6" stroke="#2e3436" stroke-width="1.5"/>
+  <path d="M30 28 h4 v6 l-2 3 l-2 -3 z" fill="#eeeeec" stroke="#2e3436" stroke-width="1.2"/>
+  <path d="M18 46 a14 5 0 0 0 28 0" fill="none" stroke="#f57900" stroke-width="3"/>
+  <rect x="22" y="40" width="20" height="5" rx="1" fill="#fcaf3e" stroke="#ce5c00" stroke-width="1.5"/>
+</svg>

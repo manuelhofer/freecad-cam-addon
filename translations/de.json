@@ -1,3 +1,15 @@
 {
-    "_sprache": "Deutsch"
+    "_sprache": "Deutsch",
+    "befehl.ueber.titel": "Über das CAM-Addon",
+    "befehl.ueber.tooltip": "Zeigt Version und Zweck des CAM-Addons.",
+    "ueber.text": "<h3>CAM-Addon {version}</h3><p>Macht FreeCAD CAM leichter bedienbar.</p><p>Als Erstes kommt: eine Maschine als Baugruppe beschreiben – Achsen, Spindeln, Werkzeug- und Werkstückaufnahmen – und an CAM übergeben.</p><p>Lizenz: LGPL-2.1-or-later<br><a href=\"https://github.com/manuelhofer/freecad-cam-addon\">github.com/manuelhofer/freecad-cam-addon</a></p>",
+    "werkzeugleiste.name": "CAM-Addon",
+    "sprachwahl.titel": "Sprache wählen",
+    "sprachwahl.frage": "In welcher Sprache soll das CAM-Addon mit dir sprechen?",
+    "sprachwahl.hinweis": "Du kannst das später jederzeit ändern: Bearbeiten → Einstellungen → CAM-Addon.",
+    "einstellungen.gruppe": "CAM-Addon",
+    "einstellungen.titel": "Allgemein",
+    "einstellungen.sprache.gruppe": "Sprache",
+    "einstellungen.sprache.feld": "Sprache des Addons:",
+    "einstellungen.sprache.neustart": "Die neue Sprache gilt vollständig nach einem Neustart von FreeCAD."
 }

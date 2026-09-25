@@ -88,6 +88,10 @@ ein ASCII-Entwurf des Dialogs reicht.
   läuft. Alle Prüfungen laufen vor jedem Commit durch
   (`scripts/tests_ausfuehren.sh`; in einer frischen Cloud-Sitzung vorher
   einmal `scripts/testumgebung_einrichten.sh`).
+- Jede neue oder geänderte Oberfläche bekommt ein **Szenario** unter
+  `tests/gui/`, das sie in einer unsichtbaren FreeCAD-Oberfläche durchklickt,
+  prüft und Screenshots macht (`scripts/oberflaeche_testen.sh`). Die
+  Screenshots gehören in die Rückmeldung an Manuel.
 - Die Oberfläche prüft **Manuel** in FreeCAD. Der Patch nennt ihm den Klickweg
   aus dem Akzeptanzkriterium. Gilt er erst nach seiner Rückmeldung als getestet,
   steht das so im Verlauf.

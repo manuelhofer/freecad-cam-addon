@@ -12,6 +12,77 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-12 grundgeruest-werkzeugleiste-sprachwahl
+
+### EINGELESEN
+- `Mod/AddonManager/package.xml` als Vorlage für `package.xml`.
+- `Mod/Fem/fempreferencepages/dlg_settings_netgen.py`: Aufbau einer
+  Einstellungsseite in Python.
+- `Mod/BIM/nativeifc/ifc_status.py`: Beispiel für einen WorkbenchManipulator.
+
+### DATEIEN
+- `package.xml`, `InitGui.py`, `resources/icons/camaddon.svg` (neu)
+- `camaddon/gui_start.py`, `camaddon/gui_sprachwahl.py` (neu)
+- `translations/de.json`, `translations/en.json` (erste Texte)
+- `scripts/oberflaeche_testen.sh`, `tests/gui/_lauf/*`,
+  `tests/gui/szenario_erster_start.py` (neu), `.gitignore`
+- `README.md` (Installieren), `CLAUDE.md`, `CHATSTART.md`,
+  `docs/arbeitsregeln.md` (Abschnitt 5), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach der Installation fragt FreeCAD beim ersten Start auf Englisch nach der
+Sprache, der Dialog beschriftet sich beim Wählen von Deutsch sofort um, und
+danach zeigen Assembly und CAM die Werkzeugleiste „CAM-Addon“ mit dem Knopf
+„Über das CAM-Addon“.
+
+### DONE
+- **T-001 Grundgerüst:**
+  - Das Addon ist in `package.xml` als `workbench` deklariert, damit
+    FreeCAD `InitGui.py` lädt. So macht es auch der Addon-Manager von FreeCAD.
+    Einen eigenen Arbeitsbereich hat das Addon nicht.
+  - Die Werkzeugleiste hängt an **Assembly** und **CAM**, denn dort wird
+    die Maschine gebaut und benutzt.
+- **Gefundene Falle:** Mein erster Weg war ein `WorkbenchManipulator`
+  (`modifyToolBars`). Der hängt nur an vorhandene Leisten an und legt keine
+  neue an. Das Szenario hat das aufgedeckt. Jetzt geht es über
+  `appendToolbar` des Arbeitsbereichs, sobald er aktiv wird, einmal je
+  Arbeitsbereich, und danach `reloadActive()`.
+- **T-003, Rest:**
+  - Beim ersten Start erscheint die Sprachwahl mit Englisch vorbelegt. Beim
+    Blättern durch die Liste beschriftet sie sich sofort in der markierten
+    Sprache um, damit auch jemand ohne Englisch sieht, was er wählt.
+  - Schließen ohne Wahl zählt als Wahl der Vorauswahl, damit die Frage nicht
+    bei jedem Start wiederkommt.
+  - Die Einstellungsseite heißt „CAM-Addon → Allgemein“ und bietet die
+    Sprache an. Sie sagt dazu, dass die neue Sprache erst nach einem Neustart
+    vollständig gilt, weil Befehlstexte beim Laden gelesen werden.
+- **Oberflächentests:** `scripts/oberflaeche_testen.sh` startet FreeCAD mit
+  Oberfläche unter Xvfb, mit leerem Benutzerprofil (`FREECAD_USER_HOME`) und
+  dem Addon als Verknüpfung im Mod-Ordner. Es spielt ein Szenario durch und
+  legt Screenshots und `ergebnis.txt` ab. Das Szenario wartet mit `yield`, so
+  blockieren modale Dialoge es nicht. Weil FreeCAD `InitGui.py` in einem
+  eigenen Namensraum ausführt, in dem sich Funktionen nicht gegenseitig sehen,
+  steht die Logik immer im Paket und nie in `InitGui.py`.
+- `package.xml` nennt „Manuel Hofer“ als Verantwortlichen, **ohne
+  E-Mail-Adresse**. Die trägt Manuel selbst ein, falls er eine angeben will.
+- **Neue Regel** in Abschnitt 5: Jede Oberfläche bekommt ein Szenario, und
+  die Screenshots gehen an Manuel. `CLAUDE.md` sagt jetzt, dass die KI die
+  Oberfläche als Screenshot sieht, die Verständlichkeit aber Manuel prüft.
+- Arbeitsname „CAM-Addon“ / „CAM Addon“. Ein richtiger Name ist nicht
+  festgelegt.
+
+### TEST
+- Von der KI ausgeführt: `tests_ausfuehren.sh` ergibt `ok test_sprache.py`
+  und `ok test_umgebung.py`. `oberflaeche_testen.sh` ergibt
+  `ok szenario_erster_start`, mit fünf Screenshots (Sprachwahl englisch und
+  deutsch, Leiste in Assembly und CAM, Einstellungsseite), alle angesehen.
+- **Noch nicht getestet:** Installation und Bedienung in Manuels eigenem
+  FreeCAD.
+
+### NEXT
+- W-001, Stufe 1: Maschinenobjekt und das Auslesen von Gelenken und Gliedern.
+
 ## P-2026-09-25-11 sprachsystem-kern
 
 ### EINGELESEN

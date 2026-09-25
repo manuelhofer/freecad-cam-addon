@@ -1,3 +1,15 @@
 {
-    "_sprache": "English"
+    "_sprache": "English",
+    "befehl.ueber.titel": "About the CAM Addon",
+    "befehl.ueber.tooltip": "Shows version and purpose of the CAM Addon.",
+    "ueber.text": "<h3>CAM Addon {version}</h3><p>Makes FreeCAD CAM easier to use.</p><p>First up: describe a machine as an assembly – axes, spindles, tool and workpiece mounts – and hand it over to CAM.</p><p>License: LGPL-2.1-or-later<br><a href=\"https://github.com/manuelhofer/freecad-cam-addon\">github.com/manuelhofer/freecad-cam-addon</a></p>",
+    "werkzeugleiste.name": "CAM Addon",
+    "sprachwahl.titel": "Choose language",
+    "sprachwahl.frage": "Which language should the CAM Addon speak?",
+    "sprachwahl.hinweis": "You can change this at any time: Edit → Preferences → CAM Addon.",
+    "einstellungen.gruppe": "CAM Addon",
+    "einstellungen.titel": "General",
+    "einstellungen.sprache.gruppe": "Language",
+    "einstellungen.sprache.feld": "Add-on language:",
+    "einstellungen.sprache.neustart": "The new language fully applies after restarting FreeCAD."
 }
