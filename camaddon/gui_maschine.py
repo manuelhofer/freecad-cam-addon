@@ -10,6 +10,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
+from . import gui_zeigen
 from . import kette as kette_modul
 from . import maschine as m
 from .gui_start import symbol
@@ -133,6 +134,14 @@ class MaschinenPanel:
         self.maschine = maschine
         self.doc = assembly.Document
         self.kette = kette_modul.lies_kette(assembly)
+        self.wackeln = None
+        self._zeige_ziel = None
+        self._zeige_uhr = QtCore.QTimer()
+        self._zeige_uhr.setSingleShot(True)
+        # Erst zeigen, wenn die Maus kurz auf einer Zeile verweilt – nicht bei
+        # jedem Überstreichen.
+        self._zeige_uhr.setInterval(250)
+        self._zeige_uhr.timeout.connect(lambda: self._zeige(self._zeige_ziel))
         self.form = self._baue()
         self._fuelle_alles()
         # Gleich ein Gelenk gewählt, damit „+ Betriebsart“ sofort bedienbar ist.
@@ -145,6 +154,7 @@ class MaschinenPanel:
 
     def accept(self):
         self.geschlossen = True
+        self._zeigen_beenden()
         self.doc.commitTransaction()
         FreeCADGui.Control.closeDialog()
         self.doc.recompute()
@@ -152,6 +162,7 @@ class MaschinenPanel:
 
     def reject(self):
         self.geschlossen = True
+        self._zeigen_beenden()
         self.doc.abortTransaction()
         FreeCADGui.Control.closeDialog()
         self.doc.recompute()
@@ -178,6 +189,7 @@ class MaschinenPanel:
         self.achsen.setHeaderHidden(True)
         self.achsen.setToolTip(tr("dialog.achsen.tooltip"))
         self.achsen.setMouseTracking(True)
+        self.achsen.itemEntered.connect(lambda eintrag, _s: self._zeige_spaeter(eintrag.data(0, ROLLE)))
         self.achsen.currentItemChanged.connect(self._achse_gewaehlt)
         self.achsen.setMinimumHeight(160)
         aufbau.addWidget(self.achsen)
@@ -215,6 +227,7 @@ class MaschinenPanel:
         self.aufnahmen.setHeaderHidden(True)
         self.aufnahmen.setToolTip(tr("dialog.aufnahmen.tooltip"))
         self.aufnahmen.setMouseTracking(True)
+        self.aufnahmen.itemEntered.connect(lambda eintrag, _s: self._zeige_spaeter(eintrag.data(0, ROLLE)))
         self.aufnahmen.currentItemChanged.connect(self._aufnahme_gewaehlt)
         self.aufnahmen.setMinimumHeight(110)
         aufbau.addWidget(self.aufnahmen)
@@ -241,6 +254,7 @@ class MaschinenPanel:
         self.glieder = QtGui.QListWidget()
         self.glieder.setToolTip(tr("dialog.glieder.tooltip"))
         self.glieder.setMouseTracking(True)
+        self.glieder.itemEntered.connect(lambda eintrag: self._zeige_spaeter(eintrag.data(ROLLE)))
         self.glieder.setWordWrap(True)
         aufbau.addWidget(self.glieder)
 
@@ -348,6 +362,47 @@ class MaschinenPanel:
             if wahl_item.parent() is not None:
                 wahl_item.parent().setExpanded(True)
             self.aufnahmen.setCurrentItem(wahl_item)
+
+    # Zeigen in der 3D-Ansicht
+    def _zeige_spaeter(self, daten):
+        self._zeige_ziel = daten
+        self._zeige_uhr.start()
+
+    def _zeige(self, daten):
+        """Hebt hervor, worum es in der Zeile geht; ein Gelenk wackelt kurz."""
+        if self.geschlossen or not daten:
+            return
+        art, objekt = daten
+        gelenk = None
+        if art == "gelenk":
+            gelenk = objekt
+        elif art == "ba":
+            gelenk = objekt.Gelenk
+        if gelenk is not None:
+            achse = next((g for g in self.kette.gelenke if g.objekt == gelenk), None)
+            if achse is None:
+                return
+            gui_zeigen.hervorheben(gui_zeigen.koerper_hinter(self.kette, achse))
+            # Läuft schon eine Bewegung für dieses Gelenk, nicht neu anfangen.
+            if self.wackeln and self.wackeln.laeuft() and self.wackeln.gelenk is achse:
+                return
+            if self.wackeln:
+                self.wackeln.stopp()
+            self.wackeln = gui_zeigen.Wackeln(self.assembly, self.kette, achse)
+            self.wackeln.start()
+        elif art == "glied":
+            gui_zeigen.hervorheben(objekt.koerper)
+        elif art == "auf":
+            gui_zeigen.hervorheben([objekt.Lcs])
+        elif art == "revolver":
+            gui_zeigen.hervorheben([a.Lcs for a in m.plaetze(self.maschine, self.kette, objekt)])
+
+    def _zeigen_beenden(self):
+        """Vor dem Schließen: Bewegung anhalten, alles zurück, Markierung weg."""
+        self._zeige_uhr.stop()
+        if self.wackeln:
+            self.wackeln.stopp()
+        FreeCADGui.Selection.clearSelection()
 
     def _fuelle_glieder(self):
         self.glieder.clear()

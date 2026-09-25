@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-18 zeigen-in-3d
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 11 („Zeigen, welches Teil gemeint ist“).
+- `camaddon/gui_maschine.py` (P-2026-09-25-17).
+
+### DATEIEN
+- `camaddon/gui_zeigen.py` (neu), `camaddon/gui_maschine.py`
+- `tests/gui/szenario_zeigen.py` (neu)
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Fährt man im Dialog über die Achse X der Beispiel-Drehmaschine, werden
+X-Schlitten und Revolver hervorgehoben und bewegen sich einmal kurz hin und
+her, Bett und Z-Schlitten nicht. Danach steht alles exakt wie vorher, auch
+wenn mitten in der Bewegung OK gedrückt wird.
+
+### DONE
+- **Überfahren einer Zeile** (nach 250 ms Verweilen, nicht bei jedem
+  Überstreichen):
+  - **Gelenk oder Betriebsart:** Alle Körper, die sich mit dem Gelenk
+    bewegen, auch weiter hinten in der Kette, werden hervorgehoben und
+    bewegen sich einmal hin und her. Eine Linearachse fährt 10 % der
+    Gliedgröße (5–50 mm), eine Drehachse dreht ±15° um ihre Achse.
+  - **Glied:** Seine Körper werden hervorgehoben.
+  - **Aufnahme:** Ihr LCS wird hervorgehoben.
+  - **Revolvergruppe:** Alle Platz-LCS werden hervorgehoben.
+- Das Hervorheben läuft über die Auswahl von FreeCAD, weil die Vorauswahl nur
+  ein Objekt kann und ein Glied mehrere Körper hat.
+- Die Bewegung verstellt keine Gelenke, sondern nur kurz die Lage der Körper.
+  Danach wird die gespeicherte Lage exakt zurückgesetzt. Läuft die Bewegung
+  für dasselbe Gelenk schon, beginnt sie nicht neu. OK und Abbrechen halten
+  sie zuerst an und setzen zurück, erst danach wird die Transaktion
+  abgeschlossen. So kann nichts Verschobenes gespeichert werden.
+
+### TEST
+- Von der KI ausgeführt: `szenario_zeigen` `ok`.
+  - Beim Zeigen auf X bewegen sich X-Schlitten und Revolver, Bett, Z-Schlitten
+    und Hauptspindel nicht.
+  - Hervorgehoben sind genau X-Schlitten und Revolver.
+  - Nach der Bewegung steht alles auf 1e-12 genau wie vorher.
+  - Beim Glied der Spindel sind Hauptspindel und Futter hervorgehoben.
+  - OK während der Revolver dreht lässt ihn nicht verdreht zurück.
+- Alle Prüfungen ohne Fenster und alle drei Szenarien `ok`.
+- **Nicht prüfbar im Test:** das echte Überfahren mit der Maus. Unter Xvfb
+  gibt es keine Maus, deshalb ruft das Szenario die Zeige-Funktion direkt auf.
+  Ob sich das Verweilen von 250 ms gut anfühlt, prüft Manuel.
+
+### NEXT
+- Hilfe-Knöpfe (?) mit den ausführlichen Texten.
+
 ## P-2026-09-25-17 dialog-maschine-bearbeiten
 
 ### EINGELESEN

@@ -4,7 +4,7 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufe 1: Dialog steht; Hervorheben in 3D und Hilfetexte fehlen noch.
+- **IN ARBEIT** – W-001, Stufe 1: Dialog mit Zeigen in 3D steht; Hilfetexte fehlen noch.
 - **Zuletzt geprüfte FreeCAD-Version:** 26.3.0 dev (Build 2026-09-16, conda-forge)
   – Prüfungen ohne Fenster und Oberflächen-Szenario grün.
 
@@ -15,8 +15,6 @@ in FreeCAD ausprobiert werden (README, „Installieren“; eine Baugruppe öffne
 Knopf „Maschine bearbeiten“ in der Werkzeugleiste des Addons). Es fehlen noch
 aus Spezifikation Abschnitt 11:
 
-- **Zeigen, welches Teil gemeint ist:** Beim Überfahren einer Zeile wird das
-  Teil in der 3D-Ansicht hervorgehoben und bewegt sich kurz.
 - **Hilfe (?)** je Bereich mit den ausführlichen Texten, dazu „Beschleunigung
   ermitteln“.
 
