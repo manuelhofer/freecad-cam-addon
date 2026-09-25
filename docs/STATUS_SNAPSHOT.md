@@ -33,10 +33,6 @@ Ein Satz je Wunsch, W-ID fortlaufend.
 
 ## Offene Bugs
 
-- **B-001** Übergabe an CAM: Fehlt ein Pflichtwert (Eilgang, Geschwindigkeit),
-  trägt das Addon FreeCADs Vorgabe ein (10000 mm/min, 100 U/min). Der Bericht
-  führt den Wert aber unter „In CAM angekommen“ statt unter „Bitte prüfen“
-  (gefunden in P-2026-09-25-29).
 - **B-002** Übergabe an CAM: Hat ein Gelenk nur eine der beiden Grenzen,
   bekommt die andere Seite ohne Hinweis ±100000 mm bzw. ±360° (gefunden in
   P-2026-09-25-29).

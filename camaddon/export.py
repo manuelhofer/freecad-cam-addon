@@ -97,10 +97,18 @@ def baue_cam_maschine(maschine, kette=None):
             eilgang = ba.Eilgang or VORGABE_EILGANG
             cam.linear_axes[name] = _linearachse(achse, eilgang, im_kopf, **gemeinsam)
             bericht.uebertragen.append(tr("export.linear", name=name, eilgang=_zahl(eilgang)))
+            if not ba.Eilgang:
+                bericht.zu_pruefen.append(
+                    tr("export.eilgang_vorgabe", name=name, eilgang=_zahl(eilgang))
+                )
         else:
             u_min = ba.Geschwindigkeit or VORGABE_DREHGESCHWINDIGKEIT
             cam.rotary_axes[name] = _drehachse(achse, u_min, ba.Endlos, im_kopf, **gemeinsam)
             bericht.uebertragen.append(tr("export.dreh", name=name, geschwindigkeit=_zahl(u_min)))
+            if not ba.Geschwindigkeit:
+                bericht.zu_pruefen.append(
+                    tr("export.geschwindigkeit_vorgabe", name=name, geschwindigkeit=_zahl(u_min))
+                )
             ohne_grenzen = ohne_grenzen and not ba.Endlos  # endlos braucht keine Grenzen
 
         if ohne_grenzen:
@@ -115,7 +123,14 @@ def baue_cam_maschine(maschine, kette=None):
         name = m.name_von(ba)
         if ba.Art == m.ART_SPINDEL:
             cam.toolheads.append(Toolhead(name=name, id=name, max_rpm=ba.Drehzahl))
-            bericht.uebertragen.append(tr("export.spindel", name=name, drehzahl=_zahl(ba.Drehzahl)))
+            if ba.Drehzahl:
+                satz = tr("export.spindel", name=name, drehzahl=_zahl(ba.Drehzahl))
+                bericht.uebertragen.append(satz)
+            else:
+                # Drehzahl 0 heißt für CAM „keine Grenze“ – so rechnet sein
+                # Schnittdaten-Rechner (Path/Tool/FeedsSpeeds/resolver.py).
+                bericht.uebertragen.append(tr("export.spindel_ohne_drehzahl", name=name))
+                bericht.zu_pruefen.append(tr("export.drehzahl_fehlt", name=name))
         elif ba.Art == m.ART_REVOLVER:
             anzahl = len(m.plaetze(maschine, kette, ba))
             bericht.nicht_uebertragen.append(tr("export.revolver", name=name, anzahl=anzahl))

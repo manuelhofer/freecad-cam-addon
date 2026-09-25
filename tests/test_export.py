@@ -96,6 +96,25 @@ def pruefe_export():
     export.exportiere(ma)
     anzahl = len([n for n in MachineFactory.list_configurations() if n == "Testdrehmaschine"])
     pruefe(anzahl == 1, f"nach zweitem Export {anzahl}× in der Liste")
+
+    # Fehlt ein Pflichtwert, steht das unter „Bitte prüfen“ (B-001).
+    betriebsart = {ba.NcName: ba for ba in m.betriebsarten(ma)}
+    betriebsart["X1"].Eilgang = 0
+    betriebsart["C4"].Geschwindigkeit = 0
+    betriebsart["S4"].Drehzahl = 0
+    _cam, bericht = export.baue_cam_maschine(ma)
+    uebertragen = " ".join(bericht.uebertragen)
+    zu_pruefen = " ".join(bericht.zu_pruefen)
+    for satz in (
+        "„X1“ hat keinen Eilgang – CAM bekommt FreeCADs Vorgabe von 10000 mm/min",
+        "„C4“ hat keine Geschwindigkeit – CAM bekommt FreeCADs Vorgabe von 100 U/min",
+        "„S4“ hat keine größte Drehzahl – CAM begrenzt die Spindeldrehzahl dann nicht",
+    ):
+        pruefe(satz in zu_pruefen, f"fehlender Pflichtwert nicht unter „Bitte prüfen“: {satz}")
+    pruefe(
+        "Spindel S4, ohne größte Drehzahl" in uebertragen and "bis 0 U/min" not in uebertragen,
+        f"Spindel ohne Drehzahl: {uebertragen}",
+    )
     App.closeDocument(asm.Document.Name)
     sprache.setze_sprache(sprache_vorher or "")
 

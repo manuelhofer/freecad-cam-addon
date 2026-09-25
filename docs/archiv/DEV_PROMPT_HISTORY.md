@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-40 pflichtwert-fehlt-im-bericht
+
+### EINGELESEN
+- B-001 aus P-2026-09-25-29: Fehlt bei der Übergabe ein Pflichtwert, trägt
+  das Addon FreeCADs Vorgabe ein. Der Bericht führte das unter „In CAM
+  angekommen“, als wäre alles in Ordnung.
+- Dasselbe galt für die Spindel: Ohne Drehzahl stand dort „Spindel S4, bis
+  0 U/min“.
+
+### DATEIEN
+- `camaddon/export.py`
+- `translations/de.json`, `translations/en.json` (vier neue Texte)
+- `tests/test_export.py`
+- `docs/STATUS_SNAPSHOT.md` (B-001 entfernt)
+- `package.xml` (Version 0.3.8)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Fehlt ein Pflichtwert (Eilgang, Geschwindigkeit, Drehzahl), steht unter
+„Bitte prüfen“ ein Satz, was fehlt, was CAM stattdessen bekommt und was zu
+tun ist.
+
+### DONE
+- Linear- und Drehachse: Unter „In CAM angekommen“ steht weiter, was CAM
+  bekommen hat, also FreeCADs Vorgabe. Dazu steht jetzt unter „Bitte
+  prüfen“, dass der Wert fehlte.
+- Spindel ohne Drehzahl: „Spindel S4, ohne größte Drehzahl“ statt „bis
+  0 U/min“, dazu unter „Bitte prüfen“: CAM begrenzt die Spindeldrehzahl dann
+  nicht. Nachgesehen in FreeCAD: Der Schnittdaten-Rechner begrenzt nur bei
+  `max_rpm > 0` (`Path/Tool/FeedsSpeeds/resolver.py`).
+- Version 0.3.8.
+
+### TEST
+- Von der KI ausgeführt:
+  - `test_export.py` hat einen neuen Abschnitt: X1 ohne Eilgang, C4 ohne
+    Geschwindigkeit, S4 ohne Drehzahl.
+  - Gegenprobe mit dem alten Code: Alle vier Prüfungen schlagen fehl, und im
+    Bericht steht „Spindel S4, bis 0 U/min“.
+  - Mit dem neuen Code ist `alle_tests.sh` in beiden Versionen grün; in
+    1.1.3 wird der Export wie immer übersprungen.
+
+### NEXT
+- B-002: nur eine Begrenzung am Gelenk.
+
 ## P-2026-09-25-39 push-freigabe-dauerhaft
 
 ### EINGELESEN
