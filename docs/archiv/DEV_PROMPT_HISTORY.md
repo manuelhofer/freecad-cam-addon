@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-02 keine-scheinaenderung
+
+### EINGELESEN
+- Beim Ansehen der Werkzeugbilder (P-2026-09-26-01) gefunden: Abbrechen
+  fragte „Speichern?“, obwohl nichts geändert war.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`als_dict`: leere Tabelle „für alle“ wie keine)
+- `camaddon/gui_werkzeuge.py` (unverändertes Zahlenfeld schreibt nicht
+  zurück)
+- `camaddon/werkzeuge_aus_cam.py` (Maße auf 0,0001 mm gerundet)
+- `tests/test_werkzeuge.py`, `tests/gui/szenario_aus_cam.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → „Aus CAM übernehmen“ → „Default“ → OK → wieder öffnen →
+jedes Werkzeug einmal anklicken → Abbrechen → das Fenster schließt ohne
+Rückfrage.
+
+### DONE
+- **Ursache 1:** Das Anzeigen legt für ein Werkzeug ohne Schnittwerte eine
+  leere Tabelle „für alle Werkstoffe“ an (damit „+ Einsatz“ etwas hat, an
+  das es anhängen kann). Die galt beim Vergleich als Änderung. Jetzt
+  zählt eine leere Tabelle „für alle“ wie keine – gespeichert wird sie
+  nicht.
+- **Ursache 2:** Beim Schließen liest der Dialog das Zahlenfeld mit dem
+  Fokus zurück. Das Feld zeigt 12 Stellen; ein längerer Wert (FreeCAD
+  rechnet den Durchmesser des Fasenfräsers aus: 10,260512242138308) kam
+  gekürzt zurück. Jetzt bleibt der Wert, solange im Feld steht, was es
+  beim Füllen zeigte; übernommene Maße werden außerdem auf 0,0001 mm
+  gerundet.
+- Betraf vor allem Werkzeuge, die nicht im Dialog angelegt wurden – also
+  genau die aus „Aus CAM übernehmen“.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_werkzeuge` (Ansehen ist
+  keine Änderung, eine neue Zeile schon), `test_werkzeuge_aus_cam` grün.
+- KI, Oberfläche in **beiden** Versionen: `szenario_aus_cam` (wieder
+  öffnen, alle ansehen, Abbrechen ohne Rückfrage) und
+  `szenario_werkzeugverwaltung` grün. Vor der Korrektur scheiterte das
+  Szenario im Wochen-Build genau daran.
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-26-01 werkzeugbild
 
 ### EINGELESEN

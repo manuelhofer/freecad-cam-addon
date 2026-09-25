@@ -49,3 +49,19 @@ def schritte(h):
     yield 500
     gespeichert = wz.Bibliothek.laden().werkzeuge
     h.pruefe(len(gespeichert) == 6, f"{len(gespeichert)} gespeichert statt 6")
+
+    # Wieder öffnen, alle Werkzeuge ansehen, Abbrechen: keine Rückfrage –
+    # angesehen ist nicht geändert.
+    Gui.runCommand("CamAddon_Werkzeugverwaltung")
+    yield 800
+    d = gui_werkzeuge.WerkzeugDialog.offen
+    for zeile in range(d.liste.count()):
+        d.liste.setCurrentRow(zeile)
+        yield 50
+    h.pruefe(not d.geaendert, "Ansehen gilt als Änderung")
+    QtCore.QTimer.singleShot(0, d.reject)  # eine Rückfrage blockierte sonst
+    yield 500
+    frage = h.modal()
+    h.pruefe(frage is None, f"Rückfrage, obwohl nichts geändert ist: {frage}")
+    if frage is not None:
+        frage.done(0)

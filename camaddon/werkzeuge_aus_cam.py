@@ -61,12 +61,15 @@ def bibliotheken():
     return sorted(ergebnis, key=lambda eintrag: eintrag[1].lower())
 
 
+STELLEN = 4  # Maße auf 0,0001 mm – FreeCAD rechnet manche aus (Fasenfräser: 10.260512242…)
+
+
 def _mm(objekt, eigenschaft):
     wert = getattr(objekt, eigenschaft, None)
     try:
-        return float(wert.getValueAs("mm"))
+        return round(float(wert.getValueAs("mm")), STELLEN)
     except AttributeError:
-        return _zahl(wert)
+        return round(_zahl(wert), STELLEN)
 
 
 def _zahl(wert):

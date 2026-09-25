@@ -608,6 +608,11 @@ class WerkzeugDialog(QtGui.QDialog):
     def _zahl_uebernehmen(self, feld, eigenschaft):
         if self._fuellt or self.werkzeug is None:
             return
+        # Steht noch da, was das Feld beim Füllen zeigte, bleibt der Wert: Das
+        # Feld zeigt 12 Stellen, zurückgelesen wäre ein längerer Wert gekürzt –
+        # eine Änderung, die niemand gemacht hat.
+        if feld.text().strip() == zahl_zeigen(getattr(self.werkzeug, eigenschaft)):
+            return
         setattr(self.werkzeug, eigenschaft, zahl_lesen(feld.text()))
         self._geaendert()
 

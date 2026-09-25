@@ -207,9 +207,13 @@ class Werkzeug:
             "schaft": self.schaft,
             "schneidstoff": self.schneidstoff,
             "bezeichnung": self.bezeichnung,
+            # Eine leere Tabelle „für alle Werkstoffe“ ist dasselbe wie keine:
+            # zum_bearbeiten() legt sie schon beim Ansehen an – das darf nicht
+            # als Änderung zählen (sonst fragt der Dialog grundlos „Speichern?“).
             "schnittwerte": {
                 werkstoff: [e.als_dict() for e in liste]
                 for werkstoff, liste in self.schnittwerte.items()
+                if liste or werkstoff != ALLE
             },
         }
 

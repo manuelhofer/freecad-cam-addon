@@ -106,6 +106,14 @@ for suche, soll in (
 ):
     pruefe(wz.passt(torus, suche) == soll, f"Suche {suche!r}: {wz.passt(torus, suche)}")
 
+# Ansehen ist keine Änderung: zum_bearbeiten(ALLE) legt eine leere Tabelle an.
+b_ansehen = wz.Bibliothek([wz.Werkzeug(durchmesser=6)])
+k_ansehen = b_ansehen.kopie()
+k_ansehen.werkzeuge[0].zum_bearbeiten(wz.ALLE)
+pruefe(k_ansehen.gleich(b_ansehen), "Ansehen eines Werkzeugs gilt als Änderung")
+k_ansehen.werkzeuge[0].zum_bearbeiten(wz.ALLE).append(wz.Einsatz(art=wz.VOLLNUT))
+pruefe(not k_ansehen.gleich(b_ansehen), "neue Zeile gilt nicht als Änderung")
+
 # Unlesbares im Eintrag: Standardwerte statt Absturz.
 w = wz.Werkzeug.aus_dict({"nummer": "x", "art": "Hammer", "durchmesser": None, "schneidstoff": 3})
 pruefe(
