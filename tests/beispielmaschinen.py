@@ -29,6 +29,22 @@ class Baukasten:
         teil.Placement = App.Placement(App.Vector(x, y, z), App.Rotation())
         return teil
 
+    def bauteil(self, name, koerper, lcs_name=None, lcs_hoehe=0):
+        """Ein Part mit Körper und optional einem LCS darin – so, wie man eine
+        Werkzeug- oder Werkstückaufnahme markiert. Gelenke greifen dann auf
+        "<Körpername>.FaceN"."""
+        teil = self.assembly.newObject("App::Part", name)
+        self.assembly.removeObject(koerper)
+        teil.addObject(koerper)
+        teil.Placement = koerper.Placement
+        koerper.Placement = App.Placement()
+        lcs = None
+        if lcs_name:
+            lcs = self.doc.addObject("App::LocalCoordinateSystem", lcs_name)
+            lcs.Placement = App.Placement(App.Vector(0, 0, lcs_hoehe), App.Rotation())
+            teil.addObject(lcs)
+        return teil, lcs
+
     def fixieren(self, teil):
         gelenk = self.gelenke.newObject("App::FeaturePython", "Fixiert_" + teil.Name)
         JointObject.GroundedJoint(gelenk, teil)
@@ -56,20 +72,24 @@ def drehmaschine():
     bett = b.quader("Bett", 600, 200, 50)
     spindelstock = b.quader("Spindelstock", 150, 200, 250, z=50)
     spindel = b.zylinder("Hauptspindel", 60, 80, 75, 100, 300)
-    futter = b.zylinder("Futter", 90, 40, 75, 100, 380)
+    futter, spannflaeche = b.bauteil(
+        "Futter", b.zylinder("FutterKoerper", 90, 40, 75, 100, 380), "Spannflaeche", 40
+    )
     z_schlitten = b.quader("ZSchlitten", 150, 200, 40, 300, 0, 50)
     x_schlitten = b.quader("XSchlitten", 100, 150, 40, 300, 0, 90)
-    revolver = b.quader("Revolver", 80, 80, 80, 300, 0, 130)
+    revolver, werkzeugplatz = b.bauteil(
+        "Revolver", b.quader("RevolverKoerper", 80, 80, 80, 300, 0, 130), "Werkzeugplatz", 80
+    )
 
     b.fixieren(bett)
     b.gelenk("Spindelstock_fest", "Fixed", bett, "Face6", spindelstock, "Face5")
     b.gelenk("Spindel", "Revolute", spindelstock, "Face6", spindel, "Face3")
-    b.gelenk("Futter_fest", "Fixed", spindel, "Face2", futter, "Face3")
+    b.gelenk("Futter_fest", "Fixed", spindel, "Face2", futter, "FutterKoerper.Face3")
     b.gelenk("Z", "Slider", bett, "Face6", z_schlitten, "Face5")
     x = b.gelenk("X", "Slider", z_schlitten, "Face2", x_schlitten, "Face1")
     x.EnableLengthMin, x.LengthMin = True, 0
     x.EnableLengthMax, x.LengthMax = True, 200
-    b.gelenk("Revolver_fest", "Fixed", x_schlitten, "Face6", revolver, "Face5")
+    b.gelenk("Revolver_fest", "Fixed", x_schlitten, "Face6", revolver, "RevolverKoerper.Face5")
     return b.fertig()
 
 

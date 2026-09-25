@@ -4,16 +4,18 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – Grundgerüst mit Sprachwahl steht; als Nächstes W-001, Stufe 1.
+- **IN ARBEIT** – W-001, Stufe 1: Datenmodell fertig, Dialog als Nächstes.
 - **Zuletzt geprüfte FreeCAD-Version:** 26.3.0 dev (Build 2026-09-16, conda-forge)
   – Prüfungen ohne Fenster und Oberflächen-Szenario grün.
 
 ## Nächster Schritt (konkret)
 
-W-001, Stufe 1 nach
-[spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md):
-zuerst das Maschinenobjekt mit dem Auslesen von Gelenken und Gliedern (ohne
-Oberfläche prüfbar), danach der Dialog.
+W-001, Stufe 1: Das Auslesen der Baugruppe (`kette.py`) und das
+Maschinenobjekt (`maschine.py`) stehen und sind ohne Oberfläche geprüft. Als
+Nächstes kommt der **Dialog „Maschine bearbeiten“**: Befehl in der
+Werkzeugleiste, Liste der Gelenke und Glieder mit Hervorheben in der
+3D-Ansicht, Betriebsarten und Aufnahmen anlegen, Meldungen, Hilfe
+(Spezifikation Abschnitt 11).
 
 Manuel kann das Grundgerüst schon in seinem FreeCAD ausprobieren (README,
 „Installieren“).

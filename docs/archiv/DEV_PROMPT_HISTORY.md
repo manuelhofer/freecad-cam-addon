@@ -12,6 +12,79 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-14 maschinenobjekt
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitte 4, 5 und 7.
+- `camaddon/kette.py` (P-2026-09-25-13).
+
+### DATEIEN
+- `camaddon/maschine.py` (neu)
+- `tests/test_maschine.py` (neu), `tests/beispielmaschinen.py` (Revolver und
+  Futter als Part mit LCS)
+- `translations/de.json`, `translations/en.json`
+- `CHATSTART.md` (Lesekarte), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`test_maschine.py` legt an der Beispiel-Drehmaschine eine Maschine mit Z1,
+X1, S4 und C4 (zwei Betriebsarten an einem Gelenk) sowie Revolver und Futter
+an. Die Prüfung meldet dafür nichts, und die Hauptspindel sitzt im Tisch,
+X und Z im Kopf.
+
+### DONE
+- **Aufbau:** Eine Gruppe „Maschine“ liegt in der Assembly. Jede Betriebsart
+  und jede Aufnahme ist ein eigenes Objekt darin, so stehen sie lesbar im
+  Baum. Rückgängig geht von selbst, und ein gelöschtes Gelenk hinterlässt nur
+  einen leeren Verweis. Die Assembly löst weiterhin und zählt die Gruppe
+  nicht als Bauteil (geprüft).
+- **Betriebsart:** Gelenk, Art (Linear, Positionieren, Spindel), NC-Name,
+  Kennwerte in den Einheiten aus Spezifikation Abschnitt 4. **0 bedeutet
+  unbekannt**, denn keiner dieser Werte kann an einer echten Maschine 0 sein.
+  Der Eigenschaften-Editor zeigt nur die Werte, die zur Art gehören, auch
+  nach dem Laden.
+- **Aufnahme:** LCS, Art (Werkzeug/Werkstück), optional die Spindel, die das
+  Werkzeug antreibt.
+- **Tisch/Kopf:** Ein Gelenk auf dem Weg einer Werkstückaufnahme zum Bett
+  sitzt im Tisch, eines auf dem Weg einer Werkzeugaufnahme im Kopf. Liegt es
+  auf beiden Wegen, ist es mehrdeutig und wird gemeldet.
+- **Prüfung** `pruefe(maschine)` meldet in ganzen Sätzen:
+  - NC-Name fehlt oder ist doppelt (Groß/Klein egal)
+  - Gelenk gelöscht oder keine Achse
+  - Art passt nicht zum Gelenk
+  - Art doppelt
+  - Pflichtwert fehlt
+  - LCS fehlt oder liegt außerhalb
+  - Antrieb ist keine Spindel
+  - Werkzeug- oder Werkstückaufnahme fehlt (Hinweis)
+- Anzeigetexte für Art und Kennwert kommen aus `art_text()`/`wert_text()`
+  mit festen Schlüsseln. Mein erster Entwurf setzte die Schlüssel zusammen
+  (`"art." + …`), das verbietet Abschnitt 8. Die Sprachprüfung hat außerdem
+  einen Eigenschaftstext gefunden, der unübersetzt übergeben wurde. Beides
+  ist behoben.
+- Die Werte der Eigenschaft „Art“ sind gespeicherte ASCII-Wörter
+  (`Positionieren`). Im Eigenschaften-Editor erscheinen sie so, auch auf
+  Englisch. Der Dialog zeigt die Übersetzung. Das ist bewusst so, weil
+  gespeicherte Werte nicht von der Sprache abhängen dürfen.
+
+### TEST
+- Von der KI ohne Fenster ausgeführt: `tests_ausfuehren.sh` ergibt alle
+  vier Prüfungen `ok`. `test_maschine.py` deckt ab:
+  - Anlegen, auch doppelt
+  - Assembly löst weiter
+  - leere Maschine
+  - vollständige Drehmaschine ohne Meldung
+  - Tisch/Kopf-Zuordnung
+  - Sichtbarkeit der Kennwerte
+  - drei Fehlerfälle, alle Platzhalter gefüllt
+  - gelöschtes Gelenk und Rückgängig
+  - Speichern und Laden
+- Gegenprobe: Erlaubt man Spindel an Schiebegelenken, fehlt
+  `maschine.art_passt_nicht`, und die Prüfung schlägt fehl.
+
+### NEXT
+- Dialog „Maschine bearbeiten“ (Stufe 1, Oberfläche).
+
 ## P-2026-09-25-13 kette-aus-baugruppe-lesen
 
 ### EINGELESEN

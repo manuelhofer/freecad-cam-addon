@@ -60,7 +60,7 @@ neue Spezifikation unter `docs/` bekommt hier eine Zeile.
 
 | Du arbeitest an … | Dann lies |
 | --- | --- |
-| W-001 Maschine aus Baugruppe (Achsen, Betriebsarten, Export) | [docs/spezifikation_maschine_aus_baugruppe.md](docs/spezifikation_maschine_aus_baugruppe.md) |
+| W-001 Maschine aus Baugruppe (Achsen, Betriebsarten, Export) | [docs/spezifikation_maschine_aus_baugruppe.md](docs/spezifikation_maschine_aus_baugruppe.md); Code: `camaddon/kette.py` (Baugruppe lesen), `camaddon/maschine.py` (Maschinenobjekt), Beispiele: `tests/beispielmaschinen.py` |
 | Texte der Oberfläche, Übersetzungen | `camaddon/sprache.py` (Kopfkommentar), [translations/README.md](translations/README.md) |
 | Oberfläche testen, Screenshots | `scripts/oberflaeche_testen.sh` (Kopfkommentar), Beispiel: `tests/gui/szenario_erster_start.py` |
 | Prüfungen ohne Fenster, Testumgebung | `scripts/testumgebung_einrichten.sh`, dann `scripts/tests_ausfuehren.sh` – Aufbau einer Prüfung: `tests/test_umgebung.py` |
