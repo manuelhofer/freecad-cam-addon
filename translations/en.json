@@ -483,5 +483,6 @@
     "vf.ohne_grenze": "no limit",
     "vf.grundstellung": "Home position",
     "vf.grundstellung.tooltip": "Moves all axes to the position they had when the window was opened.",
-    "vf.grenzen.tooltip": "The limits are set in the assembly's joint (minimum/maximum length or angle) – that is where they can be entered or changed."
+    "vf.grenzen.tooltip": "The limits are set in the assembly's joint (minimum/maximum length or angle) – that is where they can be entered or changed.",
+    "vf.platz.tooltip": "Choose a turret station: the turret turns until this station is where P1 was when the window opened."
 }

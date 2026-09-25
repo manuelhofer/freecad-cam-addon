@@ -252,7 +252,8 @@ Patch.
   (Lage = B1(w1) · B2(w2) · … · Lage beim Öffnen). Die Assembly lässt die
   Stellung beim Neuberechnen stehen (ausprobiert, 1.1.3 und Wochen-Build).
   OK = ein Schritt Rückgängig, Abbrechen und „Grundstellung“ fahren
-  zurück.
+  zurück. **Revolver** (P-2026-09-25-69): eine Auswahl der Plätze; der
+  gewählte Platz dreht an die Stelle, an der beim Öffnen P1 stand.
 
 **Stufe 4 – Werkzeugbahn abfahren und Kollision prüfen** – eigene
 Spezifikation, wenn Stufe 3 steht.

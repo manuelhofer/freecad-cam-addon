@@ -29,6 +29,7 @@ SCHRITTE_JE_EINHEIT = 10
 OHNE_GRENZE_LINEAR = 1000.0  # mm
 OHNE_GRENZE_DREH = 360.0  # Grad
 FELD_GRENZE = 99999.0  # größter Betrag im Zahlenfeld ohne Begrenzung
+PLATZ_TOLERANZ = 0.05  # Grad – so nah, und der Platz gilt als eingeschwenkt
 
 
 class BefehlMaschineVerfahren:
@@ -81,6 +82,7 @@ class VerfahrPanel:
         self.verfahren = verfahren
         self.maschine = m.finde_maschine(assembly)
         self.zeilen = {}  # Achse -> (Regler, Zahlenfeld)
+        self.platzwahl = {}  # Revolverachse -> (Auswahl, [(Platz, Stellung)])
         self.form = self._baue()
 
     def getStandardButtons(self):
@@ -162,6 +164,17 @@ class VerfahrPanel:
         gitter.addWidget(name, zeile, 0)
         gitter.addWidget(regler, zeile, 1)
         gitter.addWidget(feld, zeile, 2)
+        plaetze = vf.platzstellungen(self.verfahren, self.maschine, achse)
+        if plaetze:
+            wahl = QtGui.QComboBox()
+            wahl.addItem("–", None)
+            for platz, platz_stellung in plaetze:
+                wahl.addItem(platz, platz_stellung)
+            wahl.setToolTip(tr("vf.platz.tooltip"))
+            wahl.activated.connect(lambda index, a=achse: self._platz_gewaehlt(a, index))
+            gitter.addWidget(wahl, zeile, 3)
+            self.platzwahl[achse] = (wahl, plaetze)
+            self._platz_zeigen(achse, stellung)
         grenzen = QtGui.QLabel(self._grenzen_text(achse, einheit, 2 if linear else 1))
         grenzen.setStyleSheet(f"color: {GRAU.name()};")
         grenzen.setToolTip(tr("vf.grenzen.tooltip"))
@@ -212,6 +225,32 @@ class VerfahrPanel:
         feld.setValue(stellung)
         for element in (regler, feld):
             element.blockSignals(False)
+        self._platz_zeigen(achse, stellung)
+
+    def waehle_platz(self, achse, platz):
+        """Dreht den Revolver, bis `platz` (etwa „P4“) steht, wo beim Öffnen P1 stand."""
+        wahl, _plaetze = self.platzwahl[achse]
+        self._platz_gewaehlt(achse, wahl.findText(platz))
+
+    def _platz_gewaehlt(self, achse, index):
+        wahl, _plaetze = self.platzwahl[achse]
+        stellung = wahl.itemData(index)
+        if stellung is not None:
+            self.setze(achse, stellung)
+
+    def _platz_zeigen(self, achse, stellung):
+        """Die Auswahl zeigt den Platz, der gerade an der Stelle von P1 steht – sonst „–“."""
+        if achse not in self.platzwahl:
+            return
+        wahl, plaetze = self.platzwahl[achse]
+        index = 0
+        for i, (_platz, platz_stellung) in enumerate(plaetze, start=1):
+            if abs((stellung - platz_stellung + 180.0) % 360.0 - 180.0) < PLATZ_TOLERANZ:
+                index = i
+                break
+        wahl.blockSignals(True)
+        wahl.setCurrentIndex(index)
+        wahl.blockSignals(False)
 
     def achse(self, name):
         """Die Achse mit diesem Namen im Fenster (NC-Name oder Gelenk) – für die Szenarien."""

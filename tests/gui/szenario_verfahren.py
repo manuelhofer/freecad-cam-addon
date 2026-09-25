@@ -55,6 +55,16 @@ def schritte(h):
     yield 200
     h.pruefe(abs(feld_c.value() - 90) < 1e-9, f"C4 im Feld: {feld_c.value()}")
     h.pruefe(abs(vf.gelenkstellung(c.gelenk, c.art) - 90) < 1e-6, "C4 steht nicht auf 90°")
+    # Revolverplatz wählen: P4 dreht an die Stelle von P1.
+    t = panel.achse("T")
+    h.pruefe(t in panel.platzwahl, "keine Platzwahl beim Revolver")
+    if t in panel.platzwahl:
+        wahl, _plaetze = panel.platzwahl[t]
+        h.pruefe(wahl.currentText() == "P1", f"beim Öffnen: {wahl.currentText()!r}")
+        panel.waehle_platz(t, "P4")
+        yield 200
+        h.pruefe(wahl.currentText() == "P4", f"nach der Wahl: {wahl.currentText()!r}")
+        h.pruefe(abs(abs(panel.zeilen[t][1].value()) - 90) < 1e-6, "T nicht um 90° gedreht")
     Gui.SendMsgToActiveView("ViewFit")
     h.bild("1_verfahren")
 

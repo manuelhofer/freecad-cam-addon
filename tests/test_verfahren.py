@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.join(ADDON, "tests"))
 import beispielmaschinen
 import FreeCAD
 
+from camaddon import maschine as m
 from camaddon import verfahren as vf
 
 fehler = []
@@ -71,6 +72,21 @@ pruefe(
     all(b.Placement.isSame(lage, 1e-9) for b, lage in v.ausgang.items()),
     "Grundstellung nicht exakt",
 )
+
+# Revolver: Platz P4 an die Stelle von P1 – 12 Plätze, also 90° zurück.
+plaetze = vf.platzstellungen(v, ma, t)
+pruefe([n for n, _s in plaetze] == [f"P{i}" for i in range(1, 13)], f"Plätze: {plaetze}")
+pruefe(vf.platzstellungen(v, ma, x) == [], "Linearachse mit Plätzen")
+if len(plaetze) == 12:
+    pruefe(nahe(plaetze[0][1], v.stellung(t)), f"P1: {plaetze[0][1]}")
+    pruefe(nahe(abs(plaetze[3][1] - v.stellung(t)), 90), f"P4: {plaetze[3][1]}")
+    revolver_ba = next(b for b in m.betriebsarten(ma) if b.Art == m.ART_REVOLVER)
+    aufnahmen = m.plaetze(ma, v.kette, revolver_ba)
+    p1_vorher = m.globale_platzierung(aufnahmen[0].Lcs).Base
+    v.setze(t, plaetze[3][1])
+    p4_jetzt = m.globale_platzierung(aufnahmen[3].Lcs).Base
+    pruefe(p4_jetzt.distanceToPoint(p1_vorher) < 1e-6, f"P4 steht nicht, wo P1 stand: {p4_jetzt}")
+    v.grundstellung()
 FreeCAD.closeDocument(doc.Name)
 
 # --- Fünfachser: C sitzt auf der Wiege A ---------------------------------------

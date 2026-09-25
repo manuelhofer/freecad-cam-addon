@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-69 revolverplatz-waehlen
+
+### EINGELESEN
+- „Maschine verfahren“ (P-2026-09-25-67): Beim Revolver ist ein Winkel in
+  Grad umständlich; gedacht wird in Plätzen (Spezifikation W-001,
+  Abschnitt 7a: Plätze P1 … Pn als Werkzeugaufnahmen im Glied des
+  Revolvers).
+
+### DATEIEN
+- `camaddon/verfahren.py` (`platzstellungen()`, Lagen der Plätze beim
+  Öffnen)
+- `camaddon/gui_verfahren.py` (Auswahl der Plätze in der Zeile des
+  Revolvers)
+- `help/de|en/verfahren.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/test_verfahren.py`, `tests/gui/szenario_verfahren.py`
+- `docs/spezifikation_maschine_aus_baugruppe.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine mit 12 verteilten Revolverplätzen → „Maschine
+verfahren“ → in der Zeile T steht rechts „P1“ → „P4“ wählen → T steht auf
+−90°, P4 steht, wo P1 stand; zieht man T weiter, zeigt die Auswahl „–“.
+
+### DONE
+- Je Platz die Stellung der Revolverachse, in der er dort steht, wo beim
+  Öffnen P1 stand – aus dem Winkel der Plätze um die Achse, kürzester Weg.
+  Gilt für jede Verteilung, nicht nur gleichmäßige.
+- Die Auswahl folgt dem Regler: Steht ein Platz an der Stelle von P1
+  (±0,05°), zeigt sie ihn, sonst „–“.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_verfahren` grün – 12
+  Plätze P1 … P12, P4 = 90° von P1, nach dem Drehen steht P4 auf 1e-6 mm
+  genau, wo P1 stand; Linearachse ohne Plätze.
+- KI, Oberfläche in **beiden** Versionen: `szenario_verfahren` grün,
+  Screenshot angesehen.
+- Manuel: offen – vor allem: Ist „an die Stelle von P1“ die richtige
+  Arbeitsstellung, oder soll man sie festlegen können?
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-25-68 version-0-7-0
 
 ### EINGELESEN

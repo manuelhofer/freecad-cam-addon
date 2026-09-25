@@ -71,12 +71,22 @@ class Verfahren:
         self.start = {a: gelenkstellung(a.gelenk, a.art) for a in self.achsen}
         self._vorzeichen = {a: _vorzeichen(a) for a in self.achsen}
         self.weg = dict.fromkeys(self.achsen, 0.0)  # seit dem Ausgang, in Achsrichtung
+        self._platz_lage = {}  # Revolverplatz -> Lage beim Öffnen
         # Je Bauteil die Achsen vom Bett nach außen.
         self._pfad = {}
         for glied in self.kette.glieder:
             pfad = list(reversed(self.kette.pfad_zum_bett(glied)))
             for bauteil in glied.bauteile:
                 self._pfad[bauteil] = pfad
+
+    def platz_lagen(self, plaetze):
+        """Wo die Plätze (Aufnahmen mit LCS) beim Öffnen lagen – Punkte in Weltkoordinaten."""
+        lagen = []
+        for platz in plaetze:
+            if platz not in self._platz_lage:
+                self._platz_lage[platz] = m.globale_platzierung(platz.Lcs).Base
+            lagen.append(self._platz_lage[platz])
+        return lagen
 
     def stellung(self, achse):
         """Die Stellung der Achse in mm bzw. Grad, gezählt wie am Gelenk."""
@@ -123,6 +133,49 @@ class Verfahren:
             neu = gesamt * lage
             if not neu.isSame(bauteil.Placement, 1e-9):
                 bauteil.Placement = neu
+
+
+def platzstellungen(verfahren, maschine, achse):
+    """Für eine Revolverachse: [(Platzname, Stellung)] – die Stellung, in der der Platz dort steht,
+    wo beim Öffnen P1 stand. Leer, wenn die Achse kein Revolver mit Plätzen ist.
+
+    Gerechnet aus der Lage der Plätze beim Öffnen: ihr Winkel um die Achse,
+    von P1 aus gezählt. Der Revolver dreht um den kürzesten Weg. Einmal vor
+    dem ersten Verfahren aufrufen – dann merkt sich `verfahren` die Lagen.
+    """
+    if maschine is None or achse.art == LINEAR:
+        return []
+    revolver = next(
+        (
+            b
+            for b in m.betriebsarten(maschine)
+            if b.Art == m.ART_REVOLVER and b.Gelenk == achse.gelenk
+        ),
+        None,
+    )
+    if revolver is None:
+        return []
+    plaetze = m.plaetze(maschine, verfahren.kette, revolver)
+    if not plaetze:
+        return []
+    richtung, ursprung = achse.richtung, achse.ursprung
+    lagen = verfahren.platz_lagen(plaetze)
+
+    def quer(punkt):
+        """Der Punkt von der Achse aus, senkrecht zu ihr."""
+        abstand = punkt - ursprung
+        return abstand - richtung * abstand.dot(richtung)
+
+    erster = quer(lagen[0])
+    ergebnis = []
+    for platz, lage in zip(plaetze, lagen, strict=True):
+        jetzt = quer(lage)
+        winkel = math.degrees(math.atan2(erster.cross(jetzt).dot(richtung), erster.dot(jetzt)))
+        weg = -winkel  # so weit zurückdrehen, dann steht der Platz, wo P1 stand
+        weg = (weg + 180.0) % 360.0 - 180.0
+        stellung = verfahren.start[achse] + verfahren._vorzeichen[achse] * weg
+        ergebnis.append((m.name_von(platz), stellung))
+    return ergebnis
 
 
 def _vorzeichen(achse):
