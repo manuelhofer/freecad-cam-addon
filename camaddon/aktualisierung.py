@@ -81,13 +81,29 @@ def aktualisiere(ordner=ADDON_ORDNER):
     _git(git_programm(), ordner, "merge", "--ff-only", "--quiet", f"origin/{ZWEIG}")
 
 
+def ist_neuer(neu, jetzt):
+    """Ist Version `neu` höher als `jetzt`? Verglichen wird Zahl für Zahl: 0.3.10 > 0.3.9."""
+    try:
+        return _als_zahlen(neu) > _als_zahlen(jetzt)
+    except ValueError:
+        # Unlesbare Version: lieber einmal zu oft fragen als ein Update verschweigen.
+        return neu != jetzt
+
+
+def _als_zahlen(version):
+    return tuple(int(teil) for teil in version.split("."))
+
+
 def _vergleiche_mit_github(git, ordner):
-    jetzt = version_aus_xml(_git(git, ordner, "show", "HEAD:package.xml"))
     _git(git, ordner, "fetch", "--quiet", "origin", ZWEIG)
-    if _git(git, ordner, "rev-parse", "HEAD") == _git(git, ordner, "rev-parse", f"origin/{ZWEIG}"):
+    jetzt = version_aus_xml(_git(git, ordner, "show", "HEAD:package.xml"))
+    neu = version_aus_xml(_git(git, ordner, "show", f"origin/{ZWEIG}:package.xml"))
+    # Gemeldet wird nur eine höhere Version. Änderungen ohne neue Version –
+    # Tests, Doku, Aufräumen – kommen mit der nächsten Version mit. Sonst
+    # hieße der Hinweis „neue Version 0.3.3, installiert ist 0.3.3“ (B-003).
+    if not ist_neuer(neu, jetzt):
         return Ergebnis(AKTUELL, version_jetzt=jetzt)
 
-    neu = version_aus_xml(_git(git, ordner, "show", f"origin/{ZWEIG}:package.xml"))
     # Geänderte Dateien oder eigene Commits im Ordner: Dann entscheidet der
     # Benutzer selbst, statt dass das Update etwas überschreibt.
     geaendert = _git(git, ordner, "status", "--porcelain", "--untracked-files=no") != ""

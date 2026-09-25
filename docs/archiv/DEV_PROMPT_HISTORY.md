@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-30 update-nur-bei-neuer-version
+
+### EINGELESEN
+- B-003 aus P-2026-09-25-29: Die Update-Suche meldete „neu“, sobald auf
+  GitHub ein anderer Commit lag, auch bei gleicher Version. Der Hinweis
+  hätte dann gelautet: „neue Version 0.3.3 (installiert ist 0.3.3)“.
+- Dringend geworden, weil die nächsten Patches (Durchsicht der Oberfläche,
+  Tests, Doku) nichts Sichtbares ändern und deshalb keine neue Version
+  bekommen.
+
+### DATEIEN
+- `camaddon/aktualisierung.py` (`ist_neuer()`, Vergleich der Versionen)
+- `tests/test_aktualisierung.py` (neuer Stand ohne neue Version; Vergleich
+  Zahl für Zahl)
+- `package.xml` (Version 0.3.4)
+- `docs/STATUS_SNAPSHOT.md` (B-003 entfernt)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Update-Suche meldet nur eine höhere Version. Ein neuer Stand auf GitHub
+mit gleicher Version gilt als „aktuell“.
+
+### DONE
+- `ist_neuer(neu, jetzt)` vergleicht Zahl für Zahl, also ist 0.3.10 höher
+  als 0.3.9. Ist eine Version unlesbar, gilt „anders ist neu“: lieber einmal
+  zu oft fragen als ein Update verschweigen.
+- Änderungen ohne neue Version (Tests, Doku, Aufräumen) kommen beim
+  Benutzer mit der nächsten Version an. Beim Aktualisieren wird ohnehin bis
+  zum neuesten Stand vorgespult.
+- Der Vergleich der Commits (`rev-parse`) entfällt; er ist im Vergleich der
+  Versionen enthalten.
+- Version 0.3.4, weil sich das Verhalten der Update-Suche ändert.
+
+### TEST
+- Von der KI ausgeführt:
+  - Gegenprobe mit dem alten Code: Der neue Fall ergibt
+    `Ergebnis(status='neu', version_neu='9.9.0', version_jetzt='9.9.0')`.
+  - Mit dem neuen Code besteht `test_aktualisierung.py`.
+  - `alle_tests.sh` in beiden Versionen grün.
+
+### NEXT
+- Durchsicht der Oberflächen-Module.
+
 ## P-2026-09-25-29 kern-module-lesbar
 
 ### EINGELESEN

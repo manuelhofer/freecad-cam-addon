@@ -63,6 +63,21 @@ a.aktualisiere(installiert)
 e = a.pruefe(installiert)
 pruefe(e.status == a.AKTUELL and e.version_jetzt == "9.9.0", f"nach dem Aktualisieren: {e}")
 
+# Neuer Stand ohne neue Version (Tests, Doku, Aufräumen): kein Hinweis, sonst
+# hieße er „neue Version 9.9.0, installiert ist 9.9.0“ (B-003).
+with open(os.path.join(arbeit, "docs", "STATUS_SNAPSHOT.md"), "a", encoding="utf-8") as datei:
+    datei.write("\nnur Doku\n")
+git("commit", "-q", "-am", "nur Doku", ordner=arbeit)
+git("push", "-q", "origin", "HEAD:main", ordner=arbeit)
+e = a.pruefe(installiert)
+pruefe(e.status == a.AKTUELL and e.version_jetzt == "9.9.0", f"neuer Stand, alte Version: {e}")
+
+# Versionen werden Zahl für Zahl verglichen, nicht als Text.
+pruefe(a.ist_neuer("0.3.10", "0.3.9"), "0.3.10 gilt nicht als neuer als 0.3.9")
+pruefe(not a.ist_neuer("0.3.3", "0.3.3"), "gleiche Version gilt als neuer")
+pruefe(not a.ist_neuer("0.3.2", "0.3.3"), "ältere Version gilt als neuer")
+pruefe(a.ist_neuer("0.4.0", "?"), "unlesbare Version: Update wird verschwiegen")
+
 # Eigene Änderung im Addon-Ordner: nicht blind überschreiben.
 with open(os.path.join(installiert, "README.md"), "a", encoding="utf-8") as datei:
     datei.write("\nlokal geändert\n")

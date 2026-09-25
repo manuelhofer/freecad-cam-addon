@@ -40,12 +40,6 @@ Ein Satz je Wunsch, W-ID fortlaufend.
 - **B-002** Übergabe an CAM: Hat ein Gelenk nur eine der beiden Grenzen,
   bekommt die andere Seite ohne Hinweis ±100000 mm bzw. ±360° (gefunden in
   P-2026-09-25-29).
-- **B-003** Update-Suche: Sie meldet „neu“, sobald auf GitHub ein anderer
-  Commit liegt, auch wenn die Version gleich geblieben ist. Dann steht im
-  Hinweis z. B. „neue Version 0.3.2 (installiert ist 0.3.2)“ – das wirft
-  eine Frage auf. Vorschlag: nur bei höherer Version melden; Änderungen ohne
-  neue Version (Tests, Doku, interne Aufräumarbeit) kommen dann mit der
-  nächsten Version mit (gefunden in P-2026-09-25-29).
 
 ## Offene Tasks
 
