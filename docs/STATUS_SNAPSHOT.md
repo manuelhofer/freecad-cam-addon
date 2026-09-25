@@ -40,6 +40,13 @@ Ein Satz je Wunsch, W-ID fortlaufend.
 - **B-002** Übergabe an CAM: Hat ein Gelenk nur eine der beiden Grenzen,
   bekommt die andere Seite ohne Hinweis ±100000 mm bzw. ±360° (gefunden in
   P-2026-09-25-29).
+- **B-005** Dialog „Maschine bearbeiten“: Enter in einem Feld übernimmt den
+  Wert und schließt den ganzen Dialog mit OK. So machen es FreeCADs
+  Aufgabenfenster immer. In diesem Dialog mit vielen Feldern überrascht es
+  aber: Wer „X1“ tippt und Enter drückt, sieht den Dialog verschwinden.
+  Vorschlag: Enter bestätigt nur das Feld, geschlossen wird nur mit OK oder
+  Abbrechen. **Entscheidung Manuel** (gefunden in P-2026-09-25-31, belegt in
+  1.1.3 und im Wochen-Build).
 
 ## Offene Tasks
 

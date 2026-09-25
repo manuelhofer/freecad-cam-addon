@@ -141,18 +141,55 @@ def zeige_hilfe(eltern, thema):
     fenster.show()
 
 
+def _zahlenformat():
+    """Das Zahlenformat der Oberfläche, aber ohne Tausendertrennzeichen.
+
+    Auf einem deutschen System stellt FreeCAD das deutsche Format ein. Mit
+    Tausenderpunkten zeigte das Feld „30.000“, und zurückgelesen ergab das 30
+    statt 30000 (B-004). Ohne sie ist jede Eingabe eindeutig: Auf Deutsch ist
+    das Komma das Dezimalzeichen, einen Punkt lässt das Feld nicht zu.
+    """
+    zahlenformat = QtCore.QLocale()
+    zahlenformat.setNumberOptions(
+        QtCore.QLocale.OmitGroupSeparator | QtCore.QLocale.RejectGroupSeparator
+    )
+    return zahlenformat
+
+
+class _Zahlenpruefer(QtGui.QDoubleValidator):
+    """Lässt nur Zahlen ab 0 im Zahlenformat der Oberfläche zu – und ein leeres Feld.
+
+    Leer heißt „unbekannt“ (0). QDoubleValidator allein hält ein leeres Feld
+    für unfertig und meldet es nicht – den Wert zu löschen, bliebe wirkungslos.
+    """
+
+    def __init__(self, feld):
+        # feld als Qt-Eltern: Der Prüfer lebt so lange wie das Feld.
+        super().__init__(0, 1e9, 6, feld)  # kleinster Wert, größter Wert, Nachkommastellen
+        self.setLocale(_zahlenformat())
+
+    def validate(self, text, position):
+        if not text.strip():
+            return QtGui.QValidator.Acceptable, text, position
+        return super().validate(text, position)
+
+
 def _zahl_lesen(text):
-    """Liest eine Zahl, Komma oder Punkt; leer = 0 (unbekannt)."""
-    text = text.strip().replace(",", ".")
+    """Liest eine Zahl im Zahlenformat der Oberfläche; ein leeres Feld ist 0 (unbekannt)."""
+    text = text.strip()
     if not text:
         return 0.0
-    return float(text)
+    wert, gelesen = _zahlenformat().toDouble(text)
+    if not gelesen:  # hinter dem _Zahlenpruefer nicht möglich
+        raise ValueError(f"keine Zahl: {text!r}")
+    return wert
 
 
 def _zahl_zeigen(wert):
+    """Zeigt eine Zahl im Zahlenformat der Oberfläche; 0 (unbekannt) als leeres Feld."""
     if not wert:
         return ""
-    return QtCore.QLocale().toString(float(wert), "g", 12)
+    return _zahlenformat().toString(float(wert), "g", 12)
 
 
 def _symbol_status(ok):
@@ -613,7 +650,7 @@ class MaschinenPanel:
                 feld.toggled.connect(lambda wert, e=eigenschaft: self._setze(ba, e, bool(wert)))
             else:
                 feld = QtGui.QLineEdit(_zahl_zeigen(getattr(ba, eigenschaft)))
-                feld.setValidator(QtGui.QDoubleValidator(0, 1e9, 6))
+                feld.setValidator(_Zahlenpruefer(feld))
                 feld.setPlaceholderText(tr("feld.pflicht") if pflicht else tr("feld.unbekannt"))
                 feld.editingFinished.connect(
                     lambda f=feld, e=eigenschaft: self._setze(ba, e, _zahl_lesen(f.text()))

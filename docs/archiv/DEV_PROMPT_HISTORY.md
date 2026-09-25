@@ -12,6 +12,60 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-31 zahlenfelder-eindeutig
+
+### EINGELESEN
+- Befund bei der Durchsicht von `gui_maschine.py`: Die Zahlenfelder zeigen
+  Werte mit `QLocale()`, lesen sie aber mit „Komma oder Punkt ist das
+  Dezimalzeichen“.
+- Probe in FreeCAD 1.1.3 und im Wochen-Build mit `LANG=de_DE`: FreeCAD
+  stellt für Qt `de_DE` **mit** Tausendertrennzeichen ein. 30000 erscheint
+  als „30.000“.
+
+### DATEIEN
+- `camaddon/gui_maschine.py` (`_zahlenformat`, `_Zahlenpruefer`,
+  `_zahl_lesen`, `_zahl_zeigen`)
+- `tests/gui/szenario_zahlen.py` (neu)
+- `package.xml` (Version 0.3.5)
+- `docs/STATUS_SNAPSHOT.md` (B-005)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im deutschen Zahlenformat zeigt das Eilgang-Feld 30000 als „30000“. Weder
+Bestätigen ohne Änderung noch „35.000“ tippen verfälscht den Wert. Ein
+geleertes Feld setzt den Wert auf „unbekannt“ (0).
+
+### DONE
+- **B-004 behoben**, drei Fehler mit derselben Ursache:
+  1. Das Feld zeigte „30.000“. Bestätigte man das ohne Änderung, stand
+     danach 30 mm/min im Dokument.
+  2. „35.000“ getippt ergab 35 statt 35000.
+  3. Ein geleertes Feld wurde nie übernommen, weil `QDoubleValidator` es
+     für unfertig hält. Der alte Wert blieb, obwohl das Feld leer war.
+- Zahlen stehen jetzt im Format der Oberfläche, aber ohne
+  Tausendertrennzeichen. Auf Deutsch ist das Komma das Dezimalzeichen, einen
+  Punkt nimmt das Feld nicht an. So ist jede Eingabe eindeutig.
+- `_Zahlenpruefer` lässt ein leeres Feld zu, es bedeutet „unbekannt“ (0).
+- Version 0.3.5.
+- **B-005 gefunden:** Enter in einem Feld schließt den ganzen Dialog mit OK.
+  Das ist FreeCADs Verhalten für alle Aufgabenfenster. Ob der Dialog davon
+  abweichen soll, entscheidet Manuel; im Snapshot steht ein Vorschlag.
+
+### TEST
+- Von der KI ausgeführt:
+  - Neues Szenario `szenario_zahlen`: deutsches Zahlenformat wie bei FreeCAD
+    auf einem deutschen System, Eingaben Taste für Taste.
+  - Gegenprobe mit dem alten Code, alle Fehler einzeln belegt: Anzeige
+    „30.000“; nach dem Bestätigen 30.0; „35.000“ ergibt 35.0; das geleerte
+    Feld bleibt 35.0; kein Hinweis auf den fehlenden Eilgang.
+  - Mit dem neuen Code ist das Szenario in beiden Versionen grün, ebenso
+    `alle_tests.sh`.
+  - Probe zu B-005: Enter im Feld „NC-Name“ ergibt `geschlossen=True`, ein
+    Rückgängig-Schritt, in 1.1.3 und im Wochen-Build.
+
+### NEXT
+- Durchsicht der Oberflächen-Module: `gui_maschine.py` aufteilen.
+
 ## P-2026-09-25-30 update-nur-bei-neuer-version
 
 ### EINGELESEN
