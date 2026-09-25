@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-11 sprachsystem-kern
+
+### EINGELESEN
+- `docs/arbeitsregeln.md` Abschnitt 8 (Sprache).
+
+### DATEIEN
+- `camaddon/__init__.py`, `camaddon/sprache.py` (neu)
+- `translations/de.json`, `translations/en.json`, `translations/README.md` (neu)
+- `tests/test_sprache.py` (neu), `.gitignore` (neu)
+- `CHATSTART.md` (Lesekarte), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`scripts/tests_ausfuehren.sh` meldet `ok test_sprache.py`, und eine
+absichtlich eingefügte Leiche in `de.json` lässt die Prüfung scheitern.
+
+### DONE
+- `tr(schluessel, **werte)` liefert den Text in der gewählten Sprache. Fehlt
+  er dort, kommt Englisch, dann Deutsch und zuletzt der nackte Schlüssel mit
+  einer Warnung im Report-Fenster. Die Sprache liegt im Parameter-System unter
+  `Mod/CamAddon/Sprache`. Leer heißt „noch nie gewählt“, das braucht die
+  Sprachwahl beim ersten Start.
+- Eine Sprachdatei ist flach aufgebaut, Schlüssel → Text. `_sprache` enthält
+  den Namen der Sprache in der Sprache selbst, so erscheint sie in der
+  Auswahl.
+- Eine kaputte oder falsch übersetzte Datei (JSON-Fehler, falscher
+  Platzhalter) legt das Addon nicht lahm. Es gibt eine Meldung und einen
+  Rückfall.
+- `translations/README.md` ist die Anleitung für Übersetzer, auf Deutsch
+  und Englisch.
+- Die Prüfung `test_sprache.py` stellt sicher: de und en haben dieselben
+  Schlüssel, andere Sprachen haben keine fremden, die Platzhalter sind gleich,
+  jeder `tr("…")` im Code steht in `de.json`, und es gibt keine unbenutzten
+  Schlüssel. Deshalb stehen Schlüssel im Code immer als fester Text und werden
+  nie zusammengesetzt.
+- Außerdem geprüft: Sich Assembly-Gelenke ohne Fenster anlegen und lösen,
+  und die FreeCAD-Oberfläche läuft unter Xvfb. Ich kann also Screenshots
+  von Dialogen machen. Beides wird in den nächsten Patches genutzt.
+
+### TEST
+- Von der KI ohne Fenster ausgeführt: `tests_ausfuehren.sh` ergibt
+  `ok test_sprache.py` und `ok test_umgebung.py`.
+- Gegenprobe: Ein Schlüssel `test.leiche` nur in `de.json` ergibt `FEHLER` mit
+  „nur in de.json“ und „nirgends benutzt“. Danach habe ich ihn wieder entfernt.
+
+### NEXT
+- Grundgerüst (T-001) mit Sprachwahl beim ersten Start und Einstellungsseite.
+
 ## P-2026-09-25-10 spezifikation-bedienung
 
 ### EINGELESEN
