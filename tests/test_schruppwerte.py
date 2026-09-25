@@ -172,6 +172,18 @@ if ("Testdrehmaschine", 3000, 6000) not in sw.maschinen():
     fehler.append(f"Maschinen: {sw.maschinen()}")
 FreeCAD.closeDocument(dok.Name)
 
+# Vorbelegen: nur, wenn beide Felder leer sind, und nur bei genau einer Maschine.
+eine = [("Fräse", 24000.0, 8000.0)]
+for leer in (-1, 0):
+    if sw.vorbelegung(leer, leer, eine) != (24000.0, 8000.0, "Fräse"):
+        fehler.append(f"Vorbelegung: {sw.vorbelegung(leer, leer, eine)}")
+if sw.vorbelegung(12000, 0, eine) != (12000, 0, ""):
+    fehler.append("eingetragene Drehzahl überschrieben")
+if sw.vorbelegung(-1, -1, eine * 2) != (0, 0, ""):
+    fehler.append("bei zwei Maschinen vorbelegt")
+if sw.vorbelegung(12000, -1, []) != (12000, 0, ""):
+    fehler.append("gemerkte Drehzahl verloren")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()  # FreeCADCmd 1.1.3 schreibt Fortschritt ohne Zeilenende davor

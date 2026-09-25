@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-73 planer-maschine-vorbelegen
+
+### EINGELESEN
+- „Schruppwerte planen“ (P-60): Die Grenzen der Maschine kamen nur auf
+  Knopfdruck von einer W-001-Maschine.
+
+### DATEIEN
+- `camaddon/schruppwerte.py` (`vorbelegung()`),
+  `camaddon/gui_schruppwerte.py` (vorbelegen, grauer Satz „Drehzahl und
+  Vorschub von …“)
+- `help/de|en/schruppwerte.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/test_schruppwerte.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine mit Maschinenobjekt offen, Planer noch nie mit
+Maschinenwerten benutzt → Werkzeugverwaltung → „Schruppwerte planen…“ →
+Höchstdrehzahl und höchster Vorschub stehen schon da, darunter grau
+„Drehzahl und Vorschub von „Testdrehmaschine““.
+
+### DONE
+- Vorbelegt wird nur, wenn beide Felder leer sind und genau eine Maschine
+  offen ist; sonst bleibt es beim Gemerkten bzw. bei „Von der Maschine“.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_schruppwerte` grün (vier
+  Fälle der Vorbelegung).
+- KI, Oberfläche in **beiden** Versionen: `szenario_schruppwerte` grün
+  (ohne Maschine: Felder leer wie bisher).
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-25-72 werkstoff-am-rohteil
 
 ### EINGELESEN

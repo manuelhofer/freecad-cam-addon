@@ -488,5 +488,6 @@
     "wv.suche.platzhalter": "Suchen: T3, Torus, 10,5, Hoffmann …",
     "wv.suche.tooltip": "Zeigt nur die Werkzeuge, in deren Zeile oder Bezeichnung jedes Wort vorkommt.",
     "sj.am_rohteil": "Am Rohteil eintragen",
-    "sj.am_rohteil.tooltip": "Trägt den gewählten Werkstoff als Werkstoffkarte von FreeCAD am Rohteil des Jobs ein (gleiche Werkstoffnummer). Dann schlägt dieser Dialog ihn beim nächsten Mal selbst vor – und im Wochen-Build auch FreeCADs eigener Knopf für Vorschub und Drehzahl. Strg+Z nimmt es zurück."
+    "sj.am_rohteil.tooltip": "Trägt den gewählten Werkstoff als Werkstoffkarte von FreeCAD am Rohteil des Jobs ein (gleiche Werkstoffnummer). Dann schlägt dieser Dialog ihn beim nächsten Mal selbst vor – und im Wochen-Build auch FreeCADs eigener Knopf für Vorschub und Drehzahl. Strg+Z nimmt es zurück.",
+    "sp.von_maschine.vorbelegt": "Drehzahl und Vorschub von „{maschine}“."
 }

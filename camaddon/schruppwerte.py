@@ -287,6 +287,19 @@ def grenzen_der_maschine(maschine):
     return drehzahl, min(vorschuebe, default=0.0)
 
 
+def vorbelegung(drehzahl, vorschub, gefundene):
+    """(Drehzahl, Vorschub, Name der Maschine oder „“) zum Vorbelegen der Maschinenfelder.
+
+    `drehzahl` und `vorschub` sind die gemerkten Werte (0 oder negativ:
+    keine). Sind beide leer und ist genau eine Maschine offen, kommen sie
+    von ihr – bei mehreren wählt man mit „Von der Maschine“.
+    """
+    if drehzahl <= 0 and vorschub <= 0 and len(gefundene) == 1:
+        name, drehzahl, vorschub = gefundene[0]
+        return drehzahl, vorschub, name
+    return max(drehzahl, 0.0), max(vorschub, 0.0), ""
+
+
 def maschinen():
     """Die Maschinen (W-001) in allen offenen Dokumenten, die Drehzahl oder Vorschub kennen.
 

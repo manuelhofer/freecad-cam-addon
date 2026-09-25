@@ -103,19 +103,25 @@ class SchruppDialog(QtGui.QDialog):
         maschine = QtGui.QGroupBox(tr("sp.gruppe.maschine"))
         formular = QtGui.QFormLayout(maschine)
         gemerkt = _parameter()
+        gefundene = sw.maschinen()
+        drehzahl, vorschub, von_maschine = sw.vorbelegung(
+            gemerkt.GetFloat(GEMERKT["drehzahl"], 0.0),
+            gemerkt.GetFloat(GEMERKT["vorschub"], 0.0),
+            gefundene,
+        )
         self.feld_drehzahl = self._feld(
             formular,
             tr("sp.drehzahl"),
             tr("sp.drehzahl.tooltip"),
             tr("einheit.drehzahl"),
-            gemerkt.GetFloat(GEMERKT["drehzahl"], 0.0),
+            drehzahl,
         )
         self.feld_vorschub = self._feld(
             formular,
             tr("sp.vorschub"),
             tr("sp.vorschub.tooltip"),
             "mm/min",
-            gemerkt.GetFloat(GEMERKT["vorschub"], 0.0),
+            vorschub,
         )
         self.feld_leistung = self._feld(
             formular,
@@ -128,14 +134,19 @@ class SchruppDialog(QtGui.QDialog):
         self.knopf_maschine.setToolTip(tr("sp.von_maschine.tooltip"))
         self.knopf_maschine.setAutoDefault(False)
         self.menue_maschine = QtGui.QMenu(self.knopf_maschine)
-        for name, drehzahl, vorschub in sw.maschinen():
+        for name, n_max, vf_max in gefundene:
             aktion = self.menue_maschine.addAction(name)
-            aktion.triggered.connect(
-                lambda _an=False, n=drehzahl, v=vorschub: self.von_maschine(n, v)
-            )
+            aktion.triggered.connect(lambda _an=False, n=n_max, v=vf_max: self.von_maschine(n, v))
         self.knopf_maschine.setMenu(self.menue_maschine)
         self.knopf_maschine.setVisible(not self.menue_maschine.isEmpty())
         formular.addRow("", self.knopf_maschine)
+        self.vorbelegt = QtGui.QLabel(
+            tr("sp.von_maschine.vorbelegt", maschine=von_maschine) if von_maschine else ""
+        )
+        self.vorbelegt.setWordWrap(True)
+        self.vorbelegt.setStyleSheet(f"color: {GRAU.name()};")
+        self.vorbelegt.setVisible(bool(von_maschine))
+        formular.addRow("", self.vorbelegt)
         felder.addWidget(maschine, 1)
         aufbau.addLayout(felder)
 
