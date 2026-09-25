@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-50 werkstoffe-eigene
+
+### EINGELESEN
+- W-002, Spezifikation Abschnitt 4: eigene Werkstoffe; mitgelieferte
+  schreibgeschützt, „Als eigenen kopieren“.
+
+### DATEIEN
+- `camaddon/gui_werkstoffe.py` (neu: Fenster „Werkstoffe“ und
+  „Werkstoff bearbeiten“)
+- `camaddon/gui_werkzeuge.py` (Knopf „Werkstoffe…“, Wahl übernehmen)
+- `help/de|en/werkstoffe.html` (Abschnitt „Die ganze Liste und eigene
+  Werkstoffe“)
+- `translations/de.json`, `translations/en.json`
+- `tests/gui/szenario_werkstoffe.py` (neu)
+- `docs/aufbau.md`, `CHATSTART.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → „Werkstoffe…“ → „Neu…“ → Kurzname „Buche“, Gruppe
+„Holz“ tippen, ISO N, OK → „Buche“ steht kursiv oben in der Liste; Fenster
+schließen → in der Werkzeugverwaltung ist „Buche · Holz“ gewählt, und nach OK
+und Wiederöffnen ist sie noch da.
+
+### DONE
+- **Fenster „Werkstoffe“:** alle Werkstoffe als Tabelle (ISO-Kästchen,
+  Nummer, Kurzname, Gruppe mit Zustand, Härte, alte Namen), Suche wie in
+  der Auswahl, Filter nach ISO-Gruppe, darunter alle Angaben des gewählten
+  (mit kc1.1/mc, falls bekannt). Eigene kursiv ganz oben.
+- **Eigene Werkstoffe:** Neu…, Als eigenen kopieren, Bearbeiten… (auch
+  Doppelklick), Löschen (Rückfrage; nennt die Werkzeuge mit eigenen
+  Schnittwerten dafür – die gehen mit). Mitgelieferte schreibgeschützt.
+- **Bearbeiten:** Kurzname Pflicht (OK gesperrt, Hinweis am Feld); Gruppe
+  und Zustand aus der Liste oder frei getippt – ein Text aus der Liste wird
+  als Schlüssel gespeichert und folgt so der Sprache. Zusammensetzung,
+  Härte und Zugfestigkeit werden im Format der Oberfläche gezeigt und mit
+  Punkt gespeichert, wie in der mitgelieferten Liste.
+- Wählt man im Fenster einen Werkstoff und schließt es, ist er auch in der
+  Werkzeugverwaltung gewählt. Gespeichert wird mit deren OK/Übernehmen.
+- **Gefundene Fehler im eigenen Entwurf:** Die ISO-Spalte zeigte Kästchen
+  und Buchstaben doppelt; das Bearbeiten-Feld zeigte „1.45–1.60“ statt
+  „1,45–1,60“.
+
+### TEST
+- KI, Oberfläche (Wochen-Build): `szenario_werkstoffe` grün – Suche „1.23“
+  (6 Treffer), Filter S (3), Kopie, Bearbeiten mit Komma → gespeichert mit
+  Punkt, Neu mit Pflichtfeld, Löschen mit Rückfrage samt Schnittwerten,
+  Wahl wandert in die Werkzeugverwaltung, OK speichert. Screenshots
+  angesehen.
+- Manuel: offen.
+
+### NEXT
+- Alle Prüfungen in beiden Versionen, Version 0.4.0, Push.
+
 ## P-2026-09-25-49 strategien-vergleichen
 
 ### EINGELESEN

@@ -17,6 +17,7 @@ from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
+from .gui_werkstoffe import WerkstoffDialog
 from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen
 from .sprache import tr
 
@@ -136,7 +137,13 @@ class WerkzeugDialog(QtGui.QDialog):
         self.wahl_werkstoff.currentIndexChanged.connect(self._werkstoff_gewaehlt)
         # Getippter Text, der zu nichts passt, weicht wieder dem gewählten Werkstoff.
         self.wahl_werkstoff.lineEdit().editingFinished.connect(self._werkstoff_text_zuruecksetzen)
-        aufbau.addWidget(self.wahl_werkstoff)
+        zeile = QtGui.QHBoxLayout()
+        zeile.addWidget(self.wahl_werkstoff, 1)
+        self.knopf_werkstoffe = self._knopf(
+            tr("wv.werkstoffe"), tr("wv.werkstoffe.tooltip"), self.werkstoffe_zeigen
+        )
+        zeile.addWidget(self.knopf_werkstoffe)
+        aufbau.addLayout(zeile)
         self.werkstoff_info = QtGui.QLabel()
         self.werkstoff_info.setWordWrap(True)
         self.werkstoff_info.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
@@ -322,6 +329,19 @@ class WerkzeugDialog(QtGui.QDialog):
         werkstoff = ws.finde(self.bibliothek.alle_werkstoffe(), kennung)
         self.werkstoff_info.setText(self._info_text(werkstoff))
         self._schnittwerte_zeigen()
+
+    def werkstoffe_zeigen(self):
+        """„Werkstoffe…“: die ganze Liste, eigene anlegen und ändern; danach ist der dort
+        gewählte Werkstoff auch hier gewählt."""
+        dialog = WerkstoffDialog(self, self.bibliothek, iso_symbol)
+        if self.werkstoff != wz.ALLE:
+            dialog.waehle(self.werkstoff)
+        dialog.exec()
+        WerkstoffDialog.offen = None
+        gewaehlt = dialog.gewaehlt
+        if dialog.geaendert:
+            self._werkstoffe_anbieten()
+        self.waehle_werkstoff(gewaehlt.kennung if gewaehlt is not None else self.werkstoff)
 
     def _werkstoff_text_zuruecksetzen(self):
         wahl = self.wahl_werkstoff

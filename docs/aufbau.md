@@ -66,6 +66,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_schnittwerte.py` | Schnittwert-Tabelle in der Werkzeugverwaltung |
 | `gui_eingriff.py` | Bild des Eingriffs (Draufsicht und Seitenansicht) zur gewählten Zeile |
 | `gui_strategie.py` | Dialog „Strategien vergleichen“: zwei Einsätze mit Balken und Urteil |
+| `gui_werkstoffe.py` | Fenster „Werkstoffe“: ganze Liste mit Suche und Filter, eigene Werkstoffe |
 
 Zwei Regeln halten das zusammen:
 
