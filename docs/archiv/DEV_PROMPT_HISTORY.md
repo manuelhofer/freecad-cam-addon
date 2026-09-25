@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-21 hilfe-basisgeometrie
+
+### EINGELESEN
+- Hilfe „Ein Loch oder eine Tasche auffräsen“ sagte nur „Adaptiv auf die
+  Bohrung legen“. Ausprobiert (FreeCADCmd, 1.1.3 und Wochen-Build,
+  Quader 60 × 60 × 30, Bohrung Ø 30):
+  - Sackloch, Boden als Basisgeometrie: räumt die Bohrung bis zum Boden
+    (P-2026-09-26-16).
+  - Durchgangsbohrung, **untere Kreiskante**: räumt nur die Bohrung
+    (x, y 17,5 … 42,5 mit Ø 5), von 31 bis 0.
+  - obere Kreiskante: nur bis 30, also 1 mm tief.
+  - Bohrungswand: keine Bahn.
+  - Unterseite des Teils, „Innen“: räumt die ganze Fläche 2,5 … 57,5 ab –
+    das Teil wäre weg.
+
+### DATEIEN
+- `help/de|en/werkzeuge.html` (Schritt 3: welche Basisgeometrie)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Hilfe der Werkzeugverwaltung → „Ein Loch oder eine Tasche auffräsen“,
+Schritt 3 nennt: Sackloch und Tasche → Boden, Durchgangsbohrung → untere
+Kreiskante; und warnt vor der Unterseite des Teils und der oberen Kante.
+
+### DONE
+- Schritt 3 präzisiert, in beiden Sprachen.
+
+### TEST
+- `tests/test_hilfe.py` in beiden Versionen.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- —
+
 ## P-2026-09-26-20 hilfe-loch-verweis
 
 ### EINGELESEN

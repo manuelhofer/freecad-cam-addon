@@ -140,8 +140,11 @@ CAM</b>.</li>
 <li>In the job: <b>Cutting data into the job</b> → <b>Add tool
 controller</b> → the cutter → “Dynamic roughing”. (Or add a controller by
 hand and name it so that the use case is in the name.)</li>
-<li>Put an <b>Adaptive</b> operation on the hole or pocket, with this tool
-controller.</li>
+<li>Add <b>Adaptive</b> with this tool controller. Under <b>Base
+Geometry</b>: for a blind hole or a pocket its <b>floor</b>, for a through hole
+the <b>lower circular edge</b> of the hole. Not the underside of the part –
+Adaptive would then clear the whole face – and not the upper edge – it would
+only go down to there.</li>
 <li><b>Cutting data into the job</b> → Apply. The tool controller gets n and vf,
 Adaptive the step over (e.g. 10 %) and the step down (e.g. 25 mm): it plunges
 helically to 25 mm and then clears the level. The column shows beforehand how
