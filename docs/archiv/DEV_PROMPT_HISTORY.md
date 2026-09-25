@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-23 version-0-11-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Neu seit
+  0.10.0: „keine Bahn: Basisgeometrie fehlt“ im Job-Dialog
+  (P-2026-09-26-22); dazu Bohrer-Kopie (-19), Hilfe zu Ebenen und
+  Basisgeometrie (-20, -21), Doku (-18). Der Snapshot nennt jetzt auch die
+  Basisgeometrie.
+
+### DATEIEN
+- `package.xml` (0.11.0)
+- `docs/STATUS_SNAPSHOT.md` (Nächster Schritt, Punkt 2)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.11.0.
+
+### DONE
+- Version 0.10.0 → 0.11.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; Bericht an Manuel.
+
 ## P-2026-09-26-22 ohne-basisgeometrie
 
 ### EINGELESEN

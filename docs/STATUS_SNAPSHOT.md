@@ -35,8 +35,10 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    helikal eintauchen, dann ebenenweise mit voller Schneide“. Die Spalte
    zeigt die **Ebenen**; bei FreeCADs Rohteil (1 mm über dem Modell) meist
    „2 Ebenen (25 + 1 mm)“ mit rotem Hinweis, wie die dünne entfällt
-   (P-2026-09-26-16). In der Hilfe dazu „Eine Außenkontur schruppen“
-   (P-2026-09-26-13).
+   (P-2026-09-26-16). Basisgeometrie des Adaptivs: beim Sackloch der
+   Boden, bei der Durchgangsbohrung die untere Kreiskante (Hilfe,
+   P-2026-09-26-21); fehlt sie, sagt die Spalte „keine Bahn“ (-22). In der
+   Hilfe dazu „Eine Außenkontur schruppen“ (P-2026-09-26-13).
 3. **Maschine:** „Maschine bearbeiten“ (W-001 Stufen 1–2) und **„Maschine
    verfahren“** (Stufe 3, P-2026-09-25-67, Revolverplätze -69): Laufen die Achsen richtig
    herum, stimmt der Nullpunkt?
