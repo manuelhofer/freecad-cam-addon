@@ -16,6 +16,7 @@ from . import PARAMETER_PFAD, symbol
 from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
+from . import werkzeuge_aus_cam as aus_cam
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
 from .gui_teile import fett, hinweiszeile, knopf, mit_einheit
@@ -135,6 +136,15 @@ class WerkzeugDialog(QtGui.QDialog):
         teilung.setSizes([LISTE_BREITE, FENSTER_GROESSE[0] - LISTE_BREITE])
         aufbau.addWidget(teilung, 1)
         unten = QtGui.QHBoxLayout()
+        # Holen und Übergeben nebeneinander: ein Knopf mit Menü der Bibliotheken.
+        self.knopf_aus_cam = QtGui.QPushButton(tr("wv.aus_cam"))
+        self.knopf_aus_cam.setToolTip(tr("wv.aus_cam.tooltip"))
+        self.knopf_aus_cam.setAutoDefault(False)
+        self.knopf_aus_cam.setEnabled(ue.verfuegbar())
+        self.menue_aus_cam = QtGui.QMenu(self.knopf_aus_cam)
+        self.menue_aus_cam.aboutToShow.connect(self._menue_aus_cam_fuellen)
+        self.knopf_aus_cam.setMenu(self.menue_aus_cam)
+        unten.addWidget(self.knopf_aus_cam)
         self.knopf_cam = knopf(tr("wv.cam"), tr("wv.cam.tooltip"), self.an_cam_uebergeben)
         self.knopf_cam.setEnabled(ue.verfuegbar())
         unten.addWidget(self.knopf_cam)
@@ -633,6 +643,42 @@ class WerkzeugDialog(QtGui.QDialog):
         """Was übergeben wurde und wie es in CAM weitergeht."""
         QtGui.QMessageBox.information(self, tr("wv.cam.titel"), bericht_text(bericht))
 
+    def _menue_aus_cam_fuellen(self):
+        """Die Werkzeugbibliotheken von FreeCAD CAM, je eine Zeile mit der Zahl der Werkzeuge."""
+        self.menue_aus_cam.clear()
+        try:
+            bibliotheken = aus_cam.bibliotheken()
+        except Exception as fehler:  # jeder Fehler von CAM soll als Satz ankommen
+            FreeCAD.Console.PrintError(f"CAM-Addon: Bibliotheken lesen: {fehler}\n")
+            bibliotheken = []
+        for adresse, name, anzahl in bibliotheken:
+            aktion = self.menue_aus_cam.addAction(
+                tr("wv.aus_cam.eintrag", name=name, anzahl=anzahl)
+            )
+            aktion.triggered.connect(lambda _an=False, a=adresse: self.aus_cam_uebernehmen(a))
+        if self.menue_aus_cam.isEmpty():
+            self.menue_aus_cam.addAction(tr("wv.aus_cam.leer")).setEnabled(False)
+
+    def aus_cam_uebernehmen(self, adresse):
+        """Übernimmt die Werkzeuge einer FreeCAD-Bibliothek; gespeichert wird mit OK/Übernehmen.
+
+        Gibt den Bericht zurück (oder None); die Rückmeldung zeigt
+        `aus_cam_bericht_zeigen`, damit die Szenarien sie ohne Fenster prüfen.
+        """
+        self._felder_uebernehmen()
+        try:
+            bericht = aus_cam.uebernehmen(self.bibliothek, adresse)
+        except Exception as fehler:  # jeder Fehler von CAM soll als Satz ankommen
+            FreeCAD.Console.PrintError(f"CAM-Addon: Aus CAM übernehmen: {fehler}\n")
+            QtGui.QMessageBox.warning(self, tr("wv.titel"), tr("wv.aus_cam.fehler", fehler=fehler))
+            return None
+        self._liste_aufbauen(auswahl=bericht.neu[0] if bericht.neu else self.werkzeug)
+        QtCore.QTimer.singleShot(0, lambda: self.aus_cam_bericht_zeigen(bericht))
+        return bericht
+
+    def aus_cam_bericht_zeigen(self, bericht):
+        QtGui.QMessageBox.information(self, tr("wv.aus_cam"), aus_cam_text(bericht))
+
     def accept(self):
         """OK: speichern und schließen – schließt nicht, wenn das Speichern scheitert."""
         if self.uebernehmen():
@@ -656,6 +702,21 @@ class WerkzeugDialog(QtGui.QDialog):
                 return
         WerkzeugDialog.offen = None
         super().reject()
+
+
+def aus_cam_text(bericht):
+    """Die Rückmeldung nach „Aus CAM übernehmen“, Absatz für Absatz."""
+    absaetze = [tr("wv.aus_cam.bericht.neu", anzahl=len(bericht.neu))]
+    if bericht.neue_nummer:
+        liste = ", ".join(f"{name}: T{alt} → T{neu}" for name, alt, neu in bericht.neue_nummer)
+        absaetze.append(tr("wv.aus_cam.bericht.neue_nummer", liste=liste))
+    if bericht.schon_da:
+        absaetze.append(tr("wv.aus_cam.bericht.schon_da", namen=", ".join(bericht.schon_da)))
+    if bericht.andere_form:
+        absaetze.append(tr("wv.aus_cam.bericht.andere_form", namen=", ".join(bericht.andere_form)))
+    if bericht.neu:
+        absaetze.append(tr("wv.aus_cam.bericht.weiter"))
+    return "\n\n".join(absaetze)
 
 
 def bericht_text(bericht):

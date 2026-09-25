@@ -53,6 +53,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `werkzeuge.py` | Werkzeugbibliothek (W-002): Werkzeuge, Einsätze und Schnittwerte je Werkstoff, eigene Werkstoffe, Speichern als JSON |
 | `schnittdaten.py` | Rechnen mit Schnittwerten: n, vf, Zeitspanvolumen, Eingriffswinkel, Spandicke; Kennzahlen und Urteil für den Strategievergleich |
 | `uebergabe_werkzeuge.py` | Werkzeuge an CAM übergeben: ToolBits und Bibliothek „CAM-Addon“ über `cam_assets`, Schnittwerte als Presets |
+| `werkzeuge_aus_cam.py` | Werkzeuge aus einer FreeCAD-Werkzeugbibliothek übernehmen: Form → Art, Maße, Nummern ohne Verschieben |
 | `schruppwerte.py` | Schruppwerte planen: fz je ae mit Spandickenausgleich, Grenzen von Werkzeug und Maschine (auch aus W-001), Vorschlag mit größtem Q |
 | `job_schnittwerte.py` | Schnittwerte in die Werkzeug-Controller eines Jobs: Werkstoff vom Rohteil, Werkzeug zum TC, Einsatz vorschlagen, dazu Schrittweite und Zustelltiefe der passenden Operationen; setzen in einer Transaktion |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |

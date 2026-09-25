@@ -459,5 +459,15 @@
     "sj.tc_neu": "Werkzeug-Controller hinzufügen",
     "sj.tc_neu.tooltip": "Legt im Job einen Werkzeug-Controller für ein Werkzeug der Werkzeugverwaltung an – benannt nach dem Einsatz („T3 Schruppen dynamisch“), mit Drehzahl und Vorschub. Dafür werden die Werkzeuge vorher an CAM übergeben.",
     "sj.tc_neu.leer": "Kein Werkzeug mit vc und fz",
-    "sj.tc_neu.fehler": "Der Werkzeug-Controller ließ sich nicht anlegen:\n{fehler}"
+    "sj.tc_neu.fehler": "Der Werkzeug-Controller ließ sich nicht anlegen:\n{fehler}",
+    "wv.aus_cam": "Aus CAM übernehmen",
+    "wv.aus_cam.tooltip": "Übernimmt die Werkzeuge einer Werkzeugbibliothek von FreeCAD CAM – Art, T-Nummer, Maße und Schneidstoff. Schnittwerte trägst du danach hier ein. Gespeichert wird mit OK oder Übernehmen.",
+    "wv.aus_cam.eintrag": "{name} ({anzahl} Werkzeuge)",
+    "wv.aus_cam.leer": "Keine Werkzeugbibliothek in FreeCAD CAM",
+    "wv.aus_cam.fehler": "Die Werkzeuge ließen sich nicht übernehmen:\n{fehler}",
+    "wv.aus_cam.bericht.neu": "Übernommen: {anzahl} Werkzeuge.",
+    "wv.aus_cam.bericht.neue_nummer": "Mit neuer Nummer, weil die alte hier schon vergeben ist: {liste}.",
+    "wv.aus_cam.bericht.schon_da": "Schon da, unverändert: {namen}.",
+    "wv.aus_cam.bericht.andere_form": "Nicht übernommen – diese Formen kennt die Werkzeugverwaltung nicht: {namen}.",
+    "wv.aus_cam.bericht.weiter": "Jetzt je Werkzeug die Einsätze mit vc und fz aus dem Katalog eintragen. Gespeichert wird mit OK oder Übernehmen."
 }

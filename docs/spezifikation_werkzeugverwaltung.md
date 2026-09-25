@@ -295,6 +295,11 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    Vollnut, Kontur ← nichts). Damit geht Manuels „Loch auffräsen: einmal
    helikal eintauchen, dann ebenenweise mit voller Schneide“ in einem
    Schritt: Adaptiv mit Zustelltiefe = Schneidenlänge.
+   **Und umgekehrt** (P-2026-09-25-66): „Aus CAM übernehmen“ holt die
+   Werkzeuge einer FreeCAD-Bibliothek in die Werkzeugverwaltung (Art,
+   Nummer, Maße, Schneidstoff; ohne Schnittwerte). Was es gibt, bleibt;
+   Formen ohne Gegenstück (Gravierstichel, Säge, Gewindefräser, Taster)
+   bleiben draußen und werden genannt.
    **Dazu** (P-2026-09-25-65): „Werkzeug-Controller hinzufügen“ im selben
    Dialog – Werkzeug und Einsatz wählen, der Controller heißt nach dem
    Einsatz („T3 Schruppen dynamisch“) und hat gleich Drehzahl und Vorschub.
@@ -397,6 +402,11 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     SetupSheets an der Zustelltiefe wird dabei entfernt (sonst stünde nach
     dem Neuberechnen wieder D da). Alternative: alle Operationen des TC
     bekommen ae und ap – einfacher, aber gefährlich.
+19. **Aus CAM übernommene Werkzeuge mit vergebener Nummer bekommen eine
+    freie, die auch in der Quelle nicht vorkommt** – sonst schöbe jedes
+    umnummerierte Werkzeug die folgenden mit (T2 → T3 → T4 …). Ein Gravierstichel
+    wird nicht zum Fasenfräser: Den Spitzenwinkel kennt die
+    Werkzeugverwaltung nicht, zurück an CAM käme er mit 90° an.
 
 ## 12. Akzeptanzkriterien Stufe 1
 

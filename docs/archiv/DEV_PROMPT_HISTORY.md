@@ -12,6 +12,65 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-66 aus-cam-uebernehmen
+
+### EINGELESEN
+- Wer seine Fräser schon in FreeCAD CAM angelegt hat, müsste sie in der
+  Werkzeugverwaltung abtippen.
+- FreeCAD 1.1.3 und Wochen-Build ausprobiert: Bibliotheken über
+  `cam_assets.list_assets(asset_type="toolbitlibrary")`, Werkzeuge über
+  `get_bits()` und `get_bit_no_from_bit()`, Maße am ToolBit-Objekt
+  (`ShapeType`, `Diameter`, `Flutes`, `CuttingEdgeHeight`, `Length`,
+  `ShankDiameter`, `CornerRadius`, `Material`). Ein leerer Speicher bekommt
+  wie in CAM selbst erst die mitgelieferte Bibliothek „Default“
+  (`ensure_assets_initialized`).
+
+### DATEIEN
+- `camaddon/werkzeuge_aus_cam.py` (neu)
+- `camaddon/gui_werkzeuge.py` (Knopf „Aus CAM übernehmen“ mit Menü der
+  Bibliotheken, Rückmeldung)
+- `help/de|en/werkzeuge.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/test_werkzeuge_aus_cam.py`, `tests/gui/szenario_aus_cam.py` (neu)
+- `docs/spezifikation_werkzeugverwaltung.md` (Stufe 2, Entscheidung 19),
+  `docs/aufbau.md`, `CHATSTART.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → „Aus CAM übernehmen“ → „Default (13 Werkzeuge)“ → die
+Rückmeldung nennt 5 übernommene Werkzeuge, was schon da war und die Formen,
+die nicht gehen (V-Bits, Säge, Taster, Gewindefräser) → in der Liste stehen
+T2 Schaftfräser Ø 5, T3 Bohrer Ø 5, T4 Radiusfräser Ø 6, T5 Torusfräser
+Ø 6, T10 Fasenfräser; T5 hat Eckradius 1,5, Schneidenlänge 40,
+Gesamtlänge 50, Schaft 3, HSS → OK speichert.
+
+### DONE
+- Formen: Schaftfräser, Torusfräser, Radiusfräser, Fasenfräser, Bohrer.
+  Gravierstichel nicht (kein Spitzenwinkel in der Werkzeugverwaltung),
+  ebenso Säge, Gewindefräser, Taster – die Rückmeldung nennt sie.
+- Schon da ist, was gleiche Art und gleichen Durchmesser hat und gleiche
+  Nummer oder gleichen Namen – so wird auch ein beim letzten Mal
+  umnummeriertes Werkzeug nicht doppelt geholt; es behält seine
+  Schnittwerte. Die eigene Bibliothek „CAM-Addon“ wird nicht angeboten.
+- Vergebene Nummer: die kleinste freie, die auch in der Quelle nicht
+  vorkommt.
+- Gespeichert wird wie sonst mit OK oder Übernehmen.
+- **Gefundene Fehler im eigenen Entwurf:** Die erste Fassung vergab „die
+  nächste freie Nummer“ – und schob damit T3, T4, T5 … der Quelle jeweils
+  eins weiter. Und ein umnummeriertes Werkzeug kam beim zweiten Holen noch
+  einmal. Beides mit der Prüfung gefunden und behoben.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_werkzeuge_aus_cam` grün –
+  Bibliothek „Default“, „CAM-Addon“ nicht angeboten, 5 übernommen, T1 schon
+  da (behält seine Schnittwerte), T2 vergeben → T14, 7 Formen draußen,
+  Werte des Torusfräsers, zweites Holen: nichts neu.
+- KI, Oberfläche in **beiden** Versionen: `szenario_aus_cam` grün,
+  Screenshots angesehen (Rückmeldung, Liste).
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen, Version 0.7.0.
+
 ## P-2026-09-25-65 werkzeug-controller-anlegen
 
 ### EINGELESEN
