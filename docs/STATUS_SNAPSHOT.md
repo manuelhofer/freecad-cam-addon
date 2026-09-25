@@ -4,19 +4,19 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufe 1 fertig und automatisch geprüft; wartet auf Manuels Test. Danach Stufe 2 (Export).
+- **IN ARBEIT** – W-001, Stufen 1 und 2 fertig und automatisch geprüft; warten auf Manuels Test. Danach Stufe 3.
 - **Zuletzt geprüfte FreeCAD-Version:** 26.3.0 dev (Build 2026-09-16, conda-forge)
   – Prüfungen ohne Fenster und Oberflächen-Szenario grün.
 
 ## Nächster Schritt (konkret)
 
-**W-001, Stufe 1 ist fertig:** Der Dialog „Maschine bearbeiten“ mit Zeigen in
-der 3D-Ansicht und Hilfe ist automatisch geprüft. Er wartet jetzt auf
-**Manuels Test in seinem FreeCAD** (README, „Installieren“; Baugruppe öffnen,
-Knopf „Maschine bearbeiten“) – vor allem: Kommt beim Bedienen irgendwo eine
-Frage auf?
+**W-001, Stufen 1 und 2 sind fertig und automatisch geprüft:** Maschine im
+Dialog beschreiben (mit Zeigen in 3D und Hilfe) und mit „An CAM übergeben“
+als `.fcm` in CAM bereitstellen. Beides wartet auf **Manuels Test in seinem
+FreeCAD** (README, „Installieren“) – vor allem: Kommt beim Bedienen irgendwo
+eine Frage auf? Und: Steht die Maschine danach im CAM-Job zur Auswahl?
 
-Danach Stufe 2: Export in die CAM-Maschinendefinition (`.fcm`).
+Danach Stufe 3: Maschine von Hand verfahren (je Betriebsart ein Regler).
 
 ## Wunschliste
 

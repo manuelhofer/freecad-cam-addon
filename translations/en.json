@@ -130,10 +130,20 @@
     "export.beschreibung": "Created by the CAM Addon from “{dokument}”. Make changes there and hand it over again.",
     "export.rolle_unbekannt": "For “{name}” it is unclear whether the axis sits in the table or the head (add tool and workpiece mounts). It was handed over as a table axis.",
     "export.linear": "Linear axis {name}, rapid {eilgang} mm/min",
-    "export.dreh": "Rotary axis {name}, {geschwindigkeit} °/min",
+    "export.dreh": "Rotary axis {name}, up to {geschwindigkeit} rpm",
     "export.spindel": "Spindle {name}, up to {drehzahl} rpm",
     "export.ohne_grenzen": "“{name}” has no limits (min/max) on its joint. CAM gets a very large range – enter the limits in the assembly.",
     "export.wert_bleibt": "The CAM definition does not know the {wert} of “{name}” – the value stays stored in the machine.",
     "export.revolver": "The CAM definition does not know the turret “{name}” with {anzahl} stations – the stations stay stored in the machine.",
-    "export.kette_fehler": "FreeCAD reports an error in the axis order: {fehler}"
+    "export.kette_fehler": "FreeCAD reports an error in the axis order: {fehler}",
+    "dialog.uebergeben": "Hand over to CAM",
+    "dialog.uebergeben.tooltip": "Saves the machine so that CAM offers it when setting up a job. Repeating overwrites the earlier handover.",
+    "uebergeben.trotz_hinweisen": "There are still {anzahl} notes on this machine. Hand it over to CAM anyway?\n\nMissing values then arrive in CAM with default values.",
+    "uebergeben.fehler": "The machine could not be saved:\n{fehler}",
+    "uebergeben.erfolg": "The machine “{name}” can now be chosen in CAM.",
+    "uebergeben.wo": "In CAM: create or edit a job and choose the machine there.",
+    "uebergeben.angekommen": "Arrived in CAM",
+    "uebergeben.nur_im_dokument": "Stored only here in the machine",
+    "uebergeben.datei": "File: {datei}",
+    "uebergeben.pruefen": "Please check"
 }

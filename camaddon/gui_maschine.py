@@ -10,7 +10,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import gui_zeigen, hilfe
+from . import export, gui_zeigen, hilfe
 from . import kette as kette_modul
 from . import maschine as m
 from .gui_start import symbol
@@ -306,7 +306,35 @@ class MaschinenPanel:
         self.hinweise.setWordWrap(True)
         self.hinweise.itemClicked.connect(self._hinweis_geklickt)
         aufbau.addWidget(self.hinweise)
+
+        self.knopf_uebergeben = QtGui.QPushButton(tr("dialog.uebergeben"))
+        self.knopf_uebergeben.setToolTip(tr("dialog.uebergeben.tooltip"))
+        self.knopf_uebergeben.clicked.connect(lambda: self._uebergeben())
+        aufbau.addWidget(self.knopf_uebergeben)
         return form
+
+    def _uebergeben(self, nachfragen=True):
+        """Maschine an CAM übergeben und zeigen, was angekommen ist."""
+        warnungen = [x for x in self.meldungen if x.schwere != HINWEIS]
+        if warnungen and nachfragen:
+            antwort = QtGui.QMessageBox.question(
+                self.form,
+                tr("dialog.uebergeben"),
+                tr("uebergeben.trotz_hinweisen", anzahl=len(warnungen)),
+            )
+            if antwort != QtGui.QMessageBox.Yes:
+                return None
+        try:
+            bericht = export.exportiere(self.maschine, self.kette)
+        except Exception as fehler:  # Schreibfehler o. ä.: sagen, nicht still scheitern
+            FreeCAD.Console.PrintError(f"CAM-Addon: {fehler}\n")
+            QtGui.QMessageBox.warning(
+                self.form, tr("dialog.uebergeben"), tr("uebergeben.fehler", fehler=str(fehler))
+            )
+            return None
+        self.bericht_fenster = BerichtFenster(self.form, self.maschine.Label, bericht)
+        self.bericht_fenster.show()
+        return bericht
 
     # Füllen
     def _fuelle_alles(self, auswahl=None):
@@ -828,3 +856,33 @@ class VerteilDialog(QtGui.QDialog):
             self._lcs[self.wahl_lcs.currentIndex()],
             self.anzahl.value(),
         )
+
+
+class BerichtFenster(QtGui.QDialog):
+    """Was bei der Übergabe an CAM angekommen ist – und was nicht."""
+
+    def __init__(self, eltern, name, bericht):
+        super().__init__(eltern)
+        self.setWindowTitle(tr("dialog.uebergeben"))
+        self.resize(520, 420)
+        teile = [f"<p><b>{tr('uebergeben.erfolg', name=name)}</b></p>"]
+        teile.append(f"<p>{tr('uebergeben.wo')}</p>")
+        teile.append(f"<h4>{tr('uebergeben.angekommen')}</h4><ul>")
+        teile += [f"<li>{satz}</li>" for satz in bericht.uebertragen]
+        teile.append("</ul>")
+        if bericht.zu_pruefen:
+            teile.append(f"<h4>{tr('uebergeben.pruefen')}</h4><ul>")
+            teile += [f"<li>{satz}</li>" for satz in bericht.zu_pruefen]
+            teile.append("</ul>")
+        if bericht.nicht_uebertragen:
+            teile.append(f"<h4>{tr('uebergeben.nur_im_dokument')}</h4><ul>")
+            teile += [f"<li>{satz}</li>" for satz in bericht.nicht_uebertragen]
+            teile.append("</ul>")
+        teile.append(f"<p><small>{tr('uebergeben.datei', datei=str(bericht.datei))}</small></p>")
+        self.text = QtGui.QTextBrowser()
+        self.text.setHtml("".join(teile))
+        knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
+        knoepfe.rejected.connect(self.close)
+        aufbau = QtGui.QVBoxLayout(self)
+        aufbau.addWidget(self.text)
+        aufbau.addWidget(knoepfe)

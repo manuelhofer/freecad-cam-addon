@@ -60,10 +60,12 @@ if x1 and z1 and c4:
 pruefe(cam.validate_kinematic_chain() == [], f"Kette: {cam.validate_kinematic_chain()}")
 
 nicht = " ".join(bericht.nicht_uebertragen)
-pruefe("„Z1“ hat am Gelenk keine Begrenzung" in nicht, "fehlende Grenzen an Z1 nicht berichtet")
+pruefen = " ".join(bericht.zu_pruefen)
+pruefe("„Z1“ hat am Gelenk keine Begrenzung" in pruefen, "fehlende Grenzen an Z1 nicht unter „Bitte prüfen“")
+pruefe("Drehachse C4, bis 100 U/min" in " ".join(bericht.uebertragen), "C4 nicht in U/min berichtet")
 pruefe("Beschleunigung von „X1“" in nicht, "Beschleunigung von X1 nicht als nicht übertragen berichtet")
 pruefe("Revolver „T“ mit 12 Plätzen" in nicht, "Revolver nicht berichtet")
-pruefe("{" not in nicht + " ".join(bericht.uebertragen), "Platzhalter im Bericht nicht gefüllt")
+pruefe("{" not in nicht + pruefen + " ".join(bericht.uebertragen), "Platzhalter im Bericht nicht gefüllt")
 
 # CAM findet die Maschine; zweiter Export überschreibt statt zu verdoppeln.
 pruefe("Testdrehmaschine" in MachineFactory.list_configurations(),

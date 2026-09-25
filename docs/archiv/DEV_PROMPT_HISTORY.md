@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-21 knopf-an-cam-uebergeben
+
+### EINGELESEN
+- `camaddon/export.py` (P-2026-09-25-20), Spezifikation W-001, Stufe 2.
+
+### DATEIEN
+- `camaddon/gui_maschine.py` (Knopf, Nachfrage, Berichtsfenster)
+- `camaddon/export.py` (Bericht in drei Teilen, Drehachsen in U/min)
+- `translations/de.json`, `translations/en.json`
+- `tests/gui/szenario_uebergeben.py` (neu), `tests/test_export.py`
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Klick auf „An CAM übergeben“ im Dialog der fertigen Beispiel-Drehmaschine
+öffnet ein Fenster „Die Maschine „Testdrehmaschine“ steht jetzt in CAM zur
+Auswahl.“ mit den angekommenen Achsen, und CAM listet die Maschine.
+
+### DONE
+- Unten im Dialog gibt es den Knopf **„An CAM übergeben“**:
+  - Gibt es noch Warnungen, fragt er nach, ob trotzdem übergeben werden soll,
+    und nennt die Anzahl.
+  - Schlägt das Speichern fehl, erscheint eine Meldung mit dem Grund.
+- Das **Berichtsfenster** sagt, wo die Maschine in CAM zu finden ist, und
+  gliedert sich in drei Teile:
+  - **In CAM angekommen**
+  - **Bitte prüfen**: fehlende Grenzen, unklare Tisch/Kopf-Rolle, Fehler in
+    der Achsfolge
+  - **Nur hier in der Maschine gespeichert**: Beschleunigung, Ruck, Vorschub,
+    Revolver
+- **Beim Durchsehen des ersten Screenshots verbessert:**
+  - Drehachsen standen in °/min im Bericht, eingegeben werden aber U/min.
+    Jetzt steht die eingegebene Einheit da.
+  - „Keine Begrenzung“ stand unter „Nur hier gespeichert“. Dafür gibt es
+    jetzt den eigenen Teil „Bitte prüfen“.
+- Beim Schreiben der Texte waren Zeilenumbrüche als `\n`-Zeichen im Text
+  gelandet. Das ist korrigiert.
+
+### TEST
+- Von der KI ausgeführt: alle Prüfungen ohne Fenster `ok`, alle fünf
+  Szenarien `ok`, Screenshot des Berichts angesehen.
+- **Nicht geprüft:** Das Szenario prüft nur, dass CAM die Maschine listet.
+  Ob sie im Job-Dialog von CAM tatsächlich auswählbar ist und dort richtig
+  arbeitet, prüft Manuel.
+- Die Nachfrage bei Warnungen erscheint als modaler Dialog und blockiert
+  deshalb das Szenario. Sie ist im Test umgangen (`nachfragen=False`) und nicht
+  automatisch geprüft.
+
+### NEXT
+- Manuels Test von Stufe 1 und 2, danach Stufe 3 (von Hand verfahren).
+
 ## P-2026-09-25-20 export-cam-maschine
 
 ### EINGELESEN

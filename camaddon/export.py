@@ -28,6 +28,7 @@ OHNE_GRENZE_GRAD = 360.0
 @dataclass
 class Bericht:
     uebertragen: list = field(default_factory=list)  # Sätze: was in CAM angekommen ist
+    zu_pruefen: list = field(default_factory=list)  # Sätze: angekommen, aber mit Ersatzwerten
     nicht_uebertragen: list = field(default_factory=list)  # Sätze: was nur im Dokument bleibt
     datei: object = None
 
@@ -82,7 +83,7 @@ def baue_cam_maschine(maschine, kette=None):
         name = m.name_von(ba)
         rolle = rollen.get(gelenk.objekt)
         if rolle is None:
-            bericht.nicht_uebertragen.append(tr("export.rolle_unbekannt", name=name))
+            bericht.zu_pruefen.append(tr("export.rolle_unbekannt", name=name))
         ursprung = [gelenk.ursprung.x, gelenk.ursprung.y, gelenk.ursprung.z]
         if gelenk.art == LINEAR:
             # Fehler in FreeCAD (26.3 dev, Machine.from_dict): Ist der Ursprung
@@ -122,12 +123,13 @@ def baue_cam_maschine(maschine, kette=None):
             )
             cam.rotary_axes[name] = achse
             bericht.uebertragen.append(
-                tr("export.dreh", name=name, geschwindigkeit=_zahl(achse.max_velocity))
+                # Im Bericht in der Einheit, in der sie eingegeben wurde.
+                tr("export.dreh", name=name, geschwindigkeit=_zahl(achse.max_velocity / 360.0))
             )
         if gelenk.minimum is None and gelenk.maximum is None and not (
             gelenk.art != LINEAR and ba.Endlos
         ):
-            bericht.nicht_uebertragen.append(tr("export.ohne_grenzen", name=name))
+            bericht.zu_pruefen.append(tr("export.ohne_grenzen", name=name))
         for eigenschaft in ("VorschubMax", "Beschleunigung", "Ruck"):
             if eigenschaft in ba.PropertiesList and getattr(ba, eigenschaft):
                 bericht.nicht_uebertragen.append(
@@ -144,7 +146,7 @@ def baue_cam_maschine(maschine, kette=None):
             bericht.nicht_uebertragen.append(tr("export.revolver", name=name, anzahl=anzahl))
 
     for fehler in cam.validate_kinematic_chain():
-        bericht.nicht_uebertragen.append(tr("export.kette_fehler", fehler=fehler))
+        bericht.zu_pruefen.append(tr("export.kette_fehler", fehler=fehler))
     return cam, bericht
 
 

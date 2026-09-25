@@ -130,10 +130,20 @@
     "export.beschreibung": "Vom CAM-Addon erzeugt aus „{dokument}“. Änderungen bitte dort vornehmen und neu übergeben.",
     "export.rolle_unbekannt": "Bei „{name}“ ist unklar, ob die Achse im Tisch oder im Kopf sitzt (Werkzeug- und Werkstückaufnahme anlegen). Sie wurde als Tischachse übergeben.",
     "export.linear": "Linearachse {name}, Eilgang {eilgang} mm/min",
-    "export.dreh": "Drehachse {name}, {geschwindigkeit} °/min",
+    "export.dreh": "Drehachse {name}, bis {geschwindigkeit} U/min",
     "export.spindel": "Spindel {name}, bis {drehzahl} U/min",
     "export.ohne_grenzen": "„{name}“ hat am Gelenk keine Begrenzung (Min/Max). CAM bekommt einen sehr großen Bereich – trage die Begrenzung in der Assembly ein.",
     "export.wert_bleibt": "{wert} von „{name}“ kennt die CAM-Definition nicht – der Wert bleibt in der Maschine gespeichert.",
     "export.revolver": "Revolver „{name}“ mit {anzahl} Plätzen kennt die CAM-Definition nicht – die Plätze bleiben in der Maschine gespeichert.",
-    "export.kette_fehler": "FreeCAD meldet einen Fehler in der Achsfolge: {fehler}"
+    "export.kette_fehler": "FreeCAD meldet einen Fehler in der Achsfolge: {fehler}",
+    "dialog.uebergeben": "An CAM übergeben",
+    "dialog.uebergeben.tooltip": "Speichert die Maschine so, dass sie in CAM beim Job zur Auswahl steht. Wiederholen überschreibt die frühere Übergabe.",
+    "uebergeben.trotz_hinweisen": "Es gibt noch {anzahl} Hinweise zu dieser Maschine. Trotzdem an CAM übergeben?\n\nFehlende Werte kommen dann mit Standardwerten in CAM an.",
+    "uebergeben.fehler": "Die Maschine konnte nicht gespeichert werden:\n{fehler}",
+    "uebergeben.erfolg": "Die Maschine „{name}“ steht jetzt in CAM zur Auswahl.",
+    "uebergeben.wo": "In CAM: Job anlegen oder bearbeiten, dort die Maschine wählen.",
+    "uebergeben.angekommen": "In CAM angekommen",
+    "uebergeben.nur_im_dokument": "Nur hier in der Maschine gespeichert",
+    "uebergeben.datei": "Datei: {datei}",
+    "uebergeben.pruefen": "Bitte prüfen"
 }
