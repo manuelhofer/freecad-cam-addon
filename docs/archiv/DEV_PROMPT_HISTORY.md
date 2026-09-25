@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-68 version-0-7-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Neu seit
+  0.6.0: Werkzeug-Controller anlegen (P-65), Aus CAM übernehmen (P-66),
+  Maschine verfahren (P-67).
+
+### DATEIEN
+- `package.xml` (0.7.0, Beschreibung)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.7.0.
+
+### DONE
+- Version 0.6.0 → 0.7.0; die Beschreibung nennt Verfahren und Übernehmen.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push.
+
 ## P-2026-09-25-67 maschine-verfahren
 
 ### EINGELESEN
