@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-08 spezifikation-maschinenobjekt-glieder
+
+### EINGELESEN
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Entwurf aus P-2026-09-25-07).
+
+### DATEIEN
+- `docs/spezifikation_maschine_aus_baugruppe.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer die Spezifikation liest, erfährt, dass die Maschinendaten in einem eigenen
+Maschinenobjekt liegen und wie eine Schwenkbrücke aus mehreren Körpern als ein
+Glied mitschwenkt.
+
+### DONE
+Drei Vorgaben von Manuel:
+
+- **Allgemein, nicht nur die CLX 550.** Die Spezifikation sagt jetzt vorn,
+  dass sie für beliebige Maschinen gilt. Die CLX erscheint nur noch als ein
+  Beispiel („Drehmaschine“), daneben steht eine Fräse mit Schwenkbrücke.
+- **Eigenes Objekt** statt Eigenschaften an den Gelenken (meine Empfehlung war
+  A, Manuel hat B gewählt). Neuer Abschnitt 5: Das Objekt verweist auf Gelenke
+  und LCS. Gebrochene Verweise gehen nicht verloren, sondern werden gemeldet
+  und können neu zugeordnet werden. Das war das Risiko, das ich bei B genannt
+  hatte.
+- **Schwenkbrücke:** Schenkel und Boden der Wiege sind eigene Körper und
+  müssen mitschwenken. Neuer Abschnitt 6 „Glieder“: Das Addon fasst alle über
+  Fixed-Gelenke (oder eine Unterbaugruppe) starr verbundenen Körper zu einem
+  Glied zusammen. Das Mitschwenken selbst erledigt die Assembly. Für Stufe 4
+  ist vorgemerkt, dass Körper eines Glieds und direkt benachbarte Glieder
+  nicht gegeneinander geprüft werden.
+
+Die offene Frage nach weiteren Betriebsarten bleibt stehen, ist aber
+entschärft: Die Liste lässt sich erweitern.
+
+### TEST
+- Abschnittsnummern und Querverweise nach dem Umnummerieren gegengeprüft.
+
+### NEXT
+- Freigabe der Spezifikation durch Manuel; dann Stufe 1 plus T-001.
+
 ## P-2026-09-25-07 spezifikation-maschine-aus-baugruppe
 
 ### EINGELESEN

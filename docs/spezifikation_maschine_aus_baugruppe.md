@@ -1,6 +1,10 @@
 # Spezifikation W-001: Maschine aus Baugruppe
 
-Stand: Entwurf, noch nicht freigegeben. Offene Fragen stehen in Abschnitt 9.
+Stand: Entwurf, noch nicht freigegeben. Offene Fragen stehen in Abschnitt 11.
+
+Das Addon ist für **beliebige Maschinen** gedacht – Fräsen, Drehmaschinen,
+Dreh-Fräszentren, 3- bis 5-Achser. Wo unten eine bestimmte Maschine genannt
+wird, ist sie nur ein Beispiel.
 
 ## 1. Zielbild
 
@@ -35,8 +39,13 @@ kennt; der Rest bleibt vollständig im Dokument erhalten.
 - **Gelenk** – ein `Slider`- oder `Revolute`-Gelenk dieser Assembly.
 - **Betriebsart** – eine Rolle, die ein Gelenk in der NC-Welt spielt. Jede hat
   ihren **eigenen, frei vergebenen Namen**. Ein Gelenk hat eine oder mehrere.
-  Beispiel CLX 550: Gelenk „Hauptspindel“ → Betriebsart **S4** (Spindel,
-  dreht) und **C4** (Positionieren).
+  Beispiel Drehmaschine: Gelenk „Hauptspindel“ → Betriebsart **S4** (Spindel,
+  dreht) und **C4** (Positionieren). Beispiel Fräse mit Schwenkbrücke:
+  Gelenk „Wiege“ → **A** (Positionieren), Gelenk „Rundtisch“ → **C**.
+- **Glied** – alle Körper, die starr miteinander verbunden sind (siehe
+  Abschnitt 6). Bewegt sich ein Gelenk, bewegt sich das ganze Glied dahinter.
+- **Maschinenobjekt** – ein eigenes Objekt des Addons in der Assembly, das
+  alle Maschinendaten enthält (siehe Abschnitt 5).
 - **Werkzeugaufnahme** – Stelle, an der ein Werkzeug sitzt, mit Richtung der
   Werkzeugachse. Eine Maschine kann mehrere haben (Revolver, Gegenspindel,
   Frässpindel …), jede mit eigenem Namen.
@@ -67,24 +76,72 @@ Name innerhalb einer Maschine doppelt vorkommt.
 - Ein Gelenk kann **gleichzeitig** Spindel und Positionieren sein, aber nicht
   Linear und etwas anderes.
 
-## 5. Werkzeug- und Werkstückaufnahmen
+## 5. Das Maschinenobjekt
+
+Entscheidung Manuel: Die Maschinendaten liegen in **einem eigenen Objekt**
+(„Maschine“) innerhalb der Assembly, nicht als Eigenschaften an den Gelenken.
+Gelenke und Bauteile bleiben dadurch unverändert.
+
+- Das Objekt hält den Namen der Maschine und die Listen der Betriebsarten und
+  Aufnahmen. Jede Betriebsart **verweist** auf ihr Gelenk, jede Aufnahme auf
+  ihr LCS (FreeCAD-Verknüpfung, kein gespeicherter Name – Umbenennen bricht
+  nichts).
+- **Gebrochene Verweise:** Wird ein Gelenk oder LCS gelöscht, bleibt die
+  Betriebsart erhalten, wird aber im Dialog und im Report-Fenster als
+  „ohne Gelenk“ gemeldet und kann einem anderen Gelenk zugeordnet werden. Beim
+  Export wird sie nicht geschrieben, und der Export sagt das.
+- Gelenke ohne Betriebsart sind erlaubt (etwa Hilfsgelenke), werden aber im
+  Dialog als „nicht zugeordnet“ angezeigt.
+- Alle Änderungen am Objekt laufen über Transaktionen (Strg+Z).
+
+## 6. Glieder – mehrere Körper, die sich gemeinsam bewegen
+
+Viele Maschinenteile bestehen aus mehreren Körpern, die sich zusammen
+bewegen. Typisches Beispiel ist die **Schwenkbrücke** eines 5-Achsers: Zwei
+Lagerböcke stehen fest auf dem Bett, dazwischen kippt die Wiege mit ihren
+beiden Schenkeln um A (oder B), und in der Wiege dreht sich der Rundtisch (C).
+
+```
+Bett ──fest── Lagerböcke ──Revolute (A)── Wiege ──Revolute (C)── Rundtisch ── Werkstückaufnahme
+                                           │
+                             Schenkel links ─fest─┤
+                             Schenkel rechts ─fest─┤
+                             Boden ──────────fest─┘
+```
+
+- In der Assembly wird das mit **Fixed-Gelenken** gebaut (oder die Körper
+  liegen gemeinsam in einer Unterbaugruppe). Das bewegt schon FreeCAD
+  richtig mit; das Addon erfindet dafür nichts Eigenes.
+- Das Addon fasst alle starr verbundenen Körper zu einem **Glied** zusammen.
+  Die Kette der Maschine besteht aus Gliedern und den Slider-/Revolute-
+  Gelenken dazwischen. Wie viele Körper ein Glied hat, ist egal.
+- Der Dialog zeigt die Glieder mit ihren Körpern an, damit man sieht, ob ein
+  Schenkel versehentlich nicht angebunden ist (er bliebe sonst beim Schwenken
+  stehen).
+- **Für die Kollisionsprüfung (Stufe 4)** gilt vorgemerkt: Körper innerhalb
+  eines Glieds prüfen nie gegeneinander. Zwei Glieder, die direkt über ein
+  Gelenk verbunden sind (Wiege und Lagerbock am Lager), standardmäßig auch
+  nicht – abschaltbar pro Gelenk.
+
+## 7. Werkzeug- und Werkstückaufnahmen
 
 Markiert wird mit einem **lokalen Koordinatensystem** (LCS) im jeweiligen
 Bauteil – dem gleichen Mittel, das die Assembly für Gelenke verwendet:
 
 - **Ursprung** = Bezugspunkt (Spindelnase, Futterfläche, Tischmitte).
 - **Z-Achse** = Richtung der Werkzeugachse bzw. Normale der Spannfläche.
-- Das Addon gibt dem LCS eine Art (Werkzeug-/Werkstückaufnahme), einen Namen
-  und bei Werkzeugaufnahmen den Bezug zur Spindel-Betriebsart, falls das
-  Werkzeug angetrieben ist.
+- Im Maschinenobjekt bekommt jede Aufnahme eine Art (Werkzeug- oder
+  Werkstückaufnahme), einen Namen, den Verweis auf ihr LCS und bei
+  Werkzeugaufnahmen den Bezug zur Spindel-Betriebsart, falls das Werkzeug
+  angetrieben ist. Das LCS selbst bleibt unverändert.
 
 Ob eine Achse im **Tisch** oder im **Kopf** sitzt (`AxisRole`), ergibt sich aus
-der Baugruppe: Liegt das Gelenk in der Kette zwischen dem festen Teil der
+der Kette der Glieder (Abschnitt 6): Liegt das Gelenk zwischen dem festen Glied der
 Assembly und einer Werkstückaufnahme, gehört es zum Tisch; liegt es zwischen
 dem festen Teil und einer Werkzeugaufnahme, zum Kopf. Die Reihenfolge in
 dieser Kette ergibt `parent`.
 
-## 6. Beschleunigung ermitteln (Hilfetext für den Dialog)
+## 8. Beschleunigung ermitteln (Hilfetext für den Dialog)
 
 Von genau zu grob:
 
@@ -107,7 +164,7 @@ Von genau zu grob:
    Wert liegt eher zu niedrig.
 4. **Spindel:** Hochlaufzeit mit Stoppuhr von Stillstand bis Maximaldrehzahl.
 
-## 7. Stufen
+## 9. Stufen
 
 Jede Stufe besteht aus mehreren Patches mit je einem Akzeptanzkriterium. Die
 Klickwege hier sind die Richtung; die genauen Kriterien stehen im jeweiligen
@@ -116,8 +173,8 @@ Patch.
 **Stufe 1 – Maschine beschreiben**
 - Eine Assembly als Maschine markieren. Ein Dialog listet ihre Slider- und
   Revolute-Gelenke. Pro Gelenk lassen sich Betriebsarten mit Namen und Werten
-  anlegen, pro LCS Aufnahmen. Alles wird **im Dokument** gespeichert (siehe
-  Frage 1) und ist mit Strg+Z rückgängig zu machen.
+  anlegen, pro LCS Aufnahmen. Alles wird im **Maschinenobjekt** gespeichert
+  (Abschnitt 5) und ist mit Strg+Z rückgängig zu machen.
 - *Klickweg:* Beispielmaschine öffnen → „Maschine bearbeiten“ → Gelenk
   „Hauptspindel“ bekommt S4 und C4 → speichern, schließen, neu öffnen → S4
   und C4 sind noch da.
@@ -137,28 +194,28 @@ Patch.
 **Stufe 4 – Werkzeugbahn abfahren und Kollision prüfen** – eigene
 Spezifikation, wenn Stufe 3 steht.
 
-## 8. Prüfbarkeit
+## 10. Prüfbarkeit
 
 - Für die automatischen Prüfungen (ohne Fenster) wird eine **kleine
   Beispielmaschine** per Skript erzeugt: fester Rahmen, X/Z-Schlitten, eine
-  Spindel mit S/C-Betriebsart, eine Werkzeug- und eine Werkstückaufnahme.
-  Geprüft werden Einlesen, Namensprüfung, Tisch/Kopf-Zuordnung, Umrechnung
+  Spindel mit S/C-Betriebsart, eine Werkzeug- und eine Werkstückaufnahme –
+  und eine zweite mit Schwenkbrücke (Wiege aus mehreren Körpern), damit die
+  Glied-Bildung geprüft wird.
+  Geprüft werden Einlesen, Glieder, Namensprüfung, Tisch/Kopf-Zuordnung, Umrechnung
   und der Inhalt der `.fcm`-Datei.
 - Ob sich Assembly-Gelenke ohne Fenster anlegen und lösen lassen, ist der
   erste Punkt, der in Stufe 1 geprüft wird. Geht das nicht, liegt die
   Beispielmaschine als fertige `.FCStd`-Datei unter `tests/`.
 - Dialoge und das Aussehen prüft Manuel in FreeCAD.
 
-## 9. Offene Fragen
+## 11. Offene Fragen
 
-1. **Wo liegen die Maschinendaten im Dokument?**
-   - *A (Empfehlung):* als zusätzliche Eigenschaften direkt an den Gelenken und
-     LCS. Die Daten stehen dann im Eigenschaften-Editor genau dort, wo das
-     Gelenk ist, und reisen mit, wenn man Teile kopiert.
-   - *B:* ein eigenes Objekt „Maschinendaten“ in der Assembly, das auf die
-     Gelenke verweist. Die Gelenke bleiben unverändert, aber die Verweise
-     können brechen, wenn ein Gelenk gelöscht und neu angelegt wird.
-2. **Wie viele Betriebsarten bekommt ein Gelenk?** Reichen die drei aus
-   Abschnitt 4, oder gibt es an der CLX 550 (oder anderswo) noch eine Rolle,
-   die hier fehlt – etwa eine Achse, die mal als Linearachse und mal als
-   Teil einer Transformation (TRANSMIT/TRACYL) läuft?
+1. **Reichen die drei Betriebsarten** (Linear, Positionieren, Spindel)? Die
+   Liste ist so gebaut, dass weitere dazukommen können, ohne bestehende
+   Maschinen zu ändern – etwa für Achsen, die in Transformationen wie
+   TRANSMIT/TRACYL anders arbeiten. Bis jemand eine solche Achse braucht,
+   bleibt es bei drei.
+
+## Entschieden
+
+- **Speicherort:** eigenes Maschinenobjekt (Manuel, P-2026-09-25-08).
