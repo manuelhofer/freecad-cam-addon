@@ -454,5 +454,6 @@
     "wv.schaft": "Schaft-Ø",
     "wv.schaft.tooltip": "Durchmesser des Schafts – nur für CAM. Leer: wie der Durchmesser.",
     "wv.schaft.platzhalter": "wie D: {wert}",
-    "wv.hinweis.gesamtlaenge": "Die Gesamtlänge ({laenge} mm) ist kürzer als die Schneide ({schneide} mm)."
+    "wv.hinweis.gesamtlaenge": "Die Gesamtlänge ({laenge} mm) ist kürzer als die Schneide ({schneide} mm).",
+    "einheit.drehzahl": "U/min"
 }

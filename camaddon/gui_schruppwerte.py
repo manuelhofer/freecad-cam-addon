@@ -107,7 +107,7 @@ class SchruppDialog(QtGui.QDialog):
             formular,
             tr("sp.drehzahl"),
             tr("sp.drehzahl.tooltip"),
-            "U/min",
+            tr("einheit.drehzahl"),
             gemerkt.GetFloat(GEMERKT["drehzahl"], 0.0),
         )
         self.feld_vorschub = self._feld(

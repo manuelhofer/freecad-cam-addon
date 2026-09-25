@@ -454,5 +454,6 @@
     "wv.schaft": "Shank Ø",
     "wv.schaft.tooltip": "Diameter of the shank – only for CAM. Empty: same as the diameter.",
     "wv.schaft.platzhalter": "as D: {wert}",
-    "wv.hinweis.gesamtlaenge": "The overall length ({laenge} mm) is shorter than the flutes ({schneide} mm)."
+    "wv.hinweis.gesamtlaenge": "The overall length ({laenge} mm) is shorter than the flutes ({schneide} mm).",
+    "einheit.drehzahl": "rpm"
 }

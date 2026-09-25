@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-63 englisch-rpm
+
+### EINGELESEN
+- Durchsicht der Werkzeugverwaltung auf Englisch (Werkzeugverwaltung,
+  Schruppwerte planen, Strategien vergleichen, Werkstoffe) als Screenshots.
+
+### DATEIEN
+- `camaddon/gui_schnittwerte.py`, `camaddon/gui_job_schnittwerte.py`,
+  `camaddon/gui_schruppwerte.py` (Einheit der Drehzahl aus den Texten)
+- `translations/de.json`, `translations/en.json` (`einheit.drehzahl`)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Sprache Englisch → Werkzeugverwaltung → die Spalte n heißt „n rpm“; in
+„Plan roughing values…“ steht hinter „Maximum speed“ „rpm“. Auf Deutsch
+bleibt es „U/min“.
+
+### DONE
+- Die Einheit „U/min“ stand fest im Code (Tabellenköpfe, Planer) und war
+  auch auf Englisch zu sehen – jetzt „rpm“. Sonst fiel beim Durchsehen
+  nichts auf.
+
+### TEST
+- KI, Oberfläche 1.1.3 auf Englisch (Szenario nur zum Ansehen, nicht
+  eingecheckt): Screenshots angesehen. `test_sprache` grün.
+- Manuel: offen.
+
+### NEXT
+- Alle Prüfungen, Version 0.6.0, Push.
+
 ## P-2026-09-25-62 gesamtlaenge-und-schaft
 
 ### EINGELESEN

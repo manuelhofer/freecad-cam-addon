@@ -293,7 +293,7 @@ class SchnittwertBereich(QtGui.QWidget):
             ("ap\nmm", tr("wv.spalte.ap.tooltip")),
             ("vc\nm/min", tr("wv.spalte.vc.tooltip")),
             vorschub,
-            ("n\nU/min", tr("wv.spalte.n.tooltip")),
+            ("n\n" + tr("einheit.drehzahl"), tr("wv.spalte.n.tooltip")),
             ("vf\nmm/min", tr("wv.spalte.vf.tooltip")),
             ("Q\ncm³/min", tr("wv.spalte.q.tooltip")),
         ]

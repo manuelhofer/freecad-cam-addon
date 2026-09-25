@@ -117,7 +117,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
                 tr("sj.spalte.tc"),
                 tr("sj.spalte.werkzeug"),
                 tr("wv.spalte.einsatz"),
-                "n\nU/min",
+                "n\n" + tr("einheit.drehzahl"),
                 "vf\nmm/min",
                 tr("sj.spalte.zustellung"),
                 tr("sj.spalte.jetzt"),
