@@ -484,5 +484,7 @@
     "vf.grundstellung": "Grundstellung",
     "vf.grundstellung.tooltip": "Fährt alle Achsen auf die Stellung beim Öffnen des Fensters.",
     "vf.grenzen.tooltip": "Die Grenzen stehen im Gelenk der Baugruppe (Minimum/Maximum der Länge bzw. des Winkels) – dort lassen sie sich eintragen oder ändern.",
-    "vf.platz.tooltip": "Revolverplatz wählen: Der Revolver dreht, bis dieser Platz dort steht, wo beim Öffnen P1 stand."
+    "vf.platz.tooltip": "Revolverplatz wählen: Der Revolver dreht, bis dieser Platz dort steht, wo beim Öffnen P1 stand.",
+    "wv.suche.platzhalter": "Suchen: T3, Torus, 10,5, Hoffmann …",
+    "wv.suche.tooltip": "Zeigt nur die Werkzeuge, in deren Zeile oder Bezeichnung jedes Wort vorkommt."
 }

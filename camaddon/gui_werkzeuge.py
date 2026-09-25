@@ -194,6 +194,12 @@ class WerkzeugDialog(QtGui.QDialog):
         aufbau = QtGui.QVBoxLayout(rahmen)
         aufbau.setContentsMargins(0, 0, 0, 0)
         aufbau.addWidget(kopfzeile(tr("wv.werkzeuge"), "werkzeuge"))
+        self.suche = QtGui.QLineEdit()
+        self.suche.setPlaceholderText(tr("wv.suche.platzhalter"))
+        self.suche.setToolTip(tr("wv.suche.tooltip"))
+        self.suche.setClearButtonEnabled(True)
+        self.suche.textChanged.connect(lambda *_: self._filtern())
+        aufbau.addWidget(self.suche)
         self.liste = QtGui.QListWidget()
         self.liste.currentRowChanged.connect(self._werkzeug_gewaehlt)
         aufbau.addWidget(self.liste, 1)
@@ -405,6 +411,22 @@ class WerkzeugDialog(QtGui.QDialog):
         self.liste.setCurrentRow(zeile)
         self.liste.blockSignals(False)
         self._werkzeug_gewaehlt(zeile)
+        # Ein neues oder gewähltes Werkzeug, das die Suche verstecken würde:
+        # lieber die Suche leeren, als es unsichtbar zu bearbeiten.
+        if self.werkzeug is not None and not wz.passt(self.werkzeug, self.suche.text()):
+            self.suche.clear()
+        self._filtern()
+
+    def _filtern(self):
+        """Zeigt nur die Werkzeuge, die die Suche findet; ist das gewählte weg, das erste gezeigte."""
+        suche = self.suche.text()
+        for zeile, werkzeug in enumerate(self._reihenfolge):
+            self.liste.item(zeile).setHidden(not wz.passt(werkzeug, suche))
+        aktuell = self.liste.currentItem()
+        if aktuell is None or not aktuell.isHidden():
+            return
+        sichtbar = [z for z in range(self.liste.count()) if not self.liste.item(z).isHidden()]
+        self.liste.setCurrentRow(sichtbar[0] if sichtbar else -1)
 
     def _zeile_auffrischen(self):
         """Schreibt die Listenzeile des gewählten Werkzeugs neu, ohne die Liste neu zu bauen."""

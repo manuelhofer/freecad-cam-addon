@@ -93,6 +93,19 @@ pruefe(
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10)) == 40, "ohne Schneidenlänge: 2D + 2D")
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10, schneidenlaenge=2)) == 30, "mind. 3D")
 
+# Suche: jedes Wort in Zeile oder Bezeichnung; Komma wie Punkt, Ø darf fehlen.
+torus = wz.Werkzeug(nummer=5, art=wz.TORUSFRAESER, durchmesser=10.5, bezeichnung="Hoffmann")
+for suche, soll in (
+    ("", True),
+    ("torus", True),
+    ("10,5", True),
+    ("ø10.5 hoff", True),
+    ("T5", True),
+    ("T6", False),
+    ("torus 12", False),
+):
+    pruefe(wz.passt(torus, suche) == soll, f"Suche {suche!r}: {wz.passt(torus, suche)}")
+
 # Unlesbares im Eintrag: Standardwerte statt Absturz.
 w = wz.Werkzeug.aus_dict({"nummer": "x", "art": "Hammer", "durchmesser": None, "schneidstoff": 3})
 pruefe(

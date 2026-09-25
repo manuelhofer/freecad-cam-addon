@@ -135,6 +135,15 @@ def schritte(h):
     d = gui_werkzeuge.WerkzeugDialog.offen
     h.pruefe(d.werkstoff == "1.4301", f"Werkstoff nach Wiederöffnen: {d.werkstoff!r}")
     h.pruefe(d.liste.count() == 2, f"{d.liste.count()} Werkzeuge nach Wiederöffnen")
+    # Suche: nur der Torusfräser; das gewählte Werkzeug folgt.
+    d.suche.setText("torus")
+    yield 100
+    sichtbar = [d.liste.item(z).text() for z in range(2) if not d.liste.item(z).isHidden()]
+    h.pruefe(len(sichtbar) == 1 and "Torus" in sichtbar[0], f"Suche „torus“: {sichtbar}")
+    h.pruefe(d.werkzeug is not None and d.werkzeug.art == wz.TORUSFRAESER, "Auswahl folgt nicht")
+    h.bild("7a_suche", d)
+    d.suche.clear()
+    yield 100
     d.liste.setCurrentRow(0)
     yield 200
     h.bild("7_wieder_offen", d)

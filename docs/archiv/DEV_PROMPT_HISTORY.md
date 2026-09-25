@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-71 werkzeuge-suchen
+
+### EINGELESEN
+- Manuels Wunsch nach einer Werkzeugverwaltung, die „viel übersichtlicher“
+  ist. Nach „Aus CAM übernehmen“ (P-66) wird die Liste schnell lang.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`passt()`), `camaddon/gui_werkzeuge.py`
+  (Suchfeld über der Liste)
+- `help/de|en/werkzeuge.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/test_werkzeuge.py`, `tests/gui/szenario_werkzeugverwaltung.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung mit T1 Schaftfräser Ø 12 und T2 Torusfräser Ø 10,5 →
+„torus“ ins Suchfeld → nur noch T2 in der Liste, rechts seine Werte → Feld
+leeren (×) → beide wieder da.
+
+### DONE
+- Jedes Wort muss in Zeile oder Bezeichnung vorkommen, ohne Groß/klein;
+  Komma und Punkt gelten gleich, das Ø darf fehlen („ø10.5 hoff“).
+- Versteckt die Suche das gewählte Werkzeug, wird das erste gezeigte
+  gewählt. Ein neues, kopiertes oder übernommenes Werkzeug, das die Suche
+  verstecken würde, leert die Suche – nichts wird unsichtbar bearbeitet.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_werkzeuge` grün (sieben
+  Suchen).
+- KI, Oberfläche in **beiden** Versionen: `szenario_werkzeugverwaltung`
+  und `szenario_aus_cam` grün, Screenshot angesehen.
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-25-70 entwurf-stufe-4
 
 ### EINGELESEN

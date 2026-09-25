@@ -285,6 +285,20 @@ def zeile(werkzeug):
     )
 
 
+def passt(werkzeug, suche):
+    """Findet die Suche das Werkzeug? Jedes Wort muss in Zeile oder Bezeichnung vorkommen.
+
+    Ohne Groß/klein; Komma und Punkt gelten gleich („10,5“ findet Ø 10.5),
+    das Ø darf fehlen oder dabei sein („ø12“ findet Ø 12).
+    """
+
+    def einheitlich(text):
+        return text.lower().replace(",", ".").replace("ø", "")
+
+    text = einheitlich(f"{zeile(werkzeug)} {werkzeug.bezeichnung}")
+    return all(wort in text for wort in einheitlich(suche).split())
+
+
 def kurz(werkzeug):
     """Art und Durchmesser ohne Nummer: „Schaftfräser Ø 12“ – für Sätze über ein Werkzeug."""
     durchmesser = f"{werkzeug.durchmesser:g}" if werkzeug.durchmesser else "?"
