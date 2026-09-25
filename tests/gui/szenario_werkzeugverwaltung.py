@@ -91,6 +91,16 @@ def schritte(h):
         f"Listenzeile: {d.liste.item(0).text()!r}",
     )
     h.pruefe(not d.hinweis.isVisible(), f"Hinweis trotz vollständiger Werte: {d.hinweis.text()!r}")
+    # Gesamtlänge und Schaft leer: grau steht, was CAM stattdessen bekommt.
+    grau = (d.feld_gesamtlaenge.placeholderText(), d.feld_schaft.placeholderText())
+    h.pruefe(grau == ("geschätzt: 50", "wie D: 12"), f"Schätzung: {grau}")
+    tippen(d.feld_gesamtlaenge, "20")
+    yield 100
+    h.pruefe("kürzer als die Schneide" in d.hinweis.text(), f"Hinweis: {d.hinweis.text()!r}")
+    h.bild("5b_gesamtlaenge_zu_kurz", d)
+    tippen(d.feld_gesamtlaenge, "")
+    yield 100
+    h.pruefe(d.werkzeug.gesamtlaenge == 0 and not d.hinweis.isVisible(), "Gesamtlänge leeren")
 
     # Zweites Werkzeug: Torusfräser zeigt den Eckradius; doppelte Nummer wird gemeldet.
     d.knopf_neu.click()

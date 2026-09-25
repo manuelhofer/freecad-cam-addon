@@ -154,6 +154,9 @@ class Werkzeug:
     schneiden: int = 3  # Schneidenzahl z
     schneidenlaenge: float = 0.0  # nutzbare Schneidenlänge in mm – das größte ap
     eckradius: float = 0.0  # mm, nur beim Torusfräser
+    # Nur für CAM (Simulation, Kollision); 0 = geschätzt, siehe laenge_fuer_cam().
+    gesamtlaenge: float = 0.0  # mm
+    schaft: float = 0.0  # Schaftdurchmesser, mm
     schneidstoff: str = VHM
     bezeichnung: str = ""  # frei: Hersteller, Bestellnummer, Beschichtung …
     # Werkstoff-Kennung oder ALLE -> die Einsätze mit ihren Werten.
@@ -200,6 +203,8 @@ class Werkzeug:
             "schneiden": self.schneiden,
             "schneidenlaenge": self.schneidenlaenge,
             "eckradius": self.eckradius,
+            "gesamtlaenge": self.gesamtlaenge,
+            "schaft": self.schaft,
             "schneidstoff": self.schneidstoff,
             "bezeichnung": self.bezeichnung,
             "schnittwerte": {
@@ -219,6 +224,9 @@ class Werkzeug:
         w.schneiden = _zahl(daten.get("schneiden"), int, w.schneiden)
         w.schneidenlaenge = _zahl(daten.get("schneidenlaenge"), float, 0.0)
         w.eckradius = _zahl(daten.get("eckradius"), float, 0.0)
+        # Erst seit P-2026-09-25-62 – in älteren Dateien fehlen sie: 0, geschätzt.
+        w.gesamtlaenge = max(_zahl(daten.get("gesamtlaenge"), float, 0.0), 0.0)
+        w.schaft = max(_zahl(daten.get("schaft"), float, 0.0), 0.0)
         w.schneidstoff = (
             daten.get("schneidstoff") if daten.get("schneidstoff") in SCHNEIDSTOFFE else VHM
         )
@@ -231,6 +239,26 @@ class Werkzeug:
                 if isinstance(liste, list)
             }
         return w
+
+
+def geschaetzte_laenge(werkzeug):
+    """Gesamtlänge, wenn sie niemand eingetragen hat: Schneidenlänge + 2 × D, mindestens 3 × D.
+
+    Ohne Schneidenlänge zählt sie als 2 × D. 0, wenn D unbekannt ist.
+    """
+    d = werkzeug.durchmesser
+    schneide = werkzeug.schneidenlaenge or 2 * d
+    return max(schneide + 2 * d, 3 * d)
+
+
+def laenge_fuer_cam(werkzeug):
+    """Die Gesamtlänge fürs ToolBit: eingetragen, sonst geschätzt."""
+    return werkzeug.gesamtlaenge or geschaetzte_laenge(werkzeug)
+
+
+def schaft_fuer_cam(werkzeug):
+    """Der Schaftdurchmesser fürs ToolBit: eingetragen, sonst wie D."""
+    return werkzeug.schaft or werkzeug.durchmesser
 
 
 def _zahl(wert, typ, ersatz):

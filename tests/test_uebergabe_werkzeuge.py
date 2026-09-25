@@ -42,7 +42,9 @@ fraeser.schnittwerte[wz.ALLE] = [
     wz.Einsatz(art=wz.SCHLICHTEN, ae=0.2, ap=25),  # ohne vc/fz: kein Preset
 ]
 fraeser.eigene_anlegen("1.4301")[0].vc = 80
-torus = wz.Werkzeug(nummer=5, art=wz.TORUSFRAESER, durchmesser=10, eckradius=1)
+torus = wz.Werkzeug(
+    nummer=5, art=wz.TORUSFRAESER, durchmesser=10, eckradius=1, gesamtlaenge=72, schaft=8
+)
 bohrer = wz.Werkzeug(nummer=7, art=wz.BOHRER, durchmesser=8.5, schneiden=2, schneidstoff=wz.HSS)
 bohrer.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25, fz=0.08)]
 ohne = wz.Werkzeug(nummer=9)
@@ -66,6 +68,9 @@ pruefe(mm(tb.obj.CuttingEdgeHeight) == 26, f"Schneidenlänge {tb.obj.CuttingEdge
 pruefe(tb.obj.Material == "Carbide" and mm(tb.obj.Chipload) == 0.05, "Schneidstoff, Chipload")
 t5 = cam_assets.get(f"toolbit://camaddon_{torus.kennung}")
 pruefe(mm(t5.obj.CornerRadius) == 1, f"Eckradius {t5.obj.CornerRadius}")
+# Eingetragen gilt, sonst geschätzt: 26 + 2 · 12 = 50 mm, Schaft = D.
+pruefe((mm(t5.obj.Length), mm(t5.obj.ShankDiameter)) == (72, 8), "Länge/Schaft eingetragen")
+pruefe((mm(tb.obj.Length), mm(tb.obj.ShankDiameter)) == (50, 12), "Länge/Schaft geschätzt")
 t7 = cam_assets.get(f"toolbit://camaddon_{bohrer.kennung}")
 pruefe(t7.obj.Material == "HSS" and mm(t7.obj.Diameter) == 8.5, "Bohrer")
 

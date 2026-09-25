@@ -240,6 +240,8 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_schneidenlaenge = self._zahlenfeld(
             tr("wv.schneidenlaenge.tooltip"), "schneidenlaenge"
         )
+        self.feld_gesamtlaenge = self._zahlenfeld(tr("wv.gesamtlaenge.tooltip"), "gesamtlaenge")
+        self.feld_schaft = self._zahlenfeld(tr("wv.schaft.tooltip"), "schaft")
         self.feld_eckradius = self._zahlenfeld(tr("wv.eckradius.tooltip"), "eckradius")
         self.zeile_eckradius = mit_einheit(self.feld_eckradius, "mm")
         self.beschriftung_eckradius = QtGui.QLabel(tr("wv.eckradius"))
@@ -264,8 +266,11 @@ class WerkzeugDialog(QtGui.QDialog):
                 QtGui.QLabel(tr("wv.schneidenlaenge")),
                 mit_einheit(self.feld_schneidenlaenge, "mm"),
             ),
-            (self.beschriftung_eckradius, self.zeile_eckradius),
+            (QtGui.QLabel(tr("wv.gesamtlaenge")), mit_einheit(self.feld_gesamtlaenge, "mm")),
+            (QtGui.QLabel(tr("wv.schaft")), mit_einheit(self.feld_schaft, "mm")),
             (QtGui.QLabel(tr("wv.schneidstoff")), self.feld_schneidstoff),
+            # Zuletzt: Außer beim Torusfräser ausgeblendet, ohne eine Lücke zu lassen.
+            (self.beschriftung_eckradius, self.zeile_eckradius),
         ]
         for i, (beschriftung, feld) in enumerate(zeilen):
             gitter.addWidget(beschriftung, i // 2, 2 * (i % 2))
@@ -459,10 +464,13 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_schneiden.setValue(w.schneiden)
         self.feld_schneidenlaenge.setText(zahl_zeigen(w.schneidenlaenge))
         self.feld_eckradius.setText(zahl_zeigen(w.eckradius))
+        self.feld_gesamtlaenge.setText(zahl_zeigen(w.gesamtlaenge))
+        self.feld_schaft.setText(zahl_zeigen(w.schaft))
         self.feld_schneidstoff.setCurrentIndex(self.feld_schneidstoff.findData(w.schneidstoff))
         self.feld_bezeichnung.setText(w.bezeichnung)
         self._fuellt = False
         self._eckradius_zeigen()
+        self._schaetzung_zeigen()
         self._hinweise()
         self._schnittwerte_zeigen()
 
@@ -482,6 +490,17 @@ class WerkzeugDialog(QtGui.QDialog):
         self.zeile_eckradius.setVisible(sichtbar)
         self.beschriftung_eckradius.setVisible(sichtbar)
 
+    def _schaetzung_zeigen(self):
+        """Leere Felder für Gesamtlänge und Schaft zeigen grau, was CAM stattdessen bekommt."""
+        w = self.werkzeug
+        if w is None or not w.durchmesser:
+            laenge = schaft = tr("feld.unbekannt")
+        else:
+            laenge = tr("wv.gesamtlaenge.platzhalter", wert=zahl_zeigen(wz.geschaetzte_laenge(w)))
+            schaft = tr("wv.schaft.platzhalter", wert=zahl_zeigen(w.durchmesser))
+        self.feld_gesamtlaenge.setPlaceholderText(laenge)
+        self.feld_schaft.setPlaceholderText(schaft)
+
     def _hinweise(self):
         """Zeigt am Werkzeug, was fehlt oder nicht passt – sofort, nicht erst beim Speichern."""
         w = self.werkzeug
@@ -489,6 +508,14 @@ class WerkzeugDialog(QtGui.QDialog):
         if w is not None:
             if not w.durchmesser:
                 saetze.append(tr("wv.hinweis.durchmesser"))
+            if w.gesamtlaenge and w.gesamtlaenge < w.schneidenlaenge:
+                saetze.append(
+                    tr(
+                        "wv.hinweis.gesamtlaenge",
+                        laenge=zahl_zeigen(w.gesamtlaenge),
+                        schneide=zahl_zeigen(w.schneidenlaenge),
+                    )
+                )
             doppelt = self.bibliothek.mit_nummer(w.nummer, ausser=w)
             if doppelt is not None:
                 saetze.append(
@@ -500,6 +527,7 @@ class WerkzeugDialog(QtGui.QDialog):
     def _geaendert(self):
         """Nach jeder Eingabe: Listenzeile, Hinweise und Schnittwerte auf den neuen Stand."""
         self._zeile_auffrischen()
+        self._schaetzung_zeigen()
         self._hinweise()
         self.schnittwerte.auffrischen()
 
@@ -550,6 +578,8 @@ class WerkzeugDialog(QtGui.QDialog):
             (self.feld_durchmesser, "durchmesser"),
             (self.feld_schneidenlaenge, "schneidenlaenge"),
             (self.feld_eckradius, "eckradius"),
+            (self.feld_gesamtlaenge, "gesamtlaenge"),
+            (self.feld_schaft, "schaft"),
         ):
             self._zahl_uebernehmen(feld, eigenschaft)
 

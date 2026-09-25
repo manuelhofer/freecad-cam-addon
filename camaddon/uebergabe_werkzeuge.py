@@ -107,8 +107,8 @@ def toolbit_daten(werkzeug, werkstoffe_nach_kennung, freecad_nach_nummer, berich
     parameter = {
         "Diameter": f"{d} mm",
         "Flutes": w.schneiden,
-        "Length": f"{max(schneide + 2 * d, 3 * d)} mm",
-        "ShankDiameter": f"{d} mm",
+        "Length": f"{wz.laenge_fuer_cam(w)} mm",
+        "ShankDiameter": f"{wz.schaft_fuer_cam(w)} mm",
         "CuttingEdgeHeight": f"{schneide} mm",
     }
     if w.art == wz.TORUSFRAESER:

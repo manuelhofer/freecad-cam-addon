@@ -23,6 +23,9 @@ calculation.</li>
 <li><b>Flute length</b> – the usable length of the cutting edge. It is the
 largest ap the tool can cut on its side, and later shows how much of the edge
 a use case actually uses.</li>
+<li><b>Overall length</b> and <b>Shank Ø</b> – only for CAM (simulation,
+collision). They may stay empty: the field then shows in grey what is
+estimated.</li>
 <li><b>Tool material</b> – carbide or HSS.</li>
 <li><b>Description</b> – free text to find it again: manufacturer, order
 number, coating.</li>
@@ -43,8 +46,9 @@ stock material. The stable version 1.1.3 only takes the tools.</li>
 <li>Each hand-over <b>replaces</b> the previous one: tools that no longer exist
 here disappear from the library. Tools you created in CAM yourself are left
 alone.</li>
-<li>Overall length (flute length + 2 × D) and shank (= D) are
-<b>estimated</b> – the tool manager does not ask for them (yet).</li>
+<li>CAM needs the <b>overall length</b> and the <b>shank Ø</b> for simulation and
+collision. If the fields are empty, the addon estimates them (flute length +
+2 × D, shank = D) – shown in grey in the empty field.</li>
 </ul>
 
 <h3>Cutting data into the job</h3>

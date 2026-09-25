@@ -22,6 +22,9 @@ Fasenfräser, Bohrer.</li>
 <li><b>Schneidenlänge</b> – die nutzbare Länge der Schneide. Sie ist das
 größte ap, mit dem der Fräser seitlich arbeiten kann, und zeigt später, wie
 viel der Schneide ein Einsatz nutzt.</li>
+<li><b>Gesamtlänge</b> und <b>Schaft-Ø</b> – nur für CAM (Simulation,
+Kollision). Leer lassen geht: Dann steht grau im Feld, was geschätzt
+wird.</li>
 <li><b>Schneidstoff</b> – VHM (Vollhartmetall) oder HSS.</li>
 <li><b>Bezeichnung</b> – frei, zum Wiederfinden: Hersteller, Bestellnummer,
 Beschichtung.</li>
@@ -43,8 +46,9 @@ die Werkzeuge.</li>
 <li>Jede Übergabe <b>ersetzt</b> die vorige: Werkzeuge, die es hier nicht mehr
 gibt, verschwinden aus der Bibliothek. Werkzeuge, die du selbst in CAM
 angelegt hast, bleiben unberührt.</li>
-<li><b>Geschätzt</b> sind Gesamtlänge (Schneidenlänge + 2 × D) und Schaft
-(= D) – die Werkzeugverwaltung fragt sie (noch) nicht ab.</li>
+<li><b>Gesamtlänge</b> und <b>Schaft-Ø</b> braucht CAM für Simulation und
+Kollision. Sind die Felder leer, schätzt das Addon sie (Schneidenlänge +
+2 × D, Schaft = D) – das steht grau im leeren Feld.</li>
 </ul>
 
 <h3>Schnittwerte in den Job</h3>

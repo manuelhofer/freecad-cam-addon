@@ -108,6 +108,8 @@ eigenen kopieren“ macht eine änderbare Kopie.
 | Schneidenzahl z | – | Pflicht (Bohrer: 2) |
 | nutzbare Schneidenlänge | mm | für ap und die Beurteilung |
 | Eckradius | mm | nur Torusfräser |
+| Gesamtlänge | mm | nur für CAM; leer: Schneidenlänge + 2 × D, mindestens 3 × D |
+| Schaft-Ø | mm | nur für CAM; leer: wie D |
 | Schneidstoff | – | VHM, HSS |
 | Bezeichnung | – | frei: Hersteller, Bestellnummer, Beschichtung … |
 
@@ -279,7 +281,8 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    Asset-Verwaltung, in beiden Versionen gleich); die ToolBits heißen
    `camaddon_<Kennung>`, eine erneute Übergabe ersetzt sie und entfernt
    gelöschte, fremde Werkzeuge bleiben. Gesamtlänge und Schaft sind
-   geschätzt (Schneidenlänge + 2 × D, Schaft = D).
+   geschätzt (Schneidenlänge + 2 × D, Schaft = D) – seit P-2026-09-25-62
+   nur noch, wo die Felder leer sind.
    **Zweiter Teil gebaut** (P-2026-09-25-53): Befehl „Schnittwerte in den
    Job“ – je Werkzeug-Controller ein Einsatz (vorgeschlagen nach Name oder
    Operation), Werkstoff vom Rohteil über die Werkstoffnummer, Drehzahl,
@@ -352,9 +355,9 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
    Alternative: in eine vorhandene Bibliothek des Benutzers mischen – dann
    könnte das Addon beim Aktualisieren fremde Werkzeuge treffen.
 10. **Gesamtlänge und Schaft werden geschätzt** (Schneidenlänge + 2 × D,
-    Schaft = D) statt zwei weiterer Felder im Formular. Alternative: Felder
-    „Gesamtlänge“ und „Schaftdurchmesser“ – genauer für Simulation und
-    Kollision, aber mehr zu tippen. Leicht nachzurüsten.
+    Schaft = D), wenn niemand sie einträgt. Seit P-2026-09-25-62 gibt es
+    dafür zwei freiwillige Felder; leer zeigen sie grau die Schätzung. So
+    muss niemand sie tippen, und wer simulieren will, kann.
 11. **Eintauchvorschub = ⅓ des Vorschubs** (FreeCADs Vorgabe für Presets),
     beim Bohren der volle. Alternative: eine eigene Spalte je Einsatz.
 12. **Einsatz für einen Werkzeug-Controller** wird vorgeschlagen: erst nach

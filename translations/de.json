@@ -376,7 +376,7 @@
     "wv.cam.ohne_presets": "Die Schnittwerte übernimmt diese FreeCAD-Version noch nicht an den Werkzeugen – das kann der Wochen-Build und ab der nächsten Version. Die Werkzeuge selbst sind da.",
     "wv.cam.ohne_durchmesser": "Nicht übergeben, weil der Durchmesser fehlt: {anzahl}.",
     "wv.cam.entfernt": "Aus CAM entfernt, weil es sie hier nicht mehr gibt: {anzahl}.",
-    "wv.cam.weiter": "So geht es weiter: In einem CAM-Job ein Werkzeug hinzufügen und die Bibliothek „CAM-Addon“ wählen. Gesamtlänge und Schaft sind geschätzt (Schneidenlänge + 2 × D, Schaft = D).",
+    "wv.cam.weiter": "So geht es weiter: In einem CAM-Job ein Werkzeug hinzufügen und die Bibliothek „CAM-Addon“ wählen. Wo Gesamtlänge oder Schaft leer sind, sind sie geschätzt (Schneidenlänge + 2 × D, Schaft = D).",
     "wv.cam.fehler": "Die Übergabe an CAM hat nicht geklappt:\n{fehler}",
     "befehl.schnittwerte_job.titel": "Schnittwerte in den Job",
     "befehl.schnittwerte_job.tooltip": "Setzt Drehzahl und Vorschub der Werkzeug-Controller eines CAM-Jobs aus der Werkzeugverwaltung – passend zum Werkstoff des Rohteils.",
@@ -447,5 +447,12 @@
     "sj.zustellung": "Auch Schrittweite (ae) und Zustelltiefe (ap) der passenden Operationen setzen",
     "sj.zustellung.tooltip": "Die Operationen, die den Werkzeug-Controller benutzen, bekommen ae als Schrittweite (in % von D, abgerundet) und ap als Zustelltiefe – aber nur, wenn der Einsatz passt: Adaptiv bekommt „Schruppen dynamisch“ und „Schruppen“, Tasche und Planfräsen „Schruppen“, Nut „Vollnut“. Eine Kontur bekommt nichts – mit ihr wird auch ausgeschnitten, in voller Nut.",
     "sj.zustellung.jetzt": "Jetzt eingestellt:\n{werte}",
-    "sj.gesetzt.operationen": "Gesetzt: {anzahl} Werkzeug-Controller, dazu Schrittweite und Zustelltiefe in: {operationen}. Strg+Z nimmt es in einem Schritt zurück."
+    "sj.gesetzt.operationen": "Gesetzt: {anzahl} Werkzeug-Controller, dazu Schrittweite und Zustelltiefe in: {operationen}. Strg+Z nimmt es in einem Schritt zurück.",
+    "wv.gesamtlaenge": "Gesamtlänge",
+    "wv.gesamtlaenge.tooltip": "Länge des ganzen Werkzeugs – nur für CAM (Simulation, Kollision). Leer: geschätzt als Schneidenlänge + 2 × D.",
+    "wv.gesamtlaenge.platzhalter": "geschätzt: {wert}",
+    "wv.schaft": "Schaft-Ø",
+    "wv.schaft.tooltip": "Durchmesser des Schafts – nur für CAM. Leer: wie der Durchmesser.",
+    "wv.schaft.platzhalter": "wie D: {wert}",
+    "wv.hinweis.gesamtlaenge": "Die Gesamtlänge ({laenge} mm) ist kürzer als die Schneide ({schneide} mm)."
 }

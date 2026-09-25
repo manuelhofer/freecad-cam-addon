@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-62 gesamtlaenge-und-schaft
+
+### EINGELESEN
+- Spezifikation W-002, Entscheidung 10: Gesamtlänge und Schaft wurden bei
+  der Übergabe an CAM geschätzt; die Alternative „zwei Felder“ war als
+  leicht nachzurüsten vermerkt. CAM braucht beide für Simulation und
+  Kollision.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (Felder `gesamtlaenge`, `schaft`;
+  `geschaetzte_laenge()`, `laenge_fuer_cam()`, `schaft_fuer_cam()`)
+- `camaddon/uebergabe_werkzeuge.py` (nimmt sie)
+- `camaddon/gui_werkzeuge.py` (zwei Felder, grau die Schätzung, Hinweis
+  bei zu kurzer Gesamtlänge; der Eckradius steht jetzt zuletzt)
+- `help/de|en/werkzeuge.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/test_werkzeuge.py`, `tests/test_uebergabe_werkzeuge.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py`
+- `docs/spezifikation_werkzeugverwaltung.md` (Abschnitt 5, Stufe 2,
+  Entscheidung 10), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Neu → Durchmesser 12, Schneidenlänge 26 → in den leeren
+Feldern steht grau „geschätzt: 50“ und „wie D: 12“ → Gesamtlänge 20 → rot
+„Die Gesamtlänge (20 mm) ist kürzer als die Schneide (26 mm).“ → Gesamtlänge
+83, Schaft-Ø 10 → Speichern und an CAM übergeben → im CAM-Job hat das
+Werkzeug Länge 83 und Schaft 10.
+
+### DONE
+- Zwei freiwillige Felder; leer gilt die Schätzung wie bisher, und sie
+  steht grau im Feld. Ältere Dateien ohne die Felder laden unverändert
+  (0 = geschätzt), das Dateiformat bleibt 1.
+- Der Eckradius (nur Torusfräser) steht jetzt als letztes Feld – so
+  hinterlässt er ausgeblendet keine Lücke.
+- Der Text nach der Übergabe sagt „wo die Felder leer sind, geschätzt“.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_werkzeuge` (speichern,
+  alte Datei ohne Felder, Schätzung mit und ohne Schneidenlänge),
+  `test_uebergabe_werkzeuge` (eingetragen 72/8, geschätzt 50/12 im
+  ToolBit) grün.
+- KI, Oberfläche 1.1.3: `szenario_werkzeugverwaltung` grün, Screenshot
+  angesehen.
+- Manuel: offen.
+
+### NEXT
+- Alle Prüfungen, Version 0.6.0, Push.
+
 ## P-2026-09-25-61 zustellung-in-die-operationen
 
 ### EINGELESEN

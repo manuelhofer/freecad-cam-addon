@@ -376,7 +376,7 @@
     "wv.cam.ohne_presets": "This FreeCAD version does not yet take the cutting data onto the tools – the weekly build and the next version do. The tools themselves are there.",
     "wv.cam.ohne_durchmesser": "Not handed over because the diameter is missing: {anzahl}.",
     "wv.cam.entfernt": "Removed from CAM because they no longer exist here: {anzahl}.",
-    "wv.cam.weiter": "Next: in a CAM job, add a tool and choose the library “CAM-Addon”. Overall length and shank are estimated (flute length + 2 × D, shank = D).",
+    "wv.cam.weiter": "Next: in a CAM job, add a tool and choose the library “CAM-Addon”. Where overall length or shank are empty, they are estimated (flute length + 2 × D, shank = D).",
     "wv.cam.fehler": "Handing over to CAM did not work:\n{fehler}",
     "befehl.schnittwerte_job.titel": "Cutting data into the job",
     "befehl.schnittwerte_job.tooltip": "Sets spindle speed and feed of a CAM job's tool controllers from the tool manager – matching the stock material.",
@@ -447,5 +447,12 @@
     "sj.zustellung": "Also set step over (ae) and step down (ap) of the matching operations",
     "sj.zustellung.tooltip": "The operations that use the tool controller get ae as step over (in % of D, rounded down) and ap as step down – but only if the use case fits: Adaptive gets “Dynamic roughing” and “Roughing”, Pocket and Face “Roughing”, Slot “Full slot”. A Profile gets nothing – it is also used for cutting out, in a full slot.",
     "sj.zustellung.jetzt": "Currently set:\n{werte}",
-    "sj.gesetzt.operationen": "Tool controllers set: {anzahl}, plus step over and step down in: {operationen}. Ctrl+Z undoes it in one step."
+    "sj.gesetzt.operationen": "Tool controllers set: {anzahl}, plus step over and step down in: {operationen}. Ctrl+Z undoes it in one step.",
+    "wv.gesamtlaenge": "Overall length",
+    "wv.gesamtlaenge.tooltip": "Length of the whole tool – only for CAM (simulation, collision). Empty: estimated as flute length + 2 × D.",
+    "wv.gesamtlaenge.platzhalter": "estimated: {wert}",
+    "wv.schaft": "Shank Ø",
+    "wv.schaft.tooltip": "Diameter of the shank – only for CAM. Empty: same as the diameter.",
+    "wv.schaft.platzhalter": "as D: {wert}",
+    "wv.hinweis.gesamtlaenge": "The overall length ({laenge} mm) is shorter than the flutes ({schneide} mm)."
 }

@@ -79,6 +79,20 @@ k = b.kopie()
 k.werkzeuge[0].durchmesser = 99
 pruefe(not k.gleich(b) and b.werkzeuge[0].durchmesser == 12, "kopie() nicht unabhängig")
 
+# Gesamtlänge und Schaft: leer geschätzt, eingetragen gespeichert; alte Dateien ohne sie laden.
+t1.gesamtlaenge, t1.schaft = 83, 10
+pruefe(wz.Werkzeug.aus_dict(t1.als_dict()) == t1, "Gesamtlänge/Schaft nicht gespeichert")
+pruefe((wz.laenge_fuer_cam(t1), wz.schaft_fuer_cam(t1)) == (83, 10), "eingetragen")
+alt_eintrag = {k: v for k, v in t1.als_dict().items() if k not in ("gesamtlaenge", "schaft")}
+w = wz.Werkzeug.aus_dict(alt_eintrag)
+pruefe((w.gesamtlaenge, w.schaft) == (0, 0), "alte Datei: Gesamtlänge/Schaft nicht 0")
+pruefe(
+    (wz.laenge_fuer_cam(w), wz.schaft_fuer_cam(w)) == (w.schneidenlaenge + 24, 12),
+    f"geschätzt: {wz.laenge_fuer_cam(w)}, {wz.schaft_fuer_cam(w)}",
+)
+pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10)) == 40, "ohne Schneidenlänge: 2D + 2D")
+pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10, schneidenlaenge=2)) == 30, "mind. 3D")
+
 # Unlesbares im Eintrag: Standardwerte statt Absturz.
 w = wz.Werkzeug.aus_dict({"nummer": "x", "art": "Hammer", "durchmesser": None, "schneidstoff": 3})
 pruefe(
