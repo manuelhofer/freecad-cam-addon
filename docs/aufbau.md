@@ -53,6 +53,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `werkzeuge.py` | Werkzeugbibliothek (W-002): Werkzeuge, Einsätze und Schnittwerte je Werkstoff, eigene Werkstoffe, Speichern als JSON |
 | `schnittdaten.py` | Rechnen mit Schnittwerten: n, vf, Zeitspanvolumen, Eingriffswinkel, Spandicke; Kennzahlen und Urteil für den Strategievergleich |
 | `uebergabe_werkzeuge.py` | Werkzeuge an CAM übergeben: ToolBits und Bibliothek „CAM-Addon“ über `cam_assets`, Schnittwerte als Presets |
+| `job_schnittwerte.py` | Schnittwerte in die Werkzeug-Controller eines Jobs: Werkstoff vom Rohteil, Werkzeug zum TC, Einsatz vorschlagen, setzen in einer Transaktion |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“ |
 | `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
@@ -68,6 +69,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_eingriff.py` | Bild des Eingriffs (Draufsicht und Seitenansicht) zur gewählten Zeile |
 | `gui_strategie.py` | Dialog „Strategien vergleichen“: zwei Einsätze mit Balken und Urteil |
 | `gui_werkstoffe.py` | Fenster „Werkstoffe“: ganze Liste mit Suche und Filter, eigene Werkstoffe |
+| `gui_job_schnittwerte.py` | Befehl und Dialog „Schnittwerte in den Job“ |
 
 Zwei Regeln halten das zusammen:
 
@@ -180,3 +182,4 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | Die Knopfleiste macht OK beim Zeigen selbst zum Standardknopf – Enter in einem Feld schließt dann einen QDialog | `keyPressEvent` hält Enter an (Werkzeugverwaltung) |
 | Werkstoffnummern wie „1.0503“ sehen aus wie Kommazahlen | `dezimal()` nur auf Zahlentexte, nie auf Werkstoffnamen |
 | QTest tippt nur ASCII | in Szenarien Text ohne Umlaute tippen |
+| FreeCADCmd 1.1.3 schreibt beim Neuberechnen einen Fortschrittsbalken ohne Zeilenende | Prüfungen, die neu berechnen, geben vor „OK“ eine Leerzeile aus |

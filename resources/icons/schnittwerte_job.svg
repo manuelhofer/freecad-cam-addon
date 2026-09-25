@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „Schnittwerte in den Job“: Schaftfräser, grüner Pfeil in einen Job-Kasten. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="34" y="30" width="26" height="28" rx="2" fill="#fce94f" stroke="#8f5902" stroke-width="2"/>
+  <path d="M39 40 H55 M39 46 H55 M39 52 H50" stroke="#8f5902" stroke-width="2.5"/>
+  <rect x="6" y="3" width="12" height="22" fill="#d3d7cf" stroke="#2e3436" stroke-width="2"/>
+  <rect x="6" y="25" width="12" height="28" fill="#729fcf" stroke="#204a87" stroke-width="2"/>
+  <path d="M6 31 L18 25 M6 39 L18 33 M6 47 L18 41" stroke="#204a87" stroke-width="2.5"/>
+  <path d="M22 16 H40 V24" fill="none" stroke="#4e9a06" stroke-width="4"/>
+  <path d="M33 22 L40 31 L47 22 Z" fill="#4e9a06"/>
+</svg>

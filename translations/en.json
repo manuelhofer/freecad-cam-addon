@@ -378,5 +378,22 @@
     "wv.cam.ohne_durchmesser": "Not handed over because the diameter is missing: {anzahl}.",
     "wv.cam.entfernt": "Removed from CAM because they no longer exist here: {anzahl}.",
     "wv.cam.weiter": "Next: in a CAM job, add a tool and choose the library “CAM-Addon”. Overall length and shank are estimated (flute length + 2 × D, shank = D).",
-    "wv.cam.fehler": "Handing over to CAM did not work:\n{fehler}"
+    "wv.cam.fehler": "Handing over to CAM did not work:\n{fehler}",
+    "befehl.schnittwerte_job.titel": "Cutting data into the job",
+    "befehl.schnittwerte_job.tooltip": "Sets spindle speed and feed of a CAM job's tool controllers from the tool manager – matching the stock material.",
+    "sj.titel": "Cutting data into the job",
+    "sj.job": "Job",
+    "sj.werkstoff.tooltip": "The material whose cutting data applies. Preselected is the stock material, if the tool manager knows it.",
+    "sj.herkunft.rohteil": "From the job's stock: {werkstoff}.",
+    "sj.herkunft.unbekannt": "The stock has no material the tool manager knows – the values for all materials apply. You can choose one above.",
+    "sj.spalte.tc": "Tool controller",
+    "sj.spalte.werkzeug": "Tool in the tool manager",
+    "sj.spalte.jetzt": "Currently set",
+    "sj.jetzt": "{n} rpm · {vf} mm/min",
+    "sj.kein_werkzeug": "– not in the tool manager",
+    "sj.kein_werkzeug.tooltip": "This tool does not come from the library “CAM-Addon”, and no tool in the tool manager has the same T number and diameter.",
+    "sj.nicht_aendern": "– do not change",
+    "sj.hinweis": "Spindle speed, feed rate and plunge feed are set (a third of the feed rate, the full one for drilling). Use cases without vc and fz are not suggested.",
+    "sj.uebernehmen": "Apply",
+    "sj.gesetzt": "Set: {anzahl} tool controllers. Ctrl+Z undoes it in one step."
 }

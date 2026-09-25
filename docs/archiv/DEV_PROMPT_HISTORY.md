@@ -12,6 +12,73 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-53 schnittwerte-in-den-job
+
+### EINGELESEN
+- W-002, Spezifikation Abschnitt 10, Stufe 2, zweiter Teil: In FreeCAD
+  1.1.3 – Manuels Version – kommen die Schnittwert-Vorschläge am Werkzeug
+  nicht an (P-2026-09-25-52). Damit er die Werte trotzdem in einen Job
+  bekommt, setzt das Addon die Werkzeug-Controller selbst.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (neu)
+- `camaddon/gui_job_schnittwerte.py` (neu: Befehl und Dialog)
+- `camaddon/gui_werkzeuge.py` (`werkstoffe_anbieten()` als Funktion, damit
+  der neue Dialog dieselbe Werkstoff-Auswahl hat)
+- `camaddon/gui_start.py` (Befehl, Werkzeugleiste)
+- `resources/icons/schnittwerte_job.svg` (neu)
+- `help/de|en/werkzeuge.html` (Abschnitt „Schnittwerte in den Job“)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`
+  (neu)
+- `docs/spezifikation_werkzeugverwaltung.md`, `docs/aufbau.md`
+  (Module, Stolperstein), `CHATSTART.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+CAM-Job mit Rohteil-Werkstoff X5CrNi18-10 und einem Werkzeug-Controller
+„T3 Schruppen dynamisch“ mit dem Ø-12-Fräser aus der Bibliothek „CAM-Addon“
+→ Werkzeugleiste „Schnittwerte in den Job“ → Werkstoff 1.4301 ist gewählt,
+der Einsatz „Schruppen dynamisch“ vorgeschlagen, n 3183 und vf 1432 stehen
+da → Übernehmen → der Werkzeug-Controller hat diese Werte; Strg+Z nimmt sie
+zurück.
+
+### DONE
+- **Werkstoff vom Rohteil:** `Stock.ShapeMaterial` (in 1.1.3 und im
+  Wochen-Build vorhanden) → Werkstoffnummer → Werkstoff der
+  Werkzeugverwaltung; sonst „Alle Werkstoffe“, im Dialog änderbar.
+- **Werkzeug zum TC:** über die ToolBit-ID `camaddon_<Kennung>` (steht nach
+  der Übergabe im ToolBit, Eigenschaft `ToolBitID`), sonst über T-Nummer
+  und Durchmesser. Fremde Werkzeuge: „– nicht in der Werkzeugverwaltung“,
+  nicht wählbar, bleiben unberührt.
+- **Einsatz vorschlagen:** Name des TC enthält den Namen einer Zeile, sonst
+  nach der Operation, die den TC benutzt (Adaptiv → dynamisch, Tasche und
+  Planfräsen → Schruppen, Kontur → Schlichten, Nut → Vollnut, Bohren →
+  Bohren), sonst die erste Zeile. Zeilen ohne vc/fz werden nicht
+  vorgeschlagen („– nicht ändern“).
+- **Setzen:** Drehzahl, Vorschub, Eintauchvorschub = ⅓ (wie FreeCADs
+  Vorgabe für Presets), beim Bohrer der volle Vorschub; alles in **einer**
+  Transaktion (Arbeitsregeln Abschnitt 7: Strg+Z muss gehen). Ohne vc/fz
+  wird nichts gesetzt, lieber als 0 U/min.
+- Befehl aktiv, sobald das Dokument einen CAM-Job hat.
+- **Gefundene Fehler im eigenen Entwurf:** Die Prüfung hing von der
+  eingestellten Sprache ab (der TC-Name ist deutsch) – setzt jetzt Deutsch.
+  In 1.1.3 stand „OK“ hinter einem Fortschrittsbalken ohne Zeilenende und
+  wurde nicht erkannt – Leerzeile davor, als Stolperstein notiert.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_job_schnittwerte` grün –
+  echter Job mit Quader, Rohteil-Werkstoff 1.4301, TC mit Werkzeug aus der
+  Bibliothek und TC mit fremdem Bohrer (T7, Ø 8,5), Vorschläge, Setzen
+  (2122 U/min, 318 und 105 mm/min; Bohrer 2996 U/min, 599 mm/min
+  senkrecht), unvollständiger Einsatz übersprungen, Strg+Z.
+- KI, Oberfläche in **beiden** Versionen: `szenario_schnittwerte_job` grün.
+  Screenshot angesehen.
+- Manuel: offen.
+
+### NEXT
+- Alle Prüfungen, Version 0.5.0, Push. Dann Manuels Rückmeldung.
+
 ## P-2026-09-25-52 werkzeuge-an-cam
 
 ### EINGELESEN

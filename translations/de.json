@@ -378,5 +378,22 @@
     "wv.cam.ohne_durchmesser": "Nicht übergeben, weil der Durchmesser fehlt: {anzahl}.",
     "wv.cam.entfernt": "Aus CAM entfernt, weil es sie hier nicht mehr gibt: {anzahl}.",
     "wv.cam.weiter": "So geht es weiter: In einem CAM-Job ein Werkzeug hinzufügen und die Bibliothek „CAM-Addon“ wählen. Gesamtlänge und Schaft sind geschätzt (Schneidenlänge + 2 × D, Schaft = D).",
-    "wv.cam.fehler": "Die Übergabe an CAM hat nicht geklappt:\n{fehler}"
+    "wv.cam.fehler": "Die Übergabe an CAM hat nicht geklappt:\n{fehler}",
+    "befehl.schnittwerte_job.titel": "Schnittwerte in den Job",
+    "befehl.schnittwerte_job.tooltip": "Setzt Drehzahl und Vorschub der Werkzeug-Controller eines CAM-Jobs aus der Werkzeugverwaltung – passend zum Werkstoff des Rohteils.",
+    "sj.titel": "Schnittwerte in den Job",
+    "sj.job": "Job",
+    "sj.werkstoff.tooltip": "Der Werkstoff, dessen Schnittwerte gelten. Vorgewählt ist der Werkstoff des Rohteils, wenn die Werkzeugverwaltung ihn kennt.",
+    "sj.herkunft.rohteil": "Vom Rohteil des Jobs: {werkstoff}.",
+    "sj.herkunft.unbekannt": "Das Rohteil hat keinen Werkstoff, den die Werkzeugverwaltung kennt – es gelten die Werte für alle Werkstoffe. Oben lässt sich einer wählen.",
+    "sj.spalte.tc": "Werkzeug-Controller",
+    "sj.spalte.werkzeug": "Werkzeug in der Werkzeugverwaltung",
+    "sj.spalte.jetzt": "Jetzt eingestellt",
+    "sj.jetzt": "{n} U/min · {vf} mm/min",
+    "sj.kein_werkzeug": "– nicht in der Werkzeugverwaltung",
+    "sj.kein_werkzeug.tooltip": "Dieses Werkzeug kommt nicht aus der Bibliothek „CAM-Addon“, und kein Werkzeug der Werkzeugverwaltung hat dieselbe T-Nummer und denselben Durchmesser.",
+    "sj.nicht_aendern": "– nicht ändern",
+    "sj.hinweis": "Übernommen werden Drehzahl, Vorschub und Eintauchvorschub (ein Drittel des Vorschubs, beim Bohren der volle). Einsätze ohne vc und fz schlägt der Dialog nicht vor.",
+    "sj.uebernehmen": "Übernehmen",
+    "sj.gesetzt": "Gesetzt: {anzahl} Werkzeug-Controller. Strg+Z nimmt es in einem Schritt zurück."
 }

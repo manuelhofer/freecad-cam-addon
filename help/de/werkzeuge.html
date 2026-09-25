@@ -47,6 +47,25 @@ angelegt hast, bleiben unberührt.</li>
 (= D) – die Werkzeugverwaltung fragt sie (noch) nicht ab.</li>
 </ul>
 
+<h3>Schnittwerte in den Job</h3>
+<p>Der Befehl <b>Schnittwerte in den Job</b> in der Werkzeugleiste setzt
+Drehzahl und Vorschub der <b>Werkzeug-Controller</b> eines CAM-Jobs – in einem
+Schritt, den Strg+Z zurücknimmt. Das geht in jeder FreeCAD-Version, auch in
+1.1.3.</p>
+<ul>
+<li>Der <b>Werkstoff</b> kommt vom Rohteil des Jobs, wenn es einen Werkstoff
+mit Nummer hat (etwa X5CrNi18-10 = 1.4301); sonst gelten die Werte für alle
+Werkstoffe. Oben lässt er sich ändern.</li>
+<li>Je Werkzeug-Controller eine Zeile: das Werkzeug der Werkzeugverwaltung
+dahinter (aus der Bibliothek „CAM-Addon“, sonst gleiche T-Nummer und
+gleicher Durchmesser), der <b>Einsatz</b> – vorgeschlagen nach dem Namen des
+Controllers („T3 Schruppen dynamisch“) oder der Operation (Adaptiv →
+dynamisch, Tasche → Schruppen, Kontur → Schlichten, Bohren → Bohren) –,
+daraus n und vf, und was jetzt eingestellt ist.</li>
+<li>Eintauchen und Rampen bekommen ein Drittel des Vorschubs, Bohren den
+vollen.</li>
+</ul>
+
 <h3>Speichern</h3>
 <p>Wie in den Einstellungen von FreeCAD: <b>OK</b> speichert und schließt,
 <b>Übernehmen</b> speichert und lässt das Fenster offen, <b>Abbrechen</b>

@@ -88,6 +88,27 @@ def _parameter():
     return FreeCAD.ParamGet(PARAMETER_PFAD)
 
 
+def werkstoffe_anbieten(wahl, bibliothek):
+    """Füllt eine Werkstoff-Auswahl: „Alle Werkstoffe“, eigene, dann die mitgelieferten nach ISO-Gruppe.
+
+    Auch der Dialog „Schnittwerte in den Job“ benutzt sie.
+    """
+    wahl.blockSignals(True)
+    wahl.clear()
+    wahl.addItem(tr("wv.alle_werkstoffe"), wz.ALLE)
+    gruppen = [ws.sortiert(bibliothek.eigene_werkstoffe)]
+    mitgeliefert = ws.sortiert(ws.mitgelieferte())
+    for iso in ws.ISO_GRUPPEN:
+        gruppen.append([w for w in mitgeliefert if w.iso == iso])
+    for gruppe in gruppen:
+        if not gruppe:
+            continue
+        wahl.insertSeparator(wahl.count())
+        for werkstoff in gruppe:
+            wahl.addItem(iso_symbol(werkstoff.iso), ws.anzeige(werkstoff), werkstoff.kennung)
+    wahl.blockSignals(False)
+
+
 class WerkzeugDialog(QtGui.QDialog):
     """Die Werkzeugverwaltung. Die Aktionen hinter den Knöpfen sind öffentliche Methoden."""
 
@@ -302,22 +323,7 @@ class WerkzeugDialog(QtGui.QDialog):
     # --- Werkstoff ------------------------------------------------------------------
 
     def _werkstoffe_anbieten(self):
-        """Füllt die Auswahl: „Alle Werkstoffe“, eigene, dann die mitgelieferten nach ISO-Gruppe."""
-        wahl = self.wahl_werkstoff
-        wahl.blockSignals(True)
-        wahl.clear()
-        wahl.addItem(tr("wv.alle_werkstoffe"), wz.ALLE)
-        gruppen = [ws.sortiert(self.bibliothek.eigene_werkstoffe)]
-        mitgeliefert = ws.sortiert(ws.mitgelieferte())
-        for iso in ws.ISO_GRUPPEN:
-            gruppen.append([w for w in mitgeliefert if w.iso == iso])
-        for gruppe in gruppen:
-            if not gruppe:
-                continue
-            wahl.insertSeparator(wahl.count())
-            for werkstoff in gruppe:
-                wahl.addItem(iso_symbol(werkstoff.iso), ws.anzeige(werkstoff), werkstoff.kennung)
-        wahl.blockSignals(False)
+        werkstoffe_anbieten(self.wahl_werkstoff, self.bibliothek)
 
     @property
     def werkstoff(self):

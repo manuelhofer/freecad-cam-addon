@@ -1,0 +1,104 @@
+# „Schnittwerte in den Job“ (W-002 Stufe 2): Werkstoff vom Rohteil (1.4301),
+# TC mit Werkzeug aus der Bibliothek „CAM-Addon“ bekommt den Einsatz aus
+# seinem Namen, ein fremdes Werkzeug bleibt unberührt; „Übernehmen“ setzt
+# Drehzahl und Vorschübe, Strg+Z nimmt es zurück.
+import FreeCAD
+import FreeCADGui as Gui
+from PySide import QtCore, QtGui
+
+
+def schritte(h):
+    yield 500
+    erster = h.modal()
+    if erster is not None:
+        erster.liste.setCurrentIndex(erster.liste.findData("de"))
+        erster.accept()
+    yield 300
+    QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.German, QtCore.QLocale.Germany))
+
+    import Materials
+    import Part  # noqa: F401 – für „Part::Box“
+    from Path.Main import Job
+    from Path.Tool import Controller
+    from Path.Tool.camassets import cam_assets
+
+    from camaddon import gui_job_schnittwerte as gj
+    from camaddon import uebergabe_werkzeuge as ue
+    from camaddon import werkzeuge as wz
+
+    fraeser = wz.Werkzeug(nummer=3, durchmesser=12, schneiden=3, schneidenlaenge=26)
+    fraeser.schnittwerte[wz.ALLE] = [
+        wz.Einsatz(art=wz.VOLLNUT, ae=12, ap=3, vc=120, fz=0.05),
+        wz.Einsatz(art=wz.DYNAMISCH, ae=1.2, ap=25, vc=120, fz=0.15),
+    ]
+    fraeser.eigene_anlegen("1.4301")[0].vc = 80
+    bibliothek = wz.Bibliothek([fraeser])
+    bibliothek.speichern()
+    ue.uebergeben(bibliothek)
+
+    dok = FreeCAD.newDocument("Teil")
+    dok.UndoMode = 1
+    quader = dok.addObject("Part::Box", "Quader")
+    dok.recompute()
+    job = Job.Create("Job", [quader])
+    uuid = ue.freecad_werkstoffe()["1.4301"][0]
+    job.Stock.ShapeMaterial = Materials.MaterialManager().getMaterial(uuid)
+    bit = cam_assets.get(f"toolbit://camaddon_{fraeser.kennung}").attach_to_doc(doc=dok)
+    tc1 = Controller.Create("T3 Schruppen dynamisch", tool=bit, toolNumber=3)
+    job.Proxy.addToolController(tc1)
+    tc2 = Controller.Create("TC fremd", toolNumber=9)  # FreeCADs Standard-Schaftfräser
+    job.Proxy.addToolController(tc2)
+    dok.recompute()
+    vorher = (tc1.SpindleSpeed, tc2.SpindleSpeed)
+    yield 500
+
+    befehl = Gui.Command.get("CamAddon_SchnittwerteJob")
+    h.pruefe(
+        befehl is not None and befehl.isActive(), "Befehl nicht aktiv, obwohl es einen Job gibt"
+    )
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_SchnittwerteJob"))
+    yield 1000
+    d = gj.SchnittwerteJobDialog.offen
+    h.pruefe(d is not None and d.isVisible(), "Dialog geht nicht auf")
+    if d is None:
+        return
+    h.pruefe(d.werkstoff == "1.4301", f"Werkstoff: {d.werkstoff!r}")
+    zeilen = {d.tabelle.item(z, gj.TC).text(): z for z in range(d.tabelle.rowCount())}
+    z1, z2 = zeilen.get("T3 Schruppen dynamisch"), zeilen.get("TC fremd")
+    h.pruefe(z1 is not None and z2 is not None, f"Zeilen: {sorted(zeilen)}")
+    if z1 is None or z2 is None:
+        return
+    einsatz = d.tabelle.cellWidget(z1, gj.EINSATZ).currentText()
+    h.pruefe(einsatz == "Schruppen dynamisch", f"vorgeschlagen: {einsatz!r}")
+    werte = (d.tabelle.item(z1, gj.N).text(), d.tabelle.item(z1, gj.VF).text())
+    h.pruefe(werte == ("3183", "1432"), f"n/vf: {werte}")
+    h.pruefe(not d.tabelle.cellWidget(z2, gj.EINSATZ).isEnabled(), "fremdes Werkzeug wählbar")
+    h.pruefe("nicht in der Werkzeugverwaltung" in d.tabelle.item(z2, gj.WERKZEUG).text(), "fremd")
+    h.bild("1_dialog", d)
+
+    # Vollnut gewählt: für 1.4301 mit vc 80.
+    d.waehle_einsatz(z1, 0)
+    yield 100
+    h.pruefe(
+        d.tabelle.item(z1, gj.N).text() == "2122",
+        f"Vollnut 1.4301: {d.tabelle.item(z1, gj.N).text()}",
+    )
+    d.waehle_einsatz(z1, 1)
+    d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
+    yield 800
+    meldung = h.modal()
+    if isinstance(meldung, QtGui.QMessageBox):
+        h.pruefe("Gesetzt: 1" in meldung.text(), f"Meldung: {meldung.text()!r}")
+        h.bild("2_meldung", meldung)
+        meldung.accept()
+    else:
+        h.pruefe(False, f"keine Meldung nach Übernehmen: {meldung}")
+    yield 300
+    h.pruefe(tc1.SpindleSpeed == 3183, f"TC 1: {tc1.SpindleSpeed} U/min")
+    h.pruefe(round(float(tc1.HorizFeed.getValueAs("mm/min"))) == 1432, f"TC 1: {tc1.HorizFeed}")
+    h.pruefe(
+        round(float(tc1.VertFeed.getValueAs("mm/min"))) == 473, f"TC 1 senkrecht: {tc1.VertFeed}"
+    )
+    h.pruefe(tc2.SpindleSpeed == vorher[1], "fremder TC verändert")
+    dok.undo()
+    h.pruefe(tc1.SpindleSpeed == vorher[0], "Strg+Z nimmt es nicht zurück")
