@@ -6,7 +6,10 @@ enthält nur, was ausschließlich für Claude Code gilt – alles andere steht
 werkzeugneutral in `CHATSTART.md`, damit keine zweite, driftende Fassung
 entsteht.
 
-- **Nicht pushen** ohne ausdrückliche Ansage. Lokal committen ist in Ordnung.
+- **Pushen:** Manuel hat am 2026-09-25 dauerhaft freigegeben, jeden Patch zu
+  pushen, sobald `scripts/alle_tests.sh` in beiden FreeCAD-Versionen
+  vollständig grün ist. Alles andere nur auf ausdrückliche Ansage. Lokal
+  committen ist immer in Ordnung.
 - **Nach jedem Push bei GitHub selbst nachsehen:**
   `git ls-remote https://github.com/manuelhofer/freecad-cam-addon main` muss
   den eigenen Commit zeigen. `origin` zu fragen reicht nicht: Zeigt `origin`

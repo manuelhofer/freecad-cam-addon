@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-39 push-freigabe-dauerhaft
+
+### EINGELESEN
+- Manuels Antwort auf die Frage nach P-2026-09-25-36 bis -38: „Ja, und
+  künftig direkt“. Jeder Patch wird gepusht, sobald alle Prüfungen in beiden
+  FreeCAD-Versionen grün sind.
+
+### DATEIEN
+- `CLAUDE.md` (Regel zum Pushen)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die dauerhafte Freigabe steht in der `CLAUDE.md`, damit auch spätere
+Sitzungen sie kennen.
+
+### DONE
+- P-2026-09-25-36 bis -38 gepusht (`36fd298..7b0b350`) und bei GitHub selbst
+  nachgeprüft.
+- In der `CLAUDE.md` steht jetzt: Jeder Patch wird gepusht, sobald
+  `scripts/alle_tests.sh` in beiden Versionen vollständig grün ist; alles
+  andere nur auf ausdrückliche Ansage. Die Regel, danach bei GitHub selbst
+  nachzusehen, bleibt.
+
+### TEST
+- Nur Doku geändert. `alle_tests.sh` ohne Oberfläche ist in beiden
+  Versionen grün.
+
+### NEXT
+- B-001 und B-002 (Bericht der Übergabe).
+
 ## P-2026-09-25-38 enter-bestaetigt-nur-das-feld
 
 ### EINGELESEN
