@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-11 einsatz-am-namen
+
+### EINGELESEN
+- `vorgeschlagener_einsatz()` nahm die erste Zeile, deren Name im Namen des
+  Werkzeug-Controllers steht. „T3 Schruppen dynamisch“ enthält aber auch
+  „Schruppen“ – mit den Zeilen Vollnut, Schruppen, Schruppen dynamisch (die
+  übliche Reihenfolge im Menü „+ Einsatz“) schlug der Dialog „Schnittwerte
+  in den Job“ also „Schruppen“ vor, auch für den Controller, den
+  „Werkzeug-Controller hinzufügen“ selbst so benannt hat. Der Test hatte nur
+  Vollnut und dynamisch.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (passen mehrere Namen, gewinnt der
+  längste)
+- `tests/test_job_schnittwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung: Fräser T3 mit den Einsätzen Vollnut, Schruppen,
+Schruppen dynamisch → im Job einen Controller „T3 Schruppen dynamisch“ →
+„Schnittwerte in den Job“ schlägt in seiner Zeile „Schruppen dynamisch“ vor.
+
+### DONE
+- Unter den Zeilen, deren Name im Controller steht, zählt die mit dem
+  längsten Namen; bei gleich langen die erste.
+
+### TEST
+- `tests/test_job_schnittwerte.py`: Vollnut, Schruppen, Schruppen dynamisch
+  → Index 2 für „T3 Schruppen dynamisch“.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Zeile kopieren (Varianten für den Vergleich), Namen neuer Zeilen
+  unterscheidbar.
+
 ## P-2026-09-26-10 version-0-9-0
 
 ### EINGELESEN

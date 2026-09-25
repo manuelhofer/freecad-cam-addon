@@ -170,13 +170,17 @@ def vorgeschlagener_einsatz(tc, einsaetze, job):
 
     Erst der Name des TC („T3 Schruppen dynamisch“ enthält den Namen einer
     Zeile), dann die Operationen, die den TC benutzen, sonst die erste Zeile.
+    Passen mehrere Namen, gewinnt der längste: „T3 Schruppen dynamisch“
+    enthält auch „Schruppen“.
     """
     if not einsaetze:
         return -1
     beschriftung = tc.Label.lower()
-    for i, einsatz in enumerate(einsaetze):
-        if wz.einsatz_name(einsatz).lower() in beschriftung:
-            return i
+    passend = [
+        i for i, einsatz in enumerate(einsaetze) if wz.einsatz_name(einsatz).lower() in beschriftung
+    ]
+    if passend:
+        return max(passend, key=lambda i: len(wz.einsatz_name(einsaetze[i])))
     for operation in operationen_mit(tc, job):
         art = EINSATZ_NACH_OPERATION.get(operationsart(operation))
         for i, einsatz in enumerate(einsaetze):

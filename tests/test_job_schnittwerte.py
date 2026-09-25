@@ -88,6 +88,9 @@ einsaetze = fraeser.einsaetze("1.4301")
 pruefe(js.vorgeschlagener_einsatz(tc1, einsaetze, job) == 1, "Einsatz aus dem Namen des TC")
 pruefe(js.vorgeschlagener_einsatz(tc2, bohrer.einsaetze("1.4301"), job) == 0, "erste Zeile")
 pruefe(js.vorgeschlagener_einsatz(tc2, [], job) == -1, "ohne Zeilen")
+# Der längste passende Name gewinnt: „T3 Schruppen dynamisch“ enthält auch „Schruppen“.
+drei = [wz.Einsatz(art=wz.VOLLNUT), wz.Einsatz(art=wz.SCHRUPPEN), wz.Einsatz(art=wz.DYNAMISCH)]
+pruefe(js.vorgeschlagener_einsatz(tc1, drei, job) == 2, "„Schruppen“ statt „Schruppen dynamisch“")
 
 vorher = (tc1.SpindleSpeed, mm_min(tc1.HorizFeed))
 gesetzt = js.setze(
