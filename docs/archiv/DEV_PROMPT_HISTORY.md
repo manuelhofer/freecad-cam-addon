@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-10 version-0-9-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Neu seit
+  0.8.0: Vergleich mit der Vollnut im Planer (P-2026-09-26-04), alle
+  Einsätze im Vergleich (-05), Durchmesser umrechnen (-06), kaputte
+  Bibliothek (-07), Eintauchwinkel (-08), Doku (-09).
+
+### DATEIEN
+- `package.xml` (0.9.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.9.0.
+
+### DONE
+- Version 0.8.0 → 0.9.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push.
+
 ## P-2026-09-26-09 stand-fuer-manuel
 
 ### EINGELESEN
