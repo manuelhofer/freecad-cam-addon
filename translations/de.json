@@ -145,5 +145,20 @@
     "uebergeben.angekommen": "In CAM angekommen",
     "uebergeben.nur_im_dokument": "Nur hier in der Maschine gespeichert",
     "uebergeben.datei": "Datei: {datei}",
-    "uebergeben.pruefen": "Bitte prüfen"
+    "uebergeben.pruefen": "Bitte prüfen",
+    "update.titel": "CAM-Addon – Update",
+    "update.neu": "Eine neue Version des CAM-Addons ist da: {neu} (installiert ist {jetzt}).\n\nJetzt aktualisieren? Danach FreeCAD neu starten.",
+    "update.jetzt": "Jetzt aktualisieren",
+    "update.spaeter": "Später",
+    "update.fertig": "Aktualisiert. Bitte FreeCAD neu starten, damit die neue Version gilt.",
+    "update.fehlgeschlagen": "Das Aktualisieren hat nicht geklappt:\n{fehler}\n\nBitte mit GitHub Desktop aktualisieren (Fetch, dann Pull).",
+    "update.lokal_geaendert": "Version {neu} des CAM-Addons ist da. Im Addon-Ordner gibt es aber eigene Änderungen – damit nichts verloren geht, aktualisiert das Addon nicht selbst.\n\nBitte mit GitHub Desktop aktualisieren.",
+    "update.kein_git": "Das CAM-Addon kann nicht selbst nach Updates schauen: Auf diesem Rechner wurde kein Git gefunden.\n\nInstalliere GitHub Desktop (oder Git) und melde dich einmal bei GitHub an. Bis dahin: von Hand aktualisieren. Dieser Hinweis kommt nur einmal.",
+    "update.fehler": "CAM-Addon: Update-Suche nicht möglich ({fehler}).",
+    "update.kein_git_ordner": "Das CAM-Addon ist nicht über Git installiert (z. B. als ZIP) und kann deshalb nicht selbst aktualisieren. Anleitung im README: „Installieren“.",
+    "update.aktuell": "Du hast die neueste Version des CAM-Addons ({jetzt}).",
+    "update.gruppe": "Updates",
+    "update.beim_start": "Beim Start von FreeCAD nach Updates suchen",
+    "update.beim_start.tooltip": "Schaut im Hintergrund per Git bei GitHub nach. Angemeldet wird mit dem, was auf dem Rechner eingerichtet ist (Git bzw. GitHub Desktop).",
+    "update.jetzt_suchen": "Jetzt nach Updates suchen"
 }

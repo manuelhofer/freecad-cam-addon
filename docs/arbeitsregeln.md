@@ -135,7 +135,10 @@ müsste.
 
 - Pfade über `os.path` / `pathlib` und die FreeCAD-Funktionen
   (`FreeCAD.getUserAppDataDir()` u. ä.), nie fest verdrahtet.
-- Keine Shell-Aufrufe, keine systemabhängigen Bibliotheken.
+- Keine Shell-Aufrufe, keine systemabhängigen Bibliotheken. **Einzige
+  Ausnahme:** Git für die Update-Suche in `camaddon/aktualisierung.py`
+  (Manuels Entscheidung, P-2026-09-25-24) – nie mit Rückfrage, immer mit
+  Zeitlimit, Ausgabe als UTF-8.
 - Qt-Import über `from PySide import QtCore, QtGui` – den Shim, den FreeCAD
   selbst mitbringt –, nicht direkt PySide2/PySide6.
 

@@ -28,7 +28,8 @@ for szenario in "$@"; do
     rm -rf "$ausgabe"; mkdir -p "$ausgabe" "$profil/Mod"
     ln -s "$repo" "$profil/Mod/freecad-cam-addon"
     ln -s "$repo/tests/gui/_lauf" "$profil/Mod/_camaddon_lauf"
-    FREECAD_USER_HOME="$profil" CAMADDON_SZENARIO="$(cd "$(dirname "$szenario")" && pwd)/$(basename "$szenario")" \
+    # CAMADDON_OHNE_UPDATE: keine Update-Suche beim Start (kein Netz im Test).
+    CAMADDON_OHNE_UPDATE=1 FREECAD_USER_HOME="$profil" CAMADDON_SZENARIO="$(cd "$(dirname "$szenario")" && pwd)/$(basename "$szenario")" \
         CAMADDON_AUSGABE="$ausgabe" \
         timeout 180 xvfb-run -a -s "-screen 0 1280x800x24" "$fc" > "$ausgabe/freecad.log" 2>&1
     if [ "$(cat "$ausgabe/ergebnis.txt" 2>/dev/null)" = "OK" ]; then

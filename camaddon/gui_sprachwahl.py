@@ -86,16 +86,25 @@ class Einstellungsseite:
         gruppen_aufbau.addRow(tr("einstellungen.sprache.feld"), self.liste)
         gruppen_aufbau.addRow(hinweis)
 
+        from . import gui_aktualisierung
+
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
+        aufbau.addWidget(gui_aktualisierung.einstellungen_gruppe(self))
         aufbau.addStretch()
 
     def loadSettings(self):
+        from . import gui_aktualisierung
+
         index = self.liste.findData(sprache.aktuelle_sprache())
         self.liste.setCurrentIndex(max(index, 0))
+        gui_aktualisierung.einstellungen_laden(self)
 
     def saveSettings(self):
+        from . import gui_aktualisierung
+
         sprache.setze_sprache(self.liste.currentData())
+        gui_aktualisierung.einstellungen_speichern(self)
 
 
 def einstellungsseite_anmelden():

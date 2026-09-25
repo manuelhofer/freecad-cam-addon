@@ -12,6 +12,81 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-24 update-suche-per-git
+
+### EINGELESEN
+- Ergebnis P-2026-09-25-23: Der Addon-Manager aktualisiert private
+  Repositories nicht.
+- `docs/arbeitsregeln.md` Abschnitt 7 („keine Shell-Aufrufe“).
+
+### DATEIEN
+- `camaddon/aktualisierung.py`, `camaddon/gui_aktualisierung.py` (neu)
+- `camaddon/gui_start.py` (Suche beim Start), `camaddon/gui_sprachwahl.py`
+  (Gruppe „Updates“ auf der Einstellungsseite)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_aktualisierung.py`, `tests/gui/szenario_update.py` (neu),
+  `scripts/oberflaeche_testen.sh` (ohne Update-Suche)
+- `package.xml` (0.3.0), `README.md`, `CHATSTART.md`,
+  `docs/arbeitsregeln.md` (Ausnahme Git), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Liegt auf GitHub eine neuere Version, fragt das Addon kurz nach dem Start
+von FreeCAD „Eine neue Version des CAM-Addons ist da: … Jetzt
+aktualisieren?“. Ein Klick holt sie und bittet um einen Neustart.
+
+### DONE
+Manuel hat aus einer Auswahl gewählt: Das Addon soll in der privaten Phase
+**selbst nach Updates schauen und nachfragen**. Dafür hat er einer Ausnahme
+von der Regel „keine Aufrufe externer Programme“ zugestimmt, beschränkt auf
+Git.
+
+- **Suche:** Das Addon ruft Git im eigenen Ordner auf (`fetch`, Vergleich mit
+  `origin/main`, Version aus `package.xml` auf beiden Seiten). Das passiert
+  im Hintergrund und 5 s nach dem Start, damit FreeCAD nicht wartet. Git
+  kommt aus dem Suchpfad, sonst aus GitHub Desktop, das sein Git unter
+  Windows nicht in den Suchpfad legt. Angemeldet wird mit dem, was auf dem
+  Rechner eingerichtet ist. Im Addon liegt kein Schlüssel.
+- **Git fragt nie nach**: Es gibt kein Terminal, keinen Credential-Dialog
+  und ein Zeitlimit von 30 s. Ohne Fenster würde eine Rückfrage ewig hängen.
+- **Aktualisieren:** nur vorwärts (`merge --ff-only`). Gibt es im Ordner
+  eigene Änderungen oder eigene Commits, aktualisiert das Addon nicht,
+  sondern sagt Bescheid, einmal je neuer Version.
+- **Ruhig bleiben:** Kein Git auf dem Rechner meldet das Addon einmal mit
+  Anleitung. Kein Netz oder keine Anmeldung führt beim Start nur zu einer
+  Zeile im Report-Fenster. Eine ZIP-Installation oder ein aktueller Stand
+  bleiben still.
+- **Einstellungen:** Schalter „Beim Start von FreeCAD nach Updates suchen“
+  (vorbelegt: an) und Knopf „Jetzt nach Updates suchen“. Der Knopf meldet
+  auch „Du hast die neueste Version“.
+- **Befund:** Die Ausgabe von Git wurde mit der Kodierung des Systems gelesen,
+  `package.xml` enthält aber Umlaute. Im Test brach das mit einem
+  ASCII-Fehler ab, unter Windows (cp1252) wäre es genauso passiert. Jetzt
+  wird immer UTF-8 gelesen.
+- Die Oberflächen-Szenarien schalten die Suche beim Start ab
+  (`CAMADDON_OHNE_UPDATE`), damit sie kein Netz brauchen.
+- Die Version ist jetzt 0.3.0, weil eine neue Funktion dazukam (Regel aus
+  P-2026-09-25-22).
+
+### TEST
+- Von der KI ausgeführt, mit echten Git-Repos im Temp-Ordner (nacktes Repo
+  als „GitHub“):
+  - `test_aktualisierung.py` `ok`, mit den Fällen aktuell, neue Version,
+    aktualisieren, eigene Änderung, kein Git-Ordner, kein Git und Repo nicht
+    erreichbar
+  - `szenario_update` `ok`: Der Hinweis erscheint, „Jetzt aktualisieren“ holt
+    9.9.0, und das Abschalten in den Einstellungen wird gespeichert.
+    Screenshots angesehen.
+- Alle Prüfungen ohne Fenster und alle Szenarien `ok`.
+- **Nicht getestet:** die Anmeldung über GitHub Desktop auf Manuels
+  Windows-Rechner. Ob dessen Git ohne Rückfrage an das private Repo kommt,
+  zeigt erst der echte Rechner. Wenn nicht, erscheint beim Start nur eine
+  Zeile im Report-Fenster, und „Jetzt nach Updates suchen“ nennt den Grund.
+
+### NEXT
+- Manuels Test: Installation mit GitHub Desktop, dann Dialog, Übergabe an
+  CAM und Update-Hinweis.
+
 ## P-2026-09-25-23 installieren-privat
 
 ### EINGELESEN

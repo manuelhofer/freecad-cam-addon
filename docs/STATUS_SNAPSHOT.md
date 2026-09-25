@@ -13,8 +13,10 @@ Wunschliste, offene Bugs und Tasks.
 **W-001, Stufen 1 und 2 sind fertig und automatisch geprüft:** Maschine im
 Dialog beschreiben (mit Zeigen in 3D und Hilfe) und mit „An CAM übergeben“
 als `.fcm` in CAM bereitstellen. Beides wartet auf **Manuels Test in seinem
-FreeCAD** (README, „Installieren“) – vor allem: Kommt beim Bedienen irgendwo
-eine Frage auf? Und: Steht die Maschine danach im CAM-Job zur Auswahl?
+FreeCAD** (README, „Installieren, solange das Repository privat ist“) – vor
+allem: Kommt beim Bedienen irgendwo eine Frage auf? Steht die Maschine danach
+im CAM-Job zur Auswahl? Und: Kommt die Update-Suche mit der Anmeldung von
+GitHub Desktop an das private Repo?
 
 Danach Stufe 3: Maschine von Hand verfahren (je Betriebsart ein Regler).
 

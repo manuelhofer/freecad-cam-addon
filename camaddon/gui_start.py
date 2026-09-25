@@ -82,4 +82,8 @@ def starten():
 
     gui_sprachwahl.einstellungsseite_anmelden()
     gui_sprachwahl.beim_ersten_start_fragen()
+
+    from . import gui_aktualisierung
+
+    gui_aktualisierung.beim_start()
     FreeCAD.Console.PrintLog("CAM-Addon geladen\n")
