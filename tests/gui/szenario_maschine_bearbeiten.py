@@ -93,7 +93,10 @@ def schritte(h):
     dialog.show()
     yield 300
     h.bild("3_verteilen", dialog)
-    h.pruefe(dialog.wahl_lcs.currentText() == "Werkzeugplatz", "Verteilhilfe bietet den Werkzeugplatz nicht an")
+    angeboten = [dialog.wahl_lcs.itemText(i) for i in range(dialog.wahl_lcs.count())]
+    h.pruefe(angeboten == ["Werkzeugplatz"], f"Verteilhilfe bietet {angeboten} an statt nur den Werkzeugplatz")
+    alle = [o.Label for o in panel._alle_lcs()]
+    h.pruefe(not any(n.startswith("Origin") for n in alle), f"Ursprünge als Koordinatensystem angeboten: {alle}")
     dialog.accept()
     m.verteile_plaetze(panel.maschine, panel.kette, rev, doc.getObject("Werkzeugplatz"), 12)
     doc.recompute()

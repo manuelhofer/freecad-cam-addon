@@ -662,7 +662,18 @@ class MaschinenPanel:
         return gelenk.art if gelenk else None
 
     def _alle_lcs(self):
-        return [o for o in self.assembly.OutListRecursive if o.isDerivedFrom("App::LocalCoordinateSystem")]
+        """Alle Koordinatensysteme der Baugruppe, die als Aufnahme taugen.
+
+        Der Ursprung eines Parts oder Körpers (App::Origin) ist für FreeCAD
+        ebenfalls ein LocalCoordinateSystem – ihn als Aufnahme anzubieten
+        („Origin005“) verwirrt nur und würde bei der Vorauswahl sogar
+        gewählt (gefunden im Test mit FreeCAD 1.1.3, P-2026-09-25-25).
+        """
+        return [
+            o
+            for o in self.assembly.OutListRecursive
+            if o.isDerivedFrom("App::LocalCoordinateSystem") and not o.isDerivedFrom("App::Origin")
+        ]
 
     # Ändern
     def _setze(self, objekt, eigenschaft, wert, label=False):

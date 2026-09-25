@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-25 lcs-auswahl-ohne-ursprung
+
+### EINGELESEN
+- `camaddon/gui_maschine.py` (`_alle_lcs`, Verteilhilfe, `_aufnahme_neu`).
+- Befund aus dem ersten Lauf der Oberflächentests gegen FreeCAD 1.1.3.
+
+### DATEIEN
+- `camaddon/gui_maschine.py`, `tests/gui/szenario_maschine_bearbeiten.py`
+- `package.xml` (0.3.1), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In der Auswahl „Koordinatensystem“ einer Aufnahme und in der Verteilhilfe
+stehen nur echte Koordinatensysteme (Spannflaeche, Werkzeugplatz), keine
+Ursprünge wie „Origin005“.
+
+### DONE
+- **Befund:** Der Ursprung eines Parts oder Körpers (`App::Origin`) ist für
+  FreeCAD ebenfalls ein `App::LocalCoordinateSystem`. Der Dialog bot deshalb
+  „Origin“, „Origin001“ … als Koordinatensystem für Aufnahmen an. Beim
+  Anlegen einer Aufnahme ohne Auswahl konnte die Vorauswahl sogar einen
+  Ursprung treffen. Aufgefallen ist das im Test gegen 1.1.3, weil dort die
+  Reihenfolge anders ist und die Verteilhilfe „Origin005“ statt
+  „Werkzeugplatz“ vorwählte. Der Fehler steckte aber in beiden Versionen.
+- `_alle_lcs()` lässt Ursprünge weg. Das wirkt auf die Auswahlliste, die
+  Vorauswahl bei „+ Aufnahme“ und die Verteilhilfe.
+- Das Szenario prüft jetzt, dass die Verteilhilfe **nur** den Werkzeugplatz
+  anbietet und dass nirgends ein Ursprung auftaucht.
+
+### TEST
+- Von der KI ausgeführt: `szenario_maschine_bearbeiten` `ok`, auf 1.1.3 und
+  im Wochen-Build.
+- Gegenprobe mit altem Dialog und neuer Prüfung im Wochen-Build: `FEHLER`,
+  „Ursprünge als Koordinatensystem angeboten: ['Origin', 'Spannflaeche',
+  'Origin001', 'Werkzeugplatz', 'Origin002']“.
+
+### NEXT
+- Beide FreeCAD-Versionen fest in Tests und Regeln verankern, Übergabe an CAM
+  in 1.1.3 erklären statt Fehler.
+
 ## P-2026-09-25-24 update-suche-per-git
 
 ### EINGELESEN
