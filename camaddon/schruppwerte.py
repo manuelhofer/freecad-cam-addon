@@ -128,6 +128,14 @@ def ausgangszeile(einsaetze, gewaehlt=None):
     return gewaehlt
 
 
+def vergleichszeile(einsaetze):
+    """Die Vollnut der Tabelle mit vc und fz – daran misst der Planer seinen Vorschlag – oder None."""
+    return next(
+        (e for e in einsaetze if e.art == wz.VOLLNUT and e.vc > 0 and e.fz > 0 and e.ap > 0),
+        None,
+    )
+
+
 def vorgaben(werkzeug, einsatz):
     """(vc, Spandicke, ap) zum Vorbelegen des Planers aus einer Zeile der Tabelle.
 

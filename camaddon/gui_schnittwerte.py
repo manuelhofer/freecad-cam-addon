@@ -254,7 +254,13 @@ class SchnittwertBereich(QtGui.QWidget):
             knopf_text = tr("sp.uebernehmen.eigene", werkstoff=self._werkstoff_kurz)
         ausgang = sw.ausgangszeile(self._liste, self.gewaehlt)
         dialog = SchruppDialog(
-            self, self.werkzeug, ausgang, self._werkstoff_objekt, text, knopf_text
+            self,
+            self.werkzeug,
+            ausgang,
+            self._werkstoff_objekt,
+            text,
+            knopf_text,
+            vergleich=sw.vergleichszeile(self._liste),
         )
         angenommen = dialog.exec()
         SchruppDialog.offen = None

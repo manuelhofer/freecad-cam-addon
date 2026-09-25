@@ -49,7 +49,13 @@ def schritte(h):
     zeile = p.tabelle.currentRow()
     h.pruefe(p.tabelle.item(zeile, gui_schruppwerte.AE).text() == "1,20", "Vorschlag nicht 1,2")
     text = p.ergebnis.text()
-    for teil in ("22,9 cm³/min", "fz 0,083 mm", "Grenze von 10 % von D"):
+    for teil in (
+        "22,9 cm³/min",
+        "fz 0,083 mm",
+        "Grenze von 10 % von D",
+        "Vollnut (ae 12 mm, ap 3 mm) schafft 17,2 cm³/min",
+        "das 1,3-Fache, mit 24 statt 3 mm Schneide",
+    ):
         h.pruefe(teil in text, f"„{teil}“ fehlt: {text!r}")
     h.pruefe("3183 U/min" in p.drehzahl_text.text(), p.drehzahl_text.text())
     h.bild("1_vorschlag", p)

@@ -54,11 +54,14 @@ class SchruppDialog(QtGui.QDialog):
 
     offen = None  # für die Oberflächen-Szenarien
 
-    def __init__(self, eltern, werkzeug, einsatz, werkstoff, werkstoff_text, uebernehmen_text):
+    def __init__(
+        self, eltern, werkzeug, einsatz, werkstoff, werkstoff_text, uebernehmen_text, vergleich=None
+    ):
         """`einsatz`: die gewählte Zeile, aus der vc, Spandicke und ap vorbelegt werden (oder None).
 
         `werkstoff` (oder None) braucht es für die Leistung, `uebernehmen_text`
-        steht auf dem Knopf, der den Einsatz übernimmt.
+        steht auf dem Knopf, der den Einsatz übernimmt; `vergleich` (eine
+        Vollnut der Tabelle, oder None) nennt der Satz unter der Tabelle.
         """
         super().__init__(eltern)
         SchruppDialog.offen = self
@@ -66,6 +69,7 @@ class SchruppDialog(QtGui.QDialog):
         self.werkstoff = werkstoff
         self.einsatz = None
         self.plan = None
+        self.vergleich = vergleich
         self.setWindowTitle(tr("sp.titel"))
         self.resize(*FENSTER_GROESSE)
 
@@ -343,6 +347,9 @@ class SchruppDialog(QtGui.QDialog):
                 sw.GRUND_ENDE: lambda: tr("sp.grund.ende"),
             }[plan.grund]
             saetze.append(grund())
+            vergleich = self._vergleich_text(vorschlag, ap)
+            if vergleich:
+                saetze.append(vergleich)
             if vorschlag.vorschub_begrenzt:
                 saetze.append(tr("sp.vorschub_begrenzt", h=_zahl(vorschlag.spandicke, 3)))
         lc = self.werkzeug.schneidenlaenge
@@ -351,6 +358,23 @@ class SchruppDialog(QtGui.QDialog):
         if self.grenzen.leistung > 0 and not leistung_bekannt:
             saetze.append(tr("sp.leistung_unbekannt"))
         return " ".join(saetze)
+
+    def _vergleich_text(self, vorschlag, ap):
+        """„Zum Vergleich: die Vollnut … schafft … – der Vorschlag das 1,3-Fache …“ oder „“."""
+        if self.vergleich is None:
+            return ""
+        _n, _vf, q_vollnut = sd.rechne(self.werkzeug, self.vergleich)
+        if q_vollnut <= 0:
+            return ""
+        return tr(
+            "sp.vergleich",
+            name=wz.einsatz_name(self.vergleich),
+            ae=zahl_zeigen(self.vergleich.ae),
+            ap_vollnut=zahl_zeigen(self.vergleich.ap),
+            q_vollnut=_zahl(q_vollnut, 1),
+            faktor=_zahl(vorschlag.q / q_vollnut, 1),
+            ap=zahl_zeigen(ap),
+        )
 
     def _knopf_zeigen(self):
         zeile = self.tabelle.currentRow()

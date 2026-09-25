@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-04 planer-vergleich-vollnut
+
+### EINGELESEN
+- Manuels Beispiel: Ø 12 mit ae 1,2 / ap 25 statt Vollnut mit ap 3 – der
+  Planer (P-2026-09-25-60) sagte bisher nur, was er vorschlägt, nicht, was
+  das gegenüber der Vollnut bringt.
+
+### DATEIEN
+- `camaddon/schruppwerte.py` (`vergleichszeile()`),
+  `camaddon/gui_schruppwerte.py` (Satz unter der Tabelle),
+  `camaddon/gui_schnittwerte.py` (gibt die Vollnut der Tabelle mit)
+- `help/de|en/schruppwerte.html`, `translations/de.json`,
+  `translations/en.json`
+- `tests/test_schruppwerte.py`, `tests/gui/szenario_schruppwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ø-12-Fräser mit Vollnut 12 / 3 / 120 / 0,05 → „Schruppwerte planen…“ → unter
+der Tabelle: „Zum Vergleich: Vollnut (ae 12 mm, ap 3 mm) schafft
+17,2 cm³/min – der Vorschlag das 1,3-Fache, mit 24 statt 3 mm Schneide.“
+
+### DONE
+- Verglichen wird mit der ersten Vollnut der Tabelle, die vc, fz und ap
+  hat; ohne eine solche fehlt der Satz.
+
+### TEST
+- KI, FreeCADCmd in **beiden** Versionen: `test_schruppwerte` grün.
+- KI, Oberfläche in **beiden** Versionen: `szenario_schruppwerte` grün
+  (prüft den Satz), Screenshot angesehen.
+- Manuel: offen.
+
+### NEXT
+- Vor dem nächsten Push alle Prüfungen.
+
 ## P-2026-09-26-03 version-0-8-0
 
 ### EINGELESEN

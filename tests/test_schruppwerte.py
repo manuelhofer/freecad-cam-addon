@@ -148,6 +148,12 @@ if sw.ausgangszeile([vollnut, schlichten], schlichten) is not vollnut:
 if sw.ausgangszeile([schlichten], schlichten) is not schlichten:
     fehler.append("Ausgangszeile, wenn nichts schruppt")
 
+# Vergleich: die erste Vollnut mit vc, fz und ap.
+if sw.vergleichszeile([schlichten, ohne_werte, vollnut, dynamisch]) is not vollnut:
+    fehler.append("Vergleichszeile ist nicht die Vollnut")
+if sw.vergleichszeile([schlichten, dynamisch]) is not None:
+    fehler.append("Vergleichszeile ohne Vollnut")
+
 # Grenzen einer Maschine aus W-001: Drehzahl der Spindel, die das Werkzeug
 # antreibt (nicht die Hauptspindel der Drehmaschine), kleinster Höchstvorschub.
 import beispielmaschinen  # noqa: E402
