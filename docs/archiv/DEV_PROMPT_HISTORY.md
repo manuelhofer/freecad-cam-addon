@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-03 lizenz-lgpl
+
+### EINGELESEN
+- `README.md`.
+
+### DATEIEN
+- `LICENSE` (neu), `README.md` (Abschnitt Lizenz)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+GitHub zeigt beim Repo die Lizenz LGPL-2.1 an, und das README nennt sie.
+
+### DONE
+Manuel hat LGPL-2.1 wie FreeCAD gewählt (Alternativen waren „keine Lizenz“ und
+MIT). Angegeben ist „or-later“, wie bei FreeCAD. Das ist auch die Voraussetzung,
+falls das Addon später in den Addon-Manager soll. Der Lizenztext stammt aus
+`/usr/share/common-licenses/LGPL-2.1` (Debian), weil gnu.org aus der
+Cloud-Umgebung nicht erreichbar war. Der Text ist derselbe.
+
+### TEST
+- Kopf von `LICENSE` gelesen: „GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1“.
+- Die Anzeige auf GitHub ist erst nach dem Push prüfbar.
+
+### NEXT
+- Testumgebung.
+
 ## P-2026-09-25-02 regeln-addon-zusatz
 
 ### EINGELESEN
