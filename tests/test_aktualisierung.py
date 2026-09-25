@@ -129,6 +129,25 @@ e = a.pruefe(ohne_git, adresse_version=Path(basis, "fehlt.xml").as_uri())
 pruefe(e.status == a.FEHLER and e.meldung, f"ohne Git, GitHub nicht erreichbar: {e}")
 FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod").RemGroup("CamAddonTest")
 
+# Git ohne Konsolenfenster: unter Windows CREATE_NO_WINDOW, sonst 0.
+aufrufe = []
+original_run = a.subprocess.run
+
+
+def run_merken(*argumente, **optionen):
+    aufrufe.append(optionen)
+    return original_run(*argumente, **optionen)
+
+
+a.subprocess.run = run_merken
+a.pruefe(installiert)
+a.subprocess.run = original_run
+pruefe(
+    aufrufe
+    and all(o.get("creationflags") == getattr(subprocess, "CREATE_NO_WINDOW", 0) for o in aufrufe),
+    f"Git ohne creationflags aufgerufen: {[o.get('creationflags') for o in aufrufe]}",
+)
+
 # Kein Git auf dem Rechner.
 original = a.git_programm
 a.git_programm = lambda: None

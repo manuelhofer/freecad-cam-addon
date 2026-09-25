@@ -28,6 +28,10 @@ from . import ADDON_ORDNER, version_aus_xml
 
 ZWEIG = "main"
 ZEITLIMIT_S = 30  # je Git-Aufruf; ohne Netz soll die Suche nicht ewig laufen
+# Unter Windows öffnet ein Programm wie git.exe, aus FreeCAD (ohne Konsole)
+# gestartet, sonst jedes Mal kurz ein schwarzes Konsolenfenster. Anderswo
+# gibt es den Wert nicht, dort bleibt es bei 0.
+OHNE_FENSTER = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 # Ohne Git: die Version steht in der package.xml auf GitHub.
 ADRESSE_VERSION = (
     f"https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/{ZWEIG}/package.xml"
@@ -194,6 +198,7 @@ def _git(git, ordner, *argumente):
         timeout=ZEITLIMIT_S,
         env=umgebung,
         stdin=subprocess.DEVNULL,
+        creationflags=OHNE_FENSTER,
     )
     if ergebnis.returncode != 0:
         raise RuntimeError((ergebnis.stderr or ergebnis.stdout).strip())

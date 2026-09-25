@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-15 git-ohne-konsolenfenster
+
+### EINGELESEN
+- Die Update-Suche ruft bei jedem Start von FreeCAD bis zu fünfmal Git auf
+  (fetch, show, show, status, merge-base). FreeCAD läuft unter Windows ohne
+  Konsole; startet es ein Konsolenprogramm wie git.exe, öffnet Windows dafür
+  jedes Mal kurz ein schwarzes Fenster – ohne `CREATE_NO_WINDOW`.
+
+### DATEIEN
+- `camaddon/aktualisierung.py` (`OHNE_FENSTER`, an `subprocess.run`)
+- `tests/test_aktualisierung.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Windows: FreeCAD starten und etwa eine halbe Minute warten, bis die
+Update-Suche gelaufen ist → kein schwarzes Fenster blitzt auf. Linux und
+macOS: unverändert.
+
+### DONE
+- Git läuft unter Windows mit `CREATE_NO_WINDOW`; anderswo gibt es den Wert
+  nicht, dort bleibt es bei 0.
+
+### TEST
+- `tests/test_aktualisierung.py`: Jeder Git-Aufruf der Suche bekommt
+  `creationflags` = `CREATE_NO_WINDOW` bzw. 0 (in beiden Versionen).
+- Unter Windows nicht selbst gesehen – hier gibt es kein Windows. Das
+  Akzeptanzkriterium prüft Manuel, falls er Windows benutzt.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- —
+
 ## P-2026-09-26-14 t-004-fehlerbericht
 
 ### EINGELESEN
