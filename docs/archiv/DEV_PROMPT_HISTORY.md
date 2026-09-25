@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-36 push-bei-github-pruefen
+
+### EINGELESEN
+- Manuels Freigabe: P-2026-09-25-30 bis -35 pushen und die Prüfung direkt
+  bei GitHub als Regel aufnehmen.
+- Befund aus P-2026-09-25-30: P-23 bis P-28 blieben unbemerkt lokal, weil
+  `origin` auf den Ordner selbst zeigte.
+
+### DATEIEN
+- `CLAUDE.md` (neue Regel)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach jedem Push steht fest, dass GitHub den Commit hat – geprüft bei GitHub
+selbst, nicht über `origin`.
+
+### DONE
+- P-2026-09-25-30 bis -35 gepusht (`999d46b..36fd298`). Bei GitHub selbst
+  nachgeprüft: `main` steht auf `36fd298`.
+- Neue Regel in `CLAUDE.md`: Nach jedem Push muss
+  `git ls-remote https://github.com/manuelhofer/freecad-cam-addon main` den
+  eigenen Commit zeigen. Die Regel steht dort und nicht in
+  `docs/arbeitsregeln.md`, weil sie nur die Arbeitsweise von Claude Code
+  betrifft.
+
+### TEST
+- Nur Doku geändert. `alle_tests.sh` ohne Oberfläche ist in beiden
+  Versionen grün.
+
+### NEXT
+- README: Beschreibung der Update-Suche an P-2026-09-25-30 anpassen.
+- B-005: Enter bestätigt nur das Feld (Manuels Entscheidung).
+
 ## P-2026-09-25-35 entwickler-doku
 
 ### EINGELESEN
