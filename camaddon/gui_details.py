@@ -7,10 +7,11 @@ Eingabe geht sofort ins Dokument (über `setze`), damit Hinweise und
 entscheidet am Ende über alles zusammen.
 """
 
-from PySide import QtCore, QtGui
+from PySide import QtGui
 
 from . import maschine as m
 from .gui_hilfe import zeige_hilfe
+from .gui_zahlen import Zahlenpruefer, zahl_lesen, zahl_zeigen
 from .sprache import tr
 
 # Einheiten neben dem Feld – bei den übrigen Kennwerten steht die Einheit
@@ -19,8 +20,6 @@ from .sprache import tr
 EINHEIT_LINEAR = {"Beschleunigung": "m/s²", "Ruck": "m/s³"}
 EINHEIT_DREH = {"Beschleunigung": "U/s²", "Ruck": "U/s³"}
 
-GROESSTER_WERT = 1e9  # obere Grenze der Zahlenfelder
-NACHKOMMASTELLEN = 6
 GROESSTE_PLATZNUMMER = 999
 
 
@@ -120,11 +119,11 @@ class DetailKasten(QtGui.QFrame):
         return feld
 
     def _zahlenfeld(self, objekt, eigenschaft, pflicht):
-        feld = QtGui.QLineEdit(_zahl_zeigen(getattr(objekt, eigenschaft)))
-        feld.setValidator(_Zahlenpruefer(feld))
+        feld = QtGui.QLineEdit(zahl_zeigen(getattr(objekt, eigenschaft)))
+        feld.setValidator(Zahlenpruefer(feld))
         feld.setPlaceholderText(tr("feld.pflicht") if pflicht else tr("feld.unbekannt"))
         feld.editingFinished.connect(
-            lambda: self._setze(objekt, eigenschaft, _zahl_lesen(feld.text()))
+            lambda: self._setze(objekt, eigenschaft, zahl_lesen(feld.text()))
         )
         return feld
 
@@ -192,57 +191,3 @@ def _beschriftung(text, fett=False):
         schrift.setBold(True)
         beschriftung.setFont(schrift)
     return beschriftung
-
-
-# --- Zahlen -------------------------------------------------------------------
-
-
-def _zahlenformat():
-    """Das Zahlenformat der Oberfläche, aber ohne Tausendertrennzeichen.
-
-    Auf einem deutschen System stellt FreeCAD das deutsche Format ein. Mit
-    Tausenderpunkten zeigte das Feld „30.000“, und zurückgelesen ergab das 30
-    statt 30000 (B-004). Ohne sie ist jede Eingabe eindeutig: Auf Deutsch ist
-    das Komma das Dezimalzeichen, einen Punkt lässt das Feld nicht zu.
-    """
-    zahlenformat = QtCore.QLocale()
-    zahlenformat.setNumberOptions(
-        QtCore.QLocale.OmitGroupSeparator | QtCore.QLocale.RejectGroupSeparator
-    )
-    return zahlenformat
-
-
-class _Zahlenpruefer(QtGui.QDoubleValidator):
-    """Lässt nur Zahlen ab 0 im Zahlenformat der Oberfläche zu – und ein leeres Feld.
-
-    Leer heißt „unbekannt“ (0). QDoubleValidator allein hält ein leeres Feld
-    für unfertig und meldet es nicht – den Wert zu löschen, bliebe wirkungslos.
-    """
-
-    def __init__(self, feld):
-        # feld als Qt-Eltern: Der Prüfer lebt so lange wie das Feld.
-        super().__init__(0, GROESSTER_WERT, NACHKOMMASTELLEN, feld)
-        self.setLocale(_zahlenformat())
-
-    def validate(self, text, position):
-        if not text.strip():
-            return QtGui.QValidator.Acceptable, text, position
-        return super().validate(text, position)
-
-
-def _zahl_lesen(text):
-    """Liest eine Zahl im Zahlenformat der Oberfläche; ein leeres Feld ist 0 (unbekannt)."""
-    text = text.strip()
-    if not text:
-        return 0.0
-    wert, gelesen = _zahlenformat().toDouble(text)
-    if not gelesen:  # hinter dem _Zahlenpruefer nicht möglich
-        raise ValueError(f"keine Zahl: {text!r}")
-    return wert
-
-
-def _zahl_zeigen(wert):
-    """Zeigt eine Zahl im Zahlenformat der Oberfläche; 0 (unbekannt) als leeres Feld."""
-    if not wert:
-        return ""
-    return _zahlenformat().toString(float(wert), "g", 12)  # 12 gültige Stellen

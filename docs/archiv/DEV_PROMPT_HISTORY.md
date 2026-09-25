@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-45 zahlenfelder-gemeinsam
+
+### EINGELESEN
+- Die Werkzeugverwaltung (W-002) braucht dieselben Zahlenfelder wie „Maschine
+  bearbeiten“: deutsches Format ohne Tausenderpunkte (B-004), leer heißt
+  „unbekannt“. Die Helfer lagen privat in `gui_details.py`.
+
+### DATEIEN
+- `camaddon/gui_zahlen.py` (neu: `zahlenformat`, `Zahlenpruefer`,
+  `zahl_lesen`, `zahl_zeigen`, dazu die zwei Grenzen)
+- `camaddon/gui_details.py` (benutzt sie von dort)
+- `docs/aufbau.md` (Modultabelle)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nichts sichtbar anders: „Maschine bearbeiten“ zeigt und liest Zahlen wie
+vorher („30000“, „2,5“, leeres Feld = unbekannt).
+
+### DONE
+- Reines Verschieben, eigener Patch nach Arbeitsregel „keine Refactors
+  nebenbei“. Namen ohne Unterstrich, weil jetzt mehrere Module sie
+  benutzen.
+
+### TEST
+- KI, Wochen-Build: `szenario_felder` und `szenario_maschine_bearbeiten`
+  grün (tippen Zahlen im deutschen Format, leeren Felder).
+
+### NEXT
+- W-002 Stufe 1: Werkzeugverwaltung mit Werkstoffen und Werkzeugen.
+
 ## P-2026-09-25-44 spezifikation-werkzeugverwaltung
 
 ### EINGELESEN

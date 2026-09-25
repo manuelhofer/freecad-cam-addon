@@ -51,7 +51,8 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `aktualisierung.py` | Update-Suche per Git |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“ |
-| `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme, Zahlenformat |
+| `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
+| `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format ohne Tausenderpunkte, Prüfung, Lesen, Zeigen |
 | `gui_zeigen.py` | Hervorheben und kurzes Hin-und-her-Bewegen in der 3D-Ansicht |
 | `gui_hilfe.py` | Knopf (?) und Hilfefenster |
 | `gui_verteilhilfe.py` | Dialog „Revolverplätze verteilen“ |
