@@ -76,6 +76,13 @@ ein ASCII-Entwurf des Dialogs reicht.
 - Zu jeder Patch-ID gehört ein Eintrag in `docs/archiv/DEV_PROMPT_HISTORY.md`
   – im **selben Commit**.
 - **Gepusht wird nur auf ausdrückliche Ansage.**
+- **Was auf `main` liegt, kommt als Update an.** Der Addon-Manager von
+  FreeCAD bietet jeden neuen Stand auf `main` als Update an – gepusht wird
+  deshalb nur, was alle Prüfungen bestanden hat. Ändert ein Push etwas
+  Sichtbares, zählt er die Version in `package.xml` hoch (`<version>`, dazu
+  `<date>`): neue Funktion → mittlere Stelle (0.3.0), Korrektur → letzte
+  Stelle (0.2.1). Die Version steht **nur** dort; das Addon liest sie von
+  da.
 - Erklärungen im Chat: kurz, sachlich, deutsch – was geändert wurde, warum,
   was bewusst **nicht** gemacht wurde, und **wie Manuel es testet**.
 

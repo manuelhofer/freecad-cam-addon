@@ -12,6 +12,60 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-22 updates-ueber-addon-manager
+
+### EINGELESEN
+- `Mod/AddonManager/addonmanager_workers_startup.py`: `CustomRepositories`
+  (eigene Repositories, je Zeile URL und Branch) und `UpdateChecker`. Bei
+  Installation per Git wird über den Git-Stand geprüft, sonst über eine
+  geänderte `package.xml`.
+
+### DATEIEN
+- `camaddon/__init__.py` (Version aus `package.xml`), `package.xml`
+  (0.2.0)
+- `tests/test_version.py` (neu)
+- `README.md` (Installieren mit automatischen Updates),
+  `docs/arbeitsregeln.md` (Abschnitt 4)
+- `docs/STATUS_SNAPSHOT.md` (T-005), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer das README liest, kann das Addon als eigenes Repository in den
+Addon-Manager eintragen und installieren. Das Addon meldet unter „Über“
+dieselbe Version wie `package.xml`.
+
+### DONE
+Manuel hat gefragt, ob Autoupdate geht. Aus einer Auswahl hat er gewählt:
+**Repo öffentlich machen**, Updates über FreeCADs Addon-Manager. Die
+Alternativen waren „privat, später öffentlich“ und ein eigener Update-Knopf
+mit GitHub-Schlüssel je Rechner, von dem ich abgeraten habe.
+
+- **Kein eigener Update-Code nötig.** Der Addon-Manager prüft und
+  installiert selbst, wenn das Repo als „eigenes Repository“ eingetragen ist.
+  Voraussetzung: Das Repo ist öffentlich. Das Umschalten kann nur Manuel
+  machen (T-005).
+- **Version nur noch an einer Stelle:** `package.xml`. `camaddon.VERSION`
+  liest sie von dort. Vorher stand 0.1.0 zusätzlich im Code; zwei Angaben
+  wären auseinandergelaufen. Die Version ist jetzt 0.2.0, weil seit 0.1.0 der
+  Dialog und die Übergabe an CAM dazugekommen sind.
+- **Neue Regel** (Abschnitt 4): Was auf `main` liegt, kommt bei Manuel als
+  Update an. Gepusht wird nur, was alle Prüfungen bestanden hat. Ein Push mit
+  sichtbarer Änderung zählt die Version hoch.
+- Vor dem Öffentlichmachen habe ich das Repo durchgesehen: keine
+  E-Mail-Adresse, keine Zugangsdaten. Manuel ist darauf hingewiesen, dass
+  sein Name in `package.xml` und der Doku steht und dass „zeiterfassung“
+  einmal als Vorlage erwähnt wird.
+
+### TEST
+- Von der KI ausgeführt: alle sieben Prüfungen ohne Fenster `ok`, die
+  Szenarien `erster_start` und `uebergeben` `ok`.
+- Gegenprobe: Mit Version „0.2“ schlägt `test_version.py` fehl („hat nicht
+  die Form 1.2.3“).
+- **Nicht getestet:** Installation und Update über den Addon-Manager. Das
+  geht erst, wenn das Repo öffentlich ist, und gehört dann zu Manuels Test.
+
+### NEXT
+- T-005 (Manuel), dann Test über den Addon-Manager.
+
 ## P-2026-09-25-21 knopf-an-cam-uebergeben
 
 ### EINGELESEN

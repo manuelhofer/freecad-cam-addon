@@ -34,6 +34,10 @@ Keine bekannten.
 
 ## Offene Tasks
 
+- **T-005** Manuel schaltet das Repo auf GitHub öffentlich (Settings →
+  General → Danger Zone → Change visibility). Erst danach funktioniert die
+  Installation mit automatischen Updates über den Addon-Manager (README).
+
 - **T-004** Fehler an FreeCAD melden: `Machine.from_dict` liest bei
   Linearachsen einen Ursprung ≠ (0,0,0) als Richtung (Befund und Beleg in
   P-2026-09-25-20). Solange er besteht, übergibt das Addon Linearachsen mit

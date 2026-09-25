@@ -8,9 +8,28 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).
 
-## Installieren (Entwicklungsstand)
+## Installieren mit automatischen Updates (empfohlen)
 
-Das Addon steht noch nicht im Addon-Manager. Bis dahin:
+Über den Addon-Manager von FreeCAD – dann meldet FreeCAD neue Versionen selbst
+und installiert sie auf Knopfdruck.
+
+1. **Bearbeiten → Einstellungen → Addon-Manager**, dort unter
+   **Eigene Repositories** eine Zeile hinzufügen:
+   - Repository-URL: `https://github.com/manuelhofer/freecad-cam-addon`
+   - Branch: `main`
+2. **Werkzeuge → Addon-Manager** öffnen, nach **freecad-cam-addon** suchen,
+   **Installieren**.
+3. FreeCAD neu starten. Beim ersten Start fragt das Addon nach der Sprache.
+   Seine Werkzeugleiste erscheint in den Arbeitsbereichen **Assembly** und
+   **CAM**.
+
+Updates: Der Addon-Manager zeigt verfügbare Updates an (auch beim Start von
+FreeCAD, wenn in seinen Einstellungen die automatische Prüfung eingeschaltet
+ist); **Aktualisieren**, FreeCAD neu starten.
+
+## Installieren von Hand
+
+Ohne Addon-Manager, z. B. zum Ausprobieren eines bestimmten Stands:
 
 1. In FreeCAD die Python-Konsole öffnen (Ansicht → Ansichten →
    Python-Konsole) und eingeben:
@@ -26,8 +45,8 @@ Das Addon steht noch nicht im Addon-Manager. Bis dahin:
    Seine Werkzeugleiste erscheint in den Arbeitsbereichen **Assembly** und
    **CAM**.
 
-Aktualisieren: mit Git `git pull` im Ordner, sonst ZIP neu laden und den
-Ordner ersetzen.
+Aktualisieren von Hand: mit Git `git pull` im Ordner, sonst ZIP neu laden und
+den Ordner ersetzen.
 
 ## Lizenz
 
