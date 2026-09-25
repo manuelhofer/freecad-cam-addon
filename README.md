@@ -8,6 +8,17 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   1.1.3 erklärt das Addon das beim Klick.
 - Unabhängig von Maschine und Postprozessor.
 
+## Was es kann
+
+- **Maschine bearbeiten:** eine Maschine als Baugruppe beschreiben –
+  Achsen, Spindeln, Werkzeug- und Werkstückaufnahmen – und an CAM übergeben.
+- **Werkzeugverwaltung:** Werkstoffliste mit deutschen Bezeichnungen
+  („1.4301 X5CrNi18-10 · Edelstahl, austenitisch“), Zusammensetzung und
+  Härte; Werkzeuge mit Schnittwerten je Werkstoff und Einsatz – vc und fz
+  eingeben, Drehzahl, Vorschub und Zeitspanvolumen rechnet das Addon; ein
+  Bild des Eingriffs; zwei Strategien vergleichen (Abtrag, Verschleiß) mit
+  einem Urteil in Sätzen.
+
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).
 

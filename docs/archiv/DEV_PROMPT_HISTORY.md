@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-51 version-0-4-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: Ein Push mit neuer Funktion zählt die mittlere
+  Stelle der Version hoch. Die Werkzeugverwaltung (P-46 bis P-50) ist neu.
+
+### DATEIEN
+- `package.xml` (Version 0.4.0, Beschreibung nennt die Werkzeugverwaltung)
+- `README.md` (Abschnitt „Was es kann“)
+- `docs/STATUS_SNAPSHOT.md` (nächster Schritt: Manuels Test von W-002)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.4.0, und die
+Update-Suche meldet 0.4.0 als neue Version.
+
+### DONE
+- Version 0.3.9 → 0.4.0 für alle Patches seit dem letzten Push
+  (P-2026-09-25-43 bis -50).
+- README: kurze Liste, was das Addon kann – für Tester, sobald das
+  Repository öffentlich ist.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen (Ergebnis im
+  Bericht an Manuel).
+
+### NEXT
+- Push; danach W-002 Stufe 2 oder Manuels Rückmeldung.
+
 ## P-2026-09-25-50 werkstoffe-eigene
 
 ### EINGELESEN

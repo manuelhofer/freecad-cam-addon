@@ -22,6 +22,13 @@ GitHub Desktop an das private Repo?
 
 Danach Stufe 3: Maschine von Hand verfahren (je Betriebsart ein Regler).
 
+**W-002, Stufe 1 ist fertig und automatisch geprüft:** Werkzeugverwaltung
+mit Werkstoffliste, Schnittwerten je Werkstoff und Einsatz, Bild des
+Eingriffs und Strategievergleich. Wartet auf **Manuels Test** (Klickwege in
+den Verlaufseinträgen P-2026-09-25-46 bis -50) und auf die Besprechung der
+Entscheidungen in der Spezifikation (Abschnitt 11). Danach Stufe 2:
+Übergabe an CAM.
+
 ## Wunschliste
 
 Ein Satz je Wunsch, W-ID fortlaufend.
