@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-38 enter-bestaetigt-nur-das-feld
+
+### EINGELESEN
+- Manuels Entscheidung zu B-005: „Nur Feld bestätigen“. Enter übernimmt den
+  Wert im Feld; geschlossen wird der Dialog nur mit OK oder Abbrechen.
+
+### DATEIEN
+- `camaddon/gui_maschine.py` (`_EnterBleibtImDialog`)
+- `tests/gui/szenario_felder.py` (vorher `szenario_zahlen.py`; jetzt mit
+  echtem Enter)
+- `docs/aufbau.md` (Stolperstein erledigt)
+- `docs/STATUS_SNAPSHOT.md` (B-005 entfernt)
+- `package.xml` (Version 0.3.7)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Enter in einem Feld übernimmt den Wert, und der Dialog bleibt offen.
+
+### DONE
+- Ein Feld verarbeitet Enter und reicht die Taste dann an die Widgets
+  darüber weiter; bei FreeCADs Aufgabenfenster angekommen, löste sie „OK“
+  aus. Ein Ereignisfilter ganz oben im Dialog hält Enter jetzt an. Das
+  Feld hat seinen Wert zu diesem Zeitpunkt schon übernommen. Escape
+  (Abbrechen) bleibt, wie es ist.
+- Das Szenario heißt jetzt `szenario_felder`, weil es beides prüft:
+  Zahlenformat (B-004) und Enter (B-005). Es tippt echtes Enter; die
+  Nachbildung `bestaetigen()` aus P-2026-09-25-31 ist weg.
+- Version 0.3.7.
+
+### TEST
+- Von der KI ausgeführt:
+  - Gegenprobe ohne den Filter: „Enter im Feld hat den Dialog geschlossen
+    (B-005)“.
+  - Mit dem Filter ist `szenario_felder` in beiden Versionen grün, ebenso
+    `alle_tests.sh`.
+
+### NEXT
+- B-001 und B-002 (Bericht der Übergabe).
+- Manuels Test in FreeCAD 1.1.3.
+
 ## P-2026-09-25-37 readme-update-suche
 
 ### EINGELESEN

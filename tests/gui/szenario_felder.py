@@ -1,8 +1,10 @@
-# Zahlenfelder im deutschen Zahlenformat (B-004). FreeCAD stellt auf einem
-# deutschen System das deutsche Format ein. Die Felder zeigen dann keine
-# Tausenderpunkte, jede Eingabe ist eindeutig, und ein geleertes Feld heißt
-# „unbekannt“. Getippt wird Taste für Taste – nur so greift die Prüfung der
-# Eingabe, die einen Punkt auf Deutsch gar nicht erst annimmt.
+# Eingaben in den Feldern des Dialogs, getippt wie von einem Benutzer:
+# - Enter bestätigt nur das Feld; der Dialog bleibt offen (B-005).
+# - Deutsches Zahlenformat (B-004): FreeCAD stellt es auf einem deutschen
+#   System ein. Die Felder zeigen keine Tausenderpunkte, jede Eingabe ist
+#   eindeutig, und ein geleertes Feld heißt „unbekannt“. Nur beim Tippen
+#   Taste für Taste greift die Prüfung, die einen Punkt auf Deutsch gar nicht
+#   erst annimmt.
 import os
 import sys
 
@@ -13,22 +15,16 @@ from PySide6 import QtTest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
-def bestaetigen(widget):
-    """Wie Enter im Feld: QLineEdit meldet „fertig“ nur, wenn die Prüfung die Eingabe annimmt.
-
-    Echtes Enter geht hier nicht: Darauf schließt FreeCADs Aufgabenfenster den
-    ganzen Dialog mit OK (B-005).
-    """
-    if widget.hasAcceptableInput():
-        widget.editingFinished.emit()
+def enter(widget):
+    QtTest.QTest.keyClick(widget, QtCore.Qt.Key_Return)
 
 
 def eingeben(widget, text):
-    """Feld leeren, `text` Taste für Taste tippen, bestätigen."""
+    """Feld leeren, `text` Taste für Taste tippen, Enter."""
     widget.selectAll()
     QtTest.QTest.keyClick(widget, QtCore.Qt.Key_Delete)
     QtTest.QTest.keyClicks(widget, text)
-    bestaetigen(widget)
+    enter(widget)
 
 
 def schritte(h):
@@ -65,13 +61,18 @@ def schritte(h):
     )
     h.bild("1_deutsches_format")
 
-    # Bestätigen ohne Änderung lässt den Wert, wie er ist.
-    bestaetigen(eilgang)
-    h.pruefe(x1.Eilgang == 30000, f"Bestätigen ohne Änderung ergibt Eilgang {x1.Eilgang}")
+    # Enter ohne Änderung lässt den Wert, wie er ist – und den Dialog offen.
+    enter(eilgang)
+    yield 200
+    if panel.geschlossen:
+        h.pruefe(False, "Enter im Feld hat den Dialog geschlossen (B-005)")
+        return
+    h.pruefe(x1.Eilgang == 30000, f"Enter ohne Änderung ergibt Eilgang {x1.Eilgang}")
 
     # Auf Deutsch ist der Punkt kein Dezimalzeichen: Das Feld nimmt ihn nicht an.
     eingeben(eilgang, "35.000")
     h.pruefe(x1.Eilgang == 35000, f"„35.000“ getippt ergibt {x1.Eilgang} statt 35000")
+    h.pruefe(not panel.geschlossen, "Enter nach dem Tippen hat den Dialog geschlossen")
     eingeben(beschleunigung, "3,5")
     h.pruefe(x1.Beschleunigung == 3.5, f"„3,5“ getippt ergibt {x1.Beschleunigung}")
 

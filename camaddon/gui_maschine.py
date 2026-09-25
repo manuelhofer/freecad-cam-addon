@@ -181,6 +181,8 @@ class MaschinenPanel:
         form = QtGui.QWidget()
         form.setWindowTitle(tr("dialog.titel"))
         form.setWindowIcon(QtGui.QIcon(symbol("maschine.svg")))
+        self._enter_filter = _EnterBleibtImDialog(form)  # Enter schließt den Dialog nicht
+        form.installEventFilter(self._enter_filter)
         self._aufbau = QtGui.QVBoxLayout(form)
         self._baue_namenszeile()
         self._baue_achsen()
@@ -681,6 +683,22 @@ class MaschinenPanel:
         # open() statt exec(): sperrt den Dialog darunter, hält aber den Ablauf
         # nicht an – so kann das Szenario das Fenster prüfen und schließen.
         self.hinweis_fenster.open()
+
+
+class _EnterBleibtImDialog(QtCore.QObject):
+    """Enter bestätigt nur das Feld, statt den ganzen Dialog mit OK zu schließen.
+
+    Ein Feld verarbeitet Enter – es übernimmt dabei seinen Wert – und reicht
+    die Taste dann an die Widgets darüber weiter. Käme sie bis zu FreeCADs
+    Aufgabenfenster, löste sie dort „OK“ aus (B-005, entschieden von Manuel).
+    Dieser Filter sitzt ganz oben im Dialog und hält die Taste dort an.
+    """
+
+    def eventFilter(self, _objekt, ereignis):
+        return ereignis.type() == QtCore.QEvent.KeyPress and ereignis.key() in (
+            QtCore.Qt.Key_Return,
+            QtCore.Qt.Key_Enter,
+        )
 
 
 # --- Zeilen der Listen --------------------------------------------------------

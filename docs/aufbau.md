@@ -164,6 +164,6 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | Beschriftungen sind eindeutig: „Futter“ neben „Futter“ wird „Futter001“ | Beschriftung aus den Daten (`beschrifte`) |
 | Beim Laden ruft FreeCAD `onChanged` nicht auf, nur `onDocumentRestored` | Sichtbarkeit dort herstellen |
 | Das deutsche Zahlenformat hat Tausenderpunkte: „30.000“ | Zahlenfelder ohne Tausendertrennzeichen |
-| Enter in einem Feld löst im Aufgabenfenster „OK“ aus | offen: B-005 im Snapshot |
+| Enter in einem Feld löst im Aufgabenfenster „OK“ aus | der Dialog hält Enter an (`_EnterBleibtImDialog`) |
 | Beim Beenden fragt FreeCAD „Speichern?“ | Szenarien schließen ihre Dokumente |
 | `Machine.from_dict` liest den Ursprung einer Linearachse als Richtung | Ursprung 0 übergeben (T-004) |
