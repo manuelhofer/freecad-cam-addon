@@ -92,21 +92,30 @@ ein ASCII-Entwurf des Dialogs reicht.
   nichts (Einstellungen in `pyproject.toml`, wie bei FreeCAD: Zeilenlänge
   100). Ein `# noqa` braucht eine Begründung in derselben Zeile.
   `scripts/alle_tests.sh` prüft das als Erstes.
-- Was sich ohne Oberfläche prüfen lässt (Berechnungen, Vorlagen, Einlesen von
-  Einstellungen, Anlegen von Jobs und Operationen), bekommt eine
-  **wiederholbare** Prüfung unter `tests/`, die mit `FreeCADCmd` ohne Fenster
-  läuft. Alle Prüfungen laufen vor jedem Push durch, **in beiden
-  FreeCAD-Versionen**: `scripts/alle_tests.sh` (in einer frischen
-  Cloud-Sitzung vorher einmal `scripts/testumgebung_einrichten.sh`; zwischen
-  zwei Patches reicht `OHNE_OBERFLAECHE=1` für die schnellen Prüfungen).
+- **Nur prüfen, was nötig ist.** Jeder Lauf kostet Rechenzeit und Strom
+  (Manuel, P-2026-09-25-42). Deshalb:
+  - Während der Arbeit läuft nur die Prüfung zum geänderten Teil, in einer
+    FreeCAD-Version.
+  - Vor einem Push läuft einmal alles, **in beiden FreeCAD-Versionen**:
+    `scripts/alle_tests.sh`. Das gilt für alle Patches seit dem letzten Push
+    zusammen, nicht für jeden einzeln. In einer frischen Cloud-Sitzung vorher
+    einmal `scripts/testumgebung_einrichten.sh`.
+  - Reine Doku-Änderungen brauchen keinen Testlauf.
+- **Neue Prüfungen** gibt es für behobene Fehler, damit sie nicht
+  wiederkommen, und für neue Funktionen. Reines Aufräumen braucht keine
+  neuen, das decken die vorhandenen ab. Was sich ohne Oberfläche prüfen
+  lässt, prüft eine Datei unter `tests/` mit `FreeCADCmd`. Bei einem
+  behobenen Fehler zeigt eine Gegenprobe einmal, dass die Prüfung mit dem
+  alten Code fehlschlägt.
 - Gibt es eine Funktion in einer Version nicht, meldet die Prüfung
   `UEBERSPRUNGEN <datei>: Grund` statt `OK` – nur dafür, nie um einen Fehler
   zu verstecken. Das Szenario prüft in dieser Version stattdessen die
   Erklärung, die der Benutzer sieht.
-- Jede neue oder geänderte Oberfläche bekommt ein **Szenario** unter
-  `tests/gui/`, das sie in einer unsichtbaren FreeCAD-Oberfläche durchklickt,
-  prüft und Screenshots macht (`scripts/oberflaeche_testen.sh`). Die
-  Screenshots gehören in die Rückmeldung an Manuel.
+- Eine **neue Oberfläche** bekommt ein **Szenario** unter `tests/gui/`, das
+  sie in einer unsichtbaren FreeCAD-Oberfläche durchklickt und prüft
+  (`scripts/oberflaeche_testen.sh`). Ändert sich eine Oberfläche sichtbar,
+  gehört ein Screenshot in die Rückmeldung an Manuel.
+- **Im Chat** genügt „Tests grün“; Einzelheiten nur, wenn etwas auffällt.
 - Die Oberfläche prüft **Manuel** in FreeCAD. Der Patch nennt ihm den Klickweg
   aus dem Akzeptanzkriterium. Gilt er erst nach seiner Rückmeldung als getestet,
   steht das so im Verlauf.

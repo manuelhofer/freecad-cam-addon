@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-25-42 nur-noetige-tests
+
+### EINGELESEN
+- Manuel: „du testest zu viel“. Die Tests sollen nur laufen, wenn es
+  wirklich nötig ist – sie kosten Ressourcen, auch Rechenzeit und Strom in
+  Rechenzentren. Wie viel nötig ist, überlässt er meinem Urteil.
+- Bilanz des Tages: Der komplette Lauf (rund 3 Minuten) lief elfmal bei 13
+  Patches, zehn Läufe davon einfach grün. Gefunden haben die echten Fehler
+  gezielte Proben (B-004, B-005), nicht die Wiederholungen.
+
+### DATEIEN
+- `docs/arbeitsregeln.md` (Abschnitt 5)
+- `CLAUDE.md` (Regel zum Pushen)
+- `CHATSTART.md` (Prüfung vor jedem Push statt bei jeder Änderung)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Regeln verlangen einen kompletten Lauf nur noch einmal vor einem Push,
+für alle Patches zusammen. Doku-Änderungen brauchen keinen Lauf.
+
+### DONE
+- Neue Regeln:
+  - Während der Arbeit läuft nur die Prüfung zum geänderten Teil, in einer
+    Version.
+  - Vor einem Push läuft einmal `scripts/alle_tests.sh` in beiden
+    Versionen, für alle Patches seit dem letzten Push.
+  - Reine Doku-Änderungen laufen ohne Test.
+  - Neue Prüfungen gibt es nur für behobene Fehler, dann mit einer
+    Gegenprobe, und für neue Funktionen.
+  - Neue Szenarien gibt es nur für neue Oberflächen.
+  - Im Chat genügt „Tests grün“.
+- Nicht geändert, mit Absicht: Alle vorhandenen Prüfungen bleiben. Ein Lauf
+  kostet rund 3 Minuten; gespart wird vor allem dadurch, dass er seltener
+  läuft.
+
+### TEST
+- Nur Doku geändert, deshalb nach der neuen Regel kein Testlauf.
+
+### NEXT
+- Manuels Test in FreeCAD 1.1.3, danach W-001 Stufe 3.
+
 ## P-2026-09-25-41 eine-grenze-fehlt-im-bericht
 
 ### EINGELESEN
