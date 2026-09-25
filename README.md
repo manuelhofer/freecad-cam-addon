@@ -19,7 +19,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Härte; Werkzeuge mit Bild, Suche und Schnittwerten je Werkstoff und
   Einsatz – vc und fz eingeben, Drehzahl, Vorschub und Zeitspanvolumen
   rechnet das Addon; ein Bild des Eingriffs; Strategien vergleichen
-  (Abtrag, Verschleiß) mit einem Urteil in Sätzen; **Schruppwerte planen** –
+  (Abtrag, Verschleiß) mit einem Urteil in Sätzen, auch Varianten einer
+  Zeile; **Schruppwerte planen** –
   so viel Span, wie Fräser und Maschine hergeben (ganze Schneide, schmales
   ae, fz mit Spandickenausgleich). Werkzeuge lassen sich aus
   FreeCAD-Bibliotheken übernehmen.
@@ -28,8 +29,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Werkzeug-Controller eines Jobs passend zum Werkstoff des Rohteils, dazu
   Schrittweite, Zustelltiefe und Helix-Eintauchwinkel der passenden
   Operationen (etwa Adaptiv zum Auffräsen: einmal helikal eintauchen, dann
-  ebenenweise mit der ganzen Schneide), und legt auf Wunsch die
-  Werkzeug-Controller gleich an.
+  ebenenweise mit der ganzen Schneide) – und zeigt vorher, wie viele Ebenen
+  daraus werden –, und legt auf Wunsch die Werkzeug-Controller gleich an.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).

@@ -25,19 +25,24 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    planen…“** (P-2026-09-25-60, -73; Vergleich mit der Vollnut
    P-2026-09-26-04), „Strategien vergleichen“ mit allen Einsätzen (-05),
    Suche und Werkzeugbild (P-2026-09-25-71, P-2026-09-26-01), Kopieren
-   und anderen Durchmesser eintragen (-06), Eintauchwinkel (-08).
+   und anderen Durchmesser eintragen (-06), Eintauchwinkel (-08), **Zeile
+   kopieren** für Varianten (-12).
 2. **CAM-Job:** „Schnittwerte in den Job“ → „Werkzeug-Controller
    hinzufügen“ (P-2026-09-25-65) → Operation **Adaptiv** auf eine Bohrung → noch einmal
    „Schnittwerte in den Job“ → Schrittweite, Zustelltiefe und Helixwinkel
    (P-2026-09-25-61, P-2026-09-26-08), dazu „Am Rohteil eintragen“
    (P-2026-09-25-72). Das ist der Weg „Loch auffräsen: einmal
-   helikal eintauchen, dann ebenenweise mit voller Schneide“.
+   helikal eintauchen, dann ebenenweise mit voller Schneide“. Die Spalte
+   zeigt die **Ebenen**; bei FreeCADs Rohteil (1 mm über dem Modell) meist
+   „2 Ebenen (25 + 1 mm)“ mit rotem Hinweis, wie die dünne entfällt
+   (P-2026-09-26-16). In der Hilfe dazu „Eine Außenkontur schruppen“
+   (P-2026-09-26-13).
 3. **Maschine:** „Maschine bearbeiten“ (W-001 Stufen 1–2) und **„Maschine
    verfahren“** (Stufe 3, P-2026-09-25-67, Revolverplätze -69): Laufen die Achsen richtig
    herum, stimmt der Nullpunkt?
 4. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
-   Nr. 13–20 sind von dieser Nacht) und die sechs Fragen zu Stufe 4
+   Nr. 13–23 sind von dieser Nacht) und die sechs Fragen zu Stufe 4
    ([Entwurf](spezifikation_simulation.md), Abschnitt 9).
 
 Danach: W-001 Stufe 4a (Reichweite prüfen), sobald die Fragen beantwortet

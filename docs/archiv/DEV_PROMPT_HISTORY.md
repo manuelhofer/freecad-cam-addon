@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-18 stand-fuer-manuel-2
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 10: Snapshot und README auf den Stand bringen;
+  Entscheidungen dieser Nacht in die Spezifikation.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` („Nächster Schritt“: Zeile kopieren, Ebenen
+  im Job-Dialog, Außenkontur; Entscheidungen 13–23)
+- `docs/spezifikation_werkzeugverwaltung.md` (Abschnitt 11, Nr. 21–23)
+- `README.md` („Was es kann“)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer Snapshot und Spezifikation liest, findet die neuen Klickwege und die
+drei neuen Entscheidungen mit Alternative.
+
+### DONE
+- Nr. 21: Kopien und doppelte Namen mit Nummer; Nr. 22: Namen wie im
+  Menü von FreeCAD; Nr. 23: dünne letzte Ebene nur melden, ap nicht selbst
+  ändern.
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Manuel probiert aus und bespricht die Entscheidungen.
+
 ## P-2026-09-26-17 version-0-10-0
 
 ### EINGELESEN

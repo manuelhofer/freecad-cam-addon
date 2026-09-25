@@ -417,6 +417,25 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     fz mit D mitskalieren – für kleine Fräser oft ungefähr richtig, aber
     geraten.
 
+### Dazugekommen in der Nacht zum 2026-09-26
+
+21. **Kopien und doppelte Namen bekommen eine Nummer** („Schruppen
+    dynamisch 2“, die Kopie davon „… 3“) statt „Kopie von …“. So bleiben die
+    Namen kurz und im Vergleich, im Job und im Namen eines
+    Werkzeug-Controllers unterscheidbar. Alternative: die Kopie ohne
+    eigenen Namen – dann hießen zwei Zeilen gleich.
+22. **Die Hilfe nennt FreeCADs Operationen und Felder genau so, wie sie im
+    Menü stehen** – auch „Nute“ und „Überlappungs-Prozentsatz“, obwohl
+    „Nut“ und „Schrittweite“ üblicher sind. Wer die Hilfe liest, soll das
+    Wort auf dem Bildschirm wiederfinden. Die Wörter sind aus FreeCAD
+    ausgelesen (1.1.3 und Wochen-Build), nicht geraten.
+23. **Eine dünne letzte Ebene (unter ¼ ap) meldet „Schnittwerte in den
+    Job“ nur**, mit zwei Auswegen (etwas mehr ap, wenn die Schneide reicht;
+    Rohteil oben bündig). Das Addon ändert ap nicht selbst: ap ist eine
+    Entscheidung über Werkzeug und Werkstoff. Alternative: die Zustelltiefe
+    so strecken, dass die Ebenen gleich dick werden (26 mm → 13 + 13) – das
+    halbierte gerade das große ap, um das es beim dynamischen Fräsen geht.
+
 ## 12. Akzeptanzkriterien Stufe 1
 
 Je Patch einer, als Klickweg:
