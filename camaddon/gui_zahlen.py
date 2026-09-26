@@ -75,8 +75,12 @@ class Zahlenpruefer(QtGui.QValidator):
 
 
 def zahl_lesen(text):
-    """Liest eine Zahl mit Punkt oder Komma; ein leeres Feld ist 0 (unbekannt)."""
-    return einheiten.zahl_aus_text(text)
+    """Liest eine Zahl mit Punkt oder Komma; ein leeres Feld ist 0 (unbekannt).
+
+    Das andere Zeichen als das eingestellte gilt in „35.000“ als
+    Tausendertrennzeichen (einheiten.zahl_aus_text).
+    """
+    return einheiten.zahl_aus_text(text, dezimalzeichen())
 
 
 def zahl_zeigen(wert):

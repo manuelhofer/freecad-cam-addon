@@ -43,14 +43,22 @@ def setze_dezimalzeichen(zeichen):
         _parameter().RemString(_DEZIMALZEICHEN)
 
 
-def zahl_aus_text(text):
+def zahl_aus_text(text, dezimalzeichen=PUNKT):
     """Liest eine Eingabe mit Punkt oder Komma („12,5“ wie „12.5“); leer ist 0 (unbekannt).
 
-    Wirft ValueError, wenn der Text keine Zahl ist.
+    `dezimalzeichen` ist das eingestellte – es trennt immer die
+    Nachkommastellen. Das andere Zeichen auch, außer die Zahl ist mit
+    Tausendertrennzeichen geschrieben: „35.000“ ist bei eingestelltem Komma
+    35000 (so meint es, wer so tippt – B-004), „1,500“ bei Punkt 1500. „12.5“
+    und „0.125“ bleiben Dezimalzahlen. Wirft ValueError, wenn der Text keine
+    Zahl ist.
     """
     text = text.strip()
     if not text:
         return 0.0
+    anderes = PUNKT if dezimalzeichen == KOMMA else KOMMA
+    if re.fullmatch(rf"-?[1-9]\d{{0,2}}(\{anderes}\d{{3}})+", text):
+        text = text.replace(anderes, "")
     if not _ZAHL.fullmatch(text):
         raise ValueError(f"keine Zahl: {text!r}")
     return float(text.replace(",", "."))

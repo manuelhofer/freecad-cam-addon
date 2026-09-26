@@ -38,6 +38,20 @@ for text, soll in (
     except ValueError:
         ist = None
     pruefe(ist == soll, f"{text!r} ergibt {ist} statt {soll}")
+# Das andere Zeichen als Tausendertrennzeichen: nur, wo es danach aussieht.
+for text, zeichen, soll in (
+    ("35.000", ",", 35000.0),
+    ("120.000", ",", 120000.0),
+    ("1.250", ",", 1250.0),
+    ("12.5", ",", 12.5),
+    ("0.125", ",", 0.125),
+    ("35,000", ",", 35.0),
+    ("1,500", ".", 1500.0),
+    ("12,5", ".", 12.5),
+    ("1.500", ".", 1.5),
+):
+    ist = einheiten.zahl_aus_text(text, zeichen)
+    pruefe(ist == soll, f"{text!r} bei {zeichen!r}: {ist} statt {soll}")
 for text in ("1.000,5", "12,5,1", "abc", "1e5", ".", "-", "12 5"):
     try:
         einheiten.zahl_aus_text(text)

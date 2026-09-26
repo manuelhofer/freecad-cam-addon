@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-47 tausenderpunkt
+
+### EINGELESEN
+- Voller Lauf vor dem Push von 0.15.0: `szenario_felder` rot in beiden
+  Versionen – „35.000“ getippt ergab 35 statt 35000. Seit
+  P-2026-09-26-45 nehmen die Felder Punkt und Komma als Dezimalzeichen;
+  B-004 (P-2026-09-25-31): Auf Deutsch ist „35.000“ fünfunddreißigtausend.
+- Im selben Lauf `szenario_erster_start` rot in 1.1.3 („user.cfg“ fehlt):
+  FreeCAD meldete schon beim Start „Failed to access file for writing“ –
+  genau in den zwei Minuten, in denen nebenher eigene FreeCAD-Versuche
+  liefen; einzeln und im nächsten Lauf grün. Künftig keine FreeCAD-Versuche
+  neben einem vollen Lauf.
+
+### DATEIEN
+- `camaddon/einheiten.py` (`zahl_aus_text` mit dem eingestellten
+  Dezimalzeichen)
+- `camaddon/gui_zahlen.py` (`zahl_lesen` gibt es mit)
+- `tests/test_einheiten.py`, `tests/gui/szenario_felder.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Mit Komma als Dezimalzeichen: „35.000“ im Eilgang ergibt 35000, „2.5“ in
+der Beschleunigung 2,5, „0.125“ ergibt 0,125. Mit Punkt: „1,500“ ergibt
+1500, „12,5“ ergibt 12,5.
+
+### DONE
+- Das eingestellte Dezimalzeichen trennt immer die Nachkommastellen; das
+  andere auch – außer die Zahl ist mit Tausendertrennzeichen geschrieben
+  (1 bis 3 Ziffern, nicht 0, dann Gruppen zu drei).
+
+### TEST
+- `test_einheiten.py` in 1.1.3 und 26.3.0 grün; `szenario_felder`,
+  `szenario_erster_start` in 1.1.3 grün. Voller Lauf vor dem Push.
+
+### NEXT
+- Push 0.15.0; dann B2 (Maßsystem inch).
+
 ## P-2026-09-26-46 version-0-15-0
 
 ### EINGELESEN

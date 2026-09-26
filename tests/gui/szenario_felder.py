@@ -1,10 +1,8 @@
 # Eingaben in den Feldern des Dialogs, getippt wie von einem Benutzer:
 # - Enter bestätigt nur das Feld; der Dialog bleibt offen (B-005).
 # - Deutsches Zahlenformat (B-004): FreeCAD stellt es auf einem deutschen
-#   System ein. Die Felder zeigen keine Tausenderpunkte, jede Eingabe ist
-#   eindeutig, und ein geleertes Feld heißt „unbekannt“. Nur beim Tippen
-#   Taste für Taste greift die Prüfung, die einen Punkt auf Deutsch gar nicht
-#   erst annimmt.
+#   System ein. Die Felder zeigen keine Tausenderpunkte, und ein geleertes
+#   Feld heißt „unbekannt“. Getippt gilt „35.000“ als 35000, „2.5“ als 2,5.
 import os
 import sys
 
@@ -70,10 +68,13 @@ def schritte(h):
         return
     h.pruefe(x1.Eilgang == 30000, f"Enter ohne Änderung ergibt Eilgang {x1.Eilgang}")
 
-    # Auf Deutsch ist der Punkt kein Dezimalzeichen: Das Feld nimmt ihn nicht an.
+    # Mit Komma als Dezimalzeichen ist der Punkt in „35.000“ ein Tausenderpunkt
+    # (B-004) – in „2.5“ aber ein Dezimalpunkt.
     eingeben(eilgang, "35.000")
     h.pruefe(x1.Eilgang == 35000, f"„35.000“ getippt ergibt {x1.Eilgang} statt 35000")
     h.pruefe(not panel.geschlossen, "Enter nach dem Tippen hat den Dialog geschlossen")
+    eingeben(beschleunigung, "2.5")
+    h.pruefe(x1.Beschleunigung == 2.5, f"„2.5“ getippt ergibt {x1.Beschleunigung}")
     eingeben(beschleunigung, "3,5")
     h.pruefe(x1.Beschleunigung == 3.5, f"„3,5“ getippt ergibt {x1.Beschleunigung}")
 
