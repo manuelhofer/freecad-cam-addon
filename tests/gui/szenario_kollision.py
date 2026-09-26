@@ -1,0 +1,138 @@
+# „Kollision“ im Fenster „Auf der Maschine prüfen“ (W-001, Stufe 4c): Die
+# Beispiel-Fräse (mit zwei Spanneisen) und ein Teil mit Tasche; T1 in der
+# Werkzeugverwaltung ist kurz (25 mm). Die Bahn fährt neben dem Teil so tief,
+# dass die Spindel auf das rechte Spanneisen setzt – in den Grenzen der
+# Achsen. Das Fenster sagt erst „Noch nicht geprüft …“; „Kollision prüfen“ →
+# rot „Es stößt etwas an:“ und der Satz „In „Eigene“ berühren sich „Spindel“
+# und „Spanneisen_rechts“ (Satz 4, …)“. Ein Klick darauf stellt den Abspieler dorthin, eine rote Kugel zeigt
+# die Stelle. Mit Warnabstand 10 mm kommen gelbe Sätze dazu. Ein anderer
+# Nullpunkt macht das Ergebnis ungültig; Schließen nimmt Kugel und Körper weg.
+import FreeCAD
+import FreeCADGui as Gui
+from PySide import QtCore
+
+
+def schritte(h):
+    yield 500
+    erster = h.modal()
+    if erster is not None:  # Sprachwahl beim ersten Start
+        erster.liste.setCurrentIndex(erster.liste.findData("de"))
+        erster.wahl_dezimalzeichen.setCurrentIndex(erster.wahl_dezimalzeichen.findData(","))
+        erster.accept()
+    yield 500
+
+    import Part
+    import Path.Main.Job as PathJob
+    import Path.Op.Custom as PathCustom
+    from pivy import coin
+
+    from camaddon import beispielmaschine, gui_reichweite
+    from camaddon import werkzeuge as wz
+
+    # T1 wie das Werkzeug des Jobs (Ø 5), nur 25 mm lang, ohne Halter.
+    wz.Bibliothek(
+        [wz.Werkzeug(nummer=1, durchmesser=5.0, schneidenlaenge=5.0, gesamtlaenge=25.0)]
+    ).speichern()
+
+    asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
+    yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is asm.Document)
+    yield 500
+    h.pruefe(asm.Document.getObject("Spanneisen_rechts") is not None, "keine Spanneisen")
+
+    teil = FreeCAD.newDocument("Teil")
+    koerper = teil.addObject("Part::Feature", "Taschenteil")
+    koerper.Shape = Part.makeBox(100, 60, 20).cut(
+        Part.makeBox(40, 30, 15, FreeCAD.Vector(30, 15, 5))
+    )
+    teil.recompute()
+    job = PathJob.Create("Job", [koerper])
+    op = PathCustom.Create("Eigene")
+    op.Gcode = ["G0 X110 Y30 Z70", "G1 Z20 F10", "G0 Z70"]
+    teil.recompute()
+    yield 500
+
+    FreeCAD.setActiveDocument(teil.Name)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400  # siehe szenario_reichweite.py: 1.1.3 verarbeitet die Auswahl verzögert
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_AufMaschinePruefen"))
+    yield from h.warte_auf(lambda: gui_reichweite.PruefPanel.offen is not None)
+    panel = gui_reichweite.PruefPanel.offen
+    h.pruefe(panel is not None, "„Auf der Maschine prüfen“ öffnet kein Fenster")
+    if panel is None:
+        return
+    yield 500
+    k = panel.kollision
+    h.pruefe(
+        k.urteil.text()
+        == "Noch nicht geprüft – „Kollision prüfen“ fährt die Bahn ab und sieht nach.",
+        f"vor dem Prüfen: {k.urteil.text()!r}",
+    )
+    h.bild("1_vorher", panel.form)
+
+    # --- Prüfen: die Spindel setzt auf das Spanneisen ---------------------------------------
+    k.knopf.click()
+    yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 30000)
+    yield 300
+    h.pruefe(k.urteil.text() == "Es stößt etwas an:", f"Urteil: {k.urteil.text()!r}")
+    saetze = [k.liste.item(i).text() for i in range(k.liste.count())]
+    h.pruefe(
+        len(saetze) == 1
+        and saetze[0].startswith(
+            "In „Eigene“ berühren sich „Spindel“ und „Spanneisen_rechts“ (Satz 4, bei X 110, "
+            "Y 30, Z "
+        ),
+        f"Sätze: {saetze}",
+    )
+    h.pruefe(k.knopf.text() == "Kollision prüfen", "Knopf heißt nach dem Prüfen nicht mehr so")
+    h.pruefe(panel.wahl_job.isEnabled(), "Fenster nach dem Prüfen noch gesperrt")
+    h.pruefe(panel.urteil.text() == "Alle Achsen bleiben in ihren Grenzen.", "Grenzen?")
+
+    # Ein Klick: Der Abspieler steht dort, die rote Kugel zeigt die Stelle.
+    k.liste.setCurrentRow(0)
+    k.liste.itemClicked.emit(k.liste.item(0))
+    yield 400
+    befund = k.ergebnis.befunde[0]
+    h.pruefe(abs(panel.abspieler.zeit - befund.zeit) < 1e-9, "Abspieler nicht an der Stelle")
+    h.pruefe(panel.bild is not None and panel.bild._marke is not None, "keine rote Kugel")
+    # Die Ansicht rückt die Stelle in die Mitte.
+    ansicht = Gui.getDocument(asm.Document.Name).mdiViewsOfType("Gui::View3DInventor")[0]
+    kamera = ansicht.getCameraNode()
+    blick = kamera.orientation.getValue().multVec(coin.SbVec3f(0, 0, -1))
+    mitte = kamera.position.getValue() + blick * kamera.focalDistance.getValue()
+    stelle = asm.Placement.multVec(befund.stelle)
+    h.pruefe(
+        (FreeCAD.Vector(*mitte.getValue()) - stelle).Length < 1e-3,
+        f"Ansicht nicht auf der Stelle: {mitte.getValue()} statt {stelle}",
+    )
+    yield 300
+    h.bild("2_kollision")
+    h.bild("2b_fenster", panel.form)
+
+    # --- Warnabstand 10 mm: gelbe Sätze dazu --------------------------------------------------
+    panel.kollision.feld_warnabstand.setText("10")
+    k.knopf.click()
+    yield from h.warte_auf(lambda: not k.laeuft, 30000)
+    yield 300
+    saetze = [k.liste.item(i).text() for i in range(k.liste.count())]
+    h.pruefe(len(saetze) >= 2, f"mit 10 mm: {saetze}")
+    h.pruefe(any("kommen sich" in s and "nahe" in s for s in saetze), f"keine Warnung: {saetze}")
+    h.bild("3_warnabstand", panel.form)
+    panel.kollision.feld_warnabstand.setText("")
+
+    # --- Ein anderer Nullpunkt: das Ergebnis gilt nicht mehr ----------------------------------
+    panel.felder_nullpunkt["Z"].setText("5")
+    yield 800
+    h.pruefe(k.ergebnis is None and not k.liste.isVisible(), "Ergebnis nach neuem Nullpunkt")
+    h.pruefe(k.urteil.text().startswith("Noch nicht geprüft"), f"{k.urteil.text()!r}")
+
+    # --- Schließen: Kugel und Körper weg ------------------------------------------------------
+    wurzel = panel.bild.wurzel
+    panel.felder_nullpunkt["Z"].setText("")
+    panel.reject()
+    yield 800
+    h.pruefe(gui_reichweite.PruefPanel.offen is None, "Fenster noch offen")
+    h.pruefe(ansicht.getSceneGraph().findChild(wurzel) < 0, "Körper nach dem Schließen noch da")
+    for name in list(FreeCAD.listDocuments()):
+        FreeCAD.closeDocument(name)
+    yield 300

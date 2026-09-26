@@ -73,6 +73,38 @@ Eilgang aus der Maschine – die langsamste Achse bestimmt. Beschleunigung und
 Werkzeugwechsel zählen noch nicht; die echte Maschine braucht also etwas
 länger. Kreise fährt sie in kleinen Schritten, Bohrzyklen mit dem Rückzug.</p>
 
+<h3>Kollision</h3>
+<p>Stößt beim Abfahren etwas an? <b>Kollision prüfen</b> fährt die ganze Bahn
+ab und misst an jeder Stelle die Abstände:</p>
+<ul>
+<li>das <b>Werkzeug</b> – Schneide, Schaft und <a href="halter.html">Halter</a> –
+gegen das <b>fertige Teil</b> (das Modell des Jobs), gegen Spannmittel, Tisch
+und alles an der Maschine, was nicht mit dem Werkzeug fährt. Die Schneide
+gegen das Teil nur im <b>Eilgang</b> – im Vorschub schneidet sie ja;</li>
+<li>die Teile der Maschine, die das Werkzeug tragen (Spindel, Fräskopf,
+Schlitten, Revolver), gegen Spannmittel, Tisch, Futter und das Teil;</li>
+<li>was das Werkstück trägt, gegen das feste Bett.</li>
+</ul>
+<p>Das <b>Rohteil</b> zählt nicht: Das Addon trägt kein Material ab – was
+noch nicht abgefräst ist, zeigt der CAM-Simulator. Teile, die sich schon in
+der Grundstellung berühren (etwa ein Schlitten auf seiner Führung), prüft es
+nicht.</p>
+<ul>
+<li><b>Warnabstand</b> – kommen sich zwei Körper näher als so viel, steht es
+gelb da (leer 1 mm).</li>
+<li>Danach das Urteil: grün „Nichts berührt sich …“, rot „Es stößt etwas
+an:“, gelb, wenn nur etwas näher kommt. Je Operation und Paar ein Satz, etwa
+„In „Tasche“ berühren sich der Halter von T3 („SK40 ER32“) und das Teil (Satz
+12, bei X 50, Y 30, Z −15).“ – die schlimmste Stelle, bei Gleichstand die
+erste.</li>
+<li><b>Ein Klick</b> auf einen Satz stellt den Abspieler dorthin; eine rote
+Kugel zeigt die Stelle, die Ansicht rückt sie in die Mitte.</li>
+<li>Es dauert je nach Bahn ein paar Sekunden; der Knopf heißt solange
+<b>Abbrechen</b>. Ändert sich Job, Nullpunkt oder Werkstückaufnahme, gilt das
+Ergebnis nicht mehr und verschwindet.</li>
+<li>Ein Werkzeug ohne Halter prüft es ohne – ein Hinweis sagt es.</li>
+</ul>
+
 <h3>Wie gerechnet wird</h3>
 <ul>
 <li>Geprüft wird die <b>Bahn im Job</b> – die Operationen, so wie der

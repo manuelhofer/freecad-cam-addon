@@ -72,6 +72,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_verfahren.py` | Befehl und Aufgabenfenster „Maschine verfahren“: ein Regler je Achse |
 | `gui_reichweite.py` | Befehl und Aufgabenfenster „Auf der Maschine prüfen“ (W-001 Stufe 4a): Job, Nullpunkt, Ergebnis in Sätzen; ein Klick fährt die Maschine an die Überschreitung; öffnet im Dokument der Maschine |
 | `gui_abfahren.py` | Abfahren (W-001 Stufe 4b): Werkzeug, Rohteil, Modell und Bahn als Coin-Knoten in der 3D-Ansicht der Maschine (nichts im Dokument), folgen der Maschine; der Abspieler als Bereich im Fenster „Auf der Maschine prüfen“ |
+| `gui_kollision.py` | Bereich „Kollision“ im Fenster „Auf der Maschine prüfen“ (W-001 Stufe 4c): Warnabstand, „Kollision prüfen“ mit Fortschritt und Abbrechen, Urteil und Sätze rot/gelb; ein Klick stellt den Abspieler hin, eine rote Kugel zeigt die Stelle |
 | `gui_details.py` | Felder der gewählten Betriebsart, Aufnahme oder schrägen Achse |
 | `gui_winkelbild.py` | Bild zur schrägen Achse: ausgleichende Achse, rechter Winkel, schräge Achse mit α |
 | `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format mit dem gewählten Dezimalzeichen ohne Tausenderpunkte, Prüfung (Punkt und Komma), Lesen, Zeigen; Dezimalzeichen in Texten |

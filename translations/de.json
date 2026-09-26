@@ -777,7 +777,7 @@
     "befehl.reichweite.titel": "Auf der Maschine prüfen",
     "befehl.reichweite.tooltip": "Prüft, ob die Achsen einer Maschine für die Bahnen eines CAM-Jobs reichen – jede Achse gegen ihre Grenzen.",
     "rw.titel": "Auf der Maschine prüfen",
-    "rw.erklaerung": "Für jeden Punkt der Bahnen die Stellung jeder Achse, gehalten gegen ihre Grenzen. Ein Klick auf eine Überschreitung fährt die Maschine dorthin, unter „Abfahren“ fährt sie die ganze Bahn ab; Schließen fährt sie zurück.",
+    "rw.erklaerung": "Für jeden Punkt der Bahnen die Stellung jeder Achse, gehalten gegen ihre Grenzen. Ein Klick auf eine Überschreitung fährt die Maschine dorthin, unter „Abfahren“ fährt sie die ganze Bahn ab, „Kollision prüfen“ sieht nach, ob dabei etwas anstößt; Schließen fährt sie zurück.",
     "rw.job": "Job",
     "rw.maschine": "Maschine",
     "rw.maschine.eintrag": "{maschine} ({dokument})",
@@ -879,5 +879,18 @@
     "kb.kein_teil": "Der Job hat kein Modell – gegen das Teil wurde nicht geprüft.",
     "kb.fehler": "{a} und {b}: Den Abstand konnte FreeCAD nicht rechnen – dieses Paar ist nicht geprüft.",
     "kb.abgebrochen": "Abgebrochen – geprüft bis {zeit} von {dauer}.",
-    "kb.zu_viele": "Nach {anzahl} Stellen aufgehört – geprüft bis {zeit} von {dauer}."
+    "kb.zu_viele": "Nach {anzahl} Stellen aufgehört – geprüft bis {zeit} von {dauer}.",
+    "kb.titel": "Kollision",
+    "kb.warnabstand": "Warnabstand",
+    "kb.warnabstand.tooltip": "Kommen sich zwei Körper näher als so viel, steht es gelb da; leer gilt 1 mm.",
+    "kb.pruefen": "Kollision prüfen",
+    "kb.pruefen.tooltip": "Fährt die ganze Bahn ab und sieht nach, ob Werkzeug, Halter oder Maschine irgendwo anstoßen – am Teil, an den Spannmitteln, an der Maschine. Dauert je nach Bahn ein paar Sekunden.",
+    "kb.abbrechen": "Abbrechen",
+    "kb.laeuft": "Prüft …",
+    "kb.noch_nicht": "Noch nicht geprüft – „Kollision prüfen“ fährt die Bahn ab und sieht nach.",
+    "kb.abgebrochen.urteil": "Abgebrochen – geprüft ist nur der Anfang.",
+    "kb.beruehrt": "Es stößt etwas an:",
+    "kb.nahe": "Nichts berührt sich, aber manches kommt näher als {abstand}:",
+    "kb.frei": "Nichts berührt sich, nichts kommt näher als {abstand}.",
+    "kb.liste.tooltip": "Ein Klick stellt den Abspieler an die Stelle; eine rote Kugel zeigt sie in der Ansicht."
 }

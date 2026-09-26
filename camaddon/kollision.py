@@ -28,6 +28,7 @@ Läuft ohne Oberfläche.
 """
 
 import math
+import time
 from dataclasses import dataclass, field
 
 import FreeCAD
@@ -43,6 +44,7 @@ MIN_SCHRITT = 0.5  # mm: so fein wird es, wo es eng ist
 BERUEHRT = 1e-3  # mm: näher gilt als Berührung
 GENAU_AB = 5.0  # mm über dem Warnabstand: näher rechnet es genau, sonst reicht der Hüllquader
 HOECHSTENS = 200000  # Stellen; danach hört es auf und sagt es
+MELDEN_ALLE = 0.1  # s: so oft ruft es den Fortschritt (und fragt, ob es weitergehen soll)
 
 # Was ein Körper ist.
 SCHNEIDE, HALS, SCHAFT, HALTER = "schneide", "hals", "schaft", "halter"
@@ -170,30 +172,37 @@ def kollision(
 ):
     """Prüft die Abfahrt (abfahren.abfahrt) auf Berührungen; gibt ein Ergebnis zurück.
 
-    `fortschritt(anteil)` wird zwischendurch gerufen (0 … 1); gibt es False zurück,
-    hört die Prüfung auf (Ergebnis.abgebrochen).
+    `fortschritt(anteil)` wird zwischendurch gerufen (0 … 1, höchstens alle
+    MELDEN_ALLE Sekunden); gibt es False zurück, hört die Prüfung auf
+    (Ergebnis.abgebrochen).
     """
     ergebnis = Ergebnis(warnabstand)
     pruefung = abfahrt.pruefung
     if not abfahrt.stationen or pruefung.werkstueckaufnahme is None:
         return ergebnis
-    welt = _Welt(abfahrt, job, nullpunkt_des_jobs, bibliothek, ergebnis)
-    stationen = abfahrt.stationen
-    zuletzt = 0
-    for i in range(len(stationen)):
-        if i - zuletzt >= 20 or i == 0:
-            zuletzt = i
-            if fortschritt is not None and fortschritt(i / len(stationen)) is False:
-                ergebnis.abgebrochen = True
-                ergebnis.hinweise.append(tr("kb.abgebrochen", **_bis_hier(abfahrt, i)))
+    welt = _Welt(abfahrt, job, nullpunkt_des_jobs, bibliothek, ergebnis, fortschritt)
+    try:
+        for i in range(len(abfahrt.stationen)):
+            welt.station = i
+            if not welt.abschnitt(i):
+                ergebnis.hinweise.append(
+                    tr("kb.zu_viele", anzahl=HOECHSTENS, **_bis_hier(abfahrt, i))
+                )
                 break
-        if not welt.abschnitt(i):
-            ergebnis.hinweise.append(tr("kb.zu_viele", anzahl=HOECHSTENS, **_bis_hier(abfahrt, i)))
-            break
-    ergebnis.befunde = sorted(welt.schlimmste.values(), key=lambda b: (b.zeit, b.a, b.b))
+    except _Abbruch:
+        ergebnis.abgebrochen = True
+        ergebnis.hinweise.append(tr("kb.abgebrochen", **_bis_hier(abfahrt, welt.station)))
+    # Berührungen zuerst, dann was nur näher kommt – je nach der Zeit.
+    ergebnis.befunde = sorted(
+        welt.schlimmste.values(), key=lambda b: (not b.beruehrung, b.zeit, b.a, b.b)
+    )
     if fortschritt is not None and not ergebnis.abgebrochen:
         fortschritt(1.0)
     return ergebnis
+
+
+class _Abbruch(Exception):
+    """Der Fortschritt hat „aufhören“ gesagt."""
 
 
 def _bis_hier(abfahrt, index):
@@ -207,8 +216,11 @@ def _bis_hier(abfahrt, index):
 class _Welt:
     """Alle Körper, die Paare je Operation und das Abtasten der Bahn."""
 
-    def __init__(self, abfahrt, job, nullpunkt, bibliothek, ergebnis):
+    def __init__(self, abfahrt, job, nullpunkt, bibliothek, ergebnis, fortschritt=None):
         self.abfahrt = abfahrt
+        self.station = 0  # die Station, von der aus es gerade prüft
+        self._fortschritt = fortschritt
+        self._gemeldet = -math.inf  # wann zuletzt
         self.pruefung = abfahrt.pruefung
         self.verfahren = self.pruefung.verfahren
         self.warn = ergebnis.warnabstand
@@ -359,6 +371,7 @@ class _Welt:
         paare = self.paare(ziel.operation)
         s = 0.0
         while True:
+            self._melden()
             self.ergebnis.stellen += 1
             if self.ergebnis.stellen > HOECHSTENS:
                 return False
@@ -367,6 +380,17 @@ class _Welt:
                 return True
             schritt = max(kleinster - self.warn, MIN_SCHRITT)
             s = min(1.0, s + schritt / weg)
+
+    def _melden(self):
+        """Ruft den Fortschritt, wenn es Zeit ist; sagt er „aufhören“, endet die Prüfung."""
+        if self._fortschritt is None:
+            return
+        jetzt = time.monotonic()
+        if jetzt - self._gemeldet < MELDEN_ALLE:
+            return
+        self._gemeldet = jetzt
+        if self._fortschritt(self.station / len(self.abfahrt.stationen)) is False:
+            raise _Abbruch
 
     def _stelle(self, i, naechste, s, paare, ziel):
         """Prüft die Stelle beim Anteil `s` zwischen Station i und der nächsten; gibt den

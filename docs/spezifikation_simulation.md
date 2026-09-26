@@ -220,12 +220,17 @@ Abschnitt 8):
    Hindernissen: der Fräskopf fährt mit einem kurzen Werkzeug in ein
    Spannmittel; der Halter taucht in eine tiefe Tasche; ein Eilgang geht
    durchs Teil; der Warnabstand. *Gebaut (P-2026-09-26-97): die Beispiel-Fräse
-   kann zwei Spanneisen tragen (`fraesmaschine(spanneisen=True)`); gemeldet
+   trägt zwei Spanneisen (seit -98 immer, 60 mm hoch – die Spindelnase kommt
+   bis 30 mm über den Tisch, so stößt sie in den Grenzen an); gemeldet
    wird als Satz mit beiden Körpern im Nominativ („In „Eigene“ berühren sich
    der Schaft von T1 und das Teil (Satz 5, bei …).“), weil sich Artikel für
    frei benannte Bauteile nicht beugen lassen.*
 2. **Bereich „Kollision“** im Fenster „Auf der Maschine prüfen“, Hilfe,
-   Szenario mit Screenshots; dann Version, voller Lauf, Push.
+   Szenario mit Screenshots; dann Version, voller Lauf, Push. *Gebaut
+   (P-2026-09-26-98): Berührungen stehen vor den Warnungen; ein Klick rückt
+   die Stelle in die Mitte der Ansicht (höchstens 400 mm hoch), die rote Kugel
+   ist obenauf gezeichnet – sonst läge sie unter der Spindel; der Warnabstand
+   wird gemerkt.*
 
 **4d – Bearbeitungszeit**
 - Je Satz die Zeit mit Eilgang bzw. Vorschub, begrenzt durch die

@@ -12,6 +12,63 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-98 kollision-fenster
+
+### EINGELESEN
+- `docs/spezifikation_simulation.md`, 4c, Schritt 2; Abschnitt 12
+  (Akzeptanzkriterien 4c).
+- `gui_reichweite.py` (Fenster, Abspieler, Bild), `gui_abfahren.py` (Bild,
+  Lupe), `kollision.py` (P-2026-09-26-97).
+
+### DATEIEN
+- `camaddon/gui_kollision.py` (neu)
+- `camaddon/gui_reichweite.py` (Bereich „Kollision“ unter „Abfahren“, Klick
+  auf einen Befund, Sperren während der Prüfung, Erklärung oben)
+- `camaddon/gui_abfahren.py` (rote Kugel `markiere`, `zeige_stelle`)
+- `camaddon/kollision.py` (Fortschritt alle 0,1 s mit Abbrechen, auch mitten
+  in langen Wegen; Berührungen zuerst)
+- `camaddon/beispielmaschine.py` (Spanneisen immer, 60 mm hoch)
+- `translations/de.json`, `translations/en.json` (13 Texte, Erklärung oben)
+- `help/de/reichweite.html`, `help/en/reichweite.html` (Abschnitt „Kollision“)
+- `tests/test_kollision.py`, `tests/gui/szenario_kollision.py` (neu)
+- `docs/spezifikation_simulation.md`, `docs/aufbau.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Fräse, kurzes Werkzeug (25 mm) neben dem rechten Spanneisen in die
+Tiefe → „Kollision prüfen“ → rot „Es stößt etwas an:“ und „In „Eigene“
+berühren sich „Spindel“ und „Spanneisen_rechts“ (Satz 4, bei X 110, Y 30, Z
+34).“ → Klick → die Maschine steht dort, die Ansicht zeigt die Stelle mit
+einer roten Kugel.
+
+### DONE
+- Bereich „Kollision“: Warnabstand (leer 1 mm, gemerkt), „Kollision prüfen“ –
+  während der Prüfung Fortschrittsbalken, der Knopf heißt „Abbrechen“, Job,
+  Nullpunkt, Liste und Abspieler sind gesperrt. Urteil grün („Nichts berührt
+  sich, nichts kommt näher als 1,00 mm.“), rot („Es stößt etwas an:“) oder
+  gelb; je Befund ein Satz in Rot oder Gelb, Berührungen zuerst; Hinweise
+  grau. Neuer Job, Nullpunkt oder Aufnahme: „Noch nicht geprüft …“.
+- Klick auf einen Satz: Abspieler auf die Zeit der Stelle, rote Kugel (2 mm,
+  mit Hof, obenauf gezeichnet), die Ansicht rückt die Stelle in die Mitte.
+  Fährt der Abspieler weiter, verschwindet die Kugel.
+- Schließen während der Prüfung bricht sie ab, ohne noch etwas zu zeigen.
+- Beispiel-Fräse: die zwei Spanneisen immer, 60 mm hoch (mit 30 mm reichte
+  die Spindelnase in ihrer tiefsten Stellung genau bis obenauf – anstoßen
+  ging nur am Anschlag, im Screenshot gesehen).
+
+### TEST
+- `szenario_kollision` (neu) in 1.1.3 und im Wochen-Build grün, Screenshots
+  angesehen: Urteil, Satz, Klick → Abspieler, Kugel, Ansicht auf der Stelle;
+  Warnabstand 10 → gelbe Sätze dazu; neuer Nullpunkt → „Noch nicht geprüft“;
+  Schließen räumt auf. `szenario_abfahren` in beiden grün.
+- `test_kollision` (angepasst an die 60-mm-Spanneisen: Spindel setzt bei Z
+  34 auf, Satz 4; Eilgang-Fall mit 80 mm Werkzeug, weil mit 50 mm die Spindel
+  1 mm über die Spanneisen fährt – zu Recht gemeldet), `test_beispielmaschine`,
+  `test_sprache`, `test_hilfe` grün; black, ruff sauber.
+
+### NEXT
+- Version 0.24.0, voller Lauf in beiden Versionen, Push, Bericht.
+
 ## P-2026-09-26-97 kollision-rechenkern
 
 ### EINGELESEN

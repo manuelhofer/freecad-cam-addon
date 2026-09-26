@@ -777,7 +777,7 @@
     "befehl.reichweite.titel": "Check on machine",
     "befehl.reichweite.tooltip": "Checks whether a machine's axes reach far enough for the paths of a CAM job – each axis against its limits.",
     "rw.titel": "Check on machine",
-    "rw.erklaerung": "For every point of the paths the position of every axis, held against its limits. Click an overrun and the machine moves there; under “Run through” it runs the whole path; Close moves it back.",
+    "rw.erklaerung": "For every point of the paths the position of every axis, held against its limits. Click an overrun and the machine moves there; under “Run through” it runs the whole path, “Check for collisions” looks whether anything bumps into something; Close moves it back.",
     "rw.job": "Job",
     "rw.maschine": "Machine",
     "rw.maschine.eintrag": "{maschine} ({dokument})",
@@ -879,5 +879,18 @@
     "kb.kein_teil": "The job has no model – nothing was checked against the part.",
     "kb.fehler": "{a} and {b}: FreeCAD could not compute their distance – this pair is not checked.",
     "kb.abgebrochen": "Stopped – checked up to {zeit} of {dauer}.",
-    "kb.zu_viele": "Stopped after {anzahl} positions – checked up to {zeit} of {dauer}."
+    "kb.zu_viele": "Stopped after {anzahl} positions – checked up to {zeit} of {dauer}.",
+    "kb.titel": "Collision",
+    "kb.warnabstand": "Warning distance",
+    "kb.warnabstand.tooltip": "If two bodies come closer than this, it shows in yellow; empty means 1 mm.",
+    "kb.pruefen": "Check for collisions",
+    "kb.pruefen.tooltip": "Runs through the whole path and looks whether tool, holder or machine bump into anything – the part, the fixtures, the machine. Takes a few seconds depending on the path.",
+    "kb.abbrechen": "Cancel",
+    "kb.laeuft": "Checking …",
+    "kb.noch_nicht": "Not checked yet – “Check for collisions” runs through the path and looks.",
+    "kb.abgebrochen.urteil": "Cancelled – only the beginning was checked.",
+    "kb.beruehrt": "Something collides:",
+    "kb.nahe": "Nothing touches, but some things come closer than {abstand}:",
+    "kb.frei": "Nothing touches, nothing comes closer than {abstand}.",
+    "kb.liste.tooltip": "A click sets the player to that spot; a red ball shows it in the view."
 }

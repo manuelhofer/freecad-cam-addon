@@ -304,15 +304,16 @@ def _spindel(ma, gelenk, nc_name, drehzahl, hochlaufzeit):
 # --- Fräsmaschinen --------------------------------------------------------------
 
 
-def fraesmaschine(spanneisen=False):
+def fraesmaschine(spanneisen=True):
     """3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z, Spindel S1.
 
     Maschinenobjekt ausgefüllt: X1, Y1, Z1 mit Eilgang, Höchstvorschub und
     Beschleunigung, S1 mit Drehzahl, Werkzeugaufnahme an der Spindelnase,
-    Werkstückaufnahme mitten auf dem Tisch. `spanneisen`: dazu links und rechts
-    vom Spannplatz je ein Spanneisen (40 × 40 × 30 mm, 100 mm von der Mitte bis
-    zu seiner Innenseite) – Hindernisse für die Kollisionsprüfung (W-001 4c).
-    Gibt (Assembly, Maschine) zurück.
+    Werkstückaufnahme mitten auf dem Tisch. Links und rechts vom Spannplatz je
+    ein Spanneisen (40 × 40 × 60 mm mit Mutter, 100 mm von der Mitte bis zu
+    seiner Innenseite) – etwas, woran man in der Kollisionsprüfung (W-001 4c)
+    anstoßen kann: Die Spindelnase kommt bis 30 mm über den Tisch.
+    `spanneisen=False` lässt sie weg. Gibt (Assembly, Maschine) zurück.
     """
     b = _neu(FRAESE_3)
     bett = b.quader("Bett", 800, 900, 120, farbe=GUSS)
@@ -330,7 +331,7 @@ def fraesmaschine(spanneisen=False):
     if spanneisen:
         # Der Spannplatz liegt bei x 400, y 350 auf der Tischplatte (z 250).
         for name, x in (("Spanneisen_links", 400 - 100 - 40), ("Spanneisen_rechts", 400 + 100)):
-            eisen.append(b.quader(name, 40, 40, 30, x=x, y=350 - 20, z=250, farbe=SPINDEL))
+            eisen.append(b.quader(name, 40, 40, 60, x=x, y=350 - 20, z=250, farbe=SPINDEL))
     kopf = b.quader("Fraeskopf", 200, 400, 300, x=300, y=250, z=520, farbe=KOPF)
     spindel, spindelnase = b.bauteil(
         "Spindel",

@@ -66,6 +66,38 @@ rate – the slowest axis decides. Acceleration and tool changes do not count
 yet, so the real machine takes a little longer. Arcs are run in small steps,
 drilling cycles with their retract.</p>
 
+<h3>Collision</h3>
+<p>Does anything bump into something while running through? <b>Check for
+collisions</b> runs through the whole path and measures the distances at
+every spot:</p>
+<ul>
+<li>the <b>tool</b> – cutting part, shank and <a href="halter.html">holder</a> –
+against the <b>finished part</b> (the job's model), against fixtures, table and
+everything on the machine that does not move with the tool. The cutting part
+against the part only in <b>rapid moves</b> – in feed moves it is meant to
+cut;</li>
+<li>the machine parts that carry the tool (spindle, head, slides, turret)
+against fixtures, table, chuck and the part;</li>
+<li>what carries the workpiece against the fixed bed.</li>
+</ul>
+<p>The <b>stock</b> does not count: the addon removes no material – what has
+not been cut yet is shown by the CAM simulator. Parts that already touch in
+the home position (a slide on its guide, say) are not checked.</p>
+<ul>
+<li><b>Warning distance</b> – if two bodies come closer than this, it shows in
+yellow (empty: 1 mm).</li>
+<li>Then the verdict: green “Nothing touches …”, red “Something collides:”,
+yellow if something only comes close. One sentence per operation and pair,
+e.g. “In “Pocket”, the holder of T3 (“SK40 ER32”) and the part touch (block
+12, at X 50, Y 30, Z −15).” – the worst spot, the first one if equal.</li>
+<li><b>Click</b> a sentence and the player goes there; a red ball marks the
+spot and the view centres on it.</li>
+<li>It takes a few seconds depending on the path; meanwhile the button says
+<b>Cancel</b>. If job, origin or workpiece mount change, the result no longer
+applies and disappears.</li>
+<li>A tool without holder is checked without one – a note says so.</li>
+</ul>
+
 <h3>How it calculates</h3>
 <ul>
 <li>It checks the <b>paths in the job</b> – the operations as the post processor

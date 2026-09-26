@@ -42,6 +42,9 @@ VORSCHUB_LINIE = (0.10, 0.35, 0.90)
 EILGANG_LINIE = (0.90, 0.15, 0.10)
 HALTER_MINDESTENS = 25.0  # mm Ø des angedeuteten Halters
 HINSEHEN_RAND = 1.3  # so viel mehr als Werkstück und Werkzeug zeigt „Hinsehen“
+MARKE = (0.85, 0.10, 0.10)  # die rote Kugel an einer Kollision
+MARKE_RADIUS = 2.0  # mm; dazu ein durchscheinender Hof, viermal so groß
+STELLE_AUSSCHNITT = 400.0  # mm: so hoch zeigt die Ansicht höchstens, wenn sie auf eine Stelle geht
 
 
 # --- Die Körper ---------------------------------------------------------------------------
@@ -63,6 +66,7 @@ class Bild:
         self.aufnahmen = [op.aufnahme for op in abfahrt.operationen]
         self.operation = 0 if self.aufnahmen else -1
         self.wurzel = coin.SoSeparator()
+        self._marke = None  # die rote Kugel (kollision), oder None
 
         werkstueck = coin.SoSeparator()
         self.werkstueck_lage = coin.SoTransform()
@@ -109,6 +113,42 @@ class Bild:
             self._setze(
                 self.werkzeug_lage, m.globale_platzierung(self.aufnahmen[self.operation].Lcs)
             )
+
+    def markiere(self, stelle):
+        """Eine rote Kugel an `stelle` (Weltkoordinaten) – mit None keine."""
+        coin = self._coin
+        if self._marke is not None:
+            self.wurzel.removeChild(self._marke)
+            self._marke = None
+        if stelle is None:
+            return
+        marke = coin.SoSeparator()
+        # Obenauf gezeichnet: Die Stelle liegt oft unter der Spindel oder im Teil.
+        tiefe = coin.SoDepthBuffer()
+        tiefe.test = False
+        marke.addChild(tiefe)
+        ort = coin.SoTranslation()
+        ort.translation.setValue(stelle.x, stelle.y, stelle.z)
+        marke.addChild(ort)
+        for radius, transparenz in ((MARKE_RADIUS, 0.0), (4 * MARKE_RADIUS, 0.7)):
+            marke.addChild(self._material(MARKE, transparenz))
+            kugel = coin.SoSphere()
+            kugel.radius = radius
+            marke.addChild(kugel)
+        self.wurzel.addChild(marke)
+        self._marke = marke
+
+    def zeige_stelle(self, stelle):
+        """Rückt die Ansicht so, dass `stelle` (Weltkoordinaten) in der Mitte liegt – bei
+        paralleler Ansicht höchstens STELLE_AUSSCHNITT hoch, sonst im selben Maßstab."""
+        coin = self._coin
+        kamera = self.ansicht.getCameraNode()
+        richtung = kamera.orientation.getValue().multVec(coin.SbVec3f(0, 0, -1))
+        abstand = kamera.focalDistance.getValue()
+        ziel = coin.SbVec3f(stelle.x, stelle.y, stelle.z)
+        kamera.position.setValue(ziel - richtung * abstand)
+        if hasattr(kamera, "height"):
+            kamera.height.setValue(min(kamera.height.getValue(), STELLE_AUSSCHNITT))
 
     def hinsehen(self):
         """Richtet die Kamera auf Werkstück und Werkzeug – die Maschine ist meist viel

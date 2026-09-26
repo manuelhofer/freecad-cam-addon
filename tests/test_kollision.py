@@ -7,8 +7,9 @@
 # - Eilgang quer durchs Teil: Schneide und Schaft berühren es, „im Eilgang“;
 # - Halter ER16 (Mutter Ø 28) bei 80 mm Länge ab Spindelnase, 1 mm zu tief neben
 #   der Tasche: Der Halter berührt das Teil;
-# - kurzes Werkzeug (25 mm) neben dem rechten Spanneisen: Die Spindel setzt auf
-#   (Berührung), 4 mm darüber nur mit Warnabstand 5 eine Warnung;
+# - kurzes Werkzeug (25 mm) neben dem rechten Spanneisen (60 mm hoch, oben bei
+#   Z 59): Die Spindel setzt bei Z 34 auf (Berührung), 4 mm darüber nur mit
+#   Warnabstand 5 eine Warnung;
 # - Paare, die sich in der Grundstellung berühren (Führungen), prüft es nicht,
 #   ohne Hinweis, wenn sie an einem Gelenk hängen; Abbrechen geht.
 import os
@@ -35,7 +36,7 @@ def pruefe(bedingung, text):
         fehler.append(text)
 
 
-asm, ma = beispielmaschine.fraesmaschine(spanneisen=True)
+asm, ma = beispielmaschine.fraesmaschine()
 p = rw.Pruefung(asm, ma)
 
 import Path.Main.Job as PathJob
@@ -109,7 +110,10 @@ if e.befunde:
     pruefe("kommen sich der Schaft von T1 und das Teil auf 0.50 mm nahe" in e.befunde[0].text(), "")
 
 # --- Eilgang quer durchs Teil ---------------------------------------------------------------
-e = pruefen(["G0 X-20 Y30 Z10", "G0 X120"], t1())
+# 80 mm lang: Die Spindel bleibt weit über den Spanneisen (mit 50 mm käme sie ihnen auf
+# 1 mm nahe – das meldete die Prüfung zu Recht).
+lang = t1(gesamtlaenge=80.0)
+e = pruefen(["G0 X-20 Y30 Z10", "G0 X120"], lang)
 pruefe(
     paare(e)
     == {
@@ -122,7 +126,7 @@ if e.befunde:
     pruefe("berühren sich im Eilgang" in e.befunde[0].text(), f"{e.befunde[0].text()!r}")
     pruefe(abs(e.befunde[0].punkt["X"] + 2.5) < 0.6, f"erste Berührung bei X {e.befunde[0].punkt}")
 # Derselbe Weg im Vorschub: Die Schneide schneidet (nicht gemeldet), der Schaft berührt.
-e = pruefen(["G0 X-20 Y30 Z10", "G1 X120 F10"], t1())
+e = pruefen(["G0 X-20 Y30 Z10", "G1 X120 F10"], lang)
 pruefe(paare(e) == {("der Schaft von T1", "das Teil", True, False)}, f"Vorschub: {paare(e)}")
 
 # --- Halter ER16: 1 mm zu tief neben der Tasche ---------------------------------------------
@@ -138,15 +142,16 @@ pruefe(not any("ohne Halter" in h for h in e.hinweise), f"Hinweise: {e.hinweise}
 
 # --- Kurzes Werkzeug neben dem Spanneisen: die Spindel --------------------------------------
 kurz = t1(gesamtlaenge=25.0)
-e = pruefen(["G0 X110 Y30 Z40", "G1 Z10 F10", "G1 Z3"], kurz)
+e = pruefen(["G0 X110 Y30 Z70", "G1 Z20 F10"], kurz)
 pruefe(paare(e) == {("„Spindel“", "„Spanneisen_rechts“", True, False)}, f"Spindel: {paare(e)}")
 if e.befunde:
     z = e.befunde[0].punkt["Z"]
-    pruefe(3.5 <= z <= 4.0 + 1e-6, f"Spindel setzt bei Z {z} auf (erwartet knapp unter 4)")
+    pruefe(33.5 <= z <= 34.0 + 1e-6, f"Spindel setzt bei Z {z} auf (erwartet knapp unter 34)")
+    pruefe(e.befunde[0].satz == 4, f"Spindel: Satz {e.befunde[0].satz}")
 # 4 mm darüber: mit Warnabstand 1 nichts, mit 5 eine Warnung (4,00 mm).
-e = pruefen(["G0 X110 Y30 Z40", "G1 Z8 F10"], kurz)
+e = pruefen(["G0 X110 Y30 Z70", "G1 Z38 F10"], kurz)
 pruefe(e.befunde == [], f"4 mm, Warnabstand 1: {paare(e)}")
-e = pruefen(["G0 X110 Y30 Z40", "G1 Z8 F10"], kurz, warnabstand=5.0)
+e = pruefen(["G0 X110 Y30 Z70", "G1 Z38 F10"], kurz, warnabstand=5.0)
 pruefe(
     paare(e) == {("„Spindel“", "„Spanneisen_rechts“", False, False)}, f"Warnabstand 5: {paare(e)}"
 )

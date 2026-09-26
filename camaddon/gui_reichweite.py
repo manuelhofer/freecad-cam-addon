@@ -26,7 +26,7 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import abfahren as ab
-from . import einheiten, gui_abfahren, symbol
+from . import einheiten, gui_abfahren, gui_kollision, symbol
 from . import job_schnittwerte as js
 from . import maschine as m
 from . import reichweite as rw
@@ -145,6 +145,7 @@ class PruefPanel:
         self.bild = None  # gui_abfahren.Bild: Werkzeug und Werkstück in der 3D-Ansicht
         self._bild_fuer = None  # (Job, Prüfung), für die das Bild gebaut ist
         self._bewegt = False  # hat das Fenster die Maschine verfahren?
+        self._marke_behalten = False  # die rote Kugel eines Befunds bleibt beim nächsten Fahren
         self._job = None  # der Job, dessen Nullpunkt in den Feldern steht
         self.bibliothek = _bibliothek()
         self.werkstueckaufnahmen = [
@@ -170,6 +171,7 @@ class PruefPanel:
     def _schliessen(self):
         PruefPanel.offen = None
         self._uhr.stop()
+        self.kollision.abbrechen()
         self.abspieler.anhalten()
         self._zurueckfahren()
         self._bild_weg()
@@ -246,6 +248,10 @@ class PruefPanel:
         aufbau.addWidget(self.liste)
         self.abspieler = gui_abfahren.Abspieler(self._fahre, self._hinsehen)
         aufbau.addWidget(self.abspieler)
+        self.kollision = gui_kollision.KollisionsBereich(
+            self._kollision_daten, self._kollision_hin, self._sperren
+        )
+        aufbau.addWidget(self.kollision)
         self.bereiche = QtGui.QLabel()
         self.bereiche.setWordWrap(True)
         self.bereiche.setStyleSheet(f"color: {GRAU.name()};")
@@ -326,6 +332,7 @@ class PruefPanel:
         self.ergebnis = self.pruefung.pruefe_job(job, nullpunkt, self.bibliothek)
         self._zeige()
         self._abfahrt_rechnen(job, nullpunkt)
+        self.kollision.veraltet()
 
     def _abfahrt_rechnen(self, job, nullpunkt):
         """Die Stationen fürs Abfahren und die Körper in der 3D-Ansicht. Steht die Maschine
@@ -406,7 +413,40 @@ class PruefPanel:
             if operation is not None:
                 self.bild.zeige_operation(operation)
             self.bild.folge()
+            if not self._marke_behalten:
+                self.bild.markiere(None)
         return angehalten
+
+    # --- Kollision ------------------------------------------------------------------
+
+    def _kollision_daten(self):
+        """Für den Bereich „Kollision“: (Abfahrt, Job, Nullpunkt, Werkzeugverwaltung)."""
+        return self.abfahrt, self.job(), self.nullpunkt(), self.bibliothek
+
+    def _kollision_hin(self, befund):
+        """Stellt den Abspieler auf die Stelle eines Befunds; eine rote Kugel zeigt sie."""
+        self.abspieler.anhalten()
+        self._marke_behalten = True
+        try:
+            self.abspieler.setze_zeit(befund.zeit)
+        finally:
+            self._marke_behalten = False
+        if self.bild is not None and befund.stelle is not None:
+            stelle = self.assembly.Placement.multVec(befund.stelle)
+            self.bild.markiere(stelle)
+            self.bild.zeige_stelle(stelle)
+        zeige_dokument(self.assembly.Document)
+
+    def _sperren(self, gesperrt):
+        """Solange die Kollision rechnet, lässt sich sonst nichts ändern."""
+        for widget in (
+            self.wahl_job,
+            self.wahl_aufnahme,
+            *self.felder_nullpunkt.values(),
+            self.liste,
+            self.abspieler,
+        ):
+            widget.setEnabled(not gesperrt)
 
     def _hinsehen(self):
         if self.bild is not None:
