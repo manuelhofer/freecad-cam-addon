@@ -39,7 +39,8 @@ GROESSTE_NUMMER = 9999
 GROESSTE_SCHNEIDENZAHL = 20
 SYMBOL_GROESSE = 16  # Pixel, Kästchen mit dem ISO-Buchstaben
 # Felder mit Längen – gezeigt in mm oder inch, gespeichert in mm.
-LAENGEN = wz.LAENGEN_FELDER  # Felder mit Längeneinheit (mm oder in)
+# Felder mit Längeneinheit (mm oder in): die Maße der Arten und die Länge ab Spindelnase.
+LAENGEN = (*wz.LAENGEN_FELDER, "laenge_spindelnase")
 
 # Farben der ISO-Gruppen, wie auf Wendeplatten-Schachteln und in Katalogen:
 # (Hintergrund, Schrift).
@@ -293,6 +294,13 @@ class WerkzeugDialog(QtGui.QDialog):
                 zeile = mit_einheit(eingabe, "°")
             self._zahlenfelder[feld] = eingabe
             self._felder[feld] = (QtGui.QLabel(), zeile)
+        # Für alle Arten, unter ihren Maßen: die Länge ab Spindelnase, mit Halter – für
+        # „Auf der Maschine prüfen“ (W-001 Stufe 4a). Leer gilt die Gesamtlänge.
+        eingabe = self._zahlenfeld(tr("wv.laenge_spindelnase.tooltip"), "laenge_spindelnase")
+        self._zahlenfelder["laenge_spindelnase"] = eingabe
+        self.beschriftung_laenge_spindelnase = QtGui.QLabel(tr("wv.laenge_spindelnase"))
+        self.beschriftung_laenge_spindelnase.setToolTip(tr("wv.laenge_spindelnase.tooltip"))
+        self.zeile_laenge_spindelnase = self._mit_laenge(eingabe)
 
         self.feld_schneiden = QtGui.QSpinBox()
         self.feld_schneiden.setRange(1, GROESSTE_SCHNEIDENZAHL)
@@ -625,6 +633,8 @@ class WerkzeugDialog(QtGui.QDialog):
             beschriftung.hide()
             zeile.hide()
         for widget in (
+            self.beschriftung_laenge_spindelnase,
+            self.zeile_laenge_spindelnase,
             self.beschriftung_bezeichnung,
             self.feld_bezeichnung,
             self.beispiel_hinweis,
@@ -647,11 +657,13 @@ class WerkzeugDialog(QtGui.QDialog):
             beschriftung.show()
             zeile.show()
         unten = 2 + (len(daten.felder) + 1) // 2
-        gitter.addWidget(self.beschriftung_bezeichnung, unten, 0)
-        gitter.addWidget(self.feld_bezeichnung, unten, 1, 1, 3)
-        gitter.addWidget(self.beispiel_hinweis, unten + 1, 0, 1, 4)
-        gitter.addWidget(self.hinweis, unten + 2, 0, 1, 4)
-        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 3, 1, QtCore.Qt.AlignTop)
+        gitter.addWidget(self.beschriftung_laenge_spindelnase, unten, 0)
+        gitter.addWidget(self.zeile_laenge_spindelnase, unten, 1)
+        gitter.addWidget(self.beschriftung_bezeichnung, unten + 1, 0)
+        gitter.addWidget(self.feld_bezeichnung, unten + 1, 1, 1, 3)
+        gitter.addWidget(self.beispiel_hinweis, unten + 2, 0, 1, 4)
+        gitter.addWidget(self.hinweis, unten + 3, 0, 1, 4)
+        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 4, 1, QtCore.Qt.AlignTop)
 
     def _beispielfelder(self):
         return {
@@ -696,6 +708,13 @@ class WerkzeugDialog(QtGui.QDialog):
                 schaft = tr("wv.schaft.platzhalter.geschaetzt", wert=wert)
         self.feld_gesamtlaenge.setPlaceholderText(laenge)
         self.feld_schaft.setPlaceholderText(schaft)
+        # Leer gilt die Gesamtlänge – eingetragen oder geschätzt, ohne Halter.
+        gesamt = (w.gesamtlaenge or wz.geschaetzte_laenge(w)) if w is not None else 0.0
+        self.feld_laenge_spindelnase.setPlaceholderText(
+            tr("wv.laenge_spindelnase.platzhalter", wert=groesse_zeigen(gesamt, einheiten.LAENGE))
+            if gesamt
+            else tr("feld.unbekannt")
+        )
         # Leere Winkel: grau der übliche der Art (Bohrer 118°, Gewinde 60° …).
         for feld in wz.WINKEL_FELDER:
             ueblich = wz.ueblich(w.art, feld) if w is not None else 0.0

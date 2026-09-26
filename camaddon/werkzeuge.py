@@ -375,6 +375,9 @@ class Werkzeug:
     eckradius: float = 0.0  # mm, nur beim Torusfräser
     # Nur für CAM (Simulation, Kollision); 0 = geschätzt, siehe laenge_fuer_cam().
     gesamtlaenge: float = 0.0  # mm
+    # Von der Spindelnase (bzw. der Aufnahme im Revolver) bis zur Spitze, mit Halter –
+    # für „Auf der Maschine prüfen“ (reichweite.py). 0 = nicht gemessen: die Gesamtlänge.
+    laenge_spindelnase: float = 0.0  # mm
     schaft: float = 0.0  # Schaftdurchmesser, mm
     # Wie steil der Fräser höchstens eintauchen darf (Rampe, Helix), Grad; 0 = unbekannt.
     eintauchwinkel: float = 0.0
@@ -461,6 +464,7 @@ class Werkzeug:
             "schneidenlaenge": self.schneidenlaenge,
             "eckradius": self.eckradius,
             "gesamtlaenge": self.gesamtlaenge,
+            "laenge_spindelnase": self.laenge_spindelnase,
             "schaft": self.schaft,
             "eintauchwinkel": self.eintauchwinkel,
             "spitzenwinkel": self.spitzenwinkel,
@@ -495,6 +499,8 @@ class Werkzeug:
         # Erst seit P-2026-09-25-62 – in älteren Dateien fehlen sie: 0, geschätzt.
         w.gesamtlaenge = max(_zahl(daten.get("gesamtlaenge"), float, 0.0), 0.0)
         w.schaft = max(_zahl(daten.get("schaft"), float, 0.0), 0.0)
+        # Erst seit P-2026-09-26-86 – fehlt sie, gilt die Gesamtlänge.
+        w.laenge_spindelnase = max(_zahl(daten.get("laenge_spindelnase"), float, 0.0), 0.0)
         w.eintauchwinkel = min(max(_zahl(daten.get("eintauchwinkel"), float, 0.0), 0.0), 90.0)
         # Erst seit P-2026-09-26-43 – fehlt er, gilt der übliche.
         w.spitzenwinkel = min(max(_zahl(daten.get("spitzenwinkel"), float, 0.0), 0.0), 180.0)

@@ -223,6 +223,13 @@ pruefe(
     (wz.laenge_fuer_cam(w), wz.schaft_fuer_cam(w)) == (w.schneidenlaenge + 24, 12),
     f"geschätzt: {wz.laenge_fuer_cam(w)}, {wz.schaft_fuer_cam(w)}",
 )
+# Länge ab Spindelnase (für „Auf der Maschine prüfen“): gespeichert; alte Dateien ohne sie: 0.
+t1.laenge_spindelnase = 142.5
+pruefe(wz.Werkzeug.aus_dict(t1.als_dict()).laenge_spindelnase == 142.5, "Länge ab Spindelnase")
+ohne = {k: v for k, v in t1.als_dict().items() if k != "laenge_spindelnase"}
+pruefe(wz.Werkzeug.aus_dict(ohne).laenge_spindelnase == 0, "alte Datei: Länge ab Spindelnase")
+pruefe(wz.Werkzeug.aus_dict({**ohne, "laenge_spindelnase": -3}).laenge_spindelnase == 0, "negativ")
+t1.laenge_spindelnase = 0.0
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10)) == 40, "ohne Schneidenlänge: 2D + 2D")
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10, schneidenlaenge=2)) == 30, "mind. 3D")
 # Mit Hals reicht das Werkzeug weiter unter den Schaft: 15 + 20 + 2 × 10.

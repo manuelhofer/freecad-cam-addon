@@ -765,9 +765,9 @@
     "rw.werkzeug": "T{nummer} “{name}”",
     "rw.keine_werkstueckaufnahme": "The machine has no workpiece mount with an LCS – without one the check cannot tell where the job sits.",
     "rw.keine_werkzeugaufnahme": "The machine has no tool mount with an LCS – without one the check cannot tell where the tool sits.",
-    "rw.laenge_gesamt": "{werkzeug}: calculated with the overall length {laenge} – without holder.",
-    "rw.laenge_geschaetzt": "{werkzeug}: no overall length entered – calculated with an estimated {laenge}, without holder.",
-    "rw.laenge_cam": "{werkzeug}: calculated with the length of the CAM tool, {laenge} – without holder.",
+    "rw.laenge_gesamt": "{werkzeug}: calculated with the overall length {laenge} – without holder. More exact with the “Gauge length” in the tool manager.",
+    "rw.laenge_geschaetzt": "{werkzeug}: no overall length entered – calculated with an estimated {laenge}, without holder. More exact with the “Gauge length” in the tool manager.",
+    "rw.laenge_cam": "{werkzeug}: calculated with the length of the CAM tool, {laenge} – without holder. The tool is not in the tool manager, which would have the “Gauge length”.",
     "rw.ohne_controller": "“{operation}” has no tool controller – skipped.",
     "rw.platz_fehlt": "“{operation}”: turret {revolver} has no station P{nummer} for T{nummer} – skipped.",
     "rw.z_verkehrt": "The Z axis of the tool mount “{aufnahme}” points towards the workpiece. It should point from the tool tip to the mount – otherwise the tip ends up on the wrong side.",
@@ -793,5 +793,8 @@
     "rw.keine_punkte": "No path to check – the job's operations have no points.",
     "rw.bereiche": "What the path needs ({anzahl} points):",
     "rw.kein_job": "The active document has no CAM job. Open the document with the job – then this command checks its paths on a machine.",
-    "rw.keine_maschine": "No machine is open. Open the document with your machine – or create one with “New machine …”."
+    "rw.keine_maschine": "No machine is open. Open the document with your machine – or create one with “New machine …”.",
+    "wv.laenge_spindelnase": "Gauge length",
+    "wv.laenge_spindelnase.tooltip": "From the spindle nose (in a turret: from the tool mount) to the tip, with holder – as the presetter measures it. “Check on machine” uses it to see whether Z reaches. Empty: the overall length, without holder.",
+    "wv.laenge_spindelnase.platzhalter": "empty: overall length {wert}"
 }

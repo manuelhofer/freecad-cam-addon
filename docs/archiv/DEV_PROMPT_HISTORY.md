@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-86 laenge-ab-spindelnase
+
+### EINGELESEN
+- Manuel (2026-09-26), Frage 3 zu Stufe 4: „Eigenes Feld, vorbelegt“ – je
+  Werkzeug die Länge ab Spindelnase, mit Halter, wie am Voreinstellgerät;
+  leer gilt die Gesamtlänge.
+- Spezifikation Stufe 4a, Schritt 3. Die Werkzeugverwaltung ordnet die Maße
+  je Art an (`_felder_anordnen`); Felder für alle Arten (Bezeichnung) stehen
+  darunter.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (Feld `laenge_spindelnase`, speichern und laden)
+- `camaddon/gui_werkzeuge.py` (Feld unter den Maßen, grau die Gesamtlänge)
+- `camaddon/reichweite.py` (nimmt die Länge ab Spindelnase)
+- `translations/de.json`, `translations/en.json` (3 neue Texte, 3 Hinweise
+  ergänzt)
+- `help/de/werkzeuge.html`, `help/en/werkzeuge.html`
+- `tests/test_werkzeuge.py`, `tests/test_reichweite.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py`
+- `docs/spezifikation_simulation.md`, `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In der Werkzeugverwaltung hat jedes Werkzeug das Feld „Länge ab
+Spindelnase“; leer steht grau „leer: Gesamtlänge 50“. Eingetragen, rechnet
+„Auf der Maschine prüfen“ damit – ohne Hinweis zur Länge.
+
+### DONE
+- Werkzeug: `laenge_spindelnase` (mm, 0 = nicht gemessen), gespeichert;
+  ältere Dateien ohne das Feld laden mit 0, negative Werte werden 0.
+- Werkzeugverwaltung: das Feld bei allen Arten unter den Maßen, über
+  „Bezeichnung“, mit Längeneinheit (mm/inch wie die anderen Längen); leer
+  grau „leer: Gesamtlänge …“ – eingetragen oder geschätzt; Tooltip: von der
+  Spindelnase (im Revolver von der Werkzeugaufnahme) bis zur Spitze, mit
+  Halter, wofür es gebraucht wird.
+- Prüfung: Ist die Länge ab Spindelnase eingetragen, gilt sie (Quelle
+  `LAENGE_SPINDELNASE`, kein Hinweis). Sonst sagen die Hinweise zur
+  Gesamtlänge bzw. geschätzten Länge „Genauer mit der „Länge ab
+  Spindelnase“ in der Werkzeugverwaltung.“, der zum CAM-Werkzeug, dass es
+  nicht in der Werkzeugverwaltung steht.
+- Hilfe „Werkzeugverwaltung“: eigener Punkt „Länge ab Spindelnase“.
+
+### TEST
+- `test_werkzeuge`: speichern/laden, alte Datei ohne Feld, negativer Wert.
+  `test_reichweite`: mit 110 mm Länge ab Spindelnase steht Z1 60 mm höher
+  als mit den 50 mm des CAM-Werkzeugs, kein Hinweis zur Länge; die Hinweise
+  mit ihrem zweiten Satz. Beide Versionen grün, dazu `test_sprache`,
+  `test_hilfe`.
+- `szenario_werkzeugverwaltung` (Feld sichtbar, grau „leer: Gesamtlänge
+  50“, 115 eintragen und leeren), `szenario_reichweite`, `szenario_hilfe` –
+  beide Versionen grün. Screenshot angesehen: das Feld unter den Maßen, über
+  „Bezeichnung“.
+
+### NEXT
+- Schritt 4: Version 0.22.0, README, voller Lauf, Push.
+
 ## P-2026-09-26-85 reichweite-fenster
 
 ### EINGELESEN

@@ -233,12 +233,14 @@ def werkzeuglaenge(tc, bibliothek):
     """(Länge in mm, Quelle): von der Werkzeugaufnahme bis zur Spitze.
 
     Aus der Werkzeugverwaltung, wenn das Werkzeug dort steht (wie „Schnittwerte
-    in den Job“: über die Kennung, sonst Nummer und Durchmesser) – die
-    Gesamtlänge, ohne Halter; fehlt sie, geschätzt wie für CAM. Sonst die
-    Länge des CAM-Werkzeugs.
+    in den Job“: über die Kennung, sonst Nummer und Durchmesser): die Länge ab
+    Spindelnase, mit Halter – sonst die Gesamtlänge, ohne Halter; fehlt auch
+    sie, geschätzt wie für CAM. Sonst die Länge des CAM-Werkzeugs.
     """
     werkzeug = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
     if werkzeug is not None:
+        if werkzeug.laenge_spindelnase:
+            return werkzeug.laenge_spindelnase, LAENGE_SPINDELNASE
         if werkzeug.gesamtlaenge:
             return werkzeug.gesamtlaenge, LAENGE_GESAMT
         return wz.geschaetzte_laenge(werkzeug), LAENGE_GESCHAETZT

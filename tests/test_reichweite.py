@@ -150,7 +150,9 @@ pruefe(t1.startswith("T1 „"), t1)
 pruefe(
     e.hinweise
     == [
-        f"{t1}: gerechnet mit der Länge des CAM-Werkzeugs, 50.00 mm – ohne Halter.",
+        f"{t1}: gerechnet mit der Länge des CAM-Werkzeugs, 50.00 mm – ohne Halter. Das "
+        "Werkzeug steht nicht in der Werkzeugverwaltung; dort gäbe es die „Länge ab "
+        "Spindelnase“.",
         "„Eigene“: Den Befehl G28 kennt die Prüfung nicht – übergangen.",
     ],
     f"Hinweise: {e.hinweise}",
@@ -165,7 +167,9 @@ bibliothek = wz.Bibliothek([wz.Werkzeug(nummer=1, durchmesser=5.0, gesamtlaenge=
 e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
 pruefe(bereich(e, "Z1") == (-78.0, -60.0), f"Z1 mit 60 mm: {bereich(e, 'Z1')}")
 pruefe(
-    e.hinweise[0] == f"{t1}: gerechnet mit der Gesamtlänge 60.00 mm – ohne Halter.",
+    e.hinweise[0]
+    == f"{t1}: gerechnet mit der Gesamtlänge 60.00 mm – ohne Halter. Genauer mit der „Länge "
+    "ab Spindelnase“ in der Werkzeugverwaltung.",
     f"Hinweis Gesamtlänge: {e.hinweise}",
 )
 bibliothek.werkzeuge[0].gesamtlaenge = 0.0
@@ -174,8 +178,16 @@ geschaetzt = wz.geschaetzte_laenge(bibliothek.werkzeuge[0])
 pruefe(
     e.hinweise[0]
     == f"{t1}: keine Gesamtlänge eingetragen – gerechnet mit geschätzten {geschaetzt:.2f} mm, "
-    "ohne Halter.",
+    "ohne Halter. Genauer mit der „Länge ab Spindelnase“ in der Werkzeugverwaltung.",
     f"Hinweis geschätzt: {e.hinweise}",
+)
+# Mit der Länge ab Spindelnase (110 mm, mit Halter): Sie gilt, ohne Hinweis zur Länge.
+bibliothek.werkzeuge[0].laenge_spindelnase = 110.0
+pruefe(rw.werkzeuglaenge(op.ToolController, bibliothek) == (110.0, rw.LAENGE_SPINDELNASE), "")
+e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
+pruefe(bereich(e, "Z1") == (-28.0, -10.0), f"Z1 mit 110 mm: {bereich(e, 'Z1')}")
+pruefe(
+    not any("Länge" in h for h in e.hinweise), f"Hinweis trotz Länge ab Spindelnase: {e.hinweise}"
 )
 
 # Innerhalb der Grenzen: ein Vollkreis (Umkehrstellen in X und Y), G18-Halbkreis.

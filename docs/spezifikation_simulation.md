@@ -116,7 +116,7 @@ vier Schritten:
 3. **Länge ab Spindelnase** als Feld der Werkzeugverwaltung (alle Arten,
    leer gilt die Gesamtlänge); die Prüfung findet das Werkzeug zum
    Werkzeug-Controller wie „Schnittwerte in den Job“, sonst gilt die Länge
-   des CAM-Werkzeugs – mit Hinweis.
+   des CAM-Werkzeugs – mit Hinweis. *Gebaut (P-2026-09-26-86).*
 4. Version, voller Lauf, Push.
 
 **4b – Abfahren**

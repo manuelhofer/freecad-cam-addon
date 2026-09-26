@@ -141,7 +141,8 @@ Wunschliste, offene Bugs und Tasks.
    5, 6 und 10 (P-2026-09-26-83), vier Schritte: Rechenkern, Fenster,
    Länge ab Spindelnase, Version. Schritt 1 fertig (P-2026-09-26-84:
    `reichweite.py`, an allen Beispielmaschinen nachgemessen), Schritt 2
-   fertig (-85: Befehl und Fenster, Klick fährt hin).*
+   fertig (-85: Befehl und Fenster, Klick fährt hin), Schritt 3 fertig
+   (-86: „Länge ab Spindelnase“ in der Werkzeugverwaltung).*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -206,14 +207,16 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    Rundachse A/B/C umschalten (die Stange liegt in X, Y oder Z); „+90°“;
    „Anlegen“ → Job „… – 4 Achsen“ mit Zylinder-Rohteil, ein Strg+Z nimmt
    alles zurück. Versteht man das Fenster ohne Erklärung?
-7. **Auf der Maschine prüfen** (P-2026-09-26-84 bis -85): „Neue Maschine …“
+7. **Auf der Maschine prüfen** (P-2026-09-26-84 bis -86): „Neue Maschine …“
    → 3-Achs-Fräse bauen; ein Teil mit CAM-Job öffnen (etwa eine Tasche),
    den Job im Baum wählen → Werkzeugleiste „CAM-Addon“ → **Auf der
    Maschine prüfen** → das Fenster öffnet sich bei der Maschine, grün „Alle
    Achsen bleiben in ihren Grenzen.“; unter „Nullpunkt des Jobs“ bei X 300
    eintragen → rot eine Überschreitung von X1; draufklicken → der Tisch
    fährt an den Anschlag; Schließen → alles zurück, das Teil ist wieder
-   vorn. Versteht man das Fenster ohne Erklärung, passt der Vorschlag für
+   vorn. In der Werkzeugverwaltung beim Werkzeug „Länge ab Spindelnase“
+   eintragen (mit Halter) → der Hinweis zur Länge verschwindet, Z rechnet
+   damit. Versteht man das Fenster ohne Erklärung, passt der Vorschlag für
    den Nullpunkt?
 8. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,

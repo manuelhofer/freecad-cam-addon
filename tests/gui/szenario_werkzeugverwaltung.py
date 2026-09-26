@@ -131,6 +131,18 @@ def schritte(h):
     tippen(d.feld_gesamtlaenge, "")
     yield 100
     h.pruefe(d.werkzeug.gesamtlaenge == 0 and not d.hinweis.isVisible(), "Gesamtlänge leeren")
+    # Länge ab Spindelnase (für „Auf der Maschine prüfen“): bei jeder Art; leer grau die
+    # Gesamtlänge, eingetragen am Werkzeug.
+    h.pruefe(d.feld_laenge_spindelnase.isVisible(), "Länge ab Spindelnase fehlt")
+    grau = d.feld_laenge_spindelnase.placeholderText()
+    h.pruefe(grau == "leer: Gesamtlänge 50", f"Länge ab Spindelnase leer: {grau!r}")
+    tippen(d.feld_laenge_spindelnase, "115")
+    yield 100
+    h.pruefe(d.werkzeug.laenge_spindelnase == 115, f"eingetragen: {d.werkzeug.laenge_spindelnase}")
+    h.bild("5b_laenge_spindelnase", d)
+    tippen(d.feld_laenge_spindelnase, "")
+    yield 100
+    h.pruefe(d.werkzeug.laenge_spindelnase == 0, "Länge ab Spindelnase leeren")
 
     # Name wie in der Steuerung: leer grau der Beispielname, eingetragen in der Liste.
     grau = d.feld_name.placeholderText()

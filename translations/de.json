@@ -765,9 +765,9 @@
     "rw.werkzeug": "T{nummer} „{name}“",
     "rw.keine_werkstueckaufnahme": "Die Maschine hat keine Werkstückaufnahme mit LCS – ohne sie weiß die Prüfung nicht, wo der Job liegt.",
     "rw.keine_werkzeugaufnahme": "Die Maschine hat keine Werkzeugaufnahme mit LCS – ohne sie weiß die Prüfung nicht, wo das Werkzeug sitzt.",
-    "rw.laenge_gesamt": "{werkzeug}: gerechnet mit der Gesamtlänge {laenge} – ohne Halter.",
-    "rw.laenge_geschaetzt": "{werkzeug}: keine Gesamtlänge eingetragen – gerechnet mit geschätzten {laenge}, ohne Halter.",
-    "rw.laenge_cam": "{werkzeug}: gerechnet mit der Länge des CAM-Werkzeugs, {laenge} – ohne Halter.",
+    "rw.laenge_gesamt": "{werkzeug}: gerechnet mit der Gesamtlänge {laenge} – ohne Halter. Genauer mit der „Länge ab Spindelnase“ in der Werkzeugverwaltung.",
+    "rw.laenge_geschaetzt": "{werkzeug}: keine Gesamtlänge eingetragen – gerechnet mit geschätzten {laenge}, ohne Halter. Genauer mit der „Länge ab Spindelnase“ in der Werkzeugverwaltung.",
+    "rw.laenge_cam": "{werkzeug}: gerechnet mit der Länge des CAM-Werkzeugs, {laenge} – ohne Halter. Das Werkzeug steht nicht in der Werkzeugverwaltung; dort gäbe es die „Länge ab Spindelnase“.",
     "rw.ohne_controller": "„{operation}“ hat keinen Werkzeug-Controller – übergangen.",
     "rw.platz_fehlt": "„{operation}“: Für T{nummer} gibt es am Revolver {revolver} keinen Platz P{nummer} – übergangen.",
     "rw.z_verkehrt": "Die Z-Achse der Werkzeugaufnahme „{aufnahme}“ zeigt zum Werkstück. Sie soll von der Werkzeugspitze zur Aufnahme zeigen – sonst liegt die Spitze auf der falschen Seite.",
@@ -793,5 +793,8 @@
     "rw.keine_punkte": "Keine Bahn zum Prüfen – die Operationen des Jobs haben keine Punkte.",
     "rw.bereiche": "Was die Bahn braucht ({anzahl} Punkte):",
     "rw.kein_job": "Im aktiven Dokument gibt es keinen CAM-Job. Öffne das Dokument mit dem Job – dann prüft dieser Befehl seine Bahnen auf einer Maschine.",
-    "rw.keine_maschine": "Es ist keine Maschine offen. Öffne das Dokument mit deiner Maschine – oder leg mit „Neue Maschine …“ eine an."
+    "rw.keine_maschine": "Es ist keine Maschine offen. Öffne das Dokument mit deiner Maschine – oder leg mit „Neue Maschine …“ eine an.",
+    "wv.laenge_spindelnase": "Länge ab Spindelnase",
+    "wv.laenge_spindelnase.tooltip": "Von der Spindelnase (im Revolver: von der Werkzeugaufnahme) bis zur Spitze, mit Halter – so, wie das Voreinstellgerät sie misst. Damit rechnet „Auf der Maschine prüfen“, ob Z reicht. Leer gilt die Gesamtlänge, ohne Halter.",
+    "wv.laenge_spindelnase.platzhalter": "leer: Gesamtlänge {wert}"
 }
