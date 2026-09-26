@@ -6,6 +6,7 @@ Wunschliste, offene Bugs und Tasks.
 ## Projektstatus
 - **IN ARBEIT** – W-001, Stufen 1 bis 3 fertig und automatisch geprüft; warten auf Manuels Test. Jetzt Stufe 3b (schräge Achse, Punkt 11 unten), danach Stufe 4 (Werkzeugbahn abfahren, Kollision – eigene Spezifikation).
 - **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
+- **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen fertig (P-2026-09-26-78), jetzt Stufe V1 (Punkt 12 unten).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
   und Wochen-Build 26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien
   grün; in 1.1.3 ist der Export übersprungen (gibt es dort nicht).
@@ -116,6 +117,18 @@ Wunschliste, offene Bugs und Tasks.
    (-75: Befehl „Neue Maschine …“, Maße der Drehmaschine). Stufe 3b damit
    komplett.*
 
+*4-Achs-Bearbeitung (W-003, Manuel 2026-09-26)*
+12. **Teil in eine runde Stange, rundum schruppen und schlichten:**
+   Stirnfläche anklicken → das Teil sitzt mittig vorne in der Stange (z. B.
+   Ø 80); Flächen anklicken („alle Mantelflächen“, ein außermittiger
+   Zylinder); aus Fräser und Stange entstehen Schrupp- und Schlichtbahn –
+   egal ob A, B oder C, auch auf einer Drehmaschine mit C und Y. Assistent in
+   vier Schritten, eigener Rechenkern (1.1.3 und Wochen-Build), Ausgabe als
+   reine Achskoordinaten, alles einstellbar mit Vorschlägen. –
+   *Spezifikation: [spezifikation_vierachs.md](spezifikation_vierachs.md)
+   (P-2026-09-26-78), neun Stufen V1–V9 in Abschnitt 13; als Nächstes V1
+   „Teil in die Stange“.*
+
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
 das Repository öffentlich stellen (T-005), dann installiert die Zeile aus
@@ -193,6 +206,11 @@ Ein Satz je Wunsch, W-ID fortlaufend.
   Werkstoff und Einsatz; Strategien vergleichen (Zeitspanvolumen,
   Verschleiß). Spezifikation im Entwurf:
   [spezifikation_werkzeugverwaltung.md](spezifikation_werkzeugverwaltung.md).
+- **W-003 4-Achs-Bearbeitung am runden Rohteil** – ein Teil mit einer
+  Stirnfläche vorne mittig in eine runde Stange legen, Flächen anklicken und
+  daraus Schrupp- und Schlichtbahnen für eine Rundachse (A, B oder C, auch
+  Drehmaschine mit C und Y) erzeugen lassen. Spezifikation:
+  [spezifikation_vierachs.md](spezifikation_vierachs.md).
 
 ## Offene Bugs
 

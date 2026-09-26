@@ -12,6 +12,85 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-78 spezifikation-vierachs
+
+### EINGELESEN
+- Manuel (2026-09-26): „Ich hätte gerne einen Plan gemacht für eine
+  4-Achs-Bearbeitung … egal ob es eine C- oder B-Achse ist … auch auf einer
+  CLX 550 mit Y-Achse funktionieren. Ich habe ein Bauteil, das ich an ein
+  rundes Rohteil im CAM befestigen kann … Stange rund Durchmesser 80 … wähle
+  eine Fläche, diese Fläche soll vorne an das Rohteil … zentrisch, dass
+  versucht wird, das komplette Bauteil in das Rohteil zu bekommen. Dann
+  klickt man die Flächen an, alle Mantelflächen oder einen Zylinder, der
+  nicht mittig ist, und dann wird aus Kombination Fräser und Rohteil eine
+  Schrupp- und danach eine Schlicht-Strategie erstellt. Maximal
+  bedienerfreundlich.“
+- Seine Wahl aus vier Fragen mit Optionen: eigener Rechenkern (statt FreeCADs
+  „Rotary Surface“ oder beides); zuerst rundum simultan (statt indexiert);
+  Achse „am besten von Maschine, ansonsten dreht sich das Rohteil … und dem
+  muss man eine Achse zuweisen“; Assistent in vier Schritten. Zum Plan: „Ist
+  das egal welche Maschine … Es gibt Achsen, und die Punkte müssen halt via
+  Koordinate im G-Code 0,001 mm nach und nach angefahren werden … oder halt
+  mit einem Glättungsfilter“ und „Abstechbreite kann man ja einstellen … so
+  dass alles einstellbar ist, aber mit Vorschlägen als Standard“. Dann:
+  „Gleich V1 bauen“.
+- Addon: `job_schnittwerte.py`, `uebergabe_werkzeuge.py`, `werkzeuge.py`,
+  `schnittdaten.py`, `schruppwerte.py`, `maschine.py` (`rollen`,
+  `programmname`), `kette.py`, `verfahren.py` (`plusrichtung`),
+  `schraege_achse.py`, `beispielmaschine.py`, `export.py`, `gui_maschine.py`,
+  `gui_verfahren.py`, `gui_zeigen.py`, `gui_start.py`, die drei
+  Spezifikationen, `aufbau.md`.
+- FreeCAD-Quelltext 1.1.3 und `main` (raw.githubusercontent.com):
+  `Path/Op/Surface.py` (Rotational: OCL, nur A/B, Schalter „advanced OCL“),
+  `Path/Dressup/Gui/AxisMap.py`, `Path/Op/RotarySurface.py` und
+  `Path/Base/Generator/rotary_*.py` (nur `main`, experimentell, OCL, nur
+  Achse X/Y), `Path/Main/Workplane.py` (nur `main`), `Path/Op/Base.py`
+  (`DoNotSetDefaultValues`, `setDefaultValues` fragt nach Job und
+  Controller), `Path/Main/Job.py` (`Create`, `setCenterOfRotation`),
+  `Path/Main/Gui/Job.py` (`Create` mit eigener Transaktion),
+  `Path/Main/Stock.py` (`CreateCylinder`), `App/PathSegmentWalker.cpp`
+  (Anzeige von A/B/C), `Constants.py` (G93 im generischen Postprozessor),
+  conda-forge-Rezept von FreeCAD (numpy ja, OpenCamLib nein).
+- Gegenprüfung des Entwurfs durch einen Planungs-Agenten.
+
+### DATEIEN
+- `docs/spezifikation_vierachs.md` (neu)
+- `docs/STATUS_SNAPSHOT.md` (Projektstatus, Punkt 12, W-003)
+- `CHATSTART.md` (Lesekarte)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Manuel findet in `docs/spezifikation_vierachs.md` seine Entscheidungen, den
+Klickweg durch die vier Schritte mit Skizzen und die Stufen mit je einem
+Klickweg wieder.
+
+### DONE
+- Spezifikation W-003: Zielbild mit Klickweg, was FreeCAD und das Addon
+  schon haben, Begriffe mit Skizze der Rundachs-Koordinaten, Achsen von der
+  Maschine oder zugewiesen (Tabelle A/B/C), die vier Schritte mit
+  ASCII-Skizzen, Rechenkern (Torus-Modell für alle drei Fräser, exaktes
+  Aufmaß, Hüllfläche mit numpy, Lagen, Spirale, Rückzug, Ausgabe als reine
+  Achskoordinaten mit Glättung, Vorschub G93), die CAM-Operation mit ihren
+  Stolpersteinen, Bedienung, Grenzen, neun Stufen V1–V9, Prüfbarkeit,
+  Claudes Vorschläge, Manuels Entscheidungen.
+- Gefunden beim Lesen: `Job.setCenterOfRotation` setzt den Mittelpunkt an
+  einer Kopie – die Rundachse liegt deshalb durch den Nullpunkt des Jobs.
+  Eine Operation, die ohne `DoNotSetDefaultValues` angelegt wird, fragt bei
+  mehreren Jobs oder Controllern nach (in FreeCADCmd ein Fehler).
+- Versuch (Claude, ohne Oberfläche, 1.1.3 und Wochen-Build): Job anlegen,
+  Lage des Modell-Klons setzen, Rohteil durch `CreateCylinder` ersetzen – der
+  Klon liegt wie das Original und folgt `T · P0` genau, die Flächennummern
+  bleiben, ein Rückgängig entfernt alles. numpy da, OpenCamLib in keiner der
+  beiden Testumgebungen.
+- Bewusst offen: indexiert 3+1, axiales Werkzeug, Drehen – spätere Stufen
+  oder eigene Wünsche; Claudes Vorschläge (Abschnitt 15) zur Besprechung.
+
+### TEST
+Reine Doku, kein Testlauf.
+
+### NEXT
+- W-003 V1: „Teil in die Stange“ (Befehl, Schritt 1, Prüfung, Szenario).
+
 ## P-2026-09-26-77 version-0-20-0
 
 ### EINGELESEN

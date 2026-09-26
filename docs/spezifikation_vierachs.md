@@ -1,0 +1,577 @@
+# Spezifikation W-003: 4-Achs-Bearbeitung am runden Rohteil
+
+Stand: **Entwurf von Claude mit Manuels Entscheidungen** vom 2026-09-26
+(P-2026-09-26-78, am Ende unter „Entschieden“). Die Vorschläge in
+Abschnitt 15 hat Claude getroffen; sie sind zur Besprechung da. Gebaut wird
+Stufe für Stufe (Abschnitt 13), jede ein Patch mit Klickweg – als Erstes V1.
+
+Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
+(W-001: Maschine, Achsen, Aufnahmen),
+[spezifikation_werkzeugverwaltung.md](spezifikation_werkzeugverwaltung.md)
+(W-002: Werkzeuge, Einsätze, Schnittwerte),
+[spezifikation_simulation.md](spezifikation_simulation.md) (W-001 Stufe 4:
+Bahn auf der Maschine abfahren).
+
+## 1. Zielbild
+
+Manuel (2026-09-26): „Ich habe ein Bauteil, das ich an ein rundes Rohteil im
+CAM befestigen kann … sagen wir mal eine Stange rund Durchmesser 80. Und ich
+nehme das Bauteil und wähle eine Fläche; diese Fläche soll sozusagen vorne an
+das Rohteil … zentrisch, dass versucht wird, das komplette Bauteil in das
+Rohteil zu bekommen. Dann klickt man die Flächen an, sagen wir alle
+Mantelflächen oder einen Zylinder, der nicht mittig ist, und dann wird aus
+Kombination Fräser und Rohteil eine Schrupp- und danach eine
+Schlicht-Strategie erstellt. Maximal bedienerfreundlich das Ganze.“ Dabei soll
+es egal sein, ob die Rundachse C, B oder A heißt – es soll auch auf einer
+Drehmaschine wie der CLX 550 mit Y-Achse gehen.
+
+**Klickweg, wenn alles gebaut ist:**
+
+1. Teil anklicken, dann seine Stirnfläche → Werkzeugleiste „CAM-Addon“ →
+   **„4-Achs-Bearbeitung“**.
+2. **Rohteil:** Stange Ø 80 eintragen – das Teil fährt in die Stange und
+   dreht sich einmal um die Achse; das Fenster sagt „Passt – rundum
+   mindestens 4,0 mm“.
+3. **Flächen:** „Alle Mantelflächen“ – oder nur den außermittigen Zylinder
+   anklicken.
+4. **Werkzeuge:** Schruppfräser und Schlichtfräser wählen; Drehzahl,
+   Vorschub, Zustellung und Schrittweite kommen aus der Werkzeugverwaltung.
+5. **Anlegen:** Es entstehen ein Job mit der Stange, zwei
+   Werkzeug-Controller und die Operationen „Rundum schruppen T1“ und „Rundum
+   schlichten T2“ – ein Strg+Z nimmt alles zurück. Die Bahnen liegen in der
+   3D-Ansicht sichtbar um das Teil, der Postprozessor schreibt Sätze mit C
+   (bzw. A oder B).
+
+## 2. Was es schon gibt
+
+**In FreeCAD** (Quelltext 1.1.3 und `main` gelesen, P-2026-09-26-78):
+
+| Baustein | 1.1.3 (Manuels Version) | Wochen-Build | Taugt für W-003? |
+| --- | --- | --- | --- |
+| 3D-Oberfläche „Rotational“ (`Path/Op/Surface.py`) | nur mit OpenCamLib und dem Schalter „advanced OCL features“ | ja | nein: nur A oder B, die erste Lage beginnt an der Ecke der Hüllbox statt an der Stange |
+| Dressup „Axis Map“ | ja | ja | nein: wickelt eine 2D-Bahn auf einen **festen** Radius – Mantelflächen haben keinen |
+| „Rotary Surface“ (`Path/Op/RotarySurface.py`: Spirale, Ringe, Linien, Lagen ab dem Stangenradius) | **fehlt** | nur mit Experimentier-Schalter, OpenCamLib und CAM-Maschine im Job; Achse nur entlang X oder Y („Rotary axis along world Z is not supported in v1“); Aufmaß nur radial | nein: nicht in 1.1.3, nicht für die C-Achse einer Drehmaschine |
+| Arbeitsebenen (Workplanes: normale Operationen 3+2 angestellt) | fehlt | ja | später, für „indexiert“ (Abschnitt 12) |
+| Bahnanzeige mit A/B/C (`App/PathSegmentWalker.cpp`: A dreht um X, B um Y, C um Z, um `Path.Center`) | ja | ja | **ja** – wenn die Rundachse durch den Nullpunkt des Jobs geht; `Job.setCenterOfRotation` wirkt nicht zuverlässig (setzt den Mittelpunkt an einer Kopie) |
+| `Path.Main.Job.Create`, `Path.Main.Stock.CreateCylinder` | ja, im **aktiven** Dokument | ja | **ja** |
+| Eigene Operation als Unterklasse von `Path.Op.Base.ObjectOp`, angelegt mit `DoNotSetDefaultValues` | ja | ja (dazu Workplane-Logik) | **ja** – so baut FreeCAD jede seiner Operationen |
+| numpy | feste Abhängigkeit von FreeCAD (numpy 2.4 in 1.1.3) | ja (2.5) | **ja** |
+| OpenCamLib | **keine** feste Abhängigkeit – in beiden Testumgebungen nicht vorhanden | ebenso | nicht voraussetzen |
+
+**Im Addon:**
+
+| Baustein | Wo | Nutzen |
+| --- | --- | --- |
+| Werkzeuge, Einsätze, Schnittwerte je Werkstoff | `werkzeuge.py` (`mass`, `reichweite`), `schnittdaten.py` | Schrupp- und Schlichtwerte, Länge des Fräsers |
+| Werkzeuge an CAM, Controller, Werkstoff am Rohteil | `uebergabe_werkzeuge.uebergeben`, `job_schnittwerte.lege_controller_an`, `werkstoff_des_jobs`, `setze_werkstoff_am_rohteil` | Controller in den Job |
+| Maschine mit Achsen, Aufnahmen, Rollen, schräger Achse | `maschine.py` (`rollen`, `programmname`), `kette.py`, `verfahren.plusrichtung`, `schraege_achse.programmrichtung` | welche Achse dreht, woher das Werkzeug kommt |
+| Hervorheben, Wackeln, Widgets, Zahlen, Einheiten, Hilfe | `gui_zeigen.py`, `gui_teile.py`, `gui_zahlen.py`, `einheiten.py`, `gui_hilfe.kopfzeile` | Bedienung |
+
+**Was fehlt ganz:** Flächen in der 3D-Ansicht anklicken, Job und Rohteil
+anlegen, Bahnen erzeugen. Deshalb (Manuels Entscheidung 1) ein **eigener
+Rechenkern**: Er läuft in 1.1.3 und im Wochen-Build, mit A, B oder C, auch
+auf der Drehmaschine mit radialem Werkzeug.
+
+## 3. Begriffe
+
+- **Rundachse** – die Achse, die das Werkstück dreht (A, B oder C).
+- **Stange** – das runde Rohteil; ihre Mittellinie ist die Rundachse.
+- **Vorne** – das freie Ende der Stange, weg vom Futter.
+- **Stirnfläche** – die ebene Fläche des Teils, die vorne an der Stange
+  liegen soll. **Mantelfläche** – jede Fläche, die zur Seite schaut (nicht
+  nach vorne oder hinten).
+- **Planaufmaß** – so viel steht die Stange vorne über das Teil hinaus.
+  **Abstechbreite** – Platz hinter dem Teil fürs Abstechen oder Absägen.
+  **Spannlänge** – so lang steckt die Stange im Futter.
+- **Schlichtaufmaß** – so viel lässt das Schruppen für das Schlichten stehen.
+- **Hüllfläche** – wie tief die Werkzeugspitze an jeder Stelle kommt, ohne das
+  Teil zu verletzen.
+- **Rundachs-Koordinaten** – so rechnet das Addon, egal wie die Maschine
+  aussieht:
+
+```
+                 r (Werkzeugspitze bis Achse)
+                 ↓  Werkzeug kommt von außen
+  Futter │       ┃
+  ███████│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+  ███████│   Stange          Teil              ┃ vorne
+  ███████│─────────────────── Rundachse ───────╂──────► a (längs)
+  ███████│                                     ┃
+  ███████│━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+         │← Spannlänge →│← Abstich →│← Teil →│← Planaufmaß
+                                    a ≤ 0     a = 0 an der Stirnfläche
+  φ = Drehwinkel um die Achse, q = seitlich (in W-003 immer 0)
+```
+
+  a = 0 liegt in der gewählten Stirnfläche, das Teil bei a ≤ 0 – wie Z0 an
+  der Drehmaschine.
+
+## 4. Achsen – von der Maschine oder zugewiesen
+
+Manuel: „Am besten von der Maschine, ansonsten dreht sich das Rohteil … und
+so auch das Bauteil, und dem muss man eine Achse zuweisen.“
+
+**Mit einer Maschine aus W-001** (in einem offenen Dokument):
+
+- **Rundachse** = die Betriebsart „Positionieren“, die `maschine.rollen()`
+  dem Tisch zuordnet – bei der Beispiel-Drehmaschine C1.
+- **Längs** („vorne“) = Z des LCS der Werkstückaufnahme (zeigt vom Futter
+  weg). **Radial** = Z des LCS der gewählten **radialen** Werkzeugaufnahme,
+  etwa Revolverplatz P1. **Quer** = längs × radial.
+- Welche Programmachse das jeweils ist, sagt der Vergleich mit den
+  Linearachsen (größter Betrag des Kosinus, mit Vorzeichen;
+  `verfahren.plusrichtung`, Tischachsen umgekehrt; eine schräge Achse über
+  `schraege_achse.programmrichtung`). Die Buchstaben kommen aus den Namen:
+  `maschine.programmname()` macht aus C1 ein C.
+- So ist egal, dass beim Schrägbett die Welt-Achsen nicht die der Maschine
+  sind. Gibt es mehrere Möglichkeiten (zwei Rundachsen, mehrere radiale
+  Plätze), fragt der Assistent in Schritt 1 nach. An der Maschine wird nichts
+  gespeichert: Die Drehrichtung kommt aus dem Gelenk.
+
+**Ohne Maschine** dreht die Stange mit dem Teil um ihre eigene Achse, und
+man weist ihr den Buchstaben zu:
+
+| Rundachse | Stange liegt längs (vorne) | Werkzeug kommt aus | quer |
+| --- | --- | --- | --- |
+| A | +X | +Z (von oben) | Y |
+| B | +Y | +Z (von oben) | X |
+| C | +Z | +X (wie an der Drehmaschine) | Y |
+
+Die zuletzt gewählte gilt beim nächsten Mal als Vorschlag.
+
+**Lage im Job:** Die Stange liegt so, dass die Rundachse durch den Nullpunkt
+des Jobs geht – bei A entlang X, bei B entlang Y, bei C entlang Z. Dann legt
+FreeCADs Bahnanzeige die Bahn ohne weiteres Zutun richtig um das Teil. X (bzw.
+der radiale Buchstabe) ist der **Radius**, der Abstand zur Achse.
+
+## 5. Schritt 1: Rohteil
+
+**Rechnung:**
+
+- Die angeklickte Fläche muss eben sein. Ihre **Außennormale** wird zur
+  Stangenachse nach vorne; a = 0 liegt in der Fläche.
+- **Mitte** – zwei Möglichkeiten, jede mit dem Ø, den die Stange dann
+  mindestens braucht:
+  - „**Mitte der runden Fläche**“: Ist die Außenkante der Fläche ein Kreis
+    (auch aus mehreren Bögen mit gleicher Mitte), sitzt dessen Mitte auf der
+    Achse; sonst der Schwerpunkt der Fläche.
+  - „**Ganzes Teil möglichst mittig**“: der kleinste Kreis um alle Punkte
+    des Teils, in Achsrichtung gesehen (Punkte aus der Tessellierung, erst die
+    konvexe Hülle, dann Welzl).
+  - **Vorschlag:** die runde Fläche, wenn es eine ist und das Teil so in die
+    Stange passt – sonst das ganze Teil. Beispiel: Welle Ø 60 mit einem
+    Nocken, der bis 36 mm von der Wellenachse reicht → mittig auf der
+    Welle braucht Ø 72,0, das ganze Teil möglichst mittig nur Ø 66,0; bei
+    einer Stange Ø 80 bleibt die Welle mittig, mit 4,0 mm Aufmaß rundum.
+- **Drehlage** um die Achse: Feld in Grad und Knopf „+90°“.
+- **Stange Ø:** Vorschlag grau – der nächste 5-mm-Schritt (Zoll: 1/8") mit
+  mindestens 1 mm am Radius. Passt das Teil, sagt eine grüne Zeile „Passt –
+  rundum mindestens … mm“, sonst eine rote „Passt nicht: Das Teil braucht
+  Ø … – etwa eine Stange Ø …“.
+- **Länge** = Planaufmaß (Vorschlag 1 mm) + Teil + Abstechbreite (3 mm) +
+  Spannlänge (30 mm) – grau angezeigt.
+
+**Wirkung im Dokument** (alles in der Transaktion des Assistenten):
+
+- ein **neuer Job** (`Path.Main.Job.Create` – nicht FreeCADs Befehl, der
+  öffnet eine eigene Transaktion), mit der Anzeige des Jobs wie bei FreeCADs
+  Befehl;
+- das Teil liegt im **Modell-Klon** des Jobs an seiner Stelle: Klon-Lage =
+  T · Lage beim Anlegen, gerechnet immer vom Original aus, damit sich
+  Änderungen nicht aufhäufen; das Original bleibt, wo es ist;
+- das Standard-Rohteil wird durch einen **Zylinder** ersetzt
+  (`CreateCylinder`), von vorne bis ans Ende der Spannlänge.
+
+**Zeigen statt beschreiben:** Das Teil fährt von seiner alten Lage in die
+Stange und dreht sich dann einmal um die Achse – eine kurze Animation ohne
+Text. Während der Assistent offen ist, ist die Stange durchscheinend und nicht
+anklickbar; das Original ist verborgen.
+
+```
+[ Anlegen ]  [ Abbrechen ]                                    (FreeCAD)
+─────────────────────────────────────────────────────────────────────
+4-Achs-Bearbeitung – Schritt 1 von 4: Rohteil                    (?)
+Klick die Fläche an, die vorne an der Stange liegen soll.
+
+  Teil           Welle, Fläche 3 (eben, rund Ø 60)
+  Stange Ø       [ 80       ] mm
+  Mitte          (•) Mitte der runden Fläche      braucht Ø 72,0
+                 ( ) ganzes Teil möglichst mittig  braucht Ø 66,0
+  Drehlage       [ 0        ] °    [ +90° ]
+  Planaufmaß     [ 1        ] mm   (grau: Vorschlag)
+  Abstechbreite  [ 3        ] mm
+  Spannlänge     [ 30       ] mm   Stange 134 mm lang
+  Rundachse      [ Maschine „Drehmaschine“: C1, Werkzeug P1 radial ▾ ]
+                   ohne Maschine: A – Stange in X, Werkzeug von oben
+                                  B – Stange in Y, Werkzeug von oben
+                                  C – Stange in Z, Werkzeug aus X
+  ✔ Passt – rundum mindestens 4,0 mm Aufmaß.                  (grün)
+                                              [ Zurück ] [ Weiter ]
+```
+
+## 6. Schritt 2: Flächen
+
+- Flächen in der 3D-Ansicht anklicken (noch einmal klicken nimmt sie heraus).
+  Nur Flächen des Teils lassen sich wählen; die Stange nicht.
+- „**Alle Mantelflächen**“ wählt jede Fläche, die zur Seite schaut.
+  „Auswahl leeren“ fängt von vorne an.
+- Die Liste nennt die Art („Zylinder Ø 20, 15 mm außermittig“) und die
+  **Erreichbarkeit**: Ein Werkzeug, das von außen zur Achse zeigt, kommt nur
+  an Stellen, über denen – nach außen – kein Material liegt. Das rechnet die
+  Hüllfläche mit einem punktförmigen Werkzeug (Abschnitt 9).
+  Stirnflächen sind „nicht radial bearbeitbar“.
+- In der Ansicht: erreichbar grün, teilweise gelb, nicht erreichbar rot – nur
+  die Anzeige, danach wieder wie vorher.
+
+```
+4-Achs-Bearbeitung – Schritt 2 von 4: Flächen                    (?)
+Klick die Flächen an, die gefräst werden sollen.
+  [ Alle Mantelflächen ]  [ Auswahl leeren ]
+  ┌───────────────────────────────────────────────────────────┐
+  │ ✔ Fläche 1   Zylinder Ø 60, mittig             erreichbar  │
+  │ ✔ Fläche 5   Zylinder Ø 20, 26 mm außermittig  erreichbar  │
+  │ ◐ Fläche 8   Freiform                 zu 80 % erreichbar   │
+  │ ✘ Fläche 11  Ebene, unter einem Überhang  nicht erreichbar │
+  └───────────────────────────────────────────────────────────┘
+  ✘ Fläche 11 liegt unter einem Überhang – ein Werkzeug, das von
+    außen zur Achse zeigt, kommt dort nicht hin.               (rot)
+                                              [ Zurück ] [ Weiter ]
+```
+
+## 7. Schritt 3: Werkzeuge
+
+- **Werkstoff** vom Rohteil (wie in „Schnittwerte in den Job“), sonst wählbar.
+- **Schruppen:** Schaft- oder Torusfräser aus der Werkzeugverwaltung, Einsatz
+  „Schruppen“ → **ap = Zustellung je Lage** (radial), **ae = Vorschub je
+  Umdrehung** der Spirale, n und vf; Schlichtaufmaß (Vorschlag 0,3 mm); dazu
+  die Zahl der Lagen.
+- **Schlichten:** Kugel- oder Torusfräser, Einsatz „Schlichten“ →
+  Schrittweite, daneben die Kammhöhe, die sie hinterlässt.
+- **Muster:** Spirale (Vorschlag), Ringe oder Linien längs.
+- **Rote Hinweise:** Reichweite des Fräsers (`werkzeuge.reichweite`) kleiner
+  als die Tiefe (Stangenradius minus kleinster Radius im gewählten Bereich);
+  zu wenig Platz zum Futter; eine Stelle enger als der Fräser. Schaft und
+  Halter prüft erst W-001 Stufe 4.
+- Ohne passendes Werkzeug in der Werkzeugverwaltung: ein Satz und der Knopf
+  „Werkzeugverwaltung öffnen“.
+
+```
+4-Achs-Bearbeitung – Schritt 3 von 4: Werkzeuge                  (?)
+  Werkstoff      [ 1.0503 C45 ▾ ]                    (vom Rohteil)
+Schruppen
+  Werkzeug       [ T1 Schaftfräser VHM D12 ▾ ]
+  Einsatz        [ Schruppen ▾ ]     n 3183 1/min   vf 1528 mm/min
+  Zustellung je Lage ap   [ 2     ] mm   → 5 Lagen (Ø 80 → Ø 60,6)
+  Vorschub je Umdrehung   [ 4,8   ] mm   (40 % von D)
+  Schlichtaufmaß          [ 0,3   ] mm
+Schlichten
+  Werkzeug       [ T2 Kugelfräser VHM D6 ▾ ]
+  Einsatz        [ Schlichten ▾ ]    n 7958 1/min   vf 955 mm/min
+  Schrittweite   [ 0,35  ] mm   → Kammhöhe 5 µm
+  Muster         [ Spirale ▾ ]
+▸ Mehr …   (Toleranz, Glättung, Vorschub, Richtung, Sicherheitsabstand)
+  ✘ Fläche 8 ist enger als T1 (Ø 12) – dort bleibt Material für T2. (rot)
+                                              [ Zurück ] [ Weiter ]
+```
+
+## 8. Schritt 4: Anlegen
+
+Eine Zusammenfassung mit einer eigenen Zeitschätzung (CAMs Schätzung kennt
+keine Rundachse). „Anlegen“ legt alles in **einer** Transaktion an: Job,
+Stange, Controller, Operationen. „Abbrechen“ verwirft auch Job und Stange.
+
+```
+4-Achs-Bearbeitung – Schritt 4 von 4: Anlegen                    (?)
+Es wird angelegt:
+  • Job „Welle – 4 Achsen“, Stange Ø 80 × 134 mm, Rundachse C
+  • T1 Schaftfräser VHM D12 – Schruppen
+  • T2 Kugelfräser VHM D6 – Schlichten
+  • Rundum schruppen T1     5 Lagen     etwa 12 min
+  • Rundum schlichten T2                etwa 18 min
+Ein Strg+Z nimmt alles zusammen zurück.
+                                    [ Zurück ]  (oben: [ Anlegen ])
+```
+
+## 9. Rechenkern
+
+Zwei Module ohne Oberfläche: `camaddon/vierachs_huelle.py` (Hüllfläche) und
+`camaddon/vierachs_bahn.py` (Bahnen). Sie laufen in FreeCADCmd und werden
+dort geprüft.
+
+**Werkzeug:** ein Modell für alle drei Fräser – ein Torus mit Radius R und
+Eckradius rc: rc = 0 ist der Schaftfräser, rc = R der Kugelfräser.
+**Aufmaß δ** exakt, auch an steilen Wänden: mit (R + δ, rc + δ) rechnen und
+δ zur Spitze addieren.
+
+**Hüllfläche R(a, φ):** Für jeden Winkel φ werden die Punkte des Teils einmal
+so gedreht, dass das Werkzeug von außen kommt. Übrig bleiben nur die Dreiecke
+im Streifen |seitlich| ≤ R + δ; gegen sie fällt das Werkzeug an allen
+Längsstellen a zugleich (numpy). Ecke und Dreiecksfläche lassen sich
+geschlossen rechnen, die Kante beim Kugel- und Schaftfräser auch; beim
+Torusfräser werden die Kanten unterteilt.
+
+- Gerechnet wird immer gegen das **ganze** Teil – die gewählten Flächen
+  sind nur die Maske, in der gefräst wird.
+- Schruppen reicht ein grobes Raster (etwa 2° × 0,5 mm; der Rasterfehler
+  geht ins Aufmaß), Schlichten braucht ein feines.
+- Ergebnisse werden zwischengespeichert, und der Assistent zeigt den
+  Fortschritt. Ziel: ein Teil Ø 80 × 100 mm in Sekunden, nicht in Minuten.
+
+**Fallstricke:**
+
+- Nahe der Achse (Radius kleiner als der Werkzeugradius) wird gesperrt.
+- „Kein Treffer“ hinter dem Teil (Abstich, Futter) heißt: Das Material
+  bleibt – nicht Radius 0.
+- Die Naht bei 0/360° wird periodisch gerechnet.
+- Längs bleibt die Werkzeugmitte zwischen Planaufmaß und Hinterkante des
+  Teils.
+
+**Schruppen:** Lagen r_k = R_Stange − k · ap, bis zur Hüllfläche plus
+Schlichtaufmaß; die Bahn folgt max(r_k, Hüllfläche) in der Maske.
+
+- Die Spirale läuft von vorne Richtung Futter.
+- Eingefahren wird von vorne außerhalb der Stange, sonst schraubenförmig mit
+  dem Eintauchwinkel aus der Werkzeugverwaltung.
+- Ringe bekommen eine Rampe.
+- Zahl der Lagen = ⌈(R_Stange − r_min − δ) ÷ ap⌉.
+
+**Schlichten:** eine Bahn auf der Hüllfläche.
+
+- Spirale mit der Steigung = Schrittweite s, oder Linien längs im
+  Winkelabstand Δφ = s ÷ r_max.
+- Kammhöhe beim Kugelfräser: h = R − √(R² − (s/2)²).
+
+**Rückzug:** zwischen zwei Abschnitten auf Stangenradius plus
+Sicherheitsabstand; längs nie in den Bereich des Futters; am Ende radial
+hinaus.
+
+**Winkel:** fortlaufend (0 … 3600°), wenn die Rundachse endlos dreht (W-001
+„Endlos“, ohne Maschine angenommen); sonst hin und her statt Spirale.
+
+**Ausgabe – Achskoordinaten, für jede Maschine gleich** (Manuel: „Es gibt
+Achsen, und die Punkte müssen halt via Koordinate im G-Code 0,001 mm nach und
+nach angefahren werden … oder halt mit einem Glättungsfilter“):
+
+- Punkt für Punkt als G1 mit den Buchstaben der Maschine, etwa X Z C, auf
+  0,001 mm bzw. 0,001° – keine Bögen, keine Zyklen.
+- Der Punktabstand folgt der Toleranz: Schruppen 0,02 mm, Schlichten
+  0,005 mm Sehnenfehler.
+- Ein **Glättungsfilter** im Addon nimmt die Rasterstufen der Rechnung
+  heraus, ohne die Toleranz zu verlassen.
+- Die Glättung der Steuerung (etwa Siemens CYCLE832, Fanuc AICC) kann
+  zusätzlich laufen. Sie wird im Programmkopf eingeschaltet, nicht vom Addon.
+
+**Vorschub:** Dreht sich vor allem die Rundachse, rechnen Steuerungen F
+verschieden. Damit der Fräser am Werkstück trotzdem mit vf fährt, steht vor
+der Bahn **G93**: Jeder Satz trägt als F die Zahl 1 ÷ Zeit, danach kommt
+G94. Die Zeit ist der Weg am Werkstück durch vf:
+
+```
+t = √(Δa² + Δr² + (r · Δφ)²) ÷ vf
+```
+
+Siemens, Fanuc, Haas und LinuxCNC verstehen G93 gleich. Eine Steuerung ohne
+G93 hält mit Alarm an, statt mit falschem Vorschub zu fahren. Die
+Drehzahlgrenze der Rundachse kommt aus W-001. Achtung: CAM führt F intern in
+mm/s, der Postprozessor rechnet ×60.
+
+## 10. Die CAM-Operation
+
+- `camaddon/vierachs_operation.py`: ein `Path::FeaturePython`, dessen Proxy
+  `Path.Op.Base.ObjectOp` erbt. Die Anzeige liegt in
+  `gui_vierachs_operation.py`: Doppelklick öffnet den Assistenten bei
+  Schritt 3.
+- **Merkmale** nur die, die es in beiden Versionen gibt:
+  `FeatureTool | FeatureBaseFaces | FeatureCoolant`. Keine Höhen und Tiefen
+  in Z – sonst hängt die Basis ein „G0 Z Sicherheitshöhe“ an, und das hieße
+  bei C: längs zum Futter.
+- **Anlegen** mit `DoNotSetDefaultValues` = True und `parentJob`. Ohne das
+  fragt FreeCAD nach Job und Controller, sobald es mehrere gibt – in
+  FreeCADCmd ein Fehler. Danach setzt der Assistent selbst:
+  `job.Proxy.addOperation`, `ToolController`, `OpToolDiameter`,
+  `CoolantMode`, `Active`.
+- **Wochen-Build:** `Workplane` = None und ausgeblendet. Das Modell kommt
+  direkt aus `job.Model.Group` (die Basis würde `self.model` sonst drehen).
+- Die Operation merkt sich die Lage des Modell-Klons, mit der sie gerechnet
+  hat, und warnt, wenn sie im Job-Dialog verändert wurde.
+- Modul- und Klassenname sind von Anfang an endgültig – sie stehen in jeder
+  gespeicherten Datei. Im Operationsmodul steht kein Qt. Speichern, Laden und
+  Neuberechnen werden geprüft.
+- `job_schnittwerte.EINSATZ_NACH_OPERATION` lernt die Operation, damit
+  „Schnittwerte in den Job“ sie kennt.
+
+## 11. Bedienung: Vorschläge, „Mehr …“, Hilfe
+
+- **Alles einstellbar, Vorschläge als Standard** (Manuel): Jeder Wert steht
+  als Vorschlag im Feld – grau und gültig, wenn man nichts einträgt, wie in
+  der Werkzeugverwaltung.
+- Was man einträgt, merkt sich das Addon als nächsten Vorschlag. Ausnahme:
+  Werte, die am Teil hängen, wie der Stangen-Ø. „Vorschläge zurücksetzen“
+  steht in den Einstellungen des Addons.
+- **„Mehr …“** je Schritt, zum Aufklappen: Toleranzen, Glättung,
+  Vorschubart, Raster, Sicherheitsabstand, Richtung, Gleich- oder Gegenlauf.
+  So bleibt der Assistent schlicht.
+- **Hilfe:** ein (?) je Schritt öffnet `help/<sprache>/vierachs.html` –
+  mit Bildern der Begriffe aus Abschnitt 3, den Grenzen aus Abschnitt 12 und
+  einem Beispiel Schritt für Schritt. Texte in `translations/*.json` unter
+  `va.*`.
+- **Zeigen:** Animationen ohne Text in der 3D-Ansicht. Das Teil fährt in die
+  Stange, und die Stange dreht sich einmal, wenn man die Rundachse wählt.
+  Gewählte Flächen leuchten kurz auf.
+
+## 12. Nicht Teil davon
+
+- **Drehen**, Planen der Stirnseite, **Abstechen** – das macht die Maschine
+  (FreeCAD dreht nicht).
+- **Axiales Werkzeug** auf der Stirnseite (TRANSMIT) und **indexiert 3+1**
+  (Achse steht, eben gefräst: Abflachungen, Taschen, Querbohrungen) – eine
+  spätere Stufe. Im Wochen-Build helfen dafür FreeCADs Arbeitsebenen.
+- **Hinterschnitte:** Was ein radiales Werkzeug nicht erreicht, bleibt stehen
+  und wird gemeldet.
+- **Kollision** von Halter, Schaft oder Futter: nur Hinweise; die Prüfung ist
+  W-001 Stufe 4.
+- **Rohr** (hohle Stange), **Reitstock**.
+- **Maschinenspezifisch** bleiben nur Kopf- und Fußzeilen des Programms:
+  C-Achsbetrieb ein und aus, das angetriebene Werkzeug, die Glättung, bei
+  Drehmaschinen „X als Radius“ (Siemens `DIAMOF`). Die trägt man in FreeCADs
+  Postprozessor als Programmkopf und -fuß ein (Preamble/Postamble); das Addon
+  schreibt sie nicht.
+- FreeCADs CAM-Simulator zeigt Rundachsbahnen vermutlich nicht – in V1
+  prüfen und in der Hilfe sagen.
+
+## 13. Stufen
+
+Jede Stufe ist ein Patch mit einem Klickweg als Akzeptanzkriterium; jede
+bringt Prüfungen, ein Szenario mit Screenshots, Texte in de/en und ihren Teil
+der Hilfe mit.
+
+**V1 – Teil in die Stange**
+
+- Befehl mit Symbol; Assistent mit Schritt 1 und der Buchstaben-Liste.
+- Neu: `camaddon/vierachs_rohteil.py` (Rechnung), `camaddon/gui_vierachs.py`.
+- Prüfung: Quader, Sechskant, Welle mit Nocken (runde Fläche gegen ganzes
+  Teil), A/B/C, Job mit Zylinder-Rohteil, ein Rückgängig; numpy vorhanden.
+- *Klickweg:* Welle öffnen, Stirnfläche anklicken → „4-Achs-Bearbeitung“ →
+  Stange Ø 80, Rundachse C → das Teil liegt mittig in einer durchsichtigen
+  Stange längs Z, die Fläche 1 mm hinter der Stangenstirn, „Passt – rundum
+  mindestens 4,0 mm“; Abbrechen hinterlässt nichts, „Anlegen“ nimmt ein
+  Strg+Z zurück.
+
+**V2 – Achse von der Maschine**
+
+- Neu: `camaddon/vierachs_achsen.py`.
+- *Klickweg:* Beispiel-Drehmaschine laden, im Dokument der Welle
+  „4-Achs-Bearbeitung“ → unter Rundachse steht „Maschine „Drehmaschine“: C1,
+  Werkzeug P1 radial“, und die Stange liegt längs Z; mit „A – ohne Maschine“
+  liegt sie längs X.
+- Wenn gewünscht als V2b: Beispielmaschine „4-Achs-Fräse mit A“.
+
+**V3 – Flächen wählen**
+
+- Schritt 2 mit Punkt-Hüllfläche, Erreichbarkeit und Farben.
+- *Klickweg:* Schritt 2 → „Alle Mantelflächen“ → die Flächen rundum sind
+  markiert und grün, die Stirnflächen nicht; eine Fläche unter einem Überhang
+  steht rot mit „nicht erreichbar“; ein Klick nimmt eine Fläche heraus.
+
+**V4 – Controller ohne eigene Transaktion** (vorbereitend)
+
+- `lege_controller_an` wird in Kern und Transaktion geteilt.
+- *Klickweg:* „Schnittwerte in den Job“ → „Werkzeug-Controller hinzufügen“
+  wirkt wie bisher, und ein Strg+Z nimmt ihn zurück.
+
+**V5 – Werkzeuge wählen**
+
+- Schritt 3; Hüllfläche mit echtem Fräser und Aufmaß.
+- Prüfung gegen Zylinder, Exzenter, Sechskant und Kugel für alle drei
+  Fräser, dazu eine Zeitgrenze.
+- *Klickweg:* Schritt 3 → T1 Schaftfräser und T2 Kugelfräser → die Werte
+  stehen da, „5 Lagen (Ø 80 → Ø 60,6)“, und eine Fläche, die enger ist als
+  T1, nennt die rote Zeile.
+
+**V6 – Schruppen anlegen**
+
+- Operation, Lagen, Spirale, Schritt 4, eine Transaktion, Ausgabe als
+  G1-Punkte mit G93.
+- Prüfung: Job in beiden Versionen, Speichern und Laden, angezeigte Punkte
+  außerhalb des Teils, Postprozessor-Ausgabe.
+- *Klickweg:* „Anlegen“ → im Job stehen T1 und „Rundum schruppen T1“, die
+  Bahn läuft in Lagen spiralförmig um das Teil, und der Postprozessor
+  schreibt Sätze mit C (bzw. A/B) zwischen G93 und G94.
+
+**V7 – Schlichten**
+
+- Zweite Operation, Kammhöhe, Linien längs.
+- *Klickweg:* dazu „Rundum schlichten T2“ – die Bahn liegt dicht auf der
+  Oberfläche, und Schrittweite 0,35 mm zeigt „Kammhöhe 5 µm“.
+
+**V8 – Glatte Bahn**
+
+- Glättungsfilter, Punktabstand nach Toleranz.
+- *Klickweg:* „Mehr …“ → Glättung aus und an: Mit Glättung hat die
+  Schlichtbahn deutlich weniger Sätze und keine Stufen; die Abweichung bleibt
+  unter 0,005 mm.
+
+**V9 – Feinschliff**
+
+- Luftschnitte überspringen, Zeit je Operation, zweiter Durchlauf auf
+  demselben Job, Warnung „Modell im Job verändert“.
+- *Klickweg:* Schritt 4 zeigt die Zeiten; ein zweiter Durchlauf auf dem Job
+  beginnt bei Schritt 2.
+
+## 14. Prüfbarkeit
+
+- **Rechnung ohne Fenster** (FreeCADCmd, beide Versionen):
+  - Körper, deren Ergebnis man ausrechnen kann: Quader, Sechskant, Zylinder,
+    Exzenter, Kugel.
+  - Die Hüllfläche je Fräser gegen die Formel, die Zahl der Lagen, die
+    Kammhöhe.
+  - Eine Zeitgrenze für die Rechnung.
+  - Die Operation im Job: Speichern, Laden, Neuberechnen, Ausgabe des
+    Postprozessors.
+- **Oberfläche:** Szenarien klicken den Assistenten durch und machen
+  Screenshots. Ob man ihn ohne Erklärung versteht, prüft Manuel.
+
+## 15. Vorschläge (Claude, zur Besprechung)
+
+1. **a = 0 an der gewählten Stirnfläche**, das Teil bei a ≤ 0 – wie Z0 an der
+   Drehmaschine.
+2. **Vorschläge:** Planaufmaß 1 mm, Abstechbreite 3 mm, Spannlänge 30 mm,
+   Schlichtaufmaß 0,3 mm; Toleranz 0,02 mm beim Schruppen und 0,005 mm beim
+   Schlichten; Glättung an. Alles einstellbar.
+3. **Mitte:** die runde Fläche, wenn das Teil so passt – sonst das ganze
+   Teil (Abschnitt 5).
+4. **Spirale von vorne Richtung Futter, Gleichlauf** – das Teil bleibt am
+   Futter am längsten steif.
+5. **numpy statt OpenCamLib** – numpy ist in jeder FreeCAD-Version dabei,
+   OpenCamLib nicht.
+6. **Vorschub G93** (Abschnitt 9), umstellbar unter „Mehr …“.
+7. **Winkel fortlaufend**, nur bei endloser Rundachse.
+8. **Drehrichtung** wie FreeCADs Anzeige (das Werkstück dreht,
+   Rechte-Hand-Regel) bzw. wie das Gelenk der W-001-Maschine.
+9. **X als Radius**; Durchmesser nur über den Programmkopf (Abschnitt 12).
+10. **Jeder Durchlauf legt einen neuen Job an**; ein zweiter Durchlauf auf
+    einem Job des Assistenten beginnt bei Schritt 2 (V9).
+
+## Entschieden
+
+Alle von Manuel, 2026-09-26, P-2026-09-26-78 – aus Fragen mit Optionen bzw.
+als Rückmeldung zum Plan:
+
+- **Rechenweg:** eigener Rechenkern im Addon – nicht FreeCADs „Rotary
+  Surface“ (nur Wochen-Build, experimentell, nur A/B) und nicht beides.
+- **Erster Umfang:** rundum simultan (Schruppen und Schlichten der gewählten
+  Mantelflächen bei drehender Rundachse); indexiert 3+1 später.
+- **Achse:** „am besten von der Maschine, ansonsten dreht sich das Rohteil …
+  und so auch das Bauteil, und dem muss man eine Achse zuweisen“ → aus der
+  W-001-Maschine, sonst weist man der Stange A, B oder C zu (Abschnitt 4).
+- **Aufbau:** Assistent in vier Schritten in einem Aufgabenfenster; ein
+  zweiter Durchlauf auf demselben Job überspringt das Rohteil.
+- **Maschine egal:** „Es gibt Achsen, und die Punkte müssen halt via
+  Koordinate im G-Code 0,001 mm nach und nach angefahren werden … oder halt
+  mit einem Glättungsfilter.“ → Ausgabe als reine Achskoordinaten, keine
+  Frage nach der Steuerung (Abschnitt 9).
+- **Alles einstellbar, Vorschläge als Standard:** „Abstechbreite kann man ja
+  einstellen … so dass alles einstellbar ist, aber mit Vorschlägen als
+  Standard“ (Abschnitt 11).
+- **Reihenfolge:** V1 gleich nach dieser Spezifikation; Schritt 7 der schrägen
+  Achse (Vorlage) danach.
