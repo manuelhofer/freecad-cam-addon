@@ -287,8 +287,6 @@
     "wv.hinweis.vc_fz_fehlen": "vc and fz are still missing – they are in the manufacturer's catalogue.",
     "wv.eingriff.bild.tooltip": "Left, from above: cutter (blue), material (grey), in red the arc over which each tooth is in the material; feed upwards. Right, from the side: in red the part of the flutes that works at this ap.",
     "wv.eingriff.winkel": "Engagement {winkel}° – each tooth is in the material for {anteil} % of the revolution.",
-    "wv.eingriff.ae_ap_schneide": "ae {ae} mm = {ae_d} % of D · ap {ap} mm = {ap_d} × D ({ap_schneide} % of the flutes)",
-    "wv.eingriff.ae_ap": "ae {ae} mm = {ae_d} % of D · ap {ap} mm = {ap_d} × D",
     "wv.eingriff.spandicke": "Largest chip thickness {hmax} mm, mean {hm} mm.",
     "wv.ausgleich": "Chip thinning: wanted",
     "wv.ausgleich.tooltip": "With ae below D/2 the chip gets thinner than fz. Enter the chip thickness you want – usually the fz from the catalogue – and the addon calculates the fz that gives it.",
@@ -522,5 +520,12 @@
     "beispiel.tisch": "Table",
     "dialog.beispielmaschine": "Load example machine",
     "dialog.beispielmaschine.tooltip": "Opens a new document with a ready-made three-axis milling machine – to try out how editing and moving work.",
-    "sp.warnung.ueber_ae": "Selected: ae {ae} mm, {prozent} % of D – more than your warning limit of {grenze} % of D. You can take it over; the tool is loaded more than you planned, though."
+    "sp.warnung.ueber_ae": "Selected: ae {ae} mm, {prozent} % of D – more than your warning limit of {grenze} % of D. You can take it over; the tool is loaded more than you planned, though.",
+    "wv.eingriff.titel.ae": "radial depth of cut",
+    "wv.eingriff.titel.ap": "axial depth of cut",
+    "wv.eingriff.ae": "ae {ae} mm = {ae_d} % of D",
+    "wv.eingriff.ap_schneide": "ap {ap} mm = {ap_d} × D ({ap_schneide} % of the flutes)",
+    "wv.eingriff.ap": "ap {ap} mm = {ap_d} × D",
+    "wv.eingriff.von_oben": "from above",
+    "wv.eingriff.von_der_seite": "from the side"
 }

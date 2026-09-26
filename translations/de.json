@@ -287,8 +287,6 @@
     "wv.hinweis.vc_fz_fehlen": "vc und fz fehlen noch – sie stehen im Katalog des Herstellers.",
     "wv.eingriff.bild.tooltip": "Links von oben: Fräser (blau), Material (grau), rot der Bogen, über den jeder Zahn im Material ist; Vorschub nach oben. Rechts von der Seite: rot der Teil der Schneide, der bei diesem ap arbeitet.",
     "wv.eingriff.winkel": "Eingriff {winkel}° – jeder Zahn ist {anteil} % der Umdrehung im Material.",
-    "wv.eingriff.ae_ap_schneide": "ae {ae} mm = {ae_d} % von D · ap {ap} mm = {ap_d} × D ({ap_schneide} % der Schneide)",
-    "wv.eingriff.ae_ap": "ae {ae} mm = {ae_d} % von D · ap {ap} mm = {ap_d} × D",
     "wv.eingriff.spandicke": "Größte Spandicke {hmax} mm, mittlere {hm} mm.",
     "wv.ausgleich": "Spandicke ausgleichen: gewünscht",
     "wv.ausgleich.tooltip": "Bei ae unter D/2 wird der Span dünner als fz. Trag hier die Spandicke ein, die du willst – meist das fz aus dem Katalog –, und das Addon rechnet das fz, das sie ergibt.",
@@ -522,5 +520,12 @@
     "beispiel.tisch": "Tisch",
     "dialog.beispielmaschine": "Beispielmaschine laden",
     "dialog.beispielmaschine.tooltip": "Öffnet ein neues Dokument mit einer fertig eingerichteten Dreiachs-Fräsmaschine – zum Ausprobieren, wie Bearbeiten und Verfahren gehen.",
-    "sp.warnung.ueber_ae": "Gewählt: ae {ae} mm, {prozent} % von D – mehr als deine Warngrenze von {grenze} % von D. Übernehmen geht; das Werkzeug wird aber stärker belastet, als du dir vorgenommen hast."
+    "sp.warnung.ueber_ae": "Gewählt: ae {ae} mm, {prozent} % von D – mehr als deine Warngrenze von {grenze} % von D. Übernehmen geht; das Werkzeug wird aber stärker belastet, als du dir vorgenommen hast.",
+    "wv.eingriff.titel.ae": "seitliche Zustellung",
+    "wv.eingriff.titel.ap": "Zustelltiefe",
+    "wv.eingriff.ae": "ae {ae} mm = {ae_d} % von D",
+    "wv.eingriff.ap_schneide": "ap {ap} mm = {ap_d} × D ({ap_schneide} % der Schneide)",
+    "wv.eingriff.ap": "ap {ap} mm = {ap_d} × D",
+    "wv.eingriff.von_oben": "von oben",
+    "wv.eingriff.von_der_seite": "von der Seite"
 }

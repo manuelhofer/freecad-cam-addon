@@ -83,6 +83,20 @@ def schritte(h):
     h.pruefe(s.eingriff.isVisible() and s.bild.isVisible(), "Bild des Eingriffs fehlt")
     for teil in ("Eingriff 37°", "10 % von D", "2,1 × D", "96 % der Schneide", "0,090"):
         h.pruefe(teil in text, f"„{teil}“ fehlt im Eingriff: {text!r}")
+    # Je Größe eine Zeile, über dem Bild, was die Hälften zeigen.
+    zeilen = text.split("\n")
+    h.pruefe(
+        zeilen[0].startswith("ae 1,2 mm") and zeilen[1].startswith("ap 25 mm"),
+        f"Zeilen: {zeilen}",
+    )
+    titel = [t.text() for t in s.bild_titel]
+    h.pruefe(
+        "seitliche Zustellung" in titel[0]
+        and "von oben" in titel[0]
+        and "Zustelltiefe" in titel[1]
+        and "von der Seite" in titel[1],
+        f"Überschriften: {titel}",
+    )
     h.pruefe(s.ausgleich.isVisible(), "Spandicke ausgleichen fehlt bei ae < D/2")
     h.bild("1b_eingriff_dynamisch", s.eingriff)
     # Gewünscht 0,1 mm → fz 0,167; übernehmen rechnet die Zeile neu.

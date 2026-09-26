@@ -17,6 +17,7 @@ from . import schnittdaten as sd
 from . import schruppwerte as sw
 from . import werkstoffe as ws
 from . import werkzeuge as wz
+from .gui_eingriff import BREITE as BILD_BREITE
 from .gui_eingriff import EingriffBild
 from .gui_hilfe import kopfzeile
 from .gui_schruppwerte import SchruppDialog
@@ -108,7 +109,29 @@ class SchnittwertBereich(QtGui.QWidget):
         zeile.setContentsMargins(0, 0, 0, 0)
         self.bild = EingriffBild()
         self.bild.setToolTip(tr("wv.eingriff.bild.tooltip"))
-        zeile.addWidget(self.bild)
+        # Über jeder Hälfte des Bilds, was sie zeigt – das Bild selbst hat
+        # keinen Text, damit es in jeder Sprache passt.
+        bild_spalte = QtGui.QVBoxLayout()
+        bild_spalte.setSpacing(2)
+        titel = QtGui.QHBoxLayout()
+        titel.setSpacing(0)
+        self.bild_titel = []
+        for kurz, name, ansicht in (
+            ("ae", tr("wv.eingriff.titel.ae"), tr("wv.eingriff.von_oben")),
+            ("ap", tr("wv.eingriff.titel.ap"), tr("wv.eingriff.von_der_seite")),
+        ):
+            ueberschrift = QtGui.QLabel(
+                f"<b>{kurz}</b> – {name}<br><span style='color: {GRAU.name()};'>{ansicht}</span>"
+            )
+            ueberschrift.setWordWrap(True)
+            ueberschrift.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignBottom)
+            ueberschrift.setFixedWidth(BILD_BREITE // 2)
+            titel.addWidget(ueberschrift)
+            self.bild_titel.append(ueberschrift)
+        bild_spalte.addLayout(titel)
+        bild_spalte.addWidget(self.bild)
+        bild_spalte.addStretch()
+        zeile.addLayout(bild_spalte)
         rechts = QtGui.QVBoxLayout()
         self.eingriff_text = QtGui.QLabel()
         self.eingriff_text.setWordWrap(True)
@@ -465,19 +488,14 @@ class SchnittwertBereich(QtGui.QWidget):
         d = w.durchmesser
         self.bild.zeige(d, w.schneidenlaenge, einsatz.ae, einsatz.ap)
         phi = sd.eingriffswinkel(einsatz.ae, d)
+        # Je Größe eine Zeile: ae, ap, dann der Eingriff.
         zeilen = [
-            tr(
-                "wv.eingriff.winkel",
-                winkel=_zahl(math.degrees(phi), 0),
-                anteil=_zahl(math.degrees(phi) / 3.6, 0),
-            )
+            tr("wv.eingriff.ae", ae=zahl_zeigen(einsatz.ae), ae_d=_zahl(einsatz.ae / d * 100, 0))
         ]
         if w.schneidenlaenge:
             zeilen.append(
                 tr(
-                    "wv.eingriff.ae_ap_schneide",
-                    ae=zahl_zeigen(einsatz.ae),
-                    ae_d=_zahl(einsatz.ae / d * 100, 0),
+                    "wv.eingriff.ap_schneide",
                     ap=zahl_zeigen(einsatz.ap),
                     ap_d=_zahl(einsatz.ap / d, 1),
                     ap_schneide=_zahl(einsatz.ap / w.schneidenlaenge * 100, 0),
@@ -485,14 +503,15 @@ class SchnittwertBereich(QtGui.QWidget):
             )
         else:
             zeilen.append(
-                tr(
-                    "wv.eingriff.ae_ap",
-                    ae=zahl_zeigen(einsatz.ae),
-                    ae_d=_zahl(einsatz.ae / d * 100, 0),
-                    ap=zahl_zeigen(einsatz.ap),
-                    ap_d=_zahl(einsatz.ap / d, 1),
-                )
+                tr("wv.eingriff.ap", ap=zahl_zeigen(einsatz.ap), ap_d=_zahl(einsatz.ap / d, 1))
             )
+        zeilen.append(
+            tr(
+                "wv.eingriff.winkel",
+                winkel=_zahl(math.degrees(phi), 0),
+                anteil=_zahl(math.degrees(phi) / 3.6, 0),
+            )
+        )
         if einsatz.fz:
             zeilen.append(
                 tr(

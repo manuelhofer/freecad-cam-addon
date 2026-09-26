@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-41 eingriffsbild-beschriftet
+
+### EINGELESEN
+- Manuel (2026-09-26, Screenshot des Eingriffsbilds unter den
+  Schnittwerten): „das Bild find ich gut … allerdings weiß keiner, was ae
+  und ap ist … schreib's doch drüber, und der Text ist ziemlich lang, den
+  sollte man vll auf zwei Zeilen setzen oder sowas wie Links: ae … Rechts:
+  ap …“.
+- Plan im Snapshot (Stufe A Punkt 4), `camaddon/gui_eingriff.py` (Bild ohne
+  Text, Arbeitsregeln Abschnitt 8), `camaddon/gui_schnittwerte.py`.
+
+### DATEIEN
+- `camaddon/gui_schnittwerte.py` (Überschriften über den Bildhälften,
+  je Größe eine Zeile)
+- `translations/de.json`, `translations/en.json` (neu
+  `wv.eingriff.titel.ae|ap`, `wv.eingriff.von_oben|von_der_seite`,
+  `wv.eingriff.ae`, `wv.eingriff.ap`, `wv.eingriff.ap_schneide`; entfallen
+  `wv.eingriff.ae_ap`, `wv.eingriff.ae_ap_schneide`)
+- `help/de|en/schnittwerte.html`
+- `docs/STATUS_SNAPSHOT.md` (Punkt 4 fertig)
+- `tests/gui/szenario_schnittwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Fräser → Zeile „Schruppen dynamisch“ wählen: Über der
+linken Bildhälfte steht „ae – seitliche Zustellung“, darunter grau „von
+oben“; über der rechten „ap – Zustelltiefe“, grau „von der Seite“. Rechts
+daneben je eine Zeile „ae 1,2 mm = 10 % von D“, „ap 25 mm = 2,1 × D (96 %
+der Schneide)“, dann Eingriff und Spandicke.
+
+### DONE
+- Überschriften als Beschriftungen über dem Bild – das Bild selbst bleibt
+  ohne Text. Die Ansicht („von oben“, „von der Seite“) grau in einer
+  eigenen Zeile, damit sie nicht mitten in der Klammer umbricht.
+- Die Werte: erst ae, dann ap, dann der Eingriffswinkel, dann die
+  Spandicke – je eine Zeile.
+
+### TEST
+- `szenario_schnittwerte` in 1.1.3 grün, Screenshot angesehen;
+  `test_sprache.py`, `test_hilfe.py` grün. Voller Lauf mit dem nächsten
+  Push.
+
+### NEXT
+- A5: ae und ap wahlweise in mm oder % von D.
+
 ## P-2026-09-26-40 planer-warngrenze
 
 ### EINGELESEN
