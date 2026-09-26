@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-49 plan-beispielmaschinen-und-update
+
+### EINGELESEN
+- Manuel (2026-09-26, nach dem Laden der Beispielmaschine): „ich hätte
+  gerne, wenn ich Beispielmaschine laden [drücke,] eine Auswahl von
+  Drehbank CLX-mäßig mit Y-Achse, Schrägbett und am Revolver zwei
+  Werkzeuge zum Fräsen, eins in Z-Richtung bearbeitend, eins 90 Grad zur
+  Z-Richtung … 3-Achs-Fräse, 5-Achs-Fräse Tisch/Tisch (Achsen A/B),
+  5-Achs-Fräse Kopf/Kopf auch A/B und … Kopf/Tisch … die üblichen Sorten“.
+- Manuel: „Update-Prüfung nicht bei Start … wenn das jedes Addon machen
+  würde … bei 10 Addons 10 Updates laden … lieber ein Update-Knopf, dass man
+  auswählen kann ‚ok, check nach Update‘ … und dann updaten lassen, wenn man
+  auf den Knopf drückt“.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Plan: Punkt 7b)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Plan nennt die Auswahl der Beispielmaschinen mit Ort in der
+Reihenfolge; der Update-Knopf folgt als eigener Patch.
+
+### DONE
+- Punkt 7b: Beispielmaschinen zur Auswahl (Schrägbett-Drehmaschine mit
+  Y-Achse und zwei angetriebenen Werkzeugen, 3-Achs, 5-Achs Tisch/Tisch
+  A/C, Kopf/Kopf A/B, Kopf/Tisch B/C). Achsnamen wie üblich – der Rundtisch
+  auf der Wiege heißt fast immer C; umbenennen geht in „Maschine
+  bearbeiten“.
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- Update-Knopf statt Suche beim Start; dann die Beispielmaschinen.
+
 ## P-2026-09-26-48 masssystem-inch
 
 ### EINGELESEN

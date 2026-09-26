@@ -50,6 +50,13 @@ Wunschliste, offene Bugs und Tasks.
    Dialog. Grundlage: der Baukasten aus `tests/beispielmaschinen.py`. –
    *Fertig (P-2026-09-26-38): Dreiachs-Fräsmaschine, Baukasten jetzt in
    `camaddon/beispielmaschine.py`.*
+7b. **Beispielmaschinen zur Auswahl** (Manuel nach dem ersten Ausprobieren,
+   2026-09-26): „Beispielmaschine laden“ bietet die üblichen Sorten an –
+   Schrägbett-Drehmaschine mit Y-Achse (CLX-ähnlich; Z = Hauptspindel;
+   Revolver mit zwei angetriebenen Fräswerkzeugen: axial, bearbeitet in
+   Z-Richtung, und radial, 90° dazu), 3-Achs-Fräse, 5-Achs Tisch/Tisch
+   (A/C, Schwenkbrücke mit Rundtisch), 5-Achs Kopf/Kopf (A/B), 5-Achs
+   Kopf/Tisch (B am Kopf, C am Tisch). Nach Stufe B.
 
 *Stufe B – Einheiten und Zahlenformat*
 8. Beim ersten Start (mit der Sprache) und in den Einstellungen des
