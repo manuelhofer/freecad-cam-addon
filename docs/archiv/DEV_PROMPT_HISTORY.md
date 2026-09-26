@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-28 plan-nach-erstem-test
+
+### EINGELESEN
+- Manuels erster Test in FreeCAD 1.1.3 (KDE, dunkles Thema): „sehr gut
+  umgesetzt“. Wünsche: Werkzeugname zusätzlich zur Nummer (Option A),
+  ae wahlweise in mm oder %, Dezimalzeichen wie FreeCAD („.“ für
+  Postprozessoren?), das Eingriffsbild mit „ae“ und „ap“ beschriften und
+  den Text daneben aufteilen. Bitte: erst alle Aktionen planen.
+- `gui_zahlen.zahlenformat()` nimmt `QLocale()` – das stellt FreeCAD nach
+  seiner Einstellung „Zahlenformat“ (Parameter `UseLocaleFormatting`) ein.
+- FreeCADs Postprozessoren rufen Werkzeuge per Nummer; der Heidenhain-Post
+  schreibt den Namen des Werkzeug-Controllers als Kommentar.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Plan, wartet auf Manuels OK)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Snapshot nennt die vier geplanten Schritte mit den offenen Fragen.
+
+### DONE
+- Plan festgehalten.
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Manuels OK, dann bauen.
+
 ## P-2026-09-26-27 sprachwahl-erster-start
 
 ### EINGELESEN

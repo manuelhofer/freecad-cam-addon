@@ -12,6 +12,30 @@ Wunschliste, offene Bugs und Tasks.
 
 ## Nächster Schritt (konkret)
 
+**Geplant nach Manuels erstem Test (2026-09-26), wartet auf sein OK:**
+
+1. **Werkzeugname** (Manuels Option A): eigenes Feld „Name“ wie in der
+   Steuerung (frei, Leerzeichen bleiben – der Bediener schreibt es wie an
+   der Maschine), unter Nummer/Art; „Bezeichnung“ bleibt für Hersteller,
+   Bestellnummer. Name in Liste und Suche, Hinweis bei doppeltem Namen
+   (erlaubt: Schwesterwerkzeuge), als Werkzeugname in CAM, im Namen des
+   Werkzeug-Controllers („T1 Fräser VHM 12 – Schruppen“); „Aus CAM
+   übernehmen“ füllt ihn. Ins NC-Programm als `T="…"` nur mit eigenem
+   Postprozessor – FreeCADs Posts rufen per Nummer (Heidenhain schreibt
+   den Namen des Werkzeug-Controllers als Kommentar).
+2. **ae in mm oder % von D** umschaltbar über der Einsatz-Tabelle; intern
+   weiter mm, Wahl gemerkt. Offen: auch ap umschaltbar (× D oder % der
+   Schneidenlänge)?
+3. **Dezimalzeichen:** Die Anzeige folgt schon FreeCADs Einstellung
+   (Bearbeiten → Einstellungen → Allgemein → Zahlenformat:
+   Betriebssystem / Ausgewählte Sprache / C/POSIX). Neu: bei der Eingabe
+   Punkt und Komma annehmen. Das NC-Programm betrifft das nicht – das
+   Addon übergibt Zahlen, der Postprozessor schreibt immer mit Punkt.
+4. **Eingriffsbild beschriften:** über dem linken Bild „ae – seitliche
+   Zustellung (von oben)“, über dem rechten „ap – Zustelltiefe (von der
+   Seite)“; der Text daneben je Größe eine Zeile (ae mit Eingriff, ap mit
+   Anteil der Schneide, Spandicke).
+
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
 das Repository öffentlich stellen (T-005), dann installiert die Zeile aus
