@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-46 version-0-15-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit
+  0.14.0: Dezimalzeichen wählbar, Eingabe mit Punkt oder Komma
+  (P-2026-09-26-45).
+
+### DATEIEN
+- `package.xml` (0.15.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.15.0.
+
+### DONE
+- Version 0.14.0 → 0.15.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; dann B2 (Maßsystem inch).
+
 ## P-2026-09-26-45 dezimalzeichen
 
 ### EINGELESEN
