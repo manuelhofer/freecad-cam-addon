@@ -461,7 +461,9 @@ class MaschinenPanel:
             self.details.zeige_betriebsart(objekt, linear=self._ist_linear(objekt))
         elif art == ZEILE_AUFNAHME:
             self._details_unter(self.aufnahmen_knoepfe)
-            self.details.zeige_aufnahme(objekt, self.alle_lcs(), self._spindeln())
+            self.details.zeige_aufnahme(
+                objekt, self.alle_lcs(), self._spindeln(), self._auf_revolver(objekt)
+            )
 
     def _details_unter(self, knopfreihe):
         self._aufbau.removeWidget(self.details)
@@ -675,6 +677,14 @@ class MaschinenPanel:
 
     def _spindeln(self):
         return [ba for ba in m.betriebsarten(self.maschine) if ba.Art == m.ART_SPINDEL]
+
+    def _auf_revolver(self, aufnahme):
+        """Sitzt die Aufnahme auf einem Revolver – im Glied, das eine Revolverachse dreht?"""
+        if aufnahme.Lcs is None:
+            return False
+        glied = self.kette.glied_von(aufnahme.Lcs)
+        achsen = (self.kette.achse_von(ba.Gelenk) for ba in self._revolver())
+        return any(achse is not None and achse.kind is glied for achse in achsen)
 
     def _ist_linear(self, ba):
         achse = self.kette.achse_von(ba.Gelenk)

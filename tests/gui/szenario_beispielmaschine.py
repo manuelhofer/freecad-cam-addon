@@ -51,6 +51,16 @@ def schritte(h):
     if panel is None:
         return
     h.bild("2_bearbeiten")
+    # Ohne Revolver gibt es kein Feld „Revolverplatz“ (Manuel: „hier ist noch
+    # kein Revolver zu sehen, also wieso Revolverplatz?“).
+    spindel = panel.aufnahmen.findItems("Spindel", QtCore.Qt.MatchStartsWith)
+    h.pruefe(bool(spindel), "Werkzeugaufnahme „Spindel“ fehlt in der Liste")
+    if spindel:
+        panel.aufnahmen.setCurrentItem(spindel[0])
+        yield 200
+        zeilen = panel.details.formular.rowCount()
+        h.pruefe(zeilen == 3, f"Spindel: {zeilen} Felder statt 3 (ohne Revolverplatz)")
+        h.bild("2b_spindel_ohne_revolverplatz")
     panel.reject()
     yield 500
 

@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-52 revolverplatz-nur-am-revolver
+
+### EINGELESEN
+- Manuel (2026-09-26, Screenshot: Beispiel-Fräsmaschine, „+ Werkzeugaufnahme“,
+  im Kasten darunter „Revolverplatz: P10“): „hier ist noch kein Revolver zu
+  sehen … also wieso Revolverplatz? … keine Ahnung, wie man das sinnvoll
+  macht.“
+- `camaddon/gui_details.py` (`zeige_aufnahme`, `_platzfeld`),
+  `camaddon/gui_maschine.py` (`_details_zeigen`), Spezifikation W-001,
+  Abschnitt 7a (Plätze = Werkzeugaufnahmen im Glied des Revolvers).
+
+### DATEIEN
+- `camaddon/gui_details.py`, `camaddon/gui_maschine.py`
+- `help/de/aufnahmen.html`, `help/en/aufnahmen.html`
+- `tests/gui/szenario_maschine_bearbeiten.py`,
+  `tests/gui/szenario_beispielmaschine.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Das Feld „Revolverplatz“ steht nur bei einer Werkzeugaufnahme, deren LCS auf
+einem Revolver sitzt – im Glied, das ein Gelenk mit der Betriebsart
+„Revolver“ dreht. An der Spindel einer Fräse gibt es das Feld nicht mehr.
+
+### DONE
+- `MaschinenPanel._auf_revolver()` prüft das Glied des LCS gegen die
+  Revolverachsen; `DetailKasten.zeige_aufnahme(…, auf_revolver)` legt das
+  Feld nur dann an. Genau diese Aufnahmen zählt das Addon auch als Plätze
+  (`m.plaetze`) – Feld und Zählung passen jetzt zusammen.
+- Hilfe „Aufnahmen“: Das Feld gibt es nur auf dem Revolver.
+- Das „P10“ im Screenshot war sehr wahrscheinlich das Mausrad über dem Feld;
+  ohne Revolver ist das Feld jetzt ganz weg.
+
+### TEST
+- `szenario_maschine_bearbeiten` (1.1.3): P3 zeigt „Revolverplatz: P3“, das
+  Futter hat nur Name und Koordinatensystem. `szenario_beispielmaschine`:
+  Die Spindel der Beispiel-Fräse hat drei Felder, kein Revolverplatz.
+
+### NEXT
+- Beispielmaschinen zur Auswahl (Punkt 7b).
+
 ## P-2026-09-26-51 version-0-16-0
 
 ### EINGELESEN

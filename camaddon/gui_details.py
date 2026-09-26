@@ -84,11 +84,14 @@ class DetailKasten(QtGui.QFrame):
             self.formular.addRow(self._verweis_beschleunigung())
         self.show()
 
-    def zeige_aufnahme(self, aufnahme, alle_lcs, spindeln):
-        """Bezeichnung und LCS; bei Werkzeugaufnahmen auch Antrieb und Revolverplatz.
+    def zeige_aufnahme(self, aufnahme, alle_lcs, spindeln, auf_revolver=False):
+        """Bezeichnung und LCS; bei Werkzeugaufnahmen auch der Antrieb.
 
         `alle_lcs`: die Koordinatensysteme zur Auswahl; `spindeln`: die
         Betriebsarten „Spindel“, die ein Werkzeug antreiben können.
+        `auf_revolver`: Die Aufnahme sitzt auf einem Revolver – nur dann gibt
+        es das Feld „Revolverplatz“ (Manuel: „hier ist noch kein Revolver zu
+        sehen, also wieso Revolverplatz?“).
         """
         if aufnahme.Art == m.AUFNAHME_WERKZEUG:
             titel = tr("dialog.detail_werkzeugaufnahme", name=m.name_von(aufnahme))
@@ -108,7 +111,8 @@ class DetailKasten(QtGui.QFrame):
                 tr("dialog.aufnahme_antrieb"),
                 self._verweisliste(aufnahme, "Spindel", antriebe, tr("eigenschaft.spindel")),
             )
-            self.formular.addRow(tr("dialog.aufnahme_platz"), self._platzfeld(aufnahme))
+            if auf_revolver:
+                self.formular.addRow(tr("dialog.aufnahme_platz"), self._platzfeld(aufnahme))
         self.show()
 
     # --- die einzelnen Felder -------------------------------------------------

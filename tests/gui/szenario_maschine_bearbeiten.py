@@ -135,6 +135,15 @@ def schritte(h):
     panel.aufnahmen.setCurrentItem(eintrag(panel.aufnahmen, "P3"))
     yield 300
     h.bild("4_vollstaendig_p3_gewaehlt")
+    # Ein Platz auf dem Revolver hat das Feld „Revolverplatz“, das Futter nicht.
+    platzfeld = panel.details.feld(3)
+    h.pruefe(
+        platzfeld is not None and platzfeld.text() == "P3",
+        f"Revolverplatz bei P3: {platzfeld.text() if platzfeld else None!r}",
+    )
+    panel.aufnahmen.setCurrentItem(eintrag(panel.aufnahmen, "Futter"))
+    yield 100
+    h.pruefe(panel.details.formular.rowCount() == 2, "Futter: Felder für Werkzeuge")
 
     # Ein Fehler: X1 ohne Eilgang -> Hinweis erscheint, Klick springt zur Achse.
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
