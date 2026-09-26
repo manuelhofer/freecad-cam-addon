@@ -4,8 +4,8 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“): fertig und automatisch geprüft (P-2026-09-26-89 bis -91, 0.23.0). Stufe 4c (Kollision): Manuel hat entschieden (P-2026-09-26-93: eigene Halter-Verwaltung, geprüft gegen fertiges Teil und Spannmittel, Berührung und Warnabstand) – in Arbeit, erst die Halter (W-002 Stufe D).
-- **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test. Stufe D (Halter, für W-001 4c) spezifiziert mit Manuels Entscheidungen ([spezifikation_halter.md](spezifikation_halter.md), P-2026-09-26-93), in Arbeit.
+- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“): fertig und automatisch geprüft (P-2026-09-26-89 bis -91, 0.23.0). Stufe 4c (Kollision) mit Manuels Entscheidungen (P-2026-09-26-93): fertig und automatisch geprüft (P-2026-09-26-97 bis -99, 0.24.0).
+- **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test. Stufe D (Halter, für W-001 4c) mit Manuels Entscheidungen ([spezifikation_halter.md](spezifikation_halter.md), P-2026-09-26-93) fertig und automatisch geprüft (P-2026-09-26-94 bis -96).
 - **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ fertig und automatisch geprüft (P-2026-09-26-79), wartet auf Manuels Test; als Nächstes V2 (Punkt 12 unten).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
   und Wochen-Build 26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien
@@ -153,8 +153,11 @@ Wunschliste, offene Bugs und Tasks.
    ([spezifikation_halter.md](spezifikation_halter.md): Kontur aus
    Zylindern und Kegeln, eigenes Fenster, Länge ab Spindelnase gemessen,
    sonst geschätzt), geprüft gegen fertiges Teil und Spannmittel, gemeldet
-   Berührung und Warnabstand. Erst die Halter in drei Schritten, dann 4c in
-   zwei (Abschnitt 5, 4c).*
+   Berührung und Warnabstand. Halter fertig (P-2026-09-26-94 bis -96:
+   Datenmodell, Fenster „Halter“, Länge und Anzeige), 4c fertig (-97:
+   `kollision.py`, -98: Bereich „Kollision“ im Fenster), Version 0.24.0
+   (-99). Stufe 4c damit komplett; 4d (Bearbeitungszeit mit Beschleunigung)
+   bleibt Entwurf.*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -240,7 +243,17 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    → Sprung an ihren Anfang. Mit X 300 auf die Überschreitung klicken → der
    Abspieler steht dort, X1 rot „am Anschlag“. Schließen → Werkzeug, Rohteil
    und Bahn sind weg, die Maschine steht wie vorher. Passen Zeit und Tempo,
-   sieht man genug?
+   sieht man genug? **Halter** (P-2026-09-26-94 bis -96): Werkzeugverwaltung →
+   ein Werkzeug → „Halter …“ → „Neu“ → „Spannzangenfutter ER32 · SK40“ → Liste,
+   Kontur-Tabelle und Bild im Schnitt → OK → beim Werkzeug steht der Halter,
+   die leere Länge ab Spindelnase zeigt grau „leer: … mit Halter“; im Abfahren
+   steckt das Werkzeug in diesem Halter. **Kollision** (-97, -98): Die
+   3-Achs-Fräse hat jetzt zwei Spanneisen. Ein kurzes Werkzeug (Gesamtlänge
+   25 mm, ohne Halter) und eine Bahn dicht neben einem Spanneisen in die Tiefe
+   → „Kollision prüfen“ → rot „Es stößt etwas an:“, „In „…“ berühren sich
+   „Spindel“ und „Spanneisen_rechts“ …“ → Klick → die Maschine steht dort,
+   eine rote Kugel zeigt die Stelle. Warnabstand 10 → gelbe Sätze dazu.
+   Versteht man die Sätze, stimmen die Stellen?
 8. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
    Nr. 13–23 sind von dieser Nacht); zu Stufe 4b und 4c Claudes
@@ -248,7 +261,7 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    und zu den Haltern ([Spezifikation](spezifikation_halter.md),
    Abschnitt 9, Nr. 4–7).
 
-Danach: Halter-Verwaltung (W-002 Stufe D), dann W-001 Stufe 4c (Kollision), Version 0.24.0. Manuel testet 4a und 4b später (Punkt 7 oben).
+Danach: Manuel testet 4a–4c und die Halter (Punkt 7 oben); offen sind W-001 4d (Bearbeitungszeit mit Beschleunigung) und W-003 V2 (4-Achs: Achse von der Maschine).
 
 ## Wunschliste
 

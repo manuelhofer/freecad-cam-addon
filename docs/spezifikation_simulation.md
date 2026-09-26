@@ -8,7 +8,7 @@ stehen zur Besprechung (Abschnitt 5, 4b). **Zu 4c hat Manuel am 2026-09-26
 entschieden** (Abschnitt 9, Fragen 4, 5, 7, 8): eigene Halter-Verwaltung
 ([spezifikation_halter.md](spezifikation_halter.md)), geprüft gegen das
 fertige Teil und die Spannmittel, gemeldet werden Berührung und Warnabstand;
-4c kommt als Nächstes (P-2026-09-26-93). 4d bleibt Entwurf.
+4c ist gebaut (0.24.0). 4d bleibt Entwurf.
 
 Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
 (Stufen 1–3: Maschine beschreiben, an CAM übergeben, von Hand verfahren; 3b:

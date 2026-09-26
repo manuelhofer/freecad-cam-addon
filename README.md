@@ -30,7 +30,10 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   aus der Werkzeugverwaltung. **Abfahren:** Die Maschine fährt die Bahn
   sichtbar ab – Werkzeug, Rohteil und Bahn in ihrer 3D-Ansicht; abspielen,
   anhalten, Punkt für Punkt, bis ×100; Satz, Zeit und Achswerte laufen mit,
-  eine Achse am Anschlag steht rot da.
+  eine Achse am Anschlag steht rot da. **Kollision:** Werkzeug, Halter und
+  Maschine gegen das fertige Teil, die Spannmittel und die Maschine – rot, wenn
+  etwas anstößt („In „Tasche“ berühren sich der Halter von T3 und das Teil“),
+  gelb, wenn es näher kommt als der Warnabstand; ein Klick zeigt die Stelle.
 - **Werkzeugverwaltung:** Werkstoffliste mit deutschen Bezeichnungen
   („1.4301 X5CrNi18-10 · Edelstahl, austenitisch“), Zusammensetzung und
   Härte; Werkzeuge mit Bild, Suche und Schnittwerten je Werkstoff und
@@ -40,7 +43,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Zeile; **Schruppwerte planen** –
   so viel Span, wie Fräser und Maschine hergeben (ganze Schneide, schmales
   ae, fz mit Spandickenausgleich). Werkzeuge lassen sich aus
-  FreeCAD-Bibliotheken übernehmen.
+  FreeCAD-Bibliotheken übernehmen. **Halter** mit ihrer Kontur aus Zylindern
+  und Kegeln, Vorlagen von ER16 bis Bohrfutter; je Werkzeug einer – damit
+  schätzt die Werkzeugverwaltung die Länge ab Spindelnase.
 - **An CAM übergeben:** die Werkzeuge als Werkzeugbibliothek „CAM-Addon“;
   „Schnittwerte in den Job“ setzt Drehzahl und Vorschub der
   Werkzeug-Controller eines Jobs passend zum Werkstoff des Rohteils, dazu

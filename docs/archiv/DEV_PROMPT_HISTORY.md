@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-99 version-0-24-0
+
+### EINGELESEN
+- Spezifikationen Halter (Schritte 1–3) und 4c (Schritte 1–2), alle gebaut
+  (P-2026-09-26-94 bis -98).
+- `package.xml`, README, „Über“ (0.23.0, P-2026-09-26-91).
+
+### DATEIEN
+- `package.xml` (0.24.0, Beschreibung)
+- `README.md` (Kollision unter „Auf der Maschine prüfen“, Halter in der
+  Werkzeugverwaltung)
+- `translations/de.json`, `translations/en.json` („Über“)
+- `docs/STATUS_SNAPSHOT.md`, `docs/spezifikation_simulation.md`, `CHATSTART.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Version 0.24.0; README, Beschreibung für den Addon-Manager und „Über“ nennen
+Halter und Kollisionsprüfung; `scripts/alle_tests.sh` in beiden
+FreeCAD-Versionen grün.
+
+### DONE
+- Version 0.24.0: Halter (W-002 Stufe D) und Kollision (W-001 Stufe 4c).
+- README, Addon-Manager, „Über“: Halter mit Kontur und Vorlagen; die
+  Kollisionsprüfung von Werkzeug, Halter und Maschine gegen Teil, Spannmittel
+  und Maschine.
+- Snapshot: Halter und 4c fertig, Klickweg zum Ausprobieren (Punkt 7);
+  danach Manuels Test, offen 4d und W-003 V2.
+
+### TEST
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- Manuel probiert Halter und Kollision aus (Snapshot, Punkt 7).
+
 ## P-2026-09-26-98 kollision-fenster
 
 ### EINGELESEN
