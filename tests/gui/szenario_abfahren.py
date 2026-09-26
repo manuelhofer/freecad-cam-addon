@@ -5,7 +5,8 @@
 # und Teil auf dem Tisch, die Bahn darauf (Vorschub blau, Eilgang rot), das
 # Werkzeug steckt in der Spindel. Der Abspieler steht am Anfang: „„Kontur“ ·
 # Satz 3 von 11 · 0:00,0 von …“ (FreeCAD rahmt die Bahn mit drei Kommentaren). Mitten auf die zweite Gerade gestellt, sitzt
-# die Werkzeugspitze genau auf dem Punkt der Bahn. Abspielen (×100) läuft bis
+# die Werkzeugspitze genau auf dem Punkt der Bahn; „Hinsehen“ (Lupe) holt
+# Werkstück und Werkzeug heran. Abspielen (×100) läuft bis
 # zum Ende und hält an; „Punkt zurück“ geht eine Station zurück; die zweite
 # Operation anwählen springt an ihren Anfang. Mit Nullpunkt X 300 fährt X1 über
 # die Grenze: Ein Klick auf den Satz stellt den Abspieler an die Stelle, X1 steht
@@ -82,9 +83,15 @@ def schritte(h):
     ansicht = Gui.getDocument(asm.Document.Name).mdiViewsOfType("Gui::View3DInventor")[0]
 
     def nah():
-        """Die Kamera auf Werkstück und Werkzeug – die Maschine ist groß, das Teil klein."""
-        region = ansicht.getViewer().getSoRenderManager().getViewportRegion()
-        ansicht.getCameraNode().viewAll(panel.bild.wurzel, region, 1.3)
+        """Der Knopf „Hinsehen“: die Kamera auf Werkstück und Werkzeug."""
+        spieler.knopf_hinsehen.click()
+
+    def ausschnitt():
+        """Wie viel die Kamera zeigt: Höhe (parallel) bzw. Abstand (perspektivisch)."""
+        kamera = ansicht.getCameraNode()
+        if hasattr(kamera, "height"):
+            return kamera.height.getValue()
+        return kamera.focalDistance.getValue()
 
     # --- Geöffnet: die Körper in der Ansicht, der Abspieler am Anfang -----------------------
     h.pruefe(panel.bild is not None, "kein Bild in der 3D-Ansicht")
@@ -99,12 +106,15 @@ def schritte(h):
         f"Stelle am Anfang: {spieler.stelle.text()!r}",
     )
     h.pruefe(spieler.knopf_spielen.text() == "Abspielen", "Knopf heißt nicht „Abspielen“")
+    h.pruefe(not spieler.knopf_hinsehen.icon().isNull(), "Knopf „Hinsehen“ ohne Symbol")
     h.pruefe(not bewegt(), f"Maschine bewegt sich schon beim Öffnen: {bewegt()}")
     Gui.SendMsgToActiveView("ViewFit")
     yield 300
+    ganz = ausschnitt()
     h.bild("1_geoeffnet")
     nah()
     yield 300
+    h.pruefe(ausschnitt() < ganz / 3, f"Hinsehen zoomt nicht: {ganz} → {ausschnitt()}")
     h.bild("1b_werkstueck")
     h.bild("1c_fenster", panel.form)
 

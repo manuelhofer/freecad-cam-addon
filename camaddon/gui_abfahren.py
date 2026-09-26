@@ -42,6 +42,7 @@ MODELL = (0.45, 0.60, 0.80)
 VORSCHUB_LINIE = (0.10, 0.35, 0.90)
 EILGANG_LINIE = (0.90, 0.15, 0.10)
 HALTER_MINDESTENS = 25.0  # mm Ø des angedeuteten Halters
+HINSEHEN_RAND = 1.3  # so viel mehr als Werkstück und Werkzeug zeigt „Hinsehen“
 
 
 # --- Die Körper ---------------------------------------------------------------------------
@@ -129,6 +130,12 @@ class Bild:
             self._setze(
                 self.werkzeug_lage, m.globale_platzierung(self.aufnahmen[self.operation].Lcs)
             )
+
+    def hinsehen(self):
+        """Richtet die Kamera auf Werkstück und Werkzeug – die Maschine ist meist viel
+        größer als das Teil."""
+        region = self.ansicht.getViewer().getSoRenderManager().getViewportRegion()
+        self.ansicht.getCameraNode().viewAll(self.wurzel, region, HINSEHEN_RAND)
 
     def weg(self):
         """Nimmt die Körper aus der Ansicht."""
@@ -242,12 +249,14 @@ class Abspieler(QtGui.QWidget):
 
     `fahren(stellungen, operation)` bewegt die Maschine und das Werkzeug der
     Operation und gibt die Achsen zurück, die an einer Grenze halten – das
-    Fenster öffnet dafür seinen Schritt Rückgängig.
+    Fenster öffnet dafür seinen Schritt Rückgängig. `hinsehen()` richtet die
+    Ansicht auf Werkstück und Werkzeug.
     """
 
-    def __init__(self, fahren):
+    def __init__(self, fahren, hinsehen):
         super().__init__()
         self._fahren = fahren
+        self._hinsehen = hinsehen
         self.abfahrt = None
         self.zeit = 0.0
         self.station = 0  # die letzte Station, die die Bahn erreicht hat
@@ -285,9 +294,14 @@ class Abspieler(QtGui.QWidget):
         for tempo in TEMPI:
             self.wahl_tempo.addItem(f"×{tempo}", tempo)
         self.wahl_tempo.setToolTip(tr("ab.tempo.tooltip"))
+        self.knopf_hinsehen = QtGui.QToolButton()
+        self.knopf_hinsehen.setIcon(QtGui.QIcon(":/icons/zoom-selection.svg"))
+        self.knopf_hinsehen.setToolTip(tr("ab.hinsehen.tooltip"))
+        self.knopf_hinsehen.clicked.connect(lambda: self._hinsehen())
         for widget in (self.knopf_anfang, self.knopf_zurueck, self.knopf_spielen, self.knopf_vor):
             zeile.addWidget(widget)
         zeile.addStretch()
+        zeile.addWidget(self.knopf_hinsehen)
         zeile.addWidget(self.wahl_tempo)
         aufbau.addLayout(zeile)
 
@@ -350,6 +364,7 @@ class Abspieler(QtGui.QWidget):
             self.knopf_zurueck,
             self.knopf_spielen,
             self.knopf_vor,
+            self.knopf_hinsehen,
             self.wahl_tempo,
             self.schieber,
         ):
@@ -459,7 +474,7 @@ class Abspieler(QtGui.QWidget):
         abfahrt = self.abfahrt
         if abfahrt is None or not abfahrt.stationen:
             self.stelle.setText(tr("ab.keine_bahn"))
-            self.achswerte.setText("")
+            self.achswerte.setVisible(False)
             return
         station = abfahrt.stationen[self.laufend()]
         op = abfahrt.operationen[station.operation]
@@ -494,7 +509,9 @@ class Abspieler(QtGui.QWidget):
             teile.append(
                 f"<span style='color:{ROT}'>{html.escape(tr('ab.nicht_erreichbar'))}</span>"
             )
+        # Leer, solange die Maschine nicht auf der Bahn steht (vor dem ersten Abspielen).
         self.achswerte.setText(" · ".join(teile))
+        self.achswerte.setVisible(bool(teile))
 
 
 def zeit_text(sekunden):

@@ -810,5 +810,6 @@
     "ab.stelle": "„{operation}“ · Satz {satz} von {saetze} · {zeit} von {dauer}",
     "ab.keine_bahn": "Nichts abzufahren: keine Operation mit Bahn, deren Werkzeug auf diese Maschine passt.",
     "ab.anschlag": "am Anschlag",
-    "ab.nicht_erreichbar": "Diesen Punkt erreichen die Achsen nicht – die Maschine bleibt stehen."
+    "ab.nicht_erreichbar": "Diesen Punkt erreichen die Achsen nicht – die Maschine bleibt stehen.",
+    "ab.hinsehen.tooltip": "Ansicht auf Werkstück und Werkzeug – die Maschine ist meist viel größer als das Teil."
 }

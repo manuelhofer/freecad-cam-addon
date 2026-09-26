@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-92 abfahren-lupe
+
+### EINGELESEN
+- Screenshots aus `szenario_abfahren` (P-2026-09-26-90): Die Maschine ist
+  groß, Teil und Werkzeug klein – fürs Szenario musste die Kamera von Hand
+  heran; Manuel müsste das mit dem Mausrad tun.
+- `gui_abfahren.py`, `gui_reichweite.py`.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py` (`Bild.hinsehen`, Knopf mit Lupe, leere
+  Achswert-Zeile ausgeblendet)
+- `camaddon/gui_reichweite.py` (`_hinsehen`)
+- `translations/de.json`, `translations/en.json` (1 Text)
+- `help/de/reichweite.html`, `help/en/reichweite.html`
+- `tests/gui/szenario_abfahren.py`
+- `docs/spezifikation_simulation.md`, `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Knopf im Bereich „Abfahren“ richtet die Ansicht auf Werkstück und
+Werkzeug; ohne Stellung auf der Bahn bleibt keine leere Zeile stehen.
+
+### DONE
+- Knopf mit FreeCADs Lupe („Auswahl einpassen“) neben dem Tempo:
+  `Bild.hinsehen()` richtet die Kamera auf Rohteil, Teil, Bahn und Werkzeug
+  (Coin `viewAll` mit etwas Rand) und holt die 3D-Ansicht der Maschine nach
+  vorn.
+- Die Zeile mit den Achswerten ist ausgeblendet, solange die Maschine nicht
+  auf der Bahn steht (vor dem ersten Abspielen) – vorher stand dort eine
+  Lücke.
+- Hilfe: die Lupe unter „Abfahren“.
+
+### TEST
+- `szenario_abfahren` (klickt jetzt die Lupe: Ausschnitt unter einem Drittel
+  der ganzen Maschine, Symbol vorhanden) und `szenario_hilfe` in 1.1.3 und im
+  Wochen-Build grün, Screenshots angesehen; `test_sprache` grün; black, ruff
+  sauber.
+
+### NEXT
+- Voller Lauf, Push.
+
 ## P-2026-09-26-91 version-0-23-0
 
 ### EINGELESEN

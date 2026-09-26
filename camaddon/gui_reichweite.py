@@ -244,7 +244,7 @@ class PruefPanel:
         self.liste.setToolTip(tr("rw.liste.tooltip"))
         self.liste.itemClicked.connect(lambda _eintrag: self.fahre_hin(self.liste.currentRow()))
         aufbau.addWidget(self.liste)
-        self.abspieler = gui_abfahren.Abspieler(self._fahre)
+        self.abspieler = gui_abfahren.Abspieler(self._fahre, self._hinsehen)
         aufbau.addWidget(self.abspieler)
         self.bereiche = QtGui.QLabel()
         self.bereiche.setWordWrap(True)
@@ -407,6 +407,11 @@ class PruefPanel:
                 self.bild.zeige_operation(operation)
             self.bild.folge()
         return angehalten
+
+    def _hinsehen(self):
+        if self.bild is not None:
+            self.bild.hinsehen()
+            zeige_dokument(self.assembly.Document)
 
     def _zurueckfahren(self):
         """Die Maschine wieder so, wie sie beim Öffnen stand."""

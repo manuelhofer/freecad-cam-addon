@@ -153,7 +153,9 @@ Entscheidungen von Claude (P-2026-09-26-88), zur Besprechung:
   m, Zeit t von T und die Stellung jeder Achse. Der Satz ist der, der gerade
   läuft (zwischen zwei Punkten der des zweiten); vor und zurück gehen von
   Punkt zu Punkt, auch wenn zwei dieselbe Zeit haben. Die Achsen stehen
-  Linearachsen zuerst, nach Namen (P-2026-09-26-90).
+  Linearachsen zuerst, nach Namen (P-2026-09-26-90). Eine Lupe holt
+  Werkstück und Werkzeug in der Ansicht heran – die Maschine ist meist viel
+  größer als das Teil (P-2026-09-26-92).
 - **Anschlag:** Die Maschine fährt nie über ihre Grenzen. Müsste eine Achse
   weiter, bleibt sie an der Grenze stehen, ihr Wert steht rot da („am
   Anschlag“), die Bahn läuft weiter. Punkte, die die Linearachsen gar nicht

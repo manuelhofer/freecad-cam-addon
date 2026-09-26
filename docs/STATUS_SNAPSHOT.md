@@ -226,7 +226,8 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    den Nullpunkt? **Abfahren** (P-2026-09-26-89, -90): im selben Fenster
    unter „Abfahren“ → in der Maschine liegen Rohteil (durchscheinend) und
    Teil auf dem Tisch, darauf die Bahn (Vorschub blau, Eilgang rot), das
-   Werkzeug steckt in der Spindel (heranzoomen – die Maschine ist groß);
+   Werkzeug steckt in der Spindel; die **Lupe** neben dem Tempo holt
+   Werkstück und Werkzeug heran (P-2026-09-26-92);
    **Abspielen** → die Maschine fährt, die Werkzeugspitze läuft die blaue
    Linie entlang, Satz, Zeit und Achswerte laufen mit; Tempo ×20; den
    Schieber ziehen; „einen Punkt zurück/weiter“; oben eine Operation wählen

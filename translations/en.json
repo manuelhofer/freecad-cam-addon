@@ -810,5 +810,6 @@
     "ab.stelle": "“{operation}” · block {satz} of {saetze} · {zeit} of {dauer}",
     "ab.keine_bahn": "Nothing to run through: no operation with a path whose tool fits this machine.",
     "ab.anschlag": "at its limit",
-    "ab.nicht_erreichbar": "The axes cannot reach this point – the machine stays where it is."
+    "ab.nicht_erreichbar": "The axes cannot reach this point – the machine stays where it is.",
+    "ab.hinsehen.tooltip": "View the workpiece and tool – the machine is usually much bigger than the part."
 }
