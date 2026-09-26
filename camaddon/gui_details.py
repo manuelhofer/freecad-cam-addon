@@ -12,6 +12,7 @@ from PySide import QtGui
 from . import einheiten
 from . import maschine as m
 from .gui_hilfe import zeige_hilfe
+from .gui_teile import ruhiges_mausrad
 from .gui_zahlen import Zahlenpruefer, groesse_lesen, groesse_zeigen, zahl_lesen, zahl_zeigen
 from .sprache import tr
 
@@ -181,7 +182,7 @@ class DetailKasten(QtGui.QFrame):
             self._setze(objekt, eigenschaft, objekt.Document.getObject(name) if name else None)
 
         liste.currentIndexChanged.connect(uebernehmen)
-        return liste
+        return ruhiges_mausrad(liste)
 
     def _platzfeld(self, aufnahme):
         feld = QtGui.QSpinBox()
@@ -191,7 +192,7 @@ class DetailKasten(QtGui.QFrame):
         feld.setValue(aufnahme.Platz)
         feld.setToolTip(tr("eigenschaft.platz"))
         feld.valueChanged.connect(lambda wert: self._setze(aufnahme, "Platz", int(wert)))
-        return feld
+        return ruhiges_mausrad(feld)
 
     def _verweis_beschleunigung(self):
         """Verweis auf die Hilfeseite „Beschleunigung ermitteln“ direkt bei den Feldern."""

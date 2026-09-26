@@ -27,6 +27,7 @@ from . import maschine as m
 from .gui_bericht import BerichtFenster
 from .gui_details import DetailKasten
 from .gui_hilfe import kopfzeile
+from .gui_teile import ruhiges_mausrad
 from .gui_verteilhilfe import VerteilDialog
 from .kette import HINWEIS, LINEAR
 from .sprache import tr
@@ -279,7 +280,8 @@ class MaschinenPanel:
             tooltip = tr("dialog.uebergeben.tooltip")
         self.knopf_uebergeben = _knopf(tr("dialog.uebergeben"), self.uebergeben, tooltip)
         self._aufbau.addWidget(self.knopf_uebergeben)
-        return form
+        # Die Felder des Kastens kommen später dazu – ruhig sind sie in gui_details.
+        return ruhiges_mausrad(form)
 
     def _baue_namenszeile(self):
         zeile = QtGui.QHBoxLayout()

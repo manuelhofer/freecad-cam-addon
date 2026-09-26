@@ -20,7 +20,7 @@ from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
-from .gui_teile import grau, hinweiszeile
+from .gui_teile import grau, hinweiszeile, ruhiges_mausrad
 from .gui_werkzeuge import werkstoffe_anbieten
 from .gui_zahlen import dezimal, groesse_fest, groesse_zeigen, zahl_zeigen, zahlenformat
 from .sprache import tr
@@ -194,6 +194,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         self.knoepfe.accepted.connect(self.uebernehmen)
         self.knoepfe.rejected.connect(self.reject)
         aufbau.addWidget(self.knoepfe)
+        ruhiges_mausrad(self)
 
         self.wahl_job.setVisible(len(self.jobs) > 1)
         formular.labelForField(self.wahl_job).setVisible(len(self.jobs) > 1)
@@ -254,7 +255,8 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         self._duenn = {}
         for zeile, tc in enumerate(tcs):
             werkzeug = js.werkzeug_von(tc, self.bibliothek)
-            wahl = QtGui.QComboBox()
+            # Beim Blättern in der Tabelle verstellt das Rad den Einsatz nicht.
+            wahl = ruhiges_mausrad(QtGui.QComboBox())
             wahl.currentIndexChanged.connect(lambda *_, z=zeile: self._zeile_rechnen(z))
             self._zeilen.append((tc, werkzeug, wahl))
             self.tabelle.setItem(zeile, TC, QtGui.QTableWidgetItem(tc.Label))

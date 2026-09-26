@@ -18,7 +18,7 @@ from . import maschine as m
 from . import verfahren as vf
 from .gui_hilfe import kopfzeile
 from .gui_maschine import beispiel_waehlen, gewaehlte_assembly
-from .gui_teile import GRAU, fett
+from .gui_teile import GRAU, RuhigerRegler, fett, ruhiges_mausrad
 from .gui_zahlen import zahlenformat
 from .kette import LINEAR
 from .sprache import tr
@@ -142,7 +142,7 @@ class VerfahrPanel:
         zeile.addStretch()
         aufbau.addLayout(zeile)
         aufbau.addStretch()
-        return form
+        return ruhiges_mausrad(form)
 
     def _baue_zeile(self, gitter, zeile, achse):
         """Name, Regler und Zahlenfeld; darunter grau die Grenzen.
@@ -158,7 +158,7 @@ class VerfahrPanel:
 
         name = fett(vf.namen(self.maschine, achse))
         name.setToolTip(tr("vf.gelenk.tooltip", gelenk=achse.gelenk.Label))
-        regler = QtGui.QSlider(QtCore.Qt.Horizontal)
+        regler = RuhigerRegler(QtCore.Qt.Horizontal)
         regler.setRange(round(unten * SCHRITTE_JE_EINHEIT), round(oben * SCHRITTE_JE_EINHEIT))
         regler.setValue(round(stellung * SCHRITTE_JE_EINHEIT))
         regler.setToolTip(tr("vf.regler.tooltip"))

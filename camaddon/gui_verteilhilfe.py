@@ -9,6 +9,7 @@ Revolverachse.
 from PySide import QtGui
 
 from . import maschine as m
+from .gui_teile import ruhiges_mausrad
 from .sprache import tr
 
 VORGABE_ANZAHL = 12  # häufigste Revolvergröße
@@ -58,6 +59,7 @@ class VerteilDialog(QtGui.QDialog):
         self.knoepfe.accepted.connect(self.accept)
         self.knoepfe.rejected.connect(self.reject)
         aufbau.addRow(self.knoepfe)
+        ruhiges_mausrad(self)
 
         self._erste_plaetze_anbieten()
 

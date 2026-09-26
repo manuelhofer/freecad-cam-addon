@@ -201,3 +201,5 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | Den Taster baut CAM von oben nach unten (Spitze bei −Länge) | `test_cam_formen` vergleicht ihn gespiegelt |
 | Ein ToolBit, das an ein Dokument gehängt wurde, ist mit dem Dokument weg | vor dem Schließen lesen, was man braucht |
 | CAMs Bibliotheksfenster lädt seine Oberfläche erst, wenn die Werkbank CAM einmal aktiv war | Szenario schaltet vorher auf CAM |
+| Das Mausrad verstellt Auswahllisten, Drehfelder und Regler auch ohne Fokus – beim Blättern im Aufgabenfenster aus Versehen („P10“ im Revolverplatz) | `gui_teile.ruhiges_mausrad` (Filter, reicht das Rad an den nächsten rollbaren Bereich), Regler als `RuhigerRegler` – im Wochen-Build kommt das Rad dort am Filter vorbei; der schützt Drehfelder selbst (`Gui::WheelEventFilter`) |
+| Mit `sendEvent` geschickte Rad-Ereignisse gibt Qt nicht an die Eltern weiter | `szenario_mausrad` dreht das Rad über XTest am virtuellen Bildschirm |

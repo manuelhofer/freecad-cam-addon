@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-63 ruhiges-mausrad
+
+### EINGELESEN
+- #39 und P-2026-09-26-52: Das „P10“ in Manuels Revolverplatz war sehr
+  wahrscheinlich das Mausrad beim Blättern im Aufgabenfenster.
+- Alle Auswahllisten, Drehfelder und Regler des Addons (`gui_*.py`), Qts
+  Weitergabe von Rad-Ereignissen (nur echte, nicht mit sendEvent
+  geschickte), FreeCADs eigenes `Gui::WheelEventFilter` (1.1.3 und
+  Wochen-Build, dort erweitert).
+
+### DATEIEN
+- `camaddon/gui_teile.py` (`ruhiges_mausrad`, `RuhigerRegler`)
+- `camaddon/gui_werkzeuge.py`, `gui_job_schnittwerte.py`, `gui_werkstoffe.py`,
+  `gui_strategie.py`, `gui_verteilhilfe.py`, `gui_verfahren.py`,
+  `gui_details.py`, `gui_maschine.py`, `gui_sprachwahl.py`
+- `tests/gui/szenario_mausrad.py` (neu)
+- `docs/aufbau.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Maschine bearbeiten“ an der Beispiel-Drehmaschine → P3 wählen → mit dem
+Mausrad über dem Feld „Revolverplatz“ blättern: Das Aufgabenfenster rollt,
+der Platz bleibt P3. Erst nach einem Klick ins Feld rollt das Rad den Wert.
+Genauso Art und Nummer in der Werkzeugverwaltung, der Einsatz je Zeile in
+„Schnittwerte in den Job“, die Regler in „Maschine verfahren“.
+
+### DONE
+- Auswahllisten, Drehfelder und Regler aller Dialoge und Aufgabenfenster
+  nehmen das Mausrad nur mit Fokus; den Fokus gibt ihnen das Rad auch nicht
+  mehr. Ohne Fokus geht die Raste an den nächsten Bereich darüber, der
+  rollen kann – Aufgabenfenster oder Tabelle blättern weiter.
+- Die Regler in „Maschine verfahren“ lehnen das Rad ohne Fokus selbst ab:
+  Im Wochen-Build kommt es im Aufgabenfenster am Filter vorbei.
+- Im Wochen-Build schützt FreeCAD Drehfelder im Aufgabenfenster schon
+  selbst und schluckt das Rad dabei – dort rollt das Fenster über einem
+  Feld nicht weiter (FreeCADs Verhalten); verstellt wird nichts.
+
+### TEST
+- Neu `szenario_mausrad`: Rasten über XTest wie von einer Maus; Sprachwahl,
+  Art und Nummer (mit Fokus rollt die Nummer T1 → T2), Revolverplatz mit
+  Gegenprobe (ein Drehfeld ohne Filter verstellt sich in 1.1.3, das
+  Fenster rollt), Regler und Feld beim Verfahren – in 1.1.3 und im
+  Wochen-Build. Szenarien `werkzeugverwaltung`, `schnittwerte_job`,
+  `verfahren`, `erster_start`, `werkstoffe`, `strategien` im Wochen-Build.
+
+### NEXT
+- Schrägbett-Kinematik planen (Manuel): X und Y als schräge Achsen, für
+  eine Bewegung in Y fahren beide.
+
 ## P-2026-09-26-62 beispielmaschinen-zur-auswahl
 
 ### EINGELESEN

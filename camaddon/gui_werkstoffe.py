@@ -14,7 +14,7 @@ from PySide import QtCore, QtGui
 
 from . import werkstoffe as ws
 from .gui_hilfe import kopfzeile
-from .gui_teile import fett, hinweiszeile, knopf
+from .gui_teile import fett, hinweiszeile, knopf, ruhiges_mausrad
 from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen
 from .sprache import tr
 
@@ -129,6 +129,7 @@ class WerkstoffDialog(QtGui.QDialog):
         knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
         knoepfe.rejected.connect(self.reject)
         aufbau.addWidget(knoepfe)
+        ruhiges_mausrad(self)
         self._fuellen()
 
     def keyPressEvent(self, ereignis):
@@ -328,6 +329,7 @@ class WerkstoffBearbeiten(QtGui.QDialog):
         self.knoepfe.accepted.connect(self.accept)
         self.knoepfe.rejected.connect(self.reject)
         formular.addRow(self.knoepfe)
+        ruhiges_mausrad(self)
         self._pruefen()
 
     def _pruefen(self, *_):

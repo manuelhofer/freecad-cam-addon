@@ -14,6 +14,7 @@ from . import einheiten
 from . import schnittdaten as sd
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
+from .gui_teile import ruhiges_mausrad
 from .gui_zahlen import dezimal, groesse_fest, groesse_zeigen, zahl_zeigen, zahlenformat
 from .sprache import tr
 
@@ -123,6 +124,7 @@ class StrategieDialog(QtGui.QDialog):
         knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
         knoepfe.rejected.connect(self.reject)
         aufbau.addWidget(knoepfe)
+        ruhiges_mausrad(self)
 
         a, b = _vorwahl(einsaetze)
         self.wahl_a.currentIndexChanged.connect(self._rechnen)

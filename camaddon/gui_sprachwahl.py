@@ -14,6 +14,7 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import einheiten, gui_aktualisierung, sprache
+from .gui_teile import ruhiges_mausrad
 from .gui_zahlen import dezimalzeichen
 from .sprache import tr
 
@@ -93,6 +94,7 @@ class ErsterStartDialog(QtGui.QDialog):
         self.liste.currentIndexChanged.connect(self._beschriften)
         self._platz_fuer_alle_sprachen()
         self._beschriften()
+        ruhiges_mausrad(self)
 
     def gewaehlt(self):
         """Der Code der markierten Sprache, z. B. "de"."""
@@ -200,6 +202,7 @@ class Einstellungsseite:
         aufbau.addWidget(zahlen)
         aufbau.addWidget(gui_aktualisierung.einstellungen_gruppe(self))
         aufbau.addStretch()
+        ruhiges_mausrad(self.form)  # FreeCADs Einstellungen blättern
 
     # loadSettings und saveSettings ruft FreeCAD beim Öffnen und bei OK auf.
     def loadSettings(self):

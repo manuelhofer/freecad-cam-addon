@@ -19,7 +19,7 @@ from . import werkzeuge as wz
 from . import werkzeuge_aus_cam as aus_cam
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
-from .gui_teile import GRAU, hinweiszeile, knopf, mit_einheit
+from .gui_teile import GRAU, hinweiszeile, knopf, mit_einheit, ruhiges_mausrad
 from .gui_werkstoffe import WerkstoffDialog
 from .gui_werkzeugbild import WerkzeugBild
 from .gui_werkzeugbild import symbol as art_symbol
@@ -162,6 +162,7 @@ class WerkzeugDialog(QtGui.QDialog):
         unten.addStretch()
         unten.addWidget(self._knoepfe())
         aufbau.addLayout(unten)
+        ruhiges_mausrad(self)
 
         self._werkstoffe_anbieten()
         self.waehle_werkstoff(_parameter().GetString("WvWerkstoff", wz.ALLE))
