@@ -14,10 +14,14 @@ sys.path.insert(0, ADDON)
 
 from Path.Tool.camassets import cam_assets, user_asset_store
 
+from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
 from camaddon import werkzeuge as wz
 
 fehler = []
+# Die Beispielnamen sind deutsch, egal welche Sprache FreeCAD meldet (1.1.3: Englisch).
+vorher = sprache.gewaehlte_sprache() or ""
+sprache.setze_sprache("de")
 
 
 def pruefe(bedingung, text):
@@ -111,6 +115,7 @@ pruefe(f"camaddon_{torus.kennung}" not in bits, "Torusfräser nicht entfernt")
 pruefe("eigenes_werkzeug" in bits, "fremdes Werkzeug entfernt")
 pruefe(sorted(cam_assets.get("toolbitlibrary://camaddon")._bit_nos) == [3, 7], "Bibliothek danach")
 
+sprache.setze_sprache(vorher)
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

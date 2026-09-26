@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-36 test-uebergabe-deutsch
+
+### EINGELESEN
+- Voller Lauf vor dem Push von 0.12.0: `test_uebergabe_werkzeuge.py` rot
+  in 1.1.3 – „Beispielname in CAM: 'End mill T3 Carbide D12 L26'“. Seit
+  P-2026-09-26-27 gilt ohne gespeicherte Wahl FreeCADs Sprache;
+  `freecadcmd` 1.1.3 meldet Englisch, der Wochen-Build nicht. Die Prüfung
+  aus P-2026-09-26-33 setzte keine Sprache.
+
+### DATEIEN
+- `tests/test_uebergabe_werkzeuge.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Prüfung ist in beiden Versionen grün, unabhängig von FreeCADs Sprache.
+
+### DONE
+- Die Prüfung setzt Deutsch wie `test_werkzeuge.py` und stellt danach die
+  vorige Wahl wieder her.
+
+### TEST
+- `test_uebergabe_werkzeuge.py` einzeln in 1.1.3 und 26.3.0 grün; dann
+  `scripts/alle_tests.sh`.
+
+### NEXT
+- Push 0.12.0.
+
 ## P-2026-09-26-35 version-0-12-0
 
 ### EINGELESEN
