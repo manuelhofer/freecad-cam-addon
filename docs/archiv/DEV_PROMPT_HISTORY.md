@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-35 version-0-12-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit
+  0.11.2: Plan-Antworten (P-2026-09-26-32), Werkzeugname (-33), Plan
+  Beispielmaschine (-34).
+- Manuel (2026-09-26): „kannst du das mal puschen soweit und dann es bauen
+  anfangen“.
+
+### DATEIEN
+- `package.xml` (0.12.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.12.0.
+
+### DONE
+- Version 0.11.2 → 0.12.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; dann A2 (Beispielwerte) fertig, danach die Beispielmaschine.
+
 ## P-2026-09-26-34 plan-beispielmaschine
 
 ### EINGELESEN
