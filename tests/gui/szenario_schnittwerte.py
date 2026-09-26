@@ -5,6 +5,7 @@
 import os
 import sys
 
+import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
 from PySide6 import QtTest
@@ -25,8 +26,8 @@ def schritte(h):
     yield 300
     QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.German, QtCore.QLocale.Germany))
 
+    from camaddon import PARAMETER_PFAD, gui_werkzeuge
     from camaddon import gui_schnittwerte as gs
-    from camaddon import gui_werkzeuge
     from camaddon import werkzeuge as wz
 
     # Ein Fräser liegt schon in der Bibliothek.
@@ -99,6 +100,29 @@ def schritte(h):
     )
     h.pruefe(s.ausgleich.isVisible(), "Spandicke ausgleichen fehlt bei ae < D/2")
     h.bild("1b_eingriff_dynamisch", s.eingriff)
+
+    # ae und ap in % von D: umschalten, tippen, zurück – gespeichert wird in mm.
+    s.wahl_einheit.setCurrentIndex(s.wahl_einheit.findData(True))
+    yield 100
+    kopf = s.tabelle.horizontalHeaderItem(gs.AE).text()
+    h.pruefe(
+        (kopf, zelle(d, 1, gs.AE), zelle(d, 1, gs.AP)) == ("ae\n% D", "10", "208,3"),
+        f"in % von D: {kopf!r}, {zelle(d, 1, gs.AE)!r}, {zelle(d, 1, gs.AP)!r}",
+    )
+    s.setze(1, gs.AE, "20")
+    yield 100
+    dynamisch = s.werkzeug.einsaetze(wz.ALLE)[1]
+    h.pruefe(abs(dynamisch.ae - 2.4) < 1e-9, f"20 % von D ergibt ae {dynamisch.ae}")
+    h.pruefe(FreeCAD.ParamGet(PARAMETER_PFAD).GetBool(gs.IN_PROZENT), "Wahl % nicht gemerkt")
+    h.bild("1c_in_prozent", d)
+    s.setze(1, gs.AE, "10")
+    s.wahl_einheit.setCurrentIndex(s.wahl_einheit.findData(False))
+    yield 100
+    h.pruefe(
+        zelle(d, 1, gs.AE) == "1,2" and abs(dynamisch.ae - 1.2) < 1e-9,
+        f"zurück in mm: {zelle(d, 1, gs.AE)!r}, ae {dynamisch.ae}",
+    )
+    h.pruefe(not FreeCAD.ParamGet(PARAMETER_PFAD).GetBool(gs.IN_PROZENT), "Wahl mm nicht gemerkt")
     # Gewünscht 0,1 mm → fz 0,167; übernehmen rechnet die Zeile neu.
     s.feld_spandicke.setText("0,1")
     yield 100

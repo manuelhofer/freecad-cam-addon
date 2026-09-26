@@ -464,6 +464,13 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     und 0,05 mm, HSS 30 m/min und 0,03 mm). Die Merker werden nicht
     gespeichert: Nach dem Laden ist jeder Wert eigen. Alternative: leere
     Felder mit Hinweis – dann sieht man nichts, bis alles eingetragen ist.
+26. **ae und ap in mm oder in % von D, eine Wahl für die Tabelle**
+    (P-2026-09-26-42, Manuel: „einen Switch zwischen %- und mm-Angabe,
+    dass man beides eintragen kann“): beide Spalten zugleich, gemerkt in
+    den Einstellungen, für alle Werkzeuge; gespeichert wird immer in mm.
+    Prozent mit einer Nachkommastelle (208,3 %). Ohne Durchmesser mm.
+    Alternative: je Spalte ein eigener Umschalter – doppelt so viel zu
+    verstehen für einen seltenen Fall.
 
 ## 12. Akzeptanzkriterien Stufe 1
 

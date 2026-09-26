@@ -527,5 +527,8 @@
     "wv.eingriff.ap_schneide": "ap {ap} mm = {ap_d} × D ({ap_schneide} % der Schneide)",
     "wv.eingriff.ap": "ap {ap} mm = {ap_d} × D",
     "wv.eingriff.von_oben": "von oben",
-    "wv.eingriff.von_der_seite": "von der Seite"
+    "wv.eingriff.von_der_seite": "von der Seite",
+    "wv.zustellung.mm": "ae, ap in mm",
+    "wv.zustellung.prozent": "ae, ap in % von D",
+    "wv.zustellung.tooltip": "Wie ae und ap in der Tabelle stehen: in mm oder in Prozent des Durchmessers (ap 25 mm bei Ø 12 = 208 %). Gespeichert wird immer in mm; die Wahl gilt für alle Werkzeuge und bleibt fürs nächste Mal."
 }

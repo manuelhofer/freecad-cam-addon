@@ -2,7 +2,8 @@
 """Die Schnittwert-Tabelle in der Werkzeugverwaltung (W-002, Spezifikation Abschnitt 6).
 
 Eine Zeile je Einsatz: eingegeben werden ae, ap, vc und fz, gerechnet und grau
-daneben n, vf und Q. Welche Tabelle gilt, hängt vom Werkstoff oben im Dialog
+daneben n, vf und Q. ae und ap wahlweise in mm oder in % von D – gespeichert
+wird immer in mm. Welche Tabelle gilt, hängt vom Werkstoff oben im Dialog
 ab: seine eigene, sonst die für alle Werkstoffe – die ist dann nur zu sehen,
 bis man für den Werkstoff eigene Werte anlegt. Die Daten stehen in
 werkzeuge.py, das Rechnen in schnittdaten.py.
@@ -11,8 +12,10 @@ werkzeuge.py, das Rechnen in schnittdaten.py.
 import dataclasses
 import math
 
+import FreeCAD
 from PySide import QtCore, QtGui
 
+from . import PARAMETER_PFAD
 from . import schnittdaten as sd
 from . import schruppwerte as sw
 from . import werkstoffe as ws
@@ -30,6 +33,8 @@ from .sprache import tr
 EINSATZ, AE, AP, VC, FZ, N, VF, Q = range(8)
 EINGABE_SPALTEN = {AE: "ae", AP: "ap", VC: "vc", FZ: "fz"}
 TABELLE_MINDESTHOEHE = 150  # Pixel
+# Gemerkt in den Einstellungen: ae und ap in % von D statt in mm.
+IN_PROZENT = "SchnittwerteInProzent"
 
 
 class SchnittwertBereich(QtGui.QWidget):
@@ -55,6 +60,15 @@ class SchnittwertBereich(QtGui.QWidget):
         self.zustand = QtGui.QLabel()
         self.zustand.setWordWrap(True)
         zeile.addWidget(self.zustand, 1)
+        # ae und ap in mm oder in % von D – eine Wahl für die ganze Tabelle, gemerkt.
+        self.wahl_einheit = QtGui.QComboBox()
+        self.wahl_einheit.addItem(tr("wv.zustellung.mm"), False)
+        self.wahl_einheit.addItem(tr("wv.zustellung.prozent"), True)
+        self.wahl_einheit.setToolTip(tr("wv.zustellung.tooltip"))
+        gemerkt = FreeCAD.ParamGet(PARAMETER_PFAD).GetBool(IN_PROZENT, False)
+        self.wahl_einheit.setCurrentIndex(self.wahl_einheit.findData(gemerkt))
+        self.wahl_einheit.currentIndexChanged.connect(self._einheit_gewechselt)
+        zeile.addWidget(self.wahl_einheit)
         self.knopf_eigene = knopf("", tr("wv.eigene_anlegen.tooltip"), self.eigene_anlegen)
         self.knopf_eigene_weg = knopf(
             tr("wv.eigene_loeschen"), tr("wv.eigene_loeschen.tooltip"), self.eigene_loeschen
@@ -331,6 +345,23 @@ class SchnittwertBereich(QtGui.QWidget):
     def _bohrer(self):
         return self.werkzeug is not None and self.werkzeug.art == wz.BOHRER
 
+    @property
+    def in_prozent(self):
+        """Zeigt die Tabelle ae und ap in % von D? Ohne Durchmesser immer in mm."""
+        w = self.werkzeug
+        return bool(self.wahl_einheit.currentData()) and w is not None and w.durchmesser > 0
+
+    def _einheit_gewechselt(self, _index):
+        FreeCAD.ParamGet(PARAMETER_PFAD).SetBool(IN_PROZENT, bool(self.wahl_einheit.currentData()))
+        self._kopf_setzen()
+        self._fuellen()
+
+    def _zustellung_zeigen(self, mm):
+        """ae oder ap als Text in der gewählten Einheit."""
+        if self.in_prozent:
+            return zahl_zeigen(round(mm / self.werkzeug.durchmesser * 100, 1))
+        return zahl_zeigen(mm)
+
     def _kopf_setzen(self):
         """Spaltenköpfe mit Einheit; beim Bohrer f je Umdrehung statt fz, ohne ae und ap."""
         bohrer = self._bohrer()
@@ -338,10 +369,11 @@ class SchnittwertBereich(QtGui.QWidget):
             vorschub = ("f\nmm/U", tr("wv.spalte.f.tooltip"))
         else:
             vorschub = ("fz\nmm", tr("wv.spalte.fz.tooltip"))
+        einheit = "% D" if self.in_prozent else "mm"
         koepfe = [
             (tr("wv.spalte.einsatz"), tr("wv.spalte.einsatz.tooltip")),
-            ("ae\nmm", tr("wv.spalte.ae.tooltip")),
-            ("ap\nmm", tr("wv.spalte.ap.tooltip")),
+            ("ae\n" + einheit, tr("wv.spalte.ae.tooltip")),
+            ("ap\n" + einheit, tr("wv.spalte.ap.tooltip")),
             ("vc\nm/min", tr("wv.spalte.vc.tooltip")),
             vorschub,
             ("n\n" + tr("einheit.drehzahl"), tr("wv.spalte.n.tooltip")),
@@ -354,6 +386,9 @@ class SchnittwertBereich(QtGui.QWidget):
             self.tabelle.setHorizontalHeaderItem(spalte, kopf)
         self.tabelle.setColumnHidden(AE, bohrer)
         self.tabelle.setColumnHidden(AP, bohrer)
+        self.wahl_einheit.setVisible(not bohrer)
+        # Ohne Durchmesser gibt es kein „% von D“.
+        self.wahl_einheit.setEnabled(self.werkzeug is not None and self.werkzeug.durchmesser > 0)
 
     def _menue_fuellen(self):
         self.menue_plus.clear()
@@ -399,8 +434,8 @@ class SchnittwertBereich(QtGui.QWidget):
         teiler = self.werkzeug.schneiden if self._bohrer() else 1
         eingaben = {
             EINSATZ: wz.einsatz_name(einsatz),
-            AE: zahl_zeigen(einsatz.ae),
-            AP: zahl_zeigen(einsatz.ap),
+            AE: self._zustellung_zeigen(einsatz.ae),
+            AP: self._zustellung_zeigen(einsatz.ap),
             VC: zahl_zeigen(einsatz.vc),
             FZ: zahl_zeigen(round(einsatz.fz * teiler, 6)),
         }
@@ -442,8 +477,11 @@ class SchnittwertBereich(QtGui.QWidget):
                 wert = zahl_lesen(text)
             except ValueError:
                 wert = getattr(einsatz, EINGABE_SPALTEN[spalte])
-            if spalte == FZ and self._bohrer():
-                wert = wert / max(self.werkzeug.schneiden, 1)
+            else:
+                if spalte == FZ and self._bohrer():
+                    wert = wert / max(self.werkzeug.schneiden, 1)
+                if spalte in (AE, AP) and self.in_prozent:
+                    wert = wert * self.werkzeug.durchmesser / 100
             setattr(einsatz, EINGABE_SPALTEN[spalte], wert)
         self._fuellt = True
         self._zeile_schreiben(zeile, einsatz)

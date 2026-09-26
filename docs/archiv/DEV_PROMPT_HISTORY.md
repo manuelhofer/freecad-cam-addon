@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-42 zustellung-in-prozent
+
+### EINGELESEN
+- Manuel (2026-09-26, Screenshot der Schnittwerte): „ich hätte hier gerne
+  einen Switch zwischen %-Angabe und mm-Angabe … dass man beides
+  eintragen kann“. Plan: ein Umschalter über der Tabelle, intern mm, Wahl
+  gemerkt (Stufe A Punkt 5).
+- `camaddon/gui_schnittwerte.py` (Tabelle, Kopf, Eingabe).
+
+### DATEIEN
+- `camaddon/gui_schnittwerte.py` (Auswahl „ae, ap in mm / in % von D“,
+  Köpfe, Anzeige, Eingabe in % → mm, gemerkt als
+  `SchnittwerteInProzent`)
+- `translations/de.json`, `translations/en.json` (`wv.zustellung.*`)
+- `help/de|en/schnittwerte.html`
+- `docs/spezifikation_werkzeugverwaltung.md` (Entscheidung 26)
+- `docs/STATUS_SNAPSHOT.md` (Punkt 5 fertig)
+- `tests/gui/szenario_schnittwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Ø-12-Fräser mit „Schruppen dynamisch“ ae 1,2 / ap 25
+→ rechts über der Tabelle „ae, ap in % von D“ wählen → die Köpfe heißen
+„ae % D“ und „ap % D“, die Zeile zeigt 10 und 208,3. „20“ ins ae tippen →
+darunter „ae 2,4 mm = 20 % von D“. Zurück auf „ae, ap in mm“ → 2,4. Beim
+nächsten Öffnen steht die zuletzt gewählte Einheit.
+
+### DONE
+- Eine Auswahl für beide Spalten; Prozent mit einer Nachkommastelle;
+  gespeichert immer in mm; ohne Durchmesser mm (Auswahl gesperrt), beim
+  Bohrer ausgeblendet.
+- Nebenbei: Eine unlesbare Eingabe im f-Feld des Bohrers teilte den alten
+  Wert noch einmal durch die Schneidenzahl – jetzt bleibt er, wie er war.
+
+### TEST
+- `szenario_schnittwerte` in 1.1.3 grün, Screenshot angesehen (Köpfe
+  „% D“, 100/25 und 20/208,3); `test_sprache.py`, `test_hilfe.py` grün.
+  Voller Lauf mit dem nächsten Push.
+
+### NEXT
+- A6: Spitzenwinkel des Bohrers.
+
 ## P-2026-09-26-41 eingriffsbild-beschriftet
 
 ### EINGELESEN

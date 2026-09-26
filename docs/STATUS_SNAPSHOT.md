@@ -36,7 +36,7 @@ Wunschliste, offene Bugs und Tasks.
    oben)“ / „ap – Zustelltiefe (von der Seite)“, Text je Größe eine Zeile.
    – *Fertig (P-2026-09-26-41).*
 5. **ae und ap wahlweise in mm oder % von D** (ein Umschalter über der
-   Tabelle, intern mm, Wahl gemerkt).
+   Tabelle, intern mm, Wahl gemerkt). – *Fertig (P-2026-09-26-42).*
 6. **Bohrer: Spitzenwinkel** (fehlt, Manuel) – Feld, Bild, an CAM als
    Spitzenwinkel des Bohrers; die Schneidenzahl bleibt (f je Umdrehung).
 
