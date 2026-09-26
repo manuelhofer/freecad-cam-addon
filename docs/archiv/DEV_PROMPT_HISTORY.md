@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-32 plan-antworten
+
+### EINGELESEN
+- Manuel: Reihenfolge A → B → C selbstverständlich (die Frage war
+  überflüssig); Warngrenze fest 10 % bei HSM, egal wie viele Schneiden; ap
+  wie ae in % von D; Drehwerkzeuge gleich mit in Stufe C. Beim Bohrer
+  fehlt der Spitzenwinkel.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Plan: Antworten, Spitzenwinkel als A6)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Snapshot enthält Manuels Antworten und den Spitzenwinkel.
+
+### DONE
+- Plan vervollständigt, Stufe A beginnt.
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- A1 Werkzeugname.
+
 ## P-2026-09-26-31 plan-stufen
 
 ### EINGELESEN

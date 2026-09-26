@@ -12,7 +12,7 @@ Wunschliste, offene Bugs und Tasks.
 
 ## Nächster Schritt (konkret)
 
-**Geplant nach Manuels erstem Test (2026-09-26) – noch nichts gebaut:**
+**Geplant nach Manuels erstem Test (2026-09-26) – Reihenfolge A → B → C, Stufe A in Arbeit:**
 
 *Stufe A – Werkzeugverwaltung verfeinern*
 1. **Werkzeugname** neben der Nummer (Option A): frei, wie an der
@@ -25,13 +25,15 @@ Wunschliste, offene Bugs und Tasks.
 2. **Neues Werkzeug mit Beispielwerten:** grau gezeigt, aber gültig
    (Manuel: wer Ø 12 stehen lässt, will Ø 12), Durchmesser 12; das Bild
    zeigt gleich die Form, beim Durchblättern immer.
-3. **Planer:** Warngrenze ae 10 % von D (bei voller Schneidenlänge)
-   bleibt Vorgabe, am Werkzeug änderbar; Zeilen darüber rot „mehr als
-   deine Warngrenze“, aber wählbar; % je Zeile sichtbar.
+3. **Planer:** Warngrenze ae 10 % von D bleibt Vorgabe (fest, egal wie
+   viele Schneiden, Manuel), am Werkzeug änderbar; Zeilen darüber rot
+   „mehr als deine Warngrenze“, aber wählbar; % je Zeile sichtbar.
 4. **Eingriffsbild:** Überschriften „ae – seitliche Zustellung (von
    oben)“ / „ap – Zustelltiefe (von der Seite)“, Text je Größe eine Zeile.
 5. **ae und ap wahlweise in mm oder % von D** (ein Umschalter über der
    Tabelle, intern mm, Wahl gemerkt).
+6. **Bohrer: Spitzenwinkel** (fehlt, Manuel) – Feld, Bild, an CAM als
+   Spitzenwinkel des Bohrers; die Schneidenzahl bleibt (f je Umdrehung).
 
 *Stufe B – Einheiten und Zahlenformat*
 6. Beim ersten Start (mit der Sprache) und in den Einstellungen des
@@ -48,7 +50,8 @@ Wunschliste, offene Bugs und Tasks.
    Lollipop-, Fasen-, Radien-, Plan-, Nuten-, Form-, Gewindefräser;
    Bohren, Zentrierbohrer, NC-Anbohrer, Gewinde rechts/links, konische
    und zylindrische Senkung, Reibahle, Bohrstange, Ausbohren/Spindeln;
-   Universal-Drehen, Einstechen, Gewinde (Drehen); Antasten. Je Art: Maße,
+   Universal-Drehen, Einstechen, Gewinde (Drehen); Antasten. Drehwerkzeuge
+   gleich mit (Schnittwerte für später – FreeCAD 1.1.3 dreht nicht). Je Art: Maße,
    Bild, Einsätze, was CAM davon kennt. Achtung: Das heutige
    „Radiusfräser“ ist ein Kugelfräser – umbenennen; „Radienfräser“ ist eine
    andere Art.
