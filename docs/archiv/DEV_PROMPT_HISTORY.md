@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-34 plan-beispielmaschine
+
+### EINGELESEN
+- Manuel (2026-09-26): „Maschine bearbeiten“ und „Maschine verfahren“
+  melden ohne Baugruppe nur, dass man erst eine bauen soll – wer das Addon
+  ausprobieren will, scheitert daran. Wunsch: ein Knopf
+  „Beispielmaschine laden“, damit man sieht, wie es geht.
+- `tests/beispielmaschinen.py`: Baukasten für Beispielmaschinen
+  (Drehmaschine, Fünfachser) – bisher nur für die Prüfungen.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Plan: Punkt 7, Nummern von B und C folgen)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Plan im Snapshot nennt die Beispielmaschine mit Ort in der
+Reihenfolge (nach A2, vor A3).
+
+### DONE
+- Punkt 7 „Beispielmaschine laden“ im Plan; Stufe B jetzt 8–9, C 10
+  (vorher doppelte 6).
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- Version 0.12.0 (Werkzeugname), Lauf, Push; dann A2 fertig, danach die
+  Beispielmaschine.
+
 ## P-2026-09-26-33 werkzeugname
 
 ### EINGELESEN

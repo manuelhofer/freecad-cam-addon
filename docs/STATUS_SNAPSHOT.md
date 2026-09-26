@@ -35,18 +35,26 @@ Wunschliste, offene Bugs und Tasks.
 6. **Bohrer: Spitzenwinkel** (fehlt, Manuel) – Feld, Bild, an CAM als
    Spitzenwinkel des Bohrers; die Schneidenzahl bleibt (f je Umdrehung).
 
+*Zwischendurch – zum Ausprobieren (nach A2, vor A3)*
+7. **Beispielmaschine laden:** Die Meldung „Hier gibt es noch keine
+   Baugruppe“ in „Maschine bearbeiten“ und „Maschine verfahren“ bekommt
+   den Knopf „Beispielmaschine laden“ (Manuel: wer das Addon ausprobiert,
+   soll nicht erst eine Maschine bauen müssen). Er öffnet ein neues
+   Dokument mit einer fertig eingerichteten Maschine und gleich danach den
+   Dialog. Grundlage: der Baukasten aus `tests/beispielmaschinen.py`.
+
 *Stufe B – Einheiten und Zahlenformat*
-6. Beim ersten Start (mit der Sprache) und in den Einstellungen des
+8. Beim ersten Start (mit der Sprache) und in den Einstellungen des
    Addons: **Maßsystem** mm oder inch und **Dezimaltrennzeichen** , oder
    . – mit Beispielzahlen, vorbelegt aus FreeCADs Einstellungen
    (Einheitensystem, Zahlenformat).
-7. Überall in der gewählten Einheit anzeigen und eingeben (mm/inch,
+9. Überall in der gewählten Einheit anzeigen und eingeben (mm/inch,
    m/min/SFM, mm/min/ipm, cm³/min/in³/min), Umschalter in der
    Werkzeugverwaltung; intern metrisch – verlustfrei, 1 in = 25,4 mm, 1/2"
    bleibt 0,5 in. Eingabe nimmt Punkt und Komma.
 
 *Stufe C – Werkzeugarten wie in InventorCAM (eigene Spezifikation zuerst)*
-8. Arten: Schaft-, Kugel-, Torus-, Konik-, Schwalbenschwanz-,
+10. Arten: Schaft-, Kugel-, Torus-, Konik-, Schwalbenschwanz-,
    Lollipop-, Fasen-, Radien-, Plan-, Nuten-, Form-, Gewindefräser;
    Bohren, Zentrierbohrer, NC-Anbohrer, Gewinde rechts/links, konische
    und zylindrische Senkung, Reibahle, Bohrstange, Ausbohren/Spindeln;
