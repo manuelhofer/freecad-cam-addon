@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-29 version-0-11-2
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: Korrektur → letzte Stelle. Seit 0.11.1:
+  Sprachwahl beim ersten Start (P-2026-09-26-27), Plan im Snapshot (-28).
+
+### DATEIEN
+- `package.xml` (0.11.2)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.11.2.
+
+### DONE
+- Version 0.11.1 → 0.11.2.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; dann Manuels Antworten zum Plan.
+
 ## P-2026-09-26-28 plan-nach-erstem-test
 
 ### EINGELESEN
