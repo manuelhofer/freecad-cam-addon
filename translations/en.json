@@ -675,9 +675,9 @@
     "dialog.ausgleich": "Compensated by:",
     "dialog.programmname": "{achse} in the program:",
     "dialog.winkel": "Angle:",
-    "dialog.winkel_wert": "{winkel} – from the assembly",
     "dialog.winkel_unbekannt": "unknown – choose both axes first",
-    "dialog.winkel.tooltip": "How far {schraeg} is tilted out of the right angle to {ausgleich}, measured at the joints of the assembly. 0° means square; positive when {schraeg} leans towards the plus side of {ausgleich} – as in the picture.",
+    "dialog.winkel.tooltip": "How far {schraeg} is tilted out of the right angle to {ausgleich} – measured at the joints of the assembly. 0° means square; positive when {schraeg} leans towards the plus side of {ausgleich} – as in the picture. If you enter a different angle, the guideway of {schraeg} turns along in the assembly; the slide and everything on it stay where they are.",
     "dialog.beispiel_schraeg": "Example: {name} {weg} → {schraeg} {weg_schraeg}, {ausgleich} {weg_ausgleich}",
-    "dialog.beispiel_schraeg.tooltip": "This is how the control converts: for a move in just this direction of the program, both slides move."
+    "dialog.beispiel_schraeg.tooltip": "This is how the control converts: for a move in just this direction of the program, both slides move.",
+    "dialog.winkel_zu_gross": "At most ±89° – at 90° both slides would move in the same direction, and there would be no “{name}” left."
 }

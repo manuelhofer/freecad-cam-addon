@@ -48,28 +48,31 @@ class Zahlenpruefer(QtGui.QValidator):
 
     Leer heißt „unbekannt“ (0). Punkt und Komma gelten beide als
     Dezimalzeichen, gleich welches eingestellt ist: „12.5“ ist 12,5.
+    `mit_minus`: auch negative Zahlen, etwa für einen Winkel.
     """
 
     _TEILWEISE = re.compile(r"\d*([.,]\d*)?")
+    _TEILWEISE_MIT_MINUS = re.compile(r"-?\d*([.,]\d*)?")
 
-    def __init__(self, feld):
+    def __init__(self, feld, mit_minus=False):
         # feld als Qt-Eltern: Der Prüfer lebt so lange wie das Feld.
         super().__init__(feld)
+        self._muster = self._TEILWEISE_MIT_MINUS if mit_minus else self._TEILWEISE
 
     def validate(self, text, position):
         eingabe = text.strip()
         if not eingabe:
             return QtGui.QValidator.Acceptable, text, position
-        if not self._TEILWEISE.fullmatch(eingabe):
+        if not self._muster.fullmatch(eingabe):
             return QtGui.QValidator.Invalid, text, position
         teile = re.split(r"[.,]", eingabe)
         if len(teile) > 1 and len(teile[1]) > NACHKOMMASTELLEN:
             return QtGui.QValidator.Invalid, text, position
         try:
             wert = einheiten.zahl_aus_text(eingabe)
-        except ValueError:  # nur ein Dezimalzeichen – wird noch
+        except ValueError:  # nur ein Dezimalzeichen oder Minus – wird noch
             return QtGui.QValidator.Intermediate, text, position
-        if wert > GROESSTER_WERT:
+        if abs(wert) > GROESSTER_WERT:
             return QtGui.QValidator.Invalid, text, position
         return QtGui.QValidator.Acceptable, text, position
 

@@ -429,7 +429,7 @@ Patch, in dieser Reihenfolge:
 2. Winkel eintragen, die Baugruppe folgt. *Klickweg:* Winkel 30 → in der
    3D-Ansicht steht die Y-Führung 30° schräg, der Revolver gerade; die
    Beispielzeile zeigt „Y1 +11,5 mm, X1 −5,8 mm“; Strg+Z stellt die Führung
-   zurück.
+   zurück. – *Gebaut (P-2026-09-26-67).*
 3. Erkennung: Hinweis bei schräg stehenden Linearachsen ohne Eintrag, ein
    Klick legt ihn an.
 4. „Maschine verfahren“ wie im Programm. *Klickweg:* Y auf 10 → beide

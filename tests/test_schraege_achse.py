@@ -1,8 +1,10 @@
 # Prüft die schräge Achse (W-001, Abschnitt 7c; schraege_achse.py und die
 # Transformation in maschine.py): der Winkel aus der Baugruppe – 0° an der
 # Beispiel-Drehmaschine, ±30° mit gekippter Y-Führung –, die Rechnung in
-# beide Richtungen, der Vorschlag für eine neue schräge Achse, die Meldungen
-# und dass der Eintrag Speichern und Laden übersteht.
+# beide Richtungen, der Vorschlag für eine neue schräge Achse, die Meldungen,
+# dass der Eintrag Speichern und Laden übersteht – und „Winkel eintragen,
+# die Baugruppe folgt“: Die Teile bleiben, wo sie sind, ein Schlitten
+# außerhalb von 0 bleibt auf seiner Stellung, Rückgängig stellt zurück.
 import math
 import os
 import sys
@@ -158,6 +160,79 @@ if geladen:
     pruefe(m.name_von(t.Schraeg) == "Y1" and m.name_von(t.Ausgleich) == "X1", "Achsen")
     pruefe((t.NameSchraeg, t.NameAusgleich) == ("YP", "X"), "Namen nach dem Laden")
     pruefe(nahe(sa.winkel(kette, ma, t), 30), f"Winkel nach dem Laden: {sa.winkel(kette, ma, t)}")
+FreeCAD.closeDocument(doc.Name)
+
+# --- Winkel eintragen: die Baugruppe folgt ----------------------------------------------
+asm, ma = beispielmaschine.drehmaschine()
+doc = asm.Document
+doc.UndoMode = 1
+kette = kette_modul.lies_kette(asm)
+ba = {b.NcName: b for b in m.betriebsarten(ma)}
+trafo = m.neue_schraege_achse(ma, ba["Y1"], ba["X1"])
+doc.recompute()
+teile = {o.Label: o for o in doc.Objects if o.TypeId in ("Part::Box", "App::Part")}
+anfang = {name: FreeCAD.Placement(o.Placement) for name, o in teile.items()}
+
+
+def bewegt():
+    return sorted(n for n, o in teile.items() if not o.Placement.isSame(anfang[n], 1e-7))
+
+
+doc.openTransaction("Winkel 30")
+kette = sa.drehe_fuehrung(asm, kette, ma, trafo, 30)
+doc.commitTransaction()
+pruefe(nahe(sa.winkel(kette, ma, trafo), 30), f"eingetragen 30°: {sa.winkel(kette, ma, trafo)}")
+pruefe(not bewegt(), f"30° eingetragen, bewegt: {bewegt()}")
+doc.recompute()
+pruefe(not bewegt(), f"nach dem Neuberechnen bewegt: {bewegt()}")
+
+# Rückgängig stellt die Führung zurück.
+doc.undo()
+doc.recompute()
+kette = kette_modul.lies_kette(asm)
+pruefe(nahe(sa.winkel(kette, ma, trafo), 0), f"nach Rückgängig: {sa.winkel(kette, ma, trafo)}")
+pruefe(not bewegt(), f"nach Rückgängig bewegt: {bewegt()}")
+doc.redo()
+doc.recompute()
+kette = kette_modul.lies_kette(asm)
+pruefe(nahe(sa.winkel(kette, ma, trafo), 30), f"nach Wiederholen: {sa.winkel(kette, ma, trafo)}")
+
+# Der Schlitten steht auf 20 mm: Er bleibt auf 20 mm, nun entlang der neuen Richtung.
+achse_y = next(a for a in kette.achsen if a.gelenk.Label == "Y")
+vf.Verfahren(asm, kette).setze(achse_y, 20)
+bei_20 = FreeCAD.Placement(teile["YSchlitten"].Placement)
+revolver = FreeCAD.Placement(teile["Revolver"].Placement)
+kette = sa.drehe_fuehrung(asm, kette, ma, trafo, -15)
+achse_y = next(a for a in kette.achsen if a.gelenk.Label == "Y")
+pruefe(nahe(sa.winkel(kette, ma, trafo), -15), f"eingetragen −15°: {sa.winkel(kette, ma, trafo)}")
+stellung = vf.gelenkstellung(achse_y.gelenk, achse_y.art)
+pruefe(nahe(stellung, 20), f"Stellung nach dem Drehen: {stellung}")
+ziel = anfang["YSchlitten"].Base + vf.plusrichtung(achse_y) * 20
+pruefe((teile["YSchlitten"].Placement.Base - ziel).Length < 1e-6, "Schlitten nicht auf 20 mm")
+pruefe(not teile["YSchlitten"].Placement.isSame(bei_20, 1e-6), "Schlitten ist nicht mitgefahren")
+pruefe(
+    teile["Revolver"].Placement.Rotation.isSame(revolver.Rotation, 1e-9),
+    "Revolver hat sich gedreht",
+)
+doc.recompute()
+stellung = vf.gelenkstellung(achse_y.gelenk, achse_y.art)
+pruefe(nahe(stellung, 20), f"Stellung nach dem Neuberechnen: {stellung}")
+
+# Zurück auf 0° und Stellung 0: alles wie gebaut.
+kette = sa.drehe_fuehrung(asm, kette, ma, trafo, 0)
+achse_y = next(a for a in kette.achsen if a.gelenk.Label == "Y")
+vf.Verfahren(asm, kette).setze(achse_y, 0)
+pruefe(nahe(sa.winkel(kette, ma, trafo), 0), f"zurück auf 0°: {sa.winkel(kette, ma, trafo)}")
+pruefe(not bewegt(), f"zurück auf 0°, bewegt: {bewegt()}")
+
+# Über ±89° geht es nicht.
+for grad in (89.5, -90, 120):
+    try:
+        sa.drehe_fuehrung(asm, kette, ma, trafo, grad)
+        pruefe(False, f"{grad}° angenommen")
+    except ValueError:
+        pass
+pruefe(nahe(sa.winkel(kette, ma, trafo), 0), "ein abgelehnter Winkel hat etwas gedreht")
 FreeCAD.closeDocument(doc.Name)
 
 assert not fehler, "\n".join(fehler)

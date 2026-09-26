@@ -436,6 +436,17 @@ class MaschinenPanel:
         trafo = m.neue_schraege_achse(self.maschine, *paar)
         self.neu_aufbauen(auswahl=trafo)
 
+    def winkel_setzen(self, trafo, grad):
+        """Dreht die Führung der schrägen Achse `trafo` auf `grad` Grad; danach zeigen
+        Liste und Felder den neuen Stand (zeitversetzt – das Feld, dessen Signal
+        gerade läuft, wird dabei ersetzt)."""
+        if self.wackeln:
+            self.wackeln.stopp()  # sie bewegt Teile von ihrem eigenen Ausgang aus
+        self.kette = schraege_achse.drehe_fuehrung(
+            self.assembly, self.kette, self.maschine, trafo, grad
+        )
+        QtCore.QTimer.singleShot(0, lambda: self._spaeter_neu_aufbauen(trafo))
+
     def transformation_entfernen(self):
         art, trafo = _zeilendaten(self.transformationen.currentItem())
         if art != ZEILE_TRANSFORMATION:
@@ -590,6 +601,7 @@ class MaschinenPanel:
                 objekt,
                 schraege_achse.linearachsen(self.maschine, self.kette),
                 schraege_achse.winkel(self.kette, self.maschine, objekt),
+                self.winkel_setzen,
             )
 
     def _details_unter(self, knopfreihe):

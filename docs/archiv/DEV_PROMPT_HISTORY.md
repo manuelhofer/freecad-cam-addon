@@ -12,6 +12,65 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-67 schraege-achse-winkel-eintragen
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 7c („Winkel eintragen, die Baugruppe
+  folgt“, Manuels Entscheidung) und Stufe 3b, Schritt 2; Versuch aus
+  P-2026-09-26-65.
+
+### DATEIEN
+- `camaddon/schraege_achse.py` (`drehe_fuehrung`, `_drehe_gelenk`)
+- `camaddon/verfahren.py` (`setze(…, grenzen=False)`)
+- `camaddon/gui_details.py`, `camaddon/gui_maschine.py`, `camaddon/gui_zahlen.py`
+- `help/de/transformationen.html`, `help/en/transformationen.html`
+- `translations/de.json`, `translations/en.json`
+- `tests/test_schraege_achse.py`, `tests/gui/szenario_schraege_achse.py`
+- `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine → „Maschine bearbeiten“ → „+ Schräge Achse“ → im Feld
+„Winkel“ 30 eintragen → in der 3D-Ansicht bleibt alles stehen, der Eintrag
+zeigt 30,0° und „Y +10,0 mm → Y1 +11,5 mm, X1 −5,8 mm“; „Maschine verfahren“
+fährt Y1 danach schräg; Abbrechen stellt die Führung zurück.
+
+### DONE
+- `schraege_achse.drehe_fuehrung()`: dreht beide Koordinatensysteme des
+  Y-Schiebegelenks um die Normale der Ebene aus schräger und ausgleichender
+  Achse (so, dass α um die Differenz wächst), je um ihren Ursprung, über
+  Offset1/Offset2 (global = ohne Versatz · Versatz). Nach jeder Änderung am
+  Versatz kommen die Teile zurück (FreeCAD löst vorab und rückt sonst
+  Teile). Steht der Schlitten nicht auf 0, fährt er vorher auf 0 und danach
+  wieder auf seine Stellung – nun entlang der neuen Richtung, auch außerhalb
+  der Grenzen (`Verfahren.setze(…, grenzen=False)`). Über ±89°: ValueError.
+- Dialog: Das Feld „Winkel“ (mit „°“, auch negative Zahlen:
+  `Zahlenpruefer(mit_minus=True)`) zeigt den Winkel der Baugruppe; ein
+  anderer Wert dreht die Führung, danach zeigen Liste, Bild und Beispiel den
+  neuen Stand. Leer oder unverändert: nichts passiert. Über ±89° sagt ein
+  roter Satz am Feld, warum nicht, und das Feld zeigt wieder den alten
+  Winkel. Die Bewegung beim Zeigen (Wackeln) hält vorher an.
+- Tooltip und Hilfe erklären das Eintragen; „… – aus der Baugruppe“ als
+  Anzeige entfällt (das Feld ersetzt es).
+
+### TEST
+- Claude ohne Oberfläche, 1.1.3 und Wochen-Build: `test_schraege_achse.py`
+  zusätzlich: 30° eintragen – kein Teil bewegt sich, auch nicht beim
+  Neuberechnen; Rückgängig stellt 0° und alle Lagen wieder her,
+  Wiederholen 30°; mit Y1 auf 20 mm auf −15° – die Stellung bleibt 20 mm,
+  der Schlitten steht 20 mm entlang der neuen Richtung, der Revolver dreht
+  sich nicht; zurück auf 0° und Stellung 0 – alles wie gebaut; 89,5°, −90°
+  und 120° abgelehnt, ohne etwas zu drehen. Dazu `test_sprache`,
+  `test_hilfe`, `test_verfahren`, `test_maschine`.
+- Claude mit Oberfläche (Screenshots angesehen), beide Versionen:
+  `szenario_schraege_achse` – 30 eintragen (Liste, Feld, Beispiel, keine
+  Teile bewegt), 95 abgelehnt mit rotem Satz, Abbrechen stellt die Führung
+  zurück (Y wieder rechtwinklig zu X).
+- Ob sich das Eintragen verständlich anfühlt, prüft Manuel.
+
+### NEXT
+- Stufe 3b, Schritt 3: Erkennung schräg stehender Linearachsen.
+
 ## P-2026-09-26-66 schraege-achse-eintrag
 
 ### EINGELESEN

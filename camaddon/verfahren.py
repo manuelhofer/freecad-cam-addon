@@ -104,9 +104,14 @@ class Verfahren:
             stellung = min(stellung, achse.maximum)
         return stellung
 
-    def setze(self, achse, stellung):
-        """Fährt die Achse auf `stellung` (höchstens bis zu ihren Grenzen); gibt die Stellung zurück."""
-        stellung = self.begrenzt(achse, stellung)
+    def setze(self, achse, stellung, grenzen=True):
+        """Fährt die Achse auf `stellung` (höchstens bis zu ihren Grenzen); gibt die Stellung zurück.
+
+        `grenzen=False` fährt auch darüber hinaus – etwa auf Stellung 0, um die
+        Führung einer schrägen Achse zu drehen (schraege_achse.drehe_fuehrung).
+        """
+        if grenzen:
+            stellung = self.begrenzt(achse, stellung)
         self.weg[achse] = (stellung - self.start[achse]) * self._vorzeichen[achse]
         self._bewege()
         return stellung

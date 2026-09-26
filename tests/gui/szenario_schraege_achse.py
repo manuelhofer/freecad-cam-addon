@@ -1,11 +1,14 @@
-# Schräge Achse in „Maschine bearbeiten“ (W-001, Stufe 3b, Schritt 1): An der
-# Beispiel-Drehmaschine (Y rechtwinklig zu X) legt „+ Schräge Achse“ den Eintrag
-# „Schräge Achse Y1 – gleicht aus: X1, 0,0°“ an; die Felder zeigen Y1 und X1,
-# die Namen im Programm Y und X, den Winkel aus der Baugruppe und ein
-# Beispiel. Dann dieselbe Maschine mit einer um 30° gekippten Y-Führung: Der
-# Eintrag zeigt 30,0° und „Y +10,0 mm → Y1 +11,5 mm, X1 −5,8 mm“. Wählt man
-# Z1 als schräge Achse, wandert der Name im Programm mit (Z). Entfernen lässt
-# die graue Zeile „keine …“ zurück.
+# Schräge Achse in „Maschine bearbeiten“ (W-001, Stufe 3b, Schritte 1 und 2):
+# An der Beispiel-Drehmaschine (Y rechtwinklig zu X) legt „+ Schräge Achse“
+# den Eintrag „Schräge Achse Y1 – gleicht aus: X1, 0,0°“ an; die Felder zeigen
+# Y1 und X1, die Namen im Programm Y und X, den Winkel aus der Baugruppe und
+# ein Beispiel. Winkel 30 eingetragen: Die Y-Führung dreht sich, die Teile
+# bleiben, und Eintrag und Beispiel zeigen 30,0° bzw. „Y1 +11,5 mm, X1
+# −5,8 mm“; 95 lehnt ein Satz am Feld ab. Abbrechen stellt die Führung
+# zurück. Wählt man Z1 als schräge Achse, wandert der Name im Programm mit
+# (Z). Dann dieselbe Maschine mit einer schon um 30° gekippten Y-Führung:
+# Der Eintrag zeigt gleich 30,0°. Entfernen lässt die graue Zeile „keine …“
+# zurück.
 import os
 import sys
 
@@ -23,6 +26,12 @@ def zeilen(baum):
 def texte(kasten):
     """Alle Beschriftungen im Kasten der gewählten Zeile, von oben nach unten."""
     return [w.text() for w in kasten.findChildren(QtGui.QLabel)]
+
+
+def winkelfeld(panel):
+    """Das Feld „Winkel“ – das dritte Textfeld nach den beiden Namen im Programm."""
+    felder = panel.details.findChildren(QtGui.QLineEdit)
+    return felder[2] if len(felder) > 2 else QtGui.QLineEdit()
 
 
 def oeffnen(h, asm):
@@ -94,7 +103,6 @@ def schritte(h):
         "Gleicht aus:",
         "Y1 heißt im Programm:",
         "X1 heißt im Programm:",
-        "0,0° – aus der Baugruppe",
         "Beispiel: Y +10,0 mm → Y1 +10,0 mm, X1 0,0 mm",
     ):
         h.pruefe(erwartet in beschriftungen, f"fehlt im Kasten: {erwartet!r} – {beschriftungen}")
@@ -104,22 +112,57 @@ def schritte(h):
         f"Auswahl: {[liste.currentText() for liste in listen]}",
     )
     felder = [f.text() for f in panel.details.findChildren(QtGui.QLineEdit)]
-    h.pruefe(felder == ["Y", "X"], f"Namen im Programm: {felder}")
+    h.pruefe(felder == ["Y", "X", "0,0"], f"Namen im Programm und Winkel: {felder}")
     h.pruefe(panel.knopf_trafo_weg.isEnabled(), "„Entfernen“ bei gewähltem Eintrag nicht bedienbar")
     yield from zeigen(h, panel)
     h.bild("1_rechtwinklig")
 
-    # Z1 als schräge Achse: Der Name im Programm wandert mit (Y → Z).
+    # Winkel 30 eintragen: Die Führung dreht sich, die Teile bleiben, wo sie sind.
+    teile = {o.Label: o for o in asm.Document.Objects if o.TypeId in ("Part::Box", "App::Part")}
+    lagen = {n: FreeCAD.Placement(o.Placement) for n, o in teile.items()}
+    winkelfeld(panel).setText("30")
+    winkelfeld(panel).editingFinished.emit()
+    yield 600
+    h.pruefe(
+        zeilen(panel.transformationen) == ["Schräge Achse Y1 – gleicht aus: X1, 30,0°"],
+        f"nach 30 eingetragen: {zeilen(panel.transformationen)}",
+    )
+    h.pruefe(winkelfeld(panel).text() == "30,0", f"Feld: {winkelfeld(panel).text()}")
+    beschriftungen = texte(panel.details)
+    h.pruefe(
+        "Beispiel: Y +10,0 mm → Y1 +11,5 mm, X1 −5,8 mm" in beschriftungen,
+        f"Beispiel nach 30 eingetragen: {beschriftungen}",
+    )
+    bewegt = [n for n, o in teile.items() if not o.Placement.isSame(lagen[n], 1e-6)]
+    h.pruefe(not bewegt, f"30 eingetragen, bewegt: {bewegt}")
+    yield from zeigen(h, panel)
+    h.bild("2_winkel_30_eingetragen")
+    # 95 geht nicht: ein Satz am Feld, das Feld zeigt wieder 30,0.
+    winkelfeld(panel).setText("95")
+    winkelfeld(panel).editingFinished.emit()
+    yield 300
+    rot = [w for w in panel.details.findChildren(QtGui.QLabel) if w.text().startswith("Höchstens")]
+    h.pruefe(bool(rot) and rot[0].isVisible(), "kein Satz bei 95°")
+    h.pruefe(winkelfeld(panel).text() == "30,0", f"Feld nach 95: {winkelfeld(panel).text()}")
+    h.bild("3_winkel_95_abgelehnt")
+
+    # Z1 als schräge Achse: Der Name im Programm wandert mit (Y → Z). Die
+    # Felder sind nach dem Eintragen neu – also neu holen.
+    listen = panel.details.findChildren(QtGui.QComboBox)
     listen[0].setCurrentIndex(listen[0].findText("Z1"))
     yield 400
     h.pruefe(trafos and trafos[0].NameSchraeg == "Z", f"Name: {trafos[0].NameSchraeg}")
     h.pruefe(
-        zeilen(panel.transformationen) == ["Schräge Achse Z1 – gleicht aus: X1, 0,0°"],
+        zeilen(panel.transformationen)[0].startswith("Schräge Achse Z1 – gleicht aus: X1, "),
         f"nach Z1: {zeilen(panel.transformationen)}",
     )
-    panel.reject()  # verwirft den Eintrag
+    panel.reject()  # verwirft den Eintrag und stellt die Führung zurück
     yield 500
     h.pruefe(not m.transformationen(ma), "Abbrechen verwirft den Eintrag nicht")
+    kette = kette_modul.lies_kette(asm)
+    achsen = {a.gelenk.Label: a for a in kette.achsen}
+    quer = vf.plusrichtung(achsen["Y"]).dot(vf.plusrichtung(achsen["X"]))
+    h.pruefe(abs(quer) < 1e-9, f"Abbrechen stellt die Führung nicht zurück ({quer})")
 
     # --- Y-Führung 30° schräg: 30,0° und das Beispiel ----------------------------------
     kette = kette_modul.lies_kette(asm)
@@ -138,16 +181,14 @@ def schritte(h):
         f"Eintrag bei 30°: {zeilen(panel.transformationen)}",
     )
     beschriftungen = texte(panel.details)
-    for erwartet in (
-        "30,0° – aus der Baugruppe",
-        "Beispiel: Y +10,0 mm → Y1 +11,5 mm, X1 −5,8 mm",
-    ):
-        h.pruefe(erwartet in beschriftungen, f"fehlt bei 30°: {erwartet!r} – {beschriftungen}")
+    erwartet = "Beispiel: Y +10,0 mm → Y1 +11,5 mm, X1 −5,8 mm"
+    h.pruefe(erwartet in beschriftungen, f"fehlt bei 30°: {erwartet!r} – {beschriftungen}")
+    h.pruefe(winkelfeld(panel).text() == "30,0", f"Feld bei 30°: {winkelfeld(panel).text()}")
     # Das Hervorheben in der 3D-Ansicht: beide Schlitten leuchten auf.
     panel.zeige(("transformation", m.transformationen(ma)[0]))
     yield 300
     yield from zeigen(h, panel)
-    h.bild("2_schraeg_30")
+    h.bild("4_schraeg_gebaut_30")
 
     # Entfernen: die graue Zeile ist wieder da, das Objekt weg.
     panel.transformationen.setCurrentItem(panel.transformationen.topLevelItem(0))
@@ -171,7 +212,7 @@ def schritte(h):
         ]
         h.pruefe(bool(fenster), "Hilfe öffnet sich nicht")
         if fenster:
-            h.bild("3_hilfe", fenster[0])
+            h.bild("5_hilfe", fenster[0])
             fenster[0].close()
     panel.reject()
     yield 500

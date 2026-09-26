@@ -13,8 +13,8 @@ Control). Für ein Y im Programm fahren dann beide:
 α ist der Winkel, um den die schräge Achse (hier Y1) aus dem rechten Winkel
 zur ausgleichenden (X1) gekippt ist – positiv, wenn sie zu deren Plus-Seite
 kippt. Er steht nur in der Baugruppe, in der Richtung der Gelenke; dieses
-Modul misst ihn dort. Im Maschinenobjekt steht nur, welche Achsen es sind
-(maschine.Transformation).
+Modul misst ihn dort und stellt ihn dort ein (drehe_fuehrung). Im
+Maschinenobjekt steht nur, welche Achsen es sind (maschine.Transformation).
 
 Gerechnet wird mit der Richtung, in die das Werkzeug gegenüber dem
 Werkstück fährt: Eine Achse im Tisch bewegt das Werkstück, für das Werkzeug
@@ -25,6 +25,9 @@ Läuft ohne Oberfläche.
 
 import math
 
+import FreeCAD
+
+from . import kette as kette_modul
 from . import maschine as m
 from . import verfahren as vf
 from .kette import LINEAR, meldung
@@ -68,6 +71,70 @@ def winkel_zwischen(kette, maschine, schraeg, ausgleich):
     rollen = m.rollen(kette, maschine)[0]
     s, a = (_richtung(achse, rollen) for achse in achsen)
     return math.degrees(math.asin(max(-1.0, min(1.0, s.dot(a)))))
+
+
+def drehe_fuehrung(assembly, kette, maschine, trafo, alpha):
+    """Stellt die schräge Achse `trafo` auf `alpha` Grad – die Baugruppe folgt.
+
+    Die Führung ihres Schiebegelenks dreht sich in der Ebene beider Achsen:
+    Beide Koordinatensysteme des Gelenks drehen sich gleich, so behalten der
+    Schlitten und alles darauf ihre Lage – der Revolver bleibt gerade –, nur
+    die Fahrrichtung ändert sich (ausprobiert in 1.1.3 und im Wochen-Build,
+    P-2026-09-26-65). Steht der Schlitten nicht auf 0, bleibt er auf seiner
+    Stellung, nun entlang der neuen Richtung.
+
+    Gibt die neu gelesene Kette zurück. ValueError, wenn `alpha` außerhalb von
+    ±GROESSTER_WINKEL liegt oder eine der Achsen fehlt.
+    """
+    if abs(alpha) > GROESSTER_WINKEL:
+        raise ValueError(f"Winkel {alpha} außerhalb von ±{GROESSTER_WINKEL}")
+    vorher = winkel(kette, maschine, trafo)
+    if vorher is None:
+        raise ValueError("schräge Achse ohne zwei Linearachsen")
+    schraeg, ausgleich = (_linearachse(kette, ba) for ba in (trafo.Schraeg, trafo.Ausgleich))
+    rollen = m.rollen(kette, maschine)[0]
+    # Um die Normale der Ebene beider Achsen; positiv kippt die schräge zur ausgleichenden hin.
+    normale = _richtung(schraeg, rollen).cross(_richtung(ausgleich, rollen))
+    normale.normalize()
+    drehung = FreeCAD.Rotation(normale, alpha - vorher)
+
+    stellung = vf.gelenkstellung(schraeg.gelenk, LINEAR)
+    verschoben = abs(stellung) > 1e-9
+    if verschoben:
+        vf.Verfahren(assembly, kette).setze(schraeg, 0.0, grenzen=False)
+    _drehe_gelenk(assembly, schraeg.gelenk, drehung)
+    kette = kette_modul.lies_kette(assembly)
+    if verschoben:
+        vf.Verfahren(assembly, kette).setze(
+            kette.achse_von(schraeg.gelenk), stellung, grenzen=False
+        )
+    return kette
+
+
+def _drehe_gelenk(assembly, gelenk, drehung):
+    """Dreht beide Koordinatensysteme eines Gelenks um `drehung`, jedes um seinen Ursprung.
+
+    Der Versatz (Offset1/2) sitzt rechts am Koordinatensystem aus der Fläche:
+    global = ohne Versatz · Versatz. Jede Änderung am Versatz löst vorab – mit
+    einer Seite schon gedreht, der anderen noch nicht, rückt FreeCAD Teile
+    (wie beim Bauen der Beispielmaschinen). Deshalb kommen sie jedes Mal zurück.
+    """
+    import UtilsAssembly
+
+    teile = [
+        o for o in assembly.Group if hasattr(o, "Placement") and o.TypeId != "Assembly::JointGroup"
+    ]
+    lagen = {teil: FreeCAD.Placement(teil.Placement) for teil in teile}
+    for seite in (1, 2):
+        jetzt = UtilsAssembly.getJcsGlobalPlc(
+            getattr(gelenk, f"Placement{seite}"), getattr(gelenk, f"Reference{seite}")
+        )
+        ohne_versatz = jetzt * getattr(gelenk, f"Offset{seite}").inverse()
+        ziel = FreeCAD.Placement(jetzt.Base, drehung.multiply(jetzt.Rotation))
+        setattr(gelenk, f"Offset{seite}", ohne_versatz.inverse() * ziel)
+        for teil, lage in lagen.items():
+            teil.Placement = lage
+    assembly.Document.recompute()
 
 
 def linearachsen(maschine, kette):

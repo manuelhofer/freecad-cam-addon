@@ -675,9 +675,9 @@
     "dialog.ausgleich": "Gleicht aus:",
     "dialog.programmname": "{achse} heißt im Programm:",
     "dialog.winkel": "Winkel:",
-    "dialog.winkel_wert": "{winkel} – aus der Baugruppe",
     "dialog.winkel_unbekannt": "unbekannt – erst beide Achsen wählen",
-    "dialog.winkel.tooltip": "So weit steht {schraeg} aus dem rechten Winkel zu {ausgleich}, gemessen an den Gelenken der Baugruppe. 0° heißt rechtwinklig; positiv, wenn {schraeg} zur Plus-Seite von {ausgleich} kippt – wie im Bild.",
+    "dialog.winkel.tooltip": "So weit steht {schraeg} aus dem rechten Winkel zu {ausgleich} – gemessen an den Gelenken der Baugruppe. 0° heißt rechtwinklig; positiv, wenn {schraeg} zur Plus-Seite von {ausgleich} kippt – wie im Bild. Trägst du einen anderen Winkel ein, dreht sich die Führung von {schraeg} in der Baugruppe mit; der Schlitten und alles darauf bleiben, wo sie sind.",
     "dialog.beispiel_schraeg": "Beispiel: {name} {weg} → {schraeg} {weg_schraeg}, {ausgleich} {weg_ausgleich}",
-    "dialog.beispiel_schraeg.tooltip": "So rechnet die Steuerung um: Für eine Bewegung nur in dieser Richtung des Programms fahren beide Schlitten."
+    "dialog.beispiel_schraeg.tooltip": "So rechnet die Steuerung um: Für eine Bewegung nur in dieser Richtung des Programms fahren beide Schlitten.",
+    "dialog.winkel_zu_gross": "Höchstens ±89° – bei 90° führen beide Schlitten in dieselbe Richtung, dann gäbe es kein „{name}“ mehr."
 }

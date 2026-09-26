@@ -13,7 +13,7 @@ from PySide import QtGui
 from . import einheiten, schraege_achse
 from . import maschine as m
 from .gui_hilfe import zeige_hilfe
-from .gui_teile import ruhiges_mausrad
+from .gui_teile import hinweiszeile, mit_einheit, ruhiges_mausrad
 from .gui_winkelbild import WinkelBild
 from .gui_zahlen import (
     Zahlenpruefer,
@@ -126,12 +126,13 @@ class DetailKasten(QtGui.QFrame):
                 self.formular.addRow(tr("dialog.aufnahme_platz"), self._platzfeld(aufnahme))
         self.show()
 
-    def zeige_schraege_achse(self, trafo, linearachsen, alpha):
+    def zeige_schraege_achse(self, trafo, linearachsen, alpha, winkel_setzen):
         """Schräge und ausgleichende Achse, ihre Namen im Programm, der Winkel aus der
         Baugruppe mit Bild und ein Beispiel (Spezifikation W-001, Abschnitt 7c).
 
         `linearachsen`: die Betriebsarten, die zur Wahl stehen; `alpha`: der
         Winkel in Grad, None, solange eine Achse fehlt oder nicht passt.
+        `winkel_setzen(trafo, grad)` dreht die Führung in der Baugruppe.
         """
         schraeg, ausgleich = (_name(ba) for ba in (trafo.Schraeg, trafo.Ausgleich))
         name = m.name_von(trafo)
@@ -149,11 +150,14 @@ class DetailKasten(QtGui.QFrame):
             self._programmname_feld(trafo, "NameAusgleich"),
         )
         if alpha is None:
-            winkel = QtGui.QLabel(tr("dialog.winkel_unbekannt"))
+            self.formular.addRow(tr("dialog.winkel"), QtGui.QLabel(tr("dialog.winkel_unbekannt")))
         else:
-            winkel = QtGui.QLabel(tr("dialog.winkel_wert", winkel=winkel_zeigen(alpha)))
-        winkel.setToolTip(tr("dialog.winkel.tooltip", schraeg=schraeg, ausgleich=ausgleich))
-        self.formular.addRow(tr("dialog.winkel"), winkel)
+            hinweis = hinweiszeile()
+            hinweis.hide()
+            feld = self._winkelfeld(trafo, alpha, winkel_setzen, hinweis)
+            feld.setToolTip(tr("dialog.winkel.tooltip", schraeg=schraeg, ausgleich=ausgleich))
+            self.formular.addRow(tr("dialog.winkel"), mit_einheit(feld, "°"))
+            self.formular.addRow(hinweis)
         self.formular.addRow(WinkelBild(alpha, schraeg, ausgleich, name))
         if alpha is not None:
             beispiel = QtGui.QLabel(_beispiel(trafo, alpha, schraeg, ausgleich))
@@ -248,6 +252,35 @@ class DetailKasten(QtGui.QFrame):
         # Nach _verweisliste verbunden: Dann steht die neue Achse schon im Objekt.
         liste.currentIndexChanged.connect(name_mitnehmen)
         return liste
+
+    def _winkelfeld(self, trafo, alpha, winkel_setzen, hinweis):
+        """Der Winkel aus der Baugruppe – ein anderer eingetragen dreht die Führung.
+
+        Über ±89° sagt `hinweis`, warum nicht, und das Feld zeigt wieder den
+        Winkel der Baugruppe.
+        """
+        gezeigt = winkel_zeigen(alpha)[:-1]  # ohne „°“ – das steht neben dem Feld
+        feld = QtGui.QLineEdit(gezeigt)
+        feld.setValidator(Zahlenpruefer(feld, mit_minus=True))
+
+        def uebernehmen():
+            if feld.text().strip() in ("", gezeigt):
+                feld.setText(gezeigt)  # leer oder unverändert: bleibt, wie gebaut
+                return
+            try:
+                grad = zahl_lesen(feld.text())
+            except ValueError:
+                grad = None
+            if grad is None or abs(grad) > schraege_achse.GROESSTER_WINKEL:
+                hinweis.setText(tr("dialog.winkel_zu_gross", name=m.name_von(trafo)))
+                hinweis.show()
+                feld.setText(gezeigt)
+                return
+            hinweis.hide()
+            winkel_setzen(trafo, grad)
+
+        feld.editingFinished.connect(uebernehmen)
+        return feld
 
     def _programmname_feld(self, trafo, eigenschaft):
         feld = QtGui.QLineEdit(getattr(trafo, eigenschaft))
