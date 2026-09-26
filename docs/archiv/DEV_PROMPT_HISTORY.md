@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-56 werkzeugbilder
+
+### EINGELESEN
+- Spezifikation Werkzeugarten, Abschnitt 4 und 8 (Stufe 3): Bilder aller
+  Arten, auch klein in der Auswahl.
+- Manuel (Screenshot-Rückmeldung zu C2): „die Grafik bei den
+  Drehwerkzeugen ist dennoch nicht korrekt … auch der Zentrierbohrer … ist
+  eher spitz ;)“.
+- `camaddon/gui_werkzeugbild.py` (bisher fünf Arten fest verdrahtet).
+
+### DATEIEN
+- `camaddon/werkzeugform.py` (neu: Umriss je Art, ohne Oberfläche)
+- `camaddon/gui_werkzeugbild.py` (malt die Teile, Symbol je Art)
+- `camaddon/gui_werkzeuge.py` (Symbole in der Auswahl „Art“)
+- `tests/test_werkzeugform.py` (neu), `tests/gui/szenario_werkzeugbilder.py`
+  (neu)
+- `docs/spezifikation_werkzeugarten.md`, `docs/aufbau.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Neu → Art durchblättern: Jede der 26 Arten zeigt
+neben den Feldern ihre Form – der Zentrierbohrer spitz mit Senkung, das
+Drehwerkzeug als Halter mit Wendeplatte, der Taster mit roter Kugel –, und
+in der aufgeklappten Auswahl steht vor jedem Namen ein kleines Bild.
+
+### DONE
+- `werkzeugform.teile()`: je Art Teile (Schaft, Schneide, Kugel) als
+  Vielecke in mm, mit Wendel rechts/links/gerade; gestrichelt, was
+  Beispiel oder geschätzt ist. Zentrierbohrer: Zapfen mit 118°-Spitze, die
+  Senkung mit dem Spitzenwinkel (60°) zum Körper-Ø; Gewindebohrer mit
+  Zähnen nach der Steigung und Anschnitt, links mit Linkswendel;
+  Drehwerkzeug: Hauptschneide im Einstellwinkel zur Vorschubrichtung,
+  Plattenwinkel an der Spitze, links gespiegelt, neutral mittig.
+- Bild: mittig eingepasst; Symbol in der Auswahl zeigt nur das schneidende
+  Ende (sonst wäre ein langer Fräser ein Strich).
+
+### TEST
+- `test_werkzeugform` (26 Arten, spitz/flach, Kugel, Spiegelbild,
+  Einstellwinkel, Wendel, Tastkugel, gestrichelt) in 1.1.3 und im
+  Wochen-Build; `szenario_werkzeugbilder` (Übersicht aller Arten,
+  Auswahl mit Bildern, Drehwerkzeug links), `szenario_werkzeugverwaltung`,
+  `szenario_schnittwerte` in 1.1.3. Die Übersicht angesehen: jede Art
+  erkennbar.
+- `szenario_zoll` scheiterte einmal an „Maschine verfahren“: eine feste
+  Wartezeit im Szenario – eigener Patch (P-2026-09-26-57).
+
+### NEXT
+- Szenarien warten auf die Beispielmaschine statt fester Zeit; dann
+  Stufe C4: Einsätze je Art.
+
 ## P-2026-09-26-55 werkzeugarten-tabelle
 
 ### EINGELESEN

@@ -53,6 +53,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `aktualisierung.py` | Update-Suche per Git, ohne Git per HTTPS (package.xml) und Update mit `installieren.py` |
 | `werkstoffe.py` | Werkstoffliste (W-002): mitgelieferte aus `daten/werkstoffe.json`, Anzeige, Suche |
 | `werkzeuge.py` | Werkzeugbibliothek (W-002): Werkzeuge, Einsätze und Schnittwerte je Werkstoff, eigene Werkstoffe, Speichern als JSON |
+| `werkzeugform.py` | Umriss jeder der 26 Werkzeugarten aus ihren Maßen (Vielecke in mm) – fürs Bild |
 | `schnittdaten.py` | Rechnen mit Schnittwerten: n, vf, Zeitspanvolumen, Eingriffswinkel, Spandicke; Kennzahlen und Urteil für den Strategievergleich |
 | `uebergabe_werkzeuge.py` | Werkzeuge an CAM übergeben: ToolBits und Bibliothek „CAM-Addon“ über `cam_assets`, Schnittwerte als Presets |
 | `werkzeuge_aus_cam.py` | Werkzeuge aus einer FreeCAD-Werkzeugbibliothek übernehmen: Form → Art, Maße, Nummern ohne Verschieben |
@@ -71,6 +72,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_sprachwahl.py` | Sprachwahl beim ersten Start, Einstellungsseite |
 | `gui_aktualisierung.py` | Befehl „Nach Updates suchen“, Update-Hinweis, Gruppe „Updates“ in den Einstellungen (Suche beim Start ab Werk aus) |
 | `gui_werkzeuge.py` | Befehl und Dialog „Werkzeugverwaltung“ |
+| `gui_werkzeugbild.py` | Bild des Werkzeugs neben seinen Feldern (malt `werkzeugform`), Symbol je Art in der Auswahl |
 | `gui_schnittwerte.py` | Schnittwert-Tabelle in der Werkzeugverwaltung |
 | `gui_eingriff.py` | Bild des Eingriffs (Draufsicht und Seitenansicht) zur gewählten Zeile |
 | `gui_strategie.py` | Dialog „Strategien vergleichen“: zwei Einsätze mit Balken und Urteil |

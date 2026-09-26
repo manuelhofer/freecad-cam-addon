@@ -22,6 +22,7 @@ from .gui_schnittwerte import SchnittwertBereich
 from .gui_teile import GRAU, hinweiszeile, knopf, mit_einheit
 from .gui_werkstoffe import WerkstoffDialog
 from .gui_werkzeugbild import WerkzeugBild
+from .gui_werkzeugbild import symbol as art_symbol
 from .gui_zahlen import (
     Zahlenpruefer,
     dezimal,
@@ -269,7 +270,9 @@ class WerkzeugDialog(QtGui.QDialog):
             schrift.setBold(True)
             kopf.setFont(schrift)
             for art in wz.arten_der_gruppe(gruppe):
-                self.feld_art.addItem(wz.art_text(art), art)
+                # Vor jedem Namen das Bild der Art, klein – wie in InventorCAM.
+                self.feld_art.addItem(art_symbol(art), wz.art_text(art), art)
+        self.feld_art.setIconSize(QtCore.QSize(20, 20))
         self.feld_art.setMaxVisibleItems(self.feld_art.count())
         self.feld_art.setToolTip(tr("wv.art.tooltip"))
         self.feld_art.currentIndexChanged.connect(self._art_geaendert)

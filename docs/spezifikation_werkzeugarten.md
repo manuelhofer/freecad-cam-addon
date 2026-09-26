@@ -223,7 +223,11 @@ Eine ältere Version des Addons liest unbekannte Arten als Schaftfräser.
 2. **Arten als Tabelle im Code** – je Art Gruppe, Felder, Pflichtfelder,
    Beispielwerte, CAM-Form; der Dialog baut seine Felder daraus. Alle 26
    Arten wählbar, gegliedert (Abschnitt 4), mit den neuen Feldern.
-3. **Bilder** aller Arten, auch klein in der Auswahl.
+3. **Bilder** aller Arten, auch klein in der Auswahl. – *Gebaut
+   (P-2026-09-26-56): Umrisse in `camaddon/werkzeugform.py` (ohne
+   Oberfläche geprüft), gemalt in `gui_werkzeugbild.py`; das Symbol in der
+   Auswahl zeigt nur das schneidende Ende. Halter der Drehwerkzeuge im Bild
+   20 × 60 mm, die Platte steht an der Ecke über.*
 4. **Einsätze je Art** und das Rechnen dazu (Abschnitt 5).
 5. **CAM:** Übergabe und Übernahme aller Arten (Abschnitt 6).
 6. **In den Job:** die neuen Einsätze auf die passenden Operationen.
