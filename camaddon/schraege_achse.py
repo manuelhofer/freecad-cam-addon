@@ -231,6 +231,40 @@ def _drehe_gelenk(assembly, gelenk, drehung):
     assembly.Document.recompute()
 
 
+def programmrichtung(kette, trafo):
+    """Die Richtung von Y im Programm, in Weltkoordinaten: rechtwinklig zur
+    ausgleichenden Achse, in der Ebene beider Achsen – auf der Seite, zu der das
+    Gelenk der schrägen Achse zeigt. So bekommt CAM die schräge Achse."""
+    schraeg, ausgleich = achsen(kette, trafo)
+    richtung = schraeg.richtung - ausgleich.richtung * schraeg.richtung.dot(ausgleich.richtung)
+    richtung.normalize()
+    return richtung
+
+
+def hoechstwert(alpha, schraeg, ausgleich):
+    """Der höchste Wert für Y im Programm – Eilgang, Vorschub oder Beschleunigung –,
+    wenn die schräge Achse höchstens `schraeg` und die ausgleichende `ausgleich`
+    schafft: Für Y mit v fährt die schräge v/cos α und die ausgleichende v·tan α,
+    also min(schraeg · cos α, ausgleich ÷ |tan α|)."""
+    winkel_rad = math.radians(alpha)
+    werte = [schraeg * math.cos(winkel_rad)]
+    if abs(math.tan(winkel_rad)) > 1e-12:
+        werte.append(ausgleich / abs(math.tan(winkel_rad)))
+    return min(werte)
+
+
+def gueltige(maschine, kette):
+    """Die schrägen Achsen, mit denen sich rechnen lässt: {Gelenk der schrägen Achse:
+    (Eintrag, α, ausgleichende Achse)} – beide Achsen da, α bis ±GROESSTER_WINKEL."""
+    ergebnis = {}
+    for trafo in m.transformationen(maschine):
+        paar = achsen(kette, trafo)
+        alpha = winkel(kette, maschine, trafo)
+        if paar is not None and alpha is not None and abs(alpha) <= GROESSTER_WINKEL:
+            ergebnis.setdefault(paar[0].gelenk, (trafo, alpha, paar[1]))
+    return ergebnis
+
+
 def linearachsen(maschine, kette):
     """Die Betriebsarten der Art Linear mit gültiger Achse in der Kette, nach NC-Namen."""
     return sorted(
@@ -294,7 +328,7 @@ def pruefe(maschine, kette):
                 bezug=Anlegen(schraeg, ausgleich),
                 schraeg=m.name_von(schraeg),
                 ausgleich=m.name_von(ausgleich),
-                winkel=_winkel_text(alpha),
+                winkel=winkel_text(alpha),
                 name=m.programmname(schraeg),
             )
         )
@@ -344,7 +378,7 @@ def _ueberfahren(achse, ziel):
     return []
 
 
-def _winkel_text(alpha):
+def winkel_text(alpha):
     """„30,0°“ mit dem gewählten Dezimalzeichen – für Sätze, die ohne Oberfläche entstehen."""
     zeichen = einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
     return mit_dezimalzeichen(f"{round(alpha, 1) + 0.0:.1f}°", zeichen)

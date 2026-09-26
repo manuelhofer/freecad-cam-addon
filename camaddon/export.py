@@ -14,17 +14,24 @@ Was die CAM-Definition nicht kennt – Beschleunigung, Ruck, größter Vorschub,
 Revolver –, bleibt im Dokument. Der Bericht sagt dem Benutzer in Worten, was
 übertragen wurde und was nicht.
 
+Eine schräge Achse (W-001, Abschnitt 7c) kennt die CAM-Definition auch nicht.
+Die Bahnen sind ohnehin rechtwinklig, umrechnen tut die Steuerung. Deshalb
+bekommt CAM statt der schrägen Richtung die rechtwinklige des Programms, mit
+umgerechneten Grenzen und Eilgang; der Bericht sagt, dass diese Grenzen nur
+gelten, solange die ausgleichende Achse Platz hat.
+
 Die CAM-Maschinendefinition gibt es erst im Wochen-Build, nicht in
 FreeCAD 1.1 – deshalb `verfuegbar()` und die Importe erst in den Funktionen.
 
 Läuft ohne Oberfläche.
 """
 
+import math
 from dataclasses import dataclass, field
 
 import FreeCAD
 
-from . import einheiten
+from . import einheiten, schraege_achse
 from . import kette as kette_modul
 from . import maschine as m
 from .kette import LINEAR
@@ -69,6 +76,7 @@ def baue_cam_maschine(maschine, kette=None):
     if kette is None:
         kette = kette_modul.lies_kette(m.assembly_von(maschine))
     rollen, _meldungen = m.rollen(kette, maschine)  # die Meldungen zeigt schon der Dialog
+    schraeg = schraege_achse.gueltige(maschine, kette)  # Gelenk -> (Eintrag, α, ausgleichend)
     bericht = Bericht()
 
     cam = Machine(name=maschine.Label)
@@ -92,7 +100,12 @@ def baue_cam_maschine(maschine, kette=None):
             "sequence": reihenfolge,
             "parent": _eltern_name(maschine, kette, achse),
         }
-        if achse.art == LINEAR:
+        if achse.art == LINEAR and achse.gelenk in schraeg:
+            eilgang = _schraege_achse(cam, bericht, maschine, kette, achse, ba, im_kopf, gemeinsam)
+            if not ba.Eilgang:
+                gezeigt = _zahl(einheiten.gerundet(VORGABE_EILGANG, einheiten.VORSCHUB))
+                bericht.zu_pruefen.append(tr("export.eilgang_vorgabe", name=name, eilgang=gezeigt))
+        elif achse.art == LINEAR:
             eilgang = ba.Eilgang or VORGABE_EILGANG
             cam.linear_axes[name] = _linearachse(achse, eilgang, im_kopf, **gemeinsam)
             # Im Bericht in mm/min oder ipm; an CAM geht er in mm/min.
@@ -195,13 +208,58 @@ def _satz_fehlende_grenzen(name, achse):
     return tr("export.eine_grenze", name=name)
 
 
-def _linearachse(achse, eilgang, im_kopf, **gemeinsam):
+def _schraege_achse(cam, bericht, maschine, kette, achse, ba, im_kopf, gemeinsam):
+    """Die schräge Achse als rechtwinklige Achse des Programms; gibt den Eilgang zurück.
+
+    Richtung rechtwinklig zur ausgleichenden Achse, Grenzen · cos α, Eilgang
+    so hoch, wie beide Schlitten zusammen schaffen (schraege_achse.hoechstwert).
+    """
+    trafo, alpha, ausgleich = schraege_achse.gueltige(maschine, kette)[achse.gelenk]
+    ba_ausgleich = trafo.Ausgleich
+    faktor = math.cos(math.radians(alpha))
+    eilgang = schraege_achse.hoechstwert(
+        alpha, ba.Eilgang or VORGABE_EILGANG, ba_ausgleich.Eilgang or VORGABE_EILGANG
+    )
+    minimum = None if achse.minimum is None else achse.minimum * faktor
+    maximum = None if achse.maximum is None else achse.maximum * faktor
+    name = gemeinsam["name"]
+    cam.linear_axes[name] = _linearachse(
+        achse,
+        eilgang,
+        im_kopf,
+        richtung=schraege_achse.programmrichtung(kette, trafo),
+        grenzen=(minimum, maximum),
+        **gemeinsam,
+    )
+    bericht.uebertragen.append(
+        tr(
+            "export.linear",
+            name=name,
+            eilgang=_zahl(einheiten.gerundet(eilgang, einheiten.VORSCHUB)),
+        )
+    )
+    bericht.zu_pruefen.append(
+        tr(
+            "export.schraege_achse",
+            name=name,
+            ausgleich=m.name_von(ba_ausgleich),
+            winkel=schraege_achse.winkel_text(alpha),
+            programm=trafo.NameSchraeg,
+        )
+    )
+    return eilgang
+
+
+def _linearachse(achse, eilgang, im_kopf, richtung=None, grenzen=None, **gemeinsam):
+    """Die Linearachse für CAM. `richtung` und `grenzen` (min, max) ersetzen die des
+    Gelenks – bei einer schrägen Achse die des Programms."""
     from Machine.models.machine import AxisRole, LinearAxis
 
+    minimum, maximum = grenzen if grenzen is not None else (achse.minimum, achse.maximum)
     return LinearAxis(
-        direction_vector=FreeCAD.Vector(achse.richtung),
-        min_limit=_oder(achse.minimum, -OHNE_GRENZE_MM),
-        max_limit=_oder(achse.maximum, OHNE_GRENZE_MM),
+        direction_vector=FreeCAD.Vector(richtung if richtung is not None else achse.richtung),
+        min_limit=_oder(minimum, -OHNE_GRENZE_MM),
+        max_limit=_oder(maximum, OHNE_GRENZE_MM),
         max_velocity=eilgang,
         role=AxisRole.HEAD_LINEAR if im_kopf else AxisRole.TABLE_LINEAR,
         # Fehler in FreeCAD (26.3 dev, Machine.from_dict): Ist der Ursprung

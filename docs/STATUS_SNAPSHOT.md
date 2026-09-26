@@ -110,8 +110,9 @@ Wunschliste, offene Bugs und Tasks.
    Baugruppe, Bild, Beispiel), Schritt 2 fertig (-67: Winkel eintragen, die
    Führung dreht sich mit), Schritt 3 fertig (-68: Hinweis „Y1 steht 30,0°
    schräg zu X1“, ein Klick legt an), Schritt 4 fertig (-69: „Maschine
-   verfahren“ wie im Programm, am Anschlag eine rote Zeile); als Nächstes
-   Schritt 5 (An CAM übergeben).*
+   verfahren“ wie im Programm, am Anschlag eine rote Zeile), Schritt 5
+   fertig (-71: an CAM rechtwinklig, Grenzen und Eilgang umgerechnet); als
+   Nächstes Schritt 6 (Höchstvorschub beim Planen).*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher

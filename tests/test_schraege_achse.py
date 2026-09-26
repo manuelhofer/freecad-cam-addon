@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(ADDON, "tests"))
 import beispielmaschinen
 import FreeCAD
 
-from camaddon import beispielmaschine, einheiten, sprache
+from camaddon import beispielmaschine, einheiten, export, sprache
 from camaddon import kette as kette_modul
 from camaddon import maschine as m
 from camaddon import schraege_achse as sa
@@ -318,6 +318,49 @@ pruefe(all(nahe(w, 0) for w in prog.stellung()), "Grundstellung")
 trafo.Ausgleich = None
 pruefe(not sa.Programm.moeglich(v, ma, trafo), "Programm ohne ausgleichende Achse möglich")
 FreeCAD.closeDocument(doc.Name)
+
+# --- An CAM übergeben: Y rechtwinklig, Grenzen und Eilgang umgerechnet ---------------
+# (nur im Wochen-Build – FreeCAD 1.1 hat keine CAM-Maschinendefinition)
+if export.verfuegbar():
+    asm, ma = beispielmaschine.drehmaschine()
+    doc = asm.Document
+    kette = kette_modul.lies_kette(asm)
+    ba = {b.NcName: b for b in m.betriebsarten(ma)}
+    trafo = m.neue_schraege_achse(ma, ba["Y1"], ba["X1"])
+    kette = sa.drehe_fuehrung(asm, kette, ma, trafo, 30)
+    achsen = {a.gelenk.Label: a for a in kette.achsen}
+    einheiten.setze_dezimalzeichen(",")
+    cam, bericht = export.baue_cam_maschine(ma, kette)
+    einheiten.setze_dezimalzeichen(None)
+    y = cam.linear_axes["Y1"]
+    x = cam.linear_axes["X1"]
+    richtung_x = FreeCAD.Vector(achsen["X"].richtung)
+    pruefe(abs(y.direction_vector.dot(richtung_x)) < 1e-9, "Y1 nicht rechtwinklig zu X1")
+    pruefe(abs(y.direction_vector.Length - 1) < 1e-9, "Y1 nicht normiert")
+    pruefe(y.direction_vector.dot(achsen["Y"].richtung) > 0.8, "Y1 zeigt zur falschen Seite")
+    pruefe((x.direction_vector - richtung_x).Length < 1e-9, "X1 nicht wie das Gelenk")
+    pruefe(nahe(y.min_limit, -51.961524) and nahe(y.max_limit, 51.961524), "Y1-Grenzen")
+    # Y1 12000 mm/min, X1 30000 mm/min: min(12000 · cos 30°, 30000 ÷ tan 30°) = 10392,3
+    pruefe(nahe(y.max_velocity, 12000 * math.cos(math.radians(30))), f"Eilgang {y.max_velocity}")
+    zu_pruefen = " ".join(bericht.zu_pruefen)
+    pruefe(
+        "„Y1“ ist eine schräge Achse (30,0° zu X1). CAM bekommt sie rechtwinklig wie „Y“"
+        in zu_pruefen,
+        f"Bericht: {zu_pruefen}",
+    )
+    # Ohne Eintrag geht Y1 mit seiner schrägen Richtung hinaus.
+    doc.removeObject(trafo.Name)
+    cam, bericht = export.baue_cam_maschine(ma, kette)
+    y = cam.linear_axes["Y1"]
+    pruefe(abs(y.direction_vector.dot(richtung_x) - 0.5) < 1e-9, "ohne Eintrag nicht schräg")
+    pruefe(nahe(y.max_limit, 60) and nahe(y.max_velocity, 12000), "ohne Eintrag umgerechnet")
+    FreeCAD.closeDocument(doc.Name)
+
+# hoechstwert: für Y höchstens min(schräg · cos α, ausgleichend ÷ |tan α|)
+pruefe(nahe(sa.hoechstwert(30, 5000, 10000), 4330.127019), "hoechstwert 30°")
+pruefe(nahe(sa.hoechstwert(60, 5000, 2000), 2000 / math.tan(math.radians(60))), "hoechstwert 60°")
+pruefe(nahe(sa.hoechstwert(-30, 5000, 10000), 4330.127019), "hoechstwert −30°")
+pruefe(nahe(sa.hoechstwert(0, 5000, 100), 5000), "hoechstwert 0°")
 
 assert not fehler, "\n".join(fehler)
 print("OK", os.path.basename(__file__))

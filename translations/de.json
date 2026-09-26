@@ -690,5 +690,6 @@
     "vf.grenzen_programm": "Höchstens {min} … {max} {einheit} – wie weit es geht, hängt davon ab, wo {andere} steht.",
     "vf.schlitten": "Schlitten: {ausgleich} {weg_ausgleich}, {schraeg} {weg_schraeg}",
     "vf.im_programm": "Im Programm: {x_name} {x}, {y_name} {y}",
-    "vf.anschlag": "Weiter geht {name} hier nicht: {achse} steht an seiner Grenze {grenze}."
+    "vf.anschlag": "Weiter geht {name} hier nicht: {achse} steht an seiner Grenze {grenze}.",
+    "export.schraege_achse": "„{name}“ ist eine schräge Achse ({winkel} zu {ausgleich}). CAM bekommt sie rechtwinklig wie „{programm}“ im Programm, mit umgerechneten Grenzen und Eilgang. Diese Grenzen gelten nur, solange {ausgleich} Platz zum Ausgleichen hat – wie weit es wirklich geht, zeigt „Maschine verfahren“ wie im Programm."
 }

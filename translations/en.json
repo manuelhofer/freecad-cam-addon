@@ -690,5 +690,6 @@
     "vf.grenzen_programm": "At most {min} … {max} {einheit} – how far it goes depends on where {andere} is.",
     "vf.schlitten": "Slides: {ausgleich} {weg_ausgleich}, {schraeg} {weg_schraeg}",
     "vf.im_programm": "In the program: {x_name} {x}, {y_name} {y}",
-    "vf.anschlag": "{name} cannot go further here: {achse} is at its limit {grenze}."
+    "vf.anschlag": "{name} cannot go further here: {achse} is at its limit {grenze}.",
+    "export.schraege_achse": "“{name}” is an inclined axis ({winkel} to {ausgleich}). CAM gets it square, like “{programm}” in the program, with converted limits and rapid rate. These limits only hold while {ausgleich} has room to compensate – how far it really goes is shown by “Move machine” as in the program."
 }

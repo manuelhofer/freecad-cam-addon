@@ -326,9 +326,11 @@ Weiter geht Y hier nicht: X1 steht an seiner Grenze 150 mm.
 **An CAM übergeben:** Statt der schrägen Richtung von Y1 geht die
 rechtwinklige Richtung der Programmachse hinaus (Name wie bisher Y1), mit
 Grenzen und Eilgang umgerechnet (Grenzen · cos α, Eilgang wie oben). Der
-Bericht sagt: „Y1 ist eine schräge Achse (30° zu X1). Die Grenzen in CAM
-gelten nur, solange X1 Platz zum Ausgleichen hat; genau rechnet das erst die
-Prüfung auf der Maschine (Stufe 4a).“
+Bericht sagt: „Y1 ist eine schräge Achse (30,0° zu X1). CAM bekommt sie
+rechtwinklig wie „Y“ im Programm, mit umgerechneten Grenzen und Eilgang.
+Diese Grenzen gelten nur, solange X1 Platz zum Ausgleichen hat – wie weit es
+wirklich geht, zeigt „Maschine verfahren“ wie im Programm.“ (Später rechnet
+es auch die Prüfung auf der Maschine, Stufe 4a.)
 
 **Schruppwerte planen:** Der Höchstvorschub der Maschine ist der kleinste
 aller Linearachsen; für die schräge Achse zählt dabei der umgerechnete Wert

@@ -55,6 +55,14 @@ in its parameters (parameter manual).</li>
 amount with the opposite sign – compare the picture with the drawing in the
 manual.</p>
 
+<h3>Handing over to CAM</h3>
+<p>FreeCAD's CAM machine definition does not know inclined axes. Since the
+toolpaths are square anyway, CAM gets the inclined axis the way the program
+sees it: <b>square</b> to the compensating one, with converted limits
+(· cos α) and the rapid rate both slides manage together. The report adds:
+these limits only hold while the compensating axis has room to compensate –
+how far it really goes is shown by “Move machine” as in the program.</p>
+
 <h3>What does not change</h3>
 <p>The <b>postprocessor</b> stays as it is: the program stays square, the
 control does the converting.</p>

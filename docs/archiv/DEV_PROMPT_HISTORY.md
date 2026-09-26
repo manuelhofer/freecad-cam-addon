@@ -12,6 +12,58 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-71 schraege-achse-an-cam
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 7c („An CAM übergeben“) und Stufe 3b,
+  Schritt 5; `export.py`; FreeCADs `LinearAxis` (Richtung, Grenzen,
+  `max_velocity` – keine Transformation, P-2026-09-26-65).
+
+### DATEIEN
+- `camaddon/export.py` (`_schraege_achse`, `_linearachse` mit Richtung und
+  Grenzen)
+- `camaddon/schraege_achse.py` (`programmrichtung`, `hoechstwert`,
+  `gueltige`, `winkel_text` öffentlich)
+- `help/de/transformationen.html`, `help/en/transformationen.html`
+- `translations/de.json`, `translations/en.json`
+- `tests/test_schraege_achse.py`
+- `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine mit schräger Achse (30°) → „Maschine bearbeiten“ →
+„An CAM übergeben“ (Wochen-Build) → der Bericht sagt unter „Bitte prüfen“:
+„„Y1“ ist eine schräge Achse (30,0° zu X1). CAM bekommt sie rechtwinklig wie
+„Y“ im Programm …“; in CAMs Maschineneditor steht Y1 rechtwinklig zu X1 mit
+Weg ±51,96 mm.
+
+### DONE
+- Für die schräge Achse bekommt CAM die Richtung der Programmachse:
+  rechtwinklig zur ausgleichenden, in der Ebene beider Achsen, auf der Seite
+  des Gelenks. Grenzen · cos α, Eilgang
+  `hoechstwert(α, Eilgang schräg, Eilgang ausgleichend)` =
+  min(v_schräg · cos α, v_ausgleich ÷ |tan α|) – das schaffen beide
+  Schlitten zusammen. Name wie bisher (Y1). Fehlt der Eilgang, gilt
+  FreeCADs Vorgabe wie bei jeder Achse, mit demselben Satz.
+- Ein Satz unter „Bitte prüfen“: schräge Achse, Winkel, rechtwinklig wie Y
+  im Programm, Grenzen gelten nur, solange X1 Platz hat – wie weit es geht,
+  zeigt „Maschine verfahren“ wie im Programm (die Prüfung auf der Maschine,
+  Stufe 4a, gibt es noch nicht; die Spezifikation sagt das jetzt so).
+- Ohne Eintrag geht Y1 wie bisher mit seiner schrägen Richtung hinaus.
+- `schraege_achse.gueltige()`: die schrägen Achsen, mit denen sich rechnen
+  lässt – je Gelenk die erste.
+
+### TEST
+- Claude ohne Oberfläche: `test_schraege_achse.py` zusätzlich
+  (Wochen-Build): Y1 rechtwinklig zu X1, normiert, zur Seite des Gelenks;
+  X1 unverändert; Grenzen ±51,96; Eilgang 12000 · cos 30° = 10392,3;
+  Satz im Bericht; ohne Eintrag schräg (X1 · Y1 = 0,5), Grenzen und
+  Eilgang wie am Gelenk. `hoechstwert` für 30°, 60°, −30°, 0° (beide
+  Versionen). `test_export.py` grün.
+
+### NEXT
+- Stufe 3b, Schritt 6: Höchstvorschub beim Planen.
+
 ## P-2026-09-26-70 verfahren-schmaler
 
 ### EINGELESEN

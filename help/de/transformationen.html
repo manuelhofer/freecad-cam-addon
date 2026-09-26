@@ -55,6 +55,15 @@ in ihren Parametern (Parameterhandbuch).</li>
 <p>Zählt deine Steuerung den Winkel andersherum, steht dort derselbe Betrag mit
 anderem Vorzeichen – vergleiche das Bild mit der Zeichnung im Handbuch.</p>
 
+<h3>An CAM übergeben</h3>
+<p>FreeCADs CAM-Maschinendefinition kennt keine schräge Achse. Weil die
+Bahnen ohnehin rechtwinklig sind, bekommt CAM die schräge Achse so, wie das
+Programm sie sieht: <b>rechtwinklig</b> zur ausgleichenden, mit umgerechneten
+Grenzen (· cos α) und dem Eilgang, den beide Schlitten zusammen schaffen. Der
+Bericht sagt dazu: Diese Grenzen gelten nur, solange die ausgleichende Achse
+Platz zum Ausgleichen hat – wie weit es wirklich geht, zeigt „Maschine
+verfahren“ wie im Programm.</p>
+
 <h3>Was sich nicht ändert</h3>
 <p>Der <b>Postprozessor</b> bleibt, wie er ist: Das Programm bleibt
 rechtwinklig, umrechnen tut die Steuerung.</p>
