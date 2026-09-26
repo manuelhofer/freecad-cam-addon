@@ -6,7 +6,7 @@ Wunschliste, offene Bugs und Tasks.
 ## Projektstatus
 - **IN ARBEIT** – W-001, Stufen 1 bis 3 fertig und automatisch geprüft; warten auf Manuels Test. Jetzt Stufe 3b (schräge Achse, Punkt 11 unten), danach Stufe 4 (Werkzeugbahn abfahren, Kollision – eigene Spezifikation).
 - **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
-- **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen fertig (P-2026-09-26-78), jetzt Stufe V1 (Punkt 12 unten).
+- **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ fertig und automatisch geprüft (P-2026-09-26-79), wartet auf Manuels Test; als Nächstes V2 (Punkt 12 unten).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
   und Wochen-Build 26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien
   grün; in 1.1.3 ist der Export übersprungen (gibt es dort nicht).
@@ -126,8 +126,9 @@ Wunschliste, offene Bugs und Tasks.
    vier Schritten, eigener Rechenkern (1.1.3 und Wochen-Build), Ausgabe als
    reine Achskoordinaten, alles einstellbar mit Vorschlägen. –
    *Spezifikation: [spezifikation_vierachs.md](spezifikation_vierachs.md)
-   (P-2026-09-26-78), neun Stufen V1–V9 in Abschnitt 13; als Nächstes V1
-   „Teil in die Stange“.*
+   (P-2026-09-26-78), neun Stufen V1–V9 in Abschnitt 13. V1 „Teil in die
+   Stange“ fertig (P-2026-09-26-79); als Nächstes V2 „Achse von der
+   Maschine“.*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -184,7 +185,15 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    Bettneigung 30°, Y schräg um 30°, 8 Plätze → „Maschine bauen“ → die
    Maschine steht im neuen Dokument, „Maschine bearbeiten“ zeigt die
    schräge Achse.
-6. **Besprechen:** Entscheidungen der Werkzeugverwaltung
+6. **4-Achs-Bearbeitung, Teil in die Stange** (P-2026-09-26-79): ein Teil mit
+   ebener Stirnfläche öffnen (etwa eine Welle), die Stirnfläche anklicken →
+   Werkzeugleiste „CAM-Addon“ → **4-Achs-Bearbeitung** → das Teil fährt in
+   eine durchscheinende Stange und dreht sich einmal; Ø 80 eintragen →
+   „Passt – rundum mindestens … mm“; „ganzes Teil möglichst mittig“ und
+   Rundachse A/B/C umschalten (die Stange liegt in X, Y oder Z); „+90°“;
+   „Anlegen“ → Job „… – 4 Achsen“ mit Zylinder-Rohteil, ein Strg+Z nimmt
+   alles zurück. Versteht man das Fenster ohne Erklärung?
+7. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
    Nr. 13–23 sind von dieser Nacht) und die sechs Fragen zu Stufe 4
    ([Entwurf](spezifikation_simulation.md), Abschnitt 9).

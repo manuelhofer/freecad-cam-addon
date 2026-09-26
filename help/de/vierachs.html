@@ -1,0 +1,83 @@
+<h2>4-Achs-Bearbeitung</h2>
+<p>Ein Teil wird aus einer runden Stange gefräst, während sich die Stange
+dreht – auf einer Fräse mit Rundachse (A oder B) genauso wie auf einer
+Drehmaschine mit C-Achse und angetriebenen Werkzeugen. Der Assistent führt in
+Schritten dorthin. Gebaut ist der erste: <b>das Teil in die Stange
+legen</b>. Flächen wählen, Werkzeuge und die Schrupp- und Schlichtbahnen
+kommen in den nächsten Stufen dazu.</p>
+
+<h3>So geht's</h3>
+<ol>
+<li>Das Dokument mit dem Teil öffnen und in der 3D-Ansicht die <b>ebene
+Fläche</b> anklicken, die vorne an der Stange liegen soll – meist die
+Stirnseite.</li>
+<li>In der Werkzeugleiste „CAM-Addon“ auf <b>4-Achs-Bearbeitung</b>
+klicken. Das Teil fährt in eine durchsichtige Stange und dreht sich einmal um
+die Achse.</li>
+<li>Den <b>Durchmesser der Stange</b> eintragen, etwa 80. Die Zeile unten sagt
+grün, wie viel Material rundum mindestens bleibt – oder rot, welchen
+Durchmesser das Teil bräuchte.</li>
+<li><b>Anlegen</b> – es entsteht ein CAM-Job mit dem Teil in der Stange. Ein
+<b>Strg+Z</b> nimmt alles zurück, <b>Abbrechen</b> lässt nichts zurück.</li>
+</ol>
+<p>Eine andere Fläche anklicken, solange das Fenster offen ist, legt das Teil
+mit dieser Fläche nach vorne.</p>
+
+<h3>Wie das Teil in der Stange liegt</h3>
+<ul>
+<li><b>Vorne</b> ist das freie Ende der Stange, weg vom Futter. Die gewählte
+Fläche liegt dort, die Stange steht um das <b>Planaufmaß</b> über. Der
+Nullpunkt längs der Achse liegt in dieser Fläche, das Teil dahinter – wie Z0
+an der Drehmaschine.</li>
+<li><b>Mitte der runden Fläche</b> – ist die Außenkante der Fläche ein Kreis,
+sitzt dessen Mitte auf der Stangenachse (bei einer eckigen Fläche ihr
+Schwerpunkt). So bleibt etwa eine Welle rund, auch wenn ein Nocken
+übersteht.</li>
+<li><b>Ganzes Teil möglichst mittig</b> – das Teil liegt so, dass es in die
+dünnste Stange passt.</li>
+<li>Neben beiden steht, welchen Durchmesser die Stange dafür braucht.
+Vorgewählt ist die runde Fläche, wenn das Teil so in die Stange passt, sonst
+das ganze Teil.</li>
+<li><b>Drehlage</b> dreht das Teil in der Stange um die Achse und legt so fest,
+wo 0° der Rundachse liegt.</li>
+</ul>
+
+<h3>Die Stange</h3>
+<p>Hinter dem Teil kommen die <b>Abstechbreite</b> (Platz zum Abstechen oder
+Absägen) und die <b>Spannlänge</b> (so lang steckt die Stange im Futter).
+Daraus ergibt sich die Länge der Stange, grau neben den Feldern.</p>
+<p><b>Alles ist einstellbar, und leere Felder gelten mit ihrem grauen
+Vorschlag.</b> Was du einträgst, ist beim nächsten Mal der Vorschlag. Der
+Durchmesser der Stange hängt am Teil. Sein Vorschlag ist der nächste
+5-mm-Schritt (in Zoll 1/8"), der rundum mindestens 1 mm lässt.</p>
+
+<h3>Die Rundachse</h3>
+<p>Um welche Achse sich die Stange dreht, bestimmt, wie sie im Job liegt:</p>
+<ul>
+<li><b>A</b> – die Stange liegt in X, das Werkzeug kommt von oben (Fräse mit
+Rundachse A).</li>
+<li><b>B</b> – die Stange liegt in Y, das Werkzeug kommt von oben.</li>
+<li><b>C</b> – die Stange liegt in Z, das Werkzeug kommt aus X: wie an einer
+Drehmaschine mit C-Achse.</li>
+</ul>
+<p>Die Achse der Stange geht durch den Nullpunkt des Jobs. So legt FreeCAD
+spätere Bahnen von selbst richtig um das Teil. Später liest der Assistent die
+Rundachse aus deiner Maschine („Maschine bearbeiten“). Bis dahin weist du der
+Stange den Buchstaben selbst zu.</p>
+
+<h3>Was im Dokument passiert</h3>
+<ul>
+<li>Ein neuer <b>Job</b> „Teil – 4 Achsen“. Das Teil liegt als Modell des
+Jobs in der Stange. Das Original bleibt, wo es war, und wird ausgeblendet.</li>
+<li>Das <b>Rohteil</b> des Jobs ist ein Zylinder mit dem Durchmesser und der
+Länge der Stange. Solange das Fenster offen ist, ist er durchscheinend und
+lässt sich nicht anklicken. Danach sieht er aus wie jedes Rohteil in CAM.</li>
+</ul>
+
+<h3>Was (noch) nicht geht</h3>
+<ul>
+<li>Die Flächen wählen, die gefräst werden, die Werkzeuge und die Bahnen –
+das kommt in den nächsten Stufen.</li>
+<li>Drehen, Planen der Stirnseite und Abstechen macht die Maschine – FreeCAD
+dreht nicht.</li>
+</ul>

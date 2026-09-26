@@ -3,7 +3,8 @@
 Stand: **Entwurf von Claude mit Manuels Entscheidungen** vom 2026-09-26
 (P-2026-09-26-78, am Ende unter „Entschieden“). Die Vorschläge in
 Abschnitt 15 hat Claude getroffen; sie sind zur Besprechung da. Gebaut wird
-Stufe für Stufe (Abschnitt 13), jede ein Patch mit Klickweg – als Erstes V1.
+Stufe für Stufe (Abschnitt 13), jede ein Patch mit Klickweg – V1 ist gebaut
+(P-2026-09-26-79), als Nächstes V2.
 
 Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
 (W-001: Maschine, Achsen, Aufnahmen),
@@ -456,6 +457,10 @@ der Hilfe mit.
   Stange längs Z, die Fläche 1 mm hinter der Stangenstirn, „Passt – rundum
   mindestens 4,0 mm“; Abbrechen hinterlässt nichts, „Anlegen“ nimmt ein
   Strg+Z zurück.
+- *Gebaut (P-2026-09-26-79):* Befehl mit Symbol in der Werkzeugleiste
+  „CAM-Addon“, Schritt Rohteil mit allen Feldern aus der Skizze, Animation,
+  Hilfeseite; Rundachse ohne Maschine (A/B/C). Der Kopf zeigt nur
+  „Rohteil“, solange es die anderen Schritte noch nicht gibt.
 
 **V2 – Achse von der Maschine**
 

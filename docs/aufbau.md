@@ -61,6 +61,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `werkzeuge_aus_cam.py` | Werkzeuge aus einer FreeCAD-Werkzeugbibliothek übernehmen: jede Form → Art, Maße, Nummern ohne Verschieben |
 | `schruppwerte.py` | Schruppwerte planen: fz je ae mit Spandickenausgleich, Grenzen von Werkzeug und Maschine (auch aus W-001), Vorschlag mit größtem Q |
 | `job_schnittwerte.py` | Schnittwerte in die Werkzeug-Controller eines Jobs: Werkstoff vom Rohteil, Werkzeug zum TC, Einsatz vorschlagen, dazu Schrittweite und Zustelltiefe der passenden Operationen; setzen in einer Transaktion |
+| `vierachs_rohteil.py` | 4-Achs-Bearbeitung, Teil in die Stange (W-003 V1): Stirnfläche vermessen (Normale, runde Kante, kleinster Kreis um das Teil), Lage für A/B/C, Vorschlag für den Stangen-Ø, Job mit Modell-Klon an der Stelle und Zylinder-Rohteil |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“; ohne Baugruppe der Weg zu den Beispielmaschinen |
 | `gui_neue_maschine.py` | Befehl und Dialog „Neue Maschine …“: Bauart wählen, bei der Drehmaschine Maße eintragen, bauen – auch hinter „Beispielmaschine laden …“ |
@@ -83,6 +84,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_schruppwerte.py` | Dialog „Schruppwerte planen“: Eingaben, Tabelle je ae, Vorschlag, als Einsatz übernehmen |
 | `gui_werkstoffe.py` | Fenster „Werkstoffe“: ganze Liste mit Suche und Filter, eigene Werkstoffe |
 | `gui_job_schnittwerte.py` | Befehl und Dialog „Schnittwerte in den Job“ |
+| `gui_vierachs.py` | Befehl und Assistent „4-Achs-Bearbeitung“: Fläche im 3D anklicken (Beobachter und Filter der Auswahl), Stange, Mitte, Drehlage, Rundachse, Animation, „Anlegen“ als ein Schritt Rückgängig |
 
 Zwei Regeln halten das zusammen:
 
@@ -211,3 +213,9 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | CAMs Bibliotheksfenster lädt seine Oberfläche erst, wenn die Werkbank CAM einmal aktiv war | Szenario schaltet vorher auf CAM |
 | Das Mausrad verstellt Auswahllisten, Drehfelder und Regler auch ohne Fokus – beim Blättern im Aufgabenfenster aus Versehen („P10“ im Revolverplatz) | `gui_teile.ruhiges_mausrad` (Filter, reicht das Rad an den nächsten rollbaren Bereich), Regler als `RuhigerRegler` – im Wochen-Build kommt das Rad dort am Filter vorbei; der schützt Drehfelder selbst (`Gui::WheelEventFilter`) |
 | Mit `sendEvent` geschickte Rad-Ereignisse gibt Qt nicht an die Eltern weiter | `szenario_mausrad` dreht das Rad über XTest am virtuellen Bildschirm |
+| FreeCADs Befehl „Job“ öffnet eine eigene Transaktion | der Assistent legt den Job mit `Path.Main.Job.Create` an und hängt die Anzeige selbst an (`Path.Main.Gui.Job.ViewProvider`) – alles in seiner Transaktion |
+| Der Modell-Klon eines Jobs liegt beim Anlegen genau wie das Original | `vierachs_rohteil.richte_ein`: Klon = Lage · Lage des Originals, immer vom Original aus gerechnet |
+| `Job.Create` und `Stock.CreateCylinder` legen im aktiven Dokument an | vorher `FreeCAD.setActiveDocument` |
+| Die Python-Hülle eines Knopfs aus `modifyStandardButtons` verfällt mit der Hülle der Knopfleiste | die Knopfleiste aufheben, den Knopf jedes Mal über sie holen (wie CAM) |
+| 1.1.3 gibt die Beschriftung eines per Abbrechen verworfenen Objekts nicht wieder frei | der nächste Job heißt „… 001“; Szenario prüft nur den Anfang |
+| Die Hüllbox gekrümmter Flächen ist nur auf etwa 0,003 mm genau | Prüfungen vergleichen sie mit 0,01 mm |

@@ -12,6 +12,118 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-79 vierachs-teil-in-die-stange
+
+### EINGELESEN
+- Manuel (2026-09-26), nach dem Plan: „Gleich V1 bauen“; dazu „so dass
+  alles einstellbar ist, aber mit Vorschlägen als Standard“.
+- `docs/spezifikation_vierachs.md` (Abschnitte 4, 5, 11, 13),
+  `gui_verfahren.py` und `gui_maschine.py` (Aufgabenfenster, Transaktion,
+  `_EnterBleibtImDialog`), `gui_start.py`, `gui_zeigen.py` (Wackeln),
+  `gui_zahlen.py`, `einheiten.py`, `gui_werkzeuge.py` (graue Vorschläge),
+  `tests/gui/_lauf/szenario_lauf.py`.
+- FreeCAD 1.1.3 und `main`: `Path/Main/Gui/Job.py` (`Create` hängt die
+  Anzeige an und öffnet eine eigene Transaktion; `ViewProvider.attach`
+  zeichnet nur das Achsenkreuz), `Path/Main/Job.py` (`createResourceClone`:
+  Draft-Klon, unsichtbar, Durchsicht 80), `Path/Main/Stock.py`
+  (`SetupStockObject`: Drahtgitter, Durchsicht 90), `Gui/TaskView/TaskView.cpp`
+  und `TaskDialogPython.cpp` (`modifyStandardButtons`), `Path/Op/Gui/Base.py`
+  (hebt die Knopfleiste auf, nicht den Knopf).
+
+### DATEIEN
+- `camaddon/vierachs_rohteil.py` (neu), `camaddon/gui_vierachs.py` (neu),
+  `camaddon/gui_start.py`, `camaddon/hilfe.py`
+- `resources/icons/vierachs.svg` (neu), `help/de/vierachs.html` und
+  `help/en/vierachs.html` (neu)
+- `translations/de.json`, `translations/en.json` (42 neue Texte, „Über“)
+- `tests/test_vierachs_rohteil.py` (neu),
+  `tests/gui/szenario_vierachs_rohteil.py` (neu)
+- `docs/spezifikation_vierachs.md` (V1 gebaut), `docs/aufbau.md` (zwei
+  Module, sechs Stolpersteine), `README.md`, `CHATSTART.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle mit außermittigem Zapfen öffnen, ihre Stirnfläche anklicken →
+Werkzeugleiste „CAM-Addon“ → „4-Achs-Bearbeitung“ → Stange Ø 80, Rundachse C
+→ das Teil liegt mittig in einer durchsichtigen Stange Ø 80 längs Z, die
+Fläche 1 mm hinter der Stangenstirn, das Fenster sagt „Passt – rundum
+mindestens 4,0 mm Aufmaß“; Abbrechen hinterlässt nichts, „Anlegen“ nimmt ein
+Strg+Z zurück – und Manuel versteht das Fenster ohne Erklärung.
+
+### DONE
+- Befehl „4-Achs-Bearbeitung“ in der Werkzeugleiste „CAM-Addon“; Symbol:
+  Stange mit Teil, Drehpfeil um die Stangenachse, Fräser von oben.
+- Rechnung ohne Oberfläche (`vierachs_rohteil.py`):
+  - Einmal je Fläche wird vermessen: eben oder nicht, Außennormale, runde
+    Außenkante (auch aus Bögen), Punkte aus der Tessellierung, konvexe Hülle
+    und kleinster Kreis (Welzl als Schleife).
+  - Daraus kommt sofort die Lage für A, B oder C – mit der Mitte „runde
+    Fläche“, „ganzes Teil“ oder „auto“ und mit der Drehlage.
+  - Vorschlag für den Stangen-Ø: 5-mm- bzw. 1/8"-Schritte, mindestens 1 mm
+    am Radius. Dazu Länge und Lage der Stange.
+  - `richte_ein` legt Job, Lage des Klons und Zylinder-Rohteil an, ohne
+    eigene Transaktion.
+- Assistent (`gui_vierachs.py`):
+  - Die Fläche wählt man vor dem Befehl oder im offenen Fenster. Beobachter
+    und Filter der Auswahl lassen nur Flächen zu, nicht die Stange.
+  - Felder mit grauen, gültigen Vorschlägen. Was man einträgt, wird nach
+    „Anlegen“ gemerkt – außer dem Stangen-Ø.
+  - Mitte mit dem nötigen Ø daneben, Drehlage mit „+90°“, Rundachse A/B/C
+    mit einem Satz je Eintrag, eine grüne oder rote Zeile.
+  - OK heißt „Anlegen“ und geht erst, wenn eine Fläche gewählt ist.
+  - Animation: Das Teil fährt in die Stange und dreht sich einmal – auch
+    beim Wechsel der Rundachse.
+  - Solange das Fenster offen ist, ist die Stange durchscheinend und nicht
+    anklickbar, danach sieht sie aus wie in CAM. Das Original ist
+    ausgeblendet.
+  - Klickt man ein anderes Teil an, wird der bisherige Job verworfen.
+- Gefunden:
+  - Die Python-Hülle des OK-Knopfs aus `modifyStandardButtons` verfällt
+    mit der Hülle der Knopfleiste. Im Versuchs-Szenario war sie gleich nach
+    dem Öffnen „weg“, ohne dass Qt etwas löschte. Jetzt wird die Leiste
+    aufgehoben, wie in CAM.
+  - 1.1.3 gibt die Beschriftung eines abgebrochenen Jobs nicht wieder frei:
+    Der nächste heißt „… 4 Achsen001“.
+  - Die Hüllbox gekrümmter Flächen ist nur auf etwa 0,003 mm genau.
+- Bewusst offen:
+  - Achse von der Maschine (V2).
+  - Flächen, Werkzeuge und Bahnen (V3 ff.).
+  - „Vorschläge zurücksetzen“ in den Einstellungen – mit V9.
+  - Ein Beispielteil zum Ausprobieren – bei Bedarf eigener Patch.
+
+### TEST
+- `tests/test_vierachs_rohteil.py` (Claude, ohne Oberfläche, 1.1.3 und
+  Wochen-Build):
+  - kleinster Kreis: Quadrat, 2000 Zufallspunkte, Punkte auf einer Geraden;
+    dazu Sechskant und Quader;
+  - Welle mit Nocken: Ø 72 mittig auf der Welle, Ø 66 für das ganze Teil,
+    „auto“ bei Ø 80, Ø 70 und ohne Ø;
+  - Lage für A, B und C mit beiden Mitten: Normale nach vorne, Stirnfläche
+    bei a = 0, Teil bis −100, kein Punkt außerhalb des nötigen Ø;
+  - Drehlage, Vorschläge, Länge und Lage der Stange;
+  - Job: Zylinder Ø 80 × 134 von −133 bis 1, Klon an seiner Stelle,
+    Original unverändert; ein zweiter Aufruf passt das Rohteil an, zwei
+    Rückgängig entfernen alles.
+- `tests/gui/szenario_vierachs_rohteil.py` (Claude, unsichtbare Oberfläche,
+  beide Versionen):
+  - Vorschlag Ø 75; Ø 80 → 4,0 mm; ganzes Teil → 7,0 mm; A → Stange in X,
+    C → in Z; +90°;
+  - eine gewölbte Fläche wird mit einem Satz abgelehnt;
+  - Abbrechen hinterlässt nichts, und der zweite Durchlauf hat die
+    Rundachse nicht gemerkt;
+  - „Anlegen“ ist ein Schritt Rückgängig, Strg+Z räumt alles weg.
+  - Screenshots angesehen: Fenster, Stange längs Z und längs X, nach
+    „Anlegen“.
+- `scripts/alle_tests.sh` auf dem Arbeitszweig, vor dem Zusammenführen mit
+  -75 bis -77: black und ruff sauber; FreeCAD 1.1.3 grün (47 ok,
+  `test_export.py` übersprungen wie immer); Wochen-Build 26.3.0 dev
+  (2026-09-16) grün (48 ok). Der Lauf auf `main` steht in P-2026-09-26-80.
+- Das Fenster hat nur Claude als Screenshot gesehen. Ob es sich ohne
+  Erklärung versteht, prüft Manuel.
+
+### NEXT
+- W-003 V2: Achse von der Maschine (W-001).
+
 ## P-2026-09-26-78 spezifikation-vierachs
 
 ### EINGELESEN

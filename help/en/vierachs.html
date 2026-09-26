@@ -1,0 +1,79 @@
+<h2>4-axis machining</h2>
+<p>A part is milled out of a round bar while the bar turns – on a mill with a
+rotary axis (A or B) just as on a lathe with a C axis and driven tools. The
+wizard gets you there in steps. The first one is built: <b>placing the part
+in the bar</b>. Choosing faces, tools and the roughing and finishing paths
+come in the next stages.</p>
+
+<h3>How it works</h3>
+<ol>
+<li>Open the document with the part and, in the 3D view, click the <b>flat
+face</b> that should sit at the front of the bar – usually the end face.</li>
+<li>In the “CAM-Addon” toolbar, click <b>4-axis machining</b>. The part
+moves into a see-through bar and turns once about the axis.</li>
+<li>Enter the <b>bar diameter</b>, say 80. The line at the bottom says in
+green how much material is left all round at least – or in red which
+diameter the part would need.</li>
+<li><b>Create</b> – a CAM job with the part in the bar appears. One
+<b>Ctrl+Z</b> undoes everything, <b>Cancel</b> leaves nothing behind.</li>
+</ol>
+<p>Clicking another face while the window is open puts the part into the bar
+with that face at the front.</p>
+
+<h3>How the part sits in the bar</h3>
+<ul>
+<li><b>Front</b> is the free end of the bar, away from the chuck. The chosen
+face sits there, with the bar sticking out by the <b>face allowance</b>. The
+zero along the axis lies in this face, the part behind it – like Z0 on a
+lathe.</li>
+<li><b>Centre of the round face</b> – if the outer edge of the face is a
+circle, its centre sits on the bar axis (the centroid for a face with
+corners). That way a shaft stays round even when a cam sticks out.</li>
+<li><b>Whole part as central as possible</b> – the part is placed so that it
+fits the thinnest bar.</li>
+<li>Next to both you see the diameter the bar needs for it. The round face is
+preselected if the part fits the bar that way, otherwise the whole part.</li>
+<li><b>Rotation</b> turns the part in the bar about the axis and so sets where
+0° of the rotary axis is.</li>
+</ul>
+
+<h3>The bar</h3>
+<p>Behind the part come the <b>parting width</b> (room for parting off or
+sawing) and the <b>clamping length</b> (how far the bar sits in the chuck).
+Together they give the length of the bar, shown in grey next to the
+fields.</p>
+<p><b>Everything can be set, and empty fields use their grey suggestion.</b>
+What you enter becomes next time's suggestion. The bar diameter depends on
+the part. Its suggestion is the next 5 mm step (1/8" in inch) that leaves at
+least 1 mm all round.</p>
+
+<h3>The rotary axis</h3>
+<p>The axis the bar turns about decides how it lies in the job:</p>
+<ul>
+<li><b>A</b> – the bar lies along X, the tool comes from above (a mill with
+rotary axis A).</li>
+<li><b>B</b> – the bar lies along Y, the tool comes from above.</li>
+<li><b>C</b> – the bar lies along Z, the tool comes from X: like a lathe with
+a C axis.</li>
+</ul>
+<p>The bar axis runs through the job's origin. That way FreeCAD lays later
+paths correctly around the part by itself. Later the wizard reads the rotary
+axis from your machine (“Edit machine”). Until then you assign the letter to
+the bar yourself.</p>
+
+<h3>What happens in the document</h3>
+<ul>
+<li>A new <b>job</b> “Part – 4 axes”. The part lies in the bar as the job's
+model. The original stays where it was and is hidden.</li>
+<li>The job's <b>stock</b> is a cylinder with the bar's diameter and length.
+While the window is open it is see-through and cannot be clicked. Afterwards
+it looks like any stock in CAM.</li>
+</ul>
+
+<h3>What does not work (yet)</h3>
+<ul>
+<li>Choosing the faces to mill, the tools and the paths – that comes in the
+next stages.</li>
+<li>Turning, facing the end and parting off are done by the machine –
+FreeCAD does not turn.</li>
+</ul>

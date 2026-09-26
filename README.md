@@ -31,6 +31,11 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Operationen (etwa Adaptiv zum Auffräsen: einmal helikal eintauchen, dann
   ebenenweise mit der ganzen Schneide) – und zeigt vorher, wie viele Ebenen
   daraus werden –, und legt auf Wunsch die Werkzeug-Controller gleich an.
+- **4-Achs-Bearbeitung** (erster Schritt): Stirnfläche eines Teils anklicken
+  – das Teil sitzt vorne mittig in einer runden Stange (z. B. Ø 80), als
+  CAM-Job mit Zylinder-Rohteil, für die Rundachse A, B oder C. Das Fenster
+  sagt, ob das Teil hineinpasst; alles ist einstellbar, leere Felder gelten
+  mit ihrem Vorschlag. Flächen, Werkzeuge und Bahnen folgen.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).

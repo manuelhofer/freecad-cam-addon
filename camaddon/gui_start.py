@@ -21,6 +21,7 @@ from . import (
     gui_neue_maschine,
     gui_sprachwahl,
     gui_verfahren,
+    gui_vierachs,
     gui_werkzeuge,
     sprache,
     symbol,
@@ -41,6 +42,7 @@ WERKZEUGLEISTE = [
     "CamAddon_MaschineVerfahren",
     "CamAddon_Werkzeugverwaltung",
     "CamAddon_SchnittwerteJob",
+    "CamAddon_Vierachs",
     "CamAddon_Ueber",
     "CamAddon_UpdateSuchen",
 ]
@@ -56,6 +58,7 @@ def starten():
             "CamAddon_MaschineVerfahren": gui_verfahren.BefehlMaschineVerfahren(),
             "CamAddon_Werkzeugverwaltung": gui_werkzeuge.BefehlWerkzeugverwaltung(),
             "CamAddon_SchnittwerteJob": gui_job_schnittwerte.BefehlSchnittwerteJob(),
+            "CamAddon_Vierachs": gui_vierachs.BefehlVierachs(),
             "CamAddon_Ueber": BefehlUeber(),
             "CamAddon_UpdateSuchen": gui_aktualisierung.BefehlUpdateSuchen(),
         }
