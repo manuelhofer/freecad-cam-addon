@@ -757,5 +757,21 @@
     "va.anlegen.tooltip": "Legt Job und Stange an – ein Strg+Z nimmt beides zurück.",
     "va.job": "{teil} – 4 Achsen",
     "va.kein_dokument": "Öffne zuerst das Dokument mit dem Teil, das in die Stange soll.",
-    "va.fehler": "Der Job ließ sich nicht anlegen: {fehler}"
+    "va.fehler": "Der Job ließ sich nicht anlegen: {fehler}",
+    "rw.ueberschreitung": "{achse} fährt in „{operation}“ bis {stellung}, die Grenze ist {grenze} (bei {punkt}).",
+    "rw.bereich": "{achse} braucht {von} … {bis}, die Grenzen sind {minimum} … {maximum}.",
+    "rw.keine_grenze": "offen",
+    "rw.eigenschaft": "Nullpunkt des Jobs, von der Werkstückaufnahme aus (CAM-Addon, „Auf der Maschine prüfen“)",
+    "rw.werkzeug": "T{nummer} „{name}“",
+    "rw.keine_werkstueckaufnahme": "Die Maschine hat keine Werkstückaufnahme mit LCS – ohne sie weiß die Prüfung nicht, wo der Job liegt.",
+    "rw.keine_werkzeugaufnahme": "Die Maschine hat keine Werkzeugaufnahme mit LCS – ohne sie weiß die Prüfung nicht, wo das Werkzeug sitzt.",
+    "rw.laenge_gesamt": "{werkzeug}: gerechnet mit der Gesamtlänge {laenge} – ohne Halter.",
+    "rw.laenge_geschaetzt": "{werkzeug}: keine Gesamtlänge eingetragen – gerechnet mit geschätzten {laenge}, ohne Halter.",
+    "rw.laenge_cam": "{werkzeug}: gerechnet mit der Länge des CAM-Werkzeugs, {laenge} – ohne Halter.",
+    "rw.ohne_controller": "„{operation}“ hat keinen Werkzeug-Controller – übergangen.",
+    "rw.platz_fehlt": "„{operation}“: Für T{nummer} gibt es am Revolver {revolver} keinen Platz P{nummer} – übergangen.",
+    "rw.z_verkehrt": "Die Z-Achse der Werkzeugaufnahme „{aufnahme}“ zeigt zum Werkstück. Sie soll von der Werkzeugspitze zur Aufnahme zeigen – sonst liegt die Spitze auf der falschen Seite.",
+    "rw.zu_viele_achsen": "Zwischen Werkzeug und Werkstück liegen mehr Linearachsen, als sich eindeutig auflösen lassen ({achsen}) – das prüft das Addon noch nicht.",
+    "rw.befehl": "„{operation}“: Den Befehl {befehl} kennt die Prüfung nicht – übergangen.",
+    "rw.unerreichbar": "In „{operation}“ kommt das Werkzeug nicht überall hin, etwa bei {punkt}: {anzahl} von {gesamt} Punkten liegen außerhalb dessen, was die Linearachsen erreichen."
 }

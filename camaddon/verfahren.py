@@ -122,15 +122,27 @@ class Verfahren:
             self.weg[achse] = 0.0
         self._bewege()
 
-    def _bewegung(self, achse):
+    def weg_bei(self, achse, stellung):
+        """Der Weg seit dem Ausgang, in Achsrichtung, bei dem die Achse auf `stellung` steht."""
+        return (stellung - self.start[achse]) * self._vorzeichen[achse]
+
+    def stellung_bei(self, achse, weg):
+        """Die Stellung der Achse nach `weg` seit dem Ausgang – umgekehrt zu weg_bei()."""
+        return self.start[achse] + self._vorzeichen[achse] * weg
+
+    def bewegung(self, achse, weg):
+        """Die Bewegung der Achse um `weg` seit dem Ausgang, in Koordinaten der Assembly."""
         richtung, ursprung = self._lage[achse]
-        weg = self.weg[achse]
         if achse.art == LINEAR:
             return FreeCAD.Placement(richtung * weg, FreeCAD.Rotation())
         return FreeCAD.Placement(FreeCAD.Vector(), FreeCAD.Rotation(richtung, weg), ursprung)
 
+    def pfad(self, glied):
+        """Die Achsen vom Bett bis zu `glied`, beim Bett beginnend."""
+        return list(reversed(self.kette.pfad_zum_bett(glied)))
+
     def _bewege(self):
-        bewegung = {a: self._bewegung(a) for a in self.achsen}
+        bewegung = {a: self.bewegung(a, self.weg[a]) for a in self.achsen}
         for bauteil, lage in self.ausgang.items():
             gesamt = FreeCAD.Placement()
             for achse in self._pfad.get(bauteil, []):

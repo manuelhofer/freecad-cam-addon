@@ -139,7 +139,8 @@ Wunschliste, offene Bugs und Tasks.
    eigenes Feld „Länge ab Spindelnase“, 4a zuerst. – *Spezifikation:
    [spezifikation_simulation.md](spezifikation_simulation.md), Abschnitte
    5, 6 und 10 (P-2026-09-26-83), vier Schritte: Rechenkern, Fenster,
-   Länge ab Spindelnase, Version.*
+   Länge ab Spindelnase, Version. Schritt 1 fertig (P-2026-09-26-84:
+   `reichweite.py`, an allen Beispielmaschinen nachgemessen).*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher

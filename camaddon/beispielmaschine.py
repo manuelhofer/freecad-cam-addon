@@ -119,22 +119,28 @@ class Baukasten:
             teil.addObject(lcs)
         return teil, lcs
 
-    def lcs(self, teil, name, x, y, z, richtung=None):
+    def lcs(self, teil, name, x, y, z, richtung=None, x_richtung=None):
         """Ein LCS im Bauteil, Ursprung bei (x, y, z); seine Z-Achse zeigt in
         `richtung` – die Werkzeugrichtung (von der Spitze zur Aufnahme) bzw. die
-        Normale der Spannfläche. Ohne `richtung` zeigt sie nach oben."""
+        Normale der Spannfläche. Ohne `richtung` zeigt sie nach oben.
+        `x_richtung` legt die X-Achse fest – an einer Werkstückaufnahme die
+        X-Richtung des Jobs."""
         lcs = self.doc.addObject("App::LocalCoordinateSystem", name)
         teil.addObject(lcs)
-        lcs.Placement = self.lage_im_teil(teil, x, y, z, richtung)
+        lcs.Placement = self.lage_im_teil(teil, x, y, z, richtung, x_richtung)
         return lcs
 
-    def lage_im_teil(self, teil, x, y, z, richtung=None):
-        """Die Lage (x, y, z) mit Z-Achse in `richtung`, bezogen auf das Bauteil."""
-        return teil.Placement.inverse() * self._lage(x, y, z, richtung)
+    def lage_im_teil(self, teil, x, y, z, richtung=None, x_richtung=None):
+        """Die Lage (x, y, z) mit Z-Achse in `richtung` (und X in `x_richtung`), bezogen
+        auf das Bauteil."""
+        return teil.Placement.inverse() * self._lage(x, y, z, richtung, x_richtung)
 
-    def _lage(self, x, y, z, richtung=None):
+    def _lage(self, x, y, z, richtung=None, x_richtung=None):
         drehung = App.Rotation()
-        if richtung is not None:
+        if richtung is not None and x_richtung is not None:
+            z_achse, x_achse = App.Vector(*richtung), App.Vector(*x_richtung)
+            drehung = App.Rotation(x_achse, z_achse.cross(x_achse), z_achse, "ZXY")
+        elif richtung is not None:
             drehung = App.Rotation(App.Vector(0, 0, 1), App.Vector(*richtung))
         return self.rahmen * App.Placement(App.Vector(x, y, z), drehung)
 
@@ -673,7 +679,11 @@ def drehmaschine(masse=None):
             b.zylinder("Futter", 140, 90, x=480, z=350, achse=(1, 0, 0), farbe=SPINDEL),
         ],
     )
-    spannflaeche = b.lcs(spindel, "Spannflaeche", 570, 0, 350, richtung=(1, 0, 0))
+    # Das LCS am Futter ist das Koordinatensystem des Jobs: Z aus der
+    # Spannfläche heraus, X von der Spindelachse zum Werkzeug – wie X1.
+    spannflaeche = b.lcs(
+        spindel, "Spannflaeche", 570, 0, 350, richtung=(1, 0, 0), x_richtung=(0, 1, 0)
+    )
     z_schlitten = b.quader("ZSchlitten", 350, 680, 90, x=800, y=120, farbe=SCHLITTEN)
     x_schlitten = b.quader("XSchlitten", 310, 160, 510, x=820, y=480, z=90, farbe=SCHLITTEN)
     y_schlitten = b.quader("YSchlitten", 280, 150, 280, x=820, y=330, z=210, farbe=KOPF)

@@ -110,6 +110,7 @@ vier Schritten:
    Z-Achse einer Werkzeugaufnahme zeigt zum Werkstück, Befehl übergangen.
    Dazu: Beispiel-Drehmaschine mit X des LCS am Futter wie X der Maschine;
    Hilfe „Aufnahmen“ mit den Richtungen der LCS wie in Abschnitt 3.
+   *Gebaut (P-2026-09-26-84).*
 2. **Fenster „Auf der Maschine prüfen“** (Abschnitt 6) mit Befehl, Hilfe
    und Szenario.
 3. **Länge ab Spindelnase** als Feld der Werkzeugverwaltung (alle Arten,

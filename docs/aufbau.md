@@ -50,6 +50,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `maschine.py` | Maschinenobjekt: Objektarten, Anlegen, Revolverplätze, Prüfung, Tisch/Kopf |
 | `verfahren.py` | Maschine von Hand verfahren: Stellung wie am Gelenk, Grenzen, Bauteile hinter der Achse bewegen |
 | `schraege_achse.py` | Schräge Achse (Transformation der Steuerung): Winkel aus der Baugruppe messen, Programm ↔ Schlitten umrechnen, Vorschlag, Prüfung |
+| `reichweite.py` | Reicht der Verfahrweg? (W-001 Stufe 4a): Stellungen aller Achsen für die Bahn eines CAM-Jobs – Drehachsen aus der Bahn, Linearachsen als Gleichungssystem –, gebrauchter Bereich, Überschreitungen und Hinweise in Sätzen; Nullpunkt des Jobs |
 | `beispielmaschine.py` | Beispielmaschinen zum Ausprobieren: Baukasten für Assemblies und fünf Bauarten (Drehmaschine mit Y-Achse und Revolver, 3-Achs-, drei 5-Achs-Fräsen) – auch für die Maschinen der Prüfungen; die Drehmaschine mit eintragbaren Maßen (`DrehmaschinenMasse`) |
 | `export.py` | Übergabe an CAM mit Bericht |
 | `aktualisierung.py` | Update-Suche per Git, ohne Git per HTTPS (package.xml) und Update mit `installieren.py` |

@@ -12,6 +12,101 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-84 reichweite-rechenkern
+
+### EINGELESEN
+- Spezifikation Stufe 4a (P-2026-09-26-83), Schritt 1: Rechenkern ohne
+  Oberfläche, dazu Beispiel-Drehmaschine und Hilfe „Aufnahmen“.
+- `verfahren.py`: Die Lage eines Bauteils ist das Produkt der
+  Achsbewegungen vom Bett nach außen – dieselbe Rechnung trägt die Prüfung,
+  nur ohne Bauteile zu bewegen. `platzstellungen()` bringt einen
+  Revolverplatz in Arbeitsstellung. `job_schnittwerte.werkzeug_von()` findet
+  zum Werkzeug-Controller das Werkzeug der Werkzeugverwaltung.
+
+### DATEIEN
+- `camaddon/reichweite.py` (neu)
+- `camaddon/verfahren.py` (öffentlich: `bewegung`, `pfad`, `weg_bei`,
+  `stellung_bei`)
+- `camaddon/beispielmaschine.py` (LCS mit X-Richtung; Futter der
+  Drehmaschine)
+- `translations/de.json`, `translations/en.json` (16 Texte `rw.*`)
+- `help/de/aufnahmen.html`, `help/en/aufnahmen.html`
+- `tests/test_reichweite.py` (neu)
+- `docs/aufbau.md`, `docs/spezifikation_simulation.md`,
+  `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Für jeden Punkt einer Bahn liefert die Prüfung die Stellungen aller Achsen;
+fährt die Maschine dorthin, steht die Werkzeugspitze genau auf dem Punkt –
+an allen Beispielmaschinen. Eine Achse über ihrer Grenze kommt als Satz mit
+Operation, Stellung, Grenze und Punkt im Programm.
+
+### DONE
+- `Pruefung(assembly, maschine, werkstueckaufnahme)`:
+  - Drehachsen zuerst: Rundachsen mit Betriebsart „Positionieren“ über ihren
+    Namen im Programm (C1 → C), ohne Angabe 0; der Revolver mit dem Platz
+    der Werkzeugnummer in Arbeitsstellung; Spindeln bleiben.
+  - Dann die Linearachsen zwischen Werkzeug- und Werkstückaufnahme als
+    lineares Gleichungssystem (numpy): einmal je Stellung der Drehachsen
+    gelöst, gilt Stellungen = s0 + S · Punkt. Die schräge Achse braucht
+    nichts Eigenes – die Lösung rechnet mit den echten Richtungen der
+    Schlitten. Weniger als drei Achsen: Was übrig bleibt, heißt „nicht
+    erreichbar“; mehr als drei oder abhängige: „noch nicht prüfbar“.
+  - `stellungen(punkt, …)` für einen Punkt (auch fürs spätere „dorthin
+    fahren“); `pruefe_job(job, nullpunkt, bibliothek)` für alle aktiven
+    Operationen aus `job.Operations` (wie der Postprozessor, ohne die Lage
+    der Operation).
+- Die Bahn: G0/G1-Enden; Kreise G2/G3 in G17/G18/G19 mit I/J/K oder R, auch
+  Vollkreis und Schraube – dazu genau die Stellen, an denen eine Achse
+  umkehrt (aus S, nicht in Schritten); Bohrzyklen über dem Loch, auf R und
+  auf dem Grund, G98/G99; G90/G91; eine Rundachse im Satz in 1°-Schritten.
+  Befehle ohne Bewegung werden still übergangen, unbekannte mit Bewegung
+  gemeldet.
+- Ergebnis: je Operation und Achse die weiteste Überschreitung („X1 fährt in
+  „Eigene“ bis −400.00 mm, die Grenze ist −250.00 mm (bei X 400, Y 0,
+  Z 10).“) mit allen Stellungen dort; je Achse der gebrauchte Bereich;
+  Hinweise: Länge (Gesamtlänge, geschätzt oder die des CAM-Werkzeugs, je
+  „ohne Halter“), Platz fehlt, nicht erreichbar, Z der Werkzeugaufnahme zum
+  Werkstück, unbekannter Befehl. Rundachsen zählen, wenn sie
+  positionieren und nicht endlos sind.
+- Nullpunkt des Jobs: Vorschlag (Rohteil mittig, Unterseite auf der
+  Spannfläche), eingetragen als Eigenschaft `CamAddonNullpunkt` am Job
+  (JSON, einzelne Werte, ausgeblendet), `nullpunkt(job)` nimmt beides.
+- `verfahren.py`: Bewegung einer Achse um einen Weg, Pfad zu einem Glied,
+  Weg ↔ Stellung als öffentliche Methoden; `_bewege` nutzt sie.
+- Beispiel-Drehmaschine: Das LCS am Futter hat jetzt X von der Spindelachse
+  zum Werkzeug (vorher zeigte X nach unten, ein X im Programm wäre über Y1
+  gefahren). `Baukasten.lcs(…, x_richtung=…)`.
+- Hilfe „Aufnahmen“: Z der Werkzeugaufnahme von der Spitze zur Aufnahme; das
+  LCS der Werkstückaufnahme ist das Koordinatensystem des Jobs, X wie X im
+  Job (Drehmaschine: zum Werkzeug hin).
+
+### TEST
+- `tests/test_reichweite.py`, 1.1.3 und Wochen-Build grün:
+  - Nachgemessen: Maschine auf die gerechneten Stellungen gefahren, Abstand
+    Spitze – Punkt < 1e-6 mm an der 3-Achs-Fräse (mit und ohne Nullpunkt),
+    der Drehmaschine (P1 radial, P2 axial), der Drehmaschine mit Y schräg um
+    30°, den drei 5-Achs-Fräsen ohne und mit Rundachsen aus der Bahn.
+  - Drehmaschine: X im Job fährt nur X1; Revolver auf P2; C ohne Angabe
+    auf 0. Schräge Y-Achse: Y 0 → 10 fährt Y1 um 11,547 und X1 um 5,774 –
+    wie `schraege_achse.schlitten_aus_programm`.
+  - Job mit eigener Bahn: Überschreitung von X1 als Satz, Bereiche (Y bis
+    zum Scheitel des Kreises, Z bis zum Grund der Bohrung), 11 Punkte,
+    Hinweise; Vollkreis und G18-Halbkreis; Länge aus der Werkzeugverwaltung
+    (Z1 10 mm höher) und geschätzt; Z der Spindelnase umgedreht → Hinweis;
+    Platz P20 fehlt → Hinweis, keine Punkte; A 130 über 120 in 1°-Schritten
+    (261 Punkte); Drehmaschine ohne Y: erreichbarer Punkt mit den
+    erwarteten Stellungen, 5 mm quer daneben nicht erreichbar, Hinweis
+    „1 von 2 Punkten“; Nullpunkt: Vorschlag, eintragen, Speichern und
+    Laden, löschen.
+- Alle Prüfungen ohne Oberfläche in beiden Versionen grün (`test_export`
+  in 1.1.3 übersprungen wie immer); `test_hilfe` nach der Hilfeänderung.
+
+### NEXT
+- Schritt 2: Fenster „Auf der Maschine prüfen“ mit Befehl, Hilfe und
+  Szenario.
+
 ## P-2026-09-26-83 spezifikation-reichweite
 
 ### EINGELESEN

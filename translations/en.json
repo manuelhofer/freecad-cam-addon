@@ -757,5 +757,21 @@
     "va.anlegen.tooltip": "Creates the job and the bar – one Ctrl+Z undoes both.",
     "va.job": "{teil} – 4 axes",
     "va.kein_dokument": "First open the document with the part that goes into the bar.",
-    "va.fehler": "The job could not be created: {fehler}"
+    "va.fehler": "The job could not be created: {fehler}",
+    "rw.ueberschreitung": "{achse} travels to {stellung} in “{operation}”; the limit is {grenze} (at {punkt}).",
+    "rw.bereich": "{achse} needs {von} … {bis}; the limits are {minimum} … {maximum}.",
+    "rw.keine_grenze": "open",
+    "rw.eigenschaft": "Job origin as seen from the workpiece mount (CAM Addon, “Check on machine”)",
+    "rw.werkzeug": "T{nummer} “{name}”",
+    "rw.keine_werkstueckaufnahme": "The machine has no workpiece mount with an LCS – without one the check cannot tell where the job sits.",
+    "rw.keine_werkzeugaufnahme": "The machine has no tool mount with an LCS – without one the check cannot tell where the tool sits.",
+    "rw.laenge_gesamt": "{werkzeug}: calculated with the overall length {laenge} – without holder.",
+    "rw.laenge_geschaetzt": "{werkzeug}: no overall length entered – calculated with an estimated {laenge}, without holder.",
+    "rw.laenge_cam": "{werkzeug}: calculated with the length of the CAM tool, {laenge} – without holder.",
+    "rw.ohne_controller": "“{operation}” has no tool controller – skipped.",
+    "rw.platz_fehlt": "“{operation}”: turret {revolver} has no station P{nummer} for T{nummer} – skipped.",
+    "rw.z_verkehrt": "The Z axis of the tool mount “{aufnahme}” points towards the workpiece. It should point from the tool tip to the mount – otherwise the tip ends up on the wrong side.",
+    "rw.zu_viele_achsen": "There are more linear axes between tool and workpiece than can be resolved uniquely ({achsen}) – the add-on cannot check this yet.",
+    "rw.befehl": "“{operation}”: the check does not know the command {befehl} – skipped.",
+    "rw.unerreichbar": "In “{operation}” the tool cannot reach every point, e.g. at {punkt}: {anzahl} of {gesamt} points lie outside what the linear axes can reach."
 }
