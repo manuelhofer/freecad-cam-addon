@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-70 verfahren-schmaler
+
+### EINGELESEN
+- Beim Ansehen der Screenshots zu P-2026-09-26-69: „Maschine verfahren“ war
+  mit der Beispiel-Drehmaschine breiter als der Aufgabenbereich – in 1.1.3
+  abgeschnitten („Werkzeugantr“, „Grenzen: -100,00 … 300,0“), mit der
+  schrägen Achse ragte das Fenster rechts hinaus (Knopf (?) nicht zu sehen).
+  Gemessen: Mindestbreite 423 Pixel, Aufgabenbereich 374–397 Pixel.
+
+### DATEIEN
+- `camaddon/gui_verfahren.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine → „Maschine verfahren“ → das Fenster passt in den
+Aufgabenbereich: Namen, Grenzen und der Knopf (?) sind ganz zu sehen, die
+Regler sind breit genug zum Ziehen, die Platzauswahl des Revolvers steht
+unter seinem Zahlenfeld.
+
+### DONE
+- Die grauen Grenzen-Zeilen brechen um und reichen bis zum Rand (vorher eine
+  Zeile zwischen Regler und Feld – sie bestimmte die Mindestbreite).
+- Die Platzauswahl des Revolvers steht unter dem Zahlenfeld statt in einer
+  vierten Spalte: Die kostete jeder Zeile Platz, und die Regler schrumpften
+  bis auf den Griff. Mindestbreite jetzt 317 Pixel.
+
+### TEST
+- Claude mit Oberfläche (Screenshots angesehen), beide Versionen: gemessene
+  Mindestbreite 317 statt 423 Pixel, das Fenster passt, die Regler sind
+  etwa 80 (1.1.3) bzw. 190 Pixel (Wochen-Build) breit. `szenario_verfahren`,
+  `szenario_verfahren_schraeg`, `szenario_beispielmaschine`,
+  `szenario_mausrad` grün.
+
+### NEXT
+- Stufe 3b, Schritt 5: An CAM übergeben.
+
 ## P-2026-09-26-69 verfahren-wie-im-programm
 
 ### EINGELESEN

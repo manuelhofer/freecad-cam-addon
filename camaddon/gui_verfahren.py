@@ -357,13 +357,18 @@ class VerfahrPanel:
                 wahl.addItem(platz, platz_stellung)
             wahl.setToolTip(tr("vf.platz.tooltip"))
             wahl.activated.connect(lambda index, a=achse: self._platz_gewaehlt(a, index))
-            gitter.addWidget(wahl, zeile, 3)
+            # Unter dem Zahlenfeld statt in einer vierten Spalte – die kostete
+            # jeder Zeile Platz, und die Regler schrumpften auf den Griff.
+            gitter.addWidget(wahl, zeile + 1, 2)
             self.platzwahl[achse] = (wahl, plaetze)
             self._platz_zeigen(achse, stellung)
         grenzen = QtGui.QLabel(self._grenzen_text(achse, einheit, stellen))
+        # Umbrechend und bis zum Rand – als eine Zeile zwischen Regler und Feld
+        # machte sie das Fenster breiter als den Aufgabenbereich.
+        grenzen.setWordWrap(True)
         grenzen.setStyleSheet(f"color: {GRAU.name()};")
         grenzen.setToolTip(tr("vf.grenzen.tooltip"))
-        gitter.addWidget(grenzen, zeile + 1, 1, 1, 2)
+        gitter.addWidget(grenzen, zeile + 1, 1, 1, 1 if plaetze else -1)
         return zeile + 2
 
     def _bereich(self, achse, stellung):
