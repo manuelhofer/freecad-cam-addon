@@ -26,6 +26,7 @@ THEMEN = [
     "strategien",
     "schruppwerte",
     "verfahren",
+    "reichweite",
     "vierachs",
 ]
 

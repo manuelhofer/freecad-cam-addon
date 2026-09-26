@@ -112,7 +112,7 @@ vier Schritten:
    Hilfe „Aufnahmen“ mit den Richtungen der LCS wie in Abschnitt 3.
    *Gebaut (P-2026-09-26-84).*
 2. **Fenster „Auf der Maschine prüfen“** (Abschnitt 6) mit Befehl, Hilfe
-   und Szenario.
+   und Szenario. *Gebaut (P-2026-09-26-85).*
 3. **Länge ab Spindelnase** als Feld der Werkzeugverwaltung (alle Arten,
    leer gilt die Gesamtlänge); die Prüfung findet das Werkzeug zum
    Werkzeug-Controller wie „Schnittwerte in den Job“, sonst gilt die Länge
@@ -143,24 +143,27 @@ vier Schritten:
 ## 6. Oberfläche
 
 Befehl **„Auf der Maschine prüfen“** in der Werkzeugleiste „CAM-Addon“. Er
-braucht einen Job im aktiven Dokument; ist einer gewählt, gilt der. Er
-öffnet ein Aufgabenfenster:
+braucht einen Job im aktiven Dokument; ist einer gewählt, gilt der. Die
+**Maschine** nimmt er aus allen offenen Dokumenten; sind mehrere offen,
+fragt er vorher, welche (die im Dokument des Jobs zuerst). Das
+Aufgabenfenster öffnet sich im Dokument der Maschine, damit man sie fahren
+sieht – im Wochen-Build gehört ein Aufgabenfenster zu seinem Dokument und
+verschwindet beim Wechsel (ausprobiert, P-2026-09-26-85); deshalb gibt es im
+Fenster keine Auswahl der Maschine:
 
-- **Job** – die Jobs des Dokuments. **Maschine** – alle Baugruppen mit
-  Maschinenobjekt in allen offenen Dokumenten, vorgewählt die im Dokument
-  des Jobs, sonst die erste. **Werkstückaufnahme** – nur, wenn es mehrere
-  gibt.
+- **Job** – die Jobs des Dokuments. Darunter die Maschine.
+  **Werkstückaufnahme** – nur, wenn es mehrere gibt.
 - **Nullpunkt des Jobs, von der Werkstückaufnahme aus:** X, Y, Z. Leer gilt
   der Vorschlag, grau im Feld: das Rohteil mittig auf der Aufnahme, mit der
   Unterseite auf der Spannfläche. Eingetragene Werte speichert der Job.
 - **Ergebnis:** „Alle Achsen bleiben in ihren Grenzen.“ – oder je
   Überschreitung ein Satz: „X1 fährt in *Tasche* bis 312,00 mm, die Grenze
   ist 250,00 mm (bei X 450, Y 0, Z −5).“ Ein Klick fährt die Maschine
-  (Stufe 3) in diese Stellung, die Achse am Anschlag, und zeigt ihr
-  Dokument. Darunter je Achse, was die Bahn braucht und was die Grenzen
-  erlauben; Hinweise in Grau.
+  (Stufe 3) in diese Stellung, die Achse am Anschlag. Darunter je Achse,
+  was die Bahn braucht und was die Grenzen erlauben; Hinweise in Grau.
 - Gerechnet wird beim Öffnen und nach jeder Änderung. **Schließen** fährt
-  die Maschine zurück, wie sie beim Öffnen stand.
+  die Maschine zurück, wie sie beim Öffnen stand, merkt sich den Nullpunkt
+  am Job und kehrt zum Dokument des Jobs zurück.
 
 4b bis 4d kommen als weitere Bereiche in dasselbe Fenster.
 

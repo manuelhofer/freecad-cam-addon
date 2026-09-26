@@ -12,6 +12,83 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-85 reichweite-fenster
+
+### EINGELESEN
+- Spezifikation Stufe 4a, Schritt 2 und Abschnitt 6: Befehl und
+  Aufgabenfenster „Auf der Maschine prüfen“.
+- Ausprobiert (Szenario-Proben in beiden Versionen): Die 3D-Ansicht eines
+  anderen Dokuments holt `Gui.getMainWindow().setActiveWindow(ansicht)` nach
+  vorn. **Im Wochen-Build verschwindet dabei ein offenes Aufgabenfenster** –
+  es gehört zu dem Dokument, in dem es aufging; in 1.1.3 bleibt es. Öffnet
+  man es erst nach dem Wechsel, bleibt es in beiden. Gleich nach dem Anlegen
+  eines Jobs holt 1.1.3 das Dokument des im Baum gewählten Jobs etwa 100 ms
+  später zurück nach vorn – bei echter Bedienung (erst wählen, dann klicken)
+  nicht, in den Proben auch nicht mit 400 ms Pause oder beim zweiten Mal.
+
+### DATEIEN
+- `camaddon/gui_reichweite.py` (neu)
+- `camaddon/reichweite.py` (LCS der Aufnahmen beim Anlegen gemerkt)
+- `camaddon/gui_start.py` (Befehl, Werkzeugleiste), `camaddon/hilfe.py`
+- `resources/icons/reichweite.svg` (neu)
+- `help/de/reichweite.html`, `help/en/reichweite.html` (neu)
+- `translations/de.json`, `translations/en.json` (20 Texte)
+- `tests/gui/szenario_reichweite.py` (neu)
+- `docs/spezifikation_simulation.md` (Abschnitte 5 und 6),
+  `docs/STATUS_SNAPSHOT.md` (Punkt 13, „Manuel probiert aus“ 7),
+  `docs/aufbau.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Job wählen → „Auf der Maschine prüfen“ → das Fenster öffnet sich bei der
+Maschine: „Alle Achsen bleiben in ihren Grenzen.“ oder die Überschreitungen
+als Sätze; ein Klick fährt die Maschine dorthin, die Achse am Anschlag;
+Schließen fährt zurück und merkt sich den Nullpunkt am Job.
+
+### DONE
+- Befehl „Auf der Maschine prüfen“ in der Werkzeugleiste (nach „Schnittwerte
+  in den Job“), Symbol: eine Bahn zwischen zwei Grenzen, ein Haken. Ohne Job
+  im aktiven Dokument oder ohne offene Maschine sagt ein Satz, was fehlt. Der
+  gewählte Job gilt (auch über eine Operation). Sind mehrere Maschinen offen,
+  fragt der Befehl, welche – die im Dokument des Jobs zuerst. Dann holt er
+  das Dokument der Maschine nach vorn und öffnet dort das Fenster; im
+  Fenster gibt es deshalb keine Auswahl der Maschine (Spezifikation
+  angepasst).
+- Das Fenster: Job (Auswahl), Maschine, Werkstückaufnahme (nur bei
+  mehreren); Nullpunkt X/Y/Z – leer mit dem Vorschlag grau im Feld,
+  eingetragen am Job gemerkt (beim Schließen und beim Wechsel des Jobs, ein
+  Schritt Rückgängig im Dokument des Jobs). Ergebnis: grün „Alle Achsen
+  bleiben in ihren Grenzen.“, rot „Nicht alle Achsen bleiben in ihren
+  Grenzen:“ mit der Liste der Sätze, oder grau „Keine Bahn zum Prüfen …“;
+  darunter grau je Achse der gebrauchte Bereich und die Hinweise. Gerechnet
+  wird beim Öffnen und 300 ms nach jeder Eingabe.
+- Klick auf einen Satz: Die Maschine fährt auf die Stellungen dort (über
+  die Grenzen nicht hinaus – die Achse steht am Anschlag), alles in einem
+  Schritt, den Schließen verwirft. Schließen fährt zurück und kehrt zum
+  Dokument des Jobs zurück.
+- Die Liste ist nur so hoch wie ihre Sätze (sonst schob sie Bereiche und
+  Hinweise aus dem Aufgabenbereich – im ersten Screenshot gesehen).
+- `reichweite.Pruefung` merkt sich die LCS der Aufnahmen beim Anlegen: So
+  rechnet es richtig weiter, auch wenn das Fenster die Maschine bewegt hat.
+- Hilfeseite „Auf der Maschine prüfen“ (de/en): So geht es, was oben steht,
+  das Ergebnis, wie gerechnet wird.
+
+### TEST
+- `szenario_reichweite` in 1.1.3 und im Wochen-Build grün: Fenster im
+  Dokument der Maschine, grünes Urteil, Vorschlag −50/−30/1 grau in den
+  Feldern, Bereiche (7 Punkte), Hinweis zur Länge; X 300 → der Satz „X1
+  fährt in „Eigene“ bis −470,00 mm, die Grenze ist −250,00 mm (bei X 170,
+  Y 40, Z −5).“; Klick → X1 auf −250, der Tisch bewegt; Schließen → nichts
+  bewegt, das Teil vorn, am Job {"X": 300}; wieder öffnen → 300 im Feld,
+  leeren → grün, Schließen → Eintrag weg.
+- Screenshots angesehen (beide Versionen): Maschine vorn, Fenster rechts,
+  Tisch am Anschlag nach dem Klick; die Liste nach der Korrektur kompakt.
+- `test_reichweite`, `test_sprache`, `test_hilfe` in beiden Versionen grün.
+- Ob das Fenster ohne Erklärung verständlich ist, prüft Manuel.
+
+### NEXT
+- Schritt 3: „Länge ab Spindelnase“ in der Werkzeugverwaltung.
+
 ## P-2026-09-26-84 reichweite-rechenkern
 
 ### EINGELESEN

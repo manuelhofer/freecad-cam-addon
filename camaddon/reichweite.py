@@ -295,7 +295,8 @@ class Pruefung:
 
     `assembly` und `maschine`: die Maschine; `werkstueckaufnahme`: die
     Aufnahme, an der der Job liegt – ohne Angabe die erste. Die Maschine
-    bleibt, wie sie ist; gerechnet wird ab ihrer jetzigen Stellung.
+    bleibt, wie sie ist; gerechnet wird ab ihrer Stellung beim Anlegen – auch
+    wenn `verfahren` sie danach bewegt (etwa „dorthin fahren“ im Fenster).
     """
 
     def __init__(self, assembly, maschine, werkstueckaufnahme=None, kette=None):
@@ -304,6 +305,10 @@ class Pruefung:
         self.kette = self.verfahren.kette
         self._in_assembly = assembly.Placement.inverse()
         aufnahmen = [a for a in m.aufnahmen(maschine) if self._glied(a) is not None]
+        # Die LCS der Aufnahmen beim Anlegen, in Koordinaten der Assembly.
+        self._ausgang = {
+            a: self._in_assembly.multiply(m.globale_platzierung(a.Lcs)) for a in aufnahmen
+        }
         werkstueck = [a for a in aufnahmen if a.Art == m.AUFNAHME_WERKSTUECK]
         if werkstueckaufnahme not in werkstueck:
             werkstueckaufnahme = werkstueck[0] if werkstueck else None
@@ -326,8 +331,8 @@ class Pruefung:
         return self.kette.glied_von(aufnahme.Lcs) if aufnahme.Lcs is not None else None
 
     def _lage(self, aufnahme):
-        """Das LCS der Aufnahme beim Öffnen, in Koordinaten der Assembly."""
-        return self._in_assembly.multiply(m.globale_platzierung(aufnahme.Lcs))
+        """Das LCS der Aufnahme beim Anlegen, in Koordinaten der Assembly."""
+        return self._ausgang[aufnahme]
 
     def werkzeugaufnahme(self, nummer):
         """Die Aufnahme für das Werkzeug mit dieser Nummer: am Revolver der Platz mit der

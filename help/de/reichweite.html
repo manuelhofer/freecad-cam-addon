@@ -1,0 +1,60 @@
+<h2>Auf der Maschine prüfen</h2>
+<p>Reicht der Verfahrweg? Das Fenster rechnet für jeden Punkt der Bahnen eines
+CAM-Jobs, wo jede Achse der Maschine stehen muss, und hält das gegen ihre
+Grenzen – bevor das Programm an die Maschine geht.</p>
+<p><b>So geht es:</b> Das Dokument mit dem Job öffnen (am besten den Job
+wählen), die Maschine in einem zweiten Dokument offen haben – dann in der
+Werkzeugleiste <b>Auf der Maschine prüfen</b>. Sind mehrere Maschinen offen,
+fragt der Befehl, auf welcher. Das Fenster öffnet sich im Dokument der
+Maschine, damit man sie fahren sieht.</p>
+
+<h3>Oben: was geprüft wird</h3>
+<ul>
+<li><b>Job</b> – gibt es mehrere, hier wählen.</li>
+<li><b>Werkstückaufnahme</b> – nur, wenn die Maschine mehrere hat (etwa zwei
+Spindeln).</li>
+<li><b>Nullpunkt des Jobs</b> – wo der Nullpunkt des Jobs auf der Maschine
+liegt, gemessen vom LCS der Werkstückaufnahme, in dessen Achsen – wie G54 an
+der Steuerung. <b>Leer</b> gilt der Vorschlag, grau im Feld: das Rohteil
+mittig auf der Aufnahme, mit der Unterseite auf der Spannfläche. Was du
+einträgst, merkt sich der Job.</li>
+</ul>
+
+<h3>Das Ergebnis</h3>
+<ul>
+<li><b>Alle Achsen bleiben in ihren Grenzen.</b> – grün, alles passt.</li>
+<li>Sonst je Operation und Achse ein Satz, etwa „X1 fährt in „Tasche“ bis
+312,00 mm, die Grenze ist 250,00 mm (bei X 450, Y 0, Z −5).“ In Klammern der
+Punkt im Programm. <b>Ein Klick</b> auf den Satz fährt die Maschine an diese
+Stelle – die Achse steht dann an ihrer Grenze, so weit, wie sie wirklich
+kommt.</li>
+<li>Grau darunter je Achse, was die Bahn braucht und was die Grenzen
+erlauben – so sieht man auch, wie viel Luft bleibt.</li>
+<li>Grau die <b>Hinweise</b>: womit für die Werkzeuglänge gerechnet wurde,
+Punkte, die das Werkzeug gar nicht erreicht (etwa Y auf einer Drehmaschine
+ohne Y-Achse), ein fehlender Revolverplatz, Befehle, die die Prüfung nicht
+kennt.</li>
+</ul>
+<p><b>Schließen</b> fährt die Maschine zurück, wie sie beim Öffnen stand, und
+kehrt zum Dokument des Jobs zurück.</p>
+
+<h3>Wie gerechnet wird</h3>
+<ul>
+<li>Geprüft wird die <b>Bahn im Job</b> – die Operationen, so wie der
+Postprozessor sie liest –, nicht ein fertiges NC-Programm.</li>
+<li><b>Werkzeug:</b> Die Spitze liegt um die Werkzeuglänge vor der
+Werkzeugaufnahme, gegen deren Z-Achse. Die Länge kommt aus der
+Werkzeugverwaltung (Gesamtlänge), sonst vom CAM-Werkzeug – beides ohne
+Halter; der Hinweis sagt, welche.</li>
+<li><b>Revolver:</b> Das Werkzeug T3 sitzt auf Platz P3; der Revolver steht
+dafür in Arbeitsstellung.</li>
+<li><b>Rundachsen</b> stehen, wie die Bahn sagt (A, B, C über ihren Namen im
+Programm, etwa C1 → C), ohne Angabe auf 0. Endlose Achsen haben keine
+Grenze.</li>
+<li><b>Schräge Achse:</b> Die Bahn ist rechtwinklig; gerechnet wird mit den
+echten Richtungen der Schlitten – dieselben Zahlen wie beim Verfahren „wie
+im Programm“.</li>
+<li>Die Richtungen der LCS zählen: siehe <a href="aufnahmen.html">Werkzeug- und
+Werkstückaufnahmen</a>. Zeigt die Z-Achse einer Werkzeugaufnahme zum
+Werkstück, sagt das ein Hinweis.</li>
+</ul>
