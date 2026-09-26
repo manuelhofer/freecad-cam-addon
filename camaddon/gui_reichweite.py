@@ -8,6 +8,11 @@ die Achse am Anschlag. Darunter grau, was die Bahn je Achse braucht, und die
 Hinweise. Gerechnet wird in reichweite.py, beim Öffnen und nach jeder
 Änderung.
 
+Zwischen Ergebnis und grauen Zeilen der Bereich „Abfahren“ (Stufe 4b,
+gui_abfahren.py): Die Maschine fährt die Bahn ab, mit Werkzeug, Rohteil und
+Bahn in der 3D-Ansicht. Ein Klick auf eine Überschreitung stellt auch den
+Abspieler dorthin.
+
 Das Fenster öffnet sich im Dokument der Maschine, damit man sie fahren sieht:
 Im Wochen-Build gehört ein Aufgabenfenster zu dem Dokument, in dem es aufging,
 und verschwindet beim Wechsel (ausprobiert, P-2026-09-26-85). Deshalb wählt der
@@ -20,7 +25,8 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import einheiten, symbol
+from . import abfahren as ab
+from . import einheiten, gui_abfahren, symbol
 from . import job_schnittwerte as js
 from . import maschine as m
 from . import reichweite as rw
@@ -135,6 +141,9 @@ class PruefPanel:
         self.zurueck_zu = job.Document if job.Document is not assembly.Document else None
         self.pruefung = None  # reichweite.Pruefung für die gewählte Werkstückaufnahme
         self.ergebnis = None
+        self.abfahrt = None  # abfahren.Abfahrt zum Ergebnis
+        self.bild = None  # gui_abfahren.Bild: Werkzeug und Werkstück in der 3D-Ansicht
+        self._bild_fuer = None  # (Job, Prüfung), für die das Bild gebaut ist
         self._bewegt = False  # hat das Fenster die Maschine verfahren?
         self._job = None  # der Job, dessen Nullpunkt in den Feldern steht
         self.bibliothek = _bibliothek()
@@ -161,7 +170,9 @@ class PruefPanel:
     def _schliessen(self):
         PruefPanel.offen = None
         self._uhr.stop()
+        self.abspieler.anhalten()
         self._zurueckfahren()
+        self._bild_weg()
         self._nullpunkt_merken()
         FreeCADGui.Control.closeDialog()
         if self.zurueck_zu is not None and self.zurueck_zu.Name in FreeCAD.listDocuments():
@@ -233,6 +244,8 @@ class PruefPanel:
         self.liste.setToolTip(tr("rw.liste.tooltip"))
         self.liste.itemClicked.connect(lambda _eintrag: self.fahre_hin(self.liste.currentRow()))
         aufbau.addWidget(self.liste)
+        self.abspieler = gui_abfahren.Abspieler(self._fahre)
+        aufbau.addWidget(self.abspieler)
         self.bereiche = QtGui.QLabel()
         self.bereiche.setWordWrap(True)
         self.bereiche.setStyleSheet(f"color: {GRAU.name()};")
@@ -309,8 +322,35 @@ class PruefPanel:
         if self.pruefung is None or self.pruefung.werkstueckaufnahme is not aufnahme:
             self._zurueckfahren()
             self.pruefung = rw.Pruefung(self.assembly, self.maschine, aufnahme)
-        self.ergebnis = self.pruefung.pruefe_job(self.job(), self.nullpunkt(), self.bibliothek)
+        job, nullpunkt = self.job(), self.nullpunkt()
+        self.ergebnis = self.pruefung.pruefe_job(job, nullpunkt, self.bibliothek)
         self._zeige()
+        self._abfahrt_rechnen(job, nullpunkt)
+
+    def _abfahrt_rechnen(self, job, nullpunkt):
+        """Die Stationen fürs Abfahren und die Körper in der 3D-Ansicht. Steht die Maschine
+        schon auf der Bahn, fährt sie an dieselbe Zeit – passend zum neuen Nullpunkt."""
+        zeit = self.abspieler.zeit if self._bewegt else None
+        self.abfahrt = ab.abfahrt(self.pruefung, job, nullpunkt, self.bibliothek)
+        fuer = self._bild_fuer
+        if fuer is None or fuer[0] is not job or fuer[1] is not self.pruefung:
+            self._bild_weg()
+            ansicht = gui_abfahren.ansicht_von(self.assembly.Document)
+            if ansicht is not None and self.pruefung.werkstueckaufnahme is not None:
+                self.bild = gui_abfahren.Bild(
+                    ansicht, self.abfahrt, job, nullpunkt, self.bibliothek
+                )
+                self._bild_fuer = (job, self.pruefung)
+        elif self.bild is not None:
+            self.bild.nullpunkt = FreeCAD.Vector(nullpunkt)
+            self.bild.folge()
+        self.abspieler.zeige(self.abfahrt, zeit)
+
+    def _bild_weg(self):
+        if self.bild is not None:
+            self.bild.weg()
+        self.bild = None
+        self._bild_fuer = None
 
     def _zeige(self):
         e = self.ergebnis
@@ -340,26 +380,45 @@ class PruefPanel:
 
     def fahre_hin(self, nummer):
         """Fährt die Maschine an die Stelle der Überschreitung Nummer `nummer` – so weit
-        die Achsen kommen, die überschreitende steht an ihrer Grenze."""
+        die Achsen kommen, die überschreitende steht an ihrer Grenze. Der Abspieler steht
+        danach dort."""
         if self.ergebnis is None or not 0 <= nummer < len(self.ergebnis.ueberschreitungen):
             return
-        verfahren = self.pruefung.verfahren
+        ueberschreitung = self.ergebnis.ueberschreitungen[nummer]
+        station = self.abfahrt.station_von(ueberschreitung) if self.abfahrt else None
+        if station is not None:
+            self.abspieler.springe_zu_station(station)
+        else:
+            self.abspieler.anhalten()
+            self._fahre(ueberschreitung.stellungen, None)
+        zeige_dokument(self.assembly.Document)
+
+    def _fahre(self, stellungen, operation):
+        """Fährt die Achsen auf `stellungen` ({Achse: Stellung}) und zeigt das Werkzeug
+        der Operation `operation` (Index in der Abfahrt; None: wie bisher). Gibt die
+        Achsen zurück, die an einer Grenze halten."""
         if not self._bewegt:
             # Ein Schritt für alles Verfahren; Schließen verwirft ihn.
             self.assembly.Document.openTransaction(tr("rw.titel"))
             self._bewegt = True
-        for achse, stellung in self.ergebnis.ueberschreitungen[nummer].stellungen.items():
-            verfahren.setze(achse, stellung)
-        zeige_dokument(self.assembly.Document)
+        angehalten = self.pruefung.verfahren.setze_alle(stellungen)
+        if self.bild is not None:
+            if operation is not None:
+                self.bild.zeige_operation(operation)
+            self.bild.folge()
+        return angehalten
 
     def _zurueckfahren(self):
         """Die Maschine wieder so, wie sie beim Öffnen stand."""
         if not self._bewegt:
             return
         self._bewegt = False
+        self.abspieler.anhalten()
         self.pruefung.verfahren.grundstellung()
         self.assembly.Document.abortTransaction()
         self.assembly.Document.recompute()
+        if self.bild is not None:
+            self.bild.folge()
 
 
 def _zahl(wert, stellen):

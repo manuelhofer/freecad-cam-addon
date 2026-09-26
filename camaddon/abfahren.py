@@ -88,6 +88,14 @@ class Abfahrt:
         (None: noch keine)."""
         return self._wirksam[index]
 
+    def stellungen_an(self, index):
+        """{Achse: Stellung} an Station `index`, wie die Maschine dort steht."""
+        return {
+            achse: w
+            for achse, w in zip(self.achsen, self._wirksam[index], strict=True)
+            if w is not None
+        }
+
     def stellungen_bei(self, zeit):
         """{Achse: Stellung} zur Zeit `zeit`, zwischen zwei Stationen geradlinig."""
         if not self.stationen:
@@ -105,6 +113,24 @@ class Abfahrt:
                 for a, b in zip(von, nach, strict=True)
             ]
         return {achse: w for achse, w in zip(self.achsen, werte, strict=True) if w is not None}
+
+    def station_von(self, ueberschreitung):
+        """Die Station an der Stelle einer Überschreitung der Reichweite
+        (reichweite.Ueberschreitung) – oder None."""
+        punkt = ueberschreitung.punkt
+        ziel = (punkt["X"], punkt["Y"], punkt["Z"])
+        for nummer, op in enumerate(self.operationen):
+            if op.name != ueberschreitung.operation:
+                continue
+            naechste = self.operationen[nummer + 1 :]
+            ende = naechste[0].erste if naechste else len(self.stationen)
+            for index in range(op.erste, ende):
+                station = self.stationen[index]
+                if math.dist(station.punkt, ziel) < 1e-6 and all(
+                    abs(station.rund.get(b, 0.0) - punkt[b]) < 1e-6 for b in rw.RUNDACHSEN
+                ):
+                    return index
+        return None
 
     def _fertig(self):
         """Zeiten für die Suche und die wirksamen Stellungen je Station."""
@@ -161,19 +187,22 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         )
         ohne_vorschub = False
         for schritt in rw._bahn(op.Path.Commands, lambda _name: None, rueckzug=True):
-            for punkt, rund in _punkte(schritt):
+            for punkt, rund in _punkte(schritt, loesung(schritt.rund)[0]):
                 geloest, dreh = loesung(rund)
                 stellungen = _stellungen(geloest, dreh, punkt, linear, index)
                 wirksam = _wirksam(vorher, stellungen, len(index))
                 if vorher is not None:
+                    eilgang = _eilgangzeit(vorher[2], wirksam, tempo)
                     if schritt.eilgang:
-                        zeit += _eilgangzeit(vorher[2], wirksam, tempo)
+                        zeit += eilgang
                     else:
                         vorschub = schritt.vorschub * 60.0  # mm/min
                         if vorschub <= 0:
                             ohne_vorschub = True
                             vorschub = VORSCHUB_ERSATZ
-                        zeit += _vorschubzeit(vorher, punkt, rund, vorschub)
+                        # Schneller als im Eilgang fährt keine Achse – so kostet auch ein
+                        # Revolver, der zwischen zwei Operationen schwenkt, seine Zeit.
+                        zeit += max(_vorschubzeit(vorher, punkt, rund, vorschub), eilgang)
                 ergebnis.stationen.append(
                     Station(zeit, nummer, schritt.satz, punkt, rund, stellungen, schritt.eilgang)
                 )
@@ -191,16 +220,23 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     return ergebnis
 
 
-def _punkte(schritt):
-    """Die Punkte eines Schritts: ein Punkt – oder die Stationen auf einem Kreisbogen,
-    ohne sein Ende (das kommt als eigener Schritt)."""
+def _punkte(schritt, geloest):
+    """Die Punkte eines Schritts: ein Punkt – oder die Stationen auf einem Kreisbogen, ohne
+    sein Ende (das kommt als eigener Schritt): in Schritten von höchstens KREIS_SCHRITT und
+    dort, wo eine Achse umkehrt. An diesen Stellen misst die Reichweite, wie weit eine
+    Achse fährt; so ist jede Überschreitung auch eine Station."""
     if schritt.art == "punkt":
         yield schritt.ort, schritt.rund
         return
     bogen = schritt.ort
     anzahl = max(1, math.ceil(abs(math.degrees(bogen.winkel)) / KREIS_SCHRITT))
-    for k in range(1, anzahl):
-        yield bogen.bei(k / anzahl), schritt.rund
+    anteile = [k / anzahl for k in range(1, anzahl)]
+    if geloest is not None:
+        for t in bogen.anteile(geloest.s):
+            if all(abs(t - schon) > 1e-9 for schon in anteile):
+                anteile.append(t)
+    for t in sorted(anteile):
+        yield bogen.bei(t), schritt.rund
 
 
 def _stellungen(geloest, dreh, punkt, linear, index):

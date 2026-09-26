@@ -777,7 +777,7 @@
     "befehl.reichweite.titel": "Check on machine",
     "befehl.reichweite.tooltip": "Checks whether a machine's axes reach far enough for the paths of a CAM job – each axis against its limits.",
     "rw.titel": "Check on machine",
-    "rw.erklaerung": "For every point of the paths the position of every axis, held against its limits. Click an overrun and the machine moves there; Close moves it back.",
+    "rw.erklaerung": "For every point of the paths the position of every axis, held against its limits. Click an overrun and the machine moves there; under “Run through” it runs the whole path; Close moves it back.",
     "rw.job": "Job",
     "rw.maschine": "Machine",
     "rw.maschine.eintrag": "{maschine} ({dokument})",
@@ -797,5 +797,18 @@
     "wv.laenge_spindelnase": "Gauge length",
     "wv.laenge_spindelnase.tooltip": "From the spindle nose (in a turret: from the tool mount) to the tip, with holder – as the presetter measures it. “Check on machine” uses it to see whether Z reaches. Empty: the overall length, without holder.",
     "wv.laenge_spindelnase.platzhalter": "empty: overall length {wert}",
-    "ab.ohne_vorschub": "“{operation}” has no feed rate – moved at {vorschub}. The tool controller sets the feed (or “Cutting data into the job”)."
+    "ab.ohne_vorschub": "“{operation}” has no feed rate – moved at {vorschub}. The tool controller sets the feed (or “Cutting data into the job”).",
+    "ab.titel": "Run through",
+    "ab.operation.tooltip": "Jumps to the start of the chosen operation.",
+    "ab.anfang.tooltip": "To the start of the job",
+    "ab.zurueck.tooltip": "One point of the path back",
+    "ab.vor.tooltip": "One point of the path on",
+    "ab.abspielen": "Play",
+    "ab.anhalten": "Pause",
+    "ab.tempo.tooltip": "How fast: ×1 is as fast as on the machine – without acceleration, so a little too fast.",
+    "ab.schieber.tooltip": "The time within the job – drag it and the machine follows.",
+    "ab.stelle": "“{operation}” · block {satz} of {saetze} · {zeit} of {dauer}",
+    "ab.keine_bahn": "Nothing to run through: no operation with a path whose tool fits this machine.",
+    "ab.anschlag": "at its limit",
+    "ab.nicht_erreichbar": "The axes cannot reach this point – the machine stays where it is."
 }

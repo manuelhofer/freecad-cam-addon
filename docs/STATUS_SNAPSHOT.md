@@ -4,7 +4,7 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Jetzt Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“); Halter und Mindestabstand vor 4c.
+- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“): Rechenkern und Abspieler fertig und automatisch geprüft (P-2026-09-26-89, -90), als Nächstes die Version; Halter und Mindestabstand vor 4c.
 - **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
 - **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ fertig und automatisch geprüft (P-2026-09-26-79), wartet auf Manuels Test; als Nächstes V2 (Punkt 12 unten).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
@@ -145,7 +145,9 @@ Wunschliste, offene Bugs und Tasks.
    (-86: „Länge ab Spindelnase“ in der Werkzeugverwaltung), Version 0.22.0
    (-87). Stufe 4a damit komplett. **4b „Abfahren“** – die Maschine fährt
    die Bahn sichtbar ab, mit Werkzeug, Rohteil und Bahn – spezifiziert
-   (P-2026-09-26-88, Entscheidungen von Claude zur Besprechung), in Arbeit.*
+   (P-2026-09-26-88, Entscheidungen von Claude zur Besprechung); Schritt 1
+   fertig (-89: `abfahren.py`, Zeiten gegen Handrechnung), Schritt 2 fertig
+   (-90: Abspieler im Fenster, Körper in der 3D-Ansicht der Maschine).*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -220,14 +222,24 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    vorn. In der Werkzeugverwaltung beim Werkzeug „Länge ab Spindelnase“
    eintragen (mit Halter) → der Hinweis zur Länge verschwindet, Z rechnet
    damit. Versteht man das Fenster ohne Erklärung, passt der Vorschlag für
-   den Nullpunkt?
+   den Nullpunkt? **Abfahren** (P-2026-09-26-89, -90): im selben Fenster
+   unter „Abfahren“ → in der Maschine liegen Rohteil (durchscheinend) und
+   Teil auf dem Tisch, darauf die Bahn (Vorschub blau, Eilgang rot), das
+   Werkzeug steckt in der Spindel (heranzoomen – die Maschine ist groß);
+   **Abspielen** → die Maschine fährt, die Werkzeugspitze läuft die blaue
+   Linie entlang, Satz, Zeit und Achswerte laufen mit; Tempo ×20; den
+   Schieber ziehen; „einen Punkt zurück/weiter“; oben eine Operation wählen
+   → Sprung an ihren Anfang. Mit X 300 auf die Überschreitung klicken → der
+   Abspieler steht dort, X1 rot „am Anschlag“. Schließen → Werkzeug, Rohteil
+   und Bahn sind weg, die Maschine steht wie vorher. Passen Zeit und Tempo,
+   sieht man genug?
 8. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
    Nr. 13–23 sind von dieser Nacht); zu Stufe 4 sind noch Halter und
    Mindestabstand offen, vor 4c ([Spezifikation](spezifikation_simulation.md),
    Abschnitt 9).
 
-Danach: W-001 Stufe 4b (Abfahren) – in Arbeit; Manuel testet 4a später (Punkt 7 oben).
+Danach: W-001 Stufe 4b – Version 0.23.0; dann 4c (Kollision), sobald Halter und Mindestabstand entschieden sind (Punkt 8). Manuel testet 4a und 4b später (Punkt 7 oben).
 
 ## Wunschliste
 

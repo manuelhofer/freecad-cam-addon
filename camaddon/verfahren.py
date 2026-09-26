@@ -116,6 +116,19 @@ class Verfahren:
         self._bewege()
         return stellung
 
+    def setze_alle(self, stellungen):
+        """Fährt mehrere Achsen auf einmal ({Achse: Stellung}), jede höchstens bis zu ihren
+        Grenzen; die Bauteile bewegen sich einmal. Gibt die Achsen zurück, die an einer
+        Grenze halten."""
+        angehalten = []
+        for achse, stellung in stellungen.items():
+            ziel = self.begrenzt(achse, stellung)
+            if abs(ziel - stellung) > 1e-9:
+                angehalten.append(achse)
+            self.weg[achse] = (ziel - self.start[achse]) * self._vorzeichen[achse]
+        self._bewege()
+        return angehalten
+
     def grundstellung(self):
         """Alle Achsen zurück in die Stellung beim Öffnen."""
         for achse in self.achsen:

@@ -12,6 +12,85 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-90 abfahren-abspieler
+
+### EINGELESEN
+- Spezifikation 4b (P-2026-09-26-88), Schritt 2: Anzeige und Abspieler im
+  Fenster „Auf der Maschine prüfen“, Hilfe, Szenario mit Screenshots.
+- `gui_reichweite.py` (Fenster, `fahre_hin`, Rückgängig-Schritt beim
+  Verfahren), `abfahren.py` (P-2026-09-26-89), `verfahren.py`.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py` (neu)
+- `camaddon/gui_reichweite.py` (Bereich „Abfahren“, Bild in der 3D-Ansicht,
+  Klick auf eine Überschreitung stellt den Abspieler dorthin)
+- `camaddon/abfahren.py` (Umkehrstellen auf Kreisen, `station_von`,
+  `stellungen_an`, Vorschubsatz nie schneller als der Eilgang)
+- `camaddon/reichweite.py` (`_Bogen.anteile`)
+- `camaddon/verfahren.py` (`setze_alle`)
+- `translations/de.json`, `translations/en.json` (13 Texte, Erklärung oben)
+- `help/de/reichweite.html`, `help/en/reichweite.html` (Abschnitt „Abfahren“,
+  Werkzeuglänge mit Länge ab Spindelnase)
+- `tests/test_abfahren.py`, `tests/gui/szenario_abfahren.py` (neu)
+- `docs/spezifikation_simulation.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/aufbau.md`, `CHATSTART.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Fenster „Auf der Maschine prüfen“ fährt die Maschine die Bahn des Jobs
+ab: In ihrer 3D-Ansicht liegen Rohteil, Teil und Bahn, das Werkzeug steckt in
+seiner Aufnahme, alles fährt mit; Abspielen, Anhalten, Punkt vor und zurück,
+Tempo, Operation und Schieber tun, was sie sagen; eine Achse über der Grenze
+steht rot „am Anschlag“; Schließen räumt alles weg und fährt zurück.
+
+### DONE
+- `gui_abfahren.Bild`: Werkzeug (Schneide gelb, Schaft grau bis zur
+  Gesamtlänge, Halter durchscheinend, wenn die Länge ab Spindelnase länger
+  ist – Maße aus der Werkzeugverwaltung, sonst vom CAM-Werkzeug), Rohteil
+  durchscheinend, Modell fest, Bahn als Linien (Vorschub blau, Eilgang rot)
+  – Coin-Knoten in der 3D-Ansicht der Maschine, nichts im Dokument. `folge()`
+  setzt sie nach jeder Bewegung auf die LCS der Aufnahmen (das Werkstück mit
+  dem Nullpunkt des Jobs); je Operation ihr Werkzeug an ihrer Aufnahme.
+- `gui_abfahren.Abspieler`: Operation, Anfang, Punkt zurück,
+  Abspielen/Anhalten, Punkt weiter, Tempo ×1/×5/×20/×100, Schieber über die
+  Zeit; darunter „„Kontur“ · Satz 6 von 11 · 0:03,1 von 0:22,4“ und die
+  Stellung jeder Achse (Linearachsen zuerst, nach Namen), rot „am Anschlag“.
+  Der Satz ist der, der gerade läuft; vor und zurück gehen von Station zu
+  Station, auch wenn zwei dieselbe Zeit haben (vorher blieb „zurück“ daran
+  hängen – im Szenario gesehen).
+- Im Fenster steht „Abfahren“ gleich unter dem Ergebnis, vor den grauen
+  Zeilen – ohne Scrollen sichtbar. Ein neuer Nullpunkt rechnet neu und
+  fährt die Maschine an dieselbe Zeit; ein Abspielen läuft weiter. Ein Klick
+  auf eine Überschreitung stellt den Abspieler auf ihre Station.
+- `abfahren.py`: Auf Kreisen auch die Umkehrstellen der Achsen (dort misst
+  die Reichweite) – jede Überschreitung ist eine Station (`station_von`).
+  Ein Vorschubsatz dauert mindestens so lange wie der Eilgang der Achsen:
+  Schwenkt der Revolver in einem Satz ohne Weg, kostet das seine Zeit.
+- `Verfahren.setze_alle`: alle Achsen auf einmal, die Bauteile bewegen sich
+  einmal; zurück kommen die Achsen, die an einer Grenze halten.
+- Hilfe „Auf der Maschine prüfen“: Abschnitt „Abfahren“ (Bedienung, Farben,
+  wie die Zeit gerechnet wird); die Werkzeuglänge nennt jetzt die Länge ab
+  Spindelnase.
+
+### TEST
+- `szenario_abfahren` in 1.1.3 und im Wochen-Build grün, Screenshots
+  angesehen: Rohteil und Teil auf dem Tisch, Bahn darauf, Werkzeug in der
+  Spindel; mitten auf der zweiten Geraden sitzt die Spitze auf dem Punkt der
+  Bahn (auf 1e-6 mm), das Werkzeug im Bild an der Spindel; Abspielen ×100
+  läuft bis zum Ende und hält an; Punkt zurück; zweite Operation „Satz 3
+  von 7“; X 300 → Klick → X1 −250 rot „am Anschlag“; Schließen beim
+  Abspielen → Körper weg, Maschine zurück.
+- `szenario_reichweite` in beiden Versionen grün.
+- `test_abfahren` (neu: Vollkreis mit vier Umkehrstellen, Station der
+  Überschreitung, `stellungen_an`, `setze_alle`, Revolver im Vorschubsatz –
+  ohne die Änderung 0 s, geprüft), `test_reichweite`, `test_verfahren`,
+  `test_hilfe`, `test_sprache` grün; black, ruff sauber.
+
+### NEXT
+- Schritt 3: Version 0.23.0, voller Lauf in beiden Versionen, Push.
+- Ob Anzeige und Bedienung verständlich sind, sieht nur Manuel (Snapshot,
+  „Manuel probiert aus“ Punkt 7).
+
 ## P-2026-09-26-89 abfahren-rechenkern
 
 ### EINGELESEN

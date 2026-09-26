@@ -754,7 +754,11 @@ class _Bogen:
 
     def punkte(self, zeilen):
         """Die Stellen im Bogen, an denen eine der Achsen (Zeilen von S) umkehrt – Start
-        und Ende prüft die Bahn ohnehin.
+        und Ende prüft die Bahn ohnehin."""
+        return [self.bei(t) for t in self.anteile(zeilen)]
+
+    def anteile(self, zeilen):
+        """Wo im Bogen (Anteil 0 … 1, aufsteigend) eine der Achsen umkehrt.
 
         Entlang des Kreises ist eine Achse a + b·cos φ + c·sin φ (+ Schraube);
         ihr Größtes liegt bei φ = atan2(c, b), ihr Kleinstes gegenüber.
@@ -769,7 +773,7 @@ class _Bogen:
                 t = _anteil(phi, self.winkel0, self.winkel)
                 if t is not None:
                     anteile.add(t)
-        return [self.bei(t) for t in sorted(anteile)]
+        return sorted(anteile)
 
 
 @dataclass

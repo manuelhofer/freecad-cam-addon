@@ -34,13 +34,43 @@ station, commands the check does not know.</li>
 <p><b>Close</b> moves the machine back to where it stood when the panel opened
 and returns to the job's document.</p>
 
+<h3>Run through</h3>
+<p>The machine runs through the path as in the program: in the machine's 3D
+view the <b>stock</b> (translucent) and the <b>part</b> lie where the job's
+origin puts them, with the <b>path</b> on them – feed blue, rapid red. The
+<b>tool</b> sits in its mount: the cutting part yellow, the shank grey up to
+the overall length, behind it the holder, translucent, if the gauge length is
+longer. Tool and workpiece move with the machine. None of this goes into the
+document; Close removes it again.</p>
+<ul>
+<li><b>Operation</b> – jumps to its start; while playing it shows where the
+path is.</li>
+<li>The buttons: <b>to the start</b>, <b>one point back</b>,
+<b>Play/Pause</b>, <b>one point on</b>. On the right the <b>speed</b>: ×1 is
+as fast as on the machine, ×100 a hundred times as fast.</li>
+<li>The <b>slider</b> is the time within the job – drag it and the machine
+follows.</li>
+<li>Below: the operation, the block running now (counted as in the
+operation's path, including the comments FreeCAD writes into it), the time so
+far and the whole time, then the position of every axis. If an axis cannot go
+further, it stops at its limit and shows in red <b>at its limit</b>.</li>
+<li>Clicking an overrun also sets the player there – you can play on from
+that point.</li>
+</ul>
+<p><b>The time:</b> feed moves with the feed rate from the path, without one
+at 1000 mm/min (a note says so); rapid moves per axis with the machine's rapid
+rate – the slowest axis decides. Acceleration and tool changes do not count
+yet, so the real machine takes a little longer. Arcs are run in small steps,
+drilling cycles with their retract.</p>
+
 <h3>How it calculates</h3>
 <ul>
 <li>It checks the <b>paths in the job</b> – the operations as the post processor
 reads them –, not a finished NC program.</li>
 <li><b>Tool:</b> the tip lies one tool length in front of the tool mount,
-against its Z axis. The length comes from the tool manager (overall length),
-otherwise from the CAM tool – both without holder; a note says which.</li>
+against its Z axis. The length comes from the tool manager – the gauge length,
+otherwise the overall length (without holder) –, otherwise from the CAM tool;
+a note says which.</li>
 <li><b>Turret:</b> tool T3 sits in station P3; the turret is indexed to its
 working position for it.</li>
 <li><b>Rotary axes</b> stand where the path says (A, B, C by their name in the

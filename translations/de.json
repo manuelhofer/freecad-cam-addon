@@ -777,7 +777,7 @@
     "befehl.reichweite.titel": "Auf der Maschine prüfen",
     "befehl.reichweite.tooltip": "Prüft, ob die Achsen einer Maschine für die Bahnen eines CAM-Jobs reichen – jede Achse gegen ihre Grenzen.",
     "rw.titel": "Auf der Maschine prüfen",
-    "rw.erklaerung": "Für jeden Punkt der Bahnen die Stellung jeder Achse, gehalten gegen ihre Grenzen. Ein Klick auf eine Überschreitung fährt die Maschine dorthin; Schließen fährt sie zurück.",
+    "rw.erklaerung": "Für jeden Punkt der Bahnen die Stellung jeder Achse, gehalten gegen ihre Grenzen. Ein Klick auf eine Überschreitung fährt die Maschine dorthin, unter „Abfahren“ fährt sie die ganze Bahn ab; Schließen fährt sie zurück.",
     "rw.job": "Job",
     "rw.maschine": "Maschine",
     "rw.maschine.eintrag": "{maschine} ({dokument})",
@@ -797,5 +797,18 @@
     "wv.laenge_spindelnase": "Länge ab Spindelnase",
     "wv.laenge_spindelnase.tooltip": "Von der Spindelnase (im Revolver: von der Werkzeugaufnahme) bis zur Spitze, mit Halter – so, wie das Voreinstellgerät sie misst. Damit rechnet „Auf der Maschine prüfen“, ob Z reicht. Leer gilt die Gesamtlänge, ohne Halter.",
     "wv.laenge_spindelnase.platzhalter": "leer: Gesamtlänge {wert}",
-    "ab.ohne_vorschub": "„{operation}“ hat keinen Vorschub – abgefahren mit {vorschub}. Den Vorschub setzt der Werkzeug-Controller (oder „Schnittwerte in den Job“)."
+    "ab.ohne_vorschub": "„{operation}“ hat keinen Vorschub – abgefahren mit {vorschub}. Den Vorschub setzt der Werkzeug-Controller (oder „Schnittwerte in den Job“).",
+    "ab.titel": "Abfahren",
+    "ab.operation.tooltip": "Springt an den Anfang der gewählten Operation.",
+    "ab.anfang.tooltip": "An den Anfang des Jobs",
+    "ab.zurueck.tooltip": "Einen Punkt der Bahn zurück",
+    "ab.vor.tooltip": "Einen Punkt der Bahn weiter",
+    "ab.abspielen": "Abspielen",
+    "ab.anhalten": "Anhalten",
+    "ab.tempo.tooltip": "Wie schnell: ×1 so schnell wie auf der Maschine – ohne Beschleunigung, also etwas zu schnell.",
+    "ab.schieber.tooltip": "Die Zeit im Job – ziehen, und die Maschine fährt mit.",
+    "ab.stelle": "„{operation}“ · Satz {satz} von {saetze} · {zeit} von {dauer}",
+    "ab.keine_bahn": "Nichts abzufahren: keine Operation mit Bahn, deren Werkzeug auf diese Maschine passt.",
+    "ab.anschlag": "am Anschlag",
+    "ab.nicht_erreichbar": "Diesen Punkt erreichen die Achsen nicht – die Maschine bleibt stehen."
 }

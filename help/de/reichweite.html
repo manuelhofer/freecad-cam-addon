@@ -38,14 +38,46 @@ kennt.</li>
 <p><b>Schließen</b> fährt die Maschine zurück, wie sie beim Öffnen stand, und
 kehrt zum Dokument des Jobs zurück.</p>
 
+<h3>Abfahren</h3>
+<p>Die Maschine fährt die Bahn ab, wie im Programm: In der 3D-Ansicht der
+Maschine liegen <b>Rohteil</b> (durchscheinend) und <b>Teil</b> dort, wo der
+Nullpunkt des Jobs sie hinlegt, darauf die <b>Bahn</b> – Vorschub blau,
+Eilgang rot. Das <b>Werkzeug</b> steckt in seiner Aufnahme: gelb die Schneide,
+grau der Schaft bis zur Gesamtlänge, dahinter durchscheinend der Halter,
+wenn die Länge ab Spindelnase länger ist. Werkzeug und Werkstück fahren mit
+der Maschine mit. Nichts davon kommt ins Dokument; Schließen nimmt es wieder
+weg.</p>
+<ul>
+<li><b>Operation</b> – springt an ihren Anfang; beim Abspielen zeigt sie, wo
+die Bahn gerade ist.</li>
+<li>Die Knöpfe: <b>an den Anfang</b>, <b>einen Punkt zurück</b>,
+<b>Abspielen/Anhalten</b>, <b>einen Punkt weiter</b>. Rechts das
+<b>Tempo</b>: ×1 ist so schnell wie auf der Maschine, ×100 hundertmal so
+schnell.</li>
+<li>Der <b>Schieber</b> ist die Zeit im Job – ziehen, und die Maschine fährt
+mit.</li>
+<li>Darunter die Operation, der Satz, der gerade läuft (gezählt wie in der
+Bahn der Operation, mit den Kommentaren, die FreeCAD hineinschreibt), die Zeit
+seit Beginn und die ganze Zeit, dann die Stellung jeder Achse. Kommt eine
+Achse nicht weiter, bleibt sie an ihrer Grenze stehen und steht rot <b>am
+Anschlag</b>.</li>
+<li>Ein Klick auf eine Überschreitung stellt auch den Abspieler dorthin –
+von da aus lässt sich weiter abspielen.</li>
+</ul>
+<p><b>Die Zeit:</b> Vorschubsätze mit dem Vorschub aus der Bahn, ohne
+Vorschub mit 1000 mm/min (ein Hinweis sagt es); Eilgang je Achse mit dem
+Eilgang aus der Maschine – die langsamste Achse bestimmt. Beschleunigung und
+Werkzeugwechsel zählen noch nicht; die echte Maschine braucht also etwas
+länger. Kreise fährt sie in kleinen Schritten, Bohrzyklen mit dem Rückzug.</p>
+
 <h3>Wie gerechnet wird</h3>
 <ul>
 <li>Geprüft wird die <b>Bahn im Job</b> – die Operationen, so wie der
 Postprozessor sie liest –, nicht ein fertiges NC-Programm.</li>
 <li><b>Werkzeug:</b> Die Spitze liegt um die Werkzeuglänge vor der
 Werkzeugaufnahme, gegen deren Z-Achse. Die Länge kommt aus der
-Werkzeugverwaltung (Gesamtlänge), sonst vom CAM-Werkzeug – beides ohne
-Halter; der Hinweis sagt, welche.</li>
+Werkzeugverwaltung – die Länge ab Spindelnase, sonst die Gesamtlänge (ohne
+Halter) –, sonst vom CAM-Werkzeug; der Hinweis sagt, welche.</li>
 <li><b>Revolver:</b> Das Werkzeug T3 sitzt auf Platz P3; der Revolver steht
 dafür in Arbeitsstellung.</li>
 <li><b>Rundachsen</b> stehen, wie die Bahn sagt (A, B, C über ihren Namen im

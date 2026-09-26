@@ -4,8 +4,10 @@
 # der Rückzug. Die Zeiten gegen Handrechnung an der Beispiel-Fräse; zwischen zwei
 # Stationen fährt die Maschine geradlinig (stellungen_bei); eine Rundachse im
 # Vorschub zählt in Grad; ohne F gilt 1000 mm/min mit Hinweis; der Revolver
-# schwenkt zwischen zwei Werkzeugen; Punkte, die eine Drehmaschine ohne Y nicht
-# erreicht, lassen sie stehen.
+# schwenkt zwischen zwei Werkzeugen, auch in einem Vorschubsatz ohne Weg; Kreise
+# halten auch an den Umkehrstellen der Achsen, sodass jede Überschreitung eine
+# Station ist; Punkte, die eine Drehmaschine ohne Y nicht erreicht, lassen sie
+# stehen.
 import math
 import os
 import sys
@@ -117,6 +119,7 @@ spindel = p.werkzeugaufnahme(1)
 for i in (0, 20, 57, 60):
     erwartet = namen(ma, p.stellungen(st[i].punkt, spindel, 50, FreeCAD.Vector()))
     pruefe(namen(ma, fahrt.stellungen_bei(st[i].zeit)) == erwartet, f"Station {i}")
+    pruefe(namen(ma, fahrt.stellungen_an(i)) == erwartet, f"stellungen_an({i})")
 
 # Ohne F: 1000 mm/min, mit Hinweis.
 op2 = job.Operations.Group[0]
@@ -132,6 +135,35 @@ pruefe(
     ],
     f"Hinweis ohne F: {fahrt.hinweise}",
 )
+
+# Die Umkehrstellen eines Kreises sind Stationen, auch abseits der 5°-Schritte: Jede
+# Überschreitung der Reichweite liegt genau auf einer Station (dorthin springt ein Klick
+# im Fenster). Vollkreis um (−240, 3) mit r = √109 ≈ 10,44: ganz links X −250,44, also
+# X1 250,44 – über der Grenze 250.
+op2.Gcode = ["G0 X-230 Y0 Z10", "G2 X-230 Y0 I-10 J3 F10"]
+teil.recompute()
+fahrt = ab.abfahrt(p, job, FreeCAD.Vector())
+pruefe(len(fahrt.stationen) == 1 + 71 + 4 + 1, f"Vollkreis, Stationen: {len(fahrt.stationen)}")
+ueber = p.pruefe_job(job, FreeCAD.Vector()).ueberschreitungen
+pruefe([u.name for u in ueber] == ["X1"], f"Vollkreis, Überschreitungen: {ueber}")
+index = fahrt.station_von(ueber[0]) if ueber else None
+pruefe(
+    index is not None and nahe(fahrt.stationen[index].punkt[0], -240 - math.sqrt(109)),
+    f"Station der Überschreitung: {index}",
+)
+anschlag = fahrt.stellungen_bei(fahrt.stationen[index].zeit) if index is not None else {}
+x1 = next(a for a in fahrt.achsen if vf.namen(ma, a) == "X1")
+pruefe(nahe(anschlag.get(x1), 240 + math.sqrt(109)), f"X1 dort: {anschlag.get(x1)}")
+# So fährt der Abspieler: alle Achsen auf einmal, jede höchstens bis zu ihrer Grenze –
+# zurück kommen die, die an einer Grenze halten.
+y1 = next(a for a in fahrt.achsen if vf.namen(ma, a) == "Y1")
+angehalten = p.verfahren.setze_alle(anschlag)
+pruefe(angehalten == [x1], f"setze_alle, angehalten: {angehalten}")
+pruefe(
+    nahe(p.verfahren.stellung(x1), 250) and nahe(p.verfahren.stellung(y1), anschlag[y1]),
+    f"setze_alle: X1 {p.verfahren.stellung(x1)}, Y1 {p.verfahren.stellung(y1)}",
+)
+p.verfahren.grundstellung()
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 
@@ -161,6 +193,14 @@ pruefe([o.name for o in fahrt.operationen] == ["Op1", "Op2"], "zwei Operationen"
 pruefe(fahrt.operationen[1].erste == 1 and fahrt.stationen[1].operation == 1, "zweite beginnt")
 # Die Schaltzeit von T (0,25 s für 180°) bremst den Wechsel mindestens auf 30°/720°/s.
 pruefe(fahrt.dauer >= 30 / 720 - 1e-9, f"Wechsel: {fahrt.dauer}")
+# Auch im Vorschub: G1 auf denselben Punkt ist kein Weg, aber der Revolver schwenkt.
+job.Operations.Group[1].Gcode = ["G1 X40 Y0 Z80 F10"]
+teil.recompute()
+fahrt = ab.abfahrt(p, job)
+pruefe(
+    fahrt.dauer >= 30 / 720 - 1e-9 and not fahrt.stationen[1].eilgang,
+    f"Wechsel im Vorschub: {fahrt.dauer}",
+)
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 

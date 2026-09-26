@@ -142,11 +142,18 @@ Entscheidungen von Claude (P-2026-09-26-88), zur Besprechung:
   CAM), die langsamste bestimmt. Beschleunigung erst in 4d.
 - **Punkte:** wie in 4a, dazu Kreise in Schritten von höchstens 5° und der
   Rückzug nach einem Bohrzyklus; dazwischen fährt die Maschine geradlinig in
-  ihren Achsen.
+  ihren Achsen. Auf Kreisen auch die Umkehrstellen der Achsen, an denen 4a
+  misst – so ist jede Überschreitung eine Station (P-2026-09-26-90).
+- Ein Vorschubsatz ist nie schneller als der Eilgang der Achsen: Schwenkt
+  der Revolver zwischen zwei Operationen in einem Satz ohne Weg, kostet das
+  trotzdem seine Zeit (P-2026-09-26-90).
 - **Bedienung:** Operation (springt an ihren Anfang), |◀ (Anfang), ◀ (ein
   Punkt zurück), ▶/❚❚ (Abspielen/Anhalten), ▶ (ein Punkt vor), Tempo ×1, ×5,
   ×20, ×100, ein Schieber über die ganze Zeit. Darunter: Operation, Satz n von
-  m, Zeit t von T und die Stellung jeder Achse.
+  m, Zeit t von T und die Stellung jeder Achse. Der Satz ist der, der gerade
+  läuft (zwischen zwei Punkten der des zweiten); vor und zurück gehen von
+  Punkt zu Punkt, auch wenn zwei dieselbe Zeit haben. Die Achsen stehen
+  Linearachsen zuerst, nach Namen (P-2026-09-26-90).
 - **Anschlag:** Die Maschine fährt nie über ihre Grenzen. Müsste eine Achse
   weiter, bleibt sie an der Grenze stehen, ihr Wert steht rot da („am
   Anschlag“), die Bahn läuft weiter. Punkte, die die Linearachsen gar nicht
@@ -160,7 +167,8 @@ In drei Schritten:
    jeder Zeit (zwischen zwei Stationen geradlinig). Prüfungen: Zeiten gegen
    Handrechnung, Kreise, Bohrzyklus, Rundachsen. *Gebaut (P-2026-09-26-89).*
 2. **Anzeige und Abspieler** im Fenster „Auf der Maschine prüfen“, Hilfe,
-   Szenario mit Screenshots.
+   Szenario mit Screenshots. *Gebaut (P-2026-09-26-90): `gui_abfahren.py`,
+   `tests/gui/szenario_abfahren.py`.*
 3. Version, voller Lauf, Push.
 
 **4c – Kollision**
@@ -203,7 +211,7 @@ Fenster keine Auswahl der Maschine:
   am Job und kehrt zum Dokument des Jobs zurück.
 
 **Abfahren (4b)** ist ein eigener Bereich in diesem Fenster, unter dem
-Ergebnis; Bereiche und Hinweise stehen darunter. 4c und 4d kommen als weitere
+Ergebnis; Bereiche und Hinweise stehen darunter (gebaut, P-2026-09-26-90). 4c und 4d kommen als weitere
 Bereiche dazu.
 
 ## 7. Grenzen dieses Entwurfs
