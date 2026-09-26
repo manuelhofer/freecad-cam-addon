@@ -1,8 +1,10 @@
 # Spezifikation W-001 Stufe 4: Werkzeugbahn auf der Maschine abfahren
 
 Stand: Entwurf von Claude (P-2026-09-25-70). **Manuel hat am 2026-09-26 die
-Fragen zu 4a entschieden** (Abschnitt 9, P-2026-09-26-83). 4a wird in vier
-Schritten gebaut (Abschnitt 5). 4b bis 4d bleiben Entwurf; die Fragen 4 und 5
+Fragen zu 4a entschieden** (Abschnitt 9, P-2026-09-26-83); 4a ist gebaut
+(0.22.0). **4b baut Claude auf Manuels Wort** („bau das mit der Maschine“,
+2026-09-26) – die Entscheidungen darin sind Claudes und stehen zur
+Besprechung (Abschnitt 5, 4b). 4c und 4d bleiben Entwurf; die Fragen 4 und 5
 kommen vor 4c.
 
 Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
@@ -119,12 +121,47 @@ vier Schritten:
    des CAM-Werkzeugs – mit Hinweis. *Gebaut (P-2026-09-26-86).*
 4. Version, voller Lauf, Push.
 
-**4b – Abfahren**
-- Werkzeug als einfacher Körper (Durchmesser, Schneidenlänge, Schaft,
-  Gesamtlänge – die Felder aus der Werkzeugverwaltung) an der
-  Werkzeugaufnahme, Rohteil an der Werkstückaufnahme.
-- Abspielen, Anhalten, Schritt vor/zurück, Geschwindigkeit, Sprung zu einer
-  Operation; die Zeilen von Stufe 3 zeigen die Achswerte mit.
+**4b – Abfahren** – die Maschine fährt die Bahn des Jobs sichtbar ab.
+Entscheidungen von Claude (P-2026-09-26-88), zur Besprechung:
+
+- **Nichts im Dokument:** Werkzeug, Rohteil, Modell und Bahn sind Körper nur
+  in der 3D-Ansicht der Maschine (Coin-Knoten). Nichts wird ins Dokument
+  geschrieben; Schließen räumt sie weg und fährt die Maschine zurück.
+- **Werkzeug** an der Werkzeugaufnahme, als Zylinder: die Schneide
+  (Durchmesser, Schneidenlänge – leer 2 × D) an der Spitze, darüber der Schaft
+  (Schaft-Ø, bis zur Gesamtlänge). Reicht die Länge ab Spindelnase weiter,
+  steht dazwischen der **Halter angedeutet** – durchscheinend, Ø 2 × Schaft,
+  mindestens 25 mm –, bis Frage 4 (Halter) entschieden ist. Die Maße kommen
+  aus der Werkzeugverwaltung, sonst vom CAM-Werkzeug.
+- **Werkstück** an der Werkstückaufnahme, wo der Nullpunkt des Jobs liegt:
+  das Rohteil durchscheinend, das Modell fest, dazu die **Bahn** als Linie
+  (Vorschub blau, Eilgang rot). Alles fährt mit dem Tisch mit.
+- **Zeit:** Vorschubsätze mit F aus der Bahn (FreeCAD: mm/s); fehlt F (0),
+  gilt 1000 mm/min, und ein Hinweis sagt es. Eilgang: jede Achse mit ihrem
+  Eilgang aus der Maschine (fehlt er: 10 000 mm/min wie bei der Übergabe an
+  CAM), die langsamste bestimmt. Beschleunigung erst in 4d.
+- **Punkte:** wie in 4a, dazu Kreise in Schritten von höchstens 5° und der
+  Rückzug nach einem Bohrzyklus; dazwischen fährt die Maschine geradlinig in
+  ihren Achsen.
+- **Bedienung:** Operation (springt an ihren Anfang), |◀ (Anfang), ◀ (ein
+  Punkt zurück), ▶/❚❚ (Abspielen/Anhalten), ▶ (ein Punkt vor), Tempo ×1, ×5,
+  ×20, ×100, ein Schieber über die ganze Zeit. Darunter: Operation, Satz n von
+  m, Zeit t von T und die Stellung jeder Achse.
+- **Anschlag:** Die Maschine fährt nie über ihre Grenzen. Müsste eine Achse
+  weiter, bleibt sie an der Grenze stehen, ihr Wert steht rot da („am
+  Anschlag“), die Bahn läuft weiter. Punkte, die die Linearachsen gar nicht
+  erreichen, lassen die Maschine stehen, die Anzeige sagt es.
+- Ein Klick auf eine Überschreitung (4a) stellt auch den Abspieler auf diese
+  Stelle.
+
+In drei Schritten:
+1. **Rechenkern** (`abfahren.py`, ohne Oberfläche): aus der Bahn die
+   Stationen – Zeit, Operation, Satz, Punkt, Stellungen –, die Stellungen zu
+   jeder Zeit (zwischen zwei Stationen geradlinig). Prüfungen: Zeiten gegen
+   Handrechnung, Kreise, Bohrzyklus, Rundachsen.
+2. **Anzeige und Abspieler** im Fenster „Auf der Maschine prüfen“, Hilfe,
+   Szenario mit Screenshots.
+3. Version, voller Lauf, Push.
 
 **4c – Kollision**
 - Geprüft wird in Abständen entlang der Bahn (z. B. alle 1 mm und an jedem
@@ -165,7 +202,9 @@ Fenster keine Auswahl der Maschine:
   die Maschine zurück, wie sie beim Öffnen stand, merkt sich den Nullpunkt
   am Job und kehrt zum Dokument des Jobs zurück.
 
-4b bis 4d kommen als weitere Bereiche in dasselbe Fenster.
+**Abfahren (4b)** ist ein eigener Bereich in diesem Fenster, unter dem
+Ergebnis; Bereiche und Hinweise stehen darunter. 4c und 4d kommen als weitere
+Bereiche dazu.
 
 ## 7. Grenzen dieses Entwurfs
 
@@ -220,3 +259,16 @@ Fenster keine Auswahl der Maschine:
 - Ein Werkzeug ohne Länge ab Spindelnase → gerechnet mit der Gesamtlänge,
   der Hinweis sagt es („ohne Halter“).
 - Manuel versteht das Fenster ohne Erklärung.
+
+## 11. Akzeptanzkriterien 4b
+
+- 3-Achs-Beispielfräse, ein Job mit eigener Bahn: **Abspielen** – die
+  Maschine fährt, das Werkzeug läuft die Bahnlinie auf dem Rohteil entlang;
+  Zeit, Satz und Achswerte laufen mit. Anhalten, ein Punkt vor und zurück,
+  Tempo, Operation wählen und der Schieber tun, was sie sagen.
+- Eine Bahn über die Grenze von X1: Die Maschine steht dort am Anschlag, der
+  Wert von X1 steht rot da; weiter hinten fährt sie wieder mit.
+- Zeiten: 100 mm mit F 10 (600 mm/min) dauern 10 s; ein Eilgang von 100 mm
+  in X1 mit 30 000 mm/min 0,2 s.
+- Schließen: Die Maschine steht wie vorher, in der Ansicht ist nichts mehr
+  vom Werkzeug oder Werkstück, im Dokument nichts geändert.

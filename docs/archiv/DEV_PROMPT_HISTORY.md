@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-88 spezifikation-abfahren
+
+### EINGELESEN
+- Manuel (2026-09-26): „Ich kann aktuell nicht testen, bau das mit der
+  Maschine“ – gemeint ist Stufe 4b (die Maschine fährt die Bahn sichtbar
+  ab), die ich erst nach seinem Test von 4a bauen wollte.
+- Entwurf 4b: Werkzeug als einfacher Körper, Rohteil an der
+  Werkstückaufnahme, Abspielen/Anhalten/Schritt/Geschwindigkeit/Sprung zu
+  einer Operation, Achswerte dazu.
+- Ausprobiert in 1.1.3 und im Wochen-Build: F steht in den Bahnen in mm/s
+  (Werkzeug-Controller 600 mm/min → F 10, 120 mm/min → F 2); der
+  Standard-Controller eines neuen Jobs hat Vorschub 0; in der Operation
+  „Eigene“ steht F, wie getippt. Eilgang steht nicht in der Bahn.
+
+### DATEIEN
+- `docs/spezifikation_simulation.md` (Kopf, 4b, Abschnitt 6, neu
+  Abschnitt 11)
+- `docs/STATUS_SNAPSHOT.md`, `CHATSTART.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation sagt genau, was 4b zeigt, wie es rechnet und wie man es
+bedient – so, dass danach gebaut werden kann –, und kennzeichnet die
+Entscheidungen als Claudes, zur Besprechung.
+
+### DONE
+- 4b-Entscheidungen (Claude): nur Coin-Knoten in der 3D-Ansicht der
+  Maschine, nichts im Dokument; Werkzeug als Zylinder – Schneide, Schaft,
+  Halter angedeutet (Ø 2 × Schaft, mindestens 25 mm), bis Frage 4
+  entschieden ist; Rohteil durchscheinend, Modell fest, Bahn als Linie
+  (Vorschub blau, Eilgang rot), alles an der Werkstückaufnahme; Zeit aus F
+  (mm/s) bzw. 1000 mm/min mit Hinweis, Eilgang je Achse aus der Maschine
+  (fehlt: 10 000 mm/min), die langsamste bestimmt; Kreise in Schritten
+  ≤ 5°, Rückzug nach dem Bohrzyklus; Bedienung (Operation, Anfang, Punkt
+  zurück/vor, Abspielen/Anhalten, Tempo ×1/×5/×20/×100, Schieber) und
+  Anzeige (Operation, Satz, Zeit, Achswerte); am Anschlag bleibt die Achse
+  stehen, rot; ein Klick auf eine Überschreitung stellt auch den
+  Abspieler.
+- Drei Schritte: Rechenkern `abfahren.py`, Anzeige und Abspieler, Version.
+- Abschnitt 11: Akzeptanzkriterien 4b (Abspielen, Anschlag, Zeiten gegen
+  Handrechnung, Schließen ohne Spur).
+
+### TEST
+- Reine Doku.
+
+### NEXT
+- Schritt 1: Rechenkern `abfahren.py` mit Prüfungen.
+
 ## P-2026-09-26-87 version-0-22-0
 
 ### EINGELESEN
