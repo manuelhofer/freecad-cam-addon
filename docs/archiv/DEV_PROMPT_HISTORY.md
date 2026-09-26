@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-81 readme-maschine
+
+### EINGELESEN
+- Manuel: „Da ist ein PR, den man nicht pushen kann – schau es dir an, löse
+  die Probleme und integriere das.“ PR #1 (W-003, 4-Achs) war nicht mergebar:
+  Beide Sitzungen hatten gleichzeitig an Stand, Verlauf und Sprachdateien
+  gearbeitet und dieselben Nummern P-2026-09-26-75/-76 vergeben.
+- Beim Nachsehen vor dem Push: Die andere Sitzung hatte den PR auf Manuels
+  „pusch das mal alles komplett“ schon selbst auf `main` neu aufgesetzt
+  (P-2026-09-26-78 bis -80, 0.21.0, voller Lauf grün) und gepusht; der PR ist
+  geschlossen, sein Kopf ist `main`. Mein lokaler Merge kam zu denselben
+  Konfliktlösungen – Code, Sprachdateien, Hilfe und Prüfungen gleich – und
+  wurde deshalb verworfen, nicht gepusht.
+- Übrig blieb: Die Zeile zu W-001 im Projektstatus stand noch auf „Jetzt
+  Stufe 3b“; die README kannte „Neue Maschine …“, die schräge Achse und das
+  Verfahren „wie im Programm“ nicht; die Beschreibung für den Addon-Manager
+  (`package.xml`) nannte keine der neuen Funktionen.
+
+### DATEIEN
+- `README.md`
+- `docs/STATUS_SNAPSHOT.md` (Projektstatus W-001)
+- `package.xml` (Beschreibung)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer die README auf GitHub liest, findet „Neue Maschine …“, die schräge
+Achse und das Verfahren „wie im Programm“ unter „Was es kann“; der
+Projektstatus sagt, dass Stufe 3b fertig ist.
+
+### DONE
+- README: neuer Punkt „Neue Maschine …“ (Bauarten, Maße der Drehmaschine);
+  bei „Maschine bearbeiten“ die schräge Achse in zwei Sätzen; bei „Maschine
+  verfahren“ „wie im Programm“ mit Reglern X und Y.
+- Projektstatus W-001: Stufen 1 bis 3 und 3b fertig, danach Stufe 4.
+- `package.xml`: „inclined axes“, fertige Maschinen („a lathe with your own
+  dimensions, mills“) und „4-axis machining: places a part in round bar
+  stock as a CAM job“. Die Version bleibt 0.21.0.
+
+### TEST
+- `scripts/alle_tests.sh` in beiden Versionen vor dem Push (wegen
+  `package.xml`).
+
+### NEXT
+- Push nach `main` und in den Branch, bei GitHub nachsehen.
+
 ## P-2026-09-26-80 version-0-21-0
 
 ### EINGELESEN

@@ -4,7 +4,7 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufen 1 bis 3 fertig und automatisch geprüft; warten auf Manuels Test. Jetzt Stufe 3b (schräge Achse, Punkt 11 unten), danach Stufe 4 (Werkzeugbahn abfahren, Kollision – eigene Spezifikation).
+- **IN ARBEIT** – W-001, Stufen 1 bis 3 und 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) fertig und automatisch geprüft; warten auf Manuels Test. Danach Stufe 4 (Werkzeugbahn abfahren, Kollision – eigene Spezifikation).
 - **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
 - **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ fertig und automatisch geprüft (P-2026-09-26-79), wartet auf Manuels Test; als Nächstes V2 (Punkt 12 unten).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)

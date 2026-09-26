@@ -10,10 +10,18 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
 
 ## Was es kann
 
+- **Neue Maschine …:** eine Bauart wählen – Drehmaschine mit Y-Achse,
+  3-Achs-Fräse, drei 5-Achs-Fräsen – und sie fertig eingerichtet als
+  Baugruppe bekommen; bei der Drehmaschine mit eigenen Maßen: Bettneigung,
+  Winkel der Y-Achse, Wege, Revolverplätze, Höchstdrehzahl.
 - **Maschine bearbeiten:** eine Maschine als Baugruppe beschreiben –
   Achsen, Spindeln, Werkzeug- und Werkstückaufnahmen – und an CAM übergeben.
+  Auch eine **schräge Achse**, etwa die Y-Achse einer Schrägbett-Drehmaschine:
+  Winkel eintragen, die Baugruppe kippt mit. Das Programm bleibt
+  rechtwinklig (X, Y), die Steuerung rechnet auf die Schlitten um.
 - **Maschine verfahren:** je Achse ein Regler, die Baugruppe fährt mit –
-  bis zu den Grenzen der Gelenke.
+  bis zu den Grenzen der Gelenke. Mit schräger Achse auch „wie im
+  Programm“: Regler X und Y, beide Schlitten fahren passend mit.
 - **Werkzeugverwaltung:** Werkstoffliste mit deutschen Bezeichnungen
   („1.4301 X5CrNi18-10 · Edelstahl, austenitisch“), Zusammensetzung und
   Härte; Werkzeuge mit Bild, Suche und Schnittwerten je Werkstoff und
