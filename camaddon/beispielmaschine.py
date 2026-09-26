@@ -1,17 +1,30 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Eine fertig eingerichtete Beispielmaschine zum Ausprobieren (W-001).
+"""Fertig eingerichtete Beispielmaschinen zum Ausprobieren (W-001).
 
 Wer das Addon ausprobiert, soll nicht erst eine Maschine bauen müssen
-(Manuel, 2026-09-26): „Beispielmaschine laden“ in „Maschine bearbeiten“ und
-„Maschine verfahren“ legt ein neues Dokument mit einer Dreiachs-Fräsmaschine
-an – Bett mit Ständer, Kreuztisch (Y-Schlitten, X-Tisch), Fräskopf (Z) und
-Spindel –, ihr Maschinenobjekt schon ausgefüllt.
+(Manuel, 2026-09-26). „Beispielmaschine laden …“ in „Maschine bearbeiten“ und
+„Maschine verfahren“ bietet die üblichen Bauarten an (ARTEN) und legt die
+gewählte in einem neuen Dokument an, ihr Maschinenobjekt schon ausgefüllt:
 
-Der Baukasten baut auch die Beispielmaschinen der Prüfungen
+- Drehmaschine mit Y-Achse, Schrägbett wie eine CLX: Hauptspindel S1/C1 –
+  ihre Achse ist Z –, Revolver T mit zwölf Plätzen, darauf zwei
+  angetriebene Fräswerkzeuge am gemeinsamen Antrieb S3: radial (90° zu Z)
+  auf P1, axial (arbeitet in Z-Richtung) auf P2;
+- 3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z;
+- 5-Achs Tisch/Tisch: Schwenkbrücke A mit Rundtisch C, X, Y, Z im Kopf;
+- 5-Achs Kopf/Kopf: Portal mit Gabelkopf A/B, der Tisch steht;
+- 5-Achs Kopf/Tisch: Schwenkkopf B, Rundtisch C.
+
+Die Achsen heißen wie an Siemens-Steuerungen (X1, Y1, Z1, A1 …, Spindel S1);
+umbenennen geht in „Maschine bearbeiten“. Jedes Gelenk zeigt in die Richtung
+seiner NC-Achse, so wie die Maschinen von FreeCAD-CAM sie beschreiben.
+
+Der Baukasten baut auch die Maschinen der Prüfungen
 (tests/beispielmaschinen.py). Die Körper sind grob (Quader, Zylinder), wie
 es die Spezifikation für echte Maschinen vorsieht. Flächen eines Part::Box:
 Face1 x=0, Face2 x=Länge, Face3 y=0, Face4 y=Breite, Face5 z=0 (unten),
-Face6 z=Höhe (oben). Part::Cylinder: Face2 oben, Face3 unten.
+Face6 z=Höhe (oben). Part::Cylinder: Face2 unten, Face3 oben (nachgesehen in
+1.1.3) – für ein Drehgelenk gleich, beide Mitten liegen auf der Achse.
 
 Läuft ohne Oberfläche; mit Oberfläche bekommen Körper und Gelenke Farben
 und Ansichten.
@@ -19,60 +32,103 @@ und Ansichten.
 
 import FreeCAD as App
 
+from . import PARAMETER_PFAD
+from . import kette as kette_modul
 from . import maschine as m
 from .sprache import tr
 
 DOKUMENT = "Beispielmaschine"
 
-# Farben (RGB 0…1): Guss dunkel, bewegte Teile heller, der Kopf blau.
+# Farben (RGB 0…1): Guss dunkel, bewegte Teile heller, der Kopf blau, Werkzeuge gelb.
 GUSS = (0.36, 0.38, 0.41)
 SCHLITTEN = (0.55, 0.58, 0.62)
 TISCH = (0.70, 0.72, 0.75)
 KOPF = (0.20, 0.45, 0.70)
 SPINDEL = (0.82, 0.82, 0.84)
+WERKZEUG = (0.90, 0.68, 0.15)
+
+# Die Bauarten, in der Reihenfolge der Auswahl (wie Manuel sie aufzählte).
+DREHMASCHINE = "drehmaschine"
+FRAESE_3 = "fraese3"
+TISCH_TISCH = "tisch_tisch"
+KOPF_KOPF = "kopf_kopf"
+KOPF_TISCH = "kopf_tisch"
+ARTEN = (DREHMASCHINE, FRAESE_3, TISCH_TISCH, KOPF_KOPF, KOPF_TISCH)
+
+_ZULETZT = "Beispielmaschine"  # Schlüssel in den Einstellungen: zuletzt gewählte Bauart
 
 
 class Baukasten:
     """Baut eine Assembly Schritt für Schritt: Körper, Bauteile mit LCS, Gelenke.
 
     Maße und Lagen in mm; x, y, z ist die Lage der Ecke bzw. der Mitte unten.
+    Alles liegt im `rahmen`: ohne ihn in Weltkoordinaten; die Drehmaschine
+    baut ihr Schrägbett in einem gekippten Rahmen, dort liegt die Bettfläche
+    waagrecht. Richtungen (Zylinderachse, LCS, Gelenk) gelten im Rahmen.
     """
 
     def __init__(self, name):
         self.doc = App.newDocument(name)
         self.assembly = self.doc.addObject("Assembly::AssemblyObject", "Assembly")
         self.gelenke = self.assembly.newObject("Assembly::JointGroup", "Joints")
+        self.rahmen = App.Placement()
 
     def quader(self, name, laenge, breite, hoehe, x=0, y=0, z=0, farbe=None):
         teil = self.assembly.newObject("Part::Box", name)
         teil.Length, teil.Width, teil.Height = laenge, breite, hoehe
-        _stelle(teil, x, y, z)
+        # Placement als Ganzes zuweisen: teil.Placement.Base = … änderte nur eine Kopie.
+        teil.Placement = self._lage(x, y, z)
         _faerbe(teil, farbe)
         return teil
 
-    def zylinder(self, name, radius, hoehe, x=0, y=0, z=0, farbe=None):
+    def zylinder(self, name, radius, hoehe, x=0, y=0, z=0, farbe=None, achse=None):
+        """Ein Zylinder mit der Mitte unten bei (x, y, z). `achse` ist die Richtung
+        von unten nach oben, (1, 0, 0) etwa für einen liegenden; ohne steht er."""
         teil = self.assembly.newObject("Part::Cylinder", name)
         teil.Radius, teil.Height = radius, hoehe
-        _stelle(teil, x, y, z)
+        teil.Placement = self._lage(x, y, z, achse)
         _faerbe(teil, farbe)
         return teil
 
     def bauteil(self, name, koerper, lcs_name=None, lcs_hoehe=0, lcs_x=0, lcs_y=0):
-        """Ein Part mit Körper und optional einem LCS darin – so, wie man eine
-        Werkzeug- oder Werkstückaufnahme markiert. Gelenke greifen dann auf
-        "<Körpername>.FaceN". Das LCS liegt bei (lcs_x, lcs_y, lcs_hoehe) im
-        Körper, von seiner Ecke bzw. der Mitte unten aus."""
+        """Ein Part mit Körper (oder einer Liste von Körpern) und optional einem LCS
+        darin – so, wie man eine Werkzeug- oder Werkstückaufnahme markiert.
+        Gelenke greifen dann auf "<Körpername>.FaceN". Das Part liegt wie der
+        erste Körper; das LCS bei (lcs_x, lcs_y, lcs_hoehe) in diesem Körper, von
+        seiner Ecke bzw. der Mitte unten aus. Weitere LCS: lcs()."""
+        liste = list(koerper) if isinstance(koerper, (list, tuple)) else [koerper]
         teil = self.assembly.newObject("App::Part", name)
-        self.assembly.removeObject(koerper)
-        teil.addObject(koerper)
-        teil.Placement = koerper.Placement
-        koerper.Placement = App.Placement()
+        teil.Placement = liste[0].Placement
+        for k in liste:
+            lage = teil.Placement.inverse() * k.Placement
+            self.assembly.removeObject(k)
+            teil.addObject(k)
+            k.Placement = lage
         lcs = None
         if lcs_name:
             lcs = self.doc.addObject("App::LocalCoordinateSystem", lcs_name)
             lcs.Placement = App.Placement(App.Vector(lcs_x, lcs_y, lcs_hoehe), App.Rotation())
             teil.addObject(lcs)
         return teil, lcs
+
+    def lcs(self, teil, name, x, y, z, richtung=None):
+        """Ein LCS im Bauteil, Ursprung bei (x, y, z); seine Z-Achse zeigt in
+        `richtung` – die Werkzeugrichtung (von der Spitze zur Aufnahme) bzw. die
+        Normale der Spannfläche. Ohne `richtung` zeigt sie nach oben."""
+        lcs = self.doc.addObject("App::LocalCoordinateSystem", name)
+        teil.addObject(lcs)
+        lcs.Placement = self.lage_im_teil(teil, x, y, z, richtung)
+        return lcs
+
+    def lage_im_teil(self, teil, x, y, z, richtung=None):
+        """Die Lage (x, y, z) mit Z-Achse in `richtung`, bezogen auf das Bauteil."""
+        return teil.Placement.inverse() * self._lage(x, y, z, richtung)
+
+    def _lage(self, x, y, z, richtung=None):
+        drehung = App.Rotation()
+        if richtung is not None:
+            drehung = App.Rotation(App.Vector(0, 0, 1), App.Vector(*richtung))
+        return self.rahmen * App.Placement(App.Vector(x, y, z), drehung)
 
     def fixieren(self, teil):
         import JointObject
@@ -109,9 +165,10 @@ class Baukasten:
         Seite schon versetzt, der anderen noch nicht, klappt FreeCAD dabei
         Teile um (so hing der Fräskopf mit Oberfläche hinter dem Ständer).
         Deshalb kommen die Teile danach jedes Mal zurück. Der Versatz beider
-        Seiten legt den Bezugspunkt auf die Mitte der Fläche von Seite 2;
-        `richtung` (global) dreht die Achse, etwa waagrecht für einen Tisch,
-        der auf seinem Schlitten gleitet; ohne ist es die Normale der Flächen.
+        Seiten legt den Bezugspunkt auf die Mitte der Fläche von Seite 2 –
+        bei einem Drehgelenk liegt dort die Drehachse. `richtung` (im Rahmen)
+        dreht die Achse, etwa waagrecht für einen Tisch, der auf seinem
+        Schlitten gleitet; ohne ist es die Normale der Flächen.
         """
         import UtilsAssembly
 
@@ -123,7 +180,8 @@ class Baukasten:
         if richtung is None:
             drehung = seite2.Rotation
         else:
-            drehung = App.Rotation(App.Vector(0, 0, 1), App.Vector(*richtung))
+            achse = self.rahmen.Rotation.multVec(App.Vector(*richtung))
+            drehung = App.Rotation(App.Vector(0, 0, 1), achse)
         ziel = App.Placement(seite2.Base, drehung)
         gelenk.Offset1 = seite1.inverse() * ziel
         gelenk.Offset2 = seite2.inverse() * ziel
@@ -136,9 +194,14 @@ class Baukasten:
             teil.Placement = lage
 
     def begrenze(self, gelenk, minimum, maximum):
-        """Weg eines Schiebegelenks in mm – wie „Minimale/Maximale Länge“ am Gelenk."""
-        gelenk.EnableLengthMin, gelenk.LengthMin = True, minimum
-        gelenk.EnableLengthMax, gelenk.LengthMax = True, maximum
+        """Weg eines Gelenks: mm beim Schiebe-, Grad beim Drehgelenk – wie
+        „Minimale/Maximale Länge“ bzw. „… Winkel“ am Gelenk."""
+        if gelenk.JointType == "Revolute":
+            gelenk.EnableAngleMin, gelenk.AngleMin = True, minimum
+            gelenk.EnableAngleMax, gelenk.AngleMax = True, maximum
+        else:
+            gelenk.EnableLengthMin, gelenk.LengthMin = True, minimum
+            gelenk.EnableLengthMax, gelenk.LengthMax = True, maximum
 
     def fertig(self):
         self.doc.recompute()
@@ -153,25 +216,88 @@ class Baukasten:
         ]
 
 
-def _stelle(teil, x, y, z):
-    # Placement als Ganzes zuweisen: teil.Placement.Base = … änderte nur eine Kopie.
-    teil.Placement = App.Placement(App.Vector(x, y, z), App.Rotation())
-
-
 def _faerbe(teil, farbe):
     if farbe is not None and App.GuiUp:
         teil.ViewObject.ShapeColor = farbe
 
 
+# --- Texte ----------------------------------------------------------------------
+
+
+def titel(art):
+    """Name der Bauart, wie in der Auswahl und am Maschinenobjekt."""
+    return {
+        DREHMASCHINE: tr("beispiel.drehmaschine"),
+        FRAESE_3: tr("beispiel.fraese3"),
+        TISCH_TISCH: tr("beispiel.tisch_tisch"),
+        KOPF_KOPF: tr("beispiel.kopf_kopf"),
+        KOPF_TISCH: tr("beispiel.kopf_tisch"),
+    }[art]
+
+
+def beschreibung(art):
+    """Ein, zwei Sätze zur Bauart für die Auswahl."""
+    return {
+        DREHMASCHINE: tr("beispiel.drehmaschine.beschreibung"),
+        FRAESE_3: tr("beispiel.fraese3.beschreibung"),
+        TISCH_TISCH: tr("beispiel.tisch_tisch.beschreibung"),
+        KOPF_KOPF: tr("beispiel.kopf_kopf.beschreibung"),
+        KOPF_TISCH: tr("beispiel.kopf_tisch.beschreibung"),
+    }[art]
+
+
+def _dokument(art):
+    """Name des Dokuments – ohne „/“, er wird beim Speichern der Dateiname."""
+    return {
+        DREHMASCHINE: tr("beispiel.drehmaschine.dokument"),
+        FRAESE_3: tr("beispiel.fraese3.dokument"),
+        TISCH_TISCH: tr("beispiel.tisch_tisch.dokument"),
+        KOPF_KOPF: tr("beispiel.kopf_kopf.dokument"),
+        KOPF_TISCH: tr("beispiel.kopf_tisch.dokument"),
+    }[art]
+
+
+def _neu(art):
+    b = Baukasten(DOKUMENT)
+    b.doc.Label = _dokument(art)
+    return b
+
+
+def _maschine(asm, art):
+    ma = m.lege_maschine_an(asm)
+    ma.Label = titel(art)
+    return ma
+
+
+def _linear(ma, gelenk, nc_name, eilgang, vorschub_max, beschleunigung):
+    achse = m.neue_betriebsart(ma, gelenk, m.ART_LINEAR, nc_name)
+    achse.Eilgang, achse.VorschubMax, achse.Beschleunigung = eilgang, vorschub_max, beschleunigung
+    return achse
+
+
+def _positionieren(ma, gelenk, nc_name, geschwindigkeit, endlos=False):
+    achse = m.neue_betriebsart(ma, gelenk, m.ART_POSITIONIEREN, nc_name)
+    achse.Geschwindigkeit, achse.Endlos = geschwindigkeit, endlos
+    return achse
+
+
+def _spindel(ma, gelenk, nc_name, drehzahl, hochlaufzeit):
+    spindel = m.neue_betriebsart(ma, gelenk, m.ART_SPINDEL, nc_name)
+    spindel.Drehzahl, spindel.Hochlaufzeit = drehzahl, hochlaufzeit
+    return spindel
+
+
+# --- Fräsmaschinen --------------------------------------------------------------
+
+
 def fraesmaschine():
-    """Die Beispiel-Fräsmaschine: Kreuztisch X/Y, Fräskopf Z, Spindel S1.
+    """3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z, Spindel S1.
 
     Maschinenobjekt ausgefüllt: X1, Y1, Z1 mit Eilgang, Höchstvorschub und
     Beschleunigung, S1 mit Drehzahl, Werkzeugaufnahme an der Spindelnase,
     Werkstückaufnahme mitten auf dem Tisch. Gibt (Assembly, Maschine) zurück.
     """
-    b = Baukasten(DOKUMENT)
-    b.doc.Label = tr("beispiel.dokument")
+    b = _neu(FRAESE_3)
     bett = b.quader("Bett", 800, 900, 120, farbe=GUSS)
     staender = b.quader("Staender", 260, 250, 1000, x=270, y=650, z=120, farbe=GUSS)
     sattel = b.quader("Sattel", 460, 320, 70, x=170, y=190, z=120, farbe=SCHLITTEN)
@@ -205,22 +331,422 @@ def fraesmaschine():
     )
     asm = b.fertig()
 
-    ma = m.lege_maschine_an(asm)
-    ma.Label = tr("beispiel.maschine")
-    for gelenk, name, eilgang in ((x, "X1", 20000), (y, "Y1", 20000), (z, "Z1", 15000)):
-        achse = m.neue_betriebsart(ma, gelenk, m.ART_LINEAR, name)
-        achse.Eilgang, achse.VorschubMax, achse.Beschleunigung = eilgang, 10000, 3
-    s1 = m.neue_betriebsart(ma, s, m.ART_SPINDEL, "S1")
-    s1.Drehzahl, s1.Hochlaufzeit = 12000, 1.5
+    ma = _maschine(asm, FRAESE_3)
+    _linear(ma, x, "X1", 20000, 10000, 3)
+    _linear(ma, y, "Y1", 20000, 10000, 3)
+    _linear(ma, z, "Z1", 15000, 10000, 3)
+    s1 = _spindel(ma, s, "S1", 12000, 1.5)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
     asm.Document.recompute()
     return asm, ma
 
 
-def lade():
-    """Baut die Beispielmaschine in einem neuen Dokument und zeigt sie; gibt (Assembly, Maschine)."""
-    asm, ma = fraesmaschine()
+def _fahrstaender(b, bett):
+    """Fahrender Ständer (X) mit Stößel (Y) und Kopfschlitten (Z): Alle drei
+    Linearachsen sitzen im Kopf, der Tisch bleibt für die Drehachsen frei.
+    Gibt (Kopfschlitten, X, Y, Z) zurück; die Wege von Y und Z begrenzt die
+    Maschine, je nach Kopf und Tisch."""
+    staender = b.quader("Staender", 420, 420, 1050, x=440, y=760, z=250, farbe=GUSS)
+    stoessel = b.quader("Stoessel", 300, 700, 220, x=500, y=380, z=1300, farbe=SCHLITTEN)
+    kopf = b.quader("Kopfschlitten", 260, 200, 560, x=520, y=180, z=1000, farbe=KOPF)
+    x = b.gelenk_wie_gebaut("X", "Slider", bett, "Face6", staender, "Face5", richtung=(1, 0, 0))
+    b.begrenze(x, -320, 320)
+    y = b.gelenk_wie_gebaut("Y", "Slider", staender, "Face6", stoessel, "Face5", richtung=(0, 1, 0))
+    z = b.gelenk_wie_gebaut("Z", "Slider", stoessel, "Face3", kopf, "Face4", richtung=(0, 0, 1))
+    return kopf, x, y, z
+
+
+def _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz):
+    """Was alle 5-Achs-Beispiele gleich haben: X1, Y1, Z1, S1 und die Aufnahmen."""
+    _linear(ma, x, "X1", 30000, 15000, 5)
+    _linear(ma, y, "Y1", 30000, 15000, 5)
+    _linear(ma, z, "Z1", 30000, 15000, 5)
+    s1 = _spindel(ma, s, "S1", 18000, 2)
+    m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
+    m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.rundtisch"))
+
+
+def fuenfachs_tisch_tisch():
+    """5-Achs-Fräse Tisch/Tisch: Schwenkbrücke (A, um X) mit Rundtisch (C);
+    X, Y, Z im Kopf. Gibt (Assembly, Maschine) zurück."""
+    b = _neu(TISCH_TISCH)
+    bett = b.quader("Bett", 1300, 1200, 250, farbe=GUSS)
+    b.fixieren(bett)
+    kopf, x, y, z = _fahrstaender(b, bett)
+    b.begrenze(y, -200, 250)
+    b.begrenze(z, -260, 150)
+    spindel, spindelnase = b.bauteil(
+        "Spindel",
+        b.zylinder("Spindelkoerper", 55, 160, x=650, y=280, z=840, farbe=SPINDEL),
+        lcs_name="Spindelnase",
+    )
+    s = b.gelenk_wie_gebaut(
+        "Spindelachse", "Revolute", kopf, "Face5", spindel, "Spindelkoerper.Face2"
+    )
+
+    # Die Wiege hängt mit Zapfen in zwei Lagerböcken; ein Drehgelenk hat nur
+    # der linke – ein zweites am rechten kann die Assembly nicht lösen.
+    lager_l = b.quader("LagerbockLinks", 130, 260, 440, x=100, y=200, z=250, farbe=GUSS)
+    lager_r = b.quader("LagerbockRechts", 130, 260, 440, x=1070, y=200, z=250, farbe=GUSS)
+    wiege, _ = b.bauteil(
+        "Wiege",
+        [
+            b.quader("Wiegenboden", 700, 300, 70, x=300, y=180, z=390, farbe=SCHLITTEN),
+            b.quader("WangeLinks", 70, 300, 310, x=230, y=180, z=390, farbe=SCHLITTEN),
+            b.quader("WangeRechts", 70, 300, 310, x=1000, y=180, z=390, farbe=SCHLITTEN),
+            b.zylinder("ZapfenLinks", 55, 150, x=90, y=330, z=620, achse=(1, 0, 0), farbe=SPINDEL),
+            b.zylinder(
+                "ZapfenRechts", 55, 150, x=1060, y=330, z=620, achse=(1, 0, 0), farbe=SPINDEL
+            ),
+        ],
+    )
+    rundtisch, spannplatz = b.bauteil(
+        "Rundtisch",
+        b.zylinder("Tischscheibe", 140, 80, x=650, y=330, z=460, farbe=TISCH),
+        lcs_name="Spannplatz",
+        lcs_hoehe=80,
+    )
+    b.gelenk_wie_gebaut("LagerLinks_fest", "Fixed", bett, "Face6", lager_l, "Face5")
+    b.gelenk_wie_gebaut("LagerRechts_fest", "Fixed", bett, "Face6", lager_r, "Face5")
+    a = b.gelenk_wie_gebaut(
+        "A", "Revolute", lager_l, "Face2", wiege, "ZapfenLinks.Face3", richtung=(1, 0, 0)
+    )
+    b.begrenze(a, -120, 120)
+    c = b.gelenk_wie_gebaut(
+        "C",
+        "Revolute",
+        wiege,
+        "Wiegenboden.Face6",
+        rundtisch,
+        "Tischscheibe.Face3",
+        richtung=(0, 0, 1),
+    )
+    asm = b.fertig()
+
+    ma = _maschine(asm, TISCH_TISCH)
+    _positionieren(ma, a, "A1", 25)
+    _positionieren(ma, c, "C1", 50, endlos=True)
+    _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz)
+    asm.Document.recompute()
+    return asm, ma
+
+
+def fuenfachs_kopf_tisch():
+    """5-Achs-Fräse Kopf/Tisch: Schwenkkopf (B, um Y) vorn am Kopfschlitten,
+    Rundtisch (C) im Maschinentisch; X, Y, Z im Kopf. Gibt (Assembly, Maschine) zurück."""
+    b = _neu(KOPF_TISCH)
+    bett = b.quader("Bett", 1300, 1200, 250, farbe=GUSS)
+    b.fixieren(bett)
+    kopf, x, y, z = _fahrstaender(b, bett)
+    b.begrenze(y, -150, 300)
+    b.begrenze(z, -280, 100)
+    schwenkkopf = b.quader("Schwenkkopf", 200, 180, 300, x=550, y=0, z=950, farbe=KOPF)
+    spindel, spindelnase = b.bauteil(
+        "Spindel",
+        b.zylinder("Spindelkoerper", 55, 160, x=650, y=90, z=790, farbe=SPINDEL),
+        lcs_name="Spindelnase",
+    )
+    unterbau = b.quader("Tischunterbau", 600, 600, 150, x=350, y=20, z=250, farbe=GUSS)
+    rundtisch, spannplatz = b.bauteil(
+        "Rundtisch",
+        b.zylinder("Tischscheibe", 260, 90, x=650, y=320, z=400, farbe=TISCH),
+        lcs_name="Spannplatz",
+        lcs_hoehe=90,
+    )
+    # Der Schwenkkopf dreht um die Mitte seiner Rückseite – dort sitzt er am Kopfschlitten.
+    schwenk = b.gelenk_wie_gebaut(
+        "B", "Revolute", kopf, "Face3", schwenkkopf, "Face4", richtung=(0, 1, 0)
+    )
+    b.begrenze(schwenk, -110, 110)
+    s = b.gelenk_wie_gebaut(
+        "Spindelachse", "Revolute", schwenkkopf, "Face5", spindel, "Spindelkoerper.Face2"
+    )
+    b.gelenk_wie_gebaut("Tischunterbau_fest", "Fixed", bett, "Face6", unterbau, "Face5")
+    c = b.gelenk_wie_gebaut(
+        "C", "Revolute", unterbau, "Face6", rundtisch, "Tischscheibe.Face3", richtung=(0, 0, 1)
+    )
+    asm = b.fertig()
+
+    ma = _maschine(asm, KOPF_TISCH)
+    _positionieren(ma, schwenk, "B1", 30)
+    _positionieren(ma, c, "C1", 50, endlos=True)
+    _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz)
+    asm.Document.recompute()
+    return asm, ma
+
+
+def fuenfachs_kopf_kopf():
+    """5-Achs-Fräse Kopf/Kopf: Portal (Y) mit Querschlitten (X) und Stößel (Z),
+    unten am Stößel ein Gabelkopf – A dreht um X, darin B um Y. Der Tisch
+    steht fest. Gibt (Assembly, Maschine) zurück."""
+    b = _neu(KOPF_KOPF)
+    bett = b.quader("Bett", 1600, 1500, 250, farbe=GUSS)
+    b.fixieren(bett)
+    tisch, spannplatz = b.bauteil(
+        "Tisch",
+        b.quader("Tischplatte", 1000, 800, 120, x=300, y=250, z=250, farbe=TISCH),
+        lcs_name="Spannplatz",
+        lcs_x=500,
+        lcs_y=400,
+        lcs_hoehe=120,
+    )
+    portal, _ = b.bauteil(
+        "Portal",
+        [
+            b.quader("SaeuleLinks", 160, 240, 1550, x=40, y=1000, z=250, farbe=GUSS),
+            b.quader("SaeuleRechts", 160, 240, 1550, x=1400, y=1000, z=250, farbe=GUSS),
+            b.quader("Traverse", 1520, 240, 250, x=40, y=1000, z=1800, farbe=GUSS),
+        ],
+    )
+    querschlitten = b.quader("Querschlitten", 360, 160, 400, x=620, y=840, z=1700, farbe=SCHLITTEN)
+    # Unten am Stößel die Gabel für A, am A-Kopf die Gabel für B; die Zapfen
+    # gehen durch beide Wangen, ihre Stirnseiten liegen auf den Drehachsen.
+    stoessel, _ = b.bauteil(
+        "Stoessel",
+        [
+            b.quader("Stoesselkoerper", 240, 240, 900, x=680, y=600, z=1220, farbe=KOPF),
+            b.quader("GabelLinks", 40, 160, 160, x=685, y=640, z=1060, farbe=KOPF),
+            b.quader("GabelRechts", 40, 160, 160, x=875, y=640, z=1060, farbe=KOPF),
+        ],
+    )
+    a_kopf, _ = b.bauteil(
+        "AKopf",
+        [
+            b.quader("AGehaeuse", 140, 200, 160, x=730, y=620, z=990, farbe=KOPF),
+            b.zylinder("AZapfen", 35, 250, x=675, y=720, z=1120, achse=(1, 0, 0), farbe=SPINDEL),
+            b.quader("GabelVorn", 110, 35, 140, x=745, y=620, z=850, farbe=KOPF),
+            b.quader("GabelHinten", 110, 35, 140, x=745, y=785, z=850, farbe=KOPF),
+        ],
+    )
+    b_kopf, _ = b.bauteil(
+        "BKopf",
+        [
+            b.quader("BGehaeuse", 120, 120, 170, x=740, y=660, z=770, farbe=KOPF),
+            b.zylinder("BZapfen", 30, 220, x=800, y=610, z=910, achse=(0, 1, 0), farbe=SPINDEL),
+        ],
+    )
+    spindel, spindelnase = b.bauteil(
+        "Spindel",
+        b.zylinder("Spindelkoerper", 40, 120, x=800, y=720, z=650, farbe=SPINDEL),
+        lcs_name="Spindelnase",
+    )
+
+    b.gelenk_wie_gebaut("Tisch_fest", "Fixed", bett, "Face6", tisch, "Tischplatte.Face5")
+    y = b.gelenk_wie_gebaut(
+        "Y", "Slider", bett, "Face6", portal, "SaeuleLinks.Face5", richtung=(0, 1, 0)
+    )
+    b.begrenze(y, -650, 250)
+    x = b.gelenk_wie_gebaut(
+        "X", "Slider", portal, "Traverse.Face3", querschlitten, "Face4", richtung=(1, 0, 0)
+    )
+    b.begrenze(x, -560, 560)
+    z = b.gelenk_wie_gebaut(
+        "Z", "Slider", querschlitten, "Face3", stoessel, "Stoesselkoerper.Face4", richtung=(0, 0, 1)
+    )
+    b.begrenze(z, -250, 300)
+    a = b.gelenk_wie_gebaut(
+        "A", "Revolute", stoessel, "GabelLinks.Face2", a_kopf, "AZapfen.Face3", richtung=(1, 0, 0)
+    )
+    b.begrenze(a, -100, 100)
+    schwenk = b.gelenk_wie_gebaut(
+        "B", "Revolute", a_kopf, "GabelVorn.Face4", b_kopf, "BZapfen.Face3", richtung=(0, 1, 0)
+    )
+    b.begrenze(schwenk, -100, 100)
+    s = b.gelenk_wie_gebaut(
+        "Spindelachse", "Revolute", b_kopf, "BGehaeuse.Face5", spindel, "Spindelkoerper.Face2"
+    )
+    asm = b.fertig()
+
+    ma = _maschine(asm, KOPF_KOPF)
+    _linear(ma, x, "X1", 40000, 20000, 4)
+    _linear(ma, y, "Y1", 40000, 20000, 3)
+    _linear(ma, z, "Z1", 30000, 15000, 4)
+    _positionieren(ma, a, "A1", 30)
+    _positionieren(ma, schwenk, "B1", 30)
+    s1 = _spindel(ma, s, "S1", 24000, 2)
+    m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
+    m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
+    asm.Document.recompute()
+    return asm, ma
+
+
+# --- Drehmaschine ---------------------------------------------------------------
+
+# Das Schrägbett steigt um 45° nach hinten an. In seinem Rahmen liegt die
+# Bettfläche waagrecht: x ist die Spindelachse (Z der Maschine), y quer im Bett
+# (X, weg von der Spindelachse), z senkrecht zum Bett (Y). Gekippt um die
+# Spindelachse, angehoben auf Spitzenhöhe.
+SCHRAEGBETT = App.Placement(App.Vector(0, 0, 800), App.Rotation(App.Vector(1, 0, 0), 45))
+# Die Revolverachse im Rahmen (bei x = 0) und die Plätze auf der Scheibe.
+REVOLVERACHSE = App.Vector(0, 405, 350)
+PLAETZE = 12
+
+
+def _auf_der_scheibe(winkel, radius):
+    """Punkt (0, y, z) im Rahmen: `radius` von der Revolverachse, um `winkel` Grad
+    vom Platz P1 aus gedreht. P1 zeigt zur Spindelachse."""
+    richtung = App.Rotation(App.Vector(1, 0, 0), winkel).multVec(App.Vector(0, -1, 0))
+    return REVOLVERACHSE + richtung * radius
+
+
+def drehmaschine():
+    """Drehmaschine mit Y-Achse, Schrägbett wie eine CLX.
+
+    Hauptspindel S1 (Drehzahl) und C1 (positionieren) – ihre Achse ist Z.
+    Auf dem Bett Z-Schlitten, X-Schlitten, darauf Y-Schlitten mit dem
+    Revolver T (12 Plätze). P1 trägt ein radiales angetriebenes Fräswerkzeug
+    (90° zu Z), P2 ein axiales (arbeitet in Z-Richtung); beide hängen am
+    Werkzeugantrieb S3. Das Futter ist die Werkstückaufnahme. Gibt
+    (Assembly, Maschine) zurück.
+    """
+    b = _neu(DREHMASCHINE)
+    fuss = b.quader("Maschinenfuss", 1700, 1400, 500, x=-100, y=-300, farbe=GUSS)
+    rueckwand = b.quader("Rueckwand", 1700, 400, 450, x=-100, y=700, z=500, farbe=GUSS)
+    b.fixieren(fuss)
+    b.gelenk_wie_gebaut("Rueckwand_fest", "Fixed", fuss, "Face6", rueckwand, "Face5")
+
+    b.rahmen = SCHRAEGBETT
+    bett = b.quader("Bett", 1500, 1200, 700, y=-350, z=-700, farbe=GUSS)
+    spindelkasten = b.quader("Spindelkasten", 380, 520, 620, y=-260, farbe=GUSS)
+    spindel, _ = b.bauteil(
+        "Spindel",
+        [
+            b.zylinder("Spindelnase", 110, 100, x=380, z=350, achse=(1, 0, 0), farbe=SPINDEL),
+            b.zylinder("Futter", 140, 90, x=480, z=350, achse=(1, 0, 0), farbe=SPINDEL),
+        ],
+    )
+    spannflaeche = b.lcs(spindel, "Spannflaeche", 570, 0, 350, richtung=(1, 0, 0))
+    z_schlitten = b.quader("ZSchlitten", 350, 680, 90, x=800, y=120, farbe=SCHLITTEN)
+    x_schlitten = b.quader("XSchlitten", 310, 160, 510, x=820, y=480, z=90, farbe=SCHLITTEN)
+    y_schlitten = b.quader("YSchlitten", 280, 150, 280, x=820, y=330, z=210, farbe=KOPF)
+
+    # Revolverscheibe; P1 unten (zur Spindelachse hin) mit dem radialen
+    # Halter, P2 um 30° weiter mit dem axialen, der zum Futter zeigt.
+    achse = REVOLVERACHSE
+    axial = _auf_der_scheibe(360.0 / PLAETZE, 130)
+    revolver, _ = b.bauteil(
+        "Revolver",
+        [
+            b.zylinder(
+                "Revolverscheibe",
+                170,
+                110,
+                x=710,
+                y=achse.y,
+                z=achse.z,
+                achse=(1, 0, 0),
+                farbe=TISCH,
+            ),
+            b.quader("HalterRadial", 80, 50, 80, x=725, y=185, z=310, farbe=SCHLITTEN),
+            b.zylinder(
+                "FraeserRadial", 8, 50, x=765, y=185, z=350, achse=(0, -1, 0), farbe=WERKZEUG
+            ),
+            b.zylinder(
+                "HalterAxial",
+                35,
+                60,
+                x=710,
+                y=axial.y,
+                z=axial.z,
+                achse=(-1, 0, 0),
+                farbe=SCHLITTEN,
+            ),
+            b.zylinder(
+                "FraeserAxial", 8, 60, x=650, y=axial.y, z=axial.z, achse=(-1, 0, 0), farbe=WERKZEUG
+            ),
+        ],
+    )
+    # Aufnahme des radialen Werkzeugs: seine Spitze zeigt zur Spindelachse,
+    # die Z-Achse des LCS von der Spitze zur Aufnahme – weg von ihr.
+    platz1 = b.lcs(revolver, "Platz", 765, 185, 350, richtung=(0, 1, 0))
+    antrieb, _ = b.bauteil(
+        "Antrieb",
+        b.zylinder(
+            "Antriebsmotor", 60, 120, x=1100, y=achse.y, z=achse.z, achse=(1, 0, 0), farbe=KOPF
+        ),
+    )
+
+    b.gelenk_wie_gebaut("Bett_fest", "Fixed", fuss, "Face6", bett, "Face5")
+    b.gelenk_wie_gebaut("Spindelkasten_fest", "Fixed", bett, "Face6", spindelkasten, "Face5")
+    hauptspindel = b.gelenk_wie_gebaut(
+        "Hauptspindel",
+        "Revolute",
+        spindelkasten,
+        "Face2",
+        spindel,
+        "Spindelnase.Face3",
+        richtung=(1, 0, 0),
+    )
+    z = b.gelenk_wie_gebaut("Z", "Slider", bett, "Face6", z_schlitten, "Face5", richtung=(1, 0, 0))
+    b.begrenze(z, -100, 300)
+    x = b.gelenk_wie_gebaut(
+        "X", "Slider", z_schlitten, "Face6", x_schlitten, "Face5", richtung=(0, 1, 0)
+    )
+    b.begrenze(x, -170, 150)
+    y = b.gelenk_wie_gebaut(
+        "Y", "Slider", x_schlitten, "Face3", y_schlitten, "Face4", richtung=(0, 0, 1)
+    )
+    b.begrenze(y, -60, 60)
+    revolverachse = b.gelenk_wie_gebaut(
+        "Revolverachse",
+        "Revolute",
+        y_schlitten,
+        "Face1",
+        revolver,
+        "Revolverscheibe.Face2",
+        richtung=(1, 0, 0),
+    )
+    werkzeugantrieb = b.gelenk_wie_gebaut(
+        "Werkzeugantrieb",
+        "Revolute",
+        y_schlitten,
+        "Face2",
+        antrieb,
+        "Antriebsmotor.Face3",
+        richtung=(1, 0, 0),
+    )
+    asm = b.fertig()
+
+    ma = _maschine(asm, DREHMASCHINE)
+    _linear(ma, x, "X1", 30000, 10000, 6)
+    _linear(ma, y, "Y1", 12000, 5000, 4)
+    _linear(ma, z, "Z1", 30000, 10000, 6)
+    _spindel(ma, hauptspindel, "S1", 5000, 2.5)
+    _positionieren(ma, hauptspindel, "C1", 100, endlos=True)
+    t = m.neue_betriebsart(ma, revolverachse, m.ART_REVOLVER, "T")
+    t.Schaltzeit = 0.25
+    s3 = _spindel(ma, werkzeugantrieb, "S3", 4000, 0.5)
+    m.neue_aufnahme(ma, spannflaeche, m.AUFNAHME_WERKSTUECK, tr("beispiel.futter"))
+    plaetze = m.verteile_plaetze(ma, kette_modul.lies_kette(asm), t, platz1, PLAETZE)
+    # P2 trägt das axiale Werkzeug: Aufnahme vorn am Halter, Z zeigt vom Futter weg.
+    plaetze[1].Lcs.Placement = b.lage_im_teil(revolver, 650, axial.y, axial.z, (1, 0, 0))
+    for platz in plaetze[:2]:
+        platz.Spindel = s3
+    asm.Document.recompute()
+    return asm, ma
+
+
+BAUPLAENE = {
+    DREHMASCHINE: drehmaschine,
+    FRAESE_3: fraesmaschine,
+    TISCH_TISCH: fuenfachs_tisch_tisch,
+    KOPF_KOPF: fuenfachs_kopf_kopf,
+    KOPF_TISCH: fuenfachs_kopf_tisch,
+}
+
+
+def zuletzt_gewaehlt():
+    """Die zuletzt geladene Bauart – so steht die Auswahl beim nächsten Mal dort."""
+    art = App.ParamGet(PARAMETER_PFAD).GetString(_ZULETZT, "")
+    return art if art in ARTEN else ARTEN[0]
+
+
+def lade(art):
+    """Baut die Beispielmaschine der Bauart in einem neuen Dokument und zeigt sie;
+    gibt (Assembly, Maschine) zurück."""
+    App.ParamGet(PARAMETER_PFAD).SetString(_ZULETZT, art)
+    asm, ma = BAUPLAENE[art]()
     if App.GuiUp:
         import FreeCADGui
 

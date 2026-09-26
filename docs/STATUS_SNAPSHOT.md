@@ -56,7 +56,9 @@ Wunschliste, offene Bugs und Tasks.
    Revolver mit zwei angetriebenen Fräswerkzeugen: axial, bearbeitet in
    Z-Richtung, und radial, 90° dazu), 3-Achs-Fräse, 5-Achs Tisch/Tisch
    (A/C, Schwenkbrücke mit Rundtisch), 5-Achs Kopf/Kopf (A/B), 5-Achs
-   Kopf/Tisch (B am Kopf, C am Tisch). Nach Stufe B.
+   Kopf/Tisch (B am Kopf, C am Tisch). Nach Stufe B. – *Fertig
+   (P-2026-09-26-62): „Beispielmaschine laden …“ bietet die fünf Bauarten
+   mit je einem Satz dazu an; die Auswahl merkt sich die zuletzt geladene.*
 7c. **Update auf Knopfdruck** (Manuel: nicht jedes Addon soll beim Start
    suchen): Knopf „Nach Updates suchen“ in der Werkzeugleiste; die Suche
    beim Start ist ab Werk aus, in den Einstellungen einschaltbar. –
@@ -92,7 +94,7 @@ Wunschliste, offene Bugs und Tasks.
    Arten mit ihren Feldern, Bilder (auch in der Auswahl), Einsätze und
    Rechnen je Art, Übergabe an und Übernahme aus CAM für alle Arten (CAM
    baut denselben Körper wie das Bild), die neuen Einsätze auf die
-   passenden Operationen im Job. Als Nächstes Punkt 7b.*
+   passenden Operationen im Job.*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -132,7 +134,10 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    Hilfe dazu „Eine Außenkontur schruppen“ (P-2026-09-26-13).
 4. **Maschine:** „Maschine bearbeiten“ (W-001 Stufen 1–2) und **„Maschine
    verfahren“** (Stufe 3, P-2026-09-25-67, Revolverplätze -69): Laufen die Achsen richtig
-   herum, stimmt der Nullpunkt?
+   herum, stimmt der Nullpunkt? In einem leeren FreeCAD bietet
+   „Beispielmaschine laden …“ fünf fertige Maschinen zum Ausprobieren
+   (P-2026-09-26-62) – etwa die Drehmaschine mit Revolver: T und C1
+   verfahren, P1/P2 angetrieben von S3.
 5. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
    Nr. 13–23 sind von dieser Nacht) und die sechs Fragen zu Stufe 4

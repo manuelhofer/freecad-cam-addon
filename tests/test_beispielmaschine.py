@@ -1,7 +1,9 @@
-# Prüft die Beispielmaschine zum Ausprobieren (W-001): Der Löser lässt alle
+# Prüft die Beispielmaschinen zum Ausprobieren (W-001): Der Löser lässt alle
 # Teile, wo sie gebaut sind; X1, Y1, Z1, S1 und beide Aufnahmen sind
 # eingerichtet, ohne Warnung; Verfahren bewegt Tisch, Sattel und Kopf in
-# Achsrichtung und hält die Grenzen ein.
+# Achsrichtung und hält die Grenzen ein. Dann alle fünf Bauarten zur Auswahl
+# (Drehmaschine, 3-Achs, drei 5-Achs): jede mit ihren Achsen, ohne Warnung,
+# jede Achse fährt, und die Auswahl merkt sich die zuletzt geladene.
 import os
 import sys
 
@@ -10,7 +12,7 @@ sys.path.insert(0, ADDON)
 
 import FreeCAD as App
 
-from camaddon import beispielmaschine, sprache
+from camaddon import PARAMETER_PFAD, beispielmaschine, sprache
 from camaddon import maschine as m
 from camaddon import schruppwerte as sw
 from camaddon import verfahren as vf
@@ -41,7 +43,7 @@ for teil in TEILE:
 doc.recompute()
 for teil in TEILE:
     pruefe(doc.getObject(teil).Placement.isSame(gebaut[teil], 1e-6), f"{teil} verschoben")
-pruefe(doc.Label == "Beispielmaschine" and ma.Label == "Beispiel-Fräsmaschine", "Namen")
+pruefe(doc.Label == "Beispiel 3-Achs-Fräse" and ma.Label == "3-Achs-Fräse", "Namen")
 
 # Eingerichtet und ohne Warnung.
 namen = sorted(b.NcName for b in m.betriebsarten(ma))
@@ -81,6 +83,62 @@ v.grundstellung()
 pruefe(all(weg(t).Length < 1e-6 for t in TEILE), "Grundstellung")
 
 App.closeDocument(doc.Name)
+
+# Alle Bauarten zur Auswahl.
+ACHSEN = {
+    beispielmaschine.DREHMASCHINE: ["C1", "S1", "S3", "T", "X1", "Y1", "Z1"],
+    beispielmaschine.FRAESE_3: ["S1", "X1", "Y1", "Z1"],
+    beispielmaschine.TISCH_TISCH: ["A1", "C1", "S1", "X1", "Y1", "Z1"],
+    beispielmaschine.KOPF_KOPF: ["A1", "B1", "S1", "X1", "Y1", "Z1"],
+    beispielmaschine.KOPF_TISCH: ["B1", "C1", "S1", "X1", "Y1", "Z1"],
+}
+pruefe(list(ACHSEN) == list(beispielmaschine.ARTEN), f"Bauarten {beispielmaschine.ARTEN}")
+# lade() merkt sich die Bauart in den Einstellungen – danach wie vorher.
+einstellungen = App.ParamGet(PARAMETER_PFAD)
+zuletzt_vorher = einstellungen.GetString(beispielmaschine._ZULETZT, "")
+KOERPER = ("Part::Box", "Part::Cylinder", "App::Part")
+for art in beispielmaschine.ARTEN:
+    asm, ma = beispielmaschine.lade(art)
+    doc = asm.Document
+    pruefe(beispielmaschine.zuletzt_gewaehlt() == art, f"{art}: nicht gemerkt")
+    pruefe(ma.Label == beispielmaschine.titel(art), f"{art}: Maschine heißt {ma.Label}")
+    namen = sorted(b.NcName for b in m.betriebsarten(ma))
+    pruefe(namen == ACHSEN[art], f"{art}: Betriebsarten {namen}")
+    warnungen = [x.text for x in m.pruefe(ma) if x.schwere != HINWEIS]
+    pruefe(not warnungen, f"{art}: Warnungen {warnungen}")
+    arten = sorted(a.Art for a in m.aufnahmen(ma))
+    pruefe(m.AUFNAHME_WERKSTUECK in arten and m.AUFNAHME_WERKZEUG in arten, f"{art}: {arten}")
+    # Der Löser lässt jedes Teil, wo es gebaut ist.
+    teile = [o for o in doc.Objects if o.TypeId in KOERPER]
+    gebaut = {o.Name: App.Placement(o.Placement) for o in teile}
+    for o in teile:
+        o.touch()
+    doc.recompute()
+    verschoben = [o.Name for o in teile if not o.Placement.isSame(gebaut[o.Name], 1e-6)]
+    pruefe(not verschoben, f"{art}: verschoben {verschoben}")
+    # Jede Achse fährt (30 mm oder 30°, höchstens bis zur Grenze), Grundstellung zurück.
+    v = vf.Verfahren(asm)
+    for achse in v.achsen:
+        erreicht = v.setze(achse, 30)
+        ist = vf.gelenkstellung(achse.gelenk, achse.art)
+        pruefe(
+            abs(erreicht) > 1 and abs(v.stellung(achse) - erreicht) < 1e-6,
+            f"{art}: {achse.gelenk.Name} auf {erreicht}, steht auf {v.stellung(achse)} ({ist})",
+        )
+    v.grundstellung()
+    zurueck = [o.Name for o in teile if not o.Placement.isSame(gebaut[o.Name], 1e-6)]
+    pruefe(not zurueck, f"{art}: nach der Grundstellung nicht zurück: {zurueck}")
+    if art == beispielmaschine.DREHMASCHINE:
+        # Zwölf Revolverplätze; P1 und P2 tragen die angetriebenen Werkzeuge an S3.
+        plaetze = [a for a in m.aufnahmen(ma) if a.Art == m.AUFNAHME_WERKZEUG]
+        angetrieben = sorted(a.Label for a in plaetze if getattr(a.Spindel, "NcName", "") == "S3")
+        pruefe(len(plaetze) == 12, f"Revolverplätze: {len(plaetze)}")
+        pruefe(len(angetrieben) == 2, f"angetrieben: {angetrieben}")
+    App.closeDocument(doc.Name)
+if zuletzt_vorher:
+    einstellungen.SetString(beispielmaschine._ZULETZT, zuletzt_vorher)
+else:
+    einstellungen.RemString(beispielmaschine._ZULETZT)
 sprache.setze_sprache(vorher)
 if fehler:
     raise AssertionError("\n".join(fehler))

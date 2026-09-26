@@ -67,20 +67,22 @@ class BefehlMaschineBearbeiten:
         doc = FreeCAD.ActiveDocument
         assembly = gewaehlte_assembly(doc) if doc else None
         if assembly is None:
-            if not beispiel_gewuenscht(tr("dialog.titel")):
+            art = beispiel_waehlen(tr("dialog.titel"))
+            if art is None:
                 return
-            assembly, _maschine = beispielmaschine.lade()
+            assembly, _maschine = beispielmaschine.lade(art)
             doc = assembly.Document
         doc.openTransaction(tr("dialog.titel"))
         maschine = m.lege_maschine_an(assembly)
         FreeCADGui.Control.showDialog(MaschinenPanel(assembly, maschine))
 
 
-def beispiel_gewuenscht(titel):
-    """Meldet, dass es keine Baugruppe gibt – mit dem Knopf „Beispielmaschine laden“.
+def beispiel_waehlen(titel):
+    """Meldet, dass es keine Baugruppe gibt – mit dem Knopf „Beispielmaschine laden …“.
 
-    Gibt True zurück, wenn die Beispielmaschine geladen werden soll: Wer das
-    Addon ausprobiert, soll nicht erst eine Maschine bauen müssen.
+    Wer das Addon ausprobiert, soll nicht erst eine Maschine bauen müssen: Der
+    Knopf bietet die Beispielmaschinen zur Auswahl an. Gibt die gewählte
+    Bauart zurück (beispielmaschine.ARTEN), oder None.
     """
     meldung = QtGui.QMessageBox(
         QtGui.QMessageBox.Information,
@@ -92,7 +94,67 @@ def beispiel_gewuenscht(titel):
     beispiel = meldung.addButton(tr("dialog.beispielmaschine"), QtGui.QMessageBox.ActionRole)
     beispiel.setToolTip(tr("dialog.beispielmaschine.tooltip"))
     meldung.exec()
-    return meldung.clickedButton() is beispiel
+    if meldung.clickedButton() is not beispiel:
+        return None
+    auswahl = BeispielAuswahl(FreeCADGui.getMainWindow())
+    return auswahl.gewaehlt() if auswahl.exec() else None
+
+
+class BeispielAuswahl(QtGui.QDialog):
+    """Welche Beispielmaschine? Die Bauarten als Liste, darunter, was die gewählte zeigt.
+
+    Vorgewählt ist die zuletzt geladene; Doppelklick lädt.
+    """
+
+    offen = None  # der gerade offene Dialog – für die Prüfungen
+
+    def __init__(self, eltern=None):
+        super().__init__(eltern)
+        self.setWindowTitle(tr("beispiel.auswahl.titel"))
+        self.setMinimumWidth(500)
+        text = QtGui.QLabel(tr("beispiel.auswahl.text"))
+        text.setWordWrap(True)
+        self.liste = QtGui.QListWidget()
+        for art in beispielmaschine.ARTEN:
+            eintrag = QtGui.QListWidgetItem(beispielmaschine.titel(art))
+            eintrag.setData(ROLLE, art)
+            self.liste.addItem(eintrag)
+        # So hoch, dass alle Bauarten ohne Rollbalken hineinpassen.
+        self.liste.setFixedHeight(
+            self.liste.sizeHintForRow(0) * self.liste.count() + 2 * self.liste.frameWidth() + 4
+        )
+        self.beschreibung = QtGui.QLabel()
+        self.beschreibung.setWordWrap(True)
+        self.beschreibung.setMinimumHeight(4 * self.fontMetrics().lineSpacing())
+        self.beschreibung.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        self.knoepfe = QtGui.QDialogButtonBox(
+            QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel
+        )
+        self.knoepfe.button(QtGui.QDialogButtonBox.Ok).setText(tr("beispiel.auswahl.laden"))
+        self.knoepfe.accepted.connect(self.accept)
+        self.knoepfe.rejected.connect(self.reject)
+        self.liste.currentItemChanged.connect(self._gewechselt)
+        self.liste.itemDoubleClicked.connect(lambda _eintrag: self.accept())
+
+        aufbau = QtGui.QVBoxLayout(self)
+        for widget in (text, self.liste, self.beschreibung, self.knoepfe):
+            aufbau.addWidget(widget)
+        zuletzt = beispielmaschine.zuletzt_gewaehlt()
+        self.liste.setCurrentRow(beispielmaschine.ARTEN.index(zuletzt))
+        BeispielAuswahl.offen = self
+
+    def _gewechselt(self, aktuell, _vorher):
+        art = aktuell.data(ROLLE) if aktuell is not None else None
+        self.beschreibung.setText(beispielmaschine.beschreibung(art) if art else "")
+
+    def gewaehlt(self):
+        """Die gewählte Bauart, oder None."""
+        eintrag = self.liste.currentItem()
+        return eintrag.data(ROLLE) if eintrag is not None else None
+
+    def done(self, ergebnis):
+        BeispielAuswahl.offen = None
+        super().done(ergebnis)
 
 
 def gewaehlte_assembly(doc):

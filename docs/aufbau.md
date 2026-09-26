@@ -49,6 +49,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `kette.py` | Assembly lesen: Glieder, Achsen, Meldungen |
 | `maschine.py` | Maschinenobjekt: Objektarten, Anlegen, Revolverplätze, Prüfung, Tisch/Kopf |
 | `verfahren.py` | Maschine von Hand verfahren: Stellung wie am Gelenk, Grenzen, Bauteile hinter der Achse bewegen |
+| `beispielmaschine.py` | Beispielmaschinen zum Ausprobieren: Baukasten für Assemblies und fünf Bauarten (Drehmaschine mit Y-Achse und Revolver, 3-Achs-, drei 5-Achs-Fräsen) – auch für die Maschinen der Prüfungen |
 | `export.py` | Übergabe an CAM mit Bericht |
 | `aktualisierung.py` | Update-Suche per Git, ohne Git per HTTPS (package.xml) und Update mit `installieren.py` |
 | `werkstoffe.py` | Werkstoffliste (W-002): mitgelieferte aus `daten/werkstoffe.json`, Anzeige, Suche |
@@ -60,7 +61,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `schruppwerte.py` | Schruppwerte planen: fz je ae mit Spandickenausgleich, Grenzen von Werkzeug und Maschine (auch aus W-001), Vorschlag mit größtem Q |
 | `job_schnittwerte.py` | Schnittwerte in die Werkzeug-Controller eines Jobs: Werkstoff vom Rohteil, Werkzeug zum TC, Einsatz vorschlagen, dazu Schrittweite und Zustelltiefe der passenden Operationen; setzen in einer Transaktion |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
-| `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“ |
+| `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“; ohne Baugruppe die Auswahl der Beispielmaschinen |
 | `gui_verfahren.py` | Befehl und Aufgabenfenster „Maschine verfahren“: ein Regler je Achse |
 | `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
 | `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format mit dem gewählten Dezimalzeichen ohne Tausenderpunkte, Prüfung (Punkt und Komma), Lesen, Zeigen; Dezimalzeichen in Texten |

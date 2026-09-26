@@ -17,7 +17,7 @@ from . import beispielmaschine, einheiten, symbol
 from . import maschine as m
 from . import verfahren as vf
 from .gui_hilfe import kopfzeile
-from .gui_maschine import beispiel_gewuenscht, gewaehlte_assembly
+from .gui_maschine import beispiel_waehlen, gewaehlte_assembly
 from .gui_teile import GRAU, fett
 from .gui_zahlen import zahlenformat
 from .kette import LINEAR
@@ -51,9 +51,10 @@ class BefehlMaschineVerfahren:
         doc = FreeCAD.ActiveDocument
         assembly = gewaehlte_assembly(doc) if doc else None
         if assembly is None:
-            if not beispiel_gewuenscht(tr("vf.titel")):
+            art = beispiel_waehlen(tr("vf.titel"))
+            if art is None:
                 return
-            assembly, _maschine = beispielmaschine.lade()
+            assembly, _maschine = beispielmaschine.lade(art)
             doc = assembly.Document
         verfahren = vf.Verfahren(assembly)
         if not verfahren.achsen:

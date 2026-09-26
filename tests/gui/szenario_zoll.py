@@ -28,7 +28,14 @@ def schritte(h):
         erster.accept()
     yield 300
 
-    from camaddon import einheiten, gui_schruppwerte, gui_verfahren, gui_werkzeuge
+    from camaddon import (
+        beispielmaschine,
+        einheiten,
+        gui_maschine,
+        gui_schruppwerte,
+        gui_verfahren,
+        gui_werkzeuge,
+    )
     from camaddon import gui_schnittwerte as gs
     from camaddon import verfahren as vf
     from camaddon import werkzeuge as wz
@@ -117,8 +124,14 @@ def schritte(h):
     yield 800
     meldung = h.modal()
     if isinstance(meldung, QtGui.QMessageBox):
-        laden = next(k for k in meldung.buttons() if k.text() == "Beispielmaschine laden")
+        laden = next(k for k in meldung.buttons() if k.text() == "Beispielmaschine laden …")
         laden.click()
+    # Aus der Auswahl die 3-Achs-Fräse.
+    yield from h.warte_auf(lambda: gui_maschine.BeispielAuswahl.offen is not None)
+    auswahl = gui_maschine.BeispielAuswahl.offen
+    if auswahl is not None:
+        auswahl.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.FRAESE_3))
+        auswahl.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield from h.warte_auf(lambda: gui_verfahren.VerfahrPanel.offen is not None)
     panel = gui_verfahren.VerfahrPanel.offen
     h.pruefe(panel is not None, "„Maschine verfahren“ öffnet sich nicht")

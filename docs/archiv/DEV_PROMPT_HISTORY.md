@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-62 beispielmaschinen-zur-auswahl
+
+### EINGELESEN
+- STATUS_SNAPSHOT Punkt 7b (Manuel nach dem ersten Ausprobieren): die
+  üblichen Bauarten zur Auswahl – Schrägbett-Drehmaschine mit Y-Achse
+  (CLX-ähnlich, Revolver mit radialem und axialem angetriebenem Werkzeug),
+  3-Achs-Fräse, 5-Achs Tisch/Tisch (A/C), Kopf/Kopf (A/B), Kopf/Tisch
+  (B/C).
+- Der geparkte Stand im Stash „WIP Beispielmaschinen zur Auswahl“
+  (Baukasten, fünf Bauarten, Auswahldialog), `tests/test_beispielmaschine.py`,
+  `tests/gui/szenario_beispielmaschine.py`, `tests/gui/szenario_zoll.py`.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py` (Baukasten erweitert: Rahmen, gedrehte
+  Zylinder, LCS mit Richtung; fünf Bauarten; `titel`, `beschreibung`,
+  `zuletzt_gewaehlt`, `lade(art)`)
+- `camaddon/gui_maschine.py` (`beispiel_waehlen`, `BeispielAuswahl`),
+  `camaddon/gui_verfahren.py`
+- `translations/de.json`, `translations/en.json`
+- `help/de/achsen.html`, `help/en/achsen.html`, `help/de/verfahren.html`,
+  `help/en/verfahren.html`
+- `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`
+- `tests/test_beispielmaschine.py`, `tests/gui/szenario_beispielmaschine.py`,
+  `tests/gui/szenario_zoll.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Leeres FreeCAD → „Maschine bearbeiten“ → „Beispielmaschine laden …“ → die
+Auswahl zeigt fünf Bauarten mit je einem Satz dazu; „Drehmaschine mit
+Y-Achse“ → Laden: Dokument „Beispiel Drehmaschine“, der Dialog ist offen,
+P1 auf dem Revolver hat das Feld „Revolverplatz“. „Maschine verfahren“ in
+einem leeren Dokument → 3-Achs-Fräse → X1, Y1, Z1 fahren.
+
+### DONE
+- „Beispielmaschine laden …“ bietet fünf Bauarten an, fertig eingerichtet:
+  Drehmaschine mit Y-Achse (Schrägbett 45°, Hauptspindel S1/C1, X1, Y1, Z1,
+  Revolver T mit zwölf Plätzen, P1 radial und P2 axial angetrieben an S3),
+  3-Achs-Fräse (X1, Y1, Z1, S1), 5-Achs Tisch/Tisch (A1, C1), Kopf/Kopf (A1,
+  B1), Kopf/Tisch (B1, C1) – je mit Werkzeug- und Werkstückaufnahme.
+- Die Auswahl steht beim nächsten Mal auf der zuletzt geladenen; Doppelklick
+  lädt.
+
+### TEST
+- `test_beispielmaschine` (neu: alle fünf – Achsen, keine Warnung, Teile
+  bleiben beim Neuberechnen, jede Achse fährt, Grundstellung, Revolver)
+  in 1.1.3 und im Wochen-Build; Szenarien `beispielmaschine` (neu: Auswahl,
+  Drehmaschine mit Revolverplatz, Übersicht aller fünf als Bild) und
+  `zoll` in beiden. Bilder angesehen.
+
+### NEXT
+- #39: Mausrad soll Felder und Auswahllisten nicht verstellen, wenn man
+  nur über sie scrollt.
+
 ## P-2026-09-26-61 version-0-17-0
 
 ### EINGELESEN
