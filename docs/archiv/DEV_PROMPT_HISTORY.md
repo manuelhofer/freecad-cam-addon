@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-80 version-0-21-0
+
+### EINGELESEN
+- Manuel (2026-09-26) auf die Frage, ob die 4-Achs-Bearbeitung nach `main`
+  soll: „Ja, pusch das mal alles komplett“ – „und dann Stop“.
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit 0.20.0:
+  „4-Achs-Bearbeitung“, Teil in die Stange (P-2026-09-26-79), und ihre
+  Spezifikation (-78).
+- Die beiden hießen auf dem Arbeitszweig `claude/4-achsen-rohrteil-plan-bqz52m`
+  zuerst -75 und -76. Diese Nummern hatte inzwischen die andere Sitzung auf
+  `main` vergeben (neue-maschine, schraege-achse-lesbarer), dazu 0.20.0 (-77).
+  Deshalb auf `main` neu aufgesetzt und umnummeriert.
+
+### DATEIEN
+- `package.xml` (0.21.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.21.0.
+
+### DONE
+- Version 0.20.0 → 0.21.0.
+
+### TEST
+- `scripts/alle_tests.sh` auf dem Stand dieses Commits („Neue Maschine …“
+  und 4-Achs-Bearbeitung zusammen): black und ruff sauber; FreeCAD 1.1.3
+  grün (48 ok, `test_export.py` übersprungen wie immer); Wochen-Build
+  26.3.0 dev (2026-09-16) grün (49 ok).
+
+### NEXT
+- Push nach `main`. Danach Schluss, auf Manuels Wort („und dann Stop“);
+  W-003 V2 erst auf seine Ansage.
+
 ## P-2026-09-26-79 vierachs-teil-in-die-stange
 
 ### EINGELESEN
