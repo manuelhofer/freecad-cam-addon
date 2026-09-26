@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-77 version-0-20-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit 0.19.0:
+  „Neue Maschine …“ mit Maßen der Drehmaschine (P-2026-09-26-75), dazu
+  -76 (lesbarer, nichts Sichtbares).
+
+### DATEIEN
+- `package.xml` (0.20.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.20.0.
+
+### DONE
+- Version 0.19.0 → 0.20.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push.
+
 ## P-2026-09-26-76 schraege-achse-lesbarer
 
 ### EINGELESEN
