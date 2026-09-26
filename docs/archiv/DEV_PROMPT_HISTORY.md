@@ -12,6 +12,73 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-65 spezifikation-schraege-achse
+
+### EINGELESEN
+- Manuel (2026-09-26): „schrägbett kinematik … eine schräge Achse für X
+  und noch eine schräge Achse für Y, und beide müssen verfahren, um Y zu
+  bewegen … erstmal nur planen“. Nach dem Plan im Chat: „das sind alles
+  wichtige Faktoren, die man eingeben können sollte … oder so, dass es ein
+  Leichtes ist, so etwas zu erstellen“.
+- Seine Wahl aus vier Fragen mit Optionen: erst Eintrag in „Maschine
+  bearbeiten“, danach Vorlage mit Eingabemaske; Winkel eintragen, die
+  Baugruppe folgt; „Maschine verfahren“ zuerst wie im Programm. Zur
+  Auswahl der Steuerung: „Man hat doch einen Postprozessor??“
+- `spezifikation_maschine_aus_baugruppe.md`, `spezifikation_simulation.md`
+  (Abschnitt 4 rechnet schon mit schiefen Achsen), `kette.py`,
+  `verfahren.py`, `export.py`, `beispielmaschine.py` (Drehmaschine:
+  Schrägbett 45°, Y rechtwinklig zu X), `gui_maschine.py`, `maschine.py`,
+  `schruppwerte.py` (Höchstvorschub = kleinster aller Linearachsen).
+- FreeCADs CAM-Maschinendefinition (Wochen-Build,
+  `Mod/CAM/Machine/models/machine.py`): je Linearachse nur Richtung,
+  Grenzen, Eilgang; keine Transformation. Für Bahnen nutzt CAM nur die
+  Drehachsen (`Path/Base/Generator/rotation.py`); die Maschine trägt einen
+  Postprozessor (`postprocessor_file_name`).
+- Siemens 840D sl, Funktionshandbuch Sonderfunktionen: TRAANG,
+  `TRAANG_ANGLE_1`, −90° < α < 90°. Fanuc: „Angular Axis Control“
+  (Parameternummern nicht nachgeprüft, deshalb nicht genannt).
+
+### DATEIEN
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Abschnitt 7c neu,
+  Abschnitt 2 ergänzt, Stufe 3b, Entschieden)
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Manuel findet in Abschnitt 7c der Maschinen-Spezifikation seine vier
+Entscheidungen, die Rechnung mit Beispiel und die sieben Schritte mit
+Klickweg wieder.
+
+### DONE
+- Abschnitt 7c „Schräge Achse“: Begriffe (schräge und ausgleichende Achse,
+  Winkel α, Programmachsen), Rechnung in beide Richtungen mit Beispiel
+  (α = 30°: Y +10 → Y1 +11,547, X1 −5,774), Folgen (Arbeitsraum als
+  Parallelogramm, Geschwindigkeit min(vY1 · cos α, vX1 ÷ tan α)),
+  Transformation als dritte Art von Eintrag im Maschinenobjekt, Winkel nur
+  in der Baugruppe, Erkennung, Skizzen für „Maschine bearbeiten“ und
+  „Maschine verfahren“, Übergabe an CAM, Schruppwerte, Stufe 4, Vorlage,
+  „Nicht Teil davon“.
+- Stufe 3b mit sieben Schritten; Entscheidung unter „Entschieden“ – ohne
+  Auswahl der Steuerung, wie Manuels Rückfrage nahelegt: Die Steuerung
+  steckt im Postprozessor, und das Programm bleibt rechtwinklig.
+- Bewusst offen: Aufbau der Vorlage (eigener Befehl oder in
+  „Beispielmaschine laden …“) – wird vor Schritt 7 mit Skizze entschieden;
+  das Vorzeichen von α bei Siemens – vor dem Hilfetext im Handbuch prüfen.
+
+### TEST
+- Versuch (Claude, ohne Oberfläche, 1.1.3 und Wochen-Build): an der
+  Beispiel-Drehmaschine beide Gelenk-Koordinatensysteme des Y-Gelenks um
+  30° gedreht (Offset1/Offset2, um die Normale der X/Y-Ebene). Ergebnis in
+  beiden Versionen: kein Teil bewegt sich, X/Y stehen danach 120° (Y 30°
+  aus dem rechten Winkel), Y1 = 10 fährt den Schlitten genau 10 mm in der
+  neuen Richtung, der Revolver dreht sich nicht, die Stellung bleibt beim
+  Neuberechnen, die Grundstellung ist exakt, der Winkel bleibt nach
+  Speichern und Laden. Damit trägt die Entscheidung „die Baugruppe folgt“.
+- Reine Doku, kein Testlauf.
+
+### NEXT
+- Stufe 3b, Schritt 1: Eintrag „Schräge Achse“ in „Maschine bearbeiten“.
+
 ## P-2026-09-26-64 version-0-18-0
 
 ### EINGELESEN

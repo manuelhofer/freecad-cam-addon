@@ -37,8 +37,9 @@ Wochen-Build bzw. die nächste Version braucht.
 
 **Was der CAM-Maschinendefinition fehlt** und deshalb nur im Addon lebt:
 Beschleunigung, Ruck, getrennter max. Vorschub, **eine Achse mit mehreren
-Betriebsarten** (S4/C4) und jede Geometrie. Der Export schreibt, was FreeCAD
-kennt; der Rest bleibt vollständig im Dokument erhalten.
+Betriebsarten** (S4/C4), **Transformationen der Steuerung** (etwa eine
+schräge Achse, Abschnitt 7c) und jede Geometrie. Der Export schreibt, was
+FreeCAD kennt; der Rest bleibt vollständig im Dokument erhalten.
 
 ## 3. Begriffe
 
@@ -194,6 +195,168 @@ Alles mit denselben Bausteinen – Gelenk, Betriebsart, Aufnahme:
 | **Reitstock** von Hand | Schiebegelenk am Bett | keine – von Hand verstellt | – |
 | **Pinole** | Schiebegelenk im Reitstock | Linear oder keine | – |
 
+## 7c. Schräge Achse (Transformation der Steuerung)
+
+Bei vielen Schrägbett-Drehmaschinen mit Y-Achse fährt der Y-Schlitten nicht
+rechtwinklig zum X-Schlitten, sondern schräg dazu. Das NC-Programm bleibt
+trotzdem rechtwinklig: Die Steuerung rechnet es um – bei Siemens die
+Transformation „schräge Achse“ (TRAANG, Winkel in `TRAANG_ANGLE_1`), bei
+Fanuc „Angular Axis Control“. Für ein reines Y im Programm fahren dann
+**beide** Schlitten (Manuel, 2026-09-26: „beide müssen verfahren, um Y zu
+bewegen“).
+
+Dass das Bett selbst schräg im Raum liegt, ist dagegen keine Transformation:
+Das X im Programm zeigt einfach in Richtung des X-Schlittens. So ist die
+Beispiel-Drehmaschine gebaut (Bett um 45° gekippt, Y rechtwinklig zu X).
+
+**Begriffe**
+
+- **Schräge Achse** – der Schlitten, der schräg steht (meist Y1).
+- **Ausgleichende Achse** – der Schlitten, der mitfährt, damit das Werkzeug
+  rechtwinklig läuft (meist X1). Er zeigt genau in Richtung seiner
+  Programmachse: Ein reines X im Programm fährt nur ihn.
+- **Winkel α** – wie weit die schräge Achse aus dem rechten Winkel zur
+  ausgleichenden gekippt ist; 0° heißt rechtwinklig. Positiv, wenn sie zur
+  Plus-Seite der ausgleichenden kippt – ein Bild im Dialog zeigt es.
+- **Programmachsen** – X und Y, wie sie im NC-Programm stehen,
+  rechtwinklig zueinander. Ihre Namen sind aus den Betriebsarten vorbelegt
+  (X1 → X, Y1 → Y) und änderbar.
+
+**Rechnung** – Wege in mm, gezählt von der Stellung 0 der Gelenke:
+
+```
+vom Programm zu den Schlitten      von den Schlitten zum Programm
+Y1 = Y / cos α                     Y = Y1 · cos α
+X1 = X − Y · tan α                 X = X1 + Y1 · sin α
+```
+
+Beispiel α = 30°: Y +10 mm → Y1 +11,547 mm und X1 −5,774 mm. Bei
+Drehmaschinen steht X im Programm meist als Durchmesser; hier ist X der Weg
+des Schlittens (Radius) – siehe „Nicht Teil davon“.
+
+**Was daraus folgt**
+
+- **Der Arbeitsraum ist ein Parallelogramm, kein Rechteck.** Wie weit Y
+  reicht, hängt davon ab, wo X steht: X1 muss ausgleichen können. Beispiel
+  X1 −170 … 150 mm, Y1 −60 … 60 mm, α = 30°: Y reicht höchstens ±52,0 mm;
+  steht X auf 140 mm, geht Y nach unten nur bis −17,3 mm – dann steht X1 an
+  seiner Grenze 150 mm.
+- **Geschwindigkeit:** Fährt Y mit v, fährt Y1 mit v ÷ cos α und X1 mit
+  v · tan α. Für Y gilt deshalb höchstens min(vY1 · cos α, vX1 ÷ tan α) –
+  bei Eilgang, Vorschub und Beschleunigung gleich. Beispiel: Y1 5000 mm/min,
+  X1 10 000 mm/min, α = 30° → Y höchstens 4330 mm/min.
+- **Der Postprozessor bleibt, wie er ist:** Das Programm ist rechtwinklig,
+  umrechnen tut die Steuerung.
+
+**Im Maschinenobjekt** kommt zu Betriebsarten und Aufnahmen eine dritte Art
+von Eintrag: die **Transformation**, zuerst nur „Schräge Achse“. Später
+passen dort TRANSMIT (Stirnseite), TRACYL (Mantelfläche) und 5-Achs-TCP
+hinein – sie sind Transformationen, keine Betriebsarten.
+
+- Der Eintrag verweist auf zwei Betriebsarten der Art Linear (schräge und
+  ausgleichende Achse) und hält die Namen der Programmachsen. Gebrochene
+  Verweise wie in Abschnitt 5: gemeldet, nicht übergeben.
+- **Der Winkel steht nur in der Baugruppe** – in der Richtung des
+  Schiebegelenks der schrägen Achse –, nicht noch einmal im Eintrag. Der
+  Dialog misst ihn dort.
+- **Winkel eintragen, die Baugruppe folgt** (Manuel): Wer einen Winkel
+  eintippt, dreht damit die Führung der schrägen Achse. Das Addon dreht
+  beide Gelenk-Koordinatensysteme des Schiebegelenks gleich, um die Normale
+  der Ebene aus beiden Achsen. Der Schlitten und alles darauf behalten ihre
+  Lage – der Revolver bleibt gerade –, nur die Fahrrichtung ändert sich.
+  Steht der Schlitten dabei nicht auf 0, bleibt er auf seiner Stellung, nun
+  entlang der neuen Richtung. Ein Schritt Strg+Z.
+  Ausprobiert (P-2026-09-26-65) an der Beispiel-Drehmaschine, Y-Führung um
+  30° gedreht, in 1.1.3 und im Wochen-Build: kein Teil bewegt sich, der
+  Revolver dreht sich nicht, Y1 fährt genau in der neuen Richtung, die
+  Stellung bleibt beim Neuberechnen, der Winkel nach Speichern und Laden.
+- Erlaubt sind −89° bis 89°. Bei 90° führen beide Schlitten in dieselbe
+  Richtung – das sagt ein Satz am Feld.
+- **Erkennung:** Stehen zwei Linearachsen weder parallel noch rechtwinklig
+  zueinander und gibt es keinen Eintrag, zeigt „Maschine bearbeiten“ einen
+  Hinweis: „Y1 steht 30,0° schräg zu X1. Rechnet die Steuerung Y
+  rechtwinklig um? – Schräge Achse anlegen“. Ein Klick legt den Eintrag an;
+  ausgleichend ist vorbelegt die Achse, deren Name im Alphabet vorn steht,
+  tauschen geht im Eintrag.
+
+**Dialog „Maschine bearbeiten“** – ein neuer Bereich unter den Achsen:
+
+```
+Transformationen                                         (?)
+┌────────────────────────────────────────────────────────┐
+│ Schräge Achse Y1 – gleicht aus: X1, 30,0°              │
+└────────────────────────────────────────────────────────┘
+[+ Schräge Achse]  [Entfernen]
+┌ gewählter Eintrag ─────────────────────────────────────┐
+│ Schräge Achse ........... [Y1              ▾]          │
+│ gleicht aus ............. [X1              ▾]          │
+│ Namen im Programm ....... X [X   ]   Y [Y   ]          │
+│ Winkel .................. [ 30,0 ] °                  │
+│   [Bild: X1, Y1, rechter Winkel und α]                 │
+│ Beispiel: Y +10 mm → Y1 +11,5 mm, X1 −5,8 mm           │
+└────────────────────────────────────────────────────────┘
+```
+
+Verweilt die Maus auf dem Eintrag, fährt die Maschine kurz ein Y des
+Programms hin und her – beide Schlitten bewegen sich (Abschnitt 11,
+„Zeigen, welches Teil gemeint ist“).
+
+**„Maschine verfahren“** bekommt bei einer schrägen Achse oben einen
+Umschalter; zuerst steht er auf „wie im Programm“ (Manuel):
+
+```
+Achsen:  (•) wie im Programm   ( ) der Maschine
+X   ├──────●──────────┤  [   0,0 ] mm
+Y   ├────────●────────┤  [  10,0 ] mm
+      X1 −5,8 mm    Y1 11,5 mm                  (grau)
+Z1  ├────●────────────┤  [   0,0 ] mm
+C1  ├●────────────────┤  [   0,0 ] °
+Weiter geht Y hier nicht: X1 steht an seiner Grenze 150 mm.
+```
+
+- „Wie im Programm“: Regler für die Programmachsen X und Y; beide Schlitten
+  fahren sichtbar mit, ihre Stellungen stehen grau darunter. Die übrigen
+  Achsen wie bisher.
+- „Der Maschine“: je Schlitten ein Regler, wie bisher; darunter grau, wo das
+  Werkzeug im Programm steht.
+- Die Regler reichen so weit, wie die Achse überhaupt kommt. Hält ein
+  Schlitten an seiner Grenze, bleibt der Regler stehen, und die Zeile
+  darunter sagt, welcher Schlitten angeschlagen hat.
+
+**An CAM übergeben:** Statt der schrägen Richtung von Y1 geht die
+rechtwinklige Richtung der Programmachse hinaus (Name wie bisher Y1), mit
+Grenzen und Eilgang umgerechnet (Grenzen · cos α, Eilgang wie oben). Der
+Bericht sagt: „Y1 ist eine schräge Achse (30° zu X1). Die Grenzen in CAM
+gelten nur, solange X1 Platz zum Ausgleichen hat; genau rechnet das erst die
+Prüfung auf der Maschine (Stufe 4a).“
+
+**Schruppwerte planen:** Der Höchstvorschub der Maschine ist der kleinste
+aller Linearachsen; für die schräge Achse zählt dabei der umgerechnete Wert
+für Y (oben).
+
+**Stufe 4:** Die Achsstellungen einer Bahn (spezifikation_simulation.md,
+Abschnitt 4) rechnen im Programm-Koordinatensystem: X entlang der
+ausgleichenden Achse, Y rechtwinklig dazu in der Ebene beider Achsen. Die
+Grenzen prüfen die Schlitten, und die Meldung nennt den, der anschlägt: „Für
+Y = 35 mm müsste X1 auf 162 mm, die Grenze ist 150 mm.“
+
+**Vorlage mit Eingabemaske** (Manuel: „so, dass es ein Leichtes ist, so
+etwas zu erstellen“): Aus wenigen Zahlen – Bettneigung, Winkel der
+Y-Achse, Wege X/Y/Z, Revolverplätze, Höchstdrehzahl – baut das Addon eine
+fertige Drehmaschine samt Eintrag „Schräge Achse“. Ob das ein eigener Befehl
+wird oder in „Beispielmaschine laden …“ steckt, wird vor diesem Schritt mit
+einer Skizze entschieden.
+
+**Nicht Teil davon**
+
+- X als Durchmesser anzeigen (in „Maschine verfahren“ steht wie bisher der
+  Weg des Schlittens) – ein eigenes Thema, falls gewünscht.
+- TRANSMIT, TRACYL, 5-Achs-TCP – sie kommen in die gleiche Liste, sobald
+  jemand sie braucht.
+- Eine Auswahl der Steuerung (siehe „Entschieden“).
+- Offen für den Hilfetext: ob Siemens das Vorzeichen von α genauso zählt –
+  vorher im Handbuch nachsehen, statt es zu behaupten.
+
 ## 8. Beschleunigung ermitteln (Hilfetext für den Dialog)
 
 Von genau zu grob:
@@ -255,6 +418,26 @@ Patch.
   zurück. **Revolver** (P-2026-09-25-69): eine Auswahl der Plätze; der
   gewählte Platz dreht an die Stelle, an der beim Öffnen P1 stand.
 
+**Stufe 3b – Schräge Achse** (Abschnitt 7c; Manuel, 2026-09-26) – je ein
+Patch, in dieser Reihenfolge:
+1. Eintrag „Schräge Achse“ in „Maschine bearbeiten“: anlegen, Achsen wählen,
+   Winkel aus der Baugruppe, Beispielzeile. *Klickweg:* Beispiel-Drehmaschine
+   → „Maschine bearbeiten“ → „+ Schräge Achse“ → Y1, gleicht aus X1 → der
+   Eintrag zeigt 0,0° und „Y +10 mm → Y1 +10,0 mm, X1 0,0 mm“.
+2. Winkel eintragen, die Baugruppe folgt. *Klickweg:* Winkel 30 → in der
+   3D-Ansicht steht die Y-Führung 30° schräg, der Revolver gerade; die
+   Beispielzeile zeigt „Y1 +11,5 mm, X1 −5,8 mm“; Strg+Z stellt die Führung
+   zurück.
+3. Erkennung: Hinweis bei schräg stehenden Linearachsen ohne Eintrag, ein
+   Klick legt ihn an.
+4. „Maschine verfahren“ wie im Programm. *Klickweg:* Y auf 10 → beide
+   Schlitten fahren, grau darunter „X1 −5,8 mm, Y1 11,5 mm“; am Anschlag
+   sagt eine Zeile, welcher Schlitten hält.
+5. An CAM übergeben: Y rechtwinklig, Grenzen und Eilgang umgerechnet, Satz
+   im Bericht.
+6. Schruppwerte planen: umgerechneter Höchstvorschub für Y.
+7. Vorlage mit Eingabemaske – Aufbau vorher mit Skizze entscheiden.
+
 **Stufe 4 – Werkzeugbahn abfahren und Kollision prüfen** – eigene
 Spezifikation: [spezifikation_simulation.md](spezifikation_simulation.md)
 (Entwurf, P-2026-09-25-70, wartet auf Manuels Antworten).
@@ -309,3 +492,14 @@ diesen Dialog heißt das konkret:
   Dokument, danach gleich der Dialog. Gebaut mit dem Baukasten der
   Prüfungen (`camaddon/beispielmaschine.py`); ihre Gelenke lassen die Teile,
   wo sie gebaut sind: Versatz (Offset) auf beiden Seiten, Stellung 0.
+- **Schräge Achse** (Manuel, P-2026-09-26-65; Abschnitt 7c): erst der
+  Eintrag in „Maschine bearbeiten“ für selbst gebaute Baugruppen, danach
+  eine Vorlage mit Eingabemaske. Der Winkel wird eingetragen, und die
+  Baugruppe folgt (die Führung dreht sich, der Revolver bleibt gerade).
+  „Maschine verfahren“ zeigt dann zuerst „wie im Programm“. **Keine
+  Auswahl der Steuerung:** Die Steuerung steckt schon im Postprozessor
+  (Manuel: „Man hat doch einen Postprozessor“), und für die schräge Achse
+  braucht sie niemand – das Programm bleibt rechtwinklig. Die Hilfe nennt,
+  wo der Winkel bei Siemens und Fanuc steht; braucht das Addon später etwas
+  Steuerungsabhängiges, liest es den Postprozessor der Maschine, statt
+  doppelt zu fragen.

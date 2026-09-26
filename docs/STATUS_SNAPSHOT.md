@@ -4,7 +4,7 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufen 1 bis 3 fertig und automatisch geprüft; warten auf Manuels Test. Danach Stufe 4 (Werkzeugbahn abfahren, Kollision – eigene Spezifikation).
+- **IN ARBEIT** – W-001, Stufen 1 bis 3 fertig und automatisch geprüft; warten auf Manuels Test. Jetzt Stufe 3b (schräge Achse, Punkt 11 unten), danach Stufe 4 (Werkzeugbahn abfahren, Kollision – eigene Spezifikation).
 - **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
   und Wochen-Build 26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien
@@ -96,6 +96,17 @@ Wunschliste, offene Bugs und Tasks.
    baut denselben Körper wie das Bild), die neuen Einsätze auf die
    passenden Operationen im Job.*
 
+*Schräge Achse (W-001 Stufe 3b, Manuel 2026-09-26)*
+11. **Schrägbett mit schräger Y-Achse:** Fährt der Y-Schlitten schräg zum
+   X-Schlitten, rechnet die Steuerung ein rechtwinkliges Y auf beide um
+   (Siemens TRAANG) – für Y fahren beide. Eintrag „Schräge Achse“ in
+   „Maschine bearbeiten“ (Winkel eintragen, die Baugruppe folgt),
+   Erkennung, „Maschine verfahren“ wie im Programm, Übergabe an CAM,
+   Höchstvorschub; danach eine Vorlage mit Eingabemaske. – *Spezifikation:
+   Abschnitt 7c und Stufe 3b in
+   [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
+   (P-2026-09-26-65), sieben Schritte; als Nächstes Schritt 1.*
+
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
 das Repository öffentlich stellen (T-005), dann installiert die Zeile aus
@@ -143,8 +154,8 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    Nr. 13–23 sind von dieser Nacht) und die sechs Fragen zu Stufe 4
    ([Entwurf](spezifikation_simulation.md), Abschnitt 9).
 
-Danach: W-001 Stufe 4a (Reichweite prüfen), sobald die Fragen beantwortet
-sind.
+Danach: W-001 Stufe 4a (Reichweite prüfen), sobald die schräge Achse
+(Punkt 11) steht und die Fragen zu Stufe 4 beantwortet sind.
 
 ## Wunschliste
 
