@@ -32,6 +32,7 @@ def schritte(h):
     erster = h.modal()
     if erster is not None:
         erster.liste.setCurrentIndex(erster.liste.findData("de"))
+        erster.wahl_dezimalzeichen.setCurrentIndex(erster.wahl_dezimalzeichen.findData(","))
         erster.accept()
     yield 300
     # So stellt FreeCAD das Zahlenformat auf einem deutschen System ein

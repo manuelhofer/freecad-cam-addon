@@ -3,7 +3,7 @@
     "befehl.ueber.titel": "About the CAM Addon",
     "befehl.ueber.tooltip": "Shows version and purpose of the CAM Addon.",
     "ueber.text": "<h3>CAM Addon {version}</h3><p>Makes FreeCAD CAM easier to use.</p><p>So far: describe a machine as an assembly – axes, spindles, tool and workpiece mounts –, move it by hand and hand it over to CAM. Tool manager with a material list, cutting data per material and use case, a comparison of strategies and a planner for roughing values; spindle speed, feed, step over and step down into the CAM job.</p><p>License: LGPL-2.1-or-later<br><a href=\"https://github.com/manuelhofer/freecad-cam-addon\">github.com/manuelhofer/freecad-cam-addon</a></p>",
-    "sprachwahl.titel": "CAM Addon – Choose language",
+    "sprachwahl.titel": "CAM Addon – Language and numbers",
     "sprachwahl.frage": "Which language should the CAM Addon speak?",
     "sprachwahl.hinweis": "You can change this at any time: Edit → Preferences → CAM Addon.",
     "einstellungen.gruppe": "CAM Addon",
@@ -533,5 +533,11 @@
     "wv.zustellung.tooltip": "How ae and ap are shown in the table: in mm or in percent of the diameter (ap 25 mm at Ø 12 = 208 %). They are always saved in mm; the choice applies to all tools and is kept for next time.",
     "wv.spitzenwinkel": "Point angle",
     "wv.spitzenwinkel.tooltip": "Angle of the drill point. Twist drills usually have 118°, for steel and stainless steel also 130° or 140°, spot drills 90° or 120°. Empty: 118°. Goes to CAM as the drill's tip angle and into the picture.",
-    "wv.spitzenwinkel.platzhalter": "usual: {wert}"
+    "wv.spitzenwinkel.platzhalter": "usual: {wert}",
+    "zahlen.frage": "And which decimal separator should numbers have?",
+    "zahlen.komma": "Comma: 12,5 mm · fz 0,05 mm",
+    "zahlen.punkt": "Point: 12.5 mm · fz 0.05 mm",
+    "einstellungen.zahlen.gruppe": "Numbers",
+    "einstellungen.zahlen.feld": "Decimal separator:",
+    "einstellungen.zahlen.hinweis": "Applies to all dialogs of the addon as soon as they are opened again. You can always type either, a point or a comma."
 }

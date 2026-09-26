@@ -1,8 +1,11 @@
 # Erster Start nach der Installation: Sprachwahl erscheint auf Englisch (so
 # läuft FreeCAD hier), mit dem Namen des Addons im Titel und Platz für die
-# Texte jeder Sprache; beim Wählen von Deutsch beschriftet sie sich um. Die
-# Wahl steht sofort in user.cfg, die Knöpfe des Addons sind gleich deutsch,
-# und die Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich.
+# Texte jeder Sprache; beim Wählen von Deutsch beschriftet sie sich um.
+# Darunter das Dezimalzeichen mit Beispielzahlen, vorbelegt aus FreeCAD
+# (hier der Punkt); gewählt wird das Komma. Die Wahl steht sofort in
+# user.cfg, die Knöpfe des Addons sind gleich deutsch, und die
+# Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich. Die
+# Einstellungsseite ändert Sprache und Dezimalzeichen.
 import os
 
 import FreeCAD
@@ -18,17 +21,26 @@ def schritte(h):
         return
     h.bild("1_sprachwahl_englisch", dialog)
     h.pruefe(
-        dialog.windowTitle() == "CAM Addon – Choose language",
+        dialog.windowTitle() == "CAM Addon – Language and numbers",
         f"Sprachwahl startet nicht auf Englisch: {dialog.windowTitle()!r}",
+    )
+    zeichen = dialog.wahl_dezimalzeichen
+    h.pruefe(
+        zeichen.currentData() == "."
+        and zeichen.itemText(0) == "Comma: 12,5 mm · fz 0,05 mm"
+        and zeichen.itemText(1) == "Point: 12.5 mm · fz 0.05 mm",
+        f"Dezimalzeichen: {zeichen.currentData()!r} {zeichen.itemText(0)!r}",
     )
 
     dialog.liste.setCurrentIndex(dialog.liste.findData("de"))
     yield 300
     h.bild("2_sprachwahl_deutsch", dialog)
     h.pruefe(
-        dialog.windowTitle() == "CAM-Addon – Sprache wählen",
+        dialog.windowTitle() == "CAM-Addon – Sprache und Zahlen",
         f"Sprachwahl beschriftet sich nicht um: {dialog.windowTitle()!r}",
     )
+    h.pruefe(zeichen.itemText(0).startswith("Komma: 12,5"), f"Beispiel: {zeichen.itemText(0)!r}")
+    zeichen.setCurrentIndex(zeichen.findData(","))
     # Das Fenster hatte von Anfang an Platz für den längeren deutschen Text –
     # es wächst beim Umschalten nicht auf jedem System mit.
     noetig = dialog.heightForWidth(dialog.width())
@@ -36,11 +48,15 @@ def schritte(h):
     dialog.accept()
     yield 500
 
-    from camaddon import sprache
+    from camaddon import einheiten, sprache
+    from camaddon.gui_zahlen import zahl_zeigen
 
     h.pruefe(sprache.gewaehlte_sprache() == "de", "Wahl wurde nicht gespeichert")
+    h.pruefe(einheiten.gewaehltes_dezimalzeichen() == ",", "Dezimalzeichen nicht gespeichert")
     with open(os.path.join(FreeCAD.getUserConfigDir(), "user.cfg"), encoding="utf-8") as datei:
-        h.pruefe('Name="Sprache"' in datei.read(), "Wahl steht nicht sofort in user.cfg")
+        inhalt = datei.read()
+        h.pruefe('Name="Sprache"' in inhalt, "Wahl steht nicht sofort in user.cfg")
+        h.pruefe('Name="Dezimalzeichen"' in inhalt, "Dezimalzeichen nicht sofort in user.cfg")
 
     FreeCADGui.activateWorkbench("AssemblyWorkbench")
     yield 1500
@@ -75,13 +91,18 @@ def schritte(h):
     h.pruefe(
         seite.liste.currentData() == "de", "Einstellungsseite zeigt nicht die gewählte Sprache"
     )
-    seite.form.resize(500, 200)
+    seite.form.resize(500, 320)
     seite.form.show()
     yield 300
     h.bild("5_einstellungsseite", seite.form)
+    h.pruefe(seite.wahl_dezimalzeichen.currentData() == ",", "Einstellungsseite: Dezimalzeichen")
     seite.liste.setCurrentIndex(seite.liste.findData("en"))
+    seite.wahl_dezimalzeichen.setCurrentIndex(seite.wahl_dezimalzeichen.findData("."))
     seite.saveSettings()
     h.pruefe(sprache.gewaehlte_sprache() == "en", "Einstellungsseite speichert die Sprache nicht")
+    h.pruefe(zahl_zeigen(12.5) == "12.5", f"mit Punkt: {zahl_zeigen(12.5)!r}")
+    einheiten.setze_dezimalzeichen(",")
+    h.pruefe(zahl_zeigen(12.5) == "12,5", f"mit Komma: {zahl_zeigen(12.5)!r}")
     h.pruefe(
         aktion.text() == "Cutting data into the job", f"zurück auf Englisch: {aktion.text()!r}"
     )

@@ -31,6 +31,7 @@ def schritte(h):
     erster = h.modal()
     if erster is not None:
         erster.liste.setCurrentIndex(erster.liste.findData("de"))
+        erster.wahl_dezimalzeichen.setCurrentIndex(erster.wahl_dezimalzeichen.findData(","))
         erster.accept()
     yield 300
     QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.German, QtCore.QLocale.Germany))
@@ -157,7 +158,7 @@ def schritte(h):
     )
     h.bild("5d_torus_beispiel", d)
     tippen(d.feld_durchmesser, "10,5")
-    tippen(d.feld_eckradius, "0,5")
+    tippen(d.feld_eckradius, "0.5")  # Punkt geht auch, wenn das Komma eingestellt ist
     d.feld_nummer.setValue(1)
     yield 200
     h.pruefe(d.zeile_eckradius.isVisible(), "Eckradius beim Torusfräser fehlt")

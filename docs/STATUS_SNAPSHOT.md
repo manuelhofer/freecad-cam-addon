@@ -55,11 +55,13 @@ Wunschliste, offene Bugs und Tasks.
 8. Beim ersten Start (mit der Sprache) und in den Einstellungen des
    Addons: **Maßsystem** mm oder inch und **Dezimaltrennzeichen** , oder
    . – mit Beispielzahlen, vorbelegt aus FreeCADs Einstellungen
-   (Einheitensystem, Zahlenformat).
+   (Einheitensystem, Zahlenformat). – *Dezimalzeichen fertig
+   (P-2026-09-26-45); Maßsystem folgt mit Punkt 9.*
 9. Überall in der gewählten Einheit anzeigen und eingeben (mm/inch,
    m/min/SFM, mm/min/ipm, cm³/min/in³/min), Umschalter in der
    Werkzeugverwaltung; intern metrisch – verlustfrei, 1 in = 25,4 mm, 1/2"
-   bleibt 0,5 in. Eingabe nimmt Punkt und Komma.
+   bleibt 0,5 in. Eingabe nimmt Punkt und Komma (*fertig,
+   P-2026-09-26-45*).
 
 *Stufe C – Werkzeugarten wie in InventorCAM (eigene Spezifikation zuerst)*
 10. Arten: Schaft-, Kugel-, Torus-, Konik-, Schwalbenschwanz-,

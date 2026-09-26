@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Sprachwahl: Dialog beim ersten Start und Seite in den Einstellungen.
+"""Sprache und Zahlen: Dialog beim ersten Start und Seite in den Einstellungen.
 
 Der Dialog beim ersten Start beschriftet sich beim Durchblättern der Liste
 sofort in der markierten Sprache um – wer kein Englisch kann, sieht so, dass
-er richtig ist, bevor er bestätigt.
+er richtig ist, bevor er bestätigt. Darunter das Dezimalzeichen, mit
+Beispielzahlen, vorbelegt aus FreeCAD (Stufe B des Plans).
 
 Die Einstellungsseite enthält auch die Gruppe „Updates“ (gui_aktualisierung).
 """
@@ -12,7 +13,8 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import gui_aktualisierung, sprache
+from . import einheiten, gui_aktualisierung, sprache
+from .gui_zahlen import dezimalzeichen
 from .sprache import tr
 
 # Was nach einer Sprachwahl geschehen soll (gui_start: Knöpfe neu beschriften).
@@ -29,14 +31,33 @@ def _sprachliste(auswahl):
     return liste
 
 
+def _dezimalzeichenliste():
+    """QComboBox mit Komma und Punkt, vorgewählt das gewählte oder FreeCADs Dezimalzeichen."""
+    liste = QtGui.QComboBox()
+    for zeichen in einheiten.DEZIMALZEICHEN:
+        liste.addItem("", zeichen)
+    index = liste.findData(dezimalzeichen())
+    liste.setCurrentIndex(max(index, 0))
+    return liste
+
+
+def _dezimalzeichen_beschriften(liste, code=None):
+    """Die Einträge mit Beispielzahlen – in der Sprache `code` (None: der des Addons)."""
+    liste.setItemText(0, tr("zahlen.komma", sprache=code))
+    liste.setItemText(1, tr("zahlen.punkt", sprache=code))
+
+
 class ErsterStartDialog(QtGui.QDialog):
-    """Fragt beim ersten Start nach der Sprache der Oberfläche."""
+    """Fragt beim ersten Start nach der Sprache der Oberfläche und dem Dezimalzeichen."""
 
     def __init__(self, eltern=None):
         super().__init__(eltern)
         self.liste = _sprachliste(sprache.aktuelle_sprache())
         self.frage = QtGui.QLabel()
         self.frage.setWordWrap(True)
+        self.frage_zahlen = QtGui.QLabel()
+        self.frage_zahlen.setWordWrap(True)
+        self.wahl_dezimalzeichen = _dezimalzeichenliste()
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
         self.knopf = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok)
@@ -45,6 +66,9 @@ class ErsterStartDialog(QtGui.QDialog):
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(self.frage)
         aufbau.addWidget(self.liste)
+        aufbau.addSpacing(8)
+        aufbau.addWidget(self.frage_zahlen)
+        aufbau.addWidget(self.wahl_dezimalzeichen)
         aufbau.addWidget(self.hinweis)
         aufbau.addWidget(self.knopf)
         self.setMinimumWidth(420)
@@ -57,12 +81,18 @@ class ErsterStartDialog(QtGui.QDialog):
         """Der Code der markierten Sprache, z. B. "de"."""
         return self.liste.currentData()
 
+    def gewaehltes_dezimalzeichen(self):
+        """„,“ oder „.“."""
+        return self.wahl_dezimalzeichen.currentData()
+
     def _beschriften(self, *_):
         self._texte_setzen(self.gewaehlt())
 
     def _texte_setzen(self, code):
         self.setWindowTitle(tr("sprachwahl.titel", sprache=code))
         self.frage.setText(tr("sprachwahl.frage", sprache=code))
+        self.frage_zahlen.setText(tr("zahlen.frage", sprache=code))
+        _dezimalzeichen_beschriften(self.wahl_dezimalzeichen, code)
         self.hinweis.setText(tr("sprachwahl.hinweis", sprache=code))
 
     def _platz_fuer_alle_sprachen(self):
@@ -87,21 +117,26 @@ class ErsterStartDialog(QtGui.QDialog):
 def _erster_start():
     dialog = ErsterStartDialog(FreeCADGui.getMainWindow())
     dialog.exec_()  # wartet, bis eine Sprache gewählt ist
-    _uebernehmen(dialog.gewaehlt())
+    _uebernehmen(dialog.gewaehlt(), dialog.gewaehltes_dezimalzeichen())
 
 
-def _uebernehmen(code):
-    """Speichert die Sprache sofort – FreeCAD schreibt seine Einstellungen sonst erst beim
-    Beenden, und nach einem Absturz käme die Frage wieder – und beschriftet neu."""
+def _uebernehmen(code, zeichen):
+    """Speichert Sprache und Dezimalzeichen sofort – FreeCAD schreibt seine Einstellungen
+    sonst erst beim Beenden, und nach einem Absturz käme die Frage wieder – und beschriftet neu."""
     sprache.setze_sprache(code)
+    einheiten.setze_dezimalzeichen(zeichen)
     FreeCAD.saveParameter()
     for aufgabe in NACH_SPRACHWAHL:
         aufgabe()
 
 
 def beim_ersten_start_fragen():
-    """Fragt einmal nach der Sprache, sobald das Hauptfenster steht."""
-    if sprache.gewaehlte_sprache() is None:
+    """Fragt einmal nach Sprache und Dezimalzeichen, sobald das Hauptfenster steht.
+
+    Auch, wer die Sprache schon gewählt hat, wird einmal gefragt, wenn das
+    Dezimalzeichen neu dazugekommen ist – mit seiner Sprache vorgewählt.
+    """
+    if sprache.gewaehlte_sprache() is None or einheiten.gewaehltes_dezimalzeichen() is None:
         QtCore.QTimer.singleShot(0, _erster_start)
 
 
@@ -120,8 +155,18 @@ class Einstellungsseite:
         gruppen_aufbau.addRow(tr("einstellungen.sprache.feld"), self.liste)
         gruppen_aufbau.addRow(hinweis)
 
+        self.wahl_dezimalzeichen = _dezimalzeichenliste()
+        _dezimalzeichen_beschriften(self.wahl_dezimalzeichen)
+        zahlen = QtGui.QGroupBox(tr("einstellungen.zahlen.gruppe"))
+        zahlen_aufbau = QtGui.QFormLayout(zahlen)
+        zahlen_aufbau.addRow(tr("einstellungen.zahlen.feld"), self.wahl_dezimalzeichen)
+        zahlen_hinweis = QtGui.QLabel(tr("einstellungen.zahlen.hinweis"))
+        zahlen_hinweis.setWordWrap(True)
+        zahlen_aufbau.addRow(zahlen_hinweis)
+
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
+        aufbau.addWidget(zahlen)
         aufbau.addWidget(gui_aktualisierung.einstellungen_gruppe(self))
         aufbau.addStretch()
 
@@ -129,10 +174,12 @@ class Einstellungsseite:
     def loadSettings(self):
         index = self.liste.findData(sprache.aktuelle_sprache())
         self.liste.setCurrentIndex(max(index, 0))
+        index = self.wahl_dezimalzeichen.findData(dezimalzeichen())
+        self.wahl_dezimalzeichen.setCurrentIndex(max(index, 0))
         gui_aktualisierung.einstellungen_laden(self)
 
     def saveSettings(self):
-        _uebernehmen(self.liste.currentData())
+        _uebernehmen(self.liste.currentData(), self.wahl_dezimalzeichen.currentData())
         gui_aktualisierung.einstellungen_speichern(self)
 
 

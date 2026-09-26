@@ -44,6 +44,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | --- | --- |
 | `__init__.py` | Grunddaten: Addon-Ordner, Version aus `package.xml`, Parameterpfad, `symbol()` |
 | `sprache.py` | Texte aus `translations/*.json`: `tr()` |
+| `einheiten.py` | Zahlen (Stufe B): gewähltes Dezimalzeichen, Eingaben mit Punkt oder Komma lesen |
 | `hilfe.py` | Hilfeseiten `help/<sprache>/<thema>.html` finden |
 | `kette.py` | Assembly lesen: Glieder, Achsen, Meldungen |
 | `maschine.py` | Maschinenobjekt: Objektarten, Anlegen, Revolverplätze, Prüfung, Tisch/Kopf |
@@ -61,7 +62,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“ |
 | `gui_verfahren.py` | Befehl und Aufgabenfenster „Maschine verfahren“: ein Regler je Achse |
 | `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
-| `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format ohne Tausenderpunkte, Prüfung, Lesen, Zeigen; Dezimalzeichen in Texten |
+| `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format mit dem gewählten Dezimalzeichen ohne Tausenderpunkte, Prüfung (Punkt und Komma), Lesen, Zeigen; Dezimalzeichen in Texten |
 | `gui_teile.py` | Kleine Bausteine der Werkzeugverwaltung: fette Beschriftung, Knopf, Feld mit Einheit, rote Hinweiszeile, Grau |
 | `gui_zeigen.py` | Hervorheben und kurzes Hin-und-her-Bewegen in der 3D-Ansicht |
 | `gui_hilfe.py` | Knopf (?) und Hilfefenster |

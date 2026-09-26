@@ -3,7 +3,7 @@
     "befehl.ueber.titel": "Über das CAM-Addon",
     "befehl.ueber.tooltip": "Zeigt Version und Zweck des CAM-Addons.",
     "ueber.text": "<h3>CAM-Addon {version}</h3><p>Macht FreeCAD CAM leichter bedienbar.</p><p>Bisher: eine Maschine als Baugruppe beschreiben – Achsen, Spindeln, Werkzeug- und Werkstückaufnahmen –, von Hand verfahren und an CAM übergeben. Werkzeugverwaltung mit Werkstoffliste, Schnittwerten je Werkstoff und Einsatz, Strategievergleich und Schruppwert-Planer; Drehzahl, Vorschub, Schrittweite und Zustelltiefe in den CAM-Job.</p><p>Lizenz: LGPL-2.1-or-later<br><a href=\"https://github.com/manuelhofer/freecad-cam-addon\">github.com/manuelhofer/freecad-cam-addon</a></p>",
-    "sprachwahl.titel": "CAM-Addon – Sprache wählen",
+    "sprachwahl.titel": "CAM-Addon – Sprache und Zahlen",
     "sprachwahl.frage": "In welcher Sprache soll das CAM-Addon mit dir sprechen?",
     "sprachwahl.hinweis": "Du kannst das später jederzeit ändern: Bearbeiten → Einstellungen → CAM-Addon.",
     "einstellungen.gruppe": "CAM-Addon",
@@ -533,5 +533,11 @@
     "wv.zustellung.tooltip": "Wie ae und ap in der Tabelle stehen: in mm oder in Prozent des Durchmessers (ap 25 mm bei Ø 12 = 208 %). Gespeichert wird immer in mm; die Wahl gilt für alle Werkzeuge und bleibt fürs nächste Mal.",
     "wv.spitzenwinkel": "Spitzenwinkel",
     "wv.spitzenwinkel.tooltip": "Winkel der Bohrerspitze. Spiralbohrer haben meist 118°, für Stahl und Edelstahl auch 130° oder 140°, NC-Anbohrer 90° oder 120°. Leer: 118°. Geht als Spitzenwinkel des Bohrers an CAM und ins Bild.",
-    "wv.spitzenwinkel.platzhalter": "üblich: {wert}"
+    "wv.spitzenwinkel.platzhalter": "üblich: {wert}",
+    "zahlen.frage": "Und welches Dezimalzeichen sollen die Zahlen haben?",
+    "zahlen.komma": "Komma: 12,5 mm · fz 0,05 mm",
+    "zahlen.punkt": "Punkt: 12.5 mm · fz 0.05 mm",
+    "einstellungen.zahlen.gruppe": "Zahlen",
+    "einstellungen.zahlen.feld": "Dezimalzeichen:",
+    "einstellungen.zahlen.hinweis": "Gilt für alle Dialoge des Addons, sobald sie neu geöffnet werden. Eintippen kannst du immer beides, Punkt oder Komma."
 }

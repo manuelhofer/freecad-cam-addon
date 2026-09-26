@@ -12,6 +12,65 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-45 dezimalzeichen
+
+### EINGELESEN
+- Manuel (2026-09-26): „die meisten CAM-Programme oder Maschinen arbeiten
+  eher mit . … wie ist das in FreeCAD selbst gelöst? … oder auswählbar“;
+  später: „es sollte bei Installation auswählbar sein … welche Trennzeichen
+  genutzt werden … mit Beispielzahlen … und auch in den Einstellungen des
+  Addons wieder ändern kann“.
+- Plan im Snapshot (Stufe B, Punkte 8 und 9), `camaddon/gui_zahlen.py`
+  (B-004: ohne Tausenderpunkte), `camaddon/gui_sprachwahl.py`.
+- FreeCAD 1.1.3 im frischen Profil: Wer schon beim Laden der Oberfläche
+  einen Parameter setzt, verhindert, dass `FreeCAD.saveParameter()` die
+  `user.cfg` anlegt – deshalb wählen die Szenarien das Komma im Dialog,
+  statt es im Testgerüst vorzugeben.
+
+### DATEIEN
+- `camaddon/einheiten.py` (neu: gewähltes Dezimalzeichen, `zahl_aus_text`
+  mit Punkt oder Komma)
+- `camaddon/gui_zahlen.py` (Zahlenformat nach der Wahl, sonst FreeCADs;
+  Prüfer nimmt Punkt und Komma; `dezimalzeichen()`)
+- `camaddon/gui_sprachwahl.py` (Dialog beim ersten Start und
+  Einstellungsseite: Dezimalzeichen mit Beispielzahlen; wer die Sprache
+  schon gewählt hat, wird einmal nach dem Dezimalzeichen gefragt)
+- `translations/de.json`, `translations/en.json` (`zahlen.*`,
+  `einstellungen.zahlen.*`, Titel „Sprache und Zahlen“)
+- `help/de|en/werkzeuge.html` (Zahlen mit Punkt oder Komma)
+- `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`
+- `tests/test_einheiten.py` (neu), `tests/gui/szenario_erster_start.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py` (Eckradius mit Punkt
+  getippt), alle Szenarien mit Sprachwahl (wählen das Komma)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update fragt das Addon beim nächsten Start einmal „Und welches
+Dezimalzeichen sollen die Zahlen haben?“ – vorgewählt ist das von FreeCAD
+(bei Manuel das Komma), zur Wahl „Komma: 12,5 mm · fz 0,05 mm“ und „Punkt:
+12.5 mm · fz 0.05 mm“. Mit „Punkt“ zeigt die Werkzeugverwaltung „Ø 10.5“
+und „0.05“. In jedem Zahlenfeld darf man „10,5“ oder „10.5“ tippen.
+Bearbeiten → Einstellungen → CAM-Addon → „Zahlen“ ändert es wieder.
+
+### DONE
+- Dezimalzeichen wählbar beim ersten Start und in den Einstellungen,
+  vorbelegt aus FreeCADs Zahlenformat; ohne Wahl gilt FreeCADs.
+- Eingaben nehmen immer Punkt und Komma; weiterhin keine
+  Tausendertrennzeichen und keine Zahlen unter 0 in den Feldern.
+- Wer die Sprache schon gewählt hat (Manuel), sieht den Dialog noch
+  einmal – mit seiner Sprache vorgewählt.
+
+### TEST
+- `test_einheiten.py`, `test_sprache.py`, `test_hilfe.py` in 1.1.3 und
+  26.3.0 grün; `szenario_erster_start` (Titel, Beispielzahlen,
+  `user.cfg`, Einstellungsseite: Punkt und Komma),
+  `szenario_werkzeugverwaltung` (Eckradius „0.5“ bei Komma),
+  `szenario_schnittwerte` in 1.1.3 grün, Screenshots angesehen. Voller
+  Lauf vor dem Push.
+
+### NEXT
+- B2: Maßsystem inch mit Umrechnung überall.
+
 ## P-2026-09-26-44 version-0-14-0
 
 ### EINGELESEN
