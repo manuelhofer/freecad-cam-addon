@@ -66,6 +66,13 @@ def programm_aus_schlitten(alpha, x1, y1):
     return x1 + y1 * math.sin(winkel), y1 * math.cos(winkel)
 
 
+def achsen(kette, trafo):
+    """(schräge, ausgleichende) Achse der Kette zur schrägen Achse `trafo` – oder None,
+    wenn eine fehlt oder keine Linearachse ist."""
+    paar = (_linearachse(kette, trafo.Schraeg), _linearachse(kette, trafo.Ausgleich))
+    return None if None in paar else paar
+
+
 def winkel(kette, maschine, trafo):
     """α der schrägen Achse `trafo` in Grad, gemessen in der Baugruppe.
 
@@ -83,6 +90,81 @@ def winkel_zwischen(kette, maschine, schraeg, ausgleich):
     rollen = m.rollen(kette, maschine)[0]
     s, a = (_richtung(achse, rollen) for achse in achsen)
     return math.degrees(math.asin(max(-1.0, min(1.0, s.dot(a)))))
+
+
+class Programm:
+    """X und Y des Programms über einer schrägen Achse – für „Maschine verfahren“.
+
+    Die Stellungen zählen wie an den Gelenken, ab Stellung 0, in mm. X zeigt
+    in Richtung der ausgleichenden Achse, Y rechtwinklig dazu; die Schlitten
+    fahren nach der Rechnung oben. `verfahren` ist ein verfahren.Verfahren
+    derselben Assembly.
+    """
+
+    def __init__(self, verfahren, maschine, trafo):
+        kette = verfahren.kette
+        self.verfahren = verfahren
+        self.trafo = trafo
+        self.alpha = winkel(kette, maschine, trafo)
+        self.schraeg, self.ausgleich = achsen(kette, trafo)
+
+    @staticmethod
+    def moeglich(verfahren, maschine, trafo):
+        """Lässt sich mit dieser schrägen Achse im Programm fahren – beide Achsen da, α gültig?"""
+        alpha = winkel(verfahren.kette, maschine, trafo)
+        return alpha is not None and abs(alpha) <= GROESSTER_WINKEL
+
+    def stellung(self):
+        """(x, y) im Programm, aus den Stellungen der beiden Schlitten."""
+        return programm_aus_schlitten(
+            self.alpha,
+            self.verfahren.stellung(self.ausgleich),
+            self.verfahren.stellung(self.schraeg),
+        )
+
+    def schlitten(self):
+        """(x1, y1): die Stellungen der ausgleichenden und der schrägen Achse."""
+        return self.verfahren.stellung(self.ausgleich), self.verfahren.stellung(self.schraeg)
+
+    def setze(self, x, y):
+        """Fährt das Werkzeug auf (x, y) im Programm – so weit die Schlitten kommen.
+
+        Die Schlitten fahren auf der Geraden vom jetzigen Punkt zum Ziel. Stößt
+        einer an eine Grenze seines Gelenks, halten beide dort – wie an der
+        Maschine. Gibt (x, y, anschlag) zurück: wo das Werkzeug jetzt steht und
+        (Achse, Grenze), an der es hielt, sonst None.
+        """
+        von = self.schlitten()
+        nach = schlitten_aus_programm(self.alpha, x, y)
+        anteil, anschlag = 1.0, None  # welcher Teil des Wegs geht, und woran es hält
+        for achse, start, ziel in zip((self.ausgleich, self.schraeg), von, nach, strict=True):
+            if ziel == start:
+                continue  # fährt nicht – auch nicht, wenn es schon außerhalb stand
+            for grenze in _ueberfahren(achse, ziel):
+                t = max((grenze - start) / (ziel - start), 0.0)
+                if t < anteil:
+                    anteil, anschlag = t, (achse, grenze)
+        x1, y1 = (start + anteil * (ziel - start) for start, ziel in zip(von, nach, strict=True))
+        self.verfahren.setze(self.ausgleich, x1)
+        self.verfahren.setze(self.schraeg, y1)
+        return (*self.stellung(), anschlag)
+
+    def bereich(self):
+        """((x_min, x_max), (y_min, y_max)) im Programm – so weit die Achsen überhaupt
+        kommen; None, wo ein Gelenk keine Grenze hat. Wie weit es gerade geht, hängt
+        von der anderen Achse ab (ein Parallelogramm, kein Rechteck)."""
+        a = math.radians(self.alpha)
+        y1 = (self.schraeg.minimum, self.schraeg.maximum)
+        x1 = (self.ausgleich.minimum, self.ausgleich.maximum)
+        if None in y1:
+            return (None, None), (None, None)
+        y = (y1[0] * math.cos(a), y1[1] * math.cos(a))
+        quer = sorted(g * math.sin(a) for g in y1)
+        x = (
+            None if x1[0] is None else x1[0] + quer[0],
+            None if x1[1] is None else x1[1] + quer[1],
+        )
+        return x, y
 
 
 def drehe_fuehrung(assembly, kette, maschine, trafo, alpha):
@@ -103,7 +185,7 @@ def drehe_fuehrung(assembly, kette, maschine, trafo, alpha):
     vorher = winkel(kette, maschine, trafo)
     if vorher is None:
         raise ValueError("schräge Achse ohne zwei Linearachsen")
-    schraeg, ausgleich = (_linearachse(kette, ba) for ba in (trafo.Schraeg, trafo.Ausgleich))
+    schraeg, ausgleich = achsen(kette, trafo)
     rollen = m.rollen(kette, maschine)[0]
     # Um die Normale der Ebene beider Achsen; positiv kippt die schräge zur ausgleichenden hin.
     normale = _richtung(schraeg, rollen).cross(_richtung(ausgleich, rollen))
@@ -251,6 +333,15 @@ def pruefe(maschine, kette):
                 )
             )
     return meldungen
+
+
+def _ueberfahren(achse, ziel):
+    """Die Grenzen der Achse, über die `ziel` hinausgeht (keine, eine)."""
+    if achse.maximum is not None and ziel > achse.maximum:
+        return [achse.maximum]
+    if achse.minimum is not None and ziel < achse.minimum:
+        return [achse.minimum]
+    return []
 
 
 def _winkel_text(alpha):

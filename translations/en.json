@@ -680,5 +680,15 @@
     "dialog.beispiel_schraeg": "Example: {name} {weg} → {schraeg} {weg_schraeg}, {ausgleich} {weg_ausgleich}",
     "dialog.beispiel_schraeg.tooltip": "This is how the control converts: for a move in just this direction of the program, both slides move.",
     "dialog.winkel_zu_gross": "At most ±89° – at 90° both slides would move in the same direction, and there would be no “{name}” left.",
-    "maschine.trafo_schraeg_erkannt": "{schraeg} is tilted {winkel} out of square with {ausgleich}. Does the control convert a square “{name}” onto both (inclined axis, Siemens TRAANG)? Clicking this note adds it under “Transformations”."
+    "maschine.trafo_schraeg_erkannt": "{schraeg} is tilted {winkel} out of square with {ausgleich}. Does the control convert a square “{name}” onto both (inclined axis, Siemens TRAANG)? Clicking this note adds it under “Transformations”.",
+    "vf.modus": "Axes:",
+    "vf.modus.programm": "as in the program",
+    "vf.modus.programm.tooltip": "The axes as in the NC program: square. For {name}, {schraeg} and {ausgleich} move together – this is how the control converts with the inclined axis.",
+    "vf.modus.maschine": "of the machine",
+    "vf.modus.maschine.tooltip": "One slider per slide – as when setting up by hand.",
+    "vf.programmachse.tooltip": "Axis of the program – the control converts it onto {schraeg} and {ausgleich}.",
+    "vf.grenzen_programm": "At most {min} … {max} {einheit} – how far it goes depends on where {andere} is.",
+    "vf.schlitten": "Slides: {ausgleich} {weg_ausgleich}, {schraeg} {weg_schraeg}",
+    "vf.im_programm": "In the program: {x_name} {x}, {y_name} {y}",
+    "vf.anschlag": "{name} cannot go further here: {achse} is at its limit {grenze}."
 }

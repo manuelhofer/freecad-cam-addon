@@ -680,5 +680,15 @@
     "dialog.beispiel_schraeg": "Beispiel: {name} {weg} → {schraeg} {weg_schraeg}, {ausgleich} {weg_ausgleich}",
     "dialog.beispiel_schraeg.tooltip": "So rechnet die Steuerung um: Für eine Bewegung nur in dieser Richtung des Programms fahren beide Schlitten.",
     "dialog.winkel_zu_gross": "Höchstens ±89° – bei 90° führen beide Schlitten in dieselbe Richtung, dann gäbe es kein „{name}“ mehr.",
-    "maschine.trafo_schraeg_erkannt": "{schraeg} steht {winkel} schräg zu {ausgleich}. Rechnet die Steuerung ein rechtwinkliges „{name}“ auf beide um (schräge Achse, Siemens TRAANG)? Ein Klick auf diesen Hinweis legt sie unter „Transformationen“ an."
+    "maschine.trafo_schraeg_erkannt": "{schraeg} steht {winkel} schräg zu {ausgleich}. Rechnet die Steuerung ein rechtwinkliges „{name}“ auf beide um (schräge Achse, Siemens TRAANG)? Ein Klick auf diesen Hinweis legt sie unter „Transformationen“ an.",
+    "vf.modus": "Achsen:",
+    "vf.modus.programm": "wie im Programm",
+    "vf.modus.programm.tooltip": "Die Achsen wie im NC-Programm: rechtwinklig. Für {name} fahren {schraeg} und {ausgleich} zusammen – so rechnet die Steuerung bei der schrägen Achse.",
+    "vf.modus.maschine": "der Maschine",
+    "vf.modus.maschine.tooltip": "Je Schlitten ein Regler – wie beim Einrichten von Hand.",
+    "vf.programmachse.tooltip": "Achse des Programms – die Steuerung rechnet sie auf {schraeg} und {ausgleich} um.",
+    "vf.grenzen_programm": "Höchstens {min} … {max} {einheit} – wie weit es geht, hängt davon ab, wo {andere} steht.",
+    "vf.schlitten": "Schlitten: {ausgleich} {weg_ausgleich}, {schraeg} {weg_schraeg}",
+    "vf.im_programm": "Im Programm: {x_name} {x}, {y_name} {y}",
+    "vf.anschlag": "Weiter geht {name} hier nicht: {achse} steht an seiner Grenze {grenze}."
 }

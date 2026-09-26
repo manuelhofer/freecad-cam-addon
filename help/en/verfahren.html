@@ -26,6 +26,22 @@ and the turret turns the shortest way until this station is where P1 was when
 the window opened – with 12 stations, P4 turns the turret by 90°. If a station
 is at that spot right now, the choice shows it, otherwise “–”.</p>
 
+<h3>Inclined axis: as in the program</h3>
+<p>If the machine has an <b>inclined axis</b> (in “Edit machine” under
+“Transformations”), there is a switch at the top:</p>
+<ul>
+<li><b>as in the program</b> (chosen first) – instead of the two slides, X
+and Y of the program are shown, square. For Y, <b>both</b> slides move, the
+way the control converts. Below it, in grey, where the slides are right
+now.</li>
+<li><b>of the machine</b> – one slider per slide, as when setting up by hand.
+Below it, in grey, where the tool is in the program.</li>
+</ul>
+<p>How far Y gets depends on where X is: the compensating slide has to be
+able to move along. If one reaches its limit, both stop there, and a red line
+says which one – for example “Y cannot go further here: X1 is at its limit
+150.00 mm.” So the working area is not a rectangle but a parallelogram.</p>
+
 <h3>What moves along</h3>
 <p>Everything behind the axis: its link and everything further out. When X1
 moves, the turret moves along; when the cradle A tilts, the rotary table C

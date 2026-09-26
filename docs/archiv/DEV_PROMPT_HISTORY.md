@@ -12,6 +12,79 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-69 verfahren-wie-im-programm
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 7c („Maschine verfahren“, Manuel: zuerst
+  „wie im Programm“) und Stufe 3b, Schritt 4; `gui_verfahren.py`,
+  `gui_zeigen.py` (Wackeln).
+
+### DATEIEN
+- `camaddon/schraege_achse.py` (`Programm`, `achsen`, `_ueberfahren`)
+- `camaddon/gui_verfahren.py` (Umschalter, Programmzeilen, graue Zeile, rote
+  Zeile am Anschlag)
+- `camaddon/gui_zeigen.py` (`WackelnProgramm`), `camaddon/gui_maschine.py`
+- `help/de/verfahren.html`, `help/en/verfahren.html`,
+  `help/de/transformationen.html`, `help/en/transformationen.html`
+- `translations/de.json`, `translations/en.json` (10 Texte)
+- `tests/test_schraege_achse.py`, `tests/gui/szenario_verfahren_schraeg.py` (neu)
+- `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine mit schräger Achse (Winkel 30° eingetragen) →
+„Maschine verfahren“ → oben steht „wie im Programm“, Regler X und Y → Y auf
+10 → beide Schlitten fahren, grau darunter „Schlitten: X1 −5,77 mm, Y1
+11,55 mm“ → X auf 140, Y auf −40 → Y hält bei −17,32, rot: „Weiter geht Y
+hier nicht: X1 steht an seiner Grenze 150,00 mm.“
+
+### DONE
+- `schraege_achse.Programm`: X und Y des Programms über einem Verfahren –
+  Stellung aus den Schlitten, `setze(x, y)` fährt beide Schlitten auf der
+  Geraden zum Ziel und hält an, wo einer an eine Grenze stößt (gibt Achse
+  und Grenze zurück), `bereich()` so weit die Achsen überhaupt kommen.
+- „Maschine verfahren“: Hat die Maschine eine gültige schräge Achse, steht
+  oben „Achsen: (•) wie im Programm ( ) der Maschine“, zuerst „wie im
+  Programm“. Dann stehen X und Y (Namen aus dem Eintrag) statt X1 und Y1
+  da, mit Grenzen „Höchstens … – wie weit es geht, hängt davon ab, wo X
+  steht“; grau darunter die Schlitten. „der Maschine“ baut die Zeilen wie
+  bisher, grau darunter das Programm. Am Anschlag eine rote Zeile; jede
+  andere Bewegung blendet sie aus. Das Raster wird beim Umschalten neu
+  gebaut; die grauen Zeilen brechen um und reichen bis zum Rand, damit sie
+  das Fenster nicht verbreitern.
+- „Maschine bearbeiten“: Verweilt die Maus auf dem Eintrag, fährt die
+  Maschine einmal ein Y des Programms hin und her (`WackelnProgramm`:
+  X-Schlitten und Y-Schlitten zusammen), danach steht alles exakt wie
+  vorher.
+- Hilfe: „Maschine verfahren“ erklärt den Umschalter und den Arbeitsraum als
+  Parallelogramm; „Transformationen“ verweist darauf.
+- Bewusst so: nur die erste gültige schräge Achse einer Maschine (mehrere
+  hat keine bekannte Maschine).
+- Gefunden, nicht hier behoben: Das Verfahrfenster ist mit der
+  Beispiel-Drehmaschine breiter als der Aufgabenbereich (Mindestbreite 423
+  Pixel; die grauen Grenzen-Zeilen brechen nicht um) – schon vor diesem
+  Patch; eigener Patch gleich danach.
+
+### TEST
+- Claude ohne Oberfläche, 1.1.3 und Wochen-Build: `test_schraege_achse.py`
+  zusätzlich: Y 10 → X1 −5,7735, Y1 11,547; Bereich X −200 … 180, Y
+  ±51,96; X 140 und Y −40 → Anschlag X1 bei 150, Y −17,3205; Y 70 →
+  Anschlag Y1 bei 60 (Y 51,96); zurück, Grundstellung; ohne ausgleichende
+  Achse nicht möglich.
+- Claude mit Oberfläche (Screenshots angesehen), beide Versionen:
+  `szenario_verfahren_schraeg` – Verweilen bewegt beide Schlitten und
+  stellt zurück, Umschalter zuerst „wie im Programm“, Achsen C1, T,
+  Werkzeugantrieb, Z1 plus X und Y, Y 10, Anschlag mit rotem Satz, „der
+  Maschine“ mit grauem Programm, Y1 von Hand auf 0, Grundstellung,
+  Abbrechen fährt alles zurück. `szenario_verfahren`,
+  `szenario_beispielmaschine`, `szenario_mausrad`, `szenario_schraege_achse`
+  laufen weiter grün (Wochen-Build).
+- Ob sich „wie im Programm“ verständlich bedient, prüft Manuel.
+
+### NEXT
+- Verfahrfenster schmaler (eigener Patch), dann Stufe 3b, Schritt 5: An CAM
+  übergeben.
+
 ## P-2026-09-26-68 schraege-achse-erkennen
 
 ### EINGELESEN

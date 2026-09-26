@@ -519,6 +519,7 @@ class MaschinenPanel:
                 if achse is not None:
                     teile += gui_zeigen.bauteile_hinter(self.kette, achse)
             gui_zeigen.hervorheben(teile)
+            self._zeige_programm_y(objekt)
 
     def springe_zu(self, bezug):
         """Wählt die Zeile des Objekts `bezug` in „Achsen“, „Transformationen“ oder „Aufnahmen“.
@@ -862,6 +863,18 @@ class MaschinenPanel:
         if self.wackeln:
             self.wackeln.stopp()
         self.wackeln = gui_zeigen.Wackeln(self.assembly, self.kette, achse)
+        self.wackeln.start()
+
+    def _zeige_programm_y(self, trafo):
+        """Fährt einmal ein Y des Programms hin und her – beide Schlitten bewegen sich."""
+        if self.wackeln and self.wackeln.laeuft() and self.wackeln.achse is trafo:
+            return
+        if self.wackeln:
+            self.wackeln.stopp()
+        alpha = schraege_achse.winkel(self.kette, self.maschine, trafo)
+        if alpha is None or abs(alpha) > schraege_achse.GROESSTER_WINKEL:
+            return
+        self.wackeln = gui_zeigen.WackelnProgramm(self.assembly, self.kette, self.maschine, trafo)
         self.wackeln.start()
 
     # --- Abfragen -------------------------------------------------------------

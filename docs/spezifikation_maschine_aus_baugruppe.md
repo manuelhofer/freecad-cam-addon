@@ -435,7 +435,9 @@ Patch, in dieser Reihenfolge:
    (der Dialog zeigt dann 0,1°) bis 89°.*
 4. „Maschine verfahren“ wie im Programm. *Klickweg:* Y auf 10 → beide
    Schlitten fahren, grau darunter „X1 −5,8 mm, Y1 11,5 mm“; am Anschlag
-   sagt eine Zeile, welcher Schlitten hält.
+   sagt eine Zeile, welcher Schlitten hält. – *Gebaut (P-2026-09-26-69),
+   dazu das Hin-und-her-Fahren beim Verweilen auf dem Eintrag; gilt für die
+   erste schräge Achse einer Maschine.*
 5. An CAM übergeben: Y rechtwinklig, Grenzen und Eilgang umgerechnet, Satz
    im Bericht.
 6. Schruppwerte planen: umgerechneter Höchstvorschub für Y.

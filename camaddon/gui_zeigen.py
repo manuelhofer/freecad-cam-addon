@@ -98,3 +98,48 @@ class Wackeln:
             )
         for bauteil, lage in self.vorher.items():
             bauteil.Placement = bewegung * lage
+
+
+class WackelnProgramm(Wackeln):
+    """Fährt einmal ein Y des Programms hin und her – bei einer schrägen Achse fahren
+    dabei beide Schlitten (Spezifikation W-001, Abschnitt 7c)."""
+
+    def __init__(self, assembly, kette, maschine, trafo):
+        from . import schraege_achse
+        from . import verfahren as vf
+
+        self.achse = trafo  # woran der Dialog erkennt, was gerade wackelt
+        schraeg, ausgleich = schraege_achse.achsen(kette, trafo)
+        alpha = schraege_achse.winkel(kette, maschine, trafo)
+        # Je mm Y im Programm fährt die schräge Achse 1/cos α, die ausgleichende −tan α.
+        weg_ausgleich, weg_schraeg = schraege_achse.schlitten_aus_programm(alpha, 0.0, 1.0)
+        in_assembly = assembly.Placement.inverse().Rotation
+        self.je_mm = {}  # Bauteil -> Verschiebung je mm Y, in Koordinaten der Assembly
+        for achse, weg in ((ausgleich, weg_ausgleich), (schraeg, weg_schraeg)):
+            richtung = in_assembly.multVec(vf.plusrichtung(achse)) * weg
+            for bauteil in bauteile_hinter(kette, achse):
+                self.je_mm[bauteil] = self.je_mm.get(bauteil, FreeCAD.Vector()) + richtung
+        self.bauteile = list(self.je_mm)
+        self.vorher = {b: FreeCAD.Placement(b.Placement) for b in self.bauteile}
+        self.weite = self._weite_nach_groesse()
+        self.schritt = 0
+        self.uhr = QtCore.QTimer()
+        self.uhr.setInterval(DAUER_MS // SCHRITTE)
+        self.uhr.timeout.connect(self._weiter)
+
+    def _weite_nach_groesse(self):
+        groesse = max(
+            (b.Shape.BoundBox.DiagonalLength for b in self.bauteile if hasattr(b, "Shape")),
+            default=GROESSE_OHNE_FORM,
+        )
+        return min(max(groesse * WEG_ANTEIL, WEG_MIN), WEG_MAX)
+
+    def _weiter(self):
+        self.schritt += 1
+        if self.schritt >= SCHRITTE:
+            self.stopp()
+            return
+        auslenkung = self.weite * math.sin(2 * math.pi * self.schritt / SCHRITTE)
+        for bauteil, lage in self.vorher.items():
+            verschiebung = self.je_mm[bauteil] * auslenkung
+            bauteil.Placement = FreeCAD.Placement(verschiebung, FreeCAD.Rotation()) * lage

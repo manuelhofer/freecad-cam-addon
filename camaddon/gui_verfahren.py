@@ -7,18 +7,25 @@ bewegt sich beim Ziehen mit, über die Grenzen des Gelenks hinaus geht es
 nicht. OK behält die Stellung (ein Schritt Rückgängig), Abbrechen stellt
 alles zurück, „Grundstellung“ fährt alle Achsen auf den Stand beim Öffnen.
 Gerechnet wird in verfahren.py.
+
+Hat die Maschine eine schräge Achse (W-001, Abschnitt 7c), gibt es oben
+einen Umschalter: „wie im Programm“ – zuerst gewählt (Manuel) – zeigt statt
+der beiden Schlitten X und Y des Programms, und für Y fahren beide
+(schraege_achse.Programm); „der Maschine“ je Schlitten einen Regler. Grau
+darunter steht jeweils die andere Sicht, und hält ein Schlitten an seiner
+Grenze, sagt eine rote Zeile, welcher.
 """
 
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import beispielmaschine, einheiten, symbol
+from . import beispielmaschine, einheiten, schraege_achse, symbol
 from . import maschine as m
 from . import verfahren as vf
 from .gui_hilfe import kopfzeile
 from .gui_maschine import beispiel_waehlen, gewaehlte_assembly
-from .gui_teile import GRAU, RuhigerRegler, fett, ruhiges_mausrad
+from .gui_teile import GRAU, RuhigerRegler, fett, hinweiszeile, ruhiges_mausrad
 from .gui_zahlen import zahlenformat
 from .kette import LINEAR
 from .sprache import tr
@@ -81,6 +88,15 @@ def _zahl(wert, stellen):
     return zahlenformat().toString(float(wert), "f", stellen)
 
 
+def _weg(wert):
+    """Ein Weg zum Lesen: „−5,77 mm“ bzw. in inch."""
+    stellen = einheiten.stellen(einheiten.LAENGE, 2)
+    # + 0.0 macht aus −0,00 eine 0,00.
+    gezeigt = round(einheiten.anzeige(wert, einheiten.LAENGE), stellen) + 0.0
+    zahl = _zahl(gezeigt, stellen).replace("-", "−")
+    return f"{zahl} {einheiten.einheit(einheiten.LAENGE)}"
+
+
 class VerfahrPanel:
     """Das Aufgabenfenster. FreeCAD ruft `getStandardButtons`, `accept` und `reject` auf."""
 
@@ -93,7 +109,10 @@ class VerfahrPanel:
         self.verfahren = verfahren
         self.maschine = m.finde_maschine(assembly)
         self.zeilen = {}  # Achse -> (Regler, Zahlenfeld)
+        self.programmzeilen = {}  # "x"/"y" -> (Regler, Zahlenfeld) – wie im Programm
         self.platzwahl = {}  # Revolverachse -> (Auswahl, [(Platz, Stellung)])
+        self.programm = self._programm()  # schraege_achse.Programm oder None
+        self.wie_im_programm = self.programm is not None  # zuerst wie im Programm (Manuel)
         self.form = self._baue()
 
     def getStandardButtons(self):
@@ -126,12 +145,17 @@ class VerfahrPanel:
         erklaerung = QtGui.QLabel(tr("vf.erklaerung"))
         erklaerung.setWordWrap(True)
         aufbau.addWidget(erklaerung)
+        if self.programm is not None:
+            aufbau.addWidget(self._baue_umschalter())
 
-        gitter = QtGui.QGridLayout()
-        gitter.setColumnStretch(1, 1)
-        for i, achse in enumerate(self.verfahren.achsen):
-            self._baue_zeile(gitter, 2 * i, achse)
-        aufbau.addLayout(gitter)
+        # Das Raster der Regler wird beim Umschalten neu gebaut – hier steht es.
+        self._rasterplatz = QtGui.QVBoxLayout()
+        aufbau.addLayout(self._rasterplatz)
+        self.raster = None
+        self._baue_raster()
+        self.anschlag = hinweiszeile()
+        self.anschlag.hide()
+        aufbau.addWidget(self.anschlag)
 
         self.knopf_grundstellung = QtGui.QPushButton(tr("vf.grundstellung"))
         self.knopf_grundstellung.setToolTip(tr("vf.grundstellung.tooltip"))
@@ -144,8 +168,153 @@ class VerfahrPanel:
         aufbau.addStretch()
         return ruhiges_mausrad(form)
 
+    def _programm(self):
+        """Die erste schräge Achse der Maschine, mit der sich im Programm fahren lässt."""
+        if self.maschine is None:
+            return None
+        for trafo in m.transformationen(self.maschine):
+            if schraege_achse.Programm.moeglich(self.verfahren, self.maschine, trafo):
+                return schraege_achse.Programm(self.verfahren, self.maschine, trafo)
+        return None
+
+    def _baue_umschalter(self):
+        """„Achsen: (•) wie im Programm  ( ) der Maschine“."""
+        zeile = QtGui.QWidget()
+        aufbau = QtGui.QHBoxLayout(zeile)
+        aufbau.setContentsMargins(0, 0, 0, 0)
+        aufbau.addWidget(QtGui.QLabel(tr("vf.modus")))
+        self.knopf_programm = QtGui.QRadioButton(tr("vf.modus.programm"))
+        self.knopf_programm.setToolTip(
+            tr(
+                "vf.modus.programm.tooltip",
+                name=self.programm.trafo.NameSchraeg,
+                schraeg=vf.namen(self.maschine, self.programm.schraeg),
+                ausgleich=vf.namen(self.maschine, self.programm.ausgleich),
+            )
+        )
+        self.knopf_maschine = QtGui.QRadioButton(tr("vf.modus.maschine"))
+        self.knopf_maschine.setToolTip(tr("vf.modus.maschine.tooltip"))
+        self.knopf_programm.setChecked(self.wie_im_programm)
+        self.knopf_maschine.setChecked(not self.wie_im_programm)
+        self.knopf_programm.toggled.connect(self._modus_gewechselt)
+        aufbau.addWidget(self.knopf_programm)
+        aufbau.addWidget(self.knopf_maschine)
+        aufbau.addStretch()
+        return zeile
+
+    def _modus_gewechselt(self, _an=None):
+        self.wie_im_programm = self.knopf_programm.isChecked()
+        self.anschlag.hide()
+        self._baue_raster()
+
+    def waehle_modus(self, wie_im_programm):
+        """Schaltet um: True = wie im Programm, False = der Maschine – für die Szenarien."""
+        knopf = self.knopf_programm if wie_im_programm else self.knopf_maschine
+        knopf.setChecked(True)
+
+    def _baue_raster(self):
+        """Je Achse eine Zeile; wie im Programm X und Y statt der beiden Schlitten."""
+        if self.raster is not None:
+            self._rasterplatz.removeWidget(self.raster)
+            self.raster.deleteLater()
+        self.zeilen, self.programmzeilen, self.platzwahl = {}, {}, {}
+        self.info = None
+        self.raster = QtGui.QWidget()
+        gitter = QtGui.QGridLayout(self.raster)
+        gitter.setContentsMargins(0, 0, 0, 0)
+        gitter.setColumnStretch(1, 1)
+        programm = self.programm if self.wie_im_programm else None
+        zeile = 0
+        for achse in self.verfahren.achsen:
+            if programm is not None and achse is programm.ausgleich:
+                zeile = self._baue_programmzeile(gitter, zeile, "x")
+            elif programm is not None and achse is programm.schraeg:
+                zeile = self._baue_programmzeile(gitter, zeile, "y")
+            else:
+                zeile = self._baue_zeile(gitter, zeile, achse)
+            if self.programm is not None and achse is self.programm.schraeg:
+                # Grau darunter die andere Sicht: die Schlitten bzw. das Programm.
+                # Umbrechend und bis zum Rand – sonst drückte die Zeile das Fenster
+                # breiter als den Aufgabenbereich.
+                self.info = QtGui.QLabel()
+                self.info.setWordWrap(True)
+                self.info.setStyleSheet(f"color: {GRAU.name()};")
+                gitter.addWidget(self.info, zeile, 1, 1, -1)
+                zeile += 1
+        self._rasterplatz.addWidget(ruhiges_mausrad(self.raster))
+        self._info_zeigen()
+
+    def _baue_programmzeile(self, gitter, zeile, welche):
+        """Wie _baue_zeile, für X oder Y des Programms („x“, „y“); gibt die nächste Zeile zurück.
+
+        Die Regler reichen so weit, wie die Achse überhaupt kommt – wie weit es
+        gerade geht, hängt von der anderen ab; dann hält die Bewegung an.
+        """
+        trafo = self.programm.trafo
+        name = trafo.NameAusgleich if welche == "x" else trafo.NameSchraeg
+        andere = trafo.NameSchraeg if welche == "x" else trafo.NameAusgleich
+        einheit = einheiten.einheit(einheiten.LAENGE)
+        stellen = einheiten.stellen(einheiten.LAENGE, 2)
+        x, y = self.programm.stellung()
+        stellung = x if welche == "x" else y
+        bereich_x, bereich_y = self.programm.bereich()
+        minimum, maximum = bereich_x if welche == "x" else bereich_y
+        unten = minimum if minimum is not None else stellung - OHNE_GRENZE_LINEAR
+        oben = maximum if maximum is not None else stellung + OHNE_GRENZE_LINEAR
+
+        beschriftung = fett(name)
+        beschriftung.setToolTip(
+            tr(
+                "vf.programmachse.tooltip",
+                schraeg=vf.namen(self.maschine, self.programm.schraeg),
+                ausgleich=vf.namen(self.maschine, self.programm.ausgleich),
+            )
+        )
+        regler = RuhigerRegler(QtCore.Qt.Horizontal)
+        regler.setRange(round(unten * SCHRITTE_JE_EINHEIT), round(oben * SCHRITTE_JE_EINHEIT))
+        regler.setValue(round(stellung * SCHRITTE_JE_EINHEIT))
+        regler.setToolTip(tr("vf.regler.tooltip"))
+        feld = QtGui.QDoubleSpinBox()
+        feld.setLocale(zahlenformat())
+        feld.setDecimals(stellen)
+        feld.setRange(
+            einheiten.anzeige(unten, einheiten.LAENGE) if minimum is not None else -FELD_GRENZE,
+            einheiten.anzeige(oben, einheiten.LAENGE) if maximum is not None else FELD_GRENZE,
+        )
+        feld.setSuffix(f" {einheit}")
+        feld.setValue(einheiten.anzeige(stellung, einheiten.LAENGE))
+        feld.setKeyboardTracking(False)
+        regler.valueChanged.connect(
+            lambda wert, w=welche: self.setze_programm(w, wert / SCHRITTE_JE_EINHEIT)
+        )
+        feld.valueChanged.connect(
+            lambda wert, w=welche: self.setze_programm(
+                w, einheiten.metrisch(wert, einheiten.LAENGE)
+            )
+        )
+        self.programmzeilen[welche] = (regler, feld)
+        gitter.addWidget(beschriftung, zeile, 0)
+        gitter.addWidget(regler, zeile, 1)
+        gitter.addWidget(feld, zeile, 2)
+        if minimum is None or maximum is None:
+            text = tr("vf.ohne_grenze")
+        else:
+            text = tr(
+                "vf.grenzen_programm",
+                min=_zahl(einheiten.anzeige(minimum, einheiten.LAENGE), stellen),
+                max=_zahl(einheiten.anzeige(maximum, einheiten.LAENGE), stellen),
+                einheit=einheit,
+                andere=andere,
+            )
+        grenzen = QtGui.QLabel(text)
+        grenzen.setWordWrap(True)
+        grenzen.setStyleSheet(f"color: {GRAU.name()};")
+        grenzen.setToolTip(tr("vf.grenzen.tooltip"))
+        gitter.addWidget(grenzen, zeile + 1, 1, 1, -1)
+        return zeile + 2
+
     def _baue_zeile(self, gitter, zeile, achse):
-        """Name, Regler und Zahlenfeld; darunter grau die Grenzen.
+        """Name, Regler und Zahlenfeld; darunter grau die Grenzen. Gibt die nächste Zeile zurück.
 
         Der Regler zählt in Zehntel mm bzw. Grad; das Feld zeigt
         Linearachsen in mm oder inch (einheiten.py).
@@ -195,6 +364,7 @@ class VerfahrPanel:
         grenzen.setStyleSheet(f"color: {GRAU.name()};")
         grenzen.setToolTip(tr("vf.grenzen.tooltip"))
         gitter.addWidget(grenzen, zeile + 1, 1, 1, 2)
+        return zeile + 2
 
     def _bereich(self, achse, stellung):
         """Von wo bis wo der Regler reicht: die Grenzen, sonst ein Stück um die Stellung."""
@@ -225,13 +395,86 @@ class VerfahrPanel:
         """Fährt eine Achse; Regler und Zahlenfeld zeigen danach, was erreicht ist."""
         erreicht = self.verfahren.setze(achse, stellung)
         self._zeige(achse, erreicht)
+        self.anschlag.hide()
+        self._info_zeigen()
         return erreicht
+
+    def setze_programm(self, welche, wert):
+        """Fährt X oder Y des Programms („x“, „y“) – beide Schlitten, so weit sie kommen.
+
+        Gibt (x, y) zurück, wo das Werkzeug jetzt steht. Hält ein Schlitten an
+        seiner Grenze, sagt die rote Zeile, welcher.
+        """
+        x, y = self.programm.stellung()
+        if welche == "x":
+            x = wert
+        else:
+            y = wert
+        x, y, anschlag = self.programm.setze(x, y)
+        self._programm_zeigen()
+        if anschlag is None:
+            self.anschlag.hide()
+        else:
+            achse, grenze = anschlag
+            trafo = self.programm.trafo
+            self.anschlag.setText(
+                tr(
+                    "vf.anschlag",
+                    name=trafo.NameAusgleich if welche == "x" else trafo.NameSchraeg,
+                    achse=vf.namen(self.maschine, achse),
+                    grenze=_weg(grenze),
+                )
+            )
+            self.anschlag.show()
+        self._info_zeigen()
+        return x, y
 
     def grundstellung(self):
         """Alle Achsen auf den Stand beim Öffnen."""
         self.verfahren.grundstellung()
-        for achse in self.verfahren.achsen:
+        for achse in self.zeilen:
             self._zeige(achse, self.verfahren.stellung(achse))
+        self._programm_zeigen()
+        self.anschlag.hide()
+        self._info_zeigen()
+
+    def _programm_zeigen(self):
+        """Regler und Felder von X und Y des Programms auf den Stand der Schlitten."""
+        if not self.programmzeilen:
+            return
+        for welche, wert in zip(("x", "y"), self.programm.stellung(), strict=True):
+            regler, feld = self.programmzeilen[welche]
+            for element in (regler, feld):
+                element.blockSignals(True)
+            regler.setValue(round(wert * SCHRITTE_JE_EINHEIT))
+            feld.setValue(einheiten.anzeige(wert, einheiten.LAENGE))
+            for element in (regler, feld):
+                element.blockSignals(False)
+
+    def _info_zeigen(self):
+        """Grau unter den Achsen der schrägen Achse: die andere Sicht."""
+        if self.info is None:
+            return
+        trafo = self.programm.trafo
+        if self.wie_im_programm:
+            x1, y1 = self.programm.schlitten()
+            text = tr(
+                "vf.schlitten",
+                ausgleich=vf.namen(self.maschine, self.programm.ausgleich),
+                weg_ausgleich=_weg(x1),
+                schraeg=vf.namen(self.maschine, self.programm.schraeg),
+                weg_schraeg=_weg(y1),
+            )
+        else:
+            x, y = self.programm.stellung()
+            text = tr(
+                "vf.im_programm",
+                x_name=trafo.NameAusgleich,
+                x=_weg(x),
+                y_name=trafo.NameSchraeg,
+                y=_weg(y),
+            )
+        self.info.setText(text)
 
     def _zeige(self, achse, stellung):
         regler, feld = self.zeilen[achse]
