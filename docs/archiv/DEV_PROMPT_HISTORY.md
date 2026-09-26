@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-72 schraege-achse-hoechstvorschub
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 7c („Schruppwerte planen“) und Stufe 3b,
+  Schritt 6; `schruppwerte.grenzen_der_maschine`.
+
+### DATEIEN
+- `camaddon/schruppwerte.py`
+- `help/de/schruppwerte.html`, `help/en/schruppwerte.html`
+- `tests/test_schraege_achse.py`
+- `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine mit schräger Achse (30°) offen → Werkzeugverwaltung →
+„Schruppwerte planen…“ → „Von der Maschine“ → Vorschub 4330 mm/min statt
+5000 (Y1 5000 · cos 30°).
+
+### DONE
+- `grenzen_der_maschine()`: Für die schräge Achse zählt der Vorschub, den Y
+  im Programm schafft – `schraege_achse.hoechstwert(α, v_Y1, v_X1)`;
+  kennt die ausgleichende Achse ihren Vorschub nicht, bremst nur die
+  schräge (v_Y1 · cos α). Die übrigen Linearachsen wie bisher; das Kleinste
+  gilt.
+- Hilfe „Schruppwerte planen“ sagt, woher der Vorschub der Maschine kommt,
+  auch bei einer schrägen Achse.
+
+### TEST
+- Claude ohne Oberfläche, beide Versionen: `test_schraege_achse.py`
+  zusätzlich: ohne Eintrag 5000, 0° 5000, 30° 4330,13, 60° 2500, X1
+  unbekannt 2500, Z1 2000 langsamer → 2000. `test_schruppwerte.py`,
+  `test_beispielmaschine.py` grün.
+
+### NEXT
+- Stufe 3b, Schritt 7 (Vorlage) erst nach Manuels Entscheidung zum Aufbau;
+  vorher Push der Schritte 1–6 nach dem vollen Testlauf.
+
 ## P-2026-09-26-71 schraege-achse-an-cam
 
 ### EINGELESEN

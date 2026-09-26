@@ -22,7 +22,8 @@ from dataclasses import dataclass, field
 
 import FreeCAD
 
-from . import einheiten
+from . import einheiten, schraege_achse
+from . import kette as kette_modul
 from . import maschine as maschine_modul
 from . import schnittdaten as sd
 from . import werkzeuge as wz
@@ -294,7 +295,9 @@ def grenzen_der_maschine(maschine):
     mit Spindel) – an einer Drehmaschine dreht die Hauptspindel das
     Werkstück, nicht den Fräser. Fehlt diese Zuordnung, die größte Drehzahl
     aller Spindeln. Vorschub: der kleinste Bearbeitungsvorschub der
-    Linearachsen – die langsamste Achse bremst die Bahn.
+    Linearachsen – die langsamste Achse bremst die Bahn. Für eine schräge
+    Achse zählt, was Y im Programm schafft: Dafür fahren beide Schlitten
+    (schraege_achse.hoechstwert).
     """
     arten = maschine_modul.betriebsarten(maschine)
     spindeln = [b for b in arten if b.Art == maschine_modul.ART_SPINDEL and b.Drehzahl > 0]
@@ -305,10 +308,33 @@ def grenzen_der_maschine(maschine):
     }
     werkzeugspindeln = [b for b in spindeln if b.Name in antreibend] or spindeln
     drehzahl = max((b.Drehzahl for b in werkzeugspindeln), default=0.0)
-    vorschuebe = [
-        b.VorschubMax for b in arten if b.Art == maschine_modul.ART_LINEAR and b.VorschubMax > 0
-    ]
+    schraeg = _schraege_achsen(maschine)
+    vorschuebe = []
+    for b in arten:
+        if b.Art != maschine_modul.ART_LINEAR or b.VorschubMax <= 0:
+            continue
+        if b in schraeg:
+            alpha, ausgleich = schraeg[b]
+            # Kennt die ausgleichende Achse ihren Vorschub nicht, bremst nur die schräge.
+            vorschub = schraege_achse.hoechstwert(
+                alpha, b.VorschubMax, ausgleich.VorschubMax or math.inf
+            )
+            vorschuebe.append(vorschub)
+        else:
+            vorschuebe.append(b.VorschubMax)
     return drehzahl, min(vorschuebe, default=0.0)
+
+
+def _schraege_achsen(maschine):
+    """{Betriebsart der schrägen Achse: (α, ausgleichende Betriebsart)} einer Maschine."""
+    assembly = maschine_modul.assembly_von(maschine)
+    if assembly is None or not maschine_modul.transformationen(maschine):
+        return {}
+    kette = kette_modul.lies_kette(assembly)
+    return {
+        trafo.Schraeg: (alpha, trafo.Ausgleich)
+        for trafo, alpha, _achse in schraege_achse.gueltige(maschine, kette).values()
+    }
 
 
 def vorbelegung(drehzahl, vorschub, gefundene):

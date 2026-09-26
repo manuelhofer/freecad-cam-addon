@@ -21,6 +21,7 @@ from camaddon import beispielmaschine, einheiten, export, sprache
 from camaddon import kette as kette_modul
 from camaddon import maschine as m
 from camaddon import schraege_achse as sa
+from camaddon import schruppwerte as sw
 from camaddon import verfahren as vf
 
 sprache.setze_sprache("de")
@@ -355,6 +356,25 @@ if export.verfuegbar():
     pruefe(abs(y.direction_vector.dot(richtung_x) - 0.5) < 1e-9, "ohne Eintrag nicht schräg")
     pruefe(nahe(y.max_limit, 60) and nahe(y.max_velocity, 12000), "ohne Eintrag umgerechnet")
     FreeCAD.closeDocument(doc.Name)
+
+# --- Schruppwerte planen: der Höchstvorschub der Maschine -------------------------------
+asm, ma = beispielmaschine.drehmaschine()
+doc = asm.Document
+kette = kette_modul.lies_kette(asm)
+ba = {b.NcName: b for b in m.betriebsarten(ma)}
+# Y1 5000, X1 und Z1 10000 mm/min: ohne schräge Achse bremst Y1.
+pruefe(nahe(sw.grenzen_der_maschine(ma)[1], 5000), f"ohne Eintrag: {sw.grenzen_der_maschine(ma)}")
+trafo = m.neue_schraege_achse(ma, ba["Y1"], ba["X1"])
+pruefe(nahe(sw.grenzen_der_maschine(ma)[1], 5000), "0°: 5000")
+kette = sa.drehe_fuehrung(asm, kette, ma, trafo, 30)
+pruefe(nahe(sw.grenzen_der_maschine(ma)[1], 4330.127019), f"30°: {sw.grenzen_der_maschine(ma)}")
+kette = sa.drehe_fuehrung(asm, kette, ma, trafo, 60)
+pruefe(nahe(sw.grenzen_der_maschine(ma)[1], 2500), f"60°: {sw.grenzen_der_maschine(ma)}")
+ba["X1"].VorschubMax = 0  # unbekannt: dann bremst nur Y1 (5000 · cos 60°) – und Z1
+pruefe(nahe(sw.grenzen_der_maschine(ma)[1], 2500), f"X1 unbekannt: {sw.grenzen_der_maschine(ma)}")
+ba["Z1"].VorschubMax = 2000
+pruefe(nahe(sw.grenzen_der_maschine(ma)[1], 2000), "Z1 langsamer: 2000")
+FreeCAD.closeDocument(doc.Name)
 
 # hoechstwert: für Y höchstens min(schräg · cos α, ausgleichend ÷ |tan α|)
 pruefe(nahe(sa.hoechstwert(30, 5000, 10000), 4330.127019), "hoechstwert 30°")

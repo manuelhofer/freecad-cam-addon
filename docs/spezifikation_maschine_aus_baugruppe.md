@@ -442,7 +442,8 @@ Patch, in dieser Reihenfolge:
    erste schräge Achse einer Maschine.*
 5. An CAM übergeben: Y rechtwinklig, Grenzen und Eilgang umgerechnet, Satz
    im Bericht.
-6. Schruppwerte planen: umgerechneter Höchstvorschub für Y.
+6. Schruppwerte planen: umgerechneter Höchstvorschub für Y. – *Gebaut
+   (P-2026-09-26-72).*
 7. Vorlage mit Eingabemaske – Aufbau vorher mit Skizze entscheiden.
 
 **Stufe 4 – Werkzeugbahn abfahren und Kollision prüfen** – eigene
