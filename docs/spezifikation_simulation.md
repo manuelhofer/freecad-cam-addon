@@ -66,6 +66,14 @@ Achsen im Kopf das Werkzeug bewegen (Tisch/Kopf kennt W-001 schon).
   bzw. den Kopf gedreht haben.
 - **Drehmaschine:** X und Z der Bahn auf die Linearachsen, C (wenn
   vorhanden) auf die Positionierachse.
+- **Schräge Achse** (W-001 Stufe 3b): Die Bahn ist rechtwinklig. Hat die
+  Maschine eine schräge Achse, rechnet dieselbe Umrechnung wie beim
+  Verfahren „wie im Programm“ (`schraege_achse.Programm`) X und Y der Bahn
+  auf die Schlitten um. Geprüft werden die Grenzen der Schlitten; die
+  Meldung nennt beides, den Punkt im Programm und den Schlitten: „X 140,
+  Y −40 in *Kontur* braucht X1 = 163 mm, die Grenze ist 150 mm“ (bei 30°).
+  Für 4d gilt der Höchstvorschub der schrägen Achse
+  (`schraege_achse.hoechstwert`).
 - Welcher Buchstabe der Bahn (X, Y, Z, A, B, C) zu welcher Betriebsart
   gehört (X1, C4 …), ergibt sich aus der Richtung der Achse; wo das nicht
   eindeutig ist, fragt das Fenster einmal nach und merkt es sich an der

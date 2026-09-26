@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-82 simulation-schraege-achse
+
+### EINGELESEN
+- Stand: „Danach: W-001 Stufe 4a (Reichweite prüfen), sobald die schräge
+  Achse (Punkt 11) steht und die Fragen zu Stufe 4 beantwortet sind.“ Die
+  schräge Achse steht (Stufe 3b komplett); der Entwurf
+  `spezifikation_simulation.md` kannte sie noch nicht.
+
+### DATEIEN
+- `docs/spezifikation_simulation.md` (Abschnitt 4)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer den Entwurf zu Stufe 4 liest, sieht, wie eine schräge Achse in die
+Reichweitenprüfung eingeht: rechtwinklige Bahn, Grenzen der Schlitten,
+Meldung mit Programmpunkt und Schlitten.
+
+### DONE
+- Abschnitt 4 um „Schräge Achse“ ergänzt: dieselbe Umrechnung wie „wie im
+  Programm“ (`schraege_achse.Programm`), geprüft werden die Grenzen der
+  Schlitten; Beispielmeldung „X 140, Y −40 in *Kontur* braucht X1 = 163 mm,
+  die Grenze ist 150 mm“ (bei 30°, dieselben Zahlen wie im Szenario
+  `szenario_verfahren_schraeg`); für 4d der Höchstvorschub
+  (`schraege_achse.hoechstwert`).
+
+### TEST
+- Reine Doku.
+
+### NEXT
+- Manuel die Fragen zu Stufe 4 stellen, die 4a betreffen (Abschnitt 9,
+  Nr. 1, 2, 3, 6); Halter und Mindestabstand erst vor 4c.
+
 ## P-2026-09-26-81 readme-maschine
 
 ### EINGELESEN
