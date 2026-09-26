@@ -51,6 +51,14 @@ Werkzeugverwaltung nicht – die Rückmeldung nennt sie.</li>
 <ul>
 <li><b>Nummer</b> – die T-Nummer. Frei wählbar, jede nur einmal; ist sie schon
 vergeben, steht das sofort unter den Feldern.</li>
+<li><b>Name</b> – so, wie das Werkzeug in der Steuerung heißt (etwa
+T="Fräser VHM 12"); genau so schreiben wie an der Maschine, auch mit
+Leerzeichen. Leer gilt der grau gezeigte Name aus den Angaben:
+„Schaftfräser T1 VHM D12 L30“. In CAM heißt das Werkzeug so. Einen Namen,
+den schon ein anderes Werkzeug hat, meldet die Werkzeugverwaltung – erlaubt
+ist er trotzdem (Schwesterwerkzeug). Ins NC-Programm als Aufruf kommt der
+Name nur mit einem passenden Postprozessor: FreeCADs mitgelieferte rufen
+Werkzeuge über die Nummer auf.</li>
 <li><b>Art</b> – Schaftfräser, Torusfräser (mit Eckradius), Radiusfräser,
 Fasenfräser, Bohrer.</li>
 <li><b>Durchmesser</b> und <b>Schneiden</b> (fett) braucht jede Rechnung.</li>
@@ -113,7 +121,8 @@ daraus n und vf, und was jetzt eingestellt ist.</li>
 vollen.</li>
 <li><b>Werkzeug-Controller hinzufügen</b> (unter der Tabelle) → Werkzeug →
 Einsatz legt im Job einen neuen Controller an: benannt nach dem Einsatz
-(„T3 Schruppen dynamisch“), mit Drehzahl und Vorschub. Vorher werden die
+(„T3 Schruppen dynamisch“, mit Namen „T3 Fräser VHM 12 – Schruppen
+dynamisch“), mit Drehzahl und Vorschub. Vorher werden die
 Werkzeuge an CAM übergeben, damit das Werkzeug in der Bibliothek
 „CAM-Addon“ steht. Der Controller bleibt auch, wenn man den Dialog danach
 abbricht; Strg+Z nimmt ihn zurück.</li>

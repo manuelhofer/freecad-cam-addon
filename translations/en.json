@@ -508,5 +508,10 @@
     "sj.ebene_duenn": "{operation}: the last level is only {rest} mm thick – a pass of its own for little material. Levels count from the top of the stock, and by default FreeCAD puts it 1 mm above the model (in the job: Stock, the right field of “Ext. Z”).",
     "sj.ebene_duenn.ap": "With ap {ap} mm in the use case it goes away – the flute is {laenge} mm long.",
     "sj.ohne_basis": "no path: base geometry missing",
-    "wv.aus_cam.bericht.unlesbar": "Could not be read – what FreeCAD reports about it is in the Report view: {namen}."
+    "wv.aus_cam.bericht.unlesbar": "Could not be read – what FreeCAD reports about it is in the Report view: {namen}.",
+    "wv.name": "Name",
+    "wv.name.tooltip": "The tool's name in the control (e.g. T=\"Endmill carbide 12\") – write it exactly as on the machine. Empty: the name shown in grey, made from the data, applies. CAM names the tool like this.",
+    "wv.name.platzhalter": "as in the control – empty: {name}",
+    "wv.zeile.name": "T{nummer}  {name} · {art} Ø {durchmesser} · z {schneiden} · {schneidstoff}",
+    "wv.hinweis.name": "“{name}” is also the name of T{nummer} – intended (sister tool)?"
 }

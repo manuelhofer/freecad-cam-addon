@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-33 werkzeugname
+
+### EINGELESEN
+- Manuel: Moderne Steuerungen rufen Werkzeuge über Namen auf
+  (T="Fräser VHM 12"); Option A – Nummer und Name. Leerzeichen nicht
+  ersetzen, der Bediener schreibt, was die Maschine will. Beispielname aus
+  den Angaben: „Schaftfräser T1 VHM D12 L30“.
+- FreeCADs Postprozessoren rufen per Nummer; der Heidenhain-Post schreibt
+  den Namen des Werkzeug-Controllers als Kommentar hinter TOOL CALL.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (Feld `name`, `beispielname()`, `anzeigename()`,
+  Listenzeile mit Namen, Suche, `Bibliothek.mit_name()`)
+- `camaddon/gui_werkzeuge.py` (Feld „Name“ unter Nummer/Art, grau der
+  Beispielname, Hinweis bei doppeltem Namen)
+- `camaddon/uebergabe_werkzeuge.py` (ToolBit heißt `anzeigename()`)
+- `camaddon/job_schnittwerte.py` (Controller „T3 <Name> – <Einsatz>“)
+- `camaddon/werkzeuge_aus_cam.py` (Name aus CAM wird der Name, nicht mehr
+  die Bezeichnung; „schon da“ erkennt beide)
+- `translations/de.json`, `translations/en.json`, `help/de|en/werkzeuge.html`
+- `docs/spezifikation_werkzeugverwaltung.md` (Abschnitt 5, Nr. 24)
+- `tests/test_werkzeuge.py`, `tests/test_uebergabe_werkzeuge.py`,
+  `tests/test_werkzeuge_aus_cam.py`, `tests/test_job_schnittwerte.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Neu → Ø 12, Schneidenlänge 26 → das Feld „Name“ zeigt
+grau „… Schaftfräser T1 VHM D12 L26“ → „Fräser VHM 12“ eintragen → die Liste
+zeigt „T1  Fräser VHM 12 · Schaftfräser Ø 12 · z 3 · VHM“ → „Speichern und
+an CAM übergeben“ → in CAM heißt das Werkzeug „Fräser VHM 12“; „Werkzeug-
+Controller hinzufügen“ legt „T1 Fräser VHM 12 – …“ an.
+
+### DONE
+- Name mit Beispielname, Liste, Suche, Hinweis, CAM, Controller, Import.
+
+### TEST
+- Unit-Tests (beide Versionen): Beispielname mit Punkt, Zeile und Suche mit
+  Namen, gleicher Name (groß/klein), Speichern/Laden, alte Datei; ToolBit
+  heißt wie eingetragen bzw. nach dem Beispielnamen; Import füllt den
+  Namen; Controller-Name mit Werkzeugname, Einsatz wird trotzdem erkannt.
+- `szenario_werkzeugverwaltung` (beide Versionen): grauer Beispielname,
+  Name tippen, Listenzeile, doppelter Name gemeldet, Name gespeichert;
+  `szenario_aus_cam`, `szenario_an_cam`, `szenario_schnittwerte_job` grün.
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- A2 Beispielwerte (auch im Planer: vc, Spandicke – Manuel).
+
 ## P-2026-09-26-32 plan-antworten
 
 ### EINGELESEN

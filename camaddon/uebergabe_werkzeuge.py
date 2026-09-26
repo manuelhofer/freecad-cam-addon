@@ -132,7 +132,7 @@ def toolbit_daten(werkzeug, werkstoffe_nach_kennung, freecad_nach_nummer, berich
     daten = {
         "version": 2,
         "id": PRAEFIX + w.kennung,
-        "name": f"T{w.nummer} {wz.kurz(w)} z{w.schneiden}",
+        "name": wz.anzeigename(w),
         "shape": f"{datei}.fcstd",
         "shape-type": typ,
         "parameter": parameter,

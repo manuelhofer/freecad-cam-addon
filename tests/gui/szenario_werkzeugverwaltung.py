@@ -103,6 +103,18 @@ def schritte(h):
     yield 100
     h.pruefe(d.werkzeug.gesamtlaenge == 0 and not d.hinweis.isVisible(), "Gesamtlänge leeren")
 
+    # Name wie in der Steuerung: leer grau der Beispielname, eingetragen in der Liste.
+    grau = d.feld_name.placeholderText()
+    h.pruefe(grau.endswith("Schaftfräser T1 VHM D12 L26"), f"Beispielname: {grau!r}")
+    tippen(d.feld_name, "Fraeser VHM 12")  # QTest tippt nur ASCII
+    yield 100
+    h.pruefe(d.werkzeug.name == "Fraeser VHM 12", f"Name: {d.werkzeug.name!r}")
+    h.pruefe(
+        d.liste.item(0).text().startswith("T1  Fraeser VHM 12 · Schaftfräser"),
+        f"Listenzeile mit Name: {d.liste.item(0).text()!r}",
+    )
+    h.bild("5c_name", d)
+
     # Zweites Werkzeug: Torusfräser zeigt den Eckradius; doppelte Nummer wird gemeldet.
     d.knopf_neu.click()
     yield 200
@@ -118,6 +130,13 @@ def schritte(h):
     d.feld_nummer.setValue(2)
     yield 100
     h.pruefe(d.werkzeug.durchmesser == 10.5 and d.werkzeug.eckradius == 0.5, f"{d.werkzeug}")
+    # Derselbe Name wie T1 (groß/klein egal): Hinweis, aber erlaubt.
+    tippen(d.feld_name, "fraeser vhm 12")
+    yield 100
+    h.pruefe("heißt auch T1" in d.hinweis.text(), f"doppelter Name: {d.hinweis.text()!r}")
+    tippen(d.feld_name, "")
+    yield 100
+    h.pruefe(d.werkzeug.name == "" and not d.hinweis.isVisible(), "Name leeren")
 
     # OK speichert und schließt.
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
@@ -129,6 +148,7 @@ def schritte(h):
         == [(1, 12, wz.SCHAFTFRAESER), (2, 10.5, wz.TORUSFRAESER)],
         f"gespeichert: {gespeichert.als_dict()['werkzeuge']}",
     )
+    h.pruefe(gespeichert.mit_nummer(1).name == "Fraeser VHM 12", "Name nicht gespeichert")
 
     # Wieder öffnen: derselbe Werkstoff, dieselben Werkzeuge.
     Gui.runCommand("CamAddon_Werkzeugverwaltung")

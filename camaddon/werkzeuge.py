@@ -170,6 +170,8 @@ class Werkzeug:
     # Bleibt, auch wenn sich die T-Nummer ändert.
     kennung: str = field(default_factory=lambda: uuid.uuid4().hex)
     nummer: int = 1  # T-Nummer
+    # Wie das Werkzeug in der Steuerung heißt (T="Fräser VHM 12"); leer = beispielname().
+    name: str = ""
     art: str = SCHAFTFRAESER
     durchmesser: float = 0.0  # mm
     schneiden: int = 3  # Schneidenzahl z
@@ -246,6 +248,7 @@ class Werkzeug:
             "eintauchwinkel": self.eintauchwinkel,
             "schneidstoff": self.schneidstoff,
             "bezeichnung": self.bezeichnung,
+            "name": self.name,
             # Eine leere Tabelle „für alle Werkstoffe“ ist dasselbe wie keine:
             # zum_bearbeiten() legt sie schon beim Ansehen an – das darf nicht
             # als Änderung zählen (sonst fragt der Dialog grundlos „Speichern?“).
@@ -275,6 +278,7 @@ class Werkzeug:
             daten.get("schneidstoff") if daten.get("schneidstoff") in SCHNEIDSTOFFE else VHM
         )
         w.bezeichnung = str(daten.get("bezeichnung") or "")
+        w.name = str(daten.get("name") or "")
         schnittwerte = daten.get("schnittwerte")
         if isinstance(schnittwerte, dict):
             w.schnittwerte = {
@@ -313,20 +317,43 @@ def _zahl(wert, typ, ersatz):
 
 
 def zeile(werkzeug):
-    """Eine Zeile für die Liste: „T3  Schaftfräser Ø 12 · z 3 · VHM“.
+    """Eine Zeile für die Liste: „T3  Schaftfräser Ø 12 · z 3 · VHM“, mit eigenem
+    Namen „T3  Fräser VHM 12 · Schaftfräser Ø 12 · z 3 · VHM“.
 
     Zahlen mit Punkt; die Oberfläche setzt ihr Dezimalzeichen ein.
     """
     w = werkzeug
     durchmesser = f"{w.durchmesser:g}" if w.durchmesser else "?"
-    return tr(
-        "wv.zeile",
-        nummer=w.nummer,
-        art=art_text(w.art),
-        durchmesser=durchmesser,
-        schneiden=w.schneiden,
-        schneidstoff=schneidstoff_text(w.schneidstoff),
-    )
+    werte = {
+        "nummer": w.nummer,
+        "art": art_text(w.art),
+        "durchmesser": durchmesser,
+        "schneiden": w.schneiden,
+        "schneidstoff": schneidstoff_text(w.schneidstoff),
+    }
+    if w.name:
+        return tr("wv.zeile.name", name=w.name, **werte)
+    return tr("wv.zeile", **werte)
+
+
+def beispielname(werkzeug):
+    """Ein Name aus den Angaben, solange keiner eingetragen ist: „Schaftfräser T1 VHM D12 L30“.
+
+    Art, T-Nummer, Schneidstoff, Durchmesser, Schneidenlänge – Zahlen immer
+    mit Punkt, denn der Name ist für die Steuerung.
+    """
+    w = werkzeug
+    teile = [art_text(w.art), f"T{w.nummer}", schneidstoff_text(w.schneidstoff)]
+    if w.durchmesser:
+        teile.append(f"D{w.durchmesser:g}")
+    if w.schneidenlaenge:
+        teile.append(f"L{w.schneidenlaenge:g}")
+    return " ".join(teile)
+
+
+def anzeigename(werkzeug):
+    """Der eingetragene Name, sonst der Beispielname – so heißt das Werkzeug in CAM."""
+    return werkzeug.name or beispielname(werkzeug)
 
 
 def passt(werkzeug, suche):
@@ -339,7 +366,7 @@ def passt(werkzeug, suche):
     def einheitlich(text):
         return text.lower().replace(",", ".").replace("ø", "")
 
-    text = einheitlich(f"{zeile(werkzeug)} {werkzeug.bezeichnung}")
+    text = einheitlich(f"{zeile(werkzeug)} {anzeigename(werkzeug)} {werkzeug.bezeichnung}")
     return all(wort in text for wort in einheitlich(suche).split())
 
 
@@ -394,6 +421,15 @@ class Bibliothek:
     def mit_nummer(self, nummer, ausser=None):
         """Ein anderes Werkzeug mit dieser T-Nummer, oder None."""
         return next((w for w in self.werkzeuge if w.nummer == nummer and w is not ausser), None)
+
+    def mit_name(self, name, ausser=None):
+        """Ein anderes Werkzeug mit diesem eingetragenen Namen (groß/klein gleich), oder None."""
+        name = name.strip().lower()
+        if not name:
+            return None
+        return next(
+            (w for w in self.werkzeuge if w.name.strip().lower() == name and w is not ausser), None
+        )
 
     def sortierte_werkzeuge(self):
         return sorted(self.werkzeuge, key=lambda w: (w.nummer, w.durchmesser))

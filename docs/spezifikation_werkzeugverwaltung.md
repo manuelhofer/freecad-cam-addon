@@ -103,6 +103,7 @@ eigenen kopieren“ macht eine änderbare Kopie.
 | Feld | Einheit | Bemerkung |
 | --- | --- | --- |
 | Nummer | T… | frei, Vorschlag: nächste freie |
+| Name | – | wie in der Steuerung (T="Fräser VHM 12"), frei; leer: „Schaftfräser T1 VHM D12 L30“ (P-2026-09-26-33) |
 | Art | – | Schaftfräser, Torusfräser, Radiusfräser, Bohrer, Fasenfräser (Liste wächst) |
 | Durchmesser D | mm | Pflicht |
 | Schneidenzahl z | – | Pflicht (Bohrer: 2) |
@@ -113,7 +114,8 @@ eigenen kopieren“ macht eine änderbare Kopie.
 | Schneidstoff | – | VHM, HSS |
 | Bezeichnung | – | frei: Hersteller, Bestellnummer, Beschichtung … |
 
-Die Liste zeigt je Werkzeug eine Zeile: `T3  Schaftfräser Ø 12 · z 3 · VHM`.
+Die Liste zeigt je Werkzeug eine Zeile: `T3  Schaftfräser Ø 12 · z 3 · VHM`,
+mit Namen `T3  Fräser VHM 12 · Schaftfräser Ø 12 · z 3 · VHM`.
 
 ## 6. Schnittwerte
 
@@ -435,6 +437,19 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     Entscheidung über Werkzeug und Werkstoff. Alternative: die Zustelltiefe
     so strecken, dass die Ebenen gleich dick werden (26 mm → 13 + 13) – das
     halbierte gerade das große ap, um das es beim dynamischen Fräsen geht.
+
+### Dazugekommen nach Manuels erstem Test
+
+24. **Nummer und Name** (Manuels Option A): Der Name steht frei neben der
+    T-Nummer, genau wie an der Maschine – keine Ersetzung von Leerzeichen
+    (Siemens erlaubt sie; der Bediener schreibt, was die Steuerung will).
+    Leer gilt ein Name aus den Angaben, mit Punkt als Dezimalzeichen (der
+    Name ist für die Steuerung). Ein doppelter Name wird gemeldet, bleibt
+    aber erlaubt (Schwesterwerkzeuge). In CAM heißt das Werkzeug so, der
+    Werkzeug-Controller „T3 Fräser VHM 12 – Schruppen dynamisch“. Als
+    Aufruf ins NC-Programm kommt der Name nur mit einem eigenen
+    Postprozessor – FreeCADs mitgelieferte rufen per Nummer. Alternative:
+    ein Umschalter Nummer/Name – dann ginge eins von beiden verloren.
 
 ## 12. Akzeptanzkriterien Stufe 1
 

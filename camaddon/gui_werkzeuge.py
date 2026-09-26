@@ -274,6 +274,10 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_schneidstoff.setToolTip(tr("wv.schneidstoff.tooltip"))
         self.feld_schneidstoff.currentIndexChanged.connect(self._schneidstoff_geaendert)
 
+        self.feld_name = QtGui.QLineEdit()
+        self.feld_name.setToolTip(tr("wv.name.tooltip"))
+        self.feld_name.textEdited.connect(self._name_geaendert)
+
         self.feld_bezeichnung = QtGui.QLineEdit()
         self.feld_bezeichnung.setPlaceholderText(tr("wv.bezeichnung.platzhalter"))
         self.feld_bezeichnung.setToolTip(tr("wv.bezeichnung.tooltip"))
@@ -295,10 +299,14 @@ class WerkzeugDialog(QtGui.QDialog):
             (self.beschriftung_eintauchwinkel, self.zeile_eintauchwinkel),
             (self.beschriftung_eckradius, self.zeile_eckradius),
         ]
+        # Der Name steht über die ganze Breite direkt unter Nummer und Art.
+        gitter.addWidget(QtGui.QLabel(tr("wv.name")), 1, 0)
+        gitter.addWidget(self.feld_name, 1, 1, 1, 3)
         for i, (beschriftung, feld) in enumerate(zeilen):
-            gitter.addWidget(beschriftung, i // 2, 2 * (i % 2))
-            gitter.addWidget(feld, i // 2, 2 * (i % 2) + 1)
-        unten = (len(zeilen) + 1) // 2
+            reihe = i // 2 + (1 if i >= 2 else 0)
+            gitter.addWidget(beschriftung, reihe, 2 * (i % 2))
+            gitter.addWidget(feld, reihe, 2 * (i % 2) + 1)
+        unten = (len(zeilen) + 1) // 2 + 1
         gitter.addWidget(QtGui.QLabel(tr("wv.bezeichnung")), unten, 0)
         gitter.addWidget(self.feld_bezeichnung, unten, 1, 1, 3)
 
@@ -512,6 +520,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_schaft.setText(zahl_zeigen(w.schaft))
         self.feld_schneidstoff.setCurrentIndex(self.feld_schneidstoff.findData(w.schneidstoff))
         self.feld_bezeichnung.setText(w.bezeichnung)
+        self.feld_name.setText(w.name)
         self._fuellt = False
         self._eckradius_zeigen()
         self._schaetzung_zeigen()
@@ -539,8 +548,11 @@ class WerkzeugDialog(QtGui.QDialog):
         self.beschriftung_eintauchwinkel.setVisible(fraeser)
 
     def _schaetzung_zeigen(self):
-        """Leere Felder für Gesamtlänge und Schaft zeigen grau, was CAM stattdessen bekommt."""
+        """Leere Felder für Name, Gesamtlänge und Schaft zeigen grau, was stattdessen gilt."""
         w = self.werkzeug
+        self.feld_name.setPlaceholderText(
+            tr("wv.name.platzhalter", name=wz.beispielname(w)) if w is not None else ""
+        )
         if w is None or not w.durchmesser:
             laenge = schaft = tr("feld.unbekannt")
         else:
@@ -569,6 +581,9 @@ class WerkzeugDialog(QtGui.QDialog):
                 saetze.append(
                     tr("wv.hinweis.nummer", nummer=w.nummer, werkzeug=dezimal(wz.kurz(doppelt)))
                 )
+            gleicher_name = self.bibliothek.mit_name(w.name, ausser=w)
+            if gleicher_name is not None:
+                saetze.append(tr("wv.hinweis.name", name=w.name, nummer=gleicher_name.nummer))
         self.hinweis.setText("\n".join(saetze))
         self.hinweis.setVisible(bool(saetze))
 
@@ -608,6 +623,12 @@ class WerkzeugDialog(QtGui.QDialog):
         if self._fuellt or self.werkzeug is None:
             return
         self.werkzeug.schneidstoff = self.feld_schneidstoff.currentData()
+        self._geaendert()
+
+    def _name_geaendert(self, text):
+        if self._fuellt or self.werkzeug is None:
+            return
+        self.werkzeug.name = text.strip()
         self._geaendert()
 
     def _bezeichnung_geaendert(self, text):

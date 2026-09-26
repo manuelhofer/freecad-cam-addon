@@ -42,7 +42,8 @@ t2 = wz.Werkzeug(nummer=2, durchmesser=12)
 bibliothek = wz.Bibliothek([t1, t2])
 bericht = aus_cam.uebernehmen(bibliothek, adresse)
 
-neu = {w.bezeichnung: w for w in bericht.neu}
+neu = {w.name: w for w in bericht.neu}
+pruefe(all(not w.bezeichnung for w in bericht.neu), "Name aus CAM steht in der Bezeichnung")
 pruefe(
     sorted(neu)
     == ["45 Deg. Chamfer", "5mm Drill", "5mm Endmill", "6 mm Bull Nose", "6mm Ball End"],

@@ -43,7 +43,13 @@ fraeser.schnittwerte[wz.ALLE] = [
 ]
 fraeser.eigene_anlegen("1.4301")[0].vc = 80
 torus = wz.Werkzeug(
-    nummer=5, art=wz.TORUSFRAESER, durchmesser=10, eckradius=1, gesamtlaenge=72, schaft=8
+    nummer=5,
+    art=wz.TORUSFRAESER,
+    durchmesser=10,
+    eckradius=1,
+    gesamtlaenge=72,
+    schaft=8,
+    name="Torus VHM 10 R1",
 )
 bohrer = wz.Werkzeug(nummer=7, art=wz.BOHRER, durchmesser=8.5, schneiden=2, schneidstoff=wz.HSS)
 bohrer.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25, fz=0.08)]
@@ -67,6 +73,9 @@ pruefe(mm(tb.obj.Diameter) == 12 and int(tb.obj.Flutes) == 3, f"Fräser: {tb.obj
 pruefe(mm(tb.obj.CuttingEdgeHeight) == 26, f"Schneidenlänge {tb.obj.CuttingEdgeHeight}")
 pruefe(tb.obj.Material == "Carbide" and mm(tb.obj.Chipload) == 0.05, "Schneidstoff, Chipload")
 t5 = cam_assets.get(f"toolbit://camaddon_{torus.kennung}")
+# In CAM heißt das Werkzeug wie eingetragen, sonst nach dem Beispielnamen.
+pruefe(str(t5.label) == "Torus VHM 10 R1", f"Name in CAM: {t5.label!r}")
+pruefe(str(tb.label) == "Schaftfräser T3 VHM D12 L26", f"Beispielname in CAM: {tb.label!r}")
 pruefe(mm(t5.obj.CornerRadius) == 1, f"Eckradius {t5.obj.CornerRadius}")
 # Eingetragen gilt, sonst geschätzt: 26 + 2 · 12 = 50 mm, Schaft = D.
 pruefe((mm(t5.obj.Length), mm(t5.obj.ShankDiameter)) == (72, 8), "Länge/Schaft eingetragen")

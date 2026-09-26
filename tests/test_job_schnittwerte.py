@@ -102,6 +102,19 @@ pruefe(js.duenne_letzte_ebene([25, 25, 2], 25) == (2, 26.0), "dünne letzte Eben
 pruefe(js.duenne_letzte_ebene([25, 25, 11], 25) is None, "11 von 25 ist kein Rest")
 pruefe(js.duenne_letzte_ebene([25], 25) is None, "eine Ebene ist kein Rest")
 
+# Mit eingetragenem Namen heißt der Controller nach Werkzeug und Einsatz – und
+# wird trotzdem am Einsatz erkannt.
+benannt = wz.Werkzeug(nummer=3, durchmesser=12, name="Fräser VHM 12")
+name_tc = js.controller_name(benannt, wz.Einsatz(art=wz.DYNAMISCH))
+pruefe(name_tc == "T3 Fräser VHM 12 – Schruppen dynamisch", f"Name des TC: {name_tc!r}")
+
+
+class _TC:
+    Label = name_tc
+
+
+pruefe(js.vorgeschlagener_einsatz(_TC(), einsaetze, job) == 1, "Einsatz im Namen mit Werkzeugname")
+
 # Der längste passende Name gewinnt: „T3 Schruppen dynamisch“ enthält auch „Schruppen“.
 drei = [wz.Einsatz(art=wz.VOLLNUT), wz.Einsatz(art=wz.SCHRUPPEN), wz.Einsatz(art=wz.DYNAMISCH)]
 pruefe(js.vorgeschlagener_einsatz(tc1, drei, job) == 2, "„Schruppen“ statt „Schruppen dynamisch“")

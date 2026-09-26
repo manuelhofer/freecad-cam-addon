@@ -303,7 +303,12 @@ def werte(werkzeug, einsatz):
 
 
 def controller_name(werkzeug, einsatz):
-    """„T3 Schruppen dynamisch“ – am Einsatz im Namen erkennt vorgeschlagener_einsatz() ihn wieder."""
+    """„T3 Schruppen dynamisch“, mit eingetragenem Namen „T3 Fräser VHM 12 – Schruppen dynamisch“.
+
+    Am Einsatz im Namen erkennt vorgeschlagener_einsatz() ihn wieder.
+    """
+    if werkzeug.name:
+        return f"T{werkzeug.nummer} {werkzeug.name} – {wz.einsatz_name(einsatz)}"
     return f"T{werkzeug.nummer} {wz.einsatz_name(einsatz)}"
 
 

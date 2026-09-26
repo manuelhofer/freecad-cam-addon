@@ -167,6 +167,22 @@ pruefe(f.einsaetze("1.0503") is alle, "anderer Werkstoff erbt nicht")
 pruefe(f.hat_eigene("1.4301") and f.zum_bearbeiten("1.4301") is eigene, "eigene Werte")
 pruefe(wz.einsatz_name(eigene[1]) == "Schruppen dynamisch", wz.einsatz_name(eigene[1]))
 
+# Werkzeugname: leer gilt der Beispielname (Zahlen mit Punkt), eingetragen der eigene.
+n = wz.Werkzeug(nummer=1, durchmesser=10.5, schneidenlaenge=30)
+pruefe(
+    wz.beispielname(n) == "Schaftfräser T1 VHM D10.5 L30", f"Beispielname {wz.beispielname(n)!r}"
+)
+pruefe(wz.anzeigename(n) == wz.beispielname(n) and "Fräser" not in wz.zeile(n)[:6], "ohne Namen")
+pruefe(wz.passt(n, "d10.5 l30"), "Suche findet den Beispielnamen nicht")
+n.name = "Fräser VHM 10,5"
+pruefe(wz.zeile(n).startswith("T1  Fräser VHM 10,5 · Schaftfräser"), f"Zeile: {wz.zeile(n)!r}")
+pruefe(wz.anzeigename(n) == "Fräser VHM 10,5" and wz.passt(n, "fräser vhm"), "eigener Name")
+zwilling = wz.Werkzeug(nummer=2, name="fräser vhm 10,5 ")
+pruefe(wz.Bibliothek([n, zwilling]).mit_name(n.name, ausser=n) is zwilling, "gleicher Name")
+pruefe(wz.Bibliothek([n]).mit_name("", ausser=None) is None, "leerer Name zählt nicht")
+pruefe(wz.Werkzeug.aus_dict(n.als_dict()).name == "Fräser VHM 10,5", "Name nach Speichern")
+pruefe(wz.Werkzeug.aus_dict({"nummer": 4}).name == "", "alte Datei ohne Namen")
+
 # Name einer neuen Zeile: frei bleibt er, sonst mit Nummer; die Kopie von „… 2“ wird „… 3“.
 pruefe(wz.name_fuer_neuen(wz.Einsatz(art=wz.SCHLICHTEN), eigene) == "", "freier Name nummeriert")
 pruefe(

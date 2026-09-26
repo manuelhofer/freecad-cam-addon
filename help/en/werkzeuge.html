@@ -50,6 +50,13 @@ unknown to the tool manager – the report lists them.</li>
 <ul>
 <li><b>Number</b> – the T number. Free to choose, each only once; if it is
 already taken, that is shown right below the fields.</li>
+<li><b>Name</b> – the tool's name in the control (e.g. T="Endmill carbide
+12"); write it exactly as on the machine, spaces included. Empty: the name
+shown in grey, made from the data, applies: “End mill T1 Carbide D12 L30”.
+CAM names the tool like this. A name another tool already has is reported –
+but allowed (sister tool). The name only becomes the tool call in the NC
+program with a suitable post processor: FreeCAD's own ones call tools by
+number.</li>
 <li><b>Type</b> – end mill, bull nose end mill (with corner radius), ball end
 mill, chamfer mill, drill.</li>
 <li><b>Diameter</b> and <b>Flutes</b> (bold) are needed for every
@@ -109,7 +116,8 @@ Drilling → drilling) –, the resulting n and vf, and what is set now.</li>
 <li>Plunging and ramping get a third of the feed rate, drilling the full
 one.</li>
 <li><b>Add tool controller</b> (below the table) → tool → use case adds a new
-controller to the job: named after the use case (“T3 Dynamic roughing”), with
+controller to the job: named after the use case (“T3 Dynamic roughing”, with a
+name “T3 Endmill carbide 12 – Dynamic roughing”), with
 spindle speed and feed. The tools are handed over to CAM first, so that the
 tool is in the library “CAM-Addon”. The controller stays even if you cancel
 the dialog afterwards; Ctrl+Z undoes it.</li>

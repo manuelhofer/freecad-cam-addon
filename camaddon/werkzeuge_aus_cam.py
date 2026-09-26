@@ -108,7 +108,7 @@ def werkzeug_aus(bit, nummer):
     if art == wz.TORUSFRAESER:
         w.eckradius = _mm(o, "CornerRadius")
     w.schneidstoff = wz.HSS if "hss" in str(getattr(o, "Material", "")).lower() else wz.VHM
-    w.bezeichnung = str(bit.label)
+    w.name = str(bit.label)
     return w
 
 
@@ -162,12 +162,13 @@ def _uebernehme_eines(bibliothek, bit, name, quelle, in_der_quelle, bericht):
 
 def _schon_da(bibliothek, werkzeug):
     """Gibt es das Werkzeug schon? Gleiche Art und gleicher Durchmesser – und gleiche
-    Nummer oder, falls es beim letzten Mal umnummeriert wurde, gleicher Name."""
+    Nummer oder, falls es beim letzten Mal umnummeriert wurde, gleicher Name (vor
+    P-2026-09-26-33 stand der Name aus CAM in der Bezeichnung)."""
     for w in bibliothek.werkzeuge:
         gleich = w.art == werkzeug.art and (
             abs(w.durchmesser - werkzeug.durchmesser) < DURCHMESSER_TOLERANZ
         )
-        if gleich and (w.nummer == werkzeug.nummer or w.bezeichnung == werkzeug.bezeichnung):
+        if gleich and (w.nummer == werkzeug.nummer or werkzeug.name in (w.name, w.bezeichnung)):
             return True
     return False
 
