@@ -4,7 +4,7 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufen 1 bis 3 und 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) fertig und automatisch geprüft; warten auf Manuels Test. Danach Stufe 4 (Werkzeugbahn abfahren, Kollision – eigene Spezifikation).
+- **IN ARBEIT** – W-001, Stufen 1 bis 3 und 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) fertig und automatisch geprüft; warten auf Manuels Test. Jetzt Stufe 4a (Reichweite prüfen, Punkt 13 unten).
 - **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
 - **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ fertig und automatisch geprüft (P-2026-09-26-79), wartet auf Manuels Test; als Nächstes V2 (Punkt 12 unten).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
@@ -130,6 +130,17 @@ Wunschliste, offene Bugs und Tasks.
    Stange“ fertig (P-2026-09-26-79); als Nächstes V2 „Achse von der
    Maschine“.*
 
+*Werkzeugbahn auf der Maschine (W-001 Stufe 4a, Manuel 2026-09-26)*
+13. **Reicht der Verfahrweg?** Job wählen → „Auf der Maschine prüfen“ →
+   „Alle Achsen bleiben in ihren Grenzen.“ oder je Überschreitung ein Satz
+   („X1 fährt in *Tasche* bis 312,00 mm, die Grenze ist 250,00 mm“); ein
+   Klick fährt die Maschine dorthin. Manuels Entscheidungen: die Bahn im
+   Job, Nullpunkt am LCS der Werkstückaufnahme plus Verschiebung je Job,
+   eigenes Feld „Länge ab Spindelnase“, 4a zuerst. – *Spezifikation:
+   [spezifikation_simulation.md](spezifikation_simulation.md), Abschnitte
+   5, 6 und 10 (P-2026-09-26-83), vier Schritte: Rechenkern, Fenster,
+   Länge ab Spindelnase, Version.*
+
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
 das Repository öffentlich stellen (T-005), dann installiert die Zeile aus
@@ -195,11 +206,11 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    alles zurück. Versteht man das Fenster ohne Erklärung?
 7. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
-   Nr. 13–23 sind von dieser Nacht) und die sechs Fragen zu Stufe 4
-   ([Entwurf](spezifikation_simulation.md), Abschnitt 9).
+   Nr. 13–23 sind von dieser Nacht); zu Stufe 4 sind noch Halter und
+   Mindestabstand offen, vor 4c ([Spezifikation](spezifikation_simulation.md),
+   Abschnitt 9).
 
-Danach: W-001 Stufe 4a (Reichweite prüfen), sobald die schräge Achse
-(Punkt 11) steht und die Fragen zu Stufe 4 beantwortet sind.
+Danach: W-001 Stufe 4a (Reichweite prüfen, Punkt 13) – in Arbeit.
 
 ## Wunschliste
 

@@ -12,6 +12,74 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-83 spezifikation-reichweite
+
+### EINGELESEN
+- Manuel (2026-09-26) auf die vier Fragen zu Stufe 4a, jeweils die
+  empfohlene Antwort: **Bahn im Job** (nicht das NC-Programm);
+  **Nullpunkt = Werkstückaufnahme + Verschiebung** je Job im Fenster;
+  **eigenes Feld „Länge ab Spindelnase“**, vorbelegt (leer gilt die
+  Gesamtlänge); **4a Reichweite zuerst**. Halter und Mindestabstand (Fragen
+  4 und 5) betreffen erst die Kollision und kommen vor 4c.
+- Ausprobiert, in 1.1.3 und im Wochen-Build: Job ohne Oberfläche anlegen,
+  Operation „Eigene“ (Custom) mit G-Code als Text, `op.Path.Commands`
+  lesen (G0/G1/G2 mit X/Y/Z/I/J); der Werkzeug-Controller hat Nummer und
+  Länge. Die Postprozessoren lesen `op.Path` ohne die Lage der Operation
+  (`Path/Post/UtilsParse.py`). numpy gibt es in beiden Umgebungen.
+- Beispielmaschinen: Die Z-Achse der Werkzeugaufnahmen zeigt von der Spitze
+  zur Aufnahme (Fräse: Spindelnase, Z nach oben; Drehmaschine: Platz, Z vom
+  Werkzeug weg). Die Hilfe sagt nur „in Richtung des Werkzeugs“. Die X-Achse
+  des LCS am Futter der Beispiel-Drehmaschine zeigt nach unten, der
+  X-Schlitten fährt quer dazu – ein X im Programm käme über Y1 heraus.
+
+### DATEIEN
+- `docs/spezifikation_simulation.md`
+- `docs/STATUS_SNAPSHOT.md` (Projektstatus, neuer Punkt 13, Besprechen)
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Verweis auf Stufe 4)
+- `CHATSTART.md` (Lesekarte)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation sagt so genau, was 4a rechnet und zeigt, dass danach
+gebaut werden kann: Begriffe mit den Richtungen der LCS, der Rechenweg
+(Drehachsen zuerst, dann die Linearachsen als Gleichungssystem), welche
+Punkte geprüft werden, das Fenster, vier Schritte, Akzeptanzkriterien.
+
+### DONE
+- Kopf: Manuels Entscheidungen vom 2026-09-26; Abschnitt 9 heißt
+  „Entscheidungen“ (1, 2, 3, 6 entschieden; 4, 5 offen vor 4c).
+- Begriffe: Das LCS der Werkstückaufnahme ist das Koordinatensystem des
+  Jobs (Z aus der Spannfläche, X wie X im Job, auf der Drehmaschine zum
+  Werkzeug hin); Werkzeugspitze = Ursprung der Werkzeugaufnahme minus Länge
+  ab Spindelnase entlang Z; Z der Werkzeugaufnahme zeigt von der Spitze zur
+  Aufnahme; „Länge ab Spindelnase“ mit Halter.
+- Abschnitt 4 neu: Drehachsen zuerst (A/B/C über den Namen im Programm,
+  ohne Angabe 0; Revolver mit dem Platz des Werkzeugs in Arbeitsstellung;
+  Spindeln bleiben), dann die Linearachsen als lineares Gleichungssystem –
+  das deckt Tisch/Kopf, schiefe Achsen und die schräge Achse ab; weniger
+  als drei Linearachsen → „nicht erreichbar“, mehr als drei → „noch nicht
+  prüfbar“; geprüfte Punkte: G0/G1-Enden, Umkehrpunkte auf Kreisen,
+  Bohrzyklen, 1°-Schritte bei Rundachsen im Satz. Die Frage nach dem
+  Buchstaben im Fenster entfällt.
+- Abschnitt 5: 4a in vier Schritten – Rechenkern (`reichweite.py`),
+  Fenster, Länge ab Spindelnase, Version.
+- Abschnitt 6: das Fenster „Auf der Maschine prüfen“ – Job, Maschine aus
+  allen offenen Dokumenten, Werkstückaufnahme, Nullpunkt X/Y/Z (leer =
+  Vorschlag: Rohteil mittig mit der Unterseite auf der Spannfläche;
+  eingetragen = am Job gespeichert), Ergebnis in Sätzen, Klick fährt hin,
+  Schließen fährt zurück.
+- Abschnitt 10: Akzeptanzkriterien für die Beispielfräse, die
+  Drehmaschine mit schräger Y-Achse und ein Werkzeug ohne Länge ab
+  Spindelnase. Statt „Zeile 1234“ nennt die Meldung den Punkt im Programm
+  – ein NC-Programm gibt es bei der Bahn im Job nicht.
+
+### TEST
+- Reine Doku.
+
+### NEXT
+- Schritt 1: Rechenkern `reichweite.py` mit Prüfungen; Beispiel-Drehmaschine
+  (X des LCS am Futter) und Hilfe „Aufnahmen“.
+
 ## P-2026-09-26-82 simulation-schraege-achse
 
 ### EINGELESEN

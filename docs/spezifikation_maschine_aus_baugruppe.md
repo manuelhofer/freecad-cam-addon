@@ -453,7 +453,7 @@ Patch, in dieser Reihenfolge:
 
 **Stufe 4 – Werkzeugbahn abfahren und Kollision prüfen** – eigene
 Spezifikation: [spezifikation_simulation.md](spezifikation_simulation.md)
-(Entwurf, P-2026-09-25-70, wartet auf Manuels Antworten).
+(Entwurf P-2026-09-25-70; 4a von Manuel entschieden, P-2026-09-26-83).
 
 ## 10. Prüfbarkeit
 
