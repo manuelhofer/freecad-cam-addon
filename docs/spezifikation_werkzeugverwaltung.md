@@ -315,7 +315,8 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    Spandicke und die Maschine einhält.
    **Gebaut** (P-2026-09-25-60): Knopf „Schruppwerte planen…“ unter der
    Tabelle (Schaft- und Torusfräser). Eingaben: vc, Spandicke h, ap,
-   ae-Grenze in % von D (vorbelegt aus der gewählten Zeile bzw. 10 %),
+   Warngrenze für ae in % von D (am Werkzeug gespeichert, Vorgabe 10 %;
+   bis P-2026-09-26-40 eine feste „ae-Grenze“),
    dazu Höchstdrehzahl, höchster Vorschub und Spindelleistung der Maschine
    (leer = keine Grenze, gemerkt; Drehzahl und Vorschub auf Knopfdruck von
    einer W-001-Maschine). Gerechnet wird je ae von 2 bis 50 % von D mit
@@ -388,9 +389,12 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     sinnvoll (vorbelegt: Schneidenlänge, höchstens 2 × D), ae so groß, wie
     die Grenzen erlauben. Alternative: auch ap durchrechnen – das Ergebnis
     wäre immer „so viel ap wie möglich“.
-14. **ae-Grenze 10 % von D als Vorgabe**, im Feld änderbar und gemerkt. Das
-    ist Manuels Beispiel (1,2 mm bei Ø 12) und liegt in dem, was die
-    Hersteller für die volle Schneidenlänge nennen (5 bis 15 %).
+14. **Warngrenze ae 10 % von D als Vorgabe**, am Werkzeug gespeichert
+    (P-2026-09-26-40, Manuel: „ab 10 % ae bei voller Schneidenlänge rote
+    Warnung … aber auswählbar sollte es schon sein“, egal wie viele
+    Schneiden). Das ist Manuels Beispiel (1,2 mm bei Ø 12) und liegt in dem,
+    was die Hersteller für die volle Schneidenlänge nennen (5 bis 15 %).
+    Zeilen darüber sind rot, aber wählbar; der Vorschlag bleibt darunter.
     Alternative: je ISO-Gruppe eine eigene Vorgabe – verlockend, aber ohne
     Herstellerangaben geraten.
 15. **80 % der Spindelleistung an der Schneide**, fest. Alternative: ein

@@ -30,7 +30,8 @@ Wunschliste, offene Bugs und Tasks.
    Planer.*
 3. **Planer:** Warngrenze ae 10 % von D bleibt Vorgabe (fest, egal wie
    viele Schneiden, Manuel), am Werkzeug änderbar; Zeilen darüber rot
-   „mehr als deine Warngrenze“, aber wählbar; % je Zeile sichtbar.
+   „mehr als deine Warngrenze“, aber wählbar; % je Zeile sichtbar. –
+   *Fertig (P-2026-09-26-40).*
 4. **Eingriffsbild:** Überschriften „ae – seitliche Zustellung (von
    oben)“ / „ap – Zustelltiefe (von der Seite)“, Text je Größe eine Zeile.
 5. **ae und ap wahlweise in mm oder % von D** (ein Umschalter über der

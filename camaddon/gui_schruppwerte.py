@@ -17,7 +17,7 @@ from . import schnittdaten as sd
 from . import schruppwerte as sw
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
-from .gui_teile import GRAU, knopf, mit_einheit
+from .gui_teile import GRAU, ROT, hinweiszeile, knopf, mit_einheit
 from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen, zahlenformat
 from .sprache import tr
 
@@ -27,9 +27,9 @@ FENSTER_GROESSE = (820, 700)  # Pixel
 FELD_BREITE = 90  # Pixel
 FARBE_VORSCHLAG = QtGui.QColor("#d5f5dc")  # Hintergrund der vorgeschlagenen Zeile
 
-# Was der Planer sich merkt: Feld → Schlüssel in den Einstellungen.
+# Was der Planer sich für die Maschine merkt: Feld → Schlüssel in den
+# Einstellungen. Die Warngrenze für ae gehört zum Werkzeug.
 GEMERKT = {
-    "ae_grenze": "PlanerAeGrenze",
     "drehzahl": "PlanerDrehzahl",
     "vorschub": "PlanerVorschub",
     "leistung": "PlanerLeistung",
@@ -104,7 +104,7 @@ class SchruppDialog(QtGui.QDialog):
             tr("sp.ae_grenze"),
             tr("sp.ae_grenze.tooltip"),
             tr("sp.ae_grenze.einheit"),
-            _parameter().GetFloat(GEMERKT["ae_grenze"], sw.AE_GRENZE),
+            werkzeug.ae_warngrenze,
         )
         felder.addWidget(schnitt, 1)
 
@@ -199,8 +199,12 @@ class SchruppDialog(QtGui.QDialog):
         kopfleiste = self.tabelle.horizontalHeader()
         kopfleiste.setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
         kopfleiste.setSectionResizeMode(HINWEIS, QtGui.QHeaderView.Stretch)
-        self.tabelle.currentCellChanged.connect(lambda *_: self._knopf_zeigen())
+        self.tabelle.currentCellChanged.connect(lambda *_: self._auswahl_zeigen())
         aufbau.addWidget(self.tabelle, 1)
+        # Rot unter der Tabelle, wenn die gewählte Zeile über der Warngrenze liegt.
+        self.warnung = hinweiszeile()
+        self.warnung.hide()
+        aufbau.addWidget(self.warnung)
 
         self.ergebnis = QtGui.QLabel()
         self.ergebnis.setWordWrap(True)
@@ -285,7 +289,7 @@ class SchruppDialog(QtGui.QDialog):
         if plan.stufen:
             self.tabelle.setCurrentCell(max(plan.beste, 0), AE)
         self.ergebnis.setText(self._ergebnis_text(vc, h, ap, leistung_bekannt))
-        self._knopf_zeigen()
+        self._auswahl_zeigen()
 
     def _drehzahl_zeigen(self):
         plan = self.plan
@@ -317,8 +321,11 @@ class SchruppDialog(QtGui.QDialog):
                 schrift = zelle.font()
                 schrift.setBold(True)
                 zelle.setFont(schrift)
-            elif not stufe.erlaubt:
+            elif stufe.ueber_leistung:
                 zelle.setForeground(GRAU)
+            elif stufe.ueber_ae:
+                # Über der Warngrenze: rot, aber wählbar.
+                zelle.setForeground(QtGui.QColor(ROT))
             self.tabelle.setItem(zeile, spalte, zelle)
 
     def _hinweis(self, stufe, vorschlag):
@@ -402,11 +409,22 @@ class SchruppDialog(QtGui.QDialog):
             ap=zahl_zeigen(ap),
         )
 
-    def _knopf_zeigen(self):
+    def _auswahl_zeigen(self):
+        """Knopf bedienbar, sobald eine Zeile gewählt ist; über der Warngrenze ein roter Satz."""
         zeile = self.tabelle.currentRow()
-        self.knopf_uebernehmen.setEnabled(
-            self.plan is not None and 0 <= zeile < len(self.plan.stufen)
-        )
+        gewaehlt = self.plan is not None and 0 <= zeile < len(self.plan.stufen)
+        self.knopf_uebernehmen.setEnabled(gewaehlt)
+        stufe = self.plan.stufen[zeile] if gewaehlt else None
+        if stufe is not None and stufe.ueber_ae:
+            self.warnung.setText(
+                tr(
+                    "sp.warnung.ueber_ae",
+                    ae=_zahl(stufe.ae, 2),
+                    prozent=_prozent(stufe.prozent),
+                    grenze=_prozent(self.grenzen.ae_prozent),
+                )
+            )
+        self.warnung.setVisible(stufe is not None and stufe.ueber_ae)
 
     # --- Aktionen -------------------------------------------------------------------
 
@@ -422,7 +440,7 @@ class SchruppDialog(QtGui.QDialog):
         getattr(self, "feld_" + feld).setText(text)
 
     def uebernehmen(self):
-        """Die gewählte Zeile als Einsatz; merkt sich ae-Grenze und Maschine fürs nächste Mal."""
+        """Die gewählte Zeile als Einsatz; die Warngrenze bekommt das Werkzeug."""
         zeile = self.tabelle.currentRow()
         if self.plan is None or not 0 <= zeile < len(self.plan.stufen):
             return
@@ -435,11 +453,16 @@ class SchruppDialog(QtGui.QDialog):
         super().reject()
 
     def _merken(self):
-        """Grenzen fürs nächste Mal – auch nach Abbrechen: Die Maschine ändert sich ja nicht."""
+        """Grenzen fürs nächste Mal – auch nach Abbrechen: Die Maschine ändert sich ja nicht.
+
+        Die Warngrenze bekommt das Werkzeug; gespeichert wird sie mit ihm, wenn
+        die Werkzeugverwaltung speichert.
+        """
         parameter = _parameter()
         grenzen = self.grenzen
+        if grenzen.ae_prozent != self.werkzeug.ae_warngrenze:
+            self.werkzeug.ae_warngrenze = grenzen.ae_prozent
         werte = {
-            "ae_grenze": grenzen.ae_prozent,
             "drehzahl": grenzen.drehzahl,
             "vorschub": grenzen.vorschub,
             "leistung": grenzen.leistung,

@@ -12,6 +12,58 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-40 planer-warngrenze
+
+### EINGELESEN
+- Manuel (2026-09-26, Screenshot des Planers): „wer sagt was von 10 % ??
+  … sagen ‚hey das sind mehr als deine Warngrenze‘ … welche man irgendwo
+  mit eintragen kann“; dann: „ab 10 % ae bei voller Schneidenlänge rote
+  Warnung, somit können wir die 10 % lassen, aber auswählbar sollte es
+  schon sein“; „10 % ae bei HSM ist ok, egal wie viel Schneiden“.
+- Plan im Snapshot (Stufe A Punkt 3), Spezifikation W-002 (Entscheidung
+  14), `camaddon/schruppwerte.py`, `camaddon/gui_schruppwerte.py`.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`Werkzeug.ae_warngrenze`, gespeichert; ältere
+  Dateien: 10 %)
+- `camaddon/schruppwerte.py` (`AE_GRENZE` = Vorgabe am Werkzeug)
+- `camaddon/gui_schruppwerte.py` (Feld aus dem Werkzeug und zurück, Zeilen
+  darüber rot, roter Satz unter der Tabelle; nicht mehr in den
+  Einstellungen gemerkt)
+- `translations/de.json`, `translations/en.json` (`sp.ae_grenze*`,
+  `sp.hinweis.ueber_ae`, `sp.grund.ae`, neu `sp.warnung.ueber_ae`)
+- `help/de|en/schruppwerte.html`
+- `docs/spezifikation_werkzeugverwaltung.md` (Entscheidung 14, Stufe 3)
+- `docs/STATUS_SNAPSHOT.md` (Punkt 3 fertig)
+- `tests/test_werkzeuge.py`, `tests/gui/szenario_schruppwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Ø-12-Fräser → „Schruppwerte planen…“: Das Feld
+heißt „Warngrenze ae“ (10 % von D). Die Zeilen über 10 % sind rot mit
+„mehr als deine Warngrenze (10 % von D)“; eine anklicken → darunter ein
+roter Satz, „Als Einsatz übernehmen“ bleibt bedienbar. Warngrenze auf 8
+ändern, Planer schließen, OK → beim nächsten Öffnen steht bei diesem
+Werkzeug 8, bei anderen 10.
+
+### DONE
+- Warngrenze je Werkzeug (Vorgabe 10 %, 0 = keine), gespeichert in der
+  Werkzeugdatei; der Planer liest und schreibt sie (auch nach Abbrechen,
+  wie die Maschinenwerte).
+- Zeilen über der Warngrenze rot und wählbar; über der Spindelleistung
+  weiter grau. Der Vorschlag bleibt unter der Warngrenze; der Satz dazu
+  sagt, dass die roten Zeilen wählbar sind. Die Spalte „ae % D“ gab es
+  schon.
+
+### TEST
+- `test_werkzeuge.py` (Vorgabe, Speichern, alte Datei, 0 und Begrenzung),
+  `test_schruppwerte.py`, `test_sprache.py`, `test_hilfe.py` in 1.1.3
+  grün; `szenario_schruppwerte` in 1.1.3 grün, Screenshot angesehen (rote
+  Zeile gewählt, roter Satz). Voller Lauf mit dem nächsten Push.
+
+### NEXT
+- A4 Eingriffsbild beschriften.
+
 ## P-2026-09-26-39 version-0-13-0
 
 ### EINGELESEN

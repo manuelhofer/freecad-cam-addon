@@ -2,7 +2,6 @@
 # (h 0,05). Vorschlag an der Grenze 10 % von D, dann an der Leistungsgrenze
 # der Spindel, Vorschub und Drehzahl der Maschine am Anschlag; „Als Einsatz
 # übernehmen“ legt eigene Werte für C45 mit der neuen Zeile an.
-import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
 from PySide6 import QtTest
@@ -17,10 +16,10 @@ def schritte(h):
     yield 300
     QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.German, QtCore.QLocale.Germany))
 
-    from camaddon import PARAMETER_PFAD, gui_schruppwerte, gui_werkzeuge
+    from camaddon import gui_schruppwerte, gui_werkzeuge
     from camaddon import schruppwerte as sw
     from camaddon import werkzeuge as wz
-    from camaddon.gui_teile import GRAU
+    from camaddon.gui_teile import GRAU, ROT
 
     fraeser = wz.Werkzeug(nummer=3, durchmesser=12, schneiden=3, schneidenlaenge=26)
     fraeser.schnittwerte[wz.ALLE] = [
@@ -55,13 +54,34 @@ def schritte(h):
     for teil in (
         "22,9 cm³/min",
         "fz 0,083 mm",
-        "Grenze von 10 % von D",
+        "Warngrenze von 10 % von D",
         "Vollnut (ae 12 mm, ap 3 mm) schafft 17,2 cm³/min",
         "das 1,3-Fache, mit 24 statt 3 mm Schneide",
     ):
         h.pruefe(teil in text, f"„{teil}“ fehlt: {text!r}")
     h.pruefe("3183 U/min" in p.drehzahl_text.text(), p.drehzahl_text.text())
+    h.pruefe(not p.warnung.isVisible(), "Warnung beim Vorschlag")
     h.bild("1_vorschlag", p)
+    # Über der Warngrenze: rot, aber wählbar – dann steht die Warnung unter der Tabelle.
+    breiter = zeile + 1
+    zelle = p.tabelle.item(breiter, gui_schruppwerte.AE)
+    hinweis = p.tabelle.item(breiter, gui_schruppwerte.HINWEIS).text()
+    h.pruefe(
+        zelle.text() == "1,44" and zelle.foreground().color().name() == ROT,
+        f"Zeile über der Warngrenze: {zelle.text()!r} {zelle.foreground().color().name()}",
+    )
+    h.pruefe(hinweis == "mehr als deine Warngrenze (10 % von D)", f"Hinweis: {hinweis!r}")
+    p.tabelle.setCurrentCell(breiter, gui_schruppwerte.AE)
+    yield 100
+    h.pruefe(
+        p.warnung.isVisible() and "mehr als deine Warngrenze" in p.warnung.text(),
+        f"Warnung: {p.warnung.text()!r}",
+    )
+    h.pruefe(p.knopf_uebernehmen.isEnabled(), "Zeile über der Warngrenze nicht wählbar")
+    h.bild("1b_ueber_warngrenze", p)
+    p.tabelle.setCurrentCell(zeile, gui_schruppwerte.AE)
+    yield 100
+    h.pruefe(not p.warnung.isVisible(), "Warnung bleibt beim Vorschlag")
 
     # Spindel mit 1,5 kW: Grenze zwischen 6 % und 8 %, genau gesucht.
     p.setze("leistung", "1,5")
@@ -106,8 +126,7 @@ def schritte(h):
     )
     h.pruefe(len(werkzeug.einsaetze(wz.ALLE)) == 2, "Werte für alle Werkstoffe verändert")
     h.pruefe(s.tabelle.currentRow() == 2, f"neue Zeile nicht gewählt: {s.tabelle.currentRow()}")
-    parameter = FreeCAD.ParamGet(PARAMETER_PFAD)
-    h.pruefe(parameter.GetFloat("PlanerAeGrenze", -1) == 10, "ae-Grenze nicht gemerkt")
+    h.pruefe(werkzeug.ae_warngrenze == 10, f"Warngrenze am Werkzeug: {werkzeug.ae_warngrenze}")
     h.bild("4_uebernommen", d)
 
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
@@ -142,5 +161,9 @@ def schritte(h):
     yield 100
     h.pruefe(p.feld_vc.text() == "35" and p.feld_vc.styleSheet() == "", "eigenes vc noch grau")
     h.pruefe(grau in p.feld_spandicke.styleSheet(), "Spandicke nicht mehr grau")
+    # Die Warngrenze gehört zum Werkzeug – auch nach Abbrechen.
+    p.setze("ae_grenze", "8")
+    yield 100
     p.reject()
     gui_schruppwerte.SchruppDialog.offen = None
+    h.pruefe(hss.ae_warngrenze == 8, f"Warngrenze nicht am Werkzeug: {hss.ae_warngrenze}")

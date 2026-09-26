@@ -131,6 +131,18 @@ pruefe(
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10)) == 40, "ohne Schneidenlänge: 2D + 2D")
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10, schneidenlaenge=2)) == 30, "mind. 3D")
 
+# Warngrenze des Planers: Vorgabe 10 %, gespeichert; alte Dateien ohne sie: 10 %; 0 bleibt 0.
+pruefe(wz.Werkzeug().ae_warngrenze == 10, "Vorgabe der Warngrenze")
+t1.ae_warngrenze = 12
+pruefe(wz.Werkzeug.aus_dict(t1.als_dict()).ae_warngrenze == 12, "Warngrenze nicht gespeichert")
+ohne = {k: v for k, v in t1.als_dict().items() if k != "ae_warngrenze"}
+pruefe(wz.Werkzeug.aus_dict(ohne).ae_warngrenze == 10, "alte Datei: Warngrenze nicht 10")
+for gespeichert, soll in ((0, 0), (150, 100), (-5, 0)):
+    t1.ae_warngrenze = gespeichert
+    geladen_grenze = wz.Werkzeug.aus_dict(t1.als_dict()).ae_warngrenze
+    pruefe(geladen_grenze == soll, f"Warngrenze {gespeichert} → {geladen_grenze} statt {soll}")
+t1.ae_warngrenze = 10
+
 # Suche: jedes Wort in Zeile oder Bezeichnung; Komma wie Punkt, Ø darf fehlen.
 torus = wz.Werkzeug(nummer=5, art=wz.TORUSFRAESER, durchmesser=10.5, bezeichnung="Hoffmann")
 for suche, soll in (

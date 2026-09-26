@@ -32,9 +32,11 @@ you type something, the field is no longer grey.</li>
 <li><b>Depth ap</b> – how much of the flute length cuts. The default is the
 flute length, at most 2 × D. More ap means: the wear spreads over more
 edge.</li>
-<li><b>ae at most</b> – how wide the cutter may step over at full flute length.
-Manufacturers usually state 5 to 15 % of D – more in aluminium, less in
-stainless steel, titanium and hardened steel. The default is 10 %.</li>
+<li><b>ae warning limit</b> – from which width at full flute length the
+planner warns. Default 10 % of D, however many flutes; manufacturers usually
+state 5 to 15 % – more in aluminium, less in stainless steel, titanium and
+hardened steel. It applies to this tool and is saved with it (OK in the tool
+manager). Empty: no warning limit.</li>
 <li><b>Machine</b> – maximum speed, maximum cutting feed and spindle power. An
 empty field means: no limit. If the machine is described with <b>Edit
 machine</b> and its document is open, <b>From the machine</b> takes speed and
@@ -51,8 +53,11 @@ the edge. The spindle speed is shown above; it is the same for all rows.</p>
 limits. The sentence below says why it can't be wider – and, if the table has a
 full slot with vc and fz, how much more the suggestion removes and with how much
 more edge.</li>
-<li><b>Grey</b> rows are beyond a limit – wider than allowed or more power than
-the spindle has.</li>
+<li><b>Red</b> rows are above your warning limit. You can still pick and take
+them over – a red sentence below the table then says how far above it they
+are. The column “ae % D” shows for every row how wide it is compared with
+the diameter.</li>
+<li><b>Grey</b> rows need more power than the spindle has.</li>
 <li><b>Feed at its limit</b>: with a very narrow ae, fz gets large; if the
 machine can't reach the feed, the planner uses its maximum feed – the chip
 then gets thinner than wanted.</li>

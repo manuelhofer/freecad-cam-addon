@@ -28,10 +28,11 @@ from . import werkzeuge as wz
 
 # ae in % von D, die der Planer durchrechnet; dazu die Grenze selbst.
 STUFEN = (2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50)
-# Übliche Obergrenze für ae bei voller Schneidenlänge, in % von D. Die
-# Hersteller nennen meist 5 … 15 % – in Aluminium mehr, in Edelstahl, Titan
-# und gehärtetem Stahl weniger.
-AE_GRENZE = 10.0
+# Vorgabe der Warngrenze für ae bei voller Schneidenlänge, in % von D – je
+# Werkzeug änderbar (Werkzeug.ae_warngrenze). Die Hersteller nennen meist
+# 5 … 15 % – in Aluminium mehr, in Edelstahl, Titan und gehärtetem Stahl
+# weniger.
+AE_GRENZE = wz.Werkzeug.ae_warngrenze
 # Anteil der Spindelleistung, der an der Schneide ankommt.
 WIRKUNGSGRAD = 0.8
 # Genauigkeit, mit der plane() das ae an der Leistungsgrenze sucht.
@@ -41,7 +42,7 @@ AE_SCHRITT = 0.01  # mm
 ARTEN = (wz.SCHAFTFRAESER, wz.TORUSFRAESER)
 
 # Warum der Vorschlag nicht breiter ist – Schlüssel für die Oberfläche.
-GRUND_AE = "ae"  # die Grenze in % von D
+GRUND_AE = "ae"  # die Warngrenze in % von D
 GRUND_LEISTUNG = "leistung"  # die Spindelleistung
 GRUND_ENDE = "ende"  # die Reihe endet bei D/2 – breiter ist kein dynamisches Fräsen mehr
 
@@ -50,7 +51,7 @@ GRUND_ENDE = "ende"  # die Reihe endet bei D/2 – breiter ist kein dynamisches 
 class Grenzen:
     """Was Werkzeug und Maschine erlauben; 0 heißt „keine Grenze bekannt“."""
 
-    ae_prozent: float = AE_GRENZE  # ae höchstens so viel % von D, 0 = bis D/2
+    ae_prozent: float = AE_GRENZE  # Warngrenze für ae in % von D, 0 = bis D/2
     drehzahl: float = 0.0  # U/min
     vorschub: float = 0.0  # mm/min, Bearbeitungsvorschub
     leistung: float = 0.0  # kW, Nennleistung der Spindel
@@ -69,7 +70,7 @@ class Stufe:
     leistung: float = 0.0  # kW an der Schneide, 0 = unbekannt (kein kc1.1)
     drehmoment: float = 0.0  # Nm, 0 = unbekannt
     vorschub_begrenzt: bool = False  # vf auf den Höchstvorschub gesenkt, der Span wird dünner
-    ueber_ae: bool = False  # breiter als die Grenze in % von D
+    ueber_ae: bool = False  # breiter als die Warngrenze in % von D – rot, aber wählbar
     ueber_leistung: bool = False  # braucht mehr, als die Spindel hergibt
     an_grenze: bool = False  # keine feste Stufe: genau an der Grenze gesucht
 

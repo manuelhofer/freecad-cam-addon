@@ -33,9 +33,11 @@ Tippst du etwas ein, ist das Feld nicht mehr grau.</li>
 <li><b>Tiefe ap</b> – so viel Schneide arbeitet. Vorbelegt ist die
 Schneidenlänge, höchstens 2 × D. Mehr ap heißt: Der Verschleiß verteilt
 sich auf mehr Schneide.</li>
-<li><b>ae höchstens</b> – wie breit der Fräser bei voller Schneidenlänge
-zustellen darf. Die Hersteller nennen meist 5 bis 15 % von D – in Aluminium
-mehr, in Edelstahl, Titan und gehärtetem Stahl weniger. Vorbelegt sind 10 %.</li>
+<li><b>Warngrenze ae</b> – ab welcher Breite bei voller Schneidenlänge der
+Planer warnt. Vorgabe 10 % von D, egal wie viele Schneiden; die Hersteller
+nennen meist 5 bis 15 % – in Aluminium mehr, in Edelstahl, Titan und
+gehärtetem Stahl weniger. Sie gilt für dieses Werkzeug und wird mit ihm
+gespeichert (OK in der Werkzeugverwaltung). Leer: keine Warngrenze.</li>
 <li><b>Maschine</b> – Höchstdrehzahl, höchster Bearbeitungsvorschub und
 Spindelleistung. Ein leeres Feld heißt: keine Grenze. Ist die Maschine mit
 <b>Maschine bearbeiten</b> beschrieben und ihr Dokument offen, übernimmt
@@ -54,8 +56,11 @@ Zeilen gleich.</p>
 Grenzen einhält. Der Satz darunter sagt, warum es nicht breiter geht – und,
 wenn die Tabelle eine Vollnut mit vc und fz hat, wie viel mehr der
 Vorschlag schafft und mit wie viel mehr Schneide.</li>
-<li><b>Grau</b> sind Zeilen jenseits einer Grenze – breiter als erlaubt oder
-mehr Leistung, als die Spindel hat.</li>
+<li><b>Rot</b> sind Zeilen über deiner Warngrenze. Wählen und übernehmen kannst
+du sie trotzdem – dann sagt ein roter Satz unter der Tabelle, wie weit
+darüber sie liegt. Die Spalte „ae % D“ zeigt für jede Zeile, wie breit sie
+im Verhältnis zum Durchmesser ist.</li>
+<li><b>Grau</b> sind Zeilen, die mehr Leistung brauchen, als die Spindel hat.</li>
 <li><b>Vorschub am Anschlag</b>: Bei sehr schmalem ae wird fz groß; schafft die
 Maschine den Vorschub nicht, rechnet der Planer mit ihrem Höchstvorschub – der
 Span wird dann dünner als gewünscht.</li>

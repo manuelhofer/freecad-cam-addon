@@ -182,6 +182,9 @@ class Werkzeug:
     schaft: float = 0.0  # Schaftdurchmesser, mm
     # Wie steil der Fräser höchstens eintauchen darf (Rampe, Helix), Grad; 0 = unbekannt.
     eintauchwinkel: float = 0.0
+    # Warngrenze des Planers: breiter als so viel % von D wird rot, bleibt aber
+    # wählbar; 0 = keine. Vorgabe 10 %, egal wie viele Schneiden (Manuel).
+    ae_warngrenze: float = 10.0
     schneidstoff: str = VHM
     bezeichnung: str = ""  # frei: Hersteller, Bestellnummer, Beschichtung …
     # Werkstoff-Kennung oder ALLE -> die Einsätze mit ihren Werten.
@@ -248,6 +251,7 @@ class Werkzeug:
             "gesamtlaenge": self.gesamtlaenge,
             "schaft": self.schaft,
             "eintauchwinkel": self.eintauchwinkel,
+            "ae_warngrenze": self.ae_warngrenze,
             "schneidstoff": self.schneidstoff,
             "bezeichnung": self.bezeichnung,
             "name": self.name,
@@ -276,6 +280,10 @@ class Werkzeug:
         w.gesamtlaenge = max(_zahl(daten.get("gesamtlaenge"), float, 0.0), 0.0)
         w.schaft = max(_zahl(daten.get("schaft"), float, 0.0), 0.0)
         w.eintauchwinkel = min(max(_zahl(daten.get("eintauchwinkel"), float, 0.0), 0.0), 90.0)
+        # Erst seit P-2026-09-26-40 – fehlt sie, gilt die Vorgabe.
+        w.ae_warngrenze = min(
+            max(_zahl(daten.get("ae_warngrenze"), float, w.ae_warngrenze), 0.0), 100.0
+        )
         w.schneidstoff = (
             daten.get("schneidstoff") if daten.get("schneidstoff") in SCHNEIDSTOFFE else VHM
         )
