@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-87 version-0-22-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit 0.21.0:
+  „Auf der Maschine prüfen“ (W-001 Stufe 4a, P-2026-09-26-83 bis -86).
+
+### DATEIEN
+- `package.xml` (0.22.0, Beschreibung)
+- `README.md` („Was es kann“)
+- `translations/de.json`, `translations/en.json` (Text „Über“)
+- `docs/STATUS_SNAPSHOT.md` (Projektstatus, Punkt 13, „Danach“)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.22.0 und nennt
+das Prüfen der Verfahrwege; die README hat den Punkt „Auf der Maschine
+prüfen“.
+
+### DONE
+- Version 0.21.0 → 0.22.0; Beschreibung für den Addon-Manager um „check a
+  CAM job's paths against its travel limits“ ergänzt.
+- README: Punkt „Auf der Maschine prüfen“ nach „Maschine verfahren“.
+- „Über“: „… an CAM übergeben und prüfen, ob ihre Verfahrwege für die
+  Bahnen eines CAM-Jobs reichen“ (de/en).
+- Stand: W-001 bis 4a fertig und geprüft, danach 4b; Punkt 13 komplett.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push nach `main` und in den Branch, bei GitHub nachsehen, Manuel den
+  Klickweg und die Screenshots zeigen.
+
 ## P-2026-09-26-86 laenge-ab-spindelnase
 
 ### EINGELESEN

@@ -4,7 +4,7 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufen 1 bis 3 und 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) fertig und automatisch geprüft; warten auf Manuels Test. Jetzt Stufe 4a (Reichweite prüfen, Punkt 13 unten).
+- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Danach Stufe 4b (Abfahren); Halter und Mindestabstand vor 4c.
 - **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
 - **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ fertig und automatisch geprüft (P-2026-09-26-79), wartet auf Manuels Test; als Nächstes V2 (Punkt 12 unten).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
@@ -142,7 +142,8 @@ Wunschliste, offene Bugs und Tasks.
    Länge ab Spindelnase, Version. Schritt 1 fertig (P-2026-09-26-84:
    `reichweite.py`, an allen Beispielmaschinen nachgemessen), Schritt 2
    fertig (-85: Befehl und Fenster, Klick fährt hin), Schritt 3 fertig
-   (-86: „Länge ab Spindelnase“ in der Werkzeugverwaltung).*
+   (-86: „Länge ab Spindelnase“ in der Werkzeugverwaltung), Version 0.22.0
+   (-87). Stufe 4a damit komplett.*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -224,7 +225,7 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    Mindestabstand offen, vor 4c ([Spezifikation](spezifikation_simulation.md),
    Abschnitt 9).
 
-Danach: W-001 Stufe 4a (Reichweite prüfen, Punkt 13) – in Arbeit.
+Danach: W-001 Stufe 4b (Abfahren) – nach Manuels Test von 4a (Punkt 7 oben).
 
 ## Wunschliste
 

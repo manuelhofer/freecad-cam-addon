@@ -22,6 +22,12 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
 - **Maschine verfahren:** je Achse ein Regler, die Baugruppe fährt mit –
   bis zu den Grenzen der Gelenke. Mit schräger Achse auch „wie im
   Programm“: Regler X und Y, beide Schlitten fahren passend mit.
+- **Auf der Maschine prüfen:** Reicht der Verfahrweg für einen CAM-Job? Für
+  jeden Punkt der Bahnen die Stellung jeder Achse, gegen ihre Grenzen
+  gehalten – als Sätze („X1 fährt in „Tasche“ bis 312,00 mm, die Grenze ist
+  250,00 mm“); ein Klick fährt die Maschine an die Stelle. Mit dem
+  Nullpunkt des Jobs auf der Werkstückaufnahme und der Länge ab Spindelnase
+  aus der Werkzeugverwaltung.
 - **Werkzeugverwaltung:** Werkstoffliste mit deutschen Bezeichnungen
   („1.4301 X5CrNi18-10 · Edelstahl, austenitisch“), Zusammensetzung und
   Härte; Werkzeuge mit Bild, Suche und Schnittwerten je Werkstoff und
