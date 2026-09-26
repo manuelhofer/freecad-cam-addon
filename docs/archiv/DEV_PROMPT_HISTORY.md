@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-31 plan-stufen
+
+### EINGELESEN
+- Manuels Antworten: Beispielwerte grau, aber gültig (Ø 12);
+  Warngrenze 10 % bei voller Schneidenlänge als Vorgabe, darüber rote
+  Warnung, aber wählbar; mm/% für ae und ap; Einheiten (mm/inch) und
+  Dezimaltrennzeichen beim ersten Start und in den Einstellungen wählbar,
+  mit Beispielzahlen; Werkzeuge in inch und mm umschaltbar. Dazu die Liste
+  der Werkzeugarten aus InventorCAM (Screenshot, 26 Arten).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Plan in drei Stufen)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Snapshot nennt die Stufen A (Werkzeugverwaltung), B (Einheiten,
+Zahlenformat), C (Werkzeugarten) mit ihren Schritten.
+
+### DONE
+- Plan geordnet.
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Manuels OK zur Reihenfolge, dann Stufe A.
+
 ## P-2026-09-26-30 plan-erweitert
 
 ### EINGELESEN

@@ -12,42 +12,46 @@ Wunschliste, offene Bugs und Tasks.
 
 ## Nächster Schritt (konkret)
 
-**Geplant nach Manuels erstem Test (2026-09-26), wartet auf sein OK:**
+**Geplant nach Manuels erstem Test (2026-09-26) – noch nichts gebaut:**
 
-1. **Werkzeugname** (Manuels Option A): eigenes Feld „Name“ wie in der
-   Steuerung (frei, Leerzeichen bleiben – der Bediener schreibt es wie an
-   der Maschine), unter Nummer/Art; „Bezeichnung“ bleibt für Hersteller,
-   Bestellnummer. Name in Liste und Suche, Hinweis bei doppeltem Namen
-   (erlaubt: Schwesterwerkzeuge), als Werkzeugname in CAM, im Namen des
-   Werkzeug-Controllers („T1 Fräser VHM 12 – Schruppen“); „Aus CAM
-   übernehmen“ füllt ihn. Leer zeigt das Feld grau einen Namen aus den
-   Angaben – „Schaftfräser T1 VHM D12 L30“ (Art, T-Nummer, Schneidstoff,
-   Durchmesser, Schneidenlänge) – und der gilt, bis man selbst einen
-   einträgt. Ins NC-Programm als `T="…"` nur mit eigenem
-   Postprozessor – FreeCADs Posts rufen per Nummer (Heidenhain schreibt
-   den Namen des Werkzeug-Controllers als Kommentar).
-2. **ae in mm oder % von D** umschaltbar über der Einsatz-Tabelle; intern
-   weiter mm, Wahl gemerkt. Offen: auch ap umschaltbar (× D oder % der
-   Schneidenlänge)?
-3. **Dezimalzeichen:** Die Anzeige folgt schon FreeCADs Einstellung
-   (Bearbeiten → Einstellungen → Allgemein → Zahlenformat:
-   Betriebssystem / Ausgewählte Sprache / C/POSIX). Neu: bei der Eingabe
-   Punkt und Komma annehmen. Das NC-Programm betrifft das nicht – das
-   Addon übergibt Zahlen, der Postprozessor schreibt immer mit Punkt.
-4. **Eingriffsbild beschriften:** über dem linken Bild „ae – seitliche
-   Zustellung (von oben)“, über dem rechten „ap – Zustelltiefe (von der
-   Seite)“; der Text daneben je Größe eine Zeile (ae mit Eingriff, ap mit
-   Anteil der Schneide, Spandicke).
-5. **Planer ohne feste 10 %:** Jede Zeile zeigt ae in % von D; eine
-   Warngrenze für ae trägt man am Werkzeug ein (aus dem Katalog), der
-   Planer übernimmt sie; Zeilen darüber bleiben wählbar, mit dem Satz
-   „mehr als deine Warngrenze (… % von D)“. Offen: Was schlägt der Planer
-   ohne Warngrenze vor (Q wächst mit ae bis zur Grenze der Maschine)?
-6. **Neues Werkzeug mit Beispiel:** Die Felder zeigen grau Beispielwerte
-   je Art (etwa Ø 10, z 3, Schneidenlänge 22), das Bild zeichnet die Form
-   daraus (gestrichelt), bis echte Werte da sind – auch beim Durchblättern
-   der Liste erscheint immer die Form. Offen: grau (Vorschlag Claude) oder
-   echte, schon eingetragene Werte?
+*Stufe A – Werkzeugverwaltung verfeinern*
+1. **Werkzeugname** neben der Nummer (Option A): frei, wie an der
+   Maschine (Leerzeichen bleiben). Leer gilt ein Name aus den Angaben,
+   grau gezeigt: „Schaftfräser T1 VHM D12 L30“ (Zahlen mit Punkt). Name in
+   Liste, Suche, als Werkzeugname in CAM, im Namen des Werkzeug-Controllers
+   („T1 Fräser VHM 12 – Schruppen“); „Aus CAM übernehmen“ füllt ihn;
+   doppelte Namen: Hinweis, erlaubt. NC-Aufruf `T="…"` nur mit eigenem
+   Postprozessor (FreeCADs rufen per Nummer).
+2. **Neues Werkzeug mit Beispielwerten:** grau gezeigt, aber gültig
+   (Manuel: wer Ø 12 stehen lässt, will Ø 12), Durchmesser 12; das Bild
+   zeigt gleich die Form, beim Durchblättern immer.
+3. **Planer:** Warngrenze ae 10 % von D (bei voller Schneidenlänge)
+   bleibt Vorgabe, am Werkzeug änderbar; Zeilen darüber rot „mehr als
+   deine Warngrenze“, aber wählbar; % je Zeile sichtbar.
+4. **Eingriffsbild:** Überschriften „ae – seitliche Zustellung (von
+   oben)“ / „ap – Zustelltiefe (von der Seite)“, Text je Größe eine Zeile.
+5. **ae und ap wahlweise in mm oder % von D** (ein Umschalter über der
+   Tabelle, intern mm, Wahl gemerkt).
+
+*Stufe B – Einheiten und Zahlenformat*
+6. Beim ersten Start (mit der Sprache) und in den Einstellungen des
+   Addons: **Maßsystem** mm oder inch und **Dezimaltrennzeichen** , oder
+   . – mit Beispielzahlen, vorbelegt aus FreeCADs Einstellungen
+   (Einheitensystem, Zahlenformat).
+7. Überall in der gewählten Einheit anzeigen und eingeben (mm/inch,
+   m/min/SFM, mm/min/ipm, cm³/min/in³/min), Umschalter in der
+   Werkzeugverwaltung; intern metrisch – verlustfrei, 1 in = 25,4 mm, 1/2"
+   bleibt 0,5 in. Eingabe nimmt Punkt und Komma.
+
+*Stufe C – Werkzeugarten wie in InventorCAM (eigene Spezifikation zuerst)*
+8. Arten: Schaft-, Kugel-, Torus-, Konik-, Schwalbenschwanz-,
+   Lollipop-, Fasen-, Radien-, Plan-, Nuten-, Form-, Gewindefräser;
+   Bohren, Zentrierbohrer, NC-Anbohrer, Gewinde rechts/links, konische
+   und zylindrische Senkung, Reibahle, Bohrstange, Ausbohren/Spindeln;
+   Universal-Drehen, Einstechen, Gewinde (Drehen); Antasten. Je Art: Maße,
+   Bild, Einsätze, was CAM davon kennt. Achtung: Das heutige
+   „Radiusfräser“ ist ein Kugelfräser – umbenennen; „Radienfräser“ ist eine
+   andere Art.
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
