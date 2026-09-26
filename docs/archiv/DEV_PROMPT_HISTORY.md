@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-61 version-0-17-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit
+  0.16.0: Revolverplatz nur am Revolver (P-2026-09-26-52), die 26
+  Werkzeugarten (P-2026-09-26-53 bis -60), Szenario wartet auf die
+  Beispielmaschine (-57).
+
+### DATEIEN
+- `package.xml` (0.17.0; Beschreibung nennt die 26 Werkzeugarten)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.17.0.
+
+### DONE
+- Version 0.16.0 → 0.17.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; dann die Beispielmaschinen zur Auswahl (Punkt 7b).
+
 ## P-2026-09-26-60 einsaetze-in-den-job
 
 ### EINGELESEN
