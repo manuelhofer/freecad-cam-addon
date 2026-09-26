@@ -84,7 +84,10 @@ Wunschliste, offene Bugs und Tasks.
    gleich mit (Schnittwerte für später – FreeCAD 1.1.3 dreht nicht). Je Art: Maße,
    Bild, Einsätze, was CAM davon kennt. Achtung: Das heutige
    „Radiusfräser“ ist ein Kugelfräser – umbenennen; „Radienfräser“ ist eine
-   andere Art.
+   andere Art. – *Spezifikation: `docs/spezifikation_werkzeugarten.md`
+   (P-2026-09-26-53), sechs Stufen, Abschnitt 8. Auf Manuels Wunsch vor
+   Punkt 7b („ne, mach mal Werkzeugarten weiter“); 7b liegt fast fertig
+   im Stash „WIP Beispielmaschinen zur Auswahl“.*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher

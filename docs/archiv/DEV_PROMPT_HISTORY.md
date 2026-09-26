@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-53 spezifikation-werkzeugarten
+
+### EINGELESEN
+- Manuel (2026-09-26): „ne, mach mal Werkzeugarten weiter“ – die
+  Beispielmaschinen zur Auswahl warten (fast fertig, im Stash).
+- Plan Punkt 10 in `docs/STATUS_SNAPSHOT.md` (26 Arten aus Manuels
+  InventorCAM-Screenshot, P-2026-09-26-31), `camaddon/werkzeuge.py`,
+  `gui_werkzeuge.py`, `gui_werkzeugbild.py`, `schnittdaten.py`,
+  `uebergabe_werkzeuge.py`, `werkzeuge_aus_cam.py`; die Werkzeugformen von
+  FreeCAD-CAM (`Path/Tool/shape/models`, in 1.1.3 und im Wochen-Build
+  dieselben 15).
+
+### DATEIEN
+- `docs/spezifikation_werkzeugarten.md` (neu)
+- `docs/STATUS_SNAPSHOT.md` (Punkt 10), `CHATSTART.md` (Lesekarte)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation nennt alle 26 Arten mit Maßen, CAM-Form, Einsätzen,
+Beispielwerten und die Stufen, in denen sie gebaut werden.
+
+### DONE
+- Spezifikation mit neun Abschnitten; Entscheidungen zur Besprechung in
+  Abschnitt 9 (u. a. Gewindebohrer rechts/links als zwei Arten, Bohrstange
+  und Ausspindelwerkzeug getrennt, Nutenfräser = Scheibenfräser,
+  Konikfräser mit Kugel an der Spitze, Drehwerkzeuge ohne Schnittwerte).
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- Stufe C1: Kugelfräser statt „Radiusfräser“.
+
 ## P-2026-09-26-52 revolverplatz-nur-am-revolver
 
 ### EINGELESEN
