@@ -20,7 +20,10 @@ Wunschliste, offene Bugs und Tasks.
    Bestellnummer. Name in Liste und Suche, Hinweis bei doppeltem Namen
    (erlaubt: Schwesterwerkzeuge), als Werkzeugname in CAM, im Namen des
    Werkzeug-Controllers („T1 Fräser VHM 12 – Schruppen“); „Aus CAM
-   übernehmen“ füllt ihn. Ins NC-Programm als `T="…"` nur mit eigenem
+   übernehmen“ füllt ihn. Leer zeigt das Feld grau einen Namen aus den
+   Angaben – „Schaftfräser T1 VHM D12 L30“ (Art, T-Nummer, Schneidstoff,
+   Durchmesser, Schneidenlänge) – und der gilt, bis man selbst einen
+   einträgt. Ins NC-Programm als `T="…"` nur mit eigenem
    Postprozessor – FreeCADs Posts rufen per Nummer (Heidenhain schreibt
    den Namen des Werkzeug-Controllers als Kommentar).
 2. **ae in mm oder % von D** umschaltbar über der Einsatz-Tabelle; intern
@@ -35,6 +38,16 @@ Wunschliste, offene Bugs und Tasks.
    Zustellung (von oben)“, über dem rechten „ap – Zustelltiefe (von der
    Seite)“; der Text daneben je Größe eine Zeile (ae mit Eingriff, ap mit
    Anteil der Schneide, Spandicke).
+5. **Planer ohne feste 10 %:** Jede Zeile zeigt ae in % von D; eine
+   Warngrenze für ae trägt man am Werkzeug ein (aus dem Katalog), der
+   Planer übernimmt sie; Zeilen darüber bleiben wählbar, mit dem Satz
+   „mehr als deine Warngrenze (… % von D)“. Offen: Was schlägt der Planer
+   ohne Warngrenze vor (Q wächst mit ae bis zur Grenze der Maschine)?
+6. **Neues Werkzeug mit Beispiel:** Die Felder zeigen grau Beispielwerte
+   je Art (etwa Ø 10, z 3, Schneidenlänge 22), das Bild zeichnet die Form
+   daraus (gestrichelt), bis echte Werte da sind – auch beim Durchblättern
+   der Liste erscheint immer die Form. Offen: grau (Vorschlag Claude) oder
+   echte, schon eingetragene Werte?
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher

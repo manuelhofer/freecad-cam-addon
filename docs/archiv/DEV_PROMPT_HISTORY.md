@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-30 plan-erweitert
+
+### EINGELESEN
+- Manuel (Planung, noch nichts bauen): Namen trägt man selbst ein, ein
+  Beispielname aus den Angaben wäre gut („Schaftfräser T1 VHM D12 L30“).
+  Planer: „Wer sagt was von 10 %?“ – die Prozente zeigen, eine eigene
+  Warngrenze eintragen können, darüber warnen. Neues Werkzeug:
+  Beispielwerte, damit das Bild gleich die Form zeigt, auch beim
+  Durchblättern der Liste.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (Plan Punkt 1 ergänzt, Punkte 5 und 6)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Snapshot nennt die sechs geplanten Schritte mit den offenen Fragen.
+
+### DONE
+- Plan ergänzt.
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Manuels Antworten, dann bauen.
+
 ## P-2026-09-26-29 version-0-11-2
 
 ### EINGELESEN
