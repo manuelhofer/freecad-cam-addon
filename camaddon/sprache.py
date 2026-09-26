@@ -21,7 +21,8 @@ from . import ADDON_ORDNER, PARAMETER_PFAD
 
 SPRACH_ORDNER = os.path.join(ADDON_ORDNER, "translations")
 
-# Nach der Installation gilt Englisch, bis der Benutzer eine Sprache wählt.
+# Bis der Benutzer eine Sprache wählt, gilt die von FreeCAD selbst (wenn es
+# für sie eine Sprachdatei gibt), sonst Englisch.
 STANDARD_SPRACHE = "en"
 
 # Deutsch ist die führende Sprache: Jeder Text entsteht zuerst auf Deutsch,
@@ -29,6 +30,7 @@ STANDARD_SPRACHE = "en"
 FUEHRENDE_SPRACHE = "de"
 
 _geladen = {}  # Code -> Inhalt der Sprachdatei; jede Datei wird nur einmal gelesen
+_freecad = []  # die Sprache von FreeCAD, einmal ermittelt (sie wechselt erst mit einem Neustart)
 
 
 def _parameter():
@@ -66,9 +68,24 @@ def gewaehlte_sprache():
     return _parameter().GetString("Sprache", "") or None
 
 
+def freecad_sprache():
+    """Die Sprache, in der FreeCAD selbst läuft („German“ → "de"), wenn es für sie eine
+    Sprachdatei gibt – sonst None, ohne Oberfläche immer."""
+    if not _freecad:
+        try:
+            import FreeCADGui
+
+            code = str(FreeCADGui.supportedLocales().get(FreeCADGui.getLocale(), ""))
+        except Exception:  # ohne Oberfläche gibt es diese Aufrufe nicht
+            code = ""
+        code = code.replace("-", "_").split("_")[0].lower()
+        _freecad.append(code if code in verfuegbare_sprachen() else None)
+    return _freecad[0]
+
+
 def aktuelle_sprache():
-    """Die Sprache der Oberfläche: die gewählte, sonst Englisch."""
-    return gewaehlte_sprache() or STANDARD_SPRACHE
+    """Die Sprache der Oberfläche: die gewählte, sonst die von FreeCAD, sonst Englisch."""
+    return gewaehlte_sprache() or freecad_sprache() or STANDARD_SPRACHE
 
 
 def setze_sprache(code):

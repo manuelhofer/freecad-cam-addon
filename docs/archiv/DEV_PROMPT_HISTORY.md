@@ -12,6 +12,65 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-27 sprachwahl-erster-start
+
+### EINGELESEN
+- Manuels erster Start (FreeCAD 1.1.3, KDE, dunkles Thema), Screenshot:
+  1. Der Titel „Sprache wählen“ sagt nicht, wofür.
+  2. Der Hinweis unter der Auswahl ist abgeschnitten.
+  3. Er hat Deutsch gewählt, die Knöpfe des Addons blieben englisch
+     („Cutting data into the job“).
+  4. Frage: Wird die Sprache gemerkt?
+- Ursachen, im Test nachgestellt:
+  - Zu 2: Das Fenster entsteht mit dem englischen Text (bei Manuel eine
+    Zeile); der deutsche braucht zwei, und das offene Fenster wächst unter
+    KDE nicht mit.
+  - Zu 3: FreeCAD liest Name und Tooltip eines Befehls nur einmal beim
+    Anmelden (vor der Frage) und auch bei FreeCADs eigenem Sprachwechsel
+    nicht neu.
+  - Zu 4: Gemerkt wird die Sprache (Parameter „Sprache“). Auf die Platte
+    schreibt FreeCAD aber erst beim Beenden – nach einem Absturz käme die
+    Frage wieder.
+- FreeCAD meldet seine eigene Sprache über `getLocale()` („German“),
+  `supportedLocales()` übersetzt in den Code („de“) – in beiden Versionen.
+- Nebenbei: Die Werkzeugleiste hieß je nach Sprache „CAM-Addon“ oder
+  „CAM Addon“; nach einem Sprachwechsel hätte sie doppelt erscheinen können.
+
+### DATEIEN
+- `camaddon/sprache.py` (`freecad_sprache()`; ohne Wahl gilt die Sprache
+  von FreeCAD, sonst Englisch)
+- `camaddon/gui_sprachwahl.py` (Vorwahl = aktuelle Sprache; Platz für die
+  Texte jeder Sprache; Wahl sofort speichern; danach `NACH_SPRACHWAHL`)
+- `camaddon/gui_start.py` (Befehle gemerkt, `befehle_beschriften()` nach
+  einer Sprachwahl und wenn FreeCAD neue Knöpfe anlegt; Werkzeugleiste
+  heißt fest „CAM-Addon“)
+- `translations/de.json`, `translations/en.json` (Titel mit Addon-Namen;
+  `werkzeugleiste.name` entfällt)
+- `tests/gui/szenario_erster_start.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Frisches FreeCAD-Profil, FreeCAD auf Deutsch → Start: Das Fenster heißt
+„CAM-Addon – Sprache wählen“, Deutsch ist vorgewählt, der Hinweis ist ganz
+zu lesen → OK → die Knöpfe der Werkzeugleiste „CAM-Addon“ sind deutsch,
+ohne Neustart. Beim nächsten Start kommt keine Frage mehr.
+
+### DONE
+- Alle vier Punkte behoben, dazu der feste Name der Werkzeugleiste.
+
+### TEST
+- `tests/gui/szenario_erster_start.py` (beide Versionen): Titel auf
+  Englisch und Deutsch; Mindesthöhe reicht für den deutschen Text (ohne die
+  Korrektur schlägt das an: „zu niedrig: 116 < 130“); die Wahl steht sofort
+  in user.cfg; Knopf und Tooltip nach der Wahl deutsch, nach Umstellen in
+  den Einstellungen wieder englisch; die Werkzeugleiste nur einmal;
+  FreeCAD auf Deutsch → Vorgabe „de“, auf Japanisch → keine (Englisch).
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Manuel: Beim nächsten Start sollte keine Frage mehr kommen; in einem
+  frischen FreeCAD-Profil ist Deutsch vorgewählt.
+
 ## P-2026-09-26-26 version-0-11-1
 
 ### EINGELESEN

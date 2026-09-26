@@ -8,11 +8,15 @@ er richtig ist, bevor er bestätigt.
 Die Einstellungsseite enthält auch die Gruppe „Updates“ (gui_aktualisierung).
 """
 
+import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import gui_aktualisierung, sprache
 from .sprache import tr
+
+# Was nach einer Sprachwahl geschehen soll (gui_start: Knöpfe neu beschriften).
+NACH_SPRACHWAHL = []
 
 
 def _sprachliste(auswahl):
@@ -30,7 +34,7 @@ class ErsterStartDialog(QtGui.QDialog):
 
     def __init__(self, eltern=None):
         super().__init__(eltern)
-        self.liste = _sprachliste(sprache.STANDARD_SPRACHE)
+        self.liste = _sprachliste(sprache.aktuelle_sprache())
         self.frage = QtGui.QLabel()
         self.frage.setWordWrap(True)
         self.hinweis = QtGui.QLabel()
@@ -46,6 +50,7 @@ class ErsterStartDialog(QtGui.QDialog):
         self.setMinimumWidth(420)
 
         self.liste.currentIndexChanged.connect(self._beschriften)
+        self._platz_fuer_alle_sprachen()
         self._beschriften()
 
     def gewaehlt(self):
@@ -53,10 +58,25 @@ class ErsterStartDialog(QtGui.QDialog):
         return self.liste.currentData()
 
     def _beschriften(self, *_):
-        code = self.gewaehlt()
+        self._texte_setzen(self.gewaehlt())
+
+    def _texte_setzen(self, code):
         self.setWindowTitle(tr("sprachwahl.titel", sprache=code))
         self.frage.setText(tr("sprachwahl.frage", sprache=code))
         self.hinweis.setText(tr("sprachwahl.hinweis", sprache=code))
+
+    def _platz_fuer_alle_sprachen(self):
+        """Macht das Fenster gleich so groß, dass die Texte jeder Sprache hineinpassen.
+
+        Beim Umschalten wächst ein offenes Fenster nicht auf jedem System mit
+        (bei Manuel unter KDE nicht) – der längere Text wäre abgeschnitten.
+        """
+        breite = max(self.minimumWidth(), self.sizeHint().width())
+        hoehe = 0
+        for index in range(self.liste.count()):
+            self._texte_setzen(self.liste.itemData(index))
+            hoehe = max(hoehe, self.heightForWidth(breite), self.sizeHint().height())
+        self.setMinimumSize(breite, hoehe)
 
     def reject(self):
         # Schließen ohne Wahl gilt als Wahl der Vorauswahl: Die Frage soll
@@ -67,7 +87,16 @@ class ErsterStartDialog(QtGui.QDialog):
 def _erster_start():
     dialog = ErsterStartDialog(FreeCADGui.getMainWindow())
     dialog.exec_()  # wartet, bis eine Sprache gewählt ist
-    sprache.setze_sprache(dialog.gewaehlt())
+    _uebernehmen(dialog.gewaehlt())
+
+
+def _uebernehmen(code):
+    """Speichert die Sprache sofort – FreeCAD schreibt seine Einstellungen sonst erst beim
+    Beenden, und nach einem Absturz käme die Frage wieder – und beschriftet neu."""
+    sprache.setze_sprache(code)
+    FreeCAD.saveParameter()
+    for aufgabe in NACH_SPRACHWAHL:
+        aufgabe()
 
 
 def beim_ersten_start_fragen():
@@ -103,7 +132,7 @@ class Einstellungsseite:
         gui_aktualisierung.einstellungen_laden(self)
 
     def saveSettings(self):
-        sprache.setze_sprache(self.liste.currentData())
+        _uebernehmen(self.liste.currentData())
         gui_aktualisierung.einstellungen_speichern(self)
 
 

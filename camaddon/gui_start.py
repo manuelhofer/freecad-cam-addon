@@ -7,6 +7,8 @@ diesen beiden Arbeitsbereichen – über die öffentliche Python-Schnittstelle
 der Arbeitsbereiche, nichts an FreeCAD wird überschrieben.
 """
 
+import html
+
 import FreeCAD
 import FreeCADGui
 from PySide import QtGui
@@ -19,12 +21,17 @@ from . import (
     gui_sprachwahl,
     gui_verfahren,
     gui_werkzeuge,
+    sprache,
     symbol,
 )
 from .sprache import tr
 
 # Arbeitsbereiche, an die die Werkzeugleiste angehängt wird.
 ZIEL_ARBEITSBEREICHE = ("AssemblyWorkbench", "CAMWorkbench")
+
+# Die Werkzeugleiste heißt in jeder Sprache gleich: An ihrem Namen erkennt
+# _werkzeugleiste_anhaengen(), dass sie schon hängt – auch nach einer Sprachwahl.
+WERKZEUGLEISTE_NAME = "CAM-Addon"
 
 # Befehle der Werkzeugleiste, in Anzeigereihenfolge.
 WERKZEUGLEISTE = [
@@ -39,11 +46,19 @@ WERKZEUGLEISTE = [
 def starten():
     """Meldet Befehle, Werkzeugleiste und Einstellungsseite an, fragt beim ersten
     Start nach der Sprache und sucht im Hintergrund nach Updates."""
-    FreeCADGui.addCommand("CamAddon_MaschineBearbeiten", gui_maschine.BefehlMaschineBearbeiten())
-    FreeCADGui.addCommand("CamAddon_MaschineVerfahren", gui_verfahren.BefehlMaschineVerfahren())
-    FreeCADGui.addCommand("CamAddon_Werkzeugverwaltung", gui_werkzeuge.BefehlWerkzeugverwaltung())
-    FreeCADGui.addCommand("CamAddon_SchnittwerteJob", gui_job_schnittwerte.BefehlSchnittwerteJob())
-    FreeCADGui.addCommand("CamAddon_Ueber", BefehlUeber())
+    BEFEHLE.update(
+        {
+            "CamAddon_MaschineBearbeiten": gui_maschine.BefehlMaschineBearbeiten(),
+            "CamAddon_MaschineVerfahren": gui_verfahren.BefehlMaschineVerfahren(),
+            "CamAddon_Werkzeugverwaltung": gui_werkzeuge.BefehlWerkzeugverwaltung(),
+            "CamAddon_SchnittwerteJob": gui_job_schnittwerte.BefehlSchnittwerteJob(),
+            "CamAddon_Ueber": BefehlUeber(),
+        }
+    )
+    for name, befehl in BEFEHLE.items():
+        FreeCADGui.addCommand(name, befehl)
+    _TEXTE["gelesen_in"] = sprache.aktuelle_sprache()
+    gui_sprachwahl.NACH_SPRACHWAHL.append(befehle_beschriften)
     FreeCADGui.getMainWindow().workbenchActivated.connect(_werkzeugleiste_anhaengen)
     gui_sprachwahl.einstellungsseite_anmelden()
     gui_sprachwahl.beim_ersten_start_fragen()
@@ -70,6 +85,42 @@ class BefehlUeber:
         )
 
 
+BEFEHLE = {}  # Name → Befehl, in Anzeigereihenfolge
+# In welcher Sprache FreeCAD die Texte der Befehle gelesen hat, und ob sie seither
+# umgeschrieben wurden.
+_TEXTE = {"gelesen_in": None, "umgeschrieben": False}
+
+
+def befehle_beschriften():
+    """Schreibt die Texte der Befehle in der gewählten Sprache an ihre Knöpfe.
+
+    FreeCAD liest Name und Tooltip eines Befehls nur einmal, beim Anmelden –
+    beim ersten Start also vor der Sprachwahl. Ohne das stünden bis zum
+    Neustart die Texte in der alten Sprache da.
+    """
+    if _TEXTE["gelesen_in"] is None:
+        return
+    if sprache.aktuelle_sprache() == _TEXTE["gelesen_in"] and not _TEXTE["umgeschrieben"]:
+        return  # stimmen schon – FreeCADs eigene Tooltips bleiben unberührt
+    _TEXTE["umgeschrieben"] = True
+    for name, befehl in BEFEHLE.items():
+        daten = befehl.GetResources()
+        freecad_befehl = FreeCADGui.Command.get(name)
+        for aktion in freecad_befehl.getAction() if freecad_befehl is not None else []:
+            aktion.setText(daten["MenuText"])
+            aktion.setToolTip(_tooltip(daten["MenuText"], daten["ToolTip"], name))
+            aktion.setStatusTip(daten["ToolTip"])
+
+
+def _tooltip(titel, text, name):
+    """Tooltip wie bei FreeCAD: Titel fett, Text, Befehlsname kursiv."""
+    return (
+        f"<p style='white-space:pre; margin-bottom:0.5em;'><b>{html.escape(titel)}</b></p>"
+        f"<p style='margin:0;'>{html.escape(text)}</p>"
+        f"<p style='white-space:pre; margin-top:0.5em;'><i>{html.escape(name)}</i></p>"
+    )
+
+
 def _werkzeugleiste_anhaengen(name_arbeitsbereich):
     """Hängt die Werkzeugleiste an, sobald ein Ziel-Arbeitsbereich aktiv wird.
 
@@ -80,8 +131,8 @@ def _werkzeugleiste_anhaengen(name_arbeitsbereich):
     if name_arbeitsbereich not in ZIEL_ARBEITSBEREICHE:
         return
     arbeitsbereich = FreeCADGui.getWorkbench(name_arbeitsbereich)
-    name = tr("werkzeugleiste.name")
-    if name in arbeitsbereich.listToolbars():
-        return
-    arbeitsbereich.appendToolbar(name, WERKZEUGLEISTE)
-    arbeitsbereich.reloadActive()  # erst danach erscheint die neue Leiste
+    if WERKZEUGLEISTE_NAME not in arbeitsbereich.listToolbars():
+        arbeitsbereich.appendToolbar(WERKZEUGLEISTE_NAME, WERKZEUGLEISTE)
+        arbeitsbereich.reloadActive()  # erst danach erscheint die neue Leiste
+    # Neue Knöpfe legt FreeCAD mit den Texten vom Start an.
+    befehle_beschriften()
