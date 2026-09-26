@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-44 version-0-14-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit
+  0.13.0: Warngrenze im Planer (P-2026-09-26-40), Eingriffsbild
+  beschriftet (-41), ae/ap in mm oder % von D (-42), Spitzenwinkel des
+  Bohrers (-43). Stufe A des Plans ist damit fertig.
+
+### DATEIEN
+- `package.xml` (0.14.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.14.0.
+
+### DONE
+- Version 0.13.0 → 0.14.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; dann Stufe B (Maßsystem und Dezimaltrennzeichen).
+
 ## P-2026-09-26-43 bohrer-spitzenwinkel
 
 ### EINGELESEN
