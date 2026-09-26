@@ -38,6 +38,18 @@ ungefaehr(n, 2995.86, "n Bohrer")
 ungefaehr(vf, 599.17, "vf Bohrer")
 ungefaehr(q, math.pi * 8.5**2 / 4 * 599.17 / 1000, "Q Bohrer", 0.01)
 
+# Gewindebohrer: vf = n · P, fz zählt nicht; kein Q (Spezifikation Werkzeugarten, 5).
+gewinde = wz.Werkzeug(art=wz.GEWINDEBOHRER_RECHTS, durchmesser=10, steigung=1.5)
+n, vf, q = sd.rechne(gewinde, wz.Einsatz(art=wz.GEWINDEBOHREN, vc=10, fz=0.7))
+ungefaehr(n, 318.31, "n Gewindebohrer")
+ungefaehr(vf, 477.46, "vf = n · P")
+ungefaehr(q, 0, "Q Gewindebohrer")
+# Reibahle: f je Umdrehung = fz · z, kein Q.
+reibahle = wz.Werkzeug(art=wz.REIBAHLE, durchmesser=10, schneiden=6)
+n, vf, q = sd.rechne(reibahle, wz.Einsatz(art=wz.REIBEN, vc=10, fz=0.05))
+ungefaehr(vf, 318.31 * 0.3, "vf Reibahle", 0.01)
+ungefaehr(q, 0, "Q Reibahle")
+
 # Fehlt etwas, ist das Ergebnis 0 – „unbekannt“.
 for werkzeug, einsatz, text in (
     (wz.Werkzeug(durchmesser=0, schneiden=3), vollnut, "ohne Durchmesser"),

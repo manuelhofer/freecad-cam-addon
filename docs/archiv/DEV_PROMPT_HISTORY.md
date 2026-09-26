@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-58 einsaetze-je-art
+
+### EINGELESEN
+- Spezifikation Werkzeugarten, Abschnitte 5 und 8 (Stufe 4): Einsätze je
+  Art, Rechnen für Bohren, Gewindebohren, Drehen, Taster.
+- `camaddon/gui_schnittwerte.py` (sechs Stellen „Bohrer oder nicht“),
+  `camaddon/schnittdaten.py` (`rechne`), `camaddon/job_schnittwerte.py`
+  (Eintauchvorschub), `camaddon/uebergabe_werkzeuge.py` (Presets), die
+  Bearbeitungsarten der FreeCAD-Presets (`FeedsSpeeds.types.OP_TYPES`).
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (neun Einsatzarten, `EINSAETZE_JE_ART`,
+  `einsatzarten`, `bohrend`, `gewindebohrer`, Vorlage Planen)
+- `camaddon/schnittdaten.py`, `camaddon/gui_schnittwerte.py`,
+  `camaddon/job_schnittwerte.py`, `camaddon/uebergabe_werkzeuge.py`
+- `translations/de.json`, `translations/en.json`
+- `docs/spezifikation_werkzeugarten.md`
+- `tests/test_schnittdaten.py`, `tests/test_werkzeuge.py`,
+  `tests/gui/szenario_schnittwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Gewindebohrer rechts M10 → „+ Einsatz“ bietet nur
+„Gewindebohren“ und „Eigener Einsatz“; mit vc 10 zeigt die Zeile f 1,5
+(fest), n 318, vf 477. Ein Drehwerkzeug zeigt statt der Tabelle einen Satz.
+
+### DONE
+- Neue Einsatzarten: Planen, Fasen, Verrunden, Gewindefräsen, Zentrieren,
+  Senken, Reiben, Gewindebohren, Ausdrehen – je Art nur die passenden.
+- Bohrende Arten (Gruppe Bohren) wie bisher der Bohrer: f je Umdrehung,
+  ohne ae/ap, kein Vergleich, kein Eingriffsbild; im Job tauchen sie mit
+  vollem Vorschub ein. Gewindebohrer: vf = n · P, f fest (grau), Hinweis
+  nur für vc. Q nur beim Fräsen und beim Bohrer ins Volle.
+- Drehwerkzeuge und Taster: ein Satz statt der Tabelle.
+- Presets für CAM: neue Einsätze auf FreeCADs sechs Bearbeitungsarten.
+
+### TEST
+- `test_schnittdaten` (Gewindebohrer, Reibahle), `test_werkzeuge`
+  (Einsätze je Art, Vorlage Planen), `test_sprache`,
+  `test_uebergabe_werkzeuge`, `test_job_schnittwerte`, `test_schruppwerte`
+  in 1.1.3 und im Wochen-Build; Szenarien `schnittwerte` (neu:
+  Gewindebohrer, Drehwerkzeug), `werkzeugverwaltung`, `strategien`,
+  `schnittwerte_job` in 1.1.3. Bilder angesehen.
+
+### NEXT
+- Stufe C5: Übergabe an CAM und Übernahme aus CAM für alle Arten.
+
 ## P-2026-09-26-57 szenario-wartet-auf-beispielmaschine
 
 ### EINGELESEN

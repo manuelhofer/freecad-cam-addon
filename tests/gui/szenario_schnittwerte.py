@@ -247,6 +247,40 @@ def schritte(h):
     s.einsatz_entfernen()
     yield 100
 
+    # Gewindebohrer: nur „Gewindebohren“ und „eigen“; f ist die Steigung, fest.
+    gewinde = d.werkzeug_anlegen()
+    d.feld_art.setCurrentIndex(d.feld_art.findData(wz.GEWINDEBOHRER_RECHTS))
+    yield 200
+    s._menue_fuellen()
+    angeboten = [a.text() for a in s.menue_plus.actions() if a.text() and not a.isSeparator()]
+    h.pruefe(
+        angeboten[:2] == ["Gewindebohren", "Eigener Einsatz"],
+        f"Gewindebohrer bietet an: {angeboten}",
+    )
+    s.einsatz_anlegen(wz.GEWINDEBOHREN)
+    s.setze(0, gs.VC, "10")
+    yield 100
+    fest = not (s.tabelle.item(0, gs.FZ).flags() & QtCore.Qt.ItemIsEditable)
+    h.pruefe(
+        (zelle(d, 0, gs.FZ), zelle(d, 0, gs.N), zelle(d, 0, gs.VF)) == ("1,5", "318", "477")
+        and fest,
+        f"Gewindebohrer M10: f {zelle(d, 0, gs.FZ)}, n {zelle(d, 0, gs.N)}, "
+        f"vf {zelle(d, 0, gs.VF)}, fest {fest}",
+    )
+    h.pruefe(gewinde.einsaetze(wz.ALLE)[0].vc == 10, "vc des Gewindebohrers")
+    h.bild("4b_gewindebohrer", d)
+    # Drehwerkzeug: keine Tabelle, ein Satz dazu.
+    d.feld_art.setCurrentIndex(d.feld_art.findData(wz.DREHWERKZEUG))
+    yield 200
+    h.pruefe(
+        not s.inhalt.isVisible() and s.ohne_tabelle.isVisible(),
+        "Drehwerkzeug zeigt eine Schnittwert-Tabelle",
+    )
+    h.bild("4c_drehwerkzeug_ohne_schnittwerte", d)
+    d.bibliothek.entferne(gewinde)
+    d._liste_aufbauen()
+    yield 100
+
     # OK speichert alles.
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield 500

@@ -618,5 +618,17 @@
     "wv.schneidenbreite.stechen": "Stechbreite",
     "wv.ueblich.platzhalter": "üblich: {wert}",
     "wv.hinweis.steigung": "Die Steigung fehlt – ohne sie lässt sich der Vorschub des Gewindebohrers nicht rechnen.",
-    "wv.cam.ohne_form": "Nicht übergeben – diese Arten kennt CAM noch nicht: {liste}."
+    "wv.cam.ohne_form": "Nicht übergeben – diese Arten kennt CAM noch nicht: {liste}.",
+    "wv.einsatz.planen": "Planen",
+    "wv.einsatz.fasen": "Fasen",
+    "wv.einsatz.verrunden": "Verrunden",
+    "wv.einsatz.gewindefraesen": "Gewindefräsen",
+    "wv.einsatz.zentrieren": "Zentrieren",
+    "wv.einsatz.senken": "Senken",
+    "wv.einsatz.reiben": "Reiben",
+    "wv.einsatz.gewindebohren": "Gewindebohren",
+    "wv.einsatz.ausdrehen": "Ausdrehen",
+    "wv.ohne_schnittwerte.drehen": "Drehwerkzeuge haben hier noch keine Schnittwerte: FreeCAD-CAM dreht nicht. Maße und Bild sind trotzdem da – sobald FreeCAD drehen kann, kommen vc, f und ap dazu.",
+    "wv.ohne_schnittwerte.taster": "Ein Taster schneidet nicht – er hat keine Schnittwerte.",
+    "wv.hinweis.vc_fehlt": "vc fehlt noch – es steht im Katalog des Herstellers. Den Vorschub rechnet das Addon aus der Steigung."
 }

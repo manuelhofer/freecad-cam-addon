@@ -64,6 +64,15 @@ class SchnittwertBereich(QtGui.QWidget):
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.setContentsMargins(0, 0, 0, 0)
         aufbau.addWidget(kopfzeile(tr("wv.schnittwerte"), "schnittwerte"))
+        # Drehwerkzeuge und Taster haben (noch) keine Schnittwerte: ein Satz statt der Tabelle.
+        self.ohne_tabelle = QtGui.QLabel()
+        self.ohne_tabelle.setWordWrap(True)
+        self.ohne_tabelle.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        aufbau.addWidget(self.ohne_tabelle, 1)
+        self.inhalt = QtGui.QWidget()
+        aufbau.addWidget(self.inhalt, 1)
+        aufbau = QtGui.QVBoxLayout(self.inhalt)
+        aufbau.setContentsMargins(0, 0, 0, 0)
 
         zeile = QtGui.QHBoxLayout()
         self.zustand = QtGui.QLabel()
@@ -200,6 +209,18 @@ class SchnittwertBereich(QtGui.QWidget):
             self.hide()
             return
         self.show()
+        ohne = wz.einsatzarten(werkzeug.art) is None
+        self.inhalt.setVisible(not ohne)
+        self.ohne_tabelle.setVisible(ohne)
+        if ohne:
+            gruppe = wz.artdaten(werkzeug.art).gruppe
+            self.ohne_tabelle.setText(
+                tr("wv.ohne_schnittwerte.drehen")
+                if gruppe == wz.GRUPPE_DREHEN
+                else tr("wv.ohne_schnittwerte.taster")
+            )
+            self._liste = []
+            return
         eigene = werkzeug.zum_bearbeiten(werkstoff)
         self._bearbeitbar = eigene is not None
         self._liste = eigene if eigene is not None else werkzeug.einsaetze(werkstoff)
@@ -279,7 +300,7 @@ class SchnittwertBereich(QtGui.QWidget):
         self._geaendert()
         self._fuellen()
         # Meist ändert man in der Variante ae; beim Bohrer gibt es keine ae-Spalte.
-        self.tabelle.setCurrentCell(zeile, VC if self._bohrer() else AE)
+        self.tabelle.setCurrentCell(zeile, VC if self._bohrend() else AE)
         return kopie
 
     def einsatz_entfernen(self):
@@ -294,7 +315,7 @@ class SchnittwertBereich(QtGui.QWidget):
 
     def strategien_vergleichen(self):
         """„Strategien vergleichen…“: zwei Einsätze dieser Tabelle nebeneinander."""
-        if self._bohrer() or len(self._liste) < 2:
+        if self._bohrend() or len(self._liste) < 2:
             return
         if self._werkstoff_objekt is not None:
             text = ws.anzeige(self._werkstoff_objekt)
@@ -351,8 +372,13 @@ class SchnittwertBereich(QtGui.QWidget):
 
     # --- Tabelle ----------------------------------------------------------------------
 
-    def _bohrer(self):
-        return self.werkzeug is not None and self.werkzeug.art == wz.BOHRER
+    def _bohrend(self):
+        """Bohrt das Werkzeug? Dann f je Umdrehung statt fz, ohne ae und ap."""
+        return self.werkzeug is not None and wz.bohrend(self.werkzeug.art)
+
+    def _gewinde(self):
+        """Ein Gewindebohrer: f ist die Steigung und steht fest."""
+        return self.werkzeug is not None and wz.gewindebohrer(self.werkzeug.art)
 
     @property
     def in_prozent(self):
@@ -372,8 +398,8 @@ class SchnittwertBereich(QtGui.QWidget):
         return groesse_zeigen(mm, einheiten.LAENGE)
 
     def _kopf_setzen(self):
-        """Spaltenköpfe mit Einheit; beim Bohrer f je Umdrehung statt fz, ohne ae und ap."""
-        bohrer = self._bohrer()
+        """Spaltenköpfe mit Einheit; beim Bohren f je Umdrehung statt fz, ohne ae und ap."""
+        bohrer = self._bohrend()
         if bohrer:
             vorschub = ("f\n" + tr("einheit.je_umdrehung"), tr("wv.spalte.f.tooltip"))
         else:
@@ -403,18 +429,9 @@ class SchnittwertBereich(QtGui.QWidget):
 
     def _menue_fuellen(self):
         self.menue_plus.clear()
-        arten = (
-            [wz.BOHREN, wz.EIGEN]
-            if self._bohrer()
-            else [
-                wz.VOLLNUT,
-                wz.SCHRUPPEN,
-                wz.DYNAMISCH,
-                wz.SCHLICHTEN,
-                wz.EIGEN,
-            ]
-        )
-        for art in arten:
+        # Nur die Einsätze, die zur Werkzeugart passen (Spezifikation Werkzeugarten, 5).
+        arten = wz.einsatzarten(self.werkzeug.art) if self.werkzeug is not None else None
+        for art in arten or (wz.EIGEN,):
             aktion = self.menue_plus.addAction(wz.einsatzart_text(art))
             aktion.triggered.connect(lambda _an=False, a=art: self.einsatz_anlegen(a))
         self.menue_plus.addSeparator()
@@ -431,7 +448,7 @@ class SchnittwertBereich(QtGui.QWidget):
         self._fuellt = False
         self.knopf_minus.setEnabled(self._bearbeitbar and bool(self._liste))
         self.aktion_kopieren.setEnabled(self._bearbeitbar and bool(self._liste))
-        self.knopf_vergleich.setEnabled(not self._bohrer() and len(self._liste) >= 2)
+        self.knopf_vergleich.setEnabled(not self._bohrend() and len(self._liste) >= 2)
         planbar = sw.moeglich(self.werkzeug)
         self.knopf_planen.setEnabled(planbar)
         self.knopf_planen.setToolTip(
@@ -442,16 +459,20 @@ class SchnittwertBereich(QtGui.QWidget):
         self._hinweise()
 
     def _zeile_schreiben(self, zeile, einsatz):
-        teiler = self.werkzeug.schneiden if self._bohrer() else 1
+        teiler = self.werkzeug.schneiden if self._bohrend() else 1
+        vorschub = round(einsatz.fz * teiler, 6)
+        if self._gewinde():
+            vorschub = self.werkzeug.steigung  # f = P, steht fest
         eingaben = {
             EINSATZ: wz.einsatz_name(einsatz),
             AE: self._zustellung_zeigen(einsatz.ae),
             AP: self._zustellung_zeigen(einsatz.ap),
             VC: groesse_zeigen(einsatz.vc, einheiten.SCHNITT),
-            FZ: groesse_zeigen(round(einsatz.fz * teiler, 6), einheiten.SPAN),
+            FZ: groesse_zeigen(vorschub, einheiten.SPAN),
         }
         for spalte, text in eingaben.items():
-            self.tabelle.setItem(zeile, spalte, self._zelle(text, bearbeitbar=self._bearbeitbar))
+            bearbeitbar = self._bearbeitbar and not (spalte == FZ and self._gewinde())
+            self.tabelle.setItem(zeile, spalte, self._zelle(text, bearbeitbar=bearbeitbar))
         self._ergebnis_schreiben(zeile, einsatz)
 
     def _ergebnis_schreiben(self, zeile, einsatz):
@@ -492,7 +513,7 @@ class SchnittwertBereich(QtGui.QWidget):
             except ValueError:
                 wert = getattr(einsatz, EINGABE_SPALTEN[spalte])
             else:
-                if spalte == FZ and self._bohrer():
+                if spalte == FZ and self._bohrend():
                     wert = wert / max(self.werkzeug.schneiden, 1)
                 if spalte in (AE, AP) and self.in_prozent:
                     wert = wert * self.werkzeug.durchmesser / 100
@@ -515,7 +536,7 @@ class SchnittwertBereich(QtGui.QWidget):
         w = self.werkzeug
         saetze = []
         self._eingriff_zeigen()
-        if einsatz is not None and w is not None and not self._bohrer():
+        if einsatz is not None and w is not None and not self._bohrend():
             if w.durchmesser and einsatz.ae > w.durchmesser:
                 saetze.append(tr("wv.hinweis.ae_zu_gross"))
             h = sd.spandicke_max(einsatz.fz, einsatz.ae, w.durchmesser)
@@ -529,7 +550,12 @@ class SchnittwertBereich(QtGui.QWidget):
                         laenge=groesse_zeigen(w.schneidenlaenge, einheiten.LAENGE),
                     )
                 )
-        if einsatz is not None and (not einsatz.vc or not einsatz.fz):
+        if einsatz is not None and self._gewinde():
+            if not einsatz.vc:
+                saetze.append(tr("wv.hinweis.vc_fehlt"))
+            if not w.steigung:
+                saetze.append(tr("wv.hinweis.steigung"))
+        elif einsatz is not None and (not einsatz.vc or not einsatz.fz):
             saetze.append(tr("wv.hinweis.vc_fz_fehlen"))
         self.hinweis.setText("\n".join(saetze))
         self.hinweis.setVisible(bool(saetze))
@@ -539,7 +565,7 @@ class SchnittwertBereich(QtGui.QWidget):
     def _eingriff_zeigen(self):
         """Bild und Werte des Eingriffs zur gewählten Zeile; beim Bohrer nichts davon."""
         einsatz, w = self.gewaehlt, self.werkzeug
-        if einsatz is None or w is None or self._bohrer() or not w.durchmesser:
+        if einsatz is None or w is None or self._bohrend() or not w.durchmesser:
             self.eingriff.hide()
             return
         self.eingriff.show()

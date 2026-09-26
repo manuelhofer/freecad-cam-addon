@@ -46,6 +46,16 @@ BEARBEITUNGSARTEN = {
     wz.DYNAMISCH: "adaptive",
     wz.SCHLICHTEN: "profile",
     wz.BOHREN: "drill",
+    # Seit P-2026-09-26-58: FreeCAD kennt nur diese sechs Arten.
+    wz.PLANEN: "pocket",
+    wz.FASEN: "profile",
+    wz.VERRUNDEN: "profile",
+    wz.GEWINDEFRAESEN: "profile",
+    wz.ZENTRIEREN: "drill",
+    wz.SENKEN: "drill",
+    wz.REIBEN: "drill",
+    wz.GEWINDEBOHREN: "drill",
+    wz.AUSDREHEN: "drill",
     wz.EIGEN: None,
 }
 

@@ -112,7 +112,33 @@ DYNAMISCH = "dynamisch"  # kleines ae, großes ap: trochoidal, HPC, adaptiv
 SCHLICHTEN = "schlichten"
 BOHREN = "bohren"
 EIGEN = "eigen"
-EINSATZARTEN = (VOLLNUT, SCHRUPPEN, DYNAMISCH, SCHLICHTEN, BOHREN, EIGEN)
+# Seit P-2026-09-26-58, je nach Werkzeugart (Spezifikation Werkzeugarten, 5).
+PLANEN = "planen"
+FASEN = "fasen"
+VERRUNDEN = "verrunden"
+GEWINDEFRAESEN = "gewindefraesen"
+ZENTRIEREN = "zentrieren"
+SENKEN = "senken"
+REIBEN = "reiben"
+GEWINDEBOHREN = "gewindebohren"
+AUSDREHEN = "ausdrehen"
+EINSATZARTEN = (
+    VOLLNUT,
+    SCHRUPPEN,
+    DYNAMISCH,
+    SCHLICHTEN,
+    BOHREN,
+    PLANEN,
+    FASEN,
+    VERRUNDEN,
+    GEWINDEFRAESEN,
+    ZENTRIEREN,
+    SENKEN,
+    REIBEN,
+    GEWINDEBOHREN,
+    AUSDREHEN,
+    EIGEN,
+)
 
 
 def datei_pfad():
@@ -235,6 +261,15 @@ def einsatzart_text(art):
         DYNAMISCH: tr("wv.einsatz.dynamisch"),
         SCHLICHTEN: tr("wv.einsatz.schlichten"),
         BOHREN: tr("wv.einsatz.bohren"),
+        PLANEN: tr("wv.einsatz.planen"),
+        FASEN: tr("wv.einsatz.fasen"),
+        VERRUNDEN: tr("wv.einsatz.verrunden"),
+        GEWINDEFRAESEN: tr("wv.einsatz.gewindefraesen"),
+        ZENTRIEREN: tr("wv.einsatz.zentrieren"),
+        SENKEN: tr("wv.einsatz.senken"),
+        REIBEN: tr("wv.einsatz.reiben"),
+        GEWINDEBOHREN: tr("wv.einsatz.gewindebohren"),
+        AUSDREHEN: tr("wv.einsatz.ausdrehen"),
         EIGEN: tr("wv.einsatz.eigen"),
     }[art]
 
@@ -313,9 +348,9 @@ def vorlage(werkzeug, art):
         SCHRUPPEN: (d / 2, d / 2),
         DYNAMISCH: (d / 10, lang),
         SCHLICHTEN: (d / 50, lang),
-        BOHREN: (0.0, 0.0),
-        EIGEN: (0.0, 0.0),
-    }[art]
+        # Planfräser: drei Viertel der Breite, ein Drittel der Schneide.
+        PLANEN: (d * 0.75, lang / 3),
+    }.get(art, (0.0, 0.0))
     # Gerundet, wie es gezeigt wird: 0,01 mm, in inch 0,0001 in.
     return Einsatz(
         art=art,
@@ -823,6 +858,37 @@ ARTDATEN = {
     ),
 }
 ARTEN = tuple(ARTDATEN)  # in der Reihenfolge der Auswahl
+
+# Welche Einsätze „+ Einsatz“ je Art anbietet; „eigen“ geht immer dazu. None:
+# keine Schnittwerte – Drehwerkzeuge (FreeCAD dreht nicht) und Taster.
+EINSAETZE_JE_ART = {
+    SCHAFTFRAESER: (VOLLNUT, SCHRUPPEN, DYNAMISCH, SCHLICHTEN),
+    KUGELFRAESER: (SCHRUPPEN, SCHLICHTEN),
+    TORUSFRAESER: (VOLLNUT, SCHRUPPEN, DYNAMISCH, SCHLICHTEN),
+    KONIKFRAESER: (SCHLICHTEN,),
+    SCHWALBENSCHWANZFRAESER: (VOLLNUT,),
+    LOLLIPOPFRAESER: (SCHLICHTEN,),
+    FASENFRAESER: (FASEN,),
+    RADIENFRAESER: (VERRUNDEN,),
+    PLANFRAESER: (PLANEN,),
+    NUTENFRAESER: (VOLLNUT,),
+    FORMFRAESER: (SCHLICHTEN,),
+    GEWINDEFRAESER: (GEWINDEFRAESEN,),
+    BOHRER: (BOHREN,),
+    ZENTRIERBOHRER: (ZENTRIEREN,),
+    NC_ANBOHRER: (ZENTRIEREN,),
+    GEWINDEBOHRER_RECHTS: (GEWINDEBOHREN,),
+    GEWINDEBOHRER_LINKS: (GEWINDEBOHREN,),
+    KEGELSENKER: (SENKEN,),
+    FLACHSENKER: (SENKEN,),
+    REIBAHLE: (REIBEN,),
+    BOHRSTANGE: (AUSDREHEN,),
+    AUSSPINDELWERKZEUG: (AUSDREHEN,),
+    DREHWERKZEUG: None,
+    EINSTECHWERKZEUG: None,
+    GEWINDEDREHWERKZEUG: None,
+    TASTER: None,
+}
 # Seit P-2026-09-26-55: Maße neben denen, die es vorher schon gab.
 NEUE_FELDER = (
     "spitzen_d",
@@ -850,6 +916,22 @@ def artdaten(art):
 def arten_der_gruppe(gruppe):
     """Die Arten einer Gruppe, in der Reihenfolge der Auswahl."""
     return tuple(art for art, daten in ARTDATEN.items() if daten.gruppe == gruppe)
+
+
+def einsatzarten(art):
+    """Die Einsätze, die zur Art passen, und „eigen“ – oder None: keine Schnittwerte."""
+    passend = EINSAETZE_JE_ART[art]
+    return None if passend is None else passend + (EIGEN,)
+
+
+def bohrend(art):
+    """Bohrt die Art – Vorschub je Umdrehung statt je Zahn, kein ae und ap?"""
+    return ARTDATEN[art].gruppe == GRUPPE_BOHREN
+
+
+def gewindebohrer(art):
+    """Ein Gewindebohrer: Der Vorschub je Umdrehung ist die Steigung."""
+    return art in (GEWINDEBOHRER_RECHTS, GEWINDEBOHRER_LINKS)
 
 
 def hat_feld(werkzeug, feld):

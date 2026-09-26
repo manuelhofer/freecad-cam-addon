@@ -39,11 +39,20 @@ def zeitspanvolumen_bohren(durchmesser, vf):
 
 
 def rechne(werkzeug, einsatz):
-    """(n, vf, Q) für einen Einsatz dieses Werkzeugs; fehlt etwas, sind die Werte 0."""
+    """(n, vf, Q) für einen Einsatz dieses Werkzeugs; fehlt etwas, sind die Werte 0.
+
+    Gewindebohrer: vf = n · P – der Vorschub je Umdrehung ist die Steigung.
+    Q beim Bohrer ins Volle, beim Fräsen aus ae und ap; Senken, Reiben,
+    Zentrieren, Ausdrehen und Gewindebohren tragen kaum ab – dort 0.
+    """
     n = drehzahl(einsatz.vc, werkzeug.durchmesser)
+    if wz.gewindebohrer(werkzeug.art):
+        return n, n * werkzeug.steigung, 0.0
     vf = vorschub(n, werkzeug.schneiden, einsatz.fz)
     if werkzeug.art == wz.BOHRER:
         q = zeitspanvolumen_bohren(werkzeug.durchmesser, vf)
+    elif wz.bohrend(werkzeug.art):
+        q = 0.0
     else:
         q = zeitspanvolumen(einsatz.ae, einsatz.ap, vf)
     return n, vf, q

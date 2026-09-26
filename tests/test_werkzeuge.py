@@ -113,6 +113,23 @@ for art, daten in wz.ARTDATEN.items():
 pruefe(wz.feld_text("durchmesser", wz.ZENTRIERBOHRER) == "Zapfen-Ø", "Zapfen-Ø")
 pruefe(wz.ueblich(wz.NC_ANBOHRER, "spitzenwinkel") == 90, "NC-Anbohrer 90°")
 pruefe(wz.spitzenwinkel_fuer_cam(wz.Werkzeug(art=wz.ZENTRIERBOHRER)) == 60, "Zentrierbohrer 60°")
+# Einsätze je Art (Spezifikation Werkzeugarten, 5): „eigen“ geht immer,
+# Drehwerkzeuge und Taster haben keine Schnittwerte.
+pruefe(set(wz.EINSAETZE_JE_ART) == set(wz.ARTEN), "Einsätze nicht für jede Art festgelegt")
+pruefe(
+    wz.einsatzarten(wz.SCHAFTFRAESER)
+    == (wz.VOLLNUT, wz.SCHRUPPEN, wz.DYNAMISCH, wz.SCHLICHTEN, wz.EIGEN),
+    f"Schaftfräser: {wz.einsatzarten(wz.SCHAFTFRAESER)}",
+)
+pruefe(wz.einsatzarten(wz.GEWINDEBOHRER_LINKS) == (wz.GEWINDEBOHREN, wz.EIGEN), "Gewindebohrer")
+pruefe(wz.einsatzarten(wz.DREHWERKZEUG) is None, "Drehwerkzeug mit Einsätzen")
+pruefe(wz.einsatzarten(wz.TASTER) is None, "Taster mit Einsätzen")
+pruefe(wz.bohrend(wz.REIBAHLE) and not wz.bohrend(wz.PLANFRAESER), "bohrend")
+plan = wz.vorlage(wz.Werkzeug(art=wz.PLANFRAESER, durchmesser=50, schneidenlaenge=6), wz.PLANEN)
+pruefe((plan.ae, plan.ap) == (37.5, 2), f"Planen vorbelegt: {plan}")
+pruefe(wz.Einsatz.aus_dict({"art": "gewindebohren"}).art == wz.GEWINDEBOHREN, "neue Einsatzart")
+pruefe(all(wz.einsatzart_text(art) for art in wz.EINSATZARTEN), "Einsatzart ohne Namen")
+
 # Liste und Name je Art – die alten Arten wie bisher.
 gewinde = wz.Werkzeug(nummer=4, art=wz.GEWINDEBOHRER_RECHTS)
 wz.beispielwerte_setzen(gewinde, neu=True)

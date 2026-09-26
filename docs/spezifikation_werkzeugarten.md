@@ -228,7 +228,12 @@ Eine ältere Version des Addons liest unbekannte Arten als Schaftfräser.
    Oberfläche geprüft), gemalt in `gui_werkzeugbild.py`; das Symbol in der
    Auswahl zeigt nur das schneidende Ende. Halter der Drehwerkzeuge im Bild
    20 × 60 mm, die Platte steht an der Ecke über.*
-4. **Einsätze je Art** und das Rechnen dazu (Abschnitt 5).
+4. **Einsätze je Art** und das Rechnen dazu (Abschnitt 5). – *Gebaut (P-2026-09-26-58):
+   `EINSAETZE_JE_ART`; bohrende Arten wie bisher der Bohrer (f je Umdrehung,
+   ohne ae/ap, im Job voller Eintauchvorschub); Gewindebohrer vf = n · P mit
+   f fest; Drehwerkzeuge und Taster mit einem Satz statt der Tabelle. Für
+   CAM-Presets: Planen → pocket, Fasen/Verrunden/Gewindefräsen → profile,
+   die bohrenden → drill.*
 5. **CAM:** Übergabe und Übernahme aller Arten (Abschnitt 6).
 6. **In den Job:** die neuen Einsätze auf die passenden Operationen.
 

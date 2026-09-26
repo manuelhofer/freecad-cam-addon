@@ -298,7 +298,8 @@ def duenne_letzte_ebene(dicken, zustelltiefe):
 def werte(werkzeug, einsatz):
     """(n in U/min, vf in mm/min, senkrechter Vorschub in mm/min) für diesen Einsatz."""
     n, vf, _q = sd.rechne(werkzeug, einsatz)
-    senkrecht = vf if werkzeug.art == wz.BOHRER else vf * VERHAELTNIS_EINTAUCHEN
+    # Bohrende Arten (Bohrer, Senker, Reibahle …) tauchen mit vollem Vorschub ein.
+    senkrecht = vf if wz.bohrend(werkzeug.art) else vf * VERHAELTNIS_EINTAUCHEN
     return n, vf, senkrecht
 
 
