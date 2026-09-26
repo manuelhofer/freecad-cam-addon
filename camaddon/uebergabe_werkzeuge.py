@@ -34,7 +34,7 @@ PRAEFIX = "camaddon_"
 FORMEN = {
     wz.SCHAFTFRAESER: ("endmill", "Endmill"),
     wz.TORUSFRAESER: ("bullnose", "Bullnose"),
-    wz.RADIUSFRAESER: ("ballend", "Ballend"),
+    wz.KUGELFRAESER: ("ballend", "Ballend"),
     wz.FASENFRAESER: ("chamfer", "Chamfer"),
     wz.BOHRER: ("drill", "Drill"),
 }

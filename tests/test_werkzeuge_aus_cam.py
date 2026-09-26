@@ -76,7 +76,7 @@ if bohrer is not None:
     # Der Spitzenwinkel kommt mit (FreeCADs Beispielbohrer: um die 118°).
     pruefe(90 <= bohrer.spitzenwinkel <= 140, f"Spitzenwinkel {bohrer.spitzenwinkel}")
 kugel = neu.get("6mm Ball End")
-pruefe(kugel is not None and kugel.art == wz.RADIUSFRAESER, "Radiusfräser")
+pruefe(kugel is not None and kugel.art == wz.KUGELFRAESER, "Kugelfräser")
 fase = neu.get("45 Deg. Chamfer")
 pruefe(fase is not None and fase.art == wz.FASENFRAESER, "Fasenfräser")
 

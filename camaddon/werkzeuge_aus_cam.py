@@ -23,7 +23,7 @@ from .uebergabe_werkzeuge import BIBLIOTHEK_ID, PRAEFIX
 ARTEN = {
     "endmill": wz.SCHAFTFRAESER,
     "bullnose": wz.TORUSFRAESER,
-    "ballend": wz.RADIUSFRAESER,
+    "ballend": wz.KUGELFRAESER,
     "chamfer": wz.FASENFRAESER,
     "drill": wz.BOHRER,
 }

@@ -112,7 +112,7 @@ if plan.vorschlag is not None or plan.grund != sw.GRUND_LEISTUNG:
 for werkzeug, soll in (
     (fraeser, True),
     (wz.Werkzeug(art=wz.TORUSFRAESER, durchmesser=10, schneiden=4), True),
-    (wz.Werkzeug(art=wz.RADIUSFRAESER, durchmesser=10), False),
+    (wz.Werkzeug(art=wz.KUGELFRAESER, durchmesser=10), False),
     (wz.Werkzeug(art=wz.BOHRER, durchmesser=10, schneiden=2), False),
     (wz.Werkzeug(durchmesser=0), False),
 ):

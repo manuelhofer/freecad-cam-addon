@@ -211,6 +211,15 @@ pruefe(
     (w.nummer, w.art, w.durchmesser, w.schneidstoff) == (1, wz.SCHAFTFRAESER, 0.0, wz.VHM), f"{w}"
 )
 
+# Bis P-2026-09-26-54 hieß der Kugelfräser „Radiusfräser“: Alte Dateien
+# lesen ihn als Kugelfräser, gespeichert wird das neue Wort.
+alt = wz.Werkzeug.aus_dict({"art": "radiusfraeser", "durchmesser": 8})
+pruefe(
+    alt.art == wz.KUGELFRAESER and alt.als_dict()["art"] == "kugelfraeser",
+    f"alter Radiusfräser: {alt.art}",
+)
+pruefe(wz.art_text(wz.KUGELFRAESER) in ("Kugelfräser", "Ball end mill"), "Name Kugelfräser")
+
 # Beschädigte Datei: wird beiseitegelegt, nichts geht verloren.
 Path(pfad).write_text("{kaputt", "utf-8")
 try:

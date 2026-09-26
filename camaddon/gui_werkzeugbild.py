@@ -2,7 +2,7 @@
 """Das Bild des Werkzeugs neben seinen Feldern in der Werkzeugverwaltung (W-002).
 
 Schaft, Schneide und Spitze je nach Art – Schaftfräser flach, Torusfräser
-mit Eckradius, Radiusfräser mit Kugel, Fasenfräser spitz, Bohrer mit seinem
+mit Eckradius, Kugelfräser mit Kugel, Fasenfräser spitz, Bohrer mit seinem
 Spitzenwinkel (leer 118°) –, alles im richtigen Verhältnis. Was nicht eingetragen ist –
 geschätzt (Gesamtlänge, Schaft, Schneidenlänge) oder noch Beispielwert –,
 ist gestrichelt. Fehlt der Durchmesser, zeigt es die Form der Art mit ihren
@@ -93,7 +93,7 @@ class WerkzeugBild(QtGui.QWidget):
         """Der Umriss der Schneide als Pfad, unten mit der Spitze der Art."""
         pfad = QtGui.QPainterPath()
         links, rechts = mitte - halb_d, mitte + halb_d
-        if w.art == wz.RADIUSFRAESER:
+        if w.art == wz.KUGELFRAESER:
             spitze = min(halb_d, unten - oben)
         elif w.art == wz.FASENFRAESER:
             spitze = min(halb_d / math.tan(math.radians(FASENWINKEL / 2)), unten - oben)
@@ -107,7 +107,7 @@ class WerkzeugBild(QtGui.QWidget):
         pfad.moveTo(links, oben)
         pfad.lineTo(rechts, oben)
         pfad.lineTo(rechts, unten - spitze)
-        if w.art == wz.RADIUSFRAESER:
+        if w.art == wz.KUGELFRAESER:
             pfad.arcTo(QtCore.QRectF(links, unten - 2 * spitze, 2 * halb_d, 2 * spitze), 0, -180)
         elif w.art == wz.TORUSFRAESER and spitze > 0:
             pfad.arcTo(

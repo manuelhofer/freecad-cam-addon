@@ -104,7 +104,7 @@ eigenen kopieren“ macht eine änderbare Kopie.
 | --- | --- | --- |
 | Nummer | T… | frei, Vorschlag: nächste freie |
 | Name | – | wie in der Steuerung (T="Fräser VHM 12"), frei; leer: „Schaftfräser T1 VHM D12 L30“ (P-2026-09-26-33) |
-| Art | – | Schaftfräser, Torusfräser, Radiusfräser, Bohrer, Fasenfräser (Liste wächst) |
+| Art | – | Schaftfräser, Torusfräser, Kugelfräser (bis P-2026-09-26-54 „Radiusfräser“), Bohrer, Fasenfräser; alle 26 Arten: `docs/spezifikation_werkzeugarten.md` |
 | Durchmesser D | mm | Pflicht |
 | Schneidenzahl z | – | Pflicht (Bohrer: 2) |
 | nutzbare Schneidenlänge | mm | für ap und die Beurteilung |

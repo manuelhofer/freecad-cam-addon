@@ -227,7 +227,7 @@
     "wv.art.tooltip": "The shape of the tool.",
     "wv.art.schaftfraeser": "End mill",
     "wv.art.torusfraeser": "Bull nose end mill",
-    "wv.art.radiusfraeser": "Ball end mill",
+    "wv.art.kugelfraeser": "Ball end mill",
     "wv.art.fasenfraeser": "Chamfer mill",
     "wv.art.bohrer": "Drill",
     "wv.durchmesser": "Diameter",

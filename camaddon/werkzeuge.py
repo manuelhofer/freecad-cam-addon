@@ -29,10 +29,14 @@ DATEINAME = "werkzeugverwaltung.json"
 # Arten von Werkzeugen – gespeichert als diese festen Wörter.
 SCHAFTFRAESER = "schaftfraeser"
 TORUSFRAESER = "torusfraeser"
-RADIUSFRAESER = "radiusfraeser"
+KUGELFRAESER = "kugelfraeser"
 FASENFRAESER = "fasenfraeser"
 BOHRER = "bohrer"
-ARTEN = (SCHAFTFRAESER, TORUSFRAESER, RADIUSFRAESER, FASENFRAESER, BOHRER)
+ARTEN = (SCHAFTFRAESER, TORUSFRAESER, KUGELFRAESER, FASENFRAESER, BOHRER)
+# Gespeicherte Wörter, die es nicht mehr gibt -> heutige Art. Bis
+# P-2026-09-26-54 hieß der Kugelfräser „Radiusfräser“; ein Radienfräser ist
+# aber eine andere Art (Spezifikation Werkzeugarten, Abschnitt 1).
+ALTE_ARTEN = {"radiusfraeser": KUGELFRAESER}
 
 VHM, HSS = "vhm", "hss"
 # Spitzenwinkel eines Bohrers, wenn keiner eingetragen ist: üblich für Spiralbohrer.
@@ -63,7 +67,7 @@ def art_text(art):
     return {
         SCHAFTFRAESER: tr("wv.art.schaftfraeser"),
         TORUSFRAESER: tr("wv.art.torusfraeser"),
-        RADIUSFRAESER: tr("wv.art.radiusfraeser"),
+        KUGELFRAESER: tr("wv.art.kugelfraeser"),
         FASENFRAESER: tr("wv.art.fasenfraeser"),
         BOHRER: tr("wv.art.bohrer"),
     }[art]
@@ -281,7 +285,8 @@ class Werkzeug:
         w = cls()
         w.kennung = str(daten.get("kennung") or w.kennung)
         w.nummer = _zahl(daten.get("nummer"), int, w.nummer)
-        w.art = daten.get("art") if daten.get("art") in ARTEN else SCHAFTFRAESER
+        art = ALTE_ARTEN.get(daten.get("art"), daten.get("art"))
+        w.art = art if art in ARTEN else SCHAFTFRAESER
         w.durchmesser = _zahl(daten.get("durchmesser"), float, 0.0)
         w.schneiden = _zahl(daten.get("schneiden"), int, w.schneiden)
         w.schneidenlaenge = _zahl(daten.get("schneidenlaenge"), float, 0.0)
@@ -343,7 +348,7 @@ def _zahl(wert, typ, ersatz):
 BEISPIELE = {
     SCHAFTFRAESER: {"durchmesser": 12.0, "schneiden": 3, "schneidenlaenge": 26.0},
     TORUSFRAESER: {"durchmesser": 12.0, "schneiden": 4, "schneidenlaenge": 26.0, "eckradius": 1.0},
-    RADIUSFRAESER: {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 24.0},
+    KUGELFRAESER: {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 24.0},
     FASENFRAESER: {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 6.0},
     BOHRER: {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 60.0},
 }
@@ -357,7 +362,7 @@ BEISPIELE_ZOLL = {
         "schneidenlaenge": 25.4,
         "eckradius": 0.762,
     },
-    RADIUSFRAESER: {"durchmesser": 12.7, "schneiden": 2, "schneidenlaenge": 25.4},
+    KUGELFRAESER: {"durchmesser": 12.7, "schneiden": 2, "schneidenlaenge": 25.4},
     FASENFRAESER: {"durchmesser": 12.7, "schneiden": 2, "schneidenlaenge": 6.35},
     BOHRER: {"durchmesser": 12.7, "schneiden": 2, "schneidenlaenge": 63.5},
 }

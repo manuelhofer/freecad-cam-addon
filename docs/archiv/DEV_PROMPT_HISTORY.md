@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-54 kugelfraeser
+
+### EINGELESEN
+- Spezifikation Werkzeugarten (P-2026-09-26-53), Abschnitte 1, 7 und 8
+  (Stufe 1): Das heutige „Radiusfräser“ ist ein Kugelfräser; ein
+  Radienfräser ist eine andere Art.
+- `camaddon/werkzeuge.py`, `gui_werkzeugbild.py`, `uebergabe_werkzeuge.py`,
+  `werkzeuge_aus_cam.py`, Hilfe „Werkzeuge“.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`KUGELFRAESER`, `ALTE_ARTEN`)
+- `camaddon/gui_werkzeugbild.py`, `camaddon/uebergabe_werkzeuge.py`,
+  `camaddon/werkzeuge_aus_cam.py`
+- `translations/de.json`, `translations/en.json` (`wv.art.kugelfraeser`)
+- `help/de/werkzeuge.html`, `docs/spezifikation_werkzeugverwaltung.md`
+- `tests/test_werkzeuge.py`, `tests/test_werkzeuge_aus_cam.py`,
+  `tests/test_schruppwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In der Auswahl „Art“ steht „Kugelfräser“ statt „Radiusfräser“; ein
+gespeicherter Radiusfräser öffnet sich als Kugelfräser und wird als
+`kugelfraeser` gespeichert.
+
+### DONE
+- Gespeichertes Wort `kugelfraeser`; `ALTE_ARTEN` stellt `radiusfraeser`
+  beim Laden um. In CAM bleibt es die Form „ballend“, aus CAM wird
+  „ballend“ ein Kugelfräser. Englisch hieß er schon „Ball end mill“.
+
+### TEST
+- `test_werkzeuge` (neu: alte Datei mit `radiusfraeser`),
+  `test_werkzeuge_aus_cam`, `test_schruppwerte`, `test_uebergabe_werkzeuge`,
+  `test_sprache`, `test_hilfe` in 1.1.3 und im Wochen-Build;
+  `szenario_werkzeugverwaltung` (1.1.3).
+
+### NEXT
+- Stufe C2: die Arten als Tabelle im Code, alle 26 wählbar.
+
 ## P-2026-09-26-53 spezifikation-werkzeugarten
 
 ### EINGELESEN
