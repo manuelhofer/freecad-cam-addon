@@ -1,0 +1,54 @@
+<h2>Holders</h2>
+<p>The <b>holder</b> sits between spindle nose and tool: collet chuck,
+shrink-fit chuck, Weldon holder, drill chuck … It is what bumps into things –
+in deep pockets on the part, close to the vise, on a jaw. That is why the
+collision check (“Check on machine”) knows it, the run-through shows it, and
+as long as nobody has measured the gauge length, the tool manager estimates it
+with the holder.</p>
+
+<h3>How to</h3>
+<p>In the tool manager, next to the tool's <b>gauge length</b>: <b>Holder</b> –
+the selection, and <b>Holders …</b> opens the window with all holders. There
+<b>New</b> → empty or a template. With <b>OK</b> the tool gets the chosen
+holder. Saving happens with OK or Apply of the tool manager; Cancel discards
+everything.</p>
+
+<h3>A holder</h3>
+<ul>
+<li><b>Name</b> – how it is called in the selection, e.g. “SK40 ER32 A70”.
+<b>Description</b> – free text: manufacturer, order number.</li>
+<li><b>Clamping depth</b> – how deep the shank sits in the holder. The tool
+manager uses it to estimate the gauge length: holder length + overall length
+of the tool − clamping depth, at least until the cutting part and neck are
+free. Measured (on the presetter) is better – then enter the length with the
+tool and it applies.</li>
+<li><b>Contour from the spindle nose</b> – section by section from the
+spindle nose (the flange face) towards the tool: each with <b>length</b>,
+<b>Ø top</b> (towards the spindle) and <b>Ø bottom</b> (towards the tool).
+Equal diameters make a cylinder, different ones a cone. What sits inside the
+spindle – steep taper, HSK shank – does not count. From the catalogue: flange
+diameter and thickness, then the body down to the nose; the whole length is
+usually called <b>A</b> or <b>L1</b> there.</li>
+<li><b>+ Section</b> inserts one below the chosen one, <b>− Section</b>
+removes it.</li>
+<li>On the right the <b>picture</b>: the holder in section, the spindle on
+top, below it the tool down to its tip – shank grey, cutting part blue as in
+the tool's picture. You see at once whether the dimensions fit together.</li>
+<li>Below, which tools <b>use</b> the holder. A holder is a description, not a
+single piece – several tools may share one.</li>
+</ul>
+
+<h3>Templates</h3>
+<p>To get started there are templates: collet chucks ER16 to ER40,
+shrink-fit, Weldon, hydraulic chuck, shell mill arbor, drill chuck – on SK40 –
+and a VDI30 holder for lathes. Their dimensions are <b>typical values, not
+catalogue values</b>; the description says so. Enter your holder's dimensions
+from the catalogue.</p>
+
+<h3>Limits</h3>
+<ul>
+<li>The holder is round about the tool axis. Block holders on lathes (VDI) are
+approximated by a cylinder.</li>
+<li>The holder is not handed to CAM – FreeCAD's CAM tools do not know
+holders.</li>
+</ul>

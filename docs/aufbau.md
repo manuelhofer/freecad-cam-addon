@@ -82,6 +82,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_sprachwahl.py` | Sprachwahl beim ersten Start, Einstellungsseite |
 | `gui_aktualisierung.py` | Befehl „Nach Updates suchen“, Update-Hinweis, Gruppe „Updates“ in den Einstellungen (Suche beim Start ab Werk aus) |
 | `gui_werkzeuge.py` | Befehl und Dialog „Werkzeugverwaltung“ |
+| `gui_halter.py` | Fenster „Halter“ (W-002 Stufe D) aus der Werkzeugverwaltung: Liste mit Suche, Neu (leer oder Vorlage), Kopieren, Löschen; Name, Bezeichnung, Spanntiefe, Kontur als Tabelle, Bild im Schnitt; arbeitet an einer Kopie, OK gibt dem Werkzeug den gewählten Halter |
 | `gui_werkzeugbild.py` | Bild des Werkzeugs neben seinen Feldern (malt `werkzeugform`), Symbol je Art in der Auswahl |
 | `gui_schnittwerte.py` | Schnittwert-Tabelle in der Werkzeugverwaltung |
 | `gui_eingriff.py` | Bild des Eingriffs (Draufsicht und Seitenansicht) zur gewählten Zeile |

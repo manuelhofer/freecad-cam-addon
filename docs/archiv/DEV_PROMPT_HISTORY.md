@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-95 halter-fenster
+
+### EINGELESEN
+- `docs/spezifikation_halter.md`, Schritt 2 (Skizze in Abschnitt 5).
+- `camaddon/gui_werkstoffe.py` (Fenster aus der Werkzeugverwaltung, Muster),
+  `camaddon/gui_werkzeuge.py` (Felder, Anordnung, Platzhalter),
+  `camaddon/gui_schnittwerte.py` (Zahlen in Tabellen), `gui_werkzeugbild.py`.
+
+### DATEIEN
+- `camaddon/gui_halter.py` (neu)
+- `camaddon/gui_werkzeuge.py` (Feld „Halter“ mit „Halter …“, Platzhalter der
+  Länge ab Spindelnase mit Halter)
+- `camaddon/hilfe.py`, `help/de/halter.html`, `help/en/halter.html` (neu),
+  `help/de/werkzeuge.html`, `help/en/werkzeuge.html`
+- `translations/de.json`, `translations/en.json` (38 Texte, 1 geändert)
+- `tests/gui/szenario_halter.py` (neu)
+- `docs/spezifikation_halter.md`, `docs/aufbau.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Werkzeug mit Gesamtlänge 83 → „Halter …“ → „Neu“ →
+„Spannzangenfutter ER32 · SK40“ → Tabelle 16/63/63 und 54/50/50, „Länge 70,00
+mm · größter Ø 63,00 mm“, Bild mit Werkzeug → OK → beim Werkzeug ist der
+Halter gewählt, das leere Feld „Länge ab Spindelnase“ zeigt grau „leer: 113
+mit Halter“.
+
+### DONE
+- Fenster „Halter“: links Suche, Liste nach Namen, „Neu“ mit Menü (leer oder
+  eine der elf Vorlagen), „Kopieren“, „Löschen“ (Rückfrage nennt die Werkzeuge,
+  die ihn benutzen); rechts Name, Bezeichnung, Spanntiefe, die Kontur als
+  Tabelle (Länge, Ø oben, Ø unten – nur Zahlen, im gewählten Maßsystem),
+  „+ Abschnitt“ (unter dem gewählten, so dick wie dessen Ende) und „−
+  Abschnitt“ (einer bleibt), darunter Länge und größter Ø, wer ihn benutzt,
+  daneben das Bild: Spindel, Halter im Schnitt, Werkzeug bis zur Spitze.
+- Gearbeitet wird an einer Kopie der Bibliothek; über OK steht grau, was OK
+  tut („OK: T1 bekommt den Halter …“). OK übernimmt Halter und Zuordnungen,
+  Abbrechen verwirft; gespeichert wird mit der Werkzeugverwaltung.
+- Werkzeugverwaltung: unter der Länge ab Spindelnase die Zeile „Halter“
+  (Auswahl „– ohne –“ und alle Halter, dazu „Halter …“) über die ganze Breite
+  – im ersten Screenshot war „SK40 ER32 A70“ abgeschnitten. Der Platzhalter
+  der Länge ab Spindelnase rechnet mit dem Halter.
+- Hilfeseite „Halter“ (de, en), Verweis aus der Hilfe der Werkzeugverwaltung.
+
+### TEST
+- `szenario_halter` (neu), `szenario_werkzeugverwaltung`, `szenario_felder` in
+  1.1.3 und im Wochen-Build grün, Screenshots angesehen; `test_sprache`,
+  `test_hilfe` grün; black, ruff sauber.
+
+### NEXT
+- Schritt 3: Länge in „Auf der Maschine prüfen“, Halter im Abfahren.
+
 ## P-2026-09-26-94 halter-datenmodell
 
 ### EINGELESEN

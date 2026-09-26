@@ -13,10 +13,12 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, symbol
+from . import halter as hl
 from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from . import werkzeuge_aus_cam as aus_cam
+from .gui_halter import HalterDialog
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
 from .gui_teile import GRAU, hinweiszeile, knopf, mit_einheit, ruhiges_mausrad
@@ -301,6 +303,20 @@ class WerkzeugDialog(QtGui.QDialog):
         self.beschriftung_laenge_spindelnase = QtGui.QLabel(tr("wv.laenge_spindelnase"))
         self.beschriftung_laenge_spindelnase.setToolTip(tr("wv.laenge_spindelnase.tooltip"))
         self.zeile_laenge_spindelnase = self._mit_laenge(eingabe)
+        # Daneben der Halter (W-002 Stufe D): Auswahl und „Halter …“ für das Fenster.
+        self.feld_halter = QtGui.QComboBox()
+        self.feld_halter.setToolTip(tr("wv.halter.tooltip"))
+        self.feld_halter.currentIndexChanged.connect(self._halter_gewaehlt)
+        self.knopf_halter = knopf(
+            tr("wv.halter.knopf"), tr("wv.halter.knopf.tooltip"), self.halter_zeigen
+        )
+        self.zeile_halter = QtGui.QWidget()
+        halter_aufbau = QtGui.QHBoxLayout(self.zeile_halter)
+        halter_aufbau.setContentsMargins(0, 0, 0, 0)
+        halter_aufbau.addWidget(self.feld_halter, 1)
+        halter_aufbau.addWidget(self.knopf_halter)
+        self.beschriftung_halter = QtGui.QLabel(tr("wv.halter"))
+        self.beschriftung_halter.setToolTip(tr("wv.halter.tooltip"))
 
         self.feld_schneiden = QtGui.QSpinBox()
         self.feld_schneiden.setRange(1, GROESSTE_SCHNEIDENZAHL)
@@ -600,6 +616,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_schneidstoff.setCurrentIndex(self.feld_schneidstoff.findData(w.schneidstoff))
         self.feld_bezeichnung.setText(w.bezeichnung)
         self.feld_name.setText(w.name)
+        self._halter_anbieten()
         self._fuellt = False
         self._felder_anordnen(w.art)
         self._beispiele_zeigen()
@@ -635,6 +652,8 @@ class WerkzeugDialog(QtGui.QDialog):
         for widget in (
             self.beschriftung_laenge_spindelnase,
             self.zeile_laenge_spindelnase,
+            self.beschriftung_halter,
+            self.zeile_halter,
             self.beschriftung_bezeichnung,
             self.feld_bezeichnung,
             self.beispiel_hinweis,
@@ -659,11 +678,14 @@ class WerkzeugDialog(QtGui.QDialog):
         unten = 2 + (len(daten.felder) + 1) // 2
         gitter.addWidget(self.beschriftung_laenge_spindelnase, unten, 0)
         gitter.addWidget(self.zeile_laenge_spindelnase, unten, 1)
-        gitter.addWidget(self.beschriftung_bezeichnung, unten + 1, 0)
-        gitter.addWidget(self.feld_bezeichnung, unten + 1, 1, 1, 3)
-        gitter.addWidget(self.beispiel_hinweis, unten + 2, 0, 1, 4)
-        gitter.addWidget(self.hinweis, unten + 3, 0, 1, 4)
-        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 4, 1, QtCore.Qt.AlignTop)
+        # Der Halter über die ganze Breite – Namen wie „Spannzangenfutter ER32 · SK40“.
+        gitter.addWidget(self.beschriftung_halter, unten + 1, 0)
+        gitter.addWidget(self.zeile_halter, unten + 1, 1, 1, 3)
+        gitter.addWidget(self.beschriftung_bezeichnung, unten + 2, 0)
+        gitter.addWidget(self.feld_bezeichnung, unten + 2, 1, 1, 3)
+        gitter.addWidget(self.beispiel_hinweis, unten + 3, 0, 1, 4)
+        gitter.addWidget(self.hinweis, unten + 4, 0, 1, 4)
+        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 5, 1, QtCore.Qt.AlignTop)
 
     def _beispielfelder(self):
         return {
@@ -708,13 +730,22 @@ class WerkzeugDialog(QtGui.QDialog):
                 schaft = tr("wv.schaft.platzhalter.geschaetzt", wert=wert)
         self.feld_gesamtlaenge.setPlaceholderText(laenge)
         self.feld_schaft.setPlaceholderText(schaft)
-        # Leer gilt die Gesamtlänge – eingetragen oder geschätzt, ohne Halter.
+        # Leer gilt mit Halter Halterlänge + Gesamtlänge − Spanntiefe, ohne die Gesamtlänge –
+        # eingetragen oder geschätzt.
+        halter = self.bibliothek.halter_von(w) if w is not None else None
         gesamt = (w.gesamtlaenge or wz.geschaetzte_laenge(w)) if w is not None else 0.0
-        self.feld_laenge_spindelnase.setPlaceholderText(
-            tr("wv.laenge_spindelnase.platzhalter", wert=groesse_zeigen(gesamt, einheiten.LAENGE))
-            if gesamt
-            else tr("feld.unbekannt")
-        )
+        if halter is not None:
+            platzhalter = tr(
+                "wv.laenge_spindelnase.platzhalter_halter",
+                wert=groesse_zeigen(wz.laenge_mit_halter(w, halter), einheiten.LAENGE),
+            )
+        elif gesamt:
+            platzhalter = tr(
+                "wv.laenge_spindelnase.platzhalter", wert=groesse_zeigen(gesamt, einheiten.LAENGE)
+            )
+        else:
+            platzhalter = tr("feld.unbekannt")
+        self.feld_laenge_spindelnase.setPlaceholderText(platzhalter)
         # Leere Winkel: grau der übliche der Art (Bohrer 118°, Gewinde 60° …).
         for feld in wz.WINKEL_FELDER:
             ueblich = wz.ueblich(w.art, feld) if w is not None else 0.0
@@ -752,6 +783,34 @@ class WerkzeugDialog(QtGui.QDialog):
                 saetze.append(tr("wv.hinweis.name", name=w.name, nummer=gleicher_name.nummer))
         self.hinweis.setText("\n".join(saetze))
         self.hinweis.setVisible(bool(saetze))
+
+    def _halter_anbieten(self):
+        """Die Auswahl der Halter: „ohne“ und alle nach Namen; gewählt der des Werkzeugs."""
+        auswahl = self.feld_halter
+        auswahl.blockSignals(True)
+        auswahl.clear()
+        auswahl.addItem(tr("wv.halter.ohne"), "")
+        for halter in self.bibliothek.sortierte_halter():
+            auswahl.addItem(hl.text(halter), halter.kennung)
+        kennung = self.werkzeug.halter if self.werkzeug is not None else ""
+        auswahl.setCurrentIndex(max(auswahl.findData(kennung), 0))
+        auswahl.blockSignals(False)
+
+    def _halter_gewaehlt(self, index):
+        w = self.werkzeug
+        if self._fuellt or w is None or index < 0:
+            return
+        w.halter = self.feld_halter.itemData(index) or ""
+        self._geaendert()
+
+    def halter_zeigen(self):
+        """„Halter …“: Halter anlegen und bearbeiten; mit OK bekommt das gewählte Werkzeug den
+        dort gewählten Halter. Gespeichert wird mit OK oder Übernehmen hier."""
+        dialog = HalterDialog(self, self.bibliothek, self.werkzeug)
+        if dialog.exec():
+            self._halter_anbieten()
+            if self.werkzeug is not None:
+                self._geaendert()
 
     def _geaendert(self):
         """Nach jeder Eingabe: Listenzeile, Hinweise und Schnittwerte auf den neuen Stand."""

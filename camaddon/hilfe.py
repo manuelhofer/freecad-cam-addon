@@ -22,6 +22,7 @@ THEMEN = [
     "glieder",
     "werkstoffe",
     "werkzeuge",
+    "halter",
     "schnittwerte",
     "strategien",
     "schruppwerte",

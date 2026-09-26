@@ -113,7 +113,10 @@ Halter bleiben lesbar; `FORMAT` bleibt 1.
    Vorlagen, geschätzte Länge; Prüfungen ohne Oberfläche. *Gebaut
    (P-2026-09-26-94).*
 2. Fenster „Halter“ (`camaddon/gui_halter.py`), Feld im Werkzeug, Hilfe,
-   Szenario mit Screenshots.
+   Szenario mit Screenshots. *Gebaut (P-2026-09-26-95); das Feld „Halter“
+   steht in einer eigenen Zeile über die ganze Breite, damit lange Namen
+   ganz zu lesen sind; die Schneide im Bild ist blau wie im Bild des
+   Werkzeugs.*
 3. Länge in „Auf der Maschine prüfen“, Halter im Abfahren.
 
 ## 9. Entscheidungen
