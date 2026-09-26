@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-73 version-0-19-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit 0.18.0:
+  die schräge Achse (P-2026-09-26-65 bis -72) – Eintrag, Winkel eintragen,
+  Erkennung, Verfahren wie im Programm, Übergabe an CAM, Höchstvorschub –
+  und das schmalere Verfahrfenster (-70).
+
+### DATEIEN
+- `package.xml` (0.19.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.19.0.
+
+### DONE
+- Version 0.18.0 → 0.19.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; Schritt 7 (Vorlage) nach Manuels Entscheidung zum Aufbau.
+
 ## P-2026-09-26-72 schraege-achse-hoechstvorschub
 
 ### EINGELESEN
