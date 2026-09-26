@@ -158,7 +158,7 @@ In drei Schritten:
 1. **Rechenkern** (`abfahren.py`, ohne Oberfläche): aus der Bahn die
    Stationen – Zeit, Operation, Satz, Punkt, Stellungen –, die Stellungen zu
    jeder Zeit (zwischen zwei Stationen geradlinig). Prüfungen: Zeiten gegen
-   Handrechnung, Kreise, Bohrzyklus, Rundachsen.
+   Handrechnung, Kreise, Bohrzyklus, Rundachsen. *Gebaut (P-2026-09-26-89).*
 2. **Anzeige und Abspieler** im Fenster „Auf der Maschine prüfen“, Hilfe,
    Szenario mit Screenshots.
 3. Version, voller Lauf, Push.

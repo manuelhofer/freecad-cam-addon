@@ -796,5 +796,6 @@
     "rw.keine_maschine": "No machine is open. Open the document with your machine – or create one with “New machine …”.",
     "wv.laenge_spindelnase": "Gauge length",
     "wv.laenge_spindelnase.tooltip": "From the spindle nose (in a turret: from the tool mount) to the tip, with holder – as the presetter measures it. “Check on machine” uses it to see whether Z reaches. Empty: the overall length, without holder.",
-    "wv.laenge_spindelnase.platzhalter": "empty: overall length {wert}"
+    "wv.laenge_spindelnase.platzhalter": "empty: overall length {wert}",
+    "ab.ohne_vorschub": "“{operation}” has no feed rate – moved at {vorschub}. The tool controller sets the feed (or “Cutting data into the job”)."
 }

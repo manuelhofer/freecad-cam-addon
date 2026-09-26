@@ -445,6 +445,37 @@ class Pruefung:
         z = werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
         return (werkstueck.Base - werkzeug.Base).dot(z) > 0
 
+    def achsen_fuer(self, werkzeugaufnahme):
+        """(Linearachsen, Drehachsen) zwischen dieser Werkzeugaufnahme und dem Werkstück."""
+        achsen = self._achsen_zwischen(werkzeugaufnahme)
+        return [a for a in achsen if a.art == LINEAR], [a for a in achsen if a.art != LINEAR]
+
+    def gefahrene_achsen(self, werkzeugaufnahme):
+        """Die Achsen, die für diese Werkzeugaufnahme fahren: die Linearachsen dazwischen, der
+        Revolver und die Rundachsen, die positionieren – keine Spindeln."""
+        linear, drehachsen = self.achsen_fuer(werkzeugaufnahme)
+        return linear + list(self._dreh_wege(werkzeugaufnahme, drehachsen, {}))
+
+    def loeser(self, werkzeugaufnahme, laenge, nullpunkt_des_jobs):
+        """Für eine Operation: eine Funktion rund → (_Loesung oder None, {Drehachse: Stellung}).
+
+        `rund` wie {"A": Grad}. Gelöst wird einmal je Stellung der Rundachsen.
+        """
+        linear, drehachsen = self.achsen_fuer(werkzeugaufnahme)
+        geloest = {}
+
+        def loesung(rund):
+            schluessel = tuple(round(rund.get(b, 0.0), 9) for b in RUNDACHSEN)
+            if schluessel not in geloest:
+                dreh_wege = self._dreh_wege(werkzeugaufnahme, drehachsen, rund)
+                geloest[schluessel] = (
+                    self._loese(werkzeugaufnahme, laenge, nullpunkt_des_jobs, linear, dreh_wege),
+                    {a: self.verfahren.stellung_bei(a, w) for a, w in dreh_wege.items()},
+                )
+            return geloest[schluessel]
+
+        return loesung
+
     def stellungen(self, punkt, werkzeugaufnahme, laenge, nullpunkt_des_jobs, rund=None):
         """{Achse: Stellung} für alle Achsen zwischen Werkzeug und Werkstück, bei denen die
         Spitze auf `punkt` (x, y, z im Job) steht; `rund` wie {"A": Grad}. None, wenn die
@@ -505,40 +536,26 @@ class Pruefung:
         laenge, quelle = werkzeuglaenge(tc, bibliothek)
         sammler.laenge(tc, laenge, quelle)
 
-        achsen = self._achsen_zwischen(aufnahme)
-        linear = [a for a in achsen if a.art == LINEAR]
-        drehachsen = [a for a in achsen if a.art != LINEAR]
+        linear, drehachsen = self.achsen_fuer(aufnahme)
         if len(linear) > 3:
             sammler.zu_viele(linear)
             return
         if self._z_verkehrt(aufnahme, self._dreh_wege(aufnahme, drehachsen, {})):
             sammler.hinweis(tr("rw.z_verkehrt", aufnahme=m.name_von(aufnahme)))
-
-        loesungen = {}  # Stellung der Rundachsen -> _Loesung
-
-        def loesung(rund):
-            schluessel = tuple(round(rund.get(b, 0.0), 9) for b in RUNDACHSEN)
-            if schluessel not in loesungen:
-                dreh_wege = self._dreh_wege(aufnahme, drehachsen, rund)
-                loesungen[schluessel] = (
-                    self._loese(aufnahme, laenge, nullpunkt_des_jobs, linear, dreh_wege),
-                    {a: self.verfahren.stellung_bei(a, w) for a, w in dreh_wege.items()},
-                )
-            return loesungen[schluessel]
+        loesung = self.loeser(aufnahme, laenge, nullpunkt_des_jobs)
 
         sammler.beginne(op.Label, linear, drehachsen)
-        for art, *daten in _bahn(op.Path.Commands, sammler.unbekannt):
-            if art == "punkt":
-                punkt, rund = daten
-                sammler.punkt(punkt, rund, *loesung(rund))
-            else:  # Kreis: Punkte an den Umkehrstellen jeder Achse
-                bogen, rund = daten
-                geloest, dreh = loesung(rund)
-                if geloest is None:
-                    sammler.zu_viele(linear)
-                    continue
-                for punkt in bogen.punkte(geloest.s):
-                    sammler.punkt(punkt, rund, geloest, dreh)
+        for schritt in _bahn(op.Path.Commands, sammler.unbekannt):
+            if schritt.art == "punkt":
+                sammler.punkt(schritt.ort, schritt.rund, *loesung(schritt.rund))
+                continue
+            # Kreis: Punkte an den Umkehrstellen jeder Achse
+            geloest, dreh = loesung(schritt.rund)
+            if geloest is None:
+                sammler.zu_viele(linear)
+                continue
+            for punkt in schritt.ort.punkte(geloest.s):
+                sammler.punkt(punkt, schritt.rund, geloest, dreh)
         sammler.ende_operation()
 
 
@@ -755,6 +772,18 @@ class _Bogen:
         return [self.bei(t) for t in sorted(anteile)]
 
 
+@dataclass
+class _Schritt:
+    """Was die Bahn liefert: ein Punkt (x, y, z) oder ein Kreisbogen (_Bogen)."""
+
+    art: str  # "punkt" oder "bogen"
+    ort: object  # (x, y, z) oder _Bogen
+    rund: dict  # Rundachsen dort: {"A": …, "B": …, "C": …}
+    eilgang: bool  # die Bewegung hierher: Eilgang – sonst Vorschub
+    vorschub: float  # zuletzt gesetztes F (FreeCAD: mm/s), 0 = keins
+    satz: int  # der wievielte Befehl der Bahn (ab 1)
+
+
 def _anteil(phi, start, ueberstrichen):
     """Bei welchem Anteil (0 … 1) des Bogens der Winkel `phi` liegt – oder None."""
     if abs(ueberstrichen) < 1e-12:
@@ -765,13 +794,13 @@ def _anteil(phi, start, ueberstrichen):
     return t if 0.0 < t < 1.0 else None
 
 
-def _bahn(befehle, unbekannt):
-    """Liest die Befehle einer Bahn; liefert ("punkt", (x, y, z), rund) für jeden zu
-    prüfenden Punkt und ("bogen", _Bogen, rund) für Kreise. `rund`: {"A": …, "B": …, "C": …}.
+def _bahn(befehle, unbekannt, rueckzug=False):
+    """Liest die Befehle einer Bahn; liefert je Punkt und je Kreisbogen einen _Schritt.
 
     Punkte, deren X, Y oder Z noch niemand gesetzt hat (am Anfang einer
     Operation), werden übersprungen. Unbekannte Befehle mit Bewegung meldet
-    `unbekannt(name)`.
+    `unbekannt(name)`. `rueckzug`: nach einem Bohrzyklus auch der Punkt, auf den
+    er zurückzieht – fürs Abfahren; die Reichweite kennt die Höhe schon.
     """
     lage = {"X": None, "Y": None, "Z": None}
     rund = dict.fromkeys(RUNDACHSEN, 0.0)
@@ -779,6 +808,7 @@ def _bahn(befehle, unbekannt):
     ebene = "G17"
     rueckzug_auf_r = False  # G99: nach dem Zyklus auf R, sonst (G98) auf die Ausgangshöhe
     zyklus = {}  # Z und R des letzten Bohrzyklus
+    vorschub = 0.0
 
     def bekannt():
         return all(v is not None for v in lage.values())
@@ -799,9 +829,11 @@ def _bahn(befehle, unbekannt):
                 neu_rund[buchstabe] = wert if absolut else neu_rund[buchstabe] + wert
         return neu, neu_rund
 
-    for befehl in befehle:
+    for satz, befehl in enumerate(befehle, start=1):
         name = befehl.Name.upper()
         werte = befehl.Parameters
+        if "F" in werte:
+            vorschub = float(werte["F"])
         if not name or name.startswith("(") or name[0] in "MTSFON":
             continue
         name = _ohne_null(name)
@@ -819,6 +851,7 @@ def _bahn(befehle, unbekannt):
             continue
 
         if name in ("G0", "G1"):
+            eilgang = name == "G0"
             neu, neu_rund = ziel(werte)
             if bekannt() and any(abs(neu_rund[b] - rund[b]) > 1e-9 for b in RUNDACHSEN):
                 # Eine Rundachse dreht sich im Satz: Punkte in kleinen Schritten.
@@ -832,12 +865,13 @@ def _bahn(befehle, unbekannt):
                     t = k / schritte
                     punkt = tuple(a + t * (b - a) for a, b in zip(von, nach, strict=True))
                     zwischen = {b: rund[b] + t * (neu_rund[b] - rund[b]) for b in RUNDACHSEN}
-                    yield "punkt", punkt, zwischen
+                    yield _Schritt("punkt", punkt, zwischen, eilgang, vorschub, satz)
                 lage, rund = neu, neu_rund
                 continue
             lage, rund = neu, neu_rund
             if bekannt():
-                yield "punkt", (lage["X"], lage["Y"], lage["Z"]), dict(rund)
+                punkt = (lage["X"], lage["Y"], lage["Z"])
+                yield _Schritt("punkt", punkt, dict(rund), eilgang, vorschub, satz)
         elif name in ("G2", "G3"):
             if not bekannt():
                 lage, rund = ziel(werte)
@@ -845,9 +879,10 @@ def _bahn(befehle, unbekannt):
             bogen = _bogen(lage, werte, ebene, name == "G3", absolut)
             lage, rund = ziel(werte)
             if bogen is not None:
-                yield "bogen", bogen, dict(rund)
+                yield _Schritt("bogen", bogen, dict(rund), False, vorschub, satz)
             if bekannt():
-                yield "punkt", (lage["X"], lage["Y"], lage["Z"]), dict(rund)
+                punkt = (lage["X"], lage["Y"], lage["Z"])
+                yield _Schritt("punkt", punkt, dict(rund), False, vorschub, satz)
         elif name in BOHRZYKLEN:
             if "Z" in werte:
                 zyklus["Z"] = float(werte["Z"])
@@ -859,10 +894,23 @@ def _bahn(befehle, unbekannt):
                     lage[buchstabe] = float(werte[buchstabe])
             if lage["X"] is None or lage["Y"] is None or "Z" not in zyklus:
                 continue
-            hoehen = [h for h in (ausgang, zyklus.get("R"), zyklus["Z"]) if h is not None]
-            for hoehe in hoehen:
-                yield "punkt", (lage["X"], lage["Y"], hoehe), dict(rund)
+            # Über dem Loch und auf R im Eilgang, auf den Grund im Vorschub.
+            hoehen = [
+                (hoehe, eilgang)
+                for hoehe, eilgang in (
+                    (ausgang, True),
+                    (zyklus.get("R"), True),
+                    (zyklus["Z"], False),
+                )
+                if hoehe is not None
+            ]
+            for hoehe, eilgang in hoehen:
+                punkt = (lage["X"], lage["Y"], hoehe)
+                yield _Schritt("punkt", punkt, dict(rund), eilgang, vorschub, satz)
             lage["Z"] = zyklus.get("R") if rueckzug_auf_r or ausgang is None else ausgang
+            if rueckzug:
+                punkt = (lage["X"], lage["Y"], lage["Z"])
+                yield _Schritt("punkt", punkt, dict(rund), True, vorschub, satz)
         elif any(b in werte for b in ("X", "Y", "Z", *RUNDACHSEN)):
             unbekannt(name)
 

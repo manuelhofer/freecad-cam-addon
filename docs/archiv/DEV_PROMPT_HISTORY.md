@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-89 abfahren-rechenkern
+
+### EINGELESEN
+- Spezifikation 4b (P-2026-09-26-88), Schritt 1: Stationen mit Zeit,
+  Stellungen zu jeder Zeit; Zeiten gegen Handrechnung prüfen.
+- `reichweite.py`: `_bahn` liefert Punkte und Kreisbögen, `_pruefe_operation`
+  rechnet je Operation Werkzeugaufnahme, Länge und die Lösung je Stellung der
+  Rundachsen.
+
+### DATEIEN
+- `camaddon/abfahren.py` (neu)
+- `camaddon/reichweite.py` (`_Schritt`; `achsen_fuer`, `gefahrene_achsen`,
+  `loeser` öffentlich; Rückzug nach dem Bohrzyklus auf Wunsch)
+- `translations/de.json`, `translations/en.json` (1 Text)
+- `tests/test_abfahren.py` (neu)
+- `docs/spezifikation_simulation.md`, `docs/aufbau.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Aus der Bahn eines Jobs entstehen Stationen, deren Zeiten der Handrechnung
+entsprechen (100 mm mit F 10 = 10 s, Eilgang je Achse aus der Maschine);
+zwischen zwei Stationen liefert `stellungen_bei` die geradlinig
+dazwischenliegenden Stellungen.
+
+### DONE
+- `_bahn` liefert jetzt je Punkt und Kreis einen `_Schritt`: Art, Ort,
+  Rundachsen, Eilgang oder Vorschub, das zuletzt gesetzte F, die Satznummer.
+  Im Bohrzyklus gehen „über dem Loch“ und „auf R“ im Eilgang, der Grund im
+  Vorschub; mit `rueckzug=True` kommt der Rückzug dazu (die Reichweite
+  nutzt ihn nicht – ihre Punkte bleiben dieselben).
+- Die Rechnung je Operation ist öffentlich: `achsen_fuer`,
+  `gefahrene_achsen` (Linearachsen, Revolver, positionierende Rundachsen –
+  keine Spindeln), `loeser` (Lösung je Stellung der Rundachsen, mit
+  Zwischenspeicher); die Reichweite nutzt dieselben.
+- `abfahren.abfahrt(pruefung, job, nullpunkt, bibliothek)`: Stationen mit
+  Zeit, Operation, Satz, Punkt, Rundachsen, Stellungen (None, wo der Punkt
+  nicht erreichbar ist) und Eilgang; Kreise in Schritten ≤ 5°. Zeit:
+  Vorschub = Weg / F (FreeCAD: mm/s), dreht sich nur eine Rundachse, zählt
+  ihr Winkel; ohne F 1000 mm/min mit Hinweis. Eilgang: jede Achse mit ihrem
+  Eilgang (Linear), ihrer Geschwindigkeit (Positionieren) bzw. 180° je
+  Schaltzeit (Revolver), die langsamste bestimmt; fehlt ein Wert, gilt der
+  der Übergabe an CAM.
+- `Abfahrt`: `dauer`, `index_bei(zeit)`, `wirksam(i)` (wie die Maschine dort
+  steht – nicht erreichbar: bleibt stehen), `stellungen_bei(zeit)`
+  (geradlinig zwischen zwei Stationen).
+
+### TEST
+- `test_abfahren`, 1.1.3 und Wochen-Build grün: Beispiel-Fräse – Achsen
+  X1/Y1/Z1 ohne die Spindel; 62 Stationen; Geraden 1,5 s und 10 s; Kreis
+  54 Sehnen zu 5°; Eilgang Z 0,06 s; Bohrzyklus 0,21 / 0,028 / 2,2 /
+  0,072 s, Rückzug auf die Ausgangshöhe; Dauer; Mitte der Geraden X1 −50;
+  vier Stationen gegen `Pruefung.stellungen`; ohne F 0,6 s mit Hinweis.
+  5-Achs-Fräse A 90° mit F 10 in 9 s, halb geschwenkt A1 45. Drehmaschine:
+  Revolver von P1 auf P2 zwischen zwei Operationen. Drehmaschine ohne Y:
+  der Punkt quer daneben lässt die Maschine stehen.
+- `test_reichweite`, `test_sprache` in beiden Versionen grün.
+
+### NEXT
+- Schritt 2: Anzeige und Abspieler im Fenster „Auf der Maschine prüfen“.
+
 ## P-2026-09-26-88 spezifikation-abfahren
 
 ### EINGELESEN
