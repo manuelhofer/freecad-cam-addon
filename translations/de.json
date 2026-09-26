@@ -69,7 +69,7 @@
     "befehl.maschine.tooltip": "Macht aus der Baugruppe eine Maschine: Achsen benennen, Kennwerte eintragen, Werkzeug- und Werkstückaufnahmen festlegen.",
     "dialog.titel": "Maschine bearbeiten",
     "dialog.welche_baugruppe": "Welche Baugruppe ist die Maschine?",
-    "dialog.keine_baugruppe": "Hier gibt es noch keine Baugruppe.\n\nBaue die Maschine zuerst im Arbeitsbereich Assembly zusammen: grobe Körper für Bett, Schlitten, Spindel usw., verbunden mit Gelenken (fest, Schiebe- oder Drehgelenk). Danach rufst du „Maschine bearbeiten“ erneut auf.",
+    "dialog.keine_baugruppe": "Hier gibt es noch keine Baugruppe.\n\nBaue die Maschine zuerst im Arbeitsbereich Assembly zusammen: grobe Körper für Bett, Schlitten, Spindel usw., verbunden mit Gelenken (fest, Schiebe- oder Drehgelenk). Danach rufst du diesen Befehl erneut auf.\n\nZum Ausprobieren: „Beispielmaschine laden“ öffnet eine fertig eingerichtete Fräsmaschine.",
     "dialog.name": "Name:",
     "dialog.name.tooltip": "Name der Maschine, so wie sie später in CAM zur Auswahl steht.",
     "dialog.achsen": "Achsen",
@@ -515,5 +515,11 @@
     "wv.zeile.name": "T{nummer}  {name} · {art} Ø {durchmesser} · z {schneiden} · {schneidstoff}",
     "wv.hinweis.name": "„{name}“ heißt auch T{nummer} – gewollt (Schwesterwerkzeug)?",
     "wv.beispiel": "Grau: Beispielwerte – sie gelten, bis du eigene einträgst.",
-    "sp.beispiel": "Grau: Beispiel für Stahl mit {schneidstoff} – damit wird schon gerechnet. Besser sind die Werte aus dem Katalog deines Werkzeugs."
+    "sp.beispiel": "Grau: Beispiel für Stahl mit {schneidstoff} – damit wird schon gerechnet. Besser sind die Werte aus dem Katalog deines Werkzeugs.",
+    "beispiel.dokument": "Beispielmaschine",
+    "beispiel.maschine": "Beispiel-Fräsmaschine",
+    "beispiel.spindel": "Spindel",
+    "beispiel.tisch": "Tisch",
+    "dialog.beispielmaschine": "Beispielmaschine laden",
+    "dialog.beispielmaschine.tooltip": "Öffnet ein neues Dokument mit einer fertig eingerichteten Dreiachs-Fräsmaschine – zum Ausprobieren, wie Bearbeiten und Verfahren gehen."
 }

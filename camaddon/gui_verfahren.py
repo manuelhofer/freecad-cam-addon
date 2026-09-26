@@ -13,11 +13,11 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
+from . import beispielmaschine, symbol
 from . import maschine as m
-from . import symbol
 from . import verfahren as vf
 from .gui_hilfe import kopfzeile
-from .gui_maschine import gewaehlte_assembly
+from .gui_maschine import beispiel_gewuenscht, gewaehlte_assembly
 from .gui_teile import GRAU, fett
 from .gui_zahlen import zahlenformat
 from .kette import LINEAR
@@ -51,10 +51,10 @@ class BefehlMaschineVerfahren:
         doc = FreeCAD.ActiveDocument
         assembly = gewaehlte_assembly(doc) if doc else None
         if assembly is None:
-            QtGui.QMessageBox.information(
-                FreeCADGui.getMainWindow(), tr("vf.titel"), tr("dialog.keine_baugruppe")
-            )
-            return
+            if not beispiel_gewuenscht(tr("vf.titel")):
+                return
+            assembly, _maschine = beispielmaschine.lade()
+            doc = assembly.Document
         verfahren = vf.Verfahren(assembly)
         if not verfahren.achsen:
             QtGui.QMessageBox.information(

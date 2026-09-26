@@ -12,6 +12,69 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-38 beispielmaschine
+
+### EINGELESEN
+- Manuel (2026-09-26, Screenshots der Meldung „Hier gibt es noch keine
+  Baugruppe“ in „Maschine bearbeiten“ und „Maschine verfahren“): „noch
+  einen Knopf ‚Beispiel Maschine laden‘ … wenn er dafür ne Maschine bauen
+  muss ist das eine große Hürde … gib dem Benutzer Beispiele wo er sehen
+  kann ‚ah so geht das‘“.
+- `tests/beispielmaschinen.py` (Baukasten), `camaddon/gui_maschine.py`,
+  `camaddon/gui_verfahren.py`, `camaddon/maschine.py`,
+  `camaddon/verfahren.py`; FreeCADs `JointObject.py` (1.1.3): Jede
+  Änderung an Offset1/Offset2 löst vorab (`preSolve`/`matchJCS`) und
+  verschiebt dabei Teile.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py` (neu: Baukasten aus den Prüfungen,
+  `gelenk_wie_gebaut`, `fraesmaschine`, `lade`)
+- `camaddon/gui_maschine.py` (`beispiel_gewuenscht`: Meldung mit Knopf)
+- `camaddon/gui_verfahren.py`
+- `translations/de.json`, `translations/en.json` (`beispiel.*`,
+  `dialog.beispielmaschine*`, Meldung ergänzt)
+- `help/de|en/achsen.html`, `help/de|en/verfahren.html`
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Entschieden)
+- `docs/STATUS_SNAPSHOT.md` (Punkt 7 fertig)
+- `tests/beispielmaschinen.py` (Baukasten aus dem Addon),
+  `tests/test_beispielmaschine.py` (neu),
+  `tests/gui/szenario_beispielmaschine.py` (neu)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+FreeCAD ohne offenes Dokument → CAM → „Maschine bearbeiten“: Die Meldung
+hat den Knopf „Beispielmaschine laden“ → Klick → neues Dokument
+„Beispielmaschine“ mit Bett, Ständer, Kreuztisch, blauem Fräskopf und
+Spindel; der Dialog zeigt Y1, Z1, X1, S1 und die Aufnahmen „Tisch“ und
+„Spindel“ mit Haken. Dasselbe über „Maschine verfahren“: X1 auf 200 → der
+Tisch fährt nach rechts; Z1 auf −80 → der Kopf senkt sich.
+
+### DONE
+- Dreiachs-Fräsmaschine: X ±250, Y −150 … 120, Z −100 … 250 mm; Eilgang
+  20/20/15 m/min, Vorschub 10 m/min, S1 12 000 U/min; Werkzeugaufnahme an
+  der Spindelnase (angetrieben von S1), Werkstückaufnahme mitten auf dem
+  Tisch. Farben: Guss dunkel, Schlitten hell, Kopf blau.
+- `gelenk_wie_gebaut`: Nach dem Anlegen und nach dem Setzen der Versätze
+  kommen die Teile zurück – mit Oberfläche klappte FreeCADs Vorab-Lösen den
+  Fräskopf sonst hinter den Ständer (Screenshot); beide Seiten liegen jetzt
+  genau aufeinander.
+- Baukasten mit Ansichten für Gelenke und Fixierung, wenn es eine
+  Oberfläche gibt; die Beispielmaschinen der Prüfungen bleiben, wie sie
+  waren.
+
+### TEST
+- `test_beispielmaschine.py` in 1.1.3 und 26.3.0 grün (nichts verschoben,
+  keine Warnung, Achsen in Achsrichtung, Grenzen, Aufnahmen, Grenzen für
+  den Planer); `test_kette`, `test_verfahren`, `test_maschine`,
+  `test_schruppwerte`, `test_hilfe`, `test_sprache` grün.
+- `szenario_beispielmaschine` in 1.1.3 grün, Screenshots angesehen
+  (Meldung mit Knopf, Maschine mit Dialog, verfahren X 200 / Y −100 /
+  Z −80); `szenario_felder`, `_hilfe`, `_maschine_bearbeiten`,
+  `_uebergeben`, `_verfahren`, `_zeigen` grün. Voller Lauf vor dem Push.
+
+### NEXT
+- Version 0.13.0, voller Lauf, Push; dann A3 Warngrenze.
+
 ## P-2026-09-26-37 neues-werkzeug-beispielwerte
 
 ### EINGELESEN

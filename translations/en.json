@@ -69,7 +69,7 @@
     "befehl.maschine.tooltip": "Turns the assembly into a machine: name the axes, enter their data, define tool and workpiece mounts.",
     "dialog.titel": "Edit machine",
     "dialog.welche_baugruppe": "Which assembly is the machine?",
-    "dialog.keine_baugruppe": "There is no assembly here yet.\n\nFirst build the machine in the Assembly workbench: rough bodies for bed, slides, spindle etc., connected by joints (fixed, slider or revolute). Then run “Edit machine” again.",
+    "dialog.keine_baugruppe": "There is no assembly here yet.\n\nFirst build the machine in the Assembly workbench: rough bodies for bed, slides, spindle etc., connected by joints (fixed, slider or revolute). Then run this command again.\n\nTo try it out: “Load example machine” opens a ready-made milling machine.",
     "dialog.name": "Name:",
     "dialog.name.tooltip": "Name of the machine as it will be offered in CAM.",
     "dialog.achsen": "Axes",
@@ -515,5 +515,11 @@
     "wv.zeile.name": "T{nummer}  {name} · {art} Ø {durchmesser} · z {schneiden} · {schneidstoff}",
     "wv.hinweis.name": "“{name}” is also the name of T{nummer} – intended (sister tool)?",
     "wv.beispiel": "Grey: example values – they apply until you enter your own.",
-    "sp.beispiel": "Grey: example for steel with {schneidstoff} – the table already uses it. Better use the values from your tool's catalogue."
+    "sp.beispiel": "Grey: example for steel with {schneidstoff} – the table already uses it. Better use the values from your tool's catalogue.",
+    "beispiel.dokument": "Example machine",
+    "beispiel.maschine": "Example milling machine",
+    "beispiel.spindel": "Spindle",
+    "beispiel.tisch": "Table",
+    "dialog.beispielmaschine": "Load example machine",
+    "dialog.beispielmaschine.tooltip": "Opens a new document with a ready-made three-axis milling machine – to try out how editing and moving work."
 }

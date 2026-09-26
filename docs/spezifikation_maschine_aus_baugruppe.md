@@ -302,3 +302,10 @@ diesen Dialog heißt das konkret:
 - **Revolver:** eigene Baugruppe mit einem Drehgelenk; Plätze einzeln als
   LCS plus Verteilhilfe; Platznamen P1 … Pn, Werkzeugzuordnung aus CAM
   (Manuel, P-2026-09-25-15).
+- **Beispielmaschine zum Ausprobieren** (Manuel, P-2026-09-26-38): Ohne
+  Baugruppe bieten „Maschine bearbeiten“ und „Maschine verfahren“ den Knopf
+  „Beispielmaschine laden“ – eine Dreiachs-Fräsmaschine (Kreuztisch X/Y,
+  Fräskopf Z, Spindel S1, Werkzeug- und Werkstückaufnahme) in einem neuen
+  Dokument, danach gleich der Dialog. Gebaut mit dem Baukasten der
+  Prüfungen (`camaddon/beispielmaschine.py`); ihre Gelenke lassen die Teile,
+  wo sie gebaut sind: Versatz (Offset) auf beiden Seiten, Stellung 0.

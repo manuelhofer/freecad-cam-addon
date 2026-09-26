@@ -44,7 +44,9 @@ Wunschliste, offene Bugs und Tasks.
    den Knopf „Beispielmaschine laden“ (Manuel: wer das Addon ausprobiert,
    soll nicht erst eine Maschine bauen müssen). Er öffnet ein neues
    Dokument mit einer fertig eingerichteten Maschine und gleich danach den
-   Dialog. Grundlage: der Baukasten aus `tests/beispielmaschinen.py`.
+   Dialog. Grundlage: der Baukasten aus `tests/beispielmaschinen.py`. –
+   *Fertig (P-2026-09-26-38): Dreiachs-Fräsmaschine, Baukasten jetzt in
+   `camaddon/beispielmaschine.py`.*
 
 *Stufe B – Einheiten und Zahlenformat*
 8. Beim ersten Start (mit der Sprache) und in den Einstellungen des

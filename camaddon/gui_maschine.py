@@ -21,7 +21,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import export, gui_zeigen, symbol
+from . import beispielmaschine, export, gui_zeigen, symbol
 from . import kette as kette_modul
 from . import maschine as m
 from .gui_bericht import BerichtFenster
@@ -67,13 +67,32 @@ class BefehlMaschineBearbeiten:
         doc = FreeCAD.ActiveDocument
         assembly = gewaehlte_assembly(doc) if doc else None
         if assembly is None:
-            QtGui.QMessageBox.information(
-                FreeCADGui.getMainWindow(), tr("dialog.titel"), tr("dialog.keine_baugruppe")
-            )
-            return
+            if not beispiel_gewuenscht(tr("dialog.titel")):
+                return
+            assembly, _maschine = beispielmaschine.lade()
+            doc = assembly.Document
         doc.openTransaction(tr("dialog.titel"))
         maschine = m.lege_maschine_an(assembly)
         FreeCADGui.Control.showDialog(MaschinenPanel(assembly, maschine))
+
+
+def beispiel_gewuenscht(titel):
+    """Meldet, dass es keine Baugruppe gibt – mit dem Knopf „Beispielmaschine laden“.
+
+    Gibt True zurück, wenn die Beispielmaschine geladen werden soll: Wer das
+    Addon ausprobiert, soll nicht erst eine Maschine bauen müssen.
+    """
+    meldung = QtGui.QMessageBox(
+        QtGui.QMessageBox.Information,
+        titel,
+        tr("dialog.keine_baugruppe"),
+        QtGui.QMessageBox.Ok,
+        FreeCADGui.getMainWindow(),
+    )
+    beispiel = meldung.addButton(tr("dialog.beispielmaschine"), QtGui.QMessageBox.ActionRole)
+    beispiel.setToolTip(tr("dialog.beispielmaschine.tooltip"))
+    meldung.exec()
+    return meldung.clickedButton() is beispiel
 
 
 def gewaehlte_assembly(doc):

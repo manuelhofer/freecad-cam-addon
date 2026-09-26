@@ -1,77 +1,9 @@
 # Baut Beispielmaschinen als Assembly, ohne Oberfläche – Grundlage der
-# Prüfungen. Die Körper sind grob (Quader, Zylinder), wie es die
-# Spezifikation für echte Maschinen vorsieht.
+# Prüfungen. Der Baukasten gehört zum Addon (camaddon/beispielmaschine.py),
+# das damit auch die Beispielmaschine zum Ausprobieren baut.
 #
-# Flächen eines Part::Box: Face1 x=0, Face2 x=Länge, Face3 y=0, Face4 y=Breite,
-# Face5 z=0 (unten), Face6 z=Höhe (oben). Part::Cylinder: Face2 oben,
-# Face3 unten. Die Normale der ersten Fläche eines Gelenks ist seine Achse.
-import FreeCAD as App
-import JointObject
-
-
-class Baukasten:
-    """Baut eine Assembly Schritt für Schritt: Körper, Bauteile mit LCS, Gelenke.
-
-    Maße und Lagen in mm; x, y, z ist die Lage der Ecke bzw. der Mitte unten.
-    """
-
-    def __init__(self, name):
-        self.doc = App.newDocument(name)
-        self.assembly = self.doc.addObject("Assembly::AssemblyObject", "Assembly")
-        self.gelenke = self.assembly.newObject("Assembly::JointGroup", "Joints")
-
-    def quader(self, name, laenge, breite, hoehe, x=0, y=0, z=0):
-        teil = self.assembly.newObject("Part::Box", name)
-        teil.Length, teil.Width, teil.Height = laenge, breite, hoehe
-        _stelle(teil, x, y, z)
-        return teil
-
-    def zylinder(self, name, radius, hoehe, x=0, y=0, z=0):
-        teil = self.assembly.newObject("Part::Cylinder", name)
-        teil.Radius, teil.Height = radius, hoehe
-        _stelle(teil, x, y, z)
-        return teil
-
-    def bauteil(self, name, koerper, lcs_name=None, lcs_hoehe=0):
-        """Ein Part mit Körper und optional einem LCS darin – so, wie man eine
-        Werkzeug- oder Werkstückaufnahme markiert. Gelenke greifen dann auf
-        "<Körpername>.FaceN"."""
-        teil = self.assembly.newObject("App::Part", name)
-        self.assembly.removeObject(koerper)
-        teil.addObject(koerper)
-        teil.Placement = koerper.Placement
-        koerper.Placement = App.Placement()
-        lcs = None
-        if lcs_name:
-            lcs = self.doc.addObject("App::LocalCoordinateSystem", lcs_name)
-            lcs.Placement = App.Placement(App.Vector(0, 0, lcs_hoehe), App.Rotation())
-            teil.addObject(lcs)
-        return teil, lcs
-
-    def fixieren(self, teil):
-        gelenk = self.gelenke.newObject("App::FeaturePython", "Fixiert_" + teil.Name)
-        JointObject.GroundedJoint(gelenk, teil)
-        return gelenk
-
-    def gelenk(self, name, art, teil1, flaeche1, teil2, flaeche2):
-        # Flächen gibt es erst nach dem Neuberechnen der Körper.
-        self.doc.recompute()
-        gelenk = self.gelenke.newObject("App::FeaturePython", name)
-        JointObject.Joint(gelenk, JointObject.JointTypes.index(art))
-        # Zweiter Eintrag = Bezugspunkt; die Fläche selbst heißt „Flächenmitte“.
-        gelenk.Proxy.setJointConnectors(
-            gelenk, [[teil1, [flaeche1, flaeche1]], [teil2, [flaeche2, flaeche2]]]
-        )
-        return gelenk
-
-    def fertig(self):
-        self.doc.recompute()
-        return self.assembly
-
-
-def _stelle(teil, x, y, z):
-    # Placement als Ganzes zuweisen: teil.Placement.Base = … änderte nur eine Kopie.
-    teil.Placement = App.Placement(App.Vector(x, y, z), App.Rotation())
+# Die Normale der ersten Fläche eines Gelenks ist seine Achse.
+from camaddon.beispielmaschine import Baukasten
 
 
 def drehmaschine():
