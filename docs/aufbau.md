@@ -57,6 +57,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `aktualisierung.py` | Update-Suche per Git, ohne Git per HTTPS (package.xml) und Update mit `installieren.py` |
 | `werkstoffe.py` | Werkstoffliste (W-002): mitgelieferte aus `daten/werkstoffe.json`, Anzeige, Suche |
 | `werkzeuge.py` | Werkzeugbibliothek (W-002): Werkzeuge, Einsätze und Schnittwerte je Werkstoff, eigene Werkstoffe, Speichern als JSON; Maße eingetragen oder geschätzt (`mass`, `reichweite`) – für Bild und CAM gleich |
+| `halter.py` | Werkzeughalter (W-002 Stufe D): Kontur aus Abschnitten (Länge, Ø oben, Ø unten) ab der Spindelnase, Länge, Radius, Spanntiefe, Vorlagen; die Halter stehen in der Bibliothek, das Werkzeug nennt seinen (`werkzeuge.laenge_mit_halter`) |
 | `werkzeugform.py` | Umriss jeder der 26 Werkzeugarten aus ihren Maßen (Vielecke in mm) – fürs Bild; die zusammengesetzten Maße (Kegel, Konus, Radienprofil) auch für CAM |
 | `schnittdaten.py` | Rechnen mit Schnittwerten: n, vf, Zeitspanvolumen, Eingriffswinkel, Spandicke; Kennzahlen und Urteil für den Strategievergleich |
 | `uebergabe_werkzeuge.py` | Werkzeuge an CAM übergeben: ToolBits und Bibliothek „CAM-Addon“ über `cam_assets`, jede Art mit ihrer Form und deren Parametern (Näherungen im Bericht), Schnittwerte als Presets |

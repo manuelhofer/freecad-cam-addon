@@ -110,7 +110,8 @@ Halter bleiben lesbar; `FORMAT` bleibt 1.
 ## 8. Schritte
 
 1. Datenmodell (`camaddon/halter.py`, Bibliothek und Werkzeug), Speicherung,
-   Vorlagen, geschätzte Länge; Prüfungen ohne Oberfläche.
+   Vorlagen, geschätzte Länge; Prüfungen ohne Oberfläche. *Gebaut
+   (P-2026-09-26-94).*
 2. Fenster „Halter“ (`camaddon/gui_halter.py`), Feld im Werkzeug, Hilfe,
    Szenario mit Screenshots.
 3. Länge in „Auf der Maschine prüfen“, Halter im Abfahren.

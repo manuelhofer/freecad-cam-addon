@@ -811,5 +811,18 @@
     "ab.keine_bahn": "Nichts abzufahren: keine Operation mit Bahn, deren Werkzeug auf diese Maschine passt.",
     "ab.anschlag": "am Anschlag",
     "ab.nicht_erreichbar": "Diesen Punkt erreichen die Achsen nicht – die Maschine bleibt stehen.",
-    "ab.hinsehen.tooltip": "Ansicht auf Werkstück und Werkzeug – die Maschine ist meist viel größer als das Teil."
+    "ab.hinsehen.tooltip": "Ansicht auf Werkstück und Werkzeug – die Maschine ist meist viel größer als das Teil.",
+    "halter.vorlage.er16": "Spannzangenfutter ER16 · SK40",
+    "halter.vorlage.er25": "Spannzangenfutter ER25 · SK40",
+    "halter.vorlage.er32": "Spannzangenfutter ER32 · SK40",
+    "halter.vorlage.er40": "Spannzangenfutter ER40 · SK40",
+    "halter.vorlage.schrumpf_6": "Schrumpffutter Ø6 · SK40",
+    "halter.vorlage.schrumpf_12": "Schrumpffutter Ø12 · SK40",
+    "halter.vorlage.weldon_20": "Weldon-Aufnahme Ø20 · SK40",
+    "halter.vorlage.hydro_20": "Hydrodehnspannfutter Ø20 · SK40",
+    "halter.vorlage.aufsteck_22": "Aufsteckfräserdorn Ø22 · SK40",
+    "halter.vorlage.bohrfutter": "Bohrfutter 1–13 · SK40",
+    "halter.vorlage.vdi30_er25": "VDI30 axial, ER25 · Drehen",
+    "halter.beispielmasse": "Beispielmaße – nach Katalog prüfen",
+    "halter.ohne_name": "Halter, {laenge} lang"
 }

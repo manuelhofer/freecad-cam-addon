@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 import FreeCAD
 
 from . import einheiten
+from . import halter as hl
 from . import werkstoffe as ws
 from .sprache import tr
 
@@ -376,8 +377,11 @@ class Werkzeug:
     # Nur für CAM (Simulation, Kollision); 0 = geschätzt, siehe laenge_fuer_cam().
     gesamtlaenge: float = 0.0  # mm
     # Von der Spindelnase (bzw. der Aufnahme im Revolver) bis zur Spitze, mit Halter –
-    # für „Auf der Maschine prüfen“ (reichweite.py). 0 = nicht gemessen: die Gesamtlänge.
+    # für „Auf der Maschine prüfen“ (reichweite.py). 0 = nicht gemessen: mit Halter
+    # geschätzt (laenge_mit_halter), ohne die Gesamtlänge.
     laenge_spindelnase: float = 0.0  # mm
+    # Kennung des Halters (halter.Halter in Bibliothek.halter); leer = keiner bekannt.
+    halter: str = ""
     schaft: float = 0.0  # Schaftdurchmesser, mm
     # Wie steil der Fräser höchstens eintauchen darf (Rampe, Helix), Grad; 0 = unbekannt.
     eintauchwinkel: float = 0.0
@@ -465,6 +469,7 @@ class Werkzeug:
             "eckradius": self.eckradius,
             "gesamtlaenge": self.gesamtlaenge,
             "laenge_spindelnase": self.laenge_spindelnase,
+            "halter": self.halter,
             "schaft": self.schaft,
             "eintauchwinkel": self.eintauchwinkel,
             "spitzenwinkel": self.spitzenwinkel,
@@ -501,6 +506,8 @@ class Werkzeug:
         w.schaft = max(_zahl(daten.get("schaft"), float, 0.0), 0.0)
         # Erst seit P-2026-09-26-86 – fehlt sie, gilt die Gesamtlänge.
         w.laenge_spindelnase = max(_zahl(daten.get("laenge_spindelnase"), float, 0.0), 0.0)
+        # Erst seit P-2026-09-26-94 – fehlt er, hat das Werkzeug keinen Halter.
+        w.halter = str(daten.get("halter") or "")
         w.eintauchwinkel = min(max(_zahl(daten.get("eintauchwinkel"), float, 0.0), 0.0), 90.0)
         # Erst seit P-2026-09-26-43 – fehlt er, gilt der übliche.
         w.spitzenwinkel = min(max(_zahl(daten.get("spitzenwinkel"), float, 0.0), 0.0), 180.0)
@@ -600,6 +607,13 @@ def laenge_fuer_cam(werkzeug):
 def schaft_fuer_cam(werkzeug):
     """Der Schaftdurchmesser fürs ToolBit: eingetragen, sonst geschätzt (meist wie D)."""
     return mass(werkzeug, "schaft")
+
+
+def laenge_mit_halter(werkzeug, halter):
+    """Die Länge ab Spindelnase, solange niemand sie gemessen hat: Halterlänge + Gesamtlänge
+    − Spanntiefe, mindestens Halterlänge + Reichweite (Schneide und Hals) – in mm."""
+    stueck = laenge_fuer_cam(werkzeug) - halter.spanntiefe
+    return halter.laenge + max(stueck, reichweite(werkzeug))
 
 
 def _zahl(wert, typ, ersatz):
@@ -1157,6 +1171,11 @@ def kurz(werkzeug):
     return f"{art_text(werkzeug.art)} Ø {durchmesser}"
 
 
+def _liste(wert):
+    """Eine Liste aus der Datei – alles andere gilt als leer."""
+    return wert if isinstance(wert, list) else []
+
+
 class BeschaedigteDatei(Exception):
     """Die Datei der Bibliothek ließ sich nicht lesen; `beiseite` ist die gesicherte Kopie."""
 
@@ -1166,11 +1185,12 @@ class BeschaedigteDatei(Exception):
 
 
 class Bibliothek:
-    """Werkzeuge und eigene Werkstoffe des Benutzers."""
+    """Werkzeuge, Halter und eigene Werkstoffe des Benutzers."""
 
-    def __init__(self, werkzeuge=None, eigene_werkstoffe=None):
+    def __init__(self, werkzeuge=None, eigene_werkstoffe=None, halter=None):
         self.werkzeuge = list(werkzeuge or [])
         self.eigene_werkstoffe = list(eigene_werkstoffe or [])
+        self.halter = list(halter or [])
 
     # --- Werkzeuge --------------------------------------------------------------
 
@@ -1216,6 +1236,61 @@ class Bibliothek:
     def sortierte_werkzeuge(self):
         return sorted(self.werkzeuge, key=lambda w: (w.nummer, w.durchmesser))
 
+    # --- Halter -----------------------------------------------------------------
+
+    def halter_von(self, werkzeug):
+        """Der Halter des Werkzeugs, oder None."""
+        if not werkzeug.halter:
+            return None
+        return next((h for h in self.halter if h.kennung == werkzeug.halter), None)
+
+    def laenge_ab_spindelnase(self, werkzeug):
+        """Die Länge ab Spindelnase in mm: gemessen, sonst mit Halter geschätzt – ohne Halter
+        0 (dann rechnet, wer sie braucht, mit der Gesamtlänge)."""
+        if werkzeug.laenge_spindelnase:
+            return werkzeug.laenge_spindelnase
+        halter = self.halter_von(werkzeug)
+        return laenge_mit_halter(werkzeug, halter) if halter is not None else 0.0
+
+    def neuer_halter(self, vorlage=None):
+        """Legt einen Halter an – leer oder aus einer Vorlage (halter.VORLAGEN)."""
+        halter = hl.aus_vorlage(vorlage) if vorlage else hl.Halter()
+        if halter.name:
+            halter.name = self._freier_name(halter.name)
+        self.halter.append(halter)
+        return halter
+
+    def kopiere_halter(self, halter):
+        """Legt eine Kopie mit neuer Kennung an; der Name bekommt eine Nummer."""
+        kopie = hl.Halter.aus_dict(halter.als_dict())
+        kopie.kennung = uuid.uuid4().hex
+        kopie.name = self._freier_name(halter.name or hl.text(halter))
+        self.halter.append(kopie)
+        return kopie
+
+    def benutzt_von(self, halter):
+        """Die Werkzeuge mit diesem Halter, nach Nummer."""
+        return [w for w in self.sortierte_werkzeuge() if w.halter == halter.kennung]
+
+    def entferne_halter(self, halter):
+        """Entfernt den Halter; die Werkzeuge, die ihn hatten, sind danach ohne."""
+        for werkzeug in self.benutzt_von(halter):
+            werkzeug.halter = ""
+        self.halter.remove(halter)
+
+    def sortierte_halter(self):
+        return sorted(self.halter, key=lambda h: hl.text(h).lower())
+
+    def _freier_name(self, name):
+        """`name`, oder mit „(2)“, „(3)“ … dahinter, wenn es ihn schon gibt."""
+        belegt = {h.name.strip().lower() for h in self.halter}
+        if name.strip().lower() not in belegt:
+            return name
+        nummer = 2
+        while f"{name} ({nummer})".lower() in belegt:
+            nummer += 1
+        return f"{name} ({nummer})"
+
     # --- Werkstoffe -------------------------------------------------------------
 
     def alle_werkstoffe(self):
@@ -1229,6 +1304,7 @@ class Bibliothek:
             "format": FORMAT,
             "werkstoffe": [w.als_dict() for w in self.eigene_werkstoffe],
             "werkzeuge": [w.als_dict() for w in self.sortierte_werkzeuge()],
+            "halter": [h.als_dict() for h in self.sortierte_halter()],
         }
 
     @classmethod
@@ -1240,6 +1316,8 @@ class Bibliothek:
                 for w in daten.get("werkstoffe", [])
                 if isinstance(w, dict) and w.get("kennung")
             ],
+            # Erst seit P-2026-09-26-94 – in älteren Dateien gibt es keine Halter.
+            [hl.Halter.aus_dict(h) for h in _liste(daten.get("halter")) if isinstance(h, dict)],
         )
 
     def kopie(self):

@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-94 halter-datenmodell
+
+### EINGELESEN
+- `docs/spezifikation_halter.md` (P-2026-09-26-93), Schritt 1.
+- `camaddon/werkzeuge.py` (Werkzeug, Bibliothek, Speicherung, `reichweite`,
+  `laenge_fuer_cam`), `tests/test_werkzeuge.py`.
+
+### DATEIEN
+- `camaddon/halter.py` (neu)
+- `camaddon/werkzeuge.py` (Werkzeug.halter, `laenge_mit_halter`,
+  Bibliothek.halter mit Anlegen, Kopieren, Löschen, Suche, Länge ab
+  Spindelnase; Speichern und Laden)
+- `translations/de.json`, `translations/en.json` (13 Texte)
+- `tests/test_halter.py` (neu)
+- `docs/spezifikation_halter.md`, `docs/aufbau.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Halter aus der Vorlage „Spannzangenfutter ER32“ hat 70 mm Länge und die
+Kontur Flansch Ø63 × 16, Körper Ø50 × 54; einem Werkzeug mit 83 mm
+Gesamtlänge zugeordnet, gilt ohne gemessene Länge 113 mm ab Spindelnase;
+gespeichert und geladen bleibt alles, wie es war.
+
+### DONE
+- `halter.Halter`: Kennung, Name, Bezeichnung, Spanntiefe, Abschnitte
+  (Länge, Ø oben, Ø unten); `laenge`, `groesster_durchmesser`,
+  `radius_bei(abstand)` (Kegel geradlinig, an Stufen der größere Radius,
+  außerhalb 0), `kontur()` als Punkte. Elf Vorlagen mit typischen SK40-Maßen
+  (ER16–ER40, Schrumpf Ø6/Ø12, Weldon, Hydrodehn, Aufsteckdorn, Bohrfutter,
+  VDI30 axial), Bezeichnung „Beispielmaße – nach Katalog prüfen“.
+- Werkzeug: Feld `halter` (Kennung). `laenge_mit_halter`: Halterlänge +
+  Gesamtlänge (eingetragen, sonst geschätzt) − Spanntiefe, mindestens
+  Halterlänge + Reichweite.
+- Bibliothek: `halter`; `halter_von`, `laenge_ab_spindelnase` (gemessen, sonst
+  mit Halter, sonst 0), `neuer_halter` (leer oder aus Vorlage, Name mit „(2)“,
+  wenn es ihn gibt), `kopiere_halter`, `benutzt_von`, `entferne_halter` (die
+  Werkzeuge sind danach ohne), `sortierte_halter`. Gespeichert unter
+  `halter`; alte Dateien ohne Halter und Unlesbares gehen.
+
+### TEST
+- `test_halter` (neu) in 1.1.3 und im Wochen-Build grün; `test_werkzeuge`,
+  `test_sprache` grün; black, ruff sauber.
+
+### NEXT
+- Schritt 2: Fenster „Halter“ und das Feld im Werkzeug.
+
 ## P-2026-09-26-93 spezifikation-halter-kollision
 
 ### EINGELESEN
