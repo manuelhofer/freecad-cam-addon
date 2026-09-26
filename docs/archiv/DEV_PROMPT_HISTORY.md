@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-93 spezifikation-halter-kollision
+
+### EINGELESEN
+- Manuels Antworten vom 2026-09-26: Halter „eigene Halter-Verwaltung“
+  (nicht der empfohlene Zylinder je Werkzeug), 4c prüft gegen „fertiges Teil
+  + Spannmittel“, meldet „Berührung + Warnabstand“, als Nächstes „4c
+  Kollision“; dazu „eigenes Fenster“ für die Halter und „Länge gemessen,
+  sonst geschätzt“.
+- `docs/spezifikation_simulation.md` (4c-Entwurf, Fragen 4 und 5),
+  `camaddon/werkzeuge.py` (Bibliothek, Werkzeug, Speicherung),
+  `camaddon/gui_werkzeuge.py` (Aufbau des Dialogs), `beispielmaschine.py`.
+- FreeCAD-Check: `Mod/CAM/Path/Tool` in 1.1.3 und im Wochen-Build kennt
+  keinen Halter. Gemessen: `distToShape` zwischen Werkzeug mit Halter und
+  Schraubstock bzw. Teil mit Tasche 2–3 ms, „steckt drin“ gibt 0; kein scipy,
+  numpy da.
+
+### DATEIEN
+- `docs/spezifikation_halter.md` (neu)
+- `docs/spezifikation_simulation.md` (Stand, 4c, Grenzen, Entscheidungen
+  4, 5, 7, 8, Akzeptanzkriterien 4c)
+- `docs/spezifikation_werkzeugverwaltung.md` (Stufe D verweist)
+- `docs/STATUS_SNAPSHOT.md`, `CHATSTART.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer `docs/spezifikation_halter.md` und Abschnitt 5 (4c) der Simulation liest,
+weiß, was ein Halter ist, wie die Werkzeugverwaltung ihn zeigt, wie 4c prüft
+und was es meldet – mit Manuels Entscheidungen und den Schritten.
+
+### DONE
+- Halter-Spezifikation: Kontur in Abschnitten (Länge, Ø oben, Ø unten) ab der
+  Spindelnase, Länge, Spanntiefe, Vorlagen; je Werkzeug ein Halter; Länge ab
+  Spindelnase leer → Halterlänge + Gesamtlänge − Spanntiefe; Fenster mit
+  ASCII-Skizze; Speicherung; drei Schritte; Entscheidungen (Manuel 1–3,
+  Claude 4–7); Akzeptanzkriterien.
+- 4c: was gegen was (Werkzeug gegen Teil – Schneide nur im Eilgang –,
+  gegen Maschinenteile der anderen Seite; mitfahrende Maschinenteile gegen
+  Werkstückseite und Teil; kein Rohteil; Paare, die sich in der
+  Grundstellung berühren, nicht), Berührung rot, Warnabstand gelb (1 mm,
+  einstellbar), Rechenweg mit `distToShape` und Schritten nach dem Abstand,
+  Sätze wie 4a, auf Knopfdruck; zwei Schritte; Akzeptanzkriterien.
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- Halter Schritt 1: Datenmodell, Speicherung, Vorlagen, geschätzte Länge.
+
 ## P-2026-09-26-92 abfahren-lupe
 
 ### EINGELESEN

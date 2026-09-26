@@ -4,8 +4,8 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“): fertig und automatisch geprüft (P-2026-09-26-89 bis -91, 0.23.0); Halter und Mindestabstand vor 4c.
-- **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
+- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“): fertig und automatisch geprüft (P-2026-09-26-89 bis -91, 0.23.0). Stufe 4c (Kollision): Manuel hat entschieden (P-2026-09-26-93: eigene Halter-Verwaltung, geprüft gegen fertiges Teil und Spannmittel, Berührung und Warnabstand) – in Arbeit, erst die Halter (W-002 Stufe D).
+- **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test. Stufe D (Halter, für W-001 4c) spezifiziert mit Manuels Entscheidungen ([spezifikation_halter.md](spezifikation_halter.md), P-2026-09-26-93), in Arbeit.
 - **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ fertig und automatisch geprüft (P-2026-09-26-79), wartet auf Manuels Test; als Nächstes V2 (Punkt 12 unten).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
   und Wochen-Build 26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien
@@ -148,7 +148,13 @@ Wunschliste, offene Bugs und Tasks.
    (P-2026-09-26-88, Entscheidungen von Claude zur Besprechung); Schritt 1
    fertig (-89: `abfahren.py`, Zeiten gegen Handrechnung), Schritt 2 fertig
    (-90: Abspieler im Fenster, Körper in der 3D-Ansicht der Maschine),
-   Version 0.23.0 (-91). Stufe 4b damit komplett.*
+   Version 0.23.0 (-91). Stufe 4b damit komplett. **4c „Kollision“** –
+   Manuels Entscheidungen (P-2026-09-26-93): eigene Halter-Verwaltung
+   ([spezifikation_halter.md](spezifikation_halter.md): Kontur aus
+   Zylindern und Kegeln, eigenes Fenster, Länge ab Spindelnase gemessen,
+   sonst geschätzt), geprüft gegen fertiges Teil und Spannmittel, gemeldet
+   Berührung und Warnabstand. Erst die Halter in drei Schritten, dann 4c in
+   zwei (Abschnitt 5, 4c).*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -237,11 +243,12 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    sieht man genug?
 8. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
-   Nr. 13–23 sind von dieser Nacht); zu Stufe 4 sind noch Halter und
-   Mindestabstand offen, vor 4c ([Spezifikation](spezifikation_simulation.md),
-   Abschnitt 9).
+   Nr. 13–23 sind von dieser Nacht); zu Stufe 4b und 4c Claudes
+   Einzelheiten ([Spezifikation](spezifikation_simulation.md), Abschnitt 5)
+   und zu den Haltern ([Spezifikation](spezifikation_halter.md),
+   Abschnitt 9, Nr. 4–7).
 
-Danach: W-001 Stufe 4c (Kollision), sobald Halter und Mindestabstand entschieden sind (Punkt 8). Manuel testet 4a und 4b später (Punkt 7 oben).
+Danach: Halter-Verwaltung (W-002 Stufe D), dann W-001 Stufe 4c (Kollision), Version 0.24.0. Manuel testet 4a und 4b später (Punkt 7 oben).
 
 ## Wunschliste
 

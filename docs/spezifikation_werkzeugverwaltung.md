@@ -328,6 +328,11 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    „Schruppen dynamisch“ an (ohne eigene Werte für den Werkstoff werden sie
    angelegt). Das Drehmoment bei kleiner Drehzahl prüft der Planer nicht –
    W-001 kennt es nicht.
+4. **Halter** (Stufe D, für die Kollisionsprüfung W-001 4c): eigene
+   Halter-Verwaltung mit Kontur aus Zylindern und Kegeln, je Werkzeug ein
+   Halter – eigene Spezifikation:
+   [spezifikation_halter.md](spezifikation_halter.md) (Manuels
+   Entscheidungen vom 2026-09-26, P-2026-09-26-93).
 
 ## 11. Entscheidungen (Claude, zur Besprechung)
 

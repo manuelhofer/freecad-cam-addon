@@ -4,8 +4,11 @@ Stand: Entwurf von Claude (P-2026-09-25-70). **Manuel hat am 2026-09-26 die
 Fragen zu 4a entschieden** (Abschnitt 9, P-2026-09-26-83); 4a ist gebaut
 (0.22.0). **4b hat Claude auf Manuels Wort gebaut** („bau das mit der
 Maschine“, 2026-09-26; 0.23.0) – die Entscheidungen darin sind Claudes und
-stehen zur Besprechung (Abschnitt 5, 4b). 4c und 4d bleiben Entwurf; die Fragen 4 und 5
-kommen vor 4c.
+stehen zur Besprechung (Abschnitt 5, 4b). **Zu 4c hat Manuel am 2026-09-26
+entschieden** (Abschnitt 9, Fragen 4, 5, 7, 8): eigene Halter-Verwaltung
+([spezifikation_halter.md](spezifikation_halter.md)), geprüft gegen das
+fertige Teil und die Spannmittel, gemeldet werden Berührung und Warnabstand;
+4c kommt als Nächstes (P-2026-09-26-93). 4d bleibt Entwurf.
 
 Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
 (Stufen 1–3: Maschine beschreiben, an CAM übergeben, von Hand verfahren; 3b:
@@ -173,14 +176,52 @@ In drei Schritten:
    `tests/gui/szenario_abfahren.py`.*
 3. Version, voller Lauf, Push. *Gebaut (P-2026-09-26-91, 0.23.0).*
 
-**4c – Kollision**
-- Geprüft wird in Abständen entlang der Bahn (z. B. alle 1 mm und an jedem
-  Satzende) – nicht nur an den Satzenden, sonst rutscht eine Ecke durch.
-- Paare: Schaft, Halter und bewegte Maschinenteile gegen Rohteil,
-  Werkstückaufnahme und feste Maschinenteile; bewegte gegen feste
-  Maschinenteile. Die Schneide darf ins Rohteil, sonst nirgends hin.
-- Ergebnis wie 4a: „In *Kontur* (bei X …, Y …, Z …) berührt *Spindelkopf*
-  den *Schraubstock*.“ Ein Klick fährt dorthin und hebt beide Teile hervor.
+**4c – Kollision** – die Maschine fährt die Bahn ab, und nichts stößt an.
+Manuels Entscheidungen (2026-09-26): Halter aus der eigenen Halter-Verwaltung,
+geprüft gegen das fertige Teil und die Spannmittel, gemeldet Berührung und
+Warnabstand. Rechenweg und Einzelheiten von Claude (P-2026-09-26-93), zur
+Besprechung:
+
+- **Was gegen was:**
+  - Das **Werkzeug** – Schneide, Schaft, Halter – gegen das **fertige Teil**
+    (die Modelle des Jobs): Schaft und Halter immer, die Schneide nur im
+    Eilgang (im Vorschub schneidet sie, das ist gewollt).
+  - Das Werkzeug gegen alle Maschinenteile, die nicht mit ihm fahren:
+    Spannmittel, Tisch, Futter (die Werkstückseite), das Bett und alles
+    andere.
+  - Die **Maschinenteile, die mit dem Werkzeug fahren** (Spindelkopf,
+    Schlitten, Revolver), gegen die Werkstückseite und das Teil.
+  - Nicht geprüft: das Rohteil (das Addon trägt kein Material ab – dafür
+    gibt es den CAM-Simulator); Teile, die zusammen fahren; Paare, die sich
+    schon in der Grundstellung berühren (Führungen) – ein Hinweis nennt sie.
+- **Melden:** Berührung – Abstand 0 oder ineinander – rot; näher als der
+  **Warnabstand** gelb. Der Warnabstand ist 1 mm und im Fenster einstellbar.
+- **Wie gerechnet wird:** Werkzeug und Halter als Drehkörper, Maschinenteile
+  und Teil als ihre Formen aus dem Dokument, jeweils an ihre Lage zur Zeit t
+  gesetzt; den Abstand rechnet OpenCascade (`distToShape`; es erkennt auch,
+  wenn ein Körper im anderen steckt – 2 bis 3 ms je Paar, gemessen
+  P-2026-09-26-93). Entlang der Bahn in Schritten, die nie weiter reichen als
+  der kleinste Abstand minus Warnabstand: weit weg große Schritte, nah dran
+  bis hinunter zu 0,5 mm – so rutscht keine Ecke durch. Paare, deren
+  Hüllquader weit auseinanderliegen, rechnet es nicht genau.
+- **Ergebnis** wie 4a, je Operation und Paar das Schlimmste als Satz: „In
+  „Tasche“ berührt der Halter von T3 („SK40 ER32 A70“) das Teil (Satz 12,
+  bei X 50, Y 30, Z −15).“ – „In „Kontur“ kommt der Fräskopf dem
+  Schraubstock auf 0,60 mm nahe (Satz 8, bei …).“ Ein Klick stellt den
+  Abspieler dorthin; eine rote Kugel zeigt die Stelle in der 3D-Ansicht.
+- **Auf Knopfdruck**, nicht nach jeder Änderung – es dauert Sekunden; mit
+  Fortschritt und Abbrechen.
+- Ein Werkzeug ohne Halter prüft es allein, ein Hinweis sagt es.
+
+In zwei Schritten, nach der Halter-Verwaltung (spezifikation_halter.md,
+Abschnitt 8):
+1. **Rechenkern** (`kollision.py`, ohne Oberfläche): Körper, Paare,
+   Abtastung, Ergebnis als Sätze. Prüfungen an der Beispiel-Fräse mit
+   Hindernissen: der Fräskopf fährt mit einem kurzen Werkzeug in ein
+   Spannmittel; der Halter taucht in eine tiefe Tasche; ein Eilgang geht
+   durchs Teil; der Warnabstand.
+2. **Bereich „Kollision“** im Fenster „Auf der Maschine prüfen“, Hilfe,
+   Szenario mit Screenshots; dann Version, voller Lauf, Push.
 
 **4d – Bearbeitungszeit**
 - Je Satz die Zeit mit Eilgang bzw. Vorschub, begrenzt durch die
@@ -219,8 +260,10 @@ Bereiche dazu.
 ## 7. Grenzen dieses Entwurfs
 
 - Kein Materialabtrag – dafür gibt es den CAM-Simulator.
-- Werkzeughalter als einfacher Zylinder (Durchmesser und Länge je Werkzeug,
-  vorbelegt), bis es eine Halter-Verwaltung gibt.
+- Halter rund um die Werkzeugachse (Kontur aus Zylindern und Kegeln);
+  Blockhalter an Drehmaschinen nur angenähert.
+- Die Kollision prüft das Werkzeug der laufenden Operation; die anderen
+  Werkzeuge im Revolver fahren noch nicht mit in die Prüfung.
 - Die Werkzeugspitze liegt auf der Werkzeugachse (eine Länge). Drehwerkzeuge
   mit Versatz in X und Z kommen mit einer Verwaltung für Drehwerkzeuge.
 - Der Nullpunkt des Jobs ist eine reine Verschiebung, keine Drehung (G68).
@@ -249,11 +292,19 @@ Bereiche dazu.
 3. **Werkzeuglänge** – *Entschieden:* ein eigenes Feld „Länge ab
    Spindelnase“ je Werkzeug (mit Halter, wie am Voreinstellgerät); leer gilt
    die Gesamtlänge.
-4. **Halter:** einfacher Zylinder je Werkzeug reicht für den Anfang? –
-   *offen, vor 4c.*
-5. **Mindestabstand** für eine Warnung (z. B. 1 mm) – oder nur echte
-   Berührung? – *offen, vor 4c.*
+4. **Halter** – *Entschieden (Manuel, 2026-09-26):* eine eigene
+   Halter-Verwaltung mit Halterformen aus Zylindern und Kegeln, in einem
+   eigenen Fenster aus der Werkzeugverwaltung; die Länge ab Spindelnase
+   bleibt gemessen, sonst geschätzt
+   ([spezifikation_halter.md](spezifikation_halter.md)).
+5. **Mindestabstand** – *Entschieden:* Berührung rot und ein Warnabstand
+   (vorbelegt 1 mm, einstellbar) gelb.
 6. **Reihenfolge** – *Entschieden:* 4a zuerst.
+7. **Wogegen prüft 4c?** Das Addon trägt kein Material ab. – *Entschieden
+   (Manuel, 2026-09-26):* gegen das fertige Teil, die Spannmittel und die
+   Maschine – kein Fehlalarm, wenn der Schaft in eine gefräste Tasche taucht;
+   Material, das noch nicht abgetragen ist, sieht die Prüfung nicht.
+8. **Nach 4b** – *Entschieden:* 4c, mit der Halter-Verwaltung davor.
 
 ## 10. Akzeptanzkriterien 4a
 
@@ -282,3 +333,18 @@ Bereiche dazu.
   in X1 mit 30 000 mm/min 0,2 s.
 - Schließen: Die Maschine steht wie vorher, in der Ansicht ist nichts mehr
   vom Werkzeug oder Werkstück, im Dokument nichts geändert.
+
+## 12. Akzeptanzkriterien 4c
+
+- Beispiel-Fräse mit einem Spannmittel neben dem Teil, ein kurzes Werkzeug,
+  eine Bahn dicht daneben in die Tiefe → „Kollision prüfen“ → rot „In … berührt
+  der Fräskopf das Spannmittel (Satz …, bei X …, Y …, Z …).“ → Klick → die
+  Maschine steht dort, eine rote Kugel zeigt die Stelle.
+- Eine Tasche, tiefer als die Schneide lang ist → „… berührt der Schaft von T1
+  das Teil …“; mit einem Halter und noch tiefer → „… der Halter …“.
+- Ein Eilgang durchs Teil → „… berührt die Schneide von T1 im Eilgang das
+  Teil …“.
+- Warnabstand 5 mm → gelbe Sätze für Stellen, die näher kommen, mit dem
+  Abstand.
+- Ohne Kollision: „Nichts berührt sich, nichts kommt näher als 1,00 mm.“
+- Manuel versteht die Sätze ohne Erklärung.
