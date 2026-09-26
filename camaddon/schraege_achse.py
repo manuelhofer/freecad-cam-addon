@@ -24,19 +24,31 @@ Läuft ohne Oberfläche.
 """
 
 import math
+from dataclasses import dataclass
 
 import FreeCAD
 
+from . import einheiten
 from . import kette as kette_modul
 from . import maschine as m
 from . import verfahren as vf
-from .kette import LINEAR, meldung
+from .kette import HINWEIS, LINEAR, meldung
+from .werkstoffe import mit_dezimalzeichen
 
 # Ab diesem Winkel (Grad) fahren beide Schlitten fast in dieselbe Richtung –
 # daraus lässt sich kein rechtwinkliges Y mehr rechnen (cos α → 0).
 GROESSTER_WINKEL = 89.0
 # Darunter (Grad) stehen zwei Achsen rechtwinklig – Rundungsreste der Baugruppe.
-RECHTWINKLIG_BIS = 0.01
+# Ab hier zeigt der Dialog mindestens 0,1°.
+RECHTWINKLIG_BIS = 0.05
+
+
+@dataclass(eq=False)
+class Anlegen:
+    """Bezug des Hinweises „steht schräg“: Ein Klick darauf legt diese schräge Achse an."""
+
+    schraeg: object  # Betriebsart, die schräg fährt
+    ausgleich: object  # Betriebsart, die ausgleicht
 
 
 def schlitten_aus_programm(alpha, x, y):
@@ -149,23 +161,38 @@ def vorschlag(maschine, kette):
     """Die Achsen für eine neue schräge Achse: (schräg, ausgleichend) – oder None, wenn
     es keine zwei Linearachsen gibt.
 
-    Zuerst ein Paar, das schräg zueinander steht und noch keinen Eintrag hat;
-    sonst die ersten beiden Linearachsen. Ausgleichend ist die, deren Name im
-    Alphabet vorn steht (X1 vor Y1).
+    Zuerst ein Paar, das schräg zueinander steht und noch keinen Eintrag hat
+    (ohne_eintrag); sonst die ersten beiden Linearachsen. Ausgleichend ist
+    die, deren Name im Alphabet vorn steht (X1 vor Y1).
+    """
+    offen = ohne_eintrag(maschine, kette)
+    if offen:
+        schraeg, ausgleich, _alpha = offen[0]
+        return schraeg, ausgleich
+    linear = linearachsen(maschine, kette)
+    if len(linear) < 2:
+        return None
+    return linear[1], linear[0]
+
+
+def ohne_eintrag(maschine, kette):
+    """Linearachsen, die schräg zueinander stehen und noch keine schräge Achse haben:
+    [(schräg, ausgleichend, α in Grad), …].
+
+    Schräg heißt: weder rechtwinklig noch (fast) parallel. Ausgleichend ist die
+    Achse, deren Name im Alphabet vorn steht (X1 vor Y1).
     """
     linear = linearachsen(maschine, kette)
-    paare = [(a, s) for i, a in enumerate(linear) for s in linear[i + 1 :]]
-    if not paare:
-        return None
     vergeben = {frozenset((t.Schraeg, t.Ausgleich)) for t in m.transformationen(maschine)}
-    for ausgleich, schraeg in paare:
-        alpha = winkel_zwischen(kette, maschine, schraeg, ausgleich)
-        if frozenset((schraeg, ausgleich)) in vergeben:
-            continue
-        if RECHTWINKLIG_BIS < abs(alpha) <= GROESSTER_WINKEL:
-            return schraeg, ausgleich
-    ausgleich, schraeg = paare[0]
-    return schraeg, ausgleich
+    ergebnis = []
+    for i, ausgleich in enumerate(linear):
+        for schraeg in linear[i + 1 :]:
+            if frozenset((schraeg, ausgleich)) in vergeben:
+                continue
+            alpha = winkel_zwischen(kette, maschine, schraeg, ausgleich)
+            if RECHTWINKLIG_BIS <= abs(alpha) <= GROESSTER_WINKEL:
+                ergebnis.append((schraeg, ausgleich, alpha))
+    return ergebnis
 
 
 def pruefe(maschine, kette):
@@ -173,9 +200,22 @@ def pruefe(maschine, kette):
 
     Was an einer Betriebsart selbst nicht stimmt (Gelenk fehlt, falsche
     Gelenkart), meldet schon maschine.pruefe – hier nur, was die schräge
-    Achse betrifft.
+    Achse betrifft. Dazu ein Hinweis je Paar, das schräg steht und noch
+    keinen Eintrag hat; ein Klick darauf legt ihn an (Bezug: Anlegen).
     """
     meldungen = []
+    for schraeg, ausgleich, alpha in ohne_eintrag(maschine, kette):
+        meldungen.append(
+            meldung(
+                "maschine.trafo_schraeg_erkannt",
+                HINWEIS,
+                bezug=Anlegen(schraeg, ausgleich),
+                schraeg=m.name_von(schraeg),
+                ausgleich=m.name_von(ausgleich),
+                winkel=_winkel_text(alpha),
+                name=m.programmname(schraeg),
+            )
+        )
     for trafo in m.transformationen(maschine):
         name = m.name_von(trafo)
         schraeg, ausgleich = trafo.Schraeg, trafo.Ausgleich
@@ -211,6 +251,12 @@ def pruefe(maschine, kette):
                 )
             )
     return meldungen
+
+
+def _winkel_text(alpha):
+    """„30,0°“ mit dem gewählten Dezimalzeichen – für Sätze, die ohne Oberfläche entstehen."""
+    zeichen = einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
+    return mit_dezimalzeichen(f"{round(alpha, 1) + 0.0:.1f}°", zeichen)
 
 
 def _ist_linear(ba):

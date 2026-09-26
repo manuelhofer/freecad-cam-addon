@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(ADDON, "tests"))
 import beispielmaschinen
 import FreeCAD
 
-from camaddon import beispielmaschine, sprache
+from camaddon import beispielmaschine, einheiten, sprache
 from camaddon import kette as kette_modul
 from camaddon import maschine as m
 from camaddon import schraege_achse as sa
@@ -64,6 +64,8 @@ pruefe(
     f"Linearachsen: {[m.name_von(b) for b in sa.linearachsen(ma, kette)]}",
 )
 pruefe(sa.vorschlag(ma, kette) == (ba["Y1"], ba["X1"]), "Vorschlag: Y1 schräg, X1 gleicht aus")
+pruefe(not sa.ohne_eintrag(ma, kette), "rechtwinklige Achsen gelten als schräg")
+pruefe(not sa.pruefe(ma, kette), "rechtwinklige Maschine: Meldung ohne Eintrag")
 pruefe(nahe(sa.winkel_zwischen(kette, ma, ba["Y1"], ba["X1"]), 0), "Y1/X1 nicht rechtwinklig")
 pruefe(nahe(sa.winkel_zwischen(kette, ma, ba["Z1"], ba["X1"]), 0), "Z1/X1 nicht rechtwinklig")
 pruefe(sa.winkel_zwischen(kette, ma, ba["C1"], ba["X1"]) is None, "C1 ist keine Linearachse")
@@ -108,11 +110,46 @@ pruefe(not sa.pruefe(ma, kette), f"Meldungen bei 30°: {schluessel(sa.pruefe(ma,
 # Tauscht man die Rollen, steht X1 ebenso 30° schräg zu Y1.
 pruefe(nahe(sa.winkel_zwischen(kette, ma, ba["X1"], ba["Y1"]), 30), "X1 zu Y1")
 
-# Jetzt steht ein Paar schräg: Ohne Eintrag schlägt der Vorschlag genau dieses vor.
+# Jetzt steht ein Paar schräg: Ohne Eintrag schlägt der Vorschlag genau dieses vor,
+# und ein Hinweis sagt es – sein Bezug legt die schräge Achse an.
 doc.removeObject(trafo.Name)
 pruefe(sa.vorschlag(ma, kette) == (ba["Y1"], ba["X1"]), "Vorschlag bei schrägem Paar")
+offen = sa.ohne_eintrag(ma, kette)
+pruefe(
+    len(offen) == 1 and offen[0][:2] == (ba["Y1"], ba["X1"]) and nahe(offen[0][2], 30),
+    f"ohne Eintrag: {offen}",
+)
+einheiten.setze_dezimalzeichen(",")
+meldungen = sa.pruefe(ma, kette)
+einheiten.setze_dezimalzeichen(None)
+pruefe(
+    schluessel(meldungen) == ["maschine.trafo_schraeg_erkannt"],
+    f"Erkennung: {schluessel(meldungen)}",
+)
+if meldungen:
+    hinweis = meldungen[0]
+    pruefe(hinweis.schwere == "hinweis", "Erkennung ist kein Hinweis")
+    pruefe(hinweis.text.startswith("Y1 steht 30,0° schräg zu X1."), f"Text: {hinweis.text}")
+    pruefe("„Y“" in hinweis.text, f"Name im Programm fehlt: {hinweis.text}")
+    bezug = hinweis.bezug
+    pruefe(
+        isinstance(bezug, sa.Anlegen) and (bezug.schraeg, bezug.ausgleich) == (ba["Y1"], ba["X1"]),
+        f"Bezug: {bezug}",
+    )
+meldungen = m.pruefe(ma, kette)
+pruefe(
+    [x.schluessel for x in meldungen if x.schluessel.startswith("maschine.trafo")]
+    == ["maschine.trafo_schraeg_erkannt"],
+    "m.pruefe gibt die Erkennung nicht weiter",
+)
 trafo = m.neue_schraege_achse(ma, ba["Y1"], ba["X1"])
 doc.recompute()
+pruefe(not sa.ohne_eintrag(ma, kette), "mit Eintrag noch offen")
+pruefe(not sa.pruefe(ma, kette), f"mit Eintrag: {schluessel(sa.pruefe(ma, kette))}")
+# Auch mit vertauschten Rollen deckt der Eintrag das Paar ab.
+trafo.Schraeg, trafo.Ausgleich = ba["X1"], ba["Y1"]
+pruefe(not sa.ohne_eintrag(ma, kette), "vertauscht noch offen")
+trafo.Schraeg, trafo.Ausgleich = ba["Y1"], ba["X1"]
 
 achsen = {a.gelenk.Label: a for a in kette.achsen}
 beispielmaschinen.kippe_fuehrung(achsen["Y"], 60, zu=vf.plusrichtung(achsen["X"]) * -1)

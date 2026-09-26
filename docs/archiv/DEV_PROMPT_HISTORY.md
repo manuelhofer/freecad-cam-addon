@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-68 schraege-achse-erkennen
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 7c („Erkennung“) und Stufe 3b, Schritt 3.
+
+### DATEIEN
+- `camaddon/schraege_achse.py` (`ohne_eintrag`, `Anlegen`, Hinweis in `pruefe`)
+- `camaddon/gui_maschine.py` (Klick auf den Hinweis legt an)
+- `translations/de.json`, `translations/en.json`
+- `tests/test_schraege_achse.py`, `tests/gui/szenario_schraege_achse.py`
+- `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine Baugruppe, deren Y-Führung 30° schräg zu X steht, ohne Eintrag →
+„Maschine bearbeiten“ → unter „Hinweise“ steht „Y1 steht 30,0° schräg zu X1.
+Rechnet die Steuerung ein rechtwinkliges „Y“ auf beide um …?“ → Klick
+darauf → unter „Transformationen“ steht „Schräge Achse Y1 – gleicht aus:
+X1, 30,0°“, und der Hinweis ist weg.
+
+### DONE
+- `schraege_achse.ohne_eintrag()`: alle Paare von Linearachsen, die weder
+  rechtwinklig (unter 0,05° – Rundungsreste; ab da zeigt der Dialog 0,1°)
+  noch fast parallel (über 89°) stehen und noch keine schräge Achse haben –
+  auch nicht mit vertauschten Rollen. Ausgleichend ist die im Alphabet
+  vordere. `vorschlag()` nutzt es.
+- `pruefe()` gibt je solches Paar einen **Hinweis** (keine Warnung – eine
+  Maschine darf schräge Achsen ohne Umrechnung haben; „An CAM übergeben“
+  fragt deshalb nicht nach). Sein Bezug ist `Anlegen(schräg, ausgleich)`;
+  ein Klick darauf legt die schräge Achse an – zeitversetzt, weil der
+  Neuaufbau auch die angeklickte Zeile ersetzt.
+- Der Winkel im Satz mit dem gewählten Dezimalzeichen („30,0°“), ohne
+  Oberfläche gerechnet (`_winkel_text`).
+
+### TEST
+- Claude ohne Oberfläche, 1.1.3 und Wochen-Build: `test_schraege_achse.py`
+  zusätzlich: rechtwinklige Maschine ohne Hinweis; 30° ohne Eintrag – ein
+  Hinweis, Text „Y1 steht 30,0° schräg zu X1.“ mit „Y“, Bezug Y1/X1, auch
+  über `m.pruefe`; mit Eintrag (auch vertauscht) kein Hinweis.
+- Claude mit Oberfläche (Screenshot angesehen), beide Versionen:
+  `szenario_schraege_achse` – der Hinweis steht da, ein Klick legt den
+  Eintrag mit 30,0° an, der Hinweis verschwindet.
+
+### NEXT
+- Stufe 3b, Schritt 4: „Maschine verfahren“ wie im Programm.
+
 ## P-2026-09-26-67 schraege-achse-winkel-eintragen
 
 ### EINGELESEN

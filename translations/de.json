@@ -679,5 +679,6 @@
     "dialog.winkel.tooltip": "So weit steht {schraeg} aus dem rechten Winkel zu {ausgleich} – gemessen an den Gelenken der Baugruppe. 0° heißt rechtwinklig; positiv, wenn {schraeg} zur Plus-Seite von {ausgleich} kippt – wie im Bild. Trägst du einen anderen Winkel ein, dreht sich die Führung von {schraeg} in der Baugruppe mit; der Schlitten und alles darauf bleiben, wo sie sind.",
     "dialog.beispiel_schraeg": "Beispiel: {name} {weg} → {schraeg} {weg_schraeg}, {ausgleich} {weg_ausgleich}",
     "dialog.beispiel_schraeg.tooltip": "So rechnet die Steuerung um: Für eine Bewegung nur in dieser Richtung des Programms fahren beide Schlitten.",
-    "dialog.winkel_zu_gross": "Höchstens ±89° – bei 90° führen beide Schlitten in dieselbe Richtung, dann gäbe es kein „{name}“ mehr."
+    "dialog.winkel_zu_gross": "Höchstens ±89° – bei 90° führen beide Schlitten in dieselbe Richtung, dann gäbe es kein „{name}“ mehr.",
+    "maschine.trafo_schraeg_erkannt": "{schraeg} steht {winkel} schräg zu {ausgleich}. Rechnet die Steuerung ein rechtwinkliges „{name}“ auf beide um (schräge Achse, Siemens TRAANG)? Ein Klick auf diesen Hinweis legt sie unter „Transformationen“ an."
 }

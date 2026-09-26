@@ -427,10 +427,13 @@ class MaschinenPanel:
         self.doc.removeObject(aufnahme.Name)
         self.neu_aufbauen()
 
-    def schraege_achse_anlegen(self):
-        """Neue schräge Achse. Vorgewählt ist ein Paar, das schräg steht, sonst die
-        ersten beiden Linearachsen (schraege_achse.vorschlag)."""
-        paar = schraege_achse.vorschlag(self.maschine, self.kette)
+    def schraege_achse_anlegen(self, schraeg=None, ausgleich=None):
+        """Neue schräge Achse mit den Betriebsarten `schraeg` und `ausgleich`. Ohne sie ist
+        ein Paar vorgewählt, das schräg steht, sonst die ersten beiden Linearachsen
+        (schraege_achse.vorschlag)."""
+        paar = (schraeg, ausgleich)
+        if schraeg is None or ausgleich is None:
+            paar = schraege_achse.vorschlag(self.maschine, self.kette)
         if paar is None:
             return
         trafo = m.neue_schraege_achse(self.maschine, *paar)
@@ -518,8 +521,17 @@ class MaschinenPanel:
             gui_zeigen.hervorheben(teile)
 
     def springe_zu(self, bezug):
-        """Wählt die Zeile des Objekts `bezug` in „Achsen“, „Transformationen“ oder „Aufnahmen“."""
+        """Wählt die Zeile des Objekts `bezug` in „Achsen“, „Transformationen“ oder „Aufnahmen“.
+
+        Beim Hinweis „steht schräg“ legt der Klick die schräge Achse an –
+        zeitversetzt, denn der Neuaufbau ersetzt auch die angeklickte Zeile.
+        """
         if bezug is None:
+            return
+        if isinstance(bezug, schraege_achse.Anlegen):
+            QtCore.QTimer.singleShot(
+                0, lambda: self._spaeter_anlegen(bezug.schraeg, bezug.ausgleich)
+            )
             return
         for baum in (self.achsen, self.transformationen, self.aufnahmen):
             for zeile in _alle_zeilen(baum):
@@ -670,6 +682,10 @@ class MaschinenPanel:
             QtCore.QTimer.singleShot(0, lambda: self._spaeter_neu_aufbauen(objekt))
         else:
             self._auffrischen()
+
+    def _spaeter_anlegen(self, schraeg, ausgleich):
+        if not self.geschlossen:  # inzwischen OK oder Abbrechen gedrückt
+            self.schraege_achse_anlegen(schraeg, ausgleich)
 
     def _spaeter_neu_aufbauen(self, auswahl):
         if not self.geschlossen:  # inzwischen OK oder Abbrechen gedrückt

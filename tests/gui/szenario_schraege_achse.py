@@ -7,8 +7,9 @@
 # −5,8 mm“; 95 lehnt ein Satz am Feld ab. Abbrechen stellt die Führung
 # zurück. Wählt man Z1 als schräge Achse, wandert der Name im Programm mit
 # (Z). Dann dieselbe Maschine mit einer schon um 30° gekippten Y-Führung:
-# Der Eintrag zeigt gleich 30,0°. Entfernen lässt die graue Zeile „keine …“
-# zurück.
+# Ein Hinweis sagt „Y1 steht 30,0° schräg zu X1 …“, ein Klick darauf legt
+# den Eintrag an, der gleich 30,0° zeigt. Entfernen lässt die graue Zeile
+# „keine …“ zurück.
 import os
 import sys
 
@@ -164,7 +165,7 @@ def schritte(h):
     quer = vf.plusrichtung(achsen["Y"]).dot(vf.plusrichtung(achsen["X"]))
     h.pruefe(abs(quer) < 1e-9, f"Abbrechen stellt die Führung nicht zurück ({quer})")
 
-    # --- Y-Führung 30° schräg: 30,0° und das Beispiel ----------------------------------
+    # --- Y-Führung schon 30° schräg gebaut: der Hinweis legt den Eintrag an ------------
     kette = kette_modul.lies_kette(asm)
     achsen = {a.gelenk.Label: a for a in kette.achsen}
     beispielmaschinen.kippe_fuehrung(achsen["Y"], 30, zu=vf.plusrichtung(achsen["X"]))
@@ -174,8 +175,33 @@ def schritte(h):
     panel = gui_maschine.MaschinenPanel.offen
     if panel is None:
         return
-    panel.knopf_schraeg.click()
-    yield 300
+    hinweise = [panel.hinweise.item(i) for i in range(panel.hinweise.count())]
+    erkannt = [z for z in hinweise if z.text().startswith("Y1 steht 30,0° schräg zu X1.")]
+    h.pruefe(bool(erkannt), f"kein Hinweis „steht schräg“: {[z.text() for z in hinweise]}")
+    if erkannt:
+        panel.hinweise.scrollToItem(erkannt[0])
+        bereich = next(
+            (
+                b
+                for b in Gui.getMainWindow().findChildren(QtGui.QScrollArea)
+                if b.isAncestorOf(panel.form)
+            ),
+            None,
+        )
+        if bereich is not None:
+            bereich.ensureWidgetVisible(panel.hinweise, 0, 0)
+        yield 300
+        h.bild("4_hinweis_schraeg")
+        panel.hinweise.itemClicked.emit(erkannt[0])  # wie ein Klick auf den Hinweis
+        yield 500
+    else:
+        panel.knopf_schraeg.click()
+        yield 300
+    hinweise = [panel.hinweise.item(i).text() for i in range(panel.hinweise.count())]
+    h.pruefe(
+        not [z for z in hinweise if "schräg zu" in z],
+        f"Hinweis bleibt nach dem Anlegen: {hinweise}",
+    )
     h.pruefe(
         zeilen(panel.transformationen) == ["Schräge Achse Y1 – gleicht aus: X1, 30,0°"],
         f"Eintrag bei 30°: {zeilen(panel.transformationen)}",
@@ -188,7 +214,7 @@ def schritte(h):
     panel.zeige(("transformation", m.transformationen(ma)[0]))
     yield 300
     yield from zeigen(h, panel)
-    h.bild("4_schraeg_gebaut_30")
+    h.bild("5_schraeg_gebaut_30")
 
     # Entfernen: die graue Zeile ist wieder da, das Objekt weg.
     panel.transformationen.setCurrentItem(panel.transformationen.topLevelItem(0))
@@ -212,7 +238,7 @@ def schritte(h):
         ]
         h.pruefe(bool(fenster), "Hilfe öffnet sich nicht")
         if fenster:
-            h.bild("5_hilfe", fenster[0])
+            h.bild("6_hilfe", fenster[0])
             fenster[0].close()
     panel.reject()
     yield 500

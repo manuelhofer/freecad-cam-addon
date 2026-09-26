@@ -431,7 +431,8 @@ Patch, in dieser Reihenfolge:
    Beispielzeile zeigt „Y1 +11,5 mm, X1 −5,8 mm“; Strg+Z stellt die Führung
    zurück. – *Gebaut (P-2026-09-26-67).*
 3. Erkennung: Hinweis bei schräg stehenden Linearachsen ohne Eintrag, ein
-   Klick legt ihn an.
+   Klick legt ihn an. – *Gebaut (P-2026-09-26-68); schräg heißt ab 0,05°
+   (der Dialog zeigt dann 0,1°) bis 89°.*
 4. „Maschine verfahren“ wie im Programm. *Klickweg:* Y auf 10 → beide
    Schlitten fahren, grau darunter „X1 −5,8 mm, Y1 11,5 mm“; am Anschlag
    sagt eine Zeile, welcher Schlitten hält.

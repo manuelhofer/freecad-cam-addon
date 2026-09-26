@@ -108,7 +108,9 @@ Wunschliste, offene Bugs und Tasks.
    (P-2026-09-26-65), sieben Schritte. Schritt 1 fertig (P-2026-09-26-66:
    Bereich „Transformationen“ mit „+ Schräge Achse“, Winkel aus der
    Baugruppe, Bild, Beispiel), Schritt 2 fertig (-67: Winkel eintragen, die
-   Führung dreht sich mit); als Nächstes Schritt 3 (Erkennung).*
+   Führung dreht sich mit), Schritt 3 fertig (-68: Hinweis „Y1 steht 30,0°
+   schräg zu X1“, ein Klick legt an); als Nächstes Schritt 4 („Maschine
+   verfahren“ wie im Programm).*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
