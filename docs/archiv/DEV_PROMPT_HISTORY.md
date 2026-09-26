@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-64 version-0-18-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit
+  0.17.0: Beispielmaschinen zur Auswahl (P-2026-09-26-62), ruhiges Mausrad
+  (-63).
+
+### DATEIEN
+- `package.xml` (0.18.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.18.0.
+
+### DONE
+- Version 0.17.0 → 0.18.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; Schrägbett-Kinematik planen (Manuel).
+
 ## P-2026-09-26-63 ruhiges-mausrad
 
 ### EINGELESEN
