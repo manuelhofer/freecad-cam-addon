@@ -98,3 +98,43 @@ def drehmaschine_komplett():
     m.verteile_plaetze(ma, kette.lies_kette(asm), rev, obj("Werkzeugplatz"), 12)
     asm.Document.recompute()
     return asm, ma
+
+
+def kippe_fuehrung(achse, grad, zu=None):
+    """Dreht die Führung einer Linearachse um `grad`, zur Richtung `zu` hin – so,
+    wie sie an einer Maschine mit schräger Achse steht. Die Teile bleiben, wo
+    sie sind, nur die Fahrrichtung ändert sich: Beide Gelenk-Koordinatensysteme
+    drehen sich gleich (ausprobiert, P-2026-09-26-65). Die Achse muss auf
+    Stellung 0 stehen.
+
+    `achse`: eine Achse aus kette.lies_kette(); `zu`: ein Vektor, zu dem die
+    Plus-Richtung der Achse kippt (etwa die Plus-Richtung von X1).
+    """
+    import FreeCAD as App
+    import UtilsAssembly
+
+    from camaddon import verfahren
+
+    gelenk = achse.gelenk
+    teile = [
+        o
+        for o in gelenk.Document.Objects
+        if o.TypeId in ("Part::Box", "Part::Cylinder", "App::Part") and hasattr(o, "Placement")
+    ]
+    lagen = {o: App.Placement(o.Placement) for o in teile}
+    plus = verfahren.plusrichtung(achse)
+    drehachse = plus.cross(zu)
+    drehachse.normalize()
+    drehung = App.Rotation(drehachse, grad)
+    for seite in (1, 2):
+        jetzt = UtilsAssembly.getJcsGlobalPlc(
+            getattr(gelenk, f"Placement{seite}"), getattr(gelenk, f"Reference{seite}")
+        )
+        ohne_versatz = jetzt * getattr(gelenk, f"Offset{seite}").inverse()
+        ziel = App.Placement(jetzt.Base, drehung.multiply(jetzt.Rotation))
+        setattr(gelenk, f"Offset{seite}", ohne_versatz.inverse() * ziel)
+        # Jede Änderung am Versatz löst vorab – mit einer Seite schon gedreht,
+        # der anderen noch nicht, rückt FreeCAD Teile. Also zurück damit.
+        for teil, lage in lagen.items():
+            teil.Placement = lage
+    gelenk.Document.recompute()

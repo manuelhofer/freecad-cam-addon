@@ -105,7 +105,9 @@ Wunschliste, offene Bugs und Tasks.
    Höchstvorschub; danach eine Vorlage mit Eingabemaske. – *Spezifikation:
    Abschnitt 7c und Stufe 3b in
    [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
-   (P-2026-09-26-65), sieben Schritte; als Nächstes Schritt 1.*
+   (P-2026-09-26-65), sieben Schritte. Schritt 1 fertig (P-2026-09-26-66:
+   Bereich „Transformationen“ mit „+ Schräge Achse“, Winkel aus der
+   Baugruppe, Bild, Beispiel); als Nächstes Schritt 2 (Winkel eintragen).*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher

@@ -178,6 +178,12 @@ def platzstellungen(verfahren, maschine, achse):
     return ergebnis
 
 
+def plusrichtung(achse):
+    """Wohin das Kind-Glied einer Linearachse fährt, wenn ihre Stellung wächst – in
+    Weltkoordinaten. Das ist die Plus-Richtung der Achse, wie sie im Fenster zählt."""
+    return achse.richtung * _vorzeichen(achse)
+
+
 def _vorzeichen(achse):
     """+1, wenn ein Weg in Achsrichtung die Stellung am Gelenk wachsen lässt, sonst −1.
 

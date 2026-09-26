@@ -49,6 +49,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `kette.py` | Assembly lesen: Glieder, Achsen, Meldungen |
 | `maschine.py` | Maschinenobjekt: Objektarten, Anlegen, Revolverplätze, Prüfung, Tisch/Kopf |
 | `verfahren.py` | Maschine von Hand verfahren: Stellung wie am Gelenk, Grenzen, Bauteile hinter der Achse bewegen |
+| `schraege_achse.py` | Schräge Achse (Transformation der Steuerung): Winkel aus der Baugruppe messen, Programm ↔ Schlitten umrechnen, Vorschlag, Prüfung |
 | `beispielmaschine.py` | Beispielmaschinen zum Ausprobieren: Baukasten für Assemblies und fünf Bauarten (Drehmaschine mit Y-Achse und Revolver, 3-Achs-, drei 5-Achs-Fräsen) – auch für die Maschinen der Prüfungen |
 | `export.py` | Übergabe an CAM mit Bericht |
 | `aktualisierung.py` | Update-Suche per Git, ohne Git per HTTPS (package.xml) und Update mit `installieren.py` |
@@ -63,7 +64,8 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“; ohne Baugruppe die Auswahl der Beispielmaschinen |
 | `gui_verfahren.py` | Befehl und Aufgabenfenster „Maschine verfahren“: ein Regler je Achse |
-| `gui_details.py` | Felder der gewählten Betriebsart oder Aufnahme |
+| `gui_details.py` | Felder der gewählten Betriebsart, Aufnahme oder schrägen Achse |
+| `gui_winkelbild.py` | Bild zur schrägen Achse: ausgleichende Achse, rechter Winkel, schräge Achse mit α |
 | `gui_zahlen.py` | Zahlenfelder für alle Dialoge: Format mit dem gewählten Dezimalzeichen ohne Tausenderpunkte, Prüfung (Punkt und Komma), Lesen, Zeigen; Dezimalzeichen in Texten |
 | `gui_teile.py` | Kleine Bausteine der Werkzeugverwaltung: fette Beschriftung, Knopf, Feld mit Einheit, rote Hinweiszeile, Grau |
 | `gui_zeigen.py` | Hervorheben und kurzes Hin-und-her-Bewegen in der 3D-Ansicht |
@@ -112,6 +114,11 @@ Zwei Regeln halten das zusammen:
 - **Aufnahme:** Verweis aufs LCS (`PropertyLinkGlobal`, weil das LCS in
   einem Part liegt), Art (Werkzeug oder Werkstück), bei Werkzeugen optional
   Antrieb und Revolverplatz.
+- **Transformation:** bisher nur die schräge Achse – Verweise auf zwei
+  Betriebsarten (Linear: schräg und ausgleichend) und ihre Namen im
+  Programm. Der **Winkel steht nur in der Baugruppe** (Richtung der
+  Gelenke); `schraege_achse.winkel()` misst ihn, mit der Richtung, in die
+  das Werkzeug gegenüber dem Werkstück fährt (Tischachsen andersherum).
 - **Kennwert 0 heißt „unbekannt“.** Keiner dieser Werte kann an einer echten
   Maschine 0 sein.
 - `pruefe()` liefert Meldungen, erst Warnungen, dann Hinweise. Jede trägt in

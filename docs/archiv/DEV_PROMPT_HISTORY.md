@@ -12,6 +12,87 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-66 schraege-achse-eintrag
+
+### EINGELESEN
+- Spezifikation W-001, Abschnitt 7c und Stufe 3b, Schritt 1
+  (P-2026-09-26-65). Manuel: „weiter machen mit Sachen, die man verbessern
+  kann … bis zu einem sinnvollen Punkt“.
+- `maschine.py` (Objektarten, `pruefe`, `rollen`), `gui_maschine.py`,
+  `gui_details.py`, `gui_zahlen.py`, `verfahren.py` (`_vorzeichen`),
+  `hilfe.py`, `tests/test_hilfe.py`, `tests/test_sprache.py`.
+
+### DATEIEN
+- `camaddon/schraege_achse.py` (neu), `camaddon/gui_winkelbild.py` (neu)
+- `camaddon/maschine.py`, `camaddon/gui_maschine.py`,
+  `camaddon/gui_details.py`, `camaddon/gui_zahlen.py`,
+  `camaddon/verfahren.py`, `camaddon/hilfe.py`
+- `help/de/transformationen.html`, `help/en/transformationen.html` (neu)
+- `translations/de.json`, `translations/en.json` (28 Texte)
+- `tests/test_schraege_achse.py` (neu), `tests/beispielmaschinen.py`,
+  `tests/gui/szenario_schraege_achse.py` (neu)
+- `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/aufbau.md`, `CHATSTART.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine laden → „Maschine bearbeiten“ → „+ Schräge Achse“ →
+unter „Transformationen“ steht „Schräge Achse Y1 – gleicht aus: X1, 0,0°“,
+darunter Y1 und X1, die Namen Y und X, „0,0° – aus der Baugruppe“, das Bild
+und „Beispiel: Y +10,0 mm → Y1 +10,0 mm, X1 0,0 mm“.
+
+### DONE
+- Maschinenobjekt: dritte Art von Eintrag, die **Transformation**
+  (`TRAFO_SCHRAEGE_ACHSE`): Verweise `Schraeg` und `Ausgleich` auf
+  Betriebsarten (Linear), `NameSchraeg`/`NameAusgleich` – vorbelegt mit dem
+  NC-Namen ohne Ziffern am Ende (Y1 → Y). Beschriftung „Y · Schräge Achse“.
+  Der Winkel steht bewusst nicht im Objekt, nur in der Baugruppe.
+- `schraege_achse.py`: Winkel α aus den Gelenkrichtungen (asin des
+  Skalarprodukts der Plus-Richtungen; Tischachsen zählen für das Werkzeug
+  andersherum), Rechnung Programm ↔ Schlitten, Vorschlag für eine neue
+  schräge Achse (zuerst ein schräges Paar ohne Eintrag, sonst die ersten
+  beiden Linearachsen; ausgleichend ist die im Alphabet vordere), Prüfung
+  mit vier Meldungen (Achse fehlt, gleiche Achse, keine Linearachse, fast
+  parallel über 89°). `verfahren.plusrichtung()` neu (öffentlich statt
+  `_vorzeichen` von außen).
+- Dialog: Bereich „Transformationen“ unter den Achsen mit Hilfe (?),
+  Liste (ohne Eintrag eine graue Zeile „keine – nur nötig, wenn die
+  Steuerung umrechnet“), „+ Schräge Achse“ (ohne zwei Linearachsen gesperrt,
+  der Tooltip sagt warum) und „Entfernen“. Felder: schräge und
+  ausgleichende Achse als Auswahl, Namen im Programm (wandern mit, solange
+  sie der Vorschlag sind: Z1 gewählt → Z), Winkel „30,0° – aus der
+  Baugruppe“, Bild (`gui_winkelbild.py`: X1, gestrichelt der rechte Winkel
+  mit dem Programm-Y, Y1 um α gekippt, Bogen α – ohne Text außer
+  Achsnamen) und das Beispiel in mm bzw. inch. Verweilen hebt beide
+  Schlitten hervor. Wer eine Betriebsart entfernt, löst ihren Verweis in
+  der schrägen Achse (die dann „fehlt eine Achse“ meldet).
+- Hilfeseite „Transformationen“ (de/en): was sie sind, Rechnung mit
+  Beispiel, was man einträgt, wo der Winkel bei Siemens (TRAANG,
+  `TRAANG_ANGLE_1`) und Fanuc („Angular Axis Control“) steht,
+  Vorzeichen andersherum möglich, Postprozessor bleibt.
+- `gui_zahlen.winkel_zeigen()`: „30,0°“ mit dem gewählten Dezimalzeichen.
+- Bewusst noch nicht: den Winkel eintragen (Schritt 2), das
+  Hin-und-her-Fahren beim Verweilen (braucht das gekoppelte Verfahren aus
+  Schritt 4), Erkennung als Hinweis (Schritt 3).
+
+### TEST
+- Claude ohne Oberfläche, 1.1.3 und Wochen-Build: `test_schraege_achse.py`
+  – Rechnung (30°: Y +10 → Y1 11,547, X1 −5,774; −30°; 0°; hin und zurück
+  für sechs Winkel), Winkel 0° an der Beispiel-Drehmaschine, +30° und −30°
+  mit gekippter Y-Führung (Testhilfe `beispielmaschinen.kippe_fuehrung`),
+  89,5° → Meldung „parallel“, Vorschlag, Namen, Meldungen, Tisch/Kopf,
+  Speichern und Laden. Dazu `test_sprache`, `test_hilfe`, `test_maschine`,
+  `test_verfahren`, `test_kette`, `test_export`, `test_beispielmaschine`.
+- Claude mit Oberfläche (Screenshots angesehen), 1.1.3 und Wochen-Build:
+  `szenario_schraege_achse` – leere Liste, anlegen, Felder, Z1 wählen
+  (Name wandert mit), Abbrechen verwirft, 30° gekippt zeigt 30,0° und
+  „Y1 +11,5 mm, X1 −5,8 mm“, Entfernen, Hilfe. Die Szenarien
+  `maschine_bearbeiten`, `hilfe`, `mausrad`, `beispielmaschine`, `felder`
+  laufen weiter grün (Wochen-Build).
+- Ob der Bereich verständlich ist, prüft Manuel.
+
+### NEXT
+- Stufe 3b, Schritt 2: Winkel eintragen, die Baugruppe folgt.
+
 ## P-2026-09-26-65 spezifikation-schraege-achse
 
 ### EINGELESEN

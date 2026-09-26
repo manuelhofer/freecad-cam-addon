@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Die Felder der gewählten Betriebsart oder Aufnahme im Dialog „Maschine bearbeiten“.
+"""Die Felder der gewählten Zeile im Dialog „Maschine bearbeiten“: Betriebsart,
+Aufnahme oder schräge Achse.
 
 Der Kasten steht unter der Liste, in der gerade etwas gewählt ist. Jede
 Eingabe geht sofort ins Dokument (über `setze`), damit Hinweise und
@@ -9,11 +10,20 @@ entscheidet am Ende über alles zusammen.
 
 from PySide import QtGui
 
-from . import einheiten
+from . import einheiten, schraege_achse
 from . import maschine as m
 from .gui_hilfe import zeige_hilfe
 from .gui_teile import ruhiges_mausrad
-from .gui_zahlen import Zahlenpruefer, groesse_lesen, groesse_zeigen, zahl_lesen, zahl_zeigen
+from .gui_winkelbild import WinkelBild
+from .gui_zahlen import (
+    Zahlenpruefer,
+    groesse_fest,
+    groesse_lesen,
+    groesse_zeigen,
+    winkel_zeigen,
+    zahl_lesen,
+    zahl_zeigen,
+)
 from .sprache import tr
 
 # Einheiten neben dem Feld – bei den übrigen Kennwerten steht die Einheit
@@ -116,6 +126,42 @@ class DetailKasten(QtGui.QFrame):
                 self.formular.addRow(tr("dialog.aufnahme_platz"), self._platzfeld(aufnahme))
         self.show()
 
+    def zeige_schraege_achse(self, trafo, linearachsen, alpha):
+        """Schräge und ausgleichende Achse, ihre Namen im Programm, der Winkel aus der
+        Baugruppe mit Bild und ein Beispiel (Spezifikation W-001, Abschnitt 7c).
+
+        `linearachsen`: die Betriebsarten, die zur Wahl stehen; `alpha`: der
+        Winkel in Grad, None, solange eine Achse fehlt oder nicht passt.
+        """
+        schraeg, ausgleich = (_name(ba) for ba in (trafo.Schraeg, trafo.Ausgleich))
+        name = m.name_von(trafo)
+        self.titel.setText(
+            tr("dialog.detail_schraege_achse", name=name, schraeg=schraeg, ausgleich=ausgleich)
+        )
+        wahl = [(tr("dialog.keine_achse"), None)] + [(m.name_von(ba), ba) for ba in linearachsen]
+        self.formular.addRow(tr("dialog.schraeg"), self._achswahl(trafo, "Schraeg", wahl))
+        self.formular.addRow(tr("dialog.ausgleich"), self._achswahl(trafo, "Ausgleich", wahl))
+        self.formular.addRow(
+            tr("dialog.programmname", achse=schraeg), self._programmname_feld(trafo, "NameSchraeg")
+        )
+        self.formular.addRow(
+            tr("dialog.programmname", achse=ausgleich),
+            self._programmname_feld(trafo, "NameAusgleich"),
+        )
+        if alpha is None:
+            winkel = QtGui.QLabel(tr("dialog.winkel_unbekannt"))
+        else:
+            winkel = QtGui.QLabel(tr("dialog.winkel_wert", winkel=winkel_zeigen(alpha)))
+        winkel.setToolTip(tr("dialog.winkel.tooltip", schraeg=schraeg, ausgleich=ausgleich))
+        self.formular.addRow(tr("dialog.winkel"), winkel)
+        self.formular.addRow(WinkelBild(alpha, schraeg, ausgleich, name))
+        if alpha is not None:
+            beispiel = QtGui.QLabel(_beispiel(trafo, alpha, schraeg, ausgleich))
+            beispiel.setWordWrap(True)
+            beispiel.setToolTip(tr("dialog.beispiel_schraeg.tooltip"))
+            self.formular.addRow(beispiel)
+        self.show()
+
     # --- die einzelnen Felder -------------------------------------------------
 
     def _ncname_feld(self, ba):
@@ -184,6 +230,39 @@ class DetailKasten(QtGui.QFrame):
         liste.currentIndexChanged.connect(uebernehmen)
         return ruhiges_mausrad(liste)
 
+    def _achswahl(self, trafo, eigenschaft, wahl):
+        """Auswahl der schrägen bzw. ausgleichenden Achse.
+
+        Stand im Namen im Programm noch der Vorschlag zur bisherigen Achse
+        (Y1 → Y), wandert er mit: Wer Z1 wählt, bekommt Z.
+        """
+        name_eigenschaft = "Name" + eigenschaft
+        vorher = getattr(trafo, eigenschaft)
+        liste = self._verweisliste(trafo, eigenschaft, wahl, _tooltip_achse(eigenschaft))
+
+        def name_mitnehmen(_index):
+            neu = getattr(trafo, eigenschaft)
+            if getattr(trafo, name_eigenschaft) == m.programmname(vorher) and neu is not None:
+                self._setze(trafo, name_eigenschaft, m.programmname(neu), beschriften=True)
+
+        # Nach _verweisliste verbunden: Dann steht die neue Achse schon im Objekt.
+        liste.currentIndexChanged.connect(name_mitnehmen)
+        return liste
+
+    def _programmname_feld(self, trafo, eigenschaft):
+        feld = QtGui.QLineEdit(getattr(trafo, eigenschaft))
+        feld.setToolTip(trafo.getDocumentationOfProperty(eigenschaft))
+
+        def uebernehmen():
+            text = feld.text().strip()
+            if text:
+                self._setze(trafo, eigenschaft, text, beschriften=True)
+            else:  # ein geleertes Feld behält den bisherigen Namen
+                feld.setText(getattr(trafo, eigenschaft))
+
+        feld.editingFinished.connect(uebernehmen)
+        return feld
+
     def _platzfeld(self, aufnahme):
         feld = QtGui.QSpinBox()
         feld.setRange(0, GROESSTE_PLATZNUMMER)
@@ -201,6 +280,39 @@ class DetailKasten(QtGui.QFrame):
         )
         verweis.linkActivated.connect(lambda thema: zeige_hilfe(self, thema))
         return verweis
+
+
+def _name(ba):
+    """NC-Name einer Betriebsart – „?“, solange keine gewählt ist."""
+    return m.name_von(ba) if ba is not None else "?"
+
+
+def _tooltip_achse(eigenschaft):
+    return tr("eigenschaft.schraeg") if eigenschaft == "Schraeg" else tr("eigenschaft.ausgleich")
+
+
+def _beispiel(trafo, alpha, schraeg, ausgleich):
+    """„Beispiel: Y +10,0 mm → Y1 +11,5 mm, X1 −5,8 mm“ – in inch mit 1 in."""
+    schritt = einheiten.metrisch(1.0 if einheiten.in_zoll() else 10.0, einheiten.LAENGE)
+    x1, y1 = schraege_achse.schlitten_aus_programm(alpha, 0.0, schritt)
+    return tr(
+        "dialog.beispiel_schraeg",
+        name=m.name_von(trafo),
+        weg=_weg(schritt),
+        schraeg=schraeg,
+        weg_schraeg=_weg(y1),
+        ausgleich=ausgleich,
+        weg_ausgleich=_weg(x1),
+    )
+
+
+def _weg(wert):
+    """Ein Weg mit Vorzeichen und Einheit: „+11,5 mm“, „−5,8 mm“, „0,0 mm“."""
+    stellen = einheiten.stellen(einheiten.LAENGE, 1)
+    gezeigt = round(einheiten.anzeige(wert, einheiten.LAENGE), stellen)
+    zeichen = "+" if gezeigt > 0 else "−" if gezeigt < 0 else ""
+    zahl = groesse_fest(abs(wert), einheiten.LAENGE, 1)
+    return f"{zeichen}{zahl} {einheiten.einheit(einheiten.LAENGE)}"
 
 
 def _beschriftung(text, fett=False):

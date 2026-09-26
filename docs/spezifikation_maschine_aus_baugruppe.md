@@ -423,7 +423,9 @@ Patch, in dieser Reihenfolge:
 1. Eintrag „Schräge Achse“ in „Maschine bearbeiten“: anlegen, Achsen wählen,
    Winkel aus der Baugruppe, Beispielzeile. *Klickweg:* Beispiel-Drehmaschine
    → „Maschine bearbeiten“ → „+ Schräge Achse“ → Y1, gleicht aus X1 → der
-   Eintrag zeigt 0,0° und „Y +10 mm → Y1 +10,0 mm, X1 0,0 mm“.
+   Eintrag zeigt 0,0° und „Y +10 mm → Y1 +10,0 mm, X1 0,0 mm“. – *Gebaut
+   (P-2026-09-26-66); beim Verweilen leuchten beide Schlitten auf, das
+   Hin-und-her-Fahren kommt mit Schritt 4.*
 2. Winkel eintragen, die Baugruppe folgt. *Klickweg:* Winkel 30 → in der
    3D-Ansicht steht die Y-Führung 30° schräg, der Revolver gerade; die
    Beispielzeile zeigt „Y1 +11,5 mm, X1 −5,8 mm“; Strg+Z stellt die Führung

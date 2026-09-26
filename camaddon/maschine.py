@@ -11,7 +11,8 @@ Maschinenobjekt. So liegt es im Dokument:
         ├── X1 · Linear              Betriebsart: verweist auf ein Gelenk
         ├── S4 · Spindel             zwei Betriebsarten desselben Gelenks
         ├── C4 · Positionieren
-        └── Futter · Werkstückaufn.  Aufnahme: verweist auf ein LCS
+        ├── Futter · Werkstückaufn.  Aufnahme: verweist auf ein LCS
+        └── Y · Schräge Achse        Transformation: verweist auf Betriebsarten
 
 Betriebsart
     Die Rolle, die ein Gelenk im NC-Programm spielt, mit NC-Namen und
@@ -22,7 +23,11 @@ Aufnahme
     markiert durch ein lokales Koordinatensystem (LCS). Revolverplätze sind
     Werkzeugaufnahmen mit Platznummer.
 
-Jede Betriebsart und jede Aufnahme ist ein eigenes Objekt: So stehen sie
+Transformation
+    Eine Umrechnung der Steuerung zwischen dem rechtwinkligen Programm und
+    den Schlitten – bisher nur die schräge Achse (schraege_achse.py).
+
+Jede Betriebsart, Aufnahme und Transformation ist ein eigenes Objekt: So stehen sie
 lesbar im Baum, Rückgängig funktioniert von selbst, und ein gelöschtes Gelenk
 hinterlässt nur einen leeren Verweis statt verlorener Daten.
 
@@ -73,6 +78,11 @@ AUFNAHME_WERKZEUG = "Werkzeug"
 AUFNAHME_WERKSTUECK = "Werkstueck"
 AUFNAHMEARTEN = [AUFNAHME_WERKZEUG, AUFNAHME_WERKSTUECK]
 
+# Arten von Transformationen (gespeichert, deshalb ASCII) – bisher nur die
+# schräge Achse; TRANSMIT, TRACYL, 5-Achs-TCP kämen hier dazu.
+TRAFO_SCHRAEGE_ACHSE = "SchraegeAchse"
+TRANSFORMATIONEN = [TRAFO_SCHRAEGE_ACHSE]
+
 # Wo eine Achse sitzt – Ergebnis von rollen().
 TISCH = "tisch"
 KOPF = "kopf"
@@ -99,6 +109,11 @@ def aufnahmeart_text(art):
     return tr("aufnahme.werkzeug") if art == AUFNAHME_WERKZEUG else tr("aufnahme.werkstueck")
 
 
+def trafo_text(art):
+    """Anzeigename einer Transformation: „Schräge Achse“."""
+    return {TRAFO_SCHRAEGE_ACHSE: tr("trafo.schraege_achse")}[art]
+
+
 def wert_text(eigenschaft):
     """Anzeigename eines Kennwerts, bei festen Einheiten mit Einheit."""
     return {
@@ -114,7 +129,7 @@ def wert_text(eigenschaft):
     }[eigenschaft]
 
 
-# --- Die drei Objektarten -----------------------------------------------------
+# --- Die vier Objektarten -----------------------------------------------------
 #
 # FreeCAD-Objekte aus Python bekommen einen „Proxy“: eine Python-Klasse, die
 # die Eigenschaften anlegt und auf Änderungen reagiert. Die Daten selbst
@@ -126,7 +141,7 @@ _AUSGEBLENDET = 2
 
 
 class _Proxy:
-    """Gemeinsame Grundlage der drei Proxys.
+    """Gemeinsame Grundlage der Proxys.
 
     FreeCAD speichert beim Sichern des Dokuments auch den Zustand des Proxys
     (dumps/loads). Unsere Proxys haben keinen eigenen Zustand – alles steht in
@@ -151,7 +166,7 @@ def _lege_eigenschaften_an(objekt, gruppe, eigenschaften):
 
 
 class Maschine(_Proxy):
-    """Proxy der Gruppe „Maschine“, die Betriebsarten und Aufnahmen enthält."""
+    """Proxy der Gruppe „Maschine“, die Betriebsarten, Aufnahmen und Transformationen enthält."""
 
     def __init__(self, objekt):
         objekt.Proxy = self
@@ -237,12 +252,41 @@ class Aufnahme(_Proxy):
         objekt.Art = AUFNAHMEARTEN  # legt die Auswahlliste fest
 
 
+class Transformation(_Proxy):
+    """Proxy einer Transformation der Steuerung – bisher nur die schräge Achse.
+
+    Sie verweist auf zwei Betriebsarten der Art Linear: die schräge Achse und
+    die, die beim Fahren der schrägen mitfährt (ausgleicht), dazu die Namen
+    beider im Programm. Der Winkel steht nicht hier, sondern in der Baugruppe
+    – in der Richtung der Gelenke (Spezifikation W-001, Abschnitt 7c).
+    """
+
+    def __init__(self, objekt):
+        objekt.Proxy = self
+        _lege_eigenschaften_an(
+            objekt,
+            "Transformation",
+            [
+                ("App::PropertyEnumeration", "Art", tr("eigenschaft.transformation")),
+                ("App::PropertyLink", "Schraeg", tr("eigenschaft.schraeg")),
+                ("App::PropertyLink", "Ausgleich", tr("eigenschaft.ausgleich")),
+                ("App::PropertyString", "NameSchraeg", tr("eigenschaft.name_schraeg")),
+                ("App::PropertyString", "NameAusgleich", tr("eigenschaft.name_ausgleich")),
+            ],
+        )
+        objekt.Art = TRANSFORMATIONEN  # legt die Auswahlliste fest
+
+
 def ist_betriebsart(objekt):
     return isinstance(getattr(objekt, "Proxy", None), Betriebsart)
 
 
 def ist_aufnahme(objekt):
     return isinstance(getattr(objekt, "Proxy", None), Aufnahme)
+
+
+def ist_transformation(objekt):
+    return isinstance(getattr(objekt, "Proxy", None), Transformation)
 
 
 # --- Anlegen, finden, benennen ------------------------------------------------
@@ -277,6 +321,10 @@ def aufnahmen(maschine):
     return [o for o in maschine.Group if ist_aufnahme(o)]
 
 
+def transformationen(maschine):
+    return [o for o in maschine.Group if ist_transformation(o)]
+
+
 def neue_betriebsart(maschine, gelenk, art, nc_name):
     objekt = maschine.newObject("App::FeaturePython", "Betriebsart")
     Betriebsart(objekt)
@@ -299,6 +347,32 @@ def neue_aufnahme(maschine, lcs, art, bezeichnung, spindel=None, platz=0):
     return objekt
 
 
+def neue_schraege_achse(maschine, schraeg, ausgleich):
+    """Legt eine schräge Achse an: `schraeg` fährt schräg, `ausgleich` fährt mit.
+
+    Beide sind Betriebsarten der Art Linear. Die Namen im Programm sind
+    vorbelegt – der NC-Name ohne Ziffern am Ende (Y1 → Y) – und änderbar.
+    """
+    objekt = maschine.newObject("App::FeaturePython", "Transformation")
+    Transformation(objekt)
+    objekt.Art = TRAFO_SCHRAEGE_ACHSE
+    objekt.Schraeg = schraeg
+    objekt.Ausgleich = ausgleich
+    objekt.NameSchraeg = programmname(schraeg)
+    objekt.NameAusgleich = programmname(ausgleich)
+    beschrifte(objekt)
+    return objekt
+
+
+def programmname(ba):
+    """Vorschlag für den Namen einer Achse im Programm: der NC-Name ohne Ziffern am
+    Ende – Y1 → Y. Ein Name nur aus Ziffern bleibt, wie er ist."""
+    if ba is None:
+        return ""
+    name = ba.NcName.strip()
+    return name.rstrip("0123456789") or name
+
+
 def name_von(objekt):
     """Der Name, den der Benutzer vergeben hat: NC-Name bzw. Bezeichnung.
 
@@ -309,6 +383,8 @@ def name_von(objekt):
         return objekt.NcName.strip() or "?"
     if ist_aufnahme(objekt) and objekt.Bezeichnung:
         return objekt.Bezeichnung
+    if ist_transformation(objekt):
+        return objekt.NameSchraeg.strip() or "?"
     return objekt.Label
 
 
@@ -321,6 +397,8 @@ def beschrifte(objekt):
     """
     if ist_betriebsart(objekt):
         objekt.Label = f"{name_von(objekt)} · {art_text(objekt.Art)}"
+    elif ist_transformation(objekt):
+        objekt.Label = f"{name_von(objekt)} · {trafo_text(objekt.Art)}"
     elif objekt.Art == AUFNAHME_WERKZEUG:
         objekt.Label = tr("aufnahme.beschriftung_werkzeug", name=name_von(objekt))
     else:
@@ -460,10 +538,13 @@ def pruefe(maschine, kette=None):
     """Alle Meldungen zum Maschinenobjekt, als fertige Sätze: erst Warnungen, dann Hinweise."""
     if kette is None:
         kette = kette_modul.lies_kette(assembly_von(maschine))
+    from . import schraege_achse  # braucht dieses Modul selbst
+
     meldungen = (
         _pruefe_betriebsarten(maschine, kette)
         + _pruefe_aufnahmen(maschine, kette)
         + _pruefe_revolver(maschine, kette)
+        + schraege_achse.pruefe(maschine, kette)
         + rollen(kette, maschine)[1]
     )
     # Hinweise ans Ende. sorted() ist stabil, die Reihenfolge bleibt sonst erhalten.

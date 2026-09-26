@@ -112,6 +112,14 @@ def zahl_zeigen(wert):
     return zahlenformat().toString(float(wert), "g", 12)  # 12 gültige Stellen
 
 
+def winkel_zeigen(grad):
+    """Ein Winkel mit einer Nachkommastelle und Gradzeichen („30,0°“); „?“ für unbekannt (None)."""
+    if grad is None:
+        return "?"
+    # + 0.0 macht aus −0,0 eine 0,0 (Rundungsrest bei rechtwinkligen Achsen).
+    return zahlenformat().toString(round(grad, 1) + 0.0, "f", 1) + "°"
+
+
 def dezimal(text):
     """Setzt das Dezimalzeichen der Oberfläche in einen Text mit Punkt-Zahlen ein („Ø 8.5“ → „Ø 8,5“)."""
     return mit_dezimalzeichen(text, zahlenformat().decimalPoint())

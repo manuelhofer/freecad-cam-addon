@@ -1,0 +1,50 @@
+<h2>Transformations</h2>
+<p>The NC program is always <b>square</b>: X, Y and Z are at right angles to
+each other. Some machines still move differently – then the <b>control
+converts</b>. Here you enter which conversion your control does. So far
+there is one: the <b>inclined axis</b>. If your machine needs none, the list
+stays empty.</p>
+
+<h3>The inclined axis</h3>
+<p>On many slant-bed lathes with a Y axis, the Y slide does not move at right
+angles to the X slide but at an angle to it. For a <b>Y in the program, both
+slides then move</b>: Y1 moves at its angle, and X1 compensates so the tool
+travels exactly at right angles to X. A pure X moves only X1.</p>
+<p>A bed that itself lies slanted in space, on the other hand, is <b>not</b> a
+transformation: the X of the program simply points along the X slide.</p>
+
+<h3>How the control converts</h3>
+<p>α is the angle by which the inclined axis is tilted out of the right angle
+to the compensating one; 0° means square.</p>
+<pre>Y1 = Y / cos α
+X1 = X − Y · tan α</pre>
+<p><b>Example</b> with α = 30°: for Y +10 mm, Y1 moves 11.5 mm and X1 moves
+back 5.8 mm.</p>
+
+<h3>What you enter</h3>
+<ul>
+<li><b>Inclined axis</b> – the slide that moves at an angle (usually Y1).</li>
+<li><b>Compensated by</b> – the slide that moves along (usually X1).</li>
+<li><b>Names in the program</b> – what the two are called in the NC program
+(usually Y and X). The suggestion is the NC name without the digit.</li>
+</ul>
+<p>The addon measures the <b>angle</b> at the joints of the assembly – the way
+you built the Y slide. The picture shows how it counts: positive when the
+inclined axis leans towards the plus side of the compensating one. Below it,
+an example shows how far both slides move for a Y.</p>
+
+<h3>Where is the angle in the control?</h3>
+<ul>
+<li><b>Siemens SINUMERIK:</b> the “inclined axis” transformation, <b>TRAANG</b>.
+The angle is in the machine data of the transformation
+(<code>TRAANG_ANGLE_1</code>).</li>
+<li><b>Fanuc:</b> the <b>“Angular Axis Control”</b> function. Angle and axes are
+in its parameters (parameter manual).</li>
+</ul>
+<p>If your control counts the angle the other way round, it shows the same
+amount with the opposite sign – compare the picture with the drawing in the
+manual.</p>
+
+<h3>What does not change</h3>
+<p>The <b>postprocessor</b> stays as it is: the program stays square, the
+control does the converting.</p>

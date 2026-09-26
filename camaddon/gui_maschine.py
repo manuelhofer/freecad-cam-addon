@@ -6,7 +6,8 @@ sichtbar bleibt. Von oben nach unten:
 
     Name          Name der Maschine
     Achsen        die Gelenke der Assembly, darunter ihre Betriebsarten
-    (Details)     Felder der gewählten Betriebsart oder Aufnahme – gui_details
+    (Details)     Felder der gewählten Zeile – gui_details
+    Transformationen  Umrechnungen der Steuerung, etwa eine schräge Achse
     Aufnahmen     Werkzeug- und Werkstückaufnahmen, Revolverplätze gesammelt
     Glieder       was sich gemeinsam bewegt
     Hinweise      was fehlt oder nicht passt; ein Klick springt zur Zeile
@@ -21,7 +22,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import beispielmaschine, export, gui_zeigen, symbol
+from . import beispielmaschine, export, gui_zeigen, schraege_achse, symbol
 from . import kette as kette_modul
 from . import maschine as m
 from .gui_bericht import BerichtFenster
@@ -29,23 +30,27 @@ from .gui_details import DetailKasten
 from .gui_hilfe import kopfzeile
 from .gui_teile import ruhiges_mausrad
 from .gui_verteilhilfe import VerteilDialog
+from .gui_zahlen import winkel_zeigen
 from .kette import HINWEIS, LINEAR
 from .sprache import tr
 
-# Jede Zeile in „Achsen“, „Aufnahmen“ und „Glieder“ trägt in ihren Daten
-# (Art der Zeile, Objekt).
+# Jede Zeile in „Achsen“, „Transformationen“, „Aufnahmen“ und „Glieder“ trägt
+# in ihren Daten (Art der Zeile, Objekt).
 ROLLE = QtCore.Qt.UserRole
 ZEILE_GELENK = "gelenk"
 ZEILE_BETRIEBSART = "betriebsart"
 ZEILE_AUFNAHME = "aufnahme"
 ZEILE_REVOLVER = "revolver"  # Kopfzeile, unter der die Plätze eines Revolvers stehen
 ZEILE_GLIED = "glied"
+ZEILE_TRANSFORMATION = "transformation"
 
 # Gezeigt wird erst, wenn die Maus so lange auf einer Zeile verweilt – nicht
 # bei jedem Überstreichen.
 ZEIGEN_NACH_MS = 250
 MINDESTHOEHE_ACHSEN = 160  # Pixel
 MINDESTHOEHE_AUFNAHMEN = 110
+# Meist gibt es keine oder eine Transformation – die Liste bleibt klein.
+HOEHE_TRANSFORMATIONEN = (44, 90)  # Pixel: kleinste und größte Höhe
 
 
 class BefehlMaschineBearbeiten:
@@ -272,6 +277,7 @@ class MaschinenPanel:
         # gewählt ist (siehe _details_zeigen).
         self.details = DetailKasten(self._setze)
         self._aufbau.addWidget(self.details)
+        self._baue_transformationen()
         self._baue_aufnahmen()
         self._baue_glieder()
         self._baue_hinweise()
@@ -308,6 +314,20 @@ class MaschinenPanel:
         self.knopf_ba_weg = _knopf(tr("dialog.entfernen"), self.betriebsart_entfernen)
         self.achsen_knoepfe = _knopfreihe([self.knopf_betriebsart, self.knopf_ba_weg])
         self._aufbau.addWidget(self.achsen_knoepfe)
+
+    def _baue_transformationen(self):
+        self._aufbau.addWidget(kopfzeile(tr("dialog.transformationen"), "transformationen"))
+        self.transformationen = self._baum(
+            tr("dialog.transformationen.tooltip"), HOEHE_TRANSFORMATIONEN[0]
+        )
+        self.transformationen.setMaximumHeight(HOEHE_TRANSFORMATIONEN[1])
+        self.transformationen.currentItemChanged.connect(self._transformation_gewaehlt)
+        self._aufbau.addWidget(self.transformationen)
+
+        self.knopf_schraeg = _knopf(tr("dialog.schraege_achse_neu"), self.schraege_achse_anlegen)
+        self.knopf_trafo_weg = _knopf(tr("dialog.entfernen"), self.transformation_entfernen)
+        self.trafo_knoepfe = _knopfreihe([self.knopf_schraeg, self.knopf_trafo_weg])
+        self._aufbau.addWidget(self.trafo_knoepfe)
 
     def _baue_aufnahmen(self):
         self._aufbau.addWidget(kopfzeile(tr("dialog.aufnahmen"), "aufnahmen"))
@@ -379,6 +399,12 @@ class MaschinenPanel:
         for aufnahme in m.aufnahmen(self.maschine):
             if aufnahme.Spindel == ba:
                 aufnahme.Spindel = None
+        # Eine schräge Achse, die sie nutzte, bleibt – gemeldet als „fehlt eine Achse“.
+        for trafo in m.transformationen(self.maschine):
+            if trafo.Schraeg == ba:
+                trafo.Schraeg = None
+            if trafo.Ausgleich == ba:
+                trafo.Ausgleich = None
         self.doc.removeObject(ba.Name)
         self.neu_aufbauen()
 
@@ -399,6 +425,22 @@ class MaschinenPanel:
         if art != ZEILE_AUFNAHME:
             return
         self.doc.removeObject(aufnahme.Name)
+        self.neu_aufbauen()
+
+    def schraege_achse_anlegen(self):
+        """Neue schräge Achse. Vorgewählt ist ein Paar, das schräg steht, sonst die
+        ersten beiden Linearachsen (schraege_achse.vorschlag)."""
+        paar = schraege_achse.vorschlag(self.maschine, self.kette)
+        if paar is None:
+            return
+        trafo = m.neue_schraege_achse(self.maschine, *paar)
+        self.neu_aufbauen(auswahl=trafo)
+
+    def transformation_entfernen(self):
+        art, trafo = _zeilendaten(self.transformationen.currentItem())
+        if art != ZEILE_TRANSFORMATION:
+            return
+        self.doc.removeObject(trafo.Name)
         self.neu_aufbauen()
 
     def plaetze_verteilen(self):
@@ -456,12 +498,19 @@ class MaschinenPanel:
             gui_zeigen.hervorheben([objekt.Lcs])
         elif art == ZEILE_REVOLVER:
             gui_zeigen.hervorheben([p.Lcs for p in m.plaetze(self.maschine, self.kette, objekt)])
+        elif art == ZEILE_TRANSFORMATION:
+            teile = []
+            for ba in (objekt.Schraeg, objekt.Ausgleich):
+                achse = self.kette.achse_von(ba.Gelenk) if m.ist_betriebsart(ba) else None
+                if achse is not None:
+                    teile += gui_zeigen.bauteile_hinter(self.kette, achse)
+            gui_zeigen.hervorheben(teile)
 
     def springe_zu(self, bezug):
-        """Wählt die Zeile des Objekts `bezug` in „Achsen“ oder „Aufnahmen“."""
+        """Wählt die Zeile des Objekts `bezug` in „Achsen“, „Transformationen“ oder „Aufnahmen“."""
         if bezug is None:
             return
-        for baum in (self.achsen, self.aufnahmen):
+        for baum in (self.achsen, self.transformationen, self.aufnahmen):
             for zeile in _alle_zeilen(baum):
                 if _zeilendaten(zeile)[1] == bezug:
                     if zeile.parent() is not None:
@@ -471,12 +520,13 @@ class MaschinenPanel:
                     return
 
     def neu_aufbauen(self, auswahl=None):
-        """Baut alle Listen neu auf und wählt `auswahl` (eine Betriebsart oder Aufnahme).
+        """Baut alle Listen neu auf und wählt `auswahl` (Betriebsart, Transformation oder Aufnahme).
 
         Nötig, wenn sich die Maschine von außen geändert hat.
         """
         self.details.leeren()
         self._fuelle_achsen(auswahl)
+        self._fuelle_transformationen(auswahl)
         self._fuelle_aufnahmen(auswahl)
         self._fuelle_glieder()
         self._fuelle_hinweise()
@@ -506,14 +556,20 @@ class MaschinenPanel:
     # --- Auswahl --------------------------------------------------------------
 
     def _achse_gewaehlt(self, aktuell, _vorher):
-        if aktuell is not None:
-            _auswahl_aufheben(self.aufnahmen)  # gewählt ist immer nur in einer Liste
-        self._details_zeigen(*_zeilendaten(aktuell))
-        self._knoepfe_schalten()
+        self._gewaehlt(self.achsen, aktuell)
+
+    def _transformation_gewaehlt(self, aktuell, _vorher):
+        self._gewaehlt(self.transformationen, aktuell)
 
     def _aufnahme_gewaehlt(self, aktuell, _vorher):
+        self._gewaehlt(self.aufnahmen, aktuell)
+
+    def _gewaehlt(self, baum, aktuell):
+        """Gewählt ist immer nur in einer Liste; darunter stehen die Felder der Zeile."""
         if aktuell is not None:
-            _auswahl_aufheben(self.achsen)
+            for anderer in (self.achsen, self.transformationen, self.aufnahmen):
+                if anderer is not baum:
+                    _auswahl_aufheben(anderer)
         self._details_zeigen(*_zeilendaten(aktuell))
         self._knoepfe_schalten()
 
@@ -527,6 +583,13 @@ class MaschinenPanel:
             self._details_unter(self.aufnahmen_knoepfe)
             self.details.zeige_aufnahme(
                 objekt, self.alle_lcs(), self._spindeln(), self._auf_revolver(objekt)
+            )
+        elif art == ZEILE_TRANSFORMATION:
+            self._details_unter(self.trafo_knoepfe)
+            self.details.zeige_schraege_achse(
+                objekt,
+                schraege_achse.linearachsen(self.maschine, self.kette),
+                schraege_achse.winkel(self.kette, self.maschine, objekt),
             )
 
     def _details_unter(self, knopfreihe):
@@ -551,6 +614,15 @@ class MaschinenPanel:
         art, _objekt = _zeilendaten(self.aufnahmen.currentItem())
         self.knopf_auf_weg.setEnabled(art == ZEILE_AUFNAHME)
         self.knopf_verteilen.setEnabled(bool(self._revolver()))
+        art, _objekt = _zeilendaten(self.transformationen.currentItem())
+        self.knopf_trafo_weg.setEnabled(art == ZEILE_TRANSFORMATION)
+        # Eine schräge Achse braucht zwei Linearachsen; der Tooltip sagt, was fehlt.
+        genug = len(schraege_achse.linearachsen(self.maschine, self.kette)) >= 2
+        self.knopf_schraeg.setEnabled(genug)
+        if genug:
+            self.knopf_schraeg.setToolTip(tr("dialog.schraege_achse_neu.tooltip"))
+        else:
+            self.knopf_schraeg.setToolTip(tr("dialog.schraege_achse_neu.fehlt"))
 
     def _fuelle_betriebsart_menue(self, menue):
         """Die Betriebsarten, die zum gewählten Gelenk passen, jede mit einem Satz Erklärung."""
@@ -578,11 +650,11 @@ class MaschinenPanel:
         setattr(objekt, eigenschaft, wert)
         if beschriften:
             m.beschrifte(objekt)
-        if eigenschaft in ("Lcs", "Platz"):
+        if eigenschaft in ("Lcs", "Platz", "Schraeg", "Ausgleich"):
             # Das kann eine Aufnahme in eine Revolvergruppe hinein- oder aus
-            # ihr herausschieben, dann werden die Listen neu aufgebaut –
-            # zeitversetzt, denn der Neuaufbau löscht auch das Feld, dessen
-            # Signal gerade läuft.
+            # ihr herausschieben bzw. Winkel und Beispiel einer schrägen Achse
+            # ändern, dann werden die Listen neu aufgebaut – zeitversetzt,
+            # denn der Neuaufbau löscht auch das Feld, dessen Signal gerade läuft.
             QtCore.QTimer.singleShot(0, lambda: self._spaeter_neu_aufbauen(objekt))
         else:
             self._auffrischen()
@@ -600,13 +672,15 @@ class MaschinenPanel:
         """
         if self.geschlossen:
             return
-        for baum in (self.achsen, self.aufnahmen):
+        for baum in (self.achsen, self.transformationen, self.aufnahmen):
             for zeile in _alle_zeilen(baum):
                 art, objekt = _zeilendaten(zeile)
                 if art == ZEILE_BETRIEBSART:
                     zeile.setText(0, _text_betriebsart(objekt))
                 elif art == ZEILE_AUFNAHME:
                     zeile.setText(0, _text_aufnahme(objekt))
+                elif art == ZEILE_TRANSFORMATION:
+                    zeile.setText(0, self._text_transformation(objekt))
         self._fuelle_hinweise()
         self._knoepfe_schalten()
 
@@ -648,6 +722,34 @@ class MaschinenPanel:
         self.achsen.blockSignals(False)
         if zu_waehlen is not None:
             self.achsen.setCurrentItem(zu_waehlen)
+
+    def _fuelle_transformationen(self, auswahl=None):
+        """Je Transformation eine Zeile; ohne eine sagt eine graue Zeile, wann man sie braucht."""
+        self.transformationen.blockSignals(True)
+        self.transformationen.clear()
+        zu_waehlen = None
+        for trafo in m.transformationen(self.maschine):
+            zeile = _zeile(self._text_transformation(trafo), ZEILE_TRANSFORMATION, trafo)
+            self.transformationen.addTopLevelItem(zeile)
+            if trafo == auswahl:
+                zu_waehlen = zeile
+        if not self.transformationen.topLevelItemCount():
+            self.transformationen.addTopLevelItem(
+                _leerzeile(tr("dialog.keine_transformation"), tr("dialog.transformationen.tooltip"))
+            )
+        self.transformationen.blockSignals(False)
+        if zu_waehlen is not None:
+            self.transformationen.setCurrentItem(zu_waehlen)
+
+    def _text_transformation(self, trafo):
+        """„Schräge Achse Y1 – gleicht aus: X1, 30,0°“"""
+        alpha = schraege_achse.winkel(self.kette, self.maschine, trafo)
+        return tr(
+            "dialog.zeile_schraege_achse",
+            schraeg=_name_oder_frage(trafo.Schraeg),
+            ausgleich=_name_oder_frage(trafo.Ausgleich),
+            winkel=winkel_zeigen(alpha),
+        )
 
     def _fuelle_aufnahmen(self, auswahl=None):
         """Alle Aufnahmen; die Plätze eines Revolvers zugeklappt unter einer Kopfzeile.
@@ -708,12 +810,12 @@ class MaschinenPanel:
             zeile.setData(ROLLE, meldung.bezug)
             self.hinweise.addItem(zeile)
 
-        # Häkchen oder Warnzeichen vor jeder Betriebsart und Aufnahme.
+        # Häkchen oder Warnzeichen vor jeder Betriebsart, Transformation und Aufnahme.
         betroffen = {x.bezug for x in self.meldungen if x.bezug is not None}
-        for baum in (self.achsen, self.aufnahmen):
+        for baum in (self.achsen, self.transformationen, self.aufnahmen):
             for zeile in _alle_zeilen(baum):
                 art, objekt = _zeilendaten(zeile)
-                if art in (ZEILE_BETRIEBSART, ZEILE_AUFNAHME):
+                if art in (ZEILE_BETRIEBSART, ZEILE_TRANSFORMATION, ZEILE_AUFNAHME):
                     zeile.setIcon(0, _status_symbol(objekt not in betroffen))
 
     # --- Zeigen in der 3D-Ansicht ---------------------------------------------
@@ -803,10 +905,10 @@ def _zeile(text, art, objekt):
     return zeile
 
 
-def _leerzeile():
-    """Graue, nicht wählbare Zeile „noch keine Betriebsart“ unter einem Gelenk."""
-    zeile = QtGui.QTreeWidgetItem([tr("dialog.noch_keine_betriebsart")])
-    zeile.setToolTip(0, tr("dialog.noch_keine_betriebsart.tooltip"))
+def _leerzeile(text=None, tooltip=None):
+    """Graue, nicht wählbare Zeile – ohne Text „noch keine Betriebsart“ unter einem Gelenk."""
+    zeile = QtGui.QTreeWidgetItem([text or tr("dialog.noch_keine_betriebsart")])
+    zeile.setToolTip(0, tooltip or tr("dialog.noch_keine_betriebsart.tooltip"))
     zeile.setForeground(0, QtGui.QBrush(QtGui.QColor("gray")))
     zeile.setFlags(QtCore.Qt.NoItemFlags)
     return zeile
@@ -854,6 +956,11 @@ def _text_aufnahme(aufnahme):
     if aufnahme.Spindel is not None:
         teile.append(tr("aufnahme.angetrieben_von", spindel=m.name_von(aufnahme.Spindel)))
     return "  ·  ".join(teile)
+
+
+def _name_oder_frage(ba):
+    """NC-Name einer Betriebsart – „?“, wenn keine gewählt ist."""
+    return m.name_von(ba) if ba is not None else "?"
 
 
 def _beschreibung(art):

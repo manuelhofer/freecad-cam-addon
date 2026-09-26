@@ -1,0 +1,50 @@
+<h2>Transformationen</h2>
+<p>Das NC-Programm ist immer <b>rechtwinklig</b>: X, Y und Z stehen im rechten
+Winkel zueinander. Manche Maschinen fahren trotzdem anders – dann <b>rechnet
+die Steuerung um</b>. Hier trägst du ein, welche Umrechnung deine Steuerung
+macht. Bisher gibt es eine: die <b>schräge Achse</b>. Braucht deine Maschine
+keine, bleibt die Liste leer.</p>
+
+<h3>Die schräge Achse</h3>
+<p>Bei vielen Schrägbett-Drehmaschinen mit Y-Achse fährt der Y-Schlitten nicht
+rechtwinklig zum X-Schlitten, sondern schräg dazu. Für ein <b>Y im Programm
+fahren dann beide Schlitten</b>: Y1 fährt schräg, und X1 gleicht aus, damit
+das Werkzeug genau rechtwinklig zu X läuft. Ein reines X fährt nur X1.</p>
+<p>Dass das Bett selbst schräg im Raum liegt, ist dagegen <b>keine</b>
+Transformation: Das X im Programm zeigt einfach in Richtung des
+X-Schlittens.</p>
+
+<h3>So rechnet die Steuerung</h3>
+<p>α ist der Winkel, um den die schräge Achse aus dem rechten Winkel zur
+ausgleichenden gekippt ist; 0° heißt rechtwinklig.</p>
+<pre>Y1 = Y / cos α
+X1 = X − Y · tan α</pre>
+<p><b>Beispiel</b> mit α = 30°: Für Y +10 mm fährt Y1 11,5 mm, und X1 fährt
+5,8 mm zurück.</p>
+
+<h3>Was du einträgst</h3>
+<ul>
+<li><b>Schräge Achse</b> – der Schlitten, der schräg fährt (meist Y1).</li>
+<li><b>Gleicht aus</b> – der Schlitten, der mitfährt (meist X1).</li>
+<li><b>Namen im Programm</b> – wie die beiden im NC-Programm heißen (meist Y
+und X). Vorgeschlagen ist der NC-Name ohne die Ziffer.</li>
+</ul>
+<p>Den <b>Winkel</b> misst das Addon an den Gelenken der Baugruppe – so, wie du
+den Y-Schlitten gebaut hast. Das Bild zeigt, wie er zählt: positiv, wenn die
+schräge Achse zur Plus-Seite der ausgleichenden kippt. Darunter steht ein
+Beispiel, wie weit beide Schlitten für ein Y fahren.</p>
+
+<h3>Wo steht der Winkel in der Steuerung?</h3>
+<ul>
+<li><b>Siemens SINUMERIK:</b> Transformation „schräge Achse“, <b>TRAANG</b>. Der
+Winkel steht in den Maschinendaten der Transformation
+(<code>TRAANG_ANGLE_1</code>).</li>
+<li><b>Fanuc:</b> Funktion <b>„Angular Axis Control“</b>. Winkel und Achsen stehen
+in ihren Parametern (Parameterhandbuch).</li>
+</ul>
+<p>Zählt deine Steuerung den Winkel andersherum, steht dort derselbe Betrag mit
+anderem Vorzeichen – vergleiche das Bild mit der Zeichnung im Handbuch.</p>
+
+<h3>Was sich nicht ändert</h3>
+<p>Der <b>Postprozessor</b> bleibt, wie er ist: Das Programm bleibt
+rechtwinklig, umrechnen tut die Steuerung.</p>

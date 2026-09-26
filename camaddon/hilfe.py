@@ -16,6 +16,7 @@ HILFE_ORDNER = os.path.join(ADDON_ORDNER, "help")
 THEMEN = [
     "achsen",
     "beschleunigung",
+    "transformationen",
     "aufnahmen",
     "glieder",
     "werkstoffe",
