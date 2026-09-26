@@ -73,9 +73,20 @@ den schon ein anderes Werkzeug hat, meldet die Werkzeugverwaltung – erlaubt
 ist er trotzdem (Schwesterwerkzeug). Ins NC-Programm als Aufruf kommt der
 Name nur mit einem passenden Postprozessor: FreeCADs mitgelieferte rufen
 Werkzeuge über die Nummer auf.</li>
-<li><b>Art</b> – Schaftfräser, Torusfräser (mit Eckradius), Kugelfräser,
-Fasenfräser, Bohrer.</li>
-<li><b>Durchmesser</b> und <b>Schneiden</b> (fett) braucht jede Rechnung.</li>
+<li><b>Art</b> – 26 Arten wie in InventorCAM, gegliedert nach <b>Fräsen</b>
+(Schaft-, Kugel-, Torus-, Konik-, Schwalbenschwanz-, Lollipop-, Fasen-,
+Radien-, Plan-, Nuten-, Form-, Gewindefräser), <b>Bohren</b> (Bohrer,
+Zentrierbohrer, NC-Anbohrer, Gewindebohrer rechts und links, Kegel- und
+Flachsenker, Reibahle, Bohrstange, Ausspindelwerkzeug), <b>Drehen</b>
+(Dreh-, Einstech-, Gewindedrehwerkzeug) und <b>Antasten</b> (Taster). Jede
+Art zeigt nur die Felder, die sie hat – ein Gewindebohrer etwa die
+Steigung, aber keine Schneidenzahl. Wer die Art wechselt, verliert nichts:
+Werte in Feldern, die die neue Art nicht hat, sind beim Zurückwechseln
+wieder da. Drehwerkzeuge gehen noch nicht an CAM – FreeCAD dreht nicht.</li>
+<li>Was <b>fett</b> beschriftet ist, braucht die Rechnung – meist
+<b>Durchmesser</b> und <b>Schneiden</b>, beim Gewindebohrer Durchmesser und
+Steigung. Leere Winkel zeigen grau den üblichen der Art (Bohrer 118°,
+Zentrierbohrer 60°, Gewinde 60° …) – er gilt, bis du einen einträgst.</li>
 <li><b>Schneidenlänge</b> – die nutzbare Länge der Schneide. Sie ist das
 größte ap, mit dem der Fräser seitlich arbeiten kann, und zeigt später, wie
 viel der Schneide ein Einsatz nutzt.</li>

@@ -59,10 +59,13 @@ bohrer = wz.Werkzeug(nummer=7, art=wz.BOHRER, durchmesser=8.5, schneiden=2, schn
 bohrer.spitzenwinkel = 130
 bohrer.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25, fz=0.08)]
 ohne = wz.Werkzeug(nummer=9)
-bibliothek = wz.Bibliothek([fraeser, torus, bohrer, ohne])
+# Drehwerkzeuge kennt CAM nicht: Sie bleiben draußen und werden genannt.
+dreh = wz.Werkzeug(nummer=11, art=wz.DREHWERKZEUG, eckradius=0.8)
+bibliothek = wz.Bibliothek([fraeser, torus, bohrer, ohne, dreh])
 
 bericht = ue.uebergeben(bibliothek)
 pruefe((bericht.werkzeuge, bericht.ohne_durchmesser) == (3, 1), f"Bericht: {bericht}")
+pruefe(bericht.ohne_form == ["T11 Drehwerkzeug"], f"ohne Form: {bericht.ohne_form}")
 pruefe(bericht.presets == 5, f"{bericht.presets} Presets statt 5")
 pruefe(
     not bericht.werkstoffe_ohne_freecad,

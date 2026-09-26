@@ -175,6 +175,66 @@ def schritte(h):
     yield 100
     h.pruefe(d.werkzeug.name == "" and not d.hinweis.isVisible(), "Name leeren")
 
+    # Die Arten nach Gruppen (Spezifikation Werkzeugarten); jede zeigt ihre
+    # Felder. Zurück beim Torusfräser ist alles wie vorher.
+    d.feld_art.showPopup()
+    yield 400
+    h.bild("6b_arten_auswahl", d.feld_art.view().window())
+    d.feld_art.hidePopup()
+    yield 100
+    art = d.feld_art
+    koepfe = [art.itemText(i) for i in range(art.count()) if art.itemData(i) is None]
+    h.pruefe(koepfe == ["Fräsen", "Bohren", "Drehen", "Antasten"], f"Gruppen: {koepfe}")
+    art.setCurrentIndex(art.findData(wz.GEWINDEBOHRER_RECHTS))
+    yield 200
+    h.pruefe(
+        d.zeile_steigung.isVisible() and not d.zeile_eckradius.isVisible(),
+        "Gewindebohrer: Steigung fehlt oder Eckradius da",
+    )
+    h.pruefe(
+        (d.beschriftung_schneidenlaenge.text(), d.feld_steigung.text()) == ("Gewindelänge", "1,5")
+        and farbe_grau in d.feld_steigung.styleSheet(),
+        f"Gewindebohrer: {d.beschriftung_schneidenlaenge.text()!r}, P {d.feld_steigung.text()!r}",
+    )
+    # Gewindebohrer haben keine Schneidenzahl (Manuel); Pflicht sind D und Steigung.
+    h.pruefe(not d.zeile_schneiden.isVisible(), "Gewindebohrer mit Schneidenzahl")
+    h.pruefe(
+        d.beschriftung_steigung.font().bold() and d.beschriftung_durchmesser.font().bold(),
+        f"Gewindebohrer fett: Steigung {d.beschriftung_steigung.font().bold()}, "
+        f"D {d.beschriftung_durchmesser.font().bold()}, "
+        f"Gewicht {d.beschriftung_steigung.font().weight()} / "
+        f"{d.beschriftung_durchmesser.font().weight()}, "
+        f"Stil {d.beschriftung_steigung.styleSheet()!r}",
+    )
+    h.bild("6c_gewindebohrer", d)
+    art.setCurrentIndex(art.findData(wz.ZENTRIERBOHRER))
+    yield 200
+    h.pruefe(
+        d.beschriftung_durchmesser.text() == "Zapfen-Ø"
+        and d.feld_spitzenwinkel.placeholderText() == "üblich: 60",
+        f"Zentrierbohrer: {d.beschriftung_durchmesser.text()!r}, "
+        f"{d.feld_spitzenwinkel.placeholderText()!r}",
+    )
+    h.bild("6d_zentrierbohrer", d)
+    art.setCurrentIndex(art.findData(wz.DREHWERKZEUG))
+    yield 200
+    h.pruefe(
+        not d.zeile_durchmesser.isVisible()
+        and d.zeile_eckradius.isVisible()
+        and d.beschriftung_eckradius.text() == "Eckenradius"
+        and d.feld_ausfuehrung.currentData() == wz.RECHTS,
+        "Drehwerkzeug: Felder",
+    )
+    h.bild("6e_drehwerkzeug", d)
+    art.setCurrentIndex(art.findData(wz.TORUSFRAESER))
+    yield 200
+    w = d.werkzeug
+    h.pruefe(
+        (w.durchmesser, w.eckradius, w.schneiden, w.steigung, w.ausfuehrung)
+        == (10.5, 0.5, 4, 0, ""),
+        f"zurück beim Torusfräser: {w}",
+    )
+
     # OK speichert und schließt.
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield 500

@@ -19,7 +19,7 @@ from . import werkzeuge as wz
 from . import werkzeuge_aus_cam as aus_cam
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
-from .gui_teile import GRAU, fett, hinweiszeile, knopf, mit_einheit
+from .gui_teile import GRAU, hinweiszeile, knopf, mit_einheit
 from .gui_werkstoffe import WerkstoffDialog
 from .gui_werkzeugbild import WerkzeugBild
 from .gui_zahlen import (
@@ -38,7 +38,7 @@ GROESSTE_NUMMER = 9999
 GROESSTE_SCHNEIDENZAHL = 20
 SYMBOL_GROESSE = 16  # Pixel, Kästchen mit dem ISO-Buchstaben
 # Felder mit Längen – gezeigt in mm oder inch, gespeichert in mm.
-LAENGEN = ("durchmesser", "schneidenlaenge", "eckradius", "gesamtlaenge", "schaft")
+LAENGEN = wz.LAENGEN_FELDER  # Felder mit Längeneinheit (mm oder in)
 
 # Farben der ISO-Gruppen, wie auf Wendeplatten-Schachteln und in Katalogen:
 # (Hintergrund, Schrift).
@@ -259,42 +259,65 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_nummer.valueChanged.connect(self._nummer_geaendert)
         self.feld_nummer.editingFinished.connect(self._nach_nummer)
 
+        # Die Arten nach Gruppen – „Fräsen“, „Bohren“ … als Überschrift, nicht wählbar.
         self.feld_art = QtGui.QComboBox()
-        for art in wz.ARTEN:
-            self.feld_art.addItem(wz.art_text(art), art)
+        for gruppe in wz.GRUPPEN:
+            self.feld_art.addItem(wz.gruppen_text(gruppe))
+            kopf = self.feld_art.model().item(self.feld_art.count() - 1)
+            kopf.setEnabled(False)
+            schrift = kopf.font()
+            schrift.setBold(True)
+            kopf.setFont(schrift)
+            for art in wz.arten_der_gruppe(gruppe):
+                self.feld_art.addItem(wz.art_text(art), art)
+        self.feld_art.setMaxVisibleItems(self.feld_art.count())
         self.feld_art.setToolTip(tr("wv.art.tooltip"))
         self.feld_art.currentIndexChanged.connect(self._art_geaendert)
 
-        self.feld_durchmesser = self._zahlenfeld(tr("wv.durchmesser.tooltip"), "durchmesser")
+        # Alle Maße, die eine Art haben kann. Welche zu sehen sind und in welcher
+        # Reihenfolge, legt _felder_anordnen() je Art fest (wz.ARTDATEN).
+        self._zahlenfelder = {}  # Feldname -> Eingabefeld
+        self._felder = {}  # Feldname -> (Beschriftung, Zeile mit Feld und Einheit)
+        for feld in wz.ZAHLEN_FELDER:
+            eingabe = self._zahlenfeld(_tooltip(feld), feld)
+            if feld in LAENGEN:
+                zeile = self._mit_laenge(eingabe)
+            elif feld == wz.STEIGUNG:
+                zeile = mit_einheit(eingabe, _steigung_einheit())
+                self._steigung_zeile = zeile
+            else:
+                zeile = mit_einheit(eingabe, "°")
+            self._zahlenfelder[feld] = eingabe
+            self._felder[feld] = (QtGui.QLabel(), zeile)
 
         self.feld_schneiden = QtGui.QSpinBox()
         self.feld_schneiden.setRange(1, GROESSTE_SCHNEIDENZAHL)
         self.feld_schneiden.setToolTip(tr("wv.schneiden.tooltip"))
         self.feld_schneiden.valueChanged.connect(self._schneiden_geaendert)
-
-        self.feld_schneidenlaenge = self._zahlenfeld(
-            tr("wv.schneidenlaenge.tooltip"), "schneidenlaenge"
-        )
-        self.feld_gesamtlaenge = self._zahlenfeld(tr("wv.gesamtlaenge.tooltip"), "gesamtlaenge")
-        self.feld_schaft = self._zahlenfeld(tr("wv.schaft.tooltip"), "schaft")
-        self.feld_eintauchwinkel = self._zahlenfeld(
-            tr("wv.eintauchwinkel.tooltip"), "eintauchwinkel"
-        )
-        self.zeile_eintauchwinkel = mit_einheit(self.feld_eintauchwinkel, "°")
-        self.beschriftung_eintauchwinkel = QtGui.QLabel(tr("wv.eintauchwinkel"))
-        # Nur beim Bohrer – an der Stelle des Eintauchwinkels, den er nicht hat.
-        self.feld_spitzenwinkel = self._zahlenfeld(tr("wv.spitzenwinkel.tooltip"), "spitzenwinkel")
-        self.zeile_spitzenwinkel = mit_einheit(self.feld_spitzenwinkel, "°")
-        self.beschriftung_spitzenwinkel = QtGui.QLabel(tr("wv.spitzenwinkel"))
-        self.feld_eckradius = self._zahlenfeld(tr("wv.eckradius.tooltip"), "eckradius")
-        self.zeile_eckradius = self._mit_laenge(self.feld_eckradius)
-        self.beschriftung_eckradius = QtGui.QLabel(tr("wv.eckradius"))
+        self._felder["schneiden"] = (QtGui.QLabel(), self.feld_schneiden)
 
         self.feld_schneidstoff = QtGui.QComboBox()
         self.feld_schneidstoff.addItem(tr("wv.schneidstoff.vhm"), wz.VHM)
         self.feld_schneidstoff.addItem(tr("wv.schneidstoff.hss"), wz.HSS)
         self.feld_schneidstoff.setToolTip(tr("wv.schneidstoff.tooltip"))
         self.feld_schneidstoff.currentIndexChanged.connect(self._schneidstoff_geaendert)
+        self._felder["schneidstoff"] = (QtGui.QLabel(), self.feld_schneidstoff)
+
+        self.feld_ausfuehrung = QtGui.QComboBox()
+        self.feld_ausfuehrung.addItem(wz.ausfuehrung_text(""), "")
+        for ausfuehrung in wz.AUSFUEHRUNGEN:
+            self.feld_ausfuehrung.addItem(wz.ausfuehrung_text(ausfuehrung), ausfuehrung)
+        self.feld_ausfuehrung.setToolTip(tr("wv.ausfuehrung.tooltip"))
+        self.feld_ausfuehrung.currentIndexChanged.connect(self._ausfuehrung_geaendert)
+        self._felder["ausfuehrung"] = (QtGui.QLabel(), self.feld_ausfuehrung)
+
+        # Wie bisher erreichbar: feld_durchmesser, zeile_eckradius, beschriftung_eckradius …
+        for feld, (beschriftung, zeile) in self._felder.items():
+            setattr(self, f"beschriftung_{feld}", beschriftung)
+            setattr(self, f"zeile_{feld}", zeile)
+        for feld, eingabe in self._zahlenfelder.items():
+            setattr(self, f"feld_{feld}", eingabe)
+        self._angeordnet = None  # für welche Art die Felder gerade angeordnet sind
 
         self.feld_name = QtGui.QLineEdit()
         self.feld_name.setToolTip(tr("wv.name.tooltip"))
@@ -305,47 +328,26 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_bezeichnung.setToolTip(tr("wv.bezeichnung.tooltip"))
         self.feld_bezeichnung.textEdited.connect(self._bezeichnung_geaendert)
 
-        zeilen = [
-            (QtGui.QLabel(tr("wv.nummer")), self.feld_nummer),
-            (QtGui.QLabel(tr("wv.art")), self.feld_art),
-            (fett(tr("wv.durchmesser")), self._mit_laenge(self.feld_durchmesser)),
-            (fett(tr("wv.schneiden")), self.feld_schneiden),
-            (
-                QtGui.QLabel(tr("wv.schneidenlaenge")),
-                self._mit_laenge(self.feld_schneidenlaenge),
-            ),
-            (QtGui.QLabel(tr("wv.gesamtlaenge")), self._mit_laenge(self.feld_gesamtlaenge)),
-            (QtGui.QLabel(tr("wv.schaft")), self._mit_laenge(self.feld_schaft)),
-            (QtGui.QLabel(tr("wv.schneidstoff")), self.feld_schneidstoff),
-            # Zuletzt, was nur manche Arten haben – ausgeblendet ohne Lücke davor.
-            (self.beschriftung_eintauchwinkel, self.zeile_eintauchwinkel),
-            (self.beschriftung_eckradius, self.zeile_eckradius),
-        ]
-        # Der Name steht über die ganze Breite direkt unter Nummer und Art.
+        # Oben Nummer und Art, darunter der Name über die ganze Breite; die
+        # Maße der Art ordnet _felder_anordnen() darunter an, zu zweit je Reihe.
+        self._gitter = gitter
+        gitter.addWidget(QtGui.QLabel(tr("wv.nummer")), 0, 0)
+        gitter.addWidget(self.feld_nummer, 0, 1)
+        gitter.addWidget(QtGui.QLabel(tr("wv.art")), 0, 2)
+        gitter.addWidget(self.feld_art, 0, 3)
         gitter.addWidget(QtGui.QLabel(tr("wv.name")), 1, 0)
         gitter.addWidget(self.feld_name, 1, 1, 1, 3)
-        for i, (beschriftung, feld) in enumerate(zeilen):
-            reihe = i // 2 + (1 if i >= 2 else 0)
-            gitter.addWidget(beschriftung, reihe, 2 * (i % 2))
-            gitter.addWidget(feld, reihe, 2 * (i % 2) + 1)
-            if feld is self.zeile_eintauchwinkel:
-                gitter.addWidget(self.beschriftung_spitzenwinkel, reihe, 2 * (i % 2))
-                gitter.addWidget(self.zeile_spitzenwinkel, reihe, 2 * (i % 2) + 1)
-        unten = (len(zeilen) + 1) // 2 + 1
-        gitter.addWidget(QtGui.QLabel(tr("wv.bezeichnung")), unten, 0)
-        gitter.addWidget(self.feld_bezeichnung, unten, 1, 1, 3)
+        self.beschriftung_bezeichnung = QtGui.QLabel(tr("wv.bezeichnung"))
 
         # Grau: Beispielwerte eines neuen Werkzeugs – sie gelten trotzdem.
         self.beispiel_hinweis = QtGui.QLabel(tr("wv.beispiel"))
         self.beispiel_hinweis.setWordWrap(True)
         self.beispiel_hinweis.setStyleSheet(f"color: {GRAU.name()};")
-        gitter.addWidget(self.beispiel_hinweis, unten + 1, 0, 1, 4)
         self.hinweis = hinweiszeile()
-        gitter.addWidget(self.hinweis, unten + 2, 0, 1, 4)
         # Rechts neben den Feldern das Werkzeug im richtigen Verhältnis.
         self.werkzeugbild = WerkzeugBild()
         self.werkzeugbild.setToolTip(tr("wv.werkzeugbild.tooltip"))
-        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 3, 1, QtCore.Qt.AlignTop)
+        self._felder_anordnen(wz.SCHAFTFRAESER)
 
         aufbau.addWidget(self.formular_rahmen)
         self.schnittwerte = SchnittwertBereich(self._schnittwerte_geaendert)
@@ -360,16 +362,21 @@ class WerkzeugDialog(QtGui.QDialog):
 
     @staticmethod
     def _zeigen(eigenschaft, wert):
-        """Der Feldtext zu einem Wert: Längen im gewählten Maßsystem, Winkel in Grad."""
+        """Der Feldtext zu einem Wert: Längen im gewählten Maßsystem, Winkel in Grad,
+        die Steigung in mm oder Gängen je Zoll."""
         if eigenschaft in LAENGEN:
             return groesse_zeigen(wert, einheiten.LAENGE)
+        if eigenschaft == wz.STEIGUNG:
+            return zahl_zeigen(wz.steigung_anzeige(wert))
         return zahl_zeigen(wert)
 
     @staticmethod
     def _lesen(eigenschaft, text):
-        """Ein Feldtext als gespeicherter Wert: Längen in mm."""
+        """Ein Feldtext als gespeicherter Wert: Längen und Steigung in mm."""
         if eigenschaft in LAENGEN:
             return groesse_lesen(text, einheiten.LAENGE)
+        if eigenschaft == wz.STEIGUNG:
+            return wz.steigung_lesen(zahl_lesen(text))
         return zahl_lesen(text)
 
     def _zahlenfeld(self, tooltip, eigenschaft):
@@ -426,6 +433,7 @@ class WerkzeugDialog(QtGui.QDialog):
         einheiten.setze_masssystem(self.wahl_masssystem.currentData())
         for zeile in self._laengen_zeilen:
             zeile.einheit.setText(einheiten.einheit(einheiten.LAENGE))
+        self._steigung_zeile.einheit.setText(_steigung_einheit())
         self._liste_aufbauen(auswahl=self.werkzeug)
 
     def _werkstoff_gewaehlt(self, *_):
@@ -573,19 +581,15 @@ class WerkzeugDialog(QtGui.QDialog):
         self._fuellt = True
         self.feld_nummer.setValue(w.nummer)
         self.feld_art.setCurrentIndex(self.feld_art.findData(w.art))
-        self.feld_durchmesser.setText(self._zeigen("durchmesser", w.durchmesser))
+        for feld, eingabe in self._zahlenfelder.items():
+            eingabe.setText(self._zeigen(feld, getattr(w, feld)))
         self.feld_schneiden.setValue(w.schneiden)
-        self.feld_schneidenlaenge.setText(self._zeigen("schneidenlaenge", w.schneidenlaenge))
-        self.feld_eckradius.setText(self._zeigen("eckradius", w.eckradius))
-        self.feld_eintauchwinkel.setText(zahl_zeigen(w.eintauchwinkel))
-        self.feld_spitzenwinkel.setText(zahl_zeigen(w.spitzenwinkel))
-        self.feld_gesamtlaenge.setText(self._zeigen("gesamtlaenge", w.gesamtlaenge))
-        self.feld_schaft.setText(self._zeigen("schaft", w.schaft))
+        self.feld_ausfuehrung.setCurrentIndex(max(self.feld_ausfuehrung.findData(w.ausfuehrung), 0))
         self.feld_schneidstoff.setCurrentIndex(self.feld_schneidstoff.findData(w.schneidstoff))
         self.feld_bezeichnung.setText(w.bezeichnung)
         self.feld_name.setText(w.name)
         self._fuellt = False
-        self._eckradius_zeigen()
+        self._felder_anordnen(w.art)
         self._beispiele_zeigen()
         self._schaetzung_zeigen()
         self.werkzeugbild.zeige(w)
@@ -602,24 +606,54 @@ class WerkzeugDialog(QtGui.QDialog):
     def _schnittwerte_geaendert(self):
         """Eine Änderung in der Tabelle; gespeichert wird erst mit OK oder Übernehmen."""
 
-    def _eckradius_zeigen(self):
-        """Den Eckradius gibt es nur beim Torusfräser; der Bohrer hat statt des
-        Eintauchwinkels einen Spitzenwinkel."""
-        art = self.werkzeug.art if self.werkzeug is not None else None
-        self.zeile_eckradius.setVisible(art == wz.TORUSFRAESER)
-        self.beschriftung_eckradius.setVisible(art == wz.TORUSFRAESER)
-        fraeser = art is not None and art != wz.BOHRER
-        self.zeile_eintauchwinkel.setVisible(fraeser)
-        self.beschriftung_eintauchwinkel.setVisible(fraeser)
-        self.zeile_spitzenwinkel.setVisible(art == wz.BOHRER)
-        self.beschriftung_spitzenwinkel.setVisible(art == wz.BOHRER)
+    def _felder_anordnen(self, art):
+        """Die Maße der Art unter Nummer, Art und Name, zu zweit je Reihe, Pflicht fett;
+        darunter Bezeichnung und Hinweise, rechts das Bild. Was die Art nicht hat,
+        ist nicht zu sehen – sein Wert bleibt, falls man zurückwechselt."""
+        if art == self._angeordnet:
+            return
+        self._angeordnet = art
+        gitter = self._gitter
+        daten = wz.artdaten(art)
+        for beschriftung, zeile in self._felder.values():
+            gitter.removeWidget(beschriftung)
+            gitter.removeWidget(zeile)
+            beschriftung.hide()
+            zeile.hide()
+        for widget in (
+            self.beschriftung_bezeichnung,
+            self.feld_bezeichnung,
+            self.beispiel_hinweis,
+            self.hinweis,
+            self.werkzeugbild,
+        ):
+            gitter.removeWidget(widget)
+        for i, feld in enumerate(daten.felder):
+            beschriftung, zeile = self._felder[feld]
+            beschriftung.setText(wz.feld_text(feld, art))
+            reihe, spalte = 2 + i // 2, 2 * (i % 2)
+            gitter.addWidget(beschriftung, reihe, spalte)
+            gitter.addWidget(zeile, reihe, spalte + 1)
+            # Fett erst nach dem Einhängen: Hängt eine Beschriftung zum ersten
+            # Mal im schon gezeigten Dialog, setzt FreeCADs Stylesheet ihre
+            # Schrift zurück (gesehen in 1.1.3, Steigung beim Gewindebohrer).
+            schrift = beschriftung.font()
+            schrift.setBold(feld in daten.pflicht)
+            beschriftung.setFont(schrift)
+            beschriftung.show()
+            zeile.show()
+        unten = 2 + (len(daten.felder) + 1) // 2
+        gitter.addWidget(self.beschriftung_bezeichnung, unten, 0)
+        gitter.addWidget(self.feld_bezeichnung, unten, 1, 1, 3)
+        gitter.addWidget(self.beispiel_hinweis, unten + 1, 0, 1, 4)
+        gitter.addWidget(self.hinweis, unten + 2, 0, 1, 4)
+        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 3, 1, QtCore.Qt.AlignTop)
 
     def _beispielfelder(self):
         return {
-            "durchmesser": self.feld_durchmesser,
+            **self._zahlenfelder,
             "schneiden": self.feld_schneiden,
-            "schneidenlaenge": self.feld_schneidenlaenge,
-            "eckradius": self.feld_eckradius,
+            "ausfuehrung": self.feld_ausfuehrung,
         }
 
     def _beispiele_zeigen(self):
@@ -655,17 +689,25 @@ class WerkzeugDialog(QtGui.QDialog):
             )
         self.feld_gesamtlaenge.setPlaceholderText(laenge)
         self.feld_schaft.setPlaceholderText(schaft)
-        self.feld_spitzenwinkel.setPlaceholderText(
-            tr("wv.spitzenwinkel.platzhalter", wert=zahl_zeigen(wz.SPITZENWINKEL_BOHRER))
-        )
+        # Leere Winkel: grau der übliche der Art (Bohrer 118°, Gewinde 60° …).
+        for feld in wz.WINKEL_FELDER:
+            ueblich = wz.ueblich(w.art, feld) if w is not None else 0.0
+            self._zahlenfelder[feld].setPlaceholderText(
+                tr("wv.ueblich.platzhalter", wert=zahl_zeigen(ueblich))
+                if ueblich
+                else tr("feld.unbekannt")
+            )
 
     def _hinweise(self):
         """Zeigt am Werkzeug, was fehlt oder nicht passt – sofort, nicht erst beim Speichern."""
         w = self.werkzeug
         saetze = []
         if w is not None:
-            if not w.durchmesser:
+            pflicht = wz.artdaten(w.art).pflicht
+            if "durchmesser" in pflicht and not w.durchmesser:
                 saetze.append(tr("wv.hinweis.durchmesser"))
+            if wz.STEIGUNG in pflicht and not w.steigung:
+                saetze.append(tr("wv.hinweis.steigung"))
             if w.gesamtlaenge and w.gesamtlaenge < w.schneidenlaenge:
                 saetze.append(
                     tr(
@@ -718,6 +760,13 @@ class WerkzeugDialog(QtGui.QDialog):
             return
         self.werkzeug.schneiden = int(wert)
         self._beispiel_weg("schneiden")
+        self._geaendert()
+
+    def _ausfuehrung_geaendert(self, _index):
+        if self._fuellt or self.werkzeug is None:
+            return
+        self.werkzeug.ausfuehrung = self.feld_ausfuehrung.currentData() or ""
+        self._beispiel_weg("ausfuehrung")
         self._geaendert()
 
     def _schneidstoff_geaendert(self, _index):
@@ -780,15 +829,7 @@ class WerkzeugDialog(QtGui.QDialog):
 
     def _felder_uebernehmen(self):
         """Übernimmt, was noch im Zahlenfeld mit dem Fokus steht (vor dem Speichern)."""
-        for feld, eigenschaft in (
-            (self.feld_durchmesser, "durchmesser"),
-            (self.feld_schneidenlaenge, "schneidenlaenge"),
-            (self.feld_eckradius, "eckradius"),
-            (self.feld_eintauchwinkel, "eintauchwinkel"),
-            (self.feld_spitzenwinkel, "spitzenwinkel"),
-            (self.feld_gesamtlaenge, "gesamtlaenge"),
-            (self.feld_schaft, "schaft"),
-        ):
+        for eigenschaft, feld in self._zahlenfelder.items():
             self._zahl_uebernehmen(feld, eigenschaft)
 
     # --- Speichern -------------------------------------------------------------------
@@ -902,6 +943,35 @@ class WerkzeugDialog(QtGui.QDialog):
         super().reject()
 
 
+def _tooltip(feld):
+    """Der Tooltip eines Maßes."""
+    return {
+        "durchmesser": tr("wv.durchmesser.tooltip"),
+        "schneidenlaenge": tr("wv.schneidenlaenge.tooltip"),
+        "gesamtlaenge": tr("wv.gesamtlaenge.tooltip"),
+        "schaft": tr("wv.schaft.tooltip"),
+        "eckradius": tr("wv.eckradius.tooltip"),
+        "spitzen_d": tr("wv.spitzen_d.tooltip"),
+        "hals_d": tr("wv.hals_d.tooltip"),
+        "hals_laenge": tr("wv.hals_laenge.tooltip"),
+        "profilradius": tr("wv.profilradius.tooltip"),
+        "schneidenbreite": tr("wv.schneidenbreite.tooltip"),
+        "stechtiefe": tr("wv.stechtiefe.tooltip"),
+        "eintauchwinkel": tr("wv.eintauchwinkel.tooltip"),
+        "spitzenwinkel": tr("wv.spitzenwinkel.tooltip"),
+        "kegelwinkel": tr("wv.kegelwinkel.tooltip"),
+        "flankenwinkel": tr("wv.flankenwinkel.tooltip"),
+        "einstellwinkel": tr("wv.einstellwinkel.tooltip"),
+        "plattenwinkel": tr("wv.plattenwinkel.tooltip"),
+        wz.STEIGUNG: tr("wv.steigung.tooltip"),
+    }[feld]
+
+
+def _steigung_einheit():
+    """Einheit neben der Steigung: mm, in inch Gänge je Zoll."""
+    return tr("wv.einheit.gaenge") if einheiten.in_zoll() else "mm"
+
+
 def aus_cam_text(bericht):
     """Die Rückmeldung nach „Aus CAM übernehmen“, Absatz für Absatz."""
     absaetze = [tr("wv.aus_cam.bericht.neu", anzahl=len(bericht.neu))]
@@ -932,6 +1002,8 @@ def bericht_text(bericht):
         absaetze.append(tr("wv.cam.ohne_presets"))
     if bericht.ohne_durchmesser:
         absaetze.append(tr("wv.cam.ohne_durchmesser", anzahl=bericht.ohne_durchmesser))
+    if bericht.ohne_form:
+        absaetze.append(tr("wv.cam.ohne_form", liste=", ".join(bericht.ohne_form)))
     if bericht.entfernt:
         absaetze.append(tr("wv.cam.entfernt", anzahl=bericht.entfernt))
     absaetze.append(tr("wv.cam.weiter"))

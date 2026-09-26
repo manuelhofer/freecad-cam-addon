@@ -46,6 +46,9 @@ class WerkzeugBild(QtGui.QWidget):
 
     def _zeichne(self, maler, w, fremd):
         d = w.durchmesser
+        # Drehwerkzeuge haben keinen Durchmesser – ihre Bilder kommen mit Stufe C3.
+        if d <= 0 or not wz.hat_feld(w, "durchmesser"):
+            return
         schneide = w.schneidenlaenge or 2 * d
         laenge = max(wz.laenge_fuer_cam(w), schneide)
         schaft = wz.schaft_fuer_cam(w)

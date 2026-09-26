@@ -60,6 +60,8 @@ class Bericht:
 
     werkzeuge: int = 0
     ohne_durchmesser: int = 0  # übersprungen – ohne D gibt es kein Werkzeug
+    # Übersprungen, weil CAM die Art (noch) nicht kennt – Kurztexte „T9 Drehwerkzeug“.
+    ohne_form: list = field(default_factory=list)
     presets: int = 0
     entfernt: int = 0
     werkstoffe_ohne_freecad: list = field(default_factory=list)  # Kurznamen
@@ -190,6 +192,9 @@ def uebergeben(bibliothek):
     tools = []
     neue_ids = set()
     for werkzeug in bibliothek.sortierte_werkzeuge():
+        if werkzeug.art not in FORMEN:
+            bericht.ohne_form.append(f"T{werkzeug.nummer} {wz.art_text(werkzeug.art)}")
+            continue
         if werkzeug.durchmesser <= 0:
             bericht.ohne_durchmesser += 1
             continue

@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-55 werkzeugarten-tabelle
+
+### EINGELESEN
+- Spezifikation Werkzeugarten (P-2026-09-26-53), Abschnitte 2–4 und 8
+  (Stufe 2): alle 26 Arten wählbar, gegliedert, je Art ihre Felder.
+- Manuel während des Bauens: „Gewindebohrer haben keine Schneidenanzahl.“
+- `camaddon/werkzeuge.py`, `camaddon/gui_werkzeuge.py`,
+  `camaddon/gui_werkzeugbild.py`, `camaddon/uebergabe_werkzeuge.py`.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (26 Arten, `ARTDATEN`, neue Felder, Zeile und
+  Name je Art, Steigung in inch als Gänge je Zoll)
+- `camaddon/gui_werkzeuge.py` (Felder je Art, Auswahl gegliedert)
+- `camaddon/gui_werkzeugbild.py` (kein Bild ohne Durchmesser)
+- `camaddon/uebergabe_werkzeuge.py` (Arten ohne CAM-Form bleiben draußen)
+- `translations/de.json`, `translations/en.json`
+- `help/de/werkzeuge.html`, `help/en/werkzeuge.html`
+- `docs/spezifikation_werkzeugarten.md`
+- `tests/test_werkzeuge.py`, `tests/test_uebergabe_werkzeuge.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Art aufklappen: 26 Arten unter „Fräsen“, „Bohren“,
+„Drehen“, „Antasten“; „Gewindebohrer rechts“ zeigt Durchmesser und
+Steigung fett, Gewindelänge, Gesamtlänge, Schaft-Ø, Schneidstoff – keine
+Schneidenzahl, keinen Eckradius.
+
+### DONE
+- `ARTDATEN`: je Art Gruppe, Felder in Anzeigereihenfolge, Pflichtfelder,
+  übliche Winkel, Beispiele metrisch und in runden Zollmaßen (`_zoll`).
+  Neue Felder: Spitzen-Ø, Kegel-, Flanken-, Einstell-, Plattenwinkel,
+  Hals-Ø und -länge, Profilradius, Steigung, Schneidenbreite, Stechtiefe,
+  Ausführung. Beschriftung je Art (Zapfen-Ø, Gewindelänge, Eckenradius …).
+- Dialog: alle Felder einmal angelegt, `_felder_anordnen()` stellt die der
+  Art zu zweit je Reihe auf; leere Winkel zeigen grau den üblichen
+  („üblich: 60“ beim Zentrierbohrer). Werte in Feldern, die die neue Art
+  nicht hat, bleiben erhalten (Spezifikation, Abschnitt 4 angepasst).
+- Gefunden: Hängt eine Beschriftung erst im schon gezeigten Dialog ein,
+  setzt FreeCADs Stylesheet (70 KB) ihre Schrift zurück – fett jetzt nach
+  dem Einhängen.
+- Liste: „T4  Gewindebohrer rechts Ø 10 · P 1.5 · VHM“,
+  „T9  Drehwerkzeug r 0.8 · VHM“; in inch „13 Gg/Zoll“.
+- „An CAM übergeben“ lässt Arten ohne CAM-Form (noch alle neuen) draußen
+  und nennt sie; die Zuordnung kommt mit Stufe 5.
+- Bilder: noch die bisherigen; Drehwerkzeuge ohne Bild – Stufe 3 (Manuel:
+  „die Grafik bei den Drehwerkzeugen ist nicht korrekt, auch der
+  Zentrierbohrer ist eher spitz“).
+
+### TEST
+- `test_werkzeuge` (Tabelle, Zeilen, Namen, neue Felder, Gänge je Zoll),
+  `test_uebergabe_werkzeuge`, `test_werkzeuge_aus_cam`,
+  `test_job_schnittwerte`, `test_sprache`, `test_hilfe` in 1.1.3 und im
+  Wochen-Build; Szenarien `werkzeugverwaltung` (neu: Auswahl, Gewindebohrer,
+  Zentrierbohrer, Drehwerkzeug, zurück), `schnittwerte`, `zoll`, `an_cam`,
+  `aus_cam`, `schruppwerte` in 1.1.3.
+
+### NEXT
+- Stufe C3: Bilder aller Arten.
+
 ## P-2026-09-26-54 kugelfraeser
 
 ### EINGELESEN

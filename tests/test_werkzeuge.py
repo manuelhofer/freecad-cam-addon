@@ -95,6 +95,68 @@ pruefe(
 pruefe(set(wz.BEISPIELE_ZOLL) == set(wz.ARTEN), "nicht jede Art hat Beispiele in Zoll")
 einheiten.setze_masssystem(vorher_mass)
 
+# Die 26 Arten (Spezifikation Werkzeugarten): jede in einer Gruppe, Beispiele,
+# Pflichtfelder und übliche Winkel nur für Felder, die die Art hat.
+pruefe(len(wz.ARTEN) == 26, f"{len(wz.ARTEN)} Arten statt 26")
+pruefe(
+    sum(len(wz.arten_der_gruppe(g)) for g in wz.GRUPPEN) == 26, "Arten ohne oder in zwei Gruppen"
+)
+for art, daten in wz.ARTDATEN.items():
+    for beispiele in (daten.beispiel, daten.beispiel_zoll):
+        fremd = set(beispiele) - set(daten.felder)
+        pruefe(not fremd, f"{art}: Beispiele für Felder, die es nicht gibt: {fremd}")
+    pruefe(set(daten.pflicht) <= set(daten.felder), f"{art}: Pflichtfeld fehlt")
+    pruefe(set(daten.ueblich) <= set(wz.WINKEL_FELDER) & set(daten.felder), f"{art}: üblich")
+    pruefe(wz.art_text(art) and wz.art_text(art) != art, f"{art}: kein Name")
+    for feld in daten.felder:
+        pruefe(bool(wz.feld_text(feld, art)), f"{art}: Feld {feld} ohne Beschriftung")
+pruefe(wz.feld_text("durchmesser", wz.ZENTRIERBOHRER) == "Zapfen-Ø", "Zapfen-Ø")
+pruefe(wz.ueblich(wz.NC_ANBOHRER, "spitzenwinkel") == 90, "NC-Anbohrer 90°")
+pruefe(wz.spitzenwinkel_fuer_cam(wz.Werkzeug(art=wz.ZENTRIERBOHRER)) == 60, "Zentrierbohrer 60°")
+# Liste und Name je Art – die alten Arten wie bisher.
+gewinde = wz.Werkzeug(nummer=4, art=wz.GEWINDEBOHRER_RECHTS)
+wz.beispielwerte_setzen(gewinde, neu=True)
+pruefe(
+    wz.zeile(gewinde) == "T4  Gewindebohrer rechts Ø 10 · P 1.5 · VHM",
+    f"Zeile Gewindebohrer: {wz.zeile(gewinde)!r}",
+)
+pruefe(
+    wz.beispielname(gewinde) == "Gewindebohrer rechts T4 VHM D10 P1.5 L20",
+    f"Name Gewindebohrer: {wz.beispielname(gewinde)!r}",
+)
+dreh = wz.Werkzeug(nummer=9, art=wz.DREHWERKZEUG)
+wz.beispielwerte_setzen(dreh, neu=True)
+pruefe(wz.zeile(dreh) == "T9  Drehwerkzeug r 0.8 · VHM", f"Zeile Drehwerkzeug: {wz.zeile(dreh)!r}")
+pruefe(wz.kurz(dreh) == "Drehwerkzeug", f"kurz: {wz.kurz(dreh)!r}")
+pruefe(dreh.ausfuehrung == wz.RECHTS and "ausfuehrung" in dreh.beispiel, "Ausführung Beispiel")
+# Zurück zum Fräser: Die Ausführung (Beispiel) wird wieder leer, z wieder das Beispiel.
+dreh.art = wz.SCHAFTFRAESER
+wz.beispielwerte_setzen(dreh)
+pruefe((dreh.ausfuehrung, dreh.schneiden) == ("", 3), f"zurück zum Fräser: {dreh}")
+dreh.art = wz.DREHWERKZEUG
+wz.beispielwerte_setzen(dreh)
+# Neue Felder werden gespeichert; unsinnige Werte begrenzt.
+gewinde.flankenwinkel, gewinde.hals_d = 55, 7.5
+geladen = wz.Werkzeug.aus_dict(gewinde.als_dict())
+pruefe(
+    (geladen.steigung, geladen.flankenwinkel, geladen.hals_d) == (1.5, 55, 7.5),
+    f"neue Felder: {geladen}",
+)
+pruefe(wz.Werkzeug.aus_dict(dreh.als_dict()).ausfuehrung == wz.RECHTS, "Ausführung gespeichert")
+kaputt = wz.Werkzeug.aus_dict({"kegelwinkel": 400, "steigung": -1, "ausfuehrung": "oben"})
+pruefe(
+    (kaputt.kegelwinkel, kaputt.steigung, kaputt.ausfuehrung) == (180, 0, ""),
+    f"Grenzen: {kaputt}",
+)
+# Steigung in inch als Gänge je Zoll.
+einheiten.setze_masssystem(einheiten.ZOLL)
+pruefe(wz.steigung_text(25.4 / 13) == "13", f"13 Gänge: {wz.steigung_text(25.4 / 13)!r}")
+pruefe(abs(wz.steigung_lesen(16) - 1.5875) < 1e-9, "16 Gänge je Zoll")
+unc = wz.Werkzeug(nummer=6, art=wz.GEWINDEBOHRER_LINKS)
+wz.beispielwerte_setzen(unc, neu=True)
+pruefe(wz.zeile(unc) == "T6  Gewindebohrer links Ø 0.5 · 13 Gg/Zoll · VHM", wz.zeile(unc))
+einheiten.setze_masssystem(vorher_mass)
+
 # Kopieren: neue Kennung, nächste Nummer, gleiche Werte.
 kopie = b.kopiere(t1)
 pruefe(kopie.kennung != t1.kennung and kopie.nummer == 3, f"Kopie {kopie}")

@@ -71,10 +71,20 @@ CAM names the tool like this. A name another tool already has is reported –
 but allowed (sister tool). The name only becomes the tool call in the NC
 program with a suitable post processor: FreeCAD's own ones call tools by
 number.</li>
-<li><b>Type</b> – end mill, bull nose end mill (with corner radius), ball end
-mill, chamfer mill, drill.</li>
-<li><b>Diameter</b> and <b>Flutes</b> (bold) are needed for every
-calculation.</li>
+<li><b>Type</b> – 26 types as in InventorCAM, grouped into <b>Milling</b>
+(end, ball end, bull nose, tapered, dovetail, lollipop, chamfer, corner
+rounding, face, slot, form mill, thread mill), <b>Drilling</b> (drill,
+center drill, spot drill, tap right and left hand, countersink,
+counterbore, reamer, boring bar, fine boring tool), <b>Turning</b>
+(turning, grooving, threading tool) and <b>Probing</b> (probe). Each type
+only shows the fields it has – a tap, for example, the pitch but no number
+of flutes. Switching the type loses nothing: values in fields the new type
+does not have are back when you switch back. Turning tools do not go to CAM
+yet – FreeCAD does not turn.</li>
+<li>What is labelled in <b>bold</b> is needed for the calculation – mostly
+<b>Diameter</b> and <b>Flutes</b>, for a tap diameter and pitch. Empty angles
+show the usual one of the type in grey (drill 118°, center drill 60°, thread
+60° …) – it applies until you enter one.</li>
 <li><b>Flute length</b> – the usable length of the cutting edge. It is the
 largest ap the tool can cut on its side, and later shows how much of the edge
 a use case actually uses.</li>

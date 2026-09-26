@@ -48,7 +48,7 @@ Drehzahl gerechnet wird.
 | `bohrer` | Bohrer / Drill | Spitzenwinkel (leer 118°) | drill |
 | `zentrierbohrer` | Zentrierbohrer / Center drill | Spitzenwinkel (60°); D = Zapfen-Ø, Schaft = Körper-Ø | drill ≈ |
 | `nc_anbohrer` | NC-Anbohrer / Spot drill | Spitzenwinkel (90°) | drill |
-| `gewindebohrer_rechts` | Gewindebohrer rechts / Tap, right hand | Steigung; Schneidenlänge = Gewindelänge | tap (Forward) |
+| `gewindebohrer_rechts` | Gewindebohrer rechts / Tap, right hand | Steigung; Schneidenlänge = Gewindelänge; **keine Schneidenzahl** (Manuel) | tap (Forward) |
 | `gewindebohrer_links` | Gewindebohrer links / Tap, left hand | wie rechts | tap (Reverse) |
 | `kegelsenker` | Kegelsenker / Countersink | Spitzenwinkel (90°), Spitzen-Ø | chamfer |
 | `flachsenker` | Flachsenker / Counterbore | Spitzen-Ø (Führungszapfen) | endmill ≈ |
@@ -102,8 +102,9 @@ Flankenwinkel), die Einheit daneben wie bisher.
 | `ausfuehrung` | rechts/links/neutral | Drehwerkzeug, Gewindedrehwerkzeug |
 
 Pflicht (fett) ist je Art, was man zum Rechnen braucht: D und z bei Fräsern
-und Bohrern, dazu die Steigung beim Gewindebohrer; Drehwerkzeuge und Taster
-haben keine Pflichtfelder. Der Schneidstoff bekommt **HM-Wendeplatte**
+und Bohrern; beim Gewindebohrer D und Steigung – er hat keine Schneidenzahl
+(Manuel: „Gewindebohrer haben keine Schneidenanzahl“, der Vorschub ist
+n · P); Drehwerkzeuge und Taster haben keine Pflichtfelder. Der Schneidstoff bekommt **HM-Wendeplatte**
 dazu (Plan-, Drehwerkzeuge, Bohrstange); an CAM geht sie als „Carbide“.
 
 Der **Eintauchwinkel** bleibt bei den Fräsern, die eintauchen können
@@ -121,7 +122,10 @@ Der **Eintauchwinkel** bleibt bei den Fräsern, die eintauchen können
   noch Beispiel ist, bleibt gestrichelt; ohne D zeigt es die Beispielmaße
   der Art (wie seit P-2026-09-26-37).
 - Ein Wechsel der Art füllt wie bisher die Beispielfelder und leere Felder
-  mit den Beispielen der neuen Art und leert, was die neue Art nicht hat.
+  mit den Beispielen der neuen Art. Werte in Feldern, die die neue Art
+  nicht hat, bleiben unsichtbar erhalten – wer sich verklickt und
+  zurückwechselt, findet sie wieder (beim Bauen so entschieden,
+  P-2026-09-26-55).
 
 Beispielwerte (metrisch; in inch runde Zollmaße):
 
