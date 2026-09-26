@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Symbol „Nach Updates suchen“: Pfeil im Kreis, in der Mitte ein Pfeil nach unten. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <path d="M50 14 A24 24 0 1 0 56 32" fill="none" stroke="#204a87" stroke-width="6" stroke-linecap="round"/>
+  <path d="M58 6 L58 24 L40 20 Z" fill="#204a87"/>
+  <path d="M32 18 V40" stroke="#4e9a06" stroke-width="6" stroke-linecap="round"/>
+  <path d="M21 34 L32 47 L43 34 Z" fill="#4e9a06"/>
+</svg>

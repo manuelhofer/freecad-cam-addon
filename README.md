@@ -52,12 +52,14 @@ ist):
    **CAM**.
 
 Die Zeile legt das Addon in den Addon-Ordner von FreeCAD – ohne Git, ohne
-GitHub Desktop – und trägt es im Addon-Manager ein. **Aktualisieren:** Das
-Addon schaut beim Start selbst nach und fragt bei einer neuen Version
-„Jetzt aktualisieren?“ (abschalten: Bearbeiten → Einstellungen →
-CAM-Addon). Von Hand: dieselbe Zeile noch einmal, oder **Werkzeuge →
-Addon-Manager** – der kann das Addon auch wieder entfernen. Was die Zeile
-genau tut, steht oben in [installieren.py](installieren.py).
+GitHub Desktop – und trägt es im Addon-Manager ein. **Aktualisieren:** Der
+Knopf **Nach Updates suchen** in der Werkzeugleiste des Addons schaut bei
+GitHub nach und fragt bei einer neuen Version „Jetzt aktualisieren?“. Von
+selbst sucht das Addon nicht; beim Start von FreeCAD suchen lässt es sich
+unter Bearbeiten → Einstellungen → CAM-Addon einschalten. Ohne das Addon:
+dieselbe Zeile noch einmal, oder **Werkzeuge → Addon-Manager** – der kann
+das Addon auch wieder entfernen. Was die Zeile genau tut, steht oben in
+[installieren.py](installieren.py).
 
 **Oder ganz über den Addon-Manager:** **Bearbeiten → Einstellungen →
 Addon-Manager**, unter **Eigene Repositories** eine Zeile mit der URL
@@ -83,13 +85,13 @@ und der Addon-Manager kommen dann nicht heran. Dann holt man das Addon mit
    im Mod-Ordner.)
 3. FreeCAD neu starten.
 
-**Aktualisieren:** Das Addon schaut beim Start von FreeCAD selbst nach (per
-Git, mit der Anmeldung von GitHub Desktop bzw. Git) und fragt bei einer neuen
-Version „Jetzt aktualisieren?“. Abschalten und „Jetzt nach Updates suchen“:
-Bearbeiten → Einstellungen → CAM-Addon. Von Hand: in GitHub Desktop **Fetch
-origin**, dann **Pull origin** (bzw. `git pull` im Ordner) und FreeCAD neu
-starten – so kommen auch kleine Änderungen an, die noch keine neue
-Versionsnummer haben. Ein so installierter Git-Klon bleibt es auch, wenn das
+**Aktualisieren:** Der Knopf **Nach Updates suchen** in der Werkzeugleiste
+des Addons schaut nach (per Git, mit der Anmeldung von GitHub Desktop bzw.
+Git) und fragt bei einer neuen Version „Jetzt aktualisieren?“. Beim Start
+von FreeCAD suchen: Bearbeiten → Einstellungen → CAM-Addon (ab Werk aus).
+Von Hand: in GitHub Desktop **Fetch origin**, dann **Pull origin** (bzw.
+`git pull` im Ordner) und FreeCAD neu starten – so kommen auch kleine
+Änderungen an, die noch keine neue Versionsnummer haben. Ein so installierter Git-Klon bleibt es auch, wenn das
 Repository öffentlich wird; die Zeile oben lässt ihn in Ruhe.
 
 ## Lizenz

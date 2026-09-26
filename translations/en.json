@@ -162,7 +162,7 @@
     "update.aktuell": "You have the latest version of the CAM Addon ({jetzt}).",
     "update.gruppe": "Updates",
     "update.beim_start": "Look for updates when FreeCAD starts",
-    "update.beim_start.tooltip": "Looks for updates on GitHub in the background – via Git if the addon was installed with Git (signed in like Git or GitHub Desktop), otherwise directly over the internet.",
+    "update.beim_start.tooltip": "Off by default – otherwise every addon checks at start. Checks on GitHub in the background – via Git if the addon was installed with Git (sign-in as in Git or GitHub Desktop), otherwise directly over the internet. You can always check with “Check for updates” in the toolbar.",
     "update.jetzt_suchen": "Look for updates now",
     "uebergeben.nicht_verfuegbar": "Your FreeCAD version ({version}) has no machine definition in CAM yet – the machine cannot be handed over there yet.\n\nThis works with the FreeCAD weekly build and from the next FreeCAD version on. Your machine stays fully stored here; with a suitable version one click will do.",
     "dialog.uebergeben.tooltip_fehlt": "Needs the CAM machine definition – available in the weekly build and from the next FreeCAD version on.",
@@ -544,5 +544,8 @@
     "zahlen.zoll": "Inch: Ø 1 in · vc 400 SFM · vf 30 ipm",
     "einstellungen.zahlen.masssystem": "Unit system:",
     "wv.masssystem.tooltip": "Unit system: mm or inch. Applies right away to the whole addon – fields, tables, planner; values are always saved in mm. Also under Edit → Preferences → CAM Addon.",
-    "einheit.je_umdrehung": "{e_span}/rev"
+    "einheit.je_umdrehung": "{e_span}/rev",
+    "befehl.update.titel": "Check for updates",
+    "befehl.update.tooltip": "Checks on GitHub whether there is a new version of the CAM Addon and offers to update. The addon doesn't check by itself – that can be switched on under Edit → Preferences → CAM Addon.",
+    "update.sucht": "CAM Addon: checking for updates …"
 }

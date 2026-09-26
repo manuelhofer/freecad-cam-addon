@@ -162,7 +162,7 @@
     "update.aktuell": "Du hast die neueste Version des CAM-Addons ({jetzt}).",
     "update.gruppe": "Updates",
     "update.beim_start": "Beim Start von FreeCAD nach Updates suchen",
-    "update.beim_start.tooltip": "Schaut im Hintergrund bei GitHub nach – per Git, wenn das Addon mit Git installiert ist (Anmeldung wie in Git bzw. GitHub Desktop), sonst direkt über das Internet.",
+    "update.beim_start.tooltip": "Ab Werk aus – sonst sucht jedes Addon beim Start. Schaut im Hintergrund bei GitHub nach – per Git, wenn das Addon mit Git installiert ist (Anmeldung wie in Git bzw. GitHub Desktop), sonst direkt über das Internet. Jederzeit geht es mit „Nach Updates suchen“ in der Werkzeugleiste.",
     "update.jetzt_suchen": "Jetzt nach Updates suchen",
     "uebergeben.nicht_verfuegbar": "Deine FreeCAD-Version ({version}) kennt noch keine Maschinendefinition in CAM – dorthin kann die Maschine noch nicht übergeben werden.\n\nDas geht mit dem Wochen-Build von FreeCAD und ab der nächsten FreeCAD-Version. Deine Maschine bleibt hier vollständig gespeichert; mit einer passenden Version genügt dann ein Klick.",
     "dialog.uebergeben.tooltip_fehlt": "Braucht die CAM-Maschinendefinition – die gibt es im Wochen-Build und ab der nächsten FreeCAD-Version.",
@@ -544,5 +544,8 @@
     "zahlen.zoll": "Zoll (inch): Ø 1 in · vc 400 SFM · vf 30 ipm",
     "einstellungen.zahlen.masssystem": "Maßsystem:",
     "wv.masssystem.tooltip": "Maßsystem: mm oder inch. Gilt sofort für das ganze Addon – Felder, Tabellen, Planer; gespeichert wird immer in mm. Auch unter Bearbeiten → Einstellungen → CAM-Addon.",
-    "einheit.je_umdrehung": "{e_span}/U"
+    "einheit.je_umdrehung": "{e_span}/U",
+    "befehl.update.titel": "Nach Updates suchen",
+    "befehl.update.tooltip": "Schaut bei GitHub nach, ob es eine neue Version des CAM-Addons gibt, und bietet sie zum Aktualisieren an. Von selbst sucht das Addon nicht – einschalten lässt sich das unter Bearbeiten → Einstellungen → CAM-Addon.",
+    "update.sucht": "CAM-Addon: suche nach Updates …"
 }

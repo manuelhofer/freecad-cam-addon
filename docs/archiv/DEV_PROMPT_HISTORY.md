@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-50 update-knopf
+
+### EINGELESEN
+- Manuel (2026-09-26): „Update-Prüfung nicht bei Start … wenn das jedes
+  Addon machen würde bei Start prüfen, dann würde man am Anfang bei 10
+  Addons 10 Updates laden müssen … lieber ein Update-Knopf, dass man
+  auswählen kann ‚ok, check nach Update‘ … und dann updaten lassen, wenn man
+  auf den Knopf drückt“.
+- Plan in `docs/STATUS_SNAPSHOT.md` (Punkt 7c, neu).
+
+### DATEIEN
+- `camaddon/gui_aktualisierung.py` (Befehl `BefehlUpdateSuchen`,
+  `von_hand_suchen()`, Suche beim Start ab Werk aus)
+- `camaddon/gui_start.py` (Befehl in der Werkzeugleiste)
+- `resources/icons/update.svg` (neu)
+- `translations/de.json`, `translations/en.json`
+- `tests/gui/szenario_update.py`
+- `README.md`, `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beim Start von FreeCAD sucht das Addon nicht mehr (ab Werk). Der Knopf
+„Nach Updates suchen“ in der Werkzeugleiste sucht im Hintergrund, zeigt
+in der Statusleiste „suche nach Updates …“ und sagt danach in jedem Fall,
+was herauskam – bei einer neuen Version mit „Jetzt aktualisieren“. In den
+Einstellungen lässt sich die Suche beim Start einschalten.
+
+### DONE
+- Knopf „Nach Updates suchen“ (Befehl `CamAddon_UpdateSuchen`, Symbol:
+  Pfeil im Kreis) in der Werkzeugleiste des Addons; solange eine Suche
+  läuft, ist er grau. Derselbe Weg wie „Jetzt nach Updates suchen“ in den
+  Einstellungen.
+- Suche beim Start ab Werk aus. Neuer Schlüssel `UpdateSucheBeimStart`:
+  Unter dem alten (`UpdateBeimStart`) stand bei allen, die die Einstellungen
+  einmal gespeichert haben, „an“ – sonst hätte der Wechsel sie nicht
+  erreicht.
+- README (beide Installationswege), Tooltip und Aufbau beschreiben den
+  Knopf.
+
+### TEST
+- `scripts/oberflaeche_testen.sh tests/gui/szenario_update.py` (1.1.3):
+  Befehl angemeldet; `von_hand_suchen()` findet 9.9.0 im Test-Repo, der
+  Hinweis erscheint, „Jetzt aktualisieren“ holt sie; „Beim Start suchen“
+  ab Werk aus, an und aus wird gespeichert. `szenario_erster_start`,
+  `test_sprache`, `test_aktualisierung`, `test_hilfe` grün. Voller Lauf mit
+  dem Versionssprung.
+
+### NEXT
+- Version 0.16.0, voller Lauf, Push; dann die Beispielmaschinen zur
+  Auswahl (Punkt 7b).
+
 ## P-2026-09-26-49 plan-beispielmaschinen-und-update
 
 ### EINGELESEN

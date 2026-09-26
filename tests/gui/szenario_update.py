@@ -1,6 +1,7 @@
-# Update-Hinweis: Auf „GitHub“ (nacktes Repo im Temp-Ordner) liegt eine neue
-# Version; die Suche im Hintergrund findet sie, der Hinweis erscheint, „Jetzt
-# aktualisieren“ holt sie. Dazu die Gruppe „Updates“ in den Einstellungen.
+# Update auf Knopfdruck: Auf „GitHub“ (nacktes Repo im Temp-Ordner) liegt
+# eine neue Version; „Nach Updates suchen“ findet sie, der Hinweis erscheint,
+# „Jetzt aktualisieren“ holt sie. Der Knopf hängt in der Werkzeugleiste; die
+# Suche beim Start ist ab Werk aus (Gruppe „Updates“ in den Einstellungen).
 import os
 import re
 import subprocess
@@ -43,13 +44,17 @@ def schritte(h):
     git("commit", "-q", "-am", "neu", ordner=arbeit)
     git("push", "-q", "origin", "HEAD:main", ordner=arbeit)
 
+    import FreeCADGui
+
+    befehl = FreeCADGui.Command.get("CamAddon_UpdateSuchen")
+    h.pruefe(befehl is not None, "Befehl „Nach Updates suchen“ fehlt")
     gefunden = []
-    suche = ga.Suche(lambda e: gefunden.append(ga.zeige(e, ordner=installiert)), ordner=installiert)
-    suche.start()
+    ga.von_hand_suchen(ordner=installiert, danach=lambda: gefunden.append(True))
     for _ in range(40):
         yield 250
         if gefunden:
             break
+    yield 200
     dialog = ga.UpdateDialog.offen
     h.pruefe(
         bool(gefunden) and dialog is not None and dialog.isVisible(),
@@ -74,11 +79,14 @@ def schritte(h):
 
     seite = gui_sprachwahl.Einstellungsseite()
     seite.loadSettings()
-    h.pruefe(seite.update_beim_start.isChecked(), "„Beim Start suchen“ ist nicht vorbelegt")
-    seite.form.resize(520, 260)
+    h.pruefe(not seite.update_beim_start.isChecked(), "„Beim Start suchen“ ist ab Werk an")
+    seite.form.resize(520, 340)
     seite.form.show()
     yield 300
     h.bild("3_einstellungen", seite.form)
+    seite.update_beim_start.setChecked(True)
+    seite.saveSettings()
+    h.pruefe(ga.suche_beim_start(), "Einschalten der Update-Suche wird nicht gespeichert")
     seite.update_beim_start.setChecked(False)
     seite.saveSettings()
     h.pruefe(not ga.suche_beim_start(), "Abschalten der Update-Suche wird nicht gespeichert")

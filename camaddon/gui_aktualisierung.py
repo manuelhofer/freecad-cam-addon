@@ -1,7 +1,11 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Oberfläche der Update-Suche: Hinweis beim Start, Gruppe in den Einstellungen.
+"""Oberfläche der Update-Suche: Knopf „Nach Updates suchen“, Gruppe in den Einstellungen.
 
-Gesucht wird in einem eigenen Thread, damit FreeCAD beim Start nicht wartet.
+Gesucht wird, wenn man den Knopf drückt (Manuel: „wenn das jedes Addon beim
+Start machen würde, bei 10 Addons 10 Updates …“). Beim Start von FreeCAD
+nur, wenn man es in den Einstellungen einschaltet – ab Werk aus.
+
+Gesucht wird in einem eigenen Thread, damit FreeCAD nicht wartet.
 Das Ergebnis zeigt das Hauptfenster, denn Qt-Fenster dürfen nur aus dem
 Haupt-Thread kommen: Ein Zeitgeber schaut dort regelmäßig nach, ob die Suche
 fertig ist. Die Suche selbst steht in aktualisierung.py.
@@ -14,7 +18,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import ADDON_ORDNER, PARAMETER_PFAD
+from . import ADDON_ORDNER, PARAMETER_PFAD, symbol
 from . import aktualisierung as a
 from .sprache import tr
 
@@ -35,9 +39,14 @@ def _parameter():
     return FreeCAD.ParamGet(PARAMETER_PFAD)
 
 
+# Neuer Schlüssel seit P-2026-09-26-50: Unter dem alten („UpdateBeimStart“)
+# stand bei vielen schon „an“ – ab Werk ist es jetzt aus.
+BEIM_START = "UpdateSucheBeimStart"
+
+
 def suche_beim_start():
-    """Soll beim Start gesucht werden? Einstellbar; ab Werk ja."""
-    return _parameter().GetBool("UpdateBeimStart", True)
+    """Soll beim Start gesucht werden? Einstellbar; ab Werk nein."""
+    return _parameter().GetBool(BEIM_START, False)
 
 
 def beim_start():
@@ -77,6 +86,43 @@ class Suche:
         if self.ergebnis is not None:
             self.uhr.stop()
             self.fertig(self.ergebnis)
+
+
+def von_hand_suchen(eltern=None, ordner=ADDON_ORDNER, danach=None):
+    """Sucht jetzt – Knopf in der Werkzeugleiste oder in den Einstellungen – und sagt
+    in jedem Fall, was dabei herauskam. `danach()` läuft, wenn die Suche fertig ist."""
+    hauptfenster = FreeCADGui.getMainWindow()
+    hauptfenster.statusBar().showMessage(tr("update.sucht"))
+
+    def fertig(ergebnis):
+        _laufende_suchen.remove(suche)
+        hauptfenster.statusBar().clearMessage()
+        if danach is not None:
+            danach()
+        zeige(ergebnis, von_hand=True, ordner=ordner, eltern=eltern)
+
+    suche = Suche(fertig, ordner=ordner)
+    _laufende_suchen.append(suche)
+    suche.start()
+    return suche
+
+
+class BefehlUpdateSuchen:
+    """Befehl in der Werkzeugleiste: sucht auf Knopfdruck nach einer neuen Version."""
+
+    def GetResources(self):
+        return {
+            "Pixmap": symbol("update.svg"),
+            "MenuText": tr("befehl.update.titel"),
+            "ToolTip": tr("befehl.update.tooltip"),
+        }
+
+    def IsActive(self):
+        # Nicht zweimal zugleich suchen.
+        return not _laufende_suchen
+
+    def Activated(self):
+        von_hand_suchen()
 
 
 def zeige(ergebnis, von_hand=False, ordner=ADDON_ORDNER, eltern=None):
@@ -168,15 +214,7 @@ def einstellungen_gruppe(seite):
 
     def jetzt_suchen():
         knopf.setEnabled(False)  # bis die Suche fertig ist
-
-        def fertig(ergebnis):
-            _laufende_suchen.remove(suche)
-            knopf.setEnabled(True)
-            zeige(ergebnis, von_hand=True, eltern=gruppe)
-
-        suche = Suche(fertig)
-        _laufende_suchen.append(suche)
-        suche.start()
+        von_hand_suchen(eltern=gruppe, danach=lambda: knopf.setEnabled(True))
 
     knopf.clicked.connect(jetzt_suchen)
     aufbau = QtGui.QVBoxLayout(gruppe)
@@ -190,4 +228,4 @@ def einstellungen_laden(seite):
 
 
 def einstellungen_speichern(seite):
-    _parameter().SetBool("UpdateBeimStart", seite.update_beim_start.isChecked())
+    _parameter().SetBool(BEIM_START, seite.update_beim_start.isChecked())

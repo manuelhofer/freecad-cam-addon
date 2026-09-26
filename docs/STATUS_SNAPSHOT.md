@@ -57,6 +57,10 @@ Wunschliste, offene Bugs und Tasks.
    Z-Richtung, und radial, 90° dazu), 3-Achs-Fräse, 5-Achs Tisch/Tisch
    (A/C, Schwenkbrücke mit Rundtisch), 5-Achs Kopf/Kopf (A/B), 5-Achs
    Kopf/Tisch (B am Kopf, C am Tisch). Nach Stufe B.
+7c. **Update auf Knopfdruck** (Manuel: nicht jedes Addon soll beim Start
+   suchen): Knopf „Nach Updates suchen“ in der Werkzeugleiste; die Suche
+   beim Start ist ab Werk aus, in den Einstellungen einschaltbar. –
+   *Fertig (P-2026-09-26-50).*
 
 *Stufe B – Einheiten und Zahlenformat*
 8. Beim ersten Start (mit der Sprache) und in den Einstellungen des

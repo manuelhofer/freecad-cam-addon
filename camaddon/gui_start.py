@@ -40,12 +40,13 @@ WERKZEUGLEISTE = [
     "CamAddon_Werkzeugverwaltung",
     "CamAddon_SchnittwerteJob",
     "CamAddon_Ueber",
+    "CamAddon_UpdateSuchen",
 ]
 
 
 def starten():
     """Meldet Befehle, Werkzeugleiste und Einstellungsseite an, fragt beim ersten
-    Start nach der Sprache und sucht im Hintergrund nach Updates."""
+    Start nach der Sprache und sucht nach Updates, falls das eingeschaltet ist."""
     BEFEHLE.update(
         {
             "CamAddon_MaschineBearbeiten": gui_maschine.BefehlMaschineBearbeiten(),
@@ -53,6 +54,7 @@ def starten():
             "CamAddon_Werkzeugverwaltung": gui_werkzeuge.BefehlWerkzeugverwaltung(),
             "CamAddon_SchnittwerteJob": gui_job_schnittwerte.BefehlSchnittwerteJob(),
             "CamAddon_Ueber": BefehlUeber(),
+            "CamAddon_UpdateSuchen": gui_aktualisierung.BefehlUpdateSuchen(),
         }
     )
     for name, befehl in BEFEHLE.items():

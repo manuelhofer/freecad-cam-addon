@@ -69,7 +69,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_verteilhilfe.py` | Dialog „Revolverplätze verteilen“ |
 | `gui_bericht.py` | Bericht nach „An CAM übergeben“ |
 | `gui_sprachwahl.py` | Sprachwahl beim ersten Start, Einstellungsseite |
-| `gui_aktualisierung.py` | Update-Hinweis, Gruppe „Updates“ in den Einstellungen |
+| `gui_aktualisierung.py` | Befehl „Nach Updates suchen“, Update-Hinweis, Gruppe „Updates“ in den Einstellungen (Suche beim Start ab Werk aus) |
 | `gui_werkzeuge.py` | Befehl und Dialog „Werkzeugverwaltung“ |
 | `gui_schnittwerte.py` | Schnittwert-Tabelle in der Werkzeugverwaltung |
 | `gui_eingriff.py` | Bild des Eingriffs (Draufsicht und Seitenansicht) zur gewählten Zeile |
