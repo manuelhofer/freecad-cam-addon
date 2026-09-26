@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-91 version-0-23-0
+
+### EINGELESEN
+- Spezifikation 4b, Schritt 3: Version, voller Lauf, Push.
+- `package.xml`, README, „Über“ (0.22.0, P-2026-09-26-87).
+
+### DATEIEN
+- `package.xml` (0.23.0, Beschreibung)
+- `README.md` (Abfahren unter „Auf der Maschine prüfen“)
+- `translations/de.json`, `translations/en.json` („Über“)
+- `docs/spezifikation_simulation.md`, `docs/STATUS_SNAPSHOT.md`, `CHATSTART.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Version 0.23.0; README, Beschreibung für den Addon-Manager und „Über“ nennen
+das Abfahren; `scripts/alle_tests.sh` in beiden FreeCAD-Versionen grün.
+
+### DONE
+- Version 0.23.0: Stufe 4b „Abfahren“ komplett (P-2026-09-26-88 bis -90).
+- README, Addon-Manager und „Über“: Die Maschine fährt die Bahnen eines
+  CAM-Jobs ab.
+- Snapshot und Spezifikation: 4b fertig; als Nächstes 4c, sobald Halter und
+  Mindestabstand entschieden sind.
+
+### TEST
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push-Eintrag
+  im Commit dieses Laufs.
+
+### NEXT
+- Manuel probiert 4a und 4b aus (Snapshot, „Manuel probiert aus“ Punkt 7).
+- 4c (Kollision) nach seinen Entscheidungen zu Halter und Mindestabstand.
+
 ## P-2026-09-26-90 abfahren-abspieler
 
 ### EINGELESEN

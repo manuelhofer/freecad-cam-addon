@@ -27,7 +27,10 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   gehalten – als Sätze („X1 fährt in „Tasche“ bis 312,00 mm, die Grenze ist
   250,00 mm“); ein Klick fährt die Maschine an die Stelle. Mit dem
   Nullpunkt des Jobs auf der Werkstückaufnahme und der Länge ab Spindelnase
-  aus der Werkzeugverwaltung.
+  aus der Werkzeugverwaltung. **Abfahren:** Die Maschine fährt die Bahn
+  sichtbar ab – Werkzeug, Rohteil und Bahn in ihrer 3D-Ansicht; abspielen,
+  anhalten, Punkt für Punkt, bis ×100; Satz, Zeit und Achswerte laufen mit,
+  eine Achse am Anschlag steht rot da.
 - **Werkzeugverwaltung:** Werkstoffliste mit deutschen Bezeichnungen
   („1.4301 X5CrNi18-10 · Edelstahl, austenitisch“), Zusammensetzung und
   Härte; Werkzeuge mit Bild, Suche und Schnittwerten je Werkstoff und

@@ -4,7 +4,7 @@
 Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“): Rechenkern und Abspieler fertig und automatisch geprüft (P-2026-09-26-89, -90), als Nächstes die Version; Halter und Mindestabstand vor 4c.
+- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“): fertig und automatisch geprüft (P-2026-09-26-89 bis -91, 0.23.0); Halter und Mindestabstand vor 4c.
 - **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
 - **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ fertig und automatisch geprüft (P-2026-09-26-79), wartet auf Manuels Test; als Nächstes V2 (Punkt 12 unten).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
@@ -147,7 +147,8 @@ Wunschliste, offene Bugs und Tasks.
    die Bahn sichtbar ab, mit Werkzeug, Rohteil und Bahn – spezifiziert
    (P-2026-09-26-88, Entscheidungen von Claude zur Besprechung); Schritt 1
    fertig (-89: `abfahren.py`, Zeiten gegen Handrechnung), Schritt 2 fertig
-   (-90: Abspieler im Fenster, Körper in der 3D-Ansicht der Maschine).*
+   (-90: Abspieler im Fenster, Körper in der 3D-Ansicht der Maschine),
+   Version 0.23.0 (-91). Stufe 4b damit komplett.*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -239,7 +240,7 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    Mindestabstand offen, vor 4c ([Spezifikation](spezifikation_simulation.md),
    Abschnitt 9).
 
-Danach: W-001 Stufe 4b – Version 0.23.0; dann 4c (Kollision), sobald Halter und Mindestabstand entschieden sind (Punkt 8). Manuel testet 4a und 4b später (Punkt 7 oben).
+Danach: W-001 Stufe 4c (Kollision), sobald Halter und Mindestabstand entschieden sind (Punkt 8). Manuel testet 4a und 4b später (Punkt 7 oben).
 
 ## Wunschliste
 

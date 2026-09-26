@@ -2,9 +2,9 @@
 
 Stand: Entwurf von Claude (P-2026-09-25-70). **Manuel hat am 2026-09-26 die
 Fragen zu 4a entschieden** (Abschnitt 9, P-2026-09-26-83); 4a ist gebaut
-(0.22.0). **4b baut Claude auf Manuels Wort** („bau das mit der Maschine“,
-2026-09-26) – die Entscheidungen darin sind Claudes und stehen zur
-Besprechung (Abschnitt 5, 4b). 4c und 4d bleiben Entwurf; die Fragen 4 und 5
+(0.22.0). **4b hat Claude auf Manuels Wort gebaut** („bau das mit der
+Maschine“, 2026-09-26; 0.23.0) – die Entscheidungen darin sind Claudes und
+stehen zur Besprechung (Abschnitt 5, 4b). 4c und 4d bleiben Entwurf; die Fragen 4 und 5
 kommen vor 4c.
 
 Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
@@ -169,7 +169,7 @@ In drei Schritten:
 2. **Anzeige und Abspieler** im Fenster „Auf der Maschine prüfen“, Hilfe,
    Szenario mit Screenshots. *Gebaut (P-2026-09-26-90): `gui_abfahren.py`,
    `tests/gui/szenario_abfahren.py`.*
-3. Version, voller Lauf, Push.
+3. Version, voller Lauf, Push. *Gebaut (P-2026-09-26-91, 0.23.0).*
 
 **4c – Kollision**
 - Geprüft wird in Abständen entlang der Bahn (z. B. alle 1 mm und an jedem
