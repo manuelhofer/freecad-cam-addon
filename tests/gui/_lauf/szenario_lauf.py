@@ -27,6 +27,19 @@ class Helfer:
         widget = widget or FreeCADGui.getMainWindow()
         widget.grab().save(os.path.join(AUSGABE, name + ".png"))
 
+    def warte_auf(self, bedingung, hoechstens_ms=20000, schritt_ms=250):
+        """Wartet (mit `yield from`), bis `bedingung()` wahr ist – höchstens so lange.
+
+        Statt fester Wartezeiten: Lädt FreeCAD etwas Großes, dauert es auf
+        einem langsamen Rechner länger. Prüft das Szenario zu früh, endet es,
+        und der Lauf schließt die Dokumente, während FreeCAD noch lädt – so
+        gesehen bei der Beispielmaschine (P-2026-09-26-57).
+        """
+        gewartet = 0
+        while not bedingung() and gewartet < hoechstens_ms:
+            yield schritt_ms
+            gewartet += schritt_ms
+
     def modal(self):
         return QtGui.QApplication.activeModalWidget()
 

@@ -12,8 +12,9 @@ def knopf(meldung, text):
     return next((k for k in meldung.buttons() if k.text() == text), None)
 
 
-def meldung_mit_beispiel(h, befehl, bild):
-    """Ruft den Befehl auf, prüft die Meldung und klickt „Beispielmaschine laden“."""
+def meldung_mit_beispiel(h, befehl, bild, offen):
+    """Ruft den Befehl auf, prüft die Meldung und klickt „Beispielmaschine laden“;
+    wartet dann, bis `offen()` – der Dialog nach dem Laden ist da."""
     # Die Meldung blockiert, bis sie beantwortet ist.
     QtCore.QTimer.singleShot(0, lambda: Gui.runCommand(befehl))
     yield 800
@@ -27,7 +28,7 @@ def meldung_mit_beispiel(h, befehl, bild):
     h.bild(bild, meldung)
     if laden is not None:
         laden.click()
-    yield 2500
+    yield from h.warte_auf(offen)
 
 
 def schritte(h):
@@ -43,7 +44,12 @@ def schritte(h):
     from camaddon import verfahren as vf
 
     # Ohne Dokument: „Maschine bearbeiten“.
-    yield from meldung_mit_beispiel(h, "CamAddon_MaschineBearbeiten", "1_meldung_bearbeiten")
+    yield from meldung_mit_beispiel(
+        h,
+        "CamAddon_MaschineBearbeiten",
+        "1_meldung_bearbeiten",
+        lambda: gui_maschine.MaschinenPanel.offen is not None,
+    )
     doc = FreeCAD.ActiveDocument
     h.pruefe(doc is not None and doc.Label == "Beispielmaschine", "Beispielmaschine nicht geladen")
     panel = gui_maschine.MaschinenPanel.offen
@@ -67,7 +73,12 @@ def schritte(h):
     # In einem leeren Dokument: „Maschine verfahren“ – noch eine Beispielmaschine.
     FreeCAD.newDocument("Leer")
     yield 300
-    yield from meldung_mit_beispiel(h, "CamAddon_MaschineVerfahren", "3_meldung_verfahren")
+    yield from meldung_mit_beispiel(
+        h,
+        "CamAddon_MaschineVerfahren",
+        "3_meldung_verfahren",
+        lambda: gui_verfahren.VerfahrPanel.offen is not None,
+    )
     panel = gui_verfahren.VerfahrPanel.offen
     h.pruefe(panel is not None, "„Maschine verfahren“ öffnet sich nicht nach dem Laden")
     if panel is None:

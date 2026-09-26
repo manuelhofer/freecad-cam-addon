@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-57 szenario-wartet-auf-beispielmaschine
+
+### EINGELESEN
+- `szenario_zoll` scheiterte beim Lauf für P-2026-09-26-56 einmal:
+  „Maschine verfahren öffnet sich nicht“, im Protokoll „Cannot access
+  attribute 'Document' of deleted object“ in `gui_verfahren.Activated`.
+- `tests/gui/_lauf/szenario_lauf.py` (`_ende` schließt Aufgabenfenster und
+  Dokumente), `tests/gui/szenario_zoll.py`,
+  `tests/gui/szenario_beispielmaschine.py` (feste 2,5 s nach „Beispielmaschine
+  laden“).
+
+### DATEIEN
+- `tests/gui/_lauf/szenario_lauf.py` (`Helfer.warte_auf`)
+- `tests/gui/szenario_zoll.py`, `tests/gui/szenario_beispielmaschine.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Szenarien prüfen den Dialog nach „Beispielmaschine laden“ erst, wenn er
+offen ist – auch wenn das Laden länger als 2,5 s dauert.
+
+### DONE
+- Ursache: Beim Neuberechnen lässt FreeCADs Fortschrittsbalken Ereignisse
+  durch; dauerte das Laden länger als die feste Wartezeit, prüfte das
+  Szenario zu früh, endete, und der Lauf schloss das Dokument, während
+  `lade()` noch lief – daher das gelöschte Objekt. Am Addon selbst liegt es
+  nicht.
+- `Helfer.warte_auf(bedingung)`: wartet in Schritten von 250 ms, höchstens
+  20 s. Beide Szenarien warten auf ihr Aufgabenfenster.
+- Der geparkte Stand „Beispielmaschinen zur Auswahl“ (Stash) wartet noch
+  fest 3 s – beim Weitermachen ebenso umstellen.
+
+### TEST
+- `szenario_zoll`, `szenario_beispielmaschine` (1.1.3).
+
+### NEXT
+- Stufe C4: Einsätze je Art.
+
 ## P-2026-09-26-56 werkzeugbilder
 
 ### EINGELESEN

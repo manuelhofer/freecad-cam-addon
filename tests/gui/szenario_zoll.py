@@ -119,7 +119,7 @@ def schritte(h):
     if isinstance(meldung, QtGui.QMessageBox):
         laden = next(k for k in meldung.buttons() if k.text() == "Beispielmaschine laden")
         laden.click()
-    yield 2500
+    yield from h.warte_auf(lambda: gui_verfahren.VerfahrPanel.offen is not None)
     panel = gui_verfahren.VerfahrPanel.offen
     h.pruefe(panel is not None, "„Maschine verfahren“ öffnet sich nicht")
     if panel is None:
