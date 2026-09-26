@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-76 schraege-achse-lesbarer
+
+### EINGELESEN
+- Beim Durchsehen von `schraege_achse.py` (P-2026-09-26-66): In
+  `schlitten_aus_programm` und `programm_aus_schlitten` hieß eine lokale
+  Variable `winkel` – so heißt auch die Funktion des Moduls, die den Winkel
+  misst. Richtig gerechnet, aber verwirrend beim Lesen.
+
+### DATEIEN
+- `camaddon/schraege_achse.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nichts Sichtbares: `test_schraege_achse.py` bleibt grün.
+
+### DONE
+- Lokale Variable `winkel` → `bogen` (der Winkel im Bogenmaß).
+
+### TEST
+- Claude ohne Oberfläche: `test_schraege_achse.py` grün (Wochen-Build).
+
+### NEXT
+- Version 0.20.0, voller Testlauf, Push.
+
 ## P-2026-09-26-75 neue-maschine
 
 ### EINGELESEN

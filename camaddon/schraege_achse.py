@@ -56,14 +56,14 @@ def schlitten_aus_programm(alpha, x, y):
 
     `alpha` in Grad; x, y, x1, y1 sind Wege ab der Stellung 0 der Gelenke.
     """
-    winkel = math.radians(alpha)
-    return x - y * math.tan(winkel), y / math.cos(winkel)
+    bogen = math.radians(alpha)
+    return x - y * math.tan(bogen), y / math.cos(bogen)
 
 
 def programm_aus_schlitten(alpha, x1, y1):
     """(x, y): wo das Werkzeug im Programm steht, wenn die Schlitten bei (x1, y1) stehen."""
-    winkel = math.radians(alpha)
-    return x1 + y1 * math.sin(winkel), y1 * math.cos(winkel)
+    bogen = math.radians(alpha)
+    return x1 + y1 * math.sin(bogen), y1 * math.cos(bogen)
 
 
 def achsen(kette, trafo):
