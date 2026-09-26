@@ -276,7 +276,13 @@ Eine ältere Version des Addons liest unbekannte Arten als Schaftfräser.
    (P-2026-09-26-59): jede Art mit ihrer Form, Näherungen und Drehwerkzeuge
    im Bericht; jede Form in CAM mit ihrer Art zurück. Geprüft an FreeCADs
    eigenen Körpern in beiden Versionen.*
-6. **In den Job:** die neuen Einsätze auf die passenden Operationen.
+6. **In den Job:** die neuen Einsätze auf die passenden Operationen. –
+   *Gebaut (P-2026-09-26-60): „Schnittwerte in den Job“ schlägt je
+   Operation die passenden Einsätze vor, der passendste zuerst – Fläche →
+   Planen oder Schruppen, Profil → Schlichten, Verrunden oder Fasen,
+   Entgraten → Fasen, Gewindefräsen, Gewindebohren, Bohren → Bohren,
+   Zentrieren, Senken, Reiben, Ausdrehen. Planen bringt in die Fläche ae als
+   Schrittweite und ap als Zustelltiefe.*
 
 Jede Stufe: Szenario mit Screenshots, Hilfe „Werkzeuge“ ergänzt.
 

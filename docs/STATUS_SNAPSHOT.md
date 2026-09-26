@@ -5,7 +5,7 @@ Wunschliste, offene Bugs und Tasks.
 
 ## Projektstatus
 - **IN ARBEIT** – W-001, Stufen 1 bis 3 fertig und automatisch geprüft; warten auf Manuels Test. Danach Stufe 4 (Werkzeugbahn abfahren, Kollision – eigene Spezifikation).
-- **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), wartet auf Manuels Test.
+- **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
   und Wochen-Build 26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien
   grün; in 1.1.3 ist der Export übersprungen (gibt es dort nicht).
@@ -87,7 +87,12 @@ Wunschliste, offene Bugs und Tasks.
    andere Art. – *Spezifikation: `docs/spezifikation_werkzeugarten.md`
    (P-2026-09-26-53), sechs Stufen, Abschnitt 8. Auf Manuels Wunsch vor
    Punkt 7b („ne, mach mal Werkzeugarten weiter“); 7b liegt fast fertig
-   im Stash „WIP Beispielmaschinen zur Auswahl“.*
+   im Stash „WIP Beispielmaschinen zur Auswahl“.* – *Fertig
+   (P-2026-09-26-54 bis -60): Kugelfräser statt „Radiusfräser“, alle 26
+   Arten mit ihren Feldern, Bilder (auch in der Auswahl), Einsätze und
+   Rechnen je Art, Übergabe an und Übernahme aus CAM für alle Arten (CAM
+   baut denselben Körper wie das Bild), die neuen Einsätze auf die
+   passenden Operationen im Job. Als Nächstes Punkt 7b.*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -104,7 +109,16 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    Suche und Werkzeugbild (P-2026-09-25-71, P-2026-09-26-01), Kopieren
    und anderen Durchmesser eintragen (-06), Eintauchwinkel (-08), **Zeile
    kopieren** für Varianten (-12).
-2. **CAM-Job:** „Schnittwerte in den Job“ → „Werkzeug-Controller
+2. **Werkzeugarten** (P-2026-09-26-53 bis -60): In der Werkzeugverwaltung
+   „Neu“ → „Art“ aufklappen: 26 Arten mit kleinen Bildern, gegliedert nach
+   Fräsen, Bohren, Drehen, Antasten. Je Art andere Felder und ein anderes
+   Bild (Gewindebohrer: Steigung statt Schneidenzahl), „+ Einsatz“ bietet
+   nur, was passt. „Speichern und an CAM übergeben“ nennt, was CAM nur
+   genähert kennt; in CAM unter Werkzeugbibliothek → „CAM-Addon“ steht jede
+   Art mit ihrer Form. „Aus CAM übernehmen“ → „Default“ holt alle 13
+   Werkzeuge. Im Job: Planfräser mit „Planen“ in eine Fläche →
+   „Schnittwerte in den Job“ setzt Schrittweite und Zustelltiefe.
+3. **CAM-Job:** „Schnittwerte in den Job“ → „Werkzeug-Controller
    hinzufügen“ (P-2026-09-25-65) → Operation **Adaptiv** auf eine Bohrung → noch einmal
    „Schnittwerte in den Job“ → Schrittweite, Zustelltiefe und Helixwinkel
    (P-2026-09-25-61, P-2026-09-26-08), dazu „Am Rohteil eintragen“
@@ -116,10 +130,10 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    Boden, bei der Durchgangsbohrung die untere Kreiskante (Hilfe,
    P-2026-09-26-21); fehlt sie, sagt die Spalte „keine Bahn“ (-22). In der
    Hilfe dazu „Eine Außenkontur schruppen“ (P-2026-09-26-13).
-3. **Maschine:** „Maschine bearbeiten“ (W-001 Stufen 1–2) und **„Maschine
+4. **Maschine:** „Maschine bearbeiten“ (W-001 Stufen 1–2) und **„Maschine
    verfahren“** (Stufe 3, P-2026-09-25-67, Revolverplätze -69): Laufen die Achsen richtig
    herum, stimmt der Nullpunkt?
-4. **Besprechen:** Entscheidungen der Werkzeugverwaltung
+5. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
    Nr. 13–23 sind von dieser Nacht) und die sechs Fragen zu Stufe 4
    ([Entwurf](spezifikation_simulation.md), Abschnitt 9).

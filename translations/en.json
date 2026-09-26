@@ -442,7 +442,7 @@
     "sp.uebernehmen.tooltip": "Adds the selected row as “Dynamic roughing” to the table – if the material has no values of its own yet, they are created for it.",
     "sj.spalte.zustellung": "Step over · step down",
     "sj.zustellung": "Also set step over (ae) and step down (ap) of the matching operations",
-    "sj.zustellung.tooltip": "The operations that use the tool controller get ae as step over (in % of D, rounded down) and ap as step down – but only if the use case fits: Adaptive gets “Dynamic roughing” and “Roughing”, Pocket Shape and Face “Roughing”, Slot “Full slot”. A Profile gets nothing – it is also used for cutting out, in a full slot.",
+    "sj.zustellung.tooltip": "The operations that use the tool controller get ae as step over (in % of D, rounded down) and ap as step down – but only if the use case fits: Adaptive gets “Dynamic roughing” and “Roughing”, Pocket Shape “Roughing”, Face “Face milling” and “Roughing”, Slot “Full slot”. A Profile gets nothing – it is also used for cutting out, in a full slot.",
     "sj.zustellung.jetzt": "Currently set:\n{werte}",
     "sj.gesetzt.operationen": "Tool controllers set: {anzahl}, plus step over and step down in: {operationen}. Ctrl+Z undoes it in one step.",
     "wv.gesamtlaenge": "Overall length",

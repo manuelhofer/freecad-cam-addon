@@ -159,8 +159,12 @@ it is preselected next time.</li>
 <li>One row per tool controller: the tool manager's tool behind it (from the
 library “CAM-Addon”, otherwise same T number and diameter), the <b>use
 case</b> – suggested from the controller's name (“T3 Dynamic roughing”) or the
-operation (Adaptive → dynamic, Pocket Shape → roughing, Profile → finishing,
-Drilling → drilling) –, the resulting n and vf, and what is set now.</li>
+operation (Adaptive → dynamic, Pocket Shape → roughing, Face → face milling or
+roughing, Profile → finishing, corner rounding or chamfering, Deburr →
+chamfering, Thread Milling → thread milling, Tapping → tapping, Drilling →
+drilling, center/spot drilling, countersinking, reaming or boring) –, the
+resulting n and vf, and what is set now. If no row fits, the first one
+applies.</li>
 <li>Plunging and ramping get a third of the feed rate, drilling the full
 one.</li>
 <li><b>Add tool controller</b> (below the table) → tool → use case adds a new
@@ -173,8 +177,9 @@ the dialog afterwards; Ctrl+Z undoes it.</li>
 controller get ae as step over (in % of D, rounded down) and ap as step down,
 Adaptive also the tool's ramp angle –
 if the use case fits them: <b>Adaptive</b> gets “Dynamic roughing” and
-“Roughing”, <b>Pocket Shape</b> and <b>Face</b> (in the weekly build <b>Mill
-Facing</b>) “Roughing”, <b>Slot</b> “Full slot”. A <b>Profile</b> gets nothing –
+“Roughing”, <b>Pocket Shape</b> “Roughing”, <b>Face</b> (in the weekly build
+also <b>Mill Facing</b>) “Face milling” and “Roughing”, <b>Slot</b> “Full
+slot”. A <b>Profile</b> gets nothing –
 it is also used for cutting out, in a full slot, and the ap of another use
 case would be too much for that. In the Adaptive task panel the values are
 under <b>Operation</b> as <b>Step over percent</b> and under <b>Depths</b> as

@@ -1,7 +1,9 @@
 # Prüft „Schnittwerte in den Job“ (W-002 Stufe 2) an einem echten CAM-Job:
 # Werkstoff des Rohteils → Werkstoff der Werkzeugverwaltung, TC → Werkzeug
 # (über die ToolBit-ID der Übergabe und über T-Nummer/Durchmesser),
-# vorgeschlagener Einsatz, Setzen in einer Transaktion samt Strg+Z.
+# vorgeschlagener Einsatz, Setzen in einer Transaktion samt Strg+Z. Die
+# Einsätze der Werkzeugarten finden ihre Operation: Planen das Planfräsen,
+# Fasen das Entgraten, Zentrieren die Bohrung (Werkzeugarten, Stufe 6).
 import os
 import pathlib
 import sys
@@ -14,7 +16,7 @@ import FreeCAD
 import Materials
 import Part  # noqa: F401 – lädt das Part-Modul für „Part::Box“
 from Path.Main import Job
-from Path.Op import Adaptive, Pocket, Profile, Slot
+from Path.Op import Adaptive, Deburr, Drilling, MillFace, Pocket, Profile, Slot
 from Path.Tool import Controller
 from Path.Tool.camassets import cam_assets, user_asset_store
 
@@ -47,7 +49,10 @@ fraeser.schnittwerte[wz.ALLE] = [
 fraeser.eigene_anlegen("1.4301")[0].vc = 80
 bohrer = wz.Werkzeug(nummer=7, art=wz.BOHRER, durchmesser=8.5, schneiden=2)
 bohrer.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=80, fz=0.1)]
-bibliothek = wz.Bibliothek([fraeser, bohrer])
+planfraeser = wz.Werkzeug(nummer=9, art=wz.PLANFRAESER, durchmesser=50, schneiden=5)
+planen = wz.Einsatz(art=wz.PLANEN, ae=37.5, ap=2, vc=200, fz=0.15)
+planfraeser.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.EIGEN, name="Sonder"), planen]
+bibliothek = wz.Bibliothek([fraeser, bohrer, planfraeser])
 ue.uebergeben(bibliothek)
 
 dok = FreeCAD.newDocument("JobSchnittwerte")
@@ -64,6 +69,9 @@ job.Stock.ShapeMaterial = Materials.MaterialManager().getMaterial(
 operationen = {}
 for modul, name in ((Adaptive, "Adaptiv"), (Pocket, "Tasche"), (Profile, "Kontur"), (Slot, "Nut")):
     operationen[name] = modul.Create(name, parentJob=job)
+weitere = {}
+for modul, name in ((MillFace, "Planen"), (Deburr, "Entgraten"), (Drilling, "Bohrung")):
+    weitere[name] = modul.Create(name, parentJob=job)
 
 # TC 1: Werkzeug aus der Bibliothek „CAM-Addon“ (ToolBit-ID camaddon_…).
 bit = cam_assets.get(f"toolbit://camaddon_{fraeser.kennung}").attach_to_doc(doc=dok)
@@ -194,6 +202,40 @@ pruefe(formel(adaptiv) is not None, "Strg+Z bringt die Formel nicht zurück")
 # Ohne Job bleiben die Operationen, wie sie sind.
 js.setze(dok, [(tc1, fraeser, einsaetze[1])])
 pruefe(tiefen() == vorher, "ohne Job trotzdem Operationen gesetzt")
+
+# Die Einsätze der Werkzeugarten finden ihre Operation – auch, wenn sie nicht
+# in der ersten Zeile stehen.
+bit4 = cam_assets.get(f"toolbit://camaddon_{planfraeser.kennung}").attach_to_doc(doc=dok)
+tc4 = Controller.Create("TC Planfräser", tool=bit4, toolNumber=9)
+job.Proxy.addToolController(tc4)
+
+
+def vorschlag(operation, einsaetze):
+    """Der Einsatz, den `operation` allein mit tc4 vorschlägt."""
+    for andere in list(operationen.values()) + list(weitere.values()):
+        andere.ToolController = tc1
+    operation.ToolController = tc4
+    return js.vorgeschlagener_einsatz(tc4, einsaetze, job)
+
+
+zeilen = [wz.Einsatz(art=art) for art in (wz.EIGEN, wz.PLANEN, wz.FASEN, wz.SENKEN)]
+zeilen.append(wz.Einsatz(art=wz.ZENTRIEREN))
+pruefe(vorschlag(weitere["Planen"], zeilen) == 1, "Planen nicht im Planfräsen")
+pruefe(vorschlag(weitere["Entgraten"], zeilen) == 2, "Fasen nicht im Entgraten")
+pruefe(vorschlag(weitere["Bohrung"], zeilen) == 4, "Zentrieren vor Senken in der Bohrung")
+pruefe(vorschlag(operationen["Kontur"], zeilen) == 2, "Fasen nicht in der Kontur")
+# Planen: ae als Schrittweite (37,5 von 50 = 75 %), ap als Zustelltiefe.
+pruefe(
+    js.zustellung(weitere["Planen"], planfraeser, planen) == {"StepOver": 75, "StepDown": 2},
+    f"Planen: {js.zustellung(weitere['Planen'], planfraeser, planen)}",
+)
+pruefe(js.zustellung(weitere["Entgraten"], planfraeser, planen) == {}, "Entgraten mit Planen")
+gesetzt = js.setze(dok, [(tc4, planfraeser, planen)], job)
+pruefe(gesetzt == js.Gesetzt(1, []), f"Kontur mit Planen gesetzt: {gesetzt}")
+weitere["Planen"].ToolController = tc4
+gesetzt = js.setze(dok, [(tc4, planfraeser, planen)], job)
+pruefe(gesetzt == js.Gesetzt(1, ["Planen"]), f"Planfräsen: {gesetzt}")
+pruefe(weitere["Planen"].StepOver == 75, f"StepOver {weitere['Planen'].StepOver}")
 
 # Neuer Werkzeug-Controller: benannt nach dem Einsatz, Werkzeug aus der
 # Bibliothek, n und vf gesetzt; Strg+Z nimmt ihn samt Werkzeug zurück.

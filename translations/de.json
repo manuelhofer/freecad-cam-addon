@@ -442,7 +442,7 @@
     "sp.uebernehmen.tooltip": "Legt die gewählte Zeile als „Schruppen dynamisch“ in der Tabelle an – ohne eigene Werte für den Werkstoff werden sie dafür angelegt.",
     "sj.spalte.zustellung": "Schrittweite · Zustelltiefe",
     "sj.zustellung": "Auch Schrittweite (ae) und Zustelltiefe (ap) der passenden Operationen setzen",
-    "sj.zustellung.tooltip": "Die Operationen, die den Werkzeug-Controller benutzen, bekommen ae als Schrittweite (in % von D, abgerundet) und ap als Zustelltiefe – aber nur, wenn der Einsatz passt: Adaptiv bekommt „Schruppen dynamisch“ und „Schruppen“, Taschenform und Fläche „Schruppen“, Nute „Vollnut“. Ein Profil bekommt nichts – mit ihm wird auch ausgeschnitten, in voller Nut.",
+    "sj.zustellung.tooltip": "Die Operationen, die den Werkzeug-Controller benutzen, bekommen ae als Schrittweite (in % von D, abgerundet) und ap als Zustelltiefe – aber nur, wenn der Einsatz passt: Adaptiv bekommt „Schruppen dynamisch“ und „Schruppen“, Taschenform „Schruppen“, Fläche „Planen“ und „Schruppen“, Nute „Vollnut“. Ein Profil bekommt nichts – mit ihm wird auch ausgeschnitten, in voller Nut.",
     "sj.zustellung.jetzt": "Jetzt eingestellt:\n{werte}",
     "sj.gesetzt.operationen": "Gesetzt: {anzahl} Werkzeug-Controller, dazu Schrittweite und Zustelltiefe in: {operationen}. Strg+Z nimmt es in einem Schritt zurück.",
     "wv.gesamtlaenge": "Gesamtlänge",

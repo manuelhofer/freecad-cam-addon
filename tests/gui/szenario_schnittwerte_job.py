@@ -2,7 +2,9 @@
 # TC mit Werkzeug aus der Bibliothek „CAM-Addon“ bekommt den Einsatz aus
 # seinem Namen, ein fremdes Werkzeug bleibt unberührt; „Übernehmen“ setzt
 # Drehzahl und Vorschübe und im Adaptiv Schrittweite und Zustelltiefe, Strg+Z
-# nimmt es zurück.
+# nimmt es zurück. Die Einsätze der Werkzeugarten finden ihre Operation: der
+# Planfräser „Planen“ in der Fläche (mit Schrittweite und Zustelltiefe), der
+# Zentrierbohrer „Zentrieren“ in der Bohrung – mit vollem Eintauchvorschub.
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
@@ -21,7 +23,7 @@ def schritte(h):
     import Materials
     import Part  # noqa: F401 – für „Part::Box“
     from Path.Main import Job
-    from Path.Op import Adaptive
+    from Path.Op import Adaptive, Drilling, MillFace
     from Path.Tool import Controller
     from Path.Tool.camassets import cam_assets
 
@@ -37,7 +39,14 @@ def schritte(h):
         wz.Einsatz(art=wz.DYNAMISCH, ae=1.2, ap=25, vc=120, fz=0.15),
     ]
     fraeser.eigene_anlegen("1.4301")[0].vc = 80
-    bibliothek = wz.Bibliothek([fraeser])
+    planfraeser = wz.Werkzeug(nummer=5, art=wz.PLANFRAESER, durchmesser=50, schneiden=5)
+    planfraeser.schnittwerte[wz.ALLE] = [
+        wz.Einsatz(art=wz.EIGEN, name="Sonder"),
+        wz.Einsatz(art=wz.PLANEN, ae=37.5, ap=2, vc=200, fz=0.15),
+    ]
+    zentrierer = wz.Werkzeug(nummer=7, art=wz.ZENTRIERBOHRER, durchmesser=2.5, schneiden=2)
+    zentrierer.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.ZENTRIEREN, vc=20, fz=0.05)]
+    bibliothek = wz.Bibliothek([fraeser, planfraeser, zentrierer])
     bibliothek.speichern()
     ue.uebergeben(bibliothek)
 
@@ -48,6 +57,8 @@ def schritte(h):
     job = Job.Create("Job", [quader])
     # Anlegen, solange der Job nur einen TC hat – sonst fragt FreeCAD, welchen.
     adaptiv = Adaptive.Create("Adaptiv", parentJob=job)
+    flaeche = MillFace.Create("Fläche", parentJob=job)
+    bohrung = Drilling.Create("Bohrung", parentJob=job)
     uuid = ue.freecad_werkstoffe()["1.4301"][0]
     job.Stock.ShapeMaterial = Materials.MaterialManager().getMaterial(uuid)
     bit = cam_assets.get(f"toolbit://camaddon_{fraeser.kennung}").attach_to_doc(doc=dok)
@@ -55,6 +66,15 @@ def schritte(h):
     job.Proxy.addToolController(tc1)
     tc2 = Controller.Create("TC fremd", toolNumber=9)  # FreeCADs Standard-Schaftfräser
     job.Proxy.addToolController(tc2)
+    neue_tc = {}
+    for werkzeug, name, operation in (
+        (planfraeser, "TC Planfräser", flaeche),
+        (zentrierer, "TC Zentrierbohrer", bohrung),
+    ):
+        bit = cam_assets.get(f"toolbit://camaddon_{werkzeug.kennung}").attach_to_doc(doc=dok)
+        neue_tc[name] = Controller.Create(name, tool=bit, toolNumber=werkzeug.nummer)
+        job.Proxy.addToolController(neue_tc[name])
+        operation.ToolController = neue_tc[name]
     adaptiv.ToolController = tc1
     dok.recompute()
     vorher = (tc1.SpindleSpeed, tc2.SpindleSpeed)
@@ -87,6 +107,19 @@ def schritte(h):
         f"Zustellung: {zustellung!r}",
     )
     h.pruefe(d.tabelle.item(z2, gj.ZUSTELLUNG).text() == "", "fremder TC mit Zustellung")
+    # Planen gehört in die Fläche – auch aus der zweiten Zeile; Zentrieren in die Bohrung.
+    for name, einsatz_soll, zustellung_soll in (
+        ("TC Planfräser", "Planen", "Fläche: 75 % · 2 mm · keine Bahn: Basisgeometrie fehlt"),
+        ("TC Zentrierbohrer", "Zentrieren", ""),
+    ):
+        z = zeilen.get(name)
+        h.pruefe(z is not None, f"{name} fehlt: {sorted(zeilen)}")
+        if z is None:
+            continue
+        einsatz = d.tabelle.cellWidget(z, gj.EINSATZ).currentText()
+        h.pruefe(einsatz == einsatz_soll, f"{name}: vorgeschlagen {einsatz!r}")
+        zustellung = d.tabelle.item(z, gj.ZUSTELLUNG).text()
+        h.pruefe(zustellung == zustellung_soll, f"{name}: Zustellung {zustellung!r}")
     h.pruefe(not d.tabelle.cellWidget(z2, gj.EINSATZ).isEnabled(), "fremdes Werkzeug wählbar")
     h.pruefe("nicht in der Werkzeugverwaltung" in d.tabelle.item(z2, gj.WERKZEUG).text(), "fremd")
     h.bild("1_dialog", d)
@@ -104,8 +137,8 @@ def schritte(h):
     meldung = h.modal()
     if isinstance(meldung, QtGui.QMessageBox):
         h.pruefe(
-            "Gesetzt: 1 Werkzeug-Controller, dazu Schrittweite und Zustelltiefe in: Adaptiv."
-            in meldung.text(),
+            "Gesetzt: 3 Werkzeug-Controller, dazu Schrittweite und Zustelltiefe in: Adaptiv,"
+            " Fläche." in meldung.text(),
             f"Meldung: {meldung.text()!r}",
         )
         h.bild("2_meldung", meldung)
@@ -119,6 +152,15 @@ def schritte(h):
         round(float(tc1.VertFeed.getValueAs("mm/min"))) == 473, f"TC 1 senkrecht: {tc1.VertFeed}"
     )
     h.pruefe(tc2.SpindleSpeed == vorher[1], "fremder TC verändert")
+    h.pruefe(flaeche.StepOver == 75, f"Fläche Schrittweite: {flaeche.StepOver}")
+    h.pruefe(float(flaeche.StepDown.getValueAs("mm")) == 2, f"Fläche: {flaeche.StepDown}")
+    # Zentrieren: n = 20 000 / (π · 2,5) = 2546, vf = 2546 · 2 · 0,05 – senkrecht voll.
+    zentrier_tc = neue_tc["TC Zentrierbohrer"]
+    senkrecht = round(float(zentrier_tc.VertFeed.getValueAs("mm/min")))
+    h.pruefe(
+        zentrier_tc.SpindleSpeed == 2546 and senkrecht == 255,
+        f"Zentrierbohrer: {zentrier_tc.SpindleSpeed}, {senkrecht}",
+    )
     h.pruefe(float(adaptiv.StepDown.getValueAs("mm")) == 25, f"Adaptiv: {adaptiv.StepDown}")
     helix = getattr(adaptiv, "HelixMaxRampAngle", None) or adaptiv.HelixAngle
     h.pruefe(abs(float(helix.getValueAs("deg")) - 3) < 1e-9, f"Helixwinkel: {helix}")
@@ -133,7 +175,8 @@ def schritte(h):
     if d is None:
         return
     d._menue_tc_neu_fuellen()
-    werkzeuge = d.menue_tc_neu.actions()
+    werkzeuge = [a for a in d.menue_tc_neu.actions() if a.text().startswith("T3")]
+    h.pruefe(len(d.menue_tc_neu.actions()) == 3, "Menü: je Werkzeug mit Einsätzen eines")
     h.pruefe(len(werkzeuge) == 1 and werkzeuge[0].menu() is not None, "Menü der Werkzeuge")
     if len(werkzeuge) != 1 or werkzeuge[0].menu() is None:
         return

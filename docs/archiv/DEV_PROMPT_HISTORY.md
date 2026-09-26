@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-60 einsaetze-in-den-job
+
+### EINGELESEN
+- Spezifikation Werkzeugarten, Abschnitt 8 (Stufe 6): die neuen Einsätze
+  auf die passenden Operationen.
+- `camaddon/job_schnittwerte.py` (`EINSATZ_NACH_OPERATION`,
+  `ZUSTELLUNG_NACH_OPERATION`, `vorgeschlagener_einsatz`, `zustellung`),
+  die Operationen in 1.1.3 und im Wochen-Build (`Path/Op`: MillFace,
+  MillFacing, Deburr, ThreadMilling, Tapping, Drilling, Engrave, Vcarve).
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py`
+- `translations/de.json`, `translations/en.json` (Tooltip der Zustellung)
+- `help/de/werkzeuge.html`, `help/en/werkzeuge.html`
+- `docs/spezifikation_werkzeugarten.md`, `docs/STATUS_SNAPSHOT.md`
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Job mit Fläche (Planfräser, Einsätze „Sonder“ und „Planen“ ae 37,5 ap 2)
+und Bohrung (Zentrierbohrer) → „Schnittwerte in den Job“: Der Planfräser
+bekommt „Planen“ und „Fläche: 75 % · 2 mm“, der Zentrierbohrer „Zentrieren“
+mit n 2546 und vf 255 – senkrecht der volle.
+
+### DONE
+- Je Operation die passenden Einsätze, der passendste zuerst: Fläche →
+  Planen oder Schruppen, Profil → Schlichten, Verrunden oder Fasen,
+  Entgraten → Fasen oder Verrunden, Gravieren und V-Carve → Fasen,
+  Gewindefräsen, Gewindebohren, Bohren → Bohren, Zentrieren, Senken,
+  Reiben, Ausdrehen, Gewindebohren. Bisherige Zuordnungen bleiben.
+- Planen gibt der Fläche (auch dem Planfräsen des Wochen-Builds) ae als
+  Schrittweite und ap als Zustelltiefe.
+- Stufe C der Werkzeugarten damit fertig; STATUS_SNAPSHOT nachgezogen.
+
+### TEST
+- `test_job_schnittwerte` (neu: Fläche, Entgraten, Bohrung; Einsatz aus der
+  zweiten und fünften Zeile; Zustellung Planen) in 1.1.3 und im
+  Wochen-Build; Szenario `schnittwerte_job` (neu: Planfräser und
+  Zentrierbohrer) in beiden. Bild angesehen.
+
+### NEXT
+- Version 0.17.0, voller Lauf `scripts/alle_tests.sh` in beiden Versionen,
+  Push von P-52 bis P-60.
+- Danach Punkt 7b: Beispielmaschinen zur Auswahl (Stash).
+
 ## P-2026-09-26-59 cam-alle-werkzeugarten
 
 ### EINGELESEN

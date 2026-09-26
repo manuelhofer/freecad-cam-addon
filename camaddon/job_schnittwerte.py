@@ -29,16 +29,31 @@ from .uebergabe_werkzeuge import PRAEFIX, freecad_werkstoffe
 VERHAELTNIS_EINTAUCHEN = 0.33
 DURCHMESSER_TOLERANZ = 0.01  # mm, für die Suche über T-Nummer und Durchmesser
 
-# Operation (Modul der CAM-Operation) → Einsatz, der am ehesten passt.
+# Operation (Modul der CAM-Operation) → Einsätze, die zu ihr passen, der
+# passendste zuerst. Ein Werkzeug mit nur einer Art Einsatz bekommt ohnehin
+# dessen erste Zeile.
 EINSATZ_NACH_OPERATION = {
-    "Adaptive": wz.DYNAMISCH,
-    "Pocket": wz.SCHRUPPEN,
-    "PocketShape": wz.SCHRUPPEN,
-    "MillFace": wz.SCHRUPPEN,
-    "MillFacing": wz.SCHRUPPEN,  # Planfräsen im Wochen-Build
-    "Profile": wz.SCHLICHTEN,
-    "Slot": wz.VOLLNUT,
-    "Drilling": wz.BOHREN,
+    "Adaptive": (wz.DYNAMISCH,),
+    "Pocket": (wz.SCHRUPPEN,),
+    "PocketShape": (wz.SCHRUPPEN,),
+    "MillFace": (wz.PLANEN, wz.SCHRUPPEN),
+    "MillFacing": (wz.PLANEN, wz.SCHRUPPEN),  # Planfräsen im Wochen-Build
+    "Profile": (wz.SCHLICHTEN, wz.VERRUNDEN, wz.FASEN),
+    "Slot": (wz.VOLLNUT,),
+    "Deburr": (wz.FASEN, wz.VERRUNDEN),  # Entgraten: an der Kante entlang
+    "Engrave": (wz.FASEN,),
+    "Vcarve": (wz.FASEN,),
+    "ThreadMilling": (wz.GEWINDEFRAESEN,),
+    "Tapping": (wz.GEWINDEBOHREN,),
+    # Die Bohrung des Wochen-Builds kann auch Gewinde schneiden.
+    "Drilling": (
+        wz.BOHREN,
+        wz.ZENTRIEREN,
+        wz.SENKEN,
+        wz.REIBEN,
+        wz.AUSDREHEN,
+        wz.GEWINDEBOHREN,
+    ),
 }
 
 
@@ -51,8 +66,8 @@ ZUSTELLUNG_NACH_OPERATION = {
     "Adaptive": (wz.DYNAMISCH, wz.SCHRUPPEN),
     "Pocket": (wz.SCHRUPPEN,),
     "PocketShape": (wz.SCHRUPPEN,),
-    "MillFace": (wz.SCHRUPPEN,),
-    "MillFacing": (wz.SCHRUPPEN,),
+    "MillFace": (wz.PLANEN, wz.SCHRUPPEN),
+    "MillFacing": (wz.PLANEN, wz.SCHRUPPEN),
     "Slot": (wz.VOLLNUT,),
 }
 
@@ -186,10 +201,10 @@ def vorgeschlagener_einsatz(tc, einsaetze, job):
     if passend:
         return max(passend, key=lambda i: len(wz.einsatz_name(einsaetze[i])))
     for operation in operationen_mit(tc, job):
-        art = EINSATZ_NACH_OPERATION.get(operationsart(operation))
-        for i, einsatz in enumerate(einsaetze):
-            if einsatz.art == art:
-                return i
+        for art in EINSATZ_NACH_OPERATION.get(operationsart(operation), ()):
+            for i, einsatz in enumerate(einsaetze):
+                if einsatz.art == art:
+                    return i
     return 0
 
 
