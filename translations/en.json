@@ -863,5 +863,6 @@
     "wv.halter.ohne": "– none –",
     "wv.halter.knopf": "Holders …",
     "wv.halter.knopf.tooltip": "Add and edit holders; with OK this tool gets the chosen one.",
-    "wv.laenge_spindelnase.platzhalter_halter": "empty: {wert} with holder"
+    "wv.laenge_spindelnase.platzhalter_halter": "empty: {wert} with holder",
+    "rw.laenge_halter": "{werkzeug}: calculated with {laenge}, estimated from holder and tool (holder length + overall length − clamping depth). More precise with the measured “gauge length” in the tool manager."
 }

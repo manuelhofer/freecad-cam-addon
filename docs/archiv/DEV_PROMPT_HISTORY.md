@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-96 halter-laenge-abfahren
+
+### EINGELESEN
+- `docs/spezifikation_halter.md`, Schritt 3 (Abschnitt 7: wo der Halter wirkt).
+- `camaddon/reichweite.py` (`werkzeuglaenge`, Hinweise zur Länge),
+  `camaddon/gui_abfahren.py` (Bild: Werkzeug, angedeuteter Halter).
+
+### DATEIEN
+- `camaddon/reichweite.py` (Quelle LAENGE_HALTER, Hinweis)
+- `camaddon/gui_abfahren.py` (`halter_von`, Halter mit Kontur im Bild)
+- `translations/de.json`, `translations/en.json` (1 Text)
+- `help/de/reichweite.html`, `help/en/reichweite.html`
+- `tests/test_reichweite.py`, `tests/gui/szenario_abfahren.py`
+- `docs/spezifikation_halter.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Werkzeug der Werkzeugverwaltung mit Halter und ohne gemessene Länge ab
+Spindelnase: „Auf der Maschine prüfen“ rechnet mit Halterlänge + Gesamtlänge
+− Spanntiefe und sagt es; beim Abfahren steckt das Werkzeug in diesem Halter,
+mit seiner Kontur.
+
+### DONE
+- `werkzeuglaenge`: gemessen vor Halter; sonst mit dem Halter geschätzt
+  (`LAENGE_HALTER`), Hinweis „gerechnet mit 100,00 mm, geschätzt aus Halter und
+  Werkzeug (…) – genauer mit der gemessenen Länge ab Spindelnase“; ohne Halter
+  wie bisher.
+- Abfahren: je Operation der Halter ihres Werkzeugs (`Bild.halter`), je
+  Abschnitt ein Zylinder oder Kegel (Part, als Dreiecke) ab der Aufnahme –
+  stahlgrau, nicht durchscheinend; ohne Halter wie bisher angedeutet.
+- Hilfe „Auf der Maschine prüfen“: Halter im Abfahren und in der Länge.
+
+### TEST
+- `test_reichweite` (neu: ER16 70 mm + 50 − 20 = 100 mm, Z1 −38 … −20,
+  Hinweis; gemessen geht vor), `test_abfahren`, `test_halter`, `test_hilfe` grün
+  in 1.1.3 und im Wochen-Build; `szenario_abfahren` (jetzt mit T1 in der
+  Werkzeugverwaltung und Halter ER16: Halter im Bild, Hinweis zur Länge) und
+  `szenario_reichweite` grün in beiden Versionen, Screenshot angesehen: Flansch,
+  Kegel und Mutter unter der Spindel, darunter Schaft und Schneide.
+
+### NEXT
+- 4c Schritt 1: Rechenkern Kollision.
+
 ## P-2026-09-26-95 halter-fenster
 
 ### EINGELESEN

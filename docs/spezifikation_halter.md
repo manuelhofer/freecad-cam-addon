@@ -117,7 +117,8 @@ Halter bleiben lesbar; `FORMAT` bleibt 1.
    steht in einer eigenen Zeile über die ganze Breite, damit lange Namen
    ganz zu lesen sind; die Schneide im Bild ist blau wie im Bild des
    Werkzeugs.*
-3. Länge in „Auf der Maschine prüfen“, Halter im Abfahren.
+3. Länge in „Auf der Maschine prüfen“, Halter im Abfahren. *Gebaut
+   (P-2026-09-26-96).*
 
 ## 9. Entscheidungen
 

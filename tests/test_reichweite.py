@@ -189,6 +189,24 @@ pruefe(bereich(e, "Z1") == (-28.0, -10.0), f"Z1 mit 110 mm: {bereich(e, 'Z1')}")
 pruefe(
     not any("Länge" in h for h in e.hinweise), f"Hinweis trotz Länge ab Spindelnase: {e.hinweise}"
 )
+# Mit Halter, aber ohne gemessene Länge: Halterlänge + Gesamtlänge − Spanntiefe, mit Hinweis
+# (ER16: 70 mm, 20 mm gespannt; Werkzeug 50 mm → 100 mm).
+w1 = bibliothek.werkzeuge[0]
+w1.laenge_spindelnase, w1.gesamtlaenge = 0.0, 50.0
+w1.halter = bibliothek.neuer_halter("er16").kennung
+laenge = rw.werkzeuglaenge(op.ToolController, bibliothek)
+pruefe(laenge == (100.0, rw.LAENGE_HALTER), f"Länge mit Halter: {laenge}")
+e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
+pruefe(bereich(e, "Z1") == (-38.0, -20.0), f"Z1 mit Halter: {bereich(e, 'Z1')}")
+pruefe(
+    e.hinweise[0]
+    == f"{t1}: gerechnet mit 100.00 mm, geschätzt aus Halter und Werkzeug (Halterlänge + "
+    "Gesamtlänge − Spanntiefe). Genauer mit der gemessenen „Länge ab Spindelnase“ in der "
+    "Werkzeugverwaltung.",
+    f"Hinweis mit Halter: {e.hinweise}",
+)
+w1.laenge_spindelnase = 110.0
+pruefe(rw.werkzeuglaenge(op.ToolController, bibliothek)[0] == 110.0, "gemessen vor Halter")
 
 # Innerhalb der Grenzen: ein Vollkreis (Umkehrstellen in X und Y), G18-Halbkreis.
 op.Gcode = [

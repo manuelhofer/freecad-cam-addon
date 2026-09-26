@@ -11,7 +11,9 @@
 # Operation anwählen springt an ihren Anfang. Mit Nullpunkt X 300 fährt X1 über
 # die Grenze: Ein Klick auf den Satz stellt den Abspieler an die Stelle, X1 steht
 # rot „am Anschlag“. Schließen nimmt die Körper aus der Ansicht und fährt
-# zurück.
+# zurück. Das Werkzeug T1 (Ø 5, 50 mm) steht in der Werkzeugverwaltung mit einem
+# Halter ER16 (70 mm, 20 gespannt): Gerechnet wird mit 100 mm, der Hinweis sagt
+# es, und in der Ansicht steckt es in seinem Halter.
 import math
 
 import FreeCAD
@@ -46,6 +48,12 @@ def schritte(h):
     from camaddon import beispielmaschine, gui_reichweite
     from camaddon import maschine as m
     from camaddon import verfahren as vf
+    from camaddon import werkzeuge as wz
+
+    # T1 wie das Werkzeug des Jobs (Ø 5), mit Halter – so zeigt die Ansicht den Halter.
+    bibliothek = wz.Bibliothek([wz.Werkzeug(nummer=1, durchmesser=5.0, gesamtlaenge=50.0)])
+    bibliothek.werkzeuge[0].halter = bibliothek.neuer_halter("er16").kennung
+    bibliothek.speichern()
 
     asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
     yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is asm.Document)
@@ -115,6 +123,14 @@ def schritte(h):
     nah()
     yield 300
     h.pruefe(ausschnitt() < ganz / 3, f"Hinsehen zoomt nicht: {ganz} → {ausschnitt()}")
+    h.pruefe(
+        panel.bild.halter[0] is not None and panel.bild.halter[0].name.startswith("Spannzangen"),
+        "Halter nicht im Bild",
+    )
+    h.pruefe(
+        "gerechnet mit 100,00 mm, geschätzt aus Halter und Werkzeug" in panel.hinweise.text(),
+        f"Hinweis zur Länge: {panel.hinweise.text()!r}",
+    )
     h.bild("1b_werkstueck")
     h.bild("1c_fenster", panel.form)
 

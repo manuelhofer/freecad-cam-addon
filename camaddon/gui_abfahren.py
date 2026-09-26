@@ -36,7 +36,8 @@ SCHIEBER_SCHRITTE = 10000
 # Farben (r, g, b) von 0 bis 1.
 SCHNEIDE = (0.95, 0.75, 0.10)
 SCHAFT = (0.62, 0.62, 0.65)
-HALTER = (0.35, 0.35, 0.40)
+HALTER = (0.35, 0.35, 0.40)  # angedeutet, ohne Halter aus der Werkzeugverwaltung
+HALTER_ECHT = (0.60, 0.63, 0.67)  # der Halter mit seiner Kontur
 ROHTEIL = (0.85, 0.65, 0.35)
 MODELL = (0.45, 0.60, 0.80)
 VORSCHUB_LINIE = (0.10, 0.35, 0.90)
@@ -61,6 +62,14 @@ def werkzeugmasse(tc, bibliothek, laenge):
     schaft = _mm(getattr(bit, "ShankDiameter", None)) or durchmesser
     gesamt = _mm(getattr(bit, "Length", None)) or laenge
     return durchmesser, schneide, schaft, gesamt
+
+
+def halter_von(tc, bibliothek):
+    """Der Halter des Werkzeugs aus der Werkzeugverwaltung (halter.Halter), oder None."""
+    if bibliothek is None:
+        return None
+    werkzeug = js.werkzeug_von(tc, bibliothek)
+    return bibliothek.halter_von(werkzeug) if werkzeug is not None else None
 
 
 def _mm(wert):
@@ -104,9 +113,11 @@ class Bild:
         self.werkzeug_lage = coin.SoTransform()
         werkzeug.addChild(self.werkzeug_lage)
         self.werkzeug_wahl = coin.SoSwitch()
-        for op in abfahrt.operationen:
+        # Je Operation ihr Halter aus der Werkzeugverwaltung – None: angedeutet.
+        self.halter = [halter_von(op.tc, bibliothek) for op in abfahrt.operationen]
+        for op, halter in zip(abfahrt.operationen, self.halter, strict=True):
             masse = werkzeugmasse(op.tc, bibliothek, op.laenge)
-            self.werkzeug_wahl.addChild(self._werkzeug(op.laenge, *masse))
+            self.werkzeug_wahl.addChild(self._werkzeug(op.laenge, *masse, halter))
         self.werkzeug_wahl.whichChild = self.operation
         werkzeug.addChild(self.werkzeug_wahl)
         self.wurzel.addChild(werkzeug)
@@ -172,10 +183,10 @@ class Bild:
         teil.addChild(zylinder)
         return teil
 
-    def _werkzeug(self, laenge, durchmesser, schneide, schaft, gesamt):
+    def _werkzeug(self, laenge, durchmesser, schneide, schaft, gesamt, halter=None):
         """Das Werkzeug im LCS seiner Aufnahme: die Spitze bei Z = −Länge (Z zeigt von der
-        Spitze zur Aufnahme), Schneide, Schaft bis zur Gesamtlänge, dahinter der Halter
-        angedeutet bis zur Aufnahme."""
+        Spitze zur Aufnahme), Schneide, Schaft bis zur Gesamtlänge – dazu der Halter mit
+        seiner Kontur ab der Aufnahme, ohne Halter einer angedeutet bis zur Aufnahme."""
         teil = self._coin.SoSeparator()
         spitze = -laenge
         schneide = min(schneide, laenge)
@@ -183,10 +194,35 @@ class Bild:
         teil.addChild(self._zylinder(durchmesser / 2, spitze, spitze + schneide, SCHNEIDE))
         if gesamt > schneide:
             teil.addChild(self._zylinder(schaft / 2, spitze + schneide, spitze + gesamt, SCHAFT))
-        if laenge - gesamt > 0.5:
-            halter = max(2 * schaft, HALTER_MINDESTENS) / 2
-            teil.addChild(self._zylinder(halter, spitze + gesamt, 0.0, HALTER, 0.6))
+        if halter is not None and halter.kontur():
+            teil.addChild(self._halter(halter))
+        elif laenge - gesamt > 0.5:
+            radius = max(2 * schaft, HALTER_MINDESTENS) / 2
+            teil.addChild(self._zylinder(radius, spitze + gesamt, 0.0, HALTER, 0.6))
         return teil
+
+    def _halter(self, halter):
+        """Der Halter mit seiner Kontur: je Abschnitt ein Zylinder oder Kegel, von der
+        Aufnahme (Z = 0) zum Werkzeug hin."""
+        import Part
+
+        teile = []
+        oben = 0.0
+        unten_richtung = FreeCAD.Vector(0, 0, -1)
+        for abschnitt in halter.abschnitte:
+            if abschnitt.laenge <= 0:
+                continue
+            basis = FreeCAD.Vector(0, 0, -oben)
+            r1, r2 = abschnitt.d_oben / 2, abschnitt.d_unten / 2
+            if abs(r1 - r2) < 1e-9:
+                if r1 > 0:
+                    teile.append(Part.makeCylinder(r1, abschnitt.laenge, basis, unten_richtung))
+            else:
+                teile.append(Part.makeCone(r1, r2, abschnitt.laenge, basis, unten_richtung))
+            oben += abschnitt.laenge
+        if not teile:
+            return self._coin.SoSeparator()
+        return self._flaechen(Part.makeCompound(teile), HALTER_ECHT, 0.0)
 
     def _flaechen(self, form, farbe, transparenz):
         """Eine Form als Dreiecke, in ihren eigenen Koordinaten (denen des Jobs)."""

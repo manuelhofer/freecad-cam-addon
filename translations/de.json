@@ -863,5 +863,6 @@
     "wv.halter.ohne": "– ohne –",
     "wv.halter.knopf": "Halter …",
     "wv.halter.knopf.tooltip": "Halter anlegen und bearbeiten; mit OK bekommt dieses Werkzeug den gewählten.",
-    "wv.laenge_spindelnase.platzhalter_halter": "leer: {wert} mit Halter"
+    "wv.laenge_spindelnase.platzhalter_halter": "leer: {wert} mit Halter",
+    "rw.laenge_halter": "{werkzeug}: gerechnet mit {laenge}, geschätzt aus Halter und Werkzeug (Halterlänge + Gesamtlänge − Spanntiefe). Genauer mit der gemessenen „Länge ab Spindelnase“ in der Werkzeugverwaltung."
 }

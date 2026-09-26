@@ -62,6 +62,7 @@ MITTE = {"X": "I", "Y": "J", "Z": "K"}  # Mittelpunkt eines Kreises, ab seinem S
 
 # Woher die Länge eines Werkzeugs kommt.
 LAENGE_SPINDELNASE = "spindelnase"  # eingetragen: ab Spindelnase, mit Halter
+LAENGE_HALTER = "halter"  # geschätzt: Halterlänge + Gesamtlänge − Spanntiefe
 LAENGE_GESAMT = "gesamt"  # Gesamtlänge aus der Werkzeugverwaltung, ohne Halter
 LAENGE_GESCHAETZT = "geschaetzt"  # keine Gesamtlänge eingetragen: geschätzt wie für CAM
 LAENGE_CAM = "cam"  # Länge des CAM-Werkzeugs, ohne Halter
@@ -234,13 +235,17 @@ def werkzeuglaenge(tc, bibliothek):
 
     Aus der Werkzeugverwaltung, wenn das Werkzeug dort steht (wie „Schnittwerte
     in den Job“: über die Kennung, sonst Nummer und Durchmesser): die Länge ab
-    Spindelnase, mit Halter – sonst die Gesamtlänge, ohne Halter; fehlt auch
-    sie, geschätzt wie für CAM. Sonst die Länge des CAM-Werkzeugs.
+    Spindelnase, mit Halter – sonst mit seinem Halter geschätzt (Halterlänge +
+    Gesamtlänge − Spanntiefe), ohne Halter die Gesamtlänge; fehlt auch sie,
+    geschätzt wie für CAM. Sonst die Länge des CAM-Werkzeugs.
     """
     werkzeug = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
     if werkzeug is not None:
         if werkzeug.laenge_spindelnase:
             return werkzeug.laenge_spindelnase, LAENGE_SPINDELNASE
+        halter = bibliothek.halter_von(werkzeug)
+        if halter is not None:
+            return wz.laenge_mit_halter(werkzeug, halter), LAENGE_HALTER
         if werkzeug.gesamtlaenge:
             return werkzeug.gesamtlaenge, LAENGE_GESAMT
         return wz.geschaetzte_laenge(werkzeug), LAENGE_GESCHAETZT
@@ -609,7 +614,9 @@ class _Sammler:
     def laenge(self, tc, laenge, quelle):
         """Sagt, womit gerechnet wurde, wenn es nicht die Länge ab Spindelnase ist."""
         werte = {"werkzeug": werkzeug_text(tc), "laenge": weg_text(laenge)}
-        if quelle == LAENGE_GESAMT:
+        if quelle == LAENGE_HALTER:
+            self.hinweis(tr("rw.laenge_halter", **werte))
+        elif quelle == LAENGE_GESAMT:
             self.hinweis(tr("rw.laenge_gesamt", **werte))
         elif quelle == LAENGE_GESCHAETZT:
             self.hinweis(tr("rw.laenge_geschaetzt", **werte))
