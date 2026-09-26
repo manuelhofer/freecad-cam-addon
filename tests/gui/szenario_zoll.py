@@ -31,7 +31,7 @@ def schritte(h):
     from camaddon import (
         beispielmaschine,
         einheiten,
-        gui_maschine,
+        gui_neue_maschine,
         gui_schruppwerte,
         gui_verfahren,
         gui_werkzeuge,
@@ -127,8 +127,8 @@ def schritte(h):
         laden = next(k for k in meldung.buttons() if k.text() == "Beispielmaschine laden …")
         laden.click()
     # Aus der Auswahl die 3-Achs-Fräse.
-    yield from h.warte_auf(lambda: gui_maschine.BeispielAuswahl.offen is not None)
-    auswahl = gui_maschine.BeispielAuswahl.offen
+    yield from h.warte_auf(lambda: gui_neue_maschine.NeueMaschineDialog.offen is not None)
+    auswahl = gui_neue_maschine.NeueMaschineDialog.offen
     if auswahl is not None:
         auswahl.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.FRAESE_3))
         auswahl.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()

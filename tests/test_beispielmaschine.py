@@ -3,7 +3,10 @@
 # eingerichtet, ohne Warnung; Verfahren bewegt Tisch, Sattel und Kopf in
 # Achsrichtung und hält die Grenzen ein. Dann alle fünf Bauarten zur Auswahl
 # (Drehmaschine, 3-Achs, drei 5-Achs): jede mit ihren Achsen, ohne Warnung,
-# jede Achse fährt, und die Auswahl merkt sich die zuletzt geladene.
+# jede Achse fährt, und die Auswahl merkt sich die zuletzt geladene. Zuletzt
+# die Drehmaschine mit eigenen Maßen („Neue Maschine …“): Name, Wege,
+# Bettneigung, Plätze, Drehzahl und die schräge Achse – und ungültige Maße.
+import math
 import os
 import sys
 
@@ -12,7 +15,8 @@ sys.path.insert(0, ADDON)
 
 import FreeCAD as App
 
-from camaddon import PARAMETER_PFAD, beispielmaschine, sprache
+from camaddon import PARAMETER_PFAD, beispielmaschine, schraege_achse, sprache
+from camaddon import kette as kette_modul
 from camaddon import maschine as m
 from camaddon import schruppwerte as sw
 from camaddon import verfahren as vf
@@ -135,6 +139,70 @@ for art in beispielmaschine.ARTEN:
         pruefe(len(plaetze) == 12, f"Revolverplätze: {len(plaetze)}")
         pruefe(len(angetrieben) == 2, f"angetrieben: {angetrieben}")
     App.closeDocument(doc.Name)
+
+# --- Drehmaschine mit eigenen Maßen („Neue Maschine …“) ----------------------------------
+masse = beispielmaschine.DrehmaschinenMasse(
+    name="Meine Drehmaschine / 2",
+    bettneigung=30,
+    y_winkel=30,
+    weg_x=(-80, 120),
+    weg_y=(-40, 50),
+    weg_z=(-50, 400),
+    plaetze=8,
+    drehzahl=4000,
+)
+pruefe(not masse.fehler(), f"gültige Maße: {masse.fehler()}")
+asm, ma = beispielmaschine.lade(beispielmaschine.DREHMASCHINE, masse)
+doc = asm.Document
+kette = kette_modul.lies_kette(asm)
+achsen = {a.gelenk.Label: a for a in kette.achsen}
+pruefe(ma.Label == "Meine Drehmaschine / 2", f"Maschine: {ma.Label}")
+pruefe(doc.Label == "Meine Drehmaschine - 2", f"Dokument: {doc.Label}")
+for gelenk, weg_soll in (("X", (-80, 120)), ("Y", (-40, 50)), ("Z", (-50, 400))):
+    ist = (achsen[gelenk].minimum, achsen[gelenk].maximum)
+    pruefe(ist == weg_soll, f"Weg {gelenk}: {ist}")
+# Das Bett ist 30° geneigt: X fährt 30° gegen die Waagrechte.
+steigung = abs(math.degrees(math.asin(achsen["X"].richtung.z)))
+pruefe(abs(steigung - 30) < 1e-6, f"X steigt um {steigung}°")
+plaetze = [a for a in m.aufnahmen(ma) if a.Art == m.AUFNAHME_WERKZEUG]
+pruefe(len(plaetze) == 8, f"Revolverplätze: {len(plaetze)}")
+s1 = next(b for b in m.betriebsarten(ma) if b.NcName == "S1")
+pruefe(s1.Drehzahl == 4000, f"S1: {s1.Drehzahl}")
+trafos = m.transformationen(ma)
+pruefe(len(trafos) == 1, f"schräge Achse: {len(trafos)}")
+if trafos:
+    alpha = schraege_achse.winkel(kette, ma, trafos[0])
+    pruefe(alpha is not None and abs(alpha - 30) < 1e-6, f"Y-Winkel: {alpha}")
+warnungen = [x.text for x in m.pruefe(ma, kette) if x.schwere != HINWEIS]
+pruefe(not warnungen, f"eigene Maße, Warnungen: {warnungen}")
+hinweise = [x.schluessel for x in m.pruefe(ma, kette) if x.schluessel.startswith("maschine.trafo")]
+pruefe(not hinweise, f"eigene Maße, Hinweise zur schrägen Achse: {hinweise}")
+App.closeDocument(doc.Name)
+
+# Ohne Y-Winkel keine schräge Achse; die Vorgaben sind die des Beispiels.
+asm, ma = beispielmaschine.lade(
+    beispielmaschine.DREHMASCHINE, beispielmaschine.DrehmaschinenMasse()
+)
+pruefe(not m.transformationen(ma), "Vorgabe mit schräger Achse")
+pruefe(asm.Document.Label == "Beispiel Drehmaschine", f"Vorgabe-Name: {asm.Document.Label}")
+App.closeDocument(asm.Document.Name)
+
+# Ungültige Maße: je Feld ein Satz.
+falsch = beispielmaschine.DrehmaschinenMasse(
+    bettneigung=70,
+    y_winkel=-61,
+    weg_x=(10, 100),
+    weg_y=(-5, -5),
+    weg_z=(-2000, 10),
+    plaetze=3,
+    drehzahl=0,
+)
+felder = [feld for feld, _schluessel in falsch.fehler()]
+pruefe(
+    felder == ["bettneigung", "y_winkel", "weg_x", "weg_y", "weg_z", "plaetze", "drehzahl"],
+    f"ungültige Maße: {felder}",
+)
+
 if zuletzt_vorher:
     einstellungen.SetString(beispielmaschine._ZULETZT, zuletzt_vorher)
 else:

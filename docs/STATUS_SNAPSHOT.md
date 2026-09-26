@@ -112,8 +112,9 @@ Wunschliste, offene Bugs und Tasks.
    schräg zu X1“, ein Klick legt an), Schritt 4 fertig (-69: „Maschine
    verfahren“ wie im Programm, am Anschlag eine rote Zeile), Schritt 5
    fertig (-71: an CAM rechtwinklig, Grenzen und Eilgang umgerechnet),
-   Schritt 6 fertig (-72: Höchstvorschub beim Planen). Offen: Schritt 7
-   (Vorlage mit Eingabemaske) – Aufbau vorher mit Skizze entscheiden.*
+   Schritt 6 fertig (-72: Höchstvorschub beim Planen), Schritt 7 fertig
+   (-75: Befehl „Neue Maschine …“, Maße der Drehmaschine). Stufe 3b damit
+   komplett.*
 
 **Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
 automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
@@ -166,7 +167,10 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    beide Schlitten fahren; X auf 140, dann Y auf −40 → rote Zeile „… X1
    steht an seiner Grenze 150,00 mm“. Im Wochen-Build „An CAM übergeben“:
    der Bericht nennt die schräge Achse. Versteht man den Bereich ohne
-   Erklärung?
+   Erklärung? Dann **„Neue Maschine …“** (P-2026-09-26-75): Drehmaschine,
+   Bettneigung 30°, Y schräg um 30°, 8 Plätze → „Maschine bauen“ → die
+   Maschine steht im neuen Dokument, „Maschine bearbeiten“ zeigt die
+   schräge Achse.
 6. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
    Nr. 13–23 sind von dieser Nacht) und die sechs Fragen zu Stufe 4

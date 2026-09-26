@@ -12,6 +12,79 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-75 neue-maschine
+
+### EINGELESEN
+- Manuels Wahl (2026-09-26): eigener Befehl „Neue Maschine …“; Maße zum
+  Eintragen erst nur für die Drehmaschine. Spezifikation W-001, Abschnitt 7c
+  („Vorlage mit Eingabemaske“) und Stufe 3b, Schritt 7.
+- `beispielmaschine.py` (Bauplan der Drehmaschine), `gui_maschine.py`
+  (Auswahl der Beispielmaschinen), `gui_start.py`, `tests/test_sprache.py`
+  (Schlüssel nur als fester Text in tr/meldung).
+
+### DATEIEN
+- `camaddon/gui_neue_maschine.py` (neu), `resources/icons/neue_maschine.svg` (neu)
+- `camaddon/beispielmaschine.py` (`DrehmaschinenMasse`, `drehmaschine(masse)`,
+  `lade(art, masse)`)
+- `camaddon/gui_maschine.py` (Auswahl ausgelagert), `camaddon/gui_verfahren.py`,
+  `camaddon/gui_start.py`, `camaddon/hilfe.py`
+- `help/de/neue_maschine.html`, `help/en/neue_maschine.html` (neu),
+  `help/de/achsen.html`, `help/en/achsen.html`
+- `translations/de.json`, `translations/en.json`
+- `tests/test_beispielmaschine.py`, `tests/gui/szenario_neue_maschine.py` (neu),
+  `tests/gui/szenario_beispielmaschine.py`, `tests/gui/szenario_zoll.py`
+- `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/aufbau.md`, `CHATSTART.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugleiste „CAM-Addon“ → „Neue Maschine …“ → Drehmaschine → Name „Meine
+Drehmaschine“, Bettneigung 30°, Y schräg um 30°, 8 Revolverplätze →
+„Maschine bauen“ → ein neues Dokument „Meine Drehmaschine“, und „Maschine
+bearbeiten“ zeigt „Schräge Achse Y1 – gleicht aus: X1, 30,0°“ und
+„Revolver T – 8 Plätze“.
+
+### DONE
+- `DrehmaschinenMasse`: Name, Bettneigung (0–60°), Y-Winkel (±60°), Wege
+  X/Y/Z (0 liegt dazwischen, höchstens 1000 mm je Richtung), Revolverplätze
+  (4–24), Höchstdrehzahl; vorbelegt wie das Beispiel; `fehler()` sagt in
+  Sätzen, was nicht passt. `drehmaschine(masse)` baut damit – das Bett im
+  Rahmen der Neigung, die Wege als Grenzen der Gelenke, die Plätze
+  verteilt, S1 mit der Drehzahl, Name für Maschine und Dokument (ohne „/“
+  im Dokumentnamen) – und legt bei Y-Winkel ≠ 0 die schräge Achse an
+  (`drehe_fuehrung`, der Revolver bleibt gerade).
+- Befehl „Neue Maschine …“ (Werkzeugleiste, vor „Maschine bearbeiten“):
+  Dialog mit den Bauarten, der Beschreibung und dem Bereich „Maße“ (?): bei
+  der Drehmaschine die Felder (Wege in mm bzw. inch), bei den Fräsen der
+  Satz „Diese Bauart hat feste Maße …“. „Maschine bauen“ prüft die Maße;
+  passt etwas nicht, sagt eine rote Zeile warum, und der Dialog bleibt offen
+  (die Zeile verschwindet beim nächsten Ändern). Danach öffnet sich
+  „Maschine bearbeiten“.
+- „Beispielmaschine laden …“ in „Maschine bearbeiten“ und „Maschine
+  verfahren“ öffnet denselben Dialog (Titel „Beispielmaschine laden“), mit
+  Maßen bei der Drehmaschine. Knopf jetzt „Maschine bauen“ statt „Laden“.
+- Die Beschreibung der Drehmaschine nennt keine feste Platzzahl mehr.
+- Hilfe „Neue Maschine“ und ein Absatz in „Achsen“.
+- Bewusst noch nicht: Maße für die Fräsen (Manuel: erst die Drehmaschine);
+  die Maße werden nicht gemerkt (jedes Mal die des Beispiels).
+
+### TEST
+- Claude ohne Oberfläche, beide Versionen: `test_beispielmaschine.py`
+  zusätzlich: eigene Maße → Name der Maschine, Dokument „Meine
+  Drehmaschine - 2“ (ohne „/“), Wege als Grenzen, X steigt um 30°, 8 Plätze,
+  S1 4000, schräge Achse mit 30°, keine Warnung und kein Hinweis zur
+  schrägen Achse; Vorgaben ohne schräge Achse; ungültige Maße – je Feld ein
+  Satz. `test_sprache`, `test_hilfe` grün.
+- Claude mit Oberfläche (Screenshots angesehen), beide Versionen:
+  `szenario_neue_maschine` – Knopf in der Werkzeugleiste, Fräse mit festen
+  Maßen, Drehmaschine mit Vorbelegung, Weg Y 0 … 0 abgewiesen (roter Satz,
+  Dialog bleibt, Satz verschwindet beim Ändern), eigene Maße gebaut,
+  „Maschine bearbeiten“ mit schräger Achse 30,0° und 8 Plätzen.
+  `szenario_beispielmaschine`, `szenario_zoll` weiter grün.
+- Ob der Dialog verständlich ist, prüft Manuel.
+
+### NEXT
+- Version 0.20.0, voller Testlauf, Push.
+
 ## P-2026-09-26-74 snapshot-schraege-achse-ausprobieren
 
 ### EINGELESEN

@@ -18,6 +18,7 @@ from . import (
     gui_aktualisierung,
     gui_job_schnittwerte,
     gui_maschine,
+    gui_neue_maschine,
     gui_sprachwahl,
     gui_verfahren,
     gui_werkzeuge,
@@ -35,6 +36,7 @@ WERKZEUGLEISTE_NAME = "CAM-Addon"
 
 # Befehle der Werkzeugleiste, in Anzeigereihenfolge.
 WERKZEUGLEISTE = [
+    "CamAddon_NeueMaschine",
     "CamAddon_MaschineBearbeiten",
     "CamAddon_MaschineVerfahren",
     "CamAddon_Werkzeugverwaltung",
@@ -49,6 +51,7 @@ def starten():
     Start nach der Sprache und sucht nach Updates, falls das eingeschaltet ist."""
     BEFEHLE.update(
         {
+            "CamAddon_NeueMaschine": gui_neue_maschine.BefehlNeueMaschine(),
             "CamAddon_MaschineBearbeiten": gui_maschine.BefehlMaschineBearbeiten(),
             "CamAddon_MaschineVerfahren": gui_verfahren.BefehlMaschineVerfahren(),
             "CamAddon_Werkzeugverwaltung": gui_werkzeuge.BefehlWerkzeugverwaltung(),

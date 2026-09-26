@@ -58,10 +58,10 @@ class BefehlMaschineVerfahren:
         doc = FreeCAD.ActiveDocument
         assembly = gewaehlte_assembly(doc) if doc else None
         if assembly is None:
-            art = beispiel_waehlen(tr("vf.titel"))
-            if art is None:
+            gewaehlt = beispiel_waehlen(tr("vf.titel"))
+            if gewaehlt is None:
                 return
-            assembly, _maschine = beispielmaschine.lade(art)
+            assembly, _maschine = beispielmaschine.lade(*gewaehlt)
             doc = assembly.Document
         verfahren = vf.Verfahren(assembly)
         if not verfahren.achsen:

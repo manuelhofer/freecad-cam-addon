@@ -444,7 +444,12 @@ Patch, in dieser Reihenfolge:
    im Bericht.
 6. Schruppwerte planen: umgerechneter Höchstvorschub für Y. – *Gebaut
    (P-2026-09-26-72).*
-7. Vorlage mit Eingabemaske – Aufbau vorher mit Skizze entscheiden.
+7. Vorlage mit Eingabemaske – Aufbau vorher mit Skizze entscheiden. –
+   *Gebaut (P-2026-09-26-75) als eigener Befehl „Neue Maschine …“ (siehe
+   „Entschieden“). Klickweg: „Neue Maschine …“ → Drehmaschine → Name,
+   Bettneigung 30°, Y schräg um 30°, Wege, 8 Plätze, 4000 U/min → „Maschine
+   bauen“ → neues Dokument, „Maschine bearbeiten“ zeigt die schräge Achse
+   mit 30,0° und acht Revolverplätze.*
 
 **Stufe 4 – Werkzeugbahn abfahren und Kollision prüfen** – eigene
 Spezifikation: [spezifikation_simulation.md](spezifikation_simulation.md)
@@ -511,3 +516,10 @@ diesen Dialog heißt das konkret:
   wo der Winkel bei Siemens und Fanuc steht; braucht das Addon später etwas
   Steuerungsabhängiges, liest es den Postprozessor der Maschine, statt
   doppelt zu fragen.
+- **Neue Maschine** (Manuel, P-2026-09-26-75; Stufe 3b, Schritt 7): ein
+  eigener Befehl „Neue Maschine …“ in der Werkzeugleiste – Bauart wählen,
+  darunter die Maße; „Beispielmaschine laden …“ öffnet denselben Dialog.
+  Maße zum Eintragen zuerst nur für die Drehmaschine (Name, Bettneigung,
+  Y-Winkel, Wege X/Y/Z, Revolverplätze, Höchstdrehzahl); die Fräsen bleiben
+  feste Beispiele, bis jemand Maße braucht. Nach dem Bauen öffnet sich
+  „Maschine bearbeiten“.

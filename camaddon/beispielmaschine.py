@@ -26,13 +26,21 @@ Face1 x=0, Face2 x=Länge, Face3 y=0, Face4 y=Breite, Face5 z=0 (unten),
 Face6 z=Höhe (oben). Part::Cylinder: Face2 unten, Face3 oben (nachgesehen in
 1.1.3) – für ein Drehgelenk gleich, beide Mitten liegen auf der Achse.
 
+Die Drehmaschine hat Maße zum Eintragen (DrehmaschinenMasse): Bettneigung,
+Winkel der Y-Achse, Wege, Revolverplätze, Drehzahl, Name – so baut
+„Neue Maschine …“ aus wenigen Zahlen eine eigene (Manuel, 2026-09-26:
+„so, dass es ein Leichtes ist, so etwas zu erstellen“). Steht Y schräg, legt
+der Bauplan die schräge Achse gleich mit an.
+
 Läuft ohne Oberfläche; mit Oberfläche bekommen Körper und Gelenke Farben
 und Ansichten.
 """
 
+from dataclasses import dataclass
+
 import FreeCAD as App
 
-from . import PARAMETER_PFAD
+from . import PARAMETER_PFAD, schraege_achse
 from . import kette as kette_modul
 from . import maschine as m
 from .sprache import tr
@@ -573,14 +581,60 @@ def fuenfachs_kopf_kopf():
 
 # --- Drehmaschine ---------------------------------------------------------------
 
-# Das Schrägbett steigt um 45° nach hinten an. In seinem Rahmen liegt die
-# Bettfläche waagrecht: x ist die Spindelachse (Z der Maschine), y quer im Bett
-# (X, weg von der Spindelachse), z senkrecht zum Bett (Y). Gekippt um die
-# Spindelachse, angehoben auf Spitzenhöhe.
-SCHRAEGBETT = App.Placement(App.Vector(0, 0, 800), App.Rotation(App.Vector(1, 0, 0), 45))
+# Das Schrägbett steigt nach hinten an, im Beispiel um 45°. In seinem Rahmen
+# liegt die Bettfläche waagrecht: x ist die Spindelachse (Z der Maschine), y
+# quer im Bett (X, weg von der Spindelachse), z senkrecht zum Bett (Y).
+# Gekippt um die Spindelachse, angehoben auf Spitzenhöhe.
+SPITZENHOEHE = 800  # mm über dem Boden, wo der Rahmen beginnt
 # Die Revolverachse im Rahmen (bei x = 0) und die Plätze auf der Scheibe.
 REVOLVERACHSE = App.Vector(0, 405, 350)
-PLAETZE = 12
+
+# Was sich in „Neue Maschine …“ eintragen lässt, und in welchen Grenzen.
+BETTNEIGUNG_BEREICH = (0.0, 60.0)  # Grad; 0 ist ein Flachbett
+Y_WINKEL_BEREICH = (-60.0, 60.0)  # Grad; 0 heißt Y rechtwinklig zu X
+PLAETZE_BEREICH = (4, 24)
+GROESSTER_WEG = 1000.0  # mm, je Richtung
+
+
+@dataclass
+class DrehmaschinenMasse:
+    """Die Maße der Drehmaschine, vorbelegt wie das Beispiel.
+
+    Wege in mm als (Minimum, Maximum), gezählt ab der Stellung, in der die
+    Maschine gebaut ist – 0 muss darin liegen. `y_winkel` ungleich 0 macht Y
+    zur schrägen Achse (W-001, Abschnitt 7c).
+    """
+
+    name: str = ""  # leer: der Name des Beispiels
+    bettneigung: float = 45.0
+    y_winkel: float = 0.0
+    weg_x: tuple = (-170.0, 150.0)
+    weg_y: tuple = (-60.0, 60.0)
+    weg_z: tuple = (-100.0, 300.0)
+    plaetze: int = 12
+    drehzahl: float = 5000.0  # U/min der Hauptspindel
+
+    def fehler(self):
+        """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
+        ergebnis = []
+        if not BETTNEIGUNG_BEREICH[0] <= self.bettneigung <= BETTNEIGUNG_BEREICH[1]:
+            ergebnis.append(("bettneigung", tr("neu.bettneigung_bereich")))
+        if not Y_WINKEL_BEREICH[0] <= self.y_winkel <= Y_WINKEL_BEREICH[1]:
+            ergebnis.append(("y_winkel", tr("neu.y_winkel_bereich")))
+        for feld in ("weg_x", "weg_y", "weg_z"):
+            unten, oben = getattr(self, feld)
+            if not -GROESSTER_WEG <= unten <= 0 <= oben <= GROESSTER_WEG or unten == oben:
+                ergebnis.append((feld, tr("neu.weg_bereich")))
+        if not PLAETZE_BEREICH[0] <= self.plaetze <= PLAETZE_BEREICH[1]:
+            ergebnis.append(("plaetze", tr("neu.plaetze_bereich")))
+        if self.drehzahl <= 0:
+            ergebnis.append(("drehzahl", tr("neu.drehzahl_fehlt")))
+        return ergebnis
+
+
+def _schraegbett(neigung):
+    """Der Rahmen des Betts: um `neigung` Grad um die Spindelachse gekippt, auf Spitzenhöhe."""
+    return App.Placement(App.Vector(0, 0, SPITZENHOEHE), App.Rotation(App.Vector(1, 0, 0), neigung))
 
 
 def _auf_der_scheibe(winkel, radius):
@@ -590,23 +644,26 @@ def _auf_der_scheibe(winkel, radius):
     return REVOLVERACHSE + richtung * radius
 
 
-def drehmaschine():
+def drehmaschine(masse=None):
     """Drehmaschine mit Y-Achse, Schrägbett wie eine CLX.
 
     Hauptspindel S1 (Drehzahl) und C1 (positionieren) – ihre Achse ist Z.
     Auf dem Bett Z-Schlitten, X-Schlitten, darauf Y-Schlitten mit dem
     Revolver T (12 Plätze). P1 trägt ein radiales angetriebenes Fräswerkzeug
     (90° zu Z), P2 ein axiales (arbeitet in Z-Richtung); beide hängen am
-    Werkzeugantrieb S3. Das Futter ist die Werkstückaufnahme. Gibt
-    (Assembly, Maschine) zurück.
+    Werkzeugantrieb S3. Das Futter ist die Werkstückaufnahme. `masse`
+    (DrehmaschinenMasse) ändert Bettneigung, Wege, Plätze, Drehzahl und Name;
+    steht Y schräg, kommt die schräge Achse dazu. Gibt (Assembly, Maschine)
+    zurück.
     """
+    masse = masse or DrehmaschinenMasse()
     b = _neu(DREHMASCHINE)
     fuss = b.quader("Maschinenfuss", 1700, 1400, 500, x=-100, y=-300, farbe=GUSS)
     rueckwand = b.quader("Rueckwand", 1700, 400, 450, x=-100, y=700, z=500, farbe=GUSS)
     b.fixieren(fuss)
     b.gelenk_wie_gebaut("Rueckwand_fest", "Fixed", fuss, "Face6", rueckwand, "Face5")
 
-    b.rahmen = SCHRAEGBETT
+    b.rahmen = _schraegbett(masse.bettneigung)
     bett = b.quader("Bett", 1500, 1200, 700, y=-350, z=-700, farbe=GUSS)
     spindelkasten = b.quader("Spindelkasten", 380, 520, 620, y=-260, farbe=GUSS)
     spindel, _ = b.bauteil(
@@ -624,7 +681,7 @@ def drehmaschine():
     # Revolverscheibe; P1 unten (zur Spindelachse hin) mit dem radialen
     # Halter, P2 um 30° weiter mit dem axialen, der zum Futter zeigt.
     achse = REVOLVERACHSE
-    axial = _auf_der_scheibe(360.0 / PLAETZE, 130)
+    axial = _auf_der_scheibe(360.0 / masse.plaetze, 130)
     revolver, _ = b.bauteil(
         "Revolver",
         [
@@ -679,15 +736,15 @@ def drehmaschine():
         richtung=(1, 0, 0),
     )
     z = b.gelenk_wie_gebaut("Z", "Slider", bett, "Face6", z_schlitten, "Face5", richtung=(1, 0, 0))
-    b.begrenze(z, -100, 300)
+    b.begrenze(z, *masse.weg_z)
     x = b.gelenk_wie_gebaut(
         "X", "Slider", z_schlitten, "Face6", x_schlitten, "Face5", richtung=(0, 1, 0)
     )
-    b.begrenze(x, -170, 150)
+    b.begrenze(x, *masse.weg_x)
     y = b.gelenk_wie_gebaut(
         "Y", "Slider", x_schlitten, "Face3", y_schlitten, "Face4", richtung=(0, 0, 1)
     )
-    b.begrenze(y, -60, 60)
+    b.begrenze(y, *masse.weg_y)
     revolverachse = b.gelenk_wie_gebaut(
         "Revolverachse",
         "Revolute",
@@ -709,21 +766,30 @@ def drehmaschine():
     asm = b.fertig()
 
     ma = _maschine(asm, DREHMASCHINE)
-    _linear(ma, x, "X1", 30000, 10000, 6)
-    _linear(ma, y, "Y1", 12000, 5000, 4)
+    x1 = _linear(ma, x, "X1", 30000, 10000, 6)
+    y1 = _linear(ma, y, "Y1", 12000, 5000, 4)
     _linear(ma, z, "Z1", 30000, 10000, 6)
-    _spindel(ma, hauptspindel, "S1", 5000, 2.5)
+    _spindel(ma, hauptspindel, "S1", masse.drehzahl, 2.5)
     _positionieren(ma, hauptspindel, "C1", 100, endlos=True)
     t = m.neue_betriebsart(ma, revolverachse, m.ART_REVOLVER, "T")
     t.Schaltzeit = 0.25
     s3 = _spindel(ma, werkzeugantrieb, "S3", 4000, 0.5)
     m.neue_aufnahme(ma, spannflaeche, m.AUFNAHME_WERKSTUECK, tr("beispiel.futter"))
-    plaetze = m.verteile_plaetze(ma, kette_modul.lies_kette(asm), t, platz1, PLAETZE)
+    plaetze = m.verteile_plaetze(ma, kette_modul.lies_kette(asm), t, platz1, masse.plaetze)
     # P2 trägt das axiale Werkzeug: Aufnahme vorn am Halter, Z zeigt vom Futter weg.
     plaetze[1].Lcs.Placement = b.lage_im_teil(revolver, 650, axial.y, axial.z, (1, 0, 0))
     for platz in plaetze[:2]:
         platz.Spindel = s3
+    if masse.name.strip():
+        ma.Label = masse.name.strip()
+        # Der Name des Dokuments wird beim Speichern der Dateiname – ohne „/“.
+        asm.Document.Label = masse.name.strip().replace("/", "-").replace("\\", "-")
     asm.Document.recompute()
+    if masse.y_winkel:
+        # Die schräge Achse: Die Y-Führung dreht sich, der Revolver bleibt gerade.
+        trafo = m.neue_schraege_achse(ma, y1, x1)
+        kette = kette_modul.lies_kette(asm)
+        schraege_achse.drehe_fuehrung(asm, kette, ma, trafo, masse.y_winkel)
     return asm, ma
 
 
@@ -742,11 +808,12 @@ def zuletzt_gewaehlt():
     return art if art in ARTEN else ARTEN[0]
 
 
-def lade(art):
+def lade(art, masse=None):
     """Baut die Beispielmaschine der Bauart in einem neuen Dokument und zeigt sie;
-    gibt (Assembly, Maschine) zurück."""
+    gibt (Assembly, Maschine) zurück. `masse`: die eingetragenen Maße – bisher
+    nur bei der Drehmaschine (DrehmaschinenMasse)."""
     App.ParamGet(PARAMETER_PFAD).SetString(_ZULETZT, art)
-    asm, ma = BAUPLAENE[art]()
+    asm, ma = BAUPLAENE[art](masse) if masse is not None else BAUPLAENE[art]()
     if App.GuiUp:
         import FreeCADGui
 

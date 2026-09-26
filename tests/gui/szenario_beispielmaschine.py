@@ -24,7 +24,7 @@ def beispiel_waehlen(h, befehl, art, bilder, offen):
     """Ruft den Befehl auf, prüft die Meldung, klickt „Beispielmaschine laden …“,
     wählt in der Auswahl `art` und lädt; wartet dann, bis `offen()` – der
     Dialog nach dem Laden ist da. `bilder`: Namen für Meldung und Auswahl."""
-    from camaddon import beispielmaschine, gui_maschine
+    from camaddon import beispielmaschine, gui_neue_maschine
 
     # Meldung und Auswahl blockieren, bis sie beantwortet sind.
     QtCore.QTimer.singleShot(0, lambda: Gui.runCommand(befehl))
@@ -40,8 +40,8 @@ def beispiel_waehlen(h, befehl, art, bilder, offen):
     if laden is None:
         return
     laden.click()
-    yield from h.warte_auf(lambda: gui_maschine.BeispielAuswahl.offen is not None)
-    auswahl = gui_maschine.BeispielAuswahl.offen
+    yield from h.warte_auf(lambda: gui_neue_maschine.NeueMaschineDialog.offen is not None)
+    auswahl = gui_neue_maschine.NeueMaschineDialog.offen
     h.pruefe(auswahl is not None, f"{befehl}: keine Auswahl der Beispielmaschinen")
     if auswahl is None:
         return
