@@ -304,12 +304,15 @@ def _spindel(ma, gelenk, nc_name, drehzahl, hochlaufzeit):
 # --- Fräsmaschinen --------------------------------------------------------------
 
 
-def fraesmaschine():
+def fraesmaschine(spanneisen=False):
     """3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z, Spindel S1.
 
     Maschinenobjekt ausgefüllt: X1, Y1, Z1 mit Eilgang, Höchstvorschub und
     Beschleunigung, S1 mit Drehzahl, Werkzeugaufnahme an der Spindelnase,
-    Werkstückaufnahme mitten auf dem Tisch. Gibt (Assembly, Maschine) zurück.
+    Werkstückaufnahme mitten auf dem Tisch. `spanneisen`: dazu links und rechts
+    vom Spannplatz je ein Spanneisen (40 × 40 × 30 mm, 100 mm von der Mitte bis
+    zu seiner Innenseite) – Hindernisse für die Kollisionsprüfung (W-001 4c).
+    Gibt (Assembly, Maschine) zurück.
     """
     b = _neu(FRAESE_3)
     bett = b.quader("Bett", 800, 900, 120, farbe=GUSS)
@@ -323,6 +326,11 @@ def fraesmaschine():
         lcs_y=140,
         lcs_hoehe=60,
     )
+    eisen = []
+    if spanneisen:
+        # Der Spannplatz liegt bei x 400, y 350 auf der Tischplatte (z 250).
+        for name, x in (("Spanneisen_links", 400 - 100 - 40), ("Spanneisen_rechts", 400 + 100)):
+            eisen.append(b.quader(name, 40, 40, 30, x=x, y=350 - 20, z=250, farbe=SPINDEL))
     kopf = b.quader("Fraeskopf", 200, 400, 300, x=300, y=250, z=520, farbe=KOPF)
     spindel, spindelnase = b.bauteil(
         "Spindel",
@@ -338,6 +346,10 @@ def fraesmaschine():
         "X", "Slider", sattel, "Face6", tisch, "Tischplatte.Face5", richtung=(1, 0, 0)
     )
     b.begrenze(x, -250, 250)
+    for teil in eisen:
+        b.gelenk_wie_gebaut(
+            f"{teil.Label}_fest", "Fixed", tisch, "Tischplatte.Face6", teil, "Face5"
+        )
     z = b.gelenk_wie_gebaut("Z", "Slider", staender, "Face3", kopf, "Face4", richtung=(0, 0, 1))
     b.begrenze(z, -100, 250)
     s = b.gelenk_wie_gebaut(

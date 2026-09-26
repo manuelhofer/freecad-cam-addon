@@ -864,5 +864,20 @@
     "wv.halter.knopf": "Holders …",
     "wv.halter.knopf.tooltip": "Add and edit holders; with OK this tool gets the chosen one.",
     "wv.laenge_spindelnase.platzhalter_halter": "empty: {wert} with holder",
-    "rw.laenge_halter": "{werkzeug}: calculated with {laenge}, estimated from holder and tool (holder length + overall length − clamping depth). More precise with the measured “gauge length” in the tool manager."
+    "rw.laenge_halter": "{werkzeug}: calculated with {laenge}, estimated from holder and tool (holder length + overall length − clamping depth). More precise with the measured “gauge length” in the tool manager.",
+    "kb.teil": "the part",
+    "kb.schneide": "the cutting part of {werkzeug}",
+    "kb.hals": "the neck of {werkzeug}",
+    "kb.schaft": "the shank of {werkzeug}",
+    "kb.halter": "the holder of {werkzeug} (“{halter}”)",
+    "kb.beruehrung": "In “{operation}”, {a} and {b} touch (block {satz}, at {punkt}).",
+    "kb.beruehrung.eilgang": "In “{operation}”, {a} and {b} touch during a rapid move (block {satz}, at {punkt}).",
+    "kb.naehe": "In “{operation}”, {a} and {b} come within {abstand} of each other (block {satz}, at {punkt}).",
+    "kb.naehe.eilgang": "In “{operation}”, {a} and {b} come within {abstand} of each other during a rapid move (block {satz}, at {punkt}).",
+    "kb.ohne_halter": "{werkzeug}: checked without holder – choose the holder with the tool in the tool manager.",
+    "kb.schon_beruehrt": "{a} and {b} already touch in the home position – the collision check skips this pair.",
+    "kb.kein_teil": "The job has no model – nothing was checked against the part.",
+    "kb.fehler": "{a} and {b}: FreeCAD could not compute their distance – this pair is not checked.",
+    "kb.abgebrochen": "Stopped – checked up to {zeit} of {dauer}.",
+    "kb.zu_viele": "Stopped after {anzahl} positions – checked up to {zeit} of {dauer}."
 }

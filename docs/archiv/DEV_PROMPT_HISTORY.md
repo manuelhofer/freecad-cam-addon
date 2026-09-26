@@ -12,6 +12,76 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-97 kollision-rechenkern
+
+### EINGELESEN
+- `docs/spezifikation_simulation.md`, 4c (P-2026-09-26-93), Schritt 1.
+- `abfahren.py` (Stationen, wirksame Stellungen), `reichweite.py`
+  (`_glied_lage`, `_lage`, `_job_lage`), `verfahren.py` (Ausgang, Wege,
+  Grenzen), `kette.py` (Glieder, Achsen, Eltern und Kind), `halter.py`.
+- Messung aus P-2026-09-26-93: `distToShape` 2–3 ms, 0 für „steckt drin“.
+- Probe: `Part.getShape(bauteil, transform=False)` gibt die Form in eigenen
+  Koordinaten; an ihren Ausgang gesetzt, liegt sie wie im Dokument.
+
+### DATEIEN
+- `camaddon/kollision.py` (neu)
+- `camaddon/reichweite.py` (`Werkzeugmasse`, `werkzeugmasse`,
+  `werkzeughalter` – aus gui_abfahren.py hierher, mit Hals)
+- `camaddon/halter.py` (`form`: der Halter als Körper)
+- `camaddon/abfahren.py` (`zeit_text` aus gui_abfahren.py hierher)
+- `camaddon/gui_abfahren.py` (zeigt dieselben Werkzeugkörper, die geprüft
+  werden)
+- `camaddon/beispielmaschine.py` (`fraesmaschine(spanneisen=True)`)
+- `translations/de.json`, `translations/en.json` (15 Texte)
+- `tests/test_kollision.py` (neu)
+- `docs/spezifikation_simulation.md`, `docs/aufbau.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+An der Beispiel-Fräse mit Spanneisen meldet die Prüfung für die Bahnen aus
+`test_kollision` genau die von Hand nachgerechneten Berührungen und Warnungen
+– Schaft an der Taschenwand, Eilgang durchs Teil, Halter zu tief, Spindel auf
+dem Spanneisen – und sonst nichts.
+
+### DONE
+- Körper: Schneide, Hals, Schaft (bis zur Nase des Halters, ohne Halter bis
+  zur Gesamtlänge) und Halter im LCS der Werkzeugaufnahme
+  (`werkzeugkoerper`); das fertige Teil (Modelle des Jobs) am Nullpunkt; jedes
+  Bauteil der Maschine in eigenen Koordinaten an seinem Glied. Lage zur Zeit t
+  = Bewegung des Glieds · Lage im Ausgang, Achsen auf ihre Grenzen gesetzt.
+- Paare je Werkzeugglied: Werkzeugseite (Werkzeug und die Glieder, die es
+  tragen) gegen Werkstückseite (Teil und die Glieder, die es tragen) und
+  Rest, Werkstückseite gegen Rest; die Schneide gegen das Teil nur im Eilgang.
+  Paare aus Maschinenteilen oder Teil und Maschinenteil, die sich in der
+  Grundstellung berühren, fallen weg – mit Hinweis nur, wenn sie nicht an
+  einem gemeinsamen Gelenk hängen.
+- Abtasten: je Weg zwischen zwei Stationen Schritte von höchstens (kleinster
+  Abstand − Warnabstand) / Weg, mindestens 0,5 mm; Drehachsen zählen mit der
+  Diagonale über alles je Grad. Hüllquader weiter als Warnabstand + 5 mm:
+  kein genauer Abstand. Höchstens 200 000 Stellen; Fortschritt mit Abbrechen.
+- Ergebnis: je Operation und Paar die schlimmste Stelle (bei Gleichstand die
+  erste) als Satz – „In „Eigene“ berühren sich der Schaft von T1 und das Teil
+  (Satz 5, bei X 67.5, Y 30, Z 8).“, „… kommen sich … auf 0.50 mm nahe …“, mit
+  „im Eilgang“; dazu Zeit, Station, Stelle (für Abspieler und Markierung);
+  Hinweise (ohne Halter geprüft, kein Modell, nicht rechenbar, abgebrochen).
+- Die Beispiel-Fräse kann zwei Spanneisen tragen (am Tisch-Glied).
+- Das Abfahren zeigt jetzt genau die Werkzeugkörper, die geprüft werden.
+
+### TEST
+- `test_kollision` (neu) in 1.1.3 und im Wochen-Build grün, je rund 4 s:
+  frei in der Tasche nichts (unter 200 Stellen); Schaft an der Wand –
+  Berührung, Satz 5, Stelle x 402,5 (die Wand unter der Spindel); Schaft Ø 4
+  – Warnung 0,50 mm; Eilgang durchs Teil – Schneide und Schaft „im Eilgang“,
+  erste Berührung bei X −2,5; derselbe Weg im Vorschub – nur der Schaft;
+  Halter ER16 1 mm zu tief – Berührung; Spindel auf dem Spanneisen – bei Z
+  knapp unter 4; 4 mm darüber nur mit Warnabstand 5; kein Hinweis zu
+  Führungen; Abbrechen.
+- `test_abfahren`, `test_reichweite`, `test_halter`, `test_beispielmaschine`,
+  `test_sprache` grün; `szenario_abfahren` grün; black, ruff sauber.
+
+### NEXT
+- 4c Schritt 2: Bereich „Kollision“ im Fenster „Auf der Maschine prüfen“.
+
 ## P-2026-09-26-96 halter-laenge-abfahren
 
 ### EINGELESEN

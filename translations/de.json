@@ -864,5 +864,20 @@
     "wv.halter.knopf": "Halter …",
     "wv.halter.knopf.tooltip": "Halter anlegen und bearbeiten; mit OK bekommt dieses Werkzeug den gewählten.",
     "wv.laenge_spindelnase.platzhalter_halter": "leer: {wert} mit Halter",
-    "rw.laenge_halter": "{werkzeug}: gerechnet mit {laenge}, geschätzt aus Halter und Werkzeug (Halterlänge + Gesamtlänge − Spanntiefe). Genauer mit der gemessenen „Länge ab Spindelnase“ in der Werkzeugverwaltung."
+    "rw.laenge_halter": "{werkzeug}: gerechnet mit {laenge}, geschätzt aus Halter und Werkzeug (Halterlänge + Gesamtlänge − Spanntiefe). Genauer mit der gemessenen „Länge ab Spindelnase“ in der Werkzeugverwaltung.",
+    "kb.teil": "das Teil",
+    "kb.schneide": "die Schneide von {werkzeug}",
+    "kb.hals": "der Hals von {werkzeug}",
+    "kb.schaft": "der Schaft von {werkzeug}",
+    "kb.halter": "der Halter von {werkzeug} („{halter}“)",
+    "kb.beruehrung": "In „{operation}“ berühren sich {a} und {b} (Satz {satz}, bei {punkt}).",
+    "kb.beruehrung.eilgang": "In „{operation}“ berühren sich im Eilgang {a} und {b} (Satz {satz}, bei {punkt}).",
+    "kb.naehe": "In „{operation}“ kommen sich {a} und {b} auf {abstand} nahe (Satz {satz}, bei {punkt}).",
+    "kb.naehe.eilgang": "In „{operation}“ kommen sich im Eilgang {a} und {b} auf {abstand} nahe (Satz {satz}, bei {punkt}).",
+    "kb.ohne_halter": "{werkzeug}: ohne Halter geprüft – den Halter wählst du beim Werkzeug in der Werkzeugverwaltung.",
+    "kb.schon_beruehrt": "{a} und {b} berühren sich schon in der Grundstellung – dieses Paar prüft die Kollision nicht.",
+    "kb.kein_teil": "Der Job hat kein Modell – gegen das Teil wurde nicht geprüft.",
+    "kb.fehler": "{a} und {b}: Den Abstand konnte FreeCAD nicht rechnen – dieses Paar ist nicht geprüft.",
+    "kb.abgebrochen": "Abgebrochen – geprüft bis {zeit} von {dauer}.",
+    "kb.zu_viele": "Nach {anzahl} Stellen aufgehört – geprüft bis {zeit} von {dauer}."
 }

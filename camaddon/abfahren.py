@@ -25,6 +25,7 @@ from . import maschine as m
 from . import reichweite as rw
 from .kette import LINEAR
 from .sprache import tr
+from .werkstoffe import mit_dezimalzeichen
 
 KREIS_SCHRITT = 5.0  # Grad je Station auf einem Kreisbogen
 VORSCHUB_ERSATZ = 1000.0  # mm/min, wenn die Bahn keinen Vorschub hat
@@ -218,6 +219,13 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             )
     ergebnis._fertig()
     return ergebnis
+
+
+def zeit_text(sekunden):
+    """„1:05,3“ – Minuten und Sekunden mit einer Nachkommastelle."""
+    minuten, rest = divmod(max(sekunden, 0.0), 60.0)
+    zeichen = einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
+    return mit_dezimalzeichen(f"{int(minuten)}:{rest:04.1f}", zeichen)
 
 
 def _punkte(schritt, geloest):

@@ -152,6 +152,29 @@ class Halter:
         return h
 
 
+def form(halter):
+    """Der Halter als Körper in seinen eigenen Koordinaten: die Spindelnase bei Z = 0, das
+    Werkzeug zeigt nach −Z; je Abschnitt ein Zylinder oder Kegel. None ohne Kontur."""
+    import FreeCAD
+    import Part
+
+    teile = []
+    oben = 0.0
+    nach_unten = FreeCAD.Vector(0, 0, -1)
+    for abschnitt in halter.abschnitte:
+        if abschnitt.laenge <= 0:
+            continue
+        basis = FreeCAD.Vector(0, 0, -oben)
+        r1, r2 = abschnitt.d_oben / 2, abschnitt.d_unten / 2
+        if abs(r1 - r2) < 1e-9:
+            if r1 > 0:
+                teile.append(Part.makeCylinder(r1, abschnitt.laenge, basis, nach_unten))
+        else:
+            teile.append(Part.makeCone(r1, r2, abschnitt.laenge, basis, nach_unten))
+        oben += abschnitt.laenge
+    return Part.makeCompound(teile) if teile else None
+
+
 def aus_vorlage(schluessel):
     """Ein neuer Halter aus einer Vorlage – mit Beispielmaßen, die die Bezeichnung nennt."""
     spanntiefe, abschnitte = _VORLAGEN[schluessel]

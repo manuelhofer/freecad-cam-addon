@@ -18,17 +18,15 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import einheiten
-from . import job_schnittwerte as js
+from . import kollision as kb
 from . import maschine as m
 from . import reichweite as rw
-from . import werkzeuge as wz
+from .abfahren import zeit_text
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, ROT
 from .kette import LINEAR
 from .sprache import tr
 from .verfahren import namen
-from .werkstoffe import mit_dezimalzeichen
 
 TAKT = 40  # ms je Bild beim Abspielen
 TEMPI = (1, 5, 20, 100)
@@ -47,36 +45,6 @@ HINSEHEN_RAND = 1.3  # so viel mehr als Werkstück und Werkzeug zeigt „Hinsehe
 
 
 # --- Die Körper ---------------------------------------------------------------------------
-
-
-def werkzeugmasse(tc, bibliothek, laenge):
-    """(Durchmesser, Schneidenlänge, Schaft-Ø, Gesamtlänge) in mm – aus der
-    Werkzeugverwaltung, sonst vom CAM-Werkzeug, sonst geschätzt."""
-    w = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
-    if w is not None and w.durchmesser:
-        schneide = wz.mass(w, "schneidenlaenge") or 2 * w.durchmesser
-        return w.durchmesser, schneide, wz.schaft_fuer_cam(w), wz.laenge_fuer_cam(w)
-    bit = getattr(tc, "Tool", None)
-    durchmesser = _mm(getattr(bit, "Diameter", None)) or 5.0
-    schneide = _mm(getattr(bit, "CuttingEdgeHeight", None)) or 2 * durchmesser
-    schaft = _mm(getattr(bit, "ShankDiameter", None)) or durchmesser
-    gesamt = _mm(getattr(bit, "Length", None)) or laenge
-    return durchmesser, schneide, schaft, gesamt
-
-
-def halter_von(tc, bibliothek):
-    """Der Halter des Werkzeugs aus der Werkzeugverwaltung (halter.Halter), oder None."""
-    if bibliothek is None:
-        return None
-    werkzeug = js.werkzeug_von(tc, bibliothek)
-    return bibliothek.halter_von(werkzeug) if werkzeug is not None else None
-
-
-def _mm(wert):
-    try:
-        return float(wert.getValueAs("mm"))
-    except AttributeError:
-        return float(wert or 0.0)
 
 
 class Bild:
@@ -114,10 +82,10 @@ class Bild:
         werkzeug.addChild(self.werkzeug_lage)
         self.werkzeug_wahl = coin.SoSwitch()
         # Je Operation ihr Halter aus der Werkzeugverwaltung – None: angedeutet.
-        self.halter = [halter_von(op.tc, bibliothek) for op in abfahrt.operationen]
+        self.halter = [rw.werkzeughalter(op.tc, bibliothek) for op in abfahrt.operationen]
         for op, halter in zip(abfahrt.operationen, self.halter, strict=True):
-            masse = werkzeugmasse(op.tc, bibliothek, op.laenge)
-            self.werkzeug_wahl.addChild(self._werkzeug(op.laenge, *masse, halter))
+            masse = rw.werkzeugmasse(op.tc, bibliothek, op.laenge)
+            self.werkzeug_wahl.addChild(self._werkzeug(op.laenge, masse, halter))
         self.werkzeug_wahl.whichChild = self.operation
         werkzeug.addChild(self.werkzeug_wahl)
         self.wurzel.addChild(werkzeug)
@@ -183,46 +151,20 @@ class Bild:
         teil.addChild(zylinder)
         return teil
 
-    def _werkzeug(self, laenge, durchmesser, schneide, schaft, gesamt, halter=None):
-        """Das Werkzeug im LCS seiner Aufnahme: die Spitze bei Z = −Länge (Z zeigt von der
-        Spitze zur Aufnahme), Schneide, Schaft bis zur Gesamtlänge – dazu der Halter mit
-        seiner Kontur ab der Aufnahme, ohne Halter einer angedeutet bis zur Aufnahme."""
+    def _werkzeug(self, laenge, masse, halter):
+        """Das Werkzeug im LCS seiner Aufnahme – dieselben Körper, die die Kollision prüft
+        (kollision.werkzeugkoerper): Schneide gelb, Hals und Schaft grau, der Halter mit
+        seiner Kontur. Ohne Halter ist einer angedeutet, durchscheinend von der Gesamtlänge
+        bis zur Aufnahme."""
         teil = self._coin.SoSeparator()
-        spitze = -laenge
-        schneide = min(schneide, laenge)
-        gesamt = min(gesamt, laenge) if gesamt > 0 else laenge
-        teil.addChild(self._zylinder(durchmesser / 2, spitze, spitze + schneide, SCHNEIDE))
-        if gesamt > schneide:
-            teil.addChild(self._zylinder(schaft / 2, spitze + schneide, spitze + gesamt, SCHAFT))
-        if halter is not None and halter.kontur():
-            teil.addChild(self._halter(halter))
-        elif laenge - gesamt > 0.5:
-            radius = max(2 * schaft, HALTER_MINDESTENS) / 2
-            teil.addChild(self._zylinder(radius, spitze + gesamt, 0.0, HALTER, 0.6))
+        farben = {kb.SCHNEIDE: SCHNEIDE, kb.HALS: SCHAFT, kb.SCHAFT: SCHAFT, kb.HALTER: HALTER_ECHT}
+        for art, form in kb.werkzeugkoerper(masse, laenge, halter):
+            teil.addChild(self._flaechen(form, farben[art], 0.0))
+        gesamt = min(masse.gesamt, laenge) if masse.gesamt > 0 else laenge
+        if halter is None and laenge - gesamt > 0.5:
+            radius = max(2 * masse.schaft, HALTER_MINDESTENS) / 2
+            teil.addChild(self._zylinder(radius, -laenge + gesamt, 0.0, HALTER, 0.6))
         return teil
-
-    def _halter(self, halter):
-        """Der Halter mit seiner Kontur: je Abschnitt ein Zylinder oder Kegel, von der
-        Aufnahme (Z = 0) zum Werkzeug hin."""
-        import Part
-
-        teile = []
-        oben = 0.0
-        unten_richtung = FreeCAD.Vector(0, 0, -1)
-        for abschnitt in halter.abschnitte:
-            if abschnitt.laenge <= 0:
-                continue
-            basis = FreeCAD.Vector(0, 0, -oben)
-            r1, r2 = abschnitt.d_oben / 2, abschnitt.d_unten / 2
-            if abs(r1 - r2) < 1e-9:
-                if r1 > 0:
-                    teile.append(Part.makeCylinder(r1, abschnitt.laenge, basis, unten_richtung))
-            else:
-                teile.append(Part.makeCone(r1, r2, abschnitt.laenge, basis, unten_richtung))
-            oben += abschnitt.laenge
-        if not teile:
-            return self._coin.SoSeparator()
-        return self._flaechen(Part.makeCompound(teile), HALTER_ECHT, 0.0)
 
     def _flaechen(self, form, farbe, transparenz):
         """Eine Form als Dreiecke, in ihren eigenen Koordinaten (denen des Jobs)."""
@@ -548,10 +490,3 @@ class Abspieler(QtGui.QWidget):
         # Leer, solange die Maschine nicht auf der Bahn steht (vor dem ersten Abspielen).
         self.achswerte.setText(" · ".join(teile))
         self.achswerte.setVisible(bool(teile))
-
-
-def zeit_text(sekunden):
-    """„1:05,3“ – Minuten und Sekunden mit einer Nachkommastelle."""
-    minuten, rest = divmod(max(sekunden, 0.0), 60.0)
-    zeichen = einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
-    return mit_dezimalzeichen(f"{int(minuten)}:{rest:04.1f}", zeichen)

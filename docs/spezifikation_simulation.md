@@ -219,7 +219,11 @@ Abschnitt 8):
    Abtastung, Ergebnis als Sätze. Prüfungen an der Beispiel-Fräse mit
    Hindernissen: der Fräskopf fährt mit einem kurzen Werkzeug in ein
    Spannmittel; der Halter taucht in eine tiefe Tasche; ein Eilgang geht
-   durchs Teil; der Warnabstand.
+   durchs Teil; der Warnabstand. *Gebaut (P-2026-09-26-97): die Beispiel-Fräse
+   kann zwei Spanneisen tragen (`fraesmaschine(spanneisen=True)`); gemeldet
+   wird als Satz mit beiden Körpern im Nominativ („In „Eigene“ berühren sich
+   der Schaft von T1 und das Teil (Satz 5, bei …).“), weil sich Artikel für
+   frei benannte Bauteile nicht beugen lassen.*
 2. **Bereich „Kollision“** im Fenster „Auf der Maschine prüfen“, Hilfe,
    Szenario mit Screenshots; dann Version, voller Lauf, Push.
 

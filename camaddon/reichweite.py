@@ -256,6 +256,59 @@ def werkzeuglaenge(tc, bibliothek):
         return float(laenge or 0.0), LAENGE_CAM
 
 
+@dataclass
+class Werkzeugmasse:
+    """Die Maße eines Werkzeugs für Abfahren und Kollision, in mm."""
+
+    durchmesser: float
+    schneide: float  # Schneidenlänge
+    hals_d: float  # 0: kein Hals
+    hals_laenge: float
+    schaft: float  # Schaft-Ø
+    gesamt: float  # Gesamtlänge
+
+
+def werkzeugmasse(tc, bibliothek, laenge):
+    """Die Maße des Werkzeugs eines Controllers: aus der Werkzeugverwaltung (eingetragen,
+    sonst geschätzt wie für CAM), sonst vom CAM-Werkzeug; `laenge` gilt, wo nichts steht."""
+    w = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
+    if w is not None and w.durchmesser:
+        return Werkzeugmasse(
+            durchmesser=w.durchmesser,
+            schneide=wz.mass(w, "schneidenlaenge") or 2 * w.durchmesser,
+            hals_d=wz.mass(w, "hals_d") if wz.mass(w, "hals_laenge") else 0.0,
+            hals_laenge=wz.mass(w, "hals_laenge") if wz.mass(w, "hals_d") else 0.0,
+            schaft=wz.schaft_fuer_cam(w),
+            gesamt=wz.laenge_fuer_cam(w),
+        )
+    bit = getattr(tc, "Tool", None)
+    durchmesser = _mm(getattr(bit, "Diameter", None)) or 5.0
+    return Werkzeugmasse(
+        durchmesser=durchmesser,
+        schneide=_mm(getattr(bit, "CuttingEdgeHeight", None)) or 2 * durchmesser,
+        hals_d=0.0,
+        hals_laenge=0.0,
+        schaft=_mm(getattr(bit, "ShankDiameter", None)) or durchmesser,
+        gesamt=_mm(getattr(bit, "Length", None)) or laenge,
+    )
+
+
+def werkzeughalter(tc, bibliothek):
+    """Der Halter des Werkzeugs aus der Werkzeugverwaltung (halter.Halter), oder None."""
+    if bibliothek is None:
+        return None
+    werkzeug = js.werkzeug_von(tc, bibliothek)
+    return bibliothek.halter_von(werkzeug) if werkzeug is not None else None
+
+
+def _mm(wert):
+    """Eine Länge vom CAM-Werkzeug in mm: Quantity, Zahl oder nichts (0)."""
+    try:
+        return float(wert.getValueAs("mm"))
+    except AttributeError:
+        return float(wert or 0.0)
+
+
 def werkzeug_text(tc):
     """„T3 „Schaftfräser D10““ – so heißt das Werkzeug eines Controllers in Sätzen."""
     werkzeug = getattr(tc, "Tool", None)
