@@ -2,8 +2,8 @@
 """Das Bild des Werkzeugs neben seinen Feldern in der Werkzeugverwaltung (W-002).
 
 Schaft, Schneide und Spitze je nach Art – Schaftfräser flach, Torusfräser
-mit Eckradius, Radiusfräser mit Kugel, Fasenfräser spitz, Bohrer mit 118°
-Spitze –, alles im richtigen Verhältnis. Was nicht eingetragen ist –
+mit Eckradius, Radiusfräser mit Kugel, Fasenfräser spitz, Bohrer mit seinem
+Spitzenwinkel (leer 118°) –, alles im richtigen Verhältnis. Was nicht eingetragen ist –
 geschätzt (Gesamtlänge, Schaft, Schneidenlänge) oder noch Beispielwert –,
 ist gestrichelt. Fehlt der Durchmesser, zeigt es die Form der Art mit ihren
 Beispielmaßen, damit man beim Durchblättern immer sieht, was für ein
@@ -21,7 +21,6 @@ from .gui_eingriff import FARBE_KANTE, FARBE_SCHAFT, FARBE_WERKZEUG, FARBE_WERKZ
 
 BREITE, HOEHE = 90, 140  # Pixel – so hoch wie die Felder daneben
 RAND = 8  # Pixel
-SPITZENWINKEL_BOHRER = 118.0  # Grad, wie bei der Übergabe an CAM
 FASENWINKEL = 90.0  # Grad
 
 
@@ -99,7 +98,8 @@ class WerkzeugBild(QtGui.QWidget):
         elif w.art == wz.FASENFRAESER:
             spitze = min(halb_d / math.tan(math.radians(FASENWINKEL / 2)), unten - oben)
         elif w.art == wz.BOHRER:
-            spitze = min(halb_d / math.tan(math.radians(SPITZENWINKEL_BOHRER / 2)), unten - oben)
+            winkel = wz.spitzenwinkel_fuer_cam(w)
+            spitze = min(halb_d / math.tan(math.radians(winkel / 2)), unten - oben)
         elif w.art == wz.TORUSFRAESER:
             spitze = min((w.eckradius or w.durchmesser / 10) * massstab, halb_d, unten - oben)
         else:

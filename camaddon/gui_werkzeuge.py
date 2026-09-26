@@ -264,6 +264,10 @@ class WerkzeugDialog(QtGui.QDialog):
         )
         self.zeile_eintauchwinkel = mit_einheit(self.feld_eintauchwinkel, "°")
         self.beschriftung_eintauchwinkel = QtGui.QLabel(tr("wv.eintauchwinkel"))
+        # Nur beim Bohrer – an der Stelle des Eintauchwinkels, den er nicht hat.
+        self.feld_spitzenwinkel = self._zahlenfeld(tr("wv.spitzenwinkel.tooltip"), "spitzenwinkel")
+        self.zeile_spitzenwinkel = mit_einheit(self.feld_spitzenwinkel, "°")
+        self.beschriftung_spitzenwinkel = QtGui.QLabel(tr("wv.spitzenwinkel"))
         self.feld_eckradius = self._zahlenfeld(tr("wv.eckradius.tooltip"), "eckradius")
         self.zeile_eckradius = mit_einheit(self.feld_eckradius, "mm")
         self.beschriftung_eckradius = QtGui.QLabel(tr("wv.eckradius"))
@@ -306,6 +310,9 @@ class WerkzeugDialog(QtGui.QDialog):
             reihe = i // 2 + (1 if i >= 2 else 0)
             gitter.addWidget(beschriftung, reihe, 2 * (i % 2))
             gitter.addWidget(feld, reihe, 2 * (i % 2) + 1)
+            if feld is self.zeile_eintauchwinkel:
+                gitter.addWidget(self.beschriftung_spitzenwinkel, reihe, 2 * (i % 2))
+                gitter.addWidget(self.zeile_spitzenwinkel, reihe, 2 * (i % 2) + 1)
         unten = (len(zeilen) + 1) // 2 + 1
         gitter.addWidget(QtGui.QLabel(tr("wv.bezeichnung")), unten, 0)
         gitter.addWidget(self.feld_bezeichnung, unten, 1, 1, 3)
@@ -524,6 +531,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_schneidenlaenge.setText(zahl_zeigen(w.schneidenlaenge))
         self.feld_eckradius.setText(zahl_zeigen(w.eckradius))
         self.feld_eintauchwinkel.setText(zahl_zeigen(w.eintauchwinkel))
+        self.feld_spitzenwinkel.setText(zahl_zeigen(w.spitzenwinkel))
         self.feld_gesamtlaenge.setText(zahl_zeigen(w.gesamtlaenge))
         self.feld_schaft.setText(zahl_zeigen(w.schaft))
         self.feld_schneidstoff.setCurrentIndex(self.feld_schneidstoff.findData(w.schneidstoff))
@@ -548,13 +556,16 @@ class WerkzeugDialog(QtGui.QDialog):
         """Eine Änderung in der Tabelle; gespeichert wird erst mit OK oder Übernehmen."""
 
     def _eckradius_zeigen(self):
-        """Den Eckradius gibt es nur beim Torusfräser, den Eintauchwinkel nicht beim Bohrer."""
+        """Den Eckradius gibt es nur beim Torusfräser; der Bohrer hat statt des
+        Eintauchwinkels einen Spitzenwinkel."""
         art = self.werkzeug.art if self.werkzeug is not None else None
         self.zeile_eckradius.setVisible(art == wz.TORUSFRAESER)
         self.beschriftung_eckradius.setVisible(art == wz.TORUSFRAESER)
         fraeser = art is not None and art != wz.BOHRER
         self.zeile_eintauchwinkel.setVisible(fraeser)
         self.beschriftung_eintauchwinkel.setVisible(fraeser)
+        self.zeile_spitzenwinkel.setVisible(art == wz.BOHRER)
+        self.beschriftung_spitzenwinkel.setVisible(art == wz.BOHRER)
 
     def _beispielfelder(self):
         return {
@@ -592,6 +603,9 @@ class WerkzeugDialog(QtGui.QDialog):
             schaft = tr("wv.schaft.platzhalter", wert=zahl_zeigen(w.durchmesser))
         self.feld_gesamtlaenge.setPlaceholderText(laenge)
         self.feld_schaft.setPlaceholderText(schaft)
+        self.feld_spitzenwinkel.setPlaceholderText(
+            tr("wv.spitzenwinkel.platzhalter", wert=zahl_zeigen(wz.SPITZENWINKEL_BOHRER))
+        )
 
     def _hinweise(self):
         """Zeigt am Werkzeug, was fehlt oder nicht passt – sofort, nicht erst beim Speichern."""
@@ -715,6 +729,7 @@ class WerkzeugDialog(QtGui.QDialog):
             (self.feld_schneidenlaenge, "schneidenlaenge"),
             (self.feld_eckradius, "eckradius"),
             (self.feld_eintauchwinkel, "eintauchwinkel"),
+            (self.feld_spitzenwinkel, "spitzenwinkel"),
             (self.feld_gesamtlaenge, "gesamtlaenge"),
             (self.feld_schaft, "schaft"),
         ):

@@ -210,6 +210,16 @@ def schritte(h):
     d.feld_durchmesser.setText("8,5")
     d.feld_durchmesser.editingFinished.emit()
     d.feld_schneiden.setValue(2)
+    # Statt des Eintauchwinkels der Spitzenwinkel: leer „üblich: 118“.
+    h.pruefe(
+        d.zeile_spitzenwinkel.isVisible() and not d.zeile_eintauchwinkel.isVisible(),
+        "beim Bohrer nicht Spitzenwinkel statt Eintauchwinkel",
+    )
+    grau = d.feld_spitzenwinkel.placeholderText()
+    h.pruefe(grau == "üblich: 118", f"Spitzenwinkel leer: {grau!r}")
+    d.feld_spitzenwinkel.setText("130")
+    d.feld_spitzenwinkel.editingFinished.emit()
+    h.pruefe(bohrer.spitzenwinkel == 130, f"Spitzenwinkel {bohrer.spitzenwinkel}")
     d.waehle_werkstoff(wz.ALLE)
     yield 200
     s.einsatz_anlegen(wz.BOHREN)

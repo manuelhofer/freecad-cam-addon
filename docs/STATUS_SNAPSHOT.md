@@ -39,6 +39,7 @@ Wunschliste, offene Bugs und Tasks.
    Tabelle, intern mm, Wahl gemerkt). – *Fertig (P-2026-09-26-42).*
 6. **Bohrer: Spitzenwinkel** (fehlt, Manuel) – Feld, Bild, an CAM als
    Spitzenwinkel des Bohrers; die Schneidenzahl bleibt (f je Umdrehung).
+   – *Fertig (P-2026-09-26-43). Stufe A damit komplett.*
 
 *Zwischendurch – zum Ausprobieren (nach A2, vor A3)*
 7. **Beispielmaschine laden:** Die Meldung „Hier gibt es noch keine

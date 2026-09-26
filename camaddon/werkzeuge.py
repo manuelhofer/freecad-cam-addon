@@ -34,6 +34,8 @@ BOHRER = "bohrer"
 ARTEN = (SCHAFTFRAESER, TORUSFRAESER, RADIUSFRAESER, FASENFRAESER, BOHRER)
 
 VHM, HSS = "vhm", "hss"
+# Spitzenwinkel eines Bohrers, wenn keiner eingetragen ist: üblich für Spiralbohrer.
+SPITZENWINKEL_BOHRER = 118.0  # Grad
 SCHNEIDSTOFFE = (VHM, HSS)
 
 # Steht in der Werkstoff-Auswahl für „Alle Werkstoffe“: Werte, die für jeden
@@ -182,6 +184,7 @@ class Werkzeug:
     schaft: float = 0.0  # Schaftdurchmesser, mm
     # Wie steil der Fräser höchstens eintauchen darf (Rampe, Helix), Grad; 0 = unbekannt.
     eintauchwinkel: float = 0.0
+    spitzenwinkel: float = 0.0  # Grad, nur beim Bohrer; 0 = üblich (SPITZENWINKEL_BOHRER)
     # Warngrenze des Planers: breiter als so viel % von D wird rot, bleibt aber
     # wählbar; 0 = keine. Vorgabe 10 %, egal wie viele Schneiden (Manuel).
     ae_warngrenze: float = 10.0
@@ -251,6 +254,7 @@ class Werkzeug:
             "gesamtlaenge": self.gesamtlaenge,
             "schaft": self.schaft,
             "eintauchwinkel": self.eintauchwinkel,
+            "spitzenwinkel": self.spitzenwinkel,
             "ae_warngrenze": self.ae_warngrenze,
             "schneidstoff": self.schneidstoff,
             "bezeichnung": self.bezeichnung,
@@ -280,6 +284,8 @@ class Werkzeug:
         w.gesamtlaenge = max(_zahl(daten.get("gesamtlaenge"), float, 0.0), 0.0)
         w.schaft = max(_zahl(daten.get("schaft"), float, 0.0), 0.0)
         w.eintauchwinkel = min(max(_zahl(daten.get("eintauchwinkel"), float, 0.0), 0.0), 90.0)
+        # Erst seit P-2026-09-26-43 – fehlt er, gilt der übliche.
+        w.spitzenwinkel = min(max(_zahl(daten.get("spitzenwinkel"), float, 0.0), 0.0), 180.0)
         # Erst seit P-2026-09-26-40 – fehlt sie, gilt die Vorgabe.
         w.ae_warngrenze = min(
             max(_zahl(daten.get("ae_warngrenze"), float, w.ae_warngrenze), 0.0), 100.0
@@ -373,6 +379,11 @@ def zeile(werkzeug):
     if w.name:
         return tr("wv.zeile.name", name=w.name, **werte)
     return tr("wv.zeile", **werte)
+
+
+def spitzenwinkel_fuer_cam(werkzeug):
+    """Der Spitzenwinkel des Bohrers in Grad: eingetragen, sonst der übliche (118°)."""
+    return werkzeug.spitzenwinkel or SPITZENWINKEL_BOHRER
 
 
 def beispielname(werkzeug):

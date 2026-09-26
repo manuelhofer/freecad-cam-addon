@@ -50,7 +50,6 @@ BEARBEITUNGSARTEN = {
 }
 
 SCHNEIDSTOFFE = {wz.VHM: "Carbide", wz.HSS: "HSS"}
-SPITZENWINKEL_BOHRER = 118.0  # °, üblich für Spiralbohrer
 FASENWINKEL = 90.0  # °, Fasenfräser ohne eigene Angabe
 VORSCHUBVERHAELTNIS_EINTAUCHEN = 0.33  # wie FreeCADs Vorgabe für neue Presets
 
@@ -114,7 +113,7 @@ def toolbit_daten(werkzeug, werkstoffe_nach_kennung, freecad_nach_nummer, berich
     if w.art == wz.TORUSFRAESER:
         parameter["CornerRadius"] = f"{w.eckradius or d / 10} mm"
     if w.art == wz.BOHRER:
-        parameter["TipAngle"] = f"{SPITZENWINKEL_BOHRER} °"
+        parameter["TipAngle"] = f"{wz.spitzenwinkel_fuer_cam(w)} °"
         del parameter["CuttingEdgeHeight"]
     if w.art == wz.FASENFRAESER:
         # Im Wochen-Build ergibt sich D aus Spitze, Winkel und Höhe:

@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-43 bohrer-spitzenwinkel
+
+### EINGELESEN
+- Manuel (2026-09-26, Screenshot eines Bohrers in der
+  Werkzeugverwaltung): „bei einem Bohrer gibt's … was es gibt, ist ein
+  Spitzenwinkel, der ist vergessen worden“; ob es eine Schneidenzahl
+  gibt, wusste er nicht – Plan: sie bleibt (f je Umdrehung).
+- Plan im Snapshot (Stufe A Punkt 6); bisher fest 118° in
+  `uebergabe_werkzeuge.py` (TipAngle) und `gui_werkzeugbild.py`.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`Werkzeug.spitzenwinkel`, gespeichert;
+  `SPITZENWINKEL_BOHRER`, `spitzenwinkel_fuer_cam`)
+- `camaddon/gui_werkzeuge.py` (Feld nur beim Bohrer, an der Stelle des
+  Eintauchwinkels; grau „üblich: 118“)
+- `camaddon/gui_werkzeugbild.py` (Spitze mit dem Winkel des Werkzeugs)
+- `camaddon/uebergabe_werkzeuge.py` (TipAngle aus dem Werkzeug)
+- `camaddon/werkzeuge_aus_cam.py` (TipAngle wird gelesen)
+- `translations/de.json`, `translations/en.json` (`wv.spitzenwinkel*`)
+- `help/de|en/werkzeuge.html`
+- `docs/spezifikation_werkzeugverwaltung.md` (Entscheidung 27)
+- `docs/STATUS_SNAPSHOT.md` (Punkt 6 fertig, Stufe A komplett)
+- `tests/test_werkzeuge.py`, `tests/test_uebergabe_werkzeuge.py`,
+  `tests/test_werkzeuge_aus_cam.py`, `tests/gui/szenario_schnittwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → „Neu“ → Art „Bohrer“: Statt „Eintauchwinkel“ steht
+„Spitzenwinkel“, leer grau „üblich: 118“. „130“ eintragen → die Spitze im
+Bild wird stumpfer. „Speichern und an CAM übergeben“ → im CAM-Werkzeug
+steht der Spitzenwinkel 130°.
+
+### DONE
+- Spitzenwinkel je Bohrer (0 = üblich 118°), gespeichert, begrenzt auf
+  0 … 180°; ins Bild, als TipAngle an CAM, aus CAM gelesen.
+- Das Feld teilt sich die Stelle mit dem Eintauchwinkel – je nach Art ist
+  eins von beiden zu sehen, ohne Lücke.
+
+### TEST
+- `test_werkzeuge.py`, `test_uebergabe_werkzeuge.py` (TipAngle 130°),
+  `test_werkzeuge_aus_cam.py` (Winkel des Beispielbohrers gelesen),
+  `test_sprache.py` in 1.1.3 und 26.3.0 grün; `test_hilfe.py` grün;
+  `szenario_schnittwerte`, `szenario_werkzeugverwaltung` in 1.1.3 grün,
+  Screenshot angesehen. Voller Lauf vor dem Push.
+
+### NEXT
+- Version 0.14.0 (A3–A6), voller Lauf, Push; dann Stufe B.
+
 ## P-2026-09-26-42 zustellung-in-prozent
 
 ### EINGELESEN

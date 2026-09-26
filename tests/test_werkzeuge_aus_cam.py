@@ -73,6 +73,8 @@ if torus is not None:
 bohrer = neu.get("5mm Drill")
 if bohrer is not None:
     pruefe((bohrer.art, bohrer.nummer, bohrer.schneiden) == (wz.BOHRER, 3, 2), f"{bohrer}")
+    # Der Spitzenwinkel kommt mit (FreeCADs Beispielbohrer: um die 118°).
+    pruefe(90 <= bohrer.spitzenwinkel <= 140, f"Spitzenwinkel {bohrer.spitzenwinkel}")
 kugel = neu.get("6mm Ball End")
 pruefe(kugel is not None and kugel.art == wz.RADIUSFRAESER, "Radiusfräser")
 fase = neu.get("45 Deg. Chamfer")

@@ -82,6 +82,15 @@ def _mm(objekt, eigenschaft):
         return round(_zahl(wert), STELLEN)
 
 
+def _grad(objekt, name):
+    """Ein Winkel des ToolBits in Grad, 0 wenn es ihn nicht gibt."""
+    wert = getattr(objekt, name, 0)
+    try:
+        return round(float(wert.getValueAs("deg")), STELLEN)
+    except AttributeError:
+        return round(_zahl(wert), STELLEN)
+
+
 def _zahl(wert):
     try:
         return float(wert)
@@ -107,6 +116,8 @@ def werkzeug_aus(bit, nummer):
     w.schaft = _mm(o, "ShankDiameter")
     if art == wz.TORUSFRAESER:
         w.eckradius = _mm(o, "CornerRadius")
+    if art == wz.BOHRER:
+        w.spitzenwinkel = _grad(o, "TipAngle")
     w.schneidstoff = wz.HSS if "hss" in str(getattr(o, "Material", "")).lower() else wz.VHM
     w.name = str(bit.label)
     return w

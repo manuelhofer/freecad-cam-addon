@@ -131,6 +131,15 @@ pruefe(
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10)) == 40, "ohne Schneidenlänge: 2D + 2D")
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10, schneidenlaenge=2)) == 30, "mind. 3D")
 
+# Spitzenwinkel des Bohrers: leer der übliche (118°), eingetragen gespeichert, begrenzt.
+pruefe(wz.spitzenwinkel_fuer_cam(wz.Werkzeug(art=wz.BOHRER)) == 118, "üblicher Spitzenwinkel")
+t3.spitzenwinkel = 130
+pruefe(wz.Werkzeug.aus_dict(t3.als_dict()).spitzenwinkel == 130, "Spitzenwinkel nicht gespeichert")
+pruefe(wz.spitzenwinkel_fuer_cam(t3) == 130, "eingetragener Spitzenwinkel")
+t3.spitzenwinkel = 200
+pruefe(wz.Werkzeug.aus_dict(t3.als_dict()).spitzenwinkel == 180, "Spitzenwinkel nicht begrenzt")
+t3.spitzenwinkel = 0
+
 # Warngrenze des Planers: Vorgabe 10 %, gespeichert; alte Dateien ohne sie: 10 %; 0 bleibt 0.
 pruefe(wz.Werkzeug().ae_warngrenze == 10, "Vorgabe der Warngrenze")
 t1.ae_warngrenze = 12

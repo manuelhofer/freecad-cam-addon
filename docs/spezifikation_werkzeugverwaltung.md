@@ -471,6 +471,13 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     Prozent mit einer Nachkommastelle (208,3 %). Ohne Durchmesser mm.
     Alternative: je Spalte ein eigener Umschalter – doppelt so viel zu
     verstehen für einen seltenen Fall.
+27. **Spitzenwinkel beim Bohrer** (P-2026-09-26-43, Manuel: „was es gibt,
+    ist ein Spitzenwinkel, der ist vergessen worden“): ein Feld nur beim
+    Bohrer, an der Stelle des Eintauchwinkels; leer gilt 118° (grau
+    „üblich: 118“), wie bei Gesamtlänge und Schaft. Er geht als TipAngle
+    an CAM und ins Bild; „Aus CAM übernehmen“ liest ihn. Die Schneidenzahl
+    bleibt – sie macht aus f je Umdrehung fz. Alternative: Pflichtfeld mit
+    118 vorbelegt – dann sähe man nicht, ob ihn jemand geprüft hat.
 
 ## 12. Akzeptanzkriterien Stufe 1
 

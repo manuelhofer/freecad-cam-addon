@@ -56,6 +56,7 @@ torus = wz.Werkzeug(
     name="Torus VHM 10 R1",
 )
 bohrer = wz.Werkzeug(nummer=7, art=wz.BOHRER, durchmesser=8.5, schneiden=2, schneidstoff=wz.HSS)
+bohrer.spitzenwinkel = 130
 bohrer.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25, fz=0.08)]
 ohne = wz.Werkzeug(nummer=9)
 bibliothek = wz.Bibliothek([fraeser, torus, bohrer, ohne])
@@ -86,6 +87,8 @@ pruefe((mm(t5.obj.Length), mm(t5.obj.ShankDiameter)) == (72, 8), "Länge/Schaft 
 pruefe((mm(tb.obj.Length), mm(tb.obj.ShankDiameter)) == (50, 12), "Länge/Schaft geschätzt")
 t7 = cam_assets.get(f"toolbit://camaddon_{bohrer.kennung}")
 pruefe(t7.obj.Material == "HSS" and mm(t7.obj.Diameter) == 8.5, "Bohrer")
+spitze = float(t7.obj.TipAngle.getValueAs("deg"))
+pruefe(abs(spitze - 130) < 1e-9, f"Spitzenwinkel in CAM: {spitze}")
 
 # Wochen-Build: Presets am Werkzeug, und FreeCADs Vorschlag nimmt sie.
 if ue.presets_moeglich():
