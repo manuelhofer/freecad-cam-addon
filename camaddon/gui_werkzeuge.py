@@ -12,7 +12,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, symbol
+from . import PARAMETER_PFAD, einheiten, symbol
 from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
@@ -22,7 +22,14 @@ from .gui_schnittwerte import SchnittwertBereich
 from .gui_teile import GRAU, fett, hinweiszeile, knopf, mit_einheit
 from .gui_werkstoffe import WerkstoffDialog
 from .gui_werkzeugbild import WerkzeugBild
-from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen
+from .gui_zahlen import (
+    Zahlenpruefer,
+    dezimal,
+    groesse_lesen,
+    groesse_zeigen,
+    zahl_lesen,
+    zahl_zeigen,
+)
 from .sprache import tr
 
 FENSTER_GROESSE = (1100, 760)  # Breite, Höhe in Pixeln
@@ -30,6 +37,8 @@ LISTE_BREITE = 300  # Pixel, Startbreite der Werkzeugliste
 GROESSTE_NUMMER = 9999
 GROESSTE_SCHNEIDENZAHL = 20
 SYMBOL_GROESSE = 16  # Pixel, Kästchen mit dem ISO-Buchstaben
+# Felder mit Längen – gezeigt in mm oder inch, gespeichert in mm.
+LAENGEN = ("durchmesser", "schneidenlaenge", "eckradius", "gesamtlaenge", "schaft")
 
 # Farben der ISO-Gruppen, wie auf Wendeplatten-Schachteln und in Katalogen:
 # (Hintergrund, Schrift).
@@ -183,6 +192,14 @@ class WerkzeugDialog(QtGui.QDialog):
             tr("wv.werkstoffe"), tr("wv.werkstoffe.tooltip"), self.werkstoffe_zeigen
         )
         zeile.addWidget(self.knopf_werkstoffe)
+        # mm oder inch – gilt für das ganze Addon; gespeichert wird in mm.
+        self.wahl_masssystem = QtGui.QComboBox()
+        self.wahl_masssystem.addItem("mm", einheiten.METRISCH)
+        self.wahl_masssystem.addItem("inch", einheiten.ZOLL)
+        self.wahl_masssystem.setToolTip(tr("wv.masssystem.tooltip"))
+        self.wahl_masssystem.setCurrentIndex(self.wahl_masssystem.findData(einheiten.masssystem()))
+        self.wahl_masssystem.currentIndexChanged.connect(self._masssystem_gewechselt)
+        zeile.addWidget(self.wahl_masssystem)
         aufbau.addLayout(zeile)
         self.werkstoff_info = QtGui.QLabel()
         self.werkstoff_info.setWordWrap(True)
@@ -218,6 +235,7 @@ class WerkzeugDialog(QtGui.QDialog):
         return rahmen
 
     def _bereich_werkzeug(self):
+        self._laengen_zeilen = []  # Felder mit Längeneinheit – beim Wechsel mm/inch neu beschriftet
         rahmen = QtGui.QWidget()
         aufbau = QtGui.QVBoxLayout(rahmen)
         aufbau.setContentsMargins(0, 0, 0, 0)
@@ -269,7 +287,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self.zeile_spitzenwinkel = mit_einheit(self.feld_spitzenwinkel, "°")
         self.beschriftung_spitzenwinkel = QtGui.QLabel(tr("wv.spitzenwinkel"))
         self.feld_eckradius = self._zahlenfeld(tr("wv.eckradius.tooltip"), "eckradius")
-        self.zeile_eckradius = mit_einheit(self.feld_eckradius, "mm")
+        self.zeile_eckradius = self._mit_laenge(self.feld_eckradius)
         self.beschriftung_eckradius = QtGui.QLabel(tr("wv.eckradius"))
 
         self.feld_schneidstoff = QtGui.QComboBox()
@@ -290,14 +308,14 @@ class WerkzeugDialog(QtGui.QDialog):
         zeilen = [
             (QtGui.QLabel(tr("wv.nummer")), self.feld_nummer),
             (QtGui.QLabel(tr("wv.art")), self.feld_art),
-            (fett(tr("wv.durchmesser")), mit_einheit(self.feld_durchmesser, "mm")),
+            (fett(tr("wv.durchmesser")), self._mit_laenge(self.feld_durchmesser)),
             (fett(tr("wv.schneiden")), self.feld_schneiden),
             (
                 QtGui.QLabel(tr("wv.schneidenlaenge")),
-                mit_einheit(self.feld_schneidenlaenge, "mm"),
+                self._mit_laenge(self.feld_schneidenlaenge),
             ),
-            (QtGui.QLabel(tr("wv.gesamtlaenge")), mit_einheit(self.feld_gesamtlaenge, "mm")),
-            (QtGui.QLabel(tr("wv.schaft")), mit_einheit(self.feld_schaft, "mm")),
+            (QtGui.QLabel(tr("wv.gesamtlaenge")), self._mit_laenge(self.feld_gesamtlaenge)),
+            (QtGui.QLabel(tr("wv.schaft")), self._mit_laenge(self.feld_schaft)),
             (QtGui.QLabel(tr("wv.schneidstoff")), self.feld_schneidstoff),
             # Zuletzt, was nur manche Arten haben – ausgeblendet ohne Lücke davor.
             (self.beschriftung_eintauchwinkel, self.zeile_eintauchwinkel),
@@ -333,6 +351,26 @@ class WerkzeugDialog(QtGui.QDialog):
         self.schnittwerte = SchnittwertBereich(self._schnittwerte_geaendert)
         aufbau.addWidget(self.schnittwerte, 1)
         return rahmen
+
+    def _mit_laenge(self, feld):
+        """Feld mit der Längeneinheit (mm oder in) daneben."""
+        zeile = mit_einheit(feld, einheiten.einheit(einheiten.LAENGE))
+        self._laengen_zeilen.append(zeile)
+        return zeile
+
+    @staticmethod
+    def _zeigen(eigenschaft, wert):
+        """Der Feldtext zu einem Wert: Längen im gewählten Maßsystem, Winkel in Grad."""
+        if eigenschaft in LAENGEN:
+            return groesse_zeigen(wert, einheiten.LAENGE)
+        return zahl_zeigen(wert)
+
+    @staticmethod
+    def _lesen(eigenschaft, text):
+        """Ein Feldtext als gespeicherter Wert: Längen in mm."""
+        if eigenschaft in LAENGEN:
+            return groesse_lesen(text, einheiten.LAENGE)
+        return zahl_lesen(text)
 
     def _zahlenfeld(self, tooltip, eigenschaft):
         feld = QtGui.QLineEdit()
@@ -380,6 +418,15 @@ class WerkzeugDialog(QtGui.QDialog):
         index = self.wahl_werkstoff.findData(kennung)
         self.wahl_werkstoff.setCurrentIndex(max(index, 0))
         self._werkstoff_gewaehlt()
+
+    def _masssystem_gewechselt(self, _index):
+        """mm oder inch: gilt sofort für das ganze Addon; Felder und Tabelle zeigen um."""
+        # Was noch im Feld steht, gilt in der Einheit, in der es getippt wurde.
+        self._felder_uebernehmen()
+        einheiten.setze_masssystem(self.wahl_masssystem.currentData())
+        for zeile in self._laengen_zeilen:
+            zeile.einheit.setText(einheiten.einheit(einheiten.LAENGE))
+        self._liste_aufbauen(auswahl=self.werkzeug)
 
     def _werkstoff_gewaehlt(self, *_):
         kennung = self.werkstoff
@@ -526,14 +573,14 @@ class WerkzeugDialog(QtGui.QDialog):
         self._fuellt = True
         self.feld_nummer.setValue(w.nummer)
         self.feld_art.setCurrentIndex(self.feld_art.findData(w.art))
-        self.feld_durchmesser.setText(zahl_zeigen(w.durchmesser))
+        self.feld_durchmesser.setText(self._zeigen("durchmesser", w.durchmesser))
         self.feld_schneiden.setValue(w.schneiden)
-        self.feld_schneidenlaenge.setText(zahl_zeigen(w.schneidenlaenge))
-        self.feld_eckradius.setText(zahl_zeigen(w.eckradius))
+        self.feld_schneidenlaenge.setText(self._zeigen("schneidenlaenge", w.schneidenlaenge))
+        self.feld_eckradius.setText(self._zeigen("eckradius", w.eckradius))
         self.feld_eintauchwinkel.setText(zahl_zeigen(w.eintauchwinkel))
         self.feld_spitzenwinkel.setText(zahl_zeigen(w.spitzenwinkel))
-        self.feld_gesamtlaenge.setText(zahl_zeigen(w.gesamtlaenge))
-        self.feld_schaft.setText(zahl_zeigen(w.schaft))
+        self.feld_gesamtlaenge.setText(self._zeigen("gesamtlaenge", w.gesamtlaenge))
+        self.feld_schaft.setText(self._zeigen("schaft", w.schaft))
         self.feld_schneidstoff.setCurrentIndex(self.feld_schneidstoff.findData(w.schneidstoff))
         self.feld_bezeichnung.setText(w.bezeichnung)
         self.feld_name.setText(w.name)
@@ -599,8 +646,13 @@ class WerkzeugDialog(QtGui.QDialog):
         if w is None or not w.durchmesser:
             laenge = schaft = tr("feld.unbekannt")
         else:
-            laenge = tr("wv.gesamtlaenge.platzhalter", wert=zahl_zeigen(wz.geschaetzte_laenge(w)))
-            schaft = tr("wv.schaft.platzhalter", wert=zahl_zeigen(w.durchmesser))
+            laenge = tr(
+                "wv.gesamtlaenge.platzhalter",
+                wert=groesse_zeigen(wz.geschaetzte_laenge(w), einheiten.LAENGE),
+            )
+            schaft = tr(
+                "wv.schaft.platzhalter", wert=groesse_zeigen(w.durchmesser, einheiten.LAENGE)
+            )
         self.feld_gesamtlaenge.setPlaceholderText(laenge)
         self.feld_schaft.setPlaceholderText(schaft)
         self.feld_spitzenwinkel.setPlaceholderText(
@@ -618,8 +670,8 @@ class WerkzeugDialog(QtGui.QDialog):
                 saetze.append(
                     tr(
                         "wv.hinweis.gesamtlaenge",
-                        laenge=zahl_zeigen(w.gesamtlaenge),
-                        schneide=zahl_zeigen(w.schneidenlaenge),
+                        laenge=groesse_zeigen(w.gesamtlaenge, einheiten.LAENGE),
+                        schneide=groesse_zeigen(w.schneidenlaenge, einheiten.LAENGE),
                     )
                 )
             doppelt = self.bibliothek.mit_nummer(w.nummer, ausser=w)
@@ -691,9 +743,9 @@ class WerkzeugDialog(QtGui.QDialog):
         # Steht noch da, was das Feld beim Füllen zeigte, bleibt der Wert: Das
         # Feld zeigt 12 Stellen, zurückgelesen wäre ein längerer Wert gekürzt –
         # eine Änderung, die niemand gemacht hat.
-        if feld.text().strip() == zahl_zeigen(getattr(self.werkzeug, eigenschaft)):
+        if feld.text().strip() == self._zeigen(eigenschaft, getattr(self.werkzeug, eigenschaft)):
             return
-        neu = zahl_lesen(feld.text())
+        neu = self._lesen(eigenschaft, feld.text())
         if eigenschaft == "durchmesser":
             self._zustellungen_anpassen(self.werkzeug.durchmesser, neu)
         setattr(self.werkzeug, eigenschaft, neu)
@@ -713,7 +765,11 @@ class WerkzeugDialog(QtGui.QDialog):
             antwort = QtGui.QMessageBox.question(
                 self,
                 tr("wv.titel"),
-                tr("wv.umrechnen.frage", alt=zahl_zeigen(alt), neu=zahl_zeigen(neu)),
+                tr(
+                    "wv.umrechnen.frage",
+                    alt=groesse_zeigen(alt, einheiten.LAENGE),
+                    neu=groesse_zeigen(neu, einheiten.LAENGE),
+                ),
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.Yes,
             )

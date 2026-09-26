@@ -478,6 +478,20 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     an CAM und ins Bild; „Aus CAM übernehmen“ liest ihn. Die Schneidenzahl
     bleibt – sie macht aus f je Umdrehung fz. Alternative: Pflichtfeld mit
     118 vorbelegt – dann sähe man nicht, ob ihn jemand geprüft hat.
+28. **Maßsystem mm oder inch, gespeichert wird metrisch** (P-2026-09-26-48,
+    Manuel: „welche Einheiten verwendet werden (Standard metrisch, aber inch
+    und so sollten möglich sein) … einen Schalter, wo man zwischen inch und
+    mm switcht“): wählbar beim ersten Start, in den Einstellungen und rechts
+    oben in der Werkzeugverwaltung; vorbelegt aus FreeCADs Einheitensystem
+    (alle „Imperial“ = inch). Umgerechnet wird nur beim Zeigen und Lesen:
+    Länge mm ↔ in (4 Stellen), fz/Spandicke mm ↔ in (5), vc m/min ↔ SFM,
+    Vorschub mm/min ↔ ipm, Abtrag cm³/min ↔ in³/min, Schneidenweg m/cm³ ↔
+    ft/in³; „Zeit für 100 cm³“ wird „Zeit für 5 in³“. Gerundet wird in der
+    gezeigten Einheit (Vorlagen, Übernehmen aus dem Planer) – ½" bleibt
+    0.5 in. Beispielwerte in inch sind runde Zoll-Maße (½", 400 SFM,
+    0.002"). Metrisch bleiben Beschleunigung, Ruck, Winkel, Drehzahl, kW und
+    die Werkstoffdaten (kc1.1 in N/mm²). Alternative: beides speichern (mm
+    und inch) – dann könnten die beiden auseinanderlaufen.
 
 ## 12. Akzeptanzkriterien Stufe 1
 

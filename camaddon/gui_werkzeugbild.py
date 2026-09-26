@@ -138,7 +138,7 @@ def mit_beispielmassen(werkzeug):
     if werkzeug.durchmesser > 0:
         return werkzeug, fremd
     muster = copy.copy(werkzeug)
-    for feld, wert in wz.BEISPIELE[werkzeug.art].items():
+    for feld, wert in wz.beispiele(werkzeug.art).items():
         if not getattr(muster, feld):
             setattr(muster, feld, wert)
             fremd.add(feld)

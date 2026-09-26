@@ -79,6 +79,22 @@ pruefe(
     f"geladen → Torus: {vorhanden} {vorhanden.beispiel}",
 )
 
+# In inch: Listenzeile, Beispielname und Beispielwerte in Zoll – gespeichert metrisch.
+from camaddon import einheiten  # noqa: E402
+
+vorher_mass = einheiten.gewaehltes_masssystem()
+einheiten.setze_masssystem(einheiten.ZOLL)
+zoll = wz.Werkzeug(nummer=4, durchmesser=12.7, schneidenlaenge=25.4)
+pruefe(wz.zeile(zoll) == "T4  Schaftfräser Ø 0.5 · z 3 · VHM", f"Zeile in Zoll: {wz.zeile(zoll)!r}")
+pruefe(wz.beispielname(zoll) == "Schaftfräser T4 VHM D0.5 L1", f"Name: {wz.beispielname(zoll)!r}")
+neu_zoll = wz.Bibliothek().neues_werkzeug()
+pruefe(
+    (neu_zoll.durchmesser, neu_zoll.schneidenlaenge) == (12.7, 25.4),
+    f"Beispielwerte in Zoll: {neu_zoll.durchmesser}, {neu_zoll.schneidenlaenge}",
+)
+pruefe(set(wz.BEISPIELE_ZOLL) == set(wz.ARTEN), "nicht jede Art hat Beispiele in Zoll")
+einheiten.setze_masssystem(vorher_mass)
+
 # Kopieren: neue Kennung, nächste Nummer, gleiche Werte.
 kopie = b.kopiere(t1)
 pruefe(kopie.kennung != t1.kennung and kopie.nummer == 3, f"Kopie {kopie}")

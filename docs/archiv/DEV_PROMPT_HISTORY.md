@@ -12,6 +12,80 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-48 masssystem-inch
+
+### EINGELESEN
+- Manuel (2026-09-26): „es sollte bei Installation auswählbar sein …
+  welche Einheiten verwendet werden (Standard metrisch, aber inch und so
+  sollten möglich sein) … mit Beispielzahlen … und auch in den
+  Einstellungen des Addons wieder ändern … bei den Werkzeugen direkt in
+  inch bzw. mm umrechnen … und einen Schalter einbauen, wo man zwischen
+  inch und mm switcht“.
+- Plan im Snapshot (Stufe B, Punkte 8 und 9); alle Dialoge mit Zahlen;
+  60 Texte mit festen Einheiten; FreeCADs Einheitensysteme
+  (`FreeCAD.Units.listSchemas()`: Imperial, ImperialDecimal,
+  ImperialBuilding, ImperialCivil = inch).
+
+### DATEIEN
+- `camaddon/einheiten.py` (Maßsystem, Größen mit Umrechnung und Stellen,
+  `runden`/`abrunden`, Vergleichsvolumen, Einheiten-Platzhalter)
+- `camaddon/sprache.py` (`tr()` setzt `{e_laenge}` … selbst ein)
+- `camaddon/gui_zahlen.py` (`groesse_zeigen`, `groesse_lesen`,
+  `groesse_fest`), `camaddon/gui_teile.py` (`mit_einheit` merkt die
+  Einheit)
+- `camaddon/gui_sprachwahl.py` (Maßsystem beim ersten Start und in den
+  Einstellungen, mit Beispielen)
+- `camaddon/gui_werkzeuge.py` (Umschalter mm/inch, Felder, Platzhalter,
+  Hinweise), `camaddon/werkzeuge.py` (Listenzeile, Beispielname,
+  Beispielwerte in Zoll, Vorlage), `camaddon/gui_werkzeugbild.py`
+- `camaddon/gui_schnittwerte.py` (Tabelle, Köpfe, Eingriff, Ausgleich)
+- `camaddon/schruppwerte.py`, `camaddon/gui_schruppwerte.py` (Planer,
+  Beispiele in Zoll, Übernehmen gerundet in der gezeigten Einheit)
+- `camaddon/schnittdaten.py`, `camaddon/gui_strategie.py`
+  (Strategievergleich, „Zeit für 5 in³“)
+- `camaddon/gui_job_schnittwerte.py`, `camaddon/gui_details.py`,
+  `camaddon/gui_verfahren.py`, `camaddon/export.py`
+- `translations/de.json`, `translations/en.json` (Einheiten als
+  Platzhalter; neue Texte `zahlen.metrisch|zoll`,
+  `einstellungen.zahlen.masssystem`, `wv.masssystem.tooltip`,
+  `einheit.je_umdrehung`)
+- `help/de|en/werkzeuge.html`, `help/de|en/schnittwerte.html`
+- `docs/spezifikation_werkzeugverwaltung.md` (Entscheidung 28),
+  `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`
+- `tests/test_einheiten.py`, `tests/test_werkzeuge.py`,
+  `tests/test_schruppwerte.py`, `tests/gui/szenario_zoll.py` (neu)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → rechts neben „Werkstoffe…“ „inch“ wählen: Die Felder
+zeigen „in“, der Ø-12-Fräser „0.4724“; „Neu“ → Ø 0.5, Schneide 1, Liste
+„Ø 0.5“. Schnittwerte: Köpfe ae/ap in, vc SFM, fz in, vf ipm, Q in³/min;
+„400“ in vc und „0.002“ in fz → n und vf in ipm. „Schruppwerte planen…“ →
+vc in SFM, Vorschlag in ipm. Zurück auf „mm“ → alles wieder in mm, ½" als
+12.7. Bearbeiten → Einstellungen → CAM-Addon → Zahlen: „Maßsystem“ ändert
+es ebenso.
+
+### DONE
+- Maßsystem wählbar (erster Start, Einstellungen, Umschalter in der
+  Werkzeugverwaltung), vorbelegt aus FreeCAD; wer den Dialog schon
+  beantwortet hat, wird nicht noch einmal gefragt.
+- Überall umgerechnet: Werkzeugverwaltung, Schnittwerte, Eingriff,
+  Planer, Strategievergleich, „Schnittwerte in den Job“, Maschine
+  (Eilgang, Höchstvorschub, Verfahren, Bericht der Übergabe).
+- Gespeichert und an CAM übergeben wird metrisch; gerundet in der
+  gezeigten Einheit, damit ½" 0.5 in bleibt.
+
+### TEST
+- Alle Prüfungen ohne Oberfläche in 1.1.3 und 26.3.0 grün (neu:
+  Maßsystem, Umrechnung, Runden, Texte in Zoll, Listenzeile und
+  Beispielwerte in Zoll). `szenario_zoll` in 1.1.3 grün, Screenshots
+  angesehen (Werkzeugverwaltung und Planer in Zoll, zurück auf mm,
+  Verfahren in inch). Alle Szenarien in 1.1.3; voller Lauf vor dem Push.
+
+### NEXT
+- Version 0.16.0, voller Lauf, Push; dann Stufe C (Spezifikation der
+  Werkzeugarten zuerst).
+
 ## P-2026-09-26-47 tausenderpunkt
 
 ### EINGELESEN

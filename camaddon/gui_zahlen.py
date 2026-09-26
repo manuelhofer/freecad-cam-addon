@@ -83,6 +83,28 @@ def zahl_lesen(text):
     return einheiten.zahl_aus_text(text, dezimalzeichen())
 
 
+def groesse_zeigen(wert, groesse, metrisch_stellen=None):
+    """Ein metrischer Wert als Feldtext im gewählten Maßsystem (einheiten.LAENGE …); 0 leer.
+
+    `metrisch_stellen`: metrisch auf so viele Stellen gerundet (in Zoll gelten
+    die Stellen der Größe).
+    """
+    if metrisch_stellen is not None and not einheiten.in_zoll():
+        return zahl_zeigen(round(wert, metrisch_stellen))
+    return zahl_zeigen(einheiten.gerundet(wert, groesse))
+
+
+def groesse_lesen(text, groesse):
+    """Ein Feldtext im gewählten Maßsystem als metrischer Wert – so wird gespeichert."""
+    return einheiten.metrisch(zahl_lesen(text), groesse)
+
+
+def groesse_fest(wert, groesse, stellen):
+    """Mit fester Zahl Nachkommastellen – metrisch `stellen`, in Zoll die der Größe (Tabellen)."""
+    stellen = einheiten.stellen(groesse, stellen)
+    return zahlenformat().toString(float(einheiten.anzeige(wert, groesse)), "f", stellen)
+
+
 def zahl_zeigen(wert):
     """Zeigt eine Zahl im Zahlenformat der Oberfläche; 0 (unbekannt) als leeres Feld."""
     if not wert:

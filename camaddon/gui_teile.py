@@ -31,12 +31,14 @@ def knopf(text, tooltip, aktion):
 
 
 def mit_einheit(feld, einheit):
-    """Feld mit der Einheit rechts daneben."""
+    """Feld mit der Einheit rechts daneben; `zeile.einheit` ist die Beschriftung der Einheit
+    (für den Wechsel zwischen mm und inch)."""
     zeile = QtGui.QWidget()
     aufbau = QtGui.QHBoxLayout(zeile)
     aufbau.setContentsMargins(0, 0, 0, 0)
     aufbau.addWidget(feld)
-    aufbau.addWidget(QtGui.QLabel(einheit))
+    zeile.einheit = QtGui.QLabel(einheit)
+    aufbau.addWidget(zeile.einheit)
     return zeile
 
 

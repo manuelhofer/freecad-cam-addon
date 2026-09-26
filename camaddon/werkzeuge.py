@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 
 import FreeCAD
 
+from . import einheiten
 from . import werkstoffe as ws
 from .sprache import tr
 
@@ -162,7 +163,12 @@ def vorlage(werkzeug, art):
         BOHREN: (0.0, 0.0),
         EIGEN: (0.0, 0.0),
     }[art]
-    return Einsatz(art=art, ae=round(ae, 2), ap=round(ap, 2))
+    # Gerundet, wie es gezeigt wird: 0,01 mm, in inch 0,0001 in.
+    return Einsatz(
+        art=art,
+        ae=einheiten.runden(ae, einheiten.LAENGE, 2),
+        ap=einheiten.runden(ap, einheiten.LAENGE, 2),
+    )
 
 
 @dataclass
@@ -341,6 +347,25 @@ BEISPIELE = {
     FASENFRAESER: {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 6.0},
     BOHRER: {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 60.0},
 }
+# In inch runde Zoll-Maße (mm, weil metrisch gespeichert): ½", Schneide 1",
+# Eckradius 0,03", Fase ¼", Bohrer 2½".
+BEISPIELE_ZOLL = {
+    SCHAFTFRAESER: {"durchmesser": 12.7, "schneiden": 3, "schneidenlaenge": 25.4},
+    TORUSFRAESER: {
+        "durchmesser": 12.7,
+        "schneiden": 4,
+        "schneidenlaenge": 25.4,
+        "eckradius": 0.762,
+    },
+    RADIUSFRAESER: {"durchmesser": 12.7, "schneiden": 2, "schneidenlaenge": 25.4},
+    FASENFRAESER: {"durchmesser": 12.7, "schneiden": 2, "schneidenlaenge": 6.35},
+    BOHRER: {"durchmesser": 12.7, "schneiden": 2, "schneidenlaenge": 63.5},
+}
+
+
+def beispiele(art):
+    """Die Beispielwerte der Art im gewählten Maßsystem."""
+    return (BEISPIELE_ZOLL if einheiten.in_zoll() else BEISPIELE)[art]
 
 
 def beispielwerte_setzen(werkzeug, neu=False):
@@ -351,7 +376,7 @@ def beispielwerte_setzen(werkzeug, neu=False):
     Torusfräser bekommt so einen Eckradius und sieht im Bild wie einer aus.
     Beispielfelder, die die neue Art nicht hat (Eckradius), werden 0.
     """
-    werte = BEISPIELE[werkzeug.art]
+    werte = beispiele(werkzeug.art)
     if neu:
         felder = set(werte)
     else:
@@ -365,10 +390,11 @@ def zeile(werkzeug):
     """Eine Zeile für die Liste: „T3  Schaftfräser Ø 12 · z 3 · VHM“, mit eigenem
     Namen „T3  Fräser VHM 12 · Schaftfräser Ø 12 · z 3 · VHM“.
 
-    Zahlen mit Punkt; die Oberfläche setzt ihr Dezimalzeichen ein.
+    Zahlen mit Punkt; die Oberfläche setzt ihr Dezimalzeichen ein. Der
+    Durchmesser im gewählten Maßsystem (in inch „Ø 0.5“).
     """
     w = werkzeug
-    durchmesser = f"{w.durchmesser:g}" if w.durchmesser else "?"
+    durchmesser = _laenge_text(w.durchmesser) if w.durchmesser else "?"
     werte = {
         "nummer": w.nummer,
         "art": art_text(w.art),
@@ -390,15 +416,21 @@ def beispielname(werkzeug):
     """Ein Name aus den Angaben, solange keiner eingetragen ist: „Schaftfräser T1 VHM D12 L30“.
 
     Art, T-Nummer, Schneidstoff, Durchmesser, Schneidenlänge – Zahlen immer
-    mit Punkt, denn der Name ist für die Steuerung.
+    mit Punkt, denn der Name ist für die Steuerung; die Maße im gewählten
+    Maßsystem („D0.5 L1“ in inch).
     """
     w = werkzeug
     teile = [art_text(w.art), f"T{w.nummer}", schneidstoff_text(w.schneidstoff)]
     if w.durchmesser:
-        teile.append(f"D{w.durchmesser:g}")
+        teile.append(f"D{_laenge_text(w.durchmesser)}")
     if w.schneidenlaenge:
-        teile.append(f"L{w.schneidenlaenge:g}")
+        teile.append(f"L{_laenge_text(w.schneidenlaenge)}")
     return " ".join(teile)
+
+
+def _laenge_text(mm):
+    """Eine Länge im gewählten Maßsystem, mit Punkt: „12“, in inch „0.5“."""
+    return f"{einheiten.gerundet(mm, einheiten.LAENGE):g}"
 
 
 def anzeigename(werkzeug):
@@ -422,7 +454,7 @@ def passt(werkzeug, suche):
 
 def kurz(werkzeug):
     """Art und Durchmesser ohne Nummer: „Schaftfräser Ø 12“ – für Sätze über ein Werkzeug."""
-    durchmesser = f"{werkzeug.durchmesser:g}" if werkzeug.durchmesser else "?"
+    durchmesser = _laenge_text(werkzeug.durchmesser) if werkzeug.durchmesser else "?"
     return f"{art_text(werkzeug.art)} Ø {durchmesser}"
 
 

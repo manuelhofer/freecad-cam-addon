@@ -13,7 +13,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import beispielmaschine, symbol
+from . import beispielmaschine, einheiten, symbol
 from . import maschine as m
 from . import verfahren as vf
 from .gui_hilfe import kopfzeile
@@ -64,6 +64,16 @@ class BefehlMaschineVerfahren:
         # Ein Schritt für alles, was bis OK passiert; Abbrechen verwirft ihn.
         doc.openTransaction(tr("vf.titel"))
         FreeCADGui.Control.showDialog(VerfahrPanel(assembly, verfahren))
+
+
+def _anzeige(achse, wert):
+    """Stellung fürs Feld: Linearachsen in mm oder inch, Drehachsen in Grad."""
+    return einheiten.anzeige(wert, einheiten.LAENGE) if achse.art == LINEAR else wert
+
+
+def _metrisch(achse, wert):
+    """Stellung aus dem Feld zurück in mm bzw. Grad – so fährt die Achse."""
+    return einheiten.metrisch(wert, einheiten.LAENGE) if achse.art == LINEAR else wert
 
 
 def _zahl(wert, stellen):
@@ -134,9 +144,14 @@ class VerfahrPanel:
         return form
 
     def _baue_zeile(self, gitter, zeile, achse):
-        """Name, Regler und Zahlenfeld; darunter grau die Grenzen."""
+        """Name, Regler und Zahlenfeld; darunter grau die Grenzen.
+
+        Der Regler zählt in Zehntel mm bzw. Grad; das Feld zeigt
+        Linearachsen in mm oder inch (einheiten.py).
+        """
         linear = achse.art == LINEAR
-        einheit = "mm" if linear else "°"
+        einheit = einheiten.einheit(einheiten.LAENGE) if linear else "°"
+        stellen = einheiten.stellen(einheiten.LAENGE, 2) if linear else 1
         stellung = self.verfahren.stellung(achse)
         unten, oben = self._bereich(achse, stellung)
 
@@ -148,17 +163,17 @@ class VerfahrPanel:
         regler.setToolTip(tr("vf.regler.tooltip"))
         feld = QtGui.QDoubleSpinBox()
         feld.setLocale(zahlenformat())
-        feld.setDecimals(2 if linear else 1)
+        feld.setDecimals(stellen)
         minimum, maximum = self.verfahren.grenzen(achse)
         feld.setRange(
-            minimum if minimum is not None else -FELD_GRENZE,
-            maximum if maximum is not None else FELD_GRENZE,
+            _anzeige(achse, minimum) if minimum is not None else -FELD_GRENZE,
+            _anzeige(achse, maximum) if maximum is not None else FELD_GRENZE,
         )
         feld.setSuffix(f" {einheit}")
-        feld.setValue(stellung)
+        feld.setValue(_anzeige(achse, stellung))
         feld.setKeyboardTracking(False)  # erst nach Enter oder Verlassen fahren
         regler.valueChanged.connect(lambda wert, a=achse: self.setze(a, wert / SCHRITTE_JE_EINHEIT))
-        feld.valueChanged.connect(lambda wert, a=achse: self.setze(a, wert))
+        feld.valueChanged.connect(lambda wert, a=achse: self.setze(a, _metrisch(a, wert)))
         self.zeilen[achse] = (regler, feld)
 
         gitter.addWidget(name, zeile, 0)
@@ -175,7 +190,7 @@ class VerfahrPanel:
             gitter.addWidget(wahl, zeile, 3)
             self.platzwahl[achse] = (wahl, plaetze)
             self._platz_zeigen(achse, stellung)
-        grenzen = QtGui.QLabel(self._grenzen_text(achse, einheit, 2 if linear else 1))
+        grenzen = QtGui.QLabel(self._grenzen_text(achse, einheit, stellen))
         grenzen.setStyleSheet(f"color: {GRAU.name()};")
         grenzen.setToolTip(tr("vf.grenzen.tooltip"))
         gitter.addWidget(grenzen, zeile + 1, 1, 1, 2)
@@ -193,13 +208,13 @@ class VerfahrPanel:
         if minimum is None and maximum is None:
             return tr("vf.ohne_grenze")
         if maximum is None:
-            return tr("vf.nur_min", min=_zahl(minimum, stellen), einheit=einheit)
+            return tr("vf.nur_min", min=_zahl(_anzeige(achse, minimum), stellen), einheit=einheit)
         if minimum is None:
-            return tr("vf.nur_max", max=_zahl(maximum, stellen), einheit=einheit)
+            return tr("vf.nur_max", max=_zahl(_anzeige(achse, maximum), stellen), einheit=einheit)
         return tr(
             "vf.grenzen",
-            min=_zahl(minimum, stellen),
-            max=_zahl(maximum, stellen),
+            min=_zahl(_anzeige(achse, minimum), stellen),
+            max=_zahl(_anzeige(achse, maximum), stellen),
             einheit=einheit,
         )
 
@@ -222,7 +237,7 @@ class VerfahrPanel:
         for element in (regler, feld):
             element.blockSignals(True)
         regler.setValue(round(stellung * SCHRITTE_JE_EINHEIT))
-        feld.setValue(stellung)
+        feld.setValue(_anzeige(achse, stellung))
         for element in (regler, feld):
             element.blockSignals(False)
         self._platz_zeigen(achse, stellung)

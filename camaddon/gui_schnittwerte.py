@@ -15,7 +15,7 @@ import math
 import FreeCAD
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD
+from . import PARAMETER_PFAD, einheiten
 from . import schnittdaten as sd
 from . import schruppwerte as sw
 from . import werkstoffe as ws
@@ -26,13 +26,22 @@ from .gui_hilfe import kopfzeile
 from .gui_schruppwerte import SchruppDialog
 from .gui_strategie import StrategieDialog
 from .gui_teile import GRAU, hinweiszeile, knopf
-from .gui_zahlen import Zahlenpruefer, zahl_lesen, zahl_zeigen, zahlenformat
+from .gui_zahlen import (
+    Zahlenpruefer,
+    groesse_fest,
+    groesse_lesen,
+    groesse_zeigen,
+    zahl_lesen,
+    zahl_zeigen,
+    zahlenformat,
+)
 from .sprache import tr
 
 # Spalten der Tabelle.
 EINSATZ, AE, AP, VC, FZ, N, VF, Q = range(8)
 EINGABE_SPALTEN = {AE: "ae", AP: "ap", VC: "vc", FZ: "fz"}
 TABELLE_MINDESTHOEHE = 150  # Pixel
+SPAN = einheiten.SPAN  # fz und Spandicke: mm oder inch, feiner gerundet
 # Gemerkt in den Einstellungen: ae und ap in % von D statt in mm.
 IN_PROZENT = "SchnittwerteInProzent"
 
@@ -357,28 +366,28 @@ class SchnittwertBereich(QtGui.QWidget):
         self._fuellen()
 
     def _zustellung_zeigen(self, mm):
-        """ae oder ap als Text in der gewählten Einheit."""
+        """ae oder ap als Text in der gewählten Einheit: % von D, mm oder inch."""
         if self.in_prozent:
             return zahl_zeigen(round(mm / self.werkzeug.durchmesser * 100, 1))
-        return zahl_zeigen(mm)
+        return groesse_zeigen(mm, einheiten.LAENGE)
 
     def _kopf_setzen(self):
         """Spaltenköpfe mit Einheit; beim Bohrer f je Umdrehung statt fz, ohne ae und ap."""
         bohrer = self._bohrer()
         if bohrer:
-            vorschub = ("f\nmm/U", tr("wv.spalte.f.tooltip"))
+            vorschub = ("f\n" + tr("einheit.je_umdrehung"), tr("wv.spalte.f.tooltip"))
         else:
-            vorschub = ("fz\nmm", tr("wv.spalte.fz.tooltip"))
-        einheit = "% D" if self.in_prozent else "mm"
+            vorschub = ("fz\n" + einheiten.einheit(einheiten.SPAN), tr("wv.spalte.fz.tooltip"))
+        einheit = "% D" if self.in_prozent else einheiten.einheit(einheiten.LAENGE)
         koepfe = [
             (tr("wv.spalte.einsatz"), tr("wv.spalte.einsatz.tooltip")),
             ("ae\n" + einheit, tr("wv.spalte.ae.tooltip")),
             ("ap\n" + einheit, tr("wv.spalte.ap.tooltip")),
-            ("vc\nm/min", tr("wv.spalte.vc.tooltip")),
+            ("vc\n" + einheiten.einheit(einheiten.SCHNITT), tr("wv.spalte.vc.tooltip")),
             vorschub,
             ("n\n" + tr("einheit.drehzahl"), tr("wv.spalte.n.tooltip")),
-            ("vf\nmm/min", tr("wv.spalte.vf.tooltip")),
-            ("Q\ncm³/min", tr("wv.spalte.q.tooltip")),
+            ("vf\n" + einheiten.einheit(einheiten.VORSCHUB), tr("wv.spalte.vf.tooltip")),
+            ("Q\n" + einheiten.einheit(einheiten.ABTRAG), tr("wv.spalte.q.tooltip")),
         ]
         for spalte, (text, tooltip) in enumerate(koepfe):
             kopf = QtGui.QTableWidgetItem(text)
@@ -387,6 +396,8 @@ class SchnittwertBereich(QtGui.QWidget):
         self.tabelle.setColumnHidden(AE, bohrer)
         self.tabelle.setColumnHidden(AP, bohrer)
         self.wahl_einheit.setVisible(not bohrer)
+        # „ae, ap: mm“ oder „ae, ap: in“ – je nach Maßsystem.
+        self.wahl_einheit.setItemText(0, tr("wv.zustellung.mm"))
         # Ohne Durchmesser gibt es kein „% von D“.
         self.wahl_einheit.setEnabled(self.werkzeug is not None and self.werkzeug.durchmesser > 0)
 
@@ -436,8 +447,8 @@ class SchnittwertBereich(QtGui.QWidget):
             EINSATZ: wz.einsatz_name(einsatz),
             AE: self._zustellung_zeigen(einsatz.ae),
             AP: self._zustellung_zeigen(einsatz.ap),
-            VC: zahl_zeigen(einsatz.vc),
-            FZ: zahl_zeigen(round(einsatz.fz * teiler, 6)),
+            VC: groesse_zeigen(einsatz.vc, einheiten.SCHNITT),
+            FZ: groesse_zeigen(round(einsatz.fz * teiler, 6), einheiten.SPAN),
         }
         for spalte, text in eingaben.items():
             self.tabelle.setItem(zeile, spalte, self._zelle(text, bearbeitbar=self._bearbeitbar))
@@ -445,9 +456,12 @@ class SchnittwertBereich(QtGui.QWidget):
 
     def _ergebnis_schreiben(self, zeile, einsatz):
         n, vf, q = sd.rechne(self.werkzeug, einsatz)
-        format_ = zahlenformat()
-        for spalte, wert, stellen in ((N, n, 0), (VF, vf, 0), (Q, q, 1)):
-            text = format_.toString(wert, "f", stellen) if wert else ""
+        for spalte, wert, text in (
+            (N, n, zahlenformat().toString(n, "f", 0)),
+            (VF, vf, groesse_fest(vf, einheiten.VORSCHUB, 0)),
+            (Q, q, groesse_fest(q, einheiten.ABTRAG, 1)),
+        ):
+            text = text if wert else ""
             zelle = self._zelle(text, bearbeitbar=False)
             zelle.setForeground(GRAU)
             self.tabelle.setItem(zeile, spalte, zelle)
@@ -482,6 +496,12 @@ class SchnittwertBereich(QtGui.QWidget):
                     wert = wert / max(self.werkzeug.schneiden, 1)
                 if spalte in (AE, AP) and self.in_prozent:
                     wert = wert * self.werkzeug.durchmesser / 100
+                else:
+                    # Getippt in mm oder inch, m/min oder SFM – gespeichert metrisch.
+                    groesse = {VC: einheiten.SCHNITT, FZ: einheiten.SPAN}.get(
+                        spalte, einheiten.LAENGE
+                    )
+                    wert = einheiten.metrisch(wert, groesse)
             setattr(einsatz, EINGABE_SPALTEN[spalte], wert)
         self._fuellt = True
         self._zeile_schreiben(zeile, einsatz)
@@ -500,13 +520,13 @@ class SchnittwertBereich(QtGui.QWidget):
                 saetze.append(tr("wv.hinweis.ae_zu_gross"))
             h = sd.spandicke_max(einsatz.fz, einsatz.ae, w.durchmesser)
             if 0 < h < sd.MINDEST_SPANDICKE:
-                saetze.append(tr("wv.hinweis.span_duenn", h=_zahl(h, 3)))
+                saetze.append(tr("wv.hinweis.span_duenn", h=groesse_fest(h, einheiten.SPAN, 3)))
             if w.schneidenlaenge and einsatz.ap > w.schneidenlaenge:
                 saetze.append(
                     tr(
                         "wv.hinweis.ap_zu_gross",
-                        ap=zahl_zeigen(einsatz.ap),
-                        laenge=zahl_zeigen(w.schneidenlaenge),
+                        ap=groesse_zeigen(einsatz.ap, einheiten.LAENGE),
+                        laenge=groesse_zeigen(w.schneidenlaenge, einheiten.LAENGE),
                     )
                 )
         if einsatz is not None and (not einsatz.vc or not einsatz.fz):
@@ -528,20 +548,28 @@ class SchnittwertBereich(QtGui.QWidget):
         phi = sd.eingriffswinkel(einsatz.ae, d)
         # Je Größe eine Zeile: ae, ap, dann der Eingriff.
         zeilen = [
-            tr("wv.eingriff.ae", ae=zahl_zeigen(einsatz.ae), ae_d=_zahl(einsatz.ae / d * 100, 0))
+            tr(
+                "wv.eingriff.ae",
+                ae=groesse_zeigen(einsatz.ae, einheiten.LAENGE),
+                ae_d=_zahl(einsatz.ae / d * 100, 0),
+            )
         ]
         if w.schneidenlaenge:
             zeilen.append(
                 tr(
                     "wv.eingriff.ap_schneide",
-                    ap=zahl_zeigen(einsatz.ap),
+                    ap=groesse_zeigen(einsatz.ap, einheiten.LAENGE),
                     ap_d=_zahl(einsatz.ap / d, 1),
                     ap_schneide=_zahl(einsatz.ap / w.schneidenlaenge * 100, 0),
                 )
             )
         else:
             zeilen.append(
-                tr("wv.eingriff.ap", ap=zahl_zeigen(einsatz.ap), ap_d=_zahl(einsatz.ap / d, 1))
+                tr(
+                    "wv.eingriff.ap",
+                    ap=groesse_zeigen(einsatz.ap, einheiten.LAENGE),
+                    ap_d=_zahl(einsatz.ap / d, 1),
+                )
             )
         zeilen.append(
             tr(
@@ -554,8 +582,8 @@ class SchnittwertBereich(QtGui.QWidget):
             zeilen.append(
                 tr(
                     "wv.eingriff.spandicke",
-                    hmax=_zahl(sd.spandicke_max(einsatz.fz, einsatz.ae, d), 3),
-                    hm=_zahl(sd.spandicke_mittel(einsatz.fz, einsatz.ae, d), 3),
+                    hmax=groesse_fest(sd.spandicke_max(einsatz.fz, einsatz.ae, d), SPAN, 3),
+                    hm=groesse_fest(sd.spandicke_mittel(einsatz.fz, einsatz.ae, d), SPAN, 3),
                 )
             )
         self.eingriff_text.setText("\n".join(zeilen))
@@ -563,7 +591,9 @@ class SchnittwertBereich(QtGui.QWidget):
         duenner = 0 < einsatz.ae < d / 2 and einsatz.fz > 0
         self.ausgleich.setVisible(duenner and self._bearbeitbar)
         if duenner:
-            self.feld_spandicke.setText(_zahl(sd.spandicke_max(einsatz.fz, einsatz.ae, d), 3))
+            self.feld_spandicke.setText(
+                groesse_fest(sd.spandicke_max(einsatz.fz, einsatz.ae, d), SPAN, 3)
+            )
 
     def _ausgleich_rechnen(self, *_):
         """Zeigt beim Tippen, welches fz die gewünschte Spandicke ergibt."""
@@ -571,11 +601,13 @@ class SchnittwertBereich(QtGui.QWidget):
         if einsatz is None or w is None:
             return
         try:
-            h = zahl_lesen(self.feld_spandicke.text())
+            h = groesse_lesen(self.feld_spandicke.text(), SPAN)
         except ValueError:
             h = 0.0
         fz = sd.fz_fuer_spandicke(h, einsatz.ae, w.durchmesser)
-        self.ausgleich_ergebnis.setText(tr("wv.ausgleich.ergebnis", fz=_zahl(fz, 3)) if fz else "")
+        self.ausgleich_ergebnis.setText(
+            tr("wv.ausgleich.ergebnis", fz=groesse_fest(fz, SPAN, 3)) if fz else ""
+        )
         self.knopf_ausgleich.setEnabled(fz > 0 and abs(fz - einsatz.fz) > 1e-4)
 
     def spandicke_ausgleichen(self):
@@ -583,7 +615,7 @@ class SchnittwertBereich(QtGui.QWidget):
         einsatz, w = self.gewaehlt, self.werkzeug
         if einsatz is None or w is None or not self._bearbeitbar:
             return
-        h = zahl_lesen(self.feld_spandicke.text())
+        h = groesse_lesen(self.feld_spandicke.text(), SPAN)
         fz = sd.fz_fuer_spandicke(h, einsatz.ae, w.durchmesser)
         if fz <= 0:
             return

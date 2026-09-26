@@ -9,9 +9,10 @@ entscheidet am Ende über alles zusammen.
 
 from PySide import QtGui
 
+from . import einheiten
 from . import maschine as m
 from .gui_hilfe import zeige_hilfe
-from .gui_zahlen import Zahlenpruefer, zahl_lesen, zahl_zeigen
+from .gui_zahlen import Zahlenpruefer, groesse_lesen, groesse_zeigen, zahl_lesen, zahl_zeigen
 from .sprache import tr
 
 # Einheiten neben dem Feld – bei den übrigen Kennwerten steht die Einheit
@@ -19,8 +20,11 @@ from .sprache import tr
 # oder dreht.
 EINHEIT_LINEAR = {"Beschleunigung": "m/s²", "Ruck": "m/s³"}
 EINHEIT_DREH = {"Beschleunigung": "U/s²", "Ruck": "U/s³"}
+# Kennwerte, die in mm/min gespeichert sind – gezeigt in mm/min oder ipm.
+VORSCHUEBE = ("Eilgang", "VorschubMax")
 
 GROESSTE_PLATZNUMMER = 999
+VORSCHUB = einheiten.VORSCHUB
 
 
 class DetailKasten(QtGui.QFrame):
@@ -64,11 +68,11 @@ class DetailKasten(QtGui.QFrame):
         self.titel.setText(tr("dialog.detail_betriebsart", art=m.art_text(ba.Art), gelenk=gelenk))
         self.formular.addRow(tr("dialog.ncname"), self._ncname_feld(ba))
 
-        einheiten = EINHEIT_LINEAR if linear else EINHEIT_DREH
+        feste_einheiten = EINHEIT_LINEAR if linear else EINHEIT_DREH
         for eigenschaft, pflicht in m.WERTE[ba.Art]:
             text = m.wert_text(eigenschaft)
-            if eigenschaft in einheiten:
-                text += f" ({einheiten[eigenschaft]})"
+            if eigenschaft in feste_einheiten:
+                text += f" ({feste_einheiten[eigenschaft]})"
             if eigenschaft == "Endlos":
                 feld = self._schalter(ba, eigenschaft)
             else:
@@ -119,12 +123,22 @@ class DetailKasten(QtGui.QFrame):
         return feld
 
     def _zahlenfeld(self, objekt, eigenschaft, pflicht):
-        feld = QtGui.QLineEdit(zahl_zeigen(getattr(objekt, eigenschaft)))
+        # Eilgang und Vorschub in mm/min oder ipm; gespeichert in mm/min.
+        if eigenschaft in VORSCHUEBE:
+            feld = QtGui.QLineEdit(groesse_zeigen(getattr(objekt, eigenschaft), VORSCHUB))
+
+            def lesen():
+                return groesse_lesen(feld.text(), VORSCHUB)
+
+        else:
+            feld = QtGui.QLineEdit(zahl_zeigen(getattr(objekt, eigenschaft)))
+
+            def lesen():
+                return zahl_lesen(feld.text())
+
         feld.setValidator(Zahlenpruefer(feld))
         feld.setPlaceholderText(tr("feld.pflicht") if pflicht else tr("feld.unbekannt"))
-        feld.editingFinished.connect(
-            lambda: self._setze(objekt, eigenschaft, zahl_lesen(feld.text()))
-        )
+        feld.editingFinished.connect(lambda: self._setze(objekt, eigenschaft, lesen()))
         return feld
 
     def _schalter(self, objekt, eigenschaft):

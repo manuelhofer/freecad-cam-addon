@@ -10,10 +10,11 @@ nimmt die Zeile als B. Gerechnet wird in schnittdaten.py.
 
 from PySide import QtCore, QtGui
 
+from . import einheiten
 from . import schnittdaten as sd
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
-from .gui_zahlen import dezimal, zahl_zeigen, zahlenformat
+from .gui_zahlen import dezimal, groesse_fest, groesse_zeigen, zahl_zeigen, zahlenformat
 from .sprache import tr
 
 FARBE_A = QtGui.QColor("#e67e22")
@@ -23,6 +24,20 @@ FENSTER_BREITE = 760  # Pixel
 
 # Spalten der Übersicht aller Einsätze.
 UE_NAME, UE_Q, UE_ZEIT, UE_WEG, UE_AP, UE_EINGRIFF, UE_SPAN, UE_LEISTUNG = range(8)
+
+
+def _wert_text(wert, stellen, groesse):
+    """Eine Zelle der Übersicht: mit Größe im gewählten Maßsystem."""
+    if groesse is None:
+        return zahl_zeigen(wert) if stellen is None else _zahl(wert, stellen)
+    if stellen is None:
+        return groesse_zeigen(wert, groesse)
+    return groesse_fest(wert, groesse, stellen)
+
+
+def _mit_einheit(wert, stellen, groesse):
+    """„22,9 cm³/min“ bzw. „1,40 in³/min“."""
+    return f"{groesse_fest(wert, groesse, stellen)} {einheiten.einheit(groesse)}"
 
 
 def _zahl(wert, stellen):
@@ -135,7 +150,7 @@ class StrategieDialog(QtGui.QDialog):
         tabelle.setToolTip(tr("wv.strategie.alle.tooltip"))
         koepfe = [
             (tr("wv.spalte.einsatz"), ""),
-            ("Q\ncm³/min", tr("wv.strategie.q.tooltip")),
+            ("Q\n" + einheiten.einheit(einheiten.ABTRAG), tr("wv.strategie.q.tooltip")),
             (tr("wv.strategie.alle.zeit"), tr("wv.strategie.zeit.tooltip")),
             (tr("wv.strategie.alle.weg"), tr("wv.strategie.weg.tooltip")),
             (tr("wv.strategie.alle.ap"), tr("wv.strategie.ap.tooltip")),
@@ -152,25 +167,26 @@ class StrategieDialog(QtGui.QDialog):
         kopfleiste.setSectionResizeMode(UE_NAME, QtGui.QHeaderView.Stretch)
 
         kennzahlen = [sd.kennzahlen(self.werkzeug, e, self.werkstoff) for e in self.einsaetze]
+        # Spalte: (Wert, Nachkommastellen oder None, das Beste, Größe für mm/inch oder None).
         spalten = {
-            UE_Q: (lambda k: k.q, 1, max),
-            UE_ZEIT: (lambda k: k.zeit, 1, min),
-            UE_WEG: (lambda k: k.schneidenweg, 2, min),
-            UE_AP: (lambda k: k.ap, None, max),
-            UE_EINGRIFF: (lambda k: k.eingriff * 100, 0, None),
-            UE_SPAN: (lambda k: k.spandicke, 3, None),
-            UE_LEISTUNG: (lambda k: k.leistung, 1, None),
+            UE_Q: (lambda k: k.q, 1, max, einheiten.ABTRAG),
+            UE_ZEIT: (lambda k: k.zeit, 1, min, None),
+            UE_WEG: (lambda k: k.schneidenweg, 2, min, einheiten.WEG_JE_VOLUMEN),
+            UE_AP: (lambda k: k.ap, None, max, einheiten.LAENGE),
+            UE_EINGRIFF: (lambda k: k.eingriff * 100, 0, None, None),
+            UE_SPAN: (lambda k: k.spandicke, 3, None, einheiten.SPAN),
+            UE_LEISTUNG: (lambda k: k.leistung, 1, None, None),
         }
         for zeile, (einsatz, k) in enumerate(zip(self.einsaetze, kennzahlen, strict=True)):
             tabelle.setItem(zeile, UE_NAME, QtGui.QTableWidgetItem(wz.einsatz_name(einsatz)))
-            for spalte, (wert, stellen, _bestes) in spalten.items():
+            for spalte, (wert, stellen, _bestes, groesse) in spalten.items():
                 w = wert(k)
-                text = "" if not w else (zahl_zeigen(w) if stellen is None else _zahl(w, stellen))
+                text = "" if not w else _wert_text(w, stellen, groesse)
                 zelle = QtGui.QTableWidgetItem(text)
                 zelle.setTextAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
                 tabelle.setItem(zeile, spalte, zelle)
         # Das Beste je Spalte fett – nur unter Einsätzen mit Werten.
-        for spalte, (wert, _stellen, bestes) in spalten.items():
+        for spalte, (wert, _stellen, bestes, _groesse) in spalten.items():
             werte = [wert(k) for k in kennzahlen if wert(k)]
             if bestes is None or len(werte) < 2:
                 continue
@@ -237,12 +253,20 @@ class StrategieDialog(QtGui.QDialog):
         a, b = self.a, self.b
         lc = self.werkzeug.schneidenlaenge
         werte = {
-            "q": (a.q, b.q, lambda k: f"{_zahl(k.q, 1)} cm³/min"),
+            "q": (a.q, b.q, lambda k: _mit_einheit(k.q, 1, einheiten.ABTRAG)),
             "zeit": (a.zeit, b.zeit, lambda k: f"{_zahl(k.zeit, 1)} min"),
-            "weg": (a.schneidenweg, b.schneidenweg, lambda k: f"{_zahl(k.schneidenweg, 2)} m"),
+            "weg": (
+                a.schneidenweg,
+                b.schneidenweg,
+                lambda k: _mit_einheit(k.schneidenweg, 2, einheiten.WEG_JE_VOLUMEN),
+            ),
             "ap": (a.ap, b.ap, self._schneide_text),
             "eingriff": (a.eingriff, b.eingriff, lambda k: f"{_zahl(k.eingriff * 100, 0)} %"),
-            "span": (a.spandicke, b.spandicke, lambda k: f"{_zahl(k.spandicke, 3)} mm"),
+            "span": (
+                a.spandicke,
+                b.spandicke,
+                lambda k: _mit_einheit(k.spandicke, 3, einheiten.SPAN),
+            ),
             "leistung": (a.leistung, b.leistung, self._leistung_text),
         }
         for schluessel, (wert_a, wert_b, text) in werte.items():
@@ -258,9 +282,11 @@ class StrategieDialog(QtGui.QDialog):
     def _schneide_text(self, k):
         if k.schneidenlaenge:
             return tr(
-                "wv.strategie.ap.von", ap=zahl_zeigen(k.ap), laenge=zahl_zeigen(k.schneidenlaenge)
+                "wv.strategie.ap.von",
+                ap=groesse_zeigen(k.ap, einheiten.LAENGE),
+                laenge=groesse_zeigen(k.schneidenlaenge, einheiten.LAENGE),
             )
-        return f"{zahl_zeigen(k.ap)} mm"
+        return f"{groesse_zeigen(k.ap, einheiten.LAENGE)} {einheiten.einheit(einheiten.LAENGE)}"
 
     def _leistung_text(self, k):
         return f"{_zahl(k.leistung, 1)} kW · {_zahl(k.drehmoment, 0)} Nm"
@@ -285,9 +311,9 @@ class StrategieDialog(QtGui.QDialog):
                 elif name.startswith("anteil"):
                     gezeigt[name] = _zahl(wert, 0)
                 elif name == "h":
-                    gezeigt[name] = _zahl(wert, 3)
+                    gezeigt[name] = groesse_fest(wert, einheiten.SPAN, 3)
                 elif name.startswith("ap"):
-                    gezeigt[name] = zahl_zeigen(wert)
+                    gezeigt[name] = groesse_zeigen(wert, einheiten.LAENGE)
                 else:
                     gezeigt[name] = _zahl(wert, 1)
             saetze.append(_urteil_satz(schluessel, gezeigt))

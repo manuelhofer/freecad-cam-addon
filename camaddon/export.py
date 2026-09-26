@@ -24,6 +24,7 @@ from dataclasses import dataclass, field
 
 import FreeCAD
 
+from . import einheiten
 from . import kette as kette_modul
 from . import maschine as m
 from .kette import LINEAR
@@ -94,11 +95,11 @@ def baue_cam_maschine(maschine, kette=None):
         if achse.art == LINEAR:
             eilgang = ba.Eilgang or VORGABE_EILGANG
             cam.linear_axes[name] = _linearachse(achse, eilgang, im_kopf, **gemeinsam)
-            bericht.uebertragen.append(tr("export.linear", name=name, eilgang=_zahl(eilgang)))
+            # Im Bericht in mm/min oder ipm; an CAM geht er in mm/min.
+            gezeigt = _zahl(einheiten.gerundet(eilgang, einheiten.VORSCHUB))
+            bericht.uebertragen.append(tr("export.linear", name=name, eilgang=gezeigt))
             if not ba.Eilgang:
-                bericht.zu_pruefen.append(
-                    tr("export.eilgang_vorgabe", name=name, eilgang=_zahl(eilgang))
-                )
+                bericht.zu_pruefen.append(tr("export.eilgang_vorgabe", name=name, eilgang=gezeigt))
         else:
             u_min = ba.Geschwindigkeit or VORGABE_DREHGESCHWINDIGKEIT
             cam.rotary_axes[name] = _drehachse(achse, u_min, ba.Endlos, im_kopf, **gemeinsam)

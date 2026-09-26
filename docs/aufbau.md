@@ -44,7 +44,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | --- | --- |
 | `__init__.py` | Grunddaten: Addon-Ordner, Version aus `package.xml`, Parameterpfad, `symbol()` |
 | `sprache.py` | Texte aus `translations/*.json`: `tr()` |
-| `einheiten.py` | Zahlen (Stufe B): gewähltes Dezimalzeichen, Eingaben mit Punkt oder Komma lesen |
+| `einheiten.py` | Zahlen (Stufe B): Maßsystem mm/inch mit Umrechnung je Größe (Länge, Span, vc, Vorschub, Abtrag, Volumen), Dezimalzeichen, Eingaben mit Punkt oder Komma lesen; Einheiten-Platzhalter für `tr()` |
 | `hilfe.py` | Hilfeseiten `help/<sprache>/<thema>.html` finden |
 | `kette.py` | Assembly lesen: Glieder, Achsen, Meldungen |
 | `maschine.py` | Maschinenobjekt: Objektarten, Anlegen, Revolverplätze, Prüfung, Tisch/Kopf |

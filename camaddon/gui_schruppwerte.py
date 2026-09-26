@@ -12,13 +12,21 @@ Gerechnet wird in schruppwerte.py.
 import FreeCAD
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD
+from . import PARAMETER_PFAD, einheiten
 from . import schnittdaten as sd
 from . import schruppwerte as sw
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, ROT, hinweiszeile, knopf, mit_einheit
-from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen, zahlenformat
+from .gui_zahlen import (
+    Zahlenpruefer,
+    dezimal,
+    groesse_fest,
+    groesse_zeigen,
+    zahl_lesen,
+    zahl_zeigen,
+    zahlenformat,
+)
 from .sprache import tr
 
 # Spalten der Tabelle.
@@ -86,6 +94,7 @@ class SchruppDialog(QtGui.QDialog):
         erklaerung.setStyleSheet(f"color: {GRAU.name()};")
         aufbau.addWidget(erklaerung)
 
+        self._groesse = {}  # Feld -> Größe (einheiten.LAENGE …): mm oder inch, m/min oder SFM
         vc, h, ap = sw.vorgaben(werkzeug, einsatz)
         # Hat die Zeile keine, stehen graue Beispiele da – gerechnet wird schon mit ihnen.
         beispiel_vc, beispiel_h = sw.beispiel_schnitt(werkzeug)
@@ -94,17 +103,21 @@ class SchruppDialog(QtGui.QDialog):
         felder = QtGui.QHBoxLayout()
         schnitt = QtGui.QGroupBox(tr("sp.gruppe.schnitt"))
         formular = QtGui.QFormLayout(schnitt)
-        self.feld_vc = self._feld(formular, tr("sp.vc"), tr("sp.vc.tooltip"), "m/min", vc)
-        self.feld_spandicke = self._feld(
-            formular, tr("sp.spandicke"), tr("sp.spandicke.tooltip"), "mm", h
+        self.feld_vc = self._feld(
+            formular, tr("sp.vc"), tr("sp.vc.tooltip"), vc, groesse=einheiten.SCHNITT
         )
-        self.feld_ap = self._feld(formular, tr("sp.ap"), tr("sp.ap.tooltip"), "mm", ap)
+        self.feld_spandicke = self._feld(
+            formular, tr("sp.spandicke"), tr("sp.spandicke.tooltip"), h, groesse=einheiten.SPAN
+        )
+        self.feld_ap = self._feld(
+            formular, tr("sp.ap"), tr("sp.ap.tooltip"), ap, groesse=einheiten.LAENGE
+        )
         self.feld_ae_grenze = self._feld(
             formular,
             tr("sp.ae_grenze"),
             tr("sp.ae_grenze.tooltip"),
-            tr("sp.ae_grenze.einheit"),
             werkzeug.ae_warngrenze,
+            einheit=tr("sp.ae_grenze.einheit"),
         )
         felder.addWidget(schnitt, 1)
 
@@ -121,22 +134,22 @@ class SchruppDialog(QtGui.QDialog):
             formular,
             tr("sp.drehzahl"),
             tr("sp.drehzahl.tooltip"),
-            tr("einheit.drehzahl"),
             drehzahl,
+            einheit=tr("einheit.drehzahl"),
         )
         self.feld_vorschub = self._feld(
             formular,
             tr("sp.vorschub"),
             tr("sp.vorschub.tooltip"),
-            "mm/min",
             vorschub,
+            groesse=einheiten.VORSCHUB,
         )
         self.feld_leistung = self._feld(
             formular,
             tr("sp.leistung"),
             tr("sp.leistung.tooltip"),
-            "kW",
             gemerkt.GetFloat(GEMERKT["leistung"], 0.0),
+            einheit="kW",
         )
         self.knopf_maschine = QtGui.QPushButton(tr("sp.von_maschine"))
         self.knopf_maschine.setToolTip(tr("sp.von_maschine.tooltip"))
@@ -184,11 +197,11 @@ class SchruppDialog(QtGui.QDialog):
         self.tabelle.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
         self.tabelle.verticalHeader().hide()
         koepfe = [
-            ("ae\nmm", tr("wv.spalte.ae.tooltip")),
+            ("ae\n" + einheiten.einheit(einheiten.LAENGE), tr("wv.spalte.ae.tooltip")),
             (tr("sp.spalte.prozent"), tr("sp.spalte.prozent.tooltip")),
-            ("fz\nmm", tr("sp.spalte.fz.tooltip")),
-            ("vf\nmm/min", tr("wv.spalte.vf.tooltip")),
-            ("Q\ncm³/min", tr("wv.spalte.q.tooltip")),
+            ("fz\n" + einheiten.einheit(einheiten.SPAN), tr("sp.spalte.fz.tooltip")),
+            ("vf\n" + einheiten.einheit(einheiten.VORSCHUB), tr("wv.spalte.vf.tooltip")),
+            ("Q\n" + einheiten.einheit(einheiten.ABTRAG), tr("wv.spalte.q.tooltip")),
             ("P\nkW", tr("sp.spalte.leistung.tooltip")),
             (tr("sp.spalte.hinweis"), ""),
         ]
@@ -225,8 +238,14 @@ class SchruppDialog(QtGui.QDialog):
             feld.textChanged.connect(lambda *_: self.rechnen())
         self.rechnen()
 
-    def _feld(self, formular, text, tooltip, einheit, wert):
-        feld = QtGui.QLineEdit(zahl_zeigen(round(wert, 4)))
+    def _feld(self, formular, text, tooltip, wert, groesse=None, einheit=""):
+        """Ein Zahlenfeld; mit `groesse` im gewählten Maßsystem gezeigt und gelesen."""
+        if groesse is not None:
+            einheit = einheiten.einheit(groesse)
+            feld = QtGui.QLineEdit(groesse_zeigen(wert, groesse, metrisch_stellen=4))
+            self._groesse[feld] = groesse
+        else:
+            feld = QtGui.QLineEdit(zahl_zeigen(round(wert, 4)))
         feld.setValidator(Zahlenpruefer(feld))
         feld.setFixedWidth(FELD_BREITE)
         feld.setToolTip(tooltip)
@@ -261,10 +280,13 @@ class SchruppDialog(QtGui.QDialog):
     # --- Rechnen --------------------------------------------------------------------
 
     def _lies(self, feld):
+        """Der Wert im Feld, metrisch – so rechnet der Planer."""
         try:
-            return zahl_lesen(feld.text())
+            wert = zahl_lesen(feld.text())
         except ValueError:
             return 0.0
+        groesse = self._groesse.get(feld)
+        return einheiten.metrisch(wert, groesse) if groesse else wert
 
     @property
     def grenzen(self):
@@ -297,18 +319,22 @@ class SchruppDialog(QtGui.QDialog):
             self.drehzahl_text.clear()
         elif plan.drehzahl_begrenzt:
             self.drehzahl_text.setText(
-                tr("sp.drehzahl_begrenzt", n=_zahl(plan.n, 0), vc=_zahl(plan.vc, 0))
+                tr(
+                    "sp.drehzahl_begrenzt",
+                    n=_zahl(plan.n, 0),
+                    vc=groesse_fest(plan.vc, einheiten.SCHNITT, 0),
+                )
             )
         else:
             self.drehzahl_text.setText(tr("sp.drehzahl_ergebnis", n=_zahl(plan.n, 0)))
 
     def _zeile_schreiben(self, zeile, stufe, vorschlag):
         werte = {
-            AE: _zahl(stufe.ae, 2),
+            AE: groesse_fest(stufe.ae, einheiten.LAENGE, 2),
             PROZENT: _prozent(stufe.prozent),
-            FZ: _zahl(stufe.fz, 3),
-            VF: _zahl(stufe.vf, 0),
-            Q: _zahl(stufe.q, 1),
+            FZ: groesse_fest(stufe.fz, einheiten.SPAN, 3),
+            VF: groesse_fest(stufe.vf, einheiten.VORSCHUB, 0),
+            Q: groesse_fest(stufe.q, einheiten.ABTRAG, 1),
             LEISTUNG: _zahl(stufe.leistung, 2) if stufe.leistung else "",
             HINWEIS: self._hinweis(stufe, vorschlag),
         }
@@ -339,7 +365,9 @@ class SchruppDialog(QtGui.QDialog):
         if stufe.ueber_leistung:
             teile.append(tr("sp.hinweis.ueber_leistung"))
         if stufe.vorschub_begrenzt:
-            teile.append(tr("sp.hinweis.vorschub", h=_zahl(stufe.spandicke, 3)))
+            teile.append(
+                tr("sp.hinweis.vorschub", h=groesse_fest(stufe.spandicke, einheiten.SPAN, 3))
+            )
         if 0 < stufe.spandicke < sd.MINDEST_SPANDICKE:
             teile.append(tr("sp.hinweis.span_duenn"))
         return " · ".join(teile)
@@ -355,7 +383,7 @@ class SchruppDialog(QtGui.QDialog):
             saetze.append(
                 tr(
                     "sp.kein_vorschlag",
-                    ae=_zahl(plan.stufen[0].ae, 2),
+                    ae=groesse_fest(plan.stufen[0].ae, einheiten.LAENGE, 2),
                     leistung=_zahl(self.grenzen.leistung, 1),
                 )
             )
@@ -363,13 +391,13 @@ class SchruppDialog(QtGui.QDialog):
             saetze.append(
                 tr(
                     "sp.vorschlag",
-                    ae=_zahl(vorschlag.ae, 2),
+                    ae=groesse_fest(vorschlag.ae, einheiten.LAENGE, 2),
                     prozent=_prozent(vorschlag.prozent),
-                    ap=zahl_zeigen(ap),
-                    fz=_zahl(vorschlag.fz, 3),
-                    vc=_zahl(plan.vc, 0),
-                    vf=_zahl(vorschlag.vf, 0),
-                    q=_zahl(vorschlag.q, 1),
+                    ap=groesse_zeigen(ap, einheiten.LAENGE),
+                    fz=groesse_fest(vorschlag.fz, einheiten.SPAN, 3),
+                    vc=groesse_fest(plan.vc, einheiten.SCHNITT, 0),
+                    vf=groesse_fest(vorschlag.vf, einheiten.VORSCHUB, 0),
+                    q=groesse_fest(vorschlag.q, einheiten.ABTRAG, 1),
                 )
             )
             grund = {
@@ -384,10 +412,21 @@ class SchruppDialog(QtGui.QDialog):
             if vergleich:
                 saetze.append(vergleich)
             if vorschlag.vorschub_begrenzt:
-                saetze.append(tr("sp.vorschub_begrenzt", h=_zahl(vorschlag.spandicke, 3)))
+                saetze.append(
+                    tr(
+                        "sp.vorschub_begrenzt",
+                        h=groesse_fest(vorschlag.spandicke, einheiten.SPAN, 3),
+                    )
+                )
         lc = self.werkzeug.schneidenlaenge
         if lc and ap > lc:
-            saetze.append(tr("wv.hinweis.ap_zu_gross", ap=zahl_zeigen(ap), laenge=zahl_zeigen(lc)))
+            saetze.append(
+                tr(
+                    "wv.hinweis.ap_zu_gross",
+                    ap=groesse_zeigen(ap, einheiten.LAENGE),
+                    laenge=groesse_zeigen(lc, einheiten.LAENGE),
+                )
+            )
         if self.grenzen.leistung > 0 and not leistung_bekannt:
             saetze.append(tr("sp.leistung_unbekannt"))
         return " ".join(saetze)
@@ -402,11 +441,11 @@ class SchruppDialog(QtGui.QDialog):
         return tr(
             "sp.vergleich",
             name=wz.einsatz_name(self.vergleich),
-            ae=zahl_zeigen(self.vergleich.ae),
-            ap_vollnut=zahl_zeigen(self.vergleich.ap),
-            q_vollnut=_zahl(q_vollnut, 1),
+            ae=groesse_zeigen(self.vergleich.ae, einheiten.LAENGE),
+            ap_vollnut=groesse_zeigen(self.vergleich.ap, einheiten.LAENGE),
+            q_vollnut=groesse_fest(q_vollnut, einheiten.ABTRAG, 1),
             faktor=_zahl(vorschlag.q / q_vollnut, 1),
-            ap=zahl_zeigen(ap),
+            ap=groesse_zeigen(ap, einheiten.LAENGE),
         )
 
     def _auswahl_zeigen(self):
@@ -419,7 +458,7 @@ class SchruppDialog(QtGui.QDialog):
             self.warnung.setText(
                 tr(
                     "sp.warnung.ueber_ae",
-                    ae=_zahl(stufe.ae, 2),
+                    ae=groesse_fest(stufe.ae, einheiten.LAENGE, 2),
                     prozent=_prozent(stufe.prozent),
                     grenze=_prozent(self.grenzen.ae_prozent),
                 )
@@ -433,7 +472,7 @@ class SchruppDialog(QtGui.QDialog):
         if drehzahl > 0:
             self.feld_drehzahl.setText(zahl_zeigen(drehzahl))
         if vorschub > 0:
-            self.feld_vorschub.setText(zahl_zeigen(vorschub))
+            self.feld_vorschub.setText(groesse_zeigen(vorschub, einheiten.VORSCHUB))
 
     def setze(self, feld, text):
         """Tippt `text` in ein Feld (Name wie „vc“, „leistung“) – für die Szenarien."""

@@ -3,8 +3,8 @@
 
 Der Dialog beim ersten Start beschriftet sich beim Durchblättern der Liste
 sofort in der markierten Sprache um – wer kein Englisch kann, sieht so, dass
-er richtig ist, bevor er bestätigt. Darunter das Dezimalzeichen, mit
-Beispielzahlen, vorbelegt aus FreeCAD (Stufe B des Plans).
+er richtig ist, bevor er bestätigt. Darunter Maßsystem und Dezimalzeichen,
+mit Beispielzahlen, vorbelegt aus FreeCAD (Stufe B des Plans).
 
 Die Einstellungsseite enthält auch die Gruppe „Updates“ (gui_aktualisierung).
 """
@@ -47,8 +47,23 @@ def _dezimalzeichen_beschriften(liste, code=None):
     liste.setItemText(1, tr("zahlen.punkt", sprache=code))
 
 
+def masssystemliste():
+    """QComboBox mit mm und inch, vorgewählt das gewählte oder FreeCADs Maßsystem."""
+    liste = QtGui.QComboBox()
+    for wahl in einheiten.MASSSYSTEME:
+        liste.addItem("", wahl)
+    liste.setCurrentIndex(max(liste.findData(einheiten.masssystem()), 0))
+    return liste
+
+
+def _masssystem_beschriften(liste, code=None):
+    """Die Einträge mit Beispielen – in der Sprache `code` (None: der des Addons)."""
+    liste.setItemText(0, tr("zahlen.metrisch", sprache=code))
+    liste.setItemText(1, tr("zahlen.zoll", sprache=code))
+
+
 class ErsterStartDialog(QtGui.QDialog):
-    """Fragt beim ersten Start nach der Sprache der Oberfläche und dem Dezimalzeichen."""
+    """Fragt beim ersten Start nach Sprache, Maßsystem und Dezimalzeichen."""
 
     def __init__(self, eltern=None):
         super().__init__(eltern)
@@ -57,6 +72,7 @@ class ErsterStartDialog(QtGui.QDialog):
         self.frage.setWordWrap(True)
         self.frage_zahlen = QtGui.QLabel()
         self.frage_zahlen.setWordWrap(True)
+        self.wahl_masssystem = masssystemliste()
         self.wahl_dezimalzeichen = _dezimalzeichenliste()
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
@@ -68,6 +84,7 @@ class ErsterStartDialog(QtGui.QDialog):
         aufbau.addWidget(self.liste)
         aufbau.addSpacing(8)
         aufbau.addWidget(self.frage_zahlen)
+        aufbau.addWidget(self.wahl_masssystem)
         aufbau.addWidget(self.wahl_dezimalzeichen)
         aufbau.addWidget(self.hinweis)
         aufbau.addWidget(self.knopf)
@@ -85,6 +102,10 @@ class ErsterStartDialog(QtGui.QDialog):
         """„,“ oder „.“."""
         return self.wahl_dezimalzeichen.currentData()
 
+    def gewaehltes_masssystem(self):
+        """einheiten.METRISCH oder einheiten.ZOLL."""
+        return self.wahl_masssystem.currentData()
+
     def _beschriften(self, *_):
         self._texte_setzen(self.gewaehlt())
 
@@ -92,6 +113,7 @@ class ErsterStartDialog(QtGui.QDialog):
         self.setWindowTitle(tr("sprachwahl.titel", sprache=code))
         self.frage.setText(tr("sprachwahl.frage", sprache=code))
         self.frage_zahlen.setText(tr("zahlen.frage", sprache=code))
+        _masssystem_beschriften(self.wahl_masssystem, code)
         _dezimalzeichen_beschriften(self.wahl_dezimalzeichen, code)
         self.hinweis.setText(tr("sprachwahl.hinweis", sprache=code))
 
@@ -117,13 +139,17 @@ class ErsterStartDialog(QtGui.QDialog):
 def _erster_start():
     dialog = ErsterStartDialog(FreeCADGui.getMainWindow())
     dialog.exec_()  # wartet, bis eine Sprache gewählt ist
-    _uebernehmen(dialog.gewaehlt(), dialog.gewaehltes_dezimalzeichen())
+    _uebernehmen(
+        dialog.gewaehlt(), dialog.gewaehltes_masssystem(), dialog.gewaehltes_dezimalzeichen()
+    )
 
 
-def _uebernehmen(code, zeichen):
-    """Speichert Sprache und Dezimalzeichen sofort – FreeCAD schreibt seine Einstellungen
-    sonst erst beim Beenden, und nach einem Absturz käme die Frage wieder – und beschriftet neu."""
+def _uebernehmen(code, masssystem, zeichen):
+    """Speichert Sprache, Maßsystem und Dezimalzeichen sofort – FreeCAD schreibt seine
+    Einstellungen sonst erst beim Beenden, und nach einem Absturz käme die Frage wieder –
+    und beschriftet neu."""
     sprache.setze_sprache(code)
+    einheiten.setze_masssystem(masssystem)
     einheiten.setze_dezimalzeichen(zeichen)
     FreeCAD.saveParameter()
     for aufgabe in NACH_SPRACHWAHL:
@@ -134,7 +160,9 @@ def beim_ersten_start_fragen():
     """Fragt einmal nach Sprache und Dezimalzeichen, sobald das Hauptfenster steht.
 
     Auch, wer die Sprache schon gewählt hat, wird einmal gefragt, wenn das
-    Dezimalzeichen neu dazugekommen ist – mit seiner Sprache vorgewählt.
+    Dezimalzeichen neu dazugekommen ist – mit seiner Sprache vorgewählt. Nach
+    dem Maßsystem allein fragt es nicht noch einmal: Das folgt bis zu einer
+    Wahl FreeCADs Einheitensystem.
     """
     if sprache.gewaehlte_sprache() is None or einheiten.gewaehltes_dezimalzeichen() is None:
         QtCore.QTimer.singleShot(0, _erster_start)
@@ -155,10 +183,13 @@ class Einstellungsseite:
         gruppen_aufbau.addRow(tr("einstellungen.sprache.feld"), self.liste)
         gruppen_aufbau.addRow(hinweis)
 
+        self.wahl_masssystem = masssystemliste()
+        _masssystem_beschriften(self.wahl_masssystem)
         self.wahl_dezimalzeichen = _dezimalzeichenliste()
         _dezimalzeichen_beschriften(self.wahl_dezimalzeichen)
         zahlen = QtGui.QGroupBox(tr("einstellungen.zahlen.gruppe"))
         zahlen_aufbau = QtGui.QFormLayout(zahlen)
+        zahlen_aufbau.addRow(tr("einstellungen.zahlen.masssystem"), self.wahl_masssystem)
         zahlen_aufbau.addRow(tr("einstellungen.zahlen.feld"), self.wahl_dezimalzeichen)
         zahlen_hinweis = QtGui.QLabel(tr("einstellungen.zahlen.hinweis"))
         zahlen_hinweis.setWordWrap(True)
@@ -174,12 +205,18 @@ class Einstellungsseite:
     def loadSettings(self):
         index = self.liste.findData(sprache.aktuelle_sprache())
         self.liste.setCurrentIndex(max(index, 0))
+        index = self.wahl_masssystem.findData(einheiten.masssystem())
+        self.wahl_masssystem.setCurrentIndex(max(index, 0))
         index = self.wahl_dezimalzeichen.findData(dezimalzeichen())
         self.wahl_dezimalzeichen.setCurrentIndex(max(index, 0))
         gui_aktualisierung.einstellungen_laden(self)
 
     def saveSettings(self):
-        _uebernehmen(self.liste.currentData(), self.wahl_dezimalzeichen.currentData())
+        _uebernehmen(
+            self.liste.currentData(),
+            self.wahl_masssystem.currentData(),
+            self.wahl_dezimalzeichen.currentData(),
+        )
         gui_aktualisierung.einstellungen_speichern(self)
 
 

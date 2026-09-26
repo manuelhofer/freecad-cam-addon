@@ -51,9 +51,16 @@ unknown to the tool manager – the report lists them.</li>
 </ul>
 
 <h3>The fields</h3>
-<p>Type numbers with a comma or a point – “10,5” and “10.5” are the same.
-Which decimal separator the addon shows is set at the first start or later
-under Edit → Preferences → CAM Addon → Numbers.</p>
+<p>Type numbers with a comma or a point – “10,5” and “10.5” are the same;
+only “1,500” with the point set is one thousand five hundred. Which decimal
+separator the addon shows is set at the first start or later under Edit →
+Preferences → CAM Addon → Numbers.</p>
+<p><b>mm or inch:</b> the choice to the right of “Materials…” switches the whole
+addon – fields, list, cutting data (vc in SFM, feed in ipm, removal rate in
+in³/min), planner, strategy comparison, “Cutting data into the job” and “Move
+machine”. Values are always saved in mm: ½" stays 0.5 in, even after switching
+back and forth. In inch a new tool has round inch sizes (½", 1" of flute), and
+the planner suggests 400 SFM and 0.002".</p>
 <ul>
 <li><b>Number</b> – the T number. Free to choose, each only once; if it is
 already taken, that is shown right below the fields.</li>

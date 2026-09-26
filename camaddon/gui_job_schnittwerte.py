@@ -14,7 +14,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, symbol
+from . import PARAMETER_PFAD, einheiten, symbol
 from . import job_schnittwerte as js
 from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
@@ -22,7 +22,7 @@ from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_teile import grau, hinweiszeile
 from .gui_werkzeuge import werkstoffe_anbieten
-from .gui_zahlen import dezimal, zahl_zeigen, zahlenformat
+from .gui_zahlen import dezimal, groesse_fest, groesse_zeigen, zahl_zeigen, zahlenformat
 from .sprache import tr
 
 # Spalten der Tabelle.
@@ -60,7 +60,8 @@ def _zustellung_text(werte):
         if eigenschaft in werte:
             teile.append(f"{zahl_zeigen(float(werte[eigenschaft]))} %")
     if "StepDown" in werte:
-        teile.append(f"{zahl_zeigen(float(werte['StepDown']))} mm")
+        tiefe = groesse_zeigen(float(werte["StepDown"]), einheiten.LAENGE)
+        teile.append(f"{tiefe} {einheiten.einheit(einheiten.LAENGE)}")
     for eigenschaft in js.HELIX_WINKEL:
         if eigenschaft in werte:
             teile.append(tr("sj.helix", winkel=zahl_zeigen(float(werte[eigenschaft]))))
@@ -71,12 +72,16 @@ def _ebenen_text(dicken):
     """„1 Ebene“, „2 Ebenen (25 + 1 mm)“, „5 Ebenen (4 × 25 + 3 mm)“."""
     if len(dicken) == 1:
         return tr("sj.ebene_eine")
+
+    def zeigen(dicke):
+        return groesse_zeigen(dicke, einheiten.LAENGE)
+
     if len(dicken) <= 3:
-        teile = " + ".join(zahl_zeigen(d) for d in dicken)
+        teile = " + ".join(zeigen(d) for d in dicken)
     elif len(set(dicken)) == 1:
-        teile = f"{len(dicken)} × {zahl_zeigen(dicken[0])}"
+        teile = f"{len(dicken)} × {zeigen(dicken[0])}"
     else:
-        teile = f"{len(dicken) - 1} × {zahl_zeigen(dicken[0])} + {zahl_zeigen(dicken[-1])}"
+        teile = f"{len(dicken) - 1} × {zeigen(dicken[0])} + {zeigen(dicken[-1])}"
     return tr("sj.ebenen", anzahl=len(dicken), dicken=teile)
 
 
@@ -144,7 +149,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
                 tr("sj.spalte.werkzeug"),
                 tr("wv.spalte.einsatz"),
                 "n\n" + tr("einheit.drehzahl"),
-                "vf\nmm/min",
+                "vf\n" + einheiten.einheit(einheiten.VORSCHUB),
                 tr("sj.spalte.zustellung"),
                 tr("sj.spalte.jetzt"),
             ]
@@ -263,7 +268,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             jetzt = tr(
                 "sj.jetzt",
                 n=_zahl(tc.SpindleSpeed),
-                vf=_zahl(float(tc.HorizFeed.getValueAs("mm/min"))),
+                vf=groesse_fest(float(tc.HorizFeed.getValueAs("mm/min")), einheiten.VORSCHUB, 0),
             )
             self.tabelle.setItem(zeile, JETZT, grau(jetzt))
         self._rechnen()
@@ -300,7 +305,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         else:
             werte_n, werte_vf, _senkrecht = js.werte(werkzeug, einsatz)
             n = _zahl(werte_n) if werte_n else ""
-            vf = _zahl(werte_vf) if werte_vf else ""
+            vf = groesse_fest(werte_vf, einheiten.VORSCHUB, 0) if werte_vf else ""
         self.tabelle.setItem(zeile, N, QtGui.QTableWidgetItem(n))
         self.tabelle.setItem(zeile, VF, QtGui.QTableWidgetItem(vf))
         self.tabelle.setItem(zeile, ZUSTELLUNG, self._zustellung_zelle(zeile, werkzeug, einsatz))
@@ -336,12 +341,16 @@ class SchnittwerteJobDialog(QtGui.QDialog):
     @staticmethod
     def _duenn_satz(operation, werkzeug, rest, ap_ohne):
         """Der Satz zu einer dünnen letzten Ebene – mit ap, wenn die Schneide dafür reicht."""
-        satz = tr("sj.ebene_duenn", operation=operation.Label, rest=zahl_zeigen(rest))
+        satz = tr(
+            "sj.ebene_duenn",
+            operation=operation.Label,
+            rest=groesse_zeigen(rest, einheiten.LAENGE),
+        )
         if werkzeug.schneidenlaenge and ap_ohne <= werkzeug.schneidenlaenge:
             satz += " " + tr(
                 "sj.ebene_duenn.ap",
-                ap=zahl_zeigen(ap_ohne),
-                laenge=zahl_zeigen(werkzeug.schneidenlaenge),
+                ap=groesse_zeigen(ap_ohne, einheiten.LAENGE),
+                laenge=groesse_zeigen(werkzeug.schneidenlaenge, einheiten.LAENGE),
             )
         return satz
 

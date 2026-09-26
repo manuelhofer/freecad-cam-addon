@@ -131,6 +131,13 @@ if sw.beispiel_schnitt(fraeser) != (120, 0.05):
     fehler.append(f"Beispiel VHM: {sw.beispiel_schnitt(fraeser)}")
 if sw.beispiel_schnitt(wz.Werkzeug(schneidstoff=wz.HSS)) != (30, 0.03):
     fehler.append(f"Beispiel HSS: {sw.beispiel_schnitt(wz.Werkzeug(schneidstoff=wz.HSS))}")
+from camaddon import einheiten  # noqa: E402
+
+vorher_mass = einheiten.gewaehltes_masssystem()
+einheiten.setze_masssystem(einheiten.ZOLL)
+if sw.beispiel_schnitt(fraeser) != (121.92, 0.0508):
+    fehler.append(f"Beispiel VHM in Zoll: {sw.beispiel_schnitt(fraeser)}")
+einheiten.setze_masssystem(vorher_mass)
 if sw.vorgaben(fraeser, vollnut) != (120, 0.05, 24):
     fehler.append(f"Vorgaben Vollnut: {sw.vorgaben(fraeser, vollnut)}")
 if sw.vorgaben(fraeser, dynamisch) != (120, 0.09, 25):

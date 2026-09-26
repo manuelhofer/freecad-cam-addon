@@ -24,6 +24,13 @@ def schritte(h):
         dialog.windowTitle() == "CAM Addon – Language and numbers",
         f"Sprachwahl startet nicht auf Englisch: {dialog.windowTitle()!r}",
     )
+    mass = dialog.wahl_masssystem
+    h.pruefe(
+        mass.currentData() == "metrisch"
+        and mass.itemText(0) == "Millimetres: Ø 12 mm · vc 120 m/min · vf 800 mm/min"
+        and mass.itemText(1) == "Inch: Ø 1 in · vc 400 SFM · vf 30 ipm",
+        f"Maßsystem: {mass.currentData()!r} {mass.itemText(1)!r}",
+    )
     zeichen = dialog.wahl_dezimalzeichen
     h.pruefe(
         zeichen.currentData() == "."
@@ -53,6 +60,7 @@ def schritte(h):
 
     h.pruefe(sprache.gewaehlte_sprache() == "de", "Wahl wurde nicht gespeichert")
     h.pruefe(einheiten.gewaehltes_dezimalzeichen() == ",", "Dezimalzeichen nicht gespeichert")
+    h.pruefe(einheiten.gewaehltes_masssystem() == "metrisch", "Maßsystem nicht gespeichert")
     with open(os.path.join(FreeCAD.getUserConfigDir(), "user.cfg"), encoding="utf-8") as datei:
         inhalt = datei.read()
         h.pruefe('Name="Sprache"' in inhalt, "Wahl steht nicht sofort in user.cfg")
@@ -96,6 +104,7 @@ def schritte(h):
     yield 300
     h.bild("5_einstellungsseite", seite.form)
     h.pruefe(seite.wahl_dezimalzeichen.currentData() == ",", "Einstellungsseite: Dezimalzeichen")
+    h.pruefe(seite.wahl_masssystem.currentData() == "metrisch", "Einstellungsseite: Maßsystem")
     seite.liste.setCurrentIndex(seite.liste.findData("en"))
     seite.wahl_dezimalzeichen.setCurrentIndex(seite.wahl_dezimalzeichen.findData("."))
     seite.saveSettings()
@@ -103,6 +112,11 @@ def schritte(h):
     h.pruefe(zahl_zeigen(12.5) == "12.5", f"mit Punkt: {zahl_zeigen(12.5)!r}")
     einheiten.setze_dezimalzeichen(",")
     h.pruefe(zahl_zeigen(12.5) == "12,5", f"mit Komma: {zahl_zeigen(12.5)!r}")
+    seite.wahl_masssystem.setCurrentIndex(seite.wahl_masssystem.findData("zoll"))
+    seite.wahl_dezimalzeichen.setCurrentIndex(seite.wahl_dezimalzeichen.findData(","))
+    seite.saveSettings()
+    h.pruefe(einheiten.in_zoll(), "Einstellungsseite speichert das Maßsystem nicht")
+    einheiten.setze_masssystem("metrisch")
     h.pruefe(
         aktion.text() == "Cutting data into the job", f"zurück auf Englisch: {aktion.text()!r}"
     )

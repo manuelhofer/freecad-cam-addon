@@ -22,6 +22,7 @@ from dataclasses import dataclass, field
 
 import FreeCAD
 
+from . import einheiten
 from . import maschine as maschine_modul
 from . import schnittdaten as sd
 from . import werkzeuge as wz
@@ -138,13 +139,16 @@ def vergleichszeile(einsaetze):
 
 
 # Beispiele für vc (m/min) und Spandicke (mm), wenn die Tabelle keine hat –
-# Stahl, grau gezeigt, aber gültig: VHM und HSS.
+# Stahl, grau gezeigt, aber gültig: VHM und HSS. In inch runde Zoll-Werte:
+# 400 SFM und 0,002", 100 SFM und 0,001".
 BEISPIEL_SCHNITT = {wz.VHM: (120.0, 0.05), wz.HSS: (30.0, 0.03)}
+BEISPIEL_SCHNITT_ZOLL = {wz.VHM: (121.92, 0.0508), wz.HSS: (30.48, 0.0254)}
 
 
 def beispiel_schnitt(werkzeug):
-    """(vc, Spandicke) als Beispiel für den Schneidstoff des Werkzeugs."""
-    return BEISPIEL_SCHNITT.get(werkzeug.schneidstoff, BEISPIEL_SCHNITT[wz.VHM])
+    """(vc, Spandicke) als Beispiel für den Schneidstoff des Werkzeugs, im gewählten Maßsystem."""
+    beispiele = BEISPIEL_SCHNITT_ZOLL if einheiten.in_zoll() else BEISPIEL_SCHNITT
+    return beispiele.get(werkzeug.schneidstoff, beispiele[wz.VHM])
 
 
 def vorgaben(werkzeug, einsatz):
@@ -269,13 +273,14 @@ def als_einsatz(plan, stufe, ap):
 
     Gerundet, wie man es eintippen würde – und zwar ab: Aufgerundet läge ein
     Wert über der Grenze, an der er gerade noch liegt (Drehzahl, Vorschub, ae).
+    In inch auf die Stellen, mit denen es gezeigt wird (0,002 in, 400 SFM).
     """
     return wz.Einsatz(
         art=wz.DYNAMISCH,
-        ae=round(_abgerundet(stufe.ae, 0.01), 2),
-        ap=round(ap, 2),
-        vc=round(_abgerundet(plan.vc, 0.1), 1),
-        fz=round(_abgerundet(stufe.fz, 0.001), 3),
+        ae=einheiten.abrunden(stufe.ae, einheiten.LAENGE, 2),
+        ap=einheiten.runden(ap, einheiten.LAENGE, 2),
+        vc=einheiten.abrunden(plan.vc, einheiten.SCHNITT, 1),
+        fz=einheiten.abrunden(stufe.fz, einheiten.SPAN, 3),
     )
 
 

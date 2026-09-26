@@ -12,6 +12,7 @@ Läuft ohne Oberfläche.
 import math
 from dataclasses import dataclass
 
+from . import einheiten
 from . import werkzeuge as wz
 
 
@@ -93,8 +94,6 @@ def fz_fuer_spandicke(spandicke, ae, durchmesser):
 
 # --- Strategien vergleichen (P-2026-09-25-49) --------------------------------
 
-VERGLEICHSVOLUMEN = 100.0  # cm³ – „Zeit für 100 cm³“ macht Q greifbar
-
 
 def schneidenweg_je_cm3(ae, ap, fz, schneiden, durchmesser):
     """Wie weit jede Stelle der Schneide durchs Material fährt, um 1 cm³ abzutragen, in m.
@@ -128,7 +127,7 @@ class Kennzahlen:
     """Was ein Einsatz leistet und was er die Schneide kostet – für den Vergleich."""
 
     q: float = 0.0  # cm³/min
-    zeit: float = 0.0  # min für VERGLEICHSVOLUMEN
+    zeit: float = 0.0  # min für einheiten.vergleichsvolumen() (100 cm³, in inch 5 in³)
     schneidenweg: float = 0.0  # m je cm³
     ap: float = 0.0  # mm – so viel Schneide arbeitet
     schneidenlaenge: float = 0.0  # mm, 0 = unbekannt
@@ -143,7 +142,7 @@ def kennzahlen(werkzeug, einsatz, werkstoff=None):
     d = werkzeug.durchmesser
     n, _vf, q = rechne(werkzeug, einsatz)
     k = Kennzahlen(q=q, ap=einsatz.ap, schneidenlaenge=werkzeug.schneidenlaenge)
-    k.zeit = VERGLEICHSVOLUMEN / q if q > 0 else 0.0
+    k.zeit = einheiten.vergleichsvolumen() / q if q > 0 else 0.0
     k.schneidenweg = schneidenweg_je_cm3(einsatz.ae, einsatz.ap, einsatz.fz, werkzeug.schneiden, d)
     k.eingriff = eingriffswinkel(einsatz.ae, d) / (2 * math.pi)
     k.spandicke = spandicke_max(einsatz.fz, einsatz.ae, d)
