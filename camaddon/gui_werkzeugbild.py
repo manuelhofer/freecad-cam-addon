@@ -3,12 +3,15 @@
 
 Schaft, Schneide und Spitze je nach Art – Schaftfräser flach, Torusfräser
 mit Eckradius, Radiusfräser mit Kugel, Fasenfräser spitz, Bohrer mit 118°
-Spitze –, alles im richtigen Verhältnis. Was nicht eingetragen ist und
-geschätzt wird (Gesamtlänge, Schaft, Schneidenlänge), ist gestrichelt. So
-sieht man beim Tippen, ob die Maße zusammenpassen. Ohne Text, damit es in
-jeder Sprache passt (Arbeitsregeln, Abschnitt 8).
+Spitze –, alles im richtigen Verhältnis. Was nicht eingetragen ist –
+geschätzt (Gesamtlänge, Schaft, Schneidenlänge) oder noch Beispielwert –,
+ist gestrichelt. Fehlt der Durchmesser, zeigt es die Form der Art mit ihren
+Beispielmaßen, damit man beim Durchblättern immer sieht, was für ein
+Werkzeug es ist. So sieht man beim Tippen, ob die Maße zusammenpassen. Ohne
+Text, damit es in jeder Sprache passt (Arbeitsregeln, Abschnitt 8).
 """
 
+import copy
 import math
 
 from PySide import QtCore, QtGui
@@ -38,12 +41,11 @@ class WerkzeugBild(QtGui.QWidget):
         maler = QtGui.QPainter(self)
         maler.setRenderHint(QtGui.QPainter.Antialiasing)
         maler.fillRect(self.rect(), self.palette().color(QtGui.QPalette.Base))
-        w = self.werkzeug
-        if w is not None and w.durchmesser > 0:
-            self._zeichne(maler, w)
+        if self.werkzeug is not None:
+            self._zeichne(maler, *mit_beispielmassen(self.werkzeug))
         maler.end()
 
-    def _zeichne(self, maler, w):
+    def _zeichne(self, maler, w, fremd):
         d = w.durchmesser
         schneide = w.schneidenlaenge or 2 * d
         laenge = max(wz.laenge_fuer_cam(w), schneide)
@@ -58,7 +60,9 @@ class WerkzeugBild(QtGui.QWidget):
         oben_schneide = boden - schneide * massstab
 
         # Schaft: von oben bis zur Schneide.
-        maler.setPen(_stift(FARBE_KANTE, geschaetzt=not (w.gesamtlaenge and w.schaft)))
+        maler.setPen(
+            _stift(FARBE_KANTE, geschaetzt=not (w.gesamtlaenge and w.schaft) or bool(fremd))
+        )
         maler.setBrush(FARBE_SCHAFT)
         maler.drawRect(
             QtCore.QRectF(mitte - halb_schaft, oben, 2 * halb_schaft, oben_schneide - oben)
@@ -66,7 +70,12 @@ class WerkzeugBild(QtGui.QWidget):
 
         # Schneide mit der Spitze der Art.
         umriss = self._schneide(w, mitte, halb_d, oben_schneide, unten_schneide, massstab)
-        maler.setPen(_stift(FARBE_WERKZEUG_RAND, geschaetzt=not w.schneidenlaenge))
+        # Die Schneidenzahl ändert das Bild nicht.
+        maler.setPen(
+            _stift(
+                FARBE_WERKZEUG_RAND, geschaetzt=not w.schneidenlaenge or bool(fremd - {"schneiden"})
+            )
+        )
         maler.setBrush(FARBE_WERKZEUG)
         maler.drawPath(umriss)
         # Gewendelte Schneiden andeuten – nur im geraden Teil.
@@ -117,6 +126,23 @@ class WerkzeugBild(QtGui.QWidget):
         pfad.lineTo(links, oben)
         pfad.closeSubpath()
         return pfad
+
+
+def mit_beispielmassen(werkzeug):
+    """(Werkzeug zum Zeichnen, Maße, die nicht eingetragen sind).
+
+    Ohne Durchmesser eine Kopie, deren leere Maße die Beispiele der Art sind;
+    sonst das Werkzeug selbst mit seinen noch grauen Beispielfeldern.
+    """
+    fremd = set(werkzeug.beispiel)
+    if werkzeug.durchmesser > 0:
+        return werkzeug, fremd
+    muster = copy.copy(werkzeug)
+    for feld, wert in wz.BEISPIELE[werkzeug.art].items():
+        if not getattr(muster, feld):
+            setattr(muster, feld, wert)
+            fremd.add(feld)
+    return muster, fremd
 
 
 def _stift(farbe, geschaetzt):

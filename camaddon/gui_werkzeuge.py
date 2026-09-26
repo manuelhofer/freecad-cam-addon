@@ -19,7 +19,7 @@ from . import werkzeuge as wz
 from . import werkzeuge_aus_cam as aus_cam
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
-from .gui_teile import fett, hinweiszeile, knopf, mit_einheit
+from .gui_teile import GRAU, fett, hinweiszeile, knopf, mit_einheit
 from .gui_werkstoffe import WerkstoffDialog
 from .gui_werkzeugbild import WerkzeugBild
 from .gui_zahlen import Zahlenpruefer, dezimal, zahl_lesen, zahl_zeigen
@@ -310,12 +310,17 @@ class WerkzeugDialog(QtGui.QDialog):
         gitter.addWidget(QtGui.QLabel(tr("wv.bezeichnung")), unten, 0)
         gitter.addWidget(self.feld_bezeichnung, unten, 1, 1, 3)
 
+        # Grau: Beispielwerte eines neuen Werkzeugs – sie gelten trotzdem.
+        self.beispiel_hinweis = QtGui.QLabel(tr("wv.beispiel"))
+        self.beispiel_hinweis.setWordWrap(True)
+        self.beispiel_hinweis.setStyleSheet(f"color: {GRAU.name()};")
+        gitter.addWidget(self.beispiel_hinweis, unten + 1, 0, 1, 4)
         self.hinweis = hinweiszeile()
-        gitter.addWidget(self.hinweis, unten + 1, 0, 1, 4)
+        gitter.addWidget(self.hinweis, unten + 2, 0, 1, 4)
         # Rechts neben den Feldern das Werkzeug im richtigen Verhältnis.
         self.werkzeugbild = WerkzeugBild()
         self.werkzeugbild.setToolTip(tr("wv.werkzeugbild.tooltip"))
-        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 2, 1, QtCore.Qt.AlignTop)
+        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 3, 1, QtCore.Qt.AlignTop)
 
         aufbau.addWidget(self.formular_rahmen)
         self.schnittwerte = SchnittwertBereich(self._schnittwerte_geaendert)
@@ -327,6 +332,7 @@ class WerkzeugDialog(QtGui.QDialog):
         feld.setValidator(Zahlenpruefer(feld))
         feld.setPlaceholderText(tr("feld.unbekannt"))
         feld.setToolTip(tooltip)
+        feld.textEdited.connect(lambda _text: self._beispiel_weg(eigenschaft))
         feld.editingFinished.connect(lambda: self._zahl_uebernehmen(feld, eigenschaft))
         return feld
 
@@ -461,10 +467,12 @@ class WerkzeugDialog(QtGui.QDialog):
         self._felder_fuellen()
 
     def werkzeug_anlegen(self):
-        """„Neu“: ein Schaftfräser mit der nächsten freien Nummer; der Durchmesser wartet."""
+        """„Neu“: ein Schaftfräser mit der nächsten freien Nummer und grauen Beispielwerten."""
         werkzeug = self.bibliothek.neues_werkzeug()
         self._liste_aufbauen(auswahl=werkzeug)
+        # Der Durchmesser markiert: Tippen ersetzt das Beispiel.
         self.feld_durchmesser.setFocus()
+        self.feld_durchmesser.selectAll()
         return werkzeug
 
     def werkzeug_kopieren(self):
@@ -523,6 +531,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_name.setText(w.name)
         self._fuellt = False
         self._eckradius_zeigen()
+        self._beispiele_zeigen()
         self._schaetzung_zeigen()
         self.werkzeugbild.zeige(w)
         self._hinweise()
@@ -546,6 +555,29 @@ class WerkzeugDialog(QtGui.QDialog):
         fraeser = art is not None and art != wz.BOHRER
         self.zeile_eintauchwinkel.setVisible(fraeser)
         self.beschriftung_eintauchwinkel.setVisible(fraeser)
+
+    def _beispielfelder(self):
+        return {
+            "durchmesser": self.feld_durchmesser,
+            "schneiden": self.feld_schneiden,
+            "schneidenlaenge": self.feld_schneidenlaenge,
+            "eckradius": self.feld_eckradius,
+        }
+
+    def _beispiele_zeigen(self):
+        """Beispielwerte grau, dazu der Satz, dass sie gelten."""
+        beispiel = self.werkzeug.beispiel if self.werkzeug is not None else set()
+        for eigenschaft, feld in self._beispielfelder().items():
+            feld.setStyleSheet(f"color: {GRAU.name()};" if eigenschaft in beispiel else "")
+        self.beispiel_hinweis.setVisible(bool(beispiel))
+
+    def _beispiel_weg(self, eigenschaft):
+        """Eigene Eingabe in einem Beispielfeld: Der Wert ist ab jetzt der eigene, nicht grau."""
+        if self._fuellt or self.werkzeug is None or eigenschaft not in self.werkzeug.beispiel:
+            return
+        self.werkzeug.beispiel.discard(eigenschaft)
+        self._beispiele_zeigen()
+        self.werkzeugbild.zeige(self.werkzeug)
 
     def _schaetzung_zeigen(self):
         """Leere Felder für Name, Gesamtlänge und Schaft zeigen grau, was stattdessen gilt."""
@@ -610,13 +642,16 @@ class WerkzeugDialog(QtGui.QDialog):
         if self._fuellt or self.werkzeug is None:
             return
         self.werkzeug.art = self.feld_art.currentData()
-        self._eckradius_zeigen()
-        self._geaendert()
+        # Beispielfelder und leere Felder bekommen die Beispiele der neuen Art.
+        wz.beispielwerte_setzen(self.werkzeug)
+        self._felder_fuellen()
+        self._zeile_auffrischen()
 
     def _schneiden_geaendert(self, wert):
         if self._fuellt or self.werkzeug is None:
             return
         self.werkzeug.schneiden = int(wert)
+        self._beispiel_weg("schneiden")
         self._geaendert()
 
     def _schneidstoff_geaendert(self, _index):
@@ -648,6 +683,7 @@ class WerkzeugDialog(QtGui.QDialog):
         if eigenschaft == "durchmesser":
             self._zustellungen_anpassen(self.werkzeug.durchmesser, neu)
         setattr(self.werkzeug, eigenschaft, neu)
+        self._beispiel_weg(eigenschaft)
         self._geaendert()
 
     def _zustellungen_anpassen(self, alt, neu, fragen=True):

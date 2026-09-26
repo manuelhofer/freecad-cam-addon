@@ -10,8 +10,8 @@ typed – “bull nose 10.5”, “T12”, “Hoffmann”.</p>
 <li><b>Choose the material</b> – at the top, e.g. type “1.4301”. The cutting
 data apply to this material; “All materials” applies to every material that
 has no values of its own.</li>
-<li><b>Add a tool</b> – <b>New</b>, then diameter, flutes and flute
-length.</li>
+<li><b>Add a tool</b> – <b>New</b>: an example is there straight away (grey,
+Ø 12); type over diameter, flutes and flute length.</li>
 <li><b>Enter use cases</b> – <b>+ Use case</b> → e.g. “Full slot”; vc and fz
 from the manufacturer's catalogue. The addon calculates speed, feed and
 removal rate.</li>
@@ -29,8 +29,12 @@ step down.</li>
 
 <h3>Add, copy, delete</h3>
 <ul>
-<li><b>New</b> adds an end mill with the next free number. Enter the diameter
-first.</li>
+<li><b>New</b> adds an end mill with the next free number and example values:
+Ø 12, 3 flutes, 26 mm flute length. <b>Grey means example</b> – it still
+applies: leave Ø 12 and you get Ø 12. What you enter is shown in black. The
+diameter is selected, typing replaces it. If you change the type, the grey
+and the empty fields get the examples of the new type – a bull nose end mill,
+for instance, a corner radius of 1 mm.</li>
 <li><b>Copy</b> takes the selected tool with all its values – handy for the
 same cutter in another diameter. When you then enter the new diameter, the
 tool manager asks whether ae and ap of all use cases should be converted in
@@ -69,7 +73,9 @@ collision). They may stay empty: the field then shows in grey what is
 estimated.</li>
 <li>To the right of the fields is a <b>picture of the tool</b> in the right
 proportions – shank, flutes and tip depending on the type. Dashed is what is
-estimated. That way a typo in the dimensions shows right away.</li>
+estimated or still an example. That way a typo in the dimensions shows right
+away. Without a diameter it shows the shape of the type with example
+dimensions – so when browsing you always see what kind of tool it is.</li>
 <li><b>Ramp angle</b> – how steeply the cutter may plunge at most, on a ramp or
 helix (catalogue). “Cutting data into the job” sets it as the helix entry
 angle in Adaptive. Drills don't have it.</li>

@@ -186,6 +186,8 @@ class Werkzeug:
     bezeichnung: str = ""  # frei: Hersteller, Bestellnummer, Beschichtung …
     # Werkstoff-Kennung oder ALLE -> die Einsätze mit ihren Werten.
     schnittwerte: dict = field(default_factory=dict)
+    # Felder, die noch Beispielwerte halten (grau gezeigt, aber gültig); nicht gespeichert.
+    beispiel: set = field(default_factory=set, compare=False, repr=False)
 
     def einsaetze(self, werkstoff):
         """Die Tabelle, die für den Werkstoff gilt: seine eigene, sonst die für alle Werkstoffe."""
@@ -316,6 +318,35 @@ def _zahl(wert, typ, ersatz):
         return ersatz
 
 
+# Beispielwerte je Art für ein neues Werkzeug – grau gezeigt, aber gültig
+# (Manuel: wer Ø 12 stehen lässt, will Ø 12).
+BEISPIELE = {
+    SCHAFTFRAESER: {"durchmesser": 12.0, "schneiden": 3, "schneidenlaenge": 26.0},
+    TORUSFRAESER: {"durchmesser": 12.0, "schneiden": 4, "schneidenlaenge": 26.0, "eckradius": 1.0},
+    RADIUSFRAESER: {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 24.0},
+    FASENFRAESER: {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 6.0},
+    BOHRER: {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 60.0},
+}
+
+
+def beispielwerte_setzen(werkzeug, neu=False):
+    """Trägt die Beispielwerte der Art ein und merkt sie in `werkzeug.beispiel`.
+
+    `neu`: in alle Beispielfelder (ein neues Werkzeug); sonst – nach einem
+    Wechsel der Art – in die, die noch Beispiel oder leer sind: Der
+    Torusfräser bekommt so einen Eckradius und sieht im Bild wie einer aus.
+    Beispielfelder, die die neue Art nicht hat (Eckradius), werden 0.
+    """
+    werte = BEISPIELE[werkzeug.art]
+    if neu:
+        felder = set(werte)
+    else:
+        felder = set(werkzeug.beispiel) | {feld for feld in werte if not getattr(werkzeug, feld)}
+    for feld in felder:
+        setattr(werkzeug, feld, werte.get(feld, 0))
+    werkzeug.beispiel = {feld for feld in felder if feld in werte}
+
+
 def zeile(werkzeug):
     """Eine Zeile für die Liste: „T3  Schaftfräser Ø 12 · z 3 · VHM“, mit eigenem
     Namen „T3  Fräser VHM 12 · Schaftfräser Ø 12 · z 3 · VHM“.
@@ -402,8 +433,9 @@ class Bibliothek:
         return nummer
 
     def neues_werkzeug(self):
-        """Legt einen Schaftfräser mit der nächsten freien Nummer an und gibt ihn zurück."""
+        """Legt einen Schaftfräser mit der nächsten freien Nummer und Beispielwerten an."""
         werkzeug = Werkzeug(nummer=self.naechste_nummer())
+        beispielwerte_setzen(werkzeug, neu=True)
         self.werkzeuge.append(werkzeug)
         return werkzeug
 

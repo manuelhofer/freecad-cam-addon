@@ -87,6 +87,10 @@ class SchruppDialog(QtGui.QDialog):
         aufbau.addWidget(erklaerung)
 
         vc, h, ap = sw.vorgaben(werkzeug, einsatz)
+        # Hat die Zeile keine, stehen graue Beispiele da – gerechnet wird schon mit ihnen.
+        beispiel_vc, beispiel_h = sw.beispiel_schnitt(werkzeug)
+        vc_beispiel, h_beispiel = not vc, not h
+        vc, h = vc or beispiel_vc, h or beispiel_h
         felder = QtGui.QHBoxLayout()
         schnitt = QtGui.QGroupBox(tr("sp.gruppe.schnitt"))
         formular = QtGui.QFormLayout(schnitt)
@@ -154,6 +158,22 @@ class SchruppDialog(QtGui.QDialog):
         felder.addWidget(maschine, 1)
         aufbau.addLayout(felder)
 
+        self.beispiel_hinweis = QtGui.QLabel(
+            tr("sp.beispiel", schneidstoff=wz.schneidstoff_text(werkzeug.schneidstoff))
+        )
+        self.beispiel_hinweis.setWordWrap(True)
+        self.beispiel_hinweis.setStyleSheet(f"color: {GRAU.name()};")
+        aufbau.addWidget(self.beispiel_hinweis)
+        self.beispiele = {
+            feld
+            for feld, beispiel in ((self.feld_vc, vc_beispiel), (self.feld_spandicke, h_beispiel))
+            if beispiel
+        }
+        for feld in self.beispiele:
+            feld.setStyleSheet(f"color: {GRAU.name()};")
+            feld.textEdited.connect(lambda _text, f=feld: self._eigener_wert(f))
+        self.beispiel_hinweis.setVisible(bool(self.beispiele))
+
         self.drehzahl_text = QtGui.QLabel()
         self.drehzahl_text.setWordWrap(True)
         aufbau.addWidget(self.drehzahl_text)
@@ -210,6 +230,12 @@ class SchruppDialog(QtGui.QDialog):
         beschriftung.setToolTip(tooltip)
         formular.addRow(beschriftung, mit_einheit(feld, einheit))
         return feld
+
+    def _eigener_wert(self, feld):
+        """Eigene Eingabe statt des grauen Beispiels."""
+        self.beispiele.discard(feld)
+        feld.setStyleSheet("")
+        self.beispiel_hinweis.setVisible(bool(self.beispiele))
 
     def _felder(self):
         return (

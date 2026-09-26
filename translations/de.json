@@ -513,5 +513,7 @@
     "wv.name.tooltip": "So heißt das Werkzeug in der Steuerung (etwa T=\"Fräser VHM 12\") – genau so schreiben wie an der Maschine. Leer gilt der grau gezeigte Name aus den Angaben. In CAM heißt das Werkzeug so.",
     "wv.name.platzhalter": "wie in der Steuerung – leer: {name}",
     "wv.zeile.name": "T{nummer}  {name} · {art} Ø {durchmesser} · z {schneiden} · {schneidstoff}",
-    "wv.hinweis.name": "„{name}“ heißt auch T{nummer} – gewollt (Schwesterwerkzeug)?"
+    "wv.hinweis.name": "„{name}“ heißt auch T{nummer} – gewollt (Schwesterwerkzeug)?",
+    "wv.beispiel": "Grau: Beispielwerte – sie gelten, bis du eigene einträgst.",
+    "sp.beispiel": "Grau: Beispiel für Stahl mit {schneidstoff} – damit wird schon gerechnet. Besser sind die Werte aus dem Katalog deines Werkzeugs."
 }

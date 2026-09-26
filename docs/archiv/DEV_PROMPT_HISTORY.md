@@ -12,6 +12,67 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-37 neues-werkzeug-beispielwerte
+
+### EINGELESEN
+- Manuel (2026-09-26): Ein neues Werkzeug soll gleich Beispielwerte haben,
+  damit das Bild die Form zeigt („ahh ja ok das ist der Schaftfräser“);
+  beim Durchblättern immer ein Bild. „Beispielwerte in grau, aber dennoch
+  aktiv … das Beispiel sollte 12 sein beim Durchmesser“. Im Planer: „die
+  Spandicke … schreib bitte auch hier Beispiele rein und bei vc auch“.
+- `docs/STATUS_SNAPSHOT.md` (Plan, Stufe A Punkt 2), Spezifikation W-002.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`BEISPIELE`, `beispielwerte_setzen`, Merker
+  `Werkzeug.beispiel`, `neues_werkzeug` mit Beispielen)
+- `camaddon/gui_werkzeuge.py` (graue Felder, Satz „Grau: Beispielwerte …“,
+  Eingabe macht eigen, Wechsel der Art, Durchmesser markiert)
+- `camaddon/gui_werkzeugbild.py` (`mit_beispielmassen`: Form auch ohne
+  Durchmesser, Beispiele gestrichelt)
+- `camaddon/schruppwerte.py` (`BEISPIEL_SCHNITT`, `beispiel_schnitt`)
+- `camaddon/gui_schruppwerte.py` (vc und Spandicke grau, wenn die Zeile
+  keine hat)
+- `translations/de.json`, `translations/en.json` (`wv.beispiel`,
+  `sp.beispiel`)
+- `help/de|en/werkzeuge.html`, `help/de|en/schruppwerte.html`
+- `docs/spezifikation_werkzeugverwaltung.md` (Entscheidung 25)
+- `docs/STATUS_SNAPSHOT.md` (Punkte 1 und 2 fertig)
+- `tests/test_werkzeuge.py`, `tests/test_schruppwerte.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py`,
+  `tests/gui/szenario_schruppwerte.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+CAM → Werkzeugverwaltung → „Neu“: Ø 12, 3 Schneiden, Schneidenlänge 26
+stehen grau da, darunter „Grau: Beispielwerte – sie gelten, bis du eigene
+einträgst.“, rechts das Bild eines Schaftfräsers (gestrichelt). „10“ tippen
+→ der Durchmesser ist schwarz. Art „Torusfräser“ → Schneiden 4 und
+Eckradius 1 grau. Durchmesser leeren → roter Hinweis, das Bild zeigt
+trotzdem die Form. „Schruppwerte planen…“ bei einer Zeile ohne vc und fz →
+vc 120 und Spandicke 0,05 grau (HSS: 30 und 0,03), der Plan rechnet damit.
+
+### DONE
+- Beispielwerte je Art (alle mit Ø 12): Schaftfräser z 3, L 26; Torus z 4,
+  L 26, R 1; Radius z 2, L 24; Fasen z 2, L 6; Bohrer z 2, L 60. Sie
+  gelten wie eingetragene; nur der Merker, dass sie Beispiel sind, wird
+  nicht gespeichert.
+- Wechsel der Art: graue und leere Felder bekommen die Beispiele der neuen
+  Art; eigene Werte bleiben. Kopien haben keine Beispiel-Merker.
+- Bild: Beispielmaße gestrichelt; ohne Durchmesser die Form der Art mit
+  ihren Beispielmaßen.
+- Planer: ohne vc bzw. Spandicke aus der Zeile graue Beispiele für Stahl,
+  mit Satz; Tippen macht das Feld eigen.
+
+### TEST
+- `test_werkzeuge.py`, `test_schruppwerte.py`, `test_sprache.py`,
+  `test_hilfe.py` in 1.1.3 grün; `szenario_werkzeugverwaltung` und
+  `szenario_schruppwerte` in 1.1.3 grün, Screenshots angesehen (graue
+  Werte, Bild ohne Durchmesser, Planer mit HSS-Beispielen). Voller Lauf mit
+  dem nächsten Push.
+
+### NEXT
+- Beispielmaschine laden (Plan Punkt 7), dann A3 Warngrenze.
+
 ## P-2026-09-26-36 test-uebergabe-deutsch
 
 ### EINGELESEN

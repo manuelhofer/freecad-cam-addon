@@ -126,6 +126,11 @@ if sw.plane(fraeser, 120, 0, 24, sw.Grenzen()).stufen:
 # Vorbelegt aus der gewählten Zeile: vc, die Spandicke, die sie ergibt, und ap.
 vollnut = wz.Einsatz(art=wz.VOLLNUT, ae=12, ap=3, vc=120, fz=0.05)
 dynamisch = wz.Einsatz(art=wz.DYNAMISCH, ae=1.2, ap=25, vc=120, fz=0.15)
+# Beispiele für vc und Spandicke, wenn die Zeile keine hat: je Schneidstoff.
+if sw.beispiel_schnitt(fraeser) != (120, 0.05):
+    fehler.append(f"Beispiel VHM: {sw.beispiel_schnitt(fraeser)}")
+if sw.beispiel_schnitt(wz.Werkzeug(schneidstoff=wz.HSS)) != (30, 0.03):
+    fehler.append(f"Beispiel HSS: {sw.beispiel_schnitt(wz.Werkzeug(schneidstoff=wz.HSS))}")
 if sw.vorgaben(fraeser, vollnut) != (120, 0.05, 24):
     fehler.append(f"Vorgaben Vollnut: {sw.vorgaben(fraeser, vollnut)}")
 if sw.vorgaben(fraeser, dynamisch) != (120, 0.09, 25):

@@ -5,6 +5,7 @@
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
+from PySide6 import QtTest
 
 
 def schritte(h):
@@ -19,6 +20,7 @@ def schritte(h):
     from camaddon import PARAMETER_PFAD, gui_schruppwerte, gui_werkzeuge
     from camaddon import schruppwerte as sw
     from camaddon import werkzeuge as wz
+    from camaddon.gui_teile import GRAU
 
     fraeser = wz.Werkzeug(nummer=3, durchmesser=12, schneiden=3, schneidenlaenge=26)
     fraeser.schnittwerte[wz.ALLE] = [
@@ -44,6 +46,7 @@ def schritte(h):
         return
     felder = tuple(f.text() for f in (p.feld_vc, p.feld_spandicke, p.feld_ap, p.feld_ae_grenze))
     h.pruefe(felder == ("120", "0,05", "24", "10"), f"vorbelegt: {felder}")
+    h.pruefe(not p.beispiel_hinweis.isVisible(), "Beispiel-Hinweis trotz Werten der Zeile")
     h.pruefe(p.knopf_maschine.isHidden(), "„Von der Maschine“ ohne Maschine sichtbar")
     h.pruefe(not p.tabelle.isColumnHidden(gui_schruppwerte.LEISTUNG), "Leistung fehlt trotz kc1.1")
     zeile = p.tabelle.currentRow()
@@ -115,3 +118,29 @@ def schritte(h):
         f"gespeichert: {[e.art for e in gespeichert]}",
     )
     h.pruefe(sw.AE_GRENZE == 10, "Vorgabe der ae-Grenze geändert – Szenario anpassen")
+
+    # Ohne vc und fz in der Zeile: graue Beispiele für den Schneidstoff, gerechnet wird schon.
+    hss = wz.Werkzeug(nummer=4, durchmesser=10, schneiden=4, schneidenlaenge=22)
+    hss.schneidstoff = wz.HSS
+    p = gui_schruppwerte.SchruppDialog(None, hss, None, None, "1.0503", "Übernehmen")
+    p.show()
+    yield 300
+    grau = GRAU.name()
+    felder = (p.feld_vc.text(), p.feld_spandicke.text())
+    h.pruefe(felder == ("30", "0,03"), f"Beispiele HSS: {felder}")
+    h.pruefe(
+        grau in p.feld_vc.styleSheet()
+        and grau in p.feld_spandicke.styleSheet()
+        and p.beispiel_hinweis.isVisible(),
+        "Beispiele nicht grau",
+    )
+    h.pruefe(p.tabelle.rowCount() > 0, "mit den Beispielen kein Plan")
+    h.bild("5_beispielwerte", p)
+    p.feld_vc.setFocus()
+    p.feld_vc.selectAll()
+    QtTest.QTest.keyClicks(p.feld_vc, "35")
+    yield 100
+    h.pruefe(p.feld_vc.text() == "35" and p.feld_vc.styleSheet() == "", "eigenes vc noch grau")
+    h.pruefe(grau in p.feld_spandicke.styleSheet(), "Spandicke nicht mehr grau")
+    p.reject()
+    gui_schruppwerte.SchruppDialog.offen = None

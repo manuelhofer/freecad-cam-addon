@@ -35,8 +35,9 @@ def schritte(h):
     yield 300
     QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.German, QtCore.QLocale.Germany))
 
-    from camaddon import gui_werkzeuge
+    from camaddon import gui_werkzeugbild, gui_werkzeuge
     from camaddon import werkzeuge as wz
+    from camaddon.gui_teile import GRAU
 
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
     yield 800
@@ -72,18 +73,45 @@ def schritte(h):
     d.wahl_werkstoff.hidePopup()
     yield 200
 
-    # Ein Werkzeug anlegen; Enter im Feld schließt den Dialog nicht.
+    # Ein Werkzeug anlegen: graue Beispielwerte (Ø 12), gültig; das Bild zeigt die Form.
     d.knopf_neu.click()
+    yield 200
+    farbe_grau = GRAU.name()
+    h.pruefe(
+        d.feld_durchmesser.text() == "12" and farbe_grau in d.feld_durchmesser.styleSheet(),
+        f"Beispiel-Durchmesser: {d.feld_durchmesser.text()!r} {d.feld_durchmesser.styleSheet()!r}",
+    )
+    h.pruefe(
+        d.focusWidget() is d.feld_durchmesser and d.feld_durchmesser.selectedText() == "12",
+        "Durchmesser nicht markiert",
+    )
+    h.pruefe(d.beispiel_hinweis.isVisible() and not d.hinweis.isVisible(), "Hinweis Beispiel")
+    h.bild("5_neu_beispielwerte", d)
+    # Durchmesser leeren: Hinweis; das Bild zeigt die Form mit dem Beispiel-Ø.
+    tippen(d.feld_durchmesser, "")
     yield 200
     h.pruefe(
         d.hinweis.isVisible() and "Durchmesser" in d.hinweis.text(), "Hinweis Durchmesser fehlt"
     )
+    h.pruefe(d.feld_durchmesser.styleSheet() == "", "leerer Durchmesser noch grau")
+    muster, fremd = gui_werkzeugbild.mit_beispielmassen(d.werkzeug)
+    h.pruefe(muster.durchmesser == 12 and "durchmesser" in fremd, f"Bild ohne Ø: {muster}")
     h.bild("5_neu_ohne_durchmesser", d)
+    # Enter im Feld schließt den Dialog nicht.
     tippen(d.feld_durchmesser, "12")
     yield 200
     h.pruefe(d.isVisible(), "Enter im Feld hat den Dialog geschlossen")
-    d.feld_schneiden.setValue(3)
     tippen(d.feld_schneidenlaenge, "26")
+    yield 100
+    # Eingetippt ist eigen, auch wenn es der Beispielwert war; z 3 blieb unberührt.
+    h.pruefe(d.werkzeug.beispiel == {"schneiden"}, f"noch Beispiel: {d.werkzeug.beispiel}")
+    h.pruefe(farbe_grau in d.feld_schneiden.styleSheet(), "Schneidenzahl nicht mehr grau")
+    d.feld_schneiden.setValue(4)
+    d.feld_schneiden.setValue(3)
+    yield 100
+    h.pruefe(
+        not d.werkzeug.beispiel and not d.beispiel_hinweis.isVisible(), "Beispiel-Hinweis bleibt"
+    )
     tippen(d.feld_bezeichnung, "Hoffmann 12 mm")  # QTest tippt nur ASCII
     yield 200
     h.pruefe(
@@ -120,6 +148,14 @@ def schritte(h):
     yield 200
     h.pruefe(not d.zeile_eckradius.isVisible(), "Eckradius beim Schaftfräser sichtbar")
     d.feld_art.setCurrentIndex(d.feld_art.findData(wz.TORUSFRAESER))
+    yield 100
+    # Die Beispiele der neuen Art: 4 Schneiden, Eckradius 1 – grau.
+    h.pruefe(
+        (d.feld_schneiden.value(), d.feld_eckradius.text()) == (4, "1")
+        and farbe_grau in d.feld_eckradius.styleSheet(),
+        f"Torus-Beispiel: z {d.feld_schneiden.value()}, R {d.feld_eckradius.text()!r}",
+    )
+    h.bild("5d_torus_beispiel", d)
     tippen(d.feld_durchmesser, "10,5")
     tippen(d.feld_eckradius, "0,5")
     d.feld_nummer.setValue(1)

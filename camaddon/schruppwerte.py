@@ -136,6 +136,16 @@ def vergleichszeile(einsaetze):
     )
 
 
+# Beispiele für vc (m/min) und Spandicke (mm), wenn die Tabelle keine hat –
+# Stahl, grau gezeigt, aber gültig: VHM und HSS.
+BEISPIEL_SCHNITT = {wz.VHM: (120.0, 0.05), wz.HSS: (30.0, 0.03)}
+
+
+def beispiel_schnitt(werkzeug):
+    """(vc, Spandicke) als Beispiel für den Schneidstoff des Werkzeugs."""
+    return BEISPIEL_SCHNITT.get(werkzeug.schneidstoff, BEISPIEL_SCHNITT[wz.VHM])
+
+
 def vorgaben(werkzeug, einsatz):
     """(vc, Spandicke, ap) zum Vorbelegen des Planers aus einer Zeile der Tabelle.
 

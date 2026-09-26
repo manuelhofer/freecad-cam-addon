@@ -450,6 +450,16 @@ Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.
     Aufruf ins NC-Programm kommt der Name nur mit einem eigenen
     Postprozessor – FreeCADs mitgelieferte rufen per Nummer. Alternative:
     ein Umschalter Nummer/Name – dann ginge eins von beiden verloren.
+25. **Ein neues Werkzeug hat Beispielwerte, grau, aber gültig** (Manuel:
+    wer Ø 12 stehen lässt, will Ø 12): je Art Ø 12 mit passender
+    Schneidenzahl und -länge, beim Torusfräser Eckradius 1. Eingetippt ist
+    eigen, auch derselbe Wert. Beim Wechsel der Art bekommen graue und
+    leere Felder die Beispiele der neuen Art. Das Bild zeigt ohne
+    Durchmesser die Form der Art mit Beispielmaßen, gestrichelt. Im Planer
+    stehen ohne vc und fz der Zeile graue Beispiele für Stahl (VHM 120 m/min
+    und 0,05 mm, HSS 30 m/min und 0,03 mm). Die Merker werden nicht
+    gespeichert: Nach dem Laden ist jeder Wert eigen. Alternative: leere
+    Felder mit Hinweis – dann sieht man nichts, bis alles eingetragen ist.
 
 ## 12. Akzeptanzkriterien Stufe 1
 

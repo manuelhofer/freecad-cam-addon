@@ -513,5 +513,7 @@
     "wv.name.tooltip": "The tool's name in the control (e.g. T=\"Endmill carbide 12\") – write it exactly as on the machine. Empty: the name shown in grey, made from the data, applies. CAM names the tool like this.",
     "wv.name.platzhalter": "as in the control – empty: {name}",
     "wv.zeile.name": "T{nummer}  {name} · {art} Ø {durchmesser} · z {schneiden} · {schneidstoff}",
-    "wv.hinweis.name": "“{name}” is also the name of T{nummer} – intended (sister tool)?"
+    "wv.hinweis.name": "“{name}” is also the name of T{nummer} – intended (sister tool)?",
+    "wv.beispiel": "Grey: example values – they apply until you enter your own.",
+    "sp.beispiel": "Grey: example for steel with {schneidstoff} – the table already uses it. Better use the values from your tool's catalogue."
 }

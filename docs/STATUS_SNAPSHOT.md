@@ -21,10 +21,13 @@ Wunschliste, offene Bugs und Tasks.
    Liste, Suche, als Werkzeugname in CAM, im Namen des Werkzeug-Controllers
    („T1 Fräser VHM 12 – Schruppen“); „Aus CAM übernehmen“ füllt ihn;
    doppelte Namen: Hinweis, erlaubt. NC-Aufruf `T="…"` nur mit eigenem
-   Postprozessor (FreeCADs rufen per Nummer).
+   Postprozessor (FreeCADs rufen per Nummer). – *Fertig, 0.12.0
+   (P-2026-09-26-33).*
 2. **Neues Werkzeug mit Beispielwerten:** grau gezeigt, aber gültig
    (Manuel: wer Ø 12 stehen lässt, will Ø 12), Durchmesser 12; das Bild
-   zeigt gleich die Form, beim Durchblättern immer.
+   zeigt gleich die Form, beim Durchblättern immer. – *Fertig
+   (P-2026-09-26-37), mit grauen Beispielen für vc und Spandicke im
+   Planer.*
 3. **Planer:** Warngrenze ae 10 % von D bleibt Vorgabe (fest, egal wie
    viele Schneiden, Manuel), am Werkzeug änderbar; Zeilen darüber rot
    „mehr als deine Warngrenze“, aber wählbar; % je Zeile sichtbar.

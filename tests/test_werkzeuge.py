@@ -41,6 +41,44 @@ pruefe((t1.nummer, t3.nummer) == (1, 2), f"Nummern {t1.nummer}, {t3.nummer}")
 pruefe(b.naechste_nummer() == 3, f"nächste Nummer {b.naechste_nummer()}")
 pruefe(b.mit_nummer(5, ausser=t1) is t2 and b.mit_nummer(5, ausser=t2) is None, "mit_nummer")
 
+# Neues Werkzeug: Beispielwerte (Ø 12), gültig, als Beispiel gemerkt, nicht gespeichert.
+neu = wz.Bibliothek().neues_werkzeug()
+pruefe(
+    (neu.art, neu.durchmesser, neu.schneiden, neu.schneidenlaenge) == (wz.SCHAFTFRAESER, 12, 3, 26)
+    and neu.beispiel == {"durchmesser", "schneiden", "schneidenlaenge"},
+    f"Beispielwerte: {neu} {neu.beispiel}",
+)
+pruefe("beispiel" not in neu.als_dict(), "Beispiel-Merker gespeichert")
+pruefe(wz.Werkzeug.aus_dict(neu.als_dict()).beispiel == set(), "geladen noch Beispiel")
+pruefe(set(wz.BEISPIELE) == set(wz.ARTEN), "nicht jede Art hat Beispielwerte")
+# Andere Art: Beispielfelder und leere Felder bekommen ihre Beispiele, eigene Werte bleiben.
+neu.durchmesser = 10
+neu.beispiel.discard("durchmesser")
+neu.art = wz.TORUSFRAESER
+wz.beispielwerte_setzen(neu)
+pruefe(
+    (neu.durchmesser, neu.schneiden, neu.eckradius) == (10, 4, 1)
+    and neu.beispiel == {"schneiden", "schneidenlaenge", "eckradius"},
+    f"Torus: {neu} {neu.beispiel}",
+)
+neu.art = wz.BOHRER
+wz.beispielwerte_setzen(neu)
+pruefe(
+    (neu.durchmesser, neu.schneidenlaenge, neu.eckradius) == (10, 60, 0)
+    and neu.beispiel == {"schneiden", "schneidenlaenge"},
+    f"Bohrer: {neu} {neu.beispiel}",
+)
+# Ein geladenes Werkzeug: nur leere Felder bekommen ein Beispiel.
+vorhanden = wz.Werkzeug(durchmesser=8, schneiden=2, schneidenlaenge=20)
+vorhanden.art = wz.TORUSFRAESER
+wz.beispielwerte_setzen(vorhanden)
+pruefe(
+    (vorhanden.durchmesser, vorhanden.schneiden, vorhanden.schneidenlaenge, vorhanden.eckradius)
+    == (8, 2, 20, 1)
+    and vorhanden.beispiel == {"eckradius"},
+    f"geladen → Torus: {vorhanden} {vorhanden.beispiel}",
+)
+
 # Kopieren: neue Kennung, nächste Nummer, gleiche Werte.
 kopie = b.kopiere(t1)
 pruefe(kopie.kennung != t1.kennung and kopie.nummer == 3, f"Kopie {kopie}")
