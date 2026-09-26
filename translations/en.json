@@ -618,7 +618,7 @@
     "wv.schneidenbreite.stechen": "Groove width",
     "wv.ueblich.platzhalter": "usual: {wert}",
     "wv.hinweis.steigung": "The pitch is missing – without it the feed of the tap cannot be calculated.",
-    "wv.cam.ohne_form": "Not handed over – CAM does not know these types yet: {liste}.",
+    "wv.cam.ohne_form": "Not handed over – FreeCAD CAM does not turn, so turning tools stay here: {liste}.",
     "wv.einsatz.planen": "Face milling",
     "wv.einsatz.fasen": "Chamfering",
     "wv.einsatz.verrunden": "Corner rounding",
@@ -630,5 +630,8 @@
     "wv.einsatz.ausdrehen": "Boring",
     "wv.ohne_schnittwerte.drehen": "Turning tools have no cutting data here yet: FreeCAD CAM does not turn. Dimensions and picture are there anyway – as soon as FreeCAD can turn, vc, f and ap will follow.",
     "wv.ohne_schnittwerte.taster": "A probe does not cut – it has no cutting data.",
-    "wv.hinweis.vc_fehlt": "vc is still missing – it is in the manufacturer's catalogue. The add-on calculates the feed from the pitch."
+    "wv.hinweis.vc_fehlt": "vc is still missing – it is in the manufacturer's catalogue. The add-on calculates the feed from the pitch.",
+    "wv.cam.naeherung": "CAM has no shape of its own for these types – they are there as the closest one: {liste}.",
+    "wv.cam.naeherung.eintrag": "{werkzeug} as {form}",
+    "wv.schaft.platzhalter.geschaetzt": "estimated: {wert}"
 }

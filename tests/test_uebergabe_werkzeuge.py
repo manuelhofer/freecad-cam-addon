@@ -1,8 +1,11 @@
 # Prüft „An CAM übergeben“ (W-002 Stufe 2) mit CAMs eigener Asset-Verwaltung in
 # einem Temp-Ordner: FreeCAD lädt die Bibliothek „CAM-Addon“ und die Werkzeuge
 # mit Nummern und Geometrie; im Wochen-Build kommen die Schnittwerte als
-# Presets an, und FreeCADs eigener Vorschlag findet für 1.4301 unsere Werte.
-# Eine zweite Übergabe entfernt gelöschte Werkzeuge, fremde bleiben.
+# Presets an, und FreeCADs eigener Vorschlag findet für 1.4301 unsere Werte –
+# beim Bohren mit vollem Eintauchvorschub, bei der Reibahle ohne Schneidenzahl
+# in CAM trotzdem mit unserem Vorschub. Arten ohne eigene Form nennt der
+# Bericht (die Formen aller Arten prüft test_cam_formen). Eine zweite Übergabe
+# entfernt gelöschte Werkzeuge, fremde bleiben.
 import json
 import os
 import pathlib
@@ -61,12 +64,23 @@ bohrer.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25, fz=0.08)]
 ohne = wz.Werkzeug(nummer=9)
 # Drehwerkzeuge kennt CAM nicht: Sie bleiben draußen und werden genannt.
 dreh = wz.Werkzeug(nummer=11, art=wz.DREHWERKZEUG, eckradius=0.8)
-bibliothek = wz.Bibliothek([fraeser, torus, bohrer, ohne, dreh])
+# Die Reibahle hat in CAM keine Schneidenzahl; der Gewindebohrer nimmt den
+# Vorschub aus der Steigung; den Lollipopfräser gibt es dort als Kugelfräser.
+reibahle = wz.Werkzeug(nummer=13, art=wz.REIBAHLE, durchmesser=10, schneiden=6)
+reibahle.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.REIBEN, vc=20, fz=0.05)]
+gewinde = wz.Werkzeug(nummer=15, art=wz.GEWINDEBOHRER_LINKS, durchmesser=10, steigung=1.5)
+gewinde.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.GEWINDEBOHREN, vc=10)]
+lolli = wz.Werkzeug(nummer=17, art=wz.LOLLIPOPFRAESER, durchmesser=8, hals_laenge=20)
+bibliothek = wz.Bibliothek([fraeser, torus, bohrer, ohne, dreh, reibahle, gewinde, lolli])
 
 bericht = ue.uebergeben(bibliothek)
-pruefe((bericht.werkzeuge, bericht.ohne_durchmesser) == (3, 1), f"Bericht: {bericht}")
+pruefe((bericht.werkzeuge, bericht.ohne_durchmesser) == (6, 1), f"Bericht: {bericht}")
 pruefe(bericht.ohne_form == ["T11 Drehwerkzeug"], f"ohne Form: {bericht.ohne_form}")
-pruefe(bericht.presets == 5, f"{bericht.presets} Presets statt 5")
+pruefe(
+    bericht.naeherungen == [("T17 Lollipopfräser", "Kugelfräser")],
+    f"Näherungen: {bericht.naeherungen}",
+)
+pruefe(bericht.presets == 7, f"{bericht.presets} Presets statt 7")
 pruefe(
     not bericht.werkstoffe_ohne_freecad,
     f"ohne FreeCAD-Werkstoff: {bericht.werkstoffe_ohne_freecad}",
@@ -75,7 +89,10 @@ pruefe(
 # FreeCAD lädt Bibliothek und Werkzeuge.
 bib = cam_assets.get("toolbitlibrary://camaddon")
 nummern = sorted(bib._bit_nos)  # die T-Nummern der Bibliothek
-pruefe(bib.label == "CAM-Addon" and nummern == [3, 5, 7], f"Bibliothek {bib.label}: {nummern}")
+pruefe(
+    bib.label == "CAM-Addon" and nummern == [3, 5, 7, 13, 15, 17],
+    f"Bibliothek {bib.label}: {nummern}",
+)
 tb = cam_assets.get(f"toolbit://camaddon_{fraeser.kennung}")
 pruefe(mm(tb.obj.Diameter) == 12 and int(tb.obj.Flutes) == 3, f"Fräser: {tb.obj.Diameter}")
 pruefe(mm(tb.obj.CuttingEdgeHeight) == 26, f"Schneidenlänge {tb.obj.CuttingEdgeHeight}")
@@ -112,6 +129,26 @@ if ue.presets_moeglich():
     )
     pruefe(abs(vorschlag.spindle_speed - 3183.1) < 1, f"Drehzahl {vorschlag.spindle_speed}")
 
+    # Bohren: senkrecht der volle Vorschub, wie „Schnittwerte in den Job“.
+    pruefe(
+        [p["vert_feed_ratio"] for p in get_presets(t7.obj)] == [1.0],
+        f"Bohrer: {get_presets(t7.obj)}",
+    )
+    # Die Reibahle zählt in CAM eine Schneide: Chipload ist f je Umdrehung, und
+    # FreeCAD schlägt denselben Vorschub vor wie das Addon (n · 6 · 0,05).
+    t13 = cam_assets.get(f"toolbit://camaddon_{reibahle.kennung}")
+    presets = get_presets(t13.obj)
+    pruefe([p["chipload"] for p in presets] == [0.3], f"Reibahle: {presets}")
+    pruefe(abs(mm(t13.obj.Chipload) - 0.3) < 1e-9, f"Reibahle Chipload {t13.obj.Chipload}")
+    werkzeug = ToolContext(diameter=10, flutes=None, presets=tuple(presets), shape_id="reamer")
+    vorschlag = resolve(werkzeug, MaterialContext(name="C45"), OpContext("drill"))
+    n = 20 * 1000 / (3.141592653589793 * 10)
+    pruefe(abs(vorschlag.vert_feed - n * 6 * 0.05) < 0.01, f"Reibahle vf {vorschlag.vert_feed}")
+    # Gewindebohrer: kein Chipload – den Vorschub nimmt CAM aus der Steigung.
+    t15 = cam_assets.get(f"toolbit://camaddon_{gewinde.kennung}")
+    presets = get_presets(t15.obj)
+    pruefe([p["chipload"] for p in presets] == [None], f"Gewindebohrer: {presets}")
+
 # Zweite Übergabe ohne den Torusfräser: er verschwindet, das fremde Werkzeug bleibt.
 bibliothek.entferne(torus)
 bericht = ue.uebergeben(bibliothek)
@@ -119,7 +156,8 @@ pruefe(bericht.entfernt == 1, f"entfernt: {bericht.entfernt}")
 bits = {u.asset_id for u in cam_assets.list_assets(asset_type="toolbit", store="local")}
 pruefe(f"camaddon_{torus.kennung}" not in bits, "Torusfräser nicht entfernt")
 pruefe("eigenes_werkzeug" in bits, "fremdes Werkzeug entfernt")
-pruefe(sorted(cam_assets.get("toolbitlibrary://camaddon")._bit_nos) == [3, 7], "Bibliothek danach")
+nummern = sorted(cam_assets.get("toolbitlibrary://camaddon")._bit_nos)
+pruefe(nummern == [3, 7, 13, 15, 17], f"Bibliothek danach: {nummern}")
 
 sprache.setze_sprache(vorher)
 if fehler:

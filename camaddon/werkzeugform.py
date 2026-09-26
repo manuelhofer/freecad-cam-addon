@@ -4,9 +4,10 @@
 Je Art ein paar Teile – Schaft, Schneide, Hals, Wendeplatte, Tastkugel – als
 Vielecke in mm: x quer zur Achse, y von der Spitze (0) zum Schaft. Rundes
 (Kugel, Eckradius, Radienprofil) ist fein unterteilt. Was ein Feld nicht
-hergibt, wird geschätzt wie bisher (Schneidenlänge 2 × D, Gesamtlänge und
-Schaft wie für CAM); die Halter der Drehwerkzeuge haben feste Maße, denn
-dafür gibt es keine Felder.
+hergibt, wird geschätzt (werkzeuge.mass(): ein Anteil von D je Art,
+Schneidenlänge 2 × D, Gesamtlänge ab dem Ende des Halses) – dieselben Maße
+bekommt CAM (uebergabe_werkzeuge), damit es dasselbe Werkzeug zeigt. Die Halter der
+Drehwerkzeuge haben feste Maße, denn dafür gibt es keine Felder.
 
 Läuft ohne Oberfläche; gemalt wird in gui_werkzeugbild.
 """
@@ -63,6 +64,42 @@ def teile(werkzeug, fremd=frozenset()):
     return [t for t in zeichner(w, unsicher, schaft_unsicher) if len(t.punkte) >= 3]
 
 
+def konus(werkzeug):
+    """(Schneidenlänge, Kegelwinkel je Seite, Radius oben) des Konikfräsers.
+
+    Der Kegel berührt die Kugel an der Spitze und endet mit der Schneide.
+    """
+    w = werkzeug
+    r = w.durchmesser / 2
+    lc = max(wz.mass(w, "schneidenlaenge"), r)
+    winkel = min(max(w.kegelwinkel, 0.0), 45.0)
+    alpha = math.radians(winkel)
+    return lc, winkel, r / math.cos(alpha) + (lc - r) * math.tan(alpha)
+
+
+def kegel(werkzeug):
+    """(Spitzen-Ø, Höhe des Kegels, Spitzenwinkel) des Fasenfräsers und Kegelsenkers."""
+    w = werkzeug
+    winkel = min(max(wz.wert(w, "spitzenwinkel"), 1.0), 179.0)
+    spitze = min(wz.mass(w, "spitzen_d"), w.durchmesser * 0.9)
+    return spitze, (w.durchmesser - spitze) / 2 / _tan(winkel / 2), winkel
+
+
+def radienprofil(werkzeug):
+    """(Profilradius, Spitzen-Ø, Höhe des Bogens) des Radienfräsers.
+
+    Wie in CAM: Der Bogen beginnt am Rand der Spitze, sein Mittelpunkt liegt
+    auf ihrer Höhe. Leer ist die Spitze D − 2 × Radius – ein Viertelkreis;
+    ist sie breiter, endet der Bogen früher.
+    """
+    w = werkzeug
+    r = w.durchmesser / 2
+    e = min(wz.mass(w, "profilradius"), r * 0.95)
+    spitze = max(wz.mass(w, "spitzen_d"), w.durchmesser - 2 * e)
+    mitte = spitze / 2 + e
+    return e, spitze, math.sqrt(max(e * e - (mitte - r) ** 2, 0.0))
+
+
 def grenzen(liste):
     """(x_min, y_min, x_max, y_max) über alle Teile."""
     xs = [x for teil in liste for x, _ in teil.punkte]
@@ -109,9 +146,8 @@ def _schaft(w, unten, halb, unsicher):
 
 
 def _masse(w):
-    """(Radius, Schneidenlänge, halber Schaft) – mit den Schätzungen von bisher."""
-    r = w.durchmesser / 2
-    return r, w.schneidenlaenge or 2 * w.durchmesser, wz.schaft_fuer_cam(w) / 2
+    """(Radius, Schneidenlänge, halber Schaft) – eingetragen oder geschätzt."""
+    return w.durchmesser / 2, wz.mass(w, "schneidenlaenge"), wz.mass(w, "schaft") / 2
 
 
 def _tan(grad):
@@ -139,7 +175,7 @@ def _kugelfraeser(w, unsicher, schaft_unsicher):
 
 def _torusfraeser(w, unsicher, schaft_unsicher):
     r, lc, s = _masse(w)
-    e = min(w.eckradius or w.durchmesser / 10, r)
+    e = min(wz.mass(w, "eckradius"), r)
     rechts = [(r, max(lc, e))] + _bogen(r - e, e, e, 0, -90) + [(0, 0)]
     return [
         _schaft(w, max(lc, e), s, schaft_unsicher),
@@ -149,10 +185,9 @@ def _torusfraeser(w, unsicher, schaft_unsicher):
 
 def _konikfraeser(w, unsicher, schaft_unsicher):
     """Kugel an der Spitze, darüber der Kegel – je Seite um den Kegelwinkel weiter."""
-    r, lc, s = _masse(w)
-    lc = max(lc, r)
-    oben = r + (lc - r) * math.tan(math.radians(min(w.kegelwinkel, 45.0)))
-    rechts = [(oben, lc)] + _bogen(0, r, r, 0, -90)
+    r, _lc, s = _masse(w)
+    lc, winkel, oben = konus(w)
+    rechts = [(oben, lc)] + _bogen(0, r, r, -winkel, -90)
     return [
         _schaft(w, lc, max(s, oben), schaft_unsicher),
         Teil(SCHNEIDE, _symmetrisch(rechts), unsicher, WENDEL_RECHTS),
@@ -161,11 +196,10 @@ def _konikfraeser(w, unsicher, schaft_unsicher):
 
 def _schwalbenschwanz(w, unsicher, schaft_unsicher):
     """Unten breit, die Flanken steigen um den Flankenwinkel nach innen; darüber der Hals."""
-    r, _lc, s = _masse(w)
-    h = w.schneidenlaenge or w.durchmesser / 4
+    r, h, s = _masse(w)
     oben = max(r - h / _tan(wz.wert(w, "flankenwinkel")), r * 0.15)
-    hals = (w.hals_d or w.durchmesser * 0.4) / 2
-    hals_oben = h + max(w.durchmesser * 0.3, 2.0)
+    hals = wz.mass(w, "hals_d") / 2
+    hals_oben = h + wz.mass(w, "hals_laenge")
     return [
         _schaft(w, hals_oben, s, schaft_unsicher),
         Teil(SCHAFT, _rechteck(-hals, h, hals, hals_oben), unsicher),
@@ -176,8 +210,8 @@ def _schwalbenschwanz(w, unsicher, schaft_unsicher):
 def _lollipop(w, unsicher, schaft_unsicher):
     """Eine Kugel am langen, dünnen Hals."""
     r, _lc, s = _masse(w)
-    hals = (w.hals_d or w.durchmesser * 0.6) / 2
-    hals_oben = r + (w.hals_laenge or 2 * w.durchmesser)
+    hals = wz.mass(w, "hals_d") / 2
+    hals_oben = r + wz.mass(w, "hals_laenge")
     return [
         _schaft(w, hals_oben, s, schaft_unsicher),
         Teil(SCHAFT, _rechteck(-hals, r, hals, hals_oben), unsicher),
@@ -188,26 +222,26 @@ def _lollipop(w, unsicher, schaft_unsicher):
 def _fasenfraeser(w, unsicher, schaft_unsicher):
     """Kegel mit dem Spitzenwinkel, unten der Spitzen-Ø (0 = spitz)."""
     r, lc, s = _masse(w)
-    spitze = min(w.spitzen_d / 2, r * 0.9)
-    h = (r - spitze) / _tan(wz.wert(w, "spitzenwinkel") / 2)
+    spitze, h, _winkel = kegel(w)
     oben = max(lc, h)
-    rechts = [(r, oben), (r, h), (spitze, 0), (0, 0)]
+    rechts = [(r, oben), (r, h), (spitze / 2, 0), (0, 0)]
     return [_schaft(w, oben, s, schaft_unsicher), Teil(SCHNEIDE, _symmetrisch(rechts), unsicher)]
 
 
 def _radienfraeser(w, unsicher, schaft_unsicher):
-    """Hohlkehle: Die äußere untere Ecke fehlt als Viertelkreis mit dem Profilradius."""
+    """Hohlkehle: Die äußere untere Ecke fehlt als Bogen mit dem Profilradius."""
     r, lc, s = _masse(w)
-    e = min(w.profilradius or w.durchmesser / 5, r * 0.95)
-    oben = max(lc, e)
-    rechts = [(r, oben)] + _bogen(r, 0, e, 90, 180) + [(0, 0)]
+    e, spitze, hoehe = radienprofil(w)
+    mitte = spitze / 2 + e
+    oben = max(lc, hoehe)
+    ende = math.degrees(math.atan2(hoehe, r - mitte))
+    rechts = [(r, oben)] + _bogen(mitte, 0, e, ende, 180) + [(0, 0)]
     return [_schaft(w, oben, s, schaft_unsicher), Teil(SCHNEIDE, _symmetrisch(rechts), unsicher)]
 
 
 def _planfraeser(w, unsicher, schaft_unsicher):
     """Flacher, breiter Körper; die Platten schneiden unten mit dem Einstellwinkel."""
-    r, _lc, s = _masse(w)
-    ap = w.schneidenlaenge or w.durchmesser * 0.12
+    r, ap, s = _masse(w)
     kappa = wz.wert(w, "einstellwinkel") or 90.0
     innen = ap / _tan(kappa) if kappa < 89.9 else 0.0
     laenge = max(wz.laenge_fuer_cam(w), ap * 2)
@@ -222,9 +256,9 @@ def _planfraeser(w, unsicher, schaft_unsicher):
 def _nutenfraeser(w, unsicher, schaft_unsicher):
     """Eine Scheibe mit der Schneidenbreite am Hals."""
     r, _lc, s = _masse(w)
-    b = w.schneidenbreite or w.durchmesser / 10
-    hals = (w.hals_d or w.durchmesser * 0.3) / 2
-    hals_oben = b + max(w.durchmesser * 0.25, 2 * b)
+    b = wz.mass(w, "schneidenbreite")
+    hals = wz.mass(w, "hals_d") / 2
+    hals_oben = b + wz.mass(w, "hals_laenge")
     return [
         _schaft(w, hals_oben, min(s, r), schaft_unsicher),
         Teil(SCHAFT, _rechteck(-hals, b, hals, hals_oben), unsicher),
@@ -245,8 +279,8 @@ def _gewindefraeser(w, unsicher, schaft_unsicher):
     p = w.steigung or w.durchmesser * 0.15
     tiefe = min(p * 0.6, r * 0.3)
     rechts = _zacken(r, tiefe, lc, 0, p) + [(0, 0)]
-    hals = (w.hals_d or w.durchmesser * 0.7) / 2
-    hals_oben = lc + (w.hals_laenge or w.durchmesser)
+    hals = wz.mass(w, "hals_d") / 2
+    hals_oben = lc + wz.mass(w, "hals_laenge")
     return [
         _schaft(w, hals_oben, s, schaft_unsicher),
         Teil(SCHAFT, _rechteck(-hals, lc, hals, hals_oben), unsicher),
@@ -271,8 +305,8 @@ def _bohrer(w, unsicher, schaft_unsicher):
 def _zentrierbohrer(w, unsicher, schaft_unsicher):
     """Spitzer Zapfen (118°), darüber die Senkung mit dem Spitzenwinkel (60°) zum Körper."""
     r1 = w.durchmesser / 2
-    r2 = max((w.schaft or 2.5 * w.durchmesser) / 2, r1)
-    zapfen = w.schneidenlaenge or 1.2 * w.durchmesser
+    r2 = max(wz.mass(w, "schaft") / 2, r1)
+    zapfen = wz.mass(w, "schneidenlaenge")
     spitze = r1 / _tan(wz.SPITZENWINKEL_BOHRER / 2)
     senkung = (r2 - r1) / _tan(wz.wert(w, "spitzenwinkel") / 2)
     oben = zapfen + senkung
@@ -297,17 +331,16 @@ def _gewindebohrer(w, unsicher, schaft_unsicher):
 def _kegelsenker(w, unsicher, schaft_unsicher):
     """Kegel mit dem Senkwinkel, darüber ein kurzer Zylinder."""
     r, _lc, s = _masse(w)
-    spitze = min(w.spitzen_d / 2, r * 0.8)
-    h = (r - spitze) / _tan(wz.wert(w, "spitzenwinkel") / 2)
+    spitze, h, _winkel = kegel(w)
     oben = h + w.durchmesser * 0.15
-    rechts = [(r, oben), (r, h), (spitze, 0), (0, 0)]
+    rechts = [(r, oben), (r, h), (spitze / 2, 0), (0, 0)]
     return [_schaft(w, oben, s, schaft_unsicher), Teil(SCHNEIDE, _symmetrisch(rechts), unsicher)]
 
 
 def _flachsenker(w, unsicher, schaft_unsicher):
     """Flach schneidender Kopf, darunter der Führungszapfen."""
     r, lc, s = _masse(w)
-    fuehrung = min((w.spitzen_d or w.durchmesser * 0.6) / 2, r)
+    fuehrung = min(wz.mass(w, "spitzen_d") / 2, r)
     zapfen = max(w.durchmesser * 0.35, 1.0)
     return [
         _schaft(w, lc, s, schaft_unsicher),
@@ -426,7 +459,7 @@ def _gewindedrehwerkzeug(w, unsicher, _schaft_unsicher):
 def _taster(w, unsicher, schaft_unsicher):
     """Tastkugel am Taststift, oben der Körper des Tasters."""
     r = w.durchmesser / 2
-    stift = max((w.schaft or w.durchmesser * 0.6) / 2, r * 0.1)
+    stift = max(wz.mass(w, "schaft") / 2, r * 0.1)
     laenge = max(wz.laenge_fuer_cam(w), 4 * r)
     koerper = laenge * 0.65
     breite = max(3 * stift, 1.5 * w.durchmesser, 6.0)

@@ -42,12 +42,16 @@ im selben Verhältnis mit umgerechnet werden sollen (für alle Werkstoffe);
 vc und fz bleiben, die stehen im Katalog.</li>
 <li><b>Löschen</b> fragt vorher nach.</li>
 <li><b>Aus CAM übernehmen</b> (unten links) holt die Werkzeuge einer
-Werkzeugbibliothek von FreeCAD CAM: Art, T-Nummer, Durchmesser, Schneiden,
-Schneidenlänge, Gesamtlänge, Schaft, Eckradius und Schneidstoff, der Name
-wird die Bezeichnung. Schnittwerte trägst du danach hier ein. Was es schon
-gibt (gleiche Art und gleicher Durchmesser, gleiche Nummer oder gleicher
-Name), bleibt unverändert; ist nur die Nummer vergeben, bekommt das neue
-eine freie. Gravierstichel, Sägen, Gewindefräser und Taster kennt die
+Werkzeugbibliothek von FreeCAD CAM: Art, T-Nummer, die Maße, die die Art hat
+(Durchmesser, Schneiden, Längen, Schaft, Winkel, Hals, Steigung …), und
+Schneidstoff; der Name kommt mit. Schnittwerte trägst du danach hier ein.
+Jede Form in CAM hat ihre Art: Ein Gravierstichel wird ein spitzer
+Fasenfräser, eine Säge ein Nutenfräser, ein Gewindebohrer rechts oder links
+– je nachdem, wie CAM ihn drehen lässt. Ein Gewindefräser hat in CAM nur
+einen Zahn: Seine Schneidenlänge ist die Höhe dieses Zahns, die Steigung
+trägst du ein. Was es schon gibt (gleiche Art und gleicher Durchmesser,
+gleiche Nummer oder gleicher Name), bleibt unverändert; ist nur die Nummer
+vergeben, bekommt das neue eine freie. Nur eigene Formen kennt die
 Werkzeugverwaltung nicht – die Rückmeldung nennt sie.</li>
 </ul>
 
@@ -82,7 +86,7 @@ Flachsenker, Reibahle, Bohrstange, Ausspindelwerkzeug), <b>Drehen</b>
 Art zeigt nur die Felder, die sie hat – ein Gewindebohrer etwa die
 Steigung, aber keine Schneidenzahl. Wer die Art wechselt, verliert nichts:
 Werte in Feldern, die die neue Art nicht hat, sind beim Zurückwechseln
-wieder da. Drehwerkzeuge gehen noch nicht an CAM – FreeCAD dreht nicht.</li>
+wieder da. Drehwerkzeuge gehen nicht an CAM – FreeCAD dreht nicht.</li>
 <li>Was <b>fett</b> beschriftet ist, braucht die Rechnung – meist
 <b>Durchmesser</b> und <b>Schneiden</b>, beim Gewindebohrer Durchmesser und
 Steigung. Leere Winkel zeigen grau den üblichen der Art (Bohrer 118°,
@@ -117,9 +121,19 @@ Beschichtung.</li>
 <h3>An CAM übergeben</h3>
 <p><b>Speichern und an CAM übergeben</b> (unten links) schreibt alle Werkzeuge
 als Werkzeugbibliothek <b>„CAM-Addon“</b> in FreeCAD CAM – mit ihren
-T-Nummern, Durchmesser, Schneiden, Schneidenlänge und Schneidstoff. In einem
-Job fügst du ein Werkzeug hinzu und wählst diese Bibliothek.</p>
+T-Nummern, Maßen und Schneidstoff. In einem Job fügst du ein Werkzeug hinzu
+und wählst diese Bibliothek.</p>
 <ul>
+<li>Jede Art bekommt ihre <b>Form</b> in CAM: Konikfräser als konischer
+Kugelfräser mit Kegelwinkel, Schwalbenschwanz- und Radienfräser mit Winkel
+und Radius, Nutenfräser als Säge, Gewindebohrer mit Steigung (links dreht CAM
+ihn rückwärts), Taster als Taster. CAM zeigt dasselbe Werkzeug wie das Bild
+hier – mit denselben Schätzungen, wo ein Maß fehlt.</li>
+<li>Für einige Arten hat CAM <b>keine eigene Form</b>: Lollipopfräser gehen als
+Kugelfräser, Plan- und Formfräser, Flachsenker, Bohrstange und
+Ausspindelwerkzeug als Schaftfräser, der Zentrierbohrer als Bohrer mit dem
+Zapfen-Ø. Die Rückmeldung nennt sie. <b>Drehwerkzeuge</b> bleiben hier –
+FreeCAD dreht nicht.</li>
 <li>Im <b>Wochen-Build</b> gehen die Schnittwerte als <b>Vorschläge</b> mit: je
 Einsatz vc und fz, mit Werkstoff und Bearbeitung (Vollnut → Nute,
 Schruppen dynamisch → Adaptiv, Schlichten → Profil …). Im
@@ -130,8 +144,11 @@ die Werkzeuge.</li>
 gibt, verschwinden aus der Bibliothek. Werkzeuge, die du selbst in CAM
 angelegt hast, bleiben unberührt.</li>
 <li><b>Gesamtlänge</b> und <b>Schaft-Ø</b> braucht CAM für Simulation und
-Kollision. Sind die Felder leer, schätzt das Addon sie (Schneidenlänge +
-2 × D, Schaft = D) – das steht grau im leeren Feld.</li>
+Kollision. Sind die Felder leer, schätzt das Addon sie (Schneidenlänge – mit
+Hals bis zu dessen Ende – + 2 × D, Schaft meist = D) – das steht grau im
+leeren Feld. Ist die Gesamtlänge kürzer eingetragen als Schneide und Hals,
+bekommt CAM 1 mm Schaft darüber, sonst ließe sich das Werkzeug dort nicht
+zeichnen.</li>
 </ul>
 
 <h3>Schnittwerte in den Job</h3>

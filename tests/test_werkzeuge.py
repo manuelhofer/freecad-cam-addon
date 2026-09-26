@@ -225,6 +225,15 @@ pruefe(
 )
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10)) == 40, "ohne Schneidenlänge: 2D + 2D")
 pruefe(wz.geschaetzte_laenge(wz.Werkzeug(durchmesser=10, schneidenlaenge=2)) == 30, "mind. 3D")
+# Mit Hals reicht das Werkzeug weiter unter den Schaft: 15 + 20 + 2 × 10.
+gf = wz.Werkzeug(art=wz.GEWINDEFRAESER, durchmesser=10, schneidenlaenge=15, hals_laenge=20)
+pruefe(wz.geschaetzte_laenge(gf) == 55, f"Gewindefräser: {wz.geschaetzte_laenge(gf)}")
+# Leere Maße schätzt mass() je Art; ein Feld, das die Art nicht hat, zählt nicht.
+sw = wz.Werkzeug(art=wz.SCHWALBENSCHWANZFRAESER, durchmesser=20, hals_laenge=50)
+pruefe(wz.mass(sw, "hals_laenge") == 6 and wz.mass(sw, "hals_d") == 8, "Schwalbenschwanz")
+pruefe(wz.mass(sw, "schneidenlaenge") == 5 and wz.schaft_fuer_cam(sw) == 20, "Schätzung")
+taster = wz.Werkzeug(art=wz.TASTER, durchmesser=4)
+pruefe(abs(wz.schaft_fuer_cam(taster) - 2.4) < 1e-9, "Taststift 0,6 × D")
 
 # Spitzenwinkel des Bohrers: leer der übliche (118°), eingetragen gespeichert, begrenzt.
 pruefe(wz.spitzenwinkel_fuer_cam(wz.Werkzeug(art=wz.BOHRER)) == 118, "üblicher Spitzenwinkel")

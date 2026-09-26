@@ -42,12 +42,16 @@ the same ratio (for all materials); vc and fz stay, they come from the
 catalogue.</li>
 <li><b>Delete</b> asks first.</li>
 <li><b>Import from CAM</b> (bottom left) takes the tools of a FreeCAD CAM tool
-library: type, T number, diameter, flutes, flute length, overall length,
-shank, corner radius and tool material; the name becomes the description. You
-then enter the cutting data here. What already exists (same type and diameter,
-same number or same name) is left unchanged; if only the number is taken, the
-new tool gets a free one. Engraving bits, saws, thread mills and probes are
-unknown to the tool manager – the report lists them.</li>
+library: type, T number, the dimensions the type has (diameter, flutes,
+lengths, shank, angles, neck, pitch …) and tool material; the name comes
+along. You then enter the cutting data here. Every CAM shape has its type: an
+engraving bit becomes a pointed chamfer mill, a slitting saw a slot cutter, a
+tap right or left hand – depending on which way CAM turns it. A thread mill
+has a single tooth in CAM: its flute length is the height of that tooth, and
+you enter the pitch. What already exists (same type and diameter, same number
+or same name) is left unchanged; if only the number is taken, the new tool
+gets a free one. Only custom shapes are unknown to the tool manager – the
+report lists them.</li>
 </ul>
 
 <h3>The fields</h3>
@@ -80,7 +84,7 @@ counterbore, reamer, boring bar, fine boring tool), <b>Turning</b>
 only shows the fields it has – a tap, for example, the pitch but no number
 of flutes. Switching the type loses nothing: values in fields the new type
 does not have are back when you switch back. Turning tools do not go to CAM
-yet – FreeCAD does not turn.</li>
+– FreeCAD does not turn.</li>
 <li>What is labelled in <b>bold</b> is needed for the calculation – mostly
 <b>Diameter</b> and <b>Flutes</b>, for a tap diameter and pitch. Empty angles
 show the usual one of the type in grey (drill 118°, center drill 60°, thread
@@ -113,10 +117,19 @@ number, coating.</li>
 
 <h3>Hand over to CAM</h3>
 <p><b>Save and hand over to CAM</b> (bottom left) writes all tools as the tool
-library <b>“CAM-Addon”</b> into FreeCAD CAM – with their T numbers, diameter,
-flutes, flute length and tool material. In a job you add a tool and choose
-this library.</p>
+library <b>“CAM-Addon”</b> into FreeCAD CAM – with their T numbers, dimensions
+and tool material. In a job you add a tool and choose this library.</p>
 <ul>
+<li>Every type gets its <b>shape</b> in CAM: tapered mill as a tapered ball
+nose with its taper angle, dovetail and corner rounding cutters with angle and
+radius, slot cutter as a slitting saw, taps with their pitch (CAM turns a left
+hand tap in reverse), probe as a probe. CAM shows the same tool as the
+picture here – with the same estimates where a dimension is missing.</li>
+<li>For some types CAM has <b>no shape of its own</b>: lollipop cutters go as
+ball end mills; face and form mills, counterbores, boring bars and fine
+boring tools as end mills; the center drill as a drill with the pilot Ø. The
+report lists them. <b>Turning tools</b> stay here – FreeCAD does not
+turn.</li>
 <li>In the <b>weekly build</b> the cutting data goes along as
 <b>suggestions</b>: per use case vc and fz, with material and operation
 (full slot → slot, dynamic roughing → adaptive, finishing → profile …). In the
@@ -126,8 +139,11 @@ stock material. The stable version 1.1.3 only takes the tools.</li>
 here disappear from the library. Tools you created in CAM yourself are left
 alone.</li>
 <li>CAM needs the <b>overall length</b> and the <b>shank Ø</b> for simulation and
-collision. If the fields are empty, the addon estimates them (flute length +
-2 × D, shank = D) – shown in grey in the empty field.</li>
+collision. If the fields are empty, the addon estimates them (flute length –
+with a neck, up to its end – + 2 × D, shank mostly = D) – shown in grey in
+the empty field. If the overall length entered is shorter than cutting part
+and neck, CAM gets 1 mm of shank above them; otherwise the tool could not be
+drawn there.</li>
 </ul>
 
 <h3>Cutting data into the job</h3>

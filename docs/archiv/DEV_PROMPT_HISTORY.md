@@ -12,6 +12,80 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-59 cam-alle-werkzeugarten
+
+### EINGELESEN
+- Spezifikation Werkzeugarten, Abschnitte 2, 6 und 8 (Stufe 5): CAM-Form je
+  Art, Näherungen, Übernahme je Form.
+- FreeCAD CAM in 1.1.3 und im Wochen-Build: die Formen (`Path/Tool/shape/
+  models`, Skizzen und Ausdrücke in `Tools/Shape/*.fcstd`), die Musterwerkzeuge
+  in `Tools/Bit`, `ToolBit.from_dict`/`from_shape`, `ThreadMilling`,
+  `Tapping`/`Drilling` (Pitch, SpindleDirection), `FeedsSpeeds` (Chipload je
+  Zahn mal Flutes, `vert_feed_ratio`), das Bibliotheksfenster.
+
+### DATEIEN
+- `camaddon/uebergabe_werkzeuge.py` (FORMEN aller Arten, NAEHERUNGEN,
+  Parameter je Form, Drehrichtung, Chipload, Mindestschaft)
+- `camaddon/werkzeuge_aus_cam.py` (jede Form → Art, alle Maße der Art)
+- `camaddon/werkzeuge.py` (`mass`, `reichweite`, Gesamtlänge ab Halsende,
+  `schaft_fuer_cam` je Art)
+- `camaddon/werkzeugform.py` (Schätzungen aus `werkzeuge.mass`; `konus`,
+  `kegel`, `radienprofil` auch für CAM; Konikkegel tangential, Radienbogen
+  ab dem Spitzen-Ø)
+- `camaddon/gui_werkzeuge.py` (Bericht: Näherungen; Schaft-Platzhalter)
+- `translations/de.json`, `translations/en.json`
+- `help/de/werkzeuge.html`, `help/en/werkzeuge.html`
+- `docs/spezifikation_werkzeugarten.md`, `docs/aufbau.md`
+- `tests/test_cam_formen.py` (neu), `tests/test_uebergabe_werkzeuge.py`,
+  `tests/test_werkzeuge_aus_cam.py`, `tests/test_werkzeuge.py`,
+  `tests/gui/szenario_an_cam.py`, `tests/gui/szenario_aus_cam.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung mit Gewindebohrer links, Konik-, Lollipop-,
+Schwalbenschwanzfräser, Taster und Drehwerkzeug → „Speichern und an CAM
+übergeben“: Die Rückmeldung nennt „T9 Lollipopfräser als Kugelfräser“ und
+„Drehwerkzeuge bleiben hier: T15 Drehwerkzeug“. In CAM → Werkzeugbibliothek
+„CAM-Addon“ steht jedes mit seiner Form (Left Hand tap 1,5 mm, 6° taper,
+60° dovetail, probe). „Aus CAM übernehmen“ → „Default“ übernimmt alle 13
+Werkzeuge, auch Gravierstichel (Fasenfräser), Säge (Nutenfräser), Taster und
+Gewindefräser.
+
+### DONE
+- Übergabe: jede der 23 Arten, die nicht drehen, mit ihrer CAM-Form und
+  deren Parametern; leere Felder geschätzt wie im Bild, damit CAM denselben
+  Körper baut. Näherungen (Lollipop-, Plan-, Formfräser, Zentrierbohrer,
+  Flachsenker, Bohrstange, Ausspindelwerkzeug) nennt der Bericht; die
+  Drehwerkzeuge bleiben hier.
+- Gewindebohrer mit Steigung, links rückwärts drehend, ohne Schneidenzahl
+  und ohne Chipload; Taster ohne Drehrichtung und Schneidstoff; Reibahle
+  (in CAM ohne Schneidenzahl) mit f je Umdrehung als Chipload; Presets der
+  bohrenden Arten mit vollem Eintauchvorschub wie „Schnittwerte in den Job“.
+- CAMs Skizzen vertragen keine Kante der Länge 0 und keinen Hals bis ans
+  Ende: Säge mit 1 µm Kappe, Gewindebohrer-Schaft = D wird 1 µm dünner, zu
+  kurze Gesamtlänge bekommt 1 mm Schaft. Die geschätzte Gesamtlänge zählt
+  jetzt ab dem Ende des Halses (beim Gewindefräser brach vorher CAMs Körper).
+- Übernahme: jede Form hat ihre Art (vbit → Fasenfräser, tap nach
+  Drehrichtung, threadmill mit einem Zahn: Schneidenlänge = Zahnhöhe);
+  gesetzt wird nur, was die Art als Feld hat; fehlt die Schneidenzahl, die
+  der Beispiele der Art.
+- Die Schätzungen für Bild und CAM an einer Stelle (`werkzeuge.mass`); das
+  Bild des Radienfräsers nimmt jetzt den Spitzen-Ø, der Konikkegel berührt
+  die Kugel.
+
+### TEST
+- Neu `test_cam_formen`: alle Arten an CAM, Beispiele, Schaft = D und zu
+  kurze Gesamtlänge; CAM baut jeden Körper ohne Klage auf der Konsole, nur
+  Parameter der Form, auf 40 Höhen wie das Bild, zurück aus CAM dieselben
+  Maße. Gegenprobe: Kappe 0, Schaft = D und halber Kegelwinkel fängt er.
+- `test_uebergabe_werkzeuge`, `test_werkzeuge_aus_cam`, `test_werkzeuge`,
+  `test_werkzeugform`, `test_sprache`, `test_hilfe` in 1.1.3 und im
+  Wochen-Build; Szenarien `an_cam`, `aus_cam` in beiden, `werkzeugbilder`,
+  `werkzeugverwaltung` in 1.1.3. Bilder angesehen.
+
+### NEXT
+- Stufe C6: die neuen Einsätze auf die passenden Operationen im Job.
+
 ## P-2026-09-26-58 einsaetze-je-art
 
 ### EINGELESEN

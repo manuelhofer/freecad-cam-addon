@@ -209,6 +209,44 @@ threadmill → Gewindefräser, drill → Bohrer, tap → Gewindebohrer rechts od
 links (nach SpindleDirection), reamer → Reibahle, probe → Taster. „custom“
 bleibt draußen und wird genannt.
 
+Wie die Maße auf die Parameter gehen (gebaut in P-2026-09-26-59; die
+Skizzen der Formen sind in 1.1.3 und im Wochen-Build gleich):
+
+- Was ein Feld nicht hergibt, schätzt die Übergabe wie das Bild
+  (`werkzeuge.mass`: je Art ein Anteil von D) – CAM baut denselben Körper,
+  den das Bild zeigt; `tests/test_cam_formen.py` vergleicht beide auf 40
+  Höhen.
+- Konikfräser: TaperDiameter ist dort, wo der Kegel endet – so gesetzt, dass
+  er mit der Schneidenlänge endet: D / cos α + 2 · (Lc − D/2) · tan α; der
+  Schaft mindestens so dick.
+- Schwalbenschwanz: CuttingEdgeAngle = Flankenwinkel (zur Stirn gemessen),
+  NeckHeight geschätzt 0,3 × D. TipDiameter nimmt CAMs Skizze nicht.
+- Fasenfräser, Kegelsenker: CuttingEdgeHeight ist die Höhe des Kegels
+  (im Wochen-Build rechnet CAM daraus D).
+- Radienfräser: Der Bogen beginnt am Spitzen-Ø, sein Mittelpunkt auf dessen
+  Höhe; leer ist der Spitzen-Ø D − 2 × Radius. Das Bild zeichnet ihn seitdem
+  genauso.
+- Nutenfräser als Säge: Über der Scheibe hat CAM nur den Schaft – er
+  bekommt den Hals-Ø; die Kappe unter der Scheibe 1 µm (0 löst CAMs Skizze
+  nicht).
+- Gewindefräser: CAM kennt einen Zahn unten, darüber den Hals bis zum
+  Schaft (NeckLength = Schneidenlänge + Halslänge). Crest = P/8 – dann fräst
+  CAM auf den Nenndurchmesser. Zurück kommt die Höhe des Zahns als
+  Schneidenlänge.
+- Zentrierbohrer: Bohrer mit dem Zapfen-Ø und dessen Spitze (118°); die
+  Senkung kennt CAM nicht.
+- Gewindebohrer: ohne Flutes (CAM zeigt „None-flute“); ist der Schaft so
+  dick wie D, geht er 1 µm dünner (sonst eine Kante der Länge 0).
+- Taster: SpindleDirection „None“, ohne Schneidstoff.
+- Gesamtlänge: geschätzt ab dem Ende des Halses (Reichweite + 2 × D);
+  eingetragen kürzer als Schneide und Hals, bekommt CAM 1 mm Schaft
+  darüber – sonst bauen Gewinde-, Schwalbenschwanz-, Konik- und Fasenfräser
+  keinen Körper.
+- Schnittwert-Vorschläge: beim Bohren voller Eintauchvorschub
+  (vert_feed_ratio 1); die Reibahle hat in CAM keine Schneidenzahl, ihr
+  Chipload ist f je Umdrehung; der Gewindebohrer hat keinen – den Vorschub
+  nimmt CAM aus der Steigung.
+
 ## 7. Umstellung alter Dateien
 
 `radiusfraeser` in einer gespeicherten Bibliothek wird beim Laden zu
@@ -234,7 +272,10 @@ Eine ältere Version des Addons liest unbekannte Arten als Schaftfräser.
    f fest; Drehwerkzeuge und Taster mit einem Satz statt der Tabelle. Für
    CAM-Presets: Planen → pocket, Fasen/Verrunden/Gewindefräsen → profile,
    die bohrenden → drill.*
-5. **CAM:** Übergabe und Übernahme aller Arten (Abschnitt 6).
+5. **CAM:** Übergabe und Übernahme aller Arten (Abschnitt 6). – *Gebaut
+   (P-2026-09-26-59): jede Art mit ihrer Form, Näherungen und Drehwerkzeuge
+   im Bericht; jede Form in CAM mit ihrer Art zurück. Geprüft an FreeCADs
+   eigenen Körpern in beiden Versionen.*
 6. **In den Job:** die neuen Einsätze auf die passenden Operationen.
 
 Jede Stufe: Szenario mit Screenshots, Hilfe „Werkzeuge“ ergänzt.

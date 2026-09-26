@@ -523,14 +523,67 @@ class Werkzeug:
         return w
 
 
-def geschaetzte_laenge(werkzeug):
-    """Gesamtlänge, wenn sie niemand eingetragen hat: Schneidenlänge + 2 × D, mindestens 3 × D.
+# --- Maße, eingetragen oder geschätzt ---------------------------------------
+#
+# Was nicht eingetragen ist, schätzen Bild und CAM gleich (werkzeugform.py,
+# uebergabe_werkzeuge.py): als Anteil von D je Art; sonst Schneidenlänge
+# 2 × D, Schaft = D. Den Hals des Schwalbenschwanz- und des Nutenfräsers
+# gibt es nur geschätzt – er hat kein Feld.
+ANTEIL_VON_D = {
+    (TORUSFRAESER, "eckradius"): 0.1,
+    (SCHWALBENSCHWANZFRAESER, "schneidenlaenge"): 0.25,
+    (SCHWALBENSCHWANZFRAESER, "hals_d"): 0.4,
+    (SCHWALBENSCHWANZFRAESER, "hals_laenge"): 0.3,
+    (LOLLIPOPFRAESER, "hals_d"): 0.6,
+    (LOLLIPOPFRAESER, "hals_laenge"): 2.0,
+    (RADIENFRAESER, "profilradius"): 0.2,
+    (PLANFRAESER, "schneidenlaenge"): 0.12,
+    (NUTENFRAESER, "schneidenbreite"): 0.1,
+    (NUTENFRAESER, "hals_d"): 0.3,
+    (NUTENFRAESER, "hals_laenge"): 0.25,
+    (GEWINDEFRAESER, "hals_d"): 0.7,
+    (GEWINDEFRAESER, "hals_laenge"): 1.0,
+    (ZENTRIERBOHRER, "schneidenlaenge"): 1.2,
+    (ZENTRIERBOHRER, "schaft"): 2.5,
+    (FLACHSENKER, "spitzen_d"): 0.6,
+    (TASTER, "schaft"): 0.6,
+}
+_ANTEIL_SONST = {"schneidenlaenge": 2.0, "schaft": 1.0}
 
-    Ohne Schneidenlänge zählt sie als 2 × D. 0, wenn D unbekannt ist.
+
+def mass(werkzeug, feld):
+    """Ein Maß in mm: eingetragen, sonst geschätzt (ANTEIL_VON_D).
+
+    Ein Feld, das die Art nicht hat, zählt nicht – dort steht vielleicht noch
+    der Wert einer anderen Art (ein Wechsel der Art löscht nichts).
+    """
+    w = werkzeug
+    wert = getattr(w, feld) if hat_feld(w, feld) else 0.0
+    if wert:
+        return wert
+    return ANTEIL_VON_D.get((w.art, feld), _ANTEIL_SONST.get(feld, 0.0)) * w.durchmesser
+
+
+def reichweite(werkzeug):
+    """Wie weit das Werkzeug unter dem Schaft reicht – Schneide und Hals –, in mm."""
+    w = werkzeug
+    if w.art == LOLLIPOPFRAESER:
+        schneide = w.durchmesser / 2  # der Hals sitzt mitten auf der Kugel
+    elif w.art == NUTENFRAESER:
+        schneide = mass(w, "schneidenbreite")
+    else:
+        schneide = mass(w, "schneidenlaenge")
+    return schneide + mass(w, "hals_laenge")
+
+
+def geschaetzte_laenge(werkzeug):
+    """Gesamtlänge, wenn sie niemand eingetragen hat: Reichweite + 2 × D, mindestens 3 × D.
+
+    Die Reichweite ist meist die Schneidenlänge (leer 2 × D), mit Hals bis zu
+    seinem Ende. 0, wenn D unbekannt ist.
     """
     d = werkzeug.durchmesser
-    schneide = werkzeug.schneidenlaenge or 2 * d
-    return max(schneide + 2 * d, 3 * d)
+    return max(reichweite(werkzeug) + 2 * d, 3 * d)
 
 
 def laenge_fuer_cam(werkzeug):
@@ -539,8 +592,8 @@ def laenge_fuer_cam(werkzeug):
 
 
 def schaft_fuer_cam(werkzeug):
-    """Der Schaftdurchmesser fürs ToolBit: eingetragen, sonst wie D."""
-    return werkzeug.schaft or werkzeug.durchmesser
+    """Der Schaftdurchmesser fürs ToolBit: eingetragen, sonst geschätzt (meist wie D)."""
+    return mass(werkzeug, "schaft")
 
 
 def _zahl(wert, typ, ersatz):

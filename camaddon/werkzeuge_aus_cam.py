@@ -3,29 +3,39 @@
 
 Die Gegenrichtung zu uebergabe_werkzeuge.py: Wer seine Fräser schon in
 FreeCAD angelegt hat, soll sie nicht abtippen. Übernommen werden Art,
-T-Nummer, Durchmesser, Schneiden, Schneidenlänge, Gesamtlänge, Schaft,
-Eckradius, Schneidstoff und der Name als Bezeichnung – Schnittwerte hat eine
-Bibliothek in FreeCAD 1.1.3 nicht. Formen, die die Werkzeugverwaltung nicht
-kennt (Gravierstichel, Sägen, Gewindefräser, Taster …), bleiben draußen und
-werden genannt.
+T-Nummer, die Maße, die die Art hat (Durchmesser, Schneiden, Längen, Schaft,
+Winkel, Hals, Steigung …), Schneidstoff und der Name – Schnittwerte hat eine
+Bibliothek in FreeCAD 1.1.3 nicht. Jede Form in CAM hat ihre Art
+(Spezifikation Werkzeugarten, Abschnitt 6); nur eigene Formen („Custom“)
+bleiben draußen und werden genannt.
 
 Läuft ohne Oberfläche.
 """
 
+import math
 from dataclasses import dataclass, field
 
 from . import werkzeuge as wz
 from .uebergabe_werkzeuge import BIBLIOTHEK_ID, PRAEFIX
 
 # Form in FreeCAD (ShapeType, klein geschrieben) → Art in der Werkzeugverwaltung.
-# Ein Gravierstichel (VBit) ist kein Fasenfräser: Die Werkzeugverwaltung
-# kennt keinen Spitzenwinkel, zurück an CAM käme er mit 90° an.
+# Ein Gravierstichel (VBit) ist ein spitzer Fasenfräser; der Gewindebohrer ist
+# links, wenn CAM ihn rückwärts drehen lässt.
 ARTEN = {
     "endmill": wz.SCHAFTFRAESER,
-    "bullnose": wz.TORUSFRAESER,
     "ballend": wz.KUGELFRAESER,
+    "bullnose": wz.TORUSFRAESER,
+    "taperedballnose": wz.KONIKFRAESER,
+    "dovetail": wz.SCHWALBENSCHWANZFRAESER,
     "chamfer": wz.FASENFRAESER,
+    "vbit": wz.FASENFRAESER,
+    "radius": wz.RADIENFRAESER,
+    "slittingsaw": wz.NUTENFRAESER,
+    "threadmill": wz.GEWINDEFRAESER,
     "drill": wz.BOHRER,
+    "tap": wz.GEWINDEBOHRER_RECHTS,
+    "reamer": wz.REIBAHLE,
+    "probe": wz.TASTER,
 }
 DURCHMESSER_TOLERANZ = 0.001  # mm – gleich, wenn so nah
 
@@ -99,28 +109,59 @@ def _zahl(wert):
 
 
 def werkzeug_aus(bit, nummer):
-    """Ein ToolBit als Werkzeug der Werkzeugverwaltung, oder None bei einer Form, die es hier nicht gibt."""
+    """Ein ToolBit als Werkzeug der Werkzeugverwaltung, oder None bei einer Form, die es hier nicht gibt.
+
+    Gesetzt wird nur, was die Art als Feld hat. Hat CAM keine Schneidenzahl
+    (Reibahle, Bohrer ohne Angabe), gilt die der Beispiele der Art.
+    """
     o = bit.obj
     art = ARTEN.get(str(getattr(o, "ShapeType", "") or "").lower())
     if art is None:
         return None
+    if art == wz.GEWINDEBOHRER_RECHTS and str(getattr(o, "SpindleDirection", "")) == "Reverse":
+        art = wz.GEWINDEBOHRER_LINKS
+    werte = {
+        "durchmesser": _mm(o, "Diameter"),
+        "schneidenlaenge": _mm(o, "CuttingEdgeHeight") or _mm(o, "CuttingEdgeLength"),
+        "gesamtlaenge": _mm(o, "Length"),
+        "schaft": _mm(o, "ShankDiameter") or _mm(o, "ShaftDiameter"),
+        "eckradius": _mm(o, "CornerRadius"),
+        "spitzenwinkel": _grad(o, "TipAngle") or _grad(o, "CuttingEdgeAngle"),
+        "kegelwinkel": round(_grad(o, "TaperAngle") / 2, STELLEN),
+        "flankenwinkel": _grad(o, "CuttingEdgeAngle") or _grad(o, "cuttingAngle"),
+        "spitzen_d": _mm(o, "TipDiameter"),
+        "hals_d": _mm(o, "NeckDiameter"),
+        "profilradius": _mm(o, "CuttingRadius"),
+        "schneidenbreite": _mm(o, "BladeThickness"),
+        "steigung": _mm(o, "Pitch"),
+    }
+    if art == wz.NUTENFRAESER:
+        # Über der Scheibe hat CAM nur den Schaft – er ist auch der Hals.
+        werte["hals_d"] = werte["schaft"]
+    if art == wz.GEWINDEFRAESER:
+        werte.update(_gewindefraeser(o, werte))
     w = wz.Werkzeug(nummer=int(nummer), art=art)
-    w.durchmesser = _mm(o, "Diameter")
-    schneiden = int(_zahl(getattr(o, "Flutes", 0)))
-    if schneiden >= 1:
-        w.schneiden = schneiden
-    elif art == wz.BOHRER:
-        w.schneiden = 2
-    w.schneidenlaenge = _mm(o, "CuttingEdgeHeight")
-    w.gesamtlaenge = _mm(o, "Length")
-    w.schaft = _mm(o, "ShankDiameter")
-    if art == wz.TORUSFRAESER:
-        w.eckradius = _mm(o, "CornerRadius")
-    if art == wz.BOHRER:
-        w.spitzenwinkel = _grad(o, "TipAngle")
-    w.schneidstoff = wz.HSS if "hss" in str(getattr(o, "Material", "")).lower() else wz.VHM
+    for feld, wert in werte.items():
+        if wz.hat_feld(w, feld):
+            setattr(w, feld, wert)
+    if wz.hat_feld(w, "schneiden"):
+        schneiden = int(_zahl(getattr(o, "Flutes", 0)))
+        w.schneiden = schneiden if schneiden >= 1 else wz.ARTDATEN[art].beispiel["schneiden"]
+    if wz.hat_feld(w, "schneidstoff"):
+        w.schneidstoff = wz.HSS if "hss" in str(getattr(o, "Material", "")).lower() else wz.VHM
     w.name = str(bit.label)
     return w
+
+
+def _gewindefraeser(o, werte):
+    """Schneidenlänge und Hals des Gewindefräsers: In CAM hat er einen Zahn
+    unten, darüber den Hals bis zum Schaft (NeckLength ab der Spitze)."""
+    d, hals = werte["durchmesser"], werte["hals_d"]
+    winkel = werte["flankenwinkel"] or 60.0
+    zahn = max(d - hals, 0.0) * math.tan(math.radians(winkel / 2)) + _mm(o, "Crest")
+    zahn = round(zahn, STELLEN)
+    hals_laenge = round(max(_mm(o, "NeckLength") - zahn, 0.0), STELLEN)
+    return {"schneidenlaenge": zahn, "hals_laenge": hals_laenge}
 
 
 def uebernehmen(bibliothek, adresse):

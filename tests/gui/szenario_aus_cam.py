@@ -1,6 +1,8 @@
 # „Aus CAM übernehmen“ (W-002): Werkzeuge aus FreeCADs Bibliothek „Default“
 # in die Werkzeugverwaltung – Menü der Bibliotheken, Rückmeldung, Liste,
-# gespeichert mit OK.
+# gespeichert mit OK. Seit Stufe 5 der Werkzeugarten kommen alle 13: auch
+# Gravierstichel (als Fasenfräser), Säge, Taster und Gewindefräser – mit
+# ihren Maßen und ihrem Bild.
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
 
@@ -36,20 +38,36 @@ def schritte(h):
     meldung = h.modal()
     if isinstance(meldung, QtGui.QMessageBox):
         text = meldung.text()
-        for teil in ("Übernommen: 5 Werkzeuge.", "3.175mm Endmill", "30 Deg. V-Bit"):
+        for teil in ("Übernommen: 12 Werkzeuge.", "3.175mm Endmill", "5mm Endmill"):
             h.pruefe(teil in text, f"„{teil}“ fehlt: {text!r}")
+        h.pruefe("kennt die Werkzeugverwaltung nicht" not in text, f"Formen fehlen: {text!r}")
         h.bild("1_meldung", meldung)
         meldung.accept()
     else:
         h.pruefe(False, f"keine Rückmeldung: {meldung}")
     yield 300
-    h.pruefe(d.liste.count() == 6, f"{d.liste.count()} Werkzeuge in der Liste statt 6")
+    h.pruefe(d.liste.count() == 13, f"{d.liste.count()} Werkzeuge in der Liste statt 13")
     h.pruefe(d.geaendert, "Übernommenes gilt nicht als Änderung")
     h.bild("2_liste", d)
+
+    # Neu übernehmbar: Gewindefräser, Gravierstichel, Säge – mit Maßen und Bild.
+    for name, art, bild in (
+        ("5mm-thread-cutter", wz.GEWINDEFRAESER, "3_gewindefraeser"),
+        ("30 Deg. V-Bit", wz.FASENFRAESER, "4_gravierstichel"),
+        ("Slitting Saw", wz.NUTENFRAESER, "5_saege"),
+    ):
+        zeile = next((i for i in range(d.liste.count()) if name in d.liste.item(i).text()), None)
+        h.pruefe(zeile is not None, f"{name} fehlt in der Liste")
+        if zeile is None:
+            continue
+        d.liste.setCurrentRow(zeile)
+        yield 300
+        h.pruefe(d.werkzeug.art == art, f"{name}: {d.werkzeug.art}")
+        h.bild(bild, d)
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield 500
     gespeichert = wz.Bibliothek.laden().werkzeuge
-    h.pruefe(len(gespeichert) == 6, f"{len(gespeichert)} gespeichert statt 6")
+    h.pruefe(len(gespeichert) == 13, f"{len(gespeichert)} gespeichert statt 13")
 
     # Wieder öffnen, alle Werkzeuge ansehen, Abbrechen: keine Rückfrage –
     # angesehen ist nicht geändert.

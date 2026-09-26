@@ -52,11 +52,11 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `export.py` | Übergabe an CAM mit Bericht |
 | `aktualisierung.py` | Update-Suche per Git, ohne Git per HTTPS (package.xml) und Update mit `installieren.py` |
 | `werkstoffe.py` | Werkstoffliste (W-002): mitgelieferte aus `daten/werkstoffe.json`, Anzeige, Suche |
-| `werkzeuge.py` | Werkzeugbibliothek (W-002): Werkzeuge, Einsätze und Schnittwerte je Werkstoff, eigene Werkstoffe, Speichern als JSON |
-| `werkzeugform.py` | Umriss jeder der 26 Werkzeugarten aus ihren Maßen (Vielecke in mm) – fürs Bild |
+| `werkzeuge.py` | Werkzeugbibliothek (W-002): Werkzeuge, Einsätze und Schnittwerte je Werkstoff, eigene Werkstoffe, Speichern als JSON; Maße eingetragen oder geschätzt (`mass`, `reichweite`) – für Bild und CAM gleich |
+| `werkzeugform.py` | Umriss jeder der 26 Werkzeugarten aus ihren Maßen (Vielecke in mm) – fürs Bild; die zusammengesetzten Maße (Kegel, Konus, Radienprofil) auch für CAM |
 | `schnittdaten.py` | Rechnen mit Schnittwerten: n, vf, Zeitspanvolumen, Eingriffswinkel, Spandicke; Kennzahlen und Urteil für den Strategievergleich |
-| `uebergabe_werkzeuge.py` | Werkzeuge an CAM übergeben: ToolBits und Bibliothek „CAM-Addon“ über `cam_assets`, Schnittwerte als Presets |
-| `werkzeuge_aus_cam.py` | Werkzeuge aus einer FreeCAD-Werkzeugbibliothek übernehmen: Form → Art, Maße, Nummern ohne Verschieben |
+| `uebergabe_werkzeuge.py` | Werkzeuge an CAM übergeben: ToolBits und Bibliothek „CAM-Addon“ über `cam_assets`, jede Art mit ihrer Form und deren Parametern (Näherungen im Bericht), Schnittwerte als Presets |
+| `werkzeuge_aus_cam.py` | Werkzeuge aus einer FreeCAD-Werkzeugbibliothek übernehmen: jede Form → Art, Maße, Nummern ohne Verschieben |
 | `schruppwerte.py` | Schruppwerte planen: fz je ae mit Spandickenausgleich, Grenzen von Werkzeug und Maschine (auch aus W-001), Vorschlag mit größtem Q |
 | `job_schnittwerte.py` | Schnittwerte in die Werkzeug-Controller eines Jobs: Werkstoff vom Rohteil, Werkzeug zum TC, Einsatz vorschlagen, dazu Schrittweite und Zustelltiefe der passenden Operationen; setzen in einer Transaktion |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste; ruft die anderen `gui_*` auf |
@@ -196,3 +196,7 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | Die Schrittweite heißt in 1.1.3 `StepOver` (ganze Prozent), im Adaptive des Wochen-Builds `StepOverPercent` (Kommazahl) | `zustellung()` nimmt, was die Operation hat |
 | Die Assembly setzt die Begrenzung eines Gelenks beim Lösen nicht durch; bewegt man nur einen Teil der Bauteile hinter einer Achse, zieht sie die Stellung beim Lösen woanders hin | `verfahren.py` bewegt immer alle Bauteile hinter der Achse und hält die Grenzen selbst ein |
 | Eine Operation anlegen, wenn der Job mehrere Werkzeug-Controller hat: FreeCAD fragt welchen – in FreeCADCmd 1.1.3 ein Fehler | Prüfungen legen Operationen an, solange der Job nur einen hat |
+| CAMs Werkzeugformen sind Skizzen: eine Kante der Länge 0 (Säge ohne Kappe, Gewindebohrer mit Schaft = D) oder ein Hals bis ans Ende lässt sie klagen oder keinen Körper bauen | `uebergabe_werkzeuge`: 1 µm statt 0, mindestens 1 mm Schaft; `test_cam_formen` fängt die Klagen auf der Konsole ab |
+| Den Taster baut CAM von oben nach unten (Spitze bei −Länge) | `test_cam_formen` vergleicht ihn gespiegelt |
+| Ein ToolBit, das an ein Dokument gehängt wurde, ist mit dem Dokument weg | vor dem Schließen lesen, was man braucht |
+| CAMs Bibliotheksfenster lädt seine Oberfläche erst, wenn die Werkbank CAM einmal aktiv war | Szenario schaltet vorher auf CAM |

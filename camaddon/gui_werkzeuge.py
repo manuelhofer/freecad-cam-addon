@@ -687,9 +687,12 @@ class WerkzeugDialog(QtGui.QDialog):
                 "wv.gesamtlaenge.platzhalter",
                 wert=groesse_zeigen(wz.geschaetzte_laenge(w), einheiten.LAENGE),
             )
-            schaft = tr(
-                "wv.schaft.platzhalter", wert=groesse_zeigen(w.durchmesser, einheiten.LAENGE)
-            )
+            geschaetzt = wz.schaft_fuer_cam(w)
+            wert = groesse_zeigen(geschaetzt, einheiten.LAENGE)
+            if geschaetzt == w.durchmesser:
+                schaft = tr("wv.schaft.platzhalter", wert=wert)
+            else:  # Taster, Zentrierbohrer: ein Anteil von D
+                schaft = tr("wv.schaft.platzhalter.geschaetzt", wert=wert)
         self.feld_gesamtlaenge.setPlaceholderText(laenge)
         self.feld_schaft.setPlaceholderText(schaft)
         # Leere Winkel: grau der übliche der Art (Bohrer 118°, Gewinde 60° …).
@@ -1005,6 +1008,12 @@ def bericht_text(bericht):
         absaetze.append(tr("wv.cam.ohne_presets"))
     if bericht.ohne_durchmesser:
         absaetze.append(tr("wv.cam.ohne_durchmesser", anzahl=bericht.ohne_durchmesser))
+    if bericht.naeherungen:
+        liste = ", ".join(
+            tr("wv.cam.naeherung.eintrag", werkzeug=werkzeug, form=form)
+            for werkzeug, form in bericht.naeherungen
+        )
+        absaetze.append(tr("wv.cam.naeherung", liste=liste))
     if bericht.ohne_form:
         absaetze.append(tr("wv.cam.ohne_form", liste=", ".join(bericht.ohne_form)))
     if bericht.entfernt:
