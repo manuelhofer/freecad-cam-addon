@@ -157,7 +157,17 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
    „Beispielmaschine laden …“ fünf fertige Maschinen zum Ausprobieren
    (P-2026-09-26-62) – etwa die Drehmaschine mit Revolver: T und C1
    verfahren, P1/P2 angetrieben von S3.
-5. **Besprechen:** Entscheidungen der Werkzeugverwaltung
+5. **Schräge Achse** (P-2026-09-26-65 bis -72): Beispiel-Drehmaschine →
+   „Maschine bearbeiten“ → unter „Transformationen“ „+ Schräge Achse“ →
+   Winkel 30 eintragen: In der 3D-Ansicht bleibt alles stehen, die
+   Beispielzeile zeigt „Y +10,0 mm → Y1 +11,5 mm, X1 −5,8 mm“; mit der Maus
+   auf dem Eintrag verweilen: X- und Y-Schlitten fahren zusammen hin und
+   her. OK → „Maschine verfahren“ steht auf „wie im Programm“: Y auf 10 →
+   beide Schlitten fahren; X auf 140, dann Y auf −40 → rote Zeile „… X1
+   steht an seiner Grenze 150,00 mm“. Im Wochen-Build „An CAM übergeben“:
+   der Bericht nennt die schräge Achse. Versteht man den Bereich ohne
+   Erklärung?
+6. **Besprechen:** Entscheidungen der Werkzeugverwaltung
    ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
    Nr. 13–23 sind von dieser Nacht) und die sechs Fragen zu Stufe 4
    ([Entwurf](spezifikation_simulation.md), Abschnitt 9).

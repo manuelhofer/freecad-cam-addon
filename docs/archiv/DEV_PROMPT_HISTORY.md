@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-74 snapshot-schraege-achse-ausprobieren
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md`, Abschnitt „Manuel probiert aus“.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Unter „Manuel probiert aus“ steht als Punkt 5 der Klickweg für die schräge
+Achse (anlegen, Winkel eintragen, Verweilen, Verfahren wie im Programm,
+Anschlag, Übergabe).
+
+### DONE
+- Klickweg ergänzt; „Besprechen“ ist jetzt Punkt 6.
+
+### TEST
+- Reine Doku, kein Testlauf.
+
+### NEXT
+- Push mit 0.19.0; Schritt 7 (Vorlage) nach Manuels Entscheidung.
+
 ## P-2026-09-26-73 version-0-19-0
 
 ### EINGELESEN
