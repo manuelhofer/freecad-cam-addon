@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-26-51 version-0-16-0
+
+### EINGELESEN
+- Arbeitsregeln Abschnitt 4: neue Funktion → mittlere Stelle. Seit
+  0.15.0: Maßsystem inch (P-2026-09-26-48), Knopf „Nach Updates suchen“
+  (P-2026-09-26-50).
+
+### DATEIEN
+- `package.xml` (0.16.0)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Update zeigt „Über das CAM-Addon“ die Version 0.16.0.
+
+### DONE
+- Version 0.15.0 → 0.16.0.
+
+### TEST
+- Vor dem Push `scripts/alle_tests.sh` in beiden Versionen.
+
+### NEXT
+- Push; dann die Beispielmaschinen zur Auswahl (Punkt 7b).
+
 ## P-2026-09-26-50 update-knopf
 
 ### EINGELESEN
