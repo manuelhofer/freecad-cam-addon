@@ -166,6 +166,8 @@ pruefe(getattr(e.hinweise[1], "werkzeug", None) is None, "G28-Hinweis mit Werkze
 # 11 Punkte: G0 Z10 ohne X und Y zählt nicht; der Kreis bringt zwei Umkehrstellen
 # (links bei X 130, oben bei Y 60) und sein Ende; der Bohrzyklus drei Höhen.
 pruefe(e.punkte == 11, f"Punkte: {e.punkte}")
+# An der 3-Achs-Fräse steht das Werkzeug längs Z: kein Hinweis zur Werkzeuglage.
+pruefe(not any("längs Z gerechnet" in h for h in e.hinweise), f"Fräse quer: {e.hinweise}")
 # Ein Programm, das um A dreht – die 3-Achs-Fräse hat keine Rundachse (W-003 V2c).
 teil_a, job_a, _op_a = neuer_job(["G0 X10 Y10 Z10", "G1 A90", "G1 X20"], "MitA")
 e = p.pruefe_job(job_a, FreeCAD.Vector())
@@ -349,6 +351,22 @@ op.Gcode = ["G0 X40 Y0 Z80", "G1 X20 Z-10 C90", "G1 X0"]
 teil.recompute()
 e = p.pruefe_job(job)
 pruefe(not any("Rundachse" in h for h in e.hinweise), f"C gilt als fremd: {e.hinweise}")
+# Die Bahn einer CAM-Operation ist für ein Werkzeug längs Z gerechnet; steht die Aufnahme
+# quer dazu (ein radialer Platz), sagt es ein Hinweis – bei einer axialen nicht.
+quer = {nr: p._werkzeug_quer(p.werkzeugaufnahme(nr), {}) for nr in (1, 2)}
+radial = [nr for nr, ist in quer.items() if ist]
+pruefe(len(radial) == 1, f"radial/axial an der Drehmaschine: {quer}")
+for nr in (1, 2):
+    op.ToolController.ToolNumber = nr
+    teil.recompute()
+    e = p.pruefe_job(job)
+    satz = [h for h in e.hinweise if "längs Z gerechnet" in h]
+    pruefe(
+        bool(satz) == quer[nr]
+        and (not satz or satz[0].startswith("„Eigene“: Die Bahn ist für ein Werkzeug längs Z")),
+        f"T{nr} ({'radial' if quer[nr] else 'axial'}): {satz}",
+    )
+op.ToolController.ToolNumber = 1
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 

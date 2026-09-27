@@ -57,7 +57,9 @@ so you also see how much room is left.</li>
 cannot reach at all (Y on a lathe without a Y axis, say), a missing turret
 station, commands the check does not know, a rotary axis in the program the
 machine does not have (A on a lathe with C, say – the check then ignores that
-rotation). A note about a tool ends with
+rotation), a tool sitting across the path (CAM operations calculate their paths
+for a tool along Z; a radial turret station would run them across the part).
+A note about a tool ends with
 <b>Open T1 …</b>: the tool manager opens at that tool. Once you save there
 (OK or Apply), the panel works with the new values right away – the measured
 gauge length or the chosen holder, say.</li>

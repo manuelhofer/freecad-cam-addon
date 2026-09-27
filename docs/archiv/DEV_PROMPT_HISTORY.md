@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-43 hinweis-werkzeug-quer
+
+### EINGELESEN
+- Manuels Test: „hier bewegt sich nun in der simulation das werkzeug das zur
+  z achse senkrecht steht mittig am pfad entlang .. das ist natürlich nicht
+  sinnvoll wenn man eine 4 achs beareitung hat“.
+- `camaddon/reichweite.py` (`_pruefe_operation`, `_z_verkehrt`),
+  `tests/test_reichweite.py` (Drehmaschine P1/P2), `help/*/reichweite.html`.
+
+### DATEIEN
+- `camaddon/reichweite.py` (`QUER`, `_werkzeug_quer`, Hinweis)
+- `translations/de.json`, `translations/en.json` (`rw.werkzeug_quer`)
+- `help/de/reichweite.html`, `help/en/reichweite.html`
+- `tests/test_reichweite.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Prüft man eine normale CAM-Operation mit einem Werkzeug auf einem radialen
+Platz, sagt ein Hinweis, dass die Bahn für ein Werkzeug längs Z gerechnet
+ist; auf einem axialen Platz und an der Fräse nicht.
+
+### DONE
+- Steht die Werkzeugaufnahme (in Grundstellung der Drehachsen) mehr als etwa
+  25° quer zu Z des Jobs, sagt ein Hinweis: „„Tasche“: Die Bahn ist für ein
+  Werkzeug längs Z gerechnet, T1 sitzt auf P1 aber quer dazu – so gefahren,
+  passt sie nicht zum Teil. Mit einem Platz längs Z (axial) passt sie; rundum
+  mit radialem Werkzeug braucht es eine eigene Bahn (4-Achs-Bearbeitung).“
+
+### TEST
+- `test_reichweite` in 1.1.3 ok: an der Beispiel-Drehmaschine genau ein Platz
+  radial – dort der Hinweis, am axialen nicht; an der Fräse keiner.
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- Die 4-Achs-Bearbeitung weiter: nach „Anlegen“ fragen, was man machen will,
+  Werkzeug wählen, Bahn rundum (V3–V6).
+
 ## P-2026-09-27-42 version-0-25-1
 
 ### EINGELESEN

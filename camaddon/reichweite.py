@@ -49,6 +49,9 @@ UNERREICHBAR_AB = 0.001
 # So fein (Grad) wird ein Satz geteilt, in dem sich eine Rundachse dreht.
 DREH_SCHRITT = 1.0
 RUNDACHSEN = ("A", "B", "C")
+# So weit (Kosinus) darf die Werkzeugaufnahme von Z des Jobs abweichen, sonst steht sie quer –
+# etwa 25°: ein schräg angestellter Kopf zählt noch, ein radialer Platz nicht.
+QUER = 0.9
 BOHRZYKLEN = {"G73", "G74", "G76", "G81", "G82", "G83", "G84", "G85", "G86", "G87", "G88", "G89"}
 # Befehle ohne Bewegung – Ebene, Maßsystem, Korrekturen, Nullpunkte, Modi: Die Prüfung
 # übergeht sie ohne Hinweis.
@@ -582,6 +585,19 @@ class Pruefung:
         z = werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
         return (werkstueck.Base - werkzeug.Base).dot(z) > 0
 
+    def _werkzeug_quer(self, werkzeugaufnahme, dreh_wege):
+        """Steht die Werkzeugaufnahme quer zu Z des Jobs – ein radialer Platz am Revolver?
+        Die Bahnen der CAM-Operationen sind für ein Werkzeug längs Z gerechnet; ein radiales
+        führe sie quer durchs Teil (Manuels Test, 2026-09-27)."""
+        werkzeug = self._glied_lage(self._glied(werkzeugaufnahme), dreh_wege).multiply(
+            self._lage(werkzeugaufnahme)
+        )
+        werkstueck = self._glied_lage(self._glied(self.werkstueckaufnahme), dreh_wege).multiply(
+            self._lage(self.werkstueckaufnahme)
+        )
+        z = werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+        return abs(werkstueck.Rotation.inverted().multVec(z).z) < QUER
+
     def achsen_fuer(self, werkzeugaufnahme):
         """(Linearachsen, Drehachsen) zwischen dieser Werkzeugaufnahme und dem Werkstück."""
         achsen = self._achsen_zwischen(werkzeugaufnahme)
@@ -677,8 +693,18 @@ class Pruefung:
         if len(linear) > 3:
             sammler.zu_viele(linear)
             return
-        if self._z_verkehrt(aufnahme, self._dreh_wege(aufnahme, drehachsen, {})):
+        grundstellung = self._dreh_wege(aufnahme, drehachsen, {})
+        if self._z_verkehrt(aufnahme, grundstellung):
             sammler.hinweis(tr("rw.z_verkehrt", aufnahme=m.name_von(aufnahme)))
+        elif self._werkzeug_quer(aufnahme, grundstellung):
+            sammler.hinweis(
+                tr(
+                    "rw.werkzeug_quer",
+                    operation=op.Label,
+                    werkzeug=f"T{nummer}",
+                    aufnahme=m.name_von(aufnahme),
+                )
+            )
         loesung = self.loeser(aufnahme, laenge, nullpunkt_des_jobs)
 
         sammler.beginne(op.Label, linear, drehachsen)
