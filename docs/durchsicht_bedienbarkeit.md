@@ -242,6 +242,7 @@ Revolver T, sonst Positionieren (A, B, C nach der Achse); bei „+ Betriebsart�
 ist der NC-Name vorbelegt. Man prüft nur noch. **Fertig, wenn:** die
 Drehmaschine aus `szenario_maschine_bearbeiten` mit einem Klick S1, Z1, X1 und
 T bekommt.
+*Erledigt (P-2026-09-27-23).*
 
 ### D-26 „Neue Maschine …“: Maße auch für die Fräsen (mittel bis groß)
 **Heute:** Nur die Drehmaschine hat Maße; bei den Fräsen steht „Diese Bauart

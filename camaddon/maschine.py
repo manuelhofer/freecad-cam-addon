@@ -37,6 +37,8 @@ Maschine 0 sein, also ist 0 als „unbekannt“ eindeutig.
 Läuft ohne Oberfläche.
 """
 
+import re
+
 import FreeCAD
 
 from . import kette as kette_modul
@@ -333,6 +335,70 @@ def neue_betriebsart(maschine, gelenk, art, nc_name):
     objekt.NcName = nc_name
     beschrifte(objekt)
     return objekt
+
+
+# --- Vorschlag: Betriebsarten aus Gelenkart, Name und Richtung (Durchsicht W-004, D-25) ---
+
+_SPINDEL_WORTE = ("spindel", "spindle")
+_REVOLVER_WORTE = ("revolver", "turret")
+# Ein Achsbuchstabe allein, vielleicht mit Nummer: „X“, „X-Schlitten“, „Achse B2“ – nicht
+# das A in „Achse“.
+_ACHSBUCHSTABE = re.compile(r"(?<![A-Za-z])([XYZABC])(\d*)(?![A-Za-z])")
+
+
+def vorgeschlagene_art(achse):
+    """Die Betriebsart, die zum Gelenk passt: ein Schiebegelenk linear; ein Drehgelenk mit
+    „Spindel“ im Namen eine Spindel, mit „Revolver“ der Revolver, sonst Positionieren."""
+    if achse.art == LINEAR:
+        return ART_LINEAR
+    name = achse.gelenk.Label.lower()
+    if any(wort in name for wort in _SPINDEL_WORTE):
+        return ART_SPINDEL
+    if any(wort in name for wort in _REVOLVER_WORTE):
+        return ART_REVOLVER
+    return ART_POSITIONIEREN
+
+
+def vorgeschlagener_name(maschine, achse, art):
+    """Der NC-Name für eine neue Betriebsart: Spindeln S1, S2 …, der Revolver T; sonst der
+    Achsbuchstabe aus dem Namen des Gelenks („X-Schlitten“ → X1) oder aus seiner Richtung
+    (entlang X → X1, um Z gedreht → C1). Schon vergebene Namen zählen weiter (X2)."""
+    vergeben = {ba.NcName for ba in betriebsarten(maschine)}
+    if art == ART_REVOLVER:
+        return "T" if "T" not in vergeben else _frei("T", vergeben, ab=2)
+    if art == ART_SPINDEL:
+        return _frei("S", vergeben)
+    erlaubt = "XYZ" if art == ART_LINEAR else "ABC"
+    for buchstabe, nummer in _ACHSBUCHSTABE.findall(achse.gelenk.Label):
+        if buchstabe in erlaubt:
+            if nummer and buchstabe + nummer not in vergeben:
+                return buchstabe + nummer
+            return _frei(buchstabe, vergeben)
+    anteile = [abs(achse.richtung.x), abs(achse.richtung.y), abs(achse.richtung.z)]
+    return _frei(erlaubt[anteile.index(max(anteile))], vergeben)
+
+
+def _frei(buchstabe, vergeben, ab=1):
+    """Der erste freie Name: „X1“, sonst „X2“ …"""
+    nummer = ab
+    while f"{buchstabe}{nummer}" in vergeben:
+        nummer += 1
+    return f"{buchstabe}{nummer}"
+
+
+def schlage_betriebsarten_vor(maschine, kette):
+    """Gibt jeder Achse ohne Betriebsart eine – Art und NC-Name wie vorgeschlagen, die
+    Kennwerte leer (0 = unbekannt): Die trägt man ein, die Prüfung sagt, welche fehlen.
+    Gibt die neuen Betriebsarten zurück."""
+    mit_betriebsart = [ba.Gelenk for ba in betriebsarten(maschine)]
+    neu = []
+    for achse in kette.achsen:
+        if any(gelenk == achse.gelenk for gelenk in mit_betriebsart):
+            continue
+        art = vorgeschlagene_art(achse)
+        name = vorgeschlagener_name(maschine, achse, art)
+        neu.append(neue_betriebsart(maschine, achse.gelenk, art, name))
+    return neu
 
 
 def neue_aufnahme(maschine, lcs, art, bezeichnung, spindel=None, platz=0):

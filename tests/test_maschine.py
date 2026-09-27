@@ -5,6 +5,7 @@ import math
 import os
 import sys
 import tempfile
+from types import SimpleNamespace
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HIER))
@@ -159,6 +160,56 @@ if ma:
     s4 = next(ba for ba in m.betriebsarten(ma) if ba.NcName == "S4")
     pruefe("Hidden" in s4.getEditorMode("Eilgang"), "Sichtbarkeit nach dem Laden verloren")
 App.closeDocument(doc.Name)
+
+# --- Vorschlag (D-25): Die Testdrehmaschine bekommt S1, Z1, X1 und T ---------------------------
+asm = beispielmaschinen.drehmaschine()
+ma = m.lege_maschine_an(asm)
+k = kette.lies_kette(asm)
+paare = sorted((ba.Gelenk.Label, ba.Art, ba.NcName) for ba in m.schlage_betriebsarten_vor(ma, k))
+pruefe(
+    paare
+    == [
+        ("Revolverachse", m.ART_REVOLVER, "T"),
+        ("Spindel", m.ART_SPINDEL, "S1"),
+        ("X", m.ART_LINEAR, "X1"),
+        ("Z", m.ART_LINEAR, "Z1"),
+    ],
+    f"Vorschlag: {paare}",
+)
+pruefe(m.schlage_betriebsarten_vor(ma, k) == [], "zweiter Vorschlag legt noch etwas an")
+
+
+def gedachte_achse(name, art, richtung=(1, 0, 0)):
+    """Nur, was der Vorschlag braucht: Gelenk mit Namen, Art, Richtung."""
+    return SimpleNamespace(
+        gelenk=SimpleNamespace(Label=name), art=art, richtung=App.Vector(*richtung)
+    )
+
+
+# Vergebene Namen zählen weiter; der Buchstabe aus dem Namen, sonst aus der Richtung.
+for name, art, richtung, betriebsart, erwartet in (
+    ("X-Schlitten", kette.LINEAR, (1, 0, 0), m.ART_LINEAR, "X2"),
+    ("Schlitten", kette.LINEAR, (0, 0.6, 0.8), m.ART_LINEAR, "Z2"),
+    ("Schlitten", kette.LINEAR, (0, -1, 0), m.ART_LINEAR, "Y1"),
+    ("Schlitten_Z3", kette.LINEAR, (1, 0, 0), m.ART_LINEAR, "Z3"),
+    ("Joint001", kette.DREH, (0, 0, 1), m.ART_POSITIONIEREN, "C1"),
+    ("Achse B", kette.DREH, (1, 0, 0), m.ART_POSITIONIEREN, "B1"),
+    ("Gegenspindel", kette.DREH, (1, 0, 0), m.ART_SPINDEL, "S2"),
+    ("Revolver 2", kette.DREH, (1, 0, 0), m.ART_REVOLVER, "T2"),
+):
+    vorschlag = m.vorgeschlagener_name(ma, gedachte_achse(name, art, richtung), betriebsart)
+    pruefe(vorschlag == erwartet, f"Name für „{name}“: {vorschlag} statt {erwartet}")
+for name, art, erwartet in (
+    ("Z", kette.LINEAR, m.ART_LINEAR),
+    ("Hauptspindel", kette.DREH, m.ART_SPINDEL),
+    ("Spindle", kette.DREH, m.ART_SPINDEL),
+    ("Revolverachse", kette.DREH, m.ART_REVOLVER),
+    ("Turret", kette.DREH, m.ART_REVOLVER),
+    ("Schwenkkopf", kette.DREH, m.ART_POSITIONIEREN),
+):
+    vorschlag = m.vorgeschlagene_art(gedachte_achse(name, art))
+    pruefe(vorschlag == erwartet, f"Art für „{name}“: {vorschlag} statt {erwartet}")
+App.closeDocument(asm.Document.Name)
 
 assert not fehler, "\n".join(fehler)
 print("OK", os.path.basename(__file__))

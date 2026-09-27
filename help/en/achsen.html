@@ -16,6 +16,23 @@ build your own. Next time the choice starts at the one loaded last.</p>
 button in the toolbar. For the lathe you enter its dimensions there – bed
 slant, an inclined Y axis, travels, turret stations, speed (help there).</p>
 
+<h3>Suggest</h3>
+<p>In an assembly you built yourself, no joint has an operating mode at first.
+<b>Suggest</b> gives every joint without one an operating mode:</p>
+<ul>
+<li>Slider joints <b>Linear</b>. The NC name comes from the joint's name when
+an axis letter stands on its own there (“X”, “X slide”, “Slide Z2” → X1, X1,
+Z2), otherwise from the direction: along X of the assembly → X1.</li>
+<li>Revolute joints with “spindle” in the name a <b>Spindle</b> (S1, S2 …),
+with “turret” the <b>Turret</b> (T), otherwise <b>Positioning</b> – A, B or
+C, depending on the assembly axis it turns about.</li>
+</ul>
+<p>If a name is taken, it counts on (X2). The values stay empty – the notes
+below say which are missing. Check the suggestions: on a lathe whose assembly
+lies differently from the machine, the letters taken from the direction are
+not always right. <b>+ Operating mode</b> suggests the NC name the same way;
+typing replaces it.</p>
+
 <h3>The operating modes</h3>
 <table cellpadding="4">
 <tr><td><b>Linear</b></td><td>The axis travels. Slider joints only. Examples: X1, Z1, Y.</td></tr>

@@ -257,7 +257,14 @@ class MaschinenPanel:
         menue.aboutToShow.connect(lambda: self._fuelle_betriebsart_menue(menue))
         self.knopf_betriebsart.setMenu(menue)
         self.knopf_ba_weg = _knopf(tr("dialog.entfernen"), self.betriebsart_entfernen)
-        self.achsen_knoepfe = _knopfreihe([self.knopf_betriebsart, self.knopf_ba_weg])
+        self.knopf_vorschlagen = _knopf(
+            tr("dialog.vorschlagen"),
+            self.betriebsarten_vorschlagen,
+            tr("dialog.vorschlagen.tooltip"),
+        )
+        self.achsen_knoepfe = _knopfreihe(
+            [self.knopf_betriebsart, self.knopf_ba_weg, self.knopf_vorschlagen]
+        )
         self._aufbau.addWidget(self.achsen_knoepfe)
 
     def _baue_transformationen(self):
@@ -329,12 +336,23 @@ class MaschinenPanel:
     # --- Aktionen: Knöpfe und Oberflächen-Szenarien rufen sie auf -------------
 
     def betriebsart_anlegen(self, gelenk, art):
-        """Neue Betriebsart am Gelenk; danach steht der Cursor im Feld „NC-Name“."""
-        ba = m.neue_betriebsart(self.maschine, gelenk, art, "")
+        """Neue Betriebsart am Gelenk, der NC-Name vorgeschlagen (D-25); danach steht der
+        Cursor im Feld „NC-Name“, der Vorschlag markiert – Tippen ersetzt ihn."""
+        achse = self.kette.achse_von(gelenk)
+        name = m.vorgeschlagener_name(self.maschine, achse, art) if achse is not None else ""
+        ba = m.neue_betriebsart(self.maschine, gelenk, art, name)
         self.neu_aufbauen(auswahl=ba)
         feld = self.details.feld(0)
         if feld is not None:
             feld.setFocus()
+            feld.selectAll()
+
+    def betriebsarten_vorschlagen(self):
+        """„Vorschlagen“: jedes Gelenk ohne Betriebsart bekommt eine (D-25); gewählt ist
+        danach die erste neue – die Hinweise sagen, welche Kennwerte fehlen."""
+        neu = m.schlage_betriebsarten_vor(self.maschine, self.kette)
+        self.neu_aufbauen(auswahl=neu[0] if neu else None)
+        return neu
 
     def betriebsart_entfernen(self):
         """Entfernt die gewählte Betriebsart; was sie antrieb, hat danach keinen Antrieb."""
@@ -579,6 +597,10 @@ class MaschinenPanel:
         """Nur die Knöpfe bedienbar machen, die zur Auswahl passen."""
         achse = self.kette.achse_von(self._gewaehltes_gelenk())
         self.knopf_betriebsart.setEnabled(achse is not None)
+        mit = [ba.Gelenk for ba in m.betriebsarten(self.maschine)]
+        self.knopf_vorschlagen.setEnabled(
+            any(all(g != a.gelenk for g in mit) for a in self.kette.achsen)
+        )
         art, _objekt = _zeilendaten(self.achsen.currentItem())
         self.knopf_ba_weg.setEnabled(art == ZEILE_BETRIEBSART)
         art, _objekt = _zeilendaten(self.aufnahmen.currentItem())

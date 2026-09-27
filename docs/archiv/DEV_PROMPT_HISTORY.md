@@ -12,6 +12,60 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-23 betriebsarten-vorschlagen
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-25 (und D-14: Kennwerte leer lassen
+  ist die Empfehlung, noch nicht entschieden); `camaddon/maschine.py`
+  (`neue_betriebsart`, Arten), `camaddon/kette.py` (`Achse`: Art, Richtung),
+  `camaddon/gui_maschine.py` („+ Betriebsart“, Knöpfe), die NC-Namen der
+  Beispielmaschinen (X1, Y1, Z1, A1, B1, C1, S1, S3, T),
+  `tests/beispielmaschinen.py` (Testdrehmaschine: Gelenke „Spindel“, „Z“,
+  „X“, „Revolverachse“), `help/*/achsen.html`.
+
+### DATEIEN
+- `camaddon/maschine.py` (`vorgeschlagene_art`, `vorgeschlagener_name`,
+  `schlage_betriebsarten_vor`)
+- `camaddon/gui_maschine.py` (Knopf „Vorschlagen“, NC-Name bei „+
+  Betriebsart“ vorbelegt)
+- `translations/de.json`, `translations/en.json` (`dialog.vorschlagen` samt
+  Tooltip)
+- `help/de/achsen.html`, `help/en/achsen.html`
+- `tests/test_maschine.py`, `tests/gui/szenario_maschine_bearbeiten.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Drehmaschine aus `szenario_maschine_bearbeiten` bekommt mit einem Klick
+S1, Z1, X1 und T (Fertig-wenn von D-25).
+
+### DONE
+- **Vorschlagen** unter den Achsen: Jedes Gelenk ohne Betriebsart bekommt
+  eine. Schiebegelenke linear, der NC-Name aus einem allein stehenden
+  Achsbuchstaben im Namen des Gelenks („X-Schlitten“ → X1, „Schlitten Z2“ →
+  Z2), sonst aus der Richtung (größter Anteil: X, Y oder Z). Drehgelenke mit
+  „Spindel“/„spindle“ im Namen eine Spindel (S1 …), mit „Revolver“/„turret“
+  der Revolver (T), sonst Positionieren (A, B, C nach der Drehachse).
+  Vergebene Namen zählen weiter (X2, S2, T2). Der Knopf ist nur bedienbar,
+  wenn ein Gelenk noch keine Betriebsart hat.
+- Die Kennwerte bleiben leer (0 = unbekannt) – wie in D-14 empfohlen; die
+  Hinweise sagen, welche fehlen.
+- **+ Betriebsart** belegt den NC-Namen genauso vor, markiert – Tippen
+  ersetzt ihn.
+- Alles liegt im Schritt des Dialogs: Abbrechen nimmt es zurück.
+
+### TEST
+- `test_maschine` in 1.1.3 ok – Testdrehmaschine: S1, Z1, X1, T; ein zweiter
+  Vorschlag legt nichts an; Namen aus Name und Richtung, weiterzählen, Arten
+  nach Namen (auch englisch).
+- `szenario_maschine_bearbeiten` in 1.1.3 ok – vorgeschlagene Namen bei „+
+  Betriebsart“ (Z1, X1), „Vorschlagen“ an der leeren Maschine; Bild
+  `6_vorgeschlagen` angesehen.
+- Alle Einzeltests in 1.1.3 ok (`scripts/tests_ausfuehren.sh`).
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-26: Maße auch für die Fräsen bei „Neue Maschine …“.
+
 ## P-2026-09-27-22 verweise-mit-praefix
 
 ### EINGELESEN

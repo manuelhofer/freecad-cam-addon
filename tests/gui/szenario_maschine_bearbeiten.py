@@ -1,7 +1,9 @@
 # Dialog „Maschine bearbeiten“ an der Beispiel-Drehmaschine: leer öffnen,
 # Betriebsarten (Z1, X1, S4 + C4 an einem Gelenk, Revolver) und Aufnahmen
 # anlegen, 12 Revolverplätze verteilen, OK = ein Schritt Rückgängig,
-# Abbrechen verwirft.
+# Abbrechen verwirft. „+ Betriebsart“ schlägt den NC-Namen vor (Z → Z1);
+# „Vorschlagen“ gibt der leeren Maschine mit einem Klick S1, Z1, X1 und T
+# (D-25).
 import os
 import sys
 
@@ -68,6 +70,7 @@ def schritte(h):
         panel.hinweise.count() == 2, f"leere Maschine: {panel.hinweise.count()} Hinweise statt 2"
     )
     h.pruefe(panel.knopf_betriebsart.isEnabled(), "„+ Betriebsart“ ist beim Öffnen nicht bedienbar")
+    h.pruefe(panel.knopf_vorschlagen.isEnabled(), "„Vorschlagen“ ist beim Öffnen nicht bedienbar")
 
     # Betriebsarten anlegen – wie ein Benutzer: Gelenk wählen, Art wählen, Felder füllen.
     for gelenk, art, name, werte in (
@@ -80,6 +83,9 @@ def schritte(h):
         panel.achsen.setCurrentItem(eintrag(panel.achsen, gelenk))
         betriebsart_waehlen(panel, m.art_text(art))
         yield 100
+        if art == m.ART_LINEAR:  # der NC-Name ist schon vorgeschlagen (D-25)
+            vorgeschlagen = panel.details.feld(0).text()
+            h.pruefe(vorgeschlagen == name, f"{gelenk}: vorgeschlagen {vorgeschlagen!r}")
         tippen(panel.details.feld(0), name)
         for i, wert in enumerate(werte, start=1):
             if wert is not None:
@@ -134,6 +140,7 @@ def schritte(h):
     h.pruefe(
         texte == ["Alles vollständig – keine Hinweise."], f"Hinweise nach dem Ausfüllen: {texte}"
     )
+    h.pruefe(not panel.knopf_vorschlagen.isEnabled(), "„Vorschlagen“ ohne Gelenk ohne Betriebsart")
     panel.aufnahmen.setCurrentItem(eintrag(panel.aufnahmen, "P3"))
     yield 300
     h.bild("4_vollstaendig_p3_gewaehlt")
@@ -194,3 +201,32 @@ def schritte(h):
     doc.undo()
     yield 300
     h.pruefe(m.finde_maschine(asm) is None, "Rückgängig entfernt die Maschine nicht")
+
+    # „Vorschlagen“ an der leeren Maschine: ein Klick, S1, Z1, X1 und T (D-25).
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(asm)
+    Gui.runCommand("CamAddon_MaschineBearbeiten")
+    yield 1000
+    panel = gui_maschine.MaschinenPanel.offen
+    h.pruefe(panel is not None, "Dialog öffnet sich zum Vorschlagen nicht")
+    if panel is None:
+        return
+    panel.knopf_vorschlagen.click()
+    yield 300
+    paare = sorted((ba.Gelenk.Label, ba.Art, ba.NcName) for ba in m.betriebsarten(panel.maschine))
+    h.pruefe(
+        paare
+        == [
+            ("Revolverachse", m.ART_REVOLVER, "T"),
+            ("Spindel", m.ART_SPINDEL, "S1"),
+            ("X", m.ART_LINEAR, "X1"),
+            ("Z", m.ART_LINEAR, "Z1"),
+        ],
+        f"vorgeschlagen: {paare}",
+    )
+    texte = [panel.hinweise.item(i).text() for i in range(panel.hinweise.count())]
+    h.pruefe(any("Eilgang" in t for t in texte), f"fehlender Eilgang nicht gemeldet: {texte}")
+    h.pruefe(not panel.knopf_vorschlagen.isEnabled(), "„Vorschlagen“ nach dem Vorschlag bedienbar")
+    h.bild("6_vorgeschlagen")
+    panel.reject()
+    yield 500

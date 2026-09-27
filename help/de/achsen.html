@@ -19,6 +19,24 @@ der Werkzeugleiste. Bei der Drehmaschine trägst du dort ihre Maße ein –
 Bettneigung, eine schräge Y-Achse, Wege, Revolverplätze, Drehzahl (Hilfe
 dort).</p>
 
+<h3>Vorschlagen</h3>
+<p>Bei einer selbst gebauten Baugruppe hat erst einmal kein Gelenk eine
+Betriebsart. <b>Vorschlagen</b> gibt jedem Gelenk ohne Betriebsart eine:</p>
+<ul>
+<li>Schiebegelenke <b>Linear</b>. Den NC-Namen nimmt es aus dem Namen des
+Gelenks, wenn dort ein Achsbuchstabe allein steht („X“, „X-Schlitten“,
+„Schlitten Z2“ → X1, X1, Z2), sonst aus der Richtung: entlang X der
+Baugruppe → X1.</li>
+<li>Drehgelenke mit „Spindel“ im Namen eine <b>Spindel</b> (S1, S2 …), mit
+„Revolver“ den <b>Revolver</b> (T), sonst <b>Positionieren</b> – A, B oder
+C, je nachdem, um welche Achse der Baugruppe es dreht.</li>
+</ul>
+<p>Ist ein Name schon vergeben, zählt es weiter (X2). Die Kennwerte bleiben
+leer – die Hinweise unten sagen, welche fehlen. Prüf die Vorschläge: Bei einer
+Drehmaschine, deren Baugruppe anders liegt als die Maschine, stimmen die
+Buchstaben aus der Richtung nicht immer. Auch <b>+ Betriebsart</b> schlägt den
+NC-Namen so vor; Tippen ersetzt ihn.</p>
+
 <h3>Die Betriebsarten</h3>
 <table cellpadding="4">
 <tr><td><b>Linear</b></td><td>Die Achse fährt. Nur an Schiebegelenken. Beispiele: X1, Z1, Y.</td></tr>

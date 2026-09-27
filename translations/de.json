@@ -915,5 +915,7 @@
     "kb.kurz.wo": "wo?",
     "kb.kurz.beruehrt": "Es stößt etwas an",
     "kb.kurz.nahe": "Nichts berührt sich, aber manches kommt näher als {abstand}",
-    "rw.werkzeug_oeffnen": "{werkzeug} öffnen …"
+    "rw.werkzeug_oeffnen": "{werkzeug} öffnen …",
+    "dialog.vorschlagen": "Vorschlagen",
+    "dialog.vorschlagen.tooltip": "Gibt jedem Gelenk ohne Betriebsart eine: Schiebegelenke linear, der NC-Name aus dem Namen des Gelenks („X-Schlitten“ → X1) oder aus seiner Richtung; Drehgelenke mit „Spindel“ im Namen eine Spindel (S1), mit „Revolver“ den Revolver (T), sonst Positionieren (A, B oder C nach der Drehachse). Die Kennwerte trägst du danach ein – die Hinweise sagen, welche fehlen."
 }
