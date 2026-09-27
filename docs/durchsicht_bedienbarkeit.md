@@ -118,6 +118,26 @@ Maschine …“), den Selbstbau danach. Gehört zu D-26. **Fertig, wenn:** Meldu
 und Befehl denselben Namen tragen und der leichte Weg vorn steht.
 *Erledigt (P-2026-09-27-16).*
 
+### D-09 Zweiter Controller desselben Werkzeugs heißt „… L001“ (klein bis mittel)
+*Nachgetragen am 2026-09-27, beim Szenario zu D-28 aufgefallen.*
+**Heute:** Bekommt ein Werkzeug einen zweiten Controller („Werkzeug-Controller
+hinzufügen“ in „Schnittwerte in den Job“ oder FreeCADs eigener Weg über die
+Bibliothek), hängt FreeCAD das Werkzeug ein zweites Mal ins Dokument und
+macht seinen Namen eindeutig: Es ersetzt die Zahl am Ende durch einen Zähler.
+Aus „Schaftfräser T3 VHM D12 L26“ wird „… L001“, dann „… L002“ – in 1.1.3
+und im Wochen-Build nachgeprüft. Unsere Namen enden fast immer auf ein Maß;
+der Zähler liest sich wie eine Schneidenlänge von 1 mm. Das Prüffenster nennt
+T3 dann zweimal, einmal mit „L001“ (`szenario_schnittwerte_pruefen/1_veraltet`,
+Hinweise unten). **Vorschlag:** (1) Das Addon hängt ein Werkzeug, das ein
+Controller desselben Jobs schon hat, nicht noch einmal an – der neue
+Controller benutzt dasselbe; FreeCAD löscht es erst mit dem letzten
+Controller. (2) Die Hinweise des Prüffensters nennen ein Werkzeug aus der
+Werkzeugverwaltung mit deren Namen, einmal je Werkzeug. (3) FreeCADs eigenen
+Weg ändert das nicht – dort hilft nur ein Name, der nicht auf eine Zahl
+endet (Frage 6 in Abschnitt 6). **Fertig, wenn:** ein zweiter Controller aus
+„Schnittwerte in den Job“ kein „L001“ erzeugt und das Prüffenster T3 einmal
+nennt.
+
 ## 3. Einfacher bedienen
 
 ### D-10 Prüffenster: Urteile oben, Kollision sichtbar (mittel)
@@ -339,3 +359,11 @@ eingerichtet); D-24 zuletzt, weil es eine Datengrundlage braucht.
 5. **D-14 Beispielwerte an der Maschine:** A) leer lassen (Empfehlung – ein
    falscher Grenzwert ist schlimmer als ein fehlender); B) grau vorbelegen
    wie beim Werkzeug.
+6. **D-09 Werkzeugnamen in CAM** (nachgetragen): A) Namen wie heute
+   („Schaftfräser T3 VHM D12 L26“); nur FreeCADs eigener Weg zum zweiten
+   Controller ergibt dann noch „… L001“ (Empfehlung – der Name bleibt, wie
+   ihn Werkstatt und Steuerung kennen, und der Weg über „Schnittwerte in den
+   Job“ ist nach D-09 (1) sauber); B) Namen so bauen, dass sie nicht auf eine
+   Zahl enden, etwa „T3 Schaftfräser D12 L26 VHM“ – FreeCAD hängt dann
+   „001“ an, statt das Maß zu ersetzen; ändert aber beim nächsten Übergeben
+   die Namen aller Werkzeuge ohne eigenen Namen.

@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-32 befund-d09
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md` (Abschnitte 2 und 6),
+  `camaddon/werkzeuge.py` (`beispielname`, `anzeigename`),
+  `camaddon/job_schnittwerte.py` (`lege_controller_an`),
+  `camaddon/reichweite.py` (`werkzeug_text`, Hinweise zur Länge);
+  Bild `szenario_schnittwerte_pruefen/1_veraltet`.
+
+### DATEIEN
+- `docs/durchsicht_bedienbarkeit.md` (D-09, Frage 6)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der beim Szenario zu D-28 aufgefallene Fehler steht als Befund mit Vorschlag
+in der Durchsicht; was Manuel entscheiden muss, steht als Frage mit
+Empfehlung in Abschnitt 6.
+
+### DONE
+- D-09: Ein zweiter Controller desselben Werkzeugs hängt das Werkzeug ein
+  zweites Mal ins Dokument; FreeCAD macht den Namen eindeutig, indem es die
+  Zahl am Ende ersetzt – „Schaftfräser T3 VHM D12 L26“ wird „… L001“, „…
+  L002“ (in 1.1.3 und im Wochen-Build mit einem kleinen Skript
+  nachgeprüft). Vorschlag: dasselbe Werkzeug benutzen, die Hinweise mit dem
+  Namen der Werkzeugverwaltung, einmal je Werkzeug.
+- Frage 6: Namen wie heute (Empfehlung) oder so bauen, dass sie nicht auf
+  eine Zahl enden.
+
+### TEST
+- Reine Doku-Änderung, kein Testlauf (`docs/arbeitsregeln.md`, Abschnitt 5).
+
+### NEXT
+- D-09 (1) und (2) umsetzen – sie brauchen keine Entscheidung.
+
 ## P-2026-09-27-31 veraltete-schnittwerte
 
 ### EINGELESEN
