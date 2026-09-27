@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <package format="1" xmlns="https://wiki.freecad.org/Package_Metadata">
     <name>CAM Addon</name>
-    <description>Makes FreeCAD CAM easier to use. Describe a machine as an assembly - axes, spindles, tool and workpiece mounts, inclined axes -, or create one ready-made (a lathe with your own dimensions, mills), move its axes by hand, hand it to CAM, check a CAM job's paths against its travel limits, watch the machine run through them and check for collisions of tool, holder and machine. Tool manager with 26 tool types (milling, drilling, turning, probing), tool holders, a material list, cutting data per material, a comparison of milling strategies and a planner for roughing values; hands tools, cutting data, step over and step down over to CAM and imports tools from CAM libraries. 4-axis machining: places a part in round bar stock as a CAM job.</description>
+    <description>Makes FreeCAD CAM easier to use. Describe a machine as an assembly - axes, spindles, tool and workpiece mounts, inclined axes -, or create one ready-made (a lathe with your own dimensions, mills), move its axes by hand, hand it to CAM, check a CAM job's paths against its travel limits, watch the machine run through them, check for collisions of tool, holder and machine and whether the job's cutting data still match the tool manager. Tool manager with 26 tool types (milling, drilling, turning, probing), tool holders, a material list, cutting data per material, a comparison of milling strategies and a planner for roughing values; hands tools, cutting data, step over and step down over to CAM and imports tools from CAM libraries. 4-axis machining: places a part in round bar stock as a CAM job, along the rotary axis of your machine.</description>
     <icon>resources/icons/camaddon.svg</icon>
-    <version>0.24.0</version>
-    <date>2026-09-26</date>
+    <version>0.25.0</version>
+    <date>2026-09-27</date>
     <maintainer>Manuel Hofer</maintainer>
     <license file="LICENSE">LGPL-2.1-or-later</license>
     <url type="repository" branch="main">https://github.com/manuelhofer/freecad-cam-addon</url>

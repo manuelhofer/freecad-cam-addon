@@ -34,6 +34,10 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Maschine gegen das fertige Teil, die Spannmittel und die Maschine – rot, wenn
   etwas anstößt („In „Tasche“ berühren sich der Halter von T3 und das Teil“),
   gelb, wenn es näher kommt als der Warnabstand; ein Klick zeigt die Stelle.
+  Oben im Fenster die Urteile auf einen Blick – Achsen, Kollision,
+  Werkzeuglänge und **Schnittwerte** (passen Drehzahl und Vorschub im Job
+  noch zur Werkzeugverwaltung? sonst „übernehmen“); die Maschine merkt es sich
+  und öffnet sie beim nächsten Mal selbst.
 - **Werkzeugverwaltung:** Werkstoffliste mit deutschen Bezeichnungen
   („1.4301 X5CrNi18-10 · Edelstahl, austenitisch“), Zusammensetzung und
   Härte; Werkzeuge mit Bild, Suche und Schnittwerten je Werkstoff und
@@ -55,9 +59,11 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   daraus werden –, und legt auf Wunsch die Werkzeug-Controller gleich an.
 - **4-Achs-Bearbeitung** (erster Schritt): Stirnfläche eines Teils anklicken
   – das Teil sitzt vorne mittig in einer runden Stange (z. B. Ø 80), als
-  CAM-Job mit Zylinder-Rohteil, für die Rundachse A, B oder C. Das Fenster
-  sagt, ob das Teil hineinpasst; alles ist einstellbar, leere Felder gelten
-  mit ihrem Vorschlag. Flächen, Werkzeuge und Bahnen folgen.
+  CAM-Job mit Zylinder-Rohteil. Ist eine Maschine offen, gibt sie die
+  Rundachse vor – an der Drehmaschine liegt die Stange längs der Spindel;
+  ohne Maschine A, B oder C. Das Fenster sagt, ob das Teil hineinpasst; alles
+  ist einstellbar, leere Felder gelten mit ihrem Vorschlag. Flächen,
+  Werkzeuge und Bahnen folgen.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).

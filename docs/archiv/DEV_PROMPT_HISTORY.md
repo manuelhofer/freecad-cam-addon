@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-39 version-0-25-0
+
+### EINGELESEN
+- Manuels Rückmeldung: „ja doof jetzt nicht gepuscht .. heißt ich kann nichts
+  testen … wenn ich sage pusch jetzt dann auch puschen !!“
+- `camaddon/aktualisierung.py`: Der Update-Knopf meldet nur eine höhere
+  Version in `package.xml` – alles seit 0.24.0 (P-2026-09-27-07 bis -38)
+  war auf GitHub, kam über den Knopf aber nicht an.
+- `package.xml`, `README.md`, der Versionssprung P-2026-09-26-99.
+
+### DATEIEN
+- `package.xml` (0.25.0, Datum, Beschreibung), `README.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet Manuel 0.25.0 an; danach hat er die
+Durchsicht W-004 (D-01 bis D-30, D-09) und die 4-Achs-Stufe V2a/V2c.
+
+### DONE
+- Version 0.25.0 mit Datum 2026-09-27; Beschreibung für den Addon-Manager
+  und README nennen das Urteil „Schnittwerte“ und die Rundachse von der
+  Maschine.
+
+### TEST
+- Auf Manuels Ansage sofort gepusht; der Volllauf in beiden Versionen folgt
+  danach und wird ausgewertet.
+
+### NEXT
+- Volllauf; Manuels Fragen zur 4-Achs-Bearbeitung (Werkzeug, Bahnen,
+  Werkzeuglage im Abfahren, Kollision) beantworten und planen.
+
 ## P-2026-09-27-38 vierachs-pruefen-futter
 
 ### EINGELESEN
