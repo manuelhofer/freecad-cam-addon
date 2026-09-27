@@ -88,6 +88,7 @@ kürzere Weg des Addons fehlt. **Vorschlag:** dazu: „Schneller: „Schnittwert
 den Job“ → „Werkzeug-Controller hinzufügen“ legt Controller mit Drehzahl und
 Vorschub in einem Schritt an.“ **Fertig, wenn:** die Rückmeldung beide Wege
 nennt.
+*Erledigt (P-2026-09-27-14).*
 
 ### D-07 Die Spanneisen der 3-Achs-Fräse sind nicht erwähnt (klein)
 **Heute:** Seit 0.24.0 bringt die 3-Achs-Fräse aus „Neue Maschine …“ zwei

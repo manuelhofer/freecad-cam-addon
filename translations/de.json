@@ -373,7 +373,7 @@
     "wv.cam.ohne_presets": "Die Schnittwerte übernimmt diese FreeCAD-Version noch nicht an den Werkzeugen – das kann der Wochen-Build und ab der nächsten Version. Die Werkzeuge selbst sind da.",
     "wv.cam.ohne_durchmesser": "Nicht übergeben, weil der Durchmesser fehlt: {anzahl}.",
     "wv.cam.entfernt": "Aus CAM entfernt, weil es sie hier nicht mehr gibt: {anzahl}.",
-    "wv.cam.weiter": "So geht es weiter: In einem CAM-Job ein Werkzeug hinzufügen und die Bibliothek „CAM-Addon“ wählen. Wo Gesamtlänge oder Schaft leer sind, sind sie geschätzt (Schneidenlänge + 2 × D, Schaft = D).",
+    "wv.cam.weiter": "So geht es weiter: Am schnellsten legt „Schnittwerte in den Job“ → „Werkzeug-Controller hinzufügen“ die Werkzeug-Controller mit Drehzahl und Vorschub in einem Schritt an. Von Hand: in einem CAM-Job ein Werkzeug hinzufügen und die Bibliothek „CAM-Addon“ wählen. Wo Gesamtlänge oder Schaft leer sind, sind sie geschätzt (Schneidenlänge + 2 × D, Schaft = D).",
     "wv.cam.fehler": "Die Übergabe an CAM hat nicht geklappt:\n{fehler}",
     "befehl.schnittwerte_job.titel": "Schnittwerte in den Job",
     "befehl.schnittwerte_job.tooltip": "Setzt Drehzahl und Vorschub der Werkzeug-Controller eines CAM-Jobs aus der Werkzeugverwaltung – passend zum Werkstoff des Rohteils.",

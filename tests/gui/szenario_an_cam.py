@@ -65,6 +65,8 @@ def schritte(h):
             h.pruefe("Vorschläge dazu: 2" in text, f"Presets in der Rückmeldung: {text!r}")
         else:
             h.pruefe("noch nicht an den Werkzeugen" in text, f"1.1.3-Hinweis: {text!r}")
+        # Der kurze Weg in den Job steht mit drin (D-06).
+        h.pruefe("„Werkzeug-Controller hinzufügen“" in text, f"kurzer Weg fehlt: {text!r}")
         h.bild("2_rueckmeldung", meldung)
         meldung.accept()
     yield 300

@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-14 an-cam-kurzer-weg
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-06; `camaddon/gui_werkzeuge.py`
+  (bericht_text), die Namen im Dialog „Schnittwerte in den Job“
+  (`sj.tc_neu`), `tests/gui/szenario_an_cam.py`.
+
+### DATEIEN
+- `translations/de.json`, `translations/en.json` (`wv.cam.weiter`)
+- `tests/gui/szenario_an_cam.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Rückmeldung nach „Speichern und an CAM übergeben“ nennt zuerst den
+kurzen Weg („Schnittwerte in den Job“ → „Werkzeug-Controller hinzufügen“),
+dann den von Hand.
+
+### DONE
+- Ein Satz vorn: „Am schnellsten legt „Schnittwerte in den Job“ →
+  „Werkzeug-Controller hinzufügen“ die Werkzeug-Controller mit Drehzahl und
+  Vorschub in einem Schritt an.“ Danach der Weg von Hand wie bisher.
+
+### TEST
+- `szenario_an_cam` in 1.1.3 ok – prüft den kurzen Weg im Text; Screenshot
+  angesehen.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-07.
+
 ## P-2026-09-27-13 auswahl-beim-oeffnen
 
 ### EINGELESEN
