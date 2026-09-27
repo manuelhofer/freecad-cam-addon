@@ -926,5 +926,8 @@
     "wv.schnittwerte.noch_keine": "Dieses Werkzeug hat noch keine Schnittwerte. „+ Einsatz“ legt den ersten an – er gilt für alle Werkstoffe.",
     "wv.einsatz.erster_fuer_alle": "Der erste Einsatz gilt für alle Werkstoffe – deshalb steht oben jetzt „Alle Werkstoffe“. Sind die Werte für {werkstoff} anders, legst du danach dort eigene an.",
     "sj.ebene_duenn.uebernehmen": "ap {ap} {e_laenge} übernehmen",
-    "sj.ebene_duenn.wv_offen": "Die Werkzeugverwaltung ist offen – ändere ap dort, oder schließ sie erst. Sonst schriebe ihr OK den alten Wert zurück."
+    "sj.ebene_duenn.wv_offen": "Die Werkzeugverwaltung ist offen – ändere ap dort, oder schließ sie erst. Sonst schriebe ihr OK den alten Wert zurück.",
+    "sj.eigenschaft.einsatz": "Einsatz und Werkstoff, aus denen das CAM-Addon Drehzahl und Vorschub zuletzt gesetzt hat („Schnittwerte in den Job“)",
+    "sj.herkunft.rohteil_gemerkt": "Vom Rohteil des Jobs, wie beim letzten Mal: {werkstoff}.",
+    "sj.herkunft.gemerkt": "Das Rohteil hat keinen Werkstoff, den die Werkzeugverwaltung kennt – vorgewählt ist der vom letzten Mal: {werkstoff}."
 }

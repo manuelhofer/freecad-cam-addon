@@ -265,17 +265,23 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         return self.wahl_werkstoff.currentData() or wz.ALLE
 
     def _job_gewaehlt(self, *_):
-        """Werkstoff vom Rohteil, Zeilen für die Werkzeug-Controller."""
+        """Werkstoff vom Rohteil – oder der zuletzt gewählte –, Zeilen für die Controller."""
         job = self.job
-        werkstoff = js.werkstoff_des_jobs(job, self.bibliothek.alle_werkstoffe()) if job else None
+        alle = self.bibliothek.alle_werkstoffe()
+        werkstoff, gemerkt = js.werkstoff_fuer(job, alle) if job else (None, False)
         index = self.wahl_werkstoff.findData(werkstoff.kennung if werkstoff else wz.ALLE)
         self.wahl_werkstoff.blockSignals(True)
         self.wahl_werkstoff.setCurrentIndex(max(index, 0))
         self.wahl_werkstoff.blockSignals(False)
-        if werkstoff is not None:
-            self.herkunft.setText(tr("sj.herkunft.rohteil", werkstoff=ws.anzeige(werkstoff)))
-        else:
+        if werkstoff is None:
             self.herkunft.setText(tr("sj.herkunft.unbekannt"))
+        elif not gemerkt:
+            self.herkunft.setText(tr("sj.herkunft.rohteil", werkstoff=ws.anzeige(werkstoff)))
+        elif js.werkstoff_des_jobs(job, alle) is not None:
+            text = tr("sj.herkunft.rohteil_gemerkt", werkstoff=ws.anzeige(werkstoff))
+            self.herkunft.setText(text)
+        else:
+            self.herkunft.setText(tr("sj.herkunft.gemerkt", werkstoff=ws.anzeige(werkstoff)))
         self._knopf_am_rohteil_zeigen()
         self._zeilen_aufbauen()
 
@@ -497,7 +503,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             return None
         try:
             ue.uebergeben(self.bibliothek)
-            tc = js.lege_controller_an(self.dokument, self.job, werkzeug, einsatz)
+            tc = js.lege_controller_an(self.dokument, self.job, werkzeug, einsatz, self.werkstoff)
         except Exception as fehler:  # jeder Fehler von CAM soll als Satz ankommen
             FreeCAD.Console.PrintError(f"CAM-Addon: Werkzeug-Controller anlegen: {fehler}\n")
             QtGui.QMessageBox.warning(self, tr("sj.titel"), tr("sj.tc_neu.fehler", fehler=fehler))
@@ -518,7 +524,10 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             if einsatz is not None:
                 zuordnung.append((tc, werkzeug, einsatz))
         job = self.job if self.mit_zustellung.isChecked() else None
-        gesetzt = js.setze(self.dokument, zuordnung, job) if zuordnung else js.Gesetzt()
+        if zuordnung:
+            gesetzt = js.setze(self.dokument, zuordnung, job, self.werkstoff)
+        else:
+            gesetzt = js.Gesetzt()
         self.gesetzt = gesetzt
         if gesetzt.operationen:
             text = tr(

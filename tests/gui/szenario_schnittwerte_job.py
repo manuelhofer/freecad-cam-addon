@@ -5,9 +5,11 @@
 # nimmt es zurück. Die Einsätze der Werkzeugarten finden ihre Operation: der
 # Planfräser „Planen“ in der Fläche (mit Schrittweite und Zustelltiefe), der
 # Zentrierbohrer „Zentrieren“ in der Bohrung – mit vollem Eintauchvorschub.
-# Zum Schluss (D-30): FreeCADs „TC: 5mm Endmill“ und „TC fremd“ benutzt keine
+# Dann (D-30): FreeCADs „TC: 5mm Endmill“ und „TC fremd“ benutzt keine
 # Operation – der Dialog sagt es, „Entfernen“ nimmt beide samt Werkzeug aus
-# dem Job, Strg+Z holt sie zurück.
+# dem Job, Strg+Z holt sie zurück. Zum Schluss: Der Dialog schlägt vor, womit
+# man zuletzt gesetzt hat – den Einsatz auch gegen den Namen des TC, von zwei
+# Werkstoffen mit der Nummer des Rohteils den vom letzten Mal.
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
@@ -32,6 +34,7 @@ def schritte(h):
 
     from camaddon import gui_job_schnittwerte as gj
     from camaddon import uebergabe_werkzeuge as ue
+    from camaddon import werkstoffe as ws
     from camaddon import werkzeuge as wz
 
     fraeser = wz.Werkzeug(
@@ -256,3 +259,43 @@ def schritte(h):
         sorted(o.Name for o in dok.Objects) == objekte_vorher,
         "Strg+Z holt die Controller nicht vollständig zurück",
     )
+
+    # Gemerkt: „T3 Schruppen dynamisch“ mit Vollnut gesetzt, mit dem mitgelieferten C45 –
+    # obwohl ein eigener Werkstoff mit derselben Nummer vor ihm steht.
+    eigener = ws.Werkstoff("eigen-1", nummer="1.0503", kurzname="C45 eigen", eigen=True)
+    bibliothek.eigene_werkstoffe.append(eigener)
+    bibliothek.speichern()
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_SchnittwerteJob"))
+    yield 1000
+    d = gj.SchnittwerteJobDialog.offen
+    h.pruefe(d is not None and d.isVisible(), "Dialog geht zum Merken nicht auf")
+    if d is None:
+        return
+    h.pruefe(d.werkstoff == "eigen-1", f"eigener Werkstoff nicht vorn: {d.werkstoff!r}")
+    d.wahl_werkstoff.setCurrentIndex(d.wahl_werkstoff.findData("1.0503"))
+    yield 200
+    zeilen = {d.tabelle.item(z, gj.TC).text(): z for z in range(d.tabelle.rowCount())}
+    d.waehle_einsatz(zeilen["T3 Schruppen dynamisch"], 0)
+    d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
+    yield 800
+    meldung = h.modal()
+    if isinstance(meldung, QtGui.QMessageBox):
+        meldung.accept()
+    yield 300
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_SchnittwerteJob"))
+    yield 1000
+    d = gj.SchnittwerteJobDialog.offen
+    h.pruefe(d is not None and d.isVisible(), "Dialog geht nach dem Merken nicht auf")
+    if d is None:
+        return
+    h.pruefe(d.werkstoff == "1.0503", f"Werkstoff vom letzten Mal: {d.werkstoff!r}")
+    h.pruefe(
+        d.herkunft.text().startswith("Vom Rohteil des Jobs, wie beim letzten Mal: 1.0503"),
+        f"Herkunft: {d.herkunft.text()!r}",
+    )
+    zeilen = {d.tabelle.item(z, gj.TC).text(): z for z in range(d.tabelle.rowCount())}
+    einsatz = d.tabelle.cellWidget(zeilen["T3 Schruppen dynamisch"], gj.EINSATZ).currentText()
+    h.pruefe(einsatz == "Vollnut", f"gemerkter Einsatz: {einsatz!r}")
+    h.bild("6_gemerkt", d)
+    d.reject()
+    yield 300

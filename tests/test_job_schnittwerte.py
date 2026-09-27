@@ -3,7 +3,8 @@
 # (über die ToolBit-ID der Übergabe und über T-Nummer/Durchmesser),
 # vorgeschlagener Einsatz, Setzen in einer Transaktion samt Strg+Z. Die
 # Einsätze der Werkzeugarten finden ihre Operation: Planen das Planfräsen,
-# Fasen das Entgraten, Zentrieren die Bohrung (Werkzeugarten, Stufe 6).
+# Fasen das Entgraten, Zentrieren die Bohrung (Werkzeugarten, Stufe 6). Der TC
+# merkt sich Einsatz und Werkstoff; beide schlägt das Addon wieder vor.
 import os
 import pathlib
 import sys
@@ -135,6 +136,7 @@ gesetzt = js.setze(
         (tc2, bohrer, bohrer.einsaetze("1.4301")[0]),
         (tc2, fraeser, wz.Einsatz(vc=0, fz=0)),
     ],
+    werkstoff="1.4301",
 )
 pruefe(gesetzt == js.Gesetzt(2, []), f"{gesetzt} statt 2 TC (ohne vc/fz nichts)")
 pruefe(
@@ -146,8 +148,17 @@ pruefe(
     tc2.SpindleSpeed == 2996 and round(mm_min(tc2.VertFeed)) == 599,
     f"TC 2: {tc2.SpindleSpeed}, {tc2.VertFeed}",
 )
+# Gemerkt, ausgeblendet: Einsatz und Werkstoff. Der gemerkte Einsatz geht dem im Namen vor.
+gemerkt = js.gemerkter_einsatz(tc1)
+pruefe(gemerkt == js.Gemerkt("1.4301", wz.VOLLNUT, ""), f"gemerkt: {gemerkt}")
+gemerkt = js.gemerkter_einsatz(tc2)
+pruefe(gemerkt == js.Gemerkt("1.4301", wz.BOHREN, ""), f"ohne vc und fz gemerkt: {gemerkt}")
+pruefe("Hidden" in tc1.getEditorMode(js.EIGENSCHAFT_EINSATZ), "gemerkter Einsatz sichtbar")
+pruefe(js.vorgeschlagener_einsatz(tc1, einsaetze, job) == 0, "gemerkter Einsatz nicht vorn")
 dok.undo()
 pruefe((tc1.SpindleSpeed, mm_min(tc1.HorizFeed)) == vorher, "Strg+Z nimmt nicht alles zurück")
+pruefe(js.gemerkter_einsatz(tc1) is None, "Strg+Z lässt den gemerkten Einsatz stehen")
+pruefe(js.vorgeschlagener_einsatz(tc1, einsaetze, job) == 1, "nach Strg+Z nicht am Namen")
 
 # Operationen: Adaptiv bekommt vom dynamischen Einsatz ae als Schrittweite und
 # ap als Zustelltiefe; die Tasche nicht (dynamisch nur ins Adaptive), die
@@ -265,6 +276,23 @@ pruefe(js.nummer_am_rohteil(job) == "1.4301", "Strg+Z bringt 1.4301 nicht zurüc
 fantasie = ws.Werkstoff("eigen-9", nummer="9.9999", kurzname="Fantasie", eigen=True)
 pruefe(js.karte_fuer(fantasie) is None, "Karte für eine Nummer, die FreeCAD nicht kennt")
 pruefe(js.setze_werkstoff_am_rohteil(dok, job, fantasie) is None, "ohne Karte gesetzt")
+
+# Gerechnet wird mit dem Werkstoff des Rohteils (1.4301) – außer, der TC wurde zuletzt mit
+# einem Zustand derselben Nummer gesetzt; hat das Rohteil keinen bekannten, gilt der gemerkte.
+geglueht = ws.Werkstoff("1.4301", nummer="1.4301", kurzname="A")
+kalt = ws.Werkstoff("1.4301+C", nummer="1.4301", kurzname="B")
+eigen = ws.Werkstoff("eigen-1", kurzname="Eigen", eigen=True)
+pruefe(js.werkstoff_fuer(job, [geglueht, kalt]) == (geglueht, False), "ohne Gemerktes")
+js.setze(dok, [(tc1, fraeser, einsaetze[1])], werkstoff="1.4301+C")
+pruefe(js.werkstoff_fuer(job, [geglueht, kalt], tc1) == (kalt, True), "Zustand nicht gemerkt")
+pruefe(js.werkstoff_fuer(job, [geglueht, kalt]) == (kalt, True), "Job: nicht der erste gemerkte")
+pruefe(js.werkstoff_fuer(job, [geglueht, kalt], tc2) == (kalt, True), "TC 2 nicht wie der Job")
+js.setze(dok, [(tc1, fraeser, einsaetze[1])], werkstoff="eigen-1")
+pruefe(js.werkstoff_fuer(job, [geglueht, eigen], tc1) == (geglueht, False), "Rohteil zuerst")
+pruefe(js.werkstoff_fuer(job, [eigen], tc1) == (eigen, True), "ohne Rohteil nicht der gemerkte")
+js.setze(dok, [(tc1, fraeser, einsaetze[1])], werkstoff=wz.ALLE)
+pruefe(js.werkstoff_fuer(job, [eigen], tc1) == (None, False), "alle Werkstoffe gemerkt")
+pruefe(js.werkstoff_fuer(job, [eigen], tc2) == (None, False), "TC 2: wie der Job alle")
 
 FreeCAD.closeDocument(dok.Name)
 

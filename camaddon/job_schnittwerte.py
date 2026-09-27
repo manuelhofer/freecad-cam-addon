@@ -7,7 +7,8 @@ Werkzeugverwaltung – über die ToolBit-ID „camaddon_…“ der übergebenen
 Bibliothek, sonst über T-Nummer und Durchmesser –, schlägt einen Einsatz
 vor und rechnet n und vf aus dessen vc und fz. Passt der Einsatz zu einer
 Operation, die den TC benutzt, bekommt sie auch ae und ap als Schrittweite
-und Zustelltiefe. Gesetzt wird in einer Transaktion (ein Strg+Z).
+und Zustelltiefe. Gesetzt wird in einer Transaktion (ein Strg+Z). Am TC merkt
+es sich Einsatz und Werkstoff – beim nächsten Mal schlägt es dieselben vor.
 
 Das ist der Weg für FreeCAD 1.1.3, das Schnittwerte am Werkzeug nicht kennt;
 im Wochen-Build geht es zusätzlich über FreeCADs eigenen Vorschlag.
@@ -15,13 +16,16 @@ im Wochen-Build geht es zusätzlich über FreeCADs eigenen Vorschlag.
 Läuft ohne Oberfläche.
 """
 
+import json
 import math
 from dataclasses import dataclass, field
 
 import FreeCAD
 
 from . import schnittdaten as sd
+from . import werkstoffe as ws
 from . import werkzeuge as wz
+from .sprache import tr
 from .uebergabe_werkzeuge import PRAEFIX, freecad_werkstoffe
 
 # Anteil des Vorschubs beim Eintauchen und Rampen – wie FreeCADs Vorgabe für
@@ -80,6 +84,10 @@ HELIX_WINKEL = ("HelixMaxRampAngle", "HelixAngle")
 # eigener Umlauf (im Adaptiv mit eigener Helix) für wenig Material.
 DUENNE_EBENE = 0.25
 
+# Womit das Addon Drehzahl und Vorschübe eines TC zuletzt gesetzt hat – als JSON
+# {"werkstoff": …, "art": …, "name": …} in einer ausgeblendeten Eigenschaft des TC.
+EIGENSCHAFT_EINSATZ = "CamAddonEinsatz"
+
 
 @dataclass
 class Gesetzt:
@@ -87,6 +95,15 @@ class Gesetzt:
 
     controller: int = 0  # Anzahl
     operationen: list = field(default_factory=list)  # Beschriftungen
+
+
+@dataclass(frozen=True)
+class Gemerkt:
+    """Womit das Addon einen TC zuletzt gesetzt hat (gemerkter_einsatz())."""
+
+    werkstoff: str  # Kennung, wz.ALLE oder "" (unbekannt)
+    art: str  # die Art des Einsatzes
+    name: str  # sein eigener Name; leer = der Name der Art
 
 
 def jobs(dokument):
@@ -119,6 +136,29 @@ def werkstoff_des_jobs(job, werkstoffe):
     if not nummer:
         return None
     return next((w for w in werkstoffe if w.nummer == nummer), None)
+
+
+def werkstoff_fuer(job, werkstoffe, tc=None):
+    """(Werkstoff oder None, gemerkt?): der Werkstoff, mit dem gerechnet wird.
+
+    Der des Rohteils (werkstoff_des_jobs). Hat das Addon zuletzt mit einem
+    Werkstoff derselben Nummer gerechnet – gehärtet statt geglüht –, der; hat
+    das Rohteil keinen, der zuletzt benutzte. None: alle Werkstoffe. Gemerkt
+    ist, womit das Addon `tc` gesetzt hat; ist an ihm keiner gemerkt (oder
+    ohne `tc`), gilt der erste TC des Jobs mit einem – wie im Dialog, der
+    einen Werkstoff für alle hat. „gemerkt?“ sagt, ob das die Wahl geändert
+    hat.
+    """
+    am_rohteil = werkstoff_des_jobs(job, werkstoffe)
+    for kandidat in ([tc] if tc is not None else []) + werkzeug_controller(job):
+        gemerkt = gemerkter_einsatz(kandidat)
+        if gemerkt is None or not gemerkt.werkstoff:
+            continue
+        frueher = ws.finde(werkstoffe, gemerkt.werkstoff)
+        if frueher is not None and (am_rohteil is None or frueher.nummer == am_rohteil.nummer):
+            return frueher, frueher is not am_rohteil
+        break
+    return am_rohteil, False
 
 
 def nummer_am_rohteil(job):
@@ -193,13 +233,19 @@ def _mm(wert):
 def vorgeschlagener_einsatz(tc, einsaetze, job):
     """Welche Zeile der Tabelle am ehesten passt; Index oder -1, wenn es keine gibt.
 
-    Erst der Name des TC („T3 Schruppen dynamisch“ enthält den Namen einer
+    Erst die, mit der das Addon den TC zuletzt gesetzt hat (gemerkter_einsatz),
+    dann der Name des TC („T3 Schruppen dynamisch“ enthält den Namen einer
     Zeile), dann die Operationen, die den TC benutzen, sonst die erste Zeile.
     Passen mehrere Namen, gewinnt der längste: „T3 Schruppen dynamisch“
     enthält auch „Schruppen“.
     """
     if not einsaetze:
         return -1
+    gemerkt = gemerkter_einsatz(tc)
+    if gemerkt is not None:
+        for i, einsatz in enumerate(einsaetze):
+            if (einsatz.art, einsatz.name) == (gemerkt.art, gemerkt.name):
+                return i
     beschriftung = tc.Label.lower()
     passend = [
         i for i, einsatz in enumerate(einsaetze) if wz.einsatz_name(einsatz).lower() in beschriftung
@@ -212,6 +258,33 @@ def vorgeschlagener_einsatz(tc, einsaetze, job):
                 if einsatz.art == art:
                     return i
     return 0
+
+
+def gemerkter_einsatz(tc):
+    """Womit das Addon Drehzahl und Vorschübe des TC zuletzt gesetzt hat (Gemerkt), oder None."""
+    try:
+        daten = json.loads(getattr(tc, EIGENSCHAFT_EINSATZ, "") or "{}")
+    except ValueError:
+        return None
+    if not isinstance(daten, dict) or not daten.get("art"):
+        return None
+    return Gemerkt(
+        str(daten.get("werkstoff") or ""), str(daten["art"]), str(daten.get("name") or "")
+    )
+
+
+def _merke_einsatz(tc, einsatz, werkstoff):
+    """Merkt am TC Einsatz und Werkstoff (Kennung, wz.ALLE oder "") – ausgeblendet."""
+    text = json.dumps(
+        {"werkstoff": werkstoff, "art": einsatz.art, "name": einsatz.name}, ensure_ascii=False
+    )
+    if EIGENSCHAFT_EINSATZ not in tc.PropertiesList:
+        tc.addProperty(
+            "App::PropertyString", EIGENSCHAFT_EINSATZ, "CAM-Addon", tr("sj.eigenschaft.einsatz")
+        )
+        tc.setEditorMode(EIGENSCHAFT_EINSATZ, 2)  # ausgeblendet – das Addon nutzt sie
+    if getattr(tc, EIGENSCHAFT_EINSATZ) != text:
+        setattr(tc, EIGENSCHAFT_EINSATZ, text)
 
 
 def operationen(job):
@@ -360,13 +433,14 @@ def controller_name(werkzeug, einsatz):
     return f"T{werkzeug.nummer} {wz.einsatz_name(einsatz)}"
 
 
-def lege_controller_an(dokument, job, werkzeug, einsatz):
+def lege_controller_an(dokument, job, werkzeug, einsatz, werkstoff=""):
     """Legt im Job einen Werkzeug-Controller für `werkzeug` an und setzt n und vf aus `einsatz`.
 
     Das Werkzeug kommt aus der Bibliothek „CAM-Addon“ – es muss vorher
     übergeben sein (uebergabe_werkzeuge.uebergeben). Der Name nennt den
-    Einsatz (controller_name). Eine Transaktion: Strg+Z nimmt Controller
-    und Werkzeug zurück. Gibt den neuen Controller zurück.
+    Einsatz (controller_name); Einsatz und `werkstoff` (Kennung der Tabelle)
+    merkt er sich. Eine Transaktion: Strg+Z nimmt Controller und Werkzeug
+    zurück. Gibt den neuen Controller zurück.
     """
     from Path.Tool import Controller
     from Path.Tool.camassets import cam_assets
@@ -380,7 +454,7 @@ def lege_controller_an(dokument, job, werkzeug, einsatz):
             controller_name(werkzeug, einsatz), tool=bit, toolNumber=werkzeug.nummer
         )
         job.Proxy.addToolController(tc)
-        _setze_werte(tc, werkzeug, einsatz)
+        _setze_werte(tc, werkzeug, einsatz, werkstoff)
     except Exception:
         dokument.abortTransaction()
         raise
@@ -389,7 +463,7 @@ def lege_controller_an(dokument, job, werkzeug, einsatz):
     return tc
 
 
-def _setze_werte(tc, werkzeug, einsatz):
+def _setze_werte(tc, werkzeug, einsatz, werkstoff):
     """Drehzahl und Vorschübe eines TC aus dem Einsatz; False, wenn vc oder fz fehlen."""
     n, vf, senkrecht = werte(werkzeug, einsatz)
     if n <= 0 or vf <= 0:
@@ -397,22 +471,25 @@ def _setze_werte(tc, werkzeug, einsatz):
     tc.SpindleSpeed = float(round(n))
     tc.HorizFeed = FreeCAD.Units.Quantity(f"{round(vf)} mm/min")
     tc.VertFeed = FreeCAD.Units.Quantity(f"{round(senkrecht)} mm/min")
+    _merke_einsatz(tc, einsatz, werkstoff)
     return True
 
 
-def setze(dokument, zuordnung, job=None):
+def setze(dokument, zuordnung, job=None, werkstoff=""):
     """Setzt Drehzahl und Vorschübe; `zuordnung` = [(tc, werkzeug, einsatz), …].
 
     Mit `job` bekommen auch dessen Operationen, die einen der TC benutzen,
     Schrittweite und Zustelltiefe aus dem Einsatz, wenn er zu ihnen passt
-    (zustellung()). Alles in einer Transaktion: ein Strg+Z nimmt es zurück.
-    Gibt zurück, wie viele TC und Operationen gesetzt wurden (Gesetzt).
+    (zustellung()). Jeder TC merkt sich Einsatz und `werkstoff` (Kennung der
+    Tabelle, aus der die Einsätze sind). Alles in einer Transaktion: ein
+    Strg+Z nimmt es zurück. Gibt zurück, wie viele TC und Operationen gesetzt
+    wurden (Gesetzt).
     """
     gesetzt = Gesetzt()
     dokument.openTransaction("Schnittwerte übernehmen")
     try:
         for tc, werkzeug, einsatz in zuordnung:
-            if not _setze_werte(tc, werkzeug, einsatz):
+            if not _setze_werte(tc, werkzeug, einsatz, werkstoff):
                 continue
             gesetzt.controller += 1
             for operation in operationen_mit(tc, job) if job is not None else []:

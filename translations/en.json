@@ -926,5 +926,8 @@
     "wv.schnittwerte.noch_keine": "This tool has no cutting data yet. “+ Use case” adds the first one – it applies to all materials.",
     "wv.einsatz.erster_fuer_alle": "The first use case applies to all materials – that is why “All materials” is selected at the top now. If the values for {werkstoff} differ, add own values there afterwards.",
     "sj.ebene_duenn.uebernehmen": "Use ap {ap} {e_laenge}",
-    "sj.ebene_duenn.wv_offen": "The tool manager is open – change ap there, or close it first. Otherwise its OK would write the old value back."
+    "sj.ebene_duenn.wv_offen": "The tool manager is open – change ap there, or close it first. Otherwise its OK would write the old value back.",
+    "sj.eigenschaft.einsatz": "Use case and material the CAM Addon last set spindle speed and feed from (“Cutting data into the job”)",
+    "sj.herkunft.rohteil_gemerkt": "From the job's stock, as last time: {werkstoff}.",
+    "sj.herkunft.gemerkt": "The stock has no material the tool manager knows – preselected is the one from last time: {werkstoff}."
 }

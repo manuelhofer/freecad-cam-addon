@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-30 einsatz-merken
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-28; `camaddon/job_schnittwerte.py`
+  (`vorgeschlagener_einsatz`, `werkstoff_des_jobs`, `_setze_werte`, `setze`,
+  `lege_controller_an`), `camaddon/gui_job_schnittwerte.py`
+  (`_job_gewaehlt`, `uebernehmen`, `controller_anlegen`),
+  `camaddon/reichweite.py` (`merke_maschine` als Vorbild),
+  `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`EIGENSCHAFT_EINSATZ`, `Gemerkt`,
+  `gemerkter_einsatz`, `_merke_einsatz`, `werkstoff_fuer`)
+- `camaddon/gui_job_schnittwerte.py`
+- `translations/de.json`, `translations/en.json` (`sj.eigenschaft.einsatz`,
+  `sj.herkunft.rohteil_gemerkt`, `sj.herkunft.gemerkt`)
+- `help/de/werkzeuge.html`, `help/en/werkzeuge.html`
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer in „Schnittwerte in den Job“ für einen Controller einen anderen Einsatz
+wählt als den vorgeschlagenen, bekommt beim nächsten Öffnen diesen
+vorgeschlagen – Voraussetzung für D-28: Das Prüffenster soll mit dem
+vergleichen, was man gewählt hat, nicht mit einem Vorschlag.
+
+### DONE
+- Setzt das Addon Drehzahl und Vorschub eines Controllers („Übernehmen“,
+  „Werkzeug-Controller hinzufügen“), merkt es sich am Controller Einsatz
+  (Art und eigener Name, unabhängig von der Sprache) und Werkstoff – in
+  einer ausgeblendeten Eigenschaft, im selben Schritt Rückgängig.
+- Der Dialog schlägt den gemerkten Einsatz vor, vor dem Namen des
+  Controllers und der Operation.
+- Werkstoff: Gilt weiter der des Rohteils. Hat das Rohteil keinen, ist der
+  vom letzten Mal vorgewählt; von zwei Einträgen mit der Nummer des Rohteils
+  (geglüht und gehärtet, oder ein eigener) der zuletzt gewählte. Der Satz
+  unter der Wahl sagt „wie beim letzten Mal“.
+
+### TEST
+- `test_job_schnittwerte` in 1.1.3 und im Wochen-Build ok: gemerkt,
+  ausgeblendet, vor dem Namen, Strg+Z nimmt es mit; `werkstoff_fuer` mit
+  zwei Zuständen, eigenem Werkstoff, unbekanntem Rohteil, „alle“.
+- `szenario_schnittwerte_job` in beiden Versionen ok; neues Bild
+  `6_gemerkt` angesehen: Vollnut bei „T3 Schruppen dynamisch“, C45 „wie beim
+  letzten Mal“.
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- D-28: das Prüffenster vergleicht mit dem gemerkten Einsatz und Werkstoff.
+
 ## P-2026-09-27-29 ap-uebernehmen
 
 ### EINGELESEN
