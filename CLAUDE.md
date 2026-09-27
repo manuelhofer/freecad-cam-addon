@@ -12,6 +12,12 @@ entsteht.
   einem einzigen Lauf; reine Doku-Änderungen ohne Testlauf
   (`docs/arbeitsregeln.md`, Abschnitt 5). Alles andere nur auf ausdrückliche
   Ansage. Lokal committen ist immer in Ordnung.
+- **„Pusch jetzt“ heißt sofort** (Manuel, 2026-09-27: „wenn ich sage pusch
+  jetzt dann auch puschen !!“): was committet ist, gleich pushen – ohne auf
+  den Volllauf zu warten; der läuft danach, und was er findet, wird sofort
+  behoben. Soll Manuel etwas ausprobieren, braucht der Push eine **höhere
+  Version** in `package.xml`: „Nach Updates schauen“ bietet nur eine neue
+  Version an – alles seit 0.24.0 lag auf GitHub, kam bei ihm aber nicht an.
 - **Nach jedem Push bei GitHub selbst nachsehen:**
   `git ls-remote https://github.com/manuelhofer/freecad-cam-addon main` muss
   den eigenen Commit zeigen. `origin` zu fragen reicht nicht: Zeigt `origin`

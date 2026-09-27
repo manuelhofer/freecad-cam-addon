@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-40 regel-pusch-jetzt
+
+### EINGELESEN
+- Manuel: „wenn ich sage pusch jetzt dann auch puschen !!“; `CLAUDE.md`;
+  `camaddon/aktualisierung.py` (nur eine höhere Version wird angeboten).
+
+### DATEIEN
+- `CLAUDE.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Regel steht in CLAUDE.md: „pusch jetzt“ heißt sofort pushen; zum
+Ausprobieren eine höhere Version.
+
+### DONE
+- Neue Regel über der Regel „Nach jedem Push bei GitHub selbst nachsehen“.
+
+### TEST
+- Reine Doku-Änderung, kein Testlauf.
+
+### NEXT
+- Manuels Fragen zur 4-Achs-Bearbeitung.
+
 ## P-2026-09-27-39 version-0-25-0
 
 ### EINGELESEN
