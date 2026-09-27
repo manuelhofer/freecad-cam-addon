@@ -870,6 +870,11 @@ def lade(art, masse=None):
     if App.GuiUp:
         import FreeCADGui
 
+        # Die Gelenke bleiben im Baum; ihre Markierungen (weiße Scheiben mit Achsen)
+        # verdeckten Revolver und Spindel. Wieder zeigen: im Baum „Joints“, Leertaste.
+        for objekt in asm.Group:
+            if objekt.TypeId == "Assembly::JointGroup":
+                objekt.Visibility = False
         FreeCADGui.ActiveDocument.ActiveView.viewIsometric()
         FreeCADGui.SendMsgToActiveView("ViewFit")
     return asm, ma

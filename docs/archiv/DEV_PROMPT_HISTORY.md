@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-08 gelenke-ausblenden
+
+### EINGELESEN
+- Die Bilder zu P-2026-09-27-07: In der Gesamtansicht lagen die
+  Gelenkmarkierungen (weiße Scheiben mit Achsen) auf Revolver und Spindel;
+  ohne sie war der Revolver zu sehen – Manuel: „Besser weiter“.
+- `camaddon/beispielmaschine.py` (lade), die Stellen im Addon, die
+  Sichtbarkeit nutzen (keine hängt an den Gelenken).
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`
+- `help/de/neue_maschine.html`, `help/en/neue_maschine.html`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Beispielmaschinen aus „Neue Maschine …“ und „Beispielmaschine laden …“
+erscheinen ohne Gelenkmarkierungen; die Gelenke stehen weiter im Baum und
+lassen sich mit der Leertaste zeigen, und die Hilfe sagt wie.
+
+### DONE
+- `lade()` blendet die Gelenkgruppe der Baugruppe aus (nur mit Oberfläche).
+  Die Prüfungen bauen ihre Maschinen ohne `lade()` – für sie ändert sich
+  nichts; eine selbst gebaute Baugruppe fasst das Addon nicht an.
+- Hilfe „Neue Maschine“: ein Absatz, wie man die Gelenke zeigt.
+
+### TEST
+- Szenarien `beispielmaschine`, `neue_maschine`, `schraege_achse`,
+  `verfahren_schraeg`, `mausrad` in 1.1.3 ok; die Übersicht aller fünf
+  Beispielmaschinen angesehen – keine Markierungen mehr.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- Durchsicht W-004: die kleinen Punkte D-01 bis D-08.
+
 ## P-2026-09-27-07 revolver-stationen
 
 ### EINGELESEN
