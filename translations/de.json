@@ -914,5 +914,6 @@
     "kb.kurz.nochmal": "Noch einmal prüfen",
     "kb.kurz.wo": "wo?",
     "kb.kurz.beruehrt": "Es stößt etwas an",
-    "kb.kurz.nahe": "Nichts berührt sich, aber manches kommt näher als {abstand}"
+    "kb.kurz.nahe": "Nichts berührt sich, aber manches kommt näher als {abstand}",
+    "rw.werkzeug_oeffnen": "{werkzeug} öffnen …"
 }

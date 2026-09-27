@@ -70,14 +70,23 @@ class BefehlWerkzeugverwaltung:
         return True
 
     def Activated(self):
-        offen = WerkzeugDialog.offen
-        if offen is not None and offen.isVisible():
-            offen.raise_()
-            offen.activateWindow()
-            return
+        oeffne()
+
+
+def oeffne(nummer=None):
+    """Öffnet die Werkzeugverwaltung – oder holt die offene nach vorn – und wählt, wenn
+    angegeben, das Werkzeug mit dieser Nummer. Gibt den Dialog zurück."""
+    dialog = WerkzeugDialog.offen
+    if dialog is not None and dialog.isVisible():
+        dialog.raise_()
+        dialog.activateWindow()
+    else:
         dialog = WerkzeugDialog()
         dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         dialog.show()
+    if nummer is not None:
+        dialog.waehle_nummer(nummer)
+    return dialog
 
 
 def iso_symbol(iso):
@@ -129,6 +138,7 @@ class WerkzeugDialog(QtGui.QDialog):
     """Die Werkzeugverwaltung. Die Aktionen hinter den Knöpfen sind öffentliche Methoden."""
 
     offen = None  # das zuletzt geöffnete Fenster – für die Oberflächen-Szenarien
+    gespeichert = QtCore.Signal()  # nach jedem Speichern – das Prüffenster rechnet dann neu
 
     def __init__(self, eltern=None, pfad=None):
         super().__init__(eltern or FreeCADGui.getMainWindow())
@@ -507,6 +517,16 @@ class WerkzeugDialog(QtGui.QDialog):
         return "\n".join(zeilen)
 
     # --- Werkzeugliste ----------------------------------------------------------------
+
+    def waehle_nummer(self, nummer):
+        """Wählt das erste Werkzeug mit dieser Nummer; False, wenn es keines gibt."""
+        self._felder_uebernehmen()
+        werkzeug = next(
+            (w for w in self.bibliothek.sortierte_werkzeuge() if w.nummer == nummer), None
+        )
+        if werkzeug is not None:
+            self._liste_aufbauen(auswahl=werkzeug)
+        return werkzeug is not None
 
     def _zuletzt_gewaehlt(self):
         kennung = _parameter().GetString("WvWerkzeug", "")
@@ -949,6 +969,7 @@ class WerkzeugDialog(QtGui.QDialog):
             )
             return False
         self._gespeichert = self.bibliothek.kopie()
+        self.gespeichert.emit()
         return True
 
     def an_cam_uebergeben(self):

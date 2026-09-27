@@ -29,7 +29,15 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import abfahren as ab
-from . import beispielmaschine, einheiten, gui_abfahren, gui_kollision, gui_neue_maschine, symbol
+from . import (
+    beispielmaschine,
+    einheiten,
+    gui_abfahren,
+    gui_kollision,
+    gui_neue_maschine,
+    gui_werkzeuge,
+    symbol,
+)
 from . import job_schnittwerte as js
 from . import maschine as m
 from . import reichweite as rw
@@ -238,6 +246,7 @@ class PruefPanel:
         self._bewegt = False  # hat das Fenster die Maschine verfahren?
         self._marke_behalten = False  # die rote Kugel eines Befunds bleibt beim nächsten Fahren
         self._job = None  # der Job, dessen Nullpunkt in den Feldern steht
+        self._werkzeugdialog = None  # die Werkzeugverwaltung, deren Speichern hier ankommt
         self.bibliothek = _bibliothek()
         self.werkstueckaufnahmen = [
             a for a in m.aufnahmen(maschine) if a.Art == m.AUFNAHME_WERKSTUECK and a.Lcs is not None
@@ -368,11 +377,10 @@ class PruefPanel:
         self.bereiche.setStyleSheet(f"color: {GRAU.name()};")
         self.bereiche.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         aufbau.addWidget(self.bereiche)
-        self.hinweise = QtGui.QLabel()
-        self.hinweise.setWordWrap(True)
-        self.hinweise.setStyleSheet(f"color: {GRAU.name()};")
-        self.hinweise.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+        self.hinweise = gui_kollision.hinweis_label()
         aufbau.addWidget(self.hinweise)
+        for hinweise in (self.hinweise, self.kollision.hinweise):
+            hinweise.linkActivated.connect(self._werkzeug_oeffnen)
         aufbau.addStretch()
         return ruhiges_mausrad(form)
 
@@ -506,7 +514,7 @@ class PruefPanel:
             zeilen.insert(0, tr("rw.bereiche", anzahl=e.punkte))
         self.bereiche.setText("\n".join(zeilen))
         self.bereiche.setVisible(bool(zeilen))
-        self.hinweise.setText("\n".join(e.hinweise))
+        self.hinweise.setText(gui_kollision.hinweise_html(e.hinweise))
         self.hinweise.setVisible(bool(e.hinweise))
         geschaetzt = e.geschaetzte_laengen()
         if geschaetzt:
@@ -525,6 +533,21 @@ class PruefPanel:
     def _kollision_gemeldet(self, text, farbe, fett):
         """Das Urteil der Kollision, oben im Fenster."""
         _zeige_urteil(self.urteil_kollision, text, farbe, fett)
+
+    def _werkzeug_oeffnen(self, ziel):
+        """„werkzeug:1“: die Werkzeugverwaltung bei T1. Speichert man dort, rechnet das
+        Fenster mit den neuen Werten – etwa mit dem gewählten Halter (D-11)."""
+        dialog = gui_werkzeuge.oeffne(int(ziel.split(":", 1)[1]))
+        if dialog is not self._werkzeugdialog:
+            self._werkzeugdialog = dialog
+            dialog.gespeichert.connect(self._werkzeuge_gespeichert)
+
+    def _werkzeuge_gespeichert(self):
+        if PruefPanel.offen is not self:
+            return
+        self.bibliothek = _bibliothek()
+        self._bild_weg()  # Werkzeug und Halter in der Ansicht neu
+        self.pruefe()
 
     def _kollision_verweis(self, ziel):
         """Die Verweise im Urteil „Kollision“: „pruefen“ prüft, „wo“ zeigt den Bereich."""

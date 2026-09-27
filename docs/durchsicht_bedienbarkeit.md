@@ -140,6 +140,7 @@ nicht – es liest sie nur beim Öffnen. **Vorschlag:** Klick auf den Hinweis
 öffnet die Werkzeugverwaltung mit diesem Werkzeug; nach OK dort rechnet das
 Prüffenster neu. **Fertig, wenn:** Halter wählen, OK – und die Kollision gilt
 mit dem Halter, ohne das Prüffenster zu schließen.
+*Erledigt (P-2026-09-27-21).*
 
 ### D-12 „+ Einsatz“ beim neuen Werkzeug gesperrt (klein bis mittel)
 **Heute:** Ist oben ein Werkstoff gewählt (etwa 1.4301), ist bei einem neuen

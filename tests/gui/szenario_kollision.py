@@ -9,10 +9,13 @@
 # „Spanneisen_rechts“ (Satz 4, …)“; „wo?“ blättert zum Abschnitt. Ein Klick
 # auf den Satz stellt den Abspieler dorthin, eine rote Kugel zeigt die Stelle.
 # Mit Warnabstand 10 mm kommen gelbe Sätze dazu. Ein anderer Nullpunkt macht
-# das Ergebnis ungültig; Schließen nimmt Kugel und Körper weg.
+# das Ergebnis ungültig. Der Hinweis „T1: ohne Halter geprüft …“ hat „T1 öffnen
+# …“ (D-11): Die Werkzeugverwaltung zeigt T1, Halter ER16 wählen, OK – das
+# Prüffenster rechnet mit dem Halter, der Hinweis ist weg. Schließen nimmt
+# Kugel und Körper weg.
 import FreeCAD
 import FreeCADGui as Gui
-from PySide import QtCore
+from PySide import QtCore, QtGui
 
 
 def schritte(h):
@@ -29,14 +32,16 @@ def schritte(h):
     import Path.Op.Custom as PathCustom
     from pivy import coin
 
-    from camaddon import beispielmaschine, gui_reichweite
+    from camaddon import beispielmaschine, gui_reichweite, gui_werkzeuge
     from camaddon import kollision as kb
     from camaddon import werkzeuge as wz
 
-    # T1 wie das Werkzeug des Jobs (Ø 5), nur 25 mm lang, ohne Halter.
-    wz.Bibliothek(
+    # T1 wie das Werkzeug des Jobs (Ø 5), nur 25 mm lang, ohne Halter; ein ER16 liegt bereit.
+    bibliothek = wz.Bibliothek(
         [wz.Werkzeug(nummer=1, durchmesser=5.0, schneidenlaenge=5.0, gesamtlaenge=25.0)]
-    ).speichern()
+    )
+    er16 = bibliothek.neuer_halter("er16").kennung
+    bibliothek.speichern()
 
     asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
     yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is asm.Document)
@@ -157,6 +162,37 @@ def schritte(h):
     yield 800
     h.pruefe(k.ergebnis is None and not k.liste.isVisible(), "Ergebnis nach neuem Nullpunkt")
     h.pruefe(k.urteil.text().startswith("Noch nicht geprüft"), f"{k.urteil.text()!r}")
+
+    # --- „T1 öffnen …“: Halter wählen, OK – das Fenster rechnet mit ihm (D-11) --------------
+    panel.felder_nullpunkt["Z"].setText("")
+    yield 800
+    panel.urteil_kollision.linkActivated.emit("pruefen")
+    yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 30000)
+    yield 300
+    h.pruefe('href="werkzeug:1"' in k.hinweise.text(), f"kein Verweis: {k.hinweise.text()!r}")
+    h.pruefe("T1 öffnen …" in k.hinweise.text(), f"Verweistext: {k.hinweise.text()!r}")
+    k.hinweise.linkActivated.emit("werkzeug:1")
+    yield from h.warte_auf(lambda: gui_werkzeuge.WerkzeugDialog.offen is not None)
+    wv = gui_werkzeuge.WerkzeugDialog.offen
+    h.pruefe(
+        wv is not None and wv.werkzeug is not None and wv.werkzeug.nummer == 1,
+        "Werkzeugverwaltung nicht bei T1",
+    )
+    if wv is not None:
+        wv.feld_halter.setCurrentIndex(wv.feld_halter.findData(er16))
+        yield 300
+        h.bild("4_werkzeugverwaltung_halter", wv)
+        wv.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
+    yield 800
+    h.pruefe(k.ergebnis is None, "Kollision nach dem Speichern nicht veraltet")
+    t1 = panel.bibliothek.werkzeuge[0] if panel.bibliothek else None
+    h.pruefe(t1 is not None and t1.halter == er16, "Prüffenster kennt den Halter nicht")
+    panel.urteil_kollision.linkActivated.emit("pruefen")
+    yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 30000)
+    yield 300
+    hinweise = k.ergebnis.hinweise if k.ergebnis else []
+    h.pruefe(not any("ohne Halter" in s for s in hinweise), f"mit Halter: {hinweise}")
+    h.bild("5_mit_halter", panel.form)
 
     # --- Schließen: Kugel und Körper weg ------------------------------------------------------
     wurzel = panel.bild.wurzel

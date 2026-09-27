@@ -10,6 +10,8 @@ Kugel zeigt sie in der 3D-Ansicht. Ändert sich Job, Nullpunkt oder
 Werkstückaufnahme, ist das Ergebnis veraltet und verschwindet.
 """
 
+import html
+
 import FreeCAD
 from PySide import QtCore, QtGui
 
@@ -24,6 +26,32 @@ from .sprache import tr
 GRUEN = "#2e7d32"
 GELB = "#b9770e"  # Warnung – dunkles Gelb, lesbar auf Weiß
 WARNABSTAND = "KollisionWarnabstand"  # gemerkt in den Einstellungen des Addons, mm
+
+
+def hinweis_label():
+    """Grau, zum Markieren – und mit Verweisen „T1 öffnen …“ (hinweise_html)."""
+    label = QtGui.QLabel()
+    label.setWordWrap(True)
+    label.setTextFormat(QtCore.Qt.RichText)
+    label.setStyleSheet(f"color: {GRAU.name()};")
+    label.setTextInteractionFlags(
+        QtCore.Qt.TextSelectableByMouse | QtCore.Qt.LinksAccessibleByMouse
+    )
+    return label
+
+
+def hinweise_html(hinweise):
+    """Die Hinweise als HTML, je Satz eine Zeile. Geht es um ein Werkzeug (reichweite.Hinweis
+    mit Nummer), folgt der Verweis „T1 öffnen …“ – „werkzeug:1“ (D-11)."""
+    zeilen = []
+    for satz in hinweise:
+        zeile = html.escape(satz, quote=False)
+        nummer = getattr(satz, "werkzeug", None)
+        if nummer is not None:
+            text = html.escape(tr("rw.werkzeug_oeffnen", werkzeug=f"T{nummer}"), quote=False)
+            zeile += f' <a href="werkzeug:{nummer}">{text}</a>'
+        zeilen.append(zeile)
+    return "<br>".join(zeilen)
 
 
 class KollisionsBereich(QtGui.QWidget):
@@ -84,10 +112,7 @@ class KollisionsBereich(QtGui.QWidget):
         self.liste.setToolTip(tr("kb.liste.tooltip"))
         self.liste.itemClicked.connect(lambda _eintrag: self._befund_gewaehlt())
         aufbau.addWidget(self.liste)
-        self.hinweise = QtGui.QLabel()
-        self.hinweise.setWordWrap(True)
-        self.hinweise.setStyleSheet(f"color: {GRAU.name()};")
-        self.hinweise.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
+        self.hinweise = hinweis_label()
         aufbau.addWidget(self.hinweise)
 
     # --- Rechnen ------------------------------------------------------------------------
@@ -176,7 +201,7 @@ class KollisionsBereich(QtGui.QWidget):
             self._urteil(tr("kb.nahe", abstand=abstand), GELB)
         else:
             self._urteil(tr("kb.frei", abstand=abstand), GRUEN)
-        self.hinweise.setText("\n".join(ergebnis.hinweise))
+        self.hinweise.setText(hinweise_html(ergebnis.hinweise))
         self.hinweise.setVisible(bool(ergebnis.hinweise))
         self._melde()
 

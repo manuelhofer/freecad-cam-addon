@@ -123,6 +123,18 @@ class Bereich:
         )
 
 
+class Hinweis(str):
+    """Ein Hinweis-Satz. `werkzeug`: die Nummer des Werkzeugs, um das es geht – das Fenster
+    verweist dann auf die Werkzeugverwaltung (Durchsicht W-004, D-11)."""
+
+    werkzeug = None
+
+    def __new__(cls, text, werkzeug=None):
+        satz = super().__new__(cls, text)
+        satz.werkzeug = werkzeug
+        return satz
+
+
 @dataclass
 class Ergebnis:
     """Was prüfe_job() gefunden hat."""
@@ -706,16 +718,17 @@ class _Sammler:
 
     def laenge(self, tc, laenge, quelle):
         """Sagt, womit gerechnet wurde, wenn es nicht die Länge ab Spindelnase ist."""
-        self.ergebnis.laengen.setdefault(getattr(tc, "ToolNumber", 0), quelle)
+        nummer = getattr(tc, "ToolNumber", 0)
+        self.ergebnis.laengen.setdefault(nummer, quelle)
         werte = {"werkzeug": werkzeug_text(tc), "laenge": weg_text(laenge)}
         if quelle == LAENGE_HALTER:
-            self.hinweis(tr("rw.laenge_halter", **werte))
+            self.hinweis(Hinweis(tr("rw.laenge_halter", **werte), nummer))
         elif quelle == LAENGE_GESAMT:
-            self.hinweis(tr("rw.laenge_gesamt", **werte))
+            self.hinweis(Hinweis(tr("rw.laenge_gesamt", **werte), nummer))
         elif quelle == LAENGE_GESCHAETZT:
-            self.hinweis(tr("rw.laenge_geschaetzt", **werte))
+            self.hinweis(Hinweis(tr("rw.laenge_geschaetzt", **werte), nummer))
         elif quelle == LAENGE_CAM:
-            self.hinweis(tr("rw.laenge_cam", **werte))
+            self.hinweis(Hinweis(tr("rw.laenge_cam", **werte), nummer))
 
     def zu_viele(self, linear):
         namen = ", ".join(vf.namen(self.pruefung.maschine, a) for a in linear)

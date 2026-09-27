@@ -160,6 +160,9 @@ pruefe(
 # Fürs Urteil oben im Fenster (D-10): womit je Werkzeug gerechnet wurde.
 pruefe(e.laengen == {1: rw.LAENGE_CAM}, f"Längen: {e.laengen}")
 pruefe(e.geschaetzte_laengen() == [1], f"geschätzt: {e.geschaetzte_laengen()}")
+# Der Hinweis zur Länge kennt sein Werkzeug – das Fenster verweist auf T1 (D-11).
+pruefe(e.hinweise[0].werkzeug == 1, f"Werkzeug am Hinweis: {e.hinweise[0].werkzeug}")
+pruefe(getattr(e.hinweise[1], "werkzeug", None) is None, "G28-Hinweis mit Werkzeug")
 # 11 Punkte: G0 Z10 ohne X und Y zählt nicht; der Kreis bringt zwei Umkehrstellen
 # (links bei X 130, oben bei Y 60) und sein Ende; der Bohrzyklus drei Höhen.
 pruefe(e.punkte == 11, f"Punkte: {e.punkte}")

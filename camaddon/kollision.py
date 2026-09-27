@@ -272,7 +272,8 @@ class _Welt:
                 ]
                 if halter is None and nummer not in ohne_halter:
                     ohne_halter.add(nummer)
-                    ergebnis.hinweise.append(tr("kb.ohne_halter", werkzeug=f"T{nummer}"))
+                    satz = tr("kb.ohne_halter", werkzeug=f"T{nummer}")
+                    ergebnis.hinweise.append(rw.Hinweis(satz, nummer))
             self.werkzeuge.append(gebaut[schluessel])
 
         self._paare = {}  # Glied der Werkzeugaufnahme -> Paare ohne Werkzeug

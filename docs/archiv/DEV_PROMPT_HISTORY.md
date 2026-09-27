@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-21 hinweis-zum-werkzeug
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-11; `camaddon/gui_werkzeuge.py`
+  (Befehl, Auswahl, Übernehmen/OK), `camaddon/reichweite.py`
+  (`_Sammler.laenge`), `camaddon/kollision.py` (Hinweis „ohne Halter“),
+  `camaddon/gui_reichweite.py`, `camaddon/gui_kollision.py`,
+  `tests/gui/szenario_kollision.py`.
+
+### DATEIEN
+- `camaddon/reichweite.py` (`Hinweis` – ein Satz mit Werkzeugnummer)
+- `camaddon/kollision.py` (Hinweis „ohne Halter“ mit Nummer)
+- `camaddon/gui_kollision.py` (`hinweis_label`, `hinweise_html`)
+- `camaddon/gui_reichweite.py` (Verweis öffnet die Werkzeugverwaltung,
+  Speichern dort rechnet neu)
+- `camaddon/gui_werkzeuge.py` (`oeffne`, `waehle_nummer`, Signal
+  `gespeichert`)
+- `translations/de.json`, `translations/en.json` (neu `rw.werkzeug_oeffnen`)
+- `help/de/reichweite.html`, `help/en/reichweite.html`
+- `tests/test_reichweite.py`, `tests/gui/szenario_kollision.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Halter wählen, OK – und die Kollision gilt mit dem Halter, ohne das
+Prüffenster zu schließen (Fertig-wenn von D-11).
+
+### DONE
+- Hinweise zu einem Werkzeug – womit für die Länge gerechnet wurde, „T1: ohne
+  Halter geprüft …“ – enden mit dem Verweis **T1 öffnen …**. Er öffnet die
+  Werkzeugverwaltung (oder holt die offene nach vorn) mit diesem Werkzeug
+  gewählt.
+- Speichert man dort (OK oder Übernehmen), liest das Prüffenster die
+  Werkzeuge neu, baut Werkzeug und Halter in der Ansicht neu und rechnet; das
+  Kollisionsergebnis gilt dann nicht mehr („Noch nicht geprüft – jetzt
+  prüfen“).
+- Die Werkzeugverwaltung meldet jedes Speichern (Signal `gespeichert`); der
+  Befehl in der Werkzeugleiste nutzt dasselbe `oeffne()`.
+
+### TEST
+- `test_reichweite` in 1.1.3 ok – Längen-Hinweise tragen die Nummer.
+- `szenario_kollision` in 1.1.3 ok – „T1 öffnen …“ zeigt T1, ER16 gewählt,
+  OK: Ergebnis veraltet, das Fenster kennt den Halter; neu geprüft ohne
+  Hinweis „ohne Halter“. Bilder `4_werkzeugverwaltung_halter`,
+  `5_mit_halter` angesehen.
+- `szenario_reichweite`, `szenario_abfahren`, `szenario_werkzeugverwaltung`,
+  `test_sprache` ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-25: Betriebsarten der Maschine vorschlagen.
+
 ## P-2026-09-27-20 urteile-oben
 
 ### EINGELESEN

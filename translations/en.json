@@ -914,5 +914,6 @@
     "kb.kurz.nochmal": "Check again",
     "kb.kurz.wo": "where?",
     "kb.kurz.beruehrt": "Something collides",
-    "kb.kurz.nahe": "Nothing touches, but some things come closer than {abstand}"
+    "kb.kurz.nahe": "Nothing touches, but some things come closer than {abstand}",
+    "rw.werkzeug_oeffnen": "Open {werkzeug} …"
 }
