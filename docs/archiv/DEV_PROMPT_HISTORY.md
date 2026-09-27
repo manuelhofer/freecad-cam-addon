@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-33 tests-nicht-parallel
+
+### EINGELESEN
+- `docs/arbeitsregeln.md`, Abschnitt 5; `scripts/oberflaeche_testen.sh`;
+  Protokoll des abgebrochenen Volllaufs auf 7a9ecd8
+  (`szenario_erster_start`: `FileNotFoundError: …/user.cfg`, im
+  `freecad.log` „Failed to access file for writing: …/user.cfg“);
+  die Sperrdateien `/tmp/user.<Zahl>.cfg.lock`.
+
+### DATEIEN
+- `docs/arbeitsregeln.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer die Tests laufen lässt, weiß, dass neben `scripts/alle_tests.sh` kein
+anderes FreeCAD laufen darf, und warum.
+
+### DONE
+- Ursache des roten `szenario_erster_start` im Volllauf auf 7a9ecd8: Ein
+  kurzes `freecadcmd`-Skript lief in derselben Sekunde an wie das Szenario.
+  FreeCAD sperrt beim Schreiben von `user.cfg` die Datei
+  `/tmp/user.<Unix-Zeit>.cfg.lock` – die Zahl ist die Sekunde (an Datei und
+  Zeitstempel nachgeprüft). Das Szenario-FreeCAD schrieb `user.cfg` nicht;
+  das Szenario prüft aber, dass die Sprachwahl sofort darin steht.
+- Einzeln gestartet ist das Szenario in beiden Versionen grün, ohne die
+  Meldung. Der Lauf ist abgebrochen und wird neu gestartet, ohne FreeCAD
+  daneben.
+- Die Regel steht jetzt in Abschnitt 5.
+
+### TEST
+- Reine Doku-Änderung, kein Testlauf; `szenario_erster_start` einzeln in
+  1.1.3 und im Wochen-Build ok.
+
+### NEXT
+- Volllauf für P-30 bis P-33, dann Push.
+
 ## P-2026-09-27-32 befund-d09
 
 ### EINGELESEN

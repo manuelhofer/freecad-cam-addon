@@ -100,6 +100,13 @@ ein ASCII-Entwurf des Dialogs reicht.
     `scripts/alle_tests.sh`. Das gilt für alle Patches seit dem letzten Push
     zusammen, nicht für jeden einzeln. In einer frischen Cloud-Sitzung vorher
     einmal `scripts/testumgebung_einrichten.sh`.
+  - Solange `scripts/alle_tests.sh` läuft, startet nichts anderes FreeCAD –
+    auch kein kurzer Versuch mit `freecadcmd`. FreeCAD sperrt beim Schreiben
+    von `user.cfg` eine Datei in `/tmp`, deren Name nur die Sekunde trägt
+    (`user.<Unix-Zeit>.cfg.lock`). Starten zwei FreeCAD in derselben Sekunde,
+    schreibt eines seine Einstellungen nicht („Failed to access file for
+    writing“), und etwa `szenario_erster_start` scheitert – mit dem Code hat
+    das nichts zu tun, der Lauf zählt trotzdem nicht (P-2026-09-27-33).
   - Reine Doku-Änderungen brauchen keinen Testlauf.
 - **Neue Prüfungen** gibt es für behobene Fehler, damit sie nicht
   wiederkommen, und für neue Funktionen. Reines Aufräumen braucht keine
