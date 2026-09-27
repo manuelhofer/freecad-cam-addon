@@ -780,7 +780,7 @@
     "rw.job": "Job",
     "rw.maschine": "Machine",
     "rw.maschine.eintrag": "{maschine} ({dokument})",
-    "rw.maschine.tooltip": "The machine the check runs on. For another one close this panel and run the command again – with several open it asks.",
+    "rw.maschine.tooltip": "The machine the check runs on – the addon remembers it and opens it by itself next time. For another one: close this panel, open the file of the other machine and run the command again; with several open it asks.",
     "rw.maschine.frage": "Check on which machine?",
     "rw.werkstueckaufnahme": "Workpiece mount",
     "rw.nullpunkt": "Job origin, as seen from the workpiece mount:",
@@ -792,7 +792,7 @@
     "rw.keine_punkte": "No path to check – the job's operations have no points.",
     "rw.bereiche": "What the path needs ({anzahl} points):",
     "rw.kein_job": "There is no CAM job in any open document. Open the document with the job – this command then checks its paths on a machine.",
-    "rw.keine_maschine": "No machine is open. Open the document with your machine – or create one with “New machine …”.",
+    "rw.keine_maschine": "No machine is open. Open the file with your machine – the addon remembers it for next time. Or create one with “New machine …” – the check then runs on it right away.",
     "wv.laenge_spindelnase": "Gauge length",
     "wv.laenge_spindelnase.tooltip": "From the spindle nose (in a turret: from the tool mount) to the tip, with holder – as the presetter measures it. “Check on machine” uses it to see whether Z reaches. Empty, with a holder: holder length + overall length − clamping depth; without a holder the overall length.",
     "wv.laenge_spindelnase.platzhalter": "empty: overall length {wert}",
@@ -895,5 +895,12 @@
     "sj.kein_job": "There is no CAM job in any open document. Open the document with the job – this command then sets the speed and feed of its tool controllers from the tool manager.",
     "update.neu_starten": "Restart now",
     "update.neu_starten.tooltip": "Closes FreeCAD – it asks about unsaved documents first – and starts it again.",
-    "jobs.welches_dokument": "Several open documents have CAM jobs – which one?"
+    "jobs.welches_dokument": "Several open documents have CAM jobs – which one?",
+    "rw.maschine_oeffnen": "Open machine …",
+    "rw.keine_maschine_in_datei": "{datei} contains no machine. An assembly becomes a machine with “Edit machine”.",
+    "rw.datei_fehler": "{datei} cannot be opened: {fehler}",
+    "rw.eigenschaft.maschine": "File of the machine the job was last checked on (CAM Addon, “Check on machine”)",
+    "rw.maschine.schritt": "Machine of the job",
+    "rw.maschine_oeffnen.tooltip": "Open a saved machine (FCStd file). The addon remembers it and opens it by itself the next time you check.",
+    "rw.neue_maschine.tooltip": "Builds a ready-made machine in a new document – a lathe with your dimensions, a 3-axis or 5-axis mill – and checks on it right away."
 }

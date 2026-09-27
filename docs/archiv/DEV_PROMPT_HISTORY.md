@@ -12,6 +12,80 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-19 maschine-merken
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-20; `camaddon/gui_reichweite.py`
+  (Befehl, `_schliessen`, `_nullpunkt_merken`), `camaddon/reichweite.py`
+  (`setze_nullpunkt` als Vorbild), `camaddon/gui_maschine.py`
+  (`beispiel_waehlen`: so baut eine Meldung eine Maschine),
+  `camaddon/gui_neue_maschine.py` (`waehle`), `help/*/reichweite.html`,
+  `docs/spezifikation_simulation.md` §6.
+
+### DATEIEN
+- `camaddon/reichweite.py` (`EIGENSCHAFT_MASCHINE`, `ZULETZT_MASCHINE`,
+  `gemerkte_maschine`, `merke_maschine`)
+- `camaddon/gui_reichweite.py` (`maschine_fuer`, `maschine_oeffnen`,
+  `datei_waehlen`, `oeffne_datei`, `gleiche_datei`, `_maschine_merken`)
+- `translations/de.json`, `translations/en.json` (`rw.keine_maschine`,
+  `rw.maschine.tooltip`; neu `rw.maschine_oeffnen` samt Tooltip,
+  `rw.neue_maschine.tooltip`, `rw.keine_maschine_in_datei`, `rw.datei_fehler`,
+  `rw.eigenschaft.maschine`, `rw.maschine.schritt`)
+- `help/de/reichweite.html`, `help/en/reichweite.html`
+- `tests/test_reichweite.py`, neu `tests/gui/szenario_maschine_merken.py`
+- `docs/spezifikation_simulation.md` §6, `docs/durchsicht_bedienbarkeit.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach einem Neustart von FreeCAD zeigt „Auf der Maschine prüfen“ ohne
+geöffnete Maschine direkt das Fenster (Fertig-wenn von D-20). Ohne gemerkte
+Maschine führt die Meldung weiter statt in eine Sackgasse.
+
+### DONE
+- Beim Schließen des Prüffensters merkt sich der Job die Datei der Maschine
+  (verborgene Eigenschaft `CamAddonMaschine`, wie der Nullpunkt; ein Schritt
+  Rückgängig „Maschine des Jobs“, nur wenn sie sich ändert), das Addon
+  außerdem „zuletzt benutzt“ (Einstellung `ZuletztMaschine`). Eine nie
+  gespeicherte Maschine hat keine Datei – dann bleibt alles, wie es war.
+  Wechselt man im Fenster den Job, merkt sich der bisherige die Maschine
+  ebenso (wie seinen Nullpunkt).
+- Ist beim Prüfen keine Maschine offen, öffnet das Addon die gemerkte: die
+  des Jobs, sonst die zuletzt benutzte. Lässt sie sich nicht lesen oder fehlt
+  die Datei, kommt die Meldung.
+- Die Meldung „Es ist keine Maschine offen …“ hat jetzt Knöpfe:
+  **Maschine öffnen …** (Dateiauswahl, im Ordner der gemerkten Maschine
+  oder des Jobs) und **Neue Maschine …** (Auswahl der Bauarten wie bei
+  „Maschine bearbeiten“, danach gleich das Prüffenster auf ihr). Eine Datei
+  ohne Maschine: „In … ist keine Maschine eingerichtet. Eine Baugruppe wird
+  zur Maschine mit „Maschine bearbeiten“.“
+- Sind mehrere Maschinen offen, fragt das Addon weiter, die gemerkte steht
+  vorn (Enter genügt). Ohne Frage zu nehmen hätte eine andere Maschine nur
+  noch über Schließen der gemerkten erreicht – im Fenster gibt es keine
+  Auswahl der Maschine (Spezifikation §6, Aufgabenfenster gehört zum
+  Dokument).
+- Nicht in diesem Patch (D-20, Rest): „Schruppwerte planen“ nimmt die
+  Grenzen weiter nur von einer offenen Maschine, und die Spindel kennt keine
+  Leistung (kW).
+
+### TEST
+- `test_reichweite` in 1.1.3 ok – merken, die des Jobs vor „zuletzt
+  benutzt“, leerer Pfad ändert nichts; nach Speichern und Laden noch da und
+  (wie der Nullpunkt) verborgen.
+- Neues Szenario `szenario_maschine_merken` in 1.1.3 ok: gemerkt nach dem
+  Schließen; Maschine zu → öffnet sich selbst (über den Job und über
+  „zuletzt benutzt“); ohne alles die Meldung mit beiden Knöpfen; „Neue
+  Maschine …“ baut die 3-Achs-Fräse und prüft auf ihr; „Maschine öffnen …“
+  mit einer Datei ohne Maschine sagt das, mit der richtigen prüft es; zwei
+  offene Maschinen: Frage, die gemerkte vorn. Bilder angesehen.
+- Nach Speichern und Laden ist die Eigenschaft noch verborgen – eigens
+  geprüft, auch für den Nullpunkt (bisher ungeprüft).
+- `szenario_reichweite`, `szenario_abfahren`, `szenario_kollision`,
+  `szenario_erster_start`, `test_sprache` ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-20, Rest: Planer nimmt die gemerkte Maschine; Spindelleistung.
+
 ## P-2026-09-27-18 job-in-allen-dokumenten
 
 ### EINGELESEN

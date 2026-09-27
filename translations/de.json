@@ -780,7 +780,7 @@
     "rw.job": "Job",
     "rw.maschine": "Maschine",
     "rw.maschine.eintrag": "{maschine} ({dokument})",
-    "rw.maschine.tooltip": "Die Maschine, auf der geprüft wird. Für eine andere das Fenster schließen und den Befehl noch einmal – sind mehrere offen, fragt er.",
+    "rw.maschine.tooltip": "Die Maschine, auf der geprüft wird – das Addon merkt sie sich und öffnet sie beim nächsten Mal selbst. Für eine andere: das Fenster schließen, die Datei der anderen Maschine öffnen und den Befehl noch einmal; sind mehrere offen, fragt er.",
     "rw.maschine.frage": "Auf welcher Maschine prüfen?",
     "rw.werkstueckaufnahme": "Werkstückaufnahme",
     "rw.nullpunkt": "Nullpunkt des Jobs, von der Werkstückaufnahme aus:",
@@ -792,7 +792,7 @@
     "rw.keine_punkte": "Keine Bahn zum Prüfen – die Operationen des Jobs haben keine Punkte.",
     "rw.bereiche": "Was die Bahn braucht ({anzahl} Punkte):",
     "rw.kein_job": "In keinem offenen Dokument gibt es einen CAM-Job. Öffne das Dokument mit dem Job – dann prüft dieser Befehl seine Bahnen auf einer Maschine.",
-    "rw.keine_maschine": "Es ist keine Maschine offen. Öffne das Dokument mit deiner Maschine – oder leg mit „Neue Maschine …“ eine an.",
+    "rw.keine_maschine": "Es ist keine Maschine offen. Öffne die Datei mit deiner Maschine – das Addon merkt sie sich fürs nächste Mal. Oder leg mit „Neue Maschine …“ eine an – geprüft wird dann gleich auf ihr.",
     "wv.laenge_spindelnase": "Länge ab Spindelnase",
     "wv.laenge_spindelnase.tooltip": "Von der Spindelnase (im Revolver: von der Werkzeugaufnahme) bis zur Spitze, mit Halter – so, wie das Voreinstellgerät sie misst. Damit rechnet „Auf der Maschine prüfen“, ob Z reicht. Leer gilt mit Halter: Halterlänge + Gesamtlänge − Spanntiefe; ohne Halter die Gesamtlänge.",
     "wv.laenge_spindelnase.platzhalter": "leer: Gesamtlänge {wert}",
@@ -895,5 +895,12 @@
     "sj.kein_job": "In keinem offenen Dokument gibt es einen CAM-Job. Öffne das Dokument mit dem Job – dann setzt dieser Befehl Drehzahl und Vorschub seiner Werkzeug-Controller aus der Werkzeugverwaltung.",
     "update.neu_starten": "Jetzt neu starten",
     "update.neu_starten.tooltip": "Schließt FreeCAD – nach ungespeicherten Dokumenten fragt es vorher – und startet es neu.",
-    "jobs.welches_dokument": "CAM-Jobs gibt es in mehreren offenen Dokumenten – in welchem?"
+    "jobs.welches_dokument": "CAM-Jobs gibt es in mehreren offenen Dokumenten – in welchem?",
+    "rw.maschine_oeffnen": "Maschine öffnen …",
+    "rw.keine_maschine_in_datei": "In {datei} ist keine Maschine eingerichtet. Eine Baugruppe wird zur Maschine mit „Maschine bearbeiten“.",
+    "rw.datei_fehler": "{datei} lässt sich nicht öffnen: {fehler}",
+    "rw.eigenschaft.maschine": "Datei der Maschine, auf der der Job zuletzt geprüft wurde (CAM-Addon, „Auf der Maschine prüfen“)",
+    "rw.maschine.schritt": "Maschine des Jobs",
+    "rw.maschine_oeffnen.tooltip": "Eine gespeicherte Maschine öffnen (FCStd-Datei). Das Addon merkt sie sich und öffnet sie beim nächsten Prüfen selbst.",
+    "rw.neue_maschine.tooltip": "Baut eine fertig eingerichtete Maschine in einem neuen Dokument – Drehmaschine mit deinen Maßen, 3-Achs- oder 5-Achs-Fräse – und prüft gleich auf ihr."
 }

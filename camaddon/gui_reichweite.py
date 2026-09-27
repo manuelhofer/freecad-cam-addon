@@ -22,13 +22,14 @@ Jobs zurück.
 """
 
 import contextlib
+import os
 
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import abfahren as ab
-from . import einheiten, gui_abfahren, gui_kollision, symbol
+from . import beispielmaschine, einheiten, gui_abfahren, gui_kollision, gui_neue_maschine, symbol
 from . import job_schnittwerte as js
 from . import maschine as m
 from . import reichweite as rw
@@ -64,16 +65,102 @@ class BefehlAufMaschinePruefen:
             return
         jobs = js.jobs(dokument)
         job = gewaehlter_job(jobs) or jobs[0]
-        maschinen = offene_maschinen(job.Document)
-        if not maschinen:
-            QtGui.QMessageBox.information(hauptfenster, tr("rw.titel"), tr("rw.keine_maschine"))
-            return
-        gewaehlt = maschinen[0] if len(maschinen) == 1 else waehle_maschine(maschinen)
+        gewaehlt = maschine_fuer(job, hauptfenster)
         if gewaehlt is None:
             return
         assembly, maschine = gewaehlt
         zeige_dokument(assembly.Document)
         FreeCADGui.Control.showDialog(PruefPanel(jobs, job, assembly, maschine))
+
+
+def maschine_fuer(job, hauptfenster):
+    """Die Maschine, auf der der Job geprüft wird: (Assembly, Maschine) oder None.
+
+    Ist keine offen, öffnet sich die gemerkte – auf der zuletzt geprüft wurde (D-20) –, und
+    fehlt auch die, fragt eine Meldung. Ist eine offen, gilt sie; sind mehrere offen, fragt
+    das Addon, die gemerkte vorgewählt."""
+    gemerkt = rw.gemerkte_maschine(job)
+    maschinen = offene_maschinen(job.Document)
+    if not maschinen and gemerkt and os.path.isfile(gemerkt):
+        with contextlib.suppress(Exception):  # nicht mehr lesbar – dann fragen wie ohne
+            oeffne_datei(gemerkt)
+        maschinen = offene_maschinen(job.Document)
+    if not maschinen:
+        maschinen = maschine_oeffnen(hauptfenster, job)
+    if len(maschinen) > 1:
+        # Die gemerkte vorn – dann reicht Enter.
+        maschinen.sort(key=lambda e: not gleiche_datei(e[0].Document.FileName, gemerkt))
+        return waehle_maschine(maschinen)
+    return maschinen[0] if maschinen else None
+
+
+def maschine_oeffnen(hauptfenster, job):
+    """Keine Maschine offen: Die Meldung bietet „Maschine öffnen …“ (eine Datei wählen) und
+    „Neue Maschine …“ (bauen, dann gleich auf ihr prüfen) an. Gibt die danach offenen
+    Maschinen zurück – leer bei Abbrechen oder ohne Maschine in der Datei."""
+    meldung = QtGui.QMessageBox(
+        QtGui.QMessageBox.Information,
+        tr("rw.titel"),
+        tr("rw.keine_maschine"),
+        QtGui.QMessageBox.Cancel,
+        hauptfenster,
+    )
+    oeffnen = meldung.addButton(tr("rw.maschine_oeffnen"), QtGui.QMessageBox.AcceptRole)
+    oeffnen.setToolTip(tr("rw.maschine_oeffnen.tooltip"))
+    neu = meldung.addButton(tr("befehl.neue_maschine.titel"), QtGui.QMessageBox.ActionRole)
+    neu.setToolTip(tr("rw.neue_maschine.tooltip"))
+    meldung.setDefaultButton(oeffnen)
+    meldung.exec()
+    if meldung.clickedButton() is neu:
+        gewaehlt = gui_neue_maschine.waehle(tr("neu.titel"))
+        if gewaehlt is None:
+            return []
+        beispielmaschine.lade(*gewaehlt)
+        return offene_maschinen(job.Document)
+    if meldung.clickedButton() is not oeffnen:
+        return []
+    ordner = os.path.dirname(rw.gemerkte_maschine(job) or job.Document.FileName)
+    pfad = datei_waehlen(hauptfenster, ordner)
+    if not pfad:
+        return []
+    try:
+        oeffne_datei(pfad)
+    except Exception as fehler:  # keine FreeCAD-Datei, kaputt: sagen statt still scheitern
+        QtGui.QMessageBox.warning(
+            hauptfenster, tr("rw.titel"), tr("rw.datei_fehler", datei=pfad, fehler=fehler)
+        )
+        return []
+    maschinen = offene_maschinen(job.Document)
+    if not maschinen:
+        QtGui.QMessageBox.information(
+            hauptfenster, tr("rw.titel"), tr("rw.keine_maschine_in_datei", datei=pfad)
+        )
+    return maschinen
+
+
+def datei_waehlen(hauptfenster, ordner):
+    """Fragt nach der Datei mit der Maschine; "" bei Abbrechen. Die Szenarien ersetzen
+    diese Funktion – einen Dateidialog können sie nicht bedienen."""
+    pfad, _filter = QtGui.QFileDialog.getOpenFileName(
+        hauptfenster, tr("rw.maschine_oeffnen"), ordner, "FreeCAD (*.FCStd)"
+    )
+    return pfad
+
+
+def oeffne_datei(pfad):
+    """Öffnet die Datei; ist sie schon offen, bleibt es bei diesem Dokument."""
+    for dokument in FreeCAD.listDocuments().values():
+        if gleiche_datei(dokument.FileName, pfad):
+            return dokument
+    return FreeCAD.openDocument(pfad)
+
+
+def gleiche_datei(a, b):
+    """Ob zwei Pfade dieselbe Datei meinen – unter Windows auch mit / statt \\ und in
+    anderer Großschreibung; leere Pfade nie."""
+    if not a or not b:
+        return False
+    return os.path.normcase(os.path.abspath(a)) == os.path.normcase(os.path.abspath(b))
 
 
 def offene_maschinen(zuerst=None):
@@ -180,6 +267,7 @@ class PruefPanel:
         self._zurueckfahren()
         self._bild_weg()
         self._nullpunkt_merken()
+        self._maschine_merken()
         FreeCADGui.Control.closeDialog()
         if self.zurueck_zu is not None and self.zurueck_zu.Name in FreeCAD.listDocuments():
             zeige_dokument(self.zurueck_zu)
@@ -280,9 +368,11 @@ class PruefPanel:
         return self.werkstueckaufnahmen[max(self.wahl_aufnahme.currentIndex(), 0)]
 
     def _job_gewechselt(self):
-        """Merkt den Nullpunkt des bisherigen Jobs, zeigt den des neuen und rechnet."""
+        """Merkt Nullpunkt und Maschine des bisherigen Jobs, zeigt den Nullpunkt des neuen
+        und rechnet."""
         self._zurueckfahren()
         self._nullpunkt_merken()
+        self._maschine_merken()
         self._job = self.job()
         eingetragen = rw.eingetragener_nullpunkt(self._job)
         vorschlag = rw.vorschlag_nullpunkt(self._job)
@@ -323,6 +413,21 @@ class PruefPanel:
             return
         job.Document.openTransaction(tr("rw.nullpunkt.schritt"))
         rw.setze_nullpunkt(job, werte)
+        job.Document.commitTransaction()
+
+    def _maschine_merken(self):
+        """Merkt die Maschinendatei am Job und als zuletzt benutzte – so öffnet das Addon sie
+        beim nächsten Mal selbst (D-20). Ändert sich der Job, ist das ein Schritt Rückgängig
+        in seinem Dokument."""
+        job = self._job
+        pfad = self.assembly.Document.FileName
+        if not pfad or job is None or job.Document.Name not in FreeCAD.listDocuments():
+            return  # eine nie gespeicherte Maschine lässt sich nicht wieder öffnen
+        if getattr(job, rw.EIGENSCHAFT_MASCHINE, "") == pfad:
+            rw.merke_maschine(job, pfad)  # nur noch „zuletzt benutzt“
+            return
+        job.Document.openTransaction(tr("rw.maschine.schritt"))
+        rw.merke_maschine(job, pfad)
         job.Document.commitTransaction()
 
     # --- Rechnen und zeigen ---------------------------------------------------------

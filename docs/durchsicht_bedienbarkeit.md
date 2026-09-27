@@ -181,6 +181,11 @@ Knöpfe „Maschine öffnen …“ und „Neue Maschine …“; die Spindel beko
 „Leistung (kW)“. **Fertig, wenn:** nach
 einem Neustart von FreeCAD „Auf der Maschine prüfen“ ohne geöffnete Maschine
 direkt das Fenster zeigt.
+*Prüffenster erledigt (P-2026-09-27-19): merkt die Maschine am Job und als
+zuletzt benutzte, öffnet sie selbst, die Meldung hat beide Knöpfe; bei
+mehreren offenen fragt es weiter, die gemerkte vorn – im Fenster gibt es keine
+Auswahl der Maschine. Offen: „Schruppwerte planen“ nimmt die gemerkte
+Maschine, Spindelleistung.*
 
 ### D-21 Den Job in allen offenen Dokumenten finden (klein)
 **Heute:** „Im aktiven Dokument gibt es keinen CAM-Job …“ – etwa direkt nach

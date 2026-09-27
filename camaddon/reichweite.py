@@ -33,7 +33,7 @@ from dataclasses import dataclass, field
 
 import FreeCAD
 
-from . import einheiten
+from . import PARAMETER_PFAD, einheiten
 from . import job_schnittwerte as js
 from . import maschine as m
 from . import verfahren as vf
@@ -69,6 +69,10 @@ LAENGE_CAM = "cam"  # Länge des CAM-Werkzeugs, ohne Halter
 
 # Wo der Job den eingetragenen Nullpunkt aufbewahrt (JSON: {"X": …, "Z": …}).
 EIGENSCHAFT_NULLPUNKT = "CamAddonNullpunkt"
+# Die Datei der Maschine, auf der zuletzt geprüft wurde: am Job und – für alle Jobs – in den
+# Einstellungen (Durchsicht W-004, D-20).
+EIGENSCHAFT_MASCHINE = "CamAddonMaschine"
+ZULETZT_MASCHINE = "ZuletztMaschine"
 
 
 # --- Ergebnis ------------------------------------------------------------------------
@@ -225,6 +229,29 @@ def setze_nullpunkt(job, werte):
         )
         job.setEditorMode(EIGENSCHAFT_NULLPUNKT, 2)  # ausgeblendet – das Fenster zeigt ihn
     setattr(job, EIGENSCHAFT_NULLPUNKT, json.dumps(werte, sort_keys=True) if werte else "")
+
+
+def gemerkte_maschine(job=None):
+    """Die Maschinendatei, auf der zuletzt geprüft wurde: die des Jobs, sonst überhaupt die
+    zuletzt benutzte; "" ohne."""
+    pfad = getattr(job, EIGENSCHAFT_MASCHINE, "") if job is not None else ""
+    return pfad or FreeCAD.ParamGet(PARAMETER_PFAD).GetString(ZULETZT_MASCHINE, "")
+
+
+def merke_maschine(job, pfad):
+    """Merkt die Maschinendatei am Job und als zuletzt benutzte. Ein leerer Pfad – die
+    Maschine ist nie gespeichert worden – ändert nichts."""
+    if not pfad:
+        return
+    FreeCAD.ParamGet(PARAMETER_PFAD).SetString(ZULETZT_MASCHINE, pfad)
+    if getattr(job, EIGENSCHAFT_MASCHINE, "") == pfad:
+        return
+    if EIGENSCHAFT_MASCHINE not in job.PropertiesList:
+        job.addProperty(
+            "App::PropertyString", EIGENSCHAFT_MASCHINE, "CAM-Addon", tr("rw.eigenschaft.maschine")
+        )
+        job.setEditorMode(EIGENSCHAFT_MASCHINE, 2)  # ausgeblendet – das Addon nutzt sie
+    setattr(job, EIGENSCHAFT_MASCHINE, pfad)
 
 
 # --- Werkzeuglänge -------------------------------------------------------------------------

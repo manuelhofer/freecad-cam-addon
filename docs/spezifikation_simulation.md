@@ -245,8 +245,11 @@ Befehl **„Auf der Maschine prüfen“** in der Werkzeugleiste „CAM-Addon“.
 ein Job gewählt – in irgendeinem offenen Dokument –, gilt der; sonst die Jobs
 des aktiven Dokuments, und hat das keine, die des einzigen offenen Dokuments
 mit Jobs; bei mehreren fragt er, welches (Durchsicht W-004, D-21). Die
-**Maschine** nimmt er aus allen offenen Dokumenten; sind mehrere offen,
-fragt er vorher, welche (die im Dokument des Jobs zuerst). Das
+**Maschine** nimmt er aus allen offenen Dokumenten. Ist keine offen, öffnet
+er die gemerkte – die Datei, auf der der Job zuletzt geprüft wurde, sonst die
+zuletzt benutzte; fehlt auch die, bietet eine Meldung **Maschine öffnen …**
+und **Neue Maschine …** an (D-20). Sind mehrere offen, fragt er vorher,
+welche (die gemerkte zuerst, sonst die im Dokument des Jobs). Das
 Aufgabenfenster öffnet sich im Dokument der Maschine, damit man sie fahren
 sieht – im Wochen-Build gehört ein Aufgabenfenster zu seinem Dokument und
 verschwindet beim Wechsel (ausprobiert, P-2026-09-26-85); deshalb gibt es im

@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.join(ADDON, "tests"))
 import beispielmaschinen
 import FreeCAD
 
-from camaddon import beispielmaschine, sprache
+from camaddon import PARAMETER_PFAD, beispielmaschine, sprache
 from camaddon import maschine as m
 from camaddon import reichweite as rw
 from camaddon import schraege_achse as sa
@@ -250,12 +250,33 @@ pruefe(
 pruefe(rw.eingetragener_nullpunkt(job) == {}, "nichts eingetragen")
 rw.setze_nullpunkt(job, {"Z": 25.0})
 pruefe(rw.nullpunkt(job).isEqual(FreeCAD.Vector(vorschlag.x, vorschlag.y, 25), 1e-9), "Z 25")
+
+# Die Maschine merken (D-20): am Job, verborgen – und als zuletzt benutzte für alle Jobs.
+einstellungen = FreeCAD.ParamGet(PARAMETER_PFAD)
+vorher = einstellungen.GetString(rw.ZULETZT_MASCHINE, "")
+einstellungen.RemString(rw.ZULETZT_MASCHINE)
+pruefe(rw.gemerkte_maschine(job) == "", f"gemerkt ohne Merken: {rw.gemerkte_maschine(job)!r}")
+rw.merke_maschine(job, "")  # nie gespeichert: nichts zu merken
+pruefe(rw.EIGENSCHAFT_MASCHINE not in job.PropertiesList, "leerer Pfad gemerkt")
+rw.merke_maschine(job, "/maschinen/Fraese.FCStd")
+pruefe("Hidden" in job.getEditorMode(rw.EIGENSCHAFT_MASCHINE), "Eigenschaft sichtbar")
+einstellungen.SetString(rw.ZULETZT_MASCHINE, "/maschinen/Andere.FCStd")
+pruefe(rw.gemerkte_maschine(job) == "/maschinen/Fraese.FCStd", "die des Jobs gilt zuerst")
+pruefe(rw.gemerkte_maschine() == "/maschinen/Andere.FCStd", "ohne Job: die zuletzt benutzte")
 pfad = os.path.join(tempfile.mkdtemp(), "teil.FCStd")
 teil.saveAs(pfad)
 FreeCAD.closeDocument(teil.Name)
 teil = FreeCAD.openDocument(pfad)
 job = next(o for o in teil.Objects if o.Name == "Job")
 pruefe(rw.eingetragener_nullpunkt(job) == {"Z": 25.0}, "Nullpunkt nach dem Laden")
+pruefe(rw.gemerkte_maschine(job) == "/maschinen/Fraese.FCStd", "Maschine nach dem Laden")
+for eigenschaft in (rw.EIGENSCHAFT_NULLPUNKT, rw.EIGENSCHAFT_MASCHINE):
+    modus = job.getEditorMode(eigenschaft)
+    pruefe("Hidden" in modus, f"{eigenschaft} nach dem Laden sichtbar: {modus}")
+if vorher:
+    einstellungen.SetString(rw.ZULETZT_MASCHINE, vorher)
+else:
+    einstellungen.RemString(rw.ZULETZT_MASCHINE)
 rw.setze_nullpunkt(job, {})
 pruefe(rw.eingetragener_nullpunkt(job) == {}, "Nullpunkt gelöscht")
 FreeCAD.closeDocument(teil.Name)
