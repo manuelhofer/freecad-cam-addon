@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-36 plan-vierachs-v2
+
+### EINGELESEN
+- Manuels Rückmeldung mit zwei Bildern (Stange quer im Futter seiner
+  „CLX 550“; ein Teil aus einem Loft) und den Nachsätzen „wenns eine
+  rotatiosn geometrie ist beim 4 achs bearbeiten“, „irgendwie sinnvoll ..“.
+- `docs/spezifikation_vierachs.md` (Abschnitte 4, 5, 13, „Entschieden“),
+  `camaddon/vierachs_rohteil.py`, `camaddon/gui_vierachs.py`,
+  `camaddon/reichweite.py` (`vorschlag_nullpunkt`, `Pruefung`,
+  `_programmbuchstabe`).
+
+### DATEIEN
+- `docs/spezifikation_vierachs.md` (V2 in V2a–V2c, Rückmeldung unter
+  „Entschieden“)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation sagt, warum die Stange quer im Futter stand und in welchen
+Schritten V2 das behebt, je mit Klickweg.
+
+### DONE
+- Ursache: Der Assistent kennt die Maschine noch nicht; vorgewählt ist A
+  (Stange längs X). Das Prüffenster rechnet in den Achsen der
+  Werkstückaufnahme, an der Drehmaschine ist Z die Spindelachse – eine
+  Stange längs X steht dort quer. Dazu übergeht die Prüfung eine Drehung um
+  A stillschweigend, wenn die Maschine nur C hat.
+- Plan: V2a Achse von der Maschine (vorgewählt, wenn eine offen ist), V2b
+  Drehteile per Klick auf eine runde Fläche samt „Umdrehen“, V2c Hinweis im
+  Prüffenster bei fremder Rundachse und Spannlänge im Futter.
+
+### TEST
+- Reine Doku-Änderung, kein Testlauf.
+
+### NEXT
+- V2a umsetzen.
+
 ## P-2026-09-27-35 snapshot-w004-stand
 
 ### EINGELESEN

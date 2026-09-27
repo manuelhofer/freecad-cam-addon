@@ -464,12 +464,37 @@ der Hilfe mit.
 
 **V2 – Achse von der Maschine**
 
-- Neu: `camaddon/vierachs_achsen.py`.
-- *Klickweg:* Beispiel-Drehmaschine laden, im Dokument der Welle
-  „4-Achs-Bearbeitung“ → unter Rundachse steht „Maschine „Drehmaschine“: C1,
-  Werkzeug P1 radial“, und die Stange liegt längs Z; mit „A – ohne Maschine“
-  liegt sie längs X.
-- Wenn gewünscht als V2b: Beispielmaschine „4-Achs-Fräse mit A“.
+Manuels Test (2026-09-27, siehe „Entschieden“): Mit der vorgewählten Rundachse
+A lag die Stange im Job längs X – auf seiner Drehmaschine „CLX 550“ stand sie
+im Prüffenster quer im Futter. Das Prüffenster rechnet in den Achsen der
+Werkstückaufnahme; an der Drehmaschine ist deren Z die Spindelachse, die
+Stange muss also längs Z liegen. Deshalb in drei Schritten:
+
+- **V2a – die Maschine gibt die Achse vor.** Neu: `camaddon/vierachs_achsen.py`.
+  Ist eine W-001-Maschine offen, stehen ihre Rundachsen im Tisch (Betriebsart
+  „Positionieren“) oben in der Liste „Rundachse“ und sind vorgewählt; längs =
+  die Richtung der Rundachse in den Achsen der Werkstückaufnahme (= des Jobs),
+  vorne = vom Futter weg (Z des LCS). Die Buchstaben A/B/C bleiben für „ohne
+  Maschine“.
+  *Klickweg:* Beispiel-Drehmaschine laden, im Dokument der Welle
+  „4-Achs-Bearbeitung“ → unter Rundachse steht „Maschine „Drehmaschine“: C –
+  Stange längs Z“, vorgewählt, und die Stange liegt längs Z; mit „A – Stange
+  in X“ liegt sie längs X.
+- **V2b – Drehteile.** Ein Klick auf eine runde Fläche (Zylinder, Kegel,
+  Kugel, Torus) nimmt deren Achse als Stangenachse, die Mitte liegt auf ihr –
+  heute sagt der Assistent dort „nicht eben“. Vorne ist das Ende des Teils,
+  an dem man geklickt hat; „Umdrehen“ tauscht die Enden.
+  *Klickweg:* Welle, Klick auf den Mantel nahe dem rechten Ende → das rechte
+  Ende liegt vorne an der Stange, mittig; „Umdrehen“ → das linke.
+- **V2c – das Prüffenster.** Dreht ein Programm um eine Achse, die die
+  Maschine nicht hat (A auf der Drehmaschine mit C), sagt es ein Hinweis statt
+  eines schiefen Bildes. Der Vorschlag für den Nullpunkt steckt eine Stange
+  aus dem Assistenten mit ihrer Spannlänge ins Futter, statt sie davor zu
+  stellen.
+  *Klickweg:* Job mit Rundachse A auf der Beispiel-Drehmaschine prüfen → „…
+  dreht um A – die Maschine hat keine Rundachse A“; Job mit C → die Stange
+  steckt 30 mm im Futter.
+- Wenn gewünscht später: Beispielmaschine „4-Achs-Fräse mit A“.
 
 **V3 – Flächen wählen**
 
@@ -580,3 +605,10 @@ als Rückmeldung zum Plan:
   Standard“ (Abschnitt 11).
 - **Reihenfolge:** V1 gleich nach dieser Spezifikation; Schritt 7 der schrägen
   Achse (Vorlage) danach.
+- **Rückmeldung zum Test (2026-09-27):** „effektiv werden runde Teile immer so
+  eingespannt das der Mantel paralell zum Futter ist und nicht so wie das
+  koordinaten system vom rohteil ist … oder irgendwie dem benutzer beim
+  erstellen des rohteils mit inbegriffenen bauteil die möglichkeit geben
+  „klick auf die fläche wo z senkrecht drauf steht“ … wenns eine
+  rotatiosn geometrie ist beim 4 achs bearbeiten … irgendwie sinnvoll“ →
+  V2 in drei Schritten V2a–V2c (Abschnitt 13), als Nächstes.
