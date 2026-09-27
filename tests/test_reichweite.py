@@ -157,6 +157,9 @@ pruefe(
     ],
     f"Hinweise: {e.hinweise}",
 )
+# Fürs Urteil oben im Fenster (D-10): womit je Werkzeug gerechnet wurde.
+pruefe(e.laengen == {1: rw.LAENGE_CAM}, f"Längen: {e.laengen}")
+pruefe(e.geschaetzte_laengen() == [1], f"geschätzt: {e.geschaetzte_laengen()}")
 # 11 Punkte: G0 Z10 ohne X und Y zählt nicht; der Kreis bringt zwei Umkehrstellen
 # (links bei X 130, oben bei Y 60) und sein Ende; der Bohrzyklus drei Höhen.
 pruefe(e.punkte == 11, f"Punkte: {e.punkte}")
@@ -189,6 +192,7 @@ pruefe(bereich(e, "Z1") == (-28.0, -10.0), f"Z1 mit 110 mm: {bereich(e, 'Z1')}")
 pruefe(
     not any("Länge" in h for h in e.hinweise), f"Hinweis trotz Länge ab Spindelnase: {e.hinweise}"
 )
+pruefe(e.geschaetzte_laengen() == [], f"gemessen, doch geschätzt: {e.geschaetzte_laengen()}")
 # Mit Halter, aber ohne gemessene Länge: Halterlänge + Gesamtlänge − Spanntiefe, mit Hinweis
 # (ER16: 70 mm, 20 mm gespannt; Werkzeug 50 mm → 100 mm).
 w1 = bibliothek.werkzeuge[0]

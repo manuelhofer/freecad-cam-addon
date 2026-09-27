@@ -128,6 +128,8 @@ stehen fünf Zeilen Erklärung. **Vorschlag:** oben je Prüfung eine Zeile:
 jede anklickbar (springt zum Abschnitt); Erklärung auf einen Satz (der Rest
 steht in der Hilfe); Abfahren und Kollision einklappbar. **Fertig, wenn:** in
 einem 800 Pixel hohen Fenster alle drei Urteile ohne Blättern zu sehen sind.
+*Erledigt (P-2026-09-27-20) – ohne Einklappen: Mit den Urteilen oben ist es
+fürs Kriterium nicht nötig.*
 
 ### D-11 Hinweise führen zum Werkzeug (mittel)
 **Heute:** „T1: ohne Halter geprüft – den Halter wählst du beim Werkzeug in der

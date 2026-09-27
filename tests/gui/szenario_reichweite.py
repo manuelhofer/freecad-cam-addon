@@ -104,7 +104,7 @@ def schritte(h):
         f"Überschreitungen: {saetze}",
     )
     h.pruefe(
-        panel.urteil.text() == "Nicht alle Achsen bleiben in ihren Grenzen:",
+        panel.urteil.text() == "Nicht alle Achsen bleiben in ihren Grenzen – wo, steht darunter.",
         f"Urteil: {panel.urteil.text()!r}",
     )
     h.bild("2_ueber_der_grenze")

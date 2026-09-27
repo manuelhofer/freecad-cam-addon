@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-20 urteile-oben
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-10; `camaddon/gui_reichweite.py`
+  (Aufbau, `_zeige`), `camaddon/gui_kollision.py` (Urteil, Prüfen),
+  `camaddon/reichweite.py` (`Ergebnis`, `_Sammler.laenge`),
+  `camaddon/gui_details.py` (Verweis im Text als Vorbild),
+  `help/*/reichweite.html`, Bilder `szenario_kollision/2_kollision` und
+  `2b_fenster`.
+
+### DATEIEN
+- `camaddon/reichweite.py` (`Ergebnis.laengen`, `geschaetzte_laengen`)
+- `camaddon/gui_kollision.py` (`kurzurteil`, Rückmeldung ans Fenster)
+- `camaddon/gui_reichweite.py` (drei Urteilszeilen, Verweise)
+- `camaddon/gui_teile.py` (`blaettere_zu`)
+- `translations/de.json`, `translations/en.json` (`rw.erklaerung`,
+  `rw.nicht_in_grenzen`; neu `rw.urteil.*`, `rw.laenge.*`, `kb.kurz.*`)
+- `help/de/reichweite.html`, `help/en/reichweite.html`
+- `tests/test_reichweite.py`, `tests/gui/szenario_kollision.py`,
+  `tests/gui/szenario_reichweite.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In einem 800 Pixel hohen Fenster sind alle drei Urteile ohne Blättern zu
+sehen (Fertig-wenn von D-10).
+
+### DONE
+- Unter dem Nullpunkt drei Zeilen: **Achsen** (der Satz wie bisher; bei
+  Überschreitung „… – wo, steht darunter.“), **Kollision** („Noch nicht
+  geprüft – jetzt prüfen“; danach das Urteil, rot/gelb mit „wo?“),
+  **Werkzeuglänge** (grün „Bei allen Werkzeugen gemessen …“, sonst gelb „Für
+  T1 geschätzt – warum?“; ohne Werkzeug keine Zeile).
+- „jetzt prüfen“ prüft gleich, „wo?“ und „warum?“ blättern den
+  Aufgabenbereich zum Abschnitt „Kollision“ bzw. zu den Hinweisen
+  (`blaettere_zu`).
+- Die Erklärung oben: ein Satz statt fünf Zeilen – der Rest steht in der
+  Hilfe; die Hilfe beschreibt die drei Urteile.
+- Nicht gemacht: Abfahren und Kollision einklappbar – mit den Urteilen oben
+  nicht mehr nötig für das Kriterium; bei Bedarf später.
+
+### TEST
+- `test_reichweite` in 1.1.3 ok (`laengen`, `geschaetzte_laengen`).
+- `szenario_kollision` in 1.1.3 ok – die drei Urteile gleich nach dem
+  Öffnen ohne Blättern sichtbar (`visibleRegion`), „warum?“ zeigt die
+  Hinweise, geprüft über „jetzt prüfen“ oben, „wo?“ zeigt den Abschnitt;
+  Bilder `0_urteile_oben`, `2b_fenster` angesehen.
+- `szenario_reichweite`, `szenario_abfahren`, `szenario_maschine_merken`,
+  `test_sprache` ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-11: Hinweise führen zum Werkzeug.
+
 ## P-2026-09-27-19 maschine-merken
 
 ### EINGELESEN

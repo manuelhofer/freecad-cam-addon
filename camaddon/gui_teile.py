@@ -5,7 +5,8 @@ Fette Beschriftung für Pflichtfelder, Knopf, Feld mit Einheit, rote
 Hinweiszeile und das Grau für gerechnete oder geerbte Werte – einmal hier,
 damit jeder Dialog gleich aussieht (P-2026-09-25-54). Dazu das ruhige
 Mausrad: Auswahllisten, Drehfelder und Regler verstellt es nur, wenn sie den
-Fokus haben (ruhiges_mausrad).
+Fokus haben (ruhiges_mausrad) – und blaettere_zu, das einen Abschnitt im
+Aufgabenbereich nach oben holt.
 """
 
 from PySide import QtCore, QtGui
@@ -51,6 +52,17 @@ def hinweiszeile(text=""):
     zeile.setStyleSheet(f"color: {ROT};")
     zeile.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
     return zeile
+
+
+def blaettere_zu(widget):
+    """Blättert den umgebenden Rollbereich – etwa den Aufgabenbereich –, bis `widget` oben
+    steht, oder so weit es geht."""
+    bereich = widget.parentWidget()
+    while bereich is not None and not isinstance(bereich, QtGui.QScrollArea):
+        bereich = bereich.parentWidget()
+    if bereich is None or bereich.widget() is None:
+        return
+    bereich.verticalScrollBar().setValue(widget.mapTo(bereich.widget(), QtCore.QPoint()).y())
 
 
 def grau(text):

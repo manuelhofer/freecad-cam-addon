@@ -29,13 +29,15 @@ WARNABSTAND = "KollisionWarnabstand"  # gemerkt in den Einstellungen des Addons,
 class KollisionsBereich(QtGui.QWidget):
     """`daten()` liefert (Abfahrt, Job, Nullpunkt, Bibliothek) vom Fenster; `hin(befund)`
     stellt den Abspieler an die Stelle eines Befunds; `sperren(ja)` sperrt den Rest des
-    Fensters, solange gerechnet wird."""
+    Fensters, solange gerechnet wird; `gemeldet(text, farbe, fett)` bekommt das Urteil für
+    oben im Fenster, sobald es sich ändert (kurzurteil)."""
 
-    def __init__(self, daten, hin, sperren):
+    def __init__(self, daten, hin, sperren, gemeldet=None):
         super().__init__()
         self._daten = daten
         self._hin = hin
         self._sperren = sperren
+        self._gemeldet = gemeldet or (lambda *_urteil: None)
         self.ergebnis = None
         self.laeuft = False
         self._abbrechen = False
@@ -119,6 +121,7 @@ class KollisionsBereich(QtGui.QWidget):
         self.hinweise.hide()
         self._urteil(tr("kb.laeuft"), GRAU.name())
         self._sperren(True)
+        self._melde()
         try:
             ergebnis = kb.kollision(
                 abfahrt, job, nullpunkt, bibliothek, warnabstand, self._fortschritt
@@ -154,6 +157,7 @@ class KollisionsBereich(QtGui.QWidget):
         self.liste.hide()
         self.hinweise.hide()
         self._urteil(tr("kb.noch_nicht"), GRAU.name(), fett=False)
+        self._melde()
 
     def zeige(self, ergebnis):
         self.ergebnis = ergebnis
@@ -174,6 +178,30 @@ class KollisionsBereich(QtGui.QWidget):
             self._urteil(tr("kb.frei", abstand=abstand), GRUEN)
         self.hinweise.setText("\n".join(ergebnis.hinweise))
         self.hinweise.setVisible(bool(ergebnis.hinweise))
+        self._melde()
+
+    def _melde(self):
+        self._gemeldet(*self.kurzurteil())
+
+    def kurzurteil(self):
+        """Das Urteil für oben im Fenster (D-10): (Text, Farbe, fett). Der Text ist HTML und
+        hat Verweise: „pruefen“ prüft, „wo“ führt zu diesem Bereich."""
+        if self.laeuft:
+            return tr("kb.laeuft"), GRAU.name(), False
+        e = self.ergebnis
+        pruefen = f'<a href="pruefen">{tr("kb.kurz.pruefen")}</a>'
+        if e is None:
+            return f"{tr('kb.kurz.noch_nicht')} – {pruefen}", GRAU.name(), False
+        if e.abgebrochen:
+            nochmal = f'<a href="pruefen">{tr("kb.kurz.nochmal")}</a>'
+            return f"{tr('kb.abgebrochen.urteil')} {nochmal}", GRAU.name(), False
+        wo = f' – <a href="wo">{tr("kb.kurz.wo")}</a>'
+        abstand = rw.weg_text(e.warnabstand)
+        if e.beruehrungen:
+            return tr("kb.kurz.beruehrt") + wo, ROT, True
+        if e.befunde:
+            return tr("kb.kurz.nahe", abstand=abstand) + wo, GELB, True
+        return tr("kb.frei", abstand=abstand), GRUEN, True
 
     def _urteil(self, text, farbe, fett=True):
         self.urteil.setText(text)

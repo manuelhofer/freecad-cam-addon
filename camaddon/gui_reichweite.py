@@ -36,7 +36,7 @@ from . import reichweite as rw
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_job_schnittwerte import dokument_mit_job
-from .gui_teile import GRAU, ROT, mit_einheit, ruhiges_mausrad
+from .gui_teile import GRAU, ROT, blaettere_zu, mit_einheit, ruhiges_mausrad
 from .gui_zahlen import Zahlenpruefer, groesse_lesen, zahlenformat
 from .sprache import tr
 
@@ -326,9 +326,28 @@ class PruefPanel:
             self.felder_nullpunkt[achse] = feld
         aufbau.addLayout(zeile)
 
+        # Oben je Prüfung ein Urteil, ohne Blättern zu sehen (Durchsicht W-004, D-10); die
+        # Einzelheiten stehen darunter, die Verweise führen hin.
+        urteile = QtGui.QGridLayout()
+        urteile.setColumnStretch(1, 1)
         self.urteil = QtGui.QLabel()
-        self.urteil.setWordWrap(True)
-        aufbau.addWidget(self.urteil)
+        self.urteil_kollision = QtGui.QLabel()
+        self.urteil_kollision.linkActivated.connect(self._kollision_verweis)
+        self.urteil_laenge = QtGui.QLabel()
+        self.urteil_laenge.linkActivated.connect(lambda _ziel: blaettere_zu(self.hinweise))
+        self._beschriftung = {}
+        for zeile, (text, urteil) in enumerate(
+            (
+                (tr("rw.urteil.achsen"), self.urteil),
+                (tr("rw.urteil.kollision"), self.urteil_kollision),
+                (tr("rw.urteil.laenge"), self.urteil_laenge),
+            )
+        ):
+            urteil.setWordWrap(True)
+            self._beschriftung[urteil] = QtGui.QLabel(text)
+            urteile.addWidget(self._beschriftung[urteil], zeile, 0, QtCore.Qt.AlignTop)
+            urteile.addWidget(urteil, zeile, 1)
+        aufbau.addLayout(urteile)
         self.liste = QtGui.QListWidget()
         self.liste.setWordWrap(True)
         # So hoch wie ihre Sätze, nicht höher – sonst schöbe sie die Bereiche und
@@ -341,7 +360,7 @@ class PruefPanel:
         self.abspieler = gui_abfahren.Abspieler(self._fahre, self._hinsehen)
         aufbau.addWidget(self.abspieler)
         self.kollision = gui_kollision.KollisionsBereich(
-            self._kollision_daten, self._kollision_hin, self._sperren
+            self._kollision_daten, self._kollision_hin, self._sperren, self._kollision_gemeldet
         )
         aufbau.addWidget(self.kollision)
         self.bereiche = QtGui.QLabel()
@@ -489,10 +508,30 @@ class PruefPanel:
         self.bereiche.setVisible(bool(zeilen))
         self.hinweise.setText("\n".join(e.hinweise))
         self.hinweise.setVisible(bool(e.hinweise))
+        geschaetzt = e.geschaetzte_laengen()
+        if geschaetzt:
+            werkzeuge = ", ".join(f"T{nummer}" for nummer in geschaetzt)
+            warum = f'<a href="hinweise">{tr("rw.urteil.warum")}</a>'
+            text = f"{tr('rw.laenge.geschaetzt', werkzeuge=werkzeuge)} – {warum}"
+            _zeige_urteil(self.urteil_laenge, text, gui_kollision.GELB)
+        else:
+            _zeige_urteil(self.urteil_laenge, tr("rw.laenge.gemessen"), GRUEN)
+        for widget in (self.urteil_laenge, self._beschriftung[self.urteil_laenge]):
+            widget.setVisible(bool(e.laengen))
 
     def _urteil(self, text, farbe):
-        self.urteil.setText(text)
-        self.urteil.setStyleSheet(f"color: {farbe}; font-weight: bold;")
+        _zeige_urteil(self.urteil, text, farbe)
+
+    def _kollision_gemeldet(self, text, farbe, fett):
+        """Das Urteil der Kollision, oben im Fenster."""
+        _zeige_urteil(self.urteil_kollision, text, farbe, fett)
+
+    def _kollision_verweis(self, ziel):
+        """Die Verweise im Urteil „Kollision“: „pruefen“ prüft, „wo“ zeigt den Bereich."""
+        if ziel == "pruefen":
+            self.kollision.pruefen()
+        else:
+            blaettere_zu(self.kollision)
 
     # --- Die Maschine ---------------------------------------------------------------
 
@@ -575,6 +614,12 @@ class PruefPanel:
         self.assembly.Document.recompute()
         if self.bild is not None:
             self.bild.folge()
+
+
+def _zeige_urteil(label, text, farbe, fett=True):
+    label.setText(text)
+    gewicht = "font-weight: bold;" if fett else ""
+    label.setStyleSheet(f"color: {farbe}; {gewicht}")
 
 
 def _zahl(wert, stellen):

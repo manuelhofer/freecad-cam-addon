@@ -131,9 +131,15 @@ class Ergebnis:
     bereiche: list = field(default_factory=list)  # je Achse, in der Reihenfolge der Kette
     hinweise: list = field(default_factory=list)  # fertige Sätze
     punkte: int = 0  # so viele Punkte wurden geprüft
+    laengen: dict = field(default_factory=dict)  # Werkzeugnummer -> womit gerechnet (LAENGE_…)
 
     def in_grenzen(self):
         return not self.ueberschreitungen
+
+    def geschaetzte_laengen(self):
+        """Die Werkzeugnummern, deren Länge nicht gemessen ist – alles außer „Länge ab
+        Spindelnase“ –, in der Reihenfolge der Operationen."""
+        return [nummer for nummer, quelle in self.laengen.items() if quelle != LAENGE_SPINDELNASE]
 
 
 # --- Texte (ohne Oberfläche) -----------------------------------------------------------
@@ -700,6 +706,7 @@ class _Sammler:
 
     def laenge(self, tc, laenge, quelle):
         """Sagt, womit gerechnet wurde, wenn es nicht die Länge ab Spindelnase ist."""
+        self.ergebnis.laengen.setdefault(getattr(tc, "ToolNumber", 0), quelle)
         werte = {"werkzeug": werkzeug_text(tc), "laenge": weg_text(laenge)}
         if quelle == LAENGE_HALTER:
             self.hinweis(tr("rw.laenge_halter", **werte))

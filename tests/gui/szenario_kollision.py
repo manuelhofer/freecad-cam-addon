@@ -2,11 +2,14 @@
 # Beispiel-Fräse (mit zwei Spanneisen) und ein Teil mit Tasche; T1 in der
 # Werkzeugverwaltung ist kurz (25 mm). Die Bahn fährt neben dem Teil so tief,
 # dass die Spindel auf das rechte Spanneisen setzt – in den Grenzen der
-# Achsen. Das Fenster sagt erst „Noch nicht geprüft …“; „Kollision prüfen“ →
-# rot „Es stößt etwas an:“ und der Satz „In „Eigene“ berühren sich „Spindel“
-# und „Spanneisen_rechts“ (Satz 4, …)“. Ein Klick darauf stellt den Abspieler dorthin, eine rote Kugel zeigt
-# die Stelle. Mit Warnabstand 10 mm kommen gelbe Sätze dazu. Ein anderer
-# Nullpunkt macht das Ergebnis ungültig; Schließen nimmt Kugel und Körper weg.
+# Achsen. Oben im Fenster stehen, ohne Blättern, die drei Urteile (D-10):
+# Achsen, „Kollision: Noch nicht geprüft – jetzt prüfen“, „Werkzeuglänge: Für
+# T1 geschätzt – warum?“. „jetzt prüfen“ → oben und unter „Kollision“ rot „Es
+# stößt etwas an“ und der Satz „In „Eigene“ berühren sich „Spindel“ und
+# „Spanneisen_rechts“ (Satz 4, …)“; „wo?“ blättert zum Abschnitt. Ein Klick
+# auf den Satz stellt den Abspieler dorthin, eine rote Kugel zeigt die Stelle.
+# Mit Warnabstand 10 mm kommen gelbe Sätze dazu. Ein anderer Nullpunkt macht
+# das Ergebnis ungültig; Schließen nimmt Kugel und Körper weg.
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore
@@ -71,11 +74,29 @@ def schritte(h):
     )
     h.bild("1_vorher", panel.form)
 
-    # --- Prüfen: die Spindel setzt auf das Spanneisen ---------------------------------------
-    k.knopf.click()
+    # Die drei Urteile oben – ohne Blättern zu sehen (D-10).
+    oben = panel.urteil_kollision.text()
+    h.pruefe(oben.startswith("Noch nicht geprüft") and "jetzt prüfen" in oben, f"oben: {oben!r}")
+    laenge = panel.urteil_laenge.text()
+    h.pruefe(laenge.startswith("Für T1 geschätzt") and "warum?" in laenge, f"Länge: {laenge!r}")
+    for urteil in (panel.urteil, panel.urteil_kollision, panel.urteil_laenge):
+        h.pruefe(not urteil.visibleRegion().isEmpty(), f"nicht zu sehen: {urteil.text()!r}")
+    h.bild("0_urteile_oben")
+    # „warum?“ blättert zu den Hinweisen.
+    panel.urteil_laenge.linkActivated.emit("hinweise")
+    yield 300
+    h.pruefe(not panel.hinweise.visibleRegion().isEmpty(), "„warum?“: Hinweise nicht zu sehen")
+
+    # --- Prüfen – über „jetzt prüfen“ oben: die Spindel setzt auf das Spanneisen -------------
+    panel.urteil_kollision.linkActivated.emit("pruefen")
     yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 30000)
     yield 300
     h.pruefe(k.urteil.text() == "Es stößt etwas an:", f"Urteil: {k.urteil.text()!r}")
+    oben = panel.urteil_kollision.text()
+    h.pruefe(oben.startswith("Es stößt etwas an") and "wo?" in oben, f"oben: {oben!r}")
+    panel.urteil_kollision.linkActivated.emit("wo")
+    yield 300
+    h.pruefe(not k.urteil.visibleRegion().isEmpty(), "„wo?“: Abschnitt Kollision nicht zu sehen")
     saetze = [k.liste.item(i).text() for i in range(k.liste.count())]
     h.pruefe(
         len(saetze) == 1
