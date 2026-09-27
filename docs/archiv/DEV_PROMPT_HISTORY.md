@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-47 vierachs-schruppbahn
+
+### EINGELESEN
+- `docs/spezifikation_vierachs.md` (Abschnitt 9, Stufe V3b).
+- FreeCADs `PathSegmentWalker.cpp` in 1.1.3: Ein Satz mit A/B/C wird nach dem
+  Winkel modulo 360° unterteilt – über mehrere Umdrehungen zeigt 1.1.3 eine
+  Gerade (im Wochen-Build behoben).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (neu)
+- `camaddon/vierachs_huelle.py` (`bei()` Punkt für Punkt)
+- `tests/test_vierachs_bahn.py` (neu)
+- `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Für eine Welle Ø 60 in der Stange Ø 80 (ap 2, Aufmaß 0,3) entstehen fünf
+Lagen bis Ø 60,6; die Spirale läuft von vorne bis 1 mm vor das Futter und kommt
+dem Teil nirgends näher als das Aufmaß – auch zwischen den Punkten.
+
+### DONE
+- `schruppen()`: Lagen R_Stange − k · ap bis zum tiefsten Punkt über dem
+  Teil; je Lage eine Spirale (Steigung = Vorschub je Umdrehung) von vorne –
+  Fräser ganz vor der Stange – bis 1 mm vor die Spannfläche, die Spitze auf
+  max(Lage, Hüllfläche mit R + Aufmaß, plus Aufmaß, Toleranz der Vernetzung
+  und 0,005 mm). Hinter dem Teil ohne Treffer bleibt sie auf dem
+  Stangenradius, der Achse nie näher als der Fräserradius. Zwischen den Lagen
+  radial hinaus und im Eilgang nach vorne; die nächste Spirale beginnt beim
+  Winkel, wo die letzte endete.
+- Gerade Stücke fallen zusammen, aber höchstens 90° je Satz (FreeCAD 1.1.3).
+- `befehle()`: Path-Befehle – zuerst radial auf Sicherheitsabstand, dann an
+  den Anfang (quer auf 0), G93, die Sätze mit F = Vorschub ÷ Weg ÷ 60 (CAM
+  rechnet in mm/s), G94. X/Y/Z im Rahmen der Maschine, die Rundachse
+  −drehsinn · φ. `dauer()`: Zeit im Vorschub.
+- Hinweis `vb.hinten_frei`, wenn der Fräser das hintere Ende des Teils nicht
+  erreicht; ValueError für Werte, die nicht gehen.
+
+### TEST
+- `test_vierachs_bahn` in 1.1.3 und im Wochen-Build: Welle 5 Lagen (38, 36, 34,
+  32, dann am Teil), Exzenter 17 Lagen mit mindestens 0,025 mm Luft über dem
+  Aufmaß auch zwischen den Punkten, Befehle für C und A, Drehsinn −1, ohne Y,
+  Fehlerfälle.
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- V3c: die Operation „Rundum schruppen“.
+
 ## P-2026-09-27-46 vierachs-huelle
 
 ### EINGELESEN

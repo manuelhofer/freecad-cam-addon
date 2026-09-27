@@ -78,18 +78,19 @@ class Huelle:
 
     def bei(self, a, j):
         """Der Wert an der Stelle `a` (mm) für den Winkel phi[j]: der höhere der beiden
-        Rasterpunkte daneben. Außerhalb des Rasters KEIN_TREFFER."""
+        Rasterpunkte daneben; außerhalb des Rasters KEIN_TREFFER. `a` und `j` dürfen
+        gleich lange Felder sein – dann Punkt für Punkt."""
         a = np.asarray(a, dtype=float)
+        j = np.asarray(j) % len(self.phi)
         schritt = self.a[1] - self.a[0] if len(self.a) > 1 else 1.0
         lage = (a - self.a[0]) / schritt
         links = np.floor(lage + 1e-9).astype(np.int64)
         rechts = np.where(np.abs(lage - np.rint(lage)) < 1e-9, links, links + 1)
-        spalte = self.r[:, np.asarray(j) % len(self.phi)]
         n = len(self.a)
 
         def wert(i):
             gueltig = (i >= 0) & (i < n)
-            return np.where(gueltig, spalte[np.clip(i, 0, n - 1)], KEIN_TREFFER)
+            return np.where(gueltig, self.r[np.clip(i, 0, n - 1), j], KEIN_TREFFER)
 
         return np.maximum(wert(links), wert(rechts))
 
