@@ -22,6 +22,7 @@ Jobs zurück.
 """
 
 import contextlib
+import html
 import os
 
 import FreeCAD
@@ -45,7 +46,7 @@ from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_job_schnittwerte import dokument_mit_job
 from .gui_teile import GRAU, ROT, blaettere_zu, mit_einheit, ruhiges_mausrad
-from .gui_zahlen import Zahlenpruefer, groesse_lesen, zahlenformat
+from .gui_zahlen import Zahlenpruefer, groesse_fest, groesse_lesen, zahlenformat
 from .sprache import tr
 
 VERZOEGERUNG = 300  # ms nach der letzten Eingabe, dann rechnet das Fenster neu
@@ -248,6 +249,7 @@ class PruefPanel:
         self._job = None  # der Job, dessen Nullpunkt in den Feldern steht
         self._werkzeugdialog = None  # die Werkzeugverwaltung, deren Speichern hier ankommt
         self.bibliothek = _bibliothek()
+        self.vergleiche = []  # js.Vergleich je Controller – Schnittwerte im Job (D-28)
         self.werkstueckaufnahmen = [
             a for a in m.aufnahmen(maschine) if a.Art == m.AUFNAHME_WERKSTUECK and a.Lcs is not None
         ]
@@ -344,12 +346,16 @@ class PruefPanel:
         self.urteil_kollision.linkActivated.connect(self._kollision_verweis)
         self.urteil_laenge = QtGui.QLabel()
         self.urteil_laenge.linkActivated.connect(lambda _ziel: blaettere_zu(self.hinweise))
+        self.urteil_schnittwerte = QtGui.QLabel()
+        self.urteil_schnittwerte.setToolTip(tr("rw.schnittwerte.tooltip"))
+        self.urteil_schnittwerte.linkActivated.connect(self.schnittwerte_uebernehmen)
         self._beschriftung = {}
         for zeile, (text, urteil) in enumerate(
             (
                 (tr("rw.urteil.achsen"), self.urteil),
                 (tr("rw.urteil.kollision"), self.urteil_kollision),
                 (tr("rw.urteil.laenge"), self.urteil_laenge),
+                (tr("rw.urteil.schnittwerte"), self.urteil_schnittwerte),
             )
         ):
             urteil.setWordWrap(True)
@@ -526,6 +532,37 @@ class PruefPanel:
             _zeige_urteil(self.urteil_laenge, tr("rw.laenge.gemessen"), GRUEN)
         for widget in (self.urteil_laenge, self._beschriftung[self.urteil_laenge]):
             widget.setVisible(bool(e.laengen))
+        self._schnittwerte_zeigen()
+
+    def _schnittwerte_zeigen(self):
+        """Das Urteil „Schnittwerte“: Passen Drehzahl und Vorschub im Job zur
+        Werkzeugverwaltung? Sonst je Controller ein Satz mit „übernehmen“ (D-28)."""
+        job = self.job()
+        self.vergleiche = js.vergleiche(job, self.bibliothek) if self.bibliothek else []
+        veraltet = [v for v in self.vergleiche if v.veraltet]
+        if veraltet:
+            zeilen = [_veraltet_satz(v) for v in veraltet]
+            if len(veraltet) > 1:
+                zeilen.append(f'<a href="schnittwerte:*">{tr("rw.schnittwerte.alle")}</a>')
+            # Nicht fett: Es sind Sätze mit Zahlen, keine Überschrift.
+            text = "<br>".join(zeilen)
+            _zeige_urteil(self.urteil_schnittwerte, text, gui_kollision.GELB, fett=False)
+        else:
+            _zeige_urteil(self.urteil_schnittwerte, tr("rw.schnittwerte.passen"), GRUEN)
+        for widget in (self.urteil_schnittwerte, self._beschriftung[self.urteil_schnittwerte]):
+            widget.setVisible(bool(self.vergleiche))
+
+    def schnittwerte_uebernehmen(self, ziel):
+        """„schnittwerte:<Name des Controllers>“ setzt dessen Drehzahl und Vorschub wie in
+        der Werkzeugverwaltung, „schnittwerte:*“ die aller veralteten – ein Schritt
+        Rückgängig im Dokument des Jobs (D-28)."""
+        name = ziel.split(":", 1)[1]
+        veraltet = [v for v in self.vergleiche if v.veraltet and name in ("*", v.tc.Name)]
+        if not veraltet:
+            return
+        self._zurueckfahren()  # dessen offener Schritt gehört nicht zum Übernehmen
+        js.uebernimm(self.job().Document, veraltet, tr("rw.schnittwerte.schritt"))
+        self.pruefe()
 
     def _urteil(self, text, farbe):
         _zeige_urteil(self.urteil, text, farbe)
@@ -638,6 +675,24 @@ class PruefPanel:
         self.assembly.Document.recompute()
         if self.bild is not None:
             self.bild.folge()
+
+
+def _veraltet_satz(vergleich):
+    """„T3 Schruppen dynamisch: im Job 2122 U/min · 318 mm/min, laut Werkzeugverwaltung
+    3183 U/min · 477 mm/min – übernehmen“ – nur mit dem, was abweicht; HTML."""
+    v = vergleich
+    jetzt, neu = [], []
+    if v.n_anders:
+        jetzt.append(tr("rw.schnittwerte.n", n=zahlenformat().toString(v.n_jetzt, "f", 0)))
+        neu.append(tr("rw.schnittwerte.n", n=zahlenformat().toString(float(v.n), "f", 0)))
+    if v.vf_anders:
+        jetzt.append(tr("rw.schnittwerte.vf", vf=groesse_fest(v.vf_jetzt, einheiten.VORSCHUB, 0)))
+        neu.append(tr("rw.schnittwerte.vf", vf=groesse_fest(v.vf, einheiten.VORSCHUB, 0)))
+    satz = tr(
+        "rw.schnittwerte.veraltet", tc=v.tc.Label, jetzt=" · ".join(jetzt), neu=" · ".join(neu)
+    )
+    verweis = f'<a href="schnittwerte:{v.tc.Name}">{tr("rw.schnittwerte.uebernehmen")}</a>'
+    return f"{html.escape(satz)} – {verweis}"
 
 
 def _zeige_urteil(label, text, farbe, fett=True):

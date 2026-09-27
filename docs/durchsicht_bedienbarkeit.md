@@ -276,6 +276,9 @@ die Werkzeug-Controller im Job die alten Drehzahlen und Vorschübe, bis man
 Werkzeugverwaltung 3183 – übernehmen?“ (ein Klick). **Fertig, wenn:** eine
 geänderte Schnittgeschwindigkeit im Prüffenster als Hinweis mit Knopf
 erscheint.
+*Erledigt (P-2026-09-27-31) – als Urteil „Schnittwerte“ oben im Prüffenster, je
+Controller mit „übernehmen“. Verglichen wird mit Einsatz und Werkstoff vom
+letzten Setzen, die sich der Controller seit P-2026-09-27-30 merkt.*
 
 ### D-29 Vorschläge mit einem Klick übernehmen (klein bis mittel)
 **Heute:** „Schnittwerte in den Job“ sagt rot: „Die letzte Ebene ist nur 1 mm

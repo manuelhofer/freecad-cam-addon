@@ -929,5 +929,14 @@
     "sj.ebene_duenn.wv_offen": "Die Werkzeugverwaltung ist offen – ändere ap dort, oder schließ sie erst. Sonst schriebe ihr OK den alten Wert zurück.",
     "sj.eigenschaft.einsatz": "Einsatz und Werkstoff, aus denen das CAM-Addon Drehzahl und Vorschub zuletzt gesetzt hat („Schnittwerte in den Job“)",
     "sj.herkunft.rohteil_gemerkt": "Vom Rohteil des Jobs, wie beim letzten Mal: {werkstoff}.",
-    "sj.herkunft.gemerkt": "Das Rohteil hat keinen Werkstoff, den die Werkzeugverwaltung kennt – vorgewählt ist der vom letzten Mal: {werkstoff}."
+    "sj.herkunft.gemerkt": "Das Rohteil hat keinen Werkstoff, den die Werkzeugverwaltung kennt – vorgewählt ist der vom letzten Mal: {werkstoff}.",
+    "rw.urteil.schnittwerte": "Schnittwerte",
+    "rw.schnittwerte.passen": "Drehzahl und Vorschub wie in der Werkzeugverwaltung.",
+    "rw.schnittwerte.veraltet": "{tc}: im Job {jetzt}, laut Werkzeugverwaltung {neu}",
+    "rw.schnittwerte.n": "{n} U/min",
+    "rw.schnittwerte.vf": "{vf} {e_vorschub}",
+    "rw.schnittwerte.uebernehmen": "übernehmen",
+    "rw.schnittwerte.alle": "Alle übernehmen",
+    "rw.schnittwerte.schritt": "Schnittwerte übernehmen",
+    "rw.schnittwerte.tooltip": "Verglichen mit dem, was „Schnittwerte in den Job“ setzen würde: mit dem Einsatz und Werkstoff vom letzten Mal, sonst dem Vorschlag. „übernehmen“ setzt Drehzahl und Vorschub des Controllers – ein Schritt Rückgängig; Schrittweite und Zustelltiefe der Operationen bleiben."
 }

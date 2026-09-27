@@ -23,7 +23,7 @@ mount, its bottom on the clamping face. The job remembers what you enter.</li>
 </ul>
 
 <h3>The result</h3>
-<p>Below the origin you find the <b>three verdicts</b>, visible without
+<p>Below the origin you find the <b>verdicts</b>, visible without
 scrolling – the details follow further down:</p>
 <ul>
 <li><b>Axes</b> – does the travel suffice?</li>
@@ -33,6 +33,14 @@ Afterwards the verdict; <b>where?</b> scrolls to the “Collision” section.</l
 <li><b>Tool length</b> – green if the measured gauge length is entered for
 every tool; otherwise yellow, naming the tools whose length was estimated –
 <b>why?</b> scrolls to the notes.</li>
+<li><b>Cutting data</b> – only if tool controllers of the job come from the
+tool manager: green if spindle speed and feed match it. Otherwise yellow, per
+controller, what the job has and what the tool manager calculates – after you
+changed vc there, say. <b>apply</b> sets that controller's spindle speed and
+feed, <b>Apply all</b> those of all of them – one undo step; the operations'
+step-over and step-down stay (“Cutting data into the job” sets those). The
+comparison uses the use case and material the addon last set the controller
+from, otherwise what “Cutting data into the job” suggests.</li>
 </ul>
 <p>About the axes:</p>
 <ul>

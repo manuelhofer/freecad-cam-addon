@@ -929,5 +929,14 @@
     "sj.ebene_duenn.wv_offen": "The tool manager is open – change ap there, or close it first. Otherwise its OK would write the old value back.",
     "sj.eigenschaft.einsatz": "Use case and material the CAM Addon last set spindle speed and feed from (“Cutting data into the job”)",
     "sj.herkunft.rohteil_gemerkt": "From the job's stock, as last time: {werkstoff}.",
-    "sj.herkunft.gemerkt": "The stock has no material the tool manager knows – preselected is the one from last time: {werkstoff}."
+    "sj.herkunft.gemerkt": "The stock has no material the tool manager knows – preselected is the one from last time: {werkstoff}.",
+    "rw.urteil.schnittwerte": "Cutting data",
+    "rw.schnittwerte.passen": "Spindle speed and feed as in the tool manager.",
+    "rw.schnittwerte.veraltet": "{tc}: {jetzt} in the job, {neu} per the tool manager",
+    "rw.schnittwerte.n": "{n} rpm",
+    "rw.schnittwerte.vf": "{vf} {e_vorschub}",
+    "rw.schnittwerte.uebernehmen": "apply",
+    "rw.schnittwerte.alle": "Apply all",
+    "rw.schnittwerte.schritt": "Apply cutting data",
+    "rw.schnittwerte.tooltip": "Compared with what “Cutting data into the job” would set: with the use case and material from last time, otherwise the suggestion. “apply” sets the controller's spindle speed and feed – one undo step; the operations' step-over and step-down stay."
 }

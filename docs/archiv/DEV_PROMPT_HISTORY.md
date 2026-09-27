@@ -12,6 +12,64 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-31 veraltete-schnittwerte
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-28; `camaddon/gui_reichweite.py`
+  (Urteile oben, `_zeige`, `_werkzeuge_gespeichert`, `_zurueckfahren`),
+  `camaddon/job_schnittwerte.py` (nach P-30), `camaddon/gui_kollision.py`
+  (Farben, Verweise), `help/*/reichweite.html`,
+  `tests/gui/szenario_kollision.py`.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`RUNDUNG`, `Vergleich`, `vergleiche`,
+  `uebernimm`)
+- `camaddon/gui_reichweite.py` (Urteil „Schnittwerte“,
+  `schnittwerte_uebernehmen`, `_veraltet_satz`)
+- `translations/de.json`, `translations/en.json` (`rw.urteil.schnittwerte`,
+  `rw.schnittwerte.*`)
+- `help/de/reichweite.html`, `help/en/reichweite.html`
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_kollision.py`,
+  neu `tests/gui/szenario_schnittwerte_pruefen.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine geänderte Schnittgeschwindigkeit erscheint im Prüffenster als Hinweis
+mit Knopf (Fertig-wenn von D-28).
+
+### DONE
+- Oben im Prüffenster ein viertes Urteil **Schnittwerte** – nur, wenn
+  Controller des Jobs aus der Werkzeugverwaltung kommen und eine Operation
+  sie benutzt. Grün „Drehzahl und Vorschub wie in der Werkzeugverwaltung.“;
+  sonst gelb je Controller „T3 Schruppen dynamisch: im Job 3183 U/min ·
+  1432 mm/min, laut Werkzeugverwaltung 3979 U/min · 1790 mm/min –
+  übernehmen“, nur mit dem, was abweicht; bei mehreren „Alle übernehmen“.
+- Verglichen wird, was „Übernehmen“ im Dialog setzen würde: mit Einsatz und
+  Werkstoff vom letzten Setzen (P-30), sonst dem Vorschlag. Eine Umdrehung
+  bzw. ein mm/min Unterschied ist Rundung.
+- „übernehmen“ setzt Drehzahl und Vorschübe (wie der Dialog, samt
+  Eintauchvorschub), nicht Schrittweite und Zustelltiefe – ein Schritt
+  Rückgängig im Dokument des Jobs; das Fenster rechnet danach neu.
+- Nicht fett: Es sind Sätze mit Zahlen; im schmalen Aufgabenbereich lesen
+  sie sich so besser (Bilder verglichen).
+
+### TEST
+- `test_job_schnittwerte` in 1.1.3 und im Wochen-Build ok: frisch gesetzt
+  passt, vc geändert → n und vf veraltet, fz geändert → nur vf, 1 U/min ist
+  Rundung, `uebernimm` samt Strg+Z, unbenutzter Controller zählt nicht.
+- `szenario_schnittwerte_pruefen` (neu) in beiden Versionen ok; Bilder
+  `1_veraltet`, `2_uebernommen` angesehen.
+- `szenario_kollision` in beiden Versionen ok (ohne Schnittwerte keine
+  Zeile).
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- Beobachtung beim Szenario: Zwei Controller für dasselbe Werkzeug – das
+  zweite Werkzeug heißt in FreeCAD „… L001“ statt „… L26“ (FreeCAD macht den
+  Namen eindeutig, indem es die Zahl am Ende ersetzt).
+- Offen ohne Entscheidung: D-23 (wartet auf Manuels Antwort zur
+  Ausspannlänge), Rest von D-20 und D-26.
+
 ## P-2026-09-27-30 einsatz-merken
 
 ### EINGELESEN

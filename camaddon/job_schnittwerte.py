@@ -8,7 +8,8 @@ Bibliothek, sonst über T-Nummer und Durchmesser –, schlägt einen Einsatz
 vor und rechnet n und vf aus dessen vc und fz. Passt der Einsatz zu einer
 Operation, die den TC benutzt, bekommt sie auch ae und ap als Schrittweite
 und Zustelltiefe. Gesetzt wird in einer Transaktion (ein Strg+Z). Am TC merkt
-es sich Einsatz und Werkstoff – beim nächsten Mal schlägt es dieselben vor.
+es sich Einsatz und Werkstoff – beim nächsten Mal schlägt es dieselben vor,
+und „Auf der Maschine prüfen“ vergleicht mit ihnen (vergleiche()).
 
 Das ist der Weg für FreeCAD 1.1.3, das Schnittwerte am Werkzeug nicht kennt;
 im Wochen-Build geht es zusätzlich über FreeCADs eigenen Vorschlag.
@@ -88,6 +89,10 @@ DUENNE_EBENE = 0.25
 # {"werkstoff": …, "art": …, "name": …} in einer ausgeblendeten Eigenschaft des TC.
 EIGENSCHAFT_EINSATZ = "CamAddonEinsatz"
 
+# Weicht Drehzahl (U/min) oder Vorschub (mm/min) im Job um nicht mehr als das von dem ab,
+# was die Werkzeugverwaltung rechnet, ist es Rundung, kein veralteter Wert (vergleiche()).
+RUNDUNG = 1
+
 
 @dataclass
 class Gesetzt:
@@ -104,6 +109,32 @@ class Gemerkt:
     werkstoff: str  # Kennung, wz.ALLE oder "" (unbekannt)
     art: str  # die Art des Einsatzes
     name: str  # sein eigener Name; leer = der Name der Art
+
+
+@dataclass
+class Vergleich:
+    """Drehzahl und Vorschub eines TC: im Job und laut Werkzeugverwaltung (vergleiche())."""
+
+    tc: object
+    werkzeug: object  # wz.Werkzeug
+    einsatz: object  # wz.Einsatz, aus dem die Werkzeugverwaltung rechnet
+    werkstoff: str  # Kennung der Tabelle des Einsatzes oder wz.ALLE
+    n_jetzt: float  # U/min, im Job
+    vf_jetzt: float  # mm/min, im Job
+    n: int  # U/min, laut Werkzeugverwaltung – gerundet, wie „Übernehmen“ es setzt
+    vf: int  # mm/min, ebenso
+
+    @property
+    def n_anders(self):
+        return abs(self.n - self.n_jetzt) > RUNDUNG
+
+    @property
+    def vf_anders(self):
+        return abs(self.vf - self.vf_jetzt) > RUNDUNG
+
+    @property
+    def veraltet(self):
+        return self.n_anders or self.vf_anders
 
 
 def jobs(dokument):
@@ -226,6 +257,13 @@ def werkzeug_von(tc, bibliothek):
 def _mm(wert):
     try:
         return float(wert.getValueAs("mm"))
+    except AttributeError:
+        return 0.0
+
+
+def _mm_min(wert):
+    try:
+        return float(wert.getValueAs("mm/min"))
     except AttributeError:
         return 0.0
 
@@ -510,3 +548,48 @@ def setze(dokument, zuordnung, job=None, werkstoff=""):
     dokument.commitTransaction()
     dokument.recompute()
     return gesetzt
+
+
+def vergleiche(job, bibliothek):
+    """Drehzahl und Vorschub der TC im Job neben dem, was die Werkzeugverwaltung rechnet
+    (Durchsicht W-004, D-28) – [Vergleich, …]; `veraltet` sagt, wo es nicht mehr passt.
+
+    Gerechnet wird, was „Übernehmen“ im Dialog setzen würde: mit dem Einsatz und
+    Werkstoff vom letzten Setzen (gemerkter_einsatz, werkstoff_fuer), sonst dem
+    Vorschlag. Verglichen werden nur TC, die eine Operation benutzt und deren
+    Werkzeug in der Werkzeugverwaltung steht, mit einem Einsatz, der vc und fz hat.
+    """
+    werkstoffe = bibliothek.alle_werkstoffe()
+    ergebnis = []
+    for tc in werkzeug_controller(job):
+        werkzeug = werkzeug_von(tc, bibliothek)
+        if werkzeug is None or not operationen_mit(tc, job):
+            continue
+        werkstoff, _gemerkt = werkstoff_fuer(job, werkstoffe, tc)
+        kennung = werkstoff.kennung if werkstoff is not None else wz.ALLE
+        einsaetze = werkzeug.einsaetze(kennung)
+        index = vorgeschlagener_einsatz(tc, einsaetze, job)
+        if index < 0:
+            continue
+        n, vf, _senkrecht = werte(werkzeug, einsaetze[index])
+        if n <= 0 or vf <= 0:
+            continue
+        jetzt = float(getattr(tc, "SpindleSpeed", 0.0)), _mm_min(getattr(tc, "HorizFeed", None))
+        ergebnis.append(
+            Vergleich(tc, werkzeug, einsaetze[index], kennung, *jetzt, round(n), round(vf))
+        )
+    return ergebnis
+
+
+def uebernimm(dokument, vergleiche_, schritt):
+    """Setzt Drehzahl und Vorschübe der TC wie in der Werkzeugverwaltung (Vergleich aus
+    vergleiche()) – ohne die Operationen. Ein Schritt Rückgängig namens `schritt`."""
+    dokument.openTransaction(schritt)
+    try:
+        for v in vergleiche_:
+            _setze_werte(v.tc, v.werkzeug, v.einsatz, v.werkstoff)
+    except Exception:
+        dokument.abortTransaction()
+        raise
+    dokument.commitTransaction()
+    dokument.recompute()

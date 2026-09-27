@@ -5,6 +5,8 @@
 # Einsätze der Werkzeugarten finden ihre Operation: Planen das Planfräsen,
 # Fasen das Entgraten, Zentrieren die Bohrung (Werkzeugarten, Stufe 6). Der TC
 # merkt sich Einsatz und Werkstoff; beide schlägt das Addon wieder vor.
+# Veraltete Werte (D-28): vergleiche() sieht, wo Drehzahl oder Vorschub nicht
+# mehr zur Werkzeugverwaltung passen; uebernimm() setzt sie in einem Schritt.
 import os
 import pathlib
 import sys
@@ -293,6 +295,54 @@ pruefe(js.werkstoff_fuer(job, [eigen], tc1) == (eigen, True), "ohne Rohteil nich
 js.setze(dok, [(tc1, fraeser, einsaetze[1])], werkstoff=wz.ALLE)
 pruefe(js.werkstoff_fuer(job, [eigen], tc1) == (None, False), "alle Werkstoffe gemerkt")
 pruefe(js.werkstoff_fuer(job, [eigen], tc2) == (None, False), "TC 2: wie der Job alle")
+
+# D-28: Verglichen werden die TC, die eine Operation benutzt und deren Werkzeug in der
+# Werkzeugverwaltung steht – mit dem Einsatz vom letzten Setzen und dem Werkstoff des Jobs.
+for operation in list(operationen.values()) + list(weitere.values()):
+    operation.ToolController = tc1
+weitere["Bohrung"].ToolController = tc2
+dok.recompute()
+js.setze(dok, [(tc1, fraeser, einsaetze[0])], werkstoff="1.4301")  # Vollnut, vc 80
+js.setze(dok, [(tc2, bohrer, bohrer.einsaetze("1.4301")[0])], werkstoff="1.4301")
+
+
+def verglichen():
+    return {v.tc.Label: v for v in js.vergleiche(job, bibliothek)}
+
+
+vergleich = verglichen()
+pruefe(sorted(vergleich) == ["T3 Schruppen dynamisch", "TC Bohrer"], f"verglichen: {vergleich}")
+pruefe(not any(v.veraltet for v in vergleich.values()), f"frisch gesetzt veraltet: {vergleich}")
+v = vergleich["T3 Schruppen dynamisch"]
+pruefe((v.n, v.vf, v.werkstoff) == (2122, 318, "1.4301"), f"Vollnut 1.4301: {v}")
+# vc in der Werkzeugverwaltung erhöht: n und vf veraltet, der Bohrer nicht.
+einsaetze[0].vc = 120
+vergleich = verglichen()
+v = vergleich["T3 Schruppen dynamisch"]
+pruefe(v.veraltet and v.n_anders and v.vf_anders, f"vc geändert, nicht veraltet: {v}")
+pruefe((v.n_jetzt, round(v.vf_jetzt), v.n, v.vf) == (2122, 318, 3183, 477), f"Werte: {v}")
+pruefe(not vergleich["TC Bohrer"].veraltet, "Bohrer veraltet")
+# Nur fz geändert: die Drehzahl passt, der Vorschub nicht. Eine Umdrehung Rundung zählt nicht.
+einsaetze[0].vc = 80
+bohrer.einsaetze("1.4301")[0].fz = 0.12
+tc1.SpindleSpeed = 2123
+vergleich = verglichen()
+pruefe(not vergleich["T3 Schruppen dynamisch"].veraltet, "1 U/min Rundung gilt als veraltet")
+v = vergleich["TC Bohrer"]
+pruefe(v.veraltet and v.vf_anders and not v.n_anders, f"fz geändert: {v}")
+# Übernehmen: ein Schritt Rückgängig, danach passt alles; Strg+Z bringt die alten Werte.
+vorher = mm_min(tc2.HorizFeed)
+js.uebernimm(dok, [v], "Schnittwerte übernehmen")
+pruefe(not any(x.veraltet for x in verglichen().values()), f"nach Übernehmen: {verglichen()}")
+pruefe(round(mm_min(tc2.HorizFeed)) == v.vf, f"Bohrer: {tc2.HorizFeed} statt {v.vf}")
+pruefe(js.gemerkter_einsatz(tc2).werkstoff == "1.4301", "Werkstoff nach Übernehmen vergessen")
+dok.undo()
+pruefe(mm_min(tc2.HorizFeed) == vorher, f"Strg+Z: {tc2.HorizFeed}")
+# Ein TC, den keine Operation benutzt, zählt nicht.
+weitere["Bohrung"].ToolController = tc1
+dok.recompute()
+pruefe("TC Bohrer" not in verglichen(), "unbenutzter TC verglichen")
+bohrer.einsaetze("1.4301")[0].fz = 0.1
 
 FreeCAD.closeDocument(dok.Name)
 

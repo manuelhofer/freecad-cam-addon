@@ -84,6 +84,8 @@ def schritte(h):
     h.pruefe(oben.startswith("Noch nicht geprüft") and "jetzt prüfen" in oben, f"oben: {oben!r}")
     laenge = panel.urteil_laenge.text()
     h.pruefe(laenge.startswith("Für T1 geschätzt") and "warum?" in laenge, f"Länge: {laenge!r}")
+    # T1 hat keine Schnittwerte in der Werkzeugverwaltung: nichts zu vergleichen (D-28).
+    h.pruefe(panel.urteil_schnittwerte.isHidden(), "Urteil „Schnittwerte“ ohne Schnittwerte")
     for urteil in (panel.urteil, panel.urteil_kollision, panel.urteil_laenge):
         h.pruefe(not urteil.visibleRegion().isEmpty(), f"nicht zu sehen: {urteil.text()!r}")
     h.bild("0_urteile_oben")
