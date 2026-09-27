@@ -8,8 +8,9 @@ es ein Leichtes ist, so etwas zu erstellen“). Steht Y schräg, kommt die
 schräge Achse gleich mit (beispielmaschine.drehmaschine). Die übrigen
 Bauarten haben feste Maße. Danach öffnet sich „Maschine bearbeiten“.
 
-Derselbe Dialog öffnet sich hinter „Beispielmaschine laden …“ in
-„Maschine bearbeiten“ und „Maschine verfahren“.
+Derselbe Dialog öffnet sich hinter dem Knopf „Neue Maschine …“ in der Meldung
+von „Maschine bearbeiten“ und „Maschine verfahren“, wenn es keine Baugruppe
+gibt.
 """
 
 import FreeCADGui

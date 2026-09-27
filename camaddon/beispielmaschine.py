@@ -2,8 +2,8 @@
 """Fertig eingerichtete Beispielmaschinen zum Ausprobieren (W-001).
 
 Wer das Addon ausprobiert, soll nicht erst eine Maschine bauen müssen
-(Manuel, 2026-09-26). „Beispielmaschine laden …“ in „Maschine bearbeiten“ und
-„Maschine verfahren“ bietet die üblichen Bauarten an (ARTEN) und legt die
+(Manuel, 2026-09-26). „Neue Maschine …“ – als Befehl und in „Maschine bearbeiten“
+und „Maschine verfahren“ – bietet die üblichen Bauarten an (ARTEN) und legt die
 gewählte in einem neuen Dokument an, ihr Maschinenobjekt schon ausgefüllt:
 
 - Drehmaschine mit Y-Achse, Schrägbett wie eine CLX: Hauptspindel S1/C1 –

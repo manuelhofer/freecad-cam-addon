@@ -87,7 +87,7 @@ class BefehlMaschineBearbeiten:
 
 
 def beispiel_waehlen(titel):
-    """Meldet, dass es keine Baugruppe gibt – mit dem Knopf „Beispielmaschine laden …“.
+    """Meldet, dass es keine Baugruppe gibt – mit dem Knopf „Neue Maschine …“.
 
     Wer das Addon ausprobiert, soll nicht erst eine Maschine bauen müssen: Der
     Knopf öffnet die Auswahl von „Neue Maschine …“. Gibt (Bauart, Maße oder
@@ -105,7 +105,7 @@ def beispiel_waehlen(titel):
     meldung.exec()
     if meldung.clickedButton() is not beispiel:
         return None
-    return gui_neue_maschine.waehle(tr("beispiel.auswahl.titel"))
+    return gui_neue_maschine.waehle(tr("neu.titel"))
 
 
 def gewaehlte_assembly(doc):

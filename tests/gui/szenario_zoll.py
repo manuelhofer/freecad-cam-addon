@@ -124,7 +124,7 @@ def schritte(h):
     yield 800
     meldung = h.modal()
     if isinstance(meldung, QtGui.QMessageBox):
-        laden = next(k for k in meldung.buttons() if k.text() == "Beispielmaschine laden …")
+        laden = next(k for k in meldung.buttons() if k.text() == "Neue Maschine …")
         laden.click()
     # Aus der Auswahl die 3-Achs-Fräse.
     yield from h.warte_auf(lambda: gui_neue_maschine.NeueMaschineDialog.offen is not None)

@@ -1,5 +1,6 @@
 # Beispielmaschinen zum Ausprobieren (W-001, Punkt 7b): „Maschine bearbeiten“
-# ohne Baugruppe meldet das mit dem Knopf „Beispielmaschine laden …“; der Knopf
+# ohne Baugruppe meldet das mit dem Knopf „Neue Maschine …“ (der leichte Weg steht
+# vorn, der Selbstbau danach); der Knopf
 # bietet die Bauarten zur Auswahl an – Drehmaschine, 3-Achs-Fräse, drei
 # 5-Achs-Fräsen – und öffnet die gewählte samt Dialog. Die Drehmaschine hat
 # einen Revolver: Dort gibt es das Feld „Revolverplatz“, an der Spindel der
@@ -11,7 +12,7 @@ import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
 
-KNOPF = "Beispielmaschine laden …"
+KNOPF = "Neue Maschine …"
 SPALTEN = 3
 BILD_B, BILD_H, BESCHRIFTUNG = 420, 320, 28
 
@@ -21,7 +22,7 @@ def knopf(meldung, text):
 
 
 def beispiel_waehlen(h, befehl, art, bilder, offen):
-    """Ruft den Befehl auf, prüft die Meldung, klickt „Beispielmaschine laden …“,
+    """Ruft den Befehl auf, prüft die Meldung, klickt „Neue Maschine …“,
     wählt in der Auswahl `art` und lädt; wartet dann, bis `offen()` – der
     Dialog nach dem Laden ist da. `bilder`: Namen für Meldung und Auswahl."""
     from camaddon import beispielmaschine, gui_neue_maschine
@@ -36,6 +37,10 @@ def beispiel_waehlen(h, befehl, art, bilder, offen):
     laden = knopf(meldung, KNOPF)
     h.pruefe(laden is not None, f"{befehl}: Knopf „{KNOPF}“ fehlt")
     h.pruefe(KNOPF in meldung.text(), f"Meldung: {meldung.text()!r}")
+    h.pruefe(
+        meldung.text().find(KNOPF) < meldung.text().find("Assembly"),
+        f"der leichte Weg steht nicht vorn: {meldung.text()!r}",
+    )
     h.bild(bilder[0], meldung)
     if laden is None:
         return

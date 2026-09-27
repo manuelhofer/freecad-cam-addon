@@ -110,6 +110,7 @@ bauen“. **Vorschlag:** überall „Neue Maschine …“; die Meldung nennt die
 Weg zuerst („Eine fertig eingerichtete Maschine mit deinen Maßen: Neue
 Maschine …“), den Selbstbau danach. Gehört zu D-26. **Fertig, wenn:** Meldung
 und Befehl denselben Namen tragen und der leichte Weg vorn steht.
+*Erledigt (P-2026-09-27-16).*
 
 ## 3. Einfacher bedienen
 

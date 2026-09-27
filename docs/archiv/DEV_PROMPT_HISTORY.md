@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-16 ein-name-neue-maschine
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-08; `camaddon/gui_maschine.py`
+  (beispiel_waehlen), `camaddon/gui_neue_maschine.py`, die Hilfe „Achsen“ und
+  „Verfahren“, `tests/gui/szenario_beispielmaschine.py`, `szenario_zoll.py`.
+
+### DATEIEN
+- `camaddon/gui_maschine.py`, `camaddon/gui_neue_maschine.py`,
+  `camaddon/beispielmaschine.py` (Kopfkommentare)
+- `translations/de.json`, `translations/en.json` (`dialog.keine_baugruppe`,
+  `dialog.beispielmaschine`, Tooltip; `beispiel.auswahl.titel` entfällt)
+- `help/de/achsen.html`, `help/en/achsen.html`, `help/de/verfahren.html`,
+  `help/en/verfahren.html`
+- `tests/gui/szenario_beispielmaschine.py`, `tests/gui/szenario_zoll.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Knopf in der Meldung ohne Baugruppe heißt wie der Befehl, „Neue
+Maschine …“, und die Meldung nennt diesen Weg vor dem Selbstbau.
+
+### DONE
+- Meldung: „Hier gibt es noch keine Baugruppe. Am schnellsten: „Neue
+  Maschine …“ baut eine fertig eingerichtete Maschine … Oder selbst bauen: …“
+- Knopf „Neue Maschine …“ (vorher „Beispielmaschine laden …“), die Auswahl
+  heißt wie beim Befehl „Neue Maschine“; Hilfe und Kommentare nachgezogen.
+
+### TEST
+- `szenario_beispielmaschine` prüft Knopf und dass der leichte Weg vor
+  „Assembly“ steht; `szenario_zoll`, `szenario_hilfe`, `test_sprache` in 1.1.3
+  ok; Screenshots von Meldung und Auswahl angesehen.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- Gesamtlauf, Push, Bericht an Manuel.
+
 ## P-2026-09-27-15 spanneisen-erwaehnt
 
 ### EINGELESEN
