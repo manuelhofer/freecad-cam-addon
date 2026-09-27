@@ -922,5 +922,7 @@
     "sj.unbenutzt.entfernen": "Entfernen",
     "sj.unbenutzt.entfernen.tooltip": "Entfernt diese Werkzeug-Controller samt ihrem Werkzeug aus dem Job – wie Löschen im Baum. Strg+Z holt sie zurück.",
     "sj.unbenutzt.schritt": "Unbenutzte Werkzeug-Controller entfernen",
-    "sj.unbenutzt.tooltip": "Solche Werkzeug-Controller tun nichts. FreeCAD legt „TC: 5mm Endmill“ in jedem neuen Job an – wer mit Werkzeugen aus der Werkzeugverwaltung arbeitet, braucht ihn nicht."
+    "sj.unbenutzt.tooltip": "Solche Werkzeug-Controller tun nichts. FreeCAD legt „TC: 5mm Endmill“ in jedem neuen Job an – wer mit Werkzeugen aus der Werkzeugverwaltung arbeitet, braucht ihn nicht.",
+    "wv.schnittwerte.noch_keine": "Dieses Werkzeug hat noch keine Schnittwerte. „+ Einsatz“ legt den ersten an – er gilt für alle Werkstoffe.",
+    "wv.einsatz.erster_fuer_alle": "Der erste Einsatz gilt für alle Werkstoffe – deshalb steht oben jetzt „Alle Werkstoffe“. Sind die Werte für {werkstoff} anders, legst du danach dort eigene an."
 }

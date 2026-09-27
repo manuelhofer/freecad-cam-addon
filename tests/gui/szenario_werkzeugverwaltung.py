@@ -296,3 +296,37 @@ def schritte(h):
         wz.Bibliothek.laden().sortierte_werkzeuge()[0].durchmesser == 12,
         "verworfen, aber gespeichert",
     )
+
+    # Der erste Einsatz eines neuen Werkzeugs, oben 1.4301 (D-12): „+ Einsatz“ geht, der
+    # Einsatz gilt für alle Werkstoffe, oben steht dann „Alle Werkstoffe“.
+    Gui.runCommand("CamAddon_Werkzeugverwaltung")
+    yield 800
+    d = gui_werkzeuge.WerkzeugDialog.offen
+    h.pruefe(d is not None and d.werkstoff == "1.4301", "Werkstoff beim dritten Öffnen")
+    if d is None:
+        return
+    d.knopf_neu.click()
+    yield 200
+    s = d.schnittwerte
+    h.pruefe(s.knopf_plus.isEnabled(), "„+ Einsatz“ beim neuen Werkzeug gesperrt")
+    h.pruefe(
+        s.zustand.text().startswith("Dieses Werkzeug hat noch keine Schnittwerte."),
+        f"ohne Einsatz: {s.zustand.text()!r}",
+    )
+    h.bild("9_neu_ohne_einsatz", d)
+    einsatz = s.einsatz_anlegen(wz.VOLLNUT)
+    yield 200
+    h.pruefe(einsatz is not None and d.werkstoff == wz.ALLE, f"Werkstoff: {d.werkstoff!r}")
+    h.pruefe(d.werkzeug.schnittwerte.get(wz.ALLE) == [einsatz], "nicht für alle Werkstoffe")
+    h.pruefe(
+        s.zustand.text().startswith("Der erste Einsatz gilt für alle Werkstoffe")
+        and "1.4301" in s.zustand.text(),
+        f"Satz dazu: {s.zustand.text()!r}",
+    )
+    h.bild("9b_erster_einsatz", d)
+    QtCore.QTimer.singleShot(0, d.reject)
+    yield 500
+    frage = h.modal()
+    if isinstance(frage, QtGui.QMessageBox):
+        frage.button(QtGui.QMessageBox.Discard).click()
+    yield 500

@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-27 erster-einsatz
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-12; `camaddon/gui_schnittwerte.py`
+  (`zeige`, `einsatz_anlegen`), `camaddon/gui_werkzeuge.py`
+  (`waehle_werkstoff`, `_schnittwerte_zeigen`), `camaddon/werkzeuge.py`
+  (`schnittwerte`, `zum_bearbeiten`), `tests/gui/szenario_werkzeugverwaltung.py`,
+  `help/*/schnittwerte.html`.
+
+### DATEIEN
+- `camaddon/gui_schnittwerte.py` (`_noch_keiner`, erster Einsatz für alle)
+- `camaddon/gui_werkzeuge.py` (übergibt „Alle Werkstoffe wählen“)
+- `translations/de.json`, `translations/en.json`
+  (`wv.schnittwerte.noch_keine`, `wv.einsatz.erster_fuer_alle`)
+- `help/de/schnittwerte.html`, `help/en/schnittwerte.html`
+- `tests/gui/szenario_werkzeugverwaltung.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beim neuen Werkzeug geht „+ Einsatz“ bei jedem gewählten Werkstoff
+(Fertig-wenn von D-12).
+
+### DONE
+- Hat das Werkzeug noch gar keinen Einsatz, steht bei einem gewählten
+  Werkstoff statt „Für 1.4301 gelten die Werte für alle Werkstoffe (grau) …“:
+  „Dieses Werkzeug hat noch keine Schnittwerte. „+ Einsatz“ legt den ersten
+  an – er gilt für alle Werkstoffe.“ – und „+ Einsatz“ ist bedienbar.
+- Der erste Einsatz kommt in die Werte für alle Werkstoffe; oben springt die
+  Auswahl auf „Alle Werkstoffe“, damit die Zeile gleich bearbeitbar ist, und
+  der Satz sagt es: „Der erste Einsatz gilt für alle Werkstoffe – deshalb
+  steht oben jetzt „Alle Werkstoffe“. Sind die Werte für 1.4301 anders, legst
+  du danach dort eigene an.“
+- Werkzeuge mit Einsätzen: unverändert (grau geerbt, „Eigene Werte für …
+  anlegen“).
+
+### TEST
+- `szenario_werkzeugverwaltung` in 1.1.3 ok – neues Werkzeug mit 1.4301:
+  Satz, Knopf bedienbar; „Vollnut“ angelegt: für alle Werkstoffe, oben „Alle
+  Werkstoffe“, Satz mit 1.4301; Bilder `9_neu_ohne_einsatz`,
+  `9b_erster_einsatz` angesehen.
+- `szenario_schnittwerte`, `szenario_zoll`, `szenario_schruppwerte`,
+  alle Einzeltests in 1.1.3 ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-13: ein Menü „CAM-Addon“; Antwort von Manuel zur Ausspannlänge.
+
 ## P-2026-09-27-26 unbenutzte-controller
 
 ### EINGELESEN

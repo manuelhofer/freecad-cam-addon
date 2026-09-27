@@ -388,7 +388,9 @@ class WerkzeugDialog(QtGui.QDialog):
         self._felder_anordnen(wz.SCHAFTFRAESER)
 
         aufbau.addWidget(self.formular_rahmen)
-        self.schnittwerte = SchnittwertBereich(self._schnittwerte_geaendert)
+        self.schnittwerte = SchnittwertBereich(
+            self._schnittwerte_geaendert, lambda: self.waehle_werkstoff(wz.ALLE)
+        )
         aufbau.addWidget(self.schnittwerte, 1)
         return rahmen
 

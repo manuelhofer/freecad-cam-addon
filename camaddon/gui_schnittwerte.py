@@ -49,12 +49,14 @@ IN_PROZENT = "SchnittwerteInProzent"
 class SchnittwertBereich(QtGui.QWidget):
     """Überschrift, Zustand (eigene Werte oder für alle), Tabelle, Knöpfe, Hinweise.
 
-    `geaendert()` wird nach jeder Änderung an den Werten aufgerufen.
+    `geaendert()` wird nach jeder Änderung an den Werten aufgerufen; `alle_waehlen()` stellt
+    oben „Alle Werkstoffe“ ein – für den ersten Einsatz eines Werkzeugs (D-12).
     """
 
-    def __init__(self, geaendert):
+    def __init__(self, geaendert, alle_waehlen=None):
         super().__init__()
         self._geaendert = geaendert
+        self._alle_waehlen = alle_waehlen
         self.werkzeug = None
         self.werkstoff = wz.ALLE
         self._liste = []  # die gezeigten Einsätze
@@ -228,12 +230,14 @@ class SchnittwertBereich(QtGui.QWidget):
             self.zustand.setText(tr("wv.schnittwerte.alle"))
         elif self._bearbeitbar:
             self.zustand.setText(tr("wv.schnittwerte.eigene", werkstoff=werkstoff_kurz))
+        elif self._noch_keiner():
+            self.zustand.setText(tr("wv.schnittwerte.noch_keine"))
         else:
             self.zustand.setText(tr("wv.schnittwerte.geerbt", werkstoff=werkstoff_kurz))
         self.knopf_eigene.setText(tr("wv.eigene_anlegen", werkstoff=werkstoff_kurz))
         self.knopf_eigene.setVisible(not self._bearbeitbar)
         self.knopf_eigene_weg.setVisible(werkzeug.hat_eigene(werkstoff))
-        self.knopf_plus.setEnabled(self._bearbeitbar)
+        self.knopf_plus.setEnabled(self._bearbeitbar or self._noch_keiner())
         self._menue_fuellen()
         self._kopf_setzen()
         self._fuellen()
@@ -273,8 +277,23 @@ class SchnittwertBereich(QtGui.QWidget):
         self._geaendert()
         self.auffrischen()
 
+    def _noch_keiner(self):
+        """Hat das Werkzeug noch gar keinen Einsatz – und lässt sich „Alle Werkstoffe“ wählen?"""
+        return (
+            self.werkzeug is not None
+            and self._alle_waehlen is not None
+            and not any(self.werkzeug.schnittwerte.values())
+        )
+
     def einsatz_anlegen(self, art):
-        """Neue Zeile mit ae und ap aus dem Durchmesser vorbelegt; gibt den Einsatz zurück."""
+        """Neue Zeile mit ae und ap aus dem Durchmesser vorbelegt; gibt den Einsatz zurück.
+
+        Hat das Werkzeug noch keinen Einsatz und ist oben ein Werkstoff gewählt, gilt der erste
+        für alle Werkstoffe: Oben steht dann „Alle Werkstoffe“, ein Satz sagt es (D-12)."""
+        if not self._bearbeitbar and self._noch_keiner():
+            vorher = self._werkstoff_kurz
+            self._alle_waehlen()
+            self.zustand.setText(tr("wv.einsatz.erster_fuer_alle", werkstoff=vorher))
         if not self._bearbeitbar:
             return None
         einsatz = wz.vorlage(self.werkzeug, art)

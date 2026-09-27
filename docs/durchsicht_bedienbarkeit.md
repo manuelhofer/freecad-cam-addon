@@ -153,6 +153,7 @@ Werkzeug ist das ein Umweg über einen Begriff, den man erst verstehen muss.
 **Vorschlag:** Hat das Werkzeug noch gar keine Einsätze, legt „+ Einsatz“ ihn
 für alle Werkstoffe an und sagt es in einem Satz. **Fertig, wenn:** beim
 neuen Werkzeug „+ Einsatz“ bei jedem gewählten Werkstoff geht.
+*Erledigt (P-2026-09-27-27).*
 
 ### D-13 Ein Menü „CAM-Addon“ (klein bis mittel)
 **Heute:** Die Befehle gibt es nur als neun Symbole ohne Text in der
