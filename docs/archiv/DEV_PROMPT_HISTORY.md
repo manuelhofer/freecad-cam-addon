@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-38 vierachs-pruefen-futter
+
+### EINGELESEN
+- `docs/spezifikation_vierachs.md` (V2c); `camaddon/reichweite.py`
+  (`vorschlag_nullpunkt`, `_pruefe_operation`, `_Sammler`, `_bahn`),
+  `camaddon/vierachs_rohteil.py` (`richte_ein`, `stangen_placement`);
+  Bild `szenario_vierachs_maschine/2_im_futter` aus P-37 (Nullpunkt-Vorschlag
+  X −0,043, Z 133: die ganze Stange vor dem Futter).
+
+### DATEIEN
+- `camaddon/reichweite.py` (Hinweis bei fremder Rundachse; Vorschlag für
+  eine Stange längs Z: auf ihrer Achse, Spannlänge im Futter)
+- `camaddon/vierachs_rohteil.py` (`EIGENSCHAFT_SPANNLAENGE`, `spannlaenge`)
+- `translations/de.json`, `translations/en.json` (`rw.rundachse_fehlt`,
+  `rw.rundachse_fehlt_andere`, `va.eigenschaft.spannlaenge`)
+- `help/de/reichweite.html`, `help/en/reichweite.html`
+- `tests/test_reichweite.py`, `tests/test_vierachs_rohteil.py`,
+  `tests/gui/szenario_vierachs_maschine.py`
+- `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Klickweg V2c: Job mit Rundachse A auf der Beispiel-Drehmaschine prüfen → „…
+dreht um A – die Maschine hat keine Rundachse A“; Job mit C → die Stange
+steckt 30 mm im Futter.
+
+### DONE
+- Dreht ein Programm um eine Rundachse, die die Maschine zwischen Werkzeug
+  und Werkstück nicht hat, sagt ein Hinweis es – mit den Rundachsen, die sie
+  hat, und dem Rat für Jobs aus der 4-Achs-Bearbeitung. Bisher rechnete die
+  Prüfung stillschweigend ohne die Drehung.
+- Der 4-Achs-Assistent merkt sich die Spannlänge am Job (ausgeblendet). Der
+  Nullpunkt-Vorschlag im Prüffenster steckt eine Stange längs Z damit ins
+  Futter und setzt sie genau auf ihre Achse – aus der Lage des Zylinders,
+  nicht aus seiner Hüllbox (die lag 0,043 mm daneben).
+
+### TEST
+- `test_reichweite` (A auf der Drehmaschine mit nur C und auf der
+  3-Achs-Fräse je mit Hinweis, C ohne) und `test_vierachs_rohteil`
+  (Spannlänge am Job, ausgeblendet, Vorschlag (0, 0, 103)) in 1.1.3 ok.
+- Auf Manuels Ansage („pusch jetzt“) sofort mit Version 0.25.0 gepusht; der
+  Volllauf in beiden Versionen folgt danach, das Szenario
+  `szenario_vierachs_maschine` (Vorschlag „0“, „0“, „103“) läuft in ihm mit.
+
+### NEXT
+- V2b: Drehteile per Klick auf eine runde Fläche.
+
 ## P-2026-09-27-37 vierachs-achse-von-maschine
 
 ### EINGELESEN

@@ -4,7 +4,8 @@
 # ist vorgewählt – „Maschine „…“: C – Stange längs Z“ –, die Stange liegt im
 # Job längs Z. Mit „A (ohne Maschine)“ liegt sie längs X, zurück auf die
 # Maschine wieder längs Z. „Anlegen“, dann „Auf der Maschine prüfen“: Die
-# Stange liegt parallel zur C-Achse im Futter, nicht quer.
+# Stange liegt parallel zur C-Achse im Futter, nicht quer – genau auf ihrer
+# Achse und mit der Spannlänge (30 mm) im Futter (V2c).
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -107,6 +108,10 @@ def schritte(h):
         if a.art != LINEAR and rw._programmbuchstabe(pruefung.maschine, a) == "C"
     )
     h.pruefe(abs(abs(stange.dot(c.richtung)) - 1) < 1e-6, f"Stange {stange} quer zu C {c.richtung}")
+    # Hinten liegt die Stange bei Z −133 (Teil 100, Abstich 3, Spannlänge 30): 103 heißt
+    # 30 mm im Futter; X und Y genau 0.
+    vorschlag = [pruefen.felder_nullpunkt[a].placeholderText() for a in ("X", "Y", "Z")]
+    h.pruefe(vorschlag == ["0", "0", "103"], f"Nullpunkt-Vorschlag: {vorschlag}")
     Gui.SendMsgToActiveView("ViewFit")
     yield 300
     h.bild("2_im_futter")

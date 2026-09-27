@@ -31,6 +31,8 @@ from dataclasses import dataclass
 import FreeCAD
 import Part
 
+from .sprache import tr
+
 # Rundachse ohne Maschine → (Stangenachse nach vorne, woher das Werkzeug
 # kommt), in den Achsen des Jobs.
 ACHSEN = {
@@ -48,6 +50,10 @@ PLANAUFMASS = 1.0  # mm
 ABSTECHBREITE = 3.0  # mm
 SPANNLAENGE = 30.0  # mm
 RUNDACHSE = "A"
+
+# So tief steckt die Stange im Futter – am Job, damit „Auf der Maschine prüfen“ den
+# Nullpunkt so vorschlägt (W-003 V2c); ausgeblendet.
+EIGENSCHAFT_SPANNLAENGE = "CamAddonSpannlaenge"
 
 MIN_AUFMASS = 1.0  # mm am Radius, mindestens, beim Vorschlag für den Stangen-Ø
 STUFE_MM = 5.0  # Stangen-Ø in 5-mm-Schritten …
@@ -368,5 +374,23 @@ def richte_ein(dokument, teil, lage_, stange, achse, job=None, beschriftung=None
         if rohteil is not None:
             dokument.removeObject(rohteil.Name)
         job.Stock = neu
+    _merke_spannlaenge(job, stange.spannlaenge)
     dokument.recompute()
     return job
+
+
+def spannlaenge(job):
+    """Wie tief die Stange eines Jobs aus dem Assistenten im Futter steckt (mm), sonst 0."""
+    return float(getattr(job, EIGENSCHAFT_SPANNLAENGE, 0.0) or 0.0)
+
+
+def _merke_spannlaenge(job, laenge):
+    if EIGENSCHAFT_SPANNLAENGE not in job.PropertiesList:
+        job.addProperty(
+            "App::PropertyFloat",
+            EIGENSCHAFT_SPANNLAENGE,
+            "CAM-Addon",
+            tr("va.eigenschaft.spannlaenge"),
+        )
+        job.setEditorMode(EIGENSCHAFT_SPANNLAENGE, 2)  # ausgeblendet – das Addon nutzt sie
+    setattr(job, EIGENSCHAFT_SPANNLAENGE, float(laenge))

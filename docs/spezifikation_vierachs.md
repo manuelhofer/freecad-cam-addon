@@ -497,6 +497,10 @@ Stange muss also längs Z liegen. Deshalb in drei Schritten:
   *Klickweg:* Job mit Rundachse A auf der Beispiel-Drehmaschine prüfen → „…
   dreht um A – die Maschine hat keine Rundachse A“; Job mit C → die Stange
   steckt 30 mm im Futter.
+  *Gebaut (P-2026-09-27-38):* Hinweis `rw.rundachse_fehlt(_andere)`; die
+  Spannlänge steht ausgeblendet am Job (`CamAddonSpannlaenge`); eine Stange
+  längs Z sitzt im Vorschlag genau auf ihrer Achse (die Hüllbox lag 0,043 mm
+  daneben).
 - Wenn gewünscht später: Beispielmaschine „4-Achs-Fräse mit A“.
 
 **V3 – Flächen wählen**

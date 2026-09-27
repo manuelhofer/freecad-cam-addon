@@ -940,5 +940,8 @@
     "rw.schnittwerte.schritt": "Apply cutting data",
     "rw.schnittwerte.tooltip": "Compared with what “Cutting data into the job” would set: with the use case and material from last time, otherwise the suggestion. “apply” sets the controller's spindle speed and feed – one undo step; the operations' step-over and step-down stay.",
     "va.achse.maschine": "Machine “{maschine}”: {buchstabe} – bar along {richtung}",
-    "va.achse.maschine_schraeg": "Machine “{maschine}”: {buchstabe} – bar at an angle in the job"
+    "va.achse.maschine_schraeg": "Machine “{maschine}”: {buchstabe} – bar at an angle in the job",
+    "rw.rundachse_fehlt": "“{operation}” turns about {buchstabe} – the machine has no rotary axis {buchstabe}. The check ignores this rotation.",
+    "rw.rundachse_fehlt_andere": "“{operation}” turns about {buchstabe} – the machine has no rotary axis {buchstabe}, only {achsen}. The check ignores this rotation. If the job comes from 4-axis machining, choose the machine's rotary axis there.",
+    "va.eigenschaft.spannlaenge": "How deep the bar sits in the chuck (CAM Addon, 4-axis machining) – “Check on machine” proposes the origin with it"
 }

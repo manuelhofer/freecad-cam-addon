@@ -37,6 +37,7 @@ from . import PARAMETER_PFAD, einheiten
 from . import job_schnittwerte as js
 from . import maschine as m
 from . import verfahren as vf
+from . import vierachs_rohteil as vr
 from . import werkzeuge as wz
 from .kette import LINEAR
 from .sprache import tr
@@ -210,12 +211,30 @@ def punkt_text(punkt):
 def vorschlag_nullpunkt(job):
     """Wo der Nullpunkt des Jobs von der Werkstückaufnahme aus liegt, wenn nichts
     eingetragen ist: das Rohteil mittig auf der Aufnahme, die Unterseite auf der
-    Spannfläche. Ohne Rohteil der Ursprung."""
-    form = getattr(getattr(job, "Stock", None), "Shape", None)
+    Spannfläche. Eine runde Stange längs Z sitzt genau auf ihrer Achse und steckt mit
+    ihrer Spannlänge im Futter (4-Achs-Bearbeitung an der Drehmaschine, W-003 V2c).
+    Ohne Rohteil der Ursprung."""
+    rohteil = getattr(job, "Stock", None)
+    form = getattr(rohteil, "Shape", None)
     if form is None or form.isNull():
         return FreeCAD.Vector()
+    stange = _stange_laengs_z(rohteil)
+    if stange is not None:
+        return FreeCAD.Vector(-stange.x, -stange.y, -(stange.z + vr.spannlaenge(job)))
     box = form.BoundBox
     return FreeCAD.Vector(-box.Center.x, -box.Center.y, -box.ZMin)
+
+
+def _stange_laengs_z(rohteil):
+    """Die Mitte des hinteren Endes, wenn das Rohteil ein Zylinder längs +Z ist – sonst
+    None. Die Hüllbox eines Zylinders ist nicht genau: Sie lag in einem Versuch 0,043 mm
+    neben der Achse."""
+    if not hasattr(rohteil, "Radius") or not hasattr(rohteil, "Height"):
+        return None
+    platz = rohteil.Placement
+    if abs(platz.Rotation.multVec(FreeCAD.Vector(0, 0, 1)).z - 1.0) > 1e-9:
+        return None
+    return FreeCAD.Vector(platz.Base)
 
 
 def eingetragener_nullpunkt(job):
@@ -663,7 +682,10 @@ class Pruefung:
         loesung = self.loeser(aufnahme, laenge, nullpunkt_des_jobs)
 
         sammler.beginne(op.Label, linear, drehachsen)
+        vorhanden = {_programmbuchstabe(self.maschine, a) for a in drehachsen} - {None}
+        fremd = set()  # Rundachsen, um die das Programm dreht, die Maschine aber nicht hat
         for schritt in _bahn(op.Path.Commands, sammler.unbekannt):
+            fremd |= {b for b, w in schritt.rund.items() if abs(w) > 1e-9} - vorhanden
             if schritt.art == "punkt":
                 sammler.punkt(schritt.ort, schritt.rund, *loesung(schritt.rund))
                 continue
@@ -674,6 +696,8 @@ class Pruefung:
                 continue
             for punkt in schritt.ort.punkte(geloest.s):
                 sammler.punkt(punkt, schritt.rund, geloest, dreh)
+        for buchstabe in sorted(fremd):
+            sammler.rundachse_fehlt(buchstabe, sorted(vorhanden))
         sammler.ende_operation()
 
 
@@ -737,6 +761,21 @@ class _Sammler:
             self.hinweis(Hinweis(tr("rw.laenge_geschaetzt", **werte), nummer))
         elif quelle == LAENGE_CAM:
             self.hinweis(Hinweis(tr("rw.laenge_cam", **werte), nummer))
+
+    def rundachse_fehlt(self, buchstabe, vorhanden):
+        """Das Programm dreht um `buchstabe`, die Maschine hat diese Rundachse nicht – die
+        Prüfung rechnet ohne die Drehung. Etwa ein Job des 4-Achs-Assistenten mit A auf
+        einer Drehmaschine mit C (Manuels Test, W-003 V2c)."""
+        if vorhanden:
+            text = tr(
+                "rw.rundachse_fehlt_andere",
+                operation=self.operation,
+                buchstabe=buchstabe,
+                achsen=", ".join(vorhanden),
+            )
+        else:
+            text = tr("rw.rundachse_fehlt", operation=self.operation, buchstabe=buchstabe)
+        self.hinweis(text)
 
     def zu_viele(self, linear):
         namen = ", ".join(vf.namen(self.pruefung.maschine, a) for a in linear)

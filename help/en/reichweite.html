@@ -19,7 +19,9 @@ say).</li>
 <li><b>Job origin</b> – where the job origin sits on the machine, measured from
 the LCS of the workpiece mount along its axes – like G54 on the control.
 <b>Empty</b> fields use the suggestion shown in grey: the stock centred on the
-mount, its bottom on the clamping face. The job remembers what you enter.</li>
+mount, its bottom on the clamping face. A bar from 4-axis machining sits in the
+chuck by its clamping length, exactly on its axis. The job remembers what you
+enter.</li>
 </ul>
 
 <h3>The result</h3>
@@ -53,7 +55,9 @@ moves there – the axis stops at its limit, as far as it really gets.</li>
 so you also see how much room is left.</li>
 <li>In grey the <b>notes</b>: which tool length was used, points the tool
 cannot reach at all (Y on a lathe without a Y axis, say), a missing turret
-station, commands the check does not know. A note about a tool ends with
+station, commands the check does not know, a rotary axis in the program the
+machine does not have (A on a lathe with C, say – the check then ignores that
+rotation). A note about a tool ends with
 <b>Open T1 …</b>: the tool manager opens at that tool. Once you save there
 (OK or Apply), the panel works with the new values right away – the measured
 gauge length or the chosen holder, say.</li>

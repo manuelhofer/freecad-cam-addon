@@ -15,6 +15,7 @@ sys.path.insert(0, ADDON)
 import FreeCAD
 import Part
 
+from camaddon import reichweite as rw
 from camaddon import vierachs_rohteil as vr
 
 fehler = []
@@ -195,6 +196,12 @@ pruefe(nahe(kbb.ZMax, 0, 1e-6) and nahe(kbb.ZMin, -100, 1e-6), f"Klon in Z: {kbb
 pruefe(nahe(kbb.XMax, 36, 0.01) and nahe(kbb.XMin, -30, 0.01), f"Klon quer: {kbb}")
 pruefe(teil.Placement == teil_vorher, "Das Original hat sich bewegt")
 pruefe(len([o for o in dok.Objects if "Stock" in o.Name]) == 1, "altes Rohteil nicht entfernt")
+# Die Stange merkt sich ihre Spannlänge: „Auf der Maschine prüfen“ steckt sie damit ins
+# Futter, genau auf ihrer Achse (V2c) – hinten bei Z −133, davon 30 mm im Futter.
+pruefe(vr.spannlaenge(job) == 30.0, f"Spannlänge am Job: {vr.spannlaenge(job)}")
+pruefe("Hidden" in job.getEditorMode(vr.EIGENSCHAFT_SPANNLAENGE), "Spannlänge sichtbar")
+vorschlag = rw.vorschlag_nullpunkt(job)
+pruefe((vorschlag - FreeCAD.Vector(0, 0, 103)).Length < 1e-9, f"Nullpunkt im Futter: {vorschlag}")
 
 # Noch einmal mit A und anderem Ø: derselbe Job, das Rohteil wird angepasst, nicht ersetzt.
 dok.openTransaction("anders")

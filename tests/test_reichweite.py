@@ -166,6 +166,15 @@ pruefe(getattr(e.hinweise[1], "werkzeug", None) is None, "G28-Hinweis mit Werkze
 # 11 Punkte: G0 Z10 ohne X und Y zählt nicht; der Kreis bringt zwei Umkehrstellen
 # (links bei X 130, oben bei Y 60) und sein Ende; der Bohrzyklus drei Höhen.
 pruefe(e.punkte == 11, f"Punkte: {e.punkte}")
+# Ein Programm, das um A dreht – die 3-Achs-Fräse hat keine Rundachse (W-003 V2c).
+teil_a, job_a, _op_a = neuer_job(["G0 X10 Y10 Z10", "G1 A90", "G1 X20"], "MitA")
+e = p.pruefe_job(job_a, FreeCAD.Vector())
+pruefe(
+    "„Eigene“ dreht um A – die Maschine hat keine Rundachse A. Gerechnet ist ohne diese Drehung."
+    in e.hinweise,
+    f"Hinweis Rundachse ohne Rundachsen: {e.hinweise}",
+)
+FreeCAD.closeDocument(teil_a.Name)
 
 # Die Werkzeugverwaltung kennt T1 (Ø 5 mm): ihre Gesamtlänge gilt – oder geschätzt. 10 mm
 # länger als die 50 des CAM-Werkzeugs: Die Spindel steht 10 mm höher.
@@ -324,6 +333,22 @@ pruefe(
     f"Platz fehlt: {e.hinweise}",
 )
 pruefe(e.punkte == 0 and not e.bereiche, "ohne Platz keine Punkte")
+# Das Programm dreht um A, die Drehmaschine hat nur C: ein Hinweis statt stillschweigend
+# ohne die Drehung (W-003 V2c). Mit C keiner.
+op.ToolController.ToolNumber = 1
+op.Gcode = ["G0 X40 Y0 Z80", "G1 X20 Z-10 A90", "G1 X0"]
+teil.recompute()
+e = p.pruefe_job(job)
+pruefe(
+    "„Eigene“ dreht um A – die Maschine hat keine Rundachse A, nur C. Gerechnet ist ohne diese "
+    "Drehung. Kommt der Job aus der 4-Achs-Bearbeitung: dort die Rundachse der Maschine wählen."
+    in e.hinweise,
+    f"Hinweis Rundachse: {e.hinweise}",
+)
+op.Gcode = ["G0 X40 Y0 Z80", "G1 X20 Z-10 C90", "G1 X0"]
+teil.recompute()
+e = p.pruefe_job(job)
+pruefe(not any("Rundachse" in h for h in e.hinweise), f"C gilt als fremd: {e.hinweise}")
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 
