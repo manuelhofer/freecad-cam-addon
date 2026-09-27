@@ -311,7 +311,47 @@ def _spindel(ma, gelenk, nc_name, drehzahl, hochlaufzeit):
 # --- Fräsmaschinen --------------------------------------------------------------
 
 
-def fraesmaschine(spanneisen=True):
+@dataclass
+class FraesenMasse:
+    """Die Maße der 3-Achs-Fräse, vorbelegt wie das Beispiel (Durchsicht W-004, D-26).
+
+    Wege in mm als (Minimum, Maximum), gezählt ab der Stellung, in der die Maschine
+    gebaut ist – 0 muss darin liegen.
+    """
+
+    name: str = ""  # leer: der Name des Beispiels
+    weg_x: tuple = (-250.0, 250.0)
+    weg_y: tuple = (-150.0, 120.0)
+    weg_z: tuple = (-100.0, 250.0)
+    drehzahl: float = 12000.0  # U/min der Spindel
+
+    def fehler(self):
+        """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
+        ergebnis = _wege_fehler(self)
+        if self.drehzahl <= 0:
+            ergebnis.append(("drehzahl", tr("neu.drehzahl_fehlt")))
+        return ergebnis
+
+
+def _wege_fehler(masse):
+    """(Feld, Satz) für jeden Weg, der 0 nicht umschließt, zu lang ist oder leer."""
+    ergebnis = []
+    for feld in ("weg_x", "weg_y", "weg_z"):
+        unten, oben = getattr(masse, feld)
+        if not -GROESSTER_WEG <= unten <= 0 <= oben <= GROESSTER_WEG or unten == oben:
+            ergebnis.append((feld, tr("neu.weg_bereich")))
+    return ergebnis
+
+
+def _benenne(asm, ma, name):
+    """Gibt Maschine und Dokument den eingetragenen Namen – leer bleibt der des Beispiels."""
+    if name.strip():
+        ma.Label = name.strip()
+        # Der Name des Dokuments wird beim Speichern der Dateiname – ohne „/“.
+        asm.Document.Label = name.strip().replace("/", "-").replace("\\", "-")
+
+
+def fraesmaschine(masse=None, spanneisen=True):
     """3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z, Spindel S1.
 
     Maschinenobjekt ausgefüllt: X1, Y1, Z1 mit Eilgang, Höchstvorschub und
@@ -320,8 +360,10 @@ def fraesmaschine(spanneisen=True):
     ein Spanneisen (40 × 40 × 60 mm mit Mutter, 100 mm von der Mitte bis zu
     seiner Innenseite) – etwas, woran man in der Kollisionsprüfung (W-001 4c)
     anstoßen kann: Die Spindelnase kommt bis 30 mm über den Tisch.
-    `spanneisen=False` lässt sie weg. Gibt (Assembly, Maschine) zurück.
+    `masse` (FraesenMasse) ändert Wege, Drehzahl und Name; `spanneisen=False` lässt die
+    Spanneisen weg. Gibt (Assembly, Maschine) zurück.
     """
+    masse = masse or FraesenMasse()
     b = _neu(FRAESE_3)
     bett = b.quader("Bett", 800, 900, 120, farbe=GUSS)
     staender = b.quader("Staender", 260, 250, 1000, x=270, y=650, z=120, farbe=GUSS)
@@ -349,17 +391,17 @@ def fraesmaschine(spanneisen=True):
     b.fixieren(bett)
     b.gelenk_wie_gebaut("Staender_fest", "Fixed", bett, "Face6", staender, "Face5")
     y = b.gelenk_wie_gebaut("Y", "Slider", bett, "Face6", sattel, "Face5", richtung=(0, 1, 0))
-    b.begrenze(y, -150, 120)
+    b.begrenze(y, *masse.weg_y)
     x = b.gelenk_wie_gebaut(
         "X", "Slider", sattel, "Face6", tisch, "Tischplatte.Face5", richtung=(1, 0, 0)
     )
-    b.begrenze(x, -250, 250)
+    b.begrenze(x, *masse.weg_x)
     for teil in eisen:
         b.gelenk_wie_gebaut(
             f"{teil.Label}_fest", "Fixed", tisch, "Tischplatte.Face6", teil, "Face5"
         )
     z = b.gelenk_wie_gebaut("Z", "Slider", staender, "Face3", kopf, "Face4", richtung=(0, 0, 1))
-    b.begrenze(z, -100, 250)
+    b.begrenze(z, *masse.weg_z)
     s = b.gelenk_wie_gebaut(
         "Spindelachse", "Revolute", kopf, "Face5", spindel, "Spindelkoerper.Face2"
     )
@@ -369,9 +411,10 @@ def fraesmaschine(spanneisen=True):
     _linear(ma, x, "X1", 20000, 10000, 3)
     _linear(ma, y, "Y1", 20000, 10000, 3)
     _linear(ma, z, "Z1", 15000, 10000, 3)
-    s1 = _spindel(ma, s, "S1", 12000, 1.5)
+    s1 = _spindel(ma, s, "S1", masse.drehzahl, 1.5)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
+    _benenne(asm, ma, masse.name)
     asm.Document.recompute()
     return asm, ma
 
@@ -647,10 +690,7 @@ class DrehmaschinenMasse:
             ergebnis.append(("bettneigung", tr("neu.bettneigung_bereich")))
         if not Y_WINKEL_BEREICH[0] <= self.y_winkel <= Y_WINKEL_BEREICH[1]:
             ergebnis.append(("y_winkel", tr("neu.y_winkel_bereich")))
-        for feld in ("weg_x", "weg_y", "weg_z"):
-            unten, oben = getattr(self, feld)
-            if not -GROESSTER_WEG <= unten <= 0 <= oben <= GROESSTER_WEG or unten == oben:
-                ergebnis.append((feld, tr("neu.weg_bereich")))
+        ergebnis += _wege_fehler(self)
         if not PLAETZE_BEREICH[0] <= self.plaetze <= PLAETZE_BEREICH[1]:
             ergebnis.append(("plaetze", tr("neu.plaetze_bereich")))
         if self.drehzahl <= 0:
@@ -833,10 +873,7 @@ def drehmaschine(masse=None):
     plaetze[1].Lcs.Placement = b.lage_im_teil(revolver, 650, axial.y, axial.z, (1, 0, 0))
     for platz in plaetze[:2]:
         platz.Spindel = s3
-    if masse.name.strip():
-        ma.Label = masse.name.strip()
-        # Der Name des Dokuments wird beim Speichern der Dateiname – ohne „/“.
-        asm.Document.Label = masse.name.strip().replace("/", "-").replace("\\", "-")
+    _benenne(asm, ma, masse.name)
     asm.Document.recompute()
     if masse.y_winkel:
         # Die schräge Achse: Die Y-Führung dreht sich, der Revolver bleibt gerade.

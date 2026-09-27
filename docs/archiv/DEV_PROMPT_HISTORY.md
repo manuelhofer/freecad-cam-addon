@@ -12,6 +12,61 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-24 masse-fraese
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-26; `camaddon/beispielmaschine.py`
+  (`fraesmaschine`, `DrehmaschinenMasse`, `lade`, Namensgebung der
+  Drehmaschine), `camaddon/gui_neue_maschine.py` (Felder, Auswahl, `masse`),
+  `camaddon/einheiten.py` (Stellen in inch), die Aufrufer von
+  `fraesmaschine()` in den Tests, `tests/gui/szenario_zoll.py` (baut die Fräse
+  in inch), `help/*/neue_maschine.html`.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py` (`FraesenMasse`, `_wege_fehler`,
+  `_benenne`; `fraesmaschine(masse)`)
+- `camaddon/gui_neue_maschine.py` (Felder auch für die 3-Achs-Fräse,
+  Vorbelegung je Bauart, `_vorgabe`, `_wert`)
+- `translations/de.json`, `translations/en.json` (Texte, die nur die
+  Drehmaschine mit Maßen nannten)
+- `help/de/neue_maschine.html`, `help/en/neue_maschine.html`
+- `tests/test_beispielmaschine.py`, `tests/gui/szenario_neue_maschine.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine 3-Achs-Fräse mit eigenen Wegen steht in einer Minute, und „Auf der
+Maschine prüfen“ rechnet mit diesen Grenzen (Fertig-wenn von D-26, Teil
+3-Achs-Fräse).
+
+### DONE
+- „Neue Maschine …“ zeigt bei der 3-Achs-Fräse Name, Weg X/Y/Z (von … bis)
+  und Höchstdrehzahl; Bettneigung, „Y schräg um“ und Revolverplätze sind dort
+  ausgeblendet. Wechselt man die Bauart, stehen ihre Beispielwerte in den
+  Feldern. Die 5-Achs-Fräsen behalten „feste Maße“.
+- Die Wege werden die Grenzen der Gelenke X, Y, Z – damit rechnen „Maschine
+  verfahren“ und „Auf der Maschine prüfen“; die Drehzahl gilt für S1, der
+  Name für Maschine und Dokument (wie bei der Drehmaschine, jetzt gemeinsam in
+  `_benenne`). Ungültige Wege meldet dieselbe rote Zeile.
+- Ein Weg, der noch wie vorbelegt dasteht, gilt genau – in inch ohne den
+  Rundungsrest der Anzeige.
+- Der freie Platz bei weniger Feldern liegt über den Knöpfen statt als Lücke
+  über „Maße“.
+- Nicht gemacht: Tischgröße und die Schwenkbereiche der 5-Achs-Fräsen – die
+  Körper bleiben grob wie im Beispiel.
+
+### TEST
+- `test_beispielmaschine` in 1.1.3 ok – Fräse mit eigenen Wegen: Grenzen der
+  Gelenke, S1 8000, Name; ungültige Maße.
+- `szenario_neue_maschine` in 1.1.3 ok – Fräse mit Feldern, ohne die der
+  Drehmaschine, vorbelegt wie ihr Beispiel; 5-Achs „feste Maße“; Bilder
+  `1_fraese_masse`, `1b_fuenfachs_feste_masse` angesehen.
+- `szenario_zoll`, `szenario_beispielmaschine`, `szenario_maschine_merken`
+  ok; alle Einzeltests in 1.1.3 ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- Bericht an Manuel; dann D-30, D-12, D-13.
+
 ## P-2026-09-27-23 betriebsarten-vorschlagen
 
 ### EINGELESEN

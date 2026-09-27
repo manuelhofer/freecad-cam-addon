@@ -101,8 +101,12 @@ class NeueMaschineDialog(QtGui.QDialog):
         for widget in (text, self.liste, self.beschreibung):
             aufbau.addWidget(widget)
         aufbau.addWidget(kopfzeile(tr("neu.masse"), "neue_maschine"))
-        for widget in (self.masse_bereich, self.fest, self.fehler, self.knoepfe):
+        for widget in (self.masse_bereich, self.fest, self.fehler):
             aufbau.addWidget(widget)
+        # Hat die Bauart weniger Felder, bleibt der Platz über den Knöpfen – nicht als Lücke
+        # über „Maße“.
+        aufbau.addStretch(1)
+        aufbau.addWidget(self.knoepfe)
         zuletzt = beispielmaschine.zuletzt_gewaehlt()
         self.liste.setCurrentRow(beispielmaschine.ARTEN.index(zuletzt))
         ruhiges_mausrad(self)
@@ -111,10 +115,12 @@ class NeueMaschineDialog(QtGui.QDialog):
     # --- Aufbau ---------------------------------------------------------------------
 
     def _baue_masse(self):
-        """Die Felder der Drehmaschine, vorbelegt wie das Beispiel."""
+        """Die Felder der Maße – vorbelegt wie das Beispiel der Drehmaschine; was nur sie hat,
+        blendet die 3-Achs-Fräse aus (D-26)."""
         vorgabe = beispielmaschine.DrehmaschinenMasse()
         bereich = QtGui.QWidget()
         formular = QtGui.QFormLayout(bereich)
+        self._formular = formular
         formular.setContentsMargins(0, 0, 0, 0)
 
         self.feld_name = QtGui.QLineEdit()
@@ -156,6 +162,7 @@ class NeueMaschineDialog(QtGui.QDialog):
         self.feld_drehzahl.setToolTip(tr("neu.drehzahl.tooltip"))
         formular.addRow(tr("neu.drehzahl"), self.feld_drehzahl)
 
+        self._nur_drehmaschine = [self.feld_bett, self.feld_y_winkel, self.feld_plaetze]
         # Wer etwas ändert, bekommt den alten roten Satz nicht mehr zu sehen.
         felder = [self.feld_bett, self.feld_y_winkel, self.feld_plaetze, self.feld_drehzahl]
         felder += [f for paar in self.felder_weg.values() for f in paar]
@@ -168,9 +175,21 @@ class NeueMaschineDialog(QtGui.QDialog):
     def _gewechselt(self, aktuell, _vorher):
         art = aktuell.data(ROLLE) if aktuell is not None else None
         self.beschreibung.setText(beispielmaschine.beschreibung(art) if art else "")
-        mit_massen = art == beispielmaschine.DREHMASCHINE
-        self.masse_bereich.setVisible(mit_massen)
-        self.fest.setVisible(not mit_massen)
+        vorgabe = _vorgabe(art)
+        self.masse_bereich.setVisible(vorgabe is not None)
+        self.fest.setVisible(vorgabe is None)
+        if vorgabe is not None:
+            # Jede Bauart zeigt ihre eigenen Beispielwerte.
+            self.feld_name.setPlaceholderText(beispielmaschine.titel(art))
+            for achse, (von, bis) in self.felder_weg.items():
+                weg = getattr(vorgabe, f"weg_{achse.lower()}")
+                von.setValue(einheiten.anzeige(weg[0], einheiten.LAENGE))
+                bis.setValue(einheiten.anzeige(weg[1], einheiten.LAENGE))
+            self.feld_drehzahl.setValue(round(vorgabe.drehzahl))
+            drehmaschine = art == beispielmaschine.DREHMASCHINE
+            for feld in self._nur_drehmaschine:
+                feld.setVisible(drehmaschine)
+                self._formular.labelForField(feld).setVisible(drehmaschine)
         self.fehler.hide()
 
     def gewaehlt(self):
@@ -179,14 +198,28 @@ class NeueMaschineDialog(QtGui.QDialog):
         return eintrag.data(ROLLE) if eintrag is not None else None
 
     def masse(self):
-        """Die eingetragenen Maße (beispielmaschine.DrehmaschinenMasse) – nur bei der
-        Drehmaschine, sonst None."""
-        if self.gewaehlt() != beispielmaschine.DREHMASCHINE:
+        """Die eingetragenen Maße – DrehmaschinenMasse bei der Drehmaschine, FraesenMasse
+        bei der 3-Achs-Fräse, sonst None. Ein Weg, der noch wie vorbelegt dasteht, gilt
+        genau – in inch ohne Rundung."""
+        art = self.gewaehlt()
+        vorgabe = _vorgabe(art)
+        if vorgabe is None:
             return None
         wege = {
-            achse: tuple(einheiten.metrisch(f.value(), einheiten.LAENGE) for f in felder)
+            achse: tuple(
+                _wert(feld, getattr(vorgabe, f"weg_{achse.lower()}")[ende])
+                for ende, feld in enumerate(felder)
+            )
             for achse, felder in self.felder_weg.items()
         }
+        if art == beispielmaschine.FRAESE_3:
+            return beispielmaschine.FraesenMasse(
+                name=self.feld_name.text().strip(),
+                weg_x=wege["X"],
+                weg_y=wege["Y"],
+                weg_z=wege["Z"],
+                drehzahl=float(self.feld_drehzahl.value()),
+            )
         return beispielmaschine.DrehmaschinenMasse(
             name=self.feld_name.text().strip(),
             bettneigung=self.feld_bett.value(),
@@ -223,6 +256,22 @@ def _winkelfeld(wert, bereich):
     feld.setSuffix(" °")
     feld.setValue(wert)
     return feld
+
+
+def _vorgabe(art):
+    """Die Beispielmaße der Bauart – nur Drehmaschine und 3-Achs-Fräse haben welche."""
+    if art == beispielmaschine.DREHMASCHINE:
+        return beispielmaschine.DrehmaschinenMasse()
+    if art == beispielmaschine.FRAESE_3:
+        return beispielmaschine.FraesenMasse()
+    return None
+
+
+def _wert(feld, vorgabe):
+    """Der Weg eines Felds in mm; steht dort noch die Vorgabe, genau sie."""
+    if abs(feld.value() - einheiten.anzeige(vorgabe, einheiten.LAENGE)) < 1e-9:
+        return vorgabe
+    return einheiten.metrisch(feld.value(), einheiten.LAENGE)
 
 
 def _wegfeld(wert, unten):

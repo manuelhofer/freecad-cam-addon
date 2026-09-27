@@ -1,6 +1,8 @@
 # „Neue Maschine …“ (W-001, Stufe 3b, Schritt 7): Der Knopf in der
-# Werkzeugleiste öffnet die Auswahl der Bauarten. Bei der 3-Achs-Fräse steht
-# „feste Maße“, bei der Drehmaschine die Maße, vorbelegt wie das Beispiel.
+# Werkzeugleiste öffnet die Auswahl der Bauarten. Die 3-Achs-Fräse hat Wege
+# und Drehzahl, vorbelegt wie ihr Beispiel, ohne die Felder der Drehmaschine
+# (D-26); eine 5-Achs-Fräse „feste Maße“; die Drehmaschine alle Maße,
+# vorbelegt wie das Beispiel.
 # Ein Weg Y von 0 bis 0 geht nicht: Eine rote Zeile sagt warum, der Dialog
 # bleibt offen. Mit Name „Meine Drehmaschine“, Bettneigung 30°, Y schräg um
 # 30°, Weg X −80 … 120 mm, 8 Plätzen und 4000 U/min entsteht ein neues
@@ -46,18 +48,30 @@ def schritte(h):
         return
     h.pruefe(d.windowTitle() == "Neue Maschine", f"Titel: {d.windowTitle()!r}")
 
-    # 3-Achs-Fräse: feste Maße.
+    # 3-Achs-Fräse: Wege und Drehzahl, vorbelegt wie ihr Beispiel (D-26).
     d.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.FRAESE_3))
     yield 200
-    h.pruefe(d.fest.isVisible() and not d.masse_bereich.isVisible(), "Fräse: Maße sichtbar")
-    h.pruefe(d.masse() is None, "Fräse: Maße statt None")
+    h.pruefe(d.masse_bereich.isVisible() and not d.fest.isVisible(), "Fräse: keine Maße")
+    h.pruefe(
+        not d.feld_bett.isVisible() and not d.feld_plaetze.isVisible(),
+        "Fräse: Felder der Drehmaschine sichtbar",
+    )
+    h.pruefe(d.masse() == beispielmaschine.FraesenMasse(), f"Vorbelegung Fräse: {d.masse()}")
     h.pruefe("Spanneisen" in d.beschreibung.text(), f"Spanneisen: {d.beschreibung.text()!r}")
-    h.bild("1_fraese_feste_masse", d)
+    h.bild("1_fraese_masse", d)
+
+    # Eine 5-Achs-Fräse: feste Maße.
+    d.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.TISCH_TISCH))
+    yield 200
+    h.pruefe(d.fest.isVisible() and not d.masse_bereich.isVisible(), "5-Achs: Maße sichtbar")
+    h.pruefe(d.masse() is None, "5-Achs: Maße statt None")
+    h.bild("1b_fuenfachs_feste_masse", d)
 
     # Drehmaschine: die Maße, vorbelegt wie das Beispiel.
     d.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.DREHMASCHINE))
     yield 200
     h.pruefe(d.masse_bereich.isVisible() and not d.fest.isVisible(), "Drehmaschine: keine Maße")
+    h.pruefe(d.feld_bett.isVisible() and d.feld_plaetze.isVisible(), "Drehmaschine: Felder fehlen")
     h.pruefe(d.masse() == beispielmaschine.DrehmaschinenMasse(), f"Vorbelegung: {d.masse()}")
     h.bild("2_drehmaschine_vorgabe", d)
 

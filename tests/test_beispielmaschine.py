@@ -5,7 +5,8 @@
 # (Drehmaschine, 3-Achs, drei 5-Achs): jede mit ihren Achsen, ohne Warnung,
 # jede Achse fährt, und die Auswahl merkt sich die zuletzt geladene. Zuletzt
 # die Drehmaschine mit eigenen Maßen („Neue Maschine …“): Name, Wege,
-# Bettneigung, Plätze, Drehzahl und die schräge Achse – und ungültige Maße.
+# Bettneigung, Plätze, Drehzahl und die schräge Achse – ebenso die 3-Achs-Fräse
+# mit Wegen, Drehzahl und Name (D-26) – und ungültige Maße.
 import math
 import os
 import sys
@@ -186,6 +187,27 @@ asm, ma = beispielmaschine.lade(
 pruefe(not m.transformationen(ma), "Vorgabe mit schräger Achse")
 pruefe(asm.Document.Label == "Beispiel Drehmaschine", f"Vorgabe-Name: {asm.Document.Label}")
 App.closeDocument(asm.Document.Name)
+
+# Die 3-Achs-Fräse mit eigenen Maßen (D-26): Grenzen der Gelenke, Drehzahl, Name.
+masse = beispielmaschine.FraesenMasse(
+    name="Meine Fräse", weg_x=(-300.0, 400.0), weg_y=(-200.0, 180.0), weg_z=(-150.0, 300.0)
+)
+masse.drehzahl = 8000.0
+asm, ma = beispielmaschine.fraesmaschine(masse)
+kette = kette_modul.lies_kette(asm)
+grenzen = {a.gelenk.Label: (a.minimum, a.maximum) for a in kette.achsen if a.art == LINEAR}
+pruefe(
+    grenzen == {"X": (-300.0, 400.0), "Y": (-200.0, 180.0), "Z": (-150.0, 300.0)},
+    f"Grenzen der Fräse: {grenzen}",
+)
+s1 = next(b for b in m.betriebsarten(ma) if b.NcName == "S1")
+pruefe(s1.Drehzahl == 8000, f"S1 der Fräse: {s1.Drehzahl}")
+pruefe(ma.Label == "Meine Fräse" and asm.Document.Label == "Meine Fräse", "Name der Fräse")
+App.closeDocument(asm.Document.Name)
+pruefe(beispielmaschine.FraesenMasse().fehler() == [], "Vorgabe der Fräse ungültig")
+falsch = beispielmaschine.FraesenMasse(weg_y=(0.0, 0.0), drehzahl=0)
+felder = [feld for feld, _satz in falsch.fehler()]
+pruefe(felder == ["weg_y", "drehzahl"], f"ungültige Maße der Fräse: {felder}")
 
 # Ungültige Maße: je Feld ein Satz.
 falsch = beispielmaschine.DrehmaschinenMasse(
