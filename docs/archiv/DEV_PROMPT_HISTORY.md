@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-44 version-0-25-2
+
+### EINGELESEN
+- `package.xml`.
+
+### DATEIEN
+- `package.xml` (0.25.2), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.25.2 an – mit dem Hinweis zur Werkzeuglage
+(P-2026-09-27-43).
+
+### DONE
+- Version 0.25.2.
+
+### TEST
+- Die Einzeltests zu P-43 in beiden Versionen ok; der Volllauf folgt.
+
+### NEXT
+- Volllauf; 4-Achs-Bearbeitung weiter.
+
 ## P-2026-09-27-43 hinweis-werkzeug-quer
 
 ### EINGELESEN
