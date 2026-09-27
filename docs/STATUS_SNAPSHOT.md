@@ -263,7 +263,7 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
 
 Danach: Manuel testet 4a–4c und die Halter (Punkt 7 oben); offen sind W-001 4d (Bearbeitungszeit mit Beschleunigung) und W-003 V2 (4-Achs: Achse von der Maschine).
 
-Neu (2026-09-27): die Durchsicht **W-004** ([durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md)). Die kleinen Punkte D-01 bis D-08 sind erledigt (P-2026-09-27-09 bis -16), dazu auf Manuels Hinweis der Revolver der Beispiel-Drehmaschine mit Stationen und die Beispielmaschinen ohne Gelenkmarkierungen (P-2026-09-27-07, -08). In der empfohlenen Reihenfolge weiter (Manuel: „Besser weiter“): D-21 Job in allen offenen Dokumenten (-18), D-20 Maschine merken und selbst öffnen, Teil Prüffenster (-19), D-10 drei Urteile oben im Prüffenster (-20, -22), D-11 „T1 öffnen …“ an den Hinweisen (-21), D-25 Betriebsarten vorschlagen (-23), D-26 Maße der 3-Achs-Fräse (-24). Offen ohne Entscheidung: D-12, D-13, D-23, D-28 bis D-30, Rest von D-20 und D-26; zur Entscheidung (Abschnitt 6 dort): D-14, D-22, D-24, D-27.
+Neu (2026-09-27): die Durchsicht **W-004** ([durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md)). Die kleinen Punkte D-01 bis D-08 sind erledigt (P-2026-09-27-09 bis -16), dazu auf Manuels Hinweis der Revolver der Beispiel-Drehmaschine mit Stationen und die Beispielmaschinen ohne Gelenkmarkierungen (P-2026-09-27-07, -08). In der empfohlenen Reihenfolge weiter (Manuel: „Besser weiter“): D-21 Job in allen offenen Dokumenten (-18), D-20 Maschine merken und selbst öffnen, Teil Prüffenster (-19), D-10 drei Urteile oben im Prüffenster (-20, -22), D-11 „T1 öffnen …“ an den Hinweisen (-21), D-25 Betriebsarten vorschlagen (-23), D-26 Maße der 3-Achs-Fräse (-24), D-30 unbenutzte fremde Controller entfernen (-26), D-12 „+ Einsatz“ beim neuen Werkzeug (-27), D-13 Menü „CAM-Addon“ (-28), D-29 „ap … übernehmen“ (-29), D-28 veraltete Schnittwerte im Prüffenster mit „übernehmen“ (-31; dafür merkt sich jeder Controller Einsatz und Werkstoff, -30), D-09 ein Werkzeug je Job statt „… L001“ (-32 Befund, -34). Neue Arbeitsregel: Neben `scripts/alle_tests.sh` läuft kein anderes FreeCAD (-33). Offen ohne Entscheidung: D-23 (wartet auf Manuels Antwort zur Ausspannlänge), Rest von D-20 und D-26; zur Entscheidung (Abschnitt 6 dort): D-14, D-22, D-24, D-27 und Frage 6 zu den Werkzeugnamen (D-09).
 
 ## Wunschliste
 
@@ -292,7 +292,8 @@ Ein Satz je Wunsch, W-ID fortlaufend.
   Reihenfolge und Fragen: [durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md).
   D-01 bis D-08 erledigt (P-2026-09-27-09 bis -16); D-10, D-11, D-20
   (Prüffenster), D-21, D-25, D-26 (3-Achs-Fräse) erledigt (P-2026-09-27-18
-  bis -24).
+  bis -24); D-09, D-12, D-13, D-28 bis D-30 erledigt (P-2026-09-27-26 bis
+  -34).
 
 ## Offene Bugs
 

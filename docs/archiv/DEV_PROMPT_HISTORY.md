@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-35 snapshot-w004-stand
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (Durchsicht W-004, Wunschliste),
+  `docs/durchsicht_bedienbarkeit.md` (Kurzfassung).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/durchsicht_bedienbarkeit.md`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Snapshot und Kurzfassung der Durchsicht sagen, was von W-004 seit
+P-2026-09-27-25 erledigt ist und was offen oder zu entscheiden bleibt.
+
+### DONE
+- Erledigt seit dem letzten Stand: D-30 (-26), D-12 (-27), D-13 (-28),
+  D-29 (-29), D-28 mit gemerktem Einsatz (-30, -31), D-09 (-32, -34); die
+  Arbeitsregel „kein FreeCAD neben dem Volllauf“ (-33).
+- Offen: D-23 (wartet auf Manuels Antwort zur Ausspannlänge), Rest von D-20
+  und D-26. Zur Entscheidung: D-14, D-22, D-24, D-27, Frage 6 (D-09).
+
+### TEST
+- Reine Doku-Änderung, kein Testlauf.
+
+### NEXT
+- Manuels Antworten abwarten; bis dahin der Rest von D-20 (Schruppwerte
+  planen mit der gemerkten Maschine).
+
 ## P-2026-09-27-34 ein-werkzeug-je-job
 
 ### EINGELESEN
