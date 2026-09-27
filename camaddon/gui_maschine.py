@@ -80,6 +80,9 @@ class BefehlMaschineBearbeiten:
             doc = assembly.Document
         doc.openTransaction(tr("dialog.titel"))
         maschine = m.lege_maschine_an(assembly)
+        # Die Baugruppe ist gefunden; gewählt leuchtete sonst die ganze Maschine, solange
+        # das Fenster offen ist – und das Fenster hebt selbst über die Auswahl hervor.
+        FreeCADGui.Selection.clearSelection()
         FreeCADGui.Control.showDialog(MaschinenPanel(assembly, maschine))
 
 

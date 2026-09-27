@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-13 auswahl-beim-oeffnen
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-05; `camaddon/gui_maschine.py` und
+  `camaddon/gui_verfahren.py` (Befehle), `camaddon/gui_zeigen.py` (hebt über
+  die Auswahl hervor), `aufnahme_anlegen` (nimmt ein danach gewähltes LCS).
+
+### DATEIEN
+- `camaddon/gui_maschine.py`, `camaddon/gui_verfahren.py`
+- `tests/gui/szenario_maschine_bearbeiten.py`, `tests/gui/szenario_verfahren.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Öffnet man „Maschine bearbeiten“ oder „Maschine verfahren“ mit gewählter
+Baugruppe, steht die Maschine im offenen Fenster in ihren eigenen Farben.
+
+### DONE
+- Beide Befehle heben die Auswahl auf, sobald die Baugruppe gefunden ist.
+
+### TEST
+- `szenario_maschine_bearbeiten`, `szenario_verfahren` prüfen: nach dem Öffnen
+  ist nichts mehr gewählt; dazu `zeigen`, `felder`, `schraege_achse`,
+  `neue_maschine` in 1.1.3 ok; Screenshot angesehen (schräge Achse: Maschine
+  in ihren Farben).
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-06.
+
 ## P-2026-09-27-12 update-neu-starten
 
 ### EINGELESEN

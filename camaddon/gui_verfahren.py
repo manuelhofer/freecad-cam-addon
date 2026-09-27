@@ -71,6 +71,8 @@ class BefehlMaschineVerfahren:
             return
         # Ein Schritt für alles, was bis OK passiert; Abbrechen verwirft ihn.
         doc.openTransaction(tr("vf.titel"))
+        # Gewählt leuchtete sonst die ganze Maschine, solange das Fenster offen ist.
+        FreeCADGui.Selection.clearSelection()
         FreeCADGui.Control.showDialog(VerfahrPanel(assembly, verfahren))
 
 

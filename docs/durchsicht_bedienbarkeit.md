@@ -79,6 +79,7 @@ Hervorhebungen des Addons gehen darin unter (`szenario_schraege_achse/2_…`,
 `szenario_verfahren_schraeg/1_…`). **Vorschlag:** Beim Öffnen die Auswahl
 aufheben (die Baugruppe ist dann schon gefunden). **Fertig, wenn:** die
 Maschine im offenen Fenster in ihren eigenen Farben steht.
+*Erledigt (P-2026-09-27-13).*
 
 ### D-06 Rückmeldung „An CAM übergeben“ zeigt nur den langen Weg (klein)
 **Heute:** „So geht es weiter: In einem CAM-Job ein Werkzeug hinzufügen und die

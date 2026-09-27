@@ -61,6 +61,8 @@ def schritte(h):
     h.pruefe(panel is not None, "Dialog öffnet sich nicht")
     if panel is None:
         return
+    # Die gewählte Baugruppe leuchtet nicht weiter (D-05).
+    h.pruefe(not Gui.Selection.getSelection(), f"noch gewählt: {Gui.Selection.getSelection()}")
     h.bild("1_leer")
     h.pruefe(
         panel.hinweise.count() == 2, f"leere Maschine: {panel.hinweise.count()} Hinweise statt 2"

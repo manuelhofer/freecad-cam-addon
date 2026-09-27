@@ -41,6 +41,7 @@ def schritte(h):
     h.pruefe(panel is not None, "Fenster öffnet sich nicht")
     if panel is None:
         return
+    h.pruefe(not Gui.Selection.getSelection(), f"noch gewählt: {Gui.Selection.getSelection()}")
     namen = sorted(vf.namen(panel.maschine, a) for a in panel.zeilen)
     h.pruefe(namen == ["C4", "T", "X1", "Z1"], f"Achsen: {namen}")
 
