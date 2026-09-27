@@ -2,8 +2,11 @@
 # Fuehrt alle Pruefungen tests/test_*.py mit FreeCADCmd aus (ohne Fenster).
 # FreeCADCmd liefert bei einer Ausnahme im Skript nicht zuverlaessig einen
 # Fehlercode; deshalb schreibt jede Pruefung am Ende "OK <datei>" und das
-# Skript wertet genau diese Zeile aus. "UEBERSPRUNGEN <datei>: Grund" ist nur
-# fuer Funktionen erlaubt, die es in der geprueften FreeCAD-Version nicht gibt.
+# Skript wertet genau diese Meldung aus. Sie steht am Zeilenende, aber nicht
+# immer am Zeilenanfang: FreeCADCmd schreibt seinen Fortschritt ("(60 %)" mit
+# Tabulatoren und Wagenruecklauf) ohne Zeilenumbruch, und die Meldung kann
+# direkt dahinter landen. "UEBERSPRUNGEN <datei>: Grund" ist nur fuer
+# Funktionen erlaubt, die es in der geprueften FreeCAD-Version nicht gibt.
 set -u
 
 repo="$(cd "$(dirname "$0")/.." && pwd)"
@@ -15,15 +18,16 @@ fi
 
 fehler=0
 for test in "$repo"/tests/test_*.py; do
+    name="$(basename "$test")"
     ausgabe="$(QT_QPA_PLATFORM=offscreen "$fc" "$test" 2>&1)"
-    if printf '%s\n' "$ausgabe" | grep -qx "OK $(basename "$test")"; then
-        echo "ok     $(basename "$test")"
-    elif printf '%s\n' "$ausgabe" | grep -q "^UEBERSPRUNGEN $(basename "$test"):"; then
+    if printf '%s\n' "$ausgabe" | grep -Eq "(^|[[:space:]])OK $name\$"; then
+        echo "ok     $name"
+    elif printf '%s\n' "$ausgabe" | grep -Eq "(^|[[:space:]])UEBERSPRUNGEN $name:"; then
         # Nur fuer Funktionen, die es in dieser FreeCAD-Version nicht gibt.
-        grund="$(printf '%s\n' "$ausgabe" | grep "^UEBERSPRUNGEN" | head -1 | cut -d: -f2-)"
-        echo "skip   $(basename "$test") ($grund )"
+        grund="$(printf '%s\n' "$ausgabe" | sed -n "s/.*UEBERSPRUNGEN $name://p" | head -1)"
+        echo "skip   $name ($grund )"
     else
-        echo "FEHLER $(basename "$test")"
+        echo "FEHLER $name"
         printf '%s\n' "$ausgabe" | tail -20
         fehler=1
     fi

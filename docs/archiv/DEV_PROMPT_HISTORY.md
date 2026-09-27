@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-01 ok-meldung-hinter-fortschritt
+
+### EINGELESEN
+- `scripts/tests_ausfuehren.sh`, `scripts/alle_tests.sh`, `docs/aufbau.md`
+  (Abschnitt Prüfungen).
+- Protokoll des Gesamtlaufs für 0.24.0 (P-2026-09-26-99): in 1.1.3
+  „FEHLER test_kollision.py“, obwohl die Prüfung durchlief – die Zeile war
+  `\t…(60 %)\tOK test_kollision.py`.
+
+### DATEIEN
+- `scripts/tests_ausfuehren.sh`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`OK <datei>` zählt auch, wenn FreeCADCmds Fortschritt („(60 %)“ mit
+Tabulatoren und Wagenrücklauf, ohne Zeilenumbruch) davor auf derselben Zeile
+steht; ebenso `UEBERSPRUNGEN <datei>: Grund`. Eine Ausgabe ohne diese Meldung
+am Zeilenende bleibt ein Fehler.
+
+### DONE
+- FreeCADCmd schreibt seinen Fortschritt ohne Zeilenumbruch; wann die
+  OK-Meldung der Prüfung dazwischenkommt, ist Zufall (ein zweiter Lauf von
+  `test_kollision.py` allein hatte sie auf eigener Zeile). Das Skript sucht
+  `OK <datei>` jetzt am Zeilenende, am Zeilenanfang oder nach Leerraum statt
+  als ganze Zeile; `UEBERSPRUNGEN` ebenso, den Grund liest es mit `sed`.
+
+### TEST
+- Mit einem nachgemachten FreeCADCmd: OK hinter Fortschritt → ok,
+  UEBERSPRUNGEN hinter Fortschritt → skip mit Grund, `OK <datei>X` und eine
+  Ausnahme → FEHLER.
+- Die aufgezeichnete Zeile aus dem Protokoll: alte Suche FEHLER, neue ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- Push 0.24.0 (P-2026-09-26-94 bis P-2026-09-27-01) nach grünem Gesamtlauf.
+
 ## P-2026-09-26-99 version-0-24-0
 
 ### EINGELESEN
