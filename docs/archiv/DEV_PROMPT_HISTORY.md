@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-45 plan-rundum-schruppen
+
+### EINGELESEN
+- Manuels Test (2026-09-27): „dann passiert ja weiter nichts ... keinerlei
+  abfrage vonwegen welches werkzeug .. und keine generierung der
+  werkzeugwege .. also wäre cool wenn dann einfach ein fenster aufgeht .. was
+  willste machen .. schruppen“.
+- `docs/spezifikation_vierachs.md` (Abschnitte 9, 10, 13),
+  `docs/spezifikation_simulation.md` (Abschnitt 4), FreeCADs
+  `src/Mod/CAM/App/PathSegmentWalker.cpp` (`setYawPitchRoll(-c, -b, -a)`).
+
+### DATEIEN
+- `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation sagt, in welchen Schritten „Rundum schruppen“ kommt und
+wie man es am Ende klickt.
+
+### DONE
+- Neue Stufe V3 „Rundum schruppen“ in fünf Schritten: Hüllfläche für den
+  Schaftfräser (V3a), Bahn mit Lagen und Spirale, G93 (V3b), Operation (V3c),
+  Schritt „Was willst du machen?“ im Assistenten (V3d), Prüffenster ohne TCPM
+  (V3e). Flächen wählen, Schlichten, Glättung und Feinschliff rücken als V4
+  bis V7 nach.
+- Befund: Das Prüffenster rechnet Rundachsen bisher wie mit TCPM (Punkte am
+  mitgedrehten Teil); FreeCADs Bahnanzeige und eine Steuerung ohne TCPM lassen
+  X, Y und Z im Maschinenrahmen. V3e gleicht das an.
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- V3a: `camaddon/vierachs_huelle.py`.
+
 ## P-2026-09-27-44 version-0-25-2
 
 ### EINGELESEN

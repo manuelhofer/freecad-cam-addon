@@ -3,8 +3,9 @@
 Stand: **Entwurf von Claude mit Manuels Entscheidungen** vom 2026-09-26
 (P-2026-09-26-78, am Ende unter „Entschieden“). Die Vorschläge in
 Abschnitt 15 hat Claude getroffen; sie sind zur Besprechung da. Gebaut wird
-Stufe für Stufe (Abschnitt 13), jede ein Patch mit Klickweg – V1 ist gebaut
-(P-2026-09-26-79), als Nächstes V2.
+Stufe für Stufe (Abschnitt 13), jede ein Patch mit Klickweg – V1, V2a und
+V2c sind gebaut, als Nächstes V3 „Rundum schruppen“ (Manuels Rückmeldung vom
+2026-09-27).
 
 Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
 (W-001: Maschine, Achsen, Aufnahmen),
@@ -503,55 +504,88 @@ Stange muss also längs Z liegen. Deshalb in drei Schritten:
   daneben).
 - Wenn gewünscht später: Beispielmaschine „4-Achs-Fräse mit A“.
 
-**V3 – Flächen wählen**
+**V3 – Rundum schruppen**
 
-- Schritt 2 mit Punkt-Hüllfläche, Erreichbarkeit und Farben.
-- *Klickweg:* Schritt 2 → „Alle Mantelflächen“ → die Flächen rundum sind
+Manuels Test (2026-09-27): Nach „Anlegen“ „passiert ja weiter nichts ...
+keinerlei abfrage vonwegen welches werkzeug .. und keine generierung der
+werkzeugwege .. also wäre cool wenn dann einfach ein fenster aufgeht .. was
+willste machen .. schruppen“. Deshalb kommt die Bahn vor dem Flächenwählen:
+Nach dem Rohteil fragt der Assistent, was man machen will, und „Rundum
+schruppen“ nimmt das ganze Teil bis aufs Schlichtaufmaß – ohne Flächen zu
+wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
+(Werkzeuge) gehen darin auf; die übrigen rücken nach (V4 bis V7).
+
+- **V3a – Hüllfläche** (`camaddon/vierachs_huelle.py`): für den Schaftfräser
+  genau gegen das vernetzte Teil – je Kante der Schnitt mit dem Kreis der
+  Stirn, je Dreieck die höchste Stelle dieses Kreises auf seiner Ebene –, im
+  Raster 1° × 0,25 mm, mit numpy. Zwischen den Rasterpunkten gilt der höchste
+  Nachbar, dazu die Toleranz der Vernetzung: Der Fehler geht ins Aufmaß, nie
+  ins Teil. Das Aufmaß δ rechnet mit dem Radius R + δ und hebt die Spitze um δ.
+  Prüfung: Zylinder, Exzenter, Sechskant und Welle mit Absatz gegen die
+  Formel, dazu eine Zeitgrenze.
+- **V3b – Bahn** (`camaddon/vierachs_bahn.py`): Lagen r_k = R_Stange − k · ap
+  bis zur Hüllfläche plus Aufmaß. Je Lage eine Spirale mit der Steigung
+  „Vorschub je Umdrehung“ von vorne – das Werkzeug ganz vor der Stange – bis
+  vor das Futter: Der Rand des Fräsers bleibt 1 mm vor der Spannfläche. Trifft
+  das Werkzeug hinter dem Teil nichts, bleibt es oben (das Material bleibt);
+  vor dem Teil schneidet es die Lage. Der Achse kommt die Spitze nicht näher
+  als der Fräserradius. Zwischen den Lagen radial hinaus auf Stangenradius
+  plus Sicherheitsabstand und im Eilgang nach vorne. Ausgabe: G1 mit X als
+  Radius, Z und C (bzw. A oder B) auf 0,001, zwischen G93 und G94, F = 1 ÷
+  Zeit. Liegen Punkte in (a, r, φ) auf einer Geraden, bleibt nur der letzte.
+- **V3c – Operation** (`camaddon/vierachs_operation.py`): „Rundum schruppen“,
+  eine CAM-Operation mit Controller und Kühlmittel. Sie rechnet ihre Bahn beim
+  Neuberechnen aus Modell und Stange des Jobs, ihre Werte stehen als
+  Eigenschaften in der Gruppe „4-Achs“. Die Bahn beginnt mit einem Kommentar:
+  X ist der Radius (Drehmaschine: im Programmkopf auf Radius stellen, Siemens
+  `DIAMOF`). Prüfung: in beiden Versionen anlegen, Speichern und Laden,
+  Postprozessor-Ausgabe.
+- **V3d – Assistent:** „Weiter“ führt zu Schritt 2 „Was willst du machen?“ mit
+  „Rundum schruppen“. Darunter: der Fräser aus der Werkzeugverwaltung
+  (Schaftfräser), sein Einsatz „Schruppen“ mit n und vf, Zustellung je Lage
+  ap, Vorschub je Umdrehung (ae) und Schlichtaufmaß, dazu grau „→ 5 Lagen
+  (Ø 80 → Ø 60,6)“. „Anlegen“ legt Job, Stange, Controller und Operation in
+  einer Transaktion an; dafür wird `lege_controller_an` in Kern und
+  Transaktion geteilt.
+- **V3e – Prüffenster:** Rundachsen wie an einer Steuerung ohne TCPM: X, Y
+  und Z bleiben im Rahmen der Maschine, die Rundachse dreht das Teil darunter.
+  Genau so zeigt FreeCAD die Bahn (`PathSegmentWalker`: der Punkt um −C
+  gedreht). Bisher rechnete das Prüffenster die Punkte am mitgedrehten Teil
+  (wie mit TCPM). G93 zählt für die Zeit. Sitzt das Werkzeug einer
+  4-Achs-Operation längs Z, sagt es ein Hinweis.
+- *Klickweg:* Beispiel-Drehmaschine laden, Welle → Stirnfläche →
+  „4-Achs-Bearbeitung“ → Stange Ø 80 → „Weiter“ → „Rundum schruppen“, T1
+  Schaftfräser D12 → „Anlegen“ → im Job stehen T1 und „Rundum schruppen T1“,
+  die Bahn läuft in Lagen um das Teil. „Auf der Maschine prüfen“: C dreht, das
+  Werkzeug auf P1 läuft außen am Teil entlang; „Kollision prüfen“ meldet
+  nichts im Teil.
+
+**V4 – Flächen wählen** (bisher V3)
+
+- Schritt „Flächen“ mit Punkt-Hüllfläche, Erreichbarkeit und Farben; ohne
+  Auswahl gilt das ganze Teil.
+- *Klickweg:* „Flächen …“ → „Alle Mantelflächen“ → die Flächen rundum sind
   markiert und grün, die Stirnflächen nicht; eine Fläche unter einem Überhang
   steht rot mit „nicht erreichbar“; ein Klick nimmt eine Fläche heraus.
 
-**V4 – Controller ohne eigene Transaktion** (vorbereitend)
+**V5 – Schlichten** (bisher V7)
 
-- `lege_controller_an` wird in Kern und Transaktion geteilt.
-- *Klickweg:* „Schnittwerte in den Job“ → „Werkzeug-Controller hinzufügen“
-  wirkt wie bisher, und ein Strg+Z nimmt ihn zurück.
-
-**V5 – Werkzeuge wählen**
-
-- Schritt 3; Hüllfläche mit echtem Fräser und Aufmaß.
-- Prüfung gegen Zylinder, Exzenter, Sechskant und Kugel für alle drei
-  Fräser, dazu eine Zeitgrenze.
-- *Klickweg:* Schritt 3 → T1 Schaftfräser und T2 Kugelfräser → die Werte
-  stehen da, „5 Lagen (Ø 80 → Ø 60,6)“, und eine Fläche, die enger ist als
-  T1, nennt die rote Zeile.
-
-**V6 – Schruppen anlegen**
-
-- Operation, Lagen, Spirale, Schritt 4, eine Transaktion, Ausgabe als
-  G1-Punkte mit G93.
-- Prüfung: Job in beiden Versionen, Speichern und Laden, angezeigte Punkte
-  außerhalb des Teils, Postprozessor-Ausgabe.
-- *Klickweg:* „Anlegen“ → im Job stehen T1 und „Rundum schruppen T1“, die
-  Bahn läuft in Lagen spiralförmig um das Teil, und der Postprozessor
-  schreibt Sätze mit C (bzw. A/B) zwischen G93 und G94.
-
-**V7 – Schlichten**
-
-- Zweite Operation, Kammhöhe, Linien längs.
+- Hüllfläche für Kugel- und Torusfräser, zweite Operation, Kammhöhe, Linien
+  längs.
 - *Klickweg:* dazu „Rundum schlichten T2“ – die Bahn liegt dicht auf der
   Oberfläche, und Schrittweite 0,35 mm zeigt „Kammhöhe 5 µm“.
 
-**V8 – Glatte Bahn**
+**V6 – Glatte Bahn** (bisher V8)
 
 - Glättungsfilter, Punktabstand nach Toleranz.
 - *Klickweg:* „Mehr …“ → Glättung aus und an: Mit Glättung hat die
   Schlichtbahn deutlich weniger Sätze und keine Stufen; die Abweichung bleibt
   unter 0,005 mm.
 
-**V9 – Feinschliff**
+**V7 – Feinschliff** (bisher V9)
 
 - Luftschnitte überspringen, Zeit je Operation, zweiter Durchlauf auf
-  demselben Job, Warnung „Modell im Job verändert“.
+  demselben Job, Warnung „Modell im Job verändert“, Gleich- oder Gegenlauf.
 - *Klickweg:* Schritt 4 zeigt die Zeiten; ein zweiter Durchlauf auf dem Job
   beginnt bei Schritt 2.
 
@@ -619,3 +653,12 @@ als Rückmeldung zum Plan:
   „klick auf die fläche wo z senkrecht drauf steht“ … wenns eine
   rotatiosn geometrie ist beim 4 achs bearbeiten … irgendwie sinnvoll“ →
   V2 in drei Schritten V2a–V2c (Abschnitt 13), als Nächstes.
+- **Nach dem Rohteil gleich die Bahn (2026-09-27):** „wäre cool wenn dann
+  einfach ein fenster aufgeht .. was willste machen .. schruppen .. wir haben
+  ja extra einen 4achs job erstellt .. also geht man ja davon aus das man 4
+  achsen bearbeiten will“ → V3 „Rundum schruppen“ vor dem Flächenwählen
+  (Abschnitt 13). Dazu: „hier bewegt sich nun in der simulation das werkzeug
+  das zur z achse senkrecht steht mittig am pfad entlang .. und kollision wird
+  hier auch nicht erkannt da er komplett durchs werstück fährt“ → Hinweis zur
+  Werkzeuglage (P-2026-09-27-43), Kollision „ins fertige Teil“
+  (P-2026-09-27-41), Prüffenster ohne TCPM (V3e).
