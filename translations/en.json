@@ -775,7 +775,7 @@
     "rw.befehl": "“{operation}”: the check does not know the command {befehl} – skipped.",
     "rw.unerreichbar": "In “{operation}” the tool cannot reach every point, e.g. at {punkt}: {anzahl} of {gesamt} points lie outside what the linear axes can reach.",
     "befehl.reichweite.titel": "Check on machine",
-    "befehl.reichweite.tooltip": "Checks whether a machine's axes reach far enough for the paths of a CAM job – each axis against its limits.",
+    "befehl.reichweite.tooltip": "Checks a CAM job on a machine: do the axes reach far enough, how does the machine run the path, does anything collide on the way?",
     "rw.titel": "Check on machine",
     "rw.erklaerung": "For every point of the paths the position of every axis, held against its limits. Click an overrun and the machine moves there; under “Run through” it runs the whole path, “Check for collisions” looks whether anything bumps into something; Close moves it back.",
     "rw.job": "Job",

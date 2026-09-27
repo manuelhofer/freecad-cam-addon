@@ -43,6 +43,7 @@ und 0.24.0) nennt er nicht – wer die Kollisionsprüfung sucht, findet sie so
 nicht. **Vorschlag:** „Prüft einen CAM-Job auf einer Maschine: Reichen die
 Achsen, wie fährt die Maschine die Bahn ab, stößt dabei etwas an?“
 **Fertig, wenn:** der Tooltip alle drei Prüfungen nennt.
+*Erledigt (P-2026-09-27-09).*
 
 ### D-02 „Schnittwerte in den Job“ ist ohne Job grau (klein)
 **Heute:** Hat das aktive Dokument keinen Job, ist der Knopf ausgegraut, ohne

@@ -775,7 +775,7 @@
     "rw.befehl": "„{operation}“: Den Befehl {befehl} kennt die Prüfung nicht – übergangen.",
     "rw.unerreichbar": "In „{operation}“ kommt das Werkzeug nicht überall hin, etwa bei {punkt}: {anzahl} von {gesamt} Punkten liegen außerhalb dessen, was die Linearachsen erreichen.",
     "befehl.reichweite.titel": "Auf der Maschine prüfen",
-    "befehl.reichweite.tooltip": "Prüft, ob die Achsen einer Maschine für die Bahnen eines CAM-Jobs reichen – jede Achse gegen ihre Grenzen.",
+    "befehl.reichweite.tooltip": "Prüft einen CAM-Job auf einer Maschine: Reichen die Achsen, wie fährt die Maschine die Bahn ab, stößt dabei etwas an?",
     "rw.titel": "Auf der Maschine prüfen",
     "rw.erklaerung": "Für jeden Punkt der Bahnen die Stellung jeder Achse, gehalten gegen ihre Grenzen. Ein Klick auf eine Überschreitung fährt die Maschine dorthin, unter „Abfahren“ fährt sie die ganze Bahn ab, „Kollision prüfen“ sieht nach, ob dabei etwas anstößt; Schließen fährt sie zurück.",
     "rw.job": "Job",

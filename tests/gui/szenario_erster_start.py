@@ -89,6 +89,12 @@ def schritte(h):
     aktion = FreeCADGui.Command.get("CamAddon_SchnittwerteJob").getAction()[0]
     h.pruefe(aktion.text() == "Schnittwerte in den Job", f"Knopf: {aktion.text()!r}")
     h.pruefe("Setzt Drehzahl und Vorschub" in aktion.toolTip(), f"Tooltip: {aktion.toolTip()!r}")
+    # Der Tooltip von „Auf der Maschine prüfen“ nennt alle drei Prüfungen (D-01).
+    pruefen = FreeCADGui.Command.get("CamAddon_AufMaschinePruefen").getAction()[0]
+    h.pruefe(
+        "Reichen die Achsen" in pruefen.toolTip() and "stößt dabei etwas an" in pruefen.toolTip(),
+        f"Tooltip Prüfen: {pruefen.toolTip()!r}",
+    )
     h.bild("4_cam_werkzeugleiste")
 
     # Einstellungsseite: zeigt die gewählte Sprache und speichert eine neue.

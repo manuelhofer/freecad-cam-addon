@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-09 tooltip-pruefen
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-01; `camaddon/gui_reichweite.py`
+  (Befehl), `tests/gui/szenario_erster_start.py`.
+
+### DATEIEN
+- `translations/de.json`, `translations/en.json`
+- `tests/gui/szenario_erster_start.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Tooltip von „Auf der Maschine prüfen“ nennt alle drei Prüfungen:
+Achsgrenzen, Abfahren, Kollision.
+
+### DONE
+- „Prüft einen CAM-Job auf einer Maschine: Reichen die Achsen, wie fährt die
+  Maschine die Bahn ab, stößt dabei etwas an?“ (englisch entsprechend).
+
+### TEST
+- `szenario_erster_start` in 1.1.3 ok – prüft jetzt auch diesen Tooltip.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-02.
+
 ## P-2026-09-27-08 gelenke-ausblenden
 
 ### EINGELESEN
