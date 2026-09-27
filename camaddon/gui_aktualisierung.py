@@ -164,6 +164,20 @@ def _hinweis(eltern, text):
     QtGui.QMessageBox.information(eltern, tr("update.titel"), text)
 
 
+def neu_starten(hauptfenster=None, starten=None):
+    """Startet FreeCAD neu – wie der Addon-Manager von FreeCAD: erst das Hauptfenster
+    schließen (FreeCAD fragt dabei nach ungespeicherten Dokumenten), dann dasselbe
+    Programm mit denselben Argumenten starten. Bricht man beim Schließen ab, bleibt
+    alles, wie es ist. `hauptfenster` und `starten` nur für die Prüfungen."""
+    hauptfenster = hauptfenster or FreeCADGui.getMainWindow()
+    starten = starten or QtCore.QProcess.startDetached
+    argumente = QtGui.QApplication.arguments()[1:]
+    if hauptfenster.close():
+        starten(QtGui.QApplication.applicationFilePath(), argumente)
+        return True
+    return False
+
+
 class UpdateDialog(QtGui.QDialog):
     """„Neue Version – jetzt aktualisieren?“ Nicht modal: FreeCAD bleibt bedienbar."""
 
@@ -181,6 +195,13 @@ class UpdateDialog(QtGui.QDialog):
         self.text.setWordWrap(True)
         knoepfe = QtGui.QDialogButtonBox()
         self.knopf_jetzt = knoepfe.addButton(tr("update.jetzt"), QtGui.QDialogButtonBox.AcceptRole)
+        # Erst nach dem Aktualisieren: FreeCAD gleich neu starten.
+        self.knopf_neustart = knoepfe.addButton(
+            tr("update.neu_starten"), QtGui.QDialogButtonBox.ActionRole
+        )
+        self.knopf_neustart.setToolTip(tr("update.neu_starten.tooltip"))
+        self.knopf_neustart.hide()
+        self.knopf_neustart.clicked.connect(neu_starten)
         knoepfe.addButton(tr("update.spaeter"), QtGui.QDialogButtonBox.RejectRole)
         knoepfe.accepted.connect(self._aktualisieren)
         knoepfe.rejected.connect(self.close)
@@ -200,6 +221,7 @@ class UpdateDialog(QtGui.QDialog):
             self.text.setText(tr("update.fehlgeschlagen", fehler=str(fehler)))
             return
         self.text.setText(tr("update.fertig"))
+        self.knopf_neustart.show()
 
 
 # --- Gruppe „Updates“ in den Einstellungen --------------------------------------

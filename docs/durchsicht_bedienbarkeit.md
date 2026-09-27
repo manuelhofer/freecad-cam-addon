@@ -69,6 +69,7 @@ gilt.“ – der einzige Knopf heißt „Später“ (`szenario_update/2_aktualis
 **Vorschlag:** „Jetzt neu starten“ (FreeCAD fragt wie beim Beenden nach
 ungespeicherten Dokumenten) und „Später“ – wie der Addon-Manager von FreeCAD.
 Plattformneutral prüfen. **Fertig, wenn:** ein Klick FreeCAD neu startet.
+*Erledigt (P-2026-09-27-12).*
 
 ### D-05 Die gewählte Baugruppe leuchtet beim Bearbeiten und Verfahren (klein)
 **Heute:** Wer die Assembly im Baum anklickt und dann „Maschine bearbeiten“

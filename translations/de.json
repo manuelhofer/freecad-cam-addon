@@ -893,5 +893,7 @@
     "kb.nahe": "Nichts berührt sich, aber manches kommt näher als {abstand}:",
     "kb.frei": "Nichts berührt sich, nichts kommt näher als {abstand}.",
     "kb.liste.tooltip": "Ein Klick stellt den Abspieler an die Stelle; eine rote Kugel zeigt sie in der Ansicht.",
-    "sj.kein_job": "Im aktiven Dokument gibt es keinen CAM-Job. Öffne das Dokument mit dem Job – dann setzt dieser Befehl Drehzahl und Vorschub seiner Werkzeug-Controller aus der Werkzeugverwaltung."
+    "sj.kein_job": "Im aktiven Dokument gibt es keinen CAM-Job. Öffne das Dokument mit dem Job – dann setzt dieser Befehl Drehzahl und Vorschub seiner Werkzeug-Controller aus der Werkzeugverwaltung.",
+    "update.neu_starten": "Jetzt neu starten",
+    "update.neu_starten.tooltip": "Schließt FreeCAD – nach ungespeicherten Dokumenten fragt es vorher – und startet es neu."
 }

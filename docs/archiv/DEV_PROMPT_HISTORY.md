@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-12 update-neu-starten
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-04; `camaddon/gui_aktualisierung.py`
+  (UpdateDialog), `tests/gui/szenario_update.py`; wie FreeCADs Addon-Manager
+  neu startet (Hauptfenster schließen, dann dasselbe Programm mit denselben
+  Argumenten über `QProcess.startDetached`).
+
+### DATEIEN
+- `camaddon/gui_aktualisierung.py`
+- `translations/de.json`, `translations/en.json` (`update.neu_starten`, Tooltip)
+- `tests/gui/szenario_update.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Nach dem Aktualisieren bietet das Fenster „Jetzt neu starten“ und „Später“;
+„Jetzt neu starten“ schließt FreeCAD (mit der Frage nach ungespeicherten
+Dokumenten) und startet es neu.
+
+### DONE
+- `neu_starten()`: Hauptfenster schließen – bricht man bei der Frage nach dem
+  Speichern ab, bleibt alles, wie es ist –, dann FreeCAD neu starten. Kein
+  Shell-Aufruf: `QtCore.QProcess.startDetached` mit dem Programm, das gerade
+  läuft (Qt, auf jedem Betriebssystem), wie der Addon-Manager.
+- Der Knopf erscheint erst nach einem erfolgreichen Aktualisieren.
+
+### TEST
+- `szenario_update` in 1.1.3 ok: Knopf sichtbar nach dem Aktualisieren;
+  `neu_starten` mit Ersatz für Hauptfenster und Programmstart – schließt es,
+  startet FreeCAD (Pfad der laufenden FreeCAD-Datei); bricht man ab, startet
+  nichts. Den echten Neustart klickt die Prüfung nicht (FreeCAD liefe danach
+  weiter) – das probiert Manuel beim nächsten Update.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-05.
+
 ## P-2026-09-27-11 achsen-reihenfolge-verfahren
 
 ### EINGELESEN

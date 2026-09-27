@@ -74,8 +74,33 @@ def schritte(h):
     h.pruefe(
         a.pruefe(installiert).version_jetzt == "9.9.0", "Addon-Ordner wurde nicht aktualisiert"
     )
+    h.pruefe(
+        dialog.knopf_neustart.isVisible() and dialog.knopf_neustart.text() == "Jetzt neu starten",
+        "kein Knopf „Jetzt neu starten“ nach dem Aktualisieren",
+    )
     h.bild("2_aktualisiert", dialog)
     dialog.close()
+
+    # „Jetzt neu starten“ – mit einem Ersatz für Hauptfenster und Programmstart: Schließt
+    # das Fenster, startet FreeCAD neu; bricht man beim Schließen ab, startet nichts.
+    class Fenster:
+        def __init__(self, schliesst):
+            self.schliesst = schliesst
+
+        def close(self):
+            return self.schliesst
+
+    gestartet = []
+    h.pruefe(
+        ga.neu_starten(Fenster(True), lambda programm, argumente: gestartet.append(programm)),
+        "neu_starten: schließt nicht",
+    )
+    h.pruefe(len(gestartet) == 1 and "reecad" in gestartet[0].lower(), f"gestartet: {gestartet}")
+    h.pruefe(
+        not ga.neu_starten(Fenster(False), lambda *_: gestartet.append("nochmal"))
+        and len(gestartet) == 1,
+        "neu_starten startet trotz Abbrechen",
+    )
 
     seite = gui_sprachwahl.Einstellungsseite()
     seite.loadSettings()
