@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-46 vierachs-huelle
+
+### EINGELESEN
+- `docs/spezifikation_vierachs.md` (Abschnitte 3 und 9, Stufe V3a).
+- `camaddon/vierachs_rohteil.py` (Achsen, Tessellierung).
+
+### DATEIEN
+- `camaddon/vierachs_huelle.py` (neu)
+- `tests/test_vierachs_huelle.py` (neu)
+- `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Für einen radialen Schaftfräser sagt die Hüllfläche je Stelle a und Winkel φ,
+wie nah die Spitze der Stangenachse kommt, ohne das Teil zu verletzen –
+höchstens die Toleranz der Vernetzung unter der Formel, nie darüber.
+
+### DONE
+- `vernetze(form)`: das Teil als Netz (numpy). `schaftfraeser(...)`: je Winkel
+  für alle a zugleich – je Kante der höchste Punkt im Kreis der Stirn (Ende
+  oder Schnitt mit dem Kreis, quadratische Gleichung ohne Auslöschung), je
+  Dreieck die höchste Stelle des Kreises auf seiner Ebene, wenn sie im Dreieck
+  liegt. Kanten und Dreiecke ganz hinter der Achse zählen nicht.
+- `Huelle.sicher()`: der höchste Nachbar rundum; `bei(a, j)`: der höhere der
+  beiden Rasterpunkte daneben – so liegt die wahre Hüllfläche zwischen den
+  Rasterpunkten darunter.
+- Eine berührende Stirn (genau tangential) zählt immer: Sie rechnet 1e-9 mm
+  größer, sonst entschied das Rundungsrauschen.
+
+### TEST
+- `test_vierachs_huelle` in 1.1.3 und im Wochen-Build: Zylinder Ø 60 (höchstens
+  0,0093 mm unter der Formel), Exzenter (0,0069), Sechskant (genau), Welle mit
+  Absatz (am Absatz bei −56,0, davor nicht; vorne bis a = R), längs X gleich wie
+  längs Z, Welle mit Nocken 481 × 360 Punkte in 0,5 s.
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- V3b: Schruppbahn (`camaddon/vierachs_bahn.py`).
+
 ## P-2026-09-27-45 plan-rundum-schruppen
 
 ### EINGELESEN

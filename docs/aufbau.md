@@ -66,6 +66,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `schruppwerte.py` | Schruppwerte planen: fz je ae mit Spandickenausgleich, Grenzen von Werkzeug und Maschine (auch aus W-001), Vorschlag mit größtem Q |
 | `job_schnittwerte.py` | Schnittwerte in die Werkzeug-Controller eines Jobs: Werkstoff vom Rohteil, Werkzeug zum TC, Einsatz vorschlagen, dazu Schrittweite und Zustelltiefe der passenden Operationen; setzen in einer Transaktion |
 | `vierachs_rohteil.py` | 4-Achs-Bearbeitung, Teil in die Stange (W-003 V1): Stirnfläche vermessen (Normale, runde Kante, kleinster Kreis um das Teil), Lage für A/B/C, Vorschlag für den Stangen-Ø, Job mit Modell-Klon an der Stelle und Zylinder-Rohteil |
+| `vierachs_huelle.py` | 4-Achs-Bearbeitung, Hüllfläche (W-003 V3a): wie nah die Spitze eines radialen Schaftfräsers der Stangenachse kommt, ohne das Teil zu verletzen – je Stelle a und Winkel φ, genau gegen das vernetzte Teil (Kanten und Dreiecke), mit numpy; sicheres Raster für die Bahn |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste (Arbeitsbefehle) und Menü „CAM-Addon“ (alle Befehle); ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“; ohne Baugruppe der Weg zu den Beispielmaschinen |
 | `gui_neue_maschine.py` | Befehl und Dialog „Neue Maschine …“: Bauart wählen, bei der Drehmaschine Maße eintragen, bauen – auch hinter „Beispielmaschine laden …“ |
