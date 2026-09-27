@@ -917,5 +917,10 @@
     "kb.kurz.nahe": "Nichts berührt sich, aber manches kommt näher als {abstand}",
     "rw.werkzeug_oeffnen": "{werkzeug} öffnen …",
     "dialog.vorschlagen": "Vorschlagen",
-    "dialog.vorschlagen.tooltip": "Gibt jedem Gelenk ohne Betriebsart eine: Schiebegelenke linear, der NC-Name aus dem Namen des Gelenks („X-Schlitten“ → X1) oder aus seiner Richtung; Drehgelenke mit „Spindel“ im Namen eine Spindel (S1), mit „Revolver“ den Revolver (T), sonst Positionieren (A, B oder C nach der Drehachse). Die Kennwerte trägst du danach ein – die Hinweise sagen, welche fehlen."
+    "dialog.vorschlagen.tooltip": "Gibt jedem Gelenk ohne Betriebsart eine: Schiebegelenke linear, der NC-Name aus dem Namen des Gelenks („X-Schlitten“ → X1) oder aus seiner Richtung; Drehgelenke mit „Spindel“ im Namen eine Spindel (S1), mit „Revolver“ den Revolver (T), sonst Positionieren (A, B oder C nach der Drehachse). Die Kennwerte trägst du danach ein – die Hinweise sagen, welche fehlen.",
+    "sj.unbenutzt": "Von keiner Operation benutzt und nicht aus der Werkzeugverwaltung: {namen}.",
+    "sj.unbenutzt.entfernen": "Entfernen",
+    "sj.unbenutzt.entfernen.tooltip": "Entfernt diese Werkzeug-Controller samt ihrem Werkzeug aus dem Job – wie Löschen im Baum. Strg+Z holt sie zurück.",
+    "sj.unbenutzt.schritt": "Unbenutzte Werkzeug-Controller entfernen",
+    "sj.unbenutzt.tooltip": "Solche Werkzeug-Controller tun nichts. FreeCAD legt „TC: 5mm Endmill“ in jedem neuen Job an – wer mit Werkzeugen aus der Werkzeugverwaltung arbeitet, braucht ihn nicht."
 }

@@ -289,6 +289,8 @@ in den Job“ zeigt ihn als „nicht in der Werkzeugverwaltung – nicht ändern
 Operation: „wird nicht benutzt – entfernen?“; benutzt ihn eine: „in die
 Werkzeugverwaltung übernehmen?“. **Fertig, wenn:** der unbenutzte Controller
 mit einem Klick verschwindet.
+*Erledigt (P-2026-09-27-26) – der erste Teil; fürs Übernehmen gibt es „Aus
+CAM übernehmen“ in der Werkzeugverwaltung.*
 
 ## 5. Angesehen und für gut befunden
 

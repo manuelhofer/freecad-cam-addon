@@ -188,6 +188,11 @@ dynamisch“), mit Drehzahl und Vorschub. Vorher werden die
 Werkzeuge an CAM übergeben, damit das Werkzeug in der Bibliothek
 „CAM-Addon“ steht. Der Controller bleibt auch, wenn man den Dialog danach
 abbricht; Strg+Z nimmt ihn zurück.</li>
+<li>Benutzt ein Werkzeug-Controller keine Operation und kommt sein Werkzeug
+nicht aus der Werkzeugverwaltung – etwa „TC: 5mm Endmill“, den FreeCAD in
+jedem neuen Job anlegt –, sagt es eine Zeile unter der Tabelle.
+<b>Entfernen</b> nimmt ihn samt Werkzeug aus dem Job, wie Löschen im Baum;
+Strg+Z holt ihn zurück.</li>
 <li><b>Schrittweite und Zustelltiefe:</b> Die Operationen, die den
 Werkzeug-Controller benutzen, bekommen ae als Schrittweite (in % von D,
 abgerundet) und ap als Zustelltiefe, das Adaptiv dazu den Eintauchwinkel

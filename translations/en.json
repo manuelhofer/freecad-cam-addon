@@ -917,5 +917,10 @@
     "kb.kurz.nahe": "Nothing touches, but some things come closer than {abstand}",
     "rw.werkzeug_oeffnen": "Open {werkzeug} …",
     "dialog.vorschlagen": "Suggest",
-    "dialog.vorschlagen.tooltip": "Gives every joint without an operating mode one: sliders linear, the NC name from the joint's name (“X slide” → X1) or from its direction; revolute joints with “spindle” in the name a spindle (S1), with “turret” the turret (T), otherwise positioning (A, B or C by the axis of rotation). You enter the values afterwards – the notes say which are missing."
+    "dialog.vorschlagen.tooltip": "Gives every joint without an operating mode one: sliders linear, the NC name from the joint's name (“X slide” → X1) or from its direction; revolute joints with “spindle” in the name a spindle (S1), with “turret” the turret (T), otherwise positioning (A, B or C by the axis of rotation). You enter the values afterwards – the notes say which are missing.",
+    "sj.unbenutzt": "Used by no operation and not from the tool manager: {namen}.",
+    "sj.unbenutzt.entfernen": "Remove",
+    "sj.unbenutzt.entfernen.tooltip": "Removes these tool controllers together with their tool from the job – like deleting them in the tree. Ctrl+Z brings them back.",
+    "sj.unbenutzt.schritt": "Remove unused tool controllers",
+    "sj.unbenutzt.tooltip": "Such tool controllers do nothing. FreeCAD adds “TC: 5mm Endmill” to every new job – if you work with tools from the tool manager, you do not need it."
 }

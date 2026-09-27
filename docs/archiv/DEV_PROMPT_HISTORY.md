@@ -12,6 +12,64 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-26 unbenutzte-controller
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-30; `camaddon/gui_job_schnittwerte.py`
+  (Tabelle, „Werkzeug-Controller hinzufügen“), `camaddon/job_schnittwerte.py`
+  (`werkzeug_von`, `operationen_mit`), FreeCADs
+  `Mod/CAM/Path/Tool/Controller.py` und `toolbit/models/base.py` (`onDelete`,
+  `_removeBitBody`), `tests/gui/szenario_schnittwerte_job.py`,
+  `help/*/werkzeuge.html`.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`unbenutzte_fremde_controller`,
+  `entferne_controller`)
+- `camaddon/gui_job_schnittwerte.py` (Zeile mit „Entfernen“ unter der
+  Tabelle)
+- `translations/de.json`, `translations/en.json` (`sj.unbenutzt*`)
+- `help/de/werkzeuge.html`, `help/en/werkzeuge.html`
+- `tests/test_job_schnittwerte.py`, `tests/gui/szenario_schnittwerte_job.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der unbenutzte Controller verschwindet mit einem Klick (Fertig-wenn von
+D-30).
+
+### DONE
+- „Schnittwerte in den Job“ zeigt unter der Tabelle: „Von keiner Operation
+  benutzt und nicht aus der Werkzeugverwaltung: „TC: 5mm Endmill“, …“ mit dem
+  Knopf **Entfernen** (Tooltip: FreeCAD legt ihn in jedem neuen Job an).
+  Controller aus der Werkzeugverwaltung, die (noch) keine Operation benutzt,
+  bleiben unberührt – die legt man absichtlich an.
+- Entfernt wird wie beim Löschen im Baum, über FreeCADs eigenes `onDelete`:
+  mit dem Werkzeug und dessen Körper (Body, Skizze, Ebenen,
+  „Attributes“), wenn kein anderer Controller es benutzt. Ausprobiert in
+  1.1.3 und im Wochen-Build: Nur Controller und Werkzeug zu löschen ließe den
+  Körper im Dokument zurück.
+- Gelernt: Solange ein Befehl einen Dialog offen hält, fasst FreeCAD alles
+  darin zu einem Schritt Rückgängig zusammen (die Transaktion des Befehls;
+  `openTransaction` benennt sie nur). Strg+Z nach dem Dialog nimmt also alles
+  zurück, was in diesem Aufruf geschah – auch einen dort angelegten
+  Controller.
+- Nicht gemacht (D-30, zweiter Teil): „in die Werkzeugverwaltung übernehmen?“
+  für einen benutzten fremden Controller – dafür gibt es „Aus CAM übernehmen“
+  in der Werkzeugverwaltung (der Tooltip der Zeile nennt es).
+
+### TEST
+- `test_job_schnittwerte` in 1.1.3 ok – neuer Job ohne Operation: der
+  Standard-Controller ist unbenutzt, Entfernen lässt nur den Job übrig,
+  Strg+Z holt alles zurück.
+- `szenario_schnittwerte_job` in 1.1.3 ok – im eigenen Aufruf: Zeile mit
+  „TC: 5mm Endmill“ und „TC fremd“, Entfernen, Tabelle neu, Werkzeug und
+  Körper weg, Strg+Z stellt den Stand vor dem Aufruf wieder her; Bild
+  `5_unbenutzt` angesehen.
+- Alle Einzeltests in 1.1.3 ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-12: „+ Einsatz“ beim neuen Werkzeug.
+
 ## P-2026-09-27-25 snapshot-w004-weiter
 
 ### EINGELESEN

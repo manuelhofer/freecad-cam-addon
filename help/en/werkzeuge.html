@@ -181,6 +181,11 @@ name “T3 Endmill carbide 12 – Dynamic roughing”), with
 spindle speed and feed. The tools are handed over to CAM first, so that the
 tool is in the library “CAM-Addon”. The controller stays even if you cancel
 the dialog afterwards; Ctrl+Z undoes it.</li>
+<li>If no operation uses a tool controller and its tool does not come from
+the tool manager – such as “TC: 5mm Endmill”, which FreeCAD adds to every new
+job –, a line below the table says so. <b>Remove</b> takes it out of the job
+together with its tool, like deleting it in the tree; Ctrl+Z brings it
+back.</li>
 <li><b>Step over and step down:</b> The operations that use the tool
 controller get ae as step over (in % of D, rounded down) and ap as step down,
 Adaptive also the tool's ramp angle –

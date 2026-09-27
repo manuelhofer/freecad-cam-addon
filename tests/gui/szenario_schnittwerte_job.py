@@ -5,6 +5,9 @@
 # nimmt es zurück. Die Einsätze der Werkzeugarten finden ihre Operation: der
 # Planfräser „Planen“ in der Fläche (mit Schrittweite und Zustelltiefe), der
 # Zentrierbohrer „Zentrieren“ in der Bohrung – mit vollem Eintauchvorschub.
+# Zum Schluss (D-30): FreeCADs „TC: 5mm Endmill“ und „TC fremd“ benutzt keine
+# Operation – der Dialog sagt es, „Entfernen“ nimmt beide samt Werkzeug aus
+# dem Job, Strg+Z holt sie zurück.
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
@@ -220,3 +223,36 @@ def schritte(h):
     h.pruefe(d.knopf_am_rohteil.isHidden(), "Knopf nach dem Eintragen noch da")
     h.bild("4_am_rohteil", d)
     d.reject()
+    yield 300
+
+    # Unbenutzte fremde Controller (D-30): ein Klick entfernt sie samt Werkzeug – in einem
+    # eigenen Aufruf des Dialogs, denn alles in einem Aufruf ist für FreeCAD ein Schritt
+    # Rückgängig (der Befehl hält die Transaktion offen, bis der Dialog zu ist).
+    objekte_vorher = sorted(o.Name for o in dok.Objects)
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_SchnittwerteJob"))
+    yield 1000
+    d = gj.SchnittwerteJobDialog.offen
+    h.pruefe(d is not None and d.isVisible(), "Dialog geht zum Entfernen nicht auf")
+    if d is None:
+        return
+    h.pruefe(d.zeile_unbenutzt.isVisible(), "kein Hinweis auf unbenutzte Controller")
+    text = d.unbenutzt.text()
+    h.pruefe("„TC: 5mm Endmill“" in text and "„TC fremd“" in text, f"unbenutzt: {text!r}")
+    h.bild("5_unbenutzt", d)
+    d.knopf_unbenutzt_weg.click()
+    yield 500
+    namen = [tc.Label for tc in job.Tools.Group]
+    h.pruefe("TC: 5mm Endmill" not in namen and "TC fremd" not in namen, f"nach Entfernen: {namen}")
+    h.pruefe(d.tabelle.rowCount() == len(namen), "Tabelle nicht neu aufgebaut")
+    h.pruefe(not d.zeile_unbenutzt.isVisible(), "Hinweis nach dem Entfernen noch da")
+    uebrig = [n for n in ("Endmill", "Body") if dok.getObject(n) is not None]
+    h.pruefe(not uebrig, f"Werkzeug oder Körper bleiben: {uebrig}")
+    d.reject()
+    yield 300
+    dok.undo()
+    dok.recompute()
+    yield 300
+    h.pruefe(
+        sorted(o.Name for o in dok.Objects) == objekte_vorher,
+        "Strg+Z holt die Controller nicht vollständig zurück",
+    )

@@ -192,6 +192,20 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         kopf.setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
         kopf.setSectionResizeMode(WERKZEUG, QtGui.QHeaderView.Stretch)
         aufbau.addWidget(self.tabelle, 1)
+        # Controller, die nichts tun und nicht aus der Werkzeugverwaltung kommen (D-30).
+        self.unbenutzt = QtGui.QLabel()
+        self.unbenutzt.setWordWrap(True)
+        self.unbenutzt.setToolTip(tr("sj.unbenutzt.tooltip"))
+        self.knopf_unbenutzt_weg = QtGui.QPushButton(tr("sj.unbenutzt.entfernen"))
+        self.knopf_unbenutzt_weg.setToolTip(tr("sj.unbenutzt.entfernen.tooltip"))
+        self.knopf_unbenutzt_weg.setAutoDefault(False)
+        self.knopf_unbenutzt_weg.clicked.connect(self.unbenutzte_entfernen)
+        self.zeile_unbenutzt = QtGui.QWidget()
+        zeile = QtGui.QHBoxLayout(self.zeile_unbenutzt)
+        zeile.setContentsMargins(0, 0, 0, 0)
+        zeile.addWidget(self.unbenutzt, 1)
+        zeile.addWidget(self.knopf_unbenutzt_weg)
+        aufbau.addWidget(self.zeile_unbenutzt)
         self.ebenen_hinweis = hinweiszeile()
         self.ebenen_hinweis.hide()
         aufbau.addWidget(self.ebenen_hinweis)
@@ -304,7 +318,21 @@ class SchnittwerteJobDialog(QtGui.QDialog):
                 vf=groesse_fest(float(tc.HorizFeed.getValueAs("mm/min")), einheiten.VORSCHUB, 0),
             )
             self.tabelle.setItem(zeile, JETZT, grau(jetzt))
+        unbenutzt = js.unbenutzte_fremde_controller(self.job, self.bibliothek) if self.job else []
+        namen = ", ".join(f"„{tc.Label}“" for tc in unbenutzt)
+        self.unbenutzt.setText(tr("sj.unbenutzt", namen=namen))
+        self.zeile_unbenutzt.setVisible(bool(unbenutzt))
         self._rechnen()
+
+    def unbenutzte_entfernen(self):
+        """„Entfernen“: die unbenutzten fremden Controller samt Werkzeug – ein Schritt
+        Rückgängig (D-30). Gibt ihre Namen zurück."""
+        unbenutzt = js.unbenutzte_fremde_controller(self.job, self.bibliothek) if self.job else []
+        namen = [tc.Label for tc in unbenutzt]
+        if unbenutzt:
+            js.entferne_controller(self.dokument, unbenutzt, tr("sj.unbenutzt.schritt"))
+        self._zeilen_aufbauen()
+        return namen
 
     def _rechnen(self):
         """Füllt je Zeile die Einsätze für den gewählten Werkstoff und den Vorschlag."""

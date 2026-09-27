@@ -227,6 +227,32 @@ def operationen_mit(tc, job):
     return [o for o in operationen(job) if getattr(o, "ToolController", None) is tc]
 
 
+def unbenutzte_fremde_controller(job, bibliothek):
+    """Werkzeug-Controller, die keine Operation benutzt und deren Werkzeug nicht in der
+    Werkzeugverwaltung steht – etwa FreeCADs „TC: 5mm Endmill“, den jeder neue Job
+    bekommt (Durchsicht W-004, D-30)."""
+    return [
+        tc
+        for tc in werkzeug_controller(job)
+        if werkzeug_von(tc, bibliothek) is None and not operationen_mit(tc, job)
+    ]
+
+
+def entferne_controller(dokument, controller, schritt):
+    """Entfernt die Werkzeug-Controller wie Löschen im Baum: mit ihrem Werkzeug samt dessen
+    Körper, wenn kein anderer Controller es benutzt (FreeCADs eigenes onDelete). Ein Schritt
+    Rückgängig."""
+    dokument.openTransaction(schritt)
+    for tc in controller:
+        proxy = getattr(tc, "Proxy", None)
+        if hasattr(proxy, "onDelete"):
+            proxy.onDelete(tc)
+        if dokument.getObject(tc.Name) is not None:
+            dokument.removeObject(tc.Name)
+    dokument.commitTransaction()
+    dokument.recompute()
+
+
 def operationsart(operation):
     """Die Art einer CAM-Operation – der Name ihres Moduls: „Adaptive“, „Pocket“ …"""
     return type(getattr(operation, "Proxy", None)).__module__.rsplit(".", 1)[-1]

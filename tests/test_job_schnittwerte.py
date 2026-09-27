@@ -267,6 +267,28 @@ pruefe(js.karte_fuer(fantasie) is None, "Karte für eine Nummer, die FreeCAD nic
 pruefe(js.setze_werkstoff_am_rohteil(dok, job, fantasie) is None, "ohne Karte gesetzt")
 
 FreeCAD.closeDocument(dok.Name)
+
+# D-30: Ein neuer Job ohne Operation – FreeCADs „TC: 5mm Endmill“ tut nichts und kommt
+# nicht aus der Werkzeugverwaltung. Entfernen nimmt ihn samt Werkzeug und Körper weg,
+# Strg+Z holt alles zurück.
+dok = FreeCAD.newDocument("OhneOperation")
+dok.UndoMode = 1
+klotz = dok.addObject("Part::Box", "Klotz")
+dok.recompute()
+job = Job.Create("Job", [klotz])
+unbenutzt = js.unbenutzte_fremde_controller(job, bibliothek)
+pruefe([tc.Label for tc in unbenutzt] == ["TC: 5mm Endmill"], f"unbenutzt: {unbenutzt}")
+vorher = sorted(o.Name for o in dok.Objects)
+js.entferne_controller(dok, unbenutzt, "Unbenutzte entfernen")
+pruefe(js.werkzeug_controller(job) == [], "Controller noch im Job")
+geblieben = sorted(o.Name for o in dok.Objects)
+pruefe(
+    geblieben == ["Clone", "Job", "Klotz", "Model", "Operations", "SetupSheet", "Stock", "Tools"],
+    f"nach dem Entfernen: {geblieben}",
+)
+dok.undo()
+pruefe(sorted(o.Name for o in dok.Objects) == vorher, "Strg+Z holt nicht alles zurück")
+FreeCAD.closeDocument(dok.Name)
 sprache.setze_sprache(vorher_sprache)
 if fehler:
     raise AssertionError("\n".join(fehler))
