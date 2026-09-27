@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-42 version-0-25-1
+
+### EINGELESEN
+- `package.xml`; Manuel testet bis 17 Uhr über „Nach Updates schauen“.
+
+### DATEIEN
+- `package.xml` (0.25.1), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.25.1 an – mit der Kollision „ins fertige
+Teil“ (P-2026-09-27-41).
+
+### DONE
+- Version 0.25.1.
+
+### TEST
+- Die Einzeltests zu P-41 in beiden Versionen ok; der Volllauf folgt nach dem
+  Push.
+
+### NEXT
+- Hinweis zur Werkzeuglage (radial gegen eine Bahn längs Z).
+
 ## P-2026-09-27-41 kollision-ins-teil
 
 ### EINGELESEN
