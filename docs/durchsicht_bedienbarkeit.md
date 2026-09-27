@@ -98,6 +98,7 @@ Kollisionen mit Spanneisen gemeldet bekommen, die bei ihm woanders stehen.
 **Vorschlag:** „… mit zwei Spanneisen als Beispiel – im Baum verschieben oder
 löschen“; oder ein Häkchen „Spanneisen als Beispiel“. **Fertig, wenn:**
 Beschreibung (oder Häkchen) die Spanneisen nennt.
+*Erledigt (P-2026-09-27-15).*
 
 ### D-08 Zwei Namen für dasselbe Fenster; die Meldung führt zum schweren Weg (klein)
 **Heute:** Ohne Baugruppe sagt „Maschine bearbeiten“/„Maschine verfahren“

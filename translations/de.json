@@ -636,7 +636,7 @@
     "beispiel.drehmaschine.beschreibung": "Schrägbett wie eine CLX. Hauptspindel S1/C1 – ihre Achse ist Z –, X, Y, Z und ein Revolver T. Auf P1 ein angetriebener Fräser radial (90° zu Z), auf P2 einer axial (arbeitet in Z-Richtung), beide am Werkzeugantrieb S3. Bettneigung, Wege, Plätze und eine schräge Y-Achse trägst du unten ein.",
     "beispiel.drehmaschine.dokument": "Beispiel Drehmaschine",
     "beispiel.fraese3": "3-Achs-Fräse",
-    "beispiel.fraese3.beschreibung": "Kreuztisch X/Y, Fräskopf Z, Spindel S1 – der einfachste Einstieg.",
+    "beispiel.fraese3.beschreibung": "Kreuztisch X/Y, Fräskopf Z, Spindel S1 – der einfachste Einstieg. Auf dem Tisch zwei Spanneisen als Beispiel – im Baum verschieben oder löschen.",
     "beispiel.fraese3.dokument": "Beispiel 3-Achs-Fräse",
     "beispiel.tisch_tisch": "5-Achs-Fräse Tisch/Tisch (A/C)",
     "beispiel.tisch_tisch.beschreibung": "Schwenkbrücke: Die Wiege schwenkt um A (um X), auf ihr dreht der Rundtisch um C. X, Y und Z fährt der Kopf (fahrender Ständer).",

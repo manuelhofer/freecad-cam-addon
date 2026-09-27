@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-15 spanneisen-erwaehnt
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-07; `camaddon/beispielmaschine.py`
+  (fraesmaschine mit Spanneisen seit P-2026-09-26-97),
+  `help/*/neue_maschine.html`, `tests/gui/szenario_neue_maschine.py`.
+
+### DATEIEN
+- `translations/de.json`, `translations/en.json` (`beispiel.fraese3.beschreibung`)
+- `help/de/neue_maschine.html`, `help/en/neue_maschine.html`
+- `tests/gui/szenario_neue_maschine.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beschreibung und Hilfe der 3-Achs-Fräse nennen die zwei Spanneisen als
+Beispiel und sagen, dass man sie verschiebt oder löscht.
+
+### DONE
+- Beschreibung: „… Auf dem Tisch zwei Spanneisen als Beispiel – im Baum
+  verschieben oder löschen.“ Hilfe: ein Absatz, dass die Kollisionsprüfung sie
+  mitnimmt. Ein Häkchen „ohne Spanneisen“ gibt es nicht – verschieben oder
+  löschen ist ein Klick im Baum.
+
+### TEST
+- `szenario_neue_maschine` prüft „Spanneisen“ in der Beschreibung;
+  `szenario_hilfe` ok (1.1.3).
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-08.
+
 ## P-2026-09-27-14 an-cam-kurzer-weg
 
 ### EINGELESEN

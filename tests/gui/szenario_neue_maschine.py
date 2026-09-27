@@ -51,6 +51,7 @@ def schritte(h):
     yield 200
     h.pruefe(d.fest.isVisible() and not d.masse_bereich.isVisible(), "Fräse: Maße sichtbar")
     h.pruefe(d.masse() is None, "Fräse: Maße statt None")
+    h.pruefe("Spanneisen" in d.beschreibung.text(), f"Spanneisen: {d.beschreibung.text()!r}")
     h.bild("1_fraese_feste_masse", d)
 
     # Drehmaschine: die Maße, vorbelegt wie das Beispiel.
