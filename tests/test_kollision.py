@@ -11,9 +11,14 @@
 #   Z 59): Die Spindel setzt bei Z 34 auf (Berührung), 4 mm darüber nur mit
 #   Warnabstand 5 eine Warnung;
 # - Paare, die sich in der Grundstellung berühren (Führungen), prüft es nicht,
-#   ohne Hinweis, wenn sie an einem Gelenk hängen; Abbrechen geht.
+#   ohne Hinweis, wenn sie an einem Gelenk hängen; Abbrechen geht;
+# - die Schneide nach Art: beim Lollipop eine Kugel, der Hals ab ihrer Mitte; beim
+#   Nutenfräser so hoch wie die Schneidenbreite (ein Scheibenfräser nur aus CAM: wie
+#   das Blatt).
+import math
 import os
 import sys
+from types import SimpleNamespace
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -157,6 +162,46 @@ pruefe(
 )
 if e.befunde:
     pruefe(abs(e.befunde[0].abstand - 4.0) < 1e-6, f"Abstand: {e.befunde[0].abstand}")
+
+
+# --- Die Schneide nach Art ---------------------------------------------------------------------
+def koerper(werkzeug, laenge=60.0):
+    """{Art: Form} der Körper von T1 ohne Halter, die Spitze bei Z −laenge."""
+    masse = rw.werkzeugmasse(job.Tools.Group[0], wz.Bibliothek([werkzeug]), laenge)
+    return dict(kb.werkzeugkoerper(masse, laenge, None))
+
+
+def z_von_bis(form):
+    return round(form.BoundBox.ZMin, 3), round(form.BoundBox.ZMax, 3)
+
+
+# Lollipop Ø 5: eine Kugel an der Spitze (Z −60 … −55); der Hals (geschätzt Ø 3, 10 mm)
+# beginnt in ihrer Mitte, darüber der Schaft bis zur Gesamtlänge 50.
+k = koerper(t1(art=wz.LOLLIPOPFRAESER))
+pruefe(set(k) == {kb.SCHNEIDE, kb.HALS, kb.SCHAFT}, f"Lollipop: {set(k)}")
+if set(k) == {kb.SCHNEIDE, kb.HALS, kb.SCHAFT}:
+    kugel = k[kb.SCHNEIDE]
+    pruefe(abs(kugel.Volume - 4 / 3 * math.pi * 2.5**3) < 1e-3, f"Kugel: {kugel.Volume}")
+    pruefe(abs(kugel.BoundBox.ZMin + 60) < 1e-2, f"Kugel: {z_von_bis(kugel)}")
+    pruefe(z_von_bis(k[kb.HALS]) == (-57.5, -47.5), f"Lollipop, Hals: {z_von_bis(k[kb.HALS])}")
+    pruefe(
+        z_von_bis(k[kb.SCHAFT]) == (-47.5, -10.0), f"Lollipop, Schaft: {z_von_bis(k[kb.SCHAFT])}"
+    )
+# Nutenfräser Ø 5: die Scheibe so hoch wie die Schneidenbreite (geschätzt 0,5 mm), der Hals
+# (geschätzt Ø 1,5, 1,25 mm), dann der Schaft – nicht 2 × D Schneide.
+k = koerper(t1(art=wz.NUTENFRAESER))
+pruefe(set(k) == {kb.SCHNEIDE, kb.HALS, kb.SCHAFT}, f"Nutenfräser: {set(k)}")
+if set(k) == {kb.SCHNEIDE, kb.HALS, kb.SCHAFT}:
+    pruefe(z_von_bis(k[kb.SCHNEIDE]) == (-60.0, -59.5), f"Scheibe: {z_von_bis(k[kb.SCHNEIDE])}")
+    pruefe(z_von_bis(k[kb.HALS]) == (-59.5, -58.25), f"Nutenfräser, Hals: {z_von_bis(k[kb.HALS])}")
+    pruefe(abs(k[kb.HALS].BoundBox.XLength - 1.5) < 1e-6, "Nutenfräser, Hals-Ø")
+# Nur in CAM, nicht in der Werkzeugverwaltung: ein Scheibenfräser so hoch wie das Blatt.
+saege = SimpleNamespace(
+    Tool=SimpleNamespace(Diameter=50.0, BladeThickness=3.0, ShankDiameter=10.0, Length=40.0),
+    ToolNumber=7,
+)
+m = rw.werkzeugmasse(saege, None, 60.0)
+pruefe((m.schneide, m.schaft, m.gesamt, m.kugel) == (3.0, 10.0, 40.0, False), f"Säge: {m}")
 
 # --- Führungen und Abbrechen ------------------------------------------------------------------
 pruefe(not any("Grundstellung" in h for h in e.hinweise), f"Hinweis zu Führungen: {e.hinweise}")

@@ -57,8 +57,9 @@ WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
 
 def werkzeugkoerper(masse, laenge, halter):
     """[(Art, Form)]: Schneide, Hals, Schaft und Halter als Körper im LCS der Aufnahme – die
-    Spitze bei Z = −laenge, Z zeigt zur Aufnahme. Der Schaft reicht bis zur Nase des Halters,
-    ohne Halter bis zur Gesamtlänge; was darüber bis zur Aufnahme fehlt, kennt niemand."""
+    Spitze bei Z = −laenge, Z zeigt zur Aufnahme. Die Schneide ist ein Zylinder mit D (der
+    Lollipop eine Kugel), der Schaft reicht bis zur Nase des Halters, ohne Halter bis zur
+    Gesamtlänge; was darüber bis zur Aufnahme fehlt, kennt niemand."""
     import Part
 
     teile = []
@@ -73,7 +74,11 @@ def werkzeugkoerper(masse, laenge, halter):
     if form is not None:
         ende = min(ende, -halter.laenge)
     oben = min(spitze + masse.schneide, ende)
-    zylinder(SCHNEIDE, masse.durchmesser / 2, spitze, oben)
+    if masse.kugel:
+        radius = masse.durchmesser / 2
+        teile.append((SCHNEIDE, Part.makeSphere(radius, FreeCAD.Vector(0, 0, spitze + radius))))
+    else:
+        zylinder(SCHNEIDE, masse.durchmesser / 2, spitze, oben)
     if masse.hals_laenge > 0 and masse.hals_d > 0:
         hals_ende = min(oben + masse.hals_laenge, ende)
         zylinder(HALS, masse.hals_d / 2, oben, hals_ende)

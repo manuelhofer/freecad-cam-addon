@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-02 schneide-nach-art
+
+### EINGELESEN
+- `camaddon/kollision.py` (werkzeugkoerper), `camaddon/reichweite.py`
+  (Werkzeugmasse, werkzeugmasse), `camaddon/werkzeuge.py` (reichweite, mass,
+  ANTEIL_VON_D, Felder je Art), `camaddon/gui_abfahren.py` (_werkzeug).
+- `docs/spezifikation_simulation.md`, 4b (Werkzeug) und 4c (Was gegen was).
+
+### DATEIEN
+- `camaddon/werkzeuge.py`, `camaddon/reichweite.py`, `camaddon/kollision.py`
+- `tests/test_kollision.py`
+- `docs/spezifikation_simulation.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abfahren und Kollision bauen die Schneide wie die Reichweite
+(`wz.reichweite`): beim Nutenfräser so hoch wie die Schneidenbreite, beim
+Lollipopfräser als Kugel mit D, der Hals ab ihrer Mitte; die übrigen Arten
+wie bisher (Schneidenlänge, leer geschätzt). Ein Werkzeug nur aus CAM: die
+Schneide aus CuttingEdgeHeight, sonst CuttingEdgeLength, sonst BladeThickness,
+erst dann 2 × D.
+
+### DONE
+- Beim Durchsehen von 4c gefunden: `werkzeugmasse` nahm immer die
+  Schneidenlänge. Nutenfräser und Lollipopfräser haben dieses Feld nicht –
+  es galt die Schätzung 2 × D. Ein Nutenfräser Ø 20 war so ein 40 mm hoher
+  Zylinder statt einer Scheibe (falsche Berührungen im Eilgang und mit
+  Spannmitteln); beim Lollipop saßen Hals und Schaft 1,5 × D zu hoch (eine
+  Berührung des Schafts konnte durchrutschen).
+- `wz.schneide(werkzeug)`: von der Spitze bis zum Hals – Lollipop D/2,
+  Nutenfräser Schneidenbreite, sonst Schneidenlänge; `wz.reichweite` rechnet
+  damit (gleiche Werte wie bisher).
+- `Werkzeugmasse.kugel` (Lollipop) und `schneide` aus `wz.schneide`;
+  `werkzeugkoerper` baut beim Lollipop eine Kugel. Das Bild im Abfahren
+  zeigt dieselben Körper.
+- Ein Werkzeug nur aus CAM (nicht in der Werkzeugverwaltung): die Schneide
+  auch aus CuttingEdgeLength (Gewindebohrer) und BladeThickness
+  (Scheibenfräser) – wie beim Übernehmen aus CAM; sonst war eine Säge Ø 50
+  ein 100 mm hoher Zylinder.
+
+### TEST
+- `tests/test_kollision.py`: Lollipop Ø 5 – Kugel (Volumen, ab Z −60), Hals
+  −57,5 … −47,5, Schaft bis −10; Nutenfräser Ø 5 – Scheibe −60 … −59,5,
+  Hals −59,5 … −58,25 mit Ø 1,5; eine Säge nur aus CAM (Ø 50, Blatt 3):
+  Schneide 3, Schaft 10, Länge 40.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- Manuel probiert Halter und Kollision aus (Snapshot, Punkt 7).
+
 ## P-2026-09-27-01 ok-meldung-hinter-fortschritt
 
 ### EINGELESEN

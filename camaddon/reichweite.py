@@ -261,11 +261,12 @@ class Werkzeugmasse:
     """Die Maße eines Werkzeugs für Abfahren und Kollision, in mm."""
 
     durchmesser: float
-    schneide: float  # Schneidenlänge
+    schneide: float  # von der Spitze bis zum Hals (werkzeuge.schneide)
     hals_d: float  # 0: kein Hals
     hals_laenge: float
     schaft: float  # Schaft-Ø
     gesamt: float  # Gesamtlänge
+    kugel: bool = False  # Lollipop: die Schneide ist eine Kugel mit D, der Hals sitzt in der Mitte
 
 
 def werkzeugmasse(tc, bibliothek, laenge):
@@ -275,17 +276,23 @@ def werkzeugmasse(tc, bibliothek, laenge):
     if w is not None and w.durchmesser:
         return Werkzeugmasse(
             durchmesser=w.durchmesser,
-            schneide=wz.mass(w, "schneidenlaenge") or 2 * w.durchmesser,
+            schneide=wz.schneide(w) or 2 * w.durchmesser,
             hals_d=wz.mass(w, "hals_d") if wz.mass(w, "hals_laenge") else 0.0,
             hals_laenge=wz.mass(w, "hals_laenge") if wz.mass(w, "hals_d") else 0.0,
             schaft=wz.schaft_fuer_cam(w),
             gesamt=wz.laenge_fuer_cam(w),
+            kugel=w.art == wz.LOLLIPOPFRAESER,
         )
     bit = getattr(tc, "Tool", None)
     durchmesser = _mm(getattr(bit, "Diameter", None)) or 5.0
+    schneide = (
+        _mm(getattr(bit, "CuttingEdgeHeight", None))
+        or _mm(getattr(bit, "CuttingEdgeLength", None))  # Gewindebohrer
+        or _mm(getattr(bit, "BladeThickness", None))  # Scheibenfräser
+    )
     return Werkzeugmasse(
         durchmesser=durchmesser,
-        schneide=_mm(getattr(bit, "CuttingEdgeHeight", None)) or 2 * durchmesser,
+        schneide=schneide or 2 * durchmesser,
         hals_d=0.0,
         hals_laenge=0.0,
         schaft=_mm(getattr(bit, "ShankDiameter", None)) or durchmesser,

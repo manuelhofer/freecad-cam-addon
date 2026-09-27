@@ -131,7 +131,9 @@ Entscheidungen von Claude (P-2026-09-26-88), zur Besprechung:
   in der 3D-Ansicht der Maschine (Coin-Knoten). Nichts wird ins Dokument
   geschrieben; Schließen räumt sie weg und fährt die Maschine zurück.
 - **Werkzeug** an der Werkzeugaufnahme, als Zylinder: die Schneide
-  (Durchmesser, Schneidenlänge – leer 2 × D) an der Spitze, darüber der Schaft
+  (Durchmesser, Schneidenlänge – leer 2 × D; beim Nutenfräser die
+  Schneidenbreite, beim Lollipopfräser eine Kugel, der Hals ab ihrer Mitte –
+  P-2026-09-27-02) an der Spitze, darüber Hals und Schaft
   (Schaft-Ø, bis zur Gesamtlänge). Reicht die Länge ab Spindelnase weiter,
   steht dazwischen der **Halter angedeutet** – durchscheinend, Ø 2 × Schaft,
   mindestens 25 mm –, bis Frage 4 (Halter) entschieden ist. Die Maße kommen

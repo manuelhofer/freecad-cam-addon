@@ -577,16 +577,20 @@ def mass(werkzeug, feld):
     return ANTEIL_VON_D.get((w.art, feld), _ANTEIL_SONST.get(feld, 0.0)) * w.durchmesser
 
 
-def reichweite(werkzeug):
-    """Wie weit das Werkzeug unter dem Schaft reicht – Schneide und Hals –, in mm."""
+def schneide(werkzeug):
+    """Wie weit die Schneide von der Spitze nach oben reicht, bis der Hals beginnt – beim
+    Lollipopfräser bis zur Mitte der Kugel, beim Nutenfräser die Schneidenbreite –, in mm."""
     w = werkzeug
     if w.art == LOLLIPOPFRAESER:
-        schneide = w.durchmesser / 2  # der Hals sitzt mitten auf der Kugel
-    elif w.art == NUTENFRAESER:
-        schneide = mass(w, "schneidenbreite")
-    else:
-        schneide = mass(w, "schneidenlaenge")
-    return schneide + mass(w, "hals_laenge")
+        return w.durchmesser / 2  # der Hals sitzt mitten auf der Kugel
+    if w.art == NUTENFRAESER:
+        return mass(w, "schneidenbreite")
+    return mass(w, "schneidenlaenge")
+
+
+def reichweite(werkzeug):
+    """Wie weit das Werkzeug unter dem Schaft reicht – Schneide und Hals –, in mm."""
+    return schneide(werkzeug) + mass(werkzeug, "hals_laenge")
 
 
 def geschaetzte_laenge(werkzeug):
