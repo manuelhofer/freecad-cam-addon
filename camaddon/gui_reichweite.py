@@ -519,7 +519,7 @@ class PruefPanel:
         geschaetzt = e.geschaetzte_laengen()
         if geschaetzt:
             werkzeuge = ", ".join(f"T{nummer}" for nummer in geschaetzt)
-            warum = f'<a href="hinweise">{tr("rw.urteil.warum")}</a>'
+            warum = f'<a href="abschnitt:hinweise">{tr("rw.urteil.warum")}</a>'
             text = f"{tr('rw.laenge.geschaetzt', werkzeuge=werkzeuge)} – {warum}"
             _zeige_urteil(self.urteil_laenge, text, gui_kollision.GELB)
         else:
@@ -550,8 +550,9 @@ class PruefPanel:
         self.pruefe()
 
     def _kollision_verweis(self, ziel):
-        """Die Verweise im Urteil „Kollision“: „pruefen“ prüft, „wo“ zeigt den Bereich."""
-        if ziel == "pruefen":
+        """Die Verweise im Urteil „Kollision“: „kollision:pruefen“ prüft, „kollision:wo“ zeigt
+        den Bereich."""
+        if ziel == "kollision:pruefen":
             self.kollision.pruefen()
         else:
             blaettere_zu(self.kollision)

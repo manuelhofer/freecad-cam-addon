@@ -88,18 +88,18 @@ def schritte(h):
         h.pruefe(not urteil.visibleRegion().isEmpty(), f"nicht zu sehen: {urteil.text()!r}")
     h.bild("0_urteile_oben")
     # „warum?“ blättert zu den Hinweisen.
-    panel.urteil_laenge.linkActivated.emit("hinweise")
+    panel.urteil_laenge.linkActivated.emit("abschnitt:hinweise")
     yield 300
     h.pruefe(not panel.hinweise.visibleRegion().isEmpty(), "„warum?“: Hinweise nicht zu sehen")
 
     # --- Prüfen – über „jetzt prüfen“ oben: die Spindel setzt auf das Spanneisen -------------
-    panel.urteil_kollision.linkActivated.emit("pruefen")
+    panel.urteil_kollision.linkActivated.emit("kollision:pruefen")
     yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 30000)
     yield 300
     h.pruefe(k.urteil.text() == "Es stößt etwas an:", f"Urteil: {k.urteil.text()!r}")
     oben = panel.urteil_kollision.text()
     h.pruefe(oben.startswith("Es stößt etwas an") and "wo?" in oben, f"oben: {oben!r}")
-    panel.urteil_kollision.linkActivated.emit("wo")
+    panel.urteil_kollision.linkActivated.emit("kollision:wo")
     yield 300
     h.pruefe(not k.urteil.visibleRegion().isEmpty(), "„wo?“: Abschnitt Kollision nicht zu sehen")
     saetze = [k.liste.item(i).text() for i in range(k.liste.count())]
@@ -166,7 +166,7 @@ def schritte(h):
     # --- „T1 öffnen …“: Halter wählen, OK – das Fenster rechnet mit ihm (D-11) --------------
     panel.felder_nullpunkt["Z"].setText("")
     yield 800
-    panel.urteil_kollision.linkActivated.emit("pruefen")
+    panel.urteil_kollision.linkActivated.emit("kollision:pruefen")
     yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 30000)
     yield 300
     h.pruefe('href="werkzeug:1"' in k.hinweise.text(), f"kein Verweis: {k.hinweise.text()!r}")
@@ -187,7 +187,7 @@ def schritte(h):
     h.pruefe(k.ergebnis is None, "Kollision nach dem Speichern nicht veraltet")
     t1 = panel.bibliothek.werkzeuge[0] if panel.bibliothek else None
     h.pruefe(t1 is not None and t1.halter == er16, "Prüffenster kennt den Halter nicht")
-    panel.urteil_kollision.linkActivated.emit("pruefen")
+    panel.urteil_kollision.linkActivated.emit("kollision:pruefen")
     yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 30000)
     yield 300
     hinweise = k.ergebnis.hinweise if k.ergebnis else []

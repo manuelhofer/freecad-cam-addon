@@ -210,17 +210,18 @@ class KollisionsBereich(QtGui.QWidget):
 
     def kurzurteil(self):
         """Das Urteil für oben im Fenster (D-10): (Text, Farbe, fett). Der Text ist HTML und
-        hat Verweise: „pruefen“ prüft, „wo“ führt zu diesem Bereich."""
+        hat Verweise: „kollision:pruefen“ prüft, „kollision:wo“ führt zu diesem Bereich –
+        mit Doppelpunkt, damit sie nicht wie ein Hilfethema aussehen."""
         if self.laeuft:
             return tr("kb.laeuft"), GRAU.name(), False
         e = self.ergebnis
-        pruefen = f'<a href="pruefen">{tr("kb.kurz.pruefen")}</a>'
+        pruefen = f'<a href="kollision:pruefen">{tr("kb.kurz.pruefen")}</a>'
         if e is None:
             return f"{tr('kb.kurz.noch_nicht')} – {pruefen}", GRAU.name(), False
         if e.abgebrochen:
-            nochmal = f'<a href="pruefen">{tr("kb.kurz.nochmal")}</a>'
+            nochmal = f'<a href="kollision:pruefen">{tr("kb.kurz.nochmal")}</a>'
             return f"{tr('kb.abgebrochen.urteil')} {nochmal}", GRAU.name(), False
-        wo = f' – <a href="wo">{tr("kb.kurz.wo")}</a>'
+        wo = f' – <a href="kollision:wo">{tr("kb.kurz.wo")}</a>'
         abstand = rw.weg_text(e.warnabstand)
         if e.beruehrungen:
             return tr("kb.kurz.beruehrt") + wo, ROT, True

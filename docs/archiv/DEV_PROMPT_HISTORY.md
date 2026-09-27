@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-22 verweise-mit-praefix
+
+### EINGELESEN
+- Volllauf auf 7dcb496 (P-20, P-21): `test_hilfe.py` scheitert – „benutzt,
+  aber keine Hilfe: ['hinweise', 'pruefen', 'wo']“. `tests/test_hilfe.py`
+  wertet jedes `href="wort"` in `camaddon/gui_*.py` als Hilfethema.
+
+### DATEIEN
+- `camaddon/gui_kollision.py`, `camaddon/gui_reichweite.py`
+- `tests/gui/szenario_kollision.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`test_hilfe` grün; die Verweise oben im Prüffenster tun weiter dasselbe.
+
+### DONE
+- Die Verweise, die im Fenster etwas tun, haben ein Präfix wie schon
+  „werkzeug:1“ (P-21): `kollision:pruefen`, `kollision:wo`,
+  `abschnitt:hinweise`. Ein Wort ohne Doppelpunkt bleibt ein Hilfethema.
+- Ursache: Für P-20 liefen nur `test_reichweite`, `test_sprache` und die
+  Szenarien, nicht alle Einzeltests. Vor dem nächsten Commit laufen alle
+  Einzeltests (`scripts/tests_ausfuehren.sh`).
+
+### TEST
+- Alle Einzeltests in 1.1.3 ok (26), darunter `test_hilfe`; `szenario_kollision`
+  ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-25: Betriebsarten der Maschine vorschlagen.
+
 ## P-2026-09-27-21 hinweis-zum-werkzeug
 
 ### EINGELESEN
