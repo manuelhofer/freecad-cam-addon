@@ -182,8 +182,11 @@ one.</li>
 controller to the job: named after the use case (“T3 Dynamic roughing”, with a
 name “T3 Endmill carbide 12 – Dynamic roughing”), with
 spindle speed and feed. The tools are handed over to CAM first, so that the
-tool is in the library “CAM-Addon”. The controller stays even if you cancel
-the dialog afterwards; Ctrl+Z undoes it.</li>
+tool is in the library “CAM-Addon”. If a controller of the job already has the
+tool, with the same dimensions, the new one uses the same tool – FreeCAD would
+call a second one “… L001”, replacing the number at the end of the name with a
+counter. The controller stays even if you cancel the dialog afterwards; Ctrl+Z
+undoes it.</li>
 <li>If no operation uses a tool controller and its tool does not come from
 the tool manager – such as “TC: 5mm Endmill”, which FreeCAD adds to every new
 job –, a line below the table says so. <b>Remove</b> takes it out of the job

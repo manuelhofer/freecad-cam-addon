@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-34 ein-werkzeug-je-job
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-09; `camaddon/job_schnittwerte.py`
+  (`lege_controller_an`), `camaddon/uebergabe_werkzeuge.py`
+  (`parameter_fuer_cam`, `toolbit_daten`), `camaddon/reichweite.py`
+  (`werkzeug_text`, `_Sammler.laenge`), FreeCADs
+  `Mod/CAM/Path/Tool/Controller.py` (`onDelete`: das Werkzeug geht erst mit
+  dem letzten Controller), `tests/test_reichweite.py`.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`werkzeug_im_job`, `_masse_passen`,
+  `_ohne_zaehler`, `MASS_TOLERANZ`)
+- `camaddon/reichweite.py` (`werkzeug_text` mit Werkzeugverwaltung)
+- `help/de/werkzeuge.html`, `help/en/werkzeuge.html`
+- `tests/test_job_schnittwerte.py`, `tests/test_reichweite.py`,
+  `tests/gui/szenario_schnittwerte_pruefen.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein zweiter Controller aus „Schnittwerte in den Job“ erzeugt kein „L001“,
+und das Prüffenster nennt T3 einmal (Fertig-wenn von D-09).
+
+### DONE
+- „Werkzeug-Controller hinzufügen“: Hat ein Controller desselben Jobs das
+  Werkzeug schon, mit den Maßen, die die Werkzeugverwaltung jetzt übergäbe,
+  benutzt der neue dasselbe. FreeCAD sieht das vor – beim Löschen bleibt
+  das Werkzeug, solange ein anderer Controller es hat.
+- Sind die Maße anders (etwa ein anderer Schaft), kommt ein eigenes Werkzeug
+  dazu; hat FreeCAD dessen Namen eindeutig gemacht („… L001“), heißt es
+  „… L26 (2)“.
+- Die Hinweise im Prüffenster nennen ein Werkzeug aus der
+  Werkzeugverwaltung mit deren Namen – dasselbe Werkzeug zweier Controller
+  steht damit einmal da, auch wenn FreeCAD das zweite selbst angehängt hat.
+- FreeCADs eigener Weg (Controller aus der Bibliothek) nennt ein zweites
+  Werkzeug weiter „… L001“ – das ist Frage 6 an Manuel.
+
+### TEST
+- `test_job_schnittwerte` und `test_reichweite` in 1.1.3 und im Wochen-Build
+  ok: dasselbe Werkzeug, Strg+Z lässt es bei TC 1; mit anderem Schaft ein
+  zweites „… (2)“; der Name in den Hinweisen aus der Werkzeugverwaltung.
+- `szenario_schnittwerte_pruefen` in beiden Versionen ok: ein Werkzeug für
+  beide Controller, T3 einmal, kein „L001“.
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- Auch die Maße eines Werkzeugs im Job können veralten (Ø in der
+  Werkzeugverwaltung geändert): Das Prüffenster könnte es wie die
+  Schnittwerte melden – `_masse_passen` kann das schon vergleichen.
+
 ## P-2026-09-27-33 tests-nicht-parallel
 
 ### EINGELESEN

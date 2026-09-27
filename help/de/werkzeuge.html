@@ -189,8 +189,11 @@ Einsatz legt im Job einen neuen Controller an: benannt nach dem Einsatz
 („T3 Schruppen dynamisch“, mit Namen „T3 Fräser VHM 12 – Schruppen
 dynamisch“), mit Drehzahl und Vorschub. Vorher werden die
 Werkzeuge an CAM übergeben, damit das Werkzeug in der Bibliothek
-„CAM-Addon“ steht. Der Controller bleibt auch, wenn man den Dialog danach
-abbricht; Strg+Z nimmt ihn zurück.</li>
+„CAM-Addon“ steht. Hat ein Controller des Jobs das Werkzeug schon, mit
+denselben Maßen, benutzt der neue dasselbe – FreeCAD nennte ein zweites
+„… L001“, weil es die Zahl am Ende des Namens durch einen Zähler ersetzt.
+Der Controller bleibt auch, wenn man den Dialog danach abbricht; Strg+Z
+nimmt ihn zurück.</li>
 <li>Benutzt ein Werkzeug-Controller keine Operation und kommt sein Werkzeug
 nicht aus der Werkzeugverwaltung – etwa „TC: 5mm Endmill“, den FreeCAD in
 jedem neuen Job anlegt –, sagt es eine Zeile unter der Tabelle.

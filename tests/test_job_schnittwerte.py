@@ -262,8 +262,24 @@ pruefe(
     f"Werte des neuen TC: {tc3.SpindleSpeed}, {tc3.HorizFeed}",
 )
 pruefe(js.vorgeschlagener_einsatz(tc3, einsaetze, job) == 0, "Einsatz am Namen nicht erkannt")
+# D-09: TC 1 hat das Werkzeug schon, mit denselben Maßen – der neue benutzt es mit. Ein
+# zweites hieße bei FreeCAD „… L001“.
+pruefe(tc3.Tool is tc1.Tool, f"zweites Werkzeug angehängt: {tc3.Tool.Label}")
 dok.undo()
 pruefe(len(dok.Objects) == objekte_vorher, f"Strg+Z: {len(dok.Objects)} statt {objekte_vorher}")
+pruefe(dok.getObject(tc1.Tool.Name) is not None, "Strg+Z nimmt das Werkzeug von TC 1 mit")
+# Hat die Werkzeugverwaltung andere Maße (Schaft Ø 10), kommt ein eigenes Werkzeug dazu –
+# „… L26 (2)“ statt des „… L001“ von FreeCAD.
+fraeser.schaft = 10
+ue.uebergeben(bibliothek)
+tc5 = js.lege_controller_an(dok, job, fraeser, einsaetze[0])
+pruefe(tc5.Tool is not tc1.Tool, "Werkzeug mit anderen Maßen mitbenutzt")
+name = f"{wz.anzeigename(fraeser)} (2)"
+pruefe(tc5.Tool.Label == name, f"zweites Werkzeug heißt {tc5.Tool.Label!r} statt {name!r}")
+dok.undo()
+pruefe(len(dok.Objects) == objekte_vorher, "Strg+Z nimmt das zweite Werkzeug nicht mit")
+fraeser.schaft = 0.0
+ue.uebergeben(bibliothek)
 
 # Werkstoff am Rohteil eintragen: C45 statt 1.4301, Strg+Z zurück; ohne
 # FreeCAD-Karte mit dieser Nummer geht es nicht.

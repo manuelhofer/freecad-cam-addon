@@ -27,12 +27,13 @@ from . import schnittdaten as sd
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .sprache import tr
-from .uebergabe_werkzeuge import PRAEFIX, freecad_werkstoffe
+from .uebergabe_werkzeuge import PRAEFIX, freecad_werkstoffe, parameter_fuer_cam
 
 # Anteil des Vorschubs beim Eintauchen und Rampen – wie FreeCADs Vorgabe für
 # neue Presets. Beim Bohren ist der senkrechte Vorschub der Vorschub selbst.
 VERHAELTNIS_EINTAUCHEN = 0.33
 DURCHMESSER_TOLERANZ = 0.01  # mm, für die Suche über T-Nummer und Durchmesser
+MASS_TOLERANZ = 1e-5  # mm bzw. Grad: so genau übergibt das Addon die Maße an CAM
 
 # Operation (Modul der CAM-Operation) → Einsätze, die zu ihr passen, der
 # passendste zuerst. Ein Werkzeug mit nur einer Art Einsatz bekommt ohnehin
@@ -475,10 +476,12 @@ def lege_controller_an(dokument, job, werkzeug, einsatz, werkstoff=""):
     """Legt im Job einen Werkzeug-Controller für `werkzeug` an und setzt n und vf aus `einsatz`.
 
     Das Werkzeug kommt aus der Bibliothek „CAM-Addon“ – es muss vorher
-    übergeben sein (uebergabe_werkzeuge.uebergeben). Der Name nennt den
-    Einsatz (controller_name); Einsatz und `werkstoff` (Kennung der Tabelle)
-    merkt er sich. Eine Transaktion: Strg+Z nimmt Controller und Werkzeug
-    zurück. Gibt den neuen Controller zurück.
+    übergeben sein (uebergabe_werkzeuge.uebergeben). Hat ein Controller des
+    Jobs es schon, mit denselben Maßen, benutzt der neue dasselbe
+    (werkzeug_im_job). Der Name nennt den Einsatz (controller_name); Einsatz
+    und `werkstoff` (Kennung der Tabelle) merkt er sich. Eine Transaktion:
+    Strg+Z nimmt Controller und Werkzeug zurück. Gibt den neuen Controller
+    zurück.
     """
     from Path.Tool import Controller
     from Path.Tool.camassets import cam_assets
@@ -487,7 +490,11 @@ def lege_controller_an(dokument, job, werkzeug, einsatz, werkstoff=""):
     FreeCAD.setActiveDocument(dokument.Name)
     dokument.openTransaction("Werkzeug-Controller anlegen")
     try:
-        bit = cam_assets.get(f"toolbit://{PRAEFIX}{werkzeug.kennung}").attach_to_doc(doc=dokument)
+        bit = werkzeug_im_job(job, werkzeug)
+        if bit is None:
+            uri = f"toolbit://{PRAEFIX}{werkzeug.kennung}"
+            bit = cam_assets.get(uri).attach_to_doc(doc=dokument)
+            _ohne_zaehler(bit, wz.anzeigename(werkzeug))
         tc = Controller.Create(
             controller_name(werkzeug, einsatz), tool=bit, toolNumber=werkzeug.nummer
         )
@@ -499,6 +506,48 @@ def lege_controller_an(dokument, job, werkzeug, einsatz, werkstoff=""):
     dokument.commitTransaction()
     dokument.recompute()
     return tc
+
+
+def werkzeug_im_job(job, werkzeug):
+    """Das Werkzeug (ToolBit), das ein Controller des Jobs schon für `werkzeug` hat, mit
+    den Maßen, die die Werkzeugverwaltung jetzt übergäbe – oder None.
+
+    Ein zweiter Controller benutzt es mit (Durchsicht W-004, D-09): Ein zweites
+    im Dokument nennte FreeCAD „… L001“ – es macht den Namen eindeutig, indem es
+    die Zahl am Ende ersetzt. Gelöscht wird es erst mit dem letzten Controller
+    (FreeCADs onDelete).
+    """
+    kennung = f"{PRAEFIX}{werkzeug.kennung}"
+    soll = parameter_fuer_cam(werkzeug)
+    for tc in werkzeug_controller(job):
+        bit = getattr(tc, "Tool", None)
+        if str(getattr(bit, "ToolBitID", "") or "") == kennung and _masse_passen(bit, soll):
+            return bit
+    return None
+
+
+def _masse_passen(bit, soll):
+    """Hat das Werkzeug im Dokument die Maße `soll` (parameter_fuer_cam)?"""
+    for name, wert in soll.items():
+        ist = getattr(bit, name, None)
+        if ist is None:
+            return False
+        ist = float(getattr(ist, "Value", ist))  # Länge in mm, Winkel in Grad
+        if abs(ist - float(wert)) > MASS_TOLERANZ:
+            return False
+    return True
+
+
+def _ohne_zaehler(bit, name):
+    """Hat FreeCAD den Namen des neuen Werkzeugs eindeutig gemacht, weil ein anderes
+    Objekt schon so heißt – aus „… L26“ wird „… L001“ –, heißt es „… L26 (2)“."""
+    andere = {o.Label for o in bit.Document.Objects if o is not bit}
+    if bit.Label == name or name not in andere:
+        return
+    zaehler = 2
+    while f"{name} ({zaehler})" in andere:
+        zaehler += 1
+    bit.Label = f"{name} ({zaehler})"
 
 
 def _setze_werte(tc, werkzeug, einsatz, werkstoff):

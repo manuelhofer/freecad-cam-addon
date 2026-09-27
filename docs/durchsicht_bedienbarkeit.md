@@ -137,6 +137,9 @@ Weg ändert das nicht – dort hilft nur ein Name, der nicht auf eine Zahl
 endet (Frage 6 in Abschnitt 6). **Fertig, wenn:** ein zweiter Controller aus
 „Schnittwerte in den Job“ kein „L001“ erzeugt und das Prüffenster T3 einmal
 nennt.
+*Erledigt (P-2026-09-27-34) – (1) und (2); FreeCADs eigener Weg bleibt Frage 6.
+Ist das Werkzeug im Job anders als in der Werkzeugverwaltung (etwa ein
+anderer Schaft), kommt ein eigenes dazu und heißt „… L26 (2)“.*
 
 ## 3. Einfacher bedienen
 

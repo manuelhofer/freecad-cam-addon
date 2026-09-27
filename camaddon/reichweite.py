@@ -361,10 +361,18 @@ def _mm(wert):
         return float(wert or 0.0)
 
 
-def werkzeug_text(tc):
-    """„T3 „Schaftfräser D10““ – so heißt das Werkzeug eines Controllers in Sätzen."""
-    werkzeug = getattr(tc, "Tool", None)
-    name = getattr(werkzeug, "Label", "") or tc.Label
+def werkzeug_text(tc, bibliothek=None):
+    """„T3 „Schaftfräser D10““ – so heißt das Werkzeug eines Controllers in Sätzen.
+
+    Steht es in der Werkzeugverwaltung `bibliothek`, mit deren Namen: So heißt
+    dasselbe Werkzeug zweier Controller gleich, auch wenn FreeCAD das zweite
+    „… L001“ genannt hat (Durchsicht W-004, D-09). Sonst mit dem aus CAM.
+    """
+    werkzeug = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
+    if werkzeug is not None:
+        name = wz.anzeigename(werkzeug)
+    else:
+        name = getattr(getattr(tc, "Tool", None), "Label", "") or tc.Label
     return tr("rw.werkzeug", nummer=getattr(tc, "ToolNumber", 0), name=name)
 
 
@@ -644,7 +652,7 @@ class Pruefung:
             )
             return
         laenge, quelle = werkzeuglaenge(tc, bibliothek)
-        sammler.laenge(tc, laenge, quelle)
+        sammler.laenge(tc, laenge, quelle, bibliothek)
 
         linear, drehachsen = self.achsen_fuer(aufnahme)
         if len(linear) > 3:
@@ -716,11 +724,11 @@ class _Sammler:
         if satz not in self._hinweise:
             self._hinweise.append(satz)
 
-    def laenge(self, tc, laenge, quelle):
+    def laenge(self, tc, laenge, quelle, bibliothek=None):
         """Sagt, womit gerechnet wurde, wenn es nicht die Länge ab Spindelnase ist."""
         nummer = getattr(tc, "ToolNumber", 0)
         self.ergebnis.laengen.setdefault(nummer, quelle)
-        werte = {"werkzeug": werkzeug_text(tc), "laenge": weg_text(laenge)}
+        werte = {"werkzeug": werkzeug_text(tc, bibliothek), "laenge": weg_text(laenge)}
         if quelle == LAENGE_HALTER:
             self.hinweis(Hinweis(tr("rw.laenge_halter", **werte), nummer))
         elif quelle == LAENGE_GESAMT:

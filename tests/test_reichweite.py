@@ -172,6 +172,10 @@ pruefe(e.punkte == 11, f"Punkte: {e.punkte}")
 bibliothek = wz.Bibliothek([wz.Werkzeug(nummer=1, durchmesser=5.0, gesamtlaenge=60.0)])
 e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
 pruefe(bereich(e, "Z1") == (-78.0, -60.0), f"Z1 mit 60 mm: {bereich(e, 'Z1')}")
+# Das Werkzeug heißt jetzt wie in der Werkzeugverwaltung – so auch dasselbe Werkzeug zweier
+# Controller, wenn FreeCAD das zweite „… L001“ genannt hat (D-09).
+t1 = rw.werkzeug_text(op.ToolController, bibliothek)
+pruefe(t1 == f"T1 „{wz.anzeigename(bibliothek.werkzeuge[0])}“", f"Name: {t1}")
 pruefe(
     e.hinweise[0]
     == f"{t1}: gerechnet mit der Gesamtlänge 60.00 mm – ohne Halter. Genauer mit der „Länge "

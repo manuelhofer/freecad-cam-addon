@@ -7,6 +7,8 @@
 # Controller „im Job 3183 U/min · …, laut Werkzeugverwaltung 3979 U/min · … –
 # übernehmen“ und darunter „Alle übernehmen“. „übernehmen“ setzt einen, Strg+Z
 # nimmt ihn zurück, „Alle übernehmen“ setzt beide – dann ist es wieder grün.
+# Beide Controller benutzen dasselbe Werkzeug; die Hinweise nennen T3 einmal,
+# ohne „… L001“ (D-09).
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore
@@ -92,6 +94,11 @@ def schritte(h):
     )
     h.pruefe(not urteil.visibleRegion().isEmpty(), "Urteil „Schnittwerte“ nicht zu sehen")
     h.pruefe(bool(urteil.toolTip()), "Urteil „Schnittwerte“ ohne Tooltip")
+    # D-09: ein Werkzeug für beide Controller, T3 einmal in den Hinweisen.
+    h.pruefe(dynamisch.Tool is nut.Tool, f"zweites Werkzeug angehängt: {nut.Tool.Label}")
+    hinweise = panel.hinweise.text()
+    h.pruefe(hinweise.count("T3 „") == 1, f"T3 nicht genau einmal: {hinweise!r}")
+    h.pruefe("L001" not in hinweise, f"„L001“ in den Hinweisen: {hinweise!r}")
     panel.reject()
     yield 800
 
