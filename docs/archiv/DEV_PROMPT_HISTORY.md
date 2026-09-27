@@ -12,6 +12,58 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-06 durchsicht-bedienbarkeit
+
+### EINGELESEN
+- Manuels Auftrag: „noch einmal schauen, ob alles so benutzer-/bedienerfreundlich
+  und einfach ist wie möglich und ob man Sachen noch automatisieren könnte …
+  Schreibe diese auf.“
+- `docs/arbeitsregeln.md` (Abschnitte 0, 1, 6, 8), `CHATSTART.md`,
+  `docs/STATUS_SNAPSHOT.md` (Wunschliste).
+- Screenshots aller 30 Szenarien in FreeCAD 1.1.3 (frischer Lauf auf
+  5df5005); dazu im Code: `gui_start.py` (Befehle, Werkzeugleiste),
+  `gui_reichweite.py` (Job- und Maschinensuche, Aufbau des Fensters),
+  `gui_maschine.py` (Meldung ohne Baugruppe, neue Betriebsart),
+  `maschine.py` (Kennwerte), `verfahren.py` (Reihenfolge der Achsen),
+  `gui_schruppwerte.py` (Maschinengrenzen, Beispielwerte, gemerkte Werte),
+  `job_schnittwerte.py`, `gui_aktualisierung.py`, `gui_sprachwahl.py`,
+  `sprache.py`.
+
+### DATEIEN
+- `docs/durchsicht_bedienbarkeit.md` (neu)
+- `docs/STATUS_SNAPSHOT.md` (W-004, Hinweis beim nächsten Schritt)
+- `CHATSTART.md` (Zeile in der Lesekarte)
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Befunde der Durchsicht stehen je mit Beleg, Vorschlag, „Fertig, wenn“ und
+Aufwand in `docs/durchsicht_bedienbarkeit.md`, als W-004 in der Wunschliste,
+mit einer Reihenfolge und den offenen Fragen als Auswahl mit Empfehlung.
+
+### DONE
+- 24 Befunde: acht kleine Stellen (D-01 bis D-08: veralteter Tooltip, grauer
+  Knopf ohne Erklärung, Achsen im Verfahren in Kettenreihenfolge, kein
+  „Jetzt neu starten“, Auswahl leuchtet, Rückmeldung ohne den kurzen Weg,
+  Spanneisen nicht erwähnt, zwei Namen für dasselbe Fenster), fünf zum
+  einfacheren Bedienen (D-10 bis D-14) und elf zum Automatisieren (D-20 bis
+  D-30).
+- Beim Nachprüfen im Code korrigiert, bevor es ins Dokument kam: Der Planer
+  merkt sich Drehzahl, Vorschub und Leistung (nur nicht je Maschine); der
+  Platzhalter heißt „bitte eintragen“; „Beispielmaschine laden …“ öffnet
+  wirklich das Fenster von „Neue Maschine …“; die Sprache folgt schon der von
+  FreeCAD (kein Befund).
+- Nicht bestätigt und deshalb kein Befund: der abgeschnittene Text auf der
+  Einstellungsseite – das Szenario zwingt die Seite auf 500 × 320 Pixel.
+
+### TEST
+- Nur Doku. Die Szenarien liefen für die Screenshots in 1.1.3 alle grün
+  (`scripts/oberflaeche_testen.sh`, 30 × ok). Geprüft hat Claude anhand von
+  Screenshots; ob die Fenster verständlich sind, prüft Manuel.
+
+### NEXT
+- Manuel wählt die Reihenfolge und beantwortet die Fragen in Abschnitt 6;
+  D-01 bis D-08 brauchen keine Entscheidung.
+
 ## P-2026-09-27-05 snapshot-nachbesserungen
 
 ### EINGELESEN

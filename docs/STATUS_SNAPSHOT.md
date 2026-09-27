@@ -263,6 +263,8 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
 
 Danach: Manuel testet 4a–4c und die Halter (Punkt 7 oben); offen sind W-001 4d (Bearbeitungszeit mit Beschleunigung) und W-003 V2 (4-Achs: Achse von der Maschine).
 
+Neu (2026-09-27): die Durchsicht **W-004** – wartet auf Manuels Antwort zur Reihenfolge und zu vier weiteren Fragen ([durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md), Abschnitt 6). Die kleinen Punkte D-01 bis D-08 brauchen keine Entscheidung.
+
 ## Wunschliste
 
 Ein Satz je Wunsch, W-ID fortlaufend.
@@ -282,6 +284,12 @@ Ein Satz je Wunsch, W-ID fortlaufend.
   daraus Schrupp- und Schlichtbahnen für eine Rundachse (A, B oder C, auch
   Drehmaschine mit C und Y) erzeugen lassen. Spezifikation:
   [spezifikation_vierachs.md](spezifikation_vierachs.md).
+- **W-004 Bedienung vereinfachen und automatisieren** – Durchsicht aller
+  Fenster und Abläufe (2026-09-27, Manuels Auftrag): acht kleine Stellen
+  (D-01 bis D-08), einfacher bedienen (D-10 bis D-14), automatisieren (D-20
+  bis D-30) – etwa die eigene Maschine merken, Betriebsarten, Halter und
+  Richtwerte vorschlagen, CAM und Job von selbst aktuell halten. Befunde,
+  Reihenfolge und Fragen: [durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md).
 
 ## Offene Bugs
 
