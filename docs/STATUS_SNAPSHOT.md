@@ -263,7 +263,7 @@ In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
 
 Danach: Manuel testet 4a–4c und die Halter (Punkt 7 oben); offen sind W-001 4d (Bearbeitungszeit mit Beschleunigung) und W-003 V2 (4-Achs: Achse von der Maschine).
 
-Neu (2026-09-27): die Durchsicht **W-004** ([durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md)). Die kleinen Punkte D-01 bis D-08 sind erledigt (P-2026-09-27-09 bis -16), dazu auf Manuels Hinweis der Revolver der Beispiel-Drehmaschine mit Stationen und die Beispielmaschinen ohne Gelenkmarkierungen (P-2026-09-27-07, -08). Offen: Manuels Antwort zur Reihenfolge der übrigen Punkte und zu vier weiteren Fragen (dort Abschnitt 6).
+Neu (2026-09-27): die Durchsicht **W-004** ([durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md)). Die kleinen Punkte D-01 bis D-08 sind erledigt (P-2026-09-27-09 bis -16), dazu auf Manuels Hinweis der Revolver der Beispiel-Drehmaschine mit Stationen und die Beispielmaschinen ohne Gelenkmarkierungen (P-2026-09-27-07, -08). In der empfohlenen Reihenfolge weiter (Manuel: „Besser weiter“): D-21 Job in allen offenen Dokumenten (-18), D-20 Maschine merken und selbst öffnen, Teil Prüffenster (-19), D-10 drei Urteile oben im Prüffenster (-20, -22), D-11 „T1 öffnen …“ an den Hinweisen (-21), D-25 Betriebsarten vorschlagen (-23), D-26 Maße der 3-Achs-Fräse (-24). Offen ohne Entscheidung: D-12, D-13, D-23, D-28 bis D-30, Rest von D-20 und D-26; zur Entscheidung (Abschnitt 6 dort): D-14, D-22, D-24, D-27.
 
 ## Wunschliste
 
@@ -290,7 +290,9 @@ Ein Satz je Wunsch, W-ID fortlaufend.
   bis D-30) – etwa die eigene Maschine merken, Betriebsarten, Halter und
   Richtwerte vorschlagen, CAM und Job von selbst aktuell halten. Befunde,
   Reihenfolge und Fragen: [durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md).
-  D-01 bis D-08 erledigt (P-2026-09-27-09 bis -16).
+  D-01 bis D-08 erledigt (P-2026-09-27-09 bis -16); D-10, D-11, D-20
+  (Prüffenster), D-21, D-25, D-26 (3-Achs-Fräse) erledigt (P-2026-09-27-18
+  bis -24).
 
 ## Offene Bugs
 

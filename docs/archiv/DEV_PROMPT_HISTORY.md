@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-25 snapshot-w004-weiter
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (W-004), `docs/durchsicht_bedienbarkeit.md`
+  (Kurzfassung).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/durchsicht_bedienbarkeit.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Snapshot und Kurzfassung der Durchsicht nennen, was seit D-08 erledigt ist
+und was offen bleibt.
+
+### DONE
+- Snapshot: D-21, D-20 (Prüffenster), D-10, D-11, D-25, D-26 (3-Achs-Fräse)
+  mit ihren Patches; offen ohne Entscheidung D-12, D-13, D-23, D-28 bis D-30
+  und die Reste von D-20/D-26, zur Entscheidung D-14, D-22, D-24, D-27.
+- Kurzfassung der Durchsicht: Vermerke bei „Einfacher bedienen“ und
+  „Automatisieren“.
+
+### TEST
+- Reine Doku (`docs/arbeitsregeln.md`, Abschnitt 5).
+
+### NEXT
+- Bericht an Manuel; dann D-30, D-12, D-13.
+
 ## P-2026-09-27-24 masse-fraese
 
 ### EINGELESEN

@@ -32,11 +32,13 @@ groß: eigene Spezifikation). Die Bilder entstehen mit
   Gelenkmarkierungen, die ihn verdeckten (P-2026-09-27-07, -08).
 - **Einfacher bedienen** (D-10 bis D-14): Das Prüffenster ist länger als der
   Aufgabenbereich – „Kollision prüfen“ liegt unter dem sichtbaren Teil;
-  Hinweise sagen, wo man etwas ändert, statt dorthin zu führen.
+  Hinweise sagen, wo man etwas ändert, statt dorthin zu führen. *D-10 und
+  D-11 erledigt (P-2026-09-27-20 bis -22).*
 - **Automatisieren** (D-20 bis D-30): Das Addon sollte die eigene Maschine
   kennen, statt dass sie offen sein muss; Betriebsarten, Halter und
   Richtwerte für Schnittwerte vorschlagen; die CAM-Bibliothek und die Werte
-  im Job von selbst aktuell halten.
+  im Job von selbst aktuell halten. *D-21, D-25 erledigt, D-20 und D-26 zum
+  größeren Teil (P-2026-09-27-18, -19, -23, -24).*
 
 ## 2. Kleine Fehler und Unstimmigkeiten
 
