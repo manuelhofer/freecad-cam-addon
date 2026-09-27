@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-05 snapshot-nachbesserungen
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (Projektstatus, W-001).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Snapshot nennt die Nachbesserungen P-2026-09-27-02 bis -04.
+
+### DONE
+- Projektstatus W-001, 4c: ein Satz zu den Nachbesserungen (Schneide nach
+  Art, halbe Zahl im Feld, Spaltenköpfe im Halter-Fenster).
+
+### TEST
+- Nur Doku; der Gesamtlauf für P-2026-09-27-02 bis -05 läuft vor dem Push.
+
+### NEXT
+- Manuel probiert Halter und Kollision aus (Snapshot, Punkt 7).
+
 ## P-2026-09-27-04 halter-spaltenkoepfe
 
 ### EINGELESEN
