@@ -186,8 +186,13 @@ Besprechung:
 
 - **Was gegen was:**
   - Das **Werkzeug** – Schneide, Schaft, Halter – gegen das **fertige Teil**
-    (die Modelle des Jobs): Schaft und Halter immer, die Schneide nur im
-    Eilgang (im Vorschub schneidet sie, das ist gewollt).
+    (die Modelle des Jobs): Schaft und Halter immer, die Schneide im
+    Eilgang (im Vorschub schneidet sie, das ist gewollt). Seit
+    P-2026-09-27-41 auch im Vorschub, wenn sie mehr als 0,05 mm ins fertige
+    Teil fährt – ihr Kern (die Schneide, um 0,05 mm kleiner) darf das Teil
+    nicht berühren; außer beim Entgraten, Gravieren, Gewinde und Bohren
+    (Manuels Test 2026-09-27: ein radiales Werkzeug fuhr eine Bahn für eines
+    längs Z quer durchs Teil, und nichts wurde gemeldet).
   - Das Werkzeug gegen alle Maschinenteile, die nicht mit ihm fahren:
     Spannmittel, Tisch, Futter (die Werkstückseite), das Bett und alles
     andere.

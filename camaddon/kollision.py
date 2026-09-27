@@ -11,7 +11,12 @@ am Nullpunkt, die Bauteile der Maschine an ihren Gliedern. Geprüft wird
   Werkstückseite – das Teil und die Glieder, die es tragen – und gegen den
   Rest (Bett und alles, was nicht mitfährt);
 - die Werkstückseite gegen den Rest;
-- die Schneide gegen das Teil nur im Eilgang – im Vorschub schneidet sie.
+- die Schneide gegen das Teil im Eilgang – im Vorschub schneidet sie. Fährt sie
+  dabei aber mehr als EINDRINGEN ins fertige Teil, ist das ein Befund: Ihr Kern
+  (die Schneide, um EINDRINGEN kleiner) darf das Teil nicht berühren – etwa
+  wenn ein radiales Werkzeug eine Bahn fährt, die für eines längs Z gerechnet
+  ist (Manuels Test, 2026-09-27). Nicht beim Entgraten, Gravieren, Gewinde und
+  Bohren: Deren Ergebnis zeigt das Modell meist nicht.
 
 Zwei Maschinenteile (oder das Teil und ein Maschinenteil), die sich schon in
 der Grundstellung berühren, prüft es nicht – so liegen Führungen und
@@ -44,10 +49,17 @@ MIN_SCHRITT = 0.5  # mm: so fein wird es, wo es eng ist
 BERUEHRT = 1e-3  # mm: näher gilt als Berührung
 GENAU_AB = 5.0  # mm über dem Warnabstand: näher rechnet es genau, sonst reicht der Hüllquader
 HOECHSTENS = 200000  # Stellen; danach hört es auf und sagt es
+# mm: So tief darf die Schneide im Vorschub ins fertige Teil – Rundung der Bahn; tiefer ist
+# ein Befund („fährt ins fertige Teil“).
+EINDRINGEN = 0.05
+# Operationen, die ins fertige Teil schneiden sollen: Fase, Gravur, Gewinde, Bohrspitze
+# stehen selten im Modell.
+INS_TEIL_ERLAUBT = {"Deburr", "Engrave", "Vcarve", "ThreadMilling", "Tapping", "Drilling"}
 MELDEN_ALLE = 0.1  # s: so oft ruft es den Fortschritt (und fragt, ob es weitergehen soll)
 
 # Was ein Körper ist.
 SCHNEIDE, HALS, SCHAFT, HALTER = "schneide", "hals", "schaft", "halter"
+KERN = "kern"  # die Schneide, um EINDRINGEN kleiner – nur gegen das Teil im Vorschub
 MASCHINE, TEIL = "maschine", "teil"
 WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
 
@@ -55,11 +67,12 @@ WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
 # --- Die Körper -----------------------------------------------------------------------------
 
 
-def werkzeugkoerper(masse, laenge, halter):
+def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
     """[(Art, Form)]: Schneide, Hals, Schaft und Halter als Körper im LCS der Aufnahme – die
     Spitze bei Z = −laenge, Z zeigt zur Aufnahme. Die Schneide ist ein Zylinder mit D (der
     Lollipop eine Kugel), der Schaft reicht bis zur Nase des Halters, ohne Halter bis zur
-    Gesamtlänge; was darüber bis zur Aufnahme fehlt, kennt niemand."""
+    Gesamtlänge; was darüber bis zur Aufnahme fehlt, kennt niemand. `mit_kern`: dazu der
+    Kern der Schneide (KERN), um EINDRINGEN kleiner."""
     import Part
 
     teile = []
@@ -74,11 +87,16 @@ def werkzeugkoerper(masse, laenge, halter):
     if form is not None:
         ende = min(ende, -halter.laenge)
     oben = min(spitze + masse.schneide, ende)
+    radius = masse.durchmesser / 2
     if masse.kugel:
-        radius = masse.durchmesser / 2
-        teile.append((SCHNEIDE, Part.makeSphere(radius, FreeCAD.Vector(0, 0, spitze + radius))))
+        mitte = FreeCAD.Vector(0, 0, spitze + radius)
+        teile.append((SCHNEIDE, Part.makeSphere(radius, mitte)))
+        if mit_kern and radius > EINDRINGEN:
+            teile.append((KERN, Part.makeSphere(radius - EINDRINGEN, mitte)))
     else:
-        zylinder(SCHNEIDE, masse.durchmesser / 2, spitze, oben)
+        zylinder(SCHNEIDE, radius, spitze, oben)
+        if mit_kern and radius > EINDRINGEN:
+            zylinder(KERN, radius - EINDRINGEN, spitze + EINDRINGEN, oben)
     if masse.hals_laenge > 0 and masse.hals_d > 0:
         hals_ende = min(oben + masse.hals_laenge, ende)
         zylinder(HALS, masse.hals_d / 2, oben, hals_ende)
@@ -116,6 +134,7 @@ class _Paar:
     a: Koerper
     b: Koerper
     nur_eilgang: bool = False  # die Schneide gegen das Teil
+    nur_vorschub: bool = False  # ihr Kern gegen das Teil: zählt nur eine Berührung
 
 
 # --- Das Ergebnis ---------------------------------------------------------------------------
@@ -137,6 +156,7 @@ class Befund:
     satz: int
     punkt: dict  # Punkt im Programm: {"X": …, "Y": …, "Z": …, "A": …}
     stelle: object = None  # FreeCAD.Vector: wo, in Koordinaten der Assembly
+    ins_teil: bool = False  # die Schneide fährt im Vorschub ins fertige Teil
 
     def text(self):
         werte = {
@@ -146,6 +166,8 @@ class Befund:
             "satz": self.satz,
             "punkt": rw.punkt_text(self.punkt),
         }
+        if self.ins_teil:
+            return tr("kb.ins_teil", **werte)
         if self.beruehrung and self.eilgang:
             return tr("kb.beruehrung.eilgang", **werte)
         if self.beruehrung:
@@ -268,7 +290,7 @@ class _Welt:
                 basis = p._lage(op.aufnahme)
                 gebaut[schluessel] = [
                     Koerper(_werkzeug_name(art, nummer, halter), art, form, glied, basis)
-                    for art, form in werkzeugkoerper(masse, op.laenge, halter)
+                    for art, form in werkzeugkoerper(masse, op.laenge, halter, mit_kern=True)
                 ]
                 if halter is None and nummer not in ohne_halter:
                     ohne_halter.add(nummer)
@@ -297,9 +319,14 @@ class _Welt:
         if glied not in self._paare:
             self._paare[glied] = self._maschinenpaare(glied)
         maschinenpaare, gegen_werkzeug = self._paare[glied]
+        ins_teil_erlaubt = self.abfahrt.operationen[operation].art in INS_TEIL_ERLAUBT
         paare = []
         for koerper in werkzeug:
             for anderer in gegen_werkzeug:
+                if koerper.art == KERN:
+                    if anderer.art == TEIL and not ins_teil_erlaubt:
+                        paare.append(_Paar(koerper, anderer, nur_vorschub=True))
+                    continue
                 nur_eilgang = koerper.art == SCHNEIDE and anderer.art == TEIL
                 paare.append(_Paar(koerper, anderer, nur_eilgang))
         return paare + maschinenpaare
@@ -434,15 +461,19 @@ class _Welt:
 
         kleinster = math.inf
         for paar in paare:
-            if paar.nur_eilgang and not ziel.eilgang:
+            if paar.nur_eilgang and not ziel.eilgang or paar.nur_vorschub and ziel.eilgang:
                 continue
+            # Beim Kern zählt nur eine Berührung: kein Warnabstand, auch nicht für den
+            # Schritt (der rechnet mit kleinster − Warnabstand).
+            reicht = BERUEHRT if paar.nur_vorschub else self.warn
+            zuschlag = self.warn if paar.nur_vorschub else 0.0
             luecke = _luecke(lage(paar.a), lage(paar.b))
-            if luecke > self.warn + GENAU_AB:
-                kleinster = min(kleinster, luecke)
+            if luecke > reicht + GENAU_AB:
+                kleinster = min(kleinster, luecke + zuschlag)
                 continue
             abstand, stelle = self._abstand(paar.a, paar.b)
-            kleinster = min(kleinster, abstand)
-            if abstand <= self.warn:
+            kleinster = min(kleinster, abstand + zuschlag)
+            if abstand <= reicht:
                 self._merke(paar, abstand, stelle, i, naechste, s, ziel)
         return kleinster
 
@@ -463,7 +494,7 @@ class _Welt:
         """Merkt die Stelle, wenn sie für diese Operation und dieses Paar die schlimmste ist."""
         abfahrt = self.abfahrt
         station = abfahrt.stationen[i]
-        schluessel = (ziel.operation, paar.a.name, paar.b.name)
+        schluessel = (ziel.operation, paar.a.name, paar.b.name, paar.nur_vorschub)
         bisher = self.schlimmste.get(schluessel)
         if bisher is not None and bisher.abstand <= abstand + 1e-9:
             return
@@ -480,6 +511,7 @@ class _Welt:
             satz=ziel.satz,
             punkt=rw._programmpunkt(punkt, ziel.rund),
             stelle=stelle,
+            ins_teil=paar.nur_vorschub,
         )
 
 
@@ -519,7 +551,7 @@ def _teil_form(job):
 
 def _werkzeug_name(art, nummer, halter):
     werkzeug = f"T{nummer}"
-    if art == SCHNEIDE:
+    if art in (SCHNEIDE, KERN):
         return tr("kb.schneide", werkzeug=werkzeug)
     if art == HALS:
         return tr("kb.hals", werkzeug=werkzeug)

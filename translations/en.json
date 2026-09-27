@@ -943,5 +943,6 @@
     "va.achse.maschine_schraeg": "Machine “{maschine}”: {buchstabe} – bar at an angle in the job",
     "rw.rundachse_fehlt": "“{operation}” turns about {buchstabe} – the machine has no rotary axis {buchstabe}. The check ignores this rotation.",
     "rw.rundachse_fehlt_andere": "“{operation}” turns about {buchstabe} – the machine has no rotary axis {buchstabe}, only {achsen}. The check ignores this rotation. If the job comes from 4-axis machining, choose the machine's rotary axis there.",
-    "va.eigenschaft.spannlaenge": "How deep the bar sits in the chuck (CAM Addon, 4-axis machining) – “Check on machine” proposes the origin with it"
+    "va.eigenschaft.spannlaenge": "How deep the bar sits in the chuck (CAM Addon, 4-axis machining) – “Check on machine” proposes the origin with it",
+    "kb.ins_teil": "In “{operation}”, {a} runs into the finished part (block {satz}, at {punkt}) – the tool would cut into the part there."
 }

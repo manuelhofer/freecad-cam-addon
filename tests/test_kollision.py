@@ -130,9 +130,34 @@ pruefe(
 if e.befunde:
     pruefe("berühren sich im Eilgang" in e.befunde[0].text(), f"{e.befunde[0].text()!r}")
     pruefe(abs(e.befunde[0].punkt["X"] + 2.5) < 0.6, f"erste Berührung bei X {e.befunde[0].punkt}")
-# Derselbe Weg im Vorschub: Die Schneide schneidet (nicht gemeldet), der Schaft berührt.
+# Derselbe Weg im Vorschub durchs volle Material des fertigen Teils: Die Schneide fährt ins
+# Teil (Manuels Test, 2026-09-27 – bis dahin galt „im Vorschub schneidet sie“), der Schaft
+# berührt.
 e = pruefen(["G0 X-20 Y30 Z10", "G1 X120 F10"], lang)
-pruefe(paare(e) == {("der Schaft von T1", "das Teil", True, False)}, f"Vorschub: {paare(e)}")
+pruefe(
+    paare(e)
+    == {
+        ("die Schneide von T1", "das Teil", True, False),
+        ("der Schaft von T1", "das Teil", True, False),
+    },
+    f"Vorschub: {paare(e)}",
+)
+ins_teil = [b for b in e.befunde if b.ins_teil]
+pruefe(
+    len(ins_teil) == 1
+    and ins_teil[0].text().startswith("In „Eigene“ fährt die Schneide von T1 ins fertige Teil"),
+    f"ins fertige Teil: {[b.text() for b in ins_teil]}",
+)
+# Schneidet die Schneide nur an der Wand entlang (Abstand 0), fährt sie nicht ins Teil.
+e = pruefen(["G0 X50 Y30 Z30", "G1 Z8 F10", "G1 X67.5"], t1(schaft=4.0))
+pruefe(not any(b.ins_teil for b in e.befunde), f"an der Wand: {[b.text() for b in e.befunde]}")
+# Entgraten darf ins Teil – die Fase steht selten im Modell.
+op.Gcode = ["G0 X-20 Y30 Z10", "G1 X120 F10"]
+teil.recompute()
+fahrt = ab.abfahrt(p, job, nullpunkt, wz.Bibliothek([lang]))
+fahrt.operationen[0].art = "Deburr"
+e = kb.kollision(fahrt, job, nullpunkt, wz.Bibliothek([lang]))
+pruefe(not any(b.ins_teil for b in e.befunde), f"Entgraten: {[b.text() for b in e.befunde]}")
 
 # --- Halter ER16: 1 mm zu tief neben der Tasche ---------------------------------------------
 halter = "halter-er16"

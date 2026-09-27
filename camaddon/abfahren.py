@@ -21,6 +21,7 @@ import math
 from dataclasses import dataclass, field
 
 from . import einheiten, export
+from . import job_schnittwerte as js
 from . import maschine as m
 from . import reichweite as rw
 from .kette import LINEAR
@@ -60,6 +61,7 @@ class OperationAbfahrt:
     laenge: float  # mm, von der Aufnahme bis zur Spitze
     erste: int  # Index ihrer ersten Station
     saetze: int  # Befehle ihrer Bahn
+    art: str = ""  # die Art der CAM-Operation: „Adaptive“, „Deburr“ … (js.operationsart)
 
 
 @dataclass
@@ -183,7 +185,13 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         nummer = len(ergebnis.operationen)
         ergebnis.operationen.append(
             OperationAbfahrt(
-                op.Label, tc, aufnahme, laenge, len(ergebnis.stationen), len(op.Path.Commands)
+                op.Label,
+                tc,
+                aufnahme,
+                laenge,
+                len(ergebnis.stationen),
+                len(op.Path.Commands),
+                js.operationsart(op),
             )
         )
         ohne_vorschub = False

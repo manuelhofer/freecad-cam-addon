@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-41 kollision-ins-teil
+
+### EINGELESEN
+- Manuels Test mit Bildern: Auf seiner Drehmaschine fuhr das radiale
+  Werkzeug eine Bahn einer normalen Operation (für ein Werkzeug längs Z)
+  quer durchs Teil – „Kollision wird hier auch nicht erkannt, da er komplett
+  durchs Werkstück fährt“.
+- `camaddon/kollision.py` (Paare, Schritte, `_merke`, `werkzeugkoerper`),
+  `camaddon/abfahren.py` (`OperationAbfahrt`), `tests/test_kollision.py`,
+  `docs/spezifikation_simulation.md` (4c), `help/*/reichweite.html`.
+- Nachbau an der Beispiel-Drehmaschine: Die Prüfung ließ die Schneide gegen
+  das fertige Teil im Vorschub weg („im Vorschub schneidet sie“); dazu kam
+  die Beispiel-Drehmaschine in Z nicht bis ans Teil (die Reichweite meldet es,
+  die Kollision rechnet an der Grenze).
+
+### DATEIEN
+- `camaddon/kollision.py` (`EINDRINGEN`, `INS_TEIL_ERLAUBT`, `KERN`, Paar
+  `nur_vorschub`, Befund `ins_teil`), `camaddon/abfahren.py` (`art` der
+  Operation)
+- `translations/de.json`, `translations/en.json` (`kb.ins_teil`)
+- `help/de/reichweite.html`, `help/en/reichweite.html`
+- `tests/test_kollision.py`
+- `docs/spezifikation_simulation.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Fährt die Schneide im Vorschub ins fertige Teil, meldet die Kollision es rot
+(„… fährt die Schneide von T1 ins fertige Teil …“); an der Wand entlang
+(Abstand 0) und beim Entgraten nicht.
+
+### DONE
+- Neben der Schneide prüft die Kollision ihren Kern – die Schneide, um
+  0,05 mm kleiner – gegen das fertige Teil, nur im Vorschub, nur auf
+  Berührung (kein Warnabstand). Berührt der Kern das Teil, fährt die Schneide
+  mehr als 0,05 mm hinein: ein roter Befund mit Satz und Stelle.
+- Entgraten, Gravieren, V-Carve, Gewindefräsen, Gewindebohren und Bohren
+  dürfen ins Teil – ihr Ergebnis zeigt das Modell selten.
+- Der alte Fall im Test („Vorschub quer durchs volle Material: nur der
+  Schaft“) meldet jetzt auch die Schneide.
+
+### TEST
+- `test_kollision` in 1.1.3 und im Wochen-Build ok: quer durchs Material im
+  Vorschub → „ins fertige Teil“; an der Wand entlang nicht; Entgraten nicht.
+- Nachbau an der Beispiel-Drehmaschine (Stange weiter vorn): „fährt die
+  Schneide von T1 ins fertige Teil (Satz 4 …)“, dazu Revolver und Schaft.
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- Hinweis im Prüffenster, wenn die Bahn für ein Werkzeug längs Z gerechnet
+  ist, das Werkzeug aber radial sitzt.
+
 ## P-2026-09-27-40 regel-pusch-jetzt
 
 ### EINGELESEN

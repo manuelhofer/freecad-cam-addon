@@ -105,8 +105,12 @@ every spot:</p>
 <li>the <b>tool</b> – cutting part, shank and <a href="halter.html">holder</a> –
 against the <b>finished part</b> (the job's model), against fixtures, table and
 everything on the machine that does not move with the tool. The cutting part
-against the part only in <b>rapid moves</b> – in feed moves it is meant to
-cut;</li>
+touches the part in feed moves, that is intended – it must not touch it in
+<b>rapid moves</b>, and in feed moves it must not run more than 0.05 mm
+<b>into the finished part</b>: “… the cutting part of T1 runs into the finished
+part” means the tool would cut into the part there – when a radial tool runs a
+path calculated for one along Z, say. Deburring, engraving, threads and
+drilling may cut into the part: the model rarely shows their result;</li>
 <li>the machine parts that carry the tool (spindle, head, slides, turret)
 against fixtures, table, chuck and the part;</li>
 <li>what carries the workpiece against the fixed bed.</li>
