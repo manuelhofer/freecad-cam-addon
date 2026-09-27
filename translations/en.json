@@ -746,10 +746,10 @@
     "va.spannlaenge.tooltip": "How far the bar sits in the chuck.",
     "va.laenge": "bar {laenge} {e_laenge} long",
     "va.rundachse": "Rotary axis",
-    "va.rundachse.tooltip": "The axis the bar turns about, together with the part. It decides how the bar lies in the job: A along X, B along Y, C along Z.",
-    "va.achse.a": "A – bar along X, tool from above",
-    "va.achse.b": "B – bar along Y, tool from above",
-    "va.achse.c": "C – bar along Z, tool from X (as on a lathe)",
+    "va.rundachse.tooltip": "The axis the bar turns about together with the part. If a machine is open, it sets the axis and is listed first – so the bar sits in the chuck as it is clamped when you check the job. Without a machine: A lies along X, B along Y, C along Z.",
+    "va.achse.a": "A – bar along X, tool from above (without machine)",
+    "va.achse.b": "B – bar along Y, tool from above (without machine)",
+    "va.achse.c": "C – bar along Z, tool from X, like on a lathe (without machine)",
     "va.passt": "✔ Fits – at least {aufmass} {e_laenge} of stock all round.",
     "va.passt_nicht": "✘ Does not fit: the part needs Ø {noetig} {e_laenge} – a bar of Ø {vorschlag} {e_laenge}, say.",
     "va.anlegen": "Create",
@@ -938,5 +938,7 @@
     "rw.schnittwerte.uebernehmen": "apply",
     "rw.schnittwerte.alle": "Apply all",
     "rw.schnittwerte.schritt": "Apply cutting data",
-    "rw.schnittwerte.tooltip": "Compared with what “Cutting data into the job” would set: with the use case and material from last time, otherwise the suggestion. “apply” sets the controller's spindle speed and feed – one undo step; the operations' step-over and step-down stay."
+    "rw.schnittwerte.tooltip": "Compared with what “Cutting data into the job” would set: with the use case and material from last time, otherwise the suggestion. “apply” sets the controller's spindle speed and feed – one undo step; the operations' step-over and step-down stay.",
+    "va.achse.maschine": "Machine “{maschine}”: {buchstabe} – bar along {richtung}",
+    "va.achse.maschine_schraeg": "Machine “{maschine}”: {buchstabe} – bar at an angle in the job"
 }

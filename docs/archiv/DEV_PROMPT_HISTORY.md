@@ -12,6 +12,61 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-37 vierachs-achse-von-maschine
+
+### EINGELESEN
+- `docs/spezifikation_vierachs.md` (Abschnitt 4, V2a), `camaddon/gui_vierachs.py`,
+  `camaddon/vierachs_rohteil.py` (`lage`, `stangen_placement`, `richte_ein`),
+  `camaddon/reichweite.py` (`Pruefung`, `_programmbuchstabe`),
+  `camaddon/maschine.py` (`rollen`, `globale_platzierung`),
+  `camaddon/kette.py` (Achsrichtung in Weltkoordinaten),
+  `tests/gui/szenario_vierachs_rohteil.py`.
+
+### DATEIEN
+- neu `camaddon/vierachs_achsen.py` (`Stangenachse`, `zugewiesen`,
+  `von_maschine`, `offene`, `gerade`, `achsbuchstabe`)
+- `camaddon/vierachs_rohteil.py` (`laengs_von`; `lage`, `stangen_placement`,
+  `richte_ein` nehmen Buchstabe oder Stangenachse)
+- `camaddon/gui_vierachs.py` (Liste „Rundachse“: Maschinen oben, vorgewählt)
+- `translations/de.json`, `translations/en.json` (`va.achse.maschine`,
+  `va.achse.maschine_schraeg`; A/B/C „ohne Maschine“; Tooltip)
+- `help/de/vierachs.html`, `help/en/vierachs.html`
+- neu `tests/test_vierachs_achsen.py`, neu
+  `tests/gui/szenario_vierachs_maschine.py`
+- `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Klickweg V2a: Beispiel-Drehmaschine laden, Welle, Stirnfläche anklicken,
+„4-Achs-Bearbeitung“ → unter Rundachse steht die Maschine oben und
+vorgewählt, „… C – Stange längs Z“, die Stange liegt längs Z; mit A längs X.
+Dazu Manuels Fall: Auf der Maschine prüfen – die Stange liegt längs der
+Spindel im Futter, nicht quer.
+
+### DONE
+- Ist eine W-001-Maschine offen, stehen ihre Rundachsen im Tisch (Gelenk mit
+  „Positionieren“ zwischen Werkstückaufnahme und Bett) oben in der Liste
+  „Rundachse“ und die erste ist vorgewählt. Die Stange liegt dann längs der
+  Richtung dieser Achse in den Achsen der Werkstückaufnahme – vorne vom
+  Futter weg. Das Prüffenster rechnet in genau diesen Achsen.
+- A, B, C heißen jetzt „… (ohne Maschine)“; der Tooltip sagt, dass eine offene
+  Maschine die Achse vorgibt.
+- Eine halb eingerichtete Maschine, deren Kette sich nicht aufbauen lässt,
+  fehlt in der Liste statt den Assistenten zu stören.
+
+### TEST
+- `test_vierachs_achsen` (neu) in 1.1.3 und im Wochen-Build ok:
+  Drehmaschine → C, Stange längs +Z; 3-Achs-Fräse → keine; Lage mit der
+  Maschine = Lage mit C.
+- `szenario_vierachs_maschine` (neu) in beiden Versionen ok, Bilder
+  `1_fenster` (Maschine vorgewählt) und `2_im_futter` (Stange längs der
+  Spindel) angesehen; `szenario_vierachs_rohteil` in beiden ok.
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- V2c: Hinweis bei fremder Rundachse, Spannlänge im Futter, Stange mittig
+  (der Vorschlag nimmt heute die Hüllbox des Zylinders: X −0,043 statt 0).
+- V2b: Drehteile per Klick auf eine runde Fläche.
+
 ## P-2026-09-27-36 plan-vierachs-v2
 
 ### EINGELESEN

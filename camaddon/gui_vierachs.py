@@ -22,6 +22,7 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, symbol
+from . import vierachs_achsen as va
 from . import vierachs_rohteil as vr
 from .gui_hilfe import kopfzeile
 from .gui_maschine import _EnterBleibtImDialog
@@ -65,8 +66,21 @@ def _parameter():
 
 
 def _achstexte():
-    """Die Einträge der Liste „Rundachse“: Buchstabe → ein Satz, wie die Stange liegt."""
+    """Die Einträge der Liste „Rundachse“ ohne Maschine: Buchstabe → ein Satz, wie die
+    Stange liegt."""
     return {"A": tr("va.achse.a"), "B": tr("va.achse.b"), "C": tr("va.achse.c")}
+
+
+def achstext(achse):
+    """Der Eintrag der Liste „Rundachse“ für eine Stangenachse (vierachs_achsen)."""
+    if not achse.maschine:
+        return _achstexte()[achse.buchstabe]
+    richtung = va.achsbuchstabe(achse.laengs)
+    if not richtung:
+        return tr("va.achse.maschine_schraeg", maschine=achse.maschine, buchstabe=achse.buchstabe)
+    return tr(
+        "va.achse.maschine", maschine=achse.maschine, buchstabe=achse.buchstabe, richtung=richtung
+    )
 
 
 def gewaehlte_flaeche(dokument):
@@ -369,11 +383,17 @@ class VierachsPanel:
         self.laenge_text = self._grau()
         raster.addWidget(self.laenge_text, zeile - 1, 2)
 
+        # Erst die Rundachsen der offenen Maschinen – die gibt die Maschine vor (V2a) –,
+        # dann A, B, C ohne Maschine.
+        self._achsen = va.offene(self.doc) + [va.zugewiesen(b) for b in _achstexte()]
         self.wahl_achse = QtGui.QComboBox()
-        for buchstabe, text in _achstexte().items():
-            self.wahl_achse.addItem(text, buchstabe)
-        gemerkt = _parameter().GetString(GEMERKT_RUNDACHSE, vr.RUNDACHSE)
-        self.wahl_achse.setCurrentIndex(max(0, self.wahl_achse.findData(gemerkt)))
+        for achse in self._achsen:
+            self.wahl_achse.addItem(achstext(achse))
+        if self._achsen[0].maschine:
+            self.wahl_achse.setCurrentIndex(0)
+        else:
+            gemerkt = _parameter().GetString(GEMERKT_RUNDACHSE, vr.RUNDACHSE)
+            self.wahl_achse.setCurrentIndex(max(0, self._index_ohne_maschine(gemerkt)))
         self.wahl_achse.setToolTip(tr("va.rundachse.tooltip"))
         self.wahl_achse.currentIndexChanged.connect(lambda _i: self.waehle_rundachse())
         raster.addWidget(beschriftung(tr("va.rundachse"), tr("va.rundachse.tooltip")), zeile, 0)
@@ -436,9 +456,10 @@ class VierachsPanel:
         self._anwenden()
 
     def waehle_rundachse(self, buchstabe=None):
-        """Die Stange dreht um A, B oder C – danach liegt sie in X, Y oder Z."""
+        """Die Stange dreht um A, B oder C ohne Maschine – danach liegt sie in X, Y oder Z;
+        ohne `buchstabe`: was in der Liste gewählt ist (auch eine Achse der Maschine)."""
         if buchstabe is not None:
-            self.wahl_achse.setCurrentIndex(self.wahl_achse.findData(buchstabe))
+            self.wahl_achse.setCurrentIndex(self._index_ohne_maschine(buchstabe))
             return  # der Wechsel ruft diese Methode noch einmal
         vorher = FreeCAD.Placement(vr.modell(self.job).Placement) if self.job else None
         if self._anwenden() and vorher is not None:
@@ -449,15 +470,26 @@ class VierachsPanel:
         neu = (self._drehlage() + 90.0) % 360.0
         self.feld_drehlage.setText(zahl_zeigen(neu))  # 0 bleibt leer: der Vorschlag
 
+    def achse(self):
+        """Die gewählte Stangenachse (vierachs_achsen.Stangenachse)."""
+        return self._achsen[max(0, self.wahl_achse.currentIndex())]
+
     def buchstabe(self):
         """Der Buchstabe der Rundachse: A, B oder C."""
-        return self.wahl_achse.currentData() or vr.RUNDACHSE
+        return self.achse().buchstabe
+
+    def _index_ohne_maschine(self, buchstabe):
+        """Der Eintrag „A/B/C – ohne Maschine“ mit diesem Buchstaben, oder -1."""
+        for i, achse in enumerate(self._achsen):
+            if not achse.maschine and achse.buchstabe == buchstabe:
+                return i
+        return -1
 
     def _zeige_bewegung(self, von):
         """Das Teil fährt von `von` an seine Stelle in der Stange und dreht sich einmal
         um die Stangenachse – so sieht man, wohin es kam und welche Achse dreht."""
         klon = vr.modell(self.job)
-        laengs, _radial = vr.ACHSEN[self.buchstabe()]
+        laengs = self.achse().laengs
         self.einfahren = _Einfahren(klon, von, FreeCAD.Placement(klon.Placement), laengs)
         self.einfahren.start()
 
@@ -514,7 +546,7 @@ class VierachsPanel:
             self.einfahren.stopp()
         stange = self.stange()
         self.lage = vr.lage(
-            self.vermessung, self.buchstabe(), self.mitte, self._drehlage(), stange.durchmesser
+            self.vermessung, self.achse(), self.mitte, self._drehlage(), stange.durchmesser
         )
         erstes_mal = self.job is None
         try:
@@ -523,7 +555,7 @@ class VierachsPanel:
                 self.teil,
                 self.lage,
                 stange,
-                self.buchstabe(),
+                self.achse(),
                 job=self.job,
                 beschriftung=tr("va.job", teil=self.teil.Label) if erstes_mal else None,
             )

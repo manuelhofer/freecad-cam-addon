@@ -746,10 +746,10 @@
     "va.spannlaenge.tooltip": "So lang steckt die Stange im Futter.",
     "va.laenge": "Stange {laenge} {e_laenge} lang",
     "va.rundachse": "Rundachse",
-    "va.rundachse.tooltip": "Um welche Achse sich die Stange mit dem Teil dreht. Danach richtet sich, wie die Stange im Job liegt: A in X, B in Y, C in Z.",
-    "va.achse.a": "A – Stange in X, Werkzeug von oben",
-    "va.achse.b": "B – Stange in Y, Werkzeug von oben",
-    "va.achse.c": "C – Stange in Z, Werkzeug aus X (wie an der Drehmaschine)",
+    "va.rundachse.tooltip": "Um welche Achse sich die Stange mit dem Teil dreht. Ist eine Maschine offen, gibt sie die Achse vor und steht oben – so liegt die Stange beim Prüfen im Futter, wie sie eingespannt wird. Ohne Maschine: A liegt in X, B in Y, C in Z.",
+    "va.achse.a": "A – Stange in X, Werkzeug von oben (ohne Maschine)",
+    "va.achse.b": "B – Stange in Y, Werkzeug von oben (ohne Maschine)",
+    "va.achse.c": "C – Stange in Z, Werkzeug aus X, wie an der Drehmaschine (ohne Maschine)",
     "va.passt": "✔ Passt – rundum mindestens {aufmass} {e_laenge} Aufmaß.",
     "va.passt_nicht": "✘ Passt nicht: Das Teil braucht Ø {noetig} {e_laenge} – etwa eine Stange Ø {vorschlag} {e_laenge}.",
     "va.anlegen": "Anlegen",
@@ -938,5 +938,7 @@
     "rw.schnittwerte.uebernehmen": "übernehmen",
     "rw.schnittwerte.alle": "Alle übernehmen",
     "rw.schnittwerte.schritt": "Schnittwerte übernehmen",
-    "rw.schnittwerte.tooltip": "Verglichen mit dem, was „Schnittwerte in den Job“ setzen würde: mit dem Einsatz und Werkstoff vom letzten Mal, sonst dem Vorschlag. „übernehmen“ setzt Drehzahl und Vorschub des Controllers – ein Schritt Rückgängig; Schrittweite und Zustelltiefe der Operationen bleiben."
+    "rw.schnittwerte.tooltip": "Verglichen mit dem, was „Schnittwerte in den Job“ setzen würde: mit dem Einsatz und Werkstoff vom letzten Mal, sonst dem Vorschlag. „übernehmen“ setzt Drehzahl und Vorschub des Controllers – ein Schritt Rückgängig; Schrittweite und Zustelltiefe der Operationen bleiben.",
+    "va.achse.maschine": "Maschine „{maschine}“: {buchstabe} – Stange längs {richtung}",
+    "va.achse.maschine_schraeg": "Maschine „{maschine}“: {buchstabe} – Stange schräg im Job"
 }

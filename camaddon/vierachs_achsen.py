@@ -1,0 +1,119 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+"""Wohin die Stange im Job zeigt – von der Maschine oder zugewiesen (Spezifikation W-003,
+Abschnitte 4 und 13, V2a).
+
+Ohne Maschine weist man der Stange eine Rundachse zu: A liegt in X, B in Y, C
+in Z (vierachs_rohteil.ACHSEN). Mit einer W-001-Maschine gibt sie die Achse
+vor: Eine Rundachse im Tisch – ein Gelenk mit der Betriebsart „Positionieren“
+auf dem Weg von der Werkstückaufnahme zum Bett – dreht die Stange. Ihre
+Richtung in den Achsen der Werkstückaufnahme ist die Stangenachse im Job:
+„Auf der Maschine prüfen“ rechnet in genau diesen Achsen. An der Drehmaschine
+ist das Z – die Stange liegt längs der Spindel, nicht quer im Futter (Manuels
+Test, 2026-09-27). Vorne zeigt vom Futter weg, also wie Z der
+Werkstückaufnahme.
+
+Läuft ohne Oberfläche.
+"""
+
+from dataclasses import dataclass
+
+import FreeCAD
+
+from . import maschine as m
+from . import vierachs_rohteil as vr
+from .kette import LINEAR
+
+GERADE = 1e-6  # so wenig darf eine Richtung von einer Achse des Jobs abweichen
+
+
+@dataclass(frozen=True)
+class Stangenachse:
+    """Wie die Stange im Job liegt: um welche Rundachse sie dreht und wohin sie zeigt."""
+
+    buchstabe: str  # so heißt die Rundachse im Programm: A, B oder C
+    laengs: FreeCAD.Vector  # Stangenachse nach vorne, in den Achsen des Jobs
+    maschine: str = ""  # die Maschine, von der sie kommt; leer: zugewiesen
+
+
+def zugewiesen(buchstabe):
+    """Die Stangenachse ohne Maschine: A in X, B in Y, C in Z."""
+    laengs, _radial = vr.ACHSEN[buchstabe]
+    return Stangenachse(buchstabe, FreeCAD.Vector(laengs))
+
+
+def von_maschine(assembly, maschine, kette=None):
+    """[Stangenachse] – eine je Rundachse im Tisch der Maschine, die positionieren kann.
+
+    Leer, wenn die Maschine keine solche Achse hat oder keine Werkstückaufnahme.
+    """
+    from . import reichweite as rw
+
+    pruefung = rw.Pruefung(assembly, maschine, kette=kette)
+    aufnahme = pruefung.werkstueckaufnahme
+    if aufnahme is None or aufnahme.Lcs is None:
+        return []
+    # Achsrichtungen stehen in Weltkoordinaten – wie die Lage des LCS.
+    in_job = m.globale_platzierung(aufnahme.Lcs).Rotation.inverted()
+    rollen, _meldungen = m.rollen(pruefung.kette, maschine)
+    ergebnis = []
+    for achse in pruefung.kette.achsen:
+        if achse.art == LINEAR or rollen.get(achse.gelenk) != m.TISCH:
+            continue
+        buchstabe = rw._programmbuchstabe(maschine, achse)
+        if buchstabe is None:
+            continue  # eine Spindel, die nicht positionieren kann
+        laengs = _nach_vorne(gerade(in_job.multVec(achse.richtung)))
+        ergebnis.append(Stangenachse(buchstabe, laengs, maschine.Label))
+    return ergebnis
+
+
+def offene(zuerst=None):
+    """[Stangenachse] aller Maschinen in offenen Dokumenten – die im Dokument `zuerst`
+    vorn. Eine Maschine, deren Kette sich nicht aufbauen lässt, fehlt (ihre Meldungen
+    zeigt „Maschine bearbeiten“)."""
+    maschinen = []
+    for dokument in FreeCAD.listDocuments().values():
+        for objekt in dokument.Objects:
+            if objekt.TypeId == "Assembly::AssemblyObject":
+                maschine = m.finde_maschine(objekt)
+                if maschine is not None:
+                    maschinen.append((objekt, maschine))
+    maschinen.sort(key=lambda e: e[0].Document is not zuerst)
+    ergebnis = []
+    for assembly, maschine in maschinen:
+        try:
+            ergebnis.extend(von_maschine(assembly, maschine))
+        except Exception as fehler:  # eine halb eingerichtete Maschine soll nicht stören
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Achsen von {maschine.Label}: {fehler}\n")
+    return ergebnis
+
+
+def gerade(richtung):
+    """Die Richtung als Einheitsvektor; liegt sie auf einer Achse des Jobs, genau darauf."""
+    richtung = FreeCAD.Vector(richtung)
+    richtung.normalize()
+    werte = [richtung.x, richtung.y, richtung.z]
+    for i, wert in enumerate(werte):
+        if abs(abs(wert) - 1.0) < GERADE:
+            genau = [0.0, 0.0, 0.0]
+            genau[i] = 1.0 if wert > 0 else -1.0
+            return FreeCAD.Vector(*genau)
+    return richtung
+
+
+def _nach_vorne(richtung):
+    """Vorne ist vom Futter weg: wie Z der Werkstückaufnahme. Liegt die Achse quer dazu
+    (ein Drehtisch unter einer Fräse), zeigt sie wie die Achse des Jobs, der sie am
+    nächsten liegt, in Plus-Richtung – wie A in X."""
+    if abs(richtung.z) > 0.5:
+        return richtung if richtung.z > 0 else richtung * -1
+    groesste = max((richtung.x, richtung.y, richtung.z), key=abs)
+    return richtung if groesste > 0 else richtung * -1
+
+
+def achsbuchstabe(laengs):
+    """„X“, „Y“ oder „Z“, wenn die Stange längs einer Achse des Jobs liegt, sonst ""."""
+    for buchstabe, wert in zip("XYZ", (laengs.x, laengs.y, laengs.z), strict=True):
+        if abs(abs(wert) - 1.0) < GERADE:
+            return buchstabe
+    return ""

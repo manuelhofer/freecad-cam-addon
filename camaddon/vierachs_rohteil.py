@@ -7,9 +7,10 @@ Außennormale wird zur Stangenachse nach vorne, und die Fläche liegt bei
 a = 0 – wie Z0 an der Drehmaschine; das Teil liegt bei a ≤ 0. Mittig heißt
 wahlweise „Mitte der runden Fläche“ oder „ganzes Teil möglichst mittig“ –
 der kleinste Kreis um das Teil, in Achsrichtung gesehen. Wohin die
-Stangenachse im Job zeigt, sagt der Buchstabe der Rundachse: A liegt in X,
-B in Y, C in Z (Abschnitt 4). So legt FreeCADs Bahnanzeige spätere Bahnen
-von selbst richtig um das Teil – sie dreht A um X, B um Y und C um Z.
+Stangenachse im Job zeigt, sagt die Maschine (vierachs_achsen) oder der
+Buchstabe der Rundachse: A liegt in X, B in Y, C in Z (Abschnitt 4). So legt
+FreeCADs Bahnanzeige spätere Bahnen von selbst richtig um das Teil – sie
+dreht A um X, B um Y und C um Z.
 
 Teuer ist nur das Vermessen einer Fläche (Tessellierung, Hülle, kleinster
 Kreis); vermesse() macht es einmal, lage() rechnet daraus für jede Mitte,
@@ -250,6 +251,14 @@ def vermesse(form, flaeche):
     )
 
 
+def laengs_von(achse):
+    """Die Stangenachse nach vorne, in den Achsen des Jobs: aus dem Buchstaben A, B, C
+    (ohne Maschine) oder aus einer vierachs_achsen.Stangenachse."""
+    if isinstance(achse, str):
+        return ACHSEN[achse][0]
+    return achse.laengs
+
+
 def welche_mitte(vermessung, mitte=MITTE_AUTO, durchmesser=0.0):
     """Die Mitte, mit der gerechnet wird. MITTE_AUTO: die runde Fläche, wenn es eine ist
     und das Teil so in eine Stange mit `durchmesser` passt (0: noch keiner gewählt) –
@@ -260,8 +269,9 @@ def welche_mitte(vermessung, mitte=MITTE_AUTO, durchmesser=0.0):
     return MITTE_FLAECHE if vermessung.kreis and passt else MITTE_TEIL
 
 
-def lage(vermessung, buchstabe, mitte=MITTE_AUTO, drehlage=0.0, durchmesser=0.0):
-    """Die Lage des Teils in der Stange (Lage) für die Rundachse `buchstabe` (A, B, C).
+def lage(vermessung, achse, mitte=MITTE_AUTO, drehlage=0.0, durchmesser=0.0):
+    """Die Lage des Teils in der Stange (Lage) für die Rundachse `achse` – ein Buchstabe
+    (A, B, C) oder eine Stangenachse der Maschine (laengs_von).
 
     Die Stirnfläche kommt auf a = 0, die gewählte Mitte auf die Achse, die
     Normale auf die Stangenachse nach vorne; `drehlage` dreht das Teil um sie
@@ -271,7 +281,7 @@ def lage(vermessung, buchstabe, mitte=MITTE_AUTO, drehlage=0.0, durchmesser=0.0)
     x, y = vermessung.mitte_flaeche if gewaehlt == MITTE_FLAECHE else vermessung.mitte_teil
     u, v = vermessung.quer
     auf_der_achse = u * x + v * y + vermessung.normale * vermessung.hoehe
-    laengs, _radial = ACHSEN[buchstabe]
+    laengs = laengs_von(achse)
     drehung = FreeCAD.Rotation(laengs, drehlage).multiply(
         FreeCAD.Rotation(vermessung.normale, laengs)
     )
@@ -279,9 +289,9 @@ def lage(vermessung, buchstabe, mitte=MITTE_AUTO, drehlage=0.0, durchmesser=0.0)
     return Lage(placement, gewaehlt, vermessung)
 
 
-def berechne(form, flaeche, buchstabe, mitte=MITTE_AUTO, drehlage=0.0, durchmesser=0.0):
+def berechne(form, flaeche, achse, mitte=MITTE_AUTO, drehlage=0.0, durchmesser=0.0):
     """vermesse() und lage() in einem – für einmalige Rechnungen."""
-    return lage(vermesse(form, flaeche), buchstabe, mitte, drehlage, durchmesser)
+    return lage(vermesse(form, flaeche), achse, mitte, drehlage, durchmesser)
 
 
 def aufmass(lage_, durchmesser):
@@ -301,10 +311,10 @@ def stangenlaenge(vermessung, stange):
     return vermessung.laenge + stange.planaufmass + stange.abstechbreite + stange.spannlaenge
 
 
-def stangen_placement(vermessung, stange, buchstabe):
+def stangen_placement(vermessung, stange, achse):
     """Die Lage des Zylinders im Job. CAM baut ihn ab seinem Ursprung entlang +Z – hier
     gedreht auf die Stangenachse, mit dem Ursprung hinter der Spannlänge."""
-    laengs, _radial = ACHSEN[buchstabe]
+    laengs = laengs_von(achse)
     hinten = vermessung.hinten - stange.abstechbreite - stange.spannlaenge
     return FreeCAD.Placement(laengs * hinten, FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), laengs))
 
@@ -321,7 +331,7 @@ def modell(job):
     return job.Model.Group[0]
 
 
-def richte_ein(dokument, teil, lage_, stange, buchstabe, job=None, beschriftung=None):
+def richte_ein(dokument, teil, lage_, stange, achse, job=None, beschriftung=None):
     """Legt einen CAM-Job an (oder nimmt `job`) und legt das Teil in die Stange.
 
     Das Teil liegt danach im Modell-Klon des Jobs an seiner Stelle; das
@@ -343,7 +353,7 @@ def richte_ein(dokument, teil, lage_, stange, buchstabe, job=None, beschriftung=
     modell(job).Placement = lage_.placement.multiply(teil.Placement)
 
     laenge = stangenlaenge(lage_.vermessung, stange)
-    platz = stangen_placement(lage_.vermessung, stange, buchstabe)
+    platz = stangen_placement(lage_.vermessung, stange, achse)
     rohteil = job.Stock
     if (
         rohteil is not None

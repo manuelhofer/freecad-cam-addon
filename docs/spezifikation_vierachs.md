@@ -480,6 +480,9 @@ Stange muss also längs Z liegen. Deshalb in drei Schritten:
   „4-Achs-Bearbeitung“ → unter Rundachse steht „Maschine „Drehmaschine“: C –
   Stange längs Z“, vorgewählt, und die Stange liegt längs Z; mit „A – Stange
   in X“ liegt sie längs X.
+  *Gebaut (P-2026-09-27-37):* `vierachs_achsen.py`, die Liste mit den
+  Maschinen oben, A/B/C mit „(ohne Maschine)“; im Prüffenster liegt die Stange
+  parallel zur C-Achse (`szenario_vierachs_maschine`).
 - **V2b – Drehteile.** Ein Klick auf eine runde Fläche (Zylinder, Kegel,
   Kugel, Torus) nimmt deren Achse als Stangenachse, die Mitte liegt auf ihr –
   heute sagt der Assistent dort „nicht eben“. Vorne ist das Ende des Teils,
