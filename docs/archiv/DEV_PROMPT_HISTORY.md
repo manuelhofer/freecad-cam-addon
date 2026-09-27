@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-17 snapshot-w004
+
+### EINGELESEN
+- `docs/STATUS_SNAPSHOT.md` (W-004, nächster Schritt),
+  `docs/durchsicht_bedienbarkeit.md` (Kurzfassung).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md`, `docs/durchsicht_bedienbarkeit.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Snapshot und Durchsicht sagen, dass D-01 bis D-08 und der Revolver erledigt
+sind und was offen bleibt.
+
+### DONE
+- Snapshot: W-004 mit „D-01 bis D-08 erledigt“, der Absatz beim nächsten
+  Schritt nennt P-2026-09-27-07 bis -16 und die offenen Fragen.
+- Durchsicht: Kurzfassung mit „Alle erledigt“ und dem nachgetragenen Revolver.
+
+### TEST
+- Nur Doku; der Gesamtlauf für P-2026-09-27-07 bis -17 läuft vor dem Push.
+
+### NEXT
+- Manuel: Reihenfolge der übrigen Punkte und die Fragen in Abschnitt 6.
+
 ## P-2026-09-27-16 ein-name-neue-maschine
 
 ### EINGELESEN

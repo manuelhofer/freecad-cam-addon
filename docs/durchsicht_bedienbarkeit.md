@@ -25,7 +25,11 @@ groß: eigene Spezifikation). Die Bilder entstehen mit
 - **Acht kleine Stellen**, je ein Patch (D-01 bis D-08): ein veralteter
   Tooltip, ein grauer Knopf ohne Erklärung, die Achsen im Verfahren in
   falscher Reihenfolge, kein „Jetzt neu starten“ nach dem Update, zwei Namen
-  für dasselbe Fenster.
+  für dasselbe Fenster. *Alle erledigt (P-2026-09-27-09 bis -16).*
+- **Nachgetragen, auf Manuels Hinweis:** Der Revolver der
+  Beispiel-Drehmaschine war nicht als Revolver zu erkennen – jetzt mit einer
+  Station je Platz, heller; die Beispielmaschinen erscheinen ohne die
+  Gelenkmarkierungen, die ihn verdeckten (P-2026-09-27-07, -08).
 - **Einfacher bedienen** (D-10 bis D-14): Das Prüffenster ist länger als der
   Aufgabenbereich – „Kollision prüfen“ liegt unter dem sichtbaren Teil;
   Hinweise sagen, wo man etwas ändert, statt dorthin zu führen.
