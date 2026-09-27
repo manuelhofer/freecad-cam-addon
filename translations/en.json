@@ -892,5 +892,6 @@
     "kb.beruehrt": "Something collides:",
     "kb.nahe": "Nothing touches, but some things come closer than {abstand}:",
     "kb.frei": "Nothing touches, nothing comes closer than {abstand}.",
-    "kb.liste.tooltip": "A click sets the player to that spot; a red ball shows it in the view."
+    "kb.liste.tooltip": "A click sets the player to that spot; a red ball shows it in the view.",
+    "sj.kein_job": "There is no CAM job in the active document. Open the document with the job – this command then sets the speed and feed of its tool controllers from the tool manager."
 }

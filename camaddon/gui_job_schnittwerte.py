@@ -31,7 +31,7 @@ FENSTER_GROESSE = (1180, 480)  # Pixel – breit genug für „· 2 Ebenen (25 +
 
 
 class BefehlSchnittwerteJob:
-    """Öffnet den Dialog – aktiv, sobald das Dokument einen CAM-Job hat."""
+    """Öffnet den Dialog; ohne Job im aktiven Dokument sagt ein Satz, was fehlt."""
 
     def GetResources(self):
         return {
@@ -41,9 +41,16 @@ class BefehlSchnittwerteJob:
         }
 
     def IsActive(self):
-        return bool(js.jobs(FreeCAD.ActiveDocument))
+        # Immer bedienbar, wie „Maschine bearbeiten“: Fehlt der Job, sagt der
+        # Befehl, was zu tun ist – ein ausgegrauter Knopf erklärt nichts.
+        return True
 
     def Activated(self):
+        if not js.jobs(FreeCAD.ActiveDocument):
+            QtGui.QMessageBox.information(
+                FreeCADGui.getMainWindow(), tr("sj.titel"), tr("sj.kein_job")
+            )
+            return
         dialog = SchnittwerteJobDialog()
         dialog.exec()
         SchnittwerteJobDialog.offen = None

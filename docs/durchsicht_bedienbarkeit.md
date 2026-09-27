@@ -52,6 +52,7 @@ Erklärung. Alle anderen Befehle sind bedienbar und sagen, was fehlt
 immer bedienbar; ohne Job ein Satz wie bei „Auf der Maschine prüfen“ –
 besser noch mit D-21 (Job aus allen offenen Dokumenten). **Fertig, wenn:**
 ein Klick ohne Job einen Satz zeigt, was zu tun ist.
+*Erledigt (P-2026-09-27-10).*
 
 ### D-03 „Maschine verfahren“: Achsen in X-, Y-, Z-Reihenfolge (klein)
 **Heute:** Die Regler stehen in der Reihenfolge der Gelenkkette – bei der

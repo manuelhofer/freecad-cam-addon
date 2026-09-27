@@ -50,6 +50,18 @@ def schritte(h):
     bibliothek.speichern()
     ue.uebergeben(bibliothek)
 
+    # Ohne Dokument und Job: kein grauer Knopf, sondern ein Satz, was fehlt (D-02).
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_SchnittwerteJob"))
+    yield 500
+    meldung = h.modal()
+    h.pruefe(
+        isinstance(meldung, QtGui.QMessageBox) and "keinen CAM-Job" in meldung.text(),
+        f"ohne Job: {meldung.text() if meldung else None!r}",
+    )
+    if meldung is not None:
+        meldung.accept()
+    yield 300
+
     dok = FreeCAD.newDocument("Teil")
     dok.UndoMode = 1
     quader = dok.addObject("Part::Box", "Quader")

@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-10 schnittwerte-job-erklaert
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-02; `camaddon/gui_job_schnittwerte.py`
+  (Befehl), `camaddon/gui_maschine.py` (so machen es die anderen Befehle),
+  `tests/gui/szenario_schnittwerte_job.py`.
+
+### DATEIEN
+- `camaddon/gui_job_schnittwerte.py`
+- `translations/de.json`, `translations/en.json` (`sj.kein_job`)
+- `tests/gui/szenario_schnittwerte_job.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Schnittwerte in den Job“ ist immer bedienbar; ohne Job im aktiven Dokument
+sagt ein Satz, was zu tun ist.
+
+### DONE
+- `IsActive` immer wahr (wie „Maschine bearbeiten“, „Auf der Maschine
+  prüfen“); ohne Job: „Im aktiven Dokument gibt es keinen CAM-Job. Öffne das
+  Dokument mit dem Job – dann setzt dieser Befehl Drehzahl und Vorschub seiner
+  Werkzeug-Controller aus der Werkzeugverwaltung.“
+- Den Job auch in anderen offenen Dokumenten zu suchen ist D-21 (nicht hier).
+
+### TEST
+- `szenario_schnittwerte_job` in 1.1.3 ok – ruft den Befehl zuerst ohne
+  Dokument auf und erwartet den Satz; `test_sprache` ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-03.
+
 ## P-2026-09-27-09 tooltip-pruefen
 
 ### EINGELESEN
