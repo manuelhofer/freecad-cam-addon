@@ -21,6 +21,8 @@ Maschine zurück, merkt sich den Nullpunkt am Job und kehrt zum Dokument des
 Jobs zurück.
 """
 
+import contextlib
+
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
@@ -291,12 +293,14 @@ class PruefPanel:
         self.pruefe()
 
     def eingetragen(self):
-        """Die eingetragenen Werte in mm: {"X": …} – leere Felder fehlen."""
-        return {
-            achse: groesse_lesen(feld.text(), einheiten.LAENGE)
-            for achse, feld in self.felder_nullpunkt.items()
-            if feld.text().strip()
-        }
+        """Die eingetragenen Werte in mm: {"X": …} – leere Felder fehlen, ebenso eines, in dem
+        noch keine Zahl steht („-“ am Anfang einer negativen)."""
+        werte = {}
+        for achse, feld in self.felder_nullpunkt.items():
+            if feld.text().strip():
+                with contextlib.suppress(ValueError):
+                    werte[achse] = groesse_lesen(feld.text(), einheiten.LAENGE)
+        return werte
 
     def nullpunkt(self):
         """Der Nullpunkt, mit dem gerechnet wird: eingetragen, sonst der Vorschlag."""

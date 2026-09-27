@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-03 halbe-zahl-im-feld
+
+### EINGELESEN
+- `camaddon/gui_zahlen.py` (Zahlenpruefer: „,“ und „-“ sind ein Zwischenstand;
+  `groesse_lesen` wirft dann ValueError), `camaddon/einheiten.py`
+  (zahl_aus_text).
+- `camaddon/gui_halter.py` (Spanntiefe, OK), `camaddon/gui_kollision.py`
+  (Warnabstand), `camaddon/gui_reichweite.py` (Nullpunkt, Uhr),
+  `camaddon/gui_werkzeuge.py` (_zahl_uebernehmen vor dem Speichern),
+  `camaddon/gui_werkstoffe.py` (OK: kc, mc); alle übrigen Aufrufe von
+  `zahl_lesen`/`groesse_lesen` fangen den Fehler schon ab.
+- `tests/gui/_lauf/szenario_lauf.py` (Ausnahmen in Qt-Slots fängt es nicht).
+
+### DATEIEN
+- `camaddon/gui_halter.py`, `camaddon/gui_kollision.py`,
+  `camaddon/gui_reichweite.py`, `camaddon/gui_werkzeuge.py`,
+  `camaddon/gui_werkstoffe.py`
+- `tests/gui/szenario_halter.py`, `tests/gui/szenario_kollision.py`,
+  `tests/gui/szenario_reichweite.py`, `tests/gui/szenario_werkzeugverwaltung.py`,
+  `tests/gui/szenario_werkstoffe.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Feld, in dem noch keine Zahl steht („,“ oder „-“, das der Prüfer beim
+Tippen zulässt), führt zu keinem Fehler: Im Halter-Fenster schließt OK, die
+Spanntiefe bleibt; „Kollision prüfen“ rechnet mit dem Warnabstand der Vorgabe;
+im Nullpunkt zählt „-“ wie ein leeres Feld (der Vorschlag); OK in der
+Werkzeugverwaltung und im Werkstoff-Fenster speichert, das Feld behält den
+alten Wert.
+
+### DONE
+- Beim Durchsehen gefunden: `groesse_lesen(",")` wirft ValueError. Im
+  Halter-Fenster schloss OK dann nicht (Traceback im Ausgabefenster);
+  „Kollision prüfen“ tat nichts; im Nullpunkt – wer „-50“ tippt und nach dem
+  „-“ kurz innehält – warf die Uhr des Fensters einen Traceback, und die
+  Anzeige blieb auf dem alten Stand (seit 4a). Ebenso OK in der
+  Werkzeugverwaltung (das Zahlenfeld mit dem Fokus wird vor dem Speichern
+  gelesen) und im Werkstoff-Fenster (kc, mc): Das Fenster blieb offen.
+- Spanntiefe: Unlesbares bleibt, wie es war (wie in der Kontur-Tabelle).
+- Warnabstand: `_eingetragen()` – leer oder unlesbar 0, dann die Vorgabe;
+  gemerkt wird nur, was lesbar eingetragen ist.
+- Nullpunkt: `eingetragen()` lässt ein Feld ohne Zahl weg wie ein leeres.
+- Werkzeugverwaltung: ein Feld ohne Zahl zeigt wieder den gespeicherten
+  Wert; Werkstoff-Fenster: kc und mc bleiben, wie sie waren.
+
+### TEST
+- `szenario_halter`: „,“ in der Spanntiefe, OK → das Fenster ist zu, die
+  Spanntiefe 40 (ER32) geblieben.
+- `szenario_kollision`: „,“ als Warnabstand, „Kollision prüfen“ → Ergebnis
+  mit 1 mm, ein Satz.
+- `szenario_reichweite`: X „300“ (rot), dann „-“ → grün wie mit leerem Feld.
+- `szenario_werkzeugverwaltung`: „,“ im Eckenradius von T2, OK → zu,
+  gespeichert 0,5.
+- `szenario_werkstoffe`: neuer Werkstoff „Buche“ mit „,“ in kc, OK → zu,
+  kc unbekannt (0).
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- Manuel probiert Halter und Kollision aus (Snapshot, Punkt 7).
+
 ## P-2026-09-27-02 schneide-nach-art
 
 ### EINGELESEN

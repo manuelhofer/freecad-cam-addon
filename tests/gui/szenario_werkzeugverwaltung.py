@@ -247,7 +247,9 @@ def schritte(h):
         f"zurück beim Torusfräser: {w}",
     )
 
-    # OK speichert und schließt.
+    # OK speichert und schließt – auch wenn in einem Feld noch keine Zahl steht (nur „,“):
+    # Dort bleibt der alte Wert.
+    d._zahlenfelder["eckradius"].setText(",")
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield 500
     h.pruefe(gui_werkzeuge.WerkzeugDialog.offen is None, "OK hat nicht geschlossen")
@@ -258,6 +260,7 @@ def schritte(h):
         f"gespeichert: {gespeichert.als_dict()['werkzeuge']}",
     )
     h.pruefe(gespeichert.mit_nummer(1).name == "Fraeser VHM 12", "Name nicht gespeichert")
+    h.pruefe(gespeichert.mit_nummer(2).eckradius == 0.5, "Eckenradius nach „,“ nicht mehr 0,5")
 
     # Wieder öffnen: derselbe Werkstoff, dieselben Werkzeuge.
     Gui.runCommand("CamAddon_Werkzeugverwaltung")

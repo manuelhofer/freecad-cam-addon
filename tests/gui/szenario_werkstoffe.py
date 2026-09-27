@@ -89,10 +89,13 @@ def schritte(h):
     b.feld_gruppe.setEditText("Holz")
     b.feld_iso.setCurrentIndex(b.feld_iso.findData("N"))
     b.feld_haerte.setText("≈ 35 HB")
+    b.feld_kc.setText(",")  # noch keine Zahl: OK geht trotzdem, kc bleibt unbekannt
     h.pruefe(ok.isEnabled(), "OK trotz Kurzname gesperrt")
     ok.click()
     yield 300
     holz = f.gewaehlt
+    h.pruefe(gui_werkstoffe.WerkstoffBearbeiten.offen is None, "OK schließt mit „,“ nicht")
+    h.pruefe(holz.kc11 == 0, f"kc nach „,“: {holz.kc11}")
     h.pruefe(holz.kurzname == "Buche" and holz.gruppe == "Holz", f"neuer Werkstoff: {holz}")
 
     # Eigene Schnittwerte für die Kopie, dann Kopie löschen – Rückfrage nennt sie.

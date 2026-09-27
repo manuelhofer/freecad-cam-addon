@@ -8,6 +8,7 @@ einen leeren eigenen. Geändert wird die Bibliothek der Werkzeugverwaltung –
 gespeichert wird mit deren OK oder Übernehmen.
 """
 
+import contextlib
 import re
 
 from PySide import QtCore, QtGui
@@ -349,8 +350,10 @@ class WerkstoffBearbeiten(QtGui.QDialog):
         w.zusammensetzung = _mit_punkt(self.feld_zusammensetzung.text().strip())
         w.haerte = _mit_punkt(self.feld_haerte.text().strip())
         w.zugfestigkeit = _mit_punkt(self.feld_rm.text().strip())
-        w.kc11 = zahl_lesen(self.feld_kc.text())
-        w.mc = zahl_lesen(self.feld_mc.text())
+        with contextlib.suppress(ValueError):  # noch keine Zahl („,“): bleibt, wie es war
+            w.kc11 = zahl_lesen(self.feld_kc.text())
+        with contextlib.suppress(ValueError):
+            w.mc = zahl_lesen(self.feld_mc.text())
         super().accept()
 
 

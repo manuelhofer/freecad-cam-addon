@@ -136,6 +136,10 @@ def schritte(h):
     yield 500
     h.pruefe(panel.felder_nullpunkt["X"].text() == "300", "X nicht gemerkt")
     h.pruefe(panel.liste.count() == 1, "Überschreitung nicht gleich da")
+    # Erst „-“ (der Anfang von „-50“): Das Fenster rechnet wie mit leerem Feld, ohne Fehler.
+    panel.felder_nullpunkt["X"].setText("-")
+    yield 800
+    h.pruefe(panel.urteil.text() == "Alle Achsen bleiben in ihren Grenzen.", "„-“ = Vorschlag")
     panel.felder_nullpunkt["X"].setText("")
     yield 800
     h.pruefe(panel.urteil.text() == "Alle Achsen bleiben in ihren Grenzen.", "leer = Vorschlag")

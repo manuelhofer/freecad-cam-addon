@@ -99,8 +99,11 @@ def schritte(h):
     tippen(f.feld_name, "SK40 ER32 A70")
     yield 200
     h.pruefe(f.liste.item(0).text() == "SK40 ER32 A70", f"Liste: {f.liste.item(0).text()}")
+    # Nur ein Komma in der Spanntiefe: OK schließt trotzdem, die Spanntiefe bleibt.
+    f.feld_spanntiefe.setText(",")
     f.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield 400
+    h.pruefe(abs(halter.spanntiefe - 40) < 1e-9, f"Spanntiefe nach „,“: {halter.spanntiefe}")
 
     # --- Zurück beim Werkzeug: der Halter ist gewählt, die Länge geschätzt -------------------
     h.pruefe(gui_halter.HalterDialog.offen is None, "Halter-Fenster noch offen")

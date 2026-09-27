@@ -877,9 +877,14 @@ class WerkzeugDialog(QtGui.QDialog):
         # Steht noch da, was das Feld beim Füllen zeigte, bleibt der Wert: Das
         # Feld zeigt 12 Stellen, zurückgelesen wäre ein längerer Wert gekürzt –
         # eine Änderung, die niemand gemacht hat.
-        if feld.text().strip() == self._zeigen(eigenschaft, getattr(self.werkzeug, eigenschaft)):
+        gezeigt = self._zeigen(eigenschaft, getattr(self.werkzeug, eigenschaft))
+        if feld.text().strip() == gezeigt:
             return
-        neu = self._lesen(eigenschaft, feld.text())
+        try:
+            neu = self._lesen(eigenschaft, feld.text())
+        except ValueError:  # noch keine Zahl („,“ oder „-“): bleibt, wie es war
+            feld.setText(gezeigt)
+            return
         if eigenschaft == "durchmesser":
             self._zustellungen_anpassen(self.werkzeug.durchmesser, neu)
         setattr(self.werkzeug, eigenschaft, neu)

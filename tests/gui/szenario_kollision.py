@@ -27,6 +27,7 @@ def schritte(h):
     from pivy import coin
 
     from camaddon import beispielmaschine, gui_reichweite
+    from camaddon import kollision as kb
     from camaddon import werkzeuge as wz
 
     # T1 wie das Werkzeug des Jobs (Ø 5), nur 25 mm lang, ohne Halter.
@@ -118,6 +119,16 @@ def schritte(h):
     h.pruefe(len(saetze) >= 2, f"mit 10 mm: {saetze}")
     h.pruefe(any("kommen sich" in s and "nahe" in s for s in saetze), f"keine Warnung: {saetze}")
     h.bild("3_warnabstand", panel.form)
+    # Nur ein Komma: geprüft wird mit der Vorgabe (1 mm) – kein Fehler.
+    panel.kollision.feld_warnabstand.setText(",")
+    k.knopf.click()
+    yield from h.warte_auf(lambda: not k.laeuft, 30000)
+    yield 300
+    h.pruefe(
+        k.ergebnis is not None and k.ergebnis.warnabstand == kb.WARNABSTAND,
+        f"mit „,“: {k.ergebnis.warnabstand if k.ergebnis else None}",
+    )
+    h.pruefe(k.liste.count() == 1, f"mit „,“: {k.liste.count()} Sätze")
     panel.kollision.feld_warnabstand.setText("")
 
     # --- Ein anderer Nullpunkt: das Ergebnis gilt nicht mehr ----------------------------------

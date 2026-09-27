@@ -90,11 +90,16 @@ class KollisionsBereich(QtGui.QWidget):
 
     # --- Rechnen ------------------------------------------------------------------------
 
+    def _eingetragen(self):
+        """Der eingetragene Warnabstand in mm; 0, wenn das Feld leer oder unlesbar ist („,“)."""
+        try:
+            return max(groesse_lesen(self.feld_warnabstand.text(), einheiten.LAENGE), 0.0)
+        except ValueError:
+            return 0.0
+
     def warnabstand(self):
         """Der Warnabstand in mm: eingetragen, sonst die Vorgabe."""
-        text = self.feld_warnabstand.text().strip()
-        wert = groesse_lesen(text, einheiten.LAENGE) if text else 0.0
-        return wert if wert > 0 else kb.WARNABSTAND
+        return self._eingetragen() or kb.WARNABSTAND
 
     def pruefen(self):
         """Prüft die Bahn – oder bricht ab, wenn es schon läuft."""
@@ -105,8 +110,7 @@ class KollisionsBereich(QtGui.QWidget):
         if abfahrt is None or not abfahrt.stationen:
             return
         warnabstand = self.warnabstand()
-        eingetragen = self.feld_warnabstand.text().strip()
-        FreeCAD.ParamGet(PARAMETER_PFAD).SetFloat(WARNABSTAND, warnabstand if eingetragen else 0.0)
+        FreeCAD.ParamGet(PARAMETER_PFAD).SetFloat(WARNABSTAND, self._eingetragen())
         self.laeuft, self._abbrechen = True, False
         self.knopf.setText(tr("kb.abbrechen"))
         self.balken.setValue(0)

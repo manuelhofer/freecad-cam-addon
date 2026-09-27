@@ -372,7 +372,8 @@ class HalterDialog(QtGui.QDialog):
         h = self.gewaehlt
         if self._fuellt or h is None:
             return
-        h.spanntiefe = groesse_lesen(self.feld_spanntiefe.text(), einheiten.LAENGE)
+        with contextlib.suppress(ValueError):  # Unlesbares („,“): bleibt, wie es war
+            h.spanntiefe = groesse_lesen(self.feld_spanntiefe.text(), einheiten.LAENGE)
         self.feld_spanntiefe.setText(groesse_zeigen(h.spanntiefe, einheiten.LAENGE))
         self._neu_berechnet()
 
