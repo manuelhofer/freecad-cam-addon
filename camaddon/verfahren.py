@@ -240,6 +240,30 @@ def _seite_des_kinds(achse):
     return 2 if referenz2 and referenz2[0] in achse.kind.bauteile else 1
 
 
+def fensterreihenfolge(maschine, achsen):
+    """Die Achsen, wie man sie liest: Linearachsen nach Namen (X, Y, Z …), dann
+    Rundachsen, die positionieren (A, B, C – auch C an der Hauptspindel), dann
+    Spindeln und noch Unbenanntes, zuletzt der Revolver."""
+
+    def schluessel(achse):
+        arten = {
+            b.Art
+            for b in (m.betriebsarten(maschine) if maschine is not None else [])
+            if b.Gelenk == achse.gelenk
+        }
+        if achse.art == LINEAR:
+            gruppe = 0
+        elif m.ART_REVOLVER in arten:
+            gruppe = 3
+        elif m.ART_POSITIONIEREN in arten:
+            gruppe = 1
+        else:
+            gruppe = 2
+        return gruppe, namen(maschine, achse)
+
+    return sorted(achsen, key=schluessel)
+
+
 def namen(maschine, achse):
     """Wie die Achse im Fenster heißt: die NC-Namen ihrer Betriebsarten, sonst das Gelenk."""
     if maschine is None:

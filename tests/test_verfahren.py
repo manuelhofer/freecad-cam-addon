@@ -39,6 +39,9 @@ doc = asm.Document
 v = vf.Verfahren(asm)
 achsen = {vf.namen(ma, a): a for a in v.achsen}
 pruefe(sorted(achsen) == ["C4", "T", "X1", "Z1"], f"Namen: {sorted(achsen)}")
+# Im Fenster: erst die Linearachsen nach Namen, dann C, zuletzt der Revolver.
+reihe = [vf.namen(ma, a) for a in vf.fensterreihenfolge(ma, v.achsen)]
+pruefe(reihe == ["X1", "Z1", "C4", "T"], f"Reihenfolge im Fenster: {reihe}")
 x, z, c, t = (achsen[n] for n in ("X1", "Z1", "C4", "T"))
 pruefe(v.grenzen(x) == (0.0, 200.0) and v.grenzen(c) == (None, None), "Grenzen")
 

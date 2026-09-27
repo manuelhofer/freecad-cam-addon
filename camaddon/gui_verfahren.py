@@ -225,7 +225,7 @@ class VerfahrPanel:
         gitter.setColumnStretch(1, 1)
         programm = self.programm if self.wie_im_programm else None
         zeile = 0
-        for achse in self.verfahren.achsen:
+        for achse in vf.fensterreihenfolge(self.maschine, self.verfahren.achsen):
             if programm is not None and achse is programm.ausgleich:
                 zeile = self._baue_programmzeile(gitter, zeile, "x")
             elif programm is not None and achse is programm.schraeg:

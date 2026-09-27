@@ -61,6 +61,7 @@ ein Klick ohne Job einen Satz zeigt, was zu tun ist.
 Abfahren zeigt schon X1, Y1, Z1. **Vorschlag:** Linearachsen nach Namen (X, Y,
 Z, U, V, W), dann Rundachsen (A, B, C), dann Spindeln und Revolver.
 **Fertig, wenn:** die 3-Achs-Fräse X1, Y1, Z1, Spindel zeigt.
+*Erledigt (P-2026-09-27-11).*
 
 ### D-04 Nach dem Update gibt es nur „Später“ (klein bis mittel)
 **Heute:** „Aktualisiert. Bitte FreeCAD neu starten, damit die neue Version

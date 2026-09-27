@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-11 achsen-reihenfolge-verfahren
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-03; `camaddon/gui_verfahren.py`
+  (_baue_raster), `camaddon/verfahren.py` (namen), `camaddon/gui_abfahren.py`
+  (sortiert schon: Linearachsen zuerst, dann nach Namen).
+
+### DATEIEN
+- `camaddon/verfahren.py`, `camaddon/gui_verfahren.py`
+- `tests/test_verfahren.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Maschine verfahren“ zeigt die Achsen in Lesereihenfolge: Linearachsen nach
+Namen, dann positionierende Rundachsen, dann Spindeln, zuletzt der Revolver.
+
+### DONE
+- `verfahren.fensterreihenfolge(maschine, achsen)`; das Fenster baut seine
+  Zeilen in dieser Reihenfolge (vorher die der Gelenkkette: Y1, Z1, X1 an der
+  3-Achs-Fräse). „Wie im Programm“ folgt mit: X, Y (die Schlitten), Z1 …
+
+### TEST
+- `test_verfahren`: Drehmaschine → X1, Z1, C4, T.
+- Szenarien `beispielmaschine`, `verfahren`, `verfahren_schraeg`, `mausrad` in
+  1.1.3 ok; Screenshots angesehen (Fräse: X1, Y1, Z1, Spindelachse;
+  Drehmaschine wie im Programm: X, Y, Z1).
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-04.
+
 ## P-2026-09-27-10 schnittwerte-job-erklaert
 
 ### EINGELESEN
