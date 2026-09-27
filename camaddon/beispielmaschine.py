@@ -36,6 +36,7 @@ Läuft ohne Oberfläche; mit Oberfläche bekommen Körper und Gelenke Farben
 und Ansichten.
 """
 
+import math
 from dataclasses import dataclass
 
 import FreeCAD as App
@@ -54,6 +55,7 @@ TISCH = (0.70, 0.72, 0.75)
 KOPF = (0.20, 0.45, 0.70)
 SPINDEL = (0.82, 0.82, 0.84)
 WERKZEUG = (0.90, 0.68, 0.15)
+REVOLVER = (0.93, 0.93, 0.95)  # hell, damit er sich von Schlitten und Bett abhebt
 
 # Die Bauarten, in der Reihenfolge der Auswahl (wie Manuel sie aufzählte).
 DREHMASCHINE = "drehmaschine"
@@ -81,11 +83,13 @@ class Baukasten:
         self.gelenke = self.assembly.newObject("Assembly::JointGroup", "Joints")
         self.rahmen = App.Placement()
 
-    def quader(self, name, laenge, breite, hoehe, x=0, y=0, z=0, farbe=None):
+    def quader(self, name, laenge, breite, hoehe, x=0, y=0, z=0, farbe=None, gedreht=None):
+        """Ein Quader mit der Ecke bei (x, y, z); `gedreht` (App.Placement im Rahmen)
+        dreht ihn danach, etwa um die Revolverachse."""
         teil = self.assembly.newObject("Part::Box", name)
         teil.Length, teil.Width, teil.Height = laenge, breite, hoehe
         # Placement als Ganzes zuweisen: teil.Placement.Base = … änderte nur eine Kopie.
-        teil.Placement = self._lage(x, y, z)
+        teil.Placement = self._lage(x, y, z, gedreht=gedreht)
         _faerbe(teil, farbe)
         return teil
 
@@ -135,14 +139,17 @@ class Baukasten:
         auf das Bauteil."""
         return teil.Placement.inverse() * self._lage(x, y, z, richtung, x_richtung)
 
-    def _lage(self, x, y, z, richtung=None, x_richtung=None):
+    def _lage(self, x, y, z, richtung=None, x_richtung=None, gedreht=None):
         drehung = App.Rotation()
         if richtung is not None and x_richtung is not None:
             z_achse, x_achse = App.Vector(*richtung), App.Vector(*x_richtung)
             drehung = App.Rotation(x_achse, z_achse.cross(x_achse), z_achse, "ZXY")
         elif richtung is not None:
             drehung = App.Rotation(App.Vector(0, 0, 1), App.Vector(*richtung))
-        return self.rahmen * App.Placement(App.Vector(x, y, z), drehung)
+        lage = App.Placement(App.Vector(x, y, z), drehung)
+        if gedreht is not None:
+            lage = gedreht * lage
+        return self.rahmen * lage
 
     def fixieren(self, teil):
         import JointObject
@@ -702,9 +709,31 @@ def drehmaschine(masse=None):
     y_schlitten = b.quader("YSchlitten", 280, 150, 280, x=820, y=330, z=210, farbe=KOPF)
 
     # Revolverscheibe; P1 unten (zur Spindelachse hin) mit dem radialen
-    # Halter, P2 um 30° weiter mit dem axialen, der zum Futter zeigt.
+    # Halter, P2 um 30° weiter mit dem axialen, der zum Futter zeigt. Rundum
+    # je Platz eine Station – so sieht man, dass es ein Revolver ist und wie
+    # viele Plätze er hat.
     achse = REVOLVERACHSE
     axial = _auf_der_scheibe(360.0 / masse.plaetze, 130)
+    # So breit, dass zwischen zwei Stationen Luft bleibt – auch bei 24 Plätzen.
+    breite = min(60.0, 0.6 * 2 * math.pi * 170 / masse.plaetze)
+    stationen = [
+        b.quader(
+            f"Station{nummer:02d}",
+            80,
+            40,
+            breite,
+            x=725,
+            y=achse.y - 170 - 40,
+            z=achse.z - breite / 2,
+            farbe=SCHLITTEN,
+            gedreht=App.Placement(
+                App.Vector(),
+                App.Rotation(App.Vector(1, 0, 0), (nummer - 1) * 360.0 / masse.plaetze),
+                achse,
+            ),
+        )
+        for nummer in range(2, masse.plaetze + 1)
+    ]
     revolver, _ = b.bauteil(
         "Revolver",
         [
@@ -716,7 +745,7 @@ def drehmaschine(masse=None):
                 y=achse.y,
                 z=achse.z,
                 achse=(1, 0, 0),
-                farbe=TISCH,
+                farbe=REVOLVER,
             ),
             b.quader("HalterRadial", 80, 50, 80, x=725, y=185, z=310, farbe=SCHLITTEN),
             b.zylinder(
@@ -735,6 +764,7 @@ def drehmaschine(masse=None):
             b.zylinder(
                 "FraeserAxial", 8, 60, x=650, y=axial.y, z=axial.z, achse=(-1, 0, 0), farbe=WERKZEUG
             ),
+            *stationen,
         ],
     )
     # Aufnahme des radialen Werkzeugs: seine Spitze zeigt zur Spindelachse,

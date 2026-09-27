@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-07 revolver-stationen
+
+### EINGELESEN
+- Manuel zum Screenshot der Drehmaschine: „Die Revolver … müsste man anders
+  aufbauen, der Revolver ist da nicht sichtbar“; nach den Vorher-/Nachher-
+  Bildern des Entwurfs: „Besser weiter“.
+- `camaddon/beispielmaschine.py` (Baukasten, drehmaschine),
+  `tests/beispielmaschinen.py` (Test-Drehmaschine), die Tests mit der
+  Drehmaschine (Plätze, Werkzeugspitzen – sie rechnen aus den LCS, nicht mit
+  festen Koordinaten), `help/*/neue_maschine.html`.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`
+- `help/de/neue_maschine.html`, `help/en/neue_maschine.html`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Beispiel-Drehmaschine zeigt einen Revolver, den man als solchen erkennt:
+rundum je Platz eine Station, die Scheibe heller als Schlitten und Bett;
+Gelenk, Plätze und Werkzeuge bleiben, wo sie waren.
+
+### DONE
+- Befund in Bildern: Die Revolverscheibe war eine glatte Scheibe in der Farbe
+  der Tische (grau wie die Schlitten), nur zwei Halter; von der Seite
+  verdeckt, in der Gesamtansicht unter den Gelenkmarkierungen.
+- Je Platz ab P2 eine Station (Block außen an der Scheibe, im Teilungswinkel
+  gedreht, Breite 60 % der Teilung, höchstens 60 mm – so bleibt auch bei 24
+  Plätzen Luft); P1 hat seinen radialen Halter. Die Scheibe bekommt die
+  Farbe REVOLVER (hell). `Baukasten.quader(…, gedreht=…)`: eine Drehung im
+  Rahmen, hier um die Revolverachse.
+- Die Stationen gehören zum Bauteil „Revolver“ – die Kollision prüft sie
+  mit (an der Maschine sitzen dort Halter).
+- Die Test-Drehmaschine (`tests/beispielmaschinen.py`, ein Würfel als
+  Revolver) bleibt: Sie spielt eine grob selbst gebaute Baugruppe, sogar mit
+  senkrechter Spindel. Ihre Bilder zeige ich Manuel nicht mehr als „die
+  Drehmaschine“.
+
+### TEST
+- Die Prüfungen mit der Drehmaschine in 1.1.3 ok (`test_abfahren`,
+  `test_beispielmaschine`, `test_kette`, `test_maschine`, `test_reichweite`,
+  `test_schraege_achse`); die Szenarien `beispielmaschine`,
+  `neue_maschine`, `schraege_achse`, `verfahren_schraeg`, `mausrad` ok;
+  Screenshots angesehen (Revolver in „Maschine bearbeiten“, alle fünf
+  Beispielmaschinen).
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- Manuel schaut sich den Revolver in seinem FreeCAD an („Neue Maschine …“ →
+  Drehmaschine mit Y-Achse).
+
 ## P-2026-09-27-06 durchsicht-bedienbarkeit
 
 ### EINGELESEN
