@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-28 menue-cam-addon
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-13; `camaddon/gui_start.py`
+  (Werkzeugleiste, `_werkzeugleiste_anhaengen`), `tests/gui/szenario_erster_start.py`,
+  `README.md` (Update-Knopf), `docs/aufbau.md`.
+
+### DATEIEN
+- `camaddon/gui_start.py` (`MENUE`, Werkzeugleiste ohne „Über“ und Update)
+- `tests/gui/szenario_erster_start.py`
+- `README.md`, `docs/aufbau.md`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Jeder Befehl steht im Menü, die Werkzeugleiste hat sieben Symbole
+(Fertig-wenn von D-13).
+
+### DONE
+- Im Assembly- und im CAM-Arbeitsbereich gibt es jetzt das Menü
+  **CAM-Addon** (zwischen dem Menü des Arbeitsbereichs und „Windows“): Neue
+  Maschine, Maschine bearbeiten, Maschine verfahren | Werkzeugverwaltung,
+  Schnittwerte in den Job, Auf der Maschine prüfen, 4-Achs-Bearbeitung | Nach
+  Updates suchen, Über das CAM-Addon – mit Text und Symbol.
+- Die Werkzeugleiste hat nur noch die sieben Arbeitsbefehle; „Über“ und
+  „Nach Updates suchen“ stehen im Menü. Angehängt wird beides auf demselben
+  Weg (`appendToolbar`, `appendMenu` des Arbeitsbereichs), einmal je
+  Arbeitsbereich.
+- README: „Aktualisieren“ zeigt auf **CAM-Addon → Nach Updates suchen**.
+- Die Einstellungsseite (Vorschlag D-13) bekommt keinen eigenen Knopf: Die
+  Suche beim Start lässt sich dort schon einschalten; für von Hand genügt
+  das Menü.
+
+### TEST
+- `szenario_erster_start` in 1.1.3 ok – Werkzeugleiste mit sieben Knöpfen,
+  ohne „Nach Updates suchen“; Menü „CAM-Addon“ mit neun Einträgen, deutsch,
+  „Nach Updates suchen“ und „Über das CAM-Addon“ am Ende; Bilder
+  `4_cam_werkzeugleiste`, `4b_menue` angesehen.
+- `szenario_update` ok; alle Einzeltests in 1.1.3 ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-23 (Halter vorschlagen), D-28, D-29 – oder Manuels Antwort zur
+  Ausspannlänge.
+
 ## P-2026-09-27-27 erster-einsatz
 
 ### EINGELESEN

@@ -4,13 +4,15 @@
 # Darunter das Dezimalzeichen mit Beispielzahlen, vorbelegt aus FreeCAD
 # (hier der Punkt); gewählt wird das Komma. Die Wahl steht sofort in
 # user.cfg, die Knöpfe des Addons sind gleich deutsch, und die
-# Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich. Die
-# Einstellungsseite ändert Sprache und Dezimalzeichen.
+# Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich – mit den
+# sieben Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle neun, auch „Nach
+# Updates suchen“ und „Über“ (D-13). Die Einstellungsseite ändert Sprache
+# und Dezimalzeichen.
 import os
 
 import FreeCAD
 import FreeCADGui
-from PySide import QtGui
+from PySide import QtCore, QtGui
 
 
 def schritte(h):
@@ -96,6 +98,34 @@ def schritte(h):
         f"Tooltip Prüfen: {pruefen.toolTip()!r}",
     )
     h.bild("4_cam_werkzeugleiste")
+
+    # Die Werkzeugleiste: die sieben Arbeitsbefehle. Das Menü „CAM-Addon“: alle (D-13).
+    leiste = next(
+        t
+        for t in FreeCADGui.getMainWindow().findChildren(QtGui.QToolBar)
+        if t.windowTitle() == "CAM-Addon" and t.isVisible()
+    )
+    knoepfe = [a.text() for a in leiste.actions() if not a.isSeparator()]
+    h.pruefe(len(knoepfe) == 7, f"Werkzeugleiste: {knoepfe}")
+    h.pruefe("Nach Updates suchen" not in knoepfe, "„Nach Updates suchen“ in der Leiste")
+    menues = {
+        a.text().replace("&", ""): a.menu() for a in FreeCADGui.getMainWindow().menuBar().actions()
+    }
+    menue = menues.get("CAM-Addon")
+    h.pruefe(menue is not None, f"Menü „CAM-Addon“ fehlt: {sorted(menues)}")
+    if menue is not None:
+        eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
+        h.pruefe(
+            len(eintraege) == 9
+            and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
+            and "Schnittwerte in den Job" in eintraege,
+            f"Menü: {eintraege}",
+        )
+        menue.popup(FreeCADGui.getMainWindow().mapToGlobal(QtCore.QPoint(400, 60)))
+        yield 400
+        h.bild("4b_menue", menue)
+        menue.hide()
+        yield 200
 
     # Einstellungsseite: zeigt die gewählte Sprache und speichert eine neue.
     from camaddon import gui_sprachwahl

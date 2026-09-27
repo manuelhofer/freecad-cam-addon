@@ -2,9 +2,9 @@
 """Anmeldung des Addons in der FreeCAD-Oberfläche; InitGui.py ruft `starten()` auf.
 
 Das Addon hat keinen eigenen Arbeitsbereich: Die Maschine wird in einer
-Assembly gebaut und in CAM benutzt, also hängt eine Werkzeugleiste an genau
-diesen beiden Arbeitsbereichen – über die öffentliche Python-Schnittstelle
-der Arbeitsbereiche, nichts an FreeCAD wird überschrieben.
+Assembly gebaut und in CAM benutzt, also hängen eine Werkzeugleiste und ein
+Menü an genau diesen beiden Arbeitsbereichen – über die öffentliche
+Python-Schnittstelle der Arbeitsbereiche, nichts an FreeCAD wird überschrieben.
 """
 
 import html
@@ -32,11 +32,12 @@ from .sprache import tr
 # Arbeitsbereiche, an die die Werkzeugleiste angehängt wird.
 ZIEL_ARBEITSBEREICHE = ("AssemblyWorkbench", "CAMWorkbench")
 
-# Die Werkzeugleiste heißt in jeder Sprache gleich: An ihrem Namen erkennt
-# _werkzeugleiste_anhaengen(), dass sie schon hängt – auch nach einer Sprachwahl.
+# Werkzeugleiste und Menü heißen in jeder Sprache gleich: An ihrem Namen erkennt
+# _werkzeugleiste_anhaengen(), dass sie schon hängen – auch nach einer Sprachwahl.
 WERKZEUGLEISTE_NAME = "CAM-Addon"
+MENUE_NAME = "CAM-Addon"
 
-# Befehle der Werkzeugleiste, in Anzeigereihenfolge.
+# Die Arbeitsbefehle – in der Werkzeugleiste, in Anzeigereihenfolge.
 WERKZEUGLEISTE = [
     "CamAddon_NeueMaschine",
     "CamAddon_MaschineBearbeiten",
@@ -45,8 +46,21 @@ WERKZEUGLEISTE = [
     "CamAddon_SchnittwerteJob",
     "CamAddon_AufMaschinePruefen",
     "CamAddon_Vierachs",
-    "CamAddon_Ueber",
+]
+# Das Menü: alle Befehle mit Text – auch „Nach Updates suchen“ und „Über“, die in der
+# Werkzeugleiste nur Platz kosteten (Durchsicht W-004, D-13).
+MENUE = [
+    "CamAddon_NeueMaschine",
+    "CamAddon_MaschineBearbeiten",
+    "CamAddon_MaschineVerfahren",
+    "Separator",
+    "CamAddon_Werkzeugverwaltung",
+    "CamAddon_SchnittwerteJob",
+    "CamAddon_AufMaschinePruefen",
+    "CamAddon_Vierachs",
+    "Separator",
     "CamAddon_UpdateSuchen",
+    "CamAddon_Ueber",
 ]
 
 
@@ -133,17 +147,23 @@ def _tooltip(titel, text, name):
 
 
 def _werkzeugleiste_anhaengen(name_arbeitsbereich):
-    """Hängt die Werkzeugleiste an, sobald ein Ziel-Arbeitsbereich aktiv wird.
+    """Hängt Werkzeugleiste und Menü an, sobald ein Ziel-Arbeitsbereich aktiv wird.
 
     Ein WorkbenchManipulator kann nur an vorhandene Werkzeugleisten anhängen,
     keine neue anlegen (ausprobiert, P-2026-09-25-12) – deshalb der Weg über
-    appendToolbar des Arbeitsbereichs, einmal je Arbeitsbereich.
+    appendToolbar und appendMenu des Arbeitsbereichs, einmal je Arbeitsbereich.
     """
     if name_arbeitsbereich not in ZIEL_ARBEITSBEREICHE:
         return
     arbeitsbereich = FreeCADGui.getWorkbench(name_arbeitsbereich)
+    neu = False
     if WERKZEUGLEISTE_NAME not in arbeitsbereich.listToolbars():
         arbeitsbereich.appendToolbar(WERKZEUGLEISTE_NAME, WERKZEUGLEISTE)
-        arbeitsbereich.reloadActive()  # erst danach erscheint die neue Leiste
+        neu = True
+    if MENUE_NAME not in arbeitsbereich.listMenus():
+        arbeitsbereich.appendMenu(MENUE_NAME, MENUE)
+        neu = True
+    if neu:
+        arbeitsbereich.reloadActive()  # erst danach erscheinen Leiste und Menü
     # Neue Knöpfe legt FreeCAD mit den Texten vom Start an.
     befehle_beschriften()

@@ -163,6 +163,7 @@ sind „Über“ und „Nach Updates suchen“. **Vorschlag:** zusätzlich ein M
 der Werkzeugleiste nur die sieben Arbeitsbefehle, „Über“ und „Update“ im Menü
 und auf der Einstellungsseite. **Fertig, wenn:** jeder Befehl im Menü steht und
 die Werkzeugleiste sieben Symbole hat.
+*Erledigt (P-2026-09-27-28).*
 
 ### D-14 Kennwerte einer neuen Achse: Pflicht ohne Beispiel (zur Entscheidung)
 **Heute:** Eilgang und Drehzahl sind Pflicht, die Felder zeigen „bitte

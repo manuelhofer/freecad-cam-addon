@@ -75,12 +75,12 @@ ist):
    ```
 
 3. FreeCAD neu starten. Beim ersten Start fragt das Addon nach der Sprache.
-   Seine Werkzeugleiste erscheint in den Arbeitsbereichen **Assembly** und
-   **CAM**.
+   Seine Werkzeugleiste und das Menü **CAM-Addon** erscheinen in den
+   Arbeitsbereichen **Assembly** und **CAM**.
 
 Die Zeile legt das Addon in den Addon-Ordner von FreeCAD – ohne Git, ohne
-GitHub Desktop – und trägt es im Addon-Manager ein. **Aktualisieren:** Der
-Knopf **Nach Updates suchen** in der Werkzeugleiste des Addons schaut bei
+GitHub Desktop – und trägt es im Addon-Manager ein. **Aktualisieren:**
+**CAM-Addon → Nach Updates suchen** (im Menü) schaut bei
 GitHub nach und fragt bei einer neuen Version „Jetzt aktualisieren?“. Von
 selbst sucht das Addon nicht; beim Start von FreeCAD suchen lässt es sich
 unter Bearbeiten → Einstellungen → CAM-Addon einschalten. Ohne das Addon:
@@ -112,8 +112,8 @@ und der Addon-Manager kommen dann nicht heran. Dann holt man das Addon mit
    im Mod-Ordner.)
 3. FreeCAD neu starten.
 
-**Aktualisieren:** Der Knopf **Nach Updates suchen** in der Werkzeugleiste
-des Addons schaut nach (per Git, mit der Anmeldung von GitHub Desktop bzw.
+**Aktualisieren:** **CAM-Addon → Nach Updates suchen** (im Menü) schaut
+nach (per Git, mit der Anmeldung von GitHub Desktop bzw.
 Git) und fragt bei einer neuen Version „Jetzt aktualisieren?“. Beim Start
 von FreeCAD suchen: Bearbeiten → Einstellungen → CAM-Addon (ab Werk aus).
 Von Hand: in GitHub Desktop **Fetch origin**, dann **Pull origin** (bzw.
