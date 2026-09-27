@@ -2,8 +2,10 @@
 # dem Boden als Basisgeometrie. „Schnittwerte in den Job“ legt den
 # Werkzeug-Controller „T3 Schruppen dynamisch“ an; mit ihm zeigt der Dialog
 # 2 Ebenen (25 + 1 mm – FreeCAD legt das Rohteil 1 mm über das Modell) und
-# sagt, wie die dünne entfällt. Rohteil oben bündig → 1 Ebene. Übernehmen →
-# das Adaptiv taucht einmal helikal bis 25 mm ein und räumt nur dort.
+# sagt, wie die dünne entfällt; „ap 26 mm übernehmen“ ändert den Einsatz in der
+# Werkzeugverwaltung, und der Dialog zeigt 1 Ebene (D-29). Rohteil oben bündig
+# → 1 Ebene. Übernehmen → das Adaptiv taucht einmal helikal bis 25 mm ein und
+# räumt nur dort.
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
@@ -116,6 +118,32 @@ def schritte(h):
     yield 100
     h.pruefe(not d.ebenen_hinweis.isVisible(), "Hinweis trotz ausgeschalteter Zustellung")
     d.mit_zustellung.setChecked(True)
+    yield 100
+
+    # Der Vorschlag mit einem Klick (D-29): ap 26 mm in den Einsatz, gespeichert – eine Ebene.
+    hinweis = d.ebenen_hinweis.text()
+    h.pruefe("ap 26 mm übernehmen" in hinweis, f"Verweis fehlt: {hinweis!r}")
+    verweis = next((v for _s, v in d._duenn.get(z, []) if v), None)
+    h.pruefe(verweis is not None and verweis.startswith(f"ap:{z}:26"), f"Verweis: {verweis!r}")
+    if verweis is not None:
+        d.ebenen_hinweis.linkActivated.emit(verweis)
+        yield 300
+        zustellung = d.tabelle.item(z, gj.ZUSTELLUNG).text()
+        h.pruefe(
+            zustellung == "Adaptiv: 10 % · 26 mm · Helix 3° · 1 Ebene",
+            f"nach „ap 26 mm übernehmen“: {zustellung!r}",
+        )
+        h.pruefe(not d.ebenen_hinweis.isVisible(), "Hinweis nach dem Übernehmen noch da")
+        gespeichert = wz.Bibliothek.laden().mit_nummer(3)
+        dynamisch = next(e for e in gespeichert.einsaetze(wz.ALLE) if e.art == wz.DYNAMISCH)
+        h.pruefe(dynamisch.ap == 26, f"ap in der Werkzeugverwaltung: {dynamisch.ap}")
+        h.bild("1b_ap_uebernommen", d)
+        # Für die folgenden Schritte wieder ap 25 – wie in der Datei vorher.
+        bibliothek = wz.Bibliothek.laden()
+        for einsatz in bibliothek.mit_nummer(3).einsaetze(wz.ALLE):
+            if einsatz.art == wz.DYNAMISCH:
+                einsatz.ap = 25
+        bibliothek.speichern()
     d.reject()
     yield 300
 

@@ -283,6 +283,7 @@ dick … Mit ap 26 mm im Einsatz entfällt sie“ (`szenario_loch_auffraesen/1_�
 ändern muss man es in der Werkzeugverwaltung. **Vorschlag:** Knopf „ap 26 mm
 übernehmen“ am Hinweis. **Fertig, wenn:** ein Klick den Einsatz ändert und die
 Ebenenzahl neu erscheint.
+*Erledigt (P-2026-09-27-29).*
 
 ### D-30 Der Standard-Controller „TC: 5mm Endmill“ (klein)
 **Heute:** FreeCAD legt in jedem neuen Job diesen Controller an; „Schnittwerte

@@ -924,5 +924,7 @@
     "sj.unbenutzt.schritt": "Remove unused tool controllers",
     "sj.unbenutzt.tooltip": "Such tool controllers do nothing. FreeCAD adds “TC: 5mm Endmill” to every new job – if you work with tools from the tool manager, you do not need it.",
     "wv.schnittwerte.noch_keine": "This tool has no cutting data yet. “+ Use case” adds the first one – it applies to all materials.",
-    "wv.einsatz.erster_fuer_alle": "The first use case applies to all materials – that is why “All materials” is selected at the top now. If the values for {werkstoff} differ, add own values there afterwards."
+    "wv.einsatz.erster_fuer_alle": "The first use case applies to all materials – that is why “All materials” is selected at the top now. If the values for {werkstoff} differ, add own values there afterwards.",
+    "sj.ebene_duenn.uebernehmen": "Use ap {ap} {e_laenge}",
+    "sj.ebene_duenn.wv_offen": "The tool manager is open – change ap there, or close it first. Otherwise its OK would write the old value back."
 }

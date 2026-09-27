@@ -10,6 +10,8 @@ Rohteil des Jobs und lässt sich ändern. Die Logik steht in
 job_schnittwerte.py.
 """
 
+import html
+
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
@@ -21,7 +23,7 @@ from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_teile import grau, hinweiszeile, ruhiges_mausrad
-from .gui_werkzeuge import werkstoffe_anbieten
+from .gui_werkzeuge import WerkzeugDialog, werkstoffe_anbieten
 from .gui_zahlen import dezimal, groesse_fest, groesse_zeigen, zahl_zeigen, zahlenformat
 from .sprache import tr
 
@@ -136,6 +138,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         SchnittwerteJobDialog.offen = self
         self.dokument = dokument or FreeCAD.ActiveDocument
         self.jobs = js.jobs(self.dokument)
+        self._pfad = pfad  # die Werkzeugverwaltung; None: die übliche Datei
         try:
             self.bibliothek = wz.Bibliothek.laden(pfad)
         except wz.BeschaedigteDatei as fehler:
@@ -144,7 +147,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
             )
             self.bibliothek = wz.Bibliothek()
         self._zeilen = []  # (tc, werkzeug oder None, Auswahl des Einsatzes)
-        self._duenn = {}  # Zeile → Sätze zu dünnen letzten Ebenen
+        self._duenn = {}  # Zeile → [(Satz, vorgeschlagenes ap oder None)] zu dünnen Ebenen
         self.setWindowTitle(tr("sj.titel"))
         self.resize(*FENSTER_GROESSE)
 
@@ -207,6 +210,12 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         zeile.addWidget(self.knopf_unbenutzt_weg)
         aufbau.addWidget(self.zeile_unbenutzt)
         self.ebenen_hinweis = hinweiszeile()
+        # Mit Verweis „ap … übernehmen“ (D-29).
+        self.ebenen_hinweis.setTextFormat(QtCore.Qt.RichText)
+        self.ebenen_hinweis.setTextInteractionFlags(
+            QtCore.Qt.TextSelectableByMouse | QtCore.Qt.LinksAccessibleByMouse
+        )
+        self.ebenen_hinweis.linkActivated.connect(self.ap_uebernehmen)
         self.ebenen_hinweis.hide()
         aufbau.addWidget(self.ebenen_hinweis)
 
@@ -389,7 +398,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
                 text += " · " + _ebenen_text(dicken)
                 rest = js.duenne_letzte_ebene(dicken, neu["StepDown"])
                 if rest is not None:
-                    duenn.append(self._duenn_satz(operation, werkzeug, *rest))
+                    duenn.append(self._duenn_satz(zeile, operation, werkzeug, *rest))
             zeilen.append(text)
             vorher = _zustellung_text(_jetzt(operation, neu))
             jetzt.append(f"{operation.Label}: {vorher}")
@@ -400,26 +409,55 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         return zelle
 
     @staticmethod
-    def _duenn_satz(operation, werkzeug, rest, ap_ohne):
-        """Der Satz zu einer dünnen letzten Ebene – mit ap, wenn die Schneide dafür reicht."""
+    def _duenn_satz(zeile, operation, werkzeug, rest, ap_ohne):
+        """Der Satz zu einer dünnen letzten Ebene – mit ap, wenn die Schneide dafür reicht –
+        als (HTML, Verweis „ap:Zeile:Wert“ oder None)."""
         satz = tr(
             "sj.ebene_duenn",
             operation=operation.Label,
             rest=groesse_zeigen(rest, einheiten.LAENGE),
         )
-        if werkzeug.schneidenlaenge and ap_ohne <= werkzeug.schneidenlaenge:
-            satz += " " + tr(
-                "sj.ebene_duenn.ap",
-                ap=groesse_zeigen(ap_ohne, einheiten.LAENGE),
-                laenge=groesse_zeigen(werkzeug.schneidenlaenge, einheiten.LAENGE),
-            )
-        return satz
+        if not werkzeug.schneidenlaenge or ap_ohne > werkzeug.schneidenlaenge:
+            return html.escape(satz, quote=False), None
+        ap = groesse_zeigen(ap_ohne, einheiten.LAENGE)
+        satz += " " + tr(
+            "sj.ebene_duenn.ap",
+            ap=ap,
+            laenge=groesse_zeigen(werkzeug.schneidenlaenge, einheiten.LAENGE),
+        )
+        verweis = f"ap:{zeile}:{ap_ohne!r}"
+        knopf = html.escape(tr("sj.ebene_duenn.uebernehmen", ap=ap), quote=False)
+        return f'{html.escape(satz, quote=False)} <a href="{verweis}">{knopf}</a>', verweis
 
     def _ebenen_hinweis_zeigen(self):
         """Unter der Tabelle: welche Operation eine dünne letzte Ebene fahren würde."""
-        saetze = [s for zeile in sorted(self._duenn) for s in self._duenn[zeile]]
-        self.ebenen_hinweis.setText("\n".join(saetze))
+        saetze = [s for zeile in sorted(self._duenn) for s, _verweis in self._duenn[zeile]]
+        self.ebenen_hinweis.setText("<br>".join(saetze))
         self.ebenen_hinweis.setVisible(bool(saetze) and self.mit_zustellung.isChecked())
+
+    def ap_uebernehmen(self, verweis):
+        """„ap:Zeile:Wert“ – die vorgeschlagene Zustelltiefe in den Einsatz der Zeile, in der
+        Werkzeugverwaltung gespeichert; danach rechnet der Dialog neu (D-29). Gibt zurück, ob
+        es geklappt hat."""
+        _art, zeile, wert = verweis.split(":")
+        _werkzeug, einsatz = self._gewaehlt(int(zeile))
+        if einsatz is None:
+            return False
+        offen = WerkzeugDialog.offen
+        if offen is not None and offen.isVisible():
+            # Deren OK schriebe sonst den alten Wert zurück.
+            QtGui.QMessageBox.information(self, tr("sj.titel"), tr("sj.ebene_duenn.wv_offen"))
+            return False
+        einsatz.ap = float(wert)
+        try:
+            self.bibliothek.speichern(self._pfad)
+        except OSError as fehler:
+            QtGui.QMessageBox.warning(
+                self, tr("wv.titel"), tr("wv.fehler.speichern", fehler=fehler)
+            )
+            return False
+        self._rechnen()
+        return True
 
     def _zustellung_zeigen(self, *_):
         """Die Spalte Zustellung nur, wenn sie auch übernommen wird; die Wahl merken."""

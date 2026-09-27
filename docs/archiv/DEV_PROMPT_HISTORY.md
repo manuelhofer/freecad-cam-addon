@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-29 ap-uebernehmen
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-29; `camaddon/gui_job_schnittwerte.py`
+  (`_zustellung_zelle`, `_duenn_satz`, `_ebenen_hinweis_zeigen`),
+  `camaddon/job_schnittwerte.py` (`duenne_letzte_ebene`),
+  `camaddon/gui_teile.py` (`hinweiszeile`), `tests/gui/szenario_loch_auffraesen.py`,
+  `help/*/werkzeuge.html` („Eine Ebene oder zwei?“).
+
+### DATEIEN
+- `camaddon/gui_job_schnittwerte.py` (Verweis am Hinweis, `ap_uebernehmen`)
+- `translations/de.json`, `translations/en.json`
+  (`sj.ebene_duenn.uebernehmen`, `sj.ebene_duenn.wv_offen`)
+- `help/de/werkzeuge.html`, `help/en/werkzeuge.html`
+- `tests/gui/szenario_loch_auffraesen.py`
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Klick ändert den Einsatz, und die Ebenenzahl erscheint neu (Fertig-wenn
+von D-29).
+
+### DONE
+- Der rote Hinweis zur dünnen letzten Ebene endet, wenn die Schneide lang
+  genug ist, mit dem Verweis **ap 26 mm übernehmen**. Er trägt die
+  vorgeschlagene Zustelltiefe in den Einsatz der Zeile ein (der gezeigte:
+  eigener des Werkstoffs oder der für alle), speichert die Werkzeugverwaltung
+  und rechnet den Dialog neu: „… · 26 mm · … · 1 Ebene“, der Hinweis
+  verschwindet.
+- Ist die Werkzeugverwaltung gleichzeitig offen, ändert der Verweis nichts
+  und sagt es – deren OK schriebe sonst den alten Wert zurück.
+- Das ist eine Änderung in der Werkzeugverwaltung, kein Schritt Rückgängig
+  im Dokument; die Hilfe sagt, dass gespeichert wird.
+
+### TEST
+- `szenario_loch_auffraesen` in 1.1.3 ok – Verweis da, Klick: 26 mm, 1
+  Ebene, kein Hinweis, in der Datei ap 26; Bilder `1_zwei_ebenen`,
+  `1b_ap_uebernommen` angesehen.
+- `szenario_schnittwerte_job`, alle Einzeltests in 1.1.3 ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-28: veraltete Werte im Job melden.
+
 ## P-2026-09-27-28 menue-cam-addon
 
 ### EINGELESEN
