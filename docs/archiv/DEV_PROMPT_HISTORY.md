@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-04 halter-spaltenkoepfe
+
+### EINGELESEN
+- Screenshot `szenario_halter/2_er32.png` aus dem Gesamtlauf für 0.24.0: Die
+  Überschrift „Ø unten (mm)“ der Kontur-Tabelle war abgeschnitten („(mm]“).
+- `camaddon/gui_halter.py` (_bereich_halter, Tabelle).
+
+### DATEIEN
+- `camaddon/gui_halter.py`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Fenster „Halter“ sind alle drei Überschriften der Kontur-Tabelle ganz zu
+lesen, auch in der Standardgröße des Fensters; die Breite richtet sich nach
+den Überschriften der gewählten Sprache.
+
+### DONE
+- Die Spalten bleiben gleich breit (gedehnt); die Tabelle ist mindestens so
+  breit, dass die längste Überschrift in jede Spalte passt – gemessen in
+  fetter Schrift: Solange eine Zeile gewählt ist, zeigt Qt die Überschriften
+  fett (der erste Versuch mit `sectionSizeHint` rechnete mit normaler
+  Schrift und reichte nicht). Dazu Rand, Zeilennummern und Rahmen; das
+  Fenster wird dadurch etwa 20 Pixel breiter.
+
+### TEST
+- `szenario_halter` in 1.1.3 und im Wochen-Build: Screenshot `2_er32.png`
+  angesehen – alle drei Überschriften ganz zu lesen, auch „Ø unten (mm)“.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- Manuel probiert Halter und Kollision aus (Snapshot, Punkt 7).
+
 ## P-2026-09-27-03 halbe-zahl-im-feld
 
 ### EINGELESEN

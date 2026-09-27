@@ -155,14 +155,23 @@ class HalterDialog(QtGui.QDialog):
         links = QtGui.QVBoxLayout()
         einheit = einheiten.einheit(einheiten.LAENGE)
         self.tabelle = QtGui.QTableWidget(0, 3)
-        self.tabelle.setHorizontalHeaderLabels(
-            [
-                tr("hd.spalte.laenge", einheit=einheit),
-                tr("hd.spalte.d_oben", einheit=einheit),
-                tr("hd.spalte.d_unten", einheit=einheit),
-            ]
-        )
-        self.tabelle.horizontalHeader().setSectionResizeMode(QtGui.QHeaderView.Stretch)
+        ueberschriften = [
+            tr("hd.spalte.laenge", einheit=einheit),
+            tr("hd.spalte.d_oben", einheit=einheit),
+            tr("hd.spalte.d_unten", einheit=einheit),
+        ]
+        self.tabelle.setHorizontalHeaderLabels(ueberschriften)
+        kopf = self.tabelle.horizontalHeader()
+        kopf.setSectionResizeMode(QtGui.QHeaderView.Stretch)
+        # Die Spalten sind gleich breit – so breit, dass jede Überschrift ganz zu lesen ist,
+        # auch fett (so zeigt Qt sie, solange eine Zeile gewählt ist).
+        schrift = QtGui.QFont(kopf.font())
+        schrift.setBold(True)
+        masse = QtGui.QFontMetrics(schrift)
+        rand = 2 * self.style().pixelMetric(QtGui.QStyle.PM_HeaderMargin) + 8
+        spalte = max(masse.horizontalAdvance(text) for text in ueberschriften) + rand
+        nummern = masse.horizontalAdvance("99") + rand  # die Zeilennummern links
+        self.tabelle.setMinimumWidth(3 * spalte + nummern + 2 * self.tabelle.frameWidth())
         self.tabelle.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tabelle.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.tabelle.setItemDelegate(_Zahlendelegat(self.tabelle))
