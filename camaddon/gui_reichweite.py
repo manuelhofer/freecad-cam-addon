@@ -34,6 +34,7 @@ from . import maschine as m
 from . import reichweite as rw
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
+from .gui_job_schnittwerte import dokument_mit_job
 from .gui_teile import GRAU, ROT, mit_einheit, ruhiges_mausrad
 from .gui_zahlen import Zahlenpruefer, groesse_lesen, zahlenformat
 from .sprache import tr
@@ -58,10 +59,10 @@ class BefehlAufMaschinePruefen:
 
     def Activated(self):
         hauptfenster = FreeCADGui.getMainWindow()
-        jobs = js.jobs(FreeCAD.ActiveDocument)
-        if not jobs:
-            QtGui.QMessageBox.information(hauptfenster, tr("rw.titel"), tr("rw.kein_job"))
+        dokument = dokument_mit_job(tr("rw.titel"), tr("rw.kein_job"))
+        if dokument is None:
             return
+        jobs = js.jobs(dokument)
         job = gewaehlter_job(jobs) or jobs[0]
         maschinen = offene_maschinen(job.Document)
         if not maschinen:
@@ -89,8 +90,9 @@ def offene_maschinen(zuerst=None):
 
 
 def gewaehlter_job(jobs):
-    """Der gewählte Job – auch über eine gewählte Operation oder ihren Controller – oder None."""
-    for objekt in FreeCADGui.Selection.getSelection():
+    """Der gewählte Job – auch über eine gewählte Operation oder ihren Controller, in jedem
+    offenen Dokument – oder None."""
+    for objekt in FreeCADGui.Selection.getSelection("*"):
         for job in jobs:
             if objekt is job or job in objekt.InListRecursive:
                 return job

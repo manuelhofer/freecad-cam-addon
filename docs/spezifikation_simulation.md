@@ -241,8 +241,10 @@ Abschnitt 8):
 
 ## 6. Oberfläche
 
-Befehl **„Auf der Maschine prüfen“** in der Werkzeugleiste „CAM-Addon“. Er
-braucht einen Job im aktiven Dokument; ist einer gewählt, gilt der. Die
+Befehl **„Auf der Maschine prüfen“** in der Werkzeugleiste „CAM-Addon“. Ist
+ein Job gewählt – in irgendeinem offenen Dokument –, gilt der; sonst die Jobs
+des aktiven Dokuments, und hat das keine, die des einzigen offenen Dokuments
+mit Jobs; bei mehreren fragt er, welches (Durchsicht W-004, D-21). Die
 **Maschine** nimmt er aus allen offenen Dokumenten; sind mehrere offen,
 fragt er vorher, welche (die im Dokument des Jobs zuerst). Das
 Aufgabenfenster öffnet sich im Dokument der Maschine, damit man sie fahren

@@ -146,6 +146,25 @@ def schritte(h):
     panel.reject()
     yield 800
     h.pruefe(rw.eingetragener_nullpunkt(job) == {}, f"{rw.eingetragener_nullpunkt(job)}")
+
+    # Das Maschinendokument vorn, nichts gewählt: Das Fenster findet den Job im anderen
+    # offenen Dokument, statt „kein Job“ zu melden (D-21).
+    FreeCAD.setActiveDocument(asm.Document.Name)
+    Gui.Selection.clearSelection()
+    yield 400
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_AufMaschinePruefen"))
+    yield from h.warte_auf(lambda: gui_reichweite.PruefPanel.offen is not None, 5000)
+    panel = gui_reichweite.PruefPanel.offen
+    meldung = h.modal()
+    h.pruefe(meldung is None, f"Meldung statt Fenster: {meldung and meldung.text()!r}")
+    if meldung is not None:
+        meldung.accept()
+    h.pruefe(
+        panel is not None and panel.job() is job, "Job aus dem anderen Dokument nicht gefunden"
+    )
+    if panel is not None:
+        panel.reject()
+    yield 800
     for name in list(FreeCAD.listDocuments()):
         FreeCAD.closeDocument(name)
     yield 300

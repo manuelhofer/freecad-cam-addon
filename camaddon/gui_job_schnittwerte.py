@@ -46,14 +46,38 @@ class BefehlSchnittwerteJob:
         return True
 
     def Activated(self):
-        if not js.jobs(FreeCAD.ActiveDocument):
-            QtGui.QMessageBox.information(
-                FreeCADGui.getMainWindow(), tr("sj.titel"), tr("sj.kein_job")
-            )
+        dokument = dokument_mit_job(tr("sj.titel"), tr("sj.kein_job"))
+        if dokument is None:
             return
-        dialog = SchnittwerteJobDialog()
+        dialog = SchnittwerteJobDialog(dokument=dokument)
         dialog.exec()
         SchnittwerteJobDialog.offen = None
+
+
+def dokument_mit_job(titel, kein_job):
+    """Das Dokument, dessen Jobs gemeint sind (Durchsicht W-004, D-21): das eines
+    gewählten Jobs – in jedem offenen Dokument –, sonst das aktive, wenn es Jobs hat,
+    sonst das einzige offene mit Jobs; bei mehreren fragt es. Gibt es nirgends einen
+    Job, sagt `kein_job` (ein Satz) es – dann None."""
+    hauptfenster = FreeCADGui.getMainWindow()
+    kandidaten = js.dokumente_mit_jobs(FreeCAD.ActiveDocument)
+    if not kandidaten:
+        QtGui.QMessageBox.information(hauptfenster, titel, kein_job)
+        return None
+    for objekt in FreeCADGui.Selection.getSelection("*"):
+        for dokument in kandidaten:
+            jobs = js.jobs(dokument)
+            if any(objekt is job or job in objekt.InListRecursive for job in jobs):
+                return dokument
+    if kandidaten[0] is FreeCAD.ActiveDocument or len(kandidaten) == 1:
+        return kandidaten[0]
+    namen = [d.Label for d in kandidaten]
+    if len(set(namen)) < len(namen):  # gleiche Namen: der Dateiname hilft
+        namen = [f"{d.Label} ({d.Name})" for d in kandidaten]
+    name, ok = QtGui.QInputDialog.getItem(
+        hauptfenster, titel, tr("jobs.welches_dokument"), namen, 0, False
+    )
+    return kandidaten[namen.index(name)] if ok else None
 
 
 def _zahl(wert, stellen=0):

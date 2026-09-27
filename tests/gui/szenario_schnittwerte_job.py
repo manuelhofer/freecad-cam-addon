@@ -55,7 +55,7 @@ def schritte(h):
     yield 500
     meldung = h.modal()
     h.pruefe(
-        isinstance(meldung, QtGui.QMessageBox) and "keinen CAM-Job" in meldung.text(),
+        isinstance(meldung, QtGui.QMessageBox) and "keinem offenen Dokument" in meldung.text(),
         f"ohne Job: {meldung.text() if meldung else None!r}",
     )
     if meldung is not None:

@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-18 job-in-allen-dokumenten
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, D-21; `camaddon/gui_reichweite.py`
+  (Befehl, `gewaehlter_job`), `camaddon/gui_job_schnittwerte.py` (Befehl,
+  Dialog nimmt schon ein Dokument), `camaddon/job_schnittwerte.py` (`jobs`),
+  `docs/spezifikation_simulation.md` §6, die Szenarien `szenario_reichweite`
+  und `szenario_schnittwerte_job`.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`dokumente_mit_jobs`)
+- `camaddon/gui_job_schnittwerte.py` (`dokument_mit_job`, Befehl)
+- `camaddon/gui_reichweite.py` (Befehl, `gewaehlter_job`)
+- `translations/de.json`, `translations/en.json` (`rw.kein_job`, `sj.kein_job`,
+  neu `jobs.welches_dokument`)
+- `tests/gui/szenario_reichweite.py`, `tests/gui/szenario_schnittwerte_job.py`
+- `docs/spezifikation_simulation.md` §6, `docs/durchsicht_bedienbarkeit.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Auf der Maschine prüfen“ mit dem Maschinendokument vorn prüft den Job des
+anderen Dokuments, statt „kein CAM-Job“ zu melden. „Schnittwerte in den Job“
+genauso.
+
+### DONE
+- Beide Befehle suchen das Dokument gleich (`dokument_mit_job`): das eines
+  gewählten Jobs (auch über eine gewählte Operation oder ihren Controller, in
+  jedem offenen Dokument), sonst das aktive, wenn es Jobs hat, sonst das
+  einzige offene mit Jobs. Haben mehrere Dokumente Jobs und keines davon ist
+  vorn, fragt eine Liste: „CAM-Jobs gibt es in mehreren offenen Dokumenten – in
+  welchem?“ (gleiche Namen mit dem Dokumentnamen dahinter).
+- Ohne Job in irgendeinem Dokument: „In keinem offenen Dokument gibt es einen
+  CAM-Job. Öffne das Dokument mit dem Job – …“
+- Die Maschine sucht das Prüffenster schon in allen Dokumenten; unverändert.
+
+### TEST
+- `szenario_reichweite` in 1.1.3 ok – neuer Block am Ende: Maschinendokument
+  vorn, nichts gewählt, Befehl: keine Meldung, das Fenster zeigt den Job des
+  Teils. `szenario_schnittwerte_job` ok (erwartet „keinem offenen Dokument“),
+  `test_sprache` ok.
+- `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build, siehe Push.
+
+### NEXT
+- D-20: die Maschine merken und selbst öffnen.
+
 ## P-2026-09-27-17 snapshot-w004
 
 ### EINGELESEN

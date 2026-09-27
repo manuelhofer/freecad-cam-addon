@@ -96,6 +96,12 @@ def jobs(dokument):
     return [o for o in dokument.Objects if type(getattr(o, "Proxy", None)).__name__ == "ObjectJob"]
 
 
+def dokumente_mit_jobs(aktiv=None):
+    """Die offenen Dokumente mit CAM-Jobs – `aktiv` (das aktive Dokument) zuerst."""
+    alle = [d for d in FreeCAD.listDocuments().values() if jobs(d)]
+    return sorted(alle, key=lambda d: d is not aktiv)
+
+
 def werkzeug_controller(job):
     """Die Werkzeug-Controller des Jobs, in ihrer Reihenfolge."""
     werkzeuge = getattr(job, "Tools", None)

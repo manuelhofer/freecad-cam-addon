@@ -791,7 +791,7 @@
     "rw.in_grenzen": "All axes stay within their limits.",
     "rw.keine_punkte": "No path to check – the job's operations have no points.",
     "rw.bereiche": "What the path needs ({anzahl} points):",
-    "rw.kein_job": "The active document has no CAM job. Open the document with the job – then this command checks its paths on a machine.",
+    "rw.kein_job": "There is no CAM job in any open document. Open the document with the job – this command then checks its paths on a machine.",
     "rw.keine_maschine": "No machine is open. Open the document with your machine – or create one with “New machine …”.",
     "wv.laenge_spindelnase": "Gauge length",
     "wv.laenge_spindelnase.tooltip": "From the spindle nose (in a turret: from the tool mount) to the tip, with holder – as the presetter measures it. “Check on machine” uses it to see whether Z reaches. Empty, with a holder: holder length + overall length − clamping depth; without a holder the overall length.",
@@ -892,7 +892,8 @@
     "kb.nahe": "Nothing touches, but some things come closer than {abstand}:",
     "kb.frei": "Nothing touches, nothing comes closer than {abstand}.",
     "kb.liste.tooltip": "A click sets the player to that spot; a red ball shows it in the view.",
-    "sj.kein_job": "There is no CAM job in the active document. Open the document with the job – this command then sets the speed and feed of its tool controllers from the tool manager.",
+    "sj.kein_job": "There is no CAM job in any open document. Open the document with the job – this command then sets the speed and feed of its tool controllers from the tool manager.",
     "update.neu_starten": "Restart now",
-    "update.neu_starten.tooltip": "Closes FreeCAD – it asks about unsaved documents first – and starts it again."
+    "update.neu_starten.tooltip": "Closes FreeCAD – it asks about unsaved documents first – and starts it again.",
+    "jobs.welches_dokument": "Several open documents have CAM jobs – which one?"
 }

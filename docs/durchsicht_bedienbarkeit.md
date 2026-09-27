@@ -190,6 +190,7 @@ Dokumenten; gibt es genau einen, diesen; sonst wählt man ihn im Fenster (die
 Auswahl gibt es schon). Ebenso für „Schnittwerte in den Job“ (D-02).
 **Fertig, wenn:** der Befehl mit dem Maschinendokument vorn den Job des
 anderen Dokuments prüft.
+*Erledigt (P-2026-09-27-18).*
 
 ### D-22 Kollision von selbst prüfen (mittel, zur Entscheidung)
 **Heute:** Man muss „Kollision prüfen“ klicken; nach jeder Änderung am
