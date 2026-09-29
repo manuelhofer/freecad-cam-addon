@@ -16,6 +16,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Winkel der Y-Achse, Wege, Revolverplätze, Höchstdrehzahl.
 - **Maschine bearbeiten:** eine Maschine als Baugruppe beschreiben –
   Achsen, Spindeln, Werkzeug- und Werkstückaufnahmen – und an CAM übergeben.
+  Der **Verfahrweg** jeder Achse steht dort zum Ändern („von … bis …“), mit
+  einem Satz, wie weit der Werkzeugplatz dabei vom Werkstück weg ist.
   Auch eine **schräge Achse**, etwa die Y-Achse einer Schrägbett-Drehmaschine:
   Winkel eintragen, die Baugruppe kippt mit. Das Programm bleibt
   rechtwinklig (X, Y), die Steuerung rechnet auf die Schlitten um.
@@ -67,7 +69,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   in Lagen bis aufs Schlichtaufmaß ab, als Spirale um das Teil (die Rundachse
   dreht fortlaufend, Vorschub nach G93); grau steht vorher, wie viele Lagen es
   werden. „Auf der Maschine prüfen“ fährt die Bahn mit drehender Rundachse ab
-  und prüft sie auf Kollision. Flächen wählen und Schlichten folgen.
+  und prüft sie auf Kollision. **Nachträglich ändern:** Doppelklick auf
+  „Rundum schruppen“ öffnet das Fenster wieder – anderer Fräser, Einsatz,
+  Zustellung, Aufmaß, „Übernehmen“. Flächen wählen und Schlichten folgen.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).

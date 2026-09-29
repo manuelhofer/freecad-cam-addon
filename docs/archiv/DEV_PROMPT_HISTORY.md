@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-05 version-0-26-1
+
+### EINGELESEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`; CLAUDE.md („Soll
+  Manuel etwas ausprobieren, braucht der Push eine höhere Version“).
+
+### DATEIEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet Manuel 0.26.1 an – mit Verfahrwegen in
+„Maschine bearbeiten“ und „Rundum schruppen“ nachträglich ändern.
+
+### DONE
+- Version 0.26.1; README: Verfahrweg im Fenster „Maschine bearbeiten“,
+  nachträglich ändern per Doppelklick; Stand nachgezogen.
+
+### TEST
+- Voller Lauf `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build vor dem
+  Push.
+
+### NEXT
+- Schritt 1 nachträglich ändern; V3f.
+
 ## P-2026-09-29-04 vierachs-nachtraeglich-aendern
 
 ### EINGELESEN
