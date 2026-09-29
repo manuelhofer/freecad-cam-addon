@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-06 vierachs-rohteil-aendern
+
+### EINGELESEN
+- Manuel (2026-09-29): „muss irgendwie gelöst werden das man im nachhinein
+  noch sachen ändern kann“ – nach P-2026-09-29-04 fehlte noch Schritt 1.
+- `camaddon/vierachs_rohteil.py`, `camaddon/gui_vierachs.py`,
+  `camaddon/vierachs_operation.py`, `tests/test_vierachs_rohteil.py`,
+  `tests/gui/szenario_vierachs_aendern.py`.
+
+### DATEIEN
+- `camaddon/vierachs_rohteil.py` (`einstellung`, `laengs_von` nimmt eine
+  Richtung), `camaddon/gui_vierachs.py`, `camaddon/vierachs_operation.py`
+  (`setze_achse`, auch in `lege_an`), `translations/de.json`,
+  `translations/en.json`, `help/de/vierachs.html`, `help/en/vierachs.html`,
+  `tests/test_vierachs_rohteil.py`, `tests/gui/szenario_vierachs_aendern.py`,
+  `docs/spezifikation_vierachs.md`, `docs/aufbau.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beim Ändern führt „Zurück“ zu Schritt 1 mit Stange, Mitte, Drehlage, Längen
+und Rundachse, wie sie im Job stehen, und eine dort geänderte Stange kommt mit
+„Übernehmen“ als eigener Schritt Rückgängig in den Job.
+
+### DONE
+- `vierachs_rohteil.einstellung(job)`: rechnet Teil, Stirnfläche, Mitte,
+  Drehlage und Stange aus dem Job zurück – Klon = Lage · Original, die
+  Stirnfläche bei a = 0 mit der Außennormale längs, der Zylinder vom Futter bis
+  vor das Planaufmaß, die Spannlänge gemerkt. None, wenn der Job nicht mehr so
+  aussieht (Klon verschoben, kein Zylinder). Nichts Neues gemerkt – geht auch
+  mit Jobs aus 0.26.0.
+- Assistent beim Ändern: „Zurück“ zu Schritt 1, alle Werte in den Feldern,
+  die Rundachse der Operation gewählt (fehlt sie in der Liste, kommt sie
+  dazu); die Stange wird durchsichtig, eine andere Fläche desselben Teils
+  lässt sich anklicken, ein anderes Teil nicht (Satz). Jede Änderung öffnet
+  einmal „Stange ändern“ und zieht die Rundachse aller „Rundum schruppen“ des
+  Jobs mit (`setze_achse`); „Übernehmen“ legt sie vor „Rundum schruppen
+  ändern“ ab, „Abbrechen“ nimmt sie zurück; die Stange sieht danach wieder aus
+  wie vorher. Geht Schritt 1 nicht, bleibt „Zurück“ weg, mit einem Satz.
+
+### TEST
+- `test_vierachs_rohteil`: zurückgerechnet bei C (Mitte der Fläche, 0°),
+  bei A (andere Stange) und bei B (ganzes Teil, 90°); quer verschoben: None.
+- `szenario_vierachs_aendern` (1.1.3 und Wochen-Build): „Zurück“ zeigt 80, 1,
+  3, 30, A; Ø 90 → Stange sofort Ø 90, „Übernehmen“: „Stange ändern“ und
+  „Rundum schruppen ändern“, mehr Lagen, die Stange wieder wie in CAM; Ø 100
+  und „Abbrechen“: bleibt Ø 90; viermal Strg+Z: T1, Ø 80. Bild
+  `4_schritt1_wie_im_job`.
+- `test_vierachs_operation`, `test_sprache`, `test_hilfe`; die übrigen
+  4-Achs-Szenarien in 1.1.3.
+
+### NEXT
+- V3f: Maschine zuerst, Überlauf, Abstand zum Futter, Ausspannlänge.
+
 ## P-2026-09-29-05 version-0-26-1
 
 ### EINGELESEN

@@ -259,9 +259,11 @@ def vermesse(form, flaeche):
 
 def laengs_von(achse):
     """Die Stangenachse nach vorne, in den Achsen des Jobs: aus dem Buchstaben A, B, C
-    (ohne Maschine) oder aus einer vierachs_achsen.Stangenachse."""
+    (ohne Maschine), aus einer vierachs_achsen.Stangenachse oder die Richtung selbst."""
     if isinstance(achse, str):
         return ACHSEN[achse][0]
+    if isinstance(achse, FreeCAD.Vector):
+        return achse
     return achse.laengs
 
 
@@ -377,6 +379,102 @@ def richte_ein(dokument, teil, lage_, stange, achse, job=None, beschriftung=None
     _merke_spannlaenge(job, stange.spannlaenge)
     dokument.recompute()
     return job
+
+
+@dataclass
+class Einstellung:
+    """Wie der Assistent einen Job eingerichtet hat – aus dem Job zurückgerechnet
+    (einstellung())."""
+
+    teil: object  # das Original
+    flaeche: str  # „FaceN“ – die Stirnfläche
+    vermessung: Vermessung
+    laengs: FreeCAD.Vector  # die Stangenachse nach vorne, in den Achsen des Jobs
+    mitte: str  # MITTE_FLAECHE oder MITTE_TEIL
+    drehlage: float  # Grad, 0 … 360
+    stange: Stange
+
+
+def einstellung(job):
+    """Rechnet aus einem Job des Assistenten zurück, wie er eingerichtet ist (Einstellung) –
+    None, wenn er nicht (mehr) so aussieht, wie richte_ein() ihn anlegt: kein Zylinder,
+    Klon verschoben, Stirnfläche nicht vorne.
+
+    Am Job gemerkt ist nur die Spannlänge; alles andere steht im Job selbst: Der
+    Klon liegt bei Lage · Original, die Stirnfläche bei a = 0 mit der
+    Außennormale längs, der Zylinder reicht vom Futter bis vor das Planaufmaß.
+    So gilt, was im Job steht – auch für Jobs aus älteren Versionen.
+    """
+    rohteil = getattr(job, "Stock", None)
+    spann = spannlaenge(job)
+    if rohteil is None or not hasattr(rohteil, "Radius") or spann <= 0:
+        return None
+    try:
+        klon = modell(job)
+    except (AttributeError, IndexError):
+        return None
+    teil = original(klon)
+    form = getattr(teil, "Shape", None)
+    if teil is klon or form is None or form.isNull():
+        return None
+    laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+    platz = klon.Placement.multiply(teil.Placement.inverse())  # Welt → Job
+    flaeche = _stirnflaeche(form, platz, laengs)
+    if flaeche is None:
+        return None
+    vermessung = vermesse(form, form.getElement(flaeche))
+    drehlage = _drehlage(platz, vermessung.normale, laengs)
+    if drehlage is None:
+        return None
+    groesse = max(1.0, form.BoundBox.DiagonalLength)
+    mitte = next(
+        (
+            m
+            for m in (MITTE_FLAECHE, MITTE_TEIL)
+            if (lage(vermessung, laengs, m, drehlage).placement.Base - platz.Base).Length
+            < 1e-7 * groesse
+        ),
+        None,
+    )
+    a_hinten = rohteil.Placement.Base.dot(laengs)
+    planaufmass = a_hinten + float(rohteil.Height) - vermessung.vorne
+    abstechbreite = vermessung.hinten - a_hinten - spann
+    if mitte is None or planaufmass < -GENAU or abstechbreite < -GENAU:
+        return None
+    stange = Stange(
+        round(2 * float(rohteil.Radius), 6),
+        round(max(0.0, planaufmass), 6),
+        round(max(0.0, abstechbreite), 6),
+        spann,
+    )
+    return Einstellung(teil, flaeche, vermessung, laengs, mitte, drehlage, stange)
+
+
+def _stirnflaeche(form, platz, laengs):
+    """„FaceN“ der ebenen Fläche, die nach `platz` vorne an der Stange liegt – Außennormale
+    längs, bei a = 0 –, oder None."""
+    for nummer, flaeche in enumerate(form.Faces, start=1):
+        if not ist_eben(flaeche):
+            continue
+        normale = platz.Rotation.multVec(aussennormale(flaeche))
+        if (normale - laengs).Length < 1e-6 and abs(
+            platz.multVec(flaeche.CenterOfMass).dot(laengs)
+        ) < 1e-6 * max(1.0, form.BoundBox.DiagonalLength):
+            return f"Face{nummer}"
+    return None
+
+
+def _drehlage(platz, normale, laengs):
+    """Um wie viel Grad lage() das Teil um die Stangenachse gedreht hat (0 … 360) – None,
+    wenn die Drehung von `platz` nicht so zustande kommt."""
+    rest = platz.Rotation.multiply(FreeCAD.Rotation(normale, laengs).inverted())
+    if (rest.multVec(laengs) - laengs).Length > 1e-6:
+        return None
+    quer = _quer(laengs)[0]
+    gedreht = rest.multVec(quer)
+    winkel = math.degrees(math.atan2(quer.cross(gedreht).dot(laengs), quer.dot(gedreht)))
+    winkel = round(winkel % 360.0, 6)
+    return 0.0 if winkel >= 360.0 else winkel
 
 
 def spannlaenge(job):

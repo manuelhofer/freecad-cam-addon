@@ -8,8 +8,11 @@
 # „Rundum schruppen T2“, hat den Controller „T2 Schruppen“, Zustellung 1,5 (der
 # Vorschlag von T2) – „T1 Schruppen“ ist weg, ein Schritt Rückgängig. Wieder öffnen
 # über den Knopf (Operation gewählt), Zustellung 1 und „Abbrechen“: nichts geändert.
-# Noch einmal, Zustellung 1, „Übernehmen“: derselbe Controller. Zweimal Strg+Z: wieder
-# T1 mit Zustellung 2.
+# Noch einmal, Zustellung 1, „Übernehmen“: derselbe Controller. Dann „Zurück“ zu
+# Schritt 1: Stange 80, Planaufmaß 1, Abstechbreite 3, Spannlänge 30, Rundachse A, wie
+# im Job; Ø 90 → die Stange wächst sofort, „Weiter“, „Übernehmen“: zwei Schritte
+# Rückgängig („Stange ändern“, „Rundum schruppen ändern“), mehr Lagen. Ø 100 und
+# „Abbrechen“: die Stange bleibt Ø 90. Viermal Strg+Z: wieder T1, Zustellung 2, Ø 80.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -94,7 +97,7 @@ def schritte(h):
     h.pruefe(
         panel.mit_schruppen.isChecked() and not panel.mit_schruppen.isEnabled(), "Haken änderbar"
     )
-    h.pruefe(panel.knopf_zurueck.isHidden(), "„Zurück“ sichtbar")
+    h.pruefe(not panel.knopf_zurueck.isHidden(), "„Zurück“ fehlt")
     h.pruefe(panel.hinweis_aendern.isHidden(), f"Hinweis: {panel.hinweis_aendern.text()!r}")
     yield from h.warte_auf(lambda: panel.vorschau is not None, 15000)
     h.bild("1_aendern_geoeffnet", panel.form)
@@ -160,14 +163,76 @@ def schritte(h):
     h.pruefe(op.ToolController is tc_t2 and op.Zustellung.Value == 1.0, "neuer Controller")
     h.pruefe([tc.Label for tc in job.Tools.Group] == ["T2 Schruppen"], "Controller danach")
 
-    # --- Zweimal Strg+Z: wieder T1 -----------------------------------------------------------
-    doc.undo()
-    doc.undo()
+    # --- Schritt 1: Stange Ø 90 statt 80 ------------------------------------------------------
+    schritte_vorher = list(doc.UndoNames)
+    lagen_vorher = op.Lagen
+    op.ViewObject.Proxy.doubleClicked(op.ViewObject)
+    yield 1000
+    panel = gui_vierachs.VierachsPanel.offen
+    if panel is None:
+        h.pruefe(False, "dritter Doppelklick öffnet nichts")
+        return
+    panel.knopf_zurueck.click()
+    yield 300
+    ok = panel.knopf_anlegen()
+    h.pruefe(panel.seite == 1 and ok.text() == "Weiter", f"Schritt 1: {panel.seite}, {ok.text()}")
+    felder = (
+        panel.feld_stange.text(),
+        *(panel.felder_laenge[k].text() for k in ("planaufmass", "abstechbreite", "spannlaenge")),
+        panel.feld_drehlage.text(),
+    )
+    h.pruefe(felder == ("80", "1", "3", "30", ""), f"Schritt 1 wie im Job: {felder}")
+    h.pruefe(
+        panel.buchstabe() == "A" and panel.wahl_achse.count() == 3,
+        f"Rundachse {panel.buchstabe()}, {panel.wahl_achse.count()} Einträge",
+    )
+    h.pruefe(panel.knopf_mitte_flaeche.isChecked(), "Mitte der Fläche nicht gewählt")
+    h.pruefe("Passt" in panel.urteil.text(), f"Urteil: {panel.urteil.text()!r}")
+    h.bild("4_schritt1_wie_im_job", panel.form)
+    panel.feld_stange.setText("90")
+    yield from h.warte_auf(lambda: not panel._uhr.isActive(), 3000)
+    yield 300
+    h.pruefe(abs(job.Stock.Radius.Value - 45) < 1e-9, f"Stange: {job.Stock.Radius}")
+    panel.accept()  # Weiter
+    yield 300
+    h.pruefe(panel.seite == 2 and ok.text() == "Übernehmen", f"nach Weiter: {ok.text()}")
+    yield from h.warte_auf(lambda: panel.vorschau is not None, 15000)
+    panel.accept()  # Übernehmen
+    yield 1500
+    h.pruefe(gui_vierachs.VierachsPanel.offen is None, "Fenster nach „Übernehmen“ offen")
+    neu = ["Rundum schruppen ändern", "Stange ändern"]
+    h.pruefe(doc.UndoNames == neu + schritte_vorher, f"Schritte: {doc.UndoNames}")
+    h.pruefe(op.Lagen > lagen_vorher, f"Lagen: {op.Lagen} nach {lagen_vorher}")
+    ansicht = job.Stock.ViewObject
+    h.pruefe(ansicht.Selectable and ansicht.DisplayMode == "Wireframe", "Stange sieht anders aus")
+
+    # Ø 100 und „Abbrechen“: Die Stange bleibt Ø 90.
+    op.ViewObject.Proxy.doubleClicked(op.ViewObject)
+    yield 1000
+    panel = gui_vierachs.VierachsPanel.offen
+    if panel is None:
+        h.pruefe(False, "vierter Doppelklick öffnet nichts")
+        return
+    panel.zeige_seite(1)
+    panel.feld_stange.setText("100")
+    yield from h.warte_auf(lambda: not panel._uhr.isActive(), 3000)
+    yield 300
+    h.pruefe(abs(job.Stock.Radius.Value - 50) < 1e-9, f"Ø 100 nicht gezeigt: {job.Stock.Radius}")
+    panel.reject()
+    yield 500
+    doc.recompute()
+    h.pruefe(abs(job.Stock.Radius.Value - 45) < 1e-9, f"nach Abbrechen: {job.Stock.Radius}")
+    h.pruefe(doc.UndoNames == neu + schritte_vorher, f"Abbrechen: {doc.UndoNames}")
+
+    # --- Viermal Strg+Z: wieder T1 und Ø 80 --------------------------------------------------
+    for _ in range(4):
+        doc.undo()
     doc.recompute()
     yield 500
     tc = op.ToolController
     h.pruefe(tc is not None and tc.Label == "T1 Schruppen", f"nach Strg+Z: {tc and tc.Label}")
     h.pruefe(op.Label == "Rundum schruppen T1" and op.Zustellung.Value == 2.0, f"{op.Label}")
+    h.pruefe(abs(job.Stock.Radius.Value - 40) < 1e-9, f"Stange nach Strg+Z: {job.Stock.Radius}")
     for name in list(FreeCAD.listDocuments()):
         FreeCAD.closeDocument(name)
     yield 300

@@ -595,11 +595,20 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   Vorschub und Name aus dem Einsatz), sonst kommt ein neuer, und der alte geht,
   wenn ihn keine Operation mehr benutzt. Der Name „Rundum schruppen T1“ folgt
   dem Werkzeug. „Abbrechen“ ändert nichts.
-  *Gebaut (P-2026-09-29-04):* Schritt 2. Schritt 1 (Stange, Mitte,
-  Rundachse) nachträglich ändern: als Nächstes.
+  *Gebaut (P-2026-09-29-04):* Schritt 2. *(P-2026-09-29-06):* „Zurück“ zu
+  Schritt 1 – Stange, Mitte, Drehlage, Längen und Rundachse, wie sie im Job
+  stehen. Gemerkt wird dafür nichts Neues: `vierachs_rohteil.einstellung()`
+  rechnet es aus dem Job zurück (Klon = Lage · Original, Stirnfläche bei
+  a = 0, Zylinder vom Futter bis vor das Planaufmaß) – so geht es auch mit
+  Jobs aus 0.26.0. Eine geänderte Stange ist ein eigener Schritt Rückgängig
+  („Stange ändern“) vor „Rundum schruppen ändern“; die Rundachse aller
+  „Rundum schruppen“ des Jobs zieht mit. Sieht der Job nicht mehr aus, wie der
+  Assistent ihn anlegt, bleibt Schritt 1 zu, mit einem Satz.
 - *Klickweg:* Operation doppelklicken → Kopf „„Rundum schruppen T1“ ändern“,
   T1 gewählt → T2 wählen, Aufmaß 0,5 → „Übernehmen“: „Rundum schruppen T2“ mit
-  „T2 Schruppen“, „T1 Schruppen“ ist weg; ein Strg+Z bringt T1 zurück.
+  „T2 Schruppen“, „T1 Schruppen“ ist weg; ein Strg+Z bringt T1 zurück. Noch
+  einmal doppelklicken → „Zurück“: Stange 80, Rundachse A wie im Job → Ø 90 →
+  „Weiter“, „Übernehmen“: die Stange ist Ø 90, die Bahn hat mehr Lagen.
 
 **V3f – Maschine zuerst, Ausspannlänge, Abstände** (Manuel, 2026-09-29, siehe
 „Entschieden“)

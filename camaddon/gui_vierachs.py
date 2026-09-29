@@ -22,7 +22,9 @@ Nachträglich ändern (Manuel, 2026-09-29: „wenn ich jetzt hier nochmal
 schnittwerte ändern will oder anders werkzeug komme ich nicht mehr in die maske
 rein“): Doppelklick auf „Rundum schruppen“ – oder die Operation bzw. ihren Job
 wählen und den Knopf drücken – öffnet Schritt 2 mit Fräser, Einsatz und Werten
-der Operation; „Übernehmen“ ändert sie als einen Schritt Rückgängig.
+der Operation; „Zurück“ führt zu Stange, Mitte und Rundachse, wie sie im Job
+stehen. „Übernehmen“ ändert die Operation als einen Schritt Rückgängig, eine
+geänderte Stange als einen zweiten davor.
 """
 
 import math
@@ -201,6 +203,11 @@ def job_von(operation):
     return None
 
 
+def gleich(a, b):
+    """Zeigen zwei Richtungen gleich (auf 1e-6)?"""
+    return (FreeCAD.Vector(a) - FreeCAD.Vector(b)).Length < 1e-6
+
+
 def achse_der_operation(operation):
     """Die Stangenachse (vierachs_achsen.Stangenachse), mit der die Operation rechnet."""
     return va.Stangenachse(
@@ -373,6 +380,8 @@ class VierachsPanel:
         self._tc_vorher = operation.ToolController if operation is not None else None
         self._achse_fest = achse_der_operation(operation) if operation is not None else None
         self._vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation ("": keiner)
+        self._transaktion_offen = False  # beim Ändern: Schritt 1 hat etwas geändert
+        self._stange_vorher = None  # beim Ändern: wie die Stange aussah (DisplayMode, …)
         # Rückgängig-Schritte vor dem Assistenten; Job und Stange liegen nach „Anlegen“ als
         # eigener Schritt ab, auch wenn das Schruppen danach nicht geht (Abbrechen: zurück).
         self._undo_vorher = len(dokument.UndoNames)
@@ -394,13 +403,22 @@ class VierachsPanel:
         self._auffrischen()
 
     def _zum_aendern(self):
-        """Schritt 2 mit Fräser, Einsatz und Werten der Operation. Schritt 1 bleibt zu: Job
-        und Stange stehen schon; „Rundum schruppen“ bleibt angehakt – weg geht die
-        Operation mit Entf im Baum."""
+        """Schritt 2 mit Fräser, Einsatz und Werten der Operation; „Zurück“ führt zu Schritt 1,
+        wie der Job eingerichtet ist (vierachs_rohteil.einstellung). Lässt sich das nicht
+        zurückrechnen – der Job sieht nicht mehr aus, wie der Assistent ihn anlegt –, bleibt
+        Schritt 1 zu. „Rundum schruppen“ bleibt angehakt – weg geht die Operation mit Entf
+        im Baum."""
         self.job = job_von(self.zu_aendern)
         self.mit_schruppen.setEnabled(False)
-        self.erklaerung_schruppen.setText(tr("va.aendern.text"))
-        self.knopf_zurueck.hide()
+        text = tr("va.aendern.text")
+        einstellung = vr.einstellung(self.job) if self.job is not None else None
+        if einstellung is not None and gleich(einstellung.laengs, self._achse_fest.laengs):
+            self._schritt1_aus(einstellung)
+            text += " " + tr("va.aendern.zurueck")
+        else:
+            self.knopf_zurueck.hide()
+            text += " " + tr("va.aendern.rohteil_fest")
+        self.erklaerung_schruppen.setText(text)
         self._auffrischen()
         self.zeige_seite(2)
         self._werte_der_operation()
@@ -410,6 +428,50 @@ class VierachsPanel:
                 tr("va.aendern.werkzeug_fehlt", controller=self._tc_vorher.Label)
             )
             self.hinweis_aendern.show()
+
+    def _schritt1_aus(self, einstellung):
+        """Schritt 1, wie der Job eingerichtet ist: Teil, Stirnfläche, Mitte, Drehlage, Stange
+        und die Rundachse der Operation – jeder Wert steht im Feld. Ab jetzt gilt die Liste
+        „Rundachse“, und ein Klick auf eine andere Fläche des Teils legt es neu."""
+        self.teil, self.flaeche = einstellung.teil, einstellung.flaeche
+        self.vermessung, self.mitte = einstellung.vermessung, einstellung.mitte
+        stange, laenge = einstellung.stange, einheiten.LAENGE
+        self._fuellt = True
+        self.wahl_achse.blockSignals(True)
+        try:
+            self.wahl_achse.setCurrentIndex(self._index_der_achse(self._achse_fest))
+            self._achse_fest = None
+            self.feld_stange.setText(groesse_zeigen(stange.durchmesser, laenge))
+            self.feld_drehlage.setText(zahl_zeigen(einstellung.drehlage))  # 0: leer
+            for feld, wert in (
+                ("planaufmass", stange.planaufmass),
+                ("abstechbreite", stange.abstechbreite),
+                ("spannlaenge", stange.spannlaenge),
+            ):
+                self.felder_laenge[feld].setText(groesse_zeigen(wert, laenge) or "0")
+        finally:
+            self.wahl_achse.blockSignals(False)
+            self._fuellt = False
+        self.lage = vr.lage(
+            self.vermessung, self.achse(), self.mitte, einstellung.drehlage, stange.durchmesser
+        )
+        self._beobachter = _Beobachter(self)
+        FreeCADGui.Selection.addObserver(self._beobachter)
+        FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
+
+    def _index_der_achse(self, achse):
+        """Der Eintrag der Liste „Rundachse“ für `achse` – Buchstabe, Richtung, Drehsinn und
+        Querachse gleich; fehlt er (die Maschine ist nicht offen), kommt er dazu."""
+        for i, kandidat in enumerate(self._achsen):
+            if (kandidat.buchstabe, kandidat.drehsinn, kandidat.quer) == (
+                achse.buchstabe,
+                achse.drehsinn,
+                achse.quer,
+            ) and gleich(kandidat.laengs, achse.laengs):
+                return i
+        self._achsen.append(achse)
+        self.wahl_achse.addItem(achstext(achse))
+        return len(self._achsen) - 1
 
     def _werte_der_operation(self):
         """Zustellung, Vorschub je Umdrehung und Aufmaß der Operation in die Felder – leer,
@@ -495,11 +557,22 @@ class VierachsPanel:
         return True
 
     def _uebernehmen(self):
-        """„Übernehmen“ beim Ändern: die Operation ändern und schließen – oder offen bleiben,
-        wenn es nicht geht (der Grund steht rot im Fenster)."""
-        if not self._schruppen_pruefen() or not self._schruppen_aendern():
+        """Beim Ändern: in Schritt 1 „Weiter“; in Schritt 2 „Übernehmen“ – eine geänderte
+        Stange als eigener Schritt Rückgängig (wie beim Anlegen), dann die Operation, und
+        schließen. Geht es nicht, bleibt das Fenster offen (der Grund steht rot darin)."""
+        if self.seite == 1:
+            self.zeige_seite(2)
+            return False
+        if not self._schruppen_pruefen():
+            return False
+        if self._transaktion_offen:
+            self.doc.commitTransaction()
+            self._transaktion_offen = False
+            self._rohteil_fest = True
+        if not self._schruppen_aendern():
             return False
         self._vor_dem_schliessen()
+        self._stange_zurueck()
         self._fraeser_merken()
         self.doc.commitTransaction()
         FreeCADGui.Control.closeDialog()
@@ -508,12 +581,16 @@ class VierachsPanel:
 
     def reject(self):
         self._vor_dem_schliessen()
-        if self.zu_aendern is None:  # beim Ändern ist bis „Übernehmen“ nichts geändert
+        if self.zu_aendern is None:
             self._sichtbarkeit_zurueck()
             self.doc.abortTransaction()
-            if self._rohteil_fest:  # Job und Stange liegen schon als Schritt ab
-                while len(self.doc.UndoNames) > self._undo_vorher:
-                    self.doc.undo()
+        elif self._transaktion_offen:  # beim Ändern: was Schritt 1 geändert hat
+            self.doc.abortTransaction()
+            self._transaktion_offen = False
+        if self._rohteil_fest:  # Job bzw. Stange liegen schon als Schritt ab
+            while len(self.doc.UndoNames) > self._undo_vorher:
+                self.doc.undo()
+        self._stange_zurueck()
         FreeCADGui.Control.closeDialog()
         self.doc.recompute()
         return True
@@ -770,6 +847,9 @@ class VierachsPanel:
         except ValueError:  # nicht eben (oder keine solche Fläche)
             self._hinweis(tr("va.nicht_eben", flaeche=flaeche, teil=teil.Label))
             return
+        if self.zu_aendern is not None and teil is not self.teil:
+            self._hinweis(tr("va.aendern.anderes_teil", teil=self.teil.Label))
+            return
         if self.job is not None and teil is not self.teil:
             # Ein anderes Teil: alles bisher Angelegte zurück, frisch anfangen.
             self._vor_neuem_teil()
@@ -839,6 +919,15 @@ class VierachsPanel:
         titel = tr("va.kopf") if nummer == 1 else tr("va.kopf.bearbeitung")
         if nummer == 2 and self.zu_aendern is not None:
             titel = tr("va.kopf.aendern", name=self.zu_aendern.Label)
+        if nummer == 1 and self.zu_aendern is not None and self._stange_vorher is None:
+            ansicht = self.job.Stock.ViewObject if self.job.Stock is not None else None
+            if ansicht is not None:  # durchsichtig: Flächen des Teils lassen sich anklicken
+                self._stange_vorher = (
+                    ansicht.DisplayMode,
+                    ansicht.Transparency,
+                    ansicht.Selectable,
+                )
+                self._stange_anzeigen(*STANGE_ANZEIGE, waehlbar=False)
         self._kopf_text.setText(f"<b>{titel}</b>")
         if nummer == 2:
             self._bearbeitung_fuellen()
@@ -1226,6 +1315,8 @@ class VierachsPanel:
             if erstes_mal:
                 self.job = _im_befehl(lambda: self._neuer_job(stange))
             else:
+                if self.zu_aendern is not None:
+                    self._rohteil_aendern()
                 self.job = vr.richte_ein(
                     self.doc, self.teil, self.lage, stange, self.achse(), job=self.job
                 )
@@ -1237,6 +1328,17 @@ class VierachsPanel:
             self._job_zeigen()
         self._auffrischen()
         return True
+
+    def _rohteil_aendern(self):
+        """Beim Ändern vor jeder Änderung in Schritt 1: die Transaktion „Stange ändern“ öffnen
+        (einmal) und die Rundachse aller „Rundum schruppen“ des Jobs nachziehen – so rechnen
+        sie gleich mit der neuen Lage."""
+        if not self._transaktion_offen:
+            self.doc.openTransaction(tr("va.transaktion.rohteil"))
+            self._transaktion_offen = True
+        for op in js.operationen(self.job):
+            if vo.ist_rundum(op):
+                vo.setze_achse(op, self.achse())
 
     def _neuer_job(self, stange):
         """Legt den Job an und öffnet dafür die Transaktion des Assistenten – nur in
@@ -1282,6 +1384,14 @@ class VierachsPanel:
         ansicht.DisplayMode = darstellung
         ansicht.Transparency = durchsicht
         ansicht.Selectable = waehlbar
+
+    def _stange_zurueck(self):
+        """Beim Ändern: die Stange wieder so, wie sie vor dem Fenster aussah."""
+        if self._stange_vorher is None:
+            return
+        darstellung, durchsicht, waehlbar = self._stange_vorher
+        self._stange_vorher = None
+        self._stange_anzeigen(darstellung, durchsicht, waehlbar)
 
     def _anzeige_wie_in_cam(self):
         """Nach „Anlegen“ sieht die Stange aus wie jedes Rohteil in CAM."""

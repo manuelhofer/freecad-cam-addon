@@ -189,11 +189,7 @@ def lege_an(job, tc, achse, zustellung, steigung, aufmass, quer_auf_null=True, n
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.CoolantMode = job.SetupSheet.CoolantMode
     obj.StartDepth = 1.0
-    obj.Rundachse = achse.buchstabe
-    obj.Stangenachse = FreeCAD.Vector(achse.laengs)
-    obj.Werkzeugrichtung = va.radial(achse)
-    obj.Drehsinn = achse.drehsinn
-    obj.QuerAufNull = quer_auf_null
+    setze_achse(obj, achse, quer_auf_null)
     obj.Zustellung = zustellung
     obj.VorschubJeUmdrehung = steigung
     obj.Aufmass = aufmass
@@ -216,6 +212,22 @@ def aendere(obj, tc, zustellung, steigung, aufmass):
     obj.Zustellung = zustellung
     obj.VorschubJeUmdrehung = steigung
     obj.Aufmass = aufmass
+
+
+def setze_achse(obj, achse, quer_auf_null=None):
+    """Rundachse, Stangenachse, Werkzeugrichtung, Drehsinn und „quer auf 0“ der Operation aus
+    `achse` (vierachs_achsen.Stangenachse) – nur, was sich ändert. `quer_auf_null`: ohne
+    Angabe wie `achse.quer`."""
+    werte = {
+        "Rundachse": achse.buchstabe,
+        "Stangenachse": FreeCAD.Vector(achse.laengs),
+        "Werkzeugrichtung": va.radial(achse),
+        "Drehsinn": achse.drehsinn,
+        "QuerAufNull": achse.quer if quer_auf_null is None else quer_auf_null,
+    }
+    for name, wert in werte.items():
+        if getattr(obj, name) != wert:
+            setattr(obj, name, wert)
 
 
 def _vorgeschlagener_name(name):

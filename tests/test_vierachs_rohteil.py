@@ -3,7 +3,8 @@
 # Nocken (Mitte der runden Fläche gegen ganzes Teil), die Lage für A, B und C –
 # Stirnfläche bei a = 0, Teil dahinter, Normale entlang der Stangenachse –, den
 # Vorschlag für den Stangen-Ø, Länge und Lage der Stange, und den Job: Klon an
-# seiner Stelle, Original unverändert, Rohteil ein Zylinder, ein Rückgängig.
+# seiner Stelle, Original unverändert, Rohteil ein Zylinder, ein Rückgängig; zurück-
+# gerechnet aus dem Job: Teil, Stirnfläche, Mitte, Drehlage und Stange.
 import math
 import os
 import random
@@ -203,6 +204,19 @@ pruefe("Hidden" in job.getEditorMode(vr.EIGENSCHAFT_SPANNLAENGE), "Spannlänge s
 vorschlag = rw.vorschlag_nullpunkt(job)
 pruefe((vorschlag - FreeCAD.Vector(0, 0, 103)).Length < 1e-9, f"Nullpunkt im Futter: {vorschlag}")
 
+# Zurückgerechnet (V3h, zum Ändern): Teil, Stirnfläche, Mitte, Drehlage und Stange stehen
+# im Job selbst.
+Z = FreeCAD.Vector(0, 0, 1)
+e = vr.einstellung(job)
+pruefe(e is not None, "Einstellung nicht zurückgerechnet")
+if e is not None:
+    pruefe(e.teil is teil and e.flaeche == flaechenname, f"Teil/Fläche: {e.flaeche}")
+    pruefe(
+        e.mitte == im_job.mitte and nahe(e.drehlage, 0) and gleich(e.laengs, Z),
+        f"Mitte/Drehlage/Achse: {e.mitte}, {e.drehlage}, {e.laengs}",
+    )
+    pruefe(e.stange == stange, f"Stange: {e.stange}")
+
 # Noch einmal mit A und anderem Ø: derselbe Job, das Rohteil wird angepasst, nicht ersetzt.
 dok.openTransaction("anders")
 name_rohteil = job.Stock.Name
@@ -213,9 +227,37 @@ pruefe(job.Stock.Name == name_rohteil, "Rohteil ersetzt statt angepasst")
 bb = job.Stock.Shape.BoundBox
 pruefe(nahe(bb.XMin, -133, 1e-6) and nahe(bb.XMax, 2, 1e-6), f"Rohteil bei A: {bb}")
 pruefe(nahe(bb.YMin, -45, 1e-6) and nahe(bb.ZMax, 45, 1e-6), f"Rohteil bei A quer: {bb}")
+e = vr.einstellung(job)
+pruefe(
+    e is not None
+    and e.stange == vr.Stange(90.0, 2.0, 3.0, 30.0)
+    and gleich(e.laengs, FreeCAD.Vector(1, 0, 0))
+    and e.mitte == im_job.mitte,
+    f"Einstellung bei A: {e}",
+)
+# B, ganzes Teil mittig, um 90° gedreht, andere Stange.
+dok.openTransaction("gedreht")
+im_job = vr.lage(mess, "B", vr.MITTE_TEIL, 90.0, 75)
+vr.richte_ein(dok, teil, im_job, vr.Stange(75.0, 0.5, 4.0, 25.0), "B", job=job)
+dok.commitTransaction()
+e = vr.einstellung(job)
+pruefe(
+    e is not None
+    and e.mitte == vr.MITTE_TEIL
+    and nahe(e.drehlage, 90, 1e-6)
+    and e.stange == vr.Stange(75.0, 0.5, 4.0, 25.0),
+    f"Einstellung bei B, gedreht: {e and (e.mitte, e.drehlage, e.stange)}",
+)
+# Quer verschoben liegt das Teil nicht mehr, wie der Assistent es legt: keine Einstellung.
+klon = vr.modell(job)
+lage_klon = FreeCAD.Placement(klon.Placement)
+klon.Placement = FreeCAD.Placement(lage_klon.Base + FreeCAD.Vector(1, 0, 0), lage_klon.Rotation)
+pruefe(vr.einstellung(job) is None, "verschobener Klon gilt als eingerichtet")
+klon.Placement = lage_klon
 
 undo = len(dok.UndoNames)
-pruefe(undo == 2, f"{undo} Schritte Rückgängig statt 2: {dok.UndoNames}")
+pruefe(undo == 3, f"{undo} Schritte Rückgängig statt 3: {dok.UndoNames}")
+dok.undo()
 dok.undo()
 dok.undo()
 dok.recompute()
