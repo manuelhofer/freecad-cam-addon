@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-52 beispiel-drehmaschine-4achs
+
+### EINGELESEN
+- `camaddon/beispielmaschine.py` (Drehmaschine), `help/de/achsen.html`,
+  `help/en/achsen.html`.
+- Messung an „Rundum schruppen“ (Welle Ø 40 × 30, Stange Ø 50, Vorschlag für den
+  Nullpunkt): Z1 müsste bis −188 mm, die Grenze war −100 mm.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py` (Revolver ohne Fräser, `weg_z` −220)
+- `help/de/achsen.html`, `help/en/achsen.html`
+- `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine laden: Der Revolver trägt an P1 und P2 nur die Halter;
+„Maschine verfahren“ fährt Z1 bis −220 mm. Eine Stange aus der
+4-Achs-Bearbeitung ist bis vor das Futter erreichbar.
+
+### DONE
+- **Z bis −220 mm:** P1 steht beim Bauen 195 mm vor der Spannfläche. Mit −100 mm
+  kam das Werkzeug nicht an eine Stange, die mit ihrer Spannlänge im Futter
+  steckt – das Prüffenster meldete „Z1 fährt … bis −188,00 mm, die Grenze ist
+  −100,00 mm“. Gilt für die Beispiel-Drehmaschine und als Vorgabe in „Neue
+  Maschine …“.
+- **Revolver ohne Fräser:** Die Fräser an P1 und P2 (Ø 16) waren Teil des
+  Revolvers. In der Kollisionsprüfung sind sie Maschine – ist das echte Werkzeug
+  kürzer oder dünner, hätten sie das Teil „berührt“. Die Halter bleiben; die
+  Werkzeuge zeigt das Prüffenster an ihrer Aufnahme. Die Farbe `WERKZEUG`
+  entfällt.
+- Befund für Manuel (nicht geändert): Mit einem kurzen Werkzeug (50 mm ab
+  Halter) stößt der Revolver ans Futter, sobald der Fräser weniger als 55 mm
+  (halbe Scheibe) vor der Spannfläche arbeitet – das Teil ragt beim Vorschlag
+  nur um die Abstichbreite heraus. Die Kollisionsprüfung meldet es richtig
+  („berühren sich „Revolver“ und „Spindel““).
+
+### TEST
+- `tests/test_beispielmaschine.py` in FreeCAD 1.1.3 und im Wochen-Build grün.
+- `tests/gui/szenario_beispielmaschine.py` in 1.1.3: ok; Screenshots angesehen
+  (`3b_revolverplatz`: Revolver mit Stationen und Haltern).
+- Alle Prüfungen (`scripts/tests_ausfuehren.sh`) auf dem Stand dieses Patches in 1.1.3 grün.
+
+### NEXT
+- V3e: Prüffenster ohne TCPM, G93, Hinweis zum radialen Werkzeug.
+
 ## P-2026-09-27-51 eilgang-nach-vorschub
 
 ### EINGELESEN

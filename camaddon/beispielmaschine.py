@@ -48,13 +48,12 @@ from .sprache import tr
 
 DOKUMENT = "Beispielmaschine"
 
-# Farben (RGB 0…1): Guss dunkel, bewegte Teile heller, der Kopf blau, Werkzeuge gelb.
+# Farben (RGB 0…1): Guss dunkel, bewegte Teile heller, der Kopf blau.
 GUSS = (0.36, 0.38, 0.41)
 SCHLITTEN = (0.55, 0.58, 0.62)
 TISCH = (0.70, 0.72, 0.75)
 KOPF = (0.20, 0.45, 0.70)
 SPINDEL = (0.82, 0.82, 0.84)
-WERKZEUG = (0.90, 0.68, 0.15)
 REVOLVER = (0.93, 0.93, 0.95)  # hell, damit er sich von Schlitten und Bett abhebt
 
 # Die Bauarten, in der Reihenfolge der Auswahl (wie Manuel sie aufzählte).
@@ -679,7 +678,9 @@ class DrehmaschinenMasse:
     y_winkel: float = 0.0
     weg_x: tuple = (-170.0, 150.0)
     weg_y: tuple = (-60.0, 60.0)
-    weg_z: tuple = (-100.0, 300.0)
+    # Bis vor das Futter: P1 steht beim Bauen 195 mm vor der Spannfläche – eine Stange
+    # aus der 4-Achs-Bearbeitung (W-003) muss bis dorthin erreichbar sein.
+    weg_z: tuple = (-220.0, 300.0)
     plaetze: int = 12
     drehzahl: float = 5000.0  # U/min der Hauptspindel
 
@@ -715,9 +716,12 @@ def drehmaschine(masse=None):
 
     Hauptspindel S1 (Drehzahl) und C1 (positionieren) – ihre Achse ist Z.
     Auf dem Bett Z-Schlitten, X-Schlitten, darauf Y-Schlitten mit dem
-    Revolver T (12 Plätze). P1 trägt ein radiales angetriebenes Fräswerkzeug
-    (90° zu Z), P2 ein axiales (arbeitet in Z-Richtung); beide hängen am
-    Werkzeugantrieb S3. Das Futter ist die Werkstückaufnahme. `masse`
+    Revolver T (12 Plätze). P1 trägt einen radialen angetriebenen Halter (das
+    Werkzeug zeigt 90° zu Z zur Spindelachse), P2 einen axialen (das Werkzeug
+    arbeitet in Z-Richtung); beide hängen am Werkzeugantrieb S3. Die Werkzeuge
+    selbst zeigt das Prüffenster – als Teil des Revolvers stießen sie bei der
+    Kollisionsprüfung ans Teil, wenn das echte Werkzeug kürzer oder dünner ist.
+    Das Futter ist die Werkstückaufnahme. `masse`
     (DrehmaschinenMasse) ändert Bettneigung, Wege, Plätze, Drehzahl und Name;
     steht Y schräg, kommt die schräge Achse dazu. Gibt (Assembly, Maschine)
     zurück.
@@ -749,9 +753,9 @@ def drehmaschine(masse=None):
     y_schlitten = b.quader("YSchlitten", 280, 150, 280, x=820, y=330, z=210, farbe=KOPF)
 
     # Revolverscheibe; P1 unten (zur Spindelachse hin) mit dem radialen
-    # Halter, P2 um 30° weiter mit dem axialen, der zum Futter zeigt. Rundum
-    # je Platz eine Station – so sieht man, dass es ein Revolver ist und wie
-    # viele Plätze er hat.
+    # Halter, P2 um 30° weiter mit dem axialen, der zum Futter zeigt – ohne
+    # Werkzeuge darin (siehe oben). Rundum je Platz eine Station – so sieht
+    # man, dass es ein Revolver ist und wie viele Plätze er hat.
     achse = REVOLVERACHSE
     axial = _auf_der_scheibe(360.0 / masse.plaetze, 130)
     # So breit, dass zwischen zwei Stationen Luft bleibt – auch bei 24 Plätzen.
@@ -789,9 +793,6 @@ def drehmaschine(masse=None):
             ),
             b.quader("HalterRadial", 80, 50, 80, x=725, y=185, z=310, farbe=SCHLITTEN),
             b.zylinder(
-                "FraeserRadial", 8, 50, x=765, y=185, z=350, achse=(0, -1, 0), farbe=WERKZEUG
-            ),
-            b.zylinder(
                 "HalterAxial",
                 35,
                 60,
@@ -800,9 +801,6 @@ def drehmaschine(masse=None):
                 z=axial.z,
                 achse=(-1, 0, 0),
                 farbe=SCHLITTEN,
-            ),
-            b.zylinder(
-                "FraeserAxial", 8, 60, x=650, y=axial.y, z=axial.z, achse=(-1, 0, 0), farbe=WERKZEUG
             ),
             *stationen,
         ],
