@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-14 version-0-27-1
+
+### EINGELESEN
+- `package.xml`; P-2026-09-29-13 (Länge der Stange in Schritt 1 beim Ändern).
+
+### DATEIEN
+- `package.xml`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.27.1 an – mit der richtigen Länge der Stange
+in Schritt 1 beim Ändern.
+
+### DONE
+- Version 0.27.1.
+
+### TEST
+- Voller Lauf `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build vor dem Push.
+
+### NEXT
+- Manuels Test.
+
 ## P-2026-09-29-13 vierachs-laenge-in-schritt-1
 
 ### EINGELESEN
