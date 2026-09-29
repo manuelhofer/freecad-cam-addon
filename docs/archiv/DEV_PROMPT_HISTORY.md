@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-01 freecad-1-1-4-vergleich
+
+### EINGELESEN
+- Manuel (2026-09-29): „freecad 1.1.4 is raus gekommen .. kannst du schauen ob
+  immernoch alles gut funktiniert“.
+- `docs/arbeitsregeln.md` (Abschnitt 9), `scripts/testumgebung_einrichten.sh`.
+- FreeCAD-Quelltext, Tags 1.1.3 und 1.1.4 (`git diff 1.1.3 1.1.4`).
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (zuletzt geprüfte Versionen),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Stand steht, was an 1.1.4 geprüft ist und was noch fehlt.
+
+### DONE
+- **Testumgebung heben ging nicht:** conda-forge hat 1.1.4 noch nicht (neueste
+  stabile dort: 1.1.3, auch mit frischem Index). Die Release-Dateien bei GitHub
+  (AppImage) sind in der Cloud-Umgebung gesperrt, nur Git geht.
+- **Quelltext verglichen:** 87 Dateien zwischen 1.1.3 und 1.1.4, keine in CAM,
+  Assembly, PartDesign oder Path. Geändert: TechDraw, FEM (u. a. sichere Pfade
+  beim Entpacken, `FileInfo::safeArchiveEntryPath`), BIM, Draft, eine Zeile
+  Sketcher; in der Oberfläche die FPS-Anzeige, Bilder aus der 3D-Ansicht (Qt ≥
+  6.9 gespiegelt, Offscreen-Format), graue Einträge im Baum, das Speichern der
+  Werkzeugleisten-Zustände, Standardfarben mit Alpha. Die Pakete bauen auf
+  dieselben Bibliotheken wie 1.1.3 (nur die Versionsnummer geändert). Nichts
+  davon berührt, was das Addon aufruft (`appendToolbar` im Arbeitsbereich,
+  Coin-Knoten, CAM-Operationen, Assembly-Gelenke).
+- Nicht geändert: „derzeit 1.1.3“ in Arbeitsregeln und CHATSTART – das kommt mit
+  dem vollen Lauf.
+
+### TEST
+- Kein Lauf in 1.1.4 (nicht installierbar, siehe oben). Nur der Vergleich des
+  Quelltexts.
+
+### NEXT
+- Sobald conda-forge 1.1.4 hat: `scripts/testumgebung_einrichten.sh`,
+  `scripts/alle_tests.sh`, dann „derzeit 1.1.4“ in Arbeitsregeln und CHATSTART.
+
 ## P-2026-09-27-55 version-0-26-0
 
 ### EINGELESEN
