@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-12 version-0-27-0
+
+### EINGELESEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`; Manuel: „mach das alles
+  ich geh ins bett .. bis morgen is fertig !“; CLAUDE.md (höhere Version, damit
+  „Nach Updates schauen“ sie anbietet).
+
+### DATEIEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet Manuel 0.27.0 an – mit allem aus der Nacht
+(P-2026-09-29-06 bis -11).
+
+### DONE
+- Version 0.27.0; README: Maschine zuerst, Überlauf, Ausspannlänge, Rohteil und
+  Fertigteil, Werkzeugspitze, Stange nachträglich ändern; Stand nachgezogen.
+- FreeCAD 1.1.4 gibt es bei conda-forge noch nicht (neueste 1.1.x: 1.1.3) –
+  der Versionscheck bleibt beim Quelltextvergleich aus P-2026-09-29-01.
+
+### TEST
+- Voller Lauf `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build vor dem Push.
+
+### NEXT
+- Manuels Test; V2b (Drehteile), V4 (Flächen wählen), TCPM nach seiner Antwort.
+
 ## P-2026-09-29-11 rohteil-fertigteil-simulation
 
 ### EINGELESEN

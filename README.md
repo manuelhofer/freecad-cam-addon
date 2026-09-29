@@ -32,7 +32,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   aus der Werkzeugverwaltung. **Abfahren:** Die Maschine fährt die Bahn
   sichtbar ab – Werkzeug, Rohteil und Bahn in ihrer 3D-Ansicht; abspielen,
   anhalten, Punkt für Punkt, bis ×100; Satz, Zeit und Achswerte laufen mit,
-  eine Achse am Anschlag steht rot da. **Kollision:** Werkzeug, Halter und
+  eine Achse am Anschlag steht rot da; darunter, wo die **Werkzeugspitze** im
+  Programm steht. Eine Überschreitung sagt auch, wo die Spitze an der Grenze
+  stünde. **Kollision:** Werkzeug, Halter und
   Maschine gegen das fertige Teil, die Spannmittel und die Maschine – rot, wenn
   etwas anstößt („In „Tasche“ berühren sich der Halter von T3 und das Teil“),
   gelb, wenn es näher kommt als der Warnabstand; ein Klick zeigt die Stelle.
@@ -68,10 +70,17 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   **Rundum schruppen** – ein Fräser aus der Werkzeugverwaltung nimmt die Stange
   in Lagen bis aufs Schlichtaufmaß ab, als Spirale um das Teil (die Rundachse
   dreht fortlaufend, Vorschub nach G93); grau steht vorher, wie viele Lagen es
-  werden. „Auf der Maschine prüfen“ fährt die Bahn mit drehender Rundachse ab
-  und prüft sie auf Kollision. **Nachträglich ändern:** Doppelklick auf
-  „Rundum schruppen“ öffnet das Fenster wieder – anderer Fräser, Einsatz,
-  Zustellung, Aufmaß, „Übernehmen“. Flächen wählen und Schlichten folgen.
+  werden. Zuerst fragt der Assistent, **welche Maschine** – sie gibt die
+  Rundachse vor, ein Satz sagt, was sie kann. Hinten läuft der Fräser um den
+  **Überlauf** (Radius + 0,5 mm) über das Teil hinaus, mit Abstand zum Futter –
+  alles einstellbar, mit Vorschlag –, und ein Satz sagt, **wie weit die Stange
+  aus dem Futter ragen muss**. „Auf der Maschine prüfen“ fährt die Bahn mit
+  drehender Rundachse ab, prüft sie auf Kollision und **trägt die Stange ab**:
+  Am Ende steht sie in Farben gegen das fertige Teil – grün das Aufmaß, rot, wo
+  zu viel blieb, blau, wo etwas im Teil fehlt. **Nachträglich ändern:**
+  Doppelklick auf „Rundum schruppen“ öffnet das Fenster wieder – anderer
+  Fräser, Einsatz, Zustellung, Aufmaß, auch Stange und Rundachse,
+  „Übernehmen“. Flächen wählen und Schlichten folgen.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).
