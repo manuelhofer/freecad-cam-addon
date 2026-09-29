@@ -91,9 +91,7 @@ def schritte(h):
         panel.knopf_anlegen() is not None and panel.knopf_anlegen().isEnabled(),
         "„Weiter“ nicht bedienbar",
     )
-    h.pruefe(
-        panel.knopf_anlegen().text() == "Weiter", f"OK heißt {panel.knopf_anlegen().text()!r}"
-    )
+    h.pruefe(panel.knopf_anlegen().text() == "Weiter", f"OK heißt {panel.knopf_anlegen().text()!r}")
     hilfe = panel.form.findChild(QtGui.QToolButton, "hilfe_vierachs")
     h.pruefe(hilfe is not None, "kein Knopf (?) zur Hilfe")
 

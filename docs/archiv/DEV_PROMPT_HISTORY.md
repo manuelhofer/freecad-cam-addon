@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-55 version-0-26-0
+
+### EINGELESEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/spezifikation_vierachs.md` (V3).
+
+### DATEIEN
+- `package.xml` (0.26.0), `README.md` (4-Achs-Bearbeitung),
+  `docs/STATUS_SNAPSHOT.md` (W-003), `docs/spezifikation_vierachs.md` (V3a–V3c
+  gebaut), `docs/archiv/DEV_PROMPT_HISTORY.md`
+- `tests/gui/szenario_vierachs_rohteil.py` (nur black)
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.26.0 an; README und Stand nennen „Rundum
+schruppen“ und das Prüffenster für 4-Achs-Bahnen.
+
+### DONE
+- Version 0.26.0 für P-2026-09-27-46 bis -54: „Rundum schruppen“ (Hüllfläche,
+  Bahn, Operation, Schritt 2 im Assistenten), das Prüffenster für 4-Achs-Bahnen,
+  die schnellere Kollisionsprüfung, der Rückzug im Eilgang, die
+  Beispiel-Drehmaschine.
+- README: der Punkt „4-Achs-Bearbeitung“ mit Schritt 2 und dem Prüffenster.
+- Stand: W-003 mit V1, V2a, V2c und V3 fertig; offen V2b, V4 bis V7 und die Frage
+  an Manuel, wie weit das Teil aus dem Futter ragen soll.
+- Spezifikation: V3a bis V3c als gebaut vermerkt (P-46 bis -48).
+- black: eine Zeile in `szenario_vierachs_rohteil.py` aus P-49 zusammengezogen
+  (der Text wurde dort kürzer) – daran scheiterte der erste volle Lauf.
+
+### TEST
+- Voller Lauf `scripts/alle_tests.sh` in FreeCAD 1.1.3 und im Wochen-Build: grün
+  (EXIT 0) – black und ruff, 132 Prüfungen und Szenarien ok, in 1.1.3 der Export
+  übersprungen (gibt es dort nicht).
+
+### NEXT
+- Push, Manuel berichten: was er klicken soll und was er sehen muss.
+
 ## P-2026-09-27-54 vierachs-pruefen
 
 ### EINGELESEN

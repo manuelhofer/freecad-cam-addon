@@ -522,7 +522,7 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   Nachbar, dazu die Toleranz der Vernetzung: Der Fehler geht ins Aufmaß, nie
   ins Teil. Das Aufmaß δ rechnet mit dem Radius R + δ und hebt die Spitze um δ.
   Prüfung: Zylinder, Exzenter, Sechskant und Welle mit Absatz gegen die
-  Formel, dazu eine Zeitgrenze.
+  Formel, dazu eine Zeitgrenze. *Gebaut (P-2026-09-27-46).*
 - **V3b – Bahn** (`camaddon/vierachs_bahn.py`): Lagen r_k = R_Stange − k · ap
   bis zur Hüllfläche plus Aufmaß. Je Lage eine Spirale mit der Steigung
   „Vorschub je Umdrehung“ von vorne – das Werkzeug ganz vor der Stange – bis
@@ -534,13 +534,15 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   plus Sicherheitsabstand und im Eilgang nach vorne. Ausgabe: G1 mit X als
   Radius, Z und C (bzw. A oder B) auf 0,001, zwischen G93 und G94, F = 1 ÷
   Zeit. Liegen Punkte in (a, r, φ) auf einer Geraden, bleibt nur der letzte.
+  *Gebaut (P-2026-09-27-47):* höchstens 90° je Satz – FreeCAD 1.1.3 zeigt
+  einen Satz über mehr als eine Umdrehung als Gerade.
 - **V3c – Operation** (`camaddon/vierachs_operation.py`): „Rundum schruppen“,
   eine CAM-Operation mit Controller und Kühlmittel. Sie rechnet ihre Bahn beim
   Neuberechnen aus Modell und Stange des Jobs, ihre Werte stehen als
   Eigenschaften in der Gruppe „4-Achs“. Die Bahn beginnt mit einem Kommentar:
   X ist der Radius (Drehmaschine: im Programmkopf auf Radius stellen, Siemens
   `DIAMOF`). Prüfung: in beiden Versionen anlegen, Speichern und Laden,
-  Postprozessor-Ausgabe.
+  Postprozessor-Ausgabe. *Gebaut (P-2026-09-27-48).*
 - **V3d – Assistent:** „Weiter“ führt zu Schritt 2 „Was willst du machen?“ mit
   „Rundum schruppen“. Darunter: der Fräser aus der Werkzeugverwaltung
   (Schaftfräser), sein Einsatz „Schruppen“ mit n und vf, Zustellung je Lage

@@ -6,7 +6,7 @@ Wunschliste, offene Bugs und Tasks.
 ## Projektstatus
 - **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“): fertig und automatisch geprüft (P-2026-09-26-89 bis -91, 0.23.0). Stufe 4c (Kollision) mit Manuels Entscheidungen (P-2026-09-26-93): fertig und automatisch geprüft (P-2026-09-26-97 bis -99, 0.24.0). Beim Durchsehen nachgebessert (P-2026-09-27-02 bis -04): die Schneide von Nutenfräser (Schneidenbreite) und Lollipop (Kugel) in Abfahren und Kollision, kein Fehler mehr bei nur „,“ oder „-“ in einem Zahlenfeld, die Spaltenköpfe im Fenster „Halter“ ganz lesbar.
 - **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test. Stufe D (Halter, für W-001 4c) mit Manuels Entscheidungen ([spezifikation_halter.md](spezifikation_halter.md), P-2026-09-26-93) fertig und automatisch geprüft (P-2026-09-26-94 bis -96).
-- **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ fertig und automatisch geprüft (P-2026-09-26-79), wartet auf Manuels Test; als Nächstes V2 (Punkt 12 unten).
+- **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ (P-2026-09-26-79), V2a „Achse von der Maschine“ und V2c (P-2026-09-27-37, -38), V3 „Rundum schruppen“ – Hüllfläche, Bahn, Operation, Schritt 2 „Was willst du machen?“, Prüffenster ohne TCPM (P-2026-09-27-45 bis -54, 0.26.0) – fertig und automatisch geprüft; wartet auf Manuels Test. Dabei die Kollisionsprüfung beschleunigt (über 20 Minuten → Sekunden, -50, -53) und der Rückzug im Eilgang kein Befund mehr (-51). Offen: V2b (Drehteile), V4 bis V7; Frage an Manuel: wie weit das Teil für die 4-Achs-Bearbeitung aus dem Futter ragen soll (auf der Beispiel-Drehmaschine stößt der Revolver mit kurzen Werkzeugen ans Futter).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil, Manuels Version)
   und Wochen-Build 26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien
   grün; in 1.1.3 ist der Export übersprungen (gibt es dort nicht).
@@ -126,9 +126,10 @@ Wunschliste, offene Bugs und Tasks.
    vier Schritten, eigener Rechenkern (1.1.3 und Wochen-Build), Ausgabe als
    reine Achskoordinaten, alles einstellbar mit Vorschlägen. –
    *Spezifikation: [spezifikation_vierachs.md](spezifikation_vierachs.md)
-   (P-2026-09-26-78), neun Stufen V1–V9 in Abschnitt 13. V1 „Teil in die
-   Stange“ fertig (P-2026-09-26-79); als Nächstes V2 „Achse von der
-   Maschine“.*
+   (P-2026-09-26-78), Stufen in Abschnitt 13. V1 „Teil in die Stange“, V2a,
+   V2c und V3 „Rundum schruppen“ fertig (P-2026-09-26-79, P-2026-09-27-37,
+   -38, -45 bis -54); nach Manuels Test V2b „Drehteile“ und V4 „Flächen
+   wählen“.*
 
 *Werkzeugbahn auf der Maschine (W-001 Stufe 4a, Manuel 2026-09-26)*
 13. **Reicht der Verfahrweg?** Job wählen → „Auf der Maschine prüfen“ →
