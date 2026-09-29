@@ -150,6 +150,10 @@ class Verfahren:
             return FreeCAD.Placement(richtung * weg, FreeCAD.Rotation())
         return FreeCAD.Placement(FreeCAD.Vector(), FreeCAD.Rotation(richtung, weg), ursprung)
 
+    def achslage(self, achse):
+        """(Richtung, ein Punkt auf der Achse) im Ausgang, in Koordinaten der Assembly."""
+        return self._lage[achse]
+
     def pfad(self, glied):
         """Die Achsen vom Bett bis zu `glied`, beim Bett beginnend."""
         return list(reversed(self.kette.pfad_zum_bett(glied)))

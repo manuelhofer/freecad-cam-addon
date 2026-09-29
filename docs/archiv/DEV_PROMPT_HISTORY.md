@@ -12,6 +12,60 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-50 kollision-schneller
+
+### EINGELESEN
+- `camaddon/kollision.py`, `camaddon/verfahren.py`, `docs/spezifikation_simulation.md`
+  (4c).
+- Messung an „Rundum schruppen“ auf der Beispiel-Drehmaschine (Welle Ø 40 × 30 in
+  der Stange Ø 50, zwei Lagen, 4207 Stationen): „Kollision prüfen“ lief nach 20
+  Minuten noch.
+
+### DATEIEN
+- `camaddon/kollision.py` (Schritte je Paar, Schranken, rund um die Achse)
+- `camaddon/verfahren.py` (`achslage`)
+- `tests/test_kollision.py` (rund um die Achse)
+- `docs/spezifikation_simulation.md` (4c), `docs/aufbau.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Kollision prüfen“ für eine Bahn rundum (tausende Grad C) ist nach etwa einer
+Minute fertig statt nach über 20; an der Fräse findet es dasselbe wie vorher.
+
+### DONE
+- **Befund:** Jeder Schritt rechnete mit der Größe der ganzen Maschine – je Grad
+  einer Drehachse 1° × die Diagonale über alles, für jedes Paar. Eine Bahn rundum
+  dreht tausende Grad; so wurden es hunderttausende Stellen, jede mit
+  `distToShape` für alle nahen Paare.
+- **Je Paar:** Wie weit sich zwei Körper gegeneinander bewegen, zählt nur mit den
+  Achsen, die genau einen von beiden fahren; eine Drehachse mit dem weitesten
+  Abstand des Körpers von ihr (Ecken des Hüllquaders), wenn sie ihn unmittelbar
+  trägt – sonst wie bisher grob. Ist der Körper **rund um die Achse** (um zwei
+  krumme Winkel gedreht deckt er sich mit sich selbst: Hüllquader, dann Volumen
+  der Schnittmenge), bewegt er sich mit ihr gar nicht – das Futter der
+  Beispiel-Drehmaschine, eine Welle.
+- **Genau nur, wo nötig:** Statt Hüllquader + 5 mm eine Schranke nach unten – der
+  Abstand der Hüllquader oder der zuletzt genau gerechnete minus dem Weg seither,
+  auch über Stationen hinweg, solange die Maschine stetig fährt und die Operation
+  bleibt. `distToShape` nur, wenn die Schranke nicht über dem Warnabstand liegt
+  oder das Paar den nächsten Schritt am kürzesten macht; was am Ende eines
+  Abschnitts genau gerechnet ist, gilt am Anfang des nächsten. `GENAU_AB` entfällt.
+- Stecken zwei in einer Operation schon ineinander, rechnet es sie dort nicht
+  weiter – schlimmer wird der Befund nicht (vorher bei jeder Stelle 5 ms für
+  Revolver gegen Spindel).
+- Gemessen (FreeCAD 1.1.3, Werkzeug 125 mm, ganze Bahn): vorher über 20 Minuten,
+  jetzt 34,5 s (8453 Stellen); die ersten 400 Stationen 43 s → 4,6 s; mit 50 mm (Revolver
+  am Futter) 400 Stationen 59 s → 4,4 s, die ganze Bahn 34,7 s.
+
+### TEST
+- `tests/test_kollision.py` in FreeCAD 1.1.3 und im Wochen-Build grün – die Fälle
+  an der Fräse unverändert; neu: Futter rund, außermittig und mit Backen nicht.
+- Messung wie oben (Wegwerf-Skript, nicht im Repo).
+- Alle Prüfungen (`scripts/tests_ausfuehren.sh`) auf dem Stand dieses Patches in 1.1.3 grün.
+
+### NEXT
+- Eilgang ab dem Ende eines Vorschubs (falsche Meldung beim Rückzug), dann V3e.
+
 ## P-2026-09-27-49 vierachs-was-willst-du-machen
 
 ### EINGELESEN

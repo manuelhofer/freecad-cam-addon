@@ -23,11 +23,23 @@ der Grundstellung berühren, prüft es nicht – so liegen Führungen und
 Spannflächen aufeinander; hängen sie nicht an einem gemeinsamen Gelenk, sagt
 es ein Hinweis. Das Rohteil zählt nicht: Das Addon trägt kein Material ab.
 
+Entlang der Bahn geht es in Schritten, in denen sich kein Paar um mehr als
+seinen Abstand minus Warnabstand näherkommt, mindestens MIN_SCHRITT – so
+rutscht keine Berührung zwischen zwei Stellen durch. Wie weit sich zwei Körper
+gegeneinander bewegen, zählt je Paar: nur die Achsen, die genau einen von
+beiden fahren, eine Drehachse mit dem Abstand des Körpers von ihr. Dreht die
+Rundachse das Teil, zählt also sein Radius – nicht die Größe der ganzen
+Maschine (W-003 V3e: eine Bahn rundum dreht tausende Grad). Ist der Körper rund
+um die Achse (ein Futter, eine Welle), bewegt er sich mit ihr gar nicht.
+
 Den Abstand rechnet OpenCascade (`distToShape`: 0, wenn sich zwei Körper
-berühren oder einer im anderen steckt). Hüllquader sortieren Paare aus, die
-weit auseinanderliegen. Entlang der Bahn geht es in Schritten, die nie weiter
-reichen als der kleinste Abstand minus Warnabstand, mindestens MIN_SCHRITT –
-so rutscht keine Berührung zwischen zwei Stellen durch.
+berühren oder einer im anderen steckt) – nur, wo es nötig ist: Sonst reicht
+eine Schranke nach unten, der Abstand der Hüllquader oder der zuletzt genau
+gerechnete minus dem Weg seither. Genau gerechnet wird ein Paar, wenn seine
+Schranke nicht über dem Warnabstand liegt (dann ist es vielleicht ein Befund)
+oder wenn es den nächsten Schritt kürzer macht als alle anderen. Stecken zwei in
+einer Operation schon ineinander, rechnet es sie dort nicht weiter – schlimmer
+wird der Befund nicht.
 
 Läuft ohne Oberfläche.
 """
@@ -47,7 +59,6 @@ from .sprache import tr
 WARNABSTAND = 1.0  # mm, Vorgabe
 MIN_SCHRITT = 0.5  # mm: so fein wird es, wo es eng ist
 BERUEHRT = 1e-3  # mm: näher gilt als Berührung
-GENAU_AB = 5.0  # mm über dem Warnabstand: näher rechnet es genau, sonst reicht der Hüllquader
 HOECHSTENS = 200000  # Stellen; danach hört es auf und sagt es
 # mm: So tief darf die Schneide im Vorschub ins fertige Teil – Rundung der Bahn; tiefer ist
 # ein Befund („fährt ins fertige Teil“).
@@ -56,6 +67,9 @@ EINDRINGEN = 0.05
 # stehen selten im Modell.
 INS_TEIL_ERLAUBT = {"Deburr", "Engrave", "Vcarve", "ThreadMilling", "Tapping", "Drilling"}
 MELDEN_ALLE = 0.1  # s: so oft ruft es den Fortschritt (und fragt, ob es weitergehen soll)
+# Grad: Deckt sich ein Körper um beide Winkel gedreht mit sich selbst, ist er rund um die
+# Achse – krumm gewählt, damit kein Futter mit drei oder vier Backen zufällig passt.
+RUND_PRUEFWINKEL = (37.1, 131.7)
 
 # Was ein Körper ist.
 SCHNEIDE, HALS, SCHAFT, HALTER = "schneide", "hals", "schaft", "halter"
@@ -301,6 +315,13 @@ class _Welt:
         self._paare = {}  # Glied der Werkzeugaufnahme -> Paare ohne Werkzeug
         self._schon_gemessen = {}  # (a, b) -> berühren sich in der Grundstellung?
         self._faktor = self._drehfaktoren()
+        self._fahren = {}  # Glied -> die Achsen, die es fahren
+        self._paarfaktor = {}  # (a, b) -> je Achse: mm je mm bzw. Grad gegeneinander
+        self._drehfaktoren_je_koerper = {}  # (Körper, Drehachse) -> mm je Grad
+        # (a, b) -> (so weit sind sie an der Stelle, an der es gerade ist, mindestens
+        # auseinander: zuletzt genau gerechnet, minus dem Weg seither; genau hier gerechnet?)
+        self._schranken = {}
+        self._operation = None  # die Operation des letzten Abschnitts
 
     # --- Paare --------------------------------------------------------------------------
 
@@ -369,7 +390,8 @@ class _Welt:
 
     def _drehfaktoren(self):
         """Je Drehachse: wie weit sich ein Punkt je Grad höchstens bewegt, in mm – aus der
-        Größe von allem, was es gibt (Diagonale über alle Hüllquader)."""
+        Größe von allem, was es gibt (Diagonale über alle Hüllquader). Grob: gilt nur, wo
+        _drehfaktor() nichts Genaueres weiß."""
         box = FreeCAD.BoundBox()
         for koerper in self._alle():
             for ecke in koerper.ecken:
@@ -379,6 +401,51 @@ class _Welt:
             achse: (1.0 if achse.art == LINEAR else math.radians(1.0) * diagonale)
             for achse in self.abfahrt.achsen
         }
+
+    def _paarfaktoren(self, paar):
+        """Je Achse der Abfahrt: wie weit sich die beiden Körper des Paars gegeneinander
+        höchstens bewegen, in mm je mm bzw. Grad. Fährt die Achse beide oder keinen, 0."""
+        schluessel = (id(paar.a), id(paar.b))
+        if schluessel not in self._paarfaktor:
+            faktoren = []
+            for achse in self.abfahrt.achsen:
+                faehrt_a = achse in self._achsen_von(paar.a.glied)
+                faehrt_b = achse in self._achsen_von(paar.b.glied)
+                if faehrt_a == faehrt_b:
+                    faktoren.append(0.0)
+                elif achse.art == LINEAR:
+                    faktoren.append(1.0)
+                else:
+                    faktoren.append(self._drehfaktor(paar.a if faehrt_a else paar.b, achse))
+            self._paarfaktor[schluessel] = faktoren
+        return self._paarfaktor[schluessel]
+
+    def _achsen_von(self, glied):
+        if glied not in self._fahren:
+            self._fahren[glied] = set(self.verfahren.pfad(glied))
+        return self._fahren[glied]
+
+    def _drehfaktor(self, koerper, achse):
+        """Wie weit sich ein Punkt des Körpers je Grad der Drehachse höchstens bewegt, in mm:
+        sein weitester Abstand von ihr (Ecken des Hüllquaders) – 0, wenn er rund um sie ist
+        (ein Futter, eine Welle): Dann bleibt er, wo er ist. Liegt noch eine Achse
+        dazwischen, ändert sich der Abstand mit ihr – dann gilt die grobe Schätzung."""
+        schluessel = (id(koerper), achse)
+        if schluessel in self._drehfaktoren_je_koerper:
+            return self._drehfaktoren_je_koerper[schluessel]
+        if koerper.glied is not achse.kind:
+            faktor = self._faktor[achse]
+        else:
+            richtung, ursprung = self.verfahren.achslage(achse)
+            weitester = 0.0
+            for ecke in koerper.ecken:
+                abstand = koerper.basis.multVec(ecke) - ursprung
+                weitester = max(weitester, (abstand - richtung * abstand.dot(richtung)).Length)
+            faktor = math.radians(1.0) * weitester
+            if faktor > 0 and _rund_um(koerper, richtung, ursprung):
+                faktor = 0.0
+        self._drehfaktoren_je_koerper[schluessel] = faktor
+        return faktor
 
     def _alle(self):
         koerper = list(self.maschine)
@@ -396,23 +463,42 @@ class _Welt:
         naechste = min(i + 1, len(stationen) - 1)
         von, nach = abfahrt.wirksam(i), abfahrt.wirksam(naechste)
         ziel = stationen[naechste]
-        weg = sum(
-            abs(b - a) * self._faktor[achse]
-            for achse, a, b in zip(abfahrt.achsen, von, nach, strict=True)
-            if a is not None and b is not None
-        )
+        deltas = [
+            abs(b - a) if a is not None and b is not None else 0.0
+            for a, b in zip(von, nach, strict=True)
+        ]
         paare = self.paare(ziel.operation)
+        # Je Paar: so weit bewegen sich die beiden gegeneinander auf dem ganzen Abschnitt.
+        paarwege = [
+            sum(d * f for d, f in zip(deltas, self._paarfaktoren(paar), strict=True))
+            for paar in paare
+        ]
+        # Die Schranken gelten weiter, wenn die Maschine stetig hierher fuhr – nicht nach
+        # einem Sprung (eine Achse bekommt hier ihren ersten Wert), und nur für Paare, die
+        # schon bisher zählten: Die anderen fuhren, ohne dass es mitgezählt hat.
+        schluessel = [(id(paar.a), id(paar.b)) for paar in paare]
+        sprung = any((a is None) != (b is None) for a, b in zip(von, nach, strict=True))
+        if sprung or ziel.operation != self._operation:
+            self._schranken = {}
+        else:
+            self._schranken = {k: self._schranken[k] for k in schluessel if k in self._schranken}
+        self._operation = ziel.operation
         s = 0.0
         while True:
             self._melden()
             self.ergebnis.stellen += 1
             if self.ergebnis.stellen > HOECHSTENS:
                 return False
-            kleinster = self._stelle(i, naechste, s, paare, ziel)
-            if s >= 1.0 or weg <= 1e-9 or naechste == i:
+            weiter = self._stelle(i, naechste, s, paare, paarwege, schluessel, ziel)
+            if s >= 1.0 or naechste == i:
                 return True
-            schritt = max(kleinster - self.warn, MIN_SCHRITT)
-            s = min(1.0, s + schritt / weg)
+            neu = min(1.0, s + weiter)
+            for k, weg in zip(schluessel, paarwege, strict=True):
+                if k in self._schranken and weg > 0:
+                    self._schranken[k] = (self._schranken[k][0] - weg * (neu - s), False)
+            if weiter == math.inf:  # nichts, was zählt, kommt sich näher
+                return True
+            s = neu
 
     def _melden(self):
         """Ruft den Fortschritt, wenn es Zeit ist; sagt er „aufhören“, endet die Prüfung."""
@@ -425,10 +511,12 @@ class _Welt:
         if self._fortschritt(self.station / len(self.abfahrt.stationen)) is False:
             raise _Abbruch
 
-    def _stelle(self, i, naechste, s, paare, ziel):
-        """Prüft die Stelle beim Anteil `s` zwischen Station i und der nächsten; gibt den
-        kleinsten Abstand zurück (unter den Paaren, die hier zählen – nach unten
-        abgeschätzt)."""
+    def _stelle(self, i, naechste, s, paare, paarwege, schluessel, ziel):
+        """Prüft die Stelle beim Anteil `s` zwischen Station i und der nächsten; gibt zurück,
+        wie weit (als Anteil) es von hier sicher weitergeht: je Paar, das hier zählt, sein
+        Abstand (nach unten abgeschätzt) minus Warnabstand, mindestens MIN_SCHRITT, geteilt
+        durch seinen Weg (`paarwege`); math.inf, wenn sich nichts gegeneinander bewegt.
+        Was es genau rechnet, merkt es als Schranke (`schluessel`: je Paar der Schlüssel)."""
         abfahrt = self.abfahrt
         von, nach = abfahrt.wirksam(i), abfahrt.wirksam(naechste)
         wege = {}
@@ -459,23 +547,50 @@ class _Welt:
                 )
             return huelle[koerper]
 
-        kleinster = math.inf
-        for paar in paare:
+        def rechne_genau(k):
+            abstand, stelle = self._abstand(paare[k].a, paare[k].b)
+            self._schranken[schluessel[k]] = (abstand, True)
+            return abstand, stelle
+
+        schritte = {}  # Paar (Index) -> [Anteil bis zur nächsten Stelle, genau gerechnet?]
+        for k, (paar, weg) in enumerate(zip(paare, paarwege, strict=True)):
             if paar.nur_eilgang and not ziel.eilgang or paar.nur_vorschub and ziel.eilgang:
                 continue
-            # Beim Kern zählt nur eine Berührung: kein Warnabstand, auch nicht für den
-            # Schritt (der rechnet mit kleinster − Warnabstand).
+            if self._beruehrt_schon(ziel.operation, paar):
+                continue  # schlimmer wird es nicht
+            # Beim Kern zählt nur eine Berührung: kein Warnabstand, auch nicht für den Schritt.
             reicht = BERUEHRT if paar.nur_vorschub else self.warn
-            zuschlag = self.warn if paar.nur_vorschub else 0.0
-            luecke = _luecke(lage(paar.a), lage(paar.b))
-            if luecke > reicht + GENAU_AB:
-                kleinster = min(kleinster, luecke + zuschlag)
-                continue
-            abstand, stelle = self._abstand(paar.a, paar.b)
-            kleinster = min(kleinster, abstand + zuschlag)
-            if abstand <= reicht:
-                self._merke(paar, abstand, stelle, i, naechste, s, ziel)
-        return kleinster
+            # Genau hier schon gerechnet (am Ende des letzten Abschnitts): auch gemerkt.
+            schranke, ist_genau = self._schranken.get(schluessel[k], (-math.inf, False))
+            abstand = max(_luecke(lage(paar.a), lage(paar.b)), schranke)
+            if abstand <= reicht and not ist_genau:  # vielleicht ein Befund
+                abstand, stelle = rechne_genau(k)
+                ist_genau = True
+                if abstand <= reicht:
+                    self._merke(paar, abstand, stelle, i, naechste, s, ziel)
+            if weg > 1e-9:
+                schritte[k] = [self._anteil(paar, abstand, weg), ist_genau]
+        # Macht ein Paar den Schritt nur mit seiner Schranke am kürzesten, rechnet es genau –
+        # oft liegt es weiter weg, als die Schranke sagt. Befunde gibt es dabei keine mehr:
+        # Der genaue Abstand ist nie kleiner als die Schranke.
+        while schritte:
+            k = min(schritte, key=lambda j: schritte[j][0])
+            if schritte[k][1]:
+                return schritte[k][0]
+            abstand, _stelle = rechne_genau(k)
+            schritte[k] = [self._anteil(paare[k], abstand, paarwege[k]), True]
+        return math.inf
+
+    def _beruehrt_schon(self, operation, paar):
+        """Stecken die beiden in dieser Operation schon ineinander (Abstand 0)? Dann bleibt
+        der Befund, wie er ist – das Paar braucht nicht mehr gerechnet zu werden."""
+        befund = self.schlimmste.get((operation, paar.a.name, paar.b.name, paar.nur_vorschub))
+        return befund is not None and befund.abstand <= 0.0
+
+    def _anteil(self, paar, abstand, weg):
+        """So weit (als Anteil am Abschnitt) darf es bei diesem Abstand weitergehen."""
+        abzug = 0.0 if paar.nur_vorschub else self.warn
+        return max(abstand - abzug, MIN_SCHRITT) / weg
 
     def _abstand(self, a, b):
         """(Abstand in mm, Stelle) zweier Körper an ihrer gesetzten Lage; 0, wenn sie sich
@@ -522,6 +637,38 @@ def _luecke(h1, h2):
         spalt = max(h1[k] - h2[k + 3], h2[k] - h1[k + 3], 0.0)
         summe += spalt * spalt
     return math.sqrt(summe)
+
+
+def _rund_um(koerper, richtung, ursprung):
+    """Bleibt der Körper, wo er ist, wenn er sich um die Achse dreht? Um zwei krumme
+    Winkel gedreht, deckt er sich mit sich selbst – erst der Hüllquader, dann das Volumen
+    der Schnittmenge. Im Zweifel nein."""
+    try:
+        form = koerper.form.copy()
+        form.Placement = koerper.basis
+        volumen = form.Volume
+        if volumen <= 0:
+            return False
+        box = form.BoundBox
+        for winkel in RUND_PRUEFWINKEL:
+            gedreht = form.copy()
+            gedreht.rotate(ursprung, richtung, winkel)
+            b = gedreht.BoundBox
+            grenze = 1e-3 * max(box.DiagonalLength, 1.0)
+            if any(
+                abs(x - y) > grenze
+                for x, y in zip(
+                    (box.XMin, box.YMin, box.ZMin, box.XMax, box.YMax, box.ZMax),
+                    (b.XMin, b.YMin, b.ZMin, b.XMax, b.YMax, b.ZMax),
+                    strict=True,
+                )
+            ):
+                return False
+            if abs(form.common(gedreht).Volume - volumen) > 1e-5 * volumen:
+                return False
+        return True
+    except Exception:  # eine Form, mit der OpenCascade nicht rechnen kann: nicht rund
+        return False
 
 
 def _lokale_form(bauteil):

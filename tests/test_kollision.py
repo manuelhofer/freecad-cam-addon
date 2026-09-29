@@ -14,7 +14,8 @@
 #   ohne Hinweis, wenn sie an einem Gelenk hängen; Abbrechen geht;
 # - die Schneide nach Art: beim Lollipop eine Kugel, der Hals ab ihrer Mitte; beim
 #   Nutenfräser so hoch wie die Schneidenbreite (ein Scheibenfräser nur aus CAM: wie
-#   das Blatt).
+#   das Blatt);
+# - ein Futter rund um die Achse bewegt sich beim Drehen nicht, eines mit Backen schon.
 import math
 import os
 import sys
@@ -227,6 +228,32 @@ saege = SimpleNamespace(
 )
 m = rw.werkzeugmasse(saege, None, 60.0)
 pruefe((m.schneide, m.schaft, m.gesamt, m.kugel) == (3.0, 10.0, 40.0, False), f"Säge: {m}")
+
+# --- Rund um die Achse: dreht sich, ohne sich zu bewegen (W-003 V3e) --------------------------
+# Ein Futter aus zwei Zylindern um die Achse ist rund; um 5 mm verschoben oder mit drei Backen
+# nicht – dann zählt beim Drehen sein Abstand von der Achse.
+achse, auf_der_achse = FreeCAD.Vector(1, 0, 0), FreeCAD.Vector(0, 0, 0)
+
+
+def gebaut(form):
+    return kb.Koerper("„Futter“", kb.MASCHINE, form, None, FreeCAD.Placement())
+
+
+futter = Part.makeCompound(
+    [
+        Part.makeCylinder(110, 100, FreeCAD.Vector(380, 0, 0), achse),
+        Part.makeCylinder(140, 90, FreeCAD.Vector(480, 0, 0), achse),
+    ]
+)
+pruefe(kb._rund_um(gebaut(futter), achse, auf_der_achse), "Futter nicht rund")
+daneben = gebaut(Part.makeCylinder(140, 90, FreeCAD.Vector(480, 5, 0), achse))
+pruefe(not kb._rund_um(daneben, achse, auf_der_achse), "außermittig rund")
+backen = Part.makeCylinder(140, 90, FreeCAD.Vector(480, 0, 0), achse)
+for winkel in (0, 120, 240):
+    backe = Part.makeBox(40, 30, 60, FreeCAD.Vector(570, -15, 30))
+    backe.rotate(FreeCAD.Vector(), achse, winkel)
+    backen = backen.fuse(backe)
+pruefe(not kb._rund_um(gebaut(backen), achse, auf_der_achse), "Futter mit Backen rund")
 
 # --- Führungen und Abbrechen ------------------------------------------------------------------
 pruefe(not any("Grundstellung" in h for h in e.hinweise), f"Hinweis zu Führungen: {e.hinweise}")

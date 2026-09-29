@@ -207,10 +207,19 @@ Besprechung:
   und Teil als ihre Formen aus dem Dokument, jeweils an ihre Lage zur Zeit t
   gesetzt; den Abstand rechnet OpenCascade (`distToShape`; es erkennt auch,
   wenn ein Körper im anderen steckt – 2 bis 3 ms je Paar, gemessen
-  P-2026-09-26-93). Entlang der Bahn in Schritten, die nie weiter reichen als
-  der kleinste Abstand minus Warnabstand: weit weg große Schritte, nah dran
-  bis hinunter zu 0,5 mm – so rutscht keine Ecke durch. Paare, deren
-  Hüllquader weit auseinanderliegen, rechnet es nicht genau.
+  P-2026-09-26-93). Entlang der Bahn in Schritten, in denen sich kein Paar
+  um mehr als seinen Abstand minus Warnabstand näherkommt: weit weg große
+  Schritte, nah dran bis hinunter zu 0,5 mm – so rutscht keine Ecke durch.
+  Wie weit sich zwei Körper gegeneinander bewegen, zählt je Paar: nur die
+  Achsen, die genau einen der beiden fahren, eine Drehachse mit dem
+  weitesten Abstand des Körpers von ihr (P-2026-09-27-50 – mit der Größe
+  der ganzen Maschine gerechnet dauerte eine Bahn rundum, tausende Grad C,
+  über 20 Minuten). Genau rechnet es ein Paar nur, wenn es vielleicht näher
+  als der Warnabstand ist oder den nächsten Schritt am kürzesten macht; sonst
+  reicht eine Schranke nach unten – der Abstand der Hüllquader oder der
+  zuletzt genau gerechnete minus dem Weg seither. Ein Körper rund um seine
+  Drehachse (Futter, Welle) bewegt sich mit ihr nicht; stecken zwei in einer
+  Operation schon ineinander, rechnet es sie dort nicht weiter.
 - **Ergebnis** wie 4a, je Operation und Paar das Schlimmste als Satz: „In
   „Tasche“ berührt der Halter von T3 („SK40 ER32 A70“) das Teil (Satz 12,
   bei X 50, Y 30, Z −15).“ – „In „Kontur“ kommt der Fräskopf dem
