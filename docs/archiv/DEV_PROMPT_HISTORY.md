@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-13 vierachs-laenge-in-schritt-1
+
+### EINGELESEN
+- Bild `4_schritt1_wie_im_job` aus dem vollen Lauf für 0.27.0: Beim Ändern
+  stand in Schritt 1 „Stange 134,0 mm lang“, die Stange im Job war 144,5 mm
+  (mit dem Platz für T2 hinter dem Teil, P-2026-09-29-07).
+- `camaddon/gui_vierachs.py` (`zeige_seite`, `_auffrischen`).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`, `tests/gui/szenario_vierachs_aendern.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Zurück in Schritt 1 nennt die Länge der Stange den Platz, den der Fräser aus
+Schritt 2 hinter dem Teil braucht.
+
+### DONE
+- `zeige_seite(1)` frischt die Beschriftungen auf – die Länge rechnet mit dem
+  Fräser aus Schritt 2 (vorher stand, was beim Öffnen galt).
+
+### TEST
+- `szenario_vierachs_aendern`: „Zurück“ zeigt „144,5“.
+
+### NEXT
+- Version 0.27.1, voller Lauf, Push.
+
 ## P-2026-09-29-12 version-0-27-0
 
 ### EINGELESEN

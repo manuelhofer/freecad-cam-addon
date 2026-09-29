@@ -1108,6 +1108,8 @@ class VierachsPanel:
         self._kopf_text.setText(f"<b>{titel}</b>")
         if nummer == 2:
             self._bearbeitung_fuellen()
+        else:  # die Länge der Stange hängt auch am Fräser aus Schritt 2 (Überlauf)
+            self._auffrischen()
         self._knoepfe_beschriften()
 
     def _bearbeitung_fuellen(self):
