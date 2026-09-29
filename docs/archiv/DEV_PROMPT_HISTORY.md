@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-51 eilgang-nach-vorschub
+
+### EINGELESEN
+- `camaddon/kollision.py`, `tests/test_kollision.py`.
+- Messung an „Rundum schruppen“: „kommen sich im Eilgang die Schneide von T1 und
+  das Teil auf 0,32 mm nahe“ – beim Rückzug nach der letzten Lage.
+
+### DATEIEN
+- `camaddon/kollision.py` (`_zaehlt`, Abstand am Anfang des Eilgangs)
+- `tests/test_kollision.py` (Rückzug vom Taschenboden, Eilgang auf den Boden)
+- `docs/spezifikation_simulation.md` (4c), `help/de/reichweite.html`,
+  `help/en/reichweite.html`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+An der Beispiel-Fräse: „G1 Z5“ auf den Boden der Tasche, dann „G0 Z30“ →
+„Kollision prüfen“ meldet nichts. „G1 Z10“, dann „G0 Z5“ (im Eilgang auf den
+Boden) → „berühren sich im Eilgang die Schneide von T1 und das Teil“.
+
+### DONE
+- **Befund:** Ein Eilgang beginnt, wo der Vorschub aufhörte – dort steht die
+  Schneide oft am fertigen Teil (Boden einer Tasche, Wand einer Kontur, das
+  Aufmaß beim Schruppen). Die Prüfung sah schon am Anfang des Eilgangs die
+  Schneide am Teil und meldete rot „berühren sich im Eilgang“ – bei jeder
+  Tasche, die am Boden endet und im Eilgang hochfährt (nachgestellt an der
+  Beispiel-Fräse).
+- Jetzt: Beginnt ein Eilgang dort, wo ein Vorschub aufhörte, zählt die Schneide
+  gegen das Teil erst, wenn sie ihm näher kommt als am Anfang. Ein Rückzug ist
+  so kein Befund, ein Eilgang zum Teil hin schon. Schaft, Halter und
+  Maschinenteile zählen wie bisher.
+- Bewusst so gelassen: Fährt ein Eilgang nach dem Vorschub im selben Abstand am
+  Teil entlang, meldet es nichts – so nah war die Schneide im Vorschub auch.
+
+### TEST
+- `tests/test_kollision.py` in FreeCAD 1.1.3 und im Wochen-Build grün; die neuen
+  Fälle schlugen vor der Änderung fehl (Rückzug vom Boden: „berühren sich im
+  Eilgang“, von 0,3 mm darüber: „auf 0,30 mm nahe“).
+- Alle Prüfungen (`scripts/tests_ausfuehren.sh`) auf dem Stand dieses Patches in 1.1.3 grün.
+
+### NEXT
+- Beispiel-Drehmaschine für die 4-Achs-Prüfung, dann V3e.
+
 ## P-2026-09-27-50 kollision-schneller
 
 ### EINGELESEN

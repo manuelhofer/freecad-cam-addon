@@ -5,6 +5,8 @@
 # - Schneide 5 mm lang, Schaft so dick wie die Schneide, an der Taschenwand: der
 #   Schaft berührt das Teil; mit Schaft Ø 4 bleibt 0,5 mm – eine Warnung;
 # - Eilgang quer durchs Teil: Schneide und Schaft berühren es, „im Eilgang“;
+# - Eilgang nach einem Vorschub: der Rückzug vom Taschenboden ist kein Befund, der Eilgang
+#   hinunter auf den Boden schon;
 # - Halter ER16 (Mutter Ø 28) bei 80 mm Länge ab Spindelnase, 1 mm zu tief neben
 #   der Tasche: Der Halter berührt das Teil;
 # - kurzes Werkzeug (25 mm) neben dem rechten Spanneisen (60 mm hoch, oben bei
@@ -114,6 +116,19 @@ pruefe(paare(e) == {("der Schaft von T1", "das Teil", False, False)}, f"Schaft �
 if e.befunde:
     pruefe(abs(e.befunde[0].abstand - 0.5) < 1e-6, f"Abstand: {e.befunde[0].abstand}")
     pruefe("kommen sich der Schaft von T1 und das Teil auf 0.50 mm nahe" in e.befunde[0].text(), "")
+
+# --- Eilgang nach dem Vorschub: der Rückzug vom Boden ist keiner, der Weg hinunter schon ----
+for bahn in (
+    ["G0 X50 Y30 Z30", "G1 Z5 F10", "G0 Z30"],
+    ["G0 X50 Y30 Z30", "G1 Z5.3 F10", "G0 Z30"],
+):
+    e = pruefen(bahn, t1())
+    pruefe(e.befunde == [], f"Rückzug nach {bahn[1]}: {[b.text() for b in e.befunde]}")
+e = pruefen(["G0 X50 Y30 Z30", "G1 Z10 F10", "G0 Z5"], t1())
+pruefe(
+    paare(e) == {("die Schneide von T1", "das Teil", True, True)},
+    f"im Eilgang auf den Boden: {paare(e)}",
+)
 
 # --- Eilgang quer durchs Teil ---------------------------------------------------------------
 # 80 mm lang: Die Spindel bleibt weit über den Spanneisen (mit 50 mm käme sie ihnen auf

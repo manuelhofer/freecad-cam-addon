@@ -108,7 +108,9 @@ every spot:</p>
 against the <b>finished part</b> (the job's model), against fixtures, table and
 everything on the machine that does not move with the tool. The cutting part
 touches the part in feed moves, that is intended – it must not touch it in
-<b>rapid moves</b>, and in feed moves it must not run more than 0.05 mm
+<b>rapid moves</b> (a rapid move right after a feed move, up from a pocket
+floor, say, only counts once the cutting part gets closer to the part), and in
+feed moves it must not run more than 0.05 mm
 <b>into the finished part</b>: “… the cutting part of T1 runs into the finished
 part” means the tool would cut into the part there – when a radial tool runs a
 path calculated for one along Z, say. Deburring, engraving, threads and

@@ -11,8 +11,10 @@ am Nullpunkt, die Bauteile der Maschine an ihren Gliedern. Geprüft wird
   Werkstückseite – das Teil und die Glieder, die es tragen – und gegen den
   Rest (Bett und alles, was nicht mitfährt);
 - die Werkstückseite gegen den Rest;
-- die Schneide gegen das Teil im Eilgang – im Vorschub schneidet sie. Fährt sie
-  dabei aber mehr als EINDRINGEN ins fertige Teil, ist das ein Befund: Ihr Kern
+- die Schneide gegen das Teil im Eilgang – im Vorschub schneidet sie. Beginnt der
+  Eilgang dort, wo ein Vorschub aufhörte (so endet jede Tasche: am Boden, dann im
+  Eilgang hoch), zählt sie erst, wenn sie dem Teil näher kommt als dort. Fährt sie
+  im Vorschub aber mehr als EINDRINGEN ins fertige Teil, ist das ein Befund: Ihr Kern
   (die Schneide, um EINDRINGEN kleiner) darf das Teil nicht berühren – etwa
   wenn ein radiales Werkzeug eine Bahn fährt, die für eines längs Z gerechnet
   ist (Manuels Test, 2026-09-27). Nicht beim Entgraten, Gravieren, Gewinde und
@@ -483,13 +485,16 @@ class _Welt:
         else:
             self._schranken = {k: self._schranken[k] for k in schluessel if k in self._schranken}
         self._operation = ziel.operation
+        # Ein Eilgang, der dort beginnt, wo ein Vorschub aufhörte: je Paar der Schneide der
+        # Abstand am Anfang (nach unten abgeschätzt).
+        anfang = {} if ziel.eilgang and not stationen[i].eilgang else None
         s = 0.0
         while True:
             self._melden()
             self.ergebnis.stellen += 1
             if self.ergebnis.stellen > HOECHSTENS:
                 return False
-            weiter = self._stelle(i, naechste, s, paare, paarwege, schluessel, ziel)
+            weiter = self._stelle(i, naechste, s, paare, paarwege, schluessel, ziel, anfang)
             if s >= 1.0 or naechste == i:
                 return True
             neu = min(1.0, s + weiter)
@@ -511,12 +516,13 @@ class _Welt:
         if self._fortschritt(self.station / len(self.abfahrt.stationen)) is False:
             raise _Abbruch
 
-    def _stelle(self, i, naechste, s, paare, paarwege, schluessel, ziel):
+    def _stelle(self, i, naechste, s, paare, paarwege, schluessel, ziel, anfang=None):
         """Prüft die Stelle beim Anteil `s` zwischen Station i und der nächsten; gibt zurück,
         wie weit (als Anteil) es von hier sicher weitergeht: je Paar, das hier zählt, sein
         Abstand (nach unten abgeschätzt) minus Warnabstand, mindestens MIN_SCHRITT, geteilt
         durch seinen Weg (`paarwege`); math.inf, wenn sich nichts gegeneinander bewegt.
-        Was es genau rechnet, merkt es als Schranke (`schluessel`: je Paar der Schlüssel)."""
+        Was es genau rechnet, merkt es als Schranke (`schluessel`: je Paar der Schlüssel).
+        `anfang`: Eilgang nach einem Vorschub – die Abstände der Schneide am Anfang."""
         abfahrt = self.abfahrt
         von, nach = abfahrt.wirksam(i), abfahrt.wirksam(naechste)
         wege = {}
@@ -566,8 +572,10 @@ class _Welt:
             if abstand <= reicht and not ist_genau:  # vielleicht ein Befund
                 abstand, stelle = rechne_genau(k)
                 ist_genau = True
-                if abstand <= reicht:
+                if abstand <= reicht and _zaehlt(paar, k, abstand, s, anfang):
                     self._merke(paar, abstand, stelle, i, naechste, s, ziel)
+            if anfang is not None and paar.nur_eilgang and s == 0.0:
+                anfang[k] = abstand
             if weg > 1e-9:
                 schritte[k] = [self._anteil(paar, abstand, weg), ist_genau]
         # Macht ein Paar den Schritt nur mit seiner Schranke am kürzesten, rechnet es genau –
@@ -628,6 +636,14 @@ class _Welt:
             stelle=stelle,
             ins_teil=paar.nur_vorschub,
         )
+
+
+def _zaehlt(paar, k, abstand, s, anfang):
+    """Ist die Stelle ein Befund? Im Eilgang nach einem Vorschub (`anfang`) die Schneide erst,
+    wenn sie dem Teil näher kommt als am Anfang – ein Rückzug vom Teil weg ist keiner."""
+    if anfang is None or not paar.nur_eilgang:
+        return True
+    return s > 0.0 and abstand < anfang.get(k, math.inf) - 1e-6
 
 
 def _luecke(h1, h2):
