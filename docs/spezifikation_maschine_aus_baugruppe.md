@@ -75,7 +75,12 @@ Name innerhalb einer Maschine doppelt vorkommt.
 
 - **Verfahrweg bzw. Schwenkbereich** kommen aus der Min/Max-Begrenzung des
   Gelenks. Ist dort keine gesetzt, gilt die Achse als unbegrenzt bzw. endlos,
-  und das Addon weist darauf hin.
+  und das Addon weist darauf hin. Seit 2026-09-29 stehen sie auch im Fenster
+  „Maschine bearbeiten“ bei Linear und Positionieren („Verfahrweg von … bis
+  … mm“, leer = keine Grenze) – Manuel: „man müsste schon auch editieren
+  können was die maschine kann die verfahrwege“. Ein Satz darunter sagt, was
+  0 heißt (die Stellung, in der die Baugruppe gebaut ist) und dass das
+  Prüffenster daraus mit der Werkzeuglänge rechnet, wohin die Spitze kommt.
 - **Einheiten:** Eingegeben wird in den Einheiten, die in Datenblättern und
   Maschinendaten stehen (U/min, m/s², U/s²). Beim Export wird in die Einheiten
   der CAM-Definition umgerechnet (Drehachsen dort in °/min;

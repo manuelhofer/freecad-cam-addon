@@ -575,16 +575,55 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   Befund mehr (-51); die Beispiel-Drehmaschine fährt Z bis −220 mm, ihr
   Revolver trägt keine Fräser mehr, die das Teil „berührt“ hätten (-52); der
   Fräser bleibt 2 mm vor dem Futter statt 1 mm (so knapp wie der
-  Warnabstand). **Offen, Frage an Manuel:** Das Teil ragt nur um den Abstich
-  aus dem Futter. Auf der Beispiel-Drehmaschine stößt der Revolver mit einem
-  kurzen Werkzeug (50 mm ab Halter) ans Futter, wenn der Fräser hinten am Teil
-  arbeitet – die Kollisionsprüfung zeigt es; mit 125 mm bleibt es frei.
+  Warnabstand). Die Frage an Manuel, wie weit das Teil aus dem Futter ragen
+  soll, ist beantwortet (2026-09-29): V3f.
 - *Klickweg:* Beispiel-Drehmaschine laden, Welle → Stirnfläche →
   „4-Achs-Bearbeitung“ → Stange Ø 80 → „Weiter“ → „Rundum schruppen“, T1
   Schaftfräser D12 → „Anlegen“ → im Job stehen T1 und „Rundum schruppen T1“,
   die Bahn läuft in Lagen um das Teil. „Auf der Maschine prüfen“: C dreht, das
   Werkzeug auf P1 läuft außen am Teil entlang; „Kollision prüfen“ meldet
   nichts im Teil.
+
+**V3f – Maschine zuerst, Ausspannlänge, Abstände** (Manuel, 2026-09-29, siehe
+„Entschieden“)
+
+- **Maschine zuerst:** Schritt 1 fragt als Erstes „Welche Maschine?“ – die
+  offenen Maschinen, die gemerkte (D-20, wird geöffnet) oder „ohne Maschine“.
+  Die Rundachse folgt daraus; darunter ein Satz, was die Maschine kann
+  („Rundachse C, Y-Achse, Revolver mit 12 Plätzen“).
+- **Überlauf:** Die Spirale läuft hinter das Teil, bis der Fräser es ganz
+  verlassen hat: Überlauf = Fräserradius + 0,5 mm (Vorschlag). Im Überlauf
+  bleibt die Spitze auf der Tiefe des letzten Stücks Kontur – die Kante hinten
+  am Teil wird fertig. Nie näher ans Futter als der Abstand zum Futter.
+- **Abstände einstellbar, mit Vorschlag:** Überlauf, Abstand zum Futter
+  (Vorschlag 5 mm, vom Rand des Fräsers bis zur Spannfläche) und
+  Sicherheitsabstand (2 mm über der Stange) in Schritt 2 und als Eigenschaften
+  der Operation.
+- **Ausspannlänge:** Die Stange ragt so weit aus dem Futter, dass Teil,
+  Überlauf und Abstand zum Futter Platz haben: Planaufmaß + Teil + größeres von
+  Abstechbreite und Überlauf + Abstand zum Futter. Schritt 2 sagt es als Satz
+  („Die Stange muss 72,5 mm aus dem Futter ragen: …“) und legt die Stange so
+  lang an; der Nullpunkt folgt wie bisher aus der Spannlänge.
+- *Klickweg:* Welle 60 mm lang, „4-Achs-Bearbeitung“ → oben „Maschine“:
+  Beispiel-Drehmaschine → „Weiter“ → T1 D12: grau „Überlauf 6,5“, „Abstand zum
+  Futter 5“, darunter „Die Stange muss 72,5 mm aus dem Futter ragen …“ →
+  „Anlegen“: Die Bahn endet 6,5 mm hinter dem Teil, die Stange ist 102,5 mm
+  lang (30 im Futter).
+
+**V3g – Rohteil und Fertigteil in der Simulation** (Manuel, 2026-09-29)
+
+- Im Prüffenster wird die Stange beim Abspielen abgetragen: ein Zylinder aus
+  Radien über (Länge, Winkel), 0,5 mm × 1°; je Station nimmt der Fräser weg,
+  was in seiner Stirn liegt (`restmaterial.py`, numpy). Vor- und
+  Zurückspringen rechnet ab dem Anfang neu.
+- Am Ende der Vergleich mit dem fertigen Teil in Farben: grün bis Aufmaß
+  + 0,1 mm, gelb darüber, rot ab 1 mm zu viel, blau im Teil (mehr als
+  0,05 mm). Dazu ein Satz: „Am Ende bleiben 0,30 … 0,45 mm auf dem Teil,
+  nirgends ins Teil.“
+- Nur für Jobs mit runder Stange und Rundachse; für 3-Achs-Jobs bleibt der
+  CAM-Simulator von FreeCAD.
+- *Klickweg:* Job aus V3f → „Auf der Maschine prüfen“ → Abspielen: Die Stange
+  wird unter dem Werkzeug dünner; am Ende grün mit dem Satz.
 
 **V4 – Flächen wählen** (bisher V3)
 
@@ -688,3 +727,22 @@ als Rückmeldung zum Plan:
   hier auch nicht erkannt da er komplett durchs werstück fährt“ → Hinweis zur
   Werkzeuglage (P-2026-09-27-43), Kollision „ins fertige Teil“
   (P-2026-09-27-41), Prüffenster ohne TCPM (V3e).
+- **Ausspannlänge und Abstände (2026-09-29):** „wenn das bauteil 30 mm lang
+  ist .. und du sagst ‚ja maximal bis 33 mm in z minus darfst du fahren mit
+  deinem 12er fräser‘ dann ist das nicht schlau .. weil dann wird dein bauteil
+  nicht fertig bearbeitet werden ... da muss man schon mindestens mal 6.5
+  drüber fahren damit es kontur fertig ist ... und dann braucht man noch einen
+  sicherheits abstand zum futter ... also am sinnvolsten ist .. man macht das
+  bauteil + fräser + sicherheitsabstand .. und sagt dem benutzer auch ‚hey so
+  lange muss es ausgespannt sein das rohteil‘“ – „alle abstände zu was auch
+  immer müssen einstellbar sein aber mit einem standartwert der sinnvoll ist
+  gefüllt werden“ → V3f.
+- **Maschine zuerst (2026-09-29):** „vll sollte man als erstes die abfrage
+  machen ‚hey was hast du für ne maschine‘ nachdem man ausgewählt hat was man
+  bearbeiten will … der prozess soll extrem einfach werden“ → V3f.
+- **Rohteil und Fertigteil (2026-09-29):** „haben wir eine rohteil und
+  fertigteil vergleich in der ‚simualtion‘“ → V3g.
+- **Y-Achse (2026-09-29):** „bei einer maschine mit y achse kann man ja auch
+  diese verfahren um eventuelle stellen besser zu erreichen“ → mit V4/V5:
+  Flächen, die ein Werkzeug durch die Achse nicht erreicht (ebene Flächen,
+  Hinterschnitte seitlich), fährt es mit Y versetzt; bis dahin gilt Y = 0.

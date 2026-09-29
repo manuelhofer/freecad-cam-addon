@@ -263,6 +263,33 @@ Abschnitt 8):
    ist obenauf gezeichnet – sonst läge sie unter der Spindel; der Warnabstand
    wird gemerkt.*
 
+**4e – Spitze (TCP) und TCPM** (Manuel, 2026-09-29: „x-60 ist ja unter der
+drehmitte was garnicht sein kann … das x-60 ist ja nur die maschinen
+koordinate .. nicht wenn nen fräser mit dabei ist .. der TCP muss schon mit
+berechnet werden .. generell immer … also machs so das es auch tcp kann deine
+wegberechnung .. generell solltest du die wegberechnung sehr sehr sehr extrem
+gut machen .. und am besten sehr variabel so das man immer wieder neue sachen
+raus machen kann“)
+
+- **Kinematik-Kern** (`kinematik.py`, ohne Oberfläche): eine Stelle für alles,
+  was Achsen und Werkzeugspitze verbindet – vorwärts (Achsstellungen → Spitze
+  und Werkzeugrichtung im Job) und rückwärts (Punkt der Bahn → Achsstellungen),
+  mit oder ohne TCPM, dazu wie weit die Spitze mit einem Werkzeug kommt.
+  Reichweite, Abfahren, Kollision und das Bild der Bahn rechnen damit; neue
+  Prüfungen und Bahnen bauen darauf auf, statt es neu zu erfinden.
+- **Spitze im Abspieler:** unter den Achsen die Spitze, wie im Programm
+  („Spitze: X 16,00 · Y 0,00 · Z −28,00 · C −3900,0°“). Steht eine Achse am
+  Anschlag, dazu, wo die Spitze wirklich steht („steht bei X 65,00“).
+- **Überschreitungen mit der Spitze:** „X1 fährt in „Rundum schruppen T1“ bis
+  −109,00 mm, die Grenze ist −60,00 mm (bei X 16, …) – mit T1 kommt die
+  Spitze in X nur bis 65,00 mm.“ So ist klar, dass X1 der Schlitten ist und
+  wie weit das Werkzeug reicht.
+- **TCPM wählbar:** Transformation „TCPM“ an der Maschine (Steuerung rechnet
+  den Werkzeugmittelpunkt mit: TRAORI, RTCP, M128). Mit ihr sind X, Y, Z die
+  Spitze am gedrehten Werkstück – die Linearachsen werden je Stellung der
+  Rundachsen gelöst; ohne sie (Vorgabe, wie FreeCAD die Bahn zeigt) mit den
+  Rundachsen auf 0.
+
 **4d – Bearbeitungszeit**
 - Je Satz die Zeit mit Eilgang bzw. Vorschub, begrenzt durch die
   Achsgrenzen und mit Beschleunigung (Trapezprofil; Ruck später). Summe je

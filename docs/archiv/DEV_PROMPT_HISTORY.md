@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-02 plan-nacht-29
+
+### EINGELESEN
+- Manuels Nachrichten und Bilder vom 2026-09-29 abends (Test in FreeCAD 1.1.4
+  mit 0.26.0): „warum sind die werkzeugwege da so seltsam ? ... haben wir eine
+  rohteil und fertigteil vergleich in der ‚simualtion‘ ... bei mir fährt der
+  fräser ausschlieslich oben entlang über dem bauteil“, Maschine zuerst,
+  Ausspannlänge (Teil + Fräser + Sicherheitsabstand), alle Abstände
+  einstellbar, Verfahrwege in „Maschine bearbeiten“, TCP/TCPM, „die
+  wegberechnung sehr sehr sehr extrem gut machen .. und am besten sehr
+  variabel“; „mach das alles ich geh ins bett .. bis morgen is fertig !“
+- `docs/spezifikation_vierachs.md`, `docs/spezifikation_simulation.md`,
+  `docs/spezifikation_maschine_aus_baugruppe.md`.
+
+### DATEIEN
+- `docs/spezifikation_vierachs.md` (V3f, V3g, „Entschieden“),
+  `docs/spezifikation_simulation.md` (4e), `docs/spezifikation_maschine_aus_baugruppe.md`
+  (Verfahrwege im Fenster), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikationen nennen, was heute Nacht gebaut wird, mit Manuels Worten
+und einem Klickweg je Stufe.
+
+### DONE
+- Befund zu „fährt ausschließlich oben entlang über dem Bauteil“: Auf Manuels
+  Maschine stand X1 an der Grenze −60 mm (Bild: „X1 −60,00 mm (am Anschlag)“,
+  die Bahn braucht −109 … −73 mm) – das Werkzeug kam nicht ans Teil. Dass X1 der
+  Schlitten ist (0 = wie gebaut), nicht die Spitze, sieht man im Fenster nicht
+  → 4e.
+- Geplant, in dieser Reihenfolge: Verfahrwege im Fenster „Maschine
+  bearbeiten“; V3f (Maschine zuerst, Überlauf, Abstand zum Futter,
+  Ausspannlänge); 4e (Kinematik-Kern, Spitze im Abspieler, Überschreitungen mit
+  der Spitze, TCPM wählbar); V3g (Rohteil und Fertigteil in der Simulation).
+  Y-Achse: mit V4/V5.
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- Verfahrwege im Fenster „Maschine bearbeiten“.
+
 ## P-2026-09-29-01 freecad-1-1-4-vergleich
 
 ### EINGELESEN
