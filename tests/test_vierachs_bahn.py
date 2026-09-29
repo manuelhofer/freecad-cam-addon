@@ -177,12 +177,8 @@ for name, werte in (
 knapp = vb.schruppen(
     welle, C_LAENGS, C_RADIAL, WERTE.__class__(**{**WERTE.__dict__, "a_futter": -100.5})
 )
-pruefe(
-    [s for s, _w in knapp.hinweise] == ["vb.hinten_frei"]
-    and abs(knapp.hinweise[0][1]["laenge"] - 0.5) < 1e-9,
-    f"Hinweise: {knapp.hinweise}",
-)
-pruefe(bahn.hinweise == [], f"Exzenter mit Hinweisen: {bahn.hinweise}")
+pruefe(abs(knapp.hinten_frei - 0.5) < 1e-9, f"hinten frei: {knapp.hinten_frei}")
+pruefe(bahn.hinten_frei == 0, f"Exzenter hinten frei: {bahn.hinten_frei}")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

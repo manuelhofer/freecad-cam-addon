@@ -28,11 +28,12 @@ Läuft ohne Oberfläche.
 """
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import numpy as np
 
 from . import vierachs_huelle as vh
+from .sprache import tr
 
 SICHERHEIT = 2.0  # mm – so weit über und vor der Stange fährt der Fräser im Eilgang
 FREI_FUTTER = 1.0  # mm – so weit bleibt der Rand des Fräsers vor der Spannfläche
@@ -74,7 +75,7 @@ class Bahn:
     punkte: list  # [Punkt], der erste ist der Start (Eilgang, vor der Stange)
     lagen: int
     r_min: float  # so nah kommt die Spitze der Achse (mm)
-    hinweise: list = field(default_factory=list)  # (Schlüssel, {Werte}) für tr()
+    hinten_frei: float = 0.0  # so viel vom hinteren Ende des Teils erreicht der Fräser nicht
 
 
 def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=vh.SCHRITT_PHI):
@@ -85,9 +86,9 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     """
     w = werte
     if w.fraeser_radius <= 0 or w.zustellung <= 0 or w.steigung <= 0:
-        raise ValueError("Fräser, Zustellung und Vorschub je Umdrehung müssen größer als 0 sein.")
+        raise ValueError(tr("vb.fehler.werte"))
     if w.steigung > 2 * w.fraeser_radius:
-        raise ValueError("Der Vorschub je Umdrehung ist größer als der Fräser – es bliebe Grat.")
+        raise ValueError(tr("vb.fehler.steigung"))
     l_, _u, _v = vh.rahmen(laengs, radial)
     a_teil = netz.punkte @ l_
     teil_vorne, teil_hinten = float(a_teil.max()), float(a_teil.min())
@@ -95,10 +96,8 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     a_anfang = w.a_stange_vorne + radius + w.sicherheit
     a_ende = w.a_futter + radius + FREI_FUTTER
     if a_ende >= teil_vorne + radius:
-        raise ValueError("Zwischen Futter und Teil ist kein Platz für den Fräser.")
-    hinweise = []
-    if a_ende - radius > teil_hinten:
-        hinweise.append(("vb.hinten_frei", {"laenge": a_ende - radius - teil_hinten}))
+        raise ValueError(tr("vb.fehler.platz"))
+    hinten_frei = max(0.0, a_ende - radius - teil_hinten)
 
     # Die Spirale: gleich viele Punkte je Umdrehung wie das Raster Winkel hat.
     phi_werte = vh.raster_phi(schritt_phi)
@@ -136,7 +135,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         versatz += anzahl
         punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
-    return Bahn(punkte, lagen, r_min, hinweise)
+    return Bahn(punkte, lagen, r_min, hinten_frei)
 
 
 def _knicke(r, abstand):

@@ -51,6 +51,7 @@ EINSATZ_NACH_OPERATION = {
     "Vcarve": (wz.FASEN,),
     "ThreadMilling": (wz.GEWINDEFRAESEN,),
     "Tapping": (wz.GEWINDEBOHREN,),
+    "vierachs_operation": (wz.SCHRUPPEN,),  # „Rundum schruppen“ (W-003)
     # Die Bohrung des Wochen-Builds kann auch Gewinde schneiden.
     "Drilling": (
         wz.BOHREN,

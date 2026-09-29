@@ -46,8 +46,14 @@ class Netz:
 
 
 def vernetze(form, toleranz=TOLERANZ):
-    """Das Netz einer Form (Part.Shape) – ihre Oberfläche in Dreiecken."""
-    punkte, dreiecke = form.tessellate(toleranz)
+    """Das Netz einer Form (Part.Shape) – ihre Oberfläche in Dreiecken.
+
+    Vernetzt wird eine Kopie ohne Netz: Eine Form behält das Netz, das zuerst für
+    sie gerechnet wurde, wenn es fein genug ist – etwa das feinere vom Vermessen.
+    Dann hinge die Bahn davon ab, was vorher geschah, und sähe nach dem Laden
+    anders aus (ausprobiert, P-2026-09-27-48).
+    """
+    punkte, dreiecke = form.copy().tessellate(toleranz)
     return Netz(
         np.array([(p.x, p.y, p.z) for p in punkte], dtype=float).reshape(-1, 3),
         np.array(dreiecke, dtype=np.int64).reshape(-1, 3),

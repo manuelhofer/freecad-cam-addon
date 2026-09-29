@@ -1,7 +1,8 @@
 # Prüft die Stangenachse für die 4-Achs-Bearbeitung (W-003 Stufe V2a): ohne
 # Maschine A/B/C in X/Y/Z; an der Beispiel-Drehmaschine gibt C1 im Tisch die
-# Achse vor – C, die Stange längs +Z, vom Futter weg; die 3-Achs-Fräse hat
-# keine. Dazu das Geraderücken von Richtungen und die Lage im Job.
+# Achse vor – C, die Stange längs +Z, vom Futter weg, der Drehsinn wie das Gelenk
+# (nachgemessen); die 3-Achs-Fräse hat keine. Dazu woher das Werkzeug kommt, das
+# Geraderücken von Richtungen und die Lage im Job.
 import os
 import sys
 
@@ -12,6 +13,8 @@ import FreeCAD
 import Part
 
 from camaddon import beispielmaschine as bm
+from camaddon import maschine as m
+from camaddon import verfahren as vf
 from camaddon import vierachs_achsen as va
 from camaddon import vierachs_rohteil as vr
 
@@ -25,14 +28,18 @@ def pruefe(bedingung, text):
 
 X, Y, Z = FreeCAD.Vector(1, 0, 0), FreeCAD.Vector(0, 1, 0), FreeCAD.Vector(0, 0, 1)
 
-# Ohne Maschine: wie bisher der Buchstabe.
-for buchstabe, soll in (("A", X), ("B", Y), ("C", Z)):
+# Ohne Maschine: wie bisher der Buchstabe; das Werkzeug bei A und B von oben, bei C aus X.
+for buchstabe, soll, von in (("A", X, Z), ("B", Y, Z), ("C", Z, X)):
     achse = va.zugewiesen(buchstabe)
     pruefe(
-        (achse.buchstabe, achse.maschine) == (buchstabe, "") and achse.laengs == soll,
+        (achse.buchstabe, achse.maschine, achse.drehsinn) == (buchstabe, "", 1)
+        and achse.laengs == soll,
         f"{buchstabe} ohne Maschine: {achse}",
     )
     pruefe(vr.laengs_von(buchstabe) == vr.laengs_von(achse), f"laengs_von {buchstabe}")
+    pruefe(va.radial(achse) == von, f"{buchstabe}: Werkzeug aus {va.radial(achse)}")
+# Liegt die Stange längs der Richtung, aus der das Werkzeug käme, nimmt es die nächste.
+pruefe(va.radial(va.Stangenachse("C", X)) == Z, f"C längs X: {va.radial(va.Stangenachse('C', X))}")
 
 # Geraderücken: fast auf einer Achse → genau darauf, sonst nur normiert.
 pruefe(
@@ -56,6 +63,20 @@ pruefe(
     f"Drehmaschine: {achsen}",
 )
 pruefe(va.offene(asm.Document) == achsen, f"offene: {va.offene(asm.Document)}")
+# Der Drehsinn, nachgemessen: C1 auf +90° – wohin zeigt danach X des Futters?
+aufnahme = next(a for a in m.aufnahmen(ma) if a.Art == m.AUFNAHME_WERKSTUECK)
+vorher = m.globale_platzierung(aufnahme.Lcs).Rotation
+verfahren = vf.Verfahren(asm)
+c1 = next(a for a in verfahren.kette.achsen if vf.namen(ma, a) == "C1")
+verfahren.setze(c1, verfahren.stellung(c1) + 90, grenzen=False)
+x_neu = m.globale_platzierung(aufnahme.Lcs).Rotation.multVec(X)
+verfahren.grundstellung()
+rechtshaendig = (x_neu - vorher.multVec(Y)).Length < 1e-6
+pruefe(
+    achsen and achsen[0].drehsinn == (1 if rechtshaendig else -1),
+    f"Drehsinn {achsen[0].drehsinn if achsen else None}, X nach +90°: {x_neu}",
+)
+pruefe(va.radial(achsen[0]) == X if achsen else False, "Werkzeug kommt bei C nicht aus X")
 FreeCAD.closeDocument(asm.Document.Name)
 
 # Die 3-Achs-Fräse hat keine Rundachse.

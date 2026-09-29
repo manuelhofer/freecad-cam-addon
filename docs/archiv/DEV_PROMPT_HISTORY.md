@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-48 vierachs-operation
+
+### EINGELESEN
+- `docs/spezifikation_vierachs.md` (Abschnitt 10, Stufe V3c).
+- FreeCADs `Path/Op/Base.py` in 1.1.3 und im Wochen-Build (`ObjectOp`,
+  `DoNotSetDefaultValues`, `execute`, `Workplane`),
+  `Path/Post/scripts/linuxcnc_post.py` (F in jedem Satz: `OUTPUT_DOUBLES`
+  ist Standard).
+- `camaddon/maschine.py` (Proxys), `camaddon/verfahren.py` (`plusrichtung`).
+
+### DATEIEN
+- `camaddon/vierachs_operation.py` (neu), `camaddon/gui_vierachs_operation.py` (neu)
+- `camaddon/vierachs_achsen.py` (`drehsinn`, `radial()`)
+- `camaddon/vierachs_bahn.py` (`hinten_frei`, Texte über `tr`)
+- `camaddon/vierachs_huelle.py` (vernetzt eine Kopie ohne Netz)
+- `camaddon/job_schnittwerte.py` (`EINSATZ_NACH_OPERATION`: Schruppen)
+- `translations/de.json`, `translations/en.json` (`vo.*`, `vb.*`)
+- `tests/test_vierachs_operation.py` (neu), `tests/test_vierachs_achsen.py`,
+  `tests/test_vierachs_bahn.py`
+- `docs/aufbau.md` (dazu der fehlende Eintrag `vierachs_achsen.py`),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Job einer Welle aus dem Assistenten lässt sich „Rundum schruppen T1“
+anlegen, ohne dass FreeCAD nachfragt; sie rechnet fünf Lagen, ihre Bahn
+steht zwischen G93 und G94 mit C, nach Speichern und Laden ist sie gleich,
+und der Postprozessor schreibt jeden Satz mit F.
+
+### DONE
+- Operation `RundumSchruppen` (erbt FreeCADs `ObjectOp`): Controller und
+  Kühlmittel, keine Höhen in Z; Eigenschaften in der Gruppe „4-Achs“
+  (Rundachse, Stangenachse, Werkzeugrichtung, Drehsinn, Quer auf null,
+  Zustellung, Vorschub je Umdrehung, Aufmaß, Sicherheitsabstand, Lagen – nur
+  lesen). Beim Neuberechnen: Modell, runde Stange und Spannlänge des Jobs →
+  Bahn; geht es nicht, ein Satz in der Konsole und als Kommentar in der Bahn
+  (ohne Umlaute).
+- `lege_an()` ohne eigene Transaktion, mit `DoNotSetDefaultValues` (sonst
+  fragte FreeCAD nach Job und Controller); Anzeige mit Symbol, Doppelklick
+  öffnet nichts.
+- Stangenachse mit Drehsinn (von der Maschine: `plusrichtung` gegen die
+  Stange; ohne Maschine +1, wie FreeCADs Bahnanzeige) und `radial()`: bei A
+  und B von oben, bei C aus +X.
+- Befund: Eine Form behält ein vorhandenes feineres Netz – die Bahn hing
+  davon ab und war nach dem Laden kürzer (5073 statt 5972 Befehle). Jetzt
+  wird eine Kopie ohne Netz vernetzt.
+
+### TEST
+- `test_vierachs_operation` in 1.1.3 und im Wochen-Build: angelegt, 5 Lagen,
+  G0 X42 / G0 X42 Y0 Z9 C0 / G93 … G94, über dem Teil X ≥ 30,3, hinten 1 mm
+  vor dem Futter; Speichern und Laden gleich; LinuxCNC-Post (Wochen-Build:
+  `linuxcnc_legacy_post`): 5057 Sätze mit F, etwa „G1 X38.000 Z7.800
+  C-90.000 F25.125“; ohne Vorschub und mit Quader-Rohteil ein Satz statt der
+  Bahn.
+- `test_vierachs_achsen`: Drehsinn der Beispiel-Drehmaschine nachgemessen
+  (C1 auf +90°, X des Futters zeigt dann nach +Y: +1).
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- V3d: Schritt „Was willst du machen?“ im Assistenten.
+
 ## P-2026-09-27-47 vierachs-schruppbahn
 
 ### EINGELESEN

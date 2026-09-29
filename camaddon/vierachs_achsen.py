@@ -12,6 +12,12 @@ ist das Z – die Stange liegt längs der Spindel, nicht quer im Futter (Manuels
 Test, 2026-09-27). Vorne zeigt vom Futter weg, also wie Z der
 Werkstückaufnahme.
 
+Der Drehsinn sagt, wohin ein positiver Wert der Rundachse das Teil dreht:
++1 rechtshändig um die Stangenachse nach vorne – so zeigt FreeCAD Bahnen mit
+A, B und C (PathSegmentWalker dreht den Punkt um −C) –, −1 andersherum.
+Ohne Maschine gilt +1. Das Werkzeug kommt radial aus der Richtung, die
+radial() nennt: bei A und B von oben (+Z), bei C aus +X (Abschnitt 4).
+
 Läuft ohne Oberfläche.
 """
 
@@ -20,6 +26,7 @@ from dataclasses import dataclass
 import FreeCAD
 
 from . import maschine as m
+from . import verfahren as vf
 from . import vierachs_rohteil as vr
 from .kette import LINEAR
 
@@ -33,6 +40,7 @@ class Stangenachse:
     buchstabe: str  # so heißt die Rundachse im Programm: A, B oder C
     laengs: FreeCAD.Vector  # Stangenachse nach vorne, in den Achsen des Jobs
     maschine: str = ""  # die Maschine, von der sie kommt; leer: zugewiesen
+    drehsinn: int = 1  # +1: ein positiver Wert dreht das Teil rechtshändig um `laengs`
 
 
 def zugewiesen(buchstabe):
@@ -63,7 +71,10 @@ def von_maschine(assembly, maschine, kette=None):
         if buchstabe is None:
             continue  # eine Spindel, die nicht positionieren kann
         laengs = _nach_vorne(gerade(in_job.multVec(achse.richtung)))
-        ergebnis.append(Stangenachse(buchstabe, laengs, maschine.Label))
+        # Wohin dreht ein positiver Wert das Teil – um `laengs` oder andersherum?
+        plus = in_job.multVec(vf.plusrichtung(achse))
+        drehsinn = 1 if plus.dot(laengs) > 0 else -1
+        ergebnis.append(Stangenachse(buchstabe, laengs, maschine.Label, drehsinn))
     return ergebnis
 
 
@@ -86,6 +97,23 @@ def offene(zuerst=None):
         except Exception as fehler:  # eine halb eingerichtete Maschine soll nicht stören
             FreeCAD.Console.PrintLog(f"CAM-Addon: Achsen von {maschine.Label}: {fehler}\n")
     return ergebnis
+
+
+def radial(achse):
+    """Woher das Werkzeug kommt, wenn die Rundachse auf 0 steht – in den Achsen des Jobs,
+    quer zur Stange: bei A und B von oben (+Z), bei C aus +X (vierachs_rohteil.ACHSEN).
+    Liegt die Stange genau so, nimmt es die nächste Achse des Jobs."""
+    laengs = FreeCAD.Vector(achse.laengs)
+    for kandidat in (
+        vr.ACHSEN[achse.buchstabe][1],
+        FreeCAD.Vector(0, 0, 1),
+        FreeCAD.Vector(1, 0, 0),
+        FreeCAD.Vector(0, 1, 0),
+    ):
+        quer = FreeCAD.Vector(kandidat) - laengs * FreeCAD.Vector(kandidat).dot(laengs)
+        if quer.Length > 0.5:
+            return gerade(quer)
+    return FreeCAD.Vector(1, 0, 0)  # nicht erreichbar: eine der drei steht immer quer
 
 
 def gerade(richtung):
