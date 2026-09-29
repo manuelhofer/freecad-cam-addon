@@ -996,5 +996,18 @@
     "va.radius": "In the program X is the radius, not the diameter – on a lathe switch the program header to radius (Siemens DIAMOF). Feed is given as G93 (1 ÷ time).",
     "va.fehler.anlegen": "Could not create: {fehler}",
     "va.transaktion.schruppen": "Create all-round roughing",
-    "rw.werkzeug_radial": "“{operation}”: the path is calculated for a tool pointing radially at the axis from {richtung} – but {werkzeug} on {aufnahme} sits differently. Run like this, it does not fit the part: use a radial station pointing from {richtung}."
+    "rw.werkzeug_radial": "“{operation}”: the path is calculated for a tool pointing radially at the axis from {richtung} – but {werkzeug} on {aufnahme} sits differently. Run like this, it does not fit the part: use a radial station pointing from {richtung}.",
+    "dialog.verfahrweg.min": "Travel from ({einheit})",
+    "dialog.verfahrweg.max": "Travel to ({einheit})",
+    "dialog.schwenkbereich.min": "Swivel range from (°)",
+    "dialog.schwenkbereich.max": "Swivel range to (°)",
+    "dialog.verfahrweg.lage_nur_von": "At the “from” limit it is {von}; “to” has no limit.",
+    "dialog.verfahrweg.lage_nur_bis": "At the “to” limit it is {bis}; “from” has no limit.",
+    "dialog.keine_grenze": "no limit",
+    "dialog.grenze.tooltip": "How far the axis may move – the limit on the assembly joint. Empty: no limit.",
+    "dialog.verfahrweg.null": "Counted as on the joint: the position of the slide, not the tool tip.",
+    "dialog.schwenkbereich.null": "Counted as on the joint, in degrees; does not apply while “endless” is ticked.",
+    "dialog.verfahrweg.lage": "{achse} is now at {stellung}; {aufnahme} is {abstand} away from the workpiece mount (along {achse}).",
+    "dialog.verfahrweg.lage_grenzen": "At the limits it is {von} and {bis}.",
+    "dialog.verfahrweg.spitze": "Where the tip gets to with a tool is shown by “Check on machine”."
 }

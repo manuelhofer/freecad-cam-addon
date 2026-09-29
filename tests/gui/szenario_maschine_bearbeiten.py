@@ -3,7 +3,10 @@
 # anlegen, 12 Revolverplätze verteilen, OK = ein Schritt Rückgängig,
 # Abbrechen verwirft. „+ Betriebsart“ schlägt den NC-Namen vor (Z → Z1);
 # „Vorschlagen“ gibt der leeren Maschine mit einem Klick S1, Z1, X1 und T
-# (D-25).
+# (D-25). Bei X1 steht der Verfahrweg des Gelenks (0 … 200 mm) zum Ändern,
+# darunter, wie weit der Werkzeugplatz dabei von der Werkstückaufnahme weg ist
+# (Manuel, 2026-09-29: „man müsste schon auch editieren können … die
+# verfahrwege“).
 import os
 import sys
 
@@ -153,6 +156,45 @@ def schritte(h):
     panel.aufnahmen.setCurrentItem(eintrag(panel.aufnahmen, "Futter"))
     yield 100
     h.pruefe(panel.details.formular.rowCount() == 2, "Futter: Felder für Werkzeuge")
+
+    # Verfahrweg von X1: die Begrenzung am Gelenk, zum Ändern; leer = keine Grenze,
+    # darum steht die Grenze bei 0 als „0“ da. Der graue Text rechnet nach jeder
+    # Änderung neu.
+    panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
+    yield 100
+    gelenk_x = doc.getObject("X") or next(o for o in doc.Objects if o.Label == "X")
+    von, bis = panel.details.feld(5), panel.details.feld(6)
+    h.pruefe(
+        isinstance(von, QtGui.QLineEdit) and isinstance(bis, QtGui.QLineEdit),
+        f"Verfahrweg: {von!r} {bis!r}",
+    )
+    if isinstance(von, QtGui.QLineEdit) and isinstance(bis, QtGui.QLineEdit):
+        h.pruefe(von.text() == "0" and bis.text() == "200", f"{von.text()!r} … {bis.text()!r}")
+        tippen(von, "-50")
+        tippen(bis, "")
+        yield 200
+        h.pruefe(
+            gelenk_x.EnableLengthMin and abs(float(gelenk_x.LengthMin) + 50) < 1e-9,
+            f"von: {gelenk_x.EnableLengthMin} {gelenk_x.LengthMin}",
+        )
+        h.pruefe(not gelenk_x.EnableLengthMax, "bis: Grenze nicht ausgeschaltet")
+        erklaerung = panel.details.formular.itemAt(7, QtGui.QFormLayout.SpanningRole)
+        text = erklaerung.widget().text() if erklaerung is not None else ""
+        h.pruefe(
+            "Schlittens, nicht die Werkzeugspitze" in text
+            and "Jetzt steht X1 auf 0 mm" in text
+            and "85 mm von der Werkstückaufnahme weg (längs X1)" in text
+            and "„von“ sind es 35 mm; „bis“ ist nicht begrenzt" in text,
+            f"Erklärung: {text!r}",
+        )
+        h.bild("4b_verfahrweg_x1", panel.form)
+        tippen(von, "0")
+        tippen(bis, "200")
+        yield 100
+        h.pruefe(
+            gelenk_x.EnableLengthMax and abs(float(gelenk_x.LengthMax) - 200) < 1e-9,
+            f"bis: {gelenk_x.EnableLengthMax} {gelenk_x.LengthMax}",
+        )
 
     # Ein Fehler: X1 ohne Eilgang -> Hinweis erscheint, Klick springt zur Achse.
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))

@@ -69,11 +69,16 @@ class DetailKasten(QtGui.QFrame):
         eintrag = self.formular.itemAt(zeile, QtGui.QFormLayout.FieldRole)
         return eintrag.widget() if eintrag is not None else None
 
-    def zeige_betriebsart(self, ba, linear):
-        """NC-Name und die Kennwerte, die zur Art gehören; Pflichtwerte fett.
+    def zeige_betriebsart(self, ba, linear, lage=None):
+        """NC-Name und die Kennwerte, die zur Art gehören; Pflichtwerte fett. Bei Linear
+        und Positionieren dazu der Verfahrweg bzw. Schwenkbereich – die Begrenzung am
+        Gelenk (Manuel, 2026-09-29: „man müsste schon auch editieren können was die
+        maschine kann die verfahrwege“).
 
         `linear`: Das Gelenk fährt (sonst dreht es) – davon hängen die
-        Einheiten von Beschleunigung und Ruck ab.
+        Einheiten von Beschleunigung und Ruck ab. `lage`: gibt die Sätze, wo die
+        Achse gerade steht und was das an der Maschine heißt – nach jeder
+        geänderten Grenze neu gefragt.
         """
         gelenk = ba.Gelenk.Label if ba.Gelenk is not None else "?"
         self.titel.setText(tr("dialog.detail_betriebsart", art=m.art_text(ba.Art), gelenk=gelenk))
@@ -91,9 +96,75 @@ class DetailKasten(QtGui.QFrame):
             feld.setToolTip(ba.getDocumentationOfProperty(eigenschaft))
             self.formular.addRow(_beschriftung(text, fett=pflicht), feld)
 
+        if ba.Art in (m.ART_LINEAR, m.ART_POSITIONIEREN) and ba.Gelenk is not None:
+            self._verfahrweg(ba.Gelenk, linear, lage)
         if any(eigenschaft == "Beschleunigung" for eigenschaft, _pflicht in m.WERTE[ba.Art]):
             self.formular.addRow(self._verweis_beschleunigung())
         self.show()
+
+    def _verfahrweg(self, gelenk, linear, lage):
+        """Zwei Zeilen „… von“ und „… bis“ für die Begrenzung am Gelenk (mm bzw. °);
+        leer: keine Grenze. Darunter grau, was die Zahlen heißen."""
+        erklaerung = QtGui.QLabel()
+        erklaerung.setWordWrap(True)
+        erklaerung.setStyleSheet("color: gray;")
+
+        def erklaeren():
+            saetze = (
+                tr("dialog.verfahrweg.null") if linear else tr("dialog.schwenkbereich.null"),
+                lage() if lage is not None else "",
+            )
+            erklaerung.setText(" ".join(satz for satz in saetze if satz))
+
+        einheit = einheiten.einheit(einheiten.LAENGE)
+        if linear:
+            titel = {
+                "Min": tr("dialog.verfahrweg.min", einheit=einheit),
+                "Max": tr("dialog.verfahrweg.max", einheit=einheit),
+            }
+        else:
+            titel = {"Min": tr("dialog.schwenkbereich.min"), "Max": tr("dialog.schwenkbereich.max")}
+        for ende in ("Min", "Max"):
+            self.formular.addRow(titel[ende], self._grenzfeld(gelenk, ende, linear, erklaeren))
+        erklaeren()
+        self.formular.addRow(erklaerung)
+
+    def _grenzfeld(self, gelenk, ende, linear, danach):
+        """Ein Ende der Begrenzung: „Min“ oder „Max“. Leer schaltet die Grenze aus –
+        darum steht eine Grenze bei 0 als „0“ da, nicht leer wie ein unbekannter Wert.
+        `danach`: wird nach jeder Änderung gerufen."""
+        schalter, name = ("EnableLength", "Length") if linear else ("EnableAngle", "Angle")
+        an = bool(getattr(gelenk, schalter + ende, False))
+        wert = getattr(gelenk, name + ende, None)
+        text = ""
+        if an and wert is not None:
+            zahl = float(wert.getValueAs("mm" if linear else "deg"))
+            if linear:
+                text = groesse_zeigen(zahl, einheiten.LAENGE, metrisch_stellen=4)
+            else:
+                text = zahl_zeigen(round(zahl, 4))
+            text = text or "0"
+        feld = QtGui.QLineEdit(text)
+        feld.setValidator(Zahlenpruefer(feld, mit_minus=True))
+        feld.setPlaceholderText(tr("dialog.keine_grenze"))
+        feld.setToolTip(tr("dialog.grenze.tooltip"))
+        ruhiges_mausrad(feld)
+
+        def uebernehmen():
+            text = feld.text().strip()
+            if not text:
+                self._setze(gelenk, schalter + ende, False)
+            else:
+                try:
+                    neu = groesse_lesen(text, einheiten.LAENGE) if linear else zahl_lesen(text)
+                except ValueError:  # nur „-“ oder „,“: bleibt wie es war
+                    return
+                self._setze(gelenk, name + ende, neu)
+                self._setze(gelenk, schalter + ende, True)
+            danach()
+
+        feld.editingFinished.connect(uebernehmen)
+        return feld
 
     def zeige_aufnahme(self, aufnahme, alle_lcs, spindeln, auf_revolver=False):
         """Bezeichnung und LCS; bei Werkzeugaufnahmen auch der Antrieb.

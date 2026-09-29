@@ -565,7 +565,9 @@ class MaschinenPanel:
         self.details.leeren()
         if art == ZEILE_BETRIEBSART:
             self._details_unter(self.achsen_knoepfe)
-            self.details.zeige_betriebsart(objekt, linear=self._ist_linear(objekt))
+            self.details.zeige_betriebsart(
+                objekt, linear=self._ist_linear(objekt), lage=lambda: self._lage_text(objekt)
+            )
         elif art == ZEILE_AUFNAHME:
             self._details_unter(self.aufnahmen_knoepfe)
             self.details.zeige_aufnahme(
@@ -864,6 +866,60 @@ class MaschinenPanel:
         achse = self.kette.achse_von(ba.Gelenk)
         return achse is not None and achse.art == LINEAR
 
+    def _lage_text(self, ba):
+        """Wo eine Linearachse gerade steht und wie weit die erste Werkzeugaufnahme dabei
+        von der Werkstückaufnahme weg ist (längs der Achse), auch an den Grenzen – damit
+        die Zahlen des Verfahrwegs etwas heißen. Manuel (2026-09-29): „x-60 ist ja unter
+        der drehmitte was garnicht sein kann“ – −60 ist der Schlitten, nicht die Spitze."""
+        achse = self.kette.achse_von(ba.Gelenk)
+        if achse is None or achse.art != LINEAR:
+            return ""
+        aufnahmen = [a for a in m.aufnahmen(self.maschine) if a.Lcs is not None]
+        werkzeug = next((a for a in aufnahmen if a.Art == m.AUFNAHME_WERKZEUG), None)
+        werkstueck = next((a for a in aufnahmen if a.Art == m.AUFNAHME_WERKSTUECK), None)
+        if werkzeug is None or werkstueck is None:
+            return ""
+
+        def faehrt(aufnahme):
+            glied = self.kette.glied_von(aufnahme.Lcs)
+            return glied is not None and achse in self.kette.pfad_zum_bett(glied)
+
+        # +1: die Achse fährt das Werkzeug, −1: das Werkstück; beide oder keins: nichts zu sagen
+        seite = (1 if faehrt(werkzeug) else 0) - (1 if faehrt(werkstueck) else 0)
+        if seite == 0:
+            return ""
+        from . import verfahren as vf
+
+        jetzt = vf.gelenkstellung(achse.gelenk, achse.art)
+        abstand = (
+            m.globale_platzierung(werkzeug.Lcs).Base - m.globale_platzierung(werkstueck.Lcs).Base
+        ).dot(achse.richtung)
+
+        def bei(stellung):
+            return abstand + seite * vf._vorzeichen(achse) * (stellung - jetzt)
+
+        name = m.name_von(ba)
+        saetze = [
+            tr(
+                "dialog.verfahrweg.lage",
+                achse=name,
+                stellung=_mm(jetzt),
+                aufnahme=m.name_von(werkzeug),
+                abstand=_mm(abstand),
+            )
+        ]
+        von, bis = kette_modul._begrenzung(achse.gelenk, achse.art)
+        if von is not None and bis is not None:
+            saetze.append(
+                tr("dialog.verfahrweg.lage_grenzen", von=_mm(bei(von)), bis=_mm(bei(bis)))
+            )
+        elif von is not None:
+            saetze.append(tr("dialog.verfahrweg.lage_nur_von", von=_mm(bei(von))))
+        elif bis is not None:
+            saetze.append(tr("dialog.verfahrweg.lage_nur_bis", bis=_mm(bei(bis))))
+        saetze.append(tr("dialog.verfahrweg.spitze"))
+        return " ".join(saetze)
+
     # --- Rückfragen -----------------------------------------------------------
 
     def _trotzdem_uebergeben(self, anzahl_warnungen):
@@ -1017,3 +1073,13 @@ def _knopfreihe(knoepfe, spalten=2):
     for nummer, knopf in enumerate(knoepfe):
         raster.addWidget(knopf, nummer // spalten, nummer % spalten)
     return reihe
+
+
+def _mm(wert):
+    """Eine Länge mit Einheit (mm oder inch), auf Tausendstel gerundet – ein Rest von
+    1e-13 aus der Lage der Baugruppe steht als 0 da."""
+    from . import einheiten
+    from .gui_zahlen import groesse_zeigen
+
+    zahl = groesse_zeigen(round(wert, 3) + 0.0, einheiten.LAENGE, metrisch_stellen=3) or "0"
+    return f"{zahl} {einheiten.einheit(einheiten.LAENGE)}"

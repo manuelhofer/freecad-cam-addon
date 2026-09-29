@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-03 verfahrwege-bearbeiten
+
+### EINGELESEN
+- Manuel (2026-09-29, Bild „Maschine bearbeiten“, X1 ohne Verfahrweg): „bei
+  maschine bearbeiten wollte ich das limit von x ändern wobei ich das nicht
+  verstanden habe ... x-60 ist ja unter der drehmitte was garnicht sein kann
+  ... man müsste schon auch editieren können was die maschine kann die
+  verfahrwege ... wahrscheinlich hab ichs nur nicht gefunden“
+- `camaddon/gui_details.py`, `camaddon/gui_maschine.py`, `camaddon/kette.py`
+  (`_begrenzung`), `camaddon/verfahren.py`, `tests/gui/szenario_maschine_bearbeiten.py`,
+  `tests/beispielmaschinen.py`, `help/*/achsen.html`.
+
+### DATEIEN
+- `camaddon/gui_details.py`, `camaddon/gui_maschine.py`, `translations/de.json`,
+  `translations/en.json`, `help/de/achsen.html`, `help/en/achsen.html`,
+  `tests/gui/szenario_maschine_bearbeiten.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Wer in „Maschine bearbeiten“ X1 wählt, sieht und ändert dort „Verfahrweg von“
+und „bis“ (leer = keine Grenze), und ein Satz darunter sagt, wie weit der
+Werkzeugplatz dabei von der Werkstückaufnahme weg ist.
+
+### DONE
+- Bei Linear und Positionieren zwei Zeilen „Verfahrweg von/bis (mm)“ bzw.
+  „Schwenkbereich von/bis (°)“: die Begrenzung am Gelenk (LengthMin/Max bzw.
+  AngleMin/Max samt Enable…), geändert im selben Rückgängig-Schritt wie alles
+  im Fenster. Leer schaltet die Grenze aus; eine Grenze bei 0 steht darum als
+  „0“ da, nicht leer wie ein unbekannter Kennwert.
+- Grauer Satz darunter, nach jeder Änderung neu: gezählt wie am Gelenk (der
+  Schlitten, nicht die Spitze), wo die Achse jetzt steht, wie weit P1 dabei
+  von der Werkstückaufnahme weg ist (längs der Achse) und was es an den
+  Grenzen sind; die Spitze mit Werkzeug zeigt „Auf der Maschine prüfen“.
+- Hilfe „Achsen“ (de/en): der Satz „trägst du nicht hier ein“ ersetzt.
+
+### TEST
+- `szenario_maschine_bearbeiten` (1.1.3 und Wochen-Build): X1 zeigt 0 … 200,
+  −50 und leer ändern das Gelenk, der Satz nennt 0 mm, 85 mm und 35 mm,
+  zurück auf 0 … 200; Bild `4b_verfahrweg_x1`.
+- `test_sprache`, `test_hilfe`, `test_maschine`.
+
+### NEXT
+- Nachträglich ändern (Manuel 20:30: „komme ich nicht mehr in die maske
+  rein“), dann V3f.
+
 ## P-2026-09-29-02 plan-nacht-29
 
 ### EINGELESEN
