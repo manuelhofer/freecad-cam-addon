@@ -2,9 +2,9 @@
 <p>Ein Teil wird aus einer runden Stange gefräst, während sich die Stange
 dreht – auf einer Fräse mit Rundachse (A oder B) genauso wie auf einer
 Drehmaschine mit C-Achse und angetriebenen Werkzeugen. Der Assistent führt in
-Schritten dorthin. Gebaut ist der erste: <b>das Teil in die Stange
-legen</b>. Flächen wählen, Werkzeuge und die Schrupp- und Schlichtbahnen
-kommen in den nächsten Stufen dazu.</p>
+zwei Schritten dorthin: <b>das Teil in die Stange legen</b> und dann
+<b>„Was willst du machen?“</b> – bisher <b>Rundum schruppen</b>. Flächen
+wählen und Schlichten kommen in den nächsten Stufen dazu.</p>
 
 <h3>So geht's</h3>
 <ol>
@@ -17,9 +17,17 @@ die Achse.</li>
 <li>Den <b>Durchmesser der Stange</b> eintragen, etwa 80. Die Zeile unten sagt
 grün, wie viel Material rundum mindestens bleibt – oder rot, welchen
 Durchmesser das Teil bräuchte.</li>
-<li><b>Anlegen</b> – es entsteht ein CAM-Job mit dem Teil in der Stange. Ein
-<b>Strg+Z</b> nimmt alles zurück, <b>Abbrechen</b> lässt nichts zurück.</li>
+<li><b>Weiter</b> – Schritt 2: <b>Was willst du machen?</b> „Rundum
+schruppen“ ist angehakt, darunter stehen Fräser, Einsatz und Werte aus der
+Werkzeugverwaltung und grau, wie viele Lagen es werden – etwa „→ 5 Lagen
+(Ø 80,0 mm → Ø 60,6 mm)“.</li>
+<li><b>Anlegen</b> – es entstehen der CAM-Job mit dem Teil in der Stange, der
+Werkzeug-Controller und die Operation „Rundum schruppen T1“; ihre Bahn läuft
+in Lagen um das Teil. Das erste <b>Strg+Z</b> nimmt Controller und Operation
+zurück, das zweite Job und Stange. <b>Abbrechen</b> lässt nichts zurück.</li>
 </ol>
+<p><b>Zurück</b> führt wieder zum Rohteil. Ohne Haken bei „Rundum schruppen“
+legt „Anlegen“ nur Job und Stange an.</p>
 <p>Eine andere Fläche anklicken, solange das Fenster offen ist, legt das Teil
 mit dieser Fläche nach vorne.</p>
 
@@ -67,6 +75,50 @@ Werkzeug aus X, wie an einer Drehmaschine mit C-Achse.</li>
 <p>Die Achse der Stange geht durch den Nullpunkt des Jobs. So legt FreeCAD
 spätere Bahnen von selbst richtig um das Teil.</p>
 
+<h3>Schritt 2: Rundum schruppen</h3>
+<p>Die Stange wird rundum abgenommen, bis aufs Schlichtaufmaß – in Lagen, mit
+einem Fräser, der von außen zur Achse zeigt, während die Rundachse dreht.</p>
+<ul>
+<li><b>Werkstoff</b> – für welchen die Schnittwerte gelten: vom Rohteil, wenn
+es einen hat, sonst der zuletzt benutzte.</li>
+<li><b>Fräser</b> – aus der Werkzeugverwaltung: Schaft-, Torus-, Kugel-,
+Nuten- oder Planfräser mit Schnittwerten für den Werkstoff. Vorgewählt ist
+der zuletzt benutzte, sonst der erste Schaftfräser. Fehlt einer, sagt es eine
+rote Zeile; <b>Werkzeugverwaltung …</b> öffnet sie – speicherst du dort,
+steht er gleich zur Wahl.</li>
+<li><b>Einsatz</b> – vorgewählt „Schruppen“. Er gibt Drehzahl und Vorschub
+(grau darunter) und die Vorschläge für die Felder.</li>
+<li><b>Zustellung je Lage</b> – so tief nimmt jede Lage radial ab (ap des
+Einsatzes). <b>Vorschub je Umdrehung</b> – so weit rückt die Spirale je
+Umdrehung längs vor (ae des Einsatzes, höchstens der Durchmesser).
+<b>Schlichtaufmaß</b> – so viel bleibt rundum stehen (Vorschlag 0,3 mm).</li>
+</ul>
+<p><b>Die Bahn:</b> Jede Lage ist eine Spirale von vorne – der Fräser ganz vor
+der Stange – bis vor das Futter; der Rand des Fräsers bleibt 1 mm vor der
+Spannfläche. Wo das Teil höher ist als die Lage, folgt die Spitze dem Teil
+plus Aufmaß; der Achse kommt sie nie näher als der Fräserradius. Zwischen den
+Lagen geht es radial hinaus und im Eilgang nach vorne. Gerechnet wird gegen
+das ganze Teil, auf 0,02 mm genau vernetzt: Der Rechenfehler geht ins Aufmaß,
+nie ins Teil.</p>
+<p><b>Im Programm</b> – bitte vor dem ersten Lauf lesen:</p>
+<ul>
+<li><b>X ist der Radius</b> (bei A und B ist es Z), nicht der Durchmesser. An
+der Drehmaschine muss der Programmkopf auf Radius stellen (Siemens
+<code>DIAMOF</code>); sonst führe das Werkzeug auf den halben Abstand zur
+Achse.</li>
+<li>Der <b>Vorschub</b> steht nach <b>G93</b> (1 ÷ Zeit) – so fährt der
+Fräser am Werkstück mit dem Vorschub des Einsatzes, egal wie weit er von der
+Achse weg ist. Danach kommt G94. Der Postprozessor muss F in jedem Satz
+schreiben (sein Standard) und metrisch ausgeben.</li>
+<li>Die <b>Rundachse</b> zählt fortlaufend weiter (−3600° und mehr): Sie muss
+ohne Modulo-Rechnung fahren, sonst dreht sie nicht mehrmals herum.</li>
+<li>Am Anfang fährt das Werkzeug radial auf Sicherheitsabstand, dann nach
+vorne vor die Stange und quer auf die Mitte (Y0 – nicht, wenn die Maschine
+keine Y-Achse hat).</li>
+</ul>
+<p>Die Werte stehen an der Operation in der Gruppe „4-Achs“ und lassen sich
+dort ändern; die Bahn rechnet dann neu.</p>
+
 <h3>Was im Dokument passiert</h3>
 <ul>
 <li>Ein neuer <b>Job</b> „Teil – 4 Achsen“. Das Teil liegt als Modell des
@@ -74,12 +126,16 @@ Jobs in der Stange. Das Original bleibt, wo es war, und wird ausgeblendet.</li>
 <li>Das <b>Rohteil</b> des Jobs ist ein Zylinder mit dem Durchmesser und der
 Länge der Stange. Solange das Fenster offen ist, ist er durchscheinend und
 lässt sich nicht anklicken. Danach sieht er aus wie jedes Rohteil in CAM.</li>
+<li>Mit „Rundum schruppen“ dazu ein <b>Werkzeug-Controller</b> „T1 Schruppen“
+mit Drehzahl und Vorschub aus der Werkzeugverwaltung und die
+<b>Operation</b> „Rundum schruppen T1“. Den Controller, den FreeCAD jedem
+neuen Job gibt, nimmt der Assistent heraus.</li>
 </ul>
 
 <h3>Was (noch) nicht geht</h3>
 <ul>
-<li>Die Flächen wählen, die gefräst werden, die Werkzeuge und die Bahnen –
-das kommt in den nächsten Stufen.</li>
+<li>Nur bestimmte Flächen fräsen und das Schlichten – das kommt in den
+nächsten Stufen. Bis dahin nimmt „Rundum schruppen“ das ganze Teil.</li>
 <li>Drehen, Planen der Stirnseite und Abstechen macht die Maschine – FreeCAD
 dreht nicht.</li>
 </ul>

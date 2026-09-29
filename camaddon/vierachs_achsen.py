@@ -41,6 +41,7 @@ class Stangenachse:
     laengs: FreeCAD.Vector  # Stangenachse nach vorne, in den Achsen des Jobs
     maschine: str = ""  # die Maschine, von der sie kommt; leer: zugewiesen
     drehsinn: int = 1  # +1: ein positiver Wert dreht das Teil rechtshändig um `laengs`
+    quer: bool = True  # hat die Maschine eine Linearachse quer zur Stange (bei C das Y)?
 
 
 def zugewiesen(buchstabe):
@@ -63,6 +64,7 @@ def von_maschine(assembly, maschine, kette=None):
     # Achsrichtungen stehen in Weltkoordinaten – wie die Lage des LCS.
     in_job = m.globale_platzierung(aufnahme.Lcs).Rotation.inverted()
     rollen, _meldungen = m.rollen(pruefung.kette, maschine)
+    linear = {vf.namen(maschine, a)[:1].upper() for a in pruefung.kette.achsen if a.art == LINEAR}
     ergebnis = []
     for achse in pruefung.kette.achsen:
         if achse.art == LINEAR or rollen.get(achse.gelenk) != m.TISCH:
@@ -74,7 +76,11 @@ def von_maschine(assembly, maschine, kette=None):
         # Wohin dreht ein positiver Wert das Teil – um `laengs` oder andersherum?
         plus = in_job.multVec(vf.plusrichtung(achse))
         drehsinn = 1 if plus.dot(laengs) > 0 else -1
-        ergebnis.append(Stangenachse(buchstabe, laengs, maschine.Label, drehsinn))
+        achse_der_stange = Stangenachse(buchstabe, laengs, maschine.Label, drehsinn)
+        quer = achsbuchstabe(laengs.cross(radial(achse_der_stange)))
+        ergebnis.append(
+            Stangenachse(buchstabe, laengs, maschine.Label, drehsinn, not quer or quer in linear)
+        )
     return ergebnis
 
 

@@ -12,6 +12,77 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-49 vierachs-was-willst-du-machen
+
+### EINGELESEN
+- Manuels Wunsch (2026-09-27): „wäre cool wenn dann einfach ein fenster
+  aufgeht .. was willste machen .. schruppen“.
+- `docs/spezifikation_vierachs.md` (V3d), `camaddon/gui_vierachs.py`,
+  `camaddon/gui_job_schnittwerte.py` (Werkstoff, Controller anlegen),
+  `camaddon/job_schnittwerte.py`.
+- FreeCAD 1.1.3: `App/AutoTransaction.cpp` (Wächter, `closeActiveTransaction`),
+  CAM `Path/Tool/toolbit/models/base.py` und `Path/Tool/shape/doc.py`
+  (verstecktes Dokument beim Anlegen eines ToolBits); Wochen-Build:
+  Transaktionen je Dokument (`AutoTransaction(doc, name)`).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py` (Schritt 2, `_im_befehl`, `_neuer_job`)
+- `camaddon/job_schnittwerte.py` (`controller_ohne_transaktion`,
+  `controller_weg`; ToolBit ausgeblendet wie bei FreeCAD)
+- `camaddon/vierachs_operation.py` (`bahn_fuer` für die Vorschau)
+- `camaddon/vierachs_achsen.py` (`quer`: hat die Maschine Y?)
+- `translations/de.json`, `translations/en.json`
+- `help/de/vierachs.html`, `help/en/vierachs.html`
+- `tests/gui/szenario_vierachs_schruppen.py` (neu),
+  `tests/gui/szenario_vierachs_rohteil.py`, `tests/gui/szenario_vierachs_maschine.py`,
+  `tests/test_vierachs_achsen.py`
+- `docs/spezifikation_vierachs.md`, `docs/aufbau.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle, Stirnfläche, „4-Achs-Bearbeitung“, Stange Ø 80 → der Knopf heißt
+„Weiter“; danach „Was willst du machen?“ mit „Rundum schruppen“, T1 und
+„Schruppen“ vorgewählt, grau „→ 5 Lagen (Ø 80,0 mm → Ø 60,…)“. „Anlegen“:
+Controller „T1 Schruppen“ und „Rundum schruppen T1“ im Job; zwei Strg+Z nehmen
+alles zurück.
+
+### DONE
+- Schritt 2 „Was willst du machen?“: Haken „Rundum schruppen“, Werkstoff (vom
+  Rohteil oder zuletzt benutzt), Fräser (Schaft-, Torus-, Kugel-, Nuten-,
+  Planfräser mit Schnittwerten), Einsatz (Schruppen vor), n und vf grau,
+  Zustellung (ap), Vorschub je Umdrehung (ae, höchstens D), Schlichtaufmaß
+  (0,3); Vorschau der Lagen, rechnet 0,4 s nach der letzten Eingabe wie die
+  Operation; Hinweis „X ist der Radius … DIAMOF … G93“ bei C; „Zurück“;
+  „Werkzeugverwaltung …“ (nach dem Speichern neu gelesen).
+- OK heißt in Schritt 1 „Weiter“, in Schritt 2 „Anlegen“.
+- Befund: FreeCAD 1.1 schließt die offene Transaktion, sobald CAM ein ToolBit
+  anlegt (es öffnet und schließt ein verstecktes Dokument) – auch beim
+  Vorgabe-Controller eines neuen Jobs. Das hat schon Stufe V1 getroffen: Ein
+  anderes Teil angeklickt, blieb nach Abbrechen etwas stehen. Abhilfe
+  `_im_befehl`: in 1.1 als FreeCAD-Befehl ausführen, die Transaktion darin
+  öffnen und mit `setActiveTransaction(…, True)` offen halten; der Wochen-Build
+  führt Transaktionen je Dokument, dort direkt.
+- Deshalb zwei Schritte Rückgängig: Job und Stange, dann Controller und
+  Operation („Rundum schruppen anlegen“). Geht das Schruppen nicht, bleibt das
+  Fenster mit dem Grund offen; Abbrechen nimmt dann auch Job und Stange
+  zurück.
+- Der Vorgabe-Controller des neuen Jobs fliegt heraus (D-30); ToolBits aus
+  der Werkzeugverwaltung sind im Dokument ausgeblendet – wie bei FreeCAD, sonst
+  stand der Fräser als Körper am Nullpunkt.
+
+### TEST
+- `szenario_vierachs_schruppen` (neu), `szenario_vierachs_rohteil`,
+  `szenario_vierachs_maschine`, `szenario_schnittwerte_job`,
+  `szenario_schnittwerte_pruefen` in 1.1.3 und im Wochen-Build ok;
+  Screenshots angesehen: Schritt 2 mit „→ 5 Lagen (Ø 80,0 mm → Ø 60,6 mm)“,
+  die Bahn in Spiralen um die Welle.
+- `test_vierachs_achsen`: Drehmaschine mit Y → quer, ohne Y (Testdrehmaschine)
+  → nicht.
+- Alle Einzeltests in beiden Versionen ok.
+
+### NEXT
+- V3e: Prüffenster ohne TCPM, G93, radiales Werkzeug; dann Version und Push.
+
 ## P-2026-09-27-48 vierachs-operation
 
 ### EINGELESEN

@@ -3,7 +3,8 @@
 # legt sie mittig vorne in eine Stange. Leer gilt der Vorschlag Ø 75; mit Ø 80
 # bleiben 4,0 mm rundum. „Ganzes Teil“ braucht nur Ø 66. Mit A liegt die
 # Stange in X, mit C in Z. Eine gewölbte Fläche wird abgelehnt. Abbrechen
-# hinterlässt nichts, „Anlegen“ ist ein Schritt Rückgängig.
+# hinterlässt nichts; „Weiter“ und ohne „Rundum schruppen“ „Anlegen“ ist ein
+# Schritt Rückgängig.
 import os
 import sys
 
@@ -88,10 +89,10 @@ def schritte(h):
     h.pruefe(rohteil.ViewObject.Selectable is False, "Stange lässt sich anklicken")
     h.pruefe(
         panel.knopf_anlegen() is not None and panel.knopf_anlegen().isEnabled(),
-        "„Anlegen“ nicht bedienbar",
+        "„Weiter“ nicht bedienbar",
     )
     h.pruefe(
-        panel.knopf_anlegen().text() == "Anlegen", f"OK heißt {panel.knopf_anlegen().text()!r}"
+        panel.knopf_anlegen().text() == "Weiter", f"OK heißt {panel.knopf_anlegen().text()!r}"
     )
     hilfe = panel.form.findChild(QtGui.QToolButton, "hilfe_vierachs")
     h.pruefe(hilfe is not None, "kein Knopf (?) zur Hilfe")
@@ -159,6 +160,10 @@ def schritte(h):
     panel.waehle_rundachse("C")
     panel.feld_stange.setText("80")
     yield 800
+    # „Weiter“, dann ohne „Rundum schruppen“ „Anlegen“: nur Job und Stange.
+    panel.accept()
+    yield 300
+    panel.mit_schruppen.setChecked(False)
     panel.accept()
     yield 800
     jobs = [o for o in doc.Objects if type(getattr(o, "Proxy", None)).__name__ == "ObjectJob"]

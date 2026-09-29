@@ -8,7 +8,9 @@ import sys
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
+sys.path.insert(0, os.path.join(ADDON, "tests"))
 
+import beispielmaschinen
 import FreeCAD
 import Part
 
@@ -77,6 +79,16 @@ pruefe(
     f"Drehsinn {achsen[0].drehsinn if achsen else None}, X nach +90°: {x_neu}",
 )
 pruefe(va.radial(achsen[0]) == X if achsen else False, "Werkzeug kommt bei C nicht aus X")
+pruefe(achsen and achsen[0].quer, "Die Drehmaschine hat Y – quer auf 0 fahren")
+FreeCAD.closeDocument(asm.Document.Name)
+
+# Eine Drehmaschine ohne Y (Z1, X1, C4): Quer gibt es nichts zu fahren.
+asm, ma = beispielmaschinen.drehmaschine_komplett()
+ohne_y = va.von_maschine(asm, ma)
+pruefe(
+    [(a.buchstabe, a.laengs, a.quer) for a in ohne_y] == [("C", Z, False)],
+    f"Drehmaschine ohne Y: {ohne_y}",
+)
 FreeCAD.closeDocument(asm.Document.Name)
 
 # Die 3-Achs-Fräse hat keine Rundachse.

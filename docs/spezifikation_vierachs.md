@@ -547,6 +547,13 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   (Ø 80 → Ø 60,6)“. „Anlegen“ legt Job, Stange, Controller und Operation in
   einer Transaktion an; dafür wird `lege_controller_an` in Kern und
   Transaktion geteilt.
+  *Gebaut (P-2026-09-27-49):* Schritt 2 wie beschrieben, dazu Werkstoff,
+  „Zurück“ und „Werkzeugverwaltung …“. Abweichung: **zwei** Schritte
+  Rückgängig – zuerst Controller und Operation, dann Job und Stange. FreeCAD
+  1.1 schließt die offene Transaktion, wenn CAM ein Werkzeug (ToolBit)
+  anlegt; nur in einem Befehl, in dem sie geöffnet wurde, bleibt sie – für den
+  Controller also eine eigene. Den Vorgabe-Controller jedes neuen Jobs nimmt
+  der Assistent heraus.
 - **V3e – Prüffenster:** Rundachsen wie an einer Steuerung ohne TCPM: X, Y
   und Z bleiben im Rahmen der Maschine, die Rundachse dreht das Teil darunter.
   Genau so zeigt FreeCAD die Bahn (`PathSegmentWalker`: der Punkt um −C

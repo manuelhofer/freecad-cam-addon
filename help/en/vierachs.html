@@ -1,9 +1,9 @@
 <h2>4-axis machining</h2>
 <p>A part is milled out of a round bar while the bar turns – on a mill with a
 rotary axis (A or B) just as on a lathe with a C axis and driven tools. The
-wizard gets you there in steps. The first one is built: <b>placing the part
-in the bar</b>. Choosing faces, tools and the roughing and finishing paths
-come in the next stages.</p>
+wizard gets you there in two steps: <b>placing the part in the bar</b> and
+then <b>“What do you want to do?”</b> – so far <b>All-round roughing</b>.
+Choosing faces and finishing come in the next stages.</p>
 
 <h3>How it works</h3>
 <ol>
@@ -14,9 +14,17 @@ moves into a see-through bar and turns once about the axis.</li>
 <li>Enter the <b>bar diameter</b>, say 80. The line at the bottom says in
 green how much material is left all round at least – or in red which
 diameter the part would need.</li>
-<li><b>Create</b> – a CAM job with the part in the bar appears. One
-<b>Ctrl+Z</b> undoes everything, <b>Cancel</b> leaves nothing behind.</li>
+<li><b>Next</b> – step 2: <b>What do you want to do?</b> “All-round
+roughing” is ticked; below are cutter, use case and values from the tool
+manager and, in grey, how many layers it takes – say “→ 5 layers (Ø 80.0 mm
+→ Ø 60.6 mm)”.</li>
+<li><b>Create</b> – the CAM job with the part in the bar, the tool controller
+and the operation “All-round roughing T1” appear; its path runs round the part
+in layers. The first <b>Ctrl+Z</b> undoes controller and operation, the
+second job and bar. <b>Cancel</b> leaves nothing behind.</li>
 </ol>
+<p><b>Back</b> returns to the stock. Without the tick at “All-round roughing”,
+“Create” only creates job and bar.</p>
 <p>Clicking another face while the window is open puts the part into the bar
 with that face at the front.</p>
 
@@ -63,6 +71,49 @@ from X, like a lathe with a C axis.</li>
 <p>The bar axis runs through the job's origin. That way FreeCAD lays later
 paths correctly around the part by itself.</p>
 
+<h3>Step 2: all-round roughing</h3>
+<p>The bar is removed all round down to the finishing allowance – in layers,
+with a cutter pointing at the axis from outside while the rotary axis
+turns.</p>
+<ul>
+<li><b>Material</b> – which one the cutting data are for: the stock's if it
+has one, otherwise the one used last.</li>
+<li><b>Cutter</b> – from the tool manager: end, torus, ball, slot or face mill
+with cutting data for the material. Preselected is the one used last,
+otherwise the first end mill. If there is none, a red line says so;
+<b>Tool manager …</b> opens it – once you save there, it is available.</li>
+<li><b>Use case</b> – “Roughing” preselected. It gives spindle speed and feed
+(grey below) and the suggestions for the fields.</li>
+<li><b>Step-down per layer</b> – how deep each layer cuts radially (the use
+case's ap). <b>Feed per revolution</b> – how far the spiral advances along the
+bar per revolution (the use case's ae, at most the diameter). <b>Finishing
+allowance</b> – what stays all round (0.3 mm suggested).</li>
+</ul>
+<p><b>The path:</b> each layer is a spiral from the front – the cutter fully in
+front of the bar – to just before the chuck; the cutter's edge stays 1 mm in
+front of the clamping face. Where the part is higher than the layer, the tip
+follows the part plus allowance; it never comes closer to the axis than the
+cutter radius. Between layers it goes out radially and back to the front in
+rapid. It is calculated against the whole part, meshed to 0.02 mm: the error
+goes into the allowance, never into the part.</p>
+<p><b>In the program</b> – please read before the first run:</p>
+<ul>
+<li><b>X is the radius</b> (Z with A and B), not the diameter. On a lathe the
+program header must switch to radius (Siemens <code>DIAMOF</code>); otherwise
+the tool would go to half the distance from the axis.</li>
+<li>The <b>feed</b> is given after <b>G93</b> (1 ÷ time) – so the cutter runs
+at the use case's feed on the workpiece, however far it is from the axis.
+G94 follows. The post processor must write F in every block (its default)
+and output metric.</li>
+<li>The <b>rotary axis</b> keeps counting (−3600° and more): it must run
+without modulo, otherwise it would not turn round several times.</li>
+<li>At the start the tool moves out radially to the safety distance, then to
+the front of the bar and across to the centre (Y0 – not if the machine has no
+Y axis).</li>
+</ul>
+<p>The values sit on the operation in the group “4-Achs” and can be changed
+there; the path is then recalculated.</p>
+
 <h3>What happens in the document</h3>
 <ul>
 <li>A new <b>job</b> “Part – 4 axes”. The part lies in the bar as the job's
@@ -70,12 +121,16 @@ model. The original stays where it was and is hidden.</li>
 <li>The job's <b>stock</b> is a cylinder with the bar's diameter and length.
 While the window is open it is see-through and cannot be clicked. Afterwards
 it looks like any stock in CAM.</li>
+<li>With “All-round roughing” also a <b>tool controller</b> “T1 Roughing”
+with spindle speed and feed from the tool manager and the <b>operation</b>
+“All-round roughing T1”. The wizard removes the controller FreeCAD gives every
+new job.</li>
 </ul>
 
 <h3>What does not work (yet)</h3>
 <ul>
-<li>Choosing the faces to mill, the tools and the paths – that comes in the
-next stages.</li>
+<li>Milling only certain faces and finishing – that comes in the next stages.
+Until then “All-round roughing” takes the whole part.</li>
 <li>Turning, facing the end and parting off are done by the machine –
 FreeCAD does not turn.</li>
 </ul>

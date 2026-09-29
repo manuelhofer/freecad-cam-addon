@@ -83,6 +83,10 @@ def schritte(h):
     h.pruefe(
         laengs(rohteil.Shape.BoundBox) == "Z", f"wieder die Maschine: {rohteil.Shape.BoundBox}"
     )
+    # „Weiter“, dann ohne „Rundum schruppen“ „Anlegen“: nur Job und Stange.
+    panel.accept()
+    yield 300
+    panel.mit_schruppen.setChecked(False)
     panel.accept()
     yield 800
     job = next(o for o in doc.Objects if type(getattr(o, "Proxy", None)).__name__ == "ObjectJob")

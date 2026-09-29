@@ -105,7 +105,25 @@ class RundumSchruppen(PathOp.ObjectOp):
 def rechne(obj, job, modell, fraeser_radius):
     """Die Bahn (vierachs_bahn.Bahn) für die Operation `obj` im Job – ValueError mit einem
     Satz, wenn es nicht geht."""
-    laengs = FreeCAD.Vector(obj.Stangenachse)
+    return bahn_fuer(
+        job,
+        modell,
+        obj.Stangenachse,
+        obj.Werkzeugrichtung,
+        fraeser_radius,
+        float(obj.Zustellung),
+        float(obj.VorschubJeUmdrehung),
+        float(obj.Aufmass),
+        float(obj.Sicherheitsabstand),
+    )
+
+
+def bahn_fuer(
+    job, modell, laengs, radial, fraeser_radius, zustellung, steigung, aufmass, sicherheit=None
+):
+    """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
+    bevor es die Operation gibt. ValueError mit einem Satz, wenn es nicht geht."""
+    laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
     laengs.normalize()
@@ -113,19 +131,18 @@ def rechne(obj, job, modell, fraeser_radius):
     werte = vb.Schruppwerte(
         fraeser_radius=fraeser_radius,
         stange_radius=radius,
-        zustellung=float(obj.Zustellung),
-        steigung=float(obj.VorschubJeUmdrehung),
-        aufmass=float(obj.Aufmass),
+        zustellung=zustellung,
+        steigung=steigung,
+        aufmass=aufmass,
         a_stange_vorne=a_vorne,
         a_futter=a_hinten + (vr.spannlaenge(job) or vr.SPANNLAENGE),
-        sicherheit=float(obj.Sicherheitsabstand),
+        sicherheit=vb.SICHERHEIT if sicherheit is None else sicherheit,
     )
     formen = [o.Shape for o in modell if not o.Shape.isNull()]
     if not formen:
         raise ValueError(tr("vo.fehler.modell"))
     form = formen[0] if len(formen) == 1 else _verbunden(formen)
-    netz = vh.vernetze(form)
-    return vb.schruppen(netz, laengs, obj.Werkzeugrichtung, werte)
+    return vb.schruppen(vh.vernetze(form), laengs, radial, werte)
 
 
 def stange(job, laengs):

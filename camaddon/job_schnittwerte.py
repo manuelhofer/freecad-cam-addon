@@ -356,14 +356,20 @@ def entferne_controller(dokument, controller, schritt):
     Körper, wenn kein anderer Controller es benutzt (FreeCADs eigenes onDelete). Ein Schritt
     Rückgängig."""
     dokument.openTransaction(schritt)
+    controller_weg(dokument, controller)
+    dokument.commitTransaction()
+    dokument.recompute()
+
+
+def controller_weg(dokument, controller):
+    """Wie entferne_controller, aber in der Transaktion des Aufrufers (Assistent
+    „4-Achs-Bearbeitung“)."""
     for tc in controller:
         proxy = getattr(tc, "Proxy", None)
         if hasattr(proxy, "onDelete"):
             proxy.onDelete(tc)
         if dokument.getObject(tc.Name) is not None:
             dokument.removeObject(tc.Name)
-    dokument.commitTransaction()
-    dokument.recompute()
 
 
 def operationsart(operation):
@@ -484,28 +490,36 @@ def lege_controller_an(dokument, job, werkzeug, einsatz, werkstoff=""):
     Strg+Z nimmt Controller und Werkzeug zurück. Gibt den neuen Controller
     zurück.
     """
-    from Path.Tool import Controller
-    from Path.Tool.camassets import cam_assets
-
-    # Controller.Create legt im aktiven Dokument an.
-    FreeCAD.setActiveDocument(dokument.Name)
     dokument.openTransaction("Werkzeug-Controller anlegen")
     try:
-        bit = werkzeug_im_job(job, werkzeug)
-        if bit is None:
-            uri = f"toolbit://{PRAEFIX}{werkzeug.kennung}"
-            bit = cam_assets.get(uri).attach_to_doc(doc=dokument)
-            _ohne_zaehler(bit, wz.anzeigename(werkzeug))
-        tc = Controller.Create(
-            controller_name(werkzeug, einsatz), tool=bit, toolNumber=werkzeug.nummer
-        )
-        job.Proxy.addToolController(tc)
-        _setze_werte(tc, werkzeug, einsatz, werkstoff)
+        tc = controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff)
     except Exception:
         dokument.abortTransaction()
         raise
     dokument.commitTransaction()
     dokument.recompute()
+    return tc
+
+
+def controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff=""):
+    """Wie lege_controller_an, aber in der Transaktion des Aufrufers – etwa des
+    Assistenten „4-Achs-Bearbeitung“, der alles als einen Schritt Rückgängig anlegt."""
+    from Path.Tool import Controller
+    from Path.Tool.camassets import cam_assets
+
+    # Controller.Create legt im aktiven Dokument an.
+    FreeCAD.setActiveDocument(dokument.Name)
+    bit = werkzeug_im_job(job, werkzeug)
+    if bit is None:
+        uri = f"toolbit://{PRAEFIX}{werkzeug.kennung}"
+        bit = cam_assets.get(uri).attach_to_doc(doc=dokument)
+        _ohne_zaehler(bit, wz.anzeigename(werkzeug))
+        if getattr(bit, "ViewObject", None) is not None:
+            # Wie FreeCADs Controller.Create: Sonst stünde der Fräser als Körper am Nullpunkt.
+            bit.ViewObject.Visibility = False
+    tc = Controller.Create(controller_name(werkzeug, einsatz), tool=bit, toolNumber=werkzeug.nummer)
+    job.Proxy.addToolController(tc)
+    _setze_werte(tc, werkzeug, einsatz, werkstoff)
     return tc
 
 

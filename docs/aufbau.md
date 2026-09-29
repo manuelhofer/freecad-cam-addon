@@ -96,7 +96,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_schruppwerte.py` | Dialog „Schruppwerte planen“: Eingaben, Tabelle je ae, Vorschlag, als Einsatz übernehmen |
 | `gui_werkstoffe.py` | Fenster „Werkstoffe“: ganze Liste mit Suche und Filter, eigene Werkstoffe |
 | `gui_job_schnittwerte.py` | Befehl und Dialog „Schnittwerte in den Job“ |
-| `gui_vierachs.py` | Befehl und Assistent „4-Achs-Bearbeitung“: Fläche im 3D anklicken (Beobachter und Filter der Auswahl), Stange, Mitte, Drehlage, Rundachse, Animation, „Anlegen“ als ein Schritt Rückgängig |
+| `gui_vierachs.py` | Befehl und Assistent „4-Achs-Bearbeitung“ in zwei Schritten: Rohteil (Fläche im 3D anklicken, Stange, Mitte, Drehlage, Rundachse, Animation) und „Was willst du machen?“ (Rundum schruppen: Werkstoff, Fräser und Einsatz aus der Werkzeugverwaltung, Zustellung, Vorschub je Umdrehung, Aufmaß, Vorschau der Lagen); „Anlegen“: Job und Stange ein Schritt Rückgängig, Controller und Operation ein zweiter |
 | `gui_vierachs_operation.py` | Anzeige der Operation „Rundum schruppen“ im Baum: Symbol, Doppelklick öffnet nichts (die Werte stehen in den Eigenschaften) |
 
 Zwei Regeln halten das zusammen:
@@ -231,4 +231,5 @@ Alle ausprobiert und im Code an Ort und Stelle kommentiert:
 | `Job.Create` und `Stock.CreateCylinder` legen im aktiven Dokument an | vorher `FreeCAD.setActiveDocument` |
 | Die Python-Hülle eines Knopfs aus `modifyStandardButtons` verfällt mit der Hülle der Knopfleiste | die Knopfleiste aufheben, den Knopf jedes Mal über sie holen (wie CAM) |
 | 1.1.3 gibt die Beschriftung eines per Abbrechen verworfenen Objekts nicht wieder frei | der nächste Job heißt „… 001“; Szenario prüft nur den Anfang |
+| Legt CAM ein ToolBit an (auch den Vorgabe-Controller jedes neuen Jobs), öffnet und schließt es ein verstecktes Dokument – FreeCAD 1.1 schließt dabei außerhalb eines Befehls die offene Transaktion; der Rest ließe sich nicht mehr rückgängig machen. Der Wochen-Build führt Transaktionen je Dokument, dort nicht | `gui_vierachs._im_befehl`: in 1.1 als FreeCAD-Befehl ausführen und die Transaktion darin öffnen (sie bleibt mit `setActiveTransaction(…, True)` offen); ToolBit in einem eigenen Schritt Rückgängig |
 | Die Hüllbox gekrümmter Flächen ist nur auf etwa 0,003 mm genau | Prüfungen vergleichen sie mit 0,01 mm |
