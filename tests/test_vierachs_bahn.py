@@ -1,7 +1,9 @@
 # Prüft die Schruppbahn rundum (W-003 Stufe V3b): Welle Ø 60 in der Stange Ø 80 –
-# fünf Lagen bis Ø 60,6, die Spirale von vorne bis 2 mm vor das Futter, nie näher ans
-# Teil als das Aufmaß; beim Exzenter auch zwischen den Punkten gegen die Formel. Dazu
-# die Path-Befehle für C und A mit G93 und die Fälle, die nicht gehen.
+# fünf Lagen bis Ø 60,6, die Spirale von vorne bis 6,5 mm hinter das Teil (Überlauf,
+# V3f), dort auf der Tiefe der letzten Kontur, nie näher ans Teil als das Aufmaß; ist
+# das Futter näher, bleibt der Rand des Fräsers den Abstand zum Futter davor. Beim
+# Exzenter auch zwischen den Punkten gegen die Formel. Dazu die Path-Befehle für C und A
+# mit G93 und die Fälle, die nicht gehen.
 import math
 import os
 import sys
@@ -26,7 +28,8 @@ def pruefe(bedingung, text):
 V = FreeCAD.Vector
 R = 6.0
 C_LAENGS, C_RADIAL = (0, 0, 1), (1, 0, 0)
-# Teil von a = −100 bis 0, Planaufmaß 1, Abstich 3: Stange vorne bei 1, Futter bei −103.
+# Teil von a = −100 bis 0, Planaufmaß 1; die Stange ragt so weit heraus, wie die Bahn
+# braucht: Überlauf 6,5 + Fräser 6 + Abstand zum Futter 5 – Futter bei −117,5.
 WERTE = vb.Schruppwerte(
     fraeser_radius=R,
     stange_radius=40.0,
@@ -34,7 +37,7 @@ WERTE = vb.Schruppwerte(
     steigung=4.8,
     aufmass=0.3,
     a_stange_vorne=1.0,
-    a_futter=-103.0,
+    a_futter=-117.5,
 )
 
 
@@ -58,8 +61,13 @@ pruefe(radien[:4] == [38.0, 36.0, 34.0, 32.0], f"Radien der Lagen: {radien[:6]}"
 # Wo die Stirn das um das Aufmaß dickere Teil trifft (a ≤ 6,3), bleibt sie darüber.
 ueber = [p.r for p in schnitte(bahn) if -100 - R - 0.3 <= p.a <= R + 0.3]
 pruefe(min(ueber) >= 30.3, f"zu tief über dem Teil: {min(ueber)}")
-# Längs: von vorne bis zum Rand des Fräsers 2 mm vor dem Futter.
-pruefe(min(p.a for p in bahn.punkte) == -103.0 + 2.0 + R, "hinteres Ende")
+# Längs: von vorne bis 6,5 mm hinter das Teil (Mitte des Fräsers) – der Fräser verlässt
+# es ganz; dort bleibt die Spitze auf der Tiefe der letzten Kontur, statt hochzuspringen.
+pruefe(min(p.a for p in bahn.punkte) == -100.0 - R - 0.5, "hinteres Ende")
+letzte = [p for p in schnitte(bahn) if p.r < 32]
+im_ueberlauf = [p.r for p in letzte if p.a < -100 - R - 0.3]
+pruefe(im_ueberlauf and max(im_ueberlauf) < 30.4, f"im Überlauf: {im_ueberlauf[:3]}")
+pruefe(bahn.hinten_frei == 0, f"hinten frei: {bahn.hinten_frei}")
 pruefe(max(p.a for p in bahn.punkte) == start.a, "vorderes Ende")
 # Jede Lage: zuerst radial hinein vor der Stange, dann von vorne nach hinten, nie zurück.
 lage = []
@@ -173,11 +181,20 @@ for name, werte in (
         fehler.append(f"{name}: kein Fehler")
     except ValueError:
         pass
-# Nur 0,5 mm Abstich: Der Fräser bleibt 2 mm vor dem Futter – die letzten 1,5 mm fehlen.
+# Futter 0,5 mm hinter dem Teil: Der Rand des Fräsers bleibt 5 mm davor – die letzten
+# 4,5 mm fehlen. Mit Abstand 2 und ohne Überlauf endet die Mitte am Teil.
 knapp = vb.schruppen(
     welle, C_LAENGS, C_RADIAL, WERTE.__class__(**{**WERTE.__dict__, "a_futter": -100.5})
 )
-pruefe(abs(knapp.hinten_frei - 1.5) < 1e-9, f"hinten frei: {knapp.hinten_frei}")
+pruefe(abs(knapp.hinten_frei - 4.5) < 1e-9, f"hinten frei: {knapp.hinten_frei}")
+eigen = vb.schruppen(
+    welle,
+    C_LAENGS,
+    C_RADIAL,
+    WERTE.__class__(**{**WERTE.__dict__, "ueberlauf": 0.0, "abstand_futter": 2.0}),
+)
+pruefe(min(p.a for p in eigen.punkte) == -100.0, f"ohne Überlauf: {min(p.a for p in eigen.punkte)}")
+pruefe(vb.ueberlauf_vorschlag(6.0) == 6.5, "Vorschlag Überlauf")
 pruefe(bahn.hinten_frei == 0, f"Exzenter hinten frei: {bahn.hinten_frei}")
 
 if fehler:

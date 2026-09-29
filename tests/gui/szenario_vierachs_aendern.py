@@ -12,7 +12,8 @@
 # Schritt 1: Stange 80, Planaufmaß 1, Abstechbreite 3, Spannlänge 30, Rundachse A, wie
 # im Job; Ø 90 → die Stange wächst sofort, „Weiter“, „Übernehmen“: zwei Schritte
 # Rückgängig („Stange ändern“, „Rundum schruppen ändern“), mehr Lagen. Ø 100 und
-# „Abbrechen“: die Stange bleibt Ø 90. Viermal Strg+Z: wieder T1, Zustellung 2, Ø 80.
+# „Abbrechen“: die Stange bleibt Ø 90. Fünfmal Strg+Z: wieder T1, Zustellung 2, Ø 80.
+# Der kleinere T2 braucht hinten 4 mm weniger Platz: Die Stange wird kürzer (V3f).
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -123,8 +124,14 @@ def schritte(h):
     h.pruefe(werte == (1.5, 3.2, 0.5), f"Werte: {werte}")
     namen = [b.Name for b in op.Path.Commands]
     h.pruefe(op.Lagen > 5 and "G93" in namen, f"Bahn: {op.Lagen} Lagen")
-    h.pruefe(doc.UndoNames == ["Rundum schruppen ändern"] + schritte_vorher, f"{doc.UndoNames}")
+    # T2 ist kleiner: Die Stange ragt 4 mm weniger heraus – ein eigener Schritt davor.
+    h.pruefe(
+        doc.UndoNames == ["Rundum schruppen ändern", "Stange ändern"] + schritte_vorher,
+        f"{doc.UndoNames}",
+    )
+    h.pruefe(abs(job.Stock.Height.Value - 144.5) < 1e-6, f"Stange mit T2: {job.Stock.Height}")
     tc_t2 = op.ToolController
+    schritte_vorher = list(doc.UndoNames)
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 500
@@ -140,14 +147,14 @@ def schritte(h):
     if panel is None:
         return
     h.pruefe(panel.fraeser() is not None and panel.fraeser().nummer == 2, "T2 nicht gewählt")
-    texte = {k: f.text() for k, f in panel.felder_schruppen.items()}
-    h.pruefe(texte == {"zustellung": "", "steigung": "", "aufmass": "0,5"}, f"Felder: {texte}")
+    texte = {k: f.text() for k, f in panel.felder_schruppen.items() if f.text()}
+    h.pruefe(texte == {"aufmass": "0,5"}, f"Felder: {texte}")
     panel.felder_schruppen["zustellung"].setText("1")
     yield 200
     panel.reject()
     yield 500
     h.pruefe(op.Zustellung.Value == 1.5, f"Abbrechen ändert: {op.Zustellung}")
-    h.pruefe(doc.UndoNames == ["Rundum schruppen ändern"] + schritte_vorher, f"{doc.UndoNames}")
+    h.pruefe(doc.UndoNames == schritte_vorher, f"Abbrechen: {doc.UndoNames}")
 
     # --- Nur die Zustellung: derselbe Controller ---------------------------------------------
     op.ViewObject.Proxy.doubleClicked(op.ViewObject)
@@ -224,8 +231,8 @@ def schritte(h):
     h.pruefe(abs(job.Stock.Radius.Value - 45) < 1e-9, f"nach Abbrechen: {job.Stock.Radius}")
     h.pruefe(doc.UndoNames == neu + schritte_vorher, f"Abbrechen: {doc.UndoNames}")
 
-    # --- Viermal Strg+Z: wieder T1 und Ø 80 --------------------------------------------------
-    for _ in range(4):
+    # --- Fünfmal Strg+Z: wieder T1 und Ø 80 --------------------------------------------------
+    for _ in range(5):
         doc.undo()
     doc.recompute()
     yield 500

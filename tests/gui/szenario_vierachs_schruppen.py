@@ -4,7 +4,10 @@
 # „Schruppen“ (ae 4,8, ap 2). Welle Ø 60, Stirnfläche angeklickt, Stange Ø 80:
 # Unten heißt der Knopf „Weiter“. Danach Schritt 2 „Was willst du machen?“ –
 # „Rundum schruppen“ angehakt, T1 und „Schruppen“ vorgewählt, grau „→ 5 Lagen
-# (Ø 80,0 mm → Ø 60,…)“; der Knopf heißt „Anlegen“. „Anlegen“: Im Job stehen der
+# (Ø 80,0 mm → Ø 60,…)“ und „Die Stange muss 118,5 mm aus dem Futter ragen: Planaufmaß
+# 1,0 + Teil 100,0 + Überlauf 6,5 + Fräserradius 6,0 + Abstand zum Futter 5,0.“ (V3f);
+# der Knopf heißt „Anlegen“. „Anlegen“: Die Stange ist 148,5 mm lang (30 im Futter), die
+# Bahn endet 6,5 mm hinter dem Teil. Im Job stehen der
 # Controller „T1 Schruppen“ (FreeCADs Vorgabe-Controller ist weg) und „Rundum
 # schruppen T1“ mit fünf Lagen und G93. „Auf der Maschine prüfen“ (V3e, T1 mit 125 mm
 # ab Spindelnase): „Alle Achsen bleiben in ihren Grenzen.“, kein Hinweis zur
@@ -90,6 +93,11 @@ def schritte(h):
     ergebnis = panel.ergebnis.text()
     h.pruefe(ergebnis.startswith("→ 5 Lagen (Ø 80,0 mm → Ø 60,"), f"Vorschau: {ergebnis!r}")
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"Hinweis: {panel.hinweis_bearbeitung.text()!r}")
+    soll = (
+        "Die Stange muss 118,5 mm aus dem Futter ragen: Planaufmaß 1,0 + Teil 100,0 + "
+        "Überlauf 6,5 + Fräserradius 6,0 + Abstand zum Futter 5,0."
+    )
+    h.pruefe(panel.ausspannen.text() == soll, f"Ausspannen: {panel.ausspannen.text()!r}")
     h.pruefe(ok.isEnabled(), "„Anlegen“ gesperrt")
     h.pruefe(not panel.radius_hinweis.isHidden(), "Hinweis „X ist der Radius“ fehlt")
     h.bild("1_was_willst_du_machen", panel.form)
@@ -120,6 +128,9 @@ def schritte(h):
         namen = [b.Name for b in op.Path.Commands]
         h.pruefe(op.Label == "Rundum schruppen T1", f"Name: {op.Label!r}")
         h.pruefe(op.Lagen == 5 and "G93" in namen and namen[-1] == "G94", f"Bahn: {op.Lagen}")
+        hinten = min(b.Parameters["Z"] for b in op.Path.Commands if b.Name == "G1")
+        h.pruefe(abs(hinten + 106.5) < 1e-6, f"Bahn endet bei Z {hinten}")
+        h.pruefe(abs(job.Stock.Height.Value - 148.5) < 1e-6, f"Stange: {job.Stock.Height}")
         h.pruefe(op.ToolController is controller[0], "Operation ohne den neuen Controller")
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")

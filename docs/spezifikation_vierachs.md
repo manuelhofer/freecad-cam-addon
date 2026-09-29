@@ -626,14 +626,24 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   Sicherheitsabstand (2 mm über der Stange) in Schritt 2 und als Eigenschaften
   der Operation.
 - **Ausspannlänge:** Die Stange ragt so weit aus dem Futter, dass Teil,
-  Überlauf und Abstand zum Futter Platz haben: Planaufmaß + Teil + größeres von
-  Abstechbreite und Überlauf + Abstand zum Futter. Schritt 2 sagt es als Satz
-  („Die Stange muss 72,5 mm aus dem Futter ragen: …“) und legt die Stange so
-  lang an; der Nullpunkt folgt wie bisher aus der Spannlänge.
+  Überlauf, Fräser und Abstand zum Futter Platz haben: Planaufmaß + Teil +
+  größeres von Abstechbreite und (Überlauf + Fräserradius + Abstand zum
+  Futter) – der Überlauf zählt bis zur Mitte des Fräsers, zum Futter hin kommt
+  sein Radius dazu (Manuel: „bauteil + fräser + sicherheitsabstand“). Schritt 2
+  sagt es als Satz („Die Stange muss 78,5 mm aus dem Futter ragen: …“) und
+  legt die Stange so lang an; der Nullpunkt folgt wie bisher aus der
+  Spannlänge.
+  *Gebaut (P-2026-09-29-07):* Überlauf, Abstand zum Futter,
+  Sicherheitsabstand und Ausspannlänge. Die Stange zieht nach, wenn Fräser
+  oder Abstände sich ändern (ein kleinerer Fräser: kürzer); ohne „Rundum
+  schruppen“ reicht die Abstechbreite. Die Abstechbreite steht dafür am Job
+  (`CamAddonAbstechbreite`, ausgeblendet), damit „Ändern“ sie von der Lücke
+  unterscheiden kann. Operationen aus 0.26 bekommen beim Laden Überlauf
+  Radius + 0,5 und Abstand 2 mm – ihre Bahn bleibt, wie sie war.
 - *Klickweg:* Welle 60 mm lang, „4-Achs-Bearbeitung“ → oben „Maschine“:
   Beispiel-Drehmaschine → „Weiter“ → T1 D12: grau „Überlauf 6,5“, „Abstand zum
-  Futter 5“, darunter „Die Stange muss 72,5 mm aus dem Futter ragen …“ →
-  „Anlegen“: Die Bahn endet 6,5 mm hinter dem Teil, die Stange ist 102,5 mm
+  Futter 5“, darunter „Die Stange muss 78,5 mm aus dem Futter ragen …“ →
+  „Anlegen“: Die Bahn endet 6,5 mm hinter dem Teil, die Stange ist 108,5 mm
   lang (30 im Futter).
 
 **V3g – Rohteil und Fertigteil in der Simulation** (Manuel, 2026-09-29)

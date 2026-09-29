@@ -10,6 +10,9 @@ wird in vierachs_rohteil.py. Jede Eingabe geht sofort ins Dokument – wie in
 Schritt 2, „Was willst du machen?“ (Stufe V3d, Manuels Wunsch): „Rundum
 schruppen“ mit einem Fräser aus der Werkzeugverwaltung – Werkstoff, Einsatz,
 Zustellung, Vorschub je Umdrehung und Aufmaß, dazu die Vorschau „→ 5 Lagen“.
+Überlauf, Abstand zum Futter und Sicherheitsabstand (V3f) stehen mit Vorschlag
+darunter; die Stange ragt so weit aus dem Futter, wie Teil, Überlauf, Fräser und
+Abstand es brauchen – ein Satz sagt, wie weit.
 „Anlegen“ legt Job, Stange, Werkzeug-Controller und die Operation
 (vierachs_operation) als einen Schritt Rückgängig an; „Abbrechen“ verwirft
 alles.
@@ -203,6 +206,22 @@ def job_von(operation):
     return None
 
 
+def _gleiche_stange(a, b):
+    """Liegen die Stangen gleich im Job (Ø, Planaufmaß, Lücke, Spannlänge, Abstechbreite)?"""
+    if a is None or b is None:
+        return a is b
+    return all(
+        abs(x - y) < 1e-9
+        for x, y in (
+            (a.durchmesser, b.durchmesser),
+            (a.planaufmass, b.planaufmass),
+            (a.luecke, b.luecke),
+            (a.spannlaenge, b.spannlaenge),
+            (a.abstechbreite, b.abstechbreite),
+        )
+    )
+
+
 def gleich(a, b):
     """Zeigen zwei Richtungen gleich (auf 1e-6)?"""
     return (FreeCAD.Vector(a) - FreeCAD.Vector(b)).Length < 1e-6
@@ -381,6 +400,7 @@ class VierachsPanel:
         self._achse_fest = achse_der_operation(operation) if operation is not None else None
         self._vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation ("": keiner)
         self._transaktion_offen = False  # beim Ändern: Schritt 1 hat etwas geändert
+        self._stange_jetzt = None  # die Stange, wie sie zuletzt in den Job kam
         self._stange_vorher = None  # beim Ändern: wie die Stange aussah (DisplayMode, …)
         # Rückgängig-Schritte vor dem Assistenten; Job und Stange liegen nach „Anlegen“ als
         # eigener Schritt ab, auch wenn das Schruppen danach nicht geht (Abbrechen: zurück).
@@ -455,6 +475,7 @@ class VierachsPanel:
         self.lage = vr.lage(
             self.vermessung, self.achse(), self.mitte, einstellung.drehlage, stange.durchmesser
         )
+        self._stange_jetzt = stange
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
@@ -481,6 +502,9 @@ class VierachsPanel:
             ("zustellung", op.Zustellung),
             ("steigung", op.VorschubJeUmdrehung),
             ("aufmass", op.Aufmass),
+            ("ueberlauf", op.Ueberlauf),
+            ("abstand_futter", op.AbstandFutter),
+            ("sicherheit", op.Sicherheitsabstand),
         ):
             wert = float(wert)
             if abs(wert - self._vorschlag(feld)) > 1e-6:
@@ -788,6 +812,9 @@ class VierachsPanel:
             ("zustellung", tr("va.zustellung"), tr("va.zustellung.tooltip")),
             ("steigung", tr("va.steigung"), tr("va.steigung.tooltip")),
             ("aufmass", tr("va.aufmass"), tr("va.aufmass.tooltip")),
+            ("ueberlauf", tr("va.ueberlauf"), tr("va.ueberlauf.tooltip")),
+            ("abstand_futter", tr("va.abstand_futter"), tr("va.abstand_futter.tooltip")),
+            ("sicherheit", tr("va.sicherheit"), tr("va.sicherheit.tooltip")),
         ):
             eingabe = QtGui.QLineEdit()
             eingabe.setValidator(Zahlenpruefer(eingabe))
@@ -798,6 +825,9 @@ class VierachsPanel:
         self.ergebnis = self._grau()
         self.ergebnis.setWordWrap(True)
         aufbau.addWidget(self.ergebnis)
+        self.ausspannen = self._grau()  # wie weit die Stange aus dem Futter ragen muss
+        self.ausspannen.setWordWrap(True)
+        aufbau.addWidget(self.ausspannen)
         self.radius_hinweis = self._grau()
         self.radius_hinweis.setWordWrap(True)
         self.radius_hinweis.setText(tr("va.radius"))
@@ -1070,9 +1100,14 @@ class VierachsPanel:
 
     def _vorschlag(self, feld):
         """Der Wert eines leeren Felds (mm): Zustellung und Vorschub je Umdrehung aus dem
-        Einsatz (ap und ae – ae höchstens der Durchmesser), das Aufmaß 0,3 mm."""
+        Einsatz (ap und ae – ae höchstens der Durchmesser), das Aufmaß 0,3 mm, der Überlauf
+        Fräserradius + 0,5 mm, Abstand zum Futter 5 mm, Sicherheitsabstand 2 mm."""
         if feld == "aufmass":
             return vo.AUFMASS
+        if feld in ("ueberlauf", "abstand_futter", "sicherheit"):
+            radius = self.fraeser().durchmesser / 2 if self.fraeser() is not None else 0.0
+            ueberlauf, abstand, sicherheit = vo.vorgeschlagene_abstaende(radius)
+            return {"ueberlauf": ueberlauf, "abstand_futter": abstand}.get(feld, sicherheit)
         einsatz = self.einsatz()
         if feld == "zustellung":
             return einsatz.ap if einsatz is not None and einsatz.ap > 0 else vo.ZUSTELLUNG
@@ -1096,6 +1131,10 @@ class VierachsPanel:
         self.hinweis_bearbeitung.setText("")
         if an:
             self._vorschau_starten()
+        elif self.vermessung is not None:  # ohne Fräser reicht die Abstechbreite hinten
+            if not _gleiche_stange(self.stange(), self._stange_jetzt):
+                self._anwenden()
+            self.ausspannen.setText(self._ausspannen_text())
         self._knoepfe_beschriften()
 
     def _vorschau_starten(self):
@@ -1119,6 +1158,9 @@ class VierachsPanel:
             self.hinweis_bearbeitung.setText(tr("va.fraeser.keiner"))
             self._knoepfe_beschriften()
             return
+        if self.vermessung is not None and not _gleiche_stange(self.stange(), self._stange_jetzt):
+            self._anwenden()  # die Stange ragt so weit heraus, wie der Fräser hinten braucht
+        self.ausspannen.setText(self._ausspannen_text())
         achse = self.achse()
         try:
             self.vorschau = vo.bahn_fuer(
@@ -1130,13 +1172,54 @@ class VierachsPanel:
                 self._wert("zustellung"),
                 self._wert("steigung"),
                 self._wert("aufmass"),
-                float(self.zu_aendern.Sicherheitsabstand) if self.zu_aendern else None,
+                *self._abstaende(),
             )
         except ValueError as fehler:
             self.hinweis_bearbeitung.setText(str(fehler))
         else:
             self.ergebnis.setText(self._lagen_text(self.vorschau))
         self._knoepfe_beschriften()
+
+    def _abstaende(self):
+        """(Sicherheitsabstand, Überlauf, Abstand zum Futter) aus den Feldern (mm)."""
+        return self._wert("sicherheit"), self._wert("ueberlauf"), self._wert("abstand_futter")
+
+    def _frei_hinten(self):
+        """Was der Fräser hinter dem Teil braucht: Überlauf, Fräserradius und Abstand zum
+        Futter (mm) – 0 ohne „Rundum schruppen“ oder ohne Fräser."""
+        werkzeug = self.fraeser()
+        if not self.mit_schruppen.isChecked() or werkzeug is None:
+            return 0.0
+        return self._wert("ueberlauf") + werkzeug.durchmesser / 2 + self._wert("abstand_futter")
+
+    def _ausspannen_text(self):
+        """„Die Stange muss 78,5 mm aus dem Futter ragen: Planaufmaß 1,0 + Teil 60,0 + …“ –
+        leer, solange das Teil nicht vermessen ist."""
+        if self.vermessung is None:
+            return ""
+        stange = self.stange()
+
+        def mm(wert):
+            return groesse_fest(wert, einheiten.LAENGE, 1)
+
+        teile = [
+            tr("va.ausspannen.planaufmass", wert=mm(stange.planaufmass)),
+            tr("va.ausspannen.teil", wert=mm(self.vermessung.laenge)),
+        ]
+        if stange.frei_hinten > stange.abstechbreite:
+            teile += [
+                tr("va.ausspannen.ueberlauf", wert=mm(self._wert("ueberlauf"))),
+                tr("va.ausspannen.fraeser", wert=mm(self.fraeser().durchmesser / 2)),
+                tr("va.ausspannen.abstand", wert=mm(self._wert("abstand_futter"))),
+            ]
+        else:
+            teile.append(tr("va.ausspannen.abstechbreite", wert=mm(stange.abstechbreite)))
+        return tr(
+            "va.ausspannen",
+            laenge=mm(vr.ausspannlaenge(self.vermessung, stange)),
+            einheit=einheiten.einheit(einheiten.LAENGE),
+            teile=" + ".join(teile),
+        )
 
     def _lagen_text(self, bahn):
         """„→ 5 Lagen (Ø 80 → Ø 60,6)“ – und was hinten nicht erreicht wird."""
@@ -1196,6 +1279,8 @@ class VierachsPanel:
         Fenster: False."""
         werkzeug, einsatz, achse = self.fraeser(), self.einsatz(), self.achse()
         werte = (self._wert("zustellung"), self._wert("steigung"), self._wert("aufmass"))
+        sicherheit, ueberlauf, abstand = self._abstaende()
+        abstaende = (ueberlauf, abstand, sicherheit)
 
         def anlegen():
             self.doc.openTransaction(tr("va.transaktion.schruppen"))
@@ -1206,7 +1291,14 @@ class VierachsPanel:
                 tc = js.controller_ohne_transaktion(
                     self.doc, self.job, werkzeug, einsatz, self.werkstoff()
                 )
-                operation = vo.lege_an(self.job, tc, achse, *werte, quer_auf_null=achse.quer)
+                operation = vo.lege_an(
+                    self.job,
+                    tc,
+                    achse,
+                    *werte,
+                    quer_auf_null=achse.quer,
+                    abstaende=abstaende,
+                )
                 self.doc.recompute()
             except Exception:
                 self.doc.abortTransaction()
@@ -1230,6 +1322,8 @@ class VierachsPanel:
         Operation mehr benutzt. Geht es nicht, steht der Grund rot im Fenster: False."""
         werkzeug, einsatz, op = self.fraeser(), self.einsatz(), self.zu_aendern
         werte = (self._wert("zustellung"), self._wert("steigung"), self._wert("aufmass"))
+        sicherheit, ueberlauf, abstand = self._abstaende()
+        abstaende = (ueberlauf, abstand, sicherheit)
 
         def aendern():
             self.doc.openTransaction(tr("va.transaktion.aendern"))
@@ -1237,7 +1331,7 @@ class VierachsPanel:
                 ue.uebergeben(self.bibliothek)
                 bisher = op.ToolController
                 tc = js.controller_fuer(self.doc, self.job, werkzeug, einsatz, self.werkstoff(), op)
-                vo.aendere(op, tc, *werte)
+                vo.aendere(op, tc, *werte, abstaende_=abstaende)
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)
                 if frei and bisher is not tc:
                     js.controller_weg(self.doc, [bisher])
@@ -1297,6 +1391,7 @@ class VierachsPanel:
             self._laenge("planaufmass"),
             self._laenge("abstechbreite"),
             self._laenge("spannlaenge"),
+            self._frei_hinten(),
         )
 
     def _anwenden(self):
@@ -1324,6 +1419,7 @@ class VierachsPanel:
             FreeCAD.Console.PrintError(f"4-Achs-Bearbeitung: {fehler}\n")
             self._hinweis(tr("va.fehler", fehler=str(fehler)))
             return False
+        self._stange_jetzt = stange
         if erstes_mal:
             self._job_zeigen()
         self._auffrischen()

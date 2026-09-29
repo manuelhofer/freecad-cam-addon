@@ -7,7 +7,9 @@ Höhen und Tiefen in Z (sonst hinge die Basis ein „G0 Z Sicherheitshöhe“ an
 das hieße bei C: längs zum Futter). Beim Neuberechnen rechnet sie ihre Bahn aus
 dem Modell und der Stange des Jobs (vierachs_huelle, vierachs_bahn); ihre Werte
 stehen als Eigenschaften in der Gruppe „4-Achs“. Die Spannlänge kommt vom Job
-(vierachs_rohteil.spannlaenge), sonst gilt der Vorschlag.
+(vierachs_rohteil.spannlaenge), sonst gilt der Vorschlag. Überlauf und Abstand zum
+Futter (V3f) kamen mit 0.27 dazu; ältere Operationen bekommen sie beim Laden so, dass
+ihre Bahn bleibt, wie sie war.
 
 Modul- und Klassenname stehen in jeder gespeicherten Datei – sie bleiben. Kein
 Qt hier; die Anzeige liegt in gui_vierachs_operation.py.
@@ -41,20 +43,7 @@ class RundumSchruppen(PathOp.ObjectOp):
         return PathOp.FeatureTool | PathOp.FeatureCoolant
 
     def initOperation(self, obj):
-        for typ, name, text in (
-            ("App::PropertyString", "Rundachse", tr("vo.eigenschaft.rundachse")),
-            ("App::PropertyVector", "Stangenachse", tr("vo.eigenschaft.stangenachse")),
-            ("App::PropertyVector", "Werkzeugrichtung", tr("vo.eigenschaft.werkzeugrichtung")),
-            ("App::PropertyInteger", "Drehsinn", tr("vo.eigenschaft.drehsinn")),
-            ("App::PropertyBool", "QuerAufNull", tr("vo.eigenschaft.quer_auf_null")),
-            ("App::PropertyLength", "Zustellung", tr("vo.eigenschaft.zustellung")),
-            ("App::PropertyLength", "VorschubJeUmdrehung", tr("vo.eigenschaft.steigung")),
-            ("App::PropertyLength", "Aufmass", tr("vo.eigenschaft.aufmass")),
-            ("App::PropertyLength", "Sicherheitsabstand", tr("vo.eigenschaft.sicherheit")),
-            ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
-        ):
-            if name not in obj.PropertiesList:
-                obj.addProperty(typ, name, GRUPPE, text)
+        self._eigenschaften(obj)
         obj.Rundachse = "C"
         obj.Stangenachse = FreeCAD.Vector(0, 0, 1)
         obj.Werkzeugrichtung = FreeCAD.Vector(1, 0, 0)
@@ -64,10 +53,40 @@ class RundumSchruppen(PathOp.ObjectOp):
         obj.VorschubJeUmdrehung = 4.0
         obj.Aufmass = AUFMASS
         obj.Sicherheitsabstand = vb.SICHERHEIT
+        obj.Ueberlauf = vb.ueberlauf_vorschlag(0.0)  # lege_an setzt ihn mit dem Fräser
+        obj.AbstandFutter = vb.ABSTAND_FUTTER
         self._editormodi(obj)
 
     def opOnDocumentRestored(self, obj):
+        neu = self._eigenschaften(obj)
+        if "Ueberlauf" in neu:  # bis 0.26: kein Überlauf – das Futter begrenzte die Bahn
+            obj.Ueberlauf = vb.ueberlauf_vorschlag(float(obj.OpToolDiameter) / 2)
+        if "AbstandFutter" in neu:  # bis 0.26 fest 2 mm
+            obj.AbstandFutter = 2.0
         self._editormodi(obj)
+
+    @staticmethod
+    def _eigenschaften(obj):
+        """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        neu = []
+        for typ, name, text in (
+            ("App::PropertyString", "Rundachse", tr("vo.eigenschaft.rundachse")),
+            ("App::PropertyVector", "Stangenachse", tr("vo.eigenschaft.stangenachse")),
+            ("App::PropertyVector", "Werkzeugrichtung", tr("vo.eigenschaft.werkzeugrichtung")),
+            ("App::PropertyInteger", "Drehsinn", tr("vo.eigenschaft.drehsinn")),
+            ("App::PropertyBool", "QuerAufNull", tr("vo.eigenschaft.quer_auf_null")),
+            ("App::PropertyLength", "Zustellung", tr("vo.eigenschaft.zustellung")),
+            ("App::PropertyLength", "VorschubJeUmdrehung", tr("vo.eigenschaft.steigung")),
+            ("App::PropertyLength", "Aufmass", tr("vo.eigenschaft.aufmass")),
+            ("App::PropertyLength", "Ueberlauf", tr("vo.eigenschaft.ueberlauf")),
+            ("App::PropertyLength", "AbstandFutter", tr("vo.eigenschaft.abstand_futter")),
+            ("App::PropertyLength", "Sicherheitsabstand", tr("vo.eigenschaft.sicherheit")),
+            ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
+        ):
+            if name not in obj.PropertiesList:
+                obj.addProperty(typ, name, GRUPPE, text)
+                neu.append(name)
+        return neu
 
     @staticmethod
     def _editormodi(obj):
@@ -117,14 +136,27 @@ def rechne(obj, job, modell, fraeser_radius):
         float(obj.VorschubJeUmdrehung),
         float(obj.Aufmass),
         float(obj.Sicherheitsabstand),
+        float(obj.Ueberlauf),
+        float(obj.AbstandFutter),
     )
 
 
 def bahn_fuer(
-    job, modell, laengs, radial, fraeser_radius, zustellung, steigung, aufmass, sicherheit=None
+    job,
+    modell,
+    laengs,
+    radial,
+    fraeser_radius,
+    zustellung,
+    steigung,
+    aufmass,
+    sicherheit=None,
+    ueberlauf=None,
+    abstand_futter=None,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
-    bevor es die Operation gibt. ValueError mit einem Satz, wenn es nicht geht."""
+    bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
+    zum Futter wie vorgeschlagen. ValueError mit einem Satz, wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -139,6 +171,8 @@ def bahn_fuer(
         a_stange_vorne=a_vorne,
         a_futter=a_hinten + (vr.spannlaenge(job) or vr.SPANNLAENGE),
         sicherheit=vb.SICHERHEIT if sicherheit is None else sicherheit,
+        ueberlauf=ueberlauf,
+        abstand_futter=vb.ABSTAND_FUTTER if abstand_futter is None else abstand_futter,
     )
     formen = [o.Shape for o in modell if not o.Shape.isNull()]
     if not formen:
@@ -168,9 +202,20 @@ def _verbunden(formen):
     return Part.makeCompound(formen)
 
 
-def lege_an(job, tc, achse, zustellung, steigung, aufmass, quer_auf_null=True, name=None):
+def lege_an(
+    job,
+    tc,
+    achse,
+    zustellung,
+    steigung,
+    aufmass,
+    quer_auf_null=True,
+    name=None,
+    abstaende=None,
+):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
-    (der Assistent). `achse`: vierachs_achsen.Stangenachse. Gibt die Operation zurück.
+    (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
+    zum Futter, Sicherheitsabstand) – ohne: die Vorschläge. Gibt die Operation zurück.
 
     Angelegt wie FreeCADs eigene Operationen, aber mit DoNotSetDefaultValues:
     Sonst fragte FreeCAD nach Job und Controller, sobald es mehrere gibt – in
@@ -193,6 +238,7 @@ def lege_an(job, tc, achse, zustellung, steigung, aufmass, quer_auf_null=True, n
     obj.Zustellung = zustellung
     obj.VorschubJeUmdrehung = steigung
     obj.Aufmass = aufmass
+    _setze_abstaende(obj, abstaende or vorgeschlagene_abstaende(float(tc.Tool.Diameter) / 2))
     obj.Label = name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}")
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -201,10 +247,25 @@ def lege_an(job, tc, achse, zustellung, steigung, aufmass, quer_auf_null=True, n
     return obj
 
 
-def aendere(obj, tc, zustellung, steigung, aufmass):
+def vorgeschlagene_abstaende(fraeser_radius):
+    """(Überlauf, Abstand zum Futter, Sicherheitsabstand), wie vorgeschlagen (mm)."""
+    return vb.ueberlauf_vorschlag(fraeser_radius), vb.ABSTAND_FUTTER, vb.SICHERHEIT
+
+
+def abstaende(obj):
+    """(Überlauf, Abstand zum Futter, Sicherheitsabstand) der Operation (mm)."""
+    return float(obj.Ueberlauf), float(obj.AbstandFutter), float(obj.Sicherheitsabstand)
+
+
+def _setze_abstaende(obj, werte):
+    obj.Ueberlauf, obj.AbstandFutter, obj.Sicherheitsabstand = werte
+
+
+def aendere(obj, tc, zustellung, steigung, aufmass, abstaende_=None):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion, die hält der Aufrufer (der Assistent beim Ändern). Der Name folgt dem
-    Werkzeug, solange es der vorgeschlagene ist: „Rundum schruppen T1“ wird „… T3“."""
+    Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`: wie bei
+    lege_an; ohne bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene
+    ist: „Rundum schruppen T1“ wird „… T3“."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = tr("vo.name", werkzeug=f"T{tc.ToolNumber}")
     obj.ToolController = tc
@@ -212,6 +273,8 @@ def aendere(obj, tc, zustellung, steigung, aufmass):
     obj.Zustellung = zustellung
     obj.VorschubJeUmdrehung = steigung
     obj.Aufmass = aufmass
+    if abstaende_ is not None:
+        _setze_abstaende(obj, abstaende_)
 
 
 def setze_achse(obj, achse, quer_auf_null=None):

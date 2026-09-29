@@ -12,6 +12,67 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-07 vierachs-ueberlauf-ausspannlaenge
+
+### EINGELESEN
+- Manuel (2026-09-29): „wenn das bauteil 30 mm lang ist .. und du sagst ‚ja
+  maximal bis 33 mm in z minus darfst du fahren mit deinem 12er fräser‘ dann
+  ist das nicht schlau ... da muss man schon mindestens mal 6.5 drüber fahren
+  ... und dann brauch tman noch einen sicherheits abstand zum futter ... also
+  am sinnvolsten ist .. man macht das bauteil + fräser + sicherheitsabstand ..
+  und sagt dem benutzer auch ‚hey so lange muss es ausgespannt sein‘“; „alle
+  abstände zu was auch immer müssen einstellbar sein aber mit einem
+  standartwert der sinnvoll ist gefüllt werden“.
+- `docs/spezifikation_vierachs.md` (V3f), `camaddon/vierachs_bahn.py`,
+  `camaddon/vierachs_operation.py`, `camaddon/vierachs_rohteil.py`,
+  `camaddon/gui_vierachs.py`, die 4-Achs-Prüfungen und -Szenarien.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `camaddon/vierachs_operation.py`,
+  `camaddon/vierachs_rohteil.py`, `camaddon/gui_vierachs.py`,
+  `translations/de.json`, `translations/en.json`, `help/de/vierachs.html`,
+  `help/en/vierachs.html`, `tests/test_vierachs_bahn.py`,
+  `tests/test_vierachs_operation.py`, `tests/gui/szenario_vierachs_schruppen.py`,
+  `tests/gui/szenario_vierachs_aendern.py`, `docs/spezifikation_vierachs.md`,
+  `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Mit einem Fräser Ø 12 endet die Rundum-Bahn 6,5 mm hinter dem Teil, und
+Schritt 2 sagt, wie weit die Stange dafür aus dem Futter ragen muss – so lang
+legt er sie an.
+
+### DONE
+- Bahn: Die Spirale läuft bis Überlauf (Mitte des Fräsers, Vorschlag Radius +
+  0,5) hinter das Teil, dort auf der Tiefe des letzten Stücks Kontur statt auf
+  dem Stangenradius; der Rand des Fräsers bleibt den Abstand zum Futter
+  (Vorschlag 5 mm, bisher fest 2) vor der Spannfläche.
+- Operation: Eigenschaften „Ueberlauf“ und „AbstandFutter“; Operationen aus
+  0.26 bekommen beim Laden Radius + 0,5 und 2 mm – ihre Bahn bleibt gleich.
+- Stange: Hinter dem Teil liegt die Lücke – Abstechbreite oder mehr, wenn der
+  Fräser Platz braucht (Überlauf + Radius + Abstand zum Futter);
+  `ausspannlaenge()`. Die Abstechbreite steht am Job, damit „Ändern“ sie von
+  der Lücke unterscheidet.
+- Assistent, Schritt 2: Felder Überlauf, Abstand zum Futter, Sicherheitsabstand
+  mit Vorschlag; der Satz „Die Stange muss 118,5 mm aus dem Futter ragen:
+  Planaufmaß 1,0 + Teil 100,0 + Überlauf 6,5 + Fräserradius 6,0 + Abstand zum
+  Futter 5,0.“; die Stange zieht nach (anderer Fräser, andere Abstände, ohne
+  „Rundum schruppen“ nur die Abstechbreite). Beim Ändern stehen die Werte der
+  Operation in den Feldern.
+- Spezifikation: Die Formel der Ausspannlänge berichtigt – zum Futter hin
+  kommt der Fräserradius dazu (das Beispiel dort: 78,5 statt 72,5 mm).
+
+### TEST
+- `test_vierachs_bahn` (Ende −106,5, Tiefe im Überlauf, Futter nah: 4,5 mm
+  fehlen, ohne Überlauf), `test_vierachs_operation` (Ende, Abstände, alte
+  Operation beim Laden), `test_vierachs_rohteil`, `test_sprache`, `test_hilfe`.
+- `szenario_vierachs_schruppen` (Satz, Stange 148,5 mm, Bahn endet bei
+  Z −106,5; Prüffenster und Kollision wie bisher) und
+  `szenario_vierachs_aendern` (T2: Stange 144,5 mm, eigener Schritt „Stange
+  ändern“) in 1.1.3 und im Wochen-Build.
+
+### NEXT
+- Hinweis für Kugel- und Torusfräser; Maschine zuerst (V3f).
+
 ## P-2026-09-29-06 vierachs-rohteil-aendern
 
 ### EINGELESEN

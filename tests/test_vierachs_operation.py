@@ -43,7 +43,10 @@ stirn = next(
 )
 achse = va.zugewiesen("C")
 lage = vr.berechne(welle.Shape, stirn, achse, durchmesser=80)
-job = vr.richte_ein(doc, welle, lage, vr.Stange(80.0), achse, beschriftung="Welle 4 Achsen")
+# Die Stange ragt so weit heraus, wie der Fräser hinten braucht: Überlauf 6,5 + Fräser 6 +
+# Abstand zum Futter 5 (V3f).
+stange = vr.Stange(80.0, frei_hinten=17.5)
+job = vr.richte_ein(doc, welle, lage, stange, achse, beschriftung="Welle 4 Achsen")
 tc = job.Tools.Group[0]
 tc.Tool.Diameter = 12
 tc.HorizFeed = "1500 mm/min"
@@ -72,8 +75,17 @@ pruefe(min(b.Parameters["C"] for b in schnitte) < -3600, "C dreht nicht mehrmals
 # Über dem Teil (Z −106,3 … 6,3) bleibt X über 30,3: Radius 30 plus Aufmaß.
 ueber = [b.Parameters["X"] for b in schnitte if -106.3 <= b.Parameters["Z"] <= 6.3]
 pruefe(min(ueber) >= 30.3, f"zu tief: {min(ueber)}")
-# Hinten: der Rand des Fräsers 2 mm vor dem Futter (Stange hinten bei −133, Spannlänge 30).
-pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-103 + 2 + 6)) < 1e-9, "hinteres Ende")
+# Hinten: die Mitte des Fräsers 6,5 mm hinter dem Teil (Überlauf) – das Futter bei −117,5.
+pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-106.5)) < 1e-9, "hinteres Ende")
+pruefe(vo.abstaende(op) == (6.5, 5.0, 2.0), f"Überlauf, Abstand, Sicherheit: {vo.abstaende(op)}")
+# Eine Operation aus 0.26 (ohne Überlauf und Abstand zum Futter): Beim Laden bekommt sie
+# die Werte, mit denen ihre Bahn bleibt, wie sie war – 2 mm vor dem Futter.
+op.removeProperty("Ueberlauf")
+op.removeProperty("AbstandFutter")
+op.Proxy.opOnDocumentRestored(op)
+pruefe(vo.abstaende(op) == (6.5, 2.0, 2.0), f"alte Operation: {vo.abstaende(op)}")
+op.AbstandFutter = 5.0
+doc.recompute()
 
 # --- Ändern: anderer Controller, andere Werte; der vorgeschlagene Name folgt dem Werkzeug --
 from Path.Tool import Controller

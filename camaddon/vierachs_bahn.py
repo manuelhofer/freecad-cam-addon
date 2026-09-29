@@ -9,11 +9,15 @@ Stange – bis vor das Futter; die Spitze folgt dem höheren von Lage und
 Hüllfläche plus Aufmaß (vierachs_huelle, mit dem Radius R + Aufmaß). Danach
 geht es radial hinaus und im Eilgang nach vorne zur nächsten Lage.
 
-- Wo die Stirn das Teil nicht trifft, schneidet die Lage – außer hinter dem
-  Teil: Dort bleibt das Material (Abstich, Futter), die Spitze bleibt auf dem
-  Stangenradius.
+- Wo die Stirn das Teil nicht trifft, schneidet die Lage.
+- Hinten läuft die Spirale über das Teil hinaus, bis der Fräser es ganz
+  verlassen hat: Die Mitte des Fräsers kommt den Überlauf hinter das Teil
+  (Vorschlag Fräserradius + UEBERLAUF_ZUGABE), dort auf der Tiefe des letzten
+  Stücks Kontur – die Kante hinten am Teil wird fertig (Manuel, 2026-09-29:
+  „da muss man schon mindestens mal 6.5 drüber fahren“). Der Rand des Fräsers
+  bleibt aber immer den Abstand zum Futter vor der Spannfläche; wie weit die
+  Stange dafür herausragen muss, rechnet der Assistent (vierachs_rohteil).
 - Der Achse kommt die Spitze nicht näher als der Fräserradius.
-- Der Rand des Fräsers bleibt FREI_FUTTER vor der Spannfläche.
 - Liegen Punkte auf einer Geraden in (a, r, φ) – eine Lage ohne Teil darunter
   –, bleiben nur ihre Enden und alle HOECHSTENS_GRAD einer.
 - Wie viele Lagen es braucht, sagt der tiefste Punkt über dem Teil; vor dem
@@ -36,9 +40,10 @@ from . import vierachs_huelle as vh
 from .sprache import tr
 
 SICHERHEIT = 2.0  # mm – so weit über und vor der Stange fährt der Fräser im Eilgang
-# mm – so weit bleibt der Rand des Fräsers vor der Spannfläche: mehr als der Warnabstand
-# der Kollisionsprüfung (1 mm), sonst meldete sie jede Bahn als „nahe am Futter“.
-FREI_FUTTER = 2.0
+# mm – so weit bleibt der Rand des Fräsers vor der Spannfläche (Vorschlag): deutlich mehr
+# als der Warnabstand der Kollisionsprüfung (1 mm).
+ABSTAND_FUTTER = 5.0
+UEBERLAUF_ZUGABE = 0.5  # mm – Überlauf = Fräserradius + das: Der Fräser verlässt das Teil ganz
 RAND = 0.005  # mm – zum Aufmaß dazu, für Rundungen im Raster
 GLEICH = 1e-9  # mm – so wenig Unterschied gilt als derselbe Radius
 # So weit dreht die Rundachse höchstens in einem Satz: FreeCAD 1.1.3 zeigt einen Satz
@@ -58,6 +63,13 @@ class Schruppwerte:
     a_stange_vorne: float  # das vordere Ende der Stange
     a_futter: float  # die Spannfläche: dahinter steckt die Stange im Futter
     sicherheit: float = SICHERHEIT
+    ueberlauf: float = None  # so weit hinter das Teil (Mitte des Fräsers); None: Vorschlag
+    abstand_futter: float = ABSTAND_FUTTER  # Rand des Fräsers bis zur Spannfläche
+
+
+def ueberlauf_vorschlag(fraeser_radius):
+    """Der Überlauf, bis der Fräser das Teil ganz verlassen hat: Radius + UEBERLAUF_ZUGABE."""
+    return fraeser_radius + UEBERLAUF_ZUGABE
 
 
 @dataclass(frozen=True)
@@ -95,8 +107,9 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     a_teil = netz.punkte @ l_
     teil_vorne, teil_hinten = float(a_teil.max()), float(a_teil.min())
     radius = w.fraeser_radius
+    ueberlauf = ueberlauf_vorschlag(radius) if w.ueberlauf is None else w.ueberlauf
     a_anfang = w.a_stange_vorne + radius + w.sicherheit
-    a_ende = w.a_futter + radius + FREI_FUTTER
+    a_ende = max(teil_hinten - ueberlauf, w.a_futter + radius + w.abstand_futter)
     if a_ende >= teil_vorne + radius:
         raise ValueError(tr("vb.fehler.platz"))
     hinten_frei = max(0.0, a_ende - radius - teil_hinten)
@@ -109,7 +122,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     a = a_anfang - (a_anfang - a_ende) * k / anzahl
     a_werte = vh.raster_a(a_ende - schritt_a, a_anfang + schritt_a, schritt_a)
     huelle = vh.schaftfraeser(netz, laengs, radial, radius + w.aufmass, a_werte, phi_werte)
-    huelle = huelle.sicher()
+    huelle = _hinten_weiter(huelle.sicher(), teil_hinten)
     zugabe = w.aufmass + netz.toleranz + RAND
 
     def boden(versatz):
@@ -138,6 +151,18 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
     return Bahn(punkte, lagen, r_min, hinten_frei)
+
+
+def _hinten_weiter(huelle, teil_hinten):
+    """Hinter dem Teil (a < teil_hinten), wo der Fräser es nicht mehr trifft, gilt die Tiefe
+    des letzten Stücks Kontur davor – im Überlauf fährt er so aus dem Teil heraus, wie er an
+    dessen Ende war, statt auf den Stangenradius zu springen."""
+    r = huelle.r.copy()
+    for i in range(len(huelle.a) - 2, -1, -1):  # von vorne nach hinten
+        if huelle.a[i] < teil_hinten:
+            leer = ~np.isfinite(r[i])
+            r[i, leer] = r[i + 1, leer]
+    return vh.Huelle(huelle.a, huelle.phi, r)
 
 
 def _knicke(r, abstand):

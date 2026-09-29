@@ -54,6 +54,9 @@ RUNDACHSE = "A"
 # So tief steckt die Stange im Futter – am Job, damit „Auf der Maschine prüfen“ den
 # Nullpunkt so vorschlägt (W-003 V2c); ausgeblendet.
 EIGENSCHAFT_SPANNLAENGE = "CamAddonSpannlaenge"
+# Die Abstechbreite – am Job, weil die Lücke hinter dem Teil auch größer sein kann (der
+# Fräser braucht Platz, V3f): So rechnet einstellung() sie zurück; ausgeblendet.
+EIGENSCHAFT_ABSTECHBREITE = "CamAddonAbstechbreite"
 
 MIN_AUFMASS = 1.0  # mm am Radius, mindestens, beim Vorschlag für den Stangen-Ø
 STUFE_MM = 5.0  # Stangen-Ø in 5-mm-Schritten …
@@ -98,12 +101,23 @@ class Lage:
 
 @dataclass
 class Stange:
-    """Die runde Stange: Ø und die Längen vor und hinter dem Teil (mm)."""
+    """Die runde Stange: Ø und die Längen vor und hinter dem Teil (mm).
+
+    Hinter dem Teil bis zur Spannfläche liegt die Lücke: die Abstechbreite – oder
+    mehr, wenn ein Fräser dort Platz braucht (`frei_hinten`: Überlauf, Fräserradius
+    und Abstand zum Futter, V3f).
+    """
 
     durchmesser: float
     planaufmass: float = PLANAUFMASS
     abstechbreite: float = ABSTECHBREITE
     spannlaenge: float = SPANNLAENGE
+    frei_hinten: float = 0.0
+
+    @property
+    def luecke(self):
+        """Vom hinteren Ende des Teils bis zur Spannfläche (mm)."""
+        return max(self.abstechbreite, self.frei_hinten)
 
 
 def ist_eben(flaeche):
@@ -315,15 +329,20 @@ def vorschlag_durchmesser(noetig, zoll=False):
 
 
 def stangenlaenge(vermessung, stange):
-    """Länge der Stange: Planaufmaß, Teil, Abstechbreite und Spannlänge."""
-    return vermessung.laenge + stange.planaufmass + stange.abstechbreite + stange.spannlaenge
+    """Länge der Stange: Planaufmaß, Teil, Lücke (Stange.luecke) und Spannlänge."""
+    return ausspannlaenge(vermessung, stange) + stange.spannlaenge
+
+
+def ausspannlaenge(vermessung, stange):
+    """So weit ragt die Stange aus dem Futter: Planaufmaß, Teil und Lücke."""
+    return stange.planaufmass + vermessung.laenge + stange.luecke
 
 
 def stangen_placement(vermessung, stange, achse):
     """Die Lage des Zylinders im Job. CAM baut ihn ab seinem Ursprung entlang +Z – hier
     gedreht auf die Stangenachse, mit dem Ursprung hinter der Spannlänge."""
     laengs = laengs_von(achse)
-    hinten = vermessung.hinten - stange.abstechbreite - stange.spannlaenge
+    hinten = vermessung.hinten - stange.luecke - stange.spannlaenge
     return FreeCAD.Placement(laengs * hinten, FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), laengs))
 
 
@@ -376,7 +395,8 @@ def richte_ein(dokument, teil, lage_, stange, achse, job=None, beschriftung=None
         if rohteil is not None:
             dokument.removeObject(rohteil.Name)
         job.Stock = neu
-    _merke_spannlaenge(job, stange.spannlaenge)
+    _merke(job, EIGENSCHAFT_SPANNLAENGE, stange.spannlaenge, tr("va.eigenschaft.spannlaenge"))
+    _merke(job, EIGENSCHAFT_ABSTECHBREITE, stange.abstechbreite, tr("va.eigenschaft.abstechbreite"))
     dokument.recompute()
     return job
 
@@ -438,14 +458,17 @@ def einstellung(job):
     )
     a_hinten = rohteil.Placement.Base.dot(laengs)
     planaufmass = a_hinten + float(rohteil.Height) - vermessung.vorne
-    abstechbreite = vermessung.hinten - a_hinten - spann
-    if mitte is None or planaufmass < -GENAU or abstechbreite < -GENAU:
+    luecke = round(vermessung.hinten - a_hinten - spann, 6)
+    if mitte is None or planaufmass < -GENAU or luecke < -GENAU:
         return None
+    # Ohne gemerkte Abstechbreite (Jobs bis 0.26) ist die ganze Lücke die Abstechbreite.
+    abstechbreite = float(getattr(job, EIGENSCHAFT_ABSTECHBREITE, luecke))
     stange = Stange(
         round(2 * float(rohteil.Radius), 6),
         round(max(0.0, planaufmass), 6),
-        round(max(0.0, abstechbreite), 6),
+        round(max(0.0, min(abstechbreite, luecke)), 6),
         spann,
+        luecke if luecke > abstechbreite + GENAU else 0.0,
     )
     return Einstellung(teil, flaeche, vermessung, laengs, mitte, drehlage, stange)
 
@@ -482,13 +505,10 @@ def spannlaenge(job):
     return float(getattr(job, EIGENSCHAFT_SPANNLAENGE, 0.0) or 0.0)
 
 
-def _merke_spannlaenge(job, laenge):
-    if EIGENSCHAFT_SPANNLAENGE not in job.PropertiesList:
-        job.addProperty(
-            "App::PropertyFloat",
-            EIGENSCHAFT_SPANNLAENGE,
-            "CAM-Addon",
-            tr("va.eigenschaft.spannlaenge"),
-        )
-        job.setEditorMode(EIGENSCHAFT_SPANNLAENGE, 2)  # ausgeblendet – das Addon nutzt sie
-    setattr(job, EIGENSCHAFT_SPANNLAENGE, float(laenge))
+def _merke(job, eigenschaft, wert, text):
+    """Merkt `wert` (mm) am Job in der ausgeblendeten Eigenschaft `eigenschaft`."""
+    if eigenschaft not in job.PropertiesList:
+        job.addProperty("App::PropertyFloat", eigenschaft, "CAM-Addon", text)
+        job.setEditorMode(eigenschaft, 2)  # ausgeblendet – das Addon nutzt sie
+    if getattr(job, eigenschaft) != float(wert):
+        setattr(job, eigenschaft, float(wert))
