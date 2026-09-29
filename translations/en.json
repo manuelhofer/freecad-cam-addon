@@ -1010,6 +1010,8 @@
     "va.lagen.eine": "→ 1 layer (Ø {von} {e_laenge} → Ø {bis} {e_laenge})",
     "va.lagen.keine": "Nothing to rough: the part already fills the bar.",
     "va.radius": "In the program X is the radius, not the diameter – on a lathe switch the program header to radius (Siemens DIAMOF). Feed is given as G93 (1 ÷ time).",
+    "va.rund": "{art}: “All-round roughing” calculates as with an end mill of the same diameter – the part stays safe. Between the turns of the spiral, ridges up to {rille} mm above the allowance remain; less feed per revolution makes them flatter.",
+    "va.rund.ohne_rillen": "{art}: “All-round roughing” calculates as with an end mill of the same diameter – the part stays safe; at this feed per revolution no ridges remain.",
     "va.fehler.anlegen": "Could not create: {fehler}",
     "va.transaktion.schruppen": "Create all-round roughing",
     "va.uebernehmen": "Apply",

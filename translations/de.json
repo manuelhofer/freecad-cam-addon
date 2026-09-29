@@ -1010,6 +1010,8 @@
     "va.lagen.eine": "→ 1 Lage (Ø {von} {e_laenge} → Ø {bis} {e_laenge})",
     "va.lagen.keine": "Nichts zu schruppen: Das Teil füllt die Stange schon aus.",
     "va.radius": "Im Programm ist X der Radius, nicht der Durchmesser – an der Drehmaschine im Programmkopf auf Radius stellen (Siemens DIAMOF). Der Vorschub steht nach G93 (1 ÷ Zeit).",
+    "va.rund": "{art}: „Rundum schruppen“ rechnet wie mit einem Schaftfräser gleichen Durchmessers – das Teil bleibt sicher. Zwischen den Bahnen der Spirale bleiben Rillen bis {rille} mm über dem Aufmaß stehen; weniger Vorschub je Umdrehung macht sie flacher.",
+    "va.rund.ohne_rillen": "{art}: „Rundum schruppen“ rechnet wie mit einem Schaftfräser gleichen Durchmessers – das Teil bleibt sicher; bei diesem Vorschub je Umdrehung bleiben keine Rillen stehen.",
     "va.fehler.anlegen": "Anlegen ging nicht: {fehler}",
     "va.transaktion.schruppen": "Rundum schruppen anlegen",
     "va.uebernehmen": "Übernehmen",

@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-08 vierachs-kugel-torus-hinweis
+
+### EINGELESEN
+- Manuel (2026-09-29): „ich leg jetzt nochmal einen rundfräser an und schau
+  mal was er da macht“; zugesagt: ein Satz, dass Kugel- und Torusfräser wie
+  ein Schaftfräser schruppen.
+- `camaddon/vierachs_bahn.py`, `camaddon/vierachs_huelle.py` (Stirn als
+  Scheibe), `camaddon/gui_vierachs.py`, `camaddon/werkzeuge.py` (Eckradius).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`rillenhoehe`), `camaddon/gui_vierachs.py`,
+  `translations/de.json`, `translations/en.json`, `help/de/vierachs.html`,
+  `help/en/vierachs.html`, `tests/test_vierachs_bahn.py`,
+  `tests/gui/szenario_vierachs_aendern.py`, `docs/spezifikation_vierachs.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Mit einem Kugel- oder Torusfräser sagt Schritt 2 in einem Satz, dass wie mit
+einem Schaftfräser gerechnet wird und wie hoch Rillen zwischen den Bahnen
+stehen bleiben.
+
+### DONE
+- `rillenhoehe(Radius, Eckradius, Vorschub je Umdrehung)`: in der Mitte
+  zwischen zwei Bahnen, am Ende der flachen Stirn beginnend die Rundung.
+- Schritt 2: grauer Satz bei Kugel- und Torusfräser, „… Rillen bis 0,42 mm
+  über dem Aufmaß …“ – oder „keine Rillen“, wenn die flache Stirn reicht.
+
+### TEST
+- `test_vierachs_bahn` (Kugel, Torus flach und weit, Schaftfräser).
+- `szenario_vierachs_aendern`: T3 Kugelfräser Ø 10, 4 mm je Umdrehung →
+  „0,42 mm“; beim Schaftfräser kein Satz; Bild `1b_kugelfraeser`.
+
+### NEXT
+- Maschine zuerst (V3f).
+
 ## P-2026-09-29-07 vierachs-ueberlauf-ausspannlaenge
 
 ### EINGELESEN

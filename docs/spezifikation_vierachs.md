@@ -640,6 +640,11 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   (`CamAddonAbstechbreite`, ausgeblendet), damit „Ändern“ sie von der Lücke
   unterscheiden kann. Operationen aus 0.26 bekommen beim Laden Überlauf
   Radius + 0,5 und Abstand 2 mm – ihre Bahn bleibt, wie sie war.
+- **Kugel- und Torusfräser** (Manuel testete 2026-09-29 einen „Rundfräser“):
+  „Rundum schruppen“ rechnet mit der Stirn als flacher Scheibe – für diese
+  Fräser sicher, das Teil wird nicht verletzt. Ein grauer Satz sagt, wie hoch
+  zwischen den Bahnen Rillen stehen bleiben (Rundung gegen halben Vorschub je
+  Umdrehung). *Gebaut (P-2026-09-29-08).*
 - *Klickweg:* Welle 60 mm lang, „4-Achs-Bearbeitung“ → oben „Maschine“:
   Beispiel-Drehmaschine → „Weiter“ → T1 D12: grau „Überlauf 6,5“, „Abstand zum
   Futter 5“, darunter „Die Stange muss 78,5 mm aus dem Futter ragen …“ →

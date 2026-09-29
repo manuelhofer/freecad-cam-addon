@@ -67,6 +67,18 @@ class Schruppwerte:
     abstand_futter: float = ABSTAND_FUTTER  # Rand des Fräsers bis zur Spannfläche
 
 
+def rillenhoehe(fraeser_radius, eckradius, steigung):
+    """So hoch bleiben Rillen zwischen zwei Bahnen der Spirale stehen, wenn die Stirn des
+    Fräsers mit `eckradius` gerundet ist (beim Kugelfräser: sein Radius), in mm. Die
+    Hüllfläche rechnet mit der Stirn als flacher Scheibe – das Teil bleibt sicher, an den
+    Rundungen bleibt mehr stehen: in der Mitte zwischen zwei Bahnen am meisten."""
+    seitlich = steigung / 2 - (fraeser_radius - eckradius)
+    if eckradius <= 0 or seitlich <= 0:
+        return 0.0
+    seitlich = min(seitlich, eckradius)
+    return eckradius - math.sqrt(eckradius * eckradius - seitlich * seitlich)
+
+
 def ueberlauf_vorschlag(fraeser_radius):
     """Der Überlauf, bis der Fräser das Teil ganz verlassen hat: Radius + UEBERLAUF_ZUGABE."""
     return fraeser_radius + UEBERLAUF_ZUGABE

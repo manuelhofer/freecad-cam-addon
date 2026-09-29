@@ -195,6 +195,12 @@ eigen = vb.schruppen(
 )
 pruefe(min(p.a for p in eigen.punkte) == -100.0, f"ohne Überlauf: {min(p.a for p in eigen.punkte)}")
 pruefe(vb.ueberlauf_vorschlag(6.0) == 6.5, "Vorschlag Überlauf")
+# Kugel- und Torusfräser rechnen wie ein Schaftfräser: Zwischen den Bahnen bleiben Rillen –
+# Kugel Ø 12 mit 4,8 mm je Umdrehung gut 0,5 mm, Torus mit Eckradius 1 erst ab 10 mm.
+pruefe(abs(vb.rillenhoehe(6.0, 6.0, 4.8) - (6 - math.sqrt(36 - 2.4**2))) < 1e-12, "Kugel")
+pruefe(vb.rillenhoehe(6.0, 1.0, 4.8) == 0.0, "Torus mit flacher Stirn")
+pruefe(abs(vb.rillenhoehe(6.0, 1.0, 11.0) - (1 - math.sqrt(0.75))) < 1e-12, "Torus weit")
+pruefe(vb.rillenhoehe(6.0, 0.0, 12.0) == 0.0, "Schaftfräser")
 pruefe(bahn.hinten_frei == 0, f"Exzenter hinten frei: {bahn.hinten_frei}")
 
 if fehler:

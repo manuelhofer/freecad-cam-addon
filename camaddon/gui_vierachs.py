@@ -40,6 +40,7 @@ from . import PARAMETER_PFAD, einheiten, symbol
 from . import job_schnittwerte as js
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_achsen as va
+from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_rohteil as vr
 from . import werkzeuge as wz
@@ -828,6 +829,9 @@ class VierachsPanel:
         self.ausspannen = self._grau()  # wie weit die Stange aus dem Futter ragen muss
         self.ausspannen.setWordWrap(True)
         aufbau.addWidget(self.ausspannen)
+        self.hinweis_rund = self._grau()  # Kugel- und Torusfräser: wie ein Schaftfräser
+        self.hinweis_rund.setWordWrap(True)
+        aufbau.addWidget(self.hinweis_rund)
         self.radius_hinweis = self._grau()
         self.radius_hinweis.setWordWrap(True)
         self.radius_hinweis.setText(tr("va.radius"))
@@ -1161,6 +1165,7 @@ class VierachsPanel:
         if self.vermessung is not None and not _gleiche_stange(self.stange(), self._stange_jetzt):
             self._anwenden()  # die Stange ragt so weit heraus, wie der Fräser hinten braucht
         self.ausspannen.setText(self._ausspannen_text())
+        self.hinweis_rund.setText(self._rund_text(werkzeug))
         achse = self.achse()
         try:
             self.vorschau = vo.bahn_fuer(
@@ -1179,6 +1184,22 @@ class VierachsPanel:
         else:
             self.ergebnis.setText(self._lagen_text(self.vorschau))
         self._knoepfe_beschriften()
+
+    def _rund_text(self, werkzeug):
+        """Bei Kugel- und Torusfräsern ein Satz: Gerechnet wird wie mit einem Schaftfräser,
+        das Teil bleibt sicher – und wie hoch Rillen zwischen den Bahnen stehen bleiben
+        (Manuel testete 2026-09-29 einen Rundfräser)."""
+        if werkzeug.art == wz.KUGELFRAESER:
+            eckradius = werkzeug.durchmesser / 2
+        elif werkzeug.art == wz.TORUSFRAESER:
+            eckradius = min(wz.mass(werkzeug, "eckradius"), werkzeug.durchmesser / 2)
+        else:
+            return ""
+        rille = vb.rillenhoehe(werkzeug.durchmesser / 2, eckradius, self._wert("steigung"))
+        art = wz.art_text(werkzeug.art)
+        if rille < 0.005:
+            return tr("va.rund.ohne_rillen", art=art)
+        return tr("va.rund", art=art, rille=groesse_fest(rille, einheiten.LAENGE, 2))
 
     def _abstaende(self):
         """(Sicherheitsabstand, Überlauf, Abstand zum Futter) aus den Feldern (mm)."""

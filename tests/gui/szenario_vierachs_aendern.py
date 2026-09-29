@@ -37,7 +37,9 @@ def schritte(h):
     t1.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=4.8, ap=2, vc=150, fz=0.08)]
     t2 = wz.Werkzeug(nummer=2, durchmesser=8, schneiden=3, schneidenlaenge=20)
     t2.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=3.2, ap=1.5, vc=150, fz=0.06)]
-    wz.Bibliothek([t1, t2]).speichern()
+    t3 = wz.Werkzeug(nummer=3, art=wz.KUGELFRAESER, durchmesser=10, schneiden=2)
+    t3.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=4, ap=1, vc=150, fz=0.05)]
+    wz.Bibliothek([t1, t2, t3]).speichern()
 
     doc = FreeCAD.newDocument("Welle")
     doc.UndoMode = 1
@@ -101,7 +103,18 @@ def schritte(h):
     h.pruefe(not panel.knopf_zurueck.isHidden(), "„Zurück“ fehlt")
     h.pruefe(panel.hinweis_aendern.isHidden(), f"Hinweis: {panel.hinweis_aendern.text()!r}")
     yield from h.warte_auf(lambda: panel.vorschau is not None, 15000)
+    h.pruefe(
+        not panel.hinweis_rund.text(), f"Hinweis beim Schaftfräser: {panel.hinweis_rund.text()}"
+    )
     h.bild("1_aendern_geoeffnet", panel.form)
+
+    # Ein Kugelfräser schruppt wie ein Schaftfräser; ein Satz sagt, wie hoch Rillen bleiben
+    # (Ø 10, 4 mm je Umdrehung: 5 − √21 ≈ 0,42 mm).
+    panel.wahl_fraeser.setCurrentIndex(2)
+    yield from h.warte_auf(lambda: panel.vorschau is not None, 15000)
+    rund = panel.hinweis_rund.text()
+    h.pruefe(rund.startswith("Kugelfräser:") and "0,42 mm" in rund, f"Kugelfräser: {rund!r}")
+    h.bild("1b_kugelfraeser", panel.form)
 
     # T2 und Aufmaß 0,5: Die Zustellung folgt dem Vorschlag von T2.
     panel.wahl_fraeser.setCurrentIndex(1)
