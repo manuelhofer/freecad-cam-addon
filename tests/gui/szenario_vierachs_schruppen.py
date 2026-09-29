@@ -184,6 +184,24 @@ def schritte(h):
             f"Kollision: {k.urteil.text()!r} {[b.text() for b in k.ergebnis.befunde][:2]}",
         )
         h.bild("4_kollision_frei", pruef.form)
+        # Rohteil und Fertigteil (V3g): mitten in der ersten Lage ist die Stange vorne dünner;
+        # am Ende steht der Vergleich in Farben und als Satz.
+        h.pruefe(
+            spieler.rest.text().startswith("Die Stange wird beim Abspielen abgetragen"),
+            f"beim Abtragen: {spieler.rest.text()!r}",
+        )
+        spieler.setze_zeit(fahrt.dauer)
+        yield 500
+        rest = spieler.rest.text()
+        h.pruefe(
+            rest.startswith("Am Ende bleiben 0,3") and "nirgends ins Teil" in rest,
+            f"Restmaterial: {rest!r}",
+        )
+        Gui.SendMsgToActiveView("ViewFit")
+        spieler.knopf_hinsehen.click()
+        yield 500
+        h.bild("5_rest_farben")
+        h.bild("5b_rest_satz", pruef.form)
         pruef.reject()
         yield 500
 

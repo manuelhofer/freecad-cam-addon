@@ -675,6 +675,16 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   CAM-Simulator von FreeCAD.
 - *Klickweg:* Job aus V3f → „Auf der Maschine prüfen“ → Abspielen: Die Stange
   wird unter dem Werkzeug dünner; am Ende grün mit dem Satz.
+- *Gebaut (P-2026-09-29-11):* `restmaterial.py` – `Stange` (Radien über
+  a × φ, 0,5 mm × 1°; ein Strahl aus der Achse trifft den radialen Fräser ab
+  r / cos Δ, solange er seitlich in ihm bleibt; zwischen zwei Punkten
+  Schritte von 0,5 mm am Umfang), `Abtrag` (aus der Abfahrt: die Spitze am
+  gedrehten Teil je Station, nur Stationen von „Rundum schruppen“),
+  `vergleiche()` (Radien des Teils im selben Raster, Farben). Im Prüffenster
+  ersetzt die abgetragene Stange das durchscheinende Rohteil; an der letzten
+  Station verschwindet die Bahn, die Stange steht in Farben, und unter dem
+  Abspieler steht der Satz mit den Farben. Welle Ø 40 aus Ø 50 (Test): 0,2 s
+  Abtrag, 0,1 s Vergleich, Rest 0,325 … 0,331 mm, alles grün.
 
 **V4 – Flächen wählen** (bisher V3)
 

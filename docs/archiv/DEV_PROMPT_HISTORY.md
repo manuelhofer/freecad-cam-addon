@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-11 rohteil-fertigteil-simulation
+
+### EINGELESEN
+- Manuel (2026-09-29): „haben wir eine rohteil und fertigteil vergleich in der
+  ‚simualtion‘“.
+- `docs/spezifikation_vierachs.md` (V3g), `camaddon/gui_abfahren.py`,
+  `camaddon/gui_reichweite.py`, `camaddon/abfahren.py`,
+  `camaddon/vierachs_huelle.py` (Raster, Hüllfläche einer Scheibe).
+
+### DATEIEN
+- `camaddon/restmaterial.py` (neu), `camaddon/gui_abfahren.py`,
+  `camaddon/gui_reichweite.py`, `translations/de.json`, `translations/en.json`,
+  `help/de/reichweite.html`, `help/en/reichweite.html`,
+  `tests/test_restmaterial.py` (neu), `tests/gui/szenario_vierachs_schruppen.py`,
+  `docs/spezifikation_vierachs.md`, `docs/aufbau.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beim Abspielen eines Jobs mit „Rundum schruppen“ wird die Stange im
+Prüffenster abgetragen, und an der letzten Station steht sie in Farben gegen das
+fertige Teil, mit einem Satz, wie viel stehen bleibt.
+
+### DONE
+- `restmaterial.Stange`: Radien über (a, φ), 0,5 mm × 1°; ein radialer Fräser
+  trägt ab, was in ihm liegt (Strahl aus der Achse ab r / cos Δ), zwischen
+  zwei Punkten in Schritten von 0,5 mm am Umfang.
+- `Abtrag` aus der Abfahrt (Spitze am gedrehten Teil je Station, nur
+  „Rundum schruppen“): bis zu einer Station, zurück von vorn; `vergleiche()`
+  gegen die Radien des Teils – grün bis Aufmaß + 0,1, gelb, rot ab Aufmaß + 1,
+  blau im Teil.
+- Prüffenster: Die abgetragene Stange ersetzt das durchscheinende Rohteil;
+  an der letzten Station ist die Bahn aus und die Stange in Farben; unter dem
+  Abspieler der Satz („Am Ende bleiben 0,32 mm … 0,33 mm auf dem Teil (Aufmaß
+  0,30 mm), nirgends ins Teil. Grün: …“), beim Abtragen, was geschieht.
+
+### TEST
+- Neu `test_restmaterial` (ein Schnitt: darunter bis zur Spitze, daneben
+  nichts; Spirale auf 38; Rundum schruppen auf der Beispiel-Drehmaschine:
+  Rest 0,325 … 0,331 mm, alles grün, nichts blau; zurück rechnet von vorn).
+- `szenario_vierachs_schruppen` (Satz beim Abtragen, am Ende „Am Ende bleiben
+  0,3… nirgends ins Teil“, Bilder `5_rest_farben`, `5b_rest_satz`) in 1.1.3
+  und im Wochen-Build; `test_sprache`, `test_hilfe`.
+
+### NEXT
+- Version 0.27.0, voller Lauf, Push, Bericht an Manuel.
+
 ## P-2026-09-29-10 spitze-tcp-kinematik
 
 ### EINGELESEN

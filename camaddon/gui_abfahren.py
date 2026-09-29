@@ -21,6 +21,7 @@ from PySide import QtCore, QtGui
 from . import kollision as kb
 from . import maschine as m
 from . import reichweite as rw
+from . import restmaterial as rm
 from .abfahren import zeit_text
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, ROT
@@ -44,6 +45,15 @@ HALTER_MINDESTENS = 25.0  # mm Ø des angedeuteten Halters
 HINSEHEN_RAND = 1.3  # so viel mehr als Werkstück und Werkzeug zeigt „Hinsehen“
 MARKE = (0.85, 0.10, 0.10)  # die rote Kugel an einer Kollision
 MARKE_RADIUS = 2.0  # mm; dazu ein durchscheinender Hof, viermal so groß
+# Rohteil und Fertigteil (W-003 V3g): die Stange beim Abtragen, am Ende in Farben.
+REST_DURCHSICHT = 0.35
+REST_FARBEN = {
+    rm.OHNE_TEIL: ROHTEIL,
+    rm.GRUEN: (0.30, 0.75, 0.30),
+    rm.GELB: (0.95, 0.80, 0.15),
+    rm.ROT: (0.90, 0.20, 0.15),
+    rm.BLAU: (0.20, 0.40, 0.95),
+}
 STELLE_AUSSCHNITT = 400.0  # mm: so hoch zeigt die Ansicht höchstens, wenn sie auf eine Stelle geht
 
 
@@ -75,10 +85,23 @@ class Bild:
             form = getattr(objekt, "Shape", None)
             if form is not None and not form.isNull():
                 werkstueck.addChild(self._flaechen(form, MODELL, 0.0))
+        punkte = abfahrt.am_werkstueck()
+        # Eine runde Stange mit „Rundum schruppen“ wird beim Abspielen abgetragen (V3g).
+        try:
+            self.abtrag = rm.fuer(abfahrt, job, punkte)
+        except Exception as fehler:  # ohne Abtrag geht alles andere weiter
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Restmaterial: {fehler}\n")
+            self.abtrag = None
         rohteil = getattr(getattr(job, "Stock", None), "Shape", None)
-        if rohteil is not None and not rohteil.isNull():
+        if self.abtrag is not None:
+            werkstueck.addChild(self._restmaterial())
+        elif rohteil is not None and not rohteil.isNull():
             werkstueck.addChild(self._flaechen(rohteil, ROHTEIL, 0.75))
-        werkstueck.addChild(self._bahnlinien(abfahrt))
+        # Die Bahn – beim Vergleich am Ende ausgeblendet, sonst verdeckt sie die Farben.
+        self.bahn_schalter = coin.SoSwitch()
+        self.bahn_schalter.addChild(self._bahnlinien(abfahrt, punkte))
+        self.bahn_schalter.whichChild = 0
+        werkstueck.addChild(self.bahn_schalter)
         self.wurzel.addChild(werkstueck)
 
         werkzeug = coin.SoSeparator()
@@ -96,6 +119,66 @@ class Bild:
 
         ansicht.getSceneGraph().addChild(self.wurzel)
         self.folge()
+
+    # --- Rohteil und Fertigteil (V3g) ------------------------------------------------
+
+    def abtragen(self, index):
+        """Trägt die Stange bis Station `index` ab und zeigt sie; an der letzten Station
+        eingefärbt gegen das fertige Teil. Gibt den Satz dazu zurück („“ ohne Abtrag)."""
+        if self.abtrag is None:
+            return ""
+        self.abtrag.bis_station(index)
+        ende = index >= len(self.abtrag.a) - 1
+        vergleich = self.abtrag.vergleich() if ende else None
+        self._rest_zeigen(vergleich)
+        self.bahn_schalter.whichChild = -1 if ende else 0
+        return _rest_satz(vergleich, self.abtrag.aufmass)
+
+    def _restmaterial(self):
+        """Die Stange als Fläche über (a, φ) – Punkte und Farben setzt _rest_zeigen()."""
+        coin = self._coin
+        teil = coin.SoSeparator()
+        self._rest_bindung = coin.SoMaterialBinding()
+        teil.addChild(self._rest_bindung)
+        self._rest_material = coin.SoMaterial()
+        self._rest_material.transparency.setValue(REST_DURCHSICHT)
+        teil.addChild(self._rest_material)
+        hinweise = coin.SoShapeHints()
+        hinweise.creaseAngle = 0.8
+        teil.addChild(hinweise)
+        self._rest_punkte = coin.SoCoordinate3()
+        teil.addChild(self._rest_punkte)
+        self._rest_netz = coin.SoQuadMesh()
+        teil.addChild(self._rest_netz)
+        self._rest_rahmen = rm.vh.rahmen(self.abtrag.laengs, self.abtrag.radial)
+        self._rest_zeigen(None)
+        return teil
+
+    def _rest_zeigen(self, vergleich):
+        """Die Punkte der Stange aus dem Abtrag; mit `vergleich` in den Farben des
+        Vergleichs, sonst in der Farbe des Rohteils."""
+        import numpy as np
+
+        a, phi, r = rm.darstellung(self.abtrag.stange)
+        l_, u_, v_ = self._rest_rahmen
+        richtung = np.cos(phi)[:, None] * u_[None, :] + np.sin(phi)[:, None] * v_[None, :]
+        punkte = a[:, None, None] * l_[None, None, :] + r[:, :, None] * richtung[None, :, :]
+        liste = punkte.reshape(-1, 3).tolist()
+        self._rest_punkte.point.setValues(0, len(liste), liste)
+        self._rest_punkte.point.setNum(len(liste))
+        self._rest_netz.verticesPerColumn = len(a)
+        self._rest_netz.verticesPerRow = len(phi)
+        material = self._rest_material
+        if vergleich is None:
+            self._rest_bindung.value = self._coin.SoMaterialBinding.OVERALL
+            material.diffuseColor.setValue(*ROHTEIL)
+            material.transparency.setValue(REST_DURCHSICHT)
+            return
+        farben = [REST_FARBEN[f] for f in rm.farben(vergleich).reshape(-1).tolist()]
+        self._rest_bindung.value = self._coin.SoMaterialBinding.PER_VERTEX
+        material.diffuseColor.setValues(0, len(farben), farben)
+        material.diffuseColor.setNum(len(farben))
+        material.transparency.setValue(0.0)
 
     def zeige_operation(self, nummer):
         """Das Werkzeug der Operation `nummer` an ihrer Werkzeugaufnahme."""
@@ -227,15 +310,14 @@ class Bild:
         teil.addChild(flaechen)
         return teil
 
-    def _bahnlinien(self, abfahrt):
+    def _bahnlinien(self, abfahrt, punkte):
         """Die Bahn als Linien in Koordinaten des Jobs, am Werkstück (mit Rundachsen um das
-        Teil herum): Vorschub blau, Eilgang rot."""
+        Teil herum; `punkte`: Abfahrt.am_werkstueck()): Vorschub blau, Eilgang rot."""
         coin = self._coin
         teil = coin.SoSeparator()
         stil = coin.SoDrawStyle()
         stil.lineWidth = 2
         teil.addChild(stil)
-        punkte = abfahrt.am_werkstueck()
         koordinaten = coin.SoCoordinate3()
         koordinaten.point.setValues(0, len(punkte), punkte)
         teil.addChild(koordinaten)
@@ -251,6 +333,26 @@ class Bild:
             teil.addChild(self._material(farbe))
             teil.addChild(linien)
         return teil
+
+
+def _rest_satz(vergleich, aufmass):
+    """Der Satz unter dem Abspieler: beim Abtragen, was passiert; am Ende, was auf dem Teil
+    bleibt – mit den Farben."""
+    if vergleich is None:
+        return tr("rm.laeuft")
+    mm = rw.weg_text
+    if vergleich.kleinster < -rm.BLAU_AB:
+        satz = tr("rm.ins_teil", bis=mm(vergleich.groesster), tief=mm(-vergleich.kleinster))
+    else:
+        satz = tr(
+            "rm.ergebnis",
+            von=mm(max(vergleich.kleinster, 0.0)),
+            bis=mm(vergleich.groesster),
+            aufmass=mm(aufmass),
+        )
+    if vergleich.groesster >= aufmass + rm.ROT_AB:
+        satz += " " + tr("rm.zu_viel", grenze=mm(aufmass + rm.ROT_AB))
+    return satz + " " + tr("rm.farben")
 
 
 def ansicht_von(dokument):
@@ -281,6 +383,8 @@ class Abspieler(QtGui.QWidget):
         self.station = 0  # die letzte Station, die die Bahn erreicht hat
         self.werte = {}  # {Achse: Stellung}, wie das Programm sie will
         self.angehalten = []
+        # Rohteil und Fertigteil (V3g): bekommt die Station, gibt den Satz dazu zurück.
+        self.bei_station = None
         self._uhr = QtCore.QTimer(self)
         self._uhr.setInterval(TAKT)
         self._uhr.timeout.connect(self._takt)
@@ -347,6 +451,10 @@ class Abspieler(QtGui.QWidget):
         self.hinweise.setWordWrap(True)
         self.hinweise.setStyleSheet(f"color: {GRAU.name()};")
         aufbau.addWidget(self.hinweise)
+        self.rest = QtGui.QLabel()  # Rohteil und Fertigteil: was auf dem Teil bleibt
+        self.rest.setWordWrap(True)
+        self.rest.setVisible(False)
+        aufbau.addWidget(self.rest)
         self._knopf_zeigen()
 
     def _knopf(self, symbol, tooltip, aktion):
@@ -423,6 +531,10 @@ class Abspieler(QtGui.QWidget):
             self.werte = abfahrt.stellungen_an(station)
         operation = abfahrt.stationen[self.laufend()].operation
         self.angehalten = self._fahren(self.werte, operation)
+        if self.bei_station is not None:
+            satz = self.bei_station(self.station)
+            self.rest.setText(satz)
+            self.rest.setVisible(bool(satz))
         self._anzeigen()
 
     def laufend(self):

@@ -373,6 +373,7 @@ class PruefPanel:
         self.liste.itemClicked.connect(lambda _eintrag: self.fahre_hin(self.liste.currentRow()))
         aufbau.addWidget(self.liste)
         self.abspieler = gui_abfahren.Abspieler(self._fahre, self._hinsehen)
+        self.abspieler.bei_station = self._abtragen
         aufbau.addWidget(self.abspieler)
         self.kollision = gui_kollision.KollisionsBereich(
             self._kollision_daten, self._kollision_hin, self._sperren, self._kollision_gemeldet
@@ -496,6 +497,12 @@ class PruefPanel:
             self.bild.nullpunkt = FreeCAD.Vector(nullpunkt)
             self.bild.folge()
         self.abspieler.zeige(self.abfahrt, zeit)
+
+    def _abtragen(self, station):
+        """Rohteil und Fertigteil (W-003 V3g): die Stange bis zu dieser Station abgetragen;
+        gibt den Satz dazu zurück („“, wenn der Job keine runde Stange mit „Rundum schruppen“
+        hat)."""
+        return self.bild.abtragen(station) if self.bild is not None else ""
 
     def _bild_weg(self):
         if self.bild is not None:
