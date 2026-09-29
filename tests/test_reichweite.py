@@ -27,6 +27,7 @@ from camaddon import reichweite as rw
 from camaddon import schraege_achse as sa
 from camaddon import verfahren as vf
 from camaddon import werkzeuge as wz
+from camaddon.kette import LINEAR
 
 sprache.setze_sprache("de")
 fehler = []
@@ -400,14 +401,22 @@ for bauplan in (
     buchstaben = sorted(
         m.programmname(b) for b in m.betriebsarten(ma) if b.Art == m.ART_POSITIONIEREN
     )
-    for rund in ({}, dict(zip(buchstaben, (30.0, -45.0), strict=True))):
-        trifft(bauplan.__name__, p, aufnahme, [(0, 0, 0), (40, -25, 10)], 60, rund=rund)
-        st = p.stellungen((0, 0, 0), aufnahme, 60, FreeCAD.Vector(), rund)
-        for buchstabe, grad in rund.items():
-            achse = next(a for a in st if vf.namen(ma, a) == f"{buchstabe}1")
-            pruefe(
-                nahe(st[achse], grad), f"{bauplan.__name__}: {buchstabe} {st[achse]} statt {grad}"
-            )
+    trifft(bauplan.__name__, p, aufnahme, [(0, 0, 0), (40, -25, 10)], 60)
+    # Wie eine Steuerung ohne TCPM (V3e): Die Rundachsen stehen, wie die Bahn sagt; die
+    # Linearachsen stehen wie mit den Rundachsen auf 0 – die Bahn dreht nicht mit.
+    rund = dict(zip(buchstaben, (30.0, -45.0), strict=True))
+    for punkt in ((0, 0, 0), (40, -25, 10)):
+        ohne = p.stellungen(punkt, aufnahme, 60, FreeCAD.Vector())
+        mit = p.stellungen(punkt, aufnahme, 60, FreeCAD.Vector(), rund)
+        linear = [a for a in ohne if a.art == LINEAR]
+        pruefe(
+            all(nahe(mit[a], ohne[a]) for a in linear),
+            f"{bauplan.__name__}: Linearachsen drehen mit bei {punkt}",
+        )
+    st = p.stellungen((0, 0, 0), aufnahme, 60, FreeCAD.Vector(), rund)
+    for buchstabe, grad in rund.items():
+        achse = next(a for a in st if vf.namen(ma, a) == f"{buchstabe}1")
+        pruefe(nahe(st[achse], grad), f"{bauplan.__name__}: {buchstabe} {st[achse]} statt {grad}")
     FreeCAD.closeDocument(asm.Document.Name)
 
 # Eine Rundachse über ihrer Grenze (A1: −120 … 120), in Schritten gedreht.

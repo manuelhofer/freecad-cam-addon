@@ -79,10 +79,16 @@ nach außen –, aber ohne die Bauteile zu bewegen.
   in Arbeitsstellung, dort, wo P1 beim Öffnen stand. Spindeln ohne
   Betriebsart „Positionieren“ bleiben, wie sie stehen – sie drehen das
   Werkzeug um seine eigene Achse.
-- **Dann die Linearachsen:** Stehen die Drehachsen, hängt der Abstand
-  zwischen Werkzeugspitze und Bahnpunkt linear an den Wegen der
-  Linearachsen zwischen Werkzeug- und Werkstückaufnahme – drei Gleichungen,
-  einmal gelöst für alle Punkte mit derselben Stellung der Drehachsen. Das
+- **Dann die Linearachsen – wie an einer Steuerung ohne TCPM** (W-003 V3e,
+  P-2026-09-27-54): X, Y und Z der Bahn sind die Achsen der Maschine. Die
+  Linearachsen stehen so, als stünden die Rundachsen auf 0 (der Revolver in
+  Arbeitsstellung); die Rundachsen drehen das Werkstück darunter. So zeigt
+  FreeCAD die Bahn (`PathSegmentWalker`: der Punkt um −C gedreht) – bis V3e
+  rechnete die Prüfung die Punkte am mitgedrehten Werkstück (wie mit TCPM),
+  und eine Bahn rundum hätte die Linearachsen mit C kreisen lassen. Stehen
+  die Drehachsen auf 0, hängt der Abstand zwischen Werkzeugspitze und
+  Bahnpunkt linear an den Wegen der Linearachsen zwischen Werkzeug- und
+  Werkstückaufnahme – drei Gleichungen, einmal gelöst je Werkzeug. Das
   gilt für Tisch- und Kopfachsen, für schiefe Achsen und für die **schräge
   Achse** (Stufe 3b): Die Bahn ist rechtwinklig, die Lösung liefert die
   Stellungen der Schlitten – dieselben Zahlen wie beim Verfahren „wie im
@@ -140,9 +146,13 @@ Entscheidungen von Claude (P-2026-09-26-88), zur Besprechung:
   aus der Werkzeugverwaltung, sonst vom CAM-Werkzeug.
 - **Werkstück** an der Werkstückaufnahme, wo der Nullpunkt des Jobs liegt:
   das Rohteil durchscheinend, das Modell fest, dazu die **Bahn** als Linie
-  (Vorschub blau, Eilgang rot). Alles fährt mit dem Tisch mit.
+  (Vorschub blau, Eilgang rot). Alles fährt mit dem Tisch mit. Mit
+  Rundachsen liegt die Bahn am Werkstück – jeder Punkt um die Rundachsen
+  gedreht, wie ihn FreeCAD zeigt (W-003 V3e, P-2026-09-27-54).
 - **Zeit:** Vorschubsätze mit F aus der Bahn (FreeCAD: mm/s); fehlt F (0),
-  gilt 1000 mm/min, und ein Hinweis sagt es. Eilgang: jede Achse mit ihrem
+  gilt 1000 mm/min, und ein Hinweis sagt es. Zwischen G93 und G94 ist F der
+  Kehrwert der Zeit: ein Satz dauert 1 ÷ F Minuten (W-003 V3e,
+  P-2026-09-27-54). Eilgang: jede Achse mit ihrem
   Eilgang aus der Maschine (fehlt er: 10 000 mm/min wie bei der Übergabe an
   CAM), die langsamste bestimmt. Beschleunigung erst in 4d.
 - **Punkte:** wie in 4a, dazu Kreise in Schritten von höchstens 5° und der

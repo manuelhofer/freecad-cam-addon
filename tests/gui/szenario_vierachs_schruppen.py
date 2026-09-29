@@ -6,11 +6,15 @@
 # „Rundum schruppen“ angehakt, T1 und „Schruppen“ vorgewählt, grau „→ 5 Lagen
 # (Ø 80,0 mm → Ø 60,…)“; der Knopf heißt „Anlegen“. „Anlegen“: Im Job stehen der
 # Controller „T1 Schruppen“ (FreeCADs Vorgabe-Controller ist weg) und „Rundum
-# schruppen T1“ mit fünf Lagen und G93. Das erste Strg+Z nimmt Controller und
+# schruppen T1“ mit fünf Lagen und G93. „Auf der Maschine prüfen“ (V3e, T1 mit 125 mm
+# ab Spindelnase): „Alle Achsen bleiben in ihren Grenzen.“, kein Hinweis zur
+# Werkzeuglage; mitten in der ersten Lage steht C gedreht, die Spitze außen am Teil;
+# „Kollision prüfen“ → „Nichts berührt sich …“. Das erste Strg+Z nimmt Controller und
 # Operation zurück, das zweite Job und Stange.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
+from PySide import QtCore
 
 
 def schritte(h):
@@ -27,7 +31,9 @@ def schritte(h):
     from camaddon import vierachs_rohteil as vr
     from camaddon import werkzeuge as wz
 
-    fraeser = wz.Werkzeug(nummer=1, durchmesser=12, schneiden=3, schneidenlaenge=26)
+    fraeser = wz.Werkzeug(
+        nummer=1, durchmesser=12, schneiden=3, schneidenlaenge=26, laenge_spindelnase=125
+    )
     fraeser.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=4.8, ap=2, vc=150, fz=0.08)]
     wz.Bibliothek([fraeser]).speichern()
 
@@ -119,6 +125,49 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
     yield 500
     h.bild("2_bahn_um_die_welle")
+
+    # --- Auf der Maschine prüfen (V3e): ohne TCPM, C dreht, nichts stößt an ------------------
+    from camaddon import gui_reichweite
+
+    FreeCAD.setActiveDocument(doc.Name)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400  # siehe szenario_reichweite.py: 1.1.3 verarbeitet die Auswahl verzögert
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_AufMaschinePruefen"))
+    yield from h.warte_auf(lambda: gui_reichweite.PruefPanel.offen is not None)
+    pruef = gui_reichweite.PruefPanel.offen
+    h.pruefe(pruef is not None, "„Auf der Maschine prüfen“ öffnet kein Fenster")
+    if pruef is not None:
+        yield 800
+        h.pruefe(
+            pruef.urteil.text() == "Alle Achsen bleiben in ihren Grenzen.",
+            f"Urteil: {pruef.urteil.text()!r}",
+        )
+        hinweise = pruef.hinweise.text()
+        h.pruefe(
+            "radial aus" not in hinweise and "längs Z" not in hinweise, f"Hinweise: {hinweise!r}"
+        )
+        spieler = pruef.abspieler
+        fahrt = spieler.abfahrt
+        mitte = fahrt.stationen[len(fahrt.stationen) // 10]
+        spieler.setze_zeit(mitte.zeit)
+        spieler.knopf_hinsehen.click()
+        yield 500
+        h.pruefe(mitte.rund.get("C", 0.0) < -90, f"C mitten in der Lage: {mitte.rund}")
+        h.pruefe("C1" in spieler.achswerte.text(), f"Achswerte: {spieler.achswerte.text()!r}")
+        h.bild("3_abfahren_c_gedreht")
+        h.bild("3b_pruefen_fenster", pruef.form)
+        k = pruef.kollision
+        pruef.urteil_kollision.linkActivated.emit("kollision:pruefen")
+        yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 180000)
+        yield 300
+        h.pruefe(
+            k.urteil.text().startswith("Nichts berührt sich, nichts kommt näher"),
+            f"Kollision: {k.urteil.text()!r} {[b.text() for b in k.ergebnis.befunde][:2]}",
+        )
+        h.bild("4_kollision_frei", pruef.form)
+        pruef.reject()
+        yield 500
 
     # Zwei Schritte Rückgängig: zuerst Controller und Operation, dann Job und Stange.
     h.pruefe(

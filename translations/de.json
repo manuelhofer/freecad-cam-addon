@@ -995,5 +995,6 @@
     "va.lagen.keine": "Nichts zu schruppen: Das Teil füllt die Stange schon aus.",
     "va.radius": "Im Programm ist X der Radius, nicht der Durchmesser – an der Drehmaschine im Programmkopf auf Radius stellen (Siemens DIAMOF). Der Vorschub steht nach G93 (1 ÷ Zeit).",
     "va.fehler.anlegen": "Anlegen ging nicht: {fehler}",
-    "va.transaktion.schruppen": "Rundum schruppen anlegen"
+    "va.transaktion.schruppen": "Rundum schruppen anlegen",
+    "rw.werkzeug_radial": "„{operation}“: Die Bahn ist für ein Werkzeug gerechnet, das radial aus {richtung} zur Achse zeigt – {werkzeug} sitzt auf {aufnahme} aber anders. So gefahren, passt sie nicht zum Teil: Nimm einen radialen Platz, der aus {richtung} zeigt."
 }

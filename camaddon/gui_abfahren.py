@@ -78,7 +78,7 @@ class Bild:
         rohteil = getattr(getattr(job, "Stock", None), "Shape", None)
         if rohteil is not None and not rohteil.isNull():
             werkstueck.addChild(self._flaechen(rohteil, ROHTEIL, 0.75))
-        werkstueck.addChild(self._bahnlinien(abfahrt))
+        werkstueck.addChild(self._bahnlinien(abfahrt, nullpunkt))
         self.wurzel.addChild(werkstueck)
 
         werkzeug = coin.SoSeparator()
@@ -227,14 +227,15 @@ class Bild:
         teil.addChild(flaechen)
         return teil
 
-    def _bahnlinien(self, abfahrt):
-        """Die Bahn als Linien in Koordinaten des Jobs: Vorschub blau, Eilgang rot."""
+    def _bahnlinien(self, abfahrt, nullpunkt):
+        """Die Bahn als Linien in Koordinaten des Jobs, am Werkstück (mit Rundachsen um das
+        Teil herum): Vorschub blau, Eilgang rot."""
         coin = self._coin
         teil = coin.SoSeparator()
         stil = coin.SoDrawStyle()
         stil.lineWidth = 2
         teil.addChild(stil)
-        punkte = [s.punkt for s in abfahrt.stationen]
+        punkte = abfahrt.am_werkstueck(nullpunkt)
         koordinaten = coin.SoCoordinate3()
         koordinaten.point.setValues(0, len(punkte), punkte)
         teil.addChild(koordinaten)

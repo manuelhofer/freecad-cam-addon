@@ -62,7 +62,9 @@ ohne Y-Achse), ein fehlender Revolverplatz, Befehle, die die Prüfung nicht
 kennt, eine Rundachse im Programm, die die Maschine nicht hat (etwa A auf einer
 Drehmaschine mit C – gerechnet wird dann ohne diese Drehung), ein Werkzeug, das
 quer zur Bahn sitzt (die Bahnen der CAM-Operationen sind für ein Werkzeug längs
-Z gerechnet; ein radialer Platz am Revolver würde sie quer durchs Teil führen).
+Z gerechnet; ein radialer Platz am Revolver würde sie quer durchs Teil führen) –
+bei <b>Rundum schruppen</b> umgekehrt ein Werkzeug, das nicht radial aus der
+Richtung zur Achse zeigt, für die die Bahn gerechnet ist (etwa aus +X).
 Geht es um ein Werkzeug, steht dahinter <b>T1 öffnen …</b>: Die
 Werkzeugverwaltung öffnet sich bei diesem Werkzeug. Speicherst du dort (OK
 oder Übernehmen), rechnet das Fenster gleich mit den neuen Werten – etwa mit
@@ -75,7 +77,8 @@ kehrt zum Dokument des Jobs zurück.</p>
 <p>Die Maschine fährt die Bahn ab, wie im Programm: In der 3D-Ansicht der
 Maschine liegen <b>Rohteil</b> (durchscheinend) und <b>Teil</b> dort, wo der
 Nullpunkt des Jobs sie hinlegt, darauf die <b>Bahn</b> – Vorschub blau,
-Eilgang rot. Das <b>Werkzeug</b> steckt in seiner Aufnahme: gelb die Schneide,
+Eilgang rot; mit einer Rundachse läuft sie um das Teil herum und dreht sich
+mit ihm, wie in FreeCAD. Das <b>Werkzeug</b> steckt in seiner Aufnahme: gelb die Schneide,
 grau der Schaft bis zur Gesamtlänge, darüber der <b>Halter</b> aus der
 Werkzeugverwaltung mit seiner Kontur (siehe <a href="halter.html">Halter</a>);
 hat das Werkzeug keinen, ist er durchscheinend angedeutet, wenn die Länge ab
@@ -104,7 +107,9 @@ von da aus lässt sich weiter abspielen.</li>
 Vorschub mit 1000 mm/min (ein Hinweis sagt es); Eilgang je Achse mit dem
 Eilgang aus der Maschine – die langsamste Achse bestimmt. Beschleunigung und
 Werkzeugwechsel zählen noch nicht; die echte Maschine braucht also etwas
-länger. Kreise fährt sie in kleinen Schritten, Bohrzyklen mit dem Rückzug.</p>
+länger. Kreise fährt sie in kleinen Schritten, Bohrzyklen mit dem Rückzug. Mit
+<b>G93</b> (Vorschub als Kehrwert der Zeit – so schreibt ihn „Rundum
+schruppen“) dauert ein Satz 1 ÷ F Minuten.</p>
 
 <h3>Kollision</h3>
 <p>Stößt beim Abfahren etwas an? <b>Kollision prüfen</b> fährt die ganze Bahn
@@ -157,8 +162,11 @@ sonst vom CAM-Werkzeug; der Hinweis sagt, welche.</li>
 <li><b>Revolver:</b> Das Werkzeug T3 sitzt auf Platz P3; der Revolver steht
 dafür in Arbeitsstellung.</li>
 <li><b>Rundachsen</b> stehen, wie die Bahn sagt (A, B, C über ihren Namen im
-Programm, etwa C1 → C), ohne Angabe auf 0. Endlose Achsen haben keine
-Grenze.</li>
+Programm, etwa C1 → C), ohne Angabe auf 0. Gerechnet wird wie an einer
+Steuerung <b>ohne TCPM</b>: X, Y und Z sind die Achsen der Maschine – die
+Linearachsen stehen so, als stünden die Rundachsen auf 0, und die Rundachse
+dreht das Werkstück darunter. So zeigt auch FreeCAD die Bahn. Endlose Achsen
+haben keine Grenze.</li>
 <li><b>Schräge Achse:</b> Die Bahn ist rechtwinklig; gerechnet wird mit den
 echten Richtungen der Schlitten – dieselben Zahlen wie beim Verfahren „wie
 im Programm“.</li>

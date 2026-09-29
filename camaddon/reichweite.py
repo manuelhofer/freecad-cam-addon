@@ -585,6 +585,21 @@ class Pruefung:
         z = werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
         return (werkstueck.Base - werkzeug.Base).dot(z) > 0
 
+    def _werkzeug_aus(self, werkzeugaufnahme, dreh_wege, richtung):
+        """Kommt das Werkzeug dieser Aufnahme aus `richtung` (in den Achsen des Jobs)? Z der
+        Werkzeugaufnahme zeigt von der Spitze zur Aufnahme – dorther kommt es."""
+        werkzeug = self._glied_lage(self._glied(werkzeugaufnahme), dreh_wege).multiply(
+            self._lage(werkzeugaufnahme)
+        )
+        werkstueck = self._glied_lage(self._glied(self.werkstueckaufnahme), dreh_wege).multiply(
+            self._lage(self.werkstueckaufnahme)
+        )
+        z = werkstueck.Rotation.inverted().multVec(
+            werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+        )
+        soll = FreeCAD.Vector(richtung)
+        return soll.Length > 0 and z.dot(soll) / soll.Length > 1 - (1 - QUER) / 2
+
     def _werkzeug_quer(self, werkzeugaufnahme, dreh_wege):
         """Steht die Werkzeugaufnahme quer zu Z des Jobs – ein radialer Platz am Revolver?
         Die Bahnen der CAM-Operationen sind für ein Werkzeug längs Z gerechnet; ein radiales
@@ -612,33 +627,40 @@ class Pruefung:
     def loeser(self, werkzeugaufnahme, laenge, nullpunkt_des_jobs):
         """Für eine Operation: eine Funktion rund → (_Loesung oder None, {Drehachse: Stellung}).
 
-        `rund` wie {"A": Grad}. Gelöst wird einmal je Stellung der Rundachsen.
+        `rund` wie {"A": Grad}. Wie eine Steuerung ohne TCPM: X, Y und Z sind die
+        Linearachsen, gelöst mit den Rundachsen auf 0 (der Revolver in
+        Arbeitsstellung) – die Rundachsen drehen das Werkstück (oder den Kopf) dann
+        darunter weg. So zeigt auch FreeCAD eine Bahn mit A, B und C
+        (Spezifikation W-003, V3e).
         """
         linear, drehachsen = self.achsen_fuer(werkzeugaufnahme)
-        geloest = {}
+        grundstellung = self._dreh_wege(werkzeugaufnahme, drehachsen, {})
+        geloest = self._loese(werkzeugaufnahme, laenge, nullpunkt_des_jobs, linear, grundstellung)
+        drehungen = {}
 
         def loesung(rund):
             schluessel = tuple(round(rund.get(b, 0.0), 9) for b in RUNDACHSEN)
-            if schluessel not in geloest:
+            if schluessel not in drehungen:
                 dreh_wege = self._dreh_wege(werkzeugaufnahme, drehachsen, rund)
-                geloest[schluessel] = (
-                    self._loese(werkzeugaufnahme, laenge, nullpunkt_des_jobs, linear, dreh_wege),
-                    {a: self.verfahren.stellung_bei(a, w) for a, w in dreh_wege.items()},
-                )
-            return geloest[schluessel]
+                drehungen[schluessel] = {
+                    a: self.verfahren.stellung_bei(a, w) for a, w in dreh_wege.items()
+                }
+            return geloest, drehungen[schluessel]
 
         return loesung
 
     def stellungen(self, punkt, werkzeugaufnahme, laenge, nullpunkt_des_jobs, rund=None):
-        """{Achse: Stellung} für alle Achsen zwischen Werkzeug und Werkstück, bei denen die
-        Spitze auf `punkt` (x, y, z im Job) steht; `rund` wie {"A": Grad}. None, wenn die
+        """{Achse: Stellung} für alle Achsen zwischen Werkzeug und Werkstück für den Bahnpunkt
+        `punkt` (x, y, z im Job) mit den Rundachsen `rund` (wie {"A": Grad}) – ohne TCPM wie
+        in loeser(): Mit den Rundachsen auf 0 stünde die Spitze auf `punkt`. None, wenn die
         Linearachsen nicht dorthin kommen oder sich nicht eindeutig auflösen lassen."""
         achsen = self._achsen_zwischen(werkzeugaufnahme)
         linear = [a for a in achsen if a.art == LINEAR]
-        dreh_wege = self._dreh_wege(
-            werkzeugaufnahme, [a for a in achsen if a.art != LINEAR], rund or {}
-        )
-        loesung = self._loese(werkzeugaufnahme, laenge, nullpunkt_des_jobs, linear, dreh_wege)
+        drehachsen = [a for a in achsen if a.art != LINEAR]
+        dreh_wege = self._dreh_wege(werkzeugaufnahme, drehachsen, rund or {})
+        # Ohne TCPM: die Linearachsen wie mit den Rundachsen auf 0 (loeser()).
+        grundstellung = self._dreh_wege(werkzeugaufnahme, drehachsen, {})
+        loesung = self._loese(werkzeugaufnahme, laenge, nullpunkt_des_jobs, linear, grundstellung)
         if loesung is None or not loesung.erreichbar(*punkt):
             return None
         ergebnis = {a: self.verfahren.stellung_bei(a, w) for a, w in dreh_wege.items()}
@@ -694,8 +716,21 @@ class Pruefung:
             sammler.zu_viele(linear)
             return
         grundstellung = self._dreh_wege(aufnahme, drehachsen, {})
+        radial = getattr(op, "Werkzeugrichtung", None) if _ist_rundum(op) else None
         if self._z_verkehrt(aufnahme, grundstellung):
             sammler.hinweis(tr("rw.z_verkehrt", aufnahme=m.name_von(aufnahme)))
+        elif radial is not None:
+            # Eine Bahn von „Rundum schruppen“ ist für ein radiales Werkzeug gerechnet.
+            if not self._werkzeug_aus(aufnahme, grundstellung, radial):
+                sammler.hinweis(
+                    tr(
+                        "rw.werkzeug_radial",
+                        operation=op.Label,
+                        werkzeug=f"T{nummer}",
+                        aufnahme=m.name_von(aufnahme),
+                        richtung=richtung_text(radial),
+                    )
+                )
         elif self._werkzeug_quer(aufnahme, grundstellung):
             sammler.hinweis(
                 tr(
@@ -725,6 +760,24 @@ class Pruefung:
         for buchstabe in sorted(fremd):
             sammler.rundachse_fehlt(buchstabe, sorted(vorhanden))
         sammler.ende_operation()
+
+
+def _ist_rundum(op):
+    """Ist `op` eine Operation „Rundum schruppen“ (vierachs_operation)?"""
+    from .vierachs_operation import ist_rundum
+
+    return ist_rundum(op)
+
+
+def richtung_text(richtung):
+    """„+X“, „−Z“ … – eine Richtung längs einer Achse des Jobs, sonst die drei Zahlen."""
+    v = FreeCAD.Vector(richtung)
+    if v.Length > 0:
+        v.normalize()
+    for buchstabe, wert in zip("XYZ", (v.x, v.y, v.z), strict=True):
+        if abs(abs(wert) - 1) < 1e-6:
+            return ("+" if wert > 0 else "−") + buchstabe
+    return f"({_zahl(v.x, 2)}; {_zahl(v.y, 2)}; {_zahl(v.z, 2)})"
 
 
 def _programmbuchstabe(maschine, achse):
@@ -973,6 +1026,8 @@ class _Schritt:
     eilgang: bool  # die Bewegung hierher: Eilgang – sonst Vorschub
     vorschub: float  # zuletzt gesetztes F (FreeCAD: mm/s), 0 = keins
     satz: int  # der wievielte Befehl der Bahn (ab 1)
+    invers: bool = False  # G93: F ist 1 ÷ Zeit des ganzen Satzes (FreeCAD: ÷ 60)
+    anteil: float = 1.0  # so viel vom Satz macht dieser Schritt aus (für G93)
 
 
 def _anteil(phi, start, ueberstrichen):
@@ -1000,6 +1055,7 @@ def _bahn(befehle, unbekannt, rueckzug=False):
     rueckzug_auf_r = False  # G99: nach dem Zyklus auf R, sonst (G98) auf die Ausgangshöhe
     zyklus = {}  # Z und R des letzten Bohrzyklus
     vorschub = 0.0
+    invers = False  # G93 statt G94
 
     def bekannt():
         return all(v is not None for v in lage.values())
@@ -1038,6 +1094,8 @@ def _bahn(befehle, unbekannt, rueckzug=False):
             rueckzug_auf_r = False
         elif name == "G99":
             rueckzug_auf_r = True
+        elif name in ("G93", "G94"):
+            invers = name == "G93"
         if name in OHNE_BEWEGUNG:
             continue
 
@@ -1056,13 +1114,15 @@ def _bahn(befehle, unbekannt, rueckzug=False):
                     t = k / schritte
                     punkt = tuple(a + t * (b - a) for a, b in zip(von, nach, strict=True))
                     zwischen = {b: rund[b] + t * (neu_rund[b] - rund[b]) for b in RUNDACHSEN}
-                    yield _Schritt("punkt", punkt, zwischen, eilgang, vorschub, satz)
+                    yield _Schritt(
+                        "punkt", punkt, zwischen, eilgang, vorschub, satz, invers, 1 / schritte
+                    )
                 lage, rund = neu, neu_rund
                 continue
             lage, rund = neu, neu_rund
             if bekannt():
                 punkt = (lage["X"], lage["Y"], lage["Z"])
-                yield _Schritt("punkt", punkt, dict(rund), eilgang, vorschub, satz)
+                yield _Schritt("punkt", punkt, dict(rund), eilgang, vorschub, satz, invers)
         elif name in ("G2", "G3"):
             if not bekannt():
                 lage, rund = ziel(werte)
@@ -1070,10 +1130,11 @@ def _bahn(befehle, unbekannt, rueckzug=False):
             bogen = _bogen(lage, werte, ebene, name == "G3", absolut)
             lage, rund = ziel(werte)
             if bogen is not None:
-                yield _Schritt("bogen", bogen, dict(rund), False, vorschub, satz)
+                # Mit G93 zählt die Zeit des ganzen Bogens erst an seinem Ende.
+                yield _Schritt("bogen", bogen, dict(rund), False, vorschub, satz, invers, 0.0)
             if bekannt():
                 punkt = (lage["X"], lage["Y"], lage["Z"])
-                yield _Schritt("punkt", punkt, dict(rund), False, vorschub, satz)
+                yield _Schritt("punkt", punkt, dict(rund), False, vorschub, satz, invers)
         elif name in BOHRZYKLEN:
             if "Z" in werte:
                 zyklus["Z"] = float(werte["Z"])

@@ -9,7 +9,8 @@ Zeit. Dafür sind die Stationen dichter als in der Reichweite: Kreise in
 Schritten von höchstens KREIS_SCHRITT, nach einem Bohrzyklus der Rückzug.
 
 Zeit (spezifikation_simulation.md, 4b): Vorschubsätze mit F aus der Bahn –
-FreeCAD schreibt mm/s –, ohne F mit VORSCHUB_ERSATZ und einem Hinweis;
+FreeCAD schreibt mm/s –, ohne F mit VORSCHUB_ERSATZ und einem Hinweis; nach G93
+ist F 1 ÷ Zeit des Satzes (vierachs_bahn);
 Eilgang je Achse aus der Maschine, die langsamste Achse bestimmt.
 Beschleunigung kommt mit 4d.
 
@@ -135,6 +136,26 @@ class Abfahrt:
                     return index
         return None
 
+    def am_werkstueck(self, nullpunkt_des_jobs):
+        """Je Station, wo die Spitze am Werkstück steht, in Koordinaten des Jobs: ihr Punkt –
+        mit Rundachsen um sie gedreht (ohne TCPM, wie reichweite.Pruefung.loeser()). So zeigt
+        FreeCAD die Bahn: um das Teil herum, und sie dreht sich mit ihm."""
+        p = self.pruefung
+        ergebnis = []
+        for i, station in enumerate(self.stationen):
+            if not any(station.rund.values()) or station.stellungen is None:
+                ergebnis.append(station.punkt)
+                continue
+            op = self.operationen[station.operation]
+            wege = {
+                achse: p.verfahren.weg_bei(achse, stellung)
+                for achse, stellung in zip(self.achsen, self.wirksam(i), strict=True)
+                if stellung is not None
+            }
+            spitze = p._spitze(op.aufnahme, op.laenge, wege)
+            ergebnis.append(tuple(p._job_lage(nullpunkt_des_jobs, wege).inverse().multVec(spitze)))
+        return ergebnis
+
     def _fertig(self):
         """Zeiten für die Suche und die wirksamen Stellungen je Station."""
         self._zeiten = [s.zeit for s in self.stationen]
@@ -204,6 +225,10 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                     eilgang = _eilgangzeit(vorher[2], wirksam, tempo)
                     if schritt.eilgang:
                         zeit += eilgang
+                    elif schritt.invers and schritt.vorschub > 0:
+                        # G93: F = 1 ÷ Zeit des Satzes in Minuten, FreeCAD führt es ÷ 60 –
+                        # der Satz dauert 1 ÷ F Sekunden, jeder Schritt seinen Anteil.
+                        zeit += max(schritt.anteil / schritt.vorschub, eilgang)
                     else:
                         vorschub = schritt.vorschub * 60.0  # mm/min
                         if vorschub <= 0:

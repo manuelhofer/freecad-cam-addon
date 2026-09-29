@@ -36,7 +36,9 @@ from . import vierachs_huelle as vh
 from .sprache import tr
 
 SICHERHEIT = 2.0  # mm – so weit über und vor der Stange fährt der Fräser im Eilgang
-FREI_FUTTER = 1.0  # mm – so weit bleibt der Rand des Fräsers vor der Spannfläche
+# mm – so weit bleibt der Rand des Fräsers vor der Spannfläche: mehr als der Warnabstand
+# der Kollisionsprüfung (1 mm), sonst meldete sie jede Bahn als „nahe am Futter“.
+FREI_FUTTER = 2.0
 RAND = 0.005  # mm – zum Aufmaß dazu, für Rundungen im Raster
 GLEICH = 1e-9  # mm – so wenig Unterschied gilt als derselbe Radius
 # So weit dreht die Rundachse höchstens in einem Satz: FreeCAD 1.1.3 zeigt einen Satz

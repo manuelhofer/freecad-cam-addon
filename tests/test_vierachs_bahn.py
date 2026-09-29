@@ -1,5 +1,5 @@
 # Prüft die Schruppbahn rundum (W-003 Stufe V3b): Welle Ø 60 in der Stange Ø 80 –
-# fünf Lagen bis Ø 60,6, die Spirale von vorne bis 1 mm vor das Futter, nie näher ans
+# fünf Lagen bis Ø 60,6, die Spirale von vorne bis 2 mm vor das Futter, nie näher ans
 # Teil als das Aufmaß; beim Exzenter auch zwischen den Punkten gegen die Formel. Dazu
 # die Path-Befehle für C und A mit G93 und die Fälle, die nicht gehen.
 import math
@@ -58,8 +58,8 @@ pruefe(radien[:4] == [38.0, 36.0, 34.0, 32.0], f"Radien der Lagen: {radien[:6]}"
 # Wo die Stirn das um das Aufmaß dickere Teil trifft (a ≤ 6,3), bleibt sie darüber.
 ueber = [p.r for p in schnitte(bahn) if -100 - R - 0.3 <= p.a <= R + 0.3]
 pruefe(min(ueber) >= 30.3, f"zu tief über dem Teil: {min(ueber)}")
-# Längs: von vorne bis zum Rand des Fräsers 1 mm vor dem Futter.
-pruefe(min(p.a for p in bahn.punkte) == -103.0 + 1.0 + R, "hinteres Ende")
+# Längs: von vorne bis zum Rand des Fräsers 2 mm vor dem Futter.
+pruefe(min(p.a for p in bahn.punkte) == -103.0 + 2.0 + R, "hinteres Ende")
 pruefe(max(p.a for p in bahn.punkte) == start.a, "vorderes Ende")
 # Jede Lage: zuerst radial hinein vor der Stange, dann von vorne nach hinten, nie zurück.
 lage = []
@@ -173,11 +173,11 @@ for name, werte in (
         fehler.append(f"{name}: kein Fehler")
     except ValueError:
         pass
-# Nur 0,5 mm Abstich: Der Fräser bleibt 1 mm vor dem Futter – die letzten 0,5 mm fehlen.
+# Nur 0,5 mm Abstich: Der Fräser bleibt 2 mm vor dem Futter – die letzten 1,5 mm fehlen.
 knapp = vb.schruppen(
     welle, C_LAENGS, C_RADIAL, WERTE.__class__(**{**WERTE.__dict__, "a_futter": -100.5})
 )
-pruefe(abs(knapp.hinten_frei - 0.5) < 1e-9, f"hinten frei: {knapp.hinten_frei}")
+pruefe(abs(knapp.hinten_frei - 1.5) < 1e-9, f"hinten frei: {knapp.hinten_frei}")
 pruefe(bahn.hinten_frei == 0, f"Exzenter hinten frei: {bahn.hinten_frei}")
 
 if fehler:

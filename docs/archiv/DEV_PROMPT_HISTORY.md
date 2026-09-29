@@ -12,6 +12,83 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-54 vierachs-pruefen
+
+### EINGELESEN
+- Manuels Test (2026-09-27): „hier bewegt sich nun in der simulation das werkzeug
+  das zur z achse senkrecht steht mittig am pfad entlang .. und kollision wird hier
+  auch nicht erkannt“.
+- `docs/spezifikation_vierachs.md` (V3e), `docs/spezifikation_simulation.md` (4,
+  4b), `camaddon/reichweite.py`, `camaddon/abfahren.py`, `camaddon/gui_abfahren.py`.
+- FreeCAD 1.1.3: `PathSegmentWalker` (der Punkt wird um −A/−B/−C gedreht
+  gezeigt; Drehungen über 360° je Satz als Gerade).
+
+### DATEIEN
+- `camaddon/reichweite.py` (ohne TCPM, G93 im Lesen der Bahn, Hinweis
+  `rw.werkzeug_radial`, `richtung_text`)
+- `camaddon/abfahren.py` (Zeit nach G93, `am_werkstueck`)
+- `camaddon/gui_abfahren.py` (Bahn am Werkstück)
+- `camaddon/vierachs_bahn.py` (2 mm vor dem Futter)
+- `translations/de.json`, `translations/en.json`
+- `help/de/reichweite.html`, `help/en/reichweite.html`, `help/de/vierachs.html`,
+  `help/en/vierachs.html`
+- `tests/test_vierachs_pruefen.py` (neu), `tests/test_reichweite.py`,
+  `tests/test_vierachs_bahn.py`, `tests/test_vierachs_operation.py`,
+  `tests/gui/szenario_vierachs_schruppen.py`
+- `docs/spezifikation_simulation.md`, `docs/spezifikation_vierachs.md`,
+  `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine, Welle Ø 60 × 100, „4-Achs-Bearbeitung“ → Stange Ø 80 →
+„Weiter“ → „Rundum schruppen“ mit T1 (Schaftfräser D12, 125 mm ab Spindelnase) →
+„Anlegen“. „Auf der Maschine prüfen“: „Alle Achsen bleiben in ihren Grenzen.“,
+kein Hinweis zur Werkzeuglage; die Bahn läuft als Spirale um das Teil, das
+Werkzeug auf P1 zeigt radial darauf, C dreht; „Kollision prüfen“ → „Nichts
+berührt sich, nichts kommt näher als 1,00 mm.“
+
+### DONE
+- **Ohne TCPM:** Das Prüffenster löste die Linearachsen für jede Stellung der
+  Rundachsen am mitgedrehten Werkstück (wie eine Steuerung mit TCPM) – X, Y und Z
+  der Bahn kreisten mit C. FreeCAD und die Bahn von „Rundum schruppen“ meinen es
+  anders: X, Y, Z sind die Achsen der Maschine, die Rundachse dreht das Werkstück
+  darunter. Jetzt einmal je Werkzeug gelöst, mit den Rundachsen auf 0 (der
+  Revolver in Arbeitsstellung); `stellungen()` ebenso.
+- **G93:** Zwischen G93 und G94 ist F der Kehrwert der Zeit (FreeCAD führt ihn
+  ÷ 60) – ein Satz dauert 1 ÷ F Minuten, geteilte Sätze (je 1° Rundachse) jeder
+  seinen Anteil, ein Bogen erst an seinem Ende.
+- **Bahn am Werkstück:** Das Bild zeigte die Punkte ungedreht – eine Gerade am
+  Teil, die sich mit C drehte. Jetzt je Station die Spitze in Koordinaten des
+  Werkstücks über die Kette der Maschine (`Abfahrt.am_werkstueck`): eine Spirale
+  um das Teil, genau wie FreeCAD (der Punkt um −C gedreht, geprüft).
+- **Hinweis zur Werkzeuglage:** Bei „Rundum schruppen“ umgekehrt zum Hinweis aus
+  P-43: Zeigt das Werkzeug nicht radial aus der Richtung, für die die Bahn
+  gerechnet ist, sagt es der Satz „… radial aus +X zur Achse zeigt – T2 sitzt auf
+  P2 aber anders … Nimm einen radialen Platz, der aus +X zeigt.“
+- **2 mm vor dem Futter:** Mit 1 mm meldete die Kollisionsprüfung jede Bahn als
+  „auf 1,00 mm nahe“ (Warnabstand 1 mm).
+- Beispiel mit 125 mm Werkzeuglänge: Mit 50 mm stößt auf der
+  Beispiel-Drehmaschine der Revolver ans Futter (das Teil ragt nur um den Abstich
+  heraus) – der Test prüft beides.
+
+### TEST
+- `tests/test_vierachs_pruefen.py` (neu): Welle Ø 40 × 30 in der Stange Ø 50 –
+  keine Hinweise, in den Grenzen; an sieben Stationen mit C die Linearachsen wie
+  ohne C, C1 wie programmiert, der Punkt am Werkstück wie in FreeCAD; C bis zum
+  Ende der Spiralen; Dauer = Zeit im Vorschub (G93) + Eilgänge; Kollision mit
+  125 mm ohne Befund (eine Lage, 1024 Stationen, 2 s), mit 50 mm Revolver am
+  Futter; T2 (axial) → Hinweis.
+- `tests/test_reichweite.py`: 5-Achs-Punkte ohne TCPM.
+- `tests/gui/szenario_vierachs_schruppen.py` in FreeCAD 1.1.3: ok; Screenshots
+  angesehen (`3_abfahren_c_gedreht`: Spirale um die Welle, Werkzeug radial auf P1;
+  `4_kollision_frei`: grün „Nichts berührt sich …“, 24:20,7 Laufzeit, Z1 −187 …
+  −83 mm).
+- Alle Prüfungen (`scripts/tests_ausfuehren.sh`) auf dem Stand dieses Patches in
+  1.1.3 grün; die geänderten Prüfungen auch im Wochen-Build.
+
+### NEXT
+- Version, voller Lauf, Push; Manuel fragen, wie weit das Teil für die
+  4-Achs-Bearbeitung aus dem Futter ragen soll.
+
 ## P-2026-09-27-53 kollision-bis-station
 
 ### EINGELESEN

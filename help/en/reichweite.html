@@ -58,7 +58,10 @@ cannot reach at all (Y on a lathe without a Y axis, say), a missing turret
 station, commands the check does not know, a rotary axis in the program the
 machine does not have (A on a lathe with C, say – the check then ignores that
 rotation), a tool sitting across the path (CAM operations calculate their paths
-for a tool along Z; a radial turret station would run them across the part).
+for a tool along Z; a radial turret station would run them across the part) –
+for <b>All-round roughing</b> the other way round: a tool that does not point
+radially at the axis from the direction the path is calculated for (from +X,
+say).
 A note about a tool ends with
 <b>Open T1 …</b>: the tool manager opens at that tool. Once you save there
 (OK or Apply), the panel works with the new values right away – the measured
@@ -70,7 +73,8 @@ and returns to the job's document.</p>
 <h3>Run through</h3>
 <p>The machine runs through the path as in the program: in the machine's 3D
 view the <b>stock</b> (translucent) and the <b>part</b> lie where the job's
-origin puts them, with the <b>path</b> on them – feed blue, rapid red. The
+origin puts them, with the <b>path</b> on them – feed blue, rapid red; with a
+rotary axis it runs around the part and turns with it, as in FreeCAD. The
 <b>tool</b> sits in its mount: the cutting part yellow, the shank grey up to
 the overall length, above it the <b>holder</b> from the tool manager with its
 contour (see <a href="halter.html">Holders</a>); without one it is hinted
@@ -97,7 +101,8 @@ that point.</li>
 at 1000 mm/min (a note says so); rapid moves per axis with the machine's rapid
 rate – the slowest axis decides. Acceleration and tool changes do not count
 yet, so the real machine takes a little longer. Arcs are run in small steps,
-drilling cycles with their retract.</p>
+drilling cycles with their retract. With <b>G93</b> (inverse-time feed – the
+way “All-round roughing” writes it) a block takes 1 ÷ F minutes.</p>
 
 <h3>Collision</h3>
 <p>Does anything bump into something while running through? <b>Check for
@@ -149,7 +154,10 @@ note says which.</li>
 <li><b>Turret:</b> tool T3 sits in station P3; the turret is indexed to its
 working position for it.</li>
 <li><b>Rotary axes</b> stand where the path says (A, B, C by their name in the
-program, C1 → C), otherwise at 0. Endless axes have no limit.</li>
+program, C1 → C), otherwise at 0. The check works like a control <b>without
+TCPM</b>: X, Y and Z are the machine's axes – the linear axes stand as if the
+rotary axes were at 0, and the rotary axis turns the workpiece underneath.
+That is how FreeCAD shows the path, too. Endless axes have no limit.</li>
 <li><b>Inclined axis:</b> the path is rectangular; the check uses the real
 directions of the slides – the same numbers as moving “as in the program”.</li>
 <li>The directions of the LCS matter: see <a href="aufnahmen.html">Tool and

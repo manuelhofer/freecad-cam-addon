@@ -526,7 +526,8 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
 - **V3b – Bahn** (`camaddon/vierachs_bahn.py`): Lagen r_k = R_Stange − k · ap
   bis zur Hüllfläche plus Aufmaß. Je Lage eine Spirale mit der Steigung
   „Vorschub je Umdrehung“ von vorne – das Werkzeug ganz vor der Stange – bis
-  vor das Futter: Der Rand des Fräsers bleibt 1 mm vor der Spannfläche. Trifft
+  vor das Futter: Der Rand des Fräsers bleibt 2 mm vor der Spannfläche (bis
+  V3e 1 mm – so knapp wie der Warnabstand der Kollisionsprüfung). Trifft
   das Werkzeug hinter dem Teil nichts, bleibt es oben (das Material bleibt);
   vor dem Teil schneidet es die Lage. Der Achse kommt die Spitze nicht näher
   als der Fräserradius. Zwischen den Lagen radial hinaus auf Stangenradius
@@ -560,6 +561,22 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   gedreht). Bisher rechnete das Prüffenster die Punkte am mitgedrehten Teil
   (wie mit TCPM). G93 zählt für die Zeit. Sitzt das Werkzeug einer
   4-Achs-Operation längs Z, sagt es ein Hinweis.
+  *Gebaut (P-2026-09-27-50 bis -54):* Linearachsen einmal je Werkzeug mit den
+  Rundachsen auf 0 gelöst; G93: ein Satz dauert 1 ÷ F Minuten; die Bahn im
+  Bild am Werkstück, um das Teil herum (der Punkt um −C gedreht, wie in
+  FreeCAD). Hinweis, wenn das Werkzeug nicht radial aus der Richtung kommt,
+  für die „Rundum schruppen“ rechnet („… radial aus +X zur Achse zeigt – T2
+  sitzt auf P2 aber anders …“). Dazu, gefunden an der Rundum-Bahn: Die
+  Kollisionsprüfung rechnete jede Drehung mit der Größe der ganzen Maschine
+  und lief über 20 Minuten – jetzt je Paar und nur genau, wo nötig, zwei Lagen
+  in 5 s (-50, -53); der Rückzug im Eilgang nach einem Vorschub ist kein
+  Befund mehr (-51); die Beispiel-Drehmaschine fährt Z bis −220 mm, ihr
+  Revolver trägt keine Fräser mehr, die das Teil „berührt“ hätten (-52); der
+  Fräser bleibt 2 mm vor dem Futter statt 1 mm (so knapp wie der
+  Warnabstand). **Offen, Frage an Manuel:** Das Teil ragt nur um den Abstich
+  aus dem Futter. Auf der Beispiel-Drehmaschine stößt der Revolver mit einem
+  kurzen Werkzeug (50 mm ab Halter) ans Futter, wenn der Fräser hinten am Teil
+  arbeitet – die Kollisionsprüfung zeigt es; mit 125 mm bleibt es frei.
 - *Klickweg:* Beispiel-Drehmaschine laden, Welle → Stirnfläche →
   „4-Achs-Bearbeitung“ → Stange Ø 80 → „Weiter“ → „Rundum schruppen“, T1
   Schaftfräser D12 → „Anlegen“ → im Job stehen T1 und „Rundum schruppen T1“,

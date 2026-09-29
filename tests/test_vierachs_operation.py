@@ -72,8 +72,8 @@ pruefe(min(b.Parameters["C"] for b in schnitte) < -3600, "C dreht nicht mehrmals
 # Über dem Teil (Z −106,3 … 6,3) bleibt X über 30,3: Radius 30 plus Aufmaß.
 ueber = [b.Parameters["X"] for b in schnitte if -106.3 <= b.Parameters["Z"] <= 6.3]
 pruefe(min(ueber) >= 30.3, f"zu tief: {min(ueber)}")
-# Hinten: der Rand des Fräsers 1 mm vor dem Futter (Stange hinten bei −133, Spannlänge 30).
-pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-103 + 1 + 6)) < 1e-9, "hinteres Ende")
+# Hinten: der Rand des Fräsers 2 mm vor dem Futter (Stange hinten bei −133, Spannlänge 30).
+pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-103 + 2 + 6)) < 1e-9, "hinteres Ende")
 
 # --- Speichern und Laden: dieselbe Bahn --------------------------------------------------
 anzahl = len(befehle)

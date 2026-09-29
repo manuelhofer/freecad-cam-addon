@@ -995,5 +995,6 @@
     "va.lagen.keine": "Nothing to rough: the part already fills the bar.",
     "va.radius": "In the program X is the radius, not the diameter – on a lathe switch the program header to radius (Siemens DIAMOF). Feed is given as G93 (1 ÷ time).",
     "va.fehler.anlegen": "Could not create: {fehler}",
-    "va.transaktion.schruppen": "Create all-round roughing"
+    "va.transaktion.schruppen": "Create all-round roughing",
+    "rw.werkzeug_radial": "“{operation}”: the path is calculated for a tool pointing radially at the axis from {richtung} – but {werkzeug} on {aufnahme} sits differently. Run like this, it does not fit the part: use a radial station pointing from {richtung}."
 }
