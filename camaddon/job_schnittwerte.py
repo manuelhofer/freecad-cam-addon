@@ -523,6 +523,34 @@ def controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff=""):
     return tc
 
 
+def controller_fuer(dokument, job, werkzeug, einsatz, werkstoff, operation):
+    """Der Werkzeug-Controller, den `operation` mit `werkzeug` und `einsatz` bekommt – in der
+    Transaktion des Aufrufers (Assistent „4-Achs-Bearbeitung“ beim Ändern).
+
+    Ihr bisheriger, wenn er dieses Werkzeug mit denselben Maßen hat und keine
+    andere Operation ihn benutzt – Drehzahl, Vorschub und Name kommen dann aus
+    dem Einsatz. Sonst ein neuer (controller_ohne_transaktion); den bisherigen
+    nimmt der Aufrufer heraus, wenn ihn danach keine Operation mehr benutzt
+    (controller_weg).
+    """
+    bisher = getattr(operation, "ToolController", None)
+    bit = getattr(bisher, "Tool", None)
+    if (
+        bit is not None
+        and str(getattr(bit, "ToolBitID", "") or "") == f"{PRAEFIX}{werkzeug.kennung}"
+        and _masse_passen(bit, parameter_fuer_cam(werkzeug))
+        and all(o is operation for o in operationen_mit(bisher, job))
+    ):
+        _setze_werte(bisher, werkzeug, einsatz, werkstoff)
+        name = controller_name(werkzeug, einsatz)
+        if bisher.Label != name:
+            bisher.Label = name
+        if bisher.ToolNumber != werkzeug.nummer:
+            bisher.ToolNumber = werkzeug.nummer
+        return bisher
+    return controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff)
+
+
 def werkzeug_im_job(job, werkzeug):
     """Das Werkzeug (ToolBit), das ein Controller des Jobs schon für `werkzeug` hat, mit
     den Maßen, die die Werkzeugverwaltung jetzt übergäbe – oder None.

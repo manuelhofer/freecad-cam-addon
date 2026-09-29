@@ -17,6 +17,12 @@ alles.
 Leere Felder gelten mit ihrem grauen Vorschlag (Manuel: „alles einstellbar,
 aber mit Vorschlägen als Standard“). Was man einträgt, ist beim nächsten Mal
 der Vorschlag – außer dem Stangen-Ø, der hängt am Teil.
+
+Nachträglich ändern (Manuel, 2026-09-29: „wenn ich jetzt hier nochmal
+schnittwerte ändern will oder anders werkzeug komme ich nicht mehr in die maske
+rein“): Doppelklick auf „Rundum schruppen“ – oder die Operation bzw. ihren Job
+wählen und den Knopf drücken – öffnet Schritt 2 mit Fräser, Einsatz und Werten
+der Operation; „Übernehmen“ ändert sie als einen Schritt Rückgängig.
 """
 
 import math
@@ -157,9 +163,52 @@ class BefehlVierachs:
                 FreeCADGui.getMainWindow(), tr("va.titel"), tr("va.kein_dokument")
             )
             return
+        operation = gewaehlte_operation(dokument)
+        if operation is not None:
+            bearbeiten(operation)
+            return
         wahl = gewaehlte_flaeche(dokument)
         # Die Transaktion öffnet der Assistent, wenn er den Job anlegt (_neuer_job).
         FreeCADGui.Control.showDialog(VierachsPanel(dokument, wahl))
+
+
+def gewaehlte_operation(dokument):
+    """Die gewählte „Rundum schruppen“ – oder die erste im gewählten Job; sonst None."""
+    jobs = js.jobs(dokument)
+    for objekt in FreeCADGui.Selection.getSelection(dokument.Name):
+        if vo.ist_rundum(objekt):
+            return objekt
+        if objekt in jobs:
+            gefunden = [o for o in js.operationen(objekt) if vo.ist_rundum(o)]
+            if gefunden:
+                return gefunden[0]
+    return None
+
+
+def bearbeiten(operation):
+    """Öffnet den Assistenten zum Ändern von `operation` – in Schritt 2, mit ihren Werten.
+    Nichts, solange ein anderes Aufgabenfenster offen ist."""
+    if FreeCADGui.Control.activeDialog():
+        return
+    FreeCADGui.Control.showDialog(VierachsPanel(operation.Document, operation=operation))
+
+
+def job_von(operation):
+    """Der Job, in dem die Operation steht, oder None."""
+    for job in js.jobs(operation.Document):
+        if operation in js.operationen(job):
+            return job
+    return None
+
+
+def achse_der_operation(operation):
+    """Die Stangenachse (vierachs_achsen.Stangenachse), mit der die Operation rechnet."""
+    return va.Stangenachse(
+        str(operation.Rundachse),
+        FreeCAD.Vector(operation.Stangenachse),
+        drehsinn=int(operation.Drehsinn),
+        quer=bool(operation.QuerAufNull),
+    )
 
 
 class _Intern:
@@ -295,7 +344,7 @@ class VierachsPanel:
 
     offen = None  # das gerade offene Fenster – für die Oberflächen-Szenarien
 
-    def __init__(self, dokument, wahl=None):
+    def __init__(self, dokument, wahl=None, operation=None):
         VierachsPanel.offen = self
         self.doc = dokument
         self.teil = None  # das Original, das in die Stange soll
@@ -318,7 +367,12 @@ class VierachsPanel:
         self._fraeser = []  # die Werkzeuge in der Auswahl „Fräser“
         self._einsaetze = []  # die Einsätze in der Auswahl „Einsatz“
         self.vorschau = None  # die Bahn der Vorschau (vierachs_bahn.Bahn) oder None
-        self.operation = None  # die angelegte Operation
+        self.operation = operation  # die angelegte Operation – oder die, die man ändert
+        # Ändern statt anlegen: die Operation, ihr Controller und ihre Rundachse.
+        self.zu_aendern = operation
+        self._tc_vorher = operation.ToolController if operation is not None else None
+        self._achse_fest = achse_der_operation(operation) if operation is not None else None
+        self._vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation ("": keiner)
         # Rückgängig-Schritte vor dem Assistenten; Job und Stange liegen nach „Anlegen“ als
         # eigener Schritt ab, auch wenn das Schruppen danach nicht geht (Abbrechen: zurück).
         self._undo_vorher = len(dokument.UndoNames)
@@ -328,12 +382,48 @@ class VierachsPanel:
         self._vorschau_uhr.setInterval(VORSCHAU_MS)
         self._vorschau_uhr.timeout.connect(self._vorschau_rechnen)
         self.form = self._baue()
+        self._beobachter = None
+        if operation is not None:
+            self._zum_aendern()
+            return
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
         if wahl is not None and wahl[1] is not None:
             self.waehle_flaeche(*wahl)
         self._auffrischen()
+
+    def _zum_aendern(self):
+        """Schritt 2 mit Fräser, Einsatz und Werten der Operation. Schritt 1 bleibt zu: Job
+        und Stange stehen schon; „Rundum schruppen“ bleibt angehakt – weg geht die
+        Operation mit Entf im Baum."""
+        self.job = job_von(self.zu_aendern)
+        self.mit_schruppen.setEnabled(False)
+        self.erklaerung_schruppen.setText(tr("va.aendern.text"))
+        self.knopf_zurueck.hide()
+        self._auffrischen()
+        self.zeige_seite(2)
+        self._werte_der_operation()
+        fraeser = self.fraeser()
+        if self._tc_vorher is not None and (fraeser is None or fraeser.kennung != self._vorwahl):
+            self.hinweis_aendern.setText(
+                tr("va.aendern.werkzeug_fehlt", controller=self._tc_vorher.Label)
+            )
+            self.hinweis_aendern.show()
+
+    def _werte_der_operation(self):
+        """Zustellung, Vorschub je Umdrehung und Aufmaß der Operation in die Felder – leer,
+        wo sie dem Vorschlag gleichen: dann folgen sie ihm wie beim Anlegen."""
+        op = self.zu_aendern
+        for feld, wert in (
+            ("zustellung", op.Zustellung),
+            ("steigung", op.VorschubJeUmdrehung),
+            ("aufmass", op.Aufmass),
+        ):
+            wert = float(wert)
+            if abs(wert - self._vorschlag(feld)) > 1e-6:
+                text = groesse_zeigen(wert, einheiten.LAENGE) or "0"  # Aufmaß 0 ist eine Zahl
+                self.felder_schruppen[feld].setText(text)
 
     # --- Schnittstelle zu FreeCAD ---------------------------------------------
 
@@ -360,8 +450,12 @@ class VierachsPanel:
             ok.setToolTip(tr("va.weiter.tooltip"))
             ok.setEnabled(self.job is not None)
         else:
-            ok.setText(tr("va.anlegen"))
-            ok.setToolTip(tr("va.anlegen.tooltip"))
+            if self.zu_aendern is not None:
+                ok.setText(tr("va.uebernehmen"))
+                ok.setToolTip(tr("va.uebernehmen.tooltip"))
+            else:
+                ok.setText(tr("va.anlegen"))
+                ok.setToolTip(tr("va.anlegen.tooltip"))
             ok.setEnabled(self.job is not None and self._kann_anlegen())
 
     def knopf_anlegen(self):
@@ -376,6 +470,8 @@ class VierachsPanel:
         if self._uhr.isActive():  # die letzte Eingabe noch übernehmen
             self._uhr.stop()
             self._anwenden()
+        if self.zu_aendern is not None:
+            return self._uebernehmen()
         if self.seite == 1:
             self.zeige_seite(2)
             return False  # „Weiter“: das Fenster bleibt offen
@@ -398,13 +494,26 @@ class VierachsPanel:
         self.doc.recompute()
         return True
 
+    def _uebernehmen(self):
+        """„Übernehmen“ beim Ändern: die Operation ändern und schließen – oder offen bleiben,
+        wenn es nicht geht (der Grund steht rot im Fenster)."""
+        if not self._schruppen_pruefen() or not self._schruppen_aendern():
+            return False
+        self._vor_dem_schliessen()
+        self._fraeser_merken()
+        self.doc.commitTransaction()
+        FreeCADGui.Control.closeDialog()
+        self.doc.recompute()
+        return True
+
     def reject(self):
         self._vor_dem_schliessen()
-        self._sichtbarkeit_zurueck()
-        self.doc.abortTransaction()
-        if self._rohteil_fest:  # Job und Stange liegen schon als Schritt ab
-            while len(self.doc.UndoNames) > self._undo_vorher:
-                self.doc.undo()
+        if self.zu_aendern is None:  # beim Ändern ist bis „Übernehmen“ nichts geändert
+            self._sichtbarkeit_zurueck()
+            self.doc.abortTransaction()
+            if self._rohteil_fest:  # Job und Stange liegen schon als Schritt ab
+                while len(self.doc.UndoNames) > self._undo_vorher:
+                    self.doc.undo()
         FreeCADGui.Control.closeDialog()
         self.doc.recompute()
         return True
@@ -417,8 +526,9 @@ class VierachsPanel:
         self._vorschau_uhr.stop()
         if self.einfahren:
             self.einfahren.stopp()
-        FreeCADGui.Selection.removeObserver(self._beobachter)
-        FreeCADGui.Selection.removeSelectionGate()
+        if self._beobachter is not None:
+            FreeCADGui.Selection.removeObserver(self._beobachter)
+            FreeCADGui.Selection.removeSelectionGate()
         FreeCADGui.Selection.clearSelection()
 
     # --- Aufbau ---------------------------------------------------------------
@@ -551,10 +661,15 @@ class VierachsPanel:
         self.mit_schruppen.setFont(schrift)
         self.mit_schruppen.toggled.connect(self._schruppen_umgeschaltet)
         aufbau.addWidget(self.mit_schruppen)
-        erklaerung = self._grau()
-        erklaerung.setText(tr("va.schruppen.text"))
-        erklaerung.setWordWrap(True)
-        aufbau.addWidget(erklaerung)
+        self.erklaerung_schruppen = self._grau()
+        self.erklaerung_schruppen.setText(tr("va.schruppen.text"))
+        self.erklaerung_schruppen.setWordWrap(True)
+        aufbau.addWidget(self.erklaerung_schruppen)
+        self.hinweis_aendern = QtGui.QLabel()  # beim Ändern: der Fräser fehlt
+        self.hinweis_aendern.setWordWrap(True)
+        self.hinweis_aendern.setStyleSheet(f"color: {ROT};")
+        self.hinweis_aendern.hide()
+        aufbau.addWidget(self.hinweis_aendern)
 
         self.schruppfelder = QtGui.QWidget()
         raster = QtGui.QGridLayout(self.schruppfelder)
@@ -614,8 +729,10 @@ class VierachsPanel:
         self.hinweis_bearbeitung.setWordWrap(True)
         self.hinweis_bearbeitung.setStyleSheet(f"color: {ROT};")
         aufbau.addWidget(self.hinweis_bearbeitung)
-        zurueck = knopf(tr("va.zurueck"), tr("va.zurueck.tooltip"), lambda: self.zeige_seite(1))
-        aufbau.addWidget(zurueck, 0, QtCore.Qt.AlignLeft)
+        self.knopf_zurueck = knopf(
+            tr("va.zurueck"), tr("va.zurueck.tooltip"), lambda: self.zeige_seite(1)
+        )
+        aufbau.addWidget(self.knopf_zurueck, 0, QtCore.Qt.AlignLeft)
         aufbau.addStretch()
         return seite
 
@@ -683,7 +800,10 @@ class VierachsPanel:
         self.feld_drehlage.setText(zahl_zeigen(neu))  # 0 bleibt leer: der Vorschlag
 
     def achse(self):
-        """Die gewählte Stangenachse (vierachs_achsen.Stangenachse)."""
+        """Die gewählte Stangenachse (vierachs_achsen.Stangenachse) – beim Ändern die der
+        Operation."""
+        if self._achse_fest is not None:
+            return self._achse_fest
         return self._achsen[max(0, self.wahl_achse.currentIndex())]
 
     def buchstabe(self):
@@ -717,6 +837,8 @@ class VierachsPanel:
         self.seite = nummer
         self.seiten.setCurrentIndex(nummer - 1)
         titel = tr("va.kopf") if nummer == 1 else tr("va.kopf.bearbeitung")
+        if nummer == 2 and self.zu_aendern is not None:
+            titel = tr("va.kopf.aendern", name=self.zu_aendern.Label)
         self._kopf_text.setText(f"<b>{titel}</b>")
         if nummer == 2:
             self._bearbeitung_fuellen()
@@ -742,11 +864,14 @@ class VierachsPanel:
             werkstoffe_anbieten(self.wahl_werkstoff, self.bibliothek)
             if vorher is None:
                 alle = self.bibliothek.alle_werkstoffe()
-                werkstoff, _gemerkt = js.werkstoff_fuer(self.job, alle)
+                werkstoff, _gemerkt = js.werkstoff_fuer(self.job, alle, self._tc_vorher)
                 vorher = werkstoff.kennung if werkstoff is not None else wz.ALLE
             self.wahl_werkstoff.setCurrentIndex(max(0, self.wahl_werkstoff.findData(vorher)))
         finally:
             self._fuellt = False
+        if self._tc_vorher is not None and self._vorwahl is None:
+            werkzeug = js.werkzeug_von(self._tc_vorher, self.bibliothek)
+            self._vorwahl = werkzeug.kennung if werkzeug is not None else ""
         self.radius_hinweis.setVisible(self.buchstabe() == "C")
         self._fraeser_fuellen()
 
@@ -779,6 +904,8 @@ class VierachsPanel:
         gemerkt = _parameter().GetString(GEMERKT_FRAESER, "")
         if vorher is not None and vorher.kennung in kennungen:
             wahl = kennungen.index(vorher.kennung)
+        elif self._vorwahl in kennungen:  # beim Ändern: der Fräser der Operation
+            wahl = kennungen.index(self._vorwahl)
         elif gemerkt in kennungen:
             wahl = kennungen.index(gemerkt)
         else:
@@ -813,6 +940,13 @@ class VierachsPanel:
         )
         arten = [e.art for e in self._einsaetze]
         wahl = next((arten.index(a) for a in (wz.SCHRUPPEN, wz.DYNAMISCH) if a in arten), 0)
+        if (
+            self._tc_vorher is not None
+            and werkzeug is not None
+            and werkzeug.kennung == (self._vorwahl)
+        ):  # beim Ändern: der Einsatz, mit dem der Controller gesetzt ist
+            gemerkt = js.vorgeschlagener_einsatz(self._tc_vorher, self._einsaetze, self.job)
+            wahl = gemerkt if gemerkt >= 0 else wahl
         self._fuellt = True
         try:
             self.wahl_einsatz.clear()
@@ -907,6 +1041,7 @@ class VierachsPanel:
                 self._wert("zustellung"),
                 self._wert("steigung"),
                 self._wert("aufmass"),
+                float(self.zu_aendern.Sicherheitsabstand) if self.zu_aendern else None,
             )
         except ValueError as fehler:
             self.hinweis_bearbeitung.setText(str(fehler))
@@ -995,6 +1130,38 @@ class VierachsPanel:
             FreeCAD.Console.PrintError(f"4-Achs-Bearbeitung: {fehler}\n")
             self.operation = None
             self.hinweis_bearbeitung.setText(tr("va.fehler.anlegen", fehler=str(fehler)))
+            self._knoepfe_beschriften()
+            return False
+        return True
+
+    def _schruppen_aendern(self):
+        """Die Operation bekommt Fräser, Einsatz und Werte aus dem Fenster – ein eigener
+        Schritt Rückgängig, in einem Befehl (_im_befehl): Ein anderer Fräser kommt als
+        Werkzeug in den Job. Den bisherigen Controller nimmt es heraus, wenn ihn keine
+        Operation mehr benutzt. Geht es nicht, steht der Grund rot im Fenster: False."""
+        werkzeug, einsatz, op = self.fraeser(), self.einsatz(), self.zu_aendern
+        werte = (self._wert("zustellung"), self._wert("steigung"), self._wert("aufmass"))
+
+        def aendern():
+            self.doc.openTransaction(tr("va.transaktion.aendern"))
+            try:
+                ue.uebergeben(self.bibliothek)
+                bisher = op.ToolController
+                tc = js.controller_fuer(self.doc, self.job, werkzeug, einsatz, self.werkstoff(), op)
+                vo.aendere(op, tc, *werte)
+                frei = bisher is not None and not js.operationen_mit(bisher, self.job)
+                if frei and bisher is not tc:
+                    js.controller_weg(self.doc, [bisher])
+                self.doc.recompute()
+            except Exception:
+                self.doc.abortTransaction()
+                raise
+
+        try:
+            _im_befehl(aendern)
+        except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
+            FreeCAD.Console.PrintError(f"4-Achs-Bearbeitung: {fehler}\n")
+            self.hinweis_bearbeitung.setText(tr("va.fehler.aendern", fehler=str(fehler)))
             self._knoepfe_beschriften()
             return False
         return True
@@ -1143,8 +1310,11 @@ class VierachsPanel:
             if self.felder_laenge[feld].text().strip():
                 parameter.SetFloat(schluessel, self._laenge(feld))
         parameter.SetString(GEMERKT_RUNDACHSE, self.buchstabe())
+        self._fraeser_merken()
+
+    def _fraeser_merken(self):
         if self.mit_schruppen.isChecked() and self.fraeser() is not None:
-            parameter.SetString(GEMERKT_FRAESER, self.fraeser().kennung)
+            _parameter().SetString(GEMERKT_FRAESER, self.fraeser().kennung)
 
     # --- Anzeige ------------------------------------------------------------------
 

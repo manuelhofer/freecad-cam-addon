@@ -69,7 +69,7 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `vierachs_achsen.py` | 4-Achs-Bearbeitung, Stangenachse (W-003 V2a): von der Maschine (Rundachsen im Tisch, Betriebsart „Positionieren“) oder zugewiesen (A/B/C), mit Drehsinn und der Richtung, aus der das Werkzeug radial kommt |
 | `vierachs_huelle.py` | 4-Achs-Bearbeitung, Hüllfläche (W-003 V3a): wie nah die Spitze eines radialen Schaftfräsers der Stangenachse kommt, ohne das Teil zu verletzen – je Stelle a und Winkel φ, genau gegen das vernetzte Teil (Kanten und Dreiecke), mit numpy; sicheres Raster für die Bahn |
 | `vierachs_bahn.py` | 4-Achs-Bearbeitung, Schruppbahn rundum (W-003 V3b): Lagen bis zur Hüllfläche plus Aufmaß, je Lage eine Spirale von vorne bis vor das Futter, Rückzug; Path-Befehle mit X/Y/Z im Rahmen der Maschine, der Rundachse (−drehsinn · φ) und F nach G93 |
-| `vierachs_operation.py` | 4-Achs-Bearbeitung, CAM-Operation „Rundum schruppen“ (W-003 V3c): Proxy `RundumSchruppen` (erbt FreeCADs `ObjectOp`, Controller und Kühlmittel, keine Höhen in Z), Eigenschaften in der Gruppe „4-Achs“, rechnet die Bahn aus Modell, Stange und Spannlänge des Jobs; `lege_an()` ohne eigene Transaktion und ohne Rückfrage |
+| `vierachs_operation.py` | 4-Achs-Bearbeitung, CAM-Operation „Rundum schruppen“ (W-003 V3c): Proxy `RundumSchruppen` (erbt FreeCADs `ObjectOp`, Controller und Kühlmittel, keine Höhen in Z), Eigenschaften in der Gruppe „4-Achs“, rechnet die Bahn aus Modell, Stange und Spannlänge des Jobs; `lege_an()` ohne eigene Transaktion und ohne Rückfrage, `aendere()` für „Übernehmen“ beim Ändern (V3h) |
 | `gui_start.py` | Anmeldung in FreeCAD: Befehle, Werkzeugleiste (Arbeitsbefehle) und Menü „CAM-Addon“ (alle Befehle); ruft die anderen `gui_*` auf |
 | `gui_maschine.py` | Befehl und Aufgabenfenster „Maschine bearbeiten“; ohne Baugruppe der Weg zu den Beispielmaschinen |
 | `gui_neue_maschine.py` | Befehl und Dialog „Neue Maschine …“: Bauart wählen, bei der Drehmaschine Maße eintragen, bauen – auch hinter „Beispielmaschine laden …“ |
@@ -96,8 +96,8 @@ Maschinenobjekt (maschine.py)          Dialog „Maschine bearbeiten“
 | `gui_schruppwerte.py` | Dialog „Schruppwerte planen“: Eingaben, Tabelle je ae, Vorschlag, als Einsatz übernehmen |
 | `gui_werkstoffe.py` | Fenster „Werkstoffe“: ganze Liste mit Suche und Filter, eigene Werkstoffe |
 | `gui_job_schnittwerte.py` | Befehl und Dialog „Schnittwerte in den Job“ |
-| `gui_vierachs.py` | Befehl und Assistent „4-Achs-Bearbeitung“ in zwei Schritten: Rohteil (Fläche im 3D anklicken, Stange, Mitte, Drehlage, Rundachse, Animation) und „Was willst du machen?“ (Rundum schruppen: Werkstoff, Fräser und Einsatz aus der Werkzeugverwaltung, Zustellung, Vorschub je Umdrehung, Aufmaß, Vorschau der Lagen); „Anlegen“: Job und Stange ein Schritt Rückgängig, Controller und Operation ein zweiter |
-| `gui_vierachs_operation.py` | Anzeige der Operation „Rundum schruppen“ im Baum: Symbol, Doppelklick öffnet nichts (die Werte stehen in den Eigenschaften) |
+| `gui_vierachs.py` | Befehl und Assistent „4-Achs-Bearbeitung“ in zwei Schritten: Rohteil (Fläche im 3D anklicken, Stange, Mitte, Drehlage, Rundachse, Animation) und „Was willst du machen?“ (Rundum schruppen: Werkstoff, Fräser und Einsatz aus der Werkzeugverwaltung, Zustellung, Vorschub je Umdrehung, Aufmaß, Vorschau der Lagen); „Anlegen“: Job und Stange ein Schritt Rückgängig, Controller und Operation ein zweiter. Mit `operation=` zum Ändern (V3h): Schritt 2 mit den Werten der Operation, „Übernehmen“ ein Schritt Rückgängig (`job_schnittwerte.controller_fuer`) |
+| `gui_vierachs_operation.py` | Anzeige der Operation „Rundum schruppen“ im Baum: Symbol; Doppelklick und Kontextmenü „Bearbeiten“ öffnen den Assistenten zum Ändern (V3h) |
 
 Zwei Regeln halten das zusammen:
 

@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Anzeige der Operation „Rundum schruppen“ (Spezifikation W-003, Abschnitt 10,
-Stufe V3c): Symbol im Baum, die Bahn zeichnet FreeCAD selbst. Zu bearbeiten
-gibt es noch nichts im Fenster – die Werte stehen in den Eigenschaften (Gruppe
-„4-Achs“); ein Doppelklick ändert nichts.
+Stufe V3c): Symbol im Baum, die Bahn zeichnet FreeCAD selbst. Doppelklick oder
+„Bearbeiten“ im Kontextmenü öffnet den Assistenten „4-Achs-Bearbeitung“ mit
+ihren Werten (Manuel, 2026-09-29: „komme ich nicht mehr in die maske rein … muss
+irgendwie gelöst werden das man im nachhinein noch sachen ändern kann“).
 
 Modul- und Klassenname stehen in jeder gespeicherten Datei – sie bleiben.
 """
@@ -29,8 +30,21 @@ class Ansicht:
     def loads(self, _zustand):
         return None
 
-    def doubleClicked(self, _ansicht):
-        return True  # nichts öffnen: Die Werte stehen in den Eigenschaften
+    def doubleClicked(self, ansicht):
+        from . import gui_vierachs
+
+        gui_vierachs.bearbeiten(ansicht.Object)
+        return True
+
+    def setupContextMenu(self, ansicht, menue):
+        from PySide import QtGui
+
+        from . import gui_vierachs
+        from .sprache import tr
+
+        aktion = QtGui.QAction(tr("vo.bearbeiten"), menue)
+        aktion.triggered.connect(lambda _an=False: gui_vierachs.bearbeiten(ansicht.Object))
+        menue.addAction(aktion)
 
     def onDelete(self, _ansicht, _unterelemente):
         return True

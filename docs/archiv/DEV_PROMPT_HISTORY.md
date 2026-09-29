@@ -12,6 +12,61 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-04 vierachs-nachtraeglich-aendern
+
+### EINGELESEN
+- Manuel (2026-09-29 20:30, Bild: Job „Körper – 4 Achsen002“ mit der
+  Rundum-Bahn in FreeCAD 1.1.4): „so wenn ich jetzt hier nochmal schnittwerte
+  ändern will oder anders werkzeug komme ich nicht mehr in die maske rein ...
+  das ist auch nicht optimal muss irgendwie gelöst werden das man im
+  nachhinein noch sachen ändern kann.“
+- `camaddon/gui_vierachs.py`, `camaddon/gui_vierachs_operation.py`,
+  `camaddon/vierachs_operation.py`, `camaddon/job_schnittwerte.py`,
+  `camaddon/vierachs_achsen.py`, `tests/gui/szenario_vierachs_schruppen.py`,
+  `tests/test_job_schnittwerte.py`, `tests/test_vierachs_operation.py`,
+  `help/*/vierachs.html`, `docs/spezifikation_vierachs.md`.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`, `camaddon/gui_vierachs_operation.py`,
+  `camaddon/vierachs_operation.py`, `camaddon/job_schnittwerte.py`,
+  `translations/de.json`, `translations/en.json`, `help/de/vierachs.html`,
+  `help/en/vierachs.html`, `tests/gui/szenario_vierachs_aendern.py` (neu),
+  `tests/test_job_schnittwerte.py`, `tests/test_vierachs_operation.py`,
+  `docs/spezifikation_vierachs.md` (V3h), `docs/aufbau.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Doppelklick auf „Rundum schruppen“ öffnet Schritt 2 mit Fräser, Einsatz und
+Werten der Operation, und „Übernehmen“ ändert sie als einen Schritt Rückgängig.
+
+### DONE
+- Doppelklick, Kontextmenü „Bearbeiten“ oder Knopf „4-Achs-Bearbeitung“ mit
+  gewählter Operation (oder ihrem Job) öffnen den Assistenten zum Ändern:
+  Kopf „„Rundum schruppen T1“ ändern“, Werkstoff wie am Controller gemerkt,
+  Fräser und Einsatz des Controllers, die Felder leer, wo die Werte dem
+  Vorschlag gleichen; der Knopf heißt „Übernehmen“, „Zurück“ und der Haken
+  sind aus. Fehlt der Fräser der Operation in der Auswahl, sagt es eine rote
+  Zeile.
+- „Übernehmen“ (in einem Befehl, wie „Anlegen“): `controller_fuer` gibt der
+  Operation ihren Controller zurück, wenn der Fräser derselbe ist und keine
+  andere Operation ihn benutzt (Drehzahl, Vorschub, Name aus dem Einsatz),
+  sonst einen neuen; der alte geht, wenn ihn keine Operation mehr benutzt.
+  `aendere` setzt Controller und Werte; der vorgeschlagene Name folgt dem
+  Werkzeug, ein eigener bleibt. „Abbrechen“ ändert nichts.
+- Hilfe (de/en) „Nachträglich ändern“, Tooltip des Knopfs, Spezifikation V3h.
+
+### TEST
+- Neu `szenario_vierachs_aendern` (1.1.3 und Wochen-Build): anlegen mit T1,
+  Doppelklick, T2 und Aufmaß 0,5 übernehmen (Controller „T2 Schruppen“, T1
+  weg, Zustellung 1,5 vom Vorschlag), über den Knopf öffnen und abbrechen
+  (nichts geändert), nur die Zustellung (derselbe Controller), zweimal Strg+Z.
+- `test_job_schnittwerte` (controller_fuer: derselbe, geteilt → neu, anderes
+  Werkzeug), `test_vierachs_operation` (aendere: Controller, Werte, Name),
+  `test_sprache`; die übrigen 4-Achs-Szenarien in 1.1.3.
+
+### NEXT
+- Schritt 1 (Stange, Mitte, Rundachse) nachträglich ändern.
+
 ## P-2026-09-29-03 verfahrwege-bearbeiten
 
 ### EINGELESEN

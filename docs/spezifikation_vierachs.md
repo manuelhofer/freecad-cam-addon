@@ -584,6 +584,23 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   Werkzeug auf P1 läuft außen am Teil entlang; „Kollision prüfen“ meldet
   nichts im Teil.
 
+**V3h – Nachträglich ändern** (Manuel, 2026-09-29, siehe „Entschieden“)
+
+- Doppelklick auf „Rundum schruppen“ (oder Kontextmenü „Bearbeiten“, oder
+  Operation bzw. Job wählen und „4-Achs-Bearbeitung“) öffnet den Assistenten
+  in Schritt 2 mit Fräser, Einsatz und Werten der Operation; Felder, die dem
+  Vorschlag gleichen, bleiben leer und folgen ihm. „Übernehmen“ ändert die
+  Operation als einen Schritt Rückgängig: Ihr Controller bleibt, wenn der
+  Fräser derselbe ist und keine andere Operation ihn benutzt (Drehzahl,
+  Vorschub und Name aus dem Einsatz), sonst kommt ein neuer, und der alte geht,
+  wenn ihn keine Operation mehr benutzt. Der Name „Rundum schruppen T1“ folgt
+  dem Werkzeug. „Abbrechen“ ändert nichts.
+  *Gebaut (P-2026-09-29-04):* Schritt 2. Schritt 1 (Stange, Mitte,
+  Rundachse) nachträglich ändern: als Nächstes.
+- *Klickweg:* Operation doppelklicken → Kopf „„Rundum schruppen T1“ ändern“,
+  T1 gewählt → T2 wählen, Aufmaß 0,5 → „Übernehmen“: „Rundum schruppen T2“ mit
+  „T2 Schruppen“, „T1 Schruppen“ ist weg; ein Strg+Z bringt T1 zurück.
+
 **V3f – Maschine zuerst, Ausspannlänge, Abstände** (Manuel, 2026-09-29, siehe
 „Entschieden“)
 
@@ -742,6 +759,10 @@ als Rückmeldung zum Plan:
   bearbeiten will … der prozess soll extrem einfach werden“ → V3f.
 - **Rohteil und Fertigteil (2026-09-29):** „haben wir eine rohteil und
   fertigteil vergleich in der ‚simualtion‘“ → V3g.
+- **Nachträglich ändern (2026-09-29):** „so wenn ich jetzt hier nochmal
+  schnittwerte ändern will oder anders werkzeug komme ich nicht mehr in die
+  maske rein ... das ist auch nicht optimal muss irgendwie gelöst werden das
+  man im nachhinein noch sachen ändern kann“ → V3h.
 - **Y-Achse (2026-09-29):** „bei einer maschine mit y achse kann man ja auch
   diese verfahren um eventuelle stellen besser zu erreichen“ → mit V4/V5:
   Flächen, die ein Werkzeug durch die Achse nicht erreicht (ebene Flächen,

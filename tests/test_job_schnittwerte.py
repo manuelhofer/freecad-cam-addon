@@ -7,6 +7,7 @@
 # merkt sich Einsatz und Werkstoff; beide schlägt das Addon wieder vor.
 # Veraltete Werte (D-28): vergleiche() sieht, wo Drehzahl oder Vorschub nicht
 # mehr zur Werkzeugverwaltung passen; uebernimm() setzt sie in einem Schritt.
+# controller_fuer() gibt einer Operation beim Ändern ihren TC zurück oder einen neuen.
 import os
 import pathlib
 import sys
@@ -382,6 +383,40 @@ pruefe(
 )
 dok.undo()
 pruefe(sorted(o.Name for o in dok.Objects) == vorher, "Strg+Z holt nicht alles zurück")
+FreeCAD.closeDocument(dok.Name)
+
+# Ändern (4-Achs-Assistent, P-2026-09-29-04): controller_fuer gibt einer Operation ihren
+# bisherigen TC zurück, mit den Werten des neuen Einsatzes – solange er dasselbe Werkzeug
+# hat und keine andere Operation ihn benutzt; sonst einen neuen.
+dok = FreeCAD.newDocument("Aendern")
+dok.UndoMode = 1
+klotz = dok.addObject("Part::Box", "Klotz")
+dok.recompute()
+job = Job.Create("Job", [klotz])
+kontur = Profile.Create("Kontur", parentJob=job)  # vor den weiteren TC: sonst fragt FreeCAD
+tasche = Pocket.Create("Tasche", parentJob=job)
+einsaetze = fraeser.einsaetze("1.4301")
+tc = js.controller_ohne_transaktion(dok, job, fraeser, einsaetze[0], "1.4301")
+kontur.ToolController = tc
+dok.recompute()
+wieder = js.controller_fuer(dok, job, fraeser, einsaetze[1], "1.4301", kontur)
+pruefe(wieder is tc and tc.Label == "T3 Schruppen dynamisch", f"derselbe TC: {wieder.Label}")
+pruefe(js.gemerkter_einsatz(tc).art == wz.DYNAMISCH, "Einsatz am TC nicht gemerkt")
+n, vf, _senkrecht = js.werte(fraeser, einsaetze[1])
+pruefe(
+    tc.SpindleSpeed == round(n) and round(mm_min(tc.HorizFeed)) == round(vf),
+    f"Werte: {tc.SpindleSpeed}, {tc.HorizFeed}",
+)
+# Benutzt auch die Tasche den TC, bekommt die Kontur einen neuen; der alte bleibt, wie er war.
+tasche.ToolController = tc
+neu = js.controller_fuer(dok, job, fraeser, einsaetze[0], "1.4301", kontur)
+pruefe(neu is not tc and neu.Label == "T3 Vollnut", f"geteilter TC: {neu.Label}")
+pruefe(neu.Tool is tc.Tool, "zweites Werkzeug statt desselben")
+pruefe(js.gemerkter_einsatz(tc).art == wz.DYNAMISCH, "der geteilte TC wurde geändert")
+# Ein anderes Werkzeug: ein neuer TC.
+tasche.ToolController = neu
+anders = js.controller_fuer(dok, job, bohrer, bohrer.einsaetze("1.4301")[0], "1.4301", kontur)
+pruefe(anders is not tc and anders.ToolNumber == 7, f"anderes Werkzeug: {anders.Label}")
 FreeCAD.closeDocument(dok.Name)
 sprache.setze_sprache(vorher_sprache)
 if fehler:

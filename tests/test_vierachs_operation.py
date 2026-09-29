@@ -2,7 +2,7 @@
 # Ø 80 aus dem Assistenten (Rundachse C), Schaftfräser Ø 12 – im Job angelegt ohne
 # Rückfrage, fünf Lagen, die Bahn mit G93 … G94 und C; nach Speichern und Laden dieselbe
 # Bahn; der Postprozessor (LinuxCNC) schreibt jeden Satz mit F. Dazu die Fehlerfälle:
-# Rohteil keine Stange, kein Vorschub.
+# Rohteil keine Stange, kein Vorschub. Ändern: anderer Controller, andere Werte.
 import importlib
 import os
 import sys
@@ -74,6 +74,26 @@ ueber = [b.Parameters["X"] for b in schnitte if -106.3 <= b.Parameters["Z"] <= 6
 pruefe(min(ueber) >= 30.3, f"zu tief: {min(ueber)}")
 # Hinten: der Rand des Fräsers 2 mm vor dem Futter (Stange hinten bei −133, Spannlänge 30).
 pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-103 + 2 + 6)) < 1e-9, "hinteres Ende")
+
+# --- Ändern: anderer Controller, andere Werte; der vorgeschlagene Name folgt dem Werkzeug --
+from Path.Tool import Controller
+
+tc5 = Controller.Create("T5", tool=tc.Tool, toolNumber=5)
+job.Proxy.addToolController(tc5)
+tc5.HorizFeed = "1500 mm/min"
+vo.aendere(op, tc5, zustellung=1.5, steigung=4.0, aufmass=0.5)
+doc.recompute()
+pruefe(op.ToolController is tc5 and op.Label == "Rundum schruppen T5", f"geändert: {op.Label}")
+werte = (op.Zustellung.Value, op.VorschubJeUmdrehung.Value, op.Aufmass.Value)
+pruefe(werte == (1.5, 4.0, 0.5), f"Werte: {werte}")
+pruefe(op.Lagen > 5, f"Lagen mit Zustellung 1,5: {op.Lagen}")
+op.Label = "Meine Welle"
+vo.aendere(op, tc, zustellung=2.0, steigung=4.8, aufmass=0.3)
+pruefe(op.Label == "Meine Welle" and op.ToolController is tc, f"eigener Name: {op.Label}")
+op.Label = "Rundum schruppen T1"
+js.controller_weg(doc, [tc5])
+doc.recompute()
+pruefe(op.Lagen == 5 and tc.Tool is not None, f"zurück: {op.Lagen}")
 
 # --- Speichern und Laden: dieselbe Bahn --------------------------------------------------
 anzahl = len(befehle)

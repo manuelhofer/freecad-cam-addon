@@ -15,6 +15,8 @@ Qt hier; die Anzeige liegt in gui_vierachs_operation.py.
 Läuft ohne Oberfläche.
 """
 
+import re
+
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
@@ -201,6 +203,25 @@ def lege_an(job, tc, achse, zustellung, steigung, aufmass, quer_auf_null=True, n
 
         gui_vierachs_operation.Ansicht(obj.ViewObject)
     return obj
+
+
+def aendere(obj, tc, zustellung, steigung, aufmass):
+    """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
+    Transaktion, die hält der Aufrufer (der Assistent beim Ändern). Der Name folgt dem
+    Werkzeug, solange es der vorgeschlagene ist: „Rundum schruppen T1“ wird „… T3“."""
+    if _vorgeschlagener_name(obj.Label):
+        obj.Label = tr("vo.name", werkzeug=f"T{tc.ToolNumber}")
+    obj.ToolController = tc
+    obj.OpToolDiameter = tc.Tool.Diameter
+    obj.Zustellung = zustellung
+    obj.VorschubJeUmdrehung = steigung
+    obj.Aufmass = aufmass
+
+
+def _vorgeschlagener_name(name):
+    """Ist `name` einer, wie lege_an ihn vergibt („Rundum schruppen T3“)?"""
+    vorne, _mitte, hinten = tr("vo.name", werkzeug="\0").partition("\0")
+    return re.fullmatch(re.escape(vorne) + r"T\d+" + re.escape(hinten), name) is not None
 
 
 def ist_rundum(op):
