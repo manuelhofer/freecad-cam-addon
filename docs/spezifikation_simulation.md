@@ -218,11 +218,13 @@ Besprechung:
   weitesten Abstand des Körpers von ihr (P-2026-09-27-50 – mit der Größe
   der ganzen Maschine gerechnet dauerte eine Bahn rundum, tausende Grad C,
   über 20 Minuten). Genau rechnet es ein Paar nur, wenn es vielleicht näher
-  als der Warnabstand ist oder den nächsten Schritt am kürzesten macht; sonst
-  reicht eine Schranke nach unten – der Abstand der Hüllquader oder der
-  zuletzt genau gerechnete minus dem Weg seither. Ein Körper rund um seine
-  Drehachse (Futter, Welle) bewegt sich mit ihr nicht; stecken zwei in einer
-  Operation schon ineinander, rechnet es sie dort nicht weiter.
+  als der Warnabstand ist oder den nächsten Schritt am kürzesten macht (und
+  der mit der Schranke nicht ohnehin bis zur nächsten Station reicht, seit
+  P-2026-09-27-53); sonst reicht eine Schranke nach unten – der Abstand der
+  Hüllquader oder der zuletzt genau gerechnete minus dem Weg seither. Ein
+  Körper rund um seine Drehachse (Futter, Welle) bewegt sich mit ihr nicht;
+  stecken zwei in einer Operation schon ineinander, rechnet es sie dort nicht
+  weiter.
 - **Ergebnis** wie 4a, je Operation und Paar das Schlimmste als Satz: „In
   „Tasche“ berührt der Halter von T3 („SK40 ER32 A70“) das Teil (Satz 12,
   bei X 50, Y 30, Z −15).“ – „In „Kontur“ kommt der Fräskopf dem

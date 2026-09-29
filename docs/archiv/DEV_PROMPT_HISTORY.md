@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-27-53 kollision-bis-station
+
+### EINGELESEN
+- `camaddon/kollision.py` (P-2026-09-27-50), Messung an „Rundum schruppen“.
+
+### DATEIEN
+- `camaddon/kollision.py` (genau nur, wenn der Schritt sonst vor der Station endet)
+- `docs/spezifikation_simulation.md` (4c), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Kollision prüfen“ für „Rundum schruppen“ (Welle Ø 40 × 30, Stange Ø 50, zwei
+Lagen) ist in wenigen Sekunden fertig; Befunde wie vorher.
+
+### DONE
+- **Befund:** Nach P-50 rechnete die Prüfung je Station noch einmal genau – das
+  Paar Schneide/Teil, 0,35 mm auseinander, machte mit seiner Schranke den
+  kürzesten Schritt, und das Paar, das den Schritt begrenzt, wird genau
+  gerechnet. Dabei reichte der Schritt auch mit der Schranke bis zur nächsten
+  Station: Die Welle ist rund um C, die Schneide rückt je Station nur Hundertstel
+  in X und Z.
+- Jetzt: Reicht der Schritt schon mit der Schranke bis zur nächsten Station, rechnet
+  es nicht genau. Befunde ändern sich dadurch nicht – für die zählt weiter jede
+  Schranke, die nicht über dem Warnabstand liegt.
+- Gemessen (FreeCAD 1.1.3, mit dem Stand von V3e: 2 mm vor dem Futter): eine Lage
+  (1024 Stationen) 7,5 s → 2,1 s; zwei Lagen (4087 Stationen) 4,6 s, ohne Befund.
+  Vor P-50 lief dieselbe Prüfung über 20 Minuten.
+
+### TEST
+- `tests/test_kollision.py` in FreeCAD 1.1.3 und im Wochen-Build grün.
+- Alle Prüfungen (`scripts/tests_ausfuehren.sh`) auf dem Stand dieses Patches in 1.1.3 grün.
+
+### NEXT
+- V3e: Prüffenster ohne TCPM, G93, Hinweis zum radialen Werkzeug.
+
 ## P-2026-09-27-52 beispiel-drehmaschine-4achs
 
 ### EINGELESEN

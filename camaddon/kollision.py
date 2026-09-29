@@ -39,7 +39,8 @@ berühren oder einer im anderen steckt) – nur, wo es nötig ist: Sonst reicht
 eine Schranke nach unten, der Abstand der Hüllquader oder der zuletzt genau
 gerechnete minus dem Weg seither. Genau gerechnet wird ein Paar, wenn seine
 Schranke nicht über dem Warnabstand liegt (dann ist es vielleicht ein Befund)
-oder wenn es den nächsten Schritt kürzer macht als alle anderen. Stecken zwei in
+oder wenn es den nächsten Schritt kürzer macht als alle anderen – und der mit
+der Schranke nicht ohnehin bis zur nächsten Station reicht. Stecken zwei in
 einer Operation schon ineinander, rechnet es sie dort nicht weiter – schlimmer
 wird der Befund nicht.
 
@@ -579,11 +580,12 @@ class _Welt:
             if weg > 1e-9:
                 schritte[k] = [self._anteil(paar, abstand, weg), ist_genau]
         # Macht ein Paar den Schritt nur mit seiner Schranke am kürzesten, rechnet es genau –
-        # oft liegt es weiter weg, als die Schranke sagt. Befunde gibt es dabei keine mehr:
-        # Der genaue Abstand ist nie kleiner als die Schranke.
+        # oft liegt es weiter weg, als die Schranke sagt; außer der Schritt reicht auch so bis
+        # zur nächsten Station. Befunde gibt es dabei keine mehr: Der genaue Abstand ist nie
+        # kleiner als die Schranke.
         while schritte:
             k = min(schritte, key=lambda j: schritte[j][0])
-            if schritte[k][1]:
+            if schritte[k][1] or s + schritte[k][0] >= 1.0:
                 return schritte[k][0]
             abstand, _stelle = rechne_genau(k)
             schritte[k] = [self._anteil(paare[k], abstand, paarwege[k]), True]
