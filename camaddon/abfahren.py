@@ -74,8 +74,22 @@ class Abfahrt:
     stationen: list = field(default_factory=list)
     operationen: list = field(default_factory=list)
     hinweise: list = field(default_factory=list)
+    nullpunkt: object = None  # Vector von der Werkstückaufnahme zum Nullpunkt des Jobs
     _zeiten: list = field(default_factory=list, repr=False)
     _wirksam: list = field(default_factory=list, repr=False)
+    _kinematiken: dict = field(default_factory=dict, repr=False)
+
+    def kinematik(self, operation):
+        """Die Kinematik (kinematik.Kinematik) für das Werkzeug der Operation mit diesem
+        Index – Spitze und Achsen ineinander umrechnen."""
+        from .kinematik import Kinematik
+
+        if operation not in self._kinematiken:
+            op = self.operationen[operation]
+            self._kinematiken[operation] = Kinematik(
+                self.pruefung, op.aufnahme, op.laenge, self.nullpunkt
+            )
+        return self._kinematiken[operation]
 
     @property
     def dauer(self):
@@ -136,25 +150,27 @@ class Abfahrt:
                     return index
         return None
 
-    def am_werkstueck(self, nullpunkt_des_jobs):
+    def am_werkstueck(self):
         """Je Station, wo die Spitze am Werkstück steht, in Koordinaten des Jobs: ihr Punkt –
-        mit Rundachsen um sie gedreht (ohne TCPM, wie reichweite.Pruefung.loeser()). So zeigt
-        FreeCAD die Bahn: um das Teil herum, und sie dreht sich mit ihm."""
-        p = self.pruefung
+        mit Rundachsen um sie gedreht (ohne TCPM, kinematik.Kinematik.am_werkstueck). So
+        zeigt FreeCAD die Bahn: um das Teil herum, und sie dreht sich mit ihm."""
         ergebnis = []
         for i, station in enumerate(self.stationen):
             if not any(station.rund.values()) or station.stellungen is None:
                 ergebnis.append(station.punkt)
                 continue
-            op = self.operationen[station.operation]
-            wege = {
-                achse: p.verfahren.weg_bei(achse, stellung)
-                for achse, stellung in zip(self.achsen, self.wirksam(i), strict=True)
-                if stellung is not None
-            }
-            spitze = p._spitze(op.aufnahme, op.laenge, wege)
-            ergebnis.append(tuple(p._job_lage(nullpunkt_des_jobs, wege).inverse().multVec(spitze)))
+            ergebnis.append(self.kinematik(station.operation).am_werkstueck(self.stellungen_an(i)))
         return ergebnis
+
+    def spitze(self, index, stellungen):
+        """Wo die Spitze bei `stellungen` ({Achse: Stellung}, etwa so, wie die Maschine an
+        Station `index` wirklich steht) im Programm steht: {"X": …, "Y": …, "Z": …} und die
+        Rundachsen – für den Abspieler (4e)."""
+        kinematik = self.kinematik(self.stationen[index].operation)
+        x, y, z = kinematik.programm(stellungen)
+        werte = {"X": x, "Y": y, "Z": z}
+        werte.update(kinematik.rundachsen(stellungen))
+        return werte
 
     def _fertig(self):
         """Zeiten für die Suche und die wirksamen Stellungen je Station."""
@@ -179,7 +195,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     """
     if nullpunkt_des_jobs is None:
         nullpunkt_des_jobs = rw.nullpunkt(job)
-    ergebnis = Abfahrt(pruefung, achsen=[])
+    ergebnis = Abfahrt(pruefung, achsen=[], nullpunkt=nullpunkt_des_jobs)
     if pruefung.werkstueckaufnahme is None:
         return ergebnis
     vorbereitet = []

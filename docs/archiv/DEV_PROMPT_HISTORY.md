@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-10 spitze-tcp-kinematik
+
+### EINGELESEN
+- Manuel (2026-09-29): „x-60 ist ja unter der drehmitte was garnicht sein kann
+  ... das x-60 ist ja nur die maschinen koordinate .. nicht wenn nen fräser mit
+  dabei ist .. der TCP muss schon mit berechnet werden .. generell immer 😉 also
+  machs so das es auch tcp kann deine wegberechnung .. generell solltest du die
+  wegberechnung sehr sehr sehr extrem gut machen .. und am besten sehr variabel
+  so das man immer wieder neue sachen raus machen kann ... es muss einfach
+  genial gebaut sein das du das nicht jedes mal neu erfinden musst“.
+- `docs/spezifikation_simulation.md` (4e), `camaddon/reichweite.py`,
+  `camaddon/abfahren.py`, `camaddon/gui_abfahren.py`, `camaddon/vierachs_bahn.py`.
+
+### DATEIEN
+- `camaddon/kinematik.py` (neu), `camaddon/abfahren.py`, `camaddon/gui_abfahren.py`,
+  `camaddon/reichweite.py`, `translations/de.json`, `translations/en.json`,
+  `help/de/reichweite.html`, `help/en/reichweite.html`, `tests/test_kinematik.py`
+  (neu), `tests/test_reichweite.py`, `tests/test_vierachs_pruefen.py`,
+  `tests/gui/szenario_abfahren.py`, `tests/gui/szenario_vierachs_schruppen.py`,
+  `docs/spezifikation_simulation.md`, `docs/aufbau.md`, `CHATSTART.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Das Prüffenster sagt, wo die Werkzeugspitze steht – im Abspieler als „Spitze im
+Programm: X …“ und an jeder Überschreitung einer Linearachse, wo die Spitze an
+der Grenze stünde –, gerechnet an einer Stelle (`kinematik.py`).
+
+### DONE
+- `kinematik.Kinematik` (ein Werkzeug auf einer Maschine, Nullpunkt des Jobs):
+  `stellungen()` rückwärts, `programm()` und `am_werkstueck()` vorwärts,
+  `rundachsen()`; ohne TCPM wie bisher (Rundachsen auf 0 gelöst).
+- `Abfahrt` kennt den Nullpunkt und je Operation ihre Kinematik;
+  `am_werkstueck()` (die Bahn im Bild) rechnet damit, `spitze()` für den
+  Abspieler.
+- Abspieler: Zeile „Spitze im Programm: X 50, Y 0, Z 18“; am Anschlag rot
+  dahinter „– soll: X 100, Y 0, Z 18“.
+- Überschreitungen einer Linearachse: „… An der Grenze stünde die Spitze von
+  T1 bei X −50, Y 0, Z 18.“
+- TCPM wählbar zurückgestellt (Spezifikation 4e): „Rundum schruppen“ schreibt
+  für eine Steuerung ohne TCPM; mit TCPM bräuchte es eine eigene Ausgabe.
+
+### TEST
+- Neu `test_kinematik` (Fräse hin und zurück, X1 an der Grenze → X 250;
+  Drehmaschine mit C: programm = Punkt, am Werkstück um −C gedreht).
+- `test_reichweite` (Satz mit der Spitze), `test_vierachs_pruefen`,
+  `test_abfahren`, `test_sprache`, `test_hilfe`.
+- `szenario_abfahren` (Spitze auf der Geraden, am Anschlag mit „soll“, der
+  Satz an der Überschreitung), `szenario_vierachs_schruppen` (Spitze mit C);
+  `szenario_reichweite`, `szenario_kollision` in 1.1.3 und im Wochen-Build.
+
+### NEXT
+- V3g: Rohteil und Fertigteil in der Simulation.
+
 ## P-2026-09-29-09 vierachs-maschine-zuerst
 
 ### EINGELESEN

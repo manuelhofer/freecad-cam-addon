@@ -166,6 +166,13 @@ def schritte(h):
         yield 500
         h.pruefe(mitte.rund.get("C", 0.0) < -90, f"C mitten in der Lage: {mitte.rund}")
         h.pruefe("C1" in spieler.achswerte.text(), f"Achswerte: {spieler.achswerte.text()!r}")
+        spitze = spieler.spitze.text()
+        h.pruefe(
+            spitze.startswith("Spitze im Programm: X ")
+            and ", C −" in spitze
+            and "soll" not in spitze,
+            f"Spitze: {spitze!r}",
+        )
         h.bild("3_abfahren_c_gedreht")
         h.bild("3b_pruefen_fenster", pruef.form)
         k = pruef.kollision

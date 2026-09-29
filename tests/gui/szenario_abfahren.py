@@ -10,7 +10,8 @@
 # zum Ende und hält an; „Punkt zurück“ geht eine Station zurück; die zweite
 # Operation anwählen springt an ihren Anfang. Mit Nullpunkt X 300 fährt X1 über
 # die Grenze: Ein Klick auf den Satz stellt den Abspieler an die Stelle, X1 steht
-# rot „am Anschlag“. Schließen nimmt die Körper aus der Ansicht und fährt
+# rot „am Anschlag“; unter den Achsen steht, wo die Spitze im Programm steht und wo sie
+# hin sollte (4e). Schließen nimmt die Körper aus der Ansicht und fährt
 # zurück. Das Werkzeug T1 (Ø 5, 50 mm) steht in der Werkzeugverwaltung mit einem
 # Halter ER16 (70 mm, 20 gespannt): Gerechnet wird mit 100 mm, der Hinweis sagt
 # es, und in der Ansicht steckt es in seinem Halter.
@@ -162,6 +163,11 @@ def schritte(h):
         spieler.achswerte.text().count("mm") == 3 and "Anschlag" not in spieler.achswerte.text(),
         f"Achswerte: {spieler.achswerte.text()!r}",
     )
+    # Darunter die Spitze im Programm (4e): genau der Punkt der Bahn.
+    h.pruefe(
+        spieler.spitze.text() == "Spitze im Programm: X 50, Y 0, Z 18",
+        f"Spitze: {spieler.spitze.text()!r}",
+    )
     nah()
     yield 300
     h.bild("2_auf_der_geraden")
@@ -209,6 +215,17 @@ def schritte(h):
     h.pruefe(
         "X1 −250,00 mm (am Anschlag)" in spieler.achswerte.text(),
         f"Achswerte: {spieler.achswerte.text()!r}",
+    )
+    # Die Spitze steht, wo X1 am Anschlag sie hinbringt – rot dahinter, wo sie hin sollte;
+    # die Überschreitung sagt dasselbe als Satz.
+    spitze_text = spieler.spitze.text()
+    h.pruefe(
+        spitze_text.startswith("Spitze im Programm: X ") and "– soll: X " in spitze_text,
+        f"Spitze am Anschlag: {spitze_text!r}",
+    )
+    h.pruefe(
+        "An der Grenze stünde die Spitze von T1 bei X " in panel.liste.item(0).text(),
+        f"Überschreitung: {panel.liste.item(0).text()!r}",
     )
     nah()
     yield 300

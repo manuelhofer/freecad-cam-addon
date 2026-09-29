@@ -93,10 +93,16 @@ class Ueberschreitung:
     grenze: float  # die Grenze, über die sie müsste
     punkt: dict  # der Punkt im Programm: {"X": …, "Y": …, "Z": …}, dazu A/B/C ≠ 0
     stellungen: dict  # Achse -> Stellung: so stünde die Maschine an dieser Stelle
+    # Wo die Spitze an der Grenze stünde, im Programm wie `punkt` – bei Linearachsen (4e);
+    # dazu das Werkzeug („T1“).
+    an_grenze: dict = None
+    werkzeug: str = ""
 
     def text(self):
-        """„X1 fährt in „Tasche“ bis 312,00 mm, die Grenze ist 250,00 mm (bei X 450, Y 0, Z −5).“"""
-        return tr(
+        """„X1 fährt in „Tasche“ bis 312,00 mm, die Grenze ist 250,00 mm (bei X 450, Y 0, Z −5).
+        An der Grenze stünde die Spitze von T1 bei X 388, Y 0, Z −5.“ – so ist klar, dass X1
+        der Schlitten ist und wie weit das Werkzeug reicht (Manuel, 2026-09-29)."""
+        text = tr(
             "rw.ueberschreitung",
             achse=self.name,
             operation=self.operation,
@@ -104,6 +110,13 @@ class Ueberschreitung:
             grenze=stellung_text(self.achse, self.grenze),
             punkt=punkt_text(self.punkt),
         )
+        if self.an_grenze is not None:
+            text += " " + tr(
+                "rw.ueberschreitung.spitze",
+                werkzeug=self.werkzeug,
+                punkt=punkt_text(self.an_grenze),
+            )
+        return text
 
 
 @dataclass
@@ -741,8 +754,10 @@ class Pruefung:
                 )
             )
         loesung = self.loeser(aufnahme, laenge, nullpunkt_des_jobs)
+        from .kinematik import Kinematik
 
-        sammler.beginne(op.Label, linear, drehachsen)
+        kinematik = Kinematik(self, aufnahme, laenge, nullpunkt_des_jobs)
+        sammler.beginne(op.Label, linear, drehachsen, kinematik, f"T{nummer}")
         vorhanden = {_programmbuchstabe(self.maschine, a) for a in drehachsen} - {None}
         fremd = set()  # Rundachsen, um die das Programm dreht, die Maschine aber nicht hat
         for schritt in _bahn(op.Path.Commands, sammler.unbekannt):
@@ -822,6 +837,7 @@ class _Sammler:
         self._punkte_hier = 0
         self._erster_unerreichbarer = None
         self._unbekannt = set()
+        self._werkzeuge = {}  # Nummer der Operation -> (Kinematik, „T1“)
 
     def hinweis(self, satz):
         if satz not in self._hinweise:
@@ -865,8 +881,11 @@ class _Sammler:
             self._unbekannt.add(befehl)
             self.hinweis(tr("rw.befehl", operation=self.operation, befehl=befehl))
 
-    def beginne(self, operation, linear, drehachsen):
+    def beginne(self, operation, linear, drehachsen, kinematik=None, werkzeug=""):
+        """Die Punkte einer neuen Operation kommen; `kinematik` (kinematik.Kinematik) sagt
+        später, wo die Spitze an einer Grenze stünde."""
         self._nummer += 1
+        self._werkzeuge[self._nummer] = (kinematik, werkzeug)
         self.operation = operation
         self._linear = linear
         self._rund = [a for a in drehachsen if _begrenzt_pruefen(self.pruefung.maschine, a)]
@@ -941,15 +960,33 @@ class _Sammler:
             return achse.art != LINEAR, vf.namen(maschine, achse)
 
         # Nach Operation (wie im Job), dann Achse, erst die untere Grenze.
-        self.ergebnis.ueberschreitungen = [
-            self._weitester[k]
-            for k in sorted(self._weitester, key=lambda k: (k[0], reihenfolge(k[1]), k[2] != "min"))
-        ]
+        schluessel = sorted(self._weitester, key=lambda k: (k[0], reihenfolge(k[1]), k[2] != "min"))
+        for nummer, achse, _seite in schluessel:
+            kinematik, werkzeug = self._werkzeuge.get(nummer, (None, ""))
+            if kinematik is not None and achse.art == LINEAR:
+                _an_grenze_rechnen(self._weitester[(nummer, achse, _seite)], kinematik, werkzeug)
+        self.ergebnis.ueberschreitungen = [self._weitester[k] for k in schluessel]
         self.ergebnis.bereiche = [
             Bereich(a, vf.namen(maschine, a), von, bis)
             for a, (von, bis) in sorted(self._bereich.items(), key=lambda e: reihenfolge(e[0]))
         ]
         self.ergebnis.hinweise = list(self._hinweise)
+
+
+def _an_grenze_rechnen(ueberschreitung, kinematik, werkzeug):
+    """Trägt ein, wo die Spitze an der Grenze stünde – die Achse auf der Grenze, alle
+    anderen wie an der Stelle der Überschreitung."""
+    stellungen = dict(ueberschreitung.stellungen)
+    stellungen[ueberschreitung.achse] = ueberschreitung.grenze
+    try:
+        x, y, z = kinematik.programm(stellungen)
+    except Exception as fehler:  # eine halb eingerichtete Maschine soll nicht stören
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Spitze an der Grenze: {fehler}\n")
+        return
+    punkt = {b: w for b, w in ueberschreitung.punkt.items() if b in RUNDACHSEN}
+    punkt.update({"X": x, "Y": y, "Z": z})
+    ueberschreitung.an_grenze = punkt
+    ueberschreitung.werkzeug = werkzeug
 
 
 def _begrenzt_pruefen(maschine, achse):

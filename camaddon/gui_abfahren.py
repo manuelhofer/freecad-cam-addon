@@ -78,7 +78,7 @@ class Bild:
         rohteil = getattr(getattr(job, "Stock", None), "Shape", None)
         if rohteil is not None and not rohteil.isNull():
             werkstueck.addChild(self._flaechen(rohteil, ROHTEIL, 0.75))
-        werkstueck.addChild(self._bahnlinien(abfahrt, nullpunkt))
+        werkstueck.addChild(self._bahnlinien(abfahrt))
         self.wurzel.addChild(werkstueck)
 
         werkzeug = coin.SoSeparator()
@@ -227,7 +227,7 @@ class Bild:
         teil.addChild(flaechen)
         return teil
 
-    def _bahnlinien(self, abfahrt, nullpunkt):
+    def _bahnlinien(self, abfahrt):
         """Die Bahn als Linien in Koordinaten des Jobs, am Werkstück (mit Rundachsen um das
         Teil herum): Vorschub blau, Eilgang rot."""
         coin = self._coin
@@ -235,7 +235,7 @@ class Bild:
         stil = coin.SoDrawStyle()
         stil.lineWidth = 2
         teil.addChild(stil)
-        punkte = abfahrt.am_werkstueck(nullpunkt)
+        punkte = abfahrt.am_werkstueck()
         koordinaten = coin.SoCoordinate3()
         koordinaten.point.setValues(0, len(punkte), punkte)
         teil.addChild(koordinaten)
@@ -336,6 +336,13 @@ class Abspieler(QtGui.QWidget):
         self.achswerte.setWordWrap(True)
         self.achswerte.setTextFormat(QtCore.Qt.RichText)
         aufbau.addWidget(self.achswerte)
+        # Wo die Werkzeugspitze im Programm steht (4e, Manuel: „der TCP muss schon mit
+        # berechnet werden .. generell immer“) – die Achsen oben sind die Schlitten.
+        self.spitze = QtGui.QLabel()
+        self.spitze.setWordWrap(True)
+        self.spitze.setTextFormat(QtCore.Qt.RichText)
+        self.spitze.setToolTip(tr("ab.spitze.tooltip"))
+        aufbau.addWidget(self.spitze)
         self.hinweise = QtGui.QLabel()
         self.hinweise.setWordWrap(True)
         self.hinweise.setStyleSheet(f"color: {GRAU.name()};")
@@ -494,6 +501,7 @@ class Abspieler(QtGui.QWidget):
         if abfahrt is None or not abfahrt.stationen:
             self.stelle.setText(tr("ab.keine_bahn"))
             self.achswerte.setVisible(False)
+            self.spitze.setVisible(False)
             return
         station = abfahrt.stationen[self.laufend()]
         op = abfahrt.operationen[station.operation]
@@ -531,3 +539,26 @@ class Abspieler(QtGui.QWidget):
         # Leer, solange die Maschine nicht auf der Bahn steht (vor dem ersten Abspielen).
         self.achswerte.setText(" · ".join(teile))
         self.achswerte.setVisible(bool(teile))
+        self.spitze.setText(self._spitze_text(station, werte))
+        self.spitze.setVisible(bool(self.spitze.text()))
+
+    def _spitze_text(self, station, werte):
+        """„Spitze: X 16, Y 0, Z −28, C −3900“ – wo die Werkzeugspitze im Programm steht, so
+        wie die Maschine wirklich steht (höchstens an der Grenze). Hält eine Achse am
+        Anschlag, dazu, wo sie hin sollte."""
+        if not werte:
+            return ""
+        pruefung = self.abfahrt.pruefung
+        wirklich = {achse: pruefung.verfahren.begrenzt(achse, w) for achse, w in werte.items()}
+        try:
+            spitze = self.abfahrt.spitze(self.laufend(), wirklich)
+        except Exception as fehler:  # eine halb eingerichtete Maschine soll nicht stören
+            FreeCAD.Console.PrintLog(f"CAM-Addon: Spitze: {fehler}\n")
+            return ""
+        text = html.escape(tr("ab.spitze", punkt=rw.punkt_text(spitze)))
+        if self.angehalten:
+            soll = rw.punkt_text(rw._programmpunkt(station.punkt, station.rund))
+            text += (
+                f" <span style='color:{ROT}'>{html.escape(tr('ab.spitze_soll', punkt=soll))}</span>"
+            )
+        return text

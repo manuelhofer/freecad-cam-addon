@@ -5,7 +5,8 @@
 # brauchen, und dass mit der Länge des CAM-Werkzeugs gerechnet wurde. In den
 # Feldern des Nullpunkts steht grau der Vorschlag (−50, −30, 1). X 300
 # eintragen: rot „X1 fährt in „Eigene“ bis −470,00 mm, die Grenze ist
-# −250,00 mm (bei X 170, Y 40, Z −5).“ Ein Klick darauf fährt die Maschine:
+# −250,00 mm (bei X 170, Y 40, Z −5). An der Grenze stünde die Spitze von T1 bei
+# X −50, Y 40, Z −5.“ (4e) Ein Klick darauf fährt die Maschine:
 # X1 steht an −250. Schließen fährt alles zurück, zeigt wieder das Teil, und
 # der Job merkt sich X 300; beim nächsten Öffnen steht 300 im Feld. Leeren und
 # schließen – der Eintrag ist wieder weg.
@@ -99,7 +100,8 @@ def schritte(h):
         saetze
         == [
             "X1 fährt in „Eigene“ bis −470,00 mm, die Grenze ist −250,00 mm "
-            "(bei X 170, Y 40, Z −5)."
+            "(bei X 170, Y 40, Z −5). An der Grenze stünde die Spitze von T1 bei "
+            "X −50, Y 40, Z −5."
         ],
         f"Überschreitungen: {saetze}",
     )

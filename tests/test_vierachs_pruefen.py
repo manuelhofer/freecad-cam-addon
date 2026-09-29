@@ -92,7 +92,7 @@ gedreht = [
 ]
 pruefe(len(gedreht) > 100, f"Stationen mit C: {len(gedreht)}")
 # Am Werkstück (so zeigt das Fenster die Bahn): der Punkt um −C gedreht, wie in FreeCAD.
-am_teil = fahrt.am_werkstueck(nullpunkt)
+am_teil = fahrt.am_werkstueck()
 for i in gedreht[:: max(1, len(gedreht) // 7)]:
     station = fahrt.stationen[i]
     ohne = p.stellungen(station.punkt, aufnahme, laenge, nullpunkt)

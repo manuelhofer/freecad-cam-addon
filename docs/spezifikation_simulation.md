@@ -289,6 +289,18 @@ raus machen kann“)
   Spitze am gedrehten Werkstück – die Linearachsen werden je Stellung der
   Rundachsen gelöst; ohne sie (Vorgabe, wie FreeCAD die Bahn zeigt) mit den
   Rundachsen auf 0.
+- *Gebaut (P-2026-09-29-10):* `kinematik.py` mit `Kinematik` –
+  `stellungen()` (rückwärts, wie `Pruefung.loeser`), `programm()` (vorwärts:
+  wo die Spitze im Programm steht), `am_werkstueck()` (am gedrehten Teil),
+  `rundachsen()`. Die Bahn im Prüffenster (`Abfahrt.am_werkstueck`), die
+  Zeile „Spitze im Programm: X …, C …“ im Abspieler (rot „– soll: …“, wenn eine
+  Achse am Anschlag steht) und der Satz „An der Grenze stünde die Spitze von T1
+  bei X …“ an jeder Überschreitung einer Linearachse rechnen damit.
+  *Zurückgestellt:* TCPM wählbar – „Rundum schruppen“ schreibt sein Programm
+  für eine Steuerung ohne TCPM (X ist der Radius, die Rundachse dreht das Teil
+  darunter); mit TCPM läse die Steuerung dasselbe Programm anders. Das geht erst
+  zusammen mit einer Ausgabe für TCPM – Frage an Manuel, ob seine Steuerung
+  TRAORI/RTCP nutzt.
 
 **4d – Bearbeitungszeit**
 - Je Satz die Zeit mit Eilgang bzw. Vorschub, begrenzt durch die

@@ -50,10 +50,12 @@ hat, sonst mit dem, was „Schnittwerte in den Job“ vorschlägt.</li>
 <ul>
 <li><b>Alle Achsen bleiben in ihren Grenzen.</b> – grün, alles passt.</li>
 <li>Sonst je Operation und Achse ein Satz, etwa „X1 fährt in „Tasche“ bis
-312,00 mm, die Grenze ist 250,00 mm (bei X 450, Y 0, Z −5).“ In Klammern der
-Punkt im Programm. <b>Ein Klick</b> auf den Satz fährt die Maschine an diese
-Stelle – die Achse steht dann an ihrer Grenze, so weit, wie sie wirklich
-kommt.</li>
+312,00 mm, die Grenze ist 250,00 mm (bei X 450, Y 0, Z −5). An der Grenze
+stünde die Spitze von T1 bei X 388, Y 0, Z −5.“ In Klammern der Punkt im
+Programm; der zweite Satz sagt, wie weit die <b>Werkzeugspitze</b> kommt – die
+Achse selbst ist der Schlitten, mit Werkzeug liegt die Spitze woanders.
+<b>Ein Klick</b> auf den Satz fährt die Maschine an diese Stelle – die Achse
+steht dann an ihrer Grenze, so weit, wie sie wirklich kommt.</li>
 <li>Grau darunter je Achse, was die Bahn braucht und was die Grenzen
 erlauben – so sieht man auch, wie viel Luft bleibt.</li>
 <li>Grau die <b>Hinweise</b>: womit für die Werkzeuglänge gerechnet wurde,
@@ -100,6 +102,11 @@ Bahn der Operation, mit den Kommentaren, die FreeCAD hineinschreibt), die Zeit
 seit Beginn und die ganze Zeit, dann die Stellung jeder Achse. Kommt eine
 Achse nicht weiter, bleibt sie an ihrer Grenze stehen und steht rot <b>am
 Anschlag</b>.</li>
+<li>Darunter die <b>Spitze im Programm</b>: wo die Werkzeugspitze gerade
+steht, in X, Y, Z wie im NC-Programm, dazu die Rundachsen („Spitze im Programm:
+X 16, Y 0, Z −28, C −3900“). Die Achsen darüber sind die Schlitten – das hier
+ist, was das Werkzeug tut. Steht eine Achse am Anschlag, steht rot dahinter,
+wo die Spitze hin sollte („– soll: X 100, Y 0, Z 18“).</li>
 <li>Ein Klick auf eine Überschreitung stellt auch den Abspieler dorthin –
 von da aus lässt sich weiter abspielen.</li>
 </ul>

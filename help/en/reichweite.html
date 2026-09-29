@@ -48,9 +48,12 @@ from, otherwise what “Cutting data into the job” suggests.</li>
 <ul>
 <li><b>All axes stay within their limits.</b> – green, all is well.</li>
 <li>Otherwise one sentence per operation and axis, such as “X1 travels to
-312.00 mm in “Pocket”; the limit is 250.00 mm (at X 450, Y 0, Z −5).” In
-brackets the point in the program. <b>Click</b> the sentence and the machine
-moves there – the axis stops at its limit, as far as it really gets.</li>
+312.00 mm in “Pocket”; the limit is 250.00 mm (at X 450, Y 0, Z −5). At the
+limit the tip of T1 would be at X 388, Y 0, Z −5.” In brackets the point in the
+program; the second sentence says how far the <b>tool tip</b> gets – the axis
+itself is the slide, with a tool the tip is elsewhere. <b>Click</b> the
+sentence and the machine moves there – the axis stops at its limit, as far as
+it really gets.</li>
 <li>In grey below, per axis, what the path needs and what the limits allow –
 so you also see how much room is left.</li>
 <li>In grey the <b>notes</b>: which tool length was used, points the tool
@@ -94,6 +97,11 @@ follows.</li>
 operation's path, including the comments FreeCAD writes into it), the time so
 far and the whole time, then the position of every axis. If an axis cannot go
 further, it stops at its limit and shows in red <b>at its limit</b>.</li>
+<li>Below that the <b>tip in the program</b>: where the tool tip is right now,
+in X, Y, Z as in the NC program, plus the rotary axes (“Tip in the program:
+X 16, Y 0, Z −28, C −3900”). The axes above are the slides – this is what the
+tool does. If an axis is at its stop, red text behind says where the tip should
+be (“– should be: X 100, Y 0, Z 18”).</li>
 <li>Clicking an overrun also sets the player there – you can play on from
 that point.</li>
 </ul>

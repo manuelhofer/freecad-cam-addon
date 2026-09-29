@@ -130,7 +130,10 @@ e = p.pruefe_job(job, FreeCAD.Vector())
 pruefe(not e.in_grenzen(), "X 400 bleibt in den Grenzen?")
 pruefe(
     texte(e)
-    == ["X1 fährt in „Eigene“ bis −400.00 mm, die Grenze ist −250.00 mm (bei X 400, Y 0, Z 10)."],
+    == [
+        "X1 fährt in „Eigene“ bis −400.00 mm, die Grenze ist −250.00 mm (bei X 400, Y 0, Z 10). "
+        "An der Grenze stünde die Spitze von T1 bei X 250, Y 0, Z 10."
+    ],
     f"Überschreitung: {texte(e)}",
 )
 u = e.ueberschreitungen[0]
