@@ -617,6 +617,16 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   offenen Maschinen, die gemerkte (D-20, wird geöffnet) oder „ohne Maschine“.
   Die Rundachse folgt daraus; darunter ein Satz, was die Maschine kann
   („Rundachse C, Y-Achse, Revolver mit 12 Plätzen“).
+  *Gebaut (P-2026-09-29-09):* gleich unter „Teil“ die Liste „Maschine“ –
+  offene Maschinen (vorgewählt die erste mit einer Rundachse für die Stange),
+  die zuletzt benutzte als „„…“ öffnen (zuletzt benutzt)“ (öffnet sich beim
+  Wählen, die Ansicht bleibt beim Teil), eine ohne passende Rundachse grau,
+  „ohne Maschine“. Darunter „Linearachsen X1, Y1, Z1 · Rundachse für die
+  Stange: C · 12 Werkzeugplätze“; die Liste „Rundachse“ zeigt nur die
+  Achsen der gewählten Maschine (eine: nicht wählbar), ohne Maschine A, B, C.
+  Der Job merkt sich die Maschine (wie D-20), „Auf der Maschine prüfen“ nimmt
+  sie. Beim Ändern steht die Maschine gewählt, deren Achse die Operation
+  hat.
 - **Überlauf:** Die Spirale läuft hinter das Teil, bis der Fräser es ganz
   verlassen hat: Überlauf = Fräserradius + 0,5 mm (Vorschlag). Im Überlauf
   bleibt die Spitze auf der Tiefe des letzten Stücks Kontur – die Kante hinten

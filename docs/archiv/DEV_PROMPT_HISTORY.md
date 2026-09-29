@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-29-09 vierachs-maschine-zuerst
+
+### EINGELESEN
+- Manuel (2026-09-29): „vll sollte man als erstes die abfrage machen ‚hey was
+  hast du für ne maschine‘ nachdem man ausgewählt hat was man bearbeiten will
+  ... wie gesagt der prozess soll extrem einfach werden .. für den anwender“.
+- `docs/spezifikation_vierachs.md` (V3f), `camaddon/gui_vierachs.py`,
+  `camaddon/vierachs_achsen.py`, `camaddon/gui_reichweite.py`
+  (`offene_maschinen`, `oeffne_datei`, `zeige_dokument`),
+  `camaddon/reichweite.py` (D-20: `gemerkte_maschine`, `merke_maschine`).
+
+### DATEIEN
+- `camaddon/vierachs_achsen.py` (`Maschinenwahl`, `maschinen()`; `offene()`
+  entfällt – `maschinen()` ersetzt sie), `camaddon/gui_vierachs.py`,
+  `translations/de.json`, `translations/en.json`, `help/de/vierachs.html`,
+  `help/en/vierachs.html`, `tests/test_vierachs_achsen.py`,
+  `tests/gui/szenario_vierachs_maschine.py`, `docs/spezifikation_vierachs.md`,
+  `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In Schritt 1 steht gleich unter dem Teil „Maschine“ mit der offenen Maschine
+vorgewählt und einem Satz, was sie kann; die Rundachse folgt aus ihr.
+
+### DONE
+- Liste „Maschine“: offene Maschinen (vorgewählt die erste mit einer Rundachse
+  für die Stange), die zuletzt benutzte zum Öffnen (D-20; die Ansicht bleibt
+  beim Teil), eine ohne passende Rundachse grau, „ohne Maschine“.
+- Darunter grau: „Linearachsen X1, Y1, Z1 · Rundachse für die Stange: C ·
+  12 Werkzeugplätze“ – ohne Maschine, wie A, B und C liegen.
+- „Rundachse“ zeigt nur die Achsen der gewählten Maschine (eine: nicht
+  wählbar), ohne Maschine A, B, C; die Einträge ohne Maschinennamen und ohne
+  „(ohne Maschine)“ – das steht jetzt darüber.
+- Der Job merkt sich die gewählte Maschine (gespeichert), „Auf der Maschine
+  prüfen“ nimmt sie. Beim Ändern steht die Maschine gewählt, deren Achse die
+  Operation hat; A/B/C als zuletzt gewählte nur ohne Maschine gemerkt.
+
+### TEST
+- `test_vierachs_achsen` (`maschinen()`: Name, C, X1/Y1/Z1, 12 Plätze).
+- `szenario_vierachs_maschine` (Maschine vorgewählt, der Satz, C nicht
+  wählbar; A → ohne Maschine; gespeichert, geschlossen, „„drehmaschine“ öffnen
+  (zuletzt benutzt)“ → offen, C, die Welle bleibt vorn); dazu die anderen
+  4-Achs-Szenarien in 1.1.3 und im Wochen-Build; `test_sprache`, `test_hilfe`.
+
+### NEXT
+- 4e: Kinematik-Kern, Spitze im Abspieler, TCPM wählbar.
+
 ## P-2026-09-29-08 vierachs-kugel-torus-hinweis
 
 ### EINGELESEN

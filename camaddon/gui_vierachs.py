@@ -105,15 +105,14 @@ def _achstexte():
 
 
 def achstext(achse):
-    """Der Eintrag der Liste „Rundachse“ für eine Stangenachse (vierachs_achsen)."""
-    if not achse.maschine:
+    """Der Eintrag der Liste „Rundachse“ für eine Stangenachse (vierachs_achsen) – die
+    Maschine steht darüber in ihrer eigenen Liste."""
+    if not achse.maschine and gleich(achse.laengs, vr.ACHSEN[achse.buchstabe][0]):
         return _achstexte()[achse.buchstabe]
     richtung = va.achsbuchstabe(achse.laengs)
     if not richtung:
-        return tr("va.achse.maschine_schraeg", maschine=achse.maschine, buchstabe=achse.buchstabe)
-    return tr(
-        "va.achse.maschine", maschine=achse.maschine, buchstabe=achse.buchstabe, richtung=richtung
-    )
+        return tr("va.achse.der_maschine_schraeg", buchstabe=achse.buchstabe)
+    return tr("va.achse.der_maschine", buchstabe=achse.buchstabe, richtung=richtung)
 
 
 def gewaehlte_flaeche(dokument):
@@ -205,6 +204,13 @@ def job_von(operation):
         if operation in js.operationen(job):
             return job
     return None
+
+
+def _gleiche_achse(a, b):
+    """Rechnen zwei Stangenachsen gleich (Buchstabe, Richtung, Drehsinn, Querachse)?"""
+    return (a.buchstabe, a.drehsinn, a.quer) == (b.buchstabe, b.drehsinn, b.quer) and gleich(
+        a.laengs, b.laengs
+    )
 
 
 def _gleiche_stange(a, b):
@@ -458,9 +464,8 @@ class VierachsPanel:
         self.vermessung, self.mitte = einstellung.vermessung, einstellung.mitte
         stange, laenge = einstellung.stange, einheiten.LAENGE
         self._fuellt = True
-        self.wahl_achse.blockSignals(True)
         try:
-            self.wahl_achse.setCurrentIndex(self._index_der_achse(self._achse_fest))
+            self._achse_waehlen(self._achse_fest)
             self._achse_fest = None
             self.feld_stange.setText(groesse_zeigen(stange.durchmesser, laenge))
             self.feld_drehlage.setText(zahl_zeigen(einstellung.drehlage))  # 0: leer
@@ -471,7 +476,6 @@ class VierachsPanel:
             ):
                 self.felder_laenge[feld].setText(groesse_zeigen(wert, laenge) or "0")
         finally:
-            self.wahl_achse.blockSignals(False)
             self._fuellt = False
         self.lage = vr.lage(
             self.vermessung, self.achse(), self.mitte, einstellung.drehlage, stange.durchmesser
@@ -481,19 +485,25 @@ class VierachsPanel:
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
 
-    def _index_der_achse(self, achse):
-        """Der Eintrag der Liste „Rundachse“ für `achse` – Buchstabe, Richtung, Drehsinn und
-        Querachse gleich; fehlt er (die Maschine ist nicht offen), kommt er dazu."""
-        for i, kandidat in enumerate(self._achsen):
-            if (kandidat.buchstabe, kandidat.drehsinn, kandidat.quer) == (
-                achse.buchstabe,
-                achse.drehsinn,
-                achse.quer,
-            ) and gleich(kandidat.laengs, achse.laengs):
-                return i
+    def _achse_waehlen(self, achse):
+        """Beim Ändern: Maschine und Rundachse, mit denen die Operation rechnet – Buchstabe,
+        Richtung, Drehsinn und Querachse gleich. Findet sich keine (die Maschine ist nicht
+        offen), gilt „ohne Maschine“ mit der Achse der Operation als eigenem Eintrag."""
+        ohne = [va.zugewiesen(b) for b in _achstexte()]
+        for i, eintrag in enumerate(self._maschinen):
+            if isinstance(eintrag, str):
+                continue
+            kandidaten = eintrag.achsen if eintrag is not None else ohne
+            j = next((j for j, k in enumerate(kandidaten) if _gleiche_achse(k, achse)), -1)
+            if j >= 0:
+                self._waehle_maschine_ohne_signal(i)
+                self.wahl_achse.setCurrentIndex(j)
+                return
+        self._waehle_maschine_ohne_signal(len(self._maschinen) - 1)
         self._achsen.append(achse)
         self.wahl_achse.addItem(achstext(achse))
-        return len(self._achsen) - 1
+        self.wahl_achse.setCurrentIndex(len(self._achsen) - 1)
+        self.wahl_achse.setEnabled(True)
 
     def _werte_der_operation(self):
         """Zustellung, Vorschub je Umdrehung und Aufmaß der Operation in die Felder – leer,
@@ -568,6 +578,7 @@ class VierachsPanel:
         # Job und Stange: ein Schritt Rückgängig. Das Schruppen kommt in einem eigenen
         # (_schruppen_anlegen) – in einen gemeinsamen lässt FreeCAD es nicht (_im_befehl).
         self._anzeige_wie_in_cam()
+        self._maschine_merken()
         self.doc.commitTransaction()
         self._rohteil_fest = True
         if schruppen and not self._schruppen_anlegen():
@@ -672,6 +683,30 @@ class VierachsPanel:
         raster.addWidget(self.teil_text, zeile, 1, 1, 2)
         zeile += 1
 
+        # Maschine zuerst (Manuel, 2026-09-29: „vll sollte man als erstes die abfrage machen
+        # ‚hey was hast du für ne maschine‘“): Sie gibt die Rundachse vor (V2a, V3f).
+        self.wahl_maschine = QtGui.QComboBox()
+        self.wahl_maschine.setToolTip(tr("va.maschine.tooltip"))
+        raster.addWidget(beschriftung(tr("va.maschine"), tr("va.maschine.tooltip")), zeile, 0)
+        raster.addWidget(self.wahl_maschine, zeile, 1, 1, 2)
+        zeile += 1
+        self.maschine_text = self._grau()
+        self.maschine_text.setWordWrap(True)
+        raster.addWidget(self.maschine_text, zeile, 1, 1, 2)
+        zeile += 1
+        self.wahl_achse = QtGui.QComboBox()
+        self.wahl_achse.setToolTip(tr("va.rundachse.tooltip"))
+        raster.addWidget(beschriftung(tr("va.rundachse"), tr("va.rundachse.tooltip")), zeile, 0)
+        raster.addWidget(self.wahl_achse, zeile, 1, 1, 2)
+        zeile += 1
+        self._maschinen_fuellen()
+        self.wahl_maschine.currentIndexChanged.connect(
+            lambda _i: None if self._fuellt else self._maschine_gewaehlt()
+        )
+        self.wahl_achse.currentIndexChanged.connect(
+            lambda _i: None if self._fuellt else self.waehle_rundachse()
+        )
+
         self.feld_stange = self._zahlenfeld(tr("va.stange.tooltip"))
         raster.addWidget(beschriftung(tr("va.stange"), tr("va.stange.tooltip")), zeile, 0)
         raster.addWidget(
@@ -724,23 +759,6 @@ class VierachsPanel:
             zeile += 1
         self.laenge_text = self._grau()
         raster.addWidget(self.laenge_text, zeile - 1, 2)
-
-        # Erst die Rundachsen der offenen Maschinen – die gibt die Maschine vor (V2a) –,
-        # dann A, B, C ohne Maschine.
-        self._achsen = va.offene(self.doc) + [va.zugewiesen(b) for b in _achstexte()]
-        self.wahl_achse = QtGui.QComboBox()
-        for achse in self._achsen:
-            self.wahl_achse.addItem(achstext(achse))
-        if self._achsen[0].maschine:
-            self.wahl_achse.setCurrentIndex(0)
-        else:
-            gemerkt = _parameter().GetString(GEMERKT_RUNDACHSE, vr.RUNDACHSE)
-            self.wahl_achse.setCurrentIndex(max(0, self._index_ohne_maschine(gemerkt)))
-        self.wahl_achse.setToolTip(tr("va.rundachse.tooltip"))
-        self.wahl_achse.currentIndexChanged.connect(lambda _i: self.waehle_rundachse())
-        raster.addWidget(beschriftung(tr("va.rundachse"), tr("va.rundachse.tooltip")), zeile, 0)
-        raster.addWidget(self.wahl_achse, zeile, 1, 1, 2)
-        zeile += 1
         aufbau.addWidget(self.felder)
 
         self.urteil = QtGui.QLabel()
@@ -902,8 +920,12 @@ class VierachsPanel:
         """Die Stange dreht um A, B oder C ohne Maschine – danach liegt sie in X, Y oder Z;
         ohne `buchstabe`: was in der Liste gewählt ist (auch eine Achse der Maschine)."""
         if buchstabe is not None:
-            self.wahl_achse.setCurrentIndex(self._index_ohne_maschine(buchstabe))
-            return  # der Wechsel ruft diese Methode noch einmal
+            if self.maschinenwahl() is not None:  # A, B, C gibt es nur ohne Maschine
+                self._waehle_maschine_ohne_signal(len(self._maschinen) - 1)
+            index = self._index_ohne_maschine(buchstabe)
+            if index != self.wahl_achse.currentIndex():
+                self.wahl_achse.setCurrentIndex(index)
+                return  # der Wechsel ruft diese Methode noch einmal
         vorher = FreeCAD.Placement(vr.modell(self.job).Placement) if self.job else None
         if self._anwenden() and vorher is not None:
             self._zeige_bewegung(vorher)
@@ -912,6 +934,127 @@ class VierachsPanel:
         """Dreht das Teil in der Stange um weitere 90°."""
         neu = (self._drehlage() + 90.0) % 360.0
         self.feld_drehlage.setText(zahl_zeigen(neu))  # 0 bleibt leer: der Vorschlag
+
+    def maschinenwahl(self):
+        """Was in der Liste „Maschine“ gewählt ist: vierachs_achsen.Maschinenwahl, der Pfad
+        der zuletzt benutzten (noch zu öffnen) oder None – ohne Maschine."""
+        i = self.wahl_maschine.currentIndex()
+        return self._maschinen[i] if 0 <= i < len(self._maschinen) else None
+
+    def _maschinen_fuellen(self, vorwahl=None):
+        """Die Liste „Maschine“: die offenen Maschinen, die zuletzt benutzte zum Öffnen
+        (D-20), „ohne Maschine“. Vorgewählt die Maschine mit Assembly oder Dokument
+        `vorwahl`, sonst die erste mit einer Rundachse für die Stange, sonst „ohne“."""
+        import os
+
+        from . import reichweite as rw
+        from .gui_reichweite import gleiche_datei
+
+        offen = va.maschinen(self.doc)
+        self._maschinen = list(offen)
+        gemerkt = rw.gemerkte_maschine()
+        if (
+            gemerkt
+            and os.path.isfile(gemerkt)
+            and not any(gleiche_datei(e.assembly.Document.FileName, gemerkt) for e in offen)
+        ):
+            self._maschinen.append(gemerkt)
+        self._maschinen.append(None)
+        wahl = next(
+            (
+                i
+                for i, e in enumerate(offen)
+                if e.achsen and (vorwahl is None or vorwahl in (e.assembly, e.assembly.Document))
+            ),
+            len(self._maschinen) - 1,
+        )
+        vorher, self._fuellt = self._fuellt, True
+        try:
+            self.wahl_maschine.clear()
+            for i, eintrag in enumerate(self._maschinen):
+                self.wahl_maschine.addItem(self._maschinentext(eintrag))
+                if isinstance(eintrag, va.Maschinenwahl) and not eintrag.achsen:
+                    self.wahl_maschine.model().item(i).setEnabled(False)
+            self.wahl_maschine.setCurrentIndex(wahl)
+        finally:
+            self._fuellt = vorher
+        self._achsen_fuellen()
+
+    @staticmethod
+    def _maschinentext(eintrag):
+        import os
+
+        if isinstance(eintrag, va.Maschinenwahl):
+            if not eintrag.achsen:
+                return tr("va.maschine.ohne_rundachse", name=eintrag.name)
+            return eintrag.name
+        if isinstance(eintrag, str):
+            return tr("va.maschine.oeffnen", name=os.path.splitext(os.path.basename(eintrag))[0])
+        return tr("va.maschine.ohne")
+
+    def _waehle_maschine_ohne_signal(self, index):
+        vorher, self._fuellt = self._fuellt, True
+        try:
+            self.wahl_maschine.setCurrentIndex(index)
+        finally:
+            self._fuellt = vorher
+        self._achsen_fuellen()
+
+    def _maschine_gewaehlt(self):
+        """Eine andere Maschine: ihre Rundachse gilt, die Stange legt sich um. Die zuletzt
+        benutzte öffnet sich dafür erst – die 3D-Ansicht bleibt beim Teil."""
+        eintrag = self.maschinenwahl()
+        if isinstance(eintrag, str):
+            self._maschinen_fuellen(vorwahl=self._oeffne_maschine(eintrag))
+        else:
+            self._achsen_fuellen()
+        self.waehle_rundachse()
+
+    def _oeffne_maschine(self, pfad):
+        """Öffnet die Datei der Maschine und holt das Teil wieder nach vorn; gibt das
+        Dokument zurück, oder None mit einem roten Satz."""
+        from .gui_reichweite import oeffne_datei, zeige_dokument
+
+        try:
+            dokument = oeffne_datei(pfad)
+        except Exception as fehler:  # nicht mehr lesbar
+            self._hinweis(tr("va.maschine.oeffnen_fehler", fehler=str(fehler)))
+            return None
+        FreeCAD.setActiveDocument(self.doc.Name)
+        zeige_dokument(self.doc)
+        return dokument
+
+    def _achsen_fuellen(self):
+        """Die Liste „Rundachse“ und der Satz darüber für die gewählte Maschine: ihre
+        Rundachsen für die Stange – oder ohne Maschine A, B und C (die zuletzt gewählte
+        vor)."""
+        eintrag = self.maschinenwahl()
+        if isinstance(eintrag, va.Maschinenwahl):
+            self._achsen = list(eintrag.achsen)
+            self.maschine_text.setText(
+                tr(
+                    "va.maschine.kann",
+                    linear=", ".join(eintrag.linear) or "–",
+                    rund=", ".join(a.buchstabe for a in eintrag.achsen) or "–",
+                    plaetze=eintrag.plaetze,
+                )
+            )
+        else:
+            self._achsen = [va.zugewiesen(b) for b in _achstexte()]
+            self.maschine_text.setText(tr("va.maschine.ohne.text"))
+        vorher, self._fuellt = self._fuellt, True
+        try:
+            self.wahl_achse.clear()
+            for achse in self._achsen:
+                self.wahl_achse.addItem(achstext(achse))
+            index = 0
+            if eintrag is None:
+                gemerkt = _parameter().GetString(GEMERKT_RUNDACHSE, vr.RUNDACHSE)
+                index = max(0, self._index_ohne_maschine(gemerkt))
+            self.wahl_achse.setCurrentIndex(index)
+            self.wahl_achse.setEnabled(len(self._achsen) > 1)
+        finally:
+            self._fuellt = vorher
 
     def achse(self):
         """Die gewählte Stangenachse (vierachs_achsen.Stangenachse) – beim Ändern die der
@@ -1353,6 +1496,7 @@ class VierachsPanel:
                 bisher = op.ToolController
                 tc = js.controller_fuer(self.doc, self.job, werkzeug, einsatz, self.werkstoff(), op)
                 vo.aendere(op, tc, *werte, abstaende_=abstaende)
+                self._maschine_merken()
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)
                 if frei and bisher is not tc:
                     js.controller_weg(self.doc, [bisher])
@@ -1536,8 +1680,18 @@ class VierachsPanel:
         for feld, (schluessel, _ab_werk) in GEMERKT.items():
             if self.felder_laenge[feld].text().strip():
                 parameter.SetFloat(schluessel, self._laenge(feld))
-        parameter.SetString(GEMERKT_RUNDACHSE, self.buchstabe())
+        if self.maschinenwahl() is None:  # A, B, C – die Maschine gibt ihre selbst vor
+            parameter.SetString(GEMERKT_RUNDACHSE, self.buchstabe())
         self._fraeser_merken()
+
+    def _maschine_merken(self):
+        """Die gewählte Maschine merkt sich der Job: „Auf der Maschine prüfen“ nimmt dieselbe
+        (D-20). Nur eine gespeicherte – ohne Datei gibt es nichts zu merken."""
+        from . import reichweite as rw
+
+        eintrag = self.maschinenwahl()
+        if isinstance(eintrag, va.Maschinenwahl) and self.job is not None:
+            rw.merke_maschine(self.job, eintrag.assembly.Document.FileName)
 
     def _fraeser_merken(self):
         if self.mit_schruppen.isChecked() and self.fraeser() is not None:

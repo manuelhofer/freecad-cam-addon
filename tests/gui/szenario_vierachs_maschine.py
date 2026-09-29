@@ -1,11 +1,17 @@
-# „4-Achs-Bearbeitung“ mit Maschine (W-003 Stufe V2a, Manuels Test 2026-09-27):
-# Die Beispiel-Drehmaschine ist offen, eine Welle liegt quer im Raum (längs X).
-# Ihre Stirnfläche angeklickt: Unter „Rundachse“ steht die Maschine oben und
-# ist vorgewählt – „Maschine „…“: C – Stange längs Z“ –, die Stange liegt im
-# Job längs Z. Mit „A (ohne Maschine)“ liegt sie längs X, zurück auf die
-# Maschine wieder längs Z. „Anlegen“, dann „Auf der Maschine prüfen“: Die
-# Stange liegt parallel zur C-Achse im Futter, nicht quer – genau auf ihrer
-# Achse und mit der Spannlänge (30 mm) im Futter (V2c).
+# „4-Achs-Bearbeitung“ mit Maschine (W-003 Stufe V2a, Manuels Test 2026-09-27; „Maschine
+# zuerst“, V3f): Die Beispiel-Drehmaschine ist offen, eine Welle liegt quer im Raum
+# (längs X). Ihre Stirnfläche angeklickt: Oben unter „Maschine“ steht die
+# Beispiel-Drehmaschine, darunter „Linearachsen X1, Y1, Z1 · Rundachse für die Stange: C ·
+# 12 Werkzeugplätze“, die Rundachse „C – Stange längs Z“ (die einzige, nicht wählbar);
+# die Stange liegt im Job längs Z. Mit A (ohne Maschine) liegt sie längs X, zurück auf
+# die Maschine wieder längs Z. „Anlegen“, dann „Auf der Maschine prüfen“: Die Stange
+# liegt parallel zur C-Achse im Futter, nicht quer – genau auf ihrer Achse und mit der
+# Spannlänge (30 mm) im Futter (V2c). Zuletzt die gemerkte Maschine: gespeichert und
+# geschlossen steht sie als „„drehmaschine“ öffnen (zuletzt benutzt)“ zur Wahl – gewählt
+# öffnet sie sich, die Welle bleibt vorn, C gilt.
+import os
+import tempfile
+
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -28,6 +34,7 @@ def schritte(h):
     from camaddon.kette import LINEAR
 
     asm, _maschine = beispielmaschine.lade(beispielmaschine.DREHMASCHINE)
+    name_maschine = _maschine.Label  # bleibt, wenn die Datei zu ist
     yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is asm.Document)
     yield 300
 
@@ -55,12 +62,21 @@ def schritte(h):
     h.pruefe(panel is not None and panel.job is not None, "kein Fenster oder kein Job")
     if panel is None or panel.job is None:
         return
-    oben = panel.wahl_achse.itemText(0)
     h.pruefe(
-        oben.startswith("Maschine „") and oben.endswith("“: C – Stange längs Z"),
-        f"erster Eintrag: {oben!r}",
+        panel.wahl_maschine.currentText() == name_maschine,
+        f"Maschine: {panel.wahl_maschine.currentText()!r}",
     )
-    h.pruefe(panel.wahl_achse.currentIndex() == 0, "Maschine nicht vorgewählt")
+    kann = panel.maschine_text.text()
+    h.pruefe(
+        kann == "Linearachsen X1, Y1, Z1 · Rundachse für die Stange: C · 12 Werkzeugplätze",
+        f"Was die Maschine kann: {kann!r}",
+    )
+    h.pruefe(
+        panel.wahl_achse.count() == 1
+        and panel.wahl_achse.itemText(0) == "C – Stange längs Z"
+        and not panel.wahl_achse.isEnabled(),
+        f"Rundachse: {[panel.wahl_achse.itemText(i) for i in range(panel.wahl_achse.count())]}",
+    )
     h.pruefe(panel.buchstabe() == "C", f"Rundachse {panel.buchstabe()}")
     rohteil = panel.job.Stock
 
@@ -78,7 +94,8 @@ def schritte(h):
     panel.waehle_rundachse("A")
     yield from h.warte_auf(lambda: not (panel.einfahren and panel.einfahren.laeuft()), 3000)
     h.pruefe(laengs(rohteil.Shape.BoundBox) == "X", f"Stange bei A: {rohteil.Shape.BoundBox}")
-    panel.wahl_achse.setCurrentIndex(0)
+    h.pruefe(panel.wahl_maschine.currentText() == "ohne Maschine", "A ohne Maschine?")
+    panel.wahl_maschine.setCurrentIndex(0)
     yield from h.warte_auf(lambda: not (panel.einfahren and panel.einfahren.laeuft()), 3000)
     h.pruefe(
         laengs(rohteil.Shape.BoundBox) == "Z", f"wieder die Maschine: {rohteil.Shape.BoundBox}"
@@ -120,6 +137,45 @@ def schritte(h):
     yield 300
     h.bild("2_im_futter")
     pruefen.reject()
+    yield 500
+
+    # --- Die zuletzt benutzte Maschine, gespeichert und geschlossen: zum Öffnen in der Liste.
+    from camaddon import PARAMETER_PFAD
+
+    pfad = os.path.join(tempfile.mkdtemp(), "drehmaschine.FCStd")
+    asm.Document.saveAs(pfad)
+    FreeCAD.ParamGet(PARAMETER_PFAD).SetString(rw.ZULETZT_MASCHINE, pfad)
+    FreeCAD.closeDocument(asm.Document.Name)
+    FreeCAD.setActiveDocument(doc.Name)
+    yield 500
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(doc.Name, teil.Name, stirn)
+    yield 300
+    Gui.runCommand("CamAddon_Vierachs")
+    yield 1500
+    panel = gui_vierachs.VierachsPanel.offen
+    h.pruefe(panel is not None, "zweites Fenster fehlt")
+    if panel is None:
+        return
+    eintraege = [panel.wahl_maschine.itemText(i) for i in range(panel.wahl_maschine.count())]
+    h.pruefe(
+        eintraege == ["„drehmaschine“ öffnen (zuletzt benutzt)", "ohne Maschine"]
+        and panel.wahl_maschine.currentIndex() == 1,
+        f"Maschinen: {eintraege}, gewählt {panel.wahl_maschine.currentIndex()}",
+    )
+    panel.wahl_maschine.setCurrentIndex(0)
+    yield from h.warte_auf(
+        lambda: panel.maschinenwahl() is not None and not isinstance(panel.maschinenwahl(), str),
+        15000,
+    )
+    yield 500
+    h.pruefe(
+        panel.wahl_maschine.currentText() == name_maschine and panel.buchstabe() == "C",
+        f"geöffnet: {panel.wahl_maschine.currentText()!r}, {panel.buchstabe()}",
+    )
+    h.pruefe(FreeCAD.ActiveDocument is doc, f"vorn: {FreeCAD.ActiveDocument.Name}")
+    h.bild("3_zuletzt_benutzt_geoeffnet", panel.form)
+    panel.reject()
     yield 500
     for name in list(FreeCAD.listDocuments()):
         FreeCAD.closeDocument(name)

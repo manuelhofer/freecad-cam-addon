@@ -84,25 +84,60 @@ def von_maschine(assembly, maschine, kette=None):
     return ergebnis
 
 
-def offene(zuerst=None):
-    """[Stangenachse] aller Maschinen in offenen Dokumenten – die im Dokument `zuerst`
-    vorn. Eine Maschine, deren Kette sich nicht aufbauen lässt, fehlt (ihre Meldungen
-    zeigt „Maschine bearbeiten“)."""
-    maschinen = []
+@dataclass(frozen=True)
+class Maschinenwahl:
+    """Eine offene Maschine zur Wahl im Assistenten – und was sie für die Stange kann."""
+
+    name: str
+    assembly: object
+    maschine: object
+    achsen: tuple  # [Stangenachse]: die Rundachsen, die die Stange drehen (von_maschine)
+    linear: tuple  # die Linearachsen im Programm: „X1“, „Y1“, „Z1“
+    plaetze: int  # Werkzeugplätze (Werkzeugaufnahmen)
+
+
+def maschinen(zuerst=None):
+    """[Maschinenwahl] aller Maschinen in offenen Dokumenten – die im Dokument `zuerst`
+    vorn. Auch eine ohne passende Rundachse ist dabei (achsen leer): Der Assistent zeigt
+    sie, damit man sieht, warum sie nicht geht."""
+    gefunden = []
     for dokument in FreeCAD.listDocuments().values():
         for objekt in dokument.Objects:
             if objekt.TypeId == "Assembly::AssemblyObject":
                 maschine = m.finde_maschine(objekt)
                 if maschine is not None:
-                    maschinen.append((objekt, maschine))
-    maschinen.sort(key=lambda e: e[0].Document is not zuerst)
+                    gefunden.append((objekt, maschine))
+    gefunden.sort(key=lambda e: e[0].Document is not zuerst)
     ergebnis = []
-    for assembly, maschine in maschinen:
+    for assembly, maschine in gefunden:
         try:
-            ergebnis.extend(von_maschine(assembly, maschine))
+            achsen = tuple(von_maschine(assembly, maschine))
         except Exception as fehler:  # eine halb eingerichtete Maschine soll nicht stören
             FreeCAD.Console.PrintLog(f"CAM-Addon: Achsen von {maschine.Label}: {fehler}\n")
-    return ergebnis
+            achsen = ()
+        linear = sorted(
+            m.name_von(ba) for ba in m.betriebsarten(maschine) if ba.Art == m.ART_LINEAR
+        )
+        plaetze = sum(1 for a in m.aufnahmen(maschine) if a.Art == m.AUFNAHME_WERKZEUG)
+        ergebnis.append(
+            Maschinenwahl(maschine.Label, assembly, maschine, achsen, tuple(linear), plaetze)
+        )
+    namen = [e.name for e in ergebnis]
+    return [
+        (
+            e
+            if namen.count(e.name) == 1
+            else Maschinenwahl(
+                f"{e.name} ({e.assembly.Document.Label})",
+                e.assembly,
+                e.maschine,
+                e.achsen,
+                e.linear,
+                e.plaetze,
+            )
+        )
+        for e in ergebnis
+    ]
 
 
 def radial(achse):

@@ -64,7 +64,13 @@ pruefe(
     [(a.buchstabe, a.laengs, a.maschine) for a in achsen] == [("C", Z, ma.Label)],
     f"Drehmaschine: {achsen}",
 )
-pruefe(va.offene(asm.Document) == achsen, f"offene: {va.offene(asm.Document)}")
+# Zur Wahl im Assistenten („Maschine zuerst“, V3f): Name, Rundachse, Linearachsen, Plätze.
+wahl = va.maschinen(asm.Document)
+pruefe(
+    [(w.name, list(w.achsen), w.linear, w.plaetze) for w in wahl]
+    == [(ma.Label, achsen, ("X1", "Y1", "Z1"), 12)],
+    f"Maschinen zur Wahl: {[(w.name, w.linear, w.plaetze) for w in wahl]}",
+)
 # Der Drehsinn, nachgemessen: C1 auf +90° – wohin zeigt danach X des Futters?
 aufnahme = next(a for a in m.aufnahmen(ma) if a.Art == m.AUFNAHME_WERKSTUECK)
 vorher = m.globale_platzierung(aufnahme.Lcs).Rotation

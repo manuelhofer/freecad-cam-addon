@@ -55,14 +55,22 @@ What you enter becomes next time's suggestion. The bar diameter depends on
 the part. Its suggestion is the next 5 mm step (1/8" in inch) that leaves at
 least 1 mm all round.</p>
 
-<h3>The rotary axis</h3>
-<p>The axis the bar turns about decides how it lies in the job.</p>
+<h3>Machine and rotary axis</h3>
+<p>Right below the part the wizard asks: <b>which machine?</b> The axis the bar
+turns about decides how it lies in the job – and the machine sets it.</p>
 <ul>
-<li><b>With a machine:</b> if a machine is open (“Edit machine”), its rotary
-axis is listed first and preselected – such as “Machine “Lathe”: C – bar along
-Z”. The bar then lies in the job the way it is clamped in that machine: on a
-lathe along the spindle, the front away from the chuck. “Check on machine”
-shows it exactly like that.</li>
+<li><b>An open machine</b> (“Edit machine”) is listed and preselected. Below it
+in grey, what it can do: “Linear axes X1, Y1, Z1 · rotary axis for the bar: C ·
+12 tool stations”. The rotary axis below is the machine's – if it has only one,
+it cannot be changed. The bar then lies in the job the way it is clamped in that
+machine: on a lathe along the spindle, the front away from the chuck. “Check on
+machine” shows it exactly like that and uses the same machine for checking (if
+it is saved).</li>
+<li><b>The machine used last</b> – the one you last checked on – is offered as
+“Open “…” (last used)”, even when it is not open. Choosing it opens it; the 3D
+view stays with the part.</li>
+<li>A machine <b>without a rotary axis</b> for the bar (a 3-axis mill) is shown
+greyed out: “… – no rotary axis for the bar”.</li>
 <li><b>Without a machine</b> you assign the letter to the bar yourself:
 <b>A</b> – the bar lies along X, the tool comes from above (a mill with rotary
 axis A); <b>B</b> – along Y, the tool from above; <b>C</b> – along Z, the tool
