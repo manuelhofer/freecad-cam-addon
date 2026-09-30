@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-27 flaechen-assistent
+
+### EINGELESEN
+- `camaddon/gui_vierachs.py` (Schritt 2, Beobachter und Auswahlfilter, Vorschau, Anlegen,
+  Ändern, Schließen), `tests/gui/szenario_vierachs_schlichten.py`,
+  `tests/gui/_lauf/szenario_lauf.py`, `help/*/vierachs.html`, `docs/spezifikation_vierachs.md`
+  (V4a).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`, `translations/de.json`, `translations/en.json`,
+  `tests/gui/szenario_vierachs_flaechen.py` (neu), `help/de/vierachs.html`,
+  `help/en/vierachs.html`, `docs/spezifikation_vierachs.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle mit Abflachung, „4-Achs-Bearbeitung“ → Weiter → in Schritt 2 steht unter „Flächen“ grau
+„Rundum – alle Mantelflächen …“. Ein Klick auf die Abflachung: In der Liste steht grün „Face3
+Ebene – erreichbar“, im 3D ist sie grün, darunter „Nur diese Flächen: …“. „Alle Mantelflächen“
+→ „Alle Mantelflächen gewählt – rundum.“ Nur die Abflachung → „Anlegen“: Beide Operationen
+haben „Flaechen“ = Face3, die Welle hat ihre Farben zurück; Doppelklick auf die Operation zeigt
+Face3 wieder in der Liste.
+
+### DONE
+- Schritt 2 hat oben „Flächen“: Liste der gewählten mit Art und Erreichbarkeit in Grün, Gelb
+  oder Rot, der Satz darunter, „Alle Mantelflächen“ und „Auswahl leeren“. Ein Klick auf eine
+  Fläche des Teils im Job nimmt sie dazu oder heraus (in Schritt 2 lässt der Auswahlfilter nur
+  das Teil im Job zu), Doppelklick in der Liste nimmt heraus. Die gewählten Flächen färbt die
+  3D-Ansicht – nur die Anzeige, beim Schließen und in Schritt 1 wieder wie vorher.
+- Alle Mantelflächen gewählt gilt wie keine: rundum (Manuel: „wenn ich alle anklicke, dann
+  wird komplett rings um bearbeitet“). Vorschau, Anlegen und Ändern geben die Flächen und den
+  Eintauchwinkel des Fräsers an die Operationen; beim Ändern stehen sie wieder in der Liste,
+  auch wenn Schritt 1 fest ist.
+- Hilfe de/en: Abschnitt „Schritt 2: Flächen“, „Was (noch) nicht geht“ nachgezogen.
+
+### TEST
+- KI mit unsichtbarer Oberfläche: `szenario_vierachs_flaechen` in FreeCAD 1.1.3 und im
+  Wochen-Build grün (Klick, Liste, Farben in Liste und 3D, alle Mantelflächen, leeren,
+  Anlegen mit Face3 in beiden Operationen, die Schruppbahn im Bereich, Farben zurück, Ändern
+  und heraus → rundum); `szenario_vierachs_rohteil`, `_schruppen`, `_schlichten`, `_aendern`,
+  `_maschine`, `szenario_rundum_drehmaschine` in 1.1.3 grün; `test_sprache`, `test_hilfe`
+  grün.
+
+### NEXT
+- Manuel (2026-09-30, zum Bild der Bahn): „ich hoffe, dass die roten Striche keine Eilgänge
+  sind, weil man kann ja auch einfach zurückdrehen für so eine Fläche“ – mit Bereich hin und
+  her statt Spirale mit Eilgang rundum.
+
 ## P-2026-09-30-26 flaechen-bereich
 
 ### EINGELESEN

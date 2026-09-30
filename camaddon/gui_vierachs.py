@@ -23,6 +23,13 @@ Leere Felder gelten mit ihrem grauen Vorschlag (Manuel: „alles einstellbar,
 aber mit Vorschlägen als Standard“). Was man einträgt, ist beim nächsten Mal
 der Vorschlag – außer dem Stangen-Ø, der hängt am Teil.
 
+Flächen wählen (Stufe V4, Manuel 2026-09-30: „nur Flächen am Mantel anklicken, die ich
+bearbeiten will … und wenn ich alle anklicke, dann wird komplett rings um bearbeitet“): In
+Schritt 2 nimmt ein Klick auf eine Fläche des Teils sie dazu, ein zweiter heraus. Die Liste
+nennt Art und Erreichbarkeit (vierachs_flaechen), die 3D-Ansicht färbt die gewählten Flächen
+grün, gelb oder rot – nur die Anzeige, danach wieder wie vorher. Ohne Wahl oder mit allen
+Mantelflächen: rundum.
+
 Nachträglich ändern (Manuel, 2026-09-29: „wenn ich jetzt hier nochmal
 schnittwerte ändern will oder anders werkzeug komme ich nicht mehr in die maske
 rein“): Doppelklick auf „Rundum schruppen“ oder „Rundum schlichten“ – oder die
@@ -47,6 +54,7 @@ from . import job_schnittwerte as js
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
+from . import vierachs_flaechen as vf
 from . import vierachs_operation as vo
 from . import vierachs_rohteil as vr
 from . import vierachs_schlichten as vs
@@ -313,15 +321,20 @@ def _im_befehl(aufgabe):
 
 
 class _Beobachter:
-    """Meldet dem Assistenten jede neu angeklickte Fläche."""
+    """Meldet dem Assistenten jede neu angeklickte Fläche – in Schritt 1 die Stirnfläche, in
+    Schritt 2 eine Fläche zum Fräsen (V4)."""
 
     def __init__(self, panel):
         self.panel = panel
 
-    def addSelection(self, _dokument, _objekt, unterelement, _punkt):
-        if unterelement:
-            # Erst wenn FreeCAD mit der Auswahl fertig ist – der Assistent ändert
-            # dabei das Dokument.
+    def addSelection(self, _dokument, objekt, unterelement, _punkt):
+        if not unterelement:
+            return
+        # Erst wenn FreeCAD mit der Auswahl fertig ist – der Assistent ändert dabei das
+        # Dokument bzw. leert die Auswahl.
+        if self.panel.seite == 2:
+            QtCore.QTimer.singleShot(0, lambda: self.panel.flaeche_angeklickt(objekt, unterelement))
+        else:
             QtCore.QTimer.singleShot(0, self.panel.auswahl_lesen)
 
 
@@ -335,8 +348,12 @@ class _NurFlaechen:
         weg = unterelement.split(".") if unterelement else []
         if not weg or not weg[-1].startswith("Face"):
             return False
-        rohteil = self.panel.job.Stock if self.panel.job is not None else None
+        job = self.panel.job
         name = getattr(objekt, "Name", "")
+        if self.panel.seite == 2 and job is not None:  # nur das Teil im Job (V4)
+            klon = vr.modell(job).Name
+            return name == klon or klon in weg
+        rohteil = job.Stock if job is not None else None
         return rohteil is None or (name != rohteil.Name and rohteil.Name not in weg)
 
 
@@ -459,6 +476,8 @@ class VierachsPanel:
         self._schlichteinsaetze = []
         self.vorschau_schlichten = None  # die grobe Schlichtbahn (vierachs_bahn.Schlichtbahn)
         self._schlichten_vorgewaehlt = False  # der Haken „Rundum schlichten“ ist gesetzt
+        self.gewaehlte = []  # die Flächen zum Fräsen („Face3“ …), V4 – leer: rundum
+        self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
         self._transaktion_offen = False  # beim Ändern: Schritt 1 hat etwas geändert
         self._stange_jetzt = None  # die Stange, wie sie zuletzt in den Job kam
         self._stange_vorher = None  # beim Ändern: wie die Stange aussah (DisplayMode, …)
@@ -523,6 +542,10 @@ class VierachsPanel:
         else:
             self.knopf_zurueck.hide()
             text += " " + tr("va.aendern.rohteil_fest")
+        if self._beobachter is None:  # Flächen wählen (V4) geht auch, wenn Schritt 1 fest ist
+            self._beobachter = _Beobachter(self)
+            FreeCADGui.Selection.addObserver(self._beobachter)
+            FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
         erklaerung.setText(text)
         self._auffrischen()
         self.zeige_seite(2)
@@ -604,6 +627,8 @@ class VierachsPanel:
                 ("aufmass", op.Aufmass),
             ]
         paare += [("abstand_futter", op.AbstandFutter), ("sicherheit", op.Sicherheitsabstand)]
+        self.gewaehlte = list(vo.flaechen(op))
+        self._flaechen_zeigen()
         for feld, wert in paare:
             wert = float(wert)
             if abs(wert - self._vorschlag(feld)) > 1e-6:
@@ -731,6 +756,7 @@ class VierachsPanel:
         self._vorschau_uhr.stop()
         if self.einfahren:
             self.einfahren.stopp()
+        self._farben_zurueck()
         if self._beobachter is not None:
             FreeCADGui.Selection.removeObserver(self._beobachter)
             FreeCADGui.Selection.removeSelectionGate()
@@ -929,6 +955,37 @@ class VierachsPanel:
         oben.ganz(zeile)
         aufbau.addWidget(oben.widget)
 
+        # --- Flächen (V4) ---
+        self.flaechen_titel = QtGui.QLabel(tr("va.flaechen"))
+        self.flaechen_titel.setToolTip(tr("va.flaechen.tooltip"))
+        schrift = self.flaechen_titel.font()
+        schrift.setBold(True)
+        self.flaechen_titel.setFont(schrift)
+        aufbau.addWidget(self.flaechen_titel)
+        self.flaechen_liste = QtGui.QListWidget()
+        self.flaechen_liste.setToolTip(tr("va.flaechen.liste.tooltip"))
+        self.flaechen_liste.itemDoubleClicked.connect(
+            lambda eintrag: self.flaeche_umschalten(eintrag.data(QtCore.Qt.UserRole))
+        )
+        self.flaechen_liste.hide()  # erst, wenn eine Fläche gewählt ist
+        aufbau.addWidget(self.flaechen_liste)
+        self.flaechen_text = grau(tr("va.flaechen.rundum"))
+        zeile = QtGui.QWidget()
+        knoepfe = QtGui.QHBoxLayout(zeile)
+        knoepfe.setContentsMargins(0, 0, 0, 0)
+        self.knopf_alle_flaechen = knopf(
+            tr("va.flaechen.alle_knopf"),
+            tr("va.flaechen.alle_knopf.tooltip"),
+            self.alle_mantelflaechen,
+        )
+        self.knopf_flaechen_leeren = knopf(
+            tr("va.flaechen.leeren"), tr("va.flaechen.leeren.tooltip"), self.flaechen_leeren
+        )
+        knoepfe.addWidget(self.knopf_alle_flaechen)
+        knoepfe.addWidget(self.knopf_flaechen_leeren)
+        knoepfe.addStretch()
+        aufbau.addWidget(zeile)
+
         # --- Rundum schruppen ---
         self.mit_schruppen = haken(
             tr("va.schruppen"), tr("va.schruppen.tooltip"), self._schruppen_umgeschaltet, an=True
@@ -1082,6 +1139,7 @@ class VierachsPanel:
         if self.job is not None and teil is not self.teil:
             # Ein anderes Teil: alles bisher Angelegte zurück, frisch anfangen.
             self._vor_neuem_teil()
+            self.gewaehlte = []
         self.teil, self.flaeche, self.vermessung = teil, flaeche, vermessung
         self.mitte = vr.MITTE_AUTO
         erstes_mal = self.job is None
@@ -1285,7 +1343,9 @@ class VierachsPanel:
         self._kopf_text.setText(f"<b>{titel}</b>")
         if nummer == 2:
             self._bearbeitung_fuellen()
+            self._flaechen_zeigen()
         else:  # die Länge der Stange hängt auch am Fräser aus Schritt 2 (Überlauf)
+            self._farben_zurueck()
             self._auffrischen()
         self._knoepfe_beschriften()
 
@@ -1447,6 +1507,167 @@ class VierachsPanel:
         n, vf, _senkrecht = js.werte(werkzeug, einsatz)
         return tr("va.schnittwerte", n=f"{n:.0f}", vf=groesse_fest(vf, einheiten.VORSCHUB, 0))
 
+    # --- Flächen (V4) ---------------------------------------------------------------------
+
+    def flaeche_angeklickt(self, objekt, unterelement):
+        """In Schritt 2 wurde eine Fläche angeklickt (`objekt`: Name, `unterelement`: Weg bis
+        „Face3“): Gehört sie zum Teil im Job, kommt sie dazu oder heraus. Danach ist die Auswahl
+        wieder leer – die Farben zeigen, was gewählt ist."""
+        if self.geschlossen or self.seite != 2 or self.job is None:
+            return
+        teil, flaeche = _entlang(self.doc, self.doc.getObject(objekt), unterelement)
+        klon = vr.modell(self.job)
+        if teil is None or flaeche is None or vr.original(teil) is not vr.original(klon):
+            return
+        FreeCADGui.Selection.clearSelection()
+        self.flaeche_umschalten(flaeche)
+
+    def flaeche_umschalten(self, name):
+        """Nimmt die Fläche `name` („Face3“) dazu – oder heraus, wenn sie schon gewählt ist."""
+        if name in self.gewaehlte:
+            self.gewaehlte.remove(name)
+        else:
+            self.gewaehlte.append(name)
+        self._flaechen_geaendert()
+
+    def alle_mantelflaechen(self):
+        """Jede Fläche, die nach außen schaut – das ist rundum."""
+        if self.job is None:
+            return
+        self.gewaehlte = vf.namen(vf.mantelflaechen(self._sicht()))
+        self._flaechen_geaendert()
+
+    def flaechen_leeren(self):
+        """Keine Fläche gewählt: rundum."""
+        self.gewaehlte = []
+        self._flaechen_geaendert()
+
+    def _flaechen_geaendert(self):
+        self._flaechen_zeigen()
+        self._vorschau_starten()
+
+    def flaechen(self):
+        """Die Flächen für die Operationen („Face3“ …): die gewählten – leer heißt rundum, auch
+        wenn alle Mantelflächen gewählt sind (Manuel: „wenn ich alle anklicke, dann wird
+        komplett rings um bearbeitet“)."""
+        if not self.gewaehlte or self.job is None:
+            return []
+        mantel = set(vf.namen(vf.mantelflaechen(self._sicht())))
+        if mantel and mantel <= set(self.gewaehlte):
+            return []
+        return list(self.gewaehlte)
+
+    def _sicht(self):
+        """Was ein Strahl von außen zuerst trifft (vierachs_flaechen.Sicht) – für das Teil, wie
+        es im Job liegt, und die gewählte Rundachse; einmal gerechnet (vf.sicht_fuer merkt es
+        sich)."""
+        achse = self.achse()
+        QtGui.QApplication.setOverrideCursor(QtCore.Qt.WaitCursor)
+        try:
+            return vf.sicht_fuer(vr.modell(self.job).Shape, achse.laengs, va.radial(achse))
+        finally:
+            QtGui.QApplication.restoreOverrideCursor()
+
+    def _erreichbar(self, sicht, nummer):
+        """(Text, Farbe), wie weit ein radiales Werkzeug an die Fläche `nummer` kommt."""
+        from .gui_kollision import GELB
+
+        anteil = vf.erreichbar(sicht, nummer)
+        if anteil is None:
+            return tr("va.flaeche.quer"), ROT
+        if anteil >= vf.GANZ:
+            return tr("va.flaeche.ganz"), GRUEN
+        if anteil <= vf.KAUM:
+            return tr("va.flaeche.nicht"), ROT
+        return tr("va.flaeche.teil", prozent=f"{100 * anteil:.0f}"), GELB
+
+    def _flaechen_zeigen(self):
+        """Die Liste der gewählten Flächen mit Art und Erreichbarkeit, der Satz darunter und die
+        Farben in der 3D-Ansicht."""
+        self.flaechen_liste.clear()
+        self.flaechen_liste.setVisible(bool(self.gewaehlte))
+        if not self.gewaehlte or self.job is None:
+            self.flaechen_text.setText(tr("va.flaechen.rundum"))
+            self._farben_zeigen({})
+            return
+        sicht = self._sicht()
+        form = vr.modell(self.job).Shape
+        laengs = self.achse().laengs
+        farben = {}
+        for name in self.gewaehlte:
+            nummer = vf.nummern([name])
+            if not nummer or nummer[0] >= len(form.Faces):
+                art, (erreichbar, farbe) = "?", (tr("va.flaeche.fehlt"), ROT)
+            else:
+                art = vf.beschreibung(form.Faces[nummer[0]], laengs)
+                erreichbar, farbe = self._erreichbar(sicht, nummer[0])
+                farben[nummer[0]] = farbe
+            eintrag = QtGui.QListWidgetItem(
+                dezimal(tr("va.flaeche.zeile", name=name, art=art, erreichbar=erreichbar))
+            )
+            eintrag.setForeground(QtGui.QBrush(QtGui.QColor(farbe)))
+            eintrag.setData(QtCore.Qt.UserRole, name)
+            self.flaechen_liste.addItem(eintrag)
+        zeilen = min(len(self.gewaehlte), 5)
+        hoehe = self.flaechen_liste.sizeHintForRow(0) * zeilen
+        self.flaechen_liste.setFixedHeight(hoehe + 2 * self.flaechen_liste.frameWidth() + 4)
+        rundum = not self.flaechen()
+        self.flaechen_text.setText(tr("va.flaechen.alle") if rundum else tr("va.flaechen.nur"))
+        self._farben_zeigen(farben)
+
+    def _farben_zeigen(self, farben):
+        """Färbt die Flächen des Teils im Job: `farben` Nummer → „#rrggbb“, die anderen, wie sie
+        waren. Nur die Anzeige – _farben_zurueck() stellt sie wieder her; ohne Farben gleich."""
+        if not farben or self.job is None:
+            self._farben_zurueck()
+            return
+        klon = vr.modell(self.job)
+        ansicht = klon.ViewObject
+        if ansicht is None or not hasattr(ansicht, "DiffuseColor"):
+            return
+        if self._farben_vorher is None:
+            aussehen = getattr(ansicht, "ShapeAppearance", None)
+            self._farben_vorher = (
+                klon,
+                list(ansicht.DiffuseColor),
+                list(aussehen) if aussehen is not None else None,
+            )
+        grund = self._farben_vorher[1]
+        anzahl = len(klon.Shape.Faces)
+        if len(grund) != anzahl:
+            grund = [tuple(grund[0]) if grund else tuple(ansicht.ShapeColor)] * anzahl
+        alpha = grund[0][3] if grund and len(grund[0]) > 3 else 0.0
+        neu = list(grund)
+        for nummer, farbe in farben.items():
+            if nummer < anzahl:
+                neu[nummer] = (*(int(farbe[i : i + 2], 16) / 255 for i in (1, 3, 5)), alpha)
+        ansicht.DiffuseColor = neu
+
+    def _farben_zurueck(self):
+        """Die Flächen des Teils wieder in ihren eigenen Farben."""
+        if self._farben_vorher is None:
+            return
+        klon, farben, aussehen = self._farben_vorher
+        self._farben_vorher = None
+        try:
+            ansicht = klon.ViewObject
+            if ansicht is None:
+                return
+            if aussehen is not None:
+                ansicht.ShapeAppearance = aussehen
+            else:
+                ansicht.DiffuseColor = farben
+        except (ReferenceError, RuntimeError):  # das Teil ist schon weg (Abbrechen)
+            pass
+
+    def _eintauchwinkel(self):
+        """So steil taucht das Schruppen zwischen gewählten Flächen ein: der Eintauchwinkel des
+        Fräsers aus der Werkzeugverwaltung, ohne Angabe der Vorschlag (Grad)."""
+        werkzeug = self.fraeser()
+        if werkzeug is not None and werkzeug.eintauchwinkel > 0:
+            return werkzeug.eintauchwinkel
+        return vb.EINTAUCHWINKEL
+
     # --- Rundum schlichten (V5d) ---------------------------------------------------------
 
     def _hat_schlichten(self, werkzeug, werkstoff):
@@ -1584,6 +1805,7 @@ class VierachsPanel:
                 self._wert("sicherheit"),
             ),
             self._halter_fuer(werkzeug),
+            self.flaechen(),
         )
 
     def _schlicht_text(self, bahn):
@@ -1722,6 +1944,8 @@ class VierachsPanel:
                     self._wert("aufmass"),
                     *self._abstaende(),
                     self._halter_fuer(werkzeug),
+                    self.flaechen(),
+                    self._eintauchwinkel(),
                 )
             except ValueError as fehler:
                 gruende.append(str(fehler))
@@ -2000,6 +2224,7 @@ class VierachsPanel:
             name = tr("va.transaktion.beide")
         else:
             name = tr("va.transaktion.schruppen") if schruppen else tr("va.transaktion.schlichten")
+        flaechen = self.flaechen()
 
         def anlegen():
             self.doc.openTransaction(name)
@@ -2021,6 +2246,8 @@ class VierachsPanel:
                             quer_auf_null=achse.quer,
                             abstaende=(ueberlauf, abstand, sicherheit),
                             halter=self._halter_fuer(self.fraeser()),
+                            flaechen_=flaechen,
+                            eintauchwinkel=self._eintauchwinkel(),
                         )
                     )
                 if schlichten:
@@ -2041,6 +2268,7 @@ class VierachsPanel:
                             quer_auf_null=achse.quer,
                             abstaende=schlicht_abstaende,
                             halter=self._halter_fuer(self.schlichtfraeser()),
+                            flaechen=flaechen,
                         )
                     )
                 self.doc.recompute()
@@ -2079,6 +2307,7 @@ class VierachsPanel:
             if self._art == SCHLICHTEN
             else (tr("va.transaktion.aendern"))
         )
+        flaechen = self.flaechen()
 
         def aendern():
             self.doc.openTransaction(name)
@@ -2101,6 +2330,7 @@ class VierachsPanel:
                         self._wert("aufmass_schlichten"),
                         schlicht_abstaende,
                         self._halter_fuer(self.schlichtfraeser()),
+                        flaechen,
                     )
                 else:
                     tc = js.controller_fuer(
@@ -2114,6 +2344,8 @@ class VierachsPanel:
                         self._wert("aufmass"),
                         abstaende_=(ueberlauf, abstand, sicherheit),
                         halter_=self._halter_fuer(self.fraeser()),
+                        flaechen_=flaechen,
+                        eintauchwinkel=self._eintauchwinkel(),
                     )
                 if schlichten_dazu:
                     tc_neu = js.controller_ohne_transaktion(
@@ -2132,6 +2364,7 @@ class VierachsPanel:
                         quer_auf_null=op.QuerAufNull,
                         abstaende=schlicht_abstaende,
                         halter=self._halter_fuer(self.schlichtfraeser()),
+                        flaechen=flaechen,
                     )
                 self._maschine_merken()
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)

@@ -3,7 +3,7 @@
 rotary axis (A or B) just as on a lathe with a C axis and driven tools. The
 wizard gets you there in two steps: <b>placing the part in the bar</b> and
 then <b>“What do you want to do?”</b> – <b>All-round roughing</b> and
-<b>All-round finishing</b>. Choosing faces comes in a next stage.</p>
+<b>All-round finishing</b>, all around or only over the faces you click.</p>
 
 <h3>How it works</h3>
 <ol>
@@ -80,6 +80,30 @@ from X, like a lathe with a C axis.</li>
 </ul>
 <p>The bar axis runs through the job's origin. That way FreeCAD lays later
 paths correctly around the part by itself.</p>
+
+<h3>Step 2: faces</h3>
+<p>Without a selection the part is milled all around – every outer face. To
+mill single faces only: in step 2 click a face of the part in 3D; clicking it
+again removes it (a double-click in the list does too).</p>
+<ul>
+<li>The <b>list</b> names every selected face with its kind (“Plane”,
+“Cylinder Ø 20.00 mm, centred” …) and how far a tool pointing from outside at
+the axis gets to it: <b>green</b> reachable, <b>yellow</b> partly (“50 %
+reachable”), <b>red</b> not – under an overhang or across the axis. In the 3D
+view the selected faces show these colours; after the window the part looks
+as before.</li>
+<li><b>All outer faces</b> selects every face that faces outwards – that is
+all around. <b>Clear selection</b> does the same.</li>
+<li>With selected faces “All-round roughing” and “All-round finishing” only
+mill where the cutter touches one of them – so it also reaches their edges.
+The calculation still uses the whole part: it stays intact. In between the
+cutter lifts above the bar and re-enters safely: rapid down to just above
+what is left there, then straight down at the plunge feed where only its rim
+enters, otherwise along a ramp with the cutter's plunge angle from the tool
+manager (5° if none is given).</li>
+<li>Both operations remember the faces (property “Flaechen”); when changing
+they are back in the list.</li>
+</ul>
 
 <h3>Step 2: all-round roughing</h3>
 <p>The bar is removed all round down to the finishing allowance – in layers,
@@ -235,8 +259,9 @@ every new job.</li>
 
 <h3>What does not work (yet)</h3>
 <ul>
-<li>Milling only certain faces – that comes in a next stage. Until then
-“All-round roughing” and “All-round finishing” take the whole part.</li>
+<li>Milling a flat really flat (“indexed facing”) and deburring edges – that
+comes in a next stage. Until then the spiral mills it with the cutter pointing
+at the axis: where it is not straight above the flat, a little more stays.</li>
 <li>Turning, facing the end and parting off are done by the machine –
 FreeCAD does not turn.</li>
 </ul>

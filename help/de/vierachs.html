@@ -4,7 +4,7 @@ dreht – auf einer Fräse mit Rundachse (A oder B) genauso wie auf einer
 Drehmaschine mit C-Achse und angetriebenen Werkzeugen. Der Assistent führt in
 zwei Schritten dorthin: <b>das Teil in die Stange legen</b> und dann
 <b>„Was willst du machen?“</b> – <b>Rundum schruppen</b> und <b>Rundum
-schlichten</b>. Flächen wählen kommt in einer nächsten Stufe dazu.</p>
+schlichten</b>, rundum oder nur über den Flächen, die du anklickst.</p>
 
 <h3>So geht's</h3>
 <ol>
@@ -85,6 +85,30 @@ Werkzeug aus X, wie an einer Drehmaschine mit C-Achse.</li>
 </ul>
 <p>Die Achse der Stange geht durch den Nullpunkt des Jobs. So legt FreeCAD
 spätere Bahnen von selbst richtig um das Teil.</p>
+
+<h3>Schritt 2: Flächen</h3>
+<p>Ohne Wahl wird rundum gefräst – alle Mantelflächen. Nur einzelne Flächen
+fräsen: in Schritt 2 im 3D auf eine Fläche des Teils klicken; noch ein Klick
+nimmt sie wieder heraus (in der Liste auch ein Doppelklick).</p>
+<ul>
+<li>Die <b>Liste</b> nennt jede gewählte Fläche mit ihrer Art („Ebene“,
+„Zylinder Ø 20,00 mm, mittig“ …) und wie weit ein Werkzeug, das von außen zur
+Achse zeigt, an sie herankommt: <b>grün</b> erreichbar, <b>gelb</b> zum Teil
+(„zu 50 % erreichbar“), <b>rot</b> nicht – unter einem Überhang oder quer zur
+Achse. In der 3D-Ansicht stehen die gewählten Flächen in diesen Farben; nach
+dem Fenster sieht das Teil wieder aus wie vorher.</li>
+<li><b>Alle Mantelflächen</b> wählt jede Fläche, die nach außen schaut – das
+ist rundum. <b>Auswahl leeren</b> ebenso.</li>
+<li>Mit gewählten Flächen fräsen „Rundum schruppen“ und „Rundum schlichten“
+nur dort, wo der Fräser eine von ihnen berührt – so kommt er auch an ihre
+Kanten. Gerechnet wird weiter gegen das ganze Teil: Es bleibt heil. Dazwischen
+hebt er über die Stange ab und taucht sicher wieder ein: im Eilgang bis knapp
+über das, was dort noch steht, dann senkrecht mit dem Eintauchvorschub, wo er
+nur mit dem Rand eintaucht, sonst über eine Rampe mit dem Eintauchwinkel des
+Fräsers aus der Werkzeugverwaltung (ohne Angabe 5°).</li>
+<li>Beide Operationen merken sich die Flächen (Eigenschaft „Flaechen“); beim
+Ändern stehen sie wieder in der Liste.</li>
+</ul>
 
 <h3>Schritt 2: Rundum schruppen</h3>
 <p>Die Stange wird rundum abgenommen, bis aufs Schlichtaufmaß – in Lagen, mit
@@ -242,8 +266,10 @@ neuen Job gibt, nimmt der Assistent heraus.</li>
 
 <h3>Was (noch) nicht geht</h3>
 <ul>
-<li>Nur bestimmte Flächen fräsen – das kommt in einer nächsten Stufe. Bis
-dahin nehmen „Rundum schruppen“ und „Rundum schlichten“ das ganze Teil.</li>
+<li>Eine ebene Abflachung wirklich eben fräsen („Plan indexiert“) und Kanten
+entgraten – das kommt in einer nächsten Stufe. Bis dahin fräst die Spirale sie
+mit dem Fräser, der zur Achse zeigt: Wo er nicht senkrecht über ihr steht,
+bleibt etwas mehr stehen.</li>
 <li>Drehen, Planen der Stirnseite und Abstechen macht die Maschine – FreeCAD
 dreht nicht.</li>
 </ul>

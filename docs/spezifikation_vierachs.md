@@ -723,6 +723,15 @@ bauen“):*
   der gewählten mit Art und Erreichbarkeit (erreichbar grün, teilweise gelb,
   nicht rot – aus der Maske mit einem punktförmigen Werkzeug). Die Operationen
   merken sich die Flächen (Verweis auf das Modell des Jobs, wie CAMs „Base“).
+  - *Wie gebaut* (P-2026-09-30-27): Ohne Wahl steht grau „Rundum – alle
+    Mantelflächen …“. Ein Klick auf eine Fläche des Teils im Job nimmt sie dazu,
+    ein zweiter heraus; danach ist FreeCADs Auswahl wieder leer, die gewählten
+    Flächen stehen im 3D grün, gelb oder rot (nur die Anzeige). Die Liste: „Face3
+    Ebene – erreichbar“ in derselben Farbe, Doppelklick nimmt heraus. „Alle
+    Mantelflächen“ und „Auswahl leeren“ – alle gewählt ist rundum, wie keine. Die
+    Operationen merken sich die Namen („Flaechen“, Liste von „FaceN“ des Modells im
+    Job); die Vorschau rechnet mit ihnen, beim Ändern stehen sie wieder in der
+    Liste. Der Eintauchwinkel kommt vom Fräser der Werkzeugverwaltung.
 - **V4b – Maske in der Bahn, abheben und sicher wieder einsetzen** (gebaut,
   P-2026-09-30-26, mit dem Rechenkern `vierachs_flaechen`): Schruppen
   und Schlichten fräsen nur, wo die Mitte des Fräsers über der Maske steht;
