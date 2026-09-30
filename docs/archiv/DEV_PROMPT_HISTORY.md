@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-45 teil-am-ende-aus
+
+### EINGELESEN
+- Das Bild am Ende von Manuels Testteil: Das fertige Teil (hellblau, `MODELL`) schien durch
+  die gefärbte Stange. Wo nichts mehr steht, liegt die Stange genau auf ihm; das ergab einen
+  hellblauen Sägezahn neben „blau: im Teil“ in der Legende, obwohl keine Zelle blau war.
+- Wo die Stange wirklich ins Teil ginge, deckte das Teil die blauen Zellen zu.
+- `camaddon/gui_abfahren.py` (`Bild`, `abtragen`), `help/*/reichweite.html`.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py`, `help/de/reichweite.html`, `help/en/reichweite.html`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Am Ende des Abspielens sind nur die Farben der Stange zu sehen, ohne das hellblaue Teil. Beim
+Zurückspulen ist das Teil wieder da.
+
+### DONE
+- Das fertige Teil steckt in einem Schalter wie die Bahn. `abtragen()` blendet beide an der
+  letzten Station aus und davor wieder ein.
+- Hilfe (de/en): „An der letzten Station verschwinden die Bahn und das fertige Teil“.
+
+### TEST
+- `szenario_flaechen_pruefen` und `szenario_rundum_drehmaschine` in 1.1.3: ok. Im Bild der
+  Abflachung ist das Ende der Stange geschlossen, ohne Hellblau.
+
+### NEXT
+- Wege bis 10 m (Manuel: Z nur bis 999 einzutippen).
+
 ## P-2026-09-30-44 vergleich-nicht-rundum
 
 ### EINGELESEN

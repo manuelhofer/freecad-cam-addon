@@ -81,10 +81,18 @@ class Bild:
         werkstueck = coin.SoSeparator()
         self.werkstueck_lage = coin.SoTransform()
         werkstueck.addChild(self.werkstueck_lage)
+        # Das fertige Teil – beim Vergleich am Ende ausgeblendet: Wo nichts mehr steht, liegt die
+        # Stange genau auf ihm, sein Hellblau schiene durch und sähe aus wie „blau: im Teil“
+        # (Manuels Testteil, P-2026-09-30-45).
+        self.modell_schalter = coin.SoSwitch()
+        modell = coin.SoGroup()
         for objekt in getattr(getattr(job, "Model", None), "Group", []):
             form = getattr(objekt, "Shape", None)
             if form is not None and not form.isNull():
-                werkstueck.addChild(self._flaechen(form, MODELL, 0.0))
+                modell.addChild(self._flaechen(form, MODELL, 0.0))
+        self.modell_schalter.addChild(modell)
+        self.modell_schalter.whichChild = 0
+        werkstueck.addChild(self.modell_schalter)
         punkte = abfahrt.am_werkstueck()
         # Eine runde Stange mit „Rundum schruppen“ wird beim Abspielen abgetragen (V3g).
         try:
@@ -132,6 +140,7 @@ class Bild:
         vergleich = self.abtrag.vergleich() if ende else None
         self._rest_zeigen(vergleich)
         self.bahn_schalter.whichChild = -1 if ende else 0
+        self.modell_schalter.whichChild = -1 if ende else 0
         return _rest_satz(vergleich, self.abtrag.aufmass)
 
     def _restmaterial(self):
