@@ -3,20 +3,26 @@
 # V3f), dort auf der Tiefe der letzten Kontur, nie näher ans Teil als das Aufmaß; ist
 # das Futter näher, bleibt der Rand des Fräsers den Abstand zum Futter davor. Beim
 # Exzenter auch zwischen den Punkten gegen die Formel. Dazu die Path-Befehle für C und A
-# mit G93 und die Fälle, die nicht gehen.
+# mit G93 und die Fälle, die nicht gehen. Nur über gewählten Flächen (V4): Abflachung einer
+# Welle – gefräst wird nur, wo der Fräser sie berührt, hinein über Rampen oder senkrecht, wo
+# die Umdrehung davor schon fräste.
 import math
 import os
 import sys
+from dataclasses import replace
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
 import FreeCAD
+import numpy as np
 import Part
 
 from camaddon import restmaterial as rm
 from camaddon import vierachs_bahn as vb
+from camaddon import vierachs_flaechen as vf
 from camaddon import vierachs_huelle as vh
+from camaddon import vierachs_rohteil as vr
 from camaddon.sprache import tr
 
 fehler = []
@@ -171,6 +177,17 @@ pruefe("Radius in Z" in mit_a[0].Name, f"Kommentar: {mit_a[0].Name}")
 ohne_quer = vb.befehle(kurz, C_LAENGS, C_RADIAL, "C", 1, 1500.0, quer_auf_null=False)
 pruefe("Y" not in ohne_quer[2].Parameters, f"ohne Y: {ohne_quer[2].Parameters}")
 pruefe(abs(vb.dauer(kurz, 1500.0) - (4 + weg) / 1500.0) < 1e-12, f"Dauer: {vb.dauer(kurz, 1500)}")
+# Ins Material senkrecht mit dem Eintauchvorschub (V4).
+senkrecht = vb.Bahn(
+    [kurz.punkte[0], replace(kurz.punkte[1], eintauchen=True), *kurz.punkte[2:]], 1, 38.0
+)
+eingetaucht = vb.befehle(senkrecht, C_LAENGS, C_RADIAL, "C", 1, 1500.0, eintauchen=300.0)
+pruefe(abs(eingetaucht[4].Parameters["F"] * 60 - 300 / 4) < 1e-9, f"F eintauchen: {eingetaucht[4]}")
+pruefe(abs(eingetaucht[5].Parameters["F"] * 60 - 1500 / weg) < 1e-9, "F danach")
+pruefe(
+    abs(vb.dauer(senkrecht, 1500.0, 300.0) - (4 / 300.0 + weg / 1500.0)) < 1e-12,
+    "Dauer mit Eintauchen",
+)
 
 # --- Was nicht geht ------------------------------------------------------------------------------
 for name, werte in (
@@ -287,6 +304,118 @@ rest_ohne, rest_mit = rest_hinter_der_wand(ohne_ring), rest_hinter_der_wand(mit_
 pruefe(rest_ohne > 3.0, f"ohne Ring hinter der Wand nur {rest_ohne:.3f} stehen")
 pruefe(rest_mit < 0.3 + 0.1, f"mit Ring hinter der Wand {rest_mit:.3f} stehen")
 print(ascii(f"Wand: hinten ohne Ring {rest_ohne:.2f} mm, mit Ring {rest_mit:.2f} mm stehen"))
+
+# --- Die Rampe (V4) ------------------------------------------------------------------------------
+# Eine Bahn auf dem Radius 10, 1° je Punkt: Von 12 hinab mit 5° gegen die Bahn – 2 mm brauchen
+# etwa 22 mm. Auf einem langen Stück einmal hin, auf der Bahn zurück zum Anfang; auf einem
+# kurzen (10°, 1,7 mm) hin und her, immer tiefer.
+steil = math.tan(math.radians(5.0))
+for bis, name in ((399, "lang"), (10, "kurz")):
+    lauf_a, lauf_r, lauf_phi = np.zeros(400), np.full(400, 10.0), np.arange(400) * 1.0
+    rampe = vb._rampe(lauf_a, lauf_r, lauf_phi, 0, bis, 12.0, WERTE)
+    stellen = [(0.0, 12.0, 0.0), *rampe]
+    unten = next(i for i, s_ in enumerate(stellen) if s_[1] <= 10.0 + 1e-12)
+    neigung = max(
+        (v[1] - n[1]) / (max(v[1], n[1]) * math.radians(abs(n[2] - v[2])))
+        for v, n in zip(stellen[:unten], stellen[1 : unten + 1], strict=True)
+    )
+    pruefe(neigung <= steil + 1e-9, f"Rampe {name}: {math.degrees(math.atan(neigung)):.3f}°")
+    pruefe(all(0.0 <= s_[2] <= bis for s_ in stellen), f"Rampe {name}: aus dem Stück")
+    pruefe(stellen[-1] == (0.0, 10.0, 0.0), f"Rampe {name}: endet bei {stellen[-1]}")
+    pruefe(all(s_[1] == 10.0 for s_ in stellen[unten:]), f"Rampe {name}: zurück nicht auf der Bahn")
+    wenden = sum(
+        1
+        for v, m, n in zip(stellen, stellen[1:], stellen[2:], strict=False)
+        if (m[2] - v[2]) * (n[2] - m[2]) < 0
+    )
+    pruefe((wenden == 1) if name == "lang" else wenden > 3, f"Rampe {name}: {wenden} Wenden")
+pruefe(vb._stuecke(np.array([False, True, True, False, True])) == [(1, 2), (4, 4)], "Stücke")
+
+# --- Nur die Abflachung (V4) ----------------------------------------------------------------------
+# Welle Ø 20 von −40 bis 0, Abflachung auf x = 8 von −30 bis −10, Stange Ø 24, Fräser R 3:
+# gefräst wird nur, wo er die Abflachung berührt, vor ihren Wänden mit Ring. Die erste Umdrehung
+# jeder Lage im Bereich taucht über die Rampe ein, alle anderen senkrecht – dort fräste die
+# Umdrehung davor schon. Über der Abflachung bleibt das Aufmaß, gegenüber die Stange.
+flach_welle = (
+    Part.makeCylinder(10, 40, V(0, 0, -40))
+    .cut(Part.makeBox(10, 30, 20, V(8, -15, -30)))
+    .removeSplitter()
+)
+abflachung = next(
+    i
+    for i, f in enumerate(flach_welle.Faces)
+    if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-6
+)
+sicht_flach = vf.sicht(
+    vf.vernetze(flach_welle), C_LAENGS, C_RADIAL, vf.raster_a(-45.0, 5.0), vh.raster_phi()
+)
+bereich_flach = vf.bereich(sicht_flach, [abflachung], 3.0)
+werte_flach = vb.Schruppwerte(
+    fraeser_radius=3.0,
+    stange_radius=12.0,
+    zustellung=2.0,
+    steigung=2.4,
+    aufmass=0.3,
+    a_stange_vorne=1.0,
+    a_futter=-60.0,
+    waende=((-30.0, 1), (-10.0, -1)),
+    bereich=bereich_flach,
+)
+flach_bahn = vb.schruppen(vh.vernetze(flach_welle), C_LAENGS, C_RADIAL, werte_flach)
+vorschub = schnitte(flach_bahn)
+drin = bereich_flach.bei([p.a for p in vorschub], np.radians([p.phi for p in vorschub]))
+pruefe(drin.all(), f"{int((~drin).sum())} Punkte im Vorschub außerhalb des Bereichs")
+pruefe(flach_bahn.lagen == 2, f"Abflachung: {flach_bahn.lagen} Lagen")
+rampen = senkrechte = 0
+for n, punkt in enumerate(flach_bahn.punkte):
+    if not punkt.eintauchen:
+        continue
+    folge = []
+    for q in flach_bahn.punkte[n + 1 :]:
+        if q.eilgang:
+            break
+        folge.append(q)
+    # Die Rampe fährt gleich weiter und kommt auf der Bahn zum Anfang zurück; senkrecht
+    # beginnt die Bahn dort, wo es hinab ging.
+    gleich = [abs(q.a - punkt.a) < 1e-9 and abs(q.phi - punkt.phi) < 1e-9 for q in folge]
+    zurueck = bool(folge) and not gleich[0] and any(gleich[1:])
+    rampen += zurueck
+    senkrechte += not zurueck
+pruefe(rampen == flach_bahn.lagen and senkrechte >= 10, f"{rampen} Rampen, {senkrechte} senkrecht")
+schritte = [
+    abs(n.phi - v.phi)
+    for v, n in zip(flach_bahn.punkte, flach_bahn.punkte[1:], strict=False)
+    if n.eilgang
+]
+pruefe(max(schritte) <= vb.HOECHSTENS_GRAD + 1e-9, f"Eilgang dreht {max(schritte)}° am Stück")
+stange = rm.Stange(12.0, -60.0, 1.0)
+von, nach = [], []
+for vorher, punkt in zip(flach_bahn.punkte, flach_bahn.punkte[1:], strict=False):
+    if not punkt.eilgang:
+        von.append((vorher.a, vorher.r, vorher.phi))
+        nach.append((punkt.a, punkt.r, punkt.phi))
+stange.fahre_stuecke(von, nach, 3.0)
+winkel = np.degrees(stange.phi)
+winkel = np.where(winkel > 180, winkel - 360, winkel)
+nah = np.abs(winkel) <= 20
+ebene = 8.0 / np.cos(np.radians(winkel[nah]))[None, :]  # die Ebene x = 8 auf dem Strahl
+ueber = stange.r[np.ix_((stange.a > -28.5) & (stange.a < -11.5), nah)]
+rest_flach = float((ueber - ebene).max())
+pruefe(rest_flach < 0.3 + 0.2, f"über der Abflachung bleiben {rest_flach:.3f} mm")
+# Dicht an den Wänden kommt nur der Rand des Fräsers hin, und seine Stirn steht schräg zur
+# Ebene, wo er nicht senkrecht über ihr steht: Dort bleibt mehr – ohne Ring bis 2,3 mm, mit
+# Ring gut 1 mm. Eben fräst sie erst „Plan indexiert“ (V4c).
+ecke = stange.r[np.ix_((stange.a > -29.6) & (stange.a < -10.4), nah)]
+rest_ecke = float((ecke - ebene).max())
+pruefe(rest_ecke < 1.3, f"in den Ecken der Abflachung bleiben {rest_ecke:.3f} mm")
+gegenueber = stange.r[:, np.abs(winkel) >= 120]
+pruefe(float(gegenueber.min()) == 12.0, f"gegenüber abgetragen: bis {float(gegenueber.min())}")
+print(
+    ascii(
+        f"Abflachung: {flach_bahn.lagen} Lagen, {rampen} Rampen, {senkrechte} senkrecht, "
+        f"darüber {rest_flach:.2f} mm, in den Ecken {rest_ecke:.2f} mm"
+    )
+)
 
 if fehler:
     raise AssertionError("\n".join(fehler))

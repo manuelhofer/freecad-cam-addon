@@ -723,7 +723,8 @@ bauen“):*
   der gewählten mit Art und Erreichbarkeit (erreichbar grün, teilweise gelb,
   nicht rot – aus der Maske mit einem punktförmigen Werkzeug). Die Operationen
   merken sich die Flächen (Verweis auf das Modell des Jobs, wie CAMs „Base“).
-- **V4b – Maske in der Bahn, abheben und sicher wieder einsetzen:** Schruppen
+- **V4b – Maske in der Bahn, abheben und sicher wieder einsetzen** (gebaut,
+  P-2026-09-30-26, mit dem Rechenkern `vierachs_flaechen`): Schruppen
   und Schlichten fräsen nur, wo die Mitte des Fräsers über der Maske steht;
   dazwischen hebt er ab – über das, was dort noch steht (anfangs der
   Stangenradius, sonst der Rest der Lagen davor) plus Sicherheitsabstand – und
@@ -732,6 +733,21 @@ bauen“):*
   Werkzeugverwaltung (ohne Angabe 5°), so wie die Spirale ohnehin schneidet
   (Manuel: „je nach Rohteil abheben und irgendwo wieder einsetzen, so dass er
   nicht kaputt geht“).
+  - *Wie gebaut:* Der Bereich ist jede Stelle, an der die Stirn des Fräsers (Scheibe
+    mit seinem Radius) eine gewählte Fläche berührt – so kommt er an ihre Kanten.
+    Alle Lagen fahren dieselbe Spirale (ganze Umdrehungen weiter): Über jeder Stelle
+    steht dann höchstens die Tiefe der Lage davor, der Eilgang hinab geht bis knapp
+    darüber. Senkrecht mit dem Eintauchvorschub taucht er nur ein, wo die Umdrehung
+    davor an derselben Stelle schon fräste (die Mitte steht über Freiem, er taucht nur
+    mit dem Rand ein); sonst über die Rampe mit dem Eintauchwinkel längs der Bahn, hin
+    und her, bis er unten ist, und auf der Bahn zurück zum Anfang – so bleibt unter der
+    Rampe nichts stehen. Schlichten taucht senkrecht ein, knapp über dem Rest nach dem
+    Schruppen. Die Rundachse dreht zwischen den Stücken im Eilgang weiter, in Schritten
+    von höchstens 90°.
+  - *Grenze:* Eine Abflachung mit der Spirale: Wo der Fräser nicht senkrecht über ihr
+    steht, steht seine Stirn schräg zu ihr – an ihrem Rand bleibt etwas mehr stehen, in
+    den Ecken an ihren Wänden gut 1 mm (mit Ringgang). Eben fräst sie erst „Plan
+    indexiert“ (V4c).
 - **V4c – Strategien je Werkzeug und Fläche** (Manuel: „mehrere Strategien, je
   nach Werkzeug kann das anders ausfallen“): für jede Auswahl ein Vorschlag, im
   Assistenten änderbar –

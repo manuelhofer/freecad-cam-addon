@@ -29,6 +29,7 @@ import Path.Op.Base as PathOp
 from . import fraeserform as ff
 from . import restmaterial as rm
 from . import vierachs_bahn as vb
+from . import vierachs_flaechen as vf
 from . import vierachs_huelle as vh
 from . import vierachs_operation as vo
 from . import vierachs_rohteil as vr
@@ -77,6 +78,7 @@ class RundumSchlichten(PathOp.ObjectOp):
                 ("App::PropertyLength", "Aufmass", tr("vs.eigenschaft.aufmass")),
             )
             + vo.abstand_eigenschaften()
+            + vo.flaechen_eigenschaften()
             + (
                 ("App::PropertyLength", "Kammhoehe", tr("vs.eigenschaft.kammhoehe")),
                 ("App::PropertyFloat", "Umdrehungen", tr("vs.eigenschaft.umdrehungen")),
@@ -123,6 +125,7 @@ class RundumSchlichten(PathOp.ObjectOp):
                 obj.Drehsinn,
                 self.horizFeed * 60.0,  # CAM führt mm/s
                 obj.QuerAufNull,
+                vo.eintauchvorschub(self),
             )
         )
 
@@ -152,6 +155,7 @@ def rechne(obj, job, modell):
         vo.abstaende(obj),
         schruppbahnen(job, modell),
         vo.halter_zum_futter(obj),
+        vo.flaechen(obj),
     )
 
 
@@ -170,12 +174,23 @@ def schruppbahnen(job, modell):
 
 
 def bahn_fuer(
-    job, modell, laengs, radial, form, schrittweite, aufmass, abstaende, schruppen, halter=0.0
+    job,
+    modell,
+    laengs,
+    radial,
+    form,
+    schrittweite,
+    aufmass,
+    abstaende,
+    schruppen,
+    halter=0.0,
+    flaechen=(),
 ):
     """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
     davor (schruppbahnen()); `halter`: so weit reicht der Halter seitlich über die
-    Werkzeugachse (halter.seitlich). ValueError mit einem Satz, wenn es nicht geht."""
+    Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen („Face3“ …), leer:
+    rundum. ValueError mit einem Satz, wenn es nicht geht."""
     if not schruppen:
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
@@ -186,19 +201,26 @@ def bahn_fuer(
         rest=rest_nach(schruppen, radius, a_futter, a_vorne),
         aufmass_schruppen=max(auf for _bahn, _radius, auf in schruppen),
         waende=vo.waende(form_teil, laengs),
+        bereich=vf.bereich_fuer(form_teil, laengs, radial, flaechen, form.radius),
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     return vb.schlichten(teil, laengs, radial, werte)
 
 
-def vorschau(job, modell, laengs, radial, form, schrittweite, aufmass, abstaende, halter=0.0):
+def vorschau(
+    job, modell, laengs, radial, form, schrittweite, aufmass, abstaende, halter=0.0, flaechen=()
+):
     """Die Schlichtbahn grob – für Umdrehungen, Zeit und ob es geht, im Assistenten, bevor es
     die Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt, alle
     VORSCHAU_SCHRITT_PHI Grad ein Punkt. ValueError wie bahn_fuer()."""
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
     werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter, halter)
     form_teil = _teil(modell)
-    werte = replace(werte, waende=vo.waende(form_teil, laengs))
+    werte = replace(
+        werte,
+        waende=vo.waende(form_teil, laengs),
+        bereich=vf.bereich_fuer(form_teil, laengs, radial, flaechen, form.radius),
+    )
     teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
 
@@ -281,12 +303,14 @@ def lege_an(
     name=None,
     abstaende=None,
     halter=0.0,
+    flaechen=(),
 ):
     """Legt „Rundum schlichten“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand) – ohne: die Vorschläge; `halter`: so weit reicht der Halter
-    seitlich über die Werkzeugachse (halter.seitlich). Gibt die Operation zurück. Angelegt wie
-    „Rundum schruppen“ (vierachs_operation.lege_an), mit DoNotSetDefaultValues."""
+    seitlich über die Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen
+    („Face3“ …), leer: rundum. Gibt die Operation zurück. Angelegt wie „Rundum schruppen“
+    (vierachs_operation.lege_an), mit DoNotSetDefaultValues."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "RundumSchlichten")
     obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
@@ -308,6 +332,7 @@ def lege_an(
         abstaende or vo.vorgeschlagene_abstaende(radius)
     )
     obj.HalterZumFutter = halter
+    obj.Flaechen = list(flaechen)
     obj.Label = name or tr("vs.name", werkzeug=f"T{tc.ToolNumber}")
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -316,10 +341,10 @@ def lege_an(
     return obj
 
 
-def aendere(obj, tc, schrittweite, aufmass, abstaende=None, halter=None):
+def aendere(obj, tc, schrittweite, aufmass, abstaende=None, halter=None, flaechen=None):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `abstaende` und `halter` wie bei lege_an, ohne bleiben sie. Der Name folgt
-    dem Werkzeug, solange es der vorgeschlagene ist."""
+    Transaktion; `abstaende`, `halter` und `flaechen` wie bei lege_an, ohne bleiben sie. Der
+    Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = tr("vs.name", werkzeug=f"T{tc.ToolNumber}")
     obj.ToolController = tc
@@ -330,6 +355,8 @@ def aendere(obj, tc, schrittweite, aufmass, abstaende=None, halter=None):
         obj.Ueberlauf, obj.AbstandFutter, obj.Sicherheitsabstand = abstaende
     if halter is not None:
         obj.HalterZumFutter = halter
+    if flaechen is not None and list(flaechen) != list(obj.Flaechen):
+        obj.Flaechen = list(flaechen)
 
 
 def _vorgeschlagener_name(name):

@@ -4,8 +4,9 @@
 # Bahntoleranz darüber; vorne und hinten auf der Tiefe am Ende des Teils, die Spirale endet
 # um den Überlauf hinter dem Teil. Torus mit Aufmaß. Dann der Schutz: In einer Nut, die
 # schmaler ist als der Schruppfräser, blieb nach dem Schruppen alles stehen – der Kugelfräser
-# fährt dort zuerst eine Stufe, höchstens seinen Radius tief, dann bis auf den Grund. Dazu
-# die Zeitgrenze.
+# fährt dort zuerst eine Stufe, höchstens seinen Radius tief, dann bis auf den Grund. Nur
+# über der Abflachung einer Welle (V4): im Eilgang bis knapp über den Rest, senkrecht hinein.
+# Dazu die Zeitgrenze.
 import math
 import os
 import sys
@@ -23,7 +24,9 @@ from camaddon import fraeserform as ff
 from camaddon import restmaterial as rm
 from camaddon import sprache
 from camaddon import vierachs_bahn as vb
+from camaddon import vierachs_flaechen as vf
 from camaddon import vierachs_huelle as vh
+from camaddon import vierachs_rohteil as vr
 
 fehler = []
 
@@ -310,6 +313,76 @@ a, r = dicht(mit_ring)
 soll = im_schnitt(umriss, kugel, np.clip(a, -42.0, 0.0))
 pruefe((r - soll).min() >= -1e-3, f"mit Ring im Teil: {(r - soll).min():.4f}")
 print(ascii(f"Wand: an der Wand ohne Ring {rest_ohne:.2f} mm, mit Ring {rest_mit:.2f} mm"))
+
+# --- Nur die Abflachung (V4) ---------------------------------------------------------------
+# Welle Ø 20 von −40 bis 0, Abflachung auf x = 8 von −30 bis −10, Stange Ø 24; geschruppt
+# mit R 3 nur dort (Aufmaß 0,3), geschlichtet mit der Kugel R 2. Jedes Stück beginnt im
+# Eilgang knapp über dem Rest und taucht mit dem Eintauchvorschub ein; die Bahn bleibt im
+# Bereich der Kugel, gegenüber wird nichts gefräst.
+flach_welle = (
+    Part.makeCylinder(10, 40, V(0, 0, -40))
+    .cut(Part.makeBox(10, 30, 20, V(8, -15, -30)))
+    .removeSplitter()
+)
+abflachung = next(
+    i
+    for i, f in enumerate(flach_welle.Faces)
+    if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-6
+)
+sicht_flach = vf.sicht(
+    vf.vernetze(flach_welle), LAENGS, RADIAL, vf.raster_a(-45.0, 5.0), vh.raster_phi()
+)
+schruppen_flach = vb.schruppen(
+    vh.vernetze(flach_welle),
+    LAENGS,
+    RADIAL,
+    vb.Schruppwerte(
+        3.0, 12.0, 2.0, 2.4, 0.3, 1.0, -60.0, bereich=vf.bereich(sicht_flach, [abflachung], 3.0)
+    ),
+)
+stange = rm.Stange(12.0, -60.0, 1.0)
+von, nach = [], []
+for vorher, punkt in zip(schruppen_flach.punkte, schruppen_flach.punkte[1:], strict=False):
+    if not punkt.eilgang:
+        von.append((vorher.a, vorher.r, vorher.phi))
+        nach.append((punkt.a, punkt.r, punkt.phi))
+stange.fahre_stuecke(von, nach, 3.0)
+kugel_klein = ff.kugel(2.0)
+bereich_kugel = vf.bereich(sicht_flach, [abflachung], 2.0)
+flach = vb.schlichten(
+    vh.vernetze(flach_welle, vb.TOLERANZ_SCHLICHTEN),
+    LAENGS,
+    RADIAL,
+    vb.Schlichtwerte(
+        kugel_klein,
+        12.0,
+        0.5,
+        0.0,
+        1.0,
+        -60.0,
+        rest=(stange.a, stange.phi, stange.r),
+        aufmass_schruppen=0.3,
+        bereich=bereich_kugel,
+    ),
+)
+im_vorschub = [p for p in flach.punkte if not p.eilgang]
+drin = bereich_kugel.bei([p.a for p in im_vorschub], np.radians([p.phi for p in im_vorschub]))
+pruefe(drin.all(), f"Schlichten: {int((~drin).sum())} Punkte außerhalb des Bereichs")
+teile = stuecke(flach)
+pruefe(len(teile) > 10, f"Schlichten: nur {len(teile)} Stücke über der Abflachung")
+knapp = 0
+for vorher, punkt in zip(flach.punkte, flach.punkte[1:], strict=False):
+    if vorher.eilgang and not punkt.eilgang:
+        pruefe(punkt.eintauchen, f"hinein ohne Eintauchvorschub bei a {punkt.a:.2f}")
+        knapp += vorher.r < 12.0 + 2.0 - 1e-9
+        # Knapp: der Sicherheitsabstand über dem Rest, und der ist nach den Stufen höchstens
+        # die Grenze (der Radius der Kugel) über der Bahn.
+        tief = vorher.r - punkt.r
+        pruefe(tief <= 2.0 + flach.grenze + 1e-6, f"taucht {tief:.2f} mm ein")
+pruefe(knapp == len(teile), f"nur {knapp} von {len(teile)} Stücken knapp über dem Rest")
+winkel = [p.phi for p in flach.punkte]
+pruefe(all(b >= a - 1e-9 for a, b in zip(winkel, winkel[1:], strict=False)), "C dreht zurück")
+print(ascii(f"Abflachung: {len(teile)} Stücke geschlichtet"))
 
 # --- Zeitgrenze: Kugelfräser Ø 6 auf der Welle Ø 60 × 100 mit Nocken, 0,35 mm ------------
 teil = (

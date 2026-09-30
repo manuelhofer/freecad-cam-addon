@@ -9,7 +9,8 @@ dem Modell und der Stange des Jobs (vierachs_huelle, vierachs_bahn); ihre Werte
 stehen als Eigenschaften in der Gruppe „4-Achs“. Die Spannlänge kommt vom Job
 (vierachs_rohteil.spannlaenge), sonst gilt der Vorschlag. Überlauf und Abstand zum
 Futter (V3f) kamen mit 0.27 dazu; ältere Operationen bekommen sie beim Laden so, dass
-ihre Bahn bleibt, wie sie war.
+ihre Bahn bleibt, wie sie war. Die gewählten Flächen (V4, „Flaechen“) kamen mit 0.30: leer
+heißt rundum – wie bisher.
 
 Modul- und Klassenname stehen in jeder gespeicherten Datei – sie bleiben. Kein
 Qt hier; die Anzeige liegt in gui_vierachs_operation.py.
@@ -25,6 +26,7 @@ import Path.Op.Base as PathOp
 
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
+from . import vierachs_flaechen as vf
 from . import vierachs_huelle as vh
 from . import vierachs_rohteil as vr
 from .sprache import tr
@@ -56,6 +58,7 @@ class RundumSchruppen(PathOp.ObjectOp):
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.Ueberlauf = vb.ueberlauf_vorschlag(0.0)  # lege_an setzt ihn mit dem Fräser
         obj.AbstandFutter = vb.ABSTAND_FUTTER
+        obj.Eintauchwinkel = vb.EINTAUCHWINKEL
         self._editormodi(obj)
 
     def opOnDocumentRestored(self, obj):
@@ -64,6 +67,8 @@ class RundumSchruppen(PathOp.ObjectOp):
             obj.Ueberlauf = vb.ueberlauf_vorschlag(float(obj.OpToolDiameter) / 2)
         if "AbstandFutter" in neu:  # bis 0.26 fest 2 mm
             obj.AbstandFutter = 2.0
+        if "Eintauchwinkel" in neu:  # bis 0.29: rundum, ohne Rampe
+            obj.Eintauchwinkel = vb.EINTAUCHWINKEL
         self._editormodi(obj)
 
     @staticmethod
@@ -78,7 +83,11 @@ class RundumSchruppen(PathOp.ObjectOp):
                 ("App::PropertyLength", "Aufmass", tr("vo.eigenschaft.aufmass")),
             )
             + abstand_eigenschaften()
-            + (("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),),
+            + flaechen_eigenschaften()
+            + (
+                ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
+                ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
+            ),
         )
 
     @staticmethod
@@ -112,8 +121,26 @@ class RundumSchruppen(PathOp.ObjectOp):
                 obj.Drehsinn,
                 self.horizFeed * 60.0,  # CAM führt mm/s
                 obj.QuerAufNull,
+                eintauchvorschub(self),
             )
         )
+
+
+def eintauchvorschub(proxy):
+    """Der Vorschub senkrecht ins Material (mm/min) vom Werkzeug-Controller – None ohne ihn."""
+    senkrecht = getattr(proxy, "vertFeed", 0) or 0
+    return senkrecht * 60.0 if senkrecht > 0 else None  # CAM führt mm/s
+
+
+def flaechen_eigenschaften():
+    """Die gewählten Flächen (V4) – „Rundum schruppen“ und „Rundum schlichten“ haben sie
+    beide, wie achs_eigenschaften(). Leer: rundum; ältere Operationen bekommen sie leer."""
+    return (("App::PropertyStringList", "Flaechen", tr("vo.eigenschaft.flaechen")),)
+
+
+def flaechen(obj):
+    """Die gewählten Flächen der Operation („Face3“ …) – leer: rundum."""
+    return tuple(getattr(obj, "Flaechen", ()) or ())
 
 
 def achs_eigenschaften():
@@ -167,6 +194,8 @@ def rechne(obj, job, modell, fraeser_radius):
         float(obj.Ueberlauf),
         float(obj.AbstandFutter),
         halter_zum_futter(obj),
+        flaechen(obj),
+        float(obj.Eintauchwinkel),
     )
 
 
@@ -183,11 +212,15 @@ def bahn_fuer(
     ueberlauf=None,
     abstand_futter=None,
     halter=0.0,
+    flaechen_=(),
+    eintauchwinkel=vb.EINTAUCHWINKEL,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
     zum Futter wie vorgeschlagen; `halter`: so weit reicht der Halter seitlich über die
-    Werkzeugachse (halter.seitlich). ValueError mit einem Satz, wenn es nicht geht."""
+    Werkzeugachse (halter.seitlich); `flaechen_`: die gewählten Flächen („Face3“ …), leer:
+    rundum; `eintauchwinkel` (Grad) für die Rampe ins Material zwischen ihnen. ValueError
+    mit einem Satz, wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -210,6 +243,8 @@ def bahn_fuer(
         abstand_futter=vb.ABSTAND_FUTTER if abstand_futter is None else abstand_futter,
         halter=halter,
         waende=waende(form, laengs),
+        bereich=vf.bereich_fuer(form, laengs, radial, flaechen_, fraeser_radius),
+        eintauchwinkel=eintauchwinkel,
     )
     return vb.schruppen(vh.vernetze(form), laengs, radial, werte)
 
@@ -269,12 +304,15 @@ def lege_an(
     name=None,
     abstaende=None,
     halter=0.0,
+    flaechen_=(),
+    eintauchwinkel=None,
 ):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
     (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
     zum Futter, Sicherheitsabstand) – ohne: die Vorschläge. `halter`: so weit reicht der
-    Halter des Werkzeugs seitlich über dessen Achse (halter.seitlich). Gibt die Operation
-    zurück.
+    Halter des Werkzeugs seitlich über dessen Achse (halter.seitlich). `flaechen_`: die
+    gewählten Flächen („Face3“ …), leer: rundum; `eintauchwinkel`: Grad, ohne der Vorschlag.
+    Gibt die Operation zurück.
 
     Angelegt wie FreeCADs eigene Operationen, aber mit DoNotSetDefaultValues:
     Sonst fragte FreeCAD nach Job und Controller, sobald es mehrere gibt – in
@@ -299,6 +337,9 @@ def lege_an(
     obj.Aufmass = aufmass
     _setze_abstaende(obj, abstaende or vorgeschlagene_abstaende(float(tc.Tool.Diameter) / 2))
     obj.HalterZumFutter = halter
+    obj.Flaechen = list(flaechen_)
+    if eintauchwinkel:
+        obj.Eintauchwinkel = eintauchwinkel
     obj.Label = name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}")
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -326,11 +367,21 @@ def halter_zum_futter(obj):
     return float(obj.HalterZumFutter)
 
 
-def aendere(obj, tc, zustellung, steigung, aufmass, abstaende_=None, halter_=None):
+def aendere(
+    obj,
+    tc,
+    zustellung,
+    steigung,
+    aufmass,
+    abstaende_=None,
+    halter_=None,
+    flaechen_=None,
+    eintauchwinkel=None,
+):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_` und
-    `halter_`: wie bei lege_an; ohne bleiben sie. Der Name folgt dem Werkzeug, solange es der
-    vorgeschlagene ist: „Rundum schruppen T1“ wird „… T3“."""
+    Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`, `halter_`,
+    `flaechen_` und `eintauchwinkel`: wie bei lege_an; ohne bleiben sie. Der Name folgt dem
+    Werkzeug, solange es der vorgeschlagene ist: „Rundum schruppen T1“ wird „… T3“."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = tr("vo.name", werkzeug=f"T{tc.ToolNumber}")
     obj.ToolController = tc
@@ -342,6 +393,10 @@ def aendere(obj, tc, zustellung, steigung, aufmass, abstaende_=None, halter_=Non
         _setze_abstaende(obj, abstaende_)
     if halter_ is not None:
         obj.HalterZumFutter = halter_
+    if flaechen_ is not None and list(flaechen_) != list(obj.Flaechen):
+        obj.Flaechen = list(flaechen_)
+    if eintauchwinkel:
+        obj.Eintauchwinkel = eintauchwinkel
 
 
 def setze_achse(obj, achse, quer_auf_null=None):

@@ -36,6 +36,19 @@ Aufmaß des Schruppens plus 0,5 mm): Wo mehr stehen blieb – in einer Innenecke
 einer engen Nut –, fährt sie vorher in Stufen, nur über den Umdrehungen, wo es
 nötig ist.
 
+Mit gewählten Flächen (Stufe V4, vierachs_flaechen) fräsen beide nur im Bereich, in dem
+der Fräser eine von ihnen berührt; gerechnet wird weiter gegen das ganze Teil. Dazwischen hebt
+er über die Stange ab und fährt im Eilgang weiter (Manuel, 2026-09-30: „je nach Rohteil
+abheben und irgendwo wieder einsetzen, so dass er nicht kaputt geht“). Wieder hinein geht es
+im Eilgang bis knapp über das, was dort noch steht, dann:
+
+- beim Schruppen senkrecht mit dem Eintauchvorschub, wo die Umdrehung davor an derselben
+  Stelle schon gefräst hat – die Mitte des Fräsers steht dann über Freiem, er taucht nur mit
+  dem Rand ein –, sonst über eine Rampe mit dem Eintauchwinkel längs der Bahn, hin und her,
+  bis er unten ist, und auf der Bahn zurück zum Anfang. Jede Lage fährt dieselben Stellen wie
+  die davor; so steht über jeder Stelle höchstens noch die Tiefe der Lage davor.
+- beim Schlichten senkrecht mit dem Eintauchvorschub: Dort steht nur das Aufmaß.
+
 Gerechnet wird in Rundachs-Koordinaten (a, r, φ) wie in vierachs_huelle.
 befehle() macht daraus Path-Befehle: X, Y und Z der Spitze im Rahmen der
 Maschine – die Rundachse dreht das Teil darunter, so zeigt FreeCAD die Bahn –,
@@ -71,6 +84,9 @@ SCHLICHT_ZUGABE = 0.5  # mm – Schlichten schneidet mindestens Aufmaß des Schr
 SEHNE_HOECHSTENS = 0.02
 # mm – so viel weiter als Fräser, Aufmaß und Vernetzung steht ein Ring vor der Wand (D-42)
 RING_LUFT = 0.01
+EINTAUCHWINKEL = 5.0  # Grad – so steil taucht die Rampe ein, wenn das Werkzeug nichts sagt
+RAMPE_MINDESTENS = 0.5  # mm – ein kürzeres Stück hat keinen Platz für eine Rampe
+RAMPE_HOECHSTENS = 200  # so oft läuft eine Rampe höchstens hin und her
 
 
 @dataclass(frozen=True)
@@ -93,6 +109,9 @@ class Schruppwerte:
     # (a, Seite) der Wände des Teils quer zur Achse (vierachs_operation.waende): Vor jeder
     # hält die Spirale eine Umdrehung an – der Ringgang (D-42).
     waende: tuple = ()
+    # Wo die Mitte des Fräsers fräst (vierachs_flaechen.Bereich, V4); None: überall – rundum.
+    bereich: object = None
+    eintauchwinkel: float = EINTAUCHWINKEL  # Grad, für die Rampe ins Material
 
 
 @dataclass(frozen=True)
@@ -113,6 +132,7 @@ class Schlichtwerte:
     # Der Rest nach dem Schruppen: (a, φ in rad, r) wie restmaterial.Stange; None: kein Schutz.
     rest: tuple = None
     aufmass_schruppen: float = 0.0  # so viel ließ das Schruppen stehen
+    bereich: object = None  # wie bei Schruppwerte
 
 
 @dataclass
@@ -206,12 +226,14 @@ def _ring_radien(r, herkunft, schritte, ring_r, je_umdrehung):
 
 @dataclass(frozen=True)
 class Punkt:
-    """Ein Punkt der Bahn: Stelle längs, Radius der Spitze, Winkel (Grad, fortlaufend)."""
+    """Ein Punkt der Bahn: Stelle längs, Radius der Spitze, Winkel (Grad, fortlaufend);
+    `eintauchen`: hierher mit dem Eintauchvorschub (senkrecht ins Material)."""
 
     eilgang: bool
     a: float
     r: float
     phi: float
+    eintauchen: bool = False
 
 
 @dataclass
@@ -277,8 +299,14 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         ergebnis = np.where(~np.isfinite(ergebnis) & (a < teil_hinten), w.stange_radius, ergebnis)
         return np.maximum(ergebnis, radius)  # nicht näher an die Achse
 
-    # Wie viele Lagen: bis zum tiefsten Punkt über dem Teil, egal wo die Spirale ihn trifft.
-    ueber_dem_teil = huelle.r[(huelle.a >= a_ende) & (huelle.a <= a_anfang)]
+    # Wie viele Lagen: bis zum tiefsten Punkt über dem Teil, egal wo die Spirale ihn trifft –
+    # mit gewählten Flächen im Bereich.
+    auswahl = np.broadcast_to(
+        ((huelle.a >= a_ende) & (huelle.a <= a_anfang))[:, None], huelle.r.shape
+    )
+    if w.bereich is not None:
+        auswahl = auswahl & w.bereich.bei(huelle.a[:, None], huelle.phi[None, :])
+    ueber_dem_teil = huelle.r[auswahl]
     ueber_dem_teil = ueber_dem_teil[np.isfinite(ueber_dem_teil)]
     r_min = max(float(ueber_dem_teil.min()) + zugabe, radius) if ueber_dem_teil.size else 0.0
     lagen = 0
@@ -286,6 +314,10 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         lagen = max(0, int(math.ceil((w.stange_radius - r_min) / w.zustellung - GLEICH)))
     sicher = w.stange_radius + w.sicherheit
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
+    if w.bereich is not None:
+        _schruppen_im_bereich(punkte, a, k, boden(0), lagen, w, je_umdrehung, schritt_phi)
+        _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
+        return Bahn(punkte, lagen, r_min, hinten_frei)
     versatz = 0  # die Spirale einer Lage beginnt, wo die letzte endete
     for lage in range(1, lagen + 1):
         r = np.maximum(boden(versatz), w.stange_radius - lage * w.zustellung)
@@ -296,6 +328,116 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
     return Bahn(punkte, lagen, r_min, hinten_frei)
+
+
+def _schruppen_im_bereich(punkte, a, k, boden, lagen, w, je_umdrehung, schritt_phi):
+    """Die Lagen, wenn nur im Bereich gefräst wird (V4): Jede Lage fährt dieselbe Spirale –
+    dieselben Stellen, ganze Umdrehungen weiter –, fräst ihre Stücke im Bereich und hebt
+    dazwischen ab. `boden`: wie tief die Spitze je Punkt darf."""
+    abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    im = w.bereich.bei(a, np.radians(k * schritt_phi))
+    stuecke = _stuecke(im)
+    if not stuecke:
+        return
+    # Fräste die Umdrehung davor an derselben Stelle, steht die Mitte des Fräsers über Freiem –
+    # wenn sie höchstens einen Fräserradius weiter vorn lag.
+    offen = np.zeros(len(im), dtype=bool)
+    if w.steigung <= w.fraeser_radius:
+        offen[je_umdrehung:] = im[:-je_umdrehung]
+    # Bis zur nächsten Lage dreht die Rundachse vorwärts auf dieselben Stellen.
+    weiter = int(math.ceil((int(k[stuecke[-1][1]]) - int(k[stuecke[0][0]])) / je_umdrehung))
+    davor = np.full(len(a), float(w.stange_radius))  # höher steht nichts über der Stelle
+    versatz = -(int(k[stuecke[0][0]]) // je_umdrehung) * je_umdrehung  # beginnt unter 360°
+    for lage in range(1, lagen + 1):
+        r = np.maximum(boden, w.stange_radius - lage * w.zustellung)
+        phi = (versatz + k) * schritt_phi
+        for von, bis in stuecke:
+            _stueck_schruppen(punkte, a, r, phi, von, bis, davor[von], offen[von], w, abstand)
+        davor = r
+        versatz += weiter * je_umdrehung
+
+
+def _stueck_schruppen(punkte, a, r, phi, von, bis, oben, offen, w, abstand):
+    """Ein Stück im Bereich: im Eilgang über seinen Anfang und bis knapp über `oben` – höher
+    steht dort nichts –, hinein – senkrecht, wo es `offen` ist oder für eine Rampe zu kurz,
+    sonst über die Rampe –, die Spirale bis zu seinem Ende und radial hinaus."""
+    sicher = w.stange_radius + w.sicherheit
+    anfang = (float(a[von]), float(r[von]), float(phi[von]))
+    _eilgang(punkte, anfang[0], sicher, anfang[2])
+    oben = float(oben)
+    knapp = min(sicher, oben + w.sicherheit)
+    if knapp < sicher:
+        punkte.append(Punkt(True, anfang[0], knapp, anfang[2]))
+    if offen or anfang[1] >= oben - GLEICH or _laenge(a, r, phi, von, bis) < RAMPE_MINDESTENS:
+        punkte.append(Punkt(False, *anfang, True))
+    else:
+        punkte.append(Punkt(False, anfang[0], oben, anfang[2], True))  # bis ans Material
+        punkte.extend(Punkt(False, *stelle) for stelle in _rampe(a, r, phi, von, bis, oben, w))
+    for i in _knicke(r[von : bis + 1], abstand, a[von : bis + 1]):
+        j = von + i
+        punkte.append(Punkt(False, float(a[j]), float(r[j]), float(phi[j])))
+    punkte.append(Punkt(True, float(a[bis]), sicher, float(phi[bis])))
+
+
+def _rampe(a, r, phi, von, bis, oben, w):
+    """Die Rampe ins Material am Anfang des Stücks von..bis: von `oben` über dem Punkt von längs
+    der Bahn hinab, mit dem Eintauchwinkel gegen sie, hin und her, bis sie die Bahn r erreicht
+    – dann auf ihr zurück zum Anfang: [(a, r, φ)] ohne den Anfang. So fräst sie weg, was unter
+    ihr stehen blieb."""
+    steil = math.tan(math.radians(w.eintauchwinkel if w.eintauchwinkel > 0 else EINTAUCHWINKEL))
+    hoehe = oben
+    ergebnis = []
+    i, richtung = von, 1
+    for _ in range(RAMPE_HOECHSTENS * (bis - von + 1)):
+        j = i + richtung
+        if not von <= j <= bis:  # am Ende des Stücks: kehrt um
+            richtung = -richtung
+            j = i + richtung
+        bogen = max(hoehe, float(r[j])) * math.radians(float(phi[j] - phi[i]))
+        hoehe -= steil * math.hypot(float(a[j] - a[i]), bogen)
+        if hoehe <= r[j]:
+            zurueck = range(j, von - 1, -1)
+            ergebnis.extend((float(a[m]), float(r[m]), float(phi[m])) for m in zurueck)
+            return ergebnis
+        ergebnis.append((float(a[j]), hoehe, float(phi[j])))
+        i = j
+    ergebnis.append((float(a[von]), float(r[von]), float(phi[von])))  # nie unten: senkrecht
+    return ergebnis
+
+
+def _laenge(a, r, phi, von, bis):
+    """Wie lang das Stück von..bis der Bahn an der Spitze ist (mm)."""
+    bogen = r[von:bis] * np.diff(np.radians(phi[von : bis + 1]))
+    return float(np.sum(np.hypot(np.diff(a[von : bis + 1]), bogen)))
+
+
+def _stuecke(im):
+    """[(von, bis)] – die Läufe, in denen `im` wahr ist (Punktnummern, bis einschließlich)."""
+    rand = np.diff(np.concatenate([[0], np.asarray(im, dtype=np.int8), [0]]))
+    return list(
+        zip(
+            np.flatnonzero(rand == 1).tolist(),
+            (np.flatnonzero(rand == -1) - 1).tolist(),
+            strict=True,
+        )
+    )
+
+
+def _eilgang(punkte, a, r, phi):
+    """Im Eilgang nach (a, r, φ) – eine lange Drehung in Schritten von höchstens
+    HOECHSTENS_GRAD, wie die Bahn selbst."""
+    vorher = punkte[-1]
+    schritte = max(1, int(math.ceil(abs(phi - vorher.phi) / HOECHSTENS_GRAD - 1e-9)))
+    for m in range(1, schritte + 1):
+        t = m / schritte
+        punkt = Punkt(
+            True,
+            vorher.a + t * (a - vorher.a),
+            vorher.r + t * (r - vorher.r),
+            vorher.phi + t * (phi - vorher.phi),
+        )
+        if punkt != punkte[-1]:
+            punkte.append(punkt)
 
 
 def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
@@ -368,10 +510,12 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     anzahl = len(a) - 1
     r = np.where(np.isfinite(r), r, w.stange_radius)  # trifft rundum nichts: bleibt oben
     r = np.maximum(r, radius)  # nicht näher an die Achse
+    # Mit gewählten Flächen nur im Bereich (V4).
+    im = None if w.bereich is None else w.bereich.bei(a, k * math.radians(schritt_phi))
     # Wo das Schruppen mehr stehen ließ als die Grenze (eine Innenecke, eine enge Nut), fährt
     # Schlichten vorher in Stufen, von oben nach unten – jede höchstens die Grenze unter der
     # davor, nur wo es nötig ist.
-    stufen, grenze = [], 0.0
+    stufen, grenze, stand = [], 0.0, None
     if w.rest is not None:
         grenze = max(radius, w.aufmass_schruppen + SCHLICHT_ZUGABE)
         oben = _nicht_tiefer(w.rest, form, 0.0, a, k * math.radians(schritt_phi))
@@ -380,10 +524,16 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         for stufe in range(1, anzahl_stufen):
             hoehe = np.maximum(r, oben - stufe * grenze)
             noetig = hoehe > r + BAHN_TOLERANZ
+            if im is not None:
+                noetig &= im
             if not noetig.any():
                 continue
-            stuecke = _abschnitte(noetig, np.maximum(stand - hoehe, 0.0), je_umdrehung)
-            stufen.append((hoehe, stuecke))
+            if im is None:
+                stuecke = _abschnitte(noetig, np.maximum(stand - hoehe, 0.0), je_umdrehung)
+            else:  # nur im Bereich, jedes Stück für sich – es taucht knapp über dem Rest ein
+                stuecke = _stuecke(noetig)
+            darueber = [max(float(stand[von]), float(hoehe[von])) for von, _bis in stuecke]
+            stufen.append((hoehe, stuecke, darueber))
             for von, bis in stuecke:
                 np.minimum(stand[von : bis + 1], hoehe[von : bis + 1], out=stand[von : bis + 1])
     sicher = w.stange_radius + w.sicherheit
@@ -391,16 +541,26 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     winkel = k * schritt_phi
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
     umdrehungen_vor = 0
-    for r_stufe, stuecke in stufen:
-        for von, bis in stuecke:
-            _spirale(punkte, a, r_stufe, winkel, von, bis, sicher, abstand)
+    for r_stufe, stuecke, darueber in stufen:
+        for (von, bis), stand_von in zip(stuecke, darueber, strict=True):
+            knapp = None if im is None else min(sicher, stand_von + w.sicherheit)
+            _spirale(punkte, a, r_stufe, winkel, von, bis, sicher, abstand, knapp)
             umdrehungen_vor += (bis - von) / je_umdrehung
-    _spirale(punkte, a, r, winkel, 0, anzahl, sicher, abstand)
-    punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
+    if im is None:
+        _spirale(punkte, a, r, winkel, 0, anzahl, sicher, abstand)
+        punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
+    else:
+        # Wieder hinein im Eilgang bis knapp über das, was nach dem Schruppen und den Stufen
+        # dort steht – ohne Schruppen im Job über die Stange –, dann mit dem Eintauchvorschub.
+        for von, bis in _stuecke(im):
+            oben = w.stange_radius if stand is None else max(float(stand[von]), float(r[von]))
+            knapp = min(sicher, oben + w.sicherheit)
+            _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, knapp)
+        _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
     return Schlichtbahn(
         punkte,
         anzahl / je_umdrehung + umdrehungen_vor,
-        float(np.min(r)),
+        float(np.min(r if im is None or not im.any() else r[im])),
         form.kammhoehe(s),
         hinten_frei,
         len(stufen),
@@ -428,21 +588,36 @@ def _abschnitte(noetig, tiefe, je_umdrehung):
     return ergebnis
 
 
-def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand):
+def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, knapp=None):
     """Hängt das Stück von..bis der Spirale an `punkte`: im Eilgang über den Anfang, hinein,
     die Spirale mit Sehnenfehler und zusammengefasst, radial hinaus. Der Winkel zählt weiter,
-    wo die Rundachse steht – sie dreht nicht zurück."""
+    wo die Rundachse steht – sie dreht nicht zurück. `knapp`: im Eilgang bis auf diesen Radius
+    und von dort mit dem Eintauchvorschub hinein (gewählte Flächen, V4); ohne: vom
+    Sicherheitsabstand im Vorschub."""
     weiter = punkte[-1].phi
     versatz = 360.0 * math.ceil((weiter - winkel[von]) / 360.0 - 1e-9)
     stueck = r[von : bis + 1]
     stueck = stueck + _sehnenfehler(stueck)
-    anfahren = Punkt(True, float(a[von]), sicher, float(winkel[von] + versatz))
-    if anfahren != punkte[-1]:
-        punkte.append(anfahren)
+    if knapp is None:
+        anfahren = Punkt(True, float(a[von]), sicher, float(winkel[von] + versatz))
+        if anfahren != punkte[-1]:
+            punkte.append(anfahren)
+    else:
+        _eilgang(punkte, float(a[von]), sicher, float(winkel[von] + versatz))
+        if knapp < sicher:
+            punkte.append(Punkt(True, float(a[von]), knapp, float(winkel[von] + versatz)))
     ringe = np.flatnonzero(_a_knicke(a[von : bis + 1])) + 1
-    for i in _zusammengefasst(stueck, BAHN_TOLERANZ, abstand, ringe.tolist()):
+    for n, i in enumerate(_zusammengefasst(stueck, BAHN_TOLERANZ, abstand, ringe.tolist())):
         j = von + i
-        punkte.append(Punkt(False, float(a[j]), float(stueck[i]), float(winkel[j] + versatz)))
+        punkte.append(
+            Punkt(
+                False,
+                float(a[j]),
+                float(stueck[i]),
+                float(winkel[j] + versatz),
+                knapp is not None and n == 0,
+            )
+        )
     punkte.append(Punkt(True, float(a[bis]), sicher, float(winkel[bis] + versatz)))
 
 
@@ -578,7 +753,9 @@ def _a_knicke(a):
     return np.abs(np.diff(a, 2)) > GLEICH
 
 
-def befehle(bahn, laengs, radial, buchstabe, drehsinn, vorschub, quer_auf_null=True):
+def befehle(
+    bahn, laengs, radial, buchstabe, drehsinn, vorschub, quer_auf_null=True, eintauchen=None
+):
     """Die Bahn als Path-Befehle.
 
     X, Y und Z sind die Spitze im Rahmen der Maschine: a längs, r radial (die
@@ -589,7 +766,8 @@ def befehle(bahn, laengs, radial, buchstabe, drehsinn, vorschub, quer_auf_null=T
     damit der Fräser am Werkstück mit `vorschub` (mm/min) fährt, egal wie weit er
     von der Achse weg ist. CAM führt F in mm/s, der Postprozessor schreibt ×60 –
     deshalb steht hier F ÷ 60. `quer_auf_null`: die Achse quer (bei C das Y) am
-    Anfang auf 0, damit das Werkzeug auf der Mitte steht.
+    Anfang auf 0, damit das Werkzeug auf der Mitte steht. `eintauchen`: der Vorschub
+    (mm/min) zu Punkten, an denen der Fräser senkrecht eintaucht; ohne: `vorschub`.
     """
     import Path
 
@@ -629,7 +807,8 @@ def befehle(bahn, laengs, radial, buchstabe, drehsinn, vorschub, quer_auf_null=T
             if weg < 1e-6:
                 continue
             werte = lage(punkt)
-            werte["F"] = vorschub / weg / 60.0
+            f = eintauchen if punkt.eintauchen and eintauchen else vorschub
+            werte["F"] = f / weg / 60.0
             ergebnis.append(Path.Command("G1", werte))
         vorher = punkt
     ergebnis.append(Path.Command("G94"))
@@ -643,10 +822,12 @@ def _weg(von, nach):
     return math.sqrt((nach.a - von.a) ** 2 + (nach.r - von.r) ** 2 + bogen * bogen)
 
 
-def dauer(bahn, vorschub):
-    """So lange fährt die Bahn im Vorschub (Minuten) – ohne Eilgänge."""
+def dauer(bahn, vorschub, eintauchen=None):
+    """So lange fährt die Bahn im Vorschub (Minuten) – ohne Eilgänge; `eintauchen` wie bei
+    befehle()."""
     zeit = 0.0
     for von, nach in zip(bahn.punkte, bahn.punkte[1:], strict=False):
         if not nach.eilgang:
-            zeit += _weg(von, nach) / vorschub
+            f = eintauchen if nach.eintauchen and eintauchen else vorschub
+            zeit += _weg(von, nach) / f
     return zeit

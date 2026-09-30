@@ -2,7 +2,9 @@
 # Ø 80 aus dem Assistenten (Rundachse C), Schaftfräser Ø 12 – im Job angelegt ohne
 # Rückfrage, fünf Lagen, die Bahn mit G93 … G94 und C; nach Speichern und Laden dieselbe
 # Bahn; der Postprozessor (LinuxCNC) schreibt jeden Satz mit F. Dazu die Fehlerfälle:
-# Rohteil keine Stange, kein Vorschub. Ändern: anderer Controller, andere Werte.
+# Rohteil keine Stange, kein Vorschub. Ändern: anderer Controller, andere Werte. Gewählte
+# Flächen (V4): nur der Mantel – die Bahn bleibt über dem Teil; eine Fläche, die es nicht
+# gibt, oder nur eine Stirn – ein Satz statt der Bahn.
 import importlib
 import os
 import sys
@@ -95,6 +97,41 @@ schnitte = [b for b in op.Path.Commands if b.Name == "G1"]
 pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-85.0)) < 1e-9, "Ende mit Halter")
 op.HalterZumFutter = 0.0
 doc.recompute()
+
+# --- Gewählte Flächen (V4) -----------------------------------------------------------------
+# Eine Operation aus 0.29 (ohne Flächen und Eintauchwinkel): rundum, Rampe 5°.
+op.removeProperty("Flaechen")
+op.removeProperty("Eintauchwinkel")
+op.Proxy.opOnDocumentRestored(op)
+pruefe(vo.flaechen(op) == () and op.Eintauchwinkel.Value == 5.0, "alte Operation: Flächen")
+namen_welle = [f"Face{i + 1}" for i in range(len(welle.Shape.Faces))]
+mantel = [n for n, f in zip(namen_welle, welle.Shape.Faces, strict=True) if not vr.ist_eben(f)]
+stirnen = [n for n, f in zip(namen_welle, welle.Shape.Faces, strict=True) if vr.ist_eben(f)]
+# Nur der Mantel: fünf Lagen wie rundum, aber vorne nicht mehr vor der Stange – nur so weit,
+# wie der Fräser das Teil berührt (Mitte bis 6 mm vor seiner Stirn bei a = 0).
+op.Flaechen = mantel
+doc.recompute()
+schnitte = [b for b in op.Path.Commands if b.Name == "G1"]
+pruefe(op.Lagen == 5, f"nur Mantel: {op.Lagen} Lagen")
+vorne = max(b.Parameters["Z"] for b in schnitte)
+pruefe(vorne <= 6.0 + 0.3, f"nur Mantel: vorne bis {vorne}")
+pruefe(len(schnitte) > 100, "nur Mantel: keine Bahn")
+for flaechen_, satz in (
+    (["Face99"], sprache.tr("vf.fehler.fehlt", namen="Face99")),
+    (stirnen, sprache.tr("vf.fehler.nicht_erreichbar")),
+):
+    op.Flaechen = flaechen_
+    doc.recompute()
+    kommentare = [
+        b.Name for b in op.Path.Commands if b.Name.startswith("(") and "4-Achs" not in b.Name
+    ]
+    pruefe(
+        op.Lagen == 0 and any(vo._ascii(satz) in k for k in kommentare),
+        f"{flaechen_}: {kommentare}",
+    )
+op.Flaechen = []
+doc.recompute()
+pruefe(op.Lagen == 5, f"wieder rundum: {op.Lagen} Lagen")
 
 # --- Ändern: anderer Controller, andere Werte; der vorgeschlagene Name folgt dem Werkzeug --
 from Path.Tool import Controller

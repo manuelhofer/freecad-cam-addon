@@ -12,6 +12,60 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-26 flaechen-bereich
+
+### EINGELESEN
+- `docs/spezifikation_vierachs.md` (V4-Plan, P-2026-09-30-25; Abschnitte 6 und 9),
+  `camaddon/vierachs_huelle.py` (Netz, Raster, `_ausbreiten`, `_dreiecke_treffen`),
+  `camaddon/vierachs_bahn.py` (`schruppen`, `schlichten`, `_spirale`, `_knicke`, `befehle`,
+  `dauer`), `camaddon/vierachs_operation.py`, `camaddon/vierachs_schlichten.py`,
+  `camaddon/restmaterial.py`, `camaddon/werkzeuge.py` (Eintauchwinkel).
+
+### DATEIEN
+- `camaddon/vierachs_flaechen.py` (neu), `camaddon/vierachs_bahn.py`,
+  `camaddon/vierachs_operation.py`, `camaddon/vierachs_schlichten.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_vierachs_flaechen.py` (neu),
+  `tests/test_vierachs_bahn.py`, `tests/test_vierachs_schlichten.py`,
+  `tests/test_vierachs_operation.py`, `docs/aufbau.md`, `docs/spezifikation_vierachs.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine „Rundum schruppen“ im Job, in ihren Eigenschaften „Flaechen“ nur die Abflachung einer
+Welle („Face3“): Die Bahn fräst nur, wo der Fräser die Abflachung berührt, hebt dazwischen
+über die Stange ab und taucht knapp über dem Rest wieder ein – die erste Umdrehung jeder Lage
+über eine Rampe mit 5°, die anderen senkrecht. „Flaechen“ leer: rundum wie bisher.
+
+### DONE
+- `vierachs_flaechen`: das Teil Fläche für Fläche vernetzt; je Stelle a und Winkel φ die
+  Fläche, die ein Strahl von außen zuerst trifft, dazu Ein- und Austritte je Fläche
+  (`sicht`, gemerkt in `sicht_fuer`); `mantelflaechen`, `erreichbar` (ganz, zum Teil, nicht,
+  quer zur Achse), `bereich` (wo die Stirn des Fräsers eine gewählte Fläche berührt),
+  `bereich_fuer` mit den Sätzen, wenn eine Fläche fehlt oder keine erreichbar ist;
+  `beschreibung` für die Liste im Assistenten. Strahlen, die eine Fläche nur streifen, zählen
+  nicht; das Raster längs liegt eine Viertel Rasterweite neben runden Maßen.
+- `vierachs_bahn`: mit Bereich schruppt jede Lage dieselbe Spirale nur in ihren Stücken im
+  Bereich; hinein im Eilgang bis knapp über die Tiefe der Lage davor, dann senkrecht mit dem
+  Eintauchvorschub, wo die Umdrehung davor schon fräste, sonst die Rampe mit dem
+  Eintauchwinkel (hin und her, zurück auf der Bahn); Schlichten und seine Stufen nur im
+  Bereich, hinein knapp über dem Rest. Eilgänge drehen höchstens 90° am Stück. `befehle` und
+  `dauer` kennen den Eintauchvorschub.
+- Beide Operationen haben „Flaechen“ (leer: rundum), „Rundum schruppen“ dazu
+  „Eintauchwinkel“ (Vorschlag 5°); ältere Operationen bekommen sie beim Laden so, dass ihre
+  Bahn bleibt. Der Eintauchvorschub kommt vom Controller.
+
+### TEST
+- KI ohne Oberfläche, FreeCAD 1.1.3: `test_vierachs_flaechen` (Welle mit Abflachung: Treffer,
+  Mantel, Erreichbarkeit, Bereich; Welle mit Kragen: Innenseite nicht, Mantel darunter zur
+  Hälfte erreichbar; Namen, Sätze, Beschreibung), `test_vierachs_bahn` (Rampe lang und kurz;
+  nur die Abflachung: alles im Bereich, 2 Rampen, 24 senkrecht, darüber 0,45 mm, in den Ecken
+  an den Wänden 1,12 mm, gegenüber unberührt; Eintauchvorschub in den Befehlen),
+  `test_vierachs_schlichten` (nur die Abflachung: im Bereich, jedes Stück knapp über dem
+  Rest und mit Eintauchvorschub), `test_vierachs_operation` (alte Operation, nur der Mantel,
+  Fläche fehlt, nur eine Stirn), `test_sprache` grün.
+
+### NEXT
+- V4a im Assistenten: Flächen anklicken, Liste mit Erreichbarkeit, Farben in der 3D-Ansicht.
+
 ## P-2026-09-30-25 plan-v4-flaechen
 
 ### EINGELESEN
