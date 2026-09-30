@@ -779,6 +779,16 @@ die Abstände gelten für beide.
   Sicherheitsabstand, dazu Kammhöhe und Umdrehungen zum Lesen. „Schnittwerte in
   den Job“ kennt sie (Einsatz „Schlichten“). Prüfung wie V3c: in beiden
   Versionen anlegen, Speichern und Laden, Ausgabe des Postprozessors.
+  *Gebaut (P-2026-09-30-04):* eigenes Modul `vierachs_schlichten.py` – sein
+  Name ist die Art für „Schnittwerte in den Job“. Die Form liest sie aus dem
+  ToolBit des Controllers (`werkzeuge_aus_cam.vom_controller`), so wie CAM
+  fräst; einen Formfräser kennt CAM als Schaftfräser – er rechnet als Scheibe
+  (sicher), ein Gewindefräser geht nicht. Den Rest nach dem Schruppen trägt
+  sie aus den Bahnen der „Rundum schruppen“ des Jobs ab (`restmaterial`).
+  Gefunden: Hinter dem Teil lässt die Schruppspirale an ihrem Ende einen Keil
+  stehen (die letzte Umdrehung läuft nicht rundum auf dem Ende); ein Fräser,
+  der weiter hinter das Teil reicht, bleibt dort oben – gemeldet wird nur, was
+  über dem Teil stehen bleibt.
 - **V5d – Assistent:** In Schritt 2 unter „Rundum schruppen“ der Haken
   „Rundum schlichten“: Fräser (alle aus V5a mit Schnittwerten, vorgewählt ein
   Kugelfräser), Einsatz (vorgewählt „Schlichten“), Schrittweite (grau: ae des

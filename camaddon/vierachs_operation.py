@@ -68,25 +68,17 @@ class RundumSchruppen(PathOp.ObjectOp):
     @staticmethod
     def _eigenschaften(obj):
         """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
-        neu = []
-        for typ, name, text in (
-            ("App::PropertyString", "Rundachse", tr("vo.eigenschaft.rundachse")),
-            ("App::PropertyVector", "Stangenachse", tr("vo.eigenschaft.stangenachse")),
-            ("App::PropertyVector", "Werkzeugrichtung", tr("vo.eigenschaft.werkzeugrichtung")),
-            ("App::PropertyInteger", "Drehsinn", tr("vo.eigenschaft.drehsinn")),
-            ("App::PropertyBool", "QuerAufNull", tr("vo.eigenschaft.quer_auf_null")),
-            ("App::PropertyLength", "Zustellung", tr("vo.eigenschaft.zustellung")),
-            ("App::PropertyLength", "VorschubJeUmdrehung", tr("vo.eigenschaft.steigung")),
-            ("App::PropertyLength", "Aufmass", tr("vo.eigenschaft.aufmass")),
-            ("App::PropertyLength", "Ueberlauf", tr("vo.eigenschaft.ueberlauf")),
-            ("App::PropertyLength", "AbstandFutter", tr("vo.eigenschaft.abstand_futter")),
-            ("App::PropertyLength", "Sicherheitsabstand", tr("vo.eigenschaft.sicherheit")),
-            ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
-        ):
-            if name not in obj.PropertiesList:
-                obj.addProperty(typ, name, GRUPPE, text)
-                neu.append(name)
-        return neu
+        return eigenschaften_anlegen(
+            obj,
+            achs_eigenschaften()
+            + (
+                ("App::PropertyLength", "Zustellung", tr("vo.eigenschaft.zustellung")),
+                ("App::PropertyLength", "VorschubJeUmdrehung", tr("vo.eigenschaft.steigung")),
+                ("App::PropertyLength", "Aufmass", tr("vo.eigenschaft.aufmass")),
+            )
+            + abstand_eigenschaften()
+            + (("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),),
+        )
 
     @staticmethod
     def _editormodi(obj):
@@ -121,6 +113,38 @@ class RundumSchruppen(PathOp.ObjectOp):
                 obj.QuerAufNull,
             )
         )
+
+
+def achs_eigenschaften():
+    """Die Eigenschaften der Rundachse – „Rundum schruppen“ und „Rundum schlichten“
+    (vierachs_schlichten) haben sie beide: (Typ, Name, Text)."""
+    return (
+        ("App::PropertyString", "Rundachse", tr("vo.eigenschaft.rundachse")),
+        ("App::PropertyVector", "Stangenachse", tr("vo.eigenschaft.stangenachse")),
+        ("App::PropertyVector", "Werkzeugrichtung", tr("vo.eigenschaft.werkzeugrichtung")),
+        ("App::PropertyInteger", "Drehsinn", tr("vo.eigenschaft.drehsinn")),
+        ("App::PropertyBool", "QuerAufNull", tr("vo.eigenschaft.quer_auf_null")),
+    )
+
+
+def abstand_eigenschaften():
+    """Überlauf, Abstand zum Futter und Sicherheitsabstand – wie achs_eigenschaften()."""
+    return (
+        ("App::PropertyLength", "Ueberlauf", tr("vo.eigenschaft.ueberlauf")),
+        ("App::PropertyLength", "AbstandFutter", tr("vo.eigenschaft.abstand_futter")),
+        ("App::PropertyLength", "Sicherheitsabstand", tr("vo.eigenschaft.sicherheit")),
+    )
+
+
+def eigenschaften_anlegen(obj, liste):
+    """Legt die Eigenschaften aus `liste` ((Typ, Name, Text)) in der Gruppe „4-Achs“ an, die
+    fehlen; gibt ihre Namen zurück."""
+    neu = []
+    for typ, name, text in liste:
+        if name not in obj.PropertiesList:
+            obj.addProperty(typ, name, GRUPPE, text)
+            neu.append(name)
+    return neu
 
 
 def rechne(obj, job, modell, fraeser_radius):
@@ -300,7 +324,12 @@ def _vorgeschlagener_name(name):
 
 
 def ist_rundum(op):
-    """Ist `op` eine Operation dieses Moduls?"""
+    """Ist `op` „Rundum schruppen“ oder „Rundum schlichten“ (vierachs_schlichten)?"""
+    return ist_schruppen(op) or type(getattr(op, "Proxy", None)).__name__ == "RundumSchlichten"
+
+
+def ist_schruppen(op):
+    """Ist `op` eine Operation dieses Moduls – „Rundum schruppen“?"""
     return isinstance(getattr(op, "Proxy", None), RundumSchruppen)
 
 

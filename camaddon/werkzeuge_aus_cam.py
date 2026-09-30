@@ -153,6 +153,24 @@ def werkzeug_aus(bit, nummer):
     return w
 
 
+class _Bit:
+    """Das ToolBit eines Werkzeug-Controllers, wie werkzeug_aus() es liest: Objekt und Name."""
+
+    def __init__(self, objekt):
+        self.obj = objekt
+        self.label = objekt.Label
+
+
+def vom_controller(tc):
+    """Das Werkzeug eines Werkzeug-Controllers, gelesen aus seinem ToolBit im Dokument (Form,
+    Durchmesser, Eckradius …) – so, wie CAM damit fräst. None ohne ToolBit oder bei einer Form,
+    die es hier nicht gibt."""
+    bit = getattr(tc, "Tool", None)
+    if bit is None:
+        return None
+    return werkzeug_aus(_Bit(bit), getattr(tc, "ToolNumber", 1))
+
+
 def _gewindefraeser(o, werte):
     """Schneidenlänge und Hals des Gewindefräsers: In CAM hat er einen Zahn
     unten, darüber den Hals bis zum Schaft (NeckLength ab der Spitze)."""

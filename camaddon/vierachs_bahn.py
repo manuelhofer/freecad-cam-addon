@@ -268,7 +268,11 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     if w.rest is not None:
         grenze = max(radius, w.aufmass_schruppen + SCHLICHT_ZUGABE)
         tiefste = _nicht_tiefer(w.rest, form, grenze, a, k * math.radians(schritt_phi))
-        stehen = max(0.0, float(np.max(tiefste - r)))
+        # Gemeldet wird, was über dem Teil stehen bleibt – im Überlauf dahinter ließ die
+        # Schruppspirale an ihrem Ende einen Keil stehen (dort wird abgestochen).
+        ueber_teil = (a >= teil_hinten) & (a <= teil_vorne)
+        if ueber_teil.any():
+            stehen = max(0.0, float(np.max((tiefste - r)[ueber_teil])))
         r = np.maximum(r, tiefste)
     r = r + _sehnenfehler(r)
     punkte = [Punkt(True, a_anfang, w.stange_radius + w.sicherheit, 0.0)]

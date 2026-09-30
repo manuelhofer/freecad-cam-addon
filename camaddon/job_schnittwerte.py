@@ -52,6 +52,7 @@ EINSATZ_NACH_OPERATION = {
     "ThreadMilling": (wz.GEWINDEFRAESEN,),
     "Tapping": (wz.GEWINDEBOHREN,),
     "vierachs_operation": (wz.SCHRUPPEN,),  # „Rundum schruppen“ (W-003)
+    "vierachs_schlichten": (wz.SCHLICHTEN,),  # „Rundum schlichten“ (W-003 V5)
     # Die Bohrung des Wochen-Builds kann auch Gewinde schneiden.
     "Drilling": (
         wz.BOHREN,

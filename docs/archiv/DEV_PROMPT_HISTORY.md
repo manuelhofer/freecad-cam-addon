@@ -12,6 +12,65 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-04 operation-rundum-schlichten
+
+### EINGELESEN
+- V5c in `docs/spezifikation_vierachs.md`; `camaddon/vierachs_operation.py`,
+  `camaddon/werkzeuge_aus_cam.py` (`werkzeug_aus`), `camaddon/job_schnittwerte.py`
+  (`operationsart`, `EINSATZ_NACH_OPERATION`), `tests/test_vierachs_operation.py`,
+  `tests/test_job_schnittwerte.py` (Werkzeugverwaltung im Test).
+- Nachgesehen in 1.1.3 und im Wochen-Build: Das ToolBit eines Controllers im
+  Dokument hat `ShapeType` („Endmill“, „Ballend“ …).
+
+### DATEIEN
+- `camaddon/vierachs_schlichten.py` (neu), `camaddon/vierachs_operation.py`,
+  `camaddon/vierachs_bahn.py`, `camaddon/werkzeuge_aus_cam.py`,
+  `camaddon/job_schnittwerte.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_vierachs_schlichten_op.py` (neu), `docs/spezifikation_vierachs.md`,
+  `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`tests/test_vierachs_schlichten_op.py` ist grün in 1.1.3 und im Wochen-Build:
+„Rundum schlichten T2“ mit Kugelfräser Ø 6 fährt nach „Rundum schruppen“ die
+Welle Ø 60 auf 30,000 … 30,01 mm Radius ab; ohne Schruppen steht ein Satz statt
+einer Bahn.
+
+### DONE
+- Operation `RundumSchlichten` im eigenen Modul `vierachs_schlichten` (der
+  Modulname ist die Art: „Schnittwerte in den Job“ gibt ihr den Einsatz
+  „Schlichten“). Eigenschaften: Rundachse wie beim Schruppen, Schrittweite,
+  Aufmaß, Überlauf, Abstand zum Futter, Sicherheitsabstand; zum Lesen
+  Kammhöhe, Umdrehungen, bleibt stehen. `lege_an()`, `aendere()` (der Name
+  folgt dem Werkzeug), `bahn_fuer()` (auch für die Vorschau),
+  `schrittweite_vorschlag()` (ae des Einsatzes, sonst D/50),
+  `form_des_controllers()`.
+- Die Form liest sie aus dem ToolBit des Controllers
+  (`werkzeuge_aus_cam.vom_controller`) – so, wie CAM damit fräst.
+- Der Rest nach dem Schruppen: die Bahnen der aktiven „Rundum schruppen“ des
+  Jobs, von der Stange abgetragen (`rest_nach`, `restmaterial.Stange`).
+- `vierachs_operation`: Eigenschaften der Rundachse und die Abstände als
+  `achs_eigenschaften()`/`abstand_eigenschaften()` für beide Operationen;
+  `ist_rundum()` gilt für beide, `ist_schruppen()` nur fürs Schruppen.
+- Gefunden: Hinter dem Teil lässt die Schruppspirale an ihrem Ende einen Keil
+  stehen – ihre letzte Umdrehung läuft nicht rundum auf dem Ende. Ein
+  Torusfräser R 5 mit Überlauf 5,5 reichte hinein, der Schutz hielt ihn oben und
+  meldete „4,9 mm bleiben stehen“ – auf einer glatten Welle. Gemeldet wird jetzt
+  nur, was über dem Teil stehen bleibt; im Überlauf hält der Schutz den Fräser
+  weiter oben (dort wird abgestochen). Eine volle letzte Umdrehung beim
+  Schruppen wäre sauberer – notiert, nicht hier.
+- Gefunden: Einen Formfräser übergibt das Addon an CAM als Schaftfräser – die
+  Operation rechnet ihn als Scheibe (liegt außen um jedes Profil, sicher). Der
+  Satz „Form unbekannt“ gilt für Gewindefräser, Bohrer und Ähnliches.
+
+### TEST
+- KI ohne GUI: `test_vierachs_schlichten_op`, `test_fraeserform`,
+  `test_vierachs_schlichten` in 1.1.3 und im Wochen-Build grün;
+  `test_vierachs_operation`, `test_sprache`, `test_job_schnittwerte`,
+  `test_werkzeuge_aus_cam` in 1.1.3 grün.
+
+### NEXT
+- V5d Assistent: Schlichten in Schritt 2.
+
 ## P-2026-09-30-03 schlichtbahn
 
 ### EINGELESEN
