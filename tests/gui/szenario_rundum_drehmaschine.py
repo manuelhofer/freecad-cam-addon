@@ -20,6 +20,25 @@ import Part
 from PySide import QtCore, QtGui
 
 
+def nahaufnahme(bild):
+    """Die Kamera quer auf Aufnahme, Halter und Fräser: im LCS der Aufnahme von −Y (+Y liegt
+    unter dem Bett), Z oben – der Kopf des radialen Halters längs Z, der Fräser längs X."""
+    from pivy import coin
+
+    from camaddon import maschine as m
+
+    lage = m.globale_platzierung(bild.aufnahmen[bild.operation].Lcs)
+    ziel = lage.multVec(FreeCAD.Vector(130, 0, -45))  # rechts liegt das Aufgabenfenster darüber
+    seite = lage.Rotation.multVec(FreeCAD.Vector(0, -1, 0))
+    oben = lage.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+    kamera = Gui.ActiveDocument.ActiveView.getCameraNode()
+    kamera.position.setValue(coin.SbVec3f(*(ziel + seite * 600)))
+    kamera.pointAt(coin.SbVec3f(*ziel), coin.SbVec3f(*oben))
+    kamera.focalDistance.setValue(600)
+    if hasattr(kamera, "height"):
+        kamera.height.setValue(240)
+
+
 def schritte(h):
     yield 500
     erster = h.modal()
@@ -184,6 +203,12 @@ def schritte(h):
         spieler.knopf_hinsehen.click()
         yield 500
         h.bild(name)
+        if nummer == 0:
+            # Von der Seite auf Halter und Fräser (Manuel 2026-09-30: „Warum ist der Fräser
+            # nicht im Halter?“ – der Schaft endete bei der geschätzten Gesamtlänge).
+            nahaufnahme(pruef.bild)
+            yield 500
+            h.bild("2b_t1_im_halter")
     k = pruef.kollision
     pruef.urteil_kollision.linkActivated.emit("kollision:pruefen")
     yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 300000)

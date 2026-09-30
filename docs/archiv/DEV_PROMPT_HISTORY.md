@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-37 halter-nahaufnahme
+
+### EINGELESEN
+- `tests/gui/szenario_rundum_drehmaschine.py`, `camaddon/gui_abfahren.py` (`Bild`,
+  `aufnahmen`, `folge`), `camaddon/halter.py` (`form`, `lage` – Lage von Kopf und Abgang im LCS
+  der Aufnahme); die Bilder 2 und 3 des Szenarios nach P-2026-09-30-34.
+
+### DATEIEN
+- `tests/gui/szenario_rundum_drehmaschine.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Bild zeigt von der Seite, dass der Fräser im Halter steckt: Revolver, Kopf des radialen
+Halters, Abgang, Nase, Schaft, Schneide am Teil.
+
+### DONE
+- Nach „2_t1_am_teil“ stellt das Szenario die Kamera quer auf Aufnahme, Halter und Fräser (im
+  LCS der Aufnahme von −Y, Z oben) und nimmt „2b_t1_im_halter“ auf. Aus der Sicht von Bild 2
+  verdeckt der Revolver den Halter halb.
+
+### TEST
+- `szenario_rundum_drehmaschine` in 1.1.3: ok, Bild angesehen – der Schaft reicht bis in die
+  Nase des Halters.
+
+### NEXT
+- Manuel das Bild zeigen.
+
 ## P-2026-09-30-36 postprozessoren
 
 ### EINGELESEN
