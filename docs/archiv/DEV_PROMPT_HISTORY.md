@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-59 version-0-32-1
+
+### EINGELESEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`; CLAUDE.md: Soll Manuel etwas ausprobieren,
+  braucht der Push eine höhere Version.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates suchen“ bzw. der Addon-Manager bietet 0.32.1 an.
+
+### DONE
+- Version 0.32.1 mit P-2026-09-30-58 (Platz vorn in der Fräserliste).
+
+### TEST
+- Die Prüfungen zu P-58 (siehe dort); der volle Lauf in beiden Versionen läuft nach dem Push.
+
+### NEXT
+- Push; voller Lauf; F2 (Nummer am Werkzeug freiwillig).
+
 ## P-2026-09-30-58 platz-vorn
 
 ### EINGELESEN
