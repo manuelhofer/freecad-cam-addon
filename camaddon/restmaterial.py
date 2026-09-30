@@ -50,6 +50,7 @@ from . import vierachs_huelle as vh
 SCHRITT_A = 0.5  # mm – Raster längs der Achse
 SCHRITT_PHI = 1.0  # Grad – Raster rundum
 TEILSCHRITT = 0.5  # mm – so fein fährt der Fräser zwischen zwei Punkten der Bahn
+TEILSCHRITTE_JE_BLOCK = 50000  # so viele Teilschritte rechnet fahre_stuecke() auf einmal
 GENAU = 1e-3  # mm – mit einer so kleinen Scheibe liest der Vergleich das Teil auf dem Strahl
 SUCHSCHRITTE = 30  # so oft rückt ein Strahl höchstens an die Stirn heran
 TABELLE = 4096  # so viele Stücke hat die Stirn zum Nachschlagen
@@ -85,7 +86,12 @@ class Stange:
 
     def fahre_stuecke(self, von, nach, fraeser):
         """Wie fahre(), für viele Stücke auf einmal: `von` und `nach` je (n, 3). Wie herum
-        er sie fährt, ist gleich – weg ist, was irgendein Schritt trifft."""
+        er sie fährt, ist gleich – weg ist, was irgendein Schritt trifft.
+
+        Blockweise, höchstens TEILSCHRITTE_JE_BLOCK Teilschritte zugleich: Das Minimum je Zelle
+        hängt nicht von der Reihenfolge ab, das Ergebnis bleibt gleich – nur der Speicher
+        bleibt klein (vorher 195 MB für 1,1 Millionen Teilschritte am großen Teil, W-006
+        S1, P-2026-09-30-77)."""
         von = np.asarray(von, dtype=float).reshape(-1, 3)
         nach = np.asarray(nach, dtype=float).reshape(-1, 3)
         if not len(von):
@@ -93,6 +99,16 @@ class Stange:
         bogen = np.abs(np.radians(nach[:, 2] - von[:, 2])) * np.maximum(von[:, 1], nach[:, 1])
         weg = np.maximum(bogen, np.abs(nach[:, :2] - von[:, :2]).max(axis=1))
         anzahl = np.maximum(1, np.ceil(weg / TEILSCHRITT)).astype(np.int64)
+        summe = np.cumsum(anzahl)
+        start = 0
+        while start < len(von):
+            ziel = summe[start] - anzahl[start] + TEILSCHRITTE_JE_BLOCK
+            ende = max(int(np.searchsorted(summe, ziel, "right")), start + 1)
+            self._teilschritte(von[start:ende], nach[start:ende], anzahl[start:ende], fraeser)
+            start = ende
+
+    def _teilschritte(self, von, nach, anzahl, fraeser):
+        """fahre_stuecke() für einen Block: die Stücke in `anzahl` Teilschritte zerlegt."""
         stueck = np.repeat(np.arange(len(von)), anzahl)
         vorher = np.repeat(np.cumsum(anzahl) - anzahl, anzahl)
         t = ((np.arange(len(stueck)) - vorher + 1) / anzahl[stueck])[:, None]

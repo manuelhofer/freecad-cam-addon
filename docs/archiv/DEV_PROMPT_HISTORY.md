@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-77 rest-blockweise
+
+### EINGELESEN
+- `docs/spezifikation_strategien.md`, Abschnitt 8 (Rest nach dem Schruppen: 12,3 s und 195 MB
+  am großen Teil); Profil: `restmaterial.Stange.fahre_stuecke` zerlegt alle Fahrten auf einmal
+  in 1,1 Millionen Teilschritte, `_block` rechnet dann je Stelle 50 × 13 Zellen.
+- `camaddon/restmaterial.py`, `tests/test_goldene_bahnen.py`.
+
+### DATEIEN
+- `camaddon/restmaterial.py`, `docs/spezifikation_strategien.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Rest nach dem Schruppen braucht am großen Teil deutlich weniger Speicher als 195 MB, und
+die goldenen Bahnen bleiben grün (dasselbe Ergebnis bis aufs Mikrometer).
+
+### DONE
+- `fahre_stuecke()` arbeitet blockweise (TEILSCHRITTE_JE_BLOCK = 50 000 Teilschritte je
+  Block, `_teilschritte()`): Das Minimum je Zelle hängt nicht von der Reihenfolge ab.
+
+### TEST
+- `test_restmaterial`, `test_goldene_bahnen` (alle drei Bahnen unverändert), `test_vierachs_schlichten`,
+  `test_vierachs_schlichten_op`, `test_vierachs_bahn` in 1.1.3 ok. Messung: großes Teil Rest
+  195 → 42 MB und 12,3 → 10,6 s, zusammen 17,9 s; Welle unverändert 5,2 s.
+
+### NEXT
+- Zeit des Rests (Stücke statt Teilschritte – ändert den Rest um Bruchteile eines Mikrometers,
+  nur mit neuen goldenen Bahnen), Schlichtbahn.
+
 ## P-2026-09-30-76 messung-zahlen
 
 ### EINGELESEN

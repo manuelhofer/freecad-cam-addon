@@ -284,6 +284,7 @@ mit gespeicherten Bahnen, Abschnitt 9).
   | Welle Ø 60 × 100 (500 Dreiecke, 5 500 / 54 000 Punkte) | 0,5 s | 0,4 s | 0,0 s | 1,4 s | 2,3 s | 0,4 s | 5,1 s | 26 MB |
   | Welle mit Absatz und Abflachung (1 136 Dreiecke, 23 000 / 69 000 Punkte) | 0,6 s | 0,7 s | 0,2 s | 2,0 s | 2,3 s | 0,5 s | 6,4 s | 31 MB |
   | Groß Ø 200 × 300 (1 632 Dreiecke, 187 000 / 169 000 Punkte) | 0,6 s | 1,0 s | 1,4 s | 12,3 s | 2,7 s | 1,1 s | 19,0 s | 195 MB |
+| … nach P-2026-09-30-77 (Rest blockweise) | 0,7 s | 1,2 s | 1,2 s | 10,6 s | 2,8 s | 1,2 s | 17,9 s | 104 MB |
 
   Vernetzen, Hülle, Schruppbahn und Befehle sind schnell genug. Was zählt: der
   **Rest nach dem Schruppen** – am großen Teil 12 s und 195 MB
@@ -294,9 +295,9 @@ mit gespeicherten Bahnen, Abschnitt 9).
   `_dreiecke_treffen`, dazu `_nicht_tiefer` und `_zusammengefasst`).
 - **Ziel** (aus der Messung): die Welle unter 5 s, das große Teil unter 15 s,
   Spitze unter 100 MB – und die goldenen Bahnen bleiben grün
-  (`tests/test_goldene_bahnen.py`, P-2026-09-30-73). Zuerst der Speicher des
-  Rests (die Fahrten blockweise – das Minimum je Zelle hängt nicht von der
-  Reihenfolge ab, das Ergebnis bleibt gleich), dann seine Zeit (Stücke statt
+  (`tests/test_goldene_bahnen.py`, P-2026-09-30-73). Der Speicher des Rests
+  ist erledigt (P-77: die Fahrten blockweise, 195 → 42 MB, gleiches Ergebnis;
+  die Spitze liegt jetzt bei der Schlichtbahn, 104 MB), dann seine Zeit (Stücke statt
   Teilschritte: ändert den Rest um Bruchteile eines Mikrometers – nur mit
   neuen goldenen Bahnen und einem Satz im Verlauf), dann die Schlichtbahn
   (Dreiecke je Winkel vorab auf den Streifen unter dem Fräser eingrenzen).
