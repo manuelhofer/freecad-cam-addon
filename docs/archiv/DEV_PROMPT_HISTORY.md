@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-68 version-0-33-0
+
+### EINGELESEN
+- P-2026-09-30-65 bis -67; `CLAUDE.md`: Soll Manuel etwas ausprobieren, braucht der Push eine höhere
+  Version – ein neues Fenster: die mittlere Stelle.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.33.0 an.
+
+### DONE
+- Version 0.33.0; Stand nachgetragen (Stufe G gebaut, Plan W-006 und Durchsicht 3 zur
+  Besprechung, als Nächstes D-50 ff., VDI-Halter ohne Größe, F2).
+
+### TEST
+- Die Tests zu P-65 in 1.1.3; der volle Lauf (Kernmodule `maschine`, `reichweite`,
+  `werkzeuge` berührt) läuft nach dem Push, was er findet, wird sofort behoben.
+
+### NEXT
+- Push, bei GitHub nachsehen, voller Lauf; Manuels Rückmeldung zum Fenster.
+
 ## P-2026-09-30-67 durchsicht-3
 
 ### EINGELESEN
