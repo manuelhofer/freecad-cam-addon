@@ -80,7 +80,13 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   zu viel blieb, blau, wo etwas im Teil fehlt. **Nachträglich ändern:**
   Doppelklick auf „Rundum schruppen“ öffnet das Fenster wieder – anderer
   Fräser, Einsatz, Zustellung, Aufmaß, auch Stange und Rundachse,
-  „Übernehmen“. Flächen wählen und Schlichten folgen.
+  „Übernehmen“. **Rundum schlichten** – danach fährt ein zweiter Fräser eine
+  Spirale auf dem Teil, gerechnet mit seiner echten Form (Kugel-, Torus-,
+  Konikfräser …); die Schrittweite kommt aus der Werkzeugtabelle, daneben steht
+  die Kammhöhe, darunter Umdrehungen und Zeit. Wo der Schruppfräser nicht
+  hinkam (Innenecken, enge Nuten), nimmt das Schlichten vorher in Stufen ab. Die
+  Simulation trägt die Stange mit der Form des Fräsers ab, die
+  Kollisionsprüfung sieht den Kugelfräser als Kugel. Flächen wählen folgt.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).

@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-09 version-0-28-0
+
+### EINGELESEN
+- P-2026-09-30-01 bis -08 (V5 „Rundum schlichten“), `package.xml`, `README.md`,
+  `docs/STATUS_SNAPSHOT.md`; Manuels Antworten vom 2026-09-30 (Richtung am
+  Halter; erst die Grundvoraussetzungen, dann Flächen wählen).
+
+### DATEIEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.28.0 an; im Assistenten steht „Rundum
+schlichten“, im Job danach „Rundum schlichten T2“.
+
+### DONE
+- Version 0.28.0: Rundum schlichten mit jeder Fräserform, Stufen in engen
+  Stellen, Abtrag und Schneide mit der Form in Simulation und Kollision.
+- README (4-Achs-Absatz) und Stand (W-003, nächste Schritte nach Manuel)
+  nachgezogen.
+
+### TEST
+- Voller Lauf `scripts/alle_tests.sh` in 1.1.3 und im Wochen-Build vor dem Push.
+
+### NEXT
+- Richtung des Werkzeugs am Halter (Spezifikation mit Manuel), Beispielmaschinen,
+  Durchsicht Bedienbarkeit; dann V4 Flächen wählen.
+
 ## P-2026-09-30-08 schneide-als-drehkoerper
 
 ### EINGELESEN
