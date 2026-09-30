@@ -274,7 +274,13 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     anzahl = max(1, int(math.ceil((a_anfang - a_ende) / w.steigung * je_umdrehung)))
     k = np.arange(anzahl + 1)
     a = a_anfang - (a_anfang - a_ende) * k / anzahl
-    a_werte = vh.raster_a(a_ende - schritt_a, a_anfang + schritt_a, schritt_a)
+    # Mit gewählten Flächen reicht die Hüllfläche über ihren Bereich – dort liegen alle Zeilen.
+    a_von, a_bis = a_ende, a_anfang
+    if w.bereich is not None and w.bereich.drin.any():
+        belegt = w.bereich.a[w.bereich.drin.any(axis=1)]
+        a_von = max(a_von, min(float(belegt.min()), a_bis))
+        a_bis = min(a_bis, max(float(belegt.max()), a_von))
+    a_werte = vh.raster_a(a_von - schritt_a, a_bis + schritt_a, schritt_a)
     huelle = vh.schaftfraeser(netz, laengs, radial, radius + w.aufmass, a_werte, phi_werte)
     huelle = _hinten_weiter(huelle.sicher(), teil_hinten)
     zugabe = w.aufmass + netz.toleranz + RAND
@@ -314,8 +320,24 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         lagen = max(0, int(math.ceil((w.stange_radius - r_min) / w.zustellung - GLEICH)))
     sicher = w.stange_radius + w.sicherheit
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
-    if w.bereich is not None:
-        _schruppen_im_bereich(punkte, a, k, boden(0), lagen, w, je_umdrehung, schritt_phi)
+    if w.bereich is not None:  # gewählte Flächen: Zeilen hin und her (V4)
+        zeilen_a = _zeilen(w.bereich, a_ende, a_anfang, w.steigung, ringe)
+
+        def boden_bei(stellen, j):
+            """Wie tief die Spitze an den Stellen längs beim Winkelschritt j darf – ein Ring
+            genau an seiner Stelle."""
+            j = np.broadcast_to(j, np.shape(stellen))
+            ergebnis = huelle.bei(stellen, j) + zugabe
+            for stelle, zeile in zip(ringe, ring_r, strict=True):
+                ergebnis = np.where(np.abs(stellen - stelle) < GLEICH, zeile[j] + zugabe, ergebnis)
+            hinten = ~np.isfinite(ergebnis) & (stellen < teil_hinten)
+            return np.maximum(np.where(hinten, w.stange_radius, ergebnis), radius)
+
+        rundum = np.arange(je_umdrehung)
+        boden_zeilen = np.array(
+            [boden_bei(np.full(je_umdrehung, z), rundum) for z in zeilen_a]
+        ).reshape(len(zeilen_a), je_umdrehung)
+        _schruppen_zeilen(punkte, zeilen_a, boden_zeilen, boden_bei, lagen, w, schritt_phi)
         _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
         return Bahn(punkte, lagen, r_min, hinten_frei)
     versatz = 0  # die Spirale einer Lage beginnt, wo die letzte endete
@@ -328,55 +350,6 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
     return Bahn(punkte, lagen, r_min, hinten_frei)
-
-
-def _schruppen_im_bereich(punkte, a, k, boden, lagen, w, je_umdrehung, schritt_phi):
-    """Die Lagen, wenn nur im Bereich gefräst wird (V4): Jede Lage fährt dieselbe Spirale –
-    dieselben Stellen, ganze Umdrehungen weiter –, fräst ihre Stücke im Bereich und hebt
-    dazwischen ab. `boden`: wie tief die Spitze je Punkt darf."""
-    abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
-    im = w.bereich.bei(a, np.radians(k * schritt_phi))
-    stuecke = _stuecke(im)
-    if not stuecke:
-        return
-    # Fräste die Umdrehung davor an derselben Stelle, steht die Mitte des Fräsers über Freiem –
-    # wenn sie höchstens einen Fräserradius weiter vorn lag.
-    offen = np.zeros(len(im), dtype=bool)
-    if w.steigung <= w.fraeser_radius:
-        offen[je_umdrehung:] = im[:-je_umdrehung]
-    # Bis zur nächsten Lage dreht die Rundachse vorwärts auf dieselben Stellen.
-    weiter = int(math.ceil((int(k[stuecke[-1][1]]) - int(k[stuecke[0][0]])) / je_umdrehung))
-    davor = np.full(len(a), float(w.stange_radius))  # höher steht nichts über der Stelle
-    versatz = -(int(k[stuecke[0][0]]) // je_umdrehung) * je_umdrehung  # beginnt unter 360°
-    for lage in range(1, lagen + 1):
-        r = np.maximum(boden, w.stange_radius - lage * w.zustellung)
-        phi = (versatz + k) * schritt_phi
-        for von, bis in stuecke:
-            _stueck_schruppen(punkte, a, r, phi, von, bis, davor[von], offen[von], w, abstand)
-        davor = r
-        versatz += weiter * je_umdrehung
-
-
-def _stueck_schruppen(punkte, a, r, phi, von, bis, oben, offen, w, abstand):
-    """Ein Stück im Bereich: im Eilgang über seinen Anfang und bis knapp über `oben` – höher
-    steht dort nichts –, hinein – senkrecht, wo es `offen` ist oder für eine Rampe zu kurz,
-    sonst über die Rampe –, die Spirale bis zu seinem Ende und radial hinaus."""
-    sicher = w.stange_radius + w.sicherheit
-    anfang = (float(a[von]), float(r[von]), float(phi[von]))
-    _eilgang(punkte, anfang[0], sicher, anfang[2])
-    oben = float(oben)
-    knapp = min(sicher, oben + w.sicherheit)
-    if knapp < sicher:
-        punkte.append(Punkt(True, anfang[0], knapp, anfang[2]))
-    if offen or anfang[1] >= oben - GLEICH or _laenge(a, r, phi, von, bis) < RAMPE_MINDESTENS:
-        punkte.append(Punkt(False, *anfang, True))
-    else:
-        punkte.append(Punkt(False, anfang[0], oben, anfang[2], True))  # bis ans Material
-        punkte.extend(Punkt(False, *stelle) for stelle in _rampe(a, r, phi, von, bis, oben, w))
-    for i in _knicke(r[von : bis + 1], abstand, a[von : bis + 1]):
-        j = von + i
-        punkte.append(Punkt(False, float(a[j]), float(r[j]), float(phi[j])))
-    punkte.append(Punkt(True, float(a[bis]), sicher, float(phi[bis])))
 
 
 def _rampe(a, r, phi, von, bis, oben, w):
@@ -440,6 +413,305 @@ def _eilgang(punkte, a, r, phi):
             punkte.append(punkt)
 
 
+# --- Mit gewählten Flächen: Zeilen hin und her (V4) -----------------------------------------
+# Manuel (2026-09-30, zum Bild der Spirale mit Eilgängen rundum): „man kann ja auch einfach
+# zurück drehen für so eine Fläche“. Jede Zeile liegt bei festem a und fährt nur über ihre
+# Stücke im Bereich; am Ende geht es in der Tiefe einen Schritt längs zur nächsten Zeile und
+# die Rundachse dreht zurück. Abgehoben wird nur, wo die nächste Zeile nicht dort weitergeht.
+
+
+def _zeilen(bereich, a_von, a_bis, abstand, ringe=()):
+    """Die Stellen längs der Zeilen im Bereich, von vorn nach hinten: gleich weit auseinander,
+    höchstens `abstand`, die erste an seinem vorderen, die letzte an seinem hinteren Ende –
+    nur zwischen a_von und a_bis; dazu die Ringe vor den Wänden (`ringe`)."""
+    belegt = bereich.drin.any(axis=1)
+    if not belegt.any():
+        return np.zeros(0)
+    oben = min(float(bereich.a[belegt].max()), a_bis)
+    unten = max(float(bereich.a[belegt].min()), a_von)
+    if oben < unten - GLEICH:
+        return np.zeros(0)
+    anzahl = max(1, int(math.ceil((oben - unten) / abstand - 1e-9)))
+    stellen = list(oben - (oben - unten) * np.arange(anzahl + 1) / anzahl)
+    stellen += [ring for ring in ringe if unten - GLEICH <= ring <= oben + GLEICH]
+    ergebnis = []
+    for stelle in sorted(stellen, reverse=True):
+        if not ergebnis or ergebnis[-1] - stelle > 1e-6:
+            ergebnis.append(stelle)
+    return np.array(ergebnis)
+
+
+def _bereiche(drin):
+    """Die Stücke einer Zeile im Bereich: [(Anfang, Länge)] in Winkelschritten, nach dem Anfang
+    geordnet; ein Stück über die Naht bei 0° reicht über das Ende hinaus; rundum [(0, N)]."""
+    n = len(drin)
+    if not drin.any():
+        return []
+    if drin.all():
+        return [(0, n)]
+    frei = int(np.flatnonzero(~drin)[0])  # die Stücke von einer Lücke aus gezählt
+    gedreht = np.roll(drin, -frei)
+    return sorted(((von + frei) % n, bis - von + 1) for von, bis in _stuecke(gedreht))
+
+
+def _von_bis(von, bis):
+    """Die Winkelschritte von `von` bis `bis`, beide dabei, in Schritten von ±1."""
+    return np.arange(von, bis + (1 if bis >= von else -1), 1 if bis >= von else -1)
+
+
+def _fahrten(drin):
+    """Wie die Zeilen hin und her gefahren werden: [[Teil, …], …] – je Fahrt, was ohne Abheben
+    am Stück geht. Ein Teil ist ("zeile", m, js): Zeile m über die Winkelschritte js
+    (fortlaufend), oder ("schritt", m, j): von Zeile m zur nächsten beim Winkelschritt j. Die
+    Richtung wechselt von Zeile zu Zeile. `drin`: (Zeilen, N) – wo gefräst wird."""
+    anzahl, n = drin.shape
+    fahrten, fahrt, ende, richtung = [], None, 0, 1
+    for m in range(anzahl):
+        stuecke = _bereiche(drin[m])
+        if not stuecke:
+            if fahrt:
+                fahrten.append(fahrt)
+            fahrt = None
+        for nummer, (anfang, laenge) in enumerate(stuecke[::richtung]):
+            teile = None
+            if nummer == 0 and fahrt:
+                teile = _anschluss(drin[m - 1], ende, anfang, laenge, richtung, m, n)
+            if teile is None:
+                if fahrt:
+                    fahrten.append(fahrt)
+                if laenge >= n:  # rundum
+                    js = _von_bis(0, richtung * n)
+                else:
+                    letzte = anfang + laenge - 1
+                    js = _von_bis(anfang, letzte) if richtung > 0 else _von_bis(letzte, anfang)
+                fahrt = [("zeile", m, js)]
+            else:
+                fahrt.extend(teile)
+            ende = int(fahrt[-1][2][-1])
+        richtung = -richtung
+    if fahrt:
+        fahrten.append(fahrt)
+    return fahrten
+
+
+def _anschluss(davor, ende, anfang, laenge, richtung, m, n):
+    """Die Teile, mit denen es in der Tiefe von Zeile m − 1 (endet beim Winkelschritt `ende`,
+    `davor`: wo sie im Bereich ist) in Zeile m weitergeht, die über das Stück (anfang, laenge)
+    in `richtung` fährt – oder None, wenn es nicht geht: dann hebt der Fräser ab. Liegt das
+    Ende über dem Stück, geht es dort hinüber, fährt das Stück erst bis zu seinem Anfang und
+    dann ganz; sonst zurück auf der alten Zeile bis über den Anfang des Stücks."""
+    if laenge >= n:  # rundum: gleich hinüber und einmal herum
+        return [("schritt", m - 1, ende), ("zeile", m, _von_bis(ende, ende + richtung * n))]
+    anfang_ = anfang if richtung > 0 else anfang + laenge - 1  # wo das Stück beginnt
+    darin = (ende - anfang) % n < laenge
+    if darin:  # hinüber, bis zum Anfang des Stücks, dann ganz hindurch
+        weit = ((ende - anfang_) * richtung) % n
+        start = ende - richtung * weit
+        teile = [("schritt", m - 1, ende)]
+        if start != ende:
+            teile.append(("zeile", m, _von_bis(ende, start)))
+    else:  # auf der alten Zeile zurück bis über den Anfang – sie muss dort im Bereich sein
+        weit = ((anfang_ - ende) * richtung) % n
+        start = ende + richtung * weit
+        zurueck = _von_bis(ende, start)
+        if not davor[zurueck % n].all():
+            return None
+        teile = [("zeile", m - 1, zurueck), ("schritt", m - 1, start)]
+    return teile + [("zeile", m, _von_bis(start, start + richtung * (laenge - 1)))]
+
+
+def _folge(fahrt, zeilen_a, hoehe, schritt_hoehe, schritt_laengs=vh.SCHRITT_A):
+    """Die Punkte einer Fahrt: (a, r, j, m) – j fortlaufende Winkelschritte, m die Zeile (−1
+    auf dem Weg zwischen zwei Zeilen). `hoehe`: (Zeilen, N) die Tiefe auf den Zeilen;
+    `schritt_hoehe(m, j, stellen)`: die Tiefe auf dem Weg von Zeile m zur nächsten."""
+    n = hoehe.shape[1]
+    teile = []
+    for art, m, js in fahrt:
+        if art == "zeile":
+            teile.append((np.full(len(js), zeilen_a[m]), hoehe[m, js % n], js, np.full(len(js), m)))
+            continue
+        von, bis = zeilen_a[m], zeilen_a[m + 1]
+        anzahl = max(1, int(math.ceil(abs(von - bis) / schritt_laengs - 1e-9)))
+        stellen = von + (bis - von) * np.arange(1, anzahl) / anzahl
+        if len(stellen):
+            tiefe = schritt_hoehe(m, int(js), stellen)
+            teile.append((stellen, tiefe, np.full(len(stellen), js), np.full(len(stellen), -1)))
+    return tuple(np.concatenate([t[i] for t in teile]) for i in range(4))
+
+
+def _winkel(j, schritt_phi, jetzt):
+    """Die Winkel (Grad) der Winkelschritte j – um ganze Umdrehungen so verschoben, dass der
+    erste dem jetzigen Winkel der Rundachse am nächsten liegt."""
+    phi = j * schritt_phi
+    return phi + 360.0 * round((jetzt - float(phi[0])) / 360.0)
+
+
+def _einfahrt(punkte, a, r, phi, erste, oben, offen, w):
+    """Über den Anfang der Fahrt, im Eilgang bis knapp über `oben` (höher steht dort nichts),
+    hinein: senkrecht mit dem Eintauchvorschub, wo es `offen` ist, nichts zu fräsen ist oder
+    die erste Zeile (`erste` Punkte) für eine Rampe zu kurz ist – sonst über die Rampe."""
+    sicher = w.stange_radius + w.sicherheit
+    a0, r0, p0 = float(a[0]), float(r[0]), float(phi[0])
+    _eilgang(punkte, a0, sicher, p0)
+    knapp = min(sicher, oben + w.sicherheit)
+    if knapp < sicher:
+        punkte.append(Punkt(True, a0, knapp, p0))
+    rampe = getattr(w, "eintauchwinkel", None) is not None and not offen and r0 < oben - GLEICH
+    if rampe and _laenge(a, r, phi, 0, erste - 1) >= RAMPE_MINDESTENS:
+        punkte.append(Punkt(False, a0, oben, p0, True))  # bis ans Material
+        punkte.extend(Punkt(False, *stelle) for stelle in _rampe(a, r, phi, 0, erste - 1, oben, w))
+    else:
+        punkte.append(Punkt(False, a0, r0, p0, True))
+
+
+def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi):
+    """Die Lagen, wenn nur im Bereich gefräst wird (V4): Zeilen hin und her (_fahrten), jede Lage
+    auf denselben Stellen – so steht über jeder höchstens die Tiefe der Lage davor. `boden`:
+    (Zeilen, N) wie tief die Spitze darf, `boden_bei(stellen, j)` dasselbe dazwischen. Senkrecht
+    hinein geht es, wo die Zeile davor (höchstens einen Fräserradius weiter vorn) in dieser Lage
+    schon fräste, sonst über die Rampe."""
+    if not len(zeilen_a):
+        return
+    n = boden.shape[1]
+    phi_werte = np.radians(schritt_phi * np.arange(n))
+    drin = w.bereich.bei(zeilen_a[:, None], phi_werte[None, :])
+    fahrten = _fahrten(drin)
+    sicher = w.stange_radius + w.sicherheit
+    abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    nah = np.concatenate([[False], np.diff(-zeilen_a) <= w.fraeser_radius + GLEICH])
+    davor = np.full(boden.shape, float(w.stange_radius))
+    for lage in range(1, lagen + 1):
+        ebene = w.stange_radius - lage * w.zustellung
+        hoehe = np.maximum(boden, ebene)
+        gefraest = np.zeros(boden.shape, dtype=bool)
+
+        def schritt_hoehe(_m, j, stellen, ebene=ebene):
+            return np.maximum(boden_bei(stellen, j % n), ebene)
+
+        for fahrt in fahrten:
+            a, r, j, m = _folge(fahrt, zeilen_a, hoehe, schritt_hoehe)
+            phi = _winkel(j, schritt_phi, punkte[-1].phi)
+            m0, j0 = fahrt[0][1], int(j[0]) % n
+            offen = nah[m0] and gefraest[m0 - 1, j0]
+            _einfahrt(punkte, a, r, phi, len(fahrt[0][2]), davor[m0, j0], offen, w)
+            for i in _knicke(r, abstand, a, phi):
+                punkte.append(Punkt(False, float(a[i]), float(r[i]), float(phi[i])))
+            punkte.append(Punkt(True, float(a[-1]), sicher, float(phi[-1])))
+            auf_zeile = m >= 0
+            gefraest[m[auf_zeile], j[auf_zeile] % n] = True
+        davor = hoehe
+
+
+def _schlichten_zeilen(
+    netz, laengs, radial, w, a_anfang, a_ende, teil_vorne, teil_hinten, hinten_frei, schritt_phi
+):
+    """Schlichten nur im Bereich (V4): Zeilen im Abstand der Schrittweite hin und her
+    (_fahrten), die Spitze auf der Hüllfläche genau an den Stellen der Zeilen, vor den Wänden
+    eine Zeile als Ring; hinein senkrecht mit dem Eintauchvorschub, knapp über dem Rest. Wo das
+    Schruppen mehr stehen ließ als die Grenze, vorher in Stufen wie beim Schlichten rundum."""
+    form = w.form
+    radius = form.radius
+    s = w.schrittweite
+    zugabe = w.aufmass + netz.toleranz
+    geformt = form.mit_aufmass(zugabe)
+    phi = vh.raster_phi(schritt_phi)
+    n = len(phi)
+    sicher = w.stange_radius + w.sicherheit
+    abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    punkte = [Punkt(True, a_anfang, sicher, 0.0)]
+    ringe = _ringe(w.waende, radius + zugabe + RING_LUFT, a_ende, a_anfang)
+    gleichmaessig = _zeilen(w.bereich, a_ende, a_anfang, s)
+    if not len(gleichmaessig):
+        punkte.append(Punkt(True, a_anfang, sicher, 0.0))
+        return Schlichtbahn(punkte, 0.0, 0.0, form.kammhoehe(s), hinten_frei)
+    # Die gleichmäßigen Zeilen auf einmal (aufsteigend gerechnet), die Ringe je für sich.
+    unten = float(gleichmaessig[-1])
+    weite = (
+        (float(gleichmaessig[0]) - unten) / (len(gleichmaessig) - 1)
+        if len(gleichmaessig) > 1
+        else s
+    )
+    anfang = np.full(n, unten)
+    huelle = vh.je_winkel(netz, laengs, radial, geformt, anfang, weite, len(gleichmaessig), phi)
+    huelle = _auffuellen(huelle, anfang, weite, teil_vorne, teil_hinten)[::-1] + zugabe
+    zeilen = dict(zip(gleichmaessig.tolist(), huelle, strict=True))
+    for ring in ringe:
+        if unten - GLEICH <= ring <= gleichmaessig[0] + GLEICH:
+            zeile = vh.je_winkel(netz, laengs, radial, geformt, np.full(n, ring), s, 1, phi)[0]
+            zeilen[ring] = zeile + zugabe
+    zeilen_a = np.array(sorted(zeilen, reverse=True))
+    zeilen_a = zeilen_a[np.concatenate([[True], np.diff(-zeilen_a) > 1e-6])]
+    hoehe = np.array([zeilen[z] for z in zeilen_a.tolist()])
+    hoehe = np.maximum(np.where(np.isfinite(hoehe), hoehe, w.stange_radius), radius)
+    drin = w.bereich.bei(zeilen_a[:, None], phi[None, :])
+
+    def schritt_hoehe(m, j, stellen, ebene=None):
+        """Die Hüllfläche genau auf dem Weg von Zeile m zur nächsten beim Winkelschritt j –
+        vor und hinter dem Teil die höhere der beiden Zeilen."""
+        wert = vh.je_winkel(
+            netz,
+            laengs,
+            radial,
+            geformt,
+            np.array([stellen[-1]]),
+            float(stellen[0] - stellen[1]) if len(stellen) > 1 else 1.0,
+            len(stellen),
+            phi[[j % n]],
+        )[::-1, 0]
+        daneben = max(hoehe[m, j % n], hoehe[m + 1, j % n])
+        wert = np.where(np.isfinite(wert), wert + zugabe, daneben)
+        if ebene is not None:
+            wert = np.maximum(wert, np.maximum(ebene[m, j % n], ebene[m + 1, j % n]))
+        return np.maximum(wert, radius)
+
+    umdrehungen = 0.0
+
+    def fahren(ziel, wo, stand, ebene=None):
+        """Die Zeilen über `wo` auf der Tiefe `ziel`; `stand`: so hoch steht dort noch etwas.
+        Gibt zurück, wo gefräst wurde."""
+        nonlocal umdrehungen
+        gefraest = np.zeros(ziel.shape, dtype=bool)
+        for fahrt in _fahrten(wo):
+            a, r, j, m = _folge(
+                fahrt, zeilen_a, ziel, lambda mm, jj, st: schritt_hoehe(mm, jj, st, ebene)
+            )
+            winkel = _winkel(j, schritt_phi, punkte[-1].phi)
+            m0, j0 = fahrt[0][1], int(j[0]) % n
+            oben = w.stange_radius if stand is None else max(float(stand[m0, j0]), float(r[0]))
+            _einfahrt(punkte, a, r, winkel, len(fahrt[0][2]), oben, True, w)
+            gehoben = r + _sehnenfehler(r)
+            fest = np.flatnonzero(_a_knicke(a) | _a_knicke(winkel)) + 1 if len(a) > 2 else []
+            for i in _zusammengefasst(gehoben, BAHN_TOLERANZ, abstand, list(fest)):
+                punkte.append(Punkt(False, float(a[i]), float(gehoben[i]), float(winkel[i])))
+            punkte.append(Punkt(True, float(a[-1]), sicher, float(winkel[-1])))
+            auf_zeile = m >= 0
+            gefraest[m[auf_zeile], j[auf_zeile] % n] = True
+            umdrehungen += float(np.sum(np.abs(np.diff(winkel)))) / 360.0
+        return gefraest
+
+    # Wo das Schruppen mehr stehen ließ als die Grenze: vorher in Stufen.
+    stufen, grenze, stand = 0, 0.0, None
+    if w.rest is not None:
+        grenze = max(radius, w.aufmass_schruppen + SCHLICHT_ZUGABE)
+        gitter_a = np.repeat(zeilen_a, n)
+        gitter_phi = np.tile(phi, len(zeilen_a))
+        oben = _nicht_tiefer(w.rest, form, 0.0, gitter_a, gitter_phi).reshape(hoehe.shape)
+        stand = np.maximum(oben, hoehe)
+        tiefste = float(np.max(np.where(drin, oben - hoehe, 0.0)))
+        for stufe in range(1, int(math.ceil(max(tiefste, 0.0) / grenze - 1e-9))):
+            ebene = np.maximum(hoehe, oben - stufe * grenze)
+            noetig = (ebene > hoehe + BAHN_TOLERANZ) & drin
+            if not noetig.any():
+                continue
+            gefraest = fahren(ebene, noetig, stand, ebene)
+            stand = np.where(gefraest, np.minimum(stand, ebene), stand)
+            stufen += 1
+    fahren(hoehe, drin, stand)
+    _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
+    r_min = float(np.min(hoehe[drin])) if drin.any() else 0.0
+    return Schlichtbahn(punkte, umdrehungen, r_min, form.kammhoehe(s), hinten_frei, stufen, grenze)
+
+
 def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     """Die Schlichtbahn (Schlichtbahn) für `netz` (vierachs_huelle.vernetze, im Job, fein:
     TOLERANZ_SCHLICHTEN) mit den Schlichtwerten `werte`; `laengs` und `radial` wie in
@@ -463,6 +735,19 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     if a_ende >= teil_vorne + radius:
         raise ValueError(_kein_platz(radius, w))
     hinten_frei = max(0.0, a_ende - radius - teil_hinten)
+    if w.bereich is not None:  # gewählte Flächen: Zeilen hin und her (V4)
+        return _schlichten_zeilen(
+            netz,
+            laengs,
+            radial,
+            w,
+            a_anfang,
+            a_ende,
+            teil_vorne,
+            teil_hinten,
+            hinten_frei,
+            schritt_phi,
+        )
 
     # Die Spirale: Punkt k liegt bei a_anfang − s · k / N unter dem Winkel k · Δφ. Je Winkel
     # j kommt sie an a_anfang − s · (j / N + m) vorbei – dort rechnet die Hüllfläche.
@@ -510,12 +795,10 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     anzahl = len(a) - 1
     r = np.where(np.isfinite(r), r, w.stange_radius)  # trifft rundum nichts: bleibt oben
     r = np.maximum(r, radius)  # nicht näher an die Achse
-    # Mit gewählten Flächen nur im Bereich (V4).
-    im = None if w.bereich is None else w.bereich.bei(a, k * math.radians(schritt_phi))
     # Wo das Schruppen mehr stehen ließ als die Grenze (eine Innenecke, eine enge Nut), fährt
     # Schlichten vorher in Stufen, von oben nach unten – jede höchstens die Grenze unter der
     # davor, nur wo es nötig ist.
-    stufen, grenze, stand = [], 0.0, None
+    stufen, grenze = [], 0.0
     if w.rest is not None:
         grenze = max(radius, w.aufmass_schruppen + SCHLICHT_ZUGABE)
         oben = _nicht_tiefer(w.rest, form, 0.0, a, k * math.radians(schritt_phi))
@@ -524,16 +807,10 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         for stufe in range(1, anzahl_stufen):
             hoehe = np.maximum(r, oben - stufe * grenze)
             noetig = hoehe > r + BAHN_TOLERANZ
-            if im is not None:
-                noetig &= im
             if not noetig.any():
                 continue
-            if im is None:
-                stuecke = _abschnitte(noetig, np.maximum(stand - hoehe, 0.0), je_umdrehung)
-            else:  # nur im Bereich, jedes Stück für sich – es taucht knapp über dem Rest ein
-                stuecke = _stuecke(noetig)
-            darueber = [max(float(stand[von]), float(hoehe[von])) for von, _bis in stuecke]
-            stufen.append((hoehe, stuecke, darueber))
+            stuecke = _abschnitte(noetig, np.maximum(stand - hoehe, 0.0), je_umdrehung)
+            stufen.append((hoehe, stuecke))
             for von, bis in stuecke:
                 np.minimum(stand[von : bis + 1], hoehe[von : bis + 1], out=stand[von : bis + 1])
     sicher = w.stange_radius + w.sicherheit
@@ -541,26 +818,16 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     winkel = k * schritt_phi
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
     umdrehungen_vor = 0
-    for r_stufe, stuecke, darueber in stufen:
-        for (von, bis), stand_von in zip(stuecke, darueber, strict=True):
-            knapp = None if im is None else min(sicher, stand_von + w.sicherheit)
-            _spirale(punkte, a, r_stufe, winkel, von, bis, sicher, abstand, knapp)
+    for r_stufe, stuecke in stufen:
+        for von, bis in stuecke:
+            _spirale(punkte, a, r_stufe, winkel, von, bis, sicher, abstand)
             umdrehungen_vor += (bis - von) / je_umdrehung
-    if im is None:
-        _spirale(punkte, a, r, winkel, 0, anzahl, sicher, abstand)
-        punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
-    else:
-        # Wieder hinein im Eilgang bis knapp über das, was nach dem Schruppen und den Stufen
-        # dort steht – ohne Schruppen im Job über die Stange –, dann mit dem Eintauchvorschub.
-        for von, bis in _stuecke(im):
-            oben = w.stange_radius if stand is None else max(float(stand[von]), float(r[von]))
-            knapp = min(sicher, oben + w.sicherheit)
-            _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, knapp)
-        _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
+    _spirale(punkte, a, r, winkel, 0, anzahl, sicher, abstand)
+    punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
     return Schlichtbahn(
         punkte,
         anzahl / je_umdrehung + umdrehungen_vor,
-        float(np.min(r if im is None or not im.any() else r[im])),
+        float(np.min(r)),
         form.kammhoehe(s),
         hinten_frei,
         len(stufen),
@@ -588,36 +855,21 @@ def _abschnitte(noetig, tiefe, je_umdrehung):
     return ergebnis
 
 
-def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, knapp=None):
+def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand):
     """Hängt das Stück von..bis der Spirale an `punkte`: im Eilgang über den Anfang, hinein,
     die Spirale mit Sehnenfehler und zusammengefasst, radial hinaus. Der Winkel zählt weiter,
-    wo die Rundachse steht – sie dreht nicht zurück. `knapp`: im Eilgang bis auf diesen Radius
-    und von dort mit dem Eintauchvorschub hinein (gewählte Flächen, V4); ohne: vom
-    Sicherheitsabstand im Vorschub."""
+    wo die Rundachse steht – sie dreht nicht zurück."""
     weiter = punkte[-1].phi
     versatz = 360.0 * math.ceil((weiter - winkel[von]) / 360.0 - 1e-9)
     stueck = r[von : bis + 1]
     stueck = stueck + _sehnenfehler(stueck)
-    if knapp is None:
-        anfahren = Punkt(True, float(a[von]), sicher, float(winkel[von] + versatz))
-        if anfahren != punkte[-1]:
-            punkte.append(anfahren)
-    else:
-        _eilgang(punkte, float(a[von]), sicher, float(winkel[von] + versatz))
-        if knapp < sicher:
-            punkte.append(Punkt(True, float(a[von]), knapp, float(winkel[von] + versatz)))
+    anfahren = Punkt(True, float(a[von]), sicher, float(winkel[von] + versatz))
+    if anfahren != punkte[-1]:
+        punkte.append(anfahren)
     ringe = np.flatnonzero(_a_knicke(a[von : bis + 1])) + 1
-    for n, i in enumerate(_zusammengefasst(stueck, BAHN_TOLERANZ, abstand, ringe.tolist())):
+    for i in _zusammengefasst(stueck, BAHN_TOLERANZ, abstand, ringe.tolist()):
         j = von + i
-        punkte.append(
-            Punkt(
-                False,
-                float(a[j]),
-                float(stueck[i]),
-                float(winkel[j] + versatz),
-                knapp is not None and n == 0,
-            )
-        )
+        punkte.append(Punkt(False, float(a[j]), float(stueck[i]), float(winkel[j] + versatz)))
     punkte.append(Punkt(True, float(a[bis]), sicher, float(winkel[bis] + versatz)))
 
 
@@ -735,16 +987,18 @@ def _hinten_weiter(huelle, teil_hinten):
     return vh.Huelle(huelle.a, huelle.phi, r)
 
 
-def _knicke(r, abstand, a=None):
+def _knicke(r, abstand, a=None, phi=None):
     """Die Stellen der Spirale, die bleiben: Anfang, Ende, wo der Radius sich ändert, wo ein
-    Ring beginnt oder endet (`a` ändert dort seine Steigung) und alle `abstand` Stellen eine
-    – dazwischen liegen die Punkte auf einer Geraden in (a, r, φ)."""
+    Ring beginnt oder endet (`a` ändert dort seine Steigung), wo die Rundachse umkehrt
+    (`phi`, hin und her) und alle `abstand` Stellen eine – dazwischen liegen die Punkte auf
+    einer Geraden in (a, r, φ)."""
     anders = np.abs(np.diff(r)) > GLEICH
     bleibt = np.arange(len(r)) % abstand == 0
     bleibt[0] = bleibt[-1] = True
     bleibt[1:-1] |= anders[:-1] | anders[1:]
-    if a is not None:
-        bleibt[1:-1] |= _a_knicke(a)
+    for x in (a, phi):
+        if x is not None and len(x) > 2:
+            bleibt[1:-1] |= _a_knicke(x)
     return np.nonzero(bleibt)[0]
 
 

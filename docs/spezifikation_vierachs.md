@@ -744,15 +744,22 @@ bauen“):*
   nicht kaputt geht“).
   - *Wie gebaut:* Der Bereich ist jede Stelle, an der die Stirn des Fräsers (Scheibe
     mit seinem Radius) eine gewählte Fläche berührt – so kommt er an ihre Kanten.
-    Alle Lagen fahren dieselbe Spirale (ganze Umdrehungen weiter): Über jeder Stelle
-    steht dann höchstens die Tiefe der Lage davor, der Eilgang hinab geht bis knapp
-    darüber. Senkrecht mit dem Eintauchvorschub taucht er nur ein, wo die Umdrehung
-    davor an derselben Stelle schon fräste (die Mitte steht über Freiem, er taucht nur
-    mit dem Rand ein); sonst über die Rampe mit dem Eintauchwinkel längs der Bahn, hin
-    und her, bis er unten ist, und auf der Bahn zurück zum Anfang – so bleibt unter der
-    Rampe nichts stehen. Schlichten taucht senkrecht ein, knapp über dem Rest nach dem
-    Schruppen. Die Rundachse dreht zwischen den Stücken im Eilgang weiter, in Schritten
-    von höchstens 90°.
+    Gefräst wird in **Zeilen hin und her** (P-2026-09-30-28, Manuel zum Bild der
+    ersten Fassung, einer Spirale mit Eilgängen rundum: „man kann ja auch einfach
+    zurück drehen für so eine Fläche“): Jede Zeile liegt bei festem a und fährt nur
+    über ihr Stück im Bereich; am Ende geht es in der Tiefe einen Schritt längs zur
+    nächsten, und die Rundachse dreht zurück. Endet die nächste Zeile früher, fährt er
+    auf der alten zurück bis über ihren Anfang, reicht sie weiter, erst hinüber und
+    dann ganz hindurch. Abgehoben wird nur, wo die nächste Zeile nicht dort
+    weitergeht (zwei getrennte Stücke). Schruppen: Zeilen im Abstand „Vorschub je
+    Umdrehung“, Schlichten im Abstand der Schrittweite, vor jeder Wand eine Zeile als
+    Ring. Alle Lagen fahren dieselben Zeilen: Über jeder Stelle steht dann höchstens
+    die Tiefe der Lage davor, der Eilgang hinab geht bis knapp darüber. Hinein geht es
+    über die Rampe mit dem Eintauchwinkel längs der ersten Zeile, hin und her, bis er
+    unten ist, und auf der Zeile zurück zum Anfang – so bleibt unter der Rampe nichts
+    stehen; senkrecht nur, wo nichts zu fräsen ist oder die Zeile davor dort schon
+    fräste. Schlichten taucht senkrecht ein, knapp über dem Rest nach dem Schruppen.
+    Die Hüllfläche rechnet das Schruppen nur über dem Bereich.
   - *Grenze:* Eine Abflachung mit der Spirale: Wo der Fräser nicht senkrecht über ihr
     steht, steht seine Stirn schräg zu ihr – an ihrem Rand bleibt etwas mehr stehen, in
     den Ecken an ihren Wänden gut 1 mm (mit Ringgang). Eben fräst sie erst „Plan

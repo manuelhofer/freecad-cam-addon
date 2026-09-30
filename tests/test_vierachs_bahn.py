@@ -4,8 +4,8 @@
 # das Futter näher, bleibt der Rand des Fräsers den Abstand zum Futter davor. Beim
 # Exzenter auch zwischen den Punkten gegen die Formel. Dazu die Path-Befehle für C und A
 # mit G93 und die Fälle, die nicht gehen. Nur über gewählten Flächen (V4): Abflachung einer
-# Welle – gefräst wird nur, wo der Fräser sie berührt, hinein über Rampen oder senkrecht, wo
-# die Umdrehung davor schon fräste.
+# Welle – gefräst wird nur, wo der Fräser sie berührt, in Zeilen hin und her; hinein über
+# eine Rampe.
 import math
 import os
 import sys
@@ -333,9 +333,11 @@ pruefe(vb._stuecke(np.array([False, True, True, False, True])) == [(1, 2), (4, 4
 
 # --- Nur die Abflachung (V4) ----------------------------------------------------------------------
 # Welle Ø 20 von −40 bis 0, Abflachung auf x = 8 von −30 bis −10, Stange Ø 24, Fräser R 3:
-# gefräst wird nur, wo er die Abflachung berührt, vor ihren Wänden mit Ring. Die erste Umdrehung
-# jeder Lage im Bereich taucht über die Rampe ein, alle anderen senkrecht – dort fräste die
-# Umdrehung davor schon. Über der Abflachung bleibt das Aufmaß, gegenüber die Stange.
+# gefräst wird nur, wo er die Abflachung berührt, in Zeilen bei festem a hin und her (Manuel:
+# „man kann ja auch einfach zurück drehen für so eine Fläche“), vor ihren Wänden eine Zeile als
+# Ring. Je Lage eine Fahrt: über eine Rampe hinein, am Ende jeder Zeile in der Tiefe zur
+# nächsten, am Ende heraus – die Rundachse dreht nie ganz herum. Über der Abflachung bleibt das
+# Aufmaß, gegenüber die Stange.
 flach_welle = (
     Part.makeCylinder(10, 40, V(0, 0, -40))
     .cut(Part.makeBox(10, 30, 20, V(8, -15, -30)))
@@ -376,18 +378,41 @@ for n, punkt in enumerate(flach_bahn.punkte):
             break
         folge.append(q)
     # Die Rampe fährt gleich weiter und kommt auf der Bahn zum Anfang zurück; senkrecht
-    # beginnt die Bahn dort, wo es hinab ging.
+    # beginnt die Bahn dort, wo es hinab ging – dann nur durch Luft: Wo nichts zu fräsen ist,
+    # liegt der Punkt nicht tiefer als die Lage davor.
     gleich = [abs(q.a - punkt.a) < 1e-9 and abs(q.phi - punkt.phi) < 1e-9 for q in folge]
-    zurueck = bool(folge) and not gleich[0] and any(gleich[1:])
-    rampen += zurueck
-    senkrechte += not zurueck
-pruefe(rampen == flach_bahn.lagen and senkrechte >= 10, f"{rampen} Rampen, {senkrechte} senkrecht")
-schritte = [
-    abs(n.phi - v.phi)
+    if bool(folge) and not gleich[0] and any(gleich[1:]):
+        rampen += 1
+    else:
+        senkrechte += 1
+        luft = flach_bahn.punkte[n - 1].r - punkt.r
+        pruefe(luft <= werte_flach.sicherheit + 1e-6, f"senkrecht {luft:.3f} mm ins Material")
+pruefe(
+    rampen >= 1 and rampen + senkrechte == flach_bahn.lagen,
+    f"{rampen} Rampen, {senkrechte} senkrecht",
+)
+heraus = sum(
+    1
     for v, n in zip(flach_bahn.punkte, flach_bahn.punkte[1:], strict=False)
-    if n.eilgang
-]
-pruefe(max(schritte) <= vb.HOECHSTENS_GRAD + 1e-9, f"Eilgang dreht {max(schritte)}° am Stück")
+    if n.eilgang and not v.eilgang
+)
+pruefe(heraus == flach_bahn.lagen, f"{heraus}-mal heraus bei {flach_bahn.lagen} Lagen")
+winkel_bahn = [p.phi for p in flach_bahn.punkte[1:]]
+pruefe(
+    max(winkel_bahn) - min(winkel_bahn) < 120.0,
+    f"die Rundachse dreht von {min(winkel_bahn):.0f}° bis {max(winkel_bahn):.0f}°",
+)
+wenden, zuletzt = 0, 0.0  # wie oft die Rundachse im Vorschub die Richtung wechselt
+for v, n in zip(vorschub, vorschub[1:], strict=False):
+    dreht = n.phi - v.phi
+    if abs(dreht) > 1e-9:
+        wenden += zuletzt * dreht < 0
+        zuletzt = dreht
+pruefe(wenden >= 10, f"nur {wenden}-mal zurückgedreht")
+# Vor der Wand bei −30 (sie schaut nach vorn) liegt eine Zeile als Ring: Fräser, Aufmaß,
+# Vernetzung und RING_LUFT davor.
+ring = -30.0 + 3.0 + 0.3 + vh.TOLERANZ + vb.RING_LUFT
+pruefe(any(abs(p.a - ring) < 1e-6 for p in vorschub), f"keine Zeile als Ring bei {ring:.3f}")
 stange = rm.Stange(12.0, -60.0, 1.0)
 von, nach = [], []
 for vorher, punkt in zip(flach_bahn.punkte, flach_bahn.punkte[1:], strict=False):

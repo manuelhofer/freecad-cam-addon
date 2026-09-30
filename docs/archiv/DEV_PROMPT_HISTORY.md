@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-28 flaechen-hin-und-her
+
+### EINGELESEN
+- Manuels Nachricht zum Bild der Bahn über der Abflachung (2026-09-30): „Also ich hoffe, dass
+  die roten Striche keine Eilgänge sind, weil man kann ja auch einfach zurück drehen für so
+  eine Fläche …“ – sie waren es: Nach jedem Überfahren hob der Fräser ab und drehte im Eilgang
+  den Rest der Umdrehung weiter.
+- `camaddon/vierachs_bahn.py` (P-2026-09-30-26: Spirale mit Bereich), `docs/spezifikation_vierachs.md`
+  (V4b), `help/*/vierachs.html`.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `tests/test_vierachs_bahn.py`, `tests/test_vierachs_schlichten.py`,
+  `help/de/vierachs.html`, `help/en/vierachs.html`, `docs/spezifikation_vierachs.md`,
+  `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle mit Abflachung, nur die Abflachung gewählt, „Anlegen“: Im 3D liegen die grünen Bahnen
+als Zeilen hin und her über der Abflachung, am Ende jeder Zeile ein kurzer Schritt längs; rot
+(Eilgang) nur das Anfahren, das Wegfahren und der Weg zurück nach vorn für die nächste Lage –
+keine Kreise mehr um die Welle.
+
+### DONE
+- Mit gewählten Flächen fräsen Schruppen und Schlichten in Zeilen bei festem a hin und her
+  (`_zeilen`, `_bereiche`, `_fahrten`, `_anschluss`): Jede Zeile nur über ihr Stück im Bereich,
+  am Ende in der Tiefe zur nächsten Zeile, die Rundachse dreht zurück; endet die nächste früher,
+  zurück auf der alten bis über ihren Anfang, reicht sie weiter, erst hinüber und dann ganz
+  hindurch. Abheben nur zwischen getrennten Stücken. Schruppen: Zeilen im Abstand „Vorschub je
+  Umdrehung“, Schlichten im Abstand der Schrittweite, vor jeder Wand eine Zeile als Ring; der Weg
+  zwischen zwei Zeilen auf der Hüllfläche (beim Schlichten genau dort gerechnet).
+- Hinein wie bisher: Eilgang bis knapp über die Tiefe der Lage davor bzw. den Rest, Rampe mit dem
+  Eintauchwinkel längs der ersten Zeile, senkrecht nur, wo nichts zu fräsen ist oder die Zeile
+  davor dort schon fräste; Schlichten senkrecht mit dem Eintauchvorschub, auch die Stufen.
+- Die Hüllfläche fürs Schruppen nur über dem Bereich – schneller. Rundum (ohne Flächen) bleibt
+  die Spirale, unverändert.
+
+### TEST
+- KI ohne Oberfläche, FreeCAD 1.1.3: `test_vierachs_bahn` (Abflachung: alles im Bereich, je Lage
+  einmal heraus, keine senkrechte Einfahrt ins Material, die Rundachse bleibt in einem Bereich
+  unter 120°, mehr als zehnmal zurückgedreht, eine Zeile als Ring vor der Wand; darüber 0,45 mm,
+  in den Ecken 1,12 mm, gegenüber unberührt), `test_vierachs_schlichten` (Abflachung: 3 Fahrten,
+  jede knapp über dem Rest mit Eintauchvorschub, die Zeilen reichen über die ganze Abflachung),
+  `test_vierachs_operation`, `test_vierachs_flaechen` grün.
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_vierachs_flaechen` grün – das Bild
+  „4_angelegt“ zeigt die Zeilen hin und her.
+
+### NEXT
+- Voller Lauf, Version 0.30.0, Push, Bericht an Manuel; danach V4c „Plan indexiert“ (Plan mit
+  Manuel, er will eigene Strategien planen).
+
 ## P-2026-09-30-27 flaechen-assistent
 
 ### EINGELESEN

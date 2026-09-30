@@ -5,7 +5,8 @@
 # um den Überlauf hinter dem Teil. Torus mit Aufmaß. Dann der Schutz: In einer Nut, die
 # schmaler ist als der Schruppfräser, blieb nach dem Schruppen alles stehen – der Kugelfräser
 # fährt dort zuerst eine Stufe, höchstens seinen Radius tief, dann bis auf den Grund. Nur
-# über der Abflachung einer Welle (V4): im Eilgang bis knapp über den Rest, senkrecht hinein.
+# über der Abflachung einer Welle (V4): Zeilen hin und her, im Eilgang bis knapp über den Rest,
+# senkrecht hinein.
 # Dazu die Zeitgrenze.
 import math
 import os
@@ -316,9 +317,9 @@ print(ascii(f"Wand: an der Wand ohne Ring {rest_ohne:.2f} mm, mit Ring {rest_mit
 
 # --- Nur die Abflachung (V4) ---------------------------------------------------------------
 # Welle Ø 20 von −40 bis 0, Abflachung auf x = 8 von −30 bis −10, Stange Ø 24; geschruppt
-# mit R 3 nur dort (Aufmaß 0,3), geschlichtet mit der Kugel R 2. Jedes Stück beginnt im
-# Eilgang knapp über dem Rest und taucht mit dem Eintauchvorschub ein; die Bahn bleibt im
-# Bereich der Kugel, gegenüber wird nichts gefräst.
+# mit R 3 nur dort (Aufmaß 0,3), geschlichtet mit der Kugel R 2 in Zeilen hin und her: Jede
+# Fahrt beginnt im Eilgang knapp über dem Rest und taucht mit dem Eintauchvorschub ein; die
+# Bahn bleibt im Bereich der Kugel, die Rundachse dreht nie ganz herum.
 flach_welle = (
     Part.makeCylinder(10, 40, V(0, 0, -40))
     .cut(Part.makeBox(10, 30, 20, V(8, -15, -30)))
@@ -369,7 +370,7 @@ im_vorschub = [p for p in flach.punkte if not p.eilgang]
 drin = bereich_kugel.bei([p.a for p in im_vorschub], np.radians([p.phi for p in im_vorschub]))
 pruefe(drin.all(), f"Schlichten: {int((~drin).sum())} Punkte außerhalb des Bereichs")
 teile = stuecke(flach)
-pruefe(len(teile) > 10, f"Schlichten: nur {len(teile)} Stücke über der Abflachung")
+pruefe(1 <= len(teile) <= 1 + flach.vorstufen * 4, f"Schlichten: {len(teile)} Fahrten")
 knapp = 0
 for vorher, punkt in zip(flach.punkte, flach.punkte[1:], strict=False):
     if vorher.eilgang and not punkt.eilgang:
@@ -380,9 +381,13 @@ for vorher, punkt in zip(flach.punkte, flach.punkte[1:], strict=False):
         tief = vorher.r - punkt.r
         pruefe(tief <= 2.0 + flach.grenze + 1e-6, f"taucht {tief:.2f} mm ein")
 pruefe(knapp == len(teile), f"nur {knapp} von {len(teile)} Stücken knapp über dem Rest")
-winkel = [p.phi for p in flach.punkte]
-pruefe(all(b >= a - 1e-9 for a, b in zip(winkel, winkel[1:], strict=False)), "C dreht zurück")
-print(ascii(f"Abflachung: {len(teile)} Stücke geschlichtet"))
+winkel = [p.phi for p in flach.punkte[1:]]
+pruefe(max(winkel) - min(winkel) < 120.0, f"C dreht von {min(winkel):.0f}° bis {max(winkel):.0f}°")
+a_flach, r_flach = zip(*[(p.a, p.r) for p in im_vorschub], strict=True)
+pruefe(
+    min(a_flach) < -29.0 and max(a_flach) > -11.0, f"Zeilen von {min(a_flach)} bis {max(a_flach)}"
+)
+print(ascii(f"Abflachung: {len(teile)} Fahrten geschlichtet"))
 
 # --- Zeitgrenze: Kugelfräser Ø 6 auf der Welle Ø 60 × 100 mit Nocken, 0,35 mm ------------
 teil = (

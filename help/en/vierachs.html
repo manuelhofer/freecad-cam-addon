@@ -96,11 +96,12 @@ as before.</li>
 all around. <b>Clear selection</b> does the same.</li>
 <li>With selected faces “All-round roughing” and “All-round finishing” only
 mill where the cutter touches one of them – so it also reaches their edges.
-The calculation still uses the whole part: it stays intact. In between the
-cutter lifts above the bar and re-enters safely: rapid down to just above
-what is left there, then straight down at the plunge feed where only its rim
-enters, otherwise along a ramp with the cutter's plunge angle from the tool
-manager (5° if none is given).</li>
+The calculation still uses the whole part: it stays intact. The cutter moves
+in <b>rows back and forth</b>: each row across the face, at its end one step
+along the axis, and the rotary axis turns back. It only lifts between separate
+faces. It enters by rapid down to just above what is left there, then along a
+ramp with the cutter's plunge angle from the tool manager (5° if none is
+given) – when finishing straight down at the plunge feed.</li>
 <li>Both operations remember the faces (property “Flaechen”); when changing
 they are back in the list.</li>
 </ul>
