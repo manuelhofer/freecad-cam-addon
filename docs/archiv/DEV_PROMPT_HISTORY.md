@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-61 planaufmass-null
+
+### EINGELESEN
+- Manuel, 2026-09-30, mit Bild von Schritt 1 des 4-Achs-Assistenten: „in planaufmass steht
+  nix drinnen ?“ – grau steht dort der zuletzt benutzte Wert, bei ihm 0; `groesse_zeigen`
+  zeigt 0 als leer.
+- `camaddon/gui_vierachs.py` (`_baue_rohteil`, `GEMERKT`).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`, `tests/gui/szenario_vierachs_rohteil.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+War das zuletzt benutzte Planaufmaß 0, steht im leeren Feld grau „0“.
+
+### DONE
+- Die grauen Vorschläge von Planaufmaß, Abstechbreite und Spannlänge zeigen eine 0 als „0“.
+
+### TEST
+- `szenario_vierachs_rohteil`: gemerktes Planaufmaß 0 → grau „0“.
+- In 1.1.3 ok, Bild `1_fenster` angesehen: Planaufmaß grau „0“.
+
+### NEXT
+- P-62.
+
 ## P-2026-09-30-60 hoechstdrehzahl
 
 ### EINGELESEN

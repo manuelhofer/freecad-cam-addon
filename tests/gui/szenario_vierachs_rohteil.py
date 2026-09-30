@@ -47,7 +47,7 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import gui_vierachs
+    from camaddon import PARAMETER_PFAD, gui_vierachs
     from camaddon import vierachs_rohteil as vr
 
     doc = FreeCAD.newDocument("Welle")
@@ -65,12 +65,18 @@ def schritte(h):
     Gui.Selection.addSelection(doc.Name, teil.Name, stirn)
     yield 500
 
+    # Zuletzt benutzt: Planaufmaß 0 – grau steht „0“ da, nicht nichts (Manuel, 2026-09-30).
+    parameter = FreeCAD.ParamGet(PARAMETER_PFAD)
+    parameter.SetFloat("VaPlanaufmass", 0.0)
     Gui.runCommand("CamAddon_Vierachs")
     yield 1500
     panel = gui_vierachs.VierachsPanel.offen
+    parameter.RemFloat("VaPlanaufmass")
     h.pruefe(panel is not None, "Fenster öffnet sich nicht")
     if panel is None:
         return
+    grau = panel.felder_laenge["planaufmass"].placeholderText()
+    h.pruefe(grau == "0", f"Planaufmaß 0 grau: {grau!r}")
     h.pruefe(panel.job is not None, "kein Job für die gewählte Fläche")
     if panel.job is None:
         return

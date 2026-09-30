@@ -871,7 +871,9 @@ class VierachsPanel:
             ("spannlaenge", tr("va.spannlaenge"), tr("va.spannlaenge.tooltip")),
         ):
             eingabe = self._zahlenfeld(tooltip)
-            eingabe.setPlaceholderText(groesse_zeigen(self._gemerkt(feld), einheiten.LAENGE))
+            # Eine gemerkte 0 grau als „0“ – leer sah es aus, als fehle der Wert (Manuel,
+            # 2026-09-30: „in planaufmass steht nix drinnen?“).
+            eingabe.setPlaceholderText(groesse_zeigen(self._gemerkt(feld), einheiten.LAENGE) or "0")
             self.felder_laenge[feld] = eingabe
             raster.addWidget(beschriftung(text, tooltip), zeile, 0)
             raster.addWidget(mit_einheit(eingabe, einheiten.einheit(einheiten.LAENGE)), zeile, 1)
