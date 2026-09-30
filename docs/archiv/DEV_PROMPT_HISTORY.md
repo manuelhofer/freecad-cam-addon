@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-38 version-0-31-0
+
+### EINGELESEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`; CLAUDE.md: Soll Manuel etwas
+  ausprobieren, braucht der Push eine höhere Version.
+
+### DATEIEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates suchen“ bzw. der Addon-Manager bietet 0.31.0 an.
+
+### DONE
+- Version 0.31.0 mit P-2026-09-30-31 bis -37: getrennte Flächen nacheinander, Prüfen nur auf
+  den gewählten Flächen, Installation ohne Pythons SSL, Fräser im Halter, Postprozessoren in
+  der Hilfe. README und Stand.
+
+### TEST
+- Voller Lauf `scripts/alle_tests.sh` in 1.1.3 und 26.3 vor dem Push.
+
+### NEXT
+- Push nach grünem Lauf, Bericht an Manuel.
+
 ## P-2026-09-30-37 halter-nahaufnahme
 
 ### EINGELESEN

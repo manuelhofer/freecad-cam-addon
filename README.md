@@ -100,7 +100,10 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Dann fräsen Schruppen und Schlichten nur dort, wo der Fräser eine gewählte
   Fläche berührt, in Zeilen hin und her; abgehoben wird nur zwischen getrennten
   Flächen, hinein geht es über eine Rampe mit dem Eintauchwinkel des Fräsers.
-  Ohne Wahl oder mit allen Mantelflächen: rundum.
+  Ohne Wahl oder mit allen Mantelflächen: rundum. Getrennte Flächen fräst es
+  nacheinander; „Auf der Maschine prüfen“ vergleicht dann nur auf den gewählten
+  Flächen. Welche Postprozessoren von FreeCAD das Programm richtig schreiben,
+  steht in der Hilfe.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).
