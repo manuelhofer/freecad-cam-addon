@@ -86,10 +86,11 @@ WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
 
 def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
     """[(Art, Form)]: Schneide, Hals, Schaft und Halter als Körper im LCS der Aufnahme – die
-    Spitze bei Z = −laenge, Z zeigt zur Aufnahme. Die Schneide ist ein Zylinder mit D (der
-    Lollipop eine Kugel), der Schaft reicht bis zur Nase des Halters, ohne Halter bis zur
-    Gesamtlänge; was darüber bis zur Aufnahme fehlt, kennt niemand. `mit_kern`: dazu der
-    Kern der Schneide (KERN), um EINDRINGEN kleiner."""
+    Spitze bei Z = −laenge, Z zeigt zur Aufnahme. Die Schneide ist ein Drehkörper aus der
+    Stirn des Fräsers (fraeserform: Kugel, Torus, Kegel …), darüber zylindrisch mit D – bei
+    ebener Stirn ein Zylinder, der Lollipop eine Kugel. Der Schaft reicht bis zur Nase des
+    Halters, ohne Halter bis zur Gesamtlänge; was darüber bis zur Aufnahme fehlt, kennt
+    niemand. `mit_kern`: dazu der Kern der Schneide (KERN), um EINDRINGEN kleiner."""
     import Part
 
     teile = []
@@ -105,11 +106,17 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
         ende = min(ende, -halter.laenge)
     oben = min(spitze + masse.schneide, ende)
     radius = masse.durchmesser / 2
+    stirn = masse.stirn
     if masse.kugel:
         mitte = FreeCAD.Vector(0, 0, spitze + radius)
         teile.append((SCHNEIDE, Part.makeSphere(radius, mitte)))
         if mit_kern and radius > EINDRINGEN:
             teile.append((KERN, Part.makeSphere(radius - EINDRINGEN, mitte)))
+    elif stirn is not None and not stirn.eben and oben - spitze > 1e-6:
+        teile.append((SCHNEIDE, drehkoerper(stirn, spitze, oben)))
+        if mit_kern and stirn.radius > EINDRINGEN:
+            kern, unten = _kern(stirn, EINDRINGEN)
+            teile.append((KERN, drehkoerper(kern, spitze + unten, oben)))
     else:
         zylinder(SCHNEIDE, radius, spitze, oben)
         if mit_kern and radius > EINDRINGEN:
@@ -122,6 +129,90 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
     if form is not None:
         teile.append((HALTER, form))
     return teile
+
+
+def drehkoerper(stirn, spitze, oben):
+    """Die Schneide als Drehkörper um Z: die Stirn (fraeserform.Form) mit der Spitze bei
+    Z = `spitze`, darüber zylindrisch bis `oben` – was von der Stirn höher reicht, schneidet
+    es dort ab."""
+    import Part
+
+    from . import fraeserform as ff
+
+    punkt = FreeCAD.Vector
+    kanten = []
+    for s in stirn.stuecke:
+        von = punkt(s.rho_von, 0, spitze + float(s.hoehe(s.rho_von)))
+        bis = punkt(s.rho_bis, 0, spitze + float(s.hoehe(s.rho_bis)))
+        if kanten:
+            von = kanten[-1].Vertexes[-1].Point  # lückenlos an das Stück davor
+        if (bis - von).Length < 1e-9:
+            continue
+        if s.art in (ff.BOGEN, ff.HOHL):
+            w = (s._winkel(s.rho_von) + s._winkel(s.rho_bis)) / 2
+            mitte = punkt(
+                s.mitte[0] + s.radius * math.cos(w), 0, spitze + s.mitte[1] + s.radius * math.sin(w)
+            )
+            kanten.append(Part.Arc(von, mitte, bis).toShape())
+        else:
+            kanten.append(Part.LineSegment(von, bis).toShape())
+    rand = kanten[-1].Vertexes[-1].Point
+    hoch = max(oben, rand.z)
+    ecken = [punkt(rand.x, 0, hoch), punkt(0, 0, hoch), kanten[0].Vertexes[0].Point]
+    for von, bis in zip([rand] + ecken[:-1], ecken, strict=True):
+        if (bis - von).Length > 1e-9:
+            kanten.append(Part.LineSegment(von, bis).toShape())
+    koerper = Part.Face(Part.Wire(kanten)).revolve(punkt(), punkt(0, 0, 1), 360)
+    if hoch > oben + 1e-9:
+        unter = Part.makeCylinder(rand.x + 1, oben - spitze + 1, punkt(0, 0, spitze - 1))
+        koerper = koerper.common(unter)
+    return koerper
+
+
+def _kern(stirn, abstand, punkte=400, toleranz=1e-3):
+    """Die Stirn des Kerns (fraeserform.Form) und ihre Spitze über der des Fräsers: die Punkte
+    der Schneide, die mindestens `abstand` von ihrer Oberfläche entfernt sind. Beim
+    Kugelfräser eine Kugel, um `abstand` kleiner. Sonst aus Geraden: Über jedem Punkt der
+    Stirn liegt ein Kreis mit `abstand`, die Stirn des Kerns ist der höchste Kreis darüber –
+    an `punkte` Stellen, zusammengefasst, solange keine Stelle mehr als `toleranz` neben der
+    Sehne liegt."""
+    import numpy as np
+
+    from . import fraeserform as ff
+
+    if stirn.nur_kugel:
+        return ff.kugel(stirn.radius - abstand), abstand
+    rho = np.linspace(0.0, stirn.radius, 8 * punkte)
+    z = stirn.hoehe(rho)
+    rho = np.concatenate([-rho[::-1], rho])  # gespiegelt: um die Achse herum
+    z = np.concatenate([z[::-1], z])
+    stellen = np.linspace(0.0, stirn.radius - abstand, punkte)
+    kern = stirn.hoehe(stellen) + abstand  # der Kreis über der Stelle selbst, genau
+    for i, stelle in enumerate(stellen):
+        nah = np.abs(rho - stelle) <= abstand
+        oben = z[nah] + np.sqrt(np.maximum(abstand**2 - (rho[nah] - stelle) ** 2, 0.0))
+        kern[i] = max(kern[i], float(np.max(oben)))
+    behalten = [0]
+    for b in range(2, punkte):
+        a = behalten[-1]
+        sehne = kern[a] + (stellen[a + 1 : b] - stellen[a]) * (
+            (kern[b] - kern[a]) / (stellen[b] - stellen[a])
+        )
+        if np.max(np.abs(sehne - kern[a + 1 : b])) > toleranz:
+            behalten.append(b - 1)
+    behalten.append(punkte - 1)
+    unten = float(kern[0])
+    stuecke = tuple(
+        ff.Stueck(
+            ff.GERADE,
+            float(stellen[a]),
+            float(stellen[b]),
+            z_von=float(kern[a]) - unten,
+            z_bis=float(kern[b]) - unten,
+        )
+        for a, b in zip(behalten, behalten[1:], strict=False)
+    )
+    return ff.Form(stuecke), unten
 
 
 @dataclass(eq=False)

@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-08 schneide-als-drehkoerper
+
+### EINGELESEN
+- V5e in `docs/spezifikation_vierachs.md` (Abfahren und Kollision nehmen die
+  Schneide als Drehkörper aus der Form – sonst stieße ein Kugelfräser in der
+  Kehle „ins fertige Teil“).
+- `camaddon/kollision.py` (`werkzeugkoerper`, KERN), `camaddon/reichweite.py`
+  (`Werkzeugmasse`, `werkzeugmasse`), `camaddon/gui_abfahren.py` (Bild),
+  `camaddon/fraeserform.py`, `tests/test_kollision.py`.
+
+### DATEIEN
+- `camaddon/kollision.py`, `camaddon/reichweite.py`, `tests/test_kollision.py`,
+  `help/de/reichweite.html`, `help/en/reichweite.html`,
+  `docs/spezifikation_vierachs.md`, `docs/aufbau.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Auf der Maschine prüfen“ mit einem Kugelfräser: Im Bild ist die Schneide eine
+Halbkugel mit Zylinder darüber; „Kollision prüfen“ meldet nichts, wo die Kugel
+das Teil nur berührt (etwa über eine Kante gerollt), aber „fährt ins fertige
+Teil“, wo sie mehr als 0,05 mm hineinkommt.
+
+### DONE
+- `Werkzeugmasse.stirn`: die Form der Stirn aus der Werkzeugverwaltung
+  (`fraeserform.von_werkzeug`), sonst aus dem ToolBit (`_stirn_vom_bit`).
+- `werkzeugkoerper`: Schneide als Drehkörper (`drehkoerper`: Bögen und Geraden
+  der Stirn um Z, darüber zylindrisch bis zur Schneidenlänge; was höher reicht,
+  schneidet es ab); eben weiter der Zylinder, der Lollipop die Kugel. Der Kern
+  (`_kern`): beim Kugelfräser die Kugel um 0,05 mm kleiner, sonst die höchsten
+  Kreise mit 0,05 mm über der Stirn als Geraden, bis 1 µm zusammengefasst.
+- Gefunden beim Bauen: Ein Kern aus Sehnen war beim Radienfräser (hohle Kehle)
+  größer als erlaubt, und eine fast flache Kegelfläche drehte ihn für OpenCascade
+  um (Punkte außen galten als innen) – jetzt bleibt jede Stelle höchstens 1 µm von
+  der Sehne, und die Stelle selbst zählt genau.
+- Gefunden: An der Beispiel-Drehmaschine sitzt T2 auf P2 (axial) – Schruppen mit
+  T1 und Schlichten mit T2 meldet dort „nicht radial“ und Berührungen mit der
+  Spindel. Das ist richtig, aber für den Klickweg von V5 braucht die
+  Beispiel-Drehmaschine einen zweiten radialen Platz: Entscheidung für Manuel.
+- Hilfe de/en: die Schneide in ihrer Form.
+
+### TEST
+- FreeCAD 1.1.3: `test_kollision` (Kugelfräser Ø 5: Volumen Halbkugel + Zylinder;
+  sechs Formen gültig, Kern darin und 0,048 … 0,050 mm innen; Kugel über die
+  Taschenkante: kein Befund, 0,5 mm tiefer „ins fertige Teil“),
+  `test_abfahren`, `test_reichweite`, `test_vierachs_pruefen`, `test_halter`,
+  `test_hilfe` grün; `szenario_kollision` grün.
+- Job mit Schruppen und Schlichten auf der Beispiel-Drehmaschine: Kollision 43 s,
+  77 193 Stellen – wie vorher.
+
+### NEXT
+- Beispiel-Drehmaschine: zweiter radialer Platz (Manuel entscheidet), dann das
+  Szenario zu V5e (Schruppen und Schlichten prüfen, Farben, Kollision).
+
 ## P-2026-09-30-07 abtrag-mit-fraeserform
 
 ### EINGELESEN

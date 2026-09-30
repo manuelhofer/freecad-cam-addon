@@ -347,11 +347,14 @@ class Werkzeugmasse:
     schaft: float  # Schaft-Ø
     gesamt: float  # Gesamtlänge
     kugel: bool = False  # Lollipop: die Schneide ist eine Kugel mit D, der Hals sitzt in der Mitte
+    stirn: object = None  # die Form der Stirn (fraeserform.Form); None: eben
 
 
 def werkzeugmasse(tc, bibliothek, laenge):
     """Die Maße des Werkzeugs eines Controllers: aus der Werkzeugverwaltung (eingetragen,
     sonst geschätzt wie für CAM), sonst vom CAM-Werkzeug; `laenge` gilt, wo nichts steht."""
+    from . import fraeserform as ff
+
     w = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
     if w is not None and w.durchmesser:
         return Werkzeugmasse(
@@ -362,6 +365,7 @@ def werkzeugmasse(tc, bibliothek, laenge):
             schaft=wz.schaft_fuer_cam(w),
             gesamt=wz.laenge_fuer_cam(w),
             kugel=w.art == wz.LOLLIPOPFRAESER,
+            stirn=ff.von_werkzeug(w),
         )
     bit = getattr(tc, "Tool", None)
     durchmesser = _mm(getattr(bit, "Diameter", None)) or 5.0
@@ -377,7 +381,20 @@ def werkzeugmasse(tc, bibliothek, laenge):
         hals_laenge=0.0,
         schaft=_mm(getattr(bit, "ShankDiameter", None)) or durchmesser,
         gesamt=_mm(getattr(bit, "Length", None)) or laenge,
+        stirn=_stirn_vom_bit(tc),
     )
+
+
+def _stirn_vom_bit(tc):
+    """Die Form der Stirn aus dem ToolBit eines Controllers (fraeserform), oder None."""
+    from . import fraeserform as ff
+    from .werkzeuge_aus_cam import vom_controller
+
+    try:
+        werkzeug = vom_controller(tc)
+    except AttributeError:  # kein ToolBit, wie CAM es anlegt
+        return None
+    return ff.von_werkzeug(werkzeug) if werkzeug is not None else None
 
 
 def werkzeughalter(tc, bibliothek):

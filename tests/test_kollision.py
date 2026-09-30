@@ -16,7 +16,10 @@
 #   ohne Hinweis, wenn sie an einem Gelenk hängen; Abbrechen geht;
 # - die Schneide nach Art: beim Lollipop eine Kugel, der Hals ab ihrer Mitte; beim
 #   Nutenfräser so hoch wie die Schneidenbreite (ein Scheibenfräser nur aus CAM: wie
-#   das Blatt);
+#   das Blatt); sonst ein Drehkörper aus der Stirn (W-003 V5e) – Kugel-, Torus-, Konik-,
+#   Fasen-, Radien- und Planfräser, der Kern überall 0,05 mm innen;
+# - ein Kugelfräser Ø 5, über die Kante der Tasche gerollt (die Kugel berührt sie nur),
+#   fährt nicht ins Teil – der Zylinder mit D stäke dort 0,5 mm darin; 0,5 mm tiefer schon;
 # - ein Futter rund um die Achse bewegt sich beim Drehen nicht, eines mit Backen schon.
 import math
 import os
@@ -31,6 +34,7 @@ import Part
 
 from camaddon import abfahren as ab
 from camaddon import beispielmaschine, sprache
+from camaddon import fraeserform as ff
 from camaddon import kollision as kb
 from camaddon import reichweite as rw
 from camaddon import werkzeuge as wz
@@ -243,6 +247,46 @@ saege = SimpleNamespace(
 )
 m = rw.werkzeugmasse(saege, None, 60.0)
 pruefe((m.schneide, m.schaft, m.gesamt, m.kugel) == (3.0, 10.0, 40.0, False), f"Säge: {m}")
+pruefe(m.stirn is None, f"Säge ohne ToolBit: Stirn {m.stirn}")
+
+# Die Stirn als Drehkörper: Kugelfräser Ø 5 – Halbkugel und Zylinder bis zur Schneidenlänge 5.
+k = koerper(t1(art=wz.KUGELFRAESER))
+if kb.SCHNEIDE in k:
+    soll = 2 / 3 * math.pi * 2.5**3 + math.pi * 2.5**2 * 2.5
+    pruefe(abs(k[kb.SCHNEIDE].Volume - soll) < 1e-6, f"Kugelfräser: {k[kb.SCHNEIDE].Volume}")
+    pruefe(z_von_bis(k[kb.SCHNEIDE]) == (-60.0, -55.0), f"Kugelfräser: {z_von_bis(k[kb.SCHNEIDE])}")
+# Jede Form: die Schneide gültig von der Spitze bis zur Schneidenlänge, der Kern darin und
+# 0,05 mm von ihrer Stirn und Seite entfernt (oben schließt er mit ihr ab).
+formen = {
+    "Kugel": ff.kugel(2.5),
+    "Torus": ff.torus(5.0, 1.0),
+    "Konik": ff.konik(2.0, 5.0, 12.0, 3.0),
+    "Fase": ff.kegel(0.0, 5.0, 5.0),
+    "Radien": ff.radien(2.0, 2.0, 4.0),
+    "Plan": ff.kegel(20.0, 25.0, 5.0),
+}
+for name, stirn in formen.items():
+    masse = rw.Werkzeugmasse(2 * stirn.radius, 12.0, 0.0, 0.0, 2 * stirn.radius, 50.0, stirn=stirn)
+    k = dict(kb.werkzeugkoerper(masse, 60.0, None, mit_kern=True))
+    schneide, kern = k[kb.SCHNEIDE], k[kb.KERN]
+    pruefe(schneide.isValid() and kern.isValid(), f"{name}: nicht gültig")
+    pruefe(z_von_bis(schneide) == (-60.0, -48.0), f"{name}: {z_von_bis(schneide)}")
+    pruefe(abs(schneide.common(kern).Volume - kern.Volume) < 1e-6, f"{name}: Kern steht heraus")
+    stirnseite = [f for f in schneide.Faces if f.BoundBox.ZMin < -48.0 - 1e-6]  # ohne Deckel
+    abstand = min(kern.distToShape(f)[0] for f in stirnseite)
+    pruefe(0.048 <= abstand <= 0.0501, f"{name}: Kern {abstand:.4f} mm innen")
+    pruefe(not kern.isInside(FreeCAD.Vector(0, 0, -60.02), 1e-7, True), f"{name}: Kern unten")
+
+# Kugelfräser über die Kante der Tasche (x 30, oben Z 20) gerollt: die Mitte 1,5 mm über der
+# Tasche und 2 mm über der Kante – genau 2,5 mm von ihr –, die Spitze bei Z 19,5.
+kugelfraeser = t1(art=wz.KUGELFRAESER, schaft=4.0)
+e = pruefen(["G0 X31.5 Y30 Z30", "G1 Z19.5 F10", "G1 Y20"], kugelfraeser)
+pruefe(e.befunde == [], f"Kugel an der Kante: {[b.text() for b in e.befunde]}")
+e = pruefen(["G0 X31.5 Y30 Z30", "G1 Z19 F10", "G1 Y20"], kugelfraeser)
+pruefe(
+    [b.a for b in e.befunde if b.ins_teil] == ["die Schneide von T1"],
+    f"Kugel 0,5 mm tiefer: {[b.text() for b in e.befunde]}",
+)
 
 # --- Rund um die Achse: dreht sich, ohne sich zu bewegen (W-003 V3e) --------------------------
 # Ein Futter aus zwei Zylindern um die Achse ist rund; um 5 mm verschoben oder mit drei Backen

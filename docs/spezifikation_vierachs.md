@@ -854,6 +854,22 @@ die Abstände gelten für beide.
   Torus und Konik gegen den fein abgetasteten Strahl (unter 0,002 mm), die
   Kugel-Spirale mit ihrem Kamm, Schruppen und Schlichten auf der
   Beispiel-Drehmaschine (0,006 … 0,024 mm, alles grün).
+  *Gebaut, Schneide (P-2026-09-30-08):* `kollision.werkzeugkoerper` baut die
+  Schneide als Drehkörper aus der Stirn (`drehkoerper`: Bögen und Geraden der
+  Form um Z gedreht, darüber zylindrisch bis zur Schneidenlänge) – bei ebener
+  Stirn wie bisher ein Zylinder, der Lollipop eine Kugel. Die Stirn kommt aus
+  der Werkzeugverwaltung, sonst aus dem ToolBit (`Werkzeugmasse.stirn`). Der
+  Kern: beim Kugelfräser die Kugel, um 0,05 mm kleiner; sonst die höchsten Kreise
+  mit 0,05 mm über der Stirn, als Geraden (bis 1 µm zusammengefasst). Geprüft:
+  Kugel-, Torus-, Konik-, Fasen-, Radien- und Planfräser – gültig, der Kern darin
+  und 0,048 … 0,050 mm innen; ein Kugelfräser, über die Kante einer Tasche
+  gerollt, meldet nichts (der Zylinder stäke 0,5 mm im Teil), 0,5 mm tiefer „ins
+  fertige Teil“. Dieselbe Prüfung auf einem Job mit Schruppen und Schlichten:
+  43 s wie vorher (77 193 Stellen) – der Kern als Kugel kostet nichts mehr.
+  Gefunden: An der Beispiel-Drehmaschine sitzt T2 auf P2, dem axialen Halter –
+  das Schlichten mit T2 meldet dort zu Recht „nicht radial“ und stößt an. Wie
+  zwei radiale Werkzeuge an die Beispiel-Drehmaschine kommen, entscheidet
+  Manuel.
 - *Klickweg:* Welle mit Absatz, „4-Achs-Bearbeitung“ → Beispiel-Drehmaschine →
   „Weiter“ → „Rundum schruppen“ T1 Schaftfräser Ø 12 und „Rundum schlichten“
   T2 Kugelfräser Ø 6: Schrittweite grau aus der Werkzeugtabelle, daneben die
