@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-35 installieren-test-umleitung
+
+### EINGELESEN
+- Erster Lauf von `tests/test_installieren.py` nach P-2026-09-30-33 (FreeCAD 1.1.3): „Addon
+  Manager: Unexpected 0 response from server“ bei `/umleitung`.
+- `NetworkManager.py` des Addon-Managers (`__reply_finished`: folgt Umleitungen selbst, mit
+  `RedirectionTargetAttribute` als neuer Adresse).
+
+### DATEIEN
+- `tests/test_installieren.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`test_installieren` ist in 1.1.3 und 26.3 grün – auch der Weg über Qt mit Umleitung.
+
+### DONE
+- Der Addon-Manager folgt einer Umleitung selbst und nimmt die Adresse aus `Location`
+  unverändert: eine relative („/stand.zip“) kann er nicht laden. GitHub schickt eine absolute
+  (codeload.github.com); der Testserver jetzt auch. Am Code von P-33 ändert sich nichts.
+
+### TEST
+- `test_installieren` in 1.1.3 und 26.3: ok; `test_aktualisierung`, `test_kollision`: ok in
+  beiden.
+
+### NEXT
+- Szenario `szenario_update` (Zeile aus dem README und Suche über Qt mit Oberfläche).
+
 ## P-2026-09-30-34 fraeser-im-halter
 
 ### EINGELESEN

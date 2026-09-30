@@ -198,9 +198,9 @@ dateien = {"/stand.zip": Path(basis, "qt.zip").read_bytes()}
 
 class Github(http.server.BaseHTTPRequestHandler):
     def do_GET(self):  # noqa: N802 – so heißt es in http.server
-        if self.path == "/umleitung":  # wie GitHub: das ZIP liegt woanders
+        if self.path == "/umleitung":  # wie GitHub: das ZIP liegt woanders, absolut angegeben
             self.send_response(302)
-            self.send_header("Location", "/stand.zip")
+            self.send_header("Location", f"{github}/stand.zip")
             self.end_headers()
             return
         inhalt = dateien.get(self.path)
