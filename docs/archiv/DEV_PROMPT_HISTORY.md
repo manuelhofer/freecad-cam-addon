@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-66 plan-strategien
+
+### EINGELESEN
+- Manuel, 2026-09-30: „ich hätte gerne das du einen plan schreibst für alle fräs strategien dies
+  so gibt ... das wir am ende mit unserem addon bessere frässtrategien auf ein bauteil anwenden
+  können als in freecad vom cam modul vorhanden sind ... auserdem optimierung des codes und
+  schauen das es schneller und speicher sparender generiert wird der werkzeugweg ... aber
+  hauptziel ist qualität der werkzeugwege und bedienbarkeit“.
+- FreeCADs `Path/Op` in 1.1.3 und 26.3 (Adaptive, Pocket, Profile, MillFace, Surface,
+  Waterline, Slot, Deburr, Helix, Drilling; neu in 26.3: PlanarSurface, RotarySurface,
+  MillFacing, Flute – die 3D-Operationen brauchen OpenCamLib), `docs/spezifikation_vierachs.md`
+  (V4c, V4d, V6, V7), unsere Module `vierachs_huelle`, `vierachs_bahn`, `restmaterial`,
+  `kollision`.
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (neu), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation W-006 sagt je Strategie (2,5D, 3D, rundum, 5 Achsen), was FreeCAD kann, wo
+es hakt und was wir besser machen; Grundsätze für die Qualität der Bahn; Bedienung mit einem
+Assistenten; Rechenkern ohne OCL; Messen vor Beschleunigen; Stufen S1–S7; Entscheidungen
+E1–E7 mit Empfehlung.
+
+### DONE
+- Geschrieben, zur Besprechung mit Manuel.
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Manuels Entscheidungen; S1 (Messen, goldene Bahnen, Bahn-Datenmodell mit Bögen).
+
 ## P-2026-09-30-65 bestueckung-je-job
 
 ### EINGELESEN

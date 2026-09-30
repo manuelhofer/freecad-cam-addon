@@ -1,0 +1,342 @@
+# Spezifikation W-006: Frässtrategien – besser als das CAM-Modul
+
+**Stand:** 2026-09-30, Entwurf (Claude, zur Besprechung). Auslöser, Manuel
+(2026-09-30): „ich hätte gerne das du einen plan schreibst für alle fräs
+strategien dies so gibt ... das wir am ende mit unserem addon bessere
+frässtrategien auf ein bauteil anwenden können als in freecad vom cam modul
+vorhanden sind ... auserdem optimierung des codes und schauen das es schneller
+und speicher sparender generiert wird der werkzeugweg wenn das irgendwie
+möglich ist .. aber hauptziel ist qualität der werkzeugwege und
+bedienbarkeit.....“
+
+Dieser Plan sagt, welche Strategien es gibt, was FreeCADs CAM davon kann und
+wo es hakt, was das Addon schon hat, und wie wir Strategie für Strategie
+besser werden – mit einer Reihenfolge und Entscheidungen für Manuel
+(Abschnitt 10). Gebaut wird danach in Stufen wie bei W-003; jede Stufe hat
+ihre Prüfung (Abschnitt 9).
+
+## 1. Zielbild
+
+- **Qualität der Bahn zuerst:** Die Maschine soll die Bahn so fahren können,
+  wie ein erfahrener Zerspaner sie programmieren würde – tangential ein- und
+  ausfahren, Bögen statt Ecken, gleichmäßiger Eingriff, kein Fräsen in der
+  Luft, Gleichlauf, wo es geht, und nirgends zu viel oder zu wenig stehen
+  lassen.
+- **Einfach zu bedienen:** Teil und Rohteil, Flächen anklicken, Werkzeuge
+  wählen – die Strategie schlägt das Addon vor und sagt, warum. Alles weitere
+  steht hinter „Mehr …“ (spezifikation_vierachs.md, Abschnitt 11). Sätze
+  statt Parameter; jeder Vorschlag mit Begründung; die Hilfe erklärt, was die
+  Strategie tut.
+- **Geprüft, bevor es an die Maschine geht:** Jede Bahn läuft durch Abtrag
+  (bleibt zu viel stehen? geht es ins Teil?), Kollision (Halter, Maschine) und
+  Reichweite – das haben wir für rundum, das gilt für alle Strategien.
+- **Schnell und sparsam:** erst messen, dann die teuersten Stellen. Die Bahn
+  darf sich dabei nicht ändern (Abschnitt 8).
+
+## 2. Was FreeCADs CAM kann – und wo es hakt
+
+Stand 1.1.3 (stabil) und Wochen-Build 26.3 (`Path/Op`, angesehen 2026-09-30).
+
+| Operation | Was sie tut | Wo es hakt |
+|---|---|---|
+| **Profile** (Kontur) | Außen/innen an Kanten oder Flächen, Zustellung, mehrere Passes über „Stepover“, Fräserradiuskorrektur (G41/42) | Kein tangentiales Ein-/Ausfahren in der Operation (nur als Dressup, das wieder vergessen wird); Ecken scharf; keine Schrupp-/Schlichtteilung mit Aufmaß in einem Schritt |
+| **Pocket** / **Pocket Shape** (Tasche) | Muster ZigZag, Offset, ZigZagOffset, Line, Grid; Start Mitte/Rand; Restmaterial („UseRestMachining“, 1.1); Werkzeug unten halten | Offsetmuster fährt volle Nutbreite in Ecken (Eingriff springt), keine Bögen zwischen Zeilen, kein Trochoidal; Eintauchen nur senkrecht oder mit Rampen-Dressup |
+| **Adaptive** (HSM-Schruppen) | Gleichmäßiger Eingriff je Lage, Helix-Einfahrt, „Clearing“ oder „Profiling“, Aufmaß | Langsam auf großen Teilen (Python-Kern), nur Geraden (Zittern an der Steuerung, viele Sätze), jede Lage von vorn – kein Wissen über die vorige Lage; Restmaterial nur, was die Operation selbst ließ |
+| **MillFace** (Planfräsen) / 26.3 **MillFacing** | Muster wie Tasche; Grenze Rohteil/Umriss/Fläche; 26.3: Spirale, Zickzack, gerichtet, beidseitig, Überlauf | Kein Über-/Unterlauf nach Fräser-Ø in 1.1.3, keine Vorschubanpassung beim Ein-/Austritt |
+| **Helix**, **Drilling**, **Tapping**, **ThreadMilling** | Zirkularfräsen von Bohrungen, Bohrzyklen (G81/G83/…), Gewinde | Solide – hier gibt es wenig zu gewinnen; Bohren übernehmen wir, wie es ist |
+| **Slot** (Nut) | Nut zwischen zwei Bezügen, Zickzack oder Linie, Lagen | Ohne Rampe, ohne Bögen |
+| **Deburr** (Entgraten), **Engrave**, **Vcarve** | Fase an Kanten mit Fasenfräser, Gravur an Drähten, V-Gravur | Nur 2D auf Ebenen – keine Kante im Raum, nicht rundum |
+| **Surface** (3D, OCL Dropcutter) | Zeilen, Zickzack, Kreise, Offset, Spirale; Schrittweite; ein- oder mehrlagig; Kantenprofil | Braucht **OpenCamLib** (fehlt in manchen Builds); Python-Schleifen – Minuten bei feinem Raster; Grat- (Scallop-)Höhe nicht als Maß, nur als Schrittweite; kein Steil/Flach, kein Restschlichten, kein Bleistift (Kehlen) |
+| **Waterline** (Z-konstant) | Höhenlinien, wahlweise mit Muster auf der letzten Lage | OCL oder „Experimental“; auf flachen Bereichen bleiben Rippen; keine Kombination mit Zeilen |
+| 26.3 **PlanarSurface** | Ersetzt Surface + Waterline: Strategie wählbar, adaptives Abtasten, Ein-/Ausfahren, Aufmaß, Adaptiv-Muster | Wieder OCL; dieselben Grenzen bei Grat, Steil/Flach, Rest |
+| 26.3 **RotarySurface** | 4-Achs-Flächenfräsen mit Dropcutter: parallel, Ringe, Spirale, abgewickelt („wrap“); Start-/Endwinkel, radiales Aufmaß | OCL; kennt keine Maschine – nicht, wo das Werkzeug sitzt, keinen Halter, keine Kollision, kein Abtrag; Muster ohne Rücksicht auf Wände und Absätze |
+| 26.3 **Flute** | Kanneluren längs eines Drahts mit Rampen | Sonderfall |
+| Dressups | Array, Boundary, Dogbone, Tags (26.3); 1.1.3 dazu Ein-/Ausfahren, Rampe, Achsen-Abbildung, Z-Korrektur | Dressups sind ein zweiter Schritt, den man vergessen kann; sie kennen den Eingriff nicht |
+
+Was **quer durch alle** fehlt: ein Abtragsmodell (was steht nach der letzten
+Operation noch?), eine Kollisionsprüfung mit Halter und Maschine, Bögen
+(G2/G3) in gerechneten Bahnen, Vorschub nach Eingriff, Zeit- und
+Restmaterial-Angaben, und ein Vorschlag, welche Strategie zu welcher Fläche
+passt. Genau das haben wir für rundum schon gebaut (Abschnitt 3) – darauf
+setzen wir auf.
+
+## 3. Was das Addon schon kann (Stand 0.33.0)
+
+- **Rundum schruppen** (W-003 V3): Hüllfläche um die Achse aus dem Netz
+  (`vierachs_huelle`), Lagen radial, Zeilen hin und her mit Ringgang vor jeder
+  Wand (D-42), Rampe längs der ganzen Fahrt, Überlauf, Abstände, Bereich der
+  gewählten Flächen (V4a/V4b), G93 mit F in jedem Satz, Zeitschätzung.
+- **Rundum schlichten** (V5): jeder Fräser mit seiner Form (Kugel, Torus,
+  Schaft …), Schrittweite aus der Werkzeugtabelle, Stufen, wo das Schruppen
+  mehr stehen ließ, Spirale oder Zeilen.
+- **Abtrag** (`restmaterial`): die Stange beim Abspielen, am Ende der
+  Vergleich in Farben (grün passt, gelb zu viel, rot zu wenig, blau im Teil).
+- **Kollision** (`kollision`): Werkzeug, Halter, Maschine, Teil, Spannmittel –
+  je Paar, nur genau, wo nötig; Schneide im Vorschub ins Teil.
+- **Maschine**: Kette, Reichweite, Abfahren, Halter mit Richtung, Bestückung
+  je Job, Ø/Radius, Höchstdrehzahlen.
+- **Werkzeugverwaltung**: Werkstoffe, Einsätze, Schnittwerte, Schruppwerte
+  planen, Halter, Übergabe an CAM, Schnittwerte in den Job.
+- **Assistent**: Rohteil → Flächen → Werkzeuge → Anlegen, mit Vorschlägen,
+  gelben Sätzen und Hilfe.
+
+Das ist mehr, als FreeCADs Rotary-Operation kann – und der Bauplan für alles
+Weitere: **Rechenkern ohne OCL, Bahn mit Abtrag und Kollision geprüft, ein
+Assistent, der vorschlägt.**
+
+## 4. Der Katalog
+
+Für jede Strategie: wozu, wie FreeCAD es macht, wie wir es besser machen,
+Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
+
+### 4.1 2,5D – Ebenen, Taschen, Konturen
+
+1. **Planfräsen** – die Oberseite eben; Zeilen oder Spirale, Überlauf
+   Fräser-Ø·0,6 an den Rändern, Schrittweite ae aus der Werkzeugtabelle,
+   Vorschub beim Austritt gesenkt (Grat). *Besser:* Überlauf und Schrittweite
+   von selbst, Gleichlauf, keine Leerzeile. Aufwand klein.
+2. **Tasche adaptiv (HSM)** – gleichmäßiger Eingriff (ae) bei voller
+   Schneidenlänge (ap), Helix- oder Rampen-Einfahrt, Trochoiden in Ecken und
+   Nuten. *Besser als Adaptive:* Bögen (G2/G3) statt Punktwolke, konstanter
+   Eingriff auch in Ecken (Trochoide), Restmaterial aus dem Abtragsmodell
+   (nächste Lage weiß, was steht), Vorschub nach Eingriff, viel schneller
+   (numpy). Aufwand groß – aber der größte Gewinn: Manuels „Schruppwerte
+   planen“ zielt genau darauf (ganze Schneide, schmales ae).
+3. **Tasche Offset / Zeilen** – klassisch, für weiche Werkstoffe und kleine
+   Fräser; Bögen zwischen Zeilen, Ecken mit Radius, Restmaterial in Ecken mit
+   dem kleineren Fräser (Punkt 5). Aufwand mittel.
+4. **Kontur schruppen und schlichten** – außen/innen, mehrere Zustellungen,
+   Aufmaß fürs Schlichten, **tangentiales Ein-/Ausfahren** (Bogen + Gerade,
+   Länge nach Fräser-Ø), Schlichtschnitt mit vollem ap in einem Zug, Ecken
+   wahlweise gerundet. *Besser:* Ein-/Ausfahren gehört zur Operation, nicht
+   zum Dressup; Schruppen und Schlichten in einem Schritt aus dem Assistenten.
+   Aufwand mittel.
+5. **Restmaterial 2,5D** – was der große Fräser in Ecken ließ, holt der kleine:
+   aus dem Abtragsmodell, nicht aus einer Formel. Aufwand mittel (braucht das
+   Abtragsmodell für Ebenen, Abschnitt 7).
+6. **Nut** – mit Rampe oder Trochoide statt Vollschnitt. Aufwand klein bis
+   mittel.
+7. **Bohren, Zirkularfräsen, Gewinde** – FreeCADs Operationen übernehmen; der
+   Assistent legt sie mit den Schnittwerten aus der Werkzeugverwaltung an
+   (Bohrer, Senker, Reibahle, Gewindebohrer sind schon Werkzeugarten).
+   Aufwand klein.
+8. **Fasen / Entgraten** – an Kanten in der Ebene mit Fasenfräser oder
+   Kugelfräser als Kantenbruch; Breite einstellbar; **auch an Kanten im Raum**
+   und rundum (V4d). Aufwand mittel.
+9. **Gravieren** – FreeCADs Engrave/Vcarve übernehmen. Aufwand keiner.
+
+### 4.2 3D – Freiformflächen
+
+Grundlage für alles hier: ein **Höhenfeld** (Abschnitt 7) – die Fläche als
+Raster z(x, y) aus dem Netz, plus die Hüllfläche des Fräsers darüber
+(„Dropcutter“ mit numpy, wie `vierachs_huelle` es um die Achse rechnet, nur
+eben). Kein OCL.
+
+1. **Schruppen ebenenweise** – Lagen von oben, jede Lage eine Tasche adaptiv
+   (4.1.2) auf der Fläche, die in dieser Höhe frei ist; Restmaterial aus dem
+   Abtrag. *Besser:* Adaptive kennt keine 3D-Grenze, Surface kann nicht
+   schruppen. Aufwand groß (baut auf 4.1.2).
+2. **Restschruppen** – kleiner Fräser nur dort, wo der große nicht hinkam
+   (Abtrag). Aufwand mittel.
+3. **Schlichten Zeilen** (parallel) – Raster in einem Winkel, Zickzack oder
+   einseitig, **Grathöhe als Maß** (Schrittweite aus Grathöhe und Fräserform,
+   `vierachs_bahn.rillenhoehe` gibt es schon), Zeilen nur über der Fläche,
+   Bögen an den Umkehrpunkten. Aufwand mittel.
+4. **Z-konstant** (Höhenlinien) für steile Bereiche, **Steil/Flach**: über
+   einem Grenzwinkel Höhenlinien, darunter Zeilen – in einer Operation.
+   *Besser:* Surface und Waterline getrennt lassen Rippen und Stufen. Aufwand
+   mittel bis groß.
+5. **Äquidistant** (3D-Offset, gleichbleibende Grathöhe auf jeder Neigung) –
+   die feinste Schlichtstrategie. Aufwand groß; nach 3 und 4.
+6. **Bleistift** (Kehlen) – dort, wo zwei Flächen sich treffen und der Fräser
+   nicht hinkam. Aufwand mittel (Abtrag: rot/gelb-Stellen als Bahn).
+7. **Fläche entlang** (Flowline) – Zeilen folgen den Flächenkurven (UV);
+   für Kegel, Rohre, Übergänge. Aufwand mittel bis groß.
+8. **Restschlichten** – kleiner Fräser, nur wo nötig (aus Abtrag). Aufwand
+   mittel (nach 6).
+
+### 4.3 Rundum und 4 Achsen (W-003)
+
+Gebaut: Rundum schruppen und schlichten, Flächen wählen, hin und her.
+Weiter (spezifikation_vierachs.md, V4c/V4d), in dieser Reihenfolge:
+
+1. **Linien längs** – Zeilen längs der Achse bei festem Winkel: Nut,
+   Abflachung, Nocke mit Kugel-/Torusfräser. Aufwand klein bis mittel.
+2. **Plan indexiert (3+1)** – Rundachse steht, ebene Fläche parallel zur Achse
+   wird wie beim Planfräsen gefräst (braucht Y an der Drehmaschine oder A an
+   der Fräse); mit Versatz quer zur Werkzeugachse in Abfahren, Kollision und
+   Abtrag. Aufwand mittel.
+3. **Rundum entgraten** (V4d) – Kanten der gewählten Flächen, die Rundachse
+   dreht mit. Aufwand mittel.
+4. **Taschen und Nuten auf dem Mantel** – die Tasche in der Abwicklung rechnen
+   (4.1.2/4.1.3), auf den Zylinder zurückwickeln (wie FreeCADs „wrap“, aber mit
+   Abtrag und Kollision). Aufwand mittel.
+5. **Nockenwellen, Exzenter** – rundum schruppen kann es; schlichten mit
+   Linien längs und Grathöhe. Aufwand klein, prüfen.
+
+### 4.4 5 Achsen
+
+1. **3+2 indexiert** – Kopf oder Tisch schwenken, dann 2,5D/3D aus 4.1/4.2 in
+   der geschwenkten Ebene; die Maschine liefert die Stellung, Reichweite und
+   Kollision prüfen. Aufwand mittel (die Kette kann es – `reichweite` löst
+   Rundachsen aus der Bahn).
+2. **Simultan: Flankenfräsen (Swarf)** – die Fräserflanke liegt an einer
+   Regelfläche an. Aufwand groß.
+3. **Simultan: Schlichten mit Anstellwinkel** – Kugel/Torus mit Vor- und
+   Seitenneigung für bessere Schnittbedingungen. Aufwand groß; nach 4.2.5.
+
+Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
+4.2.3/4.2.4; 4.4 kommt, wenn eine 5-Achs-Fräse gebraucht wird.
+
+## 5. Was überall besser sein soll – die Grundsätze
+
+1. **Tangential ein- und ausfahren.** Nie senkrecht in die Wand; Bogen und
+   Gerade nach Fräser-Ø; in Taschen Helix oder Rampe mit dem Winkel aus der
+   Werkzeugtabelle (Eintauchwinkel gibt es schon).
+2. **Bögen statt Ecken.** Zwischen Zeilen, in Ecken, an Umkehrpunkten – G2/G3
+   in der Ausgabe, wo die Steuerung es kann (W-005).
+3. **Gleichmäßiger Eingriff.** Schruppen mit ae aus „Schruppwerte planen“,
+   Trochoiden, wo die Nut voll würde; in Ecken nicht mehr als das geplante ae.
+4. **Gleichlauf** als Vorgabe, Gegenlauf wählbar.
+5. **Keine Luftschnitte.** Bahn nur dort, wo Material steht (Abtrag) – bei
+   Zeilen, Lagen und Restbearbeitung.
+6. **Restmaterial kennen.** Ein Abtragsmodell je Job (Abschnitt 7): jede
+   Operation weiß, was die vorige ließ; „Rest“ ist eine Strategie, keine
+   Schätzung.
+7. **Vorschub nach Eingriff.** In Ecken und beim Austritt langsamer, auf der
+   Geraden voll – aus der Spandicke, nicht aus dem Bauch.
+8. **Grathöhe als Maß.** Schlichten fragt „wie glatt“ (Ra bzw. Grathöhe),
+   nicht „welche Schrittweite“; die Schrittweite folgt aus Fräserform und
+   Neigung.
+9. **Toleranz und Glättung.** Punktabstand nach Sehnenfehler (haben wir:
+   `_zusammengefasst`), Glättung ohne Verletzung der Toleranz (V6).
+10. **Kurze Wege, ehrliche Zeit.** Reihenfolge der Bereiche nach Weg,
+    Eilgänge über sicherer Höhe nur, wo nötig; die Zeit steht im Assistenten
+    und im Prüffenster.
+
+Und alles **geprüft**: Abtrag (Farben), Kollision, Reichweite – bevor es an
+die Maschine geht.
+
+## 6. Bedienung
+
+- **Ein Assistent „Bearbeitung“** (der heutige „4-Achs-Bearbeitung“ wächst
+  dazu): 1 Rohteil (Stange, Quader, aus dem Modell), 2 Flächen/Bereiche
+  (anklicken, „alles“, „Oberseite“, „diese Tasche“), 3 Werkzeuge (Schruppen,
+  Schlichten, Rest – aus der Werkzeugverwaltung, mit Schnittwerten), 4
+  Vorschlag: „Tasche adaptiv mit T1, dann Kontur schlichten mit T2 – 4 min“
+  – änderbar, mit Begründung, dann „Anlegen“. Ein Strg+Z nimmt alles zurück.
+- **„Was willst du machen?“** bleibt die Frage in Schritt 2; die Antworten
+  sind Strategien in Sätzen („Tasche ausräumen“, „Fläche glätten“, „Kanten
+  brechen“), nicht Operationsnamen.
+- **Vorschläge mit Grund:** „Zeilen längs, weil die Abflachung schmal ist“,
+  „Höhenlinien oben, weil die Wand steiler als 60° ist“. Wer anderes will,
+  wählt es – und sieht die Zeit beider Wege.
+- **„Mehr …“** für Toleranz, Überlauf, Ein-/Ausfahrlänge, Gleich-/Gegenlauf;
+  die Vorgaben stehen grau da.
+- **Prüfen mit einem Klick** aus dem Assistenten (Abtrag, Kollision, Zeit) –
+  vor „Anlegen“ als Vorschau, danach im Prüffenster.
+- **Hilfe je Strategie:** was sie tut, wann sie passt, ein Bild.
+
+## 7. Rechenkern
+
+- **Höhenfeld** (`hoehenfeld.py`, neu): das Netz des Teils als Raster z(x, y)
+  mit numpy – Auflösung nach Toleranz (0,01–0,05 mm) und Fräser-Ø; dazu die
+  Hüllfläche je Fräserform (Kugel, Torus, Schaft, Kegel) als Faltung über dem
+  Raster (Dropcutter). Wie `vierachs_huelle`, nur eben. Ohne OCL.
+- **Abtragsmodell** (`restmaterial` verallgemeinern): heute die Stange als
+  r(a, φ); für 2,5D/3D ein Höhenfeld des Rohteils, das jede Operation
+  abträgt (Dexel längs Z); rundum bleibt, wie es ist. Die Farben am Ende
+  gelten für beide.
+- **Bahn-Datenmodell** (`vierachs_bahn.Bahn` verallgemeinern): Punkte,
+  Bögen, Vorschub je Satz, Eilgang, Ein-/Ausfahrt als Typ; daraus die
+  Ausgabe mit G1/G2/G3 und F; Glättung und Zusammenfassen nach Toleranz an
+  einer Stelle für alle Strategien.
+- **Operationen:** wie `RundumSchruppen` – eigene `PathOp.ObjectOp`-Klassen,
+  damit Job, Postprozessor und Simulation von FreeCAD weiter gehen; die
+  Eigenschaften bleiben in Sätzen erklärt.
+- **Prüfen:** Abtrag, Kollision und Reichweite nehmen die Bahn wie heute.
+
+## 8. Schneller und sparsamer rechnen
+
+Erst messen, dann ändern; die Bahn darf sich nicht ändern (Vergleichstest
+mit gespeicherten Bahnen, Abschnitt 9).
+
+- **Messen** (`scripts/bahn_messen.py`, neu): Zeit und Spitzen-Speicher
+  (`tracemalloc`) je Schritt – Vernetzen, Hüllfläche, Zeilen, Zusammenfassen,
+  Befehle, Abtrag, Kollision – auf drei Teilen (Welle Ø 60 × 100, Manuels
+  Testteil, ein großes Teil 300 mm). Die Zahlen kommen in diese Datei.
+- **Wo es vermutlich kostet:** die Hüllfläche je Winkel (`je_winkel`,
+  Dreiecke × Strahlen), die Kollision (distToShape), das Vernetzen
+  (`tessellate`), Python-Schleifen in den Zeilen, `Path.Command`-Listen
+  (Speicher bei 100 000 Sätzen), doppelt gerechnete Hüllen für Vorschau und
+  Operation.
+- **Mittel:** numpy statt Schleifen; das Netz und die Hülle je Modell einmal
+  rechnen und wiederverwenden (Vorschau, Operation, Abtrag); Raster nach
+  Toleranz statt fest; float32, wo die Toleranz es erlaubt; Sätze beim
+  Schreiben zusammenfassen statt erst alle Punkte zu halten; Kollision nur
+  auf den Bereichen, die sich bewegen (haben wir zum Teil).
+- **Ziel** (zu bestätigen, wenn gemessen ist): Rundum-Bahn der Welle in
+  unter 3 s, Abtrag beim Abspielen ohne Ruckeln, Kollision der Welle in
+  unter 10 s; Speicher unter 500 MB auch beim großen Teil.
+
+## 9. Prüfbarkeit
+
+- **Goldene Bahnen:** für jede Strategie eine gespeicherte Bahn zu einem
+  Testteil; der Test vergleicht Punkte und Sätze (Toleranz 1 µm) – so
+  fällt jede Änderung auf, gewollt oder nicht. Beschleunigen ohne Änderung
+  der Bahn heißt: der Test bleibt grün.
+- **Abtrag-Vergleich:** nach jeder Strategie die Farben gegen das Modell –
+  nirgends rot (zu wenig) oder blau (im Teil), gelb nur unter dem Aufmaß.
+- **Kollision:** kein Befund auf den Beispielmaschinen.
+- **Grundsätze prüfbar:** kein senkrechter Eintritt in Material (Winkel der
+  Bahn beim ersten Kontakt), kein Satz mit Eingriff über dem geplanten ae,
+  keine Zeile ganz in der Luft.
+- **Zeit- und Speicherbudget** je Testteil im Test, mit Luft (×2).
+- **Szenarien** für die Oberfläche: Assistent mit Vorschlag, Ändern, Prüfen.
+
+## 10. Stufen (Vorschlag) und Entscheidungen
+
+Reihenfolge – jede Stufe ist für sich nützlich und geprüft:
+
+- **S1 – Messen und Grundlagen** (klein): `bahn_messen.py`, goldene Bahnen
+  für rundum, Bahn-Datenmodell mit Bögen und Ein-/Ausfahrt, Ausgabe G2/G3.
+- **S2 – Rundum fertig** (mittel): Linien längs, Plan indexiert, Rundum
+  entgraten (4.3.1–3) – auf Manuels Maschine zuerst.
+- **S3 – 2,5D Kern** (groß): Höhenfeld und Abtrag für Ebenen; Planfräsen,
+  Kontur mit Ein-/Ausfahren, Tasche adaptiv mit Bögen und Trochoiden,
+  Restmaterial; Bohren und Gewinde übernommen; der Assistent schlägt vor.
+- **S4 – 3D Schlichten** (groß): Zeilen mit Grathöhe, Steil/Flach, Bleistift.
+- **S5 – 3D Schruppen und Rest** (groß): ebenenweise adaptiv, Restschruppen.
+- **S6 – 3+2 und Feinschliff** (mittel): indexiert schwenken, Glättung (V6),
+  Vorschub nach Eingriff, Reihenfolge.
+- **S7 – Simultan 5 Achsen** (groß, später).
+
+Entscheidungen (Claude, zur Besprechung):
+
+- **E1 – Womit anfangen?** (a) S1 → S2 → S3 – **Empfehlung**: erst Manuels
+  Maschine rundum fertig, dann das, was jeder Fräser täglich braucht; (b)
+  gleich S3 (2,5D) – der größte Nutzen für 3-Achs-Fräser, aber rundum bleibt
+  halb; (c) gleich 3D – am eindrucksvollsten, aber ohne 2,5D-Grundlagen.
+- **E2 – 3D-Kern selbst oder OCL?** (a) selbst mit numpy (Höhenfeld) –
+  **Empfehlung**: läuft überall, passt zu Hülle und Abtrag, prüfbar; (b) OCL
+  nutzen, wo vorhanden – schneller zu haben, aber fehlt in manchen Builds und
+  kennt weder Abtrag noch Halter.
+- **E3 – Schruppen: adaptiv oder trochoidal zuerst?** (a) adaptiv mit
+  Trochoiden in Ecken – **Empfehlung**, ein Kern für Tasche, Ebene, Lage;
+  (b) Offset-Tasche mit Bögen zuerst – einfacher, weniger Gewinn.
+- **E4 – Ein Assistent oder ein Befehl je Strategie?** (a) ein Assistent
+  „Bearbeitung“ mit Vorschlag – **Empfehlung** („maximal bedienerfreundlich“);
+  (b) je Strategie ein Knopf wie in FreeCAD – vertraut, aber wieder Parameter.
+- **E5 – Wie stark vorschlagen?** (a) Vorschlag mit Grund, änderbar –
+  **Empfehlung**; (b) nur anbieten, nichts vorwählen; (c) fest, ohne Wahl.
+- **E6 – Vorschub nach Eingriff:** (a) in Ecken und beim Austritt aus der
+  Spandicke gerechnet – **Empfehlung**, das ist die Qualität, die die Maschine
+  spürt; (b) ein Vorschub je Operation wie in FreeCAD.
+- **E7 – Grathöhe oder Schrittweite beim Schlichten?** (a) Grathöhe
+  (Vorgabe 0,005 mm), Schrittweite daraus – **Empfehlung**; (b) Schrittweite
+  aus der Werkzeugtabelle wie heute – vertraut; beides zeigen, eines
+  eingeben.
+
+Was Manuel entscheidet, kommt hierher unter „Entschieden“, wie in den
+anderen Spezifikationen; die Stufen bekommen dann Akzeptanzkriterien und
+Klickwege.
