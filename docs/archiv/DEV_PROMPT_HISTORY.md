@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-18 version-0-29-0
+
+### EINGELESEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`, die Einträge P-2026-09-30-10
+  bis -17.
+
+### DATEIEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.29.0 an. Danach: Werkzeugverwaltung → „Halter …“ →
+„Neu ▼“ → „VDI30 angetrieben radial“ – Richtung „gewinkelt“, das Bild zeigt den Knick;
+„Neue Maschine …“ → Drehmaschine – an der Revolverscheibe Aufnahmen, keine festen
+Halter; „4-Achs-Bearbeitung“ mit T1 im radialen Halter – kein gelber Satz, die
+Ausspannlänge nennt „Halter über die Werkzeugachse 27,5“.
+
+### DONE
+- Version 0.29.0: die Richtung des Werkzeugs am Halter (W-002 Stufe E: gerade,
+  angetrieben radial, Winkelkopf), der Halterkopf vor dem Futter, die
+  Beispiel-Drehmaschine mit Aufnahmen, der gelbe Satz im 4-Achs-Assistenten, keine
+  versteckten Ausnahmen mehr beim Öffnen des Assistenten.
+- README (Halter, Drehmaschine, gelber Satz) und Stand nachgezogen.
+
+### TEST
+- Voller Lauf `scripts/alle_tests.sh` in FreeCAD 1.1.3 und im Wochen-Build – siehe
+  Push-Nachricht.
+
+### NEXT
+- Push; Bericht an Manuel mit Klickweg und Screenshots; danach Durchsicht
+  Bedienbarkeit und Logik.
+
 ## P-2026-09-30-17 keine-versteckten-ausnahmen
 
 ### EINGELESEN

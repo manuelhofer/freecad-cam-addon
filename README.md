@@ -13,7 +13,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
 - **Neue Maschine …:** eine Bauart wählen – Drehmaschine mit Y-Achse,
   3-Achs-Fräse, drei 5-Achs-Fräsen – und sie fertig eingerichtet als
   Baugruppe bekommen; bei der Drehmaschine mit eigenen Maßen: Bettneigung,
-  Winkel der Y-Achse, Wege, Revolverplätze, Höchstdrehzahl.
+  Winkel der Y-Achse, Wege, Revolverplätze, Höchstdrehzahl. Ihre Revolverplätze
+  sind Aufnahmen – wie ein Werkzeug darin steht, sagt sein Halter.
 - **Maschine bearbeiten:** eine Maschine als Baugruppe beschreiben –
   Achsen, Spindeln, Werkzeug- und Werkstückaufnahmen – und an CAM übergeben.
   Der **Verfahrweg** jeder Achse steht dort zum Ändern („von … bis …“), mit
@@ -53,7 +54,10 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   ae, fz mit Spandickenausgleich). Werkzeuge lassen sich aus
   FreeCAD-Bibliotheken übernehmen. **Halter** mit ihrer Kontur aus Zylindern
   und Kegeln, Vorlagen von ER16 bis Bohrfutter; je Werkzeug einer – damit
-  schätzt die Werkzeugverwaltung die Länge ab Spindelnase.
+  schätzt die Werkzeugverwaltung die Länge ab Spindelnase. Der Halter sagt
+  auch, **wie das Werkzeug zur Maschine steht**: gerade oder gewinkelt –
+  angetrieben radial am Revolver, Winkelkopf an der Fräse (Winkel, Drehung,
+  Versatz, Kopf); Reichweite, Abfahren und Kollision rechnen damit.
 - **An CAM übergeben:** die Werkzeuge als Werkzeugbibliothek „CAM-Addon“;
   „Schnittwerte in den Job“ setzt Drehzahl und Vorschub der
   Werkzeug-Controller eines Jobs passend zum Werkstoff des Rohteils, dazu
@@ -75,7 +79,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   **Überlauf** (Radius + 0,5 mm) über das Teil hinaus, mit Abstand zum Futter –
   alles einstellbar, mit Vorschlag; reicht der Halter weiter als der Fräser,
   zählt sein Rand –, und ein Satz sagt, **wie weit die Stange aus dem Futter
-  ragen muss**. „Auf der Maschine prüfen“ fährt die Bahn mit
+  ragen muss**. Säße der Fräser auf der gewählten Maschine nicht radial, sagt
+  es ein gelber Satz – mit dem Halter, der fehlt. „Auf der Maschine prüfen“ fährt die Bahn mit
   drehender Rundachse ab, prüft sie auf Kollision und **trägt die Stange ab**:
   Am Ende steht sie in Farben gegen das fertige Teil – grün das Aufmaß, rot, wo
   zu viel blieb, blau, wo etwas im Teil fehlt. **Nachträglich ändern:**
