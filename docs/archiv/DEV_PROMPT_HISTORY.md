@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-25 plan-v4-flaechen
+
+### EINGELESEN
+- `docs/spezifikation_vierachs.md` (Abschnitte 6 „Schritt 2: Flächen“, 9 „Rechenkern“, 12
+  „Nicht Teil davon“, 13 V4 mit Manuels Antworten vom 2026-09-30).
+
+### DATEIEN
+- `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In `docs/spezifikation_vierachs.md` unter „V4 – Flächen wählen“ steht der Plan in fünf
+Schritten (V4a Flächen im Assistenten, V4b Maske und sicheres Wiedereinsetzen, V4c
+Strategien je Werkzeug, V4d Entgraten, V4e Prüfen und Szenario), jeder mit Manuels Satz,
+auf den er antwortet.
+
+### DONE
+- Plan für V4 nach der Durchsicht 2 (Manuel: „Egal, du musst alles bauen“): Die gewählten
+  Flächen sind die Maske in (a, φ), gerechnet wird weiter gegen das ganze Teil; abheben
+  über das, was noch steht, und schräg mit dem Eintauchwinkel wieder hinein; Strategien
+  Spirale, Linien längs und Plan indexiert; eigene Operation „Rundum entgraten“.
+- Abschnitt 12: Ebene Abflachungen parallel zur Achse fräst V4c; Taschen und
+  Querbohrungen bleiben eine spätere Stufe.
+
+### TEST
+- Reine Doku, kein Testlauf (`docs/arbeitsregeln.md`, Abschnitt 5).
+
+### NEXT
+- V4a: Flächen im Assistenten, Erreichbarkeit, die Operationen merken sich die Flächen.
+
 ## P-2026-09-30-24 version-0-29-1
 
 ### EINGELESEN

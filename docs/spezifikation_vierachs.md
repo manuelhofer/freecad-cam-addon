@@ -426,8 +426,9 @@ mm/s, der Postprozessor rechnet ×60.
 - **Drehen**, Planen der Stirnseite, **Abstechen** – das macht die Maschine
   (FreeCAD dreht nicht).
 - **Axiales Werkzeug** auf der Stirnseite (TRANSMIT) und **indexiert 3+1**
-  (Achse steht, eben gefräst: Abflachungen, Taschen, Querbohrungen) – eine
-  spätere Stufe. Im Wochen-Build helfen dafür FreeCADs Arbeitsebenen.
+  (Achse steht, eben gefräst: Taschen, Querbohrungen) – eine spätere Stufe.
+  Im Wochen-Build helfen dafür FreeCADs Arbeitsebenen. Ebene Abflachungen
+  parallel zur Achse fräst V4c („Plan indexiert“).
 - **Hinterschnitte:** Was ein radiales Werkzeug nicht erreicht, bleibt stehen
   und wird gemeldet.
 - **Kollision** von Halter, Schaft oder Futter: nur Hinweise; die Prüfung ist
@@ -709,6 +710,48 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
 - *Klickweg:* „Flächen …“ → „Alle Mantelflächen“ → die Flächen rundum sind
   markiert und grün, die Stirnflächen nicht; eine Fläche unter einem Überhang
   steht rot mit „nicht erreichbar“; ein Klick nimmt eine Fläche heraus.
+
+*Plan (Claude, 2026-09-30, nach der Durchsicht 2 – Manuel: „Egal, du musst alles
+bauen“):*
+
+- **Grundsatz:** Gerechnet wird weiter gegen das ganze Teil (Hüllfläche); die
+  gewählten Flächen sind die **Maske** in (a, φ): die Stellen, an denen der
+  Strahl von außen zuerst eine gewählte Fläche trifft. Ohne Auswahl oder mit
+  allen Mantelflächen ist die Maske überall – rundum wie heute.
+- **V4a – Flächen im Assistenten:** In Schritt 2 oben „Flächen“: „Alle
+  Mantelflächen (rundum)“ vorgewählt, daneben „Im 3D anklicken …“; die Liste
+  der gewählten mit Art und Erreichbarkeit (erreichbar grün, teilweise gelb,
+  nicht rot – aus der Maske mit einem punktförmigen Werkzeug). Die Operationen
+  merken sich die Flächen (Verweis auf das Modell des Jobs, wie CAMs „Base“).
+- **V4b – Maske in der Bahn, abheben und sicher wieder einsetzen:** Schruppen
+  und Schlichten fräsen nur, wo die Mitte des Fräsers über der Maske steht;
+  dazwischen hebt er ab – über das, was dort noch steht (anfangs der
+  Stangenradius, sonst der Rest der Lagen davor) plus Sicherheitsabstand – und
+  fährt in der Luft weiter. Wieder hinein geht es **nicht senkrecht ins volle
+  Material**, sondern schräg längs der Bahn mit dem Eintauchwinkel aus der
+  Werkzeugverwaltung (ohne Angabe 5°), so wie die Spirale ohnehin schneidet
+  (Manuel: „je nach Rohteil abheben und irgendwo wieder einsetzen, so dass er
+  nicht kaputt geht“).
+- **V4c – Strategien je Werkzeug und Fläche** (Manuel: „mehrere Strategien, je
+  nach Werkzeug kann das anders ausfallen“): für jede Auswahl ein Vorschlag, im
+  Assistenten änderbar –
+  - *Spirale* (wie heute) – jede Fläche, jeder Fräser;
+  - *Linien längs* – Schlichten mit Kugel oder Torus auf Flächen, die nicht
+    rundum gehen (Abflachung, Nocke): Bahnen längs der Achse im Winkelabstand
+    Schrittweite ÷ Radius, gegenläufig, nur über der Fläche;
+  - *Plan indexiert* – eine ebene Fläche parallel zur Achse mit einem Fräser mit
+    ebener Stirn: Die Rundachse steht fest (die Fläche zeigt zum Werkzeug), der
+    Fräser fährt Zeilen wie beim Planfräsen (Zustellung ap, Zeilenabstand ae
+    aus der Werkzeugtabelle).
+- **V4d – Entgraten** (Manuel: „Und Entgraten nicht vergessen“): eigene
+  Operation „Rundum entgraten“ – an den Kanten der gewählten Flächen (auch
+  zwischen ihnen und dem Rest) eine Fase mit dem Fasenfräser (oder dem
+  Kugelfräser als Kantenbruch), Breite einstellbar (Vorschlag 0,3 mm); der
+  Fräser folgt der Kante, die Rundachse dreht mit.
+- **V4e – Prüfen:** Farben nur auf den gewählten Flächen; was nicht gewählt ist,
+  bleibt Stange und zählt nicht als „zu viel stehen geblieben“. Szenario auf
+  der Beispiel-Drehmaschine: Welle mit Abflachung – nur die Abflachung gewählt,
+  „Plan indexiert“, Entgraten; alle Mantelflächen gewählt – wie rundum.
 
 **V5 – Rundum schlichten** (bisher V7; Manuel, 2026-09-30, vor V4 – siehe
 „Entschieden“)
