@@ -98,6 +98,8 @@ class NeueMaschineDialog(QtGui.QDialog):
         self.liste.itemDoubleClicked.connect(lambda _eintrag: self.accept())
 
         aufbau = QtGui.QVBoxLayout(self)
+        # Nie kleiner als der Inhalt: Sonst quetschte Qt die Zeilen der Drehmaschine übereinander.
+        aufbau.setSizeConstraint(QtGui.QLayout.SetMinimumSize)
         for widget in (text, self.liste, self.beschreibung):
             aufbau.addWidget(widget)
         aufbau.addWidget(kopfzeile(tr("neu.masse"), "neue_maschine"))
@@ -164,6 +166,31 @@ class NeueMaschineDialog(QtGui.QDialog):
         self.feld_plaetze.setToolTip(tr("neu.plaetze.tooltip"))
         formular.addRow(tr("neu.plaetze"), self.feld_plaetze)
 
+        # Der Revolver (Manuel, 2026-09-30, P-2026-09-30-52): Aufnahmen an der Stirn oder am
+        # Umfang, Scheiben-Ø, VDI-Größe.
+        self.wahl_revolver = QtGui.QComboBox()
+        self.wahl_revolver.addItem(tr("neu.revolver.stirn"), beispielmaschine.REVOLVER_STIRN)
+        self.wahl_revolver.addItem(tr("neu.revolver.umfang"), beispielmaschine.REVOLVER_UMFANG)
+        self.wahl_revolver.setCurrentIndex(self.wahl_revolver.findData(vorgabe.revolver))
+        self.wahl_revolver.setToolTip(tr("neu.revolver.tooltip"))
+        formular.addRow(tr("neu.revolver"), self.wahl_revolver)
+        self.feld_scheibe = QtGui.QDoubleSpinBox()
+        self.feld_scheibe.setLocale(zahlenformat())
+        self.feld_scheibe.setDecimals(einheiten.stellen(einheiten.LAENGE, 0))
+        self.feld_scheibe.setRange(
+            *(einheiten.anzeige(w, einheiten.LAENGE) for w in beispielmaschine.SCHEIBE_BEREICH)
+        )
+        self.feld_scheibe.setSuffix(f" {einheiten.einheit(einheiten.LAENGE)}")
+        self.feld_scheibe.setValue(einheiten.anzeige(vorgabe.scheibe, einheiten.LAENGE))
+        self.feld_scheibe.setToolTip(tr("neu.scheibe.tooltip"))
+        formular.addRow(tr("neu.scheibe"), self.feld_scheibe)
+        self.wahl_vdi = QtGui.QComboBox()
+        for groesse in beispielmaschine.VDI_GROESSEN:
+            self.wahl_vdi.addItem(f"VDI {groesse}", groesse)
+        self.wahl_vdi.setCurrentIndex(self.wahl_vdi.findData(vorgabe.vdi))
+        self.wahl_vdi.setToolTip(tr("neu.vdi.tooltip"))
+        formular.addRow(tr("neu.vdi"), self.wahl_vdi)
+
         self.feld_drehzahl = QtGui.QSpinBox()
         self.feld_drehzahl.setRange(1, GROESSTE_DREHZAHL)
         self.feld_drehzahl.setSingleStep(100)
@@ -172,12 +199,27 @@ class NeueMaschineDialog(QtGui.QDialog):
         self.feld_drehzahl.setToolTip(tr("neu.drehzahl.tooltip"))
         formular.addRow(tr("neu.drehzahl"), self.feld_drehzahl)
 
-        self._nur_drehmaschine = [self.feld_bett, self.feld_y_winkel, self.feld_plaetze]
+        self._nur_drehmaschine = [
+            self.feld_bett,
+            self.feld_y_winkel,
+            self.feld_plaetze,
+            self.wahl_revolver,
+            self.feld_scheibe,
+            self.wahl_vdi,
+        ]
         # Wer etwas ändert, bekommt den alten roten Satz nicht mehr zu sehen.
-        felder = [self.feld_bett, self.feld_y_winkel, self.feld_plaetze, self.feld_drehzahl]
+        felder = [
+            self.feld_bett,
+            self.feld_y_winkel,
+            self.feld_plaetze,
+            self.feld_drehzahl,
+            self.feld_scheibe,
+        ]
         felder += [f for paar in self.felder_weg.values() for f in paar]
         for feld in felder:
             feld.valueChanged.connect(lambda _wert: self.fehler.hide())
+        for wahl in (self.wahl_revolver, self.wahl_vdi):
+            wahl.currentIndexChanged.connect(lambda _index: self.fehler.hide())
         return bereich
 
     # --- Auswahl und Ergebnis -------------------------------------------------------
@@ -210,6 +252,14 @@ class NeueMaschineDialog(QtGui.QDialog):
             for achse, zeile in self._weg_zeilen.items():
                 zeile.setToolTip(tooltips[achse] if drehmaschine else tr("neu.weg.tooltip"))
         self.fehler.hide()
+        # Mit den Zeilen der Drehmaschine braucht das Fenster mehr Höhe – es wächst mit, sonst
+        # quetschte Qt die Zeilen übereinander (P-2026-09-30-52).
+        QtCore.QTimer.singleShot(0, self._groesse_anpassen)
+
+    def _groesse_anpassen(self):
+        hinweis = self.sizeHint()
+        if hinweis.height() > self.height() or hinweis.width() > self.width():
+            self.resize(max(self.width(), hinweis.width()), max(self.height(), hinweis.height()))
 
     def gewaehlt(self):
         """Die gewählte Bauart, oder None."""
@@ -248,6 +298,9 @@ class NeueMaschineDialog(QtGui.QDialog):
             weg_z=wege["Z"],
             plaetze=self.feld_plaetze.value(),
             drehzahl=float(self.feld_drehzahl.value()),
+            revolver=self.wahl_revolver.currentData(),
+            scheibe=_wert(self.feld_scheibe, vorgabe.scheibe),
+            vdi=self.wahl_vdi.currentData(),
         )
 
     def accept(self):

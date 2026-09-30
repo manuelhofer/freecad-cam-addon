@@ -667,8 +667,15 @@ def fuenfachs_kopf_kopf():
 SPITZENHOEHE = 800  # mm über dem Boden, wo der Rahmen beginnt
 # Die Revolverachse im Rahmen (bei x = 0) und die Plätze auf der Scheibe.
 REVOLVERACHSE = App.Vector(0, 405, 350)
-RADIUS_AUFNAHMEN = 130.0  # mm von der Revolverachse: die Aufnahmen an der Stirn
-STIRN_AUFNAHMEN = 700.0  # x ihrer Stirn – 10 mm vor der Scheibe, zum Futter hin
+STIRN_SCHEIBE = 710.0  # x der Stirn der Revolverscheibe, zum Futter hin
+DICKE_SCHEIBE = 110.0  # mm
+HOEHE_AUFNAHME = 10.0  # mm – so weit steht der Ring einer Aufnahme vor der Scheibe
+ABSTAND_AUFNAHMEN_RAND = 40.0  # mm vom Rand der Scheibe bis zur Mitte der Aufnahmen (Stirn)
+# Die Bauarten des Revolvers (P-2026-09-30-52): Aufnahmen an der Stirn oder am Umfang.
+REVOLVER_STIRN, REVOLVER_UMFANG = "stirn", "umfang"
+REVOLVERARTEN = (REVOLVER_STIRN, REVOLVER_UMFANG)
+VDI_GROESSEN = (20, 25, 30, 40, 50, 60)  # mm – Schaft-Ø der Halter
+SCHEIBE_BEREICH = (240.0, 600.0)  # mm Ø der Revolverscheibe
 
 # Was sich in „Neue Maschine …“ eintragen lässt, und in welchen Grenzen.
 BETTNEIGUNG_BEREICH = (0.0, 60.0)  # Grad; 0 ist ein Flachbett
@@ -704,6 +711,11 @@ class DrehmaschinenMasse:
     weg_z: tuple = (0.0, 520.0)
     plaetze: int = 12
     drehzahl: float = 5000.0  # U/min der Hauptspindel
+    # Der Revolver (P-2026-09-30-52): Aufnahmen an der Stirn oder am Umfang, Scheiben-Ø,
+    # VDI-Größe (der Ring um die Bohrung).
+    revolver: str = REVOLVER_STIRN
+    scheibe: float = 340.0
+    vdi: int = 30
 
     def fehler(self):
         """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
@@ -717,6 +729,12 @@ class DrehmaschinenMasse:
             ergebnis.append(("plaetze", tr("neu.plaetze_bereich")))
         if self.drehzahl <= 0:
             ergebnis.append(("drehzahl", tr("neu.drehzahl_fehlt")))
+        if self.revolver not in REVOLVERARTEN:
+            ergebnis.append(("revolver", tr("neu.revolver_unbekannt")))
+        if not SCHEIBE_BEREICH[0] <= self.scheibe <= SCHEIBE_BEREICH[1]:
+            ergebnis.append(("scheibe", tr("neu.scheibe_bereich")))
+        if self.vdi not in VDI_GROESSEN:
+            ergebnis.append(("vdi", tr("neu.vdi_unbekannt")))
         return ergebnis
 
 
@@ -728,8 +746,90 @@ def _schraegbett(neigung):
 def _auf_der_scheibe(winkel, radius):
     """Punkt (0, y, z) im Rahmen: `radius` von der Revolverachse, um `winkel` Grad
     vom Platz P1 aus gedreht. P1 zeigt zur Spindelachse."""
-    richtung = App.Rotation(App.Vector(1, 0, 0), winkel).multVec(App.Vector(0, -1, 0))
-    return REVOLVERACHSE + richtung * radius
+    return REVOLVERACHSE + _nach_aussen(winkel) * radius
+
+
+def _nach_aussen(winkel):
+    """Die Richtung von der Revolverachse zum Platz, der um `winkel` Grad von P1 aus gedreht
+    ist – bei P1 zur Spindelachse hin."""
+    return App.Rotation(App.Vector(1, 0, 0), winkel).multVec(App.Vector(0, -1, 0))
+
+
+def _revolver(b, masse):
+    """Die Revolverscheibe mit ihren Aufnahmen (VDI) und das LCS von P1; gibt (Revolver,
+    LCS) zurück. Zwei Bauarten (Manuel, 2026-09-30, P-2026-09-30-52):
+
+    - **VDI in der Stirn** (REVOLVER_STIRN, wie Manuels): die Aufnahmen im Kreis an der
+      Stirn der Scheibe, zum Futter hin; ein gerader Halter steht längs Z, ein gewinkelter
+      („VDI30 angetrieben radial“) radial. Am Umfang nichts – dort stieß vorher eine
+      angedeutete Station ans Teil, die es an so einem Revolver nicht gibt.
+    - **VDI am Umfang** (REVOLVER_UMFANG, Sternrevolver): die Aufnahmen am Umfang, radial;
+      ein gerader Halter steht radial zur Spindelachse, ein gewinkelter längs Z, zum Futter
+      hin („vorne parallel zur Maschinen-Z-Achse fräsen“).
+
+    P1 zeigt zur Spindelachse. Das LCS liegt auf der Achse der Aufnahme an ihrer Stirn (dort
+    liegt der Halter an – der Bezugspunkt, bis zu dem X und Z zählen); Z von der Spitze eines
+    geraden Werkzeugs zur Aufnahme, X in die Richtung, in die ein gewinkelter Halter das
+    Werkzeug kippt (halter.lage)."""
+    achse = REVOLVERACHSE
+    radius = masse.scheibe / 2
+    ring = masse.vdi  # mm – Radius des Rings um die Bohrung
+    teilung = 2 * math.pi * radius / masse.plaetze
+    scheibe = b.zylinder(
+        "Revolverscheibe",
+        radius,
+        DICKE_SCHEIBE,
+        x=STIRN_SCHEIBE,
+        y=achse.y,
+        z=achse.z,
+        achse=(1, 0, 0),
+        farbe=REVOLVER,
+    )
+    aufnahmen = []
+    if masse.revolver == REVOLVER_UMFANG:
+        mitte_x = STIRN_SCHEIBE + DICKE_SCHEIBE / 2
+        ring = min(ring, 0.42 * teilung)  # Luft dazwischen, auch bei 24 Plätzen
+        for nummer in range(1, masse.plaetze + 1):
+            winkel = (nummer - 1) * 360.0 / masse.plaetze
+            fuss = _auf_der_scheibe(winkel, radius)
+            aussen = _nach_aussen(winkel)
+            aufnahmen.append(
+                b.zylinder(
+                    f"Aufnahme{nummer:02d}",
+                    ring,
+                    HOEHE_AUFNAHME,
+                    x=mitte_x,
+                    y=fuss.y,
+                    z=fuss.z,
+                    achse=(0, aussen.y, aussen.z),
+                    farbe=SCHLITTEN,
+                )
+            )
+        stirn1 = _auf_der_scheibe(0.0, radius + HOEHE_AUFNAHME)
+        ursprung, richtung, x_richtung = (mitte_x, stirn1.y, stirn1.z), (0, 1, 0), (-1, 0, 0)
+    else:
+        kreis = radius - ABSTAND_AUFNAHMEN_RAND
+        ring = min(ring, 0.42 * 2 * math.pi * kreis / masse.plaetze)
+        for nummer in range(1, masse.plaetze + 1):
+            mitte = _auf_der_scheibe((nummer - 1) * 360.0 / masse.plaetze, kreis)
+            aufnahmen.append(
+                b.zylinder(
+                    f"Aufnahme{nummer:02d}",
+                    ring,
+                    HOEHE_AUFNAHME,
+                    x=STIRN_SCHEIBE - HOEHE_AUFNAHME,
+                    y=mitte.y,
+                    z=mitte.z,
+                    achse=(1, 0, 0),
+                    farbe=SCHLITTEN,
+                )
+            )
+        mitte1 = _auf_der_scheibe(0.0, kreis)
+        ursprung = (STIRN_SCHEIBE - HOEHE_AUFNAHME, mitte1.y, mitte1.z)
+        richtung, x_richtung = (1, 0, 0), (0, -1, 0)
+    revolver, _ = b.bauteil("Revolver", [scheibe, *aufnahmen])
+    platz1 = b.lcs(revolver, "Platz", *ursprung, richtung=richtung, x_richtung=x_richtung)
+    return revolver, platz1
 
 
 def drehmaschine(masse=None):
@@ -737,16 +837,14 @@ def drehmaschine(masse=None):
 
     Hauptspindel S1 (Drehzahl) und C1 (positionieren) – ihre Achse ist Z.
     Auf dem Bett Z-Schlitten, X-Schlitten, darauf Y-Schlitten mit dem
-    Revolver T (12 Plätze). Jeder Platz ist eine Aufnahme (VDI30) an der Stirn
-    der Scheibe, alle am Werkzeugantrieb S3: Z längs der Revolverachse, X radial
-    nach außen – in Arbeitsstellung zur Spindelachse. Halter trägt der Revolver
-    nicht fest: Sie kommen mit den Werkzeugen aus der Werkzeugverwaltung (W-002
-    Stufe E, Manuel 2026-09-30) – „VDI30 angetrieben radial“ stellt das Werkzeug
-    90° zu Z zur Spindelachse, ein gerader Halter längs Z. Die Werkzeuge selbst
-    zeigt das Prüffenster. Das Futter ist die Werkstückaufnahme. `masse`
-    (DrehmaschinenMasse) ändert Bettneigung, Wege, Plätze, Drehzahl und Name;
-    steht Y schräg, kommt die schräge Achse dazu. Gibt (Assembly, Maschine)
-    zurück.
+    Revolver T (12 Plätze). Jeder Platz ist eine Aufnahme (VDI30), alle am
+    Werkzeugantrieb S3 – an der Stirn der Scheibe oder an ihrem Umfang (_revolver()).
+    Halter trägt der Revolver nicht fest: Sie kommen mit den Werkzeugen aus der
+    Werkzeugverwaltung (W-002 Stufe E, Manuel 2026-09-30) und stellen das Werkzeug zur
+    Aufnahme. Die Werkzeuge selbst zeigt das Prüffenster. Das Futter ist die
+    Werkstückaufnahme. `masse` (DrehmaschinenMasse) ändert Bettneigung, Wege, Plätze,
+    Drehzahl, Revolver und Name; steht Y schräg, kommt die schräge Achse dazu. Gibt
+    (Assembly, Maschine) zurück.
     """
     masse = masse or DrehmaschinenMasse()
     b = _neu(DREHMASCHINE)
@@ -774,79 +872,18 @@ def drehmaschine(masse=None):
     x_schlitten = b.quader("XSchlitten", 310, 160, 510, x=820, y=480, z=90, farbe=SCHLITTEN)
     y_schlitten = b.quader("YSchlitten", 280, 150, 280, x=820, y=330, z=210, farbe=KOPF)
 
-    # Revolverscheibe; an ihrer Stirn (zum Futter hin) je Platz eine Aufnahme
-    # (VDI30) im Kreis, P1 unten – zur Spindelachse hin. Halter trägt er nicht
-    # fest. Rundum je Platz eine Station – so sieht man auch von hinten, dass es
-    # ein Revolver ist und wie viele Plätze er hat (P-2026-09-27-07, D-46).
-    achse = REVOLVERACHSE
-    # So breit, dass zwischen zwei Stationen Luft bleibt – auch bei 24 Plätzen.
-    breite = min(60.0, 0.6 * 2 * math.pi * 170 / masse.plaetze)
-    stationen = [
-        b.quader(
-            f"Station{nummer:02d}",
-            80,
-            40,
-            breite,
-            x=725,
-            y=achse.y - 170 - 40,
-            z=achse.z - breite / 2,
-            farbe=SCHLITTEN,
-            gedreht=App.Placement(
-                App.Vector(),
-                App.Rotation(App.Vector(1, 0, 0), (nummer - 1) * 360.0 / masse.plaetze),
-                achse,
-            ),
-        )
-        for nummer in range(1, masse.plaetze + 1)
-    ]
-    teilung = 2 * math.pi * RADIUS_AUFNAHMEN / masse.plaetze
-    aufnahmen = [
-        b.zylinder(
-            f"Aufnahme{nummer:02d}",
-            min(30.0, 0.42 * teilung),  # Luft dazwischen, auch bei 24 Plätzen
-            10,
-            x=STIRN_AUFNAHMEN,
-            y=mitte.y,
-            z=mitte.z,
-            achse=(1, 0, 0),
-            farbe=SCHLITTEN,
-        )
-        for nummer in range(1, masse.plaetze + 1)
-        for mitte in [_auf_der_scheibe((nummer - 1) * 360.0 / masse.plaetze, RADIUS_AUFNAHMEN)]
-    ]
-    revolver, _ = b.bauteil(
-        "Revolver",
-        [
-            b.zylinder(
-                "Revolverscheibe",
-                170,
-                110,
-                x=710,
-                y=achse.y,
-                z=achse.z,
-                achse=(1, 0, 0),
-                farbe=REVOLVER,
-            ),
-            *aufnahmen,
-            *stationen,
-        ],
-    )
-    # Die Aufnahme P1: an der Stirn ihres Rings, Z längs der Revolverachse vom Futter
-    # weg (von der Spitze eines geraden Werkzeugs zur Aufnahme), X zur Spindelachse.
-    mitte1 = _auf_der_scheibe(0.0, RADIUS_AUFNAHMEN)
-    platz1 = b.lcs(
-        revolver,
-        "Platz",
-        STIRN_AUFNAHMEN,
-        mitte1.y,
-        mitte1.z,
-        richtung=(1, 0, 0),
-        x_richtung=(0, -1, 0),
-    )
+    revolver, platz1 = _revolver(b, masse)
     antrieb, _ = b.bauteil(
         "Antrieb",
         b.zylinder(
-            "Antriebsmotor", 60, 120, x=1100, y=achse.y, z=achse.z, achse=(1, 0, 0), farbe=KOPF
+            "Antriebsmotor",
+            60,
+            120,
+            x=1100,
+            y=REVOLVERACHSE.y,
+            z=REVOLVERACHSE.z,
+            achse=(1, 0, 0),
+            farbe=KOPF,
         ),
     )
 

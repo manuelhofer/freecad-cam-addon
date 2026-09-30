@@ -18,8 +18,10 @@ sys.path.insert(0, ADDON)
 import FreeCAD as App
 
 from camaddon import PARAMETER_PFAD, beispielmaschine, schraege_achse, sprache
+from camaddon import halter as hl
 from camaddon import kette as kette_modul
 from camaddon import maschine as m
+from camaddon import reichweite as rw
 from camaddon import schruppwerte as sw
 from camaddon import verfahren as vf
 from camaddon.kette import HINWEIS, LINEAR
@@ -144,8 +146,9 @@ for art in beispielmaschine.ARTEN:
         namen = {o.Label for o in doc.Objects}
         pruefe(not {"HalterRadial", "HalterAxial"} & namen, "fester Halter am Revolver")
         pruefe({"Aufnahme01", "Aufnahme12"} <= namen, "Aufnahmen an der Stirn fehlen")
-        # Rundum je Platz eine Station: So sieht man, dass es ein Revolver ist (D-46).
-        pruefe({"Station01", "Station12"} <= namen, "Stationen am Umfang fehlen")
+        # Am Umfang nichts: So ein Revolver hat dort keine Stationen, und die angedeuteten
+        # stießen ans Teil (Manuel, 2026-09-30, P-2026-09-30-52; vorher D-46).
+        pruefe(not any(n.startswith("Station") for n in namen), "Stationen am Umfang")
         # X und Z zählen wie an der Maschine (Manuel, 2026-09-30, P-2026-09-30-50): gebaut
         # steht sie bei X 275 und Z 220; auf X 0 steht die Mitte von P1 auf der Spindelachse,
         # auf Z 0 ihre Stirn in der Ebene der Spindelnase.
@@ -213,6 +216,52 @@ hinweise = [x.schluessel for x in m.pruefe(ma, kette) if x.schluessel.startswith
 pruefe(not hinweise, f"eigene Maße, Hinweise zur schrägen Achse: {hinweise}")
 App.closeDocument(doc.Name)
 
+# Revolver mit VDI am Umfang (Sternrevolver, P-2026-09-30-52): acht Plätze auf dem Rand der
+# Scheibe Ø 400, radial; ein gerader Halter zeigt zur Spindelachse, ein gewinkelter (X des
+# LCS) zum Futter. Gebaut X 195 (405 − 200 − 10), Z 285 (die Mitte der Scheibe); auf X 0 und
+# Z 0 steht P1 auf der Spindelachse in der Ebene der Spindelnase.
+masse = beispielmaschine.DrehmaschinenMasse(
+    revolver=beispielmaschine.REVOLVER_UMFANG, scheibe=400, vdi=40, plaetze=8
+)
+pruefe(not masse.fehler(), f"Sternrevolver: {masse.fehler()}")
+asm, ma = beispielmaschine.lade(beispielmaschine.DREHMASCHINE, masse)
+doc = asm.Document
+kette = kette_modul.lies_kette(asm)
+achse = {a.gelenk.Label: a for a in kette.achsen}
+plaetze = [a for a in m.aufnahmen(ma) if a.Art == m.AUFNAHME_WERKZEUG]
+pruefe(len(plaetze) == 8, f"Sternrevolver, Plätze: {len(plaetze)}")
+spindel = achse["Hauptspindel"]
+p1 = m.globale_platzierung(next(a for a in plaetze if a.Platz == 1).Lcs)
+z_lcs = p1.Rotation.multVec(App.Vector(0, 0, 1))
+x_lcs = p1.Rotation.multVec(App.Vector(1, 0, 0))
+nach_innen = (spindel.ursprung - p1.Base) - spindel.richtung * (
+    (spindel.ursprung - p1.Base).dot(spindel.richtung)
+)
+nach_innen.normalize()
+pruefe(abs(z_lcs.dot(spindel.richtung)) < 1e-9, f"Sternrevolver: Z nicht radial {z_lcs}")
+pruefe((z_lcs + nach_innen).Length < 1e-9, f"gerader Halter nicht zur Spindelachse: {z_lcs}")
+pruefe((x_lcs + spindel.richtung).Length < 1e-9, f"gewinkelter nicht zum Futter: {x_lcs}")
+v = vf.Verfahren(asm, kette)
+gebaut_xz = (v.stellung(achse["X"]), v.stellung(achse["Z"]))
+pruefe(abs(gebaut_xz[0] - 195) < 1e-6 and abs(gebaut_xz[1] - 285) < 1e-6, f"X, Z: {gebaut_xz}")
+v.setze_alle({achse["X"]: 0.0, achse["Z"]: 0.0})
+p1 = m.globale_platzierung(next(a for a in plaetze if a.Platz == 1).Lcs)
+abstand = p1.Base - spindel.ursprung
+laengs = abstand.dot(spindel.richtung)
+quer = (abstand - spindel.richtung * laengs).Length
+pruefe(quer < 1e-6 and abs(laengs) < 1e-6, f"Sternrevolver P1 auf X 0, Z 0: {quer}, {laengs}")
+warnungen = [x.text for x in m.pruefe(ma, kette) if x.schwere != HINWEIS]
+pruefe(not warnungen, f"Sternrevolver, Warnungen: {warnungen}")
+# Für „Rundum schruppen“ (radial aus +X): ein gerader Halter kommt dort radial, „VDI30
+# angetrieben radial“ nicht – der gelbe Satz rät dann zum geraden (P-2026-09-30-52).
+v.grundstellung()
+pruefung = rw.Pruefung(asm, ma)
+_aufnahme, gerade = pruefung.kommt_aus(1, App.Vector(1, 0, 0))
+gewinkelt = rw.Einspannung(0.0, hl.lage(hl.aus_vorlage("vdi30_radial")))
+_aufnahme, mit_winkel = pruefung.kommt_aus(1, App.Vector(1, 0, 0), gewinkelt)
+pruefe(gerade and not mit_winkel, f"Sternrevolver radial: gerade {gerade}, gewinkelt {mit_winkel}")
+App.closeDocument(doc.Name)
+
 # Ohne Y-Winkel keine schräge Achse; die Vorgaben sind die des Beispiels.
 asm, ma = beispielmaschine.lade(
     beispielmaschine.DREHMASCHINE, beispielmaschine.DrehmaschinenMasse()
@@ -251,10 +300,25 @@ falsch = beispielmaschine.DrehmaschinenMasse(
     weg_z=(-20000, 10),
     plaetze=3,
     drehzahl=0,
+    revolver="stern",
+    scheibe=100,
+    vdi=33,
 )
 felder = [feld for feld, _schluessel in falsch.fehler()]
 pruefe(
-    felder == ["bettneigung", "y_winkel", "weg_x", "weg_y", "weg_z", "plaetze", "drehzahl"],
+    felder
+    == [
+        "bettneigung",
+        "y_winkel",
+        "weg_x",
+        "weg_y",
+        "weg_z",
+        "plaetze",
+        "drehzahl",
+        "revolver",
+        "scheibe",
+        "vdi",
+    ],
     f"ungültige Maße: {felder}",
 )
 

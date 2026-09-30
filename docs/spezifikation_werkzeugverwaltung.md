@@ -334,6 +334,60 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    [spezifikation_halter.md](spezifikation_halter.md) (Manuels
    Entscheidungen vom 2026-09-26, P-2026-09-26-93).
 
+5. **Bestückung an der Maschine** (Stufe F) – Manuel, 2026-09-30: „wie kann ich
+   das werkzeug wieder entladen aber ich wills nicht löschen ich will nur nicht
+   das es einen platz belegt ... daher gabs ja auch die unterscheidung zwischen p
+   und t“; auf die Wahl zwischen „ohne Nummer = nicht geladen“ (A) und
+   „Bestückung P1 … Pn an der Maschine“ (B): „berücksichtigung an der
+   Maschine“ – also B. Bisher gilt T-Nummer = Platz (T3 sitzt auf P3,
+   spezifikation_halter.md 11.6, Punkt 4), und die Nummer steht am Werkzeug –
+   ein Werkzeug ohne Platz gibt es nicht, zwei mit derselben Nummer auch nicht.
+
+   **Das Modell:**
+   - Die **Werkzeugverwaltung** ist der Werkzeugschrank: Form, Halter,
+     Schnittwerte. Die **Nummer** am Werkzeug wird freiwillig – leer heißt
+     „nicht geladen“; sie gilt nur noch, wo keine Maschine bestückt ist (etwa
+     ein 3-Achs-Job ohne Maschine). „Jede Nummer nur einmal“ gilt nur unter
+     Werkzeugen mit Nummer.
+   - Die **Bestückung** steht an der **Maschine** (im Dokument der Maschine,
+     mit ihr gespeichert): je Platz P1 … Pn ein Werkzeug aus dem Schrank oder
+     leer. Ein Werkzeug steht höchstens auf einem Platz einer Maschine; auf
+     einer anderen Maschine kann es auf einem anderen Platz stehen.
+   - Im **Programm** ist T am Revolver der Platz (Fanuc `T0303`, Siemens ohne
+     Werkzeugverwaltung `T3 D1`, Haas `T303`) – der Werkzeug-Controller eines
+     Jobs auf dieser Maschine bekommt die Nummer des Platzes. Steuerungen mit
+     eigener Werkzeugverwaltung (Magazin, `T="Name"`) folgen mit W-005.
+
+   **Schritte:**
+   - **F1 – Bestückung in „Maschine bearbeiten“:** ein Abschnitt „Bestückung“
+     mit einer Zeile je Platz: P3, darin eine Auswahl der Werkzeuge aus dem
+     Schrank („– leer –“ oben), daneben „Werkzeugverwaltung …“. Gespeichert am
+     Maschinenobjekt (Platz → Kennung des Werkzeugs). Beim Bau einer Maschine
+     (und beim ersten Öffnen einer älteren ohne Bestückung) wird sie aus den
+     Nummern vorbelegt: T3 kommt auf P3 – so ändert sich für niemanden etwas,
+     bis er umsteckt.
+   - **F2 – Werkzeugverwaltung:** Nummer darf leer sein (Liste zeigt „–“ statt
+     „T3“), „Jede Nummer nur einmal“ nur unter Werkzeugen mit Nummer, ein Knopf
+     „Nummer entfernen (entladen)“ neben dem Feld.
+   - **F3 – Jobs:** Der 4-Achs-Assistent bietet die Werkzeuge der gewählten
+     Maschine an („P3 · Kugelfräser Ø 16 …“); nicht bestückte grau, mit „auf
+     Platz …“ (freien Platz wählen, die Bestückung ändert sich mit). Der
+     Controller bekommt die Nummer des Platzes. Ohne Maschine wie bisher.
+   - **F4 – Prüfen:** Das Prüffenster nimmt den Platz aus der Nummer des
+     Controllers (wie bisher) und sagt, wenn laut Bestückung dort ein anderes
+     Werkzeug sitzt („Auf P3 steckt laut Maschine T… – im Job ist es …“).
+
+   **Entscheidungen (Claude, zur Besprechung):**
+   - F-E1 Wo steht die Bestückung? (a) an der Maschine – **Empfehlung**, sie
+     gehört zur Maschine, mehrere Maschinen können verschieden bestückt sein;
+     (b) im Werkzeugschrank – eine Bestückung für alle Maschinen.
+   - F-E2 Die Nummer am Werkzeug: (a) freiwillig, nur ohne Maschine –
+     **Empfehlung**, alte Jobs und 3-Achs-Jobs ohne Maschine laufen weiter;
+     (b) ganz weg – dann bräuchte jeder Job eine bestückte Maschine.
+   - F-E3 Neue Maschine: (a) Bestückung aus den Nummern vorbelegen –
+     **Empfehlung**, nichts ändert sich ungefragt; (b) leer – jeder bestückt
+     selbst.
+
 ## 11. Entscheidungen (Claude, zur Besprechung)
 
 Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.

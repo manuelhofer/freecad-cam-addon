@@ -1993,12 +1993,17 @@ class VierachsPanel:
             return html.escape(tr("va.lage.kein_platz", werkzeug=name, maschine=eintrag.name))
         if radial:
             return ""
-        satz = tr(
-            "va.lage.nicht_radial",
-            werkzeug=name,
-            aufnahme=m.name_von(aufnahme),
-            richtung=rw.richtung_text(richtung),
-        )
+        # Steht die Aufnahme selbst radial (Sternrevolver), hilft ein gerader Halter.
+        _aufnahme, gerade = pruefung.kommt_aus(werkzeug.nummer, richtung)
+        werte = {
+            "werkzeug": name,
+            "aufnahme": m.name_von(aufnahme),
+            "richtung": rw.richtung_text(richtung),
+        }
+        if gerade:
+            satz = tr("va.lage.nicht_radial_gerade", **werte)
+        else:
+            satz = tr("va.lage.nicht_radial", **werte)
         verweis = html.escape(tr("rw.werkzeug_oeffnen", werkzeug=name), quote=False)
         return (
             f'{html.escape(satz, quote=False)} <a href="werkzeug:{werkzeug.nummer}">{verweis}</a>'

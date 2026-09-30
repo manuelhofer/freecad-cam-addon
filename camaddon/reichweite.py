@@ -802,15 +802,18 @@ class Pruefung:
         elif radial is not None:
             # Eine Bahn von „Rundum schruppen“ ist für ein radiales Werkzeug gerechnet.
             if not self._werkzeug_aus(aufnahme, grundstellung, radial, eingespannt):
-                sammler.hinweis(
-                    tr(
-                        "rw.werkzeug_radial",
-                        operation=op.Label,
-                        werkzeug=f"T{nummer}",
-                        aufnahme=m.name_von(aufnahme),
-                        richtung=richtung_text(radial),
-                    )
-                )
+                # Steht die Aufnahme selbst radial (Sternrevolver, P-2026-09-30-52), hilft ein
+                # gerader Halter – sonst ein gewinkelter.
+                werte = {
+                    "operation": op.Label,
+                    "werkzeug": f"T{nummer}",
+                    "aufnahme": m.name_von(aufnahme),
+                    "richtung": richtung_text(radial),
+                }
+                if self._werkzeug_aus(aufnahme, grundstellung, radial):
+                    sammler.hinweis(tr("rw.werkzeug_radial_gerade", **werte))
+                else:
+                    sammler.hinweis(tr("rw.werkzeug_radial", **werte))
         elif self._werkzeug_quer(aufnahme, grundstellung, eingespannt):
             sammler.hinweis(
                 tr(

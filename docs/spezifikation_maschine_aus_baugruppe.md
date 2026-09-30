@@ -539,5 +539,18 @@ diesen Dialog heißt das konkret:
   Wege, fährt die Maschine hinein. Vorgabe X −25 … 425, Z 0 … 520 – dieselben
   Wege wie vorher (−300 … 150, −220 … 300 ab der gebauten Stellung). Die
   Wege lassen sich bis 10 m eintragen (P-2026-09-30-46). Offen: die Steuerung
-  zeigt X oft als Durchmesser (E4 in `spezifikation_steuerung.md`), und ein
-  Revolver mit VDI am Umfang (Sternrevolver) hat einen anderen Bezugspunkt.
+  zeigt X oft als Durchmesser (E4 in `spezifikation_steuerung.md`).
+- **Revolverart, Scheiben-Ø und VDI-Größe in „Neue Maschine“** (Manuel,
+  2026-09-30: „1 ja“, P-2026-09-30-52). **VDI in der Stirn** (axial, wie
+  Manuels Scheibenrevolver): die Aufnahmen im Kreis an der Stirn, 40 mm
+  innerhalb des Rands; am Umfang nichts – die angedeuteten Stationen dort
+  (D-46) stießen an Manuels Teil an, die gibt es an so einem Revolver nicht.
+  **VDI am Umfang** (radial, Sternrevolver): die Aufnahmen auf dem Rand,
+  radial; ein gerader Halter steht radial, ein gewinkelter zeigt zum Futter
+  (X des LCS: dorthin kippt ein gewinkelter Halter, `halter.lage`) – Manuel:
+  „wo der winkel kopf dafür da ist vorne sozusagen paralel zur maschinen z
+  achse zu fräsen“. Der Bezugspunkt ist bei beiden die Achse der Aufnahme an
+  ihrer Stirn (wo der Halter anliegt); gebaut steht der Sternrevolver bei
+  X 225 und Z 285 (Scheibe Ø 340). Scheiben-Ø 240 … 600 mm, VDI 20 … 60. Der
+  gelbe Satz „nicht radial“ rät zum geraden Halter, wo die Aufnahme selbst
+  radial steht.

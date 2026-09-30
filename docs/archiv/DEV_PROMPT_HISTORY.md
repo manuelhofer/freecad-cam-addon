@@ -12,6 +12,76 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-52 revolverart
+
+### EINGELESEN
+- Manuel, 2026-09-30, auf die Frage nach der Revolverart in „Neue Maschine“ („VDI in der
+  Stirn“ wie seiner oder „VDI am Umfang“ wie der Sternrevolver, dazu Scheiben-Ø und
+  VDI-Größe): „1 ja“.
+- Davor, mit Bild einer Kollision „Revolver berührt das Teil“: „bei dem revolver den ich
+  habe ist das nicht möglich“. Und zum Sternrevolver: „wo der winkel kopf dafür da ist vorne
+  sozusagen paralel zur maschinen z achse zu fräsen“.
+- `camaddon/beispielmaschine.py` (Revolver in `drehmaschine`, `DrehmaschinenMasse`),
+  `camaddon/halter.py` (`lage`: ein gewinkelter Halter kippt das Werkzeug zu X der
+  Aufnahme), `camaddon/gui_neue_maschine.py`, `camaddon/reichweite.py` und
+  `camaddon/gui_vierachs.py` (Hinweis „nicht radial“).
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`, `camaddon/gui_neue_maschine.py`, `camaddon/reichweite.py`,
+  `camaddon/gui_vierachs.py`, `translations/de.json`, `translations/en.json`,
+  `help/de/neue_maschine.html`, `help/en/neue_maschine.html`,
+  `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/spezifikation_werkzeugverwaltung.md`,
+  `tests/test_beispielmaschine.py`, `tests/gui/szenario_neue_maschine.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Neue Maschine“ → Drehmaschine hat drei neue Zeilen: Revolver (VDI in der Stirn / am Umfang),
+Scheiben-Ø und VDI-Größe. Mit „VDI am Umfang“ stehen die Aufnahmen radial auf dem Rand. Ein
+gerader Halter zeigt dort zur Spindelachse, ein gewinkelter zum Futter. Der Stirnrevolver hat
+am Umfang keine Klötze mehr.
+
+### DONE
+- `_revolver()` baut die Scheibe nach Bauart:
+  - Stirn: die Aufnahmen im Kreis an der Stirn, 40 mm innerhalb des Rands. Am Umfang
+    nichts mehr; die angedeuteten Stationen (D-46) stießen an Manuels Teil an.
+  - Umfang: die Aufnahmen radial auf dem Rand. Das LCS von P1 hat Z radial (gerader Halter
+    zur Spindelachse) und X zum Futter (dorthin kippt ein gewinkelter Halter).
+  - Der Bezugspunkt, bis zu dem X und Z zählen, ist bei beiden die Achse der Aufnahme an
+    ihrer Stirn. Gebaut steht der Sternrevolver bei X 225 und Z 285.
+- `DrehmaschinenMasse`: `revolver`, `scheibe` (240 … 600 mm), `vdi` (20 … 60), je mit einem
+  Satz, wenn es nicht passt.
+- „Neue Maschine“ bekommt die drei Zeilen, jede mit Tooltip.
+  - Der Dialog wuchs beim Wechsel der Bauart nicht mit, und Qt quetschte die Zeilen
+    übereinander, im Bild gesehen und nachgemessen: 567 statt 623 Pixel.
+  - Jetzt passt er seine Größe nach dem Wechsel an und wird nie kleiner als sein Inhalt.
+  - Die Beschreibung der Drehmaschine sagt nun „VDI-Aufnahme … in der Stirn der Scheibe oder
+    am Umfang“.
+- Der gelbe Satz „nicht radial“ (Assistent und Prüffenster) rät zum geraden Halter, wo die
+  Aufnahme selbst radial steht. Sonst nennt er wie bisher „VDI30 angetrieben radial“.
+- Hilfe (de/en) und Spezifikation ergänzt. In der Spezifikation der Werkzeugverwaltung steht
+  der Plan für die Bestückung an der Maschine (Stufe F, Manuel: „berücksichtigung an der
+  Maschine“) mit drei Entscheidungen.
+
+### TEST
+- `test_beispielmaschine`:
+  - Sternrevolver: acht Plätze, Z von P1 radial, X zum Futter, gebaut X 195 und Z 285 bei
+    Scheibe Ø 400. Auf X 0 und Z 0 steht P1 auf der Spindelachse in der Ebene der Spindelnase.
+  - Ein gerader Halter kommt radial aus +X, „VDI30 angetrieben radial“ nicht.
+  - Ungültige Revolverart, Scheibe und VDI-Größe werden erkannt.
+  - Der Stirnrevolver hat keine Stationen am Umfang.
+  - Ok in 1.1.3 und 26.3.
+- Außerdem in 1.1.3 ok: `test_abfahren`, `test_kette`, `test_kinematik`, `test_maschine`,
+  `test_reichweite`, `test_restmaterial`, `test_schraege_achse`, `test_vierachs_achsen`,
+  `test_vierachs_pruefen`, `test_kollision`, `test_sprache`, `test_hilfe`. In 26.3 ok:
+  `test_reichweite`, `test_sprache`, `test_hilfe`.
+- Die 21 Szenarien mit Beispielmaschinen in 1.1.3: ok.
+- `szenario_neue_maschine`, jetzt auch mit einem Sternrevolver: ok in 1.1.3 und 26.3. Bilder
+  angesehen: der Dialog ungequetscht, die Aufnahmen rundum am Umfang.
+
+### NEXT
+- Umschalter Ø/Radius für X an der Maschine (Manuel: „wichtig ist ja nur was dann beim
+  Postprozess raus kommt“), dann Bestückung (Stufe F).
+
 ## P-2026-09-30-51 version-0-31-4
 
 ### EINGELESEN

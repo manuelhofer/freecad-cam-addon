@@ -34,10 +34,20 @@ along the spindle axis. <b>Y</b> from the spindle centre; 0 lies in between.
 These become the limits of the joints. The machine is built at X 275 and Z
 220 mm; if that lies outside your travels, it moves inside.</li>
 <li><b>Turret stations</b> – the addon distributes this many stations in a
-circle on the face of the turret disc (P1 … Pn), each a VDI30 mount on the
-tool drive S3, with a block on the outside of the disc. The turret carries no fixed holders: how a tool stands is up to
-its holder in the tool manager – “VDI30 driven radial” puts it radial to the
-spindle axis, a straight one along Z.</li>
+circle (P1 … Pn), each a VDI mount on the tool drive S3. The turret carries no
+fixed holders: how a tool stands is up to its holder in the tool manager.</li>
+<li><b>Turret</b> – where the mounts sit. <b>VDI in the face</b> (axial): the
+holders go into the disc along Z – a straight holder drills along Z, an angled
+one (“VDI30 driven radial”) stands radial to the spindle axis. <b>VDI on the
+circumference</b> (radial, star turret): the holders go in radially – a
+straight holder stands radial to the spindle axis, an angle head mills along Z,
+towards the chuck. “All-round roughing” needs a radial tool; the yellow
+sentence in the 4-axis wizard says which holder fits.</li>
+<li><b>Disc Ø</b> – the diameter of the turret disc (240 … 600 mm). Mounts in
+the face lie 40 mm inside the edge, those on the circumference on the edge.</li>
+<li><b>VDI size</b> – the shank Ø of the holders (VDI 20 … 60), the size of
+the ring around each mount. Choose the holders to match in the tool
+manager.</li>
 <li><b>Maximum speed</b> – of the main spindle.</li>
 </ul>
 <h3>The dimensions of the 3-axis mill</h3>

@@ -8,7 +8,8 @@
 # 30°, Weg X −80 … 120 mm, Z bis 2500 mm (eingetippt – lange Maschinen), 8 Plätzen und
 # 4000 U/min entsteht ein neues
 # Dokument; „Maschine bearbeiten“ öffnet sich mit der schrägen Achse
-# „Y1 – gleicht aus: X1, 30,0°“ und acht Revolverplätzen.
+# „Y1 – gleicht aus: X1, 30,0°“ und acht Revolverplätzen. Dann ein Sternrevolver: VDI am
+# Umfang, Scheibe Ø 400, VDI 40, acht Plätze.
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
@@ -135,6 +136,55 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
     yield 300
     h.bild("5_gebaut_bearbeiten")
+    panel.reject()
+    yield 500
+    for name in list(FreeCAD.listDocuments()):
+        FreeCAD.closeDocument(name)
+    yield 300
+
+    # Ein Sternrevolver (Manuel, 2026-09-30, P-2026-09-30-52): VDI am Umfang, Scheibe Ø 400,
+    # VDI 40, acht Plätze – die Aufnahmen stehen radial auf dem Rand der Scheibe.
+    alt = panel
+    yield from h.warte_auf(lambda: gui_maschine.MaschinenPanel.offen is not alt)
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_NeueMaschine"))
+    yield from h.warte_auf(lambda: gui_neue_maschine.NeueMaschineDialog.offen is not None)
+    d = gui_neue_maschine.NeueMaschineDialog.offen
+    if d is None:
+        h.pruefe(False, "„Neue Maschine …“ öffnet beim zweiten Mal keinen Dialog")
+        return
+    d.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.DREHMASCHINE))
+    yield 200
+    h.pruefe(
+        d.wahl_revolver.isVisible() and d.feld_scheibe.isVisible() and d.wahl_vdi.isVisible(),
+        "Revolver, Scheibe oder VDI fehlen",
+    )
+    d.wahl_revolver.setCurrentIndex(d.wahl_revolver.findData(beispielmaschine.REVOLVER_UMFANG))
+    d.feld_scheibe.setValue(400)
+    d.wahl_vdi.setCurrentIndex(d.wahl_vdi.findData(40))
+    d.feld_plaetze.setValue(8)
+    d.feld_name.setText("Sternrevolver")
+    yield 200
+    masse = d.masse()
+    h.pruefe(
+        (masse.revolver, masse.scheibe, masse.vdi, masse.plaetze)
+        == (beispielmaschine.REVOLVER_UMFANG, 400.0, 40, 8),
+        f"Maße: {masse}",
+    )
+    h.bild("6_sternrevolver_masse", d)
+    d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
+    yield from h.warte_auf(lambda: gui_maschine.MaschinenPanel.offen not in (None, alt))
+    panel = gui_maschine.MaschinenPanel.offen
+    h.pruefe(
+        panel not in (None, alt), "„Maschine bearbeiten“ öffnet sich nach dem Sternrevolver nicht"
+    )
+    if panel in (None, alt):
+        return
+    kopf = panel.aufnahmen.topLevelItem(0).text(0) if panel.aufnahmen.topLevelItemCount() else ""
+    h.pruefe(kopf.endswith("8 Plätze"), f"Sternrevolver: {kopf!r}")
+    Gui.ActiveDocument.ActiveView.viewIsometric()
+    Gui.SendMsgToActiveView("ViewFit")
+    yield 300
+    h.bild("7_sternrevolver_gebaut")
     panel.reject()
     yield 500
     for name in list(FreeCAD.listDocuments()):
