@@ -801,6 +801,16 @@ die Abstände gelten für beide.
   Doppelklick auf „Rundum schlichten“ öffnet es zum Ändern; beim Ändern von
   „Rundum schruppen“ lässt sich „Rundum schlichten“ dazunehmen – so bekommt
   ein Job aus 0.27 sein Schlichten.
+  *Gebaut (P-2026-09-30-05):* Schritt 2 mit Werkstoff und
+  „Werkzeugverwaltung …“ oben (gelten für beide), „Rundum schruppen“, „Rundum
+  schlichten“ und „Abstände“; die Beschriftungen aller Blöcke gleich breit.
+  „Rundum schlichten“ ist vorgewählt, wenn ein Fräser einen Einsatz
+  „Schlichten“ hat – ohne einen bleibt es aus, wie bisher. Die Vorschau des
+  Schlichtens rechnet grob (0,05 mm Netz, alle 2° ein Punkt, ohne den Rest
+  nach dem Schruppen): „→ 365 Umdrehungen, etwa 1 h 35 min“ in Bruchteilen
+  einer Sekunde; die Operation rechnet dann genau. Controller und Operationen
+  beider Bearbeitungen sind ein Schritt Rückgängig. Beim Ändern des
+  Schlichtens ist das Schruppen ausgeblendet.
 - **V5e – Simulation und Kollision:** Abtrag und Farben (V3g) auch für
   „Rundum schlichten“, mit der Form des Fräsers; verglichen wird mit dem
   Aufmaß der letzten Bearbeitung. Abfahren und Kollision nehmen die Schneide

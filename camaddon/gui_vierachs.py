@@ -10,12 +10,14 @@ wird in vierachs_rohteil.py. Jede Eingabe geht sofort ins Dokument – wie in
 Schritt 2, „Was willst du machen?“ (Stufe V3d, Manuels Wunsch): „Rundum
 schruppen“ mit einem Fräser aus der Werkzeugverwaltung – Werkstoff, Einsatz,
 Zustellung, Vorschub je Umdrehung und Aufmaß, dazu die Vorschau „→ 5 Lagen“.
-Überlauf, Abstand zum Futter und Sicherheitsabstand (V3f) stehen mit Vorschlag
-darunter; die Stange ragt so weit aus dem Futter, wie Teil, Überlauf, Fräser und
-Abstand es brauchen – ein Satz sagt, wie weit.
-„Anlegen“ legt Job, Stange, Werkzeug-Controller und die Operation
-(vierachs_operation) als einen Schritt Rückgängig an; „Abbrechen“ verwirft
-alles.
+Darunter „Rundum schlichten“ (V5d): Fräser jeder Form, die das Addon kennt
+(fraeserform), Einsatz, Schrittweite aus der Werkzeugtabelle mit der Kammhöhe,
+Aufmaß, dazu grob gerechnet Umdrehungen und Zeit. Überlauf, Abstand zum Futter
+und Sicherheitsabstand (V3f) gelten für beide; die Stange ragt so weit aus dem
+Futter, wie Teil, Überlauf, Fräser und Abstand es brauchen – ein Satz sagt, wie
+weit. „Anlegen“ legt Job und Stange als einen Schritt Rückgängig an, Controller
+und Operationen (vierachs_operation, vierachs_schlichten) als einen zweiten;
+„Abbrechen“ verwirft alles.
 
 Leere Felder gelten mit ihrem grauen Vorschlag (Manuel: „alles einstellbar,
 aber mit Vorschlägen als Standard“). Was man einträgt, ist beim nächsten Mal
@@ -23,11 +25,12 @@ der Vorschlag – außer dem Stangen-Ø, der hängt am Teil.
 
 Nachträglich ändern (Manuel, 2026-09-29: „wenn ich jetzt hier nochmal
 schnittwerte ändern will oder anders werkzeug komme ich nicht mehr in die maske
-rein“): Doppelklick auf „Rundum schruppen“ – oder die Operation bzw. ihren Job
-wählen und den Knopf drücken – öffnet Schritt 2 mit Fräser, Einsatz und Werten
-der Operation; „Zurück“ führt zu Stange, Mitte und Rundachse, wie sie im Job
-stehen. „Übernehmen“ ändert die Operation als einen Schritt Rückgängig, eine
-geänderte Stange als einen zweiten davor.
+rein“): Doppelklick auf „Rundum schruppen“ oder „Rundum schlichten“ – oder die
+Operation bzw. ihren Job wählen und den Knopf drücken – öffnet Schritt 2 mit
+Fräser, Einsatz und Werten der Operation; „Zurück“ führt zu Stange, Mitte und
+Rundachse, wie sie im Job stehen. „Übernehmen“ ändert die Operation als einen
+Schritt Rückgängig, eine geänderte Stange als einen zweiten davor. Beim
+Schruppen lässt sich dabei ein Schlichten dazunehmen.
 """
 
 import math
@@ -37,12 +40,14 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, symbol
+from . import fraeserform as ff
 from . import job_schnittwerte as js
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_rohteil as vr
+from . import vierachs_schlichten as vs
 from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_maschine import _EnterBleibtImDialog
@@ -81,6 +86,9 @@ GEMERKT = {
 }
 GEMERKT_RUNDACHSE = "VaRundachse"
 GEMERKT_FRAESER = "VaFraeser"  # Kennung des zuletzt gewählten Fräsers
+GEMERKT_SCHLICHTFRAESER = "VaSchlichtfraeser"  # … des zuletzt gewählten Schlichtfräsers
+# Welche Bearbeitung man ändert.
+SCHRUPPEN, SCHLICHTEN = "schruppen", "schlichten"
 
 # Welche Werkzeuge „Rundum schruppen“ anbietet: Die Hüllfläche rechnet mit der
 # Stirn als Scheibe – für jedes dieser Werkzeuge sicher (vierachs_huelle).
@@ -371,6 +379,42 @@ def _cos_pi(anteil):
     return math.cos(math.pi * anteil)
 
 
+class _Reihen:
+    """Ein Raster aus Reihen „Beschriftung – Feld“ für Schritt 2."""
+
+    def __init__(self):
+        self.widget = QtGui.QWidget()
+        self.raster = QtGui.QGridLayout(self.widget)
+        self.raster.setContentsMargins(0, 0, 0, 0)
+        self.zeile = 0
+        self._beschriftungen = []
+
+    def reihe(self, text, tooltip, feld, breite=2):
+        etikett = QtGui.QLabel(text)
+        etikett.setToolTip(tooltip)
+        feld.setToolTip(tooltip)
+        self.raster.addWidget(etikett, self.zeile, 0)
+        self.raster.addWidget(feld, self.zeile, 1, 1, breite)
+        self._beschriftungen.append(etikett)
+        self.zeile += 1
+
+    def ganz(self, widget):
+        """Ein Widget unter den Feldern, über ihre ganze Breite."""
+        self.raster.addWidget(widget, self.zeile, 1, 1, 2)
+        self.zeile += 1
+
+    def breite_beschriftung(self):
+        return max((e.sizeHint().width() for e in self._beschriftungen), default=0)
+
+
+def _zeit_text(minuten):
+    """„56 min“, „2 h 44 min“ – auf ganze Minuten."""
+    gesamt = max(1, int(round(minuten)))
+    if gesamt < 60:
+        return tr("va.zeit.min", min=gesamt)
+    return tr("va.zeit.h", h=gesamt // 60, min=gesamt % 60)
+
+
 class VierachsPanel:
     """Das Aufgabenfenster. FreeCAD ruft `getStandardButtons`, `modifyStandardButtons`,
     `accept` und `reject` auf."""
@@ -406,6 +450,12 @@ class VierachsPanel:
         self._tc_vorher = operation.ToolController if operation is not None else None
         self._achse_fest = achse_der_operation(operation) if operation is not None else None
         self._vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation ("": keiner)
+        self._vorwahl_schlichten = None  # dasselbe, wenn man „Rundum schlichten“ ändert
+        self._art = SCHLICHTEN if vs.ist_schlichten(operation) else SCHRUPPEN
+        self._schlichtfraeser = []  # die Werkzeuge in der Auswahl „Fräser“ beim Schlichten
+        self._schlichteinsaetze = []
+        self.vorschau_schlichten = None  # die grobe Schlichtbahn (vierachs_bahn.Schlichtbahn)
+        self._schlichten_vorgewaehlt = False  # der Haken „Rundum schlichten“ ist gesetzt
         self._transaktion_offen = False  # beim Ändern: Schritt 1 hat etwas geändert
         self._stange_jetzt = None  # die Stange, wie sie zuletzt in den Job kam
         self._stange_vorher = None  # beim Ändern: wie die Stange aussah (DisplayMode, …)
@@ -433,10 +483,34 @@ class VierachsPanel:
         """Schritt 2 mit Fräser, Einsatz und Werten der Operation; „Zurück“ führt zu Schritt 1,
         wie der Job eingerichtet ist (vierachs_rohteil.einstellung). Lässt sich das nicht
         zurückrechnen – der Job sieht nicht mehr aus, wie der Assistent ihn anlegt –, bleibt
-        Schritt 1 zu. „Rundum schruppen“ bleibt angehakt – weg geht die Operation mit Entf
-        im Baum."""
+        Schritt 1 zu. Die Bearbeitung bleibt angehakt – weg geht sie mit Entf im Baum. Beim
+        Schruppen lässt sich „Rundum schlichten“ dazunehmen, solange der Job keins hat; beim
+        Schlichten ist das Schruppen ausgeblendet."""
         self.job = job_von(self.zu_aendern)
         self.mit_schruppen.setEnabled(False)
+        self.mit_schlichten.setEnabled(False)
+        if self._art == SCHLICHTEN:
+            self.mit_schruppen.setChecked(False)
+            self.mit_schlichten.setChecked(True)
+            for teil in (
+                self.mit_schruppen,
+                self.erklaerung_schruppen,
+                self.schruppfelder,
+                self.ergebnis,
+                self.hinweis_rund,
+            ):
+                teil.hide()
+            erklaerung = self.erklaerung_schlichten
+        else:
+            schon = [o for o in js.operationen(self.job) if vs.ist_schlichten(o)]
+            self.mit_schlichten.setChecked(False)
+            self.mit_schlichten.setEnabled(not schon)
+            self.erklaerung_schlichten.setText(
+                tr("va.schlichten.schon", name=schon[0].Label)
+                if schon
+                else tr("va.schlichten.dazu")
+            )
+            erklaerung = self.erklaerung_schruppen
         text = tr("va.aendern.text")
         einstellung = vr.einstellung(self.job) if self.job is not None else None
         if einstellung is not None and gleich(einstellung.laengs, self._achse_fest.laengs):
@@ -445,12 +519,16 @@ class VierachsPanel:
         else:
             self.knopf_zurueck.hide()
             text += " " + tr("va.aendern.rohteil_fest")
-        self.erklaerung_schruppen.setText(text)
+        erklaerung.setText(text)
         self._auffrischen()
         self.zeige_seite(2)
         self._werte_der_operation()
-        fraeser = self.fraeser()
-        if self._tc_vorher is not None and (fraeser is None or fraeser.kennung != self._vorwahl):
+        fraeser, vorwahl = (
+            (self.schlichtfraeser(), self._vorwahl_schlichten)
+            if self._art == SCHLICHTEN
+            else (self.fraeser(), self._vorwahl)
+        )
+        if self._tc_vorher is not None and (fraeser is None or fraeser.kennung != vorwahl):
             self.hinweis_aendern.setText(
                 tr("va.aendern.werkzeug_fehlt", controller=self._tc_vorher.Label)
             )
@@ -506,21 +584,30 @@ class VierachsPanel:
         self.wahl_achse.setEnabled(True)
 
     def _werte_der_operation(self):
-        """Zustellung, Vorschub je Umdrehung und Aufmaß der Operation in die Felder – leer,
-        wo sie dem Vorschlag gleichen: dann folgen sie ihm wie beim Anlegen."""
+        """Die Werte der Operation in die Felder – leer, wo sie dem Vorschlag gleichen: dann
+        folgen sie ihm wie beim Anlegen. Der Überlauf ist leer, wenn er Radius + 0,5 mm ihres
+        Fräsers ist."""
         op = self.zu_aendern
-        for feld, wert in (
-            ("zustellung", op.Zustellung),
-            ("steigung", op.VorschubJeUmdrehung),
-            ("aufmass", op.Aufmass),
-            ("ueberlauf", op.Ueberlauf),
-            ("abstand_futter", op.AbstandFutter),
-            ("sicherheit", op.Sicherheitsabstand),
-        ):
+        if self._art == SCHLICHTEN:
+            paare = [
+                ("schrittweite", op.Schrittweite),
+                ("aufmass_schlichten", op.Aufmass),
+            ]
+        else:
+            paare = [
+                ("zustellung", op.Zustellung),
+                ("steigung", op.VorschubJeUmdrehung),
+                ("aufmass", op.Aufmass),
+            ]
+        paare += [("abstand_futter", op.AbstandFutter), ("sicherheit", op.Sicherheitsabstand)]
+        for feld, wert in paare:
             wert = float(wert)
             if abs(wert - self._vorschlag(feld)) > 1e-6:
                 text = groesse_zeigen(wert, einheiten.LAENGE) or "0"  # Aufmaß 0 ist eine Zahl
-                self.felder_schruppen[feld].setText(text)
+                self._feld(feld).setText(text)
+        ueberlauf = float(op.Ueberlauf)
+        if abs(ueberlauf - vb.ueberlauf_vorschlag(float(op.OpToolDiameter) / 2)) > 1e-6:
+            self._feld("ueberlauf").setText(groesse_zeigen(ueberlauf, einheiten.LAENGE) or "0")
 
     # --- Schnittstelle zu FreeCAD ---------------------------------------------
 
@@ -572,16 +659,16 @@ class VierachsPanel:
         if self.seite == 1:
             self.zeige_seite(2)
             return False  # „Weiter“: das Fenster bleibt offen
-        schruppen = self.mit_schruppen.isChecked()
-        if schruppen and not self._schruppen_pruefen():
+        schruppen, schlichten = self._gewaehlt()
+        if (schruppen or schlichten) and not self._bearbeitung_pruefen():
             return False  # der Grund steht rot im Fenster
-        # Job und Stange: ein Schritt Rückgängig. Das Schruppen kommt in einem eigenen
-        # (_schruppen_anlegen) – in einen gemeinsamen lässt FreeCAD es nicht (_im_befehl).
+        # Job und Stange: ein Schritt Rückgängig. Die Bearbeitungen kommen in einem eigenen
+        # (_bearbeitungen_anlegen) – in einen gemeinsamen lässt FreeCAD es nicht (_im_befehl).
         self._anzeige_wie_in_cam()
         self._maschine_merken()
         self.doc.commitTransaction()
         self._rohteil_fest = True
-        if schruppen and not self._schruppen_anlegen():
+        if (schruppen or schlichten) and not self._bearbeitungen_anlegen():
             self._stange_anzeigen(*STANGE_ANZEIGE, waehlbar=False)
             self.doc.openTransaction(tr("va.titel"))  # für weitere Eingaben
             return False
@@ -594,18 +681,19 @@ class VierachsPanel:
 
     def _uebernehmen(self):
         """Beim Ändern: in Schritt 1 „Weiter“; in Schritt 2 „Übernehmen“ – eine geänderte
-        Stange als eigener Schritt Rückgängig (wie beim Anlegen), dann die Operation, und
-        schließen. Geht es nicht, bleibt das Fenster offen (der Grund steht rot darin)."""
+        Stange als eigener Schritt Rückgängig (wie beim Anlegen), dann die Operation (und ein
+        dazugenommenes Schlichten), und schließen. Geht es nicht, bleibt das Fenster offen (der
+        Grund steht rot darin)."""
         if self.seite == 1:
             self.zeige_seite(2)
             return False
-        if not self._schruppen_pruefen():
+        if not self._bearbeitung_pruefen():
             return False
         if self._transaktion_offen:
             self.doc.commitTransaction()
             self._transaktion_offen = False
             self._rohteil_fest = True
-        if not self._schruppen_aendern():
+        if not self._aendern():
             return False
         self._vor_dem_schliessen()
         self._stange_zurueck()
@@ -769,91 +857,156 @@ class VierachsPanel:
         return ruhiges_mausrad(form)
 
     def _baue_bearbeitung(self):
-        """Schritt 2: Was willst du machen? – zuerst „Rundum schruppen“."""
+        """Schritt 2: Was willst du machen? – der Werkstoff für beide, „Rundum schruppen“,
+        „Rundum schlichten“ (V5d) und die Abstände für beide."""
         seite = QtGui.QWidget()
         aufbau = QtGui.QVBoxLayout(seite)
         aufbau.setContentsMargins(0, 0, 0, 0)
-        self.mit_schruppen = QtGui.QCheckBox(tr("va.schruppen"))
+
+        def zahlenfeld(felder, name, text, tooltip, reihen):
+            eingabe = QtGui.QLineEdit()
+            eingabe.setValidator(Zahlenpruefer(eingabe))
+            eingabe.textChanged.connect(lambda _text: self._vorschau_starten())
+            felder[name] = eingabe
+            reihen.reihe(text, tooltip, mit_einheit(eingabe, einheiten.einheit(einheiten.LAENGE)))
+
+        def haken(text, tooltip, umgeschaltet):
+            kasten = QtGui.QCheckBox(text)
+            kasten.setToolTip(tooltip)
+            schrift = kasten.font()
+            schrift.setBold(True)
+            kasten.setFont(schrift)
+            kasten.toggled.connect(umgeschaltet)
+            aufbau.addWidget(kasten)
+            return kasten
+
+        def grau(text=""):
+            etikett = self._grau()
+            etikett.setText(text)
+            etikett.setWordWrap(True)
+            aufbau.addWidget(etikett)
+            return etikett
+
+        # Werkstoff und Werkzeugverwaltung gelten für beide Bearbeitungen.
+        oben = _Reihen()
+        self.wahl_werkstoff = QtGui.QComboBox()
+        self.wahl_werkstoff.currentIndexChanged.connect(lambda _i: self._werkstoff_gewaehlt())
+        oben.reihe(tr("va.werkstoff"), tr("va.werkstoff.tooltip"), self.wahl_werkstoff)
+        zeile = QtGui.QWidget()
+        knoepfe = QtGui.QHBoxLayout(zeile)
+        knoepfe.setContentsMargins(0, 0, 0, 0)
+        knoepfe.addWidget(
+            knopf(
+                tr("va.werkzeugverwaltung"),
+                tr("va.werkzeugverwaltung.tooltip"),
+                self.werkzeugverwaltung,
+            )
+        )
+        knoepfe.addStretch()
+        oben.ganz(zeile)
+        aufbau.addWidget(oben.widget)
+
+        # --- Rundum schruppen ---
+        self.mit_schruppen = haken(
+            tr("va.schruppen"), tr("va.schruppen.tooltip"), self._schruppen_umgeschaltet
+        )
         self.mit_schruppen.setChecked(True)
-        self.mit_schruppen.setToolTip(tr("va.schruppen.tooltip"))
-        schrift = self.mit_schruppen.font()
-        schrift.setBold(True)
-        self.mit_schruppen.setFont(schrift)
-        self.mit_schruppen.toggled.connect(self._schruppen_umgeschaltet)
-        aufbau.addWidget(self.mit_schruppen)
-        self.erklaerung_schruppen = self._grau()
-        self.erklaerung_schruppen.setText(tr("va.schruppen.text"))
-        self.erklaerung_schruppen.setWordWrap(True)
-        aufbau.addWidget(self.erklaerung_schruppen)
+        self.erklaerung_schruppen = grau(tr("va.schruppen.text"))
         self.hinweis_aendern = QtGui.QLabel()  # beim Ändern: der Fräser fehlt
         self.hinweis_aendern.setWordWrap(True)
         self.hinweis_aendern.setStyleSheet(f"color: {ROT};")
         self.hinweis_aendern.hide()
         aufbau.addWidget(self.hinweis_aendern)
-
-        self.schruppfelder = QtGui.QWidget()
-        raster = QtGui.QGridLayout(self.schruppfelder)
-        raster.setContentsMargins(0, 0, 0, 0)
-        zeile = 0
-
-        def reihe(text, tooltip, feld, breite=2):
-            nonlocal zeile
-            etikett = QtGui.QLabel(text)
-            etikett.setToolTip(tooltip)
-            feld.setToolTip(tooltip)
-            raster.addWidget(etikett, zeile, 0)
-            raster.addWidget(feld, zeile, 1, 1, breite)
-            zeile += 1
-
-        self.wahl_werkstoff = QtGui.QComboBox()
-        self.wahl_werkstoff.currentIndexChanged.connect(lambda _i: self._werkstoff_gewaehlt())
-        reihe(tr("va.werkstoff"), tr("va.werkstoff.tooltip"), self.wahl_werkstoff)
+        schruppen = _Reihen()
         self.wahl_fraeser = QtGui.QComboBox()
         self.wahl_fraeser.currentIndexChanged.connect(lambda _i: self._fraeser_gewaehlt())
-        reihe(tr("va.fraeser"), tr("va.fraeser.tooltip"), self.wahl_fraeser, 1)
-        raster.addWidget(
-            knopf(
-                tr("va.werkzeugverwaltung"),
-                tr("va.werkzeugverwaltung.tooltip"),
-                self.werkzeugverwaltung,
-            ),
-            zeile - 1,
-            2,
-        )
+        schruppen.reihe(tr("va.fraeser"), tr("va.fraeser.tooltip"), self.wahl_fraeser)
         self.wahl_einsatz = QtGui.QComboBox()
         self.wahl_einsatz.currentIndexChanged.connect(lambda _i: self._einsatz_gewaehlt())
-        reihe(tr("va.einsatz"), tr("va.einsatz.tooltip"), self.wahl_einsatz)
+        schruppen.reihe(tr("va.einsatz"), tr("va.einsatz.tooltip"), self.wahl_einsatz)
         self.schnittwerte = self._grau()
-        raster.addWidget(self.schnittwerte, zeile, 1, 1, 2)
-        zeile += 1
+        schruppen.ganz(self.schnittwerte)
         self.felder_schruppen = {}
         for feld, text, tooltip in (
             ("zustellung", tr("va.zustellung"), tr("va.zustellung.tooltip")),
             ("steigung", tr("va.steigung"), tr("va.steigung.tooltip")),
             ("aufmass", tr("va.aufmass"), tr("va.aufmass.tooltip")),
+        ):
+            zahlenfeld(self.felder_schruppen, feld, text, tooltip, schruppen)
+        self.schruppfelder = schruppen.widget
+        aufbau.addWidget(self.schruppfelder)
+        self.ergebnis = grau()
+        self.hinweis_rund = grau()  # Kugel- und Torusfräser: wie ein Schaftfräser
+
+        # --- Rundum schlichten (V5d) ---
+        self.mit_schlichten = haken(
+            tr("va.schlichten"), tr("va.schlichten.tooltip"), self._schlichten_umgeschaltet
+        )
+        self.erklaerung_schlichten = grau(tr("va.schlichten.text"))
+        schlichten = _Reihen()
+        self.wahl_schlichtfraeser = QtGui.QComboBox()
+        self.wahl_schlichtfraeser.currentIndexChanged.connect(
+            lambda _i: self._schlichtfraeser_gewaehlt()
+        )
+        schlichten.reihe(
+            tr("va.fraeser"), tr("va.schlichtfraeser.tooltip"), self.wahl_schlichtfraeser
+        )
+        self.wahl_schlichteinsatz = QtGui.QComboBox()
+        self.wahl_schlichteinsatz.currentIndexChanged.connect(
+            lambda _i: self._schlichteinsatz_gewaehlt()
+        )
+        schlichten.reihe(
+            tr("va.einsatz"), tr("va.schlichteinsatz.tooltip"), self.wahl_schlichteinsatz
+        )
+        self.schnittwerte_schlichten = self._grau()
+        schlichten.ganz(self.schnittwerte_schlichten)
+        self.felder_schlichten = {}
+        zahlenfeld(
+            self.felder_schlichten,
+            "schrittweite",
+            tr("va.schrittweite"),
+            tr("va.schrittweite.tooltip"),
+            schlichten,
+        )
+        self.kammhoehe = self._grau()
+        self.kammhoehe.hide()  # erst, wenn es eine Kammhöhe gibt
+        schlichten.ganz(self.kammhoehe)
+        zahlenfeld(
+            self.felder_schlichten,
+            "aufmass_schlichten",
+            tr("va.aufmass_schlichten"),
+            tr("va.aufmass_schlichten.tooltip"),
+            schlichten,
+        )
+        self.schlichtfelder = schlichten.widget
+        aufbau.addWidget(self.schlichtfelder)
+        self.ergebnis_schlichten = grau()
+        self.schlichtfelder.setEnabled(False)
+
+        # --- Abstände für beide ---
+        aufbau.addSpacing(6)
+        self.abstaende_titel = QtGui.QLabel(tr("va.abstaende"))
+        self.abstaende_titel.setToolTip(tr("va.abstaende.tooltip"))
+        schrift = self.abstaende_titel.font()
+        schrift.setBold(True)
+        self.abstaende_titel.setFont(schrift)
+        aufbau.addWidget(self.abstaende_titel)
+        abstaende = _Reihen()
+        for feld, text, tooltip in (
             ("ueberlauf", tr("va.ueberlauf"), tr("va.ueberlauf.tooltip")),
             ("abstand_futter", tr("va.abstand_futter"), tr("va.abstand_futter.tooltip")),
             ("sicherheit", tr("va.sicherheit"), tr("va.sicherheit.tooltip")),
         ):
-            eingabe = QtGui.QLineEdit()
-            eingabe.setValidator(Zahlenpruefer(eingabe))
-            eingabe.textChanged.connect(lambda _text: self._vorschau_starten())
-            self.felder_schruppen[feld] = eingabe
-            reihe(text, tooltip, mit_einheit(eingabe, einheiten.einheit(einheiten.LAENGE)))
-        aufbau.addWidget(self.schruppfelder)
-        self.ergebnis = self._grau()
-        self.ergebnis.setWordWrap(True)
-        aufbau.addWidget(self.ergebnis)
-        self.ausspannen = self._grau()  # wie weit die Stange aus dem Futter ragen muss
-        self.ausspannen.setWordWrap(True)
-        aufbau.addWidget(self.ausspannen)
-        self.hinweis_rund = self._grau()  # Kugel- und Torusfräser: wie ein Schaftfräser
-        self.hinweis_rund.setWordWrap(True)
-        aufbau.addWidget(self.hinweis_rund)
-        self.radius_hinweis = self._grau()
-        self.radius_hinweis.setWordWrap(True)
-        self.radius_hinweis.setText(tr("va.radius"))
-        aufbau.addWidget(self.radius_hinweis)
+            zahlenfeld(self.felder_schruppen, feld, text, tooltip, abstaende)
+        self.abstandsfelder = abstaende.widget
+        aufbau.addWidget(self.abstandsfelder)
+        # Die Beschriftungen aller Blöcke gleich breit: die Felder stehen untereinander.
+        breite = max(r.breite_beschriftung() for r in (oben, schruppen, schlichten, abstaende))
+        for reihen in (oben, schruppen, schlichten, abstaende):
+            reihen.raster.setColumnMinimumWidth(0, breite)
+
+        self.ausspannen = grau()  # wie weit die Stange aus dem Futter ragen muss
+        self.radius_hinweis = grau(tr("va.radius"))
         self.hinweis_bearbeitung = QtGui.QLabel()
         self.hinweis_bearbeitung.setWordWrap(True)
         self.hinweis_bearbeitung.setStyleSheet(f"color: {ROT};")
@@ -1113,9 +1266,10 @@ class VierachsPanel:
         self._knoepfe_beschriften()
 
     def _bearbeitung_fuellen(self):
-        """Werkstoff, Fräser und Einsatz anbieten – die Werkzeugverwaltung frisch gelesen.
-        Der Werkstoff kommt vom Rohteil oder ist der zuletzt benutzte (wie in „Schnittwerte
-        in den Job“)."""
+        """Werkstoff und die Fräser beider Bearbeitungen anbieten – die Werkzeugverwaltung frisch
+        gelesen. Der Werkstoff kommt vom Rohteil oder ist der zuletzt benutzte (wie in
+        „Schnittwerte in den Job“). Beim ersten Mal ist „Rundum schlichten“ angehakt, wenn ein
+        Fräser einen Einsatz „Schlichten“ hat."""
         from .gui_werkzeuge import werkstoffe_anbieten
 
         vorher = self.werkstoff() if self.bibliothek is not None else None
@@ -1139,9 +1293,20 @@ class VierachsPanel:
             self._fuellt = False
         if self._tc_vorher is not None and self._vorwahl is None:
             werkzeug = js.werkzeug_von(self._tc_vorher, self.bibliothek)
-            self._vorwahl = werkzeug.kennung if werkzeug is not None else ""
+            kennung = werkzeug.kennung if werkzeug is not None else ""
+            if self._art == SCHLICHTEN:
+                self._vorwahl, self._vorwahl_schlichten = "", kennung
+            else:
+                self._vorwahl = kennung
         self.radius_hinweis.setVisible(self.buchstabe() == "C")
         self._fraeser_fuellen()
+        self._schlichtfraeser_fuellen()
+        if self.zu_aendern is None and not self._schlichten_vorgewaehlt:
+            self._schlichten_vorgewaehlt = True
+            werkstoff = self.werkstoff()
+            self.mit_schlichten.setChecked(
+                any(self._hat_schlichten(w, werkstoff) for w in self._schlichtfraeser)
+            )
 
     def werkstoff(self):
         """Kennung des gewählten Werkstoffs, oder wz.ALLE."""
@@ -1150,6 +1315,7 @@ class VierachsPanel:
     def _werkstoff_gewaehlt(self):
         if not self._fuellt:
             self._fraeser_fuellen()
+            self._schlichtfraeser_fuellen()
 
     @staticmethod
     def _passende_einsaetze(werkzeug, werkstoff):
@@ -1236,21 +1402,191 @@ class VierachsPanel:
         if self._fuellt:
             return
         werkzeug, einsatz = self.fraeser(), self.einsatz()
-        if werkzeug is None or einsatz is None:
-            self.schnittwerte.setText("")
-        else:
-            n, vf, _senkrecht = js.werte(werkzeug, einsatz)
-            self.schnittwerte.setText(
-                tr("va.schnittwerte", n=f"{n:.0f}", vf=groesse_fest(vf, einheiten.VORSCHUB, 0))
-            )
+        self.schnittwerte.setText(self._schnittwerte_text(werkzeug, einsatz))
         for feld, eingabe in self.felder_schruppen.items():
-            eingabe.setPlaceholderText(groesse_zeigen(self._vorschlag(feld), einheiten.LAENGE))
+            if feld == "ueberlauf":  # je Fräser: sein Radius + 0,5 mm
+                eingabe.setPlaceholderText(
+                    tr(
+                        "va.ueberlauf.vorschlag",
+                        zugabe=groesse_zeigen(vb.UEBERLAUF_ZUGABE, einheiten.LAENGE),
+                    )
+                )
+            else:
+                eingabe.setPlaceholderText(groesse_zeigen(self._vorschlag(feld), einheiten.LAENGE))
         self._vorschau_starten()
+
+    @staticmethod
+    def _schnittwerte_text(werkzeug, einsatz):
+        """„n 3979 1/min · vf 955 mm/min“ – leer ohne Fräser oder Einsatz."""
+        if werkzeug is None or einsatz is None:
+            return ""
+        n, vf, _senkrecht = js.werte(werkzeug, einsatz)
+        return tr("va.schnittwerte", n=f"{n:.0f}", vf=groesse_fest(vf, einheiten.VORSCHUB, 0))
+
+    # --- Rundum schlichten (V5d) ---------------------------------------------------------
+
+    def _hat_schlichten(self, werkzeug, werkstoff):
+        """Hat der Fräser für den Werkstoff einen Einsatz „Schlichten“ mit Schnittwerten?"""
+        return any(e.art == wz.SCHLICHTEN for e in self._passende_einsaetze(werkzeug, werkstoff))
+
+    def _schlichtfraeser_fuellen(self):
+        """Die Fräser, deren Form das Addon kennt (fraeserform), mit Schnittwerten für den
+        Werkstoff; vorgewählt der bisher gewählte, beim Ändern der der Operation, sonst der
+        zuletzt benutzte, sonst einer mit Einsatz „Schlichten“ – Kugel vor Torus vor den
+        anderen."""
+        werkstoff = self.werkstoff()
+        vorher = self.schlichtfraeser()
+        self._schlichtfraeser = [
+            w
+            for w in sorted(self.bibliothek.werkzeuge, key=lambda w: w.nummer)
+            if w.durchmesser > 0
+            and ff.von_werkzeug(w) is not None
+            and self._passende_einsaetze(w, werkstoff)
+        ]
+        kennungen = [w.kennung for w in self._schlichtfraeser]
+        gemerkt = _parameter().GetString(GEMERKT_SCHLICHTFRAESER, "")
+        if vorher is not None and vorher.kennung in kennungen:
+            wahl = kennungen.index(vorher.kennung)
+        elif self._vorwahl_schlichten in kennungen:  # beim Ändern: der Fräser der Operation
+            wahl = kennungen.index(self._vorwahl_schlichten)
+        elif gemerkt in kennungen:
+            wahl = kennungen.index(gemerkt)
+        else:
+            rang = {wz.KUGELFRAESER: 0, wz.TORUSFRAESER: 1}
+            wahl = min(
+                range(len(self._schlichtfraeser)),
+                key=lambda i: (
+                    not self._hat_schlichten(self._schlichtfraeser[i], werkstoff),
+                    rang.get(self._schlichtfraeser[i].art, 2),
+                    i,
+                ),
+                default=0,
+            )
+        self._fuellt = True
+        try:
+            self.wahl_schlichtfraeser.clear()
+            for werkzeug in self._schlichtfraeser:
+                self.wahl_schlichtfraeser.addItem(dezimal(wz.zeile(werkzeug)))
+            if self._schlichtfraeser:
+                self.wahl_schlichtfraeser.setCurrentIndex(wahl)
+        finally:
+            self._fuellt = False
+        self._schlichteinsatz_fuellen()
+
+    def schlichtfraeser(self):
+        """Der gewählte Fräser fürs Schlichten (werkzeuge.Werkzeug) oder None."""
+        i = self.wahl_schlichtfraeser.currentIndex()
+        return self._schlichtfraeser[i] if 0 <= i < len(self._schlichtfraeser) else None
+
+    def _schlichtfraeser_gewaehlt(self):
+        if not self._fuellt:
+            self._schlichteinsatz_fuellen()
+
+    def _schlichteinsatz_fuellen(self):
+        """Die Einsätze des Schlichtfräsers; vorgewählt „Schlichten“, beim Ändern der, mit dem
+        der Controller gesetzt ist."""
+        werkzeug = self.schlichtfraeser()
+        self._schlichteinsaetze = (
+            self._passende_einsaetze(werkzeug, self.werkstoff()) if werkzeug is not None else []
+        )
+        arten = [e.art for e in self._schlichteinsaetze]
+        wahl = arten.index(wz.SCHLICHTEN) if wz.SCHLICHTEN in arten else 0
+        if (
+            self._art == SCHLICHTEN
+            and self._tc_vorher is not None
+            and werkzeug is not None
+            and werkzeug.kennung == self._vorwahl_schlichten
+        ):
+            gemerkt = js.vorgeschlagener_einsatz(self._tc_vorher, self._schlichteinsaetze, self.job)
+            wahl = gemerkt if gemerkt >= 0 else wahl
+        self._fuellt = True
+        try:
+            self.wahl_schlichteinsatz.clear()
+            for einsatz in self._schlichteinsaetze:
+                self.wahl_schlichteinsatz.addItem(wz.einsatz_name(einsatz))
+            if self._schlichteinsaetze:
+                self.wahl_schlichteinsatz.setCurrentIndex(wahl)
+        finally:
+            self._fuellt = False
+        self._schlichteinsatz_gewaehlt()
+
+    def schlichteinsatz(self):
+        """Der gewählte Einsatz fürs Schlichten (werkzeuge.Einsatz) oder None."""
+        i = self.wahl_schlichteinsatz.currentIndex()
+        return self._schlichteinsaetze[i] if 0 <= i < len(self._schlichteinsaetze) else None
+
+    def _schlichteinsatz_gewaehlt(self):
+        """Drehzahl und Vorschub, die Schrittweite aus der Werkzeugtabelle als Vorschlag."""
+        if self._fuellt:
+            return
+        werkzeug, einsatz = self.schlichtfraeser(), self.schlichteinsatz()
+        self.schnittwerte_schlichten.setText(self._schnittwerte_text(werkzeug, einsatz))
+        for feld, eingabe in self.felder_schlichten.items():
+            eingabe.setPlaceholderText(
+                groesse_zeigen(self._vorschlag(feld), einheiten.LAENGE) or "0"
+            )
+        self._vorschau_starten()
+
+    def _schruppen_da(self):
+        """Gibt es vor dem Schlichten ein Schruppen – angehakt oder schon im Job?"""
+        if self.mit_schruppen.isChecked():
+            return True
+        return self.job is not None and any(vo.ist_schruppen(o) for o in js.operationen(self.job))
+
+    def _schlicht_vorschau(self):
+        """Die grobe Schlichtbahn (vierachs_schlichten.vorschau) für Umdrehungen und Zeit – die
+        Kammhöhe steht danach im Fenster. ValueError mit einem Satz, wenn es nicht geht."""
+        werkzeug = self.schlichtfraeser()
+        if not self._schruppen_da():
+            raise ValueError(tr("vs.fehler.ohne_schruppen"))
+        form = ff.von_werkzeug(werkzeug)
+        schrittweite = self._wert("schrittweite")
+        if 0 < schrittweite <= werkzeug.durchmesser:
+            hoehe = groesse_fest(form.kammhoehe(schrittweite), einheiten.LAENGE, 3)
+            self.kammhoehe.setText(tr("va.kammhoehe", hoehe=hoehe))
+            self.kammhoehe.show()
+        achse = self.achse()
+        return vs.vorschau(
+            self.job,
+            self.job.Model.Group,
+            achse.laengs,
+            va.radial(achse),
+            form,
+            schrittweite,
+            self._wert("aufmass_schlichten"),
+            (
+                self._ueberlauf_fuer(werkzeug),
+                self._wert("abstand_futter"),
+                self._wert("sicherheit"),
+            ),
+        )
+
+    def _schlicht_text(self, bahn):
+        """„→ 290 Umdrehungen, etwa 56 min“ – und was hinten nicht erreicht wird."""
+        from .reichweite import weg_text
+
+        _n, vf, _senkrecht = js.werte(self.schlichtfraeser(), self.schlichteinsatz())
+        text = tr(
+            "va.schlichten.ergebnis",
+            umdrehungen=f"{bahn.umdrehungen:.0f}",
+            zeit=_zeit_text(vb.dauer(bahn, vf)) if vf > 0 else "?",
+        )
+        if bahn.hinten_frei > 0:
+            text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
+        return text
 
     def _vorschlag(self, feld):
         """Der Wert eines leeren Felds (mm): Zustellung und Vorschub je Umdrehung aus dem
         Einsatz (ap und ae – ae höchstens der Durchmesser), das Aufmaß 0,3 mm, der Überlauf
-        Fräserradius + 0,5 mm, Abstand zum Futter 5 mm, Sicherheitsabstand 2 mm."""
+        Fräserradius + 0,5 mm, Abstand zum Futter 5 mm, Sicherheitsabstand 2 mm; beim Schlichten
+        die Schrittweite aus der Werkzeugtabelle (ae) und das Aufmaß 0."""
+        if feld == "schrittweite":
+            werkzeug = self.schlichtfraeser()
+            if werkzeug is None:
+                return 0.0
+            return vs.schrittweite_vorschlag(werkzeug, self.schlichteinsatz())
+        if feld == "aufmass_schlichten":
+            return vs.AUFMASS
         if feld == "aufmass":
             return vo.AUFMASS
         if feld in ("ueberlauf", "abstand_futter", "sicherheit"):
@@ -1266,9 +1602,13 @@ class VierachsPanel:
             return einsatz.ae
         return vo.STEIGUNG_ANTEIL * durchmesser
 
+    def _feld(self, feld):
+        """Das Eingabefeld `feld` in Schritt 2 – Schruppen, Abstände oder Schlichten."""
+        return self.felder_schruppen.get(feld) or self.felder_schlichten[feld]
+
     def _wert(self, feld):
         """Wert eines Felds in Schritt 2 (mm); leer oder ungültig gilt der Vorschlag."""
-        text = self.felder_schruppen[feld].text()
+        text = self._feld(feld).text()
         try:
             return groesse_lesen(text, einheiten.LAENGE) if text.strip() else self._vorschlag(feld)
         except ValueError:
@@ -1277,8 +1617,20 @@ class VierachsPanel:
     def _schruppen_umgeschaltet(self, an):
         self.schruppfelder.setEnabled(an)
         self.ergebnis.setVisible(an)
+        self._umgeschaltet()
+
+    def _schlichten_umgeschaltet(self, an):
+        self.schlichtfelder.setEnabled(an)
+        self.ergebnis_schlichten.setVisible(an)
+        self._umgeschaltet()
+
+    def _umgeschaltet(self):
+        """Ein Haken ging an oder aus: die Abstände gelten, solange einer an ist; die Stange
+        ragt so weit heraus, wie die angehakten Bearbeitungen es brauchen."""
+        schruppen, schlichten = self._gewaehlt()
+        self.abstandsfelder.setEnabled(schruppen or schlichten)
         self.hinweis_bearbeitung.setText("")
-        if an:
+        if schruppen or schlichten:
             self._vorschau_starten()
         elif self.vermessung is not None:  # ohne Fräser reicht die Abstechbreite hinten
             if not _gleiche_stange(self.stange(), self._stange_jetzt):
@@ -1286,48 +1638,73 @@ class VierachsPanel:
             self.ausspannen.setText(self._ausspannen_text())
         self._knoepfe_beschriften()
 
+    def _gewaehlt(self):
+        """(Schruppen, Schlichten): welche Bearbeitungen angelegt bzw. geändert werden – beim
+        Ändern die der Operation, beim Schruppen dazu ein angehaktes Schlichten."""
+        return self.mit_schruppen.isChecked(), self.mit_schlichten.isChecked()
+
     def _vorschau_starten(self):
         if self._fuellt:
             return
         self.vorschau = None
+        self.vorschau_schlichten = None
         self._vorschau_uhr.start()  # erst nach einer kurzen Pause rechnen
         self._knoepfe_beschriften()
 
     def _vorschau_rechnen(self):
-        """Die Bahn wie die Operation sie rechnet – für „→ 5 Lagen (Ø 80 → Ø 60,6)“ und damit
-        „Anlegen“ weiß, ob es geht."""
+        """Die Bahnen wie die Operationen sie rechnen – das Schruppen genau, für „→ 5 Lagen
+        (Ø 80 → Ø 60,6)“, das Schlichten grob, für Umdrehungen und Zeit – und damit „Anlegen“
+        weiß, ob es geht."""
         self._vorschau_uhr.stop()
-        if self.geschlossen or self.seite != 2 or not self.mit_schruppen.isChecked():
+        schruppen, schlichten = self._gewaehlt()
+        if self.geschlossen or self.seite != 2 or not (schruppen or schlichten):
             return
         self.vorschau = None
-        self.ergebnis.setText("")
+        self.vorschau_schlichten = None
+        for etikett in (self.ergebnis, self.ergebnis_schlichten, self.kammhoehe):
+            etikett.setText("")
+        self.kammhoehe.hide()
         self.hinweis_bearbeitung.setText("")
-        werkzeug = self.fraeser()
-        if werkzeug is None or self.einsatz() is None:
+        if schruppen and (self.fraeser() is None or self.einsatz() is None):
             self.hinweis_bearbeitung.setText(tr("va.fraeser.keiner"))
             self._knoepfe_beschriften()
             return
+        if schlichten and (self.schlichtfraeser() is None or self.schlichteinsatz() is None):
+            self.hinweis_bearbeitung.setText(tr("va.schlichtfraeser.keiner"))
+            self._knoepfe_beschriften()
+            return
         if self.vermessung is not None and not _gleiche_stange(self.stange(), self._stange_jetzt):
-            self._anwenden()  # die Stange ragt so weit heraus, wie der Fräser hinten braucht
+            self._anwenden()  # die Stange ragt so weit heraus, wie die Fräser hinten brauchen
         self.ausspannen.setText(self._ausspannen_text())
-        self.hinweis_rund.setText(self._rund_text(werkzeug))
-        achse = self.achse()
-        try:
-            self.vorschau = vo.bahn_fuer(
-                self.job,
-                self.job.Model.Group,
-                achse.laengs,
-                va.radial(achse),
-                werkzeug.durchmesser / 2,
-                self._wert("zustellung"),
-                self._wert("steigung"),
-                self._wert("aufmass"),
-                *self._abstaende(),
-            )
-        except ValueError as fehler:
-            self.hinweis_bearbeitung.setText(str(fehler))
-        else:
-            self.ergebnis.setText(self._lagen_text(self.vorschau))
+        gruende = []
+        if schruppen:
+            werkzeug = self.fraeser()
+            self.hinweis_rund.setText(self._rund_text(werkzeug))
+            achse = self.achse()
+            try:
+                self.vorschau = vo.bahn_fuer(
+                    self.job,
+                    self.job.Model.Group,
+                    achse.laengs,
+                    va.radial(achse),
+                    werkzeug.durchmesser / 2,
+                    self._wert("zustellung"),
+                    self._wert("steigung"),
+                    self._wert("aufmass"),
+                    *self._abstaende(),
+                )
+            except ValueError as fehler:
+                gruende.append(str(fehler))
+            else:
+                self.ergebnis.setText(self._lagen_text(self.vorschau))
+        if schlichten:
+            try:
+                self.vorschau_schlichten = self._schlicht_vorschau()
+            except ValueError as fehler:
+                gruende.append(str(fehler))
+            else:
+                self.ergebnis_schlichten.setText(self._schlicht_text(self.vorschau_schlichten))
+        self.hinweis_bearbeitung.setText(" ".join(gruende))
         self._knoepfe_beschriften()
 
     def _rund_text(self, werkzeug):
@@ -1347,20 +1724,50 @@ class VierachsPanel:
         return tr("va.rund", art=art, rille=groesse_fest(rille, einheiten.LAENGE, 2))
 
     def _abstaende(self):
-        """(Sicherheitsabstand, Überlauf, Abstand zum Futter) aus den Feldern (mm)."""
-        return self._wert("sicherheit"), self._wert("ueberlauf"), self._wert("abstand_futter")
+        """(Sicherheitsabstand, Überlauf, Abstand zum Futter) fürs Schruppen (mm)."""
+        return (
+            self._wert("sicherheit"),
+            self._ueberlauf_fuer(self.fraeser()),
+            self._wert("abstand_futter"),
+        )
+
+    def _ueberlauf_fuer(self, werkzeug):
+        """Der Überlauf für diesen Fräser (mm): eingetragen gilt er für beide Bearbeitungen,
+        leer je Fräser sein Radius + 0,5 mm."""
+        text = self.felder_schruppen["ueberlauf"].text()
+        if text.strip():
+            try:
+                return groesse_lesen(text, einheiten.LAENGE)
+            except ValueError:
+                pass
+        radius = werkzeug.durchmesser / 2 if werkzeug is not None else 0.0
+        return vb.ueberlauf_vorschlag(radius)
+
+    def _bedarf_hinten(self):
+        """[(Überlauf, Fräserradius, Abstand zum Futter)] – was die Fräser hinter dem Teil
+        brauchen: die angehakten und, beim Ändern, die anderen Bearbeitungen im Job."""
+        schruppen, schlichten = self._gewaehlt()
+        abstand = self._wert("abstand_futter")
+        bedarf = []
+        for an, werkzeug in ((schruppen, self.fraeser()), (schlichten, self.schlichtfraeser())):
+            if an and werkzeug is not None:
+                bedarf.append((self._ueberlauf_fuer(werkzeug), werkzeug.durchmesser / 2, abstand))
+        if self.zu_aendern is not None and self.job is not None:
+            for op in js.operationen(self.job):
+                if vo.ist_rundum(op) and op is not self.zu_aendern:
+                    ueberlauf, abstand_op, _sicherheit = vo.abstaende(op)
+                    bedarf.append((ueberlauf, float(op.OpToolDiameter) / 2, abstand_op))
+        return bedarf
 
     def _frei_hinten(self):
-        """Was der Fräser hinter dem Teil braucht: Überlauf, Fräserradius und Abstand zum
-        Futter (mm) – 0 ohne „Rundum schruppen“ oder ohne Fräser."""
-        werkzeug = self.fraeser()
-        if not self.mit_schruppen.isChecked() or werkzeug is None:
-            return 0.0
-        return self._wert("ueberlauf") + werkzeug.durchmesser / 2 + self._wert("abstand_futter")
+        """Was die Fräser hinter dem Teil brauchen: Überlauf, Fräserradius und Abstand zum
+        Futter (mm), der größte – 0 ohne Bearbeitung oder ohne Fräser."""
+        return max((u + r + a for u, r, a in self._bedarf_hinten()), default=0.0)
 
     def _ausspannen_text(self):
         """„Die Stange muss 78,5 mm aus dem Futter ragen: Planaufmaß 1,0 + Teil 60,0 + …“ –
-        leer, solange das Teil nicht vermessen ist."""
+        mit dem Fräser, der hinten am meisten braucht; leer, solange das Teil nicht vermessen
+        ist."""
         if self.vermessung is None:
             return ""
         stange = self.stange()
@@ -1372,11 +1779,13 @@ class VierachsPanel:
             tr("va.ausspannen.planaufmass", wert=mm(stange.planaufmass)),
             tr("va.ausspannen.teil", wert=mm(self.vermessung.laenge)),
         ]
-        if stange.frei_hinten > stange.abstechbreite:
+        bedarf = self._bedarf_hinten()
+        if bedarf and stange.frei_hinten > stange.abstechbreite:
+            ueberlauf, radius, abstand = max(bedarf, key=sum)
             teile += [
-                tr("va.ausspannen.ueberlauf", wert=mm(self._wert("ueberlauf"))),
-                tr("va.ausspannen.fraeser", wert=mm(self.fraeser().durchmesser / 2)),
-                tr("va.ausspannen.abstand", wert=mm(self._wert("abstand_futter"))),
+                tr("va.ausspannen.ueberlauf", wert=mm(ueberlauf)),
+                tr("va.ausspannen.fraeser", wert=mm(radius)),
+                tr("va.ausspannen.abstand", wert=mm(abstand)),
             ]
         else:
             teile.append(tr("va.ausspannen.abstechbreite", wert=mm(stange.abstechbreite)))
@@ -1406,15 +1815,14 @@ class VierachsPanel:
         return text
 
     def _kann_anlegen(self):
-        """Schritt 2: ohne Schruppen immer; mit, wenn Fräser und Einsatz gewählt sind und die
-        Vorschau keinen Fehler meldet."""
-        if not self.mit_schruppen.isChecked():
-            return True
-        return (
-            self.fraeser() is not None
-            and self.einsatz() is not None
-            and not self.hinweis_bearbeitung.text()
-        )
+        """Schritt 2: ohne Bearbeitung immer; sonst, wenn Fräser und Einsatz der angehakten
+        gewählt sind und die Vorschau keinen Fehler meldet."""
+        schruppen, schlichten = self._gewaehlt()
+        if schruppen and (self.fraeser() is None or self.einsatz() is None):
+            return False
+        if schlichten and (self.schlichtfraeser() is None or self.schlichteinsatz() is None):
+            return False
+        return not self.hinweis_bearbeitung.text()
 
     def werkzeugverwaltung(self):
         """Öffnet die Werkzeugverwaltung; speichert man dort, liest Schritt 2 sie neu."""
@@ -1429,75 +1837,170 @@ class VierachsPanel:
         if VierachsPanel.offen is self and self.seite == 2:
             self._bearbeitung_fuellen()
 
-    def _schruppen_pruefen(self):
-        """Geht das Schruppen mit Fräser, Einsatz und Werten? Rechnet die Vorschau, wenn sie
-        noch fehlt."""
-        if self.vorschau is None:
+    def _bearbeitung_pruefen(self):
+        """Gehen die angehakten Bearbeitungen mit Fräser, Einsatz und Werten? Rechnet die
+        Vorschau, wenn sie noch fehlt."""
+        schruppen, schlichten = self._gewaehlt()
+        if (schruppen and self.vorschau is None) or (
+            schlichten and self.vorschau_schlichten is None
+        ):
             self._vorschau_rechnen()
-        return (
-            self.fraeser() is not None and self.einsatz() is not None and self.vorschau is not None
+        if schruppen and (
+            self.fraeser() is None or self.einsatz() is None or self.vorschau is None
+        ):
+            return False
+        return not schlichten or (
+            self.schlichtfraeser() is not None
+            and self.schlichteinsatz() is not None
+            and self.vorschau_schlichten is not None
         )
 
-    def _schruppen_anlegen(self):
-        """Werkzeug-Controller und „Rundum schruppen“ in den Job – ein eigener Schritt
-        Rückgängig, in einem Befehl (_im_befehl). Den Controller, den jeder neue Job von
-        FreeCAD bekommt, nimmt es heraus (D-30). Geht es nicht, steht der Grund rot im
+    def _bearbeitungen_anlegen(self):
+        """Werkzeug-Controller und die angehakten Bearbeitungen in den Job – zusammen ein
+        eigener Schritt Rückgängig, in einem Befehl (_im_befehl). Den Controller, den jeder neue
+        Job von FreeCAD bekommt, nimmt es heraus (D-30). Geht es nicht, steht der Grund rot im
         Fenster: False."""
-        werkzeug, einsatz, achse = self.fraeser(), self.einsatz(), self.achse()
+        schruppen, schlichten = self._gewaehlt()
+        achse = self.achse()
         werte = (self._wert("zustellung"), self._wert("steigung"), self._wert("aufmass"))
         sicherheit, ueberlauf, abstand = self._abstaende()
-        abstaende = (ueberlauf, abstand, sicherheit)
+        schlicht_abstaende = (
+            self._ueberlauf_fuer(self.schlichtfraeser()),
+            abstand,
+            sicherheit,
+        )
+        if schruppen and schlichten:
+            name = tr("va.transaktion.beide")
+        else:
+            name = tr("va.transaktion.schruppen") if schruppen else tr("va.transaktion.schlichten")
 
         def anlegen():
-            self.doc.openTransaction(tr("va.transaktion.schruppen"))
+            self.doc.openTransaction(name)
             try:
                 ue.uebergeben(self.bibliothek)
                 fremde = js.unbenutzte_fremde_controller(self.job, self.bibliothek)
                 js.controller_weg(self.doc, fremde)
-                tc = js.controller_ohne_transaktion(
-                    self.doc, self.job, werkzeug, einsatz, self.werkstoff()
-                )
-                operation = vo.lege_an(
-                    self.job,
-                    tc,
-                    achse,
-                    *werte,
-                    quer_auf_null=achse.quer,
-                    abstaende=abstaende,
-                )
+                angelegt = []
+                if schruppen:
+                    tc = js.controller_ohne_transaktion(
+                        self.doc, self.job, self.fraeser(), self.einsatz(), self.werkstoff()
+                    )
+                    angelegt.append(
+                        vo.lege_an(
+                            self.job,
+                            tc,
+                            achse,
+                            *werte,
+                            quer_auf_null=achse.quer,
+                            abstaende=(ueberlauf, abstand, sicherheit),
+                        )
+                    )
+                if schlichten:
+                    tc = js.controller_ohne_transaktion(
+                        self.doc,
+                        self.job,
+                        self.schlichtfraeser(),
+                        self.schlichteinsatz(),
+                        self.werkstoff(),
+                    )
+                    angelegt.append(
+                        vs.lege_an(
+                            self.job,
+                            tc,
+                            achse,
+                            self._wert("schrittweite"),
+                            self._wert("aufmass_schlichten"),
+                            quer_auf_null=achse.quer,
+                            abstaende=schlicht_abstaende,
+                        )
+                    )
                 self.doc.recompute()
             except Exception:
                 self.doc.abortTransaction()
                 raise
-            return operation
+            return angelegt
 
         try:
-            self.operation = _im_befehl(anlegen)
+            angelegt = _im_befehl(anlegen)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
             FreeCAD.Console.PrintError(f"4-Achs-Bearbeitung: {fehler}\n")
             self.operation = None
             self.hinweis_bearbeitung.setText(tr("va.fehler.anlegen", fehler=str(fehler)))
             self._knoepfe_beschriften()
             return False
+        self.operation = angelegt[0] if angelegt else None
         return True
 
-    def _schruppen_aendern(self):
+    def _aendern(self):
         """Die Operation bekommt Fräser, Einsatz und Werte aus dem Fenster – ein eigener
         Schritt Rückgängig, in einem Befehl (_im_befehl): Ein anderer Fräser kommt als
         Werkzeug in den Job. Den bisherigen Controller nimmt es heraus, wenn ihn keine
-        Operation mehr benutzt. Geht es nicht, steht der Grund rot im Fenster: False."""
-        werkzeug, einsatz, op = self.fraeser(), self.einsatz(), self.zu_aendern
-        werte = (self._wert("zustellung"), self._wert("steigung"), self._wert("aufmass"))
+        Operation mehr benutzt. Beim Schruppen legt ein angehaktes „Rundum schlichten“ dieses
+        dazu an. Geht es nicht, steht der Grund rot im Fenster: False."""
+        op = self.zu_aendern
+        schlichten_dazu = self._art == SCHRUPPEN and self.mit_schlichten.isChecked()
         sicherheit, ueberlauf, abstand = self._abstaende()
-        abstaende = (ueberlauf, abstand, sicherheit)
+        schlicht_abstaende = (
+            self._ueberlauf_fuer(self.schlichtfraeser()),
+            abstand,
+            sicherheit,
+        )
+        name = (
+            tr("va.transaktion.aendern_schlichten")
+            if self._art == SCHLICHTEN
+            else (tr("va.transaktion.aendern"))
+        )
 
         def aendern():
-            self.doc.openTransaction(tr("va.transaktion.aendern"))
+            self.doc.openTransaction(name)
             try:
                 ue.uebergeben(self.bibliothek)
                 bisher = op.ToolController
-                tc = js.controller_fuer(self.doc, self.job, werkzeug, einsatz, self.werkstoff(), op)
-                vo.aendere(op, tc, *werte, abstaende_=abstaende)
+                if self._art == SCHLICHTEN:
+                    tc = js.controller_fuer(
+                        self.doc,
+                        self.job,
+                        self.schlichtfraeser(),
+                        self.schlichteinsatz(),
+                        self.werkstoff(),
+                        op,
+                    )
+                    vs.aendere(
+                        op,
+                        tc,
+                        self._wert("schrittweite"),
+                        self._wert("aufmass_schlichten"),
+                        schlicht_abstaende,
+                    )
+                else:
+                    tc = js.controller_fuer(
+                        self.doc, self.job, self.fraeser(), self.einsatz(), self.werkstoff(), op
+                    )
+                    vo.aendere(
+                        op,
+                        tc,
+                        self._wert("zustellung"),
+                        self._wert("steigung"),
+                        self._wert("aufmass"),
+                        abstaende_=(ueberlauf, abstand, sicherheit),
+                    )
+                if schlichten_dazu:
+                    tc_neu = js.controller_ohne_transaktion(
+                        self.doc,
+                        self.job,
+                        self.schlichtfraeser(),
+                        self.schlichteinsatz(),
+                        self.werkstoff(),
+                    )
+                    vs.lege_an(
+                        self.job,
+                        tc_neu,
+                        self.achse(),
+                        self._wert("schrittweite"),
+                        self._wert("aufmass_schlichten"),
+                        quer_auf_null=op.QuerAufNull,
+                        abstaende=schlicht_abstaende,
+                    )
                 self._maschine_merken()
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)
                 if frei and bisher is not tc:
@@ -1696,8 +2199,11 @@ class VierachsPanel:
             rw.merke_maschine(self.job, eintrag.assembly.Document.FileName)
 
     def _fraeser_merken(self):
-        if self.mit_schruppen.isChecked() and self.fraeser() is not None:
+        schruppen, schlichten = self._gewaehlt()
+        if schruppen and self.fraeser() is not None:
             _parameter().SetString(GEMERKT_FRAESER, self.fraeser().kennung)
+        if schlichten and self.schlichtfraeser() is not None:
+            _parameter().SetString(GEMERKT_SCHLICHTFRAESER, self.schlichtfraeser().kennung)
 
     # --- Anzeige ------------------------------------------------------------------
 

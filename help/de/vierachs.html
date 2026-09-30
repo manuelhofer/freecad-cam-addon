@@ -3,8 +3,8 @@
 dreht – auf einer Fräse mit Rundachse (A oder B) genauso wie auf einer
 Drehmaschine mit C-Achse und angetriebenen Werkzeugen. Der Assistent führt in
 zwei Schritten dorthin: <b>das Teil in die Stange legen</b> und dann
-<b>„Was willst du machen?“</b> – bisher <b>Rundum schruppen</b>. Flächen
-wählen und Schlichten kommen in den nächsten Stufen dazu.</p>
+<b>„Was willst du machen?“</b> – <b>Rundum schruppen</b> und <b>Rundum
+schlichten</b>. Flächen wählen kommt in einer nächsten Stufe dazu.</p>
 
 <h3>So geht's</h3>
 <ol>
@@ -20,14 +20,16 @@ Durchmesser das Teil bräuchte.</li>
 <li><b>Weiter</b> – Schritt 2: <b>Was willst du machen?</b> „Rundum
 schruppen“ ist angehakt, darunter stehen Fräser, Einsatz und Werte aus der
 Werkzeugverwaltung und grau, wie viele Lagen es werden – etwa „→ 5 Lagen
-(Ø 80,0 mm → Ø 60,6 mm)“.</li>
-<li><b>Anlegen</b> – es entstehen der CAM-Job mit dem Teil in der Stange, der
-Werkzeug-Controller und die Operation „Rundum schruppen T1“; ihre Bahn läuft
-in Lagen um das Teil. Das erste <b>Strg+Z</b> nimmt Controller und Operation
-zurück, das zweite Job und Stange. <b>Abbrechen</b> lässt nichts zurück.</li>
+(Ø 80,0 mm → Ø 60,6 mm)“. „Rundum schlichten“ ist angehakt, wenn ein Fräser
+der Werkzeugverwaltung einen Einsatz „Schlichten“ hat.</li>
+<li><b>Anlegen</b> – es entstehen der CAM-Job mit dem Teil in der Stange, die
+Werkzeug-Controller und die Operationen „Rundum schruppen T1“ und „Rundum
+schlichten T2“; ihre Bahnen laufen um das Teil. Das erste <b>Strg+Z</b> nimmt
+Controller und Operationen zurück, das zweite Job und Stange.
+<b>Abbrechen</b> lässt nichts zurück.</li>
 </ol>
-<p><b>Zurück</b> führt wieder zum Rohteil. Ohne Haken bei „Rundum schruppen“
-legt „Anlegen“ nur Job und Stange an.</p>
+<p><b>Zurück</b> führt wieder zum Rohteil. Ohne Haken legt „Anlegen“ nur Job
+und Stange an.</p>
 <p>Eine andere Fläche anklicken, solange das Fenster offen ist, legt das Teil
 mit dieser Fläche nach vorne.</p>
 
@@ -88,8 +90,8 @@ spätere Bahnen von selbst richtig um das Teil.</p>
 <p>Die Stange wird rundum abgenommen, bis aufs Schlichtaufmaß – in Lagen, mit
 einem Fräser, der von außen zur Achse zeigt, während die Rundachse dreht.</p>
 <ul>
-<li><b>Werkstoff</b> – für welchen die Schnittwerte gelten: vom Rohteil, wenn
-es einen hat, sonst der zuletzt benutzte.</li>
+<li><b>Werkstoff</b> – für welchen die Schnittwerte beider Bearbeitungen
+gelten: vom Rohteil, wenn es einen hat, sonst der zuletzt benutzte.</li>
 <li><b>Fräser</b> – aus der Werkzeugverwaltung: Schaft-, Torus-, Kugel-,
 Nuten- oder Planfräser mit Schnittwerten für den Werkstoff. Vorgewählt ist
 der zuletzt benutzte, sonst der erste Schaftfräser. Fehlt einer, sagt es eine
@@ -105,19 +107,23 @@ Weniger Vorschub je Umdrehung macht sie flacher.</li>
 Einsatzes). <b>Vorschub je Umdrehung</b> – so weit rückt die Spirale je
 Umdrehung längs vor (ae des Einsatzes, höchstens der Durchmesser).
 <b>Schlichtaufmaß</b> – so viel bleibt rundum stehen (Vorschlag 0,3 mm).</li>
+</ul>
+<p><b>Abstände</b> – gelten für Schruppen und Schlichten:</p>
+<ul>
 <li><b>Überlauf</b> – so weit läuft die Mitte des Fräsers hinter das Teil,
-damit er es ganz verlässt und die Kante hinten fertig wird (Vorschlag:
-Fräserradius + 0,5 mm, beim 12er also 6,5 mm). <b>Abstand zum Futter</b> – so
-weit bleibt der Rand des Fräsers vor der Spannfläche (Vorschlag 5 mm).
-<b>Sicherheitsabstand</b> – so weit über und vor der Stange fährt er im
-Eilgang (Vorschlag 2 mm).</li>
+damit er es ganz verlässt und die Kante hinten fertig wird. Leer gilt je
+Fräser sein Radius + 0,5 mm (grau „Radius + 0,5“, beim 12er also 6,5 mm); eine
+Zahl gilt für beide.</li>
+<li><b>Abstand zum Futter</b> – so weit bleibt der Rand des Fräsers vor der
+Spannfläche (Vorschlag 5 mm). <b>Sicherheitsabstand</b> – so weit über und vor
+der Stange fährt er im Eilgang (Vorschlag 2 mm).</li>
 </ul>
 <p><b>Wie weit die Stange aus dem Futter ragt,</b> folgt daraus – grau steht es
 als Satz da: „Die Stange muss 78,5 mm aus dem Futter ragen: Planaufmaß 1,0 +
 Teil 60,0 + Überlauf 6,5 + Fräserradius 6,0 + Abstand zum Futter 5,0.“ So lang
 legt der Assistent die Stange an (dazu die Spannlänge im Futter); so weit
-spannst du sie an der Maschine aus. Ohne „Rundum schruppen“ reicht hinter dem
-Teil die Abstechbreite.</p>
+spannst du sie an der Maschine aus. Es zählt der Fräser, der hinten mehr Platz
+braucht; ohne Bearbeitung reicht hinter dem Teil die Abstechbreite.</p>
 <p><b>Die Bahn:</b> Jede Lage ist eine Spirale von vorne – der Fräser ganz vor
 der Stange – bis um den Überlauf hinter das Teil; dort bleibt die Spitze auf
 der Tiefe des letzten Stücks Kontur. Der Rand des Fräsers bleibt immer den
@@ -145,8 +151,32 @@ keine Y-Achse hat).</li>
 <p>Die Werte stehen an der Operation in der Gruppe „4-Achs“ und lassen sich
 dort ändern; die Bahn rechnet dann neu.</p>
 
+<h3>Schritt 2: Rundum schlichten</h3>
+<p>Nach dem Schruppen fährt eine Spirale auf dem Teil: Die Spitze folgt der
+Oberfläche plus Aufmaß – gerechnet mit der echten Form des Fräsers, auf
+0,005 mm vernetzt und genau an den Stellen der Spirale.</p>
+<ul>
+<li><b>Fräser</b> – jeder aus der Werkzeugverwaltung, dessen Form das Addon
+kennt: Kugel-, Torus-, Schaft-, Konik-, Lollipop-, Fasen-, Nuten-, Plan- und
+Schwalbenschwanzfräser; der Radienfräser rechnet mit der Sehne seiner Kehle
+(er bleibt höher). Vorgewählt ist der zuletzt benutzte, sonst einer mit Einsatz
+„Schlichten“ – Kugel vor Torus.</li>
+<li><b>Einsatz</b> – vorgewählt „Schlichten“; er gibt Drehzahl und
+Vorschub.</li>
+<li><b>Schrittweite</b> – so weit rückt die Spirale je Umdrehung vor. Leer
+gilt grau das ae des Einsatzes aus der Werkzeugtabelle. Darunter steht die
+<b>Kammhöhe</b>, die zwischen zwei Bahnen stehen bleibt (Kugel Ø 6 mit 0,3 mm:
+0,004 mm).</li>
+<li><b>Aufmaß</b> – so viel bleibt stehen; 0 macht das Teil fertig.</li>
+</ul>
+<p>Grau darunter: wie viele Umdrehungen die Spirale hat und wie lange sie etwa
+braucht – etwa „→ 365 Umdrehungen, etwa 1 h 35 min“. Ohne „Rundum schruppen“
+davor (angehakt oder schon im Job) geht Schlichten nicht: Es nähme die ganze
+Stange in einem Zug.</p>
+
 <h3>Nachträglich ändern</h3>
-<p><b>Doppelklick</b> auf „Rundum schruppen …“ im Baum – oder rechte Maustaste,
+<p><b>Doppelklick</b> auf „Rundum schruppen …“ oder „Rundum schlichten …“ im
+Baum – oder rechte Maustaste,
 <b>Bearbeiten</b>; oder die Operation bzw. ihren Job wählen und den Knopf
 „4-Achs-Bearbeitung“ drücken – öffnet Schritt 2 mit Fräser, Einsatz und Werten
 der Operation. Felder, die leer sind, folgen dem Vorschlag des Einsatzes: Wählst
@@ -166,6 +196,10 @@ es als eigenen Schritt Rückgängig („Stange ändern“) vor dem Ändern der
 Operation ab. Das Teil bleibt dasselbe – eine andere Fläche davon lässt sich
 anklicken. Hat jemand Rohteil oder Teil des Jobs von Hand geändert, bleibt
 Schritt 1 zu; das Fenster sagt es.</li>
+<li><b>Schlichten dazunehmen:</b> Beim Ändern von „Rundum schruppen“ ist
+„Rundum schlichten“ frei, solange der Job keins hat – Haken setzen,
+<b>Übernehmen</b> legt es dazu an. So bekommt ein Job aus einer früheren
+Version sein Schlichten.</li>
 <li><b>Abbrechen</b> ändert nichts.</li>
 </ul>
 
@@ -178,14 +212,15 @@ Länge der Stange. Solange das Fenster offen ist, ist er durchscheinend und
 lässt sich nicht anklicken. Danach sieht er aus wie jedes Rohteil in CAM.</li>
 <li>Mit „Rundum schruppen“ dazu ein <b>Werkzeug-Controller</b> „T1 Schruppen“
 mit Drehzahl und Vorschub aus der Werkzeugverwaltung und die
-<b>Operation</b> „Rundum schruppen T1“. Den Controller, den FreeCAD jedem
+<b>Operation</b> „Rundum schruppen T1“, mit „Rundum schlichten“ ebenso
+„T2 Schlichten“ und „Rundum schlichten T2“. Den Controller, den FreeCAD jedem
 neuen Job gibt, nimmt der Assistent heraus.</li>
 </ul>
 
 <h3>Was (noch) nicht geht</h3>
 <ul>
-<li>Nur bestimmte Flächen fräsen und das Schlichten – das kommt in den
-nächsten Stufen. Bis dahin nimmt „Rundum schruppen“ das ganze Teil.</li>
+<li>Nur bestimmte Flächen fräsen – das kommt in einer nächsten Stufe. Bis
+dahin nehmen „Rundum schruppen“ und „Rundum schlichten“ das ganze Teil.</li>
 <li>Drehen, Planen der Stirnseite und Abstechen macht die Maschine – FreeCAD
 dreht nicht.</li>
 </ul>

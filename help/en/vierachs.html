@@ -2,8 +2,8 @@
 <p>A part is milled out of a round bar while the bar turns – on a mill with a
 rotary axis (A or B) just as on a lathe with a C axis and driven tools. The
 wizard gets you there in two steps: <b>placing the part in the bar</b> and
-then <b>“What do you want to do?”</b> – so far <b>All-round roughing</b>.
-Choosing faces and finishing come in the next stages.</p>
+then <b>“What do you want to do?”</b> – <b>All-round roughing</b> and
+<b>All-round finishing</b>. Choosing faces comes in a next stage.</p>
 
 <h3>How it works</h3>
 <ol>
@@ -17,14 +17,16 @@ diameter the part would need.</li>
 <li><b>Next</b> – step 2: <b>What do you want to do?</b> “All-round
 roughing” is ticked; below are cutter, use case and values from the tool
 manager and, in grey, how many layers it takes – say “→ 5 layers (Ø 80.0 mm
-→ Ø 60.6 mm)”.</li>
-<li><b>Create</b> – the CAM job with the part in the bar, the tool controller
-and the operation “All-round roughing T1” appear; its path runs round the part
-in layers. The first <b>Ctrl+Z</b> undoes controller and operation, the
-second job and bar. <b>Cancel</b> leaves nothing behind.</li>
+→ Ø 60.6 mm)”. “All-round finishing” is ticked when a cutter in the tool
+manager has a “Finishing” application.</li>
+<li><b>Create</b> – the CAM job with the part in the bar, the tool controllers
+and the operations “All-round roughing T1” and “All-round finishing T2”
+appear; their paths run round the part. The first <b>Ctrl+Z</b> undoes
+controllers and operations, the second job and bar. <b>Cancel</b> leaves
+nothing behind.</li>
 </ol>
-<p><b>Back</b> returns to the stock. Without the tick at “All-round roughing”,
-“Create” only creates job and bar.</p>
+<p><b>Back</b> returns to the stock. Without a tick, “Create” only creates
+job and bar.</p>
 <p>Clicking another face while the window is open puts the part into the bar
 with that face at the front.</p>
 
@@ -84,8 +86,8 @@ paths correctly around the part by itself.</p>
 with a cutter pointing at the axis from outside while the rotary axis
 turns.</p>
 <ul>
-<li><b>Material</b> – which one the cutting data are for: the stock's if it
-has one, otherwise the one used last.</li>
+<li><b>Material</b> – which one the cutting data of both operations are for:
+the stock's if it has one, otherwise the one used last.</li>
 <li><b>Cutter</b> – from the tool manager: end, torus, ball, slot or face mill
 with cutting data for the material. Preselected is the one used last,
 otherwise the first end mill. If there is none, a red line says so;
@@ -101,19 +103,24 @@ flatter.</li>
 case's ap). <b>Feed per revolution</b> – how far the spiral advances along the
 bar per revolution (the use case's ae, at most the diameter). <b>Finishing
 allowance</b> – what stays all round (0.3 mm suggested).</li>
+</ul>
+<p><b>Distances</b> – apply to roughing and finishing:</p>
+<ul>
 <li><b>Overrun</b> – how far the centre of the cutter runs past the back of the
-part so that it leaves it completely and the rear edge gets finished
-(suggestion: cutter radius + 0.5 mm, 6.5 mm for a 12 mm cutter). <b>Chuck
-distance</b> – how far the edge of the cutter stays in front of the clamping
-face (5 mm suggested). <b>Safety distance</b> – how far above and in front of
-the bar it moves in rapid (2 mm suggested).</li>
+part so that it leaves it completely and the rear edge gets finished. Empty,
+each cutter uses its radius + 0.5 mm (grey “radius + 0.5”, 6.5 mm for a 12 mm
+cutter); a number applies to both.</li>
+<li><b>Chuck distance</b> – how far the edge of the cutter stays in front of
+the clamping face (5 mm suggested). <b>Safety distance</b> – how far above and
+in front of the bar it moves in rapid (2 mm suggested).</li>
 </ul>
 <p><b>How far the bar sticks out of the chuck</b> follows from this – it is
 stated in grey: “The bar has to stick out 78.5 mm from the chuck: facing
 allowance 1.0 + part 60.0 + overrun 6.5 + cutter radius 6.0 + chuck distance
 5.0.” The wizard creates the bar that long (plus the clamping length in the
-chuck); clamp it that way on the machine. Without “All-round roughing” the
-part-off width behind the part is enough.</p>
+chuck); clamp it that way on the machine. The cutter that needs more room
+behind the part counts; without an operation the part-off width is
+enough.</p>
 <p><b>The path:</b> each layer is a spiral from the front – the cutter fully in
 front of the bar – to the overrun behind the part; there the tip stays at the
 depth of the last piece of contour. The edge of the cutter always stays the
@@ -140,8 +147,32 @@ Y axis).</li>
 <p>The values sit on the operation in the group “4-Achs” and can be changed
 there; the path is then recalculated.</p>
 
+<h3>Step 2: all-round finishing</h3>
+<p>After roughing, one spiral runs on the part: the tip follows the surface
+plus allowance – calculated with the cutter's real shape, meshed to 0.005 mm
+and exactly at the points of the spiral.</p>
+<ul>
+<li><b>Cutter</b> – any from the tool manager whose shape the add-on knows:
+ball, torus, flat, tapered ball, lollipop, chamfer, slitting, face and
+dovetail mills; the radius mill is calculated with the chord of its profile
+(it stays higher). Preselected is the one used last, otherwise one with a
+“Finishing” application – ball before torus.</li>
+<li><b>Application</b> – “Finishing” preselected; it gives speed and
+feed.</li>
+<li><b>Stepover</b> – how far the spiral advances per revolution. Empty, the
+grey ae of the application from the tool table applies. Below it is the
+<b>scallop height</b> left between two passes (ball Ø 6 at 0.3 mm:
+0.004 mm).</li>
+<li><b>Allowance</b> – what stays; 0 finishes the part.</li>
+</ul>
+<p>In grey below: how many revolutions the spiral has and roughly how long it
+takes – say “→ 365 revolutions, about 1 h 35 min”. Without “All-round
+roughing” before it (ticked or already in the job) finishing does not work: it
+would take the whole bar in one pass.</p>
+
 <h3>Changing it later</h3>
-<p><b>Double-click</b> “All-round roughing …” in the tree – or right-click,
+<p><b>Double-click</b> “All-round roughing …” or “All-round finishing …” in
+the tree – or right-click,
 <b>Edit</b>; or select the operation or its job and press the
 “4-axis machining” button – to open step 2 with the cutter, application and
 values of the operation. Empty fields follow the suggestion of the application:
@@ -160,6 +191,9 @@ store it as an undo step of its own (“Change bar”) before the change of the
 operation. The part stays the same – another face of it can be clicked. If
 someone changed the job's stock or part by hand, step 1 stays closed; the
 window says so.</li>
+<li><b>Adding finishing:</b> when changing “All-round roughing”, “All-round
+finishing” is free as long as the job has none – tick it, <b>Apply</b> adds it.
+That is how a job from an earlier version gets its finishing.</li>
 <li><b>Cancel</b> changes nothing.</li>
 </ul>
 
@@ -172,14 +206,15 @@ While the window is open it is see-through and cannot be clicked. Afterwards
 it looks like any stock in CAM.</li>
 <li>With “All-round roughing” also a <b>tool controller</b> “T1 Roughing”
 with spindle speed and feed from the tool manager and the <b>operation</b>
-“All-round roughing T1”. The wizard removes the controller FreeCAD gives every
-new job.</li>
+“All-round roughing T1”, with “All-round finishing” likewise “T2 Finishing”
+and “All-round finishing T2”. The wizard removes the controller FreeCAD gives
+every new job.</li>
 </ul>
 
 <h3>What does not work (yet)</h3>
 <ul>
-<li>Milling only certain faces and finishing – that comes in the next stages.
-Until then “All-round roughing” takes the whole part.</li>
+<li>Milling only certain faces – that comes in a next stage. Until then
+“All-round roughing” and “All-round finishing” take the whole part.</li>
 <li>Turning, facing the end and parting off are done by the machine –
 FreeCAD does not turn.</li>
 </ul>

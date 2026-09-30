@@ -20,6 +20,7 @@ Läuft ohne Oberfläche.
 """
 
 import re
+from dataclasses import replace
 
 import FreeCAD
 import Path
@@ -35,6 +36,10 @@ from .sprache import tr
 
 AUFMASS = 0.0  # mm – Schlichten macht fertig
 SCHRITTWEITE_ANTEIL = 0.02  # ohne ae im Einsatz: D/50 – wie die Vorlage „Schlichten“
+# Die Vorschau im Assistenten rechnet grob: Umdrehungen, Zeit und ob es geht – schnell genug
+# für jede Eingabe. Die Operation rechnet dann genau.
+VORSCHAU_TOLERANZ = 0.05  # mm – Vernetzung
+VORSCHAU_SCHRITT_PHI = 2.0  # Grad je Punkt
 
 
 class RundumSchlichten(PathOp.ObjectOp):
@@ -168,20 +173,45 @@ def schruppbahnen(job, modell):
 
 
 def bahn_fuer(job, modell, laengs, radial, form, schrittweite, aufmass, abstaende, schruppen):
-    """Die Schlichtbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
-    bevor es die Operationen gibt. `abstaende`: (Überlauf, Abstand zum Futter,
-    Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen davor
-    (schruppbahnen()). ValueError mit einem Satz, wenn es nicht geht."""
+    """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
+    Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
+    davor (schruppbahnen()). ValueError mit einem Satz, wenn es nicht geht."""
     if not schruppen:
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
+    laengs, radius, a_vorne, a_futter = _stange(job, laengs)
+    werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter)
+    werte = replace(
+        werte,
+        rest=rest_nach(schruppen, radius, a_futter, a_vorne),
+        aufmass_schruppen=max(auf for _bahn, _radius, auf in schruppen),
+    )
+    teil = vh.vernetze(_teil(modell), vb.TOLERANZ_SCHLICHTEN)
+    return vb.schlichten(teil, laengs, radial, werte)
+
+
+def vorschau(job, modell, laengs, radial, form, schrittweite, aufmass, abstaende):
+    """Die Schlichtbahn grob – für Umdrehungen, Zeit und ob es geht, im Assistenten, bevor es
+    die Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt, alle
+    VORSCHAU_SCHRITT_PHI Grad ein Punkt. ValueError wie bahn_fuer()."""
+    laengs, radius, a_vorne, a_futter = _stange(job, laengs)
+    werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter)
+    teil = vh.vernetze(_teil(modell), VORSCHAU_TOLERANZ)
+    return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
+
+
+def _stange(job, laengs):
+    """(Stangenachse normiert, Radius, a vorne, a der Spannfläche) des Jobs."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < vo.GERADE:
         raise ValueError(tr("vo.fehler.achse"))
     laengs.normalize()
     radius, a_hinten, a_vorne = vo.stange(job, laengs)
-    a_futter = a_hinten + (vr.spannlaenge(job) or vr.SPANNLAENGE)
+    return laengs, radius, a_vorne, a_hinten + (vr.spannlaenge(job) or vr.SPANNLAENGE)
+
+
+def _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter):
     ueberlauf, abstand_futter, sicherheit = abstaende
-    werte = vb.Schlichtwerte(
+    return vb.Schlichtwerte(
         form=form,
         stange_radius=radius,
         schrittweite=schrittweite,
@@ -191,14 +221,14 @@ def bahn_fuer(job, modell, laengs, radial, form, schrittweite, aufmass, abstaend
         sicherheit=sicherheit,
         ueberlauf=ueberlauf,
         abstand_futter=abstand_futter,
-        rest=rest_nach(schruppen, radius, a_futter, a_vorne),
-        aufmass_schruppen=max(auf for _bahn, _radius, auf in schruppen),
     )
+
+
+def _teil(modell):
     formen = [o.Shape for o in modell if not o.Shape.isNull()]
     if not formen:
         raise ValueError(tr("vo.fehler.modell"))
-    teil = formen[0] if len(formen) == 1 else vo._verbunden(formen)
-    return vb.schlichten(vh.vernetze(teil, vb.TOLERANZ_SCHLICHTEN), laengs, radial, werte)
+    return formen[0] if len(formen) == 1 else vo._verbunden(formen)
 
 
 def rest_nach(schruppen, radius, a_von, a_bis):

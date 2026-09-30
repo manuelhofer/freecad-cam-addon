@@ -12,6 +12,70 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-05 assistent-schlichten
+
+### EINGELESEN
+- V5d in `docs/spezifikation_vierachs.md`; Manuels Entscheidungen: Schrittweite
+  „Die Werte aus der Werkzeug Tabelle“, Abstände „Einmal für beide“.
+- `camaddon/gui_vierachs.py` (Schritt 2, Anlegen, Ändern), die Szenarien
+  `szenario_vierachs_schruppen`, `…_aendern`, `…_maschine`, `…_rohteil`.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`, `camaddon/vierachs_schlichten.py` (`vorschau`),
+  `translations/de.json`, `translations/en.json`, `help/de/vierachs.html`,
+  `help/en/vierachs.html`, `tests/gui/szenario_vierachs_schlichten.py` (neu),
+  `docs/spezifikation_vierachs.md`, `docs/aufbau.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle mit Absatz → „4-Achs-Bearbeitung“ → Stange Ø 80 → „Weiter“: „Rundum
+schlichten“ ist angehakt mit T2 Kugelfräser, grau Schrittweite 0,3 (aus der
+Werkzeugtabelle), „→ Kammhöhe 0,004 mm“ und „→ … Umdrehungen, etwa … min“;
+Doppelklick auf „Rundum schruppen T1“ eines Jobs ohne Schlichten → Haken bei
+„Rundum schlichten“, „Übernehmen“ → im Job steht „Rundum schlichten T2“.
+
+### DONE
+- Schritt 2: Werkstoff und „Werkzeugverwaltung …“ oben, dann „Rundum
+  schruppen“, „Rundum schlichten“ (Fräser, Einsatz, Schrittweite mit Kammhöhe,
+  Aufmaß, Ergebnis) und „Abstände“ (Überlauf leer: je Fräser Radius + 0,5 mm,
+  grau „Radius + 0,5“; eine Zahl gilt für beide). Die Beschriftungsspalte aller
+  Blöcke ist gleich breit (`_Reihen`).
+- Fräser fürs Schlichten: jede Form aus `fraeserform`; vorgewählt der zuletzt
+  benutzte, beim Ändern der der Operation, sonst einer mit Einsatz
+  „Schlichten“ (Kugel vor Torus). Der Haken ist beim Anlegen gesetzt, wenn es so
+  einen Fräser gibt – Werkzeuglisten ohne Schlichten bleiben, wie sie waren
+  (alle bisherigen Szenarien unverändert grün).
+- Vorschau: Schruppen genau wie bisher, Schlichten grob
+  (`vierachs_schlichten.vorschau`): Umdrehungen und Zeit, und ob es geht; ohne
+  Schruppen (angehakt oder im Job) ein roter Satz.
+- Die Stange ragt so weit heraus, wie der Fräser braucht, der hinten am meisten
+  Platz nimmt – beim Ändern zählen die anderen Bearbeitungen im Job mit.
+- Anlegen: Controller und Operationen beider Bearbeitungen in einem Schritt
+  Rückgängig („Rundum schruppen und schlichten anlegen“). Ändern: „Rundum
+  schlichten ändern“; beim Schruppen ein Schlichten dazunehmen, solange der Job
+  keins hat – sonst sagt ein grauer Satz, wo es steht.
+- Hilfe de/en: Abschnitt „Schritt 2: Rundum schlichten“, Abstände für beide,
+  Schlichten dazunehmen.
+- Gefunden im Szenario: Auf der Welle mit Absatz meldete die Operation „bis
+  7,3 mm bleiben stehen“. Ursache ist das Schruppen: Der Schaftfräser kommt am
+  Absatz erst herunter, wenn er ganz von der Wand weg ist, und die Spirale
+  (4,8 mm je Umdrehung) trifft diese Stelle nicht unter jedem Winkel – in der
+  Innenecke bleiben schraubenförmige Keile bis zur Höhe des Absatzes stehen.
+  Der Schutz hielt den Kugelfräser dort richtig oben. Kommt als eigener Patch:
+  Schlichten fährt solche Stellen in Stufen vor.
+- Gefunden: „→ Kammhöhe 0,004“ ohne „mm“ – `{e_laenge}` im Text.
+
+### TEST
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_vierachs_schlichten`
+  (neu), `szenario_vierachs_schruppen`, `…_aendern`, `…_maschine`, `…_rohteil`,
+  `szenario_hilfe` grün; `test_sprache` grün. Screenshots angesehen
+  (`1_schruppen_und_schlichten`, `2_schlichten_dazunehmen`,
+  `3_schlichten_aendern`). Ob der Dialog ohne Erklärung verständlich ist, prüft
+  Manuel.
+
+### NEXT
+- Schlichten in Stufen, wo das Schruppen mehr stehen ließ.
+
 ## P-2026-09-30-04 operation-rundum-schlichten
 
 ### EINGELESEN
