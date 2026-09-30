@@ -383,9 +383,11 @@ Operation durch jeden): LinuxCNC, Mach3/Mach4, Masso G3, Generic (26.3),
 KineticNC/Beamicon2, Estlcam, Dynapath 4060 – G93, G94, C und F in jedem
 Vorschubsatz, Werte wie in der Bahn (grbl, Marlin, RRF, JTech geben es auch so
 aus, deren Steuerungen kennen meist weder C noch G93). Fanuc und UCCNC lassen
-ein F weg, das gleich dem vorigen ist (rund 380 von 5 482 Sätzen) – mit
-`--no-axis-modal` bzw. `--repeat` steht es überall; `test_vierachs_operation`
-prüft diese vier. Centroid, Smoothie, Fablin, Philips lassen C weg, Fangling F;
+ein F weg, das gleich dem vorigen ist (rund 380 von 5 482 Sätzen) – deshalb
+folgen nie zwei gleiche aufeinander: Das zweite bekommt eine Einheit der 6.
+Nachkommastelle mehr, so genau speichert FreeCAD die Bahn (P-2026-09-30-39,
+Manuel: „Es muss ja für alle funktionieren“); `test_vierachs_operation` prüft
+LinuxCNC, Mach3/Mach4, Fanuc und UCCNC ohne Optionen. Centroid, Smoothie, Fablin, Philips lassen C weg, Fangling F;
 Heidenhain bricht in beiden Versionen ab (FreeCAD-Fehler), OpenSBP kennt G93
 erst neu in 26.3. **Drehmaschine:** Die Postprozessoren schreiben `M3 S…` –
 das ist dort die Hauptspindel; angetriebenes Werkzeug und C-Achsbetrieb

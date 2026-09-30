@@ -87,6 +87,8 @@ RING_LUFT = 0.01
 EINTAUCHWINKEL = 5.0  # Grad – so steil taucht die Rampe ein, wenn das Werkzeug nichts sagt
 RAMPE_MINDESTENS = 0.5  # mm – ein kürzeres Stück hat keinen Platz für eine Rampe
 RAMPE_HOECHSTENS = 200  # so oft läuft eine Rampe höchstens hin und her
+# So viele Nachkommastellen behält FreeCAD von F, wenn es die Bahn im Dokument speichert.
+F_STELLEN = 6
 
 
 @dataclass(frozen=True)
@@ -1096,6 +1098,7 @@ def befehle(
     ergebnis.append(Path.Command("G0", anfang))
     ergebnis.append(Path.Command("G93"))
     vorher = start
+    f_vorher = None
     for punkt in bahn.punkte[1:]:
         if punkt.eilgang:
             ergebnis.append(Path.Command("G0", lage(punkt)))
@@ -1105,11 +1108,23 @@ def befehle(
                 continue
             werte = lage(punkt)
             f = eintauchen if punkt.eintauchen and eintauchen else vorschub
-            werte["F"] = f / weg / 60.0
+            werte["F"] = f_vorher = _anderes_f(f / weg / 60.0, f_vorher)
             ergebnis.append(Path.Command("G1", werte))
         vorher = punkt
     ergebnis.append(Path.Command("G94"))
     return ergebnis
+
+
+def _anderes_f(f, vorher):
+    """F für G93 auf F_STELLEN Stellen – gleicht es dem F davor, eine Einheit der letzten
+    Stelle mehr. In G93 muss F in jedem Satz stehen, doch manche Postprozessoren (Fanuc,
+    UCCNC) lassen ein F weg, das dem vorigen gleicht (P-2026-09-30-39, Manuel: „Es muss ja für
+    alle funktionieren“). So bleibt es verschieden, auch nach Speichern und Laden; im Programm
+    (F × 60 auf 3 Stellen) sieht man den Unterschied nicht."""
+    f = round(f, F_STELLEN)
+    if vorher is not None and f == vorher:
+        f = round(f + 10.0**-F_STELLEN, F_STELLEN)
+    return f
 
 
 def _weg(von, nach):

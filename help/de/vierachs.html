@@ -183,11 +183,11 @@ Achse weg ist. Danach kommt G94. Der Postprozessor muss F in jedem Satz
 schreiben und metrisch ausgeben.</li>
 <li><b>Postprozessoren von FreeCAD</b> (geprüft mit 1.1.3 und 26.3):
 <b>LinuxCNC</b>, <b>Mach3/Mach4</b>, <b>Masso G3</b>, <b>Generic</b> (26.3),
-<b>KineticNC/Beamicon2</b>, <b>Estlcam</b> und <b>Dynapath 4060</b> schreiben
-G93, C und F so, wie es sein muss. <b>Fanuc</b> und <b>UCCNC</b> lassen ein F
-weg, wenn es gleich dem vorigen ist – im Job unter „Postprozessor-Argumente“
-<code>--no-axis-modal</code> (Fanuc) bzw. <code>--repeat</code> (UCCNC)
-eintragen, dann steht es in jedem Satz. <b>Centroid</b>, <b>Smoothie</b>,
+<b>KineticNC/Beamicon2</b>, <b>Estlcam</b>, <b>Dynapath 4060</b>, <b>Fanuc</b>
+und <b>UCCNC</b> schreiben G93, C und F so, wie es sein muss. (Fanuc und UCCNC
+lassen ein F weg, das dem vorigen gleicht – deshalb folgen im Programm nie zwei
+gleiche aufeinander; der Unterschied liegt in der 6. Nachkommastelle.)
+<b>Centroid</b>, <b>Smoothie</b>,
 <b>Fablin</b> und <b>Philips</b> lassen die Rundachse weg, <b>Fangling</b> das
 F – die taugen dafür nicht.</li>
 <li>An der <b>Drehmaschine</b> schreiben diese Postprozessoren

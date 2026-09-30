@@ -154,10 +154,12 @@ pruefe(
     f"Anfang: {befehle[2].Parameters}",
 )
 hinein, spirale = befehle[4].Parameters, befehle[5].Parameters
-pruefe(abs(hinein["F"] * 60 - 1500 / 4) < 1e-9, f"F hinein: {hinein}")
+# F auf 6 Stellen, wie FreeCAD es speichert – im Programm (× 60) höchstens 3e-5 daneben.
+F_GENAU = 60 * 0.5e-6 + 1e-12
+pruefe(abs(hinein["F"] * 60 - 1500 / 4) < F_GENAU, f"F hinein: {hinein}")
 weg = math.hypot(4.8, 38.0 * 2 * math.pi)
 pruefe(
-    abs(spirale["F"] * 60 - 1500 / weg) < 1e-9
+    abs(spirale["F"] * 60 - 1500 / weg) < F_GENAU
     and spirale["C"] == -360.0
     and abs(spirale["Z"] - 4.2) < 1e-12,
     f"Spirale: {spirale}",
@@ -182,8 +184,26 @@ senkrecht = vb.Bahn(
     [kurz.punkte[0], replace(kurz.punkte[1], eintauchen=True), *kurz.punkte[2:]], 1, 38.0
 )
 eingetaucht = vb.befehle(senkrecht, C_LAENGS, C_RADIAL, "C", 1, 1500.0, eintauchen=300.0)
-pruefe(abs(eingetaucht[4].Parameters["F"] * 60 - 300 / 4) < 1e-9, f"F eintauchen: {eingetaucht[4]}")
-pruefe(abs(eingetaucht[5].Parameters["F"] * 60 - 1500 / weg) < 1e-9, "F danach")
+pruefe(
+    abs(eingetaucht[4].Parameters["F"] * 60 - 300 / 4) < F_GENAU, f"F eintauchen: {eingetaucht[4]}"
+)
+pruefe(abs(eingetaucht[5].Parameters["F"] * 60 - 1500 / weg) < F_GENAU, "F danach")
+# Gleich lange Sätze (nach dem ersten, radial hinein) hätten dasselbe F – manche
+# Postprozessoren (Fanuc, UCCNC) ließen es dann weg, in G93 ein Alarm. Das zweite bekommt eine
+# Einheit der 6. Stelle mehr, das dritte ist wieder das erste (P-2026-09-30-39).
+gleich = vb.Bahn(
+    [vb.Punkt(False, 9.0, 42.0, 0.0)]
+    + [vb.Punkt(False, 9.0 - 1.2 * i, 38.0, 90.0 * i) for i in range(1, 5)],
+    1,
+    38.0,
+)
+f_werte = [b.Parameters["F"] for b in vb.befehle(gleich, C_LAENGS, C_RADIAL, "C", 1, 1500.0)[4:8]]
+pruefe(
+    f_werte[2] == round(f_werte[1] + 1e-6, 6)
+    and f_werte[3] == f_werte[1] != f_werte[0]
+    and all(round(f, 6) == f for f in f_werte),
+    f"gleiche F: {f_werte}",
+)
 pruefe(
     abs(vb.dauer(senkrecht, 1500.0, 300.0) - (4 / 300.0 + weg / 1500.0)) < 1e-12,
     "Dauer mit Eintauchen",

@@ -192,8 +192,9 @@ if post is not None:
 
 # Die Postprozessoren, die die Hilfe nennt (vierachs.html, „Im Programm“; Manuel 2026-09-30:
 # „Funktionieren die so wie wir das hier bauen??“): In jedem Vorschubsatz zwischen G93 und G94
-# steht F – Fanuc und UCCNC nur mit der Option, die ein gleiches F nicht weglässt –, und die
-# Rundachse C bleibt. Gezählt wie die Steuerung liest: Ein Satz ohne G-Wort fährt wie der davor.
+# steht F – auch bei Fanuc und UCCNC, die ein F weglassen, das dem vorigen gleicht: Zwei gleiche
+# folgen nie aufeinander (P-2026-09-30-39) –, und die Rundachse C bleibt. Gezählt wie die
+# Steuerung liest: Ein Satz ohne G-Wort fährt wie der davor.
 from Path.Post.Processor import PostProcessorFactory  # noqa: E402
 
 
@@ -216,13 +217,13 @@ def vorschubsaetze(text):
 
 
 job = next(o for o in doc.Objects if hasattr(o, "Operations"))
-for namen, argumente in (
-    (("linuxcnc", "linuxcnc_legacy"), ""),
-    (("mach3_mach4", "mach3_mach4_legacy"), ""),
-    (("fanuc", "fanuc_legacy"), "--no-axis-modal"),
-    (("uccnc", "uccnc_legacy"), "--repeat"),
+for namen in (
+    ("linuxcnc", "linuxcnc_legacy"),
+    ("mach3_mach4", "mach3_mach4_legacy"),
+    ("fanuc", "fanuc_legacy"),
+    ("uccnc", "uccnc_legacy"),
 ):
-    job.PostProcessorArgs = f"--no-show-editor {argumente}".strip()
+    job.PostProcessorArgs = "--no-show-editor"
     abschnitte = None
     for name in namen:
         post = PostProcessorFactory.get_post_processor(job, name)
@@ -235,7 +236,7 @@ for namen, argumente in (
     mit_c = [z for z in saetze if re.search(r"(?<![A-Z])C-?[\d.]", z)]
     pruefe(
         len(saetze) > 100 and not ohne_f,
-        f"{namen[0]} {argumente}: {len(ohne_f)} von {len(saetze)} ohne F, etwa {ohne_f[:1]}",
+        f"{namen[0]}: {len(ohne_f)} von {len(saetze)} ohne F, etwa {ohne_f[:1]}",
     )
     pruefe(len(mit_c) > 0.9 * len(saetze), f"{namen[0]}: C in {len(mit_c)} von {len(saetze)}")
 

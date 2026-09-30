@@ -177,11 +177,11 @@ G94 follows. The post processor must write F in every block and output
 metric.</li>
 <li><b>FreeCAD's post processors</b> (checked with 1.1.3 and 26.3):
 <b>LinuxCNC</b>, <b>Mach3/Mach4</b>, <b>Masso G3</b>, <b>Generic</b> (26.3),
-<b>KineticNC/Beamicon2</b>, <b>Estlcam</b> and <b>Dynapath 4060</b> write
-G93, C and F as they must. <b>Fanuc</b> and <b>UCCNC</b> drop an F that equals
-the previous one – enter <code>--no-axis-modal</code> (Fanuc) or
-<code>--repeat</code> (UCCNC) in the job's post processor arguments, then it
-is in every block. <b>Centroid</b>, <b>Smoothie</b>, <b>Fablin</b> and
+<b>KineticNC/Beamicon2</b>, <b>Estlcam</b>, <b>Dynapath 4060</b>, <b>Fanuc</b>
+and <b>UCCNC</b> write G93, C and F as they must. (Fanuc and UCCNC drop an F
+that equals the previous one – so two equal ones never follow each other in the
+program; the difference is in the 6th decimal place.) <b>Centroid</b>,
+<b>Smoothie</b>, <b>Fablin</b> and
 <b>Philips</b> drop the rotary axis, <b>Fangling</b> the F – they are no use
 for this.</li>
 <li>On a <b>lathe</b> these post processors write <code>M3 S…</code> – there

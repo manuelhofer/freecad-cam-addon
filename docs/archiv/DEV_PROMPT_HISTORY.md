@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-39 f-in-jedem-satz
+
+### EINGELESEN
+- Manuel, 2026-09-30, zur Frage nach seiner Steuerung: „Sollte keine Rolle spielen …
+  Es muss ja für alle funktionieren“.
+- `camaddon/vierachs_bahn.py` (`befehle`), `fanuc_post.py` und `uccnc_post.py` von FreeCAD
+  (F nur, wenn `currLocation["F"] != F`), die Speicherung einer Bahn im Dokument (F auf 6
+  Nachkommastellen, nachgeprüft), `tests/test_vierachs_bahn.py`,
+  `tests/test_vierachs_operation.py`, `help/*/vierachs.html`, `docs/spezifikation_vierachs.md`.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `tests/test_vierachs_bahn.py`,
+  `tests/test_vierachs_operation.py`, `help/de/vierachs.html`, `help/en/vierachs.html`,
+  `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Eine Rundum-Operation durch den Postprozessor Fanuc oder UCCNC von FreeCAD, ohne Optionen:
+Zwischen G93 und G94 steht in jedem Vorschubsatz ein F.
+
+### DONE
+- F für G93 steht auf 6 Stellen (so speichert FreeCAD die Bahn); gleicht es dem F davor,
+  bekommt es eine Einheit der 6. Stelle mehr. Dann lassen auch Fanuc und UCCNC es nicht weg;
+  im Programm (× 60, 3 Stellen) sieht man den Unterschied nicht, die Zeit ändert sich um
+  weniger als ein Millionstel.
+- Hilfe und Spezifikation: keine Optionen mehr nötig.
+
+### TEST
+- `test_vierachs_bahn` (gleich lange Sätze: F abwechselnd um eine Einheit der 6. Stelle
+  verschieden), `test_vierachs_operation` (LinuxCNC, Mach3/Mach4, Fanuc, UCCNC ohne Optionen:
+  F in jedem Vorschubsatz), `test_vierachs_schlichten_op`, `test_abfahren`,
+  `test_vierachs_pruefen`, `test_restmaterial`, `test_hilfe` – in 1.1.3 und 26.3 ok.
+
+### NEXT
+- Für Drehmaschinen (Radius, angetriebenes Werkzeug, Fanuc-G94) einen Weg planen, der für
+  jede Steuerung geht.
+
 ## P-2026-09-30-38 version-0-31-0
 
 ### EINGELESEN
