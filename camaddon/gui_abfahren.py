@@ -354,6 +354,13 @@ def _rest_satz(vergleich, aufmass):
         satz += " " + tr("rm.zu_viel", grenze=mm(aufmass + rm.ROT_AB))
     if vergleich.nur_gewaehlte:  # V4: der Rest ist Stange, mit Absicht
         satz += " " + tr("rm.nur_gewaehlte")
+    if vergleich.ohne_vergleich:  # P-2026-09-30-44: das Teil liegt dort nicht rund um die Achse
+        stellen = tr("rm.und_von").join(
+            tr("rm.von_bis", von=mm(von), bis=mm(bis)) for von, bis in vergleich.ohne_vergleich[:3]
+        )
+        if len(vergleich.ohne_vergleich) > 3:
+            stellen += " …"
+        satz += " " + tr("rm.nicht_rundum", stellen=stellen)
     return satz + " " + tr("rm.farben")
 
 

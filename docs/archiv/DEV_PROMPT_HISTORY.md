@@ -12,6 +12,63 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-44 vergleich-nicht-rundum
+
+### EINGELESEN
+- Manuel, 2026-09-30, mit `test4achsbearbeitung.FCStd`: „das hier oben angeheftete teil ist
+  übrigens das testteil ... für ringsrum bearbeiten“.
+- Das Testteil durch den Assistenten auf der Beispiel-Drehmaschine (T1 Schaftfräser Ø 12, T2
+  Kugelfräser Ø 6, Halter „VDI30 angetrieben radial“): Stange Ø 80, 17 Lagen, Schlichten 100
+  Umdrehungen, 148 min. Das Prüffenster meldete am Ende „fehlen bis 30,91 mm im Teil (blau)“.
+- Am Körper nachgemessen: Keine Bahn dringt ein (höchstens 0,005 mm). Das Blau lag hinten,
+  wo das Teil neben der Achse steht, dazu 0,11 mm an einer scharfen Kante und 0,05 mm auf der
+  Stirnebene.
+- `camaddon/restmaterial.py` (`vergleiche`, `Abtrag.vergleich`), `camaddon/gui_abfahren.py`
+  (`_rest_satz`), `vierachs_huelle` (Strahlen mit x ≤ 0 zählen nicht), `help/*/reichweite.html`,
+  `docs/spezifikation_vierachs.md` (V3g, V5e).
+
+### DATEIEN
+- `camaddon/restmaterial.py`, `camaddon/gui_abfahren.py`, `translations/de.json`,
+  `translations/en.json`, `tests/test_restmaterial.py`, `help/de/reichweite.html`,
+  `help/en/reichweite.html`, `docs/spezifikation_vierachs.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Manuels Testteil, geschruppt und geschlichtet, zeigt im Prüffenster am Ende nichts Blaues.
+Der Satz sagt, wo nicht verglichen wurde. Ein Rohr wird weiter verglichen, und ein Schnitt ins
+Rohr ist blau.
+
+### DONE
+- Die Stange kennt je Strahl aus der Achse nur einen Radius. Liegt das Teil nicht rund um die
+  Achse, fährt der Fräser bis an die Achse und nimmt auf einem Strahl weg, was zwischen Achse
+  und Teil liegt. Für die Stange fehlte dann das Teil dahinter.
+- Deshalb vergleicht es an Stellen nicht, an denen manche Strahlen das Teil vor der Achse
+  haben und andere nicht (`Vergleich.ohne_vergleich`: die Stücke von–bis). Die anderen Strahlen
+  sehen es nur hinter der Achse (die Hüllfläche gibt dort einen negativen Radius) oder gar
+  nicht. Der Satz darunter nennt die Stücke. Ein Rohr hat jeder Strahl vor sich; dort kommt
+  kein Fräser an die Achse, und es wird verglichen.
+- Zwei Fassungen davor verworfen:
+  - „Liegt die Achse im Teil?“ hätte ein Rohr ganz ausgenommen.
+  - „Trifft der Strahl das Teil überhaupt?“ übersah die Stelle −88,5 mm am Testteil. Dort
+    liegt die Achse 0,2 mm neben der flachen Seite des D-Profils, und jeder Strahl sieht das
+    Teil, manche nur dahinter.
+- An einer scharfen Kante und an den Enden ist erst blau, was tiefer liegt als die halbe
+  Änderung zur Nachbarzelle. Dort weiß das Raster nicht genau, wo das Teil liegt.
+- Hilfe (de/en) und Spezifikation ergänzt.
+
+### TEST
+- `test_restmaterial`: Rohr, Quader 0,2 mm neben und um die Achse, drei Stücke (eines mit
+  Strahlen nur hinter der Achse), Kante und Ende. Ok in 1.1.3 und 26.3.
+- `test_sprache` und `test_hilfe`: ok in 1.1.3 und 26.3.
+- Das Testteil als Szenario in 1.1.3: nach dem Schruppen 0,33 … 27,30 mm, am Ende 0 … 2,96 mm,
+  nichts blau. Der Satz nennt „Von −90,25 mm bis −87,25 mm längs liegt das Teil nicht rund um
+  die Achse …“.
+- `szenario_flaechen_pruefen`, `szenario_rundum_drehmaschine` und
+  `szenario_vierachs_schruppen`: ok in 1.1.3 und 26.3.
+
+### NEXT
+- Version 0.31.2, Push, Bericht an Manuel mit Bildern.
+
 ## P-2026-09-30-43 plan-steuerung-zwei-wege
 
 ### EINGELESEN

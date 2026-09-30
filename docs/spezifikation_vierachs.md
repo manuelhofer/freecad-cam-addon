@@ -980,6 +980,21 @@ die Abstände gelten für beide.
   Torus und Konik gegen den fein abgetasteten Strahl (unter 0,002 mm), die
   Kugel-Spirale mit ihrem Kamm, Schruppen und Schlichten auf der
   Beispiel-Drehmaschine (0,006 … 0,024 mm, alles grün).
+  *Nachgebessert an Manuels Testteil (P-2026-09-30-44):* Loft 90 mm, D-Profil
+  70 × 25, hinten gedreht und neben die Achse versetzt. Das Prüffenster meldete
+  „fehlen bis 30,91 mm im Teil“, am Körper nachgemessen drang keine Bahn ein
+  (höchstens 0,005 mm). Grund: Hinten liegt das Teil nicht rund um die Achse;
+  der Fräser fährt dort bis an die Achse, nimmt auf einem Strahl weg, was
+  zwischen Achse und Teil liegt, und für die Stange mit einem Radius je Strahl
+  fehlte das Teil dahinter. Jetzt vergleicht es an Stellen nicht, an denen manche
+  Strahlen das Teil vor der Achse haben und andere nicht – sie sehen es nur
+  dahinter (dort gibt die Hüllfläche einen negativen Radius) oder gar nicht –,
+  und sagt, von wo bis wo; ein Rohr hat jeder Strahl vor sich, dort wird
+  verglichen. Am Testteil liegt die Achse hinten 0,2 mm neben der flachen Seite
+  des D-Profils; „trifft der Strahl das Teil überhaupt“ reichte deshalb nicht.
+  Dazu ist an scharfen Kanten und an den Enden erst blau, was tiefer liegt als
+  die halbe Änderung zur Nachbarzelle (dort 0,11 bzw. 0,05 mm, kein
+  Eindringen). Danach am Testteil: nichts blau, Rest 0 … 2,96 mm.
   *Gebaut, Schneide (P-2026-09-30-08):* `kollision.werkzeugkoerper` baut die
   Schneide als Drehkörper aus der Stirn (`drehkoerper`: Bögen und Geraden der
   Form um Z gedreht, darüber zylindrisch bis zur Schneidenlänge) – bei ebener

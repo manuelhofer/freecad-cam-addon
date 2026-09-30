@@ -8,7 +8,9 @@
 # (Kugelfräser Ø 6) dahinter trägt es mit der Kugel ab und vergleicht mit dessen Aufmaß 0:
 # grün, nichts im Teil. Nur über einer Abflachung geschruppt (V4): Ohne Wahl wäre der Mantel
 # rot (dort steht die Stange), mit den gewählten Flächen hat er keine Farbe – nur die
-# Abflachung zählt; Blau gälte überall.
+# Abflachung zählt; Blau gälte überall. Wo das Teil nicht rund um die Achse liegt (ein Quader
+# neben ihr), vergleicht es nicht und sagt, von wo bis wo; ein Rohr schon. An einer scharfen
+# Kante und am Ende ist 0,1 mm darunter nicht blau, auf glatter Fläche schon.
 import math
 import os
 import pathlib
@@ -278,6 +280,77 @@ anteil = np.count_nonzero(mit.farbe[nur] != rm.ROT) / max(1, np.count_nonzero(nu
 pruefe(anteil > 0.95, f"auf der Abflachung nur {anteil:.0%} nicht rot")
 print(
     ascii(f"Abflachung: ohne Wahl bis {ohne.groesster:.2f} mm, mit Wahl bis {mit.groesster:.2f} mm")
+)
+
+# --- Das Teil nicht rund um die Achse (Manuels Testteil, P-2026-09-30-44) --------------------
+# Längs z: ein Rohr (Ø 30 / Ø 20, z −100 … −70), nichts, ein Quader 0,2 mm neben der Achse
+# (y 0,2 … 25,2 wie das D-Profil hinten an Manuels Teil, z −60 … −40), ein Quader um die
+# Achse (z −40 … −10). Das Rohr hat jeder Strahl aus der Achse vor sich, den Quader daneben
+# nur manche – die anderen sehen ihn hinter der Achse (negativer Radius) oder gar nicht: Dort
+# kennt die Stange je Strahl nur einen Radius, und ein Fräser nah an der Achse sähe aus wie
+# ein Schnitt ins Teil. Dort vergleicht es nicht und sagt, von wo bis wo; am Rohr schon – ein
+# Schnitt ins Rohr ist blau.
+rohr = Part.makeCylinder(15, 30, V(0, 0, -100)).cut(Part.makeCylinder(10, 30, V(0, 0, -100)))
+daneben = Part.makeBox(70, 25, 20, V(-35, 0.2, -60))
+um_die_achse = Part.makeBox(20, 20, 30, V(-10, -10, -40))
+st = rm.Stange(30.0, -100.0, -10.0)
+teile = Part.makeCompound([rohr, daneben.fuse(um_die_achse)])
+teil = rm.teilradien(vh.vernetze(teile), (0, 0, 1), (1, 0, 0), st)
+genau = rm.teilradien(vh.vernetze(teile), (0, 0, 1), (1, 0, 0), st, rm.GENAU)
+st.r[:] = np.where(np.isfinite(teil), teil + 0.3, 2.0)
+im_rohr = (st.a > -95.0) & (st.a < -75.0)
+neben = (st.a > -59.0) & (st.a < -41.0)
+pruefe(
+    ((teil[neben] > 0).any(axis=1) & (teil[neben] < 0).any(axis=1)).all(),
+    "neben der Achse: manche Strahlen sehen den Quader vor, andere hinter der Achse",
+)
+st.r[neben] = 2.0  # der Fräser nah an der Achse: hier sähe es aus wie 20 mm im Teil
+v = rm.vergleiche(st, teil, 0.3, genau)
+pruefe(
+    len(v.ohne_vergleich) == 1
+    and abs(v.ohne_vergleich[0][0] + 60.0) < 0.3
+    and abs(v.ohne_vergleich[0][1] + 40.0) < 0.3,
+    f"nicht verglichen: {v.ohne_vergleich}",
+)
+pruefe((v.farbe[neben] == rm.OHNE_TEIL).all(), "neben der Achse gefärbt")
+pruefe(not (v.farbe == rm.BLAU).any() and v.kleinster > 0.2, f"blau: {v.kleinster}")
+pruefe((v.farbe[im_rohr] == rm.GRUEN).all(), "Rohr nicht grün")
+st.r[im_rohr, 90] = 12.0  # 3 mm ins Rohr
+v = rm.vergleiche(st, teil, 0.3, genau)
+pruefe(
+    (v.farbe[im_rohr, 90] == rm.BLAU).all() and abs(v.kleinster + 3.0) < 0.01,  # Netz
+    f"ins Rohr: {v.kleinster}",
+)
+# Drei Stücke: jedes für sich, bis an den Rand der Zellen, höchstens bis ans Ende der Stange.
+st = rm.Stange(30.0, -20.0, 0.0)
+teil = np.full(st.r.shape, 20.0)
+teil[:3, 180:] = -np.inf
+teil[20:22, :90] = -np.inf
+teil[30, 200:] = -5.0  # jeder Strahl sieht Teil, manche nur hinter der Achse (Manuels Teil)
+v = rm.vergleiche(st, teil, 0.0)
+pruefe(
+    v.ohne_vergleich == ((-20.0, -18.75), (-10.25, -9.25), (-5.25, -4.75)),
+    f"Stücke: {v.ohne_vergleich}",
+)
+pruefe(rm.vergleiche(st, np.full(st.r.shape, 20.0), 0.0).ohne_vergleich == (), "überall")
+# An einer scharfen Kante (das Teil springt rundum von 30 auf 35) und am Ende des Teils sagt
+# das Raster nicht genau, wo es liegt: 0,1 mm darunter ist dort nicht blau – auf glatter
+# Fläche schon.
+st = rm.Stange(40.0, -20.0, 0.0)
+teil = np.full(st.r.shape, 30.0)
+teil[:, :10] = 35.0  # die Kante zwischen φ 9° und 10°
+teil[-1] = -np.inf  # a = 0: kein Teil mehr, die Zeile davor ist das Ende
+st.r[:] = teil + 0.3
+mitte = len(st.a) // 2
+st.r[mitte, 9] = 34.9  # an der Kante
+st.r[-2, 50] = 29.9  # am Ende
+glatt = rm.vergleiche(st, teil, 0.3)
+pruefe(not (glatt.farbe == rm.BLAU).any() and glatt.kleinster >= -rm.BLAU_AB, "Kante: blau")
+st.r[mitte, 50] = 29.9  # auf glatter Fläche
+ins_teil = rm.vergleiche(st, teil, 0.3)
+pruefe(
+    ins_teil.farbe[mitte, 50] == rm.BLAU and abs(ins_teil.kleinster + 0.1) < 1e-9,
+    f"glatt: {ins_teil.farbe[mitte, 50]} {ins_teil.kleinster}",
 )
 
 if fehler:

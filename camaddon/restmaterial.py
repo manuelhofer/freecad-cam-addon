@@ -24,7 +24,12 @@ je Zelle der Rest darüber – grün bis Aufmaß + 0,1 mm, gelb darüber, rot ab
 + 1 mm; verglichen wird mit dem Aufmaß der letzten Bearbeitung. Blau, wo mehr als
 0,05 mm im Teil fehlen – das liest es genau auf dem Strahl (Scheibe GENAU): Neben einer
 Wand sähe die breitere Scheibe schon die Wand, und was der Kugelfräser dort weg nahm,
-fehlte scheinbar im Teil.
+fehlte scheinbar im Teil. An einer scharfen Kante und an den Enden ist erst blau, was
+tiefer liegt als die halbe Änderung zur Nachbarzelle – dort weiß das Raster nicht genau, wo
+das Teil liegt. Wo das Teil nicht rund um die Achse liegt (manche Strahlen einer Stelle
+haben es vor sich, andere nur dahinter oder gar nicht), vergleicht es gar nicht: Ein Fräser nah an der Achse nähme auf
+einem Strahl weg, was zwischen Achse und Teil liegt, und für die Stange mit einem Radius je
+Strahl fehlte dann das Teil dahinter (Manuels Testteil, P-2026-09-30-44).
 
 Mit gewählten Flächen (V4, bei allen Rundum-Operationen des Jobs) färbt der Vergleich nur
 sie: Was nicht gewählt ist, bleibt Stange und zählt nicht als „zu viel stehen geblieben“ –
@@ -240,12 +245,15 @@ class Vergleich:
     kleinster: float  # mm – so wenig bleibt (negativ: im Teil)
     groesster: float  # mm – so viel bleibt höchstens (auf den gewählten Flächen)
     nur_gewaehlte: bool = False  # nur auf den gewählten Flächen verglichen (V4)
+    # ((von, bis), …) mm längs, wo das Teil nicht rund um die Achse liegt und nicht verglichen
+    # wird (vergleiche()) – leer: überall verglichen.
+    ohne_vergleich: tuple = ()
 
 
 def teilradien(netz, laengs, radial, stange, radius=SCHRITT_A / 2):
-    """Die Radien des fertigen Teils im Raster der Stange – −inf, wo es keins gibt. Die Scheibe
-    einer halben Rasterweite fasst, was zwischen den Strahlen liegt; mit `radius` GENAU liest
-    es das Teil auf den Strahlen."""
+    """Die Radien des fertigen Teils im Raster der Stange – −inf, wo es keins gibt, negativ, wo
+    es nur hinter der Achse liegt. Die Scheibe einer halben Rasterweite fasst, was zwischen den
+    Strahlen liegt; mit `radius` GENAU liest es das Teil auf den Strahlen."""
     return vh.schaftfraeser(netz, laengs, radial, radius, stange.a, stange.phi).r
 
 
@@ -253,8 +261,19 @@ def vergleiche(stange, teil, aufmass, genau=None, nur=None):
     """Das Restmaterial gegen das fertige Teil (`teil`: teilradien()), je Zelle eingefärbt;
     `aufmass`: das Aufmaß, das stehen bleiben soll (mm). `genau`: das Teil auf den Strahlen
     (teilradien() mit GENAU) – nur was dort fehlt, ist blau. `nur`: (n_a, n_phi) die Zellen
-    der gewählten Flächen – nur sie bekommen Grün, Gelb oder Rot; Blau gilt überall."""
-    da = np.isfinite(teil)
+    der gewählten Flächen – nur sie bekommen Grün, Gelb oder Rot; Blau gilt überall.
+
+    Wo an einer Stelle manche Strahlen aus der Achse das Teil vor sich haben und andere nicht
+    (sie sehen es nur hinter der Achse oder gar nicht), liegt es nicht rund um die Achse
+    (Manuels Testteil hinten, P-2026-09-30-44) – dort vergleicht es gar nicht
+    (Vergleich.ohne_vergleich): Die Stange kennt je Strahl nur einen Radius. Kommt der Fräser
+    dort nah an die Achse, nimmt er auf einem Strahl weg, was zwischen Achse und Teil liegt,
+    und für die Stange sähe es aus, als fehlte das Teil dahinter. Ein Rohr hat jeder Strahl
+    vor sich – dort kommt kein Fräser an die Achse, es wird verglichen."""
+    with np.errstate(invalid="ignore"):
+        da = teil > 0  # das Teil vor der Achse
+    halb = da.any(axis=1) & ~da.all(axis=1)
+    da = da & ~halb[:, None]
     genau = teil if genau is None else genau
     tief = np.where(da & np.isfinite(genau), stange.r - genau, np.nan)
     if nur is not None:
@@ -264,11 +283,48 @@ def vergleiche(stange, teil, aufmass, genau=None, nur=None):
     farbe[da & (rest <= aufmass + GRUEN_BIS)] = GRUEN
     farbe[da & (rest > aufmass + GRUEN_BIS)] = GELB
     farbe[da & (rest >= aufmass + ROT_AB)] = ROT
+    # Wo sich das Teil von einer Zelle zur nächsten stark ändert – an einer scharfen Kante, an
+    # den Enden –, weiß das Raster nicht genau, wo es liegt: Dort ist erst blau, was tiefer
+    # liegt als die halbe Änderung zum Nachbarn (Manuels Testteil: 0,11 mm an der Kante, 0,05
+    # mm auf der Stirnebene – am Körper nachgemessen kein Eindringen, P-2026-09-30-44).
+    schwelle = BLAU_AB + 0.5 * _spruenge(genau)
     with np.errstate(invalid="ignore"):
-        farbe[tief < -BLAU_AB] = BLAU
+        blau = tief < -schwelle
+        farbe[blau] = BLAU
+        tief = np.where(blau, tief, np.maximum(tief, -BLAU_AB))
     kleinster = float(np.nanmin(tief)) if np.isfinite(tief).any() else 0.0
     groesster = float(np.nanmax(rest)) if da.any() else 0.0
-    return Vergleich(rest, farbe, kleinster, groesster, nur is not None)
+    return Vergleich(rest, farbe, kleinster, groesster, nur is not None, _bereiche(stange, halb))
+
+
+def _bereiche(stange, zeilen):
+    """Die zusammenhängenden Stücke der Zeilen `zeilen` ((n_a,) bool) als ((von, bis), …) mm
+    längs – bis an den Rand ihrer Zellen, höchstens bis an die Enden der Stange."""
+    stuecke = []
+    for i in np.flatnonzero(zeilen):
+        if stuecke and stuecke[-1][1] == i - 1:
+            stuecke[-1][1] = i
+        else:
+            stuecke.append([i, i])
+    halb = stange._schritt_a / 2
+    a = stange.a
+    return tuple(
+        (float(max(a[v] - halb, a[0])), float(min(a[b] + halb, a[-1]))) for v, b in stuecke
+    )
+
+
+def _spruenge(teil):
+    """(n_a, n_phi): je Zelle die größte Änderung des Teils zu einer Nachbarzelle (längs und
+    rundum) – unendlich, wo ein Nachbar kein Teil hat."""
+    with np.errstate(invalid="ignore"):
+        sprung = np.zeros(teil.shape)
+        for nachbar in (np.roll(teil, 1, axis=1), np.roll(teil, -1, axis=1)):
+            sprung = np.maximum(sprung, np.abs(nachbar - teil))
+        oben = np.vstack([teil[1:], np.full((1, teil.shape[1]), -np.inf)])
+        unten = np.vstack([np.full((1, teil.shape[1]), -np.inf), teil[:-1]])
+        for nachbar in (oben, unten):
+            sprung = np.maximum(sprung, np.abs(nachbar - teil))
+    return np.where(np.isfinite(sprung), sprung, np.inf)
 
 
 class Abtrag:
