@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-"""Bahnen für die 4-Achs-Bearbeitung: rundum schruppen (Spezifikation W-003,
-Abschnitt 9, Stufe V3b).
+"""Bahnen für die 4-Achs-Bearbeitung: rundum schruppen und rundum schlichten
+(Spezifikation W-003, Abschnitt 9, Stufen V3b und V5b).
 
 „Rundum schruppen“ nimmt die Stange in Lagen ab, bis aufs Schlichtaufmaß:
 Lage k liegt auf dem Radius R_Stange − k · ap. Je Lage läuft eine Spirale mit
@@ -22,6 +22,18 @@ geht es radial hinaus und im Eilgang nach vorne zur nächsten Lage.
   –, bleiben nur ihre Enden und alle HOECHSTENS_GRAD einer.
 - Wie viele Lagen es braucht, sagt der tiefste Punkt über dem Teil; vor dem
   Teil (Planaufmaß) schneidet jede Lage nur so tief wie sie selbst.
+
+„Rundum schlichten“ fährt eine Spirale mit der Schrittweite als Steigung, die
+Spitze auf der Hüllfläche des Schlichtfräsers mit seiner Form (fraeserform) plus
+Aufmaß – genau an den Stellen der Spirale gerechnet (vierachs_huelle.je_winkel),
+alle SCHRITT_PHI_SCHLICHTEN Grad ein Punkt. Wo die Bahn sich zwischen zwei
+Punkten nach außen wölbt, hebt sie sich um den Sehnenfehler; gerade Stücke fasst
+sie zusammen, solange die Bahn höchstens BAHN_TOLERANZ über den Punkten bleibt
+und nie darunter. Vor und hinter dem Teil bleibt die Spitze auf der Tiefe seines
+Endes, wie beim Schruppen. Mit dem Rest nach dem
+Schruppen (restmaterial) schneidet sie nirgends tiefer als den Radius des
+Schlichtfräsers (mindestens das Aufmaß des Schruppens plus 0,5 mm) – was in einer
+engen Stelle tiefer stehen blieb, bleibt stehen und wird gemeldet.
 
 Gerechnet wird in Rundachs-Koordinaten (a, r, φ) wie in vierachs_huelle.
 befehle() macht daraus Path-Befehle: X, Y und Z der Spitze im Rahmen der
@@ -49,6 +61,13 @@ GLEICH = 1e-9  # mm – so wenig Unterschied gilt als derselbe Radius
 # So weit dreht die Rundachse höchstens in einem Satz: FreeCAD 1.1.3 zeigt einen Satz
 # über mehrere Umdrehungen als Gerade (PathSegmentWalker rechnet den Winkel modulo 360°).
 HOECHSTENS_GRAD = 90.0
+SCHRITT_PHI_SCHLICHTEN = 0.5  # Grad – so dicht liegen die Punkte der Schlichtspirale
+TOLERANZ_SCHLICHTEN = 0.005  # mm – so fein wird das Teil fürs Schlichten vernetzt
+BAHN_TOLERANZ = 0.002  # mm – so weit darf die zusammengefasste Bahn über den Punkten liegen
+SCHLICHT_ZUGABE = 0.5  # mm – Schlichten schneidet mindestens Aufmaß des Schruppens + das
+# mm – höchstens so viel hebt der Sehnenfehler einen Punkt: Er gilt für Rundungen; an einer
+# Kante springt die Hüllfläche, dort dringt die Gerade kaum ein (längs, um Tausendstel).
+SEHNE_HOECHSTENS = 0.02
 
 
 @dataclass(frozen=True)
@@ -65,6 +84,37 @@ class Schruppwerte:
     sicherheit: float = SICHERHEIT
     ueberlauf: float = None  # so weit hinter das Teil (Mitte des Fräsers); None: Vorschlag
     abstand_futter: float = ABSTAND_FUTTER  # Rand des Fräsers bis zur Spannfläche
+
+
+@dataclass(frozen=True)
+class Schlichtwerte:
+    """Was das Schlichten braucht; Längen in mm, a längs der Stangenachse im Job."""
+
+    form: object  # fraeserform.Form des Schlichtfräsers
+    stange_radius: float
+    schrittweite: float  # so weit längs je Umdrehung der Spirale
+    aufmass: float  # bleibt stehen (0: fertig)
+    a_stange_vorne: float
+    a_futter: float
+    sicherheit: float = SICHERHEIT
+    ueberlauf: float = None  # so weit hinter das Teil (Mitte des Fräsers); None: Vorschlag
+    abstand_futter: float = ABSTAND_FUTTER
+    # Der Rest nach dem Schruppen: (a, φ in rad, r) wie restmaterial.Stange; None: kein Schutz.
+    rest: tuple = None
+    aufmass_schruppen: float = 0.0  # so viel ließ das Schruppen stehen
+
+
+@dataclass
+class Schlichtbahn:
+    """Ergebnis von schlichten()."""
+
+    punkte: list  # [Punkt], der erste ist der Start (Eilgang, vor der Stange)
+    umdrehungen: float
+    r_min: float  # so nah kommt die Spitze der Achse (mm)
+    kammhoehe: float  # so hoch bleibt zwischen zwei Bahnen stehen (auf ebener Fläche, mm)
+    hinten_frei: float = 0.0  # so viel vom hinteren Ende des Teils erreicht der Fräser nicht
+    stehen: float = 0.0  # so viel bleibt in engen Stellen stehen (mm) – der Schutz
+    grenze: float = 0.0  # so tief schneidet Schlichten höchstens (mm)
 
 
 def rillenhoehe(fraeser_radius, eckradius, steigung):
@@ -163,6 +213,176 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
     return Bahn(punkte, lagen, r_min, hinten_frei)
+
+
+def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
+    """Die Schlichtbahn (Schlichtbahn) für `netz` (vierachs_huelle.vernetze, im Job, fein:
+    TOLERANZ_SCHLICHTEN) mit den Schlichtwerten `werte`; `laengs` und `radial` wie in
+    vierachs_huelle.
+
+    ValueError, wenn die Werte nicht gehen – mit einem Satz für den Menschen.
+    """
+    w = werte
+    form = w.form
+    radius = form.radius
+    if radius <= 0 or w.schrittweite <= 0:
+        raise ValueError(tr("vb.fehler.schrittweite"))
+    if w.schrittweite > 2 * radius:
+        raise ValueError(tr("vb.fehler.schrittweite_gross"))
+    l_, _u, _v = vh.rahmen(laengs, radial)
+    a_teil = netz.punkte @ l_
+    teil_vorne, teil_hinten = float(a_teil.max()), float(a_teil.min())
+    ueberlauf = ueberlauf_vorschlag(radius) if w.ueberlauf is None else w.ueberlauf
+    a_anfang = w.a_stange_vorne + radius + w.sicherheit
+    a_ende = max(teil_hinten - ueberlauf, w.a_futter + radius + w.abstand_futter)
+    if a_ende >= teil_vorne + radius:
+        raise ValueError(tr("vb.fehler.platz"))
+    hinten_frei = max(0.0, a_ende - radius - teil_hinten)
+
+    # Die Spirale: Punkt k liegt bei a_anfang − s · k / N unter dem Winkel k · Δφ. Je Winkel
+    # j kommt sie an a_anfang − s · (j / N + m) vorbei – dort rechnet die Hüllfläche.
+    phi = vh.raster_phi(schritt_phi)
+    je_umdrehung = len(phi)
+    s = w.schrittweite
+    anzahl = int(math.ceil((a_anfang - a_ende) / s * je_umdrehung - 1e-9))
+    umdrehungen = int(math.ceil(anzahl / je_umdrehung))
+    zugabe = w.aufmass + netz.toleranz  # das Netz liegt bis zu seiner Toleranz innen
+    anfang_je_winkel = a_anfang - s * (np.arange(je_umdrehung) / je_umdrehung + umdrehungen)
+    huelle = vh.je_winkel(
+        netz,
+        laengs,
+        radial,
+        form.mit_aufmass(zugabe),
+        anfang_je_winkel,
+        s,
+        umdrehungen + 1,
+        phi,
+    )
+    huelle = _auffuellen(huelle, anfang_je_winkel, s, teil_vorne, teil_hinten) + zugabe
+    k = np.arange(anzahl + 1)
+    a = a_anfang - s * k / je_umdrehung
+    r = huelle[umdrehungen - k // je_umdrehung, k % je_umdrehung]
+    r = np.where(np.isfinite(r), r, w.stange_radius)  # trifft rundum nichts: bleibt oben
+    r = np.maximum(r, radius)  # nicht näher an die Achse
+    stehen, grenze = 0.0, 0.0
+    if w.rest is not None:
+        grenze = max(radius, w.aufmass_schruppen + SCHLICHT_ZUGABE)
+        tiefste = _nicht_tiefer(w.rest, form, grenze, a, k * math.radians(schritt_phi))
+        stehen = max(0.0, float(np.max(tiefste - r)))
+        r = np.maximum(r, tiefste)
+    r = r + _sehnenfehler(r)
+    punkte = [Punkt(True, a_anfang, w.stange_radius + w.sicherheit, 0.0)]
+    winkel = k * schritt_phi
+    for i in _zusammengefasst(r, BAHN_TOLERANZ, int(round(HOECHSTENS_GRAD / schritt_phi))):
+        punkte.append(Punkt(False, float(a[i]), float(r[i]), float(winkel[i])))
+    sicher = w.stange_radius + w.sicherheit
+    punkte.append(Punkt(True, float(a[-1]), sicher, float(winkel[-1])))
+    punkte.append(Punkt(True, a_anfang, sicher, float(winkel[-1])))
+    return Schlichtbahn(
+        punkte,
+        anzahl / je_umdrehung,
+        float(np.min(r)),
+        form.kammhoehe(s),
+        hinten_frei,
+        stehen,
+        grenze,
+    )
+
+
+def _auffuellen(huelle, anfang_je_winkel, schritt, teil_vorne, teil_hinten):
+    """Vor und hinter dem Teil – wo die Mitte des Fräsers über das Teil hinaus ist – die Tiefe
+    an seinem Ende: Der Fräser fährt so an und aus dem Teil heraus, wie er an dessen Ende war,
+    statt mit dem Rand an der Kante hinabzurollen (wie das Schruppen, V3f)."""
+    ergebnis = huelle.copy()
+    zeilen = np.arange(len(huelle))[:, None]
+    spalten = np.arange(huelle.shape[1])
+    vorne = np.floor((teil_vorne - anfang_je_winkel) / schritt + 1e-9).astype(np.int64)
+    hinten = np.ceil((teil_hinten - anfang_je_winkel) / schritt - 1e-9).astype(np.int64)
+    vorne = np.clip(vorne, 0, len(huelle) - 1)
+    hinten = np.clip(hinten, 0, len(huelle) - 1)
+    wert_vorne = huelle[vorne, spalten]
+    wert_hinten = huelle[hinten, spalten]
+    davor = (zeilen > vorne[None, :]) & np.isfinite(wert_vorne)[None, :]
+    dahinter = (zeilen < hinten[None, :]) & np.isfinite(wert_hinten)[None, :]
+    ergebnis = np.where(davor, wert_vorne[None, :], ergebnis)
+    return np.where(dahinter, wert_hinten[None, :], ergebnis)
+
+
+def _nicht_tiefer(rest, form, grenze, a, phi):
+    """Wie tief die Spitze an den Punkten (a, φ in rad) höchstens darf, damit der Fräser
+    nirgends mehr als `grenze` unter den Rest nach dem Schruppen schneidet: je Stelle des
+    Rests unter dem Fräser seine Höhe dort minus Profil – der höchste Wert, minus `grenze`.
+    Zwischen den Rasterpunkten gilt der höchste Nachbar."""
+    rest_a, rest_phi, rest_r = rest
+    schritt_a = rest_a[1] - rest_a[0]
+    schritt_phi = rest_phi[1] - rest_phi[0]
+    radius = form.radius
+    n_a = int(math.ceil(radius / schritt_a))
+    klein = max(float(np.min(rest_r)), radius)
+    n_phi = min(len(rest_phi) // 2, int(math.ceil(math.asin(radius / klein) / schritt_phi)) + 1)
+    rand = np.full((n_a, rest_r.shape[1]), -math.inf)
+    breit = np.concatenate([rand, rest_r, rand])
+    tiefste = np.full(rest_r.shape, -math.inf)
+    with np.errstate(invalid="ignore"):
+        for i in range(-n_a, n_a + 1):
+            zeilen = breit[n_a + i : n_a + i + len(rest_a)]
+            for j in range(-n_phi, n_phi + 1):
+                r_p = np.roll(zeilen, -j, axis=1)
+                delta = j * schritt_phi
+                seitlich = r_p * abs(math.sin(delta))
+                abstand = np.sqrt((i * schritt_a) ** 2 + seitlich * seitlich)
+                unter = abstand <= radius
+                wert = r_p * math.cos(delta) - form.hoehe(np.minimum(abstand, radius))
+                np.maximum(tiefste, np.where(unter, wert, -math.inf), out=tiefste)
+    tiefste -= grenze
+    lage_a = (a - rest_a[0]) / schritt_a
+    lage_phi = np.mod(phi - rest_phi[0], 2 * math.pi) / schritt_phi
+    ergebnis = np.full(len(a), -math.inf)
+    for i in (np.floor(lage_a), np.ceil(lage_a)):
+        drin = (i >= 0) & (i < len(rest_a))
+        zeile = np.clip(i, 0, len(rest_a) - 1).astype(np.int64)
+        for j in (np.floor(lage_phi), np.ceil(lage_phi)):
+            spalte = j.astype(np.int64) % len(rest_phi)
+            ergebnis = np.maximum(ergebnis, np.where(drin, tiefste[zeile, spalte], -math.inf))
+    return ergebnis
+
+
+def _sehnenfehler(r):
+    """Um so viel heben sich die Punkte, damit die Gerade zwischen zwei Punkten nicht unter die
+    Hüllfläche fällt, wo sie sich nach außen wölbt: ein Achtel der zweiten Differenz, je
+    Punkt das größte der Nachbarschaft, höchstens SEHNE_HOECHSTENS."""
+    wolbung = np.zeros(len(r))
+    if len(r) >= 3:
+        zweite = -(r[:-2] - 2.0 * r[1:-1] + r[2:])
+        wolbung[1:-1] = np.clip(zweite / 8.0, 0.0, SEHNE_HOECHSTENS)
+    heben = wolbung.copy()
+    heben[1:] = np.maximum(heben[1:], wolbung[:-1])
+    heben[:-1] = np.maximum(heben[:-1], wolbung[1:])
+    return heben
+
+
+def _zusammengefasst(r, toleranz, hoechstens):
+    """Die Punkte, die bleiben: Anfang, Ende und so wenige dazwischen, dass die Gerade zwischen
+    zwei bleibenden Punkten über keinem ausgelassenen liegt und höchstens `toleranz` darüber
+    – längs der Spirale sind a und φ ohnehin linear. Höchstens `hoechstens` Punkte weit."""
+    werte = r.tolist()
+    bleibt = [0]
+    anfang = 0
+    unten, oben = -math.inf, math.inf  # erlaubte Steigung ab dem Anfang
+    for i in range(1, len(werte)):
+        schritte = i - anfang
+        steigung = (werte[i] - werte[anfang]) / schritte
+        if schritte > hoechstens or not unten <= steigung <= oben:
+            anfang = i - 1
+            bleibt.append(anfang)
+            schritte = 1
+            unten, oben = -math.inf, math.inf
+        # Ab hier muss die Gerade über Punkt i liegen, höchstens `toleranz` darüber.
+        unten = max(unten, (werte[i] - werte[anfang]) / schritte)
+        oben = min(oben, (werte[i] + toleranz - werte[anfang]) / schritte)
+    if bleibt[-1] != len(werte) - 1:
+        bleibt.append(len(werte) - 1)
+    return bleibt
 
 
 def _hinten_weiter(huelle, teil_hinten):

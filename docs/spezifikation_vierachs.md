@@ -761,6 +761,18 @@ die Abstände gelten für beide.
   - Prüfung: Welle mit Absatz und Kugel – Rest höchstens Kammhöhe plus
     Toleranz, nirgends ins Teil; enge Nut – bleibt stehen, mit Satz;
     Zeitgrenze.
+  - *Gebaut (P-2026-09-30-03):* `vierachs_bahn.schlichten` mit
+    `Schlichtwerte` und `Schlichtbahn`. Vernetzt wird fürs Schlichten auf
+    0,005 mm, gerechnet mit dem Fräser um Aufmaß und Vernetzung größer (quer zur
+    Fläche genau, auch an steilen Flanken). Abweichung vom Plan: Der Schutz
+    lässt Schlichten bis zum Radius des Schlichtfräsers tief schneiden
+    (mindestens Aufmaß + 0,5 mm) – nach dem Schruppen mit dem Schaftfräser
+    stehen auf schrägen Flächen Stufen bis Vorschub je Umdrehung × Steigung
+    der Fläche; mit nur Aufmaß + 0,5 mm blieben die auf jedem Kegel stehen.
+    Der Sehnenfehler hebt einen Punkt höchstens um 0,02 mm: An einer Wand
+    springt die Hüllfläche, dort dringt die Gerade nur um Tausendstel längs
+    ein. Welle mit Absatz, Kugel Ø 6, 0,35 mm: 36 966 Punkte in 1,1 s; Welle
+    mit Nocken 1,3 s.
 - **V5c – Operation** „Rundum schlichten T2“
   (`vierachs_operation.RundumSchlichten`, der Name bleibt in jeder Datei):
   Eigenschaften Schrittweite, Aufmaß, Überlauf, Abstand zum Futter,

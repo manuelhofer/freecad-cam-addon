@@ -986,6 +986,8 @@
     "vb.fehler.steigung": "Der Vorschub je Umdrehung ist größer als der Fräser – es bliebe Grat stehen.",
     "vb.fehler.platz": "Zwischen Futter und Teil ist kein Platz für den Fräser.",
     "vb.hinten_frei": "Die letzten {laenge} vor dem Futter erreicht der Fräser nicht – dort bleibt Material. Mehr Abstechbreite hilft.",
+    "vb.fehler.schrittweite": "Fräser und Schrittweite müssen größer als 0 sein.",
+    "vb.fehler.schrittweite_gross": "Die Schrittweite ist größer als der Fräser – zwischen den Bahnen bliebe Grat stehen.",
     "va.kopf.bearbeitung": "Schritt 2 von 2: Was willst du machen?",
     "va.weiter": "Weiter",
     "va.weiter.tooltip": "Weiter zu Schritt 2: was du mit der Stange machen willst – etwa rundum schruppen.",

@@ -12,6 +12,64 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-03 schlichtbahn
+
+### EINGELESEN
+- V5b in `docs/spezifikation_vierachs.md`; `camaddon/vierachs_bahn.py`
+  (Schruppen, `_hinten_weiter`, `_knicke`, `befehle`), `camaddon/restmaterial.py`
+  (`Stange`, `fahre`), P-2026-09-30-02 (`je_winkel`, `mit_aufmass`).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_vierachs_schlichten.py` (neu), `docs/spezifikation_vierachs.md`,
+  `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`tests/test_vierachs_schlichten.py` ist grün: Die Schlichtspirale liegt auf der
+Welle mit Absatz nirgends im Teil und höchstens um Toleranzen darüber, und in
+einer Nut, in die der Schruppfräser nicht kam, schneidet sie höchstens den
+Radius des Kugelfräsers tief.
+
+### DONE
+- `schlichten(netz, laengs, radial, Schlichtwerte)` → `Schlichtbahn` (Punkte,
+  Umdrehungen, kleinster Radius, Kammhöhe, hinten frei, was stehen bleibt, wie
+  tief höchstens). Die Spirale hat die Schrittweite als Steigung, alle 0,5° ein
+  Punkt; je Winkel rechnet `je_winkel` genau an den Stellen, an denen sie
+  vorbeikommt – mit dem Fräser um Aufmaß und Vernetzung größer (so bleibt der
+  Abstand quer zur Fläche, auch an steilen Flanken).
+- Vor und hinter dem Teil die Tiefe an seinem Ende (`_auffuellen`), nie näher
+  an die Achse als der Fräserradius, nie näher ans Futter als der Abstand.
+- Schutz (`_nicht_tiefer`): der Rest nach dem Schruppen (Raster aus
+  `restmaterial`), je Stelle mit dem Profil des Schlichtfräsers ausgebreitet;
+  tiefer als die Grenze schneidet die Bahn nicht, was dann stehen bleibt, sagt
+  `stehen`.
+- Sehnenfehler (`_sehnenfehler`), Zusammenfassen (`_zusammengefasst`: die
+  Gerade bleibt über jedem ausgelassenen Punkt und höchstens 0,002 mm darüber,
+  höchstens 90° je Satz).
+- Abweichung vom Plan, gefunden beim Durchrechnen: Die Grenze des Schutzes ist
+  der Radius des Schlichtfräsers (mindestens Aufmaß + 0,5 mm), nicht Aufmaß +
+  0,5 mm. Der Schaftfräser lässt beim Schruppen auf schrägen Flächen Stufen bis
+  Vorschub je Umdrehung × Steigung stehen (4,8 mm auf 45°) – die hätte
+  Schlichten sonst auf jedem Kegel stehen gelassen.
+- Gefunden beim Prüfen: Der Sehnenfehler aus der zweiten Differenz hob die Bahn
+  an jeder Wand bis 0,5 mm – dort springt die Hüllfläche, und die Gerade
+  dringt nur um Tausendstel längs ein. Jetzt höchstens 0,02 mm (so viel braucht
+  ein Eckradius von 0,2 mm).
+- Die Prüfung vergleicht mit dem dicht abgetasteten Umriss im Schnitt durch die
+  Werkzeugachse; wo die Hüllfläche steil ist, darf die Bahn um Toleranz ×
+  Steigung höher liegen (der größere Fräser verschiebt sie längs), an
+  Sprüngen zählt es nicht.
+- Texte `vb.fehler.schrittweite`, `vb.fehler.schrittweite_gross`; der Satz
+  für „bleibt stehen“ kommt mit der Operation (V5c).
+
+### TEST
+- KI ohne GUI, FreeCAD 1.1.3: `test_vierachs_schlichten` (Absatz 36 966 Punkte
+  in 1,1 s, Welle mit Nocken 83 341 in 1,2 s), `test_vierachs_bahn`,
+  `test_vierachs_operation`, `test_restmaterial`, `test_sprache` grün.
+
+### NEXT
+- V5c Operation „Rundum schlichten“.
+
 ## P-2026-09-30-02 fraeserform-huellflaeche
 
 ### EINGELESEN

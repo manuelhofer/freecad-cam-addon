@@ -986,6 +986,8 @@
     "vb.fehler.steigung": "The feed per revolution is larger than the cutter – ridges would remain.",
     "vb.fehler.platz": "There is no room for the cutter between chuck and part.",
     "vb.hinten_frei": "The cutter cannot reach the last {laenge} in front of the chuck – material stays there. A larger part-off width helps.",
+    "vb.fehler.schrittweite": "Cutter and stepover must be greater than 0.",
+    "vb.fehler.schrittweite_gross": "The stepover is larger than the cutter – ridges would remain between the passes.",
     "va.kopf.bearbeitung": "Step 2 of 2: what do you want to do?",
     "va.weiter": "Next",
     "va.weiter.tooltip": "On to step 2: what you want to do with the bar – rough it all round, say.",
