@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-49 version-0-31-3
+
+### EINGELESEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`; CLAUDE.md: Soll Manuel etwas ausprobieren,
+  braucht der Push eine höhere Version.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates suchen“ bzw. der Addon-Manager bietet 0.31.3 an.
+
+### DONE
+- Version 0.31.3 mit P-2026-09-30-48 (Haken „Bahn“ im Abspieler). Manuel probiert gerade aus.
+
+### TEST
+- Die Prüfungen zu P-48 (siehe dort); 26.3 läuft nach dem Push.
+
+### NEXT
+- Push; Nullpunkt X/Z wie an der Maschine.
+
 ## P-2026-09-30-48 haken-bahn
 
 ### EINGELESEN
