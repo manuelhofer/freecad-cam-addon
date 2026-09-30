@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-73 goldene-bahnen
+
+### EINGELESEN
+- `docs/spezifikation_strategien.md`, Abschnitt 9 („Goldene Bahnen“); `scripts/bahn_messen.py`
+  (dieselben Teile), `tests/test_vierachs_bahn.py`, `tests/test_vierachs_schlichten.py`.
+
+### DATEIEN
+- `tests/test_goldene_bahnen.py` (neu), `tests/golden/welle_schruppen.json`,
+  `tests/golden/welle_absatz_schruppen.json`, `tests/golden/welle_absatz_schlichten.json` (neu),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`test_goldene_bahnen` vergleicht drei Bahnen (Welle schruppen, Welle mit Absatz schruppen und
+schlichten) mit den Dateien in `tests/golden/`: Anzahl, Hash über alle Punkte (1 µm) und eine
+Stichprobe, die den ersten abweichenden Punkt nennt. `GOLDENE_BAHNEN_SCHREIBEN=1` schreibt sie
+neu – nur mit Absicht und einem Satz im Verlauf.
+
+### DONE
+- Geschrieben; die Dateien mit 0.33.0 erzeugt (1.1.3) – jede Beschleunigung muss sie grün
+  lassen.
+
+### TEST
+- `test_goldene_bahnen` in 1.1.3: erster Lauf schreibt, zweiter Lauf vergleicht – ok.
+
+### NEXT
+- Messen (P-71), dann die teuersten Stellen.
+
 ## P-2026-09-30-68 version-0-33-0
 
 ### EINGELESEN
