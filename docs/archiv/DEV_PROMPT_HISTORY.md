@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-63 version-0-32-2
+
+### EINGELESEN
+- P-2026-09-30-60 bis -62; `CLAUDE.md`: Soll Manuel etwas ausprobieren, braucht der Push eine
+  höhere Version.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.32.2 an.
+
+### DONE
+- Version 0.32.2; Stand nachgetragen, als Nächstes die Bestückung je Job (Manuel,
+  2026-09-30).
+
+### TEST
+- Die Tests zu P-60 bis -62 in 1.1.3 ok; ein voller Lauf ist nicht nötig (kein Kernmodul
+  geändert, `docs/arbeitsregeln.md`, Abschnitt 5).
+
+### NEXT
+- Push, bei GitHub nachsehen; Bestückung je Job planen und Manuel fragen.
+
 ## P-2026-09-30-62 operations-ordner
 
 ### EINGELESEN
