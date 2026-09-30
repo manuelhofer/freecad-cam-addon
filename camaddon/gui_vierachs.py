@@ -197,13 +197,21 @@ class BefehlVierachs:
 
 
 def gewaehlte_operation(dokument):
-    """Die gewählte „Rundum schruppen“ – oder die erste im gewählten Job; sonst None."""
+    """Die gewählte „Rundum schruppen“ oder „Rundum schlichten“ – oder, ist ein Job oder sein
+    Ordner „Operations“ gewählt, sein „Rundum schruppen“ (dort lässt sich das Schlichten
+    dazunehmen; Manuel, 2026-09-30: „hier jetzt noch einen schlicht gang hinzufügen“), sonst
+    seine erste Rundum-Operation; sonst None."""
     jobs = js.jobs(dokument)
     for objekt in FreeCADGui.Selection.getSelection(dokument.Name):
         if vo.ist_rundum(objekt):
             return objekt
-        if objekt in jobs:
-            gefunden = [o for o in js.operationen(objekt) if vo.ist_rundum(o)]
+        job = next(
+            (j for j in jobs if objekt is j or objekt is getattr(j, "Operations", None)), None
+        )
+        if job is not None:
+            operationen = js.operationen(job)
+            gefunden = [o for o in operationen if vo.ist_schruppen(o)]
+            gefunden += [o for o in operationen if vo.ist_rundum(o)]
             if gefunden:
                 return gefunden[0]
     return None

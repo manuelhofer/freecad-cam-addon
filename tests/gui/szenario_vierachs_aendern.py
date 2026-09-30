@@ -7,7 +7,8 @@
 # der Knopf heißt „Übernehmen“. T2 und Aufmaß 0,5 → „Übernehmen“: Die Operation heißt
 # „Rundum schruppen T2“, hat den Controller „T2 Schruppen“, Zustellung 1,5 (der
 # Vorschlag von T2) – „T1 Schruppen“ ist weg, ein Schritt Rückgängig. Wieder öffnen
-# über den Knopf (Operation gewählt), Zustellung 1 und „Abbrechen“: nichts geändert.
+# über den Knopf (der Ordner „Operations“ des Jobs gewählt – Manuel, 2026-09-30),
+# Zustellung 1 und „Abbrechen“: nichts geändert.
 # Noch einmal, Zustellung 1, „Übernehmen“: derselbe Controller. Dann „Zurück“ zu
 # Schritt 1: Stange 80, Planaufmaß 1, Abstechbreite 3, Spannlänge 30, Rundachse A, wie
 # im Job; Ø 90 → die Stange wächst sofort, „Weiter“, „Übernehmen“: zwei Schritte
@@ -151,7 +152,8 @@ def schritte(h):
     h.bild("3_bahn_mit_t2")
 
     # --- Über den Knopf öffnen, ändern, Abbrechen: nichts geändert ---------------------------
-    Gui.Selection.addSelection(doc.Name, op.Name)
+    # Gewählt ist der Ordner „Operations“ des Jobs – der Knopf findet „Rundum schruppen“.
+    Gui.Selection.addSelection(doc.Name, job.Operations.Name)
     yield 300
     Gui.runCommand("CamAddon_Vierachs")
     yield 1000

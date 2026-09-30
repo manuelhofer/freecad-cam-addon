@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-62 operations-ordner
+
+### EINGELESEN
+- Manuel, 2026-09-30, mit Bild (Job mit „Rundum schruppen T2“, Ordner „Operations“ gewählt,
+  „4-Achs-Bearbeitung“ geklickt): „hier jetzt noch einen schlicht gang hinzufügen ... ???“
+  – der Knopf kannte den Ordner nicht und fing einen neuen Job an.
+- `camaddon/gui_vierachs.py` (`gewaehlte_operation`, `_zum_aendern`: „Rundum schlichten“
+  lässt sich beim Ändern des Schruppens dazunehmen).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`, `tests/gui/szenario_vierachs_aendern.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Job oder sein Ordner „Operations“ gewählt, „4-Achs-Bearbeitung“: Das Fenster öffnet „Rundum
+schruppen“ dieses Jobs in Schritt 2, wo sich „Rundum schlichten“ dazunehmen lässt.
+
+### DONE
+- `gewaehlte_operation`: auch der Ordner „Operations“ zählt als sein Job; vom Job öffnet
+  sich zuerst „Rundum schruppen“, sonst die erste Rundum-Operation.
+
+### TEST
+- `szenario_vierachs_aendern`: über den Knopf mit dem Ordner „Operations“ gewählt.
+- In 1.1.3 ok.
+
+### NEXT
+- Version 0.32.2, Push; dann Bestückung je Job (Manuel, 2026-09-30).
+
 ## P-2026-09-30-61 planaufmass-null
 
 ### EINGELESEN
