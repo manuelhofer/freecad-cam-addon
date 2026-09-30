@@ -463,3 +463,110 @@ der Revolver in der Übersicht zu erkennen.
 bei Drehung ein leeres Feld – 0° ist ein echter Wert, nicht „nichts
 eingetragen“. **Vorschlag:** „0“ zeigen (wie beim Winkel). **Fertig, wenn:** die
 Drehung 0 als „0“ dasteht. *Erledigt (P-2026-09-30-22).*
+
+## 8. Durchsicht 3: einfach, erklärt, logisch (2026-09-30, abends)
+
+Manuel (2026-09-30): „Ich möchte das du nochmals alles durchgehst vor allem
+die sache mit der bedienbarkeit und leichtigkeit der bedienung .. also einfach
+solls sein gut erklärt muss es sein .. logisch“. Angesehen: alle Fenster als
+Bilder aus den Szenarien (Stand 0.33.0), jeder Satz in `translations/de.json`,
+die Hilfeseiten. Maßstab: Versteht ein Zerspaner ohne FreeCAD-Vokabular in
+einem Satz, was zu tun ist und warum?
+
+### D-50 Einstellungsseite: der Satz unter „Zahlen“ liegt über „Updates“ (klein)
+
+Bild `szenario_erster_start/5_einstellungsseite`: „Gilt für alle Dialoge des
+Addons, sobald sie neu geöffnet werden …“ läuft über den Rahmen der Gruppe
+„Updates“. Das Label mit Umbruch steht als einzelne Zeile in einem
+`QFormLayout` (`gui_sprachwahl.Einstellungsseite`, `addRow(zahlen_hinweis)`),
+und das Formular gibt ihm nicht die Höhe des Umbruchs. Bei Durchsicht 1 hieß
+es „nicht bestätigt“ – jetzt ist es im Bild. *Lösung:* den Satz unter das
+Formular in den Aufbau der Gruppe setzen (`QVBoxLayout` um Formular und Satz)
+– so wie die Erklärungen in den Aufgabenfenstern; das Szenario prüft, dass das
+Label unter dem letzten Feld endet und nicht in der nächsten Gruppe liegt.
+
+### D-51 „keine Bahn: Basisgeometrie fehlt“ (klein)
+
+„Schnittwerte in den Job“ (`sj.ohne_basis`): „Basisgeometrie“ ist FreeCADs
+Wort. *Besser:* „keine Bahn – der Operation fehlt noch die Fläche oder Kante“.
+
+### D-52 Der Ø-Absatz in Schritt 2 des 4-Achs-Assistenten (klein)
+
+`va.radius_durchmesser` ist der längste Text im Fenster („… DIAMOF …“) und für
+den Klickweg unwichtig. *Besser:* zwei Sätze – „X steht im Programm als
+Durchmesser (Ø), wie an deiner Steuerung; das Prüffenster zeigt es so. FreeCADs
+eigene Postprozessoren schreiben Radius – Hilfe.“ – und der Rest (Programmkopf
+DIAMOF, Postprozessor des Addons) in `help/de/vierachs.html`.
+
+### D-53 Achsnamen wie an der Steuerung – niemand sagt, wo (klein)
+
+Manuel (2026-09-30): „C4 und S4 ist die hauptspindel … C1 und S1 sind die
+angetriebenen werkzeuge … das muss ja auch irgendwie definiert werden“. Es
+geht (NC-Name im Detailkasten von „Maschine bearbeiten“), aber weder „Neue
+Maschine“ noch die Hilfe sagen es. *Lösung:* ein Satz in der Erklärung von
+„Neue Maschine“ und in `help/de/neue_maschine.html` und `achsen.html`: „Heißen
+die Achsen an deiner Steuerung anders (C4, S4), klick sie nach dem Bauen in
+„Maschine bearbeiten“ an und ändere den NC-Namen.“ Der Tooltip des Feldes
+„NC-Name“ nennt das Beispiel (steht schon als Platzhalter: „z. B. X1, C4, S4“).
+
+### D-54 „So geht’s“ – der Weg vom Teil zum Programm (mittel, zur Entscheidung)
+
+Es gibt Hilfe je Fenster, aber keine Seite, die den ganzen Weg zeigt. Manuel
+hat sich den Weg durch Ausprobieren erschlossen („wo steht jetzt welcher platz
+…“, „vll müssen wir die maschine mit dem job verknüpfen“). *Vorschlag:* eine
+Hilfeseite „So geht’s“ mit sechs Schritten, je ein Satz und der Knopf dazu:
+1 Maschine bauen und speichern (Neue Maschine …), 2 Werkzeuge mit Halter und
+Schnittwerten (Werkzeugverwaltung), 3 Teil in die Stange und Bearbeitung
+(4-Achs-Bearbeitung) oder CAM-Job mit „Schnittwerte in den Job“, 4 Bestückung,
+5 Auf der Maschine prüfen (Achsen, Kollision, Abspielen), 6 Programm schreiben
+(Postprozessor). Sie öffnet sich als erste Seite des Hilfefensters und steht
+im Menü „CAM-Addon“ oben und im README. *Zur Entscheidung:* (a) nur die
+Hilfeseite – **Empfehlung**, klein; (b) dazu ein Fenster „Start“ mit den sechs
+Schritten als Knöpfe und einem Haken je erledigtem Schritt – mittel, hübsch,
+aber ein Fenster mehr.
+
+### D-55 Abschnittsnamen in „Maschine bearbeiten“ (klein)
+
+„Transformationen“ enthält nur „Schräge Achse“; „Glieder“ ist Kinematik-Sprache
+(`dialog.glieder.tooltip`: „Körper, die fest miteinander verbunden sind …“).
+*Besser:* „Schräge Achsen“ statt „Transformationen“ (die Hilfe erklärt, dass
+die Steuerung umrechnet), und „Was zusammen fährt“ statt „Glieder“ – die Liste
+sagt ohnehin „Bett (steht fest): …, Glied 2: Spindel …“; dort „mit Z fährt:
+ZSchlitten“ wäre noch klarer, wenn das Gelenk bekannt ist.
+
+### D-56 „Betriebsart“ (klein, zur Entscheidung)
+
+Unser Wort für „NC-Achse an einem Gelenk“ (S1 · Spindel, C1 · Positionieren).
+Manuel hat es verstanden, der Tooltip von „+ Betriebsart“ erklärt es. *Vorschlag:*
+lassen; im Tooltip ein Beispiel: „… etwa Spindel S1 und Positionieren C1 an
+derselben Hauptspindel.“
+
+### D-57 „kc1.1“ und „mc“ ohne Erklärung (klein)
+
+„Werkstoff bearbeiten“: zwei Felder mit Formelzeichen und „unbekannt“. Sie
+gelten für die Schnittleistung im Planer (`schnittdaten.spezifische_schnittkraft`);
+leer ist erlaubt (dann keine Leistung). *Lösung:* Tooltips „Spezifische
+Schnittkraft bei 1 mm² Spanquerschnitt (Kienzle), N/mm² – für die
+Schnittleistung in „Schruppwerte planen“; leer: keine Leistung“ und
+„Anstieg der Kienzle-Geraden, meist 0,2 … 0,3“; Platzhalter „unbekannt – dann
+ohne Leistung“.
+
+### D-58 Angesehen und für gut befunden
+
+- Werkzeugverwaltung: graue Beispielwerte mit dem Satz dazu, „Länge ab
+  Spindelnase: leer: Gesamtlänge 50“, das Bild der Werkzeugart.
+- „Schruppwerte planen“: die Erklärung oben, der Vorschlag fett, rote Zeilen
+  über der Warngrenze, der Vergleich zur Vollnut in einem Satz.
+- „Strategien vergleichen“: Balken je Größe und ein Urteil in Sätzen.
+- „Halter“: Kontur als Tabelle mit Bild; „OK: T1 bekommt den Halter …“.
+- Prüffenster: Urteile oben mit „wo?“ und „warum?“, der Abspieler, die
+  Kollision als Satz mit Satznummer und Stelle.
+- „Bestückung“ (neu): Revolver mit Werkzeugen und Platznamen, je Platz eine
+  Auswahl, roter Satz bei zwei Werkzeugen auf einem Platz.
+- Schritt 2 des Assistenten: Vorschläge grau, Lagen und Zeit als Folge der
+  Eingaben („→ 2 Lagen (Ø 24,0 mm → Ø 16,8 mm)“, „→ Kammhöhe 0,016 mm“).
+
+### Reihenfolge
+
+D-50, D-51, D-52, D-53, D-55, D-57 gleich (je ein Patch); D-54 und D-56
+fragen. Danach der Plan Frässtrategien (spezifikation_strategien.md).

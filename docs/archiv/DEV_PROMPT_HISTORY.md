@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-67 durchsicht-3
+
+### EINGELESEN
+- Manuel, 2026-09-30: „nochmals alles durchgehst vor allem die sache mit der bedienbarkeit
+  und leichtigkeit der bedienung .. also einfach solls sein gut erklärt muss es sein ..
+  logisch“.
+- Alle Fenster als Bilder aus den Szenarien (0.32.1/0.33.0), `translations/de.json`, die
+  Hilfeseiten; `docs/durchsicht_bedienbarkeit.md` (Durchsicht 1 und 2).
+
+### DATEIEN
+- `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abschnitt 8 „Durchsicht 3“ mit D-50 bis D-58: je ein Befund mit Bild oder Text, Lösung und
+Aufwand; D-54 und D-56 zur Entscheidung; Reihenfolge.
+
+### DONE
+- Geschrieben: der Satz auf der Einstellungsseite überlappt (D-50), „Basisgeometrie“
+  (D-51), der Ø-Absatz in Schritt 2 (D-52), Achsnamen wie an der Steuerung (D-53), eine
+  Seite „So geht’s“ (D-54), Abschnittsnamen in „Maschine bearbeiten“ (D-55), „Betriebsart“
+  (D-56), kc1.1/mc (D-57), für gut befunden (D-58).
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- D-50, D-51, D-52, D-53, D-55, D-57 bauen; D-54 und D-56 mit Manuel.
+
 ## P-2026-09-30-66 plan-strategien
 
 ### EINGELESEN
