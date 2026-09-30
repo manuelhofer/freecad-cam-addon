@@ -409,6 +409,39 @@ pruefe(
     any("geschätzt aus Halter" in h and "„Länge ab Bezugspunkt“" in h for h in e.hinweise),
     f"Länge mit gewinkeltem Halter: {e.hinweise}",
 )
+
+
+# Bestückung (W-002 Stufe F4): Solange nichts bestückt ist, steckt T2 auf P2 – kein Satz. Auf
+# P5 gesteckt, ruft der Job aber noch T2: Der Satz sagt, dass P2 frei ist und T2 auf P5 steckt.
+# Mit einem anderen Werkzeug auf P2 sagt er, welches dort steckt.
+def bestueckungssaetze():
+    return [h for h in p.pruefe_job(job, bibliothek=b2).hinweise if "laut Bestückung" in h]
+
+
+pruefe(not bestueckungssaetze(), f"ohne Bestückung: {bestueckungssaetze()}")
+pruefe(p.platznummer(t2, b2) == 2, f"T2 nach der Nummer: {p.platznummer(t2, b2)}")
+p5 = p.werkzeugaufnahme(5)
+m.bestuecke(ma, p.kette, p5, t2.kennung)
+pruefe(p.platznummer(t2, b2) == 5, f"T2 auf P5: {p.platznummer(t2, b2)}")
+satz = bestueckungssaetze()
+pruefe(
+    len(satz) == 1
+    and satz[0].startswith("In „Eigene“ ruft der Job T2 auf – P2 ist laut Bestückung frei")
+    and "steckt auf P5. Den Controller auf T5 stellen" in satz[0],
+    f"P2 frei: {satz}",
+)
+t9 = b2.neues_werkzeug()
+t9.nummer, t9.durchmesser = 9, 6.0
+m.bestuecke(ma, p.kette, p2, t9.kennung)
+satz = bestueckungssaetze()
+pruefe(
+    len(satz) == 1 and "auf P2 steckt laut Bestückung Schaftfräser Ø 6 (T9)" in satz[0],
+    f"anderes auf P2: {satz}",
+)
+m.bestuecke(ma, p.kette, p5, "")
+pruefe(p.platznummer(t2, b2) is None, "T2 steckt nach dem Entladen noch")
+satz = bestueckungssaetze()
+pruefe(len(satz) == 1 and "In „Maschine bearbeiten“" in satz[0], f"T2 nirgends: {satz}")
 op.ToolController.ToolNumber = 1
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)

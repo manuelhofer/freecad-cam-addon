@@ -87,6 +87,11 @@ def schritte(h):
     h.pruefe(ok.text() == "Anlegen", f"Knopf in Schritt 2: {ok.text()!r}")
     h.pruefe(panel.mit_schruppen.isChecked(), "„Rundum schruppen“ nicht angehakt")
     h.pruefe(panel.fraeser() is not None and panel.fraeser().nummer == 1, "T1 nicht gewählt")
+    # Auf der Beispiel-Drehmaschine steckt T1 nach der Nummer auf P1 (W-002 Stufe F3).
+    h.pruefe(
+        panel.wahl_fraeser.currentText().endswith("– auf P1"),
+        f"Platz in der Liste: {panel.wahl_fraeser.currentText()!r}",
+    )
     h.pruefe(panel.einsatz() is not None and panel.einsatz().art == wz.SCHRUPPEN, "Schruppen fehlt")
     h.pruefe(
         panel.felder_schruppen["zustellung"].placeholderText() == "2"
@@ -168,7 +173,10 @@ def schritte(h):
         )
         hinweise = pruef.hinweise.text()
         h.pruefe(
-            "radial aus" not in hinweise and "längs Z" not in hinweise, f"Hinweise: {hinweise!r}"
+            "radial aus" not in hinweise
+            and "längs Z" not in hinweise
+            and "laut Bestückung" not in hinweise,
+            f"Hinweise: {hinweise!r}",
         )
         spieler = pruef.abspieler
         fahrt = spieler.abfahrt

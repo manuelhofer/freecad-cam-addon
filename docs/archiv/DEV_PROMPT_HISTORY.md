@@ -12,6 +12,79 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-56 bestueckung
+
+### EINGELESEN
+- Manuel, 2026-09-30: „wie kann ich das werkzeug wieder entladen aber ich wills nicht löschen
+  ich will nur nicht das es einen platz belegt ... daher gabs ja auch die unterscheidung
+  zwischen p und t ... und wir haben ausgemacht das man irgendwo in der mschine die werkzeuge
+  zuweisen müsste“; auf A/B: „berücksichtigung an der Maschine“; auf F-E1 bis F-E3 mit den
+  Empfehlungen (a): „passt“.
+- `docs/spezifikation_werkzeugverwaltung.md` (Stufe F), `camaddon/maschine.py` (Aufnahme,
+  Plätze), `camaddon/gui_maschine.py`, `camaddon/reichweite.py` (`werkzeugaufnahme`,
+  `_pruefe_operation`), `camaddon/job_schnittwerte.py` (Controller), `camaddon/gui_vierachs.py`
+  (Fräserlisten, gelber Satz, Anlegen/Ändern), `camaddon/gui_werkzeuge.py` (`oeffne`,
+  Signal `gespeichert`).
+
+### DATEIEN
+- `camaddon/maschine.py`, `camaddon/gui_maschine.py`, `camaddon/reichweite.py`,
+  `camaddon/job_schnittwerte.py`, `camaddon/gui_vierachs.py`, `camaddon/hilfe.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/bestueckung.html` (neu),
+  `help/de|en/vierachs.html`, `help/de|en/reichweite.html`,
+  `docs/spezifikation_werkzeugverwaltung.md`, `tests/test_maschine.py`,
+  `tests/test_reichweite.py`, `tests/test_job_schnittwerte.py`,
+  `tests/gui/szenario_bestueckung.py` (neu), `tests/gui/szenario_vierachs_schruppen.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Maschine bearbeiten“ an einer Drehmaschine hat den Abschnitt „Bestückung“: je Platz eine
+Auswahl; ohne Bestückung steht T3 auf P3. T1 auf P5 gesteckt: P1 wird frei, hinter T1 steht in
+den anderen Listen „– auf P5“; „– frei –“ entlädt einen Platz. Nach OK bleibt das so. Im
+4-Achs-Assistenten steht hinter dem Fräser „– auf P5“, sein Controller heißt T5. Ruft ein Job
+einen Platz auf, auf dem laut Bestückung ein anderes Werkzeug steckt, sagt „Auf der Maschine
+prüfen“ es.
+
+### DONE
+- Modell (`maschine.py`): Ausdrücklich bestückte Plätze tragen die Kennung ihres Werkzeugs
+  (Eigenschaft `Werkzeug`, verborgen; leer: frei). Jeder andere Platz zählt nach der Nummer –
+  T3 auf P3 –, außer das Werkzeug steckt schon woanders (`bestueckung()`, `platz_von()`,
+  `bestuecke()`, `revolverplaetze()`). So ändert sich nichts ungefragt (F-E3), auch nicht an
+  älteren Maschinen, und eine Maschine, gebaut mit leerer Werkzeugverwaltung, nimmt später
+  angelegte Werkzeuge nach ihrer Nummer auf. Erst geplant war, beim Bau vorzubelegen – dann
+  hätte eine leer gebaute Maschine alle Plätze fest „frei“ gehabt.
+- F1 „Maschine bearbeiten“: Abschnitt „Bestückung“ zwischen Aufnahmen und Gliedern, je Platz
+  eine Auswahl, „– auf P5“ hinter einem Werkzeug, das woanders steckt; „Werkzeugverwaltung …“
+  öffnet sie, nach dem Speichern dort liest der Abschnitt sie neu. Ohne Revolver (Fräse) fehlt
+  der Abschnitt. Hilfeseite „Bestückung“.
+- F3 4-Achs-Assistent: In den Fräserlisten „– auf P3“ / „– nicht bestückt“; der Controller
+  bekommt beim Anlegen und Ändern die Nummer des Platzes (`controller_ohne_transaktion`,
+  `controller_fuer`, `controller_name` mit `nummer`); der gelbe Satz sagt „steckt auf keinem
+  Platz“ und nimmt für „nicht radial“ den bestückten Platz.
+- F4 Prüffenster: `Pruefung._bestueckung_pruefen` – vier Sätze (Platz frei/anderes Werkzeug,
+  das richtige woanders/nirgends), mit dem, was zu tun ist.
+- Spezifikation: Entscheidung „passt“, das gebaute Modell, warum der Assistent nicht selbst
+  umsteckt (die Maschine liegt meist in einem anderen Dokument).
+
+### TEST
+- `test_maschine`: nach Nummern, Umstecken (der alte Platz frei), Entladen, ein Werkzeug ohne
+  Nummer, ein gelöschtes Werkzeug; nur umgesteckte Plätze bestückt; gespeichert und geladen,
+  Kennung verborgen. Ok in 1.1.3.
+- `test_reichweite`: ohne Bestückung kein Satz; T2 auf P5 → „P2 ist laut Bestückung frei …
+  T5“; ein anderes Werkzeug auf P2; T2 nirgends. `platznummer()`. Ok in 1.1.3.
+- `test_job_schnittwerte`: Controller „T5 Vollnut“ mit ToolNumber 5; beim Ändern T8. Ok in
+  1.1.3.
+- Außerdem ok in 1.1.3: `test_sprache`, `test_hilfe`, `test_beispielmaschine`.
+- Szenarien in 1.1.3 ok, Bilder angesehen: `szenario_bestueckung` (neu: nach Nummern, T1 auf
+  P5, P2 frei, nach OK gespeichert, beim nächsten Öffnen gleich, neues T3 aus der
+  Werkzeugverwaltung gleich auf P3, Liste mit „– auf P5“; an der Fräse kein Abschnitt),
+  `szenario_vierachs_schruppen` („– auf P1“ in der Fräserliste, kein Satz zur Bestückung im
+  Prüffenster), `szenario_rundum_drehmaschine`, `szenario_maschine_bearbeiten`,
+  `szenario_neue_maschine`, `szenario_verfahren_schraeg`, `szenario_beispielmaschine`.
+
+### NEXT
+- Voller Lauf in beiden Versionen; F2: Nummer am Werkzeug freiwillig („entladen“ in der
+  Werkzeugverwaltung, keine Warnung „Nummer doppelt“ unter Werkzeugen ohne Nummer).
+
 ## P-2026-09-30-55 version-0-31-6
 
 ### EINGELESEN

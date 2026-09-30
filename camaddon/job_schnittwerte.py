@@ -470,14 +470,17 @@ def werte(werkzeug, einsatz):
     return n, vf, senkrecht
 
 
-def controller_name(werkzeug, einsatz):
+def controller_name(werkzeug, einsatz, nummer=None):
     """„T3 Schruppen dynamisch“, mit eingetragenem Namen „T3 Fräser VHM 12 – Schruppen dynamisch“.
 
-    Am Einsatz im Namen erkennt vorgeschlagener_einsatz() ihn wieder.
+    Am Einsatz im Namen erkennt vorgeschlagener_einsatz() ihn wieder. `nummer`: so ruft das
+    Programm das Werkzeug auf – am Revolver der Platz (W-002 Stufe F3); ohne Angabe die
+    Nummer aus der Werkzeugverwaltung.
     """
+    nummer = nummer or werkzeug.nummer
     if werkzeug.name:
-        return f"T{werkzeug.nummer} {werkzeug.name} – {wz.einsatz_name(einsatz)}"
-    return f"T{werkzeug.nummer} {wz.einsatz_name(einsatz)}"
+        return f"T{nummer} {werkzeug.name} – {wz.einsatz_name(einsatz)}"
+    return f"T{nummer} {wz.einsatz_name(einsatz)}"
 
 
 def lege_controller_an(dokument, job, werkzeug, einsatz, werkstoff=""):
@@ -502,9 +505,10 @@ def lege_controller_an(dokument, job, werkzeug, einsatz, werkstoff=""):
     return tc
 
 
-def controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff=""):
+def controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff="", nummer=None):
     """Wie lege_controller_an, aber in der Transaktion des Aufrufers – etwa des
-    Assistenten „4-Achs-Bearbeitung“, der alles als einen Schritt Rückgängig anlegt."""
+    Assistenten „4-Achs-Bearbeitung“, der alles als einen Schritt Rückgängig anlegt.
+    `nummer`: die T-Nummer im Programm, siehe controller_name()."""
     from Path.Tool import Controller
     from Path.Tool.camassets import cam_assets
 
@@ -518,13 +522,17 @@ def controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff=""):
         if getattr(bit, "ViewObject", None) is not None:
             # Wie FreeCADs Controller.Create: Sonst stünde der Fräser als Körper am Nullpunkt.
             bit.ViewObject.Visibility = False
-    tc = Controller.Create(controller_name(werkzeug, einsatz), tool=bit, toolNumber=werkzeug.nummer)
+    tc = Controller.Create(
+        controller_name(werkzeug, einsatz, nummer),
+        tool=bit,
+        toolNumber=nummer or werkzeug.nummer,
+    )
     job.Proxy.addToolController(tc)
     _setze_werte(tc, werkzeug, einsatz, werkstoff)
     return tc
 
 
-def controller_fuer(dokument, job, werkzeug, einsatz, werkstoff, operation):
+def controller_fuer(dokument, job, werkzeug, einsatz, werkstoff, operation, nummer=None):
     """Der Werkzeug-Controller, den `operation` mit `werkzeug` und `einsatz` bekommt – in der
     Transaktion des Aufrufers (Assistent „4-Achs-Bearbeitung“ beim Ändern).
 
@@ -532,8 +540,9 @@ def controller_fuer(dokument, job, werkzeug, einsatz, werkstoff, operation):
     andere Operation ihn benutzt – Drehzahl, Vorschub und Name kommen dann aus
     dem Einsatz. Sonst ein neuer (controller_ohne_transaktion); den bisherigen
     nimmt der Aufrufer heraus, wenn ihn danach keine Operation mehr benutzt
-    (controller_weg).
+    (controller_weg). `nummer`: die T-Nummer im Programm, siehe controller_name().
     """
+    nummer = nummer or werkzeug.nummer
     bisher = getattr(operation, "ToolController", None)
     bit = getattr(bisher, "Tool", None)
     if (
@@ -543,13 +552,13 @@ def controller_fuer(dokument, job, werkzeug, einsatz, werkstoff, operation):
         and all(o is operation for o in operationen_mit(bisher, job))
     ):
         _setze_werte(bisher, werkzeug, einsatz, werkstoff)
-        name = controller_name(werkzeug, einsatz)
+        name = controller_name(werkzeug, einsatz, nummer)
         if bisher.Label != name:
             bisher.Label = name
-        if bisher.ToolNumber != werkzeug.nummer:
-            bisher.ToolNumber = werkzeug.nummer
+        if bisher.ToolNumber != nummer:
+            bisher.ToolNumber = nummer
         return bisher
-    return controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff)
+    return controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff, nummer)
 
 
 def werkzeug_im_job(job, werkzeug):

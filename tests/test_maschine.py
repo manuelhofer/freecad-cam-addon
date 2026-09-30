@@ -103,6 +103,47 @@ pruefe(
 )
 doc.recompute()
 
+# Bestückung (W-002 Stufe F): Ohne sie steckt T3 auf P3. Umstecken macht den alten Platz
+# frei – ein Werkzeug steckt auf höchstens einem Platz; nach der Nummer zählt ein Platz kein
+# Werkzeug, das schon woanders steckt.
+bib = SimpleNamespace(
+    werkzeuge=[
+        SimpleNamespace(kennung="a", nummer=1),
+        SimpleNamespace(kennung="b", nummer=3),
+        SimpleNamespace(kennung="c", nummer=0),  # ohne Nummer: nicht geladen
+    ]
+)
+platz = {p.Platz: p for p in m.plaetze(ma, k, rev)}
+
+
+def auf():
+    """{Platznummer: Kennung oder None}"""
+    return {p.Platz: getattr(w, "kennung", None) for p, w in m.bestueckung(ma, k, bib).items()}
+
+
+pruefe(not any(m.bestueckt(p) for p in platz.values()), "Plätze gleich bestückt")
+pruefe(auf() == {1: "a", 2: None, 3: "b", 4: None, 5: None, 6: None}, f"nach Nummern: {auf()}")
+m.bestuecke(ma, k, platz[4], "b")
+pruefe(auf() == {1: "a", 2: None, 3: None, 4: "b", 5: None, 6: None}, f"umgesteckt: {auf()}")
+pruefe(
+    [m.bestueckt(platz[n]) for n in sorted(platz)] == [False, False, False, True, False, False],
+    "nur P4 ausdrücklich bestückt",
+)
+pruefe(m.platz_von(ma, k, bib.werkzeuge[1], bib) is platz[4], "b steckt nicht auf P4")
+pruefe(m.platz_von(ma, k, bib.werkzeuge[2], bib) is None, "c steckt irgendwo")
+pruefe("Hidden" in platz[4].getEditorMode("Werkzeug"), "Kennung im Eigenschaften-Editor")
+# Entladen: P1 ausdrücklich frei – a steckt nirgends mehr, auch nicht nach der Nummer.
+m.bestuecke(ma, k, platz[1], "")
+m.bestuecke(ma, k, platz[2], "c")
+pruefe(auf() == {1: None, 2: "c", 3: None, 4: "b", 5: None, 6: None}, f"entladen: {auf()}")
+# b von P4 auf P2: P4 wird frei, c steckt nirgends mehr.
+m.bestuecke(ma, k, platz[2], "b")
+pruefe(auf() == {1: None, 2: "b", 3: None, 4: None, 5: None, 6: None}, f"b auf P2: {auf()}")
+# Ein Werkzeug, das es in der Werkzeugverwaltung nicht mehr gibt: der Platz zählt als frei.
+m.bestuecke(ma, k, platz[6], "weg")
+pruefe(auf()[6] is None, "gelöschtes Werkzeug steckt noch")
+m.bestuecke(ma, k, platz[6], "")
+
 pruefe(m.pruefe(ma) == [], f"vollständige Drehmaschine: {[x.text for x in m.pruefe(ma)]}")
 rollen, _ = m.rollen(kette.lies_kette(asm), ma)
 pruefe(rollen.get(obj("Spindel")) == m.TISCH, "Hauptspindel sitzt nicht im Tisch")
@@ -175,6 +216,12 @@ if ma:
     pruefe("Hidden" in s4.getEditorMode("Eilgang"), "Sichtbarkeit nach dem Laden verloren")
     x1 = next(ba for ba in m.betriebsarten(ma) if ba.NcName == "X1")
     pruefe(x1.Durchmesser is True, "X1 nach dem Laden nicht mehr im Durchmesser")
+    geladen = sorted(
+        (a for a in m.aufnahmen(ma) if a.Platz), key=lambda a: a.Platz
+    )  # die sechs Plätze
+    werte = [a.Werkzeug if m.bestueckt(a) else None for a in geladen]
+    pruefe(werte == ["", "b", None, "", None, ""], f"Bestückung nach dem Laden: {werte}")
+    pruefe("Hidden" in geladen[1].getEditorMode("Werkzeug"), "Kennung nach dem Laden sichtbar")
     z1 = next(ba for ba in m.betriebsarten(ma) if ba.NcName == "Z1")
     pruefe(
         "Durchmesser" in z1.PropertiesList and z1.Durchmesser is False,

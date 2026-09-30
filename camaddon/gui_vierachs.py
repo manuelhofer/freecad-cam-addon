@@ -1441,7 +1441,9 @@ class VierachsPanel:
         try:
             self.wahl_fraeser.clear()
             for werkzeug in self._fraeser:
-                self.wahl_fraeser.addItem(dezimal(wz.zeile(werkzeug)))
+                self.wahl_fraeser.addItem(
+                    dezimal(wz.zeile(werkzeug)) + self._platz_zusatz(werkzeug)
+                )
             if self._fraeser:
                 self.wahl_fraeser.setCurrentIndex(wahl)
         finally:
@@ -1719,7 +1721,9 @@ class VierachsPanel:
         try:
             self.wahl_schlichtfraeser.clear()
             for werkzeug in self._schlichtfraeser:
-                self.wahl_schlichtfraeser.addItem(dezimal(wz.zeile(werkzeug)))
+                self.wahl_schlichtfraeser.addItem(
+                    dezimal(wz.zeile(werkzeug)) + self._platz_zusatz(werkzeug)
+                )
             if self._schlichtfraeser:
                 self.wahl_schlichtfraeser.setCurrentIndex(wahl)
         finally:
@@ -1994,14 +1998,18 @@ class VierachsPanel:
             return ""
         richtung = va.radial(self.achse())
         einspannung = rw.Einspannung(0.0, hl.lage(self.bibliothek.halter_von(werkzeug)))
-        aufnahme, radial = pruefung.kommt_aus(werkzeug.nummer, richtung, einspannung)
+        # Am Revolver der Platz, auf dem es laut Bestückung steckt (W-002 Stufe F3).
+        nummer = pruefung.platznummer(werkzeug, self.bibliothek)
         name = f"T{werkzeug.nummer}"
+        if nummer is None:
+            return html.escape(tr("va.lage.nicht_bestueckt", werkzeug=name, maschine=eintrag.name))
+        aufnahme, radial = pruefung.kommt_aus(nummer, richtung, einspannung)
         if aufnahme is None:
             return html.escape(tr("va.lage.kein_platz", werkzeug=name, maschine=eintrag.name))
         if radial:
             return ""
         # Steht die Aufnahme selbst radial (Sternrevolver), hilft ein gerader Halter.
-        _aufnahme, gerade = pruefung.kommt_aus(werkzeug.nummer, richtung)
+        _aufnahme, gerade = pruefung.kommt_aus(nummer, richtung)
         werte = {
             "werkzeug": name,
             "aufnahme": m.name_von(aufnahme),
@@ -2015,6 +2023,27 @@ class VierachsPanel:
         return (
             f'{html.escape(satz, quote=False)} <a href="werkzeug:{werkzeug.nummer}">{verweis}</a>'
         )
+
+    def _platz_zusatz(self, werkzeug):
+        """„ – auf P3“ bzw. „ – nicht bestückt“ hinter einem Fräser, wenn die gewählte Maschine
+        einen Revolver hat (W-002 Stufe F3); sonst nichts."""
+        pruefung = self._pruefung_fuer(self.maschinenwahl())
+        if pruefung is None or self.bibliothek is None or not pruefung.mit_revolver():
+            return ""
+        nummer = pruefung.platznummer(werkzeug, self.bibliothek)
+        if nummer is None:
+            return tr("va.nicht_bestueckt")
+        return tr("va.auf_platz", platz=f"P{nummer}")
+
+    def _programmnummer(self, werkzeug):
+        """So ruft das Programm `werkzeug` auf: auf der gewählten Maschine mit Revolver der
+        Platz, auf dem es laut Bestückung steckt (T3 für P3, W-002 Stufe F3). None – dann gilt
+        seine Nummer aus der Werkzeugverwaltung –, ohne Maschine oder wenn es auf keinem Platz
+        steckt; das sagt dann der gelbe Satz."""
+        pruefung = self._pruefung_fuer(self.maschinenwahl())
+        if werkzeug is None or pruefung is None or self.bibliothek is None:
+            return None
+        return pruefung.platznummer(werkzeug, self.bibliothek)
 
     def _pruefung_fuer(self, eintrag):
         """Die Prüfung (reichweite.Pruefung) der gewählten offenen Maschine – einmal gebaut
@@ -2247,7 +2276,12 @@ class VierachsPanel:
                 angelegt = []
                 if schruppen:
                     tc = js.controller_ohne_transaktion(
-                        self.doc, self.job, self.fraeser(), self.einsatz(), self.werkstoff()
+                        self.doc,
+                        self.job,
+                        self.fraeser(),
+                        self.einsatz(),
+                        self.werkstoff(),
+                        self._programmnummer(self.fraeser()),
                     )
                     angelegt.append(
                         vo.lege_an(
@@ -2269,6 +2303,7 @@ class VierachsPanel:
                         self.schlichtfraeser(),
                         self.schlichteinsatz(),
                         self.werkstoff(),
+                        self._programmnummer(self.schlichtfraeser()),
                     )
                     angelegt.append(
                         vs.lege_an(
@@ -2334,6 +2369,7 @@ class VierachsPanel:
                         self.schlichteinsatz(),
                         self.werkstoff(),
                         op,
+                        self._programmnummer(self.schlichtfraeser()),
                     )
                     vs.aendere(
                         op,
@@ -2346,7 +2382,13 @@ class VierachsPanel:
                     )
                 else:
                     tc = js.controller_fuer(
-                        self.doc, self.job, self.fraeser(), self.einsatz(), self.werkstoff(), op
+                        self.doc,
+                        self.job,
+                        self.fraeser(),
+                        self.einsatz(),
+                        self.werkstoff(),
+                        op,
+                        self._programmnummer(self.fraeser()),
                     )
                     vo.aendere(
                         op,
@@ -2366,6 +2408,7 @@ class VierachsPanel:
                         self.schlichtfraeser(),
                         self.schlichteinsatz(),
                         self.werkstoff(),
+                        self._programmnummer(self.schlichtfraeser()),
                     )
                     vs.lege_an(
                         self.job,

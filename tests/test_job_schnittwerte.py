@@ -417,6 +417,20 @@ pruefe(js.gemerkter_einsatz(tc).art == wz.DYNAMISCH, "der geteilte TC wurde geä
 tasche.ToolController = neu
 anders = js.controller_fuer(dok, job, bohrer, bohrer.einsaetze("1.4301")[0], "1.4301", kontur)
 pruefe(anders is not tc and anders.ToolNumber == 7, f"anderes Werkzeug: {anders.Label}")
+# Am Revolver ruft das Programm den Platz auf (W-002 Stufe F3): T3 auf P5 heißt T5 – im Namen
+# und als Nummer; beim Ändern ebenso.
+platz5 = js.controller_ohne_transaktion(dok, job, fraeser, einsaetze[0], "1.4301", 5)
+pruefe(
+    (platz5.Label, platz5.ToolNumber) == ("T5 Vollnut", 5),
+    f"auf P5: {platz5.Label}, {platz5.ToolNumber}",
+)
+tasche.ToolController = platz5
+dok.recompute()
+wieder = js.controller_fuer(dok, job, fraeser, einsaetze[0], "1.4301", tasche, 8)
+pruefe(
+    wieder is platz5 and (wieder.Label, wieder.ToolNumber) == ("T8 Vollnut", 8),
+    f"auf P8 umgesteckt: {wieder.Label}, {wieder.ToolNumber}",
+)
 FreeCAD.closeDocument(dok.Name)
 sprache.setze_sprache(vorher_sprache)
 if fehler:

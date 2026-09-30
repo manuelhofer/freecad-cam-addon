@@ -388,6 +388,33 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
      **Empfehlung**, nichts ändert sich ungefragt; (b) leer – jeder bestückt
      selbst.
 
+   **Entschieden** (Manuel, 2026-09-30: „passt“): F-E1 (a), F-E2 (a), F-E3 (a).
+
+   **Gebaut** (P-2026-09-30-56, 0.32.0): F1, F3, F4; F2 folgt.
+   - **Modell** (`maschine.py`): Nur ausdrücklich bestückte Plätze tragen die
+     Kennung ihres Werkzeugs (Eigenschaft `Werkzeug`, leer: frei; verborgen).
+     Jeder andere Platz zählt nach der Nummer – T3 auf P3 –, außer das Werkzeug
+     steckt schon auf einem anderen Platz (`bestueckung()`). So ist F-E3 erfüllt,
+     ohne beim Bau etwas festzuschreiben: Eine Maschine, gebaut mit leerer
+     Werkzeugverwaltung, bestückt sich mit den Werkzeugen, die später dazukommen;
+     ältere Maschinen zählen wie bisher. `bestuecke()` steckt um; war das Werkzeug
+     schon woanders bestückt, wird der Platz frei.
+   - **F1** – Abschnitt „Bestückung“ in „Maschine bearbeiten“: je Platz eine
+     Auswahl („– frei –“ oben), hinter einem Werkzeug, das woanders steckt, „– auf
+     P5“; „Werkzeugverwaltung …“ öffnet sie, nach dem Speichern dort steht Neues
+     gleich zur Wahl. Ein Schritt Rückgängig mit dem Dialog. Ohne Revolver (Fräse
+     mit einer Spindel) fehlt der Abschnitt.
+   - **F3** – 4-Achs-Assistent: In der Fräserliste „– auf P3“ bzw. „– nicht
+     bestückt“; der Controller bekommt die Nummer des Platzes (Name und
+     ToolNumber, auch beim Ändern). Nicht bestückt: ein gelber Satz; angelegt wird
+     mit der Nummer aus der Werkzeugverwaltung – das Prüffenster sagt dann, was
+     auf dem Platz steckt. (Auf einen freien Platz stecken aus dem Assistenten
+     heraus ist nicht dabei: Die Maschine liegt meist in einem anderen Dokument,
+     ihr Rückgängig gehörte nicht zum Schritt des Assistenten.)
+   - **F4** – „Auf der Maschine prüfen“: Ruft ein Job einen Platz auf, auf dem laut
+     Bestückung ein anderes Werkzeug steckt oder keins, sagt ein Hinweis, was dort
+     steckt, wo das richtige steckt und was zu tun ist.
+
 ## 11. Entscheidungen (Claude, zur Besprechung)
 
 Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.

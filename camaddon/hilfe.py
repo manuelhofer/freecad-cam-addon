@@ -19,6 +19,7 @@ THEMEN = [
     "transformationen",
     "neue_maschine",
     "aufnahmen",
+    "bestueckung",
     "glieder",
     "werkstoffe",
     "werkzeuge",

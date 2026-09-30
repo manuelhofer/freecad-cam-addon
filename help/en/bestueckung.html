@@ -1,0 +1,31 @@
+<h2>Tool loading</h2>
+<p>This shows which tool from the <b>tool manager</b> sits in which <b>turret
+station</b>. The tool manager is your tool cabinet: shape, holder, cutting
+data. The loading belongs to the machine – two machines can be loaded
+differently.</p>
+
+<h3>Moving and unloading</h3>
+<ul>
+<li>For each station (P1, P2 …) pick a tool from the list.</li>
+<li>A tool sits in <b>at most one station</b>. Pick one that is already
+elsewhere – it then says, for example, “– in P4” – and the other station
+becomes free.</li>
+<li><b>“– free –”</b> unloads the station. The tool stays in the tool manager
+and can go back into a station at any time.</li>
+<li><b>Tool manager …</b> opens the tool cabinet. What you save there is
+available here right away.</li>
+</ul>
+
+<h3>Stations you do not load</h3>
+<p>A station you do not load here holds the tool with its number from the tool
+manager: T3 sits in P3 – unless T3 already sits in another station. So nothing
+changes until you move a tool, not even on a machine from an earlier
+version.</p>
+
+<h3>In the program</h3>
+<p>On a turret the program calls the <b>station</b>: if T3 sits in P5, the
+program says T5. That is how the 4-axis assistant sets up the tool controller;
+its cutter list shows for each cutter where it sits (“– in P5”) or “– not
+loaded”. “Check on machine” compares: if a job calls a station that holds a
+different tool according to the loading – or none – a note says what sits there
+and where the right one is.</p>
