@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-29 version-0-30-0
+
+### EINGELESEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`, die Einträge P-2026-09-30-25 bis -28.
+
+### DATEIEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.30.0 an. Danach: Welle mit Abflachung, „4-Achs-Bearbeitung“ →
+Weiter → die Abflachung anklicken: in der Liste grün „Face3  Ebene – erreichbar“, im 3D grün;
+„Anlegen“ → die Bahnen liegen als Zeilen hin und her nur über der Abflachung.
+
+### DONE
+- Version 0.30.0 mit W-003 V4 „Flächen wählen“ (V4a Assistent, V4b Bahnen im Bereich, hin und
+  her). README, Stand und die Beschreibung im Paket nachgezogen.
+
+### TEST
+- Voller Lauf `scripts/alle_tests.sh` in FreeCAD 1.1.3 und im Wochen-Build – siehe
+  Push-Nachricht.
+
+### NEXT
+- Push; Bericht an Manuel mit Klickweg und Screenshots; V4c mit Manuel planen.
+
 ## P-2026-09-30-28 flaechen-hin-und-her
 
 ### EINGELESEN

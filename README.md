@@ -94,7 +94,13 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   jeder Wand (Absatz, Flanke einer Nut) hält die Spirale eine Umdrehung an – so
   kommt der Fräser rundum bis an die Wand. Die
   Simulation trägt die Stange mit der Form des Fräsers ab, die
-  Kollisionsprüfung sieht den Kugelfräser als Kugel. Flächen wählen folgt.
+  Kollisionsprüfung sieht den Kugelfräser als Kugel. **Flächen wählen:** In
+  Schritt 2 eine Fläche des Teils anklicken (noch ein Klick nimmt sie heraus) –
+  die Liste nennt Art und Erreichbarkeit (grün, gelb, rot), das 3D färbt sie so.
+  Dann fräsen Schruppen und Schlichten nur dort, wo der Fräser eine gewählte
+  Fläche berührt, in Zeilen hin und her; abgehoben wird nur zwischen getrennten
+  Flächen, hinein geht es über eine Rampe mit dem Eintauchwinkel des Fräsers.
+  Ohne Wahl oder mit allen Mantelflächen: rundum.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).
