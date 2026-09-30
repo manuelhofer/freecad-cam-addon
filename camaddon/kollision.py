@@ -89,8 +89,10 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
     Spitze bei Z = −laenge, Z zeigt zur Aufnahme. Die Schneide ist ein Drehkörper aus der
     Stirn des Fräsers (fraeserform: Kugel, Torus, Kegel …), darüber zylindrisch mit D – bei
     ebener Stirn ein Zylinder, der Lollipop eine Kugel. Der Schaft reicht bis zur Nase des
-    Halters, ohne Halter bis zur Gesamtlänge; was darüber bis zur Aufnahme fehlt, kennt
-    niemand. `mit_kern`: dazu der Kern der Schneide (KERN), um EINDRINGEN kleiner. Ein
+    Halters, auch wenn die Gesamtlänge dafür zu kurz ist – sie ist oft nur geschätzt, die
+    Länge ab dem Bezugspunkt dagegen gemessen; sonst schwebte der Fräser vor dem Halter
+    (Manuel, 2026-09-30), und was dazwischen steckt, sähe die Kollision nicht. Ohne Halter
+    reicht er bis zur Gesamtlänge; was darüber bis zur Aufnahme fehlt, kennt niemand. `mit_kern`: dazu der Kern der Schneide (KERN), um EINDRINGEN kleiner. Ein
     gewinkelter Halter (W-002 Stufe E) kippt das Werkzeug: Seine Spitze liegt dann `laenge`
     vom Bezugspunkt des Halters längs der Werkzeugachse (halter.lage)."""
     import Part
@@ -103,9 +105,10 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
 
     spitze = -laenge
     form = hl.form(halter) if halter is not None else None
-    ende = min(spitze + masse.gesamt, 0.0) if masse.gesamt > 0 else 0.0
     if form is not None:
-        ende = min(ende, -halter.laenge)
+        ende = -halter.laenge
+    else:
+        ende = min(spitze + masse.gesamt, 0.0) if masse.gesamt > 0 else 0.0
     oben = min(spitze + masse.schneide, ende)
     radius = masse.durchmesser / 2
     stirn = masse.stirn

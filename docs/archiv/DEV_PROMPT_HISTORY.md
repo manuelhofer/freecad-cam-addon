@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-34 fraeser-im-halter
+
+### EINGELESEN
+- Manuel, 2026-09-30: „Warum ist der Fräser nicht im Halter?“ – zu den Bildern aus dem
+  Prüffenster auf der Beispiel-Drehmaschine (T1 Ø 12, „VDI30 angetrieben radial“).
+- `camaddon/kollision.py` (`werkzeugkoerper`), `camaddon/gui_abfahren.py` (`_werkzeug`),
+  `camaddon/reichweite.py` (`werkzeugmasse`), `camaddon/werkzeuge.py`
+  (`geschaetzte_laenge`, `laenge_mit_halter`), `camaddon/halter.py` (`form`, `lage`),
+  `camaddon/beispielmaschine.py` (Revolver), `tests/test_kollision.py`.
+
+### DATEIEN
+- `camaddon/kollision.py`, `tests/test_kollision.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine, Werkzeug mit Halter, ohne eingetragene Gesamtlänge: Im Prüffenster
+steckt der Schaft in der Nase des Halters – kein Spalt zwischen Fräser und Halter; die
+Kollision prüft den Schaft bis dorthin.
+
+### DONE
+- Ursache: Der Schaft endete bei der Gesamtlänge. Die ist ohne Eintrag nur geschätzt (T1:
+  26 + 2 × 12 = 50 mm), aus dem Halter ragen aber 125 − 55 = 70 mm – der Fräser schwebte 20 mm
+  vor dem Halter, und die Kollision sah das Stück dazwischen nicht.
+- Mit Halter reicht der Schaft jetzt immer bis zu seiner Nase (die Länge ab dem Bezugspunkt
+  ist gemessen oder eingetragen), gerade wie gewinkelt. Ohne Halter wie bisher.
+
+### TEST
+- Noch nicht gelaufen (voller Lauf zu 0.30.0). Danach `test_kollision` (kurzer Fräser im
+  gewinkelten und im geraden Halter: Schaft bis zur Nase), `szenario_rundum_drehmaschine` mit
+  Bild.
+
+### NEXT
+- Ein Hinweis im Prüffenster, wenn eine eingetragene Gesamtlänge nicht bis in den Halter
+  reicht, falls Manuel das will.
+
 ## P-2026-09-30-33 installieren-ohne-ssl
 
 ### EINGELESEN

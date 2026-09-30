@@ -293,6 +293,20 @@ pruefe(
     abs(k[kb.HALTER].BoundBox.ZMin + 82.5) < 1e-6 and abs(k[kb.SCHAFT].BoundBox.XMin - 55) < 1e-6,
     f"Halter {k[kb.HALTER].BoundBox}, Schaft {k[kb.SCHAFT].BoundBox}",
 )
+# Ist die Gesamtlänge (geschätzt 50) kürzer als das, was aus dem Halter ragt (125 − 55), reicht
+# der Schaft trotzdem bis zur Nase – der Fräser schwebte sonst vor dem Halter (Manuel,
+# 2026-09-30), gerade wie gewinkelt.
+k = dict(kb.werkzeugkoerper(masse, 125.0, radial))
+pruefe(
+    abs(k[kb.SCHAFT].BoundBox.XMin - 55) < 1e-6 and abs(k[kb.SCHAFT].BoundBox.XMax - 120) < 1e-6,
+    f"kurzer Fräser, gewinkelt: Schaft {k[kb.SCHAFT].BoundBox}",
+)
+gerade = hl.aus_vorlage("er32")
+k = dict(kb.werkzeugkoerper(masse, 125.0, gerade))
+pruefe(
+    z_von_bis(k[kb.SCHAFT]) == (-120.0, -gerade.laenge),
+    f"kurzer Fräser, gerade: Schaft {z_von_bis(k[kb.SCHAFT])}, Halter {gerade.laenge}",
+)
 
 # Kugelfräser über die Kante der Tasche (x 30, oben Z 20) gerollt: die Mitte 1,5 mm über der
 # Tasche und 2 mm über der Kante – genau 2,5 mm von ihr –, die Spitze bei Z 19,5.
