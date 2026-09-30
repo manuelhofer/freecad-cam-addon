@@ -57,8 +57,11 @@ neu – nur mit Absicht und einem Satz im Verlauf.
   Messung der Bahnrechnung mit Zahlen in der Spezifikation W-006).
 
 ### TEST
-- Alle Prüfungen zu P-69 bis -71 und -73 in 1.1.3 ok (siehe dort); der volle Lauf folgt nach dem
-  Push (Kernmodule `maschine`, `werkzeuge`).
+- Alle Prüfungen zu P-69 bis -71 und -73 in 1.1.3 ok (siehe dort). Voller Lauf nach dem Push:
+  1.1.3 ganz grün; 26.3 grün bis auf einen Absturz von FreeCAD selbst (Segmentation fault in
+  `FreeCADGui.Control.closeDialog()`, `szenario_vierachs_aendern`, beim Schließen mit
+  Abbrechen) – zweimal wiederholt, beide Male ok; in keinem früheren Lauf gesehen. Ein
+  Fehler des Wochen-Builds, nicht des Addons; bleibt im Blick.
 
 ### NEXT
 - Push, bei GitHub nachsehen; voller Lauf danach (Kernmodule `maschine`, `werkzeuge`).
