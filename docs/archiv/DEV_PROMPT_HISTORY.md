@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-47 version-0-31-2
+
+### EINGELESEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`; CLAUDE.md: Soll Manuel etwas ausprobieren,
+  braucht der Push eine höhere Version.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates suchen“ bzw. der Addon-Manager bietet 0.31.2 an.
+
+### DONE
+- Version 0.31.2 mit P-2026-09-30-44 (kein Fehlalarm Blau an Manuels Testteil), -45 (das
+  fertige Teil am Ende ausgeblendet) und -46 (Wege bis 10 m).
+- Status: Als Nächstes Nullpunkt X an der VDI-Aufnahme und Werkzeuge ohne Platz; W-005 wartet
+  auf E1–E7.
+
+### TEST
+- Die Prüfungen zu P-44 bis -46 (siehe dort).
+
+### NEXT
+- Push, Bericht an Manuel; seine Antworten zu −430 (wo?) und X (Ø oder Radius?).
+
 ## P-2026-09-30-46 wege-bis-10-m
 
 ### EINGELESEN
