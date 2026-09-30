@@ -442,6 +442,7 @@ class VierachsPanel:
         self._uhr.timeout.connect(self._anwenden)
         self.seite = 1  # 1: Rohteil, 2: Was willst du machen?
         self.bibliothek = None  # die Werkzeugverwaltung – geladen, wenn Schritt 2 kommt
+        self._pruefung = None  # (Assembly, reichweite.Pruefung) der gewählten Maschine
         self._fraeser = []  # die Werkzeuge in der Auswahl „Fräser“
         self._einsaetze = []  # die Einsätze in der Auswahl „Einsatz“
         self.vorschau = None  # die Bahn der Vorschau (vierachs_bahn.Bahn) oder None
@@ -499,6 +500,7 @@ class VierachsPanel:
                 self.schruppfelder,
                 self.ergebnis,
                 self.hinweis_rund,
+                self.lage_schruppen,
             ):
                 teil.hide()
             erklaerung = self.erklaerung_schlichten
@@ -888,6 +890,17 @@ class VierachsPanel:
             aufbau.addWidget(etikett)
             return etikett
 
+        def gelb():
+            """Ein Satz in Gelb, bis er etwas sagt ausgeblendet (_lage_zeigen)."""
+            from .gui_kollision import GELB
+
+            etikett = QtGui.QLabel()
+            etikett.setWordWrap(True)
+            etikett.setStyleSheet(f"color: {GELB};")
+            etikett.hide()
+            aufbau.addWidget(etikett)
+            return etikett
+
         # Werkstoff und Werkzeugverwaltung gelten für beide Bearbeitungen.
         oben = _Reihen()
         self.wahl_werkstoff = QtGui.QComboBox()
@@ -938,6 +951,7 @@ class VierachsPanel:
         aufbau.addWidget(self.schruppfelder)
         self.ergebnis = grau()
         self.hinweis_rund = grau()  # Kugel- und Torusfräser: wie ein Schaftfräser
+        self.lage_schruppen = gelb()  # der Fräser säße auf der Maschine nicht radial
 
         # --- Rundum schlichten (V5d) ---
         self.mit_schlichten = haken(
@@ -982,6 +996,7 @@ class VierachsPanel:
         self.schlichtfelder = schlichten.widget
         aufbau.addWidget(self.schlichtfelder)
         self.ergebnis_schlichten = grau()
+        self.lage_schlichten = gelb()
         self.schlichtfelder.setEnabled(False)
 
         # --- Abstände für beide ---
@@ -1632,6 +1647,7 @@ class VierachsPanel:
         schruppen, schlichten = self._gewaehlt()
         self.abstandsfelder.setEnabled(schruppen or schlichten)
         self.hinweis_bearbeitung.setText("")
+        self._lage_zeigen()
         if schruppen or schlichten:
             self._vorschau_starten()
         elif self.vermessung is not None:  # ohne Fräser reicht die Abstechbreite hinten
@@ -1659,7 +1675,10 @@ class VierachsPanel:
         weiß, ob es geht."""
         self._vorschau_uhr.stop()
         schruppen, schlichten = self._gewaehlt()
-        if self.geschlossen or self.seite != 2 or not (schruppen or schlichten):
+        if self.geschlossen or self.seite != 2:
+            return
+        self._lage_zeigen()
+        if not (schruppen or schlichten):
             return
         self.vorschau = None
         self.vorschau_schlichten = None
@@ -1709,6 +1728,61 @@ class VierachsPanel:
                 self.ergebnis_schlichten.setText(self._schlicht_text(self.vorschau_schlichten))
         self.hinweis_bearbeitung.setText(" ".join(gruende))
         self._knoepfe_beschriften()
+
+    def _lage_zeigen(self):
+        """Unter jedem angehakten Fräser ein gelber Satz, wenn er auf der gewählten Maschine
+        nicht radial zur Stange säße – mit dem Halter, der fehlt (W-002 Stufe E5)."""
+        schruppen, schlichten = self._gewaehlt()
+        for etikett, an, werkzeug in (
+            (self.lage_schruppen, schruppen, self.fraeser()),
+            (self.lage_schlichten, schlichten, self.schlichtfraeser()),
+        ):
+            text = self._lage_text(werkzeug) if an else ""
+            etikett.setText(text)
+            etikett.setVisible(bool(text))
+
+    def _lage_text(self, werkzeug):
+        """Der Satz zu `werkzeug` auf der gewählten Maschine (reichweite.Pruefung.kommt_aus):
+        leer, wenn es radial aus der Richtung der Bahn kommt – oder ohne offene Maschine."""
+        from . import maschine as m
+        from . import reichweite as rw
+
+        eintrag = self.maschinenwahl()
+        if werkzeug is None or self.bibliothek is None:
+            return ""
+        pruefung = self._pruefung_fuer(eintrag)
+        if pruefung is None:
+            return ""
+        richtung = va.radial(self.achse())
+        einspannung = rw.Einspannung(0.0, hl.lage(self.bibliothek.halter_von(werkzeug)))
+        aufnahme, radial = pruefung.kommt_aus(werkzeug.nummer, richtung, einspannung)
+        name = f"T{werkzeug.nummer}"
+        if aufnahme is None:
+            return tr("va.lage.kein_platz", werkzeug=name, maschine=eintrag.name)
+        if radial:
+            return ""
+        return tr(
+            "va.lage.nicht_radial",
+            werkzeug=name,
+            aufnahme=m.name_von(aufnahme),
+            richtung=rw.richtung_text(richtung),
+        )
+
+    def _pruefung_fuer(self, eintrag):
+        """Die Prüfung (reichweite.Pruefung) der gewählten offenen Maschine – einmal gebaut
+        je Maschine; None ohne offene Maschine oder wenn sie sich nicht lesen lässt."""
+        from . import reichweite as rw
+
+        if not isinstance(eintrag, va.Maschinenwahl):
+            return None
+        if self._pruefung is None or self._pruefung[0] is not eintrag.assembly:
+            try:
+                pruefung = rw.Pruefung(eintrag.assembly, eintrag.maschine)
+            except Exception as fehler:  # eine halb gebaute Maschine: kein Satz
+                FreeCAD.Console.PrintLog(f"4-Achs-Bearbeitung, Maschine: {fehler}\n")
+                pruefung = None
+            self._pruefung = (eintrag.assembly, pruefung)
+        return self._pruefung[1]
 
     def _rund_text(self, werkzeug):
         """Bei Kugel- und Torusfräsern ein Satz: Gerechnet wird wie mit einem Schaftfräser,

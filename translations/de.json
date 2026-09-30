@@ -1075,6 +1075,8 @@
     "va.transaktion.schlichten": "Rundum schlichten anlegen",
     "va.transaktion.aendern_schlichten": "Rundum schlichten ändern",
     "va.rund": "{art}: „Rundum schruppen“ rechnet wie mit einem Schaftfräser gleichen Durchmessers – das Teil bleibt sicher. Zwischen den Bahnen der Spirale bleiben Rillen bis {rille} mm über dem Aufmaß stehen; weniger Vorschub je Umdrehung macht sie flacher.",
+    "va.lage.nicht_radial": "{werkzeug} sitzt auf {aufnahme} nicht radial – die Bahn braucht es radial aus {richtung} zur Achse. Gib {werkzeug} in der Werkzeugverwaltung (Knopf oben) einen Halter, der radial steht, etwa „VDI30 angetrieben radial“.",
+    "va.lage.kein_platz": "Für {werkzeug} hat „{maschine}“ keinen Platz – „Auf der Maschine prüfen“ übergeht es.",
     "va.rund.ohne_rillen": "{art}: „Rundum schruppen“ rechnet wie mit einem Schaftfräser gleichen Durchmessers – das Teil bleibt sicher; bei diesem Vorschub je Umdrehung bleiben keine Rillen stehen.",
     "va.fehler.anlegen": "Anlegen ging nicht: {fehler}",
     "va.transaktion.schruppen": "Rundum schruppen anlegen",

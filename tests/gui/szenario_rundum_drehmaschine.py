@@ -5,7 +5,8 @@
 # 125 und 110 mm ab Bezugspunkt. Welle Ø 50 mit Absatz auf Ø 36, 40 mm lang, Stange Ø 60.
 # „4-Achs-Bearbeitung“ mit der Beispiel-Drehmaschine: Schritt 2 hat beide Haken, die Stange
 # ragt so weit heraus, wie der Kopf des Halters braucht („Halter über die Werkzeugachse
-# 27,5“). „Anlegen“ → „Auf der Maschine prüfen“: alle Achsen in ihren Grenzen, kein Hinweis
+# 27,5“). T3 (Schaftfräser Ø 10, ohne Halter) als Schruppfräser: gelb darunter „T3 sitzt
+# auf P3 nicht radial …“ mit dem Halter, der fehlt (W-002 Stufe E5); zurück auf T1: weg. „Anlegen“ → „Auf der Maschine prüfen“: alle Achsen in ihren Grenzen, kein Hinweis
 # zur Werkzeuglage; T1 und T2 stehen beim Abspielen radial am Teil; „Kollision prüfen“:
 # nichts berührt sich; am Ende der Vergleich – nirgends ins Teil. Dann T2 ohne Halter: Das
 # Prüffenster sagt, dass T2 auf P2 nicht radial sitzt, und nennt den Halter, der fehlt.
@@ -40,6 +41,9 @@ def schritte(h):
     t2.nummer, t2.art, t2.durchmesser, t2.schneiden = 2, wz.KUGELFRAESER, 6.0, 2
     t2.laenge_spindelnase, t2.halter = 110.0, halter.kennung
     t2.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHLICHTEN, ae=1.0, ap=6, vc=150, fz=0.04)]
+    t3 = bibliothek.neues_werkzeug()  # ohne Halter: gerade, auf P3 längs Z
+    t3.nummer, t3.durchmesser, t3.schneiden, t3.laenge_spindelnase = 3, 10.0, 3, 90.0
+    t3.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=4.0, ap=2, vc=150, fz=0.08)]
     bibliothek.speichern()
 
     asm, _maschine = beispielmaschine.lade(beispielmaschine.DREHMASCHINE)
@@ -94,7 +98,26 @@ def schritte(h):
         f"Ausspannen: {ausspannen!r}",
     )
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")
+    h.pruefe(
+        panel.lage_schruppen.isHidden() and panel.lage_schlichten.isHidden(),
+        f"gelb bei T1/T2: {panel.lage_schruppen.text()!r} {panel.lage_schlichten.text()!r}",
+    )
     h.bild("1_schruppen_und_schlichten", panel.form)
+
+    # T3 ohne Halter säße gerade auf P3: gelb, mit dem Halter, der fehlt (Stufe E5).
+    panel.wahl_fraeser.setCurrentIndex([w.nummer for w in panel._fraeser].index(3))
+    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
+    gelb = panel.lage_schruppen.text()
+    h.pruefe(
+        not panel.lage_schruppen.isHidden()
+        and gelb.startswith("T3 sitzt auf P3 nicht radial")
+        and "„VDI30 angetrieben radial“" in gelb,
+        f"gelb bei T3: {gelb!r}",
+    )
+    h.bild("1b_t3_ohne_halter", panel.form)
+    panel.wahl_fraeser.setCurrentIndex([w.nummer for w in panel._fraeser].index(1))
+    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
+    h.pruefe(panel.lage_schruppen.isHidden(), f"gelb bei T1: {panel.lage_schruppen.text()!r}")
     job = panel.job
     panel.accept()  # Anlegen
     yield 1500

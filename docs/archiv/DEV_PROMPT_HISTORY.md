@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-16 assistent-halter-hinweis
+
+### EINGELESEN
+- `docs/spezifikation_halter.md` Abschnitt 11.3/11.5 (E5), `camaddon/reichweite.py`
+  (`_pruefe_operation`, `_werkzeug_aus`, `werkzeugaufnahme`), `camaddon/gui_vierachs.py`
+  (Schritt 2, Maschinenwahl, Vorschau), `help/*/vierachs.html`.
+
+### DATEIEN
+- `camaddon/reichweite.py`, `camaddon/gui_vierachs.py`, `translations/de.json`,
+  `translations/en.json`, `help/de/vierachs.html`, `help/en/vierachs.html`,
+  `tests/test_reichweite.py`, `tests/gui/szenario_rundum_drehmaschine.py`,
+  `docs/spezifikation_halter.md`, `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine offen, „4-Achs-Bearbeitung“ → Schritt 2: T1 mit „VDI30
+angetrieben radial“ – kein gelber Satz; T3 ohne Halter als Fräser – gelb darunter
+„T3 sitzt auf P3 nicht radial – die Bahn braucht es radial aus +X zur Achse. Gib T3
+in der Werkzeugverwaltung (Knopf oben) einen Halter, der radial steht, etwa „VDI30
+angetrieben radial“.“; zurück auf T1 – weg. „Anlegen“ bleibt frei.
+
+### DONE
+- `Pruefung.kommt_aus(nummer, richtung, einspannung)`: Platz der Nummer, Revolver in
+  Arbeitsstellung, Achse des Werkzeugs mit der Lage aus seinem Halter – dieselbe
+  Rechnung wie der Hinweis „nicht radial“ beim Prüfen, ohne Bahn.
+- Assistent, Schritt 2: unter „Rundum schruppen“ und „Rundum schlichten“ je ein
+  gelber Satz, sobald eine offene Maschine gewählt ist und der Fräser dort nicht
+  radial säße (oder die Nummer keinen Platz hat). Er sperrt nichts. Die Prüfung der
+  Maschine wird einmal je Maschine gebaut. Nach dem Speichern in der
+  Werkzeugverwaltung liest der Assistent sie neu – der Satz geht weg.
+- Hilfe de/en, Spezifikation (E5 gebaut), `aufbau.md`.
+
+### TEST
+- KI ohne Oberfläche, FreeCAD 1.1.3: `test_reichweite` (T2 gerade → nicht aus +X,
+  mit radialem Halter → aus +X, T13 → kein Platz), `test_sprache`, `test_hilfe` grün.
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_rundum_drehmaschine`
+  (T3 ohne Halter → gelb, zurück auf T1 → weg) grün; Screenshot angesehen. Ob der
+  Satz verständlich ist, prüft Manuel.
+
+### NEXT
+- Traceback beim Öffnen des Assistenten („schruppfelder“) beheben; Durchsicht
+  Bedienbarkeit und Logik.
+
 ## P-2026-09-30-15 beispiel-drehmaschine-aufnahmen
 
 ### EINGELESEN

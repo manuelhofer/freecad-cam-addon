@@ -289,6 +289,17 @@ Prüffenster, der Hinweis „nicht radial“.
   Prüfen ohne Hinweis, beide radial am Teil, keine Kollision, am Ende nirgends
   ins Teil; T2 ohne Halter → der Hinweis nennt T2, P2 und den Halter.
 - **E5** Assistent: gelber Satz, wenn der Fräser nicht radial sitzen würde.
+  *Gebaut (P-2026-09-30-16):* `reichweite.Pruefung.kommt_aus()` – dieselbe
+  Rechnung wie der Hinweis beim Prüfen, ohne Bahn: Platz der Nummer, Revolver in
+  Arbeitsstellung, Achse des Werkzeugs mit der Lage aus seinem Halter. Unter
+  „Rundum schruppen“ und „Rundum schlichten“ je ein gelber Satz, sobald eine
+  offene Maschine gewählt ist: „T3 sitzt auf P3 nicht radial – die Bahn braucht
+  es radial aus +X zur Achse. Gib T3 in der Werkzeugverwaltung (Knopf oben)
+  einen Halter, der radial steht, etwa „VDI30 angetrieben radial“.“; ohne Platz
+  für die Nummer: „Für T13 hat … keinen Platz“. Er sperrt nichts – die Bahn
+  hängt nicht an der Maschine. Nicht nur bei Revolvern: Auch ein Winkelkopf an
+  einer Fräse wird so geprüft. Gespeichert in der Werkzeugverwaltung, liest der
+  Assistent sie neu, und der Satz geht weg.
 
 ### 11.6 Entscheidungen
 

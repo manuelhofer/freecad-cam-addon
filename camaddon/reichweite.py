@@ -666,6 +666,18 @@ class Pruefung:
         soll = FreeCAD.Vector(richtung)
         return soll.Length > 0 and z.dot(soll) / soll.Length > 1 - (1 - QUER) / 2
 
+    def kommt_aus(self, nummer, richtung, einspannung=None):
+        """(Aufnahme, kommt das Werkzeug `nummer` aus `richtung`?) – wie der Hinweis „nicht
+        radial“ beim Prüfen, für den 4-Achs-Assistenten, bevor es eine Bahn gibt (W-002
+        Stufe E5). `richtung` in den Achsen des Jobs, `einspannung` mit der Lage aus dem
+        Halter. (None, None), wenn es für die Nummer keinen Platz gibt."""
+        aufnahme = self.werkzeugaufnahme(nummer)
+        if aufnahme is None:
+            return None, None
+        _linear, drehachsen = self.achsen_fuer(aufnahme)
+        grundstellung = self._dreh_wege(aufnahme, drehachsen, {})
+        return aufnahme, self._werkzeug_aus(aufnahme, grundstellung, richtung, einspannung)
+
     def _werkzeug_quer(self, werkzeugaufnahme, dreh_wege, einspannung=None):
         """Steht das Werkzeug quer zu Z des Jobs – ein radialer Platz oder Halter am Revolver?
         Die Bahnen der CAM-Operationen sind für ein Werkzeug längs Z gerechnet; ein radiales

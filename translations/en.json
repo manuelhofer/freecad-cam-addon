@@ -1075,6 +1075,8 @@
     "va.transaktion.schlichten": "Create all-round finishing",
     "va.transaktion.aendern_schlichten": "Change all-round finishing",
     "va.rund": "{art}: “All-round roughing” calculates as with an end mill of the same diameter – the part stays safe. Between the turns of the spiral, ridges up to {rille} mm above the allowance remain; less feed per revolution makes them flatter.",
+    "va.lage.nicht_radial": "{werkzeug} does not sit radially on {aufnahme} – the path needs it radial from {richtung} towards the axis. Give {werkzeug} a holder that stands radially in the tool manager (button at the top), such as “VDI30 driven radial”.",
+    "va.lage.kein_platz": "“{maschine}” has no station for {werkzeug} – “Check on machine” skips it.",
     "va.rund.ohne_rillen": "{art}: “All-round roughing” calculates as with an end mill of the same diameter – the part stays safe; at this feed per revolution no ridges remain.",
     "va.fehler.anlegen": "Could not create: {fehler}",
     "va.transaktion.schruppen": "Create all-round roughing",

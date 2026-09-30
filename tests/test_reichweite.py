@@ -385,6 +385,11 @@ pruefe(
     any(abs(st[k] - gerade_st[k]) > 1 for k in st),
     "gewinkelt und gerade stehen die Achsen gleich",
 )
+# Für den 4-Achs-Assistenten (Stufe E5): Kommt T2 radial aus +X – in Arbeitsstellung des
+# Revolvers? Gerade nicht, mit dem radialen Halter ja; für T13 gibt es keinen Platz.
+pruefe(p.kommt_aus(2, (1, 0, 0)) == (p2, False), f"T2 gerade: {p.kommt_aus(2, (1, 0, 0))}")
+pruefe(p.kommt_aus(2, (1, 0, 0), eingespannt) == (p2, True), "T2 radial kommt nicht aus +X")
+pruefe(p.kommt_aus(13, (1, 0, 0)) == (None, None), "T13 hat einen Platz")
 b2 = wz.Bibliothek()
 t2 = b2.neues_werkzeug()
 t2.nummer, t2.gesamtlaenge = 2, 60.0
