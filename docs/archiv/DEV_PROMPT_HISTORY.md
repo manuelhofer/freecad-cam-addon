@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-41 version-0-31-1
+
+### EINGELESEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`; CLAUDE.md: Soll Manuel etwas ausprobieren,
+  braucht der Push eine höhere Version.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates suchen“ bzw. der Addon-Manager bietet 0.31.1 an.
+
+### DONE
+- Version 0.31.1 mit P-2026-09-30-39 (F in jedem G93-Satz für jeden Postprozessor).
+
+### TEST
+- Die Prüfungen zu P-39 (siehe dort), in beiden Versionen ok.
+
+### NEXT
+- Push, Bericht an Manuel.
+
 ## P-2026-09-30-40 testregel
 
 ### EINGELESEN
