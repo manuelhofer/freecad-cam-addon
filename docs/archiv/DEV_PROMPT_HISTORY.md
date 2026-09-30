@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-23 laenge-feldname
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md` D-40, `camaddon/reichweite.py` (`_Sammler.laenge`,
+  `werkzeughalter`), `camaddon/gui_reichweite.py` (Urteil „Werkzeuglänge“),
+  `tests/test_reichweite.py`, `tests/gui/szenario_abfahren.py`.
+
+### DATEIEN
+- `camaddon/reichweite.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_reichweite.py`, `docs/durchsicht_bedienbarkeit.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Auf der Maschine prüfen“: Das Urteil „Werkzeuglänge“ lautet „Bei allen Werkzeugen
+gemessen – aus der Werkzeugverwaltung.“; hat ein Werkzeug einen gewinkelten Halter und
+keine gemessene Länge, nennt der Hinweis die „Länge ab Bezugspunkt“.
+
+### DONE
+- Das Urteil nennt keinen Feldnamen mehr – beim gewinkelten Halter heißt das Feld „Länge
+  ab Bezugspunkt“ (P-2026-09-30-13), beim geraden „Länge ab Spindelnase“.
+- Der Hinweis zur geschätzten Länge mit Halter nennt beim gewinkelten Halter „Länge ab
+  Bezugspunkt“ und „Abgang des Halters“ (eigener Text).
+
+### TEST
+- KI ohne Oberfläche, FreeCAD 1.1.3: `test_reichweite` (T2 mit „VDI30 angetrieben radial“:
+  der Hinweis nennt „Länge ab Bezugspunkt“), `test_sprache` grün.
+
+### NEXT
+- Version 0.29.1, voller Lauf, Push.
+
 ## P-2026-09-30-22 drehung-null
 
 ### EINGELESEN

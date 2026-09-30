@@ -393,7 +393,7 @@ geschätzten Länge mit Halter nennt nur die Spindelnase. **Vorschlag:** das
 Urteil ohne Feldnamen („Bei allen Werkzeugen gemessen, aus der
 Werkzeugverwaltung.“); der Hinweis nennt das Feld, wie es beim Werkzeug heißt.
 **Fertig, wenn:** kein Satz einen Feldnamen nennt, den man beim Werkzeug nicht
-sieht.
+sieht. *Erledigt (P-2026-09-30-23).*
 
 ### D-41 Der gelbe Satz im Assistenten führt nicht zum Werkzeug (klein)
 **Heute:** „T3 sitzt auf P3 nicht radial … Gib T3 in der Werkzeugverwaltung

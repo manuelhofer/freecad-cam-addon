@@ -916,7 +916,11 @@ class _Sammler:
         self.ergebnis.laengen.setdefault(nummer, quelle)
         werte = {"werkzeug": werkzeug_text(tc, bibliothek), "laenge": weg_text(laenge)}
         if quelle == LAENGE_HALTER:
-            self.hinweis(Hinweis(tr("rw.laenge_halter", **werte), nummer))
+            halter = werkzeughalter(tc, bibliothek)
+            if halter is not None and halter.gewinkelt:  # das Feld heißt dann so (D-40)
+                self.hinweis(Hinweis(tr("rw.laenge_halter_gewinkelt", **werte), nummer))
+            else:
+                self.hinweis(Hinweis(tr("rw.laenge_halter", **werte), nummer))
         elif quelle == LAENGE_GESAMT:
             self.hinweis(Hinweis(tr("rw.laenge_gesamt", **werte), nummer))
         elif quelle == LAENGE_GESCHAETZT:

@@ -403,6 +403,11 @@ pruefe(
     any("längs Z gerechnet" in h and "T2" in h for h in e.hinweise),
     f"T2 mit radialem Halter: {e.hinweise}",
 )
+# Die Länge geschätzt: Beim gewinkelten Halter heißt das Feld „Länge ab Bezugspunkt“ (D-40).
+pruefe(
+    any("geschätzt aus Halter" in h and "„Länge ab Bezugspunkt“" in h for h in e.hinweise),
+    f"Länge mit gewinkeltem Halter: {e.hinweise}",
+)
 op.ToolController.ToolNumber = 1
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
