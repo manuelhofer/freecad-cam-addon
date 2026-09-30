@@ -1,10 +1,15 @@
 # Spezifikation W-005: Programm für jede Steuerung
 
-Stand: P-2026-09-30-42. **Manuel hat am 2026-09-30 entschieden:** Option A –
+Stand: P-2026-09-30-43. **Manuel hat am 2026-09-30 entschieden:** Option A –
 „A sollte unsere option sein“. Davor: „Sollte keine Rolle spielen …. Es muss
 ja für alle funktionieren“ (welche Steuerung er selbst hat), passend zur
-Festlegung „keine bestimmte Maschine“ in `CHATSTART.md`. Die Einzelheiten
-sind Claudes Vorschläge, zur Besprechung (Abschnitt 9).
+Festlegung „keine bestimmte Maschine“ in `CHATSTART.md`. Danach (Abschnitte
+6 und 7): **beide Wege** an der Drehmaschine – die Transformation der
+Steuerung, wo die Maschine sie hat, sonst Punkt für Punkt fein und von der
+Steuerung geglättet –, alle Optionen **als Haken, jede erklärt**, „so das man
+es beim bedienen lernen kann“, die Einzelheiten hinter eigenen Fenstern oder
+Hilfeseiten, damit nichts überladen wirkt. Die Einzelheiten sind Claudes
+Vorschläge, zur Besprechung (Abschnitt 11).
 
 Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
 (Maschine, Betriebsarten, Aufnahmen), [spezifikation_vierachs.md](spezifikation_vierachs.md)
@@ -95,16 +100,85 @@ Kennt eine Steuerung G93 in dieser Betriebsart nicht, rechnet der
 Postprozessor F so, dass die Zeit stimmt: F = √(ΔX² + ΔZ² + ΔC²) ÷ Zeit, mit
 C in Grad – so zählen Steuerungen wie Fanuc den Weg, wenn Linear- und
 Rundachsen zusammen fahren. Die Zeit kommt aus unserer Bahn (dieselbe wie
-für G93). Das ist E5 in Abschnitt 9.
+für G93). Das ist E5 in Abschnitt 11.
 
-## 6. Später: Mantel und Stirn mit Transformation
+## 6. Zwei Wege an der Drehmaschine
 
-Zylinder-Interpolation (Fanuc G07.1, Siemens TRACYL) und Polar-Interpolation
-(Fanuc G12.1, Siemens TRANSMIT) rechnen in der Steuerung um; die Bahn steht
-dann abgewickelt bzw. in X/Y. Das passt zu Strategien wie „Linien längs“ und
-„Plan indexiert“ (V4c) und wird mit ihnen geplant, nicht in dieser Stufe.
+Manuel (2026-09-30): „ob das irgendwie geht, dass man sagt, man hat ein
+Werkzeug, das 90 Grad zur Maschinen-Z steht … und dreht dann die C-Achse …
+oder ob das wirklich in Einzelsätzen mit C-Angabe gemacht werden muss … oder
+eben beide Optionen“. Es gibt beide:
 
-## 7. Prüfen
+- **Transformation (die Steuerung rechnet C):** Das Programm beschreibt die
+  Bahn, als wäre das Teil abgewickelt bzw. als gäbe es eine Y-Achse; die
+  Steuerung macht daraus C-Bewegungen. Am Mantel die
+  **Zylinder-Transformation** (Siemens `TRACYL`, Fanuc `G07.1`/`G107`,
+  Haas `G107`), an der Stirn die **Polar-Transformation** (Siemens
+  `TRANSMIT`, Fanuc `G12.1`/`G112`, Haas `G112`) – so fräst man mit C statt
+  mit Y. Kurze Programme, die Steuerung führt den Vorschub selbst. Aber: Die
+  Zylinder-Transformation rechnet auf **einem** Radius; sie passt zu Nuten,
+  Taschen und Beschriftungen auf einem Zylinder, zu „Linien längs“ und „Plan
+  indexiert“ (V4c) – nicht zu einer Fläche, deren Radius sich ständig ändert
+  wie bei „Rundum schruppen“. Und sie ist bei vielen Maschinen eine Option,
+  die gekauft sein muss.
+- **Punkt für Punkt (heute):** Jeder Satz hat X, Z und C; der Punktabstand
+  folgt der Toleranz (Schlichten 0,005 mm), der Vorschub steht mit G93 bzw.
+  wie in Abschnitt 5. Das geht an jeder Maschine, die X, Z und C gemeinsam
+  fahren kann – auch ohne Transformation. Damit die vielen kurzen Sätze nicht
+  ruckeln, schaltet der Programmkopf die **Vorausschau und das Glätten** der
+  Steuerung ein (Abschnitt 7).
+
+An der Maschine sagt ein Haken je Transformation, ob sie da ist. Die Operation
+nimmt die Transformation, wo sie passt und die Maschine sie hat, sonst Punkt
+für Punkt – und sagt, was sie genommen hat („Deine Maschine hat keine
+Zylinder-Transformation – gefräst wird Punkt für Punkt auf 0,005 mm, die
+Steuerung glättet“).
+
+## 7. Vorausschau und Glätten
+
+Bei tausenden kurzen Sätzen bremst eine Steuerung ohne Vorausschau an jedem
+Satzende. Jede Steuerung hat dafür Befehle; sie kommen als **Haken** an der
+Maschine, **jeder mit einem Satz dazu, was er tut und wofür er gut ist**, und
+einem „?“, das die Hilfeseite der Steuerung an dieser Stelle öffnet. Beispiel
+Siemens 840D (Manuel, 2026-09-30, aus dem Programmierhandbuch
+PGsl_1015_de_de-DE):
+
+- ☑ **`G64` – Bahnsteuerbetrieb:** schaltet die Vorausschau (LookAhead) ein;
+  die Steuerung plant Beschleunigen und Bremsen über mehrere Sätze, statt an
+  jedem Satzübergang abzubremsen.
+- ☑ **`G642` – Überschleifen mit Toleranz:** verschleift die Satzübergänge
+  innerhalb einer Toleranz (Feld daneben, vorbelegt mit der Toleranz der
+  Bahn); für CAM-Bahnen die übliche Wahl. (`G641` verschleift über einen Weg,
+  `ADIS`.)
+- ☐ **`COMPCAD` / `COMPSURF` / `COMPCURV` – Satzkompressor:** macht aus vielen
+  kleinen G1-Sätzen intern glatte Bahnabschnitte; bei langen CAM-Programmen
+  wichtig. Siemens empfiehlt dazu `G642` und `SOFT`.
+- ☑ **`SOFT` – ruckbegrenzt beschleunigen:** Die Achsen werden bei
+  Richtungswechseln nicht hart beschleunigt.
+
+Vorbelegt ist, was bei der Steuerung üblich ist; was nicht jede Maschine hat
+(Satzkompressor), ist aus und sagt, dass es eine Option sein kann. Für Fanuc
+(etwa AI-Konturregelung `G05.1 Q1`, Vorausschau `G08 P1`), Haas (`G187`),
+LinuxCNC (`G64 P… Q…`) und Mach3/4 folgt dasselbe, jeweils aus der Anleitung
+der Steuerung nachgeprüft (Quelle im Hilfetext).
+
+## 8. Einfach bedienen
+
+- Im Fenster „Maschine bearbeiten“ steht nur **eine Zeile**: Steuerung
+  (Auswahl) und daneben „Einstellungen …“. Alles Weitere öffnet sich in einem
+  eigenen Fenster, in Gruppen: Programm (Kopf, Ende, Werkzeugwechsel),
+  Spindeln (Haupt, angetrieben), C-Achse, Vorschub, Transformationen,
+  Vorausschau und Glätten.
+- Jede Zeile hat einen kurzen Namen, einen Satz Erklärung und ein „?“ zur
+  Hilfeseite der Steuerung (`help/de/steuerung_siemens.html` …), die erklärt,
+  **wann** man es braucht und was es kostet – so lernt man beim Bedienen.
+- Die Vorbelegung ist so, dass man nichts ändern muss, um anzufangen; was
+  der Maschinenhersteller festlegt, ist gelb markiert: „bitte mit der
+  Anleitung deiner Maschine vergleichen“.
+- Unten im Fenster eine Vorschau: die ersten Sätze des Programms mit diesen
+  Einstellungen.
+
+## 9. Prüfen
 
 - Je Voreinstellung eine **Musterausgabe**: derselbe Job (Welle an der
   Beispiel-Drehmaschine, Rundum schruppen mit angetriebenem Werkzeug; eine
@@ -114,7 +188,7 @@ dann abgewickelt bzw. in X/Y. Das passt zu Strategien wie „Linien längs“ un
   und warnt, wenn der Job einen anderen Postprozessor nimmt, obwohl die
   Maschine eine Steuerung hat.
 
-## 8. Stufen
+## 10. Stufen
 
 - **S1** – Postprozessor „camaddon“ mit dem Verhalten von LinuxCNC (Fräsen),
   angemeldet in 1.1.x und im Wochen-Build. Prüfung: gleiche Sätze wie
@@ -125,13 +199,19 @@ dann abgewickelt bzw. in X/Y. Das passt zu Strategien wie „Linien längs“ un
 - **S3** – Drehmaschine: Durchmesser, angetriebenes Werkzeug, C-Achse ein
   und aus, Werkzeugwechsel, Vorschub je Minute je Steuerung; Musterausgaben
   für LinuxCNC, Siemens, Fanuc, Haas.
-- **S4** – Vorschub ohne G93 (Abschnitt 5).
-- **S5** – Wochen-Build: „An CAM übergeben“ trägt Postprozessor und Steuerung
+- **S4** – Vorausschau und Glätten als Haken mit Erklärung (Abschnitt 7),
+  das Fenster „Einstellungen …“ mit Gruppen und Vorschau (Abschnitt 8),
+  Hilfeseite je Steuerung.
+- **S5** – Vorschub ohne G93 (Abschnitt 5).
+- **S6** – Transformationen: Haken an der Maschine; Operationen, die auf
+  einem Radius fräsen, schreiben dann `TRACYL`/`G07.1`/`G107` bzw.
+  `TRANSMIT`/`G12.1`/`G112` (mit V4c).
+- **S7** – Wochen-Build: „An CAM übergeben“ trägt Postprozessor und Steuerung
   in die CAM-Maschine ein.
-- **S6** – Hilfe, Beispiel-Drehmaschine mit Steuerung, Szenario mit dem
-  fertigen Programm.
+- **S8** – Hilfe, Beispiel-Drehmaschine mit Steuerung, Szenario mit dem
+  fertigen Programm; Manuels Testteil (Loft, D-Profil) als Prüfteil.
 
-## 9. Entscheidungen (zur Besprechung)
+## 11. Entscheidungen (zur Besprechung)
 
 - **E1 – Welche Steuerungen zuerst?**
   (a) LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4 und „Eigene“ –
@@ -158,3 +238,15 @@ dann abgewickelt bzw. in X/Y. Das passt zu Strategien wie „Linien längs“ un
 - **E5 – Steuerungen ohne G93:**
   (a) Vorschub wie in Abschnitt 5 – **Empfehlung**, dann geht es auch dort;
   (b) nur Steuerungen mit G93 – einfacher, aber nicht für alle.
+- **E6 – Reihenfolge der zwei Wege (Abschnitt 6):**
+  (a) erst Punkt für Punkt mit Vorausschau und Glätten (S1–S5), dann die
+  Transformationen zusammen mit V4c (S6) – **Empfehlung**: Punkt für Punkt
+  geht für jede Fläche und jede Maschine mit C, die Transformation nur für
+  Flächen auf einem Radius; (b) erst die Transformationen – kürzere Programme,
+  aber „Rundum schruppen“ bleibt ohne.
+- **E7 – Glätten vorbelegen:**
+  (a) was bei der Steuerung üblich ist, an (Siemens `G64`, `G642` mit der
+  Toleranz der Bahn, `SOFT`), Optionen wie der Satzkompressor aus –
+  **Empfehlung**; (b) alles aus, jeder schaltet selbst ein – nichts
+  passiert ungefragt, aber ohne Glätten ruckelt es; (c) alles an – am
+  schnellsten, aber eine Maschine ohne die Option bleibt mit Alarm stehen.

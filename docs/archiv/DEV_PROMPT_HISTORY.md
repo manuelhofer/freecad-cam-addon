@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-43 plan-steuerung-zwei-wege
+
+### EINGELESEN
+- Manuel, 2026-09-30: „bei siemens genug befehle die eben umstellen von durchmesser auf nicht
+  durchmesser .. und auch ist es möglich die bearbeitung eben mit der c achse anstatt der y
+  achse zu machen ... ob das irgendwie geht das man sagt man hat ein werkzeug das 90 grad zur
+  maschinen z steht ... und dreht dann die c achse ... oder ob das wirklich in einzelsätzen mit
+  c angabe gemacht werden muss ... in alle ... so akkurat wie möglich ... oder eben beide
+  optionen ... wir können wirklich 0.005 mm verfahren ... und das dann verschleifen“; dazu aus
+  dem Siemens-Programmierhandbuch PGsl_1015_de_de-DE: G64, G641/G642, COMPCAD/COMPSURF/COMPCURV,
+  SOFT; „solche optionen mit hacken ... das auf JEDENFALL erklärt wird was was ist ... so das
+  man es beim bedienen lernen kann ... hinter neuen fenstern oder html verstecken“. Dazu sein
+  Testteil für rundum (Loft, D-Profil 70 × 25, 90 mm).
+- `docs/spezifikation_steuerung.md`.
+
+### DATEIEN
+- `docs/spezifikation_steuerung.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Plan W-005 enthält beide Wege an der Drehmaschine (Transformation der Steuerung, wo die
+Maschine sie hat und die Fläche auf einem Radius liegt; sonst Punkt für Punkt mit Vorausschau
+und Glätten), die Glätten-Befehle als erklärte Haken, das einfache Fenster („Einstellungen …“,
+Hilfeseite je Steuerung, Vorschau) und die Entscheidungen E6, E7.
+
+### DONE
+- Abschnitte 6 (zwei Wege), 7 (Vorausschau und Glätten, Siemens-Beispiel), 8 (einfach
+  bedienen), Stufen S4–S8 neu geordnet, E6 und E7.
+
+### TEST
+- Reine Doku, kein Testlauf.
+
+### NEXT
+- Manuels Antworten zu E1–E7; S1.
+
 ## P-2026-09-30-42 plan-steuerung
 
 ### EINGELESEN
