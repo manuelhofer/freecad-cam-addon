@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-76 messung-zahlen
+
+### EINGELESEN
+- `scripts/bahn_messen.py` nach P-75 in 1.1.3: Welle 5,1 s, Welle mit Absatz 6,4 s, großes
+  Teil 19,0 s (Rest nach dem Schruppen 12,3 s, 195 MB).
+
+### DATEIEN
+- `docs/spezifikation_strategien.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Abschnitt 8 nennt die Zeiten ohne Speichermessung, sagt, wo die Zeit hingeht, und setzt die
+Ziele neu (Welle unter 5 s, großes Teil unter 15 s, Spitze unter 100 MB).
+
+### DONE
+- Tabelle und Schlüsse ersetzt; Reihenfolge: Speicher des Rests, Zeit des Rests, Schlichtbahn.
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- Rest blockweise (P-77), goldene Bahnen müssen grün bleiben.
+
 ## P-2026-09-30-75 messung-ohne-bremse
 
 ### EINGELESEN

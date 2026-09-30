@@ -275,30 +275,31 @@ mit gespeicherten Bahnen, Abschnitt 9).
   Toleranz statt fest; float32, wo die Toleranz es erlaubt; Sätze beim
   Schreiben zusammenfassen statt erst alle Punkte zu halten; Kollision nur
   auf den Bereichen, die sich bewegen (haben wir zum Teil).
-- **Gemessen** (P-2026-09-30-71, FreeCAD 1.1.3, `scripts/bahn_messen.py`;
-  Schaftfräser Ø 12, Kugel Ø 6, Schrittweite 0,5):
+- **Gemessen** (P-2026-09-30-71/-75, FreeCAD 1.1.3, `scripts/bahn_messen.py`;
+  Schaftfräser Ø 12, Kugel Ø 6, Schrittweite 0,5; Zeit ohne Speichermessung –
+  mit `tracemalloc` war alles zwei- bis siebenmal langsamer):
 
   | Teil | Hülle | Schrupp­bahn | Befehle | Rest nach dem Schruppen | Schlicht­bahn | Befehle | zusammen | Spitze |
   |---|---:|---:|---:|---:|---:|---:|---:|---:|
-  | Welle Ø 60 × 100 (500 Dreiecke, 5 500 / 54 000 Punkte) | 1,2 s | 1,8 s | 0,2 s | 1,6 s | 8,1 s | 1,2 s | 14,1 s | 26 MB |
-  | Welle mit Absatz und Abflachung (1 136 Dreiecke, 23 000 / 69 000 Punkte) | 1,8 s | 3,6 s | 0,6 s | 2,0 s | 7,9 s | 1,8 s | 17,7 s | 31 MB |
-  | Groß Ø 200 × 300 (1 632 Dreiecke, 187 000 / 169 000 Punkte) | 1,7 s | 17,3 s | 4,5 s | 15,4 s | 13,4 s | 4,0 s | 56,4 s | 195 MB |
+  | Welle Ø 60 × 100 (500 Dreiecke, 5 500 / 54 000 Punkte) | 0,5 s | 0,4 s | 0,0 s | 1,4 s | 2,3 s | 0,4 s | 5,1 s | 26 MB |
+  | Welle mit Absatz und Abflachung (1 136 Dreiecke, 23 000 / 69 000 Punkte) | 0,6 s | 0,7 s | 0,2 s | 2,0 s | 2,3 s | 0,5 s | 6,4 s | 31 MB |
+  | Groß Ø 200 × 300 (1 632 Dreiecke, 187 000 / 169 000 Punkte) | 0,6 s | 1,0 s | 1,4 s | 12,3 s | 2,7 s | 1,1 s | 19,0 s | 195 MB |
 
-  Vernetzen kostet nichts (unter 0,1 s), die Hülle des Schaftfräsers 1–2 s –
-  nicht das Problem. Was kostet: die **Schlichtbahn** auch am kleinen Teil
-  (8 s: die Hülle je Winkel bei 0,5° auf dem 0,005-mm-Netz, für jeden
-  Winkel alle Dreiecke), der **Rest nach dem Schruppen** am großen Teil
-  (15 s und 195 MB: die Stange als Feld a × φ, für jeden Punkt der
-  Schruppbahn nachgeführt), die **Schruppbahn** am großen Teil (17 s für
-  187 000 Punkte – Python je Punkt) und die **Befehle** (4,5 s für 187 000
-  Sätze – je Satz ein `Path.Command`).
-- **Ziel** (aus der Messung): die Welle in unter 5 s, das große Teil in unter
-  20 s, Spitze unter 100 MB – und die goldenen Bahnen bleiben grün
-  (`tests/test_goldene_bahnen.py`, P-2026-09-30-73). Reihenfolge: Rest nach
-  dem Schruppen (Speicher: nur die Punkte, die die Stange ändern), Schruppbahn
-  und Befehle (Schleifen je Punkt → numpy, Sätze beim Schreiben
-  zusammenfassen), Schlichtbahn (Dreiecke je Winkel vorab auf den Streifen
-  unter dem Fräser eingrenzen).
+  Vernetzen, Hülle, Schruppbahn und Befehle sind schnell genug. Was zählt: der
+  **Rest nach dem Schruppen** – am großen Teil 12 s und 195 MB
+  (`restmaterial.Stange.fahre_stuecke`: jede Fahrt in Teilschritte von 0,5 mm
+  zerlegt, alle 1,1 Millionen Stellen auf einmal, je Stelle 50 × 13 Zellen in
+  `_block`) – und die **Schlichtbahn** mit 2,3 s auch am kleinen Teil (die
+  Hülle je Winkel bei 0,5° auf dem 0,005-mm-Netz: `_kanten_kugel`,
+  `_dreiecke_treffen`, dazu `_nicht_tiefer` und `_zusammengefasst`).
+- **Ziel** (aus der Messung): die Welle unter 5 s, das große Teil unter 15 s,
+  Spitze unter 100 MB – und die goldenen Bahnen bleiben grün
+  (`tests/test_goldene_bahnen.py`, P-2026-09-30-73). Zuerst der Speicher des
+  Rests (die Fahrten blockweise – das Minimum je Zelle hängt nicht von der
+  Reihenfolge ab, das Ergebnis bleibt gleich), dann seine Zeit (Stücke statt
+  Teilschritte: ändert den Rest um Bruchteile eines Mikrometers – nur mit
+  neuen goldenen Bahnen und einem Satz im Verlauf), dann die Schlichtbahn
+  (Dreiecke je Winkel vorab auf den Streifen unter dem Fräser eingrenzen).
 
 ## 9. Prüfbarkeit
 
