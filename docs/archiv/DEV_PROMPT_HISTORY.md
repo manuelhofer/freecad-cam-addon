@@ -39,6 +39,133 @@ neu – nur mit Absicht und einem Satz im Verlauf.
 ### NEXT
 - Messen (P-71), dann die teuersten Stellen.
 
+
+## P-2026-09-30-72 version-0-33-1
+
+### EINGELESEN
+- P-2026-09-30-69 bis -71; `CLAUDE.md`: Soll Manuel etwas ausprobieren, braucht der Push eine
+  höhere Version.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.33.1 an.
+
+### DONE
+- Version 0.33.1; Stand nachgetragen (Durchsicht 3 kleine Punkte, VDI-Halter ohne Größe,
+  Messung der Bahnrechnung mit Zahlen in der Spezifikation W-006).
+
+### TEST
+- Alle Prüfungen zu P-69 bis -71 und -73 in 1.1.3 ok (siehe dort); der volle Lauf folgt nach dem
+  Push (Kernmodule `maschine`, `werkzeuge`).
+
+### NEXT
+- Push, bei GitHub nachsehen; voller Lauf danach (Kernmodule `maschine`, `werkzeuge`).
+
+
+## P-2026-09-30-71 bahn-messen
+
+### EINGELESEN
+- `docs/spezifikation_strategien.md`, Abschnitt 8 (erst messen); Manuel: „schneller und
+  speicher sparender … wenn das irgendwie möglich ist“.
+- `camaddon/vierachs_huelle.py`, `camaddon/vierachs_bahn.py`, `camaddon/vierachs_schlichten.py`
+  (`rest_nach`), `tests/test_vierachs_bahn.py`, `tests/test_vierachs_schlichten.py`.
+
+### DATEIEN
+- `scripts/bahn_messen.py` (neu), `docs/spezifikation_strategien.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`FreeCADCmd scripts/bahn_messen.py` druckt je Teil eine Tabelle: Schritt, Zeit, Spitzenspeicher,
+dazu Dreiecke, Punkte und Sätze; mit `BAHN_MESSEN_AUSGABE` auch in eine Datei.
+
+### DONE
+- Geschrieben: drei Teile (Welle, Welle mit Absatz und Abflachung, Ø 200 × 300), sechs Schritte
+  je Teil; die Zahlen stehen in der Spezifikation.
+
+### TEST
+- In 1.1.3 gelaufen (FreeCADCmd schreibt nur ASCII auf die Konsole – die Datei zuerst, dann
+  die Konsole mit Ersatzzeichen); die Zahlen stehen in `docs/spezifikation_strategien.md`.
+
+### NEXT
+- Goldene Bahnen (`test_goldene_bahnen`), dann die teuersten Stellen.
+
+
+## P-2026-09-30-70 vdi-halter-ohne-groesse
+
+### EINGELESEN
+- Manuel, 2026-09-30: „man wird auf eine VDI 40 maschine keine VDI 30 halter verbauen könnnen
+  das meine ich ... also wirds schon ein halter sein der für die maschine ist .. also reicht VDI
+  halter aus .. verstehst du wie ichs meine ?“
+- `camaddon/halter.py` (Vorlagen „vdi30_…“), `camaddon/beispielmaschine.py`
+  (`DrehmaschinenMasse.vdi` nur beim Bau), `camaddon/gui_halter.py` (Menü „Neu“),
+  `camaddon/gui_details.py` (Kennwerte je Betriebsart).
+
+### DATEIEN
+- `camaddon/halter.py`, `camaddon/werkzeuge.py`, `camaddon/maschine.py`,
+  `camaddon/beispielmaschine.py`, `camaddon/gui_details.py`, `camaddon/gui_halter.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/halter.html`,
+  `docs/spezifikation_halter.md`, `tests/test_halter.py`, `tests/test_beispielmaschine.py`,
+  `tests/gui/szenario_halter_richtung.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → „Halter …“ → „Neu ▾“: „VDI angetrieben radial · ER16“ (ohne Zahl). Ist
+die Beispiel-Drehmaschine offen (VDI 30): „VDI30 angetrieben radial · ER16“; eine Maschine mit
+VDI 40 aus „Neue Maschine“: „VDI40 …“ mit Ø × 4/3. „Maschine bearbeiten“ → Revolver T zeigt
+„VDI-Größe (mm)“.
+
+### DONE
+- Vorlagen ohne Größe (`VDI_VORLAGEN`, alte Schlüssel gelten als VDI 30), `aus_vorlage(…, vdi)`
+  skaliert Ø, Versatz und Kopf; Kennwert „Vdi“ am Revolver, „Neue Maschine“ trägt ihn ein,
+  `maschine.vdi_groesse`; „Halter“ nimmt die Größe der offenen Maschinen; Hilfe und
+  Spezifikation (Stufe H).
+
+### TEST
+- `test_halter` (Größe 40, ohne Größe, alte Schlüssel), `test_beispielmaschine` (Vdi 30 am
+  Revolver), `test_maschine`, `test_kollision`, `test_reichweite`, `test_vierachs_pruefen`,
+  `test_sprache` in 1.1.3 ok; `szenario_halter_richtung` (Menü „VDI angetrieben radial · ER16“),
+  `szenario_neue_maschine`, `szenario_bestueckung` in 1.1.3 ok.
+
+### NEXT
+- Manuels Blick auf das Menü „Neu“; F2.
+
+
+## P-2026-09-30-69 durchsicht-3-klein
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md`, Abschnitt 8 (D-50 bis D-57); die Bilder der Szenarien;
+  `camaddon/gui_sprachwahl.py` (Einstellungsseite), `camaddon/gui_werkstoffe.py`,
+  `translations/de.json`, die Hilfeseiten.
+
+### DATEIEN
+- `camaddon/gui_sprachwahl.py`, `camaddon/gui_werkstoffe.py`, `camaddon/gui_maschine.py`
+  (Kommentar), `translations/de.json`, `translations/en.json`, `help/de|en/achsen.html`,
+  `help/de|en/glieder.html`, `help/de|en/neue_maschine.html`, `help/de|en/transformationen.html`,
+  `help/de|en/verfahren.html`, `help/de|en/vierachs.html`, `tests/gui/szenario_erster_start.py`,
+  `tests/gui/szenario_schnittwerte_job.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Einstellungsseite: Der Satz unter „Zahlen“ endet über „Updates“. „Schnittwerte in den Job“:
+„keine Bahn – der Operation fehlt noch die Fläche oder Kante“. Schritt 2 des Assistenten: zwei
+Sätze zu Ø, der Rest in der Hilfe. „Neue Maschine“ sagt, wo man C4/S4 einträgt. „Maschine
+bearbeiten“: „Schräge Achsen“, „Was zusammen fährt“. Werkstoff: Tooltips zu kc1.1 und mc.
+
+### DONE
+- D-50: `_mit_satz()` – Formular und Satz senkrecht in der Gruppe; das Szenario prüft Höhe und
+  Lage des Satzes. D-51, D-52 (Hilfe: der Ø-Absatz ersetzt „X ist der Radius“, das seit
+  P-54 nicht mehr stimmte), D-53 (Satz in „Neue Maschine“, Hilfe „Neue Maschine“ und
+  „Achsen“), D-55, D-56 (Beispiel im Tooltip), D-57.
+
+### TEST
+- `test_sprache`, `test_hilfe` in 1.1.3 ok; `szenario_erster_start` (Bild angesehen: der Satz
+  steht in seiner Gruppe), `szenario_schnittwerte_job`, `szenario_maschine_bearbeiten`,
+  `szenario_schraege_achse`, `szenario_werkstoffe`, `szenario_vierachs_schruppen` (Erwartung an
+  den Ø-Satz angepasst) in 1.1.3 ok.
+
+### NEXT
+- D-54 und D-56 mit Manuel; VDI-Halter ohne Größe (P-70).
+
 ## P-2026-09-30-68 version-0-33-0
 
 ### EINGELESEN

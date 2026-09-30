@@ -275,9 +275,30 @@ mit gespeicherten Bahnen, Abschnitt 9).
   Toleranz statt fest; float32, wo die Toleranz es erlaubt; Sätze beim
   Schreiben zusammenfassen statt erst alle Punkte zu halten; Kollision nur
   auf den Bereichen, die sich bewegen (haben wir zum Teil).
-- **Ziel** (zu bestätigen, wenn gemessen ist): Rundum-Bahn der Welle in
-  unter 3 s, Abtrag beim Abspielen ohne Ruckeln, Kollision der Welle in
-  unter 10 s; Speicher unter 500 MB auch beim großen Teil.
+- **Gemessen** (P-2026-09-30-71, FreeCAD 1.1.3, `scripts/bahn_messen.py`;
+  Schaftfräser Ø 12, Kugel Ø 6, Schrittweite 0,5):
+
+  | Teil | Hülle | Schrupp­bahn | Befehle | Rest nach dem Schruppen | Schlicht­bahn | Befehle | zusammen | Spitze |
+  |---|---:|---:|---:|---:|---:|---:|---:|---:|
+  | Welle Ø 60 × 100 (500 Dreiecke, 5 500 / 54 000 Punkte) | 1,2 s | 1,8 s | 0,2 s | 1,6 s | 8,1 s | 1,2 s | 14,1 s | 26 MB |
+  | Welle mit Absatz und Abflachung (1 136 Dreiecke, 23 000 / 69 000 Punkte) | 1,8 s | 3,6 s | 0,6 s | 2,0 s | 7,9 s | 1,8 s | 17,7 s | 31 MB |
+  | Groß Ø 200 × 300 (1 632 Dreiecke, 187 000 / 169 000 Punkte) | 1,7 s | 17,3 s | 4,5 s | 15,4 s | 13,4 s | 4,0 s | 56,4 s | 195 MB |
+
+  Vernetzen kostet nichts (unter 0,1 s), die Hülle des Schaftfräsers 1–2 s –
+  nicht das Problem. Was kostet: die **Schlichtbahn** auch am kleinen Teil
+  (8 s: die Hülle je Winkel bei 0,5° auf dem 0,005-mm-Netz, für jeden
+  Winkel alle Dreiecke), der **Rest nach dem Schruppen** am großen Teil
+  (15 s und 195 MB: die Stange als Feld a × φ, für jeden Punkt der
+  Schruppbahn nachgeführt), die **Schruppbahn** am großen Teil (17 s für
+  187 000 Punkte – Python je Punkt) und die **Befehle** (4,5 s für 187 000
+  Sätze – je Satz ein `Path.Command`).
+- **Ziel** (aus der Messung): die Welle in unter 5 s, das große Teil in unter
+  20 s, Spitze unter 100 MB – und die goldenen Bahnen bleiben grün
+  (`tests/test_goldene_bahnen.py`, P-2026-09-30-73). Reihenfolge: Rest nach
+  dem Schruppen (Speicher: nur die Punkte, die die Stange ändern), Schruppbahn
+  und Befehle (Schleifen je Punkt → numpy, Sätze beim Schreiben
+  zusammenfassen), Schlichtbahn (Dreiecke je Winkel vorab auf den Streifen
+  unter dem Fräser eingrenzen).
 
 ## 9. Prüfbarkeit
 
