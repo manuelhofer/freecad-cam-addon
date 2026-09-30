@@ -663,7 +663,9 @@ STIRN_AUFNAHMEN = 700.0  # x ihrer Stirn – 10 mm vor der Scheibe, zum Futter h
 BETTNEIGUNG_BEREICH = (0.0, 60.0)  # Grad; 0 ist ein Flachbett
 Y_WINKEL_BEREICH = (-60.0, 60.0)  # Grad; 0 heißt Y rechtwinklig zu X
 PLAETZE_BEREICH = (4, 24)
-GROESSTER_WEG = 1000.0  # mm, je Richtung
+# mm, je Richtung – auch lange Maschinen (Manuel, 2026-09-30: Z ließ sich nur bis 999
+# eintippen, „es gibt maschinen die sind deutlich länger“)
+GROESSTER_WEG = 10000.0
 
 
 @dataclass

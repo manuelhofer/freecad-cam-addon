@@ -5,12 +5,14 @@
 # vorbelegt wie das Beispiel.
 # Ein Weg Y von 0 bis 0 geht nicht: Eine rote Zeile sagt warum, der Dialog
 # bleibt offen. Mit Name „Meine Drehmaschine“, Bettneigung 30°, Y schräg um
-# 30°, Weg X −80 … 120 mm, 8 Plätzen und 4000 U/min entsteht ein neues
+# 30°, Weg X −80 … 120 mm, Z bis 2500 mm (eingetippt – lange Maschinen), 8 Plätzen und
+# 4000 U/min entsteht ein neues
 # Dokument; „Maschine bearbeiten“ öffnet sich mit der schrägen Achse
 # „Y1 – gleicht aus: X1, 30,0°“ und acht Revolverplätzen.
 import FreeCAD
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
+from PySide6 import QtTest
 
 
 def schritte(h):
@@ -98,6 +100,13 @@ def schritte(h):
     von_x, bis_x = d.felder_weg["X"]
     von_x.setValue(-80)
     bis_x.setValue(120)
+    # Lange Maschinen: Z bis 2500 eintippen (Manuel, 2026-09-30: nur bis 999 ging).
+    _, bis_z = d.felder_weg["Z"]
+    bis_z.setFocus()
+    bis_z.selectAll()
+    QtTest.QTest.keyClicks(bis_z, "2500")
+    h.pruefe(abs(bis_z.value() - 2500) < 1e-9, f"Z bis: {bis_z.text()!r}")
+    h.pruefe(d.masse().weg_z == (-220.0, 2500.0), f"Weg Z: {d.masse().weg_z}")
     d.feld_plaetze.setValue(8)
     d.feld_drehzahl.setValue(4000)
     yield 200

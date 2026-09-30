@@ -221,7 +221,7 @@ falsch = beispielmaschine.DrehmaschinenMasse(
     y_winkel=-61,
     weg_x=(10, 100),
     weg_y=(-5, -5),
-    weg_z=(-2000, 10),
+    weg_z=(-20000, 10),
     plaetze=3,
     drehzahl=0,
 )

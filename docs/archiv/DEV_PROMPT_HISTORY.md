@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-46 wege-bis-10-m
+
+### EINGELESEN
+- Manuel, 2026-09-30, mit Bild von „Neue Maschine“ (FreeCAD 1.1.4): „der weg in Z ist
+  begrenzt auf 999 als eingabe .. 1000 kann ich noch mit den pfeilen machen das wars dann
+  aber auch ... sollte man ändern es gibt maschinen die sind deutlich länger“.
+- `camaddon/beispielmaschine.py` (`GROESSTER_WEG` 1000 mm, `_wege_fehler`),
+  `camaddon/gui_neue_maschine.py` (`_wegfeld`), `tests/test_beispielmaschine.py`,
+  `tests/gui/szenario_neue_maschine.py`.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`, `tests/test_beispielmaschine.py`,
+  `tests/gui/szenario_neue_maschine.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In „Neue Maschine“ lässt sich bei Weg Z „2500“ eintippen, und die Maschine wird damit gebaut.
+
+### DONE
+- Wege bis 10 000 mm je Richtung (bisher 1000). Die Felder und die Prüfung der Maße nehmen
+  dieselbe Grenze.
+
+### TEST
+- `test_beispielmaschine`: −20 000 mm ist zu lang. Ok in 1.1.3.
+- `szenario_neue_maschine` in 1.1.3: „2500“ in Z eingetippt, der Weg ist −220 … 2500. Ok, im
+  Bild zu sehen.
+
+### NEXT
+- Nullpunkt X an der Mitte der VDI-Aufnahme (Manuels Revolver), Werkzeug ohne Platz.
+
 ## P-2026-09-30-45 teil-am-ende-aus
 
 ### EINGELESEN
