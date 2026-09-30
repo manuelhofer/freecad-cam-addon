@@ -463,7 +463,49 @@ def _fahrten(drin):
     """Wie die Zeilen hin und her gefahren werden: [[Teil, …], …] – je Fahrt, was ohne Abheben
     am Stück geht. Ein Teil ist ("zeile", m, js): Zeile m über die Winkelschritte js
     (fortlaufend), oder ("schritt", m, j): von Zeile m zur nächsten beim Winkelschritt j. Die
-    Richtung wechselt von Zeile zu Zeile. `drin`: (Zeilen, N) – wo gefräst wird."""
+    Richtung wechselt von Zeile zu Zeile. `drin`: (Zeilen, N) – wo gefräst wird. Getrennte
+    Stücke des Bereichs (zwei Abflachungen) fährt es nacheinander ganz – so hebt der Fräser nur
+    zwischen ihnen ab, nicht in jeder Zeile."""
+    ergebnis = []
+    for teil in _zusammenhaengend(drin):
+        ergebnis += _fahrten_eines(teil)
+    return ergebnis
+
+
+def _zusammenhaengend(drin):
+    """Die zusammenhängenden Stücke des Bereichs (Zeilen, N): je eins ein Feld wie `drin`, das
+    nur sie hat – zusammen hängen Stücke benachbarter Zeilen, die sich rundum überlappen;
+    geordnet nach ihrer ersten Zeile und ihrem ersten Winkel."""
+    anzahl, n = drin.shape
+    stuecke = [_bereiche(drin[m]) for m in range(anzahl)]
+    eltern = {(m, k): (m, k) for m in range(anzahl) for k in range(len(stuecke[m]))}
+
+    def wurzel(x):
+        while eltern[x] != x:
+            eltern[x] = eltern[eltern[x]]
+            x = eltern[x]
+        return x
+
+    for m in range(1, anzahl):
+        for k, (anfang, laenge) in enumerate(stuecke[m]):
+            for k0, (anfang0, laenge0) in enumerate(stuecke[m - 1]):
+                if (anfang0 - anfang) % n < laenge or (anfang - anfang0) % n < laenge0:
+                    eltern[wurzel((m, k))] = wurzel((m - 1, k0))
+    gruppen = {}
+    for schluessel in sorted(eltern):
+        gruppen.setdefault(wurzel(schluessel), []).append(schluessel)
+    ergebnis = []
+    for mitglieder in sorted(gruppen.values()):
+        feld = np.zeros(drin.shape, dtype=bool)
+        for m, k in mitglieder:
+            anfang, laenge = stuecke[m][k]
+            feld[m, (anfang + np.arange(laenge)) % n] = True
+        ergebnis.append(feld)
+    return ergebnis
+
+
+def _fahrten_eines(drin):
+    """_fahrten() für ein zusammenhängendes Stück des Bereichs."""
     anzahl, n = drin.shape
     fahrten, fahrt, ende, richtung = [], None, 0, 1
     for m in range(anzahl):
@@ -546,10 +588,11 @@ def _winkel(j, schritt_phi, jetzt):
     return phi + 360.0 * round((jetzt - float(phi[0])) / 360.0)
 
 
-def _einfahrt(punkte, a, r, phi, erste, oben, offen, w):
+def _einfahrt(punkte, a, r, phi, oben, offen, w):
     """Über den Anfang der Fahrt, im Eilgang bis knapp über `oben` (höher steht dort nichts),
     hinein: senkrecht mit dem Eintauchvorschub, wo es `offen` ist, nichts zu fräsen ist oder
-    die erste Zeile (`erste` Punkte) für eine Rampe zu kurz ist – sonst über die Rampe."""
+    die ganze Fahrt für eine Rampe zu kurz ist – sonst über die Rampe längs der Fahrt (auch
+    über den Schritt zur nächsten Zeile, wenn die erste kurz ist)."""
     sicher = w.stange_radius + w.sicherheit
     a0, r0, p0 = float(a[0]), float(r[0]), float(phi[0])
     _eilgang(punkte, a0, sicher, p0)
@@ -557,9 +600,9 @@ def _einfahrt(punkte, a, r, phi, erste, oben, offen, w):
     if knapp < sicher:
         punkte.append(Punkt(True, a0, knapp, p0))
     rampe = getattr(w, "eintauchwinkel", None) is not None and not offen and r0 < oben - GLEICH
-    if rampe and _laenge(a, r, phi, 0, erste - 1) >= RAMPE_MINDESTENS:
+    if rampe and _laenge(a, r, phi, 0, len(a) - 1) >= RAMPE_MINDESTENS:
         punkte.append(Punkt(False, a0, oben, p0, True))  # bis ans Material
-        punkte.extend(Punkt(False, *stelle) for stelle in _rampe(a, r, phi, 0, erste - 1, oben, w))
+        punkte.extend(Punkt(False, *stelle) for stelle in _rampe(a, r, phi, 0, len(a) - 1, oben, w))
     else:
         punkte.append(Punkt(False, a0, r0, p0, True))
 
@@ -593,7 +636,7 @@ def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi)
             phi = _winkel(j, schritt_phi, punkte[-1].phi)
             m0, j0 = fahrt[0][1], int(j[0]) % n
             offen = nah[m0] and gefraest[m0 - 1, j0]
-            _einfahrt(punkte, a, r, phi, len(fahrt[0][2]), davor[m0, j0], offen, w)
+            _einfahrt(punkte, a, r, phi, davor[m0, j0], offen, w)
             for i in _knicke(r, abstand, a, phi):
                 punkte.append(Punkt(False, float(a[i]), float(r[i]), float(phi[i])))
             punkte.append(Punkt(True, float(a[-1]), sicher, float(phi[-1])))
@@ -678,7 +721,7 @@ def _schlichten_zeilen(
             winkel = _winkel(j, schritt_phi, punkte[-1].phi)
             m0, j0 = fahrt[0][1], int(j[0]) % n
             oben = w.stange_radius if stand is None else max(float(stand[m0, j0]), float(r[0]))
-            _einfahrt(punkte, a, r, winkel, len(fahrt[0][2]), oben, True, w)
+            _einfahrt(punkte, a, r, winkel, oben, True, w)
             gehoben = r + _sehnenfehler(r)
             fest = np.flatnonzero(_a_knicke(a) | _a_knicke(winkel)) + 1 if len(a) > 2 else []
             for i in _zusammengefasst(gehoben, BAHN_TOLERANZ, abstand, list(fest)):

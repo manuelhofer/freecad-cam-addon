@@ -442,6 +442,31 @@ print(
     )
 )
 
+# --- Zwei Abflachungen gegenüber (V4): eine nach der anderen ---------------------------------
+# Dieselbe Welle mit einer zweiten Abflachung auf x = −8, beide gewählt: Je Lage fräst der
+# Fräser erst die eine ganz, dann die andere – heraus nur zweimal je Lage, nicht in jeder
+# Zeile. Die Rampe läuft längs der ganzen Fahrt, wenn die erste Zeile kurz ist.
+zwei = flach_welle.cut(Part.makeBox(10, 30, 20, V(-18, -15, -30))).removeSplitter()
+beide = [
+    f"Face{i + 1}"
+    for i, f in enumerate(zwei.Faces)
+    if vr.ist_eben(f) and abs(abs(vr.aussennormale(f).x) - 1) < 1e-6
+]
+pruefe(len(beide) == 2, f"zwei Abflachungen: {beide}")
+zwei_bahn = vb.schruppen(
+    vh.vernetze(zwei),
+    C_LAENGS,
+    C_RADIAL,
+    replace(werte_flach, bereich=vf.bereich_fuer(zwei, C_LAENGS, C_RADIAL, beide, 3.0)),
+)
+heraus = sum(
+    1
+    for v, n in zip(zwei_bahn.punkte, zwei_bahn.punkte[1:], strict=False)
+    if n.eilgang and not v.eilgang
+)
+pruefe(heraus == 2 * zwei_bahn.lagen, f"{heraus}-mal heraus bei {zwei_bahn.lagen} Lagen")
+print(ascii(f"Zwei Abflachungen: {zwei_bahn.lagen} Lagen, {heraus}-mal heraus"))
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

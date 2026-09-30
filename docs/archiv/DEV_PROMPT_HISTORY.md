@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-31 hin-und-her-je-stueck
+
+### EINGELESEN
+- `camaddon/vierachs_bahn.py` (`_fahrten`, `_einfahrt`, `_rampe`, P-2026-09-30-28).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `tests/test_vierachs_bahn.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle mit zwei Abflachungen gegenüber, beide gewählt, „Anlegen“: Je Lage fräst der Fräser erst
+die eine Abflachung ganz, hebt einmal ab, dreht hinüber und fräst die andere ganz – nicht in
+jeder Zeile hin und zurück zwischen beiden.
+
+### DONE
+- Getrennte Stücke des Bereichs (zusammen hängen Stücke benachbarter Zeilen, die sich rundum
+  überlappen) fährt `_fahrten` nacheinander ganz – vorher wechselte es in jeder Zeile zwischen
+  ihnen und hob dazu jedes Mal ab.
+- Die Rampe hinein läuft längs der ganzen Fahrt, auch über den Schritt zur nächsten Zeile – an
+  der Spitze eines Bereichs ist die erste Zeile oft kürzer als eine Rampe, dann ging es bisher
+  senkrecht hinein.
+
+### TEST
+- Noch nicht gelaufen: FreeCAD ist durch den vollen Lauf zu 0.30.0 belegt (Arbeitsregeln).
+  Numpy-Probe ohne FreeCAD: zwei getrennte Stücke → zwei Fahrten; Band rundum → eine Fahrt
+  je Lage, alles im Bereich. Danach: `test_vierachs_bahn` (zwei Abflachungen: zweimal heraus
+  je Lage), `test_vierachs_schlichten`.
+
+### NEXT
+- V4e: Prüfen nur auf den gewählten Flächen.
+
 ## P-2026-09-30-30 v4c-fragen
 
 ### EINGELESEN
