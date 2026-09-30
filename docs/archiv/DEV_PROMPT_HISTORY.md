@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-64 achsnamen-mit-nummer
+
+### EINGELESEN
+- Manuel, 2026-09-30, auf die Frage, wie die C-Achse der Hauptspindel im Programm heißt: „naja
+  ich weis nicht wie das bei siemens ist beispielsweise ob man im satz einfach so c4 verfahren
+  kann aber es muss die zahl schon mit bei sonst weis die maschine ja nicht welches c verfahren
+  wird ...“
+- `docs/spezifikation_steuerung.md` (Abschnitt 11), `camaddon/maschine.py` (`programmname`).
+
+### DATEIEN
+- `docs/spezifikation_steuerung.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation W-005 sagt: Der Postprozessor schreibt den ganzen NC-Namen (C4), bei Siemens
+mit „=“; für CAM bleibt der Buchstabe.
+
+### DONE
+- Abschnitt 11 um „Achsnamen mit Nummer“ ergänzt.
+
+### TEST
+- Nur Doku, kein Testlauf.
+
+### NEXT
+- Bestückung je Job (Manuel: „ja jeder job hat seine eigene bestückung“).
+
 ## P-2026-09-30-63 version-0-32-2
 
 ### EINGELESEN

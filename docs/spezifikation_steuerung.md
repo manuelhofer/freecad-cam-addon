@@ -240,6 +240,15 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   Maschine merkt es sich jetzt je Linearachse (P-2026-09-30-54,
   `maschine.x_im_durchmesser`); der Postprozessor schreibt X danach – das
   passt zu (a).
+- **Achsnamen mit Nummer** (Manuel, 2026-09-30, an seiner Maschine: C4/S4 die
+  Hauptspindel drehen und positionieren, C1/S1 die angetriebenen Werkzeuge): „es
+  muss die zahl schon mit bei sonst weis die maschine ja nicht welches c
+  verfahren wird“. Der Postprozessor schreibt also den ganzen NC-Namen aus
+  „Maschine bearbeiten“ (C4, nicht C) – bei Siemens mit „=“ (`C4=90`), wie dort
+  jede Adresse mit Zahl; an seiner Steuerung nachprüfen. Die Bahn aus CAM kennt
+  nur A, B, C; welche C-Achse gemeint ist, sagt die Maschine (die Rundachse,
+  die das Teil dreht). `maschine.programmname` lässt die Nummer weg – das bleibt
+  für CAM so.
 - **E5 – Steuerungen ohne G93:**
   (a) Vorschub wie in Abschnitt 5 – **Empfehlung**, dann geht es auch dort;
   (b) nur Steuerungen mit G93 – einfacher, aber nicht für alle.
