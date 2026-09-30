@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-11 halter-richtung-datenmodell
+
+### EINGELESEN
+- `docs/spezifikation_halter.md` Abschnitt 11 (Stufe E, E1), `camaddon/halter.py`,
+  `camaddon/werkzeuge.py` (Bibliothek, `laenge_mit_halter`), `tests/test_halter.py`.
+
+### DATEIEN
+- `camaddon/halter.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_halter.py`, `docs/spezifikation_halter.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`halter.aus_vorlage("vdi30_radial")` ist gewinkelt (90°, Versatz 55 mm, Kopf
+Ø 55); `halter.lage()` legt die Spitze 100 mm ab Bezugspunkt nach (100, 0, −55)
+im LCS der Aufnahme; ein gerader Halter und kein Halter ergeben die Lage der
+Aufnahme; alte Dateien ohne Richtung lesen sich als gerade.
+
+### DONE
+- `Halter`: `richtung`, `winkel`, `drehung`, `versatz`, `kopf_d`, gespeichert und
+  gelesen (Unlesbares: Standard, Winkel 0 … 180°).
+- `lage(halter)`: Bezugspunkt und Achse des Werkzeugs im LCS der Aufnahme – die
+  eine Stelle für Stufe E.
+- `form(halter)`: beim gewinkelten Kopf und Abgang (Abschnitte längs der
+  Werkzeugachse).
+- Vorlagen „VDI30 angetrieben radial · ER16“, „VDI30 angetrieben axial · ER16“,
+  „Winkelkopf 90° · SK40“ (de/en).
+
+### TEST
+- FreeCAD 1.1.3: `test_halter` (Richtung, Lage, Körper, Länge ab Bezugspunkt,
+  Speichern, alte und unlesbare Angaben), `test_sprache` grün.
+
+### NEXT
+- E3: Reichweite, Spitze, Abfahren, Kollision und Bild mit der Lage des Halters.
+
 ## P-2026-09-30-10 spezifikation-halter-richtung
 
 ### EINGELESEN

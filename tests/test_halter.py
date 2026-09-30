@@ -3,6 +3,10 @@
 # (die Werkzeuge verlieren ihren Halter), Speichern und Laden – auch eine alte
 # Datei ohne Halter und Unlesbares –, die geschätzte Länge ab Spindelnase mit
 # Halter (Halterlänge + Gesamtlänge − Spanntiefe, mindestens bis zur Reichweite).
+# Die Richtung (Stufe E, Manuel 2026-09-30): gerade ist die Lage die der Aufnahme;
+# „VDI30 angetrieben radial“ kippt das Werkzeug um 90° zur Bezugsrichtung X, 55 mm
+# unter der Aufnahme; Drehung und Winkel drehen die Richtung; der Körper hat Kopf und
+# Abgang; eine alte Datei ohne Richtung ist gerade.
 import os
 import sys
 import tempfile
@@ -47,6 +51,64 @@ for schluessel in hl.VORLAGEN:
     pruefe(h.laenge > 0 and h.name and h.abschnitte, f"Vorlage {schluessel}")
 leer = hl.Halter(abschnitte=[hl.Abschnitt(40, 30, 30)])
 pruefe(hl.text(leer) == "Halter, 40 mm lang", f"ohne Namen: {hl.text(leer)}")
+
+# --- Die Richtung --------------------------------------------------------------------------
+import FreeCAD  # noqa: E402
+
+V = FreeCAD.Vector
+
+
+def spitze_zeigt(lage):
+    return lage.Rotation.multVec(V(0, 0, -1))
+
+
+pruefe(not er32.gewinkelt and hl.lage(er32).isIdentity(), "gerade: die Lage der Aufnahme")
+pruefe(hl.lage(None).isIdentity(), "ohne Halter: die Lage der Aufnahme")
+radial = hl.aus_vorlage("vdi30_radial")
+pruefe(radial.name == "VDI30 angetrieben radial · ER16", f"Name: {radial.name}")
+pruefe(
+    radial.gewinkelt
+    and (radial.winkel, radial.drehung, radial.versatz, radial.kopf_d) == (90, 0, 55, 55),
+    f"radial: {radial}",
+)
+lage = hl.lage(radial)
+pruefe((spitze_zeigt(lage) - V(1, 0, 0)).Length < 1e-12, f"radial zeigt {spitze_zeigt(lage)}")
+pruefe((lage.Base - V(0, 0, -55)).Length < 1e-12, f"Bezugspunkt {lage.Base}")
+spitze = lage.multVec(V(0, 0, -100))  # 100 mm ab Bezugspunkt
+pruefe((spitze - V(100, 0, -55)).Length < 1e-9, f"Spitze {spitze}")
+radial.drehung = 90
+pruefe((spitze_zeigt(hl.lage(radial)) - V(0, 1, 0)).Length < 1e-12, "um 90° gedreht")
+radial.drehung, radial.winkel = 0, 45
+s = 2**-0.5
+pruefe((spitze_zeigt(hl.lage(radial)) - V(s, 0, -s)).Length < 1e-12, "um 45° gekippt")
+radial.winkel = 90
+koerper = hl.form(radial)
+box = koerper.BoundBox
+pruefe(
+    all(
+        nahe(round(wert, 9), soll)
+        for wert, soll in ((box.XMin, -27.5), (box.XMax, 55), (box.ZMin, -82.5), (box.ZMax, 0))
+    ),
+    f"Kopf und Abgang: {box}",
+)
+pruefe(nahe(radial.laenge, 55) and nahe(radial.spanntiefe, 20), "Abgang 55 mm")
+axial = hl.aus_vorlage("vdi30_axial")
+pruefe(not axial.gewinkelt and hl.lage(axial).isIdentity(), "axial: gerade")
+kopf = hl.aus_vorlage("winkelkopf_90")
+pruefe(kopf.gewinkelt and nahe(kopf.versatz, 110), f"Winkelkopf: {kopf}")
+# Die Länge ab Bezugspunkt geschätzt wie ab Spindelnase: Abgang + Gesamtlänge − Spanntiefe.
+fraeser = wz.Werkzeug(durchmesser=6, gesamtlaenge=57)
+pruefe(nahe(wz.laenge_mit_halter(fraeser, radial), 55 + 57 - 20), "Länge ab Bezugspunkt")
+# Gespeichert und gelesen; eine alte Angabe ohne Richtung ist gerade, Unlesbares Standard.
+wieder = hl.Halter.aus_dict(radial.als_dict())
+pruefe(wieder.als_dict() == radial.als_dict(), "Richtung nach Laden gleich")
+ohne = radial.als_dict()
+for schluessel in ("richtung", "winkel", "drehung", "versatz", "kopf_d"):
+    del ohne[schluessel]
+o = hl.Halter.aus_dict(ohne)
+pruefe(not o.gewinkelt and (o.winkel, o.drehung, o.versatz) == (90, 0, 0), f"alt: {o}")
+u = hl.Halter.aus_dict({"richtung": "schraeg", "winkel": 400, "drehung": "x", "versatz": -3})
+pruefe(not u.gewinkelt and (u.winkel, u.drehung, u.versatz) == (180, 0, 0), f"unlesbar: {u}")
 
 # --- In der Bibliothek ------------------------------------------------------------------
 b = wz.Bibliothek()

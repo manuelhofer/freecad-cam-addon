@@ -240,6 +240,12 @@ Prüffenster, der Hinweis „nicht radial“.
 
 - **E1** Datenmodell, Speicherung und Vorlagen (`halter.py`); die Lage des
   Werkzeugs (Aufnahme · Halter) an einer Stelle; Prüfungen ohne Oberfläche.
+  *Gebaut (P-2026-09-30-11):* `Halter.richtung` (gerade/gewinkelt), `winkel`,
+  `drehung`, `versatz`, `kopf_d`; `lage()` (Placement im LCS der Aufnahme) und
+  `form()` mit Kopf – der reicht um seinen Radius über den Bezugspunkt hinaus,
+  dort sitzt das Winkelgetriebe. Vorlagen „VDI30 angetrieben radial · ER16“,
+  „VDI30 angetrieben axial · ER16“, „Winkelkopf 90° · SK40“. Alte Dateien
+  ohne Richtung sind gerade.
 - **E2** Fenster „Halter“ mit Richtung und Bild; Längenzeile im Werkzeug; Hilfe;
   Szenario mit Screenshots.
 - **E3** Reichweite, Spitze, Abfahren, Kollision und Bild mit der Lage aus E1;

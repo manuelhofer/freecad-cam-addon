@@ -9,6 +9,15 @@ Die Spanntiefe sagt, wie tief der Schaft im Halter steckt; damit schätzt
 werkzeuge.laenge_mit_halter() die Länge ab Spindelnase, solange niemand sie
 gemessen hat.
 
+Wie das Werkzeug zur Maschine steht, sagt der Halter (Stufe E, Manuel
+2026-09-30): **gerade** – das Werkzeug in der Achse der Aufnahme, wie in einer
+Frässpindel oder einem axialen VDI-Halter – oder **gewinkelt** – um `winkel`
+gegen die Aufnahmeachse gekippt, um `drehung` um sie gedreht (von der
+Bezugsrichtung X der Aufnahme aus), mit der Werkzeugachse `versatz` unter der
+Aufnahme; bis dorthin reicht der Kopf. Dort liegt der Bezugspunkt: Von ihm aus
+laufen die Kontur und die Länge des Werkzeugs längs der Werkzeugachse; beim
+geraden Halter ist es die Spindelnase. lage() rechnet das.
+
 Die Halter stehen in der Werkzeugbibliothek (werkzeuge.Bibliothek.halter),
 jedes Werkzeug nennt die Kennung seines Halters. Läuft ohne Oberfläche.
 """
@@ -34,8 +43,18 @@ _VORLAGEN = {
     "aufsteck_22": (0.0, ((16.0, 63.0, 63.0), (34.0, 48.0, 48.0))),
     "bohrfutter": (30.0, ((16.0, 63.0, 63.0), (84.0, 50.0, 45.0))),
     "vdi30_er25": (28.0, ((40.0, 55.0, 55.0), (20.0, 42.0, 42.0))),
+    "vdi30_radial": (20.0, ((35.0, 50.0, 50.0), (20.0, 28.0, 28.0))),
+    "vdi30_axial": (20.0, ((45.0, 55.0, 55.0), (25.0, 28.0, 28.0))),
+    "winkelkopf_90": (25.0, ((30.0, 60.0, 60.0), (20.0, 32.0, 32.0))),
 }
 VORLAGEN = tuple(_VORLAGEN)  # in der Reihenfolge des Menüs
+# Gewinkelte Vorlagen: (Winkel, Drehung in Grad, Versatz, Kopf-Ø in mm).
+_GEWINKELT = {
+    "vdi30_radial": (90.0, 0.0, 55.0, 55.0),
+    "winkelkopf_90": (90.0, 0.0, 110.0, 80.0),
+}
+
+GERADE, GEWINKELT = "gerade", "gewinkelt"  # Halter.richtung
 
 
 def vorlage_text(schluessel):
@@ -52,6 +71,9 @@ def vorlage_text(schluessel):
         "aufsteck_22": tr("halter.vorlage.aufsteck_22"),
         "bohrfutter": tr("halter.vorlage.bohrfutter"),
         "vdi30_er25": tr("halter.vorlage.vdi30_er25"),
+        "vdi30_radial": tr("halter.vorlage.vdi30_radial"),
+        "vdi30_axial": tr("halter.vorlage.vdi30_axial"),
+        "winkelkopf_90": tr("halter.vorlage.winkelkopf_90"),
     }[schluessel]
 
 
@@ -61,6 +83,15 @@ def _zahl(wert):
         return max(float(wert), 0.0)
     except (TypeError, ValueError):
         return 0.0
+
+
+def _winkel(wert, standard):
+    """Ein Winkel aus der Datei (Grad), endlich; Unlesbares wird `standard`."""
+    try:
+        zahl = float(wert)
+    except (TypeError, ValueError):
+        return standard
+    return zahl if abs(zahl) < 1e6 else standard
 
 
 @dataclass
@@ -90,11 +121,21 @@ class Halter:
     name: str = ""
     bezeichnung: str = ""  # frei: Hersteller, Bestellnummer …
     spanntiefe: float = 0.0  # mm: so tief steckt der Schaft im Halter
-    abschnitte: list = field(default_factory=list)  # von der Spindelnase zum Werkzeug hin
+    abschnitte: list = field(default_factory=list)  # vom Bezugspunkt zum Werkzeug hin
+    richtung: str = GERADE  # GERADE oder GEWINKELT
+    winkel: float = 90.0  # Grad zwischen Aufnahmeachse und Werkzeugachse (gewinkelt)
+    drehung: float = 0.0  # Grad um die Aufnahmeachse, von ihrer Bezugsrichtung X aus
+    versatz: float = 0.0  # mm längs der Aufnahmeachse bis zur Werkzeugachse (gewinkelt)
+    kopf_d: float = 0.0  # mm: Ø des Kopfs von der Aufnahme bis zum Bezugspunkt
+
+    @property
+    def gewinkelt(self):
+        return self.richtung == GEWINKELT
 
     @property
     def laenge(self):
-        """Von der Spindelnase bis zur Nase des Halters, in mm (im Katalog meist „A“)."""
+        """Vom Bezugspunkt bis zur Nase des Halters, in mm – beim geraden Halter von der
+        Spindelnase (im Katalog meist „A“)."""
         return sum(a.laenge for a in self.abschnitte)
 
     @property
@@ -136,6 +177,11 @@ class Halter:
             "bezeichnung": self.bezeichnung,
             "spanntiefe": self.spanntiefe,
             "abschnitte": [a.als_dict() for a in self.abschnitte],
+            "richtung": self.richtung,
+            "winkel": self.winkel,
+            "drehung": self.drehung,
+            "versatz": self.versatz,
+            "kopf_d": self.kopf_d,
         }
 
     @classmethod
@@ -149,12 +195,55 @@ class Halter:
         abschnitte = daten.get("abschnitte")
         if isinstance(abschnitte, list):
             h.abschnitte = [Abschnitt.aus_dict(a) for a in abschnitte if isinstance(a, dict)]
+        h.richtung = GEWINKELT if daten.get("richtung") == GEWINKELT else GERADE
+        h.winkel = min(max(_winkel(daten.get("winkel"), 90.0), 0.0), 180.0)
+        h.drehung = _winkel(daten.get("drehung"), 0.0)
+        h.versatz = _zahl(daten.get("versatz"))
+        h.kopf_d = _zahl(daten.get("kopf_d"))
         return h
 
 
+def lage(halter):
+    """Wie das Werkzeug in der Aufnahme sitzt (FreeCAD.Placement im LCS der Aufnahme): sein
+    Bezugspunkt und seine Achse, Z von der Spitze weg. Ohne Halter und beim geraden Halter
+    keine Verschiebung und keine Drehung. Die Spitze zeigt dann in Richtung
+    (sin α · cos β, sin α · sin β, −cos α) mit α = winkel und β = drehung."""
+    import FreeCAD
+
+    if halter is None or not halter.gewinkelt:
+        return FreeCAD.Placement()
+    drehung = FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), halter.drehung).multiply(
+        FreeCAD.Rotation(FreeCAD.Vector(0, 1, 0), -halter.winkel)
+    )
+    return FreeCAD.Placement(FreeCAD.Vector(0, 0, -halter.versatz), drehung)
+
+
 def form(halter):
-    """Der Halter als Körper in seinen eigenen Koordinaten: die Spindelnase bei Z = 0, das
-    Werkzeug zeigt nach −Z; je Abschnitt ein Zylinder oder Kegel. None ohne Kontur."""
+    """Der Halter als Körper im LCS der Aufnahme: die Aufnahme bei Z = 0. Beim geraden zeigt
+    das Werkzeug nach −Z; je Abschnitt ein Zylinder oder Kegel. Beim gewinkelten der Kopf –
+    ein Zylinder längs der Aufnahmeachse bis über den Bezugspunkt hinaus, um seinen Radius
+    (dort sitzt das Winkelgetriebe) –, dann die Abschnitte längs der Werkzeugachse
+    (lage()). None ohne Kontur."""
+    import FreeCAD
+    import Part
+
+    abgang = _abschnitte_form(halter)
+    if not halter.gewinkelt:
+        return abgang
+    teile = [] if abgang is None else [abgang.transformed(lage(halter).toMatrix())]
+    if halter.kopf_d > 0 and halter.versatz > 0:
+        kopf = Part.makeCylinder(
+            halter.kopf_d / 2,
+            halter.versatz + halter.kopf_d / 2,
+            FreeCAD.Vector(0, 0, 0),
+            FreeCAD.Vector(0, 0, -1),
+        )
+        teile.append(kopf)
+    return Part.makeCompound(teile) if teile else None
+
+
+def _abschnitte_form(halter):
+    """Die Abschnitte als Körper: der Bezugspunkt bei Z = 0, das Werkzeug nach −Z."""
     import FreeCAD
     import Part
 
@@ -178,12 +267,16 @@ def form(halter):
 def aus_vorlage(schluessel):
     """Ein neuer Halter aus einer Vorlage – mit Beispielmaßen, die die Bezeichnung nennt."""
     spanntiefe, abschnitte = _VORLAGEN[schluessel]
-    return Halter(
+    halter = Halter(
         name=vorlage_text(schluessel),
         bezeichnung=tr("halter.beispielmasse"),
         spanntiefe=spanntiefe,
         abschnitte=[Abschnitt(*werte) for werte in abschnitte],
     )
+    if schluessel in _GEWINKELT:
+        halter.richtung = GEWINKELT
+        halter.winkel, halter.drehung, halter.versatz, halter.kopf_d = _GEWINKELT[schluessel]
+    return halter
 
 
 def text(halter):
