@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-21 revolver-stationen
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md` D-46 (und D-01 … D-08: P-2026-09-27-07, Revolver
+  sichtbar), `camaddon/beispielmaschine.py` (`drehmaschine`, die Stationen bis 0.28),
+  Screenshots `szenario_beispielmaschine/8_alle_beispielmaschinen`,
+  `szenario_neue_maschine/5_gebaut_bearbeiten`.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`, `help/de/neue_maschine.html`, `help/en/neue_maschine.html`,
+  `tests/test_beispielmaschine.py`, `docs/durchsicht_bedienbarkeit.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Neue Maschine …“ → Drehmaschine: Rund um die Revolverscheibe steht je Platz eine
+Station – wie bis 0.28 –, an der Stirn zum Futter hin die Aufnahmen.
+
+### DONE
+- Seit 0.29 (P-2026-09-30-15) sitzen die Aufnahmen als Ringe an der Stirn; die Stationen
+  am Umfang, die den Revolver kenntlich machten (P-2026-09-27-07, auf Manuels Hinweis),
+  waren mit den festen Haltern verschwunden. Jetzt wieder je Platz eine Station – auch
+  P1, wo bis 0.28 der radiale Halter saß.
+- Hilfe „Neue Maschine“ de/en; Test.
+
+### TEST
+- KI ohne Oberfläche, FreeCAD 1.1.3: `test_beispielmaschine` (Station01 … Station12),
+  `test_vierachs_pruefen`, `test_kollision`, `test_reichweite` grün.
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_beispielmaschine`,
+  `szenario_neue_maschine`, `szenario_rundum_drehmaschine` (Kollision frei) grün;
+  Screenshot der Übersicht angesehen – der Revolver ist wieder zu erkennen.
+
+### NEXT
+- D-47: Drehung 0 im Fenster „Halter“.
+
 ## P-2026-09-30-20 ringgang-an-waenden
 
 ### EINGELESEN

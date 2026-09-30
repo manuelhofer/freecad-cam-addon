@@ -453,7 +453,9 @@ der üblichen Ansicht sieht man die Stirn schräg von hinten – die Ringe kaum.
 **Vorschlag:** am Umfang je Platz wieder eine Station (wie bis 0.28), die Ringe
 an der Stirn dunkler, damit sie sich abheben. **Fertig, wenn:** in der Übersicht
 der Beispielmaschinen und nach „Neue Maschine …“ die Plätze des Revolvers zu
-sehen sind.
+sehen sind. *Erledigt (P-2026-09-30-21):* wieder eine Station je Platz am Umfang
+(auch P1); die Ringe an der Stirn bleiben, wie sie sind – mit den Stationen ist
+der Revolver in der Übersicht zu erkennen.
 
 ### D-47 „Drehung“ 0° steht als leeres Feld (klein)
 **Heute:** Im Fenster „Halter“ zeigt „VDI30 angetrieben radial“ Winkel 90, aber

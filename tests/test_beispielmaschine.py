@@ -143,6 +143,8 @@ for art in beispielmaschine.ARTEN:
         namen = {o.Label for o in doc.Objects}
         pruefe(not {"HalterRadial", "HalterAxial"} & namen, "fester Halter am Revolver")
         pruefe({"Aufnahme01", "Aufnahme12"} <= namen, "Aufnahmen an der Stirn fehlen")
+        # Rundum je Platz eine Station: So sieht man, dass es ein Revolver ist (D-46).
+        pruefe({"Station01", "Station12"} <= namen, "Stationen am Umfang fehlen")
     App.closeDocument(doc.Name)
 
 # --- Drehmaschine mit eigenen Maßen („Neue Maschine …“) ----------------------------------

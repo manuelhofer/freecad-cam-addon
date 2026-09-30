@@ -758,9 +758,30 @@ def drehmaschine(masse=None):
     y_schlitten = b.quader("YSchlitten", 280, 150, 280, x=820, y=330, z=210, farbe=KOPF)
 
     # Revolverscheibe; an ihrer Stirn (zum Futter hin) je Platz eine Aufnahme
-    # (VDI30) im Kreis, P1 unten – zur Spindelachse hin. So sieht man, dass es
-    # ein Revolver ist und wie viele Plätze er hat. Halter trägt er nicht fest.
+    # (VDI30) im Kreis, P1 unten – zur Spindelachse hin. Halter trägt er nicht
+    # fest. Rundum je Platz eine Station – so sieht man auch von hinten, dass es
+    # ein Revolver ist und wie viele Plätze er hat (P-2026-09-27-07, D-46).
     achse = REVOLVERACHSE
+    # So breit, dass zwischen zwei Stationen Luft bleibt – auch bei 24 Plätzen.
+    breite = min(60.0, 0.6 * 2 * math.pi * 170 / masse.plaetze)
+    stationen = [
+        b.quader(
+            f"Station{nummer:02d}",
+            80,
+            40,
+            breite,
+            x=725,
+            y=achse.y - 170 - 40,
+            z=achse.z - breite / 2,
+            farbe=SCHLITTEN,
+            gedreht=App.Placement(
+                App.Vector(),
+                App.Rotation(App.Vector(1, 0, 0), (nummer - 1) * 360.0 / masse.plaetze),
+                achse,
+            ),
+        )
+        for nummer in range(1, masse.plaetze + 1)
+    ]
     teilung = 2 * math.pi * RADIUS_AUFNAHMEN / masse.plaetze
     aufnahmen = [
         b.zylinder(
@@ -790,6 +811,7 @@ def drehmaschine(masse=None):
                 farbe=REVOLVER,
             ),
             *aufnahmen,
+            *stationen,
         ],
     )
     # Die Aufnahme P1: an der Stirn ihres Rings, Z längs der Revolverachse vom Futter
