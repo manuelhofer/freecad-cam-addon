@@ -114,8 +114,13 @@ ist):
 2. Diese Zeile hineinkopieren und Enter drücken:
 
    ```
-   import urllib.request as u; exec(u.urlopen("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").read())
+   import NetworkManager as n; n.InitializeNetworkManager(); exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())
    ```
+
+   Sie lädt über den Netzzugang des Addon-Managers von FreeCAD. So geht es
+   auch, wenn FreeCADs Python kein SSL hat – die frühere Zeile mit `urllib`
+   meldete dann „unknown url type: https“. Meldet die Konsole trotzdem einen
+   Fehler: über den Addon-Manager installieren (unten).
 
 3. FreeCAD neu starten. Beim ersten Start fragt das Addon nach der Sprache.
    Seine Werkzeugleiste und das Menü **CAM-Addon** erscheinen in den

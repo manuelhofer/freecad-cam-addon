@@ -4,6 +4,7 @@
 import importlib.util
 import io
 import os
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -117,11 +118,176 @@ pruefe(
 
 # Die Zeile aus dem README lädt genau diese Datei.
 readme = Path(ADDON, "README.md").read_text("utf-8")
-zeile = 'exec(u.urlopen("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").read())'
+zeile = 'exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())'
 pruefe(zeile in readme, "README: Installationszeile fehlt oder weicht ab")
 pruefe(
     zeile in Path(ADDON, "installieren.py").read_text("utf-8"), "installieren.py: Zeile weicht ab"
 )
+
+
+# --- Ohne https in Python: über Qt (P-2026-09-30-33) -----------------------------------------
+# Manchem FreeCAD fehlt Pythons ssl; urllib meldet dann „unknown url type: https“ (Manuel,
+# 2026-09-30). hole() lädt dann über den Netzzugang des Addon-Managers (Qt). „GitHub“ ist hier
+# ein kleiner HTTP-Server auf 127.0.0.1.
+import http.client  # noqa: E402
+import http.server  # noqa: E402
+import ssl  # noqa: E402
+import threading  # noqa: E402
+import time  # noqa: E402
+import urllib.error  # noqa: E402
+
+# Die Entscheidung: nur https, und nur, wenn http.client ohne ssl kein HTTPSConnection hat.
+pruefe(not inst._nur_ueber_qt("https://github.com/x"), "mit ssl: https über Qt")
+mit_ssl = http.client.HTTPSConnection
+del http.client.HTTPSConnection
+try:
+    pruefe(inst._nur_ueber_qt("https://github.com/x"), "ohne ssl: https nicht über Qt")
+    pruefe(not inst._nur_ueber_qt(Path(basis, "x").as_uri()), "ohne ssl: file:// über Qt")
+finally:
+    http.client.HTTPSConnection = mit_ssl
+
+# Kennt urllib das Zertifikat nicht, springt Qt ein; kann Qt es auch nicht, bleibt der Fehler
+# von urllib. Andere Fehler (kein Netz) gehen nicht an Qt.
+urlopen, hole_mit_qt = inst.urllib.request.urlopen, inst._hole_mit_qt
+geholt = []
+
+
+def ohne_zertifikat(adresse, timeout):
+    raise urllib.error.URLError(ssl.SSLCertVerificationError("certificate verify failed"))
+
+
+def qt_laedt(adresse, zeitlimit_s):
+    geholt.append(adresse)
+    return b"qt"
+
+
+def qt_scheitert(adresse, zeitlimit_s):
+    raise OSError("auch Qt nicht")
+
+
+def ohne_netz(adresse, timeout):
+    raise urllib.error.URLError("timed out")
+
+
+try:
+    inst.urllib.request.urlopen = ohne_zertifikat
+    inst._hole_mit_qt = qt_laedt
+    pruefe(inst.hole("https://github.com/x") == b"qt", "Zertifikat: Qt springt nicht ein")
+    inst._hole_mit_qt = qt_scheitert
+    try:
+        inst.hole("https://github.com/x")
+        fehler.append("Zertifikat, Qt scheitert: kein Fehler")
+    except urllib.error.URLError as f:
+        pruefe("certificate" in str(f), f"Zertifikat, Qt scheitert: {f}")
+    inst.urllib.request.urlopen = ohne_netz
+    inst._hole_mit_qt = qt_laedt
+    geholt.clear()
+    try:
+        inst.hole("https://github.com/x")
+        fehler.append("kein Netz: kein Fehler")
+    except urllib.error.URLError:
+        pruefe(not geholt, "kein Netz: an Qt gegeben")
+finally:
+    inst.urllib.request.urlopen, inst._hole_mit_qt = urlopen, hole_mit_qt
+
+# Über Qt wirklich laden – den Netzzugang des Addon-Managers gibt es nur mit einer
+# Qt-Anwendung; FreeCADCmd hat keine, also legt die Prüfung eine an.
+github_zip(basis, "4.0.0", {"InitGui.py": "# vier"}, name="qt.zip")
+dateien = {"/stand.zip": Path(basis, "qt.zip").read_bytes()}
+
+
+class Github(http.server.BaseHTTPRequestHandler):
+    def do_GET(self):  # noqa: N802 – so heißt es in http.server
+        if self.path == "/umleitung":  # wie GitHub: das ZIP liegt woanders
+            self.send_response(302)
+            self.send_header("Location", "/stand.zip")
+            self.end_headers()
+            return
+        inhalt = dateien.get(self.path)
+        if inhalt is None:
+            self.send_error(404)
+            return
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(inhalt)))
+        self.end_headers()
+        self.wfile.write(inhalt)
+
+    def log_message(self, *argumente):  # keine Zeile je Anfrage in der Ausgabe
+        pass
+
+
+server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Github)
+threading.Thread(target=server.serve_forever, daemon=True).start()
+github = f"http://127.0.0.1:{server.server_address[1]}"
+
+from PySide import QtCore  # noqa: E402
+
+app = QtCore.QCoreApplication.instance() or QtCore.QCoreApplication([])
+try:
+    import NetworkManager
+except ImportError:  # FreeCADCmd nimmt den Addon-Manager nicht immer in den Suchpfad
+    sys.path.append(os.path.join(FreeCAD.getHomePath(), "Mod", "AddonManager"))
+    import NetworkManager
+# Der Addon-Manager nähme sonst den Proxy des Systems – auch für 127.0.0.1.
+am = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
+proxy_vorher = am.GetString("proxy_type", "")
+migriert_vorher = am.GetBool("proxy_settings_migrated_2025", False)
+am.SetString("proxy_type", "none")
+am.SetBool("proxy_settings_migrated_2025", True)
+nur_ueber_qt = inst._nur_ueber_qt
+inst._nur_ueber_qt = lambda adresse: True
+try:
+    mod_qt = os.path.join(basis, "ModQt")
+    e = inst.installiere(f"{github}/umleitung", mod_qt, PARAMETER)
+    pruefe(e.status == inst.NEU and e.version == "4.0.0", f"über Qt: {e}")
+    try:
+        inst.hole(f"{github}/fehlt.zip", 10)
+        fehler.append("über Qt, 404: kein Fehler")
+    except OSError as f:
+        pruefe("Qt" in str(f), f"über Qt, 404: {f}")
+
+    # Im Such-Thread (gui_aktualisierung): Der Netzzugang entstand im Hauptthread, und der
+    # arbeitet derweil Ereignisse ab – wie FreeCADs Oberfläche.
+    def im_thread(ergebnis):
+        try:
+            ergebnis.append(inst.hole(f"{github}/stand.zip", 10))
+        except OSError as f:
+            ergebnis.append(f)
+
+    def warte(ergebnis):
+        faden = threading.Thread(target=im_thread, args=(ergebnis,), daemon=True)
+        faden.start()
+        ende = time.monotonic() + 30
+        while faden.is_alive() and time.monotonic() < ende:
+            app.processEvents()
+            time.sleep(0.01)
+        return not faden.is_alive()
+
+    ergebnis = []
+    pruefe(warte(ergebnis), "im Such-Thread: hängt")
+    pruefe(ergebnis == [dateien["/stand.zip"]], f"im Such-Thread: {ergebnis[:1]!r:.80}")
+    # Ohne Netzzugang aus dem Hauptthread hinge der Such-Thread: Er meldet einen Fehler.
+    angelegt = NetworkManager.AM_NETWORK_MANAGER
+    NetworkManager.AM_NETWORK_MANAGER = None
+    ergebnis = []
+    pruefe(warte(ergebnis), "ohne Netzzugang: hängt")
+    NetworkManager.AM_NETWORK_MANAGER = angelegt
+    pruefe(
+        len(ergebnis) == 1 and isinstance(ergebnis[0], OSError),
+        f"ohne Netzzugang: {ergebnis[:1]!r:.80}",
+    )
+    inst.netz_vorbereiten()  # ohne Oberfläche: nichts
+finally:
+    inst._nur_ueber_qt = nur_ueber_qt
+    server.shutdown()
+    if proxy_vorher:
+        am.SetString("proxy_type", proxy_vorher)
+    else:
+        am.RemString("proxy_type")
+    if migriert_vorher:
+        am.SetBool("proxy_settings_migrated_2025", True)
+    else:
+        am.RemBool("proxy_settings_migrated_2025")
 
 FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod").RemGroup("CamAddonTest")
 

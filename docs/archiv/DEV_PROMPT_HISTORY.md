@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-33 installieren-ohne-ssl
+
+### EINGELESEN
+- Manuel, 2026-09-30: „Die Installation bei mir geht nicht … Also er sagt irgendwas von
+  unknownn url Typ https“.
+- `installieren.py`, `README.md` (Installieren), `camaddon/aktualisierung.py`,
+  `camaddon/gui_aktualisierung.py`, `tests/test_installieren.py`,
+  `tests/test_aktualisierung.py`, `tests/gui/szenario_update.py`; im Addon-Manager von FreeCAD
+  1.1.3 und 26.3: `NetworkManager.py` (`InitializeNetworkManager`, `blocking_get`),
+  `addonmanager_utilities.py` (mit Oberfläche lädt er nur über Qt, nie über Pythons ssl).
+
+### DATEIEN
+- `installieren.py`, `README.md`, `camaddon/aktualisierung.py`,
+  `camaddon/gui_aktualisierung.py`, `tests/test_installieren.py`,
+  `tests/test_aktualisierung.py`, `tests/gui/szenario_update.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+In einem FreeCAD, dessen Python kein ssl hat, installiert die Zeile aus dem README das Addon
+(neu starten, Menü „CAM-Addon“ da), und „Nach Updates suchen“ findet eine neue Version – ohne
+„unknown url type: https“.
+
+### DONE
+- „unknown url type: https“ heißt: urllib hat keinen https-Handler, weil Pythons ssl fehlt.
+  Der Addon-Manager lädt mit Oberfläche über Qt und braucht es nicht.
+- Die Zeile im README lädt `installieren.py` jetzt über seinen Netzzugang
+  (`NetworkManager.AM_NETWORK_MANAGER.blocking_get`), gleich lang wie vorher.
+- `installieren.hole()`: urllib wie bisher; kann es kein https (http.client ohne
+  `HTTPSConnection`) oder scheitert es am Zertifikat, lädt Qt. Der Netzzugang muss im
+  Hauptthread entstehen – `netz_vorbereiten()`, von `gui_aktualisierung.Suche.start()` vor dem
+  Such-Thread gerufen; im Such-Thread ohne ihn ein Fehler statt Hängen.
+- Die Suche ohne Git holt die Version mit `hole()` aus dem `installieren.py` des Addons.
+
+### TEST
+- Noch nicht gelaufen: FreeCAD ist durch den vollen Lauf zu 0.30.0 belegt (Arbeitsregeln).
+  Danach: `test_installieren` (Entscheidung ohne ssl, Zertifikat → Qt, über Qt von einem
+  HTTP-Server auf 127.0.0.1 mit Umleitung wie GitHub, 404, im Such-Thread, ohne Netzzugang
+  kein Hängen), `test_aktualisierung`, `szenario_update` (die Zeile aus dem README und die Suche
+  ohne Git über Qt, mit Oberfläche) in beiden Versionen.
+
+### NEXT
+- Manuel: die neue Zeile aus dem README – oder gleich über den Addon-Manager.
+
 ## P-2026-09-30-32 pruefen-gewaehlte
 
 ### EINGELESEN

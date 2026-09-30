@@ -127,6 +127,8 @@ e = a.pruefe(ohne_git, adresse_version=fern_xml.as_uri())
 pruefe(e.status == a.AKTUELL and e.version_jetzt == "1.1.0", f"ohne Git nach dem Update: {e}")
 e = a.pruefe(ohne_git, adresse_version=Path(basis, "fehlt.xml").as_uri())
 pruefe(e.status == a.FEHLER and e.meldung, f"ohne Git, GitHub nicht erreichbar: {e}")
+a.netz_vorbereiten(ohne_git)  # ohne Oberfläche: nichts, und kein Fehler
+a.netz_vorbereiten(os.path.join(basis, "gibt_es_nicht"))  # ohne installieren.py: ebenso
 FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Mod").RemGroup("CamAddonTest")
 
 # Git ohne Konsolenfenster: unter Windows CREATE_NO_WINDOW, sonst 0.

@@ -16,18 +16,18 @@ Ausnahme von der Regel „keine Aufrufe externer Programme“: nur Git, nur hier
 Läuft ohne Oberfläche; die Oberfläche steht in gui_aktualisierung.py.
 """
 
+import contextlib
 import glob
 import importlib.util
 import os
 import shutil
 import subprocess
-import urllib.request
 from dataclasses import dataclass
 
 from . import ADDON_ORDNER, version_aus_xml
 
 ZWEIG = "main"
-ZEITLIMIT_S = 30  # je Git-Aufruf; ohne Netz soll die Suche nicht ewig laufen
+ZEITLIMIT_S = 30  # je Git-Aufruf und Download; ohne Netz soll die Suche nicht ewig laufen
 # Unter Windows öffnet ein Programm wie git.exe, aus FreeCAD (ohne Konsole)
 # gestartet, sonst jedes Mal kurz ein schwarzes Konsolenfenster. Anderswo
 # gibt es den Wert nicht, dort bleibt es bei 0.
@@ -90,6 +90,16 @@ def pruefe(ordner=ADDON_ORDNER, adresse_version=ADRESSE_VERSION):
         return Ergebnis(FEHLER, meldung=str(fehler))
 
 
+def netz_vorbereiten(ordner=ADDON_ORDNER):
+    """Im Hauptthread vor der Suche aufrufen: Ohne Git lädt pruefe() mit installieren.hole(),
+    und dessen Weg über Qt (wenn Pythons ssl fehlt) braucht den im Hauptthread angelegten
+    Netzzugang des Addon-Managers."""
+    if os.path.isdir(os.path.join(ordner, ".git")):
+        return
+    with contextlib.suppress(OSError):  # ohne installieren.py: Das meldet die Suche selbst.
+        _installierer(ordner).netz_vorbereiten()
+
+
 def aktualisiere(ordner=ADDON_ORDNER, adresse_zip=None, parameter=None):
     """Holt den neuen Stand.
 
@@ -109,8 +119,9 @@ def aktualisiere(ordner=ADDON_ORDNER, adresse_zip=None, parameter=None):
 def _vergleiche_per_https(ordner, adresse):
     jetzt = _version_in(ordner)
     try:
-        with urllib.request.urlopen(adresse, timeout=ZEITLIMIT_S) as antwort:
-            neu = version_aus_xml(antwort.read().decode("utf-8"))
+        # hole() lädt wie die Zeile aus dem README – auch, wenn Pythons ssl fehlt.
+        daten = _installierer(ordner).hole(adresse, ZEITLIMIT_S)
+        neu = version_aus_xml(daten.decode("utf-8"))
     except (OSError, ValueError) as fehler:  # kein Netz, privat (404), kaputt
         return Ergebnis(FEHLER, meldung=str(fehler))
     if not ist_neuer(neu, jetzt):

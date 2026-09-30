@@ -116,3 +116,79 @@ def schritte(h):
     seite.saveSettings()
     h.pruefe(not ga.suche_beim_start(), "Abschalten der Update-Suche wird nicht gespeichert")
     seite.form.close()
+
+    # --- Ohne Pythons ssl (P-2026-09-30-33) ------------------------------------------------
+    # Manuels FreeCAD meldete bei der Zeile aus dem README „unknown url type: https“: Pythons
+    # ssl fehlte. Die Zeile lädt jetzt über den Netzzugang des Addon-Managers (Qt), die Suche
+    # ohne Git ebenso – dann aus ihrem Thread, während die Oberfläche weiterläuft. „GitHub“ ist
+    # ein HTTP-Server auf 127.0.0.1.
+    import http.server
+    import shutil
+    import threading
+
+    import FreeCAD
+    import NetworkManager
+
+    fern_xml = re.sub(
+        r"<version>[^<]+</version>",
+        "<version>9.9.9</version>",
+        Path(ADDON, "package.xml").read_text("utf-8"),
+    )
+    dateien = {"/zeile.py": b"GELADEN = 42\n", "/package.xml": fern_xml.encode("utf-8")}
+
+    class Github(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):  # noqa: N802 – so heißt es in http.server
+            inhalt = dateien.get(self.path)
+            if inhalt is None:
+                self.send_error(404)
+                return
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(inhalt)))
+            self.end_headers()
+            self.wfile.write(inhalt)
+
+        def log_message(self, *argumente):
+            pass
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Github)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    github = f"http://127.0.0.1:{server.server_address[1]}"
+    # Der Addon-Manager nähme sonst den Proxy des Systems – auch für 127.0.0.1.
+    am = FreeCAD.ParamGet("User parameter:BaseApp/Preferences/Addons")
+    am.SetString("proxy_type", "none")
+    am.SetBool("proxy_settings_migrated_2025", True)
+    NetworkManager.ForceReinitializeNetworkManager()
+
+    readme = Path(ADDON, "README.md").read_text("utf-8")
+    zeile = next(z.strip() for z in readme.splitlines() if z.strip().startswith("import Network"))
+    adresse = "https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py"
+    h.pruefe(adresse in zeile, f"README-Zeile: {zeile!r}")
+    namensraum = {}
+    exec(zeile.replace(adresse, f"{github}/zeile.py"), namensraum)
+    h.pruefe(namensraum.get("GELADEN") == 42, "die Zeile aus dem README lädt nicht über Qt")
+
+    # Die Suche ohne Git, über Qt: installieren.py im Addon-Ordner nimmt den Weg über Qt, wie
+    # ohne ssl für https – hier für http, weil „GitHub“ kein https spricht.
+    ohne_git = os.path.join(basis, "ohne_git")
+    os.makedirs(ohne_git)
+    shutil.copy(os.path.join(ADDON, "package.xml"), ohne_git)
+    text = Path(ADDON, "installieren.py").read_text("utf-8")
+    immer_qt = 'return adresse.lower().startswith("https:") and not hasattr(http.client'
+    h.pruefe(immer_qt in text, "installieren.py: _nur_ueber_qt() nicht gefunden")
+    text = text.replace(immer_qt, "return True or (http.client")
+    Path(ohne_git, "installieren.py").write_text(text, "utf-8")
+    a.netz_vorbereiten(ohne_git)  # im Hauptthread, wie gui_aktualisierung.Suche.start()
+    ergebnis = []
+    threading.Thread(
+        target=lambda: ergebnis.append(a.pruefe(ohne_git, adresse_version=f"{github}/package.xml")),
+        daemon=True,
+    ).start()
+    for _ in range(80):
+        yield 250
+        if ergebnis:
+            break
+    h.pruefe(
+        bool(ergebnis) and ergebnis[0].status == a.NEU and ergebnis[0].version_neu == "9.9.9",
+        f"Suche über Qt im Thread: {ergebnis}",
+    )
+    server.shutdown()

@@ -4,7 +4,12 @@
 In FreeCAD **Ansicht → Fenster → Python-Konsole** öffnen, diese Zeile
 hineinkopieren, Enter, danach FreeCAD neu starten:
 
-    import urllib.request as u; exec(u.urlopen("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").read())
+    import NetworkManager as n; n.InitializeNetworkManager(); exec(n.AM_NETWORK_MANAGER.blocking_get("https://raw.githubusercontent.com/manuelhofer/freecad-cam-addon/main/installieren.py").data())
+
+Die Zeile lädt über den Netzzugang des Addon-Managers (Qt), nicht über
+Pythons urllib: Manchem FreeCAD fehlt Pythons ssl, dann meldet urllib
+„unknown url type: https“ (Manuel, 2026-09-30). Aus demselben Grund lädt
+hole() über Qt, wenn urllib kein https kann (P-2026-09-30-33).
 
 Was dabei passiert:
 
@@ -29,6 +34,8 @@ import io
 import os
 import shutil
 import tempfile
+import threading
+import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
@@ -46,6 +53,11 @@ ORDNER_NAME = "freecad-cam-addon"
 # repositories“ in seinen Einstellungen): je Zeile „Adresse Zweig“.
 ADDON_MANAGER = "User parameter:BaseApp/Preferences/Addons"
 ZEITLIMIT_S = 60
+# Kann Python kein https und Qt nicht einspringen – etwa ohne Oberfläche.
+OHNE_HTTPS = (
+    "Pythons ssl fehlt, und der Addon-Manager kann nicht laden"
+    " / Python's ssl is missing and the Addon Manager cannot download"
+)
 
 # Mögliche Ergebnisse von installiere().
 NEU = "neu"
@@ -77,7 +89,7 @@ def installiere(adresse=ZIP_ADRESSE, mod=None, parameter=ADDON_MANAGER, ziel=Non
     selbst (aktualisierung.py), auch wenn sein Ordner anders heißt.
 
     Wirft OSError (auch urllib.error.URLError) oder ValueError, wenn der
-    Download oder das Archiv nicht taugt – eine vorhandene Installation bleibt
+    Download (hole()) oder das Archiv nicht taugt – eine vorhandene Installation bleibt
     dann, wie sie war.
     """
     if ziel is None:
@@ -89,8 +101,7 @@ def installiere(adresse=ZIP_ADRESSE, mod=None, parameter=ADDON_MANAGER, ziel=Non
         trage_in_addon_manager_ein(parameter)
         return Ergebnis(GIT_KLON, ziel, _version(ziel))
 
-    with urllib.request.urlopen(adresse, timeout=ZEITLIMIT_S) as antwort:
-        daten = antwort.read()
+    daten = hole(adresse)
     vorher = _version(ziel) if os.path.isdir(ziel) else ""
     os.makedirs(mod, exist_ok=True)
     # Ausgepackt wird außerhalb von Mod/: Bliebe ein halber Ordner liegen,
@@ -103,6 +114,82 @@ def installiere(adresse=ZIP_ADRESSE, mod=None, parameter=ADDON_MANAGER, ziel=Non
         shutil.rmtree(arbeit, ignore_errors=True)
     trage_in_addon_manager_ein(parameter)
     return Ergebnis(AKTUALISIERT if vorher else NEU, ziel, _version(ziel), vorher)
+
+
+def hole(adresse, zeitlimit_s=ZEITLIMIT_S):
+    """Lädt `adresse` und gibt die Bytes zurück; wirft OSError, wenn es nicht geht.
+
+    Zuerst mit Pythons urllib. Manchem FreeCAD fehlt aber Pythons ssl – dann
+    kann urllib kein https („unknown url type: https“) –, oder es kennt die
+    Zertifikate nicht. Dann lädt Qt, über den Netzzugang des Addon-Managers
+    von FreeCAD (mit dessen Proxy-Einstellungen).
+    """
+    if _nur_ueber_qt(adresse):
+        return _hole_mit_qt(adresse, zeitlimit_s)
+    try:
+        with urllib.request.urlopen(adresse, timeout=zeitlimit_s) as antwort:
+            return antwort.read()
+    except urllib.error.URLError as fehler:
+        if not (adresse.lower().startswith("https:") and _ist_ssl_fehler(fehler.reason)):
+            raise
+        try:
+            return _hole_mit_qt(adresse, zeitlimit_s)
+        except OSError:
+            raise fehler from None  # die eigentliche Ursache: das Zertifikat
+
+
+def netz_vorbereiten():
+    """Legt den Netzzugang des Addon-Managers an, falls hole() ihn braucht. Im Hauptthread
+    aufzurufen, bevor ein anderer Thread hole() ruft: Qt lädt nur in dem Thread, in dem der
+    Netzzugang entstand, und nur dort läuft die Ereignisschleife. Ohne Oberfläche: nichts."""
+    if not FreeCAD.GuiUp:
+        return
+    try:
+        import NetworkManager
+    except ImportError:
+        return
+    NetworkManager.InitializeNetworkManager()
+
+
+def _nur_ueber_qt(adresse):
+    """https, aber urllib kann es nicht: Pythons ssl fehlt – daran hängt http.client."""
+    import http.client
+
+    return adresse.lower().startswith("https:") and not hasattr(http.client, "HTTPSConnection")
+
+
+def _ist_ssl_fehler(grund):
+    """Scheiterte urllib an TLS – etwa an einem Zertifikat, das Python nicht kennt?"""
+    try:
+        import ssl
+    except ImportError:
+        return False
+    return isinstance(grund, ssl.SSLError)
+
+
+def _hole_mit_qt(adresse, zeitlimit_s):
+    """Lädt über den Netzzugang des Addon-Managers (NetworkManager, Qt) – den braucht es
+    mit Oberfläche, im Hauptthread angelegt (netz_vorbereiten())."""
+    try:
+        import NetworkManager
+        from PySide import QtCore
+    except ImportError as grund:
+        raise OSError(f"{OHNE_HTTPS} ({grund})") from None
+    if QtCore.QCoreApplication.instance() is None:
+        raise OSError(OHNE_HTTPS)
+    if NetworkManager.AM_NETWORK_MANAGER is None:
+        if threading.current_thread() is not threading.main_thread():
+            raise OSError(OHNE_HTTPS)  # in diesem Thread lüde er nie
+        NetworkManager.InitializeNetworkManager()
+    netz = NetworkManager.AM_NETWORK_MANAGER
+    zeit_ms = int(zeitlimit_s * 1000)
+    try:
+        daten = netz.blocking_get(adresse, zeit_ms, disable_cache=True)
+    except TypeError:  # Addon-Manager vor FreeCAD 1.1: ohne disable_cache
+        daten = netz.blocking_get(adresse, zeit_ms)
+    if daten is None:  # der Addon-Manager nennt den Grund in der Konsole
+        raise OSError(f"{adresse}: über Qt nicht zu laden / could not be loaded via Qt")
+    return bytes(daten.data()) if hasattr(daten, "data") else bytes(daten)
 
 
 def _entpacke(daten, arbeit):

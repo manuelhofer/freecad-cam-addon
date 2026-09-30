@@ -75,6 +75,7 @@ class Suche:
         self.uhr.timeout.connect(self._nachsehen)
 
     def start(self):
+        a.netz_vorbereiten(self.ordner)  # hier im Hauptthread – Qt lädt nur dort
         # daemon: Ein hängendes Git hält FreeCAD beim Beenden nicht auf.
         threading.Thread(target=self._suchen, daemon=True).start()
         self.uhr.start()
