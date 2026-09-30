@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-42 plan-steuerung
+
+### EINGELESEN
+- Manuel, 2026-09-30: „ja das mit der Steuerung ... Sollte keine Rolle spielen .... Es muss
+  ja für alle funktionieren....“, dann auf die Auswahl A/B/C: „A sollte unsere option sein...“.
+- `CHATSTART.md` (keine bestimmte Maschine), `camaddon/maschine.py`, `camaddon/reichweite.py`
+  (`merke_maschine`), `camaddon/export.py`; FreeCAD 1.1.3 und 26.3: `Path/Preferences.py`
+  (`searchPathsPost`, `addAddonPostPath`, Addon-Postprozessoren über `package.xml`),
+  `Path/Post/Processor.py` (`PostProcessorFactory`, `WrapperPost`), `Machine/models/machine.py`
+  (Postprozessor, Ausgabeoptionen, Umbruch der Rundachse); Haas-Codes M133–M135, M154/M155;
+  Siemens SETMS, SPOS, DIAMON/DIAMOF, TRACYL/TRANSMIT; LinuxCNC G7/G8, G93; Fanuc 0i-TF G07.1,
+  G12.1.
+
+### DATEIEN
+- `docs/spezifikation_steuerung.md` (neu), `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Der Plan für W-005 steht in der Spezifikation: Steuerung an der Maschine mit vorbelegten,
+änderbaren Befehlen, eigener Postprozessor „camaddon“, Drehmaschine (Durchmesser,
+angetriebenes Werkzeug, C-Achse, Vorschub), Stufen S1–S6 und die Entscheidungen E1–E5 als
+Auswahl mit Empfehlung.
+
+### DONE
+- Spezifikation W-005 geschrieben, Wunschliste und Stand ergänzt.
+
+### TEST
+- Reine Doku, kein Testlauf.
+
+### NEXT
+- Manuels Antworten zu E1–E5, dann S1 (Postprozessor „camaddon“ wie LinuxCNC, angemeldet in
+  beiden Versionen).
+
 ## P-2026-09-30-41 version-0-31-1
 
 ### EINGELESEN
