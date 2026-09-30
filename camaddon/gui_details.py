@@ -30,7 +30,7 @@ from .sprache import tr
 # schon im Namen. Beschleunigung und Ruck hängen davon ab, ob die Achse fährt
 # oder dreht.
 EINHEIT_LINEAR = {"Beschleunigung": "m/s²", "Ruck": "m/s³"}
-EINHEIT_DREH = {"Beschleunigung": "U/s²", "Ruck": "U/s³"}
+EINHEIT_DREH = {"Vdi": "mm", "Beschleunigung": "U/s²", "Ruck": "U/s³"}
 # Kennwerte, die in mm/min gespeichert sind – gezeigt in mm/min oder ipm.
 VORSCHUEBE = ("Eilgang", "VorschubMax")
 

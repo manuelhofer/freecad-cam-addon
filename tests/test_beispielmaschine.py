@@ -210,6 +210,9 @@ pruefe(s1.Drehzahl == 4000, f"S1: {s1.Drehzahl}")
 # Die angetriebenen Werkzeuge haben ihre eigene Höchstdrehzahl (Manuel, 2026-09-30).
 s3 = next(b for b in m.betriebsarten(ma) if b.NcName == "S3")
 pruefe(s3.Drehzahl == 3200, f"S3: {s3.Drehzahl}")
+# Der Revolver kennt seine VDI-Größe – die Halter-Vorlagen nehmen sie als Maß (P-2026-09-30-70).
+t_ = next(b for b in m.betriebsarten(ma) if b.NcName == "T")
+pruefe(t_.Vdi == 30 and m.vdi_groesse(ma) == 30, f"VDI am Revolver: {getattr(t_, 'Vdi', None)}")
 # „X als: Radius“ (P-2026-09-30-54): X1 zählt nicht im Durchmesser.
 x1 = next(b for b in m.betriebsarten(ma) if b.NcName == "X1")
 pruefe(not x1.Durchmesser and not m.x_im_durchmesser(ma), "X im Radius gewählt, X1 im Ø")

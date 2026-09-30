@@ -1,6 +1,6 @@
 # Halter mit Richtung (W-002 Stufe E, Manuel 2026-09-30: „wie steht die Werkzeug-Z-Achse
 # zur Maschinen-Haupt-Z-Achse“). Werkzeugverwaltung → neues Werkzeug, Gesamtlänge 57 →
-# „Halter …“ → „Neu“ → „VDI30 angetrieben radial · ER16“: Richtung „gewinkelt“, Winkel 90,
+# „Halter …“ → „Neu“ → „VDI angetrieben radial · ER16“ (ohne Maschine ohne Größe): Richtung „gewinkelt“, Winkel 90,
 # Drehung 0, Versatz 55, Kopf-Ø 55; „Kontur ab Bezugspunkt, längs der
 # Werkzeugachse:“; „Länge 55,00 mm · größter Ø 50,00 mm · gewinkelt 90°, Versatz
 # 55,00 mm“; das Bild zeigt Kopf und Knick. Winkel 45 → das Bild kippt. „gerade“ blendet
@@ -51,9 +51,7 @@ def schritte(h):
     h.pruefe(f is not None and f.isVisible(), "Fenster „Halter“ geht nicht auf")
     if f is None:
         return
-    vorlage = next(
-        a for a in f.menue_neu.actions() if a.text() == "VDI30 angetrieben radial · ER16"
-    )
+    vorlage = next(a for a in f.menue_neu.actions() if a.text() == "VDI angetrieben radial · ER16")
     vorlage.trigger()
     yield 300
     halter = f.gewaehlt

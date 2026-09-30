@@ -42,23 +42,39 @@ _VORLAGEN = {
     "hydro_20": (50.0, ((16.0, 63.0, 63.0), (64.0, 50.0, 50.0))),
     "aufsteck_22": (0.0, ((16.0, 63.0, 63.0), (34.0, 48.0, 48.0))),
     "bohrfutter": (30.0, ((16.0, 63.0, 63.0), (84.0, 50.0, 45.0))),
-    "vdi30_er25": (28.0, ((40.0, 55.0, 55.0), (20.0, 42.0, 42.0))),
-    "vdi30_radial": (20.0, ((35.0, 50.0, 50.0), (20.0, 28.0, 28.0))),
-    "vdi30_axial": (20.0, ((45.0, 55.0, 55.0), (25.0, 28.0, 28.0))),
+    "vdi_er25": (28.0, ((40.0, 55.0, 55.0), (20.0, 42.0, 42.0))),
+    "vdi_radial": (20.0, ((35.0, 50.0, 50.0), (20.0, 28.0, 28.0))),
+    "vdi_axial": (20.0, ((45.0, 55.0, 55.0), (25.0, 28.0, 28.0))),
     "winkelkopf_90": (25.0, ((30.0, 60.0, 60.0), (20.0, 32.0, 32.0))),
 }
 VORLAGEN = tuple(_VORLAGEN)  # in der Reihenfolge des Menüs
 # Gewinkelte Vorlagen: (Winkel, Drehung in Grad, Versatz, Kopf-Ø in mm).
 _GEWINKELT = {
-    "vdi30_radial": (90.0, 0.0, 55.0, 55.0),
+    "vdi_radial": (90.0, 0.0, 55.0, 55.0),
     "winkelkopf_90": (90.0, 0.0, 110.0, 80.0),
+}
+# Die VDI-Vorlagen nennen keine Größe (Manuel, 2026-09-30: „man wird auf eine VDI 40 maschine
+# keine VDI 30 halter verbauen können … also reicht VDI halter aus“): Ihre Beispielmaße gelten
+# für VDI 30; mit der VDI-Größe der Maschine (maschine.vdi_groesse) wachsen alle Ø mit, und der
+# Name nennt sie („VDI40 angetrieben radial · ER16“).
+VDI_VORLAGEN = ("vdi_er25", "vdi_radial", "vdi_axial")
+VDI_BEZUG = 30.0  # mm: dafür gelten die Beispielmaße
+# Die Schlüssel bis 0.33.0 – dieselben Vorlagen für VDI 30.
+_ALTE_SCHLUESSEL = {
+    "vdi30_er25": "vdi_er25",
+    "vdi30_radial": "vdi_radial",
+    "vdi30_axial": "vdi_axial",
 }
 
 GERADE, GEWINKELT = "gerade", "gewinkelt"  # Halter.richtung
 
 
-def vorlage_text(schluessel):
-    """Name einer Vorlage: „Spannzangenfutter ER32 · SK40“ …"""
+def vorlage_text(schluessel, vdi=0):
+    """Name einer Vorlage: „Spannzangenfutter ER32 · SK40“ … Die VDI-Vorlagen nennen die Größe
+    `vdi` (mm), wenn eine bekannt ist: „VDI40 angetrieben radial · ER16“, sonst „VDI angetrieben
+    radial · ER16“."""
+    schluessel, vdi = _vorlage(schluessel, vdi)
+    groesse = f"{vdi:g}" if vdi else ""
     return {
         "er16": tr("halter.vorlage.er16"),
         "er25": tr("halter.vorlage.er25"),
@@ -70,9 +86,9 @@ def vorlage_text(schluessel):
         "hydro_20": tr("halter.vorlage.hydro_20"),
         "aufsteck_22": tr("halter.vorlage.aufsteck_22"),
         "bohrfutter": tr("halter.vorlage.bohrfutter"),
-        "vdi30_er25": tr("halter.vorlage.vdi30_er25"),
-        "vdi30_radial": tr("halter.vorlage.vdi30_radial"),
-        "vdi30_axial": tr("halter.vorlage.vdi30_axial"),
+        "vdi_er25": tr("halter.vorlage.vdi_er25", groesse=groesse),
+        "vdi_radial": tr("halter.vorlage.vdi_radial", groesse=groesse),
+        "vdi_axial": tr("halter.vorlage.vdi_axial", groesse=groesse),
         "winkelkopf_90": tr("halter.vorlage.winkelkopf_90"),
     }[schluessel]
 
@@ -278,19 +294,37 @@ def _abschnitte_form(halter):
     return Part.makeCompound(teile) if teile else None
 
 
-def aus_vorlage(schluessel):
-    """Ein neuer Halter aus einer Vorlage – mit Beispielmaßen, die die Bezeichnung nennt."""
+def aus_vorlage(schluessel, vdi=None):
+    """Ein neuer Halter aus einer Vorlage – mit Beispielmaßen, die die Bezeichnung nennt.
+    `vdi`: die VDI-Größe der Maschine (mm) für die VDI-Vorlagen – die Ø wachsen von VDI 30 aus
+    mit, der Name nennt sie; ohne Angabe die Maße für VDI 30 und ein Name ohne Größe."""
+    schluessel, vdi = _vorlage(schluessel, vdi)
     spanntiefe, abschnitte = _VORLAGEN[schluessel]
+    faktor = vdi / VDI_BEZUG if vdi else 1.0
     halter = Halter(
-        name=vorlage_text(schluessel),
+        name=vorlage_text(schluessel, vdi),
         bezeichnung=tr("halter.beispielmasse"),
         spanntiefe=spanntiefe,
-        abschnitte=[Abschnitt(*werte) for werte in abschnitte],
+        abschnitte=[
+            Abschnitt(laenge, oben * faktor, unten * faktor) for laenge, oben, unten in abschnitte
+        ],
     )
     if schluessel in _GEWINKELT:
         halter.richtung = GEWINKELT
-        halter.winkel, halter.drehung, halter.versatz, halter.kopf_d = _GEWINKELT[schluessel]
+        winkel, drehung, versatz, kopf_d = _GEWINKELT[schluessel]
+        halter.winkel, halter.drehung = winkel, drehung
+        halter.versatz, halter.kopf_d = versatz * faktor, kopf_d * faktor
     return halter
+
+
+def _vorlage(schluessel, vdi):
+    """(Schlüssel, VDI-Größe oder 0): Ein alter Schlüssel „vdi30_…“ heißt VDI 30; für alles
+    außer den VDI-Vorlagen zählt keine Größe."""
+    if schluessel in _ALTE_SCHLUESSEL:
+        schluessel, vdi = _ALTE_SCHLUESSEL[schluessel], vdi or VDI_BEZUG
+    if schluessel not in VDI_VORLAGEN or not vdi:
+        return schluessel, 0.0
+    return schluessel, float(vdi)
 
 
 def text(halter):

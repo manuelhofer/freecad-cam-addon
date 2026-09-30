@@ -73,7 +73,7 @@ WERTE = {
         ("Ruck", False),
     ],
     ART_SPINDEL: [("Drehzahl", True), ("Hochlaufzeit", False)],
-    ART_REVOLVER: [("Schaltzeit", False)],
+    ART_REVOLVER: [("Schaltzeit", False), ("Vdi", False)],
 }
 
 # Arten von Aufnahmen (gespeichert, deshalb ASCII).
@@ -130,6 +130,7 @@ def wert_text(eigenschaft):
         "Drehzahl": tr("wert.drehzahl"),
         "Hochlaufzeit": tr("wert.hochlaufzeit"),
         "Schaltzeit": tr("wert.schaltzeit"),
+        "Vdi": tr("wert.vdi"),
     }[eigenschaft]
 
 
@@ -234,8 +235,12 @@ class Betriebsart(_Proxy):
         _lege_eigenschaften_an(
             objekt,
             "Werte",
-            # X einer Drehmaschine als Durchmesser (Manuel, 2026-09-30, P-2026-09-30-54).
-            [("App::PropertyBool", "Durchmesser", tr("eigenschaft.durchmesser"))],
+            [
+                # X einer Drehmaschine als Durchmesser (Manuel, 2026-09-30, P-2026-09-30-54).
+                ("App::PropertyBool", "Durchmesser", tr("eigenschaft.durchmesser")),
+                # VDI-Größe des Revolvers – für die Halter-Vorlagen (P-2026-09-30-70).
+                ("App::PropertyFloat", "Vdi", tr("eigenschaft.vdi")),
+            ],
         )
 
     @staticmethod
@@ -537,6 +542,19 @@ def revolverplaetze(maschine, kette):
         if ba.Art == ART_REVOLVER
         for platz in plaetze(maschine, kette, ba)
     ]
+
+
+def vdi_groesse(maschine):
+    """Die VDI-Größe der Revolver (Schaft-Ø der Halter, mm; die größte, wenn mehrere) – 0, wenn
+    keine eingetragen ist. Die Halter-Vorlagen nehmen sie als Maß (halter.aus_vorlage)."""
+    return max(
+        (
+            float(getattr(ba, "Vdi", 0) or 0)
+            for ba in betriebsarten(maschine)
+            if ba.Art == ART_REVOLVER
+        ),
+        default=0.0,
+    )
 
 
 def _bestueckung_verbergen(platz):

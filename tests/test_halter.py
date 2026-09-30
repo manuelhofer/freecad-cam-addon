@@ -94,6 +94,29 @@ pruefe(
 pruefe(nahe(radial.laenge, 55) and nahe(radial.spanntiefe, 20), "Abgang 55 mm")
 axial = hl.aus_vorlage("vdi30_axial")
 pruefe(not axial.gewinkelt and hl.lage(axial).isIdentity(), "axial: gerade")
+# Die VDI-Vorlagen nennen keine Größe (Manuel, 2026-09-30: „also reicht VDI halter aus“): ohne
+# Angabe die Maße für VDI 30 und ein Name ohne Zahl; mit der Größe der Maschine wachsen die Ø
+# mit, die Längen nicht. Die alten Schlüssel „vdi30_…“ heißen VDI 30.
+ohne = hl.aus_vorlage("vdi_radial")
+pruefe(
+    ohne.name == "VDI angetrieben radial · ER16" and nahe(ohne.kopf_d, 55), f"ohne Größe: {ohne}"
+)
+gross = hl.aus_vorlage("vdi_radial", vdi=40)
+pruefe(gross.name == "VDI40 angetrieben radial · ER16", f"VDI 40: {gross.name}")
+pruefe(
+    nahe(gross.versatz, 55 * 40 / 30)
+    and nahe(gross.kopf_d, 55 * 40 / 30)
+    and nahe(gross.abschnitte[0].d_oben, 50 * 40 / 30)
+    and nahe(gross.abschnitte[0].laenge, 35)
+    and nahe(gross.spanntiefe, 20),
+    f"VDI 40 Maße: {gross}",
+)
+pruefe(
+    hl.vorlage_text("vdi_axial") == "VDI angetrieben axial · ER16"
+    and hl.vorlage_text("vdi_axial", 50) == "VDI50 angetrieben axial · ER16"
+    and hl.vorlage_text("er32", 50) == hl.vorlage_text("er32"),
+    "Vorlagentext mit Größe",
+)
 kopf = hl.aus_vorlage("winkelkopf_90")
 pruefe(kopf.gewinkelt and nahe(kopf.versatz, 110), f"Winkelkopf: {kopf}")
 # Seitlich über die Werkzeugachse (fürs Futter bei Rundum): der halbe größte Ø, beim

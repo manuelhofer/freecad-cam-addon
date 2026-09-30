@@ -968,6 +968,7 @@ def drehmaschine(masse=None):
     _positionieren(ma, hauptspindel, "C1", 100, endlos=True)
     t = m.neue_betriebsart(ma, revolverachse, m.ART_REVOLVER, "T")
     t.Schaltzeit = 0.25
+    t.Vdi = float(masse.vdi)  # für die Halter-Vorlagen (P-2026-09-30-70)
     s3 = _spindel(ma, werkzeugantrieb, "S3", masse.drehzahl_werkzeuge, 0.5)
     m.neue_aufnahme(ma, spannflaeche, m.AUFNAHME_WERKSTUECK, tr("beispiel.futter"))
     plaetze = m.verteile_plaetze(ma, kette_modul.lies_kette(asm), t, platz1, masse.plaetze)

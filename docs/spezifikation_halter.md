@@ -320,3 +320,20 @@ Prüffenster, der Hinweis „nicht radial“.
   Maschine prüfen“: kein Hinweis „nicht radial“; abspielen: T1 und T2 stehen
   radial am Teil; am Ende die Farben; „Kollision prüfen“ meldet nichts.
 - Ohne Halter bei T2: Der Hinweis nennt T2, P2 und den Halter, der fehlt.
+
+## Stufe H – VDI-Halter ohne Größe (P-2026-09-30-70)
+
+Manuel (2026-09-30): „man wird auf eine VDI 40 maschine keine VDI 30 halter
+verbauen könnnen das meine ich ... also wirds schon ein halter sein der für die
+maschine ist .. also reicht VDI halter aus“. Gebaut:
+
+- Die Vorlagen heißen „VDI axial mit ER25“, „VDI angetrieben radial · ER16“,
+  „VDI angetrieben axial · ER16“ (`halter.VDI_VORLAGEN`, Schlüssel `vdi_…`;
+  die alten `vdi30_…` gelten weiter als VDI 30).
+- Der Revolver kennt seine **VDI-Größe** (Kennwert `Vdi` an der Betriebsart
+  Revolver, „Neue Maschine“ trägt sie ein; `maschine.vdi_groesse`). Ist eine
+  Maschine offen, nehmen die VDI-Vorlagen sie: Alle Ø wachsen von VDI 30 aus
+  mit (Kopf, Versatz, Abschnitte), die Längen bleiben, der Name nennt die
+  Größe („VDI40 angetrieben radial · ER16“). Ohne Maschine die Maße für VDI 30
+  und ein Name ohne Zahl. Die Bezeichnung sagt weiter „Beispielmaße – nach
+  Katalog prüfen“.

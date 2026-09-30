@@ -112,8 +112,11 @@ class HalterDialog(QtGui.QDialog):
         self.menue_neu = QtGui.QMenu(self.knopf_neu)
         self.menue_neu.addAction(tr("hd.neu.leer"), lambda: self.neu())
         self.menue_neu.addSeparator()
+        vdi = _vdi_offener_maschinen()
         for schluessel in hl.VORLAGEN:
-            self.menue_neu.addAction(hl.vorlage_text(schluessel), lambda s=schluessel: self.neu(s))
+            self.menue_neu.addAction(
+                hl.vorlage_text(schluessel, vdi), lambda s=schluessel: self.neu(s)
+            )
         self.knopf_neu.setMenu(self.menue_neu)
         self.knopf_kopieren = knopf(tr("hd.kopieren"), tr("hd.kopieren.tooltip"), self.kopieren)
         self.knopf_loeschen = knopf(tr("hd.loeschen"), tr("hd.loeschen.tooltip"), self.loeschen)
@@ -290,7 +293,7 @@ class HalterDialog(QtGui.QDialog):
 
     def neu(self, vorlage=None):
         """Ein neuer Halter – leer oder aus einer Vorlage (halter.VORLAGEN)."""
-        halter = self.bibliothek.neuer_halter(vorlage)
+        halter = self.bibliothek.neuer_halter(vorlage, _vdi_offener_maschinen())
         if not halter.abschnitte:
             halter.abschnitte.append(hl.Abschnitt(NEUER_ABSCHNITT, 40.0, 40.0))
         self.waehle(halter)
@@ -657,3 +660,16 @@ class HalterBild(QtGui.QWidget):
         # Die Aufnahme als Strich.
         maler.setPen(QtGui.QPen(FARBE_SPINDEL, 1.5))
         maler.drawLine(QtCore.QPointF(mitte - halb, nase), QtCore.QPointF(mitte + halb, nase))
+
+
+def _vdi_offener_maschinen():
+    """Die VDI-Größe der offenen Maschinen (die größte) – die VDI-Vorlagen nehmen sie als Maß
+    und nennen sie im Namen; 0 ohne Maschine oder ohne Größe."""
+    from . import gui_reichweite
+    from . import maschine as m
+
+    try:
+        maschinen = gui_reichweite.offene_maschinen()
+    except Exception:  # ohne Dokumente oder Oberfläche: die Beispielmaße für VDI 30
+        return 0.0
+    return max((m.vdi_groesse(ma) for _assembly, ma in maschinen), default=0.0)
