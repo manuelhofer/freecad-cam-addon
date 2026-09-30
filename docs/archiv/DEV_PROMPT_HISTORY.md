@@ -12,6 +12,64 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-07 abtrag-mit-fraeserform
+
+### EINGELESEN
+- V5e in `docs/spezifikation_vierachs.md` (Abtrag und Farben auch für „Rundum
+  schlichten“, mit der Form des Fräsers; verglichen mit dem Aufmaß der letzten
+  Bearbeitung).
+- `camaddon/restmaterial.py`, `camaddon/gui_abfahren.py` (Bild, Satz),
+  `camaddon/fraeserform.py`, `camaddon/vierachs_schlichten.py` (`rest_nach`),
+  `tests/test_restmaterial.py`, `tests/gui/szenario_vierachs_schruppen.py`.
+
+### DATEIEN
+- `camaddon/restmaterial.py`, `camaddon/vierachs_schlichten.py`,
+  `tests/test_restmaterial.py`, `help/de/reichweite.html`,
+  `help/en/reichweite.html`, `docs/spezifikation_vierachs.md`,
+  `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Job mit „Rundum schruppen“ (Schaftfräser) und „Rundum schlichten“
+(Kugelfräser) → „Auf der Maschine prüfen“ → bis zum Ende abspielen: Die Stange
+wird mit beiden Fräsern abgetragen; am Ende grün, wo geschlichtet ist
+(verglichen mit Aufmaß 0 des Schlichtens), rot nur die Rundung der Kugel in
+einer Innenecke, nirgends blau.
+
+### DONE
+- `Stange` trägt mit der Form des Fräsers ab (`fraeserform.Form`; eine Zahl ist
+  weiter der Radius eines Schaftfräsers): Der Strahl aus der Achse trifft die
+  Stirn, wo ρ · cos Δ = r + z(ℓ). Schaftfräser und Kugel geschlossen; sonst von
+  unten heran gesucht – bei gewölbter Stirn mit Newton, sonst ℓ ← F(ℓ) –, und nur
+  dort, wo die Ebene der Spitze noch unter dem Material liegt.
+- Alle Schritte eines Stücks und alle Stücke einer Operation auf einmal
+  (`fahre_stuecke`, `schnitte`, `np.minimum.at`); ebenso `rest_nach` beim
+  Schlichten. Schruppen auf der Welle mit Absatz: 1,4 s statt 6,3 s, Ergebnis
+  gleich (Abweichung 0).
+- `fuer()` nimmt „Rundum schlichten“ dazu (`operationsarten_rundum`), je
+  Operation die Form ihres Controllers (`form_des_controllers`, unbekannt:
+  Schaftfräser), verglichen mit dem Aufmaß der letzten.
+- Blau nur, was genau auf dem Strahl im Teil fehlt (Scheibe 0,001 mm): Neben einer
+  Wand sah die halbe Rasterweite schon die Wand – nach der Kugel stand dort sonst
+  „bis 8 mm im Teil“.
+- Hilfe de/en („Rohteil und Fertigteil“): auch „Rundum schlichten“, mit der Form,
+  Aufmaß der letzten Bearbeitung, die Rundung der Kugel in der Innenecke.
+- `docs/aufbau.md`: Zeilen `restmaterial.py` und `vierachs_schlichten.py`
+  (Vorstufen aus P-2026-09-30-06 nachgezogen).
+
+### TEST
+- FreeCAD 1.1.3: `test_restmaterial` (Kugel, Torus Ø 12 R 2, Konik gegen den
+  fein abgetasteten Strahl unter 0,002 mm; Kugel-Spirale mit Kamm 0,501 mm;
+  Schruppen und Schlichten auf der Beispiel-Drehmaschine: 0,006 … 0,024 mm, alles
+  grün, 0,3 s), `test_vierachs_schlichten`, `test_vierachs_schlichten_op`,
+  `test_hilfe` grün; `szenario_vierachs_schruppen` grün („Am Ende bleiben 0,3 …“).
+- Welle mit Absatz, 365 Umdrehungen, Stange nach dem Schruppen: Kugel 1,3 s,
+  Torus 2,2 s, Konik 5,5 s; Kugel 97,9 % grün, nichts blau, rot bis 1,95 mm nur
+  in der Innenecke am Absatz.
+
+### NEXT
+- V5e zweite Hälfte: die Schneide in Abfahren und Kollision als Drehkörper aus
+  der Form.
+
 ## P-2026-09-30-06 schlichten-in-stufen
 
 ### EINGELESEN

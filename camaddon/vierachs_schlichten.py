@@ -232,20 +232,23 @@ def rest_nach(schruppen, radius, a_von, a_bis):
     (a, φ in rad, r) wie restmaterial.Stange."""
     stange = rm.Stange(radius, a_von, a_bis)
     for bahn, fraeser_radius, _aufmass in schruppen:
+        von, nach, einzeln = [], [], []
         vorher = None
         for punkt in bahn.punkte:
             if punkt.eilgang:
                 vorher = None
-            elif vorher is None:  # aus dem Eilgang: bis hierher in der Luft
-                stange.schnitt(punkt.a, punkt.r, punkt.phi, fraeser_radius)
+                continue
+            stelle = (punkt.a, punkt.r, punkt.phi)
+            if vorher is None:  # aus dem Eilgang: bis hierher in der Luft
+                einzeln.append(stelle)
             else:
-                stange.fahre(
-                    (vorher.a, vorher.r, vorher.phi),
-                    (punkt.a, punkt.r, punkt.phi),
-                    fraeser_radius,
-                )
-            if not punkt.eilgang:
-                vorher = punkt
+                von.append(vorher)
+                nach.append(stelle)
+            vorher = stelle
+        if einzeln:
+            a, r, phi = zip(*einzeln, strict=True)
+            stange.schnitte(a, r, phi, fraeser_radius)
+        stange.fahre_stuecke(von, nach, fraeser_radius)  # alle Stücke auf einmal
     return stange.a, stange.phi, stange.r
 
 

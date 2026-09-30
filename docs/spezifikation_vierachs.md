@@ -836,6 +836,24 @@ die Abstände gelten für beide.
   Aufmaß der letzten Bearbeitung. Abfahren und Kollision nehmen die Schneide
   als Drehkörper aus derselben Form (bisher Zylinder, beim Lollipop Kugel) –
   sonst stieße ein Kugelfräser in der Kehle „ins fertige Teil“.
+  *Gebaut, Abtrag (P-2026-09-30-07):* `restmaterial` trägt mit der Form des
+  Fräsers aus dem ToolBit ab (`form_des_controllers`; unbekannt: Schaftfräser
+  mit seinem Durchmesser). Der Strahl aus der Achse trifft die Stirn, wo
+  ρ · cos Δ = r + z(ℓ), ℓ = √(d² + (ρ · sin Δ)²): Schaftfräser und Kugel
+  geschlossen, sonst gesucht – von unten heran, bei gewölbter Stirn mit Newton
+  (dann kein Schritt über die erste Lösung). Die Schritte eines Stücks, ja
+  aller Stücke einer Operation rechnet es zusammen (`fahre_stuecke`,
+  `np.minimum.at`) – weg ist, was irgendein Schritt trifft, die Reihenfolge
+  zählt nicht. Verglichen wird mit dem Aufmaß der letzten Bearbeitung; blau nur,
+  was genau auf dem Strahl fehlt (Scheibe 0,001 mm) – neben einer Wand sah die
+  halbe Rasterweite schon die Wand, und was die Kugel dort weg nahm, fehlte
+  scheinbar im Teil. Welle mit Absatz (Ø 60/40 × 100, 365 Umdrehungen):
+  Schruppen 1,4 s (vorher 6,3 s, gleiches Ergebnis), Schlichten mit Kugel 1,3 s,
+  Torus 2,2 s, Konik 5,5 s; danach 97,9 % grün, nichts blau, rot nur die
+  Rundung der Kugel in der Innenecke am Absatz (bis 1,95 mm). Geprüft: Kugel,
+  Torus und Konik gegen den fein abgetasteten Strahl (unter 0,002 mm), die
+  Kugel-Spirale mit ihrem Kamm, Schruppen und Schlichten auf der
+  Beispiel-Drehmaschine (0,006 … 0,024 mm, alles grün).
 - *Klickweg:* Welle mit Absatz, „4-Achs-Bearbeitung“ → Beispiel-Drehmaschine →
   „Weiter“ → „Rundum schruppen“ T1 Schaftfräser Ø 12 und „Rundum schlichten“
   T2 Kugelfräser Ø 6: Schrittweite grau aus der Werkzeugtabelle, daneben die
