@@ -413,7 +413,8 @@ zeigt es richtig rot. **Vorschlag:** Vor jeder Wand – einer Planfläche des
 Teils quer zur Achse – hält die Spirale eine Umdrehung lang an („Ringgang“):
 beim Schruppen je Lage, beim Schlichten auch in den Stufen, nie tiefer als die
 Stufe erlaubt. **Fertig, wenn:** im Szenario am Ende hinter dem Absatz nur die
-Kehle des Kugelfräsers gelb bleibt, nichts rot.
+Kehle des Kugelfräsers gelb bleibt, nichts rot. *Erledigt (P-2026-09-30-20):* am
+Ende höchstens 0,33 mm, alles grün.
 
 ### D-43 Meldung beim Kugelfräser (klein)
 **Heute:** Wird ein Kugelfräser an CAM übergeben, steht im Bericht „Updating

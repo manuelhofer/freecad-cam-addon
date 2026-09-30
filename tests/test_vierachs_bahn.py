@@ -14,6 +14,7 @@ sys.path.insert(0, ADDON)
 import FreeCAD
 import Part
 
+from camaddon import restmaterial as rm
 from camaddon import vierachs_bahn as vb
 from camaddon import vierachs_huelle as vh
 from camaddon.sprache import tr
@@ -234,6 +235,58 @@ pruefe(vb.rillenhoehe(6.0, 1.0, 4.8) == 0.0, "Torus mit flacher Stirn")
 pruefe(abs(vb.rillenhoehe(6.0, 1.0, 11.0) - (1 - math.sqrt(0.75))) < 1e-12, "Torus weit")
 pruefe(vb.rillenhoehe(6.0, 0.0, 12.0) == 0.0, "Schaftfräser")
 pruefe(bahn.hinten_frei == 0, f"Exzenter hinten frei: {bahn.hinten_frei}")
+
+# --- Ringgang vor einer Wand (D-42) ----------------------------------------------------------
+# Welle Ø 50 von −25 bis 0, Ø 36 von −40 bis −25: Die Wand bei −25 schaut zum Futter. Ohne
+# Ring kommt die Spirale (4,8 mm je Umdrehung) nur auf einem Teil des Umfangs so weit an die
+# Wand, dass der Fräser Ø 12 hinter ihr bis aufs Aufmaß hinunter darf – dort bleibt bis zum
+# großen Ø stehen. Mit Ring hält sie bei −25 − 6 − 0,3 = −31,3 eine Umdrehung an.
+absatz = Part.makeCylinder(25, 25, V(0, 0, -25)).fuse(Part.makeCylinder(18, 15, V(0, 0, -40)))
+absatz_netz = vh.vernetze(absatz.removeSplitter())
+werte_absatz = WERTE.__class__(**{**WERTE.__dict__, "stange_radius": 30.0, "a_futter": -60.0})
+
+
+def rest_hinter_der_wand(bahn):
+    """Wie viel die Bahn hinter der Wand (a −30,5 … −26) über Ø 36 stehen lässt, höchstens –
+    dicht an der Wand bleibt ohnehin das Aufmaß, dort schlichtet der Ring des Schlichtens."""
+    stange = rm.Stange(30.0, -60.0, 1.0)
+    von, nach = [], []
+    for vorher, punkt in zip(bahn.punkte, bahn.punkte[1:], strict=False):
+        if not punkt.eilgang and not vorher.eilgang:
+            von.append((vorher.a, vorher.r, vorher.phi))
+            nach.append((punkt.a, punkt.r, punkt.phi))
+        elif not punkt.eilgang:
+            stange.schnitt(punkt.a, punkt.r, punkt.phi, R)
+    stange.fahre_stuecke(von, nach, R)
+    hinter = (stange.a > -30.6) & (stange.a < -25.9)
+    return float(stange.r[hinter].max() - 18.0)
+
+
+ohne_ring = vb.schruppen(absatz_netz, C_LAENGS, C_RADIAL, werte_absatz)
+mit_ring = vb.schruppen(
+    absatz_netz,
+    C_LAENGS,
+    C_RADIAL,
+    WERTE.__class__(**{**werte_absatz.__dict__, "waende": ((-25.0, -1),)}),
+)
+# Der Ring steht Fräser, Aufmaß, Vernetzung und RING_LUFT vor der Wand – so weit, dass der
+# um Aufmaß und Vernetzung größere Fräser sie nicht streift; je Lage ein ganzer Umlauf.
+stelle = -25.0 - (R + 0.3 + absatz_netz.toleranz + vb.RING_LUFT)
+winkel = sorted(p.phi for p in schnitte(mit_ring) if abs(p.a - stelle) < 1e-9)
+umlaeufe, anfang = [], None
+for vorher, jetzt in zip([None, *winkel], winkel, strict=False):
+    if vorher is None or jetzt - vorher > 180.0:  # eine neue Lage
+        anfang = jetzt
+        umlaeufe.append(0.0)
+    umlaeufe[-1] = jetzt - anfang
+pruefe(
+    len(umlaeufe) == mit_ring.lagen and min(umlaeufe) >= 359.0 - 1e-6,
+    f"Ringe bei {stelle:.3f}: {umlaeufe} ({mit_ring.lagen} Lagen)",
+)
+rest_ohne, rest_mit = rest_hinter_der_wand(ohne_ring), rest_hinter_der_wand(mit_ring)
+pruefe(rest_ohne > 3.0, f"ohne Ring hinter der Wand nur {rest_ohne:.3f} stehen")
+pruefe(rest_mit < 0.3 + 0.1, f"mit Ring hinter der Wand {rest_mit:.3f} stehen")
+print(ascii(f"Wand: hinten ohne Ring {rest_ohne:.2f} mm, mit Ring {rest_mit:.2f} mm stehen"))
 
 if fehler:
     raise AssertionError("\n".join(fehler))

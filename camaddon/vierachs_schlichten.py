@@ -180,12 +180,14 @@ def bahn_fuer(
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
     werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter, halter)
+    form_teil = _teil(modell)
     werte = replace(
         werte,
         rest=rest_nach(schruppen, radius, a_futter, a_vorne),
         aufmass_schruppen=max(auf for _bahn, _radius, auf in schruppen),
+        waende=vo.waende(form_teil, laengs),
     )
-    teil = vh.vernetze(_teil(modell), vb.TOLERANZ_SCHLICHTEN)
+    teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     return vb.schlichten(teil, laengs, radial, werte)
 
 
@@ -195,7 +197,9 @@ def vorschau(job, modell, laengs, radial, form, schrittweite, aufmass, abstaende
     VORSCHAU_SCHRITT_PHI Grad ein Punkt. ValueError wie bahn_fuer()."""
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
     werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter, halter)
-    teil = vh.vernetze(_teil(modell), VORSCHAU_TOLERANZ)
+    form_teil = _teil(modell)
+    werte = replace(werte, waende=vo.waende(form_teil, laengs))
+    teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
 
 

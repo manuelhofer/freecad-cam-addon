@@ -34,6 +34,7 @@ ZUSTELLUNG = 2.0  # mm – Vorschläge, solange nichts anderes gesagt ist
 STEIGUNG_ANTEIL = 0.4  # Vorschub je Umdrehung als Anteil von D
 AUFMASS = 0.3  # mm
 GERADE = 1e-6
+WAND_RAND = 1e-3  # mm – eine Planfläche so nah an einem Ende des Teils ist seine Stirn
 
 
 class RundumSchruppen(PathOp.ObjectOp):
@@ -192,6 +193,10 @@ def bahn_fuer(
         raise ValueError(tr("vo.fehler.achse"))
     laengs.normalize()
     radius, a_hinten, a_vorne = stange(job, laengs)
+    formen = [o.Shape for o in modell if not o.Shape.isNull()]
+    if not formen:
+        raise ValueError(tr("vo.fehler.modell"))
+    form = formen[0] if len(formen) == 1 else _verbunden(formen)
     werte = vb.Schruppwerte(
         fraeser_radius=fraeser_radius,
         stange_radius=radius,
@@ -204,11 +209,8 @@ def bahn_fuer(
         ueberlauf=ueberlauf,
         abstand_futter=vb.ABSTAND_FUTTER if abstand_futter is None else abstand_futter,
         halter=halter,
+        waende=waende(form, laengs),
     )
-    formen = [o.Shape for o in modell if not o.Shape.isNull()]
-    if not formen:
-        raise ValueError(tr("vo.fehler.modell"))
-    form = formen[0] if len(formen) == 1 else _verbunden(formen)
     return vb.schruppen(vh.vernetze(form), laengs, radial, werte)
 
 
@@ -225,6 +227,29 @@ def stange(job, laengs):
         raise ValueError(tr("vo.fehler.stange_achse"))
     enden = (basis.dot(laengs), (basis + richtung * float(rohteil.Height)).dot(laengs))
     return float(rohteil.Radius), min(enden), max(enden)
+
+
+def waende(form, laengs):
+    """[(a, Seite)] der Wände des Teils: ebene Flächen quer zur Stangenachse zwischen seinem
+    hinteren und vorderen Ende (ein Absatz, die Flanke einer Nut) – Seite +1, wenn die Wand
+    nach vorn schaut, −1, wenn zum Futter hin. Vor jeder hält die Spirale eine Umdrehung an
+    (Ringgang, D-42)."""
+    laengs = FreeCAD.Vector(laengs)
+    enden = [v.Point.dot(laengs) for v in form.Vertexes]
+    if not enden:
+        return ()
+    hinten, vorne = min(enden), max(enden)
+    gefunden = set()
+    for flaeche in form.Faces:
+        if not vr.ist_eben(flaeche):
+            continue
+        quer = vr.aussennormale(flaeche).dot(laengs)
+        if abs(abs(quer) - 1) > GERADE:
+            continue
+        a = flaeche.CenterOfMass.dot(laengs)
+        if hinten + WAND_RAND < a < vorne - WAND_RAND:
+            gefunden.add((round(a, 6), 1 if quer > 0 else -1))
+    return tuple(sorted(gefunden))
 
 
 def _verbunden(formen):

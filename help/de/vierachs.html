@@ -139,9 +139,12 @@ Halters, wenn der weiter reicht – bleibt immer den Abstand zum Futter vor der
 Spannfläche. Die Operation merkt sich, wie weit der Halter reicht
 (Eigenschaft „Halter Zum Futter“). Wo das Teil höher ist als die Lage,
 folgt die Spitze dem Teil plus Aufmaß; der Achse kommt sie nie näher als der
-Fräserradius. Zwischen den Lagen geht es radial hinaus und im Eilgang nach
-vorne. Gerechnet wird gegen das ganze Teil, auf 0,02 mm genau vernetzt: Der
-Rechenfehler geht ins Aufmaß, nie ins Teil.</p>
+Fräserradius. Vor jeder <b>Wand</b> quer zur Achse – einem Absatz, der Flanke
+einer Nut – hält die Spirale eine Umdrehung an (Ringgang): So kommt der Fräser
+rundum bis an die Wand; sonst träfe er sie nur auf einem Teil des Umfangs.
+Zwischen den Lagen geht es radial hinaus und im Eilgang nach vorne. Gerechnet
+wird gegen das ganze Teil, auf 0,02 mm genau vernetzt: Der Rechenfehler geht
+ins Aufmaß, nie ins Teil.</p>
 <p><b>Im Programm</b> – bitte vor dem ersten Lauf lesen:</p>
 <ul>
 <li><b>X ist der Radius</b> (bei A und B ist es Z), nicht der Durchmesser. An
@@ -164,7 +167,10 @@ dort ändern; die Bahn rechnet dann neu.</p>
 <h3>Schritt 2: Rundum schlichten</h3>
 <p>Nach dem Schruppen fährt eine Spirale auf dem Teil: Die Spitze folgt der
 Oberfläche plus Aufmaß – gerechnet mit der echten Form des Fräsers, auf
-0,005 mm vernetzt und genau an den Stellen der Spirale.</p>
+0,005 mm vernetzt und genau an den Stellen der Spirale. Vor jeder Wand quer zur
+Achse hält sie eine Umdrehung an wie beim Schruppen; in der Ecke bleibt dann
+nur die Kehle, die die Form des Fräsers hinterlässt (beim Kugelfräser sein
+Radius).</p>
 <ul>
 <li><b>Fräser</b> – jeder aus der Werkzeugverwaltung, dessen Form das Addon
 kennt: Kugel-, Torus-, Schaft-, Konik-, Lollipop-, Fasen-, Nuten-, Plan- und

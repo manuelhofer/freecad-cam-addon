@@ -9,8 +9,11 @@
 # auf P3 nicht radial …“ mit dem Halter, der fehlt (W-002 Stufe E5); „T3 öffnen …“ öffnet
 # die Werkzeugverwaltung bei T3 – Halter gewählt, OK: weg (D-41). „Anlegen“ → „Auf der Maschine prüfen“: alle Achsen in ihren Grenzen, kein Hinweis
 # zur Werkzeuglage; T1 und T2 stehen beim Abspielen radial am Teil; „Kollision prüfen“:
-# nichts berührt sich; am Ende der Vergleich – nirgends ins Teil. Dann T2 ohne Halter: Das
+# nichts berührt sich; am Ende der Vergleich – nirgends ins Teil, und hinter dem Absatz
+# bleibt dank Ringgang (D-42) weniger als 1 mm. Dann T2 ohne Halter: Das
 # Prüffenster sagt, dass T2 auf P2 nicht radial sitzt, und nennt den Halter, der fehlt.
+import math
+
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -193,6 +196,11 @@ def schritte(h):
     yield 500
     rest = spieler.rest.text()
     h.pruefe(rest.startswith("Am Ende bleiben") and "nirgends ins Teil" in rest, f"{rest!r}")
+    # Hinter dem Absatz bleibt nicht mehr bis 6,4 mm (vor dem Ringgang, D-42) – höchstens die
+    # Kehle des Kugelfräsers, im Raster des Vergleichs weniger als 1 mm.
+    abtrag = getattr(getattr(pruef, "bild", None), "abtrag", None)
+    groesster = abtrag.vergleich().groesster if abtrag is not None else math.inf
+    h.pruefe(groesster < 1.0, f"am Ende bleiben bis {groesster:.2f} mm (Ringgang?)")
     Gui.SendMsgToActiveView("ViewFit")
     spieler.knopf_hinsehen.click()
     yield 500

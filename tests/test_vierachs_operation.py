@@ -171,6 +171,19 @@ doc.recompute()
 pruefe(op.Lagen == 0 and "Stange" in op.Path.Commands[1].Name, f"Quader: {op.Path.Commands}")
 FreeCAD.closeDocument(doc.Name)
 
+# --- Wände für den Ringgang (D-42) -----------------------------------------------------------
+# Planflächen quer zur Achse zwischen den Enden: ein Absatz, die Flanken einer Nut – nicht die
+# Stirn vorn und hinten, nicht die Mantelflächen.
+V = FreeCAD.Vector
+pruefe(vo.waende(Part.makeCylinder(20, 40, V(0, 0, -40)), (0, 0, 1)) == (), "Zylinder: Wände")
+absatz = Part.makeCylinder(25, 25, V(0, 0, -25)).fuse(Part.makeCylinder(18, 15, V(0, 0, -40)))
+pruefe(vo.waende(absatz.removeSplitter(), (0, 0, 1)) == ((-25.0, -1),), "Absatz zum Futter")
+pruefe(vo.waende(absatz.removeSplitter(), (0, 0, -1)) == ((25.0, 1),), "andersherum")
+nut = Part.makeCylinder(20, 40, V(0, 0, -40)).cut(
+    Part.makeCylinder(25, 8, V(0, 0, -24)).cut(Part.makeCylinder(15, 8, V(0, 0, -24)))
+)
+pruefe(vo.waende(nut, (0, 0, 1)) == ((-24.0, 1), (-16.0, -1)), f"Nut: {vo.waende(nut, (0, 0, 1))}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

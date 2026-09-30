@@ -69,6 +69,8 @@ SCHLICHT_ZUGABE = 0.5  # mm – Schlichten schneidet mindestens Aufmaß des Schr
 # mm – höchstens so viel hebt der Sehnenfehler einen Punkt: Er gilt für Rundungen; an einer
 # Kante springt die Hüllfläche, dort dringt die Gerade kaum ein (längs, um Tausendstel).
 SEHNE_HOECHSTENS = 0.02
+# mm – so viel weiter als Fräser, Aufmaß und Vernetzung steht ein Ring vor der Wand (D-42)
+RING_LUFT = 0.01
 
 
 @dataclass(frozen=True)
@@ -88,6 +90,9 @@ class Schruppwerte:
     # So weit reicht der Halter seitlich über die Werkzeugachse (halter.seitlich): Reicht er
     # weiter als der Fräser, gilt der Abstand zum Futter von seinem Rand.
     halter: float = 0.0
+    # (a, Seite) der Wände des Teils quer zur Achse (vierachs_operation.waende): Vor jeder
+    # hält die Spirale eine Umdrehung an – der Ringgang (D-42).
+    waende: tuple = ()
 
 
 @dataclass(frozen=True)
@@ -104,6 +109,7 @@ class Schlichtwerte:
     ueberlauf: float = None  # so weit hinter das Teil (Mitte des Fräsers); None: Vorschlag
     abstand_futter: float = ABSTAND_FUTTER
     halter: float = 0.0  # wie bei Schruppwerte
+    waende: tuple = ()  # wie bei Schruppwerte
     # Der Rest nach dem Schruppen: (a, φ in rad, r) wie restmaterial.Stange; None: kein Schutz.
     rest: tuple = None
     aufmass_schruppen: float = 0.0  # so viel ließ das Schruppen stehen
@@ -151,6 +157,51 @@ def _kein_platz(radius, w):
     if w.halter > radius:
         return tr("vb.fehler.platz_halter")
     return tr("vb.fehler.platz")
+
+
+def _ringe(waende, abstand, a_von, a_bis):
+    """Wo die Spirale eine Umdrehung anhält (Ringgang, D-42): vor jeder Wand (a, Seite) so
+    weit, dass der Fräser sie berührt – `abstand` (Radius plus Aufmaß) zu der Seite hin, zu
+    der sie schaut; nur zwischen a_von und a_bis, von vorn nach hinten, jede Stelle einmal."""
+    stellen = {round(a + seite * abstand, 6) for a, seite in waende}
+    return sorted((s for s in stellen if a_von < s < a_bis), reverse=True)
+
+
+def _mit_ringen(a, ringe, je_umdrehung):
+    """Die Spirale `a` (je Punkt, fallend) mit einem Ring je Stelle in `ringe`:
+    (a, Winkelschritte, Herkunft). Ein Ring sind je_umdrehung Punkte bei festem a; danach läuft
+    die Spirale eine Umdrehung später weiter. Herkunft: die Nummer des Punkts der Spirale,
+    beim Ring −1 − seine Nummer."""
+    k = np.arange(len(a))
+    teile_a, teile_k, teile_h = [], [], []
+    versatz = 0
+    anfang = 0
+    for nummer, stelle in enumerate(ringe):
+        i = int(np.searchsorted(-a, -stelle, side="left"))  # der erste Punkt mit a <= stelle
+        teile_a += [a[anfang:i], np.full(je_umdrehung, stelle)]
+        teile_k += [k[anfang:i] + versatz, k[i] + versatz + np.arange(je_umdrehung)]
+        teile_h += [k[anfang:i], np.full(je_umdrehung, -1 - nummer)]
+        versatz += je_umdrehung
+        anfang = i
+    teile_a.append(a[anfang:])
+    teile_k.append(k[anfang:] + versatz)
+    teile_h.append(k[anfang:])
+    return np.concatenate(teile_a), np.concatenate(teile_k), np.concatenate(teile_h)
+
+
+def _ring_radien(r, herkunft, schritte, ring_r, je_umdrehung):
+    """Die Radien der Spirale mit Ringen (_mit_ringen): je Ring seine Zeile
+    `ring_r[nummer]` (je Winkel) an seinen Punkten, sonst `r` – je Punkt der Spirale mit
+    Ringen, oder (so lang wie `herkunft` nicht) je Punkt der Spirale ohne sie."""
+    ergebnis = np.array(r, dtype=float)
+    if len(ergebnis) != len(herkunft):
+        ergebnis = np.empty(len(herkunft))
+        spirale = herkunft >= 0
+        ergebnis[spirale] = np.asarray(r)[herkunft[spirale]]
+    for nummer, zeile in enumerate(ring_r):
+        drin = herkunft == -1 - nummer
+        ergebnis[drin] = zeile[schritte[drin] % je_umdrehung]
+    return ergebnis
 
 
 @dataclass(frozen=True)
@@ -205,11 +256,24 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     huelle = vh.schaftfraeser(netz, laengs, radial, radius + w.aufmass, a_werte, phi_werte)
     huelle = _hinten_weiter(huelle.sicher(), teil_hinten)
     zugabe = w.aufmass + netz.toleranz + RAND
+    # Vor jeder Wand hält die Spirale eine Umdrehung an: Sonst kommt der Fräser nur auf
+    # einem Teil des Umfangs bis an die Wand (D-42). Die Hüllfläche dort genau an der Stelle
+    # des Rings – das Raster nähme den höheren Nachbarn, und der liegt schon an der Wand.
+    ringe = _ringe(w.waende, radius + w.aufmass + netz.toleranz + RING_LUFT, a_ende, a_anfang)
+    a, k, herkunft = _mit_ringen(a, ringe, je_umdrehung)
+    ring_r = [
+        vh.schaftfraeser(netz, laengs, radial, radius + w.aufmass, np.array([stelle]), phi_werte)
+        .sicher()
+        .r[0]
+        for stelle in ringe
+    ]
 
     def boden(versatz):
         """Wie tief die Spitze an jedem Punkt der Spirale darf, wenn sie beim Winkel
         phi[versatz] beginnt."""
-        ergebnis = huelle.bei(a, (versatz + k) % je_umdrehung) + zugabe
+        winkel = (versatz + k) % je_umdrehung
+        ergebnis = _ring_radien(huelle.bei(a, winkel), herkunft, winkel, ring_r, je_umdrehung)
+        ergebnis = ergebnis + zugabe
         ergebnis = np.where(~np.isfinite(ergebnis) & (a < teil_hinten), w.stange_radius, ergebnis)
         return np.maximum(ergebnis, radius)  # nicht näher an die Achse
 
@@ -226,9 +290,9 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     for lage in range(1, lagen + 1):
         r = np.maximum(boden(versatz), w.stange_radius - lage * w.zustellung)
         phi = (versatz + k) * schritt_phi
-        for i in _knicke(r, int(round(HOECHSTENS_GRAD / schritt_phi))):
+        for i in _knicke(r, int(round(HOECHSTENS_GRAD / schritt_phi)), a):
             punkte.append(Punkt(False, float(a[i]), float(r[i]), float(phi[i])))
-        versatz += anzahl
+        versatz += int(k[-1])
         punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
     return Bahn(punkte, lagen, r_min, hinten_frei)
@@ -281,6 +345,27 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     k = np.arange(anzahl + 1)
     a = a_anfang - s * k / je_umdrehung
     r = huelle[umdrehungen - k // je_umdrehung, k % je_umdrehung]
+    # Vor jeder Wand hält die Spirale eine Umdrehung an (Ringgang, D-42) – die Hüllfläche
+    # dort genau an dieser Stelle gerechnet; so weit vor der Wand, dass der um Aufmaß und
+    # Vernetzung größere Fräser sie nicht streift.
+    ringe = _ringe(w.waende, radius + zugabe + RING_LUFT, a_ende, a_anfang)
+    a, k, herkunft = _mit_ringen(a, ringe, je_umdrehung)
+    ring_r = [
+        vh.je_winkel(
+            netz,
+            laengs,
+            radial,
+            form.mit_aufmass(zugabe),
+            np.full(je_umdrehung, stelle),
+            s,
+            1,
+            phi,
+        )[0]
+        + zugabe
+        for stelle in ringe
+    ]
+    r = _ring_radien(r, herkunft, k, ring_r, je_umdrehung)
+    anzahl = len(a) - 1
     r = np.where(np.isfinite(r), r, w.stange_radius)  # trifft rundum nichts: bleibt oben
     r = np.maximum(r, radius)  # nicht näher an die Achse
     # Wo das Schruppen mehr stehen ließ als die Grenze (eine Innenecke, eine enge Nut), fährt
@@ -354,7 +439,8 @@ def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand):
     anfahren = Punkt(True, float(a[von]), sicher, float(winkel[von] + versatz))
     if anfahren != punkte[-1]:
         punkte.append(anfahren)
-    for i in _zusammengefasst(stueck, BAHN_TOLERANZ, abstand):
+    ringe = np.flatnonzero(_a_knicke(a[von : bis + 1])) + 1
+    for i in _zusammengefasst(stueck, BAHN_TOLERANZ, abstand, ringe.tolist()):
         j = von + i
         punkte.append(Punkt(False, float(a[j]), float(stueck[i]), float(winkel[j] + versatz)))
     punkte.append(Punkt(True, float(a[bis]), sicher, float(winkel[bis] + versatz)))
@@ -432,11 +518,13 @@ def _sehnenfehler(r):
     return heben
 
 
-def _zusammengefasst(r, toleranz, hoechstens):
-    """Die Punkte, die bleiben: Anfang, Ende und so wenige dazwischen, dass die Gerade zwischen
-    zwei bleibenden Punkten über keinem ausgelassenen liegt und höchstens `toleranz` darüber
-    – längs der Spirale sind a und φ ohnehin linear. Höchstens `hoechstens` Punkte weit."""
+def _zusammengefasst(r, toleranz, hoechstens, fest=()):
+    """Die Punkte, die bleiben: Anfang, Ende, die Punkte in `fest` und so wenige dazwischen,
+    dass die Gerade zwischen zwei bleibenden Punkten über keinem ausgelassenen liegt und
+    höchstens `toleranz` darüber – zwischen ihnen sind a und φ linear (an den Punkten in
+    `fest` knickt a: ein Ring beginnt oder endet). Höchstens `hoechstens` Punkte weit."""
     werte = r.tolist()
+    fest = set(fest)
     bleibt = [0]
     anfang = 0
     unten, oben = -math.inf, math.inf  # erlaubte Steigung ab dem Anfang
@@ -451,6 +539,10 @@ def _zusammengefasst(r, toleranz, hoechstens):
         # Ab hier muss die Gerade über Punkt i liegen, höchstens `toleranz` darüber.
         unten = max(unten, (werte[i] - werte[anfang]) / schritte)
         oben = min(oben, (werte[i] + toleranz - werte[anfang]) / schritte)
+        if i in fest and i < len(werte) - 1:
+            bleibt.append(i)
+            anfang = i
+            unten, oben = -math.inf, math.inf
     if bleibt[-1] != len(werte) - 1:
         bleibt.append(len(werte) - 1)
     return bleibt
@@ -468,15 +560,22 @@ def _hinten_weiter(huelle, teil_hinten):
     return vh.Huelle(huelle.a, huelle.phi, r)
 
 
-def _knicke(r, abstand):
-    """Die Stellen der Spirale, die bleiben: Anfang, Ende, wo der Radius sich ändert, und
-    alle `abstand` Stellen eine – dazwischen liegen die Punkte auf einer Geraden in
-    (a, r, φ)."""
+def _knicke(r, abstand, a=None):
+    """Die Stellen der Spirale, die bleiben: Anfang, Ende, wo der Radius sich ändert, wo ein
+    Ring beginnt oder endet (`a` ändert dort seine Steigung) und alle `abstand` Stellen eine
+    – dazwischen liegen die Punkte auf einer Geraden in (a, r, φ)."""
     anders = np.abs(np.diff(r)) > GLEICH
     bleibt = np.arange(len(r)) % abstand == 0
     bleibt[0] = bleibt[-1] = True
     bleibt[1:-1] |= anders[:-1] | anders[1:]
+    if a is not None:
+        bleibt[1:-1] |= _a_knicke(a)
     return np.nonzero(bleibt)[0]
+
+
+def _a_knicke(a):
+    """Je innerem Punkt: Ändert `a` dort seine Steigung – beginnt oder endet ein Ring?"""
+    return np.abs(np.diff(a, 2)) > GLEICH
 
 
 def befehle(bahn, laengs, radial, buchstabe, drehsinn, vorschub, quer_auf_null=True):

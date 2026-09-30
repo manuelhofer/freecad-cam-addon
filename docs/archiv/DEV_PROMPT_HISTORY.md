@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-20 ringgang-an-waenden
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md` D-42, `docs/spezifikation_vierachs.md` (V5e, der
+  Fund hinter dem Absatz), `camaddon/vierachs_bahn.py` (`schruppen`, `schlichten`,
+  `_knicke`, `_zusammengefasst`, `_spirale`), `camaddon/vierachs_huelle.py` (`je_winkel`,
+  `schaftfraeser`, `Huelle.bei`, `sicher`), `camaddon/vierachs_operation.py`,
+  `camaddon/vierachs_schlichten.py`, `help/*/vierachs.html`.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `camaddon/vierachs_operation.py`,
+  `camaddon/vierachs_schlichten.py`, `help/de/vierachs.html`, `help/en/vierachs.html`,
+  `tests/test_vierachs_bahn.py`, `tests/test_vierachs_schlichten.py`,
+  `tests/test_vierachs_operation.py`, `tests/gui/szenario_rundum_drehmaschine.py`,
+  `docs/spezifikation_vierachs.md`, `docs/durchsicht_bedienbarkeit.md`, `docs/aufbau.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle mit Absatz (Wand zum Futter hin), „Rundum schruppen“ und „Rundum schlichten“ auf der
+Beispiel-Drehmaschine → „Auf der Maschine prüfen“ → ans Ende: Hinter dem Absatz bleibt nur
+die Kehle des Kugelfräsers, nicht mehr bis 6,4 mm.
+
+### DONE
+- `vierachs_operation.waende()`: ebene Flächen quer zur Stangenachse zwischen den Enden
+  des Teils (Absätze, Flanken von Nuten), mit der Seite, zu der sie schauen.
+- Vor jeder Wand hält die Spirale eine Umdrehung an (Ringgang): beim Schruppen in jeder
+  Lage, beim Schlichten auch in den Stufen. Der Ring steht Fräserradius + Aufmaß +
+  Vernetzung + 0,01 mm vor der Wand, damit der um Aufmaß und Vernetzung größere Fräser sie
+  nicht streift; die Hüllfläche genau an seiner Stelle (beim Schruppen eine eigene Zeile –
+  das Raster nähme den höheren Nachbarn, und der liegt schon an der Wand). Danach läuft die
+  Spirale eine Umdrehung später weiter; das Ausdünnen der Punkte behält Anfang und Ende
+  jedes Rings (dort knickt a).
+- Die Operationen rechnen die Wände aus der Form des Teils, die Vorschau im Assistenten
+  auch; Hilfe de/en, Spezifikation, Durchsicht (D-42 erledigt), `aufbau.md`.
+
+### TEST
+- KI ohne Oberfläche, FreeCAD 1.1.3: `test_vierachs_bahn` (Welle mit Absatz, Ø 12,
+  4,8 mm: ohne Ring hinter der Wand über 3 mm stehen, mit Ring höchstens das Aufmaß; je Lage
+  ein ganzer Umlauf), `test_vierachs_schlichten` (Kugel Ø 6, 2 mm: an der Wand ohne Ring
+  über 3 mm, mit Ring die Kehle ≤ 1,5 mm; nirgends im Teil), `test_vierachs_operation`
+  (Wände von Zylinder, Absatz, Nut), `test_restmaterial` grün.
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_rundum_drehmaschine` grün.
+
+### NEXT
+- D-40 Längen-Texte, D-43 Meldung beim Kugelfräser.
+
 ## P-2026-09-30-19 durchsicht-2-und-verweis
 
 ### EINGELESEN

@@ -894,8 +894,14 @@ die Abstände gelten für beide.
   manchen Winkeln bis 6,4 mm stehen (Kugel Ø 6, Schrittweite 1 mm) – die Spirale
   liegt dort 2,5 mm (über die Kante gehoben) und 3,5 mm (erreicht die Wand nicht)
   von der Wand, nur auf dem halben Umfang genau 3; beim Schruppen genauso. Das
-  Prüffenster zeigt es richtig rot. *Vorschlag:* ein Umlauf bei festem a vor
-  jeder Wand (Ringgang an Absätzen) – zur Besprechung.
+  Prüffenster zeigt es richtig rot. *Gebaut (P-2026-09-30-20, Durchsicht 2 D-42):*
+  Vor jeder Wand – einer Planfläche des Teils quer zur Achse zwischen seinen Enden
+  (`vierachs_operation.waende`) – hält die Spirale eine Umdrehung an (Ringgang):
+  beim Schruppen in jeder Lage, beim Schlichten auch in den Stufen. Der Ring steht
+  Fräserradius + Aufmaß + Vernetzung + 0,01 mm vor der Wand; die Hüllfläche dort
+  genau an seiner Stelle. Im Szenario bleibt am Ende weniger als 1 mm (vorher
+  6,4 mm); im Test hinter der Wand beim Schruppen 0,33 statt 7,32 mm, beim
+  Schlichten an der Wand die Kehle 1,38 statt 4,78 mm.
 - *Klickweg:* Welle mit Absatz, „4-Achs-Bearbeitung“ → Beispiel-Drehmaschine →
   „Weiter“ → „Rundum schruppen“ T1 Schaftfräser Ø 12 und „Rundum schlichten“
   T2 Kugelfräser Ø 6: Schrittweite grau aus der Werkzeugtabelle, daneben die

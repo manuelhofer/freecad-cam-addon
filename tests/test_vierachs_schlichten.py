@@ -10,6 +10,7 @@ import math
 import os
 import sys
 import time
+from dataclasses import replace
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -266,6 +267,49 @@ pruefe(
 )
 eintauchen = [teil[0].r for teil in stuecke(klein)[:-1]]
 pruefe(min(eintauchen) >= 19.0, f"Ø 2 taucht ein bis {min(eintauchen):.3f}")
+
+# --- Ringgang vor der Wand (D-42) ----------------------------------------------------------
+# Die Welle mit Absatz von oben: Die Wand bei −30 schaut zum Futter. Mit 2 mm je Umdrehung
+# liegt die Spirale auf einem Teil des Umfangs 2 mm (die Kante hebt die Kugel) und 4 mm vor
+# der Wand – dicht an ihr bleibt viel mehr stehen als die Kehle. Mit Ring hält sie gut
+# 3 mm vor der Wand eine Umdrehung an: Dicht an ihr (a −31 … −30,5) bleibt die Kehle der
+# Kugel, höchstens 3 − √(9 − 2,5²) ≈ 1,34 mm über Ø 30.
+netz_absatz = vh.vernetze(welle.removeSplitter(), vb.TOLERANZ_SCHLICHTEN)
+
+
+def rest_an_der_wand(bahn):
+    """Wie viel die Bahn dicht an der Wand (a −31,1 … −30,4) über Ø 30 stehen lässt."""
+    stange = rm.Stange(25.0, -60.0, 1.0)
+    von, nach = [], []
+    for vorher, punkt in zip(bahn.punkte, bahn.punkte[1:], strict=False):
+        if not punkt.eilgang and not vorher.eilgang:
+            von.append((vorher.a, vorher.r, vorher.phi))
+            nach.append((punkt.a, punkt.r, punkt.phi))
+        elif not punkt.eilgang:
+            stange.schnitt(punkt.a, punkt.r, punkt.phi, kugel)
+    stange.fahre_stuecke(von, nach, kugel)
+    dicht_dran = (stange.a > -31.1) & (stange.a < -30.4)
+    return float(stange.r[dicht_dran].max() - 15.0)
+
+
+grob = vb.Schlichtwerte(kugel, 25.0, 2.0, 0.0, 1.0, -60.0)
+ohne_ring = vb.schlichten(netz_absatz, LAENGS, RADIAL, grob)
+mit_ring = vb.schlichten(netz_absatz, LAENGS, RADIAL, replace(grob, waende=((-30.0, -1),)))
+stelle = -30.0 - (3.0 + netz_absatz.toleranz + vb.RING_LUFT)  # die Kugel streift die Wand nicht
+ring = [p for p in mit_ring.punkte if not p.eilgang and abs(p.a - stelle) < 1e-9]
+pruefe(len(ring) >= 2 and ring[-1].phi - ring[0].phi >= 359.5 - 1e-6, f"Ring: {len(ring)}")
+pruefe(
+    abs(mit_ring.umdrehungen - ohne_ring.umdrehungen - 1.0) < 1e-9,
+    f"Umdrehungen {ohne_ring.umdrehungen} → {mit_ring.umdrehungen}",
+)
+rest_ohne, rest_mit = rest_an_der_wand(ohne_ring), rest_an_der_wand(mit_ring)
+pruefe(rest_ohne > 3.0, f"ohne Ring an der Wand nur {rest_ohne:.3f} stehen")
+pruefe(rest_mit < 1.34 + 0.15, f"mit Ring an der Wand {rest_mit:.3f} stehen")
+# Die Ringpunkte liegen auf der Hüllfläche wie die der Spirale – nicht im Teil.
+a, r = dicht(mit_ring)
+soll = im_schnitt(umriss, kugel, np.clip(a, -42.0, 0.0))
+pruefe((r - soll).min() >= -1e-3, f"mit Ring im Teil: {(r - soll).min():.4f}")
+print(ascii(f"Wand: an der Wand ohne Ring {rest_ohne:.2f} mm, mit Ring {rest_mit:.2f} mm"))
 
 # --- Zeitgrenze: Kugelfräser Ø 6 auf der Welle Ø 60 × 100 mit Nocken, 0,35 mm ------------
 teil = (
