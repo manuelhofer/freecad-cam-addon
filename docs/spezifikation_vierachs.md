@@ -377,6 +377,23 @@ G93 hält mit Alarm an, statt mit falschem Vorschub zu fahren. Die
 Drehzahlgrenze der Rundachse kommt aus W-001. Achtung: CAM führt F intern in
 mm/s, der Postprozessor rechnet ×60.
 
+**FreeCADs Postprozessoren** (P-2026-09-30-36, auf Manuels Frage „Funktionieren
+die so wie wir das hier bauen??“; geprüft mit 1.1.3 und 26.3, dieselbe
+Operation durch jeden): LinuxCNC, Mach3/Mach4, Masso G3, Generic (26.3),
+KineticNC/Beamicon2, Estlcam, Dynapath 4060 – G93, G94, C und F in jedem
+Vorschubsatz, Werte wie in der Bahn (grbl, Marlin, RRF, JTech geben es auch so
+aus, deren Steuerungen kennen meist weder C noch G93). Fanuc und UCCNC lassen
+ein F weg, das gleich dem vorigen ist (rund 380 von 5 482 Sätzen) – mit
+`--no-axis-modal` bzw. `--repeat` steht es überall; `test_vierachs_operation`
+prüft diese vier. Centroid, Smoothie, Fablin, Philips lassen C weg, Fangling F;
+Heidenhain bricht in beiden Versionen ab (FreeCAD-Fehler), OpenSBP kennt G93
+erst neu in 26.3. **Drehmaschine:** Die Postprozessoren schreiben `M3 S…` –
+das ist dort die Hauptspindel; angetriebenes Werkzeug und C-Achsbetrieb
+gehören in den Programmkopf (Siemens `SETMS(…)`). Bei Fanuc-Drehmaschinen im
+G-Code-System A ist G94 ein Plandrehzyklus, Vorschub je Minute heißt G98 –
+offen, ob die Operation das je Maschine anders schreiben soll (Frage an
+Manuel, welche Steuerung er hat).
+
 ## 10. Die CAM-Operation
 
 - `camaddon/vierachs_operation.py`: ein `Path::FeaturePython`, dessen Proxy

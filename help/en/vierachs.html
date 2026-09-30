@@ -173,8 +173,23 @@ program header must switch to radius (Siemens <code>DIAMOF</code>); otherwise
 the tool would go to half the distance from the axis.</li>
 <li>The <b>feed</b> is given after <b>G93</b> (1 ÷ time) – so the cutter runs
 at the use case's feed on the workpiece, however far it is from the axis.
-G94 follows. The post processor must write F in every block (its default)
-and output metric.</li>
+G94 follows. The post processor must write F in every block and output
+metric.</li>
+<li><b>FreeCAD's post processors</b> (checked with 1.1.3 and 26.3):
+<b>LinuxCNC</b>, <b>Mach3/Mach4</b>, <b>Masso G3</b>, <b>Generic</b> (26.3),
+<b>KineticNC/Beamicon2</b>, <b>Estlcam</b> and <b>Dynapath 4060</b> write
+G93, C and F as they must. <b>Fanuc</b> and <b>UCCNC</b> drop an F that equals
+the previous one – enter <code>--no-axis-modal</code> (Fanuc) or
+<code>--repeat</code> (UCCNC) in the job's post processor arguments, then it
+is in every block. <b>Centroid</b>, <b>Smoothie</b>, <b>Fablin</b> and
+<b>Philips</b> drop the rotary axis, <b>Fangling</b> the F – they are no use
+for this.</li>
+<li>On a <b>lathe</b> these post processors write <code>M3 S…</code> – there
+that is the main spindle. The program header switches on the driven tool and
+C-axis mode (Siemens e.g. <code>SETMS(…)</code> with the number of the tool
+drive, otherwise the machine builder's M codes). On Fanuc lathes with G code
+system A, <b>G94 is a facing cycle</b> and feed per minute is G98 – there an
+adapted post processor is needed.</li>
 <li>The <b>rotary axis</b> keeps counting (−3600° and more): it must run
 without modulo, otherwise it would not turn round several times.</li>
 <li>At the start the tool moves out radially to the safety distance, then to

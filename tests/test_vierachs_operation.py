@@ -7,6 +7,7 @@
 # gibt, oder nur eine Stirn – ein Satz statt der Bahn.
 import importlib
 import os
+import re
 import sys
 import tempfile
 
@@ -188,6 +189,55 @@ if post is not None:
         pruefe(saetze and all(" F" in z for z in saetze), "Satz ohne F")
         pruefe(all(" C" in z or "C" in z.split()[1:] for z in saetze[:5]), f"ohne C: {saetze[:3]}")
         print(ascii(f"Postprozessor {post.__name__}: {len(saetze)} Sätze, etwa {saetze[1]}"))
+
+# Die Postprozessoren, die die Hilfe nennt (vierachs.html, „Im Programm“; Manuel 2026-09-30:
+# „Funktionieren die so wie wir das hier bauen??“): In jedem Vorschubsatz zwischen G93 und G94
+# steht F – Fanuc und UCCNC nur mit der Option, die ein gleiches F nicht weglässt –, und die
+# Rundachse C bleibt. Gezählt wie die Steuerung liest: Ein Satz ohne G-Wort fährt wie der davor.
+from Path.Post.Processor import PostProcessorFactory  # noqa: E402
+
+
+def vorschubsaetze(text):
+    """Die Sätze zwischen G93 und G94, die mit G1 fahren – auch modal ohne „G1“."""
+    saetze, drin, modus = [], False, None
+    for zeile in text.splitlines():
+        satz = re.sub(r"^N\d+\s*", "", re.sub(r"\(.*?\)|;.*$", "", zeile).strip().upper())
+        if re.search(r"(?<![A-Z0-9.])G93(?!\d)", satz):
+            drin = True
+            continue
+        if drin and re.search(r"(?<![A-Z0-9.])G94(?!\d)", satz):
+            break
+        wechsel = re.findall(r"(?<![A-Z])G0?([01])(?![0-9.])", satz)
+        if wechsel:
+            modus = wechsel[-1]
+        if drin and modus == "1" and re.search(r"(?<![A-Z])[XYZABC]-?[\d.]", satz):
+            saetze.append(satz)
+    return saetze
+
+
+job = next(o for o in doc.Objects if hasattr(o, "Operations"))
+for namen, argumente in (
+    (("linuxcnc", "linuxcnc_legacy"), ""),
+    (("mach3_mach4", "mach3_mach4_legacy"), ""),
+    (("fanuc", "fanuc_legacy"), "--no-axis-modal"),
+    (("uccnc", "uccnc_legacy"), "--repeat"),
+):
+    job.PostProcessorArgs = f"--no-show-editor {argumente}".strip()
+    abschnitte = None
+    for name in namen:
+        post = PostProcessorFactory.get_post_processor(job, name)
+        if hasattr(post, "export"):  # sonst None (1.1.3) oder ein CAMError (26.3): gibt es nicht
+            abschnitte = post.export()
+            break
+    pruefe(abschnitte, f"{namen[0]}: keine Ausgabe")
+    saetze = vorschubsaetze("\n".join(str(g or "") for _, g in abschnitte or ()))
+    ohne_f = [z for z in saetze if not re.search(r"(?<![A-Z])F[\d.]", z)]
+    mit_c = [z for z in saetze if re.search(r"(?<![A-Z])C-?[\d.]", z)]
+    pruefe(
+        len(saetze) > 100 and not ohne_f,
+        f"{namen[0]} {argumente}: {len(ohne_f)} von {len(saetze)} ohne F, etwa {ohne_f[:1]}",
+    )
+    pruefe(len(mit_c) > 0.9 * len(saetze), f"{namen[0]}: C in {len(mit_c)} von {len(saetze)}")
 
 # --- Fehler: Rohteil keine Stange, kein Vorschub -------------------------------------------
 job = next(o for o in doc.Objects if hasattr(o, "Operations"))

@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-36 postprozessoren
+
+### EINGELESEN
+- Manuel, 2026-09-30: „Was sagst du zu den in freecad vorhandene. Postprozessoren ...
+  Funktionieren die so wie wir das hier bauen??“
+- Alle Postprozessoren von FreeCAD 1.1.3 und 26.3 (`Path/Post/scripts/*_post.py`,
+  `Path/Post/Processor.py`: `PostProcessorFactory`); `camaddon/vierachs_bahn.py` (`befehle`),
+  `help/*/vierachs.html` („Im Programm“), `docs/spezifikation_vierachs.md` (G93),
+  `tests/test_vierachs_operation.py`.
+
+### DATEIEN
+- `help/de/vierachs.html`, `help/en/vierachs.html`, `docs/spezifikation_vierachs.md`,
+  `tests/test_vierachs_operation.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Hilfe sagt, mit welchem Postprozessor von FreeCAD das Programm einer Rundum-Operation so
+herauskommt, wie es muss (G93, C, F in jedem Vorschubsatz), welche Option Fanuc und UCCNC
+brauchen und worauf man an der Drehmaschine achten muss; die Prüfung hält das fest.
+
+### DONE
+- Dieselbe Operation „Rundum schruppen“ (5 482 Vorschubsätze) durch jeden Postprozessor
+  beider Versionen: LinuxCNC, Mach3/Mach4, Masso G3, Generic (26.3), KineticNC/Beamicon2,
+  Estlcam, Dynapath 4060 – alles richtig. Fanuc und UCCNC lassen ein F weg, das gleich dem
+  vorigen ist (386 bzw. 381 Sätze) – in G93 ein Alarm; mit `--no-axis-modal` bzw. `--repeat`
+  steht es überall. Centroid, Smoothie, Fablin, Philips lassen C weg, Fangling F.
+- Drehmaschine: Die Postprozessoren schreiben `M3 S…` (dort die Hauptspindel); angetriebenes
+  Werkzeug und C-Achsbetrieb gehören in den Programmkopf. Fanuc-Drehmaschinen mit
+  G-Code-System A: G94 ist dort ein Plandrehzyklus.
+- Hilfe de/en, Spezifikation; `test_vierachs_operation` prüft LinuxCNC, Mach3/Mach4, Fanuc
+  (`--no-axis-modal`) und UCCNC (`--repeat`): F in jedem Vorschubsatz, auch modal ohne „G1“,
+  und C.
+
+### TEST
+- `test_vierachs_operation`, `test_hilfe` in 1.1.3 und 26.3: ok (26.3 gibt für einen
+  unbekannten Postprozessor ein `CAMError` statt None zurück – die Prüfung nimmt beides).
+
+### NEXT
+- Manuel fragen, welche Steuerung seine Maschine hat: bei Fanuc-Drehen G98 statt G94.
+
 ## P-2026-09-30-35 installieren-test-umleitung
 
 ### EINGELESEN
