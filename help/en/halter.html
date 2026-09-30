@@ -31,24 +31,40 @@ diameter and thickness, then the body down to the nose; the whole length is
 usually called <b>A</b> or <b>L1</b> there.</li>
 <li><b>+ Section</b> inserts one below the chosen one, <b>− Section</b>
 removes it.</li>
+<li><b>Direction</b> – how the tool stands to the machine. <b>straight</b>: in
+the axis of the mount, as in a milling spindle or an axial VDI holder.
+<b>angled</b>: a driven radial holder on the turret or an angle head in the
+milling spindle. Then there are four more fields: the <b>angle</b> between the
+axis of the mount and that of the tool (90° = right angle), the
+<b>rotation</b> about the axis of the mount (0°: towards its reference
+direction – on the turret towards the spindle axis), the <b>offset</b> from the
+mount to the tool axis and the <b>head Ø</b> for the head down to there. Where
+the two axes meet is the <b>reference point</b>: the contour runs from it
+along the tool axis, and with the tool the length is then called <b>length
+from reference point</b> – as a presetter measures driven tools. The check
+window, the run-through and the collision check place the tool that way.</li>
 <li>On the right the <b>picture</b>: the holder in section, the spindle on
 top, below it the tool down to its tip – shank grey, cutting part blue as in
-the tool's picture. You see at once whether the dimensions fit together.</li>
+the tool's picture; an angled holder with its head and bend (drawn in the plane
+of the bend – the rotation does not show). You see at once whether the
+dimensions fit together.</li>
 <li>Below, which tools <b>use</b> the holder. A holder is a description, not a
 single piece – several tools may share one.</li>
 </ul>
 
 <h3>Templates</h3>
 <p>To get started there are templates: collet chucks ER16 to ER40,
-shrink-fit, Weldon, hydraulic chuck, shell mill arbor, drill chuck – on SK40 –
-and a VDI30 holder for lathes. Their dimensions are <b>typical values, not
+shrink-fit, Weldon, hydraulic chuck, shell mill arbor, drill chuck – on SK40 –,
+a 90° angle head and VDI30 holders for lathes: axial, driven axial and driven
+radial. Their dimensions are <b>typical values, not
 catalogue values</b>; the description says so. Enter your holder's dimensions
 from the catalogue.</p>
 
 <h3>Limits</h3>
 <ul>
-<li>The holder is round about the tool axis. Block holders on lathes (VDI) are
-approximated by a cylinder.</li>
+<li>The holder is round about its axes – an angled one with the head about
+the axis of the mount and the output about the tool axis. Block holders on
+lathes (VDI) are approximated by cylinders.</li>
 <li>The holder is not handed to CAM – FreeCAD's CAM tools do not know
 holders.</li>
 </ul>

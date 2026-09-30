@@ -30,9 +30,23 @@ zählt nicht. Aus dem Katalog: Flanschdurchmesser und -dicke, dann der Körper
 bis zur Nase; die ganze Länge heißt dort meist <b>A</b> oder <b>L1</b>.</li>
 <li><b>+ Abschnitt</b> fügt unter dem gewählten einen ein, <b>− Abschnitt</b>
 nimmt ihn weg.</li>
+<li><b>Richtung</b> – wie das Werkzeug zur Maschine steht. <b>gerade</b>: in der
+Achse der Aufnahme, wie in einer Frässpindel oder einem axialen VDI-Halter.
+<b>gewinkelt</b>: ein angetriebener radialer Halter am Revolver oder ein
+Winkelkopf in der Frässpindel. Dann gibt es vier Felder mehr:
+<b>Winkel</b> zwischen der Achse der Aufnahme und der des Werkzeugs (90° =
+rechtwinklig), <b>Drehung</b> um die Achse der Aufnahme (0°: zu ihrer
+Bezugsrichtung – am Revolver zur Spindelachse), <b>Versatz</b> von der Aufnahme
+bis zur Achse des Werkzeugs und <b>Kopf-Ø</b> für den Kopf bis dorthin. Wo die
+beiden Achsen sich treffen, liegt der <b>Bezugspunkt</b>: Die Kontur läuft von
+ihm aus längs der Werkzeugachse, und beim Werkzeug heißt die Länge dann
+<b>Länge ab Bezugspunkt</b> – so misst das Voreinstellgerät angetriebene
+Werkzeuge. Prüffenster, Abfahren und Kollision stellen das Werkzeug so hin.</li>
 <li>Rechts das <b>Bild</b>: der Halter im Schnitt, oben die Spindel, darunter
 das Werkzeug bis zur Spitze – Schaft grau, Schneide blau wie im Bild des
-Werkzeugs. So sieht man, ob die Maße zusammenpassen.</li>
+Werkzeugs; beim gewinkelten Halter mit Kopf und Knick (gezeichnet in der Ebene
+des Knicks – die Drehung sieht man nicht). So sieht man, ob die Maße
+zusammenpassen.</li>
 <li>Darunter, welche Werkzeuge den Halter <b>benutzen</b>. Ein Halter ist eine
 Beschreibung, kein einzelnes Stück – mehrere Werkzeuge dürfen denselben
 haben.</li>
@@ -41,14 +55,16 @@ haben.</li>
 <h3>Vorlagen</h3>
 <p>Zum Anfangen gibt es Vorlagen: Spannzangenfutter ER16 bis ER40,
 Schrumpffutter, Weldon, Hydrodehnspannfutter, Aufsteckfräserdorn, Bohrfutter
-– an SK40 – und für Drehmaschinen einen VDI30-Halter. Ihre Maße sind
+– an SK40 –, einen Winkelkopf 90° und für Drehmaschinen VDI30-Halter:
+axial, angetrieben axial und angetrieben radial. Ihre Maße sind
 <b>typische Werte, keine Katalogwerte</b>; die Bezeichnung sagt es. Trag die
 Maße deines Halters aus dem Katalog ein.</p>
 
 <h3>Grenzen</h3>
 <ul>
-<li>Der Halter ist rund um die Werkzeugachse. Blockhalter an Drehmaschinen
-(VDI) nähert man mit einem Zylinder an.</li>
+<li>Der Halter ist rund um seine Achsen – der gewinkelte mit dem Kopf um die
+der Aufnahme und dem Abgang um die des Werkzeugs. Blockhalter an
+Drehmaschinen (VDI) nähert man mit Zylindern an.</li>
 <li>An CAM wird der Halter nicht übergeben – FreeCADs CAM-Werkzeuge kennen
 keinen.</li>
 </ul>

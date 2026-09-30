@@ -248,6 +248,13 @@ Prüffenster, der Hinweis „nicht radial“.
   ohne Richtung sind gerade.
 - **E2** Fenster „Halter“ mit Richtung und Bild; Längenzeile im Werkzeug; Hilfe;
   Szenario mit Screenshots.
+  *Gebaut (P-2026-09-30-13):* „Richtung“ [gerade – das Werkzeug in der Achse
+  der Aufnahme | gewinkelt – angetrieben radial, Winkelkopf], darunter nur beim
+  gewinkelten Winkel, Drehung, Versatz und Kopf-Ø; „Kontur ab Bezugspunkt,
+  längs der Werkzeugachse:“; die Zusammenfassung nennt Winkel und Versatz. Das
+  Bild rechnet in Maßen und passt ein: Kopf, Knick, Abgang und Werkzeug in der
+  Ebene des Knicks. In der Werkzeugverwaltung heißt die Länge beim gewinkelten
+  Halter „Länge ab Bezugspunkt“. Szenario `szenario_halter_richtung`.
 - **E3** Reichweite, Spitze, Abfahren, Kollision und Bild mit der Lage aus E1;
   Hinweis „nicht radial“ mit dem, was fehlt.
   *Gebaut (P-2026-09-30-12):* `reichweite.Einspannung` (Länge ab Bezugspunkt und

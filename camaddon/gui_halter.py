@@ -3,15 +3,17 @@
 
 Aus der Werkzeugverwaltung heraus („Halter …“ beim Werkzeug): links die
 Halter mit Suche, Neu (leer oder aus einer Vorlage), Kopieren und Löschen;
-rechts Name, Bezeichnung, Spanntiefe und die Kontur als Tabelle der
+rechts Name, Bezeichnung, Spanntiefe, die Richtung (gerade oder gewinkelt mit
+Winkel, Drehung, Versatz und Kopf-Ø – Stufe E) und die Kontur als Tabelle der
 Abschnitte (Länge, Ø oben, Ø unten), daneben der Halter im Schnitt mit dem
-Werkzeug darunter, in den Farben des Werkzeugbilds. Gearbeitet wird an einer Kopie der Bibliothek: OK
+Werkzeug daran, in den Farben des Werkzeugbilds. Gearbeitet wird an einer Kopie der Bibliothek: OK
 übernimmt die Halter in die Werkzeugverwaltung und gibt dem Werkzeug den
 gewählten Halter; Abbrechen verwirft alles. Gespeichert wird mit OK oder
 Übernehmen der Werkzeugverwaltung – wie bei den Werkstoffen.
 """
 
 import contextlib
+import math
 
 from PySide import QtCore, QtGui
 
@@ -21,7 +23,14 @@ from . import werkzeuge as wz
 from .gui_eingriff import FARBE_KANTE, FARBE_SCHAFT, FARBE_WERKZEUG, FARBE_WERKZEUG_RAND
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, knopf, mit_einheit, ruhiges_mausrad
-from .gui_zahlen import Zahlenpruefer, groesse_fest, groesse_lesen, groesse_zeigen
+from .gui_zahlen import (
+    Zahlenpruefer,
+    groesse_fest,
+    groesse_lesen,
+    groesse_zeigen,
+    zahl_lesen,
+    zahl_zeigen,
+)
 from .sprache import tr
 
 FENSTER_GROESSE = (820, 520)  # Pixel
@@ -134,23 +143,47 @@ class HalterDialog(QtGui.QDialog):
         self.feld_spanntiefe.setValidator(Zahlenpruefer(self.feld_spanntiefe))
         self.feld_spanntiefe.setToolTip(tr("hd.spanntiefe.tooltip"))
         self.feld_spanntiefe.editingFinished.connect(self._spanntiefe_uebernehmen)
+        mm = einheiten.einheit(einheiten.LAENGE)
+        self.wahl_richtung = QtGui.QComboBox()
+        self.wahl_richtung.addItem(tr("hd.richtung.gerade"), hl.GERADE)
+        self.wahl_richtung.addItem(tr("hd.richtung.gewinkelt"), hl.GEWINKELT)
+        self.wahl_richtung.setToolTip(tr("hd.richtung.tooltip"))
+        self.wahl_richtung.currentIndexChanged.connect(self._richtung_geaendert)
+        # Nur beim gewinkelten Halter: Winkel, Drehung, Versatz, Kopf-Ø.
+        self.felder_gewinkelt = {}
+        gewinkelt = []
+        for feld, text, tooltip, einheit, minus in (
+            ("winkel", tr("hd.winkel"), tr("hd.winkel.tooltip"), "°", False),
+            ("drehung", tr("hd.drehung"), tr("hd.drehung.tooltip"), "°", True),
+            ("versatz", tr("hd.versatz"), tr("hd.versatz.tooltip"), mm, False),
+            ("kopf_d", tr("hd.kopf_d"), tr("hd.kopf_d.tooltip"), mm, False),
+        ):
+            eingabe = QtGui.QLineEdit()
+            eingabe.setValidator(Zahlenpruefer(eingabe, mit_minus=minus))
+            eingabe.setToolTip(tooltip)
+            eingabe.editingFinished.connect(lambda f=feld: self._gewinkelt_uebernehmen(f))
+            self.felder_gewinkelt[feld] = eingabe
+            gewinkelt.append((text, mit_einheit(eingabe, einheit)))
+        self._zeilen_gewinkelt = []
         for reihe, (text, feld) in enumerate(
             (
                 (tr("hd.name"), self.feld_name),
                 (tr("hd.bezeichnung"), self.feld_bezeichnung),
-                (
-                    tr("hd.spanntiefe"),
-                    mit_einheit(self.feld_spanntiefe, einheiten.einheit(einheiten.LAENGE)),
-                ),
+                (tr("hd.spanntiefe"), mit_einheit(self.feld_spanntiefe, mm)),
+                (tr("hd.richtung"), self.wahl_richtung),
+                *gewinkelt,
             )
         ):
-            gitter.addWidget(QtGui.QLabel(text), reihe, 0)
+            beschriftung = QtGui.QLabel(text)
+            gitter.addWidget(beschriftung, reihe, 0)
             gitter.addWidget(feld, reihe, 1)
+            if reihe >= 4:
+                self._zeilen_gewinkelt += [beschriftung, feld]
         innen.addLayout(gitter)
 
-        kontur = QtGui.QLabel(tr("hd.kontur"))
-        kontur.setToolTip(tr("hd.kontur.tooltip"))
-        innen.addWidget(kontur)
+        self.kontur = QtGui.QLabel(tr("hd.kontur"))
+        self.kontur.setToolTip(tr("hd.kontur.tooltip"))
+        innen.addWidget(self.kontur)
         unten = QtGui.QHBoxLayout()
         links = QtGui.QVBoxLayout()
         einheit = einheiten.einheit(einheiten.LAENGE)
@@ -305,9 +338,26 @@ class HalterDialog(QtGui.QDialog):
         self.feld_name.setPlaceholderText(hl.text(hl.Halter(abschnitte=h.abschnitte)))
         self.feld_bezeichnung.setText(h.bezeichnung)
         self.feld_spanntiefe.setText(groesse_zeigen(h.spanntiefe, einheiten.LAENGE))
+        self.wahl_richtung.setCurrentIndex(self.wahl_richtung.findData(h.richtung))
+        for feld, eingabe in self.felder_gewinkelt.items():
+            eingabe.setText(self._gewinkelt_text(h, feld))
+        self._richtung_zeigen(h)
         self._tabelle_fuellen()
         self._fuellt = False
         self._neu_berechnet()
+
+    @staticmethod
+    def _gewinkelt_text(h, feld):
+        wert = getattr(h, feld)
+        if feld in ("winkel", "drehung"):
+            return zahl_zeigen(wert)
+        return groesse_zeigen(wert, einheiten.LAENGE)
+
+    def _richtung_zeigen(self, h):
+        """Die Felder des gewinkelten Halters nur bei ihm; die Kontur sagt, wovon aus."""
+        for element in self._zeilen_gewinkelt:
+            element.setVisible(h.gewinkelt)
+        self.kontur.setText(tr("hd.kontur.gewinkelt") if h.gewinkelt else tr("hd.kontur"))
 
     def _tabelle_fuellen(self):
         h = self.gewaehlt
@@ -330,13 +380,21 @@ class HalterDialog(QtGui.QDialog):
         h = self.gewaehlt
         if h is None:
             return
-        self.zusammenfassung.setText(
-            tr(
+        if h.gewinkelt:
+            text = tr(
+                "hd.zusammenfassung.gewinkelt",
+                laenge=_laenge(h.laenge),
+                durchmesser=_laenge(h.groesster_durchmesser),
+                winkel=f"{zahl_zeigen(h.winkel) or '0'}°",
+                versatz=_laenge(h.versatz),
+            )
+        else:
+            text = tr(
                 "hd.zusammenfassung",
                 laenge=_laenge(h.laenge),
                 durchmesser=_laenge(h.groesster_durchmesser),
             )
-        )
+        self.zusammenfassung.setText(text)
         werkzeuge = self.bibliothek.benutzt_von(h)
         self.benutzt.setText(
             tr("hd.benutzt", werkzeuge=_nummern(werkzeuge)) if werkzeuge else tr("hd.unbenutzt")
@@ -386,6 +444,29 @@ class HalterDialog(QtGui.QDialog):
         self.feld_spanntiefe.setText(groesse_zeigen(h.spanntiefe, einheiten.LAENGE))
         self._neu_berechnet()
 
+    def _richtung_geaendert(self, _index):
+        h = self.gewaehlt
+        if self._fuellt or h is None:
+            return
+        h.richtung = self.wahl_richtung.currentData() or hl.GERADE
+        self._richtung_zeigen(h)
+        self._neu_berechnet()
+
+    def _gewinkelt_uebernehmen(self, feld):
+        """Winkel, Drehung, Versatz oder Kopf-Ø: übernehmen, schön zeigen, neu zeichnen."""
+        h = self.gewaehlt
+        if self._fuellt or h is None:
+            return
+        eingabe = self.felder_gewinkelt[feld]
+        with contextlib.suppress(ValueError):  # Unlesbares: bleibt, wie es war
+            if feld in ("winkel", "drehung"):
+                wert = zahl_lesen(eingabe.text())
+                setattr(h, feld, min(max(wert, 0.0), 180.0) if feld == "winkel" else wert)
+            else:
+                setattr(h, feld, groesse_lesen(eingabe.text(), einheiten.LAENGE))
+        eingabe.setText(self._gewinkelt_text(h, feld))
+        self._neu_berechnet()
+
     def _zelle_geaendert(self, zelle):
         """Eine Zahl in der Kontur: übernehmen, schön zeigen, neu zeichnen."""
         h = self.gewaehlt
@@ -432,6 +513,8 @@ class HalterDialog(QtGui.QDialog):
     def accept(self):
         """Übernimmt die Halter in die Werkzeugverwaltung; das Werkzeug bekommt den gewählten."""
         self._spanntiefe_uebernehmen()
+        for feld in self.felder_gewinkelt:
+            self._gewinkelt_uebernehmen(feld)
         self.original.halter = self.bibliothek.halter
         halter_je_werkzeug = {w.kennung: w.halter for w in self.bibliothek.werkzeuge}
         for werkzeug in self.original.werkzeuge:
@@ -472,9 +555,10 @@ class _Zahlendelegat(QtGui.QStyledItemDelegate):
 
 
 class HalterBild(QtGui.QWidget):
-    """Der Halter im Schnitt, maßstäblich: oben die Spindel, darunter die Kontur, unter der
-    Nase des Halters das Werkzeug bis zur Spitze (Schaft grau, Schneide blau – wie im Bild
-    des Werkzeugs)."""
+    """Der Halter im Schnitt, maßstäblich: oben die Aufnahme (Spindel), darunter der Halter –
+    gerade oder mit Kopf und Knick –, an seiner Nase das Werkzeug bis zur Spitze (Schaft grau,
+    Schneide blau – wie im Bild des Werkzeugs). Die Drehung um die Aufnahmeachse zeigt es
+    nicht: gezeichnet ist die Ebene des Knicks."""
 
     def __init__(self):
         super().__init__()
@@ -484,7 +568,8 @@ class HalterBild(QtGui.QWidget):
         self.laenge = 0.0
 
     def zeige(self, halter, werkzeug=None, laenge=0.0):
-        """`laenge`: von der Spindelnase bis zur Spitze des Werkzeugs, mm (0 = ohne Werkzeug)."""
+        """`laenge`: vom Bezugspunkt (gerade: von der Spindelnase) bis zur Spitze des
+        Werkzeugs, mm (0 = ohne Werkzeug)."""
         self.halter, self.werkzeug, self.laenge = halter, werkzeug, laenge
         self.update()
 
@@ -493,54 +578,81 @@ class HalterBild(QtGui.QWidget):
         maler.setRenderHint(QtGui.QPainter.Antialiasing)
         maler.fillRect(self.rect(), self.palette().color(QtGui.QPalette.Base))
         h = self.halter
-        if h is not None and h.kontur():
+        if h is not None and (h.kontur() or h.gewinkelt):
             self._zeichne(maler, h)
         maler.end()
 
     def _zeichne(self, maler, h):
+        """In Maßen gerechnet (x quer, y Tiefe unter der Aufnahme), dann eingepasst."""
         w = self.werkzeug if self.laenge > h.laenge else None
-        tiefe = max(h.laenge, self.laenge if w is not None else 0.0)
-        breite = max(h.groesster_durchmesser, (w.durchmesser if w is not None else 0.0), 1.0)
+        winkel = math.radians(h.winkel) if h.gewinkelt else 0.0
+        versatz = h.versatz if h.gewinkelt else 0.0
+        kopf = h.kopf_d if h.gewinkelt and versatz > 0 else 0.0
+        laengs = (math.sin(winkel), math.cos(winkel))  # zur Spitze hin
+        quer = (math.cos(winkel), -math.sin(winkel))
+
+        def punkt(a, r):
+            """a längs der Werkzeugachse ab dem Bezugspunkt, r quer dazu."""
+            return (a * laengs[0] + r * quer[0], versatz + a * laengs[1] + r * quer[1])
+
+        def streifen(von, bis, breite):
+            return [punkt(von, breite / 2), punkt(bis, breite / 2)] + [
+                punkt(bis, -breite / 2),
+                punkt(von, -breite / 2),
+            ]
+
+        kontur = h.kontur()
+        halter = [punkt(a, r) for a, r in kontur] + [punkt(a, -r) for a, r in reversed(kontur)]
+        koerper = []  # (Punkte, Füllung, Rand)
+        if kopf > 0:
+            koerper.append(
+                (
+                    [(-kopf / 2, 0.0), (kopf / 2, 0.0), (kopf / 2, versatz + kopf / 2)]
+                    + [(-kopf / 2, versatz + kopf / 2)],
+                    FARBE_HALTER,
+                    FARBE_HALTER_RAND,
+                )
+            )
+        if w is not None:
+            schneide = min(wz.mass(w, "schneidenlaenge") or 2 * w.durchmesser, self.laenge)
+            schaft = wz.schaft_fuer_cam(w) or w.durchmesser
+            if self.laenge - schneide > h.laenge:
+                streifen_schaft = streifen(h.laenge, self.laenge - schneide, schaft)
+                koerper.append((streifen_schaft, FARBE_SCHAFT, FARBE_KANTE))
+            von = max(h.laenge, self.laenge - schneide)
+            koerper.append(
+                (streifen(von, self.laenge, w.durchmesser), FARBE_WERKZEUG, FARBE_WERKZEUG_RAND)
+            )
+        if halter:
+            koerper.append((halter, FARBE_HALTER, FARBE_HALTER_RAND))
+
+        alle = [p for teile, _f, _r in koerper for p in teile] + [(0.0, 0.0)]
+        x_min, x_max = min(p[0] for p in alle), max(p[0] for p in alle)
+        y_max = max(p[1] for p in alle)
         platz_x = self.width() - 2 * BILD_RAND
         platz_y = self.height() - 2 * BILD_RAND - SPINDEL_HOEHE
-        s = min(platz_x / breite, platz_y / max(tiefe, 1.0))
-        mitte = self.width() / 2
-        nase = BILD_RAND + SPINDEL_HOEHE  # y der Spindelnase
+        s = min(platz_x / max(x_max - x_min, 1.0), platz_y / max(y_max, 1.0))
+        links = BILD_RAND + (platz_x - (x_max - x_min) * s) / 2 - x_min * s
+        nase = BILD_RAND + SPINDEL_HOEHE  # y der Aufnahme
 
-        # Die Spindel über der Spindelnase, etwas breiter als der Halter.
-        halb = h.groesster_durchmesser * s / 2 + 4
+        def bild(p):
+            return QtCore.QPointF(links + p[0] * s, nase + p[1] * s)
+
+        # Die Spindel über der Aufnahme, etwas breiter als der Halter dort.
+        oben_breit = max(kopf, max((2 * r for a, r in kontur if a == 0), default=0.0), 1.0)
+        halb = oben_breit * s / 2 + 4
+        mitte = links
         maler.setPen(QtCore.Qt.NoPen)
         maler.setBrush(FARBE_SPINDEL)
         maler.drawRect(QtCore.QRectF(mitte - halb, BILD_RAND, 2 * halb, SPINDEL_HOEHE))
 
-        # Das Werkzeug unter der Nase des Halters – zuerst, der Halter liegt darüber.
-        if w is not None:
-            spitze = nase + self.laenge * s
-            schneide = min(wz.mass(w, "schneidenlaenge") or 2 * w.durchmesser, self.laenge)
-            schaft = wz.schaft_fuer_cam(w) or w.durchmesser
-            oben = nase + h.laenge * s
-            if spitze - schneide * s > oben:
-                self._rechteck(
-                    maler, mitte, schaft * s, oben, spitze - schneide * s, FARBE_SCHAFT, FARBE_KANTE
-                )
-            unten = max(oben, spitze - schneide * s)
-            self._rechteck(
-                maler, mitte, w.durchmesser * s, unten, spitze, FARBE_WERKZEUG, FARBE_WERKZEUG_RAND
-            )
+        # Das Werkzeug zuerst, der Halter liegt darüber (erst der Kopf, dann die Kontur).
+        werkzeug = [k for k in koerper if k[1] is not FARBE_HALTER]
+        for teile, fuellung, rand in werkzeug + [k for k in koerper if k not in werkzeug]:
+            maler.setPen(QtGui.QPen(rand, 1.2 if fuellung is FARBE_HALTER else 1.0))
+            maler.setBrush(fuellung)
+            maler.drawPolygon(QtGui.QPolygonF([bild(p) for p in teile]))
 
-        # Der Halter: rechts die Kontur von oben nach unten, links zurück.
-        rechts = [QtCore.QPointF(mitte + r * s, nase + a * s) for a, r in h.kontur()]
-        links = [QtCore.QPointF(2 * mitte - p.x(), p.y()) for p in reversed(rechts)]
-        maler.setPen(QtGui.QPen(FARBE_HALTER_RAND, 1.2))
-        maler.setBrush(FARBE_HALTER)
-        maler.drawPolygon(QtGui.QPolygonF(rechts + links))
-
-        # Die Spindelnase als Strich.
+        # Die Aufnahme als Strich.
         maler.setPen(QtGui.QPen(FARBE_SPINDEL, 1.5))
         maler.drawLine(QtCore.QPointF(mitte - halb, nase), QtCore.QPointF(mitte + halb, nase))
-
-    @staticmethod
-    def _rechteck(maler, mitte, breite, oben, unten, fuellung, rand):
-        maler.setPen(QtGui.QPen(rand, 1.0))
-        maler.setBrush(fuellung)
-        maler.drawRect(QtCore.QRectF(mitte - breite / 2, oben, breite, unten - oben))

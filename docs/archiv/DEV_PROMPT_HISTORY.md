@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-13 halter-richtung-fenster
+
+### EINGELESEN
+- `docs/spezifikation_halter.md` Abschnitt 11 (E2), `camaddon/gui_halter.py`
+  (Fenster, Bild), `camaddon/gui_werkzeuge.py` (Längenzeile),
+  `tests/gui/szenario_halter.py`, `help/*/halter.html`.
+
+### DATEIEN
+- `camaddon/gui_halter.py`, `camaddon/gui_werkzeuge.py`, `translations/de.json`,
+  `translations/en.json`, `help/de/halter.html`, `help/en/halter.html`,
+  `tests/gui/szenario_halter_richtung.py` (neu), `docs/spezifikation_halter.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → „Halter …“ → „Neu“ → „VDI30 angetrieben radial · ER16“:
+Richtung „gewinkelt“, Winkel 90, Versatz 55, Kopf-Ø 55, das Bild zeigt Kopf und
+Knick; Winkel 45 kippt das Bild; „gerade“ blendet die Felder aus; OK → beim
+Werkzeug steht „Länge ab Bezugspunkt“, grau „leer: 92 mit Halter“.
+
+### DONE
+- Fenster „Halter“: Zeile „Richtung“ und, nur beim gewinkelten, Winkel,
+  Drehung (auch negativ), Versatz, Kopf-Ø; die Überschrift der Kontur und die
+  Zusammenfassung sagen, wovon aus gemessen wird.
+- Das Bild rechnet in Maßen (quer, Tiefe) und passt ein: Kopf, Knick, Abgang und
+  Werkzeug in der Ebene des Knicks; gerade wie bisher.
+- Werkzeugverwaltung: „Länge ab Bezugspunkt“ mit eigenem Tooltip beim
+  gewinkelten Halter.
+- Hilfe de/en: Richtung, Bezugspunkt, neue Vorlagen, Grenzen.
+
+### TEST
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_halter_richtung`
+  (neu) und `szenario_halter` grün; Screenshots angesehen (`1_vdi30_radial`,
+  `2_winkel_45`, `3_gerade`, `4_werkzeug`). `test_hilfe`, `test_sprache` grün. Ob
+  das Fenster ohne Erklärung verständlich ist, prüft Manuel.
+
+### NEXT
+- E4: Beispiel-Drehmaschine mit Aufnahmen statt fester Halter.
+
 ## P-2026-09-30-12 halter-richtung-rechnung
 
 ### EINGELESEN

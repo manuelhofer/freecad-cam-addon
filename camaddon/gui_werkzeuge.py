@@ -768,6 +768,18 @@ class WerkzeugDialog(QtGui.QDialog):
         else:
             platzhalter = tr("feld.unbekannt")
         self.feld_laenge_spindelnase.setPlaceholderText(platzhalter)
+        # Beim gewinkelten Halter zählt die Länge ab seinem Bezugspunkt (W-002 Stufe E).
+        gewinkelt = halter is not None and halter.gewinkelt
+        self.beschriftung_laenge_spindelnase.setText(
+            tr("wv.laenge_bezugspunkt") if gewinkelt else tr("wv.laenge_spindelnase")
+        )
+        tooltip = (
+            tr("wv.laenge_bezugspunkt.tooltip")
+            if gewinkelt
+            else tr("wv.laenge_spindelnase.tooltip")
+        )
+        self.beschriftung_laenge_spindelnase.setToolTip(tooltip)
+        self.feld_laenge_spindelnase.setToolTip(tooltip)
         # Leere Winkel: grau der übliche der Art (Bohrer 118°, Gewinde 60° …).
         for feld in wz.WINKEL_FELDER:
             ueblich = wz.ueblich(w.art, feld) if w is not None else 0.0
