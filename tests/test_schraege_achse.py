@@ -284,37 +284,40 @@ v = vf.Verfahren(asm, kette)
 pruefe(sa.Programm.moeglich(v, ma, trafo), "Programm nicht möglich")
 prog = sa.Programm(v, ma, trafo)
 pruefe(nahe(prog.alpha, 30), f"α im Programm: {prog.alpha}")
-pruefe(prog.stellung() == (0.0, 0.0) or all(nahe(w, 0) for w in prog.stellung()), "Start nicht 0")
+# Gebaut steht X1 auf 275: X zählt ab der Spindelachse (P-2026-09-30-50).
+start = prog.stellung()
+pruefe(nahe(start[0], 275) and nahe(start[1], 0), f"Start: {start}")
 x, y, anschlag = prog.setze(0, 10)
 pruefe(nahe(x, 0) and nahe(y, 10) and anschlag is None, f"Y 10: {x}, {y}, {anschlag}")
 x1, y1 = prog.schlitten()
 pruefe(nahe(x1, -5.773503) and nahe(y1, 11.547005), f"Schlitten bei Y 10: {x1}, {y1}")
 pruefe(nahe(v.stellung(prog.ausgleich), x1), "Verfahren kennt X1 nicht")
 
-# Bereich: Y1 −60 … 60 → Y höchstens ±51,96; X1 −300 … 150 → X von −330 bis 180.
+# Bereich: Y1 −60 … 60 → Y höchstens ±51,96; X1 −25 … 425 → X von −55 bis 455.
 (xu, xo), (yu, yo) = prog.bereich()
 pruefe(nahe(yu, -51.961524) and nahe(yo, 51.961524), f"Y-Bereich: {yu} … {yo}")
-pruefe(nahe(xu, -330) and nahe(xo, 180), f"X-Bereich: {xu} … {xo}")
+pruefe(nahe(xu, -55) and nahe(xo, 455), f"X-Bereich: {xu} … {xo}")
 
-# X auf 140, dann Y auf −40: X1 bräuchte 140 + 40·tan 30° = 163,1 > 150 – es hält bei
-# X1 = 150, Y bleibt bei −17,32 stehen (wie in der Spezifikation).
-x, y, anschlag = prog.setze(140, 0)
-pruefe(nahe(x, 140) and nahe(y, 0) and anschlag is None, f"X 140: {x}, {y}, {anschlag}")
-x, y, anschlag = prog.setze(140, -40)
+# X auf 415, dann Y auf −40: X1 bräuchte 415 + 40·tan 30° = 438,1 > 425 – es hält bei
+# X1 = 425, Y bleibt bei −17,32 stehen (wie in der Spezifikation).
+x, y, anschlag = prog.setze(415, 0)
+pruefe(nahe(x, 415) and nahe(y, 0) and anschlag is None, f"X 415: {x}, {y}, {anschlag}")
+x, y, anschlag = prog.setze(415, -40)
 pruefe(anschlag is not None and anschlag[0] is prog.ausgleich, f"Anschlag: {anschlag}")
-pruefe(anschlag is not None and nahe(anschlag[1], 150), f"Grenze: {anschlag}")
-pruefe(nahe(y, -17.320508, 1e-5) and nahe(x, 140, 1e-5), f"gehalten bei: {x}, {y}")
-pruefe(nahe(prog.schlitten()[0], 150), f"X1 am Anschlag: {prog.schlitten()[0]}")
-# Y1 an seiner Grenze: Y auf 70 geht nur bis 51,96 (Y1 = 60).
-prog.setze(0, 0)
-x, y, anschlag = prog.setze(0, 70)
+pruefe(anschlag is not None and nahe(anschlag[1], 425), f"Grenze: {anschlag}")
+pruefe(nahe(y, -17.320508, 1e-5) and nahe(x, 415, 1e-5), f"gehalten bei: {x}, {y}")
+pruefe(nahe(prog.schlitten()[0], 425), f"X1 am Anschlag: {prog.schlitten()[0]}")
+# Y1 an seiner Grenze: Y auf 70 geht nur bis 51,96 (Y1 = 60) – bei X 200, wo X1 den
+# Ausgleich hat.
+prog.setze(200, 0)
+x, y, anschlag = prog.setze(200, 70)
 pruefe(anschlag is not None and anschlag[0] is prog.schraeg, f"Anschlag Y1: {anschlag}")
 pruefe(nahe(y, 51.961524, 1e-5) and nahe(prog.schlitten()[1], 60), f"Y1 am Anschlag: {y}")
 # Zurück in die Mitte, und die Grundstellung stimmt.
 prog.setze(0, 0)
 pruefe(all(nahe(w, 0) for w in prog.schlitten()), f"zurück: {prog.schlitten()}")
 v.grundstellung()
-pruefe(all(nahe(w, 0) for w in prog.stellung()), "Grundstellung")
+pruefe(nahe(prog.stellung()[0], 275) and nahe(prog.stellung()[1], 0), "Grundstellung")
 # Ohne gültigen Winkel geht es nicht.
 trafo.Ausgleich = None
 pruefe(not sa.Programm.moeglich(v, ma, trafo), "Programm ohne ausgleichende Achse möglich")

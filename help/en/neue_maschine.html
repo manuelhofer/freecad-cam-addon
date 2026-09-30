@@ -24,9 +24,15 @@ the Y slide of your machine is built at an angle to the X slide, enter the
 angle here. The addon then adds the <b>inclined axis</b> right away: for a Y in
 the program both slides move, the way the control converts (see the help
 “Transformations”).</li>
-<li><b>Travel X, Y, Z</b> – from … to, counted from the position in which the
-machine is built; 0 lies in between. These become the limits of the
-joints.</li>
+<li><b>Travel X, Y, Z</b> – from … to, counted as on the machine: up to the
+centre of the VDI mount in working position, at its face (the reference point
+of the turret). <b>X</b> from the spindle axis, as a radius – X 0 means the
+centre of the mount is on the spindle axis, a drill drills into the centre of
+the part there; negative is past the centre. The control often shows X on a
+lathe as a diameter; here it is half of that. <b>Z</b> from the spindle nose,
+along the spindle axis. <b>Y</b> from the spindle centre; 0 lies in between.
+These become the limits of the joints. The machine is built at X 275 and Z
+220 mm; if that lies outside your travels, it moves inside.</li>
 <li><b>Turret stations</b> – the addon distributes this many stations in a
 circle on the face of the turret disc (P1 … Pn), each a VDI30 mount on the
 tool drive S3, with a block on the outside of the disc. The turret carries no fixed holders: how a tool stands is up to
@@ -37,9 +43,9 @@ spindle axis, a straight one along Z.</li>
 <h3>The dimensions of the 3-axis mill</h3>
 <ul>
 <li><b>Name</b> – for machine and document. Empty: “3-axis mill”.</li>
-<li><b>Travel X, Y, Z</b> – from … to, as for the lathe: counted from the
-position in which the machine is built. These become the limits of the
-joints – “Check on machine” works with them.</li>
+<li><b>Travel X, Y, Z</b> – from … to, counted from the position in which the
+machine is built; 0 lies in between. These become the limits of the joints –
+“Check on machine” works with them.</li>
 <li><b>Maximum speed</b> – of spindle S1.</li>
 </ul>
 <p>When you switch the type, its example values are back in the fields.</p>

@@ -6,7 +6,8 @@
 # jede Achse fährt, und die Auswahl merkt sich die zuletzt geladene. Zuletzt
 # die Drehmaschine mit eigenen Maßen („Neue Maschine …“): Name, Wege,
 # Bettneigung, Plätze, Drehzahl und die schräge Achse – ebenso die 3-Achs-Fräse
-# mit Wegen, Drehzahl und Name (D-26) – und ungültige Maße.
+# mit Wegen, Drehzahl und Name (D-26) – und ungültige Maße. X und Z der Drehmaschine
+# zählen wie an der Maschine: ab Spindelachse und Spindelnase bis zur Mitte von P1.
 import math
 import os
 import sys
@@ -145,6 +146,29 @@ for art in beispielmaschine.ARTEN:
         pruefe({"Aufnahme01", "Aufnahme12"} <= namen, "Aufnahmen an der Stirn fehlen")
         # Rundum je Platz eine Station: So sieht man, dass es ein Revolver ist (D-46).
         pruefe({"Station01", "Station12"} <= namen, "Stationen am Umfang fehlen")
+        # X und Z zählen wie an der Maschine (Manuel, 2026-09-30, P-2026-09-30-50): gebaut
+        # steht sie bei X 275 und Z 220; auf X 0 steht die Mitte von P1 auf der Spindelachse,
+        # auf Z 0 ihre Stirn in der Ebene der Spindelnase.
+        achse = {a.gelenk.Label: a for a in v.achsen}
+        gebaut_xz = (v.stellung(achse["X"]), v.stellung(achse["Z"]))
+        pruefe(
+            abs(gebaut_xz[0] - 275) < 1e-6 and abs(gebaut_xz[1] - 220) < 1e-6,
+            f"gebaut X, Z: {gebaut_xz}",
+        )
+        pruefe(
+            (achse["X"].minimum, achse["X"].maximum) == (-25.0, 425.0)
+            and (achse["Z"].minimum, achse["Z"].maximum) == (0.0, 520.0),
+            f"Wege X {achse['X'].minimum} … {achse['X'].maximum}, "
+            f"Z {achse['Z'].minimum} … {achse['Z'].maximum}",
+        )
+        v.setze_alle({achse["X"]: 0.0, achse["Z"]: 0.0})
+        p1 = next(a for a in plaetze if a.Platz == 1)
+        spindel = achse["Hauptspindel"]
+        abstand = m.globale_platzierung(p1.Lcs).Base - spindel.ursprung
+        laengs = abstand.dot(spindel.richtung)
+        quer = (abstand - spindel.richtung * laengs).Length
+        pruefe(quer < 1e-6 and abs(laengs) < 1e-6, f"P1 auf X 0, Z 0: quer {quer}, längs {laengs}")
+        v.grundstellung()
     App.closeDocument(doc.Name)
 
 # --- Drehmaschine mit eigenen Maßen („Neue Maschine …“) ----------------------------------
@@ -168,6 +192,9 @@ pruefe(doc.Label == "Meine Drehmaschine - 2", f"Dokument: {doc.Label}")
 for gelenk, weg_soll in (("X", (-80, 120)), ("Y", (-40, 50)), ("Z", (-50, 400))):
     ist = (achsen[gelenk].minimum, achsen[gelenk].maximum)
     pruefe(ist == weg_soll, f"Weg {gelenk}: {ist}")
+# Gebaut stünde X auf 275 – außerhalb des Wegs bis 120: Die Maschine ist hineingefahren.
+x_jetzt = vf.gelenkstellung(achsen["X"].gelenk, achsen["X"].art)
+pruefe(abs(x_jetzt - 120) < 1e-6, f"X nach dem Bauen: {x_jetzt}")
 # Das Bett ist 30° geneigt: X fährt 30° gegen die Waagrechte.
 steigung = abs(math.degrees(math.asin(achsen["X"].richtung.z)))
 pruefe(abs(steigung - 30) < 1e-6, f"X steigt um {steigung}°")

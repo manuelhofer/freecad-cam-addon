@@ -81,6 +81,7 @@ class Baukasten:
         self.assembly = self.doc.addObject("Assembly::AssemblyObject", "Assembly")
         self.gelenke = self.assembly.newObject("Assembly::JointGroup", "Joints")
         self.rahmen = App.Placement()
+        self.bezug = {}  # je Gelenk (Name) sein Koordinatensystem, wie gebaut, global
 
     def quader(self, name, laenge, breite, hoehe, x=0, y=0, z=0, farbe=None, gedreht=None):
         """Ein Quader mit der Ecke bei (x, y, z); `gedreht` (App.Placement im Rahmen)
@@ -177,8 +178,11 @@ class Baukasten:
         )
         return gelenk
 
-    def gelenk_wie_gebaut(self, name, art, teil1, flaeche1, teil2, flaeche2, richtung=None):
-        """Ein Gelenk, das die Teile lässt, wo sie gebaut sind – Stellung 0.
+    def gelenk_wie_gebaut(
+        self, name, art, teil1, flaeche1, teil2, flaeche2, richtung=None, stellung=0.0
+    ):
+        """Ein Gelenk, das die Teile lässt, wo sie gebaut sind – Stellung `stellung` (sonst 0):
+        So zählen X und Z der Drehmaschine wie an der Maschine (P-2026-09-30-50).
 
         Beim Anlegen legt der Löser die Mitten der Flächen aufeinander, und
         jede Änderung am Versatz (Offset) löst vorab (preSolve) – mit einer
@@ -203,9 +207,12 @@ class Baukasten:
             achse = self.rahmen.Rotation.multVec(App.Vector(*richtung))
             drehung = App.Rotation(App.Vector(0, 0, 1), achse)
         ziel = App.Placement(seite2.Base, drehung)
-        gelenk.Offset1 = seite1.inverse() * ziel
+        # Seite 1 um `stellung` längs der Achse zurück: So steht das Gelenk wie gebaut dort.
+        zurueck = drehung.multVec(App.Vector(0, 0, 1)) * stellung
+        gelenk.Offset1 = seite1.inverse() * App.Placement(ziel.Base - zurueck, drehung)
         gelenk.Offset2 = seite2.inverse() * ziel
         self._zurueck(lagen)
+        self.bezug[name] = ziel
         return gelenk
 
     @staticmethod
@@ -332,12 +339,16 @@ class FraesenMasse:
         return ergebnis
 
 
-def _wege_fehler(masse):
-    """(Feld, Satz) für jeden Weg, der 0 nicht umschließt, zu lang ist oder leer."""
+def _wege_fehler(masse, ohne_null=()):
+    """(Feld, Satz) für jeden Weg, der leer oder zu lang ist oder 0 nicht umschließt – außer
+    den Feldern in `ohne_null`: Z der Drehmaschine zählt ab der Spindelnase, dort liegt 0 nie
+    im Weg (P-2026-09-30-50)."""
     ergebnis = []
     for feld in ("weg_x", "weg_y", "weg_z"):
         unten, oben = getattr(masse, feld)
-        if not -GROESSTER_WEG <= unten <= 0 <= oben <= GROESSTER_WEG or unten == oben:
+        if not -GROESSTER_WEG <= unten < oben <= GROESSTER_WEG:
+            ergebnis.append((feld, tr("neu.weg_leer")))
+        elif feld not in ohne_null and not unten <= 0 <= oben:
             ergebnis.append((feld, tr("neu.weg_bereich")))
     return ergebnis
 
@@ -672,21 +683,25 @@ GROESSTER_WEG = 10000.0
 class DrehmaschinenMasse:
     """Die Maße der Drehmaschine, vorbelegt wie das Beispiel.
 
-    Wege in mm als (Minimum, Maximum), gezählt ab der Stellung, in der die
-    Maschine gebaut ist – 0 muss darin liegen. `y_winkel` ungleich 0 macht Y
-    zur schrägen Achse (W-001, Abschnitt 7c).
+    Wege in mm als (Minimum, Maximum), gezählt wie an der Maschine – bis zum Bezugspunkt
+    des Revolvers, der Mitte der VDI-Aufnahme in Arbeitsstellung an ihrer Stirn: X ab der
+    Spindelachse (Radius, 0 muss darin liegen), Z ab der Spindelnase, Y ab der Mitte der
+    Spindel (0 muss darin liegen). Manuel (2026-09-30): „bei MEINER maschine ... ist x 0 genau
+    die MITTE von der Vdi aufnahme“. Gebaut steht die Maschine bei X 275 und Z 220; liegt das
+    außerhalb der Wege, fährt sie hinein. `y_winkel` ungleich 0 macht Y zur schrägen Achse
+    (W-001, Abschnitt 7c).
     """
 
     name: str = ""  # leer: der Name des Beispiels
     bettneigung: float = 45.0
     y_winkel: float = 0.0
-    # Bis zur Spindelachse: Die Aufnahme in Arbeitsstellung steht 275 mm von ihr – ein
-    # axiales Werkzeug bohrt dort mitten ins Teil, ein radiales erreicht jeden Radius.
-    weg_x: tuple = (-300.0, 150.0)
+    # Bis über die Spindelachse hinaus: Ein axiales Werkzeug bohrt bei X 0 mitten ins Teil,
+    # ein radiales erreicht jeden Radius.
+    weg_x: tuple = (-25.0, 425.0)
     weg_y: tuple = (-60.0, 60.0)
-    # Bis vor das Futter: Die Aufnahmen stehen beim Bauen 130 mm vor der Spannfläche –
-    # eine Stange aus der 4-Achs-Bearbeitung (W-003) muss bis dorthin erreichbar sein.
-    weg_z: tuple = (-220.0, 300.0)
+    # Bis vor das Futter (90 mm vor der Spindelnase): Eine Stange aus der 4-Achs-Bearbeitung
+    # (W-003) muss bis dorthin erreichbar sein.
+    weg_z: tuple = (0.0, 520.0)
     plaetze: int = 12
     drehzahl: float = 5000.0  # U/min der Hauptspindel
 
@@ -697,7 +712,7 @@ class DrehmaschinenMasse:
             ergebnis.append(("bettneigung", tr("neu.bettneigung_bereich")))
         if not Y_WINKEL_BEREICH[0] <= self.y_winkel <= Y_WINKEL_BEREICH[1]:
             ergebnis.append(("y_winkel", tr("neu.y_winkel_bereich")))
-        ergebnis += _wege_fehler(self)
+        ergebnis += _wege_fehler(self, ohne_null=("weg_z",))
         if not PLAETZE_BEREICH[0] <= self.plaetze <= PLAETZE_BEREICH[1]:
             ergebnis.append(("plaetze", tr("neu.plaetze_bereich")))
         if self.drehzahl <= 0:
@@ -846,12 +861,33 @@ def drehmaschine(masse=None):
         "Spindelnase.Face3",
         richtung=(1, 0, 0),
     )
-    z = b.gelenk_wie_gebaut("Z", "Slider", bett, "Face6", z_schlitten, "Face5", richtung=(1, 0, 0))
-    b.begrenze(z, *masse.weg_z)
-    x = b.gelenk_wie_gebaut(
-        "X", "Slider", z_schlitten, "Face6", x_schlitten, "Face5", richtung=(0, 1, 0)
+    # X und Z zählen wie an der Maschine: bis zum Bezugspunkt des Revolvers (P1, die Mitte
+    # der Aufnahme an ihrer Stirn), X ab der Spindelachse, Z ab der Spindelnase – so weit
+    # stehen sie gebaut. Die Wege bekommen die Gelenke erst in _in_die_wege(), falls die
+    # gebaute Stellung außerhalb liegt.
+    abstand = m.globale_platzierung(platz1).Base - b.bezug["Hauptspindel"].Base
+    richtung_z = b.rahmen.Rotation.multVec(App.Vector(1, 0, 0))
+    richtung_x = b.rahmen.Rotation.multVec(App.Vector(0, 1, 0))
+    z = b.gelenk_wie_gebaut(
+        "Z",
+        "Slider",
+        bett,
+        "Face6",
+        z_schlitten,
+        "Face5",
+        richtung=(1, 0, 0),
+        stellung=abstand.dot(richtung_z),
     )
-    b.begrenze(x, *masse.weg_x)
+    x = b.gelenk_wie_gebaut(
+        "X",
+        "Slider",
+        z_schlitten,
+        "Face6",
+        x_schlitten,
+        "Face5",
+        richtung=(0, 1, 0),
+        stellung=abstand.dot(richtung_x),
+    )
     y = b.gelenk_wie_gebaut(
         "Y", "Slider", x_schlitten, "Face3", y_schlitten, "Face4", richtung=(0, 0, 1)
     )
@@ -896,7 +932,28 @@ def drehmaschine(masse=None):
         trafo = m.neue_schraege_achse(ma, y1, x1)
         kette = kette_modul.lies_kette(asm)
         schraege_achse.drehe_fuehrung(asm, kette, ma, trafo, masse.y_winkel)
+    _in_die_wege(b, asm, {z: masse.weg_z, x: masse.weg_x})
     return asm, ma
+
+
+def _in_die_wege(b, asm, wege):
+    """Gibt den Gelenken ihre Wege ({Gelenk: (von, bis)}). Steht eines gebaut außerhalb, fährt
+    die Maschine es erst hinein – etwa X gebaut 275, der Weg bis 250."""
+    from . import verfahren as vf
+
+    kette = kette_modul.lies_kette(asm)
+    fahrt = vf.Verfahren(asm, kette)
+    ziele = {}
+    for gelenk, (unten, oben) in wege.items():
+        achse = kette.achse_von(gelenk)
+        jetzt = fahrt.stellung(achse)
+        if not unten <= jetzt <= oben:
+            ziele[achse] = min(max(jetzt, unten), oben)
+    if ziele:
+        fahrt.setze_alle(ziele)
+    for gelenk, weg in wege.items():
+        b.begrenze(gelenk, *weg)
+    asm.Document.recompute()
 
 
 BAUPLAENE = {

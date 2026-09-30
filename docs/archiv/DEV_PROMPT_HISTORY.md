@@ -12,6 +12,71 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-50 x-z-wie-an-der-maschine
+
+### EINGELESEN
+- Manuel, 2026-09-30, mit Bildern seines Scheibenrevolvers (VDI plan in der Scheibe) und eines
+  Sternrevolvers: „bei x war wieder -430 drinnen gestanden .... ich glaube man muss das etwas
+  konkretisieren .... bei MEINER art ... ist x 0 genau die MITTE von der Vdi aufnahme ...
+  wo bei der anderen art die z0 ist weis ich nicht“. Auf Nachfrage: „da stand -300 drinnen“
+  (Weg X in „Neue Maschine“).
+- `camaddon/beispielmaschine.py` (`gelenk_wie_gebaut`, `drehmaschine`,
+  `DrehmaschinenMasse`, `_wege_fehler`), `camaddon/gui_neue_maschine.py`,
+  `camaddon/verfahren.py` (`gelenkstellung`, `Verfahren.setze_alle`),
+  `help/*/neue_maschine.html`, `docs/spezifikation_maschine_aus_baugruppe.md`.
+- Ausgemessen an der Beispiel-Drehmaschine: Die Mitte von P1 an ihrer Stirn steht gebaut
+  275 mm von der Spindelachse und 220 mm vor der Spindelnase.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`, `camaddon/gui_neue_maschine.py`, `translations/de.json`,
+  `translations/en.json`, `help/de/neue_maschine.html`, `help/en/neue_maschine.html`,
+  `docs/spezifikation_maschine_aus_baugruppe.md`, `tests/test_beispielmaschine.py`,
+  `tests/test_schraege_achse.py`, `tests/gui/szenario_neue_maschine.py`,
+  `tests/gui/szenario_verfahren_schraeg.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+An der Beispiel-Drehmaschine steht auf X 0 die Mitte der VDI-Aufnahme P1 auf der
+Spindelachse, auf Z 0 ihre Stirn in der Ebene der Spindelnase. „Neue Maschine“ zeigt als
+Vorgabe X −25 … 425 und Z 0 … 520 und sagt darunter, wovon die Wege zählen.
+
+### DONE
+- X und Z der Drehmaschine zählen wie an der Maschine. X geht ab der Spindelachse (Radius),
+  Z ab der Spindelnase, jeweils bis zum Bezugspunkt des Revolvers (die Mitte der Aufnahme in
+  Arbeitsstellung an ihrer Stirn). Y zählt wie bisher ab der Mitte der Spindel.
+- `gelenk_wie_gebaut(…, stellung=…)`: Das Gelenk steht gebaut auf dieser Stellung. Seite 1
+  liegt um so viel längs der Achse zurück. Die Drehmaschine rechnet X 275 und Z 220 aus der
+  gebauten Lage von P1 und der Spindelnase.
+- Die Wege bekommen X und Z erst am Ende (`_in_die_wege`). Liegt die gebaute Stellung
+  außerhalb, fährt die Maschine hinein, etwa X auf 120 bei einem Weg bis 120.
+- Vorgabe X −25 … 425 und Z 0 … 520: dieselben Wege wie vorher, nur anders gezählt.
+- Prüfung der Maße:
+  - X muss bis 0 reichen, also bis zur Spindelachse.
+  - Z braucht nur ein Stück: „bis“ größer als „von“ (neuer Satz `neu.weg_leer`).
+- „Neue Maschine“ hat bei der Drehmaschine eine graue Zeile unter den Wegen und je Achse einen
+  Tooltip: wovon sie zählen, X als Radius, die Steuerung zeigt oft den Durchmesser.
+- Hilfe (de/en) und Spezifikation ergänzt.
+
+### TEST
+- `test_beispielmaschine`, jetzt mit Nullpunkt:
+  - gebaut X 275, Z 220; die Wege stimmen;
+  - auf X 0 und Z 0 steht P1 auf der Spindelachse in der Ebene der Spindelnase;
+  - eine eigene Maschine mit X bis 120 steht nach dem Bauen auf 120.
+- `test_schraege_achse` (Start X 275, Anschlag bei 425), `test_abfahren`, `test_kette`,
+  `test_kinematik`, `test_maschine`, `test_reichweite`, `test_restmaterial`,
+  `test_vierachs_achsen`, `test_vierachs_pruefen`, `test_verfahren`, `test_schruppwerte`,
+  `test_sprache`, `test_hilfe`: ok in 1.1.3.
+- Dieselben und `test_export` in 26.3: ok.
+- Die 21 Szenarien mit Beispielmaschinen in 1.1.3: ok. Davon angepasst:
+  - `szenario_verfahren_schraeg`: Start X1 275, X auf 415, Anschlag 425.
+  - `szenario_neue_maschine`: Z 0 … 2500.
+- Im Bild von „Neue Maschine“ steht die Vorgabe X −25 … 425, Z 0 … 520 mit der grauen Zeile.
+  Die erste Fassung der Zeile war zu lang und wurde gequetscht; gekürzt, feste Höhe für zwei
+  Zeilen. Bei der Fräse ist sie aus.
+
+### NEXT
+- Revolverart in „Neue Maschine“ (VDI in der Stirn / am Umfang), wenn Manuel es will.
+- X als Durchmesser, wenn seine Steuerung so zählt (E4).
+
 ## P-2026-09-30-49 version-0-31-3
 
 ### EINGELESEN

@@ -18,7 +18,7 @@ from PySide import QtCore, QtGui
 
 from . import beispielmaschine, einheiten, symbol
 from .gui_hilfe import kopfzeile
-from .gui_teile import hinweiszeile, ruhiges_mausrad
+from .gui_teile import GRAU, hinweiszeile, ruhiges_mausrad
 from .gui_zahlen import zahlenformat
 from .sprache import tr
 
@@ -136,6 +136,7 @@ class NeueMaschineDialog(QtGui.QDialog):
         formular.addRow(tr("neu.y_winkel"), self.feld_y_winkel)
 
         self.felder_weg = {}
+        self._weg_zeilen = {}
         for achse, weg in (("X", vorgabe.weg_x), ("Y", vorgabe.weg_y), ("Z", vorgabe.weg_z)):
             von, bis = _wegfeld(weg[0], unten=True), _wegfeld(weg[1], unten=False)
             zeile = QtGui.QWidget()
@@ -147,6 +148,15 @@ class NeueMaschineDialog(QtGui.QDialog):
             zeile.setToolTip(tr("neu.weg.tooltip"))
             formular.addRow(tr("neu.weg", achse=achse), zeile)
             self.felder_weg[achse] = (von, bis)
+            self._weg_zeilen[achse] = zeile
+        # Wovon die Wege der Drehmaschine zählen – wie an der Maschine (Manuel, 2026-09-30:
+        # „ich glaube man muss das etwas konkretisieren“).
+        self.wege_drehmaschine = QtGui.QLabel(tr("neu.wege.drehmaschine"))
+        self.wege_drehmaschine.setWordWrap(True)
+        self.wege_drehmaschine.setStyleSheet(f"color: {GRAU.name()};")
+        # Im Formular bekäme die umbrochene Zeile nur die Höhe einer – zwei Zeilen fest.
+        self.wege_drehmaschine.setMinimumHeight(2 * self.fontMetrics().lineSpacing() + 4)
+        formular.addRow(self.wege_drehmaschine)
 
         self.feld_plaetze = QtGui.QSpinBox()
         self.feld_plaetze.setRange(*beispielmaschine.PLAETZE_BEREICH)
@@ -190,6 +200,15 @@ class NeueMaschineDialog(QtGui.QDialog):
             for feld in self._nur_drehmaschine:
                 feld.setVisible(drehmaschine)
                 self._formular.labelForField(feld).setVisible(drehmaschine)
+            self.wege_drehmaschine.setVisible(drehmaschine)
+            # Wovon die Wege der Drehmaschine zählen, je Achse (P-2026-09-30-50).
+            tooltips = {
+                "X": tr("neu.weg_x.drehmaschine.tooltip"),
+                "Y": tr("neu.weg_y.drehmaschine.tooltip"),
+                "Z": tr("neu.weg_z.drehmaschine.tooltip"),
+            }
+            for achse, zeile in self._weg_zeilen.items():
+                zeile.setToolTip(tooltips[achse] if drehmaschine else tr("neu.weg.tooltip"))
         self.fehler.hide()
 
     def gewaehlt(self):

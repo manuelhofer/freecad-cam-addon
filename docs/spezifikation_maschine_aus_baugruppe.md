@@ -528,3 +528,16 @@ diesen Dialog heißt das konkret:
   Y-Winkel, Wege X/Y/Z, Revolverplätze, Höchstdrehzahl); die Fräsen bleiben
   feste Beispiele, bis jemand Maße braucht. Nach dem Bauen öffnet sich
   „Maschine bearbeiten“.
+- **X und Z der Drehmaschine zählen wie an der Maschine** (Manuel,
+  2026-09-30: „bei MEINER maschine ... ist x 0 genau die MITTE von der Vdi
+  aufnahme“, P-2026-09-30-50): bis zum Bezugspunkt des Revolvers, der Mitte
+  der VDI-Aufnahme in Arbeitsstellung an ihrer Stirn (P1). X ab der
+  Spindelachse als Radius, Z ab der Spindelnase, Y ab der Mitte der Spindel –
+  so zählen die meisten Drehmaschinen im Maschinen-Koordinatensystem. Die
+  Gelenke von X und Z stehen gebaut nicht auf 0, sondern auf 275 bzw. 220
+  (`gelenk_wie_gebaut(…, stellung=…)`); liegt das außerhalb der eingetragenen
+  Wege, fährt die Maschine hinein. Vorgabe X −25 … 425, Z 0 … 520 – dieselben
+  Wege wie vorher (−300 … 150, −220 … 300 ab der gebauten Stellung). Die
+  Wege lassen sich bis 10 m eintragen (P-2026-09-30-46). Offen: die Steuerung
+  zeigt X oft als Durchmesser (E4 in `spezifikation_steuerung.md`), und ein
+  Revolver mit VDI am Umfang (Sternrevolver) hat einen anderen Bezugspunkt.

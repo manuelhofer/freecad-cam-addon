@@ -106,7 +106,7 @@ def schritte(h):
     bis_z.selectAll()
     QtTest.QTest.keyClicks(bis_z, "2500")
     h.pruefe(abs(bis_z.value() - 2500) < 1e-9, f"Z bis: {bis_z.text()!r}")
-    h.pruefe(d.masse().weg_z == (-220.0, 2500.0), f"Weg Z: {d.masse().weg_z}")
+    h.pruefe(d.masse().weg_z == (0.0, 2500.0), f"Weg Z: {d.masse().weg_z}")
     d.feld_plaetze.setValue(8)
     d.feld_drehzahl.setValue(4000)
     yield 200
