@@ -690,6 +690,17 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
 
 - Schritt „Flächen“ mit Punkt-Hüllfläche, Erreichbarkeit und Farben; ohne
   Auswahl gilt das ganze Teil.
+- Manuel, 2026-09-30: „Es wäre schön, wenn ich nur Flächen am Mantel anklicken
+  könnte, die ich bearbeiten will … und wenn ich alle anklicke, dann wird
+  komplett rings um bearbeitet.“ Dazu seine Antworten:
+  - Wo keine gewählte Fläche ist: „je nach Rohteil abheben und irgendwo wieder
+    einsetzen, so dass er nicht kaputt geht“ – abheben über das, was noch
+    steht, und dort wieder hinein, wo es sicher ist (nicht voll ins Material).
+  - Flächen, die nicht rundum gehen (Abflachung, außermittiger Zylinder):
+    „mehrere Strategien, je nach Werkzeug kann das anders ausfallen“.
+  - „Und Entgraten nicht vergessen.“
+- Vorher (Manuel): die Richtung des Werkzeugs am Halter, die Beispielmaschinen
+  und eine Durchsicht (spezifikation_halter.md, Abschnitt 11).
 - *Klickweg:* „Flächen …“ → „Alle Mantelflächen“ → die Flächen rundum sind
   markiert und grün, die Stirnflächen nicht; eine Fläche unter einem Überhang
   steht rot mit „nicht erreichbar“; ein Klick nimmt eine Fläche heraus.

@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-10 spezifikation-halter-richtung
+
+### EINGELESEN
+- Manuels Antworten vom 2026-09-30: „Die Plätze müssen mit den Werkzeugen
+  beladen werden, die dafür geeignet sind … ein Parameter, wie die
+  Werkzeug-Z-Achse zur Maschinen-Haupt-Z-Achse steht … ein Winkelkopf … kann in
+  alle Richtungen stehen“; Richtung „Am Halter“; Reihenfolge: erst die
+  Grundvoraussetzungen (Halter, Beispielmaschinen, Durchsicht), dann weiter;
+  zur Flächenwahl: abheben und sicher wieder einsetzen, mehrere Strategien je
+  nach Werkzeug, Entgraten.
+- `docs/spezifikation_halter.md`, `docs/spezifikation_vierachs.md` (V4),
+  `camaddon/halter.py`, `camaddon/maschine.py` (Aufnahmen, Revolverplätze),
+  `camaddon/beispielmaschine.py` (Drehmaschine).
+
+### DATEIEN
+- `docs/spezifikation_halter.md`, `docs/spezifikation_vierachs.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation beschreibt, wie der Halter die Richtung des Werkzeugs
+bestimmt (gerade, gewinkelt: Winkel, Drehung, Versatz, Kopf), wie die Lage
+gerechnet wird, was sich an Fenster, Prüffenster, Assistent und
+Beispielmaschinen ändert, in Schritten E1–E5; V4 trägt Manuels Antworten.
+
+### DONE
+- `spezifikation_halter.md` Abschnitt 11 „Stufe E: Richtung des Werkzeugs am
+  Halter“ mit Manuels Entscheidungen und Claudes Vorschlag zu den
+  Einzelheiten.
+- `spezifikation_vierachs.md` V4: Manuels Wunsch und Antworten zur Flächenwahl.
+
+### TEST
+- Nur Dokumentation.
+
+### NEXT
+- E1: Datenmodell, Speicherung, Vorlagen, Lage des Werkzeugs.
+
 ## P-2026-09-30-09 version-0-28-0
 
 ### EINGELESEN
