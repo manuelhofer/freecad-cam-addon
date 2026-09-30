@@ -202,13 +202,25 @@ class NeueMaschineDialog(QtGui.QDialog):
         self.wahl_vdi.setToolTip(tr("neu.vdi.tooltip"))
         formular.addRow(tr("neu.vdi"), self.wahl_vdi)
 
-        self.feld_drehzahl = QtGui.QSpinBox()
-        self.feld_drehzahl.setRange(1, GROESSTE_DREHZAHL)
-        self.feld_drehzahl.setSingleStep(100)
-        self.feld_drehzahl.setValue(round(vorgabe.drehzahl))
-        self.feld_drehzahl.setSuffix(" " + tr("neu.drehzahl.einheit"))
-        self.feld_drehzahl.setToolTip(tr("neu.drehzahl.tooltip"))
-        formular.addRow(tr("neu.drehzahl"), self.feld_drehzahl)
+        # Höchstdrehzahl der Hauptspindel und – an der Drehmaschine – der angetriebenen
+        # Werkzeuge (Manuel, 2026-09-30: „höchstdrehzahl von was ?“).
+        self.feld_drehzahl = _drehzahlfeld(vorgabe.drehzahl, tr("neu.drehzahl.tooltip"))
+        self.feld_drehzahl_werkzeuge = _drehzahlfeld(
+            vorgabe.drehzahl_werkzeuge, tr("neu.drehzahl.werkzeuge.tooltip")
+        )
+        self.drehzahl_spindel = QtGui.QLabel()
+        self.drehzahl_werkzeuge = QtGui.QLabel(tr("neu.drehzahl.werkzeuge"))
+        zeile = QtGui.QWidget()
+        reihe = QtGui.QHBoxLayout(zeile)
+        reihe.setContentsMargins(0, 0, 0, 0)
+        for teil in (
+            self.drehzahl_spindel,
+            self.feld_drehzahl,
+            self.drehzahl_werkzeuge,
+            self.feld_drehzahl_werkzeuge,
+        ):
+            reihe.addWidget(teil)
+        formular.addRow(tr("neu.drehzahl"), zeile)
 
         self._nur_drehmaschine = [
             self.feld_bett,
@@ -225,6 +237,7 @@ class NeueMaschineDialog(QtGui.QDialog):
             self.feld_y_winkel,
             self.feld_plaetze,
             self.feld_drehzahl,
+            self.feld_drehzahl_werkzeuge,
             self.feld_scheibe,
         ]
         felder += [f for paar in self.felder_weg.values() for f in paar]
@@ -283,6 +296,13 @@ class NeueMaschineDialog(QtGui.QDialog):
             )
             self.feld_drehzahl.setValue(round(vorgabe.drehzahl))
             drehmaschine = art == beispielmaschine.DREHMASCHINE
+            if drehmaschine:
+                self.drehzahl_spindel.setText(tr("neu.drehzahl.hauptspindel"))
+                self.feld_drehzahl_werkzeuge.setValue(round(vorgabe.drehzahl_werkzeuge))
+            else:
+                self.drehzahl_spindel.setText(tr("neu.drehzahl.spindel"))
+            self.drehzahl_werkzeuge.setVisible(drehmaschine)
+            self.feld_drehzahl_werkzeuge.setVisible(drehmaschine)
             for feld in self._nur_drehmaschine:
                 feld.setVisible(drehmaschine)
                 self._formular.labelForField(feld).setVisible(drehmaschine)
@@ -346,6 +366,7 @@ class NeueMaschineDialog(QtGui.QDialog):
             weg_z=wege["Z"],
             plaetze=self.feld_plaetze.value(),
             drehzahl=float(self.feld_drehzahl.value()),
+            drehzahl_werkzeuge=float(self.feld_drehzahl_werkzeuge.value()),
             revolver=self.wahl_revolver.currentData(),
             scheibe=_wert(self.feld_scheibe, vorgabe.scheibe),
             vdi=self.wahl_vdi.currentData(),
@@ -367,6 +388,17 @@ class NeueMaschineDialog(QtGui.QDialog):
     def done(self, ergebnis):
         NeueMaschineDialog.offen = None
         super().done(ergebnis)
+
+
+def _drehzahlfeld(wert, tooltip):
+    """Eine Drehzahl in U/min, in Hunderterschritten."""
+    feld = QtGui.QSpinBox()
+    feld.setRange(1, GROESSTE_DREHZAHL)
+    feld.setSingleStep(100)
+    feld.setValue(round(wert))
+    feld.setSuffix(" " + tr("neu.drehzahl.einheit"))
+    feld.setToolTip(tooltip)
+    return feld
 
 
 def _winkelfeld(wert, bereich):

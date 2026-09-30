@@ -59,6 +59,10 @@ def schritte(h):
         not d.feld_bett.isVisible() and not d.feld_plaetze.isVisible() and not d.wahl_x.isVisible(),
         "Fräse: Felder der Drehmaschine sichtbar",
     )
+    h.pruefe(
+        not d.feld_drehzahl_werkzeuge.isVisible() and d.drehzahl_spindel.text() == "Spindel",
+        f"Fräse: Drehzahl {d.drehzahl_spindel.text()!r}",
+    )
     h.pruefe(d.masse() == beispielmaschine.FraesenMasse(), f"Vorbelegung Fräse: {d.masse()}")
     h.pruefe("Spanneisen" in d.beschreibung.text(), f"Spanneisen: {d.beschreibung.text()!r}")
     h.bild("1_fraese_masse", d)
@@ -76,6 +80,13 @@ def schritte(h):
     h.pruefe(d.masse_bereich.isVisible() and not d.fest.isVisible(), "Drehmaschine: keine Maße")
     h.pruefe(d.feld_bett.isVisible() and d.feld_plaetze.isVisible(), "Drehmaschine: Felder fehlen")
     h.pruefe(d.masse() == beispielmaschine.DrehmaschinenMasse(), f"Vorbelegung: {d.masse()}")
+    # Höchstdrehzahl der Hauptspindel und der angetriebenen Werkzeuge (Manuel, 2026-09-30).
+    h.pruefe(
+        d.feld_drehzahl_werkzeuge.isVisible()
+        and d.feld_drehzahl_werkzeuge.value() == 4000
+        and d.drehzahl_spindel.text() == "Hauptspindel",
+        f"Drehzahlen: {d.drehzahl_spindel.text()!r} {d.feld_drehzahl_werkzeuge.value()}",
+    )
     # X als Durchmesser vorgewählt (P-2026-09-30-54): Die X-Wege stehen doppelt da.
     von_x, bis_x = d.felder_weg["X"]
     beschriftung_x = d._formular.labelForField(d._weg_zeilen["X"]).text()
@@ -138,6 +149,7 @@ def schritte(h):
     h.pruefe(d.masse().weg_z == (0.0, 2500.0), f"Weg Z: {d.masse().weg_z}")
     d.feld_plaetze.setValue(8)
     d.feld_drehzahl.setValue(4000)
+    d.feld_drehzahl_werkzeuge.setValue(3200)
     yield 200
     h.bild("4_eigene_masse", d)
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
@@ -161,6 +173,8 @@ def schritte(h):
     h.pruefe(panel.maschine.Label == "Meine Drehmaschine", f"Maschine: {panel.maschine.Label}")
     s1 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "S1")
     h.pruefe(s1.Drehzahl == 4000, f"S1: {s1.Drehzahl}")
+    s3 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "S3")
+    h.pruefe(s3.Drehzahl == 3200, f"S3: {s3.Drehzahl}")
     x1 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "X1")
     h.pruefe(x1.Durchmesser, "X1 der neuen Drehmaschine nicht im Durchmesser")
     Gui.SendMsgToActiveView("ViewFit")

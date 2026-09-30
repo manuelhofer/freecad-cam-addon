@@ -184,6 +184,7 @@ masse = beispielmaschine.DrehmaschinenMasse(
     weg_z=(-50, 400),
     plaetze=8,
     drehzahl=4000,
+    drehzahl_werkzeuge=3200,
     x_durchmesser=False,
 )
 pruefe(not masse.fehler(), f"gültige Maße: {masse.fehler()}")
@@ -206,6 +207,9 @@ plaetze = [a for a in m.aufnahmen(ma) if a.Art == m.AUFNAHME_WERKZEUG]
 pruefe(len(plaetze) == 8, f"Revolverplätze: {len(plaetze)}")
 s1 = next(b for b in m.betriebsarten(ma) if b.NcName == "S1")
 pruefe(s1.Drehzahl == 4000, f"S1: {s1.Drehzahl}")
+# Die angetriebenen Werkzeuge haben ihre eigene Höchstdrehzahl (Manuel, 2026-09-30).
+s3 = next(b for b in m.betriebsarten(ma) if b.NcName == "S3")
+pruefe(s3.Drehzahl == 3200, f"S3: {s3.Drehzahl}")
 # „X als: Radius“ (P-2026-09-30-54): X1 zählt nicht im Durchmesser.
 x1 = next(b for b in m.betriebsarten(ma) if b.NcName == "X1")
 pruefe(not x1.Durchmesser and not m.x_im_durchmesser(ma), "X im Radius gewählt, X1 im Ø")
@@ -309,6 +313,7 @@ falsch = beispielmaschine.DrehmaschinenMasse(
     weg_z=(-20000, 10),
     plaetze=3,
     drehzahl=0,
+    drehzahl_werkzeuge=0,
     revolver="stern",
     scheibe=100,
     vdi=33,
@@ -324,6 +329,7 @@ pruefe(
         "weg_z",
         "plaetze",
         "drehzahl",
+        "drehzahl_werkzeuge",
         "revolver",
         "scheibe",
         "vdi",

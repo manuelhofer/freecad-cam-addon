@@ -712,6 +712,10 @@ class DrehmaschinenMasse:
     weg_z: tuple = (0.0, 520.0)
     plaetze: int = 12
     drehzahl: float = 5000.0  # U/min der Hauptspindel
+    # U/min der angetriebenen Werkzeuge (Werkzeugantrieb S3) – oft weniger als die
+    # Hauptspindel (Manuel, 2026-09-30: „die angetriebenen werkzeuge im revolver können
+    # andere drehzahlen als die hauptspindel“).
+    drehzahl_werkzeuge: float = 4000.0
     # Der Revolver (P-2026-09-30-52): Aufnahmen an der Stirn oder am Umfang, Scheiben-Ø,
     # VDI-Größe (der Ring um die Bohrung).
     revolver: str = REVOLVER_STIRN
@@ -733,6 +737,8 @@ class DrehmaschinenMasse:
             ergebnis.append(("plaetze", tr("neu.plaetze_bereich")))
         if self.drehzahl <= 0:
             ergebnis.append(("drehzahl", tr("neu.drehzahl_fehlt")))
+        if self.drehzahl_werkzeuge <= 0:
+            ergebnis.append(("drehzahl_werkzeuge", tr("neu.drehzahl_werkzeuge_fehlt")))
         if self.revolver not in REVOLVERARTEN:
             ergebnis.append(("revolver", tr("neu.revolver_unbekannt")))
         if not SCHEIBE_BEREICH[0] <= self.scheibe <= SCHEIBE_BEREICH[1]:
@@ -962,7 +968,7 @@ def drehmaschine(masse=None):
     _positionieren(ma, hauptspindel, "C1", 100, endlos=True)
     t = m.neue_betriebsart(ma, revolverachse, m.ART_REVOLVER, "T")
     t.Schaltzeit = 0.25
-    s3 = _spindel(ma, werkzeugantrieb, "S3", 4000, 0.5)
+    s3 = _spindel(ma, werkzeugantrieb, "S3", masse.drehzahl_werkzeuge, 0.5)
     m.neue_aufnahme(ma, spannflaeche, m.AUFNAHME_WERKSTUECK, tr("beispiel.futter"))
     plaetze = m.verteile_plaetze(ma, kette_modul.lies_kette(asm), t, platz1, masse.plaetze)
     for platz in plaetze:  # angetrieben: jeder Platz am Werkzeugantrieb

@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-60 hoechstdrehzahl
+
+### EINGELESEN
+- Manuel, 2026-09-30, mit Bild von „Neue Maschine“ (Höchstdrehzahl 3200): „höchstdrehzahl von
+  was ? ... die angetriebenen werkzeuge im revolver können andere drehzahlen als die
+  hauptspindel von der maschie.“
+- `camaddon/gui_neue_maschine.py`, `camaddon/beispielmaschine.py` (S3 fest 4000 U/min),
+  `camaddon/schruppwerte.py` (übernimmt die Drehzahl der Spindeln, die Werkzeuge antreiben).
+
+### DATEIEN
+- `camaddon/gui_neue_maschine.py`, `camaddon/beispielmaschine.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/neue_maschine.html`, `tests/test_beispielmaschine.py`,
+  `tests/gui/szenario_neue_maschine.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Neue Maschine“ → Drehmaschine: Zeile „Höchstdrehzahl: Hauptspindel [5000 U/min] angetriebene
+Werkzeuge [4000 U/min]“; gebaut hat S1 die erste, S3 die zweite. An der Fräse nur „Spindel“.
+
+### DONE
+- `DrehmaschinenMasse.drehzahl_werkzeuge` (Vorgabe 4000), 0 ist ein Fehler; S3 bekommt sie.
+- „Neue Maschine“: beide Drehzahlen in einer Zeile, je mit Tooltip; an der Fräse nur die
+  Spindel. Hilfe (de/en).
+
+### TEST
+- `test_beispielmaschine`: S3 3200 aus den Maßen; 0 als Fehler.
+- `szenario_neue_maschine`: Vorgabe 4000, Fräse ohne das zweite Feld, gebaut S3 3200.
+- Alles in 1.1.3 ok, dazu `test_sprache`, `test_hilfe`; Bild `2_drehmaschine_vorgabe`
+  angesehen: „Höchstdrehzahl: Hauptspindel 5000 U/min · angetriebene Werkzeuge 4000 U/min“.
+
+### NEXT
+- Planaufmaß (P-61), Ordner „Operations“ (P-62), Version 0.32.2.
+
 ## P-2026-09-30-59 version-0-32-1
 
 ### EINGELESEN
