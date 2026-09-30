@@ -731,6 +731,15 @@ die Abstände gelten für beide.
   Rasterfehler längs. Das Schruppen rechnet weiter mit der Scheibe.
   Prüfung: Zylinder, Kugel, Absatz mit Kugelfräser (die Kehle mit R bleibt),
   Kante, Kegel und Torus gegen die Formel; eine Zeitgrenze.
+  *Gebaut (P-2026-09-30-02):* `fraeserform.py` mit Stücken EBEN, BOGEN, HOHL,
+  GERADE; Aufmaß als Versatz des Profils (Ecken werden zu Bögen); Kanten für
+  Scheibe und Kugel geschlossen, für die anderen der goldene Schnitt (längs
+  einer Kante ist die Höhe konkav). Abweichung: Die Hohlkehle des
+  Radienfräsers rechnet als Sehne – Unterteilen kostete über 70 s, und
+  schlichten soll er nicht; er bleibt höher, das Teil sicher. Geprüft gegen den
+  dicht abgetasteten Umriss von Absatz, Kugel und Sechskant (höchstens
+  0,002 mm Abweichung); Kugelfräser auf der Welle mit Nocken, 0,5° × 0,35 mm:
+  223 200 Punkte in 0,5 s (Torus 2 s, Konik 4 s).
 - **V5b – Bahn** (`vierachs_bahn.schlichten`): eine Spirale mit der Steigung
   Schrittweite, von vorne – der Fräser vor der Stange – bis zum Überlauf
   hinter dem Teil; die Spitze auf Hüllfläche plus Aufmaß. Punkte je 0,5°

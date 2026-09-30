@@ -12,6 +12,64 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-02 fraeserform-huellflaeche
+
+### EINGELESEN
+- V5a in `docs/spezifikation_vierachs.md` (P-2026-09-30-01), Manuel: Fräser
+  „Mit allen“.
+- `camaddon/vierachs_huelle.py`, `camaddon/werkzeugform.py` (`konus`, `kegel`,
+  `radienprofil` – dieselben Maße wie Bild und CAM), `camaddon/werkzeuge.py`
+  (Arten, `mass`, `wert`).
+
+### DATEIEN
+- `camaddon/fraeserform.py` (neu), `camaddon/vierachs_huelle.py`,
+  `tests/test_fraeserform.py` (neu), `docs/spezifikation_vierachs.md`,
+  `docs/aufbau.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+`tests/test_fraeserform.py` ist grün: Die Hüllfläche jedes Fräsers liegt nie
+über dem dicht abgetasteten Umriss von Absatz, Kugel und Sechskant und
+höchstens um die Vernetzung darunter.
+
+### DONE
+- `fraeserform.Form`: Profil aus Stücken EBEN (Scheibe), BOGEN (Kugel,
+  Eckradius), HOHL (Kehle), GERADE (Kegel); `hoehe(ρ)`, `stuetze(θ)` (wo eine
+  geneigte Ebene zuerst berührt – über die konvexe Hülle), `mit_aufmass(d)`
+  (rundum größer, Ecken werden Bögen), `kammhoehe(s)`, `aussen()`.
+  `von_werkzeug()` für Schaft-, Nuten-, Schwalbenschwanz-, Plan-, Kugel-,
+  Lollipop-, Torus-, Konik-, Fasen- und Radienfräser; Form- und
+  Gewindefräser: None.
+- `vierachs_huelle.fraeser()` (Raster wie `schaftfraeser`) und `je_winkel()`
+  (je Winkel eigene Stellen längs – fürs Schlichten an den Stellen seiner
+  Spirale). Gegen Ecken genau, gegen Dreiecke genau (`_dreiecke_treffen` mit
+  der Berührstelle aus der Form), gegen Kanten: Scheibe und Kugel geschlossen,
+  sonst goldener Schnitt – längs einer Kante ist x − z(Abstand) für konvexe
+  Profile konkav. Wo eine Kante unter einer Scheibe oder dem Rand herauskommt,
+  rechnet die Scheibe. Der Schaftfräser rechnet wie bisher (Schruppen
+  unverändert, `test_vierachs_huelle`, `test_vierachs_bahn` grün).
+- Gefunden beim Prüfen: Die erste Vergleichsrechnung (Punkte dicht auf jedem
+  Dreieck) meldete bis 2 mm Unterschied – genau dort, wo der Fräser eine Kante
+  mit dem Rand streift, verfehlt jedes Abtasten die Berührstelle. Die Prüfung
+  vergleicht deshalb im Schnitt durch die Werkzeugachse (Drehteil, Sechskant),
+  wo der Umriss sich 0,002 mm dicht abtasten lässt.
+- Gefunden beim Prüfen: An steilen Flanken (Kugel nahe ihrem Pol) liegt das
+  Netz längs der Werkzeugachse weiter als die Toleranz innen – quer zur
+  Fläche bleibt es bei ihr. Fürs Schlichten heißt das: mit dem Fräser um die
+  Toleranz größer rechnen (`mit_aufmass`), nicht die Spitze heben (V5b).
+- Bewusst nicht: die Hohlkehle des Radienfräsers genau. Unterteilte Kanten
+  kosteten auf der Welle mit Nocken 70 bis 230 s; mit der Sehne bleibt er
+  höher, das Teil sicher.
+
+### TEST
+- KI ohne GUI, FreeCAD 1.1.3: `test_fraeserform`, `test_vierachs_huelle`,
+  `test_vierachs_bahn` grün. Zeiten auf der Welle mit Nocken, 0,5° rundum,
+  0,35 mm längs (226 080 Punkte): Kugel 0,5 s, Torus 2,3 s, Konik 4,1 s; mit
+  0,12 mm (Schrittweite D/50 aus der Werkzeugtabelle, 659 520 Punkte) Kugel
+  1,5 s.
+
+### NEXT
+- V5b Bahn „Rundum schlichten“.
+
 ## P-2026-09-30-01 plan-schlichten
 
 ### EINGELESEN
