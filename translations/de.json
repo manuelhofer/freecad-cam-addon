@@ -633,7 +633,7 @@
     "wv.cam.naeherung.eintrag": "{werkzeug} als {form}",
     "wv.schaft.platzhalter.geschaetzt": "geschätzt: {wert}",
     "beispiel.drehmaschine": "Drehmaschine mit Y-Achse",
-    "beispiel.drehmaschine.beschreibung": "Schrägbett wie eine CLX. Hauptspindel S1/C1 – ihre Achse ist Z –, X, Y, Z und ein Revolver T. Auf P1 ein angetriebener Fräser radial (90° zu Z), auf P2 einer axial (arbeitet in Z-Richtung), beide am Werkzeugantrieb S3. Bettneigung, Wege, Plätze und eine schräge Y-Achse trägst du unten ein.",
+    "beispiel.drehmaschine.beschreibung": "Schrägbett wie eine CLX. Hauptspindel S1/C1 – ihre Achse ist Z –, X, Y, Z und ein Revolver T. Jeder Platz ist eine VDI30-Aufnahme am Werkzeugantrieb S3; wie ein Werkzeug steht, sagt sein Halter in der Werkzeugverwaltung – „VDI30 angetrieben radial“ stellt es radial, ein gerader längs Z. Bettneigung, Wege, Plätze und eine schräge Y-Achse trägst du unten ein.",
     "beispiel.drehmaschine.dokument": "Beispiel Drehmaschine",
     "beispiel.fraese3": "3-Achs-Fräse",
     "beispiel.fraese3.beschreibung": "Kreuztisch X/Y, Fräskopf Z, Spindel S1 – der einfachste Einstieg. Auf dem Tisch zwei Spanneisen als Beispiel – im Baum verschieben oder löschen.",

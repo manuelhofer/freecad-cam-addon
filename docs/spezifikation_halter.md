@@ -279,6 +279,15 @@ Prüffenster, der Hinweis „nicht radial“.
   steht, weiß die Operation nicht – so ist es auf jeder Seite genug.
 - **E4** Beispiel-Drehmaschine mit Aufnahmen statt fester Halter; Szenarien mit
   Haltern; das Szenario Schruppen + Schlichten prüfen (W-003 V5e).
+  *Gebaut (P-2026-09-30-15):* Der Revolver trägt keine Halter mehr fest; jeder
+  Platz ist eine VDI30-Aufnahme an der Stirn der Scheibe (Ring, 130 mm von der
+  Revolverachse), alle am Werkzeugantrieb S3; das LCS von P1: Z längs der
+  Revolverachse vom Futter weg, X zur Spindelachse. Weg X bis −300 – die
+  Aufnahme in Arbeitsstellung steht 275 mm von der Spindelachse, ein radiales
+  Werkzeug erreicht so jeden Radius. Szenario `szenario_rundum_drehmaschine`:
+  T1 Schaftfräser Ø 12 und T2 Kugelfräser Ø 6 mit „VDI30 angetrieben radial“ –
+  Prüfen ohne Hinweis, beide radial am Teil, keine Kollision, am Ende nirgends
+  ins Teil; T2 ohne Halter → der Hinweis nennt T2, P2 und den Halter.
 - **E5** Assistent: gelber Satz, wenn der Fräser nicht radial sitzen würde.
 
 ### 11.6 Entscheidungen

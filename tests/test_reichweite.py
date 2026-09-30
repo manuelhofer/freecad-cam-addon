@@ -357,24 +357,20 @@ op.Gcode = ["G0 X40 Y0 Z80", "G1 X20 Z-10 C90", "G1 X0"]
 teil.recompute()
 e = p.pruefe_job(job)
 pruefe(not any("Rundachse" in h for h in e.hinweise), f"C gilt als fremd: {e.hinweise}")
-# Die Bahn einer CAM-Operation ist für ein Werkzeug längs Z gerechnet; steht die Aufnahme
-# quer dazu (ein radialer Platz), sagt es ein Hinweis – bei einer axialen nicht.
+# Die Bahn einer CAM-Operation ist für ein Werkzeug längs Z gerechnet; steht das Werkzeug
+# quer dazu (ein radialer Halter), sagt es ein Hinweis – ohne Halter (gerade) nicht: Die
+# Plätze der Beispiel-Drehmaschine sind Aufnahmen längs Z (W-002 Stufe E).
 quer = {nr: p._werkzeug_quer(p.werkzeugaufnahme(nr), {}) for nr in (1, 2)}
-radial = [nr for nr, ist in quer.items() if ist]
-pruefe(len(radial) == 1, f"radial/axial an der Drehmaschine: {quer}")
+pruefe(not any(quer.values()), f"gerade an der Drehmaschine quer: {quer}")
 for nr in (1, 2):
     op.ToolController.ToolNumber = nr
     teil.recompute()
     e = p.pruefe_job(job)
     satz = [h for h in e.hinweise if "längs Z gerechnet" in h]
-    pruefe(
-        bool(satz) == quer[nr]
-        and (not satz or satz[0].startswith("„Eigene“: Die Bahn ist für ein Werkzeug längs Z")),
-        f"T{nr} ({'radial' if quer[nr] else 'axial'}): {satz}",
-    )
-# Der Halter kippt das Werkzeug (W-002 Stufe E): „VDI30 angetrieben radial“ macht aus dem
-# axialen P2 ein Werkzeug quer zu Z – der Hinweis kommt; die Spitze steht trotzdem genau auf
-# dem Bahnpunkt, 40 mm ab dem Bezugspunkt des Halters.
+    pruefe(not satz, f"T{nr} gerade: {satz}")
+# Der Halter kippt das Werkzeug (W-002 Stufe E): „VDI30 angetrieben radial“ stellt es auf P2
+# quer zu Z – der Hinweis kommt; die Spitze steht trotzdem genau auf dem Bahnpunkt, 40 mm ab
+# dem Bezugspunkt des Halters.
 radial_halter = hl.aus_vorlage("vdi30_radial")
 eingespannt = rw.Einspannung(40.0, hl.lage(radial_halter))
 pruefe(p._werkzeug_quer(p2, {}, eingespannt), "P2 mit radialem Halter nicht quer")

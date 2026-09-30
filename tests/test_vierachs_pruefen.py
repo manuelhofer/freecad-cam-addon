@@ -1,11 +1,12 @@
 # Prüft „Rundum schruppen“ auf der Beispiel-Drehmaschine (W-003 Stufe V3e): Welle Ø 40
-# in der Stange Ø 50, Rundachse C von der Maschine, T1 auf dem radialen Platz P1. Das
-# Prüffenster rechnet ohne TCPM – die Linearachsen stehen wie mit C auf 0, C dreht
-# darunter –, die Zeit folgt G93, kein Hinweis zur Werkzeuglage. Die Kollisionsprüfung
-# findet mit 125 mm Werkzeuglänge nichts (auch nicht beim Rückzug nach der Lage und
-# 2 mm vor dem Futter); mit 50 mm stößt der Revolver ans Futter – das Teil ragt nur
-# um den Abstich heraus. Mit T2 (axial auf P2) sagt ein Hinweis, dass die Bahn ein
-# radiales Werkzeug aus +X braucht.
+# in der Stange Ø 50, Rundachse C von der Maschine, T1 mit „VDI30 angetrieben radial“ auf
+# P1 (W-002 Stufe E: der Halter stellt es radial). Das Prüffenster rechnet ohne TCPM – die
+# Linearachsen stehen wie mit C auf 0, C dreht darunter –, die Zeit folgt G93, kein
+# Hinweis zur Werkzeuglage. Die Kollisionsprüfung findet mit 125 mm ab Bezugspunkt nichts
+# (auch nicht beim Rückzug nach der Lage und vor dem Futter – die Stange ragt so weit
+# heraus, dass der Kopf des Halters Platz hat); mit 50 mm reichte der Halter (Nase 55 mm)
+# über die Spitze hinaus – er stößt ans Teil. T2 ohne Halter steht gerade (axial)
+# auf P2: Ein Hinweis sagt, dass die Bahn ein radiales Werkzeug aus +X braucht.
 import math
 import os
 import sys
@@ -19,6 +20,7 @@ import Part
 
 from camaddon import abfahren as ab
 from camaddon import beispielmaschine as bm
+from camaddon import halter as hl
 from camaddon import kollision as kb
 from camaddon import reichweite as rw
 from camaddon import sprache
@@ -57,18 +59,29 @@ stirn = next(
     if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9
 )
 lage = vr.berechne(welle.Shape, stirn, achse, durchmesser=50)
-job = vr.richte_ein(doc, welle, lage, vr.Stange(50.0), achse, beschriftung="Welle 4 Achsen")
+# Die Stange ragt so weit heraus, dass der Kopf des Halters – 27,5 mm über die Werkzeugachse
+# hinaus zum Futter hin – vor dem Futter bleibt: Überlauf 6,5 + 27,5 + Abstand 5 ≈ 40 mm
+# (so rechnet es der Assistent, P-2026-09-30-14).
+stange = vr.Stange(50.0, frei_hinten=40.0)
+job = vr.richte_ein(doc, welle, lage, stange, achse, beschriftung="Welle 4 Achsen")
 tc = job.Tools.Group[0]
 tc.Tool.Diameter = 12
 tc.HorizFeed = f"{VORSCHUB} mm/min"
 tc.ToolNumber = 1
-op = vo.lege_an(job, tc, achse, zustellung=2.5, steigung=6.0, aufmass=0.3)
+# T1 in der Werkzeugverwaltung, mit dem radialen Halter und 125 mm ab Bezugspunkt.
+bib = wz.Bibliothek()
+halter = bib.neuer_halter("vdi30_radial")
+t1 = bib.neues_werkzeug()
+t1.nummer, t1.durchmesser, t1.laenge_spindelnase, t1.halter = 1, 12.0, 125.0, halter.kennung
+op = vo.lege_an(
+    job, tc, achse, zustellung=2.5, steigung=6.0, aufmass=0.3, halter=hl.seitlich(halter)
+)
 doc.recompute()
 pruefe(op.Lagen == 2, f"Lagen: {op.Lagen}")
 
 p = rw.Pruefung(asm, ma)
 nullpunkt = rw.vorschlag_nullpunkt(job)
-ergebnis = p.pruefe_job(job, nullpunkt)
+ergebnis = p.pruefe_job(job, nullpunkt, bib)
 hinweise = " | ".join(ergebnis.hinweise)
 pruefe("radial aus" not in hinweise, f"Hinweis zur Lage trotz P1: {hinweise}")
 pruefe("längs Z gerechnet" not in hinweise, f"Hinweis für 3-Achs-Bahnen: {hinweise}")
@@ -80,10 +93,10 @@ pruefe(
 
 # --- Abfahren: ohne TCPM, Zeit nach G93 --------------------------------------------------
 beginn = time.time()
-fahrt = ab.abfahrt(p, job, nullpunkt)
+fahrt = ab.abfahrt(p, job, nullpunkt, bib)
 dauer_abfahren = time.time() - beginn
 aufnahme = p.werkzeugaufnahme(1)
-laenge = fahrt.operationen[0].laenge
+laenge = fahrt.operationen[0].einspannung
 c1 = next(a for a in fahrt.achsen if vf.namen(ma, a) == "C1")
 gedreht = [
     i
@@ -126,12 +139,11 @@ print(ascii(f"Abfahren: {len(fahrt.stationen)} Stationen in {dauer_abfahren:.1f}
 # hinein, rundum am Teil, 2 mm vor dem Futter, Rückzug im Eilgang.
 op.Zustellung = 5.0
 op.VorschubJeUmdrehung = 12.0
-tc.Tool.Length = 125.0
 doc.recompute()
 pruefe(op.Lagen == 1, f"Lagen: {op.Lagen}")
-fahrt = ab.abfahrt(p, job, nullpunkt)
+fahrt = ab.abfahrt(p, job, nullpunkt, bib)
 beginn = time.time()
-kollision = kb.kollision(fahrt, job, nullpunkt, wz.Bibliothek())
+kollision = kb.kollision(fahrt, job, nullpunkt, bib)
 dauer_kollision = time.time() - beginn
 pruefe(not kollision.befunde, f"Befunde: {[b.text() for b in kollision.befunde][:3]}")
 # Je Station kaum mehr als zwei Stellen: Futter und Welle sind rund um C, sie bewegen sich
@@ -147,19 +159,18 @@ print(
     )
 )
 
-# --- Mit 50 mm: Der Revolver stößt ans Futter ----------------------------------------------
-tc.Tool.Length = 50.0
-doc.recompute()
-fahrt = ab.abfahrt(p, job, nullpunkt)
-anfang = ab.Abfahrt(p, fahrt.achsen, fahrt.stationen[:20], fahrt.operationen)
+# --- Mit 50 mm ab Bezugspunkt: Der Halter (Nase 55 mm) stößt ans Teil ----------------------
+t1.laenge_spindelnase = 50.0
+fahrt = ab.abfahrt(p, job, nullpunkt, bib)
+anfang = ab.Abfahrt(p, fahrt.achsen, fahrt.stationen[:40], fahrt.operationen)
 anfang._fertig()
-paare = {(b.a, b.b) for b in kb.kollision(anfang, job, nullpunkt, wz.Bibliothek()).beruehrungen}
-pruefe(("„Revolver“", "„Spindel“") in paare, f"Revolver am Futter: {paare}")
+paare = {(b.a, b.b) for b in kb.kollision(anfang, job, nullpunkt, bib).beruehrungen}
+pruefe(any("Halter von T1" in a for a, _b in paare), f"Halter stößt nicht an: {paare}")
 
-# --- T2 sitzt axial: Hinweis ------------------------------------------------------------------
+# --- T2 ohne Halter sitzt gerade (axial): Hinweis -------------------------------------------
 tc.ToolNumber = 2
 doc.recompute()
-hinweise = " | ".join(rw.Pruefung(asm, ma).pruefe_job(job, nullpunkt).hinweise)
+hinweise = " | ".join(rw.Pruefung(asm, ma).pruefe_job(job, nullpunkt, bib).hinweise)
 pruefe(
     "radial aus +X zur Achse zeigt – T2 sitzt auf" in hinweise,
     f"kein Hinweis für T2 auf P2: {hinweise}",

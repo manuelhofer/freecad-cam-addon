@@ -7,9 +7,9 @@ und „Maschine verfahren“ – bietet die üblichen Bauarten an (ARTEN) und le
 gewählte in einem neuen Dokument an, ihr Maschinenobjekt schon ausgefüllt:
 
 - Drehmaschine mit Y-Achse, Schrägbett wie eine CLX: Hauptspindel S1/C1 –
-  ihre Achse ist Z –, Revolver T mit zwölf Plätzen, darauf zwei
-  angetriebene Fräswerkzeuge am gemeinsamen Antrieb S3: radial (90° zu Z)
-  auf P1, axial (arbeitet in Z-Richtung) auf P2;
+  ihre Achse ist Z –, Revolver T mit zwölf Plätzen, jeder eine VDI30-Aufnahme
+  am Werkzeugantrieb S3; wie das Werkzeug steht (radial, axial), sagt sein
+  Halter aus der Werkzeugverwaltung (W-002 Stufe E);
 - 3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z;
 - 5-Achs Tisch/Tisch: Schwenkbrücke A mit Rundtisch C, X, Y, Z im Kopf;
 - 5-Achs Kopf/Kopf: Portal mit Gabelkopf A/B, der Tisch steht;
@@ -656,6 +656,8 @@ def fuenfachs_kopf_kopf():
 SPITZENHOEHE = 800  # mm über dem Boden, wo der Rahmen beginnt
 # Die Revolverachse im Rahmen (bei x = 0) und die Plätze auf der Scheibe.
 REVOLVERACHSE = App.Vector(0, 405, 350)
+RADIUS_AUFNAHMEN = 130.0  # mm von der Revolverachse: die Aufnahmen an der Stirn
+STIRN_AUFNAHMEN = 700.0  # x ihrer Stirn – 10 mm vor der Scheibe, zum Futter hin
 
 # Was sich in „Neue Maschine …“ eintragen lässt, und in welchen Grenzen.
 BETTNEIGUNG_BEREICH = (0.0, 60.0)  # Grad; 0 ist ein Flachbett
@@ -676,10 +678,12 @@ class DrehmaschinenMasse:
     name: str = ""  # leer: der Name des Beispiels
     bettneigung: float = 45.0
     y_winkel: float = 0.0
-    weg_x: tuple = (-170.0, 150.0)
+    # Bis zur Spindelachse: Die Aufnahme in Arbeitsstellung steht 275 mm von ihr – ein
+    # axiales Werkzeug bohrt dort mitten ins Teil, ein radiales erreicht jeden Radius.
+    weg_x: tuple = (-300.0, 150.0)
     weg_y: tuple = (-60.0, 60.0)
-    # Bis vor das Futter: P1 steht beim Bauen 195 mm vor der Spannfläche – eine Stange
-    # aus der 4-Achs-Bearbeitung (W-003) muss bis dorthin erreichbar sein.
+    # Bis vor das Futter: Die Aufnahmen stehen beim Bauen 130 mm vor der Spannfläche –
+    # eine Stange aus der 4-Achs-Bearbeitung (W-003) muss bis dorthin erreichbar sein.
     weg_z: tuple = (-220.0, 300.0)
     plaetze: int = 12
     drehzahl: float = 5000.0  # U/min der Hauptspindel
@@ -716,12 +720,13 @@ def drehmaschine(masse=None):
 
     Hauptspindel S1 (Drehzahl) und C1 (positionieren) – ihre Achse ist Z.
     Auf dem Bett Z-Schlitten, X-Schlitten, darauf Y-Schlitten mit dem
-    Revolver T (12 Plätze). P1 trägt einen radialen angetriebenen Halter (das
-    Werkzeug zeigt 90° zu Z zur Spindelachse), P2 einen axialen (das Werkzeug
-    arbeitet in Z-Richtung); beide hängen am Werkzeugantrieb S3. Die Werkzeuge
-    selbst zeigt das Prüffenster – als Teil des Revolvers stießen sie bei der
-    Kollisionsprüfung ans Teil, wenn das echte Werkzeug kürzer oder dünner ist.
-    Das Futter ist die Werkstückaufnahme. `masse`
+    Revolver T (12 Plätze). Jeder Platz ist eine Aufnahme (VDI30) an der Stirn
+    der Scheibe, alle am Werkzeugantrieb S3: Z längs der Revolverachse, X radial
+    nach außen – in Arbeitsstellung zur Spindelachse. Halter trägt der Revolver
+    nicht fest: Sie kommen mit den Werkzeugen aus der Werkzeugverwaltung (W-002
+    Stufe E, Manuel 2026-09-30) – „VDI30 angetrieben radial“ stellt das Werkzeug
+    90° zu Z zur Spindelachse, ein gerader Halter längs Z. Die Werkzeuge selbst
+    zeigt das Prüffenster. Das Futter ist die Werkstückaufnahme. `masse`
     (DrehmaschinenMasse) ändert Bettneigung, Wege, Plätze, Drehzahl und Name;
     steht Y schräg, kommt die schräge Achse dazu. Gibt (Assembly, Maschine)
     zurück.
@@ -752,31 +757,24 @@ def drehmaschine(masse=None):
     x_schlitten = b.quader("XSchlitten", 310, 160, 510, x=820, y=480, z=90, farbe=SCHLITTEN)
     y_schlitten = b.quader("YSchlitten", 280, 150, 280, x=820, y=330, z=210, farbe=KOPF)
 
-    # Revolverscheibe; P1 unten (zur Spindelachse hin) mit dem radialen
-    # Halter, P2 um 30° weiter mit dem axialen, der zum Futter zeigt – ohne
-    # Werkzeuge darin (siehe oben). Rundum je Platz eine Station – so sieht
-    # man, dass es ein Revolver ist und wie viele Plätze er hat.
+    # Revolverscheibe; an ihrer Stirn (zum Futter hin) je Platz eine Aufnahme
+    # (VDI30) im Kreis, P1 unten – zur Spindelachse hin. So sieht man, dass es
+    # ein Revolver ist und wie viele Plätze er hat. Halter trägt er nicht fest.
     achse = REVOLVERACHSE
-    axial = _auf_der_scheibe(360.0 / masse.plaetze, 130)
-    # So breit, dass zwischen zwei Stationen Luft bleibt – auch bei 24 Plätzen.
-    breite = min(60.0, 0.6 * 2 * math.pi * 170 / masse.plaetze)
-    stationen = [
-        b.quader(
-            f"Station{nummer:02d}",
-            80,
-            40,
-            breite,
-            x=725,
-            y=achse.y - 170 - 40,
-            z=achse.z - breite / 2,
+    teilung = 2 * math.pi * RADIUS_AUFNAHMEN / masse.plaetze
+    aufnahmen = [
+        b.zylinder(
+            f"Aufnahme{nummer:02d}",
+            min(30.0, 0.42 * teilung),  # Luft dazwischen, auch bei 24 Plätzen
+            10,
+            x=STIRN_AUFNAHMEN,
+            y=mitte.y,
+            z=mitte.z,
+            achse=(1, 0, 0),
             farbe=SCHLITTEN,
-            gedreht=App.Placement(
-                App.Vector(),
-                App.Rotation(App.Vector(1, 0, 0), (nummer - 1) * 360.0 / masse.plaetze),
-                achse,
-            ),
         )
-        for nummer in range(2, masse.plaetze + 1)
+        for nummer in range(1, masse.plaetze + 1)
+        for mitte in [_auf_der_scheibe((nummer - 1) * 360.0 / masse.plaetze, RADIUS_AUFNAHMEN)]
     ]
     revolver, _ = b.bauteil(
         "Revolver",
@@ -791,23 +789,21 @@ def drehmaschine(masse=None):
                 achse=(1, 0, 0),
                 farbe=REVOLVER,
             ),
-            b.quader("HalterRadial", 80, 50, 80, x=725, y=185, z=310, farbe=SCHLITTEN),
-            b.zylinder(
-                "HalterAxial",
-                35,
-                60,
-                x=710,
-                y=axial.y,
-                z=axial.z,
-                achse=(-1, 0, 0),
-                farbe=SCHLITTEN,
-            ),
-            *stationen,
+            *aufnahmen,
         ],
     )
-    # Aufnahme des radialen Werkzeugs: seine Spitze zeigt zur Spindelachse,
-    # die Z-Achse des LCS von der Spitze zur Aufnahme – weg von ihr.
-    platz1 = b.lcs(revolver, "Platz", 765, 185, 350, richtung=(0, 1, 0))
+    # Die Aufnahme P1: an der Stirn ihres Rings, Z längs der Revolverachse vom Futter
+    # weg (von der Spitze eines geraden Werkzeugs zur Aufnahme), X zur Spindelachse.
+    mitte1 = _auf_der_scheibe(0.0, RADIUS_AUFNAHMEN)
+    platz1 = b.lcs(
+        revolver,
+        "Platz",
+        STIRN_AUFNAHMEN,
+        mitte1.y,
+        mitte1.z,
+        richtung=(1, 0, 0),
+        x_richtung=(0, -1, 0),
+    )
     antrieb, _ = b.bauteil(
         "Antrieb",
         b.zylinder(
@@ -867,9 +863,7 @@ def drehmaschine(masse=None):
     s3 = _spindel(ma, werkzeugantrieb, "S3", 4000, 0.5)
     m.neue_aufnahme(ma, spannflaeche, m.AUFNAHME_WERKSTUECK, tr("beispiel.futter"))
     plaetze = m.verteile_plaetze(ma, kette_modul.lies_kette(asm), t, platz1, masse.plaetze)
-    # P2 trägt das axiale Werkzeug: Aufnahme vorn am Halter, Z zeigt vom Futter weg.
-    plaetze[1].Lcs.Placement = b.lage_im_teil(revolver, 650, axial.y, axial.z, (1, 0, 0))
-    for platz in plaetze[:2]:
+    for platz in plaetze:  # angetrieben: jeder Platz am Werkzeugantrieb
         platz.Spindel = s3
     _benenne(asm, ma, masse.name)
     asm.Document.recompute()

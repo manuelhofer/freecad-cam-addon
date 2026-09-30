@@ -134,11 +134,15 @@ for art in beispielmaschine.ARTEN:
     zurueck = [o.Name for o in teile if not o.Placement.isSame(gebaut[o.Name], 1e-6)]
     pruefe(not zurueck, f"{art}: nach der Grundstellung nicht zurück: {zurueck}")
     if art == beispielmaschine.DREHMASCHINE:
-        # Zwölf Revolverplätze; P1 und P2 tragen die angetriebenen Werkzeuge an S3.
+        # Zwölf Revolverplätze, alle am Werkzeugantrieb S3 – die Halter kommen mit den
+        # Werkzeugen (W-002 Stufe E); keiner ist fest eingebaut.
         plaetze = [a for a in m.aufnahmen(ma) if a.Art == m.AUFNAHME_WERKZEUG]
         angetrieben = sorted(a.Label for a in plaetze if getattr(a.Spindel, "NcName", "") == "S3")
         pruefe(len(plaetze) == 12, f"Revolverplätze: {len(plaetze)}")
-        pruefe(len(angetrieben) == 2, f"angetrieben: {angetrieben}")
+        pruefe(len(angetrieben) == 12, f"angetrieben: {angetrieben}")
+        namen = {o.Label for o in doc.Objects}
+        pruefe(not {"HalterRadial", "HalterAxial"} & namen, "fester Halter am Revolver")
+        pruefe({"Aufnahme01", "Aufnahme12"} <= namen, "Aufnahmen an der Stirn fehlen")
     App.closeDocument(doc.Name)
 
 # --- Drehmaschine mit eigenen Maßen („Neue Maschine …“) ----------------------------------

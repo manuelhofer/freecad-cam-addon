@@ -633,7 +633,7 @@
     "wv.cam.naeherung.eintrag": "{werkzeug} as {form}",
     "wv.schaft.platzhalter.geschaetzt": "estimated: {wert}",
     "beispiel.drehmaschine": "Lathe with Y axis",
-    "beispiel.drehmaschine.beschreibung": "Slant bed like a CLX. Main spindle S1/C1 – its axis is Z –, X, Y, Z and a turret T. On P1 a driven milling tool radial (90° to Z), on P2 an axial one (cutting in Z direction), both on the tool drive S3. Bed slant, travels, stations and an inclined Y axis are entered below.",
+    "beispiel.drehmaschine.beschreibung": "Slant bed like a CLX. Main spindle S1/C1 – its axis is Z –, X, Y, Z and a turret T. Each station is a VDI30 mount on the tool drive S3; how a tool stands is set by its holder in the tool manager – “VDI30 driven radial” puts it radial, a straight one along Z. Enter bed inclination, travels, stations and an inclined Y axis below.",
     "beispiel.drehmaschine.dokument": "Example lathe",
     "beispiel.fraese3": "3-axis mill",
     "beispiel.fraese3.beschreibung": "Cross table X/Y, milling head Z, spindle S1 – the simplest start. Two clamps on the table as an example – move or delete them in the tree.",

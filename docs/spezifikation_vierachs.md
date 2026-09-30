@@ -886,6 +886,16 @@ die Abstände gelten für beide.
   das Schlichten mit T2 meldet dort zu Recht „nicht radial“ und stößt an. Wie
   zwei radiale Werkzeuge an die Beispiel-Drehmaschine kommen, entscheidet
   Manuel.
+  *Entschieden (Manuel, 2026-09-30):* Wie ein Werkzeug steht, sagt sein Halter
+  (W-002 Stufe E). *Gebaut (P-2026-09-30-15):* Die Plätze der
+  Beispiel-Drehmaschine sind Aufnahmen; T1 und T2 mit „VDI30 angetrieben radial“
+  gehen den Klickweg unten ganz (`szenario_rundum_drehmaschine`). Dabei
+  gefunden: Hinter einem Absatz, dessen Wand zum Futter zeigt, bleiben bei
+  manchen Winkeln bis 6,4 mm stehen (Kugel Ø 6, Schrittweite 1 mm) – die Spirale
+  liegt dort 2,5 mm (über die Kante gehoben) und 3,5 mm (erreicht die Wand nicht)
+  von der Wand, nur auf dem halben Umfang genau 3; beim Schruppen genauso. Das
+  Prüffenster zeigt es richtig rot. *Vorschlag:* ein Umlauf bei festem a vor
+  jeder Wand (Ringgang an Absätzen) – zur Besprechung.
 - *Klickweg:* Welle mit Absatz, „4-Achs-Bearbeitung“ → Beispiel-Drehmaschine →
   „Weiter“ → „Rundum schruppen“ T1 Schaftfräser Ø 12 und „Rundum schlichten“
   T2 Kugelfräser Ø 6: Schrittweite grau aus der Werkzeugtabelle, daneben die

@@ -291,10 +291,10 @@ x1, y1 = prog.schlitten()
 pruefe(nahe(x1, -5.773503) and nahe(y1, 11.547005), f"Schlitten bei Y 10: {x1}, {y1}")
 pruefe(nahe(v.stellung(prog.ausgleich), x1), "Verfahren kennt X1 nicht")
 
-# Bereich: Y1 −60 … 60 → Y höchstens ±51,96; X1 −170 … 150 → X von −200 bis 180.
+# Bereich: Y1 −60 … 60 → Y höchstens ±51,96; X1 −300 … 150 → X von −330 bis 180.
 (xu, xo), (yu, yo) = prog.bereich()
 pruefe(nahe(yu, -51.961524) and nahe(yo, 51.961524), f"Y-Bereich: {yu} … {yo}")
-pruefe(nahe(xu, -200) and nahe(xo, 180), f"X-Bereich: {xu} … {xo}")
+pruefe(nahe(xu, -330) and nahe(xo, 180), f"X-Bereich: {xu} … {xo}")
 
 # X auf 140, dann Y auf −40: X1 bräuchte 140 + 40·tan 30° = 163,1 > 150 – es hält bei
 # X1 = 150, Y bleibt bei −17,32 stehen (wie in der Spezifikation).

@@ -12,6 +12,69 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-15 beispiel-drehmaschine-aufnahmen
+
+### EINGELESEN
+- `docs/spezifikation_halter.md` Abschnitt 11.4/11.5 (E4), `camaddon/beispielmaschine.py`
+  (`drehmaschine`, `DrehmaschinenMasse`), `tests/test_beispielmaschine.py`,
+  `tests/test_reichweite.py`, `tests/test_schraege_achse.py`,
+  `tests/test_vierachs_pruefen.py`, `tests/gui/szenario_vierachs_schruppen.py`,
+  `tests/gui/szenario_vierachs_schlichten.py`, `help/*/achsen.html`,
+  `help/*/neue_maschine.html`.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`, `translations/de.json`, `translations/en.json`,
+  `help/de/achsen.html`, `help/en/achsen.html`, `help/de/neue_maschine.html`,
+  `help/en/neue_maschine.html`, `tests/test_beispielmaschine.py`,
+  `tests/test_reichweite.py`, `tests/test_schraege_achse.py`,
+  `tests/test_vierachs_pruefen.py`, `tests/gui/szenario_vierachs_schruppen.py`,
+  `tests/gui/szenario_rundum_drehmaschine.py` (neu), `docs/spezifikation_halter.md`,
+  `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Neue Maschine …“ → Drehmaschine: An der Stirn der Revolverscheibe sitzen zwölf
+Aufnahmen (Ringe), keine Halter. T1 Schaftfräser Ø 12 und T2 Kugelfräser Ø 6, beide
+mit „VDI30 angetrieben radial“: Welle mit Absatz, „4-Achs-Bearbeitung“ mit „Rundum
+schruppen“ T1 und „Rundum schlichten“ T2 → „Auf der Maschine prüfen“: alle Achsen
+in ihren Grenzen, kein Hinweis „nicht radial“; T1 und T2 stehen beim Abspielen
+radial am Teil; am Ende nirgends ins Teil; „Kollision prüfen“ meldet nichts. Ohne
+Halter bei T2 nennt der Hinweis T2, P2 und den Halter, der fehlt.
+
+### DONE
+- Beispiel-Drehmaschine: Der Revolver trägt keine Halter mehr fest (bisher P1
+  radial, P2 axial). Jeder Platz ist eine VDI30-Aufnahme an der Stirn der Scheibe
+  (Ring, 130 mm von der Revolverachse, x = 700), alle am Werkzeugantrieb S3; das
+  LCS von P1: Z längs der Revolverachse vom Futter weg, X zur Spindelachse. Wie
+  ein Werkzeug steht, sagt sein Halter (W-002 Stufe E). Weg X bis −300: Die
+  Aufnahme in Arbeitsstellung steht 275 mm von der Spindelachse, ein radiales
+  Werkzeug erreicht so jeden Radius. Beschreibung, Docstrings, Hilfe
+  (Achsen, Neue Maschine) de/en.
+- Tests auf die neue Maschine: Plätze und Antrieb, kein fester Halter; „quer“ erst
+  mit radialem Halter; X-Bereich der schrägen Achse; Prüfen, Abfahren und
+  Kollision mit T1 im radialen Halter (125 mm ab Bezugspunkt, Stange 40 mm frei
+  hinten – der Kopf hat Platz; mit 50 mm stößt der Halter ans Teil).
+- Szenario „Rundum schruppen“: T1 mit dem radialen Halter, die Stange ragt
+  140 mm heraus (Halter über die Werkzeugachse 27,5).
+- Neues Szenario `szenario_rundum_drehmaschine`: Schruppen T1 + Schlichten T2
+  auf der Beispiel-Drehmaschine (der offene Klickweg von W-003 V5e) – Prüfen,
+  Abspielen, Kollision, Farben; T2 ohne Halter → der Hinweis.
+- Gefunden (für später, Aufgabe „Ringgang an Absätzen“): Hinter dem Absatz der
+  Welle (Wand zum Futter hin) bleiben bei manchen Winkeln bis 6,4 mm stehen – die
+  Spirale des Kugelfräsers (1 mm je Umdrehung) liegt dort 2,5 mm (über die Kante
+  gehoben) und 3,5 mm (erreicht die Wand nicht) von der Wand, nur auf dem halben
+  Umfang genau 3. Das Prüffenster zeigt es richtig rot („dort kam der Fräser nicht
+  hin“), nichts geht ins Teil. Beim Schruppen genauso (Ø 12, 4,8 mm: bis 7,3 mm).
+
+### TEST
+- KI ohne Oberfläche, FreeCAD 1.1.3: `test_beispielmaschine`, `test_reichweite`,
+  `test_schraege_achse`, `test_vierachs_pruefen` grün.
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_vierachs_schruppen`
+  und `szenario_rundum_drehmaschine` grün; Screenshots angesehen.
+
+### NEXT
+- E5: Der Assistent sagt schon bei der Wahl des Fräsers, wenn er auf der
+  gewählten Maschine nicht radial säße.
+
 ## P-2026-09-30-14 halter-vor-dem-futter
 
 ### EINGELESEN
