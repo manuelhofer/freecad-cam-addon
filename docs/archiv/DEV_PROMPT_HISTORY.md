@@ -12,6 +12,84 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-54 x-durchmesser
+
+### EINGELESEN
+- Manuel, 2026-09-30, auf „X als Durchmesser eintragen und anzeigen, wie deine Steuerung?
+  Dann baue ich einen Umschalter Ø/Radius“: „Ja mit Umschalter wichtig ist ja nur was dann
+  beim Postprozess raus kommt“. Davor: „X −60 … 550“ an seiner Maschine.
+- `camaddon/maschine.py` (Betriebsart, `WERTE`), `camaddon/reichweite.py` (Texte),
+  `camaddon/gui_details.py` und `camaddon/gui_maschine.py` (Verfahrweg),
+  `camaddon/gui_verfahren.py`, `camaddon/gui_neue_maschine.py`,
+  `camaddon/beispielmaschine.py`, `camaddon/gui_abfahren.py`, `camaddon/kollision.py`,
+  `camaddon/gui_vierachs.py` (Satz „Im Programm ist X der Radius“);
+  `docs/spezifikation_steuerung.md` (E4). FreeCADs Maschinendefinition (26.3) kennt keinen
+  Durchmesser – die Übergabe an CAM bleibt, wie sie ist.
+
+### DATEIEN
+- `camaddon/maschine.py`, `camaddon/einheiten.py`, `camaddon/reichweite.py`,
+  `camaddon/gui_abfahren.py`, `camaddon/kollision.py`, `camaddon/gui_details.py`,
+  `camaddon/gui_maschine.py`, `camaddon/gui_verfahren.py`, `camaddon/gui_neue_maschine.py`,
+  `camaddon/beispielmaschine.py`, `camaddon/gui_vierachs.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/neue_maschine.html`, `help/de|en/achsen.html`,
+  `help/de|en/verfahren.html`, `help/de|en/reichweite.html`,
+  `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/spezifikation_steuerung.md`,
+  `tests/test_maschine.py`, `tests/test_reichweite.py`, `tests/test_beispielmaschine.py`,
+  `tests/gui/szenario_neue_maschine.py`, `tests/gui/szenario_maschine_bearbeiten.py`,
+  `tests/gui/szenario_verfahren_schraeg.py`, `tests/gui/szenario_vierachs_schruppen.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Neue Maschine“ → Drehmaschine: Zeile „X als: Durchmesser (Ø)“ vorgewählt, „Weg X (Ø):
+−50 … 850 mm“; auf „Radius“ stehen −25 … 425 da. In „Maschine bearbeiten“ bei X1 der Haken
+„zählt im Durchmesser (Ø)“, darunter „Verfahrweg von, Ø (mm)“. „Maschine verfahren“ zeigt
+X1 als „Ø 550,00 mm“, das Prüffenster „X1 braucht Ø …“ und „Spitze im Programm: X Ø …“.
+
+### DONE
+- Betriebsart „Linear“ hat den Kennwert „zählt im Durchmesser (Ø)“ (`Durchmesser`). Ältere
+  Maschinen bekommen ihn beim Laden, ausgeschaltet; beim Laden fehlt er kurz, darum blendet
+  `_nur_passende_werte_zeigen` nur vorhandene Kennwerte aus.
+- `maschine.ist_durchmesser(maschine, gelenk)` und `maschine.x_im_durchmesser(maschine)`
+  (eine Linearachse, die im Programm X heißt, zählt im Durchmesser).
+- Gerechnet und gespeichert wird immer im Radius. Nur Anzeige und Eingabe verdoppeln, mit
+  „Ø “ davor (`einheiten.DURCHMESSER`):
+  - Prüffenster: Überschreitung, Bereich, „nicht überall hin“, Achswerte und Spitze im
+    Abspieler, Kollisionsbefunde (`reichweite.stellung_text`/`punkt_text` mit Schalter;
+    `Pruefung.durchmesser`, `Pruefung.x_durchmesser`).
+  - „Maschine verfahren“: Feld mit „Ø “ davor, Grenzen, rote Zeile am Anschlag, grauer Satz
+    zur schrägen Achse; „wie im Programm“ zählt X wie der Schlitten, der es trägt.
+  - „Maschine bearbeiten“: Haken bei X1; Verfahrweg „von, Ø“/„bis, Ø“ und der graue Satz im
+    Durchmesser. Der Haken baut die Felder neu auf.
+  - „Neue Maschine“: „X als: Durchmesser (Ø) / Radius“ für die Drehmaschine, vorgewählt
+    Durchmesser; die X-Wege zählen genauso und rechnen beim Umschalten um.
+- Die Beispiel-Drehmaschine zählt X im Durchmesser (`DrehmaschinenMasse.x_durchmesser`).
+- 4-Achs-Assistent: Zählt X der gewählten Maschine im Durchmesser, sagt der graue Satz, dass
+  FreeCADs eigene Postprozessoren trotzdem den Radius schreiben (DIAMOF), bis der
+  Postprozessor des Addons X im Durchmesser schreibt.
+- Hilfe (de/en) und Spezifikation; E4 in der Steuerungs-Spezifikation mit Manuels Satz.
+
+### TEST
+- `test_maschine`: Kennwert aus/an, `ist_durchmesser`, `x_im_durchmesser`, verborgen an der
+  Spindel; eine Betriebsart ohne den Kennwert gespeichert und geladen bekommt ihn, X1 behält
+  seinen Haken. Ok in 1.1.3 und 26.3.
+- `test_reichweite`: „X Ø 900, Y 0, Z −5.5“, „Ø 550.00 mm“, Bereich im Durchmesser. Ok in
+  1.1.3 und 26.3.
+- `test_beispielmaschine`: Beispiel im Durchmesser (`Pruefung.durchmesser` = X), „X als:
+  Radius“ ohne Haken. Ok in 1.1.3 und 26.3.
+- Außerdem in 1.1.3 ok: `test_sprache`, `test_hilfe`, `test_schraege_achse`, `test_verfahren`,
+  `test_kollision`, `test_abfahren`, `test_kinematik`, `test_vierachs_achsen`,
+  `test_vierachs_pruefen`; `test_export` übersprungen wie immer, in 26.3 ok.
+- Szenarien in 1.1.3 ok, Bilder angesehen: `szenario_neue_maschine` (Umschalter hin und
+  zurück, Ø −80 … 120 ergibt Radius −40 … 60), `szenario_maschine_bearbeiten` (Haken, Ø −100
+  gibt am Gelenk −50, grauer Satz in Ø, Haken wieder weg), `szenario_verfahren_schraeg`
+  (X1 Ø 538,45; X Ø 830; Grenze Ø 850), `szenario_vierachs_schruppen` („X1 Ø …“, „Spitze im
+  Programm: X Ø …“, grauer Satz zu FreeCADs Postprozessoren).
+
+### NEXT
+- Voller Lauf `scripts/alle_tests.sh` (Kern: maschine, reichweite, kollision).
+- Der Postprozessor (W-005 S1) schreibt X nach `x_im_durchmesser`.
+- Bestückung an der Maschine (Stufe F).
+
 ## P-2026-09-30-53 version-0-31-5
 
 ### EINGELESEN

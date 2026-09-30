@@ -97,6 +97,8 @@ class Ueberschreitung:
     # dazu das Werkzeug („T1“).
     an_grenze: dict = None
     werkzeug: str = ""
+    durchmesser: bool = False  # die Achse zählt im Durchmesser (X einer Drehmaschine)
+    x_durchmesser: bool = False  # X im Programm als Durchmesser
 
     def text(self):
         """„X1 fährt in „Tasche“ bis 312,00 mm, die Grenze ist 250,00 mm (bei X 450, Y 0, Z −5).
@@ -106,15 +108,15 @@ class Ueberschreitung:
             "rw.ueberschreitung",
             achse=self.name,
             operation=self.operation,
-            stellung=stellung_text(self.achse, self.stellung),
-            grenze=stellung_text(self.achse, self.grenze),
-            punkt=punkt_text(self.punkt),
+            stellung=stellung_text(self.achse, self.stellung, self.durchmesser),
+            grenze=stellung_text(self.achse, self.grenze, self.durchmesser),
+            punkt=punkt_text(self.punkt, self.x_durchmesser),
         )
         if self.an_grenze is not None:
             text += " " + tr(
                 "rw.ueberschreitung.spitze",
                 werkzeug=self.werkzeug,
-                punkt=punkt_text(self.an_grenze),
+                punkt=punkt_text(self.an_grenze, self.x_durchmesser),
             )
         return text
 
@@ -127,16 +129,18 @@ class Bereich:
     name: str
     von: float
     bis: float
+    durchmesser: bool = False  # die Achse zählt im Durchmesser (X einer Drehmaschine)
 
     def text(self):
         """„X1 braucht −120,00 mm … 140,00 mm, die Grenzen sind −170,00 mm … 150,00 mm.“"""
+        d = self.durchmesser
         return tr(
             "rw.bereich",
             achse=self.name,
-            von=stellung_text(self.achse, self.von),
-            bis=stellung_text(self.achse, self.bis),
-            minimum=_grenze_text(self.achse, self.achse.minimum),
-            maximum=_grenze_text(self.achse, self.achse.maximum),
+            von=stellung_text(self.achse, self.von, d),
+            bis=stellung_text(self.achse, self.bis, d),
+            minimum=_grenze_text(self.achse, self.achse.minimum, d),
+            maximum=_grenze_text(self.achse, self.achse.maximum, d),
         )
 
 
@@ -197,22 +201,35 @@ def winkel_text(grad):
     return _zahl(grad, 1) + "°"
 
 
-def stellung_text(achse, wert):
-    """Die Stellung einer Achse zum Lesen – mm (inch) oder Grad."""
-    return weg_text(wert) if achse.art == LINEAR else winkel_text(wert)
+def stellung_text(achse, wert, durchmesser=False):
+    """Die Stellung einer Achse zum Lesen – mm (inch) oder Grad. `durchmesser`: Die Achse
+    zählt im Durchmesser, wie X an einer Drehmaschine – dann „Ø 550,00 mm“, so wie die
+    Steuerung es zeigt (Manuel, 2026-09-30); gerechnet wird immer im Radius."""
+    if achse.art != LINEAR:
+        return winkel_text(wert)
+    if durchmesser:
+        return einheiten.DURCHMESSER + weg_text(2.0 * wert)
+    return weg_text(wert)
 
 
-def _grenze_text(achse, grenze):
-    return tr("rw.keine_grenze") if grenze is None else stellung_text(achse, grenze)
+def _grenze_text(achse, grenze, durchmesser=False):
+    return tr("rw.keine_grenze") if grenze is None else stellung_text(achse, grenze, durchmesser)
 
 
-def punkt_text(punkt):
-    """Ein Punkt im Programm: „X 450, Y 0, Z −5“ – Rundachsen nur, wenn sie nicht 0 sind."""
+def punkt_text(punkt, x_durchmesser=False):
+    """Ein Punkt im Programm: „X 450, Y 0, Z −5“ – Rundachsen nur, wenn sie nicht 0 sind.
+    `x_durchmesser`: X steht im Programm als Durchmesser („X Ø 900“)."""
     stellen = einheiten.stellen(einheiten.LAENGE, 2)
-    teile = [
-        f"{buchstabe} {_zahl(einheiten.anzeige(punkt[buchstabe], einheiten.LAENGE), stellen, True)}"
-        for buchstabe in ("X", "Y", "Z")
-    ]
+
+    def laenge(buchstabe):
+        wert = punkt[buchstabe]
+        if buchstabe == "X" and x_durchmesser:
+            return einheiten.DURCHMESSER + _zahl(
+                einheiten.anzeige(2.0 * wert, einheiten.LAENGE), stellen, True
+            )
+        return _zahl(einheiten.anzeige(wert, einheiten.LAENGE), stellen, True)
+
+    teile = [f"{buchstabe} {laenge(buchstabe)}" for buchstabe in ("X", "Y", "Z")]
     teile += [
         f"{buchstabe} {_zahl(punkt[buchstabe], 3, True)}"
         for buchstabe in RUNDACHSEN
@@ -521,6 +538,9 @@ class Pruefung:
             werkstueckaufnahme = werkstueck[0] if werkstueck else None
         self.werkstueckaufnahme = werkstueckaufnahme
         self.werkzeugaufnahmen = [a for a in aufnahmen if a.Art == m.AUFNAHME_WERKZEUG]
+        # Was im Durchmesser zählt – nur für die Texte; gerechnet wird im Radius.
+        self.durchmesser = {a for a in self.kette.achsen if m.ist_durchmesser(maschine, a.gelenk)}
+        self.x_durchmesser = m.x_im_durchmesser(maschine)
         self.revolver = [b for b in m.betriebsarten(maschine) if b.Art == m.ART_REVOLVER]
         self._platzstellung = {}  # Werkzeugaufnahme -> (Revolverachse, Stellung)
         for revolver in self.revolver:
@@ -1012,6 +1032,8 @@ class _Sammler:
             grenze=grenze,
             punkt=_programmpunkt(punkt, rund),
             stellungen=stellungen,
+            durchmesser=achse in self.pruefung.durchmesser,
+            x_durchmesser=self.pruefung.x_durchmesser,
         )
 
     def ende_operation(self):
@@ -1020,7 +1042,7 @@ class _Sammler:
                 tr(
                     "rw.unerreichbar",
                     operation=self.operation,
-                    punkt=punkt_text(self._erster_unerreichbarer),
+                    punkt=punkt_text(self._erster_unerreichbarer, self.pruefung.x_durchmesser),
                     anzahl=self._unerreichbar,
                     gesamt=self._punkte_hier,
                 )
@@ -1041,7 +1063,7 @@ class _Sammler:
                 _an_grenze_rechnen(self._weitester[(nummer, achse, _seite)], kinematik, werkzeug)
         self.ergebnis.ueberschreitungen = [self._weitester[k] for k in schluessel]
         self.ergebnis.bereiche = [
-            Bereich(a, vf.namen(maschine, a), von, bis)
+            Bereich(a, vf.namen(maschine, a), von, bis, a in self.pruefung.durchmesser)
             for a, (von, bis) in sorted(self._bereich.items(), key=lambda e: reihenfolge(e[0]))
         ]
         self.ergebnis.hinweise = list(self._hinweise)

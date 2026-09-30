@@ -76,27 +76,33 @@ class BefehlMaschineVerfahren:
         FreeCADGui.Control.showDialog(VerfahrPanel(assembly, verfahren))
 
 
-def _anzeige(achse, wert):
-    """Stellung fürs Feld: Linearachsen in mm oder inch, Drehachsen in Grad."""
-    return einheiten.anzeige(wert, einheiten.LAENGE) if achse.art == LINEAR else wert
+def _anzeige(achse, wert, faktor=1.0):
+    """Stellung fürs Feld: Linearachsen in mm oder inch, Drehachsen in Grad. `faktor` 2: Die
+    Achse zählt im Durchmesser (X einer Drehmaschine) – gefahren wird im Radius."""
+    return einheiten.anzeige(wert * faktor, einheiten.LAENGE) if achse.art == LINEAR else wert
 
 
-def _metrisch(achse, wert):
+def _metrisch(achse, wert, faktor=1.0):
     """Stellung aus dem Feld zurück in mm bzw. Grad – so fährt die Achse."""
-    return einheiten.metrisch(wert, einheiten.LAENGE) if achse.art == LINEAR else wert
+    return einheiten.metrisch(wert, einheiten.LAENGE) / faktor if achse.art == LINEAR else wert
 
 
 def _zahl(wert, stellen):
     return zahlenformat().toString(float(wert), "f", stellen)
 
 
-def _weg(wert):
-    """Ein Weg zum Lesen: „−5,77 mm“ bzw. in inch."""
+def _vor(faktor):
+    """Was vor einer Zahl im Durchmesser steht: „Ø “."""
+    return einheiten.DURCHMESSER if faktor != 1.0 else ""
+
+
+def _weg(wert, faktor=1.0):
+    """Ein Weg zum Lesen: „−5,77 mm“ bzw. in inch; im Durchmesser „Ø 11,54 mm“."""
     stellen = einheiten.stellen(einheiten.LAENGE, 2)
     # + 0.0 macht aus −0,00 eine 0,00.
-    gezeigt = round(einheiten.anzeige(wert, einheiten.LAENGE), stellen) + 0.0
+    gezeigt = round(einheiten.anzeige(wert * faktor, einheiten.LAENGE), stellen) + 0.0
     zahl = _zahl(gezeigt, stellen).replace("-", "−")
-    return f"{zahl} {einheiten.einheit(einheiten.LAENGE)}"
+    return f"{_vor(faktor)}{zahl} {einheiten.einheit(einheiten.LAENGE)}"
 
 
 class VerfahrPanel:
@@ -110,6 +116,10 @@ class VerfahrPanel:
         self.doc = assembly.Document
         self.verfahren = verfahren
         self.maschine = m.finde_maschine(assembly)
+        # Achsen im Durchmesser (X einer Drehmaschine): Feld und Grenzen zeigen das Doppelte.
+        self.durchmesser = {
+            a for a in verfahren.achsen if m.ist_durchmesser(self.maschine, a.gelenk)
+        }
         self.zeilen = {}  # Achse -> (Regler, Zahlenfeld)
         self.programmzeilen = {}  # "x"/"y" -> (Regler, Zahlenfeld) – wie im Programm
         self.platzwahl = {}  # Revolverachse -> (Auswahl, [(Platz, Stellung)])
@@ -255,6 +265,7 @@ class VerfahrPanel:
         trafo = self.programm.trafo
         name = trafo.NameAusgleich if welche == "x" else trafo.NameSchraeg
         andere = trafo.NameSchraeg if welche == "x" else trafo.NameAusgleich
+        faktor = self._programmfaktor(welche)
         einheit = einheiten.einheit(einheiten.LAENGE)
         stellen = einheiten.stellen(einheiten.LAENGE, 2)
         x, y = self.programm.stellung()
@@ -280,18 +291,27 @@ class VerfahrPanel:
         feld.setLocale(zahlenformat())
         feld.setDecimals(stellen)
         feld.setRange(
-            einheiten.anzeige(unten, einheiten.LAENGE) if minimum is not None else -FELD_GRENZE,
-            einheiten.anzeige(oben, einheiten.LAENGE) if maximum is not None else FELD_GRENZE,
+            (
+                einheiten.anzeige(unten * faktor, einheiten.LAENGE)
+                if minimum is not None
+                else -FELD_GRENZE
+            ),
+            (
+                einheiten.anzeige(oben * faktor, einheiten.LAENGE)
+                if maximum is not None
+                else FELD_GRENZE
+            ),
         )
+        feld.setPrefix(_vor(faktor))
         feld.setSuffix(f" {einheit}")
-        feld.setValue(einheiten.anzeige(stellung, einheiten.LAENGE))
+        feld.setValue(einheiten.anzeige(stellung * faktor, einheiten.LAENGE))
         feld.setKeyboardTracking(False)
         regler.valueChanged.connect(
             lambda wert, w=welche: self.setze_programm(w, wert / SCHRITTE_JE_EINHEIT)
         )
         feld.valueChanged.connect(
-            lambda wert, w=welche: self.setze_programm(
-                w, einheiten.metrisch(wert, einheiten.LAENGE)
+            lambda wert, w=welche, f=faktor: self.setze_programm(
+                w, einheiten.metrisch(wert, einheiten.LAENGE) / f
             )
         )
         self.programmzeilen[welche] = (regler, feld)
@@ -303,8 +323,10 @@ class VerfahrPanel:
         else:
             text = tr(
                 "vf.grenzen_programm",
-                min=_zahl(einheiten.anzeige(minimum, einheiten.LAENGE), stellen),
-                max=_zahl(einheiten.anzeige(maximum, einheiten.LAENGE), stellen),
+                min=_vor(faktor)
+                + _zahl(einheiten.anzeige(minimum * faktor, einheiten.LAENGE), stellen),
+                max=_vor(faktor)
+                + _zahl(einheiten.anzeige(maximum * faktor, einheiten.LAENGE), stellen),
                 einheit=einheit,
                 andere=andere,
             )
@@ -324,6 +346,7 @@ class VerfahrPanel:
         linear = achse.art == LINEAR
         einheit = einheiten.einheit(einheiten.LAENGE) if linear else "°"
         stellen = einheiten.stellen(einheiten.LAENGE, 2) if linear else 1
+        faktor = self._faktor(achse)
         stellung = self.verfahren.stellung(achse)
         unten, oben = self._bereich(achse, stellung)
 
@@ -338,14 +361,17 @@ class VerfahrPanel:
         feld.setDecimals(stellen)
         minimum, maximum = self.verfahren.grenzen(achse)
         feld.setRange(
-            _anzeige(achse, minimum) if minimum is not None else -FELD_GRENZE,
-            _anzeige(achse, maximum) if maximum is not None else FELD_GRENZE,
+            _anzeige(achse, minimum, faktor) if minimum is not None else -FELD_GRENZE,
+            _anzeige(achse, maximum, faktor) if maximum is not None else FELD_GRENZE,
         )
+        feld.setPrefix(_vor(faktor))
         feld.setSuffix(f" {einheit}")
-        feld.setValue(_anzeige(achse, stellung))
+        feld.setValue(_anzeige(achse, stellung, faktor))
         feld.setKeyboardTracking(False)  # erst nach Enter oder Verlassen fahren
         regler.valueChanged.connect(lambda wert, a=achse: self.setze(a, wert / SCHRITTE_JE_EINHEIT))
-        feld.valueChanged.connect(lambda wert, a=achse: self.setze(a, _metrisch(a, wert)))
+        feld.valueChanged.connect(
+            lambda wert, a=achse, f=faktor: self.setze(a, _metrisch(a, wert, f))
+        )
         self.zeilen[achse] = (regler, feld)
 
         gitter.addWidget(name, zeile, 0)
@@ -381,20 +407,28 @@ class VerfahrPanel:
         oben = maximum if maximum is not None else max(stellung + weite, minimum or stellung)
         return unten, oben
 
+    def _faktor(self, achse):
+        """2, wenn die Achse im Durchmesser zählt – sonst 1."""
+        return 2.0 if achse in self.durchmesser else 1.0
+
+    def _programmfaktor(self, welche):
+        """Wie _faktor für X und Y des Programms: X zählt wie der Schlitten, der es trägt."""
+        return self._faktor(self.programm.ausgleich) if welche == "x" else 1.0
+
     def _grenzen_text(self, achse, einheit, stellen):
         minimum, maximum = self.verfahren.grenzen(achse)
+        faktor = self._faktor(achse)
+
+        def zahl(wert):
+            return _vor(faktor) + _zahl(_anzeige(achse, wert, faktor), stellen)
+
         if minimum is None and maximum is None:
             return tr("vf.ohne_grenze")
         if maximum is None:
-            return tr("vf.nur_min", min=_zahl(_anzeige(achse, minimum), stellen), einheit=einheit)
+            return tr("vf.nur_min", min=zahl(minimum), einheit=einheit)
         if minimum is None:
-            return tr("vf.nur_max", max=_zahl(_anzeige(achse, maximum), stellen), einheit=einheit)
-        return tr(
-            "vf.grenzen",
-            min=_zahl(_anzeige(achse, minimum), stellen),
-            max=_zahl(_anzeige(achse, maximum), stellen),
-            einheit=einheit,
-        )
+            return tr("vf.nur_max", max=zahl(maximum), einheit=einheit)
+        return tr("vf.grenzen", min=zahl(minimum), max=zahl(maximum), einheit=einheit)
 
     # --- Aktionen -------------------------------------------------------------------
 
@@ -429,7 +463,7 @@ class VerfahrPanel:
                     "vf.anschlag",
                     name=trafo.NameAusgleich if welche == "x" else trafo.NameSchraeg,
                     achse=vf.namen(self.maschine, achse),
-                    grenze=_weg(grenze),
+                    grenze=_weg(grenze, self._faktor(achse)),
                 )
             )
             self.anschlag.show()
@@ -454,7 +488,7 @@ class VerfahrPanel:
             for element in (regler, feld):
                 element.blockSignals(True)
             regler.setValue(round(wert * SCHRITTE_JE_EINHEIT))
-            feld.setValue(einheiten.anzeige(wert, einheiten.LAENGE))
+            feld.setValue(einheiten.anzeige(wert * self._programmfaktor(welche), einheiten.LAENGE))
             for element in (regler, feld):
                 element.blockSignals(False)
 
@@ -468,16 +502,16 @@ class VerfahrPanel:
             text = tr(
                 "vf.schlitten",
                 ausgleich=vf.namen(self.maschine, self.programm.ausgleich),
-                weg_ausgleich=_weg(x1),
+                weg_ausgleich=_weg(x1, self._faktor(self.programm.ausgleich)),
                 schraeg=vf.namen(self.maschine, self.programm.schraeg),
-                weg_schraeg=_weg(y1),
+                weg_schraeg=_weg(y1, self._faktor(self.programm.schraeg)),
             )
         else:
             x, y = self.programm.stellung()
             text = tr(
                 "vf.im_programm",
                 x_name=trafo.NameAusgleich,
-                x=_weg(x),
+                x=_weg(x, self._programmfaktor("x")),
                 y_name=trafo.NameSchraeg,
                 y=_weg(y),
             )
@@ -488,7 +522,7 @@ class VerfahrPanel:
         for element in (regler, feld):
             element.blockSignals(True)
         regler.setValue(round(stellung * SCHRITTE_JE_EINHEIT))
-        feld.setValue(_anzeige(achse, stellung))
+        feld.setValue(_anzeige(achse, stellung, self._faktor(achse)))
         for element in (regler, feld):
             element.blockSignals(False)
         self._platz_zeigen(achse, stellung)

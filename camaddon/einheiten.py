@@ -46,6 +46,8 @@ GROESSEN = {
 }
 # „Zeit für 100 cm³“ macht Q greifbar – in inch 5 in³ statt krummer 6,1 in³.
 VERGLEICHSVOLUMEN = {METRISCH: 100, ZOLL: 5}
+# Vor einer Stellung im Durchmesser (X einer Drehmaschine): „Ø 550,00 mm“.
+DURCHMESSER = "Ø "
 
 _DEZIMALZEICHEN = "Dezimalzeichen"  # Schlüssel in den Einstellungen
 _MASSSYSTEM = "Masssystem"

@@ -89,7 +89,7 @@ class DetailKasten(QtGui.QFrame):
             text = m.wert_text(eigenschaft)
             if eigenschaft in feste_einheiten:
                 text += f" ({feste_einheiten[eigenschaft]})"
-            if eigenschaft == "Endlos":
+            if eigenschaft in ("Endlos", "Durchmesser"):
                 feld = self._schalter(ba, eigenschaft)
             else:
                 feld = self._zahlenfeld(ba, eigenschaft, pflicht)
@@ -97,14 +97,17 @@ class DetailKasten(QtGui.QFrame):
             self.formular.addRow(_beschriftung(text, fett=pflicht), feld)
 
         if ba.Art in (m.ART_LINEAR, m.ART_POSITIONIEREN) and ba.Gelenk is not None:
-            self._verfahrweg(ba.Gelenk, linear, lage)
+            # Im Durchmesser zeigen die Felder das Doppelte – wie die Steuerung (P-2026-09-30-54).
+            faktor = 2.0 if linear and getattr(ba, "Durchmesser", False) else 1.0
+            self._verfahrweg(ba.Gelenk, linear, lage, faktor)
         if any(eigenschaft == "Beschleunigung" for eigenschaft, _pflicht in m.WERTE[ba.Art]):
             self.formular.addRow(self._verweis_beschleunigung())
         self.show()
 
-    def _verfahrweg(self, gelenk, linear, lage):
+    def _verfahrweg(self, gelenk, linear, lage, faktor=1.0):
         """Zwei Zeilen „… von“ und „… bis“ für die Begrenzung am Gelenk (mm bzw. °);
-        leer: keine Grenze. Darunter grau, was die Zahlen heißen."""
+        leer: keine Grenze. Darunter grau, was die Zahlen heißen. `faktor` 2: Die Achse zählt
+        im Durchmesser – die Felder zeigen das Doppelte, das Gelenk bekommt den Radius."""
         erklaerung = QtGui.QLabel()
         erklaerung.setWordWrap(True)
         erklaerung.setStyleSheet("color: gray;")
@@ -117,7 +120,12 @@ class DetailKasten(QtGui.QFrame):
             erklaerung.setText(" ".join(satz for satz in saetze if satz))
 
         einheit = einheiten.einheit(einheiten.LAENGE)
-        if linear:
+        if linear and faktor != 1.0:
+            titel = {
+                "Min": tr("dialog.verfahrweg.min_durchmesser", einheit=einheit),
+                "Max": tr("dialog.verfahrweg.max_durchmesser", einheit=einheit),
+            }
+        elif linear:
             titel = {
                 "Min": tr("dialog.verfahrweg.min", einheit=einheit),
                 "Max": tr("dialog.verfahrweg.max", einheit=einheit),
@@ -125,14 +133,16 @@ class DetailKasten(QtGui.QFrame):
         else:
             titel = {"Min": tr("dialog.schwenkbereich.min"), "Max": tr("dialog.schwenkbereich.max")}
         for ende in ("Min", "Max"):
-            self.formular.addRow(titel[ende], self._grenzfeld(gelenk, ende, linear, erklaeren))
+            self.formular.addRow(
+                titel[ende], self._grenzfeld(gelenk, ende, linear, erklaeren, faktor)
+            )
         erklaeren()
         self.formular.addRow(erklaerung)
 
-    def _grenzfeld(self, gelenk, ende, linear, danach):
+    def _grenzfeld(self, gelenk, ende, linear, danach, faktor=1.0):
         """Ein Ende der Begrenzung: „Min“ oder „Max“. Leer schaltet die Grenze aus –
         darum steht eine Grenze bei 0 als „0“ da, nicht leer wie ein unbekannter Wert.
-        `danach`: wird nach jeder Änderung gerufen."""
+        `danach`: wird nach jeder Änderung gerufen. `faktor` 2: im Durchmesser."""
         schalter, name = ("EnableLength", "Length") if linear else ("EnableAngle", "Angle")
         an = bool(getattr(gelenk, schalter + ende, False))
         wert = getattr(gelenk, name + ende, None)
@@ -140,7 +150,7 @@ class DetailKasten(QtGui.QFrame):
         if an and wert is not None:
             zahl = float(wert.getValueAs("mm" if linear else "deg"))
             if linear:
-                text = groesse_zeigen(zahl, einheiten.LAENGE, metrisch_stellen=4)
+                text = groesse_zeigen(zahl * faktor, einheiten.LAENGE, metrisch_stellen=4)
             else:
                 text = zahl_zeigen(round(zahl, 4))
             text = text or "0"
@@ -156,7 +166,10 @@ class DetailKasten(QtGui.QFrame):
                 self._setze(gelenk, schalter + ende, False)
             else:
                 try:
-                    neu = groesse_lesen(text, einheiten.LAENGE) if linear else zahl_lesen(text)
+                    if linear:
+                        neu = groesse_lesen(text, einheiten.LAENGE) / faktor
+                    else:
+                        neu = zahl_lesen(text)
                 except ValueError:  # nur „-“ oder „,“: bleibt wie es war
                     return
                 self._setze(gelenk, name + ende, neu)

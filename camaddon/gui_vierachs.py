@@ -51,6 +51,7 @@ from . import PARAMETER_PFAD, einheiten, symbol
 from . import fraeserform as ff
 from . import halter as hl
 from . import job_schnittwerte as js
+from . import maschine as m
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
@@ -1382,6 +1383,13 @@ class VierachsPanel:
                 self._vorwahl, self._vorwahl_schlichten = "", kennung
             else:
                 self._vorwahl = kennung
+        # Zählt X der Maschine im Durchmesser, zeigt das Prüffenster X so – FreeCADs eigene
+        # Postprozessoren schreiben trotzdem den Radius (P-2026-09-30-54).
+        wahl = self.maschinenwahl()
+        if isinstance(wahl, va.Maschinenwahl) and m.x_im_durchmesser(wahl.maschine):
+            self.radius_hinweis.setText(tr("va.radius_durchmesser"))
+        else:
+            self.radius_hinweis.setText(tr("va.radius"))
         self.radius_hinweis.setVisible(self.buchstabe() == "C")
         self._fraeser_fuellen()
         self._schlichtfraeser_fuellen()
@@ -1976,7 +1984,6 @@ class VierachsPanel:
     def _lage_text(self, werkzeug):
         """Der Satz zu `werkzeug` auf der gewählten Maschine (reichweite.Pruefung.kommt_aus):
         leer, wenn es radial aus der Richtung der Bahn kommt – oder ohne offene Maschine."""
-        from . import maschine as m
         from . import reichweite as rw
 
         eintrag = self.maschinenwahl()

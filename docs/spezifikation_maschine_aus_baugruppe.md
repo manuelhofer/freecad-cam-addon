@@ -237,7 +237,9 @@ X1 = X − Y · tan α                 X = X1 + Y1 · sin α
 
 Beispiel α = 30°: Y +10 mm → Y1 +11,547 mm und X1 −5,774 mm. Bei
 Drehmaschinen steht X im Programm meist als Durchmesser; hier ist X der Weg
-des Schlittens (Radius) – siehe „Nicht Teil davon“.
+des Schlittens (Radius) – siehe „Nicht Teil davon“. Mit dem Haken „zählt im
+Durchmesser (Ø)“ zeigt das Addon X doppelt; gerechnet wird weiter im Radius
+(P-2026-09-30-54).
 
 **Was daraus folgt**
 
@@ -357,7 +359,8 @@ einer Skizze entschieden.
 **Nicht Teil davon**
 
 - X als Durchmesser anzeigen (in „Maschine verfahren“ steht wie bisher der
-  Weg des Schlittens) – ein eigenes Thema, falls gewünscht.
+  Weg des Schlittens) – ein eigenes Thema, falls gewünscht. Inzwischen
+  umgesetzt, siehe „Entschieden“ (P-2026-09-30-54).
 - TRANSMIT, TRACYL, 5-Achs-TCP – sie kommen in die gleiche Liste, sobald
   jemand sie braucht.
 - Eine Auswahl der Steuerung (siehe „Entschieden“).
@@ -538,8 +541,26 @@ diesen Dialog heißt das konkret:
   (`gelenk_wie_gebaut(…, stellung=…)`); liegt das außerhalb der eingetragenen
   Wege, fährt die Maschine hinein. Vorgabe X −25 … 425, Z 0 … 520 – dieselben
   Wege wie vorher (−300 … 150, −220 … 300 ab der gebauten Stellung). Die
-  Wege lassen sich bis 10 m eintragen (P-2026-09-30-46). Offen: die Steuerung
-  zeigt X oft als Durchmesser (E4 in `spezifikation_steuerung.md`).
+  Wege lassen sich bis 10 m eintragen (P-2026-09-30-46). Die Steuerung
+  zeigt X oft als Durchmesser – dazu der nächste Punkt.
+- **X im Durchmesser oder Radius** (Manuel, 2026-09-30, auf „X als Durchmesser
+  eintragen und anzeigen, wie deine Steuerung?“: „Ja mit Umschalter wichtig
+  ist ja nur was dann beim Postprozess raus kommt“, P-2026-09-30-54). Die
+  Betriebsart einer Linearachse hat den Kennwert **„zählt im Durchmesser
+  (Ø)“** (`Durchmesser`, an/aus; `maschine.ist_durchmesser`). Ist er an,
+  zeigt das Addon die Stellung dieser Achse überall doppelt mit „Ø“ davor:
+  Verfahrweg in „Maschine bearbeiten“ samt grauem Satz, „Maschine verfahren“
+  (auch „wie im Programm“), Prüffenster, Abspieler, Kollision. X im Programm
+  ebenso, wenn die Achse im Programm X heißt (`maschine.x_im_durchmesser`).
+  Eingetippt wird dann auch der Durchmesser. Gerechnet und gespeichert wird
+  immer im Radius – Grenzen der Gelenke, Bahnen, Kinematik. „Neue Maschine“
+  hat für die Drehmaschine „X als: Durchmesser (Ø) / Radius“, vorgewählt
+  Durchmesser, wie Siemens, Fanuc und Haas von Haus aus zählen (E4 in
+  `spezifikation_steuerung.md`); die X-Wege zählen genauso, beim Umschalten
+  rechnen die Felder um. Der Postprozessor des Addons (W-005) schreibt X
+  danach. FreeCADs eigene Postprozessoren kennen den Kennwert nicht und
+  schreiben den Radius – das sagt der graue Satz im 4-Achs-Assistenten. Ältere
+  Maschinen bekommen den Kennwert beim Laden, ausgeschaltet.
 - **Revolverart, Scheiben-Ø und VDI-Größe in „Neue Maschine“** (Manuel,
   2026-09-30: „1 ja“, P-2026-09-30-52). **VDI in der Stirn** (axial, wie
   Manuels Scheibenrevolver): die Aufnahmen im Kreis an der Stirn, 40 mm

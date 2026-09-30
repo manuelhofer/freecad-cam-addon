@@ -137,6 +137,16 @@ class NeueMaschineDialog(QtGui.QDialog):
         self.feld_y_winkel.setToolTip(tr("neu.y_winkel.tooltip"))
         formular.addRow(tr("neu.y_winkel"), self.feld_y_winkel)
 
+        # X im Durchmesser oder im Radius – wie die Steuerung X zeigt (Manuel, 2026-09-30,
+        # P-2026-09-30-54). Die X-Wege darunter zählen genauso.
+        self.wahl_x = QtGui.QComboBox()
+        self.wahl_x.addItem(tr("neu.x.durchmesser"), True)
+        self.wahl_x.addItem(tr("neu.x.radius"), False)
+        self.wahl_x.setCurrentIndex(self.wahl_x.findData(vorgabe.x_durchmesser))
+        self.wahl_x.setToolTip(tr("neu.x.tooltip"))
+        formular.addRow(tr("neu.x"), self.wahl_x)
+        self._x_faktor_gezeigt = 1.0  # so zeigen die Felder von X gerade: 2 im Durchmesser
+
         self.felder_weg = {}
         self._weg_zeilen = {}
         for achse, weg in (("X", vorgabe.weg_x), ("Y", vorgabe.weg_y), ("Z", vorgabe.weg_z)):
@@ -151,6 +161,7 @@ class NeueMaschineDialog(QtGui.QDialog):
             formular.addRow(tr("neu.weg", achse=achse), zeile)
             self.felder_weg[achse] = (von, bis)
             self._weg_zeilen[achse] = zeile
+        self._x_beschriftung = formular.labelForField(self._weg_zeilen["X"])
         # Wovon die Wege der Drehmaschine zählen – wie an der Maschine (Manuel, 2026-09-30:
         # „ich glaube man muss das etwas konkretisieren“).
         self.wege_drehmaschine = QtGui.QLabel(tr("neu.wege.drehmaschine"))
@@ -202,6 +213,7 @@ class NeueMaschineDialog(QtGui.QDialog):
         self._nur_drehmaschine = [
             self.feld_bett,
             self.feld_y_winkel,
+            self.wahl_x,
             self.feld_plaetze,
             self.wahl_revolver,
             self.feld_scheibe,
@@ -218,9 +230,37 @@ class NeueMaschineDialog(QtGui.QDialog):
         felder += [f for paar in self.felder_weg.values() for f in paar]
         for feld in felder:
             feld.valueChanged.connect(lambda _wert: self.fehler.hide())
-        for wahl in (self.wahl_revolver, self.wahl_vdi):
+        for wahl in (self.wahl_revolver, self.wahl_vdi, self.wahl_x):
             wahl.currentIndexChanged.connect(lambda _index: self.fehler.hide())
+        self.wahl_x.currentIndexChanged.connect(lambda _index: self._x_umgeschaltet())
         return bereich
+
+    def _x_faktor(self):
+        """2, wenn X im Durchmesser zählt – nur an der Drehmaschine; sonst 1."""
+        drehmaschine = self.gewaehlt() == beispielmaschine.DREHMASCHINE
+        return 2.0 if drehmaschine and self.wahl_x.currentData() else 1.0
+
+    def _x_umgeschaltet(self):
+        """Durchmesser ↔ Radius: Die X-Wege bleiben dieselben, nur anders gezählt."""
+        faktor = self._x_faktor()
+        if faktor == self._x_faktor_gezeigt:
+            return
+        werte = [feld.value() * faktor / self._x_faktor_gezeigt for feld in self.felder_weg["X"]]
+        self._x_zeigen(werte, faktor)
+
+    def _x_zeigen(self, werte, faktor):
+        """Die X-Wege (von, bis) in den Feldern, gezählt mit `faktor`."""
+        grenze = einheiten.anzeige(beispielmaschine.GROESSTER_WEG * faktor, einheiten.LAENGE)
+        von, bis = self.felder_weg["X"]
+        von.setRange(-grenze, 0.0)
+        bis.setRange(0.0, grenze)
+        von.setValue(werte[0])
+        bis.setValue(werte[1])
+        self._x_faktor_gezeigt = faktor
+        if faktor != 1.0:
+            self._x_beschriftung.setText(tr("neu.weg_durchmesser", achse="X"))
+        else:
+            self._x_beschriftung.setText(tr("neu.weg", achse="X"))
 
     # --- Auswahl und Ergebnis -------------------------------------------------------
 
@@ -237,6 +277,10 @@ class NeueMaschineDialog(QtGui.QDialog):
                 weg = getattr(vorgabe, f"weg_{achse.lower()}")
                 von.setValue(einheiten.anzeige(weg[0], einheiten.LAENGE))
                 bis.setValue(einheiten.anzeige(weg[1], einheiten.LAENGE))
+            faktor = self._x_faktor()
+            self._x_zeigen(
+                [einheiten.anzeige(w * faktor, einheiten.LAENGE) for w in vorgabe.weg_x], faktor
+            )
             self.feld_drehzahl.setValue(round(vorgabe.drehzahl))
             drehmaschine = art == beispielmaschine.DREHMASCHINE
             for feld in self._nur_drehmaschine:
@@ -276,7 +320,11 @@ class NeueMaschineDialog(QtGui.QDialog):
             return None
         wege = {
             achse: tuple(
-                _wert(feld, getattr(vorgabe, f"weg_{achse.lower()}")[ende])
+                _wert(
+                    feld,
+                    getattr(vorgabe, f"weg_{achse.lower()}")[ende],
+                    self._x_faktor_gezeigt if achse == "X" else 1.0,
+                )
                 for ende, feld in enumerate(felder)
             )
             for achse, felder in self.felder_weg.items()
@@ -301,6 +349,7 @@ class NeueMaschineDialog(QtGui.QDialog):
             revolver=self.wahl_revolver.currentData(),
             scheibe=_wert(self.feld_scheibe, vorgabe.scheibe),
             vdi=self.wahl_vdi.currentData(),
+            x_durchmesser=bool(self.wahl_x.currentData()),
         )
 
     def accept(self):
@@ -339,11 +388,12 @@ def _vorgabe(art):
     return None
 
 
-def _wert(feld, vorgabe):
-    """Der Weg eines Felds in mm; steht dort noch die Vorgabe, genau sie."""
-    if abs(feld.value() - einheiten.anzeige(vorgabe, einheiten.LAENGE)) < 1e-9:
+def _wert(feld, vorgabe, faktor=1.0):
+    """Der Weg eines Felds in mm – im Durchmesser (`faktor` 2) zurück in den Radius; steht
+    dort noch die Vorgabe, genau sie."""
+    if abs(feld.value() - einheiten.anzeige(vorgabe * faktor, einheiten.LAENGE)) < 1e-9:
         return vorgabe
-    return einheiten.metrisch(feld.value(), einheiten.LAENGE)
+    return einheiten.metrisch(feld.value(), einheiten.LAENGE) / faktor
 
 
 def _wegfeld(wert, unten):

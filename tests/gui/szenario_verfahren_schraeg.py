@@ -2,9 +2,10 @@
 # Beispiel-Drehmaschine mit schräger Achse (Y-Führung 30° gekippt, Eintrag
 # „Schräge Achse Y1 – gleicht aus: X1“). Das Fenster steht zuerst auf „wie im
 # Programm“: Regler X und Y statt X1 und Y1. X1 steht gebaut auf 275 (X zählt ab der
-# Spindelachse, P-2026-09-30-50). Y auf 10 fährt beide Schlitten (X1 269,23, Y1 11,55 –
-# grau darunter). X auf 415, dann Y auf −40: Y hält bei −17,32, und eine rote Zeile
-# sagt, dass X1 an seiner Grenze 425 mm steht.
+# Spindelachse, P-2026-09-30-50) – im Durchmesser Ø 550 (P-2026-09-30-54). Y auf 10 fährt
+# beide Schlitten (X1 Ø 538,45, Y1 11,55 – grau darunter), X des Programms bleibt Ø 550.
+# X auf Ø 830, dann Y auf −40:
+# Y hält bei −17,32, und eine rote Zeile sagt, dass X1 an seiner Grenze Ø 850 mm steht.
 # „der Maschine“ zeigt wieder je Schlitten einen Regler und grau, wo das
 # Werkzeug im Programm steht. Abbrechen fährt alles zurück. Vorher in
 # „Maschine bearbeiten“: Verweilen auf dem Eintrag fährt ein Y des Programms
@@ -88,14 +89,19 @@ def schritte(h):
     x1, y1 = panel.programm.schlitten()
     h.pruefe(abs(x1 - 275 + 5.773503) < 1e-4 and abs(y1 - 11.547005) < 1e-4, f"Y 10: {x1}, {y1}")
     h.pruefe(
-        panel.info.text() == "Schlitten: X1 269,23 mm, Y1 11,55 mm", f"grau: {panel.info.text()!r}"
+        panel.info.text() == "Schlitten: X1 Ø 538,45 mm, Y1 11,55 mm",
+        f"grau: {panel.info.text()!r}",
     )
     h.pruefe(not panel.anschlag.isVisible(), "rote Zeile ohne Anschlag")
     h.bild("1_programm_y10")
 
-    # X auf 415, dann Y auf −40: X1 stößt bei 425 an, Y hält bei −17,32.
+    # X auf Ø 830 (Radius 415), dann Y auf −40: X1 stößt bei Ø 850 an, Y hält bei −17,32.
     _regler, feld_x = panel.programmzeilen["x"]
-    feld_x.setValue(415)
+    h.pruefe(
+        feld_x.prefix() == "Ø " and abs(feld_x.value() - 550) < 1e-6,
+        f"Feld X im Durchmesser: {feld_x.prefix()!r} {feld_x.value()}",
+    )
+    feld_x.setValue(830)
     yield 300
     feld_y.setValue(-40)
     yield 400
@@ -104,7 +110,7 @@ def schritte(h):
     h.pruefe(abs(feld_y.value() + 17.32) < 1e-6, f"Feld Y: {feld_y.value()}")
     h.pruefe(panel.anschlag.isVisible(), "keine rote Zeile am Anschlag")
     h.pruefe(
-        panel.anschlag.text() == "Weiter geht Y hier nicht: X1 steht an seiner Grenze 425,00 mm.",
+        panel.anschlag.text() == "Weiter geht Y hier nicht: X1 steht an seiner Grenze Ø 850,00 mm.",
         f"rote Zeile: {panel.anschlag.text()!r}",
     )
     h.bild("2_anschlag_x1")
@@ -116,7 +122,13 @@ def schritte(h):
     h.pruefe("X1" in namen and "Y1" in namen, f"der Maschine: {namen}")
     h.pruefe(not panel.programmzeilen, "Programmzeilen bleiben")
     h.pruefe(
-        panel.info.text() == "Im Programm: X 415,00 mm, Y −17,32 mm", f"grau: {panel.info.text()!r}"
+        panel.info.text() == "Im Programm: X Ø 830,00 mm, Y −17,32 mm",
+        f"grau: {panel.info.text()!r}",
+    )
+    feld_x1 = panel.zeilen[panel.achse("X1")][1]
+    h.pruefe(
+        feld_x1.prefix() == "Ø " and abs(feld_x1.value() - 850) < 1e-6,
+        f"X1 im Durchmesser: {feld_x1.prefix()!r} {feld_x1.value()}",
     )
     h.bild("3_der_maschine")
     # Y1 von Hand auf 0: das Programm-Y geht mit auf 0.

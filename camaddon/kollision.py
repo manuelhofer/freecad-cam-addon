@@ -273,6 +273,7 @@ class Befund:
     punkt: dict  # Punkt im Programm: {"X": …, "Y": …, "Z": …, "A": …}
     stelle: object = None  # FreeCAD.Vector: wo, in Koordinaten der Assembly
     ins_teil: bool = False  # die Schneide fährt im Vorschub ins fertige Teil
+    x_durchmesser: bool = False  # X im Programm als Durchmesser (Drehmaschine)
 
     def text(self):
         werte = {
@@ -280,7 +281,7 @@ class Befund:
             "a": self.a,
             "b": self.b,
             "satz": self.satz,
-            "punkt": rw.punkt_text(self.punkt),
+            "punkt": rw.punkt_text(self.punkt, self.x_durchmesser),
         }
         if self.ins_teil:
             return tr("kb.ins_teil", **werte)
@@ -736,6 +737,7 @@ class _Welt:
             punkt=rw._programmpunkt(punkt, ziel.rund),
             stelle=stelle,
             ins_teil=paar.nur_vorschub,
+            x_durchmesser=abfahrt.pruefung.x_durchmesser,
         )
 
 

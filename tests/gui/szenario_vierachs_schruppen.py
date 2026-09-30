@@ -105,6 +105,12 @@ def schritte(h):
     h.pruefe(panel.ausspannen.text() == soll, f"Ausspannen: {panel.ausspannen.text()!r}")
     h.pruefe(ok.isEnabled(), "„Anlegen“ gesperrt")
     h.pruefe(not panel.radius_hinweis.isHidden(), "Hinweis „X ist der Radius“ fehlt")
+    # Die Beispiel-Drehmaschine zählt X im Durchmesser (P-2026-09-30-54): Der graue Satz sagt,
+    # was das für FreeCADs eigene Postprozessoren heißt.
+    h.pruefe(
+        panel.radius_hinweis.text().startswith("Die Maschine zählt X im Durchmesser"),
+        f"Hinweis zu X: {panel.radius_hinweis.text()!r}",
+    )
     h.bild("1_was_willst_du_machen", panel.form)
 
     # Zurück und wieder vor: Die Wahl bleibt.
@@ -174,11 +180,12 @@ def schritte(h):
         h.pruefe("C1" in spieler.achswerte.text(), f"Achswerte: {spieler.achswerte.text()!r}")
         spitze = spieler.spitze.text()
         h.pruefe(
-            spitze.startswith("Spitze im Programm: X ")
+            spitze.startswith("Spitze im Programm: X Ø ")
             and ", C −" in spitze
             and "soll" not in spitze,
             f"Spitze: {spitze!r}",
         )
+        h.pruefe("X1 Ø " in spieler.achswerte.text(), f"X1 im Ø: {spieler.achswerte.text()!r}")
         h.bild("3_abfahren_c_gedreht")
         h.bild("3b_pruefen_fenster", pruef.form)
         # Der Haken „Bahn“ blendet die Bahn aus und wieder ein (Manuel, 2026-09-30).

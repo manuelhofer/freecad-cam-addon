@@ -235,6 +235,11 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   Durchmesser; LinuxCNC: wie eingestellt) – **Empfehlung**, der Bediener
   liest, was er gewohnt ist; (b) immer Radius und im Programm umschalten
   (`DIAMOF`, `G8`) – ein Befehl mehr, der vergessen werden kann.
+  Manuel (2026-09-30) zum Umschalter Ø/Radius an der Maschine: „Ja mit
+  Umschalter wichtig ist ja nur was dann beim Postprozess raus kommt“. Die
+  Maschine merkt es sich jetzt je Linearachse (P-2026-09-30-54,
+  `maschine.x_im_durchmesser`); der Postprozessor schreibt X danach – das
+  passt zu (a).
 - **E5 – Steuerungen ohne G93:**
   (a) Vorschub wie in Abschnitt 5 – **Empfehlung**, dann geht es auch dort;
   (b) nur Steuerungen mit G93 – einfacher, aber nicht für alle.

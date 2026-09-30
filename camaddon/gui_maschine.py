@@ -644,11 +644,12 @@ class MaschinenPanel:
         setattr(objekt, eigenschaft, wert)
         if beschriften:
             m.beschrifte(objekt)
-        if eigenschaft in ("Lcs", "Platz", "Schraeg", "Ausgleich"):
+        if eigenschaft in ("Lcs", "Platz", "Schraeg", "Ausgleich", "Durchmesser"):
             # Das kann eine Aufnahme in eine Revolvergruppe hinein- oder aus
             # ihr herausschieben bzw. Winkel und Beispiel einer schrägen Achse
-            # ändern, dann werden die Listen neu aufgebaut – zeitversetzt,
-            # denn der Neuaufbau löscht auch das Feld, dessen Signal gerade läuft.
+            # ändern – oder die Verfahrwege im Durchmesser zeigen –, dann werden die
+            # Listen neu aufgebaut – zeitversetzt, denn der Neuaufbau löscht auch das
+            # Feld, dessen Signal gerade läuft.
             QtCore.QTimer.singleShot(0, lambda: self._spaeter_neu_aufbauen(objekt))
         else:
             self._auffrischen()
@@ -899,24 +900,30 @@ class MaschinenPanel:
             return abstand + seite * vf._vorzeichen(achse) * (stellung - jetzt)
 
         name = m.name_von(ba)
+        # Im Durchmesser (X einer Drehmaschine) steht alles doppelt da, mit „Ø“.
+        faktor = 2.0 if getattr(ba, "Durchmesser", False) else 1.0
         saetze = [
             tr(
                 "dialog.verfahrweg.lage",
                 achse=name,
-                stellung=_mm(jetzt),
+                stellung=_mm(jetzt, faktor),
                 aufnahme=m.name_von(werkzeug),
-                abstand=_mm(abstand),
+                abstand=_mm(abstand, faktor),
             )
         ]
         von, bis = kette_modul._begrenzung(achse.gelenk, achse.art)
         if von is not None and bis is not None:
             saetze.append(
-                tr("dialog.verfahrweg.lage_grenzen", von=_mm(bei(von)), bis=_mm(bei(bis)))
+                tr(
+                    "dialog.verfahrweg.lage_grenzen",
+                    von=_mm(bei(von), faktor),
+                    bis=_mm(bei(bis), faktor),
+                )
             )
         elif von is not None:
-            saetze.append(tr("dialog.verfahrweg.lage_nur_von", von=_mm(bei(von))))
+            saetze.append(tr("dialog.verfahrweg.lage_nur_von", von=_mm(bei(von), faktor)))
         elif bis is not None:
-            saetze.append(tr("dialog.verfahrweg.lage_nur_bis", bis=_mm(bei(bis))))
+            saetze.append(tr("dialog.verfahrweg.lage_nur_bis", bis=_mm(bei(bis), faktor)))
         saetze.append(tr("dialog.verfahrweg.spitze"))
         return " ".join(saetze)
 
@@ -1075,11 +1082,13 @@ def _knopfreihe(knoepfe, spalten=2):
     return reihe
 
 
-def _mm(wert):
+def _mm(wert, faktor=1.0):
     """Eine Länge mit Einheit (mm oder inch), auf Tausendstel gerundet – ein Rest von
-    1e-13 aus der Lage der Baugruppe steht als 0 da."""
+    1e-13 aus der Lage der Baugruppe steht als 0 da. `faktor` 2: im Durchmesser, „Ø 550 mm“."""
     from . import einheiten
     from .gui_zahlen import groesse_zeigen
 
-    zahl = groesse_zeigen(round(wert, 3) + 0.0, einheiten.LAENGE, metrisch_stellen=3) or "0"
-    return f"{zahl} {einheiten.einheit(einheiten.LAENGE)}"
+    wert = round(wert * faktor, 3) + 0.0
+    zahl = groesse_zeigen(wert, einheiten.LAENGE, metrisch_stellen=3) or "0"
+    vor = einheiten.DURCHMESSER if faktor != 1.0 else ""
+    return f"{vor}{zahl} {einheiten.einheit(einheiten.LAENGE)}"

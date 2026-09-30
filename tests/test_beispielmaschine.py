@@ -184,6 +184,7 @@ masse = beispielmaschine.DrehmaschinenMasse(
     weg_z=(-50, 400),
     plaetze=8,
     drehzahl=4000,
+    x_durchmesser=False,
 )
 pruefe(not masse.fehler(), f"gültige Maße: {masse.fehler()}")
 asm, ma = beispielmaschine.lade(beispielmaschine.DREHMASCHINE, masse)
@@ -205,6 +206,9 @@ plaetze = [a for a in m.aufnahmen(ma) if a.Art == m.AUFNAHME_WERKZEUG]
 pruefe(len(plaetze) == 8, f"Revolverplätze: {len(plaetze)}")
 s1 = next(b for b in m.betriebsarten(ma) if b.NcName == "S1")
 pruefe(s1.Drehzahl == 4000, f"S1: {s1.Drehzahl}")
+# „X als: Radius“ (P-2026-09-30-54): X1 zählt nicht im Durchmesser.
+x1 = next(b for b in m.betriebsarten(ma) if b.NcName == "X1")
+pruefe(not x1.Durchmesser and not m.x_im_durchmesser(ma), "X im Radius gewählt, X1 im Ø")
 trafos = m.transformationen(ma)
 pruefe(len(trafos) == 1, f"schräge Achse: {len(trafos)}")
 if trafos:
@@ -256,6 +260,11 @@ pruefe(not warnungen, f"Sternrevolver, Warnungen: {warnungen}")
 # angetrieben radial“ nicht – der gelbe Satz rät dann zum geraden (P-2026-09-30-52).
 v.grundstellung()
 pruefung = rw.Pruefung(asm, ma)
+# Wie vorgegeben zählt X im Durchmesser (P-2026-09-30-54) – die Texte zeigen es doppelt.
+pruefe(
+    {a.gelenk for a in pruefung.durchmesser} == {achse["X"].gelenk} and pruefung.x_durchmesser,
+    f"im Durchmesser: {[a.gelenk.Label for a in pruefung.durchmesser]}, X {pruefung.x_durchmesser}",
+)
 _aufnahme, gerade = pruefung.kommt_aus(1, App.Vector(1, 0, 0))
 gewinkelt = rw.Einspannung(0.0, hl.lage(hl.aus_vorlage("vdi30_radial")))
 _aufnahme, mit_winkel = pruefung.kommt_aus(1, App.Vector(1, 0, 0), gewinkelt)

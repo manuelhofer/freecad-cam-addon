@@ -24,15 +24,22 @@ Ist bei deiner Maschine der Y-Schlitten schräg zum X-Schlitten gebaut, trägst
 du hier den Winkel ein. Dann legt das Addon gleich die <b>schräge Achse</b>
 an: Für ein Y im Programm fahren beide Schlitten, so wie die Steuerung
 umrechnet (siehe Hilfe „Transformationen“).</li>
+<li><b>X als</b> – <b>Durchmesser (Ø)</b> oder <b>Radius</b>: wie deine
+Steuerung X zeigt und im Programm erwartet. An fast jeder Drehmaschine ist es
+der Durchmesser, darum ist er vorgewählt. Die Maschine merkt es sich (bei X1 in
+„Maschine bearbeiten“ der Haken „zählt im Durchmesser (Ø)“): Alle Fenster
+zeigen X dann doppelt, mit „Ø“ davor, und der Postprozessor des Addons schreibt
+X so ins Programm. Gerechnet wird immer im Radius.</li>
 <li><b>Weg X, Y, Z</b> – von … bis, gezählt wie an der Maschine: bis zur
 Mitte der VDI-Aufnahme in Arbeitsstellung, an ihrer Stirn (dem Bezugspunkt
-des Revolvers). <b>X</b> ab der Spindelachse, als Radius – X 0 heißt, die
+des Revolvers). <b>X</b> ab der Spindelachse, im Durchmesser oder als Radius –
+wie bei „X als“ gewählt; beim Umschalten rechnet das Feld um. X 0 heißt, die
 Mitte der Aufnahme steht auf der Spindelachse, ein Bohrer bohrt dort mitten
-ins Teil; negativ ist über die Mitte hinaus. Die Steuerung zeigt X an der
-Drehmaschine oft als Durchmesser, dann ist es hier die Hälfte. <b>Z</b> ab der
-Spindelnase, längs der Spindelachse. <b>Y</b> ab der Mitte der Spindel; 0 liegt
+ins Teil; negativ ist über die Mitte hinaus. <b>Z</b> ab der Spindelnase,
+längs der Spindelachse. <b>Y</b> ab der Mitte der Spindel; 0 liegt
 dazwischen. Das werden die Grenzen der Gelenke. Gebaut steht die Maschine bei
-X 275 und Z 220 mm; liegt das außerhalb deiner Wege, fährt sie hinein.</li>
+X Ø 550 (Radius 275) und Z 220 mm; liegt das außerhalb deiner Wege, fährt sie
+hinein.</li>
 <li><b>Revolverplätze</b> – so viele Plätze verteilt das Addon im Kreis
 (P1 … Pn), jeden als VDI-Aufnahme am Werkzeugantrieb S3. Halter trägt der
 Revolver nicht fest: Wie ein Werkzeug steht, sagt sein Halter in der

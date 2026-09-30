@@ -6,7 +6,8 @@
 # (D-25). Bei X1 steht der Verfahrweg des Gelenks (0 … 200 mm) zum Ändern,
 # darunter, wie weit der Werkzeugplatz dabei von der Werkstückaufnahme weg ist
 # (Manuel, 2026-09-29: „man müsste schon auch editieren können … die
-# verfahrwege“).
+# verfahrwege“). Mit dem Haken „zählt im Durchmesser (Ø)“ steht der Verfahrweg
+# doppelt da (0 … Ø 400), das Gelenk behält den Radius (P-2026-09-30-54).
 import os
 import sys
 
@@ -163,7 +164,7 @@ def schritte(h):
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
     yield 100
     gelenk_x = doc.getObject("X") or next(o for o in doc.Objects if o.Label == "X")
-    von, bis = panel.details.feld(5), panel.details.feld(6)
+    von, bis = panel.details.feld(6), panel.details.feld(7)
     h.pruefe(
         isinstance(von, QtGui.QLineEdit) and isinstance(bis, QtGui.QLineEdit),
         f"Verfahrweg: {von!r} {bis!r}",
@@ -178,7 +179,7 @@ def schritte(h):
             f"von: {gelenk_x.EnableLengthMin} {gelenk_x.LengthMin}",
         )
         h.pruefe(not gelenk_x.EnableLengthMax, "bis: Grenze nicht ausgeschaltet")
-        erklaerung = panel.details.formular.itemAt(7, QtGui.QFormLayout.SpanningRole)
+        erklaerung = panel.details.formular.itemAt(8, QtGui.QFormLayout.SpanningRole)
         text = erklaerung.widget().text() if erklaerung is not None else ""
         h.pruefe(
             "Schlittens, nicht die Werkzeugspitze" in text
@@ -194,6 +195,48 @@ def schritte(h):
         h.pruefe(
             gelenk_x.EnableLengthMax and abs(float(gelenk_x.LengthMax) - 200) < 1e-9,
             f"bis: {gelenk_x.EnableLengthMax} {gelenk_x.LengthMax}",
+        )
+
+    # X im Durchmesser (P-2026-09-30-54): Mit dem Haken stehen die Verfahrwege doppelt da,
+    # mit „Ø“ – eingetippt wird im Durchmesser, das Gelenk bekommt den Radius.
+    schalter = panel.details.feld(5)
+    h.pruefe(
+        isinstance(schalter, QtGui.QCheckBox) and not schalter.isChecked(),
+        f"Haken „Durchmesser“: {schalter!r}",
+    )
+    if isinstance(schalter, QtGui.QCheckBox):
+        schalter.setChecked(True)
+        yield 300  # die Felder bauen sich neu auf
+        x1 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "X1")
+        h.pruefe(x1.Durchmesser, "X1 nach dem Haken nicht im Durchmesser")
+        von, bis = panel.details.feld(6), panel.details.feld(7)
+        titel = panel.details.formular.itemAt(6, QtGui.QFormLayout.LabelRole)
+        titel = titel.widget().text() if titel is not None else ""
+        h.pruefe(
+            von.text() == "0" and bis.text() == "400" and "Ø" in titel,
+            f"im Durchmesser: {titel!r} {von.text()!r} … {bis.text()!r}",
+        )
+        tippen(von, "-100")
+        yield 200
+        h.pruefe(
+            abs(float(gelenk_x.LengthMin) + 50) < 1e-9,
+            f"von Ø −100: Gelenk {gelenk_x.LengthMin} statt −50",
+        )
+        erklaerung = panel.details.formular.itemAt(8, QtGui.QFormLayout.SpanningRole)
+        text = erklaerung.widget().text() if erklaerung is not None else ""
+        h.pruefe(
+            "Jetzt steht X1 auf Ø 0 mm" in text and "Ø 170 mm von der Werkstückaufnahme" in text,
+            f"Erklärung im Durchmesser: {text!r}",
+        )
+        h.bild("4c_verfahrweg_durchmesser", panel.form)
+        tippen(von, "0")
+        yield 100
+        panel.details.feld(5).setChecked(False)
+        yield 300
+        h.pruefe(not x1.Durchmesser, "Haken lässt sich nicht wieder abwählen")
+        h.pruefe(
+            panel.details.feld(6).text() == "0" and panel.details.feld(7).text() == "200",
+            f"wieder im Radius: {panel.details.feld(6).text()!r} … {panel.details.feld(7).text()!r}",
         )
 
     # Ein Fehler: X1 ohne Eilgang -> Hinweis erscheint, Klick springt zur Achse.

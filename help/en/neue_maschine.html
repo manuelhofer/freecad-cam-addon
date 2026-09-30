@@ -24,15 +24,21 @@ the Y slide of your machine is built at an angle to the X slide, enter the
 angle here. The addon then adds the <b>inclined axis</b> right away: for a Y in
 the program both slides move, the way the control converts (see the help
 “Transformations”).</li>
+<li><b>X as</b> – <b>Diameter (Ø)</b> or <b>Radius</b>: how your control
+shows X and expects it in the program. On almost every lathe it is the
+diameter, so that is preselected. The machine remembers it (at X1 in “Edit
+machine” the tick “counts in diameter (Ø)”): all windows then show X doubled,
+with “Ø” in front, and the add-on's post processor writes X that way into the
+program. Calculations always use the radius.</li>
 <li><b>Travel X, Y, Z</b> – from … to, counted as on the machine: up to the
 centre of the VDI mount in working position, at its face (the reference point
-of the turret). <b>X</b> from the spindle axis, as a radius – X 0 means the
-centre of the mount is on the spindle axis, a drill drills into the centre of
-the part there; negative is past the centre. The control often shows X on a
-lathe as a diameter; here it is half of that. <b>Z</b> from the spindle nose,
-along the spindle axis. <b>Y</b> from the spindle centre; 0 lies in between.
-These become the limits of the joints. The machine is built at X 275 and Z
-220 mm; if that lies outside your travels, it moves inside.</li>
+of the turret). <b>X</b> from the spindle axis, in diameter or as a radius – as
+chosen under “X as”; switching converts the fields. X 0 means the centre of
+the mount is on the spindle axis, a drill drills into the centre of the part
+there; negative is past the centre. <b>Z</b> from the spindle nose, along the
+spindle axis. <b>Y</b> from the spindle centre; 0 lies in between. These
+become the limits of the joints. The machine is built at X Ø 550 (radius 275)
+and Z 220 mm; if that lies outside your travels, it moves inside.</li>
 <li><b>Turret stations</b> – the addon distributes this many stations in a
 circle (P1 … Pn), each a VDI mount on the tool drive S3. The turret carries no
 fixed holders: how a tool stands is up to its holder in the tool manager.</li>

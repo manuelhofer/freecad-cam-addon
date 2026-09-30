@@ -146,7 +146,21 @@ pruefe(
     "Rückgängig stellt den Verweis nicht wieder her",
 )
 
-# Speichern und Laden.
+# X im Durchmesser (P-2026-09-30-54): ein Merkmal der Linearachse, anfangs aus.
+pruefe(x1.Durchmesser is False, f"X1 gleich im Durchmesser: {x1.Durchmesser}")
+pruefe(not m.ist_durchmesser(ma, x1.Gelenk), "X1 zählt ohne Haken im Durchmesser")
+pruefe(not m.x_im_durchmesser(ma), "X im Programm ohne Haken im Durchmesser")
+x1.Durchmesser = True
+pruefe(m.ist_durchmesser(ma, x1.Gelenk), "X1 mit Haken nicht im Durchmesser")
+pruefe(m.x_im_durchmesser(ma), "X im Programm mit Haken nicht im Durchmesser")
+z1 = next(ba for ba in m.betriebsarten(ma) if ba.NcName == "Z1")
+pruefe(not m.ist_durchmesser(ma, z1.Gelenk), "Z1 zählt im Durchmesser")
+pruefe("Hidden" in s4.getEditorMode("Durchmesser"), "„Durchmesser“ an der Spindel sichtbar")
+pruefe("Hidden" not in x1.getEditorMode("Durchmesser"), "„Durchmesser“ an X1 verborgen")
+pruefe(m.wert_text("Durchmesser"), "kein Text für „Durchmesser“")
+
+# Speichern und Laden – Z1 wie aus einer Version vor dem Merkmal „Durchmesser“.
+z1.removeProperty("Durchmesser")
 pfad = os.path.join(tempfile.mkdtemp(), "drehmaschine.FCStd")
 doc.saveAs(pfad)
 App.closeDocument(doc.Name)
@@ -159,6 +173,13 @@ if ma:
     pruefe(m.pruefe(ma) == [], f"nach dem Laden: {[x.text for x in m.pruefe(ma)]}")
     s4 = next(ba for ba in m.betriebsarten(ma) if ba.NcName == "S4")
     pruefe("Hidden" in s4.getEditorMode("Eilgang"), "Sichtbarkeit nach dem Laden verloren")
+    x1 = next(ba for ba in m.betriebsarten(ma) if ba.NcName == "X1")
+    pruefe(x1.Durchmesser is True, "X1 nach dem Laden nicht mehr im Durchmesser")
+    z1 = next(ba for ba in m.betriebsarten(ma) if ba.NcName == "Z1")
+    pruefe(
+        "Durchmesser" in z1.PropertiesList and z1.Durchmesser is False,
+        "ältere Betriebsart bekommt „Durchmesser“ beim Laden nicht",
+    )
 App.closeDocument(doc.Name)
 
 # --- Vorschlag (D-25): Die Testdrehmaschine bekommt S1, Z1, X1 und T ---------------------------

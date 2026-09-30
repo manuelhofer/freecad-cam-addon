@@ -691,7 +691,8 @@ class Abspieler(QtGui.QWidget):
         for achse in sorted(werte, key=lambda a: (a.art != LINEAR, namen(pruefung.maschine, a))):
             # So steht die Maschine wirklich: höchstens an der Grenze.
             wert = pruefung.verfahren.begrenzt(achse, werte[achse])
-            text = html.escape(f"{namen(pruefung.maschine, achse)} {rw.stellung_text(achse, wert)}")
+            stellung = rw.stellung_text(achse, wert, achse in pruefung.durchmesser)
+            text = html.escape(f"{namen(pruefung.maschine, achse)} {stellung}")
             if achse in self.angehalten:
                 text = f"<span style='color:{ROT}'>{text} ({html.escape(tr('ab.anschlag'))})</span>"
             teile.append(text)
@@ -718,9 +719,11 @@ class Abspieler(QtGui.QWidget):
         except Exception as fehler:  # eine halb eingerichtete Maschine soll nicht stören
             FreeCAD.Console.PrintLog(f"CAM-Addon: Spitze: {fehler}\n")
             return ""
-        text = html.escape(tr("ab.spitze", punkt=rw.punkt_text(spitze)))
+        text = html.escape(tr("ab.spitze", punkt=rw.punkt_text(spitze, pruefung.x_durchmesser)))
         if self.angehalten:
-            soll = rw.punkt_text(rw._programmpunkt(station.punkt, station.rund))
+            soll = rw.punkt_text(
+                rw._programmpunkt(station.punkt, station.rund), pruefung.x_durchmesser
+            )
             text += (
                 f" <span style='color:{ROT}'>{html.escape(tr('ab.spitze_soll', punkt=soll))}</span>"
             )

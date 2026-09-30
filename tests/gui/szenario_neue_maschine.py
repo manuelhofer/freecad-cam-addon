@@ -56,7 +56,7 @@ def schritte(h):
     yield 200
     h.pruefe(d.masse_bereich.isVisible() and not d.fest.isVisible(), "Fräse: keine Maße")
     h.pruefe(
-        not d.feld_bett.isVisible() and not d.feld_plaetze.isVisible(),
+        not d.feld_bett.isVisible() and not d.feld_plaetze.isVisible() and not d.wahl_x.isVisible(),
         "Fräse: Felder der Drehmaschine sichtbar",
     )
     h.pruefe(d.masse() == beispielmaschine.FraesenMasse(), f"Vorbelegung Fräse: {d.masse()}")
@@ -76,7 +76,34 @@ def schritte(h):
     h.pruefe(d.masse_bereich.isVisible() and not d.fest.isVisible(), "Drehmaschine: keine Maße")
     h.pruefe(d.feld_bett.isVisible() and d.feld_plaetze.isVisible(), "Drehmaschine: Felder fehlen")
     h.pruefe(d.masse() == beispielmaschine.DrehmaschinenMasse(), f"Vorbelegung: {d.masse()}")
+    # X als Durchmesser vorgewählt (P-2026-09-30-54): Die X-Wege stehen doppelt da.
+    von_x, bis_x = d.felder_weg["X"]
+    beschriftung_x = d._formular.labelForField(d._weg_zeilen["X"]).text()
+    h.pruefe(
+        d.wahl_x.isVisible()
+        and d.wahl_x.currentData() is True
+        and (von_x.value(), bis_x.value()) == (-50.0, 850.0)
+        and beschriftung_x == "Weg X (Ø):",
+        f"X im Durchmesser: {d.wahl_x.currentText()!r}, {beschriftung_x!r} "
+        f"{von_x.value()} … {bis_x.value()}",
+    )
     h.bild("2_drehmaschine_vorgabe", d)
+    # Auf Radius: dieselben Wege, halb so groß gezählt – und zurück.
+    d.wahl_x.setCurrentIndex(d.wahl_x.findData(False))
+    yield 100
+    beschriftung_x = d._formular.labelForField(d._weg_zeilen["X"]).text()
+    h.pruefe(
+        (von_x.value(), bis_x.value()) == (-25.0, 425.0) and beschriftung_x == "Weg X:",
+        f"X im Radius: {beschriftung_x!r} {von_x.value()} … {bis_x.value()}",
+    )
+    h.pruefe(
+        d.masse() == beispielmaschine.DrehmaschinenMasse(x_durchmesser=False),
+        f"im Radius: {d.masse()}",
+    )
+    h.bild("2b_drehmaschine_radius", d)
+    d.wahl_x.setCurrentIndex(d.wahl_x.findData(True))
+    yield 100
+    h.pruefe((von_x.value(), bis_x.value()) == (-50.0, 850.0), "zurück im Durchmesser")
 
     # Weg Y 0 … 0: geht nicht, der Dialog bleibt offen.
     von_y, bis_y = d.felder_weg["Y"]
@@ -98,9 +125,10 @@ def schritte(h):
     d.feld_name.setText("Meine Drehmaschine")
     d.feld_bett.setValue(30)
     d.feld_y_winkel.setValue(30)
-    von_x, bis_x = d.felder_weg["X"]
     von_x.setValue(-80)
     bis_x.setValue(120)
+    # Im Durchmesser eingetragen: Die Maschine bekommt den Radius −40 … 60.
+    h.pruefe(d.masse().weg_x == (-40.0, 60.0), f"Weg X: {d.masse().weg_x}")
     # Lange Maschinen: Z bis 2500 eintippen (Manuel, 2026-09-30: nur bis 999 ging).
     _, bis_z = d.felder_weg["Z"]
     bis_z.setFocus()
@@ -133,6 +161,8 @@ def schritte(h):
     h.pruefe(panel.maschine.Label == "Meine Drehmaschine", f"Maschine: {panel.maschine.Label}")
     s1 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "S1")
     h.pruefe(s1.Drehzahl == 4000, f"S1: {s1.Drehzahl}")
+    x1 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "X1")
+    h.pruefe(x1.Durchmesser, "X1 der neuen Drehmaschine nicht im Durchmesser")
     Gui.SendMsgToActiveView("ViewFit")
     yield 300
     h.bild("5_gebaut_bearbeiten")

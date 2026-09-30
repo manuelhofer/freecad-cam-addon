@@ -696,7 +696,8 @@ class DrehmaschinenMasse:
     Spindel (0 muss darin liegen). Manuel (2026-09-30): „bei MEINER maschine ... ist x 0 genau
     die MITTE von der Vdi aufnahme“. Gebaut steht die Maschine bei X 275 und Z 220; liegt das
     außerhalb der Wege, fährt sie hinein. `y_winkel` ungleich 0 macht Y zur schrägen Achse
-    (W-001, Abschnitt 7c).
+    (W-001, Abschnitt 7c). `x_durchmesser`: X zählt an der Steuerung im Durchmesser, wie an
+    fast jeder Drehmaschine – X1 merkt es sich; `weg_x` bleibt trotzdem der Radius.
     """
 
     name: str = ""  # leer: der Name des Beispiels
@@ -716,6 +717,9 @@ class DrehmaschinenMasse:
     revolver: str = REVOLVER_STIRN
     scheibe: float = 340.0
     vdi: int = 30
+    # X im Durchmesser (Manuel, 2026-09-30: „Ja mit Umschalter wichtig ist ja nur was dann
+    # beim Postprozess raus kommt“, P-2026-09-30-54).
+    x_durchmesser: bool = True
 
     def fehler(self):
         """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
@@ -951,6 +955,7 @@ def drehmaschine(masse=None):
 
     ma = _maschine(asm, DREHMASCHINE)
     x1 = _linear(ma, x, "X1", 30000, 10000, 6)
+    x1.Durchmesser = bool(masse.x_durchmesser)
     y1 = _linear(ma, y, "Y1", 12000, 5000, 4)
     _linear(ma, z, "Z1", 30000, 10000, 6)
     _spindel(ma, hauptspindel, "S1", masse.drehzahl, 2.5)

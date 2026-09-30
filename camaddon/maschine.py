@@ -64,6 +64,7 @@ WERTE = {
         ("VorschubMax", False),
         ("Beschleunigung", False),
         ("Ruck", False),
+        ("Durchmesser", False),
     ],
     ART_POSITIONIEREN: [
         ("Endlos", False),
@@ -124,6 +125,7 @@ def wert_text(eigenschaft):
         "Beschleunigung": tr("wert.beschleunigung"),
         "Ruck": tr("wert.ruck"),
         "Endlos": tr("wert.endlos"),
+        "Durchmesser": tr("wert.durchmesser"),
         "Geschwindigkeit": tr("wert.geschwindigkeit"),
         "Drehzahl": tr("wert.drehzahl"),
         "Hochlaufzeit": tr("wert.hochlaufzeit"),
@@ -214,6 +216,7 @@ class Betriebsart(_Proxy):
                 ("App::PropertyFloat", "Schaltzeit", tr("eigenschaft.schaltzeit")),
             ],
         )
+        self._neue_werte(objekt)
         objekt.Art = BETRIEBSARTEN  # legt die Auswahlliste fest
         self._nur_passende_werte_zeigen(objekt)
 
@@ -222,14 +225,27 @@ class Betriebsart(_Proxy):
             self._nur_passende_werte_zeigen(objekt)
 
     def onDocumentRestored(self, objekt):
+        self._neue_werte(objekt)
         self._nur_passende_werte_zeigen(objekt)
+
+    @staticmethod
+    def _neue_werte(objekt):
+        """Kennwerte, die später dazukamen – auch in Maschinen, die davor gespeichert sind."""
+        _lege_eigenschaften_an(
+            objekt,
+            "Werte",
+            # X einer Drehmaschine als Durchmesser (Manuel, 2026-09-30, P-2026-09-30-54).
+            [("App::PropertyBool", "Durchmesser", tr("eigenschaft.durchmesser"))],
+        )
 
     @staticmethod
     def _nur_passende_werte_zeigen(objekt):
         """Im Eigenschaften-Editor nur die Kennwerte zeigen, die zur Art gehören."""
         passend = {name for name, _pflicht in WERTE[objekt.Art]}
         alle = {name for liste in WERTE.values() for name, _pflicht in liste}
-        for name in alle:
+        # Beim Laden einer älteren Maschine fehlen spätere Kennwerte noch („Durchmesser“),
+        # bis onDocumentRestored sie anlegt.
+        for name in alle & set(objekt.PropertiesList):
             objekt.setEditorMode(name, _SICHTBAR if name in passend else _AUSGEBLENDET)
 
 
@@ -497,6 +513,32 @@ def plaetze(maschine, kette, revolver):
             and kette.glied_von(a.Lcs) is achse.kind
         ),
         key=lambda a: a.Platz,
+    )
+
+
+def ist_durchmesser(maschine, gelenk):
+    """Zählt die Linearachse an `gelenk` als Durchmesser – X einer Drehmaschine, wie die
+    Steuerung es zeigt und im Programm erwartet (Manuel, 2026-09-30: „Ja mit Umschalter
+    wichtig ist ja nur was dann beim Postprozess raus kommt“)? Gerechnet wird immer im Radius;
+    nur Anzeige und Eingabe verdoppeln."""
+    if maschine is None or gelenk is None:
+        return False
+    return any(
+        ba.Gelenk is gelenk and ba.Art == ART_LINEAR and getattr(ba, "Durchmesser", False)
+        for ba in betriebsarten(maschine)
+    )
+
+
+def x_im_durchmesser(maschine):
+    """Steht X im Programm als Durchmesser? Ja, wenn eine Linearachse, die im Programm X
+    heißt (X1, X2 …), im Durchmesser zählt."""
+    if maschine is None:
+        return False
+    return any(
+        ba.Art == ART_LINEAR
+        and getattr(ba, "Durchmesser", False)
+        and programmname(ba).upper() == "X"
+        for ba in betriebsarten(maschine)
     )
 
 

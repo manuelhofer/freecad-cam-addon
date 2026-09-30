@@ -13,6 +13,7 @@ import math
 import os
 import sys
 import tempfile
+from types import SimpleNamespace
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -28,7 +29,7 @@ from camaddon import reichweite as rw
 from camaddon import schraege_achse as sa
 from camaddon import verfahren as vf
 from camaddon import werkzeuge as wz
-from camaddon.kette import LINEAR
+from camaddon.kette import DREH, LINEAR
 from camaddon.kinematik import Kinematik
 
 sprache.setze_sprache("de")
@@ -533,6 +534,32 @@ pruefe(
     "",
 )
 pruefe(rw.weg_text(-5.773) == "−5.77 mm", rw.weg_text(-5.773))
+# X im Durchmesser (P-2026-09-30-54): das Doppelte mit „Ø“, Y und Z wie sie sind.
+pruefe(
+    rw.punkt_text({"X": 450, "Y": 0, "Z": -5.5, "A": 0, "B": 0, "C": 0}, True)
+    == "X Ø 900, Y 0, Z −5.5",
+    rw.punkt_text({"X": 450, "Y": 0, "Z": -5.5, "A": 0, "B": 0, "C": 0}, True),
+)
+linear = SimpleNamespace(art=LINEAR, minimum=-25.0, maximum=None)
+dreh = SimpleNamespace(art=DREH, minimum=None, maximum=None)
+pruefe(
+    rw.stellung_text(linear, 275.0, True) == "Ø 550.00 mm", rw.stellung_text(linear, 275.0, True)
+)
+pruefe(rw.stellung_text(linear, 275.0) == "275.00 mm", rw.stellung_text(linear, 275.0))
+pruefe(rw.stellung_text(dreh, 90.0, True) == "90.0°", "Drehachse im Durchmesser")
+bereich = rw.Bereich(linear, "X1", 10.0, 200.0, durchmesser=True)
+pruefe(
+    bereich.text()
+    == sprache.tr(
+        "rw.bereich",
+        achse="X1",
+        von="Ø 20.00 mm",
+        bis="Ø 400.00 mm",
+        minimum="Ø −50.00 mm",
+        maximum=sprache.tr("rw.keine_grenze"),
+    ),
+    bereich.text(),
+)
 pruefe(rw.winkel_text(-0.04) == "0.0°", rw.winkel_text(-0.04))
 pruefe(math.isclose(rw.DREH_SCHRITT, 1.0), "1°-Schritte")
 
