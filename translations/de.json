@@ -1151,8 +1151,6 @@
     "va.lage.nicht_radial_gerade": "{werkzeug} sitzt auf {aufnahme} nicht radial – die Bahn braucht es radial aus {richtung} zur Achse. {aufnahme} steht selbst radial: Gib {werkzeug} in der Werkzeugverwaltung einen geraden Halter.",
     "va.lage.kein_platz": "Für {werkzeug} hat „{maschine}“ keinen Platz – „Auf der Maschine prüfen“ übergeht es.",
     "va.lage.nicht_bestueckt": "{werkzeug} steckt auf keinem Platz von „{maschine}“ – in „Maschine bearbeiten“ unter „Bestückung“ einstecken. Sonst ruft das Programm es mit seiner Nummer auf, und „Auf der Maschine prüfen“ sagt, was dort steckt.",
-    "va.auf_platz": " – auf {platz}",
-    "va.nicht_bestueckt": " – nicht bestückt",
     "va.rund.ohne_rillen": "{art}: „Rundum schruppen“ rechnet wie mit einem Schaftfräser gleichen Durchmessers – das Teil bleibt sicher; bei diesem Vorschub je Umdrehung bleiben keine Rillen stehen.",
     "va.fehler.anlegen": "Anlegen ging nicht: {fehler}",
     "va.transaktion.schruppen": "Rundum schruppen anlegen",

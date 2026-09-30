@@ -1151,8 +1151,6 @@
     "va.lage.nicht_radial_gerade": "{werkzeug} does not sit radially on {aufnahme} – the path needs it radial from {richtung} towards the axis. {aufnahme} itself stands radially: give {werkzeug} a straight holder in the tool manager.",
     "va.lage.kein_platz": "“{maschine}” has no station for {werkzeug} – “Check on machine” skips it.",
     "va.lage.nicht_bestueckt": "{werkzeug} is in no station of “{maschine}” – load it under “Tool loading” in “Edit machine”. Otherwise the program calls it by its number, and “Check on machine” says what sits there.",
-    "va.auf_platz": " – in {platz}",
-    "va.nicht_bestueckt": " – not loaded",
     "va.rund.ohne_rillen": "{art}: “All-round roughing” calculates as with an end mill of the same diameter – the part stays safe; at this feed per revolution no ridges remain.",
     "va.fehler.anlegen": "Could not create: {fehler}",
     "va.transaktion.schruppen": "Create all-round roughing",

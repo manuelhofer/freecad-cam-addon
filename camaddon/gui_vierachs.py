@@ -1442,7 +1442,7 @@ class VierachsPanel:
             self.wahl_fraeser.clear()
             for werkzeug in self._fraeser:
                 self.wahl_fraeser.addItem(
-                    dezimal(wz.zeile(werkzeug)) + self._platz_zusatz(werkzeug)
+                    self._platz_vorsatz(werkzeug) + dezimal(wz.zeile(werkzeug))
                 )
             if self._fraeser:
                 self.wahl_fraeser.setCurrentIndex(wahl)
@@ -1722,7 +1722,7 @@ class VierachsPanel:
             self.wahl_schlichtfraeser.clear()
             for werkzeug in self._schlichtfraeser:
                 self.wahl_schlichtfraeser.addItem(
-                    dezimal(wz.zeile(werkzeug)) + self._platz_zusatz(werkzeug)
+                    self._platz_vorsatz(werkzeug) + dezimal(wz.zeile(werkzeug))
                 )
             if self._schlichtfraeser:
                 self.wahl_schlichtfraeser.setCurrentIndex(wahl)
@@ -2024,16 +2024,15 @@ class VierachsPanel:
             f'{html.escape(satz, quote=False)} <a href="werkzeug:{werkzeug.nummer}">{verweis}</a>'
         )
 
-    def _platz_zusatz(self, werkzeug):
-        """„ – auf P3“ bzw. „ – nicht bestückt“ hinter einem Fräser, wenn die gewählte Maschine
-        einen Revolver hat (W-002 Stufe F3); sonst nichts."""
+    def _platz_vorsatz(self, werkzeug):
+        """„P3 · “ vor einem Fräser, der auf der gewählten Maschine auf P3 steckt (W-002 Stufe
+        F3) – vorn, damit es die schmale Liste nicht abschneidet. Steckt er nirgends, sagt es
+        der gelbe Satz darunter."""
         pruefung = self._pruefung_fuer(self.maschinenwahl())
         if pruefung is None or self.bibliothek is None or not pruefung.mit_revolver():
             return ""
         nummer = pruefung.platznummer(werkzeug, self.bibliothek)
-        if nummer is None:
-            return tr("va.nicht_bestueckt")
-        return tr("va.auf_platz", platz=f"P{nummer}")
+        return f"P{nummer} · " if nummer is not None else ""
 
     def _programmnummer(self, werkzeug):
         """So ruft das Programm `werkzeug` auf: auf der gewählten Maschine mit Revolver der

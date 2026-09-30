@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-58 platz-vorn
+
+### EINGELESEN
+- Das eigene Bild aus `szenario_vierachs_schruppen` zu P-56: In der schmalen Fräserliste des
+  4-Achs-Assistenten stand „T1 Schaftfräser Ø 12 · z 3 · VHM – a“ – der Platz („– auf P1“)
+  war abgeschnitten.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`, `translations/de.json`, `translations/en.json`,
+  `help/de|en/vierachs.html`, `help/de|en/bestueckung.html`,
+  `docs/spezifikation_werkzeugverwaltung.md`, `tests/gui/szenario_vierachs_schruppen.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+4-Achs-Assistent an der Beispiel-Drehmaschine, Schritt 2: In „Fräser“ steht „P1 · T1
+Schaftfräser Ø 12 …“ – der Platz vorn, ganz zu sehen.
+
+### DONE
+- Der Platz steht vor dem Fräser („P1 · “) statt dahinter; „nicht bestückt“ fällt in der
+  Liste weg – das sagt schon der gelbe Satz darunter. Hilfe und Spezifikation angepasst.
+
+### TEST
+- `test_sprache`, `test_hilfe` in 1.1.3 ok; `szenario_vierachs_schruppen` in 1.1.3 ok, Bild
+  angesehen: „P1 · T1 Schaftfräser Ø 12 · z 3 · VHM“.
+
+### NEXT
+- Version 0.32.1, Push, voller Lauf.
+
 ## P-2026-09-30-57 version-0-32-0
 
 ### EINGELESEN

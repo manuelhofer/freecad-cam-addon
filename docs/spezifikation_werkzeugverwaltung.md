@@ -404,8 +404,9 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
      P5“; „Werkzeugverwaltung …“ öffnet sie, nach dem Speichern dort steht Neues
      gleich zur Wahl. Ein Schritt Rückgängig mit dem Dialog. Ohne Revolver (Fräse
      mit einer Spindel) fehlt der Abschnitt.
-   - **F3** – 4-Achs-Assistent: In der Fräserliste „– auf P3“ bzw. „– nicht
-     bestückt“; der Controller bekommt die Nummer des Platzes (Name und
+   - **F3** – 4-Achs-Assistent: In der Fräserliste „P3 · “ vor dem Fräser (vorn,
+     sonst schnitt die schmale Liste es ab – P-2026-09-30-58); der Controller
+     bekommt die Nummer des Platzes (Name und
      ToolNumber, auch beim Ändern). Nicht bestückt: ein gelber Satz; angelegt wird
      mit der Nummer aus der Werkzeugverwaltung – das Prüffenster sagt dann, was
      auf dem Platz steckt. (Auf einen freien Platz stecken aus dem Assistenten

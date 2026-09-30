@@ -89,7 +89,7 @@ def schritte(h):
     h.pruefe(panel.fraeser() is not None and panel.fraeser().nummer == 1, "T1 nicht gewählt")
     # Auf der Beispiel-Drehmaschine steckt T1 nach der Nummer auf P1 (W-002 Stufe F3).
     h.pruefe(
-        panel.wahl_fraeser.currentText().endswith("– auf P1"),
+        panel.wahl_fraeser.currentText().startswith("P1 · T1 "),
         f"Platz in der Liste: {panel.wahl_fraeser.currentText()!r}",
     )
     h.pruefe(panel.einsatz() is not None and panel.einsatz().art == wz.SCHRUPPEN, "Schruppen fehlt")
