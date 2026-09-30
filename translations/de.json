@@ -828,6 +828,7 @@
     "rm.ergebnis": "Am Ende bleiben {von} … {bis} auf dem Teil (Aufmaß {aufmass}), nirgends ins Teil.",
     "rm.ins_teil": "Am Ende bleiben bis {bis} auf dem Teil – an manchen Stellen fehlen bis {tief} im Teil (blau)!",
     "rm.zu_viel": "Rot: mehr als {grenze} stehen geblieben – dort kam der Fräser nicht hin.",
+    "rm.nur_gewaehlte": "Verglichen auf den gewählten Flächen – was nicht gewählt ist, bleibt Stange und hat keine Farbe.",
     "rm.farben": "Grün: das Aufmaß, gelb: etwas mehr, rot: über 1 mm mehr, blau: im Teil.",
     "ab.hinsehen.tooltip": "Ansicht auf Werkstück und Werkzeug – die Maschine ist meist viel größer als das Teil.",
     "halter.vorlage.er16": "Spannzangenfutter ER16 · SK40",

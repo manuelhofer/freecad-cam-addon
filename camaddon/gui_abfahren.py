@@ -352,6 +352,8 @@ def _rest_satz(vergleich, aufmass):
         )
     if vergleich.groesster >= aufmass + rm.ROT_AB:
         satz += " " + tr("rm.zu_viel", grenze=mm(aufmass + rm.ROT_AB))
+    if vergleich.nur_gewaehlte:  # V4: der Rest ist Stange, mit Absicht
+        satz += " " + tr("rm.nur_gewaehlte")
     return satz + " " + tr("rm.farben")
 
 

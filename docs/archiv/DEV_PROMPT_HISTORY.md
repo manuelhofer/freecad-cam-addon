@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-32 pruefen-gewaehlte
+
+### EINGELESEN
+- `camaddon/restmaterial.py` (`vergleiche`, `Abtrag`, `fuer`), `camaddon/gui_abfahren.py`
+  (`_rest_satz`), `help/*/reichweite.html`, `tests/test_restmaterial.py`,
+  `tests/gui/szenario_rundum_drehmaschine.py`.
+
+### DATEIEN
+- `camaddon/restmaterial.py`, `camaddon/gui_abfahren.py`, `translations/de.json`,
+  `translations/en.json`, `help/de/reichweite.html`, `help/en/reichweite.html`,
+  `tests/test_restmaterial.py`, `tests/gui/szenario_flaechen_pruefen.py` (neu),
+  `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine, Welle mit Abflachung, im Assistenten nur die Abflachung, „Anlegen“ →
+„Auf der Maschine prüfen“ → ans Ende: Farben nur auf der Abflachung, der Mantel bleibt Stange
+ohne Farbe (nicht rot); unter dem Abspieler „… Verglichen auf den gewählten Flächen – was nicht
+gewählt ist, bleibt Stange und hat keine Farbe.“
+
+### DONE
+- Haben alle Rundum-Operationen des Jobs gewählte Flächen, vergleicht der Abtrag nur auf ihnen:
+  Grün, Gelb und Rot nur dort, was nicht gewählt ist, bleibt ohne Farbe; Blau (im Teil) gilt
+  überall. Der größte Rest zählt auf den gewählten Flächen; der Satz unter dem Abspieler sagt,
+  dass nur dort verglichen wurde. Hilfe de/en.
+
+### TEST
+- Noch nicht gelaufen: FreeCAD ist durch den vollen Lauf zu 0.30.0 belegt (Arbeitsregeln).
+  Danach: `test_restmaterial` (nur über der Abflachung geschruppt: ohne Wahl rot, mit Wahl
+  keine Farbe auf dem Mantel), `szenario_flaechen_pruefen` in beiden Versionen, `test_sprache`.
+
+### NEXT
+- V4c und V4d mit Manuel planen (Fragen in der Spezifikation).
+
 ## P-2026-09-30-31 hin-und-her-je-stueck
 
 ### EINGELESEN

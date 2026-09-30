@@ -6,7 +6,9 @@
 # ragt weit genug heraus): Nach dem Abfahren bleibt rundum etwa das Aufmaß, nirgends fehlt
 # etwas im Teil; zurück zu einer früheren Station rechnet von vorn. Mit „Rundum schlichten“
 # (Kugelfräser Ø 6) dahinter trägt es mit der Kugel ab und vergleicht mit dessen Aufmaß 0:
-# grün, nichts im Teil.
+# grün, nichts im Teil. Nur über einer Abflachung geschruppt (V4): Ohne Wahl wäre der Mantel
+# rot (dort steht die Stange), mit den gewählten Flächen hat er keine Farbe – nur die
+# Abflachung zählt; Blau gälte überall.
 import math
 import os
 import pathlib
@@ -31,6 +33,9 @@ from camaddon import restmaterial as rm
 from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
 from camaddon import vierachs_achsen as va
+from camaddon import vierachs_bahn as vb
+from camaddon import vierachs_flaechen as vf
+from camaddon import vierachs_huelle as vh
 from camaddon import vierachs_operation as vo
 from camaddon import vierachs_rohteil as vr
 from camaddon import vierachs_schlichten as vs
@@ -213,6 +218,67 @@ if abtrag is not None:
 del schlichten
 FreeCAD.closeDocument(doc.Name)
 FreeCAD.closeDocument(asm.Document.Name)
+
+# --- Nur über der Abflachung (V4): verglichen auf den gewählten Flächen ----------------------
+# Welle Ø 20 von −40 bis 0, Abflachung auf x = 8 von −30 bis −10, Stange Ø 24, R 3.
+flach_welle = (
+    Part.makeCylinder(10, 40, V(0, 0, -40))
+    .cut(Part.makeBox(10, 30, 20, V(8, -15, -30)))
+    .removeSplitter()
+)
+abflachung = next(
+    i
+    for i, f in enumerate(flach_welle.Faces)
+    if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-6
+)
+laengs, radial = (0, 0, 1), (1, 0, 0)
+flach_bahn = vb.schruppen(
+    vh.vernetze(flach_welle),
+    laengs,
+    radial,
+    vb.Schruppwerte(
+        3.0,
+        12.0,
+        2.0,
+        2.4,
+        0.3,
+        1.0,
+        -60.0,
+        waende=((-30.0, 1), (-10.0, -1)),
+        bereich=vf.bereich_fuer(flach_welle, laengs, radial, [f"Face{abflachung + 1}"], 3.0),
+    ),
+)
+stange = rm.Stange(12.0, -45.0, 1.0)
+von, nach = [], []
+for vorher, punkt in zip(flach_bahn.punkte, flach_bahn.punkte[1:], strict=False):
+    if not punkt.eilgang:
+        von.append((vorher.a, vorher.r, vorher.phi))
+        nach.append((punkt.a, punkt.r, punkt.phi))
+stange.fahre_stuecke(von, nach, 3.0)
+netz = vh.vernetze(flach_welle)
+teil = rm.teilradien(netz, laengs, radial, stange)
+genau = rm.teilradien(netz, laengs, radial, stange, rm.GENAU)
+sicht = vf.sicht(vf.vernetze(flach_welle), laengs, radial, stange.a, stange.phi)
+nur = sicht.flaeche == abflachung
+ohne = rm.vergleiche(stange, teil, 0.3, genau)
+mit = rm.vergleiche(stange, teil, 0.3, genau, nur)
+pruefe(
+    not ohne.nur_gewaehlte and ohne.groesster > 1.9 and (ohne.farbe == rm.ROT).any(),
+    f"ohne Wahl: größter Rest {ohne.groesster:.2f}",
+)
+pruefe(mit.nur_gewaehlte, "mit Wahl: nicht als „nur gewählte“ vermerkt")
+pruefe(not (mit.farbe[~nur] == rm.ROT).any(), "mit Wahl: Mantel rot")
+pruefe((mit.farbe[~nur & np.isfinite(teil)] == rm.OHNE_TEIL).all(), "mit Wahl: Mantel gefärbt")
+pruefe(mit.groesster < 1.3, f"mit Wahl: größter Rest {mit.groesster:.2f}")
+pruefe(
+    mit.kleinster > -rm.BLAU_AB and not (mit.farbe == rm.BLAU).any(),
+    f"ins Teil: {mit.kleinster:.3f}",
+)
+anteil = np.count_nonzero(mit.farbe[nur] != rm.ROT) / max(1, np.count_nonzero(nur))
+pruefe(anteil > 0.95, f"auf der Abflachung nur {anteil:.0%} nicht rot")
+print(
+    ascii(f"Abflachung: ohne Wahl bis {ohne.groesster:.2f} mm, mit Wahl bis {mit.groesster:.2f} mm")
+)
 
 if fehler:
     raise AssertionError("\n".join(fehler))

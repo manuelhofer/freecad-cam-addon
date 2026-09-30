@@ -828,6 +828,7 @@
     "rm.ergebnis": "At the end {von} … {bis} remain on the part (allowance {aufmass}), nowhere into the part.",
     "rm.ins_teil": "At the end up to {bis} remain on the part – in places up to {tief} are missing from the part (blue)!",
     "rm.zu_viel": "Red: more than {grenze} left – the cutter did not get there.",
+    "rm.nur_gewaehlte": "Compared on the selected faces – what is not selected stays bar stock and has no colour.",
     "rm.farben": "Green: the allowance, yellow: a little more, red: over 1 mm more, blue: into the part.",
     "ab.hinsehen.tooltip": "View the workpiece and tool – the machine is usually much bigger than the part.",
     "halter.vorlage.er16": "ER16 collet chuck · SK40",

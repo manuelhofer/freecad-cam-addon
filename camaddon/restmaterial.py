@@ -26,6 +26,10 @@ je Zelle der Rest darüber – grün bis Aufmaß + 0,1 mm, gelb darüber, rot ab
 Wand sähe die breitere Scheibe schon die Wand, und was der Kugelfräser dort weg nahm,
 fehlte scheinbar im Teil.
 
+Mit gewählten Flächen (V4, bei allen Rundum-Operationen des Jobs) färbt der Vergleich nur
+sie: Was nicht gewählt ist, bleibt Stange und zählt nicht als „zu viel stehen geblieben“ –
+nur Blau, im Teil, gilt überall.
+
 Läuft ohne Oberfläche; numpy gehört zu FreeCAD.
 """
 
@@ -234,7 +238,8 @@ class Vergleich:
     rest: np.ndarray  # (n_a, n_phi) mm über dem Teil; nan, wo kein Teil ist
     farbe: np.ndarray  # (n_a, n_phi) OHNE_TEIL, GRUEN, GELB, ROT oder BLAU
     kleinster: float  # mm – so wenig bleibt (negativ: im Teil)
-    groesster: float  # mm – so viel bleibt höchstens
+    groesster: float  # mm – so viel bleibt höchstens (auf den gewählten Flächen)
+    nur_gewaehlte: bool = False  # nur auf den gewählten Flächen verglichen (V4)
 
 
 def teilradien(netz, laengs, radial, stange, radius=SCHRITT_A / 2):
@@ -244,24 +249,26 @@ def teilradien(netz, laengs, radial, stange, radius=SCHRITT_A / 2):
     return vh.schaftfraeser(netz, laengs, radial, radius, stange.a, stange.phi).r
 
 
-def vergleiche(stange, teil, aufmass, genau=None):
+def vergleiche(stange, teil, aufmass, genau=None, nur=None):
     """Das Restmaterial gegen das fertige Teil (`teil`: teilradien()), je Zelle eingefärbt;
     `aufmass`: das Aufmaß, das stehen bleiben soll (mm). `genau`: das Teil auf den Strahlen
-    (teilradien() mit GENAU) – nur was dort fehlt, ist blau."""
+    (teilradien() mit GENAU) – nur was dort fehlt, ist blau. `nur`: (n_a, n_phi) die Zellen
+    der gewählten Flächen – nur sie bekommen Grün, Gelb oder Rot; Blau gilt überall."""
     da = np.isfinite(teil)
-    rest = np.where(da, stange.r - teil, np.nan)
     genau = teil if genau is None else genau
     tief = np.where(da & np.isfinite(genau), stange.r - genau, np.nan)
+    if nur is not None:
+        da = da & nur
+    rest = np.where(da, stange.r - teil, np.nan)
     farbe = np.full(stange.r.shape, OHNE_TEIL, dtype=np.int8)
     farbe[da & (rest <= aufmass + GRUEN_BIS)] = GRUEN
     farbe[da & (rest > aufmass + GRUEN_BIS)] = GELB
     farbe[da & (rest >= aufmass + ROT_AB)] = ROT
     with np.errstate(invalid="ignore"):
         farbe[tief < -BLAU_AB] = BLAU
-    if not da.any():
-        return Vergleich(rest, farbe, 0.0, 0.0)
     kleinster = float(np.nanmin(tief)) if np.isfinite(tief).any() else 0.0
-    return Vergleich(rest, farbe, kleinster, float(np.nanmax(rest)))
+    groesster = float(np.nanmax(rest)) if da.any() else 0.0
+    return Vergleich(rest, farbe, kleinster, groesster, nur is not None)
 
 
 class Abtrag:
@@ -269,7 +276,7 @@ class Abtrag:
     Station weg ist. fuer() baut es – nur für Jobs mit runder Stange und „Rundum
     schruppen“ oder „Rundum schlichten“."""
 
-    def __init__(self, stange, laengs, radial, stationen, fraeser, aufmass, formen):
+    def __init__(self, stange, laengs, radial, stationen, fraeser, aufmass, formen, flaechen=None):
         self.stange = stange
         self.laengs, self.radial = laengs, radial
         # je Station (a, r, φ in Grad, fortlaufend), Operation, gültig
@@ -279,6 +286,9 @@ class Abtrag:
         self.aufmass = aufmass
         self._formen = formen
         self._teil = None  # teilradien() mit der halben Rasterweite und GENAU, einmal gerechnet
+        # Die Nummern der gewählten Flächen (V4) – None: alle; dazu ihre Zellen, einmal gerechnet.
+        self.flaechen = flaechen
+        self._nur = None
         self.bis = 0  # abgetragen bis vor diese Station
 
     def bis_station(self, index):
@@ -298,8 +308,8 @@ class Abtrag:
         self.bis = max(self.bis, index + 1)
 
     def vergleich(self):
-        """Das Restmaterial gegen das fertige Teil (Vergleich) – die Radien des Teils rechnet
-        es beim ersten Mal."""
+        """Das Restmaterial gegen das fertige Teil (Vergleich) – die Radien des Teils und, mit
+        gewählten Flächen, deren Zellen rechnet es beim ersten Mal."""
         if self._teil is None:
             import Part
 
@@ -309,7 +319,14 @@ class Abtrag:
                 teilradien(netz, self.laengs, self.radial, self.stange),
                 teilradien(netz, self.laengs, self.radial, self.stange, GENAU),
             )
-        return vergleiche(self.stange, self._teil[0], self.aufmass, self._teil[1])
+            if self.flaechen:
+                from . import vierachs_flaechen as vf
+
+                sicht = vf.sicht(
+                    vf.vernetze(form), self.laengs, self.radial, self.stange.a, self.stange.phi
+                )
+                self._nur = np.isin(sicht.flaeche, sorted(self.flaechen))
+        return vergleiche(self.stange, self._teil[0], self.aufmass, self._teil[1], self._nur)
 
 
 def fuer(abfahrt, job, am_werkstueck):
@@ -349,6 +366,12 @@ def fuer(abfahrt, job, am_werkstueck):
         [s.stellungen is not None and s.operation in fraeser for s in abfahrt.stationen]
     )
     aufmass = float(ops[abfahrt.operationen[rundum[-1]].name].Aufmass)
+    # Haben alle Rundum-Operationen gewählte Flächen, zählt der Vergleich nur auf ihnen (V4).
+    from . import vierachs_flaechen as vf
+    from .vierachs_operation import flaechen as flaechen_von
+
+    gewaehlt = [flaechen_von(ops[abfahrt.operationen[k].name]) for k in rundum]
+    flaechen = set().union(*(vf.nummern(g) for g in gewaehlt)) if all(gewaehlt) else None
     formen = [
         o.Shape
         for o in getattr(job.Model, "Group", [])
@@ -356,7 +379,9 @@ def fuer(abfahrt, job, am_werkstueck):
     ]
     if not formen:
         return None
-    return Abtrag(stange, laengs, radial, (a, r, phi, operation, gueltig), fraeser, aufmass, formen)
+    return Abtrag(
+        stange, laengs, radial, (a, r, phi, operation, gueltig), fraeser, aufmass, formen, flaechen
+    )
 
 
 def _fraeser(tc):

@@ -794,7 +794,9 @@ bauen“):*
   zwischen ihnen und dem Rest) eine Fase mit dem Fasenfräser (oder dem
   Kugelfräser als Kantenbruch), Breite einstellbar (Vorschlag 0,3 mm); der
   Fräser folgt der Kante, die Rundachse dreht mit.
-- **V4e – Prüfen:** Farben nur auf den gewählten Flächen; was nicht gewählt ist,
+- **V4e – Prüfen** (Farben gebaut, P-2026-09-30-32 – haben alle Rundum-Operationen
+  gewählte Flächen, vergleicht der Abtrag nur auf ihnen, Blau gilt überall; Szenario
+  `szenario_flaechen_pruefen`)**:** Farben nur auf den gewählten Flächen; was nicht gewählt ist,
   bleibt Stange und zählt nicht als „zu viel stehen geblieben“. Szenario auf
   der Beispiel-Drehmaschine: Welle mit Abflachung – nur die Abflachung gewählt,
   „Plan indexiert“, Entgraten; alle Mantelflächen gewählt – wie rundum.
