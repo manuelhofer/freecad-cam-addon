@@ -181,26 +181,27 @@ class Einstellungsseite:
         hinweis.setWordWrap(True)
 
         gruppe = QtGui.QGroupBox(tr("einstellungen.sprache.gruppe"))
-        gruppen_aufbau = QtGui.QFormLayout(gruppe)
+        gruppen_aufbau = QtGui.QFormLayout()
         gruppen_aufbau.addRow(tr("einstellungen.sprache.feld"), self.liste)
-        gruppen_aufbau.addRow(hinweis)
+        _mit_satz(gruppe, gruppen_aufbau, hinweis)
 
         self.wahl_masssystem = masssystemliste()
         _masssystem_beschriften(self.wahl_masssystem)
         self.wahl_dezimalzeichen = _dezimalzeichenliste()
         _dezimalzeichen_beschriften(self.wahl_dezimalzeichen)
         zahlen = QtGui.QGroupBox(tr("einstellungen.zahlen.gruppe"))
-        zahlen_aufbau = QtGui.QFormLayout(zahlen)
+        zahlen_aufbau = QtGui.QFormLayout()
         zahlen_aufbau.addRow(tr("einstellungen.zahlen.masssystem"), self.wahl_masssystem)
         zahlen_aufbau.addRow(tr("einstellungen.zahlen.feld"), self.wahl_dezimalzeichen)
-        zahlen_hinweis = QtGui.QLabel(tr("einstellungen.zahlen.hinweis"))
-        zahlen_hinweis.setWordWrap(True)
-        zahlen_aufbau.addRow(zahlen_hinweis)
+        self.zahlen_hinweis = QtGui.QLabel(tr("einstellungen.zahlen.hinweis"))
+        self.zahlen_hinweis.setWordWrap(True)
+        _mit_satz(zahlen, zahlen_aufbau, self.zahlen_hinweis)
+        self.gruppe_updates = gui_aktualisierung.einstellungen_gruppe(self)
 
         aufbau = QtGui.QVBoxLayout(self.form)
         aufbau.addWidget(gruppe)
         aufbau.addWidget(zahlen)
-        aufbau.addWidget(gui_aktualisierung.einstellungen_gruppe(self))
+        aufbau.addWidget(self.gruppe_updates)
         aufbau.addStretch()
         ruhiges_mausrad(self.form)  # FreeCADs Einstellungen blättern
 
@@ -225,3 +226,12 @@ class Einstellungsseite:
 
 def einstellungsseite_anmelden():
     FreeCADGui.addPreferencePage(Einstellungsseite, tr("einstellungen.gruppe"))
+
+
+def _mit_satz(gruppe, formular, satz):
+    """Das Formular und darunter ein Satz mit Umbruch in der Gruppe. Als Zeile im Formular bekam
+    der Satz nicht die Höhe seines Umbruchs und lief in die nächste Gruppe (Durchsicht 3,
+    D-50)."""
+    senkrecht = QtGui.QVBoxLayout(gruppe)
+    senkrecht.addLayout(formular)
+    senkrecht.addWidget(satz)

@@ -7,9 +7,9 @@ sichtbar bleibt. Von oben nach unten:
     Name          Name der Maschine
     Achsen        die Gelenke der Assembly, darunter ihre Betriebsarten
     (Details)     Felder der gewählten Zeile – gui_details
-    Transformationen  Umrechnungen der Steuerung, etwa eine schräge Achse
+    Schräge Achsen  Umrechnungen der Steuerung (intern „Transformationen“)
     Aufnahmen     Werkzeug- und Werkstückaufnahmen, Revolverplätze gesammelt
-    Glieder       was sich gemeinsam bewegt
+    Was zusammen fährt  die Glieder der Kette
     Hinweise      was fehlt oder nicht passt; ein Klick springt zur Zeile
     An CAM übergeben
 
@@ -34,7 +34,7 @@ from .gui_zahlen import winkel_zeigen
 from .kette import HINWEIS, LINEAR
 from .sprache import tr
 
-# Jede Zeile in „Achsen“, „Transformationen“, „Aufnahmen“ und „Glieder“ trägt
+# Jede Zeile in „Achsen“, „Schräge Achsen“, „Aufnahmen“ und „Was zusammen fährt“ trägt
 # in ihren Daten (Art der Zeile, Objekt).
 ROLLE = QtCore.Qt.UserRole
 ZEILE_GELENK = "gelenk"

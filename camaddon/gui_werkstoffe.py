@@ -314,11 +314,13 @@ class WerkstoffBearbeiten(QtGui.QDialog):
         self.feld_kc = QtGui.QLineEdit(zahl_zeigen(w.kc11))
         self.feld_kc.setValidator(Zahlenpruefer(self.feld_kc))
         self.feld_kc.setPlaceholderText(tr("feld.unbekannt"))
+        self.feld_kc.setToolTip(tr("ws.kc.tooltip"))
         self.feld_kc.setToolTip(tr("ws.feld.kc.tooltip"))
         formular.addRow(tr("ws.feld.kc"), self.feld_kc)
         self.feld_mc = QtGui.QLineEdit(zahl_zeigen(w.mc))
         self.feld_mc.setValidator(Zahlenpruefer(self.feld_mc))
         self.feld_mc.setPlaceholderText(tr("feld.unbekannt"))
+        self.feld_mc.setToolTip(tr("ws.mc.tooltip"))
         self.feld_mc.setToolTip(tr("ws.feld.kc.tooltip"))
         formular.addRow(tr("ws.feld.mc"), self.feld_mc)
 

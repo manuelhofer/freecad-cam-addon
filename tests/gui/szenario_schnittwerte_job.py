@@ -121,13 +121,18 @@ def schritte(h):
     zustellung = d.tabelle.item(z1, gj.ZUSTELLUNG).text()
     # Das Adaptiv hat hier keine Basisgeometrie – FreeCAD rechnet dann keine Bahn.
     h.pruefe(
-        zustellung == "Adaptiv: 10 % · 25 mm · Helix 3° · keine Bahn: Basisgeometrie fehlt",
+        zustellung
+        == "Adaptiv: 10 % · 25 mm · Helix 3° · keine Bahn – der Operation fehlt noch die Fläche oder Kante",
         f"Zustellung: {zustellung!r}",
     )
     h.pruefe(d.tabelle.item(z2, gj.ZUSTELLUNG).text() == "", "fremder TC mit Zustellung")
     # Planen gehört in die Fläche – auch aus der zweiten Zeile; Zentrieren in die Bohrung.
     for name, einsatz_soll, zustellung_soll in (
-        ("TC Planfräser", "Planen", "Fläche: 75 % · 2 mm · keine Bahn: Basisgeometrie fehlt"),
+        (
+            "TC Planfräser",
+            "Planen",
+            "Fläche: 75 % · 2 mm · keine Bahn – der Operation fehlt noch die Fläche oder Kante",
+        ),
         ("TC Zentrierbohrer", "Zentrieren", ""),
     ):
         z = zeilen.get(name)

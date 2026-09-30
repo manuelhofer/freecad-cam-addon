@@ -177,10 +177,13 @@ wird gegen das ganze Teil, auf 0,02 mm genau vernetzt: Der Rechenfehler geht
 ins Aufmaß, nie ins Teil.</p>
 <p><b>Im Programm</b> – bitte vor dem ersten Lauf lesen:</p>
 <ul>
-<li><b>X ist der Radius</b> (bei A und B ist es Z), nicht der Durchmesser. An
-der Drehmaschine muss der Programmkopf auf Radius stellen (Siemens
-<code>DIAMOF</code>); sonst führe das Werkzeug auf den halben Abstand zur
-Achse.</li>
+<li><b>X im Durchmesser oder im Radius</b> – so, wie deine Maschine zählt
+(Haken „zählt im Durchmesser (Ø)“ an der Achse, „X als“ in „Neue Maschine“);
+das Prüffenster zeigt es genauso. FreeCADs eigene Postprozessoren schreiben X
+aber immer als Radius: Zählt deine Maschine im Durchmesser, stell den
+Programmkopf auf Radius (Siemens <code>DIAMOF</code>), bis der Postprozessor
+des Addons X im Durchmesser schreibt – sonst führe das Werkzeug auf den halben
+Abstand zur Achse. Bei A und B ist Z der Abstand zur Achse.</li>
 <li>Der <b>Vorschub</b> steht nach <b>G93</b> (1 ÷ Zeit) – so fährt der
 Fräser am Werkstück mit dem Vorschub des Einsatzes, egal wie weit er von der
 Achse weg ist. Danach kommt G94. Der Postprozessor muss F in jedem Satz

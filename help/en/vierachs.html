@@ -172,9 +172,13 @@ and back to the front in rapid. It is calculated against the whole part,
 meshed to 0.02 mm: the error goes into the allowance, never into the part.</p>
 <p><b>In the program</b> – please read before the first run:</p>
 <ul>
-<li><b>X is the radius</b> (Z with A and B), not the diameter. On a lathe the
-program header must switch to radius (Siemens <code>DIAMOF</code>); otherwise
-the tool would go to half the distance from the axis.</li>
+<li><b>X in diameter or in radius</b> – the way your machine counts (the
+box “counts in diameter (Ø)” on the axis, “X as” in “New machine”); the check
+window shows it the same way. FreeCAD's own post processors always write X as
+a radius, though: if your machine counts in diameter, switch the program header
+to radius (Siemens <code>DIAMOF</code>) until the add-on's post processor
+writes X in diameter – otherwise the tool would go to half the distance from
+the axis. With A and B, Z is the distance from the axis.</li>
 <li>The <b>feed</b> is given after <b>G93</b> (1 ÷ time) – so the cutter runs
 at the use case's feed on the workpiece, however far it is from the axis.
 G94 follows. The post processor must write F in every block and output

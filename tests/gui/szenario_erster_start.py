@@ -140,6 +140,16 @@ def schritte(h):
     seite.form.show()
     yield 300
     h.bild("5_einstellungsseite", seite.form)
+    # Der Satz unter „Zahlen“ endet über der Gruppe „Updates“ und hat die Höhe seines Umbruchs
+    # (Durchsicht 3, D-50 – vorher lief er in die nächste Gruppe).
+    satz = seite.zahlen_hinweis
+    unten = satz.mapTo(seite.form, satz.rect().bottomLeft()).y()
+    oben = seite.gruppe_updates.mapTo(seite.form, seite.gruppe_updates.rect().topLeft()).y()
+    h.pruefe(unten <= oben, f"Satz unter „Zahlen“ reicht bis {unten}, „Updates“ beginnt bei {oben}")
+    h.pruefe(
+        satz.height() >= satz.heightForWidth(satz.width()),
+        f"Satz unter „Zahlen“ ist {satz.height()} hoch, braucht {satz.heightForWidth(satz.width())}",
+    )
     h.pruefe(seite.wahl_dezimalzeichen.currentData() == ",", "Einstellungsseite: Dezimalzeichen")
     h.pruefe(seite.wahl_masssystem.currentData() == "metrisch", "Einstellungsseite: Maßsystem")
     seite.liste.setCurrentIndex(seite.liste.findData("en"))

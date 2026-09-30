@@ -110,10 +110,11 @@ def schritte(h):
     h.pruefe(panel.ausspannen.text() == soll, f"Ausspannen: {panel.ausspannen.text()!r}")
     h.pruefe(ok.isEnabled(), "„Anlegen“ gesperrt")
     h.pruefe(not panel.radius_hinweis.isHidden(), "Hinweis „X ist der Radius“ fehlt")
-    # Die Beispiel-Drehmaschine zählt X im Durchmesser (P-2026-09-30-54): Der graue Satz sagt,
-    # was das für FreeCADs eigene Postprozessoren heißt.
+    # Die Beispiel-Drehmaschine zählt X im Durchmesser (P-2026-09-30-54): Der graue Satz sagt es
+    # kurz und verweist für FreeCADs eigene Postprozessoren auf die Hilfe (Durchsicht 3, D-52).
     h.pruefe(
-        panel.radius_hinweis.text().startswith("Die Maschine zählt X im Durchmesser"),
+        panel.radius_hinweis.text().startswith("X steht im Programm als Durchmesser (Ø)")
+        and "Hilfe" in panel.radius_hinweis.text(),
         f"Hinweis zu X: {panel.radius_hinweis.text()!r}",
     )
     h.bild("1_was_willst_du_machen", panel.form)
