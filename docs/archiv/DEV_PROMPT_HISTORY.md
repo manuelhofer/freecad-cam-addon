@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-55 version-0-31-6
+
+### EINGELESEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`; CLAUDE.md: Soll Manuel etwas ausprobieren,
+  braucht der Push eine höhere Version.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates suchen“ bzw. der Addon-Manager bietet 0.31.6 an.
+
+### DONE
+- Version 0.31.6 mit P-2026-09-30-54 (X im Durchmesser oder Radius).
+
+### TEST
+- Die Prüfungen zu P-54 (siehe dort); der volle Lauf läuft nach dem Push.
+
+### NEXT
+- Push; voller Lauf; Bestückung an der Maschine (Stufe F).
+
 ## P-2026-09-30-54 x-durchmesser
 
 ### EINGELESEN
