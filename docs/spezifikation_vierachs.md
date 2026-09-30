@@ -650,6 +650,11 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   (`CamAddonAbstechbreite`, ausgeblendet), damit „Ändern“ sie von der Lücke
   unterscheiden kann. Operationen aus 0.26 bekommen beim Laden Überlauf
   Radius + 0,5 und Abstand 2 mm – ihre Bahn bleibt, wie sie war.
+  *Nachtrag (P-2026-09-30-14, W-002 Stufe E3a):* Reicht der Halter seitlich
+  weiter über die Werkzeugachse als der Fräser (der Kopf von „VDI30 angetrieben
+  radial“: 27,5 mm), zählt zum Futter hin er – in Ausspannlänge („Halter über
+  die Werkzeugachse 27,5“) und Bahn; die Operationen merken es sich als
+  „HalterZumFutter“.
 - **Kugel- und Torusfräser** (Manuel testete 2026-09-29 einen „Rundfräser“):
   „Rundum schruppen“ rechnet mit der Stirn als flacher Scheibe – für diese
   Fräser sicher, das Teil wird nicht verletzt. Ein grauer Satz sagt, wie hoch

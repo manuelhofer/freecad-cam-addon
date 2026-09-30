@@ -82,9 +82,18 @@ pruefe(vo.abstaende(op) == (6.5, 5.0, 2.0), f"Überlauf, Abstand, Sicherheit: {v
 # die Werte, mit denen ihre Bahn bleibt, wie sie war – 2 mm vor dem Futter.
 op.removeProperty("Ueberlauf")
 op.removeProperty("AbstandFutter")
+op.removeProperty("HalterZumFutter")  # bis 0.28: nur der Fräser vor dem Futter
 op.Proxy.opOnDocumentRestored(op)
 pruefe(vo.abstaende(op) == (6.5, 2.0, 2.0), f"alte Operation: {vo.abstaende(op)}")
+pruefe(vo.halter_zum_futter(op) == 0.0, f"alter Halter: {vo.halter_zum_futter(op)}")
 op.AbstandFutter = 5.0
+# Ein Halter, der 27,5 mm über die Werkzeugachse reicht: Er bleibt 5 mm vor dem Futter
+# (−117,5), die Mitte des Fräsers also bei −85 – nicht mehr 6,5 hinter dem Teil.
+op.HalterZumFutter = 27.5
+doc.recompute()
+schnitte = [b for b in op.Path.Commands if b.Name == "G1"]
+pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-85.0)) < 1e-9, "Ende mit Halter")
+op.HalterZumFutter = 0.0
 doc.recompute()
 
 # --- Ändern: anderer Controller, andere Werte; der vorgeschlagene Name folgt dem Werkzeug --

@@ -151,6 +151,7 @@ def rechne(obj, job, modell):
         float(obj.Aufmass),
         vo.abstaende(obj),
         schruppbahnen(job, modell),
+        vo.halter_zum_futter(obj),
     )
 
 
@@ -168,14 +169,17 @@ def schruppbahnen(job, modell):
     return ergebnis
 
 
-def bahn_fuer(job, modell, laengs, radial, form, schrittweite, aufmass, abstaende, schruppen):
+def bahn_fuer(
+    job, modell, laengs, radial, form, schrittweite, aufmass, abstaende, schruppen, halter=0.0
+):
     """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
-    davor (schruppbahnen()). ValueError mit einem Satz, wenn es nicht geht."""
+    davor (schruppbahnen()); `halter`: so weit reicht der Halter seitlich über die
+    Werkzeugachse (halter.seitlich). ValueError mit einem Satz, wenn es nicht geht."""
     if not schruppen:
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
-    werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter)
+    werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter, halter)
     werte = replace(
         werte,
         rest=rest_nach(schruppen, radius, a_futter, a_vorne),
@@ -185,12 +189,12 @@ def bahn_fuer(job, modell, laengs, radial, form, schrittweite, aufmass, abstaend
     return vb.schlichten(teil, laengs, radial, werte)
 
 
-def vorschau(job, modell, laengs, radial, form, schrittweite, aufmass, abstaende):
+def vorschau(job, modell, laengs, radial, form, schrittweite, aufmass, abstaende, halter=0.0):
     """Die Schlichtbahn grob – für Umdrehungen, Zeit und ob es geht, im Assistenten, bevor es
     die Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt, alle
     VORSCHAU_SCHRITT_PHI Grad ein Punkt. ValueError wie bahn_fuer()."""
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
-    werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter)
+    werte = _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter, halter)
     teil = vh.vernetze(_teil(modell), VORSCHAU_TOLERANZ)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
 
@@ -205,7 +209,7 @@ def _stange(job, laengs):
     return laengs, radius, a_vorne, a_hinten + (vr.spannlaenge(job) or vr.SPANNLAENGE)
 
 
-def _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter):
+def _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter, halter):
     ueberlauf, abstand_futter, sicherheit = abstaende
     return vb.Schlichtwerte(
         form=form,
@@ -217,6 +221,7 @@ def _werte(form, schrittweite, aufmass, abstaende, radius, a_vorne, a_futter):
         sicherheit=sicherheit,
         ueberlauf=ueberlauf,
         abstand_futter=abstand_futter,
+        halter=halter,
     )
 
 
@@ -271,10 +276,12 @@ def lege_an(
     quer_auf_null=True,
     name=None,
     abstaende=None,
+    halter=0.0,
 ):
     """Legt „Rundum schlichten“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
-    Futter, Sicherheitsabstand) – ohne: die Vorschläge. Gibt die Operation zurück. Angelegt wie
+    Futter, Sicherheitsabstand) – ohne: die Vorschläge; `halter`: so weit reicht der Halter
+    seitlich über die Werkzeugachse (halter.seitlich). Gibt die Operation zurück. Angelegt wie
     „Rundum schruppen“ (vierachs_operation.lege_an), mit DoNotSetDefaultValues."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "RundumSchlichten")
@@ -296,6 +303,7 @@ def lege_an(
     obj.Ueberlauf, obj.AbstandFutter, obj.Sicherheitsabstand = (
         abstaende or vo.vorgeschlagene_abstaende(radius)
     )
+    obj.HalterZumFutter = halter
     obj.Label = name or tr("vs.name", werkzeug=f"T{tc.ToolNumber}")
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -304,9 +312,10 @@ def lege_an(
     return obj
 
 
-def aendere(obj, tc, schrittweite, aufmass, abstaende=None):
+def aendere(obj, tc, schrittweite, aufmass, abstaende=None, halter=None):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
+    Transaktion; `abstaende` und `halter` wie bei lege_an, ohne bleiben sie. Der Name folgt
+    dem Werkzeug, solange es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = tr("vs.name", werkzeug=f"T{tc.ToolNumber}")
     obj.ToolController = tc
@@ -315,6 +324,8 @@ def aendere(obj, tc, schrittweite, aufmass, abstaende=None):
     obj.Aufmass = aufmass
     if abstaende is not None:
         obj.Ueberlauf, obj.AbstandFutter, obj.Sicherheitsabstand = abstaende
+    if halter is not None:
+        obj.HalterZumFutter = halter
 
 
 def _vorgeschlagener_name(name):

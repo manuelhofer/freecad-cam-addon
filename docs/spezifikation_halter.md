@@ -263,6 +263,20 @@ Prüffenster, der Hinweis „nicht radial“.
   die Achse des Werkzeugs, nicht die der Aufnahme; `OperationAbfahrt.lage`; die
   Körper in `werkzeugkoerper` gekippt, der Halter mit Kopf. Die Hinweise sagen,
   welcher Halter fehlt.
+- **E3a** (beim Bauen von E4 gefunden) Rundum: Vor dem Futter zählt, was
+  weiter reicht – der Fräser oder sein Halter. Der Kopf von „VDI30 angetrieben
+  radial“ reicht 27,5 mm über die Werkzeugachse zum Futter hin, der Fräser Ø 12
+  nur 6; Ausspannlänge und Bahn nur mit dem Fräser – und der Kopf stieß ans
+  Futter.
+  *Gebaut (P-2026-09-30-14):* `halter.seitlich()` – der halbe größte Ø, beim
+  gewinkelten auch der Kopf. `Schruppwerte.halter`, `Schlichtwerte.halter`: Die
+  Bahn endet, wo der Rand, der weiter reicht, den Abstand zum Futter hat; ist
+  dafür kein Platz, sagt es der Fehler („kein Platz für den Halter“). Beide
+  Rundum-Operationen haben die Eigenschaft „HalterZumFutter“ – ältere bekommen
+  0, ihre Bahn bleibt –, der Assistent trägt sie beim Anlegen und Ändern aus der
+  Werkzeugverwaltung ein. Die Ausspannlänge nennt dann „Halter über die
+  Werkzeugachse 27,5“ statt des Fräserradius. Wie der Halter an der Maschine
+  steht, weiß die Operation nicht – so ist es auf jeder Seite genug.
 - **E4** Beispiel-Drehmaschine mit Aufnahmen statt fester Halter; Szenarien mit
   Haltern; das Szenario Schruppen + Schlichten prüfen (W-003 V5e).
 - **E5** Assistent: gelber Satz, wenn der Fräser nicht radial sitzen würde.

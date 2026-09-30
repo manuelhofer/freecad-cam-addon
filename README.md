@@ -73,8 +73,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   werden. Zuerst fragt der Assistent, **welche Maschine** – sie gibt die
   Rundachse vor, ein Satz sagt, was sie kann. Hinten läuft der Fräser um den
   **Überlauf** (Radius + 0,5 mm) über das Teil hinaus, mit Abstand zum Futter –
-  alles einstellbar, mit Vorschlag –, und ein Satz sagt, **wie weit die Stange
-  aus dem Futter ragen muss**. „Auf der Maschine prüfen“ fährt die Bahn mit
+  alles einstellbar, mit Vorschlag; reicht der Halter weiter als der Fräser,
+  zählt sein Rand –, und ein Satz sagt, **wie weit die Stange aus dem Futter
+  ragen muss**. „Auf der Maschine prüfen“ fährt die Bahn mit
   drehender Rundachse ab, prüft sie auf Kollision und **trägt die Stange ab**:
   Am Ende steht sie in Farben gegen das fertige Teil – grün das Aufmaß, rot, wo
   zu viel blieb, blau, wo etwas im Teil fehlt. **Nachträglich ändern:**

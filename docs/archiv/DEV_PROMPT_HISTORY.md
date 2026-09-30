@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-14 halter-vor-dem-futter
+
+### EINGELESEN
+- `docs/spezifikation_halter.md` Abschnitt 11, `docs/spezifikation_vierachs.md`
+  (V3f Abstände, Ausspannlänge), `camaddon/halter.py`, `camaddon/vierachs_bahn.py`
+  (`schruppen`, `schlichten`), `camaddon/vierachs_operation.py`,
+  `camaddon/vierachs_schlichten.py`, `camaddon/gui_vierachs.py` (Vorschau,
+  `_bedarf_hinten`, `_ausspannen_text`, Anlegen, Ändern), `help/*/vierachs.html`.
+
+### DATEIEN
+- `camaddon/halter.py`, `camaddon/vierachs_bahn.py`, `camaddon/vierachs_operation.py`,
+  `camaddon/vierachs_schlichten.py`, `camaddon/gui_vierachs.py`,
+  `translations/de.json`, `translations/en.json`, `help/de/vierachs.html`,
+  `help/en/vierachs.html`, `tests/test_halter.py`, `tests/test_vierachs_bahn.py`,
+  `tests/test_vierachs_operation.py`, `docs/spezifikation_halter.md`,
+  `docs/spezifikation_vierachs.md`, `docs/aufbau.md`, `README.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+T1 Ø 12 mit „VDI30 angetrieben radial“ in der Werkzeugverwaltung,
+„4-Achs-Bearbeitung“ → Schritt 2: grau „Die Stange muss … aus dem Futter ragen:
+… + Überlauf 6,5 + Halter über die Werkzeugachse 27,5 + Abstand zum Futter 5,0.“
+Der Kopf des Halters bleibt 5 mm vor dem Futter – auch, wenn die Stange kürzer
+ausgespannt ist: Dann endet die Bahn früher. Ohne Halter wie bisher.
+
+### DONE
+- Gefunden beim Umbau der Beispiel-Drehmaschine (E4): Ausspannlänge und Bahn
+  rechneten zum Futter hin nur mit dem Fräserradius; der Kopf des radialen
+  Halters reicht 27,5 mm über die Werkzeugachse und stieß ans Futter.
+- `halter.seitlich()`: der halbe größte Ø, beim gewinkelten auch der Kopf.
+- `Schruppwerte.halter` / `Schlichtwerte.halter`: Die Bahn endet, wo der Rand,
+  der weiter reicht, den Abstand zum Futter hat; eigener Fehler „kein Platz für
+  den Halter“.
+- Eigenschaft „HalterZumFutter“ an beiden Rundum-Operationen – ältere bekommen
+  0, ihre Bahn bleibt; `lege_an`/`aendere` nehmen sie, der Assistent trägt sie
+  aus der Werkzeugverwaltung ein (Anlegen, Ändern, Schlichten dazu) und rechnet
+  die Vorschau damit.
+- Ausspannlänge: Überlauf + größeres von Fräserradius und Halter + Abstand; der
+  Satz nennt dann „Halter über die Werkzeugachse 27,5“.
+- Tooltips „Abstand zum Futter“, Hilfe de/en, Spezifikation (Stufe E3a,
+  Nachtrag V3f), `aufbau.md` (auch die Zeile `halter.py` mit Stufe E), README.
+
+### TEST
+- KI ohne Oberfläche, FreeCAD 1.1.3: `test_halter`, `test_vierachs_bahn` (Halter
+  27,5: Ende bei −68, 26 mm frei; schmaler Halter ändert nichts; kein Platz →
+  der Satz zum Halter), `test_vierachs_operation` (alte Operation → 0; 27,5 →
+  Ende bei −85), `test_vierachs_schlichten_op`, `test_vierachs_schlichten`,
+  `test_restmaterial`, `test_vierachs_pruefen`, `test_vierachs_rohteil`,
+  `test_hilfe`, `test_sprache` grün.
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: die fünf 4-Achs-Szenarien grün
+  (noch ohne Halter – mit Halter zeigt es E4).
+
+### NEXT
+- E4: Beispiel-Drehmaschine mit Aufnahmen; das Szenario Schruppen bekommt T1 mit
+  dem radialen Halter.
+
 ## P-2026-09-30-13 halter-richtung-fenster
 
 ### EINGELESEN

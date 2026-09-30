@@ -128,11 +128,14 @@ def achs_eigenschaften():
 
 
 def abstand_eigenschaften():
-    """Überlauf, Abstand zum Futter und Sicherheitsabstand – wie achs_eigenschaften()."""
+    """Überlauf, Abstand zum Futter, Sicherheitsabstand und wie weit der Halter zum Futter
+    hin reicht – wie achs_eigenschaften(). Den Halter gibt es seit 0.29: Ältere Operationen
+    bekommen 0, ihre Bahn bleibt."""
     return (
         ("App::PropertyLength", "Ueberlauf", tr("vo.eigenschaft.ueberlauf")),
         ("App::PropertyLength", "AbstandFutter", tr("vo.eigenschaft.abstand_futter")),
         ("App::PropertyLength", "Sicherheitsabstand", tr("vo.eigenschaft.sicherheit")),
+        ("App::PropertyLength", "HalterZumFutter", tr("vo.eigenschaft.halter_zum_futter")),
     )
 
 
@@ -162,6 +165,7 @@ def rechne(obj, job, modell, fraeser_radius):
         float(obj.Sicherheitsabstand),
         float(obj.Ueberlauf),
         float(obj.AbstandFutter),
+        halter_zum_futter(obj),
     )
 
 
@@ -177,10 +181,12 @@ def bahn_fuer(
     sicherheit=None,
     ueberlauf=None,
     abstand_futter=None,
+    halter=0.0,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
-    zum Futter wie vorgeschlagen. ValueError mit einem Satz, wenn es nicht geht."""
+    zum Futter wie vorgeschlagen; `halter`: so weit reicht der Halter seitlich über die
+    Werkzeugachse (halter.seitlich). ValueError mit einem Satz, wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -197,6 +203,7 @@ def bahn_fuer(
         sicherheit=vb.SICHERHEIT if sicherheit is None else sicherheit,
         ueberlauf=ueberlauf,
         abstand_futter=vb.ABSTAND_FUTTER if abstand_futter is None else abstand_futter,
+        halter=halter,
     )
     formen = [o.Shape for o in modell if not o.Shape.isNull()]
     if not formen:
@@ -236,10 +243,13 @@ def lege_an(
     quer_auf_null=True,
     name=None,
     abstaende=None,
+    halter=0.0,
 ):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
     (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
-    zum Futter, Sicherheitsabstand) – ohne: die Vorschläge. Gibt die Operation zurück.
+    zum Futter, Sicherheitsabstand) – ohne: die Vorschläge. `halter`: so weit reicht der
+    Halter des Werkzeugs seitlich über dessen Achse (halter.seitlich). Gibt die Operation
+    zurück.
 
     Angelegt wie FreeCADs eigene Operationen, aber mit DoNotSetDefaultValues:
     Sonst fragte FreeCAD nach Job und Controller, sobald es mehrere gibt – in
@@ -263,6 +273,7 @@ def lege_an(
     obj.VorschubJeUmdrehung = steigung
     obj.Aufmass = aufmass
     _setze_abstaende(obj, abstaende or vorgeschlagene_abstaende(float(tc.Tool.Diameter) / 2))
+    obj.HalterZumFutter = halter
     obj.Label = name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}")
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -285,11 +296,16 @@ def _setze_abstaende(obj, werte):
     obj.Ueberlauf, obj.AbstandFutter, obj.Sicherheitsabstand = werte
 
 
-def aendere(obj, tc, zustellung, steigung, aufmass, abstaende_=None):
+def halter_zum_futter(obj):
+    """So weit reicht der Halter der Operation seitlich über die Werkzeugachse (mm)."""
+    return float(obj.HalterZumFutter)
+
+
+def aendere(obj, tc, zustellung, steigung, aufmass, abstaende_=None, halter_=None):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`: wie bei
-    lege_an; ohne bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene
-    ist: „Rundum schruppen T1“ wird „… T3“."""
+    Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_` und
+    `halter_`: wie bei lege_an; ohne bleiben sie. Der Name folgt dem Werkzeug, solange es der
+    vorgeschlagene ist: „Rundum schruppen T1“ wird „… T3“."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = tr("vo.name", werkzeug=f"T{tc.ToolNumber}")
     obj.ToolController = tc
@@ -299,6 +315,8 @@ def aendere(obj, tc, zustellung, steigung, aufmass, abstaende_=None):
     obj.Aufmass = aufmass
     if abstaende_ is not None:
         _setze_abstaende(obj, abstaende_)
+    if halter_ is not None:
+        obj.HalterZumFutter = halter_
 
 
 def setze_achse(obj, achse, quer_auf_null=None):

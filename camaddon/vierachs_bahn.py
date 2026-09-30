@@ -85,6 +85,9 @@ class Schruppwerte:
     sicherheit: float = SICHERHEIT
     ueberlauf: float = None  # so weit hinter das Teil (Mitte des Fräsers); None: Vorschlag
     abstand_futter: float = ABSTAND_FUTTER  # Rand des Fräsers bis zur Spannfläche
+    # So weit reicht der Halter seitlich über die Werkzeugachse (halter.seitlich): Reicht er
+    # weiter als der Fräser, gilt der Abstand zum Futter von seinem Rand.
+    halter: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -100,6 +103,7 @@ class Schlichtwerte:
     sicherheit: float = SICHERHEIT
     ueberlauf: float = None  # so weit hinter das Teil (Mitte des Fräsers); None: Vorschlag
     abstand_futter: float = ABSTAND_FUTTER
+    halter: float = 0.0  # wie bei Schruppwerte
     # Der Rest nach dem Schruppen: (a, φ in rad, r) wie restmaterial.Stange; None: kein Schutz.
     rest: tuple = None
     aufmass_schruppen: float = 0.0  # so viel ließ das Schruppen stehen
@@ -133,6 +137,20 @@ def rillenhoehe(fraeser_radius, eckradius, steigung):
 def ueberlauf_vorschlag(fraeser_radius):
     """Der Überlauf, bis der Fräser das Teil ganz verlassen hat: Radius + UEBERLAUF_ZUGABE."""
     return fraeser_radius + UEBERLAUF_ZUGABE
+
+
+def _ende(teil_hinten, ueberlauf, radius, w):
+    """Bis wohin die Mitte des Fräsers längs fährt (a): den Überlauf hinter das Teil, aber
+    nicht näher ans Futter, als Fräser oder Halter (der weiter reicht) mit Abstand erlauben."""
+    return max(teil_hinten - ueberlauf, w.a_futter + max(radius, w.halter) + w.abstand_futter)
+
+
+def _kein_platz(radius, w):
+    """Der Satz, wenn zwischen Futter und Teil kein Platz ist – mit dem Halter, wenn er es
+    ist, der weiter reicht."""
+    if w.halter > radius:
+        return tr("vb.fehler.platz_halter")
+    return tr("vb.fehler.platz")
 
 
 @dataclass(frozen=True)
@@ -172,9 +190,9 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     radius = w.fraeser_radius
     ueberlauf = ueberlauf_vorschlag(radius) if w.ueberlauf is None else w.ueberlauf
     a_anfang = w.a_stange_vorne + radius + w.sicherheit
-    a_ende = max(teil_hinten - ueberlauf, w.a_futter + radius + w.abstand_futter)
+    a_ende = _ende(teil_hinten, ueberlauf, radius, w)
     if a_ende >= teil_vorne + radius:
-        raise ValueError(tr("vb.fehler.platz"))
+        raise ValueError(_kein_platz(radius, w))
     hinten_frei = max(0.0, a_ende - radius - teil_hinten)
 
     # Die Spirale: gleich viele Punkte je Umdrehung wie das Raster Winkel hat.
@@ -235,9 +253,9 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     teil_vorne, teil_hinten = float(a_teil.max()), float(a_teil.min())
     ueberlauf = ueberlauf_vorschlag(radius) if w.ueberlauf is None else w.ueberlauf
     a_anfang = w.a_stange_vorne + radius + w.sicherheit
-    a_ende = max(teil_hinten - ueberlauf, w.a_futter + radius + w.abstand_futter)
+    a_ende = _ende(teil_hinten, ueberlauf, radius, w)
     if a_ende >= teil_vorne + radius:
-        raise ValueError(tr("vb.fehler.platz"))
+        raise ValueError(_kein_platz(radius, w))
     hinten_frei = max(0.0, a_ende - radius - teil_hinten)
 
     # Die Spirale: Punkt k liegt bei a_anfang − s · k / N unter dem Winkel k · Δφ. Je Winkel

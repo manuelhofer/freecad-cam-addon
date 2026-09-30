@@ -96,6 +96,10 @@ axial = hl.aus_vorlage("vdi30_axial")
 pruefe(not axial.gewinkelt and hl.lage(axial).isIdentity(), "axial: gerade")
 kopf = hl.aus_vorlage("winkelkopf_90")
 pruefe(kopf.gewinkelt and nahe(kopf.versatz, 110), f"Winkelkopf: {kopf}")
+# Seitlich über die Werkzeugachse (fürs Futter bei Rundum): der halbe größte Ø, beim
+# gewinkelten auch der Kopf – er endet um seinen Radius hinter der Werkzeugachse.
+for halter, soll in ((radial, 27.5), (kopf, 40.0), (er32, 31.5), (axial, 27.5), (None, 0.0)):
+    pruefe(nahe(hl.seitlich(halter), soll), f"seitlich {halter and halter.name}: {soll}")
 # Die Länge ab Bezugspunkt geschätzt wie ab Spindelnase: Abgang + Gesamtlänge − Spanntiefe.
 fraeser = wz.Werkzeug(durchmesser=6, gesamtlaenge=57)
 pruefe(nahe(wz.laenge_mit_halter(fraeser, radial), 55 + 57 - 20), "Länge ab Bezugspunkt")

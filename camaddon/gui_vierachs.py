@@ -41,6 +41,7 @@ from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, symbol
 from . import fraeserform as ff
+from . import halter as hl
 from . import job_schnittwerte as js
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_achsen as va
@@ -1559,6 +1560,7 @@ class VierachsPanel:
                 self._wert("abstand_futter"),
                 self._wert("sicherheit"),
             ),
+            self._halter_fuer(werkzeug),
         )
 
     def _schlicht_text(self, bahn):
@@ -1692,6 +1694,7 @@ class VierachsPanel:
                     self._wert("steigung"),
                     self._wert("aufmass"),
                     *self._abstaende(),
+                    self._halter_fuer(werkzeug),
                 )
             except ValueError as fehler:
                 gruende.append(str(fehler))
@@ -1743,26 +1746,55 @@ class VierachsPanel:
         radius = werkzeug.durchmesser / 2 if werkzeug is not None else 0.0
         return vb.ueberlauf_vorschlag(radius)
 
+    def _halter_fuer(self, werkzeug):
+        """So weit reicht der Halter des Fräsers aus der Werkzeugverwaltung seitlich über die
+        Werkzeugachse (halter.seitlich, mm) – 0 ohne Halter."""
+        if werkzeug is None or self.bibliothek is None:
+            return 0.0
+        return hl.seitlich(self.bibliothek.halter_von(werkzeug))
+
     def _bedarf_hinten(self):
-        """[(Überlauf, Fräserradius, Abstand zum Futter)] – was die Fräser hinter dem Teil
-        brauchen: die angehakten und, beim Ändern, die anderen Bearbeitungen im Job."""
+        """[(Überlauf, Fräserradius, Halter, Abstand zum Futter)] – was die Fräser hinter dem
+        Teil brauchen: die angehakten und, beim Ändern, die anderen Bearbeitungen im Job. Vor
+        dem Futter zählt, was weiter reicht: der Fräser oder sein Halter (halter.seitlich)."""
         schruppen, schlichten = self._gewaehlt()
         abstand = self._wert("abstand_futter")
         bedarf = []
         for an, werkzeug in ((schruppen, self.fraeser()), (schlichten, self.schlichtfraeser())):
             if an and werkzeug is not None:
-                bedarf.append((self._ueberlauf_fuer(werkzeug), werkzeug.durchmesser / 2, abstand))
+                bedarf.append(
+                    (
+                        self._ueberlauf_fuer(werkzeug),
+                        werkzeug.durchmesser / 2,
+                        self._halter_fuer(werkzeug),
+                        abstand,
+                    )
+                )
         if self.zu_aendern is not None and self.job is not None:
             for op in js.operationen(self.job):
                 if vo.ist_rundum(op) and op is not self.zu_aendern:
                     ueberlauf, abstand_op, _sicherheit = vo.abstaende(op)
-                    bedarf.append((ueberlauf, float(op.OpToolDiameter) / 2, abstand_op))
+                    bedarf.append(
+                        (
+                            ueberlauf,
+                            float(op.OpToolDiameter) / 2,
+                            vo.halter_zum_futter(op),
+                            abstand_op,
+                        )
+                    )
         return bedarf
 
+    @staticmethod
+    def _hinten(bedarf):
+        """Überlauf + was weiter reicht (Fräser oder Halter) + Abstand zum Futter (mm)."""
+        ueberlauf, radius, halter, abstand = bedarf
+        return ueberlauf + max(radius, halter) + abstand
+
     def _frei_hinten(self):
-        """Was die Fräser hinter dem Teil brauchen: Überlauf, Fräserradius und Abstand zum
-        Futter (mm), der größte – 0 ohne Bearbeitung oder ohne Fräser."""
-        return max((u + r + a for u, r, a in self._bedarf_hinten()), default=0.0)
+        """Was die Fräser hinter dem Teil brauchen: Überlauf, Fräserradius oder Halter (was
+        weiter reicht) und Abstand zum Futter (mm), der größte – 0 ohne Bearbeitung oder ohne
+        Fräser."""
+        return max((self._hinten(b) for b in self._bedarf_hinten()), default=0.0)
 
     def _ausspannen_text(self):
         """„Die Stange muss 78,5 mm aus dem Futter ragen: Planaufmaß 1,0 + Teil 60,0 + …“ –
@@ -1781,10 +1813,14 @@ class VierachsPanel:
         ]
         bedarf = self._bedarf_hinten()
         if bedarf and stange.frei_hinten > stange.abstechbreite:
-            ueberlauf, radius, abstand = max(bedarf, key=sum)
+            ueberlauf, radius, halter, abstand = max(bedarf, key=self._hinten)
             teile += [
                 tr("va.ausspannen.ueberlauf", wert=mm(ueberlauf)),
-                tr("va.ausspannen.fraeser", wert=mm(radius)),
+                (
+                    tr("va.ausspannen.halter", wert=mm(halter))
+                    if halter > radius
+                    else tr("va.ausspannen.fraeser", wert=mm(radius))
+                ),
                 tr("va.ausspannen.abstand", wert=mm(abstand)),
             ]
         else:
@@ -1893,6 +1929,7 @@ class VierachsPanel:
                             *werte,
                             quer_auf_null=achse.quer,
                             abstaende=(ueberlauf, abstand, sicherheit),
+                            halter=self._halter_fuer(self.fraeser()),
                         )
                     )
                 if schlichten:
@@ -1912,6 +1949,7 @@ class VierachsPanel:
                             self._wert("aufmass_schlichten"),
                             quer_auf_null=achse.quer,
                             abstaende=schlicht_abstaende,
+                            halter=self._halter_fuer(self.schlichtfraeser()),
                         )
                     )
                 self.doc.recompute()
@@ -1971,6 +2009,7 @@ class VierachsPanel:
                         self._wert("schrittweite"),
                         self._wert("aufmass_schlichten"),
                         schlicht_abstaende,
+                        self._halter_fuer(self.schlichtfraeser()),
                     )
                 else:
                     tc = js.controller_fuer(
@@ -1983,6 +2022,7 @@ class VierachsPanel:
                         self._wert("steigung"),
                         self._wert("aufmass"),
                         abstaende_=(ueberlauf, abstand, sicherheit),
+                        halter_=self._halter_fuer(self.fraeser()),
                     )
                 if schlichten_dazu:
                     tc_neu = js.controller_ohne_transaktion(
@@ -2000,6 +2040,7 @@ class VierachsPanel:
                         self._wert("aufmass_schlichten"),
                         quer_auf_null=op.QuerAufNull,
                         abstaende=schlicht_abstaende,
+                        halter=self._halter_fuer(self.schlichtfraeser()),
                     )
                 self._maschine_merken()
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)

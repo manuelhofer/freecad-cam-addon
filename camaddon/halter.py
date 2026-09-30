@@ -218,6 +218,20 @@ def lage(halter):
     return FreeCAD.Placement(FreeCAD.Vector(0, 0, -halter.versatz), drehung)
 
 
+def seitlich(halter):
+    """So weit reicht der Halter seitlich über die Werkzeugachse hinaus (mm): sein halber
+    größter Ø, beim gewinkelten auch der Kopf – er endet um seinen Radius hinter der
+    Werkzeugachse. 0 ohne Halter. Rundum (W-003) muss vor dem Futter so viel Platz sein,
+    wenn es weiter ist als der Fräserradius – wie der Halter an der Maschine steht, weiß die
+    Operation nicht, so ist es auf jeder Seite genug."""
+    if halter is None:
+        return 0.0
+    breite = halter.groesster_durchmesser / 2
+    if halter.gewinkelt and halter.versatz > 0:
+        breite = max(breite, halter.kopf_d / 2)
+    return breite
+
+
 def form(halter):
     """Der Halter als Körper im LCS der Aufnahme: die Aufnahme bei Z = 0. Beim geraden zeigt
     das Werkzeug nach −Z; je Abschnitt ein Zylinder oder Kegel. Beim gewinkelten der Kopf –

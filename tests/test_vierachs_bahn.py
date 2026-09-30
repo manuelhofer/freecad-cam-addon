@@ -16,6 +16,7 @@ import Part
 
 from camaddon import vierachs_bahn as vb
 from camaddon import vierachs_huelle as vh
+from camaddon.sprache import tr
 
 fehler = []
 
@@ -194,6 +195,37 @@ eigen = vb.schruppen(
     WERTE.__class__(**{**WERTE.__dict__, "ueberlauf": 0.0, "abstand_futter": 2.0}),
 )
 pruefe(min(p.a for p in eigen.punkte) == -100.0, f"ohne Überlauf: {min(p.a for p in eigen.punkte)}")
+# Ein Halter, der 27,5 mm über die Werkzeugachse reicht (Kopf des „VDI30 angetrieben
+# radial“): Er bleibt 5 mm vor dem Futter, die Mitte also 32,5 – die letzten 26 fehlen.
+mit_halter = vb.schruppen(
+    welle,
+    C_LAENGS,
+    C_RADIAL,
+    WERTE.__class__(**{**WERTE.__dict__, "a_futter": -100.5, "halter": 27.5}),
+)
+pruefe(abs(mit_halter.hinten_frei - 26.0) < 1e-9, f"mit Halter frei: {mit_halter.hinten_frei}")
+pruefe(
+    abs(min(p.a for p in mit_halter.punkte) - (-68.0)) < 1e-9,
+    f"mit Halter bis {min(p.a for p in mit_halter.punkte)}",
+)
+schmal = vb.schruppen(
+    welle, C_LAENGS, C_RADIAL, WERTE.__class__(**{**WERTE.__dict__, "halter": 3.0})
+)
+pruefe(
+    schmal.punkte == vb.schruppen(welle, C_LAENGS, C_RADIAL, WERTE).punkte,
+    "ein schmaler Halter ändert nichts",
+)
+# Das Futter 20 mm hinter der Stirn: Der Fräser hätte Platz, der Halter nicht.
+try:
+    vb.schruppen(
+        welle,
+        C_LAENGS,
+        C_RADIAL,
+        WERTE.__class__(**{**WERTE.__dict__, "a_futter": -20.0, "halter": 27.5}),
+    )
+    fehler.append("Halter ohne Platz: kein Fehler")
+except ValueError as grund:
+    pruefe(str(grund) == tr("vb.fehler.platz_halter"), f"kein Platz für den Halter: {grund}")
 pruefe(vb.ueberlauf_vorschlag(6.0) == 6.5, "Vorschlag Überlauf")
 # Kugel- und Torusfräser rechnen wie ein Schaftfräser: Zwischen den Bahnen bleiben Rillen –
 # Kugel Ø 12 mit 4,8 mm je Umdrehung gut 0,5 mm, Torus mit Eckradius 1 erst ab 10 mm.

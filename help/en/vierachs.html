@@ -111,20 +111,26 @@ part so that it leaves it completely and the rear edge gets finished. Empty,
 each cutter uses its radius + 0.5 mm (grey “radius + 0.5”, 6.5 mm for a 12 mm
 cutter); a number applies to both.</li>
 <li><b>Chuck distance</b> – how far the edge of the cutter stays in front of
-the clamping face (5 mm suggested). <b>Safety distance</b> – how far above and
-in front of the bar it moves in rapid (2 mm suggested).</li>
+the clamping face (5 mm suggested). If the cutter has a holder in the tool
+manager that reaches further sideways beyond the tool axis than the cutter –
+such as the head of “VDI30 driven radial”, 27.5 mm –, its edge stays that far
+in front of the chuck. <b>Safety distance</b> – how far above and in front of
+the bar it moves in rapid (2 mm suggested).</li>
 </ul>
 <p><b>How far the bar sticks out of the chuck</b> follows from this – it is
 stated in grey: “The bar has to stick out 78.5 mm from the chuck: facing
 allowance 1.0 + part 60.0 + overrun 6.5 + cutter radius 6.0 + chuck distance
 5.0.” The wizard creates the bar that long (plus the clamping length in the
 chuck); clamp it that way on the machine. The cutter that needs more room
-behind the part counts; without an operation the part-off width is
-enough.</p>
+behind the part counts; if its holder reaches further than the cutter, it says
+“holder beyond the tool axis 27.5” instead of the cutter radius. Without an
+operation the part-off width is enough.</p>
 <p><b>The path:</b> each layer is a spiral from the front – the cutter fully in
 front of the bar – to the overrun behind the part; there the tip stays at the
-depth of the last piece of contour. The edge of the cutter always stays the
-chuck distance in front of the clamping face. Where the part is higher than
+depth of the last piece of contour. The edge of the cutter – or of its holder,
+if that reaches further – always stays the chuck distance in front of the
+clamping face. The operation remembers how far the holder reaches (property
+“Halter Zum Futter”). Where the part is higher than
 the layer, the tip follows the part plus allowance; it never comes closer to
 the axis than the cutter radius. Between layers it goes out radially and back
 to the front in rapid. It is calculated against the whole part, meshed to
