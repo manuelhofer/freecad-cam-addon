@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-51 version-0-31-4
+
+### EINGELESEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`; CLAUDE.md: Soll Manuel etwas ausprobieren,
+  braucht der Push eine höhere Version.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates suchen“ bzw. der Addon-Manager bietet 0.31.4 an.
+
+### DONE
+- Version 0.31.4 mit P-2026-09-30-50: X und Z der Drehmaschine zählen wie an der Maschine.
+- Status: Als Nächstes Werkzeuge ohne Platz, Revolverart, X als Durchmesser.
+
+### TEST
+- Die Prüfungen zu P-50 (siehe dort); die 21 Szenarien in 26.3 laufen nach dem Push.
+
+### NEXT
+- Push, Bericht an Manuel: Maschine neu bauen, damit die neue Zählung gilt.
+
 ## P-2026-09-30-50 x-z-wie-an-der-maschine
 
 ### EINGELESEN
