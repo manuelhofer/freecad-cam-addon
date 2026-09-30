@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-53 version-0-31-5
+
+### EINGELESEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`; CLAUDE.md: Soll Manuel etwas ausprobieren,
+  braucht der Push eine höhere Version.
+
+### DATEIEN
+- `package.xml`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates suchen“ bzw. der Addon-Manager bietet 0.31.5 an.
+
+### DONE
+- Version 0.31.5 mit P-2026-09-30-52 (Revolverart, Scheiben-Ø, VDI-Größe).
+
+### TEST
+- Die Prüfungen zu P-52 (siehe dort); die 21 Szenarien in 26.3 laufen nach dem Push.
+
+### NEXT
+- Push; Umschalter Ø/Radius für X.
+
 ## P-2026-09-30-52 revolverart
 
 ### EINGELESEN
