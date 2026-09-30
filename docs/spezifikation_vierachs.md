@@ -3,9 +3,9 @@
 Stand: **Entwurf von Claude mit Manuels Entscheidungen** vom 2026-09-26
 (P-2026-09-26-78, am Ende unter „Entschieden“). Die Vorschläge in
 Abschnitt 15 hat Claude getroffen; sie sind zur Besprechung da. Gebaut wird
-Stufe für Stufe (Abschnitt 13), jede ein Patch mit Klickweg – V1, V2a und
-V2c sind gebaut, als Nächstes V3 „Rundum schruppen“ (Manuels Rückmeldung vom
-2026-09-27).
+Stufe für Stufe (Abschnitt 13), jede ein Patch mit Klickweg – V1, V2a, V2c
+und V3 („Rundum schruppen“ mit V3f–V3h) sind gebaut, als Nächstes V5 „Rundum
+schlichten“ (Manuel, 2026-09-30).
 
 Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
 (W-001: Maschine, Achsen, Aufnahmen),
@@ -694,12 +694,94 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   markiert und grün, die Stirnflächen nicht; eine Fläche unter einem Überhang
   steht rot mit „nicht erreichbar“; ein Klick nimmt eine Fläche heraus.
 
-**V5 – Schlichten** (bisher V7)
+**V5 – Rundum schlichten** (bisher V7; Manuel, 2026-09-30, vor V4 – siehe
+„Entschieden“)
 
-- Hüllfläche für Kugel- und Torusfräser, zweite Operation, Kammhöhe, Linien
-  längs.
-- *Klickweg:* dazu „Rundum schlichten T2“ – die Bahn liegt dicht auf der
-  Oberfläche, und Schrittweite 0,35 mm zeigt „Kammhöhe 5 µm“.
+„Rundum schlichten“ fährt nach dem Schruppen eine Spirale auf dem Teil: Die
+Spitze folgt der Hüllfläche des Schlichtfräsers – mit seiner echten Form –
+plus Aufmaß (Vorschlag 0). Werkzeug, Einsatz und Schnittwerte kommen wie beim
+Schruppen aus der Werkzeugverwaltung, die Schrittweite aus der
+Werkzeugtabelle (ae des Einsatzes). Schritt 2 bekommt einen zweiten Haken;
+die Abstände gelten für beide.
+
+- **V5a – Fräserform** (`camaddon/fraeserform.py`, neu; Hüllfläche in
+  `vierachs_huelle.py`). Jeder Fräser als Drehprofil von der Spitze aus:
+  ebene Scheibe (Radius r0), Eckrundung (rc), darüber ein Kegel oder – beim
+  Radienfräser – eine hohle Rundung:
+  - Schaft-, Nuten-, Plan- und Schwalbenschwanzfräser: Scheibe D/2 (was
+    darüber schmaler wird, trifft von außen nichts zuerst).
+  - Kugel- und Lollipopfräser: Kugel D/2; Torusfräser: Scheibe D/2 − rc,
+    Rundung rc.
+  - Konikfräser: Kugel mit dem Spitzen-Ø, darüber der Kegel mit dem
+    Kegelwinkel bis zur Schneidenlänge.
+  - Fasenfräser: Scheibe mit dem Spitzen-Ø, Kegel mit dem halben
+    Spitzenwinkel bis D.
+  - Radienfräser: Scheibe mit dem Spitzen-Ø (Führung), darüber die hohle
+    Rundung mit dem Profilradius bis D.
+  - Form- und Gewindefräser: Die Form kennt das Addon nicht – nicht zur Wahl,
+    ein Satz sagt es.
+
+  Hüllfläche gegen das Netz: gegen Ecken genau (Höhe des Profils in ihrem
+  Abstand), gegen Dreiecke genau über die konvexe Hülle des Profils (der
+  Berührpunkt liegt, wo die Normale des Profils die des Dreiecks trifft),
+  gegen Kanten genau für Scheibe und Kugel, sonst die Kante in Punkte
+  unterteilt, so fein, dass der Fehler unter der Toleranz bleibt. Gerechnet
+  wird je Winkel auf einem beliebigen gleichmäßigen Raster längs – beim
+  Schlichten genau an den Stellen, an denen die Spirale vorbeikommt: kein
+  Rasterfehler längs. Das Schruppen rechnet weiter mit der Scheibe.
+  Prüfung: Zylinder, Kugel, Absatz mit Kugelfräser (die Kehle mit R bleibt),
+  Kante, Kegel und Torus gegen die Formel; eine Zeitgrenze.
+- **V5b – Bahn** (`vierachs_bahn.schlichten`): eine Spirale mit der Steigung
+  Schrittweite, von vorne – der Fräser vor der Stange – bis zum Überlauf
+  hinter dem Teil; die Spitze auf Hüllfläche plus Aufmaß. Punkte je 0,5°
+  rundum; wo die Bahn sich zwischen zwei Punkten nach außen wölbt (an
+  Rundungen des Fräsers), hebt sie sich um den Sehnenfehler – er geht ins
+  Aufmaß, nie ins Teil. Gerade Stücke fasst sie zusammen.
+  - Vor dem Teil bleibt die Spitze auf der Höhe der ersten Kontur, hinten auf
+    der letzten (wie beim Schruppen); nie näher ans Futter als der Abstand
+    zum Futter.
+  - Schutz: Schlichten nimmt höchstens das Aufmaß des Schruppens plus 0,5 mm.
+    Wo mehr stehen blieb – eine enge Stelle, in die der Schruppfräser nicht
+    kam –, bleibt es stehen, und ein Satz sagt wo und wie viel. Was das
+    Schruppen stehen ließ, rechnet es aus den „Rundum schruppen“ des Jobs
+    (Hüllfläche ihres Fräsers, rundum und längs um seinen Radius
+    ausgebreitet). Ohne „Rundum schruppen“ im Job geht Schlichten nicht –
+    mit einem Satz.
+  - Kammhöhe aus der Form des Fräsers: h = rc − √(rc² − (s/2)²), solange
+    s/2 ≤ rc (beim Kugelfräser rc = R); darüber zählt die Scheibe dazwischen.
+  - Prüfung: Welle mit Absatz und Kugel – Rest höchstens Kammhöhe plus
+    Toleranz, nirgends ins Teil; enge Nut – bleibt stehen, mit Satz;
+    Zeitgrenze.
+- **V5c – Operation** „Rundum schlichten T2“
+  (`vierachs_operation.RundumSchlichten`, der Name bleibt in jeder Datei):
+  Eigenschaften Schrittweite, Aufmaß, Überlauf, Abstand zum Futter,
+  Sicherheitsabstand, dazu Kammhöhe und Umdrehungen zum Lesen. „Schnittwerte in
+  den Job“ kennt sie (Einsatz „Schlichten“). Prüfung wie V3c: in beiden
+  Versionen anlegen, Speichern und Laden, Ausgabe des Postprozessors.
+- **V5d – Assistent:** In Schritt 2 unter „Rundum schruppen“ der Haken
+  „Rundum schlichten“: Fräser (alle aus V5a mit Schnittwerten, vorgewählt ein
+  Kugelfräser), Einsatz (vorgewählt „Schlichten“), Schrittweite (grau: ae des
+  Einsatzes aus der Werkzeugtabelle) mit „→ Kammhöhe …“, Aufmaß (grau 0),
+  darunter „→ 290 Umdrehungen, etwa 56 min“. Überlauf, Abstand zum Futter und
+  Sicherheitsabstand stehen darunter einmal für beide unter „Abstände“;
+  Überlauf leer heißt je Fräser Radius + 0,5 (grau „Radius + 0,5“). Die
+  Ausspannlänge rechnet mit dem, der mehr Platz braucht. „Anlegen“ legt
+  Schruppen und Schlichten an (je ein Schritt Rückgängig wie bisher).
+  Doppelklick auf „Rundum schlichten“ öffnet es zum Ändern; beim Ändern von
+  „Rundum schruppen“ lässt sich „Rundum schlichten“ dazunehmen – so bekommt
+  ein Job aus 0.27 sein Schlichten.
+- **V5e – Simulation und Kollision:** Abtrag und Farben (V3g) auch für
+  „Rundum schlichten“, mit der Form des Fräsers; verglichen wird mit dem
+  Aufmaß der letzten Bearbeitung. Abfahren und Kollision nehmen die Schneide
+  als Drehkörper aus derselben Form (bisher Zylinder, beim Lollipop Kugel) –
+  sonst stieße ein Kugelfräser in der Kehle „ins fertige Teil“.
+- *Klickweg:* Welle mit Absatz, „4-Achs-Bearbeitung“ → Beispiel-Drehmaschine →
+  „Weiter“ → „Rundum schruppen“ T1 Schaftfräser Ø 12 und „Rundum schlichten“
+  T2 Kugelfräser Ø 6: Schrittweite grau aus der Werkzeugtabelle, daneben die
+  Kammhöhe, darunter Umdrehungen und Zeit → „Anlegen“: im Job „Rundum
+  schruppen T1“ und „Rundum schlichten T2“. „Auf der Maschine prüfen“ →
+  abspielen: Am Ende ist das Teil grün, nur in der Kehle am Absatz bleibt der
+  Radius des Kugelfräsers stehen (gelb); „Kollision prüfen“ meldet nichts.
 
 **V6 – Glatte Bahn** (bisher V8)
 
@@ -807,6 +889,12 @@ als Rückmeldung zum Plan:
   schnittwerte ändern will oder anders werkzeug komme ich nicht mehr in die
   maske rein ... das ist auch nicht optimal muss irgendwie gelöst werden das
   man im nachhinein noch sachen ändern kann“ → V3h.
+- **Schlichten (2026-09-30):** „Und es darf ja nicht nur Schuppen geben auch
+  schlichten ist wichtig“ → V5 vor V4. Aus Fragen mit Optionen: Bahn als
+  Spirale wie beim Schruppen; Fräser „Mit allen“ (jeder mit seiner Form,
+  V5a); Schrittweite „Die Werte aus der Werkzeug Tabelle“ (ae des Einsatzes
+  als Vorschlag, änderbar); Überlauf, Abstand zum Futter und
+  Sicherheitsabstand einmal für beide.
 - **Y-Achse (2026-09-29):** „bei einer maschine mit y achse kann man ja auch
   diese verfahren um eventuelle stellen besser zu erreichen“ → mit V4/V5:
   Flächen, die ein Werkzeug durch die Achse nicht erreicht (ebene Flächen,

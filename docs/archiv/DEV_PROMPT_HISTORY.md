@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-01 plan-schlichten
+
+### EINGELESEN
+- Manuel (2026-09-30): „Und es darf ja nicht nur Schuppen geben auch schlichten
+  ist wichtig.“ Seine Antworten auf die Fragen mit Optionen: Bahn „Spirale“;
+  Fräser „Mit allen“; Schrittweite „Die Werte aus der Werkzeug Tabelle“;
+  Abstände „Einmal für beide“.
+- `docs/spezifikation_vierachs.md` (Abschnitte 7, 9, 13, „Entschieden“),
+  `camaddon/vierachs_huelle.py`, `camaddon/vierachs_bahn.py`,
+  `camaddon/vierachs_operation.py`, `camaddon/gui_vierachs.py` (Schritt 2),
+  `camaddon/werkzeuge.py` (Arten, Maße, Einsätze), `camaddon/kollision.py`
+  und `camaddon/reichweite.py` (Schneide als Zylinder, Lollipop als Kugel).
+
+### DATEIEN
+- `docs/spezifikation_vierachs.md` (V5 in fünf Schritten, „Entschieden“,
+  Stand), `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation sagt, wie „Rundum schlichten“ gebaut wird – mit Manuels
+Entscheidungen und einem Klickweg.
+
+### DONE
+- V5 „Rundum schlichten“ vor V4, in fünf Schritten: V5a Fräserform (jeder
+  Fräser als Drehprofil, Hüllfläche genau an den Stellen der Spirale), V5b
+  Bahn (Spirale, Schutz vor zu tiefen Schnitten in engen Stellen), V5c
+  Operation, V5d Assistent (zweiter Haken, Abstände einmal für beide,
+  Schlichten zu einem Job aus 0.27 dazunehmen), V5e Simulation und Kollision
+  mit der echten Form.
+- Gefunden beim Lesen: Die Kollisionsprüfung nimmt die Schneide eines
+  Kugel- oder Torusfräsers als Zylinder – beim Schlichten in einer Kehle
+  meldete sie „ins fertige Teil“. Kommt mit V5e.
+- Snapshot: Die Frage, wie weit das Teil aus dem Futter ragen soll, stand
+  noch offen, ist aber seit V3f beantwortet – entfernt.
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- V5a Fräserform und Hüllfläche.
+
 ## P-2026-09-29-14 version-0-27-1
 
 ### EINGELESEN
