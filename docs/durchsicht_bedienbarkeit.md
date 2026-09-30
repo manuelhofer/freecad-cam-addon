@@ -373,3 +373,89 @@ eingerichtet); D-24 zuletzt, weil es eine Datengrundlage braucht.
    Zahl enden, etwa „T3 Schaftfräser D12 L26 VHM“ – FreeCAD hängt dann
    „001“ an, statt das Maß zu ersetzen; ändert aber beim nächsten Übergeben
    die Namen aller Werkzeuge ohne eigenen Namen.
+
+## 7. Durchsicht 2: 4-Achs, Halter, Beispiel-Drehmaschine (2026-09-30)
+
+Stand 0.29.0 (P-2026-09-30-18). Manuels Auftrag: „alles nochmal auf
+Bedienbarkeit überprüfen und ob alles logisch ist und dann weiter“ – nach der
+Richtung am Halter und den Beispielmaschinen. **Vorgehen** wie oben: alle
+Szenarien des vollen Laufs in beiden FreeCAD-Versionen, die Screenshots
+angesehen, die Logs nach Meldungen durchsucht, die Wege von der
+Beispiel-Drehmaschine über die Werkzeuge bis zum geprüften Rundum-Job
+nachgegangen. Befunde wie oben: **Heute**, **Vorschlag**, **Fertig, wenn**,
+Aufwand; Nummern ab D-40.
+
+### D-40 Hinweise nennen nur die „Länge ab Spindelnase“ (klein)
+**Heute:** Beim gewinkelten Halter heißt das Feld in der Werkzeugverwaltung
+„Länge ab Bezugspunkt“ (P-2026-09-30-13). Das Prüffenster sagt trotzdem „Bei
+allen Werkzeugen gemessen – „Länge ab Spindelnase““, und der Hinweis zur
+geschätzten Länge mit Halter nennt nur die Spindelnase. **Vorschlag:** das
+Urteil ohne Feldnamen („Bei allen Werkzeugen gemessen, aus der
+Werkzeugverwaltung.“); der Hinweis nennt das Feld, wie es beim Werkzeug heißt.
+**Fertig, wenn:** kein Satz einen Feldnamen nennt, den man beim Werkzeug nicht
+sieht.
+
+### D-41 Der gelbe Satz im Assistenten führt nicht zum Werkzeug (klein)
+**Heute:** „T3 sitzt auf P3 nicht radial … Gib T3 in der Werkzeugverwaltung
+(Knopf oben) einen Halter …“ – man klickt oben „Werkzeugverwaltung …“ und sucht
+T3. Das Prüffenster hat dafür „T3 öffnen …“ (D-11). **Vorschlag:** derselbe
+Verweis im gelben Satz; speichert man dort, liest der Assistent neu (das tut er
+schon). **Fertig, wenn:** ein Klick im Satz die Werkzeugverwaltung bei T3
+öffnet. *Erledigt (P-2026-09-30-19).*
+
+### D-42 Hinter einem Absatz bleibt Material stehen (mittel)
+**Heute:** Welle mit Absatz, Wand zum Futter hin: Nach Schruppen (Ø 12,
+4,8 mm je Umdrehung) bleiben dicht hinter der Wand bei manchen Winkeln bis
+7,3 mm stehen, nach Schlichten (Kugel Ø 6, 1 mm) noch bis 6,4 mm – die
+Spirale liegt dort auf dem halben Umfang so, dass der Fräser die Wand nicht
+erreicht (P-2026-09-30-15, `szenario_rundum_drehmaschine`). Das Prüffenster
+zeigt es richtig rot. **Vorschlag:** Vor jeder Wand – einer Planfläche des
+Teils quer zur Achse – hält die Spirale eine Umdrehung lang an („Ringgang“):
+beim Schruppen je Lage, beim Schlichten auch in den Stufen, nie tiefer als die
+Stufe erlaubt. **Fertig, wenn:** im Szenario am Ende hinter dem Absatz nur die
+Kehle des Kugelfräsers gelb bleibt, nichts rot.
+
+### D-43 Meldung beim Kugelfräser (klein)
+**Heute:** Wird ein Kugelfräser an CAM übergeben, steht im Bericht „Updating
+geometry: Error build geometry(7): gp_Circ::SetRadius() – radius should be
+positive number“ – aus FreeCADs Skizze des Werkzeugs, während es aufgebaut
+wird. **Vorschlag:** finden, welcher Wert dabei kurz 0 ist, und die Werte so
+setzen, dass es nie so ist. **Fertig, wenn:** beim Übergeben kein Fehler im
+Bericht steht (Meldungsfreiheit, [arbeitsregeln.md](arbeitsregeln.md),
+Abschnitt 5). *Befund (P-2026-09-30-19):* Die Meldung kommt aus FreeCAD selbst,
+nicht aus dem Addon: Beim Aufbau des Werkzeugs aus der Vorlage „ballend“ setzt
+FreeCAD die Maße nacheinander; ist das Werkzeug kürzer als 40 mm (die Schneide
+der Vorlage), ist die Skizze kurz ungültig. Das fertige Werkzeug ist richtig
+(gültig, Höhe wie eingetragen – nachgemessen bei 24, 30 und 50 mm). FreeCADs
+eigener „6mm Ball End“ (50 mm lang) meldet nichts. Kein Handlungsbedarf im
+Addon; ein Fehlerbericht an FreeCAD wäre möglich.
+
+### D-44 Tracebacks, die niemand sah (klein)
+**Heute:** Jedes Öffnen des 4-Achs-Assistenten druckte einen Traceback in den
+Bericht; die Szenarien gingen trotzdem durch. *Erledigt (P-2026-09-30-17): der
+Haken, und jede Ausnahme in der Oberfläche lässt ein Szenario jetzt scheitern.*
+
+### D-45 Beispiel-Drehmaschine mit den eigenen Werkzeugen (zur Entscheidung)
+**Heute:** Seit 0.29 trägt der Revolver keine Halter mehr fest – Werkzeuge
+ohne Halter stehen gerade (längs Z). Wer die Beispiel-Drehmaschine mit seinen
+bisherigen Fräsern nimmt, sieht im Assistenten den gelben Satz und im
+Prüffenster „nicht radial“. **Vorschlag A (Empfehlung):** so lassen – der Satz
+sagt, was fehlt, und mit D-41 ist es ein Klick. **B:** Beim Laden der
+Beispiel-Drehmaschine anbieten, den Fräsern ohne Halter „VDI30 angetrieben
+radial“ zu geben.
+
+### D-46 Der Revolver ist wieder schwer zu erkennen (klein)
+**Heute:** Seit 0.29 sitzen die Aufnahmen als Ringe an der Stirn der
+Revolverscheibe (zum Futter hin); die Stationen am Umfang, die ihn als Revolver
+kenntlich machten (P-2026-09-27-07, auf Manuels Hinweis), gibt es nicht mehr. In
+der üblichen Ansicht sieht man die Stirn schräg von hinten – die Ringe kaum.
+**Vorschlag:** am Umfang je Platz wieder eine Station (wie bis 0.28), die Ringe
+an der Stirn dunkler, damit sie sich abheben. **Fertig, wenn:** in der Übersicht
+der Beispielmaschinen und nach „Neue Maschine …“ die Plätze des Revolvers zu
+sehen sind.
+
+### D-47 „Drehung“ 0° steht als leeres Feld (klein)
+**Heute:** Im Fenster „Halter“ zeigt „VDI30 angetrieben radial“ Winkel 90, aber
+bei Drehung ein leeres Feld – 0° ist ein echter Wert, nicht „nichts
+eingetragen“. **Vorschlag:** „0“ zeigen (wie beim Winkel). **Fertig, wenn:** die
+Drehung 0 als „0“ dasteht.

@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-19 durchsicht-2-und-verweis
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md` (Durchsicht 1, D-01 … D-30), die Screenshots und Logs
+  des vollen Laufs zu 0.29.0, `camaddon/gui_vierachs.py` (gelber Satz, Werkzeugverwaltung),
+  `camaddon/gui_reichweite.py` und `camaddon/gui_kollision.py` (Verweis „T1 öffnen …“, D-11).
+
+### DATEIEN
+- `docs/durchsicht_bedienbarkeit.md`, `camaddon/gui_vierachs.py`, `translations/de.json`,
+  `translations/en.json`, `tests/gui/szenario_rundum_drehmaschine.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Beispiel-Drehmaschine, „4-Achs-Bearbeitung“ → Schritt 2 → als Fräser einer ohne Halter:
+Im gelben Satz steht am Ende „T3 öffnen …“; ein Klick öffnet die Werkzeugverwaltung bei
+T3. Halter „VDI30 angetrieben radial“ wählen, OK – der gelbe Satz ist weg.
+
+### DONE
+- Durchsicht 2 (Manuel 2026-09-30: „alles nochmal auf Bedienbarkeit überprüfen und ob
+  alles logisch ist“) als Abschnitt 7 in `durchsicht_bedienbarkeit.md`: D-40 bis D-47 mit
+  Heute, Vorschlag, Fertig-wenn; D-44 schon erledigt (P-2026-09-30-17).
+- D-43 untersucht: Die Meldung „gp_Circ::SetRadius“ beim Kugelfräser kommt aus FreeCAD
+  (Vorlage „ballend“, Maße nacheinander gesetzt, bei Werkzeugen unter 40 mm kurz eine
+  ungültige Skizze); das fertige Werkzeug ist richtig – kein Handlungsbedarf im Addon.
+- D-41: Der gelbe Satz im Assistenten endet mit dem Verweis „T3 öffnen …“ wie die Hinweise
+  im Prüffenster (D-11); die Werkzeugverwaltung öffnet bei dem Werkzeug, Speichern liest
+  der Assistent neu. Der Satz nennt den Knopf oben nicht mehr.
+
+### TEST
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_rundum_drehmaschine` (Verweis,
+  Werkzeugverwaltung bei T3, Halter, OK → gelb weg) grün; `test_sprache` grün.
+
+### NEXT
+- D-42 Ringgang, D-40 Längen-Texte, D-43 Meldung beim Kugelfräser.
+
 ## P-2026-09-30-18 version-0-29-0
 
 ### EINGELESEN

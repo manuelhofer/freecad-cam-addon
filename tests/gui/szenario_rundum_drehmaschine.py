@@ -6,14 +6,15 @@
 # „4-Achs-Bearbeitung“ mit der Beispiel-Drehmaschine: Schritt 2 hat beide Haken, die Stange
 # ragt so weit heraus, wie der Kopf des Halters braucht („Halter über die Werkzeugachse
 # 27,5“). T3 (Schaftfräser Ø 10, ohne Halter) als Schruppfräser: gelb darunter „T3 sitzt
-# auf P3 nicht radial …“ mit dem Halter, der fehlt (W-002 Stufe E5); zurück auf T1: weg. „Anlegen“ → „Auf der Maschine prüfen“: alle Achsen in ihren Grenzen, kein Hinweis
+# auf P3 nicht radial …“ mit dem Halter, der fehlt (W-002 Stufe E5); „T3 öffnen …“ öffnet
+# die Werkzeugverwaltung bei T3 – Halter gewählt, OK: weg (D-41). „Anlegen“ → „Auf der Maschine prüfen“: alle Achsen in ihren Grenzen, kein Hinweis
 # zur Werkzeuglage; T1 und T2 stehen beim Abspielen radial am Teil; „Kollision prüfen“:
 # nichts berührt sich; am Ende der Vergleich – nirgends ins Teil. Dann T2 ohne Halter: Das
 # Prüffenster sagt, dass T2 auf P2 nicht radial sitzt, und nennt den Halter, der fehlt.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
-from PySide import QtCore
+from PySide import QtCore, QtGui
 
 
 def schritte(h):
@@ -25,7 +26,7 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import beispielmaschine, gui_reichweite, gui_vierachs
+    from camaddon import beispielmaschine, gui_reichweite, gui_vierachs, gui_werkzeuge
     from camaddon import vierachs_operation as vo
     from camaddon import vierachs_rohteil as vr
     from camaddon import vierachs_schlichten as vs
@@ -114,7 +115,27 @@ def schritte(h):
         and "„VDI30 angetrieben radial“" in gelb,
         f"gelb bei T3: {gelb!r}",
     )
+    h.pruefe('href="werkzeug:3">T3 öffnen …</a>' in gelb, f"Verweis zu T3: {gelb!r}")
     h.bild("1b_t3_ohne_halter", panel.form)
+    # „T3 öffnen …“ (D-41): die Werkzeugverwaltung bei T3, Halter wählen, OK – der Assistent
+    # liest neu, der gelbe Satz geht weg.
+    panel.lage_schruppen.linkActivated.emit("werkzeug:3")
+    yield from h.warte_auf(lambda: gui_werkzeuge.WerkzeugDialog.offen is not None)
+    wv = gui_werkzeuge.WerkzeugDialog.offen
+    h.pruefe(
+        wv is not None and wv.werkzeug is not None and wv.werkzeug.nummer == 3,
+        "Werkzeugverwaltung nicht bei T3",
+    )
+    if wv is not None:
+        wv.feld_halter.setCurrentIndex(wv.feld_halter.findData(halter.kennung))
+        yield 300
+        wv.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
+    yield 300  # gespeichert: Der Assistent liest die Werkzeugverwaltung neu und rechnet
+    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
+    h.pruefe(
+        panel.fraeser().nummer == 3 and panel.lage_schruppen.isHidden(),
+        f"T3 mit Halter: {panel.fraeser().nummer} {panel.lage_schruppen.text()!r}",
+    )
     panel.wahl_fraeser.setCurrentIndex([w.nummer for w in panel._fraeser].index(1))
     yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
     h.pruefe(panel.lage_schruppen.isHidden(), f"gelb bei T1: {panel.lage_schruppen.text()!r}")

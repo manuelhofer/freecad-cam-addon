@@ -33,6 +33,7 @@ Schritt Rückgängig, eine geänderte Stange als einen zweiten davor. Beim
 Schruppen lässt sich dabei ein Schlichten dazunehmen.
 """
 
+import html
 import math
 
 import FreeCAD
@@ -893,12 +894,18 @@ class VierachsPanel:
             return etikett
 
         def gelb():
-            """Ein Satz in Gelb, bis er etwas sagt ausgeblendet (_lage_zeigen)."""
+            """Ein Satz in Gelb, bis er etwas sagt ausgeblendet (_lage_zeigen) – mit dem
+            Verweis „T3 öffnen …“ zum Werkzeug (D-41)."""
             from .gui_kollision import GELB
 
             etikett = QtGui.QLabel()
             etikett.setWordWrap(True)
+            etikett.setTextFormat(QtCore.Qt.RichText)
+            etikett.setTextInteractionFlags(
+                QtCore.Qt.TextSelectableByMouse | QtCore.Qt.LinksAccessibleByMouse
+            )
             etikett.setStyleSheet(f"color: {GELB};")
+            etikett.linkActivated.connect(self._werkzeug_oeffnen)
             etikett.hide()
             aufbau.addWidget(etikett)
             return etikett
@@ -1759,14 +1766,18 @@ class VierachsPanel:
         aufnahme, radial = pruefung.kommt_aus(werkzeug.nummer, richtung, einspannung)
         name = f"T{werkzeug.nummer}"
         if aufnahme is None:
-            return tr("va.lage.kein_platz", werkzeug=name, maschine=eintrag.name)
+            return html.escape(tr("va.lage.kein_platz", werkzeug=name, maschine=eintrag.name))
         if radial:
             return ""
-        return tr(
+        satz = tr(
             "va.lage.nicht_radial",
             werkzeug=name,
             aufnahme=m.name_von(aufnahme),
             richtung=rw.richtung_text(richtung),
+        )
+        verweis = html.escape(tr("rw.werkzeug_oeffnen", werkzeug=name), quote=False)
+        return (
+            f'{html.escape(satz, quote=False)} <a href="werkzeug:{werkzeug.nummer}">{verweis}</a>'
         )
 
     def _pruefung_fuer(self, eintrag):
@@ -1935,14 +1946,19 @@ class VierachsPanel:
             return False
         return not self.hinweis_bearbeitung.text()
 
-    def werkzeugverwaltung(self):
-        """Öffnet die Werkzeugverwaltung; speichert man dort, liest Schritt 2 sie neu."""
+    def werkzeugverwaltung(self, nummer=None):
+        """Öffnet die Werkzeugverwaltung – mit `nummer` bei diesem Werkzeug; speichert man
+        dort, liest Schritt 2 sie neu."""
         from . import gui_werkzeuge
 
-        dialog = gui_werkzeuge.oeffne()
+        dialog = gui_werkzeuge.oeffne(nummer)
         if getattr(self, "_werkzeugdialog", None) is not dialog:
             self._werkzeugdialog = dialog
             dialog.gespeichert.connect(self._werkzeuge_gespeichert)
+
+    def _werkzeug_oeffnen(self, ziel):
+        """„werkzeug:3“ im gelben Satz: die Werkzeugverwaltung bei T3 (D-41)."""
+        self.werkzeugverwaltung(int(ziel.split(":", 1)[1]))
 
     def _werkzeuge_gespeichert(self):
         if VierachsPanel.offen is self and self.seite == 2:
