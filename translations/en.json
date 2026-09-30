@@ -834,6 +834,8 @@
     "rm.und_von": " and from ",
     "rm.farben": "Green: the allowance, yellow: a little more, red: over 1 mm more, blue: into the part.",
     "ab.hinsehen.tooltip": "View the workpiece and tool – the machine is usually much bigger than the part.",
+    "ab.bahn": "Path",
+    "ab.bahn.tooltip": "Shows the tool path – feed blue, rapid red. Without the tick you see better how the bar is removed while playing; at the end, with the colours, the path is always off.",
     "halter.vorlage.er16": "ER16 collet chuck · SK40",
     "halter.vorlage.er25": "ER25 collet chuck · SK40",
     "halter.vorlage.er32": "ER32 collet chuck · SK40",

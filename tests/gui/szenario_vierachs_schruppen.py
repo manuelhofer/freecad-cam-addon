@@ -14,8 +14,9 @@
 # schruppen T1“ mit fünf Lagen und G93. „Auf der Maschine prüfen“ (V3e, T1 mit 125 mm
 # ab Spindelnase): „Alle Achsen bleiben in ihren Grenzen.“, kein Hinweis zur
 # Werkzeuglage; mitten in der ersten Lage steht C gedreht, die Spitze außen am Teil;
-# „Kollision prüfen“ → „Nichts berührt sich …“. Das erste Strg+Z nimmt Controller und
-# Operation zurück, das zweite Job und Stange.
+# „Kollision prüfen“ → „Nichts berührt sich …“. Ohne den Haken „Bahn“ ist die Bahn weg, mit
+# ihm wieder da; am Ende mit den Farben sind Bahn und Teil aus. Das erste Strg+Z nimmt
+# Controller und Operation zurück, das zweite Job und Stange.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -180,6 +181,17 @@ def schritte(h):
         )
         h.bild("3_abfahren_c_gedreht")
         h.bild("3b_pruefen_fenster", pruef.form)
+        # Der Haken „Bahn“ blendet die Bahn aus und wieder ein (Manuel, 2026-09-30).
+        bild = pruef.bild
+        h.pruefe(spieler.haken_bahn.isChecked(), "Haken „Bahn“ nicht gesetzt")
+        h.pruefe(bild.bahn_schalter.whichChild.getValue() == 0, "Bahn nicht zu sehen")
+        spieler.haken_bahn.setChecked(False)
+        yield 300
+        h.pruefe(bild.bahn_schalter.whichChild.getValue() == -1, "Bahn ohne Haken zu sehen")
+        h.bild("3c_ohne_bahn")
+        spieler.haken_bahn.setChecked(True)
+        yield 200
+        h.pruefe(bild.bahn_schalter.whichChild.getValue() == 0, "Bahn mit Haken weg")
         k = pruef.kollision
         pruef.urteil_kollision.linkActivated.emit("kollision:pruefen")
         yield from h.warte_auf(lambda: not k.laeuft and k.ergebnis is not None, 180000)
@@ -202,6 +214,8 @@ def schritte(h):
             rest.startswith("Am Ende bleiben 0,3") and "nirgends ins Teil" in rest,
             f"Restmaterial: {rest!r}",
         )
+        h.pruefe(bild.bahn_schalter.whichChild.getValue() == -1, "am Ende Bahn zu sehen")
+        h.pruefe(bild.modell_schalter.whichChild.getValue() == -1, "am Ende Teil zu sehen")
         Gui.SendMsgToActiveView("ViewFit")
         spieler.knopf_hinsehen.click()
         yield 500

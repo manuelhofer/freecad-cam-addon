@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-48 haken-bahn
+
+### EINGELESEN
+- Manuel, 2026-09-30, mit Bild vom Prüffenster beim Abspielen von „Rundum schruppen T2“:
+  „irgendwo einen hacken für werkzeugwege ausblenden“. Die blauen Linien verdecken, wie die
+  Stange abgetragen wird.
+- `camaddon/gui_abfahren.py` (`Bild`, `Abspieler`), `camaddon/gui_reichweite.py`
+  (`PruefPanel`), `help/*/reichweite.html`, `tests/gui/szenario_vierachs_schruppen.py`.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py`, `camaddon/gui_reichweite.py`, `translations/de.json`,
+  `translations/en.json`, `help/de/reichweite.html`, `help/en/reichweite.html`,
+  `tests/gui/szenario_vierachs_schruppen.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Abspieler steht der Haken „Bahn“. Ohne ihn ist die Bahn beim Abspielen aus, mit ihm wieder
+da. Am Ende mit den Farben ist sie immer aus. Beim nächsten Öffnen steht der Haken wie zuletzt.
+
+### DONE
+- Haken „Bahn“ in der Zeile des Abspielers, neben der Lupe, mit Tooltip. Er ist gemerkt
+  (`AbfahrenBahnZeigen` in den Einstellungen des Addons).
+- `Bild.zeige_bahn()`: Die Bahn ist zu sehen, wenn der Haken sitzt und das Abspielen nicht
+  am Ende mit den Farben steht.
+- Hilfe (de/en) ergänzt.
+
+### TEST
+- `szenario_vierachs_schruppen` in 1.1.3: Der Haken sitzt, die Bahn ist da. Ohne Haken ist sie
+  weg (Bild `3c_ohne_bahn`), mit Haken wieder da. Am Ende sind Bahn und Teil aus. Ok.
+- `test_sprache` und `test_hilfe` in 1.1.3: ok.
+
+### NEXT
+- Nullpunkt X/Z wie an der Maschine (Mitte der VDI-Aufnahme), Revolver wie Manuels.
+
 ## P-2026-09-30-47 version-0-31-2
 
 ### EINGELESEN

@@ -374,6 +374,7 @@ class PruefPanel:
         aufbau.addWidget(self.liste)
         self.abspieler = gui_abfahren.Abspieler(self._fahre, self._hinsehen)
         self.abspieler.bei_station = self._abtragen
+        self.abspieler.bei_bahn = self._bahn_zeigen
         aufbau.addWidget(self.abspieler)
         self.kollision = gui_kollision.KollisionsBereich(
             self._kollision_daten, self._kollision_hin, self._sperren, self._kollision_gemeldet
@@ -492,6 +493,7 @@ class PruefPanel:
                 self.bild = gui_abfahren.Bild(
                     ansicht, self.abfahrt, job, nullpunkt, self.bibliothek
                 )
+                self.bild.zeige_bahn(self.abspieler.haken_bahn.isChecked())
                 self._bild_fuer = (job, self.pruefung)
         elif self.bild is not None:
             self.bild.nullpunkt = FreeCAD.Vector(nullpunkt)
@@ -503,6 +505,11 @@ class PruefPanel:
         gibt den Satz dazu zurück („“, wenn der Job keine runde Stange mit „Rundum schruppen“
         hat)."""
         return self.bild.abtragen(station) if self.bild is not None else ""
+
+    def _bahn_zeigen(self, an):
+        """Der Haken „Bahn“ im Abspieler: die Bahn in der 3D-Ansicht ein- oder ausblenden."""
+        if self.bild is not None:
+            self.bild.zeige_bahn(an)
 
     def _bild_weg(self):
         if self.bild is not None:

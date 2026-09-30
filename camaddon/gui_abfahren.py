@@ -55,6 +55,13 @@ REST_FARBEN = {
     rm.BLAU: (0.20, 0.40, 0.95),
 }
 STELLE_AUSSCHNITT = 400.0  # mm: so hoch zeigt die Ansicht höchstens, wenn sie auf eine Stelle geht
+BAHN_ZEIGEN = "AbfahrenBahnZeigen"  # der Haken „Bahn“ im Abspieler, gemerkt
+
+
+def _einstellungen():
+    from . import PARAMETER_PFAD
+
+    return FreeCAD.ParamGet(PARAMETER_PFAD)
 
 
 # --- Die Körper ---------------------------------------------------------------------------
@@ -105,10 +112,14 @@ class Bild:
             werkstueck.addChild(self._restmaterial())
         elif rohteil is not None and not rohteil.isNull():
             werkstueck.addChild(self._flaechen(rohteil, ROHTEIL, 0.75))
-        # Die Bahn – beim Vergleich am Ende ausgeblendet, sonst verdeckt sie die Farben.
+        # Die Bahn – beim Vergleich am Ende ausgeblendet, sonst verdeckt sie die Farben; ohne
+        # den Haken „Bahn“ im Abspieler immer (Manuel, 2026-09-30: „irgendwo einen hacken für
+        # werkzeugwege ausblenden“).
         self.bahn_schalter = coin.SoSwitch()
         self.bahn_schalter.addChild(self._bahnlinien(abfahrt, punkte))
-        self.bahn_schalter.whichChild = 0
+        self._bahn_an = True
+        self._am_ende = False
+        self._bahn_schalten()
         werkstueck.addChild(self.bahn_schalter)
         self.wurzel.addChild(werkstueck)
 
@@ -139,9 +150,18 @@ class Bild:
         ende = index >= len(self.abtrag.a) - 1
         vergleich = self.abtrag.vergleich() if ende else None
         self._rest_zeigen(vergleich)
-        self.bahn_schalter.whichChild = -1 if ende else 0
+        self._am_ende = ende
+        self._bahn_schalten()
         self.modell_schalter.whichChild = -1 if ende else 0
         return _rest_satz(vergleich, self.abtrag.aufmass)
+
+    def zeige_bahn(self, an):
+        """Die Bahn zeigen (Haken „Bahn“ im Abspieler) – am Ende mit den Farben nie."""
+        self._bahn_an = bool(an)
+        self._bahn_schalten()
+
+    def _bahn_schalten(self):
+        self.bahn_schalter.whichChild = 0 if self._bahn_an and not self._am_ende else -1
 
     def _restmaterial(self):
         """Die Stange als Fläche über (a, φ) – Punkte und Farben setzt _rest_zeigen()."""
@@ -403,6 +423,7 @@ class Abspieler(QtGui.QWidget):
         self.angehalten = []
         # Rohteil und Fertigteil (V3g): bekommt die Station, gibt den Satz dazu zurück.
         self.bei_station = None
+        self.bei_bahn = None  # bekommt True/False, wenn jemand den Haken „Bahn“ setzt
         self._uhr = QtCore.QTimer(self)
         self._uhr.setInterval(TAKT)
         self._uhr.timeout.connect(self._takt)
@@ -439,9 +460,15 @@ class Abspieler(QtGui.QWidget):
         self.knopf_hinsehen.setIcon(QtGui.QIcon(":/icons/zoom-selection.svg"))
         self.knopf_hinsehen.setToolTip(tr("ab.hinsehen.tooltip"))
         self.knopf_hinsehen.clicked.connect(lambda: self._hinsehen())
+        # Die Bahn aus- und einblenden – gemerkt fürs nächste Mal.
+        self.haken_bahn = QtGui.QCheckBox(tr("ab.bahn"))
+        self.haken_bahn.setToolTip(tr("ab.bahn.tooltip"))
+        self.haken_bahn.setChecked(_einstellungen().GetBool(BAHN_ZEIGEN, True))
+        self.haken_bahn.toggled.connect(self._bahn_umgeschaltet)
         for widget in (self.knopf_anfang, self.knopf_zurueck, self.knopf_spielen, self.knopf_vor):
             zeile.addWidget(widget)
         zeile.addStretch()
+        zeile.addWidget(self.haken_bahn)
         zeile.addWidget(self.knopf_hinsehen)
         zeile.addWidget(self.wahl_tempo)
         aufbau.addLayout(zeile)
@@ -474,6 +501,11 @@ class Abspieler(QtGui.QWidget):
         self.rest.setVisible(False)
         aufbau.addWidget(self.rest)
         self._knopf_zeigen()
+
+    def _bahn_umgeschaltet(self, an):
+        _einstellungen().SetBool(BAHN_ZEIGEN, bool(an))
+        if self.bei_bahn is not None:
+            self.bei_bahn(bool(an))
 
     def _knopf(self, symbol, tooltip, aktion):
         knopf = QtGui.QToolButton()
@@ -517,6 +549,7 @@ class Abspieler(QtGui.QWidget):
             self.knopf_spielen,
             self.knopf_vor,
             self.knopf_hinsehen,
+            self.haken_bahn,
             self.wahl_tempo,
             self.schieber,
         ):
