@@ -25,13 +25,12 @@ from PySide import QtCore, QtGui
 from . import beispielmaschine, export, gui_neue_maschine, gui_zeigen, schraege_achse, symbol
 from . import kette as kette_modul
 from . import maschine as m
-from . import werkzeuge as wz
 from .gui_bericht import BerichtFenster
 from .gui_details import DetailKasten
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, ruhiges_mausrad
 from .gui_verteilhilfe import VerteilDialog
-from .gui_zahlen import dezimal, winkel_zeigen
+from .gui_zahlen import winkel_zeigen
 from .kette import HINWEIS, LINEAR
 from .sprache import tr
 
@@ -168,11 +167,6 @@ class MaschinenPanel:
         self.meldungen = []  # die gerade gezeigten Hinweise
         self.geschlossen = False  # nach OK oder Abbrechen: keine späten Aufrufe mehr
         self.wackeln = None  # die Bewegung beim Zeigen einer Achse
-        # Die Werkzeugverwaltung – für die Bestückung der Revolverplätze (W-002 Stufe F).
-        self.bibliothek, self._bibliothek_fehler = _bibliothek()
-        self.platzwahl = {}  # Platz -> Auswahl des Werkzeugs
-        self._platzname = {}  # Platz -> Beschriftung „P3“
-        self._werkzeugdialog = None
 
         self._zeige_ziel = None  # die Zeile unter der Maus
         self._zeige_uhr = QtCore.QTimer()
@@ -230,7 +224,6 @@ class MaschinenPanel:
         self._aufbau.addWidget(self.details)
         self._baue_transformationen()
         self._baue_aufnahmen()
-        self._baue_bestueckung()
         self._baue_glieder()
         self._baue_hinweise()
         tooltip = tr("dialog.uebergeben.tooltip_fehlt")
@@ -312,29 +305,13 @@ class MaschinenPanel:
             [self.knopf_werkzeug, self.knopf_werkstueck, self.knopf_verteilen, self.knopf_auf_weg]
         )
         self._aufbau.addWidget(self.aufnahmen_knoepfe)
-
-    def _baue_bestueckung(self):
-        """Welches Werkzeug aus der Werkzeugverwaltung auf welchem Revolverplatz steckt (W-002
-        Stufe F; Manuel, 2026-09-30: „berücksichtigung an der Maschine“) – je Platz eine
-        Auswahl, darunter der Knopf zur Werkzeugverwaltung."""
-        self._bestueckung_kopf = kopfzeile(tr("dialog.bestueckung"), "bestueckung")
-        self._aufbau.addWidget(self._bestueckung_kopf)
-        self.bestueckung = QtGui.QWidget()
-        self._bestueckung_gitter = QtGui.QGridLayout(self.bestueckung)
-        self._bestueckung_gitter.setContentsMargins(0, 0, 0, 0)
-        self._bestueckung_gitter.setColumnStretch(1, 1)
-        self._aufbau.addWidget(self.bestueckung)
-        self.bestueckung_hinweis = QtGui.QLabel()
+        # Die Bestückung steht im Job, nicht an der Maschine (W-002 Stufe G; Manuel,
+        # 2026-09-30: „das ist irreführend .... die bestückung sollte je nach job
+        # funktionieren“) – ein grauer Satz sagt, wo.
+        self.bestueckung_hinweis = QtGui.QLabel(tr("dialog.bestueckung_im_job"))
         self.bestueckung_hinweis.setWordWrap(True)
         self.bestueckung_hinweis.setStyleSheet(f"color: {GRAU.name()};")
         self._aufbau.addWidget(self.bestueckung_hinweis)
-        self.knopf_werkzeugverwaltung = _knopf(
-            tr("dialog.werkzeugverwaltung"),
-            self.werkzeugverwaltung,
-            tr("dialog.werkzeugverwaltung.tooltip"),
-        )
-        self._bestueckung_knoepfe = _knopfreihe([self.knopf_werkzeugverwaltung])
-        self._aufbau.addWidget(self._bestueckung_knoepfe)
 
     def _baue_glieder(self):
         self._aufbau.addWidget(kopfzeile(tr("dialog.glieder"), "glieder"))
@@ -463,34 +440,6 @@ class MaschinenPanel:
         self.doc.recompute()
         self.neu_aufbauen()
 
-    def bestuecken(self, platz, kennung):
-        """Steckt das Werkzeug mit `kennung` auf `platz` („“: frei). Steckte es schon auf einem
-        anderen Platz, wird der frei – die Auswahlen zeigen es gleich."""
-        m.bestuecke(self.maschine, self.kette, platz, kennung)
-        self._bestueckung_zeigen()
-
-    def werkzeugverwaltung(self):
-        """Öffnet die Werkzeugverwaltung; nach dem Speichern dort stehen ihre Werkzeuge hier
-        zur Wahl."""
-        from . import gui_werkzeuge
-
-        dialog = gui_werkzeuge.oeffne()
-        if self._werkzeugdialog is not dialog:
-            self._werkzeugdialog = dialog
-            dialog.gespeichert.connect(self._werkzeuge_gespeichert)
-        return dialog
-
-    def _werkzeuge_gespeichert(self):
-        if self.geschlossen:
-            return
-        self.bibliothek, self._bibliothek_fehler = _bibliothek()
-        # Zeitversetzt: Der Neuaufbau löscht die Auswahlen.
-        QtCore.QTimer.singleShot(0, self._fuelle_bestueckung_spaeter)
-
-    def _fuelle_bestueckung_spaeter(self):
-        if not self.geschlossen:
-            self._fuelle_bestueckung()
-
     def uebergeben(self, nachfragen=True):
         """Übergibt die Maschine an CAM und zeigt den Bericht.
 
@@ -573,7 +522,6 @@ class MaschinenPanel:
         self._fuelle_achsen(auswahl)
         self._fuelle_transformationen(auswahl)
         self._fuelle_aufnahmen(auswahl)
-        self._fuelle_bestueckung()
         self._fuelle_glieder()
         self._fuelle_hinweise()
         self._knoepfe_schalten()
@@ -667,6 +615,7 @@ class MaschinenPanel:
         art, _objekt = _zeilendaten(self.aufnahmen.currentItem())
         self.knopf_auf_weg.setEnabled(art == ZEILE_AUFNAHME)
         self.knopf_verteilen.setEnabled(bool(self._revolver()))
+        self.bestueckung_hinweis.setVisible(bool(self._revolver()))
         art, _objekt = _zeilendaten(self.transformationen.currentItem())
         self.knopf_trafo_weg.setEnabled(art == ZEILE_TRANSFORMATION)
         # Eine schräge Achse braucht zwei Linearachsen; der Tooltip sagt, was fehlt.
@@ -739,8 +688,6 @@ class MaschinenPanel:
                     zeile.setText(0, _text_aufnahme(objekt))
                 elif art == ZEILE_TRANSFORMATION:
                     zeile.setText(0, self._text_transformation(objekt))
-        for platz, beschriftung in self._platzname.items():
-            beschriftung.setText(m.name_von(platz))
         self._fuelle_hinweise()
         self._knoepfe_schalten()
 
@@ -841,65 +788,6 @@ class MaschinenPanel:
             if zu_waehlen.parent() is not None:
                 zu_waehlen.parent().setExpanded(True)
             self.aufnahmen.setCurrentItem(zu_waehlen)
-
-    def _fuelle_bestueckung(self):
-        """Je Revolverplatz eine Zeile „P3  [Werkzeug]“ – neu gebaut, wenn sich die Plätze oder
-        die Werkzeugverwaltung ändern; sonst stellt _bestueckung_zeigen() nur die Auswahl."""
-        while self._bestueckung_gitter.count():
-            eintrag = self._bestueckung_gitter.takeAt(0)
-            if eintrag.widget() is not None:
-                eintrag.widget().deleteLater()
-        self.platzwahl, self._platzname = {}, {}
-        self._zur_wahl = self.bibliothek.sortierte_werkzeuge()
-        for zeile, platz in enumerate(m.revolverplaetze(self.maschine, self.kette)):
-            name = QtGui.QLabel(m.name_von(platz))
-            wahl = QtGui.QComboBox()
-            wahl.addItem(tr("dialog.bestueckung.frei"), "")
-            for werkzeug in self._zur_wahl:
-                wahl.addItem(dezimal(wz.zeile(werkzeug)), werkzeug.kennung)
-            wahl.setToolTip(tr("dialog.bestueckung.tooltip"))
-            wahl.activated.connect(
-                lambda index, p=platz, a=wahl: self.bestuecken(p, a.itemData(index))
-            )
-            self._bestueckung_gitter.addWidget(name, zeile, 0)
-            self._bestueckung_gitter.addWidget(ruhiges_mausrad(wahl), zeile, 1)
-            self.platzwahl[platz] = wahl
-            self._platzname[platz] = name
-        # Ohne Revolver (etwa eine Fräse mit einer Spindel) gibt es nichts zu bestücken.
-        mit_revolver = bool(self._revolver())
-        for teil in (
-            self._bestueckung_kopf,
-            self.bestueckung,
-            self.bestueckung_hinweis,
-            self._bestueckung_knoepfe,
-        ):
-            teil.setVisible(mit_revolver)
-        if self._bibliothek_fehler:
-            self.bestueckung_hinweis.setText(self._bibliothek_fehler)
-        elif not self.platzwahl:
-            self.bestueckung_hinweis.setText(tr("dialog.bestueckung.keine_plaetze"))
-        else:
-            self.bestueckung_hinweis.setText(tr("dialog.bestueckung.erklaerung"))
-        self._bestueckung_zeigen()
-
-    def _bestueckung_zeigen(self):
-        """Jede Auswahl auf das Werkzeug ihres Platzes; ein Werkzeug, das schon auf einem
-        anderen Platz steckt, sagt wo („… – auf P4“)."""
-        auf = {
-            platz: werkzeug.kennung if werkzeug is not None else ""
-            for platz, werkzeug in m.bestueckung(self.maschine, self.kette, self.bibliothek).items()
-        }
-        platz_von = {kennung: platz for platz, kennung in auf.items() if kennung}
-        for platz, wahl in self.platzwahl.items():
-            wahl.blockSignals(True)
-            for index, werkzeug in enumerate(self._zur_wahl, start=1):
-                text = dezimal(wz.zeile(werkzeug))
-                anderer = platz_von.get(werkzeug.kennung)
-                if anderer is not None and anderer is not platz:
-                    text = tr("dialog.bestueckung.auf", werkzeug=text, platz=m.name_von(anderer))
-                wahl.setItemText(index, text)
-            wahl.setCurrentIndex(max(wahl.findData(auf.get(platz, "")), 0))
-            wahl.blockSignals(False)
 
     def _fuelle_glieder(self):
         """„Bett (steht fest): …“, dann „Glied 2: …“ usw. – das Bett ist Glied 1."""
@@ -1180,17 +1068,6 @@ def _meldungs_symbol(meldung):
 
 
 # --- Knöpfe -------------------------------------------------------------------
-
-
-def _bibliothek():
-    """(Werkzeugverwaltung, Fehlersatz): lässt sie sich nicht lesen, eine leere – der Satz
-    sagt es, die Plätze zeigen dann „frei“."""
-    try:
-        return wz.Bibliothek.laden(), ""
-    except wz.BeschaedigteDatei as fehler:
-        return wz.Bibliothek(), tr("wv.fehler.laden", fehler=fehler, datei=fehler.beiseite)
-    except OSError as fehler:
-        return wz.Bibliothek(), str(fehler)
 
 
 def _knopf(text, aktion, tooltip=""):

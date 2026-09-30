@@ -1,31 +1,37 @@
 <h2>Tool loading</h2>
-<p>This shows which tool from the <b>tool manager</b> sits in which <b>turret
-station</b>. The tool manager is your tool cabinet: shape, holder, cutting
-data. The loading belongs to the machine – two machines can be loaded
-differently.</p>
+<p>Which tool sits in which <b>turret station</b> is set by <b>each job
+itself</b> – just as you set up the turret for an order. You store the machine
+once and load it for every job; it knows its stations, but no loading.</p>
 
-<h3>Moving and unloading</h3>
+<h3>The “Tool loading” window</h3>
 <ul>
-<li>For each station (P1, P2 …) pick a tool from the list.</li>
-<li>A tool sits in <b>at most one station</b>. Pick one that is already
-elsewhere – it then says, for example, “– in P4” – and the other station
-becomes free.</li>
-<li><b>“– free –”</b> unloads the station. The tool stays in the tool manager
-and can go back into a station at any time.</li>
-<li><b>Tool manager …</b> opens the tool cabinet. What you save there is
-available here right away.</li>
+<li>Select the job in the tree (or one of its operations), then <b>Tool loading</b>
+in the CAM-Addon toolbar. The window opens the job's machine – the open one,
+otherwise the one it was last checked on.</li>
+<li>In the 3D view the job's tools sit in the turret, each with its holder; every
+station shows its name (P1, P2 …). <b>Look</b> brings the turret into view.</li>
+<li>For every station a list with the job's tools. Pick a tool for a station and
+it <b>moves there</b>; if another one was there, the two <b>swap</b>. A tool that
+sits elsewhere reads “– in P4”.</li>
+<li>“– free –” exists only where nothing sits: every tool of the job needs a
+station.</li>
+<li>Every move is one undo step in the job's document.</li>
 </ul>
 
-<h3>Stations you do not load</h3>
-<p>A station you do not load here holds the tool with its number from the tool
-manager: T3 sits in P3 – unless T3 already sits in another station. So nothing
-changes until you move a tool, not even on a machine from an earlier
-version.</p>
-
 <h3>In the program</h3>
-<p>On a turret the program calls the <b>station</b>: if T3 sits in P5, the
-program says T5. That is how the 4-axis assistant sets up the tool controller;
-its cutter list starts each cutter with where it sits (“P5 · T3 …”), otherwise a
-yellow sentence says it sits in no station. “Check on machine” compares: if a job calls a station that holds a
-different tool according to the loading – or none – a note says what sits there
-and where the right one is.</p>
+<p>On a turret the program calls the <b>station</b>: a tool in P5 is T5 in the
+program. That is why the loading lives in the job's tool controllers – their
+number is the station, and their name follows when you move a tool (“T3 Roughing”
+→ “T5 Roughing”). Program and loading can never drift apart.</p>
+
+<h3>New tools in the job</h3>
+<p>The 4-axis wizard puts a new tool in the station of its number from the tool
+manager if that is free in the job, otherwise in the first free one; its cutter
+list shows where in front (“P3 · …”). A tool already in the job keeps its
+station. Without a turret (say a mill with one spindle) the number from the tool
+manager applies.</p>
+
+<h3>Checking</h3>
+<p>If two tools of the job sit in one station – say because a controller was
+changed by hand –, “Check on machine” says so; the machine would take only one.
+This window shows the same sentence in red, and you move one of them.</p>

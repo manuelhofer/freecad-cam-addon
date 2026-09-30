@@ -519,18 +519,14 @@ def plaetze(maschine, kette, revolver):
     )
 
 
-# --- Bestückung (W-002 Stufe F) ------------------------------------------------
+# --- Revolverplätze -------------------------------------------------------------
 #
-# Welches Werkzeug aus der Werkzeugverwaltung auf welchem Revolverplatz steckt – Manuel
-# (2026-09-30): „berücksichtigung an der Maschine“, die Empfehlungen F-E1 bis F-E3: „passt“.
-# Wer einen Platz in „Maschine bearbeiten“ bestückt, legt fest, was dort steckt: die Kennung
-# des Werkzeugs am Platz (Eigenschaft „Werkzeug“, leer: frei). Jeder andere Platz zählt wie
-# bisher nach der Nummer – T3 steckt auf P3 –, außer das Werkzeug steckt schon woanders. So
-# ändert sich nichts, bis jemand umsteckt (F-E3), auch nicht an älteren Maschinen. Die
-# Werkzeugverwaltung (`bibliothek`) kommt vom Aufrufer; es reicht, was `werkzeuge` hat, jedes
-# mit `kennung` und `nummer`.
+# Welches Werkzeug auf welchem Platz steckt, legt jeder Job selbst fest (W-002 Stufe G,
+# bestueckung.py) – die Maschine kennt nur ihre Plätze. 0.32.0 und 0.32.1 bestückten die
+# Plätze in „Maschine bearbeiten“ (Stufe F, Eigenschaft „Werkzeug“); was dort steht, zählt
+# nicht mehr und bleibt verborgen.
 
-BESTUECKUNG = "Werkzeug"
+BESTUECKUNG = "Werkzeug"  # die Eigenschaft von Stufe F an alten Plätzen
 
 
 def revolverplaetze(maschine, kette):
@@ -543,68 +539,9 @@ def revolverplaetze(maschine, kette):
     ]
 
 
-def bestueckt(platz):
-    """Ist der Platz ausdrücklich bestückt – auch mit „frei“?"""
-    return BESTUECKUNG in platz.PropertiesList
-
-
-def bestueckung(maschine, kette, bibliothek):
-    """{Platz: Werkzeug oder None} für alle Revolverplätze, in ihrer Reihenfolge: bestückte
-    Plätze, wie bestückt; die übrigen nach der Nummer, mit keinem Werkzeug, das schon auf
-    einem anderen Platz steckt."""
-    plaetze_ = revolverplaetze(maschine, kette)
-    nach_kennung = {w.kennung: w for w in bibliothek.werkzeuge}
-    auf, belegt = {}, set()
-    for platz in plaetze_:
-        if bestueckt(platz):
-            werkzeug = nach_kennung.get(platz.Werkzeug) if platz.Werkzeug else None
-            auf[platz] = werkzeug
-            if werkzeug is not None:
-                belegt.add(werkzeug.kennung)
-    for platz in plaetze_:
-        if not bestueckt(platz):
-            werkzeug = next(
-                (
-                    w
-                    for w in bibliothek.werkzeuge
-                    if w.nummer and w.nummer == platz.Platz and w.kennung not in belegt
-                ),
-                None,
-            )
-            auf[platz] = werkzeug
-            if werkzeug is not None:
-                belegt.add(werkzeug.kennung)
-    return {platz: auf[platz] for platz in plaetze_}
-
-
-def platz_von(maschine, kette, werkzeug, bibliothek):
-    """Der Platz, auf dem `werkzeug` steckt, oder None."""
-    for platz, steckt in bestueckung(maschine, kette, bibliothek).items():
-        if steckt is not None and steckt.kennung == werkzeug.kennung:
-            return platz
-    return None
-
-
-def bestuecke(maschine, kette, platz, kennung):
-    """Steckt das Werkzeug mit `kennung` auf `platz` – „“ macht den Platz frei. War es schon
-    auf einem anderen Platz bestückt, wird der frei: Ein Werkzeug steckt auf höchstens einem
-    Platz. (Nach der Nummer zählt ein Platz es danach ohnehin nicht mehr.)"""
-    if not bestueckt(platz):
-        platz.addProperty(
-            "App::PropertyString", BESTUECKUNG, "Aufnahme", tr("eigenschaft.bestueckung")
-        )
-    _bestueckung_verbergen(platz)
-    if kennung:
-        for anderer in revolverplaetze(maschine, kette):
-            if anderer is not platz and bestueckt(anderer) and anderer.Werkzeug == kennung:
-                anderer.Werkzeug = ""
-    if platz.Werkzeug != kennung:
-        platz.Werkzeug = kennung
-
-
 def _bestueckung_verbergen(platz):
-    """Die Kennung sagt niemandem etwas; bestückt wird in „Maschine bearbeiten“."""
-    if bestueckt(platz):
+    """Die Bestückung von Stufe F an einem alten Platz zählt nicht mehr – nicht zeigen."""
+    if BESTUECKUNG in platz.PropertiesList:
         platz.setEditorMode(BESTUECKUNG, _AUSGEBLENDET)
 
 

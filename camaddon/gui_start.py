@@ -16,6 +16,7 @@ from PySide import QtGui
 from . import (
     VERSION,
     gui_aktualisierung,
+    gui_bestueckung,
     gui_job_schnittwerte,
     gui_maschine,
     gui_neue_maschine,
@@ -44,6 +45,7 @@ WERKZEUGLEISTE = [
     "CamAddon_MaschineVerfahren",
     "CamAddon_Werkzeugverwaltung",
     "CamAddon_SchnittwerteJob",
+    "CamAddon_Bestueckung",
     "CamAddon_AufMaschinePruefen",
     "CamAddon_Vierachs",
 ]
@@ -56,6 +58,7 @@ MENUE = [
     "Separator",
     "CamAddon_Werkzeugverwaltung",
     "CamAddon_SchnittwerteJob",
+    "CamAddon_Bestueckung",
     "CamAddon_AufMaschinePruefen",
     "CamAddon_Vierachs",
     "Separator",
@@ -74,6 +77,7 @@ def starten():
             "CamAddon_MaschineVerfahren": gui_verfahren.BefehlMaschineVerfahren(),
             "CamAddon_Werkzeugverwaltung": gui_werkzeuge.BefehlWerkzeugverwaltung(),
             "CamAddon_SchnittwerteJob": gui_job_schnittwerte.BefehlSchnittwerteJob(),
+            "CamAddon_Bestueckung": gui_bestueckung.BefehlBestueckung(),
             "CamAddon_AufMaschinePruefen": gui_reichweite.BefehlAufMaschinePruefen(),
             "CamAddon_Vierachs": gui_vierachs.BefehlVierachs(),
             "CamAddon_Ueber": BefehlUeber(),

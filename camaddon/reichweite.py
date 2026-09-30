@@ -34,6 +34,7 @@ from dataclasses import dataclass, field
 import FreeCAD
 
 from . import PARAMETER_PFAD, einheiten
+from . import bestueckung as bs
 from . import job_schnittwerte as js
 from . import maschine as m
 from . import verfahren as vf
@@ -580,17 +581,13 @@ class Pruefung:
         return frei[0] if frei else None
 
     def mit_revolver(self):
-        """Hat die Maschine Revolverplätze – und damit eine Bestückung?"""
+        """Hat die Maschine Revolverplätze – und damit eine Bestückung je Job?"""
         return bool(self._platzstellung)
 
-    def platznummer(self, werkzeug, bibliothek):
-        """So ruft das Programm `werkzeug` auf dieser Maschine auf: am Revolver die Nummer des
-        Platzes, auf dem es laut Bestückung steckt (T3 für P3, W-002 Stufe F); None, wenn es
-        auf keinem steckt. Ohne Revolver seine Nummer aus der Werkzeugverwaltung."""
-        if not self._platzstellung:
-            return werkzeug.nummer or None
-        platz = m.platz_von(self.maschine, self.kette, werkzeug, bibliothek)
-        return platz.Platz if platz is not None else None
+    def platznummern(self):
+        """Die Nummern der Revolverplätze, aufsteigend – leer ohne Revolver (W-002 Stufe G:
+        bestueckung.platz_fuer)."""
+        return sorted({platz.Platz for platz in self._platzstellung})
 
     def _achsen_zwischen(self, werkzeugaufnahme):
         """Die Achsen auf dem Weg Werkzeug – Bett – Werkstück, in der Reihenfolge der Kette."""
@@ -806,45 +803,21 @@ class Pruefung:
         if nullpunkt_des_jobs is None:
             nullpunkt_des_jobs = nullpunkt(job)
         sammler = _Sammler(self, ergebnis)
+        self._bestueckung_pruefen(job, bibliothek, sammler)
         for op in _operationen(job):
             self._pruefe_operation(op, nullpunkt_des_jobs, bibliothek, sammler)
         sammler.fertig()
         return ergebnis
 
-    def _bestueckung_pruefen(self, op, tc, platz, bibliothek, sammler):
-        """Steckt auf dem Platz, den der Job aufruft, laut Bestückung das Werkzeug des
-        Controllers (W-002 Stufe F4)? Sonst nähme die Maschine ein anderes – ein Satz sagt,
-        welches und wo das richtige steckt."""
-        if bibliothek is None or platz not in self._platzstellung:
-            return  # kein Revolverplatz: keine Bestückung
-        werkzeug = js.werkzeug_von(tc, bibliothek)
-        if werkzeug is None:
-            return  # nicht aus der Werkzeugverwaltung: nichts zu vergleichen
-        auf = m.bestueckung(self.maschine, self.kette, bibliothek)
-        steckt = auf.get(platz)
-        if steckt is not None and steckt.kennung == werkzeug.kennung:
-            return
-        richtig = next(
-            (p for p, w in auf.items() if w is not None and w.kennung == werkzeug.kennung), None
-        )
-        werte = {
-            "operation": op.Label,
-            "nummer": getattr(tc, "ToolNumber", 0),
-            "platz": m.name_von(platz),
-            "werkzeug": werkzeug_kurz(werkzeug),
-            "anderes": werkzeug_kurz(steckt) if steckt is not None else "",
-            "richtig": m.name_von(richtig) if richtig is not None else "",
-            "richtig_nummer": richtig.Platz if richtig is not None else 0,
-        }
-        if steckt is None and richtig is None:
-            text = tr("rw.bestueckung.frei_nirgends", **werte)
-        elif steckt is None:
-            text = tr("rw.bestueckung.frei_woanders", **werte)
-        elif richtig is None:
-            text = tr("rw.bestueckung.anderes_nirgends", **werte)
-        else:
-            text = tr("rw.bestueckung.anderes_woanders", **werte)
-        sammler.hinweis(Hinweis(text, werkzeug.nummer or None))
+    def _bestueckung_pruefen(self, job, bibliothek, sammler):
+        """Stecken im Job zwei Werkzeuge auf einem Revolverplatz (W-002 Stufe G)? Die Maschine
+        nähme nur eines – ein Satz sagt, welche und wo."""
+        if not self._platzstellung:
+            return  # ohne Revolver keine Plätze
+        zeichen = einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
+        for nummer, auf in bs.doppelt(job, bibliothek):
+            namen = ", ".join(mit_dezimalzeichen(bs.kurz(e), zeichen) for e in auf)
+            sammler.hinweis(tr("rw.bestueckung.doppelt", platz=f"P{nummer}", werkzeuge=namen))
 
     def _pruefe_operation(self, op, nullpunkt_des_jobs, bibliothek, sammler):
         tc = getattr(op, "ToolController", None)
@@ -865,7 +838,6 @@ class Pruefung:
             return
         laenge, quelle = werkzeuglaenge(tc, bibliothek)
         sammler.laenge(tc, laenge, quelle, bibliothek)
-        self._bestueckung_pruefen(op, tc, aufnahme, bibliothek, sammler)
         eingespannt = einspannung(tc, bibliothek)
 
         linear, drehachsen = self.achsen_fuer(aufnahme)

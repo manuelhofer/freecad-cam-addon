@@ -12,6 +12,66 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-65 bestueckung-je-job
+
+### EINGELESEN
+- Manuel, 2026-09-30, mit Bild von „Maschine bearbeiten“ (Abschnitt „Bestückung“, 0.32.1):
+  „das ist irreführend .... ich denke die bestückung sollte je nach job funktionieren ...
+  auserdem wird die bestückung nicht dargestellt auf der maschine ...“; auf die Wahl (a)/(b)/(c):
+  „ja jeder job hat seine eigene bestückung und man hat einfach die maschine die man ablegt und
+  immer wieder laden kann“.
+- `docs/spezifikation_werkzeugverwaltung.md` (Stufe F, P-56), `camaddon/maschine.py`,
+  `camaddon/reichweite.py`, `camaddon/gui_vierachs.py`, `camaddon/gui_maschine.py`,
+  `camaddon/gui_abfahren.py`, `camaddon/gui_reichweite.py` (`maschine_fuer`, D-20),
+  `camaddon/job_schnittwerte.py`.
+
+### DATEIEN
+- Neu: `camaddon/bestueckung.py`, `camaddon/gui_bestueckung.py`,
+  `resources/icons/bestueckung.svg`, `tests/test_bestueckung.py`
+- `camaddon/maschine.py`, `camaddon/reichweite.py`, `camaddon/gui_vierachs.py`,
+  `camaddon/gui_maschine.py`, `camaddon/gui_abfahren.py`, `camaddon/gui_start.py`,
+  `camaddon/job_schnittwerte.py`, `translations/de.json`, `translations/en.json`,
+  `help/de|en/bestueckung.html`, `help/de|en/reichweite.html`, `help/de|en/vierachs.html`,
+  `README.md`, `docs/spezifikation_werkzeugverwaltung.md`, `tests/test_maschine.py`,
+  `tests/test_reichweite.py`, `tests/gui/szenario_bestueckung.py`,
+  `tests/gui/szenario_erster_start.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Job im Baum wählen → „Bestückung“ (neuer Knopf vor „Auf der Maschine prüfen“): Das Fenster
+öffnet die Maschine des Jobs; in der 3D-Ansicht stecken die Werkzeuge des Jobs im Revolver,
+an jedem Platz sein Name; je Platz eine Auswahl. T1 auf P5 gewählt: Sein Controller heißt
+„T5 …“ (Nummer 5). „Maschine bearbeiten“ hat keinen Abschnitt „Bestückung“ mehr. Beim
+Abfahren stecken alle Werkzeuge des Jobs im Revolver.
+
+### DONE
+- Die Bestückung steht im Job: Der Platz ist die Nummer der Controller (`bestueckung.py`:
+  Einträge je Werkzeug, `platz_fuer`, `lege_um` mit Tausch und Umbenennen, `doppelt`).
+- Maschine ohne Bestückung: `bestueckung/bestuecke/platz_von` weg, alte Eigenschaft
+  „Werkzeug“ bleibt verborgen; in „Maschine bearbeiten“ ein grauer Satz statt des Abschnitts.
+- 4-Achs-Assistent: Platz aus dem Job („P3 · “, `_vorgemerkt` für den Schlichtfräser);
+  „alle belegt“ statt „nicht bestückt“.
+- Prüffenster: „Auf P7 stecken im Job mehrere Werkzeuge: …“ statt der vier F4-Sätze.
+- Abfahren: je Aufnahme ein Knoten mit den Werkzeugen des Jobs, folgt dem Revolver;
+  „Hinsehen“ auf Werkstück und laufendes Werkzeug; Bausteine als Modulfunktionen.
+- Fenster „Bestückung“ mit Revolverbild (Werkzeuge, Platznamen), Auswahl je Platz, roten
+  Sätzen, „Hinsehen“; Befehl in Leiste und Menü; Hilfe (de/en), README, Spezifikation.
+
+### TEST
+- `test_bestueckung` (neu): Plätze, Vormerken, Tausch, Umbenennen, doppelt, ohne Revolver;
+  `test_maschine`, `test_reichweite` (zwei Werkzeuge auf P2), `test_sprache`, `test_hilfe`
+  in 1.1.3 ok.
+- `szenario_bestueckung` (neu) in 1.1.3 ok, Bilder angesehen: Revolver mit T1, T2, T7 und
+  „P1“ … „P12“; Liste „– auf P2“; roter Satz; „Maschine bearbeiten“ mit dem grauen Satz.
+- In 1.1.3 dazu `szenario_vierachs_schruppen`, `szenario_rundum_drehmaschine` (Bild: T1 steckt
+  auf P1, während T2 am Teil ist), `szenario_abfahren`, `szenario_erster_start` (acht Knöpfe),
+  `szenario_maschine_bearbeiten`, `szenario_vierachs_aendern`, `szenario_kollision`,
+  `szenario_reichweite`, `szenario_vierachs_schlichten` ok. In 26.3 `test_bestueckung`,
+  `test_reichweite`, `test_maschine`, `szenario_bestueckung`, `szenario_rundum_drehmaschine`,
+  `szenario_erster_start` ok. Der volle Lauf folgt nach dem Push (Kernmodule).
+
+### NEXT
+- Version 0.33.0, Push; VDI-Halter ohne Größe (Manuel: „also reicht VDI halter aus“); F2.
+
 ## P-2026-09-30-64 achsnamen-mit-nummer
 
 ### EINGELESEN

@@ -18,6 +18,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
+from . import bestueckung as bs
 from . import kollision as kb
 from . import maschine as m
 from . import reichweite as rw
@@ -123,18 +124,37 @@ class Bild:
         werkstueck.addChild(self.bahn_schalter)
         self.wurzel.addChild(werkstueck)
 
-        werkzeug = coin.SoSeparator()
-        self.werkzeug_lage = coin.SoTransform()
-        werkzeug.addChild(self.werkzeug_lage)
-        self.werkzeug_wahl = coin.SoSwitch()
+        self._werkstueck = werkstueck
+        # Alle Werkzeuge des Jobs auf ihren Plätzen – die Bestückung des Jobs (W-002 Stufe G;
+        # Manuel, 2026-09-30: „die bestückung wird nicht dargestellt auf der maschine“). Je
+        # Aufnahme ein Knoten, der ihr folgt – so schwenken sie mit dem Revolver; stecken im
+        # Job zwei Werkzeuge auf einem Platz, zeigt er das der laufenden Operation.
+        self._plaetze = []  # [(Aufnahme, Knoten, SoTransform, SoSwitch, [Schlüssel …])]
+        self._op_platz = []  # je Operation: (Index in _plaetze, Kind in dessen SoSwitch)
         # Je Operation ihr Halter aus der Werkzeugverwaltung – None: angedeutet.
         self.halter = [rw.werkzeughalter(op.tc, bibliothek) for op in abfahrt.operationen]
+        index = {}
         for op, halter in zip(abfahrt.operationen, self.halter, strict=True):
-            masse = rw.werkzeugmasse(op.tc, bibliothek, op.laenge)
-            self.werkzeug_wahl.addChild(self._werkzeug(op.laenge, masse, halter))
-        self.werkzeug_wahl.whichChild = self.operation
-        werkzeug.addChild(self.werkzeug_wahl)
-        self.wurzel.addChild(werkzeug)
+            k = index.get(op.aufnahme)
+            if k is None:
+                knoten, lage, wahl = coin.SoSeparator(), coin.SoTransform(), coin.SoSwitch()
+                knoten.addChild(lage)
+                knoten.addChild(wahl)
+                self.wurzel.addChild(knoten)
+                k = index[op.aufnahme] = len(self._plaetze)
+                self._plaetze.append((op.aufnahme, knoten, lage, wahl, []))
+            _aufnahme, _knoten, _lage, wahl, schluessel = self._plaetze[k]
+            werkzeug = bs.schluessel(op.tc, bibliothek)
+            if werkzeug not in schluessel:
+                masse = rw.werkzeugmasse(op.tc, bibliothek, op.laenge)
+                wahl.addChild(self._werkzeug(op.laenge, masse, halter))
+                schluessel.append(werkzeug)
+            self._op_platz.append((k, schluessel.index(werkzeug)))
+        for _aufnahme, _knoten, _lage, wahl, _schluessel in self._plaetze:
+            wahl.whichChild = 0
+        if self._op_platz:
+            k, kind = self._op_platz[0]
+            self._plaetze[k][3].whichChild = kind
 
         ansicht.getSceneGraph().addChild(self.wurzel)
         self.folge()
@@ -210,21 +230,28 @@ class Bild:
         material.transparency.setValue(0.0)
 
     def zeige_operation(self, nummer):
-        """Das Werkzeug der Operation `nummer` an ihrer Werkzeugaufnahme."""
+        """Das Werkzeug der Operation `nummer` an ihrer Werkzeugaufnahme – stecken dort im Job
+        zwei, ihres."""
         if nummer != self.operation and 0 <= nummer < len(self.aufnahmen):
             self.operation = nummer
-            self.werkzeug_wahl.whichChild = nummer
+            k, kind = self._op_platz[nummer]
+            self._plaetze[k][3].whichChild = kind
+
+    @property
+    def werkzeug_lage(self):
+        """Die Lage (SoTransform) des Werkzeugs der laufenden Operation, oder None."""
+        if not 0 <= self.operation < len(self._op_platz):
+            return None
+        return self._plaetze[self._op_platz[self.operation][0]][2]
 
     def folge(self):
-        """Werkzeug und Werkstück dorthin, wo ihre Aufnahmen gerade stehen."""
+        """Werkzeuge und Werkstück dorthin, wo ihre Aufnahmen gerade stehen."""
         job = m.globale_platzierung(self.werkstueckaufnahme.Lcs).multiply(
             FreeCAD.Placement(self.nullpunkt, FreeCAD.Rotation())
         )
         self._setze(self.werkstueck_lage, job)
-        if 0 <= self.operation < len(self.aufnahmen):
-            self._setze(
-                self.werkzeug_lage, m.globale_platzierung(self.aufnahmen[self.operation].Lcs)
-            )
+        for aufnahme, _knoten, lage, _wahl, _schluessel in self._plaetze:
+            self._setze(lage, m.globale_platzierung(aufnahme.Lcs))
 
     def markiere(self, stelle):
         """Eine rote Kugel an `stelle` (Weltkoordinaten) – mit None keine."""
@@ -263,10 +290,15 @@ class Bild:
             kamera.height.setValue(min(kamera.height.getValue(), STELLE_AUSSCHNITT))
 
     def hinsehen(self):
-        """Richtet die Kamera auf Werkstück und Werkzeug – die Maschine ist meist viel
-        größer als das Teil."""
+        """Richtet die Kamera auf Werkstück und Werkzeug der laufenden Operation – die
+        Maschine ist meist viel größer als das Teil, und die anderen Werkzeuge im Revolver
+        zeigen woandershin."""
+        blick = self._coin.SoGroup()
+        blick.addChild(self._werkstueck)
+        if 0 <= self.operation < len(self._op_platz):
+            blick.addChild(self._plaetze[self._op_platz[self.operation][0]][1])
         region = self.ansicht.getViewer().getSoRenderManager().getViewportRegion()
-        self.ansicht.getCameraNode().viewAll(self.wurzel, region, HINSEHEN_RAND)
+        self.ansicht.getCameraNode().viewAll(blick, region, HINSEHEN_RAND)
 
     def weg(self):
         """Nimmt die Körper aus der Ansicht."""
@@ -283,61 +315,16 @@ class Bild:
         knoten.rotation.setValue(q[0], q[1], q[2], q[3])
 
     def _material(self, farbe, transparenz=0.0):
-        material = self._coin.SoMaterial()
-        material.diffuseColor.setValue(*farbe)
-        material.transparency.setValue(transparenz)
-        return material
+        return material(farbe, transparenz)
 
     def _zylinder(self, radius, von, bis, farbe, transparenz=0.0):
-        """Ein Zylinder entlang Z von `von` bis `bis`."""
-        coin = self._coin
-        teil = coin.SoSeparator()
-        teil.addChild(self._material(farbe, transparenz))
-        lage = coin.SoTransform()
-        lage.translation.setValue(0, 0, (von + bis) / 2)
-        lage.rotation.setValue(coin.SbVec3f(1, 0, 0), math.pi / 2)  # SoCylinder steht in Y
-        teil.addChild(lage)
-        zylinder = coin.SoCylinder()
-        zylinder.radius = radius
-        zylinder.height = abs(bis - von)
-        teil.addChild(zylinder)
-        return teil
+        return zylinder(radius, von, bis, farbe, transparenz)
 
     def _werkzeug(self, laenge, masse, halter):
-        """Das Werkzeug im LCS seiner Aufnahme – dieselben Körper, die die Kollision prüft
-        (kollision.werkzeugkoerper): Schneide gelb, Hals und Schaft grau, der Halter mit
-        seiner Kontur. Ohne Halter ist einer angedeutet, durchscheinend von der Gesamtlänge
-        bis zur Aufnahme."""
-        teil = self._coin.SoSeparator()
-        farben = {kb.SCHNEIDE: SCHNEIDE, kb.HALS: SCHAFT, kb.SCHAFT: SCHAFT, kb.HALTER: HALTER_ECHT}
-        for art, form in kb.werkzeugkoerper(masse, laenge, halter):
-            teil.addChild(self._flaechen(form, farben[art], 0.0))
-        gesamt = min(masse.gesamt, laenge) if masse.gesamt > 0 else laenge
-        if halter is None and laenge - gesamt > 0.5:
-            radius = max(2 * masse.schaft, HALTER_MINDESTENS) / 2
-            teil.addChild(self._zylinder(radius, -laenge + gesamt, 0.0, HALTER, 0.6))
-        return teil
+        return werkzeug_knoten(laenge, masse, halter)
 
     def _flaechen(self, form, farbe, transparenz):
-        """Eine Form als Dreiecke, in ihren eigenen Koordinaten (denen des Jobs)."""
-        coin = self._coin
-        teil = coin.SoSeparator()
-        teil.addChild(self._material(farbe, transparenz))
-        hinweise = coin.SoShapeHints()
-        hinweise.creaseAngle = 0.5
-        teil.addChild(hinweise)
-        genauigkeit = max(form.BoundBox.DiagonalLength / 300, 0.05)
-        punkte, dreiecke = form.tessellate(genauigkeit)
-        koordinaten = coin.SoCoordinate3()
-        koordinaten.point.setValues(0, len(punkte), [(p.x, p.y, p.z) for p in punkte])
-        teil.addChild(koordinaten)
-        flaechen = coin.SoIndexedFaceSet()
-        index = []
-        for a, b, c in dreiecke:
-            index += [a, b, c, -1]
-        flaechen.coordIndex.setValues(0, len(index), index)
-        teil.addChild(flaechen)
-        return teil
+        return flaechen(form, farbe, transparenz)
 
     def _bahnlinien(self, abfahrt, punkte):
         """Die Bahn als Linien in Koordinaten des Jobs, am Werkstück (mit Rundachsen um das
@@ -362,6 +349,76 @@ class Bild:
             teil.addChild(self._material(farbe))
             teil.addChild(linien)
         return teil
+
+
+# --- Bausteine (auch für das Fenster „Bestückung“) ------------------------------------
+
+
+def material(farbe, transparenz=0.0):
+    from pivy import coin
+
+    knoten = coin.SoMaterial()
+    knoten.diffuseColor.setValue(*farbe)
+    knoten.transparency.setValue(transparenz)
+    return knoten
+
+
+def zylinder(radius, von, bis, farbe, transparenz=0.0):
+    """Ein Zylinder entlang Z von `von` bis `bis`."""
+    from pivy import coin
+
+    teil = coin.SoSeparator()
+    teil.addChild(material(farbe, transparenz))
+    lage = coin.SoTransform()
+    lage.translation.setValue(0, 0, (von + bis) / 2)
+    lage.rotation.setValue(coin.SbVec3f(1, 0, 0), math.pi / 2)  # SoCylinder steht in Y
+    teil.addChild(lage)
+    koerper = coin.SoCylinder()
+    koerper.radius = radius
+    koerper.height = abs(bis - von)
+    teil.addChild(koerper)
+    return teil
+
+
+def werkzeug_knoten(laenge, masse, halter):
+    """Das Werkzeug im LCS seiner Aufnahme – dieselben Körper, die die Kollision prüft
+    (kollision.werkzeugkoerper): Schneide gelb, Hals und Schaft grau, der Halter mit seiner
+    Kontur. Ohne Halter ist einer angedeutet, durchscheinend von der Gesamtlänge bis zur
+    Aufnahme."""
+    from pivy import coin
+
+    teil = coin.SoSeparator()
+    farben = {kb.SCHNEIDE: SCHNEIDE, kb.HALS: SCHAFT, kb.SCHAFT: SCHAFT, kb.HALTER: HALTER_ECHT}
+    for art, form in kb.werkzeugkoerper(masse, laenge, halter):
+        teil.addChild(flaechen(form, farben[art], 0.0))
+    gesamt = min(masse.gesamt, laenge) if masse.gesamt > 0 else laenge
+    if halter is None and laenge - gesamt > 0.5:
+        radius = max(2 * masse.schaft, HALTER_MINDESTENS) / 2
+        teil.addChild(zylinder(radius, -laenge + gesamt, 0.0, HALTER, 0.6))
+    return teil
+
+
+def flaechen(form, farbe, transparenz):
+    """Eine Form als Dreiecke, in ihren eigenen Koordinaten."""
+    from pivy import coin
+
+    teil = coin.SoSeparator()
+    teil.addChild(material(farbe, transparenz))
+    hinweise = coin.SoShapeHints()
+    hinweise.creaseAngle = 0.5
+    teil.addChild(hinweise)
+    genauigkeit = max(form.BoundBox.DiagonalLength / 300, 0.05)
+    punkte, dreiecke = form.tessellate(genauigkeit)
+    koordinaten = coin.SoCoordinate3()
+    koordinaten.point.setValues(0, len(punkte), [(p.x, p.y, p.z) for p in punkte])
+    teil.addChild(koordinaten)
+    netz = coin.SoIndexedFaceSet()
+    index = []
+    for a, b, c in dreiecke:
+        index += [a, b, c, -1]
+    netz.coordIndex.setValues(0, len(index), index)
+    teil.addChild(netz)
+    return teil
 
 
 def _rest_satz(vergleich, aufmass):

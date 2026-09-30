@@ -416,6 +416,80 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
      Bestückung ein anderes Werkzeug steckt oder keins, sagt ein Hinweis, was dort
      steckt, wo das richtige steckt und was zu tun ist.
 
+   **Abgelöst durch Stufe G** (Manuel, 2026-09-30, mit Bild von „Maschine
+   bearbeiten“: „das ist irreführend .... ich denke die bestückung sollte je nach
+   job funktionieren ... auserdem wird die bestückung nicht dargestellt auf der
+   maschine ...“).
+
+6. **Bestückung je Job** (Stufe G) – Manuel, 2026-09-30, auf die Wahl (a) Job fest
+   mit Maschine, (b) dazu jeder Job mit eigener Bestückung, (c) Maschine in die
+   Job-Datei kopieren: „ja jeder job hat seine eigene bestückung und man hat
+   einfach die maschine die man ablegt und immer wieder laden kann“.
+
+   **Das Modell:**
+   - Die **Maschine** ist eine Datei, die man ablegt und für jeden Job lädt; sie
+     kennt ihre Plätze, aber keine Bestückung. Der Job merkt sich die Datei (D-20,
+     `reichweite.merke_maschine`).
+   - Die **Bestückung** steht im **Job**, in seinen Werkzeug-Controllern: Deren
+     Nummer (`ToolNumber`) ruft das Programm auf, und am Revolver ist sie der Platz
+     – T3 steckt auf P3. Eine zweite Liste gibt es nicht; so können Programm und
+     Bestückung nicht auseinanderlaufen.
+   - Ein **Werkzeug des Jobs** sind alle Controller mit demselben Werkzeug aus der
+     Werkzeugverwaltung (dieselbe Kennung), sonst mit demselben CAM-Werkzeug.
+     Unbenutzte fremde Controller (FreeCADs „TC: 5mm Endmill“, D-30) zählen nicht.
+   - Ein **neues Werkzeug** im Job bekommt den Platz, den es dort schon hat; sonst
+     den seiner Nummer aus der Werkzeugverwaltung, wenn der im Job frei ist; sonst
+     den ersten freien. Ohne Revolver (Fräse mit einer Spindel, keine Maschine)
+     bleibt es bei der Nummer aus der Werkzeugverwaltung.
+   - **Umlegen** ändert die Nummer aller Controller des Werkzeugs, und ihr Name
+     folgt („T3 Schruppen“ → „T5 Schruppen“); steckt auf dem neuen Platz schon
+     eines, tauschen die beiden.
+   - Werkzeuge, die der Job nicht braucht, die aber im Revolver stecken bleiben,
+     kommen später dazu (dann auch für die Kollision).
+
+   **Schritte:**
+   - **G1 – Rechenkern** `bestueckung.py` (ohne Oberfläche); der 4-Achs-Assistent
+     gibt dem Controller den Platz aus dem Job („P3 · “ vor dem Fräser), das
+     Prüffenster meldet zwei Werkzeuge auf einem Platz. „Maschine bearbeiten“
+     verliert den Abschnitt „Bestückung“ und sagt stattdessen, wo sie jetzt steht;
+     was 0.32.0/0.32.1 an Plätzen gespeichert hat, zählt nicht mehr.
+   - **G2 – Zeigen:** Im Prüffenster und beim Abspielen stecken alle Werkzeuge des
+     Jobs auf ihren Plätzen im Revolver und schwenken mit ihm.
+   - **G3 – Fenster „Bestückung“:** Job wählen → „Bestückung“: Es lädt die
+     Maschine des Jobs (wie „Auf der Maschine prüfen“) und zeigt den Revolver mit
+     den Werkzeugen, daneben je Platz eine Auswahl der Werkzeuge des Jobs. Ein
+     Schritt Rückgängig im Dokument des Jobs.
+
+   **Gebaut** (P-2026-09-30-65, 0.33.0): G1, G2, G3.
+   - **Rechenkern** `bestueckung.py`: `eintraege()` (die Werkzeuge des Jobs mit
+     ihren Controllern), `auf_plaetzen()`, `doppelt()`, `platz_fuer()` (Platz im
+     Job, sonst Nummer, wenn frei, sonst der erste freie; `vorgemerkt` für den
+     zweiten Fräser desselben Schritts), `lege_um()` (tauscht, benennt die
+     Controller um – nur, wo der Name mit „T3 “ beginnt). Die Plätze kommen von
+     `reichweite.Pruefung.platznummern()`.
+   - **Maschine:** `maschine.bestueckung/bestuecke/platz_von` sind weg; die
+     Eigenschaft „Werkzeug“ von 0.32.0/0.32.1 bleibt an alten Plätzen verborgen
+     und zählt nicht. „Maschine bearbeiten“ hat statt des Abschnitts einen grauen
+     Satz unter „Aufnahmen“ (nur mit Revolver).
+   - **4-Achs-Assistent:** „P3 · “ aus `platz_fuer`; der Controller bekommt den
+     Platz. Sind alle Plätze belegt, sagt es der gelbe Satz, und es gilt die
+     Nummer aus der Werkzeugverwaltung.
+   - **Prüffenster:** einmal je Job „Auf P7 stecken im Job mehrere Werkzeuge: …“
+     statt der vier Sätze von F4. Beim **Abfahren** stecken alle Werkzeuge des
+     Jobs im Revolver (je Aufnahme ein Knoten, der ihr folgt); „Hinsehen“ blickt
+     auf Werkstück und das Werkzeug der laufenden Operation. Die Bausteine
+     (`werkzeug_knoten`, `flaechen`, …) sind Modulfunktionen in `gui_abfahren`.
+   - **Fenster „Bestückung“** (`gui_bestueckung.py`, Befehl `CamAddon_Bestueckung`,
+     in Leiste und Menü vor „Auf der Maschine prüfen“): Job, Maschine, je Platz
+     eine Auswahl („– frei –“ nur, wo nichts steckt; „– auf P4“ hinter einem
+     Werkzeug, das woanders steckt), rot bei zwei Werkzeugen auf einem Platz und
+     bei Werkzeugen mit einer Nummer, die kein Platz ist; „Hinsehen“. In der
+     3D-Ansicht der Maschine die Werkzeuge im Revolver und an jedem Platz sein
+     Name (`SoText2`, obenauf). Umlegen ist ein Schritt Rückgängig im Dokument
+     des Jobs; Schließen merkt die Maschine am Job und kehrt zu ihm zurück.
+   - Noch nicht: Werkzeuge, die im Revolver bleiben, ohne dass der Job sie braucht
+     (dann auch für die Kollision), und F2 (Nummer am Werkzeug freiwillig).
+
 ## 11. Entscheidungen (Claude, zur Besprechung)
 
 Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.

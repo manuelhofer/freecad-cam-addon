@@ -43,6 +43,11 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Werkzeuglänge und **Schnittwerte** (passen Drehzahl und Vorschub im Job
   noch zur Werkzeugverwaltung? sonst „übernehmen“); die Maschine merkt es sich
   und öffnet sie beim nächsten Mal selbst.
+- **Bestückung:** Jeder Job hat seine eigene – welches Werkzeug auf welchem
+  Revolverplatz steckt. Das Fenster zeigt den Revolver der Maschine mit den
+  Werkzeugen des Jobs und ihren Haltern; je Platz eine Auswahl, umlegen tauscht.
+  Im Programm ist die Nummer der Platz (T5 für P5); beim Abfahren stecken alle
+  Werkzeuge des Jobs im Revolver und schwenken mit.
 - **Werkzeugverwaltung:** Werkstoffliste mit deutschen Bezeichnungen
   („1.4301 X5CrNi18-10 · Edelstahl, austenitisch“), Zusammensetzung und
   Härte; Werkzeuge mit Bild, Suche und Schnittwerten je Werkstoff und

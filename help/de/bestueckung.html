@@ -1,31 +1,39 @@
 <h2>Bestückung</h2>
-<p>Hier steht, welches Werkzeug aus der <b>Werkzeugverwaltung</b> auf welchem
-<b>Revolverplatz</b> steckt. Die Werkzeugverwaltung ist dein Werkzeugschrank:
-Form, Halter, Schnittwerte. Die Bestückung gehört zur Maschine – zwei Maschinen
-können verschieden bestückt sein.</p>
+<p>Welches Werkzeug auf welchem <b>Revolverplatz</b> steckt, legt <b>jeder Job
+selbst</b> fest – so wie du den Revolver für einen Auftrag einrichtest. Die
+Maschine legst du einmal ab und lädst sie für jeden Job; sie kennt ihre Plätze,
+aber keine Bestückung.</p>
 
-<h3>Umstecken und entladen</h3>
+<h3>Das Fenster „Bestückung“</h3>
 <ul>
-<li>Je Platz (P1, P2 …) wählst du ein Werkzeug aus der Liste.</li>
-<li>Ein Werkzeug steckt auf <b>höchstens einem Platz</b>. Wählst du eins, das
-schon woanders steckt – dahinter steht dann etwa „– auf P4“ –, wird der andere
-Platz frei.</li>
-<li><b>„– frei –“</b> entlädt den Platz. Das Werkzeug bleibt in der
-Werkzeugverwaltung und kann jederzeit wieder auf einen Platz.</li>
-<li><b>Werkzeugverwaltung …</b> öffnet den Werkzeugschrank. Was du dort
-speicherst, steht hier gleich zur Wahl.</li>
+<li>Job im Baum wählen (oder eine seiner Operationen), dann <b>Bestückung</b> in
+der Werkzeugleiste CAM-Addon. Das Fenster öffnet die Maschine des Jobs – die offene,
+sonst die, auf der er zuletzt geprüft wurde.</li>
+<li>In der 3D-Ansicht stecken die Werkzeuge des Jobs im Revolver, jedes mit seinem
+Halter; an jedem Platz steht sein Name (P1, P2 …). <b>Hinsehen</b> holt den
+Revolver ins Bild.</li>
+<li>Je Platz eine Auswahl mit den Werkzeugen des Jobs. Wählst du für einen Platz
+ein Werkzeug, <b>zieht es dorthin um</b>; steckte dort schon eins, <b>tauschen</b>
+die beiden. Hinter einem Werkzeug, das woanders steckt, steht „– auf P4“.</li>
+<li>„– frei –“ gibt es nur, wo nichts steckt: Jedes Werkzeug des Jobs braucht
+einen Platz.</li>
+<li>Jedes Umlegen ist ein Schritt Rückgängig im Dokument des Jobs.</li>
 </ul>
 
-<h3>Plätze, die du nicht bestückst</h3>
-<p>Einen Platz, den du hier nicht bestückst, belegt das Werkzeug mit seiner
-Nummer aus der Werkzeugverwaltung: T3 steckt auf P3 – außer T3 steckt schon auf
-einem anderen Platz. So ändert sich nichts, bis du umsteckst, auch nicht an
-einer Maschine aus einer früheren Version.</p>
-
 <h3>Im Programm</h3>
-<p>Am Revolver ruft das Programm den <b>Platz</b> auf: Steckt T3 auf P5, heißt
-es im Programm T5. So legt der 4-Achs-Assistent den Werkzeug-Controller an; in
-seiner Fräserliste steht vor jedem Fräser, wo er steckt („P5 · T3 …“), sonst sagt
-ein gelber Satz, dass er auf keinem Platz steckt. „Auf der Maschine prüfen“ vergleicht: Ruft ein Job einen
-Platz auf, auf dem laut Bestückung ein anderes Werkzeug steckt – oder keins –,
-sagt ein Hinweis, was dort steckt und wo das richtige ist.</p>
+<p>Am Revolver ruft das Programm den <b>Platz</b> auf: Steckt ein Werkzeug auf P5,
+heißt es im Programm T5. Die Bestückung steht deshalb in den Werkzeug-Controllern
+des Jobs – ihre Nummer ist der Platz, der Name folgt beim Umlegen („T3 Schruppen“
+→ „T5 Schruppen“). Programm und Bestückung laufen so nie auseinander.</p>
+
+<h3>Neue Werkzeuge im Job</h3>
+<p>Der 4-Achs-Assistent setzt ein neues Werkzeug auf den Platz seiner Nummer aus
+der Werkzeugverwaltung, wenn der im Job frei ist, sonst auf den ersten freien; in
+seiner Fräserliste steht davor, wohin („P3 · …“). Ist das Werkzeug schon im Job,
+bleibt es auf seinem Platz. Ohne Revolver (etwa eine Fräse mit einer Spindel) gilt
+die Nummer aus der Werkzeugverwaltung.</p>
+
+<h3>Prüfen</h3>
+<p>Stecken im Job zwei Werkzeuge auf einem Platz – etwa weil ein Controller von
+Hand geändert wurde –, sagt „Auf der Maschine prüfen“ es; die Maschine nähme nur
+eines. Hier im Fenster steht derselbe Satz rot, und du legst eines um.</p>

@@ -48,6 +48,7 @@ import FreeCADGui
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, symbol
+from . import bestueckung as bs
 from . import fraeserform as ff
 from . import halter as hl
 from . import job_schnittwerte as js
@@ -2008,11 +2009,11 @@ class VierachsPanel:
             return ""
         richtung = va.radial(self.achse())
         einspannung = rw.Einspannung(0.0, hl.lage(self.bibliothek.halter_von(werkzeug)))
-        # Am Revolver der Platz, auf dem es laut Bestückung steckt (W-002 Stufe F3).
-        nummer = pruefung.platznummer(werkzeug, self.bibliothek)
+        # Am Revolver der Platz, den es in diesem Job bekommt (W-002 Stufe G).
+        nummer = self._programmnummer(werkzeug, self._vorgemerkt(werkzeug))
         name = f"T{werkzeug.nummer}"
         if nummer is None:
-            return html.escape(tr("va.lage.nicht_bestueckt", werkzeug=name, maschine=eintrag.name))
+            return html.escape(tr("va.lage.alle_belegt", werkzeug=name, maschine=eintrag.name))
         aufnahme, radial = pruefung.kommt_aus(nummer, richtung, einspannung)
         if aufnahme is None:
             return html.escape(tr("va.lage.kein_platz", werkzeug=name, maschine=eintrag.name))
@@ -2035,24 +2036,38 @@ class VierachsPanel:
         )
 
     def _platz_vorsatz(self, werkzeug):
-        """„P3 · “ vor einem Fräser, der auf der gewählten Maschine auf P3 steckt (W-002 Stufe
-        F3) – vorn, damit es die schmale Liste nicht abschneidet. Steckt er nirgends, sagt es
-        der gelbe Satz darunter."""
+        """„P3 · “ vor einem Fräser, der in diesem Job auf P3 steckt oder dorthin käme (W-002
+        Stufe G) – vorn, damit es die schmale Liste nicht abschneidet. Nur an einer Maschine
+        mit Revolver."""
         pruefung = self._pruefung_fuer(self.maschinenwahl())
         if pruefung is None or self.bibliothek is None or not pruefung.mit_revolver():
             return ""
-        nummer = pruefung.platznummer(werkzeug, self.bibliothek)
+        nummer = self._programmnummer(werkzeug)
         return f"P{nummer} · " if nummer is not None else ""
 
-    def _programmnummer(self, werkzeug):
+    def _programmnummer(self, werkzeug, vorgemerkt=None):
         """So ruft das Programm `werkzeug` auf: auf der gewählten Maschine mit Revolver der
-        Platz, auf dem es laut Bestückung steckt (T3 für P3, W-002 Stufe F3). None – dann gilt
-        seine Nummer aus der Werkzeugverwaltung –, ohne Maschine oder wenn es auf keinem Platz
-        steckt; das sagt dann der gelbe Satz."""
-        pruefung = self._pruefung_fuer(self.maschinenwahl())
-        if werkzeug is None or pruefung is None or self.bibliothek is None:
+        Platz, den es in diesem Job hat oder bekommt (bestueckung.platz_fuer – T3 für P3,
+        W-002 Stufe G); ohne Maschine oder ohne Revolver seine Nummer aus der
+        Werkzeugverwaltung. None, wenn alle Plätze im Job belegt sind – das sagt der gelbe
+        Satz. `vorgemerkt`: {Nummer: Kennung} der Fräser, die mit in den Job kommen."""
+        if werkzeug is None or self.bibliothek is None:
             return None
-        return pruefung.platznummer(werkzeug, self.bibliothek)
+        pruefung = self._pruefung_fuer(self.maschinenwahl())
+        nummern = pruefung.platznummern() if pruefung is not None else []
+        return bs.platz_fuer(self.job, werkzeug, self.bibliothek, nummern, vorgemerkt)
+
+    def _vorgemerkt(self, werkzeug):
+        """{Nummer: Kennung} des Schrupp-Fräsers, wenn er mit `werkzeug` zusammen neu in den
+        Job kommt – so bekommt der Schlicht-Fräser nicht denselben Platz."""
+        schruppen, _schlichten = self._gewaehlt()
+        fraeser = self.fraeser()
+        if not schruppen or fraeser is None or fraeser is werkzeug:
+            return None
+        if self.zu_aendern is not None or fraeser.kennung == werkzeug.kennung:
+            return None
+        nummer = self._programmnummer(fraeser)
+        return {nummer: fraeser.kennung} if nummer is not None else None
 
     def _pruefung_fuer(self, eintrag):
         """Die Prüfung (reichweite.Pruefung) der gewählten offenen Maschine – einmal gebaut

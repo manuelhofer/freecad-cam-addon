@@ -1,0 +1,355 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+"""Befehl und Aufgabenfenster „Bestückung“ (W-002 Stufe G).
+
+Welches Werkzeug des Jobs auf welchem Revolverplatz steckt – jeder Job hat seine
+eigene Bestückung (Manuel, 2026-09-30: „ja jeder job hat seine eigene bestückung
+und man hat einfach die maschine die man ablegt und immer wieder laden kann“).
+Oben Job und Maschine, darunter je Platz eine Auswahl der Werkzeuge des Jobs. In
+der 3D-Ansicht der Maschine stecken sie im Revolver, jeder Platz mit seinem Namen
+(„P3“) – Manuel: „auserdem wird die bestückung nicht dargestellt auf der
+maschine“. Gerechnet wird in bestueckung.py: Der Platz ist die Nummer der
+Controller; wählt man für einen Platz ein Werkzeug, zieht es dorthin um, und
+steckte dort schon eins, tauschen die beiden – ein Schritt Rückgängig im
+Dokument des Jobs.
+
+Wie „Auf der Maschine prüfen“ öffnet sich das Fenster im Dokument der Maschine:
+die offene, sonst die, die sich der Job gemerkt hat (gui_reichweite.maschine_fuer).
+Schließen merkt sie sich am Job und kehrt zu seinem Dokument zurück.
+"""
+
+import FreeCAD
+import FreeCADGui
+from PySide import QtGui
+
+from . import bestueckung as bs
+from . import gui_abfahren, gui_reichweite, symbol
+from . import job_schnittwerte as js
+from . import kette as kette_modul
+from . import maschine as m
+from . import reichweite as rw
+from . import werkzeuge as wz
+from .gui_hilfe import kopfzeile
+from .gui_job_schnittwerte import dokument_mit_job
+from .gui_teile import GRAU, ROT, ruhiges_mausrad
+from .gui_zahlen import dezimal
+from .sprache import tr
+
+NAME_FARBE = (0.10, 0.25, 0.65)  # die Namen der Plätze („P3“) in der 3D-Ansicht
+NAME_GROESSE = 14  # Punkt
+HINSEHEN_RAND = 1.3
+
+
+class BefehlBestueckung:
+    """Befehl in der Werkzeugleiste: zeigt und ändert die Bestückung eines Jobs."""
+
+    def GetResources(self):
+        return {
+            "Pixmap": symbol("bestueckung.svg"),
+            "MenuText": tr("befehl.bestueckung.titel"),
+            "ToolTip": tr("befehl.bestueckung.tooltip"),
+        }
+
+    def IsActive(self):
+        return not FreeCADGui.Control.activeDialog()
+
+    def Activated(self):
+        hauptfenster = FreeCADGui.getMainWindow()
+        dokument = dokument_mit_job(tr("bs.titel"), tr("bs.kein_job"))
+        if dokument is None:
+            return
+        jobs = js.jobs(dokument)
+        job = gui_reichweite.gewaehlter_job(jobs) or jobs[0]
+        gewaehlt = gui_reichweite.maschine_fuer(job, hauptfenster)
+        if gewaehlt is None:
+            return
+        assembly, maschine = gewaehlt
+        gui_reichweite.zeige_dokument(assembly.Document)
+        FreeCADGui.Control.showDialog(BestueckungsPanel(jobs, job, assembly, maschine))
+
+
+class Revolverbild:
+    """Die Werkzeuge des Jobs auf ihren Plätzen in der 3D-Ansicht der Maschine – dieselben
+    Körper wie beim Abfahren (gui_abfahren.werkzeug_knoten) –, dazu an jedem Platz sein Name.
+    Nichts davon steht im Dokument."""
+
+    def __init__(self, ansicht, plaetze, auf, bibliothek):
+        from pivy import coin
+
+        self.ansicht = ansicht
+        self.wurzel = coin.SoSeparator()
+        self._lagen = []  # [(Platz, SoTransform)]
+        self.werkzeuge = {}  # Platznummer → gezeigter Eintrag
+        for platz in plaetze:
+            knoten = coin.SoSeparator()
+            lage = coin.SoTransform()
+            knoten.addChild(lage)
+            hier = auf.get(platz.Platz, [])
+            if hier:
+                tc = hier[0].controller[0]
+                laenge = rw.werkzeuglaenge(tc, bibliothek)[0]
+                masse = rw.werkzeugmasse(tc, bibliothek, laenge)
+                halter = rw.werkzeughalter(tc, bibliothek)
+                knoten.addChild(gui_abfahren.werkzeug_knoten(laenge, masse, halter))
+                self.werkzeuge[platz.Platz] = hier[0]
+            knoten.addChild(_name(coin, m.name_von(platz)))
+            self.wurzel.addChild(knoten)
+            self._lagen.append((platz, lage))
+        ansicht.getSceneGraph().addChild(self.wurzel)
+        self.folge()
+
+    def folge(self):
+        """Jedes Werkzeug dorthin, wo sein Platz gerade steht."""
+        for platz, lage in self._lagen:
+            ort = m.globale_platzierung(platz.Lcs)
+            lage.translation.setValue(ort.Base.x, ort.Base.y, ort.Base.z)
+            q = ort.Rotation.Q  # (x, y, z, w) – dieselbe Reihenfolge wie bei Coin
+            lage.rotation.setValue(q[0], q[1], q[2], q[3])
+
+    def hinsehen(self):
+        """Richtet die Kamera auf den Revolver mit den Werkzeugen."""
+        region = self.ansicht.getViewer().getSoRenderManager().getViewportRegion()
+        self.ansicht.getCameraNode().viewAll(self.wurzel, region, HINSEHEN_RAND)
+
+    def weg(self):
+        wurzel = self.ansicht.getSceneGraph()
+        if wurzel.findChild(self.wurzel) >= 0:
+            wurzel.removeChild(self.wurzel)
+
+
+def _name(coin, text):
+    """„P3“ am Ursprung des Platzes – obenauf gezeichnet, so steht es auch vor dem Revolver."""
+    teil = coin.SoSeparator()
+    tiefe = coin.SoDepthBuffer()
+    tiefe.test = False
+    teil.addChild(tiefe)
+    farbe = coin.SoBaseColor()
+    farbe.rgb.setValue(*NAME_FARBE)
+    teil.addChild(farbe)
+    schrift = coin.SoFont()
+    schrift.size = NAME_GROESSE
+    teil.addChild(schrift)
+    name = coin.SoText2()
+    name.string = text
+    teil.addChild(name)
+    return teil
+
+
+class BestueckungsPanel:
+    """Das Aufgabenfenster. FreeCAD ruft `getStandardButtons`, `accept` und `reject` auf."""
+
+    offen = None  # das gerade offene Fenster – für die Oberflächen-Szenarien
+
+    def __init__(self, jobs, job, assembly, maschine):
+        BestueckungsPanel.offen = self
+        self.jobs = jobs
+        self.job = job
+        self.assembly = assembly
+        self.maschine = maschine
+        self.zurueck_zu = job.Document if job.Document is not assembly.Document else None
+        self.bibliothek = _bibliothek()
+        self.plaetze = m.revolverplaetze(maschine, kette_modul.lies_kette(assembly))
+        self.eintraege = []  # bestueckung.Eintrag des Jobs, in der Reihenfolge der Auswahlen
+        self.wahlen = {}  # Platz → QComboBox
+        self.bild = None
+        self.form = self._baue()
+        self.wahl_job.setCurrentIndex(jobs.index(job))
+        self._job_gewechselt()
+
+    def getStandardButtons(self):
+        return QtGui.QDialogButtonBox.Close
+
+    def accept(self):
+        return self._schliessen()
+
+    def reject(self):
+        return self._schliessen()
+
+    def _schliessen(self):
+        BestueckungsPanel.offen = None
+        self._bild_weg()
+        self._maschine_merken()
+        FreeCADGui.Control.closeDialog()
+        if self.zurueck_zu is not None and self.zurueck_zu.Name in FreeCAD.listDocuments():
+            gui_reichweite.zeige_dokument(self.zurueck_zu)
+        return True
+
+    # --- Aufbau ---------------------------------------------------------------------
+
+    def _baue(self):
+        form = QtGui.QWidget()
+        form.setWindowTitle(tr("bs.titel"))
+        form.setWindowIcon(QtGui.QIcon(symbol("bestueckung.svg")))
+        aufbau = QtGui.QVBoxLayout(form)
+        aufbau.addWidget(kopfzeile(tr("bs.titel"), "bestueckung"))
+        erklaerung = QtGui.QLabel(tr("bs.erklaerung"))
+        erklaerung.setWordWrap(True)
+        aufbau.addWidget(erklaerung)
+
+        raster = QtGui.QGridLayout()
+        raster.setColumnStretch(1, 1)
+        self.wahl_job = QtGui.QComboBox()
+        for job in self.jobs:
+            self.wahl_job.addItem(job.Label)
+        self.wahl_job.currentIndexChanged.connect(lambda _i: self._job_gewechselt())
+        raster.addWidget(QtGui.QLabel(tr("rw.job")), 0, 0)
+        raster.addWidget(ruhiges_mausrad(self.wahl_job), 0, 1)
+        maschine = QtGui.QLabel(gui_reichweite.maschinen_text(self.assembly, self.maschine))
+        maschine.setWordWrap(True)
+        raster.addWidget(QtGui.QLabel(tr("rw.maschine")), 1, 0)
+        raster.addWidget(maschine, 1, 1)
+        aufbau.addLayout(raster)
+
+        self.hinweis = _satz(GRAU)
+        aufbau.addWidget(self.hinweis)
+        plaetze = QtGui.QWidget()
+        gitter = QtGui.QGridLayout(plaetze)
+        gitter.setContentsMargins(0, 0, 0, 0)
+        gitter.setColumnStretch(1, 1)
+        for zeile, platz in enumerate(self.plaetze):
+            wahl = QtGui.QComboBox()
+            wahl.setToolTip(tr("bs.wahl.tooltip"))
+            wahl.activated.connect(lambda index, p=platz, w=wahl: self._gewaehlt(p, w, index))
+            gitter.addWidget(QtGui.QLabel(m.name_von(platz)), zeile, 0)
+            gitter.addWidget(ruhiges_mausrad(wahl), zeile, 1)
+            self.wahlen[platz] = wahl
+        aufbau.addWidget(plaetze)
+        self.doppelt = _satz(ROT)
+        aufbau.addWidget(self.doppelt)
+        self.ohne_platz = _satz(ROT)
+        aufbau.addWidget(self.ohne_platz)
+        self.knopf_hinsehen = QtGui.QPushButton(tr("bs.hinsehen"))
+        self.knopf_hinsehen.setToolTip(tr("bs.hinsehen.tooltip"))
+        self.knopf_hinsehen.clicked.connect(self.hinsehen)
+        aufbau.addWidget(self.knopf_hinsehen)
+        aufbau.addStretch(1)
+        return form
+
+    # --- Job, Auswahl, Umlegen ------------------------------------------------------
+
+    def _job_gewechselt(self):
+        self.job = self.jobs[max(self.wahl_job.currentIndex(), 0)]
+        self.fuellen()
+        self.hinsehen()
+
+    def fuellen(self):
+        """Die Auswahlen nach der Bestückung des Jobs, die Sätze darunter, das Bild."""
+        self.eintraege = bs.eintraege(self.job, self.bibliothek)
+        auf = bs.auf_plaetzen(self.job, self.bibliothek, self.eintraege)
+        nummern = {platz.Platz for platz in self.plaetze}
+        for platz, wahl in self.wahlen.items():
+            hier = auf.get(platz.Platz, [])
+            wahl.blockSignals(True)
+            wahl.clear()
+            wahl.addItem(tr("bs.frei"), -1)
+            # Frei machen geht nur, wo nichts steckt – jedes Werkzeug des Jobs braucht einen Platz.
+            wahl.model().item(0).setEnabled(not hier)
+            for index, eintrag in enumerate(self.eintraege):
+                text = dezimal(bs.text(eintrag))
+                woanders = [n for n in eintrag.nummern if n != platz.Platz]
+                if eintrag not in hier and woanders:
+                    n = woanders[0]
+                    if n in nummern:
+                        text = tr("bs.auf", werkzeug=text, platz=f"P{n}")
+                    else:
+                        text = tr("bs.ohne_platz", werkzeug=text, nummer=n)
+                wahl.addItem(text, index)
+            wahl.setCurrentIndex(self.eintraege.index(hier[0]) + 1 if hier else 0)
+            wahl.blockSignals(False)
+        if not self.plaetze:
+            self.hinweis.setText(tr("bs.kein_revolver", maschine=self.maschine.Label))
+        elif not self.eintraege:
+            self.hinweis.setText(tr("bs.keine_werkzeuge"))
+        else:
+            self.hinweis.setText("")
+        self.hinweis.setVisible(bool(self.hinweis.text()))
+        saetze = [
+            tr(
+                "rw.bestueckung.doppelt",
+                platz=f"P{n}",
+                werkzeuge=", ".join(dezimal(bs.kurz(e)) for e in es),
+            )
+            for n, es in bs.doppelt(self.job, self.bibliothek)
+        ]
+        self.doppelt.setText("\n".join(saetze))
+        self.doppelt.setVisible(bool(saetze))
+        ohne = [
+            f"{dezimal(bs.kurz(e))} (T{e.nummer})"
+            for e in self.eintraege
+            if self.plaetze and not any(n in nummern for n in e.nummern)
+        ]
+        self.ohne_platz.setText(tr("bs.nicht_im_revolver", werkzeuge=", ".join(ohne)))
+        self.ohne_platz.setVisible(bool(ohne))
+        self._bild_neu(auf)
+
+    def _gewaehlt(self, platz, wahl, index):
+        """Das gewählte Werkzeug zieht auf `platz` um – ein Schritt Rückgängig."""
+        nummer = wahl.itemData(index)
+        if nummer is None or not 0 <= nummer < len(self.eintraege):
+            self.fuellen()  # „– frei –“ auf einem belegten Platz: bleibt, wie es war
+            return
+        self.lege_um(self.eintraege[nummer], platz.Platz)
+
+    def lege_um(self, eintrag, nummer):
+        """Legt das Werkzeug `eintrag` auf den Platz `nummer` (bestueckung.lege_um)."""
+        if eintrag.nummern == [nummer]:
+            return
+        dokument = self.job.Document
+        dokument.openTransaction(tr("bs.schritt"))
+        try:
+            bs.lege_um(self.job, eintrag, nummer, self.bibliothek)
+        except Exception:
+            dokument.abortTransaction()
+            raise
+        dokument.commitTransaction()
+        dokument.recompute()
+        self.fuellen()
+
+    # --- 3D-Ansicht -----------------------------------------------------------------
+
+    def _bild_neu(self, auf):
+        self._bild_weg()
+        ansicht = gui_abfahren.ansicht_von(self.assembly.Document)
+        if ansicht is None or not self.plaetze:
+            return
+        self.bild = Revolverbild(ansicht, self.plaetze, auf, self.bibliothek)
+
+    def _bild_weg(self):
+        if self.bild is not None:
+            self.bild.weg()
+            self.bild = None
+
+    def hinsehen(self):
+        if self.bild is not None:
+            self.bild.hinsehen()
+
+    def _maschine_merken(self):
+        """Merkt die Maschinendatei am Job (D-20) – ein Schritt Rückgängig, wenn es eine
+        andere ist als bisher."""
+        job = self.job
+        pfad = self.assembly.Document.FileName
+        if not pfad or job is None or job.Document.Name not in FreeCAD.listDocuments():
+            return
+        if getattr(job, rw.EIGENSCHAFT_MASCHINE, "") == pfad:
+            rw.merke_maschine(job, pfad)  # nur noch „zuletzt benutzt“
+            return
+        job.Document.openTransaction(tr("rw.maschine.schritt"))
+        rw.merke_maschine(job, pfad)
+        job.Document.commitTransaction()
+
+
+def _bibliothek():
+    """Die Werkzeugverwaltung – oder None, wenn sie sich nicht lesen lässt: Dann heißen die
+    Werkzeuge wie in CAM, und ihre Halter fehlen im Bild."""
+    try:
+        return wz.Bibliothek.laden()
+    except (wz.BeschaedigteDatei, OSError):
+        return None
+
+
+def _satz(farbe):
+    """Ein Satz in `farbe` (QColor oder „#rrggbb“), erst verborgen."""
+    satz = QtGui.QLabel()
+    satz.setWordWrap(True)
+    satz.setStyleSheet(f"color: {farbe.name() if hasattr(farbe, 'name') else farbe};")
+    satz.hide()
+    return satz

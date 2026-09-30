@@ -474,7 +474,7 @@ def controller_name(werkzeug, einsatz, nummer=None):
     """„T3 Schruppen dynamisch“, mit eingetragenem Namen „T3 Fräser VHM 12 – Schruppen dynamisch“.
 
     Am Einsatz im Namen erkennt vorgeschlagener_einsatz() ihn wieder. `nummer`: so ruft das
-    Programm das Werkzeug auf – am Revolver der Platz (W-002 Stufe F3); ohne Angabe die
+    Programm das Werkzeug auf – am Revolver der Platz im Job (W-002 Stufe G); ohne Angabe die
     Nummer aus der Werkzeugverwaltung.
     """
     nummer = nummer or werkzeug.nummer

@@ -411,37 +411,37 @@ pruefe(
 )
 
 
-# Bestückung (W-002 Stufe F4): Solange nichts bestückt ist, steckt T2 auf P2 – kein Satz. Auf
-# P5 gesteckt, ruft der Job aber noch T2: Der Satz sagt, dass P2 frei ist und T2 auf P5 steckt.
-# Mit einem anderen Werkzeug auf P2 sagt er, welches dort steckt.
+# Bestückung je Job (W-002 Stufe G): die Plätze der Maschine für den 4-Achs-Assistenten. Ein
+# Werkzeug je Platz: kein Satz. Ein zweites Werkzeug im Job auf P2 (eine zweite Operation mit
+# eigenem Controller): Der Satz nennt beide.
+pruefe(p.platznummern() == list(range(1, 13)), f"Plätze: {p.platznummern()}")
+
+
 def bestueckungssaetze():
-    return [h for h in p.pruefe_job(job, bibliothek=b2).hinweise if "laut Bestückung" in h]
+    return [h for h in p.pruefe_job(job, bibliothek=b2).hinweise if "stecken im Job" in h]
 
 
-pruefe(not bestueckungssaetze(), f"ohne Bestückung: {bestueckungssaetze()}")
-pruefe(p.platznummer(t2, b2) == 2, f"T2 nach der Nummer: {p.platznummer(t2, b2)}")
-p5 = p.werkzeugaufnahme(5)
-m.bestuecke(ma, p.kette, p5, t2.kennung)
-pruefe(p.platznummer(t2, b2) == 5, f"T2 auf P5: {p.platznummer(t2, b2)}")
+pruefe(not bestueckungssaetze(), f"ein Werkzeug je Platz: {bestueckungssaetze()}")
+import Path.Op.Custom as PathCustom  # noqa: E402 – erst hier gebraucht
+from Path.Tool import Controller  # noqa: E402
+
+# Die Operation vor dem zweiten Controller: Mit zweien fragt FreeCAD beim Anlegen, welcher.
+op2 = PathCustom.Create("Zweite", parentJob=job)
+op2.Gcode = ["G0 X40 Y0 Z80"]
+zweiter = Controller.Create("Zweiter", toolNumber=2)
+# Ein anderes Werkzeug: Mit Nummer 2 und dem Ø von T2 hielte werkzeug_von() es für T2.
+zweiter.Tool.Diameter = 8
+job.Proxy.addToolController(zweiter)
+op2.ToolController = zweiter
+teil.recompute()
 satz = bestueckungssaetze()
 pruefe(
-    len(satz) == 1
-    and satz[0].startswith("In „Eigene“ ruft der Job T2 auf – P2 ist laut Bestückung frei")
-    and "steckt auf P5. Den Controller auf T5 stellen" in satz[0],
-    f"P2 frei: {satz}",
+    len(satz) == 1 and satz[0].startswith("Auf P2 stecken im Job mehrere Werkzeuge: "),
+    f"zwei auf P2: {satz}",
 )
-t9 = b2.neues_werkzeug()
-t9.nummer, t9.durchmesser = 9, 6.0
-m.bestuecke(ma, p.kette, p2, t9.kennung)
-satz = bestueckungssaetze()
-pruefe(
-    len(satz) == 1 and "auf P2 steckt laut Bestückung Schaftfräser Ø 6 (T9)" in satz[0],
-    f"anderes auf P2: {satz}",
-)
-m.bestuecke(ma, p.kette, p5, "")
-pruefe(p.platznummer(t2, b2) is None, "T2 steckt nach dem Entladen noch")
-satz = bestueckungssaetze()
-pruefe(len(satz) == 1 and "In „Maschine bearbeiten“" in satz[0], f"T2 nirgends: {satz}")
+zweiter.ToolNumber = 3
+teil.recompute()
+pruefe(not bestueckungssaetze(), f"auf P3 umgelegt: {bestueckungssaetze()}")
 op.ToolController.ToolNumber = 1
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)

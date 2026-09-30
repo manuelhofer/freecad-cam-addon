@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „Bestückung“: eine Revolverscheibe mit Plätzen, auf zwei davon ein Werkzeug. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <circle cx="30" cy="34" r="22" fill="#d3d7cf" stroke="#555753" stroke-width="3"/>
+  <circle cx="30" cy="34" r="6" fill="#babdb6" stroke="#555753" stroke-width="2"/>
+  <g fill="#ffffff" stroke="#555753" stroke-width="2">
+    <circle cx="30" cy="19" r="4.5"/>
+    <circle cx="43" cy="26.5" r="4.5"/>
+    <circle cx="43" cy="41.5" r="4.5"/>
+    <circle cx="30" cy="49" r="4.5"/>
+    <circle cx="17" cy="41.5" r="4.5"/>
+    <circle cx="17" cy="26.5" r="4.5"/>
+  </g>
+  <rect x="26" y="2" width="8" height="15" fill="#729fcf" stroke="#204a87" stroke-width="2"/>
+  <path d="M46 24 L60 16 L62 20 L48 28 Z" fill="#fcaf3e" stroke="#ce5c00" stroke-width="2"
+        stroke-linejoin="round"/>
+</svg>
