@@ -90,7 +90,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Spirale auf dem Teil, gerechnet mit seiner echten Form (Kugel-, Torus-,
   Konikfräser …); die Schrittweite kommt aus der Werkzeugtabelle, daneben steht
   die Kammhöhe, darunter Umdrehungen und Zeit. Wo der Schruppfräser nicht
-  hinkam (Innenecken, enge Nuten), nimmt das Schlichten vorher in Stufen ab. Die
+  hinkam (Innenecken, enge Nuten), nimmt das Schlichten vorher in Stufen ab. Vor
+  jeder Wand (Absatz, Flanke einer Nut) hält die Spirale eine Umdrehung an – so
+  kommt der Fräser rundum bis an die Wand. Die
   Simulation trägt die Stange mit der Form des Fräsers ab, die
   Kollisionsprüfung sieht den Kugelfräser als Kugel. Flächen wählen folgt.
 

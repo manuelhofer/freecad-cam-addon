@@ -443,7 +443,8 @@ bisherigen Fräsern nimmt, sieht im Assistenten den gelben Satz und im
 Prüffenster „nicht radial“. **Vorschlag A (Empfehlung):** so lassen – der Satz
 sagt, was fehlt, und mit D-41 ist es ein Klick. **B:** Beim Laden der
 Beispiel-Drehmaschine anbieten, den Fräsern ohne Halter „VDI30 angetrieben
-radial“ zu geben.
+radial“ zu geben. *So gelassen (A) – Manuel: „Egal du musst alles bauen,
+unnötige Frage“; wer B will, sagt es.*
 
 ### D-46 Der Revolver ist wieder schwer zu erkennen (klein)
 **Heute:** Seit 0.29 sitzen die Aufnahmen als Ringe an der Stirn der

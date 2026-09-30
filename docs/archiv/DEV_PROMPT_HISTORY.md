@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-24 version-0-29-1
+
+### EINGELESEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/durchsicht_bedienbarkeit.md`
+  Abschnitt 7, die Einträge P-2026-09-30-19 bis -23.
+
+### DATEIEN
+- `package.xml`, `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/durchsicht_bedienbarkeit.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Nach Updates schauen“ bietet 0.29.1 an. Welle mit Absatz, „Rundum schruppen“ und
+„Rundum schlichten“ auf der Beispiel-Drehmaschine → „Auf der Maschine prüfen“ → ans Ende:
+überall grün, hinter dem Absatz nichts Rotes mehr.
+
+### DONE
+- Version 0.29.1 mit der Durchsicht 2: Ringgang vor jeder Wand, „T3 öffnen …“ im gelben
+  Satz, Stationen am Revolver, Drehung 0, Längen-Texte.
+- D-45 so gelassen (Empfehlung A) und so vermerkt.
+- README (Ringgang) und Stand nachgezogen.
+
+### TEST
+- Voller Lauf `scripts/alle_tests.sh` in FreeCAD 1.1.3 und im Wochen-Build – siehe
+  Push-Nachricht.
+
+### NEXT
+- Push; danach W-003 V4 Flächen wählen (Manuels Antworten).
+
 ## P-2026-09-30-23 laenge-feldname
 
 ### EINGELESEN
