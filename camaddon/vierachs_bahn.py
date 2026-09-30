@@ -30,10 +30,11 @@ alle SCHRITT_PHI_SCHLICHTEN Grad ein Punkt. Wo die Bahn sich zwischen zwei
 Punkten nach außen wölbt, hebt sie sich um den Sehnenfehler; gerade Stücke fasst
 sie zusammen, solange die Bahn höchstens BAHN_TOLERANZ über den Punkten bleibt
 und nie darunter. Vor und hinter dem Teil bleibt die Spitze auf der Tiefe seines
-Endes, wie beim Schruppen. Mit dem Rest nach dem
-Schruppen (restmaterial) schneidet sie nirgends tiefer als den Radius des
-Schlichtfräsers (mindestens das Aufmaß des Schruppens plus 0,5 mm) – was in einer
-engen Stelle tiefer stehen blieb, bleibt stehen und wird gemeldet.
+Endes, wie beim Schruppen. Mit dem Rest nach dem Schruppen (restmaterial)
+schneidet sie nie tiefer als den Radius des Schlichtfräsers (mindestens das
+Aufmaß des Schruppens plus 0,5 mm): Wo mehr stehen blieb – in einer Innenecke,
+einer engen Nut –, fährt sie vorher in Stufen, nur über den Umdrehungen, wo es
+nötig ist.
 
 Gerechnet wird in Rundachs-Koordinaten (a, r, φ) wie in vierachs_huelle.
 befehle() macht daraus Path-Befehle: X, Y und Z der Spitze im Rahmen der
@@ -113,8 +114,8 @@ class Schlichtbahn:
     r_min: float  # so nah kommt die Spitze der Achse (mm)
     kammhoehe: float  # so hoch bleibt zwischen zwei Bahnen stehen (auf ebener Fläche, mm)
     hinten_frei: float = 0.0  # so viel vom hinteren Ende des Teils erreicht der Fräser nicht
-    stehen: float = 0.0  # so viel bleibt in engen Stellen stehen (mm) – der Schutz
-    grenze: float = 0.0  # so tief schneidet Schlichten höchstens (mm)
+    vorstufen: int = 0  # so oft fährt es vor, wo das Schruppen mehr stehen ließ
+    grenze: float = 0.0  # so tief schneidet Schlichten je Stufe höchstens (mm)
 
 
 def rillenhoehe(fraeser_radius, eckradius, steigung):
@@ -264,33 +265,81 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     r = huelle[umdrehungen - k // je_umdrehung, k % je_umdrehung]
     r = np.where(np.isfinite(r), r, w.stange_radius)  # trifft rundum nichts: bleibt oben
     r = np.maximum(r, radius)  # nicht näher an die Achse
-    stehen, grenze = 0.0, 0.0
+    # Wo das Schruppen mehr stehen ließ als die Grenze (eine Innenecke, eine enge Nut), fährt
+    # Schlichten vorher in Stufen, von oben nach unten – jede höchstens die Grenze unter der
+    # davor, nur wo es nötig ist.
+    stufen, grenze = [], 0.0
     if w.rest is not None:
         grenze = max(radius, w.aufmass_schruppen + SCHLICHT_ZUGABE)
-        tiefste = _nicht_tiefer(w.rest, form, grenze, a, k * math.radians(schritt_phi))
-        # Gemeldet wird, was über dem Teil stehen bleibt – im Überlauf dahinter ließ die
-        # Schruppspirale an ihrem Ende einen Keil stehen (dort wird abgestochen).
-        ueber_teil = (a >= teil_hinten) & (a <= teil_vorne)
-        if ueber_teil.any():
-            stehen = max(0.0, float(np.max((tiefste - r)[ueber_teil])))
-        r = np.maximum(r, tiefste)
-    r = r + _sehnenfehler(r)
-    punkte = [Punkt(True, a_anfang, w.stange_radius + w.sicherheit, 0.0)]
-    winkel = k * schritt_phi
-    for i in _zusammengefasst(r, BAHN_TOLERANZ, int(round(HOECHSTENS_GRAD / schritt_phi))):
-        punkte.append(Punkt(False, float(a[i]), float(r[i]), float(winkel[i])))
+        oben = _nicht_tiefer(w.rest, form, 0.0, a, k * math.radians(schritt_phi))
+        anzahl_stufen = int(math.ceil(max(float(np.max(oben - r)), 0.0) / grenze - 1e-9))
+        stand = oben.copy()  # bis hier steht noch Material über der Spitze, je Punkt
+        for stufe in range(1, anzahl_stufen):
+            hoehe = np.maximum(r, oben - stufe * grenze)
+            noetig = hoehe > r + BAHN_TOLERANZ
+            if not noetig.any():
+                continue
+            stuecke = _abschnitte(noetig, np.maximum(stand - hoehe, 0.0), je_umdrehung)
+            stufen.append((hoehe, stuecke))
+            for von, bis in stuecke:
+                np.minimum(stand[von : bis + 1], hoehe[von : bis + 1], out=stand[von : bis + 1])
     sicher = w.stange_radius + w.sicherheit
-    punkte.append(Punkt(True, float(a[-1]), sicher, float(winkel[-1])))
-    punkte.append(Punkt(True, a_anfang, sicher, float(winkel[-1])))
+    abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    winkel = k * schritt_phi
+    punkte = [Punkt(True, a_anfang, sicher, 0.0)]
+    umdrehungen_vor = 0
+    for r_stufe, stuecke in stufen:
+        for von, bis in stuecke:
+            _spirale(punkte, a, r_stufe, winkel, von, bis, sicher, abstand)
+            umdrehungen_vor += (bis - von) / je_umdrehung
+    _spirale(punkte, a, r, winkel, 0, anzahl, sicher, abstand)
+    punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
     return Schlichtbahn(
         punkte,
-        anzahl / je_umdrehung,
+        anzahl / je_umdrehung + umdrehungen_vor,
         float(np.min(r)),
         form.kammhoehe(s),
         hinten_frei,
-        stehen,
+        len(stufen),
         grenze,
     )
+
+
+def _abschnitte(noetig, tiefe, je_umdrehung):
+    """[(von, bis)] Punktnummern der Stücke einer Stufe: Nötige Punkte, die höchstens eine
+    Umdrehung auseinanderliegen, fährt ein Stück am Stück. Es beginnt in der Umdrehung vor
+    seinem ersten nötigen Punkt dort, wo es am wenigsten tief eintaucht (`tiefe` je Punkt) –
+    von denen der letzte – und endet am letzten nötigen Punkt."""
+    nummern = np.flatnonzero(noetig)
+    luecken = np.flatnonzero(np.diff(nummern) > je_umdrehung)
+    anfaenge = np.concatenate([nummern[:1], nummern[luecken + 1]])
+    enden = np.concatenate([nummern[luecken], nummern[-1:]])
+    ergebnis = []
+    frei = 0  # ab hier darf das nächste Stück beginnen
+    for erster, letzter in zip(anfaenge.tolist(), enden.tolist(), strict=True):
+        fruehestens = max(frei, erster - je_umdrehung)
+        fenster = tiefe[fruehestens : erster + 1]
+        flach = np.flatnonzero(fenster <= fenster.min() + BAHN_TOLERANZ)
+        ergebnis.append((fruehestens + int(flach[-1]), letzter))
+        frei = letzter + 1
+    return ergebnis
+
+
+def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand):
+    """Hängt das Stück von..bis der Spirale an `punkte`: im Eilgang über den Anfang, hinein,
+    die Spirale mit Sehnenfehler und zusammengefasst, radial hinaus. Der Winkel zählt weiter,
+    wo die Rundachse steht – sie dreht nicht zurück."""
+    weiter = punkte[-1].phi
+    versatz = 360.0 * math.ceil((weiter - winkel[von]) / 360.0 - 1e-9)
+    stueck = r[von : bis + 1]
+    stueck = stueck + _sehnenfehler(stueck)
+    anfahren = Punkt(True, float(a[von]), sicher, float(winkel[von] + versatz))
+    if anfahren != punkte[-1]:
+        punkte.append(anfahren)
+    for i in _zusammengefasst(stueck, BAHN_TOLERANZ, abstand):
+        j = von + i
+        punkte.append(Punkt(False, float(a[j]), float(stueck[i]), float(winkel[j] + versatz)))
+    punkte.append(Punkt(True, float(a[bis]), sicher, float(winkel[bis] + versatz)))
 
 
 def _auffuellen(huelle, anfang_je_winkel, schritt, teil_vorne, teil_hinten):

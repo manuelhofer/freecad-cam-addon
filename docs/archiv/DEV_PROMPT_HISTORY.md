@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-06 schlichten-in-stufen
+
+### EINGELESEN
+- NEXT aus P-2026-09-30-05: Auf der Welle mit Absatz ließ das Schruppen in der
+  Innenecke schraubenförmige Keile bis zur Höhe des Absatzes stehen; der Schutz
+  hielt den Kugelfräser dort oben („bis 7,3 mm bleiben stehen“).
+- `camaddon/vierachs_bahn.py` (`schlichten`, `_nicht_tiefer`),
+  `camaddon/vierachs_schlichten.py`, die Tests und das Szenario zum Schlichten.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `camaddon/vierachs_schlichten.py`,
+  `translations/de.json`, `translations/en.json`, `help/de/vierachs.html`,
+  `help/en/vierachs.html`, `tests/test_vierachs_schlichten.py`,
+  `tests/test_vierachs_schlichten_op.py`,
+  `tests/gui/szenario_vierachs_schlichten.py`,
+  `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle mit Absatz, „Rundum schruppen“ T1 Schaftfräser Ø 12 und „Rundum
+schlichten“ T2 Kugelfräser Ø 6 anlegen: Das Ausgabefenster sagt „… nimmt
+Schlichten vorher in Stufen ab (Vorstufen: 3) – je höchstens 3,00 mm tief“, an
+der Operation steht „Vorstufen 3“; in der Nut, in die der Schruppfräser nicht
+kommt, schlichtet die Bahn bis auf den Grund.
+
+### DONE
+- Was mehr als die Grenze (Radius des Schlichtfräsers, mindestens Aufmaß des
+  Schruppens + 0,5 mm) stehen blieb, nimmt Schlichten vorher in Stufen ab, von
+  oben nach unten, jede höchstens die Grenze unter der davor; danach die
+  Schlichtspirale ganz bis aufs Teil. Eine Stufe fährt nur, wo sie etwas zu tun
+  hat (nötige Stellen, die höchstens eine Umdrehung auseinanderliegen, am
+  Stück), dazwischen Eilgang über der Stange; die Rundachse dreht nur vorwärts.
+  Eingetaucht wird in der Umdrehung vor der ersten nötigen Stelle dort, wo am
+  wenigsten Material steht.
+- `Schlichtbahn.vorstufen` statt `stehen`; an der Operation „Vorstufen“ statt
+  „Bleibt stehen“ (beide nie ausgeliefert), ein Satz im Ausgabefenster; die
+  Umdrehungen zählen die Stufen mit.
+- Hilfe de/en: ein Absatz zu den Stufen – auch, dass die Zeit im Assistenten
+  ohne sie rechnet (403 statt 365 Umdrehungen auf der Welle mit Absatz).
+- Gefunden beim Nachlesen: Die erste Fassung fuhr die Stufen in falscher
+  Reihenfolge (die tiefste zuerst – 9 mm statt 3 mm tief). Der Test mit einer
+  Stufe konnte es nicht sehen; neu ist der Kugelfräser Ø 2 in der Nut mit fünf
+  Stufen 19,3 … 15,3 mm – mit der falschen Reihenfolge schlägt er an.
+
+### TEST
+- FreeCAD 1.1.3: `test_vierachs_schlichten` (Nut: eine Stufe auf 17,3 mm nur
+  über dem Grund, eingetaucht über 18,2 mm, danach bis 15,0 mm; Ø 2: fünf
+  Stufen von oben nach unten; C dreht nie zurück), `test_vierachs_schlichten_op`,
+  `test_sprache`, `test_hilfe` grün; `szenario_vierachs_schlichten` grün
+  (Vorstufen 3).
+
+### NEXT
+- V5e: Simulation und Kollision mit der echten Form des Fräsers.
+
 ## P-2026-09-30-05 assistent-schlichten
 
 ### EINGELESEN

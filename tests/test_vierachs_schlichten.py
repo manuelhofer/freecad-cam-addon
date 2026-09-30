@@ -4,7 +4,8 @@
 # Bahntoleranz darüber; vorne und hinten auf der Tiefe am Ende des Teils, die Spirale endet
 # um den Überlauf hinter dem Teil. Torus mit Aufmaß. Dann der Schutz: In einer Nut, die
 # schmaler ist als der Schruppfräser, blieb nach dem Schruppen alles stehen – der Kugelfräser
-# schneidet dort höchstens seinen Radius tief, der Rest wird gemeldet. Dazu die Zeitgrenze.
+# fährt dort zuerst eine Stufe, höchstens seinen Radius tief, dann bis auf den Grund. Dazu
+# die Zeitgrenze.
 import math
 import os
 import sys
@@ -71,15 +72,29 @@ def erlaubt(umriss, form, a, soll):
     return np.where(steigung * 0.01 < 0.05, grenze, math.inf)
 
 
-def dicht(bahn):
-    """Die Vorschubpunkte der Bahn wieder alle 0,5°: (a, r) – so fährt die Steuerung."""
-    vorschub = [p for p in bahn.punkte if not p.eilgang]
+def stuecke(bahn):
+    """Die Stücke der Bahn im Vorschub, zwischen zwei Eilgängen: [[Punkt, …], …]."""
+    ergebnis, stueck = [], []
+    for punkt in bahn.punkte:
+        if punkt.eilgang:
+            if stueck:
+                ergebnis.append(stueck)
+            stueck = []
+        else:
+            stueck.append(punkt)
+    return ergebnis + ([stueck] if stueck else [])
+
+
+def dicht(bahn, nur=None):
+    """Die Vorschubpunkte der Bahn wieder alle 0,5°: (a, r) – so fährt die Steuerung; `nur`:
+    nur diese Stücke (stuecke())."""
     a, r = [], []
-    for von, nach in zip(vorschub, vorschub[1:], strict=False):
-        anzahl = max(1, int(round((nach.phi - von.phi) / vb.SCHRITT_PHI_SCHLICHTEN)))
-        t = np.arange(anzahl) / anzahl
-        a.append(von.a + t * (nach.a - von.a))
-        r.append(von.r + t * (nach.r - von.r))
+    for stueck in nur if nur is not None else stuecke(bahn):
+        for von, nach in zip(stueck, stueck[1:], strict=False):
+            anzahl = max(1, int(round((nach.phi - von.phi) / vb.SCHRITT_PHI_SCHLICHTEN)))
+            t = np.arange(anzahl) / anzahl
+            a.append(von.a + t * (nach.a - von.a))
+            r.append(von.r + t * (nach.r - von.r))
     return np.concatenate(a), np.concatenate(r)
 
 
@@ -109,7 +124,8 @@ vorschub = [p for p in bahn.punkte if not p.eilgang]
 pruefe(abs(vorschub[-1].a - a_ende) < 0.35 / 720 + 1e-9, f"Ende bei {vorschub[-1].a}")
 pruefe(abs(bahn.umdrehungen - (6.0 - a_ende) / 0.35) < 1 / 720, f"{bahn.umdrehungen} Umdrehungen")
 pruefe(abs(bahn.kammhoehe - (3 - math.sqrt(9 - 0.175**2))) < 1e-12, f"Kammhöhe {bahn.kammhoehe}")
-pruefe(bahn.stehen == 0.0 and bahn.hinten_frei == 0.0, "ohne Rest: nichts bleibt stehen")
+pruefe(bahn.vorstufen == 0 and bahn.hinten_frei == 0.0, "ohne Rest: Stufen oder hinten frei")
+pruefe(len(stuecke(bahn)) == 1, f"{len(stuecke(bahn))} Stücke ohne Rest")
 a, r = dicht(bahn)
 soll = im_schnitt(umriss, kugel, np.clip(a, -42.0, 0.0))  # davor und dahinter: am Ende
 darueber = r - soll
@@ -187,19 +203,69 @@ mit = vb.schlichten(
     ),
 )
 a_ohne, r_ohne = dicht(ohne)
-a_mit, r_mit = dicht(mit)
 tief_ohne = r_ohne[(a_ohne > -21) & (a_ohne < -19)].min()
-tief_mit = r_mit[(a_mit > -21) & (a_mit < -19)].min()
 pruefe(abs(tief_ohne - 15.0) < 0.02, f"ohne Schutz in die Nut: {tief_ohne:.3f}")
-pruefe(mit.grenze == 3.0, f"Grenze {mit.grenze}")
-# Stehen blieb Ø 40 + Aufmaß: höchstens 3 mm darunter, also nicht unter 17,3 mm.
-pruefe(17.2 <= tief_mit <= 17.45, f"mit Schutz in der Nut: {tief_mit:.3f}")
-pruefe(2.0 <= mit.stehen <= 2.4, f"es bleiben {mit.stehen:.3f} mm stehen")
+pruefe(mit.grenze == 3.0 and mit.vorstufen == 1, f"Grenze {mit.grenze}, {mit.vorstufen} Stufen")
+teile = stuecke(mit)
+pruefe(len(teile) == 2, f"{len(teile)} Stücke statt Stufe und Schlichten")
+# Die Stufe: nur wo der Kugelfräser mehr als 3 mm unter den Rest käme – am Grund der Nut
+# (a −21 … −19; daneben hebt ihn die senkrechte Wand gleich über 17,3 mm) –, und dort nicht
+# tiefer als Ø 40 + Aufmaß − 3 mm = 17,3 mm. Sie taucht eine Umdrehung vorher ein, wo die
+# Wand ihn noch hebt – nicht am Grund.
+a_stufe, r_stufe = dicht(mit, teile[:1])
+pruefe(
+    -21.1 < a_stufe.min() <= -21 and -19 <= a_stufe.max() < -18.5,
+    f"Stufe von {a_stufe.min()} bis {a_stufe.max()}",
+)
+tief_stufe = r_stufe[(a_stufe > -21) & (a_stufe < -19)].min()
+pruefe(17.2 <= tief_stufe <= 17.45, f"Stufe in der Nut: {tief_stufe:.3f}")
+pruefe(teile[0][0].r >= 18.2, f"Stufe taucht bis {teile[0][0].r:.3f} ein")
+# Danach das Schlichten bis auf den Grund, neben der Nut auf Ø 40.
+a_mit, r_mit = dicht(mit, teile[1:])
+tief_mit = r_mit[(a_mit > -21) & (a_mit < -19)].min()
+pruefe(abs(tief_mit - 15.0) < 0.02, f"geschlichtet in der Nut: {tief_mit:.3f}")
 aussen = (a_mit > -14) & (a_mit < -2)
 pruefe(
     float(np.max(np.abs(r_mit[aussen] - 20.0))) < 0.02,
     f"neben der Nut: {r_mit[aussen].min():.3f} … {r_mit[aussen].max():.3f}",
 )
+mehr = mit.umdrehungen - ohne.umdrehungen
+pruefe(abs(mehr - (a_stufe.max() - a_stufe.min()) / 0.35) < 1.01, f"Umdrehungen der Stufe: {mehr}")
+# Die Rundachse dreht nie zurück, auch zwischen den Stücken.
+winkel = [p.phi for p in mit.punkte]
+pruefe(all(b >= a - 1e-9 for a, b in zip(winkel, winkel[1:], strict=False)), "C dreht zurück")
+# Mehrere Stufen: Kugelfräser Ø 2, Grenze 1 mm – von oben nach unten 19,3 … 15,3 mm, jede
+# höchstens 1 mm unter der davor, dann der Grund. Jede taucht am Rand ein, wo die Wand den
+# Fräser über 19 mm hebt.
+klein = vb.schlichten(
+    netz,
+    LAENGS,
+    RADIAL,
+    vb.Schlichtwerte(
+        ff.kugel(1.0),
+        25.0,
+        0.35,
+        0.0,
+        1.0,
+        -70.0,
+        rest=(stange.a, stange.phi, stange.r),
+        aufmass_schruppen=0.3,
+    ),
+)
+pruefe(klein.grenze == 1.0 and klein.vorstufen == 5, f"Ø 2: {klein.vorstufen} Stufen")
+tiefen = []
+for teil in stuecke(klein):
+    a_t, r_t = dicht(klein, [teil])
+    grund = (a_t > -22.5) & (a_t < -17.5)
+    tiefen.append(round(float(r_t[grund].min()), 2) if grund.any() else None)
+soll = [19.3, 18.3, 17.3, 16.3, 15.3, 15.0]
+pruefe(
+    len(tiefen) == len(soll)
+    and all(abs(t - s) <= 0.15 for t, s in zip(tiefen, soll, strict=False)),
+    f"Ø 2 in der Nut: {tiefen}",
+)
+eintauchen = [teil[0].r for teil in stuecke(klein)[:-1]]
+pruefe(min(eintauchen) >= 19.0, f"Ø 2 taucht ein bis {min(eintauchen):.3f}")
 
 # --- Zeitgrenze: Kugelfräser Ø 6 auf der Welle Ø 60 × 100 mit Nocken, 0,35 mm ------------
 teil = (

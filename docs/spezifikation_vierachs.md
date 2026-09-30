@@ -773,6 +773,24 @@ die Abstände gelten für beide.
     springt die Hüllfläche, dort dringt die Gerade nur um Tausendstel längs
     ein. Welle mit Absatz, Kugel Ø 6, 0,35 mm: 36 966 Punkte in 1,1 s; Welle
     mit Nocken 1,3 s.
+  - *Geändert (P-2026-09-30-06):* Was mehr als die Grenze stehen blieb, bleibt
+    nicht mehr stehen. Schlichten nimmt es vorher in Stufen ab, von oben nach
+    unten – jede höchstens die Grenze unter der davor (die erste unter dem
+    Rest) –, bis nur das Schlichten übrig ist. Eine Stufe fährt die Spirale
+    nur, wo sie etwas zu tun hat: nötige Stellen, die höchstens eine Umdrehung
+    auseinanderliegen, am Stück; dazwischen Eilgang über der Stange, die
+    Rundachse dreht nur vorwärts. Eingetaucht wird in der Umdrehung vor der
+    ersten nötigen Stelle dort, wo am wenigsten Material steht. Grund: Die
+    Schruppspirale lässt in jeder Innenecke Keile bis zur Höhe des Absatzes
+    stehen (sie rückt je Umdrehung den Vorschub vor, der Fräser kommt nur
+    zwischen zwei Umdrehungen ganz an die Wand) – stehen lassen hieße, an
+    jedem Absatz nachzuarbeiten. An der Operation steht „Vorstufen“ statt
+    „Bleibt stehen“, ein Satz im Ausgabefenster nennt ihre Zahl. Welle mit
+    Nut 8 mm (der Schruppfräser Ø 12 kommt nicht hinein): Kugel Ø 6 fährt
+    eine Stufe auf 17,3 mm, nur über dem Grund der Nut, und taucht am Rand
+    ein, wo die Wand sie über 18,2 mm hebt; Kugel Ø 2 fährt fünf, 19,3 bis
+    15,3 mm. Welle mit Absatz im Assistenten: 3 Stufen, 403 statt 365
+    Umdrehungen.
 - **V5c – Operation** „Rundum schlichten T2“
   (`vierachs_operation.RundumSchlichten`, der Name bleibt in jeder Datei):
   Eigenschaften Schrittweite, Aufmaß, Überlauf, Abstand zum Futter,
@@ -788,7 +806,8 @@ die Abstände gelten für beide.
   Gefunden: Hinter dem Teil lässt die Schruppspirale an ihrem Ende einen Keil
   stehen (die letzte Umdrehung läuft nicht rundum auf dem Ende); ein Fräser,
   der weiter hinter das Teil reicht, bleibt dort oben – gemeldet wird nur, was
-  über dem Teil stehen bleibt.
+  über dem Teil stehen bleibt. Seit P-2026-09-30-06 nimmt Schlichten auch
+  diesen Keil in Stufen ab (V5b).
 - **V5d – Assistent:** In Schritt 2 unter „Rundum schruppen“ der Haken
   „Rundum schlichten“: Fräser (alle aus V5a mit Schnittwerten, vorgewählt ein
   Kugelfräser), Einsatz (vorgewählt „Schlichten“), Schrittweite (grau: ae des
@@ -807,8 +826,9 @@ die Abstände gelten für beide.
   „Rundum schlichten“ ist vorgewählt, wenn ein Fräser einen Einsatz
   „Schlichten“ hat – ohne einen bleibt es aus, wie bisher. Die Vorschau des
   Schlichtens rechnet grob (0,05 mm Netz, alle 2° ein Punkt, ohne den Rest
-  nach dem Schruppen): „→ 365 Umdrehungen, etwa 1 h 35 min“ in Bruchteilen
-  einer Sekunde; die Operation rechnet dann genau. Controller und Operationen
+  nach dem Schruppen, also auch ohne Stufen): „→ 365 Umdrehungen, etwa
+  1 h 35 min“ in Bruchteilen einer Sekunde; die Operation rechnet dann genau.
+  Controller und Operationen
   beider Bearbeitungen sind ein Schritt Rückgängig. Beim Ändern des
   Schlichtens ist das Schruppen ausgeblendet.
 - **V5e – Simulation und Kollision:** Abtrag und Farben (V3g) auch für

@@ -8,8 +8,8 @@ aus dem ToolBit des Controllers (werkzeuge_aus_cam, fraeserform), so wie CAM dam
 
 Was die „Rundum schruppen“ des Jobs stehen ließen, rechnet sie mit: deren Bahnen trägt sie
 von der Stange ab (restmaterial), und tiefer als den Radius ihres Fräsers schneidet sie
-nirgends. Ohne „Rundum schruppen“ im Job geht sie nicht – sie nähme die ganze Stange in
-einem Zug.
+nie – wo mehr stehen blieb, fährt sie in Stufen vor. Ohne „Rundum schruppen“ im Job geht
+sie nicht – sie nähme die ganze Stange in einem Zug.
 
 Modul- und Klassenname stehen in jeder gespeicherten Datei – sie bleiben. Der Modulname ist
 zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operationsart): Einsatz
@@ -80,13 +80,13 @@ class RundumSchlichten(PathOp.ObjectOp):
             + (
                 ("App::PropertyLength", "Kammhoehe", tr("vs.eigenschaft.kammhoehe")),
                 ("App::PropertyFloat", "Umdrehungen", tr("vs.eigenschaft.umdrehungen")),
-                ("App::PropertyLength", "BleibtStehen", tr("vs.eigenschaft.bleibt_stehen")),
+                ("App::PropertyInteger", "Vorstufen", tr("vs.eigenschaft.vorstufen")),
             ),
         )
 
     @staticmethod
     def _editormodi(obj):
-        for name in ("Kammhoehe", "Umdrehungen", "BleibtStehen"):
+        for name in ("Kammhoehe", "Umdrehungen", "Vorstufen"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         if "Workplane" in obj.PropertiesList:  # Wochen-Build: die Bahn dreht selbst
             obj.setEditorMode("Workplane", 2)
@@ -103,9 +103,17 @@ class RundumSchlichten(PathOp.ObjectOp):
             return
         obj.Kammhoehe = bahn.kammhoehe
         obj.Umdrehungen = round(bahn.umdrehungen, 1)
-        obj.BleibtStehen = round(bahn.stehen, 3)
-        for hinweis in hinweise(bahn):
+        obj.Vorstufen = bahn.vorstufen
+        if bahn.hinten_frei > 0:
+            from .reichweite import weg_text
+
+            hinweis = tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
             FreeCAD.Console.PrintWarning(f"{obj.Label}: {hinweis}\n")
+        if bahn.vorstufen:
+            from .reichweite import weg_text
+
+            hinweis = tr("vb.vorstufen", stufen=bahn.vorstufen, grenze=weg_text(bahn.grenze))
+            FreeCAD.Console.PrintMessage(f"{obj.Label}: {hinweis}\n")
         self.commandlist.extend(
             vb.befehle(
                 bahn,
@@ -117,18 +125,6 @@ class RundumSchlichten(PathOp.ObjectOp):
                 obj.QuerAufNull,
             )
         )
-
-
-def hinweise(bahn):
-    """Die Sätze zur Bahn: was hinten nicht erreicht wird, was in engen Stellen stehen bleibt."""
-    from .reichweite import weg_text
-
-    ergebnis = []
-    if bahn.hinten_frei > 0:
-        ergebnis.append(tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei)))
-    if bahn.stehen > 0.01:
-        ergebnis.append(tr("vb.stehen", tiefe=weg_text(bahn.stehen), grenze=weg_text(bahn.grenze)))
-    return ergebnis
 
 
 def form_des_controllers(tc):

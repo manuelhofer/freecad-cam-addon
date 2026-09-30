@@ -114,7 +114,7 @@ pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-103.5)) < 0.001, "hinter
 kamm = 3 - math.sqrt(9 - 0.15**2)
 pruefe(abs(op.Kammhoehe.Value - kamm) < 1e-9, f"Kammhöhe {op.Kammhoehe}")
 pruefe(abs(op.Umdrehungen - (1 + 3 + 2 + 103.5) / 0.3) < 0.1, f"Umdrehungen {op.Umdrehungen}")
-pruefe(op.BleibtStehen.Value == 0.0, f"bleibt stehen: {op.BleibtStehen}")
+pruefe(op.Vorstufen == 0, f"Vorstufen: {op.Vorstufen}")
 pruefe(op.getEditorMode("Kammhoehe") == ["ReadOnly"], "Kammhöhe änderbar")
 
 # --- Ändern: der Torus T3, andere Werte; der vorgeschlagene Name folgt dem Werkzeug ------
@@ -125,7 +125,6 @@ schnitte = [b for b in op.Path.Commands if b.Name == "G1"]
 ueber = [b.Parameters["X"] for b in schnitte if -100 <= b.Parameters["Z"] <= 0]
 pruefe(30.099 <= min(ueber) <= 30.11, f"Torus mit Aufmaß 0,1: {min(ueber)}")
 pruefe(op.Kammhoehe.Value == 0.0, f"Torus-Kammhöhe unter der Scheibe: {op.Kammhoehe}")
-pruefe(op.BleibtStehen.Value == 0.0, f"Torus: es bleibt {op.BleibtStehen} stehen")
 vs.aendere(op, tc5, schrittweite=0.2, aufmass=0.0)
 doc.recompute()
 pruefe("Form" in op.Path.Commands[1].Name, f"Gewindefräser: {op.Path.Commands[1].Name}")

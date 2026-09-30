@@ -144,6 +144,9 @@ def schritte(h):
     if schlichten is None:
         return
     h.pruefe(schlichten.Umdrehungen > 100, f"Umdrehungen: {schlichten.Umdrehungen}")
+    # In der Innenecke am Absatz ließ die Schruppspirale Keile stehen: Schlichten fährt dort
+    # vorher in Stufen, je höchstens den Radius des Kugelfräsers tief.
+    h.pruefe(schlichten.Vorstufen >= 1, f"Vorstufen: {schlichten.Vorstufen}")
     h.pruefe(abs(schlichten.Schrittweite.Value - 0.3) < 1e-9, f"{schlichten.Schrittweite}")
 
     # --- Doppelklick aufs Schlichten: ändern --------------------------------------------------
