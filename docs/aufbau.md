@@ -186,10 +186,11 @@ frei, sobald die stabile Version sie bekommt.
 
 - **Einmal einrichten:** `scripts/testumgebung_einrichten.sh` installiert
   beide FreeCAD-Versionen sowie black und ruff.
-- **Vor jedem Push:** `scripts/alle_tests.sh` – black und ruff, dann in beiden
+- **Alles:** `scripts/alle_tests.sh` – black und ruff, dann in beiden
   Versionen die Prüfungen ohne Fenster (`tests/test_*.py`) und die Szenarien
   mit Oberfläche (`tests/gui/szenario_*.py`). Mit `OHNE_OBERFLAECHE=1` laufen
-  nur die schnellen Prüfungen.
+  nur die schnellen Prüfungen. Wann das nötig ist und wann die Prüfungen zum
+  geänderten Teil reichen: `docs/arbeitsregeln.md`, Abschnitt 5.
 - **Eine Prüfung ohne Fenster** ist ein Skript für FreeCADCmd. Es endet mit
   der Zeile `OK <datei>`; FreeCADCmd meldet eine Ausnahme nicht zuverlässig
   über den Rückgabewert. `UEBERSPRUNGEN <datei>: Grund` ist nur erlaubt, wenn

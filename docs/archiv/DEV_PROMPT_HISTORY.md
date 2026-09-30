@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-40 testregel
+
+### EINGELESEN
+- Manuel, 2026-09-30: „Laufen die immernoch... Das mit den testen .. ist immer noch viel....
+  Muss das wirklich sein??“ – und auf die Auswahl: „Ich habe damals auch gesagt wenn DU sie
+  für nötig hältst ...... Ich persönlich benötige keine Tests solange Ales funktioniert“.
+- `CLAUDE.md` (Pushen), `docs/arbeitsregeln.md` Abschnitt 5, `CHATSTART.md`, `docs/aufbau.md`.
+
+### DATEIEN
+- `CLAUDE.md`, `docs/arbeitsregeln.md`, `CHATSTART.md`, `docs/aufbau.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Regeln sagen: Vor einem Push laufen die Prüfungen zum geänderten Teil; der volle Lauf in
+beiden Versionen nur, wenn er nötig ist (gemeinsamer Kern, neue FreeCAD-Version, Version mit
+vielen Änderungen) – und darf auch nach dem Push laufen.
+
+### DONE
+- Neue Regel wie oben; ein voller Lauf dauerte zuletzt rund 40 Minuten, die gezielten
+  Prüfungen Minuten.
+
+### TEST
+- Reine Doku, kein Testlauf.
+
+### NEXT
+- –
+
 ## P-2026-09-30-39 f-in-jedem-satz
 
 ### EINGELESEN

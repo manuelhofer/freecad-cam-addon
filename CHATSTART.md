@@ -25,8 +25,9 @@ der CAM-Workbench. Kein eigener C++-Code.
   Oberfläche auf Deutsch und Englisch, weitere Sprachen über eine einfache
   Übersetzungsdatei. Details: `docs/arbeitsregeln.md`, Abschnitt 8.
 - **Zwei FreeCAD-Versionen:** die aktuelle **stabile** (derzeit 1.1.3, die
-  Manuel installiert hat) **und** der aktuelle **Wochen-Build**. Beide werden
-  vor jedem Push geprüft (`scripts/alle_tests.sh`). Was es nur im
+  Manuel installiert hat) **und** der aktuelle **Wochen-Build**. Geprüft wird,
+  was die Änderung braucht (`docs/arbeitsregeln.md`, Abschnitt 5), ganz in
+  beiden mit `scripts/alle_tests.sh`. Was es nur im
   Wochen-Build gibt (z. B. die CAM-Maschinendefinition für „An CAM
   übergeben“), erklärt das Addon in der stabilen Version in einem Satz,
   statt einen Fehler zu zeigen. Ältere Versionen werden nicht unterstützt.

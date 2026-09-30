@@ -7,15 +7,16 @@ werkzeugneutral in `CHATSTART.md`, damit keine zweite, driftende Fassung
 entsteht.
 
 - **Pushen:** Manuel hat am 2026-09-25 dauerhaft freigegeben zu pushen,
-  sobald `scripts/alle_tests.sh` in beiden FreeCAD-Versionen vollständig grün
-  ist. Gepusht wird gesammelt für alle Patches seit dem letzten Push, nach
-  einem einzigen Lauf; reine Doku-Änderungen ohne Testlauf
-  (`docs/arbeitsregeln.md`, Abschnitt 5). Alles andere nur auf ausdrückliche
-  Ansage. Lokal committen ist immer in Ordnung.
+  sobald die Prüfungen grün sind, die Claude für nötig hält (Manuel,
+  2026-09-30: „wenn DU sie für nötig hältst … Ich persönlich benötige keine
+  Tests solange alles funktioniert“) – welche das sind, steht in
+  `docs/arbeitsregeln.md`, Abschnitt 5; reine Doku-Änderungen ohne Testlauf.
+  Ohne grüne Prüfungen nur auf ausdrückliche Ansage. Lokal committen ist
+  immer in Ordnung.
 - **„Pusch jetzt“ heißt sofort** (Manuel, 2026-09-27: „wenn ich sage pusch
   jetzt dann auch puschen !!“): was committet ist, gleich pushen – ohne auf
-  den Volllauf zu warten; der läuft danach, und was er findet, wird sofort
-  behoben. Soll Manuel etwas ausprobieren, braucht der Push eine **höhere
+  laufende Prüfungen zu warten; sie laufen danach, und was sie finden, wird
+  sofort behoben. Soll Manuel etwas ausprobieren, braucht der Push eine **höhere
   Version** in `package.xml`: „Nach Updates schauen“ bietet nur eine neue
   Version an – alles seit 0.24.0 lag auf GitHub, kam bei ihm aber nicht an.
 - **Nach jedem Push bei GitHub selbst nachsehen:**
