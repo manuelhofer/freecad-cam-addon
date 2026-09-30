@@ -61,11 +61,14 @@ TEILE = [
 
 
 def messe(name, funktion, zeilen):
-    """Ruft `funktion()` und merkt Zeit (s) und Spitzenspeicher (MB) unter `name`."""
-    tracemalloc.start()
+    """Ruft `funktion()` zweimal und merkt Zeit (s) und Spitzenspeicher (MB) unter `name`:
+    erst die Zeit ohne Speichermessung – `tracemalloc` bremst jede Zuweisung und machte die
+    Schruppbahn des großen Teils 17 s statt 2,6 s lang –, dann den Speicher."""
     beginn = time.perf_counter()
     ergebnis = funktion()
     dauer = time.perf_counter() - beginn
+    tracemalloc.start()
+    funktion()
     _jetzt, spitze = tracemalloc.get_traced_memory()
     tracemalloc.stop()
     zeilen.append((name, dauer, spitze / 1e6))

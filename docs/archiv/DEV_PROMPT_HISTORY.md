@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-75 messung-ohne-bremse
+
+### EINGELESEN
+- `scripts/bahn_messen.py` (P-71) und ein Profil mit `cProfile` am großen Teil: Die
+  Schruppbahn brauchte dort 2,6 s statt der gemessenen 17 s – `tracemalloc` bremst jede
+  Zuweisung; die Tabelle in `docs/spezifikation_strategien.md` war damit zu hoch.
+- Profil der Schlichtbahn (Welle mit Absatz): `_kanten_kugel`, `_nicht_tiefer`,
+  `_dreiecke_treffen`, `_zusammengefasst` – zusammen 3 s.
+
+### DATEIEN
+- `scripts/bahn_messen.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Das Messprogramm misst die Zeit ohne `tracemalloc` (erster Lauf) und den Speicher mit
+(zweiter Lauf).
+
+### DONE
+- Zwei Läufe je Schritt. Die Tabelle in der Spezifikation folgt mit den neuen Zahlen (P-76).
+
+### TEST
+- Messprogramm in 1.1.3 gelaufen; kein Testlauf nötig (Skript und Doku).
+
+### NEXT
+- Rest nach dem Schruppen am großen Teil (13 s in `restmaterial._block`): Stücke statt
+  Teilschritte – nur mit neuen goldenen Bahnen und Satz im Verlauf; sonst reicht es.
+
 ## P-2026-09-30-73 goldene-bahnen
 
 ### EINGELESEN
