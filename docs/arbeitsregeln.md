@@ -121,7 +121,9 @@ ein ASCII-Entwurf des Dialogs reicht.
 - Eine **neue Oberfläche** bekommt ein **Szenario** unter `tests/gui/`, das
   sie in einer unsichtbaren FreeCAD-Oberfläche durchklickt und prüft
   (`scripts/oberflaeche_testen.sh`). Ändert sich eine Oberfläche sichtbar,
-  gehört ein Screenshot in die Rückmeldung an Manuel.
+  gehört ein Screenshot in die Rückmeldung an Manuel. Ein Szenario scheitert
+  auch an einer Ausnahme, die FreeCAD sonst nur in den Bericht druckt – etwa in
+  einem Slot beim Umschalten eines Hakens (P-2026-09-30-17).
 - **Im Chat** genügt „Tests grün“; Einzelheiten nur, wenn etwas auffällt.
 - Die Oberfläche prüft **Manuel** in FreeCAD. Der Patch nennt ihm den Klickweg
   aus dem Akzeptanzkriterium. Gilt er erst nach seiner Rückmeldung als getestet,

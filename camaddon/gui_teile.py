@@ -9,6 +9,8 @@ Fokus haben (ruhiges_mausrad) – und blaettere_zu, das einen Abschnitt im
 Aufgabenbereich nach oben holt.
 """
 
+import contextlib
+
 from PySide import QtCore, QtGui
 
 GRAU = QtGui.QColor("#6d6d6d")  # gerechnete oder geerbte Werte
@@ -89,7 +91,10 @@ class _RadNurMitFokus(QtCore.QObject):
         if balken is None:
             ereignis.ignore()  # nichts zu blättern
             return True
-        QtCore.QCoreApplication.sendEvent(balken, ereignis)
+        # Geht der Bereich gerade zu, ist sein Rollbalken schon weg – das Feld bekommt das
+        # Rad trotzdem nicht.
+        with contextlib.suppress(RuntimeError):
+            QtCore.QCoreApplication.sendEvent(balken, ereignis)
         ereignis.accept()  # erledigt – nicht noch einmal über die Eltern
         return True
 

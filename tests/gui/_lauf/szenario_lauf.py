@@ -5,6 +5,7 @@
 # blockieren das Szenario nicht.
 import importlib.util
 import os
+import sys
 import traceback
 
 import FreeCAD
@@ -79,6 +80,17 @@ def starten():
     spec.loader.exec_module(modul)
     helfer = Helfer()
     ablauf = modul.schritte(helfer)
+    # Eine Ausnahme in einem Qt-Slot (etwa beim Umschalten eines Hakens) läuft an keinem
+    # Schritt vorbei – FreeCAD druckt sie nur in den Bericht, das Szenario ginge durch.
+    # Hier zählt sie als Fehler (P-2026-09-30-17).
+    vorher = sys.excepthook
+
+    def ausnahme(art, wert, verlauf):
+        text = "".join(traceback.format_exception(art, wert, verlauf))
+        helfer.fehler.append("Ausnahme in der Oberfläche:\n" + text)
+        vorher(art, wert, verlauf)
+
+    sys.excepthook = ausnahme
 
     def weiter():
         try:

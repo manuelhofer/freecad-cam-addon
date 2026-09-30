@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-17 keine-versteckten-ausnahmen
+
+### EINGELESEN
+- `tests/gui/_lauf/szenario_lauf.py`, `camaddon/gui_vierachs.py` (Schritt 2, `haken`),
+  `camaddon/gui_teile.py` (`_RadNurMitFokus`), die `freecad.log` der Szenarien des
+  letzten Volllaufs, `docs/arbeitsregeln.md` Abschnitt 5.
+
+### DATEIEN
+- `tests/gui/_lauf/szenario_lauf.py`, `camaddon/gui_vierachs.py`, `camaddon/gui_teile.py`,
+  `docs/arbeitsregeln.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„4-Achs-Bearbeitung“ öffnen: Im Report-Fenster steht kein Traceback mehr („'VierachsPanel'
+object has no attribute 'schruppfelder'“). Ein Szenario, in dem eine Oberfläche eine
+Ausnahme wirft, scheitert.
+
+### DONE
+- Gefunden in den Logs der Szenarien: Jedes Öffnen des 4-Achs-Assistenten druckte einen
+  Traceback – der Haken „Rundum schruppen“ wurde gesetzt, nachdem sein Slot verbunden
+  war, und der Slot fand die Felder dazu noch nicht. Jetzt setzt `haken(…, an=True)` ihn
+  vor dem Verbinden. Dazu einmal im Szenario „Mausrad“: Beim Schließen eines Fensters
+  war der Rollbalken schon weg („already deleted“) – der Filter nimmt das Rad dann
+  trotzdem, das Feld bekommt es nicht.
+- Der Szenario-Lauf zählt eine Ausnahme in der Oberfläche (sys.excepthook – etwa in
+  einem Slot) als Fehler; bisher ging das Szenario durch, FreeCAD druckte sie nur.
+  Geprüft in 1.1.3 und im Wochen-Build mit einem Probe-Szenario, das in einem Slot eine
+  Ausnahme wirft. Arbeitsregeln ergänzt.
+
+### TEST
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_vierachs_*`, `szenario_mausrad`,
+  `szenario_halter*` grün, ohne Traceback im Log. Gegenprobe: mit dem alten Haken
+  scheitert `szenario_vierachs_maschine` jetzt an der Ausnahme.
+
+### NEXT
+- Voller Lauf, Version 0.29.0, Push.
+
 ## P-2026-09-30-16 assistent-halter-hinweis
 
 ### EINGELESEN

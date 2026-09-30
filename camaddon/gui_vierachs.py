@@ -873,8 +873,10 @@ class VierachsPanel:
             felder[name] = eingabe
             reihen.reihe(text, tooltip, mit_einheit(eingabe, einheiten.einheit(einheiten.LAENGE)))
 
-        def haken(text, tooltip, umgeschaltet):
+        def haken(text, tooltip, umgeschaltet, an=False):
             kasten = QtGui.QCheckBox(text)
+            # Vor dem Verbinden: Die Felder, die `umgeschaltet` schaltet, gibt es noch nicht.
+            kasten.setChecked(an)
             kasten.setToolTip(tooltip)
             schrift = kasten.font()
             schrift.setBold(True)
@@ -922,9 +924,8 @@ class VierachsPanel:
 
         # --- Rundum schruppen ---
         self.mit_schruppen = haken(
-            tr("va.schruppen"), tr("va.schruppen.tooltip"), self._schruppen_umgeschaltet
+            tr("va.schruppen"), tr("va.schruppen.tooltip"), self._schruppen_umgeschaltet, an=True
         )
-        self.mit_schruppen.setChecked(True)
         self.erklaerung_schruppen = grau(tr("va.schruppen.text"))
         self.hinweis_aendern = QtGui.QLabel()  # beim Ändern: der Fräser fehlt
         self.hinweis_aendern.setWordWrap(True)
