@@ -461,4 +461,4 @@ der Revolver in der Übersicht zu erkennen.
 **Heute:** Im Fenster „Halter“ zeigt „VDI30 angetrieben radial“ Winkel 90, aber
 bei Drehung ein leeres Feld – 0° ist ein echter Wert, nicht „nichts
 eingetragen“. **Vorschlag:** „0“ zeigen (wie beim Winkel). **Fertig, wenn:** die
-Drehung 0 als „0“ dasteht.
+Drehung 0 als „0“ dasteht. *Erledigt (P-2026-09-30-22).*

@@ -1,7 +1,7 @@
 # Halter mit Richtung (W-002 Stufe E, Manuel 2026-09-30: „wie steht die Werkzeug-Z-Achse
 # zur Maschinen-Haupt-Z-Achse“). Werkzeugverwaltung → neues Werkzeug, Gesamtlänge 57 →
 # „Halter …“ → „Neu“ → „VDI30 angetrieben radial · ER16“: Richtung „gewinkelt“, Winkel 90,
-# Drehung leer (0), Versatz 55, Kopf-Ø 55; „Kontur ab Bezugspunkt, längs der
+# Drehung 0, Versatz 55, Kopf-Ø 55; „Kontur ab Bezugspunkt, längs der
 # Werkzeugachse:“; „Länge 55,00 mm · größter Ø 50,00 mm · gewinkelt 90°, Versatz
 # 55,00 mm“; das Bild zeigt Kopf und Knick. Winkel 45 → das Bild kippt. „gerade“ blendet
 # die vier Felder aus, „gewinkelt“ zeigt sie wieder. OK → beim Werkzeug steht „Länge ab
@@ -61,7 +61,7 @@ def schritte(h):
     h.pruefe(f.wahl_richtung.currentData() == hl.GEWINKELT, "Richtung nicht „gewinkelt“")
     werte = {k: e.text() for k, e in f.felder_gewinkelt.items()}
     h.pruefe(
-        werte == {"winkel": "90", "drehung": "", "versatz": "55", "kopf_d": "55"},
+        werte == {"winkel": "90", "drehung": "0", "versatz": "55", "kopf_d": "55"},
         f"Felder: {werte}",
     )
     h.pruefe(all(e.isVisible() for e in f.felder_gewinkelt.values()), "Felder nicht zu sehen")

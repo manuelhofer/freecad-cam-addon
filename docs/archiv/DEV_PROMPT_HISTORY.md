@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-22 drehung-null
+
+### EINGELESEN
+- `docs/durchsicht_bedienbarkeit.md` D-47, `camaddon/gui_halter.py` (`_gewinkelt_text`),
+  `camaddon/gui_zahlen.py` (`zahl_zeigen`: 0 heißt dort „unbekannt“),
+  `tests/gui/szenario_halter_richtung.py`.
+
+### DATEIEN
+- `camaddon/gui_halter.py`, `tests/gui/szenario_halter_richtung.py`,
+  `docs/durchsicht_bedienbarkeit.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → „Halter …“ → „Neu ▼“ → „VDI30 angetrieben radial · ER16“: Bei
+Drehung steht „0“, nicht ein leeres Feld.
+
+### DONE
+- Winkel und Drehung zeigen jede Zahl, auch 0 – 0° ist ein Winkel, kein „nichts
+  eingetragen“ (`zahl_zeigen` lässt 0 leer, weil es dort „unbekannt“ heißt).
+
+### TEST
+- KI mit unsichtbarer Oberfläche, FreeCAD 1.1.3: `szenario_halter_richtung` (Drehung „0“)
+  grün.
+
+### NEXT
+- D-40 Längen-Texte; danach voller Lauf und Push.
+
 ## P-2026-09-30-21 revolver-stationen
 
 ### EINGELESEN

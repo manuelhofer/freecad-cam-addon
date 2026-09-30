@@ -30,6 +30,7 @@ from .gui_zahlen import (
     groesse_zeigen,
     zahl_lesen,
     zahl_zeigen,
+    zahlenformat,
 )
 from .sprache import tr
 
@@ -349,8 +350,8 @@ class HalterDialog(QtGui.QDialog):
     @staticmethod
     def _gewinkelt_text(h, feld):
         wert = getattr(h, feld)
-        if feld in ("winkel", "drehung"):
-            return zahl_zeigen(wert)
+        if feld in ("winkel", "drehung"):  # 0° ist ein Winkel, kein „nichts eingetragen“ (D-47)
+            return zahlenformat().toString(float(wert), "g", 12)
         return groesse_zeigen(wert, einheiten.LAENGE)
 
     def _richtung_zeigen(self, h):
