@@ -775,6 +775,20 @@ bauen“):*
     ebener Stirn: Die Rundachse steht fest (die Fläche zeigt zum Werkzeug), der
     Fräser fährt Zeilen wie beim Planfräsen (Zustellung ap, Zeilenabstand ae
     aus der Werkzeugtabelle).
+  - *Stand 2026-09-30 abends:* Gebaut ist „hin und her“ – Zeilen bei festem a
+    über den gewählten Flächen (P-2026-09-30-28), für jeden Fräser. Manuel will
+    die Strategien mit planen („Wenn dann müssten wir eigene planen“); offen, zur
+    Entscheidung mit ihm:
+    1. *Plan indexiert* braucht eine Achse quer zur Stange (bei C das Y): Die
+       Bahn bekommt dann einen Versatz quer zur Werkzeugachse – bisher steht die
+       Spitze immer auf dem Strahl von der Achse (a, r, φ). Abfahren, Kollision
+       und Abtrag rechnen dann mit diesem Versatz. Ohne solche Achse bleibt „hin
+       und her“. Welche Maschine zuerst: Drehmaschine mit Y oder Fräse mit A?
+    2. *Linien längs* – dieselben Zeilen, aber längs der Achse bei festem φ
+       (Nut, Abflachung mit dem Kugelfräser): als eigene Wahl neben „hin und her“
+       oder von selbst, wenn die Fläche längs schmal ist?
+    3. Soll der Assistent je Fläche eine Strategie vorschlagen (Ebene + Schaftfräser
+       → Plan indexiert, sonst hin und her), oder eine für alle gewählten Flächen?
 - **V4d – Entgraten** (Manuel: „Und Entgraten nicht vergessen“): eigene
   Operation „Rundum entgraten“ – an den Kanten der gewählten Flächen (auch
   zwischen ihnen und dem Rest) eine Fase mit dem Fasenfräser (oder dem

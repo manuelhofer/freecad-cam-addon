@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-30 v4c-fragen
+
+### EINGELESEN
+- Manuels Nachricht (2026-09-30): „Also nicht, dass du das jetzt anpassen sollst an die
+  vorhandenen … Wenn dann müssten wir eigene planen.“ – `docs/spezifikation_vierachs.md`
+  (V4c).
+
+### DATEIEN
+- `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Unter V4c steht, was gebaut ist („hin und her“) und die drei offenen Fragen an Manuel: Plan
+indexiert (braucht eine Achse quer zur Stange, welche Maschine zuerst), Linien längs (eigene Wahl
+oder von selbst), Vorschlag je Fläche oder einer für alle.
+
+### DONE
+- V4c-Stand und die Fragen für die gemeinsame Planung in der Spezifikation; gebaut wird V4c erst
+  mit Manuels Antworten.
+
+### TEST
+- Reine Doku, kein Testlauf (`docs/arbeitsregeln.md`, Abschnitt 5).
+
+### NEXT
+- V4e: Prüfen nur auf den gewählten Flächen.
+
 ## P-2026-09-30-29 version-0-30-0
 
 ### EINGELESEN
