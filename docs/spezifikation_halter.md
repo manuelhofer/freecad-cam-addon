@@ -250,6 +250,12 @@ Prüffenster, der Hinweis „nicht radial“.
   Szenario mit Screenshots.
 - **E3** Reichweite, Spitze, Abfahren, Kollision und Bild mit der Lage aus E1;
   Hinweis „nicht radial“ mit dem, was fehlt.
+  *Gebaut (P-2026-09-30-12):* `reichweite.Einspannung` (Länge ab Bezugspunkt und
+  Lage aus dem Halter; eine Zahl ist weiter ein gerade eingespanntes Werkzeug),
+  `reichweite.einspannung(tc, bibliothek)`; Spitze, „quer“ und „radial“ nehmen
+  die Achse des Werkzeugs, nicht die der Aufnahme; `OperationAbfahrt.lage`; die
+  Körper in `werkzeugkoerper` gekippt, der Halter mit Kopf. Die Hinweise sagen,
+  welcher Halter fehlt.
 - **E4** Beispiel-Drehmaschine mit Aufnahmen statt fester Halter; Szenarien mit
   Haltern; das Szenario Schruppen + Schlichten prüfen (W-003 V5e).
 - **E5** Assistent: gelber Satz, wenn der Fräser nicht radial sitzen würde.

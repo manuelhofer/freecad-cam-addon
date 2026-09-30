@@ -337,6 +337,41 @@ def werkzeuglaenge(tc, bibliothek):
 
 
 @dataclass
+class Einspannung:
+    """Wie das Werkzeug in seiner Aufnahme sitzt (W-002 Stufe E): die Länge vom Bezugspunkt
+    bis zur Spitze und die Lage des Bezugspunkts im LCS der Aufnahme (halter.lage) – None
+    beim geraden Halter: dann ist es die Spindelnase, und das Werkzeug zeigt längs −Z."""
+
+    laenge: float
+    lage: object = None  # FreeCAD.Placement oder None
+
+    def spitze(self):
+        """Die Spitze im LCS der Aufnahme."""
+        versatz = FreeCAD.Vector(0, 0, -self.laenge)
+        return self.lage.multVec(versatz) if self.lage is not None else versatz
+
+    def achse(self):
+        """Z des Werkzeugs – von der Spitze weg – im LCS der Aufnahme."""
+        z = FreeCAD.Vector(0, 0, 1)
+        return self.lage.Rotation.multVec(z) if self.lage is not None else z
+
+
+def einspannung(tc, bibliothek):
+    """Die Einspannung des Werkzeugs eines Controllers: seine Länge (werkzeuglaenge) und die
+    Lage aus seinem Halter in der Werkzeugverwaltung."""
+    from . import halter as hl
+
+    halter = werkzeughalter(tc, bibliothek)
+    lage = hl.lage(halter) if halter is not None and halter.gewinkelt else None
+    return Einspannung(werkzeuglaenge(tc, bibliothek)[0], lage)
+
+
+def _einspannung(laenge):
+    """Eine Zahl ist die Länge eines gerade eingespannten Werkzeugs."""
+    return laenge if isinstance(laenge, Einspannung) else Einspannung(float(laenge))
+
+
+@dataclass
 class Werkzeugmasse:
     """Die Maße eines Werkzeugs für Abfahren und Kollision, in mm."""
 
@@ -544,11 +579,12 @@ class Pruefung:
         return gesamt
 
     def _spitze(self, werkzeugaufnahme, laenge, wege):
-        """Die Werkzeugspitze in Koordinaten der Assembly."""
+        """Die Werkzeugspitze in Koordinaten der Assembly; `laenge`: die Länge eines gerade
+        eingespannten Werkzeugs oder seine Einspannung."""
         lage = self._glied_lage(self._glied(werkzeugaufnahme), wege).multiply(
             self._lage(werkzeugaufnahme)
         )
-        return lage.multVec(FreeCAD.Vector(0, 0, -laenge))
+        return lage.multVec(_einspannung(laenge).spitze())
 
     def _job_lage(self, nullpunkt, wege):
         """Placement vom Job in Koordinaten der Assembly."""
@@ -615,23 +651,23 @@ class Pruefung:
         z = werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
         return (werkstueck.Base - werkzeug.Base).dot(z) > 0
 
-    def _werkzeug_aus(self, werkzeugaufnahme, dreh_wege, richtung):
-        """Kommt das Werkzeug dieser Aufnahme aus `richtung` (in den Achsen des Jobs)? Z der
-        Werkzeugaufnahme zeigt von der Spitze zur Aufnahme – dorther kommt es."""
+    def _werkzeug_aus(self, werkzeugaufnahme, dreh_wege, richtung, einspannung=None):
+        """Kommt das Werkzeug dieser Aufnahme aus `richtung` (in den Achsen des Jobs)? Z des
+        Werkzeugs zeigt von der Spitze weg – dorther kommt es; beim geraden Halter (und ohne
+        `einspannung`) ist es Z der Werkzeugaufnahme."""
         werkzeug = self._glied_lage(self._glied(werkzeugaufnahme), dreh_wege).multiply(
             self._lage(werkzeugaufnahme)
         )
         werkstueck = self._glied_lage(self._glied(self.werkstueckaufnahme), dreh_wege).multiply(
             self._lage(self.werkstueckaufnahme)
         )
-        z = werkstueck.Rotation.inverted().multVec(
-            werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
-        )
+        achse = einspannung.achse() if einspannung is not None else FreeCAD.Vector(0, 0, 1)
+        z = werkstueck.Rotation.inverted().multVec(werkzeug.Rotation.multVec(achse))
         soll = FreeCAD.Vector(richtung)
         return soll.Length > 0 and z.dot(soll) / soll.Length > 1 - (1 - QUER) / 2
 
-    def _werkzeug_quer(self, werkzeugaufnahme, dreh_wege):
-        """Steht die Werkzeugaufnahme quer zu Z des Jobs – ein radialer Platz am Revolver?
+    def _werkzeug_quer(self, werkzeugaufnahme, dreh_wege, einspannung=None):
+        """Steht das Werkzeug quer zu Z des Jobs – ein radialer Platz oder Halter am Revolver?
         Die Bahnen der CAM-Operationen sind für ein Werkzeug längs Z gerechnet; ein radiales
         führe sie quer durchs Teil (Manuels Test, 2026-09-27)."""
         werkzeug = self._glied_lage(self._glied(werkzeugaufnahme), dreh_wege).multiply(
@@ -640,7 +676,8 @@ class Pruefung:
         werkstueck = self._glied_lage(self._glied(self.werkstueckaufnahme), dreh_wege).multiply(
             self._lage(self.werkstueckaufnahme)
         )
-        z = werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+        achse = einspannung.achse() if einspannung is not None else FreeCAD.Vector(0, 0, 1)
+        z = werkzeug.Rotation.multVec(achse)
         return abs(werkstueck.Rotation.inverted().multVec(z).z) < QUER
 
     def achsen_fuer(self, werkzeugaufnahme):
@@ -740,6 +777,7 @@ class Pruefung:
             return
         laenge, quelle = werkzeuglaenge(tc, bibliothek)
         sammler.laenge(tc, laenge, quelle, bibliothek)
+        eingespannt = einspannung(tc, bibliothek)
 
         linear, drehachsen = self.achsen_fuer(aufnahme)
         if len(linear) > 3:
@@ -751,7 +789,7 @@ class Pruefung:
             sammler.hinweis(tr("rw.z_verkehrt", aufnahme=m.name_von(aufnahme)))
         elif radial is not None:
             # Eine Bahn von „Rundum schruppen“ ist für ein radiales Werkzeug gerechnet.
-            if not self._werkzeug_aus(aufnahme, grundstellung, radial):
+            if not self._werkzeug_aus(aufnahme, grundstellung, radial, eingespannt):
                 sammler.hinweis(
                     tr(
                         "rw.werkzeug_radial",
@@ -761,7 +799,7 @@ class Pruefung:
                         richtung=richtung_text(radial),
                     )
                 )
-        elif self._werkzeug_quer(aufnahme, grundstellung):
+        elif self._werkzeug_quer(aufnahme, grundstellung, eingespannt):
             sammler.hinweis(
                 tr(
                     "rw.werkzeug_quer",
@@ -770,10 +808,10 @@ class Pruefung:
                     aufnahme=m.name_von(aufnahme),
                 )
             )
-        loesung = self.loeser(aufnahme, laenge, nullpunkt_des_jobs)
+        loesung = self.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         from .kinematik import Kinematik
 
-        kinematik = Kinematik(self, aufnahme, laenge, nullpunkt_des_jobs)
+        kinematik = Kinematik(self, aufnahme, eingespannt, nullpunkt_des_jobs)
         sammler.beginne(op.Label, linear, drehachsen, kinematik, f"T{nummer}")
         vorhanden = {_programmbuchstabe(self.maschine, a) for a in drehachsen} - {None}
         fremd = set()  # Rundachsen, um die das Programm dreht, die Maschine aber nicht hat

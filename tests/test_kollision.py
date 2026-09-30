@@ -35,6 +35,7 @@ import Part
 from camaddon import abfahren as ab
 from camaddon import beispielmaschine, sprache
 from camaddon import fraeserform as ff
+from camaddon import halter as hl
 from camaddon import kollision as kb
 from camaddon import reichweite as rw
 from camaddon import werkzeuge as wz
@@ -276,6 +277,22 @@ for name, stirn in formen.items():
     abstand = min(kern.distToShape(f)[0] for f in stirnseite)
     pruefe(0.048 <= abstand <= 0.0501, f"{name}: Kern {abstand:.4f} mm innen")
     pruefe(not kern.isInside(FreeCAD.Vector(0, 0, -60.02), 1e-7, True), f"{name}: Kern unten")
+
+# Ein gewinkelter Halter (W-002 Stufe E, „VDI30 angetrieben radial“) kippt das Werkzeug:
+# Die Spitze liegt 80 mm vom Bezugspunkt (55 mm unter der Aufnahme) längs +X, die Schneide
+# Ø 5 × 5 davor, der Schaft bis zur Nase des Halters (55 mm); der Halter hat Kopf und Abgang.
+radial = hl.aus_vorlage("vdi30_radial")
+masse = rw.Werkzeugmasse(5.0, 5.0, 0.0, 0.0, 5.0, 50.0)
+k = dict(kb.werkzeugkoerper(masse, 80.0, radial))
+box = k[kb.SCHNEIDE].BoundBox
+pruefe(
+    abs(box.XMax - 80) < 1e-6 and abs(box.XMin - 75) < 1e-6 and abs(box.ZMin + 57.5) < 1e-6,
+    f"Schneide mit gewinkeltem Halter: {box}",
+)
+pruefe(
+    abs(k[kb.HALTER].BoundBox.ZMin + 82.5) < 1e-6 and abs(k[kb.SCHAFT].BoundBox.XMin - 55) < 1e-6,
+    f"Halter {k[kb.HALTER].BoundBox}, Schaft {k[kb.SCHAFT].BoundBox}",
+)
 
 # Kugelfräser über die Kante der Tasche (x 30, oben Z 20) gerollt: die Mitte 1,5 mm über der
 # Tasche und 2 mm über der Kante – genau 2,5 mm von ihr –, die Spitze bei Z 19,5.

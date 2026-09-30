@@ -59,10 +59,16 @@ class OperationAbfahrt:
     name: str
     tc: object  # Werkzeug-Controller
     aufnahme: object  # Werkzeugaufnahme
-    laenge: float  # mm, von der Aufnahme bis zur Spitze
+    laenge: float  # mm, vom Bezugspunkt (gerader Halter: der Aufnahme) bis zur Spitze
     erste: int  # Index ihrer ersten Station
     saetze: int  # Befehle ihrer Bahn
     art: str = ""  # die Art der CAM-Operation: „Adaptive“, „Deburr“ … (js.operationsart)
+    lage: object = None  # Lage des Bezugspunkts in der Aufnahme (halter.lage); None: gerade
+
+    @property
+    def einspannung(self):
+        """Wie das Werkzeug in der Aufnahme sitzt (reichweite.Einspannung)."""
+        return rw.Einspannung(self.laenge, self.lage)
 
 
 @dataclass
@@ -87,7 +93,7 @@ class Abfahrt:
         if operation not in self._kinematiken:
             op = self.operationen[operation]
             self._kinematiken[operation] = Kinematik(
-                self.pruefung, op.aufnahme, op.laenge, self.nullpunkt
+                self.pruefung, op.aufnahme, op.einspannung, self.nullpunkt
             )
         return self._kinematiken[operation]
 
@@ -208,8 +214,8 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         linear, _drehachsen = pruefung.achsen_fuer(aufnahme)
         if len(linear) > 3:
             continue
-        laenge, _quelle = rw.werkzeuglaenge(tc, bibliothek)
-        vorbereitet.append((op, tc, aufnahme, laenge, linear))
+        eingespannt = rw.einspannung(tc, bibliothek)
+        vorbereitet.append((op, tc, aufnahme, eingespannt, linear))
         bewegt.update(pruefung.gefahrene_achsen(aufnahme))
     ergebnis.achsen = [a for a in pruefung.kette.achsen if a in bewegt]
     index = {a: i for i, a in enumerate(ergebnis.achsen)}
@@ -217,18 +223,19 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
 
     vorher = None  # (Punkt, Rundachsen, wirksame Stellungen) der letzten Station
     zeit = 0.0
-    for op, tc, aufnahme, laenge, linear in vorbereitet:
-        loesung = pruefung.loeser(aufnahme, laenge, nullpunkt_des_jobs)
+    for op, tc, aufnahme, eingespannt, linear in vorbereitet:
+        loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         nummer = len(ergebnis.operationen)
         ergebnis.operationen.append(
             OperationAbfahrt(
                 op.Label,
                 tc,
                 aufnahme,
-                laenge,
+                eingespannt.laenge,
                 len(ergebnis.stationen),
                 len(op.Path.Commands),
                 js.operationsart(op),
+                eingespannt.lage,
             )
         )
         ohne_vorschub = False

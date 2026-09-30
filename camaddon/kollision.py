@@ -90,7 +90,9 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
     Stirn des Fräsers (fraeserform: Kugel, Torus, Kegel …), darüber zylindrisch mit D – bei
     ebener Stirn ein Zylinder, der Lollipop eine Kugel. Der Schaft reicht bis zur Nase des
     Halters, ohne Halter bis zur Gesamtlänge; was darüber bis zur Aufnahme fehlt, kennt
-    niemand. `mit_kern`: dazu der Kern der Schneide (KERN), um EINDRINGEN kleiner."""
+    niemand. `mit_kern`: dazu der Kern der Schneide (KERN), um EINDRINGEN kleiner. Ein
+    gewinkelter Halter (W-002 Stufe E) kippt das Werkzeug: Seine Spitze liegt dann `laenge`
+    vom Bezugspunkt des Halters längs der Werkzeugachse (halter.lage)."""
     import Part
 
     teile = []
@@ -126,6 +128,9 @@ def werkzeugkoerper(masse, laenge, halter, mit_kern=False):
         zylinder(HALS, masse.hals_d / 2, oben, hals_ende)
         oben = hals_ende
     zylinder(SCHAFT, masse.schaft / 2, oben, ende)
+    if halter is not None and halter.gewinkelt:
+        matrix = hl.lage(halter).toMatrix()
+        teile = [(art, koerper.transformed(matrix)) for art, koerper in teile]
     if form is not None:
         teile.append((HALTER, form))
     return teile

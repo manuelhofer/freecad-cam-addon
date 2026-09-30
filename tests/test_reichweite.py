@@ -22,12 +22,14 @@ import beispielmaschinen
 import FreeCAD
 
 from camaddon import PARAMETER_PFAD, beispielmaschine, sprache
+from camaddon import halter as hl
 from camaddon import maschine as m
 from camaddon import reichweite as rw
 from camaddon import schraege_achse as sa
 from camaddon import verfahren as vf
 from camaddon import werkzeuge as wz
 from camaddon.kette import LINEAR
+from camaddon.kinematik import Kinematik
 
 sprache.setze_sprache("de")
 fehler = []
@@ -370,6 +372,36 @@ for nr in (1, 2):
         and (not satz or satz[0].startswith("„Eigene“: Die Bahn ist für ein Werkzeug längs Z")),
         f"T{nr} ({'radial' if quer[nr] else 'axial'}): {satz}",
     )
+# Der Halter kippt das Werkzeug (W-002 Stufe E): „VDI30 angetrieben radial“ macht aus dem
+# axialen P2 ein Werkzeug quer zu Z – der Hinweis kommt; die Spitze steht trotzdem genau auf
+# dem Bahnpunkt, 40 mm ab dem Bezugspunkt des Halters.
+radial_halter = hl.aus_vorlage("vdi30_radial")
+eingespannt = rw.Einspannung(40.0, hl.lage(radial_halter))
+pruefe(p._werkzeug_quer(p2, {}, eingespannt), "P2 mit radialem Halter nicht quer")
+st = p.stellungen((20, 0, 30), p2, eingespannt, FreeCAD.Vector())
+spitze = Kinematik(p, p2, eingespannt, FreeCAD.Vector()).programm(st)
+pruefe(
+    max(abs(a - b) for a, b in zip(spitze[:3], (20, 0, 30), strict=True)) < 1e-6,
+    f"Spitze mit gewinkeltem Halter: {spitze}",
+)
+gerade_st = p.stellungen((20, 0, 30), p2, 40, FreeCAD.Vector())
+pruefe(
+    any(abs(st[k] - gerade_st[k]) > 1 for k in st),
+    "gewinkelt und gerade stehen die Achsen gleich",
+)
+b2 = wz.Bibliothek()
+t2 = b2.neues_werkzeug()
+t2.nummer, t2.gesamtlaenge = 2, 60.0
+t2.durchmesser = float(op.ToolController.Tool.Diameter.getValueAs("mm"))  # so findet es ihn
+halter2 = b2.neuer_halter("vdi30_radial")
+t2.halter = halter2.kennung
+op.ToolController.ToolNumber = 2
+teil.recompute()
+e = p.pruefe_job(job, bibliothek=b2)
+pruefe(
+    any("längs Z gerechnet" in h and "T2" in h for h in e.hinweise),
+    f"T2 mit radialem Halter: {e.hinweise}",
+)
 op.ToolController.ToolNumber = 1
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)

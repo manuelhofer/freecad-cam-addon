@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-09-30-12 halter-richtung-rechnung
+
+### EINGELESEN
+- `docs/spezifikation_halter.md` Abschnitt 11 (E3), `camaddon/reichweite.py`
+  (`_spitze`, `_werkzeug_aus`, `_werkzeug_quer`, `_pruefe_operation`),
+  `camaddon/kinematik.py`, `camaddon/abfahren.py`, `camaddon/kollision.py`
+  (`werkzeugkoerper`), `camaddon/gui_abfahren.py`.
+
+### DATEIEN
+- `camaddon/reichweite.py`, `camaddon/abfahren.py`, `camaddon/kollision.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_reichweite.py`,
+  `tests/test_kollision.py`, `docs/spezifikation_halter.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Ein Werkzeug mit „VDI30 angetrieben radial“ auf dem axialen P2 der
+Beispiel-Drehmaschine steht quer zu Z (Hinweis „längs Z gerechnet“), seine
+Spitze trifft den Bahnpunkt genau; Schneide, Schaft und Halter liegen gekippt,
+40 mm bzw. 80 mm ab Bezugspunkt längs der Werkzeugachse.
+
+### DONE
+- `reichweite.Einspannung` und `einspannung(tc, bibliothek)`: Länge ab
+  Bezugspunkt und Lage aus dem Halter; `_spitze`, `_werkzeug_aus`,
+  `_werkzeug_quer` rechnen mit der Achse des Werkzeugs; `loeser` und
+  `Kinematik` bekommen die Einspannung (eine Zahl bleibt gerade).
+- `abfahren`: `OperationAbfahrt.lage` und `.einspannung`.
+- `kollision.werkzeugkoerper`: Schneide, Kern, Hals und Schaft gekippt, der
+  Halter mit Kopf – so auch das Bild im Prüffenster.
+- Hinweise „radial“ und „quer“ nennen den Halter, der fehlt bzw. passt.
+
+### TEST
+- FreeCAD 1.1.3: `test_reichweite` (P2 mit radialem Halter quer, Spitze auf dem
+  Bahnpunkt, Hinweis mit der Bibliothek), `test_kollision` (Körper gekippt),
+  `test_abfahren`, `test_vierachs_pruefen` grün.
+
+### NEXT
+- E2: Fenster „Halter“ mit Richtung und Bild; E4 Beispielmaschinen.
+
 ## P-2026-09-30-11 halter-richtung-datenmodell
 
 ### EINGELESEN
