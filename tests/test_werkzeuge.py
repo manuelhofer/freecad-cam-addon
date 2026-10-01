@@ -395,6 +395,27 @@ e = wz.Einsatz.aus_dict({"art": "zaubern", "ae": "x", "vc": -5})
 pruefe((e.art, e.ae, e.vc) == (wz.EIGEN, 0.0, 0.0), f"unlesbarer Einsatz: {e}")
 
 sprache.setze_sprache(vorher)
+# Manuels Standardfräser (2026-10-01): die eine Definition für alle Werkzeugwege.
+standard = wz.standardwerkzeug()
+pruefe(
+    standard.nummer == 1
+    and standard.durchmesser == 12.0
+    and standard.schneiden == 4
+    and standard.schneidenlaenge == 26.0
+    and standard.eintauchwinkel == 3.0,
+    f"Standardfräser: {standard}",
+)
+einsaetze = {e.art: e for e in standard.einsaetze(wz.ALLE)}
+pruefe(
+    set(einsaetze) == {wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN}
+    and all((e.ap, e.vc, e.fz) == (25.0, 85.0, 0.1) for e in einsaetze.values())
+    and einsaetze[wz.SCHRUPPEN].ae == 1.5
+    and einsaetze[wz.PLANEN].ae == 1.5
+    and einsaetze[wz.SCHLICHTEN].ae == 0.3,
+    f"Standardfräser, Einsätze: {einsaetze}",
+)
+pruefe(wz.standardwerkzeug(7).nummer == 7, "Standardfräser mit Nummer")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

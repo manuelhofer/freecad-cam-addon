@@ -504,3 +504,23 @@ dem Modell, nicht auf dem Rohteil – endet das Rohteil oben am Zapfen, wurde
 aus einer Lage von 20 zwei von 10,5; die Lagen beginnen jetzt am Rohteil
 (`OpStockZMax`), und 0,05 mm Spiel (`hoehenfeld.LAGEN_SPIEL`) geben keine
 Lage mehr.
+
+**Regel (Manuel, 2026-10-01: „generell sollte dann jede Strategie und
+Szenario mit diesem Fräser und den Werten gerechnet und geprüft werden, wenn
+es um Werkzeugwege geht“):** Der Fräser oben ist `werkzeuge.standardwerkzeug()`
+– die eine Definition (Ø 12, 4 Schneiden angenommen, Schneidenlänge 26, Rampe
+3°; Einsätze Planen und Schruppen mit ae 1,5 / ap 25 / fz 0,1 / vc 85,
+Schlichten mit ae 0,3, dem Aufmaß der Kontur). Mit ihm rechnen alle
+Prüfungen und Szenarien der 2,5D-Strategien (`test_planfraesen`,
+`test_kontur`, `test_quader`, `szenario_bearbeitung`, `szenario_kontur`), mit
+ihm und den festen Vorgaben für die Zeit (Eilgang 10 m/min, 1 m/s²) bekommt
+jede neue Strategie ihre Zeile in der Tabelle oben (P-2026-10-01-23;
+Arbeitsregeln, Abschnitt 5). Beim Umstellen gefunden: In der Tasche schwenkt
+das tangentiale Einfahren der innersten Schruppbahn zur Mitte – mit Ø 12
+reichte es 1,8 mm in die gegenüberliegende Wand (mit Ø 10 passte es gerade
+noch), weil die Hüllfläche die eigenen Wände der Kontur nahe der Bahn
+ausblendet; jetzt hält das Ein- und Ausfahren zu jeder Wand der Konturen den
+Abstand der Bahn (Radius + Aufmaß), sonst wird es kürzer. Die 4-Achs-Prüfungen
+(runde Stange, Manuels Testteil) behalten ihre Werkzeuge: Dort wählt das Teil
+den Fräser (Kugel Ø 6 fürs Schlichten, Ø 6 für Plan indexiert) – ob auch sie
+auf den Ø 12 sollen, entscheidet Manuel.

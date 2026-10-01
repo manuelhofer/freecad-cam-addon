@@ -110,8 +110,8 @@ pruefe(q.h.min() == 26.0, "zurückgesetzt")
 import Path.Main.Job as PathJob
 
 user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))
-schaft = wz.Werkzeug(nummer=1, durchmesser=10, schneiden=3, schneidenlaenge=20)
-schaft.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.PLANEN, ae=4, ap=2, vc=120, fz=0.05)]
+schaft = wz.standardwerkzeug()  # Ø 12, Planen mit ae 1,5 und ap 25: eine Lage, 23 Zeilen
+planen = next(e for e in schaft.einsaetze(wz.ALLE) if e.art == wz.PLANEN)
 ue.uebergeben(wz.Bibliothek([schaft]))
 asm, ma = bm.fraesmaschine()
 doc = FreeCAD.newDocument("Quader")
@@ -119,13 +119,13 @@ teil = doc.addObject("Part::Feature", "Teil")
 teil.Shape = block
 doc.recompute()
 job = PathJob.Create("Job", [teil])
-tc1 = js.controller_ohne_transaktion(doc, job, schaft, schaft.einsaetze(wz.ALLE)[0])
+tc1 = js.controller_ohne_transaktion(doc, job, schaft, planen)
 doc.recompute()
 klon = job.Model.Group[0]
 flaeche = next(e.name for e in hf.ebenen_oben(klon.Shape) if abs(e.z - 20.0) < 1e-6)
-op = pf.lege_an(job, tc1, zustellung=2.0, zeilenabstand=4.0, flaechen=[flaeche])
+op = pf.lege_an(job, tc1, zustellung=planen.ap, zeilenabstand=planen.ae, flaechen=[flaeche])
 doc.recompute()
-pruefe(op.Lagen == 3 and op.Zeilen == 30, f"Planfräsen: {op.Lagen} Lagen, {op.Zeilen} Zeilen")
+pruefe(op.Lagen == 1 and op.Zeilen == 23, f"Planfräsen: {op.Lagen} Lagen, {op.Zeilen} Zeilen")
 p = rw.Pruefung(asm, ma)
 nullpunkt = rw.vorschlag_nullpunkt(job)
 fahrt = ab.abfahrt(p, job, nullpunkt)

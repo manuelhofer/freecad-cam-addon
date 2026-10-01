@@ -321,15 +321,14 @@ class _Planfraesen(_Strategie):
         )
 
     def ergebnis_text(self, bahn, zeit):
+        lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+        zeilen = tr("ba.zahl.zeile") if bahn.zeilen == 1 else tr("ba.zahl.zeilen", n=bahn.zeilen)
         if bahn.flaechen > 1:
+            flaechen = tr("ba.zahl.flaechen", n=bahn.flaechen)
             return tr(
-                "ba.ergebnis_flaechen",
-                flaechen=bahn.flaechen,
-                lagen=bahn.lagen,
-                zeilen=bahn.zeilen,
-                zeit=zeit,
+                "ba.ergebnis_flaechen", flaechen=flaechen, lagen=lagen, zeilen=zeilen, zeit=zeit
             )
-        return tr("ba.ergebnis", lagen=bahn.lagen, zeilen=bahn.zeilen, zeit=zeit)
+        return tr("ba.ergebnis", lagen=lagen, zeilen=zeilen, zeit=zeit)
 
     def lege_an(self, job, tc, werte, flaechen):
         return pf.lege_an(
@@ -422,15 +421,14 @@ class _Kontur(_Strategie):
         )
 
     def ergebnis_text(self, bahn, zeit):
+        lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+        bahnen = tr("ba.zahl.bahn") if bahn.bahnen == 1 else tr("ba.zahl.bahnen", n=bahn.bahnen)
         if bahn.konturen > 1:
+            konturen = tr("ba.zahl.konturen", n=bahn.konturen)
             return tr(
-                "ba.ergebnis_konturen",
-                konturen=bahn.konturen,
-                lagen=bahn.lagen,
-                bahnen=bahn.bahnen,
-                zeit=zeit,
+                "ba.ergebnis_konturen", konturen=konturen, lagen=lagen, bahnen=bahnen, zeit=zeit
             )
-        return tr("ba.ergebnis_kontur", lagen=bahn.lagen, bahnen=bahn.bahnen, zeit=zeit)
+        return tr("ba.ergebnis_kontur", lagen=lagen, bahnen=bahnen, zeit=zeit)
 
     def lege_an(self, job, tc, werte, flaechen):
         return ko.lege_an(

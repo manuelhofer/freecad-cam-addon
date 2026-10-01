@@ -16,8 +16,8 @@ Ausfahren, Schruppen in Lagen mit Aufmaß und Schlichten in einem Zug.
 - Gleichlauf (Grundsatz 4): Das Material liegt links der Fahrtrichtung – um einen Zapfen gegen
   den Uhrzeigersinn, in einer Tasche mit ihm.
 - Tangential hinein und heraus: eine Gerade (GERADE_ANTEIL · R) und ein Viertelkreis
-  (EINFAHRT_ANTEIL · R) auf der freien Seite; passt das nicht (Hüllfläche), kürzer, zuletzt
-  senkrecht. Im Material über die Rampe (vierachs_bahn._rampe) längs der Bahn, in der Luft
+  (EINFAHRT_ANTEIL · R) auf der freien Seite; passt das nicht (Hüllfläche, oder es käme einer
+  Wand der Konturen näher als die Bahn darf – Radius plus Aufmaß), kürzer, zuletzt senkrecht. Im Material über die Rampe (vierachs_bahn._rampe) längs der Bahn, in der Luft
   senkrecht mit dem Eintauchvorschub.
 - Die Hüllfläche (hoehenfeld.je_zeile im Raster – das Teil ohne die Wände und ohne die Flächen
   an ihren waagerechten Kanten, ohne_flaechen()) hält jede Bahn vor Absätzen und anderen Wänden
@@ -46,6 +46,7 @@ AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
 SENKRECHT = 1e-6  # so wenig darf die Normale einer Wand von waagerecht abweichen
 NAH = 1e-5  # mm – so nah ist dieselbe Stelle
 HOECHSTENS_VERSAETZE = 200  # so viele Schruppbahnen je Kontur höchstens (vom Rohteil her)
+WAND_SPIEL = 0.05  # mm – so viel näher an eine Wand darf das Ein- und Ausfahren (Sehnen der Kette)
 GLEICH = vb.GLEICH
 
 
@@ -514,10 +515,23 @@ class _Huelle:
     vor ihr die Bahn dort anhalten, wo sie hingehören."""
 
     def __init__(
-        self, netz_nah, netz_fern, geformt, zugabe, x0, x1, y0, y1, schritt, kette=None, band=0.0
+        self,
+        netz_nah,
+        netz_fern,
+        geformt,
+        zugabe,
+        x0,
+        x1,
+        y0,
+        y1,
+        schritt,
+        kette=None,
+        band=0.0,
+        waende=(),
     ):
         self.schritt = schritt
         self.zugabe = zugabe
+        self.waende = list(waende)  # [(x, y, geschlossen, z_oben)] der Unterkanten der Konturen
         self.x0 = x0 - schritt
         self.y0 = y0 - schritt
         self.nx = max(2, int(math.ceil((x1 - self.x0) / schritt)) + 2)
@@ -563,6 +577,32 @@ class _Huelle:
         wo nichts höher steht als das Ziel (die Unterkante der Wand)."""
         roh = self.roh_bei(x, y)
         return (roh + self.zugabe <= lage + GLEICH) | (roh <= ziel + GLEICH)
+
+    def abstand_zur_wand(self, x, y, lage):
+        """So weit (mm) ist jede Stelle von der nächsten Wand der Konturen entfernt, die über
+        die Lage hinaufreicht – unendlich, wo keine ist. Die Hüllfläche blendet diese Wände
+        nahe der Bahn aus (der Fräser fährt im Abstand seines Radius an ihnen entlang); das
+        Ein- und Ausfahren muss sie trotzdem meiden."""
+        ergebnis = np.full(len(x), np.inf)
+        for kx, ky, geschlossen, z_oben in self.waende:
+            if z_oben > lage + GLEICH and len(kx) > 1:
+                ergebnis = np.minimum(ergebnis, _abstand_polylinie(x, y, kx, ky, geschlossen))
+        return ergebnis
+
+
+def _abstand_polylinie(qx, qy, kx, ky, geschlossen):
+    """Der Abstand jedes Punkts (qx, qy) zum Linienzug (kx, ky), geschlossen oder offen."""
+    ax, ay = np.asarray(kx, dtype=float), np.asarray(ky, dtype=float)
+    bx, by = np.roll(ax, -1), np.roll(ay, -1)
+    if not geschlossen:
+        ax, ay, bx, by = ax[:-1], ay[:-1], bx[:-1], by[:-1]
+    dx, dy = bx - ax, by - ay
+    laenge2 = dx * dx + dy * dy
+    qx = np.asarray(qx, dtype=float)[:, None]
+    qy = np.asarray(qy, dtype=float)[:, None]
+    t = ((qx - ax) * dx + (qy - ay) * dy) / np.where(laenge2 > 0, laenge2, 1.0)
+    t = np.clip(t, 0.0, 1.0)
+    return np.hypot(qx - (ax + t * dx), qy - (ay + t * dy)).min(axis=1)
 
 
 # --- Die Bahn ---------------------------------------------------------------------------------
@@ -612,9 +652,27 @@ def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None):
     gerade = GERADE_ANTEIL * r
     zugabe = netz.toleranz + vb.RAND
     geformt = form.mit_aufmass(netz.toleranz)
+    # Die Unterkanten aller Konturen: das Band der Hüllfläche je Kontur und der Abstand, den
+    # das Ein- und Ausfahren zu jeder Wand hält.
+    ketten = [(k, _kette(k, netz.toleranz, 2 * schritt)) for k in konturen_]
+    waende = [(kx, ky, k.geschlossen, k.z_oben) for k, (kx, ky) in ketten]
     st = _Stand()
-    for kontur in konturen_:
-        _kontur(st, kontur, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schritt)
+    for kontur, kette in ketten:
+        _kontur(
+            st,
+            kontur,
+            w,
+            r,
+            r_ein,
+            gerade,
+            netz,
+            netz_fern,
+            geformt,
+            zugabe,
+            schritt,
+            kette,
+            waende,
+        )
     if st.konturen == 0:
         raise ValueError(tr("ko.fehler.nichts"))
     return Konturbahn(
@@ -627,7 +685,7 @@ def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None):
     )
 
 
-def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schritt):
+def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schritt, kette, waende):
     """Eine Kontur: die Versätze fürs Schruppen (so viele, wie Rohteil neben der Wand steht),
     der fürs Schlichten, die Hüllfläche über allem, dann die Lagen."""
     ziel = k.z_unten - max(w.tiefer, 0.0)
@@ -669,8 +727,9 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
         min(p.y.min() for _d, _s, p in alle) - rand,
         max(p.y.max() for _d, _s, p in alle) + rand,
         schritt,
-        _kette(k, toleranz, 2 * schritt),
+        kette,
         r + aufmass + 2 * schritt,
+        waende,
     )
     st.konturen += 1
     anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / w.zustellung)))
@@ -824,8 +883,14 @@ def _lauf(
     t0 = _einheit(x[1] - x[0], y[1] - y[0])
     t1 = _einheit(x[-1] - x[-2], y[-1] - y[-2])
 
+    # Hinein und heraus nicht näher an eine Wand als die Bahn selbst darf: beim Schruppen
+    # Radius + Aufmaß, beim Schlichten der Radius (die Hüllfläche sieht diese Wände nicht).
+    mindest = min(d, r + max(w.aufmass, 0.0)) - WAND_SPIEL
+
     def frei(qx, qy):
-        return bool(huelle.erlaubt(qx, qy, lage, ziel).all())
+        return bool(huelle.erlaubt(qx, qy, lage, ziel).all()) and bool(
+            (huelle.abstand_zur_wand(qx, qy, lage) >= mindest).all()
+        )
 
     ein = _anfahrt(p0, t0, r_ein, gerade, frei, hinein=True)
     aus = _anfahrt(p1, t1, r_ein, gerade, frei, hinein=False)
@@ -872,17 +937,18 @@ def _anfahrt(p, t, r_ein, gerade, frei, hinein):
         c = (p[0] + rechts[0] * r_e, p[1] + rechts[1] * r_e)
         a = (c[0] + richtung * t[0] * r_e, c[1] + richtung * t[1] * r_e)
         b = (a[0] + rechts[0] * lang, a[1] + rechts[1] * lang)
-        xs, ys = [b[0], a[0]], [b[1], a[1]]
+        xs, ys = list(np.linspace(b[0], a[0], 5)), list(np.linspace(b[1], a[1], 5))
+        bogen_x, bogen_y = [], []
         for s in np.linspace(0.0, 1.0, 9):
             ex, ey = _einheit(
                 (1 - s) * (a[0] - c[0]) + s * (p[0] - c[0]),
                 (1 - s) * (a[1] - c[1]) + s * (p[1] - c[1]),
             )
-            xs.append(c[0] + ex * r_e)
-            ys.append(c[1] + ey * r_e)
-        if not frei(np.array(xs), np.array(ys)):
+            bogen_x.append(c[0] + ex * r_e)
+            bogen_y.append(c[1] + ey * r_e)
+        if not frei(np.array(xs + bogen_x), np.array(ys + bogen_y)):
             continue
-        durch = (xs[2 + 4], ys[2 + 4])
+        durch = (bogen_x[4], bogen_y[4])
         uhr = bn.im_uhrzeigersinn(a, p, durch) if hinein else bn.im_uhrzeigersinn(p, a, durch)
         return _Anfahrt(b, a, p, c, uhr, r_e, lang)
     return None

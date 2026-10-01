@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-23 standardfraeser-werkzeugwege
+
+### EINGELESEN
+- Manuel (2026-10-01): „Also generell sollte dann jede Strategie und Szenario mit diesem Fräser
+  und den Werten gerechnet und geprüft werden, wenn es um Werkzeugwege geht“ – der Fräser aus
+  seiner Aufgabe (Platte): VHM Ø 12, ae 1,5, ap 25, fz 0,1, vc 85, Helix 0,7 mm/U, Rampe 3°.
+- `werkzeuge.Werkzeug`/`Einsatz`, die Prüfungen und Szenarien der 2,5D-Strategien
+  (`test_planfraesen`, `test_kontur`, `test_quader`, `szenario_bearbeitung`, `szenario_kontur`:
+  bisher Ø 10 mit ae 4 / ap 2), `kontur_bahn._anfahrt`/`_lauf` (das Ein- und Ausfahren prüft
+  nur die Hüllfläche – die nahe der Bahn die eigenen Wände ausblendet), `gui_bearbeitung`
+  (Ergebniszeile „→ 3 Lagen, 30 Zeilen“).
+
+### DATEIEN
+- `camaddon/werkzeuge.py`, `camaddon/kontur_bahn.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_werkzeuge.py`,
+  `tests/test_planfraesen.py`, `tests/test_kontur.py`, `tests/test_quader.py`,
+  `tests/gui/szenario_bearbeitung.py`, `tests/gui/szenario_kontur.py`, `docs/arbeitsregeln.md`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `beispiele/README.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.42.1)
+
+### AKZEPTANZKRITERIUM
+`werkzeuge.standardwerkzeug()` ist Ø 12 / 4 Schneiden / Schneidenlänge 26 / Rampe 3° mit Planen
+und Schruppen ae 1,5, ap 25, fz 0,1, vc 85 und Schlichten ae 0,3. Block 60 × 40 × 20 mit Absatz:
+Planfräsen damit eine Lage, 23 Zeilen (3,6 … 36,4), „→ 1 Lage, 23 Zeilen“. Block 100 × 60 × 20
+mit Tasche 40 × 30 R 6: Kontur 2 Konturen, 4 Lagen, 9 Bahnen (Tasche 6 Versätze 6,3 … 13,8);
+kein Punkt in der Tasche näher an einer Wand als 6 – auch das Einfahren der innersten
+Schruppbahn nicht; eine Taschenwand allein 2 Lagen, 13 Bahnen; „Auf der Maschine prüfen“: am
+Ende 0,00 mm Rest, nirgends ins Teil.
+
+### DONE
+- `werkzeuge.standardwerkzeug(nummer=1)`: die eine Definition; Regel in den Arbeitsregeln
+  (Abschnitt 5) und der Spezifikation Strategien (Abschnitt 11), Zeilen in aufbau.md und
+  beispiele/README.md.
+- Alle 2,5D-Prüfungen und -Szenarien auf den Standardfräser umgestellt, die Erwartungen aus den
+  Regeln hergeleitet (Zeilen aus Rand R − 0,2 Ø und ae, Überlauf 0,6 Ø, Versätze R + Aufmaß +
+  k · ae); `test_werkzeuge` prüft die Definition.
+- Dabei gefunden und behoben: Das tangentiale Ein- und Ausfahren der Kontur schwenkte in der
+  Tasche 2 R zur Mitte, ohne auf die gegenüberliegende Wand zu achten – die Hüllfläche blendet
+  die eigenen Wände nahe der Bahn aus (damit die Bahn im Abstand R an ihnen entlangfährt). Mit
+  Ø 12 reichte es 1,8 mm in die Wand (mit Ø 10 passte es zufällig). Jetzt hält `_lauf` über
+  `_Huelle.abstand_zur_wand` (die Unterkanten aller Konturen, die über die Lage hinaufreichen)
+  den Abstand der Bahn selbst (Radius + Aufmaß beim Schruppen, Radius beim Schlichten, 0,05
+  Spiel); die Gerade des Einfahrens wird mit abgetastet; passt es nicht, wird es kürzer.
+- Ergebniszeile des Assistenten in Einzahl und Mehrzahl („→ 1 Lage, 23 Zeilen“; `ba.zahl.*`).
+- Die 4-Achs-Prüfungen behalten ihre Werkzeuge (runde Stange: Kugel Ø 6, Ø 6 für Plan
+  indexiert) – ob auch sie auf den Ø 12 sollen, entscheidet Manuel.
+
+### TEST
+- `test_werkzeuge`, `test_sprache`, `test_hilfe`, `test_quader`, `test_planfraesen`,
+  `test_kontur` und die Szenarien `szenario_bearbeitung`, `szenario_kontur` in 1.1.3 ok;
+  black/ruff ok.
+
+### NEXT
+- S3f Räumen mit Versätzen (Spirale bei vollem ap, einmal hinein; Spannhöhe), S3g
+  Bohren/Gewinde – je mit dem Standardfräser und einer Zeile in Abschnitt 11.
+
 ## P-2026-10-01-22 zeit-eilgang-beschleunigung
 
 ### EINGELESEN

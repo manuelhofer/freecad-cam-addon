@@ -1052,6 +1052,30 @@ def beispielwerte_setzen(werkzeug, neu=False):
     werkzeug.beispiel = {feld for feld in felder if feld in werte}
 
 
+def standardwerkzeug(nummer=1):
+    """Manuels Standardfräser (2026-10-01): VHM Ø 12, 4 Schneiden (angenommen), Schneidenlänge 26,
+    Rampe bis 3°; die Werte ae 1,5 mm, ap 25, fz 0,1, vc 85 m/min (→ n 2255, vf 902 mm/min) als
+    Einsätze Planen und Schruppen, Schlichten mit ae 0,3 (das Aufmaß der Kontur) und sonst
+    denselben Werten. Die eine Definition, mit der jede Strategie und jedes Szenario mit
+    Werkzeugwegen gerechnet und geprüft wird (Manuel: „generell sollte dann jede Strategie
+    und Szenario mit diesem Fräser und den Werten gerechnet und geprüft werden“) – siehe
+    docs/spezifikation_strategien.md, Abschnitt 11, und docs/arbeitsregeln.md, Abschnitt 5."""
+    werkzeug = Werkzeug(
+        nummer=nummer,
+        name="VHM 12",
+        durchmesser=12.0,
+        schneiden=4,
+        schneidenlaenge=26.0,
+        eintauchwinkel=3.0,
+    )
+    werkzeug.schnittwerte[ALLE] = [
+        Einsatz(art=PLANEN, ae=1.5, ap=25.0, vc=85.0, fz=0.1),
+        Einsatz(art=SCHRUPPEN, ae=1.5, ap=25.0, vc=85.0, fz=0.1),
+        Einsatz(art=SCHLICHTEN, ae=0.3, ap=25.0, vc=85.0, fz=0.1),
+    ]
+    return werkzeug
+
+
 def zeile(werkzeug):
     """Eine Zeile für die Liste: „T3  Schaftfräser Ø 12 · z 3 · VHM“, mit eigenem
     Namen „T3  Fräser VHM 12 · Schaftfräser Ø 12 · z 3 · VHM“; je Art, was sie

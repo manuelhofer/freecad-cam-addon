@@ -1,10 +1,11 @@
 # Prüft „Planfräsen“ (W-006 S3b): Block 60 × 40 × 20 mit einem Absatz 5 mm höher an der
-# linken Seite (x 0 … 10), Rohteil mit 1 mm Aufmaß rundum (Oberkante 26), Schaftfräser Ø 10,
-# Zustellung 2, Zeilenabstand 4. Die Hüllfläche je Zeile (hoehenfeld) hält die Zeilen vor dem
-# Absatz an; die Bahn: drei Lagen 24 → 22 → 20, Zeilen längs x hin und her, Halbkreise am
-# freien Ende, Rampe ins Material, beim Austritt halber Vorschub; die Befehle mit G1, G2, G3
-# und F; die Zeit. Dann die CAM-Operation im Job: angelegt (Tiefen und Höhen wie FreeCAD),
-# gerechnet, geändert, auf den Absatz gestellt, gespeichert und geladen.
+# linken Seite (x 0 … 10), Rohteil mit 1 mm Aufmaß rundum (Oberkante 26), Manuels
+# Standardfräser Ø 12 (werkzeuge.standardwerkzeug: ae 1,5, ap 25). Die Hüllfläche je Zeile
+# (hoehenfeld) hält die Zeilen vor dem Absatz an; die Bahn: eine Lage auf 20 (6 mm bei ap 25),
+# 23 Zeilen längs x hin und her, Halbkreise am freien Ende, Rampe ins Material, beim Austritt
+# halber Vorschub; die Befehle mit G1, G2, G3 und F; die Zeit. Dann die CAM-Operation im Job:
+# angelegt (Tiefen und Höhen wie FreeCAD), gerechnet, geändert, auf den Absatz gestellt,
+# gespeichert und geladen.
 import math
 import os
 import sys
@@ -58,28 +59,30 @@ pruefe(hf.oberseite(block) == [absatz.name], f"Oberseite: {hf.oberseite(block)}"
 
 # --- Die Hüllfläche je Zeile: vor dem Absatz hoch, über der Fläche frei, daneben nichts -------
 netz = hf.netz_ohne(block, [flaeche.name])
-form = ff.scheibe(5.0)
+werkzeug = wz.standardwerkzeug()  # Ø 12: Radius 6
+R = werkzeug.durchmesser / 2
+form = ff.scheibe(R)
 huelle = hf.je_zeile(netz, form, np.array([20.0]), 0.0, 0.5, 141)  # x 0 … 70 auf y = 20
 z = huelle[:, 0]
 x = 0.5 * np.arange(141)
-pruefe(all(abs(z[i] - 25.0) < 1e-6 for i in range(141) if x[i] <= 15.0 - 1e-9), "vor dem Absatz")
+pruefe(all(abs(z[i] - 25.0) < 1e-6 for i in range(141) if x[i] <= 16.0 - 1e-9), "vor dem Absatz")
 # Über der Fläche (die im Netz fehlt) sieht die Stirn erst die Unterseite des Blocks bei 0.
 pruefe(
-    all(abs(z[i]) < 1e-6 for i in range(141) if 15.0 + 1e-9 < x[i] < 55.0 - 1e-9),
-    f"über der Fläche: {[(x[i], z[i]) for i in range(141) if 15 < x[i] < 55][:3]}",
+    all(abs(z[i]) < 1e-6 for i in range(141) if 16.0 + 1e-9 < x[i] < 54.0 - 1e-9),
+    f"über der Fläche: {[(x[i], z[i]) for i in range(141) if 16 < x[i] < 54][:3]}",
 )
-pruefe(all(not np.isfinite(z[i]) for i in range(141) if x[i] > 65.0 + 1e-9), "neben dem Teil")
+pruefe(all(not np.isfinite(z[i]) for i in range(141) if x[i] > 66.0 + 1e-9), "neben dem Teil")
 # Die Seitenwand bei x = 60 ragt bis z = 20: unter der Lage 20 nicht im Weg, darüber frei.
-rand = [z[i] for i in range(141) if 55.0 + 1e-9 < x[i] < 65.0 - 1e-9]
+rand = [z[i] for i in range(141) if 54.0 + 1e-9 < x[i] < 66.0 - 1e-9]
 pruefe(all(abs(wert - 20.0) < 1e-6 for wert in rand), f"an der Seitenwand: {rand[:3]}")
 # Zeilen längs y: dieselbe Hüllfläche quer.
 # Längs y bei x = 5 liegt der Absatz unter der Stirn (25), bei x = 30 nur die Unterseite (0)
-# – an den Enden der Fläche (y 0 und 40) die Seitenwände bis 20.
+# – an den Enden der Fläche (y 0 und 40) die Seitenwände bis 20 (Stirn R 6: y −6 … 46).
 huelle_y = hf.je_zeile(netz, form, np.array([5.0, 30.0]), -10.0, 0.5, 121, laengs_x=False)
 pruefe(
     all(abs(wert - 25.0) < 1e-6 for wert in huelle_y[20:101, 0])
-    and all(abs(wert) < 1e-6 for wert in huelle_y[31:90, 1])
-    and all(abs(wert - 20.0) < 1e-6 for wert in huelle_y[21:30, 1]),
+    and all(abs(wert) < 1e-6 for wert in huelle_y[33:88, 1])
+    and all(abs(wert - 20.0) < 1e-6 for wert in huelle_y[21:32, 1]),
     f"Zeilen längs y: {huelle_y[18:34, 1]}",
 )
 # Ein Teil unter z = 0: die Hüllfläche hebt es und senkt das Ergebnis wieder.
@@ -115,36 +118,47 @@ pruefe(
 pruefe(abs(befehle[3].Parameters["F"] - 100.0 / 60.0) < 1e-9, "Eintauchvorschub")
 print("Bahn ok")
 
-# --- Planfräsen: drei Lagen, Zeilen vor dem Absatz, Halbkreise, Rampe, Austritt -------------
+# --- Planfräsen: eine Lage, Zeilen vor dem Absatz, Halbkreise, Rampe, Austritt ---------------
+# Mit den Werten des Standardfräsers: ae 1,5 als Zeilenabstand, ap 25 als Zustellung – die
+# 6 mm über der Fläche sind eine Lage.
+planen_einsatz = next(e for e in werkzeug.einsaetze(wz.ALLE) if e.art == wz.PLANEN)
 werte = pb.Planwerte(
     form=form,
-    zustellung=2.0,
-    zeilenabstand=4.0,
+    zustellung=planen_einsatz.ap,
+    zeilenabstand=planen_einsatz.ae,
     aufmass=0.0,
     oben=26.0,
     sicher=31.0,
     rohteil=(-1.0, 61.0, -1.0, 41.0),
 )
 bahn = pb.planen(netz, werte, [flaeche])
-pruefe((bahn.flaechen, bahn.lagen) == (1, 3), f"Flächen, Lagen: {bahn.flaechen}, {bahn.lagen}")
-pruefe(bahn.zeilen == 30, f"Zeilen {bahn.zeilen}")  # 10 je Lage: 3 … 37, höchstens 4 auseinander
+pruefe((bahn.flaechen, bahn.lagen) == (1, 1), f"Flächen, Lagen: {bahn.flaechen}, {bahn.lagen}")
+# Die Zeilen quer: von R − 0,2 Ø = 3,6 bis 36,4, höchstens 1,5 auseinander: 23 Zeilen.
+rand_quer = R - pb.SEITE_ANTEIL * 2 * R
+anzahl_zeilen = int(math.ceil((40.0 - 2 * rand_quer) / planen_einsatz.ae - 1e-9)) + 1
+pruefe(anzahl_zeilen == 23 and bahn.zeilen == anzahl_zeilen, f"Zeilen {bahn.zeilen}")
 pruefe(abs(bahn.z_min - 20.0) < 1e-9, f"z_min {bahn.z_min}")
 vorschub = [p for p in bahn.punkte if not p.eilgang]
 hoehen = sorted({round(p.z, 6) for p in vorschub if not p.eintauchen and p.z <= 26.0})
+pruefe(all(abs(h - 20.0) < 1e-6 or h > 20.0 for h in hoehen), f"Höhen: {hoehen[:8]}")
+in_lage = [p for p in vorschub if abs(p.z - 20.0) < 1e-6]
+# Längs: vor dem Absatz (x = 10) hält die Stirn mit R 6 an, über das Ende (60) läuft die Mitte
+# um den Überlauf 0,6 Ø = 7,2 hinaus – und nicht weiter als das Rohteil (61) plus R.
+ueberlauf = pb.UEBERLAUF_ANTEIL * 2 * R
+x_links, x_rechts = min(p.x for p in in_lage), max(p.x for p in in_lage)
 pruefe(
-    all(any(abs(h - lage) < 1e-6 for lage in (24.0, 22.0, 20.0)) or h > 24.0 for h in hoehen),
-    f"Höhen: {hoehen[:8]}",
+    x_links >= 10.0 + R - 1e-6
+    and x_links < 10.0 + R + 0.5
+    and 66.0 < x_rechts <= 60.0 + ueberlauf + 1e-6,
+    f"x {x_links} … {x_rechts}",
 )
-in_lage = [p for p in vorschub if any(abs(p.z - lage) < 1e-6 for lage in (24.0, 22.0, 20.0))]
+# Die Zeilen liegen auf y 3,6 … 36,4 (am freien Ende zu sehen); an der Wand reicht die
+# Wandfahrt bis an den Rand der Fläche, y 0 und 40.
+zeilen_y = sorted({round(p.y, 6) for p in in_lage if abs(p.x - x_rechts) < 1e-6})
 pruefe(
-    min(p.x for p in in_lage) >= 15.0 - 1e-6 and max(p.x for p in in_lage) <= 66.0 + 1e-6,
-    f"x {min(p.x for p in in_lage)} … {max(p.x for p in in_lage)}",
-)
-# Die Zeilen liegen auf y 3 … 37 (am freien Ende zu sehen); an der Wand reicht die Wandfahrt
-# bis an den Rand der Fläche, y 0 und 40.
-zeilen_y = sorted({round(p.y, 6) for p in in_lage if abs(p.x - 66.0) < 1e-6})
-pruefe(
-    zeilen_y and abs(zeilen_y[0] - 3.0) < 1e-6 and abs(zeilen_y[-1] - 37.0) < 1e-6,
+    len(zeilen_y) == anzahl_zeilen
+    and abs(zeilen_y[0] - rand_quer) < 1e-6
+    and abs(zeilen_y[-1] - (40.0 - rand_quer)) < 1e-6,
     f"Zeilen y {zeilen_y[:2]} … {zeilen_y[-2:]}",
 )
 pruefe(
@@ -152,39 +166,43 @@ pruefe(
     f"y {min(p.y for p in in_lage)} … {max(p.y for p in in_lage)}",
 )
 boegen = [p for p in vorschub if p.bogen is not None]
-pruefe(len(boegen) >= 12, f"Bögen: {len(boegen)}")  # je Lage am freien Ende (x = 66)
-pruefe(all(abs(p.x - 66.0) < 1e-6 for p in boegen), "Bogen nicht am freien Ende")
+pruefe(len(boegen) == anzahl_zeilen // 2, f"Bögen: {len(boegen)}")  # am freien Ende, jede zweite
+pruefe(all(abs(p.x - x_rechts) < 1e-6 for p in boegen), "Bogen nicht am freien Ende")
+abstand_zeilen = (40.0 - 2 * rand_quer) / (anzahl_zeilen - 1)
 pruefe(
-    all(abs(math.hypot(p.x - p.bogen[0], p.y - p.bogen[1]) - 17.0 / 9.0) < 1e-6 for p in boegen),
+    all(
+        abs(math.hypot(p.x - p.bogen[0], p.y - p.bogen[1]) - abstand_zeilen / 2) < 1e-6
+        for p in boegen
+    ),
     "Bogenradius ist nicht der halbe Zeilenabstand",
 )
-# Beim Austritt bei x = 61 − 5 = 56 bis 66 der halbe Vorschub.
+# Beim Austritt ab x = 61 − R = 55 bis zum Ende der halbe Vorschub.
 langsam = [p for p in vorschub if p.anteil < 1.0]
 pruefe(
-    len(langsam) >= 15 and all(abs(p.x - 66.0) < 1e-6 for p in langsam),
+    len(langsam) >= anzahl_zeilen // 2 and all(abs(p.x - x_rechts) < 1e-6 for p in langsam),
     f"Austritt: {len(langsam)} Sätze, x {sorted({round(p.x, 3) for p in langsam})}",
 )
-# Vor der Wand (x = 15,25) fährt der Fräser an ihr entlang: zur vorigen Zeile zurück und über
-# die erste und letzte Zeile hinaus bis an den Rand der Fläche (y 0 und 40) – so bleibt in den
+# Vor der Wand fährt der Fräser an ihr entlang: zur vorigen Zeile zurück und über die erste
+# und letzte Zeile hinaus bis an den Rand der Fläche (y 0 und 40) – so bleibt in den
 # Zwischenräumen und Ecken an der Wand nichts stehen (gefunden mit der Simulation, W-006 S3d).
-an_der_wand = sorted({round(p.y, 2) for p in in_lage if abs(p.x - 15.25) < 1e-6})
+an_der_wand = sorted({round(p.y, 2) for p in in_lage if abs(p.x - x_links) < 1e-6})
 pruefe(
     an_der_wand and an_der_wand[0] == 0.0 and an_der_wand[-1] == 40.0,
     f"Wandfahrt: y {an_der_wand[:3]} … {an_der_wand[-2:]}",
 )
-knick = [p for p in vorschub if abs(p.x - 56.0) < 1e-6]
-pruefe(len(knick) >= 15, f"der Punkt vor dem Austritt fehlt: {len(knick)}")
-# Rampe: die erste Lage beginnt in der Luft (x = 66) senkrecht, die Zeile in der Mitte vor
-# dem Absatz endet mit dem Schritt quer; wo es im Material anfängt, geht es über die Rampe.
+knick = [p for p in vorschub if abs(p.x - (61.0 - R)) < 1e-6]
+pruefe(len(knick) >= anzahl_zeilen // 2, f"der Punkt vor dem Austritt fehlt: {len(knick)}")
+# Rampe: die Lage beginnt in der Luft vor der Wand (x = 16) senkrecht; wo es im Material
+# anfängt, geht es über die Rampe.
 eintauchen = [p for p in vorschub if p.eintauchen]
-pruefe(len(eintauchen) >= 3, f"Eintauchen: {len(eintauchen)}")
+pruefe(len(eintauchen) >= 1, f"Eintauchen: {len(eintauchen)}")
 start = bahn.punkte[0]
 pruefe(
-    start.eilgang and abs(start.z - 31.0) < 1e-9 and abs(start.x - 66.0) < 1e-6, f"Start {start}"
+    start.eilgang and abs(start.z - 31.0) < 1e-9 and abs(start.x - x_links) < 1e-6, f"Start {start}"
 )
 pruefe(bahn.punkte[-1].eilgang and abs(bahn.punkte[-1].z - 31.0) < 1e-9, "Ende nicht oben")
-pruefe(bahn.laenge > 3 * 10 * 50.0, f"Länge {bahn.laenge}")
-pruefe(bn.dauer(bahn.punkte, 1000.0) > 1.5, f"Zeit {bn.dauer(bahn.punkte, 1000.0)}")
+pruefe(bahn.laenge > anzahl_zeilen * 50.0, f"Länge {bahn.laenge}")
+pruefe(bn.dauer(bahn.punkte, 1000.0) > 1.2, f"Zeit {bn.dauer(bahn.punkte, 1000.0)}")
 befehle = bn.befehle(bahn.punkte, 1000.0, 200.0)
 namen = {b.Name for b in befehle}
 pruefe({"G0", "G1"} <= namen and ("G2" in namen or "G3" in namen), f"Befehle: {namen}")
@@ -195,7 +213,7 @@ schmal = Part.makeBox(20, 60, 10)
 oben_schmal = hf.ebenen_oben(schmal)
 bahn_y = pb.planen(
     vh.vernetze(schmal),
-    pb.Planwerte(form, 2.0, 4.0, 0.0, 12.0, 17.0, (-1.0, 21.0, -1.0, 61.0)),
+    pb.Planwerte(form, 25.0, 1.5, 0.0, 12.0, 17.0, (-1.0, 21.0, -1.0, 61.0)),
     [e for e in oben_schmal if abs(e.z - 10.0) < 1e-6],
 )
 in_lage = [p for p in bahn_y.punkte if not p.eilgang and abs(p.z - 10.0) < 1e-6]
@@ -205,11 +223,12 @@ pruefe(
 )
 pruefe(abs(bahn_y.z_min - 10.0) < 1e-9 and bahn_y.lagen == 1, "schmal: eine Lage")
 
-# Fehler mit einem Satz: Kugel, Zeilenabstand zu groß, nichts über der Fläche, keine Fläche.
+# Fehler mit einem Satz: Kugel, Zeilenabstand zu groß (über Ø), nichts über der Fläche, keine
+# Fläche.
 for werte_falsch, ebenen_falsch, text in (
-    (pb.Planwerte(ff.kugel(5.0), 2.0, 4.0, 0.0, 26.0, 31.0, werte.rohteil), [flaeche], "Kugel"),
-    (pb.Planwerte(form, 2.0, 12.0, 0.0, 26.0, 31.0, werte.rohteil), [flaeche], "Abstand"),
-    (pb.Planwerte(form, 2.0, 4.0, 0.0, 20.0, 31.0, werte.rohteil), [flaeche], "nichts drüber"),
+    (pb.Planwerte(ff.kugel(R), 25.0, 1.5, 0.0, 26.0, 31.0, werte.rohteil), [flaeche], "Kugel"),
+    (pb.Planwerte(form, 25.0, 13.0, 0.0, 26.0, 31.0, werte.rohteil), [flaeche], "Abstand"),
+    (pb.Planwerte(form, 25.0, 1.5, 0.0, 20.0, 31.0, werte.rohteil), [flaeche], "nichts drüber"),
     (werte, [], "keine Fläche"),
 ):
     try:
@@ -222,11 +241,11 @@ for werte_falsch, ebenen_falsch, text in (
 # --- Die CAM-Operation im Job ---------------------------------------------------------------
 import Path.Main.Job as PathJob
 
-schaft = wz.Werkzeug(nummer=1, durchmesser=10, schneiden=3, schneidenlaenge=20)
-schaft.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.PLANEN, ae=4, ap=2, vc=120, fz=0.05)]
+schaft = werkzeug  # T1, der Standardfräser mit dem Einsatz Planen
 kugel = wz.Werkzeug(nummer=2, art=wz.KUGELFRAESER, durchmesser=6, schneiden=2)
 kugel.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHLICHTEN, ae=0.3, ap=6, vc=150, fz=0.04)]
 ue.uebergeben(wz.Bibliothek([schaft, kugel]))
+ap, ae = planen_einsatz.ap, planen_einsatz.ae
 
 doc = FreeCAD.newDocument("Planfraesen")
 doc.UndoMode = 1
@@ -234,7 +253,7 @@ teil = doc.addObject("Part::Feature", "Teil")
 teil.Shape = block
 doc.recompute()
 job = PathJob.Create("Job", [teil])
-tc1 = js.controller_ohne_transaktion(doc, job, schaft, schaft.einsaetze(wz.ALLE)[0])
+tc1 = js.controller_ohne_transaktion(doc, job, schaft, planen_einsatz)
 tc2 = js.controller_ohne_transaktion(doc, job, kugel, kugel.einsaetze(wz.ALLE)[0])
 doc.recompute()
 pruefe(
@@ -245,7 +264,7 @@ klon = job.Model.Group[0]
 flaeche_im_job = next(e.name for e in hf.ebenen_oben(klon.Shape) if abs(e.z - 20.0) < 1e-6)
 absatz_im_job = next(e.name for e in hf.ebenen_oben(klon.Shape) if abs(e.z - 25.0) < 1e-6)
 
-op = pf.lege_an(job, tc1, zustellung=2.0, zeilenabstand=4.0, flaechen=[flaeche_im_job])
+op = pf.lege_an(job, tc1, zustellung=ap, zeilenabstand=ae, flaechen=[flaeche_im_job])
 doc.recompute()
 pruefe(op.Label == "Planfräsen T1" and op in job.Operations.Group, f"{op.Label}")
 pruefe(pf.ist_planfraesen(op), "Art")
@@ -259,7 +278,7 @@ pruefe(
     float(op.SafeHeight) > 26.0 and float(op.ClearanceHeight) > float(op.SafeHeight) - 1e-6, "Höhen"
 )
 pruefe(
-    (op.Ebenen, op.Lagen, op.Zeilen) == (1, 3, 30),
+    (op.Ebenen, op.Lagen, op.Zeilen) == (1, 1, anzahl_zeilen),
     f"Operation: {op.Ebenen}, {op.Lagen}, {op.Zeilen}",
 )
 befehle = op.Path.Commands
@@ -269,36 +288,36 @@ pruefe(
 )
 schnitte = [b for b in befehle if b.Name in ("G1", "G2", "G3")]
 z_werte = sorted({round(b.Parameters["Z"], 6) for b in schnitte if "Z" in b.Parameters})
-pruefe(min(z_werte) >= 20.0 - 1e-6 and 20.0 in z_werte and 22.0 in z_werte, f"Z {z_werte[:6]}")
+pruefe(min(z_werte) >= 20.0 - 1e-6 and 20.0 in z_werte, f"Z {z_werte[:6]}")
 pruefe(any(b.Name in ("G2", "G3") for b in schnitte), "keine Bögen in der Operation")
 f_werte = sorted({round(b.Parameters["F"], 6) for b in schnitte if "F" in b.Parameters})
 pruefe(len(f_werte) >= 2, f"F {f_werte}")
 pruefe(op.getEditorMode("Lagen") == ["ReadOnly"], "Lagen änderbar")
 
-# Ändern: eine Lage mehr mit 1,5 mm; der Absatz allein hat nur 1 mm drüber: eine Lage.
-pf.aendere(op, tc1, zustellung=1.5, zeilenabstand=4.0, aufmass=0.0)
+# Ändern: zwei Lagen mit 3 mm; der Absatz allein hat nur 1 mm drüber: eine Lage.
+pf.aendere(op, tc1, zustellung=3.0, zeilenabstand=ae, aufmass=0.0)
 doc.recompute()
-pruefe(op.Lagen == 4, f"geändert: {op.Lagen} Lagen")
-pf.aendere(op, tc1, zustellung=2.0, zeilenabstand=4.0, aufmass=0.0, flaechen=[absatz_im_job])
+pruefe(op.Lagen == 2, f"geändert: {op.Lagen} Lagen")
+pf.aendere(op, tc1, zustellung=ap, zeilenabstand=ae, aufmass=0.0, flaechen=[absatz_im_job])
 doc.recompute()
 pruefe((op.Ebenen, op.Lagen) == (1, 1), f"Absatz: {op.Ebenen}, {op.Lagen}")
 pruefe(abs(float(op.FinalDepth) - 25.0) < 1e-6, f"Endtiefe am Absatz {float(op.FinalDepth)}")
 x_werte = [b.Parameters["X"] for b in op.Path.Commands if b.Name == "G1" and "X" in b.Parameters]
-pruefe(max(x_werte) <= 16.0 + 1e-6, f"Absatz: x bis {max(x_werte)}")
+pruefe(max(x_werte) <= 10.0 + ueberlauf + 1e-6, f"Absatz: x bis {max(x_werte)}")
 # Der Kugelfräser: ein Satz statt der Bahn.
 pf.aendere(op, tc2, zustellung=2.0, zeilenabstand=3.0, aufmass=0.0, flaechen=[flaeche_im_job])
 doc.recompute()
 pruefe("ebener Stirn" in op.Path.Commands[1].Name, f"Kugelfräser: {op.Path.Commands[1].Name}")
-pf.aendere(op, tc1, zustellung=2.0, zeilenabstand=4.0, aufmass=0.5, flaechen=[flaeche_im_job])
+pf.aendere(op, tc1, zustellung=ap, zeilenabstand=ae, aufmass=0.5, flaechen=[flaeche_im_job])
 doc.recompute()
-pruefe(abs(float(op.FinalDepth) - 20.5) < 1e-6 and op.Lagen == 3, "zurück mit Aufmaß")
+pruefe(abs(float(op.FinalDepth) - 20.5) < 1e-6 and op.Lagen == 1, "zurück mit Aufmaß")
 # Ohne Flächen: die Oberseite des Teils – der Absatz.
-pf.aendere(op, tc1, zustellung=2.0, zeilenabstand=4.0, aufmass=0.0, flaechen=[])
+pf.aendere(op, tc1, zustellung=ap, zeilenabstand=ae, aufmass=0.0, flaechen=[])
 doc.recompute()
 pruefe(abs(float(op.FinalDepth) - 25.0) < 1e-6 and op.Ebenen == 1, "ohne Wahl: die Oberseite")
 
 # Speichern und Laden: dieselbe Bahn.
-pf.aendere(op, tc1, zustellung=2.0, zeilenabstand=4.0, aufmass=0.0, flaechen=[flaeche_im_job])
+pf.aendere(op, tc1, zustellung=ap, zeilenabstand=ae, aufmass=0.0, flaechen=[flaeche_im_job])
 doc.recompute()
 anzahl = len(op.Path.Commands)
 pfad = os.path.join(tempfile.mkdtemp(), "planfraesen.FCStd")

@@ -120,6 +120,17 @@ ein ASCII-Entwurf des Dialogs reicht.
     writing“), und etwa `szenario_erster_start` scheitert – mit dem Code hat
     das nichts zu tun, der Lauf zählt trotzdem nicht (P-2026-09-27-33).
   - Reine Doku-Änderungen brauchen keinen Testlauf.
+  - **Werkzeugwege mit Manuels Standardfräser** (Manuel, 2026-10-01: „generell
+    sollte dann jede Strategie und Szenario mit diesem Fräser und den Werten
+    gerechnet und geprüft werden, wenn es um Werkzeugwege geht“): Jede
+    Strategie, jede Prüfung und jedes Szenario, das Werkzeugwege rechnet, nimmt
+    `werkzeuge.standardwerkzeug()` – VHM Ø 12, ae 1,5 mm, ap 25, fz 0,1,
+    vc 85 m/min, Rampe 3° – und die festen Vorgaben für die Zeit (Eilgang
+    10 m/min, Beschleunigung 1 m/s², `export.VORGABE_…`). So sind die Zeiten
+    aller Strategien vergleichbar (Spezifikation Strategien, Abschnitt 11),
+    und was mit diesem Fräser nicht passt, fällt in der Prüfung auf (das
+    Einfahren der Kontur, P-2026-10-01-23). Ein anderes Werkzeug nur, wo die
+    Prüfung genau das braucht (Kugelfräser als falsches Werkzeug, Bohrer).
 - **Neue Prüfungen** gibt es für behobene Fehler, damit sie nicht
   wiederkommen, und für neue Funktionen. Reines Aufräumen braucht keine
   neuen, das decken die vorhandenen ab. Was sich ohne Oberfläche prüfen

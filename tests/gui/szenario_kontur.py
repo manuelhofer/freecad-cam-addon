@@ -1,12 +1,12 @@
 # „Bearbeitung (Fräsen)“ mit der Kontur (W-006 S3e). Block 100 × 60 × 20 mit einer Tasche
-# 40 × 30 (Ecken R 6), 15 tief; T1 Schaftfräser Ø 10 (Einsätze Planen und Schruppen). Eine
-# Taschenwand anklicken, den Knopf drücken: Der Job entsteht, die Wand steht grün in der Liste
-# („Wand, unten 5“), der Haken „Kontur“ ist gesetzt, „Planfräsen“ nicht. Die übrigen Wände dazu
-# (Tasche und außen) und die Oberseite fürs Planfräsen: beide Blöcke rechnen ihre Vorschau.
-# „Anlegen“: „Planfräsen T1“ und „Kontur T1“ (2 Konturen). Doppelklick auf die Kontur öffnet
-# das Fenster nur mit ihrem Block; ohne Haken „Schlichten“ weniger Bahnen. Dann „Auf der
-# Maschine prüfen“ mit der Beispiel-Fräse: Am Ende ist nirgends etwas ins Teil geschnitten und
-# bleibt kein Rest stehen.
+# 40 × 30 (Ecken R 6), 15 tief; T1 Manuels Standardfräser Ø 12 (ae 1,5, ap 25: jede Kontur
+# eine Lage). Eine Taschenwand anklicken, den Knopf drücken: Der Job entsteht, die Wand steht
+# grün in der Liste („Wand, unten 5“), der Haken „Kontur“ ist gesetzt, „Planfräsen“ nicht. Die
+# übrigen Wände dazu (Tasche und außen) und die Oberseite fürs Planfräsen: beide Blöcke rechnen
+# ihre Vorschau. „Anlegen“: „Planfräsen T1“ und „Kontur T1“ (2 Konturen, 4 Lagen, 9 Bahnen).
+# Doppelklick auf die Kontur öffnet das Fenster nur mit ihrem Block; ohne Haken „Schlichten“
+# weniger Bahnen. Dann „Auf der Maschine prüfen“ mit der Beispiel-Fräse: Am Ende ist nirgends
+# etwas ins Teil geschnitten und bleibt kein Rest stehen.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -44,11 +44,7 @@ def schritte(h):
     from camaddon import planfraesen as pf
     from camaddon import werkzeuge as wz
 
-    t1 = wz.Werkzeug(nummer=1, durchmesser=10, schneiden=3, schneidenlaenge=20)
-    t1.schnittwerte[wz.ALLE] = [
-        wz.Einsatz(art=wz.PLANEN, ae=4, ap=2, vc=150, fz=0.05),
-        wz.Einsatz(art=wz.SCHRUPPEN, ae=4, ap=2, vc=150, fz=0.05),
-    ]
+    t1 = wz.standardwerkzeug()
     wz.Bibliothek([t1]).speichern()
 
     doc = FreeCAD.newDocument("Tasche")
@@ -87,8 +83,9 @@ def schritte(h):
     yield from h.warte_auf(lambda: kontur.vorschau is not None, 30000)
     h.pruefe(not kontur.hinweis.text(), f"rot: {kontur.hinweis.text()!r}")
     text = kontur.ergebnis.text()
-    # Eine Taschenwand allein: neben ihr steht die ganze Tasche – viele Bahnen nebeneinander.
-    h.pruefe(text.startswith("→ 9 Lagen,") and "Bahnen" in text, f"Vorschau eine Wand: {text!r}")
+    # Eine Taschenwand allein: neben ihr steht die ganze Tasche – viele Bahnen nebeneinander
+    # (eine Schrupplage bei ap 25 und das Schlichten).
+    h.pruefe(text.startswith("→ 2 Lagen, 13 Bahnen"), f"Vorschau eine Wand: {text!r}")
     h.bild("1_eine_wand", panel.form)
 
     # Alle Wände der Tasche und außen dazu, die Oberseite fürs Planfräsen anhaken.
@@ -99,7 +96,7 @@ def schritte(h):
     yield from h.warte_auf(lambda: kontur.vorschau is not None and plan.vorschau is not None, 60000)
     h.pruefe(plan.aktiv() and kontur.aktiv(), "beide Haken")
     text = kontur.ergebnis.text()
-    h.pruefe(text.startswith("→ 2 Konturen: 22 Lagen, 38 Bahnen, etwa"), f"Vorschau: {text!r}")
+    h.pruefe(text.startswith("→ 2 Konturen: 4 Lagen, 9 Bahnen, etwa"), f"Vorschau: {text!r}")
     text_plan = plan.ergebnis.text()
     h.pruefe(
         text_plan.startswith("→ 1 Lagen,") or text_plan.startswith("→ 1 Lage"),
@@ -122,7 +119,7 @@ def schritte(h):
     op = ops[1]
     h.pruefe(op.Label == "Kontur T1", f"Name: {op.Label}")
     h.pruefe(
-        (op.Konturen, op.Lagen, op.Bahnen) == (2, 22, 38), f"{op.Konturen}, {op.Lagen}, {op.Bahnen}"
+        (op.Konturen, op.Lagen, op.Bahnen) == (2, 4, 9), f"{op.Konturen}, {op.Lagen}, {op.Bahnen}"
     )
     h.pruefe(
         sorted(op.Flaechen) == sorted(taschenwaende + aussenwaende), f"Flächen: {list(op.Flaechen)}"
@@ -151,12 +148,12 @@ def schritte(h):
     kontur.haken_felder["schlichten"].setChecked(False)
     yield from h.warte_auf(lambda: kontur.vorschau is not None, 30000)
     text = kontur.ergebnis.text()
-    h.pruefe(text.startswith("→ 2 Konturen: 19 Lagen, 35 Bahnen"), f"ohne Schlichten: {text!r}")
+    h.pruefe(text.startswith("→ 2 Konturen: 2 Lagen, 7 Bahnen"), f"ohne Schlichten: {text!r}")
     kontur.haken_felder["schlichten"].setChecked(True)
     yield from h.warte_auf(lambda: kontur.vorschau is not None, 30000)
     h.pruefe(panel.accept() is True, "„Übernehmen“ ging nicht")
     yield 2000
-    h.pruefe(op.Schlichten is True and op.Bahnen == 38, f"nach dem Ändern: {op.Bahnen} Bahnen")
+    h.pruefe(op.Schlichten is True and op.Bahnen == 9, f"nach dem Ändern: {op.Bahnen} Bahnen")
 
     # --- Auf der Maschine prüfen: am Ende nichts ins Teil, nichts stehen geblieben ---------
     asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
