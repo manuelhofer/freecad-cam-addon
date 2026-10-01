@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-10 plan-zeilenende
+
+### EINGELESEN
+- `test_vierachs_plan` in 1.1.3: „längs über die Wände hinaus: −28,25 … −11,75“ – die Zeilen
+  bei Y ±2,98 liefen in der Lage 10 (= Zylinderradius) 1,5 mm weiter als die mittlere.
+- `camaddon/vierachs_planbahn.py` (`planen`, `drin`), `vierachs_huelle.je_versatz`.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`, `tests/test_vierachs_plan.py`, `help/de|en/vierachs.html`,
+  `docs/spezifikation_vierachs.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Alle Zeilen einer Fläche enden an derselben Stelle vor der Wand (Welle Ø 20, Abflachung
+−30 … −10, Fräser Ø 6: −26,75 … −13,25), in jeder Lage und bei jedem Versatz; über das Ende
+der Fläche hinaus fährt der Fräser nur, wo nichts höher steht als die Fläche selbst (Absatz
+nach unten, Stangenende).
+
+### DONE
+- Ursache: Die Lage auf dem Zylinderradius durfte den Zylinder neben der Wand streifen – die
+  Hüllfläche der versetzten Stirn liegt dort um 0,01 … 0,15 mm unter dem Radius, weil die
+  Stirn den Scheitel bei Y 0 nicht mehr trifft. Die Lage war also „frei“, aber über einem
+  fremden Zylinder, der Sache der Rundum-Bahnen ist.
+- Regel in `planen()`: Wo die Stirn über das Ende der Fläche ragt (Mitte näher als der
+  Fräserradius am Flächenende), fräst sie nur, wenn die rohe Hüllfläche dort nicht höher
+  liegt als Tiefe plus Aufmaß. Prüfung im Test (Zeilenenden je Versatz gleich), Hilfe,
+  Spezifikation.
+
+### TEST
+- `test_vierachs_plan` in 1.1.3 ok; `szenario_vierachs_plan` in 1.1.3 ok.
+
+### NEXT
+- Version 0.35.0, Push; V4d Rundum entgraten.
+
 ## P-2026-10-01-09 testregel-weniger
 
 ### EINGELESEN
@@ -41,6 +74,73 @@ ohne Grund, kein voller Lauf nach jedem Patch, kein Warten auf einen Lauf im Hin
 ### NEXT
 - „Plan indexiert“ (P-08) prüfen: `test_vierachs_plan`, `test_goldene_bahnen`,
   `test_restmaterial`, `szenario_vierachs_plan` in 1.1.3; Version 0.35.0, Push.
+
+## P-2026-10-01-08 plan-indexiert
+
+### EINGELESEN
+- W-003 V4c (`docs/spezifikation_vierachs.md`): „Plan indexiert – eine ebene Fläche parallel zur
+  Achse mit einem Fräser mit ebener Stirn: Die Rundachse steht fest, der Fräser fährt Zeilen wie
+  beim Planfräsen (Zustellung ap, Zeilenabstand ae)“; offene Frage 1 (Versatz quer, Abfahren,
+  Kollision, Abtrag); W-006 4.3.2 und S2; Manuel, 2026-09-29: „bei einer maschine mit y achse
+  kann man ja auch diese verfahren um eventuelle stellen besser zu erreichen“; E5 (a).
+- `camaddon/vierachs_bahn.py` (Punkt, Befehle, `_fahrten`, Rampe), `vierachs_huelle.py`
+  (`je_winkel`, `_form_treffen`), `restmaterial.py` (Stange, `_block`, `_stirn`, `Abtrag`,
+  `fuer`), `vierachs_schlichten.py` (Operation als Vorlage), `gui_vierachs.py` (Schritt 2),
+  `abfahren.py` (Stationen mit den Rundachsen im Programm), `vierachs_achsen.py`
+  (`Stangenachse.quer`).
+
+### DATEIEN
+- Neu: `camaddon/vierachs_planbahn.py`, `camaddon/vierachs_plan.py`, `tests/test_vierachs_plan.py`,
+  `tests/gui/szenario_vierachs_plan.py`
+- `camaddon/vierachs_bahn.py`, `camaddon/vierachs_huelle.py`, `camaddon/restmaterial.py`,
+  `camaddon/vierachs_operation.py`, `camaddon/job_schnittwerte.py`, `camaddon/gui_vierachs.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/vierachs.html`, `README.md`,
+  `docs/spezifikation_vierachs.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle mit Abflachung, Stange Ø 24, Schaftfräser Ø 6: Im Assistenten geht mit der gewählten
+Abflachung der dritte Haken „Plan indexiert“ an („Vorschlag: an – eben längs der Stange: Face7
+…“), die Vorschau sagt „→ 2 Lagen, 6 Zeilen, etwa 1 min“; „Anlegen“ legt „Plan indexiert T1“ an:
+die Rundachse steht auf dem Winkel der Fläche, Lagen Ø 24 → 10 → 8, je Lage drei Zeilen längs
+mit Y −2,98/0/2,98, die Zeilen enden vor den Wänden, hinein über die Rampe; die Sätze tragen Y
+und ein festes C. Ohne ebene Fläche längs der Stange oder ohne Querachse ist der Haken gesperrt,
+der graue Satz sagt, warum. Der Abtrag im Prüffenster trägt die Stange versetzt ab (über der
+Abflachung die Ebene, daneben die Stange). Die Rundum-Bahnen bleiben, wie sie waren (goldene
+Bahnen).
+
+### DONE
+- Bahn (`vierachs_planbahn`): `ebenen()` (ebene Flächen mit Normale quer zur Stange, nach
+  außen; Winkel, Tiefe, Ausdehnung längs und quer), `netz_ohne()` (das Teil ohne die Fläche),
+  `planen()` (Lagen, Zeilen quer mit Luft am Rand, Hüllfläche je Zeile über
+  `vierachs_huelle.je_versatz`, Fahrten hin und her über `_fahrten`, Rampe oder senkrecht
+  hinein, Eilgang mit Versatz), `Planwerte`, `Planbahn`, `ebener_radius()`.
+- `vierachs_bahn.Punkt.q`; `befehle()` schreibt die Querachse, sobald ein Punkt versetzt ist;
+  `_weg` mit dem Versatz.
+- `restmaterial`: `schnitte()`/`_block()`/`_stirn()` mit Versatz (Scheibe: wo der Strahl die
+  Ebene der Spitze trifft, quer von der Werkzeugachse gemessen; Kugel: die Mitte auf den Strahl
+  projiziert; sonst ℓ = √(d² + (h · tan Δ − q)²)), `fahre_stuecke()` mit (n, 4), `Abtrag` mit q,
+  `fuer()` nimmt die Werkzeugachse aus der Rundachse im Programm (−Drehsinn · C) und rechnet
+  die Spitze darauf (r) und daneben (q) – für die Rundum-Bahnen dasselbe wie vorher.
+- Operation `vierachs_plan.PlanIndexiert` (Zustellung, Zeilenabstand, Aufmaß, Abstände,
+  Flächen, Eintauchwinkel; Ebenen, Lagen, Zeilen nur lesen), `bahn_fuer`, `vorschau`, `lege_an`,
+  `aendere`, `ist_plan`; `vo.ist_rundum` kennt sie, `restmaterial.operationsarten_rundum`,
+  „Schnittwerte in den Job“ mit Einsatz „Planen“.
+- Assistent: Block „Plan indexiert“ (Fräser mit ebener Stirn, Einsatz, drei Felder, Vorschau),
+  `_plan_vorschlagen` (gesperrt ohne ebene Fläche oder ohne Querachse, sonst Vorschlag mit
+  Grund), Anlegen, Ändern, „dazu“ beim Ändern des Schruppens, Platz am Revolver, Bedarf hinten,
+  gelber Satz zur Lage. Hilfe (de/en), README, Spezifikation, Status.
+
+### TEST
+- `test_vierachs_plan` (neu): Ebene, Bahn (Lagen, Zeilen, Wände, Rampe, Y im Befehl), Fehler,
+  Abtrag mit Versatz (Ebene über der Abflachung, Kugel versetzt), Operation (anlegen, ändern,
+  Kugelfräser, Stirn, speichern und laden); dazu `test_restmaterial`, `test_goldene_bahnen`
+  (Rundum-Bahnen unverändert), `test_sprache`, `test_hilfe` – in 1.1.3 ok (Testregel
+  P-2026-10-01-09: nur die Prüfungen zum geänderten Teil, nur die stabile Version).
+- `szenario_vierachs_plan` (neu) in 1.1.3 ok, Bilder angesehen.
+- Der erste Lauf fand die Zeilen über die Wände hinaus (P-2026-10-01-10).
+
+### NEXT
+- P-2026-10-01-10 (Zeilenende), Version 0.35.0, Push; V4d Rundum entgraten.
 
 ## P-2026-10-01-06 linien-laengs
 

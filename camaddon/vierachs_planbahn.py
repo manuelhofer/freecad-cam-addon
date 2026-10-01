@@ -20,8 +20,12 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
 - Längs reicht eine Zeile über die Fläche hinaus, so weit der Fräser breit ist, plus Überlauf;
   wo die Hüllfläche (vierachs_huelle.je_versatz – das Teil ohne diese Fläche, mit dem Versatz
   der Zeile) höher liegt als die Lage, etwa an einer Wand oder am Zylinder vor der Fläche, hält
-  sie an. Hin und her (vierachs_bahn._fahrten): Am Ende einer Zeile geht es in der Tiefe quer
-  zur nächsten, wo die dort auch fräst; sonst hebt der Fräser ab.
+  sie an. Über das Ende der Fläche hinaus ragt die Stirn nur, wo nichts höher steht als die
+  Fläche selbst – ein Absatz nach unten, das Ende der Stange –, nicht über den Zylinder neben
+  der Wand, auch wenn eine Lage ihn gerade noch streifen dürfte (Ø 20, Lage 10: die äußeren
+  Zeilen liefen 1,5 mm weiter als die mittlere); der ist Sache der Rundum-Bahnen. Hin und her
+  (vierachs_bahn._fahrten): Am Ende einer Zeile geht es in der Tiefe quer zur nächsten, wo die
+  dort auch fräst; sonst hebt der Fräser ab.
 - Hinein wie beim Schruppen: senkrecht mit dem Eintauchvorschub, wo die Zeile vor der Stange
   beginnt, sonst über die Rampe mit dem Eintauchwinkel längs der Zeile.
 
@@ -200,7 +204,15 @@ def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A):
         schritt = float(a_stellen[1] - a_stellen[0])
         rad = math.radians(ebene.phi)
         huelle = vh.je_versatz(netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, q_zeilen)
-        hoehe = huelle.T + zugabe  # (Zeilen, Stellen); −inf, wo er nichts trifft
+        roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
+        hoehe = roh + zugabe
+        # Wo die Stirn über das Ende der Fläche ragt, nur, wenn dort nichts höher steht als
+        # die Fläche selbst – nicht über den Zylinder neben der Wand, den eine Lage auf seinem
+        # Radius gerade noch streifen dürfte.
+        ragt = (a_stellen < ebene.a_von + radius + vb.GLEICH) | (
+            a_stellen > ebene.a_bis - radius - vb.GLEICH
+        )
+        frei = ~ragt[None, :] | (roh <= ziel + vb.GLEICH)
         flaechen_gefraest += 1
         vorige = oben
         for lage in lagen:
@@ -208,7 +220,7 @@ def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A):
             # Zeilen, deren ebene Stirn in dieser Lage noch die Stange trifft.
             w_lage = math.sqrt(max(w.stange_radius**2 - lage * lage, 0.0))
             zeilen_da = np.abs(q_zeilen) - r_eben < w_lage - vb.GLEICH
-            drin = (hoehe <= lage + vb.GLEICH) & zeilen_da[:, None]
+            drin = (hoehe <= lage + vb.GLEICH) & frei & zeilen_da[:, None]
             if not drin.any():
                 vorige = lage
                 continue

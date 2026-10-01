@@ -97,6 +97,17 @@ pruefe(
     all(-27.0 - 1e-6 <= p.a <= -13.0 + 1e-6 for p in vorschub),
     f"längs über die Wände hinaus: {min(p.a for p in vorschub)} … {max(p.a for p in vorschub)}",
 )
+# Jede Zeile reicht bis an die Wände – auch die äußeren in der Lage auf dem Zylinderradius,
+# die den Zylinder neben der Wand streifen dürften, aber nicht sollen.
+enden = {}
+for q in sorted({round(p.q, 3) for p in vorschub}):
+    zeile = [p.a for p in vorschub if abs(p.q - q) < 1e-6]
+    enden[q] = (round(min(zeile), 6), round(max(zeile), 6))
+pruefe(
+    all(von < -26.5 and bis > -13.5 for von, bis in enden.values())
+    and len(set(enden.values())) == 1,
+    f"Zeilenenden je Versatz: {enden}",
+)
 unten = [p for p in vorschub if abs(p.r - 8.0) < 1e-9]
 pruefe(
     len(unten) >= 6 and min(p.a for p in unten) < -26.0 < -14.0 < max(p.a for p in unten), "unten"

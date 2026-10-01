@@ -824,8 +824,11 @@ bauen“):*
     plus Aufmaß; je Lage Zeilen längs der Achse, quer mit dem Y um höchstens den
     Zeilenabstand versetzt, der ebene Teil der Stirn bis an den Rand (Luft wie beim Ring); die
     Zeilen enden, wo die Hüllfläche gegen das Teil ohne die Fläche
-    (`vierachs_huelle.je_versatz`) höher liegt als die Lage – Wände, der Zylinder daneben –;
-    hin und her (`_fahrten`); hinein über die Rampe oder senkrecht vor der Stange. Der Punkt
+    (`vierachs_huelle.je_versatz`) höher liegt als die Lage – Wände, der Zylinder daneben –,
+    und über das Ende der Fläche hinaus ragt die Stirn nur, wo nichts höher steht als die
+    Fläche selbst (sonst liefen in der Lage auf dem Zylinderradius die äußeren Zeilen 1,5 mm
+    weiter als die mittlere, den Zylinder streifend); hin und her (`_fahrten`); hinein über
+    die Rampe oder senkrecht vor der Stange. Der Punkt
     der Bahn trägt den Versatz quer (`Punkt.q`), die Befehle die Querachse, der Weg und die
     Zeit rechnen damit; der Abtrag (`restmaterial`) rechnet den Fräser dort, wo er steht (die
     Werkzeugachse aus dem Winkel der Rundachse, die Spitze quer daneben) – für Scheibe, Kugel
