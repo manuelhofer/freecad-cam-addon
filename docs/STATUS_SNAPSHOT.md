@@ -10,7 +10,10 @@ Wunschliste, offene Bugs und Tasks.
 Punkt 1): das Rohteil über Freiformflächen in Lagen mit vollem ap wie das Räumen, dazwischen
 Zwischenlagen (1 mm) nur, wo über der Fläche noch Material steht – an der Kuppel Ø 40 1 Lage und
 9 Zwischenlagen, 5,4 min, auf der Kuppel 0,4 … 1,6 mm stehen (-45); 0.60.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+automatisch geprüft; wartet auf Manuels Test. **Bleistift** (W-006 4.2 Punkt 6): die Kehlen
+nachfahren, wo die Kugel zwei Flächen zugleich berührt – aus dem Knick der Hüllfläche; an der
+Kuppel ein Ring bei r 21,45, 0,2 min (-46); 0.61.0 – fertig und automatisch geprüft; wartet auf
+Manuels Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3

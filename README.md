@@ -191,7 +191,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   **3D-Schlichten**: Freiformflächen (Kuppeln, Rundungen, Schrägen) in parallelen
   Zeilen mit dem Kugelfräser, die Spitze auf der Hüllfläche des ganzen Teils, der
   Zeilenabstand aus der Grathöhe – längs X und Y gerechnet, die schnellere zählt; wo
-  es steiler ist als 45°, Höhenlinien statt Zeilen (Steil/Flach).
+  es steiler ist als 45°, Höhenlinien statt Zeilen (Steil/Flach). **Bleistift**: die
+  Kehlen nachfahren, wo die Kugel zwei Flächen zugleich berührt – etwa der Ring am Fuß
+  einer Kuppel, wo die Zeilen enden.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

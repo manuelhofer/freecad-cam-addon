@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-46 bleistift
+
+### EINGELESEN
+- `schlichten3d_bahn` (`_raster`, `_netze`, `freiformflaechen`), `vierachs_huelle._form_treffen`,
+  `hoehenfeld.je_zeile`, `restmaterial.Quader`, `gui_bearbeitung` (`_Schlichten3D`,
+  `STRATEGIEN`).
+
+### DATEIEN
+- `camaddon/bleistift_bahn.py` (neu), `camaddon/bleistift.py` (neu),
+  `camaddon/gui_bearbeitung.py`, `camaddon/gui_vierachs_operation.py`,
+  `camaddon/job_schnittwerte.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_bleistift.py` (neu), `tests/gui/szenario_bleistift.py` (neu),
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml`
+  (0.61.0)
+
+### AKZEPTANZKRITERIUM
+Platte mit Kuppel (Kugel R 25), Kugelfräser Ø 6 (T3): die Kuppel anklicken, „Bleistift“ anhaken –
+T3 vorgewählt, „→ 1 Kehle, 13x mm lang, etwa … min“. „Anlegen“: „3D-Schruppen T1“,
+„3D-Schlichten T3“, „Bleistift T3“; im Prüffenster nirgends ins Teil. Im Quader
+(`test_bleistift`): ein Ring bei r 21,45 ± 0,05, z 10 ± 0,02; am Ring und an der Berührstelle
+fertig, nirgends ins Teil; Halbkugel bei r 17,75; ohne Nachbarin keine Kehle.
+
+### DONE
+- `bleistift_bahn`: die Kehle aus dem Knick der Hüllfläche (zweite Differenz in vier Richtungen,
+  Maximum quer zum Knick, Spitze des V zwischen den Zellen), zu Linien verkettet, Stücke neben
+  längeren verworfen, geglättet, die Höhe genau je Punkt, vereinfacht im Raum; abgefahren die
+  nächste zuerst.
+- `bleistift`: die Operation (Flächen, Aufmaß; Ergebnis Linien, Länge), Art „bleistift“ mit dem
+  Einsatz „Schlichten“.
+- Assistent: Block „Bleistift“ nach dem 3D-Schlichten, den Haken setzt man selbst.
+
+### TEST
+- 1.1.3: `test_bleistift` (neu) grün; Szenarien `szenario_bleistift` (neu),
+  `szenario_schlichten3d` grün; black/ruff grün.
+
+### NEXT
+- Offene Nuten; Restschlichten mit dem kleineren Kugelfräser (mehrere Bleistiftbahnen).
+
 ## P-2026-10-01-45 schruppen-3d
 
 ### EINGELESEN

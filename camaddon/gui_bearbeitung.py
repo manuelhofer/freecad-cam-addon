@@ -21,6 +21,7 @@ from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, symbol
 from . import bahn as bn
+from . import bleistift as bst
 from . import bohren as bh
 from . import bohrung as bo
 from . import bohrung_bahn as bb
@@ -139,10 +140,12 @@ def nullpunkte():
 
 def ist_bearbeitung(op):
     """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Nut“, „Bohrung fräsen“,
-    „Kontur“, „Entgraten“, „Gewinde fräsen“, „3D-Schruppen“ oder „3D-Schlichten“?"""
+    „Kontur“, „Entgraten“, „Gewinde fräsen“, „3D-Schruppen“, „3D-Schlichten“ oder
+    „Bleistift“?"""
     return (
         s3op.ist_schlichten3d(op)
         or r3op.ist_schruppen3d(op)
+        or bst.ist_bleistift(op)
         or pf.ist_planfraesen(op)
         or ra.ist_raeumen(op)
         or nu.ist_nut(op)
@@ -1567,6 +1570,77 @@ class _Schlichten3D(_Strategie):
         return {"grathoehe": float(op.Grathoehe), "aufmass": float(op.Aufmass)}
 
 
+class _Bleistift(_Strategie):
+    """Die Kehlen der Freiformflächen nachfahren, wo der Kugelfräser zwei Flächen zugleich
+    berührt (bleistift_bahn) – nach dem 3D-Schlichten, mit demselben Fräser; den Haken setzt man
+    selbst."""
+
+    kennung = "bleistift"
+    gemerkt = GEMERKT_FRAESER_3D
+    einsatz_reihenfolge = (wz.SCHLICHTEN, wz.SCHRUPPEN)
+    bevorzugt = wz.KUGELFRAESER
+    ARTEN = (wz.KUGELFRAESER, wz.TORUSFRAESER)
+
+    def titel(self):
+        return tr("ba.bs")
+
+    def text(self):
+        return tr("ba.bs.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.bs.fraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.bs.einsatz.tooltip")
+
+    def felder(self):
+        return (("aufmass", tr("ba.aufmass"), tr("ba.bs.aufmass.tooltip")),)
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art in self.ARTEN and ff.von_werkzeug(werkzeug) is not None
+
+    def passt(self, form, name):
+        return s3b.ist_freiform(form, name)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ob die Kehle nachgefahren wird, entscheidet man selbst
+
+    def unmoeglich_text(self):
+        return tr("ba.bs.keine")
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        form = ff.von_werkzeug(werkzeug)
+        if form is None:
+            raise ValueError(tr("bs.fehler.form"))
+        return bst.vorschau(
+            job,
+            job.Model.Group,
+            form,
+            flaechen,
+            aufmass=werte["aufmass"],
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        kehlen = tr("ba.zahl.kehle") if bahn.linien == 1 else tr("ba.zahl.kehlen", n=bahn.linien)
+        laenge = groesse_zeigen(bahn.laenge, einheiten.LAENGE, 0) or "0"
+        einheit = einheiten.einheit(einheiten.LAENGE)
+        return tr("ba.ergebnis_bs", kehlen=kehlen, laenge=f"{laenge} {einheit}", zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return bst.lege_an(job, tc, werte["aufmass"], flaechen=flaechen)
+
+    def aendere(self, op, tc, werte, flaechen):
+        bst.aendere(op, tc, werte["aufmass"], flaechen=flaechen)
+
+    def ist(self, op):
+        return bst.ist_bleistift(op)
+
+    def werte_von(self, op):
+        return {"aufmass": float(op.Aufmass)}
+
+
 class _Senken(_Strategie):
     """FreeCADs Bohren mit einem Kegelsenker in die Senkungen des Modells (senken) – nach dem
     Bohren; das Modell sagt, dass sie kommen, darum vorgeschlagen."""
@@ -1671,6 +1745,7 @@ STRATEGIEN = (
     _Rest,
     _Schruppen3D,
     _Schlichten3D,
+    _Bleistift,
     _Senken,
     _Reiben,
     _Gewinde,
@@ -1976,6 +2051,7 @@ class BearbeitungPanel:
         self.reiben = next(b for b in self.bloecke if b.s.kennung == "reiben")
         self.schlichten3d = next(b for b in self.bloecke if b.s.kennung == "schlichten3d")
         self.schruppen3d = next(b for b in self.bloecke if b.s.kennung == "schruppen3d")
+        self.bleistift = next(b for b in self.bloecke if b.s.kennung == "bleistift")
         self.rest = next(b for b in self.bloecke if b.s.kennung == "rest")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)

@@ -210,7 +210,22 @@ eben). Kein OCL.
 5. **Äquidistant** (3D-Offset, gleichbleibende Grathöhe auf jeder Neigung) –
    die feinste Schlichtstrategie. Aufwand groß; nach 3 und 4.
 6. **Bleistift** (Kehlen) – dort, wo zwei Flächen sich treffen und der Fräser
-   nicht hinkam. Aufwand mittel (Abtrag: rot/gelb-Stellen als Bahn).
+   nicht hinkam. Aufwand mittel (Abtrag: rot/gelb-Stellen als Bahn). Gebaut
+   (P-2026-10-01-46, 0.61.0) – nicht aus dem Abtrag, sondern aus der Hüllfläche:
+   Wo die Kugel zwei Flächen zugleich berührt, knickt ihre Hüllfläche nach oben
+   (V). `bleistift_bahn` rechnet die Hüllfläche im Raster (0,25 mm, wie das
+   3D-Schlichten), sucht in vier Richtungen die zweite Differenz durch den Abstand –
+   größer als 0,3 (die Steigung springt um mehr als 17°; glatte Flächen bleiben weit
+   darunter) –, nimmt nur das Maximum quer zum Knick und nur an den gewählten Flächen,
+   legt den Punkt zwischen die Zellen (die Spitze des V aus den Nachbarn), verkettet zu
+   Linien, glättet, rechnet die Höhe an jedem Punkt genau (`huelle_an`, alle 0,5 mm) und
+   vereinfacht im Raum (0,003 mm). Gemessen (`test_bleistift`): Kuppel R 25 auf der
+   Platte, Kugel Ø 6 – ein Ring bei r 21,44 … 21,45 (gerechnet 21,45), z 10,000 …
+   10,005, 135 mm, 0,2 min; im Quader am Ring und an der Berührstelle der Kuppel fertig,
+   nirgends ins Teil; die Halbkugel R 15 (am Fuß senkrecht) bei r 17,75; eine Kuppel ohne
+   Platte: keine Kehle, ein Satz. Im Assistenten der Block „Bleistift“ nach dem
+   3D-Schlichten, den Haken setzt man selbst (`szenario_bleistift`). Offen: mehrere
+   Bahnen nebeneinander (Restschlichten mit dem kleineren Fräser, Punkt 8).
 7. **Fläche entlang** (Flowline) – Zeilen folgen den Flächenkurven (UV);
    für Kegel, Rohre, Übergänge. Aufwand mittel bis groß.
 8. **Restschlichten** – kleiner Fräser, nur wo nötig (aus Abtrag). Aufwand
