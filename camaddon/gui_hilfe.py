@@ -8,7 +8,7 @@ zu seinem Thema öffnet.
 
 from PySide import QtCore, QtGui
 
-from . import hilfe
+from . import hilfe, symbol
 from .sprache import tr
 
 FENSTER_GROESSE = (560, 520)  # Breite, Höhe in Pixeln
@@ -29,6 +29,25 @@ def kopfzeile(titel, thema=None):
         knopf.clicked.connect(lambda: zeige_hilfe(zeile, thema))
         aufbau.addWidget(knopf)
     return zeile
+
+
+class BefehlSoGehts:
+    """Öffnet „So geht’s“ – der Weg vom Teil zum Programm in sechs Schritten (D-54)."""
+
+    def GetResources(self):
+        return {
+            "Pixmap": symbol("so_gehts.svg"),
+            "MenuText": tr("befehl.so_gehts.titel"),
+            "ToolTip": tr("befehl.so_gehts.tooltip"),
+        }
+
+    def IsActive(self):
+        return True
+
+    def Activated(self):
+        import FreeCADGui
+
+        zeige_hilfe(FreeCADGui.getMainWindow(), "so_gehts")
 
 
 def zeige_hilfe(eltern, thema):

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „So geht’s“: der Weg in Schritten – Stationen an einer Linie, die als Pfeil endet. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <path d="M14 14 H40 a8 8 0 0 1 0 16 H24 a8 8 0 0 0 0 16 H52" fill="none" stroke="#555753"
+        stroke-width="4" stroke-linecap="round"/>
+  <path d="M46 38 L56 46 L46 54" fill="none" stroke="#555753" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <g stroke="#204a87" stroke-width="2.5">
+    <circle cx="14" cy="14" r="7" fill="#729fcf"/>
+    <circle cx="32" cy="30" r="7" fill="#729fcf"/>
+    <circle cx="34" cy="46" r="7" fill="#fcaf3e" stroke="#ce5c00"/>
+  </g>
+</svg>

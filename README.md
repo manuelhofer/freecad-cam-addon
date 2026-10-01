@@ -10,6 +10,10 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
 
 ## Was es kann
 
+- **So geht’s:** der Weg vom Teil zum Programm in sechs Schritten – Maschine,
+  Werkzeuge, Teil und Bearbeitung, Bestückung, Prüfen, Programm – mit dem Knopf
+  zu jedem Schritt; oben im Menü „CAM-Addon“, als Hilfeseite mit Verweisen auf
+  alle anderen.
 - **Neue Maschine …:** eine Bauart wählen – Drehmaschine mit Y-Achse,
   3-Achs-Fräse, drei 5-Achs-Fräsen – und sie fertig eingerichtet als
   Baugruppe bekommen; bei der Drehmaschine mit eigenen Maßen: Bettneigung,

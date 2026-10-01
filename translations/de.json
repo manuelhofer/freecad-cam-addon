@@ -822,6 +822,8 @@
     "befehl.reichweite.tooltip": "Prüft einen CAM-Job auf einer Maschine: Reichen die Achsen, wie fährt die Maschine die Bahn ab, stößt dabei etwas an?",
     "befehl.bestueckung.titel": "Bestückung",
     "befehl.bestueckung.tooltip": "Welches Werkzeug des Jobs auf welchem Revolverplatz steckt – mit dem Revolver der Maschine und den Werkzeugen darin. Jeder Job hat seine eigene Bestückung.",
+    "befehl.so_gehts.titel": "So geht’s",
+    "befehl.so_gehts.tooltip": "Der Weg vom Teil zum Programm in sechs Schritten – Maschine, Werkzeuge, Teil und Bearbeitung, Bestückung, Prüfen, Programm – mit dem Knopf zu jedem Schritt und Verweisen auf alle Hilfeseiten.",
     "bs.titel": "Bestückung",
     "bs.erklaerung": "Welches Werkzeug auf welchem Platz steckt, gehört zum Job: Die Nummer im Programm ist der Platz – T3 steckt auf P3. Wählst du für einen Platz ein Werkzeug, zieht es dorthin um; steckte dort schon eins, tauschen die beiden.",
     "bs.kein_job": "In keinem offenen Dokument gibt es einen CAM-Job. Öffne das Dokument mit dem Job – dann zeigt dieser Befehl seine Bestückung.",

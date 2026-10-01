@@ -12,8 +12,10 @@ from . import ADDON_ORDNER, sprache
 
 HILFE_ORDNER = os.path.join(ADDON_ORDNER, "help")
 
-# Die Themen; jedes gibt es als eigene Seite.
+# Die Themen; jedes gibt es als eigene Seite. „So geht’s“ zuerst: der Weg vom Teil zum
+# Programm in sechs Schritten, mit Verweisen auf alle anderen Seiten (D-54).
 THEMEN = [
+    "so_gehts",
     "achsen",
     "beschleunigung",
     "transformationen",

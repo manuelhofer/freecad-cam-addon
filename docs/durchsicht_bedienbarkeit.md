@@ -574,4 +574,7 @@ fragen. Danach der Plan Frässtrategien (spezifikation_strategien.md).
 *Stand 2026-10-01:* D-50 bis D-53, D-55, D-57 gebaut (P-2026-09-30-69,
 0.33.1). Manuel zu D-54 und D-56 (2026-10-01, „Also ja“ zu den
 Empfehlungen): D-54 (a) die Hilfeseite „So geht’s“; D-56 „Betriebsart“
-bleibt (das Beispiel im Tooltip ist drin).
+bleibt (das Beispiel im Tooltip ist drin). D-54 gebaut (P-2026-10-01-04,
+0.33.3): `help/<sprache>/so_gehts.html` mit den sechs Schritten und Verweisen
+auf alle Seiten, erstes Thema in `hilfe.THEMEN`, Befehl „So geht’s“ oben im
+Menü „CAM-Addon“, im README.

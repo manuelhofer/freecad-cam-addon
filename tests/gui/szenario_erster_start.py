@@ -5,9 +5,10 @@
 # (hier der Punkt); gewählt wird das Komma. Die Wahl steht sofort in
 # user.cfg, die Knöpfe des Addons sind gleich deutsch, und die
 # Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich – mit den
-# sieben Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle neun, auch „Nach
-# Updates suchen“ und „Über“ (D-13). Die Einstellungsseite ändert Sprache
-# und Dezimalzeichen.
+# acht Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle elf: oben „So geht’s“
+# (D-54), unten „Nach Updates suchen“ und „Über“ (D-13). „So geht’s“ öffnet
+# die Hilfeseite mit den sechs Schritten. Die Einstellungsseite ändert
+# Sprache und Dezimalzeichen.
 import os
 
 import FreeCAD
@@ -117,7 +118,8 @@ def schritte(h):
     if menue is not None:
         eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
         h.pruefe(
-            len(eintraege) == 10
+            len(eintraege) == 11
+            and eintraege[0] == "So geht’s"
             and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
             and "Schnittwerte in den Job" in eintraege,
             f"Menü: {eintraege}",
@@ -126,6 +128,27 @@ def schritte(h):
         yield 400
         h.bild("4b_menue", menue)
         menue.hide()
+        yield 200
+
+    # „So geht’s“ oben im Menü: die Hilfeseite mit den sechs Schritten (D-54).
+    from camaddon import gui_hilfe
+
+    QtCore.QTimer.singleShot(0, lambda: FreeCADGui.runCommand("CamAddon_SoGehts"))
+    yield from h.warte_auf(
+        lambda: gui_hilfe.HilfeFenster.offen is not None
+        and gui_hilfe.HilfeFenster.offen.isVisible()
+    )
+    fenster = gui_hilfe.HilfeFenster.offen
+    h.pruefe(fenster is not None and fenster.isVisible(), "„So geht’s“ öffnet sich nicht")
+    if fenster is not None:
+        text = fenster.browser.toPlainText()
+        h.pruefe(
+            text.startswith("So geht’s") and "6 Programm schreiben" in text,
+            f"falsche Seite: {text[:60]!r}",
+        )
+        yield 300
+        h.bild("4c_so_gehts", fenster)
+        fenster.close()
         yield 200
 
     # Einstellungsseite: zeigt die gewählte Sprache und speichert eine neue.

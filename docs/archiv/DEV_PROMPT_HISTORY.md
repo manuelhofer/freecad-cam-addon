@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-04 so-gehts
+
+### EINGELESEN
+- Durchsicht 3, D-54 (`docs/durchsicht_bedienbarkeit.md`): „eine Hilfeseite „So geht’s“ mit sechs
+  Schritten, je ein Satz und der Knopf dazu … als erste Seite des Hilfefensters und im Menü
+  „CAM-Addon“ oben und im README“; Manuel, 2026-10-01: „Also ja“ zur Empfehlung (a).
+- `camaddon/hilfe.py`, `camaddon/gui_hilfe.py`, `camaddon/gui_start.py` (Menü, D-13), die
+  Überschriften aller Hilfeseiten, `tests/test_hilfe.py`, `tests/gui/szenario_erster_start.py`.
+
+### DATEIEN
+- Neu: `help/de/so_gehts.html`, `help/en/so_gehts.html`, `resources/icons/so_gehts.svg`
+- `camaddon/hilfe.py`, `camaddon/gui_hilfe.py`, `camaddon/gui_start.py`,
+  `translations/de.json`, `translations/en.json`, `tests/gui/szenario_erster_start.py`,
+  `README.md`, `docs/durchsicht_bedienbarkeit.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Menü „CAM-Addon“ steht oben „So geht’s“; der Eintrag öffnet die Hilfeseite mit den sechs
+Schritten (Maschine, Werkzeuge, Teil und Bearbeitung, Bestückung, Prüfen, Programm), je mit dem
+Knopf dazu und Verweisen auf die Seiten; am Ende alle Seiten der Hilfe nach Maschine, Werkzeuge,
+Job. Die Werkzeugleiste bleibt bei acht Knöpfen. `test_hilfe` prüft die neue Seite mit.
+
+### DONE
+- Seite auf Deutsch und Englisch („Getting started“), erstes Thema in `hilfe.THEMEN`.
+- Befehl `CamAddon_SoGehts` (`gui_hilfe.BefehlSoGehts`, eigenes Symbol) oben im Menü, mit
+  Trennstrich; README-Punkt „So geht’s“; Durchsicht und Status nachgeführt.
+
+### TEST
+- `test_hilfe`, `test_sprache` in 1.1.3 ok.
+- `szenario_erster_start` (Menü mit elf Einträgen, „So geht’s“ oben, Seite offen, Bild
+  `4c_so_gehts`) und `szenario_hilfe` in 1.1.3 ok; Bilder angesehen: Menü mit Symbol und
+  Trennstrich, die Seite mit Überschrift, Schritten und blauen Verweisen. 26.3 läuft.
+
+### NEXT
+- Version 0.33.3, Push; S2 rundum fertig (V4c Linien längs, Plan indexiert, V4d Entgraten).
+
 ## P-2026-10-01-02 teil-am-ende
 
 ### EINGELESEN

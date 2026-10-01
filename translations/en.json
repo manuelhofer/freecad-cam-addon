@@ -822,6 +822,8 @@
     "befehl.reichweite.tooltip": "Checks a CAM job on a machine: do the axes reach far enough, how does the machine run the path, does anything collide on the way?",
     "befehl.bestueckung.titel": "Tool loading",
     "befehl.bestueckung.tooltip": "Which tool of the job sits in which turret station – with the machine's turret and the tools in it. Every job has its own tool loading.",
+    "befehl.so_gehts.titel": "Getting started",
+    "befehl.so_gehts.tooltip": "The way from the part to the program in six steps – machine, tools, part and machining, tool loading, check, program – with the button for each step and links to all help pages.",
     "bs.titel": "Tool loading",
     "bs.erklaerung": "Which tool sits in which station belongs to the job: the number in the program is the station – T3 sits in P3. Pick a tool for a station and it moves there; if another one was there, the two swap.",
     "bs.kein_job": "There is no CAM job in any open document. Open the document with the job – this command then shows its tool loading.",

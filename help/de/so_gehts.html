@@ -1,0 +1,80 @@
+<h2>So geht’s – vom Teil zum Programm</h2>
+<p>Sechs Schritte. Jeder hat seinen Knopf in der Werkzeugleiste <b>CAM-Addon</b>
+(sie hängt im Assembly- und im CAM-Arbeitsbereich) und im Menü „CAM-Addon“. Die
+Maschine und die Werkzeuge richtest du einmal ein (Schritte 1 und 2); für jedes
+weitere Teil bleiben die Schritte 3 bis 6. In jedem Fenster öffnet der Knopf
+<b>?</b> rechts in einer Überschrift die Hilfe zu dem, was du gerade siehst.</p>
+
+<h3>1 Maschine bauen</h3>
+<p><b>Neue Maschine …</b> baut eine fertig eingerichtete Maschine in einem neuen
+Dokument – eine Drehmaschine mit Y-Achse und Revolver oder eine 3-Achs-Fräse, mit
+deinen Maßen (Wege, Drehzahl, Revolverplätze, Bettneigung). Speichere das Dokument:
+Die Maschine legst du einmal ab und lädst sie für jeden Job. Eine eigene Baugruppe
+machst du mit <b>Maschine bearbeiten</b> zur Maschine – Achsen, Spindeln, Werkzeug-
+und Werkstückaufnahmen; <b>Maschine verfahren</b> zeigt, ob sie sich richtig
+bewegt.<br>
+Mehr: <a href="neue_maschine.html">Neue Maschine</a>, <a href="achsen.html">Achsen
+und Betriebsarten</a>, <a href="aufnahmen.html">Aufnahmen</a>,
+<a href="verfahren.html">Maschine verfahren</a>.</p>
+
+<h3>2 Werkzeuge anlegen</h3>
+<p><b>Werkzeugverwaltung</b>: jedes Werkzeug mit Art und Maßen, seiner Länge ab
+Spindelnase, seinem <b>Halter</b> und seinen <b>Schnittwerten</b> je Werkstoff und
+Einsatz – vc und fz aus dem Katalog, Drehzahl und Vorschub rechnet das Addon. Länge
+und Halter braucht später die Prüfung auf der Maschine, die Schnittwerte brauchen
+die Jobs.<br>
+Mehr: <a href="werkzeuge.html">Werkzeuge</a>, <a href="halter.html">Halter</a>,
+<a href="schnittwerte.html">Schnittwerte</a>, <a href="werkstoffe.html">Werkstoffe</a>.</p>
+
+<h3>3 Teil und Bearbeitung</h3>
+<p>Ein Teil aus der runden Stange: das Teil im Baum wählen, dann
+<b>4-Achs-Bearbeitung</b> – der Assistent legt es in die Stange, richtet den CAM-Job
+ein und fragt „Was willst du machen?“: Rundum schruppen, Rundum schlichten – mit
+Fräser, Einsatz und Zustellung aus der Werkzeugverwaltung.<br>
+Ein CAM-Job von FreeCAD (Tasche, Kontur, Bohren …): wie gewohnt anlegen, dann
+<b>Schnittwerte in den Job</b> – Drehzahl und Vorschub seiner Werkzeug-Controller
+kommen aus der Werkzeugverwaltung, passend zum Werkstoff des Rohteils.<br>
+Mehr: <a href="vierachs.html">4-Achs-Bearbeitung</a>,
+<a href="schnittwerte.html">Schnittwerte</a>.</p>
+
+<h3>4 Bestückung</h3>
+<p>Den Job wählen, dann <b>Bestückung</b>: welches Werkzeug des Jobs auf welchem
+Revolverplatz steckt – jeder Job hat seine eigene; im Programm ist die Nummer der
+Platz (T5 auf P5). Hat die Maschine keinen Revolver, entfällt der Schritt.<br>
+Mehr: <a href="bestueckung.html">Bestückung</a>.</p>
+
+<h3>5 Auf der Maschine prüfen</h3>
+<p>Den Job wählen, dann <b>Auf der Maschine prüfen</b>: Reichen die Achsen, stößt
+etwas an, passen Drehzahl und Vorschub noch zur Werkzeugverwaltung? Oben die
+Urteile, darunter die Einzelheiten – ein Klick fährt die Maschine an die Stelle.
+<b>Abfahren</b> spielt die Bahn auf der Maschine ab; am Ende steht die Stange in
+Farben gegen das fertige Teil: grün das Aufmaß, rot, wo zu viel blieb, blau, wo
+etwas im Teil fehlt.<br>
+Mehr: <a href="reichweite.html">Auf der Maschine prüfen</a>.</p>
+
+<h3>6 Programm schreiben</h3>
+<p>Das Programm schreibt FreeCAD: den Job wählen, dann im Menü <b>CAM</b> der
+Befehl <b>Post Process</b> (Postprozessor) mit dem Postprozessor deiner Steuerung.
+Welche Postprozessoren von FreeCAD die 4-Achs-Bahnen richtig schreiben (G93, X im
+Durchmesser oder Radius) und was der Programmkopf an der Drehmaschine schalten
+muss, steht unter <a href="vierachs.html">4-Achs-Bearbeitung</a>, „Im Programm“.
+Ein eigener Postprozessor des Addons für jede Steuerung ist geplant.</p>
+
+<h3>Alle Seiten der Hilfe</h3>
+<ul>
+<li>Maschine: <a href="neue_maschine.html">Neue Maschine</a> ·
+<a href="achsen.html">Achsen und Betriebsarten</a> ·
+<a href="beschleunigung.html">Beschleunigung ermitteln</a> ·
+<a href="transformationen.html">Schräge Achsen</a> ·
+<a href="aufnahmen.html">Werkzeug- und Werkstückaufnahmen</a> ·
+<a href="glieder.html">Was zusammen fährt</a> ·
+<a href="verfahren.html">Maschine verfahren</a></li>
+<li>Werkzeuge: <a href="werkzeuge.html">Werkzeuge</a> ·
+<a href="halter.html">Halter</a> · <a href="werkstoffe.html">Werkstoffe</a> ·
+<a href="schnittwerte.html">Schnittwerte</a> ·
+<a href="strategien.html">Strategien vergleichen</a> ·
+<a href="schruppwerte.html">Schruppwerte planen</a></li>
+<li>Job: <a href="vierachs.html">4-Achs-Bearbeitung</a> ·
+<a href="bestueckung.html">Bestückung</a> ·
+<a href="reichweite.html">Auf der Maschine prüfen</a></li>
+</ul>
