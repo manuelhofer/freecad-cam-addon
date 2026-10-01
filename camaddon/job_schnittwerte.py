@@ -53,6 +53,7 @@ EINSATZ_NACH_OPERATION = {
     "Tapping": (wz.GEWINDEBOHREN,),
     "vierachs_operation": (wz.SCHRUPPEN,),  # „Rundum schruppen“ (W-003)
     "vierachs_schlichten": (wz.SCHLICHTEN,),  # „Rundum schlichten“ (W-003 V5)
+    "vierachs_plan": (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Plan indexiert“ (W-003 V4c)
     # Die Bohrung des Wochen-Builds kann auch Gewinde schneiden.
     "Drilling": (
         wz.BOHREN,

@@ -58,6 +58,8 @@ from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
 from . import vierachs_flaechen as vf
 from . import vierachs_operation as vo
+from . import vierachs_plan as vplan
+from . import vierachs_planbahn as vp
 from . import vierachs_rohteil as vr
 from . import vierachs_schlichten as vs
 from . import werkzeuge as wz
@@ -99,8 +101,9 @@ GEMERKT = {
 GEMERKT_RUNDACHSE = "VaRundachse"
 GEMERKT_FRAESER = "VaFraeser"  # Kennung des zuletzt gewählten Fräsers
 GEMERKT_SCHLICHTFRAESER = "VaSchlichtfraeser"  # … des zuletzt gewählten Schlichtfräsers
+GEMERKT_PLANFRAESER = "VaPlanfraeser"  # … des zuletzt gewählten Fräsers für Plan indexiert
 # Welche Bearbeitung man ändert.
-SCHRUPPEN, SCHLICHTEN = "schruppen", "schlichten"
+SCHRUPPEN, SCHLICHTEN, PLAN = "schruppen", "schlichten", "plan"
 
 # Welche Werkzeuge „Rundum schruppen“ anbietet: Die Hüllfläche rechnet mit der
 # Stirn als Scheibe – für jedes dieser Werkzeuge sicher (vierachs_huelle).
@@ -482,6 +485,14 @@ class VierachsPanel:
         self._vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation ("": keiner)
         self._vorwahl_schlichten = None  # dasselbe, wenn man „Rundum schlichten“ ändert
         self._art = SCHLICHTEN if vs.ist_schlichten(operation) else SCHRUPPEN
+        if vplan.ist_plan(operation):
+            self._art = PLAN
+        self._vorwahl_plan = None  # beim Ändern: Kennung des Fräsers von „Plan indexiert“
+        self._planfraeser = []  # die Werkzeuge in der Auswahl „Fräser“ bei Plan indexiert
+        self._planeinsaetze = []
+        self.vorschau_plan = None  # die grobe Bahn „Plan indexiert“ (vierachs_planbahn.Planbahn)
+        self._plan_von_hand = False  # der Haken „Plan indexiert“ wurde von Hand gesetzt
+        self._plan_erlaubt = True  # beim Ändern: ob „Plan indexiert“ dazukommen darf
         self._schlichtfraeser = []  # die Werkzeuge in der Auswahl „Fräser“ beim Schlichten
         self._schlichteinsaetze = []
         self.vorschau_schlichten = None  # die grobe Schlichtbahn (vierachs_bahn.Schlichtbahn)
@@ -522,19 +533,45 @@ class VierachsPanel:
         self.job = job_von(self.zu_aendern)
         self.mit_schruppen.setEnabled(False)
         self.mit_schlichten.setEnabled(False)
+        self.mit_plan.setEnabled(False)
+        schruppen_teile = (
+            self.mit_schruppen,
+            self.erklaerung_schruppen,
+            self.schruppfelder,
+            self.ergebnis,
+            self.hinweis_rund,
+            self.lage_schruppen,
+        )
+        schlichten_teile = (
+            self.mit_schlichten,
+            self.erklaerung_schlichten,
+            self.schlichtfelder,
+            self.ergebnis_schlichten,
+            self.lage_schlichten,
+        )
+        plan_teile = (
+            self.mit_plan,
+            self.erklaerung_plan,
+            self.plan_grund,
+            self.planfelder,
+            self.ergebnis_plan,
+            self.lage_plan,
+        )
         if self._art == SCHLICHTEN:
             self.mit_schruppen.setChecked(False)
             self.mit_schlichten.setChecked(True)
-            for teil in (
-                self.mit_schruppen,
-                self.erklaerung_schruppen,
-                self.schruppfelder,
-                self.ergebnis,
-                self.hinweis_rund,
-                self.lage_schruppen,
-            ):
+            self.mit_plan.setChecked(False)
+            self._plan_erlaubt = False
+            for teil in schruppen_teile + plan_teile:
                 teil.hide()
             erklaerung = self.erklaerung_schlichten
+        elif self._art == PLAN:
+            self.mit_schruppen.setChecked(False)
+            self.mit_schlichten.setChecked(False)
+            self.mit_plan.setChecked(True)
+            for teil in schruppen_teile + schlichten_teile + (self.plan_grund,):
+                teil.hide()
+            erklaerung = self.erklaerung_plan
         else:
             schon = [o for o in js.operationen(self.job) if vs.ist_schlichten(o)]
             self.mit_schlichten.setChecked(False)
@@ -543,6 +580,12 @@ class VierachsPanel:
                 tr("va.schlichten.schon", name=schon[0].Label)
                 if schon
                 else tr("va.schlichten.dazu")
+            )
+            schon_plan = [o for o in js.operationen(self.job) if vplan.ist_plan(o)]
+            self.mit_plan.setChecked(False)
+            self._plan_erlaubt = not schon_plan
+            self.erklaerung_plan.setText(
+                tr("va.plan.schon", name=schon_plan[0].Label) if schon_plan else tr("va.plan.dazu")
             )
             erklaerung = self.erklaerung_schruppen
         text = tr("va.aendern.text")
@@ -561,11 +604,10 @@ class VierachsPanel:
         self._auffrischen()
         self.zeige_seite(2)
         self._werte_der_operation()
-        fraeser, vorwahl = (
-            (self.schlichtfraeser(), self._vorwahl_schlichten)
-            if self._art == SCHLICHTEN
-            else (self.fraeser(), self._vorwahl)
-        )
+        fraeser, vorwahl = {
+            SCHLICHTEN: (self.schlichtfraeser(), self._vorwahl_schlichten),
+            PLAN: (self.planfraeser(), self._vorwahl_plan),
+        }.get(self._art, (self.fraeser(), self._vorwahl))
         if self._tc_vorher is not None and (fraeser is None or fraeser.kennung != vorwahl):
             self.hinweis_aendern.setText(
                 tr("va.aendern.werkzeug_fehlt", controller=self._tc_vorher.Label)
@@ -632,6 +674,12 @@ class VierachsPanel:
                 ("aufmass_schlichten", op.Aufmass),
             ]
             self._muster_setzen(vs.muster_der_operation(op), von_hand=True)
+        elif self._art == PLAN:
+            paare = [
+                ("zustellung_plan", op.Zustellung),
+                ("zeilenabstand", op.Zeilenabstand),
+                ("aufmass_plan", op.Aufmass),
+            ]
         else:
             paare = [
                 ("zustellung", op.Zustellung),
@@ -701,7 +749,8 @@ class VierachsPanel:
             self.zeige_seite(2)
             return False  # „Weiter“: das Fenster bleibt offen
         schruppen, schlichten = self._gewaehlt()
-        if (schruppen or schlichten) and not self._bearbeitung_pruefen():
+        bearbeitung = schruppen or schlichten or self.plan_an()
+        if bearbeitung and not self._bearbeitung_pruefen():
             return False  # der Grund steht rot im Fenster
         # Job und Stange: ein Schritt Rückgängig. Die Bearbeitungen kommen in einem eigenen
         # (_bearbeitungen_anlegen) – in einen gemeinsamen lässt FreeCAD es nicht (_im_befehl).
@@ -709,7 +758,7 @@ class VierachsPanel:
         self._maschine_merken()
         self.doc.commitTransaction()
         self._rohteil_fest = True
-        if (schruppen or schlichten) and not self._bearbeitungen_anlegen():
+        if bearbeitung and not self._bearbeitungen_anlegen():
             self._stange_anzeigen(*STANGE_ANZEIGE, waehlbar=False)
             self.doc.openTransaction(tr("va.titel"))  # für weitere Eingaben
             return False
@@ -1091,7 +1140,34 @@ class VierachsPanel:
         self.lage_schlichten = gelb()
         self.schlichtfelder.setEnabled(False)
 
-        # --- Abstände für beide ---
+        # --- Plan indexiert (V4c) ---
+        self.mit_plan = haken(tr("va.plan"), tr("va.plan.tooltip"), self._plan_umgeschaltet)
+        self.erklaerung_plan = grau(tr("va.plan.text"))
+        self.plan_grund = grau()  # der Vorschlag mit Grund – oder warum es nicht geht
+        plan = _Reihen()
+        self.wahl_planfraeser = QtGui.QComboBox()
+        self.wahl_planfraeser.currentIndexChanged.connect(lambda _i: self._planfraeser_gewaehlt())
+        plan.reihe(tr("va.fraeser"), tr("va.planfraeser.tooltip"), self.wahl_planfraeser)
+        self.wahl_planeinsatz = QtGui.QComboBox()
+        self.wahl_planeinsatz.currentIndexChanged.connect(lambda _i: self._planeinsatz_gewaehlt())
+        plan.reihe(tr("va.einsatz"), tr("va.planeinsatz.tooltip"), self.wahl_planeinsatz)
+        self.schnittwerte_plan = self._grau()
+        plan.ganz(self.schnittwerte_plan)
+        self.felder_plan = {}
+        for feld, text, tooltip in (
+            ("zustellung_plan", tr("va.zustellung_plan"), tr("va.zustellung_plan.tooltip")),
+            ("zeilenabstand", tr("va.zeilenabstand"), tr("va.zeilenabstand.tooltip")),
+            ("aufmass_plan", tr("va.aufmass_plan"), tr("va.aufmass_plan.tooltip")),
+        ):
+            zahlenfeld(self.felder_plan, feld, text, tooltip, plan)
+        self.planfelder = plan.widget
+        aufbau.addWidget(self.planfelder)
+        self.ergebnis_plan = grau()
+        self.lage_plan = gelb()
+        self.planfelder.setEnabled(False)
+        self.mit_plan.setEnabled(False)  # bis eine ebene Fläche längs der Stange gewählt ist
+
+        # --- Abstände für alle ---
         aufbau.addSpacing(6)
         self.abstaende_titel = QtGui.QLabel(tr("va.abstaende"))
         self.abstaende_titel.setToolTip(tr("va.abstaende.tooltip"))
@@ -1109,8 +1185,9 @@ class VierachsPanel:
         self.abstandsfelder = abstaende.widget
         aufbau.addWidget(self.abstandsfelder)
         # Die Beschriftungen aller Blöcke gleich breit: die Felder stehen untereinander.
-        breite = max(r.breite_beschriftung() for r in (oben, schruppen, schlichten, abstaende))
-        for reihen in (oben, schruppen, schlichten, abstaende):
+        bloecke = (oben, schruppen, schlichten, plan, abstaende)
+        breite = max(r.breite_beschriftung() for r in bloecke)
+        for reihen in bloecke:
             reihen.raster.setColumnMinimumWidth(0, breite)
 
         self.ausspannen = grau()  # wie weit die Stange aus dem Futter ragen muss
@@ -1407,6 +1484,8 @@ class VierachsPanel:
             kennung = werkzeug.kennung if werkzeug is not None else ""
             if self._art == SCHLICHTEN:
                 self._vorwahl, self._vorwahl_schlichten = "", kennung
+            elif self._art == PLAN:
+                self._vorwahl, self._vorwahl_plan = "", kennung
             else:
                 self._vorwahl = kennung
         # Zählt X der Maschine im Durchmesser, zeigt das Prüffenster X so – FreeCADs eigene
@@ -1419,7 +1498,9 @@ class VierachsPanel:
         self.radius_hinweis.setVisible(self.buchstabe() == "C")
         self._fraeser_fuellen()
         self._schlichtfraeser_fuellen()
+        self._planfraeser_fuellen()
         self._muster_vorschlagen()
+        self._plan_vorschlagen()
         if self.zu_aendern is None and not self._schlichten_vorgewaehlt:
             self._schlichten_vorgewaehlt = True
             werkstoff = self.werkstoff()
@@ -1582,6 +1663,7 @@ class VierachsPanel:
     def _flaechen_geaendert(self):
         self._flaechen_zeigen()
         self._muster_vorschlagen()
+        self._plan_vorschlagen()
         self._vorschau_starten()
 
     def _muster_vorschlagen(self):
@@ -1743,7 +1825,12 @@ class VierachsPanel:
     def _eintauchwinkel(self):
         """So steil taucht das Schruppen zwischen gewählten Flächen ein: der Eintauchwinkel des
         Fräsers aus der Werkzeugverwaltung, ohne Angabe der Vorschlag (Grad)."""
-        werkzeug = self.fraeser()
+        return self._eintauchwinkel_fuer(self.fraeser())
+
+    @staticmethod
+    def _eintauchwinkel_fuer(werkzeug):
+        """Der Eintauchwinkel von `werkzeug` aus der Werkzeugverwaltung (Grad), ohne Angabe
+        oder ohne Werkzeug der Vorschlag."""
         if werkzeug is not None and werkzeug.eintauchwinkel > 0:
             return werkzeug.eintauchwinkel
         return vb.EINTAUCHWINKEL
@@ -1906,6 +1993,215 @@ class VierachsPanel:
             text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
         return text
 
+    # --- Plan indexiert (V4c) -------------------------------------------------------------
+
+    def _planfraeser_fuellen(self):
+        """Die Fräser mit ebener Stirn (vierachs_planbahn.ebener_radius) mit Schnittwerten für
+        den Werkstoff; vorgewählt der bisher gewählte, beim Ändern der der Operation, sonst der
+        zuletzt benutzte, sonst einer mit Einsatz „Planen“, sonst ein Schaftfräser."""
+        werkstoff = self.werkstoff()
+        vorher = self.planfraeser()
+        self._planfraeser = [
+            w
+            for w in sorted(self.bibliothek.werkzeuge, key=lambda w: w.nummer)
+            if w.durchmesser > 0 and self._ebene_stirn(w) and self._passende_einsaetze(w, werkstoff)
+        ]
+        kennungen = [w.kennung for w in self._planfraeser]
+        gemerkt = _parameter().GetString(GEMERKT_PLANFRAESER, "")
+        if vorher is not None and vorher.kennung in kennungen:
+            wahl = kennungen.index(vorher.kennung)
+        elif self._vorwahl_plan in kennungen:  # beim Ändern: der Fräser der Operation
+            wahl = kennungen.index(self._vorwahl_plan)
+        elif gemerkt in kennungen:
+            wahl = kennungen.index(gemerkt)
+        else:
+            wahl = min(
+                range(len(self._planfraeser)),
+                key=lambda i: (
+                    not self._hat_einsatz(self._planfraeser[i], werkstoff, wz.PLANEN),
+                    self._planfraeser[i].art != wz.SCHAFTFRAESER,
+                    i,
+                ),
+                default=0,
+            )
+        self._fuellt = True
+        try:
+            self.wahl_planfraeser.clear()
+            for werkzeug in self._planfraeser:
+                self.wahl_planfraeser.addItem(
+                    self._platz_vorsatz(werkzeug) + dezimal(wz.zeile(werkzeug))
+                )
+            if self._planfraeser:
+                self.wahl_planfraeser.setCurrentIndex(wahl)
+        finally:
+            self._fuellt = False
+        self._planeinsatz_fuellen()
+
+    @staticmethod
+    def _ebene_stirn(werkzeug):
+        """Hat der Fräser eine ebene Stirn (Schaft-, Torus-, Planfräser)?"""
+        form = ff.von_werkzeug(werkzeug)
+        return form is not None and vp.ebener_radius(form) > 0
+
+    def _hat_einsatz(self, werkzeug, werkstoff, art):
+        """Hat der Fräser für den Werkstoff einen Einsatz der Art `art` mit Schnittwerten?"""
+        return any(e.art == art for e in self._passende_einsaetze(werkzeug, werkstoff))
+
+    def planfraeser(self):
+        """Der gewählte Fräser für Plan indexiert (werkzeuge.Werkzeug) oder None."""
+        i = self.wahl_planfraeser.currentIndex()
+        return self._planfraeser[i] if 0 <= i < len(self._planfraeser) else None
+
+    def _planfraeser_gewaehlt(self):
+        if not self._fuellt:
+            self._planeinsatz_fuellen()
+
+    def _planeinsatz_fuellen(self):
+        """Die Einsätze des Fräsers; vorgewählt „Planen“, sonst „Schruppen“, sonst „Schlichten“;
+        beim Ändern der, mit dem der Controller gesetzt ist."""
+        werkzeug = self.planfraeser()
+        self._planeinsaetze = (
+            self._passende_einsaetze(werkzeug, self.werkstoff()) if werkzeug is not None else []
+        )
+        arten = [e.art for e in self._planeinsaetze]
+        wahl = next(
+            (arten.index(a) for a in (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN) if a in arten), 0
+        )
+        if (
+            self._art == PLAN
+            and self._tc_vorher is not None
+            and werkzeug is not None
+            and werkzeug.kennung == self._vorwahl_plan
+        ):
+            gemerkt = js.vorgeschlagener_einsatz(self._tc_vorher, self._planeinsaetze, self.job)
+            wahl = gemerkt if gemerkt >= 0 else wahl
+        self._fuellt = True
+        try:
+            self.wahl_planeinsatz.clear()
+            for einsatz in self._planeinsaetze:
+                self.wahl_planeinsatz.addItem(wz.einsatz_name(einsatz))
+            if self._planeinsaetze:
+                self.wahl_planeinsatz.setCurrentIndex(wahl)
+        finally:
+            self._fuellt = False
+        self._planeinsatz_gewaehlt()
+
+    def planeinsatz(self):
+        """Der gewählte Einsatz für Plan indexiert (werkzeuge.Einsatz) oder None."""
+        i = self.wahl_planeinsatz.currentIndex()
+        return self._planeinsaetze[i] if 0 <= i < len(self._planeinsaetze) else None
+
+    def _planeinsatz_gewaehlt(self):
+        """Drehzahl und Vorschub, die Vorschläge in die Felder."""
+        if self._fuellt:
+            return
+        werkzeug, einsatz = self.planfraeser(), self.planeinsatz()
+        self.schnittwerte_plan.setText(self._schnittwerte_text(werkzeug, einsatz))
+        for feld, eingabe in self.felder_plan.items():
+            eingabe.setPlaceholderText(
+                groesse_zeigen(self._vorschlag(feld), einheiten.LAENGE) or "0"
+            )
+        self._vorschau_starten()
+
+    def plan_an(self):
+        """Ist „Plan indexiert“ angehakt? Geht es nicht, nimmt _plan_vorschlagen den Haken
+        heraus; beim Ändern der Operation ist er gesetzt und gesperrt."""
+        return self.mit_plan.isChecked()
+
+    def _plan_umgeschaltet(self, an):
+        if not self._fuellt:
+            self._plan_von_hand = True
+        self.planfelder.setEnabled(an)
+        self.ergebnis_plan.setVisible(an)
+        self._umgeschaltet()
+
+    def _plan_ebenen(self):
+        """[vierachs_planbahn.Ebene] – die gewählten ebenen Flächen längs der Stange."""
+        flaechen = self.flaechen()
+        if not flaechen or self.job is None:
+            return []
+        achse = self.achse()
+        return vp.ebenen(vr.modell(self.job).Shape, achse.laengs, va.radial(achse), flaechen)
+
+    def _plan_vorschlagen(self):
+        """Ob „Plan indexiert“ geht – gewählte ebene Flächen längs der Stange und an der
+        Maschine eine Achse quer dazu (bei C das Y) – und der Vorschlag mit Grund (W-006 E5):
+        angehakt, wenn es geht und man es nicht von Hand abgewählt hat; der Satz darunter sagt,
+        warum – oder warum nicht. Beim Ändern bleibt der Haken, wie er ist."""
+        if self.job is None or self._art == PLAN:
+            return
+        ebenen = self._plan_ebenen()
+        achse = self.achse()
+        if not ebenen:
+            geht, grund = False, tr("va.plan.keine_ebene")
+        elif not achse.quer:
+            geht, grund = False, tr("va.plan.keine_querachse", maschine=achse.maschine)
+        else:
+            namen = ", ".join(e.name for e in ebenen)
+            geht, grund = True, tr("va.plan.vorschlag", flaechen=namen)
+        geht = geht and self._plan_erlaubt
+        self.plan_grund.setText(grund)
+        war = self.plan_an()
+        vorher = self._fuellt
+        self._fuellt = True
+        try:
+            self.mit_plan.setEnabled(geht)
+            if not geht:
+                self.mit_plan.setChecked(False)
+            elif not self._plan_von_hand and self.zu_aendern is None:
+                self.mit_plan.setChecked(True)
+        finally:
+            self._fuellt = vorher
+        self.planfelder.setEnabled(self.plan_an())
+        self.ergebnis_plan.setVisible(self.plan_an())
+        if self.plan_an() != war:
+            self._umgeschaltet()
+
+    def _plan_vorschau(self):
+        """Die grobe Bahn „Plan indexiert“ (vierachs_plan.vorschau) für Lagen, Zeilen und Zeit.
+        ValueError mit einem Satz, wenn es nicht geht."""
+        werkzeug = self.planfraeser()
+        achse = self.achse()
+        return vplan.vorschau(
+            self.job,
+            self.job.Model.Group,
+            achse.laengs,
+            va.radial(achse),
+            ff.von_werkzeug(werkzeug),
+            self._wert("zustellung_plan"),
+            self._wert("zeilenabstand"),
+            self._wert("aufmass_plan"),
+            (
+                self._ueberlauf_fuer(werkzeug),
+                self._wert("abstand_futter"),
+                self._wert("sicherheit"),
+            ),
+            self._halter_fuer(werkzeug),
+            self.flaechen(),
+            self._eintauchwinkel_fuer(werkzeug),
+        )
+
+    def _plan_text(self, bahn):
+        """„→ 2 Lagen, 6 Zeilen, etwa 1 min“ – bei mehreren Flächen mit ihrer Zahl, und was
+        hinten nicht erreicht wird."""
+        from .reichweite import weg_text
+
+        _n, vorschub, _senkrecht = js.werte(self.planfraeser(), self.planeinsatz())
+        zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
+        if bahn.flaechen > 1:
+            text = tr(
+                "va.plan.ergebnis_flaechen",
+                flaechen=bahn.flaechen,
+                lagen=bahn.lagen,
+                zeilen=bahn.zeilen,
+                zeit=zeit,
+            )
+        else:
+            text = tr("va.plan.ergebnis", lagen=bahn.lagen, zeilen=bahn.zeilen, zeit=zeit)
+        if bahn.hinten_frei > 0:
+            text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
+        return text
+
     def _vorschlag(self, feld):
         """Der Wert eines leeren Felds (mm): Zustellung und Vorschub je Umdrehung aus dem
         Einsatz (ap und ae – ae höchstens der Durchmesser), das Aufmaß 0,3 mm, der Überlauf
@@ -1916,6 +2212,18 @@ class VierachsPanel:
             if werkzeug is None:
                 return 0.0
             return vs.schrittweite_vorschlag(werkzeug, self.schlichteinsatz())
+        if feld == "zustellung_plan":
+            einsatz = self.planeinsatz()
+            return einsatz.ap if einsatz is not None and einsatz.ap > 0 else vo.ZUSTELLUNG
+        if feld == "zeilenabstand":
+            werkzeug = self.planfraeser()
+            if werkzeug is None:
+                return 0.0
+            return vplan.zeilenabstand_vorschlag(
+                werkzeug, self.planeinsatz(), ff.von_werkzeug(werkzeug)
+            )
+        if feld == "aufmass_plan":
+            return vplan.AUFMASS
         if feld == "aufmass_schlichten":
             return vs.AUFMASS
         if feld == "aufmass":
@@ -1934,8 +2242,12 @@ class VierachsPanel:
         return vo.STEIGUNG_ANTEIL * durchmesser
 
     def _feld(self, feld):
-        """Das Eingabefeld `feld` in Schritt 2 – Schruppen, Abstände oder Schlichten."""
-        return self.felder_schruppen.get(feld) or self.felder_schlichten[feld]
+        """Das Eingabefeld `feld` in Schritt 2 – Schruppen, Abstände, Schlichten oder Plan."""
+        return (
+            self.felder_schruppen.get(feld)
+            or self.felder_schlichten.get(feld)
+            or self.felder_plan[feld]
+        )
 
     def _wert(self, feld):
         """Wert eines Felds in Schritt 2 (mm); leer oder ungültig gilt der Vorschlag."""
@@ -1959,10 +2271,11 @@ class VierachsPanel:
         """Ein Haken ging an oder aus: die Abstände gelten, solange einer an ist; die Stange
         ragt so weit heraus, wie die angehakten Bearbeitungen es brauchen."""
         schruppen, schlichten = self._gewaehlt()
-        self.abstandsfelder.setEnabled(schruppen or schlichten)
+        bearbeitung = schruppen or schlichten or self.plan_an()
+        self.abstandsfelder.setEnabled(bearbeitung)
         self.hinweis_bearbeitung.setText("")
         self._lage_zeigen()
-        if schruppen or schlichten:
+        if bearbeitung:
             self._vorschau_starten()
         elif self.vermessung is not None:  # ohne Fräser reicht die Abstechbreite hinten
             if not _gleiche_stange(self.stange(), self._stange_jetzt):
@@ -1980,6 +2293,7 @@ class VierachsPanel:
             return
         self.vorschau = None
         self.vorschau_schlichten = None
+        self.vorschau_plan = None
         self._vorschau_uhr.start()  # erst nach einer kurzen Pause rechnen
         self._knoepfe_beschriften()
 
@@ -1989,14 +2303,21 @@ class VierachsPanel:
         weiß, ob es geht."""
         self._vorschau_uhr.stop()
         schruppen, schlichten = self._gewaehlt()
+        plan = self.plan_an()
         if self.geschlossen or self.seite != 2:
             return
         self._lage_zeigen()
-        if not (schruppen or schlichten):
+        if not (schruppen or schlichten or plan):
             return
         self.vorschau = None
         self.vorschau_schlichten = None
-        for etikett in (self.ergebnis, self.ergebnis_schlichten, self.kammhoehe):
+        self.vorschau_plan = None
+        for etikett in (
+            self.ergebnis,
+            self.ergebnis_schlichten,
+            self.kammhoehe,
+            self.ergebnis_plan,
+        ):
             etikett.setText("")
         self.kammhoehe.hide()
         self.hinweis_bearbeitung.setText("")
@@ -2006,6 +2327,10 @@ class VierachsPanel:
             return
         if schlichten and (self.schlichtfraeser() is None or self.schlichteinsatz() is None):
             self.hinweis_bearbeitung.setText(tr("va.schlichtfraeser.keiner"))
+            self._knoepfe_beschriften()
+            return
+        if plan and (self.planfraeser() is None or self.planeinsatz() is None):
+            self.hinweis_bearbeitung.setText(tr("va.planfraeser.keiner"))
             self._knoepfe_beschriften()
             return
         if self.vermessung is not None and not _gleiche_stange(self.stange(), self._stange_jetzt):
@@ -2042,6 +2367,13 @@ class VierachsPanel:
                 gruende.append(str(fehler))
             else:
                 self.ergebnis_schlichten.setText(self._schlicht_text(self.vorschau_schlichten))
+        if plan:
+            try:
+                self.vorschau_plan = self._plan_vorschau()
+            except ValueError as fehler:
+                gruende.append(str(fehler))
+            else:
+                self.ergebnis_plan.setText(self._plan_text(self.vorschau_plan))
         self.hinweis_bearbeitung.setText(" ".join(gruende))
         self._knoepfe_beschriften()
 
@@ -2052,6 +2384,7 @@ class VierachsPanel:
         for etikett, an, werkzeug in (
             (self.lage_schruppen, schruppen, self.fraeser()),
             (self.lage_schlichten, schlichten, self.schlichtfraeser()),
+            (self.lage_plan, self.plan_an(), self.planfraeser()),
         ):
             text = self._lage_text(werkzeug) if an else ""
             etikett.setText(text)
@@ -2119,16 +2452,25 @@ class VierachsPanel:
         return bs.platz_fuer(self.job, werkzeug, self.bibliothek, nummern, vorgemerkt)
 
     def _vorgemerkt(self, werkzeug):
-        """{Nummer: Kennung} des Schrupp-Fräsers, wenn er mit `werkzeug` zusammen neu in den
-        Job kommt – so bekommt der Schlicht-Fräser nicht denselben Platz."""
-        schruppen, _schlichten = self._gewaehlt()
-        fraeser = self.fraeser()
-        if not schruppen or fraeser is None or fraeser is werkzeug:
+        """{Nummer: Kennung} der Fräser, die vor `werkzeug` mit ihm zusammen neu in den Job
+        kommen (Schruppen, dann Schlichten, dann Plan indexiert) – so bekommen zwei nicht
+        denselben Platz. None beim Ändern oder ohne solche."""
+        if self.zu_aendern is not None or werkzeug is None:
             return None
-        if self.zu_aendern is not None or fraeser.kennung == werkzeug.kennung:
-            return None
-        nummer = self._programmnummer(fraeser)
-        return {nummer: fraeser.kennung} if nummer is not None else None
+        schruppen, schlichten = self._gewaehlt()
+        ergebnis = {}
+        for an, anderer in (
+            (schruppen, self.fraeser()),
+            (schlichten, self.schlichtfraeser()),
+            (self.plan_an(), self.planfraeser()),
+        ):
+            if anderer is not None and anderer.kennung == werkzeug.kennung:
+                break  # ab hier kommen die, die nach `werkzeug` dran sind
+            if an and anderer is not None and anderer.kennung not in ergebnis.values():
+                nummer = self._programmnummer(anderer, ergebnis or None)
+                if nummer is not None:
+                    ergebnis[nummer] = anderer.kennung
+        return ergebnis or None
 
     def _pruefung_fuer(self, eintrag):
         """Die Prüfung (reichweite.Pruefung) der gewählten offenen Maschine – einmal gebaut
@@ -2196,7 +2538,11 @@ class VierachsPanel:
         schruppen, schlichten = self._gewaehlt()
         abstand = self._wert("abstand_futter")
         bedarf = []
-        for an, werkzeug in ((schruppen, self.fraeser()), (schlichten, self.schlichtfraeser())):
+        for an, werkzeug in (
+            (schruppen, self.fraeser()),
+            (schlichten, self.schlichtfraeser()),
+            (self.plan_an(), self.planfraeser()),
+        ):
             if an and werkzeug is not None:
                 bedarf.append(
                     (
@@ -2294,6 +2640,8 @@ class VierachsPanel:
             return False
         if schlichten and (self.schlichtfraeser() is None or self.schlichteinsatz() is None):
             return False
+        if self.plan_an() and (self.planfraeser() is None or self.planeinsatz() is None):
+            return False
         return not self.hinweis_bearbeitung.text()
 
     def werkzeugverwaltung(self, nummer=None):
@@ -2318,18 +2666,27 @@ class VierachsPanel:
         """Gehen die angehakten Bearbeitungen mit Fräser, Einsatz und Werten? Rechnet die
         Vorschau, wenn sie noch fehlt."""
         schruppen, schlichten = self._gewaehlt()
-        if (schruppen and self.vorschau is None) or (
-            schlichten and self.vorschau_schlichten is None
+        plan = self.plan_an()
+        if (
+            (schruppen and self.vorschau is None)
+            or (schlichten and self.vorschau_schlichten is None)
+            or (plan and self.vorschau_plan is None)
         ):
             self._vorschau_rechnen()
         if schruppen and (
             self.fraeser() is None or self.einsatz() is None or self.vorschau is None
         ):
             return False
-        return not schlichten or (
-            self.schlichtfraeser() is not None
-            and self.schlichteinsatz() is not None
-            and self.vorschau_schlichten is not None
+        if schlichten and (
+            self.schlichtfraeser() is None
+            or self.schlichteinsatz() is None
+            or self.vorschau_schlichten is None
+        ):
+            return False
+        return not plan or (
+            self.planfraeser() is not None
+            and self.planeinsatz() is not None
+            and self.vorschau_plan is not None
         )
 
     def _bearbeitungen_anlegen(self):
@@ -2338,6 +2695,7 @@ class VierachsPanel:
         Job von FreeCAD bekommt, nimmt es heraus (D-30). Geht es nicht, steht der Grund rot im
         Fenster: False."""
         schruppen, schlichten = self._gewaehlt()
+        plan = self.plan_an()
         achse = self.achse()
         werte = (self._wert("zustellung"), self._wert("steigung"), self._wert("aufmass"))
         sicherheit, ueberlauf, abstand = self._abstaende()
@@ -2346,8 +2704,13 @@ class VierachsPanel:
             abstand,
             sicherheit,
         )
-        if schruppen and schlichten:
+        plan_abstaende = (self._ueberlauf_fuer(self.planfraeser()), abstand, sicherheit)
+        if plan and (schruppen or schlichten):
+            name = tr("va.transaktion.mehrere")
+        elif schruppen and schlichten:
             name = tr("va.transaktion.beide")
+        elif plan:
+            name = tr("va.transaktion.plan")
         else:
             name = tr("va.transaktion.schruppen") if schruppen else tr("va.transaktion.schlichten")
         flaechen = self.flaechen()
@@ -2405,6 +2768,30 @@ class VierachsPanel:
                             muster=muster,
                         )
                     )
+                if plan:
+                    tc = js.controller_ohne_transaktion(
+                        self.doc,
+                        self.job,
+                        self.planfraeser(),
+                        self.planeinsatz(),
+                        self.werkstoff(),
+                        self._programmnummer(self.planfraeser()),
+                    )
+                    angelegt.append(
+                        vplan.lege_an(
+                            self.job,
+                            tc,
+                            achse,
+                            self._wert("zustellung_plan"),
+                            self._wert("zeilenabstand"),
+                            self._wert("aufmass_plan"),
+                            quer_auf_null=achse.quer,
+                            abstaende=plan_abstaende,
+                            halter=self._halter_fuer(self.planfraeser()),
+                            flaechen=flaechen,
+                            eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
+                        )
+                    )
                 self.doc.recompute()
             except Exception:
                 self.doc.abortTransaction()
@@ -2430,17 +2817,20 @@ class VierachsPanel:
         dazu an. Geht es nicht, steht der Grund rot im Fenster: False."""
         op = self.zu_aendern
         schlichten_dazu = self._art == SCHRUPPEN and self.mit_schlichten.isChecked()
+        plan_dazu = self._art == SCHRUPPEN and self.plan_an()
         sicherheit, ueberlauf, abstand = self._abstaende()
         schlicht_abstaende = (
             self._ueberlauf_fuer(self.schlichtfraeser()),
             abstand,
             sicherheit,
         )
-        name = (
-            tr("va.transaktion.aendern_schlichten")
-            if self._art == SCHLICHTEN
-            else (tr("va.transaktion.aendern"))
-        )
+        plan_abstaende = (self._ueberlauf_fuer(self.planfraeser()), abstand, sicherheit)
+        if self._art == SCHLICHTEN:
+            name = tr("va.transaktion.aendern_schlichten")
+        elif self._art == PLAN:
+            name = tr("va.transaktion.aendern_plan")
+        else:
+            name = tr("va.transaktion.aendern")
         flaechen = self.flaechen()
         muster = self.muster()
 
@@ -2468,6 +2858,27 @@ class VierachsPanel:
                         self._halter_fuer(self.schlichtfraeser()),
                         flaechen,
                         muster,
+                    )
+                elif self._art == PLAN:
+                    tc = js.controller_fuer(
+                        self.doc,
+                        self.job,
+                        self.planfraeser(),
+                        self.planeinsatz(),
+                        self.werkstoff(),
+                        op,
+                        self._programmnummer(self.planfraeser()),
+                    )
+                    vplan.aendere(
+                        op,
+                        tc,
+                        self._wert("zustellung_plan"),
+                        self._wert("zeilenabstand"),
+                        self._wert("aufmass_plan"),
+                        plan_abstaende,
+                        self._halter_fuer(self.planfraeser()),
+                        flaechen,
+                        self._eintauchwinkel_fuer(self.planfraeser()),
                     )
                 else:
                     tc = js.controller_fuer(
@@ -2510,6 +2921,28 @@ class VierachsPanel:
                         halter=self._halter_fuer(self.schlichtfraeser()),
                         flaechen=flaechen,
                         muster=muster,
+                    )
+                if plan_dazu:
+                    tc_plan = js.controller_ohne_transaktion(
+                        self.doc,
+                        self.job,
+                        self.planfraeser(),
+                        self.planeinsatz(),
+                        self.werkstoff(),
+                        self._programmnummer(self.planfraeser()),
+                    )
+                    vplan.lege_an(
+                        self.job,
+                        tc_plan,
+                        self.achse(),
+                        self._wert("zustellung_plan"),
+                        self._wert("zeilenabstand"),
+                        self._wert("aufmass_plan"),
+                        quer_auf_null=op.QuerAufNull,
+                        abstaende=plan_abstaende,
+                        halter=self._halter_fuer(self.planfraeser()),
+                        flaechen=flaechen,
+                        eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
                     )
                 self._maschine_merken()
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)
@@ -2714,6 +3147,8 @@ class VierachsPanel:
             _parameter().SetString(GEMERKT_FRAESER, self.fraeser().kennung)
         if schlichten and self.schlichtfraeser() is not None:
             _parameter().SetString(GEMERKT_SCHLICHTFRAESER, self.schlichtfraeser().kennung)
+        if self.plan_an() and self.planfraeser() is not None:
+            _parameter().SetString(GEMERKT_PLANFRAESER, self.planfraeser().kennung)
 
     # --- Anzeige ------------------------------------------------------------------
 

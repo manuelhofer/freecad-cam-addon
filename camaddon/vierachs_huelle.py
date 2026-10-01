@@ -194,6 +194,29 @@ def je_winkel(netz, laengs, radial, form, a0, schritt, anzahl, phi_werte):
     return r
 
 
+def je_versatz(netz, laengs, radial, form, phi0, a0, schritt, anzahl, q_werte):
+    """Die Hüllfläche eines Fräsers mit der Form `form`, der aus der festen Richtung φ0 (rad)
+    kommt – die Rundachse steht –, mit der Werkzeugachse um q_werte[j] (mm) quer versetzt:
+    r[k, j] die Höhe der Spitze längs dieser Richtung an den Stellen a0 + k · schritt;
+    KEIN_TREFFER, wo er das Teil nicht trifft („Plan indexiert“, V4c). Wie je_winkel(), nur
+    ist hier je Spalte der Versatz anders, nicht der Winkel."""
+    l_, u_, v_ = rahmen(laengs, radial)
+    punkte = netz.punkte
+    a = punkte @ l_
+    u = punkte @ u_
+    v = punkte @ v_
+    c, s = math.cos(phi0), math.sin(phi0)
+    x = u * c + v * s
+    y = v * c - u * s
+    kanten = _kanten(netz.dreiecke)
+    r = np.full((anzahl, len(q_werte)), KEIN_TREFFER)
+    for j, q in enumerate(q_werte):
+        spalte = np.full(anzahl, KEIN_TREFFER)
+        _form_treffen(spalte, a, x, y - float(q), kanten, netz.dreiecke, form, float(a0), schritt)
+        r[:, j] = spalte
+    return r
+
+
 def _kanten(dreiecke):
     """Die Kanten der Dreiecke, jede einmal: (k, 2) Punktnummern."""
     paare = np.concatenate([dreiecke[:, [0, 1]], dreiecke[:, [1, 2]], dreiecke[:, [2, 0]]])

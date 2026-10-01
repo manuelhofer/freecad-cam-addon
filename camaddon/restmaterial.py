@@ -18,6 +18,11 @@ so kommt es von unten an die erste Lösung heran. Zwischen zwei Punkten der Bahn
 Fräser in Schritten von höchstens TEILSCHRITT am Umfang; die Schritte eines Stücks rechnet
 es zusammen.
 
+Steht die Werkzeugachse um q quer versetzt neben dem Strahl („Plan indexiert“, V4c – die
+Rundachse steht auf φ_t, der Fräser fährt mit dem Y), ist r die Höhe der Spitze längs der
+Werkzeugachse, und der Strahl trifft die Stirn im Abstand ℓ = √(d² + (ρ · sin Δ − q)²) von
+ihr – sonst alles gleich.
+
 Am Ende der Vergleich mit dem fertigen Teil (vergleiche): seine Radien im selben
 Raster (die Hüllfläche einer Scheibe von einer halben Rasterweite, vierachs_huelle),
 je Zelle der Rest darüber – grün bis Aufmaß + 0,1 mm, gelb darüber, rot ab Aufmaß
@@ -85,19 +90,20 @@ class Stange:
         self.fahre_stuecke([von], [nach], fraeser)
 
     def fahre_stuecke(self, von, nach, fraeser):
-        """Wie fahre(), für viele Stücke auf einmal: `von` und `nach` je (n, 3). Wie herum
-        er sie fährt, ist gleich – weg ist, was irgendein Schritt trifft.
+        """Wie fahre(), für viele Stücke auf einmal: `von` und `nach` je (n, 3) – oder (n, 4)
+        mit dem Versatz quer (vierachs_bahn.Punkt.q) als viertem Wert. Wie herum er sie
+        fährt, ist gleich – weg ist, was irgendein Schritt trifft.
 
         Blockweise, höchstens TEILSCHRITTE_JE_BLOCK Teilschritte zugleich: Das Minimum je Zelle
         hängt nicht von der Reihenfolge ab, das Ergebnis bleibt gleich – nur der Speicher
         bleibt klein (vorher 195 MB für 1,1 Millionen Teilschritte am großen Teil, W-006
         S1, P-2026-09-30-77)."""
-        von = np.asarray(von, dtype=float).reshape(-1, 3)
-        nach = np.asarray(nach, dtype=float).reshape(-1, 3)
+        von, nach = _mit_versatz(von), _mit_versatz(nach)
         if not len(von):
             return
         bogen = np.abs(np.radians(nach[:, 2] - von[:, 2])) * np.maximum(von[:, 1], nach[:, 1])
-        weg = np.maximum(bogen, np.abs(nach[:, :2] - von[:, :2]).max(axis=1))
+        gerade = np.abs(nach[:, [0, 1, 3]] - von[:, [0, 1, 3]]).max(axis=1)
+        weg = np.maximum(bogen, gerade)
         anzahl = np.maximum(1, np.ceil(weg / TEILSCHRITT)).astype(np.int64)
         summe = np.cumsum(anzahl)
         start = 0
@@ -113,26 +119,30 @@ class Stange:
         vorher = np.repeat(np.cumsum(anzahl) - anzahl, anzahl)
         t = ((np.arange(len(stueck)) - vorher + 1) / anzahl[stueck])[:, None]
         punkte = von[stueck] + t * (nach[stueck] - von[stueck])
-        self.schnitte(punkte[:, 0], punkte[:, 1], punkte[:, 2], fraeser)
+        self.schnitte(punkte[:, 0], punkte[:, 1], punkte[:, 2], fraeser, punkte[:, 3])
 
     def schnitt(self, a_t, r_t, phi_t_grad, fraeser):
         """Nimmt weg, was der Fräser mit der Spitze bei (a_t, r_t, φ_t) trifft."""
         self.schnitte([a_t], [r_t], [phi_t_grad], fraeser)
 
-    def schnitte(self, a_t, r_t, phi_t_grad, fraeser):
-        """Wie schnitt(), an vielen Stellen auf einmal (Folgen gleicher Länge)."""
+    def schnitte(self, a_t, r_t, phi_t_grad, fraeser, q_t=None):
+        """Wie schnitt(), an vielen Stellen auf einmal (Folgen gleicher Länge). `q_t`: der
+        Versatz der Werkzeugachse quer zum Strahl (mm, vierachs_bahn.Punkt.q); ohne 0."""
         form = fraeser if isinstance(fraeser, ff.Form) else None
         radius = form.radius if form is not None else float(fraeser)
         a_t = np.asarray(a_t, dtype=float)
         r_t = np.asarray(r_t, dtype=float)
         phi_t = np.radians(np.asarray(phi_t_grad, dtype=float))
+        q_t = np.zeros(len(a_t)) if q_t is None else np.asarray(q_t, dtype=float)
         drin = r_t < self.radius  # darüber trifft er nichts
         if radius <= 0 or not drin.any():
             return
-        a_t, r_t, phi_t = a_t[drin], np.maximum(r_t[drin], 1e-6), phi_t[drin]
-        weit = np.arctan(radius / r_t)  # weiter weg trifft kein Strahl den Fräser
+        a_t, r_t, phi_t, q_t = a_t[drin], np.maximum(r_t[drin], 1e-6), phi_t[drin], q_t[drin]
+        # Weiter weg trifft kein Strahl den Fräser: von q − R bis q + R quer.
+        von_winkel = np.arctan((q_t - radius) / r_t)
+        bis_winkel = np.arctan((q_t + radius) / r_t)
         zeilen = int(math.ceil(2 * radius / self._schritt_a)) + 2
-        spalten = int(math.ceil(2 * float(weit.max()) / self._schritt_phi)) + 3
+        spalten = int(math.ceil(float((bis_winkel - von_winkel).max()) / self._schritt_phi)) + 3
         je = max(1, ZELLEN_JE_BLOCK // (zeilen * spalten))
         for von in range(0, len(a_t), je):
             stellen = slice(von, von + je)
@@ -140,14 +150,15 @@ class Stange:
                 a_t[stellen],
                 r_t[stellen],
                 phi_t[stellen],
-                weit[stellen],
+                q_t[stellen],
+                von_winkel[stellen],
                 radius,
                 form,
                 zeilen,
                 spalten,
             )
 
-    def _block(self, a_t, r_t, phi_t, weit, radius, form, zeilen, spalten):
+    def _block(self, a_t, r_t, phi_t, q_t, von_winkel, radius, form, zeilen, spalten):
         """schnitte() für einen Block von Stellen: je Stelle `zeilen` × `spalten` Zellen um
         ihre Spitze, in denen der Fräser liegen kann."""
         erste_zeile = np.searchsorted(self.a, a_t - radius, "left")
@@ -157,36 +168,42 @@ class Stange:
         d = self.a[zeile] - a_t[:, None]  # längs von der Spitze
         zeile_da &= np.abs(d) <= radius
         schritt = self._schritt_phi
-        erste_spalte = np.floor((phi_t - weit) / schritt).astype(np.int64)
+        erste_spalte = np.floor((phi_t + von_winkel) / schritt).astype(np.int64)
         spalte = erste_spalte[:, None] + np.arange(spalten)[None, :]
-        delta = spalte * schritt - phi_t[:, None]
+        delta = spalte * schritt - phi_t[:, None]  # zur Werkzeugachse
         spalte_da = np.abs(delta) < math.pi / 2 - 1e-9
         zelle = zeile[:, :, None] * len(self.phi) + (spalte % len(self.phi))[:, None, :]
         gueltig = zeile_da[:, :, None] & spalte_da[:, None, :]
         alle = self.r.reshape(-1)
         if form is None or form.eben:
-            tan = np.abs(np.tan(delta))
+            # Wo der Strahl die Ebene der Spitze trifft, quer von der Werkzeugachse gemessen.
+            quer = np.abs(r_t[:, None] * np.tan(delta) - q_t[:, None])
             seitlich = np.sqrt(np.maximum(radius * radius - d * d, 0.0))
-            trifft = (r_t[:, None] * tan)[:, None, :] <= seitlich[:, :, None]
+            trifft = quer[:, None, :] <= seitlich[:, :, None]
             bis_hier = np.where(trifft, (r_t[:, None] / np.cos(delta))[:, None, :], np.inf)
         else:
-            bis_hier = _stirn(form, r_t, d, delta, gueltig, alle[zelle])
+            bis_hier = _stirn(form, r_t, d, delta, gueltig, alle[zelle], q_t)
         da = gueltig & np.isfinite(bis_hier)
         if da.any():  # eine Zelle kann mehrmals vorkommen – at() nimmt das kleinste
             np.minimum.at(alle, zelle[da], bis_hier[da])
 
 
-def _stirn(form, r_t, d, delta, gueltig, steht):
+def _stirn(form, r_t, d, delta, gueltig, steht, q_t=None):
     """Wo die Strahlen die Stirn des Fräsers (Form) mit der Spitze auf r_t treffen – ihr
     Abstand von der Achse, (Stellen, Zeilen, Spalten); inf, wo keiner trifft oder er nichts
     wegnimmt. `d`: je Stelle und Zeile längs von der Spitze, `delta`: je Stelle und Spalte
     der Winkel zur Werkzeugachse (rad); `gueltig`: die Zellen, die zählen; `steht`: bis wohin
-    dort noch Material steht."""
+    dort noch Material steht; `q_t`: je Stelle der Versatz der Werkzeugachse quer (mm)."""
+    q_t = np.zeros(len(r_t)) if q_t is None else q_t
     cos = np.cos(delta)[:, None, :]
     if form.nur_kugel:  # der Strahl trifft die untere Hälfte der Kugel – geschlossen
-        mitte = r_t[:, None, None] + form.radius
-        innen = form.radius**2 - (d * d)[:, :, None] - (mitte * np.sin(delta)[:, None, :]) ** 2
-        return np.where(innen >= 0, mitte * cos - np.sqrt(np.maximum(innen, 0.0)), np.inf)
+        sin = np.sin(delta)[:, None, :]
+        mitte = r_t[:, None, None] + form.radius  # die Mitte: so hoch, um q quer versetzt
+        q = q_t[:, None, None]
+        entlang = mitte * cos + q * sin  # die Mitte, auf den Strahl projiziert
+        quer = mitte * sin - q * cos  # ihr Abstand vom Strahl
+        innen = form.radius**2 - (d * d)[:, :, None] - quer * quer
+        return np.where(innen >= 0, entlang - np.sqrt(np.maximum(innen, 0.0)), np.inf)
     # Sonst gesucht, über den Abstand ℓ von der Werkzeugachse, an dem der Strahl die Stirn
     # trifft: dort ist ℓ = F(ℓ) = √(d² + ((r_t + z(ℓ)) · tan Δ)²), davor F(ℓ) > ℓ. Die Suche
     # kommt von unten heran – bei gewölbter Stirn mit Newton (g = F − ℓ ist dann konvex: kein
@@ -199,25 +216,27 @@ def _stirn(form, r_t, d, delta, gueltig, steht):
     if not offen.size:
         return ergebnis.reshape(groesse)
     d2 = np.broadcast_to((d * d)[:, :, None], groesse).ravel()[offen]
-    t2 = np.broadcast_to((np.tan(delta) ** 2)[:, None, :], groesse).ravel()[offen]
+    tan = np.broadcast_to(np.tan(delta)[:, None, :], groesse).ravel()[offen]
+    q = np.broadcast_to(q_t[:, None, None], groesse).ravel()[offen]
     unten = np.broadcast_to(r_t[:, None, None], groesse).ravel()[offen]
     cos = np.broadcast_to(cos, groesse).ravel()[offen]
     steht = steht.ravel()[offen]
-    quer = np.sqrt(d2 + unten * unten * t2)
+    quer = np.sqrt(d2 + (unten * tan - q) ** 2)
     noch = np.arange(offen.size)
     with np.errstate(invalid="ignore", divide="ignore"):
         for _ in range(SUCHSCHRITTE):
             ell = quer[noch]
             z, steigung = _hoehe(form, ell)
             hoch = unten[noch] + z
-            weiter = np.sqrt(d2[noch] + hoch * hoch * t2[noch])  # F(ℓ)
+            seitlich = hoch * tan[noch] - q[noch]  # quer von der Werkzeugachse
+            weiter = np.sqrt(d2[noch] + seitlich * seitlich)  # F(ℓ)
             rho = hoch / cos[noch]
             schneidet = rho < steht[noch]
             g = weiter - ell
             fertig = schneidet & (g <= 1e-9)
             ergebnis[offen[noch[fertig]]] = rho[fertig]
             if form.konvex:
-                faellt = 1.0 - hoch * t2[noch] * steigung / weiter  # −g′
+                faellt = 1.0 - seitlich * tan[noch] * steigung / weiter  # −g′
                 neu = ell + g / np.where(faellt > 1e-12, faellt, 1.0)
                 trifft = faellt > 1e-12  # sonst steigt g: Der Strahl verfehlt die Stirn
             else:
@@ -228,6 +247,17 @@ def _stirn(form, r_t, d, delta, gueltig, steht):
                 break
     # Noch nicht angekommen: dort nimmt dieser Schritt nichts weg – die Nachbarn tun es.
     return ergebnis.reshape(groesse)
+
+
+def _mit_versatz(punkte):
+    """Punkte (n, 3) oder (n, 4) als (n, 4): a, r, φ, Versatz quer (ohne: 0)."""
+    punkte = np.asarray(punkte, dtype=float)
+    if punkte.size == 0:
+        return np.zeros((0, 4))
+    punkte = punkte.reshape(len(punkte), -1)
+    if punkte.shape[1] == 3:
+        punkte = np.concatenate([punkte, np.zeros((len(punkte), 1))], axis=1)
+    return punkte
 
 
 @lru_cache(maxsize=32)
@@ -351,9 +381,14 @@ class Abtrag:
     def __init__(self, stange, laengs, radial, stationen, fraeser, aufmass, formen, flaechen=None):
         self.stange = stange
         self.laengs, self.radial = laengs, radial
-        # je Station (a, r, φ in Grad, fortlaufend), Operation, gültig
-        self.a, self.r, self.phi, self.operation, self.gueltig = stationen
-        self._punkte = np.stack([self.a, self.r, self.phi], axis=1)
+        # je Station (a, r, φ in Grad, fortlaufend), Operation, gültig – oder dazwischen der
+        # Versatz quer q (Plan indexiert).
+        if len(stationen) == 6:
+            self.a, self.r, self.phi, q, self.operation, self.gueltig = stationen
+        else:
+            self.a, self.r, self.phi, self.operation, self.gueltig = stationen
+            q = np.zeros(len(self.a))
+        self._punkte = np.stack([self.a, self.r, self.phi, q], axis=1)
         self.fraeser = fraeser  # je Operation (Nummer in der Abfahrt) Form oder Radius
         self.aufmass = aufmass
         self._formen = formen
@@ -429,9 +464,17 @@ def fuer(abfahrt, job, am_werkstueck):
     l_, u_, v_ = vh.rahmen(laengs, radial)
     punkte = np.array(am_werkstueck, dtype=float).reshape(-1, 3)
     a = punkte @ l_
-    u, v = punkte @ u_, punkte @ v_
-    r = np.hypot(u, v)
-    phi = np.degrees(np.unwrap(np.arctan2(v, u)))
+    # Die Werkzeugachse zeigt aus der Richtung, auf der die Rundachse steht (im Programm
+    # −Drehsinn · φ); die Spitze liegt auf ihr (r) oder quer daneben (q, Plan indexiert).
+    buchstabe, drehsinn = str(erste.Rundachse), int(erste.Drehsinn) or 1
+    phi = -drehsinn * np.array(
+        [float(s.rund.get(buchstabe, 0.0)) for s in abfahrt.stationen], dtype=float
+    )
+    rad = np.radians(phi)
+    u_phi = u_[None, :] * np.cos(rad)[:, None] + v_[None, :] * np.sin(rad)[:, None]
+    v_phi = v_[None, :] * np.cos(rad)[:, None] - u_[None, :] * np.sin(rad)[:, None]
+    r = np.einsum("ij,ij->i", punkte, u_phi)
+    q = np.einsum("ij,ij->i", punkte, v_phi)
     operation = np.array([s.operation for s in abfahrt.stationen])
     fraeser = {k: _fraeser(abfahrt.operationen[k].tc) for k in rundum}
     gueltig = np.array(
@@ -452,7 +495,14 @@ def fuer(abfahrt, job, am_werkstueck):
     if not formen:
         return None
     return Abtrag(
-        stange, laengs, radial, (a, r, phi, operation, gueltig), fraeser, aufmass, formen, flaechen
+        stange,
+        laengs,
+        radial,
+        (a, r, phi, q, operation, gueltig),
+        fraeser,
+        aufmass,
+        formen,
+        flaechen,
     )
 
 
@@ -468,9 +518,9 @@ def _fraeser(tc):
 
 
 def operationsarten_rundum():
-    """Wie job_schnittwerte.operationsart() „Rundum schruppen“ und „Rundum schlichten“ nennt
-    (die Namen ihrer Module)."""
-    return ("vierachs_operation", "vierachs_schlichten")
+    """Wie job_schnittwerte.operationsart() „Rundum schruppen“, „Rundum schlichten“ und „Plan
+    indexiert“ nennt (die Namen ihrer Module)."""
+    return ("vierachs_operation", "vierachs_schlichten", "vierachs_plan")
 
 
 # --- Darstellung (ohne Coin: Felder, die gui_abfahren in die Ansicht gibt) ---------------

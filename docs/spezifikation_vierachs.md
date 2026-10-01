@@ -816,6 +816,28 @@ bauen“):*
     die gewählten Flächen nicht rundum gehen, sonst die Spirale –, der Grund steht grau
     darunter, eines für alle gewählten Flächen (für andere Strategien je Fläche läuft der
     Assistent noch einmal). Zu 1: Plan indexiert folgt mit dem Versatz quer (Y).
+  - *Stand 2026-10-01 (P-2026-10-01-08, 0.35.0):* *Plan indexiert* gebaut – eine eigene
+    Operation (`vierachs_plan`, Bahn in `vierachs_planbahn`): Je gewählter ebener Fläche
+    längs der Stange (Außennormale quer zur Achse, nach außen) steht die Rundachse auf dem
+    Winkel ihrer Normale; Lagen in gleichen Schritten von höchstens der Zustellung von dem,
+    was über der Fläche steht (die Stange, nach „Rundum schruppen“ der Rest), bis auf Tiefe
+    plus Aufmaß; je Lage Zeilen längs der Achse, quer mit dem Y um höchstens den
+    Zeilenabstand versetzt, der ebene Teil der Stirn bis an den Rand (Luft wie beim Ring); die
+    Zeilen enden, wo die Hüllfläche gegen das Teil ohne die Fläche
+    (`vierachs_huelle.je_versatz`) höher liegt als die Lage – Wände, der Zylinder daneben –;
+    hin und her (`_fahrten`); hinein über die Rampe oder senkrecht vor der Stange. Der Punkt
+    der Bahn trägt den Versatz quer (`Punkt.q`), die Befehle die Querachse, der Weg und die
+    Zeit rechnen damit; der Abtrag (`restmaterial`) rechnet den Fräser dort, wo er steht (die
+    Werkzeugachse aus dem Winkel der Rundachse, die Spitze quer daneben) – für Scheibe, Kugel
+    und jede Stirn. Zu 1: beide Maschinen – ob es eine Querachse gibt, sagt
+    `Stangenachse.quer`; ohne bleibt der Haken gesperrt, mit Satz. Der Assistent: dritter
+    Haken „Plan indexiert“, vorgeschlagen mit Grund (E5), sobald eine gewählte Fläche eben
+    längs der Stange liegt, mit Fräser (ebene Stirn), Einsatz „Planen“, Zustellung je Lage,
+    Zeilenabstand, Aufmaß; „→ 2 Lagen, 6 Zeilen, etwa 1 min“; nachträglich ändern wie die
+    anderen, „dazu“ beim Ändern von „Rundum schruppen“. Rundum schruppen und schlichten
+    arbeiten weiter auf allen gewählten Flächen – auch der ebenen; wer die Ebene nur planen
+    will, wählt sie allein. Nicht dabei: der Rest nach „Plan indexiert“ fürs Schlichten (es
+    nimmt nur die Schruppbahnen).
 - **V4d – Entgraten** (Manuel: „Und Entgraten nicht vergessen“): eigene
   Operation „Rundum entgraten“ – an den Kanten der gewählten Flächen (auch
   zwischen ihnen und dem Rest) eine Fase mit dem Fasenfräser (oder dem

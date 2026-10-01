@@ -113,7 +113,12 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Flächen, hinein geht es über eine Rampe mit dem Eintauchwinkel des Fräsers.
   Ohne Wahl oder mit allen Mantelflächen: rundum. Getrennte Flächen fräst es
   nacheinander; „Auf der Maschine prüfen“ vergleicht dann nur auf den gewählten
-  Flächen. Welche Postprozessoren von FreeCAD das Programm richtig schreiben,
+  Flächen. **Plan indexiert:** Eine ebene Fläche längs der Stange (Abflachung,
+  Schlüsselfläche, Nutboden) fräst der Assistent wie beim Planfräsen – die
+  Rundachse steht, der Fräser mit ebener Stirn fährt Zeilen längs und rückt mit
+  dem Y quer, in Lagen bis auf die Fläche: eben bis in die Ecken; vorgeschlagen,
+  sobald eine gewählte Fläche so liegt und die Maschine eine Achse quer zur
+  Stange hat. Welche Postprozessoren von FreeCAD das Programm richtig schreiben,
   steht in der Hilfe.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).

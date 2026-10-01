@@ -245,13 +245,18 @@ def _ring_radien(r, herkunft, schritte, ring_r, je_umdrehung):
 @dataclass(frozen=True)
 class Punkt:
     """Ein Punkt der Bahn: Stelle längs, Radius der Spitze, Winkel (Grad, fortlaufend);
-    `eintauchen`: hierher mit dem Eintauchvorschub (senkrecht ins Material)."""
+    `eintauchen`: hierher mit dem Eintauchvorschub (senkrecht ins Material). `q`: der Versatz
+    der Spitze quer zur Werkzeugachse (mm, bei C das Y) – 0 bei den Rundum-Bahnen, deren
+    Spitze auf dem Strahl von der Achse steht; „Plan indexiert“ (vierachs_planbahn) fährt
+    damit Zeilen über eine ebene Fläche. Der Radius ist dann die Höhe der Spitze längs der
+    Werkzeugachse, der Winkel der der Rundachse."""
 
     eilgang: bool
     a: float
     r: float
     phi: float
     eintauchen: bool = False
+    q: float = 0.0
 
 
 @dataclass
@@ -1250,10 +1255,14 @@ def befehle(
     genutzt = [i for i in range(3) if abs(l_[i]) > GLEICH or abs(u_[i]) > GLEICH]
     quer = [i for i in range(3) if i not in genutzt]
     radial_achsen = [i for i in range(3) if abs(u_[i]) > GLEICH]
+    # Fährt die Bahn quer versetzt (Plan indexiert), steht die Querachse in jedem Satz.
+    mit_quer = any(abs(p.q) > GLEICH for p in bahn.punkte)
 
     def lage(punkt):
-        spitze = l_ * punkt.a + u_ * punkt.r
+        spitze = l_ * punkt.a + u_ * punkt.r + v_ * punkt.q
         werte = {"XYZ"[i]: float(spitze[i]) for i in genutzt}
+        if mit_quer:
+            werte.update({"XYZ"[i]: float(spitze[i]) for i in quer})
         werte[buchstabe] = -drehsinn * punkt.phi
         return werte
 
@@ -1305,9 +1314,10 @@ def _anderes_f(f, vorher):
 
 def _weg(von, nach):
     """Der Weg der Spitze am Werkstück von einem Punkt zum nächsten (mm)."""
-    r = (von.r + nach.r) / 2
+    r = math.hypot((von.r + nach.r) / 2, (von.q + nach.q) / 2)
     bogen = r * math.radians(nach.phi - von.phi)
-    return math.sqrt((nach.a - von.a) ** 2 + (nach.r - von.r) ** 2 + bogen * bogen)
+    laengs, radial, quer = nach.a - von.a, nach.r - von.r, nach.q - von.q
+    return math.sqrt(laengs * laengs + radial * radial + quer * quer + bogen * bogen)
 
 
 def dauer(bahn, vorschub, eintauchen=None):
