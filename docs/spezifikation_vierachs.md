@@ -808,6 +808,14 @@ bauen“):*
        oder von selbst, wenn die Fläche längs schmal ist?
     3. Soll der Assistent je Fläche eine Strategie vorschlagen (Ebene + Schaftfräser
        → Plan indexiert, sonst hin und her), oder eine für alle gewählten Flächen?
+  - *Stand 2026-10-01 (P-2026-10-01-06, 0.34.0):* *Linien längs* gebaut – als Muster an
+    „Rundum schlichten“ (Eigenschaft „Muster“: Spirale oder Linien), für jeden Fräser;
+    Linien im Winkelabstand Schrittweite ÷ größter Radius, gegenläufig, nur über dem
+    Bereich, mit den Stufen nach dem Schruppen. Zu 2 und 3 nach W-006 E5 (Vorschlag mit
+    Grund, änderbar): Der Assistent schlägt je Auswahl ein Muster vor – Linien längs, wenn
+    die gewählten Flächen nicht rundum gehen, sonst die Spirale –, der Grund steht grau
+    darunter, eines für alle gewählten Flächen (für andere Strategien je Fläche läuft der
+    Assistent noch einmal). Zu 1: Plan indexiert folgt mit dem Versatz quer (Y).
 - **V4d – Entgraten** (Manuel: „Und Entgraten nicht vergessen“): eigene
   Operation „Rundum entgraten“ – an den Kanten der gewählten Flächen (auch
   zwischen ihnen und dem Rest) eine Fase mit dem Fasenfräser (oder dem

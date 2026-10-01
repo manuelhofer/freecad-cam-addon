@@ -73,6 +73,21 @@ def schlichten(bauen):
     return vb.schlichten(vh.vernetze(form, vb.TOLERANZ_SCHLICHTEN), LAENGS, RADIAL, werte)
 
 
+def schlichten_linien(bauen):
+    """Rundum schlichten in Linien längs (V4c) – ohne den Rest, wie die Vorschau."""
+    form, stange, a_futter = bauen()
+    werte = vb.Schlichtwerte(
+        form=ff.kugel(3.0),
+        stange_radius=stange,
+        schrittweite=0.5,
+        aufmass=0.0,
+        a_stange_vorne=1.0,
+        a_futter=a_futter,
+        muster=vb.LINIEN,
+    )
+    return vb.schlichten(vh.vernetze(form, vb.TOLERANZ_SCHLICHTEN), LAENGS, RADIAL, werte)
+
+
 def gerundet(bahn):
     """(n, 4): a, r, φ auf 1 µm bzw. 1 µrad gerundet, Eilgang als 0/1."""
     werte = np.array([(p.a, p.r, p.phi, 1.0 if p.eilgang else 0.0) for p in bahn.punkte])
@@ -112,6 +127,7 @@ def vergleiche(name, bahn):
 vergleiche("welle_schruppen", schruppen(welle))
 vergleiche("welle_absatz_schruppen", schruppen(welle_absatz))
 vergleiche("welle_absatz_schlichten", schlichten(welle_absatz))
+vergleiche("welle_absatz_schlichten_linien", schlichten_linien(welle_absatz))
 
 if fehler:
     raise AssertionError("\n".join(fehler))

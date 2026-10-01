@@ -6,6 +6,10 @@ Kühlmittel, ohne Höhen und Tiefen in Z. Beim Neuberechnen rechnet sie ihre Spi
 Modell und Stange des Jobs (vierachs_bahn.schlichten) – mit der Form ihres Fräsers, gelesen
 aus dem ToolBit des Controllers (werkzeuge_aus_cam, fraeserform), so wie CAM damit fräst.
 
+Ihr Muster (V4c, Eigenschaft „Muster“) ist die Spirale oder „Linien“ längs der Achse bei
+festem Winkel – für Flächen, die nicht rundum gehen (vierachs_bahn, Muster LINIEN); der
+Assistent schlägt es nach den gewählten Flächen vor.
+
 Was die „Rundum schruppen“ des Jobs stehen ließen, rechnet sie mit: deren Bahnen trägt sie
 von der Stange ab (restmaterial), und tiefer als den Radius ihres Fräsers schneidet sie
 nie – wo mehr stehen blieb, fährt sie in Stufen vor. Ohne „Rundum schruppen“ im Job geht
@@ -36,6 +40,9 @@ from . import vierachs_rohteil as vr
 from .sprache import tr
 
 AUFMASS = 0.0  # mm – Schlichten macht fertig
+# Die Werte der Eigenschaft „Muster“ (Aufzählung, bleibt in jeder Datei) und das Muster der
+# Bahn dazu (vierachs_bahn.SPIRALE, LINIEN).
+MUSTER_WERTE = {"Spirale": vb.SPIRALE, "Linien": vb.LINIEN}
 SCHRITTWEITE_ANTEIL = 0.02  # ohne ae im Einsatz: D/50 – wie die Vorlage „Schlichten“
 # Die Vorschau im Assistenten rechnet grob: Umdrehungen, Zeit und ob es geht – schnell genug
 # für jede Eingabe. Die Operation rechnet dann genau.
@@ -58,6 +65,7 @@ class RundumSchlichten(PathOp.ObjectOp):
         obj.QuerAufNull = True
         obj.Schrittweite = 0.1
         obj.Aufmass = AUFMASS
+        obj.Muster = muster_wert(vb.SPIRALE)
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.Ueberlauf = vb.ueberlauf_vorschlag(0.0)  # lege_an setzt ihn mit dem Fräser
         obj.AbstandFutter = vb.ABSTAND_FUTTER
@@ -69,13 +77,15 @@ class RundumSchlichten(PathOp.ObjectOp):
 
     @staticmethod
     def _eigenschaften(obj):
-        """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
-        return vo.eigenschaften_anlegen(
+        """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück. Das Muster (seit
+        0.34) bekommen ältere Operationen als Spirale – ihre Bahn bleibt."""
+        neu = vo.eigenschaften_anlegen(
             obj,
             vo.achs_eigenschaften()
             + (
                 ("App::PropertyLength", "Schrittweite", tr("vs.eigenschaft.schrittweite")),
                 ("App::PropertyLength", "Aufmass", tr("vs.eigenschaft.aufmass")),
+                ("App::PropertyEnumeration", "Muster", tr("vs.eigenschaft.muster")),
             )
             + vo.abstand_eigenschaften()
             + vo.flaechen_eigenschaften()
@@ -83,12 +93,16 @@ class RundumSchlichten(PathOp.ObjectOp):
                 ("App::PropertyLength", "Kammhoehe", tr("vs.eigenschaft.kammhoehe")),
                 ("App::PropertyFloat", "Umdrehungen", tr("vs.eigenschaft.umdrehungen")),
                 ("App::PropertyInteger", "Vorstufen", tr("vs.eigenschaft.vorstufen")),
+                ("App::PropertyInteger", "Linien", tr("vs.eigenschaft.linien")),
             ),
         )
+        if "Muster" in neu:
+            obj.Muster = list(MUSTER_WERTE)  # die Werte der Aufzählung; gewählt ist der erste
+        return neu
 
     @staticmethod
     def _editormodi(obj):
-        for name in ("Kammhoehe", "Umdrehungen", "Vorstufen"):
+        for name in ("Kammhoehe", "Umdrehungen", "Vorstufen", "Linien"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         if "Workplane" in obj.PropertiesList:  # Wochen-Build: die Bahn dreht selbst
             obj.setEditorMode("Workplane", 2)
@@ -100,12 +114,14 @@ class RundumSchlichten(PathOp.ObjectOp):
             bahn = rechne(obj, self.job, self.model)
         except ValueError as fehler:
             obj.Umdrehungen = 0.0
+            obj.Linien = 0
             FreeCAD.Console.PrintError(f"{obj.Label}: {fehler}\n")
             self.commandlist.append(Path.Command(f"({vo._ascii(str(fehler))})"))
             return
         obj.Kammhoehe = bahn.kammhoehe
         obj.Umdrehungen = round(bahn.umdrehungen, 1)
         obj.Vorstufen = bahn.vorstufen
+        obj.Linien = bahn.linien
         if bahn.hinten_frei > 0:
             from .reichweite import weg_text
 
@@ -128,6 +144,19 @@ class RundumSchlichten(PathOp.ObjectOp):
                 vo.eintauchvorschub(self),
             )
         )
+
+
+def muster_wert(muster):
+    """Der Wert der Eigenschaft „Muster“ zu einem Muster der Bahn (vierachs_bahn.SPIRALE …)."""
+    for wert, bahn_muster in MUSTER_WERTE.items():
+        if bahn_muster == muster:
+            return wert
+    raise ValueError(tr("vb.fehler.muster", muster=muster))
+
+
+def muster_der_operation(obj):
+    """Das Muster der Bahn (vierachs_bahn.SPIRALE, LINIEN) aus der Eigenschaft „Muster“."""
+    return MUSTER_WERTE.get(getattr(obj, "Muster", None), vb.SPIRALE)
 
 
 def form_des_controllers(tc):
@@ -156,6 +185,7 @@ def rechne(obj, job, modell):
         schruppbahnen(job, modell),
         vo.halter_zum_futter(obj),
         vo.flaechen(obj),
+        muster_der_operation(obj),
     )
 
 
@@ -185,12 +215,14 @@ def bahn_fuer(
     schruppen,
     halter=0.0,
     flaechen=(),
+    muster=vb.SPIRALE,
 ):
     """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
     davor (schruppbahnen()); `halter`: so weit reicht der Halter seitlich über die
     Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen („Face3“ …), leer:
-    rundum. ValueError mit einem Satz, wenn es nicht geht."""
+    rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN. ValueError mit einem Satz, wenn es
+    nicht geht."""
     if not schruppen:
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
@@ -202,13 +234,24 @@ def bahn_fuer(
         aufmass_schruppen=max(auf for _bahn, _radius, auf in schruppen),
         waende=vo.waende(form_teil, laengs),
         bereich=vf.bereich_fuer(form_teil, laengs, radial, flaechen, form.radius),
+        muster=muster,
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     return vb.schlichten(teil, laengs, radial, werte)
 
 
 def vorschau(
-    job, modell, laengs, radial, form, schrittweite, aufmass, abstaende, halter=0.0, flaechen=()
+    job,
+    modell,
+    laengs,
+    radial,
+    form,
+    schrittweite,
+    aufmass,
+    abstaende,
+    halter=0.0,
+    flaechen=(),
+    muster=vb.SPIRALE,
 ):
     """Die Schlichtbahn grob – für Umdrehungen, Zeit und ob es geht, im Assistenten, bevor es
     die Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt, alle
@@ -220,6 +263,7 @@ def vorschau(
         werte,
         waende=vo.waende(form_teil, laengs),
         bereich=vf.bereich_fuer(form_teil, laengs, radial, flaechen, form.radius),
+        muster=muster,
     )
     teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
@@ -304,13 +348,15 @@ def lege_an(
     abstaende=None,
     halter=0.0,
     flaechen=(),
+    muster=vb.SPIRALE,
 ):
     """Legt „Rundum schlichten“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand) – ohne: die Vorschläge; `halter`: so weit reicht der Halter
     seitlich über die Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen
-    („Face3“ …), leer: rundum. Gibt die Operation zurück. Angelegt wie „Rundum schruppen“
-    (vierachs_operation.lege_an), mit DoNotSetDefaultValues."""
+    („Face3“ …), leer: rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN. Gibt die
+    Operation zurück. Angelegt wie „Rundum schruppen“ (vierachs_operation.lege_an), mit
+    DoNotSetDefaultValues."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "RundumSchlichten")
     obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
@@ -333,6 +379,7 @@ def lege_an(
     )
     obj.HalterZumFutter = halter
     obj.Flaechen = list(flaechen)
+    obj.Muster = muster_wert(muster)
     obj.Label = name or tr("vs.name", werkzeug=f"T{tc.ToolNumber}")
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -341,10 +388,12 @@ def lege_an(
     return obj
 
 
-def aendere(obj, tc, schrittweite, aufmass, abstaende=None, halter=None, flaechen=None):
+def aendere(
+    obj, tc, schrittweite, aufmass, abstaende=None, halter=None, flaechen=None, muster=None
+):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `abstaende`, `halter` und `flaechen` wie bei lege_an, ohne bleiben sie. Der
-    Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
+    Transaktion; `abstaende`, `halter`, `flaechen` und `muster` wie bei lege_an, ohne bleiben
+    sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = tr("vs.name", werkzeug=f"T{tc.ToolNumber}")
     obj.ToolController = tc
@@ -357,6 +406,8 @@ def aendere(obj, tc, schrittweite, aufmass, abstaende=None, halter=None, flaeche
         obj.HalterZumFutter = halter
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
+    if muster is not None and muster_wert(muster) != obj.Muster:
+        obj.Muster = muster_wert(muster)
 
 
 def _vorgeschlagener_name(name):

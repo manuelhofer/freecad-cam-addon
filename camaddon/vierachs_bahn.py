@@ -36,6 +36,15 @@ Aufmaß des Schruppens plus 0,5 mm): Wo mehr stehen blieb – in einer Innenecke
 einer engen Nut –, fährt sie vorher in Stufen, nur über den Umdrehungen, wo es
 nötig ist.
 
+„Linien längs“ (V4c, Muster LINIEN) schlichtet statt mit der Spirale in Linien längs der
+Achse bei festem Winkel: für Flächen, die nicht rundum gehen – eine Abflachung, eine Nut, eine
+Nocke – mit dem Kugel- oder Torusfräser. Die Linien liegen rundum gleich weit auseinander,
+höchstens Schrittweite ÷ größter Radius (so bleibt zwischen zweien nicht mehr stehen als
+zwischen zwei Umdrehungen der Spirale), und laufen gegenläufig: Am Ende einer Linie dreht die
+Rundachse in der Tiefe zur nächsten weiter, wo die dort auch fräst – sonst hebt der Fräser ab.
+Mit gewählten Flächen nur die Linien und Stücke über dem Bereich; die Stufen nach dem Schruppen
+wie bei der Spirale.
+
 Mit gewählten Flächen (Stufe V4, vierachs_flaechen) fräsen beide nur im Bereich, in dem
 der Fräser eine von ihnen berührt; gerechnet wird weiter gegen das ganze Teil. Dazwischen hebt
 er über die Stange ab und fährt im Eilgang weiter (Manuel, 2026-09-30: „je nach Rohteil
@@ -89,6 +98,11 @@ RAMPE_MINDESTENS = 0.5  # mm – ein kürzeres Stück hat keinen Platz für eine
 RAMPE_HOECHSTENS = 200  # so oft läuft eine Rampe höchstens hin und her
 # So viele Nachkommastellen behält FreeCAD von F, wenn es die Bahn im Dokument speichert.
 F_STELLEN = 6
+# Das Muster beim Schlichten (V4c): die Spirale, oder Linien längs der Achse bei festem Winkel.
+SPIRALE = "spirale"
+LINIEN = "linien"
+MUSTER = (SPIRALE, LINIEN)
+SCHRITT_A_LINIEN = vh.SCHRITT_A  # mm – so dicht liegen die Punkte einer Linie längs
 
 
 @dataclass(frozen=True)
@@ -135,6 +149,7 @@ class Schlichtwerte:
     rest: tuple = None
     aufmass_schruppen: float = 0.0  # so viel ließ das Schruppen stehen
     bereich: object = None  # wie bei Schruppwerte
+    muster: str = SPIRALE  # SPIRALE oder LINIEN (Linien längs, V4c)
 
 
 @dataclass
@@ -148,6 +163,7 @@ class Schlichtbahn:
     hinten_frei: float = 0.0  # so viel vom hinteren Ende des Teils erreicht der Fräser nicht
     vorstufen: int = 0  # so oft fährt es vor, wo das Schruppen mehr stehen ließ
     grenze: float = 0.0  # so tief schneidet Schlichten je Stufe höchstens (mm)
+    linien: int = 0  # Linien längs (Muster LINIEN): so viele Linien hat die Bahn
 
 
 def rillenhoehe(fraeser_radius, eckradius, steigung):
@@ -771,6 +787,8 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         raise ValueError(tr("vb.fehler.schrittweite"))
     if w.schrittweite > 2 * radius:
         raise ValueError(tr("vb.fehler.schrittweite_gross"))
+    if w.muster not in MUSTER:
+        raise ValueError(tr("vb.fehler.muster", muster=w.muster))
     l_, _u, _v = vh.rahmen(laengs, radial)
     a_teil = netz.punkte @ l_
     teil_vorne, teil_hinten = float(a_teil.max()), float(a_teil.min())
@@ -780,6 +798,10 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     if a_ende >= teil_vorne + radius:
         raise ValueError(_kein_platz(radius, w))
     hinten_frei = max(0.0, a_ende - radius - teil_hinten)
+    if w.muster == LINIEN:  # Linien längs (V4c)
+        return _schlichten_linien(
+            netz, laengs, radial, w, a_anfang, a_ende, teil_vorne, teil_hinten, hinten_frei
+        )
     if w.bereich is not None:  # gewählte Flächen: Zeilen hin und her (V4)
         return _schlichten_zeilen(
             netz,
@@ -877,6 +899,160 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         hinten_frei,
         len(stufen),
         grenze,
+    )
+
+
+# --- Linien längs (V4c) ---------------------------------------------------------------------
+# Manuel (2026-09-30): „mehrere Strategien, je nach Werkzeug kann das anders ausfallen“. Jede
+# Linie liegt bei festem Winkel und fährt längs über ihre Stücke im Bereich; am Ende dreht die
+# Rundachse in der Tiefe zur nächsten Linie, die Richtung wechselt. Die Fahrten kommen von
+# _fahrten() wie beim Hin und Her – nur mit Linie statt Zeile und Stelle längs statt
+# Winkelschritt; längs gibt es keine Naht, deshalb rechnet es mit einer Lücke an beiden Enden.
+
+
+def linienwinkel(r_max, schrittweite):
+    """Die Winkel (Grad) der Linien längs: rundum gleich weit auseinander, höchstens
+    `schrittweite` ÷ `r_max` weit (im Bogenmaß) – so bleibt zwischen zwei Linien auf dem
+    größten Radius nicht mehr stehen als zwischen zwei Umdrehungen der Spirale."""
+    anzahl = max(1, int(math.ceil(2.0 * math.pi * max(r_max, GLEICH) / schrittweite - 1e-9)))
+    return 360.0 * np.arange(anzahl) / anzahl
+
+
+def _schlichten_linien(
+    netz, laengs, radial, w, a_anfang, a_ende, teil_vorne, teil_hinten, hinten_frei
+):
+    """Schlichten in Linien längs (Muster LINIEN): die Spitze auf der Hüllfläche genau auf den
+    Linien, alle SCHRITT_A_LINIEN ein Punkt; mit Bereich nur die Linien und Stücke darüber;
+    hinein senkrecht mit dem Eintauchvorschub, knapp über dem Rest; wo das Schruppen mehr
+    stehen ließ als die Grenze, vorher in Stufen wie bei der Spirale."""
+    form = w.form
+    radius = form.radius
+    s = w.schrittweite
+    zugabe = w.aufmass + netz.toleranz
+    geformt = form.mit_aufmass(zugabe)
+    sicher = w.stange_radius + w.sicherheit
+    punkte = [Punkt(True, a_anfang, sicher, 0.0)]
+    # Die Linien: im Winkelabstand s ÷ r_max – r_max der größte Radius des Teils plus Aufmaß.
+    _l, u_, v_ = vh.rahmen(laengs, radial)
+    r_teil = np.hypot(netz.punkte @ u_, netz.punkte @ v_)
+    r_max = max(float(r_teil.max()) + zugabe if len(r_teil) else 0.0, radius)
+    winkel = linienwinkel(r_max, s)
+    phi = np.radians(winkel)
+    # Die Stellen längs: von hinten nach vorn, höchstens SCHRITT_A_LINIEN auseinander.
+    anzahl = max(2, int(math.ceil((a_anfang - a_ende) / SCHRITT_A_LINIEN - 1e-9)) + 1)
+    a_stellen = np.linspace(a_ende, a_anfang, anzahl)
+    schritt = float(a_stellen[1] - a_stellen[0])
+    # Wo gefräst wird: über dem Bereich, ohne Bereich überall. Linien ohne Stück bleiben als
+    # Lücke stehen – so hängen nur Nachbarn zusammen; die Reihe beginnt nach einer Lücke, damit
+    # ein Stück über die Naht bei 0° ein Stück bleibt.
+    if w.bereich is not None:
+        drin = w.bereich.bei(a_stellen[None, :], phi[:, None])
+    else:
+        drin = np.ones((len(winkel), anzahl), dtype=bool)
+    belegt = drin.any(axis=1)
+    if not belegt.any():
+        punkte.append(Punkt(True, a_anfang, sicher, 0.0))
+        return Schlichtbahn(punkte, 0.0, 0.0, form.kammhoehe(s), hinten_frei)
+    if not belegt.all():
+        reihe = (np.arange(len(winkel)) + int(np.flatnonzero(~belegt)[0])) % len(winkel)
+        winkel, phi, drin, belegt = winkel[reihe], phi[reihe], drin[reihe], belegt[reihe]
+    n = len(winkel)
+    # Die Hüllfläche nur auf den Linien, über denen etwas liegt.
+    huelle = vh.je_winkel(
+        netz,
+        laengs,
+        radial,
+        geformt,
+        np.full(int(belegt.sum()), a_ende),
+        schritt,
+        anzahl,
+        phi[belegt],
+    )
+    anfang = np.full(int(belegt.sum()), a_ende)
+    huelle = _auffuellen(huelle, anfang, schritt, teil_vorne, teil_hinten).T + zugabe
+    hoehe = np.full((n, anzahl), float(w.stange_radius))
+    hoehe[belegt] = np.where(np.isfinite(huelle), huelle, w.stange_radius)
+    hoehe = np.maximum(hoehe, radius)
+
+    def folge(fahrt, ziel):
+        """Die Punkte einer Fahrt: (a, r, Winkel in Grad, Linie, Stelle) – Linie und Stelle −1
+        auf der Drehung zur nächsten Linie, in der Tiefe der höheren von beiden."""
+        teile = []
+        for art, m, js in fahrt:
+            if art == "zeile":
+                k = np.asarray(js) - 1  # ohne die Lücke am Anfang
+                teile.append(
+                    (a_stellen[k], ziel[m, k], np.full(len(k), winkel[m]), np.full(len(k), m), k)
+                )
+                continue
+            k = int(js) - 1
+            r = max(float(ziel[m, k]), float(ziel[m + 1, k]))
+            teile.append(
+                (
+                    a_stellen[[k]],
+                    np.array([r]),
+                    np.array([winkel[m + 1]]),
+                    np.array([-1]),
+                    np.array([-1]),
+                )
+            )
+        return tuple(np.concatenate([t[i] for t in teile]) for i in range(5))
+
+    umdrehungen = 0.0
+
+    def fahren(ziel, wo, stand):
+        """Die Linien über `wo` auf der Tiefe `ziel`; `stand`: so hoch steht dort noch etwas.
+        Gibt zurück, wo gefräst wurde."""
+        nonlocal umdrehungen
+        gefraest = np.zeros(ziel.shape, dtype=bool)
+        mit_luecke = np.zeros((n, anzahl + 2), dtype=bool)
+        mit_luecke[:, 1:-1] = wo
+        for fahrt in _fahrten(mit_luecke):
+            a, r, grad, m, k = folge(fahrt, ziel)
+            grad = np.degrees(np.unwrap(np.radians(grad)))  # über die Naht bei 0° hinweg
+            grad = grad + 360.0 * round((punkte[-1].phi - float(grad[0])) / 360.0)
+            m0, k0 = int(m[0]), int(k[0])
+            oben = w.stange_radius if stand is None else max(float(stand[m0, k0]), float(r[0]))
+            _einfahrt(punkte, a, r, grad, oben, True, w)
+            gehoben = r + _sehnenfehler(r)
+            fest = np.flatnonzero(_a_knicke(a) | _a_knicke(grad)) + 1 if len(a) > 2 else []
+            for i in _zusammengefasst(gehoben, BAHN_TOLERANZ, len(a), list(fest)):
+                punkte.append(Punkt(False, float(a[i]), float(gehoben[i]), float(grad[i])))
+            punkte.append(Punkt(True, float(a[-1]), sicher, float(grad[-1])))
+            auf_linie = m >= 0
+            gefraest[m[auf_linie], k[auf_linie]] = True
+            umdrehungen += float(np.sum(np.abs(np.diff(grad)))) / 360.0
+        return gefraest
+
+    # Wo das Schruppen mehr stehen ließ als die Grenze: vorher in Stufen.
+    stufen, grenze, stand = 0, 0.0, None
+    if w.rest is not None:
+        grenze = max(radius, w.aufmass_schruppen + SCHLICHT_ZUGABE)
+        gitter_a = np.tile(a_stellen, n)
+        gitter_phi = np.repeat(phi, anzahl)
+        oben = _nicht_tiefer(w.rest, form, 0.0, gitter_a, gitter_phi).reshape(hoehe.shape)
+        stand = np.maximum(oben, hoehe)
+        tiefste = float(np.max(np.where(drin, oben - hoehe, 0.0)))
+        for stufe in range(1, int(math.ceil(max(tiefste, 0.0) / grenze - 1e-9))):
+            ebene = np.maximum(hoehe, oben - stufe * grenze)
+            noetig = (ebene > hoehe + BAHN_TOLERANZ) & drin
+            if not noetig.any():
+                continue
+            gefraest = fahren(ebene, noetig, stand)
+            stand = np.where(gefraest, np.minimum(stand, ebene), stand)
+            stufen += 1
+    fahren(hoehe, drin, stand)
+    _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
+    r_min = float(np.min(hoehe[drin]))
+    return Schlichtbahn(
+        punkte,
+        umdrehungen,
+        r_min,
+        form.kammhoehe(s),
+        hinten_frei,
+        stufen,
+        grenze,
+        linien=int(belegt.sum()),
     )
 
 

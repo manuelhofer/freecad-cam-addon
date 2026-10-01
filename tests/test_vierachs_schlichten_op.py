@@ -3,7 +3,8 @@
 # im Job ein Satz statt einer Bahn; mit ihm die Spirale auf Ø 60 plus Vernetzung, G93 … G94
 # und C; Kammhöhe und Umdrehungen stehen an der Operation. Die Form kommt aus dem ToolBit
 # des Controllers. „Schnittwerte in den Job“ kennt sie mit dem Einsatz „Schlichten“.
-# Ändern (anderer Controller, andere Werte), Speichern und Laden, Postprozessor.
+# Ändern (anderer Controller, andere Werte), Speichern und Laden, Postprozessor. Das Muster
+# „Linien“ (V4c) steht an der Operation: 629 Linien längs auf Ø 60 mit 0,3 mm.
 import importlib
 import math
 import os
@@ -22,6 +23,7 @@ from camaddon import job_schnittwerte as js
 from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
 from camaddon import vierachs_achsen as va
+from camaddon import vierachs_bahn as vb
 from camaddon import vierachs_operation as vo
 from camaddon import vierachs_rohteil as vr
 from camaddon import vierachs_schlichten as vs
@@ -116,6 +118,27 @@ pruefe(abs(op.Kammhoehe.Value - kamm) < 1e-9, f"Kammhöhe {op.Kammhoehe}")
 pruefe(abs(op.Umdrehungen - (1 + 3 + 2 + 103.5) / 0.3) < 0.1, f"Umdrehungen {op.Umdrehungen}")
 pruefe(op.Vorstufen == 0, f"Vorstufen: {op.Vorstufen}")
 pruefe(op.getEditorMode("Kammhoehe") == ["ReadOnly"], "Kammhöhe änderbar")
+pruefe(op.Muster == "Spirale" and op.Linien == 0, f"Muster: {op.Muster}, {op.Linien} Linien")
+
+# --- Linien längs (V4c): das Muster an der Operation -------------------------------------
+vs.aendere(op, tc2, schrittweite=0.3, aufmass=0.0, muster=vb.LINIEN)
+doc.recompute()
+pruefe(op.Muster == "Linien", f"Muster: {op.Muster}")
+pruefe(op.Linien == math.ceil(2 * math.pi * 30.005 / 0.3), f"Linien: {op.Linien}")
+pruefe(op.getEditorMode("Linien") == ["ReadOnly"], "Linien änderbar")
+schnitte = [b for b in op.Path.Commands if b.Name == "G1"]
+ueber = [b.Parameters["X"] for b in schnitte if -100 <= b.Parameters["Z"] <= 0]
+pruefe(
+    min(ueber) >= 29.999 and max(ueber) <= 30.01,
+    f"Linien über dem Teil: {min(ueber)} … {max(ueber)}",
+)
+pruefe(
+    max(b.Parameters["C"] for b in schnitte) - min(b.Parameters["C"] for b in schnitte) <= 360.0,
+    "Linien: C dreht öfter als einmal",
+)
+vs.aendere(op, tc2, schrittweite=0.3, aufmass=0.0, muster=vb.SPIRALE)
+doc.recompute()
+pruefe(op.Muster == "Spirale" and op.Linien == 0, f"zurück zur Spirale: {op.Muster}, {op.Linien}")
 
 # --- Ändern: der Torus T3, andere Werte; der vorgeschlagene Name folgt dem Werkzeug ------
 vs.aendere(op, tc3, schrittweite=0.5, aufmass=0.1, abstaende=(5.5, 5.0, 2.0))

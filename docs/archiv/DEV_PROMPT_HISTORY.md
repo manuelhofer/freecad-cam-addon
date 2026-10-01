@@ -12,6 +12,61 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-06 linien-laengs
+
+### EINGELESEN
+- W-006 (`docs/spezifikation_strategien.md`), 4.3.1 und S2: „Linien längs – Zeilen längs der
+  Achse bei festem Winkel: Nut, Abflachung, Nocke mit Kugel-/Torusfräser“; E1 (a) S2 zuerst,
+  E5 (a) Vorschlag mit Grund, änderbar (Manuel, 2026-10-01: „Also ja“).
+- W-003 V4c (`docs/spezifikation_vierachs.md`): Linien im Winkelabstand Schrittweite ÷ Radius,
+  gegenläufig, nur über der Fläche; die offenen Fragen 2 und 3.
+- `camaddon/vierachs_bahn.py` (Spirale, Zeilen hin und her, `_fahrten`), `vierachs_schlichten.py`,
+  `gui_vierachs.py` (Schritt 2, Schlichten), `tests/test_vierachs_schlichten.py`,
+  `tests/test_goldene_bahnen.py`, `tests/gui/szenario_vierachs_flaechen.py`.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `camaddon/vierachs_schlichten.py`, `camaddon/gui_vierachs.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/vierachs.html`, `README.md`,
+  `docs/spezifikation_vierachs.md`, `docs/STATUS_SNAPSHOT.md`, `tests/test_vierachs_schlichten.py`,
+  `tests/test_vierachs_schlichten_op.py`, `tests/test_goldene_bahnen.py`,
+  `tests/golden/welle_absatz_schlichten_linien.json` (neu), `tests/gui/szenario_vierachs_flaechen.py`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Rundum schlichten“ hat ein Muster: Spirale (wie bisher) oder Linien längs der Achse bei festem
+Winkel – gegenläufig, im Abstand Schrittweite ÷ größter Radius, mit Bereich nur die Linien und
+Stücke über den gewählten Flächen, die Stufen nach dem Schruppen wie bei der Spirale. Im
+Assistenten steht unter dem Aufmaß „Muster“ mit dem Vorschlag und grau dem Grund: mit einer
+Abflachung „Vorschlag: Linien längs – die gewählten Flächen gehen nicht rundum.“, rundum die
+Spirale; wer anderes wählt, behält es. Die Operation trägt „Muster“ und „Linien“; die Spirale
+rechnet unverändert (goldene Bahnen).
+
+### DONE
+- Rechenkern: `_schlichten_linien` (Linienwinkel, Hüllfläche nur auf den Linien mit Material,
+  Fahrten über `_fahrten` mit einer Lücke an beiden Enden längs, Einfahrt, Sehnenfehler,
+  Zusammenfassen, Stufen); Rundum 0,6 s, Abflachung 0,2 s. Linien ohne Material bleiben als
+  Lücke in der Reihe, die nach einer Lücke beginnt – so ist eine Abflachung beiderseits der Naht
+  bei 0° ein Stück (vorher sprang die Rundachse 268°). `Schlichtwerte.muster`,
+  `Schlichtbahn.linien`.
+- Operation: Aufzählung „Muster“ (Spirale/Linien; ältere Dateien Spirale), „Linien“ nur lesen;
+  `bahn_fuer`, `vorschau`, `lege_an`, `aendere` mit `muster`.
+- Assistent: Liste „Muster“ mit Grund (`_muster_vorschlagen`, E5), „→ 126 Linien längs, etwa …“;
+  beim Ändern das Muster der Operation. Hilfe (de/en), README, Spezifikation V4c (Stand).
+
+### TEST
+- `test_vierachs_schlichten` (Abflachung in Linien: im Bereich, eine Hauptfahrt über die Naht,
+  gegenläufig, Abstand ≤ 2,86°, die Kugel nie im Teil und zwischen den Punkten auf der Ebene;
+  eine Stufe dicht an den Wänden; rundum 360 Linien auf der Hüllfläche), `test_vierachs_bahn`,
+  `test_goldene_bahnen` (neu `welle_absatz_schlichten_linien`, die alten unverändert),
+  `test_vierachs_schlichten_op` (629 Linien, Muster hin und zurück), `test_sprache`, `test_hilfe`
+  in 1.1.3 ok; `test_vierachs_schlichten_op`, `test_goldene_bahnen` in 26.3 ok.
+- `szenario_vierachs_flaechen` (Vorschlag Linien längs mit Grund, Spirale rundum, Muster an der
+  Operation) in 1.1.3 und 26.3 ok, `szenario_vierachs_schlichten` in 1.1.3 ok; Bild angesehen:
+  „Muster: Linien längs“ mit dem grauen Grund unter dem Aufmaß. Der volle Lauf nach dem Push.
+
+### NEXT
+- Version 0.34.0, Push; Plan indexiert (V4c, Versatz quer), V4d Entgraten.
+
 ## P-2026-10-01-04 so-gehts
 
 ### EINGELESEN

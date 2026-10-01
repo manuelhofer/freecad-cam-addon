@@ -98,7 +98,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   „Übernehmen“. **Rundum schlichten** – danach fährt ein zweiter Fräser eine
   Spirale auf dem Teil, gerechnet mit seiner echten Form (Kugel-, Torus-,
   Konikfräser …); die Schrittweite kommt aus der Werkzeugtabelle, daneben steht
-  die Kammhöhe, darunter Umdrehungen und Zeit. Wo der Schruppfräser nicht
+  die Kammhöhe, darunter Umdrehungen und Zeit. Das **Muster** – Spirale oder
+  Linien längs der Achse – schlägt der Assistent nach den gewählten Flächen vor:
+  Linien, wenn sie nicht rundum gehen (Abflachung, Nut), mit dem Grund dazu. Wo der Schruppfräser nicht
   hinkam (Innenecken, enge Nuten), nimmt das Schlichten vorher in Stufen ab. Vor
   jeder Wand (Absatz, Flanke einer Nut) hält die Spirale eine Umdrehung an – so
   kommt der Fräser rundum bis an die Wand. Die

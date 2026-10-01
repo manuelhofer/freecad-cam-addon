@@ -486,6 +486,7 @@ class VierachsPanel:
         self._schlichteinsaetze = []
         self.vorschau_schlichten = None  # die grobe Schlichtbahn (vierachs_bahn.Schlichtbahn)
         self._schlichten_vorgewaehlt = False  # der Haken „Rundum schlichten“ ist gesetzt
+        self._muster_von_hand = False  # das Muster wurde von Hand gewählt: kein Vorschlag mehr
         self.gewaehlte = []  # die Flächen zum Fräsen („Face3“ …), V4 – leer: rundum
         self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
         self._transaktion_offen = False  # beim Ändern: Schritt 1 hat etwas geändert
@@ -630,6 +631,7 @@ class VierachsPanel:
                 ("schrittweite", op.Schrittweite),
                 ("aufmass_schlichten", op.Aufmass),
             ]
+            self._muster_setzen(vs.muster_der_operation(op), von_hand=True)
         else:
             paare = [
                 ("zustellung", op.Zustellung),
@@ -1070,6 +1072,19 @@ class VierachsPanel:
             tr("va.aufmass_schlichten.tooltip"),
             schlichten,
         )
+        # Das Muster (V4c): Spirale oder Linien längs – vorgeschlagen nach den Flächen, der
+        # Grund steht grau darunter (W-006 E5: Vorschlag mit Grund, änderbar).
+        self.wahl_muster = QtGui.QComboBox()
+        for muster, text in (
+            (vb.SPIRALE, tr("va.muster.spirale")),
+            (vb.LINIEN, tr("va.muster.linien")),
+        ):
+            self.wahl_muster.addItem(text, muster)
+        self.wahl_muster.currentIndexChanged.connect(lambda _i: self._muster_gewaehlt())
+        schlichten.reihe(tr("va.muster"), tr("va.muster.tooltip"), self.wahl_muster)
+        self.muster_grund = self._grau()
+        self.muster_grund.setWordWrap(True)
+        schlichten.ganz(self.muster_grund)
         self.schlichtfelder = schlichten.widget
         aufbau.addWidget(self.schlichtfelder)
         self.ergebnis_schlichten = grau()
@@ -1404,6 +1419,7 @@ class VierachsPanel:
         self.radius_hinweis.setVisible(self.buchstabe() == "C")
         self._fraeser_fuellen()
         self._schlichtfraeser_fuellen()
+        self._muster_vorschlagen()
         if self.zu_aendern is None and not self._schlichten_vorgewaehlt:
             self._schlichten_vorgewaehlt = True
             werkstoff = self.werkstoff()
@@ -1565,6 +1581,49 @@ class VierachsPanel:
 
     def _flaechen_geaendert(self):
         self._flaechen_zeigen()
+        self._muster_vorschlagen()
+        self._vorschau_starten()
+
+    def _muster_vorschlagen(self):
+        """Das Muster fürs Schlichten, das zu den gewählten Flächen passt (V4c; W-006 E5:
+        Vorschlag mit Grund, änderbar): Linien längs, wenn sie nicht rundum gehen – eine
+        Abflachung, eine Nut –, sonst die Spirale. Gesetzt wird es, solange man keins von Hand
+        gewählt hat; der Grund steht grau darunter."""
+        if self.job is None:
+            return
+        muster, grund = vb.SPIRALE, tr("va.muster.vorschlag.spirale")
+        flaechen = self.flaechen()
+        if flaechen:
+            werkzeug = self.schlichtfraeser()
+            radius = werkzeug.durchmesser / 2 if werkzeug is not None else 0.0
+            bereich = vf.bereich(self._sicht(), vf.nummern(flaechen), radius)
+            belegt = bereich.drin[bereich.drin.any(axis=1)]
+            if belegt.size and not belegt.all():
+                muster, grund = vb.LINIEN, tr("va.muster.vorschlag.linien")
+        self.muster_grund.setText(grund)
+        if not self._muster_von_hand:
+            self._muster_setzen(muster)
+
+    def _muster_setzen(self, muster, von_hand=False):
+        """Wählt `muster` (vierachs_bahn.SPIRALE, LINIEN) in der Liste – ohne dass es als von
+        Hand gewählt zählt, außer `von_hand` (beim Ändern: das Muster der Operation)."""
+        vorher = self._fuellt
+        self._fuellt = True
+        try:
+            self.wahl_muster.setCurrentIndex(max(0, self.wahl_muster.findData(muster)))
+        finally:
+            self._fuellt = vorher
+        if von_hand:
+            self._muster_von_hand = True
+
+    def muster(self):
+        """Das gewählte Muster fürs Schlichten: vierachs_bahn.SPIRALE oder LINIEN."""
+        return self.wahl_muster.currentData() or vb.SPIRALE
+
+    def _muster_gewaehlt(self):
+        if self._fuellt:
+            return
+        self._muster_von_hand = True
         self._vorschau_starten()
 
     def flaechen(self):
@@ -1829,18 +1888,20 @@ class VierachsPanel:
             ),
             self._halter_fuer(werkzeug),
             self.flaechen(),
+            self.muster(),
         )
 
     def _schlicht_text(self, bahn):
-        """„→ 290 Umdrehungen, etwa 56 min“ – und was hinten nicht erreicht wird."""
+        """„→ 290 Umdrehungen, etwa 56 min“ (bei Linien längs „→ 126 Linien längs, …“) – und
+        was hinten nicht erreicht wird."""
         from .reichweite import weg_text
 
-        _n, vf, _senkrecht = js.werte(self.schlichtfraeser(), self.schlichteinsatz())
-        text = tr(
-            "va.schlichten.ergebnis",
-            umdrehungen=f"{bahn.umdrehungen:.0f}",
-            zeit=_zeit_text(vb.dauer(bahn, vf)) if vf > 0 else "?",
-        )
+        _n, vorschub, _senkrecht = js.werte(self.schlichtfraeser(), self.schlichteinsatz())
+        zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
+        if bahn.linien:
+            text = tr("va.schlichten.ergebnis_linien", linien=f"{bahn.linien}", zeit=zeit)
+        else:
+            text = tr("va.schlichten.ergebnis", umdrehungen=f"{bahn.umdrehungen:.0f}", zeit=zeit)
         if bahn.hinten_frei > 0:
             text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
         return text
@@ -2290,6 +2351,7 @@ class VierachsPanel:
         else:
             name = tr("va.transaktion.schruppen") if schruppen else tr("va.transaktion.schlichten")
         flaechen = self.flaechen()
+        muster = self.muster()
 
         def anlegen():
             self.doc.openTransaction(name)
@@ -2340,6 +2402,7 @@ class VierachsPanel:
                             abstaende=schlicht_abstaende,
                             halter=self._halter_fuer(self.schlichtfraeser()),
                             flaechen=flaechen,
+                            muster=muster,
                         )
                     )
                 self.doc.recompute()
@@ -2379,6 +2442,7 @@ class VierachsPanel:
             else (tr("va.transaktion.aendern"))
         )
         flaechen = self.flaechen()
+        muster = self.muster()
 
         def aendern():
             self.doc.openTransaction(name)
@@ -2403,6 +2467,7 @@ class VierachsPanel:
                         schlicht_abstaende,
                         self._halter_fuer(self.schlichtfraeser()),
                         flaechen,
+                        muster,
                     )
                 else:
                     tc = js.controller_fuer(
@@ -2444,6 +2509,7 @@ class VierachsPanel:
                         abstaende=schlicht_abstaende,
                         halter=self._halter_fuer(self.schlichtfraeser()),
                         flaechen=flaechen,
+                        muster=muster,
                     )
                 self._maschine_merken()
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)

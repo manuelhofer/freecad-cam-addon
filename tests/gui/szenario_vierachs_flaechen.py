@@ -7,7 +7,8 @@
 # „Auswahl leeren“, wieder die Abflachung → „Anlegen“: Beide Operationen haben nur sie, die
 # Schruppbahn bleibt in ihrem Bereich, die Welle hat ihre Farben zurück. Doppelklick auf
 # „Rundum schruppen T1“: die Abflachung steht in der Liste; ein Klick nimmt sie heraus →
-# „Übernehmen“: rundum.
+# „Übernehmen“: rundum. Das Muster fürs Schlichten (V4c): mit der Abflachung schlägt der
+# Assistent „Linien längs“ vor (grau der Grund), rundum die Spirale; die Operation trägt es.
 import math
 
 import FreeCAD
@@ -25,6 +26,7 @@ def schritte(h):
     yield 500
 
     from camaddon import gui_vierachs
+    from camaddon import vierachs_bahn as vb
     from camaddon import vierachs_flaechen as vf
     from camaddon import vierachs_operation as vo
     from camaddon import vierachs_rohteil as vr
@@ -79,6 +81,11 @@ def schritte(h):
         lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 30000
     )
     lagen_rundum = panel.ergebnis.text()
+    h.pruefe(panel.muster() == vb.SPIRALE, f"Muster rundum: {panel.muster()}")
+    h.pruefe(
+        panel.muster_grund.text() == "Vorschlag: Spirale – es geht rundum.",
+        f"Grund rundum: {panel.muster_grund.text()!r}",
+    )
     h.bild("1_rundum", panel.form)
 
     # --- Ein Klick auf die Abflachung --------------------------------------------------------
@@ -113,6 +120,16 @@ def schritte(h):
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")
     # Die Abflachung ist ohnehin die tiefste Stelle: gleich viele Lagen wie rundum.
     h.pruefe(panel.ergebnis.text() == lagen_rundum, f"Lagen: {panel.ergebnis.text()!r}")
+    # Das Muster: die Abflachung geht nicht rundum – Linien längs, mit dem Grund.
+    h.pruefe(panel.muster() == vb.LINIEN, f"Muster mit Abflachung: {panel.muster()}")
+    h.pruefe(
+        panel.muster_grund.text().startswith("Vorschlag: Linien längs"),
+        f"Grund: {panel.muster_grund.text()!r}",
+    )
+    h.pruefe(
+        "Linien längs" in panel.ergebnis_schlichten.text(),
+        f"Schlichten: {panel.ergebnis_schlichten.text()!r}",
+    )
     h.bild("2_abflachung", panel.form)
     h.bild("2b_abflachung_3d")
 
@@ -123,6 +140,7 @@ def schritte(h):
     h.pruefe(text == "Alle Mantelflächen gewählt – rundum.", f"alle: {text!r}")
     h.pruefe(panel.flaechen() == [], f"alle: {panel.flaechen()}")
     h.pruefe(panel.flaechen_liste.count() >= 2, f"alle: {panel.flaechen_liste.count()} Einträge")
+    h.pruefe(panel.muster() == vb.SPIRALE, f"Muster mit allen Flächen: {panel.muster()}")
     h.bild("3_alle_mantelflaechen", panel.form)
     panel.flaechen_leeren()
     yield 300
@@ -142,6 +160,10 @@ def schritte(h):
     h.pruefe(len(ops) == 2, f"Operationen: {[o.Label for o in ops]}")
     for op in ops:
         h.pruefe(list(op.Flaechen) == [abflachung], f"{op.Label}: {list(op.Flaechen)}")
+    schlichten_op = next((o for o in ops if not vo.ist_schruppen(o)), None)
+    if schlichten_op is not None:
+        h.pruefe(schlichten_op.Muster == "Linien", f"Muster der Operation: {schlichten_op.Muster}")
+        h.pruefe(schlichten_op.Linien > 0, f"Linien der Operation: {schlichten_op.Linien}")
     schruppen = next((o for o in ops if vo.ist_schruppen(o)), None)
     if schruppen is None:
         return

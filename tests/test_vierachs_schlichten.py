@@ -6,7 +6,9 @@
 # schmaler ist als der Schruppfräser, blieb nach dem Schruppen alles stehen – der Kugelfräser
 # fährt dort zuerst eine Stufe, höchstens seinen Radius tief, dann bis auf den Grund. Nur
 # über der Abflachung einer Welle (V4): Zeilen hin und her, im Eilgang bis knapp über den Rest,
-# senkrecht hinein.
+# senkrecht hinein. Linien längs (V4c): auf der Abflachung Linien bei festem Winkel,
+# gegenläufig, nur über ihr, die Kugel nie im Teil; rundum auf der Welle mit Absatz jede
+# Linie auf der Hüllfläche.
 # Dazu die Zeitgrenze.
 import math
 import os
@@ -388,6 +390,141 @@ pruefe(
     min(a_flach) < -29.0 and max(a_flach) > -11.0, f"Zeilen von {min(a_flach)} bis {max(a_flach)}"
 )
 print(ascii(f"Abflachung: {len(teile)} Fahrten geschlichtet"))
+
+# --- Linien längs (V4c) ----------------------------------------------------------------------
+# Dieselbe Abflachung mit der Kugel R 2 in Linien längs: jede Linie bei festem Winkel, von
+# Linie zu Linie wechselt die Richtung, die Linien liegen höchstens 0,5 mm ÷ r_max auseinander
+# (r_max = 10 + Vernetzung: 2,86°) und nur über der Abflachung; die Kugel bleibt überall aus dem
+# Teil (Ebene x = 8, Mantel Ø 20, die Kante dazwischen) und liegt über der Ebene auf ihr.
+linien = vb.schlichten(
+    vh.vernetze(flach_welle, vb.TOLERANZ_SCHLICHTEN),
+    LAENGS,
+    RADIAL,
+    vb.Schlichtwerte(
+        kugel_klein,
+        12.0,
+        0.5,
+        0.0,
+        1.0,
+        -60.0,
+        rest=(stange.a, stange.phi, stange.r),
+        aufmass_schruppen=0.3,
+        bereich=bereich_kugel,
+        muster=vb.LINIEN,
+    ),
+)
+im_vorschub = [p for p in linien.punkte if not p.eilgang]
+drin = bereich_kugel.bei([p.a for p in im_vorschub], np.radians([p.phi for p in im_vorschub]))
+pruefe(drin.all(), f"Linien: {int((~drin).sum())} Punkte außerhalb des Bereichs")
+weit = math.degrees(0.5 / (10.0 + vb.TOLERANZ_SCHLICHTEN))
+pruefe(2 <= linien.linien <= 360.0 / weit, f"{linien.linien} Linien")
+# An den Wänden ließ das Schruppen hier (ohne Ringgang) einen schmalen Streifen stehen, höher
+# als die Grenze – eine Stufe davor, dicht an den Wänden.
+pruefe(linien.vorstufen <= 1, f"Linien: {linien.vorstufen} Vorstufen")
+
+
+def linien_von(stueck):
+    """[[Punkt, …], …] – die Linien eines Stücks: Punkte bei demselben Winkel."""
+    ergebnis = []
+    for punkt in stueck:
+        if ergebnis and abs(punkt.phi - ergebnis[-1][-1].phi) < 1e-9:
+            ergebnis[-1].append(punkt)
+        else:
+            ergebnis.append([punkt])
+    return [z for z in ergebnis if len(z) > 1]
+
+
+# Die Hauptfahrt (die Stufen davor sind kurz): alle Linien am Stück – auch über die Naht bei
+# 0° hinweg, die Abflachung liegt beiderseits –, gegenläufig, im Winkelabstand.
+alle_stuecke = stuecke(linien)
+haupt = max(alle_stuecke, key=len)
+zeilen = linien_von(haupt)
+pruefe(
+    len(zeilen) == linien.linien, f"{len(zeilen)} Linien in der Hauptfahrt, {linien.linien} gezählt"
+)
+richtungen = [np.sign(z[-1].a - z[0].a) for z in zeilen]
+pruefe(all(r != 0 for r in richtungen), "eine Linie ohne Länge")
+pruefe(
+    all(x == -y for x, y in zip(richtungen, richtungen[1:], strict=False)),
+    "die Richtung wechselt nicht von Linie zu Linie",
+)
+for z1, z2 in zip(zeilen, zeilen[1:], strict=False):
+    pruefe(
+        abs(z2[0].phi - z1[-1].phi) <= weit + 1e-6,
+        f"Linien {abs(z2[0].phi - z1[-1].phi):.3f}° auseinander",
+    )
+    pruefe(abs(z2[0].a - z1[-1].a) < 1e-9, "die Drehung zur nächsten Linie fährt längs")
+
+
+def abstand_zum_teil(x, y):
+    """Abstand eines Punkts im Querschnitt zum Teil (Kreis R 10, bei x ≤ 8): Ebene, Mantel
+    oder Kante – das Teil ist konvex."""
+    if x <= 8.0 and math.hypot(x, y) <= 10.0:
+        return 0.0
+    moeglich = [math.hypot(x - 8.0, abs(y) - 6.0)]
+    if x >= 8.0 and abs(y) <= 6.0:
+        moeglich.append(x - 8.0)
+    if x / max(math.hypot(x, y), 1e-9) <= 0.8:
+        moeglich.append(math.hypot(x, y) - 10.0)
+    return min(moeglich)
+
+
+# Zwischen den Punkten (eine Linie über der Ebene ist zu zwei Punkten zusammengefasst) alle
+# 0,5 mm: die Kugel nie im Teil; in der Hauptfahrt, wo sie ganz über der Ebene steht, auf ihr.
+zu_tief, auf_der_ebene, ueber_der_ebene = 0.0, 0, 0
+for stueck in alle_stuecke:
+    for von, nach in zip(stueck, stueck[1:], strict=False):
+        anzahl = max(1, int(round(abs(nach.a - von.a) / 0.5)))
+        for t in np.arange(anzahl) / anzahl:
+            a_p, r_p = von.a + t * (nach.a - von.a), von.r + t * (nach.r - von.r)
+            phi_p = math.radians(von.phi + t * (nach.phi - von.phi))
+            if not -26.5 < a_p < -13.5:
+                continue  # dicht an den Wänden hebt die Kante die Kugel, davor liegt die Stufe
+            mitte = r_p + 2.0
+            x, y = mitte * math.cos(phi_p), mitte * math.sin(phi_p)
+            zu_tief = max(zu_tief, 2.0 - abstand_zum_teil(x, y))
+            if stueck is haupt and abs(y) <= 4.0:  # die Kugel steht ganz über der Ebene
+                ueber_der_ebene += 1
+                auf_der_ebene += abs(x - 10.0) <= LUFT + vb.SEHNE_HOECHSTENS
+pruefe(zu_tief <= 1e-3, f"Linien: die Kugel {zu_tief:.4f} mm im Teil")
+pruefe(ueber_der_ebene > 20, f"nur {ueber_der_ebene} Punkte über der Ebene")
+pruefe(
+    auf_der_ebene == ueber_der_ebene,
+    f"{ueber_der_ebene - auf_der_ebene} Punkte nicht auf der Ebene",
+)
+print(ascii(f"Abflachung in Linien laengs: {linien.linien} Linien, {len(stuecke(linien))} Fahrten"))
+
+# Rundum in Linien längs auf der Welle mit Absatz: 360 Linien (0,35 mm ÷ 20,005), jede auf
+# der Hüllfläche – nie im Teil, höchstens den Sehnenfehler darüber –, eine Fahrt für alles.
+linien_rundum = vb.schlichten(
+    vh.vernetze(welle.removeSplitter(), vb.TOLERANZ_SCHLICHTEN),
+    LAENGS,
+    RADIAL,
+    replace(werte, muster=vb.LINIEN),
+)
+pruefe(linien_rundum.linien == 360, f"rundum: {linien_rundum.linien} Linien")
+pruefe(len(stuecke(linien_rundum)) == 1, f"rundum: {len(stuecke(linien_rundum))} Fahrten")
+a, r = [], []
+for stueck in stuecke(linien_rundum):
+    for von, nach in zip(stueck, stueck[1:], strict=False):
+        anzahl = max(1, int(round(abs(nach.a - von.a) / 0.5)))  # alle 0,5 mm längs
+        t = np.arange(anzahl) / anzahl
+        a.append(von.a + t * (nach.a - von.a))
+        r.append(von.r + t * (nach.r - von.r))
+a, r = np.concatenate(a), np.concatenate(r)
+soll = im_schnitt(umriss, kugel, np.clip(a, -42.0, 0.0))
+darueber = r - soll
+pruefe(
+    darueber.min() >= -1e-3,
+    f"Linien im Teil: {darueber.min():.4f} (bei a {a[np.argmin(darueber)]:.3f})",
+)
+zu_hoch = darueber - erlaubt(umriss, kugel, a, soll)
+pruefe(
+    zu_hoch.max() <= 0, f"Linien zu hoch: {zu_hoch.max():+.4f} (bei a {a[np.argmax(zu_hoch)]:.3f})"
+)
+winkel = [p.phi for p in linien_rundum.punkte[1:]]
+pruefe(max(winkel) - min(winkel) <= 360.0 + 1e-6, f"rundum dreht {max(winkel) - min(winkel):.1f}°")
+print(ascii(f"Welle mit Absatz in Linien laengs: {len(linien_rundum.punkte)} Punkte"))
 
 # --- Zeitgrenze: Kugelfräser Ø 6 auf der Welle Ø 60 × 100 mit Nocken, 0,35 mm ------------
 teil = (
