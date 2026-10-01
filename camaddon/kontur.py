@@ -59,6 +59,7 @@ class Kontur(PathOp.ObjectOp):
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.Eintauchwinkel = vb.EINTAUCHWINKEL
         obj.VorschubAustritt = AUSTRITT
+        obj.RadiusDavor = 0.0  # 0: eine Kontur; sonst Restmaterial nach dem größeren Fräser
         self._editormodi(obj)
 
     def opOnDocumentRestored(self, obj):
@@ -81,6 +82,7 @@ class Kontur(PathOp.ObjectOp):
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
             ("App::PropertyPercent", "VorschubAustritt", tr("ko.eigenschaft.austritt")),
+            ("App::PropertyLength", "RadiusDavor", tr("ko.eigenschaft.radius_davor")),
             ("App::PropertyInteger", "Konturen", tr("ko.eigenschaft.konturen")),
             ("App::PropertyInteger", "Lagen", tr("ko.eigenschaft.lagen")),
             ("App::PropertyInteger", "Bahnen", tr("ko.eigenschaft.bahnen")),
@@ -150,6 +152,7 @@ def rechne(obj, job, modell):
         sicherheit=float(obj.Sicherheitsabstand),
         eintauchwinkel=float(obj.Eintauchwinkel),
         austritt=float(obj.VorschubAustritt) / 100.0,
+        radius_davor=float(getattr(obj, "RadiusDavor", 0.0) or 0.0),
     )
 
 
@@ -173,11 +176,13 @@ def bahn_fuer(
     austritt=kb.AUSTRITT_ANTEIL,
     toleranz=hf.TOLERANZ,
     schritt=kb.SCHRITT,
+    radius_davor=0.0,
 ):
     """Die Bahn „Kontur“ für Modell und Rohteil des Jobs an den Wänden `flaechen` („Face6“ …).
     `oben`: z, wo die Lagen beginnen (None: die Oberkante des Rohteils); `sicher`: z für den
-    Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm). ValueError mit einem Satz, wenn es
-    nicht geht."""
+    Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm). `radius_davor` > 0: Restmaterial –
+    nur, wo ein Fräser mit diesem Radius davor nicht hinkam (W-006 4.1 Punkt 5). ValueError
+    mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -185,6 +190,13 @@ def bahn_fuer(
     if sicher is None:
         sicher = oben + sicherheit + 3.0
     konturen = kb.konturen(form_teil, list(flaechen))
+    nur_wo = None
+    if radius_davor > 0:
+        if radius_davor <= float(form.radius) + kb.REST_SPIEL:
+            raise ValueError(tr("rm.fehler.nicht_groesser"))
+        nur_wo = kb.nur_wo_der_grosse_nicht_hinkam(
+            radius_davor, float(form.radius), toleranz, schritt
+        )
     werte = kb.Konturwerte(
         form=form,
         zustellung=zustellung,
@@ -201,12 +213,16 @@ def bahn_fuer(
         sicherheit=sicherheit,
         eintauchwinkel=eintauchwinkel,
         austritt=austritt,
+        nur_wo=nur_wo,
     )
     waende = kb.waende(form_teil, list(flaechen))
     netz_nah, netz_fern = hf.netze_ohne(
         form_teil, [kb.ohne_flaechen(form_teil, waende), [w.name for w in waende]], toleranz
     )
-    return kb.planen(netz_nah, werte, konturen, schritt, netz_fern)
+    bahn = kb.planen(netz_nah, werte, konturen, schritt, netz_fern)
+    if nur_wo is not None and bahn.bahnen == 0:
+        raise ValueError(tr("rm.fehler.nichts"))
+    return bahn
 
 
 def vorschau(
@@ -220,6 +236,7 @@ def vorschau(
     flaechen,
     breite=0.0,
     schneidenlaenge=0.0,
+    radius_davor=0.0,
 ):
     """Die Bahn grob – für Lagen, Bahnen, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     weiter abgetastet. ValueError wie bahn_fuer()."""
@@ -236,6 +253,7 @@ def vorschau(
         schneidenlaenge=schneidenlaenge,
         toleranz=hf.VORSCHAU_TOLERANZ,
         schritt=kb.VORSCHAU_SCHRITT,
+        radius_davor=radius_davor,
     )
 
 
@@ -249,10 +267,12 @@ def lege_an(
     breite=0.0,
     name=None,
     flaechen=(),
+    radius_davor=0.0,
 ):
-    """Legt „Kontur“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen und
-    Höhen wie FreeCADs Operationen (planfraesen._hoehen); die Endtiefe ist die tiefste
-    Unterkante. Gibt die Operation zurück."""
+    """Legt „Kontur“ im Job an – mit `radius_davor` > 0 als „Restmaterial“ – ohne eigene
+    Transaktion, die hält der Aufrufer. Tiefen und Höhen wie FreeCADs Operationen
+    (planfraesen._hoehen); die Endtiefe ist die tiefste Unterkante. Gibt die Operation
+    zurück."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "Kontur")
     obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
@@ -271,11 +291,10 @@ def lege_an(
     obj.Aufmass = aufmass
     obj.Schlichten = bool(schlichten)
     obj.Breite = breite
+    obj.RadiusDavor = radius_davor
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
-    obj.Label = namen.eindeutig(
-        obj.Document, name or tr("ko.name", werkzeug=f"T{tc.ToolNumber}"), obj
-    )
+    obj.Label = namen.eindeutig(obj.Document, name or _name(tc, radius_davor), obj)
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
 
@@ -296,12 +315,31 @@ def _endtiefe(obj, job):
         obj.FinalDepth = min(w.z_unten for w in waende) - float(obj.Tiefer)
 
 
-def aendere(obj, tc, zustellung, zeilenabstand, aufmass, schlichten, breite=0.0, flaechen=None):
+def _name(tc, radius_davor=0.0):
+    """„Kontur T1“ – oder „Restmaterial T3“."""
+    if radius_davor > 0:
+        return tr("rm.name", werkzeug=f"T{tc.ToolNumber}")
+    return tr("ko.name", werkzeug=f"T{tc.ToolNumber}")
+
+
+def aendere(
+    obj,
+    tc,
+    zustellung,
+    zeilenabstand,
+    aufmass,
+    schlichten,
+    breite=0.0,
+    flaechen=None,
+    radius_davor=None,
+):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
-    vorgeschlagene ist."""
+    Transaktion; `flaechen` und `radius_davor` ohne bleiben. Der Name folgt dem Werkzeug,
+    solange es der vorgeschlagene ist."""
+    if radius_davor is not None:
+        obj.RadiusDavor = radius_davor
     if _vorgeschlagener_name(obj.Label):
-        obj.Label = namen.eindeutig(obj.Document, tr("ko.name", werkzeug=f"T{tc.ToolNumber}"), obj)
+        obj.Label = namen.eindeutig(obj.Document, _name(tc, float(obj.RadiusDavor)), obj)
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.Zustellung = zustellung
@@ -317,10 +355,18 @@ def aendere(obj, tc, zustellung, zeilenabstand, aufmass, schlichten, breite=0.0,
 
 
 def _vorgeschlagener_name(name):
-    """Ist `name` einer, wie lege_an ihn vergibt („Kontur T1“) – auch mit „ (2)“ dahinter?"""
-    return namen.nach_vorlage(name, tr("ko.name", werkzeug="\0"))
+    """Ist `name` einer, wie lege_an ihn vergibt („Kontur T1“, „Restmaterial T3“) – auch mit
+    „ (2)“ dahinter?"""
+    return namen.nach_vorlage(name, tr("ko.name", werkzeug="\0")) or namen.nach_vorlage(
+        name, tr("rm.name", werkzeug="\0")
+    )
 
 
 def ist_kontur(op):
-    """Ist `op` eine Operation dieses Moduls – „Kontur“?"""
+    """Ist `op` eine Operation dieses Moduls – „Kontur“ oder „Restmaterial“?"""
     return isinstance(getattr(op, "Proxy", None), Kontur)
+
+
+def ist_rest(op):
+    """Ist `op` eine Kontur als „Restmaterial“ – mit dem Radius des Fräsers davor?"""
+    return ist_kontur(op) and float(getattr(op, "RadiusDavor", 0.0) or 0.0) > 0

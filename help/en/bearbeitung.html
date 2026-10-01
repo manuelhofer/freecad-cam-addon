@@ -18,8 +18,8 @@ part to the operations has three steps, all in one window: part and stock,
 the faces, then one block with a tick per machining – <b>Face milling</b> and
 <b>Clearing</b> for flat faces facing up, <b>Drilling</b> and <b>Hole milling</b> for
 cylindrical holes, <b>Contour</b> for walls, <b>Tapping</b> in core holes,
-<b>Deburr</b> on top edges, <b>Spot drilling</b> and <b>Countersinking</b> at holes.
-“Create” creates all ticked ones. For a round stock
+<b>Deburr</b> on top edges, <b>Spot drilling</b> and <b>Countersinking</b> at holes,
+<b>Rest material</b> with the smaller cutter. “Create” creates all ticked ones. For a round stock
 with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
 
 <h3>1. Part and stock</h3>
@@ -310,6 +310,24 @@ before drilling, countersinking after. Grey below: “→ 1 spot, 4.2 mm deep, a
 1 min”.</li>
 <li>“Check on the machine” computes drills, spot drills and countersink tools with their
 tip, not as cylinders; it lets the small chamfer of spot drilling pass.</li>
+</ul>
+
+<h3>11. Rest material</h3>
+<ul>
+<li>For <b>walls</b>, after a larger cutter: what it left in <b>inner corners</b> and at
+spots narrower than it, a <b>smaller</b> one takes – after the contour with Ø 12 a sharp
+corner keeps a radius 6, after the Ø 4 only a radius 2.</li>
+<li><b>Cutter</b>: the largest one smaller than the one before is preselected. <b>Cutter
+before Ø</b> (empty: the one of the contour, else the one of the clearing in this window)
+and <b>Depth per layer</b> (empty: from the application). You set the tick yourself.</li>
+<li>The path: one beside the wall, only where the small cutter's circle sticks out of the
+large one's way, and longer by its radius so it joins cleanly; in layers from the top of the
+wall down, climb milling, tangentially in and out, straight down in the open area the large
+one already cleared.</li>
+<li>Grey below: “→ 4 spots, 2 layers, about 1 min”. Red says why it does not work (the
+cutter before is not larger, it reached everywhere).</li>
+<li>The operation is called “Rest material T3” – a contour with the property
+“RadiusDavor”; a double-click opens its block.</li>
 </ul>
 
 <h3>Changing it later</h3>

@@ -47,6 +47,7 @@ SENKRECHT = 1e-6  # so wenig darf die Normale einer Wand von waagerecht abweiche
 NAH = 1e-5  # mm – so nah ist dieselbe Stelle
 HOECHSTENS_VERSAETZE = 200  # so viele Schruppbahnen je Kontur höchstens (vom Rohteil her)
 WAND_SPIEL = 0.05  # mm – so viel näher an eine Wand darf das Ein- und Ausfahren (Sehnen der Kette)
+REST_SPIEL = 0.02  # mm – so weit muss der kleine Fräser aus dem großen ragen, damit er dort fährt
 GLEICH = vb.GLEICH
 
 
@@ -69,6 +70,9 @@ class Konturwerte:
     sicherheit: float = vb.SICHERHEIT  # so weit über dem Material endet der Eilgang hinab
     eintauchwinkel: float = vb.EINTAUCHWINKEL  # Grad, für die Rampe ins Material
     austritt: float = AUSTRITT_ANTEIL
+    # (Kontur, x, y) → bool je Stelle: nur dort fahren – None: überall (Restmaterial:
+    # nur_wo_der_grosse_nicht_hinkam).
+    nur_wo: object = None
 
 
 @dataclass
@@ -590,6 +594,37 @@ class _Huelle:
         return ergebnis
 
 
+def nur_wo_der_grosse_nicht_hinkam(r_gross, r_klein, toleranz, schritt):
+    """Für Konturwerte.nur_wo – das Restmaterial (W-006 4.1 Punkt 5): je Stelle der Bahn des
+    kleinen Fräsers (Radius r_klein), ob sein Kreis dort aus jedem Kreis des großen herausragt
+    (Radius r_gross, seine Bahn im Abstand r_gross an denselben Wänden): Abstand zu dessen Bahn
+    größer als r_gross − r_klein. Dort ließ der große Material stehen – in Ecken innen, in
+    Nuten, schmaler als er. Um r_klein längs der Bahn verlängert, damit der kleine sauber
+    anschließt. Gibt es die Bahn des großen nicht (zu groß für die Tasche), überall."""
+    bahnen = {}
+    grenze = r_gross - r_klein + REST_SPIEL
+    weiter = max(1, int(math.ceil(r_klein / schritt)))
+
+    def nur_wo(k, x, y):
+        if id(k) not in bahnen:
+            gross = _versatz(k, r_gross, toleranz, schritt)
+            bahnen[id(k)] = None if gross is None else (gross[1].x, gross[1].y)
+        bahn = bahnen[id(k)]
+        if bahn is None:
+            return np.ones(len(x), dtype=bool)
+        maske = _abstand_polylinie(x, y, bahn[0], bahn[1], k.geschlossen) > grenze
+        breiter = maske.copy()
+        for schieben in range(1, weiter + 1):
+            if k.geschlossen:
+                breiter |= np.roll(maske, schieben) | np.roll(maske, -schieben)
+            else:
+                breiter[schieben:] |= maske[:-schieben]
+                breiter[:-schieben] |= maske[schieben:]
+        return breiter
+
+    return nur_wo
+
+
 def _abstand_polylinie(qx, qy, kx, ky, geschlossen):
     """Der Abstand jedes Punkts (qx, qy) zum Linienzug (kx, ky), geschlossen oder offen."""
     ax, ay = np.asarray(kx, dtype=float), np.asarray(ky, dtype=float)
@@ -818,6 +853,8 @@ def _bahnen(
     erlaubt = huelle.erlaubt(x, y, lage, ziel)
     im_rohteil = _im_rohteil(x, y, w.rohteil, r)
     drin = erlaubt & im_rohteil
+    if w.nur_wo is not None:
+        drin = drin & np.asarray(w.nur_wo(k, x, y), dtype=bool)
     if not drin.any():
         return 0
     laeufe = []  # [(Stellen, Austritt hinten)]

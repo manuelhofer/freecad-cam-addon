@@ -116,7 +116,15 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    Aufwand mittel.
 5. **Restmaterial 2,5D** – was der große Fräser in Ecken ließ, holt der kleine:
    aus dem Abtragsmodell, nicht aus einer Formel. Aufwand mittel (braucht das
-   Abtragsmodell für Ebenen, Abschnitt 7).
+   Abtragsmodell für Ebenen, Abschnitt 7). Gebaut für Wände (P-2026-10-01-35,
+   0.51.0) – ohne Abtragsmodell, aus der Geometrie: Die Bahn des kleinen fährt
+   nur, wo sein Kreis aus jedem Kreis des großen ragt (Abstand zu dessen Bahn
+   größer als R − r, `kontur_bahn.nur_wo_der_grosse_nicht_hinkam`), um r länger;
+   als Kontur mit `RadiusDavor`, im Assistenten der Block „Restmaterial“ (der Ø
+   davor von der Kontur oder dem Räumen im Fenster, vorgewählt der größte
+   kleinere Fräser). Am Taschenteil mit scharfen Ecken: nach Ø 12 R 6, nach
+   Ø 4 R 2, vier Stellen je Lage (`test_rest`, `szenario_rest`). Restmaterial
+   auf Böden (Räumen mit dem kleineren) folgt mit dem Abtragsmodell.
 6. **Nut** – mit Rampe oder Trochoide statt Vollschnitt. Aufwand klein bis
    mittel.
 7. **Bohren, Zirkularfräsen, Gewinde** – FreeCADs Operationen übernehmen; der

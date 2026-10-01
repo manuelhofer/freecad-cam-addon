@@ -1544,5 +1544,20 @@
     "ba.zahl.stelle": "1 Stelle",
     "ba.zahl.stellen": "{n} Stellen",
     "ba.flaeche.senkung": "{name}  Senkung Ø {d}, {winkel}°",
-    "zt.eigenschaft.fase": "So breit ist die Fase, die das Zentrieren oben an der Bohrung lässt (gerechnet) – „Auf der Maschine prüfen“ lässt sie durch."
+    "zt.eigenschaft.fase": "So breit ist die Fase, die das Zentrieren oben an der Bohrung lässt (gerechnet) – „Auf der Maschine prüfen“ lässt sie durch.",
+    "ko.eigenschaft.radius_davor": "Restmaterial: der Radius des Fräsers davor – die Bahn fährt nur, wo er nicht hinkam (Ecken innen, enge Stellen). 0: eine ganze Kontur.",
+    "rm.name": "Restmaterial {werkzeug}",
+    "rm.fehler.nicht_groesser": "Der Fräser davor muss größer sein als dieser – sonst gibt es kein Restmaterial für ihn.",
+    "rm.fehler.nichts": "Der Fräser davor kam überall hin – an diesen Wänden bleibt kein Restmaterial.",
+    "ba.rest": "Restmaterial",
+    "ba.rest.text": "Holt mit einem kleineren Fräser, was der große an den gewählten Wänden stehen ließ – in Ecken innen und an Stellen, schmaler als er: eine Bahn neben der Wand, nur dort, wo der kleine aus dem Weg des großen herausragt, in Lagen, im Gleichlauf, tangential hinein und heraus. Kommt nach der Kontur; den Haken setzt man selbst.",
+    "ba.rest.nicht": "Für Wände, nach einem größeren Fräser – die Wände anklicken, die die Kontur fährt.",
+    "ba.restfraeser.tooltip": "Ein Fräser mit ebener Stirn aus der Werkzeugverwaltung, kleiner als der davor – vorgewählt der größte, der kleiner ist.",
+    "ba.resteinsatz.tooltip": "Die Schnittwerte – vorgewählt „Schlichten“.",
+    "ba.rest.davor": "Fräser davor Ø",
+    "ba.rest.davor.tooltip": "Der Durchmesser des Fräsers, der die Wände davor gefahren ist – leer: der der Kontur (oder des Räumens) in diesem Fenster.",
+    "ba.rest.davor.leer": "wie bei der Kontur",
+    "ba.rest.davor.fehlt": "Welcher Fräser war davor? Seinen Ø eintragen – oder die Kontur mit dem großen Fräser anhaken.",
+    "ba.rest.zustellung.tooltip": "So tief je Lage (ap) – leer: aus dem Einsatz.",
+    "ba.ergebnis_rest": "→ {stellen}, {lagen}, etwa {zeit}"
 }

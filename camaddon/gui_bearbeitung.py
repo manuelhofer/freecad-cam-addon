@@ -69,6 +69,8 @@ GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
 GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
 GEMERKT_ANBOHRER = "BaAnbohrer"  # … fürs Zentrieren
 GEMERKT_SENKER = "BaSenker"  # … fürs Senken
+GEMERKT_RESTFRAESER = "BaRestFraeser"  # … fürs Restmaterial
+REST_BREITE = 0.01  # mm – „Material neben der Wand“ beim Restmaterial: eine Bahn bei Radius
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 ROHTEIL_FELDER = ("oben", "seite", "unten")
@@ -631,7 +633,7 @@ class _Kontur(_Strategie):
         )
 
     def ist(self, op):
-        return ko.ist_kontur(op)
+        return ko.ist_kontur(op) and not ko.ist_rest(op)
 
     def werte_von(self, op):
         return {
@@ -996,6 +998,113 @@ class _Zentrieren(_Strategie):
         return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
 
 
+class _Rest(_Strategie):
+    """Restmaterial: eine Kontur mit einem kleineren Fräser nur dort, wo der große davor nicht
+    hinkam (kontur, RadiusDavor) – nach der Kontur, den Haken setzt man selbst."""
+
+    kennung = "rest"
+    gemerkt = GEMERKT_RESTFRAESER
+    einsatz_reihenfolge = (wz.SCHLICHTEN, wz.SCHRUPPEN)
+
+    def titel(self):
+        return tr("ba.rest")
+
+    def text(self):
+        return tr("ba.rest.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.restfraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.resteinsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("davor", tr("ba.rest.davor"), tr("ba.rest.davor.tooltip")),
+            ("zustellung", tr("ba.zustellung"), tr("ba.rest.zustellung.tooltip")),
+        )
+
+    def passt(self, form, name):
+        return bool(kb.waende(form, [name]))
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ob der kleine Fräser nachkommt, entscheidet man selbst
+
+    def unmoeglich_text(self):
+        return tr("ba.rest.nicht")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "zustellung":
+            if einsatz is not None and einsatz.ap > 0:
+                return einsatz.ap
+            return float(werkzeug.durchmesser) if werkzeug is not None else ko.ZUSTELLUNG
+        return 0.0  # davor: vom Fenster (_zusatz)
+
+    def platzhalter(self, feld, werkzeug, einsatz):
+        if feld == "davor":
+            return tr("ba.rest.davor.leer")
+        return super().platzhalter(feld, werkzeug, einsatz)
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        davor = float(werte.get("davor", 0.0))
+        if davor <= 0:
+            raise ValueError(tr("ba.rest.davor.fehlt"))
+        form = ff.von_werkzeug(werkzeug)
+        return ko.vorschau(
+            job,
+            job.Model.Group,
+            form,
+            werte["zustellung"],
+            float(form.radius),
+            0.0,
+            False,
+            flaechen,
+            REST_BREITE,
+            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+            radius_davor=davor / 2,
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        stellen_n = max(1, round(bahn.bahnen / max(bahn.lagen, 1)))
+        stellen = tr("ba.zahl.stelle") if stellen_n == 1 else tr("ba.zahl.stellen", n=stellen_n)
+        lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+        return tr("ba.ergebnis_rest", stellen=stellen, lagen=lagen, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        r = float(tc.Tool.Diameter) / 2
+        return ko.lege_an(
+            job,
+            tc,
+            werte["zustellung"],
+            r,
+            0.0,
+            False,
+            REST_BREITE,
+            flaechen=flaechen,
+            radius_davor=float(werte["davor"]) / 2,
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        r = float(tc.Tool.Diameter) / 2
+        ko.aendere(
+            op,
+            tc,
+            werte["zustellung"],
+            r,
+            0.0,
+            False,
+            REST_BREITE,
+            flaechen=flaechen,
+            radius_davor=float(werte["davor"]) / 2,
+        )
+
+    def ist(self, op):
+        return ko.ist_rest(op)
+
+    def werte_von(self, op):
+        return {"davor": 2 * float(op.RadiusDavor), "zustellung": float(op.Zustellung)}
+
+
 class _Senken(_Strategie):
     """FreeCADs Bohren mit einem Kegelsenker in die Senkungen des Modells (senken) – nach dem
     Bohren; das Modell sagt, dass sie kommen, darum vorgeschlagen."""
@@ -1045,6 +1154,7 @@ STRATEGIEN = (
     _Bohren,
     _Bohrung,
     _Kontur,
+    _Rest,
     _Senken,
     _Gewinde,
     _Entgraten,
@@ -1343,6 +1453,7 @@ class BearbeitungPanel:
         self.entgraten = next(b for b in self.bloecke if b.s.kennung == "entgraten")
         self.zentrieren = next(b for b in self.bloecke if b.s.kennung == "zentrieren")
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
+        self.rest = next(b for b in self.bloecke if b.s.kennung == "rest")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
@@ -1950,6 +2061,7 @@ class BearbeitungPanel:
                 block.zustand_zeigen()
         finally:
             self._fuellt = False
+        self._restfraeser_waehlen()
 
     def haken_geklickt(self, block):
         if self._fuellt:
@@ -2102,6 +2214,11 @@ class BearbeitungPanel:
         Wände die Kontur fährt, und ist die Breite der Kontur leer, dann steht neben den Wänden
         nur noch das Aufmaß des Räumens – die Kontur schlichtet nur noch (Räumen + Kontur mit
         Breite = Aufmaß, die schnellste Folge in der Tasche; Spezifikation Abschnitt 11)."""
+        if block is self.rest:
+            if self.rest.felder["davor"].text().strip():
+                return None  # von Hand eingetragen
+            davor = self._davor_durchmesser()
+            return {"davor": davor} if davor else None
         if block is not self.kontur or not self.raeumen.aktiv():
             return None
         if self.kontur.felder["breite"].text().strip():
@@ -2111,6 +2228,37 @@ class BearbeitungPanel:
         if not boeden or not set(boeden) & set(self._flaechen(self.raeumen, form)):
             return None
         return {"breite": max(float(self.raeumen.werte()["aufmass"]), 0.01)}
+
+    def _davor_durchmesser(self):
+        """Der Ø des Fräsers vor dem Restmaterial: eingetragen, sonst der der Kontur, sonst der
+        des Räumens in diesem Fenster – None, wenn keiner da ist."""
+        text = self.rest.felder["davor"].text().strip()
+        if text:
+            try:
+                return groesse_lesen(text, einheiten.LAENGE)
+            except ValueError:
+                return None
+        for gross in (self.kontur, self.raeumen):
+            if gross.aktiv() and gross.fraeser() is not None:
+                return float(gross.fraeser().durchmesser)
+        return None
+
+    def _restfraeser_waehlen(self):
+        """Wählt im Block Restmaterial den größten Fräser, der kleiner ist als der davor – wenn
+        der gewählte es nicht ist."""
+        davor = self._davor_durchmesser()
+        if not davor:
+            return
+        jetzt = self.rest.fraeser()
+        if jetzt is not None and jetzt.durchmesser < davor - 1e-6:
+            return
+        kleiner = [
+            (w.durchmesser, i)
+            for i, w in enumerate(self.rest._fraeser)
+            if w.durchmesser < davor - 1e-6
+        ]
+        if kleiner:
+            self.rest.wahl_fraeser.setCurrentIndex(max(kleiner)[1])
 
     def _flaechen(self, block, form):
         """Die Flächen des Blocks – beim Räumen ohne die, die das Planfräsen schon fräst

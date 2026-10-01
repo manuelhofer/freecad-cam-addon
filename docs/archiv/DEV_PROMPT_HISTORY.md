@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-35 restmaterial-an-waenden
+
+### EINGELESEN
+- Spezifikation Strategien 4.1 Punkt 5 („Restmaterial 2,5D“); `kontur_bahn` (Versatz, Läufe,
+  Hüllfläche), `kontur` (Operation), `gui_bearbeitung` (Blöcke, `_zusatz`); das Bild aus
+  `szenario_entgraten`: in den Ecken der Tasche bleibt nach Ø 12 rot R 6.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`, `camaddon/kontur.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_rest.py` (neu),
+  `tests/gui/szenario_rest.py` (neu), `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.51.0)
+
+### AKZEPTANZKRITERIUM
+Tasche 30 × 20 × 10 mit scharfen Ecken, die vier Wände gewählt: Die Kontur mit Ø 12 räumt sie,
+der Block „Restmaterial“ wählt den Ø 4, „Fräser davor Ø“ grau „wie bei der Kontur“; angehakt
+„→ 4 Stellen, 2 Lagen, etwa …“. „Anlegen“: „Kontur T1“, „Restmaterial T3“ (RadiusDavor 6). Im
+Quader bleibt nach Ø 12 R 6 in den Ecken, nach Ø 4 R 2; nichts im Teil, nichts unter dem Boden.
+
+### DONE
+- `kontur_bahn`: `Konturwerte.nur_wo` schränkt die Läufe ein; `nur_wo_der_grosse_nicht_hinkam`
+  – nur wo der Kreis des kleinen aus jedem Kreis des großen ragt (Abstand zu dessen Bahn größer
+  als R − r), um r längs der Bahn länger; gibt es die Bahn des großen nicht, überall.
+- `kontur`: Eigenschaft „RadiusDavor“ (0: Kontur wie bisher), `bahn_fuer(radius_davor=…)`
+  mit eigenen Sätzen (der davor nicht größer; nirgends Rest), Name „Restmaterial T3“,
+  `ist_rest`.
+- Assistent: Block „Restmaterial“ nach der Kontur (Fräser davor vom Fenster, vorgewählt der
+  größte kleinere Fräser, eine Bahn bei Radius in Lagen); die Kontur öffnet keine
+  Restmaterial-Operation mehr zum Ändern.
+
+### TEST
+- 1.1.3: `test_rest`, `test_kontur`, `test_sprache` grün; Szenarien `szenario_rest`,
+  `szenario_kontur`, `szenario_bearbeitung` grün; black/ruff grün.
+
+### NEXT
+- Restmaterial auf Böden (Räumen mit dem kleineren, aus dem Abtragsmodell); Reiben;
+  Gewindefräsen.
+
 ## P-2026-10-01-34 zentrieren-senken-namen-g93-zeit
 
 ### EINGELESEN
