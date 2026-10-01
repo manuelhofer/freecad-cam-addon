@@ -757,6 +757,20 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   `szenario_sackgewinde` (eine PartDesign-Bohrung M10, 15 tief: Bohren T2 bis
   zur Spitze, Gewinde fräsen T7 0,2 über dem Grund der Wand, im Prüffenster
   nirgends ins Teil).
+  Dann **gezeichnete Fasen** (P-2026-10-01-38, 0.54.0): Hat das Modell die
+  Fase schon (FreeCADs „Fase“: eine schräge Fläche, eben oder Kegel, unten an
+  Wänden, oben an einer ebenen Fläche nach oben), fräst „Entgraten“ genau sie –
+  bisher ließen alle Strategien sie stehen. `entgrat_bahn._fase` erkennt sie
+  (Winkel zur Senkrechten aus der Normalen, asin n_z), `fasen()` macht aus
+  ihren Unterkanten Ketten, auf die Höhe der Oberseite gehoben (dort läge die
+  Kante ohne Fase), mit Breite und Winkel aus dem Modell (`Kette.breite`,
+  `Kette.winkel`); eine gewählte ebene Fläche nach oben bringt die Fasen an
+  ihren Kanten mit. Der Kegel muss ihren Winkel haben (±1°, sonst ein Satz) –
+  dann liegt er genau auf ihr. Die Hüllfläche blendet die Fasen und die
+  Flächen an ihrer Oberkante aus. Im Assistenten ist Entgraten bei einer
+  gezeichneten Fase vorgeschlagen (außer einer Senkung über einer Bohrung –
+  die senkt „Senken“). Prüfung `test_fase` (eckiger und runder Zapfen, im
+  Quader der Kegel auf 0,06 mm auf der Fase), Szenario `szenario_fase`.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

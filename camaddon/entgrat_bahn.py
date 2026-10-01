@@ -21,6 +21,12 @@ oben.
   gewählten Wänden an.
 - Nie unter die Unterkante der Wand: Ist die Wand niedriger als Fase plus `tiefer`, bleibt die
   Spitze knapp über ihrem Boden; ist sie niedriger als die Fase, bleibt die Kette aus.
+- **Gezeichnete Fasen** (fasen()): Hat das Modell die Fase schon – eine schräge Fläche (eben
+  oder Kegel), unten an Wänden, oben an einer ebenen Fläche nach oben –, ist ihre Kette die
+  Unterkante der Fase, auf die Höhe der Oberseite gehoben (dort läge die Kante ohne Fase);
+  Breite und Winkel kommen aus dem Modell. Der Kegel des Fräsers muss ihren Winkel haben
+  (±FASE_WINKEL) – dann liegt er genau auf ihr. Eine gewählte ebene Fläche nach oben bringt
+  auch die Fasen an ihren Kanten mit.
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -44,6 +50,7 @@ SCHRITT = kb.SCHRITT  # mm – Raster längs der Bahn und für die Hüllfläche
 VORSCHAU_SCHRITT = kb.VORSCHAU_SCHRITT
 MINDEST_ABSTAND = 0.01  # mm – so nah höchstens fährt die Achse an der Wand (spitzer Fräser)
 GLEICH = kb.GLEICH
+FASE_WINKEL = 1.0  # Grad – so genau muss der Kegel zu einer gezeichneten Fase passen
 
 
 @dataclass(frozen=True)
@@ -67,6 +74,24 @@ class Kette:
     kontur: object  # kontur_bahn.Kontur: der Draht der Oberkanten, z_unten = z_oben = z_kante
     z_kante: float
     z_boden: float  # die tiefste Unterkante der Wände der Kette
+    breite: float = 0.0  # gezeichnete Fase: so breit (mm); 0 – die Breite der Operation
+    winkel: float = 0.0  # gezeichnete Fase: ihr Winkel zur Senkrechten (Grad); 0 – keine
+
+
+@dataclass(frozen=True)
+class Fase:
+    """Eine gezeichnete Fase an einer Oberkante (_fase())."""
+
+    nummer: int  # die schräge Fläche, 0 …
+    z_unten: float  # ihre Unterkante – oben an den Wänden
+    z_oben: float  # ihre Oberkante – an der Fläche nach oben
+    winkel: float  # Grad zur Senkrechten
+    unten: tuple  # ((Kante, [Nummer der Wand, …]), …) – die Unterkanten
+    oben: tuple  # die Nummern der Flächen nach oben an der Oberkante
+
+    @property
+    def breite(self):
+        return (self.z_oben - self.z_unten) * math.tan(math.radians(self.winkel))
 
 
 @dataclass
@@ -79,6 +104,7 @@ class Entgratbahn:
     bahnen: int  # Läufe über alle Ketten (je mit Ein- und Ausfahren)
     z_min: float  # die tiefste Spitze (mm)
     laenge: float  # mm im Vorschub
+    modell: tuple = ()  # die Breiten der gefahrenen gezeichneten Fasen (mm), aufsteigend
 
 
 @dataclass
@@ -89,6 +115,7 @@ class _Stand:
     bahnen: int = 0
     z_min: float = math.inf
     laenge: float = 0.0
+    modell: set = field(default_factory=set)
 
 
 # --- Kanten und Ketten ------------------------------------------------------------------------
@@ -117,6 +144,9 @@ def waende(form, namen):
     flaechen = form.Faces
     index = {f.hashCode(): i for i, f in enumerate(flaechen)}
     nummern = set()
+    for fase in _gewaehlte_fasen(form, namen, index):
+        for _kante, unter in fase.unten:
+            nummern.update(unter)
     for nummer in vf.nummern(namen):
         if nummer >= len(flaechen):
             continue
@@ -195,9 +225,139 @@ def ketten(form, namen):
                 draht, z, z, draht.isClosed(), stelle, normale, tuple(namen_der_waende)
             )
             ergebnis.append(Kette(kontur, float(z), min(w.z_unten for w in beteiligt)))
+    ergebnis.extend(fasen(form, namen))
     if not ergebnis:
         raise ValueError(tr("eg.fehler.keine"))
     return sorted(ergebnis, key=lambda k: -k.z_kante)
+
+
+# --- Gezeichnete Fasen ------------------------------------------------------------------------
+
+
+def _fase(form, nummer, index):
+    """Die Fläche `nummer` als gezeichnete Fase (Fase) – schräg nach oben (eben oder Kegel),
+    unten an Wänden, oben an einer ebenen Fläche nach oben; None, wenn sie keine ist."""
+    import Part
+
+    flaeche = form.Faces[nummer]
+    if not isinstance(flaeche.Surface, (Part.Plane, Part.Cone)):
+        return None
+    bb = flaeche.BoundBox
+    if bb.ZMax - bb.ZMin <= kb.NAH or kb.ist_wand(flaeche):
+        return None
+    try:
+        u0, u1, v0, v1 = flaeche.ParameterRange
+        n = flaeche.normalAt((u0 + u1) / 2, (v0 + v1) / 2)
+    except Exception:  # OCC: keine Parameter
+        return None
+    if not 0.02 < n.z < 0.98:
+        return None
+    unten, oben = [], set()
+    for kante in flaeche.Edges:
+        kbb = kante.BoundBox
+        if kbb.ZMax - kbb.ZMin > kb.NAH:
+            continue  # eine schräge Kante: das Ende der Fase
+        nachbarn = [index.get(f.hashCode()) for f in form.ancestorsOfType(kante, Part.Face)]
+        nachbarn = [i for i in nachbarn if i is not None and i != nummer]
+        if abs(kbb.ZMax - bb.ZMin) <= kb.NAH:
+            waende_ = [i for i in nachbarn if kb.ist_wand(form.Faces[i])]
+            if waende_:
+                unten.append((kante, waende_))
+        elif abs(kbb.ZMin - bb.ZMax) <= kb.NAH:
+            oben.update(i for i in nachbarn if _nach_oben(form.Faces[i]))
+    if not unten or not oben:
+        return None
+    winkel = math.degrees(math.asin(min(max(n.z, -1.0), 1.0)))
+    return Fase(nummer, bb.ZMin, bb.ZMax, winkel, tuple(unten), tuple(sorted(oben)))
+
+
+def hat_fasen(form, name):
+    """Bringt die Fläche `name` gezeichnete Fasen mit – sie ist eine, oder eine ebene Fläche nach
+    oben mit Fasen an ihren Kanten?"""
+    return bool(_gewaehlte_fasen(form, [name]))
+
+
+def ist_fase(form, name):
+    """Ist die Fläche `name` eine gezeichnete Fase an einer Oberkante?"""
+    from . import vierachs_flaechen as vf
+
+    index = {f.hashCode(): i for i, f in enumerate(form.Faces)}
+    return any(
+        _fase(form, nummer, index) is not None
+        for nummer in vf.nummern([name])
+        if nummer < len(form.Faces)
+    )
+
+
+def _gewaehlte_fasen(form, namen, index=None):
+    """[Fase] – die gewählten gezeichneten Fasen und die an den Kanten gewählter ebener Flächen
+    nach oben."""
+    import Part
+
+    from . import vierachs_flaechen as vf
+
+    flaechen = form.Faces
+    if index is None:
+        index = {f.hashCode(): i for i, f in enumerate(flaechen)}
+    kandidaten = set()
+    for nummer in vf.nummern(namen):
+        if nummer >= len(flaechen):
+            continue
+        kandidaten.add(nummer)
+        if _nach_oben(flaechen[nummer]):
+            for kante in flaechen[nummer].Edges:
+                for nachbar in form.ancestorsOfType(kante, Part.Face):
+                    i = index.get(nachbar.hashCode())
+                    if i is not None and i != nummer:
+                        kandidaten.add(i)
+    fasen_ = (_fase(form, i, index) for i in sorted(kandidaten))
+    return [f for f in fasen_ if f is not None]
+
+
+def fasen(form, namen):
+    """[Kette] – die gezeichneten Fasen (_gewaehlte_fasen): ihre Unterkanten je Höhe und Winkel zu
+    Ketten verbunden, auf die Höhe der Oberseite gehoben – dort läge die Kante ohne Fase; Breite
+    und Winkel aus dem Modell."""
+    import FreeCAD
+    import Part
+
+    index = {f.hashCode(): i for i, f in enumerate(form.Faces)}
+    gruppen = {}  # (z_unten, z_oben, winkel) → [(Kante, Wand)]
+    for fase in _gewaehlte_fasen(form, namen, index):
+        schluessel = (round(fase.z_unten, 4), round(fase.z_oben, 4), round(fase.winkel, 2))
+        for kante, unter in fase.unten:
+            wand = next(iter(kb.waende(form, [f"Face{unter[0] + 1}"])), None)
+            if wand is not None:
+                gruppen.setdefault(schluessel, []).append((kante, wand))
+    ergebnis = []
+    for (z_unten, z_oben, winkel), paare in gruppen.items():
+        wand_der_kante = {kb._schluessel(k): w for k, w in paare}
+        for kette in Part.sortEdges([k for k, _w in paare]):
+            beteiligt = [
+                wand_der_kante[s] for s in (kb._schluessel(k) for k in kette) if s in wand_der_kante
+            ]
+            if not beteiligt:
+                continue
+            laengste = max(kette, key=lambda k: k.Length)
+            wand = wand_der_kante.get(kb._schluessel(laengste), beteiligt[0])
+            stelle, normale = kb._freie_seite(wand, laengste)
+            draht = Part.Wire(kette)
+            draht.translate(FreeCAD.Vector(0, 0, z_oben - z_unten))
+            namen_der_waende = sorted({w.name for w in beteiligt}, key=lambda n: int(n[4:]))
+            kontur = kb.Kontur(
+                draht, z_oben, z_oben, draht.isClosed(), stelle, normale, tuple(namen_der_waende)
+            )
+            breite = (z_oben - z_unten) * math.tan(math.radians(winkel))
+            ergebnis.append(
+                Kette(
+                    kontur,
+                    float(z_oben),
+                    min(w.z_unten for w in beteiligt),
+                    float(breite),
+                    float(winkel),
+                )
+            )
+    return ergebnis
 
 
 # --- Die Fase ---------------------------------------------------------------------------------
@@ -237,12 +397,20 @@ def planen(netz, werte, ketten_, schritt=SCHRITT, netz_fern=None):
     (hoehenfeld.netz_ohne mit kontur_bahn.ohne_flaechen()), `netz_fern` das Teil nur ohne die
     Wände – es zählt weiter weg von der Kante. ValueError mit einem Satz, wenn es nicht geht."""
     w = werte
-    if w.breite <= 0:
-        raise ValueError(tr("eg.fehler.breite"))
     if not ketten_:
         raise ValueError(tr("eg.fehler.keine"))
+    if w.breite <= 0 and any(k.breite <= 0 for k in ketten_):
+        raise ValueError(tr("eg.fehler.breite"))
     radius = float(w.form.radius)
-    fase, tiefer, _kegel = masse(w.breite, w.tiefer, w.spitzenwinkel, w.spitze, radius)
+    for k in ketten_:
+        if k.winkel > 0 and abs(k.winkel - w.spitzenwinkel / 2) > FASE_WINKEL:
+            raise ValueError(
+                tr(
+                    "eg.fehler.winkel",
+                    fase=f"{2 * k.winkel:.0f}",
+                    fraeser=f"{w.spitzenwinkel:.0f}",
+                )
+            )
     r_ein = w.einfahrradius if w.einfahrradius and w.einfahrradius > 0 else EINFAHRT
     zugabe = netz.toleranz + vb.RAND
     geformt = w.form.mit_aufmass(netz.toleranz)
@@ -251,6 +419,8 @@ def planen(netz, werte, ketten_, schritt=SCHRITT, netz_fern=None):
     alle_waende = [(kx, ky, k.kontur.geschlossen, k.z_kante) for k, (kx, ky) in mit_kette]
     st = _Stand()
     for k, kette in mit_kette:
+        breite = k.breite if k.breite > 0 else w.breite
+        fase, tiefer, _kegel = masse(breite, w.tiefer, w.spitzenwinkel, w.spitze, radius)
         # Nie unter die Unterkante der Wand: Unter ihr liegt ein Boden, den die Hüllfläche nahe
         # der Kante nicht sieht.
         tiefe = min(fase + tiefer, k.z_kante - k.z_boden - 2 * zugabe)
@@ -276,17 +446,27 @@ def planen(netz, werte, ketten_, schritt=SCHRITT, netz_fern=None):
             float(proben.y.max()) + rand,
             schritt,
             kette,
-            abstand + w.breite + 2 * schritt,
+            abstand + breite + 2 * schritt,
             alle_waende,
         )
         if _bahnen(st, k, segmente, proben, lage, huelle, abstand, r_ein, w):
             st.ketten += 1
             st.z_min = min(st.z_min, lage)
+            if k.winkel > 0:
+                st.modell.add(round(k.breite, 3))
         else:
             st.ausgelassen += 1
     if st.ketten == 0:
         raise ValueError(tr("eg.fehler.nichts"))
-    return Entgratbahn(st.punkte, st.ketten, st.ausgelassen, st.bahnen, st.z_min, st.laenge)
+    return Entgratbahn(
+        st.punkte,
+        st.ketten,
+        st.ausgelassen,
+        st.bahnen,
+        st.z_min,
+        st.laenge,
+        tuple(sorted(st.modell)),
+    )
 
 
 def _erlaubt(huelle, x, y, lage):
@@ -366,6 +546,13 @@ def netze(form, flaechen, toleranz=hf.TOLERANZ):
     """(netz_nah, netz_fern) für planen(): das Teil ohne die Wände und ihre Nachbarn an
     waagerechten Kanten, und nur ohne die Wände."""
     waende_ = waende(form, flaechen)
-    return hf.netze_ohne(
-        form, [kb.ohne_flaechen(form, waende_), [w.name for w in waende_]], toleranz
-    )
+    fasen_ = _gewaehlte_fasen(form, flaechen)
+    schraeg = {f"Face{f.nummer + 1}" for f in fasen_}
+    oben = {f"Face{i + 1}" for f in fasen_ for i in f.oben}
+    nah = set(kb.ohne_flaechen(form, waende_)) | schraeg | oben
+    fern = {w.name for w in waende_} | schraeg
+    return hf.netze_ohne(form, [_sortiert(nah), _sortiert(fern)], toleranz)
+
+
+def _sortiert(namen):
+    return sorted(namen, key=lambda n: int(n[4:]))

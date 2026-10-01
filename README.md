@@ -170,7 +170,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Anschnitt hinaus, in Sackbohrungen eine Steigung über dem Grund.
   **Entgraten**: ein Fasenfräser bricht die Oberkanten gewählter Wände (oder
   die Kanten einer gewählten Fläche oben, an denen eine Wand hinab geht) – im
-  Gleichlauf, tangential hinein und heraus, die Fase so breit wie gesagt.
+  Gleichlauf, tangential hinein und heraus, die Fase so breit wie gesagt;
+  hat das Modell die Fase schon, genau so, wie sie gezeichnet ist.
   **Zentrieren** mit dem NC-Anbohrer vor dem Bohren und **Senken** mit dem
   Kegelsenker in die Senkungen, die das Modell hat. **Restmaterial**: ein
   kleinerer Fräser holt, was der große in Ecken innen stehen ließ – nur dort.

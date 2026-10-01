@@ -294,6 +294,12 @@ become arcs. It stops before steps and walls not selected. If a wall is lower th
 chamfer, its edge is left out – the line then says so.</li>
 <li>Grey below: “→ 1 edge run, about 1 min”. Red says why it does not work (no chamfer
 mill, the chamfer is wider than its cone cuts).</li>
+<li><b>Modelled chamfers</b>: if the model already has the chamfer (a sloped face at the top
+edge, as FreeCAD's “Chamfer” makes it), click the chamfer – or the face on top, then all
+chamfers at its edges come along. Width and angle come from the model, the field “Chamfer
+width” does not apply there; the cutter moves so that its cone lies exactly on the chamfer.
+The tick is proposed – the model says the chamfer comes. The chamfer mill needs its angle (a
+45° chamfer: 90°); otherwise red says which one.</li>
 <li>The operation is called “Deburr T3”. “Check on the machine” lets the chamfer pass:
 there it may go into the part as deep as the tip stands.</li>
 </ul>

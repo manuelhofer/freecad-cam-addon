@@ -987,10 +987,15 @@ class _Entgraten(_Strategie):
         return werkzeug.art == wz.FASENFRAESER
 
     def passt(self, form, name):
-        return eb.hat_oberkanten(form, name)
+        return eb.hat_oberkanten(form, name) or eb.hat_fasen(form, name)
 
     def vorgeschlagen(self, form, gewaehlte):
-        return False  # ob eine Kante eine Fase bekommt, sagt die Zeichnung, nicht das Modell
+        # Eine scharfe Kante: ob sie eine Fase bekommt, sagt die Zeichnung. Eine gezeichnete
+        # Fase sagt das Modell – außer einer Senkung über einer Bohrung (die senkt „Senken“).
+        return any(
+            not sk.ist_senkung(form, f"Face{f.nummer + 1}")
+            for f in eb._gewaehlte_fasen(form, gewaehlte)
+        )
 
     def unmoeglich_text(self):
         return tr("ba.entgraten.nicht")
@@ -1010,13 +1015,19 @@ class _Entgraten(_Strategie):
             return tr("ba.zahl.kantenzug") if n == 1 else tr("ba.zahl.kantenzuege", n=n)
 
         if bahn.ausgelassen:
-            return tr(
+            text = tr(
                 "ba.ergebnis_entgraten_ausgelassen",
                 zuege=zuege(bahn.ketten),
                 zeit=zeit,
                 ausgelassen=zuege(bahn.ausgelassen),
             )
-        return tr("ba.ergebnis_entgraten", zuege=zuege(bahn.ketten), zeit=zeit)
+        else:
+            text = tr("ba.ergebnis_entgraten", zuege=zuege(bahn.ketten), zeit=zeit)
+        if getattr(bahn, "modell", ()):
+            breiten = ", ".join(groesse_zeigen(b, einheiten.LAENGE, 2) or "0" for b in bahn.modell)
+            einheit = einheiten.einheit(einheiten.LAENGE)
+            text += tr("ba.entgraten.aus_modell", breite=f"{breiten} {einheit}")
+        return text
 
     def lege_an(self, job, tc, werte, flaechen):
         return eg.lege_an(job, tc, werte["breite"], werte["tiefer"], flaechen=flaechen)

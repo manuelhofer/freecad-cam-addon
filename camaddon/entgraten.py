@@ -14,6 +14,8 @@ zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operation
 Läuft ohne Oberfläche.
 """
 
+import math
+
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
@@ -218,23 +220,28 @@ def lege_an(job, tc, breite=eb.BREITE, tiefer=eb.TIEFER, name=None, flaechen=())
 
 
 def _endtiefe(obj, job):
-    """Die Endtiefe: die tiefste Spitze – die tiefste Kante minus Fase und „Tiefer“."""
+    """Die Endtiefe: die tiefste Spitze – je Kette ihre Kante minus Fase und „Tiefer“ (eine
+    gezeichnete Fase mit ihrer Breite aus dem Modell)."""
     from .werkzeuge_aus_cam import vom_controller
 
     try:
         _form, winkel, spitze = kegel_des_werkzeugs(vom_controller(obj.ToolController))
         ketten = eb.ketten(vs._teil(job.Model.Group), list(obj.Flaechen))
-        fase, tiefer, _kegel = eb.masse(
-            float(obj.Breite),
-            float(obj.Tiefer),
-            winkel,
-            spitze,
-            float(obj.ToolController.Tool.Diameter) / 2,
-        )
+        tiefste = math.inf
+        for k in ketten:
+            fase, tiefer, _kegel = eb.masse(
+                k.breite if k.breite > 0 else float(obj.Breite),
+                float(obj.Tiefer),
+                winkel,
+                spitze,
+                float(obj.ToolController.Tool.Diameter) / 2,
+            )
+            tiefste = min(tiefste, k.z_kante - fase - tiefer)
     except ValueError:
         return
-    obj.setExpression("FinalDepth", None)
-    obj.FinalDepth = min(k.z_kante for k in ketten) - fase - tiefer
+    if math.isfinite(tiefste):
+        obj.setExpression("FinalDepth", None)
+        obj.FinalDepth = tiefste
 
 
 def aendere(obj, tc, breite, tiefer, flaechen=None):

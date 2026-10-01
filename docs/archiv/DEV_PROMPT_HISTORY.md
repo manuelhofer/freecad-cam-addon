@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-38 gezeichnete-fasen
+
+### EINGELESEN
+- `entgrat_bahn` (Ketten aus Oberkanten mit einer ebenen Fläche nach oben, `planen` mit einer
+  Breite für alle, `netze`), `entgraten` (Endtiefe aus der Breite), `gui_bearbeitung._Entgraten`
+  (nie vorgeschlagen); FreeCADs `Part.Shape.makeChamfer` an Zapfen (eben und Kegel).
+
+### DATEIEN
+- `camaddon/entgrat_bahn.py`, `camaddon/entgraten.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_fase.py` (neu),
+  `tests/gui/szenario_fase.py` (neu), `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.54.0)
+
+### AKZEPTANZKRITERIUM
+Zapfen 20 × 20 mit gezeichneter Fase 1 × 45°: Die Oberseite anklicken – Entgraten mit dem
+90°-Fasenfräser bekommt von selbst den Haken, „→ 1 Kantenzug, etwa …“; ein 60°-Fräser: rot
+„braucht einen Fasenfräser mit 90°“. „Anlegen“: „Entgraten T3“ mit Endtiefe 18,5. Im Quader liegt
+der Kegel am eckigen und am runden Zapfen auf 0,06 mm auf der Fase; nichts ins Teil.
+
+### DONE
+- `entgrat_bahn`: `Fase`, `_fase` (schräge Fläche, eben oder Kegel, unten an Wänden, oben an
+  einer ebenen Fläche nach oben; Winkel zur Senkrechten aus asin n_z), `ist_fase`, `hat_fasen`,
+  `_gewaehlte_fasen` (auch die an den Kanten einer gewählten Fläche oben), `fasen()` (Ketten an
+  der Unterkante, auf die Oberseite gehoben, `Kette.breite`/`winkel`); `ketten()` nimmt sie
+  dazu, `waende()` die Wände darunter; `planen` je Kette mit ihrer Breite und dem Satz, wenn der
+  Kegel nicht passt (±1°); `netze` blendet Fasen und ihre Flächen oben aus.
+- `entgraten._endtiefe` je Kette mit ihrer Breite.
+- Assistent: Entgraten passt auch zu Fasen und Flächen mit Fasen, vorgeschlagen bei einer
+  gezeichneten Fase (außer Senkungen über Bohrungen – die senkt „Senken“).
+
+### TEST
+- 1.1.3: `test_fase` (neu), `test_entgraten`, `test_senken`, `test_sprache` grün; Szenarien
+  `szenario_fase` (neu), `szenario_entgraten`, `szenario_senken` grün; black/ruff grün.
+
+### NEXT
+- Verrunden gezeichneter Rundungen mit dem Radienfräser; Reiben (G85); Restmaterial auf Böden.
+
 ## P-2026-10-01-37 sackbohrungen-mit-spitze
 
 ### EINGELESEN
