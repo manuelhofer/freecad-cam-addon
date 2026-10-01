@@ -673,7 +673,7 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
         r + aufmass + 2 * schritt,
     )
     st.konturen += 1
-    anzahl_lagen = max(1, int(math.ceil((oben - ziel) / w.zustellung - 1e-9)))
+    anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / w.zustellung)))
     lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
     vorige = oben
     for lage in lagen:
@@ -710,7 +710,7 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
     hoehe = oben - ziel
     anzahl = 1
     if 0 < w.schneidenlaenge < hoehe - GLEICH:
-        anzahl = int(math.ceil(hoehe / w.schneidenlaenge - 1e-9))
+        anzahl = max(1, int(math.ceil((hoehe - hf.LAGEN_SPIEL) / w.schneidenlaenge)))
     frei_bis = (schrupp[-1][0] + r) if schrupp else 0.0
     for lage in oben - hoehe * np.arange(1, anzahl + 1) / anzahl:
         if _bahnen(

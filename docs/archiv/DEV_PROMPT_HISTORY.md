@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-20 massstab-platte-starttiefe
+
+### EINGELESEN
+- Manuel (2026-10-01): das Testteil war für die Mantelbearbeitung; der Nullpunkt soll frei
+  setzbar sein (Punkteraster, beim Quader 22 Punkte, dazu um x mm verschieben); die
+  Strategie dahinter „nicht gerade gut“ – wie entwickeln wir sinnvolle Strategien zusammen?
+  Sein Maßstab: Platte 200 × 200, Zapfen Ø 20 × 20 bei (50, 50), Tasche Ø 45 × 20 bei
+  (−50, −50), Rohteil 50 hoch, 5 mm von unten gespannt; Fräser Ø 12 mit ae 1,5, ap 25, fz 0,1,
+  vc 85, Helix 0,7 mm/U, Rampe 3° – die kürzeste Bearbeitungszeit finden.
+- `planfraesen._hoehen` (Starttiefe aus dem Einrichtblatt: „OpStartDepth“), FreeCADs
+  `Path.Op.Base` (OpStartDepth = Modell + 1 mm), `Path.Main.Stock` (das Rohteil aus dem
+  Modell merkt sich seine Lage nur beim Anlegen – wichtig für den Nullpunkt), die
+  Lagenrechnung in `planfraesen_bahn` und `kontur_bahn`.
+
+### DATEIEN
+- Neu: `beispiele/platte_zapfen_tasche.FCStd`
+- `camaddon/planfraesen.py`, `camaddon/kontur.py`, `camaddon/hoehenfeld.py`,
+  `camaddon/planfraesen_bahn.py`, `camaddon/kontur_bahn.py`, `beispiele/README.md`,
+  `docs/spezifikation_strategien.md` (S3f neu, S3h, Abschnitt 11), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.40.1), `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Manuels Platte im Job (Rohteil endet oben am Zapfen, +20): „Planfräsen“ mit Zustellung 20 und
+Zeilenabstand 1,5 fährt eine Lage (151 Zeilen, 33 m, 39 min bei vf 902), mit Zustellung 2 und
+7,8 zehn Lagen (73,5 min); die Starttiefe der Operation ist 20 (das Rohteil), nicht 21; die
+Kontur um den Zapfen mit Zustellung 20 fährt eine Schrupplage und einen Schlichtzug. Die
+Prüfungen `test_planfraesen`, `test_kontur`, `test_quader` bleiben grün (Starttiefe 26 bzw. 21
+wie bisher, weil das Rohteil dort 1 mm über dem Teil endet).
+
+### DONE
+- Starttiefe am Rohteil: `_hoehen` nimmt „OpStockZMax“ statt FreeCADs „OpStartDepth“ (das liegt
+  1 mm über dem Modell – eine Lage Luft, aus einer Lage von 20 wurden zwei von 10,5);
+  `rechne` beider Operationen fängt nie über dem Rohteil an. `LAGEN_SPIEL` 0,05 mm gegen das
+  Hüllboxspiel. Die Zeiten je Strategie an Manuels Platte gemessen und in die Spezifikation
+  (Abschnitt 11): heute 79 min, mit ganzer Schneide 44, geplant (S3f Räumen mit Versätzen –
+  Spirale bei vollem ap, einmal hinein) ≈ 35, Untergrenze 31; die Rampe mit 3° schlägt die
+  Helix mit 0,7 mm/U. S3f umgeplant, S3h (Nullpunkt-Raster, Spannhöhe) aufgenommen.
+
+### TEST
+- `test_planfraesen`, `test_kontur`, `test_quader` in 1.1.3 ok; black/ruff ok.
+
+### NEXT
+- S3h Nullpunkt aus dem Punkteraster im Assistenten (Rohteil mitschieben), dann S3f Räumen.
+
 ## P-2026-10-01-19 s3e-kontur
 
 ### EINGELESEN

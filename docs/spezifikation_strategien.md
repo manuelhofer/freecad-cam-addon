@@ -432,7 +432,64 @@ gebaut.
   Block „Kontur“ mit Haken (je Strategie ein Block, `_Strategie`/`_Block`);
   Prüfung `test_kontur`, Szenario `szenario_kontur`. Die Spirale fürs
   Planfräsen aus Versätzen steht noch aus.
-- **S3f Tasche adaptiv** (E3) – gleichmäßiger Eingriff, Helix oder Rampe hinein,
-  Trochoiden in Ecken, Bögen; Restmaterial aus dem Abtrag; Nut.
+- **S3f Räumen mit Versätzen** – nach Manuels Maßstab (Abschnitt 11,
+  2026-10-01) vor dem Adaptiv: ein Rechenkern für offene Flächen und Taschen.
+  Der Bereich (das Rohteil über einer ebenen Fläche oder eine Tasche) wird
+  um Radius + k · ae nach innen versetzt (`makeOffset2D` wie bei der Kontur,
+  Inseln wie der Zapfen bleiben stehen), eine Spirale von außen nach innen
+  bei vollem ap (bis zur Schneidenlänge) und schmalem ae – im Gleichlauf, ohne
+  Wenden, mit Bögen in den Ecken. Hinein: bei offenen Flächen von außen in der
+  Luft; in Taschen über die Rampe mit dem Eintauchwinkel des Werkzeugs auf
+  der längsten Geraden oder die Helix mit seiner Steigung (das Steilere
+  gewinnt), nur einmal je Lage – nicht je Versatz wie heute bei der Kontur.
+  Der Zapfen bekommt sein Aufmaß und danach die Kontur. Ecken mit zu viel
+  Eingriff bekommen später Trochoiden (das Adaptiv, E3 (a)) – erst messen, ob
+  es nötig ist.
 - **S3g Bohren, Gewinde** – FreeCADs Operationen aus dem Assistenten mit den
   Schnittwerten.
+- **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
+  frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
+  die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z
+  mm verschoben; das Teil mit dem Rohteil rückt so, dass der Punkt im
+  Ursprung liegt (die Achsen im 3D zeigen ihn). Dazu „von unten gespannt“ in
+  der Rohteil-Definition: so viel steckt im Schraubstock – die Prüfung zeigt
+  es und meldet jede Bahn darunter.
+
+## 11. Maßstab: Manuels Platte (2026-10-01)
+
+Manuels Aufgabe für die Strategien: Platte 200 × 200 (Nullpunkt in der Mitte
+der Oberseite), Zapfen Ø 20, 20 hoch bei (50, 50), Tasche Ø 45, 20 tief bei
+(−50, −50); Rohteil 50 hoch (oben am Zapfen), 5 mm von unten gespannt.
+Werkzeug Ø 12 VHM: ae 1,5 mm (gelesen als mm – 1,5 % von D wären 0,18 mm),
+ap 25, fz 0,1, vc 85 m/min, 4 Schneiden angenommen → n 2255, vf 902 mm/min;
+Helix 0,7 mm je Umdrehung, Rampe 3°. Gesucht: die kürzeste Zeit. Die Datei:
+`beispiele/platte_zapfen_tasche.FCStd`. (Manuel schrieb „Klotz 100 × 100 × 50“
+– mit den Lagen bei ±50 geht nur 200 × 200; so ist es gerechnet.)
+
+Weg müssen 825 cm³: 794 über der Platte, 32 in der Tasche. Mit ae 1,5 und
+ap 20 (die ganze Tiefe) ist das Zeitspanvolumen 27 cm³/min – die Untergrenze
+für jede Strategie, die den Fräser dauernd im Eingriff hält:
+**31 min** reine Spanzeit (29 Platte, 1,2 Tasche, 0,3 Schlichten).
+
+| Strategie | Platte | Tasche | Zapfen | Summe |
+| --- | --- | --- | --- | --- |
+| heute: Planfräsen ap 2, ae 7,8 (0,65 D), Tasche über die Kontur in Lagen, Kontur Zapfen | 73,5 min (10 Lagen, 310 Zeilen, 62 m) | 4,3 min | 0,8 min | **79 min** |
+| heute mit ganzer Schneide: Planfräsen ap 20, ae 1,5; Tasche über die Kontur ap 20 (ganz räumen) | 39,1 min (1 Lage, 151 Zeilen, 33 m) | 3,7 min (12 Versätze, je mit Rampe) | 0,8 min | **44 min** |
+| S3f Räumen mit Versätzen: Spirale ap 20, ae 1,5, hinein von außen; Tasche Rampe 3° einmal, dann Spirale | ≈ 33 min (Weg ≈ Fläche ÷ ae, ohne Wenden) | ≈ 1,3 min (Rampe 0,4 + Spirale 0,8) | 0,3 min | **≈ 35 min** |
+| Untergrenze (Fräser nie aus dem Eingriff) | 29 min | 1,2 min | 0,3 min | **31 min** |
+
+Gemessen mit `scripts`-freiem Rechenlauf (Sonde, 1.1.3): Planfräsen und
+Kontur wie gebaut (0.40.1), Zeit aus den Sätzen bei vf 902 (Eilgang 10 m/min
+nicht gezählt). Was die Tabelle lehrt: Die ganze Schneide (ap 20 statt 2)
+halbiert die Zeit schon mit den heutigen Zeilen; der Rest zur Untergrenze
+sind Wenden, Überlauf (0,6 D je Zeilenende: 2,2 m) und – in der Tasche – die
+Rampe je Versatz (die Kontur fährt jeden Versatz als eigene Bahn). Beides
+nimmt S3f: eine Spirale, einmal hinein. Die Helix mit 0,7 mm je Umdrehung
+ist auf Ø 6 nur 2,1° steil und auf Ø 33 0,4° – die Rampe mit 3° ist bei
+diesem Werkzeug immer schneller (0,4 min statt 0,6 bis 3,3).
+
+Dabei gefunden (0.40.1): FreeCADs Starttiefe „OpStartDepth“ liegt 1 mm über
+dem Modell, nicht auf dem Rohteil – endet das Rohteil oben am Zapfen, wurde
+aus einer Lage von 20 zwei von 10,5; die Lagen beginnen jetzt am Rohteil
+(`OpStockZMax`), und 0,05 mm Spiel (`hoehenfeld.LAGEN_SPIEL`) geben keine
+Lage mehr.

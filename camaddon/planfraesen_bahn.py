@@ -109,7 +109,7 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
         oben = w.oben
         if oben <= ziel + GLEICH:
             continue  # steht nichts drüber
-        anzahl_lagen = max(1, int(math.ceil((oben - ziel) / w.zustellung - 1e-9)))
+        anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / w.zustellung)))
         lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
         laengs_x = (ebene.x_bis - ebene.x_von) >= (ebene.y_bis - ebene.y_von)
         if laengs_x:

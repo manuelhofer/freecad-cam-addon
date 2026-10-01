@@ -146,7 +146,7 @@ def rechne(obj, job, modell):
         tiefer=float(obj.Tiefer),
         einfahrradius=einfahrradius if einfahrradius > 0 else None,
         schneidenlaenge=schneidenlaenge(obj.ToolController),
-        oben=float(obj.StartDepth),
+        oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),  # nie über dem Rohteil
         sicher=float(obj.SafeHeight),
         sicherheit=float(obj.Sicherheitsabstand),
         eintauchwinkel=float(obj.Eintauchwinkel),

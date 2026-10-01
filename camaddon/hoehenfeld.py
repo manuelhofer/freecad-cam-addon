@@ -29,6 +29,10 @@ SCHRITT = vh.SCHRITT_A  # mm – Raster längs einer Zeile
 KEIN_TREFFER = vh.KEIN_TREFFER  # die Spitze trifft das Teil an dieser Stelle nicht
 GERADE = 1e-6  # so wenig darf eine Normale von „nach oben“ abweichen
 _UEBER_NULL = 1.0  # mm – die Hüllfläche rechnet nur über 0: so weit hebt je_zeile() das Netz
+# So viel darf das Rohteil über dem Ziel stehen, ohne eine Lage mehr zu bekommen: Die Hüllbox
+# eines Zylinders liegt in OCC bis 0,05 mm neben der Form – ein Zapfen oben am Rohteil machte
+# aus einer Lage von 20 zwei von 10 (Manuels Platte, P-2026-10-01-20).
+LAGEN_SPIEL = 0.05  # mm
 
 
 @dataclass(frozen=True)

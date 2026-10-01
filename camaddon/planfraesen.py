@@ -128,7 +128,7 @@ def rechne(obj, job, modell):
         float(obj.Aufmass),
         ueberlauf if ueberlauf > 0 else None,
         vo.flaechen(obj),
-        float(obj.StartDepth),
+        min(float(obj.StartDepth), rohteil_von_oben(job)[4]),  # nie über dem Rohteil anfangen
         float(obj.SafeHeight),
         float(obj.Sicherheitsabstand),
         float(obj.Eintauchwinkel),
@@ -249,7 +249,13 @@ def _hoehen(obj, proxy, job):
     Einrichtblatt – als Ausdruck, wo es einen gibt, sonst vom Rohteil."""
     blatt = job.SetupSheet
     _x_von, _x_bis, _y_von, _y_bis, z_oben = rohteil_von_oben(job)
-    if not proxy.applyExpression(obj, "StartDepth", blatt.StartDepthExpression):
+    # FreeCADs Vorgabe „OpStartDepth“ liegt 1 mm über dem Modell, nicht auf dem Rohteil: Endet
+    # das Rohteil oben am Teil (ein Zapfen), gäbe das eine Lage Luft – und aus einer Lage von
+    # 20 zwei von 10,5 (Manuels Platte, P-2026-10-01-20). Die Lagen beginnen am Rohteil.
+    ausdruck = blatt.StartDepthExpression
+    if not ausdruck or ausdruck.strip() == "OpStartDepth":
+        ausdruck = "OpStockZMax"
+    if not proxy.applyExpression(obj, "StartDepth", ausdruck):
         obj.StartDepth = z_oben
     if not proxy.applyExpression(obj, "SafeHeight", blatt.SafeHeightExpression):
         obj.SafeHeight = z_oben + 3.0
