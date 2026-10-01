@@ -39,6 +39,7 @@ from . import nut_bahn as nb
 from . import planfraesen as pf
 from . import raeumen as ra
 from . import raeumen_bahn as rb
+from . import reiben as rbn
 from . import senken as sk
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_bahn as vb
@@ -71,6 +72,7 @@ GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
 GEMERKT_NUTFRAESER = "BaNutFraeser"  # … für die Nut
 GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
+GEMERKT_REIBAHLE = "BaReibahle"  # … fürs Reiben
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
 GEMERKT_GEWINDEFRAESER = "BaGewindefraeser"  # … fürs Gewindefräsen
 GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
@@ -831,7 +833,14 @@ class _Bohren(_Strategie):
         return tr("ba.bohren.hub.leer")
 
     def vorschau(self, job, werkzeug, werte, flaechen):
-        return bh.vorschau(job, werkzeug, flaechen, werte.get("vorschub", 0.0), werte["hub"])
+        return bh.vorschau(
+            job,
+            werkzeug,
+            flaechen,
+            werte.get("vorschub", 0.0),
+            werte["hub"],
+            reiben=werte.get("reiben", False),
+        )
 
     def ergebnis_text(self, bahn, zeit):
         bohrungen = (
@@ -1395,6 +1404,57 @@ class _Senken(_Strategie):
         return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
 
 
+class _Reiben(_Strategie):
+    """FreeCADs Bohren mit einer Reibahle, G85 (reiben) – nach Bohren und Senken; der Bohrer
+    bohrt dann kleiner vor, Bohrung fräsen und Kontur treten dort nicht an. Den Haken setzt
+    man selbst: Ob eine Bohrung gerieben wird, steht nicht im Modell."""
+
+    kennung = "reiben"
+    gemerkt = GEMERKT_REIBAHLE
+    einsatz_reihenfolge = (wz.REIBEN,)
+
+    def titel(self):
+        return tr("ba.reiben")
+
+    def text(self):
+        return tr("ba.reiben.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.reibahle.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.reiben_einsatz.tooltip")
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art == wz.REIBAHLE
+
+    def passt(self, form, name):
+        return any(b.durch or b.spitze > 0 for b in bb.bohrungen(form, [name]))
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ob gerieben wird (H7), sagt das Modell nicht
+
+    def unmoeglich_text(self):
+        return tr("ba.reiben.nicht")
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return rbn.vorschau(job, werkzeug, flaechen, werte.get("vorschub", 0.0))
+
+    def ergebnis_text(self, bahn, zeit):
+        bohrungen = (
+            tr("ba.zahl.bohrung")
+            if bahn.bohrungen == 1
+            else tr("ba.zahl.bohrungen", n=bahn.bohrungen)
+        )
+        return tr("ba.ergebnis_reiben", bohrungen=bohrungen, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return rbn.lege_an(job, tc, flaechen)
+
+    def ist(self, op):
+        return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
+
+
 STRATEGIEN = (
     _Planfraesen,
     _Raeumen,
@@ -1405,6 +1465,7 @@ STRATEGIEN = (
     _Kontur,
     _Rest,
     _Senken,
+    _Reiben,
     _Gewinde,
     _Gewindefraesen,
     _Entgraten,
@@ -1705,6 +1766,7 @@ class BearbeitungPanel:
         self.entgraten = next(b for b in self.bloecke if b.s.kennung == "entgraten")
         self.zentrieren = next(b for b in self.bloecke if b.s.kennung == "zentrieren")
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
+        self.reiben = next(b for b in self.bloecke if b.s.kennung == "reiben")
         self.rest = next(b for b in self.bloecke if b.s.kennung == "rest")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
@@ -2300,7 +2362,9 @@ class BearbeitungPanel:
         solange ihn niemand von Hand gesetzt hat."""
         if self.zu_aendern is not None:
             return
-        self._bohrer_waehlen(form)
+        self._reibahle_waehlen(form)
+        gerieben = self._gerieben(form)
+        self._bohrer_waehlen(form, gerieben)
         self._gewindebohrer_waehlen(form)
         self._gewindefraeser_waehlen(form)
         self._senker_waehlen(form)
@@ -2310,8 +2374,18 @@ class BearbeitungPanel:
         try:
             for block in self.bloecke:
                 moeglich = block.s.moeglich(form, self.gewaehlte)
+                grund = None
                 if block is self.bohren:
-                    moeglich = moeglich and self._bohrer_da(form)
+                    moeglich = moeglich and self._bohrer_da(form, gerieben)
+                if block is self.reiben:
+                    moeglich = moeglich and self._reibahle_da(form)
+                if gerieben and block in (self.bohrung, self.kontur) and moeglich:
+                    # Geriebene Bohrungen bohrt der Bohrer kleiner vor – gefräst wären sie auf
+                    # Maß, die Reibahle hätte nichts zu tun.
+                    geriebene = set(self.reiben.s.flaechen_fuer(form, self.gewaehlte))
+                    eigene = set(block.s.flaechen_fuer(form, self.gewaehlte))
+                    if eigene <= geriebene:
+                        moeglich, grund = False, tr("ba.bohrung.gerieben")
                 if block is self.gewinde:
                     moeglich = moeglich and self._gewindebohrer_da(form)
                 if block is self.gewindefraesen:
@@ -2322,7 +2396,9 @@ class BearbeitungPanel:
                     moeglich = moeglich and self._senker_da(form)
                 block.moeglich = moeglich
                 block.haken.setEnabled(moeglich)
-                block.erklaerung.setText(block.s.text() if moeglich else block.s.unmoeglich_text())
+                block.erklaerung.setText(
+                    block.s.text() if moeglich else grund or block.s.unmoeglich_text()
+                )
                 if not moeglich:
                     block.haken.setChecked(False)
                 elif not block.von_hand:
@@ -2340,6 +2416,9 @@ class BearbeitungPanel:
             return
         block.von_hand = True
         block.zustand_zeigen()
+        if block is self.reiben and self.job is not None:
+            # Gerieben: kleiner vorbohren, Bohrung fräsen und Kontur treten dort nicht an.
+            self._haken_vorschlagen(vr.modell(self.job).Shape)
         # Gewinde bohren oder fräsen – beides in dieselben Bohrungen schnitte zwei Gänge.
         paar = {self.gewinde: self.gewindefraesen, self.gewindefraesen: self.gewinde}
         anderer = paar.get(block)
@@ -2487,6 +2566,11 @@ class BearbeitungPanel:
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
                 if block is self.kontur and zusatz and block.ergebnis_basis:
                     block.ergebnis.setText(tr("ba.kontur.nach_raeumen", text=block.ergebnis_basis))
+                if block is self.bohren and zusatz and block.ergebnis_basis:
+                    d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
+                    block.ergebnis.setText(
+                        tr("ba.bohren.vorbohren", text=block.ergebnis_basis, d=d)
+                    )
             else:
                 block.leeren()
         self._wettbewerb(form, nur_bohrung=boeden is not None)
@@ -2499,6 +2583,8 @@ class BearbeitungPanel:
         Breite = Aufmaß, die schnellste Folge in der Tasche; Spezifikation Abschnitt 11)."""
         if block is self.gewindefraesen:
             return {"werkzeug": block.fraeser()}  # Steigung und Zähne kennt CAM nicht
+        if block is self.bohren:
+            return {"reiben": True} if self._gerieben(form) else None
         if block is self.rest:
             if self.rest.felder["davor"].text().strip():
                 return None  # von Hand eingetragen
@@ -2551,25 +2637,56 @@ class BearbeitungPanel:
         flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
         if block is self.raeumen and self._raeumen_boeden is not None:
             return list(self._raeumen_boeden)
-        if block is self.kontur and not self._gleiche_flaechen(block, form):
+        if block is self.kontur:
             weg = set()
-            for anderer in (self.bohren, self.bohrung, self.nut):
-                if anderer.aktiv():
-                    weg |= set(anderer.s.flaechen_fuer(form, self.gewaehlte))
+            if self._gerieben(form):
+                weg |= set(self.reiben.s.flaechen_fuer(form, self.gewaehlte))
+            if not self._gleiche_flaechen(block, form):
+                for anderer in (self.bohren, self.bohrung, self.nut):
+                    if anderer.aktiv():
+                        weg |= set(anderer.s.flaechen_fuer(form, self.gewaehlte))
             return [f for f in flaechen if f not in weg]
         return flaechen
 
-    def _bohrer_da(self, form):
+    def _bohrer_da(self, form, gerieben=False):
         """Hat die Werkzeugverwaltung einen Bohrer, der alle gewählten Bohrungen bohrt – alle
-        durchgehend, alle mit seinem Durchmesser?"""
+        durchgehend, alle mit seinem Durchmesser (`gerieben`: um die Reibzugabe kleiner)?"""
         namen = [n for n in self.gewaehlte if bb.ist_bohrung(form, n)]
         if not namen:
             return False
         liste = bb.bohrungen(form, namen)
         return bool(liste) and any(
-            all(bh.kann(b, w.durchmesser, w.spitzenwinkel or bh.SPITZENWINKEL) for b in liste)
+            all(
+                bh.kann(b, w.durchmesser, w.spitzenwinkel or bh.SPITZENWINKEL, gerieben)
+                for b in liste
+            )
             for w in self.bohren._fraeser
         )
+
+    def _gerieben(self, form):
+        """Wird gerieben – Reiben angehakt, und eine Reibahle passt zu den gewählten Bohrungen?"""
+        return self.reiben.haken.isChecked() and self._reibahle_da(form)
+
+    def _reibahle_da(self, form):
+        """Hat die Werkzeugverwaltung eine Reibahle für alle gewählten Bohrungen?"""
+        liste = bb.bohrungen(form, [n for n in self.gewaehlte if bb.ist_bohrung(form, n)] or [""])
+        return bool(liste) and any(
+            all(rbn.kann(b, w.durchmesser) for b in liste) for w in self.reiben._fraeser
+        )
+
+    def _reibahle_waehlen(self, form):
+        """Wählt im Block Reiben die Reibahle mit dem Durchmesser der gewählten Bohrungen – wenn
+        die gewählte nicht passt."""
+        liste = bb.bohrungen(form, [n for n in self.gewaehlte if bb.ist_bohrung(form, n)] or [""])
+        if not liste:
+            return
+        jetzt = self.reiben.fraeser()
+        if jetzt is not None and all(rbn.kann(b, jetzt.durchmesser) for b in liste):
+            return
+        for i, w in enumerate(self.reiben._fraeser):
+            if all(rbn.kann(b, w.durchmesser) for b in liste):
+                self.reiben.wahl_fraeser.setCurrentIndex(i)
+                return
 
     def _bohrungs_durchmesser(self, form):
         """Der Durchmesser der gewählten Bohrungen – None, wenn keine oder verschiedene."""
@@ -2715,25 +2832,26 @@ class BearbeitungPanel:
         if passend:
             self.senken.wahl_fraeser.setCurrentIndex(min(passend)[1])
 
-    def _bohrer_waehlen(self, form):
+    def _bohrer_waehlen(self, form, gerieben=False):
         """Wählt im Block Bohren den Bohrer mit dem Durchmesser der gewählten Bohrungen – wenn
-        der gewählte nicht passt."""
+        der gewählte nicht passt; `gerieben`: den größten, der um die Reibzugabe kleiner ist."""
         liste = bb.bohrungen(form, [n for n in self.gewaehlte if bb.ist_bohrung(form, n)] or [""])
         if not liste:
             return
 
         def bohrt(w):
             return all(
-                bh.kann(b, w.durchmesser, w.spitzenwinkel or bh.SPITZENWINKEL) for b in liste
+                bh.kann(b, w.durchmesser, w.spitzenwinkel or bh.SPITZENWINKEL, gerieben)
+                for b in liste
             )
 
         jetzt = self.bohren.fraeser()
         if jetzt is not None and bohrt(jetzt):
             return
-        for i, w in enumerate(self.bohren._fraeser):
-            if bohrt(w):
-                self.bohren.wahl_fraeser.setCurrentIndex(i)
-                return
+        passend = [i for i, w in enumerate(self.bohren._fraeser) if bohrt(w)]
+        if passend:
+            wahl = max(passend, key=lambda i: self.bohren._fraeser[i].durchmesser)
+            self.bohren.wahl_fraeser.setCurrentIndex(wahl if gerieben else passend[0])
 
     def _nutfraeser_waehlen(self, form):
         """Wählt im Block Nut einen Fräser, der in die gewählten Nuten passt, wenn der gewählte es

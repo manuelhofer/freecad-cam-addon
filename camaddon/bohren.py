@@ -29,6 +29,9 @@ HUB_ANTEIL = 1.0  # × D: so tief je Hub, wenn nichts anderes gesagt ist
 SPITZENWINKEL = 118.0  # Grad, wenn das Werkzeug keinen hat
 UEBER_R = 3.0  # mm über dem Rohteil liegt die Ebene R (wie FreeCADs SafeHeightOffset)
 ABSTAND_HUB = 0.5  # mm – so knapp über den Grund des vorigen Hubs fährt der Eilgang zurück
+# Vor dem Reiben (reiben.py) bohrt er so viel kleiner (mm auf den Durchmesser): genug, dass die
+# Reibahle schneidet statt zu drücken, nicht so viel, dass sie schruppt.
+REIBZUGABE = (0.15, 0.5)
 
 
 @dataclass
@@ -57,18 +60,26 @@ def hub_fuer(tiefe, durchmesser, hub=0.0):
     return durchmesser * HUB_ANTEIL if tiefe > TIEF_AB * durchmesser + 1e-9 else 0.0
 
 
-def kann(b, durchmesser, spitzenwinkel=SPITZENWINKEL):
+def passt_durchmesser(b, durchmesser, reiben=False):
+    """Hat der Bohrer den Durchmesser der Bohrung `b` – mit `reiben` um REIBZUGABE kleiner?"""
+    if reiben:
+        unter = 2 * b.radius - durchmesser
+        return REIBZUGABE[0] - GLEICH_D <= unter <= REIBZUGABE[1] + GLEICH_D
+    return abs(2 * b.radius - durchmesser) <= GLEICH_D
+
+
+def kann(b, durchmesser, spitzenwinkel=SPITZENWINKEL, reiben=False):
     """Bohrt ein Bohrer mit `durchmesser` und `spitzenwinkel` die Bohrung `b` – durchgehend,
-    oder eine Sackbohrung mit seiner Spitze darunter?"""
-    if abs(2 * b.radius - durchmesser) > GLEICH_D:
+    oder eine Sackbohrung mit seiner Spitze darunter? Mit `reiben` bohrt er vor (kleiner)."""
+    if not passt_durchmesser(b, durchmesser, reiben):
         return False
     return b.durch or (b.spitze > 0 and abs(b.spitze - spitzenwinkel) <= GLEICH_WINKEL)
 
 
-def passende(form, namen, durchmesser, spitzenwinkel=SPITZENWINKEL):
+def passende(form, namen, durchmesser, spitzenwinkel=SPITZENWINKEL, reiben=False):
     """[Bohrung] – die Bohrungen `namen` von `form`, die ein Bohrer mit `durchmesser` und
-    `spitzenwinkel` bohrt. ValueError mit einem Satz, wenn eine nicht passt (anderer
-    Durchmesser, ebener Grund, eine andere Spitze)."""
+    `spitzenwinkel` bohrt (mit `reiben` vor, kleiner). ValueError mit einem Satz, wenn eine
+    nicht passt (anderer Durchmesser, ebener Grund, eine andere Spitze)."""
     liste = bb.bohrungen(form, list(namen) or None)
     if not liste:
         raise ValueError(tr("bh.fehler.keine"))
@@ -86,7 +97,17 @@ def passende(form, namen, durchmesser, spitzenwinkel=SPITZENWINKEL):
                     winkel=f"{spitzenwinkel:.0f}",
                 )
             )
-        if abs(2 * b.radius - durchmesser) > GLEICH_D:
+        if reiben and not passt_durchmesser(b, durchmesser, True):
+            raise ValueError(
+                tr(
+                    "bh.fehler.vorbohren",
+                    durchmesser=einheiten.text(2 * b.radius, einheiten.LAENGE),
+                    von=einheiten.text(2 * b.radius - REIBZUGABE[1], einheiten.LAENGE),
+                    bis=einheiten.text(2 * b.radius - REIBZUGABE[0], einheiten.LAENGE),
+                    bohrer=einheiten.text(durchmesser, einheiten.LAENGE),
+                )
+            )
+        if not reiben and abs(2 * b.radius - durchmesser) > GLEICH_D:
             raise ValueError(
                 tr(
                     "bh.fehler.durchmesser",
@@ -135,15 +156,16 @@ def planen(liste, durchmesser, spitzenwinkel, oben, sicher, vorschub, hub=0.0):
     return Bohrbahn(punkte, len(folge), hube, z_min, zeit)
 
 
-def vorschau(job, werkzeug, flaechen, vorschub, hub=0.0):
+def vorschau(job, werkzeug, flaechen, vorschub, hub=0.0, reiben=False):
     """Die Bahn für den Assistenten: die Bohrungen `flaechen` im Job mit dem Bohrer `werkzeug`
-    (werkzeuge.Werkzeug). ValueError mit einem Satz, wenn es nicht geht."""
+    (werkzeuge.Werkzeug) – mit `reiben` vorgebohrt, kleiner. ValueError mit einem Satz, wenn es
+    nicht geht."""
     from . import planfraesen as pf
     from . import vierachs_schlichten as vs
 
     form_teil = vs._teil(job.Model.Group)
     winkel = float(werkzeug.spitzenwinkel or SPITZENWINKEL)
-    liste = passende(form_teil, flaechen, float(werkzeug.durchmesser), winkel)
+    liste = passende(form_teil, flaechen, float(werkzeug.durchmesser), winkel, reiben)
     *_rohteil, oben = pf.rohteil_von_oben(job)
     return planen(
         liste,

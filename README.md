@@ -182,7 +182,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   nicht breiter ist als sie – nie in voller Breite mit ganzer Schneide: in
   Kreisen, die je Umlauf um ae vorrücken (Trochoide), oder in einer
   Zickzack-Rampe, wenn die Nut kaum breiter ist; zuletzt die Wand rundum. Sie
-  tritt am Grund gegen Räumen an, an den Wänden gegen die Kontur.
+  tritt am Grund gegen Räumen an, an den Wänden gegen die Kontur. **Reiben** mit
+  der Reibahle auf Maß (G85, im Vorschub heraus) – dann bohrt „Bohren“ kleiner vor.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

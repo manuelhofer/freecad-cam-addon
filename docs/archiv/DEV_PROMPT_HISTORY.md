@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-41 reiben
+
+### EINGELESEN
+- `bohren` (`kann`, `passende`, `bohrzyklus` mit `heraus_im_vorschub`), `senken` (Kegel-Zyklen
+  als Vorbild), FreeCADs `Path.Op.Drilling` in 1.1.3 (`feedRetractEnabled`: G85),
+  `werkzeuge.REIBAHLE`/`REIBEN`, `gui_bearbeitung` (Bohren, `_bohrer_waehlen`, `_bohrer_da`,
+  `_haken_vorschlagen`, `_flaechen`).
+
+### DATEIEN
+- `camaddon/reiben.py` (neu), `camaddon/bohren.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_reiben.py` (neu),
+  `tests/gui/szenario_reiben.py` (neu), `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.57.0)
+
+### AKZEPTANZKRITERIUM
+Block mit Bohrung Ø 10 durchgehend, Bohrer Ø 10 (T2) und Ø 9,8 (T3), Reibahle Ø 10 (T4): die
+Wand anklicken – Bohren mit T2, Reiben ohne Haken, T4 vorgewählt. Reiben anhaken: Bohren nimmt
+T3 („… – vorgebohrt fürs Reiben, mit Ø 9,8“), „Bohrung fräsen“ und Kontur grau mit „Die
+Bohrungen werden gerieben – …“, Reiben „→ 1 Bohrung, etwa 1 min“. „Anlegen“: „Bohren T3“ (G81),
+dann „Reiben T4“ (G85, Endtiefe −1). Im Prüffenster nirgends ins Teil.
+
+### DONE
+- `reiben`: Reibahle im Ø der Bohrung (durchgehend oder mit Bohrspitze), Endtiefe durchgehend
+  1 mm unter den Grund, sonst der Grund der Wand; Bewegungen für die Zeit (hinein und heraus im
+  Vorschub); je Tiefe eine Operation über `bohren.bohrzyklus` mit G85; `ist_reiben`.
+- `bohren`: `REIBZUGABE` (0,15–0,5 mm), `passt_durchmesser`, `kann`/`passende`/`vorschau` mit
+  `reiben` und dem Satz „Vor dem Reiben bohrt ein kleinerer Bohrer vor …“.
+- Assistent: Block „Reiben“ nach Senken (Haken von Hand); angehakt bohrt „Bohren“ kleiner vor
+  (der größte passende Bohrer, die Zeile sagt es), „Bohrung fräsen“ und Kontur treten in
+  geriebenen Bohrungen nicht an und sagen warum; die Kontur lässt sie aus.
+
+### TEST
+- 1.1.3: `test_reiben` (neu), `test_bohren`, `test_bohrung`, `test_sprache` grün; Szenarien
+  `szenario_reiben` (neu), `szenario_bohren`, `szenario_bohrung`, `szenario_sackgewinde` grün;
+  black/ruff grün.
+
+### NEXT
+- 3D-Schlichten in Zeilen (Kugelfräser, Grathöhe); offene Nuten; Räumen: der äußere Ring genau.
+
 ## P-2026-10-01-40 nut
 
 ### EINGELESEN

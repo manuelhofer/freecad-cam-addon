@@ -383,6 +383,24 @@ large, its neck too thick, it does not reach deep enough.</li>
 around each hole it may go into the part up to the tip of the tooth, not beside it.</li>
 </ul>
 
+<h3>14. Reaming</h3>
+<ul>
+<li>For holes that must be to size (H7): with a <b>reamer</b> from the tool management that has
+the diameter of the hole – the matching one is preselected. You set the tick yourself: whether
+a hole is reamed is not in the model.</li>
+<li>With the tick <b>“Drilling” pre-drills smaller</b>: a drill 0.15 to 0.5 mm undersize (for
+Ø 10 one of Ø 9.5 to 9.85 – the largest is preselected), the line says “… – pre-drilled for
+reaming, with Ø 9.8”. “Hole milling” and the contour do not compete in these holes – they
+would mill to size, leaving the reamer nothing to do.</li>
+<li>Created is <b>FreeCAD's Drilling with G85</b>: in at feed and out again at feed (pulled out
+at rapid the reamer would leave marks). Through holes 1 mm below the bottom, blind holes with
+a drill tip to the bottom of the wall; no drill can pre-drill a blind hole with a flat bottom –
+reaming does not work there. The operation is called “Reaming T4” and comes after drilling and
+countersinking.</li>
+<li>Grey below: “→ 1 hole, about 1 min”. Red says why it does not work (no reamer with this
+diameter, flat bottom).</li>
+</ul>
+
 <h3>13. Slot</h3>
 <ul>
 <li>For <b>slots</b> – two straight walls with semicircles at the ends: click a wall or the

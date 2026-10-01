@@ -131,7 +131,8 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
 7. **Bohren, Zirkularfräsen, Gewinde** – FreeCADs Operationen übernehmen; der
    Assistent legt sie mit den Schnittwerten aus der Werkzeugverwaltung an
    (Bohrer, Senker, Reibahle, Gewindebohrer sind schon Werkzeugarten).
-   Aufwand klein.
+   Aufwand klein. Gebaut: Bohren, Bohrung fräsen, Zentrieren, Senken, Gewinde bohren und
+   fräsen (S3g) und Reiben (P-2026-10-01-41, 0.57.0).
 8. **Fasen / Entgraten** – an Kanten in der Ebene mit Fasenfräser oder
    Kugelfräser als Kantenbruch; Breite einstellbar; **auch an Kanten im Raum**
    und rundum (V4d). Aufwand mittel. Gebaut: rundum (V4d, 0.36.0) und im
@@ -822,6 +823,18 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   `test_nut` (Sacknut 20 breit mit Kreisen, Durchgangsnut 14 breit mit Rampe; im
   Quader leer bis zum Grund, daneben nichts angeschnitten), Szenario
   `szenario_nut`.
+  Dann **Reiben** (P-2026-10-01-41, 0.57.0; 4.1 Punkt 7): FreeCADs Bohren mit
+  G85 (`feedRetractEnabled`, heraus im Vorschub) und der Reibahle im Ø der
+  Bohrung (`reiben.py`): durchgehend 1 mm unter den Grund (`ANSCHNITT`),
+  Sackbohrungen mit Bohrspitze bis zum Grund der Wand, je Tiefe eine Operation;
+  eine Sackbohrung mit ebenem Grund nicht (kein Bohrer bohrt sie vor). Den Haken
+  setzt man selbst. Dann bohrt „Bohren“ kleiner vor (`bohren.REIBZUGABE`
+  0,15–0,5 mm auf den Ø, `kann(…, reiben=True)`, vorgewählt der größte; die Zeile
+  sagt es), „Bohrung fräsen“ und die Kontur treten in geriebenen Bohrungen nicht
+  an (sie fräsen auf Maß) und sagen warum; die Kontur lässt sie aus, wenn sie
+  weitere Wände hat. Die Operation kommt nach Bohren und Senken. Prüfung
+  `test_reiben` (durchgehend und mit Spitze, Vorbohren Ø 9,8 ja, Ø 10 und 9,4
+  nicht, G85, Endtiefen), Szenario `szenario_reiben`.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z
