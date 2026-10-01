@@ -13,8 +13,8 @@ from . import symbol
 
 
 def _ist_eben(objekt):
-    """Eine 2,5D-Operation (Planfräsen, Räumen, Nut, Bohrung fräsen, Kontur, Entgraten, Gewinde
-    fräsen) – ihr Assistent ist „Bearbeitung (Fräsen)“."""
+    """Eine Operation im Quader (Planfräsen, Räumen, Nut, Bohrung fräsen, Kontur, Entgraten,
+    Gewinde fräsen, 3D-Schlichten) – ihr Assistent ist „Bearbeitung (Fräsen)“."""
     from . import bohrung as bo
     from . import entgraten as eg
     from . import gewindefraesen as gf
@@ -22,12 +22,14 @@ def _ist_eben(objekt):
     from . import nut as nu
     from . import planfraesen as pf
     from . import raeumen as ra
+    from . import schlichten3d as s3op
 
     return (
         pf.ist_planfraesen(objekt)
         or ko.ist_kontur(objekt)
         or ra.ist_raeumen(objekt)
         or nu.ist_nut(objekt)
+        or s3op.ist_schlichten3d(objekt)
         or bo.ist_bohrungsfraesen(objekt)
         or eg.ist_entgraten(objekt)
         or gf.ist_gewindefraesen(objekt)

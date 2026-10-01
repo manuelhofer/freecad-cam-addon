@@ -155,7 +155,21 @@ eben). Kein OCL.
 3. **Schlichten Zeilen** (parallel) – Raster in einem Winkel, Zickzack oder
    einseitig, **Grathöhe als Maß** (Schrittweite aus Grathöhe und Fräserform,
    `vierachs_bahn.rillenhoehe` gibt es schon), Zeilen nur über der Fläche,
-   Bögen an den Umkehrpunkten. Aufwand mittel.
+   Bögen an den Umkehrpunkten. Aufwand mittel. Gebaut als „3D-Schlichten“
+   (P-2026-10-01-42, 0.58.0): `schlichten3d_bahn` – Freiformflächen (nach oben,
+   weder eben noch senkrecht, keine gezeichnete Fase oder Senkung); die Spitze
+   auf der Hüllfläche des ganzen Teils (`hoehenfeld.je_zeile`); gefräst nur, wo
+   die Hüllfläche mit den gewählten Flächen höher liegt als ohne sie (zwei
+   Rechnungen je Zeile – am Fuß einer Kuppel endet die Zeile, wo die Platte den
+   Fräser hält); der Abstand aus der Grathöhe (`Form.kammhoehe`, Kugel Ø 6 bei
+   0,01: 0,49); längs X und Y gerechnet, die schnellere zählt; Zickzack, nahe
+   Enden 0,1 mm über der Hüllfläche beider Zeilen hinüber, Lücken unter 10 mm
+   auf der Hüllfläche durch; Douglas-Peucker (0,002 mm); das Aufmaß senkrecht
+   zur Fläche (`Form.mit_aufmass`); im Eilgang nur bis über das Rohteil.
+   Gemessen: Kuppel Ø 40, 10 hoch, Kugel Ø 6 – 87 Zeilen, 3,5 min, 1,7 s
+   Rechenzeit; im Quader −0,007 … +0,022 mm auf der Kuppel (`test_schlichten3d`,
+   `szenario_schlichten3d`). Offen: einseitig, Winkel, Bögen an den Umkehrpunkten;
+   „Z-konstant“ für die steilen Stellen (Punkt 4).
 4. **Z-konstant** (Höhenlinien) für steile Bereiche, **Steil/Flach**: über
    einem Grenzwinkel Höhenlinien, darunter Zeilen – in einer Operation.
    *Besser:* Surface und Waterline getrennt lassen Rippen und Stufen. Aufwand

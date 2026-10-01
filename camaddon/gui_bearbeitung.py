@@ -40,6 +40,8 @@ from . import planfraesen as pf
 from . import raeumen as ra
 from . import raeumen_bahn as rb
 from . import reiben as rbn
+from . import schlichten3d as s3op
+from . import schlichten3d_bahn as s3b
 from . import senken as sk
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_bahn as vb
@@ -79,6 +81,7 @@ GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
 GEMERKT_ANBOHRER = "BaAnbohrer"  # … fürs Zentrieren
 GEMERKT_SENKER = "BaSenker"  # … fürs Senken
 GEMERKT_RESTFRAESER = "BaRestFraeser"  # … fürs Restmaterial
+GEMERKT_FRAESER_3D = "BaFraeser3D"  # … fürs 3D-Schlichten
 REST_BREITE = 0.01  # mm – „Material neben der Wand“ beim Restmaterial: eine Bahn bei Radius
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
@@ -134,9 +137,10 @@ def nullpunkte():
 
 def ist_bearbeitung(op):
     """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Nut“, „Bohrung fräsen“,
-    „Kontur“, „Entgraten“ oder „Gewinde fräsen“?"""
+    „Kontur“, „Entgraten“, „Gewinde fräsen“ oder „3D-Schlichten“?"""
     return (
-        pf.ist_planfraesen(op)
+        s3op.ist_schlichten3d(op)
+        or pf.ist_planfraesen(op)
         or ra.ist_raeumen(op)
         or nu.ist_nut(op)
         or bo.ist_bohrungsfraesen(op)
@@ -239,6 +243,7 @@ class _Strategie:
     kennung = ""
     gemerkt = ""  # Parameter: der zuletzt gewählte Fräser
     einsatz_reihenfolge = ()  # welcher Einsatz vorgewählt ist
+    bevorzugt = wz.SCHAFTFRAESER  # diese Art vorgewählt, wenn sonst nichts entscheidet
 
     def titel(self):
         return ""
@@ -1362,6 +1367,87 @@ class _Rest(_Strategie):
         return {"davor": 2 * float(op.RadiusDavor), "zustellung": float(op.Zustellung)}
 
 
+class _Schlichten3D(_Strategie):
+    """Freiformflächen in parallelen Zeilen auf der Hüllfläche des ganzen Teils
+    (schlichten3d_bahn) – am liebsten mit dem Kugelfräser; gegen keine Strategie im Wettbewerb."""
+
+    kennung = "schlichten3d"
+    gemerkt = GEMERKT_FRAESER_3D
+    einsatz_reihenfolge = (wz.SCHLICHTEN, wz.SCHRUPPEN)
+    bevorzugt = wz.KUGELFRAESER
+    ARTEN = (wz.KUGELFRAESER, wz.TORUSFRAESER, wz.SCHAFTFRAESER, wz.KONIKFRAESER)
+
+    def titel(self):
+        return tr("ba.s3")
+
+    def text(self):
+        return tr("ba.s3.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.s3.fraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.s3.einsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("grathoehe", tr("ba.grathoehe"), tr("ba.grathoehe.tooltip")),
+            ("aufmass", tr("ba.aufmass"), tr("ba.s3.aufmass.tooltip")),
+        )
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art in self.ARTEN and ff.von_werkzeug(werkzeug) is not None
+
+    def passt(self, form, name):
+        return s3b.ist_freiform(form, name)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return bool(gewaehlte) and all(self.passt(form, n) for n in gewaehlte)
+
+    def unmoeglich_text(self):
+        return tr("ba.s3.keine")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        return s3b.GRATHOEHE if feld == "grathoehe" else 0.0
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        form = ff.von_werkzeug(werkzeug)
+        if form is None:
+            raise ValueError(tr("s3.fehler.form"))
+        return s3op.vorschau(
+            job,
+            job.Model.Group,
+            form,
+            werte["grathoehe"],
+            flaechen,
+            aufmass=werte["aufmass"],
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        zeilen = tr("ba.zahl.zeile") if bahn.zeilen == 1 else tr("ba.zahl.zeilen", n=bahn.zeilen)
+        return tr(
+            "ba.ergebnis_s3",
+            zeilen=zeilen,
+            richtung="X" if bahn.laengs_x else "Y",
+            abstand=groesse_zeigen(bahn.abstand, einheiten.LAENGE, 2) or "0",
+            zeit=zeit,
+        )
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return s3op.lege_an(job, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
+
+    def aendere(self, op, tc, werte, flaechen):
+        s3op.aendere(op, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
+
+    def ist(self, op):
+        return s3op.ist_schlichten3d(op)
+
+    def werte_von(self, op):
+        return {"grathoehe": float(op.Grathoehe), "aufmass": float(op.Aufmass)}
+
+
 class _Senken(_Strategie):
     """FreeCADs Bohren mit einem Kegelsenker in die Senkungen des Modells (senken) – nach dem
     Bohren; das Modell sagt, dass sie kommen, darum vorgeschlagen."""
@@ -1464,6 +1550,7 @@ STRATEGIEN = (
     _Bohrung,
     _Kontur,
     _Rest,
+    _Schlichten3D,
     _Senken,
     _Reiben,
     _Gewinde,
@@ -1620,7 +1707,7 @@ class _Block:
                         e.art == erster
                         for e in self._passende_einsaetze(self._fraeser[i], werkstoff)
                     ),
-                    self._fraeser[i].art != wz.SCHAFTFRAESER,
+                    self._fraeser[i].art != self.s.bevorzugt,
                     i,
                 ),
                 default=0,
@@ -1767,6 +1854,7 @@ class BearbeitungPanel:
         self.zentrieren = next(b for b in self.bloecke if b.s.kennung == "zentrieren")
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
         self.reiben = next(b for b in self.bloecke if b.s.kennung == "reiben")
+        self.schlichten3d = next(b for b in self.bloecke if b.s.kennung == "schlichten3d")
         self.rest = next(b for b in self.bloecke if b.s.kennung == "rest")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
@@ -2341,6 +2429,11 @@ class BearbeitungPanel:
                 d = groesse_zeigen(senkung.durchmesser, einheiten.LAENGE) or "0"
                 winkel = f"{round(senkung.winkel, 1):g}"
                 text, farbe = tr("ba.flaeche.senkung", name=name, d=d, winkel=winkel), GRUEN
+            elif self.schlichten3d.s.passt(form, name):
+                z = groesse_zeigen(form.Faces[nummer].BoundBox.ZMin, einheiten.LAENGE) or "0"
+                text, farbe = tr("ba.flaeche.freiform", name=name, z=z), GRUEN
+            elif eb.ist_fase(form, name):
+                text, farbe = tr("ba.flaeche.fase", name=name), GRUEN
             else:
                 text, farbe = tr("ba.flaeche.nichts", name=name), ROT
             eintrag = QtGui.QListWidgetItem(dezimal(text))

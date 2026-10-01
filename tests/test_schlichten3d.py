@@ -1,0 +1,159 @@
+# Prüft „3D-Schlichten“ (W-006 4.2 Punkt 3): Platte 60 × 60 × 10 mit einer Kuppel (Kugel R 25,
+# Mitte (30, 30, −5): Fuß Ø 40 auf z 10, oben z 20). Die Kugelfläche ist eine Freiformfläche, die
+# Oberseite der Platte und ihre Seiten nicht. Ein Kugelfräser Ø 6, Grathöhe 0,01: Zeilenabstand
+# 0,49; die Spitze nie unter der Platte (z ≥ 10). Im Quader – vorher die Kuppel mit 0,3 Aufmaß –
+# liegt danach jede Stelle der Kuppel höchstens 0,04 über ihr und nirgends darunter (nichts ins
+# Teil); die Platte daneben bleibt, wie sie war. Mit Aufmaß 0,2 bleiben 0,2 senkrecht zur
+# Fläche (auf der Kuppel senkrecht gemessen 0,2 / cos θ). Längs x und längs y
+# gerechnet, die schnellere zählt. Dann die Operation im Job: „3D-Schlichten T3“, Art
+# „schlichten3d“.
+import math
+import os
+import pathlib
+import sys
+import tempfile
+import time
+
+ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ADDON)
+
+import FreeCAD
+import numpy as np
+import Part
+from Path.Tool.camassets import user_asset_store
+
+from camaddon import fraeserform as ff
+from camaddon import hoehenfeld as hf
+from camaddon import job_schnittwerte as js
+from camaddon import restmaterial as rm
+from camaddon import schlichten3d as s3op
+from camaddon import schlichten3d_bahn as s3
+from camaddon import sprache
+from camaddon import uebergabe_werkzeuge as ue
+from camaddon import vierachs_flaechen as vf
+from camaddon import werkzeuge as wz
+
+fehler = []
+
+
+def pruefe(bedingung, text):
+    if not bedingung:
+        fehler.append(text)
+
+
+V = FreeCAD.Vector
+sprache.setze_sprache("de")
+
+platte = Part.makeBox(60, 60, 10)
+kappe = Part.makeSphere(25, V(30, 30, -5)).common(Part.makeBox(60, 60, 15, V(0, 0, 10)))
+teil = platte.fuse(kappe).removeSplitter()
+kugel = [f"Face{i + 1}" for i, f in enumerate(teil.Faces) if isinstance(f.Surface, Part.Sphere)]
+andere = [f"Face{i + 1}" for i, f in enumerate(teil.Faces) if f"Face{i + 1}" not in kugel]
+pruefe(len(kugel) >= 1, f"Kugelflächen: {kugel}")
+pruefe(all(s3.ist_freiform(teil, n) for n in kugel), "Kuppel keine Freiformfläche")
+pruefe(not any(s3.ist_freiform(teil, n) for n in andere), "Platte als Freiformfläche")
+
+form = ff.kugel(3.0)
+abstand = s3.zeilenabstand(form, 0.01)
+pruefe(abs(abstand - 2 * math.sqrt(2 * 3 * 0.01 - 0.0001)) < 1e-3, f"Abstand {abstand}")
+
+
+def werte(**weiter):
+    grund = {"form": form, "oben": 20.0, "sicher": 25.0, "vorschub": 1000.0, "eintauchen": 300.0}
+    grund.update(weiter)
+    return s3.Schlichtwerte(**grund)
+
+
+t0 = time.time()
+bahn = s3.planen(teil, kugel, werte())
+print(ascii(f"{bahn.zeilen} Zeilen, {len(bahn.punkte)} Punkte, {bahn.zeit:.2f} min"))
+print(ascii(f"Rechenzeit {time.time() - t0:.1f} s"))
+pruefe(70 <= bahn.zeilen <= 100, f"Zeilen {bahn.zeilen}")
+pruefe(bahn.z_min >= 10.0 - 1e-6, f"unter der Platte: {bahn.z_min}")
+nur_x = s3.planen(teil, kugel, werte(richtung="x"))
+nur_y = s3.planen(teil, kugel, werte(richtung="y"))
+pruefe(nur_x.laengs_x and not nur_y.laengs_x, "Richtung nicht wie verlangt")
+pruefe(bahn.zeit <= min(nur_x.zeit, nur_y.zeit) + 1e-9, "nicht die schnellere Richtung")
+try:
+    s3.planen(teil, andere, werte())
+except ValueError as grund:
+    pruefe("Keine Freiformfläche" in str(grund), f"ohne Freiform: {grund}")
+else:
+    pruefe(False, "ohne Freiform: kein Satz")
+
+
+# --- Im Quader: die Kuppel mit 0,3 Aufmaß, danach fertig ----------------------------------------
+netz = vf.vernetze(teil, 0.005).netz
+
+
+def quader_nach(bahn_, aufmass_vorher=0.3):
+    q = rm.Quader(0, 60, 0, 60, 0, 20.5, schritt=0.25)
+    soll = hf.hoehen(netz, q.x, q.y)
+    q.h[:] = np.minimum(soll + aufmass_vorher, 20.5)
+    punkte = bahn_.punkte
+    von = [(a.x, a.y, a.z) for a, b in zip(punkte, punkte[1:], strict=False) if not b.eilgang]
+    nach = [(b.x, b.y, b.z) for a, b in zip(punkte, punkte[1:], strict=False) if not b.eilgang]
+    q.fahre_stuecke(von, nach, form)
+    return q, soll
+
+
+q, soll = quader_nach(bahn)
+xs, ys = np.meshgrid(q.x, q.y, indexing="ij")
+r = np.hypot(xs - 30, ys - 30)
+rest = q.h - soll
+kuppel = r < 18.0  # fern vom Fuß
+pruefe(np.max(rest[kuppel]) < 0.04, f"stehen geblieben: {np.max(rest[kuppel]):.3f}")
+pruefe(np.min(rest) > -0.02, f"ins Teil: {np.min(rest):.3f}")
+platte_fern = r > 25.0  # die Platte weit neben der Kuppel: nicht gewählt, nicht gefräst
+pruefe(np.all(np.abs(rest[platte_fern] - 0.3) < 1e-9), "Platte daneben angeschnitten")
+print(ascii(f"Kuppel: Rest {np.min(rest[kuppel]):.3f} … {np.max(rest[kuppel]):.3f}"))
+
+# Das Aufmaß gilt senkrecht zur Fläche: auf der Kuppel senkrecht gemessen 0,2 / cos θ, mit
+# cos θ = √(25² − r²) / 25 (oben 0,2, bei r 16 schon 0,26).
+mit_aufmass = s3.planen(teil, kugel, werte(aufmass=0.2))
+q2, _soll = quader_nach(mit_aufmass)
+rest2 = q2.h - soll
+innen = r < 16.0
+erwartet = 0.2 * 25.0 / np.sqrt(625.0 - r[innen] ** 2)
+abweichung = rest2[innen] - erwartet
+pruefe(
+    np.min(abweichung) > -0.02 and np.max(abweichung) < 0.04,
+    f"Aufmaß 0,2: {np.min(abweichung):.3f} … {np.max(abweichung):.3f} neben dem Soll",
+)
+
+# --- Die Operation im Job -----------------------------------------------------------------------
+import Path.Main.Job as PathJob
+
+t3 = wz.Werkzeug(
+    nummer=3,
+    name="Kugel 6",
+    art=wz.KUGELFRAESER,
+    durchmesser=6.0,
+    schneiden=2,
+    schneidenlaenge=12.0,
+    schneidstoff=wz.VHM,
+)
+t3.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHLICHTEN, ae=0.3, ap=0.3, vc=150.0, fz=0.05)]
+user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))
+ue.uebergeben(wz.Bibliothek([wz.standardwerkzeug(), t3]))
+doc = FreeCAD.newDocument("Kuppel")
+objekt = doc.addObject("Part::Feature", "Teil")
+objekt.Shape = teil
+doc.recompute()
+job = PathJob.Create("Job", [objekt])
+job.Stock.ExtZpos = 0.0
+doc.recompute()
+tc = js.controller_ohne_transaktion(doc, job, t3, t3.schnittwerte[wz.ALLE][0])
+doc.recompute()
+op = s3op.lege_an(job, tc, 0.01, flaechen=kugel)
+doc.recompute()
+pruefe(op.Label == "3D-Schlichten T3", f"Name {op.Label}")
+pruefe(op.Zeilen == bahn.zeilen, f"Zeilen {op.Zeilen} statt {bahn.zeilen}")
+pruefe(abs(float(op.FinalDepth) - 10.0) < 1e-6, f"Endtiefe {float(op.FinalDepth)}")
+pruefe(js.operationsart(op) == "schlichten3d", f"Art {js.operationsart(op)}")
+print(ascii(f"Operation: {len(op.Path.Commands)} Befehle"))
+
+if fehler:
+    raise AssertionError("\n".join(fehler))
+print()
+print("OK", os.path.basename(__file__))

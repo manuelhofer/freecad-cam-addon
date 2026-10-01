@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-42 schlichten-3d
+
+### EINGELESEN
+- `hoehenfeld.je_zeile` (Hüllfläche je Zeile gegen das Netz), `vierachs_flaechen.vernetze`
+  (Netz je Fläche), `fraeserform.Form` (Kugel, `kammhoehe`, `mit_aufmass`), `restmaterial.Quader`
+  (Abtrag mit der Fräserform), `planfraesen_bahn` (Zeilen, Hüllfläche), `gui_bearbeitung`
+  (Block, Flächenliste, Vorwahl des Fräsers).
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py` (neu), `camaddon/schlichten3d.py` (neu),
+  `camaddon/gui_bearbeitung.py`, `camaddon/gui_vierachs_operation.py`,
+  `camaddon/job_schnittwerte.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_schlichten3d.py` (neu), `tests/gui/szenario_schlichten3d.py` (neu),
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml`
+  (0.58.0)
+
+### AKZEPTANZKRITERIUM
+Platte mit Kuppel (Fuß Ø 40, 10 hoch), Kugelfräser Ø 6 (T3): die Kuppel anklicken – „Freiform,
+unten 10“, „3D-Schlichten“ angehakt mit T3, „→ N Zeilen längs X, Abstand 0,49, etwa … min“,
+Planfräsen und Räumen ohne Haken. „Anlegen“: „3D-Schlichten T3“. Im Prüffenster nirgends ins
+Teil. Im Quader (`test_schlichten3d`): die Kuppel auf −0,007 … +0,022 mm, die Platte daneben
+unberührt; mit Aufmaß 0,2 bleiben 0,2 senkrecht zur Fläche.
+
+### DONE
+- `schlichten3d_bahn`: Freiformflächen erkennen; Zeilenabstand aus der Grathöhe; je Richtung zwei
+  Hüllflächen (mit und ohne die gewählten Flächen) – gefräst, wo die gewählten die Höhe
+  bestimmen; Läufe, Lücken durchfahren, Douglas-Peucker; Zickzack mit Gleiten zwischen nahen
+  Enden, sonst Eilgang (hinab nur bis über das Rohteil); x und y gerechnet, die schnellere zählt.
+- `schlichten3d`: die Operation (Flächen, Grathöhe, Aufmaß, Richtung; Ergebnis Zeilen, Abstand),
+  Art „schlichten3d“ mit dem Einsatz „Schlichten“.
+- Assistent: Block „3D-Schlichten“ (Kugelfräser vorgewählt über `_Strategie.bevorzugt`), in der
+  Liste „Freiform, unten 10“ und „gezeichnete Fase oder Rundung“ statt rot „keine Bearbeitung“.
+
+### TEST
+- 1.1.3: `test_schlichten3d` (neu) grün; Szenarien `szenario_schlichten3d` (neu),
+  `szenario_bearbeitung`, `szenario_fase`, `szenario_rundung`, `szenario_senken`,
+  `szenario_entgraten`, `szenario_nut`, `szenario_gewindefraesen`, `szenario_rest` grün;
+  black/ruff grün.
+
+### NEXT
+- „Z-konstant“ für steile Stellen (4.2 Punkt 4); offene Nuten; Räumen: der äußere Ring genau.
+
 ## P-2026-10-01-41 reiben
 
 ### EINGELESEN
