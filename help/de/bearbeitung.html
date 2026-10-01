@@ -14,14 +14,16 @@ li { margin-bottom: 0.4em; }
 <h2>Bearbeitung (Fräsen)</h2>
 <p>Für ein Teil, das in einem <b>Quader</b> auf einer Fräse liegt – die
 Werkzeugachse steht senkrecht. Der Knopf „Bearbeitung (Fräsen)“ öffnet das
-Fenster; der Weg vom Teil zur Operation hat drei Schritte, alle in einem
-Fenster. Für ein rundes Rohteil mit Rundachse gibt es die
+Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, alle in einem
+Fenster: Teil und Rohteil, die Flächen, dann je Bearbeitung ein Block mit
+Haken – <b>Planfräsen</b> für ebene Flächen nach oben, <b>Kontur</b> für
+Wände. „Anlegen“ legt alle angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
 <a href="vierachs.html">4-Achs-Bearbeitung</a>.</p>
 
 <h3>1. Teil und Rohteil</h3>
 <ul>
-<li><b>Eine Fläche des Teils anklicken</b> (vorher oder im Fenster) – am besten
-die Fläche, die eben werden soll. Das Teil ist damit gewählt, und der
+<li><b>Eine Fläche des Teils anklicken</b> (vorher oder im Fenster) – die
+Fläche, die eben werden soll, oder eine Wand für die Kontur. Das Teil ist damit gewählt, und der
 <b>Job mit dem Rohteil</b> entsteht sofort: ein Quader um das Teil mit
 <b>Aufmaß</b> oben, seitlich und unten (leer: 1 mm, wie FreeCADs Job). Die
 Felder ändern das Rohteil gleich mit. „Abbrechen“ nimmt alles zurück.</li>
@@ -34,10 +36,14 @@ Job steht.</li>
 <li>Ohne Wahl wird die <b>Oberseite</b> des Teils plan gefräst – die höchsten
 ebenen Flächen. Der Satz unter der Liste nennt sie.</li>
 <li>Ein Klick auf eine Fläche des Teils nimmt sie dazu (noch ein Klick, oder
-Doppelklick in der Liste, heraus); grün heißt eben nach oben – die wird plan
-gefräst –, rot heißt nicht eben nach oben, die kann das Planfräsen nicht. Das
-3D färbt sie so. „Oberseite“ wählt die höchsten Flächen, „Auswahl leeren“
-nimmt alle heraus.</li>
+Doppelklick in der Liste, heraus); grün heißt: eben nach oben – die wird plan
+gefräst – oder eine Wand („Wand, unten 5 mm“) – an der fährt die Kontur;
+rot heißt weder noch. Das 3D färbt sie so. „Oberseite“ wählt die höchsten
+Flächen, „Auswahl leeren“ nimmt alle heraus.</li>
+<li>Die <b>Haken</b> der Blöcke folgen der Wahl: Planfräsen ist angehakt,
+solange keine Fläche oder eine ebene gewählt ist; Kontur, sobald eine Wand
+dabei ist (ohne Wand lässt sie sich nicht anhaken). Wer einen Haken selbst
+setzt oder nimmt, behält ihn.</li>
 </ul>
 
 <h3>3. Planfräsen</h3>
@@ -77,17 +83,55 @@ dem Rohteil, die Endtiefe ist die Fläche plus Aufmaß, sichere Höhe und
 Freifahrhöhe kommen aus dem Einrichtblatt des Jobs.</li>
 </ul>
 
+<h3>4. Kontur</h3>
+<ul>
+<li>Für <b>Wände</b>: senkrechte Flächen mit waagerechter Unterkante – eben,
+rund oder frei geformt. Die Unterkanten der gewählten Wände verbinden sich zu
+<b>Konturen</b>: rundum geschlossen (um einen Zapfen, in einer Tasche) oder
+offen (eine Wand, ein Absatz). Wo das Material liegt, weiß das Fenster von
+der Wand selbst.</li>
+<li><b>Fräser</b> und <b>Einsatz</b> wie beim Planfräsen – vorgewählt
+„Schruppen“; der Fräserradius ist der Abstand der Bahn zur Wand.</li>
+<li><b>Zustellung je Lage</b> (ap) fürs Schruppen, <b>Zeilenabstand</b> (ae,
+seitlich zwischen den Schruppbahnen, höchstens so breit wie der Fräser),
+<b>Aufmaß zum Schlichten</b> (leer: 0,3 mm – bleibt beim Schruppen an der
+Wand stehen), <b>Material neben der Wand</b> (leer: so viel, wie das Rohteil
+sagt – außen alles bis zum Rand, eine Tasche ganz; nach einer Taschenoperation
+trag hier ihr Aufmaß ein) und der Haken <b>Schlichten in einem Zug</b>.</li>
+<li>Die Bahn: Schruppen in Lagen von der Oberkante des Rohteils bis auf die
+Unterkante der Wand – je Lage so viele Bahnen nebeneinander, wie Material
+neben der Wand steht, von außen her zur Wand hin (zuletzt bei Radius plus
+Aufmaß); dann das Schlichten einmal bei Radius über die ganze Höhe in einem
+Zug (höchstens die Schneidenlänge je Zug). Alles im <b>Gleichlauf</b>: das
+Material links der Fahrtrichtung – um einen Zapfen gegen den Uhrzeigersinn, in
+einer Tasche mit ihm. Ecken außen werden Bögen (G2/G3), innen bleibt der
+Fräserradius. Jede Bahn fährt <b>tangential</b> hinein und heraus: eine Gerade
+quer von der Wand weg und ein Viertelkreis (je der Fräserradius) – wo das
+nicht passt, kürzer, zuletzt senkrecht. Vor Absätzen und nicht gewählten
+Wänden hält die Bahn an (gerechnet gegen das Teil ohne die Wände und ihre
+Böden und Decken). Wo kein Rohteil liegt, fährt keine Bahn; beim Austritt aus
+dem Rohteil mit halbem Vorschub. Hinein geht es in der Luft senkrecht mit dem
+Eintauchvorschub, im Material über eine Rampe längs der Bahn.</li>
+<li>Grau darunter: „→ 2 Konturen: 22 Lagen, 38 Bahnen, etwa 9 min“. Rot
+steht, warum es nicht geht (keine Wand, der Fräser passt nicht in die Tasche,
+neben den Wänden steht nichts).</li>
+<li>In den Eigenschaften der Operation außerdem <b>Tiefer</b> (so viel tiefer
+als die Unterkante – zum Freischneiden) und der <b>Einfahrradius</b>.</li>
+<li>Die Operation heißt „Kontur T1“; Starttiefe, sichere Höhe und
+Freifahrhöhe wie beim Planfräsen, die Endtiefe ist die tiefste
+Unterkante.</li>
+</ul>
+
 <h3>Nachträglich ändern</h3>
-<p><b>Doppelklick</b> auf „Planfräsen …“ im Baum – oder rechte Maustaste,
+<p><b>Doppelklick</b> auf „Planfräsen …“ oder „Kontur …“ im Baum – oder rechte Maustaste,
 <b>Bearbeiten</b>; oder die Operation bzw. ihren Job wählen und den Knopf
 „Bearbeitung (Fräsen)“ drücken – öffnet das Fenster mit Flächen, Fräser,
-Einsatz und Werten der Operation. <b>Übernehmen</b> ändert sie – ein Schritt
+Einsatz und Werten der Operation, nur mit ihrem Block. <b>Übernehmen</b> ändert sie – ein Schritt
 Rückgängig; ein anderer Fräser bekommt seinen eigenen Werkzeug-Controller, den
 alten nimmt das Fenster heraus, wenn ihn keine Operation mehr benutzt.</p>
 
 <h3>Was noch kommt</h3>
-<p>Kontur schruppen und schlichten mit tangentialem Ein- und Ausfahren, Tasche
-adaptiv mit Trochoiden, Bohren und Gewinde aus dem Fenster, das Prüffenster
-mit dem Abtrag des Quaders – nach dem Plan in der Spezifikation W-006.</p>
+<p>Tasche adaptiv mit Trochoiden, Bohren und Gewinde aus dem Fenster – nach
+dem Plan in der Spezifikation W-006.</p>
 </body>
 </html>

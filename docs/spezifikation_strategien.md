@@ -412,6 +412,26 @@ gebaut.
 - **S3e Kontur** – außen und innen mit tangentialem Ein- und Ausfahren,
   Schruppen mit Aufmaß und Schlichten in einem Schritt; Konturen versetzen im
   Bahnmodell (dann auch die Spirale fürs Planfräsen).
+  Gebaut (P-2026-10-01-19, 0.40.0): `kontur_bahn.py` – Wände sind senkrechte
+  Flächen mit waagerechter Unterkante (eben, rund, Freiform), ihre Unterkanten
+  verbinden sich zu geschlossenen oder offenen Konturen, die freie Seite sagt
+  die Außennormale; der Versatz kommt von `Part.Wire.makeOffset2D` (Ecken
+  außen als Bögen G2/G3, innen bleibt der Fräserradius); Schruppen bei Radius +
+  Aufmaß + k · ae von außen zur Wand hin – so viele Bahnen, wie Rohteil neben
+  der Wand steht (eine Tasche ganz) oder die Breite sagt –, in Lagen bis auf die
+  Unterkante (plus „Tiefer“), dann Schlichten bei Radius in einem Zug
+  (höchstens die Schneidenlänge je Zug); Gleichlauf (Grundsatz 4: Material
+  links – um einen Zapfen gegen den Uhrzeigersinn, in der Tasche mit ihm);
+  Ein- und Ausfahren als Gerade quer von der Wand weg und Viertelkreis (je
+  Fräserradius), kürzer, wo es nicht passt, zuletzt senkrecht; Rampe im
+  Material, senkrecht in der Luft; die Hüllfläche im Raster mit zwei Netzen
+  (nahe der Wand ohne ihre Böden und Decken – der Fräser berührt ihre Kanten –,
+  weiter weg nur ohne die Wände, damit die Oberseite hinter einer einzeln
+  gewählten Wand die Bahn anhält); kein Rohteil – keine Bahn (Grundsatz 5),
+  beim Austritt halber Vorschub. Operation `kontur.Kontur`, im Assistenten der
+  Block „Kontur“ mit Haken (je Strategie ein Block, `_Strategie`/`_Block`);
+  Prüfung `test_kontur`, Szenario `szenario_kontur`. Die Spirale fürs
+  Planfräsen aus Versätzen steht noch aus.
 - **S3f Tasche adaptiv** (E3) – gleichmäßiger Eingriff, Helix oder Rampe hinein,
   Trochoiden in Ecken, Bögen; Restmaterial aus dem Abtrag; Nut.
 - **S3g Bohren, Gewinde** – FreeCADs Operationen aus dem Assistenten mit den

@@ -135,7 +135,13 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   ihr entlang, damit zwischen den Zeilen nichts stehen bleibt. „Auf der
   Maschine prüfen“ trägt den Quader beim Abspielen ab – jede Operation mit der
   Form ihres Fräsers, auch FreeCADs eigene – und färbt ihn am Ende gegen das
-  fertige Teil (grün, gelb, rot, blau). Kontur, Tasche und Bohren folgen.
+  fertige Teil (grün, gelb, rot, blau). **Kontur** für Wände: eine senkrechte
+  Fläche anklicken – ihre Unterkanten werden zur Kontur, außen um einen Zapfen
+  oder innen in einer Tasche –, Schruppen in Lagen mit Aufmaß (so viele Bahnen
+  nebeneinander, wie Material neben der Wand steht), dann Schlichten in einem
+  Zug, tangential hinein und heraus, im Gleichlauf, Bögen in den Ecken. Jede
+  Bearbeitung ist ein Block mit Haken; „Anlegen“ legt alle angehakten an.
+  Tasche und Bohren folgen.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

@@ -58,12 +58,15 @@ def schritte(h):
         abs(job.Stock.Shape.BoundBox.ZMax - 26.0) < 1e-6, f"Rohteil {job.Stock.Shape.BoundBox}"
     )
     h.pruefe(panel.flaechen() == [flaeche], f"Flächen: {panel.flaechen()}")
-    h.pruefe(panel.fraeser() is not None and panel.fraeser().nummer == 1, "Fräser T1")
-    einsatz = panel.einsatz()
+    plan = panel.plan
+    h.pruefe(plan.fraeser() is not None and plan.fraeser().nummer == 1, "Fräser T1")
+    einsatz = plan.einsatz()
     h.pruefe(einsatz is not None and einsatz.art == wz.PLANEN, "Einsatz Planen vorgewählt")
-    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
-    h.pruefe(not panel.hinweis.text(), f"rot: {panel.hinweis.text()!r}")
-    text = panel.ergebnis.text()
+    h.pruefe(plan.aktiv() and not panel.kontur.aktiv(), "Haken: Planfräsen an, Kontur aus")
+    h.pruefe(not panel.kontur.haken.isEnabled(), "Kontur ohne Wand wählbar")
+    yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)
+    h.pruefe(not plan.hinweis.text(), f"rot: {plan.hinweis.text()!r}")
+    text = plan.ergebnis.text()
     h.pruefe(text.startswith("→ 3 Lagen, 30 Zeilen, etwa"), f"Vorschau: {text!r}")
     zeile = panel.flaechen_liste.item(0).text() if panel.flaechen_liste.count() else ""
     h.pruefe(zeile.startswith(flaeche) and "eben nach oben" in zeile, f"Liste: {zeile!r}")
@@ -72,13 +75,13 @@ def schritte(h):
     # Mehr Aufmaß oben: eine Lage mehr.
     panel.felder_rohteil["oben"].setText("3")
     yield from h.warte_auf(lambda: not panel._rohteil_uhr.isActive(), 3000)
-    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
+    yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)
     h.pruefe(abs(job.Stock.Shape.BoundBox.ZMax - 28.0) < 1e-6, "Rohteil folgt dem Feld nicht")
-    text = panel.ergebnis.text()
+    text = plan.ergebnis.text()
     h.pruefe(text.startswith("→ 4 Lagen"), f"Vorschau mit 3 mm: {text!r}")
     panel.felder_rohteil["oben"].setText("")
     yield from h.warte_auf(lambda: not panel._rohteil_uhr.isActive(), 3000)
-    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
+    yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)
 
     # --- Anlegen: „Planfräsen T1“ ------------------------------------------------------------
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
@@ -109,12 +112,14 @@ def schritte(h):
     h.pruefe(panel is not None and panel.zu_aendern is op, "Doppelklick öffnet nichts")
     if panel is None:
         return
-    h.pruefe(panel.fraeser() is not None and panel.fraeser().nummer == 1, "beim Ändern: Fräser")
+    plan = panel.plan
+    h.pruefe(plan.fraeser() is not None and plan.fraeser().nummer == 1, "beim Ändern: Fräser")
     h.pruefe(not panel.rohteilfelder.isEnabled(), "Rohteil beim Ändern änderbar")
-    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
+    h.pruefe(not panel.kontur.widget.isVisible(), "beim Ändern: der Block Kontur ist sichtbar")
+    yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)
     h.bild("3_aendern", panel.form)
-    panel.felder["zustellung"].setText("1,5")
-    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
+    plan.felder["zustellung"].setText("1,5")
+    yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)
     h.pruefe(panel.accept() is True, "„Übernehmen“ ging nicht")
     yield 1500
     h.pruefe(op.Lagen == 4, f"nach dem Ändern: {op.Lagen} Lagen")

@@ -4,7 +4,7 @@ Symbol im Baum, die Bahn zeichnet FreeCAD selbst. Doppelklick oder „Bearbeiten
 Kontextmenü öffnet den Assistenten mit ihren Werten (Manuel, 2026-09-29: „komme ich nicht
 mehr in die maske rein … muss irgendwie gelöst werden das man im nachhinein noch sachen
 ändern kann“) – „4-Achs-Bearbeitung“ für die Rundum-Operationen, „Bearbeitung (Fräsen)“ für
-„Planfräsen“ (W-006 S3c).
+„Planfräsen“ und „Kontur“ (W-006 S3c, S3e).
 
 Modul- und Klassenname stehen in jeder gespeicherten Datei – sie bleiben.
 """
@@ -13,10 +13,11 @@ from . import symbol
 
 
 def _ist_eben(objekt):
-    """Eine 2,5D-Operation (Planfräsen) – ihr Assistent ist „Bearbeitung (Fräsen)“."""
+    """Eine 2,5D-Operation (Planfräsen, Kontur) – ihr Assistent ist „Bearbeitung (Fräsen)“."""
+    from . import kontur as ko
     from . import planfraesen as pf
 
-    return pf.ist_planfraesen(objekt)
+    return pf.ist_planfraesen(objekt) or ko.ist_kontur(objekt)
 
 
 def bearbeiten(objekt):

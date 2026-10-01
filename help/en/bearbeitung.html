@@ -14,13 +14,16 @@ li { margin-bottom: 0.4em; }
 <h2>Machining (milling)</h2>
 <p>For a part that lies in a <b>block</b> on a mill – the tool axis is
 vertical. The button “Machining (milling)” opens the window; the way from the
-part to the operation has three steps, all in one window. For a round stock
+part to the operations has three steps, all in one window: part and stock,
+the faces, then one block with a tick per machining – <b>Face milling</b> for
+flat faces facing up, <b>Contour</b> for walls. “Create” creates all ticked
+ones. For a round stock
 with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
 
 <h3>1. Part and stock</h3>
 <ul>
-<li><b>Click a face of the part</b> (before or in the window) – best the face
-that should become flat. The part is chosen with it, and the <b>job with the
+<li><b>Click a face of the part</b> (before or in the window) – the face
+that should become flat, or a wall for the contour. The part is chosen with it, and the <b>job with the
 stock</b> is created at once: a block around the part with an
 <b>allowance</b> on top, at the sides and below (empty: 1 mm, like FreeCAD's
 job). The fields change the stock right away. “Cancel” takes everything
@@ -34,9 +37,14 @@ the job.</li>
 <li>Without a choice the <b>top</b> of the part is milled flat – the highest
 flat faces. The sentence below the list names them.</li>
 <li>A click on a face of the part adds it (another click, or a double-click in
-the list, removes it); green means flat facing up – it is milled flat –, red
-means not flat facing up, which face milling cannot do. The 3D view colours
-them so. “Top” selects the highest faces, “Clear selection” removes all.</li>
+the list, removes it); green means: flat facing up – it is milled flat – or a
+wall (“wall, bottom 5 mm”) – the contour follows it; red means neither. The
+3D view colours them so. “Top” selects the highest faces, “Clear selection”
+removes all.</li>
+<li>The <b>ticks</b> of the blocks follow the selection: face milling is
+ticked as long as no face or a flat one is selected; contour as soon as a wall
+is among them (without a wall it cannot be ticked). Whoever sets or removes a
+tick keeps it.</li>
 </ul>
 
 <h3>3. Face milling</h3>
@@ -75,18 +83,57 @@ depth is the face plus allowance, safe and clearance height come from the
 job's setup sheet.</li>
 </ul>
 
+<h3>4. Contour</h3>
+<ul>
+<li>For <b>walls</b>: vertical faces with a horizontal bottom edge – flat,
+round or free-form. The bottom edges of the selected walls join into
+<b>contours</b>: closed all round (around a boss, inside a pocket) or open (a
+single wall, a step). Where the material lies, the window knows from the wall
+itself.</li>
+<li><b>Cutter</b> and <b>application</b> as for face milling – “Roughing”
+preselected; the cutter radius is the distance of the path from the wall.</li>
+<li><b>Stepdown per layer</b> (ap) for roughing, <b>row spacing</b> (ae,
+sideways between the roughing passes, at most as wide as the cutter),
+<b>allowance for finishing</b> (empty: 0.3 mm – stays on the wall after
+roughing), <b>material beside the wall</b> (empty: as much as the stock says
+– outside everything to the edge, a pocket completely; after a pocket
+operation enter its allowance here) and the tick <b>finishing in one
+go</b>.</li>
+<li>The path: roughing in layers from the top of the stock down to the bottom
+edge of the wall – per layer as many passes side by side as material stands
+beside the wall, from the outside towards the wall (last at radius plus
+allowance); then finishing once at the radius over the full height in one go
+(at most the cutting edge length per go). All in <b>climb milling</b>: the
+material on the left of the direction of travel – around a boss
+counter-clockwise, in a pocket clockwise. Outer corners become arcs (G2/G3),
+inner ones keep the cutter radius. Every pass enters and leaves
+<b>tangentially</b>: a straight line away from the wall and a quarter circle
+(each the cutter radius) – where that does not fit, shorter, finally
+vertically. Before steps and walls that are not selected the path stops
+(computed against the part without the walls and their floors and tops).
+Where no stock lies, no pass runs; on leaving the stock at half feed. Down it
+goes vertically in the air with the plunge feed, in material over a ramp
+along the path.</li>
+<li>Grey below: “→ 2 contours: 22 layers, 38 passes, about 9 min”. Red says
+why it does not work (no wall, the cutter does not fit into the pocket,
+nothing stands beside the walls).</li>
+<li>In the operation's properties also <b>Deeper</b> (this much deeper than
+the bottom edge – to cut free) and the <b>lead-in radius</b>.</li>
+<li>The operation is called “Contour T1”; start depth, safe height and
+clearance height as for face milling, the final depth is the lowest bottom
+edge.</li>
+</ul>
+
 <h3>Changing it later</h3>
-<p><b>Double-click</b> “Face milling …” in the tree – or right-click,
+<p><b>Double-click</b> “Face milling …” or “Contour …” in the tree – or right-click,
 <b>Edit</b>; or select the operation or its job and press the “Machining
 (milling)” button – to open the window with faces, cutter, application and
-values of the operation. <b>Apply</b> changes it – one undo step; another
+values of the operation, with its block only. <b>Apply</b> changes it – one undo step; another
 cutter gets its own tool controller, the old one is removed if no operation
 uses it any more.</p>
 
 <h3>What comes next</h3>
-<p>Contour roughing and finishing with tangential lead-in and lead-out,
-adaptive pocket with trochoids, drilling and threads from the window, the check
-window with the stock removal of the block – following the plan in
-specification W-006.</p>
+<p>Adaptive pocket with trochoids, drilling and threads from the window –
+following the plan in specification W-006.</p>
 </body>
 </html>

@@ -89,11 +89,26 @@ def oberseite(form, toleranz=VORSCHAU_TOLERANZ):
 
 def netz_ohne(form, namen, toleranz=TOLERANZ):
     """Das Netz des Teils ohne die Flächen `namen` (vierachs_huelle.Netz)."""
+    return netze_ohne(form, [namen], toleranz)[0]
+
+
+def netze_ohne(form, namen_je, toleranz=TOLERANZ):
+    """[Netz] – das Teil je Liste in `namen_je` ohne diese Flächen, einmal vernetzt. Nur die
+    Punkte, die noch ein Dreieck braucht: Eine Ecke allein zählte sonst weiter (die Hüllfläche
+    rechnet auch gegen Ecken – so sah die Kontur die Taschenwände, die sie ausgelassen hatte,
+    P-2026-10-01-19)."""
     from . import vierachs_flaechen as vf
 
     fnetz = vf.vernetze(form, toleranz)
-    bleibt = ~np.isin(fnetz.flaeche, np.asarray(vf.nummern(namen), dtype=np.int64))
-    return vh.Netz(fnetz.netz.punkte, fnetz.netz.dreiecke[bleibt], toleranz)
+    ergebnis = []
+    for namen in namen_je:
+        bleibt = ~np.isin(fnetz.flaeche, np.asarray(vf.nummern(namen), dtype=np.int64))
+        dreiecke = fnetz.netz.dreiecke[bleibt]
+        benutzt = np.unique(dreiecke)
+        neu = np.full(len(fnetz.netz.punkte), -1, dtype=np.int64)
+        neu[benutzt] = np.arange(len(benutzt))
+        ergebnis.append(vh.Netz(fnetz.netz.punkte[benutzt], neu[dreiecke], toleranz))
+    return ergebnis
 
 
 def je_zeile(netz, form, v_werte, u0, schritt, anzahl, laengs_x=True):

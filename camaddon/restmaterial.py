@@ -698,10 +698,13 @@ class Quader:
 
 def teilhoehen(netz, quader):
     """Die Oberseite des fertigen Teils im Raster des Quaders – −inf, wo es keins gibt
-    (hoehenfeld.hoehen: das höchste Dreieck über der Zelle)."""
+    (hoehenfeld.hoehen: das höchste Dreieck über der Zelle). Ein Knoten genau auf einer Kante
+    zählt nicht (`innen`): Auf der Linie einer Wand gehört er zur Oberseite wie zum Boden – die
+    Kontur führt den Fräser genau bis an die Wand, und der Vergleich meldete dort 15 mm „ins
+    Teil“ (W-006 S3e). Seine Nachbarn bekommen damit die Schwelle der Außenkante (_spruenge)."""
     from . import hoehenfeld as hf
 
-    return hf.hoehen(netz, quader.x, quader.y)
+    return hf.hoehen(netz, quader.x, quader.y, innen=True)
 
 
 def vergleiche_quader(quader, teil, aufmass, nur=None, erlaubt=None):
@@ -856,11 +859,6 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     from . import vierachs_flaechen as vf
     from .vierachs_operation import flaechen as flaechen_von
 
-    gewaehlt = [
-        flaechen_von(ops[abfahrt.operationen[k].name]) if abfahrt.operationen[k].name in ops else ()
-        for k in sorted(fraeser)
-    ]
-    flaechen = set().union(*(vf.nummern(g) for g in gewaehlt)) if all(gewaehlt) else None
     formen = [
         o.Shape
         for o in getattr(job.Model, "Group", [])
@@ -868,11 +866,29 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     ]
     if not formen:
         return None
+    # Verglichen wird auf den gewählten ebenen Flächen nach oben – hat eine Operation nur
+    # Wände (Kontur), zählt sie wie eine ohne Wahl: dann überall.
+    gewaehlt = [
+        (
+            _ebene_namen(formen[0], flaechen_von(ops[abfahrt.operationen[k].name]))
+            if abfahrt.operationen[k].name in ops
+            else ()
+        )
+        for k in sorted(fraeser)
+    ]
+    flaechen = set().union(*(vf.nummern(g) for g in gewaehlt)) if all(gewaehlt) else None
     box = form.BoundBox
     quader = Quader(box.XMin, box.XMax, box.YMin, box.YMax, box.ZMin, box.ZMax)
     return QuaderAbtrag(
         quader, am_werkstueck, operation, gueltig, fraeser, aufmass, formen, flaechen
     )
+
+
+def _ebene_namen(form, namen):
+    """Die Namen aus `namen` („Face3“ …), die ebene Flächen nach oben sind."""
+    from . import hoehenfeld as hf
+
+    return tuple(e.name for e in hf.ebenen_oben(form, list(namen))) if namen else ()
 
 
 # --- Darstellung (ohne Coin: Felder, die gui_abfahren in die Ansicht gibt) ---------------

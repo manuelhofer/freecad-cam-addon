@@ -12,6 +12,99 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-19 s3e-kontur
+
+### EINGELESEN
+- W-006 (`docs/spezifikation_strategien.md`): 4.1 Punkt 4 (Kontur schruppen und schlichten –
+  außen/innen, mehrere Zustellungen, Aufmaß fürs Schlichten, tangentiales Ein-/Ausfahren,
+  Schlichtschnitt mit vollem ap in einem Zug; Ein-/Ausfahren gehört zur Operation, Schruppen
+  und Schlichten in einem Schritt aus dem Assistenten), die Grundsätze (tangential, Bögen,
+  Gleichlauf, keine Luftschnitte, Vorschub nach Eingriff), Abschnitt 10 S3e.
+- `planfraesen` (Operation mit FreeCADs Tiefen und Höhen, `_hoehen`, `aendere`), `hoehenfeld`
+  (`netz_ohne`, `je_zeile`), `vierachs_bahn._rampe`, `bahn.Punkt` mit Bögen,
+  `gui_bearbeitung` (ein Block Planfräsen), `restmaterial.fuer_quader` (die gewählten
+  Flächen), FreeCADs `Part.Wire.makeOffset2D` (ausprobiert: positiv außen mit Bögen in den
+  Ecken, negativ innen; der Draht muss in z = 0 liegen; eine Gerade allein spannt keine Ebene
+  auf; zu großer Innenversatz wirft „offset result has no wires“), `Face.normalAt` (vom
+  Material weg, auch in Loch und Zapfen), `Part.sortEdges`, `ancestorsOfType`.
+
+### DATEIEN
+- Neu: `camaddon/kontur_bahn.py`, `camaddon/kontur.py`, `tests/test_kontur.py`,
+  `tests/gui/szenario_kontur.py`
+- `camaddon/gui_bearbeitung.py`, `camaddon/hoehenfeld.py`, `camaddon/restmaterial.py`,
+  `camaddon/gui_vierachs_operation.py`, `camaddon/job_schnittwerte.py`, `translations/de.json`,
+  `translations/en.json`, `help/de/bearbeitung.html`, `help/en/bearbeitung.html`,
+  `tests/gui/szenario_bearbeitung.py`, `package.xml` (0.40.0), `README.md`, `CHATSTART.md`,
+  `docs/aufbau.md`, `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Block 100 × 60 × 20 mit einer Tasche 40 × 30 (Ecken R 6) 15 tief, Rohteil 1 mm rundum, T1
+Schaftfräser Ø 10, Zustellung 2, Zeilenabstand 4, Aufmaß 0,3, Schlichten: Die zwölf Wände
+geben zwei Konturen (außen 4 Kanten, Tasche 8, beide geschlossen; die freie Seite der Tasche
+nach innen). Die Bahn: außen 11 Schrupplagen bei 5,3 und 2 Schlichtzüge bei 5 (21 mm hoch,
+Schneide 20), in der Tasche 8 Lagen mit je drei Bahnen (5,3, 9,3, 13,3 – 17,3 passt nicht)
+und ein Zug – 22 Lagen, 38 Bahnen; außen gegen den Uhrzeigersinn, in der Tasche mit ihm
+(Gleichlauf); Ecken als Bögen; jede Bahn fährt mit Gerade 5 und Viertelkreis R 5 (G2)
+tangential hinein und heraus, in der Luft senkrecht hinab, in der Tasche über die Rampe; Start
+und Ende oben. Eine Wand allein (y = 0): offen, die Nachbarwände halten die Bahn vor den Ecken
+an, der Fräser deckt die Wand trotzdem; eine Taschenwand allein: alles bleibt in der Tasche,
+auch die Versätze weiter weg. Fehler mit einem Satz: Kugel, Zeilenabstand breiter als der
+Fräser, keine Wand, nichts neben der Wand. Operation „Kontur T1“ im Job: Konturen 2, Lagen 22,
+Bahnen 38, Start 21, Ende 0, G2 und G3; Zustellung 4 → 13 Lagen; ohne Schlichten 10 Lagen,
+18 Bahnen; nur die Taschenwände → eine Kontur, Endtiefe 5; Breite 1 → 9 Bahnen; gespeichert
+und geladen dieselbe Bahn. Im Fenster: eine Taschenwand anklicken → „Wand, unten 5 mm“ grün,
+Haken Kontur an, Planfräsen aus, Einsatz Schruppen, „→ 9 Lagen, 9 Bahnen“; alle Wände und
+der Haken Planfräsen → „→ 2 Konturen: 22 Lagen, 38 Bahnen“; „Anlegen“ gibt „Planfräsen T1“
+und „Kontur T1“; Doppelklick auf die Kontur zeigt nur ihren Block, ohne Schlichten 19 Lagen,
+35 Bahnen; am Ende der Prüfung auf der Beispiel-Fräse „Am Ende bleiben 0,00 mm … nirgends
+ins Teil“.
+
+### DONE
+- `kontur_bahn`: `waende` (Normale überall waagerecht, Unterkanten bei ZMin), `konturen`
+  (`Part.sortEdges` je Höhe der Unterkante, `Part.Wire`, die freie Seite aus `normalAt` an der
+  längsten Kante), `ohne_flaechen` (Wände und die Nachbarn an waagerechten Kanten),
+  `_versatz` (`makeOffset2D` in z = 0, Vorzeichen aus der freien Seite, eine Gerade allein von
+  Hand, Segmente aus `OrderedEdges` als Strecken und Bögen – ganze Kreise und Bögen über
+  180° geteilt, andere Kurven als Linienzug), `_in_fahrtrichtung` (Material links),
+  `_Huelle` (Raster mit dem höchsten der vier Nachbarn; zwei Netze: nahe der Wand im Band
+  R + Aufmaß + 2 Schritte ohne ihre Böden und Decken, weiter weg nur ohne die Wände),
+  `_kontur` (Versätze so lange, wie Rohteil daneben liegt oder die Breite sagt; Lagen; das
+  Schlichten in Zügen nach der Schneidenlänge), `_bahnen` (Läufe, wo Hüllfläche und Rohteil
+  es erlauben; geschlossen ab der Mitte der längsten Geraden), `_lauf` (`_anfahrt` mit vier
+  Stufen, Rampe über `vierachs_bahn._rampe`, `_bahnpunkte` je Segmentgrenze, beim Austritt
+  die letzten 2 R langsamer).
+- `kontur.Kontur`: Eigenschaften Flaechen, Zustellung, Zeilenabstand, Aufmass, Schlichten,
+  Breite, Tiefer, Einfahrradius, Sicherheitsabstand, Eintauchwinkel, VorschubAustritt,
+  Konturen/Lagen/Bahnen; `lege_an`, `aendere`, `bahn_fuer`, `vorschau`, `schneidenlaenge`
+  aus dem ToolBit; `job_schnittwerte.EINSATZ_NACH_OPERATION["kontur"]`.
+- `gui_bearbeitung`: `_Strategie` (`_Planfraesen`, `_Kontur`) und `_Block` – je Strategie ein
+  Block mit Haken als Titel, vorgeschlagen nach der Wahl (Planfräsen ohne Wahl oder mit
+  ebener Fläche, Kontur mit Wand; ohne Wand nicht anhakbar), eigener Fräser, Einsatz,
+  Felder (Kontur: Aufmaß zum Schlichten, Material neben der Wand „vom Rohteil“, Haken
+  „Schlichten in einem Zug“), Ergebnis und Hinweis; die Liste zeigt Wände grün („Wand,
+  unten 5 mm“); „Anlegen“ legt alle angehakten an; Ändern zeigt nur den Block der Operation.
+  `gui_vierachs_operation` öffnet auch die Kontur im Assistenten.
+- `hoehenfeld.netze_ohne`: mehrere Netze aus einer Vernetzung, ohne verwaiste Ecken – die
+  Hüllfläche rechnete sonst gegen Ecken ausgelassener Flächen (gefunden, als die Kontur
+  mitten in der Tasche anhielt). `restmaterial.fuer_quader` vergleicht nur auf ebenen
+  Flächen – Wände zählen wie keine Wahl.
+- Hilfe de/en Abschnitt „4. Kontur“, Übersetzungen `ko.*`, `ba.kontur*` u. a., Doku.
+
+### TEST
+- `test_kontur` (neu), `test_planfraesen`, `test_quader`, `test_sprache`, `test_hilfe` und die
+  Szenarien `szenario_kontur` (neu, fünf Screenshots) und `szenario_bearbeitung` in 1.1.3 ok;
+  black/ruff ok. Beim Bauen gefunden: verwaiste Ecken im Netz (s. o.); eine einzeln gewählte
+  Taschenwand bekam Versätze bis unter die Oberseite des Teils, weil die Oberseite als
+  Nachbar der Wand aus der Hüllfläche fiel – jetzt zwei Netze (nah/fern); beim Ändern zählte
+  der gesperrte Haken nicht als aktiv („Übernehmen“ ging nicht); die Vorschau rechnete ohne
+  Schneidenlänge (21 statt 22 Lagen); der Vergleich im Prüffenster meldete 15 mm „ins Teil“
+  auf den Rasterknoten genau auf der Taschenwand – ein Knoten auf einer Kante zählt jetzt
+  nicht (`teilhoehen` mit `innen`), wie an der Außenkante.
+
+### NEXT
+- S3f Tasche adaptiv (E3), S3g Bohren/Gewinde; die Spirale fürs Planfräsen aus Versätzen.
+
 ## P-2026-10-01-18 testteil-spanneisen-weg-werkstoffliste
 
 ### EINGELESEN

@@ -2,15 +2,17 @@
 """Befehl und Assistent „Bearbeitung (Fräsen)“ für ein Teil im Quader (W-006 S3c, E4).
 
 Der Weg: eine Fläche des Teils anklicken – der Job mit dem Rohteil (ein Quader mit Aufmaß je
-Seite, wie FreeCADs Job) entsteht sofort –, die Flächen, die eben werden sollen (ohne Wahl
-die Oberseite), Werkstoff, Fräser und Einsatz aus der Werkzeugverwaltung, Zustellung,
-Zeilenabstand, Aufmaß mit den Vorschlägen grau, darunter „→ 3 Lagen, 30 Zeilen, etwa
-2 min“ – und „Anlegen“ legt Werkzeug-Controller und „Planfräsen“ (planfraesen) an. Ein
-Doppelklick auf die Operation öffnet den Assistenten zum Ändern (gui_vierachs_operation).
+Seite, wie FreeCADs Job) entsteht sofort –, die Flächen (ebene nach oben fürs Planfräsen,
+ohne Wahl die Oberseite; Wände für die Kontur), Werkstoff, dann je Bearbeitung ein Block mit
+Haken: Fräser und Einsatz aus der Werkzeugverwaltung, die Werte mit den Vorschlägen grau,
+darunter „→ 3 Lagen, 30 Zeilen, etwa 2 min“ – und „Anlegen“ legt Werkzeug-Controller und die
+angehakten Operationen an („Planfräsen“, planfraesen; „Kontur“, kontur). Ein Doppelklick auf
+eine Operation öffnet den Assistenten zum Ändern mit ihrem Block (gui_vierachs_operation).
 
 Der Assistent „4-Achs-Bearbeitung“ (gui_vierachs) ist das Vorbild; was dort allgemein ist
-(Reihen, Befehl mit Transaktion, Zeit in Worten), kommt von dort. Weitere Strategien (Kontur,
-Tasche adaptiv, Bohren) kommen als weitere Blöcke mit Vorschlag und Grund dazu (S3e–S3g).
+(Reihen, Befehl mit Transaktion, Zeit in Worten), kommt von dort. Jede Strategie ist eine
+_Strategie (was sie braucht, wie sie rechnet), ihr Block im Fenster ein _Block; weitere
+(Tasche adaptiv, Bohren) kommen so dazu (S3f, S3g).
 """
 
 import FreeCAD
@@ -22,6 +24,8 @@ from . import bahn as bn
 from . import fraeserform as ff
 from . import hoehenfeld as hf
 from . import job_schnittwerte as js
+from . import kontur as ko
+from . import kontur_bahn as kb
 from . import planfraesen as pf
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_plan as vplan
@@ -46,7 +50,8 @@ from .gui_zahlen import Zahlenpruefer, dezimal, groesse_fest, groesse_lesen, gro
 from .sprache import tr
 
 AUFMASS_ROHTEIL = 1.0  # mm je Seite, wie FreeCADs Job
-GEMERKT_FRAESER = "BaFraeser"  # Kennung des zuletzt gewählten Fräsers
+GEMERKT_FRAESER = "BaFraeser"  # Kennung des zuletzt gewählten Fräsers (Planfräsen)
+GEMERKT_KONTURFRAESER = "BaKonturFraeser"  # … für die Kontur
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 ROHTEIL_FELDER = ("oben", "seite", "unten")
@@ -72,9 +77,14 @@ def _grau(text=""):
     return etikett
 
 
+def ist_bearbeitung(op):
+    """Eine Operation dieses Assistenten – „Planfräsen“ oder „Kontur“?"""
+    return pf.ist_planfraesen(op) or ko.ist_kontur(op)
+
+
 class BefehlBearbeitung:
     """Befehl in der Werkzeugleiste: öffnet den Assistenten für die gewählte Fläche – oder
-    zum Ändern, wenn „Planfräsen“ gewählt ist."""
+    zum Ändern, wenn „Planfräsen“ oder „Kontur“ gewählt ist."""
 
     def GetResources(self):
         return {
@@ -101,17 +111,17 @@ class BefehlBearbeitung:
 
 
 def gewaehlte_operation(dokument):
-    """Das gewählte „Planfräsen“ – oder, ist ein Job oder sein Ordner „Operations“ gewählt,
-    sein erstes „Planfräsen“; sonst None."""
+    """Das gewählte „Planfräsen“ oder „Kontur“ – oder, ist ein Job oder sein Ordner
+    „Operations“ gewählt, seine erste solche Operation; sonst None."""
     jobs = js.jobs(dokument)
     for objekt in FreeCADGui.Selection.getSelection(dokument.Name):
-        if pf.ist_planfraesen(objekt):
+        if ist_bearbeitung(objekt):
             return objekt
         job = next(
             (j for j in jobs if objekt is j or objekt is getattr(j, "Operations", None)), None
         )
         if job is not None:
-            gefunden = [o for o in js.operationen(job) if pf.ist_planfraesen(o)]
+            gefunden = [o for o in js.operationen(job) if ist_bearbeitung(o)]
             if gefunden:
                 return gefunden[0]
     return None
@@ -155,6 +165,522 @@ class _NurFlaechen:
         return getattr(objekt, "Name", "") == klon or klon in weg
 
 
+# --- Die Strategien ---------------------------------------------------------------------------
+
+
+class _Strategie:
+    """Eine 2,5D-Strategie im Assistenten: ihre Texte, Felder, Vorschläge, Vorschau, Anlegen
+    und Ändern. Die Schlüssel stehen wörtlich in tr(…) – so findet sie die Sprachprüfung."""
+
+    kennung = ""
+    gemerkt = ""  # Parameter: der zuletzt gewählte Fräser
+    einsatz_reihenfolge = ()  # welcher Einsatz vorgewählt ist
+
+    def titel(self):
+        return ""
+
+    def text(self):
+        return ""
+
+    def fraeser_tooltip(self):
+        return ""
+
+    def einsatz_tooltip(self):
+        return ""
+
+    def felder(self):
+        """((Name, Beschriftung, Tooltip) …) der Zahlenfelder."""
+        return ()
+
+    def haken(self):
+        """((Name, Beschriftung, Tooltip, Vorgabe) …) der Ja/Nein-Felder."""
+        return ()
+
+    def passt(self, form, name):
+        """Kann die Strategie etwas mit der Fläche `name` von `form` anfangen?"""
+        return False
+
+    def flaechen_fuer(self, form, gewaehlte):
+        return [name for name in gewaehlte if self.passt(form, name)]
+
+    def vorgeschlagen(self, form, gewaehlte):
+        """Ist der Haken von sich aus gesetzt?"""
+        return bool(self.flaechen_fuer(form, gewaehlte))
+
+    def moeglich(self, form, gewaehlte):
+        """Geht die Strategie mit dieser Wahl überhaupt?"""
+        return bool(self.flaechen_fuer(form, gewaehlte))
+
+    def unmoeglich_text(self):
+        return ""
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        return 0.0
+
+    def platzhalter(self, feld, werkzeug, einsatz):
+        return groesse_zeigen(self.vorschlag(feld, werkzeug, einsatz), einheiten.LAENGE) or "0"
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        raise NotImplementedError
+
+    def ergebnis_text(self, bahn, zeit):
+        return ""
+
+    def lege_an(self, job, tc, werte, flaechen):
+        raise NotImplementedError
+
+    def aendere(self, op, tc, werte, flaechen):
+        raise NotImplementedError
+
+    def ist(self, op):
+        return False
+
+    def werte_von(self, op):
+        """{Feld: Wert} der Operation – zum Ändern."""
+        return {}
+
+
+class _Planfraesen(_Strategie):
+    kennung = "planfraesen"
+    gemerkt = GEMERKT_FRAESER
+    einsatz_reihenfolge = (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN)
+
+    def titel(self):
+        return tr("ba.planfraesen")
+
+    def text(self):
+        return tr("ba.planfraesen.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.planfraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.planeinsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("zustellung", tr("ba.zustellung"), tr("ba.zustellung.tooltip")),
+            ("zeilenabstand", tr("ba.zeilenabstand"), tr("ba.zeilenabstand.tooltip")),
+            ("aufmass", tr("ba.aufmass"), tr("ba.aufmass.tooltip")),
+        )
+
+    def passt(self, form, name):
+        return bool(hf.ebenen_oben(form, [name]))
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return not gewaehlte or bool(self.flaechen_fuer(form, gewaehlte))
+
+    def moeglich(self, form, gewaehlte):
+        return True  # ohne ebene Fläche die Oberseite
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "zustellung":
+            return einsatz.ap if einsatz is not None and einsatz.ap > 0 else pf.ZUSTELLUNG
+        if feld == "zeilenabstand":
+            if werkzeug is None:
+                return 0.0
+            return vplan.zeilenabstand_vorschlag(werkzeug, einsatz, ff.von_werkzeug(werkzeug))
+        return pf.AUFMASS
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return pf.vorschau(
+            job,
+            job.Model.Group,
+            ff.von_werkzeug(werkzeug),
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            flaechen,
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        if bahn.flaechen > 1:
+            return tr(
+                "ba.ergebnis_flaechen",
+                flaechen=bahn.flaechen,
+                lagen=bahn.lagen,
+                zeilen=bahn.zeilen,
+                zeit=zeit,
+            )
+        return tr("ba.ergebnis", lagen=bahn.lagen, zeilen=bahn.zeilen, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return pf.lege_an(
+            job,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            flaechen=flaechen,
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        pf.aendere(
+            op, tc, werte["zustellung"], werte["zeilenabstand"], werte["aufmass"], flaechen=flaechen
+        )
+
+    def ist(self, op):
+        return pf.ist_planfraesen(op)
+
+    def werte_von(self, op):
+        return {
+            "zustellung": float(op.Zustellung),
+            "zeilenabstand": float(op.Zeilenabstand),
+            "aufmass": float(op.Aufmass),
+        }
+
+
+class _Kontur(_Strategie):
+    kennung = "kontur"
+    gemerkt = GEMERKT_KONTURFRAESER
+    einsatz_reihenfolge = (wz.SCHRUPPEN, wz.SCHLICHTEN, wz.PLANEN)
+
+    def titel(self):
+        return tr("ba.kontur")
+
+    def text(self):
+        return tr("ba.kontur.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.konturfraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.kontureinsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("zustellung", tr("ba.zustellung"), tr("ba.kontur.zustellung.tooltip")),
+            ("zeilenabstand", tr("ba.zeilenabstand"), tr("ba.kontur.zeilenabstand.tooltip")),
+            ("aufmass", tr("ba.aufmass_schlichten"), tr("ba.aufmass_schlichten.tooltip")),
+            ("breite", tr("ba.breite"), tr("ba.breite.tooltip")),
+        )
+
+    def haken(self):
+        return (("schlichten", tr("ba.schlichten"), tr("ba.schlichten.tooltip"), True),)
+
+    def passt(self, form, name):
+        return bool(kb.waende(form, [name]))
+
+    def unmoeglich_text(self):
+        return tr("ba.kontur.keine_wand")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "zustellung":
+            return einsatz.ap if einsatz is not None and einsatz.ap > 0 else ko.ZUSTELLUNG
+        if feld == "zeilenabstand":
+            if werkzeug is None:
+                return 0.0
+            return vplan.zeilenabstand_vorschlag(werkzeug, einsatz, ff.von_werkzeug(werkzeug))
+        if feld == "aufmass":
+            return ko.AUFMASS
+        return 0.0  # Breite: so viel, wie das Rohteil sagt
+
+    def platzhalter(self, feld, werkzeug, einsatz):
+        if feld == "breite":
+            return tr("ba.breite.leer")
+        return super().platzhalter(feld, werkzeug, einsatz)
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return ko.vorschau(
+            job,
+            job.Model.Group,
+            ff.von_werkzeug(werkzeug),
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            werte["schlichten"],
+            flaechen,
+            werte["breite"],
+            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        if bahn.konturen > 1:
+            return tr(
+                "ba.ergebnis_konturen",
+                konturen=bahn.konturen,
+                lagen=bahn.lagen,
+                bahnen=bahn.bahnen,
+                zeit=zeit,
+            )
+        return tr("ba.ergebnis_kontur", lagen=bahn.lagen, bahnen=bahn.bahnen, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return ko.lege_an(
+            job,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            werte["schlichten"],
+            werte["breite"],
+            flaechen=flaechen,
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        ko.aendere(
+            op,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            werte["schlichten"],
+            werte["breite"],
+            flaechen=flaechen,
+        )
+
+    def ist(self, op):
+        return ko.ist_kontur(op)
+
+    def werte_von(self, op):
+        return {
+            "zustellung": float(op.Zustellung),
+            "zeilenabstand": float(op.Zeilenabstand),
+            "aufmass": float(op.Aufmass),
+            "breite": float(op.Breite),
+            "schlichten": bool(op.Schlichten),
+        }
+
+
+STRATEGIEN = (_Planfraesen, _Kontur)
+
+
+def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
+    eingabe = QtGui.QLineEdit()
+    eingabe.setValidator(Zahlenpruefer(eingabe))
+    eingabe.textChanged.connect(lambda _text: geaendert())
+    felder[name] = eingabe
+    reihen.reihe(text, tooltip, mit_einheit(eingabe, einheiten.einheit(einheiten.LAENGE)))
+    return eingabe
+
+
+class _Block:
+    """Der Block einer Strategie im Fenster: der Haken als Titel, die Erklärung, Fräser und
+    Einsatz, die Felder, das Ergebnis – und der Zustand dazu (Vorschau, Operation)."""
+
+    def __init__(self, panel, strategie):
+        self.panel = panel
+        self.s = strategie
+        self._fraeser = []  # die Werkzeuge in der Auswahl „Fräser“
+        self._einsaetze = []
+        self.vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation
+        self.tc_vorher = None  # beim Ändern: ihr Controller
+        self.vorschau = None  # die grobe Bahn oder None
+        self.operation = None  # die angelegte Operation
+        self.von_hand = False  # der Haken ist von Hand gesetzt – kein Vorschlag mehr
+        self.moeglich = True  # die Strategie geht mit der Wahl der Flächen
+        self.widget = QtGui.QWidget()
+        aufbau = QtGui.QVBoxLayout(self.widget)
+        aufbau.setContentsMargins(0, 0, 0, 0)
+        self.haken = QtGui.QCheckBox(strategie.titel())
+        self.haken.setToolTip(strategie.text())
+        schrift = self.haken.font()
+        schrift.setBold(True)
+        self.haken.setFont(schrift)
+        self.haken.toggled.connect(lambda _an: self.panel.haken_geklickt(self))
+        aufbau.addWidget(self.haken)
+        self.erklaerung = _grau(strategie.text())
+        aufbau.addWidget(self.erklaerung)
+        self.inhalt = QtGui.QWidget()
+        innen = QtGui.QVBoxLayout(self.inhalt)
+        innen.setContentsMargins(0, 0, 0, 0)
+        self.reihen = _Reihen()
+        self.wahl_fraeser = QtGui.QComboBox()
+        self.wahl_fraeser.currentIndexChanged.connect(lambda _i: self._fraeser_gewaehlt())
+        self.reihen.reihe(tr("va.fraeser"), strategie.fraeser_tooltip(), self.wahl_fraeser)
+        self.wahl_einsatz = QtGui.QComboBox()
+        self.wahl_einsatz.currentIndexChanged.connect(lambda _i: self._einsatz_gewaehlt())
+        self.reihen.reihe(tr("va.einsatz"), strategie.einsatz_tooltip(), self.wahl_einsatz)
+        self.schnittwerte = _grau()
+        self.reihen.ganz(self.schnittwerte)
+        self.felder = {}
+        for feld, text, tooltip in strategie.felder():
+            _zahlenfeld(self.felder, feld, text, tooltip, self.reihen, self.panel.vorschau_starten)
+        self.haken_felder = {}
+        for feld, text, tooltip, vorgabe in strategie.haken():
+            kasten = QtGui.QCheckBox(text)
+            kasten.setToolTip(tooltip)
+            kasten.setChecked(vorgabe)
+            kasten.toggled.connect(lambda _an: self.panel.vorschau_starten())
+            self.haken_felder[feld] = kasten
+            self.reihen.ganz(kasten)
+        innen.addWidget(self.reihen.widget)
+        self.ergebnis = _grau()
+        innen.addWidget(self.ergebnis)
+        self.hinweis = QtGui.QLabel()
+        self.hinweis.setWordWrap(True)
+        self.hinweis.setStyleSheet(f"color: {ROT};")
+        innen.addWidget(self.hinweis)
+        aufbau.addWidget(self.inhalt)
+
+    # --- Zustand ---
+
+    def aktiv(self):
+        """Angehakt und möglich: Die Strategie wird gerechnet und angelegt (beim Ändern ist der
+        Haken gesetzt und gesperrt)."""
+        return self.moeglich and self.haken.isChecked()
+
+    def zustand_zeigen(self):
+        self.inhalt.setEnabled(self.aktiv())
+
+    def fraeser(self):
+        i = self.wahl_fraeser.currentIndex()
+        return self._fraeser[i] if 0 <= i < len(self._fraeser) else None
+
+    def einsatz(self):
+        i = self.wahl_einsatz.currentIndex()
+        return self._einsaetze[i] if 0 <= i < len(self._einsaetze) else None
+
+    def vorschlag(self, feld):
+        return self.s.vorschlag(feld, self.fraeser(), self.einsatz())
+
+    def wert(self, feld):
+        """Wert eines Felds (mm); leer oder ungültig gilt der Vorschlag."""
+        text = self.felder[feld].text()
+        try:
+            return groesse_lesen(text, einheiten.LAENGE) if text.strip() else self.vorschlag(feld)
+        except ValueError:
+            return self.vorschlag(feld)
+
+    def werte(self):
+        werte = {feld: self.wert(feld) for feld in self.felder}
+        werte.update({feld: kasten.isChecked() for feld, kasten in self.haken_felder.items()})
+        return werte
+
+    def kann_anlegen(self):
+        return self.fraeser() is not None and self.einsatz() is not None and not self.hinweis.text()
+
+    def merken(self):
+        if self.fraeser() is not None:
+            _parameter().SetString(self.s.gemerkt, self.fraeser().kennung)
+
+    # --- Fräser und Einsatz ---
+
+    @staticmethod
+    def _passende_einsaetze(werkzeug, werkstoff):
+        """Die Einsätze mit Drehzahl und Vorschub – nur mit ihnen gibt es einen Controller."""
+        return [e for e in werkzeug.einsaetze(werkstoff) if js.werte(werkzeug, e)[1] > 0]
+
+    @staticmethod
+    def _ebene_stirn(werkzeug):
+        form = ff.von_werkzeug(werkzeug)
+        return form is not None and vp.ebener_radius(form) > 0
+
+    def fraeser_fuellen(self, bibliothek, werkstoff):
+        """Die Fräser mit ebener Stirn und Schnittwerten für den Werkstoff; vorgewählt der
+        bisher gewählte, beim Ändern der der Operation, sonst der zuletzt benutzte, sonst
+        einer mit dem ersten Einsatz der Reihenfolge, sonst ein Schaftfräser."""
+        vorher = self.fraeser()
+        self._fraeser = [
+            w
+            for w in sorted(bibliothek.werkzeuge, key=lambda w: w.nummer)
+            if w.durchmesser > 0 and self._ebene_stirn(w) and self._passende_einsaetze(w, werkstoff)
+        ]
+        kennungen = [w.kennung for w in self._fraeser]
+        gemerkt = _parameter().GetString(self.s.gemerkt, "")
+        erster = self.s.einsatz_reihenfolge[0] if self.s.einsatz_reihenfolge else None
+        if vorher is not None and vorher.kennung in kennungen:
+            wahl = kennungen.index(vorher.kennung)
+        elif self.vorwahl in kennungen:
+            wahl = kennungen.index(self.vorwahl)
+        elif gemerkt in kennungen:
+            wahl = kennungen.index(gemerkt)
+        else:
+            wahl = min(
+                range(len(self._fraeser)),
+                key=lambda i: (
+                    not any(
+                        e.art == erster
+                        for e in self._passende_einsaetze(self._fraeser[i], werkstoff)
+                    ),
+                    self._fraeser[i].art != wz.SCHAFTFRAESER,
+                    i,
+                ),
+                default=0,
+            )
+        self.panel._fuellt = True
+        try:
+            self.wahl_fraeser.clear()
+            for werkzeug in self._fraeser:
+                self.wahl_fraeser.addItem(dezimal(wz.zeile(werkzeug)))
+            if self._fraeser:
+                self.wahl_fraeser.setCurrentIndex(wahl)
+        finally:
+            self.panel._fuellt = False
+        self.einsatz_fuellen(werkstoff)
+
+    def _fraeser_gewaehlt(self):
+        if not self.panel._fuellt:
+            self.einsatz_fuellen(self.panel.werkstoff())
+
+    def einsatz_fuellen(self, werkstoff):
+        """Die Einsätze des Fräsers; vorgewählt nach der Reihenfolge der Strategie; beim
+        Ändern der, mit dem der Controller gesetzt ist."""
+        werkzeug = self.fraeser()
+        self._einsaetze = (
+            self._passende_einsaetze(werkzeug, werkstoff) if werkzeug is not None else []
+        )
+        arten = [e.art for e in self._einsaetze]
+        wahl = next((arten.index(a) for a in self.s.einsatz_reihenfolge if a in arten), 0)
+        if self.tc_vorher is not None and werkzeug is not None and werkzeug.kennung == self.vorwahl:
+            gemerkt = js.vorgeschlagener_einsatz(self.tc_vorher, self._einsaetze, self.panel.job)
+            wahl = gemerkt if gemerkt >= 0 else wahl
+        self.panel._fuellt = True
+        try:
+            self.wahl_einsatz.clear()
+            for einsatz in self._einsaetze:
+                self.wahl_einsatz.addItem(wz.einsatz_name(einsatz))
+            if self._einsaetze:
+                self.wahl_einsatz.setCurrentIndex(wahl)
+        finally:
+            self.panel._fuellt = False
+        self._einsatz_gewaehlt()
+
+    def _einsatz_gewaehlt(self):
+        """Drehzahl und Vorschub, die Vorschläge in die Felder."""
+        if self.panel._fuellt:
+            return
+        werkzeug, einsatz = self.fraeser(), self.einsatz()
+        if werkzeug is None or einsatz is None:
+            self.schnittwerte.setText("")
+        else:
+            n, vf, _senkrecht = js.werte(werkzeug, einsatz)
+            self.schnittwerte.setText(
+                tr("va.schnittwerte", n=f"{n:.0f}", vf=groesse_fest(vf, einheiten.VORSCHUB, 0))
+            )
+        for feld, eingabe in self.felder.items():
+            eingabe.setPlaceholderText(self.s.platzhalter(feld, werkzeug, einsatz))
+        self.panel.vorschau_starten()
+
+    # --- Vorschau ---
+
+    def vorschau_rechnen(self, job, flaechen):
+        """Die grobe Bahn – Lagen, Zeilen bzw. Bahnen, Zeit – und damit „Anlegen“ weiß, ob
+        es geht; der Grund steht rot."""
+        self.vorschau = None
+        self.ergebnis.setText("")
+        self.hinweis.setText("")
+        werkzeug, einsatz = self.fraeser(), self.einsatz()
+        if werkzeug is None or einsatz is None:
+            self.hinweis.setText(tr("va.planfraeser.keiner"))
+            return
+        try:
+            self.vorschau = self.s.vorschau(job, werkzeug, self.werte(), flaechen)
+        except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
+            self.hinweis.setText(str(fehler))
+            return
+        _n, vorschub, senkrecht = js.werte(werkzeug, einsatz)
+        zeit = (
+            _zeit_text(bn.dauer(self.vorschau.punkte, vorschub, senkrecht)) if vorschub > 0 else "?"
+        )
+        self.ergebnis.setText(self.s.ergebnis_text(self.vorschau, zeit))
+
+    def leeren(self):
+        self.vorschau = None
+        self.ergebnis.setText("")
+        self.hinweis.setText("")
+
+
 class BearbeitungPanel:
     """Aufgabenfenster „Bearbeitung (Fräsen)“ – anlegen, oder mit `operation=` ändern."""
 
@@ -166,14 +692,11 @@ class BearbeitungPanel:
         self.job = None
         self.teil = None
         self.bibliothek = None
-        self._fraeser = []  # die Werkzeuge in der Auswahl „Fräser“
-        self._einsaetze = []
         self.gewaehlte = []  # die Flächen („Face6“ …) – leer: die Oberseite
-        self.vorschau = None  # die grobe Bahn (planfraesen_bahn.Planbahn) oder None
-        self.operation = operation  # die angelegte Operation – oder die, die man ändert
+        self.operation = operation  # die erste angelegte Operation – oder die, die man ändert
+        self.operationen = []  # alle angelegten
         self.zu_aendern = operation
-        self._tc_vorher = operation.ToolController if operation is not None else None
-        self._vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation
+        self.block_zu_aendern = None
         self._fuellt = False
         self.geschlossen = False
         self._knoepfe = None
@@ -191,7 +714,10 @@ class BearbeitungPanel:
         self._rohteil_uhr.setSingleShot(True)
         self._rohteil_uhr.setInterval(NACHZIEHEN_MS)
         self._rohteil_uhr.timeout.connect(self._rohteil_anwenden)
+        self.bloecke = []
         self.form = self._baue()
+        self.plan = self.bloecke[0]
+        self.kontur = self.bloecke[1]
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
@@ -216,14 +742,6 @@ class BearbeitungPanel:
         self.anleitung = QtGui.QLabel(tr("ba.anleitung"))
         self.anleitung.setWordWrap(True)
         aufbau.addWidget(self.anleitung)
-
-        def zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
-            eingabe = QtGui.QLineEdit()
-            eingabe.setValidator(Zahlenpruefer(eingabe))
-            eingabe.textChanged.connect(lambda _text: geaendert())
-            felder[name] = eingabe
-            reihen.reihe(text, tooltip, mit_einheit(eingabe, einheiten.einheit(einheiten.LAENGE)))
-            return eingabe
 
         def titel(text, tooltip=""):
             etikett = QtGui.QLabel(text)
@@ -254,7 +772,7 @@ class BearbeitungPanel:
             ("seite", tr("ba.rohteil.seite"), tr("ba.rohteil.seite.tooltip")),
             ("unten", tr("ba.rohteil.unten"), tr("ba.rohteil.unten.tooltip")),
         ):
-            eingabe = zahlenfeld(
+            eingabe = _zahlenfeld(
                 self.felder_rohteil, feld, text, tooltip, rohteil, self._rohteil_geaendert
             )
             eingabe.setPlaceholderText(groesse_zeigen(AUFMASS_ROHTEIL, einheiten.LAENGE) or "0")
@@ -306,37 +824,20 @@ class BearbeitungPanel:
         werkstoff.ganz(zeile)
         aufbau.addWidget(werkstoff.widget)
 
-        # --- Planfräsen ---
-        titel(tr("ba.planfraesen"), tr("ba.planfraesen.text"))
-        self.erklaerung = grautext(tr("ba.planfraesen.text"))
-        plan = _Reihen()
-        self.wahl_fraeser = QtGui.QComboBox()
-        self.wahl_fraeser.currentIndexChanged.connect(lambda _i: self._fraeser_gewaehlt())
-        plan.reihe(tr("va.fraeser"), tr("ba.planfraeser.tooltip"), self.wahl_fraeser)
-        self.wahl_einsatz = QtGui.QComboBox()
-        self.wahl_einsatz.currentIndexChanged.connect(lambda _i: self._einsatz_gewaehlt())
-        plan.reihe(tr("va.einsatz"), tr("ba.planeinsatz.tooltip"), self.wahl_einsatz)
-        self.schnittwerte = _grau()
-        plan.ganz(self.schnittwerte)
-        self.felder = {}
-        for feld, text, tooltip in (
-            ("zustellung", tr("ba.zustellung"), tr("ba.zustellung.tooltip")),
-            ("zeilenabstand", tr("ba.zeilenabstand"), tr("ba.zeilenabstand.tooltip")),
-            ("aufmass", tr("ba.aufmass"), tr("ba.aufmass.tooltip")),
-        ):
-            zahlenfeld(self.felder, feld, text, tooltip, plan, self._vorschau_starten)
-        self.planfelder = plan.widget
-        aufbau.addWidget(self.planfelder)
-        self.ergebnis = grautext()
+        # --- Die Bearbeitungen: je Strategie ein Block mit Haken ---
+        for strategie in STRATEGIEN:
+            block = _Block(self, strategie())
+            self.bloecke.append(block)
+            aufbau.addWidget(block.widget)
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
         self.hinweis.setStyleSheet(f"color: {ROT};")
         aufbau.addWidget(self.hinweis)
         # Die Beschriftungen aller Blöcke gleich breit: die Felder stehen untereinander.
-        bloecke = (oben, rohteil, werkstoff, plan)
-        breite = max(r.breite_beschriftung() for r in bloecke)
-        for reihen in bloecke:
-            reihen.raster.setColumnMinimumWidth(0, breite)
+        reihen = [oben, rohteil, werkstoff] + [b.reihen for b in self.bloecke]
+        breite = max(r.breite_beschriftung() for r in reihen)
+        for r in reihen:
+            r.raster.setColumnMinimumWidth(0, breite)
         aufbau.addStretch()
         ruhiges_mausrad(form)
         return form
@@ -367,10 +868,14 @@ class BearbeitungPanel:
             ok.setToolTip(tr("ba.anlegen.tooltip"))
         ok.setEnabled(self.job is not None and self._kann_anlegen())
 
+    def aktive_bloecke(self):
+        return [b for b in self.bloecke if b.aktiv()]
+
     def _kann_anlegen(self):
-        if self.fraeser() is None or self.einsatz() is None:
+        aktive = self.aktive_bloecke()
+        if not aktive or self.hinweis.text():
             return False
-        return not self.hinweis.text()
+        return all(b.kann_anlegen() for b in aktive)
 
     def accept(self):
         if self.job is None:
@@ -378,15 +883,15 @@ class BearbeitungPanel:
         if self._rohteil_uhr.isActive():
             self._rohteil_uhr.stop()
             self._rohteil_anwenden()
-        if self.vorschau is None:
+        if any(b.vorschau is None for b in self.aktive_bloecke()):
             self._vorschau_rechnen()
-        if not self._kann_anlegen() or self.vorschau is None:
+        if not self._kann_anlegen() or any(b.vorschau is None for b in self.aktive_bloecke()):
             return False  # der Grund steht rot im Fenster
         if self.zu_aendern is not None:
             if not self._aendern():
                 return False
         else:
-            # Job und Rohteil: ein Schritt Rückgängig. Die Operation kommt in einem eigenen –
+            # Job und Rohteil: ein Schritt Rückgängig. Die Operationen kommen in einem eigenen –
             # in einen gemeinsamen lässt FreeCAD es nicht (_im_befehl).
             if self._job_offen:
                 self.doc.commitTransaction()
@@ -397,7 +902,8 @@ class BearbeitungPanel:
                 self._job_offen = True
                 return False
         self._vor_dem_schliessen()
-        self._fraeser_merken()
+        for block in self.aktive_bloecke():
+            block.merken()
         FreeCADGui.Control.closeDialog()
         self.doc.recompute()
         return True
@@ -450,7 +956,7 @@ class BearbeitungPanel:
     def teil_waehlen(self, teil, flaeche=None):
         """Das Teil für den Job – der Job mit dem Rohteil entsteht sofort (eine Transaktion,
         bis „Anlegen“ oder „Abbrechen“). `flaeche`: die angeklickte Fläche („Face6“) – ist sie
-        eben nach oben, ist sie gewählt, sonst die Oberseite."""
+        eben nach oben oder eine Wand, ist sie gewählt, sonst die Oberseite."""
         if self.job is not None or teil is None or self.geschlossen:
             return
         self.teil = teil
@@ -465,7 +971,7 @@ class BearbeitungPanel:
         self._job_offen = True
         self._job_zeigen()
         form = vr.modell(self.job).Shape
-        if flaeche and hf.ebenen_oben(form, [flaeche]):
+        if flaeche and any(b.s.passt(form, flaeche) for b in self.bloecke):
             self.gewaehlte = [flaeche]
         else:
             self.gewaehlte = []
@@ -473,7 +979,7 @@ class BearbeitungPanel:
         self._bearbeitung_fuellen()
         self._flaechen_zeigen()
         self._auffrischen()
-        self._vorschau_starten()
+        self.vorschau_starten()
 
     def _neuer_job(self):
         """Legt den Job an und öffnet dafür die Transaktion des Assistenten – nur in
@@ -495,7 +1001,7 @@ class BearbeitungPanel:
         rohteil = getattr(job, "Stock", None)
         if rohteil is None or not hasattr(rohteil, "ExtZpos"):
             return
-        werte = {feld: self._wert(feld) for feld in ROHTEIL_FELDER}
+        werte = {feld: self._rohteil_wert(feld) for feld in ROHTEIL_FELDER}
         for name, wert in (
             ("ExtZpos", werte["oben"]),
             ("ExtZneg", werte["unten"]),
@@ -507,6 +1013,14 @@ class BearbeitungPanel:
             if abs(_mm(getattr(rohteil, name)) - wert) > 1e-9:
                 setattr(rohteil, name, wert)
 
+    def _rohteil_wert(self, feld):
+        """Wert eines Rohteil-Felds (mm); leer oder ungültig gilt 1 mm."""
+        text = self.felder_rohteil[feld].text()
+        try:
+            return groesse_lesen(text, einheiten.LAENGE) if text.strip() else AUFMASS_ROHTEIL
+        except ValueError:
+            return AUFMASS_ROHTEIL
+
     def _rohteil_geaendert(self):
         if not self._fuellt and self.job is not None and self.zu_aendern is None:
             self._rohteil_uhr.start()
@@ -516,7 +1030,7 @@ class BearbeitungPanel:
             return
         self._rohteil_setzen(self.job)
         self.doc.recompute()
-        self._vorschau_starten()
+        self.vorschau_starten()
 
     def _job_zeigen(self):
         """Anzeige des neuen Jobs wie bei FreeCADs Befehl „Job“ – aber in unserer Transaktion.
@@ -548,11 +1062,17 @@ class BearbeitungPanel:
 
     def _zum_aendern(self):
         """Mit den Werten der Operation: Teil und Rohteil wie im Job (nicht änderbar), Flächen,
-        Fräser, Einsatz, Werte; „Übernehmen“ statt „Anlegen“."""
+        ihr Block mit Fräser, Einsatz, Werten – die anderen Blöcke bleiben weg; „Übernehmen“
+        statt „Anlegen“."""
         op = self.zu_aendern
         self.job = job_von(op)
         if self.job is None:
             return
+        block = next((b for b in self.bloecke if b.s.ist(op)), None)
+        if block is None:
+            return
+        self.block_zu_aendern = block
+        block.tc_vorher = op.ToolController
         self.teil = vr.original(vr.modell(self.job))
         self.teil_text.setText(self.teil.Label)
         self.anleitung.setText(tr("ba.aendern.text", name=op.Label))
@@ -563,22 +1083,32 @@ class BearbeitungPanel:
                 for feld, name in (("oben", "ExtZpos"), ("seite", "ExtXpos"), ("unten", "ExtZneg")):
                     wert = _mm(getattr(rohteil, name))
                     self.felder_rohteil[feld].setText(groesse_zeigen(wert, einheiten.LAENGE) or "0")
+            for anderer in self.bloecke:
+                if anderer is not block:
+                    anderer.widget.setVisible(False)
+                    anderer.haken.setChecked(False)
+            block.haken.setChecked(True)
+            block.haken.setEnabled(False)
+            block.von_hand = True
         finally:
             self._fuellt = False
         self.rohteilfelder.setEnabled(False)
         self.gewaehlte = list(getattr(op, "Flaechen", ()) or ())
         self._bearbeitung_fuellen()
-        for feld, wert in (
-            ("zustellung", op.Zustellung),
-            ("zeilenabstand", op.Zeilenabstand),
-            ("aufmass", op.Aufmass),
-        ):
-            wert = float(wert)
-            if abs(wert - self._vorschlag(feld)) > 1e-6:
-                self.felder[feld].setText(groesse_zeigen(wert, einheiten.LAENGE) or "0")
+        self._fuellt = True
+        try:
+            for feld, wert in block.s.werte_von(op).items():
+                if feld in block.haken_felder:
+                    block.haken_felder[feld].setChecked(bool(wert))
+                    continue
+                wert = float(wert)
+                if abs(wert - block.vorschlag(feld)) > 1e-6:
+                    block.felder[feld].setText(groesse_zeigen(wert, einheiten.LAENGE) or "0")
+        finally:
+            self._fuellt = False
         self._flaechen_zeigen()
         self._auffrischen()
-        self._vorschau_starten()
+        self.vorschau_starten()
 
     # --- Flächen --------------------------------------------------------------------------
 
@@ -591,56 +1121,86 @@ class BearbeitungPanel:
         else:
             self.gewaehlte.append(name)
         self._flaechen_zeigen()
-        self._vorschau_starten()
+        self.vorschau_starten()
 
     def oberseite_waehlen(self):
         if self.job is None:
             return
         self.gewaehlte = hf.oberseite(vr.modell(self.job).Shape)
         self._flaechen_zeigen()
-        self._vorschau_starten()
+        self.vorschau_starten()
 
     def flaechen_leeren(self):
         self.gewaehlte = []
         self._flaechen_zeigen()
-        self._vorschau_starten()
+        self.vorschau_starten()
 
     def flaechen(self):
         """Die gewählten Flächen („Face6“ …) – leer: die Oberseite."""
         return list(self.gewaehlte)
 
     def _flaechen_zeigen(self):
-        """Die Liste der gewählten Flächen, der Satz darunter und die Farben am Teil."""
+        """Die Liste der gewählten Flächen, der Satz darunter, die Farben am Teil – und die
+        Haken der Blöcke, wie die Wahl sie nahelegt."""
         self.flaechen_liste.clear()
         self.flaechen_liste.setVisible(bool(self.gewaehlte))
         if self.job is None:
             self.flaechen_text.setText("")
             return
         form = vr.modell(self.job).Shape
-        if not self.gewaehlte:
-            namen = ", ".join(hf.oberseite(form)) or "–"
-            self.flaechen_text.setText(tr("ba.flaechen.oberseite", namen=namen))
-            self._farben_zeigen({})
-            return
         farben = {}
         for name in self.gewaehlte:
-            ebenen = hf.ebenen_oben(form, [name])
             nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
             if nummer < 0 or nummer >= len(form.Faces):
                 text, farbe = tr("ba.flaeche.fehlt", name=name), ROT
-            elif ebenen:
-                z = groesse_zeigen(ebenen[0].z, einheiten.LAENGE) or "0"
+            elif self.plan.s.passt(form, name):
+                z = groesse_zeigen(hf.ebenen_oben(form, [name])[0].z, einheiten.LAENGE) or "0"
                 text, farbe = tr("ba.flaeche.eben", name=name, z=z), GRUEN
+            elif self.kontur.s.passt(form, name):
+                z = groesse_zeigen(kb.waende(form, [name])[0].z_unten, einheiten.LAENGE) or "0"
+                text, farbe = tr("ba.flaeche.wand", name=name, z=z), GRUEN
             else:
-                text, farbe = tr("ba.flaeche.nicht_eben", name=name), ROT
+                text, farbe = tr("ba.flaeche.nichts", name=name), ROT
             eintrag = QtGui.QListWidgetItem(dezimal(text))
             eintrag.setData(QtCore.Qt.UserRole, name)
             eintrag.setForeground(QtGui.QColor(farbe))
             self.flaechen_liste.addItem(eintrag)
             if nummer >= 0:
                 farben[nummer] = farbe
-        self.flaechen_text.setText(tr("ba.flaechen.nur"))
+        if not self.gewaehlte:
+            namen = ", ".join(hf.oberseite(form)) or "–"
+            self.flaechen_text.setText(tr("ba.flaechen.oberseite", namen=namen))
+        else:
+            self.flaechen_text.setText(tr("ba.flaechen.nur"))
         self._farben_zeigen(farben)
+        self._haken_vorschlagen(form)
+
+    def _haken_vorschlagen(self, form):
+        """Je Block: möglich mit dieser Wahl? Dann der Haken, wie die Wahl ihn nahelegt –
+        solange ihn niemand von Hand gesetzt hat."""
+        if self.zu_aendern is not None:
+            return
+        self._fuellt = True
+        try:
+            for block in self.bloecke:
+                moeglich = block.s.moeglich(form, self.gewaehlte)
+                block.moeglich = moeglich
+                block.haken.setEnabled(moeglich)
+                block.erklaerung.setText(block.s.text() if moeglich else block.s.unmoeglich_text())
+                if not moeglich:
+                    block.haken.setChecked(False)
+                elif not block.von_hand:
+                    block.haken.setChecked(block.s.vorgeschlagen(form, self.gewaehlte))
+                block.zustand_zeigen()
+        finally:
+            self._fuellt = False
+
+    def haken_geklickt(self, block):
+        if self._fuellt:
+            return
+        block.von_hand = True
+        block.zustand_zeigen()
+        self.vorschau_starten()
 
     def _farben_zeigen(self, farben):
         """Färbt die Flächen des Teils im Job (wie gui_vierachs._farben_zeigen) – nur die
@@ -699,139 +1259,38 @@ class BearbeitungPanel:
         except wz.BeschaedigteDatei as fehler:
             self.bibliothek = wz.Bibliothek()
             self.hinweis.setText(tr("wv.fehler.laden", fehler=fehler, datei=fehler.beiseite))
+        tc_vorher = self.block_zu_aendern.tc_vorher if self.block_zu_aendern else None
         self._fuellt = True
         try:
             werkstoffe_anbieten(self.wahl_werkstoff, self.bibliothek)
             if vorher is None:
                 alle = self.bibliothek.alle_werkstoffe()
-                werkstoff, _gemerkt = js.werkstoff_fuer(self.job, alle, self._tc_vorher)
+                werkstoff, _gemerkt = js.werkstoff_fuer(self.job, alle, tc_vorher)
                 vorher = werkstoff.kennung if werkstoff is not None else wz.ALLE
             self.wahl_werkstoff.setCurrentIndex(max(0, self.wahl_werkstoff.findData(vorher)))
         finally:
             self._fuellt = False
-        if self._tc_vorher is not None and self._vorwahl is None:
-            werkzeug = js.werkzeug_von(self._tc_vorher, self.bibliothek)
-            self._vorwahl = werkzeug.kennung if werkzeug is not None else ""
-        self._fraeser_fuellen()
+        block = self.block_zu_aendern
+        if block is not None and block.tc_vorher is not None and block.vorwahl is None:
+            werkzeug = js.werkzeug_von(block.tc_vorher, self.bibliothek)
+            block.vorwahl = werkzeug.kennung if werkzeug is not None else ""
+        for block in self.bloecke:
+            block.fraeser_fuellen(self.bibliothek, self.werkstoff())
 
     def werkstoff(self):
         return self.wahl_werkstoff.currentData() or wz.ALLE
 
     def _werkstoff_gewaehlt(self):
         if not self._fuellt:
-            self._fraeser_fuellen()
-
-    @staticmethod
-    def _passende_einsaetze(werkzeug, werkstoff):
-        """Die Einsätze mit Drehzahl und Vorschub – nur mit ihnen gibt es einen Controller."""
-        return [e for e in werkzeug.einsaetze(werkstoff) if js.werte(werkzeug, e)[1] > 0]
-
-    @staticmethod
-    def _ebene_stirn(werkzeug):
-        form = ff.von_werkzeug(werkzeug)
-        return form is not None and vp.ebener_radius(form) > 0
-
-    def _fraeser_fuellen(self):
-        """Die Fräser mit ebener Stirn und Schnittwerten für den Werkstoff; vorgewählt der
-        bisher gewählte, beim Ändern der der Operation, sonst der zuletzt benutzte, sonst
-        einer mit Einsatz „Planen“, sonst ein Schaftfräser."""
-        werkstoff = self.werkstoff()
-        vorher = self.fraeser()
-        self._fraeser = [
-            w
-            for w in sorted(self.bibliothek.werkzeuge, key=lambda w: w.nummer)
-            if w.durchmesser > 0 and self._ebene_stirn(w) and self._passende_einsaetze(w, werkstoff)
-        ]
-        kennungen = [w.kennung for w in self._fraeser]
-        gemerkt = _parameter().GetString(GEMERKT_FRAESER, "")
-        if vorher is not None and vorher.kennung in kennungen:
-            wahl = kennungen.index(vorher.kennung)
-        elif self._vorwahl in kennungen:
-            wahl = kennungen.index(self._vorwahl)
-        elif gemerkt in kennungen:
-            wahl = kennungen.index(gemerkt)
-        else:
-            wahl = min(
-                range(len(self._fraeser)),
-                key=lambda i: (
-                    not any(
-                        e.art == wz.PLANEN
-                        for e in self._passende_einsaetze(self._fraeser[i], werkstoff)
-                    ),
-                    self._fraeser[i].art != wz.SCHAFTFRAESER,
-                    i,
-                ),
-                default=0,
-            )
-        self._fuellt = True
-        try:
-            self.wahl_fraeser.clear()
-            for werkzeug in self._fraeser:
-                self.wahl_fraeser.addItem(dezimal(wz.zeile(werkzeug)))
-            if self._fraeser:
-                self.wahl_fraeser.setCurrentIndex(wahl)
-        finally:
-            self._fuellt = False
-        self._einsatz_fuellen()
+            for block in self.bloecke:
+                block.fraeser_fuellen(self.bibliothek, self.werkstoff())
 
     def fraeser(self):
-        i = self.wahl_fraeser.currentIndex()
-        return self._fraeser[i] if 0 <= i < len(self._fraeser) else None
-
-    def _fraeser_gewaehlt(self):
-        if not self._fuellt:
-            self._einsatz_fuellen()
-
-    def _einsatz_fuellen(self):
-        """Die Einsätze des Fräsers; vorgewählt „Planen“, sonst „Schruppen“, sonst
-        „Schlichten“; beim Ändern der, mit dem der Controller gesetzt ist."""
-        werkzeug = self.fraeser()
-        self._einsaetze = (
-            self._passende_einsaetze(werkzeug, self.werkstoff()) if werkzeug is not None else []
-        )
-        arten = [e.art for e in self._einsaetze]
-        wahl = next(
-            (arten.index(a) for a in (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN) if a in arten), 0
-        )
-        if (
-            self._tc_vorher is not None
-            and werkzeug is not None
-            and werkzeug.kennung == self._vorwahl
-        ):
-            gemerkt = js.vorgeschlagener_einsatz(self._tc_vorher, self._einsaetze, self.job)
-            wahl = gemerkt if gemerkt >= 0 else wahl
-        self._fuellt = True
-        try:
-            self.wahl_einsatz.clear()
-            for einsatz in self._einsaetze:
-                self.wahl_einsatz.addItem(wz.einsatz_name(einsatz))
-            if self._einsaetze:
-                self.wahl_einsatz.setCurrentIndex(wahl)
-        finally:
-            self._fuellt = False
-        self._einsatz_gewaehlt()
+        """Der Fräser des Planfräsens – für die Szenarien und zum Lesen."""
+        return self.plan.fraeser()
 
     def einsatz(self):
-        i = self.wahl_einsatz.currentIndex()
-        return self._einsaetze[i] if 0 <= i < len(self._einsaetze) else None
-
-    def _einsatz_gewaehlt(self):
-        """Drehzahl und Vorschub, die Vorschläge in die Felder."""
-        if self._fuellt:
-            return
-        werkzeug, einsatz = self.fraeser(), self.einsatz()
-        if werkzeug is None or einsatz is None:
-            self.schnittwerte.setText("")
-        else:
-            n, vf, _senkrecht = js.werte(werkzeug, einsatz)
-            self.schnittwerte.setText(
-                tr("va.schnittwerte", n=f"{n:.0f}", vf=groesse_fest(vf, einheiten.VORSCHUB, 0))
-            )
-        for feld, eingabe in self.felder.items():
-            eingabe.setPlaceholderText(
-                groesse_zeigen(self._vorschlag(feld), einheiten.LAENGE) or "0"
-            )
-        self._vorschau_starten()
+        return self.plan.einsatz()
 
     def werkzeugverwaltung(self, nummer=None):
         """Öffnet die Werkzeugverwaltung; speichert man dort, liest der Assistent sie neu."""
@@ -846,85 +1305,28 @@ class BearbeitungPanel:
         if BearbeitungPanel.offen is self and self.job is not None:
             self._bearbeitung_fuellen()
 
-    def _fraeser_merken(self):
-        if self.fraeser() is not None:
-            _parameter().SetString(GEMERKT_FRAESER, self.fraeser().kennung)
-
     # --- Werte und Vorschau -----------------------------------------------------------------
 
-    def _vorschlag(self, feld):
-        """Der Wert eines leeren Felds (mm)."""
-        if feld in ROHTEIL_FELDER:
-            return AUFMASS_ROHTEIL
-        einsatz = self.einsatz()
-        if feld == "zustellung":
-            return einsatz.ap if einsatz is not None and einsatz.ap > 0 else pf.ZUSTELLUNG
-        if feld == "zeilenabstand":
-            werkzeug = self.fraeser()
-            if werkzeug is None:
-                return 0.0
-            return vplan.zeilenabstand_vorschlag(werkzeug, einsatz, ff.von_werkzeug(werkzeug))
-        return pf.AUFMASS
-
-    def _wert(self, feld):
-        """Wert eines Felds (mm); leer oder ungültig gilt der Vorschlag."""
-        eingabe = self.felder_rohteil.get(feld) or self.felder[feld]
-        text = eingabe.text()
-        try:
-            return groesse_lesen(text, einheiten.LAENGE) if text.strip() else self._vorschlag(feld)
-        except ValueError:
-            return self._vorschlag(feld)
-
-    def _vorschau_starten(self):
+    def vorschau_starten(self):
         if self._fuellt or self.geschlossen:
             return
-        self.vorschau = None
+        for block in self.bloecke:
+            block.vorschau = None
         self._vorschau_uhr.start()
         self._knoepfe_beschriften()
 
     def _vorschau_rechnen(self):
-        """Die grobe Bahn (planfraesen.vorschau) für Lagen, Zeilen und Zeit – und damit
-        „Anlegen“ weiß, ob es geht."""
+        """Die grobe Bahn je angehaktem Block – und damit „Anlegen“ weiß, ob es geht."""
         self._vorschau_uhr.stop()
         if self.geschlossen or self.job is None:
             return
-        self.vorschau = None
-        self.ergebnis.setText("")
-        self.hinweis.setText("")
-        werkzeug, einsatz = self.fraeser(), self.einsatz()
-        if werkzeug is None or einsatz is None:
-            self.hinweis.setText(tr("va.planfraeser.keiner"))
-            self._knoepfe_beschriften()
-            return
-        try:
-            self.vorschau = pf.vorschau(
-                self.job,
-                self.job.Model.Group,
-                ff.von_werkzeug(werkzeug),
-                self._wert("zustellung"),
-                self._wert("zeilenabstand"),
-                self._wert("aufmass"),
-                self.flaechen(),
-            )
-        except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
-            self.hinweis.setText(str(fehler))
-        else:
-            self.ergebnis.setText(self._ergebnis_text(self.vorschau))
+        form = vr.modell(self.job).Shape
+        for block in self.bloecke:
+            if block.aktiv():
+                block.vorschau_rechnen(self.job, block.s.flaechen_fuer(form, self.gewaehlte))
+            else:
+                block.leeren()
         self._knoepfe_beschriften()
-
-    def _ergebnis_text(self, bahn):
-        """„→ 3 Lagen, 30 Zeilen, etwa 2 min“ – bei mehreren Flächen mit ihrer Zahl."""
-        _n, vorschub, senkrecht = js.werte(self.fraeser(), self.einsatz())
-        zeit = _zeit_text(bn.dauer(bahn.punkte, vorschub, senkrecht)) if vorschub > 0 else "?"
-        if bahn.flaechen > 1:
-            return tr(
-                "ba.ergebnis_flaechen",
-                flaechen=bahn.flaechen,
-                lagen=bahn.lagen,
-                zeilen=bahn.zeilen,
-                zeit=zeit,
-            )
-        return tr("ba.ergebnis", lagen=bahn.lagen, zeilen=bahn.zeilen, zeit=zeit)
 
     def _auffrischen(self):
         self._knoepfe_beschriften()
@@ -932,45 +1334,55 @@ class BearbeitungPanel:
     # --- Anlegen und Ändern -----------------------------------------------------------------
 
     def _anlegen(self):
-        """Werkzeug-Controller und „Planfräsen“ in den Job – ein eigener Schritt Rückgängig, in
-        einem Befehl (_im_befehl). Geht es nicht, steht der Grund rot im Fenster: False."""
-        werte = (self._wert("zustellung"), self._wert("zeilenabstand"), self._wert("aufmass"))
-        flaechen = self.flaechen()
+        """Werkzeug-Controller und die angehakten Operationen in den Job – ein eigener Schritt
+        Rückgängig, in einem Befehl (_im_befehl). Geht es nicht, steht der Grund rot im
+        Fenster: False."""
+        form = vr.modell(self.job).Shape
+        aktive = self.aktive_bloecke()
 
         def anlegen():
             self.doc.openTransaction(tr("ba.transaktion.anlegen"))
+            ops = []
             try:
                 ue.uebergeben(self.bibliothek)
                 fremde = js.unbenutzte_fremde_controller(self.job, self.bibliothek)
                 js.controller_weg(self.doc, fremde)
-                tc = js.controller_ohne_transaktion(
-                    self.doc, self.job, self.fraeser(), self.einsatz(), self.werkstoff()
-                )
-                op = pf.lege_an(self.job, tc, *werte, flaechen=flaechen)
+                for block in aktive:
+                    tc = js.controller_ohne_transaktion(
+                        self.doc, self.job, block.fraeser(), block.einsatz(), self.werkstoff()
+                    )
+                    flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
+                    ops.append(block.s.lege_an(self.job, tc, block.werte(), flaechen))
                 self.doc.recompute()
             except Exception:
                 self.doc.abortTransaction()
                 raise
             self.doc.commitTransaction()
-            return op
+            return ops
 
         try:
-            self.operation = _im_befehl(anlegen)
+            self.operationen = _im_befehl(anlegen)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
             FreeCAD.Console.PrintError(f"Bearbeitung: {fehler}\n")
+            self.operationen = []
             self.operation = None
             self.hinweis.setText(tr("ba.fehler.anlegen", fehler=str(fehler)))
             self._knoepfe_beschriften()
             return False
+        for block, op in zip(aktive, self.operationen, strict=False):
+            block.operation = op
+        self.operation = self.operationen[0] if self.operationen else None
         return True
 
     def _aendern(self):
-        """Die Operation bekommt Fräser, Einsatz, Werte und Flächen aus dem Fenster – ein
+        """Die Operation bekommt Fräser, Einsatz, Werte und Flächen aus ihrem Block – ein
         eigener Schritt Rückgängig; den alten Controller nimmt es heraus, wenn ihn keine
         Operation mehr benutzt. Geht es nicht, steht der Grund rot im Fenster: False."""
         op = self.zu_aendern
-        werte = (self._wert("zustellung"), self._wert("zeilenabstand"), self._wert("aufmass"))
-        flaechen = self.flaechen()
+        block = self.block_zu_aendern
+        form = vr.modell(self.job).Shape
+        flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
+        werte = block.werte()
 
         def aendern():
             self.doc.openTransaction(tr("ba.transaktion.aendern"))
@@ -978,9 +1390,9 @@ class BearbeitungPanel:
                 ue.uebergeben(self.bibliothek)
                 bisher = op.ToolController
                 tc = js.controller_fuer(
-                    self.doc, self.job, self.fraeser(), self.einsatz(), self.werkstoff(), op
+                    self.doc, self.job, block.fraeser(), block.einsatz(), self.werkstoff(), op
                 )
-                pf.aendere(op, tc, *werte, flaechen=flaechen)
+                block.s.aendere(op, tc, werte, flaechen)
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)
                 if frei and bisher is not tc:
                     js.controller_weg(self.doc, [bisher])
