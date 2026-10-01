@@ -446,6 +446,7 @@ class _Ring:
     proben: object
     geschlossen: bool
     genau: bool = False
+    tasche: bool = False  # genau, an der Wand einer Tasche (das Material außen)
 
 
 def _ring_aus_linie(
@@ -1299,15 +1300,17 @@ def _harmonisch(wert, unbekannt, start, genau=1e-6, hoechstens=None):
 
 
 def inselringe(konturen, ebene, w, r, schritt, toleranz, material_links):
-    """Die Ringe um die Inseln der Fläche, genau gerechnet: der Versatz ihrer Unterkante um
-    Radius + Aufmaß (kontur_bahn._versatz – mit Bögen, ein Kreis bleibt ein Kreis). Inseln sind
-    geschlossene Konturen auf der Höhe der Fläche mit dem Material innen."""
+    """Die Ringe an den Wänden der Fläche, genau gerechnet: der Versatz ihrer Unterkante um
+    Radius + Aufmaß zur freien Seite (kontur_bahn._versatz – mit Bögen, ein Kreis bleibt ein
+    Kreis) – um Inseln (das Material innen) und an der Wand einer Tasche (das Material außen).
+    Der Ring aus dem Raster läge eine Zelle weiter weg: In einer Nut blieben 0,75 statt 0,3 mm
+    (P-2026-10-01-44)."""
     ergebnis = []
     for k in konturen:
         if not k.geschlossen or abs(k.z_unten - ebene.z) > kb.NAH:
             continue
         flaeche = kontur_flaeche(k)
-        if flaeche is None or ist_tasche(k, flaeche):
+        if flaeche is None:
             continue
         versatz = kb._versatz(k, r + max(w.aufmass, 0.0), toleranz, schritt)
         if versatz is None:
@@ -1315,7 +1318,9 @@ def inselringe(konturen, ebene, w, r, schritt, toleranz, material_links):
         segmente, _proben = versatz  # in Fahrtrichtung der Kontur: das Material rechts
         if material_links:
             segmente = [s.umgekehrt() for s in reversed(segmente)]
-        ergebnis.append(_Ring(segmente, kb._abtasten(segmente, schritt, True), True, True))
+        tasche = ist_tasche(k, flaeche)
+        proben = kb._abtasten(segmente, schritt, True)
+        ergebnis.append(_Ring(segmente, proben, True, True, tasche))
     return ergebnis
 
 
@@ -1527,7 +1532,13 @@ def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_
             if ring is None:
                 continue
             if j == 0 and geschlossen:
-                ring = _genau(ring, genaue, schritt)  # um die Insel: der genaue Versatz
+                genauer = _genau(ring, genaue, schritt)
+                if genauer is not ring and genauer.tasche:
+                    # An der Wand einer Tasche nach dem Ring aus dem Raster: Er liegt eine Zelle
+                    # weiter innen – der Schritt zum genauen bliebe sonst größer als ae, und
+                    # jede Lage bekäme eine Rampe mehr.
+                    ringe.append(ring)
+                ring = genauer  # um die Insel: der genaue Versatz statt des Rasters
             if nur_rest:
                 noetig = feld.ungeschnitten(ring.proben.x, ring.proben.y) > 1e-6
                 if not noetig.any():

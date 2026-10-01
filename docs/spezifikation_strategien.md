@@ -841,9 +841,14 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   Nuten kaum breiter als der Fräser (eine Nut 14 breit, Ø 12: Räumen „passt
   nicht hinein“). Damit die Nut in zwei Gruppen antreten kann, entscheidet der
   Wettbewerb einer Gruppe mit nur einem Teilnehmer nichts mehr (außer gegen rote
-  Blöcke). **Dabei gefunden, offen:** Räumen lässt in Nuten 0,75 mm statt des
-  Aufmaßes 0,3 an der Wand stehen (der äußere Ring liegt auf dem Raster); die
-  Kontur danach nimmt es mit, allein bleibt die Nut zu schmal. Prüfung
+  Blöcke). **Dabei gefunden** und behoben (P-2026-10-01-44, 0.59.1): Räumen
+  ließ an Taschenwänden 0,75 mm statt des Aufmaßes 0,3 stehen – der letzte Ring
+  kam aus dem Raster, eine Zelle neben dem Gesperrten; um Inseln galt schon der
+  genaue Versatz (`inselringe`). Jetzt auch an der Wand einer Tasche, nach dem Ring
+  aus dem Raster (direkt statt seiner wäre der Schritt größer als ae – je Lage eine
+  Rampe mehr). Die Tasche des Prüfstands braucht 0,88 statt 0,78 min – die alte
+  Bestmarke lag mit dem Wirkungsgrad 1,08 über der Untergrenze, also mit
+  Material, das stehen blieb; die Platte 34,49 statt 34,38 min. Prüfung
   `test_nut` (Sacknut 20 breit mit Kreisen, Durchgangsnut 14 breit mit Rampe; im
   Quader leer bis zum Grund, daneben nichts angeschnitten), Szenario
   `szenario_nut`.
@@ -891,7 +896,7 @@ für jede Strategie, die den Fräser dauernd im Eingriff hält:
 | --- | --- | --- | --- | --- |
 | heute: Planfräsen ap 2, ae 7,8 (0,65 D), Tasche über die Kontur in Lagen, Kontur Zapfen | 74,0 min (10 Lagen, 310 Zeilen, 62 m) | 4,6 min | 0,9 min | **80 min** |
 | heute mit ganzer Schneide: Planfräsen ap 20, ae 1,5; Tasche über die Kontur ap 20 (ganz räumen) | 39,3 min (1 Lage, 151 Zeilen, 33 m) | 3,9 min (12 Versätze, je mit Rampe) | 0,9 min | **44 min** |
-| S3f Räumen (gebaut, 0.45.0): Ringe ap 20, ae 1,5, hinein von außen in der Luft, zuletzt um den Zapfen; Tasche Rampe 3° einmal rundum, dann Ringe nach außen; Kontur nur mit dem Aufmaß | 33,1 min (1 Lage, gemessen; geschätzt waren ≈ 33) | 1,2 min (gemessen; geschätzt ≈ 1,3) | 0,3 min | **34,7 min** (gemessen, `test_pruefstand`) |
+| S3f Räumen (gebaut, 0.45.0): Ringe ap 20, ae 1,5, hinein von außen in der Luft, zuletzt um den Zapfen; Tasche Rampe 3° einmal rundum, dann Ringe nach außen; Kontur nur mit dem Aufmaß | 33,1 min (1 Lage, gemessen; geschätzt waren ≈ 33) | 1,2 min (gemessen; geschätzt ≈ 1,3) | 0,3 min | **34,8 min** (gemessen, `test_pruefstand`; 34,7 bis 0.59.0, als das Räumen in der Tasche 0,45 mm mehr stehen ließ) |
 | Untergrenze (Fräser nie aus dem Eingriff) | 29 min | 1,2 min | 0,3 min | **31 min** |
 
 Gemessen mit `scripts`-freiem Rechenlauf (Sonde, 1.1.3): Planfräsen und

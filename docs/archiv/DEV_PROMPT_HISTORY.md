@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-44 raeumen-wandring-genau
+
+### EINGELESEN
+- `raeumen_bahn` (`_Feld.abstand_zu`, das Gesperrte um eine Zelle breiter, `_ringe_um_inseln`,
+  `inselringe`, `_genau`), `kontur_bahn._versatz`, `tests/test_raeumen.py`,
+  `tests/test_pruefstand.py` mit `tests/bestmarken.json`.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`, `tests/bestmarken.json`, `docs/spezifikation_strategien.md`,
+  `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`,
+  `package.xml` (0.59.1)
+
+### AKZEPTANZKRITERIUM
+Nut 20 × 50, 10 tief, Standardfräser, Aufmaß 0,3: Im Quader ist nach Räumen alles bis 0,3 mm an
+die Wand geräumt (vorher blieben 0,75). Die Tasche des Prüfstands braucht 0,88 min (Wirkungsgrad
+1,02 statt 1,08 – vorher schneller als die Untergrenze, weil Material stehen blieb), die Platte
+34,49 min; keine Rampe mehr als vorher.
+
+### DONE
+- `inselringe` rechnet auch an der Wand einer Tasche den genauen Versatz (Radius + Aufmaß);
+  `_ringe_um_inseln` fährt ihn nach dem Ring aus dem Raster (direkt statt seiner wäre der Schritt
+  größer als ae und jede Lage bekäme eine Rampe mehr); um Inseln wie bisher statt seiner.
+- `tests/bestmarken.json` neu geschrieben (Tasche und Platte mit Räumen).
+
+### TEST
+- 1.1.3: `test_raeumen`, `test_pruefstand` grün; Szenarien `szenario_raeumen`, `szenario_kontur`,
+  `szenario_nut`, `szenario_rest`, `szenario_bohrung` grün; black/ruff grün.
+
+### NEXT
+- Bleistift (Kehlen); offene Nuten.
+
 ## P-2026-10-01-43 steil-flach
 
 ### EINGELESEN
