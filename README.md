@@ -136,6 +136,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Maschine prüfen“ trägt den Quader beim Abspielen ab – jede Operation mit der
   Form ihres Fräsers, auch FreeCADs eigene – und färbt ihn am Ende gegen das
   fertige Teil (grün, gelb, rot, blau). Kontur, Tasche und Bohren folgen.
+- **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
+  (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).

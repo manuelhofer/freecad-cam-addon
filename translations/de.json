@@ -638,7 +638,7 @@
     "beispiel.drehmaschine.beschreibung": "Schrägbett wie eine CLX. Hauptspindel S1/C1 – ihre Achse ist Z –, X, Y, Z und ein Revolver T. Jeder Platz ist eine VDI-Aufnahme am Werkzeugantrieb S3 – in der Stirn der Scheibe oder am Umfang; wie ein Werkzeug steht, sagt sein Halter in der Werkzeugverwaltung. Bettneigung, X im Durchmesser oder Radius, Wege, Plätze, Revolver und eine schräge Y-Achse trägst du unten ein.",
     "beispiel.drehmaschine.dokument": "Beispiel Drehmaschine",
     "beispiel.fraese3": "3-Achs-Fräse",
-    "beispiel.fraese3.beschreibung": "Kreuztisch X/Y, Fräskopf Z, Spindel S1 – der einfachste Einstieg. Auf dem Tisch zwei Spanneisen (Eisen, Schraube und Mutter) als Beispiel – etwas, woran die Kollisionsprüfung anstoßen kann; im Baum verschieben oder löschen.",
+    "beispiel.fraese3.beschreibung": "Kreuztisch X/Y, Fräskopf Z, Spindel S1 – der einfachste Einstieg. Der Tisch ist leer – was bei dir darauf steht (Schraubstock, Spanneisen), kommt als Körper in die Assembly, fest mit dem Tisch verbunden; dann nimmt die Kollisionsprüfung es mit. Die Beispiel-Fräse der Prüfungen hat dafür zwei Spanneisen.",
     "beispiel.fraese3.dokument": "Beispiel 3-Achs-Fräse",
     "beispiel.tisch_tisch": "5-Achs-Fräse Tisch/Tisch (A/C)",
     "beispiel.tisch_tisch.beschreibung": "Schwenkbrücke: Die Wiege schwenkt um A (um X), auf ihr dreht der Rundtisch um C. X, Y und Z fährt der Kopf (fahrender Ständer).",

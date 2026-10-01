@@ -638,7 +638,7 @@
     "beispiel.drehmaschine.beschreibung": "Slant bed like a CLX. Main spindle S1/C1 – its axis is Z –, X, Y, Z and a turret T. Every station is a VDI mount on the tool drive S3 – in the face of the disc or on its circumference; how a tool stands is up to its holder in the tool manager. Enter bed slant, X in diameter or radius, travels, stations, turret and an inclined Y axis below.",
     "beispiel.drehmaschine.dokument": "Example lathe",
     "beispiel.fraese3": "3-axis mill",
-    "beispiel.fraese3.beschreibung": "Cross table X/Y, milling head Z, spindle S1 – the simplest start. Two clamps on the table (bar, bolt and nut) as an example – something the collision check can hit; move or delete them in the tree.",
+    "beispiel.fraese3.beschreibung": "Cross table X/Y, milling head Z, spindle S1 – the simplest start. The table is empty – whatever stands on yours (vice, clamps) goes into the assembly as a body, fixed to the table; the collision check then takes it into account. The example mill of the checks has two clamps for that.",
     "beispiel.fraese3.dokument": "Example 3-axis mill",
     "beispiel.tisch_tisch": "5-axis mill table/table (A/C)",
     "beispiel.tisch_tisch.beschreibung": "Trunnion: the cradle tilts about A (about X), on it the rotary table turns about C. X, Y and Z move the head (travelling column).",

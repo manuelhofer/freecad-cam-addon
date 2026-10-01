@@ -1048,10 +1048,17 @@ def zuletzt_gewaehlt():
 
 def lade(art, masse=None):
     """Baut die Beispielmaschine der Bauart in einem neuen Dokument und zeigt sie;
-    gibt (Assembly, Maschine) zurück. `masse`: die eingetragenen Maße – bisher
-    nur bei der Drehmaschine (DrehmaschinenMasse)."""
+    gibt (Assembly, Maschine) zurück. `masse`: die eingetragenen Maße (Drehmaschine,
+    3-Achs-Fräse). Eine 3-Achs-Fräse mit eigenen Maßen hat nichts auf dem Tisch – die
+    Spanneisen gehören nur zum reinen Beispiel (Manuel, 2026-10-01: „die können ja weg,
+    zumindest wenn man eine neue 3-Achs-Maschine erstellt“)."""
     App.ParamGet(PARAMETER_PFAD).SetString(_ZULETZT, art)
-    asm, ma = BAUPLAENE[art](masse) if masse is not None else BAUPLAENE[art]()
+    if masse is None:
+        asm, ma = BAUPLAENE[art]()
+    elif art == FRAESE_3:
+        asm, ma = fraesmaschine(masse, spanneisen=False)
+    else:
+        asm, ma = BAUPLAENE[art](masse)
     if App.GuiUp:
         import FreeCADGui
 

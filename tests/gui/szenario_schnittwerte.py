@@ -241,6 +241,23 @@ def schritte(h):
     )
     s.tabelle.setCurrentCell(0, gs.EINSATZ)
     yield 100
+    # Ein eigener Werkstoff aus der Werkstoffliste („Werkstoffe…“) steht gleich in der
+    # Auswahl jeder Zeile – vorn, nach „Alle Werkstoffe“ (Manuel, 2026-10-01: „Man kann aber
+    # noch Werkstoffe in der Werkstoffliste anlegen?“).
+    from camaddon import werkstoffe as ws
+
+    eigener = ws.Werkstoff(kennung="eigen-1", nummer="9.9999", kurzname="MeinStahl", iso="P")
+    d.bibliothek.eigene_werkstoffe.append(eigener)
+    s.zeige(s.werkzeug, d.bibliothek)
+    yield 100
+    wahl = s.tabelle.cellWidget(0, gs.WERKSTOFF)
+    h.pruefe(
+        wahl.findData("eigen-1") == 2 and "MeinStahl" in wahl.itemText(2),
+        f"eigener Werkstoff in der Auswahl: {wahl.findData('eigen-1')}",
+    )
+    d.bibliothek.eigene_werkstoffe.remove(eigener)
+    s.zeige(s.werkzeug, d.bibliothek)
+    yield 100
 
     # Bohrer: f je Umdrehung, ohne ae und ap.
     bohrer = d.werkzeug_anlegen()

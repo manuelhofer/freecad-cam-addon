@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-18 testteil-spanneisen-weg-werkstoffliste
+
+### EINGELESEN
+- Manuel (2026-10-01): „Doch, Testteil wurde dir geschickt!“ (richtig: am 2026-09-30 im Chat
+  hochgeladen, P-17 sagte fälschlich „nie angekommen“); die Spanneisen „können weg, zumindest
+  wenn man eine neue 3-Achs-Maschine erstellt“; „Man kann aber noch Werkstoffe in der
+  Werkstoffliste anlegen?“; „mach mit S3 weiter“.
+- `beispielmaschine.lade`, `fraesmaschine(spanneisen=…)`, die Beschreibung der Bauart, die
+  Hilfe „Neue Maschine“; `gui_schnittwerte` (die Zeilen-Auswahl teilt das Werkstoff-Modell).
+
+### DATEIEN
+- Neu: `beispiele/test4achsbearbeitung.FCStd`, `beispiele/README.md`
+- `camaddon/beispielmaschine.py`, `translations/de.json`, `translations/en.json`,
+  `help/de|en/neue_maschine.html`, `tests/gui/szenario_schnittwerte.py`, `README.md`,
+  `package.xml` (0.39.1), `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Manuels Testteil liegt im Repo, mit Anleitung. Eine über „Neue Maschine“ (oder
+„Beispielmaschine laden …“) gebaute 3-Achs-Fräse hat einen leeren Tisch; die Beispiel-Fräse der
+Prüfungen (`beispielmaschine.lade(FRAESE_3)` ohne Maße) hat ihre zwei Spanneisen weiter. Ein
+eigener Werkstoff aus der Werkstoffliste steht in der Auswahl jeder Schnittwert-Zeile, vorn
+nach „Alle Werkstoffe“.
+
+### DONE
+- `lade(FRAESE_3, masse)` → `fraesmaschine(masse, spanneisen=False)`; Beschreibung und Hilfe
+  sagen, wie man Schraubstock oder Spanneisen der eigenen Maschine für die Kollisionsprüfung
+  einbaut (Körper in der Assembly, festes Gelenk zum Tisch).
+- Szenario: eigener Werkstoff in der Zeilen-Auswahl.
+- Testteil unter `beispiele/` mit README.
+
+### TEST
+- `szenario_schnittwerte`, `szenario_neue_maschine`, `test_sprache` in 1.1.3 ok; black/ruff ok.
+
+### NEXT
+- S3e Kontur (W-006): außen und innen, Ein- und Ausfahren, Konturen versetzen im Bahnmodell.
+
 ## P-2026-10-01-17 manuels-punkte-werkstoff-wege-spanneisen
 
 ### EINGELESEN
