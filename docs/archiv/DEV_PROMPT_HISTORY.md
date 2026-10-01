@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-36 gewinde-fraesen
+
+### EINGELESEN
+- FreeCADs ThreadMilling (1.1.3: `Path/Op/ThreadMilling.py`, `Path/Base/Generator/threadmilling.py`,
+  `Data/Threads/metric-internal-6H.csv`): der Vorschub des Controllers gilt dort für die Mitte des
+  Fräsers, die Helix immer Gang für Gang, mit ThreadFit 50 liegt M10 × 1,5 über der Toleranz von
+  D2. `bohrung`/`bohrung_bahn` (Muster für eine eigene Helix-Operation), `gewinde` (Tapping),
+  `uebergabe_werkzeuge._threadmill` (Crest = P/8, keine Steigung im ToolBit),
+  `restmaterial.QuaderAbtrag.fasen`, `kollision.INS_TEIL_ERLAUBT`.
+
+### DATEIEN
+- `camaddon/gewinde_bahn.py` (neu), `camaddon/gewindefraesen.py` (neu), `daten/gewinde_6H.csv`
+  (neu, aus FreeCAD), `camaddon/gui_bearbeitung.py`, `camaddon/gui_vierachs_operation.py`,
+  `camaddon/restmaterial.py`, `camaddon/kollision.py`, `camaddon/job_schnittwerte.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_gewindefraesen.py` (neu),
+  `tests/gui/szenario_gewindefraesen.py` (neu), `tests/gui/szenario_rest.py`,
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml`
+  (0.52.0)
+
+### AKZEPTANZKRITERIUM
+Platte 100 × 60 × 12 mit zwei durchgehenden Kernlöchern Ø 8,5, Gewindefräser Ø 8, P 1,5, 15 mm
+Zähne: Bohren T2 hat den Haken, Gewinde bohren und Gewinde fräsen sind möglich; Gewinde bohren an,
+dann Gewinde fräsen – Gewinde bohren verliert den Haken; „→ 2 × M10x1.5, 2 Umläufe, etwa …“ ohne
+angehängten Satz. „Anlegen“: „Bohren T2“, „Gewinde fräsen T7“ – nur G3, der Vorschub der Helix
+ein Fünftel von dem an der Schneide; Doppelklick, Gegenlauf: nur G2. Prüffenster: nirgends ins
+Teil.
+
+### DONE
+- `gewinde_bahn`: das Gewinde aus Kernloch (in D1 der Tabelle) und Steigung, auf die Mitte der
+  Toleranz von D2 (Spitze des 60°-Zahns, vorn P/8), „Korrektur“; je Bohrung Halbkreis hinein mit
+  P/4, Helix in Vierteln mit P je Umlauf, Halbkreis heraus; Gleichlauf G3 (Rechtsgewinde von
+  unten nach oben), Gegenlauf G2, Linksgewinde umgekehrt; die Mitte bekommt r / (r + R) vom
+  Vorschub; unten und oben so weit, dass die Lücke des Gangs ganz aus dem Teil reicht (aus der
+  Zahnform), Sackbohrung 0,2 über dem Grund; mehrere Zähne: Umläufe nur bis der oberste oben ist;
+  Sätze für kein Kernloch (mit dem nötigen, auch beim gezeichneten Nenn-Ø), zu groß, Hals zu
+  dick, zu kurz, zu flach.
+- `gewindefraesen`: Operation „Gewinde fräsen T7“ (Steigung und Zähne an der Operation), Werte
+  aus dem ToolBit, Endtiefe aus der Bahn, `ringe()` fürs Prüffenster.
+- Assistent: Block „Gewinde fräsen“ (Gewindefräser, die in alle gewählten Bohrungen passen;
+  Haken von Hand; schließt Gewinde bohren aus); Doppelklick öffnet ihn zum Ändern.
+- Prüffenster: `QuaderAbtrag.ringe` – das Gewinde darf in seinem Ring ins Teil, daneben nicht;
+  Kollision: `gewindefraesen` in `INS_TEIL_ERLAUBT`; Einsatz „Gewindefräsen“ für die Art.
+- Fehler aus 0.51.0: Der Satz „nur das Aufmaß an den Wänden …“ hing an jedem Block mit Zusatz,
+  auch am Restmaterial – jetzt nur an der Kontur; die Szenarien prüfen, dass nichts anhängt.
+
+### TEST
+- 1.1.3: `test_gewindefraesen`, `test_sprache` grün; Szenarien `szenario_gewindefraesen`,
+  `szenario_rest`, `szenario_kontur` grün; black/ruff grün.
+
+### NEXT
+- Reiben (G85); Restmaterial auf Böden; der Einstieg nach Zeit.
+
 ## P-2026-10-01-35 restmaterial-an-waenden
 
 ### EINGELESEN

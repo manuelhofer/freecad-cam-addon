@@ -28,6 +28,8 @@ from . import entgrat_bahn as eb
 from . import entgraten as eg
 from . import fraeserform as ff
 from . import gewinde as gw
+from . import gewinde_bahn as gfb
+from . import gewindefraesen as gf
 from . import hoehenfeld as hf
 from . import job_schnittwerte as js
 from . import kontur as ko
@@ -66,6 +68,7 @@ GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
 GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
+GEMERKT_GEWINDEFRAESER = "BaGewindefraeser"  # … fürs Gewindefräsen
 GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
 GEMERKT_ANBOHRER = "BaAnbohrer"  # … fürs Zentrieren
 GEMERKT_SENKER = "BaSenker"  # … fürs Senken
@@ -124,14 +127,15 @@ def nullpunkte():
 
 
 def ist_bearbeitung(op):
-    """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Bohrung fräsen“, „Kontur“
-    oder „Entgraten“?"""
+    """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Bohrung fräsen“, „Kontur“,
+    „Entgraten“ oder „Gewinde fräsen“?"""
     return (
         pf.ist_planfraesen(op)
         or ra.ist_raeumen(op)
         or bo.ist_bohrungsfraesen(op)
         or ko.ist_kontur(op)
         or eg.ist_entgraten(op)
+        or gf.ist_gewindefraesen(op)
     )
 
 
@@ -868,6 +872,91 @@ class _Gewinde(_Strategie):
         return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
 
 
+class _Gewindefraesen(_Strategie):
+    """„Gewinde fräsen“ mit einem Gewindefräser aus der Werkzeugverwaltung (gewindefraesen) –
+    nach dem Kernloch, statt „Gewinde bohren“; den Haken setzt man selbst."""
+
+    kennung = "gewindefraesen"
+    gemerkt = GEMERKT_GEWINDEFRAESER
+    einsatz_reihenfolge = (wz.GEWINDEFRAESEN,)
+
+    def titel(self):
+        return tr("ba.gewindefraesen")
+
+    def text(self):
+        return tr("ba.gewindefraesen.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.gewindefraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.gewindefraesen_einsatz.tooltip")
+
+    def haken(self):
+        return (("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),)
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art == wz.GEWINDEFRAESER and (werkzeug.steigung or 0.0) > 0
+
+    def passt(self, form, name):
+        return bb.ist_bohrung(form, name)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ob eine Bohrung ein Gewinde bekommt, sagt das Modell nicht
+
+    def unmoeglich_text(self):
+        return tr("ba.gewindefraesen.nicht")
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return gf.vorschau(
+            job,
+            werkzeug,
+            flaechen,
+            gleichlauf=werte["gleichlauf"],
+            vorschub=werte.get("vorschub", 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        gewinde = bahn.gewinde_text()
+        if abs(bahn.umlaeufe - 1.0) < 0.05:
+            return tr("ba.ergebnis_gewindefraesen.einer", gewinde=gewinde, zeit=zeit)
+        umlaeufe = f"{bahn.umlaeufe:.1f}".rstrip("0").rstrip(".")
+        return tr(
+            "ba.ergebnis_gewindefraesen",
+            gewinde=gewinde,
+            umlaeufe=dezimal(umlaeufe),
+            zeit=zeit,
+        )
+
+    def lege_an(self, job, tc, werte, flaechen):
+        werkzeug = werte["werkzeug"]
+        return gf.lege_an(
+            job,
+            tc,
+            float(werkzeug.steigung),
+            gf.zaehne_von(werkzeug),
+            gleichlauf=werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        werkzeug = werte["werkzeug"]
+        gf.aendere(
+            op,
+            tc,
+            float(werkzeug.steigung),
+            gf.zaehne_von(werkzeug),
+            gleichlauf=werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def ist(self, op):
+        return gf.ist_gewindefraesen(op)
+
+    def werte_von(self, op):
+        return {"gleichlauf": bool(op.Gleichlauf)}
+
+
 class _Entgraten(_Strategie):
     """Ein Fasenfräser bricht die Oberkanten der gewählten Wände (entgraten) – zuletzt, gegen
     keine Strategie im Wettbewerb; den Haken setzt man selbst."""
@@ -1157,6 +1246,7 @@ STRATEGIEN = (
     _Rest,
     _Senken,
     _Gewinde,
+    _Gewindefraesen,
     _Entgraten,
 )
 
@@ -1450,6 +1540,7 @@ class BearbeitungPanel:
         self.bohrung = next(b for b in self.bloecke if b.s.kennung == "bohrung")
         self.kontur = next(b for b in self.bloecke if b.s.kennung == "kontur")
         self.gewinde = next(b for b in self.bloecke if b.s.kennung == "gewinde")
+        self.gewindefraesen = next(b for b in self.bloecke if b.s.kennung == "gewindefraesen")
         self.entgraten = next(b for b in self.bloecke if b.s.kennung == "entgraten")
         self.zentrieren = next(b for b in self.bloecke if b.s.kennung == "zentrieren")
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
@@ -2035,6 +2126,7 @@ class BearbeitungPanel:
             return
         self._bohrer_waehlen(form)
         self._gewindebohrer_waehlen(form)
+        self._gewindefraeser_waehlen(form)
         self._senker_waehlen(form)
         self._fuellt = True
         try:
@@ -2044,6 +2136,8 @@ class BearbeitungPanel:
                     moeglich = moeglich and self._bohrer_da(form)
                 if block is self.gewinde:
                     moeglich = moeglich and self._gewindebohrer_da(form)
+                if block is self.gewindefraesen:
+                    moeglich = moeglich and self._gewindefraeser_da(form)
                 if block in (self.entgraten, self.zentrieren):
                     moeglich = moeglich and bool(block._fraeser)
                 if block is self.senken:
@@ -2068,6 +2162,17 @@ class BearbeitungPanel:
             return
         block.von_hand = True
         block.zustand_zeigen()
+        # Gewinde bohren oder fräsen – beides in dieselben Bohrungen schnitte zwei Gänge.
+        paar = {self.gewinde: self.gewindefraesen, self.gewindefraesen: self.gewinde}
+        anderer = paar.get(block)
+        if anderer is not None and block.aktiv() and anderer.aktiv():
+            self._fuellt = True
+            try:
+                anderer.haken.setChecked(False)
+                anderer.von_hand = True
+                anderer.zustand_zeigen()
+            finally:
+                self._fuellt = False
         self.vorschau_starten()
 
     def _farben_zeigen(self, farben):
@@ -2202,7 +2307,7 @@ class BearbeitungPanel:
             if block.aktiv() or self._im_wettbewerb(block):
                 zusatz = self._zusatz(block, form)
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
-                if zusatz and block.ergebnis_basis:
+                if block is self.kontur and zusatz and block.ergebnis_basis:
                     block.ergebnis.setText(tr("ba.kontur.nach_raeumen", text=block.ergebnis_basis))
             else:
                 block.leeren()
@@ -2214,6 +2319,8 @@ class BearbeitungPanel:
         Wände die Kontur fährt, und ist die Breite der Kontur leer, dann steht neben den Wänden
         nur noch das Aufmaß des Räumens – die Kontur schlichtet nur noch (Räumen + Kontur mit
         Breite = Aufmaß, die schnellste Folge in der Tasche; Spezifikation Abschnitt 11)."""
+        if block is self.gewindefraesen:
+            return {"werkzeug": block.fraeser()}  # Steigung und Zähne kennt CAM nicht
         if block is self.rest:
             if self.rest.felder["davor"].text().strip():
                 return None  # von Hand eingetragen
@@ -2317,6 +2424,55 @@ class BearbeitungPanel:
         for i, w in enumerate(self.gewinde._fraeser):
             if abs(gw.kernloch(w.durchmesser, w.steigung) - d) <= gw.GLEICH_D:
                 self.gewinde.wahl_fraeser.setCurrentIndex(i)
+                return
+
+    def _gewindefraeser_passt(self, werkzeug, liste):
+        """Fräst `werkzeug` in alle Bohrungen `liste` ein Gewinde (gewinde_bahn.stelle)?"""
+        werte = gf.aus_werkzeug(werkzeug)
+        w = gfb.Gewindewerte(
+            fraeser_radius=werte["fraeser_radius"],
+            steigung=float(werkzeug.steigung or 0.0),
+            oben=max((b.z_oben for b in liste), default=0.0),
+            sicher=0.0,
+            zaehne=gf.zaehne_von(werkzeug),
+            flankenwinkel=werte["flankenwinkel"],
+            spitze=werte["spitze"],
+            hals_radius=werte["hals_radius"],
+            reichweite=werte["reichweite"],
+        )
+        if w.steigung <= 0:
+            return False
+        try:
+            for b in liste:
+                gfb.stelle(b, w)
+        except ValueError:
+            return False
+        return True
+
+    def _gewindefraeser_liste(self, form):
+        namen = [n for n in self.gewaehlte if bb.ist_bohrung(form, n)]
+        return bb.bohrungen(form, namen) if namen else []
+
+    def _gewindefraeser_da(self, form):
+        """Hat die Werkzeugverwaltung einen Gewindefräser, der in alle gewählten Bohrungen ein
+        Gewinde fräst – seine Steigung zu ihrem Kernloch, klein genug?"""
+        liste = self._gewindefraeser_liste(form)
+        return bool(liste) and any(
+            self._gewindefraeser_passt(w, liste) for w in self.gewindefraesen._fraeser
+        )
+
+    def _gewindefraeser_waehlen(self, form):
+        """Wählt im Block Gewinde fräsen einen Gewindefräser, der zu den gewählten Bohrungen
+        passt – wenn der gewählte es nicht tut."""
+        liste = self._gewindefraeser_liste(form)
+        if not liste:
+            return
+        jetzt = self.gewindefraesen.fraeser()
+        if jetzt is not None and self._gewindefraeser_passt(jetzt, liste):
+            return
+        for i, w in enumerate(self.gewindefraesen._fraeser):
+            if self._gewindefraeser_passt(w, liste):
+                self.gewindefraesen.wahl_fraeser.setCurrentIndex(i)
                 return
 
     def _senker_passt(self, werkzeug, liste):
@@ -2598,6 +2754,8 @@ class BearbeitungPanel:
         form = vr.modell(self.job).Shape
         flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
         werte = block.werte()
+        if block is self.gewindefraesen:
+            werte["werkzeug"] = block.fraeser()  # Steigung und Zähne kennt CAM nicht
 
         def aendern():
             self.doc.openTransaction(tr("ba.transaktion.aendern"))

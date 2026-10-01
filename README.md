@@ -173,6 +173,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   **Zentrieren** mit dem NC-Anbohrer vor dem Bohren und **Senken** mit dem
   Kegelsenker in die Senkungen, die das Modell hat. **Restmaterial**: ein
   kleinerer Fräser holt, was der große in Ecken innen stehen ließ – nur dort.
+  **Gewinde fräsen** mit dem Gewindefräser: das Gewinde aus Kernloch und
+  Steigung (M10 × 1,5 in Ø 8,5), auf die Mitte der Toleranz 6H, im Gleichlauf,
+  der Vorschub an der Schneide.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

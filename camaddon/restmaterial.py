@@ -78,6 +78,7 @@ GRUEN_BIS = 0.1  # mm über dem Aufmaß
 ROT_AB = 1.0  # mm über dem Aufmaß
 BLAU_AB = 0.05  # mm im Teil
 FASE_SPIEL = 0.05  # mm – so viel tiefer als die Fase darf „Entgraten“ gehen (Raster)
+RING_SPIEL = 0.05  # mm – so viel weiter als die Spitze des Gewindefräsers zählt sein Ring
 OHNE_TEIL, GRUEN, GELB, ROT, BLAU = range(5)  # Werte in Vergleich.farbe
 
 
@@ -818,6 +819,7 @@ class QuaderAbtrag:
         formen,
         flaechen=None,
         fasen=None,
+        ringe=None,
     ):
         self.quader = quader
         self.punkte = np.asarray(punkte, dtype=float).reshape(-1, 3)  # je Station die Spitze
@@ -835,6 +837,11 @@ class QuaderAbtrag:
         # „Rundum entgraten“ bei der Stange).
         self.fasen = dict(fasen or {})
         self._fasen_erlaubt = np.zeros(quader.h.shape)
+        # „Gewinde fräsen“: je Operation (Nummer) die Kreise [(x, y, r)] um die Bohrungen, bis zu
+        # denen die Spitze des Zahns reicht – dort darf sie ins Teil (das Gewinde steht nicht im
+        # Modell), daneben nicht.
+        self.ringe = {k: list(v) for k, v in (ringe or {}).items() if v}
+        self._ring_zellen = {}
         self.bis = 0  # abgetragen bis vor diese Station
 
     def letzte(self):
@@ -857,16 +864,31 @@ class QuaderAbtrag:
             stuecke = k[self.operation[k] == nummer]
             if not len(stuecke):
                 continue
-            vorher = self.quader.h.copy() if nummer in self.fasen else None
+            merken = nummer in self.fasen or nummer in self.ringe
+            vorher = self.quader.h.copy() if merken else None
             self.quader.fahre_stuecke(self.punkte[stuecke - 1], self.punkte[stuecke], fraeser)
             if vorher is not None:
                 getroffen = self.quader.h < vorher - 1e-9
-                np.maximum(
-                    self._fasen_erlaubt,
-                    np.where(getroffen, self.fasen[nummer], 0.0),
-                    out=self._fasen_erlaubt,
-                )
+                if nummer in self.fasen:
+                    np.maximum(
+                        self._fasen_erlaubt,
+                        np.where(getroffen, self.fasen[nummer], 0.0),
+                        out=self._fasen_erlaubt,
+                    )
+                if nummer in self.ringe:
+                    self._fasen_erlaubt[getroffen & self._in_ringen(nummer)] = np.inf
         self.bis = max(self.bis, index + 1)
+
+    def _in_ringen(self, nummer):
+        """Die Zellen in den Kreisen der Operation `nummer` (ringe) – einmal gerechnet."""
+        zellen = self._ring_zellen.get(nummer)
+        if zellen is None:
+            zellen = np.zeros(self.quader.h.shape, dtype=bool)
+            x, y = self.quader.x[:, None], self.quader.y[None, :]
+            for mx, my, r in self.ringe[nummer]:
+                zellen |= (x - mx) ** 2 + (y - my) ** 2 <= (r + RING_SPIEL) ** 2
+            self._ring_zellen[nummer] = zellen
+        return zellen
 
     def vergleich(self):
         """Das Restmaterial gegen das fertige Teil (Vergleich) – die Oberseite des Teils und,
@@ -885,7 +907,7 @@ class QuaderAbtrag:
                 nur = vh.Netz(fnetz.netz.punkte, fnetz.netz.dreiecke[drin], fnetz.netz.toleranz)
                 self._nur = np.isfinite(hf.hoehen(nur, self.quader.x, self.quader.y, innen=True))
         erlaubt = self._erlaubt
-        if self.fasen:
+        if self.fasen or self.ringe:
             erlaubt = np.maximum(erlaubt, self._fasen_erlaubt)
         return vergleiche_quader(self.quader, self._teil, self.aufmass, self._nur, erlaubt=erlaubt)
 
@@ -979,16 +1001,21 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     box = form.BoundBox
     quader = Quader(box.XMin, box.XMax, box.YMin, box.YMax, box.ZMin, box.ZMax)
     from .entgraten import eindringtiefe, ist_entgraten
+    from .gewindefraesen import ist_gewindefraesen
+    from .gewindefraesen import ringe as gewinde_ringe
 
     fasen = {}
+    ringe = {}
     for k in fraeser:
         op = ops.get(abfahrt.operationen[k].name)
         if op is not None and ist_entgraten(op):
             fasen[k] = eindringtiefe(op) + FASE_SPIEL
         elif op is not None and _zentrier_fase(op) > 0:
             fasen[k] = _zentrier_fase(op) + FASE_SPIEL
+        elif op is not None and ist_gewindefraesen(op):
+            ringe[k] = gewinde_ringe(op, job)
     return QuaderAbtrag(
-        quader, am_werkstueck, operation, gueltig, fraeser, aufmass, formen, flaechen, fasen
+        quader, am_werkstueck, operation, gueltig, fraeser, aufmass, formen, flaechen, fasen, ringe
     )
 
 

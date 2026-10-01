@@ -707,6 +707,40 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   Prüffenster für G93 (Rundum) hält nicht mehr vor jedem Satz an (die Spirale
   dauerte siebenmal so lang). Prüfung `test_senken`, Szenario
   `szenario_senken`.
+  Dann **Gewinde fräsen** (P-2026-10-01-36, 0.52.0): eine eigene Operation
+  statt FreeCADs ThreadMilling – das fährt den Vorschub des Controllers mit
+  der Mitte des Fräsers (in M10 mit Ø 8 an der Schneide fast das Fünffache)
+  und mit einem Fräser mit mehreren Zähnen trotzdem Gang für Gang.
+  `gewinde_bahn.py`: welches Gewinde, aus Kernloch und Steigung des Fräsers
+  über die Tabelle ISO 965 / 6H (`daten/gewinde_6H.csv`, dieselbe wie bei
+  FreeCAD: das Kernloch muss in D1 liegen – Ø 8,5 mit 1,5 → M10 × 1,5, Ø 10,2
+  mit 1,75 → M12 × 1,75); gefräst auf die Mitte der Toleranz von D2 (die
+  Spitze des 60°-Zahns, vorn P/8 breit, bei D2/2 + (P/2 − P/8) / (2 tan 30°)),
+  „Korrektur“ für die Lehre. Je Bohrung: Eilgang in die Mitte hinab, Halbkreis
+  hinaus mit P/4 in z (so steil wie die Helix), Helix mit P je Umlauf in
+  Vierteln (G2/G3 mit Z), Halbkreis zurück; Gleichlauf G3, ein
+  Rechtsgewinde damit von unten nach oben (Gegenlauf G2 von oben, Links
+  umgekehrt); der Vorschub der Mitte r / (r + R) vom Vorschub an der
+  Schneide (`bahn.Punkt.anteil`), in den Halbkreisen mit deren Radius. Unten
+  und oben so weit, dass die Lücke des Gangs ganz aus dem Teil reicht (aus
+  der Zahnform: halbe Spitze und Zahnhöhe bis zum Hals, mal tan 30°; Ø 8 für
+  M10 × 1,5: 1,3 mm unter die Unterseite), in der Sackbohrung 0,2 mm über
+  dem Grund. Mehrere Zähne übereinander (Schneidenlänge / Steigung): so
+  viele Gänge auf einmal, Umläufe nur bis der oberste Zahn oben ist (zwei
+  M10 × 12: 2 statt 18 Umläufe). Fehler mit einem Satz: kein Kernloch für die
+  Steigung (mit dem Kernloch, das es bräuchte – auch wenn der Nenn-Ø
+  gezeichnet ist), Fräser zu groß, Hals zu dick, Reichweite zu kurz,
+  Sackbohrung zu flach. Operation `gewindefraesen.GewindeFraesen`
+  („Gewinde fräsen T7“, Steigung und Zähne an der Operation – CAM kennt beim
+  Gewindefräser keine Steigung), Einsatz „Gewindefräsen“. Im Assistenten der
+  Block „Gewinde fräsen“ (nur Gewindefräser mit Steigung, vorgewählt einer,
+  der in alle gewählten Bohrungen passt; nicht vorgeschlagen) – er und
+  „Gewinde bohren“ schließen sich aus. Das Prüffenster lässt das Gewinde
+  durch (`QuaderAbtrag.ringe`: um jede Bohrung bis zur Spitze des Zahns,
+  daneben nicht), die Kollision auch (`INS_TEIL_ERLAUBT`). Dabei: Der Satz
+  „nur das Aufmaß an den Wänden …“ der Kontur hing seit 0.51.0 auch am
+  Restmaterial – jetzt nur an der Kontur. Prüfung `test_gewindefraesen`,
+  Szenario `szenario_gewindefraesen`.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

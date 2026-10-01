@@ -77,7 +77,10 @@ def schritte(h):
     yield 300
     h.pruefe(not rest.hinweis.text(), f"rot: {rest.hinweis.text()!r}")
     text = rest.ergebnis.text()
-    h.pruefe(text.startswith("→ 4 Stellen, 2 Lagen, etwa "), f"Restmaterial: {text!r}")
+    h.pruefe(
+        text.startswith("→ 4 Stellen, 2 Lagen, etwa ") and " – " not in text,
+        f"Restmaterial: {text!r}",
+    )
     h.bild("1_restmaterial", panel.form)
 
     # --- Anlegen: „Kontur T1“, dann „Restmaterial T3“ ----------------------------------------

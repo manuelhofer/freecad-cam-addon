@@ -330,8 +330,43 @@ cutter before is not larger, it reached everywhere).</li>
 “RadiusDavor”; a double-click opens its block.</li>
 </ul>
 
+<h3>12. Thread milling</h3>
+<ul>
+<li>For <b>core holes</b> of metric threads, with a <b>thread mill</b> from the tool
+management – instead of “Tapping”: tick one and the other loses its tick (two threads in one
+hole would not work). Which thread, the core hole and the cutter's pitch say: Ø 8.5 with 1.5
+→ M10 × 1.5 (the table ISO 965, tolerance 6H, allows Ø 8.38 to 8.68 there). So one cutter
+mills every thread of its pitch it fits into. You set the tick yourself.</li>
+<li>It mills to the <b>middle of the tolerance</b> of the pitch diameter (M10 × 1.5: 9.116).
+If the thread is too tight or too loose, the operation's property <b>Korrektur</b> changes
+the diameter – after the gauge: if the go side does not enter, a little more.</li>
+<li>The path per hole: rapid down in the middle, in on a <b>half circle</b> (a quarter pitch
+in z on the way – as steep as the thread, no step), the <b>helix</b> with one pitch per turn,
+back to the middle on a half circle. <b>Climb milling</b> (the material on the right, M3)
+goes counter-clockwise, a right-hand thread thus from the bottom up; unticked, conventional
+milling from the top down. Left-hand threads: property “Linksgewinde”.</li>
+<li>The <b>feed applies at the cutting edge</b>: in the hole the edge travels much further
+than the centre of the cutter (M10 with Ø 8: almost five times). So the centre moves
+correspondingly slower – with the application's feed at the centre the cutter would break.
+FreeCAD's own thread milling does not do this.</li>
+<li>Through a <b>through hole</b> it goes so far beyond that the lowest turn is complete (Ø 8
+for M10 × 1.5: about 1.3 mm); at the top the turn ends completely above the edge. In a
+<b>blind hole</b> the tip stays 0.2 mm above the bottom – the thread reaches almost to the
+bottom, unlike with a tap.</li>
+<li>A cutter with <b>several teeth stacked</b> (cutting length 15 mm at pitch 1.5: ten) mills
+that many turns at once and needs only as many revolutions as it takes for its top tooth to
+reach the top – usually one. A cutter with one tooth (cutting length below two pitches) mills
+turn by turn. If the cutting length in the tool management is wrong, the thread is wrong –
+the operation's property “Zaehne” shows what it calculates with.</li>
+<li>Grey below: “→ 2 × M10x1.5, 2 turns, about 1 min”. Red says why it does not work: the
+hole is no core hole for the pitch (with the core hole it would need), the cutter is too
+large, its neck too thick, it does not reach deep enough.</li>
+<li>The operation is called “Thread milling T7”. “Check on the machine” lets the thread pass:
+around each hole it may go into the part up to the tip of the tooth, not beside it.</li>
+</ul>
+
 <h3>Changing it later</h3>
-<p><b>Double-click</b> “Face milling …”, “Clearing …”, “Hole milling …”, “Contour …” or “Deburr …” in the tree – or right-click,
+<p><b>Double-click</b> “Face milling …”, “Clearing …”, “Hole milling …”, “Contour …”, “Deburr …” or “Thread milling …” in the tree – or right-click,
 <b>Edit</b>; or select the operation or its job and press the “Machining
 (milling)” button – to open the window with faces, cutter, application and
 values of the operation, with its block only. <b>Apply</b> changes it – one undo step; another

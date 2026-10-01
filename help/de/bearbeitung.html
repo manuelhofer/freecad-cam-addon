@@ -338,8 +338,47 @@ Fräser davor ist nicht größer, er kam überall hin).</li>
 „RadiusDavor“; Doppelklick öffnet ihren Block.</li>
 </ul>
 
+<h3>12. Gewinde fräsen</h3>
+<ul>
+<li>Für <b>Kernlöcher</b> metrischer Gewinde, mit einem <b>Gewindefräser</b> aus der
+Werkzeugverwaltung – statt „Gewinde bohren“: Hakst du eins an, verliert das andere den
+Haken (zwei Gänge in einer Bohrung gingen nicht). Welches Gewinde, sagen Kernloch und
+Steigung des Fräsers: Ø 8,5 mit 1,5 → M10 × 1,5 (die Tabelle ISO 965, Toleranz 6H, erlaubt
+dort Ø 8,38 bis 8,68). Ein Fräser kann so jedes Gewinde seiner Steigung, in das er
+hineinpasst. Den Haken setzt du selbst.</li>
+<li>Gefräst wird auf die <b>Mitte der Toleranz</b> des Flankendurchmessers (M10 × 1,5:
+9,116). Sitzt das Gewinde zu stramm oder zu lose, ändert die Eigenschaft <b>Korrektur</b>
+der Operation den Durchmesser – nach der Lehre: Geht die Gutseite nicht hinein, etwas
+mehr.</li>
+<li>Die Bahn je Bohrung: im Eilgang in die Mitte hinab, im <b>Halbkreis hinein</b> (dabei
+eine Viertel-Steigung in z – so steil wie das Gewinde, kein Absatz), die <b>Helix</b> mit
+einer Steigung je Umlauf, im Halbkreis zurück in die Mitte. Im <b>Gleichlauf</b> (das
+Material rechts, M3) gegen den Uhrzeigersinn, ein Rechtsgewinde damit von unten nach oben;
+ohne den Haken im Gegenlauf von oben nach unten. Linksgewinde: Eigenschaft
+„Linksgewinde“.</li>
+<li>Der <b>Vorschub gilt an der Schneide</b>: In der Bohrung läuft die Schneide außen viel
+weiter als die Mitte des Fräsers (M10 mit Ø 8: fast fünfmal). Die Mitte fährt darum
+entsprechend langsamer – mit dem Vorschub des Einsatzes an der Mitte bräche der Fräser.
+FreeCADs eigenes Gewindefräsen macht das nicht.</li>
+<li>Durch eine <b>durchgehende Bohrung</b> geht er so weit hinaus, dass der unterste Gang
+ganz ist (Ø 8 für M10 × 1,5: etwa 1,3 mm); oben endet der Gang ganz über der Kante. In
+einer <b>Sackbohrung</b> bleibt die Spitze 0,2 mm über dem Grund – das Gewinde reicht fast
+bis unten, anders als beim Gewindebohrer.</li>
+<li>Ein Fräser mit <b>mehreren Zähnen übereinander</b> (Schneidenlänge 15 mm bei Steigung
+1,5: zehn) fräst so viele Gänge auf einmal und braucht nur so viele Umläufe, bis sein
+oberster Zahn oben ist – meist einen. Ein Fräser mit einem Zahn (Schneidenlänge kleiner als
+zwei Steigungen) fräst Gang für Gang. Stimmt die Schneidenlänge in der Werkzeugverwaltung
+nicht, stimmt das Gewinde nicht – die Eigenschaft „Zaehne“ der Operation zeigt, womit sie
+rechnet.</li>
+<li>Grau darunter: „→ 2 × M10x1.5, 2 Umläufe, etwa 1 min“. Rot steht, warum es nicht geht:
+die Bohrung ist kein Kernloch für die Steigung (mit dem Kernloch, das es bräuchte), der
+Fräser ist zu groß, sein Hals zu dick, er reicht nicht tief genug.</li>
+<li>Die Operation heißt „Gewinde fräsen T7“. „Auf der Maschine prüfen“ lässt das Gewinde
+durch: Um jede Bohrung darf es bis zur Spitze des Zahns ins Teil, daneben nicht.</li>
+</ul>
+
 <h3>Nachträglich ändern</h3>
-<p><b>Doppelklick</b> auf „Planfräsen …“, „Räumen …“, „Bohrung fräsen …“, „Kontur …“ oder „Entgraten …“ im Baum – oder rechte Maustaste,
+<p><b>Doppelklick</b> auf „Planfräsen …“, „Räumen …“, „Bohrung fräsen …“, „Kontur …“, „Entgraten …“ oder „Gewinde fräsen …“ im Baum – oder rechte Maustaste,
 <b>Bearbeiten</b>; oder die Operation bzw. ihren Job wählen und den Knopf
 „Bearbeitung (Fräsen)“ drücken – öffnet das Fenster mit Flächen, Fräser,
 Einsatz und Werten der Operation, nur mit ihrem Block. <b>Übernehmen</b> ändert sie – ein Schritt
