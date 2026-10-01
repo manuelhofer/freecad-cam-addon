@@ -80,6 +80,15 @@ zapfen = [
 ]
 pruefe(len(zapfen) == 1 and not bb.ist_bohrung(teil, zapfen[0]), f"Zapfen als Bohrung: {zapfen}")
 pruefe(bb.ist_bohrung(teil, durch.name), "ist_bohrung")
+# Eine Senkung für eine Zylinderkopfschraube (Ø 11 über Ø 6,6) und eine gebohrte Sackbohrung
+# mit Spitze haben einen Boden, auch wenn auf ihrer Achse darunter Luft ist – sonst fräste
+# „Bohrung fräsen“ 0,5 mm unter den Boden der Senkung.
+stufe = Part.makeBox(60, 30, 12).cut(Part.makeCylinder(3.3, 12, V(15, 15, 0)))
+stufe = stufe.cut(Part.makeCylinder(5.5, 6.4, V(15, 15, 5.6)))
+stufe = stufe.cut(Part.makeCylinder(4.25, 8, V(45, 15, 4)))
+stufe = stufe.cut(Part.makeCone(4.25, 0, 2.55, V(45, 15, 4), V(0, 0, -1))).removeSplitter()
+boden = {round(2 * b.radius, 2): b.durch for b in bb.bohrungen(stufe)}
+pruefe(boden == {11.0: False, 6.6: True, 8.5: False}, f"Senkung, Spitze: durchgehend {boden}")
 print("Bohrungen ok")
 
 

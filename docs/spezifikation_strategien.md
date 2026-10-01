@@ -741,6 +741,22 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   „nur das Aufmaß an den Wänden …“ der Kontur hing seit 0.51.0 auch am
   Restmaterial – jetzt nur an der Kontur. Prüfung `test_gewindefraesen`,
   Szenario `szenario_gewindefraesen`.
+  Dann **Sackbohrungen mit Bohrspitze** (P-2026-10-01-37, 0.53.0): Die
+  Erkennung hielt jede Bohrung für durchgehend, unter deren Achse Luft ist –
+  auch die Senkung für eine Zylinderkopfschraube (darunter das
+  Durchgangsloch) und jede Sackbohrung aus FreeCADs „Bohrung“ (darunter die
+  Luft der 118°-Spitze). „Bohrung fräsen“ fuhr dort 0,5 mm unter den Grund,
+  „Gewinde fräsen“ eine Steigung – in den Boden der Senkung, in den Kegel der
+  Spitze. Jetzt prüft `bohrung_bahn._boden_unter` rundum knapp innerhalb der
+  Wand, und `Bohrung.spitze` hat den Winkel eines Kegels darunter. „Bohren“
+  bohrt auch Sackbohrungen, deren Spitze der Winkel des Bohrers ist (±1°) –
+  ExtraOffset „Drill Tip“ setzt den vollen Durchmesser auf den Grund der Wand,
+  die Spitze steht genau dort, wo das Modell sie hat; ein Bohrer mit anderem
+  Winkel bekommt einen Satz. In der Liste „Bohrung Ø 8,5, Grund 5, Spitze
+  118°“. Prüfung `test_bohren`, `test_bohrung` (Senkung und Spitze), Szenario
+  `szenario_sackgewinde` (eine PartDesign-Bohrung M10, 15 tief: Bohren T2 bis
+  zur Spitze, Gewinde fräsen T7 0,2 über dem Grund der Wand, im Prüffenster
+  nirgends ins Teil).
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

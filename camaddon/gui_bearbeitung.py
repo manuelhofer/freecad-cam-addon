@@ -675,7 +675,7 @@ class _Bohren(_Strategie):
         return werkzeug.art == wz.BOHRER
 
     def passt(self, form, name):
-        return any(b.durch for b in bb.bohrungen(form, [name]))
+        return any(b.durch or b.spitze > 0 for b in bb.bohrungen(form, [name]))
 
     def unmoeglich_text(self):
         return tr("ba.bohren.nicht")
@@ -2091,6 +2091,11 @@ class BearbeitungPanel:
                 d = groesse_zeigen(2 * b.radius, einheiten.LAENGE) or "0"
                 if b.durch:
                     text = tr("ba.flaeche.bohrung_durch", name=name, d=d)
+                elif b.spitze > 0:
+                    z = groesse_zeigen(b.z_unten, einheiten.LAENGE) or "0"
+                    text = tr(
+                        "ba.flaeche.bohrung_spitze", name=name, d=d, z=z, winkel=f"{b.spitze:.0f}"
+                    )
                 else:
                     z = groesse_zeigen(b.z_unten, einheiten.LAENGE) or "0"
                     text = tr("ba.flaeche.bohrung_sack", name=name, d=d, z=z)
@@ -2388,10 +2393,8 @@ class BearbeitungPanel:
         if not namen:
             return False
         liste = bb.bohrungen(form, namen)
-        if not liste or not all(b.durch for b in liste):
-            return False
-        return any(
-            all(abs(2 * b.radius - w.durchmesser) <= bh.GLEICH_D for b in liste)
+        return bool(liste) and any(
+            all(bh.kann(b, w.durchmesser, w.spitzenwinkel or bh.SPITZENWINKEL) for b in liste)
             for w in self.bohren._fraeser
         )
 
@@ -2510,15 +2513,19 @@ class BearbeitungPanel:
         """Wählt im Block Bohren den Bohrer mit dem Durchmesser der gewählten Bohrungen – wenn
         der gewählte nicht passt."""
         liste = bb.bohrungen(form, [n for n in self.gewaehlte if bb.ist_bohrung(form, n)] or [""])
-        durchmesser = {round(2 * b.radius, 3) for b in liste}
-        if len(durchmesser) != 1:
+        if not liste:
             return
-        d = durchmesser.pop()
+
+        def bohrt(w):
+            return all(
+                bh.kann(b, w.durchmesser, w.spitzenwinkel or bh.SPITZENWINKEL) for b in liste
+            )
+
         jetzt = self.bohren.fraeser()
-        if jetzt is not None and abs(jetzt.durchmesser - d) <= bh.GLEICH_D:
+        if jetzt is not None and bohrt(jetzt):
             return
         for i, w in enumerate(self.bohren._fraeser):
-            if abs(w.durchmesser - d) <= bh.GLEICH_D:
+            if bohrt(w):
                 self.bohren.wahl_fraeser.setCurrentIndex(i)
                 return
 

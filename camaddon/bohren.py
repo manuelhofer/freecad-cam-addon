@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """„Bohren“ aus dem Assistenten (W-006 S3g): FreeCADs Bohr-Operation (Path.Op.Drilling) mit einem
-Bohrer aus der Werkzeugverwaltung – für durchgehende Bohrungen mit dem Durchmesser des Bohrers.
-Die Spitze geht um ihre Länge unter den Grund (ExtraOffset „Drill Tip“), damit die Bohrung bis
-unten den vollen Durchmesser hat; tiefer als dreimal der Durchmesser in Hüben (G83), sonst in
-einem Zug (G81). Eine Sackbohrung mit ebenem Grund kann ein Bohrer nicht – seine Spitze bliebe
-stehen; die fräst „Bohrung fräsen“.
+Bohrer aus der Werkzeugverwaltung – für durchgehende Bohrungen mit dem Durchmesser des Bohrers
+und für Sackbohrungen, unter deren Wand die Spitze eines Bohrers mit seinem Winkel gezeichnet
+ist (FreeCADs Bohrung: 118°). Die Spitze geht um ihre Länge unter den Grund der Wand (ExtraOffset
+„Drill Tip“): Die Bohrung hat bis unten den vollen Durchmesser, und in der Sackbohrung steht die
+Spitze genau dort, wo das Modell sie hat. Tiefer als dreimal der Durchmesser in Hüben (G83),
+sonst in einem Zug (G81). Eine Sackbohrung mit ebenem Grund kann ein Bohrer nicht – seine
+Spitze bliebe stehen; die fräst „Bohrung fräsen“.
 
 Hier: welche Bohrungen ein Bohrer kann (passende()), die Bewegungen des Zyklus zum Schätzen der
 Zeit (planen(): Eilgang über die Bohrung, auf R, im Vorschub hinab – je Hub zurück auf R und
@@ -21,6 +23,7 @@ from . import einheiten, namen
 from .sprache import tr
 
 GLEICH_D = 0.02  # mm – so genau muss der Bohrer zur Bohrung passen
+GLEICH_WINKEL = 1.0  # Grad – so genau muss seine Spitze zu der einer Sackbohrung passen
 TIEF_AB = 3.0  # × D: tiefer bohrt er in Hüben (G83)
 HUB_ANTEIL = 1.0  # × D: so tief je Hub, wenn nichts anderes gesagt ist
 SPITZENWINKEL = 118.0  # Grad, wenn das Werkzeug keinen hat
@@ -54,16 +57,34 @@ def hub_fuer(tiefe, durchmesser, hub=0.0):
     return durchmesser * HUB_ANTEIL if tiefe > TIEF_AB * durchmesser + 1e-9 else 0.0
 
 
-def passende(form, namen, durchmesser):
-    """[Bohrung] – die Bohrungen `namen` von `form`, die ein Bohrer mit `durchmesser` bohrt.
-    ValueError mit einem Satz, wenn eine nicht passt (anderer Durchmesser, ebener Grund)."""
+def kann(b, durchmesser, spitzenwinkel=SPITZENWINKEL):
+    """Bohrt ein Bohrer mit `durchmesser` und `spitzenwinkel` die Bohrung `b` – durchgehend,
+    oder eine Sackbohrung mit seiner Spitze darunter?"""
+    if abs(2 * b.radius - durchmesser) > GLEICH_D:
+        return False
+    return b.durch or (b.spitze > 0 and abs(b.spitze - spitzenwinkel) <= GLEICH_WINKEL)
+
+
+def passende(form, namen, durchmesser, spitzenwinkel=SPITZENWINKEL):
+    """[Bohrung] – die Bohrungen `namen` von `form`, die ein Bohrer mit `durchmesser` und
+    `spitzenwinkel` bohrt. ValueError mit einem Satz, wenn eine nicht passt (anderer
+    Durchmesser, ebener Grund, eine andere Spitze)."""
     liste = bb.bohrungen(form, list(namen) or None)
     if not liste:
         raise ValueError(tr("bh.fehler.keine"))
     for b in liste:
-        if not b.durch:
+        if not b.durch and b.spitze <= 0:
             raise ValueError(
                 tr("bh.fehler.sack", durchmesser=einheiten.text(2 * b.radius, einheiten.LAENGE))
+            )
+        if not b.durch and abs(b.spitze - spitzenwinkel) > GLEICH_WINKEL:
+            raise ValueError(
+                tr(
+                    "bh.fehler.spitze",
+                    durchmesser=einheiten.text(2 * b.radius, einheiten.LAENGE),
+                    spitze=f"{b.spitze:.0f}",
+                    winkel=f"{spitzenwinkel:.0f}",
+                )
             )
         if abs(2 * b.radius - durchmesser) > GLEICH_D:
             raise ValueError(
@@ -121,12 +142,13 @@ def vorschau(job, werkzeug, flaechen, vorschub, hub=0.0):
     from . import vierachs_schlichten as vs
 
     form_teil = vs._teil(job.Model.Group)
-    liste = passende(form_teil, flaechen, float(werkzeug.durchmesser))
+    winkel = float(werkzeug.spitzenwinkel or SPITZENWINKEL)
+    liste = passende(form_teil, flaechen, float(werkzeug.durchmesser), winkel)
     *_rohteil, oben = pf.rohteil_von_oben(job)
     return planen(
         liste,
         float(werkzeug.durchmesser),
-        float(werkzeug.spitzenwinkel or SPITZENWINKEL),
+        winkel,
         oben,
         oben + 5.0,
         vorschub,

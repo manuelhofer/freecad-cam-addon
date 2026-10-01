@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-37 sackbohrungen-mit-spitze
+
+### EINGELESEN
+- `bohrung_bahn.bohrungen` (durchgehend: Material auf der Achse unter dem Grund?), `bohren`
+  (passende, Drill Tip), `gui_bearbeitung` (_Bohren, _bohrer_da, _bohrer_waehlen, Liste der
+  Flächen); eine PartDesign-Bohrung M10 (Gewinde nicht gezeichnet: Ø 8,5, DrillPoint Angled
+  118°) im Kopf nachgebaut.
+
+### DATEIEN
+- `camaddon/bohrung_bahn.py`, `camaddon/bohren.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_bohrung.py`,
+  `tests/test_bohren.py`, `tests/gui/szenario_sackgewinde.py` (neu),
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml`
+  (0.53.0)
+
+### AKZEPTANZKRITERIUM
+Eine Senkung Ø 11 über Ø 6,6 und eine Sackbohrung mit 118°-Spitze haben einen Boden (nicht
+„durchgehend“). PartDesign-Bohrung M10, 15 tief, 118°: In der Liste „Bohrung Ø 8,5, Grund 5,
+Spitze 118°“; Bohren mit dem 118°-Bohrer T2 bekommt den Haken und bohrt bis z 2,45 (die Spitze
+des Modells), Gewinde fräsen T7 bleibt über z 5,2; ein 90°-Bohrer bekommt einen Satz. Im
+Prüffenster nirgends ins Teil.
+
+### DONE
+- `bohrung_bahn`: durchgehend nur, wenn rundum knapp innerhalb der Wand unter ihrem Grund kein
+  Material ist (`_boden_unter`) – auf der Achse lag unter einer Senkung das Durchgangsloch und
+  unter einer gebohrten Sackbohrung die Luft der Spitze: „Bohrung fräsen“ fuhr dort 0,5 mm
+  unter den Grund, „Gewinde fräsen“ eine Steigung. `Bohrung.spitze`: der Winkel eines Kegels
+  darunter, der nach unten spitz zuläuft (`_spitze_unter`).
+- `bohren`: `kann()`, `passende()` mit Spitzenwinkel – Sackbohrungen mit der Spitze des Bohrers
+  (±1°); Drill Tip setzt den vollen Durchmesser auf den Grund der Wand, die Spitze steht, wo das
+  Modell sie hat. Satz für eine andere Spitze.
+- Assistent: Bohren für solche Sackbohrungen möglich, der Bohrer nach Ø und Winkel vorgewählt;
+  in der Liste „Bohrung Ø 8,5, Grund 5, Spitze 118°“.
+
+### TEST
+- 1.1.3: `test_bohren`, `test_bohrung`, `test_gewinde`, `test_senken`, `test_gewindefraesen`,
+  `test_sprache` grün; Szenarien `szenario_sackgewinde` (neu), `szenario_bohren`,
+  `szenario_bohrung` grün; black/ruff grün.
+
+### NEXT
+- Reiben (G85); Restmaterial auf Böden; der Einstieg nach Zeit.
+
 ## P-2026-10-01-36 gewinde-fraesen
 
 ### EINGELESEN

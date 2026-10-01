@@ -89,6 +89,32 @@ for namen, d, text, satzteil in (
     else:
         pruefe(False, f"{text}: keine Fehlermeldung")
 
+# Eine Sackbohrung Ø 8,5 bis z 5 mit der 118°-Spitze darunter (wie FreeCADs PartDesign-Bohrung):
+# Der Bohrer mit 118° bohrt sie – die Spitze steht dann genau dort, wo das Modell sie hat –, einer
+# mit 90° nicht.
+spitz = Part.makeBox(30, 30, 20).cut(Part.makeCylinder(4.25, 15, V(15, 15, 5)))
+spitz = spitz.cut(
+    Part.makeCone(4.25, 0, 4.25 / math.tan(math.radians(59)), V(15, 15, 5), V(0, 0, -1))
+)
+spitz = spitz.removeSplitter()
+loch = bb.bohrungen(spitz)
+pruefe(
+    len(loch) == 1 and not loch[0].durch and abs(loch[0].spitze - 118.0) < 1e-6,
+    f"Sackbohrung mit Spitze: {loch}",
+)
+pruefe(bh.kann(loch[0], 8.5, 118.0) and not bh.kann(loch[0], 8.5, 90.0), "kann()")
+mit_spitze = bh.planen(bh.passende(spitz, [loch[0].name], 8.5, 118.0), 8.5, 118.0, 20, 25, 300)
+pruefe(
+    abs(mit_spitze.z_min - (5.0 - bh.spitze(8.5, 118.0))) < 1e-9,
+    f"Spitze bei z {mit_spitze.z_min:.3f}",
+)
+try:
+    bh.passende(spitz, [loch[0].name], 8.5, 90.0)
+except ValueError as grund:
+    pruefe("118°" in str(grund) and "90°" in str(grund), f"90°-Bohrer: {grund}")
+else:
+    pruefe(False, "90°-Bohrer in der 118°-Spitze: keine Fehlermeldung")
+
 # --- Die Bewegungen des Zyklus und die Zeit ------------------------------------------------------
 VF = 902.0
 _n, vf_bohren, _senkrecht = js.werte(b20, b20.schnittwerte[wz.ALLE][0])

@@ -162,7 +162,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Wettbewerb mit der Kontur (in Bohrungen meist dreimal so schnell). Alles im
   Gleichlauf (Spindel M3: das Material rechts der Fahrtrichtung). **Bohren**:
   FreeCADs Bohr-Operation mit dem Bohrer aus der Werkzeugverwaltung, der den
-  Durchmesser der Bohrung hat (G81, tief in Hüben mit G83) – tritt gegen
+  Durchmesser der Bohrung hat (G81, tief in Hüben mit G83), auch in
+  Sackbohrungen mit Bohrspitze wie aus FreeCADs „Bohrung“ – tritt gegen
   Bohrung fräsen und Kontur an; die schnellste bekommt den Haken. **Gewinde
   bohren**: FreeCADs Gewinde-Operation (G84, links G74) mit dem Gewindebohrer,
   dessen Kernloch die Bohrung hat (M10 × 1,5 in Ø 8,5) – durchgehend um den

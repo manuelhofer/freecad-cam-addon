@@ -165,16 +165,20 @@ allowance at the walls: clearing clears the pocket”.</p>
 
 <h3>5. Drilling</h3>
 <ul>
-<li>For <b>through holes</b>, when the tool management has a <b>drill</b> with
-their diameter – the matching one is preselected. A blind hole with a flat
-bottom a drill cannot make (its tip would remain); “Hole milling” mills it.</li>
+<li>For <b>through holes</b> and <b>blind holes with a drill tip</b>, when the tool
+management has a <b>drill</b> with their diameter – the matching one is preselected.
+FreeCAD's “Hole” draws a blind hole with the tip of a drill (118°), the list then says “hole
+Ø 8.5, bottom 5, tip 118°”: a drill with this angle drills it, and its tip ends exactly where
+the model has it. A blind hole with a flat bottom a drill cannot make (its tip would remain);
+“Hole milling” mills it. A counterbore for a socket head screw is no through hole – it has a
+bottom, even though the through hole continues below.</li>
 <li>Created is <b>FreeCAD's Drilling</b> with the cutting data of the
 application “Drilling”: the tip its length below the bottom so the hole has
 the full diameter all the way down; the R plane 3 mm above the stock; shallower
 than 3 × D in the material in one go (G81), deeper in pecks (G83) – <b>depth per peck</b>
 (empty: 1 × D each). Change it in FreeCAD's window (double-click).</li>
 <li>Grey below: “→ 1 hole, 1 peck, about 1 min”. Red says why it does not
-work (another diameter, flat bottom).</li>
+work (another diameter, flat bottom, a tip with another angle).</li>
 <li>Drilling, hole milling and contour solve the same task in a hole: the
 window computes all that work and ticks the fastest – with a matching drill
 usually drilling.</li>

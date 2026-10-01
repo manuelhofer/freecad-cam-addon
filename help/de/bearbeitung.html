@@ -169,10 +169,14 @@ Aufmaß an den Wänden: die Tasche räumt das Räumen“.</p>
 
 <h3>5. Bohren</h3>
 <ul>
-<li>Für <b>durchgehende Bohrungen</b>, wenn die Werkzeugverwaltung einen
-<b>Bohrer</b> mit ihrem Durchmesser hat – vorgewählt ist der passende. Eine
-Sackbohrung mit ebenem Grund kann ein Bohrer nicht (seine Spitze bliebe
-stehen); die fräst „Bohrung fräsen“.</li>
+<li>Für <b>durchgehende Bohrungen</b> und <b>Sackbohrungen mit Bohrspitze</b>, wenn die
+Werkzeugverwaltung einen <b>Bohrer</b> mit ihrem Durchmesser hat – vorgewählt ist der
+passende. FreeCADs „Bohrung“ zeichnet eine Sackbohrung mit der Spitze eines Bohrers (118°),
+in der Liste steht dann „Bohrung Ø 8,5, Grund 5, Spitze 118°“: Ein Bohrer mit diesem Winkel
+bohrt sie, und seine Spitze steht genau dort, wo das Modell sie hat. Eine Sackbohrung mit
+ebenem Grund kann ein Bohrer nicht (seine Spitze bliebe stehen); die fräst „Bohrung
+fräsen“. Eine Senkung für eine Zylinderkopfschraube ist keine durchgehende Bohrung – sie hat
+einen Boden, auch wenn darunter das Durchgangsloch weitergeht.</li>
 <li>Angelegt wird <b>FreeCADs Bohren</b> (Path „Drilling“) mit den Schnittwerten
 des Einsatzes „Bohren“: die Spitze um ihre Länge unter den Grund, damit die
 Bohrung bis unten den vollen Durchmesser hat; die Ebene R 3 mm über dem
@@ -180,7 +184,7 @@ Rohteil; flacher als 3 × D im Material in einem Zug (G81), tiefer in Hüben (G8
 <b>Tiefe je Hub</b> (leer: je 1 × D). Ändern im Fenster von FreeCAD
 (Doppelklick).</li>
 <li>Grau darunter: „→ 1 Bohrung, 1 Hub, etwa 1 min“. Rot steht, warum es
-nicht geht (anderer Durchmesser, ebener Grund).</li>
+nicht geht (anderer Durchmesser, ebener Grund, eine Spitze mit anderem Winkel).</li>
 <li>Bohren, Bohrung fräsen und Kontur lösen in einer Bohrung dieselbe
 Aufgabe: Das Fenster rechnet alle, die gehen, und hakt die schnellste an –
 mit einem passenden Bohrer meist das Bohren.</li>

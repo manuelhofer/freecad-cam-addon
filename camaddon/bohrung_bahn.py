@@ -45,6 +45,7 @@ class Bohrung:
     z_oben: float  # Oberkante der Wand
     z_unten: float  # Grund der Wand
     durch: bool  # unter dem Grund ist kein Material
+    spitze: float = 0.0  # Grad: Unten schließt ein Kegel an wie die Spitze eines Bohrers; 0 nicht
 
 
 @dataclass
@@ -108,8 +109,7 @@ def bohrungen(form, namen=None):
         if normale.x * zur_achse.x + normale.y * zur_achse.y <= 0:
             continue  # die Normale zeigt von der Achse weg: ein Zapfen, keine Bohrung
         bb = flaeche.BoundBox
-        drunter = FreeCAD.Vector(mitte.x, mitte.y, bb.ZMin - 0.05)
-        durch = not form.isInside(drunter, 1e-6, True)
+        durch = not _boden_unter(form, mitte, float(flaeche_.Radius), bb.ZMin)
         ergebnis.append(
             Bohrung(
                 name,
@@ -118,9 +118,50 @@ def bohrungen(form, namen=None):
                 float(bb.ZMax),
                 float(bb.ZMin),
                 bool(durch),
+                0.0 if durch else _spitze_unter(form, flaeche, mitte, bb.ZMin),
             )
         )
     return ergebnis
+
+
+def _spitze_unter(form, flaeche, mitte, z_unten):
+    """Der Winkel (Grad) des Kegels, der unten an die Wand schließt und nach unten spitz
+    zuläuft – die Spitze eines Bohrers, wie FreeCADs Bohrung sie zeichnet (118°); 0, wenn der
+    Grund eben ist oder etwas anderes."""
+    import Part
+
+    for kante in flaeche.Edges:
+        if kante.BoundBox.ZMax > z_unten + 1e-6:
+            continue
+        for nachbar in form.ancestorsOfType(kante, Part.Face):
+            kegel = nachbar.Surface
+            if nachbar.isSame(flaeche) or not isinstance(kegel, Part.Cone):
+                continue
+            if abs(abs(kegel.Axis.z) - 1.0) > 1e-6:
+                continue
+            spitze = kegel.Apex
+            if math.hypot(spitze.x - mitte.x, spitze.y - mitte.y) > 1e-4 or spitze.z >= z_unten:
+                continue
+            return round(2 * abs(math.degrees(kegel.SemiAngle)), 6)
+    return 0.0
+
+
+def _boden_unter(form, mitte, radius, z_unten):
+    """Steht unter dem Grund der Wand Material – rundum knapp innerhalb der Wand geprüft, nicht
+    auf der Achse: Unter einer Senkung für eine Zylinderkopfschraube liegt auf der Achse das
+    Durchgangsloch, aber am Rand ihr Boden; unter einer gebohrten Sackbohrung auf der Achse die
+    Luft ihrer Spitze, am Rand das Material."""
+    import FreeCAD
+
+    r = max(radius - min(0.02, 0.25 * radius), 0.0)
+    for i in range(8):
+        winkel = i * math.pi / 4
+        punkt = FreeCAD.Vector(
+            mitte.x + r * math.cos(winkel), mitte.y + r * math.sin(winkel), z_unten - 0.05
+        )
+        if form.isInside(punkt, 1e-6, True):
+            return True
+    return False
 
 
 def ist_bohrung(form, name):
