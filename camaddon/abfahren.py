@@ -257,8 +257,14 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                         saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=eilgang))
                     elif schritt.invers and schritt.vorschub > 0:
                         # G93: F = 1 ÷ Zeit des Satzes in Minuten, FreeCAD führt es ÷ 60 –
-                        # der Satz dauert 1 ÷ F Sekunden, jeder Schritt seinen Anteil.
-                        fest = max(schritt.anteil / schritt.vorschub, eilgang)
+                        # der Satz dauert 1 ÷ F Sekunden, jeder Schritt seinen Anteil; schneller
+                        # als im Eilgang fährt keine Achse. Nicht vom Stand in den Stand: Die
+                        # Sätze einer Spirale gehen ineinander über – so gerechnet dauerte sie
+                        # siebenmal so lang (test_vierachs_pruefen, P-2026-10-01-34).
+                        hoechstens = _eilgangzeit(
+                            vorher[2], wirksam, tempo, [0.0] * len(beschleunigung)
+                        )
+                        fest = max(schritt.anteil / schritt.vorschub, hoechstens)
                         saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=fest))
                     else:
                         vorschub = schritt.vorschub * 60.0  # mm/min

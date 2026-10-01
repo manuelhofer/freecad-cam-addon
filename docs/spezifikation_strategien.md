@@ -681,6 +681,24 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   Teil, wie die Spitze steht). Prüfung `test_entgraten` (Zapfen und Tasche:
   Ketten, Lage 0,5 neben der Wand, Gleichlauf, die Fase im Quader auf
   0,05 mm), Szenario `szenario_entgraten`.
+  Dann **Zentrieren** und **Senken** (P-2026-10-01-34, 0.50.0): FreeCADs
+  Bohr-Operation mit einem Kegel (`senken.py`, über `bohren.bohrzyklus`).
+  Zentrieren mit dem NC-Anbohrer vor dem Bohren: oben ein Kreis von Ø Bohrung
+  + 0,4 mm (eine kleine Fase, höchstens 0,9 × Ø des Anbohrers), unter einer
+  Senkung ab deren Oberkante; den Haken setzt man selbst. Senken mit dem
+  Kegelsenker in die Senkungen des Modells (`senkungen`: Kegelflächen ganz
+  herum, nach oben offen, Material außen, darunter eine Bohrung – in der
+  Liste „Senkung Ø 12,4, 90°“): sein Winkel wie ihrer, sein Ø mindestens
+  ihrer, so tief, dass sein Kegel oben ihren Ø hat (die Spitze zählt);
+  vorgeschlagen, weil das Modell sie hat. Tiefe (D − d) / 2 / tan(α/2), je
+  Tiefe eine Operation. Das Prüffenster rechnet Bohrer, Anbohrer und Senker
+  mit ihrem Kegel statt als Zylinder (`restmaterial._kegel`) und lässt die
+  Fase des Zentrierens durch (Eigenschaft „Fase“ an der Operation). Dabei:
+  Die Namen der Operationen bleiben eindeutig, ohne dass FreeCAD sie umbenennt
+  (`namen.eindeutig`: „Bohren T2 (2)“ statt „Bohren T001“), und die Zeit im
+  Prüffenster für G93 (Rundum) hält nicht mehr vor jedem Satz an (die Spirale
+  dauerte siebenmal so lang). Prüfung `test_senken`, Szenario
+  `szenario_senken`.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

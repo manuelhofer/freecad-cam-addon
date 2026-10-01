@@ -16,8 +16,6 @@ zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operation
 Läuft ohne Oberfläche.
 """
 
-import re
-
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
@@ -25,6 +23,7 @@ import Path.Op.Base as PathOp
 from . import bahn as bn
 from . import hoehenfeld as hf
 from . import kontur_bahn as kb
+from . import namen
 from . import planfraesen as pf
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
@@ -274,7 +273,9 @@ def lege_an(
     obj.Breite = breite
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
-    obj.Label = name or tr("ko.name", werkzeug=f"T{tc.ToolNumber}")
+    obj.Label = namen.eindeutig(
+        obj.Document, name or tr("ko.name", werkzeug=f"T{tc.ToolNumber}"), obj
+    )
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
 
@@ -300,7 +301,7 @@ def aendere(obj, tc, zustellung, zeilenabstand, aufmass, schlichten, breite=0.0,
     Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
     vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
-        obj.Label = tr("ko.name", werkzeug=f"T{tc.ToolNumber}")
+        obj.Label = namen.eindeutig(obj.Document, tr("ko.name", werkzeug=f"T{tc.ToolNumber}"), obj)
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.Zustellung = zustellung
@@ -316,9 +317,8 @@ def aendere(obj, tc, zustellung, zeilenabstand, aufmass, schlichten, breite=0.0,
 
 
 def _vorgeschlagener_name(name):
-    """Ist `name` einer, wie lege_an ihn vergibt („Kontur T1“)?"""
-    vorne, _mitte, hinten = tr("ko.name", werkzeug="\0").partition("\0")
-    return re.fullmatch(re.escape(vorne) + r"T\d+" + re.escape(hinten), name) is not None
+    """Ist `name` einer, wie lege_an ihn vergibt („Kontur T1“) – auch mit „ (2)“ dahinter?"""
+    return namen.nach_vorlage(name, tr("ko.name", werkzeug="\0"))
 
 
 def ist_kontur(op):

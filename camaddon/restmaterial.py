@@ -593,11 +593,49 @@ def _fraeser(tc):
     form = form_des_controllers(tc)
     if form is not None:
         return form
+    kegel = _kegel(tc)
+    if kegel is not None:
+        return kegel
     durchmesser = float(tc.Tool.Diameter.getValueAs("mm"))
     steigung = float(getattr(tc.Tool, "Pitch", 0.0) or 0.0)
     if 0 < steigung < durchmesser:
         return (durchmesser - steigung) / 2
     return durchmesser / 2
+
+
+def _kegel(tc):
+    """Die Form eines Bohrers, NC-Anbohrers oder Kegelsenkers – ein Kegel mit seinem
+    Spitzenwinkel (und der Spitze des Senkers); None bei anderen Werkzeugen. Als Zylinder
+    gerechnet, schnitte der Anbohrer oben einen flachen Kreis von seinem ganzen Ø ins Teil."""
+    from . import werkzeuge as wz
+    from .werkzeuge_aus_cam import vom_controller
+
+    werkzeug = vom_controller(tc)
+    vorgabe = {wz.BOHRER: 118.0, wz.NC_ANBOHRER: 90.0, wz.KEGELSENKER: 90.0}
+    if werkzeug is None or werkzeug.art not in vorgabe or werkzeug.durchmesser <= 0:
+        return None
+    r = werkzeug.durchmesser / 2
+    winkel = werkzeug.spitzenwinkel if 0 < (werkzeug.spitzenwinkel or 0) < 180 else 0.0
+    winkel = winkel or vorgabe[werkzeug.art]
+    spitze = min(max(werkzeug.spitzen_d or 0.0, 0.0), 1.8 * r)
+    if werkzeug.art != wz.KEGELSENKER:
+        spitze = 0.0
+    return ff.kegel(spitze / 2, r, (r - spitze / 2) / math.tan(math.radians(winkel / 2)))
+
+
+def _zentrier_fase(op):
+    """So tief (mm) geht die Fase, die „Zentrieren“ an der Bohrung lässt (ihre Eigenschaft
+    „Fase“, senken.FASE breit) – 0 bei anderen Operationen. Das Modell hat dort eine scharfe
+    Kante. Der NC-Anbohrer kommt aus FreeCAD als Bohrer zurück; der Winkel ist seiner."""
+    from .werkzeuge_aus_cam import vom_controller
+
+    fase = float(getattr(op, "Fase", 0.0) or 0.0)
+    if fase <= 0:
+        return 0.0
+    werkzeug = vom_controller(getattr(op, "ToolController", None))
+    winkel = getattr(werkzeug, "spitzenwinkel", 0.0) or 0.0
+    winkel = winkel if 0 < winkel < 180 else 90.0
+    return fase / math.tan(math.radians(winkel / 2))
 
 
 def operationsarten_rundum():
@@ -947,6 +985,8 @@ def fuer_quader(abfahrt, job, am_werkstueck):
         op = ops.get(abfahrt.operationen[k].name)
         if op is not None and ist_entgraten(op):
             fasen[k] = eindringtiefe(op) + FASE_SPIEL
+        elif op is not None and _zentrier_fase(op) > 0:
+            fasen[k] = _zentrier_fase(op) + FASE_SPIEL
     return QuaderAbtrag(
         quader, am_werkstueck, operation, gueltig, fraeser, aufmass, formen, flaechen, fasen
     )

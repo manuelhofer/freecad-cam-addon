@@ -170,6 +170,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   **Entgraten**: ein Fasenfräser bricht die Oberkanten gewählter Wände (oder
   die Kanten einer gewählten Fläche oben, an denen eine Wand hinab geht) – im
   Gleichlauf, tangential hinein und heraus, die Fase so breit wie gesagt.
+  **Zentrieren** mit dem NC-Anbohrer vor dem Bohren und **Senken** mit dem
+  Kegelsenker in die Senkungen, die das Modell hat.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

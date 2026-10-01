@@ -18,8 +18,8 @@ Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, alle in einem
 Fenster: Teil und Rohteil, die Flächen, dann je Bearbeitung ein Block mit
 Haken – <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Bohren</b>
 und <b>Bohrung fräsen</b> für zylindrische Bohrungen, <b>Kontur</b> für Wände,
-<b>Gewinde bohren</b> in Kernlöcher, <b>Entgraten</b> an Oberkanten. „Anlegen“ legt alle
-angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
+<b>Gewinde bohren</b> in Kernlöcher, <b>Entgraten</b> an Oberkanten, <b>Zentrieren</b> und
+<b>Senken</b> an Bohrungen. „Anlegen“ legt alle angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
 <a href="vierachs.html">4-Achs-Bearbeitung</a>.</p>
 
 <h3>1. Teil und Rohteil</h3>
@@ -269,7 +269,8 @@ Linksgewinde G74; der Vorschub ist Steigung · Drehzahl. Durch eine
 durchgehende Bohrung geht der Gewindebohrer um seinen Anschnitt hinaus (2 ×
 Steigung), in einer Sackbohrung bleibt er eine Steigung über dem Grund. Je
 Tiefe eine Operation – FreeCAD fährt alle Löcher einer Operation bis zu ihrer
-einen Endtiefe. Gleich beim Bohren: je Tiefe des Grunds eine.</li>
+einen Endtiefe; die zweite heißt „… (2)“. Gleich beim Bohren: je Tiefe des Grunds
+eine.</li>
 <li>Grau darunter: „→ 1 × M10x1.5, etwa 1 min“. Rot steht, warum es nicht
 geht (das Kernloch passt nicht, der Gewindebohrer hat keine Steigung).</li>
 <li>Die Operation heißt „Gewinde M10x1.5 T3“ – nur mit „x“: Der Name steht als
@@ -298,6 +299,24 @@ niedriger als die Fase, bleibt ihre Kante aus – das steht dann in der Zeile.</
 Fasenfräser, die Fase ist breiter, als sein Kegel schneidet).</li>
 <li>Die Operation heißt „Entgraten T3“. „Auf der Maschine prüfen“ lässt die Fase durch:
 Dort darf es so tief ins Teil gehen, wie die Spitze steht.</li>
+</ul>
+
+<h3>10. Zentrieren und Senken</h3>
+<ul>
+<li><b>Zentrieren</b>: für Bohrungen, mit einem <b>NC-Anbohrer</b> aus der
+Werkzeugverwaltung – bevor der Bohrer kommt. Er geht so tief, dass oben ein Kreis von
+Ø Bohrung + 0,4 mm entsteht: Der Bohrer läuft geführt an, und die Kante hat gleich eine
+kleine Fase (höchstens 0,9 × Ø des Anbohrers). Hat die Bohrung oben eine Senkung, zählt
+deren Oberkante – beim Zentrieren ist sie noch zu. Den Haken setzt du selbst.</li>
+<li><b>Senken</b>: für die <b>Senkungen</b>, die das Modell hat – die kegelige Fläche über
+einer Bohrung anklicken, in der Liste steht „Senkung Ø 12,4, 90°“. Ein <b>Kegelsenker</b>
+mit ihrem Winkel und mindestens ihrem Ø geht so tief, dass sein Kegel oben ihren Ø hat
+(seine Spitze zählt mit). Das Modell sagt, dass die Senkung kommt: Der Haken ist
+vorgeschlagen.</li>
+<li>Beide legen <b>FreeCADs Bohren</b> an (G81), je Tiefe eine Operation; Zentrieren vor
+dem Bohren, Senken danach. Grau darunter: „→ 1 Stelle, 4,2 mm tief, etwa 1 min“.</li>
+<li>„Auf der Maschine prüfen“ rechnet Bohrer, Anbohrer und Senker mit ihrer Spitze, nicht
+als Zylinder; die kleine Fase des Zentrierens lässt es durch.</li>
 </ul>
 
 <h3>Nachträglich ändern</h3>

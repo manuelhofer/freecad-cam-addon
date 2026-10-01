@@ -18,7 +18,7 @@ from dataclasses import dataclass
 
 from . import bahn as bn
 from . import bohrung_bahn as bb
-from . import einheiten
+from . import einheiten, namen
 from .sprache import tr
 
 GLEICH_D = 0.02  # mm – so genau muss das Kernloch passen
@@ -176,9 +176,10 @@ def _lege_eine_an(job, tc, gruppe, steigung, name):
     obj.DwellEnabled = False
     obj.DwellTime = 0.0
     durchmesser = float(tc.Tool.Diameter)
-    obj.Label = name or tr(
+    titel = name or tr(
         "gw.name", werkzeug=f"T{tc.ToolNumber}", gewinde=gewinde_name(durchmesser, steigung)
     )
+    obj.Label = namen.eindeutig(dokument, titel, obj)
     if FreeCAD.GuiUp:
         import Path.Op.Gui.Base as PathOpGui
         import Path.Op.Gui.Tapping as TappingGui

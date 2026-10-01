@@ -18,7 +18,8 @@ part to the operations has three steps, all in one window: part and stock,
 the faces, then one block with a tick per machining – <b>Face milling</b> and
 <b>Clearing</b> for flat faces facing up, <b>Drilling</b> and <b>Hole milling</b> for
 cylindrical holes, <b>Contour</b> for walls, <b>Tapping</b> in core holes,
-<b>Deburr</b> on top edges. “Create” creates all ticked ones. For a round stock
+<b>Deburr</b> on top edges, <b>Spot drilling</b> and <b>Countersinking</b> at holes.
+“Create” creates all ticked ones. For a round stock
 with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
 
 <h3>1. Part and stock</h3>
@@ -261,7 +262,8 @@ of time – it competes with no strategy.</li>
 feed is pitch · speed. Through a through hole the tap goes its chamfer beyond
 (2 × pitch), in a blind hole it stays one pitch above the bottom. One
 operation per depth – FreeCAD runs all holes of an operation to its one final
-depth. The same for drilling: one per bottom depth.</li>
+depth; the second is called “… (2)”. The same for drilling: one per bottom
+depth.</li>
 <li>Grey below: “→ 1 × M10x1.5, about 1 min”. Red says why it does not work
 (the core hole does not match, the tap has no pitch).</li>
 <li>The operation is called “Thread M10x1.5 T3” – with a plain “x”: the name
@@ -290,6 +292,24 @@ chamfer, its edge is left out – the line then says so.</li>
 mill, the chamfer is wider than its cone cuts).</li>
 <li>The operation is called “Deburr T3”. “Check on the machine” lets the chamfer pass:
 there it may go into the part as deep as the tip stands.</li>
+</ul>
+
+<h3>10. Spot drilling and countersinking</h3>
+<ul>
+<li><b>Spot drilling</b>: for holes, with an <b>NC spot drill</b> from the tool
+management – before the drill comes. It goes so deep that a circle of Ø hole + 0.4 mm
+appears on top: the drill starts guided, and the edge gets a small chamfer at once (at
+most 0.9 × Ø of the spot drill). If the hole has a countersink on top, its top edge
+counts – while spotting it is still closed. You set the tick yourself.</li>
+<li><b>Countersinking</b>: for the <b>countersinks</b> the model has – click the conical
+face above a hole, the list says “countersink Ø 12.4, 90°”. A <b>countersink tool</b> with
+their angle and at least their Ø goes so deep that its cone has their Ø on top (its tip
+counts). The model says the countersink comes: the tick is proposed.</li>
+<li>Both create <b>FreeCAD's Drilling</b> (G81), one operation per depth; spot drilling
+before drilling, countersinking after. Grey below: “→ 1 spot, 4.2 mm deep, about
+1 min”.</li>
+<li>“Check on the machine” computes drills, spot drills and countersink tools with their
+tip, not as cylinders; it lets the small chamfer of spot drilling pass.</li>
 </ul>
 
 <h3>Changing it later</h3>

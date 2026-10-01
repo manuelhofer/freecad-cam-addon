@@ -113,7 +113,10 @@ pruefe(gw.ist_gewinde(op) and js.operationsart(op) == "Tapping", f"Art {js.opera
 # Operation: die Sackbohrung bis 6,5 (eine Steigung über dem Grund), die durchgehende bis −3.
 gewinde_ops = [o for o in job.Operations.Group if gw.ist_gewinde(o)]
 zyklen = [c for o in gewinde_ops for c in o.Path.Commands if c.Name in ("G84", "G74")]
-pruefe(len(gewinde_ops) == 2, f"Operationen: {[o.Label for o in gewinde_ops]}")
+pruefe(
+    [o.Label for o in gewinde_ops] == ["Gewinde M10x1.5 T4", "Gewinde M10x1.5 T4 (2)"],
+    f"Operationen: {[o.Label for o in gewinde_ops]}",
+)
 tiefe_je_ort = sorted((round(c.Parameters["X"], 3), round(c.Parameters["Z"], 6)) for c in zyklen)
 pruefe(tiefe_je_ort == [(25.0, -3.0), (60.0, 6.5)], f"Tiefen je Ort {tiefe_je_ort}")
 pruefe(

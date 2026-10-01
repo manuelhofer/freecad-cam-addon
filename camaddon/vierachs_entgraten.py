@@ -19,12 +19,11 @@ durchgehen (restmaterial). Kein Qt hier; die Anzeige ist die von „Rundum schru
 Läuft ohne Oberfläche.
 """
 
-import re
-
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import namen
 from . import vierachs_bahn as vb
 from . import vierachs_entgratbahn as ve
 from . import vierachs_huelle as vh
@@ -238,7 +237,9 @@ def lege_an(
     )
     obj.HalterZumFutter = halter
     obj.Flaechen = list(flaechen)
-    obj.Label = name or tr("ve.name", werkzeug=f"T{tc.ToolNumber}")
+    obj.Label = namen.eindeutig(
+        obj.Document, name or tr("ve.name", werkzeug=f"T{tc.ToolNumber}"), obj
+    )
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
 
@@ -251,7 +252,7 @@ def aendere(obj, tc, breite, abstaende=None, halter=None, flaechen=None):
     eigene Transaktion; `abstaende`, `halter` und `flaechen` wie bei lege_an, ohne bleiben
     sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
-        obj.Label = tr("ve.name", werkzeug=f"T{tc.ToolNumber}")
+        obj.Label = namen.eindeutig(obj.Document, tr("ve.name", werkzeug=f"T{tc.ToolNumber}"), obj)
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.Breite = breite
@@ -264,9 +265,8 @@ def aendere(obj, tc, breite, abstaende=None, halter=None, flaechen=None):
 
 
 def _vorgeschlagener_name(name):
-    """Ist `name` einer, wie lege_an ihn vergibt („Rundum entgraten T3“)?"""
-    vorne, _mitte, hinten = tr("ve.name", werkzeug="\0").partition("\0")
-    return re.fullmatch(re.escape(vorne) + r"T\d+" + re.escape(hinten), name) is not None
+    """Ist `name` einer, wie lege_an ihn vergibt („Rundum entgraten T3“) – auch mit „ (2)“ dahinter?"""
+    return namen.nach_vorlage(name, tr("ve.name", werkzeug="\0"))
 
 
 def ist_entgraten(op):

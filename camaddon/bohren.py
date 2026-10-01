@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 from . import bahn as bn
 from . import bohrung_bahn as bb
-from . import einheiten
+from . import einheiten, namen
 from .sprache import tr
 
 GLEICH_D = 0.02  # mm – so genau muss der Bohrer zur Bohrung passen
@@ -150,6 +150,28 @@ def lege_an(job, tc, flaechen, hub=0.0, name=None):
 
 
 def _lege_eine_an(job, tc, gruppe, hub, name):
+    from . import planfraesen as pf
+
+    *_rohteil, oben = pf.rohteil_von_oben(job)
+    durchmesser = float(tc.Tool.Diameter)
+    tiefe = max((oben - (b.z_unten - spitze(durchmesser)) for b in gruppe), default=0.0)
+    return bohrzyklus(
+        job,
+        tc,
+        [b.name for b in gruppe],
+        min((b.z_unten for b in gruppe), default=0.0),
+        name or tr("bh.name", werkzeug=f"T{tc.ToolNumber}"),
+        extra="Drill Tip",
+        hub=hub_fuer(tiefe, durchmesser, hub),
+    )
+
+
+def bohrzyklus(job, tc, flaechen, endtiefe, name, extra="None", hub=0.0, heraus_im_vorschub=False):
+    """Legt FreeCADs Bohr-Operation (Path.Op.Drilling) an – ohne FreeCADs Vorgaben (die suchen
+    einen Controller und fragen bei mehreren nach) und ohne eigene Transaktion: die Bohrungen
+    `flaechen` (ihre Zylinderflächen) als Basis, Endtiefe `endtiefe` (mit `extra` „Drill Tip“ die
+    Spitze darunter), R 3 mm über dem Rohteil, Hübe `hub` (0: in einem Zug), G98, ohne
+    Verweilen; `heraus_im_vorschub`: G85 – heraus mit Vorschub (Reiben). Gibt sie zurück."""
     import FreeCAD
     import Path.Op.Drilling as PathDrilling
 
@@ -158,7 +180,6 @@ def _lege_eine_an(job, tc, gruppe, hub, name):
 
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "Drilling")
-    # Ohne FreeCADs Vorgaben: Die suchen einen Controller und fragen bei mehreren nach.
     obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
     obj.DoNotSetDefaultValues = True
     proxy = PathDrilling.ObjectDrilling(obj, "Drilling", job)
@@ -170,21 +191,20 @@ def _lege_eine_an(job, tc, gruppe, hub, name):
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.CoolantMode = job.SetupSheet.CoolantMode
     pf._hoehen(obj, proxy, job)
-    obj.Base = [(vr.modell(job), tuple(b.name for b in gruppe))]
+    obj.Base = [(vr.modell(job), tuple(flaechen))]
     *_rohteil, oben = pf.rohteil_von_oben(job)
     obj.setExpression("FinalDepth", None)
-    obj.FinalDepth = min((b.z_unten for b in gruppe), default=0.0)
+    obj.FinalDepth = endtiefe
     obj.RetractHeight = oben + UEBER_R
-    obj.ExtraOffset = "Drill Tip"
-    durchmesser = float(tc.Tool.Diameter)
-    tiefe = max((oben - (b.z_unten - spitze(durchmesser)) for b in gruppe), default=0.0)
-    q = hub_fuer(tiefe, durchmesser, hub)
-    obj.PeckEnabled = q > 0
-    obj.PeckDepth = q if q > 0 else durchmesser
+    obj.ExtraOffset = extra
+    obj.PeckEnabled = hub > 0
+    obj.PeckDepth = hub if hub > 0 else float(tc.Tool.Diameter)
     obj.DwellEnabled = False
     obj.DwellTime = 0.0
     obj.KeepToolDown = False
-    obj.Label = name or tr("bh.name", werkzeug=f"T{tc.ToolNumber}")
+    if hasattr(obj, "feedRetractEnabled"):
+        obj.feedRetractEnabled = bool(heraus_im_vorschub)
+    obj.Label = namen.eindeutig(dokument, name, obj)
     if FreeCAD.GuiUp:
         import Path.Op.Gui.Base as PathOpGui
         import Path.Op.Gui.Drilling as DrillingGui

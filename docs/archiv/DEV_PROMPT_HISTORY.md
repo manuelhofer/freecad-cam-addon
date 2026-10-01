@@ -12,6 +12,61 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-34 zentrieren-senken-namen-g93-zeit
+
+### EINGELESEN
+- FreeCAD 1.1.3 `Path/Op/Drilling.py` (`feedRetractEnabled` = G85, die Kante von StartDepth bis
+  FinalDepth je Loch); `uebergabe_werkzeuge.FORMEN` (der NC-Anbohrer wird in FreeCAD ein „drill“,
+  der Kegelsenker ein „chamfer“); `abfahren` und `fahrzeit` (G93 als Satz mit fester Zeit);
+  `tests/test_vierachs_pruefen.py` (scheiterte schon bei 0.45.0: Dauer 576,5 s bei 82,1 s im
+  Vorschub); eine Probe: FreeCAD macht aus einem zweiten „Bohren T2“ ein „Bohren T001“.
+
+### DATEIEN
+- `camaddon/senken.py` (neu), `camaddon/namen.py` (neu), `camaddon/bohren.py`,
+  `camaddon/gewinde.py`, `camaddon/abfahren.py`, `camaddon/restmaterial.py`,
+  `camaddon/gui_bearbeitung.py`, `camaddon/bohrung.py`, `camaddon/entgraten.py`,
+  `camaddon/kontur.py`, `camaddon/planfraesen.py`, `camaddon/raeumen.py`,
+  `camaddon/vierachs_entgraten.py`, `camaddon/vierachs_operation.py`, `camaddon/vierachs_plan.py`,
+  `camaddon/vierachs_schlichten.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_senken.py` (neu), `tests/gui/szenario_senken.py` (neu), `tests/test_gewinde.py`,
+  `help/de|en/bearbeitung.html`, `help/de|en/reichweite.html`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.50.0)
+
+### AKZEPTANZKRITERIUM
+Platte mit Bohrung Ø 6,6 und 90°-Senkung Ø 12,4: Bohrung angeklickt – Bohren T2 an; die Senkung
+dazu – in der Liste „Senkung Ø 12,4, 90°“, Senken mit dem Kegelsenker T6 vorgeschlagen („→ 1
+Stelle, 4,2 mm tief“); Zentrieren von Hand („→ 1 Stelle, 3,5 mm tief“). „Anlegen“: „Zentrieren
+T5“, „Bohren T2“, „Senken T6“ (G81 auf 6,5 und 5,8); im Prüffenster nichts im Teil. Zwei Tiefen
+ergeben „Zentrieren T5“ und „Zentrieren T5 (2)“. Die Rundum-Spirale dauert im Prüffenster so
+lange wie ihr Vorschub plus die Eilgänge.
+
+### DONE
+- `senken.py`: Senkungen im Teil, Tiefe (D − d) / 2 / tan(α/2), Zentrieren (oben Ø Bohrung +
+  0,4, höchstens 0,9 × Ø des Anbohrers, unter einer Senkung ab ihrer Oberkante; Eigenschaft
+  „Fase“), Senken (Winkel und Ø des Senkers), je Tiefe eine Operation über
+  `bohren.bohrzyklus` (FreeCADs Drilling für jeden Bohrzyklus des Assistenten).
+- Assistent: Blöcke „Zentrieren“ (NC-Anbohrer, von Hand, vor dem Bohren) und „Senken“
+  (Kegelsenker, vorgeschlagen, `_senker_waehlen`, nach der Kontur); die Liste zeigt Senkungen.
+- `namen.py`: eindeutige Namen für alle Operationen des Addons („ (2)“ statt FreeCADs „T001“);
+  der Name folgt beim Ändern weiter dem Werkzeug, auch mit „ (2)“.
+- Prüffenster: Bohrer, NC-Anbohrer und Kegelsenker tragen mit ihrem Kegel ab (`_kegel`), die
+  Fase des Zentrierens geht durch; G93-Sätze höchstens so schnell wie der Eilgang, aber ohne
+  Anhalten je Satz – die Spirale dauerte siebenmal so lang (seit 0.42.0).
+
+### TEST
+- 1.1.3: `test_senken`, `test_gewinde`, `test_bohren`, `test_bohrung`, `test_entgraten`,
+  `test_kontur`, `test_planfraesen`, `test_raeumen`, `test_quader`, `test_restmaterial`,
+  `test_vierachs_entgraten`, `test_vierachs_operation`, `test_vierachs_plan`,
+  `test_vierachs_pruefen` (wieder grün), `test_vierachs_schlichten_op`, `test_abfahren`,
+  `test_fahrzeit`, `test_sprache` grün; Szenarien `szenario_senken`, `szenario_bohren`,
+  `szenario_gewinde`, `szenario_vierachs_schruppen`, `szenario_rundum_drehmaschine`,
+  `szenario_abfahren`, `szenario_vierachs_rohteil` grün; black/ruff grün.
+
+### NEXT
+- Reiben (G85, braucht Bohren mit Untermaß); Gewindefräsen (FreeCADs ThreadMilling);
+  Restmaterial in Ecken mit dem kleineren Fräser.
+
 ## P-2026-10-01-33 alle-szenarien
 
 ### EINGELESEN

@@ -18,12 +18,11 @@ schruppen“ (gui_vierachs_operation).
 Läuft ohne Oberfläche.
 """
 
-import re
-
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import namen
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_planbahn as vp
@@ -281,7 +280,9 @@ def lege_an(
     obj.Flaechen = list(flaechen)
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
-    obj.Label = name or tr("vp.name", werkzeug=f"T{tc.ToolNumber}")
+    obj.Label = namen.eindeutig(
+        obj.Document, name or tr("vp.name", werkzeug=f"T{tc.ToolNumber}"), obj
+    )
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
 
@@ -304,7 +305,7 @@ def aendere(
     Transaktion; `abstaende`, `halter`, `flaechen` und `eintauchwinkel` wie bei lege_an, ohne
     bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
-        obj.Label = tr("vp.name", werkzeug=f"T{tc.ToolNumber}")
+        obj.Label = namen.eindeutig(obj.Document, tr("vp.name", werkzeug=f"T{tc.ToolNumber}"), obj)
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.Zustellung = zustellung
@@ -321,9 +322,8 @@ def aendere(
 
 
 def _vorgeschlagener_name(name):
-    """Ist `name` einer, wie lege_an ihn vergibt („Plan indexiert T1“)?"""
-    vorne, _mitte, hinten = tr("vp.name", werkzeug="\0").partition("\0")
-    return re.fullmatch(re.escape(vorne) + r"T\d+" + re.escape(hinten), name) is not None
+    """Ist `name` einer, wie lege_an ihn vergibt („Plan indexiert T1“) – auch mit „ (2)“ dahinter?"""
+    return namen.nach_vorlage(name, tr("vp.name", werkzeug="\0"))
 
 
 def ist_plan(op):

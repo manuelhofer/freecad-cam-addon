@@ -35,6 +35,7 @@ from . import kontur_bahn as kb
 from . import planfraesen as pf
 from . import raeumen as ra
 from . import raeumen_bahn as rb
+from . import senken as sk
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_bahn as vb
 from . import vierachs_plan as vplan
@@ -66,6 +67,8 @@ GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
 GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
+GEMERKT_ANBOHRER = "BaAnbohrer"  # … fürs Zentrieren
+GEMERKT_SENKER = "BaSenker"  # … fürs Senken
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 ROHTEIL_FELDER = ("oben", "seite", "unten")
@@ -937,7 +940,115 @@ class _Entgraten(_Strategie):
         return {"breite": float(op.Breite), "tiefer": float(op.Tiefer)}
 
 
-STRATEGIEN = (_Planfraesen, _Raeumen, _Bohren, _Bohrung, _Kontur, _Gewinde, _Entgraten)
+def _kegel_ergebnis(bahn, zeit):
+    stellen = tr("ba.zahl.stelle") if bahn.stellen == 1 else tr("ba.zahl.stellen", n=bahn.stellen)
+    tiefe = groesse_zeigen(bahn.tiefe, einheiten.LAENGE, 2) or "0"
+    return tr(
+        "ba.ergebnis_kegel",
+        stellen=stellen,
+        tiefe=f"{tiefe} {einheiten.einheit(einheiten.LAENGE)}",
+        zeit=zeit,
+    )
+
+
+class _Zentrieren(_Strategie):
+    """FreeCADs Bohren mit einem NC-Anbohrer über den Bohrungen (senken) – vor dem Bohren, gegen
+    keine Strategie im Wettbewerb; den Haken setzt man selbst."""
+
+    kennung = "zentrieren"
+    gemerkt = GEMERKT_ANBOHRER
+    einsatz_reihenfolge = (wz.ZENTRIEREN,)
+
+    def titel(self):
+        return tr("ba.zentrieren")
+
+    def text(self):
+        return tr("ba.zentrieren.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.anbohrer.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.zentrieren_einsatz.tooltip")
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art == wz.NC_ANBOHRER
+
+    def passt(self, form, name):
+        return bb.ist_bohrung(form, name)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ob angebohrt wird, hängt am Bohrer, nicht am Modell
+
+    def unmoeglich_text(self):
+        return tr("ba.zentrieren.nicht")
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return sk.vorschau_zentrieren(job, werkzeug, flaechen, werte.get("vorschub", 0.0))
+
+    def ergebnis_text(self, bahn, zeit):
+        return _kegel_ergebnis(bahn, zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return sk.zentrieren_anlegen(job, tc, flaechen)
+
+    def ist(self, op):
+        return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
+
+
+class _Senken(_Strategie):
+    """FreeCADs Bohren mit einem Kegelsenker in die Senkungen des Modells (senken) – nach dem
+    Bohren; das Modell sagt, dass sie kommen, darum vorgeschlagen."""
+
+    kennung = "senken"
+    gemerkt = GEMERKT_SENKER
+    einsatz_reihenfolge = (wz.SENKEN,)
+
+    def titel(self):
+        return tr("ba.senken")
+
+    def text(self):
+        return tr("ba.senken.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.senker.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.senken_einsatz.tooltip")
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art == wz.KEGELSENKER
+
+    def passt(self, form, name):
+        return sk.ist_senkung(form, name)
+
+    def unmoeglich_text(self):
+        return tr("ba.senken.nicht")
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return sk.vorschau_senken(job, werkzeug, flaechen, werte.get("vorschub", 0.0))
+
+    def ergebnis_text(self, bahn, zeit):
+        return _kegel_ergebnis(bahn, zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return sk.senken_anlegen(job, tc, flaechen)
+
+    def ist(self, op):
+        return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
+
+
+STRATEGIEN = (
+    _Planfraesen,
+    _Raeumen,
+    _Zentrieren,
+    _Bohren,
+    _Bohrung,
+    _Kontur,
+    _Senken,
+    _Gewinde,
+    _Entgraten,
+)
 
 
 def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
@@ -1230,6 +1341,8 @@ class BearbeitungPanel:
         self.kontur = next(b for b in self.bloecke if b.s.kennung == "kontur")
         self.gewinde = next(b for b in self.bloecke if b.s.kennung == "gewinde")
         self.entgraten = next(b for b in self.bloecke if b.s.kennung == "entgraten")
+        self.zentrieren = next(b for b in self.bloecke if b.s.kennung == "zentrieren")
+        self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
@@ -1783,6 +1896,11 @@ class BearbeitungPanel:
             elif self.kontur.s.passt(form, name):
                 z = groesse_zeigen(kb.waende(form, [name])[0].z_unten, einheiten.LAENGE) or "0"
                 text, farbe = tr("ba.flaeche.wand", name=name, z=z), GRUEN
+            elif self.senken.s.passt(form, name):
+                senkung = sk.senkungen(form, [name])[0]
+                d = groesse_zeigen(senkung.durchmesser, einheiten.LAENGE) or "0"
+                winkel = f"{round(senkung.winkel, 1):g}"
+                text, farbe = tr("ba.flaeche.senkung", name=name, d=d, winkel=winkel), GRUEN
             else:
                 text, farbe = tr("ba.flaeche.nichts", name=name), ROT
             eintrag = QtGui.QListWidgetItem(dezimal(text))
@@ -1806,6 +1924,7 @@ class BearbeitungPanel:
             return
         self._bohrer_waehlen(form)
         self._gewindebohrer_waehlen(form)
+        self._senker_waehlen(form)
         self._fuellt = True
         try:
             for block in self.bloecke:
@@ -1814,8 +1933,10 @@ class BearbeitungPanel:
                     moeglich = moeglich and self._bohrer_da(form)
                 if block is self.gewinde:
                     moeglich = moeglich and self._gewindebohrer_da(form)
-                if block is self.entgraten:
+                if block in (self.entgraten, self.zentrieren):
                     moeglich = moeglich and bool(block._fraeser)
+                if block is self.senken:
+                    moeglich = moeglich and self._senker_da(form)
                 block.moeglich = moeglich
                 block.haken.setEnabled(moeglich)
                 block.erklaerung.setText(block.s.text() if moeglich else block.s.unmoeglich_text())
@@ -2049,6 +2170,37 @@ class BearbeitungPanel:
             if abs(gw.kernloch(w.durchmesser, w.steigung) - d) <= gw.GLEICH_D:
                 self.gewinde.wahl_fraeser.setCurrentIndex(i)
                 return
+
+    def _senker_passt(self, werkzeug, liste):
+        winkel = float(werkzeug.spitzenwinkel or sk.SPITZENWINKEL)
+        return all(
+            abs(s.winkel - winkel) <= sk.GLEICH_WINKEL
+            and s.durchmesser <= werkzeug.durchmesser + sk.GLEICH_D
+            for s in liste
+        )
+
+    def _senker_da(self, form):
+        """Hat die Werkzeugverwaltung einen Kegelsenker für alle gewählten Senkungen – ihr
+        Winkel, mindestens ihr Ø?"""
+        liste = sk.senkungen(form, [n for n in self.gewaehlte if sk.ist_senkung(form, n)] or [""])
+        return bool(liste) and any(self._senker_passt(w, liste) for w in self.senken._fraeser)
+
+    def _senker_waehlen(self, form):
+        """Wählt im Block Senken den Kegelsenker, der zu den gewählten Senkungen passt – den
+        kleinsten, wenn der gewählte nicht passt."""
+        liste = sk.senkungen(form, [n for n in self.gewaehlte if sk.ist_senkung(form, n)] or [""])
+        if not liste:
+            return
+        jetzt = self.senken.fraeser()
+        if jetzt is not None and self._senker_passt(jetzt, liste):
+            return
+        passend = [
+            (w.durchmesser, i)
+            for i, w in enumerate(self.senken._fraeser)
+            if self._senker_passt(w, liste)
+        ]
+        if passend:
+            self.senken.wahl_fraeser.setCurrentIndex(min(passend)[1])
 
     def _bohrer_waehlen(self, form):
         """Wählt im Block Bohren den Bohrer mit dem Durchmesser der gewählten Bohrungen – wenn

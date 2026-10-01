@@ -18,12 +18,11 @@ Qt hier; die Anzeige liegt in gui_vierachs_operation.py.
 Läuft ohne Oberfläche.
 """
 
-import re
-
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import namen
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
 from . import vierachs_flaechen as vf
@@ -340,7 +339,9 @@ def lege_an(
     obj.Flaechen = list(flaechen_)
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
-    obj.Label = name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}")
+    obj.Label = namen.eindeutig(
+        obj.Document, name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}"), obj
+    )
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
 
@@ -383,7 +384,7 @@ def aendere(
     `flaechen_` und `eintauchwinkel`: wie bei lege_an; ohne bleiben sie. Der Name folgt dem
     Werkzeug, solange es der vorgeschlagene ist: „Rundum schruppen T1“ wird „… T3“."""
     if _vorgeschlagener_name(obj.Label):
-        obj.Label = tr("vo.name", werkzeug=f"T{tc.ToolNumber}")
+        obj.Label = namen.eindeutig(obj.Document, tr("vo.name", werkzeug=f"T{tc.ToolNumber}"), obj)
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.Zustellung = zustellung
@@ -416,9 +417,8 @@ def setze_achse(obj, achse, quer_auf_null=None):
 
 
 def _vorgeschlagener_name(name):
-    """Ist `name` einer, wie lege_an ihn vergibt („Rundum schruppen T3“)?"""
-    vorne, _mitte, hinten = tr("vo.name", werkzeug="\0").partition("\0")
-    return re.fullmatch(re.escape(vorne) + r"T\d+" + re.escape(hinten), name) is not None
+    """Ist `name` einer, wie lege_an ihn vergibt („Rundum schruppen T3“) – auch mit „ (2)“ dahinter?"""
+    return namen.nach_vorlage(name, tr("vo.name", werkzeug="\0"))
 
 
 def ist_rundum(op):
