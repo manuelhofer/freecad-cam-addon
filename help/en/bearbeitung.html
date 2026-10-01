@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Machining (milling)</title>
+<style>
+body { font-family: sans-serif; font-size: 10pt; line-height: 1.4; margin: 12px; }
+h2 { font-size: 13pt; margin-top: 0; }
+h3 { font-size: 11pt; margin-top: 1.4em; }
+li { margin-bottom: 0.4em; }
+</style>
+</head>
+<body>
+<h2>Machining (milling)</h2>
+<p>For a part that lies in a <b>block</b> on a mill – the tool axis is
+vertical. The button “Machining (milling)” opens the window; the way from the
+part to the operation has three steps, all in one window. For a round stock
+with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
+
+<h3>1. Part and stock</h3>
+<ul>
+<li><b>Click a face of the part</b> (before or in the window) – best the face
+that should become flat. The part is chosen with it, and the <b>job with the
+stock</b> is created at once: a block around the part with an
+<b>allowance</b> on top, at the sides and below (empty: 1 mm, like FreeCAD's
+job). The fields change the stock right away. “Cancel” takes everything
+back.</li>
+<li>When changing (double-click on the operation) the stock stays as it is in
+the job.</li>
+</ul>
+
+<h3>2. Faces</h3>
+<ul>
+<li>Without a choice the <b>top</b> of the part is milled flat – the highest
+flat faces. The sentence below the list names them.</li>
+<li>A click on a face of the part adds it (another click, or a double-click in
+the list, removes it); green means flat facing up – it is milled flat –, red
+means not flat facing up, which face milling cannot do. The 3D view colours
+them so. “Top” selects the highest faces, “Clear selection” removes all.</li>
+</ul>
+
+<h3>3. Face milling</h3>
+<ul>
+<li><b>Material</b> – from the stock, otherwise the last used; the cutting data
+follow it. “Tool manager …” opens it; saving there makes the window read the
+cutters again.</li>
+<li><b>Cutter</b> – a cutter with a flat tip (flat, torus or face mill) from
+the <a href="werkzeuge.html">tool manager</a> with cutting data for the
+material; <b>Application</b> – “Facing” preselected; speed and feed in grey
+below.</li>
+<li><b>Stepdown per layer</b> (ap), <b>row spacing</b> (ae, at most as wide as
+the flat part of the tip) and <b>allowance</b> – empty, the grey suggestions
+from the application apply.</li>
+<li>The path: rows in the longer direction of the face, back and forth, in
+layers from the top of the stock down to the face plus allowance; along the
+rows the cutter centre runs 0.6 × diameter past the face, at the sides the tip
+reaches 0.2 × diameter past the edge – so no burr remains. Between the rows it
+runs semicircles (G2/G3) where both rows are free there, otherwise across at
+depth. Before walls and steps that stand higher the row stops (calculated
+against the part without the face). Rows with no stock below them are dropped.
+Entry is straight down with the plunge feed in the air, a ramp in material.
+Leaving the stock the row runs at half feed – against the burr.</li>
+<li>In grey below: “→ 3 layers, 30 rows, about 2 min”. In red stands why it
+does not work (no cutter with cutting data, no flat face facing up, the stock
+does not reach above the face).</li>
+<li><b>Create</b> adds the tool controller and the operation “Face milling T1”
+to the job – one undo step (job and stock a second one). The operation has
+FreeCAD's depths and heights: the start depth follows the stock, the final
+depth is the face plus allowance, safe and clearance height come from the
+job's setup sheet.</li>
+</ul>
+
+<h3>Changing it later</h3>
+<p><b>Double-click</b> “Face milling …” in the tree – or right-click,
+<b>Edit</b>; or select the operation or its job and press the “Machining
+(milling)” button – to open the window with faces, cutter, application and
+values of the operation. <b>Apply</b> changes it – one undo step; another
+cutter gets its own tool controller, the old one is removed if no operation
+uses it any more.</p>
+
+<h3>What comes next</h3>
+<p>Contour roughing and finishing with tangential lead-in and lead-out,
+adaptive pocket with trochoids, drilling and threads from the window, the check
+window with the stock removal of the block – following the plan in
+specification W-006.</p>
+</body>
+</html>

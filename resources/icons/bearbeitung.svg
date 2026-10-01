@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „Bearbeitung (Fräsen)“: ein Block im Rohteil-Quader, darüber ein Fräser, der die Oberseite eben fräst. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="6" y="30" width="52" height="28" fill="#d3d7cf" stroke="#888a85" stroke-width="2" stroke-dasharray="4 2"/>
+  <rect x="10" y="34" width="44" height="22" fill="#babdb6" stroke="#555753" stroke-width="2"/>
+  <path d="M10 34 H54" stroke="#204a87" stroke-width="3"/>
+  <rect x="26" y="4" width="12" height="20" rx="1" fill="#fce94f" stroke="#c4a000" stroke-width="2"/>
+  <rect x="24" y="24" width="16" height="6" fill="#729fcf" stroke="#204a87" stroke-width="2"/>
+  <path d="M14 42 H50" stroke="#cc0000" stroke-width="2"/>
+  <path d="M50 42 l-5 -4 v8 z" fill="#cc0000"/>
+  <path d="M50 50 H14" stroke="#cc0000" stroke-width="2"/>
+  <path d="M14 50 l5 -4 v8 z" fill="#cc0000"/>
+  <path d="M50 42 A4 4 0 0 1 50 50" fill="none" stroke="#cc0000" stroke-width="2"/>
+</svg>

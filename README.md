@@ -124,6 +124,14 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Fasenfräser gibt; Innenkanten, Rundungen und die Stirnen bleiben. Welche
   Postprozessoren von FreeCAD das Programm richtig schreiben, steht in der
   Hilfe.
+- **Bearbeitung (Fräsen)** – für ein Teil im Quader (W-006, im Bau): eine
+  Fläche des Teils anklicken, der Job mit dem Rohteil (Aufmaß je Seite) entsteht
+  sofort; **Planfräsen** für die Oberseite oder gewählte ebene Flächen – Zeilen
+  hin und her in Lagen bis auf die Fläche, Überlauf über den Rand, Halbkreise
+  zwischen den Zeilen, halber Vorschub beim Austritt, vor Absätzen hält die
+  Zeile an; Fräser und Einsatz aus der Werkzeugverwaltung, die Werte als
+  Vorschlag, darunter „→ 3 Lagen, 30 Zeilen, etwa 2 min“. Doppelklick auf die
+  Operation öffnet das Fenster zum Ändern. Kontur, Tasche und Bohren folgen.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).

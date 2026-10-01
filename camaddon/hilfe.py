@@ -32,6 +32,7 @@ THEMEN = [
     "verfahren",
     "reichweite",
     "vierachs",
+    "bearbeitung",
 ]
 
 

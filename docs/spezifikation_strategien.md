@@ -368,7 +368,9 @@ E6 (a) Vorschub nach Eingriff, E7 (a) Grathöhe mit Vorgabe 0,005 mm. S1 ist
 gebaut (Messen P-71/-75/-76, goldene Bahnen P-73, Rest blockweise P-77); das
 Bahn-Datenmodell mit Bögen kommt mit der ersten Strategie, die Bögen braucht
 (S3). S2 ist gebaut (Linien längs P-2026-10-01-06, Plan indexiert P-08/-10,
-Rundum entgraten P-12; 0.36.0).
+Rundum entgraten P-12; 0.36.0). Von S3 sind die Hüllfläche von oben, die Bahn
+mit Bögen, „Planfräsen“ (P-2026-10-01-14) und der Assistent „Bearbeitung
+(Fräsen)“ (P-15; 0.37.0) gebaut.
 
 **S3 im Einzelnen** (Plan 2026-10-01, Claude; die Reihenfolge nach Nutzen):
 
@@ -378,6 +380,7 @@ Rundum entgraten P-12; 0.36.0).
   nur senkrecht; ohne OCL); `bahn.py`: Punkte mit Geraden und Bögen (G2/G3),
   Eilgang, Eintauchen, Vorschubanteil je Satz, Befehle und Zeit – die eine Stelle
   für alle 2,5D- und 3D-Strategien.
+  Gebaut (P-2026-10-01-14).
 - **S3b Planfräsen** – `planfraesen_bahn.py` und die Operation
   `planfraesen.PlanFraesen`: Zeilen hin und her in Lagen vom Rohteil bis auf die
   Fläche plus Aufmaß, Zeilen in der längeren Richtung, Überlauf 0,6 · Ø längs,
@@ -389,10 +392,12 @@ Rundum entgraten P-12; 0.36.0).
   (StartDepth folgt dem Rohteil, SafeHeight, ClearanceHeight) wie bei seinen
   Operationen. Gleichlauf durchgehend (Grundsatz 4) kommt mit der Spirale von
   außen nach innen, sobald das Bahnmodell Konturen versetzen kann (S3e).
+  Gebaut (P-2026-10-01-14).
 - **S3c Assistent „Bearbeitung“ für den Quader** (E4) – Job mit Rohteil aus dem
   Modell (Aufmaß je Seite), die Oberseite vorgeschlagen, Fräser und Einsatz aus
   der Werkzeugverwaltung, „Planfräsen“ mit Grund (E5), Anlegen, Ändern per
   Doppelklick, Hilfe, Szenario.
+  Gebaut (P-2026-10-01-15, 0.37.0): `gui_bearbeitung.py`, Szenario `szenario_bearbeitung`.
 - **S3d Prüffenster 2,5D** – der Abtrag als Höhenfeld des Rohteils (Dexel längs
   Z), beim Abspielen und am Ende in Farben; Kollision wie gehabt.
 - **S3e Kontur** – außen und innen mit tangentialem Ein- und Ausfahren,

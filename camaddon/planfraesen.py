@@ -237,6 +237,10 @@ def lege_an(job, tc, zustellung, zeilenabstand, aufmass=AUFMASS, name=None, flae
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
     obj.Label = name or tr("pf.name", werkzeug=f"T{tc.ToolNumber}")
+    if FreeCAD.GuiUp:
+        from . import gui_vierachs_operation
+
+        gui_vierachs_operation.Ansicht(obj.ViewObject)
     return obj
 
 

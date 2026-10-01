@@ -12,6 +12,61 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-15 s3c-assistent-bearbeitung
+
+### EINGELESEN
+- W-006 (`docs/spezifikation_strategien.md`): S3c, E4 (ein Assistent für den Quader, Job mit
+  Rohteil aus dem Modell), E5 (Vorschlag mit Grund), Grundsatz „einfach, gut erklärt“.
+- `gui_vierachs` als Vorbild (Befehl, Beobachter und Auswahlfilter, `_Reihen`, `_im_befehl`,
+  `_neuer_job`/`_job_zeigen`, Farben am Teil, Werkzeugverwaltung mit `gespeichert`, Anlegen
+  und Ändern mit `job_schnittwerte.controller_fuer`), `gui_vierachs_operation.Ansicht`,
+  `planfraesen` (`vorschau`, `lege_an`, `aendere`), FreeCADs `Path.Main.Job.Create` und das
+  Rohteil „FromBase“ mit `ExtXneg … ExtZpos`.
+
+### DATEIEN
+- Neu: `camaddon/gui_bearbeitung.py`, `help/de/bearbeitung.html`, `help/en/bearbeitung.html`,
+  `resources/icons/bearbeitung.svg`, `tests/gui/szenario_bearbeitung.py`
+- `camaddon/gui_vierachs_operation.py`, `camaddon/planfraesen.py`, `camaddon/gui_start.py`,
+  `camaddon/hilfe.py`, `translations/de.json`, `translations/en.json`, `README.md`,
+  `package.xml` (0.37.0), `CHATSTART.md`, `docs/aufbau.md`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Block 60 × 40 × 20 mit 5 mm Absatz, T1 Schaftfräser Ø 10 mit Einsatz „Planen“ (ae 4, ap 2).
+Die Fläche bei z = 20 anklicken, „Bearbeitung (Fräsen)“: Das Fenster zeigt das Teil, der Job
+„Block – Fräsen“ mit dem Rohteil (1 mm je Seite, Oberkante 26) steht sofort im Baum, das
+Original ist ausgeblendet; die Fläche steht grün in der Liste („eben nach oben, Höhe 20“), T1
+mit „Planen“ ist vorgewählt, grau n und vf, die Felder zeigen 2, 4 und 0 als Vorschlag, darunter
+„→ 3 Lagen, 30 Zeilen, etwa 3 min“. „Aufmaß oben“ 3: das Rohteil folgt (28), „→ 4 Lagen“.
+„Anlegen“: „Planfräsen T1“ mit Ebenen 1, Lagen 3, Zeilen 30, Sätze mit G2/G3, das Fenster ist
+zu. Doppelklick auf die Operation: das Fenster mit ihren Werten, das Rohteil grau (fest);
+Zustellung 1,5 und „Übernehmen“: Lagen 4.
+
+### DONE
+- `gui_bearbeitung`: Befehl `CamAddon_Bearbeitung` (Werkzeugleiste und Menü nach „4-Achs“;
+  mit gewähltem „Planfräsen“ oder dessen Job: Ändern), `BearbeitungPanel` – Teil und Rohteil
+  (Aufmaß oben, seitlich, unten; leer 1 mm; die Felder ziehen das Rohteil nach), Flächen
+  (Klick im 3D nimmt dazu/heraus, Liste grün/rot mit Doppelklick, „Oberseite“, „Auswahl
+  leeren“, Farben am Teil), Werkstoff und „Werkzeugverwaltung …“, Planfräsen mit Fräser
+  (ebene Stirn, Schnittwerte für den Werkstoff; vorgewählt der zuletzt benutzte, sonst einer
+  mit Einsatz „Planen“), Einsatz (Planen, Schruppen, Schlichten), Zustellung, Zeilenabstand,
+  Aufmaß mit grauen Vorschlägen, Ergebnis „→ Lagen, Zeilen, Zeit“, rot der Grund, wenn es
+  nicht geht; „Anlegen“: Job und Rohteil ein Schritt Rückgängig, Controller und Operation ein
+  zweiter; „Abbrechen“ nimmt den Job zurück. Mit `operation=`: Rohteil fest, „Übernehmen“.
+- `gui_vierachs_operation.bearbeiten()` verteilt nach der Art (Planfräsen → Bearbeitung,
+  sonst 4-Achs), Symbol je Art; `planfraesen.lege_an` hängt die Anzeige an.
+- Hilfe „Bearbeitung (Fräsen)“ de/en, Thema im Menü, Symbol, README, Übersetzungen
+  (`befehl.bearbeitung.*`, `ba.*`).
+
+### TEST
+- `test_sprache`, `test_hilfe`, `test_planfraesen` und `szenario_bearbeitung` (neu, drei
+  Screenshots: Fenster mit Vorschau, die Bahn im Job, Fenster zum Ändern) in 1.1.3 ok.
+  black/ruff ok.
+
+### NEXT
+- S3d Prüffenster 2,5D (der Abtrag als Höhenfeld des Quaders), dann S3e Kontur, S3f Tasche
+  adaptiv, S3g Bohren/Gewinde – nach dem Plan in W-006 Abschnitt 10.
+
 ## P-2026-10-01-14 s3-planfraesen
 
 ### EINGELESEN

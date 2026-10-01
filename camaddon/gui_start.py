@@ -16,6 +16,7 @@ from PySide import QtGui
 from . import (
     VERSION,
     gui_aktualisierung,
+    gui_bearbeitung,
     gui_bestueckung,
     gui_hilfe,
     gui_job_schnittwerte,
@@ -49,6 +50,7 @@ WERKZEUGLEISTE = [
     "CamAddon_Bestueckung",
     "CamAddon_AufMaschinePruefen",
     "CamAddon_Vierachs",
+    "CamAddon_Bearbeitung",
 ]
 # Das Menü: oben „So geht’s“ (D-54), dann alle Befehle mit Text – auch „Nach Updates
 # suchen“ und „Über“, die in der Werkzeugleiste nur Platz kosteten (Durchsicht W-004, D-13).
@@ -64,6 +66,7 @@ MENUE = [
     "CamAddon_Bestueckung",
     "CamAddon_AufMaschinePruefen",
     "CamAddon_Vierachs",
+    "CamAddon_Bearbeitung",
     "Separator",
     "CamAddon_UpdateSuchen",
     "CamAddon_Ueber",
@@ -84,6 +87,7 @@ def starten():
             "CamAddon_Bestueckung": gui_bestueckung.BefehlBestueckung(),
             "CamAddon_AufMaschinePruefen": gui_reichweite.BefehlAufMaschinePruefen(),
             "CamAddon_Vierachs": gui_vierachs.BefehlVierachs(),
+            "CamAddon_Bearbeitung": gui_bearbeitung.BefehlBearbeitung(),
             "CamAddon_Ueber": BefehlUeber(),
             "CamAddon_UpdateSuchen": gui_aktualisierung.BefehlUpdateSuchen(),
         }
