@@ -149,7 +149,30 @@ eben). Kein OCL.
 1. **Schruppen ebenenweise** – Lagen von oben, jede Lage eine Tasche adaptiv
    (4.1.2) auf der Fläche, die in dieser Höhe frei ist; Restmaterial aus dem
    Abtrag. *Besser:* Adaptive kennt keine 3D-Grenze, Surface kann nicht
-   schruppen. Aufwand groß (baut auf 4.1.2).
+   schruppen. Aufwand groß (baut auf 4.1.2). Gebaut als „3D-Schruppen“
+   (P-2026-10-01-45, 0.60.0): `schruppen3d_bahn` nimmt den Kern des Räumens über
+   dem ganzen Teil – gesperrt, wo die Hüllfläche mit Aufmaß über der Lage liegt –,
+   Hauptlagen gleich weit bis zum tiefsten Punkt der Freiformflächen plus Aufmaß, je
+   höchstens ap, geräumt in den Varianten des Räumens (die schnellste zählt). Nach
+   jeder Hauptlage **Zwischenlagen** (Vorschlag 1 mm) hinauf bis zur vorigen, von oben
+   nach unten, nur wo über der Lage Material steht, das der Fräser erreicht: Ein Raster
+   merkt sich je Zelle die Materialhöhe (gesenkt, wo die Stirn fuhr); die Ringe dort
+   von außen bis an die Fläche, der erste so weit draußen, dass er gerade ae vom
+   äußersten Material nimmt, mit weiterem ae (so viel Material je mm wie in der
+   Hauptlage, ae · ap gleich, höchstens R – bei Manuels fz ohne Ausdünnung bleibt der
+   Span höchstens fz); das Einfahren mit der Schwelle der Hauptlage, der Eilgang hinab
+   bis über das höchste Material unter der Stirn; die Ringe aus dem Raster geglättet
+   (0,4 Zellen – sonst hielt die Maschine an jeder Zacke). Gemessen mit dem
+   Standardfräser (`test_schruppen3d`): Kuppel Ø 40, 10 hoch, auf der Platte 60 × 60 –
+   1 Lage und 9 Zwischenlagen, 5,4 min (ohne Zwischenlagen 2,7 min, aber bis 7,6 mm
+   Treppe); im Quader nirgends ins Teil, im Eilgang nichts, auf der Platte genau 0,3,
+   auf der Kuppel senkrecht 0,4 … 1,6 mm. Eine Schale R 25, 10 tief: nur
+   Zwischenlagen, je über die Rampe, 1,1 min; in der Höhlung bleibt unter der ebenen
+   Stirn bis 2,2 mm (der Bogen unter dem Fräser). Im Assistenten der Block
+   „3D-Schruppen“ (vorgeschlagen für Freiformflächen, vor dem 3D-Schlichten;
+   `szenario_schlichten3d`). Offen: sind ebene Flächen mitgewählt, räumt danach das
+   Räumen ihren Boden noch einmal ganz (es weiß nicht, was schon weg ist); die
+   Zwischenlagen mit der Kugel (Restschruppen, Punkt 2).
 2. **Restschruppen** – kleiner Fräser nur dort, wo der große nicht hinkam
    (Abtrag). Aufwand mittel.
 3. **Schlichten Zeilen** (parallel) – Raster in einem Winkel, Zickzack oder

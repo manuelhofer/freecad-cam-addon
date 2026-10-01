@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-45 schruppen-3d
+
+### EINGELESEN
+- `raeumen_bahn` (`_Feld`, `_Lage`, `_ringe_vom_rohteil`, `_ringe_um_inseln`, `_ringe_morph`,
+  `_hoehenlinien`, `_ring_aus_linie`), `raeumen` (Operation), `schlichten3d_bahn`
+  (`freiformflaechen`), `pruefstand` (`messen`), `gui_bearbeitung` (`_Raeumen`,
+  `_Schlichten3D`, `STRATEGIEN`).
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py` (neu), `camaddon/schruppen3d.py` (neu),
+  `camaddon/gui_bearbeitung.py`, `camaddon/gui_vierachs_operation.py`,
+  `camaddon/job_schnittwerte.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_schruppen3d.py` (neu), `tests/gui/szenario_schlichten3d.py`,
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml`
+  (0.60.0)
+
+### AKZEPTANZKRITERIUM
+Platte mit Kuppel (Fuß Ø 40, 10 hoch), Standardfräser T1 und Kugelfräser T3: die Kuppel
+anklicken – „3D-Schruppen“ angehakt mit T1, „→ 1 Lage und N Zwischenlagen, M Ringe, etwa … min“,
+„3D-Schlichten“ mit T3. „Anlegen“: „3D-Schruppen T1“, dann „3D-Schlichten T3“; im Prüffenster
+nirgends ins Teil. Im Quader (`test_schruppen3d`): nirgends ins Teil, im Eilgang nichts, auf der
+Platte genau 0,3, auf der Kuppel senkrecht 0,4 … 1,6; ohne Zwischenlagen bis 7,6; die Schale nur
+mit Zwischenlagen über die Rampe.
+
+### DONE
+- `schruppen3d_bahn`: Hauptlagen mit dem Kern des Räumens über dem ganzen Teil (gesperrt, wo die
+  Hüllfläche mit Aufmaß über der Lage liegt; die Varianten, die schnellste); Zwischenlagen nach
+  jeder Hauptlage, nur wo über der Lage Material steht (Materialhöhe je Zelle, Masken mit der
+  FFT aufgeweitet), Ringe von außen bis an die Fläche mit weiterem ae (ae · ap gleich, höchstens
+  R), Einfahren mit der Schwelle der Hauptlage, Eilgang hinab bis über das höchste Material unter
+  der Stirn, Ringe geglättet.
+- `schruppen3d`: die Operation (Flächen, Zustellung, Zeilenabstand, Aufmaß, Zwischenlagen,
+  Gleichlauf; Ergebnis Lagen, Zwischen, Ringe), Art „schruppen3d“ mit dem Einsatz „Schruppen“.
+- Assistent: Block „3D-Schruppen“ vor „3D-Schlichten“, vorgeschlagen für Freiformflächen.
+
+### TEST
+- 1.1.3: `test_schruppen3d` (neu) grün; Szenarien `szenario_schlichten3d` (mit 3D-Schruppen),
+  `szenario_bearbeitung`, `szenario_platte` grün; black/ruff grün.
+
+### NEXT
+- Bleistift (Kehlen); offene Nuten; Räumen auf ebenen Flächen nach dem 3D-Schruppen nur das
+  Aufmaß.
+
 ## P-2026-10-01-44 raeumen-wandring-genau
 
 ### EINGELESEN

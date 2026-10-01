@@ -61,6 +61,7 @@ EINSATZ_NACH_OPERATION = {
     "raeumen": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN),  # „Räumen“ (W-006 S3f)
     "nut": (wz.DYNAMISCH, wz.SCHRUPPEN, wz.VOLLNUT),  # „Nut“ (W-006 4.1 Punkt 6)
     "schlichten3d": (wz.SCHLICHTEN, wz.SCHRUPPEN),  # „3D-Schlichten“ (W-006 4.2 Punkt 3)
+    "schruppen3d": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN),  # „3D-Schruppen“ (4.2 Punkt 1)
     "kontur": (wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Kontur“ (W-006 S3e)
     "entgraten": (wz.FASEN, wz.VERRUNDEN),  # „Entgraten“ im Quader (W-006 4.1 Punkt 8)
     # Die Bohrung des Wochen-Builds kann auch Gewinde schneiden.

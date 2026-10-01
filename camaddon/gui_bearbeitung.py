@@ -42,6 +42,8 @@ from . import raeumen_bahn as rb
 from . import reiben as rbn
 from . import schlichten3d as s3op
 from . import schlichten3d_bahn as s3b
+from . import schruppen3d as r3op
+from . import schruppen3d_bahn as r3b
 from . import senken as sk
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_bahn as vb
@@ -137,9 +139,10 @@ def nullpunkte():
 
 def ist_bearbeitung(op):
     """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Nut“, „Bohrung fräsen“,
-    „Kontur“, „Entgraten“, „Gewinde fräsen“ oder „3D-Schlichten“?"""
+    „Kontur“, „Entgraten“, „Gewinde fräsen“, „3D-Schruppen“ oder „3D-Schlichten“?"""
     return (
         s3op.ist_schlichten3d(op)
+        or r3op.ist_schruppen3d(op)
         or pf.ist_planfraesen(op)
         or ra.ist_raeumen(op)
         or nu.ist_nut(op)
@@ -1367,6 +1370,120 @@ class _Rest(_Strategie):
         return {"davor": 2 * float(op.RadiusDavor), "zustellung": float(op.Zustellung)}
 
 
+class _Schruppen3D(_Strategie):
+    """Das Rohteil über Freiformflächen in Lagen wegräumen, Zwischenlagen für die Treppe
+    (schruppen3d_bahn) – mit dem Fräser fürs Räumen; gegen keine Strategie im Wettbewerb."""
+
+    kennung = "schruppen3d"
+    gemerkt = GEMERKT_RAEUMFRAESER
+    einsatz_reihenfolge = (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN)
+
+    def titel(self):
+        return tr("ba.r3")
+
+    def text(self):
+        return tr("ba.r3.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.r3.fraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.r3.einsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("zustellung", tr("ba.zustellung"), tr("ba.zustellung.tooltip")),
+            ("zeilenabstand", tr("ba.zeilenabstand"), tr("ba.raeumen.zeilenabstand.tooltip")),
+            ("aufmass", tr("ba.aufmass"), tr("ba.r3.aufmass.tooltip")),
+            ("zwischen", tr("ba.zwischenlagen"), tr("ba.zwischenlagen.tooltip")),
+        )
+
+    def haken(self):
+        return (("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),)
+
+    def passt(self, form, name):
+        return s3b.ist_freiform(form, name)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return bool(gewaehlte) and all(self.passt(form, n) for n in gewaehlte)
+
+    def unmoeglich_text(self):
+        return tr("ba.r3.keine")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "zwischen":
+            return r3b.ZWISCHEN
+        if feld == "aufmass":
+            return r3op.AUFMASS
+        return _Raeumen().vorschlag(feld, werkzeug, einsatz)
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return r3op.vorschau(
+            job,
+            job.Model.Group,
+            ff.von_werkzeug(werkzeug),
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            flaechen,
+            zwischen=werte["zwischen"],
+            gleichlauf=werte["gleichlauf"],
+            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+        ringe = tr("ba.zahl.ring") if bahn.ringe == 1 else tr("ba.zahl.ringe", n=bahn.ringe)
+        if not bahn.zwischenlagen:
+            return tr("ba.ergebnis_raeumen", lagen=lagen, ringe=ringe, zeit=zeit)
+        zwischen = (
+            tr("ba.zahl.zwischenlage")
+            if bahn.zwischenlagen == 1
+            else tr("ba.zahl.zwischenlagen", n=bahn.zwischenlagen)
+        )
+        if not bahn.lagen:  # eine Höhlung: die volle Lage findet nichts, nur die Zwischenlagen
+            return tr("ba.ergebnis_raeumen", lagen=zwischen, ringe=ringe, zeit=zeit)
+        return tr("ba.ergebnis_r3", lagen=lagen, zwischen=zwischen, ringe=ringe, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return r3op.lege_an(
+            job,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            werte["zwischen"],
+            werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        r3op.aendere(
+            op,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            werte["zwischen"],
+            werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def ist(self, op):
+        return r3op.ist_schruppen3d(op)
+
+    def werte_von(self, op):
+        return {
+            "zustellung": float(op.Zustellung),
+            "zeilenabstand": float(op.Zeilenabstand),
+            "aufmass": float(op.Aufmass),
+            "zwischen": float(op.Zwischenlagen),
+            "gleichlauf": bool(op.Gleichlauf),
+        }
+
+
 class _Schlichten3D(_Strategie):
     """Freiformflächen in parallelen Zeilen auf der Hüllfläche des ganzen Teils
     (schlichten3d_bahn) – am liebsten mit dem Kugelfräser; gegen keine Strategie im Wettbewerb."""
@@ -1552,6 +1669,7 @@ STRATEGIEN = (
     _Bohrung,
     _Kontur,
     _Rest,
+    _Schruppen3D,
     _Schlichten3D,
     _Senken,
     _Reiben,
@@ -1857,6 +1975,7 @@ class BearbeitungPanel:
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
         self.reiben = next(b for b in self.bloecke if b.s.kennung == "reiben")
         self.schlichten3d = next(b for b in self.bloecke if b.s.kennung == "schlichten3d")
+        self.schruppen3d = next(b for b in self.bloecke if b.s.kennung == "schruppen3d")
         self.rest = next(b for b in self.bloecke if b.s.kennung == "rest")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)

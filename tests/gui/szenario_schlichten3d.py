@@ -1,9 +1,11 @@
-# „Bearbeitung (Fräsen)“ mit „3D-Schlichten“ (W-006 4.2 Punkt 3): Platte 60 × 60 × 10 mit einer
-# Kuppel (Kugel R 25, Fuß Ø 40, oben z 20); T1 der Standardfräser Ø 12, T3 ein Kugelfräser Ø 6.
-# Die Kuppel anklicken: In der Liste „Freiform, unten 10“, „3D-Schlichten“ angehakt mit T3 (der
-# Kugelfräser ist vorgewählt), „→ N Höhenlinien und M Zeilen längs X, Abstand 0,49, etwa … min“
-# (Steil/Flach: am Fuß ist die Kuppel steiler als 45°); Planfräsen und Räumen ohne Haken. „Anlegen“: „3D-Schlichten T3“. „Auf der Maschine prüfen“: am Ende nirgends
-# ins Teil.
+# „Bearbeitung (Fräsen)“ mit „3D-Schruppen“ und „3D-Schlichten“ (W-006 4.2 Punkte 1, 3 und 4):
+# Platte 60 × 60 × 10 mit einer Kuppel (Kugel R 25, Fuß Ø 40, oben z 20); T1 der Standardfräser
+# Ø 12, T3 ein Kugelfräser Ø 6. Die Kuppel anklicken: In der Liste „Freiform, unten 10“;
+# „3D-Schruppen“ angehakt mit T1, „→ 1 Lage und N Zwischenlagen, M Ringe, etwa … min“;
+# „3D-Schlichten“ angehakt mit T3 (der Kugelfräser ist vorgewählt), „→ N Höhenlinien und M Zeilen
+# längs X, Abstand 0,49, etwa … min“ (Steil/Flach: am Fuß ist die Kuppel steiler als 45°);
+# Planfräsen und Räumen ohne Haken. „Anlegen“: „3D-Schruppen T1“, dann „3D-Schlichten T3“. „Auf der
+# Maschine prüfen“: am Ende nirgends ins Teil.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -83,6 +85,16 @@ def schritte(h):
         f"3D-Schlichten: {text!r}",
     )
     h.pruefe(not block.hinweis.text(), f"rot: {block.hinweis.text()!r}")
+    schruppen = panel.schruppen3d
+    yield from h.warte_auf(lambda: schruppen.vorschau is not None, 180000)
+    h.pruefe(schruppen.aktiv(), "3D-Schruppen ohne Haken")
+    h.pruefe(schruppen.fraeser() is not None and schruppen.fraeser().nummer == 1, "nicht T1")
+    text = schruppen.ergebnis.text()
+    h.pruefe(
+        text.startswith("→ 1 Lage und ") and " Zwischenlagen, " in text and " Ringe, etwa " in text,
+        f"3D-Schruppen: {text!r}",
+    )
+    h.pruefe(not schruppen.hinweis.text(), f"rot: {schruppen.hinweis.text()!r}")
     h.bild("1_kuppel", panel.form)
 
     # --- Anlegen ------------------------------------------------------------------------------
@@ -90,11 +102,13 @@ def schritte(h):
     yield 3000
     ops = list(job.Operations.Group)
     h.pruefe(
-        len(ops) == 1 and s3op.ist_schlichten3d(ops[0]) and ops[0].Label == "3D-Schlichten T3",
+        [o.Label for o in ops] == ["3D-Schruppen T1", "3D-Schlichten T3"]
+        and s3op.ist_schlichten3d(ops[-1]),
         f"Operationen: {[o.Label for o in ops]}",
     )
     if ops:
-        h.pruefe(ops[0].Zeilen > 50, f"Zeilen: {ops[0].Zeilen}")
+        h.pruefe(ops[-1].Zeilen > 50, f"Zeilen: {ops[-1].Zeilen}")
+        h.pruefe(ops[0].Zwischen >= 7, f"Zwischenlagen: {ops[0].Zwischen}")
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 800

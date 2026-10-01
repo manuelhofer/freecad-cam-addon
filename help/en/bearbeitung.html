@@ -383,6 +383,28 @@ large, its neck too thick, it does not reach deep enough.</li>
 around each hole it may go into the part up to the tip of the tooth, not beside it.</li>
 </ul>
 
+<h3>16. 3D roughing</h3>
+<ul>
+<li>For <b>freeform faces</b> as with 3D finishing: click them, and next to “3D finishing”
+“3D roughing” is ticked too – with the cutter for clearing (end mill or bull-nose, flat tip). It
+clears the stock above the faces before the ball finishes.</li>
+<li>The path: <b>layers</b> from the top down to the lowest point of the faces plus allowance,
+each at full step-down with a narrow ae – the rings as in Clearing, climb milling. Where the
+envelope of the part lies above the layer, the cutter stays out: in every layer the dome is an
+island with allowance.</li>
+<li>Above a freeform face each full layer would leave a <b>step</b> as high as the step-down.
+So it then runs <b>intermediate layers</b> (empty: 1 mm apart) up to the previous layer – only
+where material still stands above the face, from the outside up to the face. As an intermediate
+layer is thin, its rings may lie further apart (as much material per mm as in the full layer, at
+most half the diameter). 0 means no intermediate layers.</li>
+<li>What remains is the <b>allowance</b> (also on the floor below) and the steps: on the dome
+0.4 to 1.6 mm normal to the face. In a hollow (bowl) more remains under the flat tip – the arc
+under the cutter.</li>
+<li>Grey below: “→ 1 layer and 9 intermediate layers, 32 rings, about 5.4 min” (standard cutter,
+the dome Ø 40 on the plate 60 × 60). In a bowl the full layer finds nothing, then only the
+intermediate layers count. The operation is called “3D roughing T1”.</li>
+</ul>
+
 <h3>15. 3D finishing</h3>
 <ul>
 <li>For <b>freeform faces</b> – domes, fillets, slopes: faces facing up but neither flat nor
@@ -405,8 +427,8 @@ border, 0 means rows only.</li>
 <li>Computed along X and along Y, the <b>faster</b> counts; zigzag row by row, between near ends
 it glides across 0.1 mm above the face, otherwise it lifts. Few blocks on straight stretches, in
 curves as many as the accuracy needs.</li>
-<li>Grey below: “→ 6 contours and 87 rows along X, spacing 0.49, about 4 min”. Rough first (clearing the face
-below leaves the dome with allowance) – otherwise the ball cuts into solid material. The
+<li>Grey below: “→ 6 contours and 87 rows along X, spacing 0.49, about 4 min”. Rough first – “3D roughing” is
+ticked along with it (section 16) –, otherwise the ball cuts into solid material. The
 operation is called “3D finishing T3”.</li>
 </ul>
 
@@ -472,6 +494,7 @@ uses it any more.</p>
 
 <h3>What comes next</h3>
 <p>The entry (ramp, helix, vertical) by time, trochoids in tight corners of pockets,
-open slots (towards the edge) – following the plan in specification W-006.</p>
+open slots (towards the edge), pencil passes in fillets – following the plan in specification
+W-006.</p>
 </body>
 </html>
