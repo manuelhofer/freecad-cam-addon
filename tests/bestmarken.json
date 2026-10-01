@@ -18,7 +18,6 @@
     "rampen": 0,
     "varianten": {
       "inseln": 3.118,
-      "morph": 8.531,
       "rohteil": 2.033
     },
     "wirkungsgrad": 0.781,
@@ -27,18 +26,18 @@
   "platte/kontur tasche": {
     "eintauchen": 0,
     "halte": 748,
-    "luft": 0.275,
-    "rampen": 276,
-    "wirkungsgrad": 0.181,
+    "luft": 0.638,
+    "rampen": 138,
+    "wirkungsgrad": 0.113,
     "zeit": 10.367
   },
   "platte/kontur zapfen": {
-    "eintauchen": 3,
-    "halte": 734,
-    "luft": 0.053,
-    "rampen": 11,
-    "wirkungsgrad": 0.855,
-    "zeit": 34.461
+    "eintauchen": 0,
+    "halte": 5,
+    "luft": 0.176,
+    "rampen": 0,
+    "wirkungsgrad": 0.246,
+    "zeit": 0.164
   },
   "platte/planfraesen": {
     "eintauchen": 0,
@@ -52,33 +51,55 @@
     "wirkungsgrad": 0.751,
     "zeit": 39.267
   },
+  "platte/planfraesen oben+tasche": {
+    "eintauchen": 0,
+    "halte": 439,
+    "luft": 0.06,
+    "rampen": 61,
+    "varianten": {
+      "gewaehlt": 41.427
+    },
+    "wirkungsgrad": 0.739,
+    "zeit": 41.446
+  },
   "platte/raeumen": {
     "eintauchen": 3,
     "halte": 716,
     "luft": 0.043,
     "rampen": 0,
     "varianten": {
-      "inseln": 40.535,
-      "morph": 49.497,
+      "inseln": 40.931,
       "rohteil": 33.095
     },
     "wirkungsgrad": 0.89,
     "zeit": 33.095
   },
+  "platte/raeumen oben+tasche": {
+    "eintauchen": 3,
+    "halte": 1174,
+    "luft": 0.043,
+    "rampen": 1,
+    "varianten": {
+      "inseln": 42.221,
+      "rohteil": 34.378
+    },
+    "wirkungsgrad": 0.888,
+    "zeit": 34.378
+  },
   "platte/raeumen+kontur tasche": {
-    "eintauchen": 1,
-    "halte": 498,
-    "luft": 0.269,
-    "rampen": 68,
-    "wirkungsgrad": 0.432,
-    "zeit": 4.347
+    "eintauchen": 0,
+    "halte": 5,
+    "luft": 0.172,
+    "rampen": 0,
+    "wirkungsgrad": 0.496,
+    "zeit": 0.171
   },
   "tasche/kontur": {
     "eintauchen": 0,
     "halte": 249,
     "luft": 0.243,
     "rampen": 55,
-    "wirkungsgrad": 0.244,
+    "wirkungsgrad": 0.26,
     "zeit": 3.6
   },
   "tasche/planfraesen oben": {
@@ -94,15 +115,15 @@
     "zeit": 5.295
   },
   "tasche/raeumen": {
-    "eintauchen": 1,
-    "halte": 150,
-    "luft": 0.0,
+    "eintauchen": 0,
+    "halte": 154,
+    "luft": 0.003,
     "rampen": 1,
     "varianten": {
-      "inseln": 0.754
+      "inseln": 0.775
     },
-    "wirkungsgrad": 1.043,
-    "zeit": 0.754
+    "wirkungsgrad": 1.081,
+    "zeit": 0.775
   },
   "tasche/raeumen oben": {
     "eintauchen": 0,
@@ -118,12 +139,12 @@
     "zeit": 6.105
   },
   "tasche/raeumen+kontur": {
-    "eintauchen": 1,
-    "halte": 206,
-    "luft": 0.189,
-    "rampen": 5,
-    "wirkungsgrad": 0.45,
-    "zeit": 1.953
+    "eintauchen": 0,
+    "halte": 163,
+    "luft": 0.033,
+    "rampen": 1,
+    "wirkungsgrad": 1.008,
+    "zeit": 0.93
   },
   "zapfen/kontur": {
     "eintauchen": 0,
@@ -147,36 +168,36 @@
   },
   "zapfen/raeumen": {
     "eintauchen": 0,
-    "halte": 186,
-    "luft": 0.094,
+    "halte": 7,
+    "luft": 0.103,
     "rampen": 0,
     "varianten": {
-      "inseln": 4.276,
-      "morph": 2.951,
+      "inseln": 4.486,
+      "morph": 2.693,
       "rohteil": 2.749
     },
-    "wirkungsgrad": 0.712,
-    "zeit": 2.749
+    "wirkungsgrad": 0.733,
+    "zeit": 2.693
   },
   "zapfen/raeumen gegenlauf": {
-    "eintauchen": 3,
-    "halte": 186,
-    "luft": 0.056,
+    "eintauchen": 0,
+    "halte": 7,
+    "luft": 0.104,
     "rampen": 0,
     "varianten": {
-      "inseln": 4.335,
-      "morph": 2.951,
+      "inseln": 4.545,
+      "morph": 2.697,
       "rohteil": 2.824
     },
-    "wirkungsgrad": 0.693,
-    "zeit": 2.824
+    "wirkungsgrad": 0.731,
+    "zeit": 2.697
   },
   "zapfen/raeumen+kontur": {
     "eintauchen": 0,
-    "halte": 204,
-    "luft": 0.143,
-    "rampen": 12,
-    "wirkungsgrad": 0.57,
-    "zeit": 3.474
+    "halte": 12,
+    "luft": 0.108,
+    "rampen": 0,
+    "wirkungsgrad": 0.702,
+    "zeit": 2.819
   }
 }

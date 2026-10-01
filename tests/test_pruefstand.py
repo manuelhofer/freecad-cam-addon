@@ -103,8 +103,10 @@ def waende_bei(teil, z_unten):
 
 
 def planfraesen(teil, z, rohteil, oben, laengs=None):
-    ebenen = ebenen_bei(teil, z)
-    netz = hf.netz_ohne(teil, [e.name for e in ebenen])
+    ebenen = [
+        e for zz in (z if isinstance(z, (list, tuple)) else [z]) for e in ebenen_bei(teil, zz)
+    ]
+    netz = hf.netze_je_hoehe(teil, ebenen)
     werte = pb.Planwerte(
         form, planen.ap, planen.ae, 0.0, oben, oben + 5.0, rohteil,
         laengs=laengs, vorschub=VF, eintauchen=EINTAUCHEN,
@@ -113,8 +115,10 @@ def planfraesen(teil, z, rohteil, oben, laengs=None):
 
 
 def raeumen(teil, z, rohteil, oben, variante=None, gleichlauf=True):
-    ebenen = ebenen_bei(teil, z)
-    netz = hf.netz_ohne(teil, [e.name for e in ebenen])
+    ebenen = [
+        e for zz in (z if isinstance(z, (list, tuple)) else [z]) for e in ebenen_bei(teil, zz)
+    ]
+    netz = hf.netze_je_hoehe(teil, ebenen)
     werte = rb.Raeumwerte(
         form, AP, AE, 0.3, oben, oben + 5.0, rohteil,
         gleichlauf=gleichlauf, variante=variante, schneidenlaenge=werkzeug.schneidenlaenge,
@@ -147,14 +151,40 @@ if os.path.exists(DATEI):
         bestmarken = json.load(datei)
 
 
-def messe(schluessel, laeufe, teil, rohteil, oben, ebenen_z, aufmass=0.3, zeiten=None):
+def messe(
+    schluessel,
+    laeufe,
+    teil,
+    rohteil,
+    oben,
+    ebenen_z,
+    aufmass=0.3,
+    zeiten=None,
+    tiefe=None,
+    vorher=(),
+    vergleich=False,
+):
+    """Misst und urteilt; `vergleich`: eine Folge, die nur zum Vergleich gemessen wird (die Luft
+    zählt dann nicht als Fehler)."""
     anfang = time.time()
-    k = ps.messen(laeufe, teil, rohteil, oben, form, AE, AP, ebenen_z=ebenen_z, aufmass=aufmass)
+    k = ps.messen(
+        laeufe,
+        teil,
+        rohteil,
+        oben,
+        form,
+        AE,
+        AP,
+        ebenen_z=ebenen_z,
+        aufmass=aufmass,
+        tiefe=tiefe,
+        vorher=vorher,
+    )
     gemessen[schluessel] = k
     if zeiten:
         varianten[schluessel] = dict(zeiten)
     print(f"{schluessel:26} {ps.zeile(k)}  ({time.time() - anfang:.0f} s)")
-    for satz in ps.urteile(k):
+    for satz in ps.urteile(k, sicher_nur=vergleich):
         pruefe(False, f"{schluessel}: {satz}")
     return k
 
@@ -217,11 +247,20 @@ messe("tasche/raeumen oben", [lauf(raeumt)], teil, rohteil, oben, [20.0], 0.3, r
 taschenwaende = waende_bei(teil, 5.0)
 pruefe(len(taschenwaende) == 8, f"Tasche: Wände {len(taschenwaende)}")
 kon = kontur(teil, taschenwaende, rohteil, oben)
-messe("tasche/kontur", [lauf(kon)], teil, rohteil, oben, [5.0], 0.0)
+messe("tasche/kontur", [lauf(kon)], teil, rohteil, oben, [5.0], 0.0, tiefe=15.0)
 boden = raeumen(teil, 5.0, rohteil, oben)
-messe("tasche/raeumen", [lauf(boden)], teil, rohteil, oben, [5.0], 0.3, boden.zeiten)
+messe("tasche/raeumen", [lauf(boden)], teil, rohteil, oben, [5.0], 0.3, boden.zeiten, 15.0)
 nach_raeumen = kontur(teil, taschenwaende, rohteil, oben, breite=0.3)
-messe("tasche/raeumen+kontur", [lauf(boden), lauf(nach_raeumen)], teil, rohteil, oben, [5.0], 0.0)
+messe(
+    "tasche/raeumen+kontur",
+    [lauf(boden), lauf(nach_raeumen)],
+    teil,
+    rohteil,
+    oben,
+    [5.0],
+    0.0,
+    tiefe=15.0,
+)
 pruefe(
     gemessen["tasche/raeumen+kontur"].zeit < gemessen["tasche/kontur"].zeit,
     "Tasche: Räumen + Kontur ist nicht schneller als die Kontur allein",
@@ -246,31 +285,91 @@ pruefe(
 taschenwand = waende_bei(teil, -20.0)
 zapfenwand = waende_bei(teil, 0.0)
 pruefe(len(taschenwand) == 1 and len(zapfenwand) == 1, f"Platte: Wände {taschenwand}, {zapfenwand}")
+# Die Tasche zuerst allein mit der Kontur – nach dem Räumen oben (`vorher`: so steht das Rohteil
+# im Job da; die Kontur weiß es nicht und beginnt am Rohteil: viel Luft, nur zum Vergleich).
 kon = kontur(teil, taschenwand, rohteil, oben)
-messe("platte/kontur tasche", [lauf(kon)], teil, rohteil, oben, [-20.0], 0.0)
-boden = raeumen(teil, -20.0, rohteil, oben)
-nach_raeumen = kontur(teil, taschenwand, rohteil, oben, breite=0.3)
 messe(
-    "platte/raeumen+kontur tasche",
-    [lauf(boden), lauf(nach_raeumen)],
+    "platte/kontur tasche",
+    [lauf(kon)],
     teil,
     rohteil,
     oben,
     [-20.0],
     0.0,
+    tiefe=20.0,
+    vorher=[lauf(raeumt)],
+    vergleich=True,
+)
+# Dann so, wie der Assistent es anlegt: Räumen über beide Flächen in einer Bahn (die Tasche
+# beginnt an ihrer Oberkante, weil die Oberseite in derselben Bahn vorher geräumt ist) und die
+# Kontur mit Breite = Aufmaß.
+beide = raeumen(teil, [0.0, -20.0], rohteil, oben)
+pruefe(
+    beide.flaechen == 2 and beide.lagen == 2,
+    f"Platte: {beide.flaechen} Flächen, {beide.lagen} Lagen",
+)
+messe(
+    "platte/raeumen oben+tasche",
+    [lauf(beide)],
+    teil,
+    rohteil,
+    oben,
+    [0.0, -20.0],
+    0.3,
+    beide.zeiten,
+    20.0,
+)
+# Planfräsen über beide Flächen: Im Taschenboden bleiben die Zeilen in der Tasche (aus einem Netz
+# ohne beide Flächen sah der Boden neben sich keine Platte mehr – P-2026-10-01-26).
+plan_beide = planfraesen(teil, [0.0, -20.0], rohteil, oben)
+messe(
+    "platte/planfraesen oben+tasche",
+    [lauf(plan_beide)],
+    teil,
+    rohteil,
+    oben,
+    [0.0, -20.0],
+    0.0,
+    {"gewaehlt": plan_beide.zeit},
+    20.0,
+)
+nach_raeumen = kontur(teil, taschenwand, rohteil, oben, breite=0.3)
+messe(
+    "platte/raeumen+kontur tasche",
+    [lauf(nach_raeumen)],
+    teil,
+    rohteil,
+    oben,
+    [-20.0],
+    0.0,
+    tiefe=20.0,
+    vorher=[lauf(beide)],
 )
 pruefe(
-    gemessen["platte/raeumen+kontur tasche"].zeit < gemessen["platte/kontur tasche"].zeit,
-    "Platte: Räumen + Kontur ist nicht schneller als die Kontur allein",
+    gemessen["platte/raeumen oben+tasche"].zeit
+    - gemessen["platte/raeumen"].zeit
+    + gemessen["platte/raeumen+kontur tasche"].zeit
+    < gemessen["platte/kontur tasche"].zeit,
+    "Platte: Räumen + Kontur ist in der Tasche nicht schneller als die Kontur allein",
 )
 zapfen_kontur = kontur(teil, zapfenwand, rohteil, oben, breite=0.3)
-messe("platte/kontur zapfen", [lauf(raeumt), lauf(zapfen_kontur)], teil, rohteil, oben, [0.0], 0.0)
-summe = (
-    gemessen["platte/raeumen"].zeit
-    + gemessen["platte/raeumen+kontur tasche"].zeit
-    + (gemessen["platte/kontur zapfen"].zeit - gemessen["platte/raeumen"].zeit)
+messe(
+    "platte/kontur zapfen",
+    [lauf(zapfen_kontur)],
+    teil,
+    rohteil,
+    oben,
+    [0.0],
+    0.0,
+    tiefe=20.0,
+    vorher=[lauf(beide)],
 )
-print(f"Platte gesamt (Raeumen oben, Raeumen + Kontur Tasche, Kontur Zapfen): {summe:.1f} min")
+summe = (
+    gemessen["platte/raeumen oben+tasche"].zeit
+    + gemessen["platte/raeumen+kontur tasche"].zeit
+    + gemessen["platte/kontur zapfen"].zeit
+)
+print(f"Platte gesamt (Raeumen oben und Tasche, Kontur Tasche, Kontur Zapfen): {summe:.1f} min")
 pruefe(summe < 40.0, f"Platte: {summe:.1f} min gesamt – Abschnitt 11 verspricht etwa 35")
 
 # --- Die Bestmarken: langsamer darf keine werden ---------------------------------------------

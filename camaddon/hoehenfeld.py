@@ -25,6 +25,7 @@ from . import vierachs_huelle as vh
 
 TOLERANZ = vh.TOLERANZ  # mm – so fein wird das Teil vernetzt
 VORSCHAU_TOLERANZ = 0.05  # mm – für die Vorschau im Assistenten
+HOEHE_GLEICH = 1e-3  # mm – ebene Flächen auf dieser Höhe gelten als eine Höhe
 SCHRITT = vh.SCHRITT_A  # mm – Raster längs einer Zeile
 KEIN_TREFFER = vh.KEIN_TREFFER  # die Spitze trifft das Teil an dieser Stelle nicht
 GERADE = 1e-6  # so wenig darf eine Normale von „nach oben“ abweichen
@@ -113,6 +114,31 @@ def netze_ohne(form, namen_je, toleranz=TOLERANZ):
         neu[benutzt] = np.arange(len(benutzt))
         ergebnis.append(vh.Netz(fnetz.netz.punkte[benutzt], neu[dreiecke], toleranz))
     return ergebnis
+
+
+def netze_je_hoehe(form, ebenen, toleranz=TOLERANZ):
+    """{Name der Fläche: Netz} – je gewählter ebener Fläche (Ebene) das Teil ohne die gewählten
+    Flächen auf ihrer Höhe. Flächen auf anderen Höhen bleiben im Netz: Sie werden nur bis auf
+    ihre eigene Höhe gefräst und stehen für eine tiefere noch als Material da. Aus einem Netz
+    ohne alle gewählten Flächen sah der Boden einer Tasche neben sich keine Platte mehr – die
+    Bahn wäre neben der Tasche ins Teil gefahren (P-2026-10-01-26)."""
+    hoehen = []
+    for e in ebenen:
+        if not any(abs(e.z - z) <= HOEHE_GLEICH for z in hoehen):
+            hoehen.append(e.z)
+    namen_je = [[e.name for e in ebenen if abs(e.z - z) <= HOEHE_GLEICH] for z in hoehen]
+    netze = netze_ohne(form, namen_je, toleranz) if hoehen else []
+    ergebnis = {}
+    for z, netz in zip(hoehen, netze, strict=True):
+        for e in ebenen:
+            if abs(e.z - z) <= HOEHE_GLEICH:
+                ergebnis[e.name] = netz
+    return ergebnis
+
+
+def netz_fuer(netz, ebene):
+    """Das Netz für die Fläche: aus netze_je_hoehe() (dict) oder das eine für alle."""
+    return netz[ebene.name] if isinstance(netz, dict) else netz
 
 
 def je_zeile(netz, form, v_werte, u0, schritt, anzahl, laengs_x=True):

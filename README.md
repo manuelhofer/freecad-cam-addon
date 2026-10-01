@@ -149,10 +149,13 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   von innen nach außen (in der Tasche), Gleichlauf oder Gegenlauf, eingetaucht
   nur, wo schon frei ist; drei Varianten werden gerechnet – darunter die, bei
   der die Ringe als Rechteck beginnen und von Ring zu Ring runder werden, bis
-  der letzte nur noch um den Zapfen fährt. **Die Zeit entscheidet:** Planfräsen
-  und Räumen rechnen beide, die schnellere bekommt den Haken, beide Zeilen
-  sagen, um wie viel. Ein Prüfstand fährt jede Strategie an vier Maßstabsteilen
-  im Quader ab und lässt keine Bahn langsamer werden. Jede Bearbeitung ist ein
+  der letzte genau um den Zapfen fährt – eine Spirale ohne Absetzen, die Ringe
+  so weit auseinander, wie der Fräser verträgt. **Die Zeit entscheidet:**
+  Planfräsen und Räumen rechnen beide, die schnellere bekommt den Haken, beide
+  Zeilen sagen, um wie viel; mit einer Tasche dazu rechnet das Fenster die
+  ganzen Folgen, und die Kontur schlichtet nach dem Räumen nur noch das Aufmaß.
+  Ein Prüfstand fährt jede Strategie an vier Maßstabsteilen im Quader ab und
+  lässt keine Bahn langsamer werden. Jede Bearbeitung ist ein
   Block mit Haken; „Anlegen“ legt alle angehakten an. Bohren folgt.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.

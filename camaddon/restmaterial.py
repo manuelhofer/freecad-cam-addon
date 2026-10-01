@@ -707,6 +707,30 @@ def teilhoehen(netz, quader):
     return hf.hoehen(netz, quader.x, quader.y, innen=True)
 
 
+def teilhoehen_kanten(netz, quader):
+    """(teil, erlaubt) für den Vergleich im Quader: die Oberseite des Teils je Zelle – auf einer
+    Kante die höhere Fläche (`hf.hoehen` ohne `innen`) – und je Zelle, wie tief es dort ins Teil
+    darf, ohne blau zu werden: 0, nur dicht an einer Kante (näher als zweimal die Toleranz des
+    Netzes) bis auf die tiefste Fläche dort (eine Wand: bis auf ihren Boden; der Rand des Teils:
+    beliebig). Das Netz ist ein Vieleck in der runden Wand – der Fräser, der genau bis an den
+    Kreis fährt, nimmt eine Zelle auf dem Kreis weg, die nach dem Netz noch zur Oberseite
+    gehört: auf Manuels Platte „20 mm im Teil“ am Rand der Tasche. Mit `innen` allein fiel
+    dagegen eine Zelle auf einer inneren Kante der Vernetzung – zwei Dreiecke derselben
+    Fläche – durch die Fläche auf die nächste darunter (dort die Unterseite: „bis 51 mm stehen
+    geblieben“ mitten auf der Oberseite; P-2026-10-01-27)."""
+    from . import hoehenfeld as hf
+
+    alle = hf.hoehen(netz, quader.x, quader.y)
+    nah = 2.0 * max(float(getattr(netz, "toleranz", hf.TOLERANZ)), 0.005)
+    tiefste = alle.copy()
+    for dx, dy in ((nah, 0.0), (-nah, 0.0), (0.0, nah), (0.0, -nah)):
+        tiefste = np.minimum(tiefste, hf.hoehen(netz, quader.x + dx, quader.y + dy))
+    kante = np.isfinite(alle) & (tiefste < alle - 1e-6)
+    erlaubt = np.zeros(alle.shape)
+    erlaubt[kante] = alle[kante] - tiefste[kante]
+    return alle, erlaubt
+
+
 def vergleiche_quader(quader, teil, aufmass, nur=None, erlaubt=None):
     """Das Restmaterial im Quader gegen das fertige Teil (`teil`: teilhoehen()), je Zelle
     eingefärbt – wie vergleiche(), von oben: der Rest ist h − Teil. `nur`: (n_x, n_y) die
@@ -745,7 +769,8 @@ class QuaderAbtrag:
         self.fraeser = fraeser  # je Operation (Nummer in der Abfahrt) Form oder Radius
         self.aufmass = aufmass
         self._formen = formen
-        self._teil = None  # teilhoehen(), einmal gerechnet
+        self._teil = None  # teilhoehen_kanten(), einmal gerechnet
+        self._erlaubt = None
         # Die Nummern der gewählten Flächen – None: alle; dazu ihre Zellen, einmal gerechnet.
         self.flaechen = flaechen
         self._nur = None
@@ -783,12 +808,14 @@ class QuaderAbtrag:
 
             form = self._formen[0] if len(self._formen) == 1 else Part.makeCompound(self._formen)
             fnetz = vf.vernetze(form)
-            self._teil = teilhoehen(fnetz.netz, self.quader)
+            self._teil, self._erlaubt = teilhoehen_kanten(fnetz.netz, self.quader)
             if self.flaechen:
                 drin = np.isin(fnetz.flaeche, sorted(self.flaechen))
                 nur = vh.Netz(fnetz.netz.punkte, fnetz.netz.dreiecke[drin], fnetz.netz.toleranz)
                 self._nur = np.isfinite(hf.hoehen(nur, self.quader.x, self.quader.y, innen=True))
-        return vergleiche_quader(self.quader, self._teil, self.aufmass, self._nur)
+        return vergleiche_quader(
+            self.quader, self._teil, self.aufmass, self._nur, erlaubt=self._erlaubt
+        )
 
 
 def _werkzeug_von_oben(abfahrt, nummer):

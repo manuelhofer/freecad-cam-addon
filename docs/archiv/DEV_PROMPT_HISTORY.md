@@ -12,6 +12,75 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-27 morph-spirale-platte
+
+### EINGELESEN
+- Manuel (2026-10-01): „Der muss sozusagen im Viereck fahren anfangen, aber immer runder werden …
+  so dass er am Ende nur um den Zapfen fährt“, „Aber der Werkzeugweg … bildet den Kreis mittig
+  auch nicht wirklich ab“; nach dem Modellwechsel: „du darfst weitermachen“, „bitte weitermachen
+  … so viele Strategien wie möglich herstellen, so viele Szenarien durchgehen wie nur geht“.
+- P-26 (Prüfstand, Varianten des Räumens), `raeumen_bahn`, `hoehenfeld`, `planfraesen_bahn`,
+  `kontur_bahn`, `gui_bearbeitung` (`_wettbewerb`), `restmaterial` (`vergleiche_quader`,
+  `teilhoehen`), Spezifikation Strategien Abschnitt 5 und 11.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`, `camaddon/hoehenfeld.py`, `camaddon/planfraesen_bahn.py`,
+  `camaddon/planfraesen.py`, `camaddon/raeumen.py`, `camaddon/kontur_bahn.py`,
+  `camaddon/gui_bearbeitung.py`, `camaddon/pruefstand.py`, `camaddon/restmaterial.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_raeumen.py`,
+  `tests/test_pruefstand.py`, `tests/bestmarken.json`, `tests/gui/szenario_raeumen.py`,
+  `tests/gui/szenario_platte.py` (neu), `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.45.0)
+
+### AKZEPTANZKRITERIUM
+Auf Manuels 50 × 50 mit Zapfen fängt das Räumen als Rechteck an, wird von Umlauf zu Umlauf
+runder (Verhältnis Diagonale zu Achse von 1,35 auf 1,0) und endet genau auf dem Kreis um den
+Zapfen (Radius 11,3, mit Bögen) – eine Spirale, eine Einfahrt, keine Rampe, schneller als jede
+andere Variante und als das Planfräsen; die Simulation findet nichts im Teil und nichts stehen
+geblieben. Oberseite und Taschenboden der Platte in einem Räumen fahren nirgends ins Teil. Im
+Assistenten bekommt bei Oberseite und Taschenwand die schnellere Folge die Haken, die Kontur
+fährt nur das Aufmaß; „Auf der Maschine prüfen“ meldet am Ende nichts im Teil.
+
+### DONE
+- Morph als harmonisches Feld (`_harmonisch`, rot-schwarz SOR): u = 1 außen am ersten Ring, 0
+  an der Insel; der Abstand der Ringe nach dem Eingriff (`_Feld.eingriff()`: das stehende
+  Rohteil mit der Stirn gefaltet, FFT; Bisektion über u bis zur tiefsten Höhenlinie mit höchstens
+  dem Eingriff des geraden Schnitts bei ae); der letzte Ring der genaue Versatz der Insel mit
+  Bögen (`inselringe`, `_genau`, `_Ring.genau`); alle Ringe eine Spirale mit gleitenden
+  Übergängen über 2 R (`_spirale`). `_KeinMorph`, wenn die Insel am Rand oder außer der Mitte
+  liegt (schmalster Spalt < 0,4 des breitesten; auf der Platte wären es 66 min geworden).
+  Zapfen: morph 2,69 min, rohteil 2,75, inseln 4,49, Planfräsen 4,78.
+- Der Prüfstand an der ganzen Platte (`vorher`, `tiefe`; Oberseite und Tasche in einem Räumen,
+  die Kontur danach, die Kontur am Zapfen): fand, dass Oberseite und Taschenboden in einer
+  Operation 20 mm ins Teil fuhren und 56 statt 34 min brauchten – die Hüllfläche ließ alle
+  gewählten Flächen weg. Jetzt eine Hüllfläche je Höhe (`hoehenfeld.netze_je_hoehe`,
+  `netz_fuer`), auch im Planfräsen. Taschen rechnen nur „inseln“ (der Vergleich war ungleich).
+  Die Lagen einer Tasche beginnen an ihrer Oberkante nur, wenn darüber schon geräumt ist.
+- Kontur mit „Material neben der Wand“: Lagen ab der Oberkante der Kontur, geschruppt nur
+  Breite − Aufmaß (keine Schruppbahn, wenn nur das Aufmaß steht).
+- Assistent: Oberseite und Taschenwand gewählt – `_folge` rechnet Planfräsen + Räumen der Böden
+  gegen Räumen über alles, die schnellere Folge bekommt die Haken, beide Zeilen sagen, um wie
+  viel; `_zusatz` gibt der Kontur das Aufmaß des Räumens als Breite, wenn das Räumen den Boden
+  ihrer Tasche räumt („… – nur das Aufmaß an den Wänden: die Tasche räumt das Räumen“).
+- Prüffenster (`restmaterial.teilhoehen_kanten`): Das Szenario an der Platte fand zwei falsche
+  Meldungen – „bis 51 mm stehen geblieben“ (eine Zelle auf einer inneren Kante der Vernetzung
+  fiel durch die Oberseite auf die Unterseite) und „20 mm im Teil“ (eine Zelle genau auf dem
+  Kreis der Tasche: das Netz ist ein Vieleck im Kreis, der Fräser darf bis an den Kreis). Jetzt
+  zählt die Oberseite auf Kanten, und dicht an einer Kante (zweimal die Netztoleranz) darf es
+  bis auf die tiefste Fläche dort.
+- Prüfung der Rundheit in `test_raeumen` entlang der Bahn (Winkel abgewickelt, je Umlauf).
+
+### TEST
+- 1.1.3: `test_raeumen`, `test_planfraesen`, `test_kontur`, `test_sprache`, `test_quader`,
+  `test_restmaterial`, `test_pruefstand` (19 Bestmarken, Platte gesamt 34,7 min) grün;
+  Szenarien `szenario_raeumen`, `szenario_bearbeitung`, `szenario_kontur`, `szenario_platte`.
+  black/ruff grün.
+
+### NEXT
+- Bohrung fräsen (Helix, `bohrung_bahn.py` liegt als Entwurf bereit), Bohren aus dem
+  Assistenten (S3g), Fasen 2,5D; der Einstieg nach Zeit, Spannhöhe.
+
 ## P-2026-10-01-26 pruefstand-ringe-um-den-rest
 
 ### EINGELESEN

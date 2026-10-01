@@ -139,6 +139,7 @@ def messen(
         for von, nach in zip(lauf.punkte, lauf.punkte[1:], strict=False):
             stuecke = _stuecke(von, nach)
             q.fahre_stuecke([s[0] for s in stuecke], [s[1] for s in stuecke], form)
+    vorher_h = q.h.copy()  # was die Bahnen davor stehen ließen – davon zählt das Volumen
     k = Kennzahlen()
     vorschub = 0.0
     for lauf in laeufe:
@@ -175,7 +176,7 @@ def messen(
                 in_rampe = True
             else:
                 in_rampe = False
-    k.volumen = float((oben - q.h).sum()) * zelle
+    k.volumen = float((vorher_h - q.h).sum()) * zelle
     if tiefe is None:
         tiefe = max(oben - min(ebenen_z), _NICHTS) if ebenen_z else ap
     tiefe = min(ap, tiefe)
@@ -211,8 +212,10 @@ def messen(
     return k
 
 
-def urteile(k):
-    """Die Sätze, mit denen eine Bahn durchfällt – leer, wenn sie besteht."""
+def urteile(k, sicher_nur=False):
+    """Die Sätze, mit denen eine Bahn durchfällt – leer, wenn sie besteht. `sicher_nur`: nur
+    Sicherheit und Ergebnis (ins Teil, stehen geblieben, im Eilgang abgetragen), nicht die Luft –
+    für Folgen, die nur zum Vergleich gemessen werden."""
     saetze = []
     if k.einschnitt < -EINSCHNITT_ZULAESSIG:
         saetze.append(f"schneidet {-k.einschnitt:.2f} mm ins Teil")
@@ -220,7 +223,7 @@ def urteile(k):
         saetze.append(f"lässt {k.rest:.2f} mm auf der Fläche stehen")
     if k.eilgang_abtrag > _NICHTS:
         saetze.append(f"trägt im Eilgang ab ({k.eilgang_abtrag:.1f} mm³)")
-    if k.luftanteil > LUFT_ZULAESSIG:
+    if not sicher_nur and k.luftanteil > LUFT_ZULAESSIG:
         saetze.append(f"fährt {k.luftanteil * 100:.0f} % des Vorschubwegs in der Luft")
     return saetze
 

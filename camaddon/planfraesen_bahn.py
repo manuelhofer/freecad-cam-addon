@@ -121,8 +121,9 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
         raise ValueError(tr("pf.fehler.keine_ebene"))
     ueberlauf = ueberlauf_vorschlag(form) if w.ueberlauf is None else w.ueberlauf
     seite = SEITE_ANTEIL * 2 * form.radius if w.seite is None else w.seite
-    zugabe = netz.toleranz + vb.RAND
-    geformt = form.mit_aufmass(netz.toleranz)
+    toleranz = hf.netz_fuer(netz, ebenen[0]).toleranz if ebenen else hf.TOLERANZ
+    zugabe = toleranz + vb.RAND
+    geformt = form.mit_aufmass(toleranz)
     punkte = []
     lagen_gesamt = zeilen_gesamt = gefraest = 0
     z_min = math.inf
@@ -132,7 +133,18 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
     for ebene in sorted(ebenen, key=lambda e: -e.z):
         ergebnisse = []
         for laengs_x in kandidaten:
-            e = _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, schritt)
+            e = _ebene(
+                hf.netz_fuer(netz, ebene),
+                w,
+                ebene,
+                laengs_x,
+                r_eben,
+                ueberlauf,
+                seite,
+                zugabe,
+                geformt,
+                schritt,
+            )
             if e is not None:
                 ergebnisse.append(e)
         if not ergebnisse:

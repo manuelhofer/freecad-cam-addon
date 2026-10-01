@@ -831,9 +831,10 @@ class _Block:
 
     # --- Vorschau ---
 
-    def vorschau_rechnen(self, job, flaechen):
+    def vorschau_rechnen(self, job, flaechen, zusatz=None):
         """Die grobe Bahn – Lagen, Zeilen bzw. Bahnen, Zeit – und damit „Anlegen“ weiß, ob
-        es geht; der Grund steht rot."""
+        es geht; der Grund steht rot. `zusatz`: Werte, die der Assistent vorgibt (die Breite
+        der Kontur nach dem Räumen)."""
         self.vorschau = None
         self.zeit = None
         self.ergebnis_basis = ""
@@ -844,7 +845,7 @@ class _Block:
             self.hinweis.setText(tr("va.planfraeser.keiner"))
             return
         _n, vorschub, senkrecht = js.werte(werkzeug, einsatz)
-        werte = dict(self.werte(), vorschub=vorschub, eintauchen=senkrecht)
+        werte = dict(self.werte(), vorschub=vorschub, eintauchen=senkrecht, **(zusatz or {}))
         try:
             self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)
         except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
@@ -905,6 +906,7 @@ class BearbeitungPanel:
         self.form = self._baue()
         self.plan = next(b for b in self.bloecke if b.s.kennung == "planfraesen")
         self.raeumen = next(b for b in self.bloecke if b.s.kennung == "raeumen")
+        self._raeumen_boeden = None  # nur diese Taschenböden räumen (_folge); None: alle
         self.kontur = next(b for b in self.bloecke if b.s.kennung == "kontur")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
@@ -1612,13 +1614,108 @@ class BearbeitungPanel:
         if self.geschlossen or self.job is None:
             return
         form = vr.modell(self.job).Shape
+        self._raeumen_boeden = None
+        boeden = self._nur_boeden(form)
         for block in self.bloecke:
+            if (
+                block is self.raeumen
+                and boeden is not None
+                and (block.aktiv() or self._im_wettbewerb(block))
+            ):
+                self._folge(form, boeden)
+                continue
             if block.aktiv() or self._im_wettbewerb(block):
-                block.vorschau_rechnen(self.job, block.s.flaechen_fuer(form, self.gewaehlte))
+                zusatz = self._zusatz(block, form)
+                block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
+                if zusatz and block.ergebnis_basis:
+                    block.ergebnis.setText(tr("ba.kontur.nach_raeumen", text=block.ergebnis_basis))
             else:
                 block.leeren()
-        self._wettbewerb(form)
+        if boeden is None:
+            self._wettbewerb(form)
         self._knoepfe_beschriften()
+
+    def _zusatz(self, block, form):
+        """Was der Assistent einem Block vorgibt: Räumt das Räumen den Boden einer Tasche, deren
+        Wände die Kontur fährt, und ist die Breite der Kontur leer, dann steht neben den Wänden
+        nur noch das Aufmaß des Räumens – die Kontur schlichtet nur noch (Räumen + Kontur mit
+        Breite = Aufmaß, die schnellste Folge in der Tasche; Spezifikation Abschnitt 11)."""
+        if block is not self.kontur or not self.raeumen.aktiv():
+            return None
+        if self.kontur.felder["breite"].text().strip():
+            return None  # von Hand eingetragen
+        waende = self.kontur.s.flaechen_fuer(form, self.gewaehlte)
+        boeden = rb.taschenboeden(form, waende)
+        if not boeden or not set(boeden) & set(self._flaechen(self.raeumen, form)):
+            return None
+        return {"breite": max(float(self.raeumen.werte()["aufmass"]), 0.01)}
+
+    def _flaechen(self, block, form):
+        """Die Flächen des Blocks – beim Räumen ohne die, die das Planfräsen schon fräst
+        (_folge: dann nur die Taschenböden)."""
+        flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
+        if block is self.raeumen and self._raeumen_boeden is not None:
+            return list(self._raeumen_boeden)
+        return flaechen
+
+    def _nur_boeden(self, form):
+        """Die Taschenböden, die nur das Räumen kann – wenn außer ihnen auch ebene Flächen
+        gewählt sind, die das Planfräsen könnte; sonst None."""
+        if self.zu_aendern is not None or not self.plan.moeglich or not self.raeumen.moeglich:
+            return None
+        flach = self.plan.s.flaechen_fuer(form, self.gewaehlte)
+        alle = self.raeumen.s.flaechen_fuer(form, self.gewaehlte)
+        if not flach or not set(flach) < set(alle):
+            return None
+        return [f for f in alle if f not in flach]
+
+    def _folge(self, form, boeden):
+        """Ebene Flächen und Taschenböden gewählt: Entweder räumt das Räumen alles, oder das
+        Planfräsen fräst die ebenen Flächen und das Räumen nur die Böden – die schnellere Folge
+        bekommt die Haken (Grundsatz 0), solange niemand sie von Hand gesetzt hat. Sind beide
+        angehakt, räumt das Räumen nur die Böden: keine Fläche zweimal."""
+        plan, raeumen = self.plan, self.raeumen
+        if not plan.aktiv() and (plan.von_hand or not plan.moeglich):
+            raeumen.vorschau_rechnen(self.job, raeumen.s.flaechen_fuer(form, self.gewaehlte))
+            return
+        if plan.vorschau is None:
+            plan.vorschau_rechnen(self.job, plan.s.flaechen_fuer(form, self.gewaehlte))
+        raeumen.vorschau_rechnen(self.job, raeumen.s.flaechen_fuer(form, self.gewaehlte))
+        alles = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
+        raeumen.vorschau_rechnen(self.job, boeden)
+        nur = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
+        zeiten = (plan.zeit, alles[1], nur[1])
+        if not (plan.von_hand or raeumen.von_hand) and all(z and z > 0 for z in zeiten):
+            folge_schneller = plan.zeit + nur[1] < alles[1]
+            self._fuellt = True
+            try:
+                plan.haken.setChecked(folge_schneller)
+                raeumen.haken.setChecked(True)
+                plan.zustand_zeigen()
+                raeumen.zustand_zeigen()
+            finally:
+                self._fuellt = False
+        if plan.aktiv():
+            self._raeumen_boeden = list(boeden)
+            raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, hinweis = nur
+        else:
+            raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, hinweis = alles
+        raeumen.ergebnis.setText(raeumen.ergebnis_basis)
+        raeumen.hinweis.setText(hinweis)
+        if not all(z and z > 0 for z in zeiten):
+            return
+        folge, ganz = plan.zeit + nur[1], alles[1]
+        prozent = int(round((max(folge, ganz) / min(folge, ganz) - 1.0) * 100.0))
+        if plan.aktiv():
+            plan.ergebnis.setText(
+                tr("ba.wettbewerb.folge", text=plan.ergebnis_basis, prozent=prozent)
+            )
+            raeumen.ergebnis.setText(tr("ba.wettbewerb.nur_boeden", text=nur[2]))
+        else:
+            plan.ergebnis.setText(
+                tr("ba.wettbewerb.folge_langsamer", text=plan.ergebnis_basis, prozent=prozent)
+            )
+            raeumen.ergebnis.setText(tr("ba.wettbewerb.alles", text=alles[2], prozent=prozent))
 
     def _gegner(self, block):
         """Die Strategie, die dieselbe Aufgabe löst: Planfräsen und Räumen auf einer Fläche."""
@@ -1638,6 +1735,8 @@ class BearbeitungPanel:
         if gegner is None or not gegner.aktiv():
             return False
         form = vr.modell(self.job).Shape
+        if block is self.raeumen and self._nur_boeden(form) is not None:
+            return True  # die Folge mit den Taschenböden (_folge)
         return set(block.s.flaechen_fuer(form, self.gewaehlte)) == set(
             gegner.s.flaechen_fuer(form, self.gewaehlte)
         )
@@ -1706,8 +1805,9 @@ class BearbeitungPanel:
                     tc = js.controller_ohne_transaktion(
                         self.doc, self.job, block.fraeser(), block.einsatz(), self.werkstoff()
                     )
-                    flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
-                    ops.append(block.s.lege_an(self.job, tc, block.werte(), flaechen))
+                    flaechen = self._flaechen(block, form)
+                    werte = dict(block.werte(), **(self._zusatz(block, form) or {}))
+                    ops.append(block.s.lege_an(self.job, tc, werte, flaechen))
                 self.doc.recompute()
             except Exception:
                 self.doc.abortTransaction()

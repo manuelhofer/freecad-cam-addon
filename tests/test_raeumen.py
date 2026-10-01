@@ -157,7 +157,9 @@ def erster_ring(bahn, lage):
 teil_a = Part.makeBox(50, 50, 20).fuse(Part.makeCylinder(5, 10, V(25, 25, 20))).removeSplitter()
 rohteil_a = (-1.0, 51.0, -1.0, 51.0)
 bahn_a = raeumen(teil_a, 20.0, werte_fuer(rohteil_a, 30.0))
-pruefe(bahn_a.variante == "rohteil", f"Zapfen: Variante {bahn_a.variante} {bahn_a.zeiten}")
+# Der Morph gewinnt (Manuel: „im Viereck anfangen, aber immer runder werden, so dass er am Ende
+# nur um den Zapfen fährt“): eine Spirale ohne Absetzen, schneller als die Ringe um den Rest.
+pruefe(bahn_a.variante == "morph", f"Zapfen: Variante {bahn_a.variante} {bahn_a.zeiten}")
 pruefe(set(bahn_a.zeiten) == {"rohteil", "morph", "inseln"}, f"Zapfen: Varianten {bahn_a.zeiten}")
 pruefe(
     bahn_a.zeiten["rohteil"] < bahn_a.zeiten["inseln"]
@@ -174,15 +176,74 @@ pruefe(
 pruefe(bahn_m.zeit < bahn_a.zeit * 1.15, f"morph: {bahn_m.zeit} min, rohteil {bahn_a.zeit}")
 rest, einschnitt = simuliert(bahn_m, teil_a, rohteil_a, 30.0, 20.0, 0.3)
 pruefe(rest <= 0.05 and einschnitt >= -0.05, f"morph: Rest {rest}, Einschnitt {einschnitt}")
-# Vom Rand des Rohteils her: (50 + 2 + 4,5) ÷ 1,5 Ringe bis zur Mitte; der Zapfen unterbricht
-# die mittleren, danach die Ringe um ihn.
+# Vom Rand des Rohteils her bis an den Zapfen: etwa 15 Umläufe – die Spirale in einem Zug, dann
+# der Ring um den Zapfen, der ohne Absatz anschließt.
 pruefe(
-    (bahn_a.flaechen, bahn_a.lagen) == (1, 1) and 14 <= bahn_a.ringe <= 18,
+    (bahn_a.flaechen, bahn_a.lagen) == (1, 1) and 12 <= bahn_a.ringe <= 18,
     f"Zapfen: {bahn_a.flaechen} Flächen, {bahn_a.lagen} Lagen, {bahn_a.ringe} Ringe",
 )
-pruefe(bahn_a.laeufe >= bahn_a.ringe, f"Zapfen: {bahn_a.laeufe} Läufe")
-pruefe(bahn_a.rampen == 0, f"Zapfen: {bahn_a.rampen} Rampen – {bahn_a.rampen_bei}")
-pruefe(bahn_a.anschluesse >= 8, f"Zapfen: {bahn_a.anschluesse} Anschlüsse (die Spirale)")
+pruefe(
+    (bahn_a.laeufe, bahn_a.einfahrten, bahn_a.anschluesse, bahn_a.rampen) == (2, 1, 1, 0),
+    f"Zapfen: {bahn_a.laeufe} Läufe, {bahn_a.einfahrten} Einfahrten, "
+    f"{bahn_a.anschluesse} Anschlüsse, {bahn_a.rampen} Rampen – {bahn_a.rampen_bei}",
+)
+# Der letzte Ring ist der genaue Kreis um den Zapfen (Radius 5 + R + Aufmaß), mit Bögen; vor
+# ihm wird die Spirale von Umlauf zu Umlauf runder: Das Verhältnis der Ecke zur Seite (Abstand
+# zur Mitte auf der Diagonalen ÷ auf der Achse) fällt von √2 zum Kreis hin auf 1.
+kreis = [
+    p for p in bahn_a.punkte if not p.eilgang and abs(math.hypot(p.x - 25, p.y - 25) - 11.3) < 0.01
+]
+pruefe(len(kreis) >= 2, f"Zapfen: {len(kreis)} Punkte auf dem Kreis um den Zapfen")
+pruefe(
+    any(p.bogen is not None for p in kreis),
+    "Zapfen: der Kreis um den Zapfen ohne Bögen",
+)
+spirale = []
+for a, b in zip(bahn_a.punkte, bahn_a.punkte[1:], strict=False):
+    if b.eilgang or abs(a.z - 20) > 1e-9 or abs(b.z - 20) > 1e-9:
+        continue
+    if b.bogen is None:
+        spirale.append((b.x - 25, b.y - 25))
+        continue
+    mx, my, uhr = b.bogen  # Bögen dicht abtasten – der Kreis um den Zapfen hat nur zwei
+    a0, rad, bogen = math.atan2(a.y - my, a.x - mx), math.hypot(a.x - mx, a.y - my), bn.winkel(a, b)
+    for i in range(1, 65):
+        w_ = a0 - bogen * i / 64 if uhr else a0 + bogen * i / 64
+        spirale.append((mx + rad * math.cos(w_) - 25, my + rad * math.sin(w_) - 25))
+
+
+# Entlang der Bahn den Winkel um die Mitte abwickeln und bei jedem Achtel den Radius nehmen:
+# Achse (0°, 90° …) und die folgende Diagonale gehören zum selben Umlauf. Je Umlauf zählt das
+# größte Verhältnis – im Viertel, in dem die Spirale zum nächsten Ring gleitet, fällt der Radius
+# um einen ganzen Schritt.
+winkel = [math.atan2(spirale[0][1], spirale[0][0])]
+for (x1, y1), (x2, y2) in zip(spirale, spirale[1:], strict=False):
+    winkel.append(
+        winkel[-1] + (math.atan2(y2, x2) - math.atan2(y1, x1) + math.pi) % (2 * math.pi) - math.pi
+    )
+radien = [math.hypot(x, y) for x, y in spirale]
+kreuzungen = []  # (Vielfaches von 45°, Radius) in der Reihenfolge der Bahn
+for i in range(len(winkel) - 1):
+    a, b = winkel[i], winkel[i + 1]
+    if abs(b - a) < 1e-12:
+        continue
+    for m in range(math.ceil(min(a, b) / (math.pi / 4)), math.floor(max(a, b) / (math.pi / 4)) + 1):
+        if kreuzungen and kreuzungen[-1][0] == m:
+            continue
+        t = (m * math.pi / 4 - a) / (b - a)
+        kreuzungen.append((m, radien[i] + t * (radien[i + 1] - radien[i])))
+je_umlauf = {}
+for (m1, r1), (m2, r2) in zip(kreuzungen, kreuzungen[1:], strict=False):
+    if m1 % 2 == 0 and abs(m2 - m1) == 1:
+        je_umlauf[m1 // 8] = max(je_umlauf.get(m1 // 8, 0.0), r2 / r1)
+verhaeltnisse = [round(je_umlauf[k], 3) for k in sorted(je_umlauf, reverse=winkel[-1] < winkel[0])]
+pruefe(
+    len(verhaeltnisse) >= 8
+    and verhaeltnisse[0] > 1.25
+    and verhaeltnisse[-1] < 1.05
+    and all(a >= b - 0.03 for a, b in zip(verhaeltnisse, verhaeltnisse[1:], strict=False)),
+    f"Zapfen: die Spirale wird nicht runder: {verhaeltnisse}",
+)
 pruefe(abs(bahn_a.z_min - 20.0) < 1e-9, f"Zapfen: z_min {bahn_a.z_min}")
 # Der erste Ring liegt außen in der Luft (Mitte R − ae = 4,5 außerhalb des Rohteils), im
 # Gleichlauf gegen den Uhrzeigersinn; der Fräser taucht im Freien ein und fährt tangential
@@ -296,8 +357,10 @@ pruefe(
     f"Tasche: x {min(p.x for p in in_tasche)} … {max(p.x for p in in_tasche)}, "
     f"y {min(p.y for p in in_tasche)} … {max(p.y for p in in_tasche)}",
 )
+# Allein gewählt, beginnt die Tasche am Rohteil (21): Ob die Oberseite darüber schon geräumt
+# ist, weiß die Bahn nicht (P-2026-10-01-26).
 pruefe(
-    max(p.z for p in in_tasche) <= 20.0 + 1e-9,
+    max(p.z for p in in_tasche) <= 21.0 + 1e-9,
     f"Tasche: Vorschub bis {max(p.z for p in in_tasche)}",
 )
 # Die Rampe rundum: Punkte zwischen 20 und 5, kein Zickzack (die x-y-Folge läuft in einer
@@ -371,15 +434,35 @@ pruefe(
 )
 rest, einschnitt = simuliert(bahn_d, teil_d, rohteil_d, 20.0, 0.0, 0.3)
 pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Platte: Rest {rest}, Einschnitt {einschnitt}")
+# Die Tasche allein: vom Rohteil (20) bis −20, zwei Lagen, je eine Rampe rundum.
 bahn_e = raeumen(teil_d, -20.0, werte_fuer(rohteil_d, 20.0))
 pruefe(
-    bahn_e.variante == "inseln" and bahn_e.lagen == 1 and bahn_e.rampen == 1,
+    bahn_e.variante == "inseln" and bahn_e.lagen == 2 and bahn_e.rampen == 2,
     f"Platte Tasche: {bahn_e.zeiten}, {bahn_e.lagen} Lagen, {bahn_e.rampen} Rampen",
 )
-pruefe(bahn_e.zeit < 1.6, f"Platte Tasche: {bahn_e.zeit} min")
+pruefe(bahn_e.zeit < 3.0, f"Platte Tasche: {bahn_e.zeit} min")
 rest, einschnitt = simuliert(bahn_e, teil_d, rohteil_d, 20.0, -20.0, 0.3)
 pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Platte Tasche: Rest {rest}, Einschnitt {einschnitt}")
 print(f"Platte Tasche: Raeumen {bahn_e.zeit:.2f} min")
+# Oberseite und Tasche in einer Bahn: Die Tasche beginnt an ihrer Oberkante (0), eine Lage.
+ebenen_f = [e for e in hf.ebenen_oben(teil_d) if abs(e.z) < 1e-6 or abs(e.z + 20.0) < 1e-6]
+bahn_f = rb.planen(
+    hf.netze_je_hoehe(teil_d, ebenen_f),
+    werte_fuer(rohteil_d, 20.0),
+    ebenen_f,
+    ra.konturen_des_teils(teil_d),
+)
+pruefe(
+    bahn_f.flaechen == 2 and bahn_f.lagen == 2 and abs(bahn_f.z_min + 20.0) < 1e-9,
+    f"Platte beide: {bahn_f.flaechen} Flächen, {bahn_f.lagen} Lagen, z_min {bahn_f.z_min}",
+)
+pruefe(
+    bahn_f.zeit < bahn_d.zeit + 1.6,
+    f"Platte beide: {bahn_f.zeit:.2f} min, oben {bahn_d.zeit:.2f} min",
+)
+rest, einschnitt = simuliert(bahn_f, teil_d, rohteil_d, 20.0, -20.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Platte beide: Rest {rest}, Einschnitt {einschnitt}")
+print(f"Platte beide: Raeumen {bahn_f.zeit:.2f} min")
 print("Platte ok")
 
 # --- Fehler mit einem Satz --------------------------------------------------------------------
@@ -436,7 +519,7 @@ pruefe(
     f"Operation: {op.Ebenen}, {op.Lagen}, {op.Ringe}, {op.Laeufe}",
 )
 pruefe(
-    op.Gerechnet.startswith("rohteil ") and "inseln" in op.Gerechnet, f"Gerechnet: {op.Gerechnet!r}"
+    op.Gerechnet.startswith("morph ") and "inseln" in op.Gerechnet, f"Gerechnet: {op.Gerechnet!r}"
 )
 pruefe(op.Gleichlauf is True and str(op.Variante) == "automatisch", "Vorgaben")
 befehle = op.Path.Commands

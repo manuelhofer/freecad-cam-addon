@@ -690,13 +690,24 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
     der fürs Schlichten, die Hüllfläche über allem, dann die Lagen."""
     ziel = k.z_unten - max(w.tiefer, 0.0)
     oben = w.oben
+    if w.breite > 0:
+        # Mit der Breite sagt man: Daneben ist schon geräumt (eine Tasche, das Räumen davor) –
+        # dann auch über der Oberkante der Wände; die Lagen beginnen dort, nicht am Rohteil
+        # (sonst fährt jede Bahn ihre Rampe durch Luft – auf der Platte 20 mm, P-2026-10-01-26).
+        oben = min(oben, k.z_oben)
     if oben <= ziel + GLEICH:
         return
     aufmass = max(w.aufmass, 0.0)
     toleranz = netz.toleranz
     if w.breite > 0:
-        anzahl = max(1, int(math.ceil(w.breite / w.zeilenabstand - 1e-9)))
-        abstaende = [r + aufmass + i * w.breite / anzahl for i in range(anzahl)]
+        # Zu schruppen ist nur, was über das Aufmaß hinaus steht: bei Breite = Aufmaß nichts –
+        # dann bleibt allein das Schlichten.
+        dick = w.breite - aufmass
+        if dick > GLEICH:
+            anzahl = max(1, int(math.ceil(dick / w.zeilenabstand - 1e-9)))
+            abstaende = [r + aufmass + i * dick / anzahl for i in range(anzahl)]
+        else:
+            abstaende = []
     else:
         abstaende = [r + aufmass + i * w.zeilenabstand for i in range(HOECHSTENS_VERSAETZE)]
     schrupp = []  # [(d, Segmente, Proben)] von der Wand nach außen
@@ -900,6 +911,8 @@ def _lauf(
         vorige > lage + GLEICH
         and bool(_im_rohteil(np.array([start[0]]), np.array([start[1]]), w.rohteil, r)[0])
         and reichweite + r > frei_bis + GLEICH
+        # Mit der Breite steht weiter weg von der Wand nichts mehr: Dort taucht er im Freien ein.
+        and (w.breite <= 0 or reichweite - r < w.breite - GLEICH)
     )
     punkte = st.punkte
     punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))

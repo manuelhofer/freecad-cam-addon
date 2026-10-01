@@ -204,7 +204,7 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
     )
-    netz = hf.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
+    netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
     return pb.planen(netz, werte, ebenen, schritt)
 
 

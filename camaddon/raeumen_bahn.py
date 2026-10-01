@@ -46,6 +46,20 @@ SCHRITT = 0.5  # mm – das Raster und der Abstand der Stellen auf den Ringen
 VORSCHAU_SCHRITT = 1.0  # mm – für die Vorschau im Assistenten
 AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
 VARIANTEN = ("rohteil", "morph", "inseln")
+# Der Morph nimmt an seiner breitesten Stelle so viel Eingriff wie ein gerader Schnitt mit
+# ae mal diesem Faktor – nicht mehr (Manuels ae ist die Grenze); anderswo weniger.
+MORPH_EINGRIFF = 1.0
+MORPH_SCHRITTE = 18  # Halbierungen bei der Suche nach dem nächsten Ring
+# Ist der Abstand vom ersten Ring zur Insel ringsum so ungleich (kleinster ÷ größter), lohnt der
+# Morph nicht: Wo der Spalt schmal ist, lägen die Ringe viel zu eng (die Platte mit dem Zapfen
+# außerhalb der Mitte: 66 statt 33 min). Dann wird er gar nicht gerechnet.
+MORPH_VERHAELTNIS = 0.4
+
+
+class _KeinMorph(Exception):
+    """Der Morph passt nicht zu dieser Fläche – die Variante entfällt."""
+
+
 GLEICH = vb.GLEICH
 _WINZIG = 1e-9
 
@@ -129,6 +143,7 @@ class _Feld:
         dy = np.arange(-m, m + 1)[None, :] * schritt
         self._stempel = (dx * dx + dy * dy) <= (r - 0.01) ** 2
         self._m = m
+        self._kern = None  # die Scheibe im Frequenzraum, für eingriff()
 
     def zellen(self, x, y):
         """(i, j) der Zellen, in denen (x, y) liegen – auf das Raster begrenzt."""
@@ -177,6 +192,21 @@ class _Feld:
             fenster = roh[a0:a1, b0:b1] & self._stempel[a0 - i0 : a1 - i0, b0 - j0 : b1 - j0]
             ergebnis[k] = fenster.sum() / zahl
         return ergebnis
+
+    def eingriff(self):
+        """(nx, ny): je Zelle der Anteil der Stirn über ungeschnittenem Rohteil, wenn die Mitte
+        dort steht – wie ungeschnitten(), für alle Zellen auf einmal (Faltung mit der Scheibe
+        über die FFT)."""
+        m = self._m
+        groesse = (self.nx + 2 * m + 1, self.ny + 2 * m + 1)
+        if self._kern is None:
+            kern = np.zeros(groesse)
+            kern[: 2 * m + 1, : 2 * m + 1] = self._stempel
+            self._kern = np.fft.rfft2(kern)
+        roh = np.zeros(groesse)
+        roh[: self.nx, : self.ny] = self.rohteil_zellen & ~self.frei
+        gefaltet = np.fft.irfft2(np.fft.rfft2(roh) * self._kern, s=groesse)
+        return gefaltet[m : m + self.nx, m : m + self.ny] / float(self._stempel.sum())
 
     def frei_bei(self, x, y):
         """Ist (x, y) frei: der Fräser war schon da – oder er trifft dort kein Rohteil?"""
@@ -408,11 +438,13 @@ def _umlauf(punkte):
 
 @dataclass
 class _Ring:
-    """Ein Ring: seine Segmente und Proben (kontur_bahn), ob geschlossen."""
+    """Ein Ring: seine Segmente und Proben (kontur_bahn), ob geschlossen; `genau`: aus der
+    Geometrie gerechnet (der Versatz einer Insel) – das Raster prüft ihn nicht nach."""
 
     segmente: list
     proben: object
     geschlossen: bool
+    genau: bool = False
 
 
 def _ring_aus_linie(
@@ -507,6 +539,7 @@ class _Stand:
     anschluesse: int = 0  # Läufe, die an den vorigen anschlossen (die Spirale)
     rampen_bei: list = field(default_factory=list)  # je Rampe: (Ring, Zahl der Stellen)
     nachgeholt: int = 0  # Anfangsstücke, die nach den Ringen um die Insel nachkamen
+    geraeumt: list = field(default_factory=list)  # (z, x_von, x_bis, y_von, y_bis) je Fläche
     z_min: float = math.inf
     laenge: float = 0.0
 
@@ -559,10 +592,12 @@ class _Lage:
             return True
         return bool((self.feld.ungeschnitten(qx[:-1], qy[:-1]) <= self.schwelle).all())
 
-    def ring(self, ring, eng=False, kennung="", nur=None):
+    def ring(self, ring, eng=False, kennung="", nur=None, luft=False):
         """Fährt einen Ring – in Läufen, wo erlaubt und Rohteil ist (`eng`: die Mitte höchstens
         ae außerhalb des Rohteils, sonst bis R; `nur`: je Probe, ob sie überhaupt gefahren
-        werden soll). Gibt die Zahl der Läufe."""
+        werden soll; `luft`: auch, wo der Fräser kein Rohteil trifft – ein Ring des Morphs
+        bleibt ganz, statt an einer Ecke in der Luft in Läufe zu zerfallen). Gibt die Zahl der
+        Läufe."""
         self.kennung = kennung
         proben = ring.proben
         x, y = proben.x, proben.y
@@ -571,8 +606,10 @@ class _Lage:
             return 0
         im_rohteil = self.feld.eng if eng else self.feld.beruehrt
         drin = self.feld.im_raster(x, y)
-        drin &= self.feld.bei(self.erlaubt, x, y)
-        drin &= im_rohteil[self.feld.zellen(x, y)]
+        if not ring.genau:
+            drin &= self.feld.bei(self.erlaubt, x, y)
+        if not luft:
+            drin &= im_rohteil[self.feld.zellen(x, y)]
         if nur is not None:
             drin &= nur
         if not drin.any():
@@ -880,7 +917,8 @@ class _Lage:
 
 def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT):
     """Die Bahn „Räumen“ (Raeumbahn) über die Flächen `ebenen` ([hoehenfeld.Ebene]) mit den
-    Werten `werte`; `netz` ist das Teil ohne diese Flächen (hoehenfeld.netz_ohne); `konturen`
+    Werten `werte`; `netz` ist das Teil ohne diese Flächen (hoehenfeld.netz_ohne – oder je
+    Fläche das ohne die Flächen ihrer Höhe, hoehenfeld.netze_je_hoehe); `konturen`
     ([kontur_bahn.Kontur]) die Unterkanten der Wände des Teils – eine geschlossene um die
     Fläche mit der freien Seite innen macht sie zur Tasche. ValueError mit einem Satz, wenn es
     nicht geht."""
@@ -896,11 +934,21 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT):
     if not ebenen:
         raise ValueError(tr("ra.fehler.keine_ebene"))
     varianten = (w.variante,) if w.variante in VARIANTEN else VARIANTEN
+    if all(_tasche_um(e, konturen) is not None for e in ebenen):
+        varianten = ("inseln",)  # nur Taschen: die haben eine Art, von innen nach außen
     ergebnisse = {}
     for variante in varianten:
         st = _Stand()
-        for ebene in sorted(ebenen, key=lambda e: -e.z):
-            _flaeche(st, netz, w, ebene, konturen, variante, r, schritt)
+        try:
+            for ebene in sorted(ebenen, key=lambda e: -e.z):
+                _flaeche(st, hf.netz_fuer(netz, ebene), w, ebene, konturen, variante, r, schritt)
+        except _KeinMorph:
+            if len(varianten) > 1:
+                continue  # der Morph passt nicht: die anderen Varianten entscheiden
+            variante = "rohteil"  # vorgegeben, passt aber nicht: die Ringe vom Rohteil her
+            st = _Stand()
+            for ebene in sorted(ebenen, key=lambda e: -e.z):
+                _flaeche(st, hf.netz_fuer(netz, ebene), w, ebene, konturen, variante, r, schritt)
         if st.flaechen == 0:
             continue
         zeit = bn.zeit(st.punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
@@ -1003,10 +1051,17 @@ def _tasche_um(ebene, konturen):
 def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt):
     """Eine Fläche räumen – alle Lagen, in der Variante."""
     tasche = _tasche_um(ebene, konturen)
-    if variante in ("rohteil", "morph") and tasche is not None:
-        return  # in der Tasche gibt es nur die Ringe von innen nach außen
+    if tasche is not None:
+        # In der Tasche gibt es nur die Ringe von innen nach außen – in jeder Variante, damit
+        # alle dieselbe Arbeit tun (sonst „gewann“ eine, die die Tasche ausließ; P-2026-10-01-26).
+        variante = "inseln"
     ziel = ebene.z + max(w.aufmass_boden, 0.0)
-    oben = w.oben if tasche is None else min(w.oben, tasche.z_oben)
+    oben = w.oben
+    if tasche is not None and _darueber_geraeumt(st, tasche):
+        # Die Fläche um die Tasche ist in dieser Bahn schon geräumt: die Lagen beginnen an der
+        # Oberkante der Wände. Sonst am Rohteil – ob eine andere Operation das Rohteil über der
+        # Tasche schon weggefräst hat, weiß die Bahn nicht (P-2026-10-01-26).
+        oben = min(w.oben, tasche.z_oben + max(w.aufmass_boden, 0.0))
     if oben <= ziel + GLEICH:
         return
     zustellung = w.zustellung
@@ -1039,6 +1094,7 @@ def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt):
     r_ein = w.einfahrradius if w.einfahrradius and w.einfahrradius > 0 else kb.EINFAHRT_ANTEIL * r
     gerade = kb.GERADE_ANTEIL * r
     material_links = bool(w.gleichlauf)
+    genaue = inselringe(konturen, ebene, w, r, schritt, toleranz, material_links)
     vorige = oben
     gefahren = False
     for lage in lagen:
@@ -1063,12 +1119,12 @@ def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt):
             variante = "rohteil"  # keine Insel: nur die Ringe vom Rohteil her
         if tasche is None and variante == "rohteil":
             _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz)
-            _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest=True)
+            _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
         elif tasche is None and variante == "morph":
-            _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz)
-            _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest=True)
+            _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue)
+            _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
         else:
-            _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest=False)
+            _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, False, genaue)
         ablauf.reste_fahren()
         ablauf.heben()
         if st.ringe > ringe_vorher:
@@ -1077,6 +1133,20 @@ def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt):
         vorige = lage
     if gefahren:
         st.flaechen += 1
+    st.geraeumt.append((ebene.z, ebene.x_von, ebene.x_bis, ebene.y_von, ebene.y_bis))
+
+
+def _darueber_geraeumt(st, tasche):
+    """Hat diese Bahn die Fläche, in der die Tasche liegt, schon geräumt – eine Fläche auf der
+    Höhe ihrer Oberkante, die sie umfasst?"""
+    bb = tasche.draht.BoundBox
+    for z, x_von, x_bis, y_von, y_bis in st.geraeumt:
+        if abs(z - tasche.z_oben) > kb.NAH:
+            continue
+        x_drin = x_von <= bb.XMin + GLEICH and x_bis >= bb.XMax - GLEICH
+        if x_drin and y_von <= bb.YMin + GLEICH and y_bis >= bb.YMax - GLEICH:
+            return True
+    return False
 
 
 def form_mit_aufmass(form, aufmass):
@@ -1084,7 +1154,7 @@ def form_mit_aufmass(form, aufmass):
     return form.mit_aufmass(aufmass)
 
 
-def _naechster_zuerst(ablauf, ringe, eng, kennung, nur=None):
+def _naechster_zuerst(ablauf, ringe, eng, kennung, nur=None, luft=False):
     """Fährt die Ringe – immer den, der der Spitze am nächsten liegt, zuerst."""
     while ringe:
         if ablauf.ort is None:
@@ -1101,7 +1171,13 @@ def _naechster_zuerst(ablauf, ringe, eng, kennung, nur=None):
                 ),
             )
         ring = ringe.pop(naechster)
-        ablauf.ring(ring, eng=eng, kennung=kennung, nur=None if nur is None else nur.get(id(ring)))
+        ablauf.ring(
+            ring,
+            eng=eng,
+            kennung=kennung,
+            nur=None if nur is None else nur.get(id(ring)),
+            luft=luft,
+        )
 
 
 def _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz):
@@ -1155,60 +1231,266 @@ def _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz)
         _naechster_zuerst(ablauf, spaeter[m], True, f"insel {m}")
 
 
-def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz):
-    """Die Ringe vom Rohteil her, bis einer eine Insel träfe; von da an werden sie von Ring zu
-    Ring runder, bis der letzte nur noch die Inseln umrundet (Manuel, 2026-10-01: „im Viereck
-    anfangen, aber immer runder werden, so dass er am Ende nur um den Zapfen fährt“): das Feld
-    t = D ÷ (D + Abstand zum letzten vollen Ring) ist 1 an diesem Ring und 0 an den Inseln; seine
-    Höhenlinien bei 1 − j ÷ N sind die Ringe – mit so vielen N, dass sie nirgends weiter als ae
-    auseinanderliegen; wo der Spalt enger ist, liegen sie enger (das kostet Weg: die Zeit
-    entscheidet gegen „rohteil“). Ohne Insel dasselbe wie „rohteil“."""
-    ae = w.zeilenabstand
-    gueltig = feld.beruehrt & feld.im_raster(*np.meshgrid(feld.xs, feld.ys, indexing="ij"))
-    letzte_tiefe = -r  # der Fräser berührt das Rohteil – noch kein Ring
-    m = 1
-    while True:
-        tiefe = m * ae - r
-        ring = _rohteil_ring(w.rohteil, tiefe, material_links, schritt)
-        if ring is None:
-            return  # nichts mehr übrig – keine Insel im Weg
-        x, y = ring.proben.x, ring.proben.y
-        drin = feld.im_raster(x, y)
-        if not drin.all() or (feld.bei(D, x, y) < 0).any():
-            break  # dieser Ring träfe eine Insel: ab hier der Übergang
-        ablauf.ring(ring, kennung=f"rohteil {m}")
-        letzte_tiefe = tiefe
-        m += 1
-    zone = (feld.tiefe >= letzte_tiefe) & (D >= 0)
-    aussen = feld.tiefe - letzte_tiefe
-    spalt = np.where(zone, D + aussen, 0.0)
-    if not (zone & gueltig).any():
-        return
-    weiteste = float(spalt[zone & gueltig].max())
-    if not np.isfinite(weiteste) or weiteste <= GLEICH:
-        return
-    anzahl = max(1, int(math.ceil(weiteste / ae - 1e-9)))
-    with np.errstate(divide="ignore", invalid="ignore"):
-        t = np.where(spalt > GLEICH, D / np.where(spalt > GLEICH, spalt, 1.0), 0.0)
-    t = np.where(D < 0, -1.0, np.where(feld.tiefe < letzte_tiefe, 2.0, t))
-    for j in range(1, anzahl + 1):
-        niveau = 1.0 - j / anzahl
-        jetzt = []
-        for punkte, geschlossen in _hoehenlinien(t, feld.xs, feld.ys, niveau):
-            if len(punkte) < 2:
+def _abschnitt(r, h):
+    """Die Fläche des Kreisabschnitts der Höhe h im Kreis mit dem Radius r."""
+    h = min(max(h, 0.0), 2.0 * r)
+    return r * r * math.acos((r - h) / r) - (r - h) * math.sqrt(max(2.0 * r * h - h * h, 0.0))
+
+
+def _bilinear(werte, feld, x, y):
+    """Die Werte des Feldes (nx, ny) an den Stellen (x, y), bilinear zwischen den Knoten."""
+    fx = np.clip((np.asarray(x, dtype=float) - feld.x0) / feld.schritt, 0.0, feld.nx - 1.000001)
+    fy = np.clip((np.asarray(y, dtype=float) - feld.y0) / feld.schritt, 0.0, feld.ny - 1.000001)
+    i0, j0 = np.floor(fx).astype(int), np.floor(fy).astype(int)
+    tx, ty = fx - i0, fy - j0
+    return (
+        werte[i0, j0] * (1 - tx) * (1 - ty)
+        + werte[i0 + 1, j0] * tx * (1 - ty)
+        + werte[i0, j0 + 1] * (1 - tx) * ty
+        + werte[i0 + 1, j0 + 1] * tx * ty
+    )
+
+
+def _kreuzpunkte(werte, xs, ys, niveau):
+    """(x, y) aller Stellen, an denen die Höhenlinie `niveau` des Feldes eine Kante des Rasters
+    kreuzt – die Punkte der Linie ohne ihre Reihenfolge (für die Suche nach dem nächsten Ring)."""
+    s = float(xs[1] - xs[0])
+    a, b = werte[:-1, :] - niveau, werte[1:, :] - niveau
+    ii, jj = np.nonzero((a > 0) != (b > 0))
+    t = a[ii, jj] / (a[ii, jj] - b[ii, jj])
+    x1, y1 = xs[ii] + t * s, ys[jj]
+    a, b = werte[:, :-1] - niveau, werte[:, 1:] - niveau
+    ii, jj = np.nonzero((a > 0) != (b > 0))
+    t = a[ii, jj] / (a[ii, jj] - b[ii, jj])
+    x2, y2 = xs[ii], ys[jj] + t * s
+    return np.concatenate([x1, x2]), np.concatenate([y1, y2])
+
+
+def _harmonisch(wert, unbekannt, start, genau=1e-6, hoechstens=None):
+    """u mit Δu = 0 auf den Zellen `unbekannt`, u = `wert` auf allen anderen – rot-schwarz-SOR
+    (Überrelaxation), ab der Schätzung `start`. Die Höhenlinien einer solchen Funktion sind
+    glatt und schneiden sich nie; in einem Ring zwischen zwei Rändern ist jede eine einzige
+    geschlossene Linie (keine Sattelpunkte) – die Grundlage des Morphs (Bieterman & Sandstrom,
+    „A Curvilinear Tool-Path Method for Pocket Machining“, 2003)."""
+    u = np.where(unbekannt, start, wert).astype(float)
+    unbekannt = unbekannt.copy()
+    unbekannt[0, :] = unbekannt[-1, :] = unbekannt[:, 0] = unbekannt[:, -1] = False
+    nx, ny = u.shape
+    n = max(nx, ny)
+    omega = 2.0 / (1.0 + math.sin(math.pi / n))
+    flach = u.ravel()
+    ii, jj = np.nonzero(unbekannt)
+    stellen = ii * ny + jj
+    farben = [stellen[(ii + jj) % 2 == 0], stellen[(ii + jj) % 2 == 1]]
+    hoechstens = hoechstens or 8 * n
+    for _ in range(hoechstens):
+        groesste = 0.0
+        for idx in farben:
+            if not len(idx):
                 continue
-            laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
-            if geschlossen and laenge < 2 * math.pi * ae:
+            mittel = 0.25 * (flach[idx - ny] + flach[idx + ny] + flach[idx - 1] + flach[idx + 1])
+            d = omega * (mittel - flach[idx])
+            flach[idx] += d
+            groesste = max(groesste, float(np.abs(d).max()))
+        if groesste < genau:
+            break
+    return u
+
+
+def inselringe(konturen, ebene, w, r, schritt, toleranz, material_links):
+    """Die Ringe um die Inseln der Fläche, genau gerechnet: der Versatz ihrer Unterkante um
+    Radius + Aufmaß (kontur_bahn._versatz – mit Bögen, ein Kreis bleibt ein Kreis). Inseln sind
+    geschlossene Konturen auf der Höhe der Fläche mit dem Material innen."""
+    ergebnis = []
+    for k in konturen:
+        if not k.geschlossen or abs(k.z_unten - ebene.z) > kb.NAH:
+            continue
+        flaeche = kontur_flaeche(k)
+        if flaeche is None or ist_tasche(k, flaeche):
+            continue
+        versatz = kb._versatz(k, r + max(w.aufmass, 0.0), toleranz, schritt)
+        if versatz is None:
+            continue
+        segmente, _proben = versatz
+        if not material_links:
+            segmente = [s.umgekehrt() for s in reversed(segmente)]
+        ergebnis.append(_Ring(segmente, kb._abtasten(segmente, schritt, True), True, True))
+    return ergebnis
+
+
+def _genau(ring, genaue, schritt):
+    """Der genaue Ring (inselringe), der auf dem Ring aus dem Raster liegt – sonst dieser. Der
+    aus dem Raster liegt um die Zelle, um die das Gesperrte breiter ist, und die Zugabe der
+    Hüllfläche weiter außen (bis etwa 2 Zellen); liegt er weiter weg, stört dort etwas anderes
+    (eine zweite Insel, ein Überhang) – dann gilt der aus dem Raster."""
+    for genauer in genaue:
+        gx, gy = genauer.proben.x, genauer.proben.y
+        rx, ry = ring.proben.x, ring.proben.y
+        if len(gx) < 2 or len(rx) < 2:
+            continue
+        abstand = np.hypot(gx[:, None] - rx[None, :], gy[:, None] - ry[None, :]).min(axis=1)
+        if float(abstand.max()) <= 2.0 * schritt + 0.25:
+            return genauer
+    return ring
+
+
+def _bogenlaengen(x, y, geschlossen):
+    """Die Bogenlänge bis zu jeder Probe – geschlossen mit dem Stück zurück zum Anfang am Ende."""
+    if geschlossen:
+        x, y = np.append(x, x[0]), np.append(y, y[0])
+    return np.concatenate([[0.0], np.cumsum(np.hypot(np.diff(x), np.diff(y)))])
+
+
+def _auf_ring(x, y, laengen, gesamt, a):
+    """Der Punkt bei der Bogenlänge a (modulo gesamt) auf dem geschlossenen Ring."""
+    a = a % gesamt
+    k = int(np.searchsorted(laengen, a, side="right") - 1)
+    k = min(max(k, 0), len(x) - 1)
+    stueck = laengen[k + 1] - laengen[k]
+    t = 0.0 if stueck <= _WINZIG else (a - laengen[k]) / stueck
+    k1 = (k + 1) % len(x)
+    return (x[k] + (x[k1] - x[k]) * t, y[k] + (y[k1] - y[k]) * t)
+
+
+def _spirale(ringe, uebergang, schritt):
+    """Die geschlossenen Ringe (von außen nach innen) als eine Spirale: Jeder Ring beginnt, wo
+    der vorige ihn erreicht, läuft einmal herum und geht auf seinem letzten Stück (`uebergang`
+    mm, höchstens ein Drittel des Rings) gleitend in den nächsten über – kein Schritt quer,
+    keine Ecke, der Eingriff wächst dabei langsam an. Der Übergang liegt innerhalb des Rings:
+    Sein Streifen wird ganz geschnitten. Gibt die Punkte (m, 2) zurück; sie enden am Anfang des
+    letzten Rings, der nicht dazugehört."""
+    punkte = []
+    start = 0
+    for nummer in range(len(ringe) - 1):
+        x = np.roll(ringe[nummer].proben.x, -start)
+        y = np.roll(ringe[nummer].proben.y, -start)
+        laengen = _bogenlaengen(x, y, True)
+        gesamt = float(laengen[-1])
+        nx_, ny_ = ringe[nummer + 1].proben.x, ringe[nummer + 1].proben.y
+        # Wo der nächste Ring anfängt: am nächsten beim Anfang dieses.
+        naechster = int(np.argmin(np.hypot(nx_ - x[0], ny_ - y[0])))
+        nx_, ny_ = np.roll(nx_, -naechster), np.roll(ny_, -naechster)
+        laengen_n = _bogenlaengen(nx_, ny_, True)
+        gesamt_n = float(laengen_n[-1])
+        weit = min(uebergang, gesamt / 3.0, gesamt_n / 3.0)
+        ende = gesamt - weit
+        for k in range(int(np.searchsorted(laengen, ende, side="left"))):
+            punkte.append((float(x[k]), float(y[k])))
+        anzahl = max(2, int(math.ceil(weit / schritt)))
+        for i in range(anzahl + 1):
+            alpha = i / anzahl
+            p = _auf_ring(x, y, laengen, gesamt, ende + alpha * weit)
+            q = _auf_ring(nx_, ny_, laengen_n, gesamt_n, -(1.0 - alpha) * weit * gesamt_n / gesamt)
+            punkte.append((p[0] * (1 - alpha) + q[0] * alpha, p[1] * (1 - alpha) + q[1] * alpha))
+        start = naechster
+    zug = []
+    for p in punkte:
+        if not zug or math.hypot(p[0] - zug[-1][0], p[1] - zug[-1][1]) > _WINZIG:
+            zug.append(p)
+    return np.array(zug) if zug else np.zeros((0, 2))
+
+
+def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue=()):
+    """Der Morph (Manuel, 2026-10-01: „im Viereck anfangen, aber immer runder werden, so dass
+    er am Ende nur um den Zapfen fährt“): Zwischen dem ersten Ring – dem Rechteck R − ae
+    außerhalb des Rohteils – und dem Ring um die Inseln (D = 0) liegt das Feld u mit Δu = 0,
+    u = 1 außen und 0 an den Inseln (_harmonisch). Seine Höhenlinien sind die Ringe: das
+    Rechteck, von Ring zu Ring runder, zuletzt der Kreis um den Zapfen – jede eine geschlossene
+    Linie, ohne Knick, keine zerfällt. Wie weit der nächste Ring nach innen rückt, sagt der
+    Eingriff: so weit, dass die Stirn an keiner Stelle des Rings mehr ungeschnittenes Rohteil
+    unter sich hat als bei einem geraden Schnitt mit ae (MORPH_EINGRIFF) – an den Ecken, wo das
+    Material außen herum läuft, darf er dafür weiter rücken. Der letzte Ring ist der genaue
+    Versatz der Insel (inselringe). Gibt es keine Insel im Rohteil, oder reicht eine bis an den
+    Rand, gibt es keinen Morph: dann die Ringe vom Rohteil her."""
+    ae = w.zeilenabstand
+    aussen = ae - r  # die Tiefe des ersten Rings im Rohteil (negativ: außerhalb)
+    insel = np.isfinite(D) & (D <= 0.0)
+    if not insel.any():
+        _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz)
+        return  # keine Insel: die Ringe vom Rohteil her sind schon rund genug
+    if (insel & (feld.tiefe <= aussen + ae)).any():
+        raise _KeinMorph()  # die Insel reicht bis an den Rand
+    erster = _rohteil_ring(w.rohteil, aussen, material_links, schritt)
+    if erster is None:
+        return
+    spalt = feld.bei(D, erster.proben.x, erster.proben.y)
+    if float(spalt.min()) < MORPH_VERHAELTNIS * float(spalt.max()):
+        raise _KeinMorph()
+    frei_vorher = feld.frei.copy()
+    stufen = [[erster]]
+    feld.merke(erster.proben.x, erster.proben.y)
+    innen = feld.tiefe > aussen
+    unbekannt = innen & ~insel
+    abstand_aussen = np.maximum(feld.tiefe - aussen, 0.0)
+    nah = np.where(np.isfinite(D), np.maximum(D, 0.0), 0.0)
+    summe = nah + abstand_aussen
+    with np.errstate(divide="ignore", invalid="ignore"):
+        start = np.where(summe > GLEICH, nah / np.where(summe > GLEICH, summe, 1.0), 0.0)
+    u = _harmonisch(np.where(insel, 0.0, 1.0), unbekannt, np.clip(start, 0.0, 1.0))
+    grenze = _abschnitt(r, min(ae * MORPH_EINGRIFF, r)) / (math.pi * r * r)
+    kx, ky = _kreuzpunkte(D, feld.xs, feld.ys, 0.0)
+    if not len(kx):
+        feld.frei[:] = frei_vorher
+        ablauf.ring(erster, kennung="morph 0", luft=True)
+        return
+    u_insel = float(_bilinear(u, feld, kx, ky).max())  # darüber liegt jeder Ring außerhalb
+    niveau = 1.0
+    for _nummer in range(1, 100000):
+        eingriff = feld.eingriff()
+        if float(_bilinear(eingriff, feld, kx, ky).max()) <= grenze + 1e-9:
+            break  # der Ring um die Insel ist dran
+        unten, oben_ = u_insel, niveau
+        for _ in range(MORPH_SCHRITTE):
+            mitte = 0.5 * (unten + oben_)
+            px, py = _kreuzpunkte(u, feld.xs, feld.ys, mitte)
+            if not len(px) or float(_bilinear(eingriff, feld, px, py).max()) <= grenze + 1e-9:
+                oben_ = mitte
+            else:
+                unten = mitte
+        if oben_ >= niveau - 1e-9:
+            oben_ = niveau - 0.25 * (niveau - u_insel)  # kein Fortschritt: ein Viertel weiter
+        niveau = oben_
+        ringe = []
+        for punkte, geschlossen in _hoehenlinien(u, feld.xs, feld.ys, niveau):
+            if len(punkte) < 3:
                 continue
             ring = _ring_aus_linie(
-                punkte, geschlossen, material_links, feld, niveau, t, schritt, toleranz
+                punkte, geschlossen, material_links, feld, niveau, u, schritt, toleranz
             )
             if ring is not None:
-                jetzt.append(ring)
-        _naechster_zuerst(ablauf, jetzt, False, f"morph {j}")
+                ringe.append(ring)
+                feld.merke(ring.proben.x, ring.proben.y)
+        if ringe:
+            stufen.append(ringe)
+    letzte = []
+    for punkte, geschlossen in _hoehenlinien(D, feld.xs, feld.ys, 0.0):
+        if len(punkte) < 3:
+            continue
+        ring = _ring_aus_linie(punkte, geschlossen, material_links, feld, 0.0, D, schritt, toleranz)
+        if ring is not None:
+            letzte.append(_genau(ring, genaue, schritt) if geschlossen else ring)
+    feld.frei[:] = frei_vorher  # gefahren und gemerkt wird jetzt, der Reihe nach
+    if letzte:
+        stufen.append(letzte)
+    einzeln = all(len(stufe) == 1 and stufe[0].geschlossen for stufe in stufen)
+    if einzeln and len(stufen) >= 2:
+        # Eine Spirale: alle Ringe bis auf den letzten in einem Zug, mit gleitenden Übergängen;
+        # der letzte (um die Insel, mit Bögen) schließt ohne Absatz an.
+        ringe = [stufe[0] for stufe in stufen]
+        vorher = ablauf.st.ringe
+        zug = _spirale(ringe, 2.0 * r, schritt)
+        if len(zug) >= 2:
+            segmente = _segmente_aus(zug, False)
+            spirale = _Ring(segmente, kb._abtasten(segmente, schritt, False), False)
+            ablauf.ring(spirale, kennung="morph", luft=True)
+        ablauf.ring(ringe[-1], kennung="morph insel", luft=True)
+        ablauf.st.ringe = vorher + len(ringe)  # die Umläufe der Spirale zählen als Ringe
+        return
+    for nummer, stufe in enumerate(stufen):
+        _naechster_zuerst(ablauf, list(stufe), False, f"morph {nummer}", luft=True)
 
 
-def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest):
+def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest, genaue=()):
     """Die Ringe des Feldes D (Abstand zum Gesperrten) von außen nach innen bis ans Gesperrte –
     alle, oder mit `nur_rest` nur die Stücke, unter deren Stirn noch etwas steht (nach den
     Ringen vom Rohteil her)."""
@@ -1243,6 +1525,8 @@ def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_
             )
             if ring is None:
                 continue
+            if j == 0 and geschlossen:
+                ring = _genau(ring, genaue, schritt)  # um die Insel: der genaue Versatz
             if nur_rest:
                 noetig = feld.ungeschnitten(ring.proben.x, ring.proben.y) > 1e-6
                 if not noetig.any():

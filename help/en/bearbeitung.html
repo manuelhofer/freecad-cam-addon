@@ -123,10 +123,12 @@ the stock at half feed.</li>
 <li>The window computes three variants and takes the fastest: “rohteil” (the
 rings around what still stands: from the stock edge and from the islands, each
 ae further, equally spaced everywhere – the rectangle bites into the boss, the
-rings around it come last), “morph” (rectangle rings until one would hit the
-boss, then they get rounder from ring to ring until the last one only circles
-the boss – one spiral without lifting, rings closer where the gap is narrow)
-and “inseln” (rings only around the walls and islands). In the operation's
+rings around it come last), “morph” (the first ring is a rectangle, then each
+gets rounder until the last one circles the boss exactly – one spiral without
+lifting; the rings are spaced so that the cutter nowhere takes more material
+than in a straight cut at the row spacing: closer in the corners, wider at the
+boss; only when the boss stands roughly in the middle) and “inseln” (rings
+only around the walls and islands; in a pocket the only one). In the operation's
 properties <b>Gerechnet</b> lists each with its time; <b>Variante</b> fixes
 one.</li>
 <li>Grey below: “→ 1 layer, 15 rings, about 3 min”. Red says why it does not
@@ -147,9 +149,16 @@ step face milling wins, on the 50 × 50 with a boss in the middle clearing
 does (3 instead of 5 minutes), on a large plate likewise. Whoever sets a tick
 keeps it – the lines still show the comparison. For a <b>pocket</b> the
 fastest sequence is: clearing (its floor, the walls with allowance) and then
-the contour with “material beside the wall” equal to the allowance – the
-contour alone clears every offset with its own ramp and takes several times as
-long.</p>
+the contour with only the allowance – the contour alone clears every offset
+with its own ramp and takes several times as long. With the <b>top face and a
+pocket wall</b> selected, the window computes both sequences: face milling of
+the top and clearing only the pocket floor – or clearing everything. The faster
+one gets the ticks, the lines say by how much (“… – everything, the fastest
+sequence; face milling plus clearing the floors would be 13 % slower”). When
+clearing takes the floor of a pocket whose wall the contour runs, the window
+enters the clearing allowance as “material beside the wall” at the contour
+(as long as the field is empty), and the contour says so: “… – only the
+allowance at the walls: clearing clears the pocket”.</p>
 
 <h3>5. Contour</h3>
 <ul>
@@ -184,9 +193,9 @@ goes vertically in the air with the plunge feed, in material over a ramp
 along the path.</li>
 <li>Grey below: “→ 2 contours: 22 layers, 38 passes, about 9 min”. Red says
 why it does not work (no wall, the cutter does not fit into the pocket,
-nothing stands beside the walls). After clearing a pocket enter its allowance
-(0.3) at “material beside the wall” – then one pass per layer and the
-finishing remain.</li>
+nothing stands beside the walls). When clearing clears the pocket, its
+allowance (0.3) stands at “material beside the wall” by itself – then one pass
+remains, from the top edge of the pocket.</li>
 <li>In the operation's properties also <b>Deeper</b> (this much deeper than
 the bottom edge – to cut free) and the <b>lead-in radius</b>.</li>
 <li>The operation is called “Contour T1”; start depth, safe height and
@@ -203,8 +212,8 @@ cutter gets its own tool controller, the old one is removed if no operation
 uses it any more.</p>
 
 <h3>What comes next</h3>
-<p>The competition clearing against contour in the pocket, the entry (ramp,
-helix, vertical) by time, trochoids in tight corners, drilling and threads
-from the window – following the plan in specification W-006.</p>
+<p>The entry (ramp, helix, vertical) by time, trochoids in tight corners,
+hole milling, drilling and threads from the window, chamfers – following the
+plan in specification W-006.</p>
 </body>
 </html>

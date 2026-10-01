@@ -96,7 +96,7 @@ def schritte(h):
         f"{op.Ebenen}, {op.Lagen}, {op.Ringe}",
     )
     ringe_vorher = op.Ringe
-    h.pruefe(op.Gerechnet.startswith("rohteil "), f"Gerechnet: {op.Gerechnet!r}")
+    h.pruefe(op.Gerechnet.startswith("morph "), f"Gerechnet: {op.Gerechnet!r}")
     h.pruefe(list(op.Flaechen) == [flaeche], f"Flächen: {list(op.Flaechen)}")
     namen = {b.Name for b in op.Path.Commands}
     h.pruefe("G2" in namen or "G3" in namen, f"keine Bögen: {namen}")
