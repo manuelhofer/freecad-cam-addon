@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-21 s3h-nullpunkt
+
+### EINGELESEN
+- Manuel (2026-10-01): „Das Koordinatensystem muss ich frei setzbar machen können … als
+  Vorschläge ein Punktegitter … bei einem Quader sind's 22 Punkte: alle Ecken, dann zwischen
+  den Ecken mittig, dann exakt mittig auf der Fläche … und dann noch die Möglichkeit, von dem
+  Punkt zu verschieben um x mm.“
+- `gui_bearbeitung` (Rohteil-Felder mit Nachzieh-Uhr), `vierachs_rohteil.richte_ein` (der Klon
+  = Lage · Original), FreeCADs `Path.Main.Stock` (das Rohteil aus dem Modell: Maße folgen dem
+  Modell, die Lage nur beim Anlegen – `execute` baut den Kasten an `obj.Placement`).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`, `translations/de.json`, `translations/en.json`,
+  `help/de/bearbeitung.html`, `help/en/bearbeitung.html`, `tests/gui/szenario_bearbeitung.py`,
+  `README.md`, `package.xml` (0.41.0), `docs/aufbau.md`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Block 60 × 40 × 20 mit Absatz, Rohteil 1 mm rundum: Die Liste „Nullpunkt“ hat 23 Einträge –
+„wie im Modell“ und die 22 Punkte, der erste „Ecke links vorne oben“. Gewählt rückt das
+Rohteil auf X 0 … 62, Y 0 … 42, Z −26 … 0 (die Ecke im Ursprung); „verschoben in X“ 10 gibt
+X −10 … 52; zurück auf „wie im Modell“ liegt das Rohteil wieder bei X −1, Z bis 26, und das
+Planfräsen rechnet wie zuvor (3 Lagen, 30 Zeilen). Beim Ändern ist der Block nicht zu sehen.
+
+### DONE
+- `nullpunkte()`: die 22 Punkte mit Namen (links/rechts X, vorne/hinten Y, unten/oben Z –
+  Ecke, Kante … Mitte, Mitte oben/unten); Block „Nullpunkt“ mit Auswahl und drei
+  Versatzfeldern, Nachzieh-Uhr wie beim Rohteil; `_nullpunkt_setzen`: der Quader aus dem
+  Original und den Aufmaßen, der Klon = Verschiebung · Original, das Rohteil auf die Ecke
+  des Klons gesetzt (es merkt sich seine Lage sonst nur beim Anlegen); die Rohteil-Felder
+  ziehen den Nullpunkt nach, ein vorher gewählter Punkt gilt beim Anklicken des Teils;
+  Hilfe de/en, Übersetzungen `ba.nullpunkt*`, `np.*`.
+
+### TEST
+- `test_sprache`, `test_hilfe` und `szenario_bearbeitung` (Nullpunkt-Schritt, Screenshot
+  `1b_nullpunkt`) in 1.1.3 ok; black/ruff ok.
+
+### NEXT
+- S3f Räumen mit Versätzen (Spirale bei vollem ap, einmal hinein; Spannhöhe von unten),
+  S3g Bohren/Gewinde.
+
 ## P-2026-10-01-20 massstab-platte-starttiefe
 
 ### EINGELESEN

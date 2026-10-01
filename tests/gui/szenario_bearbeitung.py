@@ -1,8 +1,8 @@
-# „Bearbeitung (Fräsen)“ – der Assistent für ein Teil im Quader (W-006 S3c). Block 60 × 40 × 20
+# „Bearbeitung (Fräsen)“ – der Assistent für ein Teil im Quader (W-006 S3c, S3h). Block 60 × 40 × 20
 # mit einem 5 mm höheren Absatz an der linken Seite, T1 Schaftfräser Ø 10 (Einsatz Planen).
 # Die Fläche bei z = 20 anklicken, den Knopf drücken: Der Job mit dem Rohteil (1 mm Aufmaß)
 # entsteht sofort, die Fläche steht grün in der Liste, die Vorschau sagt „→ 3 Lagen, 30
-# Zeilen“. „Anlegen“: „Planfräsen T1“ mit 3 Lagen und 30 Zeilen, Sätze mit Bögen. Doppelklick
+# Zeilen“; der Nullpunkt auf die Ecke links vorne oben rückt Teil und Rohteil dorthin. „Anlegen“: „Planfräsen T1“ mit 3 Lagen und 30 Zeilen, Sätze mit Bögen. Doppelklick
 # darauf öffnet das Fenster mit ihren Werten; „Übernehmen“ mit 1,5 mm Zustellung rechnet sie
 # neu – vier Lagen. Dann „Auf der Maschine prüfen“ mit der Beispiel-Fräse (W-006 S3d): Der
 # Quader wird beim Abspielen abgetragen, am Ende steht die gewählte Fläche grün da, nirgends
@@ -82,6 +82,38 @@ def schritte(h):
     panel.felder_rohteil["oben"].setText("")
     yield from h.warte_auf(lambda: not panel._rohteil_uhr.isActive(), 3000)
     yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)
+
+    # --- Nullpunkt: Ecke links vorne oben, um 10 in X verschoben, dann wie im Modell ------
+    h.pruefe(panel.wahl_nullpunkt.count() == 23, f"{panel.wahl_nullpunkt.count()} Nullpunkte")
+    h.pruefe(
+        panel.wahl_nullpunkt.itemText(1) == "Ecke links vorne oben",
+        panel.wahl_nullpunkt.itemText(1),
+    )
+    panel.wahl_nullpunkt.setCurrentIndex(1)
+    yield from h.warte_auf(lambda: not panel._nullpunkt_uhr.isActive(), 3000)
+    yield 300
+    kasten = job.Stock.Shape.BoundBox
+    h.pruefe(
+        abs(kasten.XMin) < 1e-6 and abs(kasten.YMin) < 1e-6 and abs(kasten.ZMax) < 1e-6,
+        f"Nullpunkt Ecke: {kasten}",
+    )
+    panel.felder_nullpunkt["x"].setText("10")
+    yield from h.warte_auf(lambda: not panel._nullpunkt_uhr.isActive(), 3000)
+    yield 300
+    kasten = job.Stock.Shape.BoundBox
+    h.pruefe(abs(kasten.XMin + 10.0) < 1e-6 and abs(kasten.ZMax) < 1e-6, f"verschoben: {kasten}")
+    yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)
+    Gui.SendMsgToActiveView("ViewFit")
+    yield 300
+    h.bild("1b_nullpunkt")
+    panel.felder_nullpunkt["x"].setText("")
+    panel.wahl_nullpunkt.setCurrentIndex(0)
+    yield from h.warte_auf(lambda: not panel._nullpunkt_uhr.isActive(), 3000)
+    yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)
+    kasten = job.Stock.Shape.BoundBox
+    h.pruefe(
+        abs(kasten.ZMax - 26.0) < 1e-6 and abs(kasten.XMin + 1.0) < 1e-6, f"wie im Modell: {kasten}"
+    )
 
     # --- Anlegen: „Planfräsen T1“ ------------------------------------------------------------
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")

@@ -28,8 +28,14 @@ stock</b> is created at once: a block around the part with an
 <b>allowance</b> on top, at the sides and below (empty: 1 mm, like FreeCAD's
 job). The fields change the stock right away. “Cancel” takes everything
 back.</li>
-<li>When changing (double-click on the operation) the stock stays as it is in
-the job.</li>
+<li><b>Zero point</b> – where X 0, Y 0, Z 0 of the program lie: “as in the
+model”, or a point of the stock from the list – the 8 corners, the 12 edge
+middles, the centre top and bottom (left/right is X, front/back Y, bottom/top
+Z) –, shifted by X, Y, Z (negative too). Part and stock move so that the point
+lies at the origin; the axes in the 3D view show it, and “Check on the
+machine” counts from there.</li>
+<li>When changing (double-click on the operation) stock and zero point stay
+as they are in the job.</li>
 </ul>
 
 <h3>2. Faces</h3>

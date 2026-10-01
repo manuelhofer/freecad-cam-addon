@@ -126,7 +126,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Hilfe.
 - **Bearbeitung (Fräsen)** – für ein Teil im Quader (W-006, im Bau): eine
   Fläche des Teils anklicken, der Job mit dem Rohteil (Aufmaß je Seite) entsteht
-  sofort; **Planfräsen** für die Oberseite oder gewählte ebene Flächen – Zeilen
+  sofort; der **Nullpunkt** wie im Modell oder einer der 22 Punkte des Rohteils
+  (Ecken, Kantenmitten, Mitte oben/unten), um X, Y, Z verschoben; **Planfräsen** für die Oberseite oder gewählte ebene Flächen – Zeilen
   hin und her in Lagen bis auf die Fläche, Überlauf über den Rand, Halbkreise
   zwischen den Zeilen, halber Vorschub beim Austritt, vor Absätzen hält die
   Zeile an; Fräser und Einsatz aus der Werkzeugverwaltung, die Werte als

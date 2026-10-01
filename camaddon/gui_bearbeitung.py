@@ -55,6 +55,7 @@ GEMERKT_KONTURFRAESER = "BaKonturFraeser"  # … für die Kontur
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 ROHTEIL_FELDER = ("oben", "seite", "unten")
+VERSATZ_FELDER = ("x", "y", "z")  # der Nullpunkt, vom gewählten Punkt aus verschoben
 
 
 def _parameter():
@@ -75,6 +76,32 @@ def _grau(text=""):
     etikett.setStyleSheet(f"color: {GRAU_TEXT};")
     etikett.setWordWrap(True)
     return etikett
+
+
+def nullpunkte():
+    """[(Text, (sx, sy, sz))] – die 22 Punkte des Rohteil-Quaders zur Wahl als Nullpunkt
+    (Manuel, 2026-10-01): die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten;
+    sx, sy, sz je −1, 0 oder 1 – links/rechts ist X, vorne/hinten Y, unten/oben Z."""
+    x_namen = {-1: tr("np.links"), 1: tr("np.rechts")}
+    y_namen = {-1: tr("np.vorne"), 1: tr("np.hinten")}
+    z_namen = {-1: tr("np.unten"), 1: tr("np.oben")}
+    punkte = []
+    for sz in (1, -1):
+        for sy in (-1, 1):
+            for sx in (-1, 1):
+                text = tr("np.ecke", x=x_namen[sx], y=y_namen[sy], z=z_namen[sz])
+                punkte.append((text, (sx, sy, sz)))
+    for sz in (1, -1):
+        for sy in (-1, 1):  # Kanten längs X
+            punkte.append((tr("np.kante", a=y_namen[sy], b=z_namen[sz]), (0, sy, sz)))
+        for sx in (-1, 1):  # Kanten längs Y
+            punkte.append((tr("np.kante", a=x_namen[sx], b=z_namen[sz]), (sx, 0, sz)))
+    for sy in (-1, 1):  # die senkrechten Kanten
+        for sx in (-1, 1):
+            punkte.append((tr("np.kante", a=x_namen[sx], b=y_namen[sy]), (sx, sy, 0)))
+    for sz in (1, -1):
+        punkte.append((tr("np.mitte", a=z_namen[sz]), (0, 0, sz)))
+    return punkte
 
 
 def ist_bearbeitung(op):
@@ -714,6 +741,11 @@ class BearbeitungPanel:
         self._rohteil_uhr.setSingleShot(True)
         self._rohteil_uhr.setInterval(NACHZIEHEN_MS)
         self._rohteil_uhr.timeout.connect(self._rohteil_anwenden)
+        self._nullpunkt_uhr = QtCore.QTimer()
+        self._nullpunkt_uhr.setSingleShot(True)
+        self._nullpunkt_uhr.setInterval(NACHZIEHEN_MS)
+        self._nullpunkt_uhr.timeout.connect(self._nullpunkt_anwenden)
+        self._nullpunkte = nullpunkte()
         self.bloecke = []
         self.form = self._baue()
         self.plan = self.bloecke[0]
@@ -779,6 +811,36 @@ class BearbeitungPanel:
         self.rohteilfelder = rohteil.widget
         aufbau.addWidget(self.rohteilfelder)
 
+        # --- Nullpunkt ---
+        self.nullpunkt_titel = titel(tr("ba.nullpunkt"), tr("ba.nullpunkt.text"))
+        self.nullpunkt_text = grautext(tr("ba.nullpunkt.text"))
+        nullpunkt = _Reihen()
+        self.wahl_nullpunkt = QtGui.QComboBox()
+        self.wahl_nullpunkt.addItem(tr("ba.nullpunkt.modell"), 0)
+        for nummer, (text, _lage) in enumerate(self._nullpunkte, start=1):
+            self.wahl_nullpunkt.addItem(text, nummer)
+        self.wahl_nullpunkt.currentIndexChanged.connect(lambda _i: self._nullpunkt_geaendert())
+        nullpunkt.reihe(
+            tr("ba.nullpunkt.wahl"), tr("ba.nullpunkt.wahl.tooltip"), self.wahl_nullpunkt
+        )
+        self.felder_nullpunkt = {}
+        for feld, text in (
+            ("x", tr("ba.nullpunkt.x")),
+            ("y", tr("ba.nullpunkt.y")),
+            ("z", tr("ba.nullpunkt.z")),
+        ):
+            eingabe = _zahlenfeld(
+                self.felder_nullpunkt,
+                feld,
+                text,
+                tr("ba.nullpunkt.versatz.tooltip"),
+                nullpunkt,
+                self._nullpunkt_geaendert,
+            )
+            eingabe.setPlaceholderText("0")
+        self.nullpunktfelder = nullpunkt.widget
+        aufbau.addWidget(self.nullpunktfelder)
+
         # --- Flächen ---
         titel(tr("ba.flaechen"), tr("ba.flaechen.tooltip"))
         self.flaechen_liste = QtGui.QListWidget()
@@ -834,7 +896,7 @@ class BearbeitungPanel:
         self.hinweis.setStyleSheet(f"color: {ROT};")
         aufbau.addWidget(self.hinweis)
         # Die Beschriftungen aller Blöcke gleich breit: die Felder stehen untereinander.
-        reihen = [oben, rohteil, werkstoff] + [b.reihen for b in self.bloecke]
+        reihen = [oben, rohteil, nullpunkt, werkstoff] + [b.reihen for b in self.bloecke]
         breite = max(r.breite_beschriftung() for r in reihen)
         for r in reihen:
             r.raster.setColumnMinimumWidth(0, breite)
@@ -883,6 +945,9 @@ class BearbeitungPanel:
         if self._rohteil_uhr.isActive():
             self._rohteil_uhr.stop()
             self._rohteil_anwenden()
+        if self._nullpunkt_uhr.isActive():
+            self._nullpunkt_uhr.stop()
+            self._nullpunkt_anwenden()
         if any(b.vorschau is None for b in self.aktive_bloecke()):
             self._vorschau_rechnen()
         if not self._kann_anlegen() or any(b.vorschau is None for b in self.aktive_bloecke()):
@@ -927,6 +992,7 @@ class BearbeitungPanel:
         self.geschlossen = True
         self._vorschau_uhr.stop()
         self._rohteil_uhr.stop()
+        self._nullpunkt_uhr.stop()
         self._farben_zurueck()
         if self._beobachter is not None:
             FreeCADGui.Selection.removeObserver(self._beobachter)
@@ -970,6 +1036,8 @@ class BearbeitungPanel:
             return
         self._job_offen = True
         self._job_zeigen()
+        if self.nullpunkt() is not None or self._nullpunkt_versatz().Length > 0:
+            self._nullpunkt_setzen(self.job)
         form = vr.modell(self.job).Shape
         if flaeche and any(b.s.passt(form, flaeche) for b in self.bloecke):
             self.gewaehlte = [flaeche]
@@ -1030,7 +1098,72 @@ class BearbeitungPanel:
             return
         self._rohteil_setzen(self.job)
         self.doc.recompute()
+        self._nullpunkt_setzen(self.job)  # die Ecken des Rohteils sind gewandert
         self.vorschau_starten()
+
+    # --- Nullpunkt ------------------------------------------------------------------------
+
+    def nullpunkt(self):
+        """(sx, sy, sz) des gewählten Punkts am Rohteil-Quader – None: wie im Modell."""
+        nummer = self.wahl_nullpunkt.currentData()
+        return self._nullpunkte[nummer - 1][1] if nummer else None
+
+    def _nullpunkt_versatz(self):
+        """Der Versatz vom gewählten Punkt (mm) – leer oder ungültig 0."""
+        werte = []
+        for feld in VERSATZ_FELDER:
+            text = self.felder_nullpunkt[feld].text()
+            try:
+                werte.append(groesse_lesen(text, einheiten.LAENGE) if text.strip() else 0.0)
+            except ValueError:
+                werte.append(0.0)
+        return FreeCAD.Vector(*werte)
+
+    def _nullpunkt_geaendert(self):
+        if not self._fuellt and self.job is not None and self.zu_aendern is None:
+            self._nullpunkt_uhr.start()
+
+    def _nullpunkt_anwenden(self):
+        if self.job is None or self.zu_aendern is not None or self.geschlossen:
+            return
+        self._nullpunkt_setzen(self.job)
+        self.vorschau_starten()
+
+    def _nullpunkt_setzen(self, job):
+        """Rückt das Teil im Job (den Klon) mit dem Rohteil so, dass der gewählte Punkt des
+        Rohteil-Quaders, um den Versatz verschoben, im Ursprung liegt – „wie im Modell“ legt
+        den Klon wieder auf das Original. Der Quader kommt aus dem Original und den
+        Aufmaßen der Felder; das Rohteil aus dem Modell merkt sich seine Lage nur beim
+        Anlegen (Path.Main.Stock), darum wird es mitgeschoben."""
+        klon = vr.modell(job)
+        teil = vr.original(klon)
+        lage = self.nullpunkt()
+        punkt = FreeCAD.Vector()
+        if lage is not None:
+            bb = teil.Shape.BoundBox
+            werte = {feld: self._rohteil_wert(feld) for feld in ROHTEIL_FELDER}
+            unten = (bb.XMin - werte["seite"], bb.YMin - werte["seite"], bb.ZMin - werte["unten"])
+            oben = (bb.XMax + werte["seite"], bb.YMax + werte["seite"], bb.ZMax + werte["oben"])
+            punkt = FreeCAD.Vector(
+                *(
+                    (u + o) / 2 if s == 0 else (o if s > 0 else u)
+                    for s, u, o in zip(lage, unten, oben, strict=True)
+                )
+            )
+            punkt = punkt + self._nullpunkt_versatz()
+        neu = FreeCAD.Placement(punkt * -1.0, FreeCAD.Rotation()).multiply(teil.Placement)
+        alt = klon.Placement
+        if (alt.Base - neu.Base).Length < 1e-9 and alt.Rotation.isSame(neu.Rotation, 1e-9):
+            return
+        klon.Placement = neu
+        self.doc.recompute()
+        rohteil = getattr(job, "Stock", None)
+        if rohteil is not None and hasattr(rohteil, "ExtZpos"):
+            kasten = klon.Shape.BoundBox
+            rohteil.Placement = FreeCAD.Placement(
+                FreeCAD.Vector(kasten.XMin, kasten.YMin, kasten.ZMin), FreeCAD.Rotation()
+            )
+            self.doc.recompute()
 
     def _job_zeigen(self):
         """Anzeige des neuen Jobs wie bei FreeCADs Befehl „Job“ – aber in unserer Transaktion.
@@ -1093,6 +1226,8 @@ class BearbeitungPanel:
         finally:
             self._fuellt = False
         self.rohteilfelder.setEnabled(False)
+        for widget in (self.nullpunkt_titel, self.nullpunkt_text, self.nullpunktfelder):
+            widget.setVisible(False)  # der Nullpunkt bleibt, wie er im Job steht
         self.gewaehlte = list(getattr(op, "Flaechen", ()) or ())
         self._bearbeitung_fuellen()
         self._fuellt = True

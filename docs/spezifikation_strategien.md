@@ -454,6 +454,10 @@ gebaut.
   Ursprung liegt (die Achsen im 3D zeigen ihn). Dazu „von unten gespannt“ in
   der Rohteil-Definition: so viel steckt im Schraubstock – die Prüfung zeigt
   es und meldet jede Bahn darunter.
+  Der Nullpunkt ist gebaut (P-2026-10-01-21, 0.41.0): Block „Nullpunkt“ im
+  Assistenten mit der Liste der 22 Punkte und drei Versatzfeldern; Teil und
+  Rohteil rücken sofort (das Rohteil aus dem Modell merkt sich seine Lage nur
+  beim Anlegen – es wird mitgeschoben). Die Spannhöhe folgt mit S3f.
 
 ## 11. Maßstab: Manuels Platte (2026-10-01)
 
