@@ -34,6 +34,8 @@ from . import hoehenfeld as hf
 from . import job_schnittwerte as js
 from . import kontur as ko
 from . import kontur_bahn as kb
+from . import nut as nu
+from . import nut_bahn as nb
 from . import planfraesen as pf
 from . import raeumen as ra
 from . import raeumen_bahn as rb
@@ -66,6 +68,7 @@ AUFMASS_ROHTEIL = 1.0  # mm je Seite, wie FreeCADs Job
 GEMERKT_FRAESER = "BaFraeser"  # Kennung des zuletzt gewählten Fräsers (Planfräsen)
 GEMERKT_KONTURFRAESER = "BaKonturFraeser"  # … für die Kontur
 GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
+GEMERKT_NUTFRAESER = "BaNutFraeser"  # … für die Nut
 GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
@@ -128,11 +131,12 @@ def nullpunkte():
 
 
 def ist_bearbeitung(op):
-    """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Bohrung fräsen“, „Kontur“,
-    „Entgraten“ oder „Gewinde fräsen“?"""
+    """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Nut“, „Bohrung fräsen“,
+    „Kontur“, „Entgraten“ oder „Gewinde fräsen“?"""
     return (
         pf.ist_planfraesen(op)
         or ra.ist_raeumen(op)
+        or nu.ist_nut(op)
         or bo.ist_bohrungsfraesen(op)
         or ko.ist_kontur(op)
         or eg.ist_entgraten(op)
@@ -539,6 +543,140 @@ class _Raeumen(_Strategie):
         }
 
 
+class _Nut(_Strategie):
+    """Langlöcher in Kreisen (Trochoide) oder mit der Zickzack-Rampe (nut_bahn) – tritt auf dem
+    Grund gegen Räumen und Planfräsen an, an den Wänden gegen die Kontur."""
+
+    kennung = "nut"
+    gemerkt = GEMERKT_NUTFRAESER
+    vollnut = False  # der gewählte Fräser fräst die gewählten Nuten in voller Breite (Panel)
+
+    @property
+    def einsatz_reihenfolge(self):
+        if self.vollnut:
+            return (wz.VOLLNUT, wz.SCHRUPPEN, wz.DYNAMISCH)
+        return (wz.DYNAMISCH, wz.SCHRUPPEN, wz.VOLLNUT)
+
+    def titel(self):
+        return tr("ba.nut")
+
+    def text(self):
+        return tr("ba.nut.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.nutfraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.nuteinsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("zustellung", tr("ba.zustellung"), tr("ba.nut.zustellung.tooltip")),
+            ("zeilenabstand", tr("ba.zeilenabstand"), tr("ba.nut.zeilenabstand.tooltip")),
+            ("aufmass", tr("ba.aufmass_schlichten"), tr("ba.aufmass_schlichten.tooltip")),
+        )
+
+    def haken(self):
+        return (
+            ("schlichten", tr("ba.wand_schlichten"), tr("ba.wand_schlichten.tooltip"), True),
+            ("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),
+        )
+
+    def passt(self, form, name):
+        return nb.ist_nut(form, name)
+
+    def flaechen_fuer(self, form, gewaehlte):
+        """Der Grund, wie gewählt – eine Wand aber meint die ganze Nut: alle ihre Wände (so
+        auch bei der Kontur, die gegen sie antritt)."""
+        return nb.ganze_nuten(form, [n for n in gewaehlte if self.passt(form, n)])
+
+    def vorgeschlagen(self, form, gewaehlte):
+        """Von sich aus, wenn alle gewählten Flächen zu Nuten gehören – nur Gründe oder nur
+        Wände; beides zusammen ist die Folge Räumen und Kontur."""
+        if not gewaehlte or not all(self.passt(form, n) for n in gewaehlte):
+            return False
+        gruende = [n for n in gewaehlte if nb.ist_grund(form, n)]
+        return not gruende or len(gruende) == len(gewaehlte)
+
+    def unmoeglich_text(self):
+        return tr("ba.nut.keine")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "zustellung":
+            return einsatz.ap if einsatz is not None and einsatz.ap > 0 else nu.ZUSTELLUNG
+        if feld == "zeilenabstand":
+            if werkzeug is None or werkzeug.durchmesser <= 0:
+                return 0.0
+            r = werkzeug.durchmesser / 2
+            ae = einsatz.ae if einsatz is not None and einsatz.ae > 0 else r / 4
+            return min(ae, r)
+        return nu.AUFMASS
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        form = ff.von_werkzeug(werkzeug)
+        if form is None or vp.ebener_radius(form) <= 0:
+            raise ValueError(tr("nt.fehler.form"))
+        return nu.vorschau(
+            job,
+            job.Model.Group,
+            float(form.radius),
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            flaechen,
+            schlichten=werte["schlichten"],
+            gleichlauf=werte["gleichlauf"],
+            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+            eintauchwinkel=float(werkzeug.eintauchwinkel or 0.0) or vb.EINTAUCHWINKEL,
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        nuten = tr("ba.zahl.nut") if bahn.nuten == 1 else tr("ba.zahl.nuten", n=bahn.nuten)
+        if bahn.vollnut == bahn.nuten:
+            return tr("ba.ergebnis_vollnut", nuten=nuten, zeit=zeit)
+        lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+        kreise = tr("ba.zahl.kreis") if bahn.kreise == 1 else tr("ba.zahl.kreise", n=bahn.kreise)
+        return tr("ba.ergebnis_nut", nuten=nuten, lagen=lagen, kreise=kreise, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return nu.lege_an(
+            job,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            schlichten=werte["schlichten"],
+            gleichlauf=werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        nu.aendere(
+            op,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            schlichten=werte["schlichten"],
+            gleichlauf=werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def ist(self, op):
+        return nu.ist_nut(op)
+
+    def werte_von(self, op):
+        return {
+            "zustellung": float(op.Zustellung),
+            "zeilenabstand": float(op.Zeilenabstand),
+            "aufmass": float(op.Aufmass),
+            "schlichten": bool(op.Schlichten),
+            "gleichlauf": bool(op.Gleichlauf),
+        }
+
+
 class _Kontur(_Strategie):
     kennung = "kontur"
     gemerkt = GEMERKT_KONTURFRAESER
@@ -569,6 +707,11 @@ class _Kontur(_Strategie):
 
     def passt(self, form, name):
         return bool(kb.waende(form, [name]))
+
+    def flaechen_fuer(self, form, gewaehlte):
+        """Die gewählten Wände – die Wand einer Nut mit allen Wänden der Nut, wie bei der Nut,
+        gegen die die Kontur dort antritt (eine Wand meint die Nut)."""
+        return nb.ganze_nuten(form, [n for n in gewaehlte if self.passt(form, n)])
 
     def unmoeglich_text(self):
         return tr("ba.kontur.keine_wand")
@@ -1255,6 +1398,7 @@ class _Senken(_Strategie):
 STRATEGIEN = (
     _Planfraesen,
     _Raeumen,
+    _Nut,
     _Zentrieren,
     _Bohren,
     _Bohrung,
@@ -1551,6 +1695,7 @@ class BearbeitungPanel:
         self.form = self._baue()
         self.plan = next(b for b in self.bloecke if b.s.kennung == "planfraesen")
         self.raeumen = next(b for b in self.bloecke if b.s.kennung == "raeumen")
+        self.nut = next(b for b in self.bloecke if b.s.kennung == "nut")
         self._raeumen_boeden = None  # nur diese Taschenböden räumen (_folge); None: alle
         self.bohren = next(b for b in self.bloecke if b.s.kennung == "bohren")
         self.bohrung = next(b for b in self.bloecke if b.s.kennung == "bohrung")
@@ -2099,6 +2244,16 @@ class BearbeitungPanel:
             nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
             if nummer < 0 or nummer >= len(form.Faces):
                 text, farbe = tr("ba.flaeche.fehlt", name=name), ROT
+            elif self.nut.s.passt(form, name):
+                n = nb.nuten(form, [name])[0]
+                breite = groesse_zeigen(2 * n.radius, einheiten.LAENGE) or "0"
+                laenge = groesse_zeigen(n.laenge + 2 * n.radius, einheiten.LAENGE) or "0"
+                if n.durch:
+                    text = tr("ba.flaeche.nut_durch", name=name, breite=breite, laenge=laenge)
+                else:
+                    z = groesse_zeigen(n.z_unten, einheiten.LAENGE) or "0"
+                    text = tr("ba.flaeche.nut_grund", name=name, breite=breite, laenge=laenge, z=z)
+                farbe = GRUEN
             elif self.plan.s.passt(form, name):
                 z = groesse_zeigen(hf.ebenen_oben(form, [name])[0].z, einheiten.LAENGE) or "0"
                 text, farbe = tr("ba.flaeche.eben", name=name, z=z), GRUEN
@@ -2150,6 +2305,7 @@ class BearbeitungPanel:
         self._gewindefraeser_waehlen(form)
         self._senker_waehlen(form)
         self._entgratfraeser_waehlen(form)
+        self._nutfraeser_waehlen(form)
         self._fuellt = True
         try:
             for block in self.bloecke:
@@ -2397,7 +2553,7 @@ class BearbeitungPanel:
             return list(self._raeumen_boeden)
         if block is self.kontur and not self._gleiche_flaechen(block, form):
             weg = set()
-            for anderer in (self.bohren, self.bohrung):
+            for anderer in (self.bohren, self.bohrung, self.nut):
                 if anderer.aktiv():
                     weg |= set(anderer.s.flaechen_fuer(form, self.gewaehlte))
             return [f for f in flaechen if f not in weg]
@@ -2579,6 +2735,38 @@ class BearbeitungPanel:
                 self.bohren.wahl_fraeser.setCurrentIndex(i)
                 return
 
+    def _nutfraeser_waehlen(self, form):
+        """Wählt im Block Nut einen Fräser, der in die gewählten Nuten passt, wenn der gewählte es
+        nicht tut – am liebsten den größten, der Kreise fährt (Trochoide), sonst den größten, der
+        hineinpasst; und den Einsatz dazu: „Vollnut“ zuerst, wenn er sie in voller Breite fräst."""
+        namen = [n for n in self.gewaehlte if nb.ist_nut(form, n)]
+        liste = nb.nuten(form, namen) if namen else []
+        if not liste:
+            return
+        block = self.nut
+        aufmass = block.wert("aufmass") if block.haken_felder["schlichten"].isChecked() else 0.0
+
+        def arten(w):
+            return {nb.verfahren(n, w.durchmesser / 2, aufmass) for n in liste}
+
+        geht = {"trochoide", "vollnut"}
+        wahl = block.wahl_fraeser.currentIndex()
+        jetzt = block.fraeser()
+        if jetzt is None or not arten(jetzt) <= geht:
+            kreise = [i for i, w in enumerate(block._fraeser) if arten(w) == {"trochoide"}]
+            passen = [i for i, w in enumerate(block._fraeser) if arten(w) <= geht]
+            if kreise or passen:
+                wahl = max(kreise or passen, key=lambda i: block._fraeser[i].durchmesser)
+        if not 0 <= wahl < len(block._fraeser):
+            return
+        vollnut = "vollnut" in arten(block._fraeser[wahl])
+        anders = vollnut != block.s.vollnut
+        block.s.vollnut = vollnut
+        if wahl != block.wahl_fraeser.currentIndex():
+            block.wahl_fraeser.setCurrentIndex(wahl)  # füllt die Einsätze neu
+        elif anders:
+            block.einsatz_fuellen(self.werkstoff())
+
     def _von_raeumen_geraeumt(self, form):
         """Räumt das Räumen die Böden aller gewählten Bohrungen (Sackbohrungen, deren Wände
         gewählt sind – rb.taschenboeden)? Dann ist dort Räumen und danach die Kontur mit dem
@@ -2664,16 +2852,21 @@ class BearbeitungPanel:
             raeumen.ergebnis.setText(tr("ba.wettbewerb.alles", text=alles[2], prozent=prozent))
 
     def _gruppen(self):
-        """Die Strategien, die dieselbe Aufgabe lösen: Planfräsen und Räumen auf ebenen
-        Flächen; Bohren, Bohrung fräsen und Kontur in Bohrungen."""
-        return ((self.plan, self.raeumen), (self.bohren, self.bohrung, self.kontur))
+        """Die Strategien, die dieselbe Aufgabe lösen: Planfräsen, Räumen und Nut auf ebenen
+        Flächen (dem Grund einer Nut); Bohren, Bohrung fräsen, Kontur und Nut an Wänden. Die Nut
+        steht in beiden – sie tritt dort an, wo ihre Flächen dieselben sind."""
+        return (
+            (self.plan, self.raeumen, self.nut),
+            (self.bohren, self.bohrung, self.kontur, self.nut),
+        )
 
     def _gegner(self, block):
-        """Die Strategien, die dieselbe Aufgabe lösen wie `block`."""
+        """Die Strategien, die dieselbe Aufgabe lösen wie `block` – aus allen seinen Gruppen."""
+        gegner = []
         for gruppe in self._gruppen():
             if block in gruppe:
-                return [b for b in gruppe if b is not block]
-        return []
+                gegner.extend(b for b in gruppe if b is not block and b not in gegner)
+        return gegner
 
     def _im_wettbewerb(self, block):
         """Rechnet der Block mit, obwohl er nicht angehakt ist – weil sein Gegner auf denselben
@@ -2720,7 +2913,8 @@ class BearbeitungPanel:
             and self._gleiche_flaechen(mit[0], form, b)
         ]
         if len(mit) < 2:
-            self._haken_setzen(gruppe, mit[0], rot)
+            if rot:  # allein in dieser Gruppe – entschieden wird, wo sie Gegner hat
+                self._haken_setzen(gruppe, mit[0], rot)
             return
         schnellste, zweite = mit[0], mit[1]
         schnellste.ergebnis.setText(

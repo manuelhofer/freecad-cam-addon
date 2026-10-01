@@ -165,7 +165,9 @@ die schnellste Folge; Planfräsen und Räumen der Böden wären 13 % langsamer�
 Räumt das Räumen den Boden einer Tasche, deren Wand die Kontur fährt, trägt
 das Fenster bei der Kontur das Aufmaß des Räumens als „Material neben der
 Wand“ ein (solange das Feld leer ist), und die Kontur sagt es: „… – nur das
-Aufmaß an den Wänden: die Tasche räumt das Räumen“.</p>
+Aufmaß an den Wänden: die Tasche räumt das Räumen“. An einer <b>Nut</b> rechnet das
+Fenster auch die Nut mit – auf ihrem Grund gegen Räumen, an ihren Wänden gegen die
+Kontur.</p>
 
 <h3>5. Bohren</h3>
 <ul>
@@ -394,8 +396,43 @@ Fräser ist zu groß, sein Hals zu dick, er reicht nicht tief genug.</li>
 durch: Um jede Bohrung darf es bis zur Spitze des Zahns ins Teil, daneben nicht.</li>
 </ul>
 
+<h3>13. Nut</h3>
+<ul>
+<li>Für <b>Langlöcher</b> – zwei gerade Wände, an den Enden Halbkreise: eine Wand oder den
+Grund anklicken, die Liste sagt „Nut 20 × 50, Grund 10“ oder „…, durchgehend“; eine Wand
+meint die ganze Nut. Mit einem Schaftfräser, der nicht breiter ist als sie – am schnellsten
+mit 50 bis 75 % ihrer Breite; vorgewählt ist einer, der passt.</li>
+<li>Die Bahn fährt <b>nie mit ganzer Schneide in voller Breite</b>. Ist die Nut breiter als
+der Fräser: an einem Ende in einer <b>Helix</b> hinab, dann in <b>Kreisen</b>, die je Umlauf
+um ae weiterrücken (Trochoide) – von Kreis zu Kreis geht es hinten weiter, wo schon alles
+frei ist, der Eingriff wächst auf jedem Kreis bis ae und fällt wieder; in Lagen mit ap, die
+nächste Lage zurück. Ist sie kaum breiter (die Kreise hätten weniger als ein Viertel des
+Fräserradius): in einer <b>Zickzack-Rampe</b> längs der Nut hinab, je Fahrt höchstens so
+tief, dass er in voller Breite nie mehr als ap und nie mehr als einen halben Durchmesser
+schneidet – mit dem Vorschub so gesenkt, dass der Span so dick bleibt wie beim Einsatz mit
+kleinem ae.</li>
+<li>Zuletzt die <b>Wand einmal rundum</b> im Gleichlauf (gegen den Uhrzeigersinn, G3), mit
+Halbkreisen aus der Mitte eines Endes hinein und heraus, in Zügen von höchstens der
+Schneidenlänge. Durchgehende Nuten 0,5 mm tiefer.</li>
+<li>Felder wie bei „Bohrung fräsen“: <b>Zustellung je Lage</b> (ap der Kreise),
+<b>Zeilenabstand</b> (ae – so weit rücken die Kreise vor), <b>Aufmaß zum Schlichten</b>, die
+Haken <b>Wand schlichten</b> und <b>Gleichlauf</b>. Fräst der Fräser die Nut in voller
+Breite, ist der Einsatz „Vollnut“ vorgewählt, wenn er einen hat.</li>
+<li>Grau darunter: „→ 1 Nut, 1 Lage, 21 Kreise, etwa 1 min“ oder „→ 1 Nut in voller Breite
+mit Rampe, etwa 1 min“. Rot steht, warum es nicht geht: Der Fräser ist breiter als die Nut,
+oder sie ist breiter als fast zwei Fräser – dann bliebe in der Mitte der Kreise ein Kern
+stehen (ein größerer Fräser, oder „Räumen“).</li>
+<li><b>Die Zeit entscheidet</b>: Auf dem Grund tritt die Nut gegen Räumen und Planfräsen an,
+an ihren Wänden gegen die Kontur. Mit dem Ø 12 in einer Nut 20 × 50, 10 tief: Am Grund ist
+Räumen schneller – seine Ringe fahren jede Stelle einmal, die Kreise der Trochoide etwa
+dreimal; an der Wand schlägt die Nut die Kontur (0,9 statt 1,2 min). Die Nut lohnt sich, wo
+Räumen nicht hinkommt: in Nuten ohne Grund und in solchen, kaum breiter als der Fräser.</li>
+<li>Die Operation heißt „Nut T1“; die Endtiefe ist der tiefste Grund (durchgehend 0,5 mm
+darunter).</li>
+</ul>
+
 <h3>Nachträglich ändern</h3>
-<p><b>Doppelklick</b> auf „Planfräsen …“, „Räumen …“, „Bohrung fräsen …“, „Kontur …“, „Entgraten …“ oder „Gewinde fräsen …“ im Baum – oder rechte Maustaste,
+<p><b>Doppelklick</b> auf „Planfräsen …“, „Räumen …“, „Nut …“, „Bohrung fräsen …“, „Kontur …“, „Entgraten …“ oder „Gewinde fräsen …“ im Baum – oder rechte Maustaste,
 <b>Bearbeiten</b>; oder die Operation bzw. ihren Job wählen und den Knopf
 „Bearbeitung (Fräsen)“ drücken – öffnet das Fenster mit Flächen, Fräser,
 Einsatz und Werten der Operation, nur mit ihrem Block. <b>Übernehmen</b> ändert sie – ein Schritt
@@ -404,6 +441,7 @@ alten nimmt das Fenster heraus, wenn ihn keine Operation mehr benutzt.</p>
 
 <h3>Was noch kommt</h3>
 <p>Der Einstieg (Rampe, Helix, senkrecht) nach Zeit, Trochoiden in engen
-Ecken – nach dem Plan in der Spezifikation W-006.</p>
+Ecken von Taschen, offene Nuten (zum Rand hin) – nach dem Plan in der Spezifikation
+W-006.</p>
 </body>
 </html>

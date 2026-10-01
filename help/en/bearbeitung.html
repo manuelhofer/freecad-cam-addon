@@ -161,7 +161,8 @@ sequence; face milling plus clearing the floors would be 13 % slower”). When
 clearing takes the floor of a pocket whose wall the contour runs, the window
 enters the clearing allowance as “material beside the wall” at the contour
 (as long as the field is empty), and the contour says so: “… – only the
-allowance at the walls: clearing clears the pocket”.</p>
+allowance at the walls: clearing clears the pocket”. At a <b>slot</b> the window also
+computes the slot – on its floor against clearing, at its walls against the contour.</p>
 
 <h3>5. Drilling</h3>
 <ul>
@@ -382,8 +383,42 @@ large, its neck too thick, it does not reach deep enough.</li>
 around each hole it may go into the part up to the tip of the tooth, not beside it.</li>
 </ul>
 
+<h3>13. Slot</h3>
+<ul>
+<li>For <b>slots</b> – two straight walls with semicircles at the ends: click a wall or the
+floor, the list says “slot 20 × 50, bottom 10” or “…, through”; one wall means the whole
+slot. With an end mill no wider than the slot – fastest at 50 to 75 % of its width; one that
+fits is preselected.</li>
+<li>The path <b>never cuts at full width with the whole flute</b>. If the slot is wider than
+the cutter: down in a <b>helix</b> at one end, then in <b>circles</b> that advance by ae per
+turn (trochoidal) – from circle to circle it moves on at the back, where everything is
+already free, so the engagement grows to ae on each circle and falls again; in layers of ap,
+the next layer back. If it is barely wider (the circles would be less than a quarter of the
+cutter radius): down in a <b>zigzag ramp</b> along the slot, each pass at most so deep that
+at full width it never cuts more than ap and never more than half the diameter – with the
+feed lowered so the chip stays as thick as with the application's small ae.</li>
+<li>Finally the <b>wall once all round</b> climb milling (counter-clockwise, G3), with
+semicircles in from the centre of one end and out again, in passes of at most the flute
+length. Through slots 0.5 mm deeper.</li>
+<li>Fields as for “Hole milling”: <b>stepdown per layer</b> (ap of the circles), <b>row
+spacing</b> (ae – this far the circles advance), <b>allowance for finishing</b>, the ticks
+<b>finish the wall</b> and <b>climb milling</b>. If the cutter mills the slot at full width,
+the application “Full slot” is preselected when it has one.</li>
+<li>Grey below: “→ 1 slot, 1 layer, 21 circles, about 1 min” or “→ 1 slot at full width
+with a ramp, about 1 min”. Red says why it does not work: the cutter is wider than the slot,
+or the slot is wider than nearly two cutters – a core would stay in the middle of the
+circles (a larger cutter, or “Clearing”).</li>
+<li><b>Time decides</b>: on the floor the slot competes with clearing and face milling, at
+its walls with the contour. With the Ø 12 in a slot 20 × 50, 10 deep: on the floor clearing
+is faster – its rings pass every spot once, the trochoid's circles about three times; at the
+wall the slot beats the contour (0.9 instead of 1.2 min). The slot pays off where clearing
+cannot go: in slots without a floor and in those barely wider than the cutter.</li>
+<li>The operation is called “Slot T1”; the final depth is the deepest floor (through: 0.5 mm
+below).</li>
+</ul>
+
 <h3>Changing it later</h3>
-<p><b>Double-click</b> “Face milling …”, “Clearing …”, “Hole milling …”, “Contour …”, “Deburr …” or “Thread milling …” in the tree – or right-click,
+<p><b>Double-click</b> “Face milling …”, “Clearing …”, “Slot …”, “Hole milling …”, “Contour …”, “Deburr …” or “Thread milling …” in the tree – or right-click,
 <b>Edit</b>; or select the operation or its job and press the “Machining
 (milling)” button – to open the window with faces, cutter, application and
 values of the operation, with its block only. <b>Apply</b> changes it – one undo step; another
@@ -391,7 +426,7 @@ cutter gets its own tool controller, the old one is removed if no operation
 uses it any more.</p>
 
 <h3>What comes next</h3>
-<p>The entry (ramp, helix, vertical) by time, trochoids in tight corners – following
-the plan in specification W-006.</p>
+<p>The entry (ramp, helix, vertical) by time, trochoids in tight corners of pockets,
+open slots (towards the edge) – following the plan in specification W-006.</p>
 </body>
 </html>

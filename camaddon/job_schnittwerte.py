@@ -59,6 +59,7 @@ EINSATZ_NACH_OPERATION = {
     "gewindefraesen": (wz.GEWINDEFRAESEN,),  # „Gewinde fräsen“ (W-006 S3g)
     "planfraesen": (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Planfräsen“ (W-006 S3)
     "raeumen": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN),  # „Räumen“ (W-006 S3f)
+    "nut": (wz.DYNAMISCH, wz.SCHRUPPEN, wz.VOLLNUT),  # „Nut“ (W-006 4.1 Punkt 6)
     "kontur": (wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Kontur“ (W-006 S3e)
     "entgraten": (wz.FASEN, wz.VERRUNDEN),  # „Entgraten“ im Quader (W-006 4.1 Punkt 8)
     # Die Bohrung des Wochen-Builds kann auch Gewinde schneiden.

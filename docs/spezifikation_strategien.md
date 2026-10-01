@@ -126,7 +126,8 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    Ø 4 R 2, vier Stellen je Lage (`test_rest`, `szenario_rest`). Restmaterial
    auf Böden (Räumen mit dem kleineren) folgt mit dem Abtragsmodell.
 6. **Nut** – mit Rampe oder Trochoide statt Vollschnitt. Aufwand klein bis
-   mittel.
+   mittel. Gebaut (P-2026-10-01-40, 0.56.0) für geschlossene Langlöcher, mit und
+   ohne Grund (S3g, „Nut“); offene Nuten zum Rand hin folgen.
 7. **Bohren, Zirkularfräsen, Gewinde** – FreeCADs Operationen übernehmen; der
    Assistent legt sie mit den Schnittwerten aus der Werkzeugverwaltung an
    (Bohrer, Senker, Reibahle, Gewindebohrer sind schon Werkzeugarten).
@@ -788,6 +789,39 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   Kollisionsprüfung als „ins fertige Teil“ gemeldet. Prüfung `test_rundung`
   (Rundung R 2 am eckigen und runden Zapfen, im Quader auf 0,08 mm; die scharfe
   Kante mit R 2 gerundet), Szenario `szenario_rundung`.
+  Dann **Nut** (P-2026-10-01-40, 0.56.0; 4.1 Punkt 6): Langlöcher – zwei
+  parallele Wände, an den Enden Halbkreise – erkennt `nut_bahn.nuten` an einer
+  Wand (die ganze Runde, `_waende_der_nut`) oder am Grund (die Wände an seinem
+  Rand); ohne Material knapp innerhalb der Wände unter dem Grund geht sie durch.
+  Die Bahn fährt nie mit ganzer Schneide in voller Breite. **Trochoide**, wenn
+  die Kreise (r − R − Aufmaß) mindestens ¼ R haben: je Lage (ap) eine Helix am
+  Ende hinab, dann Kreise, die je Umlauf um ae vorrücken, von Kreis zu Kreis
+  **hinten** weiter – dort ist alles frei, der Eingriff wächst auf jedem Kreis
+  bis ae und fällt wieder –, die nächste Lage zurück; über 0,9 R bliebe in der
+  Mitte der Kreise ein Kern (zu breit: „Räumen“). Sonst **Vollnut** mit einer
+  Zickzack-Rampe längs der Mittellinie: je Fahrt höchstens ap/2 und D/4 tiefer
+  (hin und zurück schneidet die Rampe die Stufe zweimal – nie mehr als ap und
+  D/2 in voller Breite), der Vorschub mit dem Anteil 2·√(k(1−k)), k = ae/D: der
+  Span so dick wie beim Einsatz mit kleinem ae. Zuletzt die Wand rundum, mit
+  Halbkreisen aus der Mitte eines Endes hinein und heraus, im Gleichlauf (G3).
+  Im Assistenten der Block „Nut“ („Nut 20 × 50, Grund 10“ in der Liste): auf dem
+  Grund gegen Räumen und Planfräsen, an den Wänden gegen die Kontur – eine Wand
+  meint für beide die ganze Nut (`ganze_nuten`); vorgewählt ein Fräser, der
+  passt (der größte für Kreise), mit „Vollnut“ zuerst, wenn er die Nut in voller
+  Breite fräst. Gemessen mit dem Standardfräser an einer Nut 20 × 50, 10 tief:
+  Räumen 0,3 min, Nut 0,9, Kontur über alle Wände 1,2 – am Grund gewinnt Räumen
+  (seine Ringe fahren jede Stelle einmal, die Kreise der Trochoide etwa π-mal;
+  das Zeitmodell gibt beiden denselben Vorschub), an der Wand die Nut (Kontur
+  27 % langsamer). Die Nut lohnt, wo Räumen nicht hinkommt: ohne Grund und in
+  Nuten kaum breiter als der Fräser (eine Nut 14 breit, Ø 12: Räumen „passt
+  nicht hinein“). Damit die Nut in zwei Gruppen antreten kann, entscheidet der
+  Wettbewerb einer Gruppe mit nur einem Teilnehmer nichts mehr (außer gegen rote
+  Blöcke). **Dabei gefunden, offen:** Räumen lässt in Nuten 0,75 mm statt des
+  Aufmaßes 0,3 an der Wand stehen (der äußere Ring liegt auf dem Raster); die
+  Kontur danach nimmt es mit, allein bleibt die Nut zu schmal. Prüfung
+  `test_nut` (Sacknut 20 breit mit Kreisen, Durchgangsnut 14 breit mit Rampe; im
+  Quader leer bis zum Grund, daneben nichts angeschnitten), Szenario
+  `szenario_nut`.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

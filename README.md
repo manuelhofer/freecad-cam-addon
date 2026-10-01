@@ -178,7 +178,11 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   kleinerer Fräser holt, was der große in Ecken innen stehen ließ – nur dort.
   **Gewinde fräsen** mit dem Gewindefräser: das Gewinde aus Kernloch und
   Steigung (M10 × 1,5 in Ø 8,5), auf die Mitte der Toleranz 6H, im Gleichlauf,
-  der Vorschub an der Schneide.
+  der Vorschub an der Schneide. **Nut**: Langlöcher mit einem Schaftfräser, der
+  nicht breiter ist als sie – nie in voller Breite mit ganzer Schneide: in
+  Kreisen, die je Umlauf um ae vorrücken (Trochoide), oder in einer
+  Zickzack-Rampe, wenn die Nut kaum breiter ist; zuletzt die Wand rundum. Sie
+  tritt am Grund gegen Räumen an, an den Wänden gegen die Kontur.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

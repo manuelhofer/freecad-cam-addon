@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-40 nut
+
+### EINGELESEN
+- `bohrung_bahn` (Helix, Schlichten mit Halbkreisen), `bohrung` (Operation), `kontur_bahn.konturen`
+  und `raeumen_bahn.kontur_flaeche`/`ist_tasche`, `gui_bearbeitung` (Wettbewerb: `_gruppen`,
+  `_gegner`, `_wettbewerb_gruppe`, `_flaechen`), `werkzeuge.vorlage` (Vollnut ap D/2,
+  Dynamisch ae D/10), der Standardfräser (Einsatz „Schruppen“ ae 1,5 / ap 25).
+
+### DATEIEN
+- `camaddon/nut_bahn.py` (neu), `camaddon/nut.py` (neu), `camaddon/gui_bearbeitung.py`,
+  `camaddon/gui_vierachs_operation.py`, `camaddon/job_schnittwerte.py`, `translations/de.json`,
+  `translations/en.json`, `tests/test_nut.py` (neu), `tests/gui/szenario_nut.py` (neu),
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml`
+  (0.56.0)
+
+### AKZEPTANZKRITERIUM
+Platte mit Langloch 20 × 50, 10 tief, Standardfräser Ø 12: den Grund anklicken – in der Liste
+„Nut 20 × 50, Grund 10“, Räumen behält den Haken, die Nut sagt „… – N % langsamer als Räumen“.
+Statt des Grunds eine Wand: „Nut“ angehakt, „→ 1 Nut, 1 Lage, 21 Kreise, etwa 1 min – die
+schnellste; Kontur wäre 27 % langsamer“. „Anlegen“: nur „Nut T1“, Endtiefe 10, nur G3. Im
+Prüffenster nirgends ins Teil. Im Quader (`test_nut`) sind Sacknut und Durchgangsnut bis zum
+Grund leer, daneben nichts angeschnitten.
+
+### DONE
+- `nut_bahn`: Erkennung (`nuten`, `_waende_der_nut`, `_langloch`, `_durch`, gemerkt je Form und
+  Fläche), `ganze_nuten`, `verfahren`; Trochoide mit Helix je Lage und Kreisen, die hinten im
+  Freien vorrücken; Vollnut mit Zickzack-Rampe (je Fahrt ≤ min(ap, D/2)/2, Vorschub-Anteil für
+  den dicken Span); die Wand rundum mit Halbkreisen; Gleichlauf G3.
+- `nut`: die Operation (Flächen, Zustellung, Zeilenabstand, Aufmaß, Schlichten, Gleichlauf,
+  Tiefer; Ergebnis Nuten, Lagen, Kreise), Art „nut“ mit den Einsätzen Dynamisch, Schruppen,
+  Vollnut.
+- Assistent: Block „Nut“ nach Räumen, in beiden Wettbewerbsgruppen (Grund: Planfräsen, Räumen;
+  Wände: Bohren, Bohrung fräsen, Kontur); eine Wand meint für Nut und Kontur die ganze Nut;
+  `_gegner` aus allen Gruppen; eine Gruppe mit nur einem Teilnehmer entscheidet nichts mehr
+  (außer gegen rote); `_nutfraeser_waehlen` mit Einsatz „Vollnut“ zuerst, wenn nötig; die Liste
+  nennt Nuten.
+- Gefunden, offen: Räumen lässt in Nuten 0,75 statt 0,3 mm an der Wand stehen.
+
+### TEST
+- 1.1.3: `test_nut` (neu) grün; Szenarien `szenario_nut` (neu), `szenario_bearbeitung`,
+  `szenario_raeumen`, `szenario_kontur`, `szenario_bohren`, `szenario_bohrung`, `szenario_rest`
+  grün; black/ruff grün.
+
+### NEXT
+- Offene Nuten zum Rand hin; Räumen: der äußere Ring genau auf Radius + Aufmaß; Reiben (G85).
+
 ## P-2026-10-01-39 verrunden
 
 ### EINGELESEN

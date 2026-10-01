@@ -1,0 +1,543 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+"""2,5D, die Bahn „Nut“ (W-006 4.1 Punkt 6): Langlöcher – zwei gerade, parallele Wände, an den
+Enden Halbkreise – mit einem Schaftfräser, der nicht breiter ist als sie; mit Rampe oder
+Trochoide statt Vollschnitt.
+
+- **Erkennung** (nuten()): Eine Wand der Nut bringt die ganze Runde mit, ihr Grund die Wände an
+  seinem Rand (_waende_der_nut). Die Unterkanten werden eine Kontur (kontur_bahn.konturen);
+  geschlossen, die freie Seite innen, zwei Halbkreise mit gleichem Radius und dazwischen zwei
+  Geraden: eine Nut mit den Mittelpunkten A und B der Halbkreise und der halben Breite r. Ohne
+  Material unter dem Grund geht sie durch.
+- **Trochoide** (die Regel): je Lage (ap) eine Helix an einem Ende hinab, dann Kreise mit dem
+  Radius r − R − Aufmaß um Mitten, die je Kreis um ae weiterrücken – im Gleichlauf gegen den
+  Uhrzeigersinn (M3: vorn ist das Material rechts). Von Kreis zu Kreis geht es **hinten**
+  weiter, wo schon alles frei ist: Der Fräser fährt nie mit voller Breite ins Material, der
+  Eingriff wächst auf jedem Kreis bis ae und fällt wieder. Die nächste Lage zurück.
+- **Vollnut** (ist die Nut kaum breiter als der Fräser – die Kreise hätten weniger als
+  VOLLNUT_ANTEIL · R): in einer Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben
+  hinüber. Je Fahrt höchstens so viel tiefer, dass der Fräser nie mehr als ap und nie mehr als
+  VOLLNUT_AP · D in voller Breite schneidet (die Rampe hin und zurück schneidet zweimal die
+  Stufe); der Vorschub so, dass der Span so dick bleibt wie beim Einsatz mit ae (dünner Span
+  bei kleinem ae – in voller Breite nicht).
+- **Schlichten**: zuletzt die Wand bei r − R einmal rundum im Gleichlauf, mit Halbkreisen aus
+  der Mitte eines Endes hinein und wieder heraus – in Zügen von höchstens der Schneidenlänge.
+  Die Vollnut fährt diese Runde immer (sonst bliebe die Nut zu schmal).
+- Durchgehende Nuten um `tiefer` unter den Grund; mehrere in der Reihenfolge des kürzesten
+  Wegs; die Zeit mit bahn.zeit.
+
+Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
+"""
+
+import math
+from dataclasses import dataclass
+
+from . import bahn as bn
+from . import einheiten
+from . import kontur_bahn as kb
+from . import vierachs_bahn as vb
+from .sprache import tr
+
+GLEICH = 1e-6
+TIEFER = 0.5  # mm – so weit unter den Grund einer durchgehenden Nut
+VOLLNUT_ANTEIL = 0.25  # × R: kleiner die Kreise der Trochoide, dann die Vollnut mit Rampe
+KERN_ANTEIL = 0.9  # × R: größer die Kreise, dann bliebe in ihrer Mitte ein Kern – zu breit
+VOLLNUT_AP = 0.5  # × D: so tief schneidet der Fräser in voller Breite höchstens
+MIN_SCHRITT = 0.05  # mm – kürzer rückt die Trochoide nicht vor
+MIN_STEIGUNG = 0.05  # mm je Umlauf – flacher wird keine Helix
+MIN_RAMPE = 0.01  # mm je Fahrt – flacher wird die Rampe der Vollnut nicht
+DURCH_PRUEFEN = 0.05  # mm unter dem Grund wird nach Material gesehen
+
+
+@dataclass(frozen=True)
+class Nut:
+    """Ein Langloch im Teil."""
+
+    waende: tuple  # die Namen der Wände („Face7“ …)
+    a: tuple  # (x, y) – Mittelpunkt des einen Halbkreises
+    b: tuple  # (x, y) – des anderen
+    radius: float  # die halbe Breite
+    z_oben: float  # Oberkante der Wände
+    z_unten: float  # Grund
+    durch: bool  # unter dem Grund ist kein Material
+
+    @property
+    def laenge(self):
+        """Der Abstand der Mittelpunkte A und B (mm) – die Nut ist um 2 r länger."""
+        return math.hypot(self.b[0] - self.a[0], self.b[1] - self.a[1])
+
+
+@dataclass
+class Nutwerte:
+    """Was die Nut braucht; Längen in mm, z nach oben im Job."""
+
+    fraeser_radius: float
+    zustellung: float  # ap je Lage der Trochoide
+    zeilenabstand: float  # ae: so weit rücken die Kreise der Trochoide je Kreis vor
+    oben: float  # z, wo das Material beginnt (das Rohteil)
+    sicher: float  # z für den Eilgang über allem
+    aufmass: float = 0.0  # bleibt beim Schruppen an der Wand – fürs Schlichten
+    schlichten: bool = True  # danach die Wand einmal rundum
+    gleichlauf: bool = True
+    tiefer: float = TIEFER  # nur bei durchgehenden Nuten
+    schneidenlaenge: float = 0.0  # 0: unbekannt
+    eintauchwinkel: float = vb.EINTAUCHWINKEL  # Grad – Rampe und Helix
+    sicherheit: float = vb.SICHERHEIT
+    vorschub: float = 0.0  # mm/min – für die Zeit; 0: 1000
+    eintauchen: float = 0.0
+
+
+@dataclass
+class Nutbahn:
+    """Ergebnis von planen()."""
+
+    punkte: list  # [bahn.Punkt], der erste ist der Start (Eilgang, oben)
+    nuten: int
+    lagen: int  # Lagen der Trochoide über alle Nuten (eine Vollnut zählt 1)
+    kreise: int  # Kreise der Trochoide über alle Nuten
+    vollnut: int  # so viele Nuten in voller Breite mit Rampe
+    z_min: float
+    laenge: float  # mm im Vorschub
+    zeit: float  # Minuten (bahn.zeit)
+
+
+# --- Erkennung --------------------------------------------------------------------------------
+
+
+def _ist_boden(flaeche):
+    """Eine ebene Fläche, die nach oben schaut?"""
+    bb = flaeche.BoundBox
+    if bb.ZMax - bb.ZMin > kb.NAH:
+        return False
+    try:
+        u0, u1, v0, v1 = flaeche.ParameterRange
+        return flaeche.normalAt((u0 + u1) / 2, (v0 + v1) / 2).z > 1.0 - 1e-6
+    except Exception:  # OCC: keine Parameter
+        return False
+
+
+def _waende_der_nut(form, nummer, index):
+    """Die Nummern der Wände rundum, die mit der Wand oder dem Grund `nummer` zusammenhängen –
+    über gemeinsame Kanten, alle mit derselben Unterkante."""
+    import Part
+
+    flaechen = form.Faces
+    start = flaechen[nummer]
+    offen = []
+    if kb.ist_wand(start):
+        z = start.BoundBox.ZMin
+        offen.append(nummer)
+    elif _ist_boden(start):
+        z = start.BoundBox.ZMax
+        for kante in start.Edges:
+            for nachbar in form.ancestorsOfType(kante, Part.Face):
+                i = index.get(nachbar.hashCode())
+                if i is None or i in offen or not kb.ist_wand(flaechen[i]):
+                    continue
+                if abs(flaechen[i].BoundBox.ZMin - z) <= kb.NAH:
+                    offen.append(i)
+    else:
+        return ()
+    gesehen = set(offen)
+    ergebnis = []
+    while offen:
+        i = offen.pop()
+        ergebnis.append(i)
+        for kante in flaechen[i].Edges:
+            for nachbar in form.ancestorsOfType(kante, Part.Face):
+                j = index.get(nachbar.hashCode())
+                if j is None or j in gesehen or not kb.ist_wand(flaechen[j]):
+                    continue
+                if abs(flaechen[j].BoundBox.ZMin - z) <= kb.NAH:
+                    gesehen.add(j)
+                    offen.append(j)
+    return tuple(sorted(ergebnis))
+
+
+def _langloch(kontur):
+    """(A, B, r): die Mittelpunkte der Halbkreise und ihr Radius, wenn die Unterkanten der Kontur
+    zwei Halbkreise mit gleichem Radius und zwei Geraden dazwischen sind – sonst None. Halbkreise
+    und Geraden dürfen in Stücken kommen."""
+    import Part
+
+    kreise = {}
+    geraden = []
+    for kante in kontur.draht.Edges:
+        kurve = kante.Curve
+        if isinstance(kurve, Part.Circle):
+            mitte = (round(kurve.Center.x, 4), round(kurve.Center.y, 4))
+            eintrag = kreise.setdefault(mitte, [float(kurve.Radius), 0.0])
+            if abs(eintrag[0] - kurve.Radius) > 1e-4:
+                return None
+            eintrag[1] += abs(kante.LastParameter - kante.FirstParameter)
+        elif isinstance(kurve, (Part.Line, Part.LineSegment)):
+            p0, p1 = kante.Vertexes[0].Point, kante.Vertexes[-1].Point
+            geraden.append(((p0.x, p0.y), (p1.x, p1.y)))
+        else:
+            return None
+    if len(kreise) != 2 or not geraden:
+        return None
+    (a, (r_a, w_a)), (b, (r_b, w_b)) = kreise.items()
+    if abs(r_a - r_b) > 1e-4 or abs(w_a - math.pi) > 1e-3 or abs(w_b - math.pi) > 1e-3:
+        return None
+    laenge = math.hypot(b[0] - a[0], b[1] - a[1])
+    if laenge < 1e-3:
+        return None
+    ux, uy = (b[0] - a[0]) / laenge, (b[1] - a[1]) / laenge
+    seiten = {1: 0.0, -1: 0.0}  # die Länge der Geraden links und rechts der Mittellinie
+    for p0, p1 in geraden:
+        dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+        if abs(dx * uy - dy * ux) > 1e-4 * max(math.hypot(dx, dy), 1.0):
+            return None  # nicht parallel zur Mittellinie
+        abstand = (p0[0] - a[0]) * -uy + (p0[1] - a[1]) * ux
+        if abs(abs(abstand) - r_a) > 1e-3:
+            return None
+        seiten[1 if abstand > 0 else -1] += math.hypot(dx, dy)
+    if any(abs(s - laenge) > 1e-3 for s in seiten.values()):
+        return None
+    return (float(a[0]), float(a[1])), (float(b[0]), float(b[1])), float(r_a)
+
+
+def _durch(form, a, b, r, z_unten):
+    """Ist unter dem Grund kein Material – knapp innerhalb der Wände an beiden Enden und in der
+    Mitte geprüft (wie bei Bohrungen: unter einer Stufe liegt am Rand ihr Boden)?"""
+    import FreeCAD
+
+    laenge = math.hypot(b[0] - a[0], b[1] - a[1])
+    ux, uy = (b[0] - a[0]) / laenge, (b[1] - a[1]) / laenge
+    innen = max(r - min(0.02, 0.25 * r), 0.0)
+    mitte = ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)
+    stellen = [
+        (a[0] - ux * innen, a[1] - uy * innen),
+        (b[0] + ux * innen, b[1] + uy * innen),
+    ]
+    for p in (a, mitte, b):
+        stellen.append((p[0] - uy * innen, p[1] + ux * innen))
+        stellen.append((p[0] + uy * innen, p[1] - ux * innen))
+    z = z_unten - DURCH_PRUEFEN
+    return not any(form.isInside(FreeCAD.Vector(x, y, z), 1e-6, True) for x, y in stellen)
+
+
+_GEMERKT = {}  # (Form, Fläche) → Nut oder None – der Assistent fragt oft dieselbe Fläche
+_GEMERKT_HOECHSTENS = 1024
+
+
+def _schluessel(form):
+    """Was eine Form wiedererkennt: ihr Kern (hashCode), die Zahl der Flächen, ihre Box."""
+    bb = form.BoundBox
+    box = tuple(round(v, 6) for v in (bb.XMin, bb.YMin, bb.ZMin, bb.XMax, bb.YMax, bb.ZMax))
+    return (form.hashCode(), len(form.Faces), *box)
+
+
+def _nut_der_flaeche(form, name, schluessel, index):
+    """Die Nut, zu der die Fläche `name` gehört – oder None; gemerkt je Form und Fläche."""
+    from . import raeumen_bahn as rb
+    from . import vierachs_flaechen as vf
+
+    eintrag = (schluessel, name)
+    if eintrag in _GEMERKT:
+        return _GEMERKT[eintrag]
+    gefunden = None
+    nummern = vf.nummern([name])
+    waende = ()
+    if nummern and nummern[0] < len(form.Faces):
+        if not index:
+            index.update({f.hashCode(): i for i, f in enumerate(form.Faces)})
+        waende = _waende_der_nut(form, nummern[0], index)
+    try:
+        konturen = kb.konturen(form, [f"Face{i + 1}" for i in waende]) if waende else []
+    except ValueError:
+        konturen = []
+    for k in konturen:
+        if not k.geschlossen:
+            continue
+        langloch = _langloch(k)
+        if langloch is None:
+            continue
+        flaeche = rb.kontur_flaeche(k)
+        if flaeche is None or not rb.ist_tasche(k, flaeche):
+            continue  # ein Langloch als Zapfen: die Kontur fährt außen
+        a, b, r = langloch
+        durch = _durch(form, a, b, r, float(k.z_unten))
+        gefunden = Nut(k.waende, a, b, r, float(k.z_oben), float(k.z_unten), durch)
+        break
+    if len(_GEMERKT) >= _GEMERKT_HOECHSTENS:
+        _GEMERKT.clear()
+    _GEMERKT[eintrag] = gefunden
+    return gefunden
+
+
+def nuten(form, namen):
+    """[Nut] – die Langlöcher, zu denen die Flächen `namen` gehören (eine Wand, der Grund)."""
+    schluessel = _schluessel(form)
+    index = {}
+    ergebnis = []
+    for name in namen:
+        nut = _nut_der_flaeche(form, name, schluessel, index)
+        if nut is not None and not any(n.waende == nut.waende for n in ergebnis):
+            ergebnis.append(nut)
+    return ergebnis
+
+
+def ist_nut(form, name):
+    """Gehört die Fläche `name` zu einer Nut (nuten())?"""
+    return bool(nuten(form, [name]))
+
+
+def ganze_nuten(form, namen):
+    """Die Flächen `namen` („Face7“ …), jede Wand einer Nut ersetzt durch alle Wände dieser Nut –
+    eine angeklickte Wand meint die Nut; ihr Grund und alles andere bleibt, wie es ist."""
+    ergebnis = []
+    for name in namen:
+        neu = [name]
+        if not ist_grund(form, name):
+            gefunden = nuten(form, [name])
+            if gefunden:
+                neu = list(gefunden[0].waende)
+        ergebnis.extend(n for n in neu if n not in ergebnis)
+    return ergebnis
+
+
+def ist_grund(form, name):
+    """Ist die Fläche `name` eine ebene Fläche nach oben (der Grund einer Nut, wenn ist_nut)?"""
+    from . import vierachs_flaechen as vf
+
+    nummern = vf.nummern([name])
+    return bool(nummern) and nummern[0] < len(form.Faces) and _ist_boden(form.Faces[nummern[0]])
+
+
+# --- Bahn ---------------------------------------------------------------------------------
+
+
+def _hin(punkte, x, y, z, bogen=None, anteil=1.0):
+    """Ein Satz im Vorschub nach (x, y, z); gibt seine Länge zurück."""
+    punkt = bn.Punkt(False, float(x), float(y), float(z), False, bogen, anteil)
+    laenge = bn.weg(punkte[-1], punkt)
+    punkte.append(punkt)
+    return laenge
+
+
+def _bogen(punkte, mitte, radius, von, bis, z_von, z_bis, uhr):
+    """Bögen um `mitte` von Winkel `von` nach `bis` (rad, in Fahrtrichtung), z linear, in Stücken
+    von höchstens einem Viertel. Gibt die Länge zurück."""
+    anzahl = max(1, int(math.ceil(abs(bis - von) / (math.pi / 2) - 1e-9)))
+    laenge = 0.0
+    for i in range(1, anzahl + 1):
+        t = i / anzahl
+        winkel = von + (bis - von) * t
+        laenge += _hin(
+            punkte,
+            mitte[0] + radius * math.cos(winkel),
+            mitte[1] + radius * math.sin(winkel),
+            z_von + (z_bis - z_von) * t,
+            bogen=(mitte[0], mitte[1], uhr),
+        )
+    return laenge
+
+
+def _richtung(von, nach):
+    dx, dy = nach[0] - von[0], nach[1] - von[1]
+    laenge = math.hypot(dx, dy)
+    return dx / laenge, dy / laenge
+
+
+def _trochoide(punkte, nut, w, r_l, oben, z_ende, uhr):
+    """Je Lage eine Helix am einen Ende hinab, Kreise bis zum anderen, von Kreis zu Kreis hinten
+    weiter; die nächste Lage zurück. Beginnt hinten am Kreis um A (der Punkt davor liegt dort).
+    Gibt (Länge, Lagen, Kreise, das Ende, an dem sie aufhört) zurück."""
+    R = w.fraeser_radius
+    ap = w.zustellung if w.zustellung > GLEICH else 2 * R
+    if w.schneidenlaenge > 0:
+        ap = min(ap, w.schneidenlaenge)
+    tiefe = oben - z_ende
+    anzahl = max(1, int(math.ceil(tiefe / ap - 1e-9)))
+    schritt = min(max(w.zeilenabstand, MIN_SCHRITT), 2 * r_l)
+    drehung = -1.0 if uhr else 1.0
+    steigung = max(
+        2 * math.pi * r_l * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), MIN_STEIGUNG
+    )
+    laenge_nut = nut.laenge
+    weg = 0.0
+    kreise = 0
+    start, ziel = nut.a, nut.b
+    z_vorher = oben
+    for lage in range(1, anzahl + 1):
+        z = oben - tiefe * lage / anzahl
+        ux, uy = _richtung(start, ziel)
+        hinten = math.atan2(-uy, -ux)
+        jetzt = punkte[-1]
+        winkel = math.atan2(jetzt.y - start[1], jetzt.x - start[0])
+        # Die Helix ganz herum (am Ende derselbe Winkel), unten noch einmal, dann nach hinten.
+        umlaeufe = max(1, int(math.ceil((z_vorher - z) / steigung - 1e-9)))
+        ende = winkel + drehung * 2 * math.pi * umlaeufe
+        weg += _bogen(punkte, start, r_l, winkel, ende, z_vorher, z, uhr)
+        rest = (drehung * (hinten - winkel)) % (2 * math.pi)
+        weg += _bogen(punkte, start, r_l, ende, ende + drehung * (2 * math.pi + rest), z, z, uhr)
+        kreise += 1
+        winkel = hinten
+        s = 0.0
+        while s < laenge_nut - GLEICH:
+            s = min(s + schritt, laenge_nut)
+            mitte = (start[0] + ux * s, start[1] + uy * s)
+            # Hinten weiter: dort ist alles frei (schritt ≤ 2 r_l).
+            weg += _hin(punkte, mitte[0] - r_l * ux, mitte[1] - r_l * uy, z)
+            weg += _bogen(punkte, mitte, r_l, winkel, winkel + drehung * 2 * math.pi, z, z, uhr)
+            kreise += 1
+        z_vorher = z
+        start, ziel = ziel, start
+    return weg, anzahl, kreise, start
+
+
+def _vollnut(punkte, nut, w, oben, z_ende):
+    """Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben hinüber. Beginnt an A (der
+    Punkt davor liegt dort). Gibt (Länge, das Ende, an dem sie aufhört) zurück."""
+    R = w.fraeser_radius
+    ap = w.zustellung if w.zustellung > GLEICH else 2 * R
+    ap = min(ap, VOLLNUT_AP * 2 * R)
+    if w.schneidenlaenge > 0:
+        ap = min(ap, w.schneidenlaenge)
+    # Hin und zurück schneidet die Rampe zweimal die Stufe: je Fahrt höchstens ap / 2.
+    stufe = min(nut.laenge * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), ap / 2)
+    stufe = max(stufe, MIN_RAMPE)
+    # Der Span in voller Breite so dick wie beim Einsatz mit ae (bahn.Punkt.anteil).
+    k = min(max(w.zeilenabstand, GLEICH) / (2 * R), 0.5)
+    anteil = 2 * math.sqrt(k * (1 - k))
+    z = oben
+    dort = nut.b
+    weg = 0.0
+    while z > z_ende + GLEICH:
+        z = max(z - stufe, z_ende)
+        weg += _hin(punkte, dort[0], dort[1], z, anteil=anteil)
+        dort = nut.a if dort == nut.b else nut.b
+    weg += _hin(punkte, dort[0], dort[1], z_ende, anteil=anteil)
+    return weg, dort
+
+
+def _rundum(punkte, nut, r_w, z, ende, uhr):
+    """Einmal rundum an der Wand (die Mitte des Fräsers r_w neben der Mittellinie): aus der Mitte
+    des Endes `ende` im Halbkreis hinaus, die Runde, im Halbkreis zurück. Der Punkt davor liegt
+    in der Mitte des Endes. Gibt die Länge zurück."""
+    anderes = nut.b if ende == nut.a else nut.a
+    ux, uy = _richtung(ende, anderes)
+    drehung = -1.0 if uhr else 1.0
+    # Gegen den Uhrzeigersinn (Gleichlauf) beginnt die Runde rechts der Mittellinie.
+    qx, qy = drehung * uy, -drehung * ux
+    seite = math.atan2(qy, qx)
+    rand = (ende[0] + r_w * qx, ende[1] + r_w * qy)
+    halb = ((ende[0] + rand[0]) / 2, (ende[1] + rand[1]) / 2, uhr)
+    weg = _hin(punkte, rand[0], rand[1], z, bogen=halb)
+    weg += _hin(punkte, anderes[0] + r_w * qx, anderes[1] + r_w * qy, z)
+    weg += _bogen(punkte, anderes, r_w, seite, seite + drehung * math.pi, z, z, uhr)
+    weg += _hin(punkte, ende[0] - r_w * qx, ende[1] - r_w * qy, z)
+    gegen = seite + math.pi
+    weg += _bogen(punkte, ende, r_w, gegen, gegen + drehung * math.pi, z, z, uhr)
+    weg += _hin(punkte, ende[0], ende[1], z, bogen=halb)
+    return weg
+
+
+def _schlichten(punkte, nut, w, r_w, oben, z_ende, ende, uhr):
+    """Die Wand rundum in Zügen von höchstens der Schneidenlänge, von oben. Gibt die Länge
+    zurück."""
+    hoehe = min(oben, nut.z_oben) - z_ende
+    anzahl = 1
+    if 0 < w.schneidenlaenge < hoehe - GLEICH:
+        anzahl = max(1, int(math.ceil(hoehe / w.schneidenlaenge - 1e-9)))
+    weg = 0.0
+    for i in range(1, anzahl + 1):
+        z = min(oben, nut.z_oben) - hoehe * i / anzahl
+        weg += _hin(punkte, ende[0], ende[1], z)
+        weg += _rundum(punkte, nut, r_w, z, ende, uhr)
+    return weg
+
+
+def verfahren(nut, fraeser_radius, aufmass=0.0):
+    """Wie der Fräser mit dem Radius die Nut fräst: „trochoide“, „vollnut“ – oder „zu_schmal“
+    (er passt nicht hinein), „zu_breit“ (in der Mitte der Kreise bliebe ein Kern)."""
+    R = fraeser_radius
+    if nut.radius < R - 1e-3:
+        return "zu_schmal"
+    r_l = nut.radius - R - max(aufmass, 0.0)
+    if r_l > KERN_ANTEIL * R + GLEICH:
+        return "zu_breit"
+    return "vollnut" if r_l < VOLLNUT_ANTEIL * R else "trochoide"
+
+
+def _nut(punkte, nut, w):
+    """Eine Nut: Trochoide oder Vollnut, dann rundum. Gibt (Länge, Lagen, Kreise, vollnut,
+    z_min) zurück; (0, 0, 0, False, inf), wenn über ihr nichts steht."""
+    R = w.fraeser_radius
+    aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
+    art = verfahren(nut, R, aufmass)
+    breite = einheiten.text(2 * nut.radius, einheiten.LAENGE)
+    if art == "zu_schmal":
+        fraeser = einheiten.text(2 * R, einheiten.LAENGE)
+        raise ValueError(tr("nt.fehler.zu_schmal", breite=breite, fraeser=fraeser))
+    if art == "zu_breit":
+        raise ValueError(tr("nt.fehler.zu_breit", breite=breite))
+    r_w = max(nut.radius - R, 0.0)  # die Mitte des Fräsers an der Wand
+    r_l = nut.radius - R - aufmass  # … auf den Kreisen der Trochoide
+    z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
+    oben = w.oben
+    if oben <= z_ende + GLEICH:
+        return 0.0, 0, 0, False, math.inf
+    uhr = not w.gleichlauf  # Gleichlauf in der Nut: gegen den Uhrzeigersinn (G3)
+    vollnut = art == "vollnut"
+    knapp = min(w.sicher, oben + w.sicherheit)
+    if vollnut:
+        start = nut.a
+    else:
+        ux, uy = _richtung(nut.a, nut.b)
+        start = (nut.a[0] - r_l * ux, nut.a[1] - r_l * uy)  # hinten am Kreis um A
+    punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
+    punkte.append(bn.Punkt(True, start[0], start[1], knapp))
+    punkte.append(bn.Punkt(False, start[0], start[1], oben, True))
+    weg = bn.weg(punkte[-2], punkte[-1])
+    if vollnut:
+        stueck, ende = _vollnut(punkte, nut, w, oben, z_ende)
+        lagen, kreise = 1, 0
+    else:
+        stueck, lagen, kreise, ende = _trochoide(punkte, nut, w, r_l, oben, z_ende, uhr)
+    weg += stueck
+    if r_w > GLEICH and (w.schlichten or vollnut):
+        weg += _schlichten(punkte, nut, w, r_w, oben, z_ende, ende, uhr)
+    letzter = punkte[-1]
+    punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+    return weg, lagen, kreise, vollnut, z_ende
+
+
+def planen(werte, liste):
+    """Die Bahn „Nut“ (Nutbahn) für die Nuten `liste` ([Nut]) mit den Werten `werte`.
+    ValueError mit einem Satz, wenn es nicht geht."""
+    w = werte
+    if w.fraeser_radius <= 0:
+        raise ValueError(tr("nt.fehler.form"))
+    if w.zustellung <= 0 or w.zeilenabstand <= 0:
+        raise ValueError(tr("nt.fehler.werte"))
+    if not liste:
+        raise ValueError(tr("nt.fehler.keine"))
+    # Die kürzeste Reihenfolge: immer zur nächsten.
+    offen = list(liste)
+    folge = []
+    ort = offen[0].a
+    while offen:
+        naechste = min(offen, key=lambda n: math.hypot(n.a[0] - ort[0], n.a[1] - ort[1]))
+        offen.remove(naechste)
+        folge.append(naechste)
+        ort = naechste.b
+    punkte = []
+    laenge = 0.0
+    lagen = kreise = vollnut = gefraest = 0
+    z_min = math.inf
+    for nut in folge:
+        stueck, n_lagen, n_kreise, ist_voll, z = _nut(punkte, nut, w)
+        if not n_lagen:
+            continue
+        gefraest += 1
+        laenge += stueck
+        lagen += n_lagen
+        kreise += n_kreise
+        vollnut += int(ist_voll)
+        z_min = min(z_min, z)
+    if not gefraest:
+        raise ValueError(tr("nt.fehler.nichts"))
+    zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+    return Nutbahn(punkte, gefraest, lagen, kreise, vollnut, z_min, laenge, zeit)
