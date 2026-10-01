@@ -1,7 +1,8 @@
 # Schnittwerte in der Werkzeugverwaltung (W-002): Einsätze für alle Werkstoffe
-# anlegen, n/vf/Q werden gerechnet; ein Werkstoff ohne eigene Werte zeigt sie
-# grau; „Eigene Werte anlegen“ macht eine unabhängige Kopie; Bohrer mit f je
-# Umdrehung; OK speichert alles.
+# anlegen, n/vf/Q werden gerechnet; der Werkstoff steht je Zeile in der ersten Spalte
+# (Manuel, 2026-10-01): eine Zeile für 1.4301 gilt nur dort, C45 bekommt die Zeilen für
+# alle; die Spalte umstellen schiebt die Zeile zum anderen Werkstoff, löschen gibt ihn
+# wieder frei; Bohrer mit f je Umdrehung; OK speichert alles.
 import os
 import sys
 
@@ -38,7 +39,6 @@ def schritte(h):
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
     yield 800
     d = gui_werkzeuge.WerkzeugDialog.offen
-    d.waehle_werkstoff(wz.ALLE)
     yield 200
     s = d.schnittwerte
     h.pruefe(s.isVisible() and s.tabelle.rowCount() == 0, "Schnittwerte fehlen oder nicht leer")
@@ -179,31 +179,68 @@ def schritte(h):
         s.einsatz_entfernen()
     yield 100
     h.pruefe(s.tabelle.rowCount() == 2, f"{s.tabelle.rowCount()} Zeilen nach dem Aufräumen")
-
-    # 1.4301 ohne eigene Werte: grau, nicht bearbeitbar.
-    d.waehle_werkstoff("1.4301")
-    yield 200
-    h.pruefe("gelten die Werte für alle" in s.zustand.text(), f"Zustand: {s.zustand.text()!r}")
+    # Jede Zeile zeigt vorn ihren Werkstoff – bisher „Alle Werkstoffe“.
+    werkstoffe = [s.tabelle.cellWidget(z, gs.WERKSTOFF).currentData() for z in range(2)]
+    h.pruefe(werkstoffe == [wz.ALLE, wz.ALLE], f"Werkstoff je Zeile: {werkstoffe}")
     h.pruefe(
-        not (s.tabelle.item(0, gs.VC).flags() & QtCore.Qt.ItemIsEditable), "geerbte Werte änderbar"
+        s.tabelle.cellWidget(0, gs.WERKSTOFF).currentText() == "Alle Werkstoffe",
+        f"Spalte: {s.tabelle.cellWidget(0, gs.WERKSTOFF).currentText()!r}",
     )
-    h.pruefe(s.knopf_eigene.isVisible() and "1.4301" in s.knopf_eigene.text(), "Knopf „anlegen“")
-    h.bild("2_geerbt", d)
+    h.pruefe(s.zustand.text().startswith("Jede Zeile gilt für den Werkstoff"), s.zustand.text())
 
-    # Eigene Werte: Kopie, unabhängig von „für alle“.
-    s.knopf_eigene.click()
+    # Eine Zeile für 1.4301 (Manuel, 2026-10-01: „Wenn ich Schnittwerte anlege, muss ich das
+    # Material auswählen“): Sie steht hinter den Zeilen für alle, mit 1.4301 in der Spalte;
+    # 1.4301 bekommt nur sie, C45 weiter die Zeilen für alle.
+    eigene = s.einsatz_anlegen(wz.VOLLNUT, "1.4301")
     yield 200
-    h.pruefe(s.zustand.text() == "Eigene Werte für 1.4301.", f"Zustand: {s.zustand.text()!r}")
-    s.setze(0, gs.VC, "80")
+    zeile_1_4301 = s.tabelle.currentRow()
+    h.pruefe(
+        s.tabelle.rowCount() == 3
+        and zeile_1_4301 == 2
+        and s.tabelle.cellWidget(2, gs.WERKSTOFF).currentData() == "1.4301",
+        f"Zeile für 1.4301: {s.tabelle.rowCount()} Zeilen, gewählt {zeile_1_4301}",
+    )
+    h.pruefe("1.4301" in s.tabelle.cellWidget(2, gs.WERKSTOFF).currentText(), "Spalte 1.4301")
+    tooltip = s.tabelle.cellWidget(2, gs.WERKSTOFF).toolTip()
+    h.pruefe("Cr 17,5–19,5" in tooltip and "≤ 215 HB" in tooltip, f"Tooltip zu 1.4301: {tooltip!r}")
+    s.setze(2, gs.VC, "80")
+    s.setze(2, gs.FZ, "0,05")
     yield 100
-    h.pruefe(zelle(d, 0, gs.N) == "2122", f"n bei vc 80: {zelle(d, 0, gs.N)!r}")
-    h.bild("3_eigene_werte", d)
-    d.waehle_werkstoff("1.0503")
+    h.pruefe(zelle(d, 2, gs.N) == "2122", f"n bei vc 80: {zelle(d, 2, gs.N)!r}")
+    fraeser = s.werkzeug
+    h.pruefe(fraeser.einsaetze("1.4301") == [eigene], "1.4301 bekommt nicht nur seine Zeile")
+    h.pruefe(fraeser.einsaetze("1.0503")[0].vc == 120, "C45 bekommt nicht die Zeilen für alle")
+    h.bild("2_zeile_fuer_1_4301", d)
+    # Eine zweite Zeile für 1.4301 (die Kopie bleibt beim Werkstoff), dann zu C45 umgestellt:
+    # 1.4301 behält eine, C45 hat jetzt seine; die Zeile zu C45 gelöscht: C45 wieder frei.
+    kopie = s.einsatz_kopieren()
+    yield 100
+    h.pruefe(
+        kopie is not None and fraeser.einsaetze("1.4301") == [eigene, kopie],
+        f"Kopie für 1.4301: {[e.name for e in fraeser.einsaetze('1.4301')]}",
+    )
+    zeile_kopie = s.tabelle.currentRow()
+    s.tabelle.cellWidget(zeile_kopie, gs.WERKSTOFF).setCurrentIndex(
+        s.tabelle.cellWidget(zeile_kopie, gs.WERKSTOFF).findData("1.0503")
+    )
     yield 200
-    h.pruefe(zelle(d, 0, gs.VC) == "120", f"C45 zeigt vc {zelle(d, 0, gs.VC)!r} statt 120")
-    d.waehle_werkstoff("1.4301")
-    yield 200
-    h.pruefe(zelle(d, 0, gs.VC) == "80", f"1.4301 zeigt vc {zelle(d, 0, gs.VC)!r} statt 80")
+    h.pruefe(
+        fraeser.einsaetze("1.4301") == [eigene] and fraeser.einsaetze("1.0503") == [kopie],
+        f"umgestellt: 1.4301 {len(fraeser.einsaetze('1.4301'))}, C45 {fraeser.schnittwerte.get('1.0503')}",
+    )
+    h.pruefe(
+        s.tabelle.cellWidget(s.tabelle.currentRow(), gs.WERKSTOFF).currentData() == "1.0503",
+        "die umgestellte Zeile ist nicht gewählt",
+    )
+    h.bild("3_zeile_umgestellt", d)
+    s.einsatz_entfernen()
+    yield 100
+    h.pruefe(
+        "1.0503" not in fraeser.schnittwerte and fraeser.einsaetze("1.0503")[0].vc == 120,
+        f"C45 nach dem Löschen: {fraeser.schnittwerte.get('1.0503')}",
+    )
+    s.tabelle.setCurrentCell(0, gs.EINSATZ)
+    yield 100
 
     # Bohrer: f je Umdrehung, ohne ae und ap.
     bohrer = d.werkzeug_anlegen()
@@ -221,9 +258,8 @@ def schritte(h):
     d.feld_spitzenwinkel.setText("130")
     d.feld_spitzenwinkel.editingFinished.emit()
     h.pruefe(bohrer.spitzenwinkel == 130, f"Spitzenwinkel {bohrer.spitzenwinkel}")
-    d.waehle_werkstoff(wz.ALLE)
     yield 200
-    s.einsatz_anlegen(wz.BOHREN)
+    s.einsatz_anlegen(wz.BOHREN)  # das neue Werkzeug hat keine Zeile: für alle Werkstoffe
     s.setze(0, gs.VC, "80")
     s.setze(0, gs.FZ, "0,2")
     yield 100

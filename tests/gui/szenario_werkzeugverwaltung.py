@@ -36,6 +36,7 @@ def schritte(h):
     yield 300
     QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.German, QtCore.QLocale.Germany))
 
+    from camaddon import gui_schnittwerte as gs
     from camaddon import gui_werkzeugbild, gui_werkzeuge
     from camaddon import werkzeuge as wz
     from camaddon.gui_teile import GRAU
@@ -47,32 +48,13 @@ def schritte(h):
     if d is None:
         return
     h.pruefe(d.leer.isVisible(), "leere Liste: Hinweis „Neu …“ fehlt")
-    h.pruefe(d.werkstoff == wz.ALLE, f"Start mit Werkstoff {d.werkstoff!r} statt „Alle“")
+    # Oben nur „Werkstoffe…“ und mm/inch – der Werkstoff steht je Zeile in den Schnittwerten
+    # (Manuel, 2026-10-01; szenario_schnittwerte).
+    h.pruefe(
+        d.knopf_werkstoffe.isVisible() and not hasattr(d, "wahl_werkstoff"),
+        "Werkstoff-Auswahl oben noch da",
+    )
     h.bild("1_leer", d)
-
-    # Werkstoff suchen: „1.43“ tippen, erster Vorschlag, Enter.
-    zeile = d.wahl_werkstoff.lineEdit()
-    zeile.setFocus()
-    zeile.selectAll()
-    QtTest.QTest.keyClicks(zeile, "1.43")
-    yield 400
-    vorschlaege = d.wahl_werkstoff.completer().popup()
-    h.pruefe(vorschlaege.isVisible(), "Suche zeigt keine Vorschläge")
-    bildschirm("2_suche_1_43")
-    QtTest.QTest.keyClick(vorschlaege, QtCore.Qt.Key_Down)
-    QtTest.QTest.keyClick(vorschlaege, QtCore.Qt.Key_Return)
-    yield 300
-    h.pruefe(d.werkstoff == "1.4301", f"gewählt: {d.werkstoff!r} statt 1.4301")
-    info = d.werkstoff_info.text()
-    h.pruefe("Cr 17,5–19,5" in info and "≤ 215 HB" in info, f"Info zu 1.4301: {info!r}")
-    h.bild("3_werkstoff_1_4301", d)
-
-    # Die ganze Liste mit den ISO-Farben.
-    d.wahl_werkstoff.showPopup()
-    yield 400
-    bildschirm("4_werkstoffliste")
-    d.wahl_werkstoff.hidePopup()
-    yield 200
 
     # Ein Werkzeug anlegen: graue Beispielwerte (Ø 12), gültig; das Bild zeigt die Form.
     d.knopf_neu.click()
@@ -266,7 +248,6 @@ def schritte(h):
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
     yield 800
     d = gui_werkzeuge.WerkzeugDialog.offen
-    h.pruefe(d.werkstoff == "1.4301", f"Werkstoff nach Wiederöffnen: {d.werkstoff!r}")
     h.pruefe(d.liste.count() == 2, f"{d.liste.count()} Werkzeuge nach Wiederöffnen")
     # Suche: nur der Torusfräser; das gewählte Werkzeug folgt.
     d.suche.setText("torus")
@@ -297,31 +278,26 @@ def schritte(h):
         "verworfen, aber gespeichert",
     )
 
-    # Der erste Einsatz eines neuen Werkzeugs, oben 1.4301 (D-12): „+ Einsatz“ geht, der
-    # Einsatz gilt für alle Werkstoffe, oben steht dann „Alle Werkstoffe“.
+    # Der erste Einsatz eines neuen Werkzeugs: „+ Einsatz“ geht gleich, die Zeile gilt für
+    # alle Werkstoffe (vorn „Alle Werkstoffe“, umstellbar).
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
     yield 800
     d = gui_werkzeuge.WerkzeugDialog.offen
-    h.pruefe(d is not None and d.werkstoff == "1.4301", "Werkstoff beim dritten Öffnen")
+    h.pruefe(d is not None, "Werkzeugverwaltung beim dritten Öffnen")
     if d is None:
         return
     d.knopf_neu.click()
     yield 200
     s = d.schnittwerte
     h.pruefe(s.knopf_plus.isEnabled(), "„+ Einsatz“ beim neuen Werkzeug gesperrt")
-    h.pruefe(
-        s.zustand.text().startswith("Dieses Werkzeug hat noch keine Schnittwerte."),
-        f"ohne Einsatz: {s.zustand.text()!r}",
-    )
+    h.pruefe(s.tabelle.rowCount() == 0, "neues Werkzeug mit Zeilen")
     h.bild("9_neu_ohne_einsatz", d)
     einsatz = s.einsatz_anlegen(wz.VOLLNUT)
     yield 200
-    h.pruefe(einsatz is not None and d.werkstoff == wz.ALLE, f"Werkstoff: {d.werkstoff!r}")
     h.pruefe(d.werkzeug.schnittwerte.get(wz.ALLE) == [einsatz], "nicht für alle Werkstoffe")
     h.pruefe(
-        s.zustand.text().startswith("Der erste Einsatz gilt für alle Werkstoffe")
-        and "1.4301" in s.zustand.text(),
-        f"Satz dazu: {s.zustand.text()!r}",
+        s.tabelle.cellWidget(0, gs.WERKSTOFF).currentData() == wz.ALLE,
+        f"Werkstoff der ersten Zeile: {s.tabelle.cellWidget(0, gs.WERKSTOFF).currentData()!r}",
     )
     h.bild("9b_erster_einsatz", d)
     QtCore.QTimer.singleShot(0, d.reject)

@@ -149,8 +149,12 @@ class NeueMaschineDialog(QtGui.QDialog):
 
         self.felder_weg = {}
         self._weg_zeilen = {}
+        # „von“ zählt ins Minus: Das Minus steht fest vor dem Feld, eingetragen wird nur die
+        # Zahl (Manuel, 2026-10-01: „man versucht, einen Wert einzutragen“). Nur Z der
+        # Drehmaschine zählt ab der Spindelnase, beide Enden ohne Minus (_gewechselt).
+        self._negativ = {"X": True, "Y": True, "Z": True}
         for achse, weg in (("X", vorgabe.weg_x), ("Y", vorgabe.weg_y), ("Z", vorgabe.weg_z)):
-            von, bis = _wegfeld(weg[0], unten=True), _wegfeld(weg[1], unten=False)
+            von, bis = _wegfeld(weg[0], negativ=True), _wegfeld(weg[1], negativ=False)
             zeile = QtGui.QWidget()
             reihe = QtGui.QHBoxLayout(zeile)
             reihe.setContentsMargins(0, 0, 0, 0)
@@ -262,12 +266,12 @@ class NeueMaschineDialog(QtGui.QDialog):
         self._x_zeigen(werte, faktor)
 
     def _x_zeigen(self, werte, faktor):
-        """Die X-Wege (von, bis) in den Feldern, gezählt mit `faktor`."""
-        grenze = einheiten.anzeige(beispielmaschine.GROESSTER_WEG * faktor, einheiten.LAENGE)
+        """Die X-Wege (von, bis) in den Feldern, gezählt mit `faktor` – „von“ als Zahl hinter
+        dem festen Minus."""
         von, bis = self.felder_weg["X"]
-        von.setRange(-grenze, 0.0)
-        bis.setRange(0.0, grenze)
-        von.setValue(werte[0])
+        _minus_setzen(von, self._negativ["X"], faktor)
+        _minus_setzen(bis, False, faktor)
+        von.setValue(abs(werte[0]))
         bis.setValue(werte[1])
         self._x_faktor_gezeigt = faktor
         if faktor != 1.0:
@@ -288,7 +292,10 @@ class NeueMaschineDialog(QtGui.QDialog):
             self.feld_name.setPlaceholderText(beispielmaschine.titel(art))
             for achse, (von, bis) in self.felder_weg.items():
                 weg = getattr(vorgabe, f"weg_{achse.lower()}")
-                von.setValue(einheiten.anzeige(weg[0], einheiten.LAENGE))
+                # Z der Drehmaschine zählt ab der Spindelnase: beide Enden ohne Minus.
+                self._negativ[achse] = not (achse == "Z" and art == beispielmaschine.DREHMASCHINE)
+                _minus_setzen(von, self._negativ[achse])
+                von.setValue(einheiten.anzeige(abs(weg[0]), einheiten.LAENGE))
                 bis.setValue(einheiten.anzeige(weg[1], einheiten.LAENGE))
             faktor = self._x_faktor()
             self._x_zeigen(
@@ -344,6 +351,7 @@ class NeueMaschineDialog(QtGui.QDialog):
                     feld,
                     getattr(vorgabe, f"weg_{achse.lower()}")[ende],
                     self._x_faktor_gezeigt if achse == "X" else 1.0,
+                    negativ=ende == 0 and self._negativ[achse],
                 )
                 for ende, feld in enumerate(felder)
             )
@@ -420,24 +428,33 @@ def _vorgabe(art):
     return None
 
 
-def _wert(feld, vorgabe, faktor=1.0):
+def _wert(feld, vorgabe, faktor=1.0, negativ=False):
     """Der Weg eines Felds in mm – im Durchmesser (`faktor` 2) zurück in den Radius; steht
-    dort noch die Vorgabe, genau sie."""
-    if abs(feld.value() - einheiten.anzeige(vorgabe * faktor, einheiten.LAENGE)) < 1e-9:
+    dort noch die Vorgabe, genau sie. `negativ`: Das Feld zeigt die Zahl hinter dem festen
+    Minus – der Weg ist ihr Gegenteil."""
+    vorzeichen = -1.0 if negativ else 1.0
+    gezeigt = einheiten.anzeige(vorgabe * faktor * vorzeichen, einheiten.LAENGE)
+    if abs(feld.value() - gezeigt) < 1e-9:
         return vorgabe
-    return einheiten.metrisch(feld.value(), einheiten.LAENGE) / faktor
+    return vorzeichen * einheiten.metrisch(feld.value(), einheiten.LAENGE) / faktor
 
 
-def _wegfeld(wert, unten):
-    """Ein Ende eines Wegs in mm oder inch; 0 liegt immer dazwischen."""
+def _wegfeld(wert, negativ):
+    """Ein Ende eines Wegs in mm oder inch, eingetragen als Zahl ab 0. `negativ`: Das Feld
+    zählt ins Minus – das Minus steht fest davor (_minus_setzen), man trägt nur die Zahl
+    ein (Manuel, 2026-10-01)."""
     feld = QtGui.QDoubleSpinBox()
     feld.setLocale(zahlenformat())
     feld.setDecimals(einheiten.stellen(einheiten.LAENGE, 0))
-    grenze = einheiten.anzeige(beispielmaschine.GROESSTER_WEG, einheiten.LAENGE)
-    if unten:
-        feld.setRange(-grenze, 0.0)
-    else:
-        feld.setRange(0.0, grenze)
     feld.setSuffix(f" {einheiten.einheit(einheiten.LAENGE)}")
-    feld.setValue(einheiten.anzeige(wert, einheiten.LAENGE))
+    _minus_setzen(feld, negativ)
+    feld.setValue(einheiten.anzeige(abs(wert), einheiten.LAENGE))
     return feld
+
+
+def _minus_setzen(feld, negativ, faktor=1.0):
+    """Das feste Minus vor dem Feld – oder keins – und der Bereich 0 … GROESSTER_WEG (mit
+    `faktor` 2 im Durchmesser)."""
+    feld.setPrefix("−" if negativ else "")
+    grenze = einheiten.anzeige(beispielmaschine.GROESSTER_WEG * faktor, einheiten.LAENGE)
+    feld.setRange(0.0, grenze)

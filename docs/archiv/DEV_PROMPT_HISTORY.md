@@ -12,6 +12,72 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-17 manuels-punkte-werkstoff-wege-spanneisen
+
+### EINGELESEN
+- Manuel (2026-10-01): Testteil im Repo? („wenn nein bitte mal hochladen“); „Neue Maschine“ –
+  die Weg-Felder „von“ lassen sich nur ins Minus eintragen („befremdlich, weil man versucht,
+  einen Wert einzutragen … das Minus pauschal davor setzen und nur die Zahl eintragen
+  lassen“); die zwei viereckigen Klötze auf dem Tisch der 3-Achs-Fräse („was ist das?“); der
+  Werkstoff oben in der Werkzeugverwaltung („das Material muss zu den Schnittwerten … wenn
+  ich Schnittwerte anlege, muss ich das Material auswählen“).
+- `gui_neue_maschine` (`_wegfeld`, `_wert`, `masse`, `_x_zeigen`, `_gewechselt`),
+  `beispielmaschine.fraesmaschine` und der Baukasten (`bauteil`), `kollision._Welt`
+  (Bauteile im Glied, Name des Bauteils), `gui_schnittwerte.SchnittwertBereich` und
+  `gui_werkzeuge` (Werkstoff-Auswahl oben, `werkstoffe_anbieten`, `_info_text`),
+  `werkzeuge.Werkzeug.schnittwerte` (je Werkstoff eine Liste), die Szenarien dazu.
+
+### DATEIEN
+- `camaddon/gui_neue_maschine.py`, `camaddon/beispielmaschine.py`,
+  `camaddon/gui_schnittwerte.py`, `camaddon/gui_werkzeuge.py`, `camaddon/gui_abfahren.py`
+  (Schlüssel wörtlich), `translations/de.json`, `translations/en.json`,
+  `help/de|en/neue_maschine.html`, `help/de|en/werkzeuge.html`, `help/de|en/schnittwerte.html`,
+  `tests/test_kollision.py`, `tests/gui/szenario_neue_maschine.py`,
+  `tests/gui/szenario_kollision.py`, `tests/gui/szenario_schnittwerte.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py`, `package.xml` (0.39.0), `docs/aufbau.md`,
+  `docs/spezifikation_werkzeugverwaltung.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+„Neue Maschine“: Vor jedem „von“-Feld steht fest ein Minus, das Feld nimmt nur die Zahl
+(3-Achs-Fräse: „−250 mm … 250 mm“; 40 eintragen heißt −40); Z der Drehmaschine zählt ab der
+Spindelnase, beide Felder ohne Minus; die Vorgaben bleiben genau (FraesenMasse()). Die
+Beispiel-Fräse hat je Seite ein Spanneisen aus Eisen (flach auf dem Tisch), Schraube und
+Mutter – ein Bauteil „Spanneisen_rechts“; bei X 150 setzt die Spindel mit der Nase auf der
+Schraube auf (Z 34), das Werkzeug fährt über dem Eisen vorbei. Werkzeugverwaltung: oben nur
+„Werkstoffe…“ und mm/inch; die Schnittwert-Tabelle hat vorn die Spalte „Werkstoff“ mit einer
+Auswahl je Zeile (Tooltip mit den Angaben zum Werkstoff); eine Zeile für 1.4301 steht hinter
+den Zeilen für alle, 1.4301 bekommt nur sie, C45 die Zeilen für alle; die Kopie bleibt beim
+Werkstoff, die Spalte auf C45 umgestellt schiebt die Zeile dorthin, löschen gibt C45 wieder
+frei; ein neues Werkzeug bekommt seine erste Zeile für alle Werkstoffe; OK speichert.
+
+### DONE
+- Weg-Felder: `_wegfeld(wert, negativ)` mit festem Präfix „−“ und Bereich 0 … GROESSTER_WEG,
+  `_minus_setzen`, `_wert(…, negativ)` kehrt das Vorzeichen um; `_gewechselt` nimmt Z der
+  Drehmaschine das Minus; Tooltip und Hilfe sagen es.
+- Spanneisen: je ein `bauteil` aus Eisen (90 × 30 × 16), Schraube (Ø 12, 60 hoch) und Mutter
+  – die Kollisionsprüfung nennt das Bauteil; Beschreibung der Bauart sagt, was es ist.
+  Prüfung und Szenario fahren jetzt X 150 (über der Schraube).
+- Werkstoff je Zeile: `SchnittwertBereich.zeige(werkzeug, bibliothek)` zeigt alle Listen des
+  Werkzeugs als (Kennung, Einsatz)-Zeilen in der Reihenfolge der Werkstoffauswahl, Spalte
+  WERKSTOFF mit einer Auswahl je Zeile (geteiltes Modell, beim Neufüllen stumm, fest 190 px
+  breit), `gewaehlter_werkstoff`, `einsatz_anlegen(art, werkstoff=None)`, Kopie beim
+  Werkstoff, `einsatz_entfernen` räumt leere Listen weg, `werkstoff_setzen(zeile, kennung)`
+  schiebt die Zeile, Planer und Vergleich für den Werkstoff der Zeile; `werkstoff_info` als
+  Tooltip. `gui_werkzeuge` ohne Werkstoff-Auswahl und Info oben; „Eigene Werte
+  anlegen/löschen“, „erster Einsatz für alle“ und ihre Texte weg.
+- Manuels Testteil: nie als Datei angekommen – nicht im Repo; wartet auf seinen Upload.
+
+### TEST
+- `test_sprache`, `test_hilfe`, `test_kollision` und die Szenarien `szenario_schnittwerte`,
+  `szenario_werkzeugverwaltung`, `szenario_neue_maschine`, `szenario_kollision` in 1.1.3 ok;
+  black/ruff ok. Beim Bauen gefunden: Die Zeilen-Auswahlen meldeten beim Neufüllen des
+  geteilten Modells eine Wahl (KeyError) – jetzt stumm; die Spalte war so breit wie der
+  längste Werkstoff – jetzt fest.
+
+### NEXT
+- Manuels Testteil ins Repo (`beispiele/`), sobald er es hochlädt; dann S3e Kontur.
+
 ## P-2026-10-01-16 s3d-pruefen-quader
 
 ### EINGELESEN

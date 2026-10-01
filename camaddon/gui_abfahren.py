@@ -512,7 +512,7 @@ def _rest_satz(vergleich, aufmass, quader=False):
     if vergleich.groesster >= aufmass + rm.ROT_AB:
         satz += " " + tr("rm.zu_viel", grenze=mm(aufmass + rm.ROT_AB))
     if vergleich.nur_gewaehlte:  # V4: der Rest ist Stange (oder Kasten), mit Absicht
-        satz += " " + tr("rm.nur_gewaehlte_quader" if quader else "rm.nur_gewaehlte")
+        satz += " " + (tr("rm.nur_gewaehlte_quader") if quader else tr("rm.nur_gewaehlte"))
     if vergleich.ohne_vergleich:  # P-2026-09-30-44: das Teil liegt dort nicht rund um die Achse
         stellen = tr("rm.und_von").join(
             tr("rm.von_bis", von=mm(von), bis=mm(bis)) for von, bis in vergleich.ohne_vergleich[:3]

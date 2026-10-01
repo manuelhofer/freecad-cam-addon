@@ -177,36 +177,24 @@ class WerkzeugDialog(QtGui.QDialog):
         aufbau.addLayout(unten)
         ruhiges_mausrad(self)
 
-        self._werkstoffe_anbieten()
-        self.waehle_werkstoff(_parameter().GetString("WvWerkstoff", wz.ALLE))
         self._liste_aufbauen(auswahl=self._zuletzt_gewaehlt())
 
     # --- Aufbau -------------------------------------------------------------------
 
     def _bereich_werkstoff(self):
+        """Oben: „Werkstoffe…“ (die Liste mit Suche, allen Angaben und eigenen Werkstoffen)
+        und mm/inch. Der Werkstoff selbst steht je Zeile in der Schnittwert-Tabelle (Manuel,
+        2026-10-01: „das Material muss zu den Schnittwerten“)."""
         rahmen = QtGui.QWidget()
         aufbau = QtGui.QVBoxLayout(rahmen)
         aufbau.setContentsMargins(0, 0, 0, 0)
-        aufbau.addWidget(kopfzeile(tr("wv.werkstoff"), "werkstoffe"))
-        self.wahl_werkstoff = QtGui.QComboBox()
-        self.wahl_werkstoff.setEditable(True)
-        self.wahl_werkstoff.setInsertPolicy(QtGui.QComboBox.NoInsert)
-        self.wahl_werkstoff.setToolTip(tr("wv.werkstoff.tooltip"))
-        self.wahl_werkstoff.setMaxVisibleItems(20)
-        suche = QtGui.QCompleter(self.wahl_werkstoff.model(), self.wahl_werkstoff)
-        suche.setFilterMode(QtCore.Qt.MatchContains)
-        suche.setCaseSensitivity(QtCore.Qt.CaseInsensitive)
-        suche.setCompletionMode(QtGui.QCompleter.PopupCompletion)
-        self.wahl_werkstoff.setCompleter(suche)
-        self.wahl_werkstoff.currentIndexChanged.connect(self._werkstoff_gewaehlt)
-        # Getippter Text, der zu nichts passt, weicht wieder dem gewählten Werkstoff.
-        self.wahl_werkstoff.lineEdit().editingFinished.connect(self._werkstoff_text_zuruecksetzen)
+        aufbau.addWidget(kopfzeile(tr("wv.werkstoffe_masssystem"), "werkstoffe"))
         zeile = QtGui.QHBoxLayout()
-        zeile.addWidget(self.wahl_werkstoff, 1)
         self.knopf_werkstoffe = knopf(
             tr("wv.werkstoffe"), tr("wv.werkstoffe.tooltip"), self.werkstoffe_zeigen
         )
         zeile.addWidget(self.knopf_werkstoffe)
+        zeile.addStretch()
         # mm oder inch – gilt für das ganze Addon; gespeichert wird in mm.
         self.wahl_masssystem = QtGui.QComboBox()
         self.wahl_masssystem.addItem("mm", einheiten.METRISCH)
@@ -216,10 +204,6 @@ class WerkzeugDialog(QtGui.QDialog):
         self.wahl_masssystem.currentIndexChanged.connect(self._masssystem_gewechselt)
         zeile.addWidget(self.wahl_masssystem)
         aufbau.addLayout(zeile)
-        self.werkstoff_info = QtGui.QLabel()
-        self.werkstoff_info.setWordWrap(True)
-        self.werkstoff_info.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
-        aufbau.addWidget(self.werkstoff_info)
         return rahmen
 
     def _bereich_liste(self):
@@ -388,9 +372,7 @@ class WerkzeugDialog(QtGui.QDialog):
         self._felder_anordnen(wz.SCHAFTFRAESER)
 
         aufbau.addWidget(self.formular_rahmen)
-        self.schnittwerte = SchnittwertBereich(
-            self._schnittwerte_geaendert, lambda: self.waehle_werkstoff(wz.ALLE)
-        )
+        self.schnittwerte = SchnittwertBereich(self._schnittwerte_geaendert)
         aufbau.addWidget(self.schnittwerte, 1)
         return rahmen
 
@@ -452,20 +434,6 @@ class WerkzeugDialog(QtGui.QDialog):
 
     # --- Werkstoff ------------------------------------------------------------------
 
-    def _werkstoffe_anbieten(self):
-        werkstoffe_anbieten(self.wahl_werkstoff, self.bibliothek)
-
-    @property
-    def werkstoff(self):
-        """Die Kennung des gewählten Werkstoffs, oder wz.ALLE."""
-        return self.wahl_werkstoff.currentData() or wz.ALLE
-
-    def waehle_werkstoff(self, kennung):
-        """Wählt den Werkstoff mit dieser Kennung; unbekannt: „Alle Werkstoffe“."""
-        index = self.wahl_werkstoff.findData(kennung)
-        self.wahl_werkstoff.setCurrentIndex(max(index, 0))
-        self._werkstoff_gewaehlt()
-
     def _masssystem_gewechselt(self, _index):
         """mm oder inch: gilt sofort für das ganze Addon; Felder und Tabelle zeigen um."""
         # Was noch im Feld steht, gilt in der Einheit, in der es getippt wurde.
@@ -476,47 +444,17 @@ class WerkzeugDialog(QtGui.QDialog):
         self._steigung_zeile.einheit.setText(_steigung_einheit())
         self._liste_aufbauen(auswahl=self.werkzeug)
 
-    def _werkstoff_gewaehlt(self, *_):
-        kennung = self.werkstoff
-        _parameter().SetString("WvWerkstoff", kennung)
-        werkstoff = ws.finde(self.bibliothek.alle_werkstoffe(), kennung)
-        self.werkstoff_info.setText(self._info_text(werkstoff))
-        self._schnittwerte_zeigen()
-
     def werkstoffe_zeigen(self):
-        """„Werkstoffe…“: die ganze Liste, eigene anlegen und ändern; danach ist der dort
-        gewählte Werkstoff auch hier gewählt."""
+        """„Werkstoffe…“: die ganze Liste, eigene anlegen und ändern – vorgewählt der Werkstoff
+        der gewählten Zeile der Schnittwerte; danach bietet die Tabelle die Liste neu an."""
         dialog = WerkstoffDialog(self, self.bibliothek, iso_symbol)
-        if self.werkstoff != wz.ALLE:
-            dialog.waehle(self.werkstoff)
+        kennung = self.schnittwerte.gewaehlter_werkstoff
+        if kennung != wz.ALLE:
+            dialog.waehle(kennung)
         dialog.exec()
         WerkstoffDialog.offen = None
-        gewaehlt = dialog.gewaehlt
         if dialog.geaendert:
-            self._werkstoffe_anbieten()
-        self.waehle_werkstoff(gewaehlt.kennung if gewaehlt is not None else self.werkstoff)
-
-    def _werkstoff_text_zuruecksetzen(self):
-        wahl = self.wahl_werkstoff
-        text = wahl.itemText(wahl.currentIndex())
-        if wahl.currentText() != text:
-            wahl.setEditText(text)
-
-    def _info_text(self, werkstoff):
-        """Zusammensetzung, Härte, Festigkeit und ISO-Gruppe des gewählten Werkstoffs."""
-        if werkstoff is None:
-            return tr("wv.alle_werkstoffe.info")
-        zeilen = []
-        if werkstoff.zusammensetzung:
-            zeilen.append(tr("wv.info.zusammensetzung", text=dezimal(werkstoff.zusammensetzung)))
-        teile = []
-        if werkstoff.haerte:
-            teile.append(tr("wv.info.haerte", text=dezimal(werkstoff.haerte)))
-        if werkstoff.zugfestigkeit:
-            teile.append(tr("wv.info.zugfestigkeit", text=dezimal(werkstoff.zugfestigkeit)))
-        teile.append(tr("wv.info.iso", iso=werkstoff.iso, text=ws.iso_text(werkstoff.iso)))
-        zeilen.append("  ·  ".join(teile))
-        return "\n".join(zeilen)
+            self._schnittwerte_zeigen()
 
     # --- Werkzeugliste ----------------------------------------------------------------
 
@@ -648,11 +586,8 @@ class WerkzeugDialog(QtGui.QDialog):
         self._schnittwerte_zeigen()
 
     def _schnittwerte_zeigen(self):
-        """Die Schnittwerte des gewählten Werkzeugs für den gewählten Werkstoff."""
-        kennung = self.werkstoff
-        werkstoff = ws.finde(self.bibliothek.alle_werkstoffe(), kennung)
-        kurz = (werkstoff.nummer or werkstoff.kurzname) if werkstoff else tr("wv.alle_werkstoffe")
-        self.schnittwerte.zeige(self.werkzeug, kennung, kurz, werkstoff)
+        """Die Schnittwerte des gewählten Werkzeugs – alle, je Zeile mit ihrem Werkstoff."""
+        self.schnittwerte.zeige(self.werkzeug, self.bibliothek)
 
     def _schnittwerte_geaendert(self):
         """Eine Änderung in der Tabelle; gespeichert wird erst mit OK oder Übernehmen."""

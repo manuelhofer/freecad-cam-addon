@@ -56,7 +56,8 @@ def schritte(h):
     teil.recompute()
     job = PathJob.Create("Job", [koerper])
     op = PathCustom.Create("Eigene")
-    op.Gcode = ["G0 X110 Y30 Z70", "G1 Z20 F10", "G0 Z70"]
+    # X 150: über der Schraube des rechten Spanneisens (siehe test_kollision).
+    op.Gcode = ["G0 X150 Y30 Z70", "G1 Z20 F10", "G0 Z70"]
     teil.recompute()
     yield 500
 
@@ -108,7 +109,7 @@ def schritte(h):
     h.pruefe(
         len(saetze) == 1
         and saetze[0].startswith(
-            "In „Eigene“ berühren sich „Spindel“ und „Spanneisen_rechts“ (Satz 4, bei X 110, "
+            "In „Eigene“ berühren sich „Spindel“ und „Spanneisen_rechts“ (Satz 4, bei X 150, "
             "Y 30, Z "
         ),
         f"Sätze: {saetze}",

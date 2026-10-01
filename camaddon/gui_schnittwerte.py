@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Die Schnittwert-Tabelle in der Werkzeugverwaltung (W-002, Spezifikation Abschnitt 6).
 
-Eine Zeile je Einsatz: eingegeben werden ae, ap, vc und fz, gerechnet und grau
-daneben n, vf und Q. ae und ap wahlweise in mm oder in % von D – gespeichert
-wird immer in mm. Welche Tabelle gilt, hängt vom Werkstoff oben im Dialog
-ab: seine eigene, sonst die für alle Werkstoffe – die ist dann nur zu sehen,
-bis man für den Werkstoff eigene Werte anlegt. Die Daten stehen in
-werkzeuge.py, das Rechnen in schnittdaten.py.
+Eine Zeile je Einsatz: vorn der Werkstoff, für den sie gilt – wählbar je Zeile (Manuel,
+2026-10-01: „das Material muss zu den Schnittwerten … wenn ich Schnittwerte anlege, muss
+ich das Material auswählen“); „Alle Werkstoffe“ gilt für jeden Werkstoff, der keine
+eigene Zeile hat. Eingegeben werden ae, ap, vc und fz, gerechnet und grau daneben n, vf
+und Q. ae und ap wahlweise in mm oder in % von D – gespeichert wird immer in mm. Die
+Daten stehen in werkzeuge.py (je Werkstoff eine Liste), das Rechnen in schnittdaten.py.
 """
 
 import dataclasses
@@ -25,9 +25,10 @@ from .gui_eingriff import EingriffBild
 from .gui_hilfe import kopfzeile
 from .gui_schruppwerte import SchruppDialog
 from .gui_strategie import StrategieDialog
-from .gui_teile import GRAU, hinweiszeile, knopf
+from .gui_teile import GRAU, hinweiszeile, knopf, ruhiges_mausrad
 from .gui_zahlen import (
     Zahlenpruefer,
+    dezimal,
     groesse_fest,
     groesse_lesen,
     groesse_zeigen,
@@ -38,30 +39,50 @@ from .gui_zahlen import (
 from .sprache import tr
 
 # Spalten der Tabelle.
-EINSATZ, AE, AP, VC, FZ, N, VF, Q = range(8)
+WERKSTOFF, EINSATZ, AE, AP, VC, FZ, N, VF, Q = range(9)
 EINGABE_SPALTEN = {AE: "ae", AP: "ap", VC: "vc", FZ: "fz"}
 TABELLE_MINDESTHOEHE = 150  # Pixel
+WERKSTOFF_BREITE = 190  # Pixel – die Spalte mit der Auswahl des Werkstoffs
 SPAN = einheiten.SPAN  # fz und Spandicke: mm oder inch, feiner gerundet
 # Gemerkt in den Einstellungen: ae und ap in % von D statt in mm.
 IN_PROZENT = "SchnittwerteInProzent"
 
 
+def werkstoff_info(werkstoff):
+    """Zusammensetzung, Härte, Festigkeit und ISO-Gruppe eines Werkstoffs – als Tooltip der
+    Werkstoff-Auswahl in der Zeile; None: „Alle Werkstoffe“."""
+    if werkstoff is None:
+        return tr("wv.alle_werkstoffe.info")
+    zeilen = []
+    if werkstoff.zusammensetzung:
+        zeilen.append(tr("wv.info.zusammensetzung", text=dezimal(werkstoff.zusammensetzung)))
+    teile = []
+    if werkstoff.haerte:
+        teile.append(tr("wv.info.haerte", text=dezimal(werkstoff.haerte)))
+    if werkstoff.zugfestigkeit:
+        teile.append(tr("wv.info.zugfestigkeit", text=dezimal(werkstoff.zugfestigkeit)))
+    teile.append(tr("wv.info.iso", iso=werkstoff.iso, text=ws.iso_text(werkstoff.iso)))
+    zeilen.append("  ·  ".join(teile))
+    return "\n".join(zeilen)
+
+
 class SchnittwertBereich(QtGui.QWidget):
-    """Überschrift, Zustand (eigene Werte oder für alle), Tabelle, Knöpfe, Hinweise.
+    """Überschrift, Satz zum Werkstoff je Zeile, Tabelle, Knöpfe, Hinweise.
 
     `geaendert()` wird nach jeder Änderung an den Werten aufgerufen; `alle_waehlen()` stellt
     oben „Alle Werkstoffe“ ein – für den ersten Einsatz eines Werkzeugs (D-12).
     """
 
-    def __init__(self, geaendert, alle_waehlen=None):
+    def __init__(self, geaendert):
         super().__init__()
         self._geaendert = geaendert
-        self._alle_waehlen = alle_waehlen
         self.werkzeug = None
-        self.werkstoff = wz.ALLE
-        self._liste = []  # die gezeigten Einsätze
-        self._bearbeitbar = False
+        self.bibliothek = None
+        self._liste = []  # die gezeigten Zeilen: (Kennung des Werkstoffs, Einsatz)
         self._fuellt = False
+        # Die Werkstoffe zur Wahl – ein Modell für die Auswahl in jeder Zeile.
+        self._werkstoffe = QtGui.QComboBox()
+        self._werkstoffe.hide()
 
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.setContentsMargins(0, 0, 0, 0)
@@ -89,15 +110,10 @@ class SchnittwertBereich(QtGui.QWidget):
         self.wahl_einheit.setCurrentIndex(self.wahl_einheit.findData(gemerkt))
         self.wahl_einheit.currentIndexChanged.connect(self._einheit_gewechselt)
         zeile.addWidget(self.wahl_einheit)
-        self.knopf_eigene = knopf("", tr("wv.eigene_anlegen.tooltip"), self.eigene_anlegen)
-        self.knopf_eigene_weg = knopf(
-            tr("wv.eigene_loeschen"), tr("wv.eigene_loeschen.tooltip"), self.eigene_loeschen
-        )
-        zeile.addWidget(self.knopf_eigene)
-        zeile.addWidget(self.knopf_eigene_weg)
         aufbau.addLayout(zeile)
+        self.zustand.setText(tr("wv.schnittwerte.werkstoffe"))
 
-        self.tabelle = QtGui.QTableWidget(0, 8)
+        self.tabelle = QtGui.QTableWidget(0, 9)
         self.tabelle.setMinimumHeight(TABELLE_MINDESTHOEHE)
         self.tabelle.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.tabelle.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
@@ -107,6 +123,10 @@ class SchnittwertBereich(QtGui.QWidget):
         kopf = self.tabelle.horizontalHeader()
         kopf.setSectionResizeMode(QtGui.QHeaderView.ResizeToContents)
         kopf.setSectionResizeMode(EINSATZ, QtGui.QHeaderView.Stretch)
+        # Die Werkstoff-Spalte fest so breit, dass Nummer und Kurzname zu lesen sind – die
+        # Auswahl darin zeigt den Rest beim Aufklappen.
+        kopf.setSectionResizeMode(WERKSTOFF, QtGui.QHeaderView.Interactive)
+        self.tabelle.setColumnWidth(WERKSTOFF, WERKSTOFF_BREITE)
         self.tabelle.itemChanged.connect(self._zelle_geaendert)
         self.tabelle.currentCellChanged.connect(lambda *_: self._hinweise())
         aufbau.addWidget(self.tabelle, 1)
@@ -196,21 +216,24 @@ class SchnittwertBereich(QtGui.QWidget):
 
     # --- von außen ------------------------------------------------------------------
 
-    def zeige(self, werkzeug, werkstoff, werkstoff_kurz, werkstoff_objekt=None):
-        """Zeigt die Tabelle, die für `werkzeug` und den Werkstoff (Kennung) gilt.
+    def zeige(self, werkzeug, bibliothek):
+        """Zeigt alle Einsätze von `werkzeug` – je Zeile mit dem Werkstoff, für den sie gilt;
+        `bibliothek` (werkzeuge.Bibliothek) gibt die Werkstoffe zur Wahl."""
+        from .gui_werkzeuge import werkstoffe_anbieten
 
-        `werkstoff_kurz` steht auf dem Knopf: „Eigene Werte für 1.4301 anlegen“;
-        `werkstoff_objekt` (None bei „Alle Werkstoffe“) braucht der Vergleich
-        für die Schnittleistung.
-        """
         self.werkzeug = werkzeug
-        self.werkstoff = werkstoff
-        self._werkstoff_kurz = werkstoff_kurz
-        self._werkstoff_objekt = werkstoff_objekt
+        self.bibliothek = bibliothek
         if werkzeug is None:
             self.hide()
             return
         self.show()
+        # Die Auswahl in den Zeilen teilt das Modell: Beim Neufüllen melden sie eine Wahl –
+        # die zählt nicht (_werkstoff_gewechselt).
+        self._fuellt = True
+        try:
+            werkstoffe_anbieten(self._werkstoffe, bibliothek)
+        finally:
+            self._fuellt = False
         ohne = wz.einsatzarten(werkzeug.art) is None
         self.inhalt.setVisible(not ohne)
         self.ohne_tabelle.setVisible(ohne)
@@ -223,21 +246,7 @@ class SchnittwertBereich(QtGui.QWidget):
             )
             self._liste = []
             return
-        eigene = werkzeug.zum_bearbeiten(werkstoff)
-        self._bearbeitbar = eigene is not None
-        self._liste = eigene if eigene is not None else werkzeug.einsaetze(werkstoff)
-        if werkstoff == wz.ALLE:
-            self.zustand.setText(tr("wv.schnittwerte.alle"))
-        elif self._bearbeitbar:
-            self.zustand.setText(tr("wv.schnittwerte.eigene", werkstoff=werkstoff_kurz))
-        elif self._noch_keiner():
-            self.zustand.setText(tr("wv.schnittwerte.noch_keine"))
-        else:
-            self.zustand.setText(tr("wv.schnittwerte.geerbt", werkstoff=werkstoff_kurz))
-        self.knopf_eigene.setText(tr("wv.eigene_anlegen", werkstoff=werkstoff_kurz))
-        self.knopf_eigene.setVisible(not self._bearbeitbar)
-        self.knopf_eigene_weg.setVisible(werkzeug.hat_eigene(werkstoff))
-        self.knopf_plus.setEnabled(self._bearbeitbar or self._noch_keiner())
+        self._liste = self._alle_zeilen()
         self._menue_fuellen()
         self._kopf_setzen()
         self._fuellen()
@@ -245,145 +254,173 @@ class SchnittwertBereich(QtGui.QWidget):
     def auffrischen(self):
         """Nach einer Änderung am Werkzeug (Durchmesser, Schneiden, Art): neu rechnen."""
         if self.werkzeug is not None:
-            self.zeige(self.werkzeug, self.werkstoff, self._werkstoff_kurz, self._werkstoff_objekt)
+            self.zeige(self.werkzeug, self.bibliothek)
 
     @property
     def gewaehlt(self):
         """Der gewählte Einsatz, oder None."""
         zeile = self.tabelle.currentRow()
-        return self._liste[zeile] if 0 <= zeile < len(self._liste) else None
+        return self._liste[zeile][1] if 0 <= zeile < len(self._liste) else None
+
+    @property
+    def gewaehlter_werkstoff(self):
+        """Die Kennung des Werkstoffs der gewählten Zeile – ohne Zeile „Alle Werkstoffe“."""
+        zeile = self.tabelle.currentRow()
+        return self._liste[zeile][0] if 0 <= zeile < len(self._liste) else wz.ALLE
+
+    def _kennungen(self):
+        """Die Kennungen der Werkstoffe in der Reihenfolge der Auswahl: „Alle Werkstoffe“,
+        eigene, dann die mitgelieferten nach ISO-Gruppe."""
+        return [
+            self._werkstoffe.itemData(i)
+            for i in range(self._werkstoffe.count())
+            if self._werkstoffe.itemData(i) is not None
+        ]
+
+    def _alle_zeilen(self):
+        """[(Kennung, Einsatz)] in der Reihenfolge der Werkstoffe; Werkstoffe, die die Auswahl
+        nicht mehr kennt, zuletzt."""
+        bekannt = self._kennungen()
+        reihenfolge = [k for k in bekannt if k in self.werkzeug.schnittwerte]
+        reihenfolge += [k for k in self.werkzeug.schnittwerte if k not in bekannt]
+        return [(k, e) for k in reihenfolge for e in self.werkzeug.schnittwerte[k]]
 
     # --- Aktionen -------------------------------------------------------------------
 
-    def eigene_anlegen(self):
-        """Eigene Werte für den gewählten Werkstoff, als Kopie der Werte für alle."""
-        self.werkzeug.eigene_anlegen(self.werkstoff)
-        self._geaendert()
-        self.auffrischen()
-
-    def eigene_loeschen(self, fragen=True):
-        """Eigene Werte weg – danach gelten wieder die für alle Werkstoffe."""
-        if fragen:
-            antwort = QtGui.QMessageBox.question(
-                self,
-                tr("wv.titel"),
-                tr("wv.eigene_loeschen.frage", werkstoff=self._werkstoff_kurz),
-                QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                QtGui.QMessageBox.No,
-            )
-            if antwort != QtGui.QMessageBox.Yes:
-                return
-        self.werkzeug.eigene_loeschen(self.werkstoff)
-        self._geaendert()
-        self.auffrischen()
-
-    def _noch_keiner(self):
-        """Hat das Werkzeug noch gar keinen Einsatz – und lässt sich „Alle Werkstoffe“ wählen?"""
-        return (
-            self.werkzeug is not None
-            and self._alle_waehlen is not None
-            and not any(self.werkzeug.schnittwerte.values())
-        )
-
-    def einsatz_anlegen(self, art):
-        """Neue Zeile mit ae und ap aus dem Durchmesser vorbelegt; gibt den Einsatz zurück.
-
-        Hat das Werkzeug noch keinen Einsatz und ist oben ein Werkstoff gewählt, gilt der erste
-        für alle Werkstoffe: Oben steht dann „Alle Werkstoffe“, ein Satz sagt es (D-12)."""
-        if not self._bearbeitbar and self._noch_keiner():
-            vorher = self._werkstoff_kurz
-            self._alle_waehlen()
-            self.zustand.setText(tr("wv.einsatz.erster_fuer_alle", werkstoff=vorher))
-        if not self._bearbeitbar:
+    def _werkstoff_objekt(self, kennung):
+        """Der Werkstoff (werkstoffe.Werkstoff) zur Kennung – None bei „Alle Werkstoffe“."""
+        if kennung == wz.ALLE or self.bibliothek is None:
             return None
-        einsatz = wz.vorlage(self.werkzeug, art)
-        einsatz.name = wz.name_fuer_neuen(einsatz, self._liste)
-        self._liste.append(einsatz)
+        return ws.finde(self.bibliothek.alle_werkstoffe(), kennung)
+
+    def _werkstoff_text(self, kennung):
+        werkstoff = self._werkstoff_objekt(kennung)
+        return ws.anzeige(werkstoff) if werkstoff is not None else tr("wv.alle_werkstoffe")
+
+    def _zeile_von(self, einsatz):
+        return next((z for z, (_k, e) in enumerate(self._liste) if e is einsatz), -1)
+
+    def _liste_fuer(self, kennung):
+        return self.werkzeug.schnittwerte.setdefault(kennung, [])
+
+    def _aufraeumen(self, kennung):
+        """Eine leere Liste eines Werkstoffs weg – für ihn gelten dann wieder die Zeilen für
+        alle Werkstoffe."""
+        if kennung != wz.ALLE and not self.werkzeug.schnittwerte.get(kennung):
+            self.werkzeug.schnittwerte.pop(kennung, None)
+
+    def _neu_fuellen(self, einsatz, spalte):
         self._geaendert()
+        self._liste = self._alle_zeilen()
         self._fuellen()
-        self.tabelle.setCurrentCell(len(self._liste) - 1, VC)
+        self.tabelle.setCurrentCell(self._zeile_von(einsatz), spalte)
+
+    def einsatz_anlegen(self, art, werkstoff=None):
+        """Neue Zeile mit ae und ap aus dem Durchmesser vorbelegt – für `werkstoff` (Kennung),
+        ohne Angabe für den Werkstoff der gewählten Zeile, ohne Zeile für alle Werkstoffe; gibt
+        den Einsatz zurück."""
+        if self.werkzeug is None:
+            return None
+        liste = self._liste_fuer(werkstoff or self.gewaehlter_werkstoff)
+        einsatz = wz.vorlage(self.werkzeug, art)
+        einsatz.name = wz.name_fuer_neuen(einsatz, liste)
+        liste.append(einsatz)
+        self._neu_fuellen(einsatz, VC)
         return einsatz
 
     def einsatz_kopieren(self):
-        """Kopie der gewählten Zeile direkt darunter, mit Nummer im Namen; gibt sie zurück.
+        """Kopie der gewählten Zeile direkt darunter, für denselben Werkstoff, mit Nummer im
+        Namen; gibt sie zurück.
 
         Für Varianten: dieselben Werte, dann etwa ae ändern und beide unter
         „Strategien vergleichen…“ nebeneinanderstellen.
         """
         einsatz = self.gewaehlt
-        if not self._bearbeitbar or einsatz is None:
+        if einsatz is None:
             return None
-        kopie = dataclasses.replace(einsatz, name=wz.name_fuer_neuen(einsatz, self._liste))
-        zeile = self.tabelle.currentRow() + 1
-        self._liste.insert(zeile, kopie)
-        self._geaendert()
-        self._fuellen()
+        liste = self._liste_fuer(self.gewaehlter_werkstoff)
+        kopie = dataclasses.replace(einsatz, name=wz.name_fuer_neuen(einsatz, liste))
+        liste.insert(liste.index(einsatz) + 1, kopie)
         # Meist ändert man in der Variante ae; beim Bohrer gibt es keine ae-Spalte.
-        self.tabelle.setCurrentCell(zeile, VC if self._bohrend() else AE)
+        self._neu_fuellen(kopie, VC if self._bohrend() else AE)
         return kopie
 
     def einsatz_entfernen(self):
-        """Entfernt die gewählte Zeile."""
+        """Entfernt die gewählte Zeile; die letzte eines Werkstoffs nimmt seine Liste mit –
+        für ihn gelten dann wieder die Zeilen für alle Werkstoffe."""
         zeile = self.tabelle.currentRow()
-        if not self._bearbeitbar or not 0 <= zeile < len(self._liste):
+        if not 0 <= zeile < len(self._liste):
             return
-        del self._liste[zeile]
+        kennung, einsatz = self._liste[zeile]
+        self.werkzeug.schnittwerte[kennung].remove(einsatz)
+        self._aufraeumen(kennung)
         self._geaendert()
+        self._liste = self._alle_zeilen()
         self._fuellen()
-        self.tabelle.setCurrentCell(min(zeile, len(self._liste) - 1), EINSATZ)
+        if self._liste:
+            self.tabelle.setCurrentCell(min(zeile, len(self._liste) - 1), EINSATZ)
+
+    def werkstoff_setzen(self, zeile, kennung):
+        """Die Zeile `zeile` gilt ab jetzt für den Werkstoff `kennung`: Sie wandert ans Ende
+        seiner Liste; die alte Liste, wenn leer, weg."""
+        if not 0 <= zeile < len(self._liste):
+            return
+        vorher, einsatz = self._liste[zeile]
+        if kennung == vorher or einsatz not in self.werkzeug.schnittwerte.get(vorher, []):
+            return
+        self.werkzeug.schnittwerte[vorher].remove(einsatz)
+        self._aufraeumen(vorher)
+        liste = self._liste_fuer(kennung)
+        einsatz.name = wz.name_fuer_neuen(einsatz, liste)
+        liste.append(einsatz)
+        self._neu_fuellen(einsatz, EINSATZ)
 
     def strategien_vergleichen(self):
-        """„Strategien vergleichen…“: zwei Einsätze dieser Tabelle nebeneinander."""
-        if self._bohrend() or len(self._liste) < 2:
+        """„Strategien vergleichen…“: zwei Einsätze, die für den Werkstoff der gewählten Zeile
+        gelten, nebeneinander."""
+        kennung = self.gewaehlter_werkstoff
+        liste = self.werkzeug.einsaetze(kennung) if self.werkzeug is not None else []
+        if self._bohrend() or len(liste) < 2:
             return
-        if self._werkstoff_objekt is not None:
-            text = ws.anzeige(self._werkstoff_objekt)
-        else:
-            text = tr("wv.alle_werkstoffe")
         # Ohne dezimal(): Die Werkstoffnummer 1.0503 ist keine Kommazahl.
         dialog = StrategieDialog(
-            self, self.werkzeug, list(self._liste), self._werkstoff_objekt, text
+            self,
+            self.werkzeug,
+            list(liste),
+            self._werkstoff_objekt(kennung),
+            self._werkstoff_text(kennung),
         )
         dialog.exec()
         StrategieDialog.offen = None
 
     def schruppwerte_planen(self):
-        """„Schruppwerte planen…“: der Planer; was er vorschlägt, wird eine neue Zeile."""
+        """„Schruppwerte planen…“: der Planer; was er vorschlägt, wird eine neue Zeile für den
+        Werkstoff der gewählten Zeile."""
         if self.werkzeug is None or not sw.moeglich(self.werkzeug):
             return
-        if self._werkstoff_objekt is not None:
-            text = ws.anzeige(self._werkstoff_objekt)
-        else:
-            text = tr("wv.alle_werkstoffe")
-        if self._bearbeitbar:
-            knopf_text = tr("sp.uebernehmen")
-        else:
-            knopf_text = tr("sp.uebernehmen.eigene", werkstoff=self._werkstoff_kurz)
-        ausgang = sw.ausgangszeile(self._liste, self.gewaehlt)
+        kennung = self.gewaehlter_werkstoff
+        liste = self.werkzeug.einsaetze(kennung)
         dialog = SchruppDialog(
             self,
             self.werkzeug,
-            ausgang,
-            self._werkstoff_objekt,
-            text,
-            knopf_text,
-            vergleich=sw.vergleichszeile(self._liste),
+            sw.ausgangszeile(liste, self.gewaehlt),
+            self._werkstoff_objekt(kennung),
+            self._werkstoff_text(kennung),
+            tr("sp.uebernehmen"),
+            vergleich=sw.vergleichszeile(liste),
         )
         angenommen = dialog.exec()
         SchruppDialog.offen = None
         if angenommen and dialog.einsatz is not None:
-            self.einsatz_hinzufuegen(dialog.einsatz)
+            self.einsatz_hinzufuegen(dialog.einsatz, kennung)
 
-    def einsatz_hinzufuegen(self, einsatz):
-        """Hängt einen fertigen Einsatz an; ohne eigene Werte für den Werkstoff legt es sie an."""
-        if not self._bearbeitbar:
-            self.werkzeug.eigene_anlegen(self.werkstoff)
-            self.auffrischen()
-        einsatz.name = wz.name_fuer_neuen(einsatz, self._liste)
-        self._liste.append(einsatz)
-        self._geaendert()
-        self._fuellen()
-        self.tabelle.setCurrentCell(len(self._liste) - 1, EINSATZ)
+    def einsatz_hinzufuegen(self, einsatz, werkstoff=None):
+        """Hängt einen fertigen Einsatz an – für `werkstoff` (Kennung), ohne Angabe für den
+        Werkstoff der gewählten Zeile."""
+        liste = self._liste_fuer(werkstoff or self.gewaehlter_werkstoff)
+        einsatz.name = wz.name_fuer_neuen(einsatz, liste)
+        liste.append(einsatz)
+        self._neu_fuellen(einsatz, EINSATZ)
 
     def setze(self, zeile, spalte, text):
         """Trägt `text` in eine Zelle ein, wie beim Tippen – für die Szenarien."""
@@ -425,6 +462,7 @@ class SchnittwertBereich(QtGui.QWidget):
             vorschub = ("fz\n" + einheiten.einheit(einheiten.SPAN), tr("wv.spalte.fz.tooltip"))
         einheit = "% D" if self.in_prozent else einheiten.einheit(einheiten.LAENGE)
         koepfe = [
+            (tr("wv.spalte.werkstoff"), tr("wv.spalte.werkstoff.tooltip")),
             (tr("wv.spalte.einsatz"), tr("wv.spalte.einsatz.tooltip")),
             ("ae\n" + einheit, tr("wv.spalte.ae.tooltip")),
             ("ap\n" + einheit, tr("wv.spalte.ap.tooltip")),
@@ -462,12 +500,11 @@ class SchnittwertBereich(QtGui.QWidget):
         zeile_vorher = self.tabelle.currentRow()
         self._fuellt = True
         self.tabelle.setRowCount(len(self._liste))
-        for zeile, einsatz in enumerate(self._liste):
-            self._zeile_schreiben(zeile, einsatz)
+        for zeile, (kennung, einsatz) in enumerate(self._liste):
+            self._zeile_schreiben(zeile, einsatz, kennung)
         self._fuellt = False
-        self.knopf_minus.setEnabled(self._bearbeitbar and bool(self._liste))
-        self.aktion_kopieren.setEnabled(self._bearbeitbar and bool(self._liste))
-        self.knopf_vergleich.setEnabled(not self._bohrend() and len(self._liste) >= 2)
+        self.knopf_minus.setEnabled(bool(self._liste))
+        self.aktion_kopieren.setEnabled(bool(self._liste))
         planbar = sw.moeglich(self.werkzeug)
         self.knopf_planen.setEnabled(planbar)
         self.knopf_planen.setToolTip(
@@ -477,7 +514,10 @@ class SchnittwertBereich(QtGui.QWidget):
             self.tabelle.setCurrentCell(max(0, min(zeile_vorher, len(self._liste) - 1)), EINSATZ)
         self._hinweise()
 
-    def _zeile_schreiben(self, zeile, einsatz):
+    def _zeile_schreiben(self, zeile, einsatz, kennung=None):
+        if kennung is None:
+            kennung = self._liste[zeile][0]
+        self._werkstoff_zelle(zeile, kennung)
         teiler = self.werkzeug.schneiden if self._bohrend() else 1
         vorschub = round(einsatz.fz * teiler, 6)
         if self._gewinde():
@@ -490,9 +530,45 @@ class SchnittwertBereich(QtGui.QWidget):
             FZ: groesse_zeigen(vorschub, einheiten.SPAN),
         }
         for spalte, text in eingaben.items():
-            bearbeitbar = self._bearbeitbar and not (spalte == FZ and self._gewinde())
+            bearbeitbar = not (spalte == FZ and self._gewinde())
             self.tabelle.setItem(zeile, spalte, self._zelle(text, bearbeitbar=bearbeitbar))
         self._ergebnis_schreiben(zeile, einsatz)
+
+    def _werkstoff_zelle(self, zeile, kennung):
+        """Die erste Spalte: in der Zelle die Auswahl der Werkstoffe, dahinter die Kennung
+        (item(zeile, WERKSTOFF).data(UserRole) – für die Szenarien)."""
+        zelle = QtGui.QTableWidgetItem(self._werkstoff_text(kennung))
+        zelle.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+        zelle.setData(QtCore.Qt.UserRole, kennung)
+        self.tabelle.setItem(zeile, WERKSTOFF, zelle)
+        wahl = self.tabelle.cellWidget(zeile, WERKSTOFF)
+        if wahl is None:
+            wahl = QtGui.QComboBox()
+            wahl.setModel(self._werkstoffe.model())
+            wahl.setMaxVisibleItems(20)
+            # Nicht so breit wie der längste Werkstoff – so breit wie die Zelle.
+            wahl.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLengthWithIcon)
+            wahl.setMinimumContentsLength(8)
+            wahl.currentIndexChanged.connect(lambda _i, w=wahl: self._werkstoff_gewechselt(w))
+            ruhiges_mausrad(wahl)
+            self.tabelle.setCellWidget(zeile, WERKSTOFF, wahl)
+        index = wahl.findData(kennung)
+        if index < 0:  # ein Werkstoff, den die Liste nicht mehr kennt: so, wie er heißt
+            self._werkstoffe.addItem(kennung, kennung)
+            index = wahl.findData(kennung)
+        wahl.blockSignals(True)
+        wahl.setCurrentIndex(index)
+        wahl.blockSignals(False)
+        wahl.setToolTip(werkstoff_info(self._werkstoff_objekt(kennung)))
+
+    def _werkstoff_gewechselt(self, wahl):
+        """In einer Zeile wurde ein anderer Werkstoff gewählt."""
+        if self._fuellt:
+            return
+        for zeile in range(self.tabelle.rowCount()):
+            if self.tabelle.cellWidget(zeile, WERKSTOFF) is wahl:
+                self.werkstoff_setzen(zeile, wahl.currentData() or wz.ALLE)
+                return
 
     def _ergebnis_schreiben(self, zeile, einsatz):
         n, vf, q = sd.rechne(self.werkzeug, einsatz)
@@ -518,10 +594,10 @@ class SchnittwertBereich(QtGui.QWidget):
 
     def _zelle_geaendert(self, zelle):
         """Eine Eingabe in der Tabelle: in den Einsatz übernehmen und die Zeile neu rechnen."""
-        if self._fuellt or not self._bearbeitbar:
+        if self._fuellt or zelle.column() == WERKSTOFF:
             return
         zeile, spalte = zelle.row(), zelle.column()
-        einsatz = self._liste[zeile]
+        _kennung, einsatz = self._liste[zeile]
         text = zelle.text().strip()
         if spalte == EINSATZ:
             # Der Name der Art ist kein eigener Name – so folgt er der Sprache.
@@ -555,6 +631,9 @@ class SchnittwertBereich(QtGui.QWidget):
         w = self.werkzeug
         saetze = []
         self._eingriff_zeigen()
+        # Vergleichen lassen sich zwei Einsätze, die für den Werkstoff der Zeile gelten.
+        liste = w.einsaetze(self.gewaehlter_werkstoff) if w is not None else []
+        self.knopf_vergleich.setEnabled(not self._bohrend() and len(liste) >= 2)
         if einsatz is not None and w is not None and not self._bohrend():
             if w.durchmesser and einsatz.ae > w.durchmesser:
                 saetze.append(tr("wv.hinweis.ae_zu_gross"))
@@ -634,7 +713,7 @@ class SchnittwertBereich(QtGui.QWidget):
         self.eingriff_text.setText("\n".join(zeilen))
         # Ausgleichen lohnt nur, wo der Span dünner wird als fz: bei ae < D/2.
         duenner = 0 < einsatz.ae < d / 2 and einsatz.fz > 0
-        self.ausgleich.setVisible(duenner and self._bearbeitbar)
+        self.ausgleich.setVisible(duenner)
         if duenner:
             self.feld_spandicke.setText(
                 groesse_fest(sd.spandicke_max(einsatz.fz, einsatz.ae, d), SPAN, 3)
@@ -658,7 +737,7 @@ class SchnittwertBereich(QtGui.QWidget):
     def spandicke_ausgleichen(self):
         """Setzt fz so, dass die größte Spandicke dem Wert im Feld entspricht."""
         einsatz, w = self.gewaehlt, self.werkzeug
-        if einsatz is None or w is None or not self._bearbeitbar:
+        if einsatz is None or w is None:
             return
         h = groesse_lesen(self.feld_spandicke.text(), SPAN)
         fz = sd.fz_fuer_spandicke(h, einsatz.ae, w.durchmesser)

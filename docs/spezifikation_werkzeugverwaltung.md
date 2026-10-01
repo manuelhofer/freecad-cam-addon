@@ -121,18 +121,25 @@ mit Namen `T3  Fräser VHM 12 · Schaftfräser Ø 12 · z 3 · VHM`.
 
 ### 6.1 Je Werkstoff – oder für alle gleich
 
-Jedes Werkzeug hat eine Tabelle **„für alle Werkstoffe“** und darf zusätzlich
-**je Werkstoff eine eigene** haben. Gezeigt wird immer die Tabelle für den
-Werkstoff, der oben gewählt ist:
+Jedes Werkzeug hat Zeilen **„für alle Werkstoffe“** und darf zusätzlich
+**je Werkstoff eigene** haben – gespeichert je Werkstoff eine Liste.
 
-- Hat das Werkzeug für ihn eigene Werte, stehen sie da – mit dem Satz
-  „Eigene Werte für 1.4301“ und dem Knopf **„Eigene Werte löschen“** (danach
-  gilt wieder „für alle Werkstoffe“).
-- Sonst steht da: „Es gelten die Werte für alle Werkstoffe“ und der Knopf
-  **„Eigene Werte für 1.4301 anlegen“**. Er kopiert die gemeinsame Tabelle als
-  Ausgangspunkt.
-- Ganz oben in der Werkstoff-Auswahl steht der Eintrag **„Alle Werkstoffe“**:
-  Dort bearbeitet man die gemeinsame Tabelle.
+*Stand 2026-10-01 (P-2026-10-01-17; Manuel: „das Material muss zu den
+Schnittwerten … wenn ich Schnittwerte anlege, muss ich das Material
+auswählen“):* Die Tabelle zeigt **alle Zeilen des Werkzeugs**, vorn in jeder
+Zeile der **Werkstoff**, für den sie gilt – eine Auswahl je Zeile („Alle
+Werkstoffe“, eigene, mitgelieferte nach ISO-Gruppe; die Angaben zum Werkstoff
+als Tooltip). Eine neue Zeile („+ Einsatz“, Kopie, Planer) bekommt den
+Werkstoff der gewählten Zeile, ohne gewählte Zeile „Alle Werkstoffe“; die
+Spalte umstellen schiebt die Zeile in die Liste des anderen Werkstoffs; die
+letzte Zeile eines Werkstoffs löschen gibt ihn frei – es gelten wieder die
+Zeilen für alle. Die Werkstoff-Auswahl oben im Fenster und die Knöpfe „Eigene
+Werte anlegen/löschen“ gibt es nicht mehr; oben bleiben „Werkstoffe…“ (die
+Liste mit Suche und eigenen Werkstoffen) und mm/inch. Für Job und Assistenten
+gilt unverändert: die Zeilen des Werkstoffs vom Rohteil, sonst die für alle.
+
+*Vorher (bis 0.38.0):* Gezeigt wurde immer die Tabelle für den Werkstoff, der
+oben gewählt war – mit „Eigene Werte für 1.4301 anlegen/löschen“.
 
 ### 6.2 Die Tabelle der Einsätze
 

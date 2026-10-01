@@ -93,7 +93,8 @@ def schritte(h):
     h.pruefe(
         d.wahl_x.isVisible()
         and d.wahl_x.currentData() is True
-        and (von_x.value(), bis_x.value()) == (-50.0, 850.0)
+        and (von_x.value(), bis_x.value()) == (50.0, 850.0)
+        and von_x.prefix() == "−"
         and beschriftung_x == "Weg X (Ø):",
         f"X im Durchmesser: {d.wahl_x.currentText()!r}, {beschriftung_x!r} "
         f"{von_x.value()} … {bis_x.value()}",
@@ -104,7 +105,7 @@ def schritte(h):
     yield 100
     beschriftung_x = d._formular.labelForField(d._weg_zeilen["X"]).text()
     h.pruefe(
-        (von_x.value(), bis_x.value()) == (-25.0, 425.0) and beschriftung_x == "Weg X:",
+        (von_x.value(), bis_x.value()) == (25.0, 425.0) and beschriftung_x == "Weg X:",
         f"X im Radius: {beschriftung_x!r} {von_x.value()} … {bis_x.value()}",
     )
     h.pruefe(
@@ -114,7 +115,14 @@ def schritte(h):
     h.bild("2b_drehmaschine_radius", d)
     d.wahl_x.setCurrentIndex(d.wahl_x.findData(True))
     yield 100
-    h.pruefe((von_x.value(), bis_x.value()) == (-50.0, 850.0), "zurück im Durchmesser")
+    h.pruefe((von_x.value(), bis_x.value()) == (50.0, 850.0), "zurück im Durchmesser")
+    # „von“ zählt ins Minus, das Minus steht fest im Feld (Manuel, 2026-10-01); Z der
+    # Drehmaschine zählt ab der Spindelnase – ohne Minus.
+    von_z, _bis_z = d.felder_weg["Z"]
+    h.pruefe(
+        von_x.prefix() == "−" and von_z.prefix() == "" and von_x.minimum() == 0.0,
+        f"Minus: X {von_x.prefix()!r}, Z {von_z.prefix()!r}, ab {von_x.minimum()}",
+    )
 
     # Weg Y 0 … 0: geht nicht, der Dialog bleibt offen.
     von_y, bis_y = d.felder_weg["Y"]
@@ -130,13 +138,13 @@ def schritte(h):
     h.bild("3_weg_ungueltig", d)
 
     # Eigene Maße eintragen und bauen; die rote Zeile geht beim ersten Ändern weg.
-    von_y.setValue(-40)
+    von_y.setValue(40)  # hinter dem festen Minus: −40
     bis_y.setValue(50)
     h.pruefe(not d.fehler.isVisible(), "rote Zeile bleibt nach dem Ändern")
     d.feld_name.setText("Meine Drehmaschine")
     d.feld_bett.setValue(30)
     d.feld_y_winkel.setValue(30)
-    von_x.setValue(-80)
+    von_x.setValue(80)  # −80 im Durchmesser
     bis_x.setValue(120)
     # Im Durchmesser eingetragen: Die Maschine bekommt den Radius −40 … 60.
     h.pruefe(d.masse().weg_x == (-40.0, 60.0), f"Weg X: {d.masse().weg_x}")

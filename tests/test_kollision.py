@@ -9,7 +9,7 @@
 #   hinunter auf den Boden schon;
 # - Halter ER16 (Mutter Ø 28) bei 80 mm Länge ab Spindelnase, 1 mm zu tief neben
 #   der Tasche: Der Halter berührt das Teil;
-# - kurzes Werkzeug (25 mm) neben dem rechten Spanneisen (60 mm hoch, oben bei
+# - kurzes Werkzeug (25 mm) neben dem rechten Spanneisen (die Schraube 60 mm hoch, oben bei
 #   Z 59): Die Spindel setzt bei Z 34 auf (Berührung), 4 mm darüber nur mit
 #   Warnabstand 5 eine Warnung;
 # - Paare, die sich in der Grundstellung berühren (Führungen), prüft es nicht,
@@ -192,17 +192,21 @@ if e.befunde:
 pruefe(not any("ohne Halter" in h for h in e.hinweise), f"Hinweise: {e.hinweise}")
 
 # --- Kurzes Werkzeug neben dem Spanneisen: die Spindel --------------------------------------
+# Das Spanneisen liegt flach auf dem Tisch, die Innenseite 100 mm neben der Mitte des
+# Spannplatzes (X 150 im Job), die Schraube 45 mm weiter draußen, oben bei 60 mm über dem
+# Tisch: Bei X 150 reicht die Spindel (Ø 90) bis über die Schraube und setzt mit der Nase
+# darauf; das Werkzeug selbst fährt über dem Eisen (16 mm) vorbei.
 kurz = t1(gesamtlaenge=25.0)
-e = pruefen(["G0 X110 Y30 Z70", "G1 Z20 F10"], kurz)
+e = pruefen(["G0 X150 Y30 Z70", "G1 Z20 F10"], kurz)
 pruefe(paare(e) == {("„Spindel“", "„Spanneisen_rechts“", True, False)}, f"Spindel: {paare(e)}")
 if e.befunde:
     z = e.befunde[0].punkt["Z"]
     pruefe(33.5 <= z <= 34.0 + 1e-6, f"Spindel setzt bei Z {z} auf (erwartet knapp unter 34)")
     pruefe(e.befunde[0].satz == 4, f"Spindel: Satz {e.befunde[0].satz}")
 # 4 mm darüber: mit Warnabstand 1 nichts, mit 5 eine Warnung (4,00 mm).
-e = pruefen(["G0 X110 Y30 Z70", "G1 Z38 F10"], kurz)
+e = pruefen(["G0 X150 Y30 Z70", "G1 Z38 F10"], kurz)
 pruefe(e.befunde == [], f"4 mm, Warnabstand 1: {paare(e)}")
-e = pruefen(["G0 X110 Y30 Z70", "G1 Z38 F10"], kurz, warnabstand=5.0)
+e = pruefen(["G0 X150 Y30 Z70", "G1 Z38 F10"], kurz, warnabstand=5.0)
 pruefe(
     paare(e) == {("„Spindel“", "„Spanneisen_rechts“", False, False)}, f"Warnabstand 5: {paare(e)}"
 )

@@ -367,9 +367,12 @@ def fraesmaschine(masse=None, spanneisen=True):
     Maschinenobjekt ausgefüllt: X1, Y1, Z1 mit Eilgang, Höchstvorschub und
     Beschleunigung, S1 mit Drehzahl, Werkzeugaufnahme an der Spindelnase,
     Werkstückaufnahme mitten auf dem Tisch. Links und rechts vom Spannplatz je
-    ein Spanneisen (40 × 40 × 60 mm mit Mutter, 100 mm von der Mitte bis zu
-    seiner Innenseite) – etwas, woran man in der Kollisionsprüfung (W-001 4c)
-    anstoßen kann: Die Spindelnase kommt bis 30 mm über den Tisch.
+    ein Spanneisen, wie es auf dem Tisch liegt – das Eisen (90 × 30 × 16 mm) flach
+    auf dem Tisch, die Innenseite 100 mm von der Mitte, mittig die Schraube (bis
+    60 mm über den Tisch) mit der Mutter obenauf – etwas, woran man in der
+    Kollisionsprüfung (W-001 4c) anstoßen kann: Die Spindelnase kommt bis 30 mm
+    über den Tisch und setzt auf der Schraube auf. Manuel (2026-10-01): „zwei
+    viereckige Klötze – was ist das?“ – jetzt sieht man es.
     `masse` (FraesenMasse) ändert Wege, Drehzahl und Name; `spanneisen=False` lässt die
     Spanneisen weg. Gibt (Assembly, Maschine) zurück.
     """
@@ -388,9 +391,27 @@ def fraesmaschine(masse=None, spanneisen=True):
     )
     eisen = []
     if spanneisen:
-        # Der Spannplatz liegt bei x 400, y 350 auf der Tischplatte (z 250).
-        for name, x in (("Spanneisen_links", 400 - 100 - 40), ("Spanneisen_rechts", 400 + 100)):
-            eisen.append(b.quader(name, 40, 40, 60, x=x, y=350 - 20, z=250, farbe=SPINDEL))
+        # Der Spannplatz liegt bei x 400, y 350 auf der Tischplatte (z 250). Je Seite ein
+        # Bauteil aus Eisen, Schraube und Mutter – die Kollisionsprüfung nennt das Bauteil
+        # („Spanneisen_rechts“).
+        for name, innen, aussen in (("Spanneisen_links", 300, -1), ("Spanneisen_rechts", 500, 1)):
+            schraube_x = innen + aussen * 45
+            koerper = [
+                b.quader(
+                    f"{name}_Eisen",
+                    90,
+                    30,
+                    16,
+                    x=min(innen, innen + aussen * 90),
+                    y=335,
+                    z=250,
+                    farbe=SPINDEL,
+                ),
+                b.zylinder(f"{name}_Schraube", 6, 60, x=schraube_x, y=350, z=250, farbe=GUSS),
+                b.zylinder(f"{name}_Mutter", 11, 10, x=schraube_x, y=350, z=266, farbe=GUSS),
+            ]
+            teil, _lcs = b.bauteil(name, koerper)
+            eisen.append((teil, koerper[0]))
     kopf = b.quader("Fraeskopf", 200, 400, 300, x=300, y=250, z=520, farbe=KOPF)
     spindel, spindelnase = b.bauteil(
         "Spindel",
@@ -406,9 +427,14 @@ def fraesmaschine(masse=None, spanneisen=True):
         "X", "Slider", sattel, "Face6", tisch, "Tischplatte.Face5", richtung=(1, 0, 0)
     )
     b.begrenze(x, *masse.weg_x)
-    for teil in eisen:
+    for teil, eisen_koerper in eisen:
         b.gelenk_wie_gebaut(
-            f"{teil.Label}_fest", "Fixed", tisch, "Tischplatte.Face6", teil, "Face5"
+            f"{teil.Label}_fest",
+            "Fixed",
+            tisch,
+            "Tischplatte.Face6",
+            teil,
+            f"{eisen_koerper.Name}.Face5",
         )
     z = b.gelenk_wie_gebaut("Z", "Slider", staender, "Face3", kopf, "Face4", richtung=(0, 0, 1))
     b.begrenze(z, *masse.weg_z)
