@@ -16,7 +16,7 @@ li { margin-bottom: 0.4em; }
 Werkzeugachse steht senkrecht. Der Knopf „Bearbeitung (Fräsen)“ öffnet das
 Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, alle in einem
 Fenster: Teil und Rohteil, die Flächen, dann je Bearbeitung ein Block mit
-Haken – <b>Planfräsen</b> für ebene Flächen nach oben, <b>Kontur</b> für
+Haken – <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Kontur</b> für
 Wände. „Anlegen“ legt alle angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
 <a href="vierachs.html">4-Achs-Bearbeitung</a>.</p>
 
@@ -46,8 +46,9 @@ Doppelklick in der Liste, heraus); grün heißt: eben nach oben – die wird pla
 gefräst – oder eine Wand („Wand, unten 5 mm“) – an der fährt die Kontur;
 rot heißt weder noch. Das 3D färbt sie so. „Oberseite“ wählt die höchsten
 Flächen, „Auswahl leeren“ nimmt alle heraus.</li>
-<li>Die <b>Haken</b> der Blöcke folgen der Wahl: Planfräsen ist angehakt,
-solange keine Fläche oder eine ebene gewählt ist; Kontur, sobald eine Wand
+<li>Die <b>Haken</b> der Blöcke folgen der Wahl: Planfräsen und Räumen,
+solange keine Fläche oder eine ebene gewählt ist – und von den beiden nur die
+schnellere (siehe „Die Zeit entscheidet“ unten); Kontur, sobald eine Wand
 dabei ist (ohne Wand lässt sie sich nicht anhaken). Wer einen Haken selbst
 setzt oder nimmt, behält ihn.</li>
 </ul>
@@ -94,7 +95,59 @@ dem Rohteil, die Endtiefe ist die Fläche plus Aufmaß, sichere Höhe und
 Freifahrhöhe kommen aus dem Einrichtblatt des Jobs.</li>
 </ul>
 
-<h3>4. Kontur</h3>
+<h3>4. Räumen</h3>
+<ul>
+<li>Für dieselben <b>ebenen Flächen</b> wie das Planfräsen – und für
+<b>Taschenböden</b>: Sind die Wände einer Tasche gewählt, nimmt Räumen ihren
+Boden dazu (angehakt wird es dafür nicht von selbst – die Kontur bleibt der
+Vorschlag; setz den Haken, wenn die Tasche ausgeräumt werden soll).</li>
+<li><b>Fräser</b> und <b>Einsatz</b> wie beim Planfräsen – vorgewählt
+„Schruppen“.</li>
+<li><b>Zustellung je Lage</b> (ap – voll, bis zur Schneidenlänge),
+<b>Zeilenabstand</b> (ae, so weit rücken die Ringe, höchstens der Radius),
+<b>Aufmaß an Wänden</b> (leer: 0,3 mm – bleibt an Wänden und Inseln stehen,
+für die Kontur), <b>Aufmaß am Boden</b> (leer: 0 – die Fläche ist fertig) und
+der Haken <b>Gleichlauf</b> (Material links der Fahrtrichtung; ohne ihn
+Gegenlauf).</li>
+<li>Die Bahn, wie ein HSM-Weg: <b>Ringe</b> bei voller Zustellung und
+schmalem Zeilenabstand, ohne Wenden, mit Bögen in den Ecken. Auf einer
+Oberseite von außen kreisend nach innen: Der erste Ring liegt neben dem
+Rohteil in der Luft, der Fräser taucht dort ein und fährt tangential hinein;
+die Ringe folgen dem Rohteilrand nach innen, bis Zapfen und Absätze sie
+teilen – dann die Ringe um sie herum. In einer Tasche von innen nach außen:
+einmal über eine <b>Rampe</b> rundum (mit dem Eintauchwinkel des Werkzeugs)
+in die Mitte, dann die Ringe zur Wand hin. Jeder Ring schließt an den
+vorigen an (eine Spirale); wo das nicht geht, taucht der Fräser nur ein, wo
+schon frei ist, sonst fährt er quer aus dem Freien hinein – die Rampe im
+Material gibt es nur, wo nichts frei ist. Beim Austritt aus dem Rohteil
+halber Vorschub.</li>
+<li>Zwei Varianten rechnet das Fenster und nimmt die schnellere: „rohteil“
+(dem Rohteilrand nach innen folgen) und „inseln“ (von den Wänden und Inseln
+aus). In den Eigenschaften der Operation steht unter <b>Gerechnet</b> jede
+mit ihrer Zeit; <b>Variante</b> legt eine fest.</li>
+<li>Grau darunter: „→ 1 Lage, 15 Ringe, etwa 3 min“. Rot steht, warum es
+nicht geht (kein ebener Boden, der Fräser passt nicht hinein, über der Fläche
+steht nichts).</li>
+<li>Die Operation heißt „Räumen T1“; Starttiefe, sichere Höhe und Freifahrhöhe
+wie beim Planfräsen, die Endtiefe ist die tiefste Fläche plus Aufmaß am
+Boden.</li>
+</ul>
+
+<h3>Die Zeit entscheidet</h3>
+<p>Planfräsen und Räumen lösen auf einer ebenen Fläche dieselbe Aufgabe.
+Darum rechnet das Fenster beide, sobald eins angehakt ist, mit demselben
+Zeitmodell (Vorschub des Einsatzes, Eilgang 10 m/min, 1 m/s², anhalten an
+Ecken) und setzt den Haken bei der schnelleren; beide Zeilen sagen, um wie
+viel: „… – die schnellste; Räumen wäre 37 % langsamer“ und „… – 37 %
+langsamer als Planfräsen“. Auf dem Block 60 × 40 mit Absatz gewinnt das
+Planfräsen, auf dem 50 × 50 mit Zapfen in der Mitte das Räumen (3 statt
+5 Minuten), auf einer großen Platte ebenso. Wer einen Haken selbst setzt,
+behält ihn – die Zeilen zeigen den Vergleich trotzdem. Für eine <b>Tasche</b>
+ist die schnellste Folge: Räumen (ihr Boden, die Wände mit Aufmaß) und danach
+die Kontur mit „Material neben der Wand“ gleich dem Aufmaß – die Kontur
+allein räumt jeden Versatz mit eigener Rampe und braucht ein Mehrfaches.</p>
+
+<h3>5. Kontur</h3>
 <ul>
 <li>Für <b>Wände</b>: senkrechte Flächen mit waagerechter Unterkante – eben,
 rund oder frei geformt. Die Unterkanten der gewählten Wände verbinden sich zu
@@ -125,7 +178,9 @@ dem Rohteil mit halbem Vorschub. Hinein geht es in der Luft senkrecht mit dem
 Eintauchvorschub, im Material über eine Rampe längs der Bahn.</li>
 <li>Grau darunter: „→ 2 Konturen: 22 Lagen, 38 Bahnen, etwa 9 min“. Rot
 steht, warum es nicht geht (keine Wand, der Fräser passt nicht in die Tasche,
-neben den Wänden steht nichts).</li>
+neben den Wänden steht nichts). Nach dem Räumen einer Tasche trag bei
+„Material neben der Wand“ sein Aufmaß ein (0,3) – dann bleibt eine Bahn je
+Lage und das Schlichten.</li>
 <li>In den Eigenschaften der Operation außerdem <b>Tiefer</b> (so viel tiefer
 als die Unterkante – zum Freischneiden) und der <b>Einfahrradius</b>.</li>
 <li>Die Operation heißt „Kontur T1“; Starttiefe, sichere Höhe und
@@ -134,7 +189,7 @@ Unterkante.</li>
 </ul>
 
 <h3>Nachträglich ändern</h3>
-<p><b>Doppelklick</b> auf „Planfräsen …“ oder „Kontur …“ im Baum – oder rechte Maustaste,
+<p><b>Doppelklick</b> auf „Planfräsen …“, „Räumen …“ oder „Kontur …“ im Baum – oder rechte Maustaste,
 <b>Bearbeiten</b>; oder die Operation bzw. ihren Job wählen und den Knopf
 „Bearbeitung (Fräsen)“ drücken – öffnet das Fenster mit Flächen, Fräser,
 Einsatz und Werten der Operation, nur mit ihrem Block. <b>Übernehmen</b> ändert sie – ein Schritt
@@ -142,7 +197,8 @@ Rückgängig; ein anderer Fräser bekommt seinen eigenen Werkzeug-Controller, de
 alten nimmt das Fenster heraus, wenn ihn keine Operation mehr benutzt.</p>
 
 <h3>Was noch kommt</h3>
-<p>Tasche adaptiv mit Trochoiden, Bohren und Gewinde aus dem Fenster – nach
-dem Plan in der Spezifikation W-006.</p>
+<p>Der Wettbewerb Räumen gegen Kontur in der Tasche, der Einstieg (Rampe,
+Helix, senkrecht) nach Zeit, Trochoiden in engen Ecken, Bohren und Gewinde aus
+dem Fenster – nach dem Plan in der Spezifikation W-006.</p>
 </body>
 </html>

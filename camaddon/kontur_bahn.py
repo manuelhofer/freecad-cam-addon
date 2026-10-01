@@ -924,12 +924,13 @@ def _lauf(
     st.bahnen += 1
 
 
-def _anfahrt(p, t, r_ein, gerade, frei, hinein):
+def _anfahrt(p, t, r_ein, gerade, frei, hinein, frei_rechts=True):
     """Das Ein- (`hinein`) oder Ausfahren am Punkt `p` der Bahn mit der Fahrtrichtung `t`: der
-    Viertelkreis liegt rechts (auf der freien Seite), die Gerade davor bzw. danach quer von der
-    Wand weg. Passt es nicht (`frei` sagt nein), ohne Gerade, dann halb und viertel so groß;
-    None, wenn gar nichts passt – dann senkrecht."""
-    rechts = (t[1], -t[0])
+    Viertelkreis liegt auf der freien Seite – rechts (Gleichlauf, das Material links) oder
+    links (`frei_rechts` False: Gegenlauf) –, die Gerade davor bzw. danach quer von der Wand
+    weg. Passt es nicht (`frei` sagt nein), ohne Gerade, dann halb und viertel so groß; None,
+    wenn gar nichts passt – dann senkrecht."""
+    rechts = (t[1], -t[0]) if frei_rechts else (-t[1], t[0])
     richtung = -1.0 if hinein else 1.0
     for r_e, lang in ((r_ein, gerade), (r_ein, 0.0), (r_ein / 2, 0.0), (r_ein / 4, 0.0)):
         if r_e <= GLEICH:

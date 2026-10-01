@@ -101,7 +101,10 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    Eingriff auch in Ecken (Trochoide), Restmaterial aus dem Abtragsmodell
    (nächste Lage weiß, was steht), Vorschub nach Eingriff, viel schneller
    (numpy). Aufwand groß – aber der größte Gewinn: Manuels „Schruppwerte
-   planen“ zielt genau darauf (ganze Schneide, schmales ae).
+   planen“ zielt genau darauf (ganze Schneide, schmales ae). Gebaut als S3f
+   „Räumen“ (0.44.0): Ringe bei vollem ap und schmalem ae, einmal hinein, in
+   der Tasche über die Rampe rundum; Trochoiden in Ecken (E3) erst, wenn die
+   Messung sie verlangt.
 3. **Tasche Offset / Zeilen** – klassisch, für weiche Werkstoffe und kleine
    Fräser; Bögen zwischen Zeilen, Ecken mit Radius, Restmaterial in Ecken mit
    dem kleineren Fräser (Punkt 5). Aufwand mittel.
@@ -219,11 +222,15 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
      Kollision, Reichweite) und die Grenzen des Einsatzes.
 
    Gebaut: die Zeilenrichtung des Planfräsens (beide gerechnet, die
-   schnellere; P-2026-10-01-24). Offen: der Einstieg (Rampe/Helix/senkrecht
-   nach Zeit), die Startstelle (am Ende der vorigen Operation), die
-   Reihenfolge der Bereiche nach Eilgangweg, und der Wettbewerb der
-   Strategien – der beginnt mit S3f (Räumen gegen Planfräsen und gegen die
-   Kontur in der Tasche).
+   schnellere; P-2026-10-01-24); die Varianten des Räumens (vom Rohteil her
+   oder um die Inseln, beide gerechnet) und der erste Wettbewerb der
+   Strategien – Planfräsen gegen Räumen auf denselben Flächen: der Assistent
+   rechnet beide, sobald eins angehakt ist, setzt den Haken bei der
+   schnelleren und schreibt an beide Zeilen, um wie viel (P-2026-10-01-25,
+   0.44.0). Offen: Räumen gegen die Kontur in der Tasche (heute: Räumen für
+   Taschenwände anhakbar, die Hilfe nennt die schnellste Folge), der Einstieg
+   (Rampe/Helix/senkrecht nach Zeit), die Startstelle (am Ende der vorigen
+   Operation), die Reihenfolge der Bereiche nach Eilgangweg.
 1. **Tangential ein- und ausfahren.** Nie senkrecht in die Wand; Bogen und
    Gerade nach Fräser-Ø; in Taschen Helix oder Rampe mit dem Winkel aus der
    Werkzeugtabelle (Eintauchwinkel gibt es schon).
@@ -404,8 +411,9 @@ Bahn-Datenmodell mit Bögen kommt mit der ersten Strategie, die Bögen braucht
 (S3). S2 ist gebaut (Linien längs P-2026-10-01-06, Plan indexiert P-08/-10,
 Rundum entgraten P-12; 0.36.0). Von S3 sind die Hüllfläche von oben, die Bahn
 mit Bögen, „Planfräsen“ (P-2026-10-01-14), der Assistent „Bearbeitung
-(Fräsen)“ (P-15; 0.37.0) und das Prüffenster mit dem Quader (P-16; 0.38.0)
-gebaut.
+(Fräsen)“ (P-15; 0.37.0), das Prüffenster mit dem Quader (P-16; 0.38.0), die
+Kontur (P-19; 0.40.0), der Nullpunkt (P-21; 0.41.0) und das Räumen mit dem
+Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
 
 **S3 im Einzelnen** (Plan 2026-10-01, Claude; die Reihenfolge nach Nutzen):
 
@@ -483,6 +491,41 @@ gebaut.
   Kontur und Räumen – mit demselben Zeitmodell –, setzt den Haken bei der
   schnelleren und schreibt die andere Zeit daneben; die Prüfung rechnet an
   der Platte nach, dass Räumen dort gewinnt (≈ 35 min gegen 44).
+  Gebaut (P-2026-10-01-25, 0.44.0) – anders als geplant nicht mit Versätzen
+  aus `makeOffset2D`, sondern im Raster: `raeumen_bahn.py` legt ein Raster
+  (0,5 mm, in der Vorschau 1 mm) über die Fläche, sperrt, wo die Hüllfläche
+  des Teils (der Fräser um Aufmaß und Toleranz vergrößert) über der Lage
+  liegt, weiß vom Rohteil, wo Material steht, und merkt sich, was schon
+  geschnitten ist. Die Ringe sind die Höhenlinien des Abstandsfelds zum
+  Gesperrten bei Radius + Aufmaß + k · ae (Marching Squares, verkettet,
+  vereinfacht – Inseln wie der Zapfen und Absätze teilen sie von selbst), vom
+  Rohteil her analytisch (Rechteck mit runden Ecken, der erste Ring R − ae
+  außerhalb in der Luft). Zwei Varianten, beide gerechnet, die schnellere
+  zählt: „rohteil“ (dem Rohteilrand nach innen folgen, dann der Rest um die
+  Inseln) und „inseln“ (von den Wänden und Inseln aus; in der Tasche von innen
+  nach außen). Je Lauf der Eingang in dieser Reihenfolge: an den vorigen
+  anhängen (die Spirale, bis 2 ae, der Weg frei), tangential aus dem Freien
+  (das Einfahren der Kontur auf der freien Seite – rechts im Gleichlauf,
+  links im Gegenlauf), quer aus dem Freien, das Anfangsstück nachholen, wenn
+  dahinter die Insel liegt, zuletzt die Rampe: rundum auf einem ganzen Ring
+  (die Tasche: einmal je Lage), sonst längs des Laufs. „Frei“ heißt: unter der
+  Stirn höchstens so viel ungeschnittenes Rohteil wie im Streifen ae, den
+  jeder Ring ohnehin nimmt. Gleichlauf oder Gegenlauf (das Feld links und
+  rechts abgetastet), Bögen in den Ecken, beim Austritt halber Vorschub.
+  Rechenzeit etwa eine Sekunde je Fläche. Gemessen mit dem Standardfräser
+  (`test_raeumen`, Simulation im Quader: nirgends ins Teil, auf der Fläche
+  nichts stehen geblieben): Manuels 50 × 50 mit Zapfen 2,8 min (Planfräsen
+  4,8), der Block mit Absatz 2,5 (Planfräsen 1,7 – dort gewinnt das
+  Planfräsen, der Assistent zeigt es), die Tasche 40 × 30 0,75 (Kontur ohne
+  Schlichten 3,0), die Platte 33,3 (Planfräsen 39,3), ihre Tasche 1,2 –
+  Abschnitt 11. Der Zapfen bekommt sein Aufmaß, die Kontur holt es (noch von
+  Hand: „Material neben der Wand“ gleich dem Aufmaß). Operation
+  `raeumen.Raeumen` (Variante wählbar, „Gerechnet“ zeigt beide Zeiten); im
+  Assistenten der Block „Räumen“ – für ebene Flächen vorgeschlagen, für
+  gewählte Taschenwände anhakbar (die Kontur bleibt dort der Vorschlag) –
+  und der Wettbewerb gegen das Planfräsen (Grundsatz 0). Noch nicht: der
+  Wettbewerb gegen die Kontur in der Tasche, Trochoiden in Ecken (E3), die
+  Spannhöhe. Szenario `szenario_raeumen`.
 - **S3g Bohren, Gewinde** – FreeCADs Operationen aus dem Assistenten mit den
   Schnittwerten.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
@@ -517,7 +560,7 @@ für jede Strategie, die den Fräser dauernd im Eingriff hält:
 | --- | --- | --- | --- | --- |
 | heute: Planfräsen ap 2, ae 7,8 (0,65 D), Tasche über die Kontur in Lagen, Kontur Zapfen | 74,0 min (10 Lagen, 310 Zeilen, 62 m) | 4,6 min | 0,9 min | **80 min** |
 | heute mit ganzer Schneide: Planfräsen ap 20, ae 1,5; Tasche über die Kontur ap 20 (ganz räumen) | 39,3 min (1 Lage, 151 Zeilen, 33 m) | 3,9 min (12 Versätze, je mit Rampe) | 0,9 min | **44 min** |
-| S3f Räumen mit Versätzen: Spirale ap 20, ae 1,5, hinein von außen; Tasche Rampe 3° einmal, dann Spirale | ≈ 33 min (Weg ≈ Fläche ÷ ae, ohne Wenden) | ≈ 1,3 min (Rampe 0,4 + Spirale 0,8) | 0,3 min | **≈ 35 min** |
+| S3f Räumen (gebaut, 0.44.0): Ringe ap 20, ae 1,5, hinein von außen in der Luft; Tasche Rampe 3° einmal rundum, dann Ringe nach außen | 33,3 min (1 Lage, gemessen; geschätzt waren ≈ 33) | 1,2 min (gemessen; geschätzt ≈ 1,3) | 0,3 min | **≈ 35 min** |
 | Untergrenze (Fräser nie aus dem Eingriff) | 29 min | 1,2 min | 0,3 min | **31 min** |
 
 Gemessen mit `scripts`-freiem Rechenlauf (Sonde, 1.1.3): Planfräsen und
@@ -550,7 +593,8 @@ es um Werkzeugwege geht“):** Der Fräser oben ist `werkzeuge.standardwerkzeug(
 3°; Einsätze Planen und Schruppen mit ae 1,5 / ap 25 / fz 0,1 / vc 85,
 Schlichten mit ae 0,3, dem Aufmaß der Kontur). Mit ihm rechnen alle
 Prüfungen und Szenarien der 2,5D-Strategien (`test_planfraesen`,
-`test_kontur`, `test_quader`, `szenario_bearbeitung`, `szenario_kontur`), mit
+`test_kontur`, `test_raeumen`, `test_quader`, `szenario_bearbeitung`,
+`szenario_kontur`, `szenario_raeumen`), mit
 ihm und den festen Vorgaben für die Zeit (Eilgang 10 m/min, 1 m/s²) bekommt
 jede neue Strategie ihre Zeile in der Tabelle oben (P-2026-10-01-23;
 Arbeitsregeln, Abschnitt 5). Das Ziel dahinter ist nicht der Fräser, sondern

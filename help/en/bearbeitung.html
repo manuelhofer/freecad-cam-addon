@@ -15,8 +15,8 @@ li { margin-bottom: 0.4em; }
 <p>For a part that lies in a <b>block</b> on a mill – the tool axis is
 vertical. The button “Machining (milling)” opens the window; the way from the
 part to the operations has three steps, all in one window: part and stock,
-the faces, then one block with a tick per machining – <b>Face milling</b> for
-flat faces facing up, <b>Contour</b> for walls. “Create” creates all ticked
+the faces, then one block with a tick per machining – <b>Face milling</b> and
+<b>Clearing</b> for flat faces facing up, <b>Contour</b> for walls. “Create” creates all ticked
 ones. For a round stock
 with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
 
@@ -47,10 +47,11 @@ the list, removes it); green means: flat facing up – it is milled flat – or 
 wall (“wall, bottom 5 mm”) – the contour follows it; red means neither. The
 3D view colours them so. “Top” selects the highest faces, “Clear selection”
 removes all.</li>
-<li>The <b>ticks</b> of the blocks follow the selection: face milling is
-ticked as long as no face or a flat one is selected; contour as soon as a wall
-is among them (without a wall it cannot be ticked). Whoever sets or removes a
-tick keeps it.</li>
+<li>The <b>ticks</b> of the blocks follow the selection: face milling and
+clearing as long as no face or a flat one is selected – and of the two only
+the faster (see “Time decides” below); contour as soon as a wall is among
+them (without a wall it cannot be ticked). Whoever sets or removes a tick
+keeps it.</li>
 </ul>
 
 <h3>3. Face milling</h3>
@@ -94,7 +95,58 @@ depth is the face plus allowance, safe and clearance height come from the
 job's setup sheet.</li>
 </ul>
 
-<h3>4. Contour</h3>
+<h3>4. Clearing</h3>
+<ul>
+<li>For the same <b>flat faces</b> as face milling – and for <b>pocket
+floors</b>: when the walls of a pocket are selected, clearing takes their
+floor along (it is not ticked by itself for that – the contour stays the
+proposal; set the tick when the pocket is to be cleared).</li>
+<li><b>Cutter</b> and <b>application</b> as for face milling – “Roughing”
+preselected.</li>
+<li><b>Stepdown per layer</b> (ap – full, up to the cutting edge length),
+<b>row spacing</b> (ae, this far the rings step, at most the radius),
+<b>allowance at walls</b> (empty: 0.3 mm – stays on walls and islands, for the
+contour), <b>allowance at the floor</b> (empty: 0 – the face is finished) and
+the tick <b>climb milling</b> (material on the left of the direction of
+travel; without it conventional).</li>
+<li>The path, like an HSM path: <b>rings</b> at full stepdown and narrow row
+spacing, without turning, with arcs in the corners. On a top face circling
+from the outside inwards: the first ring lies beside the stock in the air, the
+cutter plunges there and enters tangentially; the rings follow the stock edge
+inwards until bosses and steps split them – then the rings around those. In a
+pocket from the inside outwards: once over a <b>ramp</b> all round (with the
+tool's plunge angle) into the middle, then the rings towards the wall. Every
+ring joins the previous one (a spiral); where that is not possible, the cutter
+plunges only where it is already free, otherwise it enters sideways from the
+free area – the ramp in material exists only where nothing is free. On leaving
+the stock at half feed.</li>
+<li>The window computes two variants and takes the faster: “rohteil” (follow
+the stock edge inwards) and “inseln” (from the walls and islands outwards). In
+the operation's properties <b>Gerechnet</b> lists each with its time;
+<b>Variante</b> fixes one.</li>
+<li>Grey below: “→ 1 layer, 15 rings, about 3 min”. Red says why it does not
+work (no flat floor, the cutter does not fit in, nothing stands above the
+face).</li>
+<li>The operation is called “Räumen T1”; start depth, safe height and
+clearance height as for face milling, the final depth is the lowest face plus
+the allowance at the floor.</li>
+</ul>
+
+<h3>Time decides</h3>
+<p>Face milling and clearing solve the same task on a flat face. So the window
+computes both as soon as one is ticked, with the same time model (feed of the
+application, rapid 10 m/min, 1 m/s², stopping at corners) and ticks the
+faster; both lines say by how much: “… – the fastest; clearing would be 37 %
+slower” and “… – 37 % slower than face milling”. On the 60 × 40 block with a
+step face milling wins, on the 50 × 50 with a boss in the middle clearing
+does (3 instead of 5 minutes), on a large plate likewise. Whoever sets a tick
+keeps it – the lines still show the comparison. For a <b>pocket</b> the
+fastest sequence is: clearing (its floor, the walls with allowance) and then
+the contour with “material beside the wall” equal to the allowance – the
+contour alone clears every offset with its own ramp and takes several times as
+long.</p>
+
+<h3>5. Contour</h3>
 <ul>
 <li>For <b>walls</b>: vertical faces with a horizontal bottom edge – flat,
 round or free-form. The bottom edges of the selected walls join into
@@ -127,7 +179,9 @@ goes vertically in the air with the plunge feed, in material over a ramp
 along the path.</li>
 <li>Grey below: “→ 2 contours: 22 layers, 38 passes, about 9 min”. Red says
 why it does not work (no wall, the cutter does not fit into the pocket,
-nothing stands beside the walls).</li>
+nothing stands beside the walls). After clearing a pocket enter its allowance
+(0.3) at “material beside the wall” – then one pass per layer and the
+finishing remain.</li>
 <li>In the operation's properties also <b>Deeper</b> (this much deeper than
 the bottom edge – to cut free) and the <b>lead-in radius</b>.</li>
 <li>The operation is called “Contour T1”; start depth, safe height and
@@ -136,7 +190,7 @@ edge.</li>
 </ul>
 
 <h3>Changing it later</h3>
-<p><b>Double-click</b> “Face milling …” or “Contour …” in the tree – or right-click,
+<p><b>Double-click</b> “Face milling …”, “Clearing …” or “Contour …” in the tree – or right-click,
 <b>Edit</b>; or select the operation or its job and press the “Machining
 (milling)” button – to open the window with faces, cutter, application and
 values of the operation, with its block only. <b>Apply</b> changes it – one undo step; another
@@ -144,7 +198,8 @@ cutter gets its own tool controller, the old one is removed if no operation
 uses it any more.</p>
 
 <h3>What comes next</h3>
-<p>Adaptive pocket with trochoids, drilling and threads from the window –
-following the plan in specification W-006.</p>
+<p>The competition clearing against contour in the pocket, the entry (ramp,
+helix, vertical) by time, trochoids in tight corners, drilling and threads
+from the window – following the plan in specification W-006.</p>
 </body>
 </html>

@@ -16,8 +16,9 @@ def _ist_eben(objekt):
     """Eine 2,5D-Operation (Planfräsen, Kontur) – ihr Assistent ist „Bearbeitung (Fräsen)“."""
     from . import kontur as ko
     from . import planfraesen as pf
+    from . import raeumen as ra
 
-    return pf.ist_planfraesen(objekt) or ko.ist_kontur(objekt)
+    return pf.ist_planfraesen(objekt) or ko.ist_kontur(objekt) or ra.ist_raeumen(objekt)
 
 
 def bearbeiten(objekt):

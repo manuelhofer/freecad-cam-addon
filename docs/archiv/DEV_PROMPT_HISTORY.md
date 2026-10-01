@@ -12,6 +12,69 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-25 raeumen-ringe-wettbewerb
+
+### EINGELESEN
+- Manuel (2026-10-01): „Die Strategie, die beim Bearbeiten fräsen … benutzt wurde, war Müll …
+  50 × 50 mit in der Mitte ein Zapfen … Bei so einem Teil erwarte ich sozusagen einen
+  HSM-Werkzeugweg … von außen kreisend zur Mitte, immer volle Tiefe mit ae-Zustellung … und
+  ich habe bekommen Zeilen … eingetaucht mit Zickzack, obwohl daneben alles frei war … es
+  müssten immer viele verschiedene Werkzeugwege generiert werden und dann schauen, dass der
+  kürzeste genommen wird … Gleichlauf/Gegenlauf nicht vergessen“; „Vielleicht hast du aber eine
+  bessere Idee, die schneller geht und weniger Rechenleistung braucht und deutlich besser
+  Ergebnisse erzielt“.
+- Spezifikation Strategien S3f (Plan: Versätze mit makeOffset2D, Spirale, einmal hinein),
+  Grundsatz 0, Abschnitt 11; `kontur_bahn` (Einfahren, Rampe, Abtasten), `planfraesen_bahn`,
+  `hoehenfeld` (Hüllfläche), `restmaterial.Quader` (Simulation), `gui_bearbeitung`
+  (`_Strategie`/`_Block`).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (neu), `camaddon/raeumen.py` (neu), `camaddon/kontur_bahn.py`
+  (`_anfahrt` mit freier Seite), `camaddon/gui_bearbeitung.py` (`_Raeumen`, Wettbewerb),
+  `camaddon/gui_vierachs_operation.py`, `camaddon/job_schnittwerte.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/bearbeitung.html`, `tests/test_raeumen.py` (neu),
+  `tests/gui/szenario_raeumen.py` (neu), `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml`
+  (0.44.0)
+
+### AKZEPTANZKRITERIUM
+Manuels 50 × 50 × 20 mit Zapfen Ø 10 in der Mitte, Standardfräser Ø 12 (ae 1,5, ap 25): die
+Oberseite anklicken – der Assistent rechnet Planfräsen und Räumen, Räumen gewinnt (eine Lage,
+Ringe von außen in der Luft nach innen, 0 Rampen, 2,8 min gegen 4,8) und bekommt den Haken,
+die Zeilen sagen „– die schnellste; Planfräsen wäre N % langsamer“ und „– N % langsamer als
+Räumen“; „Anlegen“ legt nur „Räumen T1“ an. Auf dem Block mit Absatz gewinnt das Planfräsen
+(1,7 gegen 2,5), auf der Platte das Räumen (33,3 gegen 39,3), in der Tasche 40 × 30 braucht
+Räumen 0,75 min, die Kontur ohne Schlichten 3,0. Gegenlauf gleich schnell wie Gleichlauf. Die
+Simulation im Quader: nirgends ins Teil, auf der Fläche nichts stehen geblieben (bis auf das
+Aufmaß an Wänden). Rechenzeit etwa eine Sekunde je Fläche.
+
+### DONE
+- `raeumen_bahn`: Raster über der Fläche (gesperrt aus der Hüllfläche mit vergrößertem Fräser,
+  Rohteil, Geschnittenes), Ringe als Höhenlinien des Abstandsfelds (Marching Squares) bei
+  Radius + Aufmaß + k · ae und analytisch vom Rohteil her; Varianten „rohteil“ und „inseln“,
+  beide gerechnet, die schnellere nach `bahn.zeit`; je Lauf der Eingang: anhängen (Spirale),
+  tangential oder quer aus dem Freien (die Stirn höchstens so weit über Ungeschnittenem wie
+  der Streifen ae), Anfangsstück nachholen, zuletzt die Rampe (rundum auf ganzen Ringen – die
+  Tasche einmal je Lage); Gleichlauf/Gegenlauf; Taschen über die Konturen.
+- Dabei gefunden: im Gegenlauf suchte das Einfahren rechts der Bahn das Freie – es liegt dort
+  links (60 % langsamer, 7 Rampen); `kontur_bahn._anfahrt` bekommt die freie Seite.
+- Operation `raeumen.Raeumen`; Assistent: Block „Räumen“ (ebene Flächen und Taschenböden zu
+  gewählten Wänden; vorgeschlagen für ebene Flächen), Wettbewerb Planfräsen gegen Räumen
+  (`_im_wettbewerb`, `_wettbewerb`): beide rechnen, sobald eins angehakt ist und beide dieselben
+  Flächen haben, die schnellere bekommt den Haken, ein von Hand gesetzter bleibt; Hilfe
+  (Abschnitt „Räumen“ und „Die Zeit entscheidet“, die Folge für die Tasche: Räumen, dann Kontur
+  mit Breite = Aufmaß).
+
+### TEST
+- `test_raeumen` (vier Teile mit Simulation, Varianten, Gegenlauf, Fehler, Operation),
+  `test_kontur`, `test_planfraesen`, `test_sprache`, `test_hilfe` und die Szenarien
+  `szenario_raeumen`, `szenario_bearbeitung`, `szenario_kontur` in 1.1.3 ok; black/ruff ok.
+
+### NEXT
+- Räumen gegen die Kontur in der Tasche (Räumen + Kontur mit Breite = Aufmaß gegen Kontur
+  allein), der Einstieg nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; S3g
+  Bohren/Gewinde. Trochoiden in Ecken (E3) erst nach Messung.
+
 ## P-2026-10-01-24 grundsatz-zeit-zeilenrichtung
 
 ### EINGELESEN

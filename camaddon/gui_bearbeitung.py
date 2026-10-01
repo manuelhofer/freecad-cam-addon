@@ -27,6 +27,8 @@ from . import job_schnittwerte as js
 from . import kontur as ko
 from . import kontur_bahn as kb
 from . import planfraesen as pf
+from . import raeumen as ra
+from . import raeumen_bahn as rb
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_plan as vplan
 from . import vierachs_planbahn as vp
@@ -52,6 +54,7 @@ from .sprache import tr
 AUFMASS_ROHTEIL = 1.0  # mm je Seite, wie FreeCADs Job
 GEMERKT_FRAESER = "BaFraeser"  # Kennung des zuletzt gewählten Fräsers (Planfräsen)
 GEMERKT_KONTURFRAESER = "BaKonturFraeser"  # … für die Kontur
+GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 ROHTEIL_FELDER = ("oben", "seite", "unten")
@@ -105,8 +108,8 @@ def nullpunkte():
 
 
 def ist_bearbeitung(op):
-    """Eine Operation dieses Assistenten – „Planfräsen“ oder „Kontur“?"""
-    return pf.ist_planfraesen(op) or ko.ist_kontur(op)
+    """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“ oder „Kontur“?"""
+    return pf.ist_planfraesen(op) or ra.ist_raeumen(op) or ko.ist_kontur(op)
 
 
 class BefehlBearbeitung:
@@ -372,6 +375,137 @@ class _Planfraesen(_Strategie):
         }
 
 
+class _Raeumen(_Strategie):
+    kennung = "raeumen"
+    gemerkt = GEMERKT_RAEUMFRAESER
+    einsatz_reihenfolge = (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN)
+
+    def titel(self):
+        return tr("ba.raeumen")
+
+    def text(self):
+        return tr("ba.raeumen.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.raeumfraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.raeumeinsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("zustellung", tr("ba.zustellung"), tr("ba.zustellung.tooltip")),
+            ("zeilenabstand", tr("ba.zeilenabstand"), tr("ba.raeumen.zeilenabstand.tooltip")),
+            ("aufmass", tr("ba.aufmass_wand"), tr("ba.aufmass_wand.tooltip")),
+            ("aufmass_boden", tr("ba.aufmass_boden"), tr("ba.aufmass_boden.tooltip")),
+        )
+
+    def haken(self):
+        return (("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),)
+
+    def passt(self, form, name):
+        return bool(hf.ebenen_oben(form, [name])) or bool(kb.waende(form, [name]))
+
+    def flaechen_fuer(self, form, gewaehlte):
+        """Die ebenen Flächen nach oben – und die Böden der Taschen, deren Wände gewählt sind."""
+        ebenen = [name for name in gewaehlte if hf.ebenen_oben(form, [name])]
+        waende = [name for name in gewaehlte if name not in ebenen and kb.waende(form, [name])]
+        for boden in rb.taschenboeden(form, waende):
+            if boden not in ebenen:
+                ebenen.append(boden)
+        return ebenen
+
+    def vorgeschlagen(self, form, gewaehlte):
+        # Von sich aus nur für ebene Flächen (die Oberseite ohne Wahl); für gewählte
+        # Taschenwände bleibt die Kontur der Vorschlag – Räumen lässt sich dazu anhaken.
+        return not gewaehlte or any(hf.ebenen_oben(form, [name]) for name in gewaehlte)
+
+    def moeglich(self, form, gewaehlte):
+        return True  # ohne ebene Fläche die Oberseite
+
+    def unmoeglich_text(self):
+        return tr("ba.raeumen.keine_flaeche")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "zustellung":
+            return einsatz.ap if einsatz is not None and einsatz.ap > 0 else ra.ZUSTELLUNG
+        if feld == "zeilenabstand":
+            if werkzeug is None or werkzeug.durchmesser <= 0:
+                return 0.0
+            r = werkzeug.durchmesser / 2
+            ae = einsatz.ae if einsatz is not None and einsatz.ae > 0 else r / 4
+            return min(ae, r)
+        if feld == "aufmass":
+            return ra.AUFMASS
+        return 0.0  # Aufmaß am Boden: die Fläche ist fertig
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return ra.vorschau(
+            job,
+            job.Model.Group,
+            ff.von_werkzeug(werkzeug),
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            flaechen,
+            aufmass_boden=werte["aufmass_boden"],
+            gleichlauf=werte["gleichlauf"],
+            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+        ringe = tr("ba.zahl.ring") if bahn.ringe == 1 else tr("ba.zahl.ringe", n=bahn.ringe)
+        if bahn.flaechen > 1:
+            flaechen = tr("ba.zahl.flaechen", n=bahn.flaechen)
+            return tr(
+                "ba.ergebnis_raeumen_flaechen",
+                flaechen=flaechen,
+                lagen=lagen,
+                ringe=ringe,
+                zeit=zeit,
+            )
+        return tr("ba.ergebnis_raeumen", lagen=lagen, ringe=ringe, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return ra.lege_an(
+            job,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            werte["aufmass_boden"],
+            werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        ra.aendere(
+            op,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            werte["aufmass_boden"],
+            werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def ist(self, op):
+        return ra.ist_raeumen(op)
+
+    def werte_von(self, op):
+        return {
+            "zustellung": float(op.Zustellung),
+            "zeilenabstand": float(op.Zeilenabstand),
+            "aufmass": float(op.Aufmass),
+            "aufmass_boden": float(op.AufmassBoden),
+            "gleichlauf": bool(op.Gleichlauf),
+        }
+
+
 class _Kontur(_Strategie):
     kennung = "kontur"
     gemerkt = GEMERKT_KONTURFRAESER
@@ -483,7 +617,7 @@ class _Kontur(_Strategie):
         }
 
 
-STRATEGIEN = (_Planfraesen, _Kontur)
+STRATEGIEN = (_Planfraesen, _Raeumen, _Kontur)
 
 
 def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
@@ -507,6 +641,8 @@ class _Block:
         self.vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation
         self.tc_vorher = None  # beim Ändern: ihr Controller
         self.vorschau = None  # die grobe Bahn oder None
+        self.zeit = None  # Minuten der Vorschau (bahn.zeit) – für den Wettbewerb
+        self.ergebnis_basis = ""  # die Ergebniszeile ohne den Vergleich
         self.operation = None  # die angelegte Operation
         self.von_hand = False  # der Haken ist von Hand gesetzt – kein Vorschlag mehr
         self.moeglich = True  # die Strategie geht mit der Wahl der Flächen
@@ -699,6 +835,8 @@ class _Block:
         """Die grobe Bahn – Lagen, Zeilen bzw. Bahnen, Zeit – und damit „Anlegen“ weiß, ob
         es geht; der Grund steht rot."""
         self.vorschau = None
+        self.zeit = None
+        self.ergebnis_basis = ""
         self.ergebnis.setText("")
         self.hinweis.setText("")
         werkzeug, einsatz = self.fraeser(), self.einsatz()
@@ -712,13 +850,15 @@ class _Block:
         except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
             self.hinweis.setText(str(fehler))
             return
-        zeit = (
-            _zeit_text(bn.zeit(self.vorschau.punkte, vorschub, senkrecht)) if vorschub > 0 else "?"
-        )
-        self.ergebnis.setText(self.s.ergebnis_text(self.vorschau, zeit))
+        self.zeit = bn.zeit(self.vorschau.punkte, vorschub, senkrecht) if vorschub > 0 else None
+        zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
+        self.ergebnis_basis = self.s.ergebnis_text(self.vorschau, zeit)
+        self.ergebnis.setText(self.ergebnis_basis)
 
     def leeren(self):
         self.vorschau = None
+        self.zeit = None
+        self.ergebnis_basis = ""
         self.ergebnis.setText("")
         self.hinweis.setText("")
 
@@ -763,8 +903,9 @@ class BearbeitungPanel:
         self._nullpunkte = nullpunkte()
         self.bloecke = []
         self.form = self._baue()
-        self.plan = self.bloecke[0]
-        self.kontur = self.bloecke[1]
+        self.plan = next(b for b in self.bloecke if b.s.kennung == "planfraesen")
+        self.raeumen = next(b for b in self.bloecke if b.s.kennung == "raeumen")
+        self.kontur = next(b for b in self.bloecke if b.s.kennung == "kontur")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
@@ -1472,11 +1613,75 @@ class BearbeitungPanel:
             return
         form = vr.modell(self.job).Shape
         for block in self.bloecke:
-            if block.aktiv():
+            if block.aktiv() or self._im_wettbewerb(block):
                 block.vorschau_rechnen(self.job, block.s.flaechen_fuer(form, self.gewaehlte))
             else:
                 block.leeren()
+        self._wettbewerb(form)
         self._knoepfe_beschriften()
+
+    def _gegner(self, block):
+        """Die Strategie, die dieselbe Aufgabe löst: Planfräsen und Räumen auf einer Fläche."""
+        if block is self.plan:
+            return self.raeumen
+        if block is self.raeumen:
+            return self.plan
+        return None
+
+    def _im_wettbewerb(self, block):
+        """Rechnet der Block mit, obwohl er nicht angehakt ist – weil sein Gegner auf denselben
+        Flächen angehakt ist und niemand seinen Haken von Hand genommen hat (Grundsatz 0: die
+        Zeit entscheidet)?"""
+        if self.zu_aendern is not None or not block.moeglich or block.von_hand:
+            return False
+        gegner = self._gegner(block)
+        if gegner is None or not gegner.aktiv():
+            return False
+        form = vr.modell(self.job).Shape
+        return set(block.s.flaechen_fuer(form, self.gewaehlte)) == set(
+            gegner.s.flaechen_fuer(form, self.gewaehlte)
+        )
+
+    def _wettbewerb(self, form):
+        """Planfräsen gegen Räumen auf denselben Flächen: der schnellere bekommt den Haken,
+        beide Zeilen sagen, um wie viel – solange niemand den Haken von Hand gesetzt hat."""
+        if self.zu_aendern is not None:
+            return
+        a, b = self.plan, self.raeumen
+        if a.zeit is None or b.zeit is None or a.zeit <= 0 or b.zeit <= 0:
+            return
+        if set(a.s.flaechen_fuer(form, self.gewaehlte)) != set(
+            b.s.flaechen_fuer(form, self.gewaehlte)
+        ):
+            return
+        schneller, langsamer = (a, b) if a.zeit <= b.zeit else (b, a)
+        prozent = int(round((langsamer.zeit / schneller.zeit - 1.0) * 100.0))
+        schneller.ergebnis.setText(
+            tr(
+                "ba.wettbewerb.schnellste",
+                text=schneller.ergebnis_basis,
+                andere=langsamer.s.titel(),
+                prozent=prozent,
+            )
+        )
+        langsamer.ergebnis.setText(
+            tr(
+                "ba.wettbewerb.langsamer",
+                text=langsamer.ergebnis_basis,
+                andere=schneller.s.titel(),
+                prozent=prozent,
+            )
+        )
+        if a.von_hand or b.von_hand:
+            return
+        self._fuellt = True
+        try:
+            schneller.haken.setChecked(True)
+            langsamer.haken.setChecked(False)
+            schneller.zustand_zeigen()
+            langsamer.zustand_zeigen()
+        finally:
+            self._fuellt = False
 
     def _auffrischen(self):
         self._knoepfe_beschriften()

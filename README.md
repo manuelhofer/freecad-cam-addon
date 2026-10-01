@@ -142,9 +142,15 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Fläche anklicken – ihre Unterkanten werden zur Kontur, außen um einen Zapfen
   oder innen in einer Tasche –, Schruppen in Lagen mit Aufmaß (so viele Bahnen
   nebeneinander, wie Material neben der Wand steht), dann Schlichten in einem
-  Zug, tangential hinein und heraus, im Gleichlauf, Bögen in den Ecken. Jede
-  Bearbeitung ist ein Block mit Haken; „Anlegen“ legt alle angehakten an.
-  Tasche und Bohren folgen.
+  Zug, tangential hinein und heraus, im Gleichlauf, Bögen in den Ecken.
+  **Räumen** für dieselben Flächen und für Taschenböden – wie ein HSM-Weg: Ringe
+  bei voller Zustellung und schmalem Zeilenabstand, ohne Wenden, von außen
+  kreisend nach innen (auf der Oberseite) oder einmal über die Rampe rundum und
+  von innen nach außen (in der Tasche), Gleichlauf oder Gegenlauf, eingetaucht
+  nur, wo schon frei ist. **Die Zeit entscheidet:** Planfräsen und Räumen
+  rechnen beide, die schnellere bekommt den Haken, beide Zeilen sagen, um wie
+  viel. Jede Bearbeitung ist ein Block mit Haken; „Anlegen“ legt alle
+  angehakten an. Bohren folgt.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 
