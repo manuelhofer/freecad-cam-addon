@@ -173,7 +173,17 @@ eben). Kein OCL.
 4. **Z-konstant** (Höhenlinien) für steile Bereiche, **Steil/Flach**: über
    einem Grenzwinkel Höhenlinien, darunter Zeilen – in einer Operation.
    *Besser:* Surface und Waterline getrennt lassen Rippen und Stufen. Aufwand
-   mittel bis groß.
+   mittel bis groß. Gebaut als Steil/Flach im „3D-Schlichten“ (P-2026-10-01-43,
+   0.59.0): die Hüllfläche zusätzlich im Raster (0,25 mm), die Neigung aus ihrem
+   Gradienten; Zeilen nur, wo es flacher ist als der Grenzwinkel (45°, Eigenschaft
+   „Grenzwinkel“, 0: nur Zeilen), Höhenlinien (Marching Squares aus
+   `raeumen_bahn`), wo es steiler ist, überlappend um 3°; in z so weit auseinander
+   wie die Zeilen in der Ebene, von oben nach unten, im Gleichlauf (das Material –
+   die höhere Hüllfläche – rechts), nahe Stücke gleitend verbunden. An der
+   Halbkugel R 15 (Fuß senkrecht): an der Flanke 0,026 statt 0,056 mm, 4,2 statt
+   3,2 min. An der Grenze liegen Zeilen und Höhenlinien im Raum um √2 weiter
+   auseinander als in Ebene bzw. Wand – der Grat dort bis zum Doppelten; genau
+   hält ihn erst „Äquidistant“ (Punkt 5).
 5. **Äquidistant** (3D-Offset, gleichbleibende Grathöhe auf jeder Neigung) –
    die feinste Schlichtstrategie. Aufwand groß; nach 3 und 4.
 6. **Bleistift** (Kehlen) – dort, wo zwei Flächen sich treffen und der Fräser

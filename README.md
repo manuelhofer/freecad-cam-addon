@@ -186,7 +186,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   der Reibahle auf Maß (G85, im Vorschub heraus) – dann bohrt „Bohren“ kleiner vor.
   **3D-Schlichten**: Freiformflächen (Kuppeln, Rundungen, Schrägen) in parallelen
   Zeilen mit dem Kugelfräser, die Spitze auf der Hüllfläche des ganzen Teils, der
-  Zeilenabstand aus der Grathöhe – längs X und Y gerechnet, die schnellere zählt.
+  Zeilenabstand aus der Grathöhe – längs X und Y gerechnet, die schnellere zählt; wo
+  es steiler ist als 45°, Höhenlinien statt Zeilen (Steil/Flach).
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

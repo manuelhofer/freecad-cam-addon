@@ -1,8 +1,8 @@
 # „Bearbeitung (Fräsen)“ mit „3D-Schlichten“ (W-006 4.2 Punkt 3): Platte 60 × 60 × 10 mit einer
 # Kuppel (Kugel R 25, Fuß Ø 40, oben z 20); T1 der Standardfräser Ø 12, T3 ein Kugelfräser Ø 6.
 # Die Kuppel anklicken: In der Liste „Freiform, unten 10“, „3D-Schlichten“ angehakt mit T3 (der
-# Kugelfräser ist vorgewählt), „→ N Zeilen längs X, Abstand 0,49, etwa … min“; Planfräsen und
-# Räumen ohne Haken. „Anlegen“: „3D-Schlichten T3“. „Auf der Maschine prüfen“: am Ende nirgends
+# Kugelfräser ist vorgewählt), „→ N Höhenlinien und M Zeilen längs X, Abstand 0,49, etwa … min“
+# (Steil/Flach: am Fuß ist die Kuppel steiler als 45°); Planfräsen und Räumen ohne Haken. „Anlegen“: „3D-Schlichten T3“. „Auf der Maschine prüfen“: am Ende nirgends
 # ins Teil.
 import FreeCAD
 import FreeCADGui as Gui
@@ -76,7 +76,10 @@ def schritte(h):
     h.pruefe(not panel.plan.aktiv() and not panel.raeumen.aktiv(), "Planfräsen/Räumen angehakt")
     text = block.ergebnis.text()
     h.pruefe(
-        " Zeilen längs " in text and ", Abstand 0,49, etwa " in text,
+        text.startswith("→ ")
+        and " Höhenlinien und " in text
+        and " Zeilen längs " in text
+        and ", Abstand 0,49, etwa " in text,
         f"3D-Schlichten: {text!r}",
     )
     h.pruefe(not block.hinweis.text(), f"rot: {block.hinweis.text()!r}")

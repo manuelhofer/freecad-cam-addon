@@ -10,8 +10,14 @@ hinein, auch nicht an Nachbarflächen.
   die Zeile am Fuß einer Kuppel, wo der Fräser die Platte daneben berührt; nicht gewählte
   Flächen bleiben, wie sie sind.
 - **Zeilenabstand** aus der Grathöhe (fraeserform.Form.kammhoehe – die Kugel Ø 6 bei 0,01 mm:
-  0,49 mm), gemessen auf ebener Fläche; an steilen Stellen liegen die Zeilen im Raum weiter
-  auseinander (die Grenze der Zeilen – dort hilft später „Z-konstant“).
+  0,49 mm), gemessen auf ebener Fläche; an steilen Stellen lägen die Zeilen im Raum weiter
+  auseinander, die Grate würden höher.
+- **Steil/Flach** (W-006 4.2 Punkt 4): Darum fahren die Zeilen nur, wo es flacher ist als der
+  Grenzwinkel (45°); wo es steiler ist, fährt er **Höhenlinien** – die Spitze auf fester Höhe
+  rund um die Fläche, in z so weit auseinander wie die Zeilen in der Ebene, von oben nach unten,
+  im Gleichlauf (das Material rechts, M3). Beide überlappen an der Grenze um UEBERLAPP. Die
+  Neigung und die Höhenlinien kommen aus der Hüllfläche im Raster (RASTER): ihr Gradient, ihre
+  Linien gleicher Höhe (Marching Squares, raeumen_bahn).
 - **Richtung:** längs x und längs y gerechnet, die schnellere zählt (Grundsatz 0). Im Zickzack
   Zeile für Zeile hin und zurück; zwischen nahen Enden gleitet er hinüber (LUFT über der
   Hüllfläche beider Zeilen dazwischen), sonst Rückzug im Eilgang. Lücken in einer Zeile, kürzer
@@ -46,6 +52,10 @@ LUFT = 0.1  # mm – so hoch gleitet er zwischen zwei Zeilen über der Hüllflä
 LUECKE_FAHREN = 10.0  # mm – kürzere Lücken in einer Zeile fährt er auf der Hüllfläche durch
 TOLERANZ_GERADE = 0.002  # mm – so weit darf ein ausgelassener Punkt von der Geraden liegen
 NACH_OBEN = 0.05  # so weit muss eine Normale nach oben zeigen (n_z) – sonst sieht er nichts
+GRENZWINKEL = 45.0  # Grad – steiler: Höhenlinien, flacher: Zeilen; 0: nur Zeilen
+UEBERLAPP = 3.0  # Grad – so weit überlappen Zeilen und Höhenlinien an der Grenze
+RASTER = 0.25  # mm – das Raster der Hüllfläche für Neigung und Höhenlinien
+VORSCHAU_RASTER = 0.5  # mm – im Assistenten
 
 
 @dataclass
@@ -58,8 +68,11 @@ class Schlichtwerte:
     grathoehe: float = GRATHOEHE
     aufmass: float = 0.0  # bleibt auf den Flächen stehen
     richtung: str = "auto"  # „auto“ (die schnellere), „x“ oder „y“
+    grenzwinkel: float = GRENZWINKEL  # Grad – steiler: Höhenlinien; 0: nur Zeilen
+    gleichlauf: bool = True  # Höhenlinien mit dem Material rechts (M3)
     sicherheit: float = vb.SICHERHEIT
     schritt: float = SCHRITT
+    raster: float = RASTER
     vorschub: float = 0.0  # mm/min – für die Zeit; 0: 1000
     eintauchen: float = 0.0
 
@@ -75,6 +88,7 @@ class Schlichtbahn:
     z_min: float
     laenge: float  # mm im Vorschub
     zeit: float  # Minuten (bahn.zeit)
+    hoehenlinien: int = 0  # Höhen mit Höhenlinien (Steil/Flach)
 
 
 # --- Flächen --------------------------------------------------------------------------------
@@ -210,9 +224,187 @@ def _laeufe(maske, z, schritt):
     return ergebnis
 
 
-def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt):
-    """Die Bahn mit den Zeilen längs x (`laengs_x`) oder längs y – None, wo nichts zu fräsen ist.
-    `box`: (x_von, x_bis, y_von, y_bis) der gewählten Flächen."""
+@dataclass
+class _Raster:
+    """Die Hüllfläche im Raster (x längs Achse 0, y längs Achse 1) – für Neigung und
+    Höhenlinien."""
+
+    xs: np.ndarray
+    ys: np.ndarray
+    z: np.ndarray  # die Spitze (mit Aufmaß); −inf, wo der Fräser nichts trifft
+    gewaehlt: np.ndarray  # die gewählten Flächen bestimmen die Höhe
+    neigung: np.ndarray  # rad; nan, wo es keine gibt
+
+    def index(self, x, y):
+        sx = self.xs[1] - self.xs[0]
+        sy = self.ys[1] - self.ys[0]
+        i = np.clip(np.rint((np.asarray(x, dtype=float) - self.xs[0]) / sx), 0, len(self.xs) - 1)
+        j = np.clip(np.rint((np.asarray(y, dtype=float) - self.ys[0]) / sy), 0, len(self.ys) - 1)
+        return i.astype(int), j.astype(int)
+
+    def bei(self, feld, x, y):
+        i, j = self.index(x, y)
+        return feld[i, j]
+
+
+def _raster(netz_alle, netz_rest, geformt, box, w):
+    """Die Hüllfläche im Raster über `box` ± R, mit und ohne die gewählten Flächen."""
+    R = w.form.radius
+    x0, x1 = box[0] - R, box[1] + R
+    y0, y1 = box[2] - R, box[3] + R
+    nx = max(3, int(math.ceil((x1 - x0) / w.raster - 1e-9)) + 1)
+    ny = max(3, int(math.ceil((y1 - y0) / w.raster - 1e-9)) + 1)
+    xs, ys = np.linspace(x0, x1, nx), np.linspace(y0, y1, ny)
+    sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
+    alle = hf.je_zeile(netz_alle, geformt, ys, x0, sx, nx, True)
+    rest = hf.je_zeile(netz_rest, geformt, ys, x0, sx, nx, True)
+    gewaehlt = np.isfinite(alle) & (alle > rest + MASKE)
+    endlich = np.where(np.isfinite(alle), alle, np.nan)
+    gx, gy = np.gradient(endlich, sx, sy)
+    neigung = np.arctan(np.hypot(gx, gy))
+    return _Raster(xs, ys, alle + max(w.aufmass, 0.0), gewaehlt, neigung)
+
+
+def _stuecke(punkte, geschlossen, behalten):
+    """[(punkte, geschlossen)] – die Teile eines Linienzugs, deren Ecken `behalten` sind."""
+    n = len(punkte)
+    if behalten.all():
+        return [(punkte, geschlossen)]
+    if not behalten.any():
+        return []
+    if geschlossen:
+        k = int(np.flatnonzero(~behalten)[0])
+        punkte = np.roll(punkte, -k, axis=0)
+        behalten = np.roll(behalten, -k)
+    ergebnis = []
+    i = 0
+    while i < n:
+        if not behalten[i]:
+            i += 1
+            continue
+        j = i
+        while j + 1 < n and behalten[j + 1]:
+            j += 1
+        if j > i:
+            ergebnis.append((punkte[i : j + 1], False))
+        i = j + 1
+    return ergebnis
+
+
+def _gerichtet(punkte, geschlossen, raster, gleichlauf):
+    """Der Linienzug so gerichtet, dass das Material (die höhere Hüllfläche) rechts liegt –
+    im Gegenlauf links."""
+    n = len(punkte)
+    stuecke = range(n if geschlossen else n - 1)
+    laengen = [math.hypot(*(punkte[(i + 1) % n] - punkte[i])) for i in stuecke]
+    weit = 2.0 * float(raster.xs[1] - raster.xs[0])
+    rechts_hoeher = None
+    for i in sorted(stuecke, key=lambda k: -laengen[k]):
+        p, q = punkte[i], punkte[(i + 1) % n]
+        tx, ty = q[0] - p[0], q[1] - p[1]
+        laenge = math.hypot(tx, ty) or 1.0
+        mx, my = (p[0] + q[0]) / 2, (p[1] + q[1]) / 2
+        links = raster.bei(raster.z, mx - ty / laenge * weit, my + tx / laenge * weit)
+        rechts = raster.bei(raster.z, mx + ty / laenge * weit, my - tx / laenge * weit)
+        if abs(float(links) - float(rechts)) > 1e-6:
+            rechts_hoeher = float(rechts) > float(links)
+            break
+    if rechts_hoeher is not None and rechts_hoeher != gleichlauf:
+        return punkte[::-1].copy()
+    return punkte
+
+
+def _verbinden(punkte, x, y, z, w, raster=None):
+    """Zum Punkt (x, y, z) weiter: nah (2 R) mit dem Raster gleitend (LUFT über der
+    Hüllfläche dazwischen), sonst im Eilgang über sicherer Höhe und hinab bis über das Rohteil.
+    Ohne Punkt davor: hinein. Gibt die Länge im Vorschub zurück."""
+    if not punkte:
+        knapp = min(w.sicher, max(z, w.oben) + w.sicherheit)
+        punkte.append(bn.Punkt(True, x, y, w.sicher))
+        punkte.append(bn.Punkt(True, x, y, knapp))
+        punkte.append(bn.Punkt(False, x, y, z, True))
+        return bn.weg(punkte[-2], punkte[-1])
+    jetzt = punkte[-1]
+    d = math.hypot(x - jetzt.x, y - jetzt.y)
+    if raster is not None and d <= 2 * w.form.radius:
+        anzahl = max(2, int(math.ceil(d / float(raster.xs[1] - raster.xs[0]))) + 1)
+        t = np.linspace(0.0, 1.0, anzahl)
+        unter = raster.bei(raster.z, jetzt.x + (x - jetzt.x) * t, jetzt.y + (y - jetzt.y) * t)
+        if np.all(np.isfinite(unter)):
+            hoch = max(float(np.max(unter)), jetzt.z, z) + LUFT
+            laenge = 0.0
+            for px, py, pz in ((jetzt.x, jetzt.y, hoch), (x, y, hoch), (x, y, z)):
+                punkt = bn.Punkt(False, px, py, pz)
+                laenge += bn.weg(punkte[-1], punkt)
+                punkte.append(punkt)
+            return laenge
+    punkte.append(bn.Punkt(True, jetzt.x, jetzt.y, w.sicher))
+    punkte.append(bn.Punkt(True, x, y, w.sicher))
+    punkte.append(bn.Punkt(True, x, y, min(w.sicher, max(z, w.oben) + w.sicherheit)))
+    punkte.append(bn.Punkt(False, x, y, z, True))
+    return bn.weg(punkte[-2], punkte[-1])
+
+
+def _hoehenlinien(raster, w, abstand_z):
+    """Die Höhenlinien, wo es steiler ist als der Grenzwinkel: ([bahn.Punkt], Länge, Höhen,
+    z_min) – ohne den Rückzug am Ende."""
+    from . import raeumen_bahn as rb
+
+    grenze = math.radians(max(w.grenzwinkel - UEBERLAPP, 0.0))
+    with np.errstate(invalid="ignore"):
+        steil = raster.gewaehlt & (raster.neigung >= grenze)
+    punkte = []
+    if not steil.any():
+        return punkte, 0.0, 0, math.inf
+    z_steil = raster.z[steil]
+    oben, unten = float(np.max(z_steil)), float(np.min(z_steil))
+    anzahl = max(1, int(math.ceil((oben - unten) / abstand_z - 1e-9)))
+    laenge = 0.0
+    hoehen = 0
+    z_min = math.inf
+    for k in range(1, anzahl + 1):
+        z = oben - (oben - unten) * k / anzahl
+        stuecke = []
+        for linie, geschlossen in rb._hoehenlinien(raster.z, raster.xs, raster.ys, z):
+            behalten = raster.bei(steil, linie[:, 0], linie[:, 1])
+            for teil, zu in _stuecke(linie, geschlossen, behalten):
+                teil = rb._vereinfacht(teil, TOLERANZ_GERADE, zu)
+                if len(teil) >= 2:
+                    stuecke.append((_gerichtet(teil, zu, raster, w.gleichlauf), zu))
+        if not stuecke:
+            continue
+        hoehen += 1
+        z_min = min(z_min, z)
+        while stuecke:
+            if punkte:
+                ort = (punkte[-1].x, punkte[-1].y)
+            else:
+                ort = (stuecke[0][0][0][0], stuecke[0][0][0][1])
+
+            def naechster(s, ort=ort):
+                teil, zu = s
+                if zu:
+                    return float(np.min(np.hypot(teil[:, 0] - ort[0], teil[:, 1] - ort[1])))
+                return math.hypot(teil[0][0] - ort[0], teil[0][1] - ort[1])
+
+            nummer = min(range(len(stuecke)), key=lambda i: naechster(stuecke[i]))
+            teil, zu = stuecke.pop(nummer)
+            if zu:
+                i = int(np.argmin(np.hypot(teil[:, 0] - ort[0], teil[:, 1] - ort[1])))
+                teil = np.vstack([np.roll(teil, -i, axis=0), np.roll(teil, -i, axis=0)[:1]])
+            laenge += _verbinden(punkte, float(teil[0][0]), float(teil[0][1]), z, w, raster)
+            for px, py in teil[1:]:
+                punkt = bn.Punkt(False, float(px), float(py), z)
+                laenge += bn.weg(punkte[-1], punkt)
+                punkte.append(punkt)
+    return punkte, laenge, hoehen, z_min
+
+
+def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, raster, vorweg):
+    """Die Bahn mit den Zeilen längs x (`laengs_x`) oder längs y – nach den Höhenlinien
+    `vorweg` ([bahn.Punkt], Länge, Höhen, z_min); None, wo nichts zu fräsen ist. `box`: (x_von,
+    x_bis, y_von, y_bis) der gewählten Flächen; mit `raster` die Zeilen nur, wo es flacher ist
+    als der Grenzwinkel."""
     R = w.form.radius
     if laengs_x:
         u_von, u_bis, v_von, v_bis = box
@@ -229,14 +421,19 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt):
     rest = hf.je_zeile(netz_rest, geformt, v_werte, u0, schritt, anzahl_u, laengs_x).T
     z = alle + max(w.aufmass, 0.0)
     maske = np.isfinite(alle) & (alle > rest + MASKE)
+    if raster is not None and w.grenzwinkel > 0:
+        uu, vv = np.meshgrid(u_werte, v_werte)  # (Zeilen, Stellen)
+        xx, yy = (uu, vv) if laengs_x else (vv, uu)
+        neigung = raster.bei(raster.neigung, xx, yy)
+        with np.errstate(invalid="ignore"):
+            steil = neigung >= math.radians(w.grenzwinkel + UEBERLAPP)
+        maske &= ~steil
 
     def xy(u, v):
         return (u, v) if laengs_x else (v, u)
 
-    punkte = []
-    laenge = 0.0
+    punkte, laenge, hoehen, z_min = list(vorweg[0]), vorweg[1], vorweg[2], vorweg[3]
     zeilen = 0
-    z_min = math.inf
     vorher = None  # (Zeile, Index am Ende) des vorigen Laufs
     rueckwaerts = False
     for k in range(anzahl_v):
@@ -253,12 +450,7 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt):
             x0, y0 = xy(float(u_werte[behalten[0]]), float(v_werte[k]))
             z0 = float(z[k, behalten[0]])
             if vorher is None:
-                # Im Eilgang nur bis über das Rohteil – was dort noch steht, weiß er nicht.
-                knapp = min(w.sicher, max(z0, w.oben) + w.sicherheit)
-                punkte.append(bn.Punkt(True, x0, y0, w.sicher))
-                punkte.append(bn.Punkt(True, x0, y0, knapp))
-                punkte.append(bn.Punkt(False, x0, y0, z0, True))
-                laenge += bn.weg(punkte[-2], punkte[-1])
+                laenge += _verbinden(punkte, x0, y0, z0, w, raster)
             else:
                 laenge += _hinueber(punkte, vorher, (k, behalten[0]), z, u_werte, v_werte, w, xy)
             for i in behalten[1:]:
@@ -274,7 +466,7 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt):
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-    return Schlichtbahn(punkte, zeilen, laengs_x, abstand, z_min, laenge, zeit)
+    return Schlichtbahn(punkte, zeilen, laengs_x, abstand, z_min, laenge, zeit, hoehen)
 
 
 def _hinueber(punkte, von, nach, z, u_werte, v_werte, w, xy):
@@ -333,10 +525,17 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     netz_alle, netz_rest = _netze(form_teil, flaechen, toleranz)
     geformt = w.form.mit_aufmass(max(w.aufmass, 0.0))
     abstand = zeilenabstand(w.form, w.grathoehe)
+    raster = None
+    vorweg = ([], 0.0, 0, math.inf)
+    if 0 < w.grenzwinkel < 90:
+        raster = _raster(netz_alle, netz_rest, geformt, box, w)
+        vorweg = _hoehenlinien(raster, w, abstand)
     richtungen = {"x": (True,), "y": (False,)}.get(w.richtung, (True, False))
     beste = None
     for laengs_x in richtungen:
-        bahn = _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt)
+        bahn = _eine_richtung(
+            netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, raster, vorweg
+        )
         if bahn is not None and (beste is None or bahn.zeit < beste.zeit):
             beste = bahn
     if beste is None:

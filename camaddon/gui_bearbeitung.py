@@ -1427,13 +1427,15 @@ class _Schlichten3D(_Strategie):
 
     def ergebnis_text(self, bahn, zeit):
         zeilen = tr("ba.zahl.zeile") if bahn.zeilen == 1 else tr("ba.zahl.zeilen", n=bahn.zeilen)
-        return tr(
-            "ba.ergebnis_s3",
-            zeilen=zeilen,
-            richtung="X" if bahn.laengs_x else "Y",
-            abstand=groesse_zeigen(bahn.abstand, einheiten.LAENGE, 2) or "0",
-            zeit=zeit,
-        )
+        werte = {
+            "zeilen": zeilen,
+            "richtung": "X" if bahn.laengs_x else "Y",
+            "abstand": groesse_zeigen(bahn.abstand, einheiten.LAENGE, 2) or "0",
+            "zeit": zeit,
+        }
+        if bahn.hoehenlinien:
+            return tr("ba.ergebnis_s3_steil", n=bahn.hoehenlinien, **werte)
+        return tr("ba.ergebnis_s3", **werte)
 
     def lege_an(self, job, tc, werte, flaechen):
         return s3op.lege_an(job, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)

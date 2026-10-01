@@ -49,11 +49,13 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Aufmass = 0.0
         obj.Richtung = list(RICHTUNGEN)
         obj.Richtung = "auto"
+        obj.Grenzwinkel = sb.GRENZWINKEL
         obj.Sicherheitsabstand = vb.SICHERHEIT
         self._editormodi(obj)
 
     def opOnDocumentRestored(self, obj):
-        self._eigenschaften(obj)
+        if "Grenzwinkel" in self._eigenschaften(obj):
+            obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
         self._editormodi(obj)
 
     @staticmethod
@@ -65,8 +67,10 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyLength", "Grathoehe", tr("s3.eigenschaft.grathoehe")),
             ("App::PropertyLength", "Aufmass", tr("s3.eigenschaft.aufmass")),
             ("App::PropertyEnumeration", "Richtung", tr("s3.eigenschaft.richtung")),
+            ("App::PropertyAngle", "Grenzwinkel", tr("s3.eigenschaft.grenzwinkel")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyInteger", "Zeilen", tr("s3.eigenschaft.zeilen")),
+            ("App::PropertyInteger", "Hoehenlinien", tr("s3.eigenschaft.hoehenlinien")),
             ("App::PropertyLength", "Abstand", tr("s3.eigenschaft.abstand")),
         ):
             if name not in obj.PropertiesList:
@@ -76,7 +80,7 @@ class Schlichten3D(PathOp.ObjectOp):
 
     @staticmethod
     def _editormodi(obj):
-        for name in ("Zeilen", "Abstand"):
+        for name in ("Zeilen", "Hoehenlinien", "Abstand"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
 
     def opExecute(self, obj):
@@ -87,11 +91,11 @@ class Schlichten3D(PathOp.ObjectOp):
                 obj, self.job, self.model, self.horizFeed * 60.0, vo.eintauchvorschub(self)
             )
         except ValueError as fehler:
-            obj.Zeilen = 0
+            obj.Zeilen = obj.Hoehenlinien = 0
             FreeCAD.Console.PrintError(f"{obj.Label}: {fehler}\n")
             self.commandlist.append(Path.Command(f"({vo._ascii(str(fehler))})"))
             return
-        obj.Zeilen = ergebnis.zeilen
+        obj.Zeilen, obj.Hoehenlinien = ergebnis.zeilen, ergebnis.hoehenlinien
         obj.Abstand = round(float(ergebnis.abstand), 4)
         self.commandlist.extend(
             bn.befehle(ergebnis.punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
@@ -112,6 +116,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vo.flaechen(obj),
         aufmass=float(obj.Aufmass),
         richtung=str(obj.Richtung),
+        grenzwinkel=float(obj.Grenzwinkel),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
         sicher=float(obj.SafeHeight),
         sicherheit=float(obj.Sicherheitsabstand),
@@ -128,6 +133,7 @@ def bahn_fuer(
     flaechen,
     aufmass=0.0,
     richtung="auto",
+    grenzwinkel=sb.GRENZWINKEL,
     oben=None,
     sicher=None,
     sicherheit=vb.SICHERHEIT,
@@ -135,6 +141,7 @@ def bahn_fuer(
     eintauchen=0.0,
     schritt=sb.SCHRITT,
     toleranz=sb.TOLERANZ_NETZ,
+    raster=sb.RASTER,
 ):
     """Die Bahn „3D-Schlichten“ über die Flächen `flaechen` des Modells. ValueError mit einem
     Satz, wenn es nicht geht."""
@@ -151,8 +158,10 @@ def bahn_fuer(
         grathoehe=grathoehe,
         aufmass=aufmass,
         richtung=richtung,
+        grenzwinkel=grenzwinkel,
         sicherheit=sicherheit,
         schritt=schritt,
+        raster=raster,
         vorschub=vorschub,
         eintauchen=eintauchen,
     )
@@ -169,6 +178,7 @@ def vorschau(job, modell, form, grathoehe, flaechen, **weiter):
         flaechen,
         schritt=sb.VORSCHAU_SCHRITT,
         toleranz=sb.VORSCHAU_TOLERANZ,
+        raster=sb.VORSCHAU_RASTER,
         **weiter,
     )
 

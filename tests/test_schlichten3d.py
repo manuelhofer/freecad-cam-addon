@@ -5,8 +5,9 @@
 # liegt danach jede Stelle der Kuppel höchstens 0,04 über ihr und nirgends darunter (nichts ins
 # Teil); die Platte daneben bleibt, wie sie war. Mit Aufmaß 0,2 bleiben 0,2 senkrecht zur
 # Fläche (auf der Kuppel senkrecht gemessen 0,2 / cos θ). Längs x und längs y
-# gerechnet, die schnellere zählt. Dann die Operation im Job: „3D-Schlichten T3“, Art
-# „schlichten3d“.
+# gerechnet, die schnellere zählt. Steil/Flach an einer Halbkugel R 15 (am Fuß senkrecht): Mit
+# Höhenlinien, wo es steiler ist als 45°, bleibt an der Flanke höchstens 0,035 stehen, mit Zeilen
+# allein mehr als 0,045. Dann die Operation im Job: „3D-Schlichten T3“, Art „schlichten3d“.
 import math
 import os
 import pathlib
@@ -66,9 +67,11 @@ def werte(**weiter):
 
 t0 = time.time()
 bahn = s3.planen(teil, kugel, werte())
-print(ascii(f"{bahn.zeilen} Zeilen, {len(bahn.punkte)} Punkte, {bahn.zeit:.2f} min"))
+print(ascii(f"{bahn.zeilen} Zeilen, {bahn.hoehenlinien} Höhen, {bahn.zeit:.2f} min"))
 print(ascii(f"Rechenzeit {time.time() - t0:.1f} s"))
-pruefe(70 <= bahn.zeilen <= 100, f"Zeilen {bahn.zeilen}")
+nur_zeilen = s3.planen(teil, kugel, werte(grenzwinkel=0.0))
+pruefe(70 <= nur_zeilen.zeilen <= 100, f"Zeilen {nur_zeilen.zeilen}")
+pruefe(nur_zeilen.hoehenlinien == 0 and bahn.hoehenlinien > 0, "Höhenlinien")
 pruefe(bahn.z_min >= 10.0 - 1e-6, f"unter der Platte: {bahn.z_min}")
 nur_x = s3.planen(teil, kugel, werte(richtung="x"))
 nur_y = s3.planen(teil, kugel, werte(richtung="y"))
@@ -120,6 +123,36 @@ pruefe(
     np.min(abweichung) > -0.02 and np.max(abweichung) < 0.04,
     f"Aufmaß 0,2: {np.min(abweichung):.3f} … {np.max(abweichung):.3f} neben dem Soll",
 )
+
+# --- Steil/Flach an der Halbkugel ---------------------------------------------------------------
+halb = Part.makeSphere(15, V(30, 30, 10)).common(Part.makeBox(60, 60, 20, V(0, 0, 10)))
+teil_h = Part.makeBox(60, 60, 10).fuse(halb).removeSplitter()
+kugel_h = [f"Face{i + 1}" for i, f in enumerate(teil_h.Faces) if isinstance(f.Surface, Part.Sphere)]
+netz_h = vf.vernetze(teil_h, 0.005).netz
+for grenz in (0.0, 45.0):
+    bahn_h = s3.planen(teil_h, kugel_h, werte(grenzwinkel=grenz, oben=25.0, sicher=30.0))
+    q_h = rm.Quader(0, 60, 0, 60, 0, 25.5, schritt=0.25)
+    soll_h = hf.hoehen(netz_h, q_h.x, q_h.y)
+    q_h.h[:] = np.minimum(soll_h + 0.3, 25.5)
+    pk = bahn_h.punkte
+    q_h.fahre_stuecke(
+        [(a.x, a.y, a.z) for a, b in zip(pk, pk[1:], strict=False) if not b.eilgang],
+        [(b.x, b.y, b.z) for a, b in zip(pk, pk[1:], strict=False) if not b.eilgang],
+        form,
+    )
+    xs_h, ys_h = np.meshgrid(q_h.x, q_h.y, indexing="ij")
+    r_h = np.hypot(xs_h - 30, ys_h - 30)
+    rest_h = q_h.h - soll_h
+    flanke = rest_h[(r_h > 11) & (r_h < 14)]
+    # Bis r 14 (69°): nichts ins Teil – näher am senkrechten Fuß misst das Raster nicht genau.
+    pruefe(np.min(rest_h[r_h < 14]) > -0.02, f"{grenz}°: ins Teil {np.min(rest_h[r_h < 14]):.3f}")
+    pruefe(np.max(rest_h[r_h < 9]) < 0.03, f"{grenz}°: oben {np.max(rest_h[r_h < 9]):.3f}")
+    if grenz:
+        pruefe(np.max(flanke) < 0.035, f"Steil/Flach: Flanke {np.max(flanke):.3f}")
+        pruefe(bahn_h.hoehenlinien > 10, f"Höhen {bahn_h.hoehenlinien}")
+    else:
+        pruefe(np.max(flanke) > 0.045, f"nur Zeilen: Flanke {np.max(flanke):.3f}")
+    print(ascii(f"Halbkugel {grenz:g}°: Flanke {np.max(flanke):.3f}, {bahn_h.zeit:.2f} min"))
 
 # --- Die Operation im Job -----------------------------------------------------------------------
 import Path.Main.Job as PathJob

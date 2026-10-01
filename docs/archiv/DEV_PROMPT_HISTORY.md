@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-43 steil-flach
+
+### EINGELESEN
+- `schlichten3d_bahn` (Zeilen, zwei Hüllflächen, Läufe, Gleiten), `raeumen_bahn._hoehenlinien`
+  und `_vereinfacht` (Marching Squares, Douglas-Peucker), `hoehenfeld.je_zeile`.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py`, `camaddon/schlichten3d.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_schlichten3d.py`,
+  `tests/gui/szenario_schlichten3d.py`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.59.0)
+
+### AKZEPTANZKRITERIUM
+Halbkugel R 15 auf der Platte, Kugelfräser Ø 6, Grathöhe 0,01: mit Steil/Flach (45°) bleiben an
+der Flanke (r 11 … 14) höchstens 0,035 mm, mit Zeilen allein mehr als 0,045; oben unter 0,03;
+nirgends ins Teil (bis 69° geprüft). Im Assistenten an der Kuppel „→ 6 Höhenlinien und 87
+Zeilen längs X, Abstand 0,49, etwa … min“.
+
+### DONE
+- `schlichten3d_bahn`: Hüllfläche im Raster mit Neigung (`_raster`), Höhenlinien wo steiler als
+  der Grenzwinkel (`_hoehenlinien`, `_stuecke`, `_gerichtet` – Material rechts, `_verbinden` –
+  gleitend oder Eilgang), die Zeilen nur wo flacher; Überlapp 3°; `Schlichtbahn.hoehenlinien`.
+- `schlichten3d`: Eigenschaften „Grenzwinkel“ (45°; in alten Dateien 0) und „Hoehenlinien“.
+- Assistent: die Zeile nennt die Höhenlinien.
+
+### TEST
+- 1.1.3: `test_schlichten3d` (mit Halbkugel), `test_sprache` grün; Szenario
+  `szenario_schlichten3d` grün; black/ruff grün.
+
+### NEXT
+- Bleistift (Kehlen); offene Nuten; Räumen: der äußere Ring genau.
+
 ## P-2026-10-01-42 schlichten-3d
 
 ### EINGELESEN
