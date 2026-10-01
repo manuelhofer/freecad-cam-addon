@@ -12,6 +12,69 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-14 s3-planfraesen
+
+### EINGELESEN
+- W-006 (`docs/spezifikation_strategien.md`): 4.1 Punkt 1 Planfräsen („Zeilen oder Spirale,
+  Überlauf Fräser-Ø · 0,6, Schrittweite ae, Vorschub beim Austritt gesenkt“), Grundsätze 1, 4,
+  5, 7, Abschnitt 7 (Höhenfeld, Bahn-Datenmodell mit Bögen, Operationen als `ObjectOp`),
+  S3 und die Entscheidungen E1–E7 (a).
+- `vierachs_huelle._form_treffen` (die Hüllfläche gegen Ecken, Kanten, Dreiecke mit jeder
+  Form; zählt nur über 0), `vierachs_planbahn` (Lagen, Zeilen, `_fahrten`, Rampe, das Ende
+  der Fläche), `vierachs_plan` (Operation als Vorlage), FreeCADs `Path.Op.Base`
+  (FeatureDepths, FeatureHeights, `setDefaultValues`, `execute`) und `Path.Main.Stock`.
+
+### DATEIEN
+- Neu: `camaddon/hoehenfeld.py`, `camaddon/bahn.py`, `camaddon/planfraesen_bahn.py`,
+  `camaddon/planfraesen.py`, `tests/test_planfraesen.py`
+- `camaddon/job_schnittwerte.py`, `translations/de.json`, `translations/en.json`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Block 60 × 40 × 20 mit einem 5 mm höheren Absatz an einer Seite, Rohteil 1 mm rundum,
+Schaftfräser Ø 10, Zustellung 2, Zeilenabstand 4: Die Hüllfläche je Zeile sieht den Absatz (25)
+und die Seitenwände (20), über der Fläche die Unterseite. „Planfräsen“ fährt drei Lagen 24 →
+22 → 20, je Lage zehn Zeilen längs x (y 3 … 37), jede vom freien Ende (x 66) bis vor den
+Absatz (x 15,25), hin und her, am freien Ende Halbkreise (G3/G2) zur nächsten Zeile, vor dem
+Absatz der Schritt quer; vor dem Austritt aus dem Rohteil (x 56) ein Punkt, danach der halbe
+Vorschub; hinein in der Luft senkrecht mit dem Eintauchvorschub. Die unterste Lage läuft über
+die Seitenwand hinaus, deren Oberkante auf Flächenhöhe liegt. Die Operation im Job: „Planfräsen
+T1“ mit Starttiefe 26 (folgt dem Rohteil), Endtiefe 20, sichere Höhe und Freifahrhöhe aus dem
+Einrichtblatt, Ebenen 1, Lagen 3, Zeilen 30, Sätze G1/G2/G3 mit F; geändert (1,5 mm: vier
+Lagen; der Absatz: eine Lage, x bis 16; Kugelfräser: ein Satz; ohne Flächen: die Oberseite);
+gespeichert und geladen dieselbe Bahn.
+
+### DONE
+- Plan für S3 (S3a–S3g) in W-006 Abschnitt 10.
+- `hoehenfeld`: `Ebene`, `ebenen_oben`, `oberseite`, `netz_ohne`, `je_zeile` (längs x oder
+  y; das Netz wird über 0 gehoben, weil die Hüllfläche nur über 0 zählt).
+- `bahn`: `Punkt` mit Bogen (Mitte, Uhrzeigersinn) und Vorschubanteil, `im_uhrzeigersinn`,
+  `winkel`, `weg`, `laenge`, `dauer`, `befehle` (G0 erst Z, dann X/Y; G1; G2/G3 mit I/J; F ÷ 60).
+- `planfraesen_bahn`: `Planwerte`, `Planbahn`, `planen` (Lagen, Zeilen quer mit Rand = ebener
+  Radius − 0,2 · Ø, nur über dem Rohteil; Raster längs um Überlauf und halben Zeilenabstand;
+  erlaubt, wo die Hüllfläche nicht höher liegt oder über den Rand hinaus nichts höher steht als
+  die Fläche; Fahrten mit `vierachs_bahn._fahrten`, die erste Zeile vom freien Ende; Einfahrt
+  senkrecht oder Rampe; Zeile mit Austrittspunkt; Schritt als Halbkreis, wo beide Zeilen und
+  der Bogen erlaubt sind).
+- `planfraesen.PlanFraesen` (FeatureTool, Depths, Heights, Coolant; Flaechen, Zustellung,
+  Zeilenabstand, Aufmass, Ueberlauf, Sicherheitsabstand, Eintauchwinkel, VorschubAustritt;
+  Ebenen/Lagen/Zeilen nur lesen), `rechne`, `bahn_fuer`, `vorschau`, `lege_an` (Tiefen und
+  Höhen als Ausdruck aus dem Einrichtblatt, Endtiefe aus der Fläche), `aendere`,
+  `ist_planfraesen`; „Schnittwerte in den Job“ mit Einsatz „Planen“.
+- Beim Bauen gefunden: die Bogenrichtung war verkehrt (der Bogen links der Sehne ist im
+  Uhrzeigersinn); der Halbkreis am Zeilenende lag außerhalb des Rasters (jetzt reicht die
+  Hüllfläche um den halben Zeilenabstand weiter); die Seitenwand mit Oberkante auf
+  Flächenhöhe hielt die unterste Lage an (Regel wie P-10).
+
+### TEST
+- `test_planfraesen` (neu), `test_sprache` in 1.1.3 ok. Noch kein Szenario: Der Assistent
+  kommt mit S3c.
+
+### NEXT
+- S3c: Assistent „Bearbeitung“ für den Quader – Job mit Rohteil aus dem Modell, Oberseite,
+  Planfräsen mit Vorschlag, Anlegen, Ändern, Hilfe, Szenario; dann Version.
+
 ## P-2026-10-01-12 rundum-entgraten
 
 ### EINGELESEN

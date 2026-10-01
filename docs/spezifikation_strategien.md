@@ -367,4 +367,38 @@ Assistent „Bearbeitung“ mit Vorschlag, E5 (a) Vorschlag mit Grund, änderbar
 E6 (a) Vorschub nach Eingriff, E7 (a) Grathöhe mit Vorgabe 0,005 mm. S1 ist
 gebaut (Messen P-71/-75/-76, goldene Bahnen P-73, Rest blockweise P-77); das
 Bahn-Datenmodell mit Bögen kommt mit der ersten Strategie, die Bögen braucht
-(S3). Weiter mit S2.
+(S3). S2 ist gebaut (Linien längs P-2026-10-01-06, Plan indexiert P-08/-10,
+Rundum entgraten P-12; 0.36.0).
+
+**S3 im Einzelnen** (Plan 2026-10-01, Claude; die Reihenfolge nach Nutzen):
+
+- **S3a Hüllfläche eben und Bahn mit Bögen** – `hoehenfeld.py`: die ebenen
+  Flächen nach oben, die Oberseite, die Hüllfläche je Zeile gegen das Netz mit
+  jeder Fräserform (dieselbe Rechnung wie rundum, `vierachs_huelle._form_treffen`,
+  nur senkrecht; ohne OCL); `bahn.py`: Punkte mit Geraden und Bögen (G2/G3),
+  Eilgang, Eintauchen, Vorschubanteil je Satz, Befehle und Zeit – die eine Stelle
+  für alle 2,5D- und 3D-Strategien.
+- **S3b Planfräsen** – `planfraesen_bahn.py` und die Operation
+  `planfraesen.PlanFraesen`: Zeilen hin und her in Lagen vom Rohteil bis auf die
+  Fläche plus Aufmaß, Zeilen in der längeren Richtung, Überlauf 0,6 · Ø längs,
+  seitlich 0,2 · Ø über den Rand, Zeilenabstand ae, Halbkreise zwischen den
+  Zeilen, wo beide frei sind; die Zeilen halten vor Wänden und Absätzen
+  (Hüllfläche gegen das Teil ohne die Fläche); keine Zeile ohne Rohteil
+  (Grundsatz 5); Rampe ins Material, senkrecht in der Luft; beim Austritt aus
+  dem Rohteil halber Vorschub (E6, erster Schritt). FreeCADs Tiefen und Höhen
+  (StartDepth folgt dem Rohteil, SafeHeight, ClearanceHeight) wie bei seinen
+  Operationen. Gleichlauf durchgehend (Grundsatz 4) kommt mit der Spirale von
+  außen nach innen, sobald das Bahnmodell Konturen versetzen kann (S3e).
+- **S3c Assistent „Bearbeitung“ für den Quader** (E4) – Job mit Rohteil aus dem
+  Modell (Aufmaß je Seite), die Oberseite vorgeschlagen, Fräser und Einsatz aus
+  der Werkzeugverwaltung, „Planfräsen“ mit Grund (E5), Anlegen, Ändern per
+  Doppelklick, Hilfe, Szenario.
+- **S3d Prüffenster 2,5D** – der Abtrag als Höhenfeld des Rohteils (Dexel längs
+  Z), beim Abspielen und am Ende in Farben; Kollision wie gehabt.
+- **S3e Kontur** – außen und innen mit tangentialem Ein- und Ausfahren,
+  Schruppen mit Aufmaß und Schlichten in einem Schritt; Konturen versetzen im
+  Bahnmodell (dann auch die Spirale fürs Planfräsen).
+- **S3f Tasche adaptiv** (E3) – gleichmäßiger Eingriff, Helix oder Rampe hinein,
+  Trochoiden in Ecken, Bögen; Restmaterial aus dem Abtrag; Nut.
+- **S3g Bohren, Gewinde** – FreeCADs Operationen aus dem Assistenten mit den
+  Schnittwerten.

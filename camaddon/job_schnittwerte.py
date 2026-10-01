@@ -55,6 +55,7 @@ EINSATZ_NACH_OPERATION = {
     "vierachs_schlichten": (wz.SCHLICHTEN,),  # „Rundum schlichten“ (W-003 V5)
     "vierachs_plan": (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Plan indexiert“ (W-003 V4c)
     "vierachs_entgraten": (wz.FASEN, wz.SCHLICHTEN, wz.SCHRUPPEN),  # „Rundum entgraten“ (V4d)
+    "planfraesen": (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Planfräsen“ (W-006 S3)
     # Die Bohrung des Wochen-Builds kann auch Gewinde schneiden.
     "Drilling": (
         wz.BOHREN,

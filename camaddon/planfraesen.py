@@ -1,0 +1,296 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+"""Die CAM-Operation „Planfräsen“ (W-006 S3, 4.1 Punkt 1) – die erste 2,5D-Operation des
+Addons.
+
+Wie „Rundum schruppen“ (vierachs_operation) eine eigene Operation (erbt FreeCADs ObjectOp)
+mit Werkzeug-Controller und Kühlmittel – und mit FreeCADs Tiefen und Höhen (StartDepth,
+FinalDepth, SafeHeight, ClearanceHeight), wie seine Operationen sie haben: Die Lagen
+beginnen an der Starttiefe (die Oberkante des Rohteils, folgt ihm), der Eilgang läuft auf
+der sicheren Höhe. Beim Neuberechnen rechnet sie ihre Bahn aus Modell und Rohteil des Jobs
+(planfraesen_bahn.planen): Je gewählter ebener Fläche nach oben – ohne Wahl die Oberseite des
+Teils – Zeilen hin und her in Lagen bis auf die Fläche plus Aufmaß, mit dem Fräser aus dem
+ToolBit des Controllers.
+
+Modul- und Klassenname stehen in jeder gespeicherten Datei – sie bleiben. Der Modulname ist
+zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operationsart): Einsatz
+„Planen“, sonst „Schruppen“ oder „Schlichten“. Kein Qt hier.
+
+Läuft ohne Oberfläche.
+"""
+
+import re
+
+import FreeCAD
+import Path
+import Path.Op.Base as PathOp
+
+from . import bahn as bn
+from . import hoehenfeld as hf
+from . import planfraesen_bahn as pb
+from . import vierachs_bahn as vb
+from . import vierachs_operation as vo
+from . import vierachs_schlichten as vs
+from .sprache import tr
+from .vierachs_plan import zeilenabstand_vorschlag  # noqa: F401 – auch für den Assistenten
+
+GRUPPE = "Fräsen"  # die Gruppe der Eigenschaften
+ZUSTELLUNG = 2.0  # mm – Vorschlag, solange nichts anderes gesagt ist
+AUFMASS = 0.0  # mm – Planfräsen macht die Fläche fertig
+AUSTRITT = 50  # % des Vorschubs beim Austritt aus dem Rohteil
+
+
+class PlanFraesen(PathOp.ObjectOp):
+    """Proxy der Operation „Planfräsen“."""
+
+    def opFeatures(self, obj):
+        return (
+            PathOp.FeatureTool
+            | PathOp.FeatureDepths
+            | PathOp.FeatureHeights
+            | PathOp.FeatureCoolant
+        )
+
+    def initOperation(self, obj):
+        self._eigenschaften(obj)
+        obj.Zustellung = ZUSTELLUNG
+        obj.Zeilenabstand = 4.0
+        obj.Aufmass = AUFMASS
+        obj.Ueberlauf = 0.0  # 0: der Vorschlag (0,6 · Ø)
+        obj.Sicherheitsabstand = vb.SICHERHEIT
+        obj.Eintauchwinkel = vb.EINTAUCHWINKEL
+        obj.VorschubAustritt = AUSTRITT
+        self._editormodi(obj)
+
+    def opOnDocumentRestored(self, obj):
+        self._eigenschaften(obj)
+        self._editormodi(obj)
+
+    @staticmethod
+    def _eigenschaften(obj):
+        """Legt die Eigenschaften an, die fehlen; gibt ihre Namen zurück."""
+        neu = []
+        for typ, name, text in (
+            ("App::PropertyStringList", "Flaechen", tr("pf.eigenschaft.flaechen")),
+            ("App::PropertyLength", "Zustellung", tr("pf.eigenschaft.zustellung")),
+            ("App::PropertyLength", "Zeilenabstand", tr("pf.eigenschaft.zeilenabstand")),
+            ("App::PropertyLength", "Aufmass", tr("pf.eigenschaft.aufmass")),
+            ("App::PropertyLength", "Ueberlauf", tr("pf.eigenschaft.ueberlauf")),
+            ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
+            ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
+            ("App::PropertyPercent", "VorschubAustritt", tr("pf.eigenschaft.austritt")),
+            ("App::PropertyInteger", "Ebenen", tr("pf.eigenschaft.ebenen")),
+            ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
+            ("App::PropertyInteger", "Zeilen", tr("pf.eigenschaft.zeilen")),
+        ):
+            if name not in obj.PropertiesList:
+                obj.addProperty(typ, name, GRUPPE, text)
+                neu.append(name)
+        return neu
+
+    @staticmethod
+    def _editormodi(obj):
+        for name in ("Ebenen", "Lagen", "Zeilen"):
+            obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+
+    def opExecute(self, obj):
+        try:
+            if not self.horizFeed or self.horizFeed <= 0:
+                raise ValueError(tr("vo.fehler.vorschub"))
+            ergebnis = rechne(obj, self.job, self.model)
+        except ValueError as fehler:
+            obj.Ebenen = obj.Lagen = obj.Zeilen = 0
+            FreeCAD.Console.PrintError(f"{obj.Label}: {fehler}\n")
+            self.commandlist.append(Path.Command(f"({vo._ascii(str(fehler))})"))
+            return
+        obj.Ebenen, obj.Lagen, obj.Zeilen = ergebnis.flaechen, ergebnis.lagen, ergebnis.zeilen
+        self.commandlist.extend(
+            bn.befehle(
+                ergebnis.punkte,
+                self.horizFeed * 60.0,  # CAM führt mm/s
+                vo.eintauchvorschub(self),
+            )
+        )
+
+
+def rechne(obj, job, modell):
+    """Die Bahn (planfraesen_bahn.Planbahn) für die Operation `obj` im Job. ValueError mit
+    einem Satz, wenn es nicht geht."""
+    form = vs.form_des_controllers(obj.ToolController)
+    if form is None:
+        raise ValueError(tr("pf.fehler.form"))
+    ueberlauf = float(obj.Ueberlauf)
+    return bahn_fuer(
+        job,
+        modell,
+        form,
+        float(obj.Zustellung),
+        float(obj.Zeilenabstand),
+        float(obj.Aufmass),
+        ueberlauf if ueberlauf > 0 else None,
+        vo.flaechen(obj),
+        float(obj.StartDepth),
+        float(obj.SafeHeight),
+        float(obj.Sicherheitsabstand),
+        float(obj.Eintauchwinkel),
+        float(obj.VorschubAustritt) / 100.0,
+    )
+
+
+def rohteil_von_oben(job):
+    """(x_von, x_bis, y_von, y_bis, z_oben) des Rohteils im Job – ValueError ohne Rohteil."""
+    rohteil = getattr(job, "Stock", None)
+    form = getattr(rohteil, "Shape", None)
+    if form is None or form.isNull():
+        raise ValueError(tr("pf.fehler.rohteil"))
+    bb = form.BoundBox
+    return (float(bb.XMin), float(bb.XMax), float(bb.YMin), float(bb.YMax), float(bb.ZMax))
+
+
+def bahn_fuer(
+    job,
+    modell,
+    form,
+    zustellung,
+    zeilenabstand,
+    aufmass=AUFMASS,
+    ueberlauf=None,
+    flaechen=(),
+    oben=None,
+    sicher=None,
+    sicherheit=vb.SICHERHEIT,
+    eintauchwinkel=vb.EINTAUCHWINKEL,
+    austritt=pb.AUSTRITT_ANTEIL,
+    toleranz=hf.TOLERANZ,
+    schritt=pb.SCHRITT,
+):
+    """Die Bahn „Planfräsen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten Flächen
+    („Face6“ …) – gefräst werden die ebenen nach oben darunter; leer: die Oberseite des Teils.
+    `oben`: z, wo die Lagen beginnen (None: die Oberkante des Rohteils); `sicher`: z für den
+    Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm). ValueError mit einem Satz, wenn es
+    nicht geht."""
+    form_teil = vs._teil(modell)
+    x_von, x_bis, y_von, y_bis, z_oben = rohteil_von_oben(job)
+    if oben is None:
+        oben = z_oben
+    if sicher is None:
+        sicher = oben + sicherheit + 3.0
+    namen = list(flaechen) or hf.oberseite(form_teil)
+    ebenen = hf.ebenen_oben(form_teil, namen)
+    if not ebenen:
+        raise ValueError(tr("pf.fehler.keine_ebene"))
+    werte = pb.Planwerte(
+        form=form,
+        zustellung=zustellung,
+        zeilenabstand=zeilenabstand,
+        aufmass=aufmass,
+        oben=oben,
+        sicher=sicher,
+        rohteil=(x_von, x_bis, y_von, y_bis),
+        ueberlauf=ueberlauf,
+        sicherheit=sicherheit,
+        eintauchwinkel=eintauchwinkel,
+        austritt=austritt,
+    )
+    netz = hf.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
+    return pb.planen(netz, werte, ebenen, schritt)
+
+
+def vorschau(job, modell, form, zustellung, zeilenabstand, aufmass=AUFMASS, flaechen=()):
+    """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten: gröber vernetzt,
+    weniger Stellen je Zeile. ValueError wie bahn_fuer()."""
+    return bahn_fuer(
+        job,
+        modell,
+        form,
+        zustellung,
+        zeilenabstand,
+        aufmass,
+        None,
+        flaechen,
+        toleranz=hf.VORSCHAU_TOLERANZ,
+        schritt=pb.VORSCHAU_SCHRITT,
+    )
+
+
+def lege_an(job, tc, zustellung, zeilenabstand, aufmass=AUFMASS, name=None, flaechen=()):
+    """Legt „Planfräsen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen
+    und Höhen wie FreeCADs Operationen: die Starttiefe folgt dem Rohteil, die sichere Höhe und
+    die Freifahrhöhe dem Einrichtblatt des Jobs; die Endtiefe ist die Fläche plus Aufmaß. Gibt
+    die Operation zurück. Angelegt mit DoNotSetDefaultValues wie „Rundum schruppen“ – ohne
+    Rückfrage nach dem Controller."""
+    dokument = job.Document
+    obj = dokument.addObject("Path::FeaturePython", "PlanFraesen")
+    obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
+    obj.DoNotSetDefaultValues = True
+    proxy = PlanFraesen(obj, "PlanFraesen", job)
+    obj.removeProperty("DoNotSetDefaultValues")
+    obj.Proxy = proxy
+    job.Proxy.addOperation(obj)
+    obj.Active = True
+    obj.ToolController = tc
+    obj.OpToolDiameter = tc.Tool.Diameter
+    obj.CoolantMode = job.SetupSheet.CoolantMode
+    _hoehen(obj, proxy, job)
+    obj.Zustellung = zustellung
+    obj.Zeilenabstand = zeilenabstand
+    obj.Aufmass = aufmass
+    obj.Flaechen = list(flaechen)
+    _endtiefe(obj, job)
+    obj.Label = name or tr("pf.name", werkzeug=f"T{tc.ToolNumber}")
+    return obj
+
+
+def _hoehen(obj, proxy, job):
+    """Starttiefe, sichere Höhe und Freifahrhöhe wie FreeCADs Operationen aus dem
+    Einrichtblatt – als Ausdruck, wo es einen gibt, sonst vom Rohteil."""
+    blatt = job.SetupSheet
+    _x_von, _x_bis, _y_von, _y_bis, z_oben = rohteil_von_oben(job)
+    if not proxy.applyExpression(obj, "StartDepth", blatt.StartDepthExpression):
+        obj.StartDepth = z_oben
+    if not proxy.applyExpression(obj, "SafeHeight", blatt.SafeHeightExpression):
+        obj.SafeHeight = z_oben + 3.0
+    if not proxy.applyExpression(obj, "ClearanceHeight", blatt.ClearanceHeightExpression):
+        obj.ClearanceHeight = z_oben + 5.0
+
+
+def _endtiefe(obj, job):
+    """Die Endtiefe: die tiefste der gewählten Flächen plus Aufmaß – zum Lesen; die Bahn rechnet
+    aus den Flächen."""
+    try:
+        form_teil = vs._teil(job.Model.Group)
+        namen = list(obj.Flaechen) or hf.oberseite(form_teil)
+        ebenen = hf.ebenen_oben(form_teil, namen)
+    except ValueError:
+        ebenen = []
+    if ebenen:
+        obj.setExpression("FinalDepth", None)
+        obj.FinalDepth = min(e.z for e in ebenen) + float(obj.Aufmass)
+
+
+def aendere(obj, tc, zustellung, zeilenabstand, aufmass, flaechen=None):
+    """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
+    Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
+    vorgeschlagene ist."""
+    if _vorgeschlagener_name(obj.Label):
+        obj.Label = tr("pf.name", werkzeug=f"T{tc.ToolNumber}")
+    obj.ToolController = tc
+    obj.OpToolDiameter = tc.Tool.Diameter
+    obj.Zustellung = zustellung
+    obj.Zeilenabstand = zeilenabstand
+    obj.Aufmass = aufmass
+    if flaechen is not None and list(flaechen) != list(obj.Flaechen):
+        obj.Flaechen = list(flaechen)
+    job = getattr(obj.Proxy, "job", None)
+    if job is not None:
+        _endtiefe(obj, job)
+
+
+def _vorgeschlagener_name(name):
+    """Ist `name` einer, wie lege_an ihn vergibt („Planfräsen T1“)?"""
+    vorne, _mitte, hinten = tr("pf.name", werkzeug="\0").partition("\0")
+    return re.fullmatch(re.escape(vorne) + r"T\d+" + re.escape(hinten), name) is not None
+
+
+def ist_planfraesen(op):
+    """Ist `op` eine Operation dieses Moduls – „Planfräsen“?"""
+    return isinstance(getattr(op, "Proxy", None), PlanFraesen)
