@@ -179,8 +179,9 @@ eben). Kein OCL.
    bis über das höchste Material unter der Stirn; die Ringe aus dem Raster geglättet
    (0,4 Zellen – sonst hielt die Maschine an jeder Zacke). Gemessen mit dem
    Standardfräser (`test_schruppen3d`): Kuppel Ø 40, 10 hoch, auf der Platte 60 × 60 –
-   1 Lage und 9 Zwischenlagen, 5,4 min (ohne Zwischenlagen 2,7 min, aber bis 7,6 mm
-   Treppe); im Quader nirgends ins Teil, im Eilgang nichts, auf der Platte genau 0,3,
+   1 Lage und 9 Zwischenlagen, 6,1 min (ohne Zwischenlagen 2,7 min, aber bis 7,6 mm
+   Treppe; bis P-2026-10-01-48 5,4 min – die Ringe der Hauptlage bissen in die Kuppel,
+   Eingriff bis 4,8 ae, siebenmal senkrecht ins Material; seit P-49 höchstens 1,6 ae); im Quader nirgends ins Teil, im Eilgang nichts, auf der Platte genau 0,3,
    auf der Kuppel senkrecht 0,4 … 1,6 mm. Eine Schale R 25, 10 tief: nur
    Zwischenlagen, je über die Rampe, 1,1 min; in der Höhlung bleibt unter der ebenen
    Stirn bis 2,2 mm (der Bogen unter dem Fräser). Im Assistenten der Block
@@ -365,6 +366,26 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
    Taschen ungleich verglichen (dort zählt nur „inseln“: von innen nach außen).
    Die Platte gesamt – Räumen Oberseite und Tasche, Kontur Tasche, Kontur
    Zapfen – braucht 34,7 min (Untergrenze 31).
+
+   Seit P-2026-10-01-49 misst er auch den **Eingriff** (Grundsatz 3: nie mehr
+   als ae · ap): je Satz der Abtrag im Ausschnitt um ihn und seine größte Tiefe,
+   über 3 mm Weg die Breite (Σ Abtrag ÷ Σ Weg · Tiefe; Rampen, Eintauchen und
+   Eilgänge zählen für sich). Ein fünftes Urteil: mehr als 5 mm in voller Breite
+   (über 0,75 · Ø, und Breite · Tiefe über ae · ap). Es fand, dass mehrere
+   Bestmarken auf Vollschnitten standen: Das Räumen „rohteil“ biss mit dem Rechteck
+   in die Inseln (auf der Platte 120 mm in voller Breite, 20 tief – jetzt Ringe aus
+   dem Weg um die Inseln herum), am Absatz lief sein letzter Ring voll an der Wand
+   (jetzt der Ring an der Wand mit dem Rest), die erste Zeile des Planfräsens griff
+   0,8 · Ø breit ins Rohteil (auf der Platte 9,6 × 20 mm – jetzt an offenen Seiten
+   höchstens so breit, dass Breite · Tiefe nicht über ae · ap liegt; steht vor der
+   ersten Zeile eine Wand, wie in einer Tasche, hat sie keine freie Seite: dann je
+   Lage höchstens ae · ap ÷ Ø tief), und das 3D-Schruppen erbte den Biss in die
+   Kuppel (Eingriff bis 4,8 ae, jetzt 1,6). Ehrlich gerechnet: Platte Räumen 33,9
+   statt 33,1 min, Planfräsen 41,9 statt 39,3; Zapfen-Block Planfräsen 5,7 statt
+   4,8; Absatz Räumen 2,7 statt 2,0, Planfräsen 2,1 statt 1,7 – die Platte gesamt
+   35,6 min. Die Rangfolge bleibt. Nur zum Vergleich gemessen (ohne Urteil über die
+   Breite): die Kontur in der Bohrung Ø 34 (ihr Einfahrbogen nach der Rampe läuft
+   durch volles Material, 8 mm; Bohrungen fräst „Bohrung fräsen“).
 1. **Tangential ein- und ausfahren.** Nie senkrecht in die Wand; Bogen und
    Gerade nach Fräser-Ø; in Taschen Helix oder Rampe mit dem Winkel aus der
    Werkzeugtabelle (Eintauchwinkel gibt es schon).
@@ -641,11 +662,15 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   außerhalb in der Luft). Drei Varianten, alle gerechnet, die schnellste zählt
   (P-2026-10-01-26, nach Manuels Bild: „der Weg muss im Viereck anfangen, aber
   immer runder werden, so dass er am Ende nur um den Zapfen fährt“): „rohteil“
-  – die Ringe um das, was noch steht: die Höhenlinien von
-  F = min(Tiefe im Rohteil + R, D + ae) bei m · ae, überall ae auseinander; das
-  Rechteck beißt in den Zapfen, die Zwickel zwischen Zapfen und Ecke werden
-  eigene Ringe, die Ringe nur um den Zapfen kommen zuletzt von außen nach
-  innen –, „morph“ (P-2026-10-01-27) – ein harmonisches Feld u zwischen
+  – die Ringe um das, was noch steht: die Höhenlinien des Wegs vom
+  Rohteilrand bei m · ae, um Inseln und Wände herum gemessen (geodätisch, im
+  Raster mit Zeilen-Durchläufen, P-2026-10-01-49): ohne Hindernis das Rechteck mit
+  runden Ecken, hinter einer Insel legt sich der Ring um sie, überall höchstens ae;
+  vor der Insel endet er, den letzten Ring an ihrer Wand fahren die Ringe um die
+  Inseln mit dem Rest. (Bis P-48 waren es die Höhenlinien von
+  F = min(Tiefe + R, D + ae): Wo die Insel den Ring bestimmte, biss das Rechteck in
+  sie hinein – mit Material beidseits; der Prüfstand fand auf der Platte 120 mm in
+  voller Breite, 20 tief.) –, „morph“ (P-2026-10-01-27) – ein harmonisches Feld u zwischen
   Rohteil und Insel (u = 1 außen am ersten Ring, u = 0 am Zapfen, dazwischen
   gemittelt wie eine gespannte Haut, im Raster gelöst): seine Höhenlinien
   fangen als Rechteck an und werden von Ring zu Ring runder bis zum Kreis um
@@ -661,10 +686,11 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   berührt sie den Rand, rechnet der Morph nicht (er würde zu eng, auf der
   Platte 66 min); dann zählen die anderen Varianten – und „inseln“ (nur die
   Ringe um Wände und Inseln; in der Tasche von innen nach außen; Taschen
-  rechnen nur diese Variante). Auf Manuels 50 × 50 mit Zapfen: morph 2,69 min
-  (eine Einfahrt, keine Rampe, 7 Halte), rohteil 2,75 (4 Einfahrten), inseln
-  4,49 – der Morph gewinnt; am Absatz rohteil 2,03 (eine Spirale); auf der
-  Platte rohteil 33,1 (morph gesperrt), inseln 40,5. Je Lauf der Eingang in dieser Reihenfolge: an den vorigen
+  rechnen nur diese Variante). Auf Manuels 50 × 50 mit Zapfen: morph 2,70 min
+  (eine Einfahrt, keine Rampe, 7 Halte), rohteil 3,03, inseln 4,49 – der Morph
+  gewinnt; am Absatz rohteil 2,66 (bis P-48 2,03 – der letzte Ring lief voll an der
+  Wand); auf der Platte rohteil 33,9 (bis P-48 33,1, mit dem Biss in den Zapfen;
+  morph gesperrt), inseln 40,5. Je Lauf der Eingang in dieser Reihenfolge: an den vorigen
   anhängen (die Spirale, bis 2 ae, der Weg frei), tangential aus dem Freien
   (das Einfahren der Kontur auf der freien Seite – links im Gleichlauf,
   rechts im Gegenlauf), quer aus dem Freien, das Anfangsstück nachholen, wenn
@@ -959,8 +985,8 @@ für jede Strategie, die den Fräser dauernd im Eingriff hält:
 | Strategie | Platte | Tasche | Zapfen | Summe |
 | --- | --- | --- | --- | --- |
 | heute: Planfräsen ap 2, ae 7,8 (0,65 D), Tasche über die Kontur in Lagen, Kontur Zapfen | 74,0 min (10 Lagen, 310 Zeilen, 62 m) | 4,6 min | 0,9 min | **80 min** |
-| heute mit ganzer Schneide: Planfräsen ap 20, ae 1,5; Tasche über die Kontur ap 20 (ganz räumen) | 39,3 min (1 Lage, 151 Zeilen, 33 m) | 3,9 min (12 Versätze, je mit Rampe) | 0,9 min | **44 min** |
-| S3f Räumen (gebaut, 0.45.0): Ringe ap 20, ae 1,5, hinein von außen in der Luft, zuletzt um den Zapfen; Tasche Rampe 3° einmal rundum, dann Ringe nach außen; Kontur nur mit dem Aufmaß | 33,1 min (1 Lage, gemessen; geschätzt waren ≈ 33) | 1,2 min (gemessen; geschätzt ≈ 1,3) | 0,3 min | **34,8 min** (gemessen, `test_pruefstand`; 34,7 bis 0.59.0, als das Räumen in der Tasche 0,45 mm mehr stehen ließ) |
+| heute mit ganzer Schneide: Planfräsen ap 20, ae 1,5; Tasche über die Kontur ap 20 (ganz räumen) | 39,3 min (1 Lage, 151 Zeilen, 33 m; seit P-49 41,9 – die erste Zeile griff 9,6 mm breit, 20 tief) | 3,9 min (12 Versätze, je mit Rampe) | 0,9 min | **44 min** |
+| S3f Räumen (gebaut, 0.45.0): Ringe ap 20, ae 1,5, hinein von außen in der Luft, zuletzt um den Zapfen; Tasche Rampe 3° einmal rundum, dann Ringe nach außen; Kontur nur mit dem Aufmaß | 33,9 min (1 Lage, gemessen; geschätzt waren ≈ 33; bis P-48 33,1 – das Rechteck biss in den Zapfen, 120 mm in voller Breite) | 1,2 min (gemessen; geschätzt ≈ 1,3) | 0,3 min | **35,6 min** (gemessen, `test_pruefstand`; 34,8 bis P-48, 34,7 bis 0.59.0, als das Räumen in der Tasche 0,45 mm mehr stehen ließ) |
 | Untergrenze (Fräser nie aus dem Eingriff) | 29 min | 1,2 min | 0,3 min | **31 min** |
 
 Gemessen mit `scripts`-freiem Rechenlauf (Sonde, 1.1.3): Planfräsen und

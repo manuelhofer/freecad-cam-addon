@@ -97,10 +97,14 @@ print(ascii(f"Kuppel: {bahn.variante} {bahn.zeit:.2f} min, {bahn.lagen} + {bahn.
             f"Lagen, {bahn.ringe} Ringe, Rechenzeit {time.time() - t0:.1f} s, {bahn.zeiten}"))  # fmt: skip
 pruefe(bahn.lagen == 1 and bahn.zwischenlagen >= 7, f"Lagen {bahn.lagen} + {bahn.zwischenlagen}")
 pruefe(abs(bahn.z_min - 10.3) < 1e-6, f"tiefste Lage {bahn.z_min}")
-pruefe(bahn.zeit < 6.0, f"Zeit {bahn.zeit:.2f} min")
+# 6,1 min: bis P-2026-10-01-48 5,4 – die Ringe der Hauptlage bissen in die Kuppel (Eingriff bis
+# 4,8 ae, siebenmal senkrecht ins Material); die Ringe um sie herum (P-2026-10-01-49) nehmen
+# höchstens 1,6 ae.
+pruefe(bahn.zeit < 6.5, f"Zeit {bahn.zeit:.2f} min")
 k = gemessen(teil, bahn, 20.0)
 print(ascii(ps.zeile(k)))
 pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"Kuppel: ins Teil {k.einschnitt:.3f}")
+pruefe(k.eingriff_max < 2.0 and k.voll <= ps.BREIT_WEG, f"Kuppel: Eingriff {ps.zeile(k)}")
 pruefe(k.eilgang_abtrag <= 1e-9, f"Kuppel: im Eilgang {k.eilgang_abtrag:.1f} mm³")
 q, soll, xs, ys = im_quader(teil, bahn, 20.0)
 r = np.hypot(xs - 30, ys - 30)

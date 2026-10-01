@@ -4,7 +4,8 @@
 # Der Job entsteht, Planfräsen und Räumen rechnen beide – Räumen ist schneller (eine Lage, Ringe
 # von außen nach innen, zuletzt um den Zapfen, keine Rampe), bekommt den Haken und sagt es: „… – die schnellste;
 # Planfräsen wäre N % langsamer“; beim Planfräsen steht „… – N % langsamer als Räumen“, sein
-# Haken ist weg. „Anlegen“: nur „Räumen T1“, mit Bögen. Doppelklick darauf öffnet das Fenster nur
+# Haken ist weg (56 Zeilen: die erste greift bei 20 mm Tiefe nur 1,9 mm ins Rohteil, damit
+# Breite · Tiefe nicht über ae · ap liegt – P-2026-10-01-49). „Anlegen“: nur „Räumen T1“, mit Bögen. Doppelklick darauf öffnet das Fenster nur
 # mit dem Block Räumen; ohne Haken „Gleichlauf“ und „Übernehmen“ steht Gleichlauf False in der
 # Operation. Dann „Auf der Maschine prüfen“ mit der Beispiel-Fräse: am Ende nirgends ins Teil
 # geschnitten und auf der Fläche nichts stehen geblieben.
@@ -75,7 +76,7 @@ def schritte(h):
     h.pruefe(text.startswith("→ 1 Lage, ") and " Ringe, etwa 3 min" in text, f"Räumen: {text!r}")
     h.pruefe("– die schnellste; Planfräsen wäre" in text and "% langsamer" in text, f"{text!r}")
     text_plan = plan.ergebnis.text()
-    h.pruefe(text_plan.startswith("→ 1 Lage, 44 Zeilen, etwa 5 min"), f"Planfräsen: {text_plan!r}")
+    h.pruefe(text_plan.startswith("→ 1 Lage, 56 Zeilen, etwa 6 min"), f"Planfräsen: {text_plan!r}")
     h.pruefe(text_plan.endswith("% langsamer als Räumen"), f"Planfräsen: {text_plan!r}")
     h.pruefe("Zeilen längs X" in text_plan, f"Planfräsen ohne Richtung: {text_plan!r}")
     h.bild("1_wettbewerb", panel.form)

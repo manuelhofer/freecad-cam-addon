@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-49 nie-in-voller-breite
+
+### EINGELESEN
+- `pruefstand` (`messen`, `urteile`, `zeile`), `tests/test_pruefstand.py`, `raeumen_bahn`
+  (`_ringe_vom_rohteil`, `_ringe_um_inseln`, `_hoehenlinien`, `_Lage._hinab`),
+  `planfraesen_bahn` (`planen`, `_ebene`, `_zeilen_quer`, `_wandfahrt`), `kontur_bahn` (Einfahren in
+  Bohrungen), `tests/test_planfraesen.py`, `tests/test_schruppen3d.py`, `tests/test_nut_offen.py`.
+
+### DATEIEN
+- `camaddon/pruefstand.py`, `camaddon/raeumen_bahn.py`, `camaddon/planfraesen_bahn.py`,
+  `tests/test_pruefstand.py`, `tests/bestmarken.json`, `tests/test_planfraesen.py`,
+  `tests/test_schruppen3d.py`, `tests/gui/szenario_raeumen.py`, `tests/gui/szenario_bearbeitung.py`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.64.0)
+
+### AKZEPTANZKRITERIUM
+Der Prüfstand misst den Eingriff je Satz (Abtrag im Ausschnitt, größte Tiefe, Breite über 3 mm
+Weg) und lässt eine Bahn durchfallen, die mehr als 5 mm in voller Breite schneidet (über 0,75 · Ø
+und Breite · Tiefe über ae · ap). Alle gewählten Bahnen der Maßstabsteile bestehen; nur die Kontur
+in der Bohrung Ø 34 ist Vergleich (Einfahrbogen durch volles Material). Die Bestmarken neu, wo die
+alten auf Vollschnitten standen.
+
+### DONE
+- Prüfstand: `voll`, `eingriff_max`, `_ausschnitt`; fünftes Urteil; die Zeile zeigt „Eingriff bis
+  … ae, voll … mm“.
+- Räumen „rohteil“: Ringe aus dem geodätischen Weg vom Rohteilrand um Inseln und Wände herum
+  (`_geodaetisch`), Linien enden vor Gesperrtem (`_hoehenlinien(sperre)`), der Ring an der Wand
+  über `_ringe_um_inseln(nur_rest)` mit dem Band, das die Stirn noch erreicht; der Eilgang hinab
+  prüft eine Zelle rundum.
+- Planfräsen: an offenen Seiten (am Rand nichts höher als die Fläche, mehr als R von den Enden weg
+  geprüft) greift die erste/letzte Zeile höchstens ae · ap ÷ Tiefe breit; steht vor der ersten Zeile
+  eine Wand, je Lage höchstens ae · ap ÷ Ø tief; die Lagen eines tieferen Bodens beginnen an der
+  Fläche darüber, die dieselbe Bahn schon plant (im Taschenboden der Platte 47,9 statt 59,5 min
+  mit den Luftlagen).
+- 3D-Schruppen erbt die Ringe: Kuppel 6,1 statt 5,4 min, Eingriff 1,6 statt 4,8 ae.
+
+### TEST
+- 1.1.3: `test_pruefstand` (Bestmarken neu geschrieben, danach ohne Schreiben grün), `test_raeumen`,
+  `test_planfraesen`, `test_schruppen3d`, `test_nut_offen` grün; Szenarien `szenario_raeumen`,
+  `szenario_platte`, `szenario_bearbeitung`, `szenario_nut`, `szenario_schlichten3d`,
+  `szenario_strategien` grün (Räumen und Bearbeitung mit den neuen Zeilenzahlen: 56 statt 44,
+  29 statt 23); black/ruff grün.
+
+### NEXT
+- Kontur in Bohrungen: Einfahren ohne Vollschnitt; Planfräsen: Zeilen von der offenen Seite her
+  beginnen, wenn vor der ersten eine Wand steht; Restschlichten mit dem kleineren Kugelfräser.
+
 ## P-2026-10-01-48 schlichten3d-spirale
 
 ### EINGELESEN

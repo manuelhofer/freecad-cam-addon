@@ -8,6 +8,9 @@ Simulation im Quader (restmaterial.Quader) fährt sie Satz für Satz ab:
 - sicher: nirgends ins Teil, im Eilgang nichts abgetragen;
 - vollständig: auf den Flächen bleibt nichts stehen (bis auf das Aufmaß an Wänden);
 - sinnvoll: wenig Vorschub in der Luft, wenig Eintauchen und Rampen im Material, wenig Halte;
+- schonend: die Breite im Eingriff (der Querschnitt im Schnitt durch die Schnitttiefe) – nie in
+  voller Breite durchs volle Material, das ist nur scheinbar schnell; wie weit sie über ae geht
+  (in Ecken), steht in der Zeile (P-2026-10-01-49);
 - kurz: die Zeit gegen die Untergrenze – das Volumen durch das Zeitspanvolumen ae · ap · vf,
   als wäre der Fräser nie aus dem Eingriff – ergibt den Wirkungsgrad.
 `messen()` gibt die Kennzahlen, `urteile()` die Sätze, wo eine Bahn durchfällt. Die Prüfung
@@ -32,6 +35,18 @@ REST_ZULAESSIG = 0.05  # mm – mehr auf der Fläche ist ein Rest
 EINSCHNITT_ZULAESSIG = 0.05  # mm – tiefer ins Teil ist ein Einschnitt
 LUFT_ZULAESSIG = 0.30  # Anteil des Vorschubwegs ohne Abtrag – mehr ist unsinnig
 NAHE_WAND = 0.75  # mm – so weit um Höheres zählt die Fläche nicht (das Aufmaß kommt dazu)
+# Die Breite im Eingriff: das abgetragene Volumen je mm Weg durch die Schnitttiefe (die größte
+# Absenkung, die der Satz bewirkt), gemittelt über BREIT_FENSTER mm – das Raster des Quaders
+# zählt eine Zelle erst, wenn der Fräser ihre Mitte überstreicht. Rampen (der Fräser sinkt)
+# zählen nicht: Ihr Eingriff folgt dem Eintauchwinkel des Werkzeugs; dünne Schnitte (weniger
+# als MIN_TIEFE) auch nicht. Mehr als VOLL_ANTEIL des Durchmessers breit und dabei mehr
+# Querschnitt als ae · ap über BREIT_WEG mm im Vorschub ist ein Vollschnitt – breit und flach
+# (Planen 1 mm tief) ist keine Last; die größte Breite, gemessen in ae, steht in der Zeile (in
+# den Ecken einer Tasche mehr als ae).
+VOLL_ANTEIL = 0.75
+BREIT_FENSTER = 3.0  # mm
+BREIT_WEG = 5.0  # mm
+MIN_TIEFE = 1.0  # mm
 _NICHTS = 1e-9
 
 
@@ -60,6 +75,8 @@ class Kennzahlen:
     eintauchungen: int = 0  # senkrechte Fahrten mit Eintauchvorschub, die Material trafen
     rampen: int = 0  # schräge Fahrten hinab im Vorschub, die Material trafen (Stücke)
     halte: int = 0  # Stopps: Ecken ab 15°, um Eilgänge, am Anfang und Ende
+    voll: float = 0.0  # mm Vorschub mit mehr als VOLL_ANTEIL · D im Eingriff (Vollschnitt)
+    eingriff_max: float = 0.0  # die größte Breite im Eingriff, als Vielfaches von ae
 
     @property
     def luftanteil(self):
@@ -88,6 +105,20 @@ def _stuecke(von, nach):
         stuecke.append((vorher, jetzt))
         vorher = jetzt
     return stuecke
+
+
+def _ausschnitt(q, stuecke, radius):
+    """Der Ausschnitt (zwei Slices) des Quaders, den die Stücke mit dem Fräser treffen können."""
+    xs = [p[0] for s in stuecke for p in s]
+    ys = [p[1] for s in stuecke for p in s]
+    sx, sy = q.x[1] - q.x[0], q.y[1] - q.y[0]
+    rand = radius + 2 * max(sx, sy)
+    nx, ny = q.h.shape
+    i0 = max(int(math.floor((min(xs) - rand - q.x[0]) / sx)), 0)
+    i1 = min(int(math.ceil((max(xs) + rand - q.x[0]) / sx)) + 1, nx)
+    j0 = max(int(math.floor((min(ys) - rand - q.y[0]) / sy)), 0)
+    j1 = min(int(math.ceil((max(ys) + rand - q.y[0]) / sy)) + 1, ny)
+    return slice(i0, max(i1, i0)), slice(j0, max(j1, j0))
 
 
 def halte(punkte):
@@ -142,6 +173,8 @@ def messen(
     vorher_h = q.h.copy()  # was die Bahnen davor stehen ließen – davon zählt das Volumen
     k = Kennzahlen()
     vorschub = 0.0
+    radius = float(getattr(form, "radius", form))
+    fenster = []  # [(Weg, Abtrag, Weg · Tiefe)] der letzten Sätze, zusammen ≥ BREIT_FENSTER
     for lauf in laeufe:
         punkte = lauf.punkte
         if not punkte:
@@ -152,10 +185,29 @@ def messen(
         in_rampe = False
         for von, nach in zip(punkte, punkte[1:], strict=False):
             stuecke = _stuecke(von, nach)
-            vorher = float(q.h.sum())
+            ausschnitt = _ausschnitt(q, stuecke, radius)
+            vorher = q.h[ausschnitt].copy()
             q.fahre_stuecke([s[0] for s in stuecke], [s[1] for s in stuecke], form)
-            abtrag = (vorher - float(q.h.sum())) * zelle
+            gesenkt = vorher - q.h[ausschnitt]
+            abtrag = float(gesenkt.sum()) * zelle
+            tiefe_hier = float(gesenkt.max()) if gesenkt.size else 0.0
             weg = bn.weg(von, nach)
+            if nach.eilgang or nach.eintauchen or nach.z < von.z - _NICHTS:
+                fenster = []  # Eintauchen und Rampen zählen für sich
+            else:
+                waagerecht = math.hypot(nach.x - von.x, nach.y - von.y)
+                fenster.append((waagerecht, abtrag, waagerecht * tiefe_hier))
+                summe = sum(f[0] for f in fenster)
+                while len(fenster) > 1 and summe - fenster[0][0] >= BREIT_FENSTER:
+                    summe -= fenster.pop(0)[0]
+                flaeche = sum(f[2] for f in fenster)
+                if summe >= BREIT_FENSTER and flaeche >= MIN_TIEFE * summe:
+                    breite = sum(f[1] for f in fenster) / flaeche
+                    if ae > 0:
+                        k.eingriff_max = max(k.eingriff_max, breite / ae)
+                    querschnitt = breite * flaeche / summe
+                    if breite > VOLL_ANTEIL * 2.0 * radius and querschnitt > ae * ap:
+                        k.voll += waagerecht
             if nach.eilgang:
                 k.eilgangweg += weg
                 k.eilgang_abtrag += abtrag
@@ -226,6 +278,8 @@ def urteile(k, sicher_nur=False):
         saetze.append(f"trägt im Eilgang ab ({k.eilgang_abtrag:.1f} mm³)")
     if not sicher_nur and k.luftanteil > LUFT_ZULAESSIG:
         saetze.append(f"fährt {k.luftanteil * 100:.0f} % des Vorschubwegs in der Luft")
+    if not sicher_nur and k.voll > BREIT_WEG:
+        saetze.append(f"schneidet auf {k.voll:.0f} mm in voller Breite")
     return saetze
 
 
@@ -235,5 +289,6 @@ def zeile(k):
         f"{k.zeit:6.2f} min  Untergrenze {k.untergrenze:5.2f} ({k.wirkungsgrad * 100:3.0f} %)  "
         f"Luft {k.luftanteil * 100:3.0f} %  Eilgang {k.eilgangweg / 1000:5.2f} m  "
         f"Halte {k.halte:4d}  Eintauchen {k.eintauchungen:2d}  Rampen {k.rampen:2d}  "
-        f"Rest {k.rest:.2f}  Einschnitt {k.einschnitt:.2f}"
+        f"Rest {k.rest:.2f}  Einschnitt {k.einschnitt:.2f}  "
+        f"Eingriff bis {k.eingriff_max:.1f} ae, voll {k.voll:.0f} mm"
     )

@@ -2,9 +2,11 @@
 # mit einem 5 mm höheren Absatz an der linken Seite, T1 Manuels Standardfräser Ø 12 (Einsatz
 # Planen: ae 1,5, ap 25). Die Fläche bei z = 20 anklicken, den Knopf drücken: Der Job mit dem
 # Rohteil (1 mm Aufmaß) entsteht sofort, die Fläche steht grün in der Liste, die Vorschau sagt
-# „→ 1 Lage, 23 Zeilen“; mit Zustellung 2 drei Lagen (69 Zeilen), mit 3 mm Aufmaß oben vier; der Nullpunkt
+# „→ 1 Lage, 29 Zeilen“ (die erste und letzte greifen an den offenen Seiten nur so breit ins
+# Rohteil, dass Breite · Tiefe nicht über ae · ap liegt – P-2026-10-01-49); mit Zustellung 2 drei
+# Lagen (105 Zeilen), mit 3 mm Aufmaß oben vier; der Nullpunkt
 # auf die Ecke links vorne oben rückt Teil und Rohteil dorthin. „Anlegen“: „Planfräsen T1“ mit
-# 1 Lage und 23 Zeilen, Sätze mit Bögen. Doppelklick darauf öffnet das Fenster mit ihren
+# 1 Lage und 29 Zeilen, Sätze mit Bögen. Doppelklick darauf öffnet das Fenster mit ihren
 # Werten; „Übernehmen“ mit 1,5 mm Zustellung rechnet sie neu – vier Lagen. Dann „Auf der Maschine prüfen“ mit der Beispiel-Fräse (W-006 S3d): Der
 # Quader wird beim Abspielen abgetragen, am Ende steht die gewählte Fläche grün da, nirgends
 # ins Teil, der Absatz ohne Farbe.
@@ -64,7 +66,7 @@ def schritte(h):
     yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)
     h.pruefe(not plan.hinweis.text(), f"rot: {plan.hinweis.text()!r}")
     text = plan.ergebnis.text()
-    h.pruefe(text.startswith("→ 1 Lage, 23 Zeilen, etwa"), f"Vorschau: {text!r}")
+    h.pruefe(text.startswith("→ 1 Lage, 29 Zeilen, etwa"), f"Vorschau: {text!r}")
     h.pruefe("Zeilen längs X; längs Y wäre es" in text, f"Richtung: {text!r}")
     zeile = panel.flaechen_liste.item(0).text() if panel.flaechen_liste.count() else ""
     h.pruefe(zeile.startswith(flaeche) and "eben nach oben" in zeile, f"Liste: {zeile!r}")
@@ -74,7 +76,7 @@ def schritte(h):
     plan.felder["zustellung"].setText("2")
     yield from h.warte_auf(lambda: plan.ergebnis.text().startswith("→ 3 Lagen"), 30000)
     text = plan.ergebnis.text()
-    h.pruefe(text.startswith("→ 3 Lagen, 69 Zeilen"), f"Vorschau mit Zustellung 2: {text!r}")
+    h.pruefe(text.startswith("→ 3 Lagen, 105 Zeilen"), f"Vorschau mit Zustellung 2: {text!r}")
     panel.felder_rohteil["oben"].setText("3")
     yield from h.warte_auf(lambda: not panel._rohteil_uhr.isActive(), 3000)
     yield from h.warte_auf(lambda: plan.ergebnis.text().startswith("→ 4 Lagen"), 30000)
@@ -129,7 +131,7 @@ def schritte(h):
     op = ops[0]
     h.pruefe(op.Label == "Planfräsen T1", f"Name: {op.Label}")
     h.pruefe(
-        (op.Ebenen, op.Lagen, op.Zeilen) == (1, 1, 23), f"{op.Ebenen}, {op.Lagen}, {op.Zeilen}"
+        (op.Ebenen, op.Lagen, op.Zeilen) == (1, 1, 29), f"{op.Ebenen}, {op.Lagen}, {op.Zeilen}"
     )
     h.pruefe(list(op.Flaechen) == [flaeche], f"Flächen: {list(op.Flaechen)}")
     namen = {b.Name for b in op.Path.Commands}

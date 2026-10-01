@@ -328,7 +328,10 @@ messe(
     20.0,
 )
 # Planfräsen über beide Flächen: Im Taschenboden bleiben die Zeilen in der Tasche (aus einem Netz
-# ohne beide Flächen sah der Boden neben sich keine Platte mehr – P-2026-10-01-26).
+# ohne beide Flächen sah der Boden neben sich keine Platte mehr – P-2026-10-01-26). In der
+# geschlossenen Tasche hat die erste Zeile keine freie Seite: Lagen zu höchstens ae · ap ÷ Ø,
+# ab der Oberseite, die dieselbe Bahn schon plant (bis P-2026-10-01-48 eine Lage, 11 mm in
+# voller Breite).
 plan_beide = planfraesen(teil, [0.0, -20.0], rohteil, oben)
 messe(
     "platte/planfraesen oben+tasche",
@@ -395,7 +398,10 @@ gebohrt = bb.planen(
 )  # fmt: skip
 messe("bohrungen/bohrung fraesen", [lauf(gebohrt)], teil, rohteil, oben, [10.0], 0.0)
 kon = kontur(teil, [b.name for b in bohrungen], rohteil, oben)
-messe("bohrungen/kontur", [lauf(kon)], teil, rohteil, oben, [10.0], 0.0)
+# Nur zum Vergleich: Der Einfahrbogen der Kontur nach der Rampe in der Bohrung Ø 34 läuft durch
+# volles Material (8 mm in voller Breite) – Bohrungen fräst im Assistenten „Bohrung fräsen“
+# (P-2026-10-01-49).
+messe("bohrungen/kontur", [lauf(kon)], teil, rohteil, oben, [10.0], 0.0, vergleich=True)
 pruefe(
     gemessen["bohrungen/bohrung fraesen"].zeit < gemessen["bohrungen/kontur"].zeit,
     "Bohrungen: Bohrung fräsen ist nicht schneller als die Kontur",

@@ -130,7 +130,16 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
     laenge = zeit = zeit_andere = 0.0
     richtungen = []
     kandidaten = (True, False) if w.laengs is None else (bool(w.laengs),)
+    fertig = []  # die Flächen darüber, schon in dieser Bahn
     for ebene in sorted(ebenen, key=lambda e: -e.z):
+        # Liegt die Fläche ganz unter einer, die diese Bahn schon geplant hat (der Boden einer
+        # Tasche unter der Oberseite), beginnen ihre Lagen dort – darüber ist weggeräumt, wie
+        # beim Räumen (P-2026-10-01-49; vorher ab dem Rohteil, die oberen Lagen in der Luft).
+        oben = w.oben
+        for darueber in fertig:
+            if _umfasst(darueber, ebene):
+                oben = min(oben, darueber.z + w.aufmass)
+        fertig.append(ebene)
         ergebnisse = []
         for laengs_x in kandidaten:
             e = _ebene(
@@ -144,6 +153,7 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
                 zugabe,
                 geformt,
                 schritt,
+                oben,
             )
             if e is not None:
                 ergebnisse.append(e)
@@ -176,32 +186,33 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
     )
 
 
-def _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, schritt):
-    """Die Bahn über eine Fläche mit den Zeilen längs x (`laengs_x`) oder längs y – None, wenn
-    nichts zu fräsen ist (nichts drüber, keine Zeile mit Rohteil)."""
+def _umfasst(oben, unten):
+    """Liegt die Fläche `unten` (hoehenfeld.Ebene) in der Ausdehnung von `oben` und tiefer?"""
+    return (
+        unten.z < oben.z - GLEICH
+        and oben.x_von - GLEICH <= unten.x_von
+        and unten.x_bis <= oben.x_bis + GLEICH
+        and oben.y_von - GLEICH <= unten.y_von
+        and unten.y_bis <= oben.y_bis + GLEICH
+    )
+
+
+def _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, schritt, oben):
+    """Die Bahn über eine Fläche mit den Zeilen längs x (`laengs_x`) oder längs y, die Lagen ab
+    `oben` – None, wenn nichts zu fräsen ist (nichts drüber, keine Zeile mit Rohteil)."""
     punkte = []
     lagen_gesamt = zeilen_gesamt = 0
     z_min = math.inf
     laenge = 0.0
     ziel = ebene.z + w.aufmass
-    oben = w.oben
     if oben <= ziel + GLEICH:
         return None  # steht nichts drüber
-    anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / w.zustellung)))
-    lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
     if laengs_x:
         u_von, u_bis, v_von, v_bis = ebene.x_von, ebene.x_bis, ebene.y_von, ebene.y_bis
         roh_u, roh_v = w.rohteil[0:2], w.rohteil[2:4]
     else:
         u_von, u_bis, v_von, v_bis = ebene.y_von, ebene.y_bis, ebene.x_von, ebene.x_bis
         roh_u, roh_v = w.rohteil[2:4], w.rohteil[0:2]
-    v_zeilen = _zeilen_quer(v_von, v_bis, r_eben - seite, w.zeilenabstand)
-    # Keine Leerzeile: nur Zeilen, unter denen das Rohteil liegt.
-    v_zeilen = v_zeilen[
-        (v_zeilen + r_eben > roh_v[0] + GLEICH) & (v_zeilen - r_eben < roh_v[1] - GLEICH)
-    ]
-    if not len(v_zeilen):
-        return None
     # Das Raster längs: die Zeilen reichen um den Überlauf über die Fläche hinaus, die
     # Hüllfläche um den halben Zeilenabstand weiter – dort prüft der Halbkreis, ob er frei ist.
     halb = w.zeilenabstand / 2
@@ -209,14 +220,54 @@ def _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, 
     anzahl = max(2, int(math.ceil((u1 - u0) / schritt - 1e-9)) + 1)
     u_stellen = np.linspace(u0, u1, anzahl)
     schritt_u = float(u_stellen[1] - u_stellen[0])
-    huelle = hf.je_zeile(netz, geformt, v_zeilen, u0, schritt_u, anzahl, laengs_x)
-    roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
-    hoehe = roh + zugabe
-    # Dazu der Rand der Fläche quer: Vor einer Wand fährt die Wandfahrt über die erste und
-    # letzte Zeile hinaus bis an den Rand – so weit es dort erlaubt ist (_wandfahrt).
+    # Der Rand der Fläche quer: Vor einer Wand fährt die Wandfahrt über die erste und letzte
+    # Zeile hinaus bis an den Rand – so weit es dort erlaubt ist (_wandfahrt).
     v_rand = (float(v_von), float(v_bis))
     roh_rand = hf.je_zeile(netz, geformt, v_rand, u0, schritt_u, anzahl, laengs_x).T
     hoehe_rand = roh_rand + zugabe
+    # Offen: am Rand, mehr als R von den Enden der Fläche weg (dort reichte die Stirn an eine Wand
+    # quer, etwa den Absatz neben der Fläche – um R berührt sie ihn gerade), steht nichts höher
+    # als die Fläche.
+    mitte = (u_von + u_bis) / 2
+    weg_vom_ende = r_eben + zugabe + schritt_u
+    von, bis = min(u_von + weg_vom_ende, mitte), max(u_bis - weg_vom_ende, mitte)
+    am_rand = np.abs(u_stellen - np.clip(u_stellen, von, bis)) <= schritt_u / 2 + GLEICH
+    offen = [not np.any(roh_rand[i][am_rand] > ziel + GLEICH) for i in (0, 1)]
+    # Die Lagen. Steht vor der ersten Zeile eine Wand (in einer Tasche immer), hat sie keine
+    # freie Seite und schneidet in voller Breite: dann je Lage höchstens so tief, dass
+    # 2 R · Tiefe nicht über ae · ap liegt (P-2026-10-01-49; im Taschenboden der Platte 20 tief).
+    zustellung = w.zustellung
+    if not offen[0]:
+        zustellung = min(zustellung, w.zeilenabstand * w.zustellung / (2 * r_eben))
+    anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / zustellung)))
+    lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
+    # Auf einer offenen Seite (am Rand steht nichts höher als die Fläche, keine Wand) greifen
+    # die erste und die letzte Zeile höchstens so breit ins Rohteil, dass Breite · Tiefe der
+    # Lage nicht über ae · ap liegt (P-2026-10-01-49): Mit SEITE_ANTEIL allein griff die erste
+    # Zeile 0,8 · Ø breit – auf der Platte 20 mm tief, ein Vollschnitt; ragt das Rohteil weiter
+    # als R über die Fläche, war es ein Schlitz in voller Breite. Flache Lagen (Planen 1 mm)
+    # behalten den Überlauf.
+    tiefe_lage = (oben - ziel) / anzahl_lagen
+    breit = max(
+        w.zeilenabstand,
+        min(2 * r_eben - seite, w.zeilenabstand * w.zustellung / max(tiefe_lage, GLEICH)),
+    )
+    v_start = v_von + r_eben - seite
+    v_ende = v_bis - (r_eben - seite)
+    if offen[0]:
+        v_start = min(v_start, roh_v[0] - r_eben + breit)
+    if offen[1]:
+        v_ende = max(v_ende, roh_v[1] + r_eben - breit)
+    v_zeilen = _zeilen_quer(v_start, v_ende, 0.0, w.zeilenabstand)
+    # Keine Leerzeile: nur Zeilen, unter denen das Rohteil liegt.
+    v_zeilen = v_zeilen[
+        (v_zeilen + r_eben > roh_v[0] + GLEICH) & (v_zeilen - r_eben < roh_v[1] - GLEICH)
+    ]
+    if not len(v_zeilen):
+        return None
+    huelle = hf.je_zeile(netz, geformt, v_zeilen, u0, schritt_u, anzahl, laengs_x)
+    roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
+    hoehe = roh + zugabe
     im_ueberlauf = (u_stellen >= u_von - ueberlauf - GLEICH) & (
         u_stellen <= u_bis + ueberlauf + GLEICH
     )

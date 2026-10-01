@@ -20,6 +20,14 @@ schneller) – an Nutgründen treten Räumen und Planfräsen nicht mehr an (-47)
 und automatisch geprüft; wartet auf Manuels Test. **3D-Schlichten als Spirale**: von der Mitte
 nach außen ohne Wenden, neben Zeilen längs X und Y gerechnet (nur mit Steil/Flach, sonst wären
 die Grate an Flanken höher) – die Kuppel 3,97 statt 4,51 min (-48); 0.63.0 – fertig und
+automatisch geprüft; wartet auf Manuels Test. **Nie in voller Breite**: Der Prüfstand misst jetzt
+den Eingriff je Satz (Breite aus Abtrag und Tiefe) und lässt eine Bahn durchfallen, die mehr als
+5 mm in voller Breite schneidet – er fand, dass mehrere Bestmarken darauf standen: Räumen biss
+mit dem Rechteck in Inseln (Platte 120 mm, 20 tief; jetzt Ringe aus dem Weg um die Inseln
+herum), sein letzter Ring lief am Absatz voll an der Wand, die erste Zeile des Planfräsens griff
+0,8 · Ø breit (jetzt höchstens so breit, dass Breite · Tiefe nicht über ae · ap liegt; vor einer
+Wand flachere Lagen), das 3D-Schruppen erbte den Biss in die Kuppel (4,8 ae, jetzt 1,6). Ehrlich
+gerechnet etwas langsamer: Platte gesamt 35,6 statt 34,8 min (-49); 0.64.0 – fertig und
 automatisch geprüft; wartet auf Manuels Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist

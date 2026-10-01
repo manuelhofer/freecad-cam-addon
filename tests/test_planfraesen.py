@@ -133,10 +133,16 @@ werte = pb.Planwerte(
 )
 bahn = pb.planen(netz, werte, [flaeche])
 pruefe((bahn.flaechen, bahn.lagen) == (1, 1), f"Flächen, Lagen: {bahn.flaechen}, {bahn.lagen}")
-# Die Zeilen quer: von R − 0,2 Ø = 3,6 bis 36,4, höchstens 1,5 auseinander: 23 Zeilen.
+# Die Zeilen quer: Die Seiten y 0 und 40 sind offen – die erste und die letzte Zeile greifen
+# nur so breit ins Rohteil (y −1 und 41), dass Breite · Tiefe nicht über ae · ap liegt
+# (P-2026-10-01-49): 1,5 · 25 / 6 = 6,25, also von −1 − 6 + 6,25 = −0,75 bis 40,75,
+# höchstens 1,5 auseinander: 29 Zeilen (bis dahin 23 von R − 0,2 Ø = 3,6 bis 36,4 – die erste
+# griff 10,6 breit).
 rand_quer = R - pb.SEITE_ANTEIL * 2 * R
-anzahl_zeilen = int(math.ceil((40.0 - 2 * rand_quer) / planen_einsatz.ae - 1e-9)) + 1
-pruefe(anzahl_zeilen == 23 and bahn.zeilen == anzahl_zeilen, f"Zeilen {bahn.zeilen}")
+breit = min(2 * R - pb.SEITE_ANTEIL * 2 * R, planen_einsatz.ae * planen_einsatz.ap / 6.0)
+erste_y, letzte_y = -1.0 - R + breit, 41.0 + R - breit
+anzahl_zeilen = int(math.ceil((letzte_y - erste_y) / planen_einsatz.ae - 1e-9)) + 1
+pruefe(anzahl_zeilen == 29 and bahn.zeilen == anzahl_zeilen, f"Zeilen {bahn.zeilen}")
 pruefe(abs(bahn.z_min - 20.0) < 1e-9, f"z_min {bahn.z_min}")
 vorschub = [p for p in bahn.punkte if not p.eilgang]
 hoehen = sorted({round(p.z, 6) for p in vorschub if not p.eintauchen and p.z <= 26.0})
@@ -152,23 +158,24 @@ pruefe(
     and 66.0 < x_rechts <= 60.0 + ueberlauf + 1e-6,
     f"x {x_links} … {x_rechts}",
 )
-# Die Zeilen liegen auf y 3,6 … 36,4 (am freien Ende zu sehen); an der Wand reicht die
-# Wandfahrt bis an den Rand der Fläche, y 0 und 40.
+# Die Zeilen liegen auf y −0,75 … 40,75 (am freien Ende zu sehen) – über den Rand der Fläche
+# hinaus, die Wandfahrt muss nicht weiter.
 zeilen_y = sorted({round(p.y, 6) for p in in_lage if abs(p.x - x_rechts) < 1e-6})
 pruefe(
     len(zeilen_y) == anzahl_zeilen
-    and abs(zeilen_y[0] - rand_quer) < 1e-6
-    and abs(zeilen_y[-1] - (40.0 - rand_quer)) < 1e-6,
+    and abs(zeilen_y[0] - erste_y) < 1e-6
+    and abs(zeilen_y[-1] - letzte_y) < 1e-6,
     f"Zeilen y {zeilen_y[:2]} … {zeilen_y[-2:]}",
 )
 pruefe(
-    abs(min(p.y for p in in_lage) - 0.0) < 1e-6 and abs(max(p.y for p in in_lage) - 40.0) < 1e-6,
+    abs(min(p.y for p in in_lage) - erste_y) < 1e-6
+    and abs(max(p.y for p in in_lage) - letzte_y) < 1e-6,
     f"y {min(p.y for p in in_lage)} … {max(p.y for p in in_lage)}",
 )
 boegen = [p for p in vorschub if p.bogen is not None]
 pruefe(len(boegen) == anzahl_zeilen // 2, f"Bögen: {len(boegen)}")  # am freien Ende, jede zweite
 pruefe(all(abs(p.x - x_rechts) < 1e-6 for p in boegen), "Bogen nicht am freien Ende")
-abstand_zeilen = (40.0 - 2 * rand_quer) / (anzahl_zeilen - 1)
+abstand_zeilen = (letzte_y - erste_y) / (anzahl_zeilen - 1)
 pruefe(
     all(
         abs(math.hypot(p.x - p.bogen[0], p.y - p.bogen[1]) - abstand_zeilen / 2) < 1e-6
@@ -182,12 +189,12 @@ pruefe(
     len(langsam) >= anzahl_zeilen // 2 and all(abs(p.x - x_rechts) < 1e-6 for p in langsam),
     f"Austritt: {len(langsam)} Sätze, x {sorted({round(p.x, 3) for p in langsam})}",
 )
-# Vor der Wand fährt der Fräser an ihr entlang: zur vorigen Zeile zurück und über die erste
-# und letzte Zeile hinaus bis an den Rand der Fläche (y 0 und 40) – so bleibt in den
-# Zwischenräumen und Ecken an der Wand nichts stehen (gefunden mit der Simulation, W-006 S3d).
+# Vor der Wand fährt der Fräser an ihr entlang: zur vorigen Zeile zurück, über die ganze
+# Fläche (y 0 bis 40 und darüber hinaus) – so bleibt in den Zwischenräumen und Ecken an der
+# Wand nichts stehen (gefunden mit der Simulation, W-006 S3d).
 an_der_wand = sorted({round(p.y, 2) for p in in_lage if abs(p.x - x_links) < 1e-6})
 pruefe(
-    an_der_wand and an_der_wand[0] == 0.0 and an_der_wand[-1] == 40.0,
+    an_der_wand and an_der_wand[0] <= 0.0 and an_der_wand[-1] >= 40.0,
     f"Wandfahrt: y {an_der_wand[:3]} … {an_der_wand[-2:]}",
 )
 knick = [p for p in vorschub if abs(p.x - (61.0 - R)) < 1e-6]
@@ -203,9 +210,9 @@ pruefe(
 pruefe(bahn.punkte[-1].eilgang and abs(bahn.punkte[-1].z - 31.0) < 1e-9, "Ende nicht oben")
 pruefe(bahn.laenge > anzahl_zeilen * 50.0, f"Länge {bahn.laenge}")
 pruefe(bn.dauer(bahn.punkte, 1000.0) > 1.2, f"Zeit {bn.dauer(bahn.punkte, 1000.0)}")
-# Die Zeilenrichtung ist gerechnet (Grundsatz 0): längs x 23 Zeilen zu 50 mm, längs y wären
-# es 30 Zeilen zu 40 mm – längs x ist schneller; die andere Zeit steht dabei. Vorgegeben
-# längs y: 30 Zeilen, ohne Vergleich.
+# Die Zeilenrichtung ist gerechnet (Grundsatz 0): längs x 29 Zeilen zu 50 mm, längs y wären
+# es 31 Zeilen zu 40 mm in zwei Lagen – längs x ist schneller; die andere Zeit steht dabei.
+# Vorgegeben längs y: 31 Zeilen, ohne Vergleich.
 pruefe(bahn.richtungen == (True,), f"Richtungen {bahn.richtungen}")
 pruefe(
     bahn.zeit > 0 and bahn.zeit_andere is not None and bahn.zeit_andere > bahn.zeit,
@@ -218,9 +225,15 @@ werte_y = pb.Planwerte(
     form, werte.zustellung, werte.zeilenabstand, 0.0, 26.0, 31.0, werte.rohteil, laengs=False
 )
 bahn_y_erzwungen = pb.planen(netz, werte_y, [flaeche])
-# 30 Zeilen auf x 13,6 … 56,4; der Zähler zählt die beiden Zeilen an der Absatzwand doppelt,
+# 31 Zeilen auf x 13,6 … 57,4: Vor dem Absatz (x 10) ist die Seite zu, dort bleibt R − 0,2 Ø
+# – und die erste Zeile hätte keine freie Seite: darum zwei Lagen zu 3 mm (2 R · 3 nicht über
+# ae · ap). Die Seite bei x 60 ist offen; dort greift die letzte Zeile bei 3 mm Tiefe 9,6 breit
+# (R − 0,2 Ø darüber hinaus). Der Zähler zählt die beiden Zeilen an der Absatzwand doppelt,
 # weil sie dort in zwei Stücken gefahren werden.
-zeilen_y_erwartet = int(math.ceil((50.0 - 2 * rand_quer) / planen_einsatz.ae - 1e-9)) + 1
+breit_y = min(2 * R - pb.SEITE_ANTEIL * 2 * R, planen_einsatz.ae * planen_einsatz.ap / 3.0)
+zeilen_y_erwartet = (
+    int(math.ceil((61.0 + R - breit_y - (10.0 + rand_quer)) / planen_einsatz.ae - 1e-9)) + 1
+)
 x_zeilen_y = {
     round(p.x, 6)
     for p in bahn_y_erzwungen.punkte
@@ -228,7 +241,8 @@ x_zeilen_y = {
 }
 pruefe(
     bahn_y_erzwungen.richtungen == (False,)
-    and len(x_zeilen_y) == zeilen_y_erwartet == 30
+    and len(x_zeilen_y) == zeilen_y_erwartet == 31
+    and bahn_y_erzwungen.lagen == 2
     and bahn_y_erzwungen.zeilen >= zeilen_y_erwartet
     and bahn_y_erzwungen.zeit_andere is None
     and abs(bahn_y_erzwungen.zeit - bahn.zeit_andere) < 1e-9

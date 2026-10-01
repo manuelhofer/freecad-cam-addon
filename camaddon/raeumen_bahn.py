@@ -276,9 +276,10 @@ _FAELLE = {
 }
 
 
-def _hoehenlinien(feld, xs, ys, niveau):
+def _hoehenlinien(feld, xs, ys, niveau, sperre=None):
     """[(punkte (m, 2), geschlossen)] – die Linien, auf denen `feld` (nx, ny) das Niveau hat;
-    Marching Squares mit Interpolation auf den Zellkanten."""
+    Marching Squares mit Interpolation auf den Zellkanten. `sperre` (nx, ny, bool): durch Zellen,
+    die eine gesperrte Ecke haben, läuft keine Linie – sie endet davor."""
     f = np.where(np.isfinite(feld), feld, np.where(feld > 0, 1e9, -1e9))
     ueber = f > niveau
     c0 = ueber[:-1, :-1]
@@ -286,6 +287,9 @@ def _hoehenlinien(feld, xs, ys, niveau):
     c2 = ueber[1:, 1:]
     c3 = ueber[:-1, 1:]
     fall = c0 * 1 + c1 * 2 + c2 * 4 + c3 * 8
+    if sperre is not None:
+        gesperrt = sperre[:-1, :-1] | sperre[1:, :-1] | sperre[1:, 1:] | sperre[:-1, 1:]
+        fall = np.where(gesperrt, 0, fall)
     ii, jj = np.nonzero((fall > 0) & (fall < 15))
     if not len(ii):
         return []
@@ -763,7 +767,13 @@ class _Lage:
         Rohteil darf die Stirn beim Einfahren treffen, aber im Vorschub, nicht im Eilgang; der
         Prüfstand fand 189 mm³ im Eilgang, P-2026-10-01-26)."""
         knapp = min(hoch, self.lage + self.w.sicherheit)
-        if float(self.feld.ungeschnitten([start[0]], [start[1]])[0]) <= 0.0:
+        # Mit einer Zelle Zugabe rundum (das Raster rundet auf Knoten): Streift die Stirn das
+        # Rohteil nur am Rand, zählt die Simulation die Randzelle mit (1 mm³ am Absatz,
+        # P-2026-10-01-49).
+        d = self.schritt
+        xs = [start[0], start[0] + d, start[0] - d, start[0], start[0]]
+        ys = [start[1], start[1], start[1], start[1] + d, start[1] - d]
+        if float(np.max(self.feld.ungeschnitten(xs, ys))) <= 0.0:
             return knapp
         return min(hoch, max(knapp, self._material_oben() + self.w.sicherheit))
 
@@ -1182,55 +1192,100 @@ def _naechster_zuerst(ablauf, ringe, eng, kennung, nur=None, luft=False):
         )
 
 
+GEODAETISCH_UMLAEUFE = 16  # höchstens so oft hin und zurück über das Raster
+_GROSS = 1e7  # trennt die Abschnitte einer Zeile beim gleitenden Minimum
+_UNERREICHT = 1e6
+
+
+def _geodaetisch(start, frei, schritt):
+    """(nx, ny) mm: der kürzeste Weg von den Startwerten `start` (inf: kein Start) zu jeder
+    Zelle, nur durch freie Zellen (`frei`) – um Gesperrtes herum; inf, wohin kein Weg führt.
+    Achteckig gemessen (gerade `schritt`, schräg √2 · `schritt`): höchstens 8 % länger als der
+    gerade Weg – Höhenlinien in gleichem Abstand liegen so höchstens so weit auseinander, eher
+    enger. Zeilenweise hin und zurück; in der Zeile das gleitende Minimum je Abschnitt zwischen
+    Gesperrtem (numpy, ohne Schleife je Zelle); um Inseln herum braucht es mehrere Umläufe."""
+    G = np.where(frei, start, np.inf)
+    nx, ny = G.shape
+    s, sd = float(schritt), float(schritt) * math.sqrt(2.0)
+    weg = np.arange(ny) * s
+    gesperrt = ~frei
+    abschnitt = np.cumsum(gesperrt, axis=1) * _GROSS
+    abschnitt_r = np.cumsum(gesperrt[:, ::-1], axis=1) * _GROSS
+
+    def zeile(i):
+        g = np.minimum(G[i], _UNERREICHT)
+        lauf = np.minimum.accumulate(g - weg - abschnitt[i]) + weg + abschnitt[i]
+        g = np.minimum(g, lauf)[::-1]
+        lauf = np.minimum.accumulate(g - weg - abschnitt_r[i]) + weg + abschnitt_r[i]
+        g = np.minimum(g, lauf)[::-1]
+        G[i] = np.where(frei[i] & (g < _UNERREICHT - 1.0), g, np.inf)
+
+    for _ in range(GEODAETISCH_UMLAEUFE):
+        vorher = G.copy()
+        for reihen in (range(nx), range(nx - 1, -1, -1)):
+            vorige = None
+            for i in reihen:
+                if vorige is not None:
+                    p = G[vorige]
+                    kandidat = p + s
+                    kandidat[1:] = np.minimum(kandidat[1:], p[:-1] + sd)
+                    kandidat[:-1] = np.minimum(kandidat[:-1], p[1:] + sd)
+                    G[i] = np.where(frei[i], np.minimum(G[i], kandidat), np.inf)
+                zeile(i)
+                vorige = i
+        if np.array_equal(vorher, G):
+            break
+    return G
+
+
 def _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz):
-    """Die Ringe um das, was noch steht – ein Feld F = min(Tiefe im Rohteil + R, D + ae): vom
-    Rohteilrand her je ae weiter hinein (der erste Ring R − ae außerhalb, in der Luft) und von
-    jeder Insel her je ae weiter hinaus; seine Höhenlinien bei m · ae sind die Ringe, überall ae
-    auseinander. Ein Ring, der nur dem Rohteilrand folgt, ist das Rechteck mit runden Ecken
-    (analytisch, mit Bögen). Einer, der nur eine Insel umrundet, wartet, bis alles um ihn herum
-    weg ist: Die Ringe um die Inseln kommen zuletzt, von außen nach innen, bis an die Insel. Die
-    übrigen – das Rechteck, das in die Inseln hineinbeißt, die Zwickel zwischen Insel und Ecke –
-    kommen in ihrer Reihenfolge. So gibt es keine zerhackten Ringe und keine Luftfahrten (Manuel,
-    2026-10-01: die Ringe sollen am Ende nur noch um den Zapfen fahren)."""
+    """Die Ringe vom Rohteilrand her: die Höhenlinien des Wegs vom Rand – um Inseln und Wände
+    herum gemessen (_geodaetisch) – bei m · ae, der erste R − ae außerhalb, in der Luft. Ohne
+    Hindernis ist das das Rechteck mit runden Ecken (analytisch, mit Bögen); trifft er eine
+    Insel, legt er sich um sie herum: Jeder Ring nimmt überall höchstens ae, auch hinter der
+    Insel, und endet an ihr (die Ringe um die Inseln danach, _ringe_um_inseln mit `nur_rest`,
+    nehmen den Rest an ihrer Wand). Früher F = min(Tiefe + R, D + ae): Wo die Insel den Ring
+    bestimmte, biss er in sie hinein – mit vollem Material beidseits, auf der Platte 120 mm in
+    voller Breite, 20 tief (P-2026-10-01-49). Manuel, 2026-10-01: die Ringe sollen am Ende nur
+    noch um den Zapfen fahren."""
     ae = w.zeilenabstand
-    gueltig = feld.beruehrt & feld.im_raster(*np.meshgrid(feld.xs, feld.ys, indexing="ij"))
-    F = np.minimum(feld.tiefe + r, D + ae)
+    gitter = np.meshgrid(feld.xs, feld.ys, indexing="ij")
+    gueltig = feld.beruehrt & feld.im_raster(*gitter)
+    frei = np.isnan(D) | (D >= 0)  # D < 0: im Gesperrten
+    if np.isinf(D).all():
+        frei = np.ones_like(frei)
+    start = np.where(feld.tiefe <= 0.0, feld.tiefe + r, np.inf)
+    G = _geodaetisch(start, frei, schritt)
     if not gueltig.any():
         return
-    hoechste = float(F[gueltig].max())
-    if not np.isfinite(hoechste) or hoechste < ae:
+    endlich = gueltig & np.isfinite(G)
+    if not endlich.any():
         return
-    spaeter = {}  # Niveau m → [Ringe nur um Inseln]
+    hoechste = float(G[endlich].max())
+    if hoechste < ae:
+        return
+    sperre = ~frei
     for m in range(1, int(math.floor(hoechste / ae + 1e-9)) + 1):
         niveau = m * ae
         jetzt = []
-        for punkte, geschlossen in _hoehenlinien(F, feld.xs, feld.ys, niveau):
+        for punkte, geschlossen in _hoehenlinien(G, feld.xs, feld.ys, niveau, sperre):
             if len(punkte) < 2:
                 continue
             laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
             if geschlossen and laenge < 2 * math.pi * ae:
                 continue  # winzig: der Ring davor deckt es ab
             i, j = feld.zellen(punkte[:, 0], punkte[:, 1])
-            # Was bestimmt den Ring: nur der Rohteilrand (die Insel liegt deutlich weiter weg),
-            # nur die Inseln (der Rand liegt deutlich weiter weg) oder beides?
-            nur_rand = bool((D[i, j] + ae > niveau + schritt).all())
-            nur_insel = bool((feld.tiefe[i, j] + r > niveau + schritt).all())
+            nur_rand = bool((np.abs(G[i, j] - (feld.tiefe[i, j] + r)) <= schritt).all())
             if nur_rand and geschlossen:
                 ring = _rohteil_ring(w.rohteil, niveau - r, material_links, schritt)
             else:
                 ring = _ring_aus_linie(
-                    punkte, geschlossen, material_links, feld, niveau, F, schritt, toleranz,
-                    material_hoch=not nur_insel,
+                    punkte, geschlossen, material_links, feld, niveau, G, schritt, toleranz,
+                    material_hoch=True,
                 )  # fmt: skip
-            if ring is None:
-                continue
-            if nur_insel:
-                spaeter.setdefault(m, []).append(ring)
-            else:
+            if ring is not None:
                 jetzt.append(ring)
         _naechster_zuerst(ablauf, jetzt, False, f"rohteil {m}")
-    for m in sorted(spaeter, reverse=True):
-        _naechster_zuerst(ablauf, spaeter[m], True, f"insel {m}")
 
 
 def _abschnitt(r, h):
@@ -1505,10 +1560,13 @@ def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_
     ae = w.zeilenabstand
     gueltig = feld.beruehrt & feld.im_raster(*np.meshgrid(feld.xs, feld.ys, indexing="ij"))
     if nur_rest:
-        rest = gueltig & ~feld.frei & (D >= 0)
+        # Auch das Band an der Wand, wo die Mitte nicht hin darf, die Stirn aber hinreicht: Enden
+        # die Ringe davor (die Ringe vom Rohteil her, um die Insel gemessen), fehlt sonst der
+        # letzte Ring an der Wand (P-2026-10-01-49).
+        rest = gueltig & ~feld.frei & (D + feld.r >= 0)
         if not rest.any():
             return
-        hoechste = float(D[rest].max())
+        hoechste = max(float(D[rest].max()), 0.0)
     else:
         drin = gueltig & (D >= 0)
         if not drin.any():
