@@ -375,6 +375,7 @@ class PruefPanel:
         self.abspieler = gui_abfahren.Abspieler(self._fahre, self._hinsehen)
         self.abspieler.bei_station = self._abtragen
         self.abspieler.bei_bahn = self._bahn_zeigen
+        self.abspieler.bei_teil = self._teil_zeigen
         aufbau.addWidget(self.abspieler)
         self.kollision = gui_kollision.KollisionsBereich(
             self._kollision_daten, self._kollision_hin, self._sperren, self._kollision_gemeldet
@@ -494,6 +495,7 @@ class PruefPanel:
                     ansicht, self.abfahrt, job, nullpunkt, self.bibliothek
                 )
                 self.bild.zeige_bahn(self.abspieler.haken_bahn.isChecked())
+                self.bild.zeige_teil(self.abspieler.haken_teil.isChecked())
                 self._bild_fuer = (job, self.pruefung)
         elif self.bild is not None:
             self.bild.nullpunkt = FreeCAD.Vector(nullpunkt)
@@ -510,6 +512,11 @@ class PruefPanel:
         """Der Haken „Bahn“ im Abspieler: die Bahn in der 3D-Ansicht ein- oder ausblenden."""
         if self.bild is not None:
             self.bild.zeige_bahn(an)
+
+    def _teil_zeigen(self, an):
+        """Der Haken „Teil“ im Abspieler: das fertige Teil auch am Ende zeigen."""
+        if self.bild is not None:
+            self.bild.zeige_teil(an)
 
     def _bild_weg(self):
         if self.bild is not None:

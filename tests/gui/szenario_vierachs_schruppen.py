@@ -231,11 +231,27 @@ def schritte(h):
             f"Restmaterial: {rest!r}",
         )
         h.pruefe(bild.bahn_schalter.whichChild.getValue() == -1, "am Ende Bahn zu sehen")
-        h.pruefe(bild.modell_schalter.whichChild.getValue() == -1, "am Ende Teil zu sehen")
+        # Der Haken „Teil“ (Manuel, 2026-09-30/10-01): am Ende das Teil grau unter der halb
+        # durchsichtigen Stange; ohne Haken weg und die Stange deckend.
+        h.pruefe(spieler.haken_teil.isChecked(), "Haken „Teil“ nicht gesetzt")
+        h.pruefe(bild.modell_schalter.whichChild.getValue() == 0, "am Ende Teil nicht zu sehen")
+        grau = tuple(round(x, 2) for x in bild._teil_materialien[0].diffuseColor.getValues()[0])
+        h.pruefe(grau == (0.55, 0.55, 0.58), f"Teil am Ende nicht grau: {grau}")
+        h.pruefe(
+            abs(bild._rest_material.transparency.getValues()[0] - 0.35) < 1e-6,
+            "Stange am Ende nicht halb durchsichtig",
+        )
         Gui.SendMsgToActiveView("ViewFit")
         spieler.knopf_hinsehen.click()
         yield 500
         h.bild("5_rest_farben")
+        spieler.haken_teil.setChecked(False)
+        yield 300
+        h.pruefe(bild.modell_schalter.whichChild.getValue() == -1, "ohne Haken Teil zu sehen")
+        h.pruefe(bild._rest_material.transparency.getValues()[0] == 0.0, "ohne Haken nicht deckend")
+        h.bild("5c_ohne_teil")
+        spieler.haken_teil.setChecked(True)
+        yield 200
         h.bild("5b_rest_satz", pruef.form)
         pruef.reject()
         yield 500

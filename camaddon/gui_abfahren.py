@@ -57,6 +57,8 @@ REST_FARBEN = {
 }
 STELLE_AUSSCHNITT = 400.0  # mm: so hoch zeigt die Ansicht höchstens, wenn sie auf eine Stelle geht
 BAHN_ZEIGEN = "AbfahrenBahnZeigen"  # der Haken „Bahn“ im Abspieler, gemerkt
+TEIL_ZEIGEN = "AbfahrenTeilZeigen"  # der Haken „Teil“ im Abspieler, gemerkt
+TEIL_AM_ENDE = (0.55, 0.55, 0.58)  # das fertige Teil am Ende, grau unter der Stange
 
 
 def _einstellungen():
@@ -89,17 +91,23 @@ class Bild:
         werkstueck = coin.SoSeparator()
         self.werkstueck_lage = coin.SoTransform()
         werkstueck.addChild(self.werkstueck_lage)
-        # Das fertige Teil – beim Vergleich am Ende ausgeblendet: Wo nichts mehr steht, liegt die
-        # Stange genau auf ihm, sein Hellblau schiene durch und sähe aus wie „blau: im Teil“
-        # (Manuels Testteil, P-2026-09-30-45).
+        # Das fertige Teil – beim Vergleich am Ende grau unter der halb durchsichtigen Stange,
+        # solange der Haken „Teil“ gesetzt ist (Manuel, 2026-09-30: „nach dem bearbeiten sieht
+        # man das "soll" teil nicht mehr“). Ohne den Haken ist es am Ende ausgeblendet: Wo nichts
+        # mehr steht, liegt die Stange genau auf ihm, sein Hellblau schiene durch und sähe aus
+        # wie „blau: im Teil“ (Manuels Testteil, P-2026-09-30-45).
         self.modell_schalter = coin.SoSwitch()
         modell = coin.SoGroup()
+        self._teil_materialien = []  # je Körper sein SoMaterial – am Ende grau
         for objekt in getattr(getattr(job, "Model", None), "Group", []):
             form = getattr(objekt, "Shape", None)
             if form is not None and not form.isNull():
-                modell.addChild(self._flaechen(form, MODELL, 0.0))
+                knoten = self._flaechen(form, MODELL, 0.0)
+                self._teil_materialien.append(knoten.getChild(0))
+                modell.addChild(knoten)
         self.modell_schalter.addChild(modell)
         self.modell_schalter.whichChild = 0
+        self._teil_an = _einstellungen().GetBool(TEIL_ZEIGEN, True)
         werkstueck.addChild(self.modell_schalter)
         punkte = abfahrt.am_werkstueck()
         # Eine runde Stange mit „Rundum schruppen“ wird beim Abspielen abgetragen (V3g).
@@ -169,10 +177,10 @@ class Bild:
         self.abtrag.bis_station(index)
         ende = index >= len(self.abtrag.a) - 1
         vergleich = self.abtrag.vergleich() if ende else None
-        self._rest_zeigen(vergleich)
         self._am_ende = ende
+        self._rest_zeigen(vergleich)
         self._bahn_schalten()
-        self.modell_schalter.whichChild = -1 if ende else 0
+        self._teil_schalten()
         return _rest_satz(vergleich, self.abtrag.aufmass)
 
     def zeige_bahn(self, an):
@@ -182,6 +190,23 @@ class Bild:
 
     def _bahn_schalten(self):
         self.bahn_schalter.whichChild = 0 if self._bahn_an and not self._am_ende else -1
+
+    def zeige_teil(self, an):
+        """Das fertige Teil auch am Ende zeigen (Haken „Teil“ im Abspieler)."""
+        self._teil_an = bool(an)
+        self._teil_schalten()
+
+    def _teil_schalten(self):
+        """Vor dem Ende das Teil hellblau unter der halb durchsichtigen Stange; am Ende grau
+        unter ihr – oder, ohne den Haken „Teil“, weg und die Stange deckend in den Farben."""
+        am_ende = self._am_ende and self.abtrag is not None
+        self.modell_schalter.whichChild = 0 if self._teil_an or not am_ende else -1
+        farbe = TEIL_AM_ENDE if am_ende else MODELL
+        for material in self._teil_materialien:
+            material.diffuseColor.setValue(*farbe)
+        if self.abtrag is not None:
+            deckend = am_ende and not self._teil_an
+            self._rest_material.transparency.setValue(0.0 if deckend else REST_DURCHSICHT)
 
     def _restmaterial(self):
         """Die Stange als Fläche über (a, φ) – Punkte und Farben setzt _rest_zeigen()."""
@@ -227,7 +252,7 @@ class Bild:
         self._rest_bindung.value = self._coin.SoMaterialBinding.PER_VERTEX
         material.diffuseColor.setValues(0, len(farben), farben)
         material.diffuseColor.setNum(len(farben))
-        material.transparency.setValue(0.0)
+        # Deckend oder halb durchsichtig über dem grauen Teil: _teil_schalten().
 
     def zeige_operation(self, nummer):
         """Das Werkzeug der Operation `nummer` an ihrer Werkzeugaufnahme – stecken dort im Job
@@ -481,6 +506,7 @@ class Abspieler(QtGui.QWidget):
         # Rohteil und Fertigteil (V3g): bekommt die Station, gibt den Satz dazu zurück.
         self.bei_station = None
         self.bei_bahn = None  # bekommt True/False, wenn jemand den Haken „Bahn“ setzt
+        self.bei_teil = None  # dasselbe für den Haken „Teil“
         self._uhr = QtCore.QTimer(self)
         self._uhr.setInterval(TAKT)
         self._uhr.timeout.connect(self._takt)
@@ -522,10 +548,16 @@ class Abspieler(QtGui.QWidget):
         self.haken_bahn.setToolTip(tr("ab.bahn.tooltip"))
         self.haken_bahn.setChecked(_einstellungen().GetBool(BAHN_ZEIGEN, True))
         self.haken_bahn.toggled.connect(self._bahn_umgeschaltet)
+        # Das fertige Teil auch am Ende zeigen – grau unter der halb durchsichtigen Stange.
+        self.haken_teil = QtGui.QCheckBox(tr("ab.teil"))
+        self.haken_teil.setToolTip(tr("ab.teil.tooltip"))
+        self.haken_teil.setChecked(_einstellungen().GetBool(TEIL_ZEIGEN, True))
+        self.haken_teil.toggled.connect(self._teil_umgeschaltet)
         for widget in (self.knopf_anfang, self.knopf_zurueck, self.knopf_spielen, self.knopf_vor):
             zeile.addWidget(widget)
         zeile.addStretch()
         zeile.addWidget(self.haken_bahn)
+        zeile.addWidget(self.haken_teil)
         zeile.addWidget(self.knopf_hinsehen)
         zeile.addWidget(self.wahl_tempo)
         aufbau.addLayout(zeile)
@@ -563,6 +595,11 @@ class Abspieler(QtGui.QWidget):
         _einstellungen().SetBool(BAHN_ZEIGEN, bool(an))
         if self.bei_bahn is not None:
             self.bei_bahn(bool(an))
+
+    def _teil_umgeschaltet(self, an):
+        _einstellungen().SetBool(TEIL_ZEIGEN, bool(an))
+        if self.bei_teil is not None:
+            self.bei_teil(bool(an))
 
     def _knopf(self, symbol, tooltip, aktion):
         knopf = QtGui.QToolButton()
@@ -607,6 +644,7 @@ class Abspieler(QtGui.QWidget):
             self.knopf_vor,
             self.knopf_hinsehen,
             self.haken_bahn,
+            self.haken_teil,
             self.wahl_tempo,
             self.schieber,
         ):

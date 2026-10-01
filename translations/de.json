@@ -885,6 +885,8 @@
     "ab.hinsehen.tooltip": "Ansicht auf Werkstück und Werkzeug – die Maschine ist meist viel größer als das Teil.",
     "ab.bahn": "Bahn",
     "ab.bahn.tooltip": "Zeigt die Bahn des Werkzeugs – Vorschub blau, Eilgang rot. Ohne Haken sieht man beim Abspielen besser, wie die Stange abgetragen wird; am Ende mit den Farben ist die Bahn immer aus.",
+    "ab.teil": "Teil",
+    "ab.teil.tooltip": "Zeigt das fertige Teil auch am Ende: grau, die Stange darüber halb durchsichtig in den Farben des Vergleichs. Ohne Haken verschwindet das Teil am Ende, und die Stange ist deckend.",
     "halter.vorlage.er16": "Spannzangenfutter ER16 · SK40",
     "halter.vorlage.er25": "Spannzangenfutter ER25 · SK40",
     "halter.vorlage.er32": "Spannzangenfutter ER32 · SK40",

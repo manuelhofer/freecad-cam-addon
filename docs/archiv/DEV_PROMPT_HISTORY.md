@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-02 teil-am-ende
+
+### EINGELESEN
+- Manuel, 2026-09-30: „nach dem bearbeiten sieht man das "soll" teil nicht mehr“; 2026-10-01
+  zur Wahl (a) Haken „Teil“ im Abspieler: „Also ja“.
+- P-2026-09-30-45 (Teil am Ende ausgeblendet, weil sein Hellblau wie „blau: im Teil“ aussah),
+  `camaddon/gui_abfahren.py` (Bild, Abspieler, Haken „Bahn“), `camaddon/gui_reichweite.py`.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py`, `camaddon/gui_reichweite.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/reichweite.html`,
+  `tests/gui/szenario_vierachs_schruppen.py`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Im Abspieler steht neben „Bahn“ der Haken „Teil“ (gemerkt, anfangs gesetzt). Mit Haken ist das
+fertige Teil an der letzten Station grau und die Stange darüber halb durchsichtig in den
+Farben; ohne Haken verschwindet das Teil, und die Stange ist deckend wie bisher. Vor dem Ende
+wie immer: Teil hellblau, Stange halb durchsichtig.
+
+### DONE
+- `Bild`: je Körper sein Material gemerkt; `zeige_teil`, `_teil_schalten` (Farbe, Schalter,
+  Durchsicht der Stange); `_rest_zeigen` setzt die Durchsicht nicht mehr selbst.
+- Abspieler: `haken_teil`, Einstellung `AbfahrenTeilZeigen`, `bei_teil`; das Prüffenster
+  verdrahtet ihn wie „Bahn“ und setzt ihn beim Bauen des Bildes.
+- Hilfe (de/en): der Satz zur letzten Station.
+
+### TEST
+- `test_sprache`, `test_hilfe`, `test_abfahren` in 1.1.3 ok.
+- `szenario_vierachs_schruppen` in 1.1.3 ok (Haken gesetzt, Teil grau (0.55, 0.55, 0.58),
+  Stange 0.35 durchsichtig; Haken weg → Teil weg, Stange deckend); Bilder angesehen: mit Haken
+  die Welle gedämpft grün über dem grauen Teil, ohne Haken leuchtend grün. 26.3 läuft; der
+  volle Lauf nach dem Push.
+
+### NEXT
+- Version 0.33.2, Push; Hilfeseite „So geht’s“ (D-54).
+
 ## P-2026-10-01-01 entschieden
 
 ### EINGELESEN
