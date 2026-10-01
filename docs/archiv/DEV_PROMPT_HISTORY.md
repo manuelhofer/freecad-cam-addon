@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-47 nut-offen
+
+### EINGELESEN
+- `nut_bahn` (`_waende_der_nut`, `_langloch`, `_durch`, `_nut_der_flaeche`, `_trochoide`,
+  `_rundum`, `_nut`), `kontur_bahn.konturen` (Kontur, freie Seite), `gui_bearbeitung`
+  (`_wettbewerb_gruppe`, Flächenliste), `raeumen_bahn.planen` an einer offenen Nut,
+  `pruefstand.messen`.
+
+### DATEIEN
+- `camaddon/nut_bahn.py`, `camaddon/gui_bearbeitung.py`, `translations/de.json`,
+  `translations/en.json`, `tests/test_nut_offen.py` (neu), `tests/gui/szenario_nut_offen.py`
+  (neu), `tests/gui/szenario_nut.py`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.62.0)
+
+### AKZEPTANZKRITERIUM
+Platte 60 × 40 × 20, Nut 16 breit, 8 tief, ganz durch, Standardfräser: eine Wand anklicken – „offene
+Nut 16 × 60, Grund 12“, die Nut schlägt die Kontur („→ 1 Nut, 1 Lage, 46 Kreise, etwa … – die
+schnellste“); den Grund – Räumen tritt nicht an („… in der Nut schnitte es zuerst in voller
+Breite …“). „Anlegen“: „Nut T1“, Endtiefe 12; im Prüffenster nirgends ins Teil. Im Quader
+(`test_nut_offen`): kein Eintauchen, keine Rampe, leer bis auf den Grund, Wände fertig, im Eilgang
+nichts – an beiden Enden offen und an einem (Halbkreis).
+
+### DONE
+- Erkennung offener Nuten (zwei parallele Wände oder Halbkreis mit zwei Geraden bis zum Rand, Luft
+  hinter dem Ende geprüft); die Bahn von außen ohne Helix, die Wände im Gleichlauf hinein, außen
+  oder um den Halbkreis hinüber, heraus.
+- Wettbewerb: Auf Nutgründen treten Räumen und Planfräsen nicht an, wenn die Nut sie fräsen kann –
+  sie schnitten zuerst in voller Breite (an der offenen Nut 348 % Wirkungsgrad, Eilgang ins
+  Material); `szenario_nut` entsprechend.
+
+### TEST
+- 1.1.3: `test_nut_offen` (neu), `test_nut` grün; Szenarien `szenario_nut_offen` (neu),
+  `szenario_nut`, `szenario_raeumen`, `szenario_platte` grün; black/ruff grün.
+
+### NEXT
+- Räumen selbst: in schmalen Bereichen nicht in voller Breite (Trochoiden, E3).
+
 ## P-2026-10-01-46 bleistift
 
 ### EINGELESEN

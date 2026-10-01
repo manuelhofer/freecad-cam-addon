@@ -24,6 +24,14 @@ Trochoide statt Vollschnitt.
   Die Vollnut fährt diese Runde immer (sonst bliebe die Nut zu schmal).
 - Durchgehende Nuten um `tiefer` unter den Grund; mehrere in der Reihenfolge des kürzesten
   Wegs; die Zeit mit bahn.zeit.
+- **Offene Nuten** (P-2026-10-01-47): zum Rand hin offen – an einem Ende (ein Halbkreis und
+  zwei Geraden, die am Rand enden) oder an beiden (zwei parallele Wände, die freien Seiten
+  zueinander, der Grund dazwischen). Hinter einem offenen Ende ist Luft (geprüft): Dort fährt
+  der Fräser im Eilgang hinab und von außen hinein – keine Helix. Die Kreise beginnen so weit
+  draußen, dass der erste gerade ae nimmt, und laufen bis ans andere Ende; dort hinaus ins
+  Freie oder, am Halbkreis, die nächste Lage mit der Helix zurück. Die Vollnut in Lagen von
+  außen geradeaus. Das Schlichten der Wände im Gleichlauf: an der einen Wand hinein, außen
+  (oder um den Halbkreis) hinüber, an der anderen heraus.
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -59,11 +67,22 @@ class Nut:
     z_oben: float  # Oberkante der Wände
     z_unten: float  # Grund
     durch: bool  # unter dem Grund ist kein Material
+    offen_a: bool = False  # das Ende A liegt am Rand: dahinter ist Luft, kein Halbkreis
+    offen_b: bool = False
 
     @property
     def laenge(self):
-        """Der Abstand der Mittelpunkte A und B (mm) – die Nut ist um 2 r länger."""
+        """Der Abstand von A nach B (mm) – an jedem geschlossenen Ende kommt r dazu."""
         return math.hypot(self.b[0] - self.a[0], self.b[1] - self.a[1])
+
+    @property
+    def gesamtlaenge(self):
+        """So lang ist die Nut über alles (mm): an geschlossenen Enden die Halbkreise dazu."""
+        return self.laenge + self.radius * ((not self.offen_a) + (not self.offen_b))
+
+    @property
+    def offen(self):
+        return self.offen_a or self.offen_b
 
 
 @dataclass
@@ -217,6 +236,184 @@ def _durch(form, a, b, r, z_unten):
     return not any(form.isInside(FreeCAD.Vector(x, y, z), 1e-6, True) for x, y in stellen)
 
 
+OFFEN_PRUEFEN = 0.5  # mm hinter einem offenen Ende wird nach Luft gesehen
+FREI_VOR = 1.0  # mm – so weit hinter einem offenen Ende bleibt der Rand des Fräsers
+
+
+def _waende_offen(form, nummer, index):
+    """Die Nummern der Wände einer offenen Nut zur Wand oder zum Grund `nummer`: von einer Wand
+    über ihren Grund (die ebene Fläche nach oben an ihrer Unterkante) zu allen Wänden an seinem
+    Rand – die gegenüberliegende Wand hängt nicht an ihr."""
+    import Part
+
+    flaechen = form.Faces
+    start = flaechen[nummer]
+    if _ist_boden(start):
+        return _waende_der_nut(form, nummer, index)
+    if not kb.ist_wand(start):
+        return ()
+    z = start.BoundBox.ZMin
+    for kante in start.Edges:
+        bb = kante.BoundBox
+        if abs(bb.ZMax - z) > kb.NAH or abs(bb.ZMin - z) > kb.NAH:
+            continue  # keine Unterkante
+        for nachbar in form.ancestorsOfType(kante, Part.Face):
+            i = index.get(nachbar.hashCode())
+            if i is None or i == nummer:
+                continue
+            if _ist_boden(flaechen[i]) and abs(flaechen[i].BoundBox.ZMax - z) <= kb.NAH:
+                return _waende_der_nut(form, i, index)
+    return ()
+
+
+def _gerade(kontur):
+    """((x0, y0), (ux, uy), s_von, s_bis) – wenn alle Unterkanten der Kontur auf einer Geraden
+    liegen; sonst None."""
+    import Part
+
+    punkte = []
+    for kante in kontur.draht.Edges:
+        if not isinstance(kante.Curve, (Part.Line, Part.LineSegment)):
+            return None
+        punkte.extend((v.Point.x, v.Point.y) for v in kante.Vertexes)
+    p0 = punkte[0]
+    fern = max(punkte, key=lambda p: math.hypot(p[0] - p0[0], p[1] - p0[1]))
+    laenge = math.hypot(fern[0] - p0[0], fern[1] - p0[1])
+    if laenge < 1e-3:
+        return None
+    ux, uy = (fern[0] - p0[0]) / laenge, (fern[1] - p0[1]) / laenge
+    for p in punkte:
+        if abs((p[0] - p0[0]) * -uy + (p[1] - p0[1]) * ux) > 1e-4:
+            return None
+    s = [(p[0] - p0[0]) * ux + (p[1] - p0[1]) * uy for p in punkte]
+    return p0, (ux, uy), min(s), max(s)
+
+
+def _frei_hinter(form, ende, t, v, r, z_unten, z_oben):
+    """Ist hinter dem Ende `ende` (in Richtung t, quer v) Luft – quer über die Breite und mehr,
+    knapp über dem Grund und unter der Oberkante?"""
+    import FreeCAD
+
+    for z in (z_unten + 0.1, (z_unten + z_oben) / 2, z_oben - 0.1):
+        for k in (-1.5, -1.0, 0.0, 1.0, 1.5):
+            x = ende[0] + t[0] * OFFEN_PRUEFEN + v[0] * k * r
+            y = ende[1] + t[1] * OFFEN_PRUEFEN + v[1] * k * r
+            if form.isInside(FreeCAD.Vector(x, y, z), 1e-6, True):
+                return False
+    return True
+
+
+def _offene_nut(form, konturen):
+    """Die offene Nut aus den Konturen ihrer Wände – None, wenn es keine ist: eine Kontur aus
+    einem Halbkreis und zwei Geraden, die am Rand enden (an einem Ende offen), oder zwei
+    gerade Wände, parallel, die freien Seiten zueinander (an beiden Enden offen)."""
+    import Part
+
+    if not konturen or any(k.geschlossen for k in konturen):
+        return None
+    z_unten = float(konturen[0].z_unten)
+    z_oben = max(float(k.z_oben) for k in konturen)
+    waende = tuple(sorted({w for k in konturen for w in k.waende}, key=lambda n: int(n[4:])))
+    if len(konturen) == 2:
+        g1, g2 = _gerade(konturen[0]), _gerade(konturen[1])
+        if g1 is None or g2 is None:
+            return None
+        (p1, u, *_), (p2, u2, *_) = g1, g2
+        if abs(u[0] * u2[1] - u[1] * u2[0]) > 1e-4:
+            return None  # nicht parallel
+        v = (-u[1], u[0])
+        abstand = (p2[0] - p1[0]) * v[0] + (p2[1] - p1[1]) * v[1]
+        if abs(abstand) < 1e-3:
+            return None
+        # Die freien Seiten zeigen zueinander.
+        for k, zu in ((konturen[0], abstand), (konturen[1], -abstand)):
+            if (k.normale[0] * v[0] + k.normale[1] * v[1]) * zu <= 0:
+                return None
+        r = abs(abstand) / 2
+        mitte = (p1[0] + v[0] * abstand / 2, p1[1] + v[1] * abstand / 2)
+        s = []
+        for p, _u, s_von, s_bis in (g1, g2):
+            versatz = (p[0] - p1[0]) * u[0] + (p[1] - p1[1]) * u[1]
+            s.extend((versatz + s_von, versatz + s_bis))
+        a = (mitte[0] + u[0] * min(s), mitte[1] + u[1] * min(s))
+        b = (mitte[0] + u[0] * max(s), mitte[1] + u[1] * max(s))
+        if not (
+            _frei_hinter(form, a, (-u[0], -u[1]), v, r, z_unten, z_oben)
+            and _frei_hinter(form, b, u, v, r, z_unten, z_oben)
+        ):
+            return None
+        if _durch(form, a, b, r, z_unten):
+            return None
+        return Nut(waende, a, b, r, z_oben, z_unten, False, True, True)
+    if len(konturen) != 1:
+        return None
+    kreise, geraden = [], []
+    for kante in konturen[0].draht.Edges:
+        kurve = kante.Curve
+        if isinstance(kurve, Part.Circle):
+            kreise.append(
+                (
+                    (kurve.Center.x, kurve.Center.y),
+                    float(kurve.Radius),
+                    abs(kante.LastParameter - kante.FirstParameter),
+                )
+            )
+        elif isinstance(kurve, (Part.Line, Part.LineSegment)):
+            geraden.append([(p.Point.x, p.Point.y) for p in kante.Vertexes])
+        else:
+            return None
+    if not kreise or not geraden:
+        return None
+    mitte, r, _w = kreise[0]
+    if any(
+        math.hypot(m[0] - mitte[0], m[1] - mitte[1]) > 1e-4 or abs(rr - r) > 1e-4
+        for m, rr, _w in kreise
+    ):
+        return None
+    if abs(sum(w for _m, _r, w in kreise) - math.pi) > 1e-3:
+        return None
+    # Die Geraden laufen von den Enden des Halbkreises weg, zum offenen Ende.
+    fern = max(
+        (p for g in geraden for p in g),
+        key=lambda p: math.hypot(p[0] - mitte[0], p[1] - mitte[1]),
+    )
+    laenge = math.hypot(fern[0] - mitte[0], fern[1] - mitte[1])
+    if laenge < 1e-3:
+        return None
+    # Die Richtung: längs der Geraden (nicht zum fernsten Punkt – der liegt um r daneben).
+    g = geraden[0]
+    dx, dy = g[1][0] - g[0][0], g[1][1] - g[0][1]
+    lg = math.hypot(dx, dy)
+    if lg < 1e-6:
+        return None
+    u = (dx / lg, dy / lg)
+    if (fern[0] - mitte[0]) * u[0] + (fern[1] - mitte[1]) * u[1] < 0:
+        u = (-u[0], -u[1])
+    v = (-u[1], u[0])
+    s_max = 0.0
+    for g in geraden:
+        for p in g:
+            quer = (p[0] - mitte[0]) * v[0] + (p[1] - mitte[1]) * v[1]
+            if abs(abs(quer) - r) > 1e-3:
+                return None
+            s_max = max(s_max, (p[0] - mitte[0]) * u[0] + (p[1] - mitte[1]) * u[1])
+    b = (mitte[0] + u[0] * s_max, mitte[1] + u[1] * s_max)
+    if s_max < 1e-3 or not _frei_hinter(form, b, u, v, r, z_unten, z_oben):
+        return None
+    flaeche_innen = (mitte[0] + u[0] * s_max / 2, mitte[1] + u[1] * s_max / 2)
+    if (
+        konturen[0].normale[0] * (flaeche_innen[0] - konturen[0].stelle[0])
+        + konturen[0].normale[1] * (flaeche_innen[1] - konturen[0].stelle[1])
+        <= 0
+    ):
+        return None  # die freie Seite liegt außen: ein Zapfen, keine Nut
+    if _durch(form, mitte, b, r, z_unten):
+        return None
+    return Nut(
+        waende, (float(mitte[0]), float(mitte[1])), b, r, z_oben, z_unten, False, False, True
+    )
+
+
 _GEMERKT = {}  # (Form, Fläche) → Nut oder None – der Assistent fragt oft dieselbe Fläche
 _GEMERKT_HOECHSTENS = 1024
 
@@ -260,6 +457,13 @@ def _nut_der_flaeche(form, name, schluessel, index):
         durch = _durch(form, a, b, r, float(k.z_unten))
         gefunden = Nut(k.waende, a, b, r, float(k.z_oben), float(k.z_unten), durch)
         break
+    if gefunden is None and nummern and nummern[0] < len(form.Faces):
+        offen = _waende_offen(form, nummern[0], index)
+        try:
+            konturen = kb.konturen(form, [f"Face{i + 1}" for i in offen]) if offen else []
+        except ValueError:
+            konturen = []
+        gefunden = _offene_nut(form, konturen)
     if len(_GEMERKT) >= _GEMERKT_HOECHSTENS:
         _GEMERKT.clear()
     _GEMERKT[eintrag] = gefunden
@@ -449,6 +653,155 @@ def _schlichten(punkte, nut, w, r_w, oben, z_ende, ende, uhr):
     return weg
 
 
+def _vor_dem_ende(punkte, nut, ende, z, w, knapp):
+    """Bringt den Fräser vor das offene Ende `ende` (FREI_VOR hinter dem Rand) auf die Höhe z –
+    steht er schon dort, nur hinab (in der Luft); sonst hinauf, hin und im Eilgang bis knapp
+    über z. Gibt (den Punkt draußen, die Länge im Vorschub) zurück."""
+    anderes = nut.b if ende == nut.a else nut.a
+    ux, uy = _richtung(anderes, ende)
+    weit = w.fraeser_radius + FREI_VOR
+    draussen = (ende[0] + ux * weit, ende[1] + uy * weit)
+    letzter = punkte[-1] if punkte else None
+    dort = (
+        letzter is not None
+        and abs(letzter.x - draussen[0]) < GLEICH
+        and abs(letzter.y - draussen[1]) < GLEICH
+    )
+    if not dort:
+        if letzter is not None:
+            punkte.append(bn.Punkt(True, letzter.x, letzter.y, knapp))
+        punkte.append(bn.Punkt(True, draussen[0], draussen[1], knapp))
+        punkte.append(bn.Punkt(True, draussen[0], draussen[1], z + w.sicherheit))
+    return draussen, _hin(punkte, draussen[0], draussen[1], z)
+
+
+def _offen_bei(nut, ende):
+    return nut.offen_a if ende == nut.a else nut.offen_b
+
+
+def _kreise(punkte, start, u, r_l, s_von, s_bis, schritt, z, uhr):
+    """Die Kreise der Trochoide um Mitten von s_von bis s_bis (je um `schritt` weiter, der letzte
+    genau bei s_bis), von Kreis zu Kreis hinten weiter. Der Punkt davor liegt hinten am ersten.
+    Gibt (Länge, Kreise) zurück."""
+    drehung = -1.0 if uhr else 1.0
+    hinten = math.atan2(-u[1], -u[0])
+    weg = 0.0
+    kreise = 0
+    s = s_von
+    while True:
+        mitte = (start[0] + u[0] * s, start[1] + u[1] * s)
+        weg += _hin(punkte, mitte[0] - r_l * u[0], mitte[1] - r_l * u[1], z)
+        weg += _bogen(punkte, mitte, r_l, hinten, hinten + drehung * 2 * math.pi, z, z, uhr)
+        kreise += 1
+        if s >= s_bis - GLEICH:
+            return weg, kreise
+        s = min(s + schritt, s_bis)
+
+
+def _offene_lagen(punkte, nut, w, vollnut, r_l, oben, z_ende, uhr, knapp):
+    """Die Lagen einer offenen Nut: von einem offenen Ende im Freien hinab und hinein – die
+    Trochoide (ihr erster Kreis nimmt gerade ae) oder geradeaus in voller Breite –, am anderen
+    Ende hinaus ins Freie; am Halbkreis die nächste Lage mit der Helix zurück (die Vollnut
+    dort hinauf und von außen neu). Gibt (Länge, Lagen, Kreise, das Ende, an dem sie
+    aufhört) zurück."""
+    R = w.fraeser_radius
+    ap = w.zustellung if w.zustellung > GLEICH else 2 * R
+    if vollnut:
+        ap = min(ap, VOLLNUT_AP * 2 * R)
+    if w.schneidenlaenge > 0:
+        ap = min(ap, w.schneidenlaenge)
+    tiefe = oben - z_ende
+    anzahl = max(1, int(math.ceil(tiefe / ap - 1e-9)))
+    schritt = min(max(w.zeilenabstand, MIN_SCHRITT), 2 * r_l) if not vollnut else 0.0
+    steigung = max(
+        2 * math.pi * r_l * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), MIN_STEIGUNG
+    )
+    drehung = -1.0 if uhr else 1.0
+    # Der Span in voller Breite so dick wie beim Einsatz mit ae (wie _vollnut).
+    k = min(max(w.zeilenabstand, GLEICH) / (2 * R), 0.5)
+    anteil = 2 * math.sqrt(k * (1 - k))
+    start = nut.a if nut.offen_a else nut.b
+    weg = 0.0
+    kreise = 0
+    z_vorher = oben
+    for lage in range(1, anzahl + 1):
+        z = oben - tiefe * lage / anzahl
+        if vollnut and not _offen_bei(nut, start):
+            start = nut.b if start == nut.a else nut.a  # zurück zum offenen Ende, von außen
+        ziel = nut.b if start == nut.a else nut.a
+        u = _richtung(start, ziel)
+        laenge = nut.laenge
+        if _offen_bei(nut, start):
+            _draussen, stueck = _vor_dem_ende(punkte, nut, start, z, w, knapp)
+            weg += stueck
+            if vollnut:
+                weg += _hin(punkte, start[0], start[1], z, anteil=anteil)
+            else:
+                s_von = min(schritt - r_l - R, laenge)  # der erste Kreis nimmt gerade ae
+                stueck, n = _kreise(punkte, start, u, r_l, s_von, laenge, schritt, z, uhr)
+                weg += stueck
+                kreise += n
+        else:
+            # Am Halbkreis: die Helix hinab (wie in der geschlossenen Nut), dann die Kreise.
+            jetzt = punkte[-1]
+            winkel = math.atan2(jetzt.y - start[1], jetzt.x - start[0])
+            umlaeufe = max(1, int(math.ceil((z_vorher - z) / steigung - 1e-9)))
+            ende = winkel + drehung * 2 * math.pi * umlaeufe
+            weg += _bogen(punkte, start, r_l, winkel, ende, z_vorher, z, uhr)
+            stueck, n = _kreise(punkte, start, u, r_l, 0.0, laenge, schritt, z, uhr)
+            weg += stueck
+            kreise += n
+        if _offen_bei(nut, ziel):
+            weit = R + FREI_VOR
+            if vollnut:
+                weg += _hin(punkte, ziel[0], ziel[1], z, anteil=anteil)
+            weg += _hin(punkte, ziel[0] + u[0] * weit, ziel[1] + u[1] * weit, z)
+        elif vollnut:
+            weg += _hin(punkte, ziel[0], ziel[1], z, anteil=anteil)
+        z_vorher = z
+        start = ziel
+    return weg, anzahl, kreise, start
+
+
+def _offen_schlichten(punkte, nut, w, r_w, oben, z_ende, uhr, knapp):
+    """Die Wände einer offenen Nut im Gleichlauf (das Material rechts): vom offenen Ende an der
+    einen Wand hinein, außen hinüber oder um den Halbkreis, an der anderen heraus – in Zügen von
+    höchstens der Schneidenlänge, von oben. Gibt die Länge zurück."""
+    hoehe = min(oben, nut.z_oben) - z_ende
+    anzahl = 1
+    if 0 < w.schneidenlaenge < hoehe - GLEICH:
+        anzahl = max(1, int(math.ceil(hoehe / w.schneidenlaenge - 1e-9)))
+    start = nut.a if nut.offen_a else nut.b
+    ziel = nut.b if start == nut.a else nut.a
+    ux, uy = _richtung(start, ziel)
+    vx, vy = -uy, ux  # links der Fahrt von start nach ziel
+    weit = w.fraeser_radius + FREI_VOR
+    # Gleichlauf: hinein mit der Wand rechts – auf der Seite −v; Gegenlauf auf +v.
+    seite = 1.0 if uhr else -1.0
+    weg = 0.0
+    for i in range(1, anzahl + 1):
+        z = min(oben, nut.z_oben) - hoehe * i / anzahl
+        aussen = (start[0] - ux * weit, start[1] - uy * weit)
+        hin = (aussen[0] + seite * vx * r_w, aussen[1] + seite * vy * r_w)
+        letzter = punkte[-1]
+        if abs(letzter.x - hin[0]) > GLEICH or abs(letzter.y - hin[1]) > GLEICH:
+            punkte.append(bn.Punkt(True, letzter.x, letzter.y, knapp))
+            punkte.append(bn.Punkt(True, hin[0], hin[1], knapp))
+            punkte.append(bn.Punkt(True, hin[0], hin[1], z + w.sicherheit))
+        weg += _hin(punkte, hin[0], hin[1], z)
+        if _offen_bei(nut, ziel):
+            draussen = (ziel[0] + ux * weit, ziel[1] + uy * weit)
+            weg += _hin(punkte, draussen[0] + seite * vx * r_w, draussen[1] + seite * vy * r_w, z)
+            weg += _hin(punkte, draussen[0] - seite * vx * r_w, draussen[1] - seite * vy * r_w, z)
+        else:
+            weg += _hin(punkte, ziel[0] + seite * vx * r_w, ziel[1] + seite * vy * r_w, z)
+            von = math.atan2(seite * vy, seite * vx)
+            drehung = -1.0 if uhr else 1.0
+            weg += _bogen(punkte, ziel, r_w, von, von + drehung * math.pi, z, z, uhr)
+        weg += _hin(punkte, aussen[0] - seite * vx * r_w, aussen[1] - seite * vy * r_w, z)
+    return weg
+
+
 def verfahren(nut, fraeser_radius, aufmass=0.0):
     """Wie der Fräser mit dem Radius die Nut fräst: „trochoide“, „vollnut“ – oder „zu_schmal“
     (er passt nicht hinein), „zu_breit“ (in der Mitte der Kreise bliebe ein Kern)."""
@@ -482,6 +835,17 @@ def _nut(punkte, nut, w):
     uhr = not w.gleichlauf  # Gleichlauf in der Nut: gegen den Uhrzeigersinn (G3)
     vollnut = art == "vollnut"
     knapp = min(w.sicher, oben + w.sicherheit)
+    if nut.offen:
+        start = nut.a if nut.offen_a else nut.b
+        punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
+        weg, lagen, kreise, _ende = _offene_lagen(
+            punkte, nut, w, vollnut, r_l, oben, z_ende, uhr, knapp
+        )
+        if r_w > GLEICH and (w.schlichten or vollnut):
+            weg += _offen_schlichten(punkte, nut, w, r_w, oben, z_ende, uhr, knapp)
+        letzter = punkte[-1]
+        punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+        return weg, (1 if vollnut else lagen), kreise, vollnut, z_ende
     if vollnut:
         start = nut.a
     else:

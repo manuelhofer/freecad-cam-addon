@@ -182,7 +182,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   nicht breiter ist als sie – nie in voller Breite mit ganzer Schneide: in
   Kreisen, die je Umlauf um ae vorrücken (Trochoide), oder in einer
   Zickzack-Rampe, wenn die Nut kaum breiter ist; zuletzt die Wand rundum. Sie
-  tritt am Grund gegen Räumen an, an den Wänden gegen die Kontur. **Reiben** mit
+  fräst auch offene Nuten – zum Rand hin offen, von außen hinein ohne Helix – und
+  tritt an den Wänden gegen die Kontur an; auf dem Grund einer Nut schnitten Räumen
+  und Planfräsen in voller Breite und treten dort nicht an. **Reiben** mit
   der Reibahle auf Maß (G85, im Vorschub heraus) – dann bohrt „Bohren“ kleiner vor.
   **3D-Schruppen**: das Rohteil über Freiformflächen in Lagen wegräumen – volle
   Zustellung mit schmalem ae wie das Räumen, dazwischen Zwischenlagen nur dort, wo

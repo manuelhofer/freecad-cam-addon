@@ -2594,8 +2594,11 @@ class BearbeitungPanel:
             elif self.nut.s.passt(form, name):
                 n = nb.nuten(form, [name])[0]
                 breite = groesse_zeigen(2 * n.radius, einheiten.LAENGE) or "0"
-                laenge = groesse_zeigen(n.laenge + 2 * n.radius, einheiten.LAENGE) or "0"
-                if n.durch:
+                laenge = groesse_zeigen(n.gesamtlaenge, einheiten.LAENGE) or "0"
+                if n.offen:
+                    z = groesse_zeigen(n.z_unten, einheiten.LAENGE) or "0"
+                    text = tr("ba.flaeche.nut_offen", name=name, breite=breite, laenge=laenge, z=z)
+                elif n.durch:
                     text = tr("ba.flaeche.nut_durch", name=name, breite=breite, laenge=laenge)
                 else:
                     z = groesse_zeigen(n.z_unten, einheiten.LAENGE) or "0"
@@ -3311,6 +3314,15 @@ class BearbeitungPanel:
         mit = [b for b in gruppe if b.zeit is not None and b.zeit > 0 and b.moeglich]
         if not mit or not all(self._gleiche_flaechen(mit[0], form, b) for b in mit[1:]):
             return
+        # Auf dem Grund einer Nut schnitten Planfräsen und Räumen zuerst in voller Breite – mehr
+        # als ae, nur scheinbar schneller (an der offenen Nut 0,19 statt 0,85 min, mit Eilgang
+        # ins Material). Kann die Nut sie fräsen, treten sie nicht an (P-2026-10-01-47).
+        voll = []
+        if self.nut in mit and self._nur_nutgruende(form):
+            voll = [b for b in mit if b in (self.plan, self.raeumen)]
+            for b in voll:
+                b.ergebnis.setText(tr("ba.wettbewerb.vollschnitt", text=b.ergebnis_basis))
+            mit = [b for b in mit if b not in voll]
         mit.sort(key=lambda b: b.zeit)
         rot = [
             b
@@ -3321,8 +3333,8 @@ class BearbeitungPanel:
             and self._gleiche_flaechen(mit[0], form, b)
         ]
         if len(mit) < 2:
-            if rot:  # allein in dieser Gruppe – entschieden wird, wo sie Gegner hat
-                self._haken_setzen(gruppe, mit[0], rot)
+            if rot or voll:  # allein in dieser Gruppe – entschieden wird, wo sie Gegner hat
+                self._haken_setzen(gruppe, mit[0], rot + voll)
             return
         schnellste, zweite = mit[0], mit[1]
         schnellste.ergebnis.setText(
@@ -3342,7 +3354,14 @@ class BearbeitungPanel:
                     prozent=int(round((langsamer.zeit / schnellste.zeit - 1.0) * 100.0)),
                 )
             )
-        self._haken_setzen(gruppe, schnellste, mit[1:] + rot)
+        self._haken_setzen(gruppe, schnellste, mit[1:] + rot + voll)
+
+    def _nur_nutgruende(self, form):
+        """Sind die Flächen der Nut in dieser Wahl nur Gründe von Nuten (keine Wand)?"""
+        flaechen = self.nut.s.flaechen_fuer(form, self.gewaehlte)
+        return bool(flaechen) and all(
+            nb.ist_grund(form, n) and nb.ist_nut(form, n) for n in flaechen
+        )
 
     def _haken_setzen(self, gruppe, schnellste, andere):
         """Der Haken bei `schnellste`, nicht bei `andere` – solange niemand einen Haken der

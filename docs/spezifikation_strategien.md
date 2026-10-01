@@ -127,7 +127,22 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    auf Böden (Räumen mit dem kleineren) folgt mit dem Abtragsmodell.
 6. **Nut** – mit Rampe oder Trochoide statt Vollschnitt. Aufwand klein bis
    mittel. Gebaut (P-2026-10-01-40, 0.56.0) für geschlossene Langlöcher, mit und
-   ohne Grund (S3g, „Nut“); offene Nuten zum Rand hin folgen.
+   ohne Grund (S3g, „Nut“). Offene Nuten (P-2026-10-01-47, 0.62.0): an einem Ende
+   offen (ein Halbkreis, zwei Geraden bis zum Rand) oder an beiden (zwei parallele
+   Wände, die freien Seiten zueinander, der Grund dazwischen; von einer Wand aus über
+   den Grund gefunden); hinter jedem offenen Ende wird Luft geprüft (quer über die
+   Breite, unten, mittig, oben). Die Trochoide beginnt draußen – hinab in der Luft, der
+   erste Kreis nimmt gerade ae, keine Helix –, läuft bis ans andere Ende und dort
+   hinaus (am Halbkreis die nächste Lage mit der Helix zurück); die Vollnut in Lagen von
+   außen geradeaus; die Wände im Gleichlauf an der einen hinein, außen oder um den
+   Halbkreis hinüber, an der anderen heraus. Platte 60 × 40, Nut 16 breit, 8 tief, ganz
+   durch, Standardfräser: 0,85 min, 46 Kreise, kein Eintauchen, keine Rampe, im Quader
+   leer und die Wände fertig (`test_nut_offen`, `szenario_nut_offen`); die Kontur an den
+   Wänden 2,2 min. **Dabei gefunden**: Auf dem Grund einer Nut ist Räumen nur scheinbar
+   schneller – es schneidet zuerst in voller Breite (an der offenen Nut 0,19 min, ein
+   Wirkungsgrad von 348 %, dazu 1,5 mm³ im Eilgang). Kann die Nut sie fräsen, treten
+   Räumen und Planfräsen an Nutgründen nicht mehr an; ihre Zeile sagt warum (auch an der
+   geschlossenen Nut 20 × 50, wo Räumen bisher den Haken bekam).
 7. **Bohren, Zirkularfräsen, Gewinde** – FreeCADs Operationen übernehmen; der
    Assistent legt sie mit den Schnittwerten aus der Werkzeugverwaltung an
    (Bohrer, Senker, Reibahle, Gewindebohrer sind schon Werkzeugarten).

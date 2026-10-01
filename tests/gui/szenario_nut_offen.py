@@ -1,12 +1,11 @@
-# „Bearbeitung (Fräsen)“ an einer Nut (W-006 4.1 Punkt 6) und der Wettbewerb (Grundsatz 0):
-# Platte 100 × 60 × 20 mit einem Langloch, 20 breit, 10 tief, Halbkreise um (25, 20) und
-# (55, 20); T1 der Standardfräser Ø 12 (ae 1,5, ap 25). Den Grund anklicken: Räumen und Nut
-# rechnen beide – Räumen schnitte in der Nut zuerst in voller Breite (mehr als ae) und tritt
-# nicht an: Die Nut bekommt den Haken, Räumen sagt „… – in der Nut schnitte es zuerst in voller
-# Breite …“ (P-2026-10-01-47). Statt des Grunds eine Wand: Nut gegen Kontur – die Nut
-# (Helix hinab, Kreise, die Wand rundum) ist schneller: „→ 1 Nut, 1 Lage, 21 Kreise, etwa … –
-# die schnellste; Kontur wäre N % langsamer“. „Anlegen“: nur „Nut T1“ mit Endtiefe 10 und G3
-# (Gleichlauf). „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
+# „Bearbeitung (Fräsen)“ an einer offenen Nut (W-006 4.1 Punkt 6, P-2026-10-01-47): Platte
+# 60 × 40 × 20 mit einer Nut 16 breit, 8 tief, längs X ganz durch – an beiden Enden offen; T1 der
+# Standardfräser Ø 12 (ae 1,5, ap 25). Eine Wand anklicken: In der Liste „offene Nut 16 × 60,
+# Grund 12“; Nut gegen Kontur – die Nut (von außen hinein, ohne Helix, Kreise, die Wände im
+# Gleichlauf) ist schneller: „→ 1 Nut, 1 Lage, 46 Kreise, etwa … – die schnellste; Kontur wäre
+# N % langsamer“. Den Grund dazu: Räumen schnitte in der Nut in voller Breite und tritt nicht
+# an. „Anlegen“: nur „Nut T1“ mit Endtiefe 12. „Auf der Maschine prüfen“: am Ende nirgends ins
+# Teil.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -33,19 +32,17 @@ def schritte(h):
     t1 = wz.standardwerkzeug()
     wz.Bibliothek([t1]).speichern()
 
-    doc = FreeCAD.newDocument("Nut")
+    doc = FreeCAD.newDocument("NutOffen")
     doc.UndoMode = 1
     teil = doc.addObject("Part::Feature", "Platte")
-    nut = Part.makeBox(30, 20, 11, V(25, 10, 10))
-    nut = nut.fuse(Part.makeCylinder(10, 11, V(25, 20, 10)))
-    nut = nut.fuse(Part.makeCylinder(10, 11, V(55, 20, 10)))
-    teil.Shape = Part.makeBox(100, 60, 20).cut(nut).removeSplitter()
+    teil.Shape = Part.makeBox(60, 40, 20).cut(Part.makeBox(60, 16, 8, V(0, 12, 12)))
+    teil.Shape = teil.Shape.removeSplitter()
     doc.recompute()
     grund = next(
         (
             f"Face{i + 1}"
             for i, f in enumerate(teil.Shape.Faces)
-            if abs(f.BoundBox.ZMin - 10) < 1e-6 and abs(f.BoundBox.ZMax - 10) < 1e-6
+            if abs(f.BoundBox.ZMin - 12) < 1e-6 and abs(f.BoundBox.ZMax - 12) < 1e-6
         ),
         None,
     )
@@ -54,9 +51,9 @@ def schritte(h):
             f"Face{i + 1}"
             for i, f in enumerate(teil.Shape.Faces)
             if isinstance(f.Surface, Part.Plane)
-            and abs(f.BoundBox.YMin - 30) < 1e-6
-            and abs(f.BoundBox.YMax - 30) < 1e-6
-            and f.BoundBox.ZMin > 9.9
+            and abs(f.BoundBox.YMin - 28) < 1e-6
+            and abs(f.BoundBox.YMax - 28) < 1e-6
+            and f.BoundBox.ZMin > 11.9
         ),
         None,
     )
@@ -65,7 +62,7 @@ def schritte(h):
         return
     Gui.activateWorkbench("CAMWorkbench")
     Gui.SendMsgToActiveView("ViewFit")
-    Gui.Selection.addSelection(doc.Name, teil.Name, grund)
+    Gui.Selection.addSelection(doc.Name, teil.Name, wand)
     yield 500
 
     Gui.runCommand("CamAddon_Bearbeitung")
@@ -77,41 +74,37 @@ def schritte(h):
     job = panel.job
     nut_block, raeumen, kontur = panel.nut, panel.raeumen, panel.kontur
 
-    # --- Der Grund: Räumen gegen Nut ------------------------------------------------------------
-    yield from h.warte_auf(
-        lambda: nut_block.vorschau is not None and raeumen.vorschau is not None, 180000
-    )
-    yield 1500
-    text = nut_block.ergebnis.text()
-    h.pruefe(nut_block.aktiv() and not raeumen.aktiv(), "Grund: die Nut nicht der Sieger")
-    h.pruefe(text.startswith("→ 1 Nut, 1 Lage, 21 Kreise, etwa "), f"Nut am Grund: {text!r}")
-    h.pruefe(
-        "in der Nut schnitte es zuerst in voller Breite" in raeumen.ergebnis.text(),
-        f"Räumen am Grund: {raeumen.ergebnis.text()!r}",
-    )
-    h.pruefe(not nut_block.hinweis.text(), f"rot: {nut_block.hinweis.text()!r}")
-    liste = panel.flaechen_liste.item(0).text() if panel.flaechen_liste.count() else ""
-    h.pruefe(liste.endswith("Nut 20 × 50, Grund 10"), f"Liste: {liste!r}")
-    h.bild("1_grund", panel.form)
-
-    # --- Eine Wand statt des Grunds: Nut gegen Kontur --------------------------------------------
-    panel.flaeche_umschalten(grund)
-    panel.flaeche_umschalten(wand)
-    yield 300
+    # --- Eine Wand: Nut gegen Kontur -------------------------------------------------------------
     yield from h.warte_auf(
         lambda: nut_block.vorschau is not None and kontur.vorschau is not None, 180000
     )
     yield 1500
     text = nut_block.ergebnis.text()
     h.pruefe(nut_block.aktiv() and not kontur.aktiv(), "Wand: Nut nicht der Sieger")
-    h.pruefe(not raeumen.aktiv(), "Räumen angehakt")
     h.pruefe(
-        text.startswith("→ 1 Nut, 1 Lage, 21 Kreise, etwa ")
+        text.startswith("→ 1 Nut, 1 Lage, 46 Kreise, etwa ")
         and "die schnellste; Kontur wäre" in text,
         f"Nut an der Wand: {text!r}",
     )
-    h.pruefe("% langsamer als Nut" in kontur.ergebnis.text(), f"{kontur.ergebnis.text()!r}")
-    h.bild("2_wand", panel.form)
+    h.pruefe(not nut_block.hinweis.text(), f"rot: {nut_block.hinweis.text()!r}")
+    liste = panel.flaechen_liste.item(0).text() if panel.flaechen_liste.count() else ""
+    h.pruefe(liste.endswith("offene Nut 16 × 60, Grund 12"), f"Liste: {liste!r}")
+    h.bild("1_wand", panel.form)
+
+    # --- Der Grund statt der Wand: Räumen tritt nicht an ---------------------------------------
+    panel.flaeche_umschalten(wand)
+    panel.flaeche_umschalten(grund)
+    yield 300
+    yield from h.warte_auf(
+        lambda: nut_block.vorschau is not None and raeumen.vorschau is not None, 180000
+    )
+    yield 1500
+    h.pruefe(nut_block.aktiv() and not raeumen.aktiv(), "Grund: die Nut nicht der Sieger")
+    h.pruefe(
+        "in der Nut schnitte es zuerst in voller Breite" in raeumen.ergebnis.text(),
+        f"Räumen am Grund: {raeumen.ergebnis.text()!r}",
+    )
+    h.bild("2_grund", panel.form)
 
     # --- Anlegen ------------------------------------------------------------------------------
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
@@ -127,7 +120,7 @@ def schritte(h):
     if not nuten:
         return
     op = nuten[0]
-    h.pruefe(abs(float(op.FinalDepth) - 10.0) < 1e-6, f"Endtiefe {op.FinalDepth}")
+    h.pruefe(abs(float(op.FinalDepth) - 12.0) < 1e-6, f"Endtiefe {op.FinalDepth}")
     befehle = [c.Name for c in op.Path.Commands]
     h.pruefe("G3" in befehle and "G2" not in befehle, "nicht im Gleichlauf (G3)")
     Gui.Selection.clearSelection()
