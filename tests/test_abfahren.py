@@ -1,7 +1,10 @@
-# Prüft das Abfahren (W-001, Stufe 4b; abfahren.py): Aus der Bahn eines Jobs werden
+# Prüft das Abfahren (W-001, Stufe 4b und 4d; abfahren.py): Aus der Bahn eines Jobs werden
 # Stationen mit ihrer Zeit – Vorschubsätze mit F (mm/s), Eilgang je Achse aus der
 # Maschine, die langsamste bestimmt; Kreise in 5°-Schritten, nach dem Bohrzyklus
-# der Rückzug. Die Zeiten gegen Handrechnung an der Beispiel-Fräse; zwischen zwei
+# der Rückzug. Dazu die Beschleunigung der Maschine (fahrzeit): ein Satz vom Stand in den
+# Stand mit dem Tempo v und der Beschleunigung a dauert L ÷ v + v ÷ a (reicht der Weg nicht,
+# 2·√(L ÷ a)); durch den Kreis fährt die Maschine durch, vor und nach einem Eilgang und an
+# Ecken hält sie. Die Zeiten gegen Handrechnung an der Beispiel-Fräse; zwischen zwei
 # Stationen fährt die Maschine geradlinig (stellungen_bei); eine Rundachse im
 # Vorschub zählt in Grad; ohne F gilt 1000 mm/min mit Hinweis; der Revolver
 # schwenkt zwischen zwei Werkzeugen, auch in einem Vorschubsatz ohne Weg; Kreise
@@ -69,13 +72,21 @@ def namen(maschine, stellungen):
 # --- 3-Achs-Fräse: Zeiten gegen Handrechnung ---------------------------------------------
 asm, ma = beispielmaschine.fraesmaschine()
 p = rw.Pruefung(asm, ma)
+A = 3000.0  # mm/s²: die Achsen der Beispiel-Fräse beschleunigen mit 3 m/s²
+
+
+def satz(weg, v, a=A):
+    """Vom Stand in den Stand: Trapez L ÷ v + v ÷ a, Dreieck 2·√(L ÷ a)."""
+    return weg / v + v / a if weg >= v * v / a else 2 * math.sqrt(weg / a)
+
+
 bahn = [
     "G0 X0 Y0 Z10",
-    "G1 Z-5 F10",  # 15 mm mit 10 mm/s: 1,5 s
-    "G1 X100",  # 100 mm: 10 s
-    "G2 X120 Y20 I0 J20",  # 270° um (100, 20), r 20: 54 Sehnen zu 5°
-    "G0 Z10",  # Z1 15 mm im Eilgang 15 000 mm/min: 0,06 s
-    "G81 X50 Y30 Z-8 R3 F5",  # hin (X1 70 mm: 0,21 s), auf R (0,028 s), 11 mm mit 5 mm/s, zurück
+    "G1 Z-5 F10",  # 15 mm mit 10 mm/s: 1,5 s + 10/3000 s fürs Anfahren und Bremsen
+    "G1 X100",  # 100 mm: 10 s + 10/3000 s (Ecke davor und danach: der Kreis beginnt zurück)
+    "G2 X120 Y20 I0 J20",  # 270° um (100, 20), r 20: 54 Sehnen zu 5° – in einem Zug
+    "G0 Z10",  # Z1 15 mm im Eilgang 15 000 mm/min = 250 mm/s: Dreieck 2·√(15/3000)
+    "G81 X50 Y30 Z-8 R3 F5",  # hin (X1 70 mm), auf R (7 mm), 11 mm mit 5 mm/s, zurück 18 mm
     "G80",
 ]
 teil, job = neuer_job([(bahn, 1)])
@@ -84,21 +95,24 @@ namen_achsen = [vf.namen(ma, a) for a in fahrt.achsen]
 pruefe(namen_achsen == ["Y1", "Z1", "X1"], f"Achsen: {namen_achsen}")
 st = fahrt.stationen
 pruefe(len(st) == 1 + 1 + 1 + 53 + 1 + 1 + 4, f"Stationen: {len(st)}")
-pruefe(nahe(st[1].zeit, 1.5) and nahe(st[2].zeit, 11.5), f"Geraden: {st[1].zeit}, {st[2].zeit}")
+gerade_1, gerade_2 = satz(15, 10), satz(15, 10) + satz(100, 10)
+pruefe(
+    nahe(st[1].zeit, gerade_1) and nahe(st[2].zeit, gerade_2),
+    f"Geraden: {st[1].zeit}, {st[2].zeit}",
+)
 sehne = 2 * 20 * math.sin(math.radians(2.5))
-ende_kreis = 11.5 + 54 * sehne / 10
+ende_kreis = gerade_2 + satz(54 * sehne, 10)
 pruefe(nahe(st[56].zeit, ende_kreis), f"Kreis: {st[56].zeit} statt {ende_kreis}")
 # Satz 6: FreeCAD stellt der Operation „Eigene“ zwei Kommentare voran.
 pruefe(st[56].satz == 6 and st[30].satz == 6 and not st[30].eilgang, "Kreis: Satz 6, Vorschub")
-pruefe(nahe(st[57].zeit - st[56].zeit, 15 / 250), f"Eilgang Z: {st[57].zeit - st[56].zeit}")
+pruefe(nahe(st[57].zeit - st[56].zeit, satz(15, 250)), f"Eilgang Z: {st[57].zeit - st[56].zeit}")
 bohren = [round(st[i].zeit - st[i - 1].zeit, 6) for i in range(58, 62)]
-pruefe(
-    bohren == [round(70 / (20000 / 60), 6), round(7 / 250, 6), 2.2, round(18 / 250, 6)],
-    f"Bohrzyklus: {bohren}",
-)
+# Hin: X1 70 mm mit 20 000 mm/min (Y1 30 mm ist schneller fertig), dann Z1 im Eilgang.
+erwartet = [satz(70, 20000 / 60), satz(7, 250), satz(11, 5), satz(18, 250)]
+pruefe(bohren == [round(z, 6) for z in erwartet], f"Bohrzyklus: {bohren} statt {erwartet}")
 pruefe([s.eilgang for s in st[58:62]] == [True, True, False, True], "Bohrzyklus: Eilgang")
 pruefe(st[61].punkt == (50, 30, 10), f"Rückzug auf die Ausgangshöhe: {st[61].punkt}")
-gesamt = ende_kreis + 15 / 250 + 70 / (20000 / 60) + 7 / 250 + 2.2 + 18 / 250
+gesamt = ende_kreis + satz(15, 250) + sum(erwartet)
 pruefe(nahe(fahrt.dauer, gesamt), f"Dauer: {fahrt.dauer} statt {gesamt}")
 pruefe(fahrt.hinweise == [], f"Hinweise: {fahrt.hinweise}")
 op = fahrt.operationen[0]
@@ -108,9 +122,9 @@ pruefe(
 )
 
 # Dazwischen geradlinig: Mitten auf der Geraden X 0 → 100 steht X1 auf −50.
-mitte = namen(ma, fahrt.stellungen_bei(1.5 + 5.0))
+mitte = namen(ma, fahrt.stellungen_bei((st[1].zeit + st[2].zeit) / 2))
 pruefe(mitte == {"X1": -50, "Y1": 0, "Z1": -85}, f"Mitte der Geraden: {mitte}")
-pruefe(fahrt.index_bei(0) == 0 and fahrt.index_bei(1.5) == 1, "index_bei")
+pruefe(fahrt.index_bei(0) == 0 and fahrt.index_bei(st[1].zeit) == 1, "index_bei")
 pruefe(fahrt.index_bei(-1) == 0 and fahrt.index_bei(1e9) == len(st) - 1, "index_bei außerhalb")
 anfang = namen(ma, fahrt.stellungen_bei(0))
 pruefe(anfang == {"X1": 0, "Y1": 0, "Z1": -70}, f"Anfang: {anfang}")
@@ -126,7 +140,7 @@ op2 = job.Operations.Group[0]
 op2.Gcode = ["G0 X0 Y0 Z10", "G1 Z0"]
 teil.recompute()
 fahrt = ab.abfahrt(p, job, FreeCAD.Vector())
-pruefe(nahe(fahrt.dauer, 10 / (1000 / 60)), f"ohne F: {fahrt.dauer}")
+pruefe(nahe(fahrt.dauer, satz(10, 1000 / 60)), f"ohne F: {fahrt.dauer}")
 pruefe(
     fahrt.hinweise
     == [
@@ -168,13 +182,15 @@ FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 
 # --- Rundachse im Vorschub: Grad durch F ---------------------------------------------------
+# A1 ohne eingetragene Beschleunigung: die Vorgabe 1 U/s² = 360 °/s², einmal anfahren und
+# bremsen auf dem ganzen Schwenk (die 1°-Schritte liegen in einer Richtung).
 asm, ma = beispielmaschine.fuenfachs_tisch_tisch()
 p = rw.Pruefung(asm, ma)
 teil, job = neuer_job([(["G0 X0 Y0 Z50 A0", "G1 A90 F10"], 1)], "Schwenkteil")
 fahrt = ab.abfahrt(p, job, FreeCAD.Vector())
 pruefe(len(fahrt.stationen) == 1 + 90, f"A in 1°-Schritten: {len(fahrt.stationen)}")
-pruefe(nahe(fahrt.dauer, 9.0), f"A 90° mit 10 °/s: {fahrt.dauer}")
-halb = namen(ma, fahrt.stellungen_bei(4.5))
+pruefe(nahe(fahrt.dauer, satz(90, 10, 360)), f"A 90° mit 10 °/s: {fahrt.dauer}")
+halb = namen(ma, fahrt.stellungen_bei(fahrt.stationen[45].zeit))
 pruefe(nahe(halb["A1"], 45) and nahe(halb["C1"], 0), f"halb geschwenkt: {halb}")
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)

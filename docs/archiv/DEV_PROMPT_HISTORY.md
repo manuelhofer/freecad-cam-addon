@@ -12,6 +12,67 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-22 zeit-eilgang-beschleunigung
+
+### EINGELESEN
+- Manuel (2026-10-01): „Wir müssen natürlich noch Eilgang und Beschleunigung dauerhaft
+  festsetzen. Leg du sinnvolle Werte fest zum Berechnen der Zeit.“ Und: „Generell sollte dann
+  jede Strategie und Szenario mit diesem Fräser und den Werten gerechnet und geprüft werden,
+  wenn es um Werkzeugwege geht“ (→ P-23).
+- `abfahren.abfahrt` (Eilgang je Achse ohne Beschleunigung, Vorschub Weg ÷ F, G93 1 ÷ F),
+  `bahn.dauer` (nur Vorschub), `maschine` (Betriebsart: Eilgang, Beschleunigung „0 =
+  unbekannt“), `beispielmaschine` (Fräse 20/15 m/min, 3 m/s²), `tests/test_abfahren.py`
+  (Zeiten gegen Handrechnung), Spezifikation Simulation 4d.
+
+### DATEIEN
+- `camaddon/fahrzeit.py` (neu), `camaddon/abfahren.py`, `camaddon/bahn.py`,
+  `camaddon/export.py`, `camaddon/gui_bearbeitung.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/beschleunigung.html`, `help/de|en/reichweite.html`,
+  `help/de|en/bearbeitung.html`, `tests/test_fahrzeit.py` (neu), `tests/test_abfahren.py`,
+  `docs/aufbau.md`, `docs/spezifikation_simulation.md`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.42.0)
+
+### AKZEPTANZKRITERIUM
+Beispiel-Fräse (3 m/s²): „G1 Z-5 F10“ ab Z 10 dauert 1,5 s + 10/3000 s; der Eilgang Z 15 mm
+mit 250 mm/s erreicht sein Tempo nicht: 2·√(15/3000) = 0,141 s statt 0,06; der 270°-Kreis in
+54 Sehnen fährt in einem Zug (einmal anfahren, einmal bremsen); der Bohrzyklus hin 70 mm X1:
+70/333 + 333/3000 s. Ohne Angabe an der Maschine gelten 10 m/min und 1 m/s² (Rundachse
+1 U/s²); der Assistent „Bearbeitung“ schätzt seine Zeit mit denselben Vorgaben, Eilgängen und
+Ecken (`bahn.zeit`).
+
+### DONE
+- Feste Vorgaben `export.VORGABE_BESCHLEUNIGUNG = 1.0` m/s², `VORGABE_DREHBESCHLEUNIGUNG = 1.0`
+  U/s² (Eilgang 10 m/min wie bisher) – wie eine kleine oder nachgerüstete Maschine; die
+  Maschine darf mehr sagen (Betriebsart; Beispiel-Fräse 3 m/s²).
+- `fahrzeit.py`: `Satz` (Weg, Tempo, Beschleunigung, Richtung am Anfang und Ende, feste Zeit),
+  `trapez` (anfahren, fahren, bremsen; Dreieck), `zeiten` (Übergänge: durchfahren, wo der
+  Richtungswechsel unter 15° bleibt – Bögen in 5°-Sehnen, Rampen –, anhalten an Ecken, um
+  Sätze mit fester Zeit und am Ende; Vorausschau rückwärts und vorwärts wie eine Steuerung),
+  `eilgangzeit` (jede Achse vom Stand in den Stand, die langsamste bestimmt).
+- `abfahren`: Eilgang je Achse mit Beschleunigung (`_beschleunigung`: Maschine oder Vorgabe,
+  Revolver praktisch sofort); Vorschubsätze als `fahrzeit.Satz` mit der Richtung in den
+  Achsen, dem Tempo höchstens so, dass keine Achse über ihren Eilgang kommt, der
+  Beschleunigung der langsamsten mitfahrenden Achse; ohne Weg (Revolver schwenkt) die
+  Eilgangzeit; G93 wie bisher 1 ÷ F; die Zeiten je Station in einem Durchgang am Ende.
+- `bahn.zeit(punkte, vorschub, eintauchen, eilgang, beschleunigung)`: die Schätzung mit
+  Eilgängen, Beschleunigung, Bögen (Tangenten) und Ecken – im Assistenten „Bearbeitung“ statt
+  `bahn.dauer` (das bleibt: nur Vorschub, für Prüfungen und Vergleiche).
+- Hilfe (Beschleunigung ermitteln: die Vorgaben oben; Auf der Maschine prüfen: die Zeit;
+  Bearbeitung: woraus die Zeit besteht), Eigenschaftstexte „0: die Vorgabe …“, Spezifikation
+  Simulation 4d gebaut, Strategien Abschnitt 11 mit den Zeiten nach dem neuen Modell.
+
+### TEST
+- `test_fahrzeit` (neu: Formeln, Übergänge, Vorausschau, Eilgang, `bahn.zeit`),
+  `test_abfahren` (Erwartungen mit der Formel L ÷ v + v ÷ a bzw. 2·√(L ÷ a)),
+  `test_planfraesen`, `test_kontur`, `test_sprache`, `test_hilfe` und die Szenarien
+  `szenario_abfahren`, `szenario_bearbeitung`, `szenario_kontur` in 1.1.3 ok; black/ruff ok.
+
+### NEXT
+- P-23: Manuels Standardfräser (Ø 12, ae 1,5 / ap 25 / fz 0,1 / vc 85) als die eine Definition
+  für alle Strategien, Prüfungen und Szenarien mit Werkzeugwegen; dann S3f Räumen mit
+  Versätzen, Spannhöhe, S3g Bohren/Gewinde. `vierachs_bahn.dauer` noch ohne Eilgang und
+  Beschleunigung.
+
 ## P-2026-10-01-21 s3h-nullpunkt
 
 ### EINGELESEN

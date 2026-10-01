@@ -133,12 +133,17 @@ its cutter (FreeCAD's own too), compared at the end with the top of the part –
 the colours as with the bar, with selected faces only on them. What lies under
 an overhang it does not see: 2.5D, from above.</li>
 </ul>
-<p><b>The time:</b> feed moves with the feed rate from the path, without one
-at 1000 mm/min (a note says so); rapid moves per axis with the machine's rapid
-rate – the slowest axis decides. Acceleration and tool changes do not count
-yet, so the real machine takes a little longer. Arcs are run in small steps,
-drilling cycles with their retract. With <b>G93</b> (inverse-time feed – the
-way “All-round roughing” writes it) a block takes 1 ÷ F minutes.</p>
+<p><b>The time:</b> feed blocks with the feed from the path, without a feed
+at 1000 mm/min (a note says so); rapids per axis with the rapid traverse from
+the machine – the slowest axis sets the pace. Plus the <b>acceleration</b> of
+every axis from the machine (missing: 1 m/s² or 1 rev/s², the rapid
+10 m/min – fixed, see <a href="beschleunigung.html">Finding the
+acceleration</a>): every block runs a trapezoidal profile – accelerate,
+travel, brake; before and after a rapid and at corners (direction change of
+15° or more) the machine stops, through arcs and ramps it keeps going, a
+short block never reaches its speed. So every row costs its turn and every
+rapid its start. <b>G93</b> (feed as the inverse of time – as “Rough all
+round” writes it) takes 1 ÷ F per block.</p>
 
 <h3>Collision</h3>
 <p>Does anything bump into something while running through? <b>Check for

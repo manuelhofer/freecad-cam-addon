@@ -131,7 +131,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   hin und her in Lagen bis auf die Fläche, Überlauf über den Rand, Halbkreise
   zwischen den Zeilen, halber Vorschub beim Austritt, vor Absätzen hält die
   Zeile an; Fräser und Einsatz aus der Werkzeugverwaltung, die Werte als
-  Vorschlag, darunter „→ 3 Lagen, 30 Zeilen, etwa 2 min“. Doppelklick auf die
+  Vorschlag, darunter „→ 3 Lagen, 30 Zeilen, etwa 2 min“ – die Zeit mit
+  Eilgang 10 m/min und Beschleunigung 1 m/s² (feste Vorgaben, auch im
+  Prüffenster, wo die Maschine nichts sagt). Doppelklick auf die
   Operation öffnet das Fenster zum Ändern. Vor einer Wand fährt der Fräser an
   ihr entlang, damit zwischen den Zeilen nichts stehen bleibt. „Auf der
   Maschine prüfen“ trägt den Quader beim Abspielen ab – jede Operation mit der

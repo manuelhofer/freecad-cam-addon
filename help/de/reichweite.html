@@ -141,11 +141,16 @@ sieht er nicht: 2,5D, von oben.</li>
 </ul>
 <p><b>Die Zeit:</b> Vorschubsätze mit dem Vorschub aus der Bahn, ohne
 Vorschub mit 1000 mm/min (ein Hinweis sagt es); Eilgang je Achse mit dem
-Eilgang aus der Maschine – die langsamste Achse bestimmt. Beschleunigung und
-Werkzeugwechsel zählen noch nicht; die echte Maschine braucht also etwas
-länger. Kreise fährt sie in kleinen Schritten, Bohrzyklen mit dem Rückzug. Mit
+Eilgang aus der Maschine – die langsamste Achse bestimmt. Dazu die
+<b>Beschleunigung</b> jeder Achse aus der Maschine (fehlt sie: 1 m/s² bzw.
+1 U/s², der Eilgang 10 m/min – festgesetzt, siehe
+<a href="beschleunigung.html">Beschleunigung ermitteln</a>): Jeder Satz fährt
+ein Trapezprofil – beschleunigen, fahren, bremsen; vor und nach einem Eilgang
+und an Ecken (Richtungswechsel ab 15°) hält die Maschine, durch Bögen und
+Rampen fährt sie durch, ein kurzer Satz erreicht sein Tempo nicht. So kostet
+jede Zeile ihr Wenden und jeder Eilgang sein Anfahren.
 <b>G93</b> (Vorschub als Kehrwert der Zeit – so schreibt ihn „Rundum
-schruppen“) dauert ein Satz 1 ÷ F Minuten.</p>
+schruppen“) dauert je Satz 1 ÷ F.</p>
 
 <h3>Kollision</h3>
 <p>Stößt beim Abfahren etwas an? <b>Kollision prüfen</b> fährt die ganze Bahn

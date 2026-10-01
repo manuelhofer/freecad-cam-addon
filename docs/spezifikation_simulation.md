@@ -154,7 +154,7 @@ Entscheidungen von Claude (P-2026-09-26-88), zur Besprechung:
   Kehrwert der Zeit: ein Satz dauert 1 ÷ F Minuten (W-003 V3e,
   P-2026-09-27-54). Eilgang: jede Achse mit ihrem
   Eilgang aus der Maschine (fehlt er: 10 000 mm/min wie bei der Übergabe an
-  CAM), die langsamste bestimmt. Beschleunigung erst in 4d.
+  CAM), die langsamste bestimmt. Dazu die Beschleunigung (4d, unten).
 - **Punkte:** wie in 4a, dazu Kreise in Schritten von höchstens 5° und der
   Rückzug nach einem Bohrzyklus; dazwischen fährt die Maschine geradlinig in
   ihren Achsen. Auf Kreisen auch die Umkehrstellen der Achsen, an denen 4a
@@ -302,10 +302,26 @@ raus machen kann“)
   zusammen mit einer Ausgabe für TCPM – Frage an Manuel, ob seine Steuerung
   TRAORI/RTCP nutzt.
 
-**4d – Bearbeitungszeit**
-- Je Satz die Zeit mit Eilgang bzw. Vorschub, begrenzt durch die
-  Achsgrenzen und mit Beschleunigung (Trapezprofil; Ruck später). Summe je
-  Operation und gesamt – daneben FreeCADs eigene Schätzung zum Vergleich.
+**4d – Bearbeitungszeit** – gebaut (P-2026-10-01-22, `fahrzeit.py`)
+- Je Satz die Zeit mit Eilgang bzw. Vorschub und der Beschleunigung der
+  Achsen (Trapezprofil: anfahren, fahren, bremsen; Dreieck, wenn der Weg
+  nicht reicht; Ruck bleibt außen vor). Die Übergänge wie eine Steuerung
+  mit Vorausschau: durch Bögen (5°-Sehnen) und Rampen fährt die Maschine
+  durch, an Ecken (Richtungswechsel ab 15°), vor und nach einem Eilgang
+  (die Achsen fahren einzeln, jede vom Stand in den Stand) und am Ende hält
+  sie. Vom Stand in den Stand dauert ein Satz L ÷ v + v ÷ a.
+- **Feste Vorgaben** (Manuel, 2026-10-01: „Eilgang und Beschleunigung
+  dauerhaft festsetzen“): Eilgang 10 m/min, Beschleunigung 1 m/s² je
+  Linearachse und 1 U/s² je Rundachse (`export.VORGABE_…`) – wie eine kleine
+  oder nachgerüstete Maschine; große fahren schneller, die Zeit ist dann
+  eher zu lang. Sie gelten, wo die Maschine nichts sagt (Betriebsart ohne
+  Eilgang oder Beschleunigung) und in der Schätzung des Assistenten
+  „Bearbeitung“ (`bahn.zeit`), damit alle Strategien an denselben Werten
+  gemessen werden (W-006 Abschnitt 11). Die Beispielmaschinen tragen ihre
+  eigenen Werte (Fräse 20/15 m/min, 3 m/s²).
+- Offen: die Summe je Operation im Fenster, FreeCADs eigene Schätzung
+  daneben; die 4-Achs-Vorschau (`vierachs_bahn.dauer`) rechnet noch ohne
+  Eilgang und Beschleunigung.
 
 ## 6. Oberfläche
 

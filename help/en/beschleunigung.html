@@ -1,6 +1,13 @@
 <h2>Finding the acceleration</h2>
 <p>Without acceleration, run time and simulation are wrong: on short moves an
-axis never reaches its rapid speed. Three ways, from exact to rough:</p>
+axis never reaches its rapid speed. As long as the machine says nothing
+(rapid or acceleration 0), the add-on uses fixed defaults: <b>rapid
+10 m/min, acceleration 1 m/s²</b> per linear axis and <b>1 rev/s²</b> per
+rotary axis – like a small or retrofitted machine. The “Machining” assistant
+estimates its time with the same values, so all strategies compare. A big
+machine is faster; enter its values (under “Edit machine” at the operating
+mode) and the time in the check window is its own. Three ways, from exact
+to rough:</p>
 
 <h3>1. The control's machine data</h3>
 <p>Most exact. <b>Read only, never change.</b> Often only visible with a key

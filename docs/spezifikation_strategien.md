@@ -477,14 +477,21 @@ für jede Strategie, die den Fräser dauernd im Eingriff hält:
 
 | Strategie | Platte | Tasche | Zapfen | Summe |
 | --- | --- | --- | --- | --- |
-| heute: Planfräsen ap 2, ae 7,8 (0,65 D), Tasche über die Kontur in Lagen, Kontur Zapfen | 73,5 min (10 Lagen, 310 Zeilen, 62 m) | 4,3 min | 0,8 min | **79 min** |
-| heute mit ganzer Schneide: Planfräsen ap 20, ae 1,5; Tasche über die Kontur ap 20 (ganz räumen) | 39,1 min (1 Lage, 151 Zeilen, 33 m) | 3,7 min (12 Versätze, je mit Rampe) | 0,8 min | **44 min** |
+| heute: Planfräsen ap 2, ae 7,8 (0,65 D), Tasche über die Kontur in Lagen, Kontur Zapfen | 74,0 min (10 Lagen, 310 Zeilen, 62 m) | 4,6 min | 0,9 min | **80 min** |
+| heute mit ganzer Schneide: Planfräsen ap 20, ae 1,5; Tasche über die Kontur ap 20 (ganz räumen) | 39,3 min (1 Lage, 151 Zeilen, 33 m) | 3,9 min (12 Versätze, je mit Rampe) | 0,9 min | **44 min** |
 | S3f Räumen mit Versätzen: Spirale ap 20, ae 1,5, hinein von außen; Tasche Rampe 3° einmal, dann Spirale | ≈ 33 min (Weg ≈ Fläche ÷ ae, ohne Wenden) | ≈ 1,3 min (Rampe 0,4 + Spirale 0,8) | 0,3 min | **≈ 35 min** |
 | Untergrenze (Fräser nie aus dem Eingriff) | 29 min | 1,2 min | 0,3 min | **31 min** |
 
 Gemessen mit `scripts`-freiem Rechenlauf (Sonde, 1.1.3): Planfräsen und
-Kontur wie gebaut (0.40.1), Zeit aus den Sätzen bei vf 902 (Eilgang 10 m/min
-nicht gezählt). Was die Tabelle lehrt: Die ganze Schneide (ap 20 statt 2)
+Kontur wie gebaut (0.40.1), die Zeit mit `bahn.zeit` (P-2026-10-01-22): vf
+902, dazu die **festen Vorgaben** Eilgang 10 m/min und Beschleunigung 1 m/s²
+(Manuel, 2026-10-01: „Eilgang und Beschleunigung dauerhaft festsetzen“),
+anhalten an jeder Ecke, durch Bögen hindurch. Mit denselben Werten wird
+jede Strategie gemessen – sie stehen in `export.VORGABE_…` und gelten im
+Prüffenster, wo die Maschine nichts sagt. Die reine Vorschubzeit (ohne
+Eilgang und Beschleunigung) liegt 1–2 % darunter (73,5 / 39,1 / 3,6 min):
+bei ae 1,5 wiegen die 150 Wenden je Lage wenig, bei ae 7,8 in zehn Lagen
+die 300 mehr. Was die Tabelle lehrt: Die ganze Schneide (ap 20 statt 2)
 halbiert die Zeit schon mit den heutigen Zeilen; der Rest zur Untergrenze
 sind Wenden, Überlauf (0,6 D je Zeilenende: 2,2 m) und – in der Tasche – die
 Rampe je Versatz (die Kontur fährt jeden Versatz als eigene Bahn). Beides

@@ -698,7 +698,7 @@ class _Block:
             return
         _n, vorschub, senkrecht = js.werte(werkzeug, einsatz)
         zeit = (
-            _zeit_text(bn.dauer(self.vorschau.punkte, vorschub, senkrecht)) if vorschub > 0 else "?"
+            _zeit_text(bn.zeit(self.vorschau.punkte, vorschub, senkrecht)) if vorschub > 0 else "?"
         )
         self.ergebnis.setText(self.s.ergebnis_text(self.vorschau, zeit))
 

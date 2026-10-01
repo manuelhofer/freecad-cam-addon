@@ -11,8 +11,9 @@ Schritten von höchstens KREIS_SCHRITT, nach einem Bohrzyklus der Rückzug.
 Zeit (spezifikation_simulation.md, 4b): Vorschubsätze mit F aus der Bahn –
 FreeCAD schreibt mm/s –, ohne F mit VORSCHUB_ERSATZ und einem Hinweis; nach G93
 ist F 1 ÷ Zeit des Satzes (vierachs_bahn);
-Eilgang je Achse aus der Maschine, die langsamste Achse bestimmt.
-Beschleunigung kommt mit 4d.
+Eilgang je Achse aus der Maschine, die langsamste Achse bestimmt; Beschleunigung je Achse
+aus der Maschine (4d, fahrzeit: Trapezprofil, anhalten um Eilgänge und an Ecken, sonst
+durchfahren) – fehlt sie, 1 m/s² bzw. 1 U/s².
 
 Läuft ohne Oberfläche.
 """
@@ -22,6 +23,7 @@ import math
 from dataclasses import dataclass, field
 
 from . import einheiten, export
+from . import fahrzeit as fz
 from . import job_schnittwerte as js
 from . import maschine as m
 from . import reichweite as rw
@@ -34,6 +36,9 @@ VORSCHUB_ERSATZ = 1000.0  # mm/min, wenn die Bahn keinen Vorschub hat
 # Fehlt ein Kennwert der Maschine: wie bei der Übergabe an CAM.
 EILGANG_ERSATZ = export.VORGABE_EILGANG  # mm/min
 DREH_ERSATZ = export.VORGABE_DREHGESCHWINDIGKEIT  # U/min
+BESCHLEUNIGUNG_ERSATZ = export.VORGABE_BESCHLEUNIGUNG  # m/s²
+DREHBESCHLEUNIGUNG_ERSATZ = export.VORGABE_DREHBESCHLEUNIGUNG  # U/s²
+REVOLVER_BESCHLEUNIGUNG = 1e9  # Grad/s² – die Schaltzeit steckt schon im Tempo
 REVOLVER_ERSATZ = 0.5  # s für eine halbe Umdrehung ohne eingetragene Schaltzeit
 
 
@@ -220,9 +225,11 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     ergebnis.achsen = [a for a in pruefung.kette.achsen if a in bewegt]
     index = {a: i for i, a in enumerate(ergebnis.achsen)}
     tempo = _tempo(pruefung.maschine, ergebnis.achsen)
+    beschleunigung = _beschleunigung(pruefung.maschine, ergebnis.achsen)
+    linear_achsen = [a.art == LINEAR for a in ergebnis.achsen]
 
     vorher = None  # (Punkt, Rundachsen, wirksame Stellungen) der letzten Station
-    zeit = 0.0
+    saetze = []  # fahrzeit.Satz je Station nach der ersten – die Zeiten kommen zum Schluss
     for op, tc, aufnahme, eingespannt, linear in vorbereitet:
         loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         nummer = len(ergebnis.operationen)
@@ -245,23 +252,34 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 stellungen = _stellungen(geloest, dreh, punkt, linear, index)
                 wirksam = _wirksam(vorher, stellungen, len(index))
                 if vorher is not None:
-                    eilgang = _eilgangzeit(vorher[2], wirksam, tempo)
+                    eilgang = _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung)
                     if schritt.eilgang:
-                        zeit += eilgang
+                        saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=eilgang))
                     elif schritt.invers and schritt.vorschub > 0:
                         # G93: F = 1 ÷ Zeit des Satzes in Minuten, FreeCAD führt es ÷ 60 –
                         # der Satz dauert 1 ÷ F Sekunden, jeder Schritt seinen Anteil.
-                        zeit += max(schritt.anteil / schritt.vorschub, eilgang)
+                        fest = max(schritt.anteil / schritt.vorschub, eilgang)
+                        saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=fest))
                     else:
                         vorschub = schritt.vorschub * 60.0  # mm/min
                         if vorschub <= 0:
                             ohne_vorschub = True
                             vorschub = VORSCHUB_ERSATZ
-                        # Schneller als im Eilgang fährt keine Achse – so kostet auch ein
-                        # Revolver, der zwischen zwei Operationen schwenkt, seine Zeit.
-                        zeit += max(_vorschubzeit(vorher, punkt, rund, vorschub), eilgang)
+                        saetze.append(
+                            _vorschubsatz(
+                                vorher,
+                                punkt,
+                                rund,
+                                wirksam,
+                                vorschub,
+                                eilgang,
+                                tempo,
+                                beschleunigung,
+                                linear_achsen,
+                            )
+                        )
                 ergebnis.stationen.append(
-                    Station(zeit, nummer, schritt.satz, punkt, rund, stellungen, schritt.eilgang)
+                    Station(0.0, nummer, schritt.satz, punkt, rund, stellungen, schritt.eilgang)
                 )
                 vorher = (punkt, rund, wirksam)
         if ohne_vorschub:
@@ -273,6 +291,10 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                     vorschub=f"{gezeigt} {einheiten.einheit(einheiten.VORSCHUB)}",
                 )
             )
+    zeit = 0.0
+    for station, dauer in zip(ergebnis.stationen[1:], fz.zeiten(saetze), strict=True):
+        zeit += dauer
+        station.zeit = zeit
     ergebnis._fertig()
     return ergebnis
 
@@ -324,20 +346,69 @@ def _wirksam(vorher, stellungen, anzahl):
     return tuple(a if n is None else n for a, n in zip(alt, stellungen, strict=True))
 
 
-def _eilgangzeit(von, nach, tempo):
-    """Jede Achse fährt mit ihrem Eilgang; die langsamste bestimmt die Zeit."""
-    zeit = 0.0
-    for a, b, schnell in zip(von, nach, tempo, strict=True):
-        if a is not None and b is not None:
-            zeit = max(zeit, abs(b - a) / schnell)
-    return zeit
+def _eilgangzeit(von, nach, tempo, beschleunigung):
+    """Jede Achse fährt mit ihrem Eilgang und ihrer Beschleunigung vom Stand in den Stand;
+    die langsamste bestimmt die Zeit."""
+    wege = [
+        b - a if a is not None and b is not None else None for a, b in zip(von, nach, strict=True)
+    ]
+    return fz.eilgangzeit(wege, tempo, beschleunigung)
 
 
-def _vorschubzeit(vorher, punkt, rund, vorschub):
-    """Weg durch Vorschub (mm/min); dreht sich nur eine Rundachse, zählt ihr Winkel."""
+def _vorschubsatz(vorher, punkt, rund, wirksam, vorschub, eilgang, tempo, beschleunigung, linear):
+    """Der Satz im Vorschub für fahrzeit: der Weg der Spitze (dreht sich nur eine Rundachse,
+    ihr Winkel), das Tempo aus dem Vorschub (mm/min) – schneller als im Eilgang fährt keine
+    Achse –, die Beschleunigung der langsamsten Achse, die mitfährt, und die Richtung in den
+    Achsen. Ohne Weg (ein Revolver, der zwischen zwei Operationen schwenkt) kostet der Satz
+    die Zeit des Eilgangs."""
     weg = math.dist(vorher[0], punkt)
     drehweg = math.sqrt(sum((rund[b] - vorher[1].get(b, 0.0)) ** 2 for b in rw.RUNDACHSEN))
-    return max(weg, drehweg) / (vorschub / 60.0)
+    strecke = max(weg, drehweg)
+    if strecke <= 1e-9:
+        return fz.Satz(0.0, 0.0, 0.0, fest=eilgang)
+    richtung = tuple(
+        (b - a) if a is not None and b is not None else 0.0
+        for a, b in zip(vorher[2], wirksam, strict=True)
+    )
+    faehrt = [abs(d) > 1e-9 for d in richtung]
+    langsamste = max(
+        (abs(d) / schnell for d, schnell, mit in zip(richtung, tempo, faehrt, strict=True) if mit),
+        default=0.0,
+    )
+    schnell = vorschub / 60.0
+    if langsamste > 0:
+        schnell = min(schnell, strecke / langsamste)
+    a_bahn = min(
+        (a for a, mit, lin in zip(beschleunigung, faehrt, linear, strict=True) if mit and lin),
+        default=None,
+    )
+    if a_bahn is None:  # nur Rundachsen – oder keine Achse (der Punkt ist nicht erreichbar)
+        a_bahn = min((a for a, mit in zip(beschleunigung, faehrt, strict=True) if mit), default=0.0)
+    return fz.Satz(
+        strecke,
+        schnell,
+        a_bahn,
+        richtung if any(faehrt) else None,
+        richtung if any(faehrt) else None,
+    )
+
+
+def _beschleunigung(maschine, achsen):
+    """Je Achse ihre Beschleunigung: mm/s² bzw. Grad/s² – aus der Maschine (m/s², U/s²), fehlt
+    sie, die Vorgabe; der Revolver praktisch sofort (seine Schaltzeit steckt im Tempo)."""
+    betriebsarten = m.betriebsarten(maschine)
+    ergebnis = []
+    for achse in achsen:
+        eigene = {b.Art: b for b in betriebsarten if b.Gelenk == achse.gelenk}
+        if achse.art == LINEAR:
+            ba = eigene.get(m.ART_LINEAR)
+            ergebnis.append(((ba.Beschleunigung if ba else 0) or BESCHLEUNIGUNG_ERSATZ) * 1000.0)
+        elif m.ART_REVOLVER in eigene:
+            ergebnis.append(REVOLVER_BESCHLEUNIGUNG)
+        else:
+            ba = eigene.get(m.ART_POSITIONIEREN)
+            ergebnis.append(((ba.Beschleunigung if ba else 0) or DREHBESCHLEUNIGUNG_ERSATZ) * 360.0)
+    return ergebnis
 
 
 def _tempo(maschine, achsen):

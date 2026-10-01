@@ -45,6 +45,10 @@ OHNE_GRENZE_GRAD = 360.0
 # Übergabe schon gewarnt.
 VORGABE_EILGANG = 10000.0  # mm/min
 VORGABE_DREHGESCHWINDIGKEIT = 100.0  # U/min (in FreeCAD: 36000 °/min)
+# Für die Zeit (fahrzeit): festgesetzt wie eine kleine oder nachgerüstete Maschine (Manuel,
+# 2026-10-01); die Maschine selbst darf mehr sagen („Maschine bearbeiten“, Beschleunigung).
+VORGABE_BESCHLEUNIGUNG = 1.0  # m/s² je Linearachse
+VORGABE_DREHBESCHLEUNIGUNG = 1.0  # U/s² je Rundachse
 
 # Kennwerte, die die CAM-Definition nicht kennt.
 NICHT_IN_CAM = ("VorschubMax", "Beschleunigung", "Ruck")

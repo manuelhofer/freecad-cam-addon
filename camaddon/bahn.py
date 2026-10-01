@@ -75,6 +75,44 @@ def dauer(punkte, vorschub, eintauchen=None):
     return zeit
 
 
+def zeit(punkte, vorschub, eintauchen=None, eilgang=None, beschleunigung=None):
+    """So lange dauert die Bahn (Minuten) – Vorschub und Eilgang, mit Beschleunigung
+    (fahrzeit: Trapezprofil, anhalten an Ecken und um Eilgänge). `vorschub` und `eintauchen`
+    wie bei dauer(); `eilgang` (mm/min) und `beschleunigung` (mm/s²) ohne Angabe die
+    Vorgaben, 10 m/min und 1 m/s²."""
+    from . import fahrzeit as fz
+
+    schnell = (eilgang or fz.EILGANG) / 60.0
+    a = fz.BESCHLEUNIGUNG if beschleunigung is None else beschleunigung
+    saetze = []
+    for von, nach in zip(punkte, punkte[1:], strict=False):
+        if nach.eilgang:
+            wege = (nach.x - von.x, nach.y - von.y, nach.z - von.z)
+            fest = fz.eilgangzeit(wege, (schnell, schnell, schnell), (a, a, a))
+            saetze.append(fz.Satz(0.0, schnell, a, fest=fest))
+            continue
+        f = (eintauchen if nach.eintauchen and eintauchen else vorschub) * nach.anteil / 60.0
+        saetze.append(
+            fz.Satz(weg(von, nach), f, a, _richtung(von, nach, True), _richtung(von, nach, False))
+        )
+    return sum(fz.zeiten(saetze)) / 60.0
+
+
+def _richtung(von, nach, anfang):
+    """Die Fahrtrichtung am Anfang oder Ende des Satzes von `von` nach `nach` – auf dem Bogen
+    die Tangente dort, mit der Steigung in z."""
+    dz = nach.z - von.z
+    if nach.bogen is None:
+        return (nach.x - von.x, nach.y - von.y, dz)
+    mx, my, uhrzeiger = nach.bogen
+    punkt = von if anfang else nach
+    rx, ry = punkt.x - mx, punkt.y - my
+    tx, ty = (ry, -rx) if uhrzeiger else (-ry, rx)
+    laenge_xy = math.hypot(rx, ry) * winkel(von, nach)
+    norm = math.hypot(tx, ty) or 1.0
+    return (tx / norm * laenge_xy, ty / norm * laenge_xy, dz)
+
+
 def laenge(punkte):
     """Der Weg im Vorschub (mm), ohne Eilgänge."""
     return sum(
