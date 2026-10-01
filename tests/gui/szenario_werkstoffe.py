@@ -1,7 +1,7 @@
-# Werkstoffliste als Fenster und eigene Werkstoffe (W-002): Suche und ISO-
-# Filter, „Als eigenen kopieren“, „Neu…“ mit Pflichtfeld, Löschen mit
-# Rückfrage (samt eigener Schnittwerte), Wahl wandert in die
-# Werkzeugverwaltung, OK speichert.
+# Werkstoffliste als Fenster und eigene Werkstoffe (W-002): vorgewählt der Werkstoff der
+# gewählten Zeile der Schnittwerte (1.2379), Suche und ISO-Filter, „Als eigenen kopieren“,
+# „Neu…“ mit Pflichtfeld, Löschen mit Rückfrage (samt eigener Schnittwerte); danach bietet die
+# Spalte „Werkstoff“ der Tabelle den neuen an; OK speichert.
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
 
@@ -20,11 +20,12 @@ def schritte(h):
     from camaddon import werkzeuge as wz
 
     fraeser = wz.Werkzeug(nummer=1, durchmesser=10, schneiden=4, schneidenlaenge=22)
+    fraeser.schnittwerte["1.2379"] = [wz.Einsatz(art=wz.SCHLICHTEN, ae=0.2, ap=10, vc=60, fz=0.03)]
     wz.Bibliothek([fraeser]).speichern()
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
     yield 800
     d = gui_werkzeuge.WerkzeugDialog.offen
-    d.waehle_werkstoff("1.2379")
+    d.schnittwerte.tabelle.setCurrentCell(0, 0)  # die Zeile für 1.2379
     yield 200
 
     # Das Fenster ist modal: aus der Ereignisschleife öffnen.
@@ -114,12 +115,16 @@ def schritte(h):
     h.pruefe(kopie not in d.bibliothek.eigene_werkstoffe, "Kopie nicht gelöscht")
     h.pruefe(not fraeser_im_dialog.hat_eigene(kopie.kennung), "Schnittwerte blieben")
 
-    # „Buche“ wählen und schließen: Die Werkzeugverwaltung übernimmt die Wahl.
-    f.waehle(holz.kennung)
+    # Schließen: Die Spalte „Werkstoff“ der Schnittwerte bietet „Buche“ jetzt an.
     f.reject()
     yield 500
-    h.pruefe(d.werkstoff == holz.kennung, f"Werkzeugverwaltung zeigt {d.werkstoff!r}")
-    h.pruefe("≈ 35 HB" in d.werkstoff_info.text(), f"Info: {d.werkstoff_info.text()!r}")
+    from camaddon import gui_schnittwerte as gs
+
+    wahl = d.schnittwerte.tabelle.cellWidget(0, gs.WERKSTOFF)
+    h.pruefe(
+        wahl is not None and wahl.findData(holz.kennung) >= 0,
+        "„Buche“ fehlt in der Spalte „Werkstoff“",
+    )
     h.bild("5_eigener_in_der_verwaltung", d)
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield 500

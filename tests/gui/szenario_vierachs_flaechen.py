@@ -152,6 +152,11 @@ def schritte(h):
     yield from h.warte_auf(
         lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 30000
     )
+    # Für die Abflachung schlägt der Assistent auch „Plan indexiert“ vor (V4c) – hier geht es um
+    # Schruppen und Schlichten: aus.
+    h.pruefe(panel.mit_plan.isChecked(), "Plan indexiert für die Abflachung nicht vorgeschlagen")
+    panel.mit_plan.setChecked(False)
+    yield 300
     panel.accept()  # Anlegen
     yield 2000
     h.pruefe(gui_vierachs.VierachsPanel.offen is None, "Fenster nach „Anlegen“ offen")

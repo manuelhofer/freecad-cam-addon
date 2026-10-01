@@ -1,7 +1,7 @@
-# Schruppwerte planen (W-002 Stufe 3): Ø-12-Fräser in C45, Ausgang Vollnut
-# (h 0,05). Vorschlag an der Grenze 10 % von D, dann an der Leistungsgrenze
-# der Spindel, Vorschub und Drehzahl der Maschine am Anschlag; „Als Einsatz
-# übernehmen“ legt eigene Werte für C45 mit der neuen Zeile an.
+# Schruppwerte planen (W-002 Stufe 3): Ø-12-Fräser mit Zeilen für C45 (der Werkstoff steht je
+# Zeile, seit P-2026-10-01-17), Ausgang Vollnut (h 0,05). Vorschlag an der Grenze 10 % von D,
+# dann an der Leistungsgrenze der Spindel, Vorschub und Drehzahl der Maschine am Anschlag; „Als
+# Einsatz übernehmen“ hängt die neue Zeile an die Zeilen für C45.
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
 from PySide6 import QtTest
@@ -23,7 +23,7 @@ def schritte(h):
     from camaddon.gui_teile import GRAU, ROT
 
     fraeser = wz.Werkzeug(nummer=3, durchmesser=12, schneiden=3, schneidenlaenge=26)
-    fraeser.schnittwerte[wz.ALLE] = [
+    fraeser.schnittwerte["1.0503"] = [
         wz.Einsatz(art=wz.VOLLNUT, ae=12, ap=3, vc=120, fz=0.05),
         wz.Einsatz(art=wz.SCHLICHTEN, ae=0.2, ap=25, vc=150, fz=0.06),
     ]
@@ -31,8 +31,6 @@ def schritte(h):
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
     yield 800
     d = gui_werkzeuge.WerkzeugDialog.offen
-    d.waehle_werkstoff("1.0503")
-    yield 200
     s = d.schnittwerte
     h.pruefe(s.knopf_planen.isEnabled(), "„Schruppwerte planen“ nicht bedienbar")
     # Gewählt ist die Schlicht-Zeile – der Planer nimmt trotzdem die Vollnut.
@@ -107,25 +105,25 @@ def schritte(h):
     h.pruefe("113 m/min" in p.drehzahl_text.text(), p.drehzahl_text.text())
     h.bild("3_maschine", p)
 
-    # Ohne Maschinengrenzen übernehmen: eigene Werte für C45 mit der neuen Zeile.
+    # Ohne Maschinengrenzen übernehmen: die neue Zeile zu den Zeilen für C45.
     p.setze("vorschub", "")
     p.setze("drehzahl", "")
     yield 100
     h.pruefe(
-        p.knopf_uebernehmen.text() == "Als Einsatz für 1.0503 übernehmen",
+        p.knopf_uebernehmen.text() == "Als Einsatz übernehmen",
         f"Knopf: {p.knopf_uebernehmen.text()!r}",
     )
     p.knopf_uebernehmen.click()
     yield 500
     h.pruefe(gui_schruppwerte.SchruppDialog.offen is None, "Planer nicht geschlossen")
     werkzeug = s.werkzeug
-    h.pruefe(werkzeug.hat_eigene("1.0503"), "keine eigenen Werte für C45 angelegt")
+    h.pruefe(werkzeug.hat_eigene("1.0503"), "keine Werte für C45")
     neu = werkzeug.einsaetze("1.0503")[-1]
     h.pruefe(
         (neu.art, neu.ae, neu.ap, neu.vc, neu.fz) == (wz.DYNAMISCH, 1.2, 24, 120, 0.083),
         f"neuer Einsatz: {neu}",
     )
-    h.pruefe(len(werkzeug.einsaetze(wz.ALLE)) == 2, "Werte für alle Werkstoffe verändert")
+    h.pruefe(wz.ALLE not in werkzeug.schnittwerte, "Zeilen für alle Werkstoffe angelegt")
     h.pruefe(s.tabelle.currentRow() == 2, f"neue Zeile nicht gewählt: {s.tabelle.currentRow()}")
     h.pruefe(werkzeug.ae_warngrenze == 10, f"Warngrenze am Werkzeug: {werkzeug.ae_warngrenze}")
     h.bild("4_uebernommen", d)

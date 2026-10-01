@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-33 alle-szenarien
+
+### EINGELESEN
+- Alle 51 Szenarien unter `tests/gui/` (Manuel, 2026-10-01: „so viele Szenarien durchgehen wie
+  nur geht“); P-2026-10-01-17 (Werkstoff je Zeile), V4c/V4d (Vorschläge im 4-Achs-Assistenten),
+  S3c (Befehl „Bearbeitung (Fräsen)“).
+
+### DATEIEN
+- `tests/gui/szenario_erster_start.py`, `tests/gui/szenario_flaechen_pruefen.py`,
+  `tests/gui/szenario_vierachs_flaechen.py`, `tests/gui/szenario_schruppwerte.py`,
+  `tests/gui/szenario_strategien.py`, `tests/gui/szenario_werkstoffe.py`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Alle 51 Szenarien laufen in 1.1.3 grün.
+
+### DONE
+- Alle 51 Szenarien in 1.1.3 durchlaufen: 45 grün, sechs veraltet – keins fand einen Fehler im
+  Addon, alle prüften ein Verhalten, das sich seither mit Absicht geändert hat:
+  - `szenario_erster_start`: Werkzeugleiste mit neun Befehlen, Menü mit zwölf (seit 0.37.0
+    „Bearbeitung (Fräsen)“).
+  - `szenario_flaechen_pruefen`, `szenario_vierachs_flaechen`: Für die Abflachung schlägt der
+    4-Achs-Assistent inzwischen „Plan indexiert“ (und Entgraten) vor – die Szenarien prüfen den
+    Vorschlag und nehmen ihn heraus, dann wie bisher.
+  - `szenario_schruppwerte`, `szenario_strategien`, `szenario_werkstoffe`: Den Werkstoff oben in
+    der Werkzeugverwaltung gibt es seit 0.39.0 nicht mehr (`waehle_werkstoff`), er steht je
+    Zeile – die Szenarien geben dem Fräser Zeilen für C45 bzw. 1.2379; „Werkstoffe…“ wählt den
+    Werkstoff der gewählten Zeile vor; danach bietet die Spalte „Werkstoff“ den neuen an.
+
+### TEST
+- 1.1.3: alle 51 Szenarien grün (die sechs nachgezogenen einzeln nachgefahren).
+
+### NEXT
+- Zentrieren und Senken aus dem Assistenten; eindeutige Namen der Operationen (FreeCAD macht
+  aus einem zweiten „Bohren T2“ ein „Bohren T001“).
+
 ## P-2026-10-01-32 entgraten-im-quader
 
 ### EINGELESEN

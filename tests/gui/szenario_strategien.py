@@ -1,6 +1,6 @@
 # Strategien vergleichen (W-002): Vollnut gegen dynamisches Schruppen am
-# Ø-12-Fräser in C45 – Balken, Werte, Urteil mit 2,5-fachem Abtrag und
-# 12-mal weniger Schneidenweg, Leistung aus kc1.1.
+# Ø-12-Fräser mit Zeilen für C45 (der Werkstoff steht je Zeile) – Balken, Werte,
+# Urteil mit 2,5-fachem Abtrag und 12-mal weniger Schneidenweg, Leistung aus kc1.1.
 import FreeCADGui as Gui
 from PySide import QtCore
 
@@ -19,7 +19,7 @@ def schritte(h):
     from camaddon import werkzeuge as wz
 
     fraeser = wz.Werkzeug(nummer=3, durchmesser=12, schneiden=3, schneidenlaenge=26)
-    fraeser.schnittwerte[wz.ALLE] = [
+    fraeser.schnittwerte["1.0503"] = [
         wz.Einsatz(art=wz.VOLLNUT, ae=12, ap=3, vc=120, fz=0.05),
         wz.Einsatz(art=wz.SCHLICHTEN, ae=0.2, ap=25, vc=150, fz=0.06),
         wz.Einsatz(art=wz.DYNAMISCH, ae=1.2, ap=25, vc=120, fz=0.15),
@@ -28,9 +28,9 @@ def schritte(h):
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
     yield 800
     d = gui_werkzeuge.WerkzeugDialog.offen
-    d.waehle_werkstoff("1.0503")
-    yield 200
     s = d.schnittwerte
+    s.tabelle.setCurrentCell(0, 0)  # eine Zeile für C45: verglichen wird für C45
+    yield 200
     h.pruefe(s.knopf_vergleich.isEnabled(), "„Strategien vergleichen“ nicht bedienbar")
 
     # Der Vergleich ist modal: aus der Ereignisschleife öffnen, dann prüfen.

@@ -1,6 +1,7 @@
 # Prüfen nur auf den gewählten Flächen (W-003 Stufe V4e) auf der Beispiel-Drehmaschine: Welle
 # Ø 40 × 40 mit Abflachung, Stange Ø 44, T1 Schaftfräser Ø 12 im Halter „VDI30 angetrieben
-# radial“. Im Assistenten nur die Abflachung gewählt, nur „Rundum schruppen“ → „Anlegen“ →
+# radial“. Im Assistenten nur die Abflachung gewählt, nur „Rundum schruppen“ (Plan indexiert
+# und Entgraten, die er dafür vorschlägt, aus) → „Anlegen“ →
 # „Auf der Maschine prüfen“ → ans Ende: Der Satz unter dem Abspieler sagt „Verglichen auf den
 # gewählten Flächen …“; der Mantel, der Stange bleibt, ist nicht rot, nirgends fehlt etwas im
 # Teil.
@@ -76,6 +77,12 @@ def schritte(h):
     Gui.Selection.addSelection(doc.Name, klon.Name, abflachung)
     yield 500
     h.pruefe(panel.flaechen() == [abflachung], f"gewählt: {panel.flaechen()}")
+    yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
+    # Nur „Rundum schruppen“: Für die Abflachung schlägt der Assistent auch „Plan indexiert“ und
+    # „Rundum entgraten“ vor (V4c, V4d) – hier aus.
+    panel.mit_plan.setChecked(False)
+    panel.mit_entgraten.setChecked(False)
+    yield 500
     yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")
     job = panel.job

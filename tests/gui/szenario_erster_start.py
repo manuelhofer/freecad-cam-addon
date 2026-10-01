@@ -5,7 +5,7 @@
 # (hier der Punkt); gewählt wird das Komma. Die Wahl steht sofort in
 # user.cfg, die Knöpfe des Addons sind gleich deutsch, und die
 # Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich – mit den
-# acht Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle elf: oben „So geht’s“
+# neun Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle zwölf: oben „So geht’s“
 # (D-54), unten „Nach Updates suchen“ und „Über“ (D-13). „So geht’s“ öffnet
 # die Hilfeseite mit den sechs Schritten. Die Einstellungsseite ändert
 # Sprache und Dezimalzeichen.
@@ -100,15 +100,18 @@ def schritte(h):
     )
     h.bild("4_cam_werkzeugleiste")
 
-    # Die Werkzeugleiste: die acht Arbeitsbefehle, mit „Bestückung“ (W-002 Stufe G). Das Menü
-    # „CAM-Addon“: alle (D-13).
+    # Die Werkzeugleiste: die neun Arbeitsbefehle, mit „Bestückung“ (W-002 Stufe G) und
+    # „Bearbeitung (Fräsen)“ (W-006 S3c). Das Menü „CAM-Addon“: alle (D-13).
     leiste = next(
         t
         for t in FreeCADGui.getMainWindow().findChildren(QtGui.QToolBar)
         if t.windowTitle() == "CAM-Addon" and t.isVisible()
     )
     knoepfe = [a.text() for a in leiste.actions() if not a.isSeparator()]
-    h.pruefe(len(knoepfe) == 8 and "Bestückung" in knoepfe, f"Werkzeugleiste: {knoepfe}")
+    h.pruefe(
+        len(knoepfe) == 9 and "Bestückung" in knoepfe and knoepfe[-1] == "Bearbeitung (Fräsen)",
+        f"Werkzeugleiste: {knoepfe}",
+    )
     h.pruefe("Nach Updates suchen" not in knoepfe, "„Nach Updates suchen“ in der Leiste")
     menues = {
         a.text().replace("&", ""): a.menu() for a in FreeCADGui.getMainWindow().menuBar().actions()
@@ -118,7 +121,7 @@ def schritte(h):
     if menue is not None:
         eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
         h.pruefe(
-            len(eintraege) == 11
+            len(eintraege) == 12
             and eintraege[0] == "So geht’s"
             and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
             and "Schnittwerte in den Job" in eintraege,
