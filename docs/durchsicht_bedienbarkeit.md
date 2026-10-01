@@ -570,3 +570,8 @@ ohne Leistung“.
 
 D-50, D-51, D-52, D-53, D-55, D-57 gleich (je ein Patch); D-54 und D-56
 fragen. Danach der Plan Frässtrategien (spezifikation_strategien.md).
+
+*Stand 2026-10-01:* D-50 bis D-53, D-55, D-57 gebaut (P-2026-09-30-69,
+0.33.1). Manuel zu D-54 und D-56 (2026-10-01, „Also ja“ zu den
+Empfehlungen): D-54 (a) die Hilfeseite „So geht’s“; D-56 „Betriebsart“
+bleibt (das Beispiel im Tooltip ist drin).

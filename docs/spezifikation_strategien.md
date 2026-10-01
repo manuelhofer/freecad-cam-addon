@@ -360,6 +360,11 @@ Entscheidungen (Claude, zur Besprechung):
   aus der Werkzeugtabelle wie heute – vertraut; beides zeigen, eines
   eingeben.
 
-Was Manuel entscheidet, kommt hierher unter „Entschieden“, wie in den
-anderen Spezifikationen; die Stufen bekommen dann Akzeptanzkriterien und
-Klickwege.
+**Entschieden** (Manuel, 2026-10-01, auf E1–E7 mit den Empfehlungen: „Egal
+Hauptsache du arbeitest weiter??? Also ja“): E1 (a) S1 → S2 → S3, E2 (a)
+eigener 3D-Kern mit numpy, E3 (a) adaptiv mit Trochoiden, E4 (a) ein
+Assistent „Bearbeitung“ mit Vorschlag, E5 (a) Vorschlag mit Grund, änderbar,
+E6 (a) Vorschub nach Eingriff, E7 (a) Grathöhe mit Vorgabe 0,005 mm. S1 ist
+gebaut (Messen P-71/-75/-76, goldene Bahnen P-73, Rest blockweise P-77); das
+Bahn-Datenmodell mit Bögen kommt mit der ersten Strategie, die Bögen braucht
+(S3). Weiter mit S2.

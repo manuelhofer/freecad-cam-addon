@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-01 entschieden
+
+### EINGELESEN
+- Manuel, 2026-10-01, auf E1–E7 (W-006), D-54, D-56 und das Soll-Teil am Ende, je mit
+  Empfehlung: „Egal Hauptsache du arbeitest weiter??? Also ja“.
+
+### DATEIEN
+- `docs/spezifikation_strategien.md`, `docs/durchsicht_bedienbarkeit.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Spezifikation W-006 trägt „Entschieden“ (E1–E7 je a), die Durchsicht D-54 (a) und D-56
+(bleibt).
+
+### DONE
+- Eingetragen; Reihenfolge danach: Soll-Teil am Ende (a), Hilfeseite „So geht’s“, S2 rundum
+  fertig (Linien längs, Plan indexiert, Entgraten), dann S3.
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- Haken „Teil“ im Abspieler.
+
 ## P-2026-09-30-77 rest-blockweise
 
 ### EINGELESEN
