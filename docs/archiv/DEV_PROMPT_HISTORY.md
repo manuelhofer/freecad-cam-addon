@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-09 testregel-weniger
+
+### EINGELESEN
+- Manuel, 2026-10-01: „Und weniger testest mehr Produktivität...“; 2026-09-30: „wenn DU sie für
+  nötig hältst … Ich persönlich benötige keine Tests solange alles funktioniert“.
+- `docs/arbeitsregeln.md` Abschnitt 5 (Prüfen vor dem Push), `CLAUDE.md` (Push-Regel).
+
+### DATEIEN
+- `docs/arbeitsregeln.md`, `CLAUDE.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Die Arbeitsregeln sagen, was vor einem Push läuft: die eine Prüfdatei und – wenn Manuel ein Bild
+sehen soll – das eine Szenario zum geänderten Teil, in 1.1.3; kein zweiter Lauf im Wochen-Build
+ohne Grund, kein voller Lauf nach jedem Patch, kein Warten auf einen Lauf im Hintergrund.
+
+### DONE
+- Abschnitt 5 „Nur prüfen, was nötig ist – und wenig“ mit Manuels Satz; der volle Lauf ist die
+  Ausnahme (vor einem Stand zum Ausprobieren, nach vielen Änderungen am Kern, neue
+  FreeCAD-Version – höchstens einmal am Tag, im Hintergrund, nach dem Push). `CLAUDE.md`
+  verweist darauf.
+- Der volle Lauf zu 0.34.0 (beide Versionen) lief dabei im Hintergrund zu Ende:
+  am Ende 162 grün, kein Fehler.
+
+### TEST
+- Reine Doku – kein Lauf.
+
+### NEXT
+- „Plan indexiert“ (P-08) prüfen: `test_vierachs_plan`, `test_goldene_bahnen`,
+  `test_restmaterial`, `szenario_vierachs_plan` in 1.1.3; Version 0.35.0, Push.
+
 ## P-2026-10-01-06 linien-laengs
 
 ### EINGELESEN

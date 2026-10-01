@@ -9,8 +9,10 @@ entsteht.
 - **Pushen:** Manuel hat am 2026-09-25 dauerhaft freigegeben zu pushen,
   sobald die Prüfungen grün sind, die Claude für nötig hält (Manuel,
   2026-09-30: „wenn DU sie für nötig hältst … Ich persönlich benötige keine
-  Tests solange alles funktioniert“) – welche das sind, steht in
-  `docs/arbeitsregeln.md`, Abschnitt 5; reine Doku-Änderungen ohne Testlauf.
+  Tests solange alles funktioniert“; 2026-10-01: „Und weniger testest mehr
+  Produktivität...“) – welche das sind, steht in `docs/arbeitsregeln.md`,
+  Abschnitt 5: die eine Prüfdatei und das eine Szenario zum geänderten Teil, in
+  1.1.3, kein voller Lauf nach jedem Patch; reine Doku-Änderungen ohne Testlauf.
   Ohne grüne Prüfungen nur auf ausdrückliche Ansage. Lokal committen ist
   immer in Ordnung.
 - **„Pusch jetzt“ heißt sofort** (Manuel, 2026-09-27: „wenn ich sage pusch

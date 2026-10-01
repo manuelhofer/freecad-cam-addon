@@ -92,21 +92,25 @@ ein ASCII-Entwurf des Dialogs reicht.
   nichts (Einstellungen in `pyproject.toml`, wie bei FreeCAD: Zeilenlänge
   100). Ein `# noqa` braucht eine Begründung in derselben Zeile.
   `scripts/alle_tests.sh` prüft das als Erstes.
-- **Nur prüfen, was nötig ist.** Jeder Lauf kostet Rechenzeit und Strom
-  (Manuel, P-2026-09-25-42), und das Warten auf den Push kostet Manuel Zeit.
-  Welche Prüfungen nötig sind, entscheidet der Assistent (Manuel, 2026-09-30:
-  „wenn DU sie für nötig hältst … Ich persönlich benötige keine Tests solange
-  alles funktioniert“). Deshalb:
-  - Vor einem Push laufen die Prüfungen und Szenarien **zum geänderten Teil**,
-    in der stabilen FreeCAD-Version; trifft die Änderung FreeCAD-Schnittstellen,
-    die sich zwischen den Versionen unterscheiden (Postprozessoren, CAM-Objekte,
-    Assembly), auch im Wochen-Build. Das dauert Minuten, nicht eine Dreiviertelstunde.
-  - Der **volle Lauf** `scripts/alle_tests.sh` (beide Versionen) nur, wenn er
-    nötig ist: Änderungen am gemeinsamen Kern, den viele Teile nutzen
-    (`maschine`, `kette`, `kinematik`, `reichweite`, `abfahren`, `kollision`,
-    `werkzeuge`, `vierachs_huelle`, `vierachs_bahn`), eine neue FreeCAD-Version,
-    oder eine Version mit vielen Änderungen. Er darf auch nach dem Push laufen;
-    was er findet, wird sofort behoben. In einer frischen Cloud-Sitzung vorher
+- **Nur prüfen, was nötig ist – und wenig.** Jeder Lauf kostet Rechenzeit
+  und Strom (Manuel, P-2026-09-25-42), und das Warten auf den Push kostet
+  Manuel Zeit. Welche Prüfungen nötig sind, entscheidet der Assistent (Manuel,
+  2026-09-30: „wenn DU sie für nötig hältst … Ich persönlich benötige keine
+  Tests solange alles funktioniert“; 2026-10-01: „Und weniger testest mehr
+  Produktivität...“). Deshalb:
+  - Vor einem Push läuft **die eine Prüfdatei zum geänderten Teil** und, wenn
+    Manuel ein Bild sehen soll, **das eine Szenario** dazu – in der stabilen
+    FreeCAD-Version (Manuels), nicht noch einmal im Wochen-Build. Den
+    Wochen-Build nur, wenn die Änderung eine FreeCAD-Schnittstelle trifft, die
+    dort anders ist (Postprozessoren, CAM-Objekte, Assembly). Minuten, nicht
+    mehr; auf nichts warten, was im Hintergrund läuft – weiterbauen.
+  - Der **volle Lauf** `scripts/alle_tests.sh` (beide Versionen) ist die
+    Ausnahme: vor einem Stand, den Manuel ausprobieren soll, nach vielen
+    Änderungen am gemeinsamen Kern (`maschine`, `kette`, `kinematik`,
+    `reichweite`, `abfahren`, `kollision`, `werkzeuge`, `vierachs_huelle`,
+    `vierachs_bahn`, `restmaterial`), bei einer neuen FreeCAD-Version – höchstens
+    einmal am Tag, im Hintergrund, nach dem Push; was er findet, wird sofort
+    behoben. Nicht nach jedem Patch. In einer frischen Cloud-Sitzung vorher
     einmal `scripts/testumgebung_einrichten.sh`.
   - Solange `scripts/alle_tests.sh` läuft, startet nichts anderes FreeCAD –
     auch kein kurzer Versuch mit `freecadcmd`. FreeCAD sperrt beim Schreiben
