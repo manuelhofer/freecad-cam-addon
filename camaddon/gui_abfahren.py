@@ -110,7 +110,8 @@ class Bild:
         self._teil_an = _einstellungen().GetBool(TEIL_ZEIGEN, True)
         werkstueck.addChild(self.modell_schalter)
         punkte = abfahrt.am_werkstueck()
-        # Eine runde Stange mit „Rundum schruppen“ wird beim Abspielen abgetragen (V3g).
+        # Eine runde Stange mit „Rundum schruppen“ wird beim Abspielen abgetragen (V3g), ein
+        # Kasten als Rohteil mit Werkzeugen senkrecht von oben ebenso (W-006 S3d).
         try:
             self.abtrag = rm.fuer(abfahrt, job, punkte)
         except Exception as fehler:  # ohne Abtrag geht alles andere weiter
@@ -175,13 +176,13 @@ class Bild:
         if self.abtrag is None:
             return ""
         self.abtrag.bis_station(index)
-        ende = index >= len(self.abtrag.a) - 1
+        ende = index >= self.abtrag.letzte()
         vergleich = self.abtrag.vergleich() if ende else None
         self._am_ende = ende
         self._rest_zeigen(vergleich)
         self._bahn_schalten()
         self._teil_schalten()
-        return _rest_satz(vergleich, self.abtrag.aufmass)
+        return _rest_satz(vergleich, self.abtrag.aufmass, self._im_quader())
 
     def zeige_bahn(self, an):
         """Die Bahn zeigen (Haken „Bahn“ im Abspieler) – am Ende mit den Farben nie."""
@@ -208,8 +209,13 @@ class Bild:
             deckend = am_ende and not self._teil_an
             self._rest_material.transparency.setValue(0.0 if deckend else REST_DURCHSICHT)
 
+    def _im_quader(self):
+        """Das Rohteil ist ein Kasten (restmaterial.QuaderAbtrag), keine Stange."""
+        return hasattr(self.abtrag, "quader")
+
     def _restmaterial(self):
-        """Die Stange als Fläche über (a, φ) – Punkte und Farben setzt _rest_zeigen()."""
+        """Die Stange als Fläche über (a, φ) – oder der Quader als Fläche über (x, y) mit
+        Seitenwänden; Punkte und Farben setzt _rest_zeigen()."""
         coin = self._coin
         teil = coin.SoSeparator()
         self._rest_bindung = coin.SoMaterialBinding()
@@ -224,31 +230,73 @@ class Bild:
         teil.addChild(self._rest_punkte)
         self._rest_netz = coin.SoQuadMesh()
         teil.addChild(self._rest_netz)
-        self._rest_rahmen = rm.vh.rahmen(self.abtrag.laengs, self.abtrag.radial)
+        if self._im_quader():
+            # Der Boden des Kastens – die Seitenwände hängen am Netz (_quader_punkte).
+            q = self.abtrag.quader
+            boden = coin.SoSeparator()
+            boden.addChild(material(ROHTEIL, REST_DURCHSICHT))
+            ecken = coin.SoCoordinate3()
+            ecken.point.setValues(
+                0,
+                4,
+                [
+                    (q.x[0], q.y[0], q.z_von),
+                    (q.x[-1], q.y[0], q.z_von),
+                    (q.x[-1], q.y[-1], q.z_von),
+                    (q.x[0], q.y[-1], q.z_von),
+                ],
+            )
+            boden.addChild(ecken)
+            boden.addChild(coin.SoFaceSet())
+            teil.addChild(boden)
+        else:
+            self._rest_rahmen = rm.vh.rahmen(self.abtrag.laengs, self.abtrag.radial)
         self._rest_zeigen(None)
         return teil
 
-    def _rest_zeigen(self, vergleich):
-        """Die Punkte der Stange aus dem Abtrag; mit `vergleich` in den Farben des
-        Vergleichs, sonst in der Farbe des Rohteils."""
+    def _stangen_punkte(self):
+        """(Punkte (n_a, n_phi, 3), Farben je Punkt oder None) der Stange aus dem Abtrag."""
         import numpy as np
 
         a, phi, r = rm.darstellung(self.abtrag.stange)
         l_, u_, v_ = self._rest_rahmen
         richtung = np.cos(phi)[:, None] * u_[None, :] + np.sin(phi)[:, None] * v_[None, :]
         punkte = a[:, None, None] * l_[None, None, :] + r[:, :, None] * richtung[None, :, :]
+        return punkte, lambda vergleich: rm.farben(vergleich)
+
+    def _quader_punkte(self):
+        """(Punkte (n_x + 2, n_y + 2, 3), Farben je Punkt) des Quaders: die Oberseite, außen
+        herum ein Rand aus denselben x und y auf der Unterseite – die Seitenwände."""
+        import numpy as np
+
+        q = self.abtrag.quader
+        x, y, h = rm.darstellung_quader(q)
+        xr = np.concatenate([x[:1], x, x[-1:]])
+        yr = np.concatenate([y[:1], y, y[-1:]])
+        hr = np.full((len(xr), len(yr)), q.z_von)
+        hr[1:-1, 1:-1] = h
+        punkte = np.stack(
+            [np.broadcast_to(xr[:, None], hr.shape), np.broadcast_to(yr[None, :], hr.shape), hr],
+            axis=2,
+        )
+        return punkte, lambda vergleich: np.pad(rm.farben_quader(vergleich), 1, mode="edge")
+
+    def _rest_zeigen(self, vergleich):
+        """Die Punkte des Rohteils aus dem Abtrag; mit `vergleich` in den Farben des
+        Vergleichs, sonst in der Farbe des Rohteils."""
+        punkte, farben_von = self._quader_punkte() if self._im_quader() else self._stangen_punkte()
         liste = punkte.reshape(-1, 3).tolist()
         self._rest_punkte.point.setValues(0, len(liste), liste)
         self._rest_punkte.point.setNum(len(liste))
-        self._rest_netz.verticesPerColumn = len(a)
-        self._rest_netz.verticesPerRow = len(phi)
+        self._rest_netz.verticesPerColumn = punkte.shape[0]
+        self._rest_netz.verticesPerRow = punkte.shape[1]
         material = self._rest_material
         if vergleich is None:
             self._rest_bindung.value = self._coin.SoMaterialBinding.OVERALL
             material.diffuseColor.setValue(*ROHTEIL)
             material.transparency.setValue(REST_DURCHSICHT)
             return
-        farben = [REST_FARBEN[f] for f in rm.farben(vergleich).reshape(-1).tolist()]
+        farben = [REST_FARBEN[f] for f in farben_von(vergleich).reshape(-1).tolist()]
         self._rest_bindung.value = self._coin.SoMaterialBinding.PER_VERTEX
         material.diffuseColor.setValues(0, len(farben), farben)
         material.diffuseColor.setNum(len(farben))
@@ -446,11 +494,11 @@ def flaechen(form, farbe, transparenz):
     return teil
 
 
-def _rest_satz(vergleich, aufmass):
+def _rest_satz(vergleich, aufmass, quader=False):
     """Der Satz unter dem Abspieler: beim Abtragen, was passiert; am Ende, was auf dem Teil
-    bleibt – mit den Farben."""
+    bleibt – mit den Farben. `quader`: das Rohteil ist ein Kasten, keine Stange."""
     if vergleich is None:
-        return tr("rm.laeuft")
+        return tr("rm.laeuft_quader") if quader else tr("rm.laeuft")
     mm = rw.weg_text
     if vergleich.kleinster < -rm.BLAU_AB:
         satz = tr("rm.ins_teil", bis=mm(vergleich.groesster), tief=mm(-vergleich.kleinster))
@@ -463,8 +511,8 @@ def _rest_satz(vergleich, aufmass):
         )
     if vergleich.groesster >= aufmass + rm.ROT_AB:
         satz += " " + tr("rm.zu_viel", grenze=mm(aufmass + rm.ROT_AB))
-    if vergleich.nur_gewaehlte:  # V4: der Rest ist Stange, mit Absicht
-        satz += " " + tr("rm.nur_gewaehlte")
+    if vergleich.nur_gewaehlte:  # V4: der Rest ist Stange (oder Kasten), mit Absicht
+        satz += " " + tr("rm.nur_gewaehlte_quader" if quader else "rm.nur_gewaehlte")
     if vergleich.ohne_vergleich:  # P-2026-09-30-44: das Teil liegt dort nicht rund um die Achse
         stellen = tr("rm.und_von").join(
             tr("rm.von_bis", von=mm(von), bis=mm(bis)) for von, bis in vergleich.ohne_vergleich[:3]

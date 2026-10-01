@@ -884,6 +884,8 @@
     "rm.von_bis": "{von} bis {bis}",
     "rm.und_von": " und von ",
     "rm.farben": "Grün: das Aufmaß, gelb: etwas mehr, rot: über 1 mm mehr, blau: im Teil.",
+    "rm.laeuft_quader": "Das Rohteil wird beim Abspielen abgetragen; an der letzten Station steht der Vergleich mit dem fertigen Teil in Farben.",
+    "rm.nur_gewaehlte_quader": "Verglichen auf den gewählten Flächen – was nicht gewählt ist, bleibt Rohteil und hat keine Farbe.",
     "ab.hinsehen.tooltip": "Ansicht auf Werkstück und Werkzeug – die Maschine ist meist viel größer als das Teil.",
     "ab.bahn": "Bahn",
     "ab.bahn.tooltip": "Zeigt die Bahn des Werkzeugs – Vorschub blau, Eilgang rot. Ohne Haken sieht man beim Abspielen besser, wie die Stange abgetragen wird; am Ende mit den Farben ist die Bahn immer aus.",

@@ -884,6 +884,8 @@
     "rm.von_bis": "{von} to {bis}",
     "rm.und_von": " and from ",
     "rm.farben": "Green: the allowance, yellow: a little more, red: over 1 mm more, blue: into the part.",
+    "rm.laeuft_quader": "The stock is removed while playing; at the last station the comparison with the finished part shows in colours.",
+    "rm.nur_gewaehlte_quader": "Compared on the selected faces – what is not selected stays stock and has no colour.",
     "ab.hinsehen.tooltip": "View the workpiece and tool – the machine is usually much bigger than the part.",
     "ab.bahn": "Path",
     "ab.bahn.tooltip": "Shows the tool path – feed blue, rapid red. Without the tick you see better how the bar is removed while playing; at the end, with the colours, the path is always off.",

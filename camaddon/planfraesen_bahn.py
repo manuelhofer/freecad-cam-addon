@@ -135,6 +135,11 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
         huelle = hf.je_zeile(netz, geformt, v_zeilen, u0, schritt_u, anzahl, laengs_x)
         roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
         hoehe = roh + zugabe
+        # Dazu der Rand der Fläche quer: Vor einer Wand fährt die Wandfahrt über die erste und
+        # letzte Zeile hinaus bis an den Rand – so weit es dort erlaubt ist (_wandfahrt).
+        v_rand = (float(v_von), float(v_bis))
+        roh_rand = hf.je_zeile(netz, geformt, v_rand, u0, schritt_u, anzahl, laengs_x).T
+        hoehe_rand = roh_rand + zugabe
         im_ueberlauf = (u_stellen >= u_von - ueberlauf - GLEICH) & (
             u_stellen <= u_bis + ueberlauf + GLEICH
         )
@@ -150,6 +155,7 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
             # Seitenwand des Teils endet genau auf ihrer Höhe, die Zugabe hielte die unterste
             # Lage sonst vor ihr an (wie bei Plan indexiert, P-2026-10-01-10).
             erlaubt = (hoehe <= lage + GLEICH) | (roh <= ziel + GLEICH)
+            erlaubt_rand = (hoehe_rand <= lage + GLEICH) | (roh_rand <= ziel + GLEICH)
             drin = erlaubt & im_ueberlauf[None, :]  # die Zeilen selbst
             if not drin.any():
                 vorige = lage
@@ -164,6 +170,8 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
                 roh_u,
                 r_eben,
                 w.zeilenabstand,
+                v_rand,
+                erlaubt_rand,
             )
             # Von dem Ende beginnen, das in der Luft liegt – sonst vom Anfang.
             erste = int(np.flatnonzero(drin.any(axis=1))[0])
@@ -216,6 +224,8 @@ class _Raster:
     roh_u: tuple  # (von, bis) des Rohteils längs
     r_eben: float
     zeilenabstand: float
+    v_rand: tuple  # (von, bis) der Fläche quer – vor und hinter der ersten und letzten Zeile
+    erlaubt_rand: np.ndarray  # (2, N): die Lage darf an den Rand – für die Wandfahrt
 
     def umgekehrt(self):
         return _Raster(
@@ -228,6 +238,8 @@ class _Raster:
             self.roh_u,
             self.r_eben,
             self.zeilenabstand,
+            self.v_rand,
+            self.erlaubt_rand[:, ::-1],
         )
 
     def xy(self, u, v):
@@ -252,8 +264,63 @@ def _fahrt(punkte, fahrt, raster, lage, vorige, w):
             laenge += _zeile(punkte, r_, m, js, lage, w, nummer == 0)
             continue
         laenge += _schritt(punkte, r_, m, js, lage, teile, nummer)
+    art, m, js = teile[-1]
+    if art == "zeile" and len(js) > 1 and _wand(r_, m, int(js[-1]), 1 if js[-1] > js[0] else -1):
+        laenge += _wandfahrt(punkte, r_, m, int(js[-1]), lage, teile, len(teile), ende=True)
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+    return laenge
+
+
+def _wand(r_, m, j, richtung):
+    """Endet Zeile m an der Stelle j in Richtung `richtung` vor einer Wand – die nächste Stelle
+    ist dort nicht erlaubt? Am Rand des Rasters (dem Überlauf) nicht."""
+    k = j + richtung
+    return 0 <= k < len(r_.u_stellen) and not bool(r_.erlaubt[m, k])
+
+
+def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
+    """Vor einer Wand (Zeile m endet an der Stelle j): An der Wand bleibt zwischen zwei Zeilen
+    stehen, was keine der beiden mit der Rundung der Stirn erreicht – die Zeilen hin und her
+    lassen jeden zweiten Zwischenraum an der Wand aus (der Schritt zur nächsten Zeile liegt am
+    anderen Ende), und vor der ersten und hinter der letzten Zeile bleibt die Ecke. Darum fährt
+    der Fräser hier an der Wand entlang: zurück bis zum Anfang der vorigen Zeile (sie begann an
+    dieser Seite) – vor der ersten Zeile bis an den Rand der Fläche, so weit es dort erlaubt ist
+    – und wieder her; am `ende` einer Fahrt erst hinter die letzte Zeile bis an den Rand, dann
+    zurück, ohne wieder herzukommen. Gibt die Länge zurück."""
+    hier = punkte[-1]
+    u = float(r_.u_stellen[j])
+    v_m = float(r_.v_zeilen[m])
+    ziele = []
+    letzte = len(r_.v_zeilen) - 1
+    if ende and m == letzte and bool(r_.erlaubt_rand[1, j]) and r_.v_rand[1] > v_m + GLEICH:
+        ziele.append(r_.xy(u, r_.v_rand[1]))
+    vorige = next(
+        (js for art, m_, js in reversed(teile[:nummer]) if art == "zeile" and m_ == m - 1), None
+    )
+    unten = None
+    if vorige is not None and len(vorige):
+        unten = (float(r_.u_stellen[vorige[0]]), float(r_.v_zeilen[m - 1]))
+    elif m >= 1 and bool(r_.erlaubt[m - 1, j]):
+        unten = (u, float(r_.v_zeilen[m - 1]))
+    if (
+        m <= 1
+        and bool(r_.erlaubt_rand[0, j])
+        and r_.v_rand[0] < float(r_.v_zeilen[0]) - GLEICH
+        and (m == 0 or bool(r_.erlaubt[0, j]))
+    ):
+        unten = (u, r_.v_rand[0])  # über die erste Zeile hinaus bis an den Rand
+    if unten is not None:
+        ziele.append(r_.xy(*unten))
+    if not ziele:
+        return 0.0
+    if not ende:
+        ziele.append((hier.x, hier.y))
+    laenge = 0.0
+    for x, y in ziele:
+        punkt = bn.Punkt(False, x, y, lage)
+        laenge += bn.weg(punkte[-1], punkt)
+        punkte.append(punkt)
     return laenge
 
 
@@ -313,7 +380,8 @@ def _zeile(punkte, r_, m, js, lage, w, erste):
 
 def _schritt(punkte, r_, m, j, lage, teile, nummer):
     """Von Zeile m zur nächsten an der Stelle j: ein Halbkreis in Fahrtrichtung hinaus, wenn
-    beide Zeilen dort und auf dem Bogen frei sind – sonst gerade quer. Gibt die Länge
+    beide Zeilen dort und auf dem Bogen frei sind – sonst gerade quer, vor einer Wand erst
+    noch an ihr entlang zur vorigen Zeile und zurück (_wandfahrt). Gibt die Länge
     zurück."""
     v_von, v_bis = float(r_.v_zeilen[m]), float(r_.v_zeilen[m + 1])
     u = float(r_.u_stellen[j])
@@ -332,6 +400,7 @@ def _schritt(punkte, r_, m, j, lage, teile, nummer):
     if frei:
         stellen = np.arange(j, bis + richtung, richtung)
         frei = bool(r_.erlaubt[m, stellen].all() and r_.erlaubt[m + 1, stellen].all())
+    laenge = 0.0
     if frei and halb > GLEICH:
         u_mitte = u
         u_durch = u + richtung * halb
@@ -342,7 +411,27 @@ def _schritt(punkte, r_, m, j, lage, teile, nummer):
         uhr = bn.im_uhrzeigersinn(von, (x1, y1), durch)
         punkt = bn.Punkt(False, x1, y1, lage, bogen=(mx, my, uhr))
     else:
+        if _wand(r_, m, j, richtung):
+            laenge += _wandfahrt(punkte, r_, m, j, lage, teile, nummer)
         punkt = bn.Punkt(False, x1, y1, lage)
-    laenge = bn.weg(punkte[-1], punkt)
+    laenge += bn.weg(punkte[-1], punkt)
     punkte.append(punkt)
+    if punkt.bogen is None and _wand(r_, m, j, richtung):
+        laenge += _ueber_die_letzte(punkte, r_, m + 1, j, lage)
+    return laenge
+
+
+def _ueber_die_letzte(punkte, r_, m, j, lage):
+    """Beginnt die letzte Zeile m vor einer Wand (an der Stelle j), bleibt hinter ihr an der
+    Wand die Ecke stehen: erst an der Wand entlang bis an den Rand der Fläche und zurück, so
+    weit es dort erlaubt ist (wie _wandfahrt vor der ersten Zeile). Gibt die Länge zurück."""
+    v_m = float(r_.v_zeilen[m])
+    if m != len(r_.v_zeilen) - 1 or not bool(r_.erlaubt_rand[1, j]) or r_.v_rand[1] <= v_m + GLEICH:
+        return 0.0
+    hier = punkte[-1]
+    laenge = 0.0
+    for x, y in (r_.xy(float(r_.u_stellen[j]), r_.v_rand[1]), (hier.x, hier.y)):
+        punkt = bn.Punkt(False, x, y, lage)
+        laenge += bn.weg(punkte[-1], punkt)
+        punkte.append(punkt)
     return laenge

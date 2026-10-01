@@ -140,8 +140,15 @@ pruefe(
     min(p.x for p in in_lage) >= 15.0 - 1e-6 and max(p.x for p in in_lage) <= 66.0 + 1e-6,
     f"x {min(p.x for p in in_lage)} … {max(p.x for p in in_lage)}",
 )
+# Die Zeilen liegen auf y 3 … 37 (am freien Ende zu sehen); an der Wand reicht die Wandfahrt
+# bis an den Rand der Fläche, y 0 und 40.
+zeilen_y = sorted({round(p.y, 6) for p in in_lage if abs(p.x - 66.0) < 1e-6})
 pruefe(
-    abs(min(p.y for p in in_lage) - 3.0) < 1e-6 and abs(max(p.y for p in in_lage) - 37.0) < 1e-6,
+    zeilen_y and abs(zeilen_y[0] - 3.0) < 1e-6 and abs(zeilen_y[-1] - 37.0) < 1e-6,
+    f"Zeilen y {zeilen_y[:2]} … {zeilen_y[-2:]}",
+)
+pruefe(
+    abs(min(p.y for p in in_lage) - 0.0) < 1e-6 and abs(max(p.y for p in in_lage) - 40.0) < 1e-6,
     f"y {min(p.y for p in in_lage)} … {max(p.y for p in in_lage)}",
 )
 boegen = [p for p in vorschub if p.bogen is not None]
@@ -156,6 +163,14 @@ langsam = [p for p in vorschub if p.anteil < 1.0]
 pruefe(
     len(langsam) >= 15 and all(abs(p.x - 66.0) < 1e-6 for p in langsam),
     f"Austritt: {len(langsam)} Sätze, x {sorted({round(p.x, 3) for p in langsam})}",
+)
+# Vor der Wand (x = 15,25) fährt der Fräser an ihr entlang: zur vorigen Zeile zurück und über
+# die erste und letzte Zeile hinaus bis an den Rand der Fläche (y 0 und 40) – so bleibt in den
+# Zwischenräumen und Ecken an der Wand nichts stehen (gefunden mit der Simulation, W-006 S3d).
+an_der_wand = sorted({round(p.y, 2) for p in in_lage if abs(p.x - 15.25) < 1e-6})
+pruefe(
+    an_der_wand and an_der_wand[0] == 0.0 and an_der_wand[-1] == 40.0,
+    f"Wandfahrt: y {an_der_wand[:3]} … {an_der_wand[-2:]}",
 )
 knick = [p for p in vorschub if abs(p.x - 56.0) < 1e-6]
 pruefe(len(knick) >= 15, f"der Punkt vor dem Austritt fehlt: {len(knick)}")

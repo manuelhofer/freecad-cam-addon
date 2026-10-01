@@ -40,6 +40,17 @@ Mit gewählten Flächen (V4, bei allen Rundum-Operationen des Jobs) färbt der V
 sie: Was nicht gewählt ist, bleibt Stange und zählt nicht als „zu viel stehen geblieben“ –
 nur Blau, im Teil, gilt überall.
 
+Das Rohteil im Quader (W-006 S3d, 2,5D): dieselbe Idee von oben – der Quader als Höhen über
+(x, y): h[i, j], wie hoch das Material an der Stelle (x_i, y_j) noch steht (SCHRITT_XY im
+Raster). Ein Werkzeug, das senkrecht von oben kommt (die Werkzeugachse zeigt am Werkstück nach
++z), nimmt weg, was in ihm liegt: Steht seine Spitze bei (x_t, y_t, z_t), bleibt in der Zelle
+im Abstand ℓ von der Werkzeugachse höchstens z_t + z(ℓ) stehen (dieselbe Stirn z(ℓ) wie
+rundum). Jede Operation des Jobs trägt ab – auch FreeCADs eigene –, so weit das Addon die
+Form ihres Fräsers kennt, sonst als Schaftfräser mit seinem Durchmesser. Der Vergleich am
+Ende: die Oberseite des Teils im selben Raster (hoehenfeld.hoehen – das höchste Dreieck über
+der Zelle), je Zelle der Rest darüber, die Farben und die gewählten Flächen wie rundum. Was
+unter einem Überhang liegt, kennt ein Höhenfeld nicht – 2,5D von oben.
+
 Läuft ohne Oberfläche; numpy gehört zu FreeCAD.
 """
 
@@ -54,6 +65,7 @@ from . import vierachs_huelle as vh
 
 SCHRITT_A = 0.5  # mm – Raster längs der Achse
 SCHRITT_PHI = 1.0  # Grad – Raster rundum
+SCHRITT_XY = 0.5  # mm – Raster des Quaders (2,5D)
 TEILSCHRITT = 0.5  # mm – so fein fährt der Fräser zwischen zwei Punkten der Bahn
 TEILSCHRITTE_JE_BLOCK = 50000  # so viele Teilschritte rechnet fahre_stuecke() auf einmal
 GENAU = 1e-3  # mm – mit einer so kleinen Scheibe liest der Vergleich das Teil auf dem Strahl
@@ -363,16 +375,20 @@ def _bereiche(stange, zeilen):
     )
 
 
-def _spruenge(teil):
+def _spruenge(teil, rundum=True):
     """(n_a, n_phi): je Zelle die größte Änderung des Teils zu einer Nachbarzelle (längs und
-    rundum) – unendlich, wo ein Nachbar kein Teil hat."""
+    rundum) – unendlich, wo ein Nachbar kein Teil hat. `rundum`: die zweite Achse läuft um
+    (φ); ohne (der Quader) endet sie wie die erste."""
     with np.errstate(invalid="ignore"):
         sprung = np.zeros(teil.shape)
-        for nachbar in (np.roll(teil, 1, axis=1), np.roll(teil, -1, axis=1)):
-            sprung = np.maximum(sprung, np.abs(nachbar - teil))
+        if rundum:
+            seitlich = (np.roll(teil, 1, axis=1), np.roll(teil, -1, axis=1))
+        else:
+            rand = np.full((teil.shape[0], 1), -np.inf)
+            seitlich = (np.hstack([teil[:, 1:], rand]), np.hstack([rand, teil[:, :-1]]))
         oben = np.vstack([teil[1:], np.full((1, teil.shape[1]), -np.inf)])
         unten = np.vstack([np.full((1, teil.shape[1]), -np.inf), teil[:-1]])
-        for nachbar in (oben, unten):
+        for nachbar in (*seitlich, oben, unten):
             sprung = np.maximum(sprung, np.abs(nachbar - teil))
     return np.where(np.isfinite(sprung), sprung, np.inf)
 
@@ -407,6 +423,10 @@ class Abtrag:
         self.fasen = dict(fasen or {})
         self._erlaubt = np.zeros(stange.r.shape)
         self.bis = 0  # abgetragen bis vor diese Station
+
+    def letzte(self):
+        """Der Index der letzten Station."""
+        return len(self.a) - 1
 
     def bis_station(self, index):
         """Trägt ab bis einschließlich Station `index`; zurück rechnet es von vorn."""
@@ -463,6 +483,16 @@ class Abtrag:
 
 
 def fuer(abfahrt, job, am_werkstueck):
+    """Der Abtrag für diesen Job: die Stange (fuer_rundum) oder der Quader (fuer_quader) –
+    oder None, wenn keins von beiden geht. `am_werkstueck`: je Station die Spitze am gedrehten
+    Teil (abfahren.Abfahrt.am_werkstueck)."""
+    abtrag = fuer_rundum(abfahrt, job, am_werkstueck)
+    if abtrag is None:
+        abtrag = fuer_quader(abfahrt, job, am_werkstueck)
+    return abtrag
+
+
+def fuer_rundum(abfahrt, job, am_werkstueck):
     """Das Abtrag für diesen Job – oder None, wenn das Rohteil keine runde Stange ist oder
     keine Operation „Rundum schruppen“ oder „Rundum schlichten“ darin läuft. `am_werkstueck`:
     je Station die Spitze am gedrehten Teil (abfahren.Abfahrt.am_werkstueck). Jede Operation
@@ -569,6 +599,282 @@ def operationsarten_rundum():
     return ("vierachs_operation", "vierachs_schlichten", "vierachs_plan", "vierachs_entgraten")
 
 
+# --- Der Quader (W-006 S3d) ----------------------------------------------------------------
+
+
+def _raster(von, bis, schritt):
+    anzahl = max(2, int(math.ceil((bis - von) / schritt - 1e-9)) + 1)
+    return von + schritt * np.arange(anzahl)
+
+
+class Quader:
+    """Die Höhen des Materials über (x, y) – anfangs der ganze Quader (das Rohteil als Kasten
+    im Job: x_von … x_bis, y_von … y_bis, z_von … z_bis)."""
+
+    def __init__(self, x_von, x_bis, y_von, y_bis, z_von, z_bis, schritt=SCHRITT_XY):
+        self.x = _raster(float(x_von), float(x_bis), schritt)
+        self.y = _raster(float(y_von), float(y_bis), schritt)
+        self.z_von, self.z_bis = float(z_von), float(z_bis)
+        self.h = np.full((len(self.x), len(self.y)), self.z_bis)
+        self._schritt = float(schritt)
+
+    def zuruecksetzen(self):
+        self.h.fill(self.z_bis)
+
+    def fahre(self, von, nach, fraeser):
+        """Der Fräser fährt von `von` nach `nach` – je (x, y, z) der Spitze im Job – und nimmt
+        weg, was er dabei trifft (den Anfang nicht: der kam mit dem Stück davor). `fraeser`:
+        seine Form (fraeserform.Form) oder der Radius eines Schaftfräsers."""
+        self.fahre_stuecke([von], [nach], fraeser)
+
+    def fahre_stuecke(self, von, nach, fraeser):
+        """Wie fahre(), für viele Stücke auf einmal: `von` und `nach` je (n, 3). Blockweise
+        wie Stange.fahre_stuecke – weg ist, was irgendein Teilschritt trifft."""
+        von = np.asarray(von, dtype=float).reshape(-1, 3)
+        nach = np.asarray(nach, dtype=float).reshape(-1, 3)
+        if not len(von):
+            return
+        weg = np.linalg.norm(nach - von, axis=1)
+        anzahl = np.maximum(1, np.ceil(weg / TEILSCHRITT)).astype(np.int64)
+        summe = np.cumsum(anzahl)
+        start = 0
+        while start < len(von):
+            ziel = summe[start] - anzahl[start] + TEILSCHRITTE_JE_BLOCK
+            ende = max(int(np.searchsorted(summe, ziel, "right")), start + 1)
+            stueck = np.repeat(np.arange(start, ende), anzahl[start:ende])
+            vorher = np.repeat(
+                np.cumsum(anzahl[start:ende]) - anzahl[start:ende], anzahl[start:ende]
+            )
+            t = ((np.arange(len(stueck)) - vorher + 1) / anzahl[stueck])[:, None]
+            punkte = von[stueck] + t * (nach[stueck] - von[stueck])
+            self.schnitte(punkte[:, 0], punkte[:, 1], punkte[:, 2], fraeser)
+            start = ende
+
+    def schnitt(self, x_t, y_t, z_t, fraeser):
+        """Nimmt weg, was der Fräser mit der Spitze bei (x_t, y_t, z_t) trifft."""
+        self.schnitte([x_t], [y_t], [z_t], fraeser)
+
+    def schnitte(self, x_t, y_t, z_t, fraeser):
+        """Wie schnitt(), an vielen Stellen auf einmal (Folgen gleicher Länge): In der Zelle
+        im Abstand ℓ von der Werkzeugachse bleibt höchstens z_t + z(ℓ) stehen – die Stirn des
+        Fräsers (fraeserform), beim Schaftfräser z = 0."""
+        x_t = np.asarray(x_t, dtype=float).ravel()
+        y_t = np.asarray(y_t, dtype=float).ravel()
+        z_t = np.asarray(z_t, dtype=float).ravel()
+        if not len(x_t):
+            return
+        form = fraeser if isinstance(fraeser, ff.Form) else None
+        radius = form.radius if form is not None else float(fraeser)
+        if radius <= 0:
+            return
+        m = int(math.ceil(radius / self._schritt + 1e-9))
+        breite = 2 * m + 1
+        je_block = max(1, ZELLEN_JE_BLOCK // (breite * breite))
+        versatz = np.arange(-m, m + 1)
+        n_x, n_y = self.h.shape
+        for start in range(0, len(x_t), je_block):
+            xs, ys, zs = (v[start : start + je_block] for v in (x_t, y_t, z_t))
+            ii = np.rint((xs - self.x[0]) / self._schritt).astype(np.int64)[:, None] + versatz
+            jj = np.rint((ys - self.y[0]) / self._schritt).astype(np.int64)[:, None] + versatz
+            drin_i = (ii >= 0) & (ii < n_x)
+            drin_j = (jj >= 0) & (jj < n_y)
+            ii = np.clip(ii, 0, n_x - 1)
+            jj = np.clip(jj, 0, n_y - 1)
+            dx = self.x[ii] - xs[:, None]  # (K, w)
+            dy = self.y[jj] - ys[:, None]
+            l2 = dx[:, :, None] ** 2 + dy[:, None, :] ** 2  # (K, w, w)
+            if form is None or form.eben:
+                tiefe = np.where(l2 <= radius * radius + 1e-9, zs[:, None, None], np.inf)
+            else:
+                z, _steigung = _hoehe(form, np.sqrt(l2))
+                tiefe = zs[:, None, None] + z
+            zellen_i = np.broadcast_to(ii[:, :, None], l2.shape)
+            zellen_j = np.broadcast_to(jj[:, None, :], l2.shape)
+            drin = drin_i[:, :, None] & drin_j[:, None, :] & np.isfinite(tiefe)
+            drin &= tiefe < self.h[zellen_i, zellen_j]
+            if drin.any():
+                np.minimum.at(self.h, (zellen_i[drin], zellen_j[drin]), tiefe[drin])
+
+
+def teilhoehen(netz, quader):
+    """Die Oberseite des fertigen Teils im Raster des Quaders – −inf, wo es keins gibt
+    (hoehenfeld.hoehen: das höchste Dreieck über der Zelle)."""
+    from . import hoehenfeld as hf
+
+    return hf.hoehen(netz, quader.x, quader.y)
+
+
+def vergleiche_quader(quader, teil, aufmass, nur=None, erlaubt=None):
+    """Das Restmaterial im Quader gegen das fertige Teil (`teil`: teilhoehen()), je Zelle
+    eingefärbt – wie vergleiche(), von oben: der Rest ist h − Teil. `nur`: (n_x, n_y) die
+    Zellen der gewählten Flächen; `erlaubt`: (n_x, n_y) mm, so tief darf es je Zelle ins
+    Teil, ohne blau zu werden."""
+    da = np.isfinite(teil)
+    tief = np.where(da, quader.h - teil, np.nan)
+    if nur is not None:
+        da = da & nur
+    rest = np.where(da, quader.h - teil, np.nan)
+    farbe = np.full(quader.h.shape, OHNE_TEIL, dtype=np.int8)
+    farbe[da & (rest <= aufmass + GRUEN_BIS)] = GRUEN
+    farbe[da & (rest > aufmass + GRUEN_BIS)] = GELB
+    farbe[da & (rest >= aufmass + ROT_AB)] = ROT
+    schwelle = BLAU_AB + 0.5 * _spruenge(teil, rundum=False)
+    if erlaubt is not None:
+        schwelle = schwelle + erlaubt
+    with np.errstate(invalid="ignore"):
+        blau = tief < -schwelle
+        farbe[blau] = BLAU
+        tief = np.where(blau, tief, np.maximum(tief, -BLAU_AB))
+    kleinster = float(np.nanmin(tief)) if np.isfinite(tief).any() else 0.0
+    groesster = float(np.nanmax(rest)) if da.any() else 0.0
+    return Vergleich(rest, farbe, kleinster, groesster, nur is not None, ())
+
+
+class QuaderAbtrag:
+    """Das Rohteil eines Jobs im Quader beim Abfahren (abfahren.Abfahrt): was bis zu einer
+    Station weg ist. fuer_quader() baut es – für Jobs mit einem Kasten als Rohteil, deren
+    Werkzeuge senkrecht von oben kommen."""
+
+    def __init__(self, quader, punkte, operation, gueltig, fraeser, aufmass, formen, flaechen=None):
+        self.quader = quader
+        self.punkte = np.asarray(punkte, dtype=float).reshape(-1, 3)  # je Station die Spitze
+        self.operation, self.gueltig = operation, gueltig
+        self.fraeser = fraeser  # je Operation (Nummer in der Abfahrt) Form oder Radius
+        self.aufmass = aufmass
+        self._formen = formen
+        self._teil = None  # teilhoehen(), einmal gerechnet
+        # Die Nummern der gewählten Flächen – None: alle; dazu ihre Zellen, einmal gerechnet.
+        self.flaechen = flaechen
+        self._nur = None
+        self.bis = 0  # abgetragen bis vor diese Station
+
+    def letzte(self):
+        """Der Index der letzten Station."""
+        return len(self.punkte) - 1
+
+    def bis_station(self, index):
+        """Trägt ab bis einschließlich Station `index`; zurück rechnet es von vorn."""
+        index = min(index, len(self.punkte) - 1)
+        if index + 1 < self.bis:
+            self.quader.zuruecksetzen()
+            self.bis = 0
+        k = np.arange(max(self.bis, 1), index + 1)
+        fahren = (
+            self.gueltig[k - 1] & self.gueltig[k] & (self.operation[k - 1] == self.operation[k])
+        )
+        k = k[fahren]
+        for nummer, fraeser in self.fraeser.items():
+            stuecke = k[self.operation[k] == nummer]
+            if len(stuecke):
+                self.quader.fahre_stuecke(self.punkte[stuecke - 1], self.punkte[stuecke], fraeser)
+        self.bis = max(self.bis, index + 1)
+
+    def vergleich(self):
+        """Das Restmaterial gegen das fertige Teil (Vergleich) – die Oberseite des Teils und,
+        mit gewählten Flächen, deren Zellen rechnet es beim ersten Mal."""
+        if self._teil is None:
+            import Part
+
+            from . import hoehenfeld as hf
+            from . import vierachs_flaechen as vf
+
+            form = self._formen[0] if len(self._formen) == 1 else Part.makeCompound(self._formen)
+            fnetz = vf.vernetze(form)
+            self._teil = teilhoehen(fnetz.netz, self.quader)
+            if self.flaechen:
+                drin = np.isin(fnetz.flaeche, sorted(self.flaechen))
+                nur = vh.Netz(fnetz.netz.punkte, fnetz.netz.dreiecke[drin], fnetz.netz.toleranz)
+                self._nur = np.isfinite(hf.hoehen(nur, self.quader.x, self.quader.y, innen=True))
+        return vergleiche_quader(self.quader, self._teil, self.aufmass, self._nur)
+
+
+def _werkzeug_von_oben(abfahrt, nummer):
+    """Kommt das Werkzeug der Operation `nummer` am Werkstück senkrecht von oben – die Spitze
+    unten, der Halter in +z des Jobs? Gelesen an der ersten erreichbaren Station: Wäre das
+    Werkzeug 1 mm länger, rückte die Spitze um 1 mm vom Halter weg – von oben nach −z."""
+    from . import reichweite as rw
+    from .kinematik import Kinematik
+
+    op = abfahrt.operationen[nummer]
+    index = next(
+        (
+            i
+            for i, s in enumerate(abfahrt.stationen)
+            if s.operation == nummer and s.stellungen is not None
+        ),
+        None,
+    )
+    if index is None:
+        return False
+    stellungen = abfahrt.stellungen_an(index)
+    laenger = Kinematik(
+        abfahrt.pruefung, op.aufnahme, rw.Einspannung(op.laenge + 1.0, op.lage), abfahrt.nullpunkt
+    )
+    spitze = np.array(abfahrt.kinematik(nummer).am_werkstueck(stellungen))
+    richtung = np.array(laenger.am_werkstueck(stellungen)) - spitze
+    return richtung[2] < -1.0 + 1e-6
+
+
+def fuer_quader(abfahrt, job, am_werkstueck):
+    """Der Abtrag im Quader für diesen Job – oder None, wenn das Rohteil kein Kasten ist (aus
+    dem Modell oder mit Maßen), eine Rundachse fährt, oder ein Werkzeug nicht senkrecht von
+    oben kommt. Jede Operation mit Werkzeug trägt mit dessen Form ab; verglichen wird mit dem
+    Aufmaß der letzten, die eins hat, und – haben alle Operationen gewählte Flächen – nur
+    auf ihnen."""
+    rohteil = getattr(job, "Stock", None)
+    form = getattr(rohteil, "Shape", None)
+    if form is None or form.isNull() or hasattr(rohteil, "Radius"):
+        return None
+    if not (hasattr(rohteil, "ExtZpos") or hasattr(rohteil, "Length")):
+        return None
+    if not abfahrt.stationen or not abfahrt.operationen:
+        return None
+    if any(any(s.rund.values()) for s in abfahrt.stationen):
+        return None
+    fraeser = {}
+    for k, op in enumerate(abfahrt.operationen):
+        if op.tc is None or getattr(op.tc, "Tool", None) is None:
+            continue
+        if not _werkzeug_von_oben(abfahrt, k):
+            return None
+        fraeser[k] = _fraeser(op.tc)
+    if not fraeser:
+        return None
+    ops = {o.Label: o for o in getattr(job.Operations, "Group", [])}
+    operation = np.array([s.operation for s in abfahrt.stationen])
+    gueltig = np.array(
+        [s.stellungen is not None and s.operation in fraeser for s in abfahrt.stationen]
+    )
+    aufmass = next(
+        (
+            float(ops[abfahrt.operationen[k].name].Aufmass)
+            for k in sorted(fraeser, reverse=True)
+            if hasattr(ops.get(abfahrt.operationen[k].name), "Aufmass")
+        ),
+        0.0,
+    )
+    from . import vierachs_flaechen as vf
+    from .vierachs_operation import flaechen as flaechen_von
+
+    gewaehlt = [
+        flaechen_von(ops[abfahrt.operationen[k].name]) if abfahrt.operationen[k].name in ops else ()
+        for k in sorted(fraeser)
+    ]
+    flaechen = set().union(*(vf.nummern(g) for g in gewaehlt)) if all(gewaehlt) else None
+    formen = [
+        o.Shape
+        for o in getattr(job.Model, "Group", [])
+        if getattr(o, "Shape", None) is not None and not o.Shape.isNull()
+    ]
+    if not formen:
+        return None
+    box = form.BoundBox
+    quader = Quader(box.XMin, box.XMax, box.YMin, box.YMax, box.ZMin, box.ZMax)
+    return QuaderAbtrag(
+        quader, am_werkstueck, operation, gueltig, fraeser, aufmass, formen, flaechen
+    )
+
+
 # --- Darstellung (ohne Coin: Felder, die gui_abfahren in die Ansicht gibt) ---------------
 
 SCHWERE = {OHNE_TEIL: 0, GRUEN: 1, GELB: 2, ROT: 3, BLAU: 4}  # was in einem Block zählt
@@ -600,3 +906,20 @@ def _bloecke(werte, zeilen, spalten, wie):
     n_phi = werte.shape[1] // spalten
     beschnitten = werte[: n_a * zeilen, : n_phi * spalten]
     return wie(beschnitten.reshape(n_a, zeilen, n_phi, spalten), axis=(1, 3))
+
+
+def darstellung_quader(quader, zeilen=1, spalten=1):
+    """(x, y, h) fürs Bild: die Oberseite des Quaders im Job, je `zeilen` × `spalten` Zellen
+    ein Punkt – die tiefste Höhe darin."""
+    h = _bloecke(quader.h, zeilen, spalten, np.min)
+    x = quader.x[: h.shape[0] * zeilen : zeilen]
+    y = quader.y[: h.shape[1] * spalten : spalten]
+    return x, y, h
+
+
+def farben_quader(vergleich, zeilen=1, spalten=1):
+    """Die Farbe je Punkt von darstellung_quader(): die schwerste im Block."""
+    schwere = np.vectorize(SCHWERE.get)(vergleich.farbe)
+    block = _bloecke(schwere, zeilen, spalten, np.max)
+    zurueck = {v: k for k, v in SCHWERE.items()}
+    return np.vectorize(zurueck.get)(block)

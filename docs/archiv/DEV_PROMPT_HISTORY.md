@@ -12,6 +12,69 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-16 s3d-pruefen-quader
+
+### EINGELESEN
+- W-006 (`docs/spezifikation_strategien.md`): S3d (der Abtrag als Höhenfeld des Rohteils,
+  Dexel längs Z, beim Abspielen und am Ende in Farben; Kollision wie gehabt), Abschnitt 7
+  (Abtragsmodell: `restmaterial` verallgemeinern, die Farben am Ende gelten für beide).
+- `restmaterial` (die Stange als r(a, φ), `Abtrag.bis_station`, `vergleiche`, `fuer`, die
+  Darstellung), `gui_abfahren.Bild` (die Stange als SoQuadMesh, Farben je Punkt, der Satz unter
+  dem Abspieler), `abfahren` (Stationen, `am_werkstueck`), `kinematik.Kinematik`
+  (`am_werkstueck` – die Spitze im Job), `vierachs_flaechen.vernetze` (die Fläche je Dreieck),
+  `fraeserform.Form.hoehe`, `planfraesen_bahn` (`_fahrt`, `_schritt`, `_Raster`).
+
+### DATEIEN
+- Neu: `tests/test_quader.py`
+- `camaddon/restmaterial.py`, `camaddon/hoehenfeld.py`, `camaddon/gui_abfahren.py`,
+  `camaddon/planfraesen_bahn.py`, `tests/test_planfraesen.py`,
+  `tests/gui/szenario_bearbeitung.py`, `translations/de.json`, `translations/en.json`,
+  `help/de/reichweite.html`, `help/en/reichweite.html`, `help/de/bearbeitung.html`,
+  `help/en/bearbeitung.html`, `package.xml` (0.38.0), `docs/aufbau.md`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Block 60 × 40 × 20 mit 5 mm Absatz, Rohteil 1 mm rundum, „Planfräsen T1“ (Ø 10, ap 2, ae 4)
+auf der Beispiel-Fräse: Die Oberseite des Teils im Raster ist 20 über der Fläche, 25 über dem
+Absatz, auf der Kante das Höhere, daneben nichts; die Zellen der gewählten Fläche zählen die
+Kante nicht. Ein Schnitt nimmt unter dem Schaftfräser bis zur Spitze weg, daneben nichts; der
+Kugelfräser lässt daneben die Kugel stehen; ein Stück fährt durch. `restmaterial.fuer` gibt
+für den Job den Quader (nicht die Stange), mit der gewählten Fläche; nach dem Abfahren ist sie
+überall grün (Rest 0), nirgends blau, der Absatz ohne Farbe; über dem Absatz steht das Rohteil
+noch (26), über der Fläche nicht (20); zurück zu Station 1 ist der Quader ganz. Ein Zylinder
+als Rohteil gibt keinen Quader. Im Prüffenster (Szenario): der Kasten mittendrin
+angeschnitten, am Ende der Satz „Am Ende bleiben 0,00 mm … 0,00 mm … nirgends ins Teil.
+Verglichen auf den gewählten Flächen …“. Planfräsen: an der Wand (x = 15,25) fährt der Fräser
+bis y 0 und 40.
+
+### DONE
+- `restmaterial.Quader` (Höhen über (x, y), `schnitte` blockweise mit der Stirn z(ℓ) der
+  Form, `fahre_stuecke` in Teilschritten), `teilhoehen`, `vergleiche_quader` (wie
+  `vergleiche`, von oben; `_spruenge` ohne Umlauf), `QuaderAbtrag` (`bis_station`,
+  `vergleich` mit der Maske der gewählten Flächen), `fuer_quader` (Kasten als Rohteil – aus
+  dem Modell oder mit Maßen –, keine Rundachse, jedes Werkzeug senkrecht von oben: gelesen
+  an der Kinematik, 1 mm länger rückt die Spitze nach −z; jede Operation mit Werkzeug trägt
+  ab; Aufmaß der letzten mit Aufmaß; gewählte Flächen, wenn alle welche haben),
+  `darstellung_quader`, `farben_quader`; `fuer()` gibt Stange oder Quader; `letzte()`.
+- `hoehenfeld.hoehen`: die Oberseite eines Netzes im Raster – je Dreieck die Zellen in seinem
+  Umriss (baryzentrisch), das höchste gewinnt; `innen` lässt Kanten aus (die Maske).
+- `gui_abfahren.Bild`: der Quader als SoQuadMesh mit Rand auf der Unterseite (Seitenwände)
+  und Boden, Farben je Punkt; der Satz unter dem Abspieler mit „Rohteil“ statt „Stange“.
+- Beim Bauen gefunden: Das Planfräsen ließ vor dem Absatz zwischen den Zeilen und in den
+  Ecken Reste von voller Höhe (rot, 6 mm) – die Zeilen hin und her lassen an der Wand jeden
+  zweiten Zwischenraum aus. Jetzt `_wandfahrt`: vor einer Wand an ihr entlang zur vorigen
+  Zeile zurück, vor der ersten und hinter der letzten Zeile bis an den Rand der Fläche (die
+  Hüllfläche dort eigens gerechnet), und wieder her.
+
+### TEST
+- `test_quader` (neu), `test_planfraesen` (Wandfahrt) und `szenario_bearbeitung` (Prüffenster
+  mit der Beispiel-Fräse, drei weitere Screenshots) in 1.1.3 ok; black/ruff ok.
+
+### NEXT
+- S3e Kontur (außen/innen mit Ein- und Ausfahren, Konturen versetzen im Bahnmodell – nimmt
+  auch den Sicherheitsabstand vor Wänden weg), S3f Tasche adaptiv, S3g Bohren/Gewinde.
+
 ## P-2026-10-01-15 s3c-assistent-bearbeitung
 
 ### EINGELESEN

@@ -126,7 +126,12 @@ much left” – blue (into the part) applies everywhere. Where the part does no
 lie all around the axis – say an end that stands beside the axis –, it does not
 compare and says from where to where: the bar knows only one radius per ray from
 the axis and would not see there what of the part remains behind the cutter.
-Going back recalculates from the start.</li>
+Going back recalculates from the start. A part in a <b>block</b> (stock from
+the model or with dimensions, the tools vertical from above – the mill) works
+the same way: the box is removed from above, every operation with the shape of
+its cutter (FreeCAD's own too), compared at the end with the top of the part –
+the colours as with the bar, with selected faces only on them. What lies under
+an overhang it does not see: 2.5D, from above.</li>
 </ul>
 <p><b>The time:</b> feed moves with the feed rate from the path, without one
 at 1000 mm/min (a note says so); rapid moves per axis with the machine's rapid

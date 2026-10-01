@@ -369,8 +369,9 @@ gebaut (Messen P-71/-75/-76, goldene Bahnen P-73, Rest blockweise P-77); das
 Bahn-Datenmodell mit Bögen kommt mit der ersten Strategie, die Bögen braucht
 (S3). S2 ist gebaut (Linien längs P-2026-10-01-06, Plan indexiert P-08/-10,
 Rundum entgraten P-12; 0.36.0). Von S3 sind die Hüllfläche von oben, die Bahn
-mit Bögen, „Planfräsen“ (P-2026-10-01-14) und der Assistent „Bearbeitung
-(Fräsen)“ (P-15; 0.37.0) gebaut.
+mit Bögen, „Planfräsen“ (P-2026-10-01-14), der Assistent „Bearbeitung
+(Fräsen)“ (P-15; 0.37.0) und das Prüffenster mit dem Quader (P-16; 0.38.0)
+gebaut.
 
 **S3 im Einzelnen** (Plan 2026-10-01, Claude; die Reihenfolge nach Nutzen):
 
@@ -400,6 +401,14 @@ mit Bögen, „Planfräsen“ (P-2026-10-01-14) und der Assistent „Bearbeitung
   Gebaut (P-2026-10-01-15, 0.37.0): `gui_bearbeitung.py`, Szenario `szenario_bearbeitung`.
 - **S3d Prüffenster 2,5D** – der Abtrag als Höhenfeld des Rohteils (Dexel längs
   Z), beim Abspielen und am Ende in Farben; Kollision wie gehabt.
+  Gebaut (P-2026-10-01-16, 0.38.0): `restmaterial.Quader`, `QuaderAbtrag`,
+  `hoehenfeld.hoehen`, die Anzeige in `gui_abfahren`; jede Operation des Jobs
+  trägt ab, auch FreeCADs eigene. Die Simulation fand gleich einen Fehler des
+  Planfräsens: vor einer Wand blieb zwischen den Zeilen und in den Ecken ein
+  Rest (die Zeilen hin und her lassen an der Wand jeden zweiten Zwischenraum
+  aus) – jetzt fährt der Fräser dort an der Wand entlang (Wandfahrt). Was
+  bleibt: der Sicherheitsabstand (0,25 mm) vor jeder Wand, den die Kontur (S3e)
+  wegnimmt – im Raster von 0,5 mm sieht die Simulation ihn nicht.
 - **S3e Kontur** – außen und innen mit tangentialem Ein- und Ausfahren,
   Schruppen mit Aufmaß und Schlichten in einem Schritt; Konturen versetzen im
   Bahnmodell (dann auch die Spirale fürs Planfräsen).

@@ -131,7 +131,11 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   zwischen den Zeilen, halber Vorschub beim Austritt, vor Absätzen hält die
   Zeile an; Fräser und Einsatz aus der Werkzeugverwaltung, die Werte als
   Vorschlag, darunter „→ 3 Lagen, 30 Zeilen, etwa 2 min“. Doppelklick auf die
-  Operation öffnet das Fenster zum Ändern. Kontur, Tasche und Bohren folgen.
+  Operation öffnet das Fenster zum Ändern. Vor einer Wand fährt der Fräser an
+  ihr entlang, damit zwischen den Zeilen nichts stehen bleibt. „Auf der
+  Maschine prüfen“ trägt den Quader beim Abspielen ab – jede Operation mit der
+  Form ihres Fräsers, auch FreeCADs eigene – und färbt ihn am Ende gegen das
+  fertige Teil (grün, gelb, rot, blau). Kontur, Tasche und Bohren folgen.
 
 Stand und nächste Schritte: [docs/STATUS_SNAPSHOT.md](docs/STATUS_SNAPSHOT.md).
 Für KI-Assistenten: [CHATSTART.md](CHATSTART.md).

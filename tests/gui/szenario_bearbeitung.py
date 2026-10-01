@@ -4,10 +4,13 @@
 # entsteht sofort, die Fläche steht grün in der Liste, die Vorschau sagt „→ 3 Lagen, 30
 # Zeilen“. „Anlegen“: „Planfräsen T1“ mit 3 Lagen und 30 Zeilen, Sätze mit Bögen. Doppelklick
 # darauf öffnet das Fenster mit ihren Werten; „Übernehmen“ mit 1,5 mm Zustellung rechnet sie
-# neu – vier Lagen.
+# neu – vier Lagen. Dann „Auf der Maschine prüfen“ mit der Beispiel-Fräse (W-006 S3d): Der
+# Quader wird beim Abspielen abgetragen, am Ende steht die gewählte Fläche grün da, nirgends
+# ins Teil, der Absatz ohne Farbe.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
+from PySide import QtCore
 
 
 def schritte(h):
@@ -19,7 +22,7 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import gui_bearbeitung
+    from camaddon import beispielmaschine, gui_bearbeitung, gui_reichweite
     from camaddon import hoehenfeld as hf
     from camaddon import planfraesen as pf
     from camaddon import werkzeuge as wz
@@ -115,5 +118,50 @@ def schritte(h):
     h.pruefe(panel.accept() is True, "„Übernehmen“ ging nicht")
     yield 1500
     h.pruefe(op.Lagen == 4, f"nach dem Ändern: {op.Lagen} Lagen")
+
+    # --- Auf der Maschine prüfen: der Quader wird abgetragen, am Ende Farben -----------------
+    asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
+    yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is asm.Document)
+    yield 500
+    FreeCAD.setActiveDocument(doc.Name)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400  # siehe szenario_reichweite.py: 1.1.3 verarbeitet die Auswahl verzögert
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_AufMaschinePruefen"))
+    yield from h.warte_auf(lambda: gui_reichweite.PruefPanel.offen is not None)
+    pruef = gui_reichweite.PruefPanel.offen
+    h.pruefe(pruef is not None, "„Auf der Maschine prüfen“ öffnet kein Fenster")
+    if pruef is None:
+        return
+    yield 800
+    abtrag = getattr(getattr(pruef, "bild", None), "abtrag", None)
+    h.pruefe(abtrag is not None and hasattr(abtrag, "quader"), f"Abtrag: {type(abtrag).__name__}")
+    spieler = pruef.abspieler
+    fahrt = spieler.abfahrt
+    stationen = [s for s in fahrt.stationen if not s.eilgang]
+    h.pruefe(len(stationen) > 50, f"{len(stationen)} Stationen im Vorschub")
+    if stationen:
+        spieler.setze_zeit(stationen[len(stationen) // 2].zeit)
+        spieler.knopf_hinsehen.click()
+        yield 500
+        satz = spieler.rest.text()
+        h.pruefe(satz.startswith("Das Rohteil wird beim Abspielen abgetragen"), f"{satz!r}")
+        h.bild("4_pruefen_mittendrin")
+    spieler.setze_zeit(fahrt.dauer)
+    yield 500
+    rest = spieler.rest.text()
+    h.pruefe(
+        rest.startswith("Am Ende bleiben")
+        and "nirgends ins Teil" in rest
+        and "gewählten Flächen" in rest,
+        f"{rest!r}",
+    )
+    Gui.SendMsgToActiveView("ViewFit")
+    spieler.knopf_hinsehen.click()
+    yield 500
+    h.bild("5_pruefen_farben")
+    h.bild("5b_pruefen_fenster", pruef.form)
+    pruef.reject()
+    yield 500
     FreeCAD.closeDocument(doc.Name)
     yield 300

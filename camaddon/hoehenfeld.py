@@ -10,6 +10,8 @@ Teil nicht verletzt.
 - je_zeile(): die Hüllfläche je Zeile – wie vierachs_huelle.je_versatz, nur senkrecht: je
   Zeile (ein Versatz quer) die Höhen längs an Stellen im Raster, genau gegen Ecken, Kanten und
   Dreiecke des Netzes mit der Form des Fräsers (fraeserform). Ohne OCL, mit numpy.
+- hoehen(): die Oberseite eines Netzes im Raster – je Zelle das höchste Dreieck über ihrer
+  Mitte (das fertige Teil für den Vergleich im Quader, restmaterial, S3d).
 
 Rahmen: x und y wie im Job, z nach oben; die Zeilen laufen längs x oder längs y. Läuft ohne
 Oberfläche.
@@ -116,3 +118,47 @@ def je_zeile(netz, form, v_werte, u0, schritt, anzahl, laengs_x=True):
         )
         r[:, j] = np.where(np.isfinite(spalte), spalte - hub, spalte)
     return r
+
+
+_RAND = 1e-7  # so weit außerhalb eines Dreiecks zählt eine Zellenmitte noch dazu (Kanten)
+
+
+def hoehen(netz, x, y, innen=False):
+    """z[i, j] (mm): die Oberseite des Netzes über (x[i], y[j]) – das höchste Dreieck, unter
+    dem die Zellenmitte liegt; KEIN_TREFFER, wo keins liegt. Senkrechte Dreiecke tragen nichts
+    bei; eine Mitte genau auf einer Kante zählt zu beiden Dreiecken – mit `innen` zu keinem
+    (die Zellen der gewählten Flächen: am Rand zu einer höheren Fläche wüsste das Raster nicht,
+    welche gilt)."""
+    rand = -_RAND if innen else _RAND
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    z = np.full((len(x), len(y)), KEIN_TREFFER)
+    dreiecke = netz.dreiecke
+    if not len(dreiecke) or not len(x) or not len(y):
+        return z
+    p = netz.punkte
+    a, b, c = p[dreiecke[:, 0]], p[dreiecke[:, 1]], p[dreiecke[:, 2]]
+    v0, v1 = b - a, c - a
+    det = v0[:, 0] * v1[:, 1] - v1[:, 0] * v0[:, 1]
+    x_min = np.minimum(np.minimum(a[:, 0], b[:, 0]), c[:, 0])
+    x_max = np.maximum(np.maximum(a[:, 0], b[:, 0]), c[:, 0])
+    y_min = np.minimum(np.minimum(a[:, 1], b[:, 1]), c[:, 1])
+    y_max = np.maximum(np.maximum(a[:, 1], b[:, 1]), c[:, 1])
+    saum = 1e-9
+    i_von = np.searchsorted(x, x_min - saum)
+    i_bis = np.searchsorted(x, x_max + saum, "right")
+    j_von = np.searchsorted(y, y_min - saum)
+    j_bis = np.searchsorted(y, y_max + saum, "right")
+    for k in np.flatnonzero((np.abs(det) > 1e-12) & (i_von < i_bis) & (j_von < j_bis)):
+        i0, i1, j0, j1 = i_von[k], i_bis[k], j_von[k], j_bis[k]
+        px = (x[i0:i1] - a[k, 0])[:, None]
+        py = (y[j0:j1] - a[k, 1])[None, :]
+        l1 = (px * v1[k, 1] - py * v1[k, 0]) / det[k]
+        l2 = (py * v0[k, 0] - px * v0[k, 1]) / det[k]
+        drin = (l1 >= -rand) & (l2 >= -rand) & (l1 + l2 <= 1.0 + rand)
+        if not drin.any():
+            continue
+        hoehe = a[k, 2] + l1 * v0[k, 2] + l2 * v1[k, 2]
+        block = z[i0:i1, j0:j1]
+        np.maximum(block, np.where(drin, hoehe, KEIN_TREFFER), out=block)
+    return z
