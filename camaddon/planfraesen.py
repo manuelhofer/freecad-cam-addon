@@ -81,6 +81,7 @@ class PlanFraesen(PathOp.ObjectOp):
             ("App::PropertyInteger", "Ebenen", tr("pf.eigenschaft.ebenen")),
             ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
             ("App::PropertyInteger", "Zeilen", tr("pf.eigenschaft.zeilen")),
+            ("App::PropertyString", "Richtung", tr("pf.eigenschaft.richtung")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -89,20 +90,24 @@ class PlanFraesen(PathOp.ObjectOp):
 
     @staticmethod
     def _editormodi(obj):
-        for name in ("Ebenen", "Lagen", "Zeilen"):
+        for name in ("Ebenen", "Lagen", "Zeilen", "Richtung"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
 
     def opExecute(self, obj):
         try:
             if not self.horizFeed or self.horizFeed <= 0:
                 raise ValueError(tr("vo.fehler.vorschub"))
-            ergebnis = rechne(obj, self.job, self.model)
+            ergebnis = rechne(
+                obj, self.job, self.model, self.horizFeed * 60.0, vo.eintauchvorschub(self)
+            )
         except ValueError as fehler:
             obj.Ebenen = obj.Lagen = obj.Zeilen = 0
+            obj.Richtung = ""
             FreeCAD.Console.PrintError(f"{obj.Label}: {fehler}\n")
             self.commandlist.append(Path.Command(f"({vo._ascii(str(fehler))})"))
             return
         obj.Ebenen, obj.Lagen, obj.Zeilen = ergebnis.flaechen, ergebnis.lagen, ergebnis.zeilen
+        obj.Richtung = ", ".join("X" if laengs_x else "Y" for laengs_x in ergebnis.richtungen)
         self.commandlist.extend(
             bn.befehle(
                 ergebnis.punkte,
@@ -112,8 +117,9 @@ class PlanFraesen(PathOp.ObjectOp):
         )
 
 
-def rechne(obj, job, modell):
-    """Die Bahn (planfraesen_bahn.Planbahn) für die Operation `obj` im Job. ValueError mit
+def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
+    """Die Bahn (planfraesen_bahn.Planbahn) für die Operation `obj` im Job; `vorschub` und
+    `eintauchen` (mm/min) für die Zeit, nach der die Zeilenrichtung fällt. ValueError mit
     einem Satz, wenn es nicht geht."""
     form = vs.form_des_controllers(obj.ToolController)
     if form is None:
@@ -133,6 +139,8 @@ def rechne(obj, job, modell):
         float(obj.Sicherheitsabstand),
         float(obj.Eintauchwinkel),
         float(obj.VorschubAustritt) / 100.0,
+        vorschub=vorschub,
+        eintauchen=eintauchen,
     )
 
 
@@ -162,12 +170,15 @@ def bahn_fuer(
     austritt=pb.AUSTRITT_ANTEIL,
     toleranz=hf.TOLERANZ,
     schritt=pb.SCHRITT,
+    vorschub=0.0,
+    eintauchen=0.0,
 ):
     """Die Bahn „Planfräsen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten Flächen
     („Face6“ …) – gefräst werden die ebenen nach oben darunter; leer: die Oberseite des Teils.
     `oben`: z, wo die Lagen beginnen (None: die Oberkante des Rohteils); `sicher`: z für den
-    Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm). ValueError mit einem Satz, wenn es
-    nicht geht."""
+    Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm); `vorschub` und `eintauchen` (mm/min)
+    für die Zeit, nach der je Fläche die Zeilenrichtung fällt. ValueError mit einem Satz,
+    wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = rohteil_von_oben(job)
     if oben is None:
@@ -190,12 +201,24 @@ def bahn_fuer(
         sicherheit=sicherheit,
         eintauchwinkel=eintauchwinkel,
         austritt=austritt,
+        vorschub=vorschub,
+        eintauchen=eintauchen,
     )
     netz = hf.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
     return pb.planen(netz, werte, ebenen, schritt)
 
 
-def vorschau(job, modell, form, zustellung, zeilenabstand, aufmass=AUFMASS, flaechen=()):
+def vorschau(
+    job,
+    modell,
+    form,
+    zustellung,
+    zeilenabstand,
+    aufmass=AUFMASS,
+    flaechen=(),
+    vorschub=0.0,
+    eintauchen=0.0,
+):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     weniger Stellen je Zeile. ValueError wie bahn_fuer()."""
     return bahn_fuer(
@@ -209,6 +232,8 @@ def vorschau(job, modell, form, zustellung, zeilenabstand, aufmass=AUFMASS, flae
         flaechen,
         toleranz=hf.VORSCHAU_TOLERANZ,
         schritt=pb.VORSCHAU_SCHRITT,
+        vorschub=vorschub,
+        eintauchen=eintauchen,
     )
 
 

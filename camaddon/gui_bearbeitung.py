@@ -318,6 +318,8 @@ class _Planfraesen(_Strategie):
             werte["zeilenabstand"],
             werte["aufmass"],
             flaechen,
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -325,10 +327,24 @@ class _Planfraesen(_Strategie):
         zeilen = tr("ba.zahl.zeile") if bahn.zeilen == 1 else tr("ba.zahl.zeilen", n=bahn.zeilen)
         if bahn.flaechen > 1:
             flaechen = tr("ba.zahl.flaechen", n=bahn.flaechen)
-            return tr(
+            text = tr(
                 "ba.ergebnis_flaechen", flaechen=flaechen, lagen=lagen, zeilen=zeilen, zeit=zeit
             )
-        return tr("ba.ergebnis", lagen=lagen, zeilen=zeilen, zeit=zeit)
+        else:
+            text = tr("ba.ergebnis", lagen=lagen, zeilen=zeilen, zeit=zeit)
+        # Die Zeilenrichtung ist gerechnet, nicht geraten: beide Richtungen, die schnellere –
+        # und wie viel langsamer die andere wäre (Grundsatz 0: die Zeit entscheidet).
+        richtungen = set(bahn.richtungen)
+        if bahn.zeit_andere is None or len(richtungen) != 1 or bahn.zeit <= 0:
+            return text
+        laengs_x = richtungen.pop()
+        richtung, andere = ("X", "Y") if laengs_x else ("Y", "X")
+        prozent = int(round((bahn.zeit_andere / bahn.zeit - 1.0) * 100.0))
+        if prozent < 1:
+            return tr("ba.richtung.gleich", text=text, richtung=richtung, andere=andere)
+        return tr(
+            "ba.richtung.langsamer", text=text, richtung=richtung, andere=andere, prozent=prozent
+        )
 
     def lege_an(self, job, tc, werte, flaechen):
         return pf.lege_an(
@@ -689,12 +705,13 @@ class _Block:
         if werkzeug is None or einsatz is None:
             self.hinweis.setText(tr("va.planfraeser.keiner"))
             return
+        _n, vorschub, senkrecht = js.werte(werkzeug, einsatz)
+        werte = dict(self.werte(), vorschub=vorschub, eintauchen=senkrecht)
         try:
-            self.vorschau = self.s.vorschau(job, werkzeug, self.werte(), flaechen)
+            self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)
         except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
             self.hinweis.setText(str(fehler))
             return
-        _n, vorschub, senkrecht = js.werte(werkzeug, einsatz)
         zeit = (
             _zeit_text(bn.zeit(self.vorschau.punkte, vorschub, senkrecht)) if vorschub > 0 else "?"
         )

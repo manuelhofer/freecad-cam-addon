@@ -65,6 +65,7 @@ def schritte(h):
     h.pruefe(not plan.hinweis.text(), f"rot: {plan.hinweis.text()!r}")
     text = plan.ergebnis.text()
     h.pruefe(text.startswith("→ 1 Lage, 23 Zeilen, etwa"), f"Vorschau: {text!r}")
+    h.pruefe("Zeilen längs X; längs Y wäre es" in text, f"Richtung: {text!r}")
     zeile = panel.flaechen_liste.item(0).text() if panel.flaechen_liste.count() else ""
     h.pruefe(zeile.startswith(flaeche) and "eben nach oben" in zeile, f"Liste: {zeile!r}")
     h.bild("1_bearbeitung", panel.form)

@@ -131,6 +131,9 @@ ein ASCII-Entwurf des Dialogs reicht.
     und was mit diesem Fräser nicht passt, fällt in der Prüfung auf (das
     Einfahren der Kontur, P-2026-10-01-23). Ein anderes Werkzeug nur, wo die
     Prüfung genau das braucht (Kugelfräser als falsches Werkzeug, Bohrer).
+    Der Fräser ist dabei nur der Maßstab – das Ziel steht in der
+    Spezifikation Strategien, Grundsatz 0: Für das gewählte Werkzeug den
+    schnellsten Weg rechnen, zwischen den Strategien die schnellste nehmen.
 - **Neue Prüfungen** gibt es für behobene Fehler, damit sie nicht
   wiederkommen, und für neue Funktionen. Reines Aufräumen braucht keine
   neuen, das decken die vorhandenen ab. Was sich ohne Oberfläche prüfen

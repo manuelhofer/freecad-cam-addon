@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-24 grundsatz-zeit-zeilenrichtung
+
+### EINGELESEN
+- Manuel (2026-10-01, auf den Bericht zu P-22/P-23): „Das ist sehr vage ausgedrückt … Natürlich
+  muss man immer den schnellsten Weg für das gewählte Werkzeug finden, einen Job zu erledigen …
+  nur muss halt auch immer die schnellste Strategie gefunden werden.“
+- `planfraesen_bahn.planen` (Zeilenrichtung nach der längeren Seite – eine Regel, keine
+  Rechnung), `gui_bearbeitung` (Ergebniszeile), Spezifikation Strategien Abschnitt 5 (die
+  Grundsätze 1–10) und 11 (der Maßstab).
+
+### DATEIEN
+- `docs/spezifikation_strategien.md`, `docs/arbeitsregeln.md`, `camaddon/planfraesen_bahn.py`,
+  `camaddon/planfraesen.py`, `camaddon/gui_bearbeitung.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/bearbeitung.html`, `tests/test_planfraesen.py`,
+  `tests/gui/szenario_bearbeitung.py`, `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.43.0)
+
+### AKZEPTANZKRITERIUM
+Grundsatz 0 steht genau in der Spezifikation: gegeben Aufgabe und Werkzeug mit Einsatz; der
+Assistent rechnet die Varianten jeder Strategie mit dem Zeitmodell und nimmt die schnellste;
+alle Strategien, die die Aufgabe lösen, treten mit derselben Zeit an, die schnellste bekommt
+den Haken, die anderen stehen mit ihrer Zeit daneben; der Maßstab ist die Platte; vor der
+Zeit nur Sicherheit und die Einsatzgrenzen. Block 60 × 40 × 20 mit Absatz, Standardfräser:
+das Planfräsen rechnet längs X (23 Zeilen zu 50 mm) und längs Y (30 Zeilen zu 40 mm), nimmt
+längs X und schreibt „→ 1 Lage, 23 Zeilen, etwa 2 min – Zeilen längs X; längs Y wäre es
+N % langsamer“; die Operation zeigt „Richtung: X“; das schmale Teil 20 × 60 bekommt längs Y.
+
+### DONE
+- Grundsatz 0 „Die Zeit entscheidet“ vor den Grundsätzen 1–10, mit Gegebenem, Freiheitsgraden,
+  Wettbewerb der Strategien, Maßstab und Grenzen; Abschnitt 11 und die Arbeitsregeln sagen,
+  dass der Standardfräser nur der Maßstab ist.
+- `planfraesen_bahn`: je Fläche beide Zeilenrichtungen (`_ebene`), die schnellere nach
+  `bahn.zeit` mit Vorschub und Eintauchvorschub aus dem Einsatz (`Planwerte.vorschub`,
+  `.eintauchen`; `.laengs` erzwingt eine Richtung); `Planbahn.richtungen`, `.zeit`,
+  `.zeit_andere`. Die Operation gibt ihre Vorschübe mit und zeigt „Richtung“ (nur lesen); der
+  Assistent gibt die Vorschübe des Einsatzes mit und hängt an die Ergebniszeile, wie viel
+  langsamer die andere Richtung wäre (`ba.richtung.*`).
+
+### TEST
+- `test_planfraesen` (Richtungen, Zeiten, erzwungene Richtung, Vorschub, Eigenschaft
+  Richtung), `test_quader`, `test_sprache`, `test_hilfe` und `szenario_bearbeitung` in 1.1.3
+  ok; black/ruff ok.
+
+### NEXT
+- S3f Räumen mit Versätzen – als erster Wettbewerb: gegen Planfräsen auf der Platte, gegen die
+  Kontur in der Tasche; der Assistent setzt den Haken bei der schnelleren. Dann Einstieg
+  (Rampe/Helix/senkrecht) nach Zeit, Startstelle am Ende der vorigen Operation, Reihenfolge
+  der Bereiche nach Eilgangweg; Spannhöhe; S3g Bohren/Gewinde.
+
 ## P-2026-10-01-23 standardfraeser-werkzeugwege
 
 ### EINGELESEN

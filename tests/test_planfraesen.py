@@ -203,6 +203,45 @@ pruefe(
 pruefe(bahn.punkte[-1].eilgang and abs(bahn.punkte[-1].z - 31.0) < 1e-9, "Ende nicht oben")
 pruefe(bahn.laenge > anzahl_zeilen * 50.0, f"Länge {bahn.laenge}")
 pruefe(bn.dauer(bahn.punkte, 1000.0) > 1.2, f"Zeit {bn.dauer(bahn.punkte, 1000.0)}")
+# Die Zeilenrichtung ist gerechnet (Grundsatz 0): längs x 23 Zeilen zu 50 mm, längs y wären
+# es 30 Zeilen zu 40 mm – längs x ist schneller; die andere Zeit steht dabei. Vorgegeben
+# längs y: 30 Zeilen, ohne Vergleich.
+pruefe(bahn.richtungen == (True,), f"Richtungen {bahn.richtungen}")
+pruefe(
+    bahn.zeit > 0 and bahn.zeit_andere is not None and bahn.zeit_andere > bahn.zeit,
+    f"Zeit längs x {bahn.zeit}, längs y {bahn.zeit_andere}",
+)
+pruefe(abs(bahn.zeit - bn.zeit(bahn.punkte, 1000.0)) < 1e-9, "Zeit wie bahn.zeit bei 1000")
+quer = pb.planen(netz, pb.Planwerte(*werte.__dict__.values()), [flaeche])
+pruefe(quer.zeilen == bahn.zeilen and quer.zeit_andere is not None, "gleich noch einmal")
+werte_y = pb.Planwerte(
+    form, werte.zustellung, werte.zeilenabstand, 0.0, 26.0, 31.0, werte.rohteil, laengs=False
+)
+bahn_y_erzwungen = pb.planen(netz, werte_y, [flaeche])
+# 30 Zeilen auf x 13,6 … 56,4; der Zähler zählt die beiden Zeilen an der Absatzwand doppelt,
+# weil sie dort in zwei Stücken gefahren werden.
+zeilen_y_erwartet = int(math.ceil((50.0 - 2 * rand_quer) / planen_einsatz.ae - 1e-9)) + 1
+x_zeilen_y = {
+    round(p.x, 6)
+    for p in bahn_y_erzwungen.punkte
+    if not p.eilgang and abs(p.z - 20.0) < 1e-6 and p.bogen is None
+}
+pruefe(
+    bahn_y_erzwungen.richtungen == (False,)
+    and len(x_zeilen_y) == zeilen_y_erwartet == 30
+    and bahn_y_erzwungen.zeilen >= zeilen_y_erwartet
+    and bahn_y_erzwungen.zeit_andere is None
+    and abs(bahn_y_erzwungen.zeit - bahn.zeit_andere) < 1e-9
+    and bahn_y_erzwungen.zeit > bahn.zeit,
+    f"längs y erzwungen: {bahn_y_erzwungen.richtungen}, {len(x_zeilen_y)} Zeilenlagen, "
+    f"{bahn_y_erzwungen.zeilen} Zeilen, {bahn_y_erzwungen.zeit} min",
+)
+# Mit dem echten Vorschub (902 mm/min) rechnet die Zeit damit.
+werte_vf = pb.Planwerte(
+    form, werte.zustellung, werte.zeilenabstand, 0.0, 26.0, 31.0, werte.rohteil, vorschub=902.0
+)
+bahn_vf = pb.planen(netz, werte_vf, [flaeche])
+pruefe(abs(bahn_vf.zeit - bn.zeit(bahn_vf.punkte, 902.0)) < 1e-9, "Zeit mit Vorschub")
 befehle = bn.befehle(bahn.punkte, 1000.0, 200.0)
 namen = {b.Name for b in befehle}
 pruefe({"G0", "G1"} <= namen and ("G2" in namen or "G3" in namen), f"Befehle: {namen}")
@@ -222,6 +261,7 @@ pruefe(
     f"längs y: {min(p.y for p in in_lage)} … {max(p.y for p in in_lage)}",
 )
 pruefe(abs(bahn_y.z_min - 10.0) < 1e-9 and bahn_y.lagen == 1, "schmal: eine Lage")
+pruefe(bahn_y.richtungen == (False,), f"schmal: Zeilen längs y – {bahn_y.richtungen}")
 
 # Fehler mit einem Satz: Kugel, Zeilenabstand zu groß (über Ø), nichts über der Fläche, keine
 # Fläche.
@@ -281,6 +321,8 @@ pruefe(
     (op.Ebenen, op.Lagen, op.Zeilen) == (1, 1, anzahl_zeilen),
     f"Operation: {op.Ebenen}, {op.Lagen}, {op.Zeilen}",
 )
+pruefe(op.Richtung == "X", f"Richtung: {op.Richtung!r}")
+pruefe(op.getEditorMode("Richtung") == ["ReadOnly"], "Richtung änderbar")
 befehle = op.Path.Commands
 namen = [b.Name for b in befehle]
 pruefe(

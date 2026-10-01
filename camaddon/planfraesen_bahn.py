@@ -62,6 +62,11 @@ class Planwerte:
     sicherheit: float = vb.SICHERHEIT  # so weit über dem Material endet der Eilgang hinab
     eintauchwinkel: float = vb.EINTAUCHWINKEL  # Grad, für die Rampe ins Material
     austritt: float = AUSTRITT_ANTEIL
+    # Die Zeilen längs x (True) oder längs y (False); None: beide rechnen, die schnellere nehmen
+    # (Grundsatz 0 der Strategien: die Zeit entscheidet).
+    laengs: bool = None
+    vorschub: float = 0.0  # mm/min – für die Zeit im Vergleich; 0: 1000
+    eintauchen: float = 0.0  # mm/min senkrecht ins Material; 0: wie der Vorschub
 
 
 @dataclass
@@ -74,6 +79,22 @@ class Planbahn:
     zeilen: int  # Zeilen, über alle Flächen und Lagen
     z_min: float  # die tiefste Spitze (mm)
     laenge: float  # mm im Vorschub
+    richtungen: tuple = ()  # je gefräster Fläche: True = Zeilen längs x, False = längs y
+    zeit: float = 0.0  # Minuten (bahn.zeit: Vorschub, Eilgang, Beschleunigung, Ecken)
+    zeit_andere: float = None  # Minuten in der anderen Zeilenrichtung; None: nicht gerechnet
+
+
+@dataclass
+class _Ebene:
+    """Die Bahn über eine Fläche in einer Zeilenrichtung."""
+
+    punkte: list
+    lagen: int
+    zeilen: int
+    z_min: float
+    laenge: float
+    laengs_x: bool
+    zeit: float  # Minuten
 
 
 def ueberlauf_vorschlag(form):
@@ -83,7 +104,9 @@ def ueberlauf_vorschlag(form):
 
 def planen(netz, werte, ebenen, schritt=SCHRITT):
     """Die Bahn „Planfräsen“ (Planbahn) über die Flächen `ebenen` ([hoehenfeld.Ebene]) mit den
-    Werten `werte`; `netz` ist das Teil ohne diese Flächen (hoehenfeld.netz_ohne). ValueError
+    Werten `werte`; `netz` ist das Teil ohne diese Flächen (hoehenfeld.netz_ohne). Je Fläche
+    die Zeilen längs x oder längs y – ohne Vorgabe (`werte.laengs` None) beide gerechnet und
+    die schnellere genommen (bahn.zeit mit Vorschub, Eilgang und Beschleunigung). ValueError
     mit einem Satz, wenn es nicht geht."""
     w = werte
     form = w.form
@@ -103,91 +126,29 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
     punkte = []
     lagen_gesamt = zeilen_gesamt = gefraest = 0
     z_min = math.inf
-    laenge = 0.0
+    laenge = zeit = zeit_andere = 0.0
+    richtungen = []
+    kandidaten = (True, False) if w.laengs is None else (bool(w.laengs),)
     for ebene in sorted(ebenen, key=lambda e: -e.z):
-        ziel = ebene.z + w.aufmass
-        oben = w.oben
-        if oben <= ziel + GLEICH:
-            continue  # steht nichts drüber
-        anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / w.zustellung)))
-        lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
-        laengs_x = (ebene.x_bis - ebene.x_von) >= (ebene.y_bis - ebene.y_von)
-        if laengs_x:
-            u_von, u_bis, v_von, v_bis = ebene.x_von, ebene.x_bis, ebene.y_von, ebene.y_bis
-            roh_u, roh_v = w.rohteil[0:2], w.rohteil[2:4]
-        else:
-            u_von, u_bis, v_von, v_bis = ebene.y_von, ebene.y_bis, ebene.x_von, ebene.x_bis
-            roh_u, roh_v = w.rohteil[2:4], w.rohteil[0:2]
-        v_zeilen = _zeilen_quer(v_von, v_bis, r_eben - seite, w.zeilenabstand)
-        # Keine Leerzeile: nur Zeilen, unter denen das Rohteil liegt.
-        v_zeilen = v_zeilen[
-            (v_zeilen + r_eben > roh_v[0] + GLEICH) & (v_zeilen - r_eben < roh_v[1] - GLEICH)
-        ]
-        if not len(v_zeilen):
+        ergebnisse = []
+        for laengs_x in kandidaten:
+            e = _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, schritt)
+            if e is not None:
+                ergebnisse.append(e)
+        if not ergebnisse:
             continue
-        # Das Raster längs: die Zeilen reichen um den Überlauf über die Fläche hinaus, die
-        # Hüllfläche um den halben Zeilenabstand weiter – dort prüft der Halbkreis, ob er frei ist.
-        halb = w.zeilenabstand / 2
-        u0, u1 = u_von - ueberlauf - halb, u_bis + ueberlauf + halb
-        anzahl = max(2, int(math.ceil((u1 - u0) / schritt - 1e-9)) + 1)
-        u_stellen = np.linspace(u0, u1, anzahl)
-        schritt_u = float(u_stellen[1] - u_stellen[0])
-        huelle = hf.je_zeile(netz, geformt, v_zeilen, u0, schritt_u, anzahl, laengs_x)
-        roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
-        hoehe = roh + zugabe
-        # Dazu der Rand der Fläche quer: Vor einer Wand fährt die Wandfahrt über die erste und
-        # letzte Zeile hinaus bis an den Rand – so weit es dort erlaubt ist (_wandfahrt).
-        v_rand = (float(v_von), float(v_bis))
-        roh_rand = hf.je_zeile(netz, geformt, v_rand, u0, schritt_u, anzahl, laengs_x).T
-        hoehe_rand = roh_rand + zugabe
-        im_ueberlauf = (u_stellen >= u_von - ueberlauf - GLEICH) & (
-            u_stellen <= u_bis + ueberlauf + GLEICH
-        )
-        im_rohteil = (u_stellen + r_eben > roh_u[0] + GLEICH) & (
-            u_stellen - r_eben < roh_u[1] - GLEICH
-        )
+        ergebnisse.sort(key=lambda e: e.zeit)
+        beste = ergebnisse[0]
+        punkte.extend(beste.punkte)
         gefraest += 1
-        vorige = oben
-        for lage in lagen:
-            lage = float(lage)
-            # Die Lage darf dorthin, wo die Hüllfläche nicht höher liegt – und über den Rand
-            # der Fläche hinaus auch, wo nichts höher steht als die Fläche selbst: Die
-            # Seitenwand des Teils endet genau auf ihrer Höhe, die Zugabe hielte die unterste
-            # Lage sonst vor ihr an (wie bei Plan indexiert, P-2026-10-01-10).
-            erlaubt = (hoehe <= lage + GLEICH) | (roh <= ziel + GLEICH)
-            erlaubt_rand = (hoehe_rand <= lage + GLEICH) | (roh_rand <= ziel + GLEICH)
-            drin = erlaubt & im_ueberlauf[None, :]  # die Zeilen selbst
-            if not drin.any():
-                vorige = lage
-                continue
-            raster = _Raster(
-                u_stellen,
-                v_zeilen,
-                drin,
-                erlaubt,
-                im_rohteil,
-                laengs_x,
-                roh_u,
-                r_eben,
-                w.zeilenabstand,
-                v_rand,
-                erlaubt_rand,
-            )
-            # Von dem Ende beginnen, das in der Luft liegt – sonst vom Anfang.
-            erste = int(np.flatnonzero(drin.any(axis=1))[0])
-            js = np.flatnonzero(drin[erste])
-            if not im_rohteil[js[0]] and not im_rohteil[js[-1]]:
-                pass
-            elif not im_rohteil[js[-1]]:
-                raster = raster.umgekehrt()
-            mit_luecke = np.zeros((len(v_zeilen), anzahl + 2), dtype=bool)
-            mit_luecke[:, 1:-1] = raster.drin
-            for fahrt in vb._fahrten(mit_luecke):
-                laenge += _fahrt(punkte, fahrt, raster, lage, vorige, w)
-                zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
-            lagen_gesamt += 1
-            vorige = lage
-            z_min = min(z_min, lage)
+        lagen_gesamt += beste.lagen
+        zeilen_gesamt += beste.zeilen
+        z_min = min(z_min, beste.z_min)
+        laenge += beste.laenge
+        zeit += beste.zeit
+        richtungen.append(beste.laengs_x)
+        if zeit_andere is not None:
+            zeit_andere = zeit_andere + ergebnisse[1].zeit if len(ergebnisse) > 1 else None
     if gefraest == 0:
         raise ValueError(tr("pf.fehler.nichts"))
     return Planbahn(
@@ -197,7 +158,100 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
         zeilen_gesamt,
         z_min if math.isfinite(z_min) else 0.0,
         laenge,
+        tuple(richtungen),
+        zeit,
+        zeit_andere,
     )
+
+
+def _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, schritt):
+    """Die Bahn über eine Fläche mit den Zeilen längs x (`laengs_x`) oder längs y – None, wenn
+    nichts zu fräsen ist (nichts drüber, keine Zeile mit Rohteil)."""
+    punkte = []
+    lagen_gesamt = zeilen_gesamt = 0
+    z_min = math.inf
+    laenge = 0.0
+    ziel = ebene.z + w.aufmass
+    oben = w.oben
+    if oben <= ziel + GLEICH:
+        return None  # steht nichts drüber
+    anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / w.zustellung)))
+    lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
+    if laengs_x:
+        u_von, u_bis, v_von, v_bis = ebene.x_von, ebene.x_bis, ebene.y_von, ebene.y_bis
+        roh_u, roh_v = w.rohteil[0:2], w.rohteil[2:4]
+    else:
+        u_von, u_bis, v_von, v_bis = ebene.y_von, ebene.y_bis, ebene.x_von, ebene.x_bis
+        roh_u, roh_v = w.rohteil[2:4], w.rohteil[0:2]
+    v_zeilen = _zeilen_quer(v_von, v_bis, r_eben - seite, w.zeilenabstand)
+    # Keine Leerzeile: nur Zeilen, unter denen das Rohteil liegt.
+    v_zeilen = v_zeilen[
+        (v_zeilen + r_eben > roh_v[0] + GLEICH) & (v_zeilen - r_eben < roh_v[1] - GLEICH)
+    ]
+    if not len(v_zeilen):
+        return None
+    # Das Raster längs: die Zeilen reichen um den Überlauf über die Fläche hinaus, die
+    # Hüllfläche um den halben Zeilenabstand weiter – dort prüft der Halbkreis, ob er frei ist.
+    halb = w.zeilenabstand / 2
+    u0, u1 = u_von - ueberlauf - halb, u_bis + ueberlauf + halb
+    anzahl = max(2, int(math.ceil((u1 - u0) / schritt - 1e-9)) + 1)
+    u_stellen = np.linspace(u0, u1, anzahl)
+    schritt_u = float(u_stellen[1] - u_stellen[0])
+    huelle = hf.je_zeile(netz, geformt, v_zeilen, u0, schritt_u, anzahl, laengs_x)
+    roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
+    hoehe = roh + zugabe
+    # Dazu der Rand der Fläche quer: Vor einer Wand fährt die Wandfahrt über die erste und
+    # letzte Zeile hinaus bis an den Rand – so weit es dort erlaubt ist (_wandfahrt).
+    v_rand = (float(v_von), float(v_bis))
+    roh_rand = hf.je_zeile(netz, geformt, v_rand, u0, schritt_u, anzahl, laengs_x).T
+    hoehe_rand = roh_rand + zugabe
+    im_ueberlauf = (u_stellen >= u_von - ueberlauf - GLEICH) & (
+        u_stellen <= u_bis + ueberlauf + GLEICH
+    )
+    im_rohteil = (u_stellen + r_eben > roh_u[0] + GLEICH) & (u_stellen - r_eben < roh_u[1] - GLEICH)
+    vorige = oben
+    for lage in lagen:
+        lage = float(lage)
+        # Die Lage darf dorthin, wo die Hüllfläche nicht höher liegt – und über den Rand
+        # der Fläche hinaus auch, wo nichts höher steht als die Fläche selbst: Die
+        # Seitenwand des Teils endet genau auf ihrer Höhe, die Zugabe hielte die unterste
+        # Lage sonst vor ihr an (wie bei Plan indexiert, P-2026-10-01-10).
+        erlaubt = (hoehe <= lage + GLEICH) | (roh <= ziel + GLEICH)
+        erlaubt_rand = (hoehe_rand <= lage + GLEICH) | (roh_rand <= ziel + GLEICH)
+        drin = erlaubt & im_ueberlauf[None, :]  # die Zeilen selbst
+        if not drin.any():
+            vorige = lage
+            continue
+        raster = _Raster(
+            u_stellen,
+            v_zeilen,
+            drin,
+            erlaubt,
+            im_rohteil,
+            laengs_x,
+            roh_u,
+            r_eben,
+            w.zeilenabstand,
+            v_rand,
+            erlaubt_rand,
+        )
+        # Von dem Ende beginnen, das in der Luft liegt – sonst vom Anfang.
+        erste = int(np.flatnonzero(drin.any(axis=1))[0])
+        js = np.flatnonzero(drin[erste])
+        if not im_rohteil[js[0]] and not im_rohteil[js[-1]]:
+            pass
+        elif not im_rohteil[js[-1]]:
+            raster = raster.umgekehrt()
+        mit_luecke = np.zeros((len(v_zeilen), anzahl + 2), dtype=bool)
+        mit_luecke[:, 1:-1] = raster.drin
+        for fahrt in vb._fahrten(mit_luecke):
+            laenge += _fahrt(punkte, fahrt, raster, lage, vorige, w)
+            zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
+        lagen_gesamt += 1
+        vorige = lage
+        z_min = min(z_min, lage)
+    zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+    return _Ebene(punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit)
 
 
 def _zeilen_quer(v_von, v_bis, rand, abstand):

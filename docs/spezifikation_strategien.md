@@ -190,6 +190,40 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
 
 ## 5. Was überall besser sein soll – die Grundsätze
 
+0. **Die Zeit entscheidet** (Manuel, 2026-10-01: „Natürlich muss man immer
+   den schnellsten Weg für das gewählte Werkzeug finden … nur muss halt auch
+   immer die schnellste Strategie gefunden werden“). Genau so:
+   - *Gegeben* sind die Aufgabe (die gewählten Flächen, Wände und Taschen des
+     Teils, das Rohteil) und das gewählte Werkzeug mit seinem Einsatz (ae,
+     ap, vc, fz, Eintauchwinkel). Die Einsatzwerte sind die Grenze – mehr
+     Eingriff gibt es nicht, weniger nur, wo die Geometrie es verlangt.
+   - *Der schnellste Weg für dieses Werkzeug:* Jede Strategie hat
+     Freiheitsgrade – Zeilenrichtung, Startstelle, Lagen (volle Schneide:
+     so wenige wie möglich), Einstieg (Rampe, Helix, senkrecht), von innen
+     oder von außen, Reihenfolge der Bereiche. Der Assistent **rechnet** die
+     Varianten mit dem Zeitmodell (Vorschub aus dem Einsatz, Eilgang
+     10 m/min, Beschleunigung 1 m/s², anhalten an Ecken – `bahn.zeit`,
+     Spezifikation Simulation 4d) und nimmt die schnellste. Eine Regel ohne
+     Rechnung gilt nur, wo sie die Zeit nachweislich begründet (Gleichlauf,
+     Bögen statt Ecken).
+   - *Die schnellste Strategie:* Alle Strategien, die die Aufgabe lösen
+     können, treten mit derselben Zeit gegeneinander an. Der Assistent setzt
+     den Haken bei der schnellsten und schreibt die anderen mit ihrer Zeit
+     daneben – damit man sieht, warum. Keine Strategie wird gewählt, weil
+     sie üblich ist.
+   - *Der Maßstab fürs Bauen:* Manuels Platte mit dem Standardfräser
+     (Abschnitt 11). Jede neue Strategie muss dort für ihre Aufgabe schneller
+     sein als die bisherige, sonst kommt sie nicht in den Vorschlag; die
+     Prüfung rechnet das nach.
+   - *Vor der Zeit* stehen nur Sicherheit (nirgends ins Teil, Aufmaß,
+     Kollision, Reichweite) und die Grenzen des Einsatzes.
+
+   Gebaut: die Zeilenrichtung des Planfräsens (beide gerechnet, die
+   schnellere; P-2026-10-01-24). Offen: der Einstieg (Rampe/Helix/senkrecht
+   nach Zeit), die Startstelle (am Ende der vorigen Operation), die
+   Reihenfolge der Bereiche nach Eilgangweg, und der Wettbewerb der
+   Strategien – der beginnt mit S3f (Räumen gegen Planfräsen und gegen die
+   Kontur in der Tasche).
 1. **Tangential ein- und ausfahren.** Nie senkrecht in die Wand; Bogen und
    Gerade nach Fräser-Ø; in Taschen Helix oder Rampe mit dem Winkel aus der
    Werkzeugtabelle (Eintauchwinkel gibt es schon).
@@ -444,7 +478,11 @@ gebaut.
   gewinnt), nur einmal je Lage – nicht je Versatz wie heute bei der Kontur.
   Der Zapfen bekommt sein Aufmaß und danach die Kontur. Ecken mit zu viel
   Eingriff bekommen später Trochoiden (das Adaptiv, E3 (a)) – erst messen, ob
-  es nötig ist.
+  es nötig ist. Mit S3f beginnt der Wettbewerb der Strategien (Grundsatz 0):
+  Für die Platte rechnet der Assistent Planfräsen und Räumen, für die Tasche
+  Kontur und Räumen – mit demselben Zeitmodell –, setzt den Haken bei der
+  schnelleren und schreibt die andere Zeit daneben; die Prüfung rechnet an
+  der Platte nach, dass Räumen dort gewinnt (≈ 35 min gegen 44).
 - **S3g Bohren, Gewinde** – FreeCADs Operationen aus dem Assistenten mit den
   Schnittwerten.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
@@ -505,7 +543,7 @@ aus einer Lage von 20 zwei von 10,5; die Lagen beginnen jetzt am Rohteil
 (`OpStockZMax`), und 0,05 mm Spiel (`hoehenfeld.LAGEN_SPIEL`) geben keine
 Lage mehr.
 
-**Regel (Manuel, 2026-10-01: „generell sollte dann jede Strategie und
+**Der Maßstab (Manuel, 2026-10-01: „generell sollte dann jede Strategie und
 Szenario mit diesem Fräser und den Werten gerechnet und geprüft werden, wenn
 es um Werkzeugwege geht“):** Der Fräser oben ist `werkzeuge.standardwerkzeug()`
 – die eine Definition (Ø 12, 4 Schneiden angenommen, Schneidenlänge 26, Rampe
@@ -515,7 +553,11 @@ Prüfungen und Szenarien der 2,5D-Strategien (`test_planfraesen`,
 `test_kontur`, `test_quader`, `szenario_bearbeitung`, `szenario_kontur`), mit
 ihm und den festen Vorgaben für die Zeit (Eilgang 10 m/min, 1 m/s²) bekommt
 jede neue Strategie ihre Zeile in der Tabelle oben (P-2026-10-01-23;
-Arbeitsregeln, Abschnitt 5). Beim Umstellen gefunden: In der Tasche schwenkt
+Arbeitsregeln, Abschnitt 5). Das Ziel dahinter ist nicht der Fräser, sondern
+Grundsatz 0 (Abschnitt 5): Für das gewählte Werkzeug den schnellsten Weg
+rechnen, zwischen den Strategien die schnellste nehmen – die Tabelle oben
+ist dieser Wettbewerb, von Hand; der Assistent führt ihn selbst, sobald zwei
+Strategien dieselbe Aufgabe lösen (S3f). Beim Umstellen gefunden: In der Tasche schwenkt
 das tangentiale Einfahren der innersten Schruppbahn zur Mitte – mit Ø 12
 reichte es 1,8 mm in die gegenüberliegende Wand (mit Ø 10 passte es gerade
 noch), weil die Hüllfläche die eigenen Wände der Kontur nahe der Bahn
