@@ -101,7 +101,7 @@ netz_nah, netz_fern = eb.netze(teil, schraeg)
 bahn = eb.planen(netz_nah, werte, ketten, eb.SCHRITT, netz_fern)
 pruefe((bahn.ketten, bahn.ausgelassen) == (2, 0), f"{bahn.ketten} Ketten, {bahn.ausgelassen} aus")
 pruefe(abs(bahn.z_min - 18.5) < 1e-6, f"Spitze bei z {bahn.z_min}")
-pruefe(bahn.modell == (1.0,), f"Breiten aus dem Modell: {bahn.modell}")
+pruefe(bahn.modell == (("fase", 1.0),), f"aus dem Modell: {bahn.modell}")
 vorschub = [p for p in bahn.punkte if not p.eilgang and abs(p.z - 18.5) < 1e-6]
 abstand = []
 for p in vorschub:

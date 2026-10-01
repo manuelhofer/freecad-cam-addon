@@ -300,6 +300,13 @@ chamfers at its edges come along. Width and angle come from the model, the field
 width” does not apply there; the cutter moves so that its cone lies exactly on the chamfer.
 The tick is proposed – the model says the chamfer comes. The chamfer mill needs its angle (a
 45° chamfer: 90°); otherwise red says which one.</li>
+<li><b>Rounding</b> with a <b>corner rounding mill</b> (application “Rounding”): its tip stands
+exactly one radius below the edge, its axis half the pilot beside the wall – so it rounds a sharp
+edge with its radius. <b>Modelled roundings</b> (FreeCAD's “Fillet” at the top edge) the window
+recognises like chamfers; the rounding mill with their radius is preselected, and the line says
+“the rounding as modelled: R 2”. Its hollow must be a full quarter circle (pilot = Ø − 2 ×
+radius) – otherwise a step would remain on top. Chamfer width and “tip deeper” do not apply to
+the rounding mill.</li>
 <li>The operation is called “Deburr T3”. “Check on the machine” lets the chamfer pass:
 there it may go into the part as deep as the tip stands.</li>
 </ul>

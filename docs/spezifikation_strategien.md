@@ -771,6 +771,23 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   gezeichneten Fase vorgeschlagen (außer einer Senkung über einer Bohrung –
   die senkt „Senken“). Prüfung `test_fase` (eckiger und runder Zapfen, im
   Quader der Kegel auf 0,06 mm auf der Fase), Szenario `szenario_fase`.
+  Dann **Verrunden** (P-2026-10-01-39, 0.55.0): Entgraten nimmt auch den
+  Radienfräser (Einsatz „Verrunden“, `entgraten.schneide_des_werkzeugs`: nur mit
+  ganzem Viertelkreis – Führung = Ø − 2 R, sonst bliebe oben eine Stufe). Die
+  Spitze steht genau einen Radius unter der Kante, die Achse die halbe Führung
+  neben der Wand: Die Hohlkehle (Mittelpunkt auf der Höhe der Spitze) liegt dann
+  auf dem Viertelkreis. Gezeichnete Rundungen (`_rundung_radius`: Zylinder mit
+  waagerechter Achse an geraden Kanten, Torus mit senkrechter an runden; von der
+  Wand bis oben genau ein Radius) erkennt `_fase` wie Fasen (`Fase.radius`,
+  `Kette.radius`); der Radius des Fräsers muss ihrer sein (±0,02 mm), ein
+  Fasenfräser an einer Rundung oder ein Radienfräser an einer Fase bekommt einen
+  Satz. Der Assistent wählt den passenden Fräser vor (`_entgratfraeser_waehlen`),
+  die Zeile sagt „die Rundung wie gezeichnet: R 2“. Dabei: „entgraten“ steht
+  jetzt bei den Operationen, die ins fertige Teil schneiden dürfen
+  (`kollision.INS_TEIL_ERLAUBT`) – eine Fase an einer scharfen Kante hätte die
+  Kollisionsprüfung als „ins fertige Teil“ gemeldet. Prüfung `test_rundung`
+  (Rundung R 2 am eckigen und runden Zapfen, im Quader auf 0,08 mm; die scharfe
+  Kante mit R 2 gerundet), Szenario `szenario_rundung`.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

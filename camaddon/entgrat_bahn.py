@@ -27,6 +27,12 @@ oben.
   Breite und Winkel kommen aus dem Modell. Der Kegel des Fräsers muss ihren Winkel haben
   (±FASE_WINKEL) – dann liegt er genau auf ihr. Eine gewählte ebene Fläche nach oben bringt
   auch die Fasen an ihren Kanten mit.
+- **Verrunden** mit dem Radienfräser (Entgratwerte.profilradius > 0): Seine Hohlkehle ist ein
+  ganzer Viertelkreis mit dem Mittelpunkt auf der Höhe der Spitze – die Spitze steht genau
+  einen Radius unter der Kante, die Achse die halbe Führung neben der Wand; so rundet er eine
+  scharfe Kante mit seinem Radius. Gezeichnete Rundungen (Zylinder oder Torus an der
+  Oberkante, wie FreeCADs „Verrundung“) erkennt fasen() wie Fasen; der Radius des Fräsers muss
+  ihrer sein (±RADIUS_GLEICH).
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -51,20 +57,22 @@ VORSCHAU_SCHRITT = kb.VORSCHAU_SCHRITT
 MINDEST_ABSTAND = 0.01  # mm – so nah höchstens fährt die Achse an der Wand (spitzer Fräser)
 GLEICH = kb.GLEICH
 FASE_WINKEL = 1.0  # Grad – so genau muss der Kegel zu einer gezeichneten Fase passen
+RADIUS_GLEICH = 0.02  # mm – so genau muss der Radienfräser zu einer gezeichneten Rundung passen
 
 
 @dataclass(frozen=True)
 class Entgratwerte:
     """Was das Entgraten braucht; Längen in mm, z nach oben im Job."""
 
-    form: object  # fraeserform.Form des Fasenfräsers
-    spitzenwinkel: float  # Grad – der ganze Winkel des Kegels
-    spitze: float  # Ø der Spitze (0: spitz)
+    form: object  # fraeserform.Form des Fasen- oder Radienfräsers
+    spitzenwinkel: float  # Grad – der ganze Winkel des Kegels (Radienfräser: 0)
+    spitze: float  # Ø der Spitze (0: spitz) – beim Radienfräser die Führung
     breite: float  # so breit wird die Fase auf der Oberseite
     tiefer: float  # so viel tiefer als die Fase steht die Spitze
     sicher: float  # z für den Eilgang über allem
     einfahrradius: float = None  # der Viertelkreis hinein und heraus; None: EINFAHRT
     sicherheit: float = vb.SICHERHEIT  # so weit über der Kante endet der Eilgang hinab
+    profilradius: float = 0.0  # > 0: ein Radienfräser mit dieser Hohlkehle – er verrundet
 
 
 @dataclass(frozen=True)
@@ -76,6 +84,7 @@ class Kette:
     z_boden: float  # die tiefste Unterkante der Wände der Kette
     breite: float = 0.0  # gezeichnete Fase: so breit (mm); 0 – die Breite der Operation
     winkel: float = 0.0  # gezeichnete Fase: ihr Winkel zur Senkrechten (Grad); 0 – keine
+    radius: float = 0.0  # gezeichnete Rundung: ihr Radius (mm); 0 – keine
 
 
 @dataclass(frozen=True)
@@ -85,12 +94,15 @@ class Fase:
     nummer: int  # die schräge Fläche, 0 …
     z_unten: float  # ihre Unterkante – oben an den Wänden
     z_oben: float  # ihre Oberkante – an der Fläche nach oben
-    winkel: float  # Grad zur Senkrechten
+    winkel: float  # Grad zur Senkrechten (eine Rundung: 0)
     unten: tuple  # ((Kante, [Nummer der Wand, …]), …) – die Unterkanten
     oben: tuple  # die Nummern der Flächen nach oben an der Oberkante
+    radius: float = 0.0  # eine gezeichnete Rundung: ihr Radius
 
     @property
     def breite(self):
+        if self.radius > 0:
+            return self.radius
         return (self.z_oben - self.z_unten) * math.tan(math.radians(self.winkel))
 
 
@@ -104,7 +116,7 @@ class Entgratbahn:
     bahnen: int  # Läufe über alle Ketten (je mit Ein- und Ausfahren)
     z_min: float  # die tiefste Spitze (mm)
     laenge: float  # mm im Vorschub
-    modell: tuple = ()  # die Breiten der gefahrenen gezeichneten Fasen (mm), aufsteigend
+    modell: tuple = ()  # die gefahrenen gezeichneten: ((„fase“, Breite) oder („rundung“, R), …)
 
 
 @dataclass
@@ -234,13 +246,29 @@ def ketten(form, namen):
 # --- Gezeichnete Fasen ------------------------------------------------------------------------
 
 
+def _rundung_radius(flaeche):
+    """Der Radius, wenn die Fläche eine Rundung an einer waagerechten Kante sein kann – ein
+    Zylinder mit waagerechter Achse (an einer geraden Kante) oder ein Torus mit senkrechter
+    Achse (an einer runden); sonst 0."""
+    import Part
+
+    s = flaeche.Surface
+    if isinstance(s, Part.Cylinder) and abs(s.Axis.z) < 1e-6:
+        return float(s.Radius)
+    if isinstance(s, Part.Toroid) and abs(abs(s.Axis.z) - 1.0) < 1e-6:
+        return float(s.MinorRadius)
+    return 0.0
+
+
 def _fase(form, nummer, index):
-    """Die Fläche `nummer` als gezeichnete Fase (Fase) – schräg nach oben (eben oder Kegel),
-    unten an Wänden, oben an einer ebenen Fläche nach oben; None, wenn sie keine ist."""
+    """Die Fläche `nummer` als gezeichnete Fase (Fase) – schräg nach oben (eben oder Kegel), oder
+    als gezeichnete Rundung (Zylinder, Torus); unten an Wänden, oben an einer ebenen Fläche nach
+    oben. None, wenn sie keins von beiden ist."""
     import Part
 
     flaeche = form.Faces[nummer]
-    if not isinstance(flaeche.Surface, (Part.Plane, Part.Cone)):
+    radius = _rundung_radius(flaeche)
+    if radius <= 0 and not isinstance(flaeche.Surface, (Part.Plane, Part.Cone)):
         return None
     bb = flaeche.BoundBox
     if bb.ZMax - bb.ZMin <= kb.NAH or kb.ist_wand(flaeche):
@@ -267,6 +295,10 @@ def _fase(form, nummer, index):
             oben.update(i for i in nachbarn if _nach_oben(form.Faces[i]))
     if not unten or not oben:
         return None
+    if radius > 0:
+        if abs(bb.ZMax - bb.ZMin - radius) > RADIUS_GLEICH:
+            return None  # kein Viertelkreis von der Wand bis oben
+        return Fase(nummer, bb.ZMin, bb.ZMax, 0.0, tuple(unten), tuple(sorted(oben)), radius)
     winkel = math.degrees(math.asin(min(max(n.z, -1.0), 1.0)))
     return Fase(nummer, bb.ZMin, bb.ZMax, winkel, tuple(unten), tuple(sorted(oben)))
 
@@ -322,15 +354,20 @@ def fasen(form, namen):
     import Part
 
     index = {f.hashCode(): i for i, f in enumerate(form.Faces)}
-    gruppen = {}  # (z_unten, z_oben, winkel) → [(Kante, Wand)]
+    gruppen = {}  # (z_unten, z_oben, winkel, radius) → [(Kante, Wand)]
     for fase in _gewaehlte_fasen(form, namen, index):
-        schluessel = (round(fase.z_unten, 4), round(fase.z_oben, 4), round(fase.winkel, 2))
+        schluessel = (
+            round(fase.z_unten, 4),
+            round(fase.z_oben, 4),
+            round(fase.winkel, 2),
+            round(fase.radius, 4),
+        )
         for kante, unter in fase.unten:
             wand = next(iter(kb.waende(form, [f"Face{unter[0] + 1}"])), None)
             if wand is not None:
                 gruppen.setdefault(schluessel, []).append((kante, wand))
     ergebnis = []
-    for (z_unten, z_oben, winkel), paare in gruppen.items():
+    for (z_unten, z_oben, winkel, radius), paare in gruppen.items():
         wand_der_kante = {kb._schluessel(k): w for k, w in paare}
         for kette in Part.sortEdges([k for k, _w in paare]):
             beteiligt = [
@@ -347,7 +384,7 @@ def fasen(form, namen):
             kontur = kb.Kontur(
                 draht, z_oben, z_oben, draht.isClosed(), stelle, normale, tuple(namen_der_waende)
             )
-            breite = (z_oben - z_unten) * math.tan(math.radians(winkel))
+            breite = radius if radius > 0 else (z_oben - z_unten) * math.tan(math.radians(winkel))
             ergebnis.append(
                 Kette(
                     kontur,
@@ -355,6 +392,7 @@ def fasen(form, namen):
                     min(w.z_unten for w in beteiligt),
                     float(breite),
                     float(winkel),
+                    float(radius),
                 )
             )
     return ergebnis
@@ -399,16 +437,25 @@ def planen(netz, werte, ketten_, schritt=SCHRITT, netz_fern=None):
     w = werte
     if not ketten_:
         raise ValueError(tr("eg.fehler.keine"))
-    if w.breite <= 0 and any(k.breite <= 0 for k in ketten_):
+    rund = w.profilradius > 0
+    if not rund and w.breite <= 0 and any(k.breite <= 0 for k in ketten_):
         raise ValueError(tr("eg.fehler.breite"))
     radius = float(w.form.radius)
     for k in ketten_:
-        if k.winkel > 0 and abs(k.winkel - w.spitzenwinkel / 2) > FASE_WINKEL:
+        if k.winkel > 0 and (rund or abs(k.winkel - w.spitzenwinkel / 2) > FASE_WINKEL):
             raise ValueError(
                 tr(
                     "eg.fehler.winkel",
                     fase=f"{2 * k.winkel:.0f}",
-                    fraeser=f"{w.spitzenwinkel:.0f}",
+                    fraeser=f"{w.spitzenwinkel:.0f}" if not rund else "–",
+                )
+            )
+        if k.radius > 0 and (not rund or abs(k.radius - w.profilradius) > RADIUS_GLEICH):
+            raise ValueError(
+                tr(
+                    "eg.fehler.radius",
+                    rundung=einheiten.text(k.radius, einheiten.LAENGE),
+                    fraeser=einheiten.text(w.profilradius, einheiten.LAENGE) if rund else "–",
                 )
             )
     r_ein = w.einfahrradius if w.einfahrradius and w.einfahrradius > 0 else EINFAHRT
@@ -419,15 +466,24 @@ def planen(netz, werte, ketten_, schritt=SCHRITT, netz_fern=None):
     alle_waende = [(kx, ky, k.kontur.geschlossen, k.z_kante) for k, (kx, ky) in mit_kette]
     st = _Stand()
     for k, kette in mit_kette:
-        breite = k.breite if k.breite > 0 else w.breite
-        fase, tiefer, _kegel = masse(breite, w.tiefer, w.spitzenwinkel, w.spitze, radius)
+        if rund:
+            # Die Spitze genau einen Radius unter der Kante, die Achse die halbe Führung neben der
+            # Wand: Die Hohlkehle liegt dann auf dem Viertelkreis der Rundung.
+            breite = fase = w.profilradius
+            tiefer = 0.0
+        else:
+            breite = k.breite if k.breite > 0 else w.breite
+            fase, tiefer, _kegel = masse(breite, w.tiefer, w.spitzenwinkel, w.spitze, radius)
         # Nie unter die Unterkante der Wand: Unter ihr liegt ein Boden, den die Hüllfläche nahe
         # der Kante nicht sieht.
         tiefe = min(fase + tiefer, k.z_kante - k.z_boden - 2 * zugabe)
         if tiefe < fase - 1e-6:
             st.ausgelassen += 1
             continue
-        abstand = abstand_zur_wand(max(tiefe - fase, 0.0), w.spitzenwinkel, w.spitze)
+        if rund:
+            abstand = max(w.spitze / 2, MINDEST_ABSTAND)
+        else:
+            abstand = abstand_zur_wand(max(tiefe - fase, 0.0), w.spitzenwinkel, w.spitze)
         lage = k.z_kante - tiefe
         versatz = kb._versatz(k.kontur, abstand, toleranz, schritt)
         if versatz is None:
@@ -452,8 +508,10 @@ def planen(netz, werte, ketten_, schritt=SCHRITT, netz_fern=None):
         if _bahnen(st, k, segmente, proben, lage, huelle, abstand, r_ein, w):
             st.ketten += 1
             st.z_min = min(st.z_min, lage)
-            if k.winkel > 0:
-                st.modell.add(round(k.breite, 3))
+            if k.radius > 0:
+                st.modell.add(("rundung", round(k.radius, 3)))
+            elif k.winkel > 0:
+                st.modell.add(("fase", round(k.breite, 3)))
         else:
             st.ausgelassen += 1
     if st.ketten == 0:

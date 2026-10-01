@@ -102,13 +102,21 @@ class Entgraten(PathOp.ObjectOp):
         )
 
 
-def kegel_des_werkzeugs(werkzeug):
-    """(Form, Spitzenwinkel, Ø der Spitze) eines Fasenfräsers aus der Werkzeugverwaltung –
-    ValueError mit einem Satz bei einem anderen Werkzeug."""
+def schneide_des_werkzeugs(werkzeug):
+    """(Form, Spitzenwinkel, Ø der Spitze, Profilradius) eines Fasenfräsers (Profilradius 0)
+    oder Radienfräsers (Spitzenwinkel 0, die Spitze ist seine Führung) aus der
+    Werkzeugverwaltung – ValueError mit einem Satz bei einem anderen Werkzeug, oder einem
+    Radienfräser, dessen Hohlkehle kein ganzer Viertelkreis ist (die Führung breiter als
+    D − 2 R: oben bliebe eine Stufe)."""
+    if werkzeug is not None and werkzeug.art == wz.RADIENFRAESER:
+        profil, spitze, hoehe = wf.radienprofil(werkzeug)
+        if profil <= 0 or hoehe < profil - 0.01:
+            raise ValueError(tr("eg.fehler.viertel"))
+        return ff.von_werkzeug(werkzeug), 0.0, float(spitze), float(profil)
     if werkzeug is None or werkzeug.art != wz.FASENFRAESER:
         raise ValueError(tr("eg.fehler.form"))
     spitze, _hoehe, winkel = wf.kegel(werkzeug)
-    return ff.von_werkzeug(werkzeug), float(winkel), float(spitze)
+    return ff.von_werkzeug(werkzeug), float(winkel), float(spitze), 0.0
 
 
 def rechne(obj, job, modell):
@@ -116,7 +124,7 @@ def rechne(obj, job, modell):
     Satz, wenn es nicht geht."""
     from .werkzeuge_aus_cam import vom_controller
 
-    form, winkel, spitze = kegel_des_werkzeugs(vom_controller(obj.ToolController))
+    form, winkel, spitze, profil = schneide_des_werkzeugs(vom_controller(obj.ToolController))
     return bahn_fuer(
         job,
         modell,
@@ -129,6 +137,7 @@ def rechne(obj, job, modell):
         einfahrradius=float(obj.Einfahrradius),
         sicher=float(obj.SafeHeight),
         sicherheit=float(obj.Sicherheitsabstand),
+        profilradius=profil,
     )
 
 
@@ -146,11 +155,13 @@ def bahn_fuer(
     sicherheit=vb.SICHERHEIT,
     toleranz=hf.TOLERANZ,
     schritt=eb.SCHRITT,
+    profilradius=0.0,
 ):
     """Die Bahn „Entgraten“ für Modell und Rohteil des Jobs an den Flächen `flaechen` („Face6“ …:
     Wände, oder ebene Flächen nach oben – dann die Wände, die an ihren Kanten hinab gehen).
-    `sicher`: z für den Eilgang (None: Oberkante des Rohteils + Sicherheitsabstand + 3 mm).
-    ValueError mit einem Satz, wenn es nicht geht."""
+    `sicher`: z für den Eilgang (None: Oberkante des Rohteils + Sicherheitsabstand + 3 mm);
+    `profilradius` > 0: ein Radienfräser, der verrundet. ValueError mit einem Satz, wenn es
+    nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
     if sicher is None:
@@ -165,6 +176,7 @@ def bahn_fuer(
         sicher=sicher,
         einfahrradius=einfahrradius,
         sicherheit=sicherheit,
+        profilradius=profilradius,
     )
     netz_nah, netz_fern = eb.netze(form_teil, list(flaechen), toleranz)
     return eb.planen(netz_nah, werte, ketten, schritt, netz_fern)
@@ -173,7 +185,7 @@ def bahn_fuer(
 def vorschau(job, werkzeug, breite, tiefer, flaechen):
     """Die Bahn grob – für Ketten, Bahnen, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     weiter abgetastet. ValueError wie bahn_fuer()."""
-    form, winkel, spitze = kegel_des_werkzeugs(werkzeug)
+    form, winkel, spitze, profil = schneide_des_werkzeugs(werkzeug)
     return bahn_fuer(
         job,
         job.Model.Group,
@@ -185,6 +197,7 @@ def vorschau(job, werkzeug, breite, tiefer, flaechen):
         flaechen,
         toleranz=hf.VORSCHAU_TOLERANZ,
         schritt=eb.VORSCHAU_SCHRITT,
+        profilradius=profil,
     )
 
 
@@ -225,10 +238,13 @@ def _endtiefe(obj, job):
     from .werkzeuge_aus_cam import vom_controller
 
     try:
-        _form, winkel, spitze = kegel_des_werkzeugs(vom_controller(obj.ToolController))
+        _form, winkel, spitze, profil = schneide_des_werkzeugs(vom_controller(obj.ToolController))
         ketten = eb.ketten(vs._teil(job.Model.Group), list(obj.Flaechen))
         tiefste = math.inf
         for k in ketten:
+            if profil > 0:
+                tiefste = min(tiefste, k.z_kante - profil)
+                continue
             fase, tiefer, _kegel = eb.masse(
                 k.breite if k.breite > 0 else float(obj.Breite),
                 float(obj.Tiefer),
@@ -263,12 +279,14 @@ def aendere(obj, tc, breite, tiefer, flaechen=None):
 
 def eindringtiefe(obj):
     """So tief (mm) geht die Spitze der Operation unter die Kante: Fase plus „Tiefer“ – so tief
-    darf es im Vergleich im Quader dort ins Teil gehen (restmaterial.fuer_quader). 0, wenn das
-    Werkzeug kein Fasenfräser ist."""
+    darf es im Vergleich im Quader dort ins Teil gehen (restmaterial.fuer_quader); beim
+    Radienfräser sein Radius. 0, wenn das Werkzeug keins von beiden ist."""
     from .werkzeuge_aus_cam import vom_controller
 
     try:
-        _form, winkel, spitze = kegel_des_werkzeugs(vom_controller(obj.ToolController))
+        _form, winkel, spitze, profil = schneide_des_werkzeugs(vom_controller(obj.ToolController))
+        if profil > 0:
+            return profil  # der Radienfräser geht einen Radius unter die Kante
         fase, tiefer, _kegel = eb.masse(
             float(obj.Breite),
             float(obj.Tiefer),

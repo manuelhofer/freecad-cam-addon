@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-39 verrunden
+
+### EINGELESEN
+- `entgrat_bahn` (Fasen aus P-38), `entgraten.kegel_des_werkzeugs` (nur Fasenfräser),
+  `fraeserform.radien` und `werkzeugform.radienprofil` (Hohlkehle, Mittelpunkt auf der Höhe der
+  Spitze), `kollision.INS_TEIL_ERLAUBT` (ohne „entgraten“); FreeCADs `makeFillet` an Zapfen:
+  vier Zylinder mit waagerechter Achse und ein Torus.
+
+### DATEIEN
+- `camaddon/entgrat_bahn.py`, `camaddon/entgraten.py`, `camaddon/gui_bearbeitung.py`,
+  `camaddon/kollision.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_rundung.py` (neu), `tests/test_fase.py`, `tests/gui/szenario_rundung.py` (neu),
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml`
+  (0.55.0)
+
+### AKZEPTANZKRITERIUM
+Zapfen mit gezeichneter Rundung R 2: die Oberseite anklicken – Entgraten angehakt, der
+Radienfräser R 2 vorgewählt, „… – die Rundung wie gezeichnet: R 2“; der Fasenfräser gewählt:
+rot „braucht einen Radienfräser“. „Anlegen“: „Entgraten T5“, Endtiefe 18. Im Quader liegt die
+Hohlkehle am eckigen und runden Zapfen auf 0,08 mm auf der Rundung; eine scharfe Kante wird mit
+R 2 gerundet.
+
+### DONE
+- `entgrat_bahn`: `Entgratwerte.profilradius` – der Radienfräser: Spitze einen Radius unter der
+  Kante, Achse die halbe Führung neben der Wand; `_rundung_radius` (Zylinder waagerecht, Torus
+  senkrecht), `_fase` erkennt auch Rundungen (genau ein Radius hoch), `Fase.radius`,
+  `Kette.radius`; Sätze, wenn Fräser und Gezeichnetes nicht zusammenpassen; `modell` sagt Fase
+  oder Rundung.
+- `entgraten.schneide_des_werkzeugs` statt `kegel_des_werkzeugs`: Fasen- oder Radienfräser (nur
+  mit ganzem Viertelkreis); Endtiefe und Eindringtiefe beim Radienfräser ein Radius.
+- Assistent: Radienfräser im Block Entgraten, der passende Fräser für gezeichnete Fasen und
+  Rundungen vorgewählt (`_entgratfraeser_waehlen`), die Zeile nennt Fase oder Rundung.
+- `kollision.INS_TEIL_ERLAUBT` mit „entgraten“ – die Fase an einer scharfen Kante ist gewollt.
+
+### TEST
+- 1.1.3: `test_rundung` (neu), `test_fase`, `test_entgraten`, `test_sprache` grün; Szenarien
+  `szenario_rundung` (neu), `szenario_fase`, `szenario_entgraten` grün; black/ruff grün.
+
+### NEXT
+- Reiben (G85); Restmaterial auf Böden; der Einstieg nach Zeit.
+
 ## P-2026-10-01-38 gezeichnete-fasen
 
 ### EINGELESEN

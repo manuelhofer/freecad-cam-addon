@@ -44,6 +44,7 @@ from . import vierachs_plan as vplan
 from . import vierachs_planbahn as vp
 from . import vierachs_rohteil as vr
 from . import werkzeuge as wz
+from . import werkzeugform as wf
 from .gui_hilfe import kopfzeile
 from .gui_maschine import _EnterBleibtImDialog
 from .gui_teile import ROT, knopf, mit_einheit, ruhiges_mausrad
@@ -984,7 +985,7 @@ class _Entgraten(_Strategie):
         )
 
     def werkzeug_passt(self, werkzeug):
-        return werkzeug.art == wz.FASENFRAESER
+        return werkzeug.art in (wz.FASENFRAESER, wz.RADIENFRAESER)
 
     def passt(self, form, name):
         return eb.hat_oberkanten(form, name) or eb.hat_fasen(form, name)
@@ -1023,10 +1024,14 @@ class _Entgraten(_Strategie):
             )
         else:
             text = tr("ba.ergebnis_entgraten", zuege=zuege(bahn.ketten), zeit=zeit)
-        if getattr(bahn, "modell", ()):
-            breiten = ", ".join(groesse_zeigen(b, einheiten.LAENGE, 2) or "0" for b in bahn.modell)
-            einheit = einheiten.einheit(einheiten.LAENGE)
-            text += tr("ba.entgraten.aus_modell", breite=f"{breiten} {einheit}")
+        modell = getattr(bahn, "modell", ())
+        einheit = einheiten.einheit(einheiten.LAENGE)
+        fasen_ = [groesse_zeigen(b, einheiten.LAENGE, 2) or "0" for a, b in modell if a == "fase"]
+        rund = [groesse_zeigen(r, einheiten.LAENGE, 2) or "0" for a, r in modell if a != "fase"]
+        if fasen_:
+            text += tr("ba.entgraten.aus_modell", breite=f"{', '.join(fasen_)} {einheit}")
+        if rund:
+            text += tr("ba.entgraten.rundung_modell", radius=", ".join(rund))
         return text
 
     def lege_an(self, job, tc, werte, flaechen):
@@ -2144,6 +2149,7 @@ class BearbeitungPanel:
         self._gewindebohrer_waehlen(form)
         self._gewindefraeser_waehlen(form)
         self._senker_waehlen(form)
+        self._entgratfraeser_waehlen(form)
         self._fuellt = True
         try:
             for block in self.bloecke:
@@ -2487,6 +2493,39 @@ class BearbeitungPanel:
         for i, w in enumerate(self.gewindefraesen._fraeser):
             if self._gewindefraeser_passt(w, liste):
                 self.gewindefraesen.wahl_fraeser.setCurrentIndex(i)
+                return
+
+    @staticmethod
+    def _entgrat_passt(werkzeug, fasen_):
+        """Fräst `werkzeug` alle gezeichneten Fasen und Rundungen `fasen_` – ein Fasenfräser mit
+        ihrem Winkel, ein Radienfräser mit ihrem Radius?"""
+        for f in fasen_:
+            if f.radius > 0:
+                if werkzeug.art != wz.RADIENFRAESER:
+                    return False
+                profil, _spitze, _hoehe = wf.radienprofil(werkzeug)
+                if abs(profil - f.radius) > eb.RADIUS_GLEICH:
+                    return False
+            else:
+                if werkzeug.art != wz.FASENFRAESER:
+                    return False
+                _spitze, _hoehe, winkel = wf.kegel(werkzeug)
+                if abs(winkel / 2 - f.winkel) > eb.FASE_WINKEL:
+                    return False
+        return True
+
+    def _entgratfraeser_waehlen(self, form):
+        """Wählt im Block Entgraten den Fräser für die gezeichneten Fasen und Rundungen der Wahl
+        – wenn der gewählte sie nicht kann."""
+        fasen_ = eb._gewaehlte_fasen(form, self.gewaehlte)
+        if not fasen_:
+            return
+        jetzt = self.entgraten.fraeser()
+        if jetzt is not None and self._entgrat_passt(jetzt, fasen_):
+            return
+        for i, w in enumerate(self.entgraten._fraeser):
+            if self._entgrat_passt(w, fasen_):
+                self.entgraten.wahl_fraeser.setCurrentIndex(i)
                 return
 
     def _senker_passt(self, werkzeug, liste):
