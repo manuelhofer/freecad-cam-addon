@@ -134,6 +134,21 @@ ein ASCII-Entwurf des Dialogs reicht.
     Der Fräser ist dabei nur der Maßstab – das Ziel steht in der
     Spezifikation Strategien, Grundsatz 0: Für das gewählte Werkzeug den
     schnellsten Weg rechnen, zwischen den Strategien die schnellste nehmen.
+  - **Der Prüfstand für Werkzeugwege** (`tests/test_pruefstand.py`,
+    `camaddon/pruefstand.py`; Manuel, 2026-10-01: „die Werkzeugwege müssen
+    sinnvoll sein und immer zum kürzesten Bearbeitungsergebnis führen, bei egal
+    welcher Strategie … Finde einen Weg, das sicherzustellen“): Vor jedem Push,
+    der eine Bahn ändert (`planfraesen_bahn`, `raeumen_bahn`, `kontur_bahn`,
+    `bahn`, `hoehenfeld`, `fahrzeit`), läuft er zusätzlich zur Prüfdatei des
+    Teils. Er rechnet jede 2,5D-Strategie in jeder Variante mit dem
+    Standardfräser an den Maßstabsteilen und fährt sie im Quader ab: nirgends
+    ins Teil, nichts stehen geblieben, im Eilgang nichts abgetragen, nicht zu
+    viel Luft; jede Strategie nimmt ihre schnellste Variante; und keine Bahn
+    wird langsamer als ihre Bestmarke (`tests/bestmarken.json`). Wird eine
+    Bahn mit Absicht anders (schneller, oder ein Fehler behoben), schreibt
+    `BESTMARKEN_SCHREIBEN=1` die Bestmarken neu, und der Verlauf sagt, warum.
+    Eine neue Strategie bekommt ihre Zeilen im Prüfstand, bevor sie in den
+    Vorschlag kommt.
 - **Neue Prüfungen** gibt es für behobene Fehler, damit sie nicht
   wiederkommen, und für neue Funktionen. Reines Aufräumen braucht keine
   neuen, das decken die vorhandenen ab. Was sich ohne Oberfläche prüfen

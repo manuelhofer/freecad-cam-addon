@@ -338,8 +338,8 @@ def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
     stehen, was keine der beiden mit der Rundung der Stirn erreicht – die Zeilen hin und her
     lassen jeden zweiten Zwischenraum an der Wand aus (der Schritt zur nächsten Zeile liegt am
     anderen Ende), und vor der ersten und hinter der letzten Zeile bleibt die Ecke. Darum fährt
-    der Fräser hier an der Wand entlang: zurück bis zum Anfang der vorigen Zeile (sie begann an
-    dieser Seite) – vor der ersten Zeile bis an den Rand der Fläche, so weit es dort erlaubt ist
+    der Fräser hier an der Wand entlang: zurück zur vorigen Zeile, an die Stelle, die der Wand am
+    nächsten liegt – vor der ersten Zeile bis an den Rand der Fläche, so weit es dort erlaubt ist
     – und wieder her; am `ende` einer Fahrt erst hinter die letzte Zeile bis an den Rand, dann
     zurück, ohne wieder herzukommen. Gibt die Länge zurück."""
     hier = punkte[-1]
@@ -354,7 +354,12 @@ def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
     )
     unten = None
     if vorige is not None and len(vorige):
-        unten = (float(r_.u_stellen[vorige[0]]), float(r_.v_zeilen[m - 1]))
+        # Die vorige Zeile an dieser Wand: ihre Stelle, die j am nächsten liegt – nicht ihr
+        # Anfang: Vor einem Zapfen endet diese Zeile mitten in der Fläche, die vorige begann am
+        # anderen Ende, und die Wandfahrt zu ihrem Anfang lief quer durch den Zapfen (der
+        # Prüfstand fand es, P-2026-10-01-26).
+        k = int(vorige[int(np.argmin(np.abs(np.asarray(vorige) - j)))])
+        unten = (float(r_.u_stellen[k]), float(r_.v_zeilen[m - 1]))
     elif m >= 1 and bool(r_.erlaubt[m - 1, j]):
         unten = (u, float(r_.v_zeilen[m - 1]))
     if (

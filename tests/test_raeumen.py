@@ -158,12 +158,22 @@ teil_a = Part.makeBox(50, 50, 20).fuse(Part.makeCylinder(5, 10, V(25, 25, 20))).
 rohteil_a = (-1.0, 51.0, -1.0, 51.0)
 bahn_a = raeumen(teil_a, 20.0, werte_fuer(rohteil_a, 30.0))
 pruefe(bahn_a.variante == "rohteil", f"Zapfen: Variante {bahn_a.variante} {bahn_a.zeiten}")
-pruefe(set(bahn_a.zeiten) == {"rohteil", "inseln"}, f"Zapfen: Varianten {bahn_a.zeiten}")
+pruefe(set(bahn_a.zeiten) == {"rohteil", "morph", "inseln"}, f"Zapfen: Varianten {bahn_a.zeiten}")
 pruefe(
     bahn_a.zeiten["rohteil"] < bahn_a.zeiten["inseln"]
-    and abs(bahn_a.zeit - bahn_a.zeiten["rohteil"]) < 1e-9,
+    and abs(bahn_a.zeit - min(bahn_a.zeiten.values())) < 1e-9,
     f"Zapfen: Zeiten {bahn_a.zeiten}",
 )
+# Der Morph (Manuel: „im Viereck anfangen, aber immer runder werden“): eine Spirale ohne
+# Absetzen – ein Eingang, keine Rampe, sonst nur Anschlüsse.
+bahn_m = raeumen(teil_a, 20.0, werte_fuer(rohteil_a, 30.0, variante="morph"))
+pruefe(
+    bahn_m.rampen == 0 and bahn_m.einfahrten == 1 and bahn_m.anschluesse == bahn_m.laeufe - 1,
+    f"morph: {bahn_m.rampen} Rampen, {bahn_m.einfahrten} Einfahrten, {bahn_m.anschluesse} Anschlüsse, {bahn_m.laeufe} Läufe",
+)
+pruefe(bahn_m.zeit < bahn_a.zeit * 1.15, f"morph: {bahn_m.zeit} min, rohteil {bahn_a.zeit}")
+rest, einschnitt = simuliert(bahn_m, teil_a, rohteil_a, 30.0, 20.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"morph: Rest {rest}, Einschnitt {einschnitt}")
 # Vom Rand des Rohteils her: (50 + 2 + 4,5) ÷ 1,5 Ringe bis zur Mitte; der Zapfen unterbricht
 # die mittleren, danach die Ringe um ihn.
 pruefe(

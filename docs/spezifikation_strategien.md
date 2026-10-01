@@ -231,6 +231,31 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
    Taschenwände anhakbar, die Hilfe nennt die schnellste Folge), der Einstieg
    (Rampe/Helix/senkrecht nach Zeit), die Startstelle (am Ende der vorigen
    Operation), die Reihenfolge der Bereiche nach Eilgangweg.
+
+   *Sichergestellt* wird das mit dem **Prüfstand** (`pruefstand.py`,
+   `test_pruefstand.py`, P-2026-10-01-26; Manuel: „Finde einen Weg, das
+   sicherzustellen … immer den definierten Fräser mit den definierten Werten
+   und verschiedene Bahnen durchfahren“): Jede Strategie in jeder Variante wird
+   mit dem Standardfräser an den Maßstabsteilen (Manuels 50 × 50 mit Zapfen,
+   der Block mit Absatz, der Block mit Tasche, die Platte) gerechnet und im
+   Quader Satz für Satz abgefahren. Gemessen werden Zeit, Vorschub- und
+   Eilgangweg, Luft (Vorschub ohne Abtrag), Eintauchen und Rampen im Material,
+   Halte, der Rest auf der Fläche, der Einschnitt ins Teil, der Abtrag im
+   Eilgang und die Untergrenze – das Volumen durch ae · ap · vf, als wäre der
+   Fräser nie aus dem Eingriff; Zeit zu Untergrenze ist der Wirkungsgrad.
+   Vier Urteile lassen eine Bahn durchfallen: ins Teil geschnitten, etwas
+   stehen geblieben, im Eilgang abgetragen, zu viel Luft. Dazu drei Regeln:
+   jede Strategie nimmt von ihren Varianten die schnellste; zwischen den
+   Strategien steht fest, welche wo gewinnt (Räumen auf dem Zapfen-Block und
+   der Platte, Planfräsen am Absatz, Räumen + Kontur in der Tasche); und keine
+   Bahn wird langsamer als ihre Bestmarke (`tests/bestmarken.json`) – schneller
+   darf jede, dann werden die Bestmarken neu geschrieben, und der Verlauf sagt,
+   warum. Der erste Lauf fand gleich drei Fehler: die Wandfahrt des Planfräsens
+   lief vor dem Zapfen quer durch ihn (zum Anfang der vorigen Zeile statt zu
+   ihrer nächsten Stelle), der Eilgang des Räumens fuhr beim Einfahren bis
+   knapp über die Lage, auch wo unter der Stirn noch ein Rest stand, und die
+   Ringe um die Zwickel neben einer Insel fanden keinen Eingang (ein ganzer
+   Ring fängt jetzt dort an, wo einer passt).
 1. **Tangential ein- und ausfahren.** Nie senkrecht in die Wand; Bogen und
    Gerade nach Fräser-Ø; in Taschen Helix oder Rampe mit dem Winkel aus der
    Werkzeugtabelle (Eintauchwinkel gibt es schon).
@@ -500,10 +525,24 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   Gesperrten bei Radius + Aufmaß + k · ae (Marching Squares, verkettet,
   vereinfacht – Inseln wie der Zapfen und Absätze teilen sie von selbst), vom
   Rohteil her analytisch (Rechteck mit runden Ecken, der erste Ring R − ae
-  außerhalb in der Luft). Zwei Varianten, beide gerechnet, die schnellere
-  zählt: „rohteil“ (dem Rohteilrand nach innen folgen, dann der Rest um die
-  Inseln) und „inseln“ (von den Wänden und Inseln aus; in der Tasche von innen
-  nach außen). Je Lauf der Eingang in dieser Reihenfolge: an den vorigen
+  außerhalb in der Luft). Drei Varianten, alle gerechnet, die schnellste zählt
+  (P-2026-10-01-26, nach Manuels Bild: „der Weg muss im Viereck anfangen, aber
+  immer runder werden, so dass er am Ende nur um den Zapfen fährt“): „rohteil“
+  – die Ringe um das, was noch steht: die Höhenlinien von
+  F = min(Tiefe im Rohteil + R, D + ae) bei m · ae, überall ae auseinander; das
+  Rechteck beißt in den Zapfen, die Zwickel zwischen Zapfen und Ecke werden
+  eigene Ringe, die Ringe nur um den Zapfen kommen zuletzt von außen nach
+  innen –, „morph“ – Rechteck-Ringe, bis einer den Zapfen träfe, dann die
+  Höhenlinien von t = D ÷ (D + Abstand zum letzten Ring): von Ring zu Ring
+  runder bis zum Kreis um den Zapfen, eine Spirale ohne Absetzen; so viele
+  Ringe, dass sie nirgends weiter als ae auseinanderliegen, enger, wo der
+  Spalt schmal ist (das kostet Weg) – und „inseln“ (nur die Ringe um Wände und
+  Inseln; in der Tasche von innen nach außen). Auf Manuels 50 × 50 mit Zapfen:
+  rohteil 2,75 min (4 Einfahrten), morph 2,95 (eine Einfahrt, 11 % Luft),
+  inseln 4,28; am Absatz rohteil 2,03 (eine Spirale), morph 8,5 (der Spalt
+  zwischen Absatz und Rohteilrand ist überall anders breit); auf der Platte
+  rohteil 33,1, morph 49,5 (der Zapfen liegt nicht in der Mitte: der Morph
+  wird dort zu eng), inseln 40,5. Je Lauf der Eingang in dieser Reihenfolge: an den vorigen
   anhängen (die Spirale, bis 2 ae, der Weg frei), tangential aus dem Freien
   (das Einfahren der Kontur auf der freien Seite – rechts im Gleichlauf,
   links im Gegenlauf), quer aus dem Freien, das Anfangsstück nachholen, wenn
@@ -512,13 +551,15 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   Stirn höchstens so viel ungeschnittenes Rohteil wie im Streifen ae, den
   jeder Ring ohnehin nimmt. Gleichlauf oder Gegenlauf (das Feld links und
   rechts abgetastet), Bögen in den Ecken, beim Austritt halber Vorschub.
-  Rechenzeit etwa eine Sekunde je Fläche. Gemessen mit dem Standardfräser
-  (`test_raeumen`, Simulation im Quader: nirgends ins Teil, auf der Fläche
-  nichts stehen geblieben): Manuels 50 × 50 mit Zapfen 2,8 min (Planfräsen
-  4,8), der Block mit Absatz 2,5 (Planfräsen 1,7 – dort gewinnt das
-  Planfräsen, der Assistent zeigt es), die Tasche 40 × 30 0,75 (Kontur ohne
-  Schlichten 3,0), die Platte 33,3 (Planfräsen 39,3), ihre Tasche 1,2 –
-  Abschnitt 11. Der Zapfen bekommt sein Aufmaß, die Kontur holt es (noch von
+  Ein ganzer Ring, an dessen Anfang kein Eingang passt, fängt dort an, wo
+  einer passt; der Eilgang hinab endet über dem Material, wo unter der Stirn
+  noch ein Rest steht (beides vom Prüfstand gefunden, P-26). Rechenzeit etwa
+  eine Sekunde je Fläche. Gemessen mit dem Standardfräser (`test_pruefstand`,
+  Simulation im Quader: nirgends ins Teil, auf der Fläche nichts stehen
+  geblieben): Manuels 50 × 50 mit Zapfen 2,75 min (Planfräsen 4,8), der Block
+  mit Absatz 2,0 (Planfräsen 1,7 – dort gewinnt das Planfräsen, der Assistent
+  zeigt es), die Tasche 40 × 30 0,75 (Kontur ohne Schlichten 3,0), die Platte
+  33,1 (Planfräsen 39,3), ihre Tasche 1,2 – Abschnitt 11. Der Zapfen bekommt sein Aufmaß, die Kontur holt es (noch von
   Hand: „Material neben der Wand“ gleich dem Aufmaß). Operation
   `raeumen.Raeumen` (Variante wählbar, „Gerechnet“ zeigt beide Zeiten); im
   Assistenten der Block „Räumen“ – für ebene Flächen vorgeschlagen, für
@@ -560,7 +601,7 @@ für jede Strategie, die den Fräser dauernd im Eingriff hält:
 | --- | --- | --- | --- | --- |
 | heute: Planfräsen ap 2, ae 7,8 (0,65 D), Tasche über die Kontur in Lagen, Kontur Zapfen | 74,0 min (10 Lagen, 310 Zeilen, 62 m) | 4,6 min | 0,9 min | **80 min** |
 | heute mit ganzer Schneide: Planfräsen ap 20, ae 1,5; Tasche über die Kontur ap 20 (ganz räumen) | 39,3 min (1 Lage, 151 Zeilen, 33 m) | 3,9 min (12 Versätze, je mit Rampe) | 0,9 min | **44 min** |
-| S3f Räumen (gebaut, 0.44.0): Ringe ap 20, ae 1,5, hinein von außen in der Luft; Tasche Rampe 3° einmal rundum, dann Ringe nach außen | 33,3 min (1 Lage, gemessen; geschätzt waren ≈ 33) | 1,2 min (gemessen; geschätzt ≈ 1,3) | 0,3 min | **≈ 35 min** |
+| S3f Räumen (gebaut, 0.45.0): Ringe ap 20, ae 1,5, hinein von außen in der Luft, zuletzt um den Zapfen; Tasche Rampe 3° einmal rundum, dann Ringe nach außen | 33,1 min (1 Lage, gemessen; geschätzt waren ≈ 33) | 1,2 min (gemessen; geschätzt ≈ 1,3) | 0,3 min | **≈ 35 min** |
 | Untergrenze (Fräser nie aus dem Eingriff) | 29 min | 1,2 min | 0,3 min | **31 min** |
 
 Gemessen mit `scripts`-freiem Rechenlauf (Sonde, 1.1.3): Planfräsen und

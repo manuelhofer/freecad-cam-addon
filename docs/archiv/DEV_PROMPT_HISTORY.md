@@ -12,6 +12,79 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-26 pruefstand-ringe-um-den-rest
+
+### EINGELESEN
+- Manuel (2026-10-01): „Also die Werkzeugwege müssen sinnvoll sein und natürlich immer zum
+  kürzesten Bearbeitungsergebnis führen!!! Bei egal welcher Strategie oder Sache … Finde einen
+  Weg, das sicherzustellen. Mein Ansatz war eben, dass man immer den definierten Fräser mit
+  immer den definierten Werten nimmt und verschiedene Bahnen durchfährt“; zum Bild des Räumens:
+  „Aber der Werkzeugweg … ist doch Quatsch und bildet den Kreis mittig auch nicht wirklich ab“,
+  „Der muss sozusagen im Viereck fahren anfangen, aber immer runder werden … so dass er am Ende
+  nur um den Zapfen fährt“.
+- `raeumen_bahn` (Ringe vom Rohteil her als Stücke, D-Ringe um Inseln), `planfraesen_bahn`
+  (`_wandfahrt`), `restmaterial.Quader`, `bahn.zeit`, `fahrzeit`, `tests/test_goldene_bahnen.py`
+  (die Bestmarken-Idee), Spezifikation Grundsatz 0 und Abschnitt 11.
+
+### DATEIEN
+- `camaddon/pruefstand.py` (neu), `tests/test_pruefstand.py` (neu), `tests/bestmarken.json`
+  (neu), `camaddon/raeumen_bahn.py`, `camaddon/planfraesen_bahn.py`, `help/de|en/bearbeitung.html`,
+  `tests/test_raeumen.py`, `tests/gui/szenario_raeumen.py`, `docs/spezifikation_strategien.md`,
+  `docs/arbeitsregeln.md`, `docs/aufbau.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.45.0)
+
+### AKZEPTANZKRITERIUM
+Der Prüfstand rechnet jede 2,5D-Strategie in jeder Variante mit dem Standardfräser an den vier
+Maßstabsteilen und fährt sie im Quader ab; jede Bahn besteht (nirgends ins Teil, nichts stehen
+geblieben, im Eilgang nichts abgetragen, nicht zu viel Luft), jede Strategie nimmt ihre
+schnellste Variante, zwischen den Strategien gewinnt, was die Tabelle sagt, und keine Bahn wird
+langsamer als ihre Bestmarke. Das Räumen auf Manuels 50 × 50 mit Zapfen fährt als Rechteck los,
+beißt in den Zapfen, nimmt die Zwickel und zuletzt die Ringe um den Zapfen – ohne Rampe, mit
+vier Einfahrten, 2,75 min; die Variante „morph“ (von Ring zu Ring runder, eine Spirale ohne
+Absetzen) braucht 2,95; die Zeit entscheidet, beide stehen in „Gerechnet“. Am Absatz 2,0 min
+statt 2,5, auf der Platte 33,1 statt 33,3.
+
+### DONE
+- `pruefstand.py`: `messen()` (Kennzahlen: Zeit, Vorschub- und Eilgangweg, Luft, Volumen,
+  Untergrenze = Volumen ÷ ae · ap · vf, Wirkungsgrad, Rest, Einschnitt, Abtrag im Eilgang,
+  Eintauchen, Rampen, Halte), `urteile()`, `zeile()`; `test_pruefstand.py` mit 17 Bahnen an
+  Zapfen-Block, Absatz, Tasche und Platte gegen `bestmarken.json` (`BESTMARKEN_SCHREIBEN=1`).
+- Der erste Lauf fand drei Fehler, alle behoben: die Wandfahrt des Planfräsens lief vor dem
+  Zapfen zum Anfang der vorigen Zeile – quer durch den Zapfen (jetzt zu ihrer nächsten Stelle);
+  der Eilgang des Räumens fuhr beim Einfahren bis knapp über die Lage, auch wo unter der Stirn
+  noch ein Rest stand (189 mm³ im Eilgang; jetzt nur bis über das Material); die Ringe um die
+  Zwickel neben einer Insel fanden am nächsten Punkt keinen Eingang und rampten (ein ganzer
+  Ring fängt jetzt dort an, wo einer passt).
+- `raeumen_bahn`: die Variante „rohteil“ sind jetzt die Ringe um das, was noch steht
+  (Höhenlinien von F = min(Tiefe im Rohteil + R, D + ae); Rechteck-Ringe analytisch mit Bögen,
+  Ringe nur um Inseln zuletzt von außen nach innen); neue Variante „morph“ (Rechteck, dann von
+  Ring zu Ring runder bis zum Kreis um die Insel); „inseln“ ohne Insel wie „rohteil“; der Rest
+  nach den Ringen nur dort, wo noch etwas steht; die Richtung eines Rings an seinen längsten
+  Stücken bestimmt.
+
+### TEST (Stand der Übergabe, 2026-10-01 – Manuel wechselt das Modell)
+- Grün in 1.1.3 vor den letzten beiden Änderungen: `test_raeumen`, `test_planfraesen`, `test_kontur`,
+  `test_quader`, `test_sprache`, `test_hilfe`; black/ruff grün.
+- `test_pruefstand`: zweiter Lauf fand nur noch „platte/raeumen+kontur tasche: trägt im Eilgang
+  ab (2034 mm³)“ – die Ursache (der Eilgang über der ersten Lage einer Tasche ging bis knapp
+  über ihre Oberkante, obwohl das Rohteil 20 mm höher ist) ist in `raeumen_bahn._material_oben`
+  behoben, **aber noch nicht nachgemessen**; `tests/bestmarken.json` stammt aus diesem zweiten
+  Lauf. Die Szenarien `szenario_raeumen` und `szenario_bearbeitung` sind nach dem Umbau **noch
+  nicht gelaufen**. NICHT auf main gepusht – nur auf den Arbeitszweig.
+
+### NEXT (für die nächste Sitzung, in dieser Reihenfolge)
+1. `BESTMARKEN_SCHREIBEN=1 freecadcmd tests/test_pruefstand.py` (≈ 8 min) – muss OK melden; dann
+   `test_raeumen`, `test_planfraesen`, `test_kontur`, Szenarien raeumen/bearbeitung/kontur.
+2. `tests/test_pruefstand.py`: `tiefe=` (15 Tasche, 20 Platten-Tasche) und `vorher=[lauf(raeumt)]`
+   bei den Platten-Taschen-Messungen eintragen (`pruefstand.messen` hat beide Parameter schon);
+   die letzte Änderung scheiterte am Anker des `summe = (` Blocks.
+3. Kontur: Lagen ab `min(w.oben, k.z_oben)` (die Tasche der Platte rampt heute 20 mm durch Luft:
+   10,4 min statt ≈ 4), Eilgang nur bis Rohteil-Oberkante + Sicherheit, dann Eintauchvorschub.
+4. `docs/STATUS_SNAPSHOT.md` ergänzen (Prüfstand, drei Varianten, drei gefundene Fehler), dann
+   Push auf main mit 0.45.0 und Bericht an Manuel: Zapfen rohteil 2,75 min / morph 2,95 (Variante
+   „morph“ ist sein Bild: Viereck, immer runder, zuletzt um den Zapfen), Absatz 2,0, Platte 33,1.
+5. Danach: Räumen gegen Kontur in der Tasche im Assistenten, Einstieg nach Zeit, Spannhöhe.
+
 ## P-2026-10-01-25 raeumen-ringe-wettbewerb
 
 ### EINGELESEN

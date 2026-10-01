@@ -120,10 +120,15 @@ ring joins the previous one (a spiral); where that is not possible, the cutter
 plunges only where it is already free, otherwise it enters sideways from the
 free area – the ramp in material exists only where nothing is free. On leaving
 the stock at half feed.</li>
-<li>The window computes two variants and takes the faster: “rohteil” (follow
-the stock edge inwards) and “inseln” (from the walls and islands outwards). In
-the operation's properties <b>Gerechnet</b> lists each with its time;
-<b>Variante</b> fixes one.</li>
+<li>The window computes three variants and takes the fastest: “rohteil” (the
+rings around what still stands: from the stock edge and from the islands, each
+ae further, equally spaced everywhere – the rectangle bites into the boss, the
+rings around it come last), “morph” (rectangle rings until one would hit the
+boss, then they get rounder from ring to ring until the last one only circles
+the boss – one spiral without lifting, rings closer where the gap is narrow)
+and “inseln” (rings only around the walls and islands). In the operation's
+properties <b>Gerechnet</b> lists each with its time; <b>Variante</b> fixes
+one.</li>
 <li>Grey below: “→ 1 layer, 15 rings, about 3 min”. Red says why it does not
 work (no flat floor, the cutter does not fit in, nothing stands above the
 face).</li>

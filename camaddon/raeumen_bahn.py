@@ -45,7 +45,7 @@ from .sprache import tr
 SCHRITT = 0.5  # mm – das Raster und der Abstand der Stellen auf den Ringen
 VORSCHAU_SCHRITT = 1.0  # mm – für die Vorschau im Assistenten
 AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
-VARIANTEN = ("rohteil", "inseln")
+VARIANTEN = ("rohteil", "morph", "inseln")
 GLEICH = vb.GLEICH
 _WINZIG = 1e-9
 
@@ -116,6 +116,7 @@ class _Feld:
         else:
             self.roh = np.full((self.nx, self.ny), hf.KEIN_TREFFER)
         gx, gy = np.meshgrid(self.xs, self.ys, indexing="ij")
+        self.tiefe = _rohteil_tiefe(gx, gy, rohteil)  # so tief liegt die Zelle im Rohteil
         self.beruehrt = kb._im_rohteil(gx, gy, rohteil, r)  # die Stirn trifft das Rohteil
         # Die Mitte höchstens `rand_eng` außerhalb des Rohteils – für die Ringe des Feldes, die
         # sonst bis R in die Luft schnitten.
@@ -414,28 +415,51 @@ class _Ring:
     geschlossen: bool
 
 
-def _ring_aus_linie(punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz):
-    """Ein Ring aus einer Höhenlinie des Feldes D: vereinfacht, so gerichtet, dass das Material
-    (D kleiner als das Niveau) links liegt – oder rechts (Gegenlauf)."""
+def _ring_aus_linie(
+    punkte, geschlossen, material_links, feld, niveau, werte, schritt, toleranz, material_hoch=False
+):
+    """Ein Ring aus einer Höhenlinie des Feldes `werte`: vereinfacht, so gerichtet, dass das
+    Material links liegt – oder rechts (Gegenlauf). Das Material liegt, wo das Feld kleiner ist
+    (D: näher am Gesperrten) oder, mit `material_hoch`, wo es größer ist (F: tiefer im Rest)."""
     punkte = _vereinfacht(punkte, toleranz, geschlossen)
     if len(punkte) < 2:
         return None
-    # Links des ersten Stücks: liegt dort das Gesperrte näher (D kleiner)?
-    p, q = punkte[0], punkte[1 if len(punkte) > 1 else 0]
-    tx, ty = q[0] - p[0], q[1] - p[1]
-    laenge = math.hypot(tx, ty) or 1.0
-    mx, my = (p[0] + q[0]) / 2, (p[1] + q[1]) / 2
-    links = (mx - ty / laenge * schritt, my + tx / laenge * schritt)
-    rechts = (mx + ty / laenge * schritt, my - tx / laenge * schritt)
-    d_links = float(feld.bei(D, [links[0]], [links[1]])[0])
-    d_rechts = float(feld.bei(D, [rechts[0]], [rechts[1]])[0])
-    material_ist_links = d_links < d_rechts
+    # Liegt das Material links? Neben der Mitte der längsten Stücke nachsehen – an einer Ecke
+    # oder in einer Kerbe trifft die Probe sonst beidseits denselben Knoten.
+    n = len(punkte)
+    stuecke = range(n if geschlossen else n - 1)
+    laengen = [math.hypot(*(punkte[(i + 1) % n] - punkte[i])) for i in stuecke]
+    material_ist_links = not material_hoch
+    for i in sorted(stuecke, key=lambda k: -laengen[k]):
+        p, q = punkte[i], punkte[(i + 1) % n]
+        tx, ty = q[0] - p[0], q[1] - p[1]
+        laenge = math.hypot(tx, ty) or 1.0
+        mx, my = (p[0] + q[0]) / 2, (p[1] + q[1]) / 2
+        weit = 1.5 * schritt
+        links = (mx - ty / laenge * weit, my + tx / laenge * weit)
+        rechts = (mx + ty / laenge * weit, my - tx / laenge * weit)
+        d_links = float(feld.bei(werte, [links[0]], [links[1]])[0])
+        d_rechts = float(feld.bei(werte, [rechts[0]], [rechts[1]])[0])
+        if abs(d_links - d_rechts) > _WINZIG:
+            material_ist_links = (d_links > d_rechts) if material_hoch else (d_links < d_rechts)
+            break
     if material_ist_links != material_links:
         punkte = punkte[::-1].copy()
     segmente = _segmente_aus(punkte, geschlossen)
     if not segmente:
         return None
     return _Ring(segmente, kb._abtasten(segmente, schritt, geschlossen), geschlossen)
+
+
+def _rohteil_tiefe(gx, gy, rohteil):
+    """Je Zelle, wie tief sie im Rohteil liegt (mm): drinnen der Abstand zum nächsten Rand,
+    draußen der Abstand zum Rohteil, negativ – die Höhenlinien sind die Ringe von
+    _rohteil_ring (draußen mit runden Ecken)."""
+    x0, x1, y0, y1 = rohteil
+    innen = np.minimum(np.minimum(gx - x0, x1 - gx), np.minimum(gy - y0, y1 - gy))
+    dx = np.maximum(np.maximum(x0 - gx, 0.0), gx - x1)
+    dy = np.maximum(np.maximum(y0 - gy, 0.0), gy - y1)
+    return np.where(innen >= 0, innen, -np.hypot(dx, dy))
 
 
 def _rohteil_ring(rohteil, tiefe, material_links, schritt):
@@ -490,7 +514,7 @@ class _Stand:
 class _Lage:
     """Eine Lage: fährt Ringe als Läufe, merkt sich Freies, hängt Läufe aneinander."""
 
-    def __init__(self, st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt):
+    def __init__(self, st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben=None):
         self.st = st
         self.feld = feld
         self.w = w
@@ -501,6 +525,12 @@ class _Lage:
         self.vorige = vorige
         self.erlaubt = erlaubt
         self.schritt = schritt
+        # Wo das Material über der Fläche beginnt (in der Tasche ihre Oberkante) – und die Decke:
+        # die Oberkante des Rohteils. Über der ersten Lage einer Tasche darf der Eilgang nur bis
+        # über die Decke hinab, denn ob jemand das Rohteil darüber schon weggefräst hat, weiß die
+        # Bahn nicht (der Prüfstand fand 2034 mm³ im Eilgang, P-2026-10-01-26).
+        self.oben = w.oben if oben is None else oben
+        self.decke = w.oben
         self.unten = False  # die Spitze steht auf der Lage (am Ende des letzten Laufs)
         self.ort = None  # (x, y) der Spitze dort
         self.knapp = min(w.sicher, w.oben + w.sicherheit)  # Eilgang über dem Rohteil
@@ -511,6 +541,7 @@ class _Lage:
         self.schwelle = 1.5 * abschnitt / (math.pi * r * r) + 0.02
         self.reste = []  # [(Ring, Stellen)]: Anfangsstücke, die nach den Ringen nachkommen
         self.verschieben = True
+        self.gedreht = False  # gerade ein ganzer Ring, der anderswo anfängt (_eingang_irgendwo)
         # Die freie Seite der Bahn: rechts im Gleichlauf (das Material links), sonst links –
         # dorthin gehen das Einfahren und der Weg quer hinein.
         self.frei_rechts = bool(w.gleichlauf)
@@ -528,9 +559,10 @@ class _Lage:
             return True
         return bool((self.feld.ungeschnitten(qx[:-1], qy[:-1]) <= self.schwelle).all())
 
-    def ring(self, ring, eng=False, kennung=""):
+    def ring(self, ring, eng=False, kennung="", nur=None):
         """Fährt einen Ring – in Läufen, wo erlaubt und Rohteil ist (`eng`: die Mitte höchstens
-        ae außerhalb des Rohteils, sonst bis R). Gibt die Zahl der Läufe."""
+        ae außerhalb des Rohteils, sonst bis R; `nur`: je Probe, ob sie überhaupt gefahren
+        werden soll). Gibt die Zahl der Läufe."""
         self.kennung = kennung
         proben = ring.proben
         x, y = proben.x, proben.y
@@ -541,6 +573,8 @@ class _Lage:
         drin = self.feld.im_raster(x, y)
         drin &= self.feld.bei(self.erlaubt, x, y)
         drin &= im_rohteil[self.feld.zellen(x, y)]
+        if nur is not None:
+            drin &= nur
         if not drin.any():
             return 0
         laeufe = []  # [(Stellen, Austritt hinten)]
@@ -621,6 +655,18 @@ class _Lage:
             else kb._anfahrt(p0, t0, self.r_ein, self.gerade, self.frei, True, self.frei_rechts)
         )
         seitlich = None if angehaengt or ein is not None else self._seitlich(p0, t0)
+        if not angehaengt and ein is None and seitlich is None and ganz and not self.gedreht:
+            # Ein ganzer Ring, an dessen Anfang kein Eingang passt: anderswo anfangen, wo einer
+            # passt – der Spitze am nächsten (die Zwickel neben einer Insel, P-2026-10-01-26).
+            m = self._eingang_irgendwo(proben, stellen)
+            if m is not None:
+                grund = np.asarray(stellen[:-1])
+                gedreht = np.concatenate([np.roll(grund, -m), grund[m : m + 1]])
+                self.gedreht = True
+                try:
+                    return self._lauf(ring, gedreht, hinten, True)
+                finally:
+                    self.gedreht = False
         if not angehaengt and ein is None and seitlich is None and not ganz and self.verschieben:
             # Kein Eingang am Anfang (dahinter die Insel, daneben noch Material): weiter vorn
             # suchen – das Anfangsstück kommt nach den Ringen um die Insel nach.
@@ -638,7 +684,7 @@ class _Lage:
             punkte.append(bn.Punkt(True, start[0], start[1], hoch))
             if ein is not None:
                 # Eintauchen im Freien oder in der Luft, dann tangential hinein.
-                knapp = min(hoch, self.lage + w.sicherheit)
+                knapp = self._hinab(start, hoch)
                 punkte.append(bn.Punkt(True, start[0], start[1], knapp))
                 punkte.append(bn.Punkt(False, start[0], start[1], self.lage, True))
                 laenge += kb._anfahrt_punkte(punkte, ein, self.lage, hinein=True)
@@ -646,7 +692,7 @@ class _Lage:
             elif seitlich is not None:
                 # Eintauchen im Freien neben der Bahn, dann quer hinein (hinter dem Anfang ist
                 # Gesperrtes – etwa die Insel, an der der Ring abriss).
-                knapp = min(hoch, self.lage + w.sicherheit)
+                knapp = self._hinab(start, hoch)
                 punkte.append(bn.Punkt(True, start[0], start[1], knapp))
                 punkte.append(bn.Punkt(False, start[0], start[1], self.lage, True))
                 punkt = bn.Punkt(False, p0[0], p0[1], self.lage)
@@ -658,7 +704,7 @@ class _Lage:
                 # Ring in der Tiefe, ab dort, wo die Rampe ankam), sonst längs des Laufs hin
                 # und her.
                 oben_hier = self.vorige
-                knapp = min(hoch, oben_hier + w.sicherheit)
+                knapp = min(hoch, self._material_oben() + w.sicherheit)
                 punkte.append(bn.Punkt(True, p0[0], p0[1], knapp))
                 punkte.append(bn.Punkt(False, p0[0], p0[1], oben_hier, True))
                 self.st.rampen += 1
@@ -671,6 +717,24 @@ class _Lage:
             punkte, segmente, proben, stellen, self.lage, hinten, w.austritt, r
         )
         self._fertig(ring, laenge, ein, x, y, p1)
+
+    def _hinab(self, start, hoch):
+        """Bis wohin der Eilgang über `start` hinab darf: knapp über die Lage, wenn unter der
+        Stirn nichts mehr steht – sonst nur knapp über das Material (ein wenig ungeschnittenes
+        Rohteil darf die Stirn beim Einfahren treffen, aber im Vorschub, nicht im Eilgang; der
+        Prüfstand fand 189 mm³ im Eilgang, P-2026-10-01-26)."""
+        knapp = min(hoch, self.lage + self.w.sicherheit)
+        if float(self.feld.ungeschnitten([start[0]], [start[1]])[0]) <= 0.0:
+            return knapp
+        return min(hoch, max(knapp, self._material_oben() + self.w.sicherheit))
+
+    def _material_oben(self):
+        """Bis wohin das Material über der Spitze reichen kann: die vorige Lage – über der
+        ersten Lage die Decke (das Rohteil, auch wenn die Fläche in einer Tasche tiefer
+        beginnt)."""
+        if self.vorige < self.oben - GLEICH:
+            return self.vorige
+        return self.decke
 
     def _fertig(self, ring, laenge, ein, x=None, y=None, ende=None):
         """Nach dem Lauf: das Freie merken, wo die Spitze steht, die Zähler."""
@@ -703,6 +767,32 @@ class _Lage:
                 kb._anfahrt(p, t, self.r_ein, self.gerade, self.frei, True, self.frei_rechts)
                 is not None
             ):
+                return m
+            if self._seitlich(p, t) is not None:
+                return m
+        return None
+
+    def _eingang_irgendwo(self, proben, stellen):
+        """Die Stelle (Index in `stellen`) auf einem ganzen Ring, an der ein Eingang passt –
+        tangential oder quer –, der Spitze am nächsten; None, wenn nirgends."""
+        grund = np.asarray(stellen[:-1])
+        n = len(grund)
+        if n < 3:
+            return None
+        x, y = proben.x[grund], proben.y[grund]
+        if self.ort is None:
+            reihenfolge = range(n)
+        else:
+            reihenfolge = np.argsort(np.hypot(x - self.ort[0], y - self.ort[1]))
+        schrittweite = max(1, int(round(1.0 / self.schritt)))  # alle 1 mm nachsehen
+        for m in reihenfolge:
+            m = int(m)
+            if m % schrittweite:
+                continue
+            p = (float(x[m]), float(y[m]))
+            k = (m + 1) % n
+            t = kb._einheit(float(x[k] - x[m]), float(y[k] - y[m]))
+            if kb._anfahrt(p, t, self.r_ein, self.gerade, self.frei, True, self.frei_rechts):
                 return m
             if self._seitlich(p, t) is not None:
                 return m
@@ -913,7 +1003,7 @@ def _tasche_um(ebene, konturen):
 def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt):
     """Eine Fläche räumen – alle Lagen, in der Variante."""
     tasche = _tasche_um(ebene, konturen)
-    if variante == "rohteil" and tasche is not None:
+    if variante in ("rohteil", "morph") and tasche is not None:
         return  # in der Tasche gibt es nur die Ringe von innen nach außen
     ziel = ebene.z + max(w.aufmass_boden, 0.0)
     oben = w.oben if tasche is None else min(w.oben, tasche.z_oben)
@@ -955,7 +1045,7 @@ def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt):
         lage = float(lage)
         erlaubt = feld.erlaubt_feld(lage, ziel)
         feld.frei[:] = False
-        ablauf = _Lage(st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt)
+        ablauf = _Lage(st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben)
         gesperrt = ~erlaubt
         # Zur sicheren Seite: das Gesperrte um eine Zelle breiter – auch diagonal, sonst
         # berührt der Ring am Niveau 0 an runden Wänden einen gesperrten Knoten und reißt ab.
@@ -969,8 +1059,13 @@ def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt):
             gesperrt & feld.im_raster(*np.meshgrid(feld.xs, feld.ys, indexing="ij"))
         )
         ringe_vorher = st.ringe
+        if tasche is None and variante == "inseln" and not np.isfinite(D).any():
+            variante = "rohteil"  # keine Insel: nur die Ringe vom Rohteil her
         if tasche is None and variante == "rohteil":
-            _ringe_vom_rohteil(ablauf, feld, w, r, material_links, schritt, toleranz)
+            _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz)
+            _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest=True)
+        elif tasche is None and variante == "morph":
+            _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz)
             _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest=True)
         else:
             _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest=False)
@@ -989,24 +1084,134 @@ def form_mit_aufmass(form, aufmass):
     return form.mit_aufmass(aufmass)
 
 
-def _ringe_vom_rohteil(ablauf, feld, w, r, material_links, schritt, toleranz):
-    """Die Ringe vom Rand des Rohteils her nach innen: der erste außen in der Luft (Mitte
-    R − ae außerhalb), dann je ae weiter hinein, bis keiner mehr hineinpasst."""
+def _naechster_zuerst(ablauf, ringe, eng, kennung, nur=None):
+    """Fährt die Ringe – immer den, der der Spitze am nächsten liegt, zuerst."""
+    while ringe:
+        if ablauf.ort is None:
+            naechster = 0
+        else:
+            naechster = min(
+                range(len(ringe)),
+                key=lambda k: float(
+                    np.min(
+                        np.hypot(
+                            ringe[k].proben.x - ablauf.ort[0], ringe[k].proben.y - ablauf.ort[1]
+                        )
+                    )
+                ),
+            )
+        ring = ringe.pop(naechster)
+        ablauf.ring(ring, eng=eng, kennung=kennung, nur=None if nur is None else nur.get(id(ring)))
+
+
+def _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz):
+    """Die Ringe um das, was noch steht – ein Feld F = min(Tiefe im Rohteil + R, D + ae): vom
+    Rohteilrand her je ae weiter hinein (der erste Ring R − ae außerhalb, in der Luft) und von
+    jeder Insel her je ae weiter hinaus; seine Höhenlinien bei m · ae sind die Ringe, überall ae
+    auseinander. Ein Ring, der nur dem Rohteilrand folgt, ist das Rechteck mit runden Ecken
+    (analytisch, mit Bögen). Einer, der nur eine Insel umrundet, wartet, bis alles um ihn herum
+    weg ist: Die Ringe um die Inseln kommen zuletzt, von außen nach innen, bis an die Insel. Die
+    übrigen – das Rechteck, das in die Inseln hineinbeißt, die Zwickel zwischen Insel und Ecke –
+    kommen in ihrer Reihenfolge. So gibt es keine zerhackten Ringe und keine Luftfahrten (Manuel,
+    2026-10-01: die Ringe sollen am Ende nur noch um den Zapfen fahren)."""
     ae = w.zeilenabstand
-    k = 0
-    while k < 100000:
-        tiefe = (k + 1) * ae - r
+    gueltig = feld.beruehrt & feld.im_raster(*np.meshgrid(feld.xs, feld.ys, indexing="ij"))
+    F = np.minimum(feld.tiefe + r, D + ae)
+    if not gueltig.any():
+        return
+    hoechste = float(F[gueltig].max())
+    if not np.isfinite(hoechste) or hoechste < ae:
+        return
+    spaeter = {}  # Niveau m → [Ringe nur um Inseln]
+    for m in range(1, int(math.floor(hoechste / ae + 1e-9)) + 1):
+        niveau = m * ae
+        jetzt = []
+        for punkte, geschlossen in _hoehenlinien(F, feld.xs, feld.ys, niveau):
+            if len(punkte) < 2:
+                continue
+            laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
+            if geschlossen and laenge < 2 * math.pi * ae:
+                continue  # winzig: der Ring davor deckt es ab
+            i, j = feld.zellen(punkte[:, 0], punkte[:, 1])
+            # Was bestimmt den Ring: nur der Rohteilrand (die Insel liegt deutlich weiter weg),
+            # nur die Inseln (der Rand liegt deutlich weiter weg) oder beides?
+            nur_rand = bool((D[i, j] + ae > niveau + schritt).all())
+            nur_insel = bool((feld.tiefe[i, j] + r > niveau + schritt).all())
+            if nur_rand and geschlossen:
+                ring = _rohteil_ring(w.rohteil, niveau - r, material_links, schritt)
+            else:
+                ring = _ring_aus_linie(
+                    punkte, geschlossen, material_links, feld, niveau, F, schritt, toleranz,
+                    material_hoch=not nur_insel,
+                )  # fmt: skip
+            if ring is None:
+                continue
+            if nur_insel:
+                spaeter.setdefault(m, []).append(ring)
+            else:
+                jetzt.append(ring)
+        _naechster_zuerst(ablauf, jetzt, False, f"rohteil {m}")
+    for m in sorted(spaeter, reverse=True):
+        _naechster_zuerst(ablauf, spaeter[m], True, f"insel {m}")
+
+
+def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz):
+    """Die Ringe vom Rohteil her, bis einer eine Insel träfe; von da an werden sie von Ring zu
+    Ring runder, bis der letzte nur noch die Inseln umrundet (Manuel, 2026-10-01: „im Viereck
+    anfangen, aber immer runder werden, so dass er am Ende nur um den Zapfen fährt“): das Feld
+    t = D ÷ (D + Abstand zum letzten vollen Ring) ist 1 an diesem Ring und 0 an den Inseln; seine
+    Höhenlinien bei 1 − j ÷ N sind die Ringe – mit so vielen N, dass sie nirgends weiter als ae
+    auseinanderliegen; wo der Spalt enger ist, liegen sie enger (das kostet Weg: die Zeit
+    entscheidet gegen „rohteil“). Ohne Insel dasselbe wie „rohteil“."""
+    ae = w.zeilenabstand
+    gueltig = feld.beruehrt & feld.im_raster(*np.meshgrid(feld.xs, feld.ys, indexing="ij"))
+    letzte_tiefe = -r  # der Fräser berührt das Rohteil – noch kein Ring
+    m = 1
+    while True:
+        tiefe = m * ae - r
         ring = _rohteil_ring(w.rohteil, tiefe, material_links, schritt)
         if ring is None:
-            break
-        ablauf.ring(ring, kennung=f"rohteil {k}")
-        k += 1
+            return  # nichts mehr übrig – keine Insel im Weg
+        x, y = ring.proben.x, ring.proben.y
+        drin = feld.im_raster(x, y)
+        if not drin.all() or (feld.bei(D, x, y) < 0).any():
+            break  # dieser Ring träfe eine Insel: ab hier der Übergang
+        ablauf.ring(ring, kennung=f"rohteil {m}")
+        letzte_tiefe = tiefe
+        m += 1
+    zone = (feld.tiefe >= letzte_tiefe) & (D >= 0)
+    aussen = feld.tiefe - letzte_tiefe
+    spalt = np.where(zone, D + aussen, 0.0)
+    if not (zone & gueltig).any():
+        return
+    weiteste = float(spalt[zone & gueltig].max())
+    if not np.isfinite(weiteste) or weiteste <= GLEICH:
+        return
+    anzahl = max(1, int(math.ceil(weiteste / ae - 1e-9)))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        t = np.where(spalt > GLEICH, D / np.where(spalt > GLEICH, spalt, 1.0), 0.0)
+    t = np.where(D < 0, -1.0, np.where(feld.tiefe < letzte_tiefe, 2.0, t))
+    for j in range(1, anzahl + 1):
+        niveau = 1.0 - j / anzahl
+        jetzt = []
+        for punkte, geschlossen in _hoehenlinien(t, feld.xs, feld.ys, niveau):
+            if len(punkte) < 2:
+                continue
+            laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
+            if geschlossen and laenge < 2 * math.pi * ae:
+                continue
+            ring = _ring_aus_linie(
+                punkte, geschlossen, material_links, feld, niveau, t, schritt, toleranz
+            )
+            if ring is not None:
+                jetzt.append(ring)
+        _naechster_zuerst(ablauf, jetzt, False, f"morph {j}")
 
 
 def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest):
     """Die Ringe des Feldes D (Abstand zum Gesperrten) von außen nach innen bis ans Gesperrte –
-    alle, oder mit `nur_rest` nur so viele, wie dort noch etwas steht (nach den Ringen vom
-    Rohteil her)."""
+    alle, oder mit `nur_rest` nur die Stücke, unter deren Stirn noch etwas steht (nach den
+    Ringen vom Rohteil her)."""
     if not np.isfinite(D).any() or D[np.isfinite(D)].max() <= 0:
         return
     ae = w.zeilenabstand
@@ -1026,6 +1231,7 @@ def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_
         niveau = j * ae
         linien = _hoehenlinien(D, feld.xs, feld.ys, niveau)
         ringe = []
+        nur = {}
         for punkte, geschlossen in linien:
             if len(punkte) < 2:
                 continue
@@ -1035,23 +1241,16 @@ def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_
             ring = _ring_aus_linie(
                 punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz
             )
-            if ring is not None:
-                ringe.append(ring)
-        # Der Ring, dessen Anfang am nächsten liegt, zuerst.
-        while ringe:
-            if ablauf.ort is None:
-                naechster = 0
-            else:
-                naechster = min(
-                    range(len(ringe)),
-                    key=lambda k: float(
-                        np.min(
-                            np.hypot(
-                                ringe[k].proben.x - ablauf.ort[0],
-                                ringe[k].proben.y - ablauf.ort[1],
-                            )
-                        )
-                    ),
-                )
-            ablauf.ring(ringe.pop(naechster), eng=True, kennung=f"feld {j}")
+            if ring is None:
+                continue
+            if nur_rest:
+                noetig = feld.ungeschnitten(ring.proben.x, ring.proben.y) > 1e-6
+                if not noetig.any():
+                    continue
+                # Ein Stück rundherum (3 mm), damit kein Lauf an einer Zelle endet.
+                breit = max(1, int(round(3.0 / schritt)))
+                kern = np.concatenate([noetig[-breit:], noetig, noetig[:breit]])
+                nur[id(ring)] = np.convolve(kern, np.ones(2 * breit + 1), "same")[breit:-breit] > 0
+            ringe.append(ring)
+        _naechster_zuerst(ablauf, ringe, True, f"feld {j}", nur if nur_rest else None)
         j -= 1

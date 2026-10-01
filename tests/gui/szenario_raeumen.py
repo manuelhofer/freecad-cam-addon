@@ -2,7 +2,7 @@
 # 0). Manuels Beispiel: Block 50 × 50 × 20 mit einem Zapfen Ø 10, 10 hoch in der Mitte; T1 der
 # Standardfräser Ø 12 (ae 1,5, ap 25). Die Oberseite bei z = 20 anklicken, den Knopf drücken:
 # Der Job entsteht, Planfräsen und Räumen rechnen beide – Räumen ist schneller (eine Lage, Ringe
-# von außen nach innen, keine Rampe), bekommt den Haken und sagt es: „… – die schnellste;
+# von außen nach innen, zuletzt um den Zapfen, keine Rampe), bekommt den Haken und sagt es: „… – die schnellste;
 # Planfräsen wäre N % langsamer“; beim Planfräsen steht „… – N % langsamer als Räumen“, sein
 # Haken ist weg. „Anlegen“: nur „Räumen T1“, mit Bögen. Doppelklick darauf öffnet das Fenster nur
 # mit dem Block Räumen; ohne Haken „Gleichlauf“ und „Übernehmen“ steht Gleichlauf False in der
@@ -72,7 +72,7 @@ def schritte(h):
     h.pruefe(raeumen.aktiv() and not plan.aktiv(), "Haken: Räumen an, Planfräsen aus")
     h.pruefe(not panel.kontur.aktiv(), "Haken: Kontur an")
     text = raeumen.ergebnis.text()
-    h.pruefe(text.startswith("→ 1 Lage, 15 Ringe, etwa 3 min"), f"Räumen: {text!r}")
+    h.pruefe(text.startswith("→ 1 Lage, ") and " Ringe, etwa 3 min" in text, f"Räumen: {text!r}")
     h.pruefe("– die schnellste; Planfräsen wäre" in text and "% langsamer" in text, f"{text!r}")
     text_plan = plan.ergebnis.text()
     h.pruefe(text_plan.startswith("→ 1 Lage, 44 Zeilen, etwa 5 min"), f"Planfräsen: {text_plan!r}")
@@ -91,7 +91,11 @@ def schritte(h):
         return
     op = ops[0]
     h.pruefe(op.Label == "Räumen T1", f"Name: {op.Label}")
-    h.pruefe((op.Ebenen, op.Lagen, op.Ringe) == (1, 1, 15), f"{op.Ebenen}, {op.Lagen}, {op.Ringe}")
+    h.pruefe(
+        (op.Ebenen, op.Lagen) == (1, 1) and 15 <= op.Ringe <= 20,
+        f"{op.Ebenen}, {op.Lagen}, {op.Ringe}",
+    )
+    ringe_vorher = op.Ringe
     h.pruefe(op.Gerechnet.startswith("rohteil "), f"Gerechnet: {op.Gerechnet!r}")
     h.pruefe(list(op.Flaechen) == [flaeche], f"Flächen: {list(op.Flaechen)}")
     namen = {b.Name for b in op.Path.Commands}
@@ -115,14 +119,14 @@ def schritte(h):
     h.pruefe(raeumen.haken_felder["gleichlauf"].isChecked(), "beim Ändern: Gleichlauf")
     yield from h.warte_auf(lambda: raeumen.vorschau is not None, 30000)
     text = raeumen.ergebnis.text()
-    h.pruefe(text.startswith("→ 1 Lage, 15 Ringe") and "schnellste" not in text, f"{text!r}")
+    h.pruefe(text.startswith("→ 1 Lage, ") and "schnellste" not in text, f"{text!r}")
     h.bild("3_aendern", panel.form)
     raeumen.haken_felder["gleichlauf"].setChecked(False)
     yield from h.warte_auf(lambda: raeumen.vorschau is not None, 30000)
     h.pruefe(panel.accept() is True, "„Übernehmen“ ging nicht")
     yield 1500
     h.pruefe(op.Gleichlauf is False, "nach dem Ändern: Gleichlauf")
-    h.pruefe(op.Ringe == 15, f"nach dem Ändern: {op.Ringe} Ringe")
+    h.pruefe(op.Ringe == ringe_vorher, f"nach dem Ändern: {op.Ringe} statt {ringe_vorher} Ringe")
 
     # --- Auf der Maschine prüfen: der Quader wird abgetragen, am Ende Farben -----------------
     asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
