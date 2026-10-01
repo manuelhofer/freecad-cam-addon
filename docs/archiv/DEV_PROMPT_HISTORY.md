@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-32 entgraten-im-quader
+
+### EINGELESEN
+- Spezifikation Strategien 4.1 Punkt 8 („Fasen / Entgraten“); FreeCAD 1.1.3 `Path/Op/Deburr.py`
+  (`toolDepthAndOffset`: Tiefe Breite / tan(α/2) + ExtraDepth, Versatz Spitze/2 + ExtraDepth ·
+  tan(α/2); Width 1 mm, ExtraDepth 0,5 mm); `kontur_bahn` (Wände, Versatz, Hüllfläche,
+  Einfahren), `vierachs_entgratbahn` (Rundum entgraten), `restmaterial` (Quader, Fasen bei der
+  Stange), `fraeserform.kegel`, `werkzeugform.kegel`.
+
+### DATEIEN
+- `camaddon/entgrat_bahn.py` (neu), `camaddon/entgraten.py` (neu),
+  `camaddon/gui_bearbeitung.py`, `camaddon/gui_vierachs_operation.py`,
+  `camaddon/job_schnittwerte.py`, `camaddon/restmaterial.py`, `translations/de.json`,
+  `translations/en.json`, `tests/test_entgraten.py` (neu), `tests/gui/szenario_entgraten.py`
+  (neu), `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`,
+  `package.xml` (0.49.0)
+
+### AKZEPTANZKRITERIUM
+Mit einem 90°-Fasenfräser Ø 10 in der Werkzeugverwaltung, Aufmaß oben 0 und den vier Wänden
+einer Tasche gewählt: Die Kontur räumt die Tasche (vorgeschlagen), der Block „Entgraten“ ist
+möglich, ohne Haken, wählt T3; angehakt „→ 1 Kantenzug, etwa 1 min“. „Anlegen“ legt „Kontur
+T1“ und „Entgraten T3“ an (Endtiefe 19,2: Fase 0,3, Spitze 0,5 tiefer, mit Bögen), „Auf der
+Maschine prüfen“ meldet nichts im Teil. Am Zapfen 30 × 20: die Bahn 0,5 neben der Wand auf
+z 19, im Uhrzeigersinn, in der Tasche gegen ihn; im Quader genau die Fase (auf 0,05 mm).
+
+### DONE
+- `entgrat_bahn.py`: Oberkanten mit Grat (gewählte Wände; bei einer ebenen Fläche oben die
+  Wände, die an ihren Kanten hinab gehen – der Fuß eines Zapfens nicht), Ketten je Höhe, die
+  Maße wie FreeCADs Deburr, die Bahn aus den Bausteinen der Kontur (Versatz, Gleichlauf,
+  tangential, Hüllfläche des Kegels streng auf der Lage), nie unter die Unterkante der Wand,
+  zu niedrige Ketten ausgelassen und gezählt.
+- `entgraten.py`: Operation `Entgraten` (Flächen, Breite, Tiefer, Einfahrradius,
+  Sicherheitsabstand; Ketten, Ausgelassen), Einsatz „Fasen“ in `job_schnittwerte`,
+  Doppelklick zum Ändern, `eindringtiefe` für das Prüffenster.
+- Assistent: Block `_Entgraten` (nur Fasenfräser, nie vorgeschlagen, möglich nur mit einem
+  Fasenfräser), „Fasenbreite“ 0,3 und „Spitze tiefer“ 0,5 als Vorschlag.
+- Prüffenster: `QuaderAbtrag.fasen` – wo „Entgraten“ abträgt, darf es so tief ins Teil wie
+  die Spitze (+ 0,05).
+
+### TEST
+- 1.1.3: `test_entgraten` (Ketten, Maße, Lage, Gleichlauf, zu breit, zu niedrig, Fase im
+  Quader, Operation im Job), `test_sprache` grün; Szenarien `szenario_entgraten`,
+  `szenario_bearbeitung`, `szenario_platte`, `szenario_kontur` grün; black/ruff grün.
+
+### NEXT
+- Alle Szenarien durchlaufen; der Einstieg nach Zeit; Fasen auch mit dem Kugelfräser
+  (Kantenbruch) wie rundum.
+
 ## P-2026-10-01-31 gewinde-bohren-aus-dem-assistenten
 
 ### EINGELESEN

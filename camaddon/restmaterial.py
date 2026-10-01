@@ -77,6 +77,7 @@ ZELLEN_JE_BLOCK = 200000  # so viele Zellen rechnet es auf einmal
 GRUEN_BIS = 0.1  # mm über dem Aufmaß
 ROT_AB = 1.0  # mm über dem Aufmaß
 BLAU_AB = 0.05  # mm im Teil
+FASE_SPIEL = 0.05  # mm – so viel tiefer als die Fase darf „Entgraten“ gehen (Raster)
 OHNE_TEIL, GRUEN, GELB, ROT, BLAU = range(5)  # Werte in Vergleich.farbe
 
 
@@ -768,7 +769,18 @@ class QuaderAbtrag:
     Station weg ist. fuer_quader() baut es – für Jobs mit einem Kasten als Rohteil, deren
     Werkzeuge senkrecht von oben kommen."""
 
-    def __init__(self, quader, punkte, operation, gueltig, fraeser, aufmass, formen, flaechen=None):
+    def __init__(
+        self,
+        quader,
+        punkte,
+        operation,
+        gueltig,
+        fraeser,
+        aufmass,
+        formen,
+        flaechen=None,
+        fasen=None,
+    ):
         self.quader = quader
         self.punkte = np.asarray(punkte, dtype=float).reshape(-1, 3)  # je Station die Spitze
         self.operation, self.gueltig = operation, gueltig
@@ -780,6 +792,11 @@ class QuaderAbtrag:
         # Die Nummern der gewählten Flächen – None: alle; dazu ihre Zellen, einmal gerechnet.
         self.flaechen = flaechen
         self._nur = None
+        # „Entgraten“: je Operation (Nummer), wie tief ihre Fase unter die Kante geht – so tief
+        # darf es in den Zellen, die sie trifft, ins Teil gehen, ohne blau zu werden (wie
+        # „Rundum entgraten“ bei der Stange).
+        self.fasen = dict(fasen or {})
+        self._fasen_erlaubt = np.zeros(quader.h.shape)
         self.bis = 0  # abgetragen bis vor diese Station
 
     def letzte(self):
@@ -791,6 +808,7 @@ class QuaderAbtrag:
         index = min(index, len(self.punkte) - 1)
         if index + 1 < self.bis:
             self.quader.zuruecksetzen()
+            self._fasen_erlaubt.fill(0.0)
             self.bis = 0
         k = np.arange(max(self.bis, 1), index + 1)
         fahren = (
@@ -799,8 +817,17 @@ class QuaderAbtrag:
         k = k[fahren]
         for nummer, fraeser in self.fraeser.items():
             stuecke = k[self.operation[k] == nummer]
-            if len(stuecke):
-                self.quader.fahre_stuecke(self.punkte[stuecke - 1], self.punkte[stuecke], fraeser)
+            if not len(stuecke):
+                continue
+            vorher = self.quader.h.copy() if nummer in self.fasen else None
+            self.quader.fahre_stuecke(self.punkte[stuecke - 1], self.punkte[stuecke], fraeser)
+            if vorher is not None:
+                getroffen = self.quader.h < vorher - 1e-9
+                np.maximum(
+                    self._fasen_erlaubt,
+                    np.where(getroffen, self.fasen[nummer], 0.0),
+                    out=self._fasen_erlaubt,
+                )
         self.bis = max(self.bis, index + 1)
 
     def vergleich(self):
@@ -819,9 +846,10 @@ class QuaderAbtrag:
                 drin = np.isin(fnetz.flaeche, sorted(self.flaechen))
                 nur = vh.Netz(fnetz.netz.punkte, fnetz.netz.dreiecke[drin], fnetz.netz.toleranz)
                 self._nur = np.isfinite(hf.hoehen(nur, self.quader.x, self.quader.y, innen=True))
-        return vergleiche_quader(
-            self.quader, self._teil, self.aufmass, self._nur, erlaubt=self._erlaubt
-        )
+        erlaubt = self._erlaubt
+        if self.fasen:
+            erlaubt = np.maximum(erlaubt, self._fasen_erlaubt)
+        return vergleiche_quader(self.quader, self._teil, self.aufmass, self._nur, erlaubt=erlaubt)
 
 
 def _werkzeug_von_oben(abfahrt, nummer):
@@ -912,8 +940,15 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     flaechen = set().union(*(vf.nummern(g) for g in gewaehlt)) if all(gewaehlt) else None
     box = form.BoundBox
     quader = Quader(box.XMin, box.XMax, box.YMin, box.YMax, box.ZMin, box.ZMax)
+    from .entgraten import eindringtiefe, ist_entgraten
+
+    fasen = {}
+    for k in fraeser:
+        op = ops.get(abfahrt.operationen[k].name)
+        if op is not None and ist_entgraten(op):
+            fasen[k] = eindringtiefe(op) + FASE_SPIEL
     return QuaderAbtrag(
-        quader, am_werkstueck, operation, gueltig, fraeser, aufmass, formen, flaechen
+        quader, am_werkstueck, operation, gueltig, fraeser, aufmass, formen, flaechen, fasen
     )
 
 

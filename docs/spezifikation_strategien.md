@@ -125,7 +125,8 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    Aufwand klein.
 8. **Fasen / Entgraten** – an Kanten in der Ebene mit Fasenfräser oder
    Kugelfräser als Kantenbruch; Breite einstellbar; **auch an Kanten im Raum**
-   und rundum (V4d). Aufwand mittel.
+   und rundum (V4d). Aufwand mittel. Gebaut: rundum (V4d, 0.36.0) und im
+   Quader mit dem Fasenfräser an Oberkanten (S3g, „Entgraten“, 0.49.0).
 9. **Gravieren** – FreeCADs Engrave/Vcarve übernehmen. Aufwand keiner.
 
 ### 4.2 3D – Freiformflächen
@@ -659,6 +660,27 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   (er schneidet nur das Gewinde, nicht das Kernloch). Prüfung
   `test_gewinde`, Szenario `szenario_gewinde` (Bohren T2 G81, dann Gewinde
   T3 G84; im Prüffenster nirgends ins Teil).
+  Dann **Entgraten** (4.1 Punkt 8; P-2026-10-01-32, 0.49.0): eine eigene
+  Operation statt FreeCADs Deburr – mit Gleichlauf, tangentialem Ein- und
+  Ausfahren und der Hüllfläche des Kegels gegen das Teil. `entgrat_bahn.py`:
+  die Oberkanten mit Grat (`ketten`: waagerechte Oberkanten gewählter Wände,
+  an denen oben eine ebene Fläche nach oben anschließt; eine gewählte ebene
+  Fläche gibt die Wände, die an ihren Kanten hinab gehen – Außenkanten,
+  Taschen- und Bohrungsränder, nicht der Fuß eines Zapfens), je Höhe zu
+  Ketten verbunden wie bei der Kontur; die Fase wie Deburr (Tiefe an der Wand
+  b / tan(α/2), die Spitze `tiefer` darunter, die Achse d/2 + tiefer ·
+  tan(α/2) neben der Wand – so schneidet der Kegel genau die Fase); die Bahn
+  als Versatz der Kette (kontur_bahn), senkrecht hinab in der Luft,
+  tangential hinein und heraus, vor Absätzen angehalten; nie unter die
+  Unterkante der Wand – ist sie niedriger als die Fase, bleibt die Kette aus
+  und die Zeile sagt es. Operation `entgraten.Entgraten` („Entgraten T3“),
+  Einsatz „Fasen“; im Assistenten der Block „Entgraten“ (nur Fasenfräser,
+  nie vorgeschlagen – welche Kante eine Fase bekommt, sagt die Zeichnung).
+  Das Prüffenster lässt die Fase durch (`restmaterial.QuaderAbtrag.fasen`,
+  wie bei „Rundum entgraten“: wo die Operation abträgt, darf es so tief ins
+  Teil, wie die Spitze steht). Prüfung `test_entgraten` (Zapfen und Tasche:
+  Ketten, Lage 0,5 neben der Wand, Gleichlauf, die Fase im Quader auf
+  0,05 mm), Szenario `szenario_entgraten`.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

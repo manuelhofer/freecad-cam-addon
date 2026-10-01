@@ -167,6 +167,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   bohren**: FreeCADs Gewinde-Operation (G84, links G74) mit dem Gewindebohrer,
   dessen Kernloch die Bohrung hat (M10 × 1,5 in Ø 8,5) – durchgehend um den
   Anschnitt hinaus, in Sackbohrungen eine Steigung über dem Grund.
+  **Entgraten**: ein Fasenfräser bricht die Oberkanten gewählter Wände (oder
+  die Kanten einer gewählten Fläche oben, an denen eine Wand hinab geht) – im
+  Gleichlauf, tangential hinein und heraus, die Fase so breit wie gesagt.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

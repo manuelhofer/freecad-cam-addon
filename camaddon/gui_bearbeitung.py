@@ -24,6 +24,8 @@ from . import bahn as bn
 from . import bohren as bh
 from . import bohrung as bo
 from . import bohrung_bahn as bb
+from . import entgrat_bahn as eb
+from . import entgraten as eg
 from . import fraeserform as ff
 from . import gewinde as gw
 from . import hoehenfeld as hf
@@ -63,6 +65,7 @@ GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
 GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
+GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 ROHTEIL_FELDER = ("oben", "seite", "unten")
@@ -116,13 +119,14 @@ def nullpunkte():
 
 
 def ist_bearbeitung(op):
-    """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Bohrung fräsen“ oder
-    „Kontur“?"""
+    """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Bohrung fräsen“, „Kontur“
+    oder „Entgraten“?"""
     return (
         pf.ist_planfraesen(op)
         or ra.ist_raeumen(op)
         or bo.ist_bohrungsfraesen(op)
         or ko.ist_kontur(op)
+        or eg.ist_entgraten(op)
     )
 
 
@@ -859,7 +863,81 @@ class _Gewinde(_Strategie):
         return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
 
 
-STRATEGIEN = (_Planfraesen, _Raeumen, _Bohren, _Bohrung, _Kontur, _Gewinde)
+class _Entgraten(_Strategie):
+    """Ein Fasenfräser bricht die Oberkanten der gewählten Wände (entgraten) – zuletzt, gegen
+    keine Strategie im Wettbewerb; den Haken setzt man selbst."""
+
+    kennung = "entgraten"
+    gemerkt = GEMERKT_FASENFRAESER
+    einsatz_reihenfolge = (wz.FASEN, wz.VERRUNDEN)
+
+    def titel(self):
+        return tr("ba.entgraten")
+
+    def text(self):
+        return tr("ba.entgraten.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.fasenfraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.fasen_einsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("breite", tr("ba.entgraten.breite"), tr("ba.entgraten.breite.tooltip")),
+            ("tiefer", tr("ba.entgraten.tiefer"), tr("ba.entgraten.tiefer.tooltip")),
+        )
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art == wz.FASENFRAESER
+
+    def passt(self, form, name):
+        return eb.hat_oberkanten(form, name)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ob eine Kante eine Fase bekommt, sagt die Zeichnung, nicht das Modell
+
+    def unmoeglich_text(self):
+        return tr("ba.entgraten.nicht")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "breite":
+            return eb.BREITE
+        if feld == "tiefer":
+            return eb.TIEFER
+        return 0.0
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return eg.vorschau(job, werkzeug, werte["breite"], werte["tiefer"], flaechen)
+
+    def ergebnis_text(self, bahn, zeit):
+        def zuege(n):
+            return tr("ba.zahl.kantenzug") if n == 1 else tr("ba.zahl.kantenzuege", n=n)
+
+        if bahn.ausgelassen:
+            return tr(
+                "ba.ergebnis_entgraten_ausgelassen",
+                zuege=zuege(bahn.ketten),
+                zeit=zeit,
+                ausgelassen=zuege(bahn.ausgelassen),
+            )
+        return tr("ba.ergebnis_entgraten", zuege=zuege(bahn.ketten), zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return eg.lege_an(job, tc, werte["breite"], werte["tiefer"], flaechen=flaechen)
+
+    def aendere(self, op, tc, werte, flaechen):
+        eg.aendere(op, tc, werte["breite"], werte["tiefer"], flaechen=flaechen)
+
+    def ist(self, op):
+        return eg.ist_entgraten(op)
+
+    def werte_von(self, op):
+        return {"breite": float(op.Breite), "tiefer": float(op.Tiefer)}
+
+
+STRATEGIEN = (_Planfraesen, _Raeumen, _Bohren, _Bohrung, _Kontur, _Gewinde, _Entgraten)
 
 
 def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
@@ -1151,6 +1229,7 @@ class BearbeitungPanel:
         self.bohrung = next(b for b in self.bloecke if b.s.kennung == "bohrung")
         self.kontur = next(b for b in self.bloecke if b.s.kennung == "kontur")
         self.gewinde = next(b for b in self.bloecke if b.s.kennung == "gewinde")
+        self.entgraten = next(b for b in self.bloecke if b.s.kennung == "entgraten")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
@@ -1735,6 +1814,8 @@ class BearbeitungPanel:
                     moeglich = moeglich and self._bohrer_da(form)
                 if block is self.gewinde:
                     moeglich = moeglich and self._gewindebohrer_da(form)
+                if block is self.entgraten:
+                    moeglich = moeglich and bool(block._fraeser)
                 block.moeglich = moeglich
                 block.haken.setEnabled(moeglich)
                 block.erklaerung.setText(block.s.text() if moeglich else block.s.unmoeglich_text())

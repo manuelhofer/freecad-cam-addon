@@ -18,7 +18,8 @@ Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, alle in einem
 Fenster: Teil und Rohteil, die Flächen, dann je Bearbeitung ein Block mit
 Haken – <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Bohren</b>
 und <b>Bohrung fräsen</b> für zylindrische Bohrungen, <b>Kontur</b> für Wände,
-<b>Gewinde bohren</b> in Kernlöcher. „Anlegen“ legt alle angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
+<b>Gewinde bohren</b> in Kernlöcher, <b>Entgraten</b> an Oberkanten. „Anlegen“ legt alle
+angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
 <a href="vierachs.html">4-Achs-Bearbeitung</a>.</p>
 
 <h3>1. Teil und Rohteil</h3>
@@ -275,8 +276,32 @@ geht (das Kernloch passt nicht, der Gewindebohrer hat keine Steigung).</li>
 Kommentar im Programm, und nicht jede Steuerung liest „ד.</li>
 </ul>
 
+<h3>9. Entgraten</h3>
+<ul>
+<li>Für <b>Oberkanten</b>: eine Wand anklicken – ihre Oberkante bekommt die Fase –
+oder eine ebene Fläche oben – dann alle ihre Kanten, an denen eine Wand hinab geht:
+die Außenkanten, die Ränder der Taschen und Bohrungen; der Fuß eines Zapfens nicht
+(dort geht die Wand hinauf, da ist kein Grat).</li>
+<li>Mit einem <b>Fasenfräser</b> aus der Werkzeugverwaltung; vorgewählt der Einsatz
+„Fasen“. Den Haken setzt du <b>selbst</b> – welche Kante eine Fase bekommt, sagt die
+Zeichnung, nicht das Modell. Entgraten kommt zuletzt, wenn die Kanten fertig sind.</li>
+<li><b>Fasenbreite</b> (leer: 0,3 mm) – so breit wird die Fase oben; mit dem
+90°-Fasenfräser reicht sie gleich weit an der Wand hinab. <b>Spitze tiefer</b> (leer:
+0,5 mm) – so viel tiefer als die Fase steht die Spitze: Der Kegel schneidet die Fase,
+nicht die Spitze, und die Spitze bleibt von der Wand weg (wie FreeCADs „Deburr“).</li>
+<li>Die Bahn: eine neben der Kante, so weit von der Wand, dass der Kegel die Fase genau so
+breit schneidet; im <b>Gleichlauf</b> (um einen Zapfen im Uhrzeigersinn, in einer Tasche
+gegen ihn), tangential hinein und heraus, senkrecht hinab in der Luft neben der Wand. Ecken
+außen werden Bögen. Vor Absätzen und nicht gewählten Wänden hält sie an. Ist eine Wand
+niedriger als die Fase, bleibt ihre Kante aus – das steht dann in der Zeile.</li>
+<li>Grau darunter: „→ 1 Kantenzug, etwa 1 min“. Rot steht, warum es nicht geht (kein
+Fasenfräser, die Fase ist breiter, als sein Kegel schneidet).</li>
+<li>Die Operation heißt „Entgraten T3“. „Auf der Maschine prüfen“ lässt die Fase durch:
+Dort darf es so tief ins Teil gehen, wie die Spitze steht.</li>
+</ul>
+
 <h3>Nachträglich ändern</h3>
-<p><b>Doppelklick</b> auf „Planfräsen …“, „Räumen …“, „Bohrung fräsen …“ oder „Kontur …“ im Baum – oder rechte Maustaste,
+<p><b>Doppelklick</b> auf „Planfräsen …“, „Räumen …“, „Bohrung fräsen …“, „Kontur …“ oder „Entgraten …“ im Baum – oder rechte Maustaste,
 <b>Bearbeiten</b>; oder die Operation bzw. ihren Job wählen und den Knopf
 „Bearbeitung (Fräsen)“ drücken – öffnet das Fenster mit Flächen, Fräser,
 Einsatz und Werten der Operation, nur mit ihrem Block. <b>Übernehmen</b> ändert sie – ein Schritt
@@ -285,6 +310,6 @@ alten nimmt das Fenster heraus, wenn ihn keine Operation mehr benutzt.</p>
 
 <h3>Was noch kommt</h3>
 <p>Der Einstieg (Rampe, Helix, senkrecht) nach Zeit, Trochoiden in engen
-Ecken, Fasen – nach dem Plan in der Spezifikation W-006.</p>
+Ecken – nach dem Plan in der Spezifikation W-006.</p>
 </body>
 </html>
