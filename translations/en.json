@@ -1486,5 +1486,16 @@
     "ba.bohren.hub.leer": "automatic",
     "ba.ergebnis_bohren": "→ {bohrungen}, {hube}, about {zeit}",
     "ba.zahl.hub": "1 peck",
-    "ba.zahl.hube": "{n} pecks"
+    "ba.zahl.hube": "{n} pecks",
+    "gw.name": "Thread {gewinde} {werkzeug}",
+    "gw.fehler.keine": "No hole selected – click the wall of the core hole in the 3D view.",
+    "gw.fehler.kernloch": "{gewinde} needs a core hole Ø {kern} – the hole has Ø {durchmesser}.",
+    "gw.fehler.steigung": "The tap has no pitch – enter it in the tool management.",
+    "ba.gewinde": "Tapping",
+    "ba.gewinde.text": "Cuts threads with a tap from the tool management in holes with its core hole (thread Ø − pitch: M10 × 1.5 → Ø 8.5) – FreeCAD's Tapping (G84, left-hand G74). The core hole is made before by drilling or hole milling; through a through hole the tap goes its chamfer beyond, in a blind hole it stays one pitch above the bottom. You set the tick yourself.",
+    "ba.gewinde.nicht": "For holes with the core hole of a tap from the tool management (M10 × 1.5: Ø 8.5).",
+    "ba.gewindebohrer.tooltip": "A tap from the tool management – preselected the one whose core hole the hole has.",
+    "ba.gewinde_einsatz.tooltip": "The cutting data – “Tapping” preselected; the feed is pitch · speed.",
+    "ba.ergebnis_gewinde": "→ {gewinde}, about {zeit}",
+    "ba.zahl.gewinde": "{n} × {name}"
 }

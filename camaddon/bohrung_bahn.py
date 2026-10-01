@@ -24,6 +24,7 @@ import math
 from dataclasses import dataclass
 
 from . import bahn as bn
+from . import einheiten
 from . import vierachs_bahn as vb
 from .sprache import tr
 
@@ -192,7 +193,9 @@ def _bohrung(punkte, b, w, r):
     aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
     r_aussen = b.radius - r - aufmass  # die Mitte des Fräsers beim letzten Schruppring
     if r_aussen < -GLEICH:
-        raise ValueError(tr("bo.fehler.zu_klein", durchmesser=f"{2 * b.radius:.2f}"))
+        raise ValueError(
+            tr("bo.fehler.zu_klein", durchmesser=einheiten.text(2 * b.radius, einheiten.LAENGE))
+        )
     r_aussen = max(r_aussen, 0.0)
     z_grund = b.z_unten - max(w.tiefer, 0.0) if b.durch else b.z_unten + max(w.aufmass_boden, 0.0)
     oben = w.oben

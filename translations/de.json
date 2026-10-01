@@ -1486,5 +1486,16 @@
     "ba.bohren.hub.leer": "automatisch",
     "ba.ergebnis_bohren": "→ {bohrungen}, {hube}, etwa {zeit}",
     "ba.zahl.hub": "1 Hub",
-    "ba.zahl.hube": "{n} Hübe"
+    "ba.zahl.hube": "{n} Hübe",
+    "gw.name": "Gewinde {gewinde} {werkzeug}",
+    "gw.fehler.keine": "Keine Bohrung gewählt – die Wand des Kernlochs im 3D anklicken.",
+    "gw.fehler.kernloch": "Für {gewinde} braucht es ein Kernloch Ø {kern} – die Bohrung hat Ø {durchmesser}.",
+    "gw.fehler.steigung": "Der Gewindebohrer hat keine Steigung – in der Werkzeugverwaltung eintragen.",
+    "ba.gewinde": "Gewinde bohren",
+    "ba.gewinde.text": "Schneidet Gewinde mit einem Gewindebohrer aus der Werkzeugverwaltung in Bohrungen mit seinem Kernloch (Gewinde-Ø − Steigung: M10 × 1,5 → Ø 8,5) – FreeCADs Gewinde (G84, links G74). Das Kernloch macht vorher Bohren oder Bohrung fräsen; durch eine durchgehende Bohrung geht er um seinen Anschnitt hinaus, in einer Sackbohrung bleibt er eine Steigung über dem Grund. Den Haken setzt man selbst.",
+    "ba.gewinde.nicht": "Für Bohrungen mit dem Kernloch eines Gewindebohrers aus der Werkzeugverwaltung (M10 × 1,5: Ø 8,5).",
+    "ba.gewindebohrer.tooltip": "Ein Gewindebohrer aus der Werkzeugverwaltung – vorgewählt der, dessen Kernloch die Bohrung hat.",
+    "ba.gewinde_einsatz.tooltip": "Die Schnittwerte – vorgewählt „Gewindebohren“; der Vorschub ist Steigung · Drehzahl.",
+    "ba.ergebnis_gewinde": "→ {gewinde}, etwa {zeit}",
+    "ba.zahl.gewinde": "{n} × {name}"
 }

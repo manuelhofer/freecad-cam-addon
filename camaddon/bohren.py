@@ -17,6 +17,7 @@ from dataclasses import dataclass
 
 from . import bahn as bn
 from . import bohrung_bahn as bb
+from . import einheiten
 from .sprache import tr
 
 GLEICH_D = 0.02  # mm – so genau muss der Bohrer zur Bohrung passen
@@ -46,7 +47,8 @@ def spitze(durchmesser, spitzenwinkel=SPITZENWINKEL):
 
 def hub_fuer(tiefe, durchmesser, hub=0.0):
     """So tief je Hub (mm): `hub`, wenn gesagt – sonst 1 × D bei Bohrungen tiefer als 3 × D,
-    flacher in einem Zug (0)."""
+    flacher in einem Zug (0). `tiefe` ist die Tiefe im Material (Oberkante Rohteil bis zur
+    Spitze), nicht die Fahrt ab der Ebene R: die Luft darüber zählt nicht."""
     if hub > 0:
         return hub
     return durchmesser * HUB_ANTEIL if tiefe > TIEF_AB * durchmesser + 1e-9 else 0.0
@@ -60,13 +62,15 @@ def passende(form, namen, durchmesser):
         raise ValueError(tr("bh.fehler.keine"))
     for b in liste:
         if not b.durch:
-            raise ValueError(tr("bh.fehler.sack", durchmesser=f"{2 * b.radius:.2f}"))
+            raise ValueError(
+                tr("bh.fehler.sack", durchmesser=einheiten.text(2 * b.radius, einheiten.LAENGE))
+            )
         if abs(2 * b.radius - durchmesser) > GLEICH_D:
             raise ValueError(
                 tr(
                     "bh.fehler.durchmesser",
-                    bohrer=f"{durchmesser:.2f}",
-                    durchmesser=f"{2 * b.radius:.2f}",
+                    bohrer=einheiten.text(durchmesser, einheiten.LAENGE),
+                    durchmesser=einheiten.text(2 * b.radius, einheiten.LAENGE),
                 )
             )
     return liste
@@ -91,7 +95,7 @@ def planen(liste, durchmesser, spitzenwinkel, oben, sicher, vorschub, hub=0.0):
     for b in folge:
         x, y = b.mitte
         unten = b.z_unten - lang
-        q = hub_fuer(r_ebene - unten, durchmesser, hub)
+        q = hub_fuer(oben - unten, durchmesser, hub)  # die Tiefe im Material, nicht ab R
         punkte.append(bn.Punkt(True, x, y, sicher))
         punkte.append(bn.Punkt(True, x, y, r_ebene))
         tiefe = r_ebene
@@ -131,15 +135,26 @@ def vorschau(job, werkzeug, flaechen, vorschub, hub=0.0):
 
 
 def lege_an(job, tc, flaechen, hub=0.0, name=None):
-    """Legt FreeCADs „Bohren“ (Path.Op.Drilling) im Job an – ohne eigene Transaktion, die hält der
-    Aufrufer. Die gewählten Bohrungen als Basis, die Spitze unter den Grund („Drill Tip“), Hübe
-    wie hub_fuer(), zurück auf R zwischen den Bohrungen (G98). Gibt die Operation zurück."""
+    """Legt FreeCADs „Bohren“ (Path.Op.Drilling) im Job an – je Tiefe des Grunds eine Operation
+    (FreeCAD bohrt alle Löcher einer Operation bis zu ihrer einen Endtiefe); ohne eigene
+    Transaktion, die hält der Aufrufer. Die Bohrungen als Basis, die Spitze unter den Grund
+    („Drill Tip“), Hübe wie hub_fuer(), zurück auf R zwischen den Bohrungen (G98). Gibt die
+    erste Operation zurück."""
+    from . import gewinde as gw
+    from . import vierachs_schlichten as vs
+
+    liste = bb.bohrungen(vs._teil(job.Model.Group), list(flaechen) or None)
+    gruppen = gw.je_tiefe(liste, lambda b: b.z_unten) or [[]]
+    ops = [_lege_eine_an(job, tc, gruppe, hub, name) for gruppe in gruppen]
+    return ops[0]
+
+
+def _lege_eine_an(job, tc, gruppe, hub, name):
     import FreeCAD
     import Path.Op.Drilling as PathDrilling
 
     from . import planfraesen as pf
     from . import vierachs_rohteil as vr
-    from . import vierachs_schlichten as vs
 
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "Drilling")
@@ -155,16 +170,14 @@ def lege_an(job, tc, flaechen, hub=0.0, name=None):
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.CoolantMode = job.SetupSheet.CoolantMode
     pf._hoehen(obj, proxy, job)
-    klon = vr.modell(job)
-    obj.Base = [(klon, tuple(flaechen))]
-    liste = bb.bohrungen(vs._teil(job.Model.Group), list(flaechen) or None)
+    obj.Base = [(vr.modell(job), tuple(b.name for b in gruppe))]
     *_rohteil, oben = pf.rohteil_von_oben(job)
     obj.setExpression("FinalDepth", None)
-    obj.FinalDepth = min((b.z_unten for b in liste), default=0.0)
+    obj.FinalDepth = min((b.z_unten for b in gruppe), default=0.0)
     obj.RetractHeight = oben + UEBER_R
     obj.ExtraOffset = "Drill Tip"
     durchmesser = float(tc.Tool.Diameter)
-    tiefe = max((oben + UEBER_R - (b.z_unten - spitze(durchmesser)) for b in liste), default=0.0)
+    tiefe = max((oben - (b.z_unten - spitze(durchmesser)) for b in gruppe), default=0.0)
     q = hub_fuer(tiefe, durchmesser, hub)
     obj.PeckEnabled = q > 0
     obj.PeckDepth = q if q > 0 else durchmesser

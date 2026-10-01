@@ -584,13 +584,19 @@ def fuer_rundum(abfahrt, job, am_werkstueck):
 
 def _fraeser(tc):
     """Der Fräser eines Controllers zum Abtragen: seine Form (fraeserform) – kennt das Addon
-    sie nicht, ein Schaftfräser mit seinem Durchmesser."""
+    sie nicht, ein Schaftfräser mit seinem Durchmesser; ein Gewindebohrer mit dem Kernloch
+    (Ø − Steigung): Das Gewinde steht nicht im Modell, die Bohrung hat dort ihr Kernloch – mit
+    dem Nenn-Ø wäre jedes Gewinde „im Teil“."""
     from .vierachs_schlichten import form_des_controllers
 
     form = form_des_controllers(tc)
     if form is not None:
         return form
-    return float(tc.Tool.Diameter.getValueAs("mm")) / 2
+    durchmesser = float(tc.Tool.Diameter.getValueAs("mm"))
+    steigung = float(getattr(tc.Tool, "Pitch", 0.0) or 0.0)
+    if 0 < steigung < durchmesser:
+        return (durchmesser - steigung) / 2
+    return durchmesser / 2
 
 
 def operationsarten_rundum():

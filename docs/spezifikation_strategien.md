@@ -629,13 +629,36 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   (eine Sackbohrung mit ebenem Grund kann ein Bohrer nicht). `bohren.py` legt
   sie an (ohne FreeCADs Vorgaben, die bei mehreren Controllern nachfragen):
   die gewählten Bohrungen als Basis, „Drill Tip“ (die Spitze unter den Grund),
-  R 3 mm über dem Rohteil, G98, Hübe ab 3 × D je 1 × D (G83), sonst G81; die
+  R 3 mm über dem Rohteil, G98, Hübe ab 3 × D je 1 × D (G83), sonst G81 – die
+  Tiefe im Material gezählt, ab der Oberkante des Rohteils, nicht ab R; die
   Zeit aus denselben Bewegungen (`planen`). Im Assistenten der Block „Bohren“
   (nur Bohrer zur Auswahl, `_Strategie.werkzeug_passt`; vorgewählt der mit dem
   Durchmesser der Bohrung) und der Wettbewerb in Gruppen (`_gruppen`): Bohren,
   Bohrung fräsen und Kontur auf denselben Bohrungen – die schnellste bekommt
   den Haken (zwei Bohrungen Ø 20: Bohren 0,77 min, Bohrung fräsen 1,09).
-  Prüfung `test_bohren`, Szenario `szenario_bohren`. Gewinde (Tapping) folgt.
+  Prüfung `test_bohren`, Szenario `szenario_bohren`.
+  Dann **Gewinde bohren** (P-2026-10-01-31, 0.48.0): FreeCADs
+  Gewinde-Operation (Path.Op.Tapping) aus dem Assistenten mit einem
+  Gewindebohrer aus der Werkzeugverwaltung – in Bohrungen mit seinem Kernloch
+  (Gewinde-Ø − Steigung: M10 × 1,5 → Ø 8,5). `gewinde.py`: `passende`
+  (Kernloch auf 0,02 mm), `tiefe_fuer` (durchgehend um den Anschnitt 2 ×
+  Steigung hinaus, in der Sackbohrung eine Steigung über dem Grund),
+  `planen` (hinein und heraus mit Steigung · Drehzahl, für die Zeit),
+  `lege_an` – **je Tiefe eine Operation** (`je_tiefe`): FreeCAD fährt alle
+  Löcher einer Operation bis zu ihrer einen Endtiefe, ein durchgehendes
+  Kernloch und eine Sackbohrung zusammen schnitten die Sackbohrung zu tief;
+  dasselbe jetzt beim Bohren (je Tiefe des Grunds). Name „Gewinde M10x1.5 T3“
+  nur in ASCII – er steht als Kommentar im Programm. Im Assistenten der Block
+  „Gewinde bohren“ (nur Gewindebohrer mit Steigung, vorgewählt der mit dem
+  Kernloch der Bohrung): Er tritt gegen keine Strategie an und wird nicht
+  vorgeschlagen – den Haken setzt man selbst; das Kernloch macht der
+  Wettbewerb Bohren / Bohrung fräsen / Kontur in derselben Bohrung. Dabei:
+  Ein Block, der rot ist, verliert seinen Haken, wenn eine andere Strategie
+  seiner Gruppe die Flächen kann (`_haken_setzen`) – sonst hielt er „Anlegen“
+  auf; das Prüffenster rechnet einen Gewindebohrer mit seinem Kernradius
+  (er schneidet nur das Gewinde, nicht das Kernloch). Prüfung
+  `test_gewinde`, Szenario `szenario_gewinde` (Bohren T2 G81, dann Gewinde
+  T3 G84; im Prüffenster nirgends ins Teil).
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

@@ -256,7 +256,7 @@ for werte_falsch, liste, text in (
     except ValueError as grund:
         pruefe(len(str(grund)) > 10, f"{text}: kein Satz")
         if text == "zu klein":
-            pruefe("8.00" in str(grund) or "8,00" in str(grund), f"zu klein: {grund}")
+            pruefe("Ø 8 " in str(grund), f"zu klein: {grund}")
     else:
         pruefe(False, f"{text}: keine Fehlermeldung")
 print("Fehler ok")

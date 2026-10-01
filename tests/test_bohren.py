@@ -79,13 +79,13 @@ pruefe(bh.hub_fuer(26.0, 6.0, 4.0) == 4.0, "Hub von Hand")
 pruefe(len(bh.passende(teil, d20, 20.0)) == 2, "Ø 20 passt")
 for namen, d, text, satzteil in (
     (sack, 34.0, "Sackbohrung", "ebenen Grund"),
-    (d6, 20.0, "Ø 6 mit Ø 20", "6.00"),
+    (d6, 20.0, "Ø 6 mit Ø 20", "Bohrung Ø 6 "),
     ([], 20.0, "keine", "Keine Bohrung"),
 ):
     try:
         bh.passende(teil, namen or ["Face999"], d)
     except ValueError as grund:
-        pruefe(satzteil in str(grund), f"{text}: {grund}")
+        pruefe(satzteil in str(grund).replace(",", "."), f"{text}: {grund}")
     else:
         pruefe(False, f"{text}: keine Fehlermeldung")
 
@@ -127,6 +127,10 @@ pruefe(
     stufen[:2] == [18.0, 12.0] and abs(stufen[-1] + spitze6) < 1e-3,
     f"Ø 6: Tiefen {stufen}",
 )
+# Die Luft über dem Rohteil zählt nicht: Oberkante 16 – im Material 17,8 tief (< 3 × D) und in
+# einem Zug, obwohl die Fahrt ab R (19) bis zur Spitze 20,8 lang ist.
+flach = bh.planen(bh.passende(teil, d6, 6.0), 6.0, 118.0, 16.0, 21.0, vf6)
+pruefe(flach.hube == 1, f"Ø 6 unter Oberkante 16: {flach.hube} Hübe statt 1")
 print("Bahn ok")
 
 # --- FreeCADs Operation im Job ------------------------------------------------------------------

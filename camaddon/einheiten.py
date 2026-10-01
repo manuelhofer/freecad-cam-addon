@@ -134,6 +134,18 @@ def gerundet(wert, groesse):
     return round(wert, GROESSEN[groesse][3]) if in_zoll() else wert
 
 
+def text(wert, groesse, metrisch_stellen=2):
+    """Ein metrischer Wert für einen Satz: im gezeigten Maßsystem gerundet, mit dem gewählten
+    Dezimalzeichen und ohne Nullen am Ende – „Ø 8,5“ statt „Ø 8.50“."""
+    from .werkstoffe import mit_dezimalzeichen
+
+    anzahl = stellen(groesse, metrisch_stellen)
+    zahl = f"{round(anzeige(wert, groesse), anzahl) + 0.0:.{anzahl}f}"
+    if "." in zahl:
+        zahl = zahl.rstrip("0").rstrip(".")
+    return mit_dezimalzeichen(zahl, gewaehltes_dezimalzeichen() or PUNKT)
+
+
 def runden(wert, groesse, metrisch_stellen):
     """Rundet einen metrischen Wert so, wie er gezeigt wird – metrisch auf
     `metrisch_stellen`, in Zoll auf die Stellen der Größe – und gibt ihn

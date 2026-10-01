@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-31 gewinde-bohren-aus-dem-assistenten
+
+### EINGELESEN
+- Spezifikation Strategien S3g, Katalog Punkt 7; FreeCAD 1.1.3 `Path/Op/Tapping.py`
+  (G84/G74 nach der Drehrichtung des Werkzeugs, eine FinalDepth je Operation),
+  `Path/Op/Gui/Tapping.py`; `bohren.py` (Muster ohne FreeCADs Vorgaben), `restmaterial._fraeser`
+  (Abtrag im Prüffenster), `gui_bearbeitung` (Blöcke, Gruppen, Haken).
+
+### DATEIEN
+- `camaddon/gewinde.py` (neu), `camaddon/bohren.py`, `camaddon/bohrung_bahn.py`,
+  `camaddon/einheiten.py`, `camaddon/restmaterial.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_gewinde.py` (neu),
+  `tests/gui/szenario_gewinde.py` (neu), `tests/test_bohren.py`, `tests/test_bohrung.py`,
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`,
+  `package.xml` (0.48.0)
+
+### AKZEPTANZKRITERIUM
+Mit einem Bohrer Ø 8,5 und einem Gewindebohrer M10 × 1,5 in der Werkzeugverwaltung und der
+Wand einer durchgehenden Bohrung Ø 8,5 gewählt: Bohren bekommt den Haken (Bohrung fräsen ist
+rot – Ø 8,5 kleiner als der Fräser – und ohne Haken), der Block „Gewinde bohren“ wählt den
+Gewindebohrer von selbst, ist möglich, aber nicht angehakt; angehakt steht „→ 1 × M10x1.5,
+etwa 1 min“. „Anlegen“ legt „Bohren T2“ (G81 – 23,6 mm im Material sind weniger als 3 × D)
+und „Gewinde M10x1.5 T3“ (G84) an; „Auf der Maschine prüfen“ meldet nichts im Teil. Ein
+durchgehendes Kernloch und eine Sackbohrung zusammen ergeben zwei Gewinde-Operationen: bis
+−3 (2 Steigungen hinaus) und bis 6,5 (eine Steigung über dem Grund 5).
+
+### DONE
+- `gewinde.py`: `kernloch`, `passende`, `gewinde_name` (ASCII), `tiefe_fuer`, `planen`,
+  `vorschau`, `je_tiefe`, `lege_an` (FreeCADs Tapping ohne seine Vorgaben, je Tiefe eine
+  Operation, R 3 mm über dem Rohteil, ohne Verweilen, FreeCADs Ansicht), `ist_gewinde`.
+- `bohren.lege_an` ebenfalls je Tiefe des Grunds eine Operation; die Hübe ab 3 × D im
+  Material, ab der Oberkante des Rohteils gezählt (vorher ab R: 4 mm Luft zählten mit, Ø 8,5
+  durch 20 mm ging in Hüben). Prüfung dafür in `test_bohren`.
+- Assistent: Block `_Gewinde` (nur Gewindebohrer mit Steigung, `_gewindebohrer_waehlen`,
+  `_gewindebohrer_da`; nie vorgeschlagen, ohne Gruppe); `_haken_setzen`: ein roter Block der
+  Gruppe verliert seinen Haken, wenn eine andere Strategie die Flächen kann (sonst hielt er
+  „Anlegen“ auf).
+- Prüffenster: ein Gewindebohrer trägt mit dem Kernradius (D − P)/2 ab.
+- Rote Sätze mit dem gewählten Dezimalzeichen und ohne Nullen am Ende (`einheiten.text`:
+  „Ø 8,5“ statt „Ø 8.50“) – im Bild des Szenarios gefunden.
+
+### TEST
+- 1.1.3: `test_gewinde`, `test_bohren`, `test_bohrung`, `test_quader`, `test_restmaterial`,
+  `test_sprache` grün; Szenarien `szenario_gewinde`, `szenario_bohren`, `szenario_bohrung`,
+  `szenario_platte`, `szenario_kontur`, `szenario_raeumen`, `szenario_bearbeitung` grün;
+  black/ruff grün.
+
+### NEXT
+- Fasen 2,5D (Kanten oben mit dem Fasenfräser); alle Szenarien durchlaufen.
+
 ## P-2026-10-01-30 bohren-aus-dem-assistenten
 
 ### EINGELESEN

@@ -25,6 +25,7 @@ from . import bohren as bh
 from . import bohrung as bo
 from . import bohrung_bahn as bb
 from . import fraeserform as ff
+from . import gewinde as gw
 from . import hoehenfeld as hf
 from . import job_schnittwerte as js
 from . import kontur as ko
@@ -61,6 +62,7 @@ GEMERKT_KONTURFRAESER = "BaKonturFraeser"  # … für die Kontur
 GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
 GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
+GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 ROHTEIL_FELDER = ("oben", "seite", "unten")
@@ -809,7 +811,55 @@ class _Bohrung(_Strategie):
         }
 
 
-STRATEGIEN = (_Planfraesen, _Raeumen, _Bohren, _Bohrung, _Kontur)
+class _Gewinde(_Strategie):
+    """FreeCADs Gewinde mit einem Gewindebohrer aus der Werkzeugverwaltung (gewinde) – nach
+    dem Kernloch, gegen keine Strategie im Wettbewerb; den Haken setzt man selbst."""
+
+    kennung = "gewinde"
+    gemerkt = GEMERKT_GEWINDEBOHRER
+    einsatz_reihenfolge = (wz.GEWINDEBOHREN,)
+
+    def titel(self):
+        return tr("ba.gewinde")
+
+    def text(self):
+        return tr("ba.gewinde.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.gewindebohrer.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.gewinde_einsatz.tooltip")
+
+    def werkzeug_passt(self, werkzeug):
+        return wz.gewindebohrer(werkzeug.art) and werkzeug.steigung > 0
+
+    def passt(self, form, name):
+        return bb.ist_bohrung(form, name)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ob eine Bohrung ein Gewinde bekommt, sagt das Modell nicht
+
+    def unmoeglich_text(self):
+        return tr("ba.gewinde.nicht")
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        steigung = float(werkzeug.steigung or 0.0)
+        drehzahl = werte.get("vorschub", 0.0) / steigung if steigung > 0 else 0.0
+        return gw.vorschau(job, werkzeug, flaechen, drehzahl)
+
+    def ergebnis_text(self, bahn, zeit):
+        gewinde = tr("ba.zahl.gewinde", n=bahn.gewinde, name=bahn.name)
+        return tr("ba.ergebnis_gewinde", gewinde=gewinde, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return gw.lege_an(job, tc, flaechen)
+
+    def ist(self, op):
+        return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
+
+
+STRATEGIEN = (_Planfraesen, _Raeumen, _Bohren, _Bohrung, _Kontur, _Gewinde)
 
 
 def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
@@ -1100,6 +1150,7 @@ class BearbeitungPanel:
         self.bohren = next(b for b in self.bloecke if b.s.kennung == "bohren")
         self.bohrung = next(b for b in self.bloecke if b.s.kennung == "bohrung")
         self.kontur = next(b for b in self.bloecke if b.s.kennung == "kontur")
+        self.gewinde = next(b for b in self.bloecke if b.s.kennung == "gewinde")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
@@ -1675,12 +1726,15 @@ class BearbeitungPanel:
         if self.zu_aendern is not None:
             return
         self._bohrer_waehlen(form)
+        self._gewindebohrer_waehlen(form)
         self._fuellt = True
         try:
             for block in self.bloecke:
                 moeglich = block.s.moeglich(form, self.gewaehlte)
                 if block is self.bohren:
                     moeglich = moeglich and self._bohrer_da(form)
+                if block is self.gewinde:
+                    moeglich = moeglich and self._gewindebohrer_da(form)
                 block.moeglich = moeglich
                 block.haken.setEnabled(moeglich)
                 block.erklaerung.setText(block.s.text() if moeglich else block.s.unmoeglich_text())
@@ -1884,6 +1938,37 @@ class BearbeitungPanel:
             for w in self.bohren._fraeser
         )
 
+    def _bohrungs_durchmesser(self, form):
+        """Der Durchmesser der gewählten Bohrungen – None, wenn keine oder verschiedene."""
+        namen = [n for n in self.gewaehlte if bb.ist_bohrung(form, n)]
+        durchmesser = {round(2 * b.radius, 3) for b in bb.bohrungen(form, namen or [""])}
+        return durchmesser.pop() if len(durchmesser) == 1 else None
+
+    def _gewindebohrer_da(self, form):
+        """Hat die Werkzeugverwaltung einen Gewindebohrer, dessen Kernloch alle gewählten
+        Bohrungen haben?"""
+        d = self._bohrungs_durchmesser(form)
+        return d is not None and any(
+            abs(gw.kernloch(w.durchmesser, w.steigung) - d) <= gw.GLEICH_D
+            for w in self.gewinde._fraeser
+        )
+
+    def _gewindebohrer_waehlen(self, form):
+        """Wählt im Block Gewinde den Gewindebohrer, dessen Kernloch die gewählten Bohrungen
+        haben – wenn der gewählte nicht passt."""
+        d = self._bohrungs_durchmesser(form)
+        if d is None:
+            return
+        jetzt = self.gewinde.fraeser()
+        if jetzt is not None and abs(gw.kernloch(jetzt.durchmesser, jetzt.steigung) - d) <= (
+            gw.GLEICH_D
+        ):
+            return
+        for i, w in enumerate(self.gewinde._fraeser):
+            if abs(gw.kernloch(w.durchmesser, w.steigung) - d) <= gw.GLEICH_D:
+                self.gewinde.wahl_fraeser.setCurrentIndex(i)
+                return
+
     def _bohrer_waehlen(self, form):
         """Wählt im Block Bohren den Bohrer mit dem Durchmesser der gewählten Bohrungen – wenn
         der gewählte nicht passt."""
@@ -2025,12 +2110,24 @@ class BearbeitungPanel:
             self._wettbewerb_gruppe(form, gruppe)
 
     def _wettbewerb_gruppe(self, form, gruppe):
+        """Die schnellste der Gruppe bekommt den Haken; wer nicht geht (rot), verliert ihn, wenn
+        eine andere auf denselben Flächen geht – sonst ginge „Anlegen“ nicht (ein Ø 12 passt
+        nicht in die Bohrung Ø 8,5, die der Bohrer bohrt)."""
         mit = [b for b in gruppe if b.zeit is not None and b.zeit > 0 and b.moeglich]
-        if len(mit) < 2:
-            return
-        if not all(self._gleiche_flaechen(mit[0], form, b) for b in mit[1:]):
+        if not mit or not all(self._gleiche_flaechen(mit[0], form, b) for b in mit[1:]):
             return
         mit.sort(key=lambda b: b.zeit)
+        rot = [
+            b
+            for b in gruppe
+            if b not in mit
+            and b.aktiv()
+            and b.hinweis.text()
+            and self._gleiche_flaechen(mit[0], form, b)
+        ]
+        if len(mit) < 2:
+            self._haken_setzen(gruppe, mit[0], rot)
+            return
         schnellste, zweite = mit[0], mit[1]
         schnellste.ergebnis.setText(
             tr(
@@ -2049,11 +2146,16 @@ class BearbeitungPanel:
                     prozent=int(round((langsamer.zeit / schnellste.zeit - 1.0) * 100.0)),
                 )
             )
+        self._haken_setzen(gruppe, schnellste, mit[1:] + rot)
+
+    def _haken_setzen(self, gruppe, schnellste, andere):
+        """Der Haken bei `schnellste`, nicht bei `andere` – solange niemand einen Haken der
+        Gruppe von Hand gesetzt hat."""
         if any(b.von_hand for b in gruppe):
             return
         self._fuellt = True
         try:
-            for b in mit:
+            for b in [schnellste, *andere]:
                 b.haken.setChecked(b is schnellste)
                 b.zustand_zeigen()
         finally:
