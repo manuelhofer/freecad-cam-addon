@@ -277,9 +277,40 @@ faces, layers and rows; “Check on machine” runs it with Y and removes stock
 with the offset.</li>
 </ul>
 
+<h3>Step 2: all-round deburring</h3>
+<p>Breaks the <b>outer edges</b> of the selected faces – every edge where a
+selected face bends outwards into another face, also into the rest of the
+part: the long edge of a flat to the cylinder, the arc on top of its wall, the
+shoulder of a step. A <b>chamfer mill</b> runs along it, the rotary axis turns
+with it: every point of the edge comes under the cutter, which sinks on the ray
+from the axis until it touches the edge, and the chamfer width deeper. A
+<b>ball mill</b> rounds the edge instead.</p>
+<ul>
+<li>It is suggested ticked as soon as there are outer edges and a chamfer mill
+with cutting data is in the tool manager – the reason is shown in grey below.
+With only a ball mill the tick stays off, and the sentence says it rounds the
+edges if you set it.</li>
+<li><b>Cutter</b> – chamfer or ball mill; <b>Application</b> – “Chamfering”
+preselected, it gives speed and feed.</li>
+<li><b>Chamfer width</b> – how wide the chamfer gets at a right-angled edge with
+a 90° chamfer mill (with a flat tip, wider by its radius on the flat side), or
+the edge break with the ball; empty 0.3 mm.</li>
+<li>What has no burr stays: inner edges, fillets that blend tangentially. The
+end faces front and rear do not exist in the job yet (facing and parting come
+later) – their edges do not count. Where the cutter cannot reach an edge (in
+the shadow of a step, in a narrow slot, too close to the chuck) it skips it;
+the operation counts them under “Ausgelassen”.</li>
+<li>From edge to edge in rapid; where one begins where the previous one ended,
+it continues without lifting – once around a flat with its walls. A ring all
+round (the shoulder of a step) is one turn of the rotary axis.</li>
+<li>In grey below: “→ 4 edges, about 1 min”. “Check on machine” lets the
+operation have its chamfer – that deep at the edges is not blue –, and the
+collision check knows it is meant to cut into the finished part.</li>
+</ul>
+
 <h3>Changing it later</h3>
-<p><b>Double-click</b> “All-round roughing …” or “All-round finishing …” in
-the tree – or right-click,
+<p><b>Double-click</b> “All-round roughing …”, “All-round finishing …”,
+“Indexed facing …” or “All-round deburring …” in the tree – or right-click,
 <b>Edit</b>; or select the operation or its job and press the
 “4-axis machining” button – to open step 2 with the cutter, application and
 values of the operation. Empty fields follow the suggestion of the application:

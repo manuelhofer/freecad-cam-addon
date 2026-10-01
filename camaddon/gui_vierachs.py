@@ -56,6 +56,8 @@ from . import maschine as m
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
+from . import vierachs_entgratbahn as ve
+from . import vierachs_entgraten as vent
 from . import vierachs_flaechen as vf
 from . import vierachs_operation as vo
 from . import vierachs_plan as vplan
@@ -102,8 +104,9 @@ GEMERKT_RUNDACHSE = "VaRundachse"
 GEMERKT_FRAESER = "VaFraeser"  # Kennung des zuletzt gewählten Fräsers
 GEMERKT_SCHLICHTFRAESER = "VaSchlichtfraeser"  # … des zuletzt gewählten Schlichtfräsers
 GEMERKT_PLANFRAESER = "VaPlanfraeser"  # … des zuletzt gewählten Fräsers für Plan indexiert
+GEMERKT_ENTGRATFRAESER = "VaEntgratfraeser"  # … des zuletzt gewählten Fräsers zum Entgraten
 # Welche Bearbeitung man ändert.
-SCHRUPPEN, SCHLICHTEN, PLAN = "schruppen", "schlichten", "plan"
+SCHRUPPEN, SCHLICHTEN, PLAN, ENTGRATEN = "schruppen", "schlichten", "plan", "entgraten"
 
 # Welche Werkzeuge „Rundum schruppen“ anbietet: Die Hüllfläche rechnet mit der
 # Stirn als Scheibe – für jedes dieser Werkzeuge sicher (vierachs_huelle).
@@ -493,6 +496,14 @@ class VierachsPanel:
         self.vorschau_plan = None  # die grobe Bahn „Plan indexiert“ (vierachs_planbahn.Planbahn)
         self._plan_von_hand = False  # der Haken „Plan indexiert“ wurde von Hand gesetzt
         self._plan_erlaubt = True  # beim Ändern: ob „Plan indexiert“ dazukommen darf
+        if vent.ist_entgraten(operation):
+            self._art = ENTGRATEN
+        self._vorwahl_entgraten = None  # beim Ändern: Kennung des Fräsers von „Rundum entgraten“
+        self._entgratfraeser = []  # die Werkzeuge in der Auswahl „Fräser“ beim Entgraten
+        self._entgrateinsaetze = []
+        self.vorschau_entgraten = None  # die grobe Bahn (vierachs_entgratbahn.Entgratbahn)
+        self._entgraten_von_hand = False  # der Haken „Rundum entgraten“ wurde von Hand gesetzt
+        self._entgraten_erlaubt = True  # beim Ändern: ob „Rundum entgraten“ dazukommen darf
         self._schlichtfraeser = []  # die Werkzeuge in der Auswahl „Fräser“ beim Schlichten
         self._schlichteinsaetze = []
         self.vorschau_schlichten = None  # die grobe Schlichtbahn (vierachs_bahn.Schlichtbahn)
@@ -534,6 +545,7 @@ class VierachsPanel:
         self.mit_schruppen.setEnabled(False)
         self.mit_schlichten.setEnabled(False)
         self.mit_plan.setEnabled(False)
+        self.mit_entgraten.setEnabled(False)
         schruppen_teile = (
             self.mit_schruppen,
             self.erklaerung_schruppen,
@@ -557,21 +569,41 @@ class VierachsPanel:
             self.ergebnis_plan,
             self.lage_plan,
         )
+        entgraten_teile = (
+            self.mit_entgraten,
+            self.erklaerung_entgraten,
+            self.entgrat_grund,
+            self.entgratfelder,
+            self.ergebnis_entgraten,
+            self.lage_entgraten,
+        )
         if self._art == SCHLICHTEN:
             self.mit_schruppen.setChecked(False)
             self.mit_schlichten.setChecked(True)
             self.mit_plan.setChecked(False)
-            self._plan_erlaubt = False
-            for teil in schruppen_teile + plan_teile:
+            self.mit_entgraten.setChecked(False)
+            self._plan_erlaubt = self._entgraten_erlaubt = False
+            for teil in schruppen_teile + plan_teile + entgraten_teile:
                 teil.hide()
             erklaerung = self.erklaerung_schlichten
         elif self._art == PLAN:
             self.mit_schruppen.setChecked(False)
             self.mit_schlichten.setChecked(False)
             self.mit_plan.setChecked(True)
-            for teil in schruppen_teile + schlichten_teile + (self.plan_grund,):
+            self.mit_entgraten.setChecked(False)
+            self._entgraten_erlaubt = False
+            for teil in schruppen_teile + schlichten_teile + entgraten_teile + (self.plan_grund,):
                 teil.hide()
             erklaerung = self.erklaerung_plan
+        elif self._art == ENTGRATEN:
+            self.mit_schruppen.setChecked(False)
+            self.mit_schlichten.setChecked(False)
+            self.mit_plan.setChecked(False)
+            self.mit_entgraten.setChecked(True)
+            self._plan_erlaubt = False
+            for teil in schruppen_teile + schlichten_teile + plan_teile + (self.entgrat_grund,):
+                teil.hide()
+            erklaerung = self.erklaerung_entgraten
         else:
             schon = [o for o in js.operationen(self.job) if vs.ist_schlichten(o)]
             self.mit_schlichten.setChecked(False)
@@ -586,6 +618,14 @@ class VierachsPanel:
             self._plan_erlaubt = not schon_plan
             self.erklaerung_plan.setText(
                 tr("va.plan.schon", name=schon_plan[0].Label) if schon_plan else tr("va.plan.dazu")
+            )
+            schon_entgraten = [o for o in js.operationen(self.job) if vent.ist_entgraten(o)]
+            self.mit_entgraten.setChecked(False)
+            self._entgraten_erlaubt = not schon_entgraten
+            self.erklaerung_entgraten.setText(
+                tr("va.entgraten.schon", name=schon_entgraten[0].Label)
+                if schon_entgraten
+                else tr("va.entgraten.dazu")
             )
             erklaerung = self.erklaerung_schruppen
         text = tr("va.aendern.text")
@@ -607,6 +647,7 @@ class VierachsPanel:
         fraeser, vorwahl = {
             SCHLICHTEN: (self.schlichtfraeser(), self._vorwahl_schlichten),
             PLAN: (self.planfraeser(), self._vorwahl_plan),
+            ENTGRATEN: (self.entgratfraeser(), self._vorwahl_entgraten),
         }.get(self._art, (self.fraeser(), self._vorwahl))
         if self._tc_vorher is not None and (fraeser is None or fraeser.kennung != vorwahl):
             self.hinweis_aendern.setText(
@@ -680,6 +721,8 @@ class VierachsPanel:
                 ("zeilenabstand", op.Zeilenabstand),
                 ("aufmass_plan", op.Aufmass),
             ]
+        elif self._art == ENTGRATEN:
+            paare = [("breite", op.Breite)]
         else:
             paare = [
                 ("zustellung", op.Zustellung),
@@ -749,7 +792,7 @@ class VierachsPanel:
             self.zeige_seite(2)
             return False  # „Weiter“: das Fenster bleibt offen
         schruppen, schlichten = self._gewaehlt()
-        bearbeitung = schruppen or schlichten or self.plan_an()
+        bearbeitung = schruppen or schlichten or self.plan_an() or self.entgraten_an()
         if bearbeitung and not self._bearbeitung_pruefen():
             return False  # der Grund steht rot im Fenster
         # Job und Stange: ein Schritt Rückgängig. Die Bearbeitungen kommen in einem eigenen
@@ -1167,6 +1210,36 @@ class VierachsPanel:
         self.planfelder.setEnabled(False)
         self.mit_plan.setEnabled(False)  # bis eine ebene Fläche längs der Stange gewählt ist
 
+        # --- Rundum entgraten (V4d) ---
+        self.mit_entgraten = haken(
+            tr("va.entgraten"), tr("va.entgraten.tooltip"), self._entgraten_umgeschaltet
+        )
+        self.erklaerung_entgraten = grau(tr("va.entgraten.text"))
+        self.entgrat_grund = grau()  # der Vorschlag mit Grund – oder warum es nicht geht
+        entgraten = _Reihen()
+        self.wahl_entgratfraeser = QtGui.QComboBox()
+        self.wahl_entgratfraeser.currentIndexChanged.connect(
+            lambda _i: self._entgratfraeser_gewaehlt()
+        )
+        entgraten.reihe(tr("va.fraeser"), tr("va.entgratfraeser.tooltip"), self.wahl_entgratfraeser)
+        self.wahl_entgrateinsatz = QtGui.QComboBox()
+        self.wahl_entgrateinsatz.currentIndexChanged.connect(
+            lambda _i: self._entgrateinsatz_gewaehlt()
+        )
+        entgraten.reihe(tr("va.einsatz"), tr("va.entgrateinsatz.tooltip"), self.wahl_entgrateinsatz)
+        self.schnittwerte_entgraten = self._grau()
+        entgraten.ganz(self.schnittwerte_entgraten)
+        self.felder_entgraten = {}
+        zahlenfeld(
+            self.felder_entgraten, "breite", tr("va.breite"), tr("va.breite.tooltip"), entgraten
+        )
+        self.entgratfelder = entgraten.widget
+        aufbau.addWidget(self.entgratfelder)
+        self.ergebnis_entgraten = grau()
+        self.lage_entgraten = gelb()
+        self.entgratfelder.setEnabled(False)
+        self.mit_entgraten.setEnabled(False)  # bis es Außenkanten und einen Fräser dafür gibt
+
         # --- Abstände für alle ---
         aufbau.addSpacing(6)
         self.abstaende_titel = QtGui.QLabel(tr("va.abstaende"))
@@ -1185,7 +1258,7 @@ class VierachsPanel:
         self.abstandsfelder = abstaende.widget
         aufbau.addWidget(self.abstandsfelder)
         # Die Beschriftungen aller Blöcke gleich breit: die Felder stehen untereinander.
-        bloecke = (oben, schruppen, schlichten, plan, abstaende)
+        bloecke = (oben, schruppen, schlichten, plan, entgraten, abstaende)
         breite = max(r.breite_beschriftung() for r in bloecke)
         for reihen in bloecke:
             reihen.raster.setColumnMinimumWidth(0, breite)
@@ -1486,6 +1559,8 @@ class VierachsPanel:
                 self._vorwahl, self._vorwahl_schlichten = "", kennung
             elif self._art == PLAN:
                 self._vorwahl, self._vorwahl_plan = "", kennung
+            elif self._art == ENTGRATEN:
+                self._vorwahl, self._vorwahl_entgraten = "", kennung
             else:
                 self._vorwahl = kennung
         # Zählt X der Maschine im Durchmesser, zeigt das Prüffenster X so – FreeCADs eigene
@@ -1499,8 +1574,10 @@ class VierachsPanel:
         self._fraeser_fuellen()
         self._schlichtfraeser_fuellen()
         self._planfraeser_fuellen()
+        self._entgratfraeser_fuellen()
         self._muster_vorschlagen()
         self._plan_vorschlagen()
+        self._entgraten_vorschlagen()
         if self.zu_aendern is None and not self._schlichten_vorgewaehlt:
             self._schlichten_vorgewaehlt = True
             werkstoff = self.werkstoff()
@@ -1664,6 +1741,7 @@ class VierachsPanel:
         self._flaechen_zeigen()
         self._muster_vorschlagen()
         self._plan_vorschlagen()
+        self._entgraten_vorschlagen()
         self._vorschau_starten()
 
     def _muster_vorschlagen(self):
@@ -2136,6 +2214,9 @@ class VierachsPanel:
             geht, grund = False, tr("va.plan.keine_ebene")
         elif not achse.quer:
             geht, grund = False, tr("va.plan.keine_querachse", maschine=achse.maschine)
+        elif not self._planfraeser:
+            namen = ", ".join(e.name for e in ebenen)
+            geht, grund = True, tr("va.plan.kein_fraeser", flaechen=namen)
         else:
             namen = ", ".join(e.name for e in ebenen)
             geht, grund = True, tr("va.plan.vorschlag", flaechen=namen)
@@ -2149,7 +2230,7 @@ class VierachsPanel:
             if not geht:
                 self.mit_plan.setChecked(False)
             elif not self._plan_von_hand and self.zu_aendern is None:
-                self.mit_plan.setChecked(True)
+                self.mit_plan.setChecked(bool(self._planfraeser))
         finally:
             self._fuellt = vorher
         self.planfelder.setEnabled(self.plan_an())
@@ -2202,6 +2283,213 @@ class VierachsPanel:
             text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
         return text
 
+    # --- Rundum entgraten (V4d) -----------------------------------------------------------
+
+    def _entgratfraeser_fuellen(self):
+        """Die Fräser zum Entgraten (vierachs_entgraten.kann_entgraten: Fasenfräser, Kugel)
+        mit Schnittwerten für den Werkstoff; vorgewählt der bisher gewählte, beim Ändern der
+        der Operation, sonst der zuletzt benutzte, sonst ein Fasenfräser mit Einsatz „Fasen“,
+        sonst ein Fasenfräser, sonst die Kugel."""
+        werkstoff = self.werkstoff()
+        vorher = self.entgratfraeser()
+        self._entgratfraeser = [
+            w
+            for w in sorted(self.bibliothek.werkzeuge, key=lambda w: w.nummer)
+            if vent.kann_entgraten(w) and self._passende_einsaetze(w, werkstoff)
+        ]
+        kennungen = [w.kennung for w in self._entgratfraeser]
+        gemerkt = _parameter().GetString(GEMERKT_ENTGRATFRAESER, "")
+        if vorher is not None and vorher.kennung in kennungen:
+            wahl = kennungen.index(vorher.kennung)
+        elif self._vorwahl_entgraten in kennungen:  # beim Ändern: der Fräser der Operation
+            wahl = kennungen.index(self._vorwahl_entgraten)
+        elif gemerkt in kennungen:
+            wahl = kennungen.index(gemerkt)
+        else:
+            wahl = min(
+                range(len(self._entgratfraeser)),
+                key=lambda i: (
+                    self._entgratfraeser[i].art != wz.FASENFRAESER,
+                    not self._hat_einsatz(self._entgratfraeser[i], werkstoff, wz.FASEN),
+                    i,
+                ),
+                default=0,
+            )
+        self._fuellt = True
+        try:
+            self.wahl_entgratfraeser.clear()
+            for werkzeug in self._entgratfraeser:
+                self.wahl_entgratfraeser.addItem(
+                    self._platz_vorsatz(werkzeug) + dezimal(wz.zeile(werkzeug))
+                )
+            if self._entgratfraeser:
+                self.wahl_entgratfraeser.setCurrentIndex(wahl)
+        finally:
+            self._fuellt = False
+        self._entgrateinsatz_fuellen()
+
+    def entgratfraeser(self):
+        """Der gewählte Fräser zum Entgraten (werkzeuge.Werkzeug) oder None."""
+        i = self.wahl_entgratfraeser.currentIndex()
+        return self._entgratfraeser[i] if 0 <= i < len(self._entgratfraeser) else None
+
+    def _entgratfraeser_gewaehlt(self):
+        if not self._fuellt:
+            self._entgrateinsatz_fuellen()
+            self._entgraten_vorschlagen()
+
+    def _entgrateinsatz_fuellen(self):
+        """Die Einsätze des Fräsers; vorgewählt „Fasen“, sonst „Schlichten“, sonst „Schruppen“;
+        beim Ändern der, mit dem der Controller gesetzt ist."""
+        werkzeug = self.entgratfraeser()
+        self._entgrateinsaetze = (
+            self._passende_einsaetze(werkzeug, self.werkstoff()) if werkzeug is not None else []
+        )
+        arten = [e.art for e in self._entgrateinsaetze]
+        wahl = next(
+            (arten.index(a) for a in (wz.FASEN, wz.SCHLICHTEN, wz.SCHRUPPEN) if a in arten), 0
+        )
+        if (
+            self._art == ENTGRATEN
+            and self._tc_vorher is not None
+            and werkzeug is not None
+            and werkzeug.kennung == self._vorwahl_entgraten
+        ):
+            gemerkt = js.vorgeschlagener_einsatz(self._tc_vorher, self._entgrateinsaetze, self.job)
+            wahl = gemerkt if gemerkt >= 0 else wahl
+        self._fuellt = True
+        try:
+            self.wahl_entgrateinsatz.clear()
+            for einsatz in self._entgrateinsaetze:
+                self.wahl_entgrateinsatz.addItem(wz.einsatz_name(einsatz))
+            if self._entgrateinsaetze:
+                self.wahl_entgrateinsatz.setCurrentIndex(wahl)
+        finally:
+            self._fuellt = False
+        self._entgrateinsatz_gewaehlt()
+
+    def entgrateinsatz(self):
+        """Der gewählte Einsatz zum Entgraten (werkzeuge.Einsatz) oder None."""
+        i = self.wahl_entgrateinsatz.currentIndex()
+        return self._entgrateinsaetze[i] if 0 <= i < len(self._entgrateinsaetze) else None
+
+    def _entgrateinsatz_gewaehlt(self):
+        """Drehzahl und Vorschub, der Vorschlag ins Feld."""
+        if self._fuellt:
+            return
+        werkzeug, einsatz = self.entgratfraeser(), self.entgrateinsatz()
+        self.schnittwerte_entgraten.setText(self._schnittwerte_text(werkzeug, einsatz))
+        for feld, eingabe in self.felder_entgraten.items():
+            eingabe.setPlaceholderText(
+                groesse_zeigen(self._vorschlag(feld), einheiten.LAENGE) or "0"
+            )
+        self._vorschau_starten()
+
+    def entgraten_an(self):
+        """Ist „Rundum entgraten“ angehakt? Geht es nicht, nimmt _entgraten_vorschlagen den
+        Haken heraus; beim Ändern der Operation ist er gesetzt und gesperrt."""
+        return self.mit_entgraten.isChecked()
+
+    def _entgraten_umgeschaltet(self, an):
+        if not self._fuellt:
+            self._entgraten_von_hand = True
+        self.entgratfelder.setEnabled(an)
+        self.ergebnis_entgraten.setVisible(an)
+        self._umgeschaltet()
+
+    def _entgrat_kanten(self):
+        """[vierachs_entgratbahn.Kante] – die Außenkanten der gewählten Flächen (leer: alle),
+        grob unterteilt – zum Zählen."""
+        if self.job is None:
+            return []
+        achse = self.achse()
+        return ve.kanten(
+            vr.modell(self.job).Shape,
+            achse.laengs,
+            va.radial(achse),
+            self.flaechen(),
+            ve.VORSCHAU_SCHRITT,
+        )
+
+    def _entgraten_vorschlagen(self):
+        """Ob „Rundum entgraten“ geht – Außenkanten an den gewählten Flächen und ein Fräser
+        dafür mit Schnittwerten – und der Vorschlag mit Grund (W-006 E5): angehakt, wenn ein
+        Fasenfräser gewählt ist und man es nicht von Hand abgewählt hat; mit der Kugel allein
+        bleibt der Haken aus, und der Satz sagt, wie es ginge. Beim Ändern bleibt der Haken,
+        wie er ist."""
+        if self.job is None or self._art == ENTGRATEN:
+            return
+        werkzeug = self.entgratfraeser()
+        kanten = self._entgrat_kanten() if werkzeug is not None else []
+        if werkzeug is None:
+            geht, vorschlag, grund = False, False, tr("va.entgraten.kein_fraeser")
+        elif not kanten:
+            geht, vorschlag, grund = False, False, tr("va.entgraten.keine_kanten")
+        elif werkzeug.art == wz.FASENFRAESER:
+            geht, vorschlag = True, True
+            grund = tr("va.entgraten.vorschlag", kanten=len(kanten), werkzeug=f"T{werkzeug.nummer}")
+        else:
+            geht, vorschlag = True, False
+            grund = tr("va.entgraten.kugel", kanten=len(kanten), werkzeug=f"T{werkzeug.nummer}")
+        geht = geht and self._entgraten_erlaubt
+        self.entgrat_grund.setText(grund)
+        war = self.entgraten_an()
+        vorher = self._fuellt
+        self._fuellt = True
+        try:
+            self.mit_entgraten.setEnabled(geht)
+            if not geht:
+                self.mit_entgraten.setChecked(False)
+            elif not self._entgraten_von_hand and self.zu_aendern is None:
+                self.mit_entgraten.setChecked(vorschlag)
+        finally:
+            self._fuellt = vorher
+        self.entgratfelder.setEnabled(self.entgraten_an())
+        self.ergebnis_entgraten.setVisible(self.entgraten_an())
+        if self.entgraten_an() != war:
+            self._umgeschaltet()
+
+    def _entgrat_vorschau(self):
+        """Die grobe Bahn „Rundum entgraten“ (vierachs_entgraten.vorschau) für Kanten und Zeit.
+        ValueError mit einem Satz, wenn es nicht geht."""
+        werkzeug = self.entgratfraeser()
+        achse = self.achse()
+        return vent.vorschau(
+            self.job,
+            self.job.Model.Group,
+            achse.laengs,
+            va.radial(achse),
+            ff.von_werkzeug(werkzeug),
+            self._wert("breite"),
+            (
+                self._ueberlauf_fuer(werkzeug),
+                self._wert("abstand_futter"),
+                self._wert("sicherheit"),
+            ),
+            self._halter_fuer(werkzeug),
+            self.flaechen(),
+        )
+
+    def _entgrat_text(self, bahn):
+        """„→ 4 Kanten, etwa 1 min“ – mit den Kanten, die der Fräser nicht erreicht, und was
+        hinten nicht erreicht wird."""
+        from .reichweite import weg_text
+
+        _n, vorschub, _senkrecht = js.werte(self.entgratfraeser(), self.entgrateinsatz())
+        zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
+        if bahn.ausgelassen:
+            text = tr(
+                "va.entgraten.ergebnis_ausgelassen",
+                kanten=bahn.kanten,
+                zeit=zeit,
+                ausgelassen=bahn.ausgelassen,
+            )
+        else:
+            text = tr("va.entgraten.ergebnis", kanten=bahn.kanten, zeit=zeit)
+        if bahn.hinten_frei > 0:
+            text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
+        return text
+
     def _vorschlag(self, feld):
         """Der Wert eines leeren Felds (mm): Zustellung und Vorschub je Umdrehung aus dem
         Einsatz (ap und ae – ae höchstens der Durchmesser), das Aufmaß 0,3 mm, der Überlauf
@@ -2224,6 +2512,8 @@ class VierachsPanel:
             )
         if feld == "aufmass_plan":
             return vplan.AUFMASS
+        if feld == "breite":
+            return vent.BREITE
         if feld == "aufmass_schlichten":
             return vs.AUFMASS
         if feld == "aufmass":
@@ -2246,7 +2536,8 @@ class VierachsPanel:
         return (
             self.felder_schruppen.get(feld)
             or self.felder_schlichten.get(feld)
-            or self.felder_plan[feld]
+            or self.felder_plan.get(feld)
+            or self.felder_entgraten[feld]
         )
 
     def _wert(self, feld):
@@ -2271,7 +2562,7 @@ class VierachsPanel:
         """Ein Haken ging an oder aus: die Abstände gelten, solange einer an ist; die Stange
         ragt so weit heraus, wie die angehakten Bearbeitungen es brauchen."""
         schruppen, schlichten = self._gewaehlt()
-        bearbeitung = schruppen or schlichten or self.plan_an()
+        bearbeitung = schruppen or schlichten or self.plan_an() or self.entgraten_an()
         self.abstandsfelder.setEnabled(bearbeitung)
         self.hinweis_bearbeitung.setText("")
         self._lage_zeigen()
@@ -2294,6 +2585,7 @@ class VierachsPanel:
         self.vorschau = None
         self.vorschau_schlichten = None
         self.vorschau_plan = None
+        self.vorschau_entgraten = None
         self._vorschau_uhr.start()  # erst nach einer kurzen Pause rechnen
         self._knoepfe_beschriften()
 
@@ -2304,19 +2596,22 @@ class VierachsPanel:
         self._vorschau_uhr.stop()
         schruppen, schlichten = self._gewaehlt()
         plan = self.plan_an()
+        entgraten = self.entgraten_an()
         if self.geschlossen or self.seite != 2:
             return
         self._lage_zeigen()
-        if not (schruppen or schlichten or plan):
+        if not (schruppen or schlichten or plan or entgraten):
             return
         self.vorschau = None
         self.vorschau_schlichten = None
         self.vorschau_plan = None
+        self.vorschau_entgraten = None
         for etikett in (
             self.ergebnis,
             self.ergebnis_schlichten,
             self.kammhoehe,
             self.ergebnis_plan,
+            self.ergebnis_entgraten,
         ):
             etikett.setText("")
         self.kammhoehe.hide()
@@ -2331,6 +2626,10 @@ class VierachsPanel:
             return
         if plan and (self.planfraeser() is None or self.planeinsatz() is None):
             self.hinweis_bearbeitung.setText(tr("va.planfraeser.keiner"))
+            self._knoepfe_beschriften()
+            return
+        if entgraten and (self.entgratfraeser() is None or self.entgrateinsatz() is None):
+            self.hinweis_bearbeitung.setText(tr("va.entgratfraeser.keiner"))
             self._knoepfe_beschriften()
             return
         if self.vermessung is not None and not _gleiche_stange(self.stange(), self._stange_jetzt):
@@ -2374,6 +2673,13 @@ class VierachsPanel:
                 gruende.append(str(fehler))
             else:
                 self.ergebnis_plan.setText(self._plan_text(self.vorschau_plan))
+        if entgraten:
+            try:
+                self.vorschau_entgraten = self._entgrat_vorschau()
+            except ValueError as fehler:
+                gruende.append(str(fehler))
+            else:
+                self.ergebnis_entgraten.setText(self._entgrat_text(self.vorschau_entgraten))
         self.hinweis_bearbeitung.setText(" ".join(gruende))
         self._knoepfe_beschriften()
 
@@ -2385,6 +2691,7 @@ class VierachsPanel:
             (self.lage_schruppen, schruppen, self.fraeser()),
             (self.lage_schlichten, schlichten, self.schlichtfraeser()),
             (self.lage_plan, self.plan_an(), self.planfraeser()),
+            (self.lage_entgraten, self.entgraten_an(), self.entgratfraeser()),
         ):
             text = self._lage_text(werkzeug) if an else ""
             etikett.setText(text)
@@ -2453,8 +2760,8 @@ class VierachsPanel:
 
     def _vorgemerkt(self, werkzeug):
         """{Nummer: Kennung} der Fräser, die vor `werkzeug` mit ihm zusammen neu in den Job
-        kommen (Schruppen, dann Schlichten, dann Plan indexiert) – so bekommen zwei nicht
-        denselben Platz. None beim Ändern oder ohne solche."""
+        kommen (Schruppen, dann Schlichten, dann Plan indexiert, dann Entgraten) – so bekommen
+        zwei nicht denselben Platz. None beim Ändern oder ohne solche."""
         if self.zu_aendern is not None or werkzeug is None:
             return None
         schruppen, schlichten = self._gewaehlt()
@@ -2463,6 +2770,7 @@ class VierachsPanel:
             (schruppen, self.fraeser()),
             (schlichten, self.schlichtfraeser()),
             (self.plan_an(), self.planfraeser()),
+            (self.entgraten_an(), self.entgratfraeser()),
         ):
             if anderer is not None and anderer.kennung == werkzeug.kennung:
                 break  # ab hier kommen die, die nach `werkzeug` dran sind
@@ -2542,6 +2850,7 @@ class VierachsPanel:
             (schruppen, self.fraeser()),
             (schlichten, self.schlichtfraeser()),
             (self.plan_an(), self.planfraeser()),
+            (self.entgraten_an(), self.entgratfraeser()),
         ):
             if an and werkzeug is not None:
                 bedarf.append(
@@ -2642,6 +2951,8 @@ class VierachsPanel:
             return False
         if self.plan_an() and (self.planfraeser() is None or self.planeinsatz() is None):
             return False
+        if self.entgraten_an() and (self.entgratfraeser() is None or self.entgrateinsatz() is None):
+            return False
         return not self.hinweis_bearbeitung.text()
 
     def werkzeugverwaltung(self, nummer=None):
@@ -2667,10 +2978,12 @@ class VierachsPanel:
         Vorschau, wenn sie noch fehlt."""
         schruppen, schlichten = self._gewaehlt()
         plan = self.plan_an()
+        entgraten = self.entgraten_an()
         if (
             (schruppen and self.vorschau is None)
             or (schlichten and self.vorschau_schlichten is None)
             or (plan and self.vorschau_plan is None)
+            or (entgraten and self.vorschau_entgraten is None)
         ):
             self._vorschau_rechnen()
         if schruppen and (
@@ -2683,10 +2996,14 @@ class VierachsPanel:
             or self.vorschau_schlichten is None
         ):
             return False
-        return not plan or (
-            self.planfraeser() is not None
-            and self.planeinsatz() is not None
-            and self.vorschau_plan is not None
+        if plan and (
+            self.planfraeser() is None or self.planeinsatz() is None or self.vorschau_plan is None
+        ):
+            return False
+        return not entgraten or (
+            self.entgratfraeser() is not None
+            and self.entgrateinsatz() is not None
+            and self.vorschau_entgraten is not None
         )
 
     def _bearbeitungen_anlegen(self):
@@ -2696,6 +3013,7 @@ class VierachsPanel:
         Fenster: False."""
         schruppen, schlichten = self._gewaehlt()
         plan = self.plan_an()
+        entgraten = self.entgraten_an()
         achse = self.achse()
         werte = (self._wert("zustellung"), self._wert("steigung"), self._wert("aufmass"))
         sicherheit, ueberlauf, abstand = self._abstaende()
@@ -2705,12 +3023,16 @@ class VierachsPanel:
             sicherheit,
         )
         plan_abstaende = (self._ueberlauf_fuer(self.planfraeser()), abstand, sicherheit)
-        if plan and (schruppen or schlichten):
+        entgrat_abstaende = (self._ueberlauf_fuer(self.entgratfraeser()), abstand, sicherheit)
+        anzahl = sum(1 for an in (schruppen, schlichten, plan, entgraten) if an)
+        if anzahl > 1 and (plan or entgraten):
             name = tr("va.transaktion.mehrere")
         elif schruppen and schlichten:
             name = tr("va.transaktion.beide")
         elif plan:
             name = tr("va.transaktion.plan")
+        elif entgraten:
+            name = tr("va.transaktion.entgraten")
         else:
             name = tr("va.transaktion.schruppen") if schruppen else tr("va.transaktion.schlichten")
         flaechen = self.flaechen()
@@ -2792,6 +3114,27 @@ class VierachsPanel:
                             eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
                         )
                     )
+                if entgraten:
+                    tc = js.controller_ohne_transaktion(
+                        self.doc,
+                        self.job,
+                        self.entgratfraeser(),
+                        self.entgrateinsatz(),
+                        self.werkstoff(),
+                        self._programmnummer(self.entgratfraeser()),
+                    )
+                    angelegt.append(
+                        vent.lege_an(
+                            self.job,
+                            tc,
+                            achse,
+                            self._wert("breite"),
+                            quer_auf_null=achse.quer,
+                            abstaende=entgrat_abstaende,
+                            halter=self._halter_fuer(self.entgratfraeser()),
+                            flaechen=flaechen,
+                        )
+                    )
                 self.doc.recompute()
             except Exception:
                 self.doc.abortTransaction()
@@ -2818,6 +3161,7 @@ class VierachsPanel:
         op = self.zu_aendern
         schlichten_dazu = self._art == SCHRUPPEN and self.mit_schlichten.isChecked()
         plan_dazu = self._art == SCHRUPPEN and self.plan_an()
+        entgraten_dazu = self._art == SCHRUPPEN and self.entgraten_an()
         sicherheit, ueberlauf, abstand = self._abstaende()
         schlicht_abstaende = (
             self._ueberlauf_fuer(self.schlichtfraeser()),
@@ -2825,10 +3169,13 @@ class VierachsPanel:
             sicherheit,
         )
         plan_abstaende = (self._ueberlauf_fuer(self.planfraeser()), abstand, sicherheit)
+        entgrat_abstaende = (self._ueberlauf_fuer(self.entgratfraeser()), abstand, sicherheit)
         if self._art == SCHLICHTEN:
             name = tr("va.transaktion.aendern_schlichten")
         elif self._art == PLAN:
             name = tr("va.transaktion.aendern_plan")
+        elif self._art == ENTGRATEN:
+            name = tr("va.transaktion.aendern_entgraten")
         else:
             name = tr("va.transaktion.aendern")
         flaechen = self.flaechen()
@@ -2879,6 +3226,24 @@ class VierachsPanel:
                         self._halter_fuer(self.planfraeser()),
                         flaechen,
                         self._eintauchwinkel_fuer(self.planfraeser()),
+                    )
+                elif self._art == ENTGRATEN:
+                    tc = js.controller_fuer(
+                        self.doc,
+                        self.job,
+                        self.entgratfraeser(),
+                        self.entgrateinsatz(),
+                        self.werkstoff(),
+                        op,
+                        self._programmnummer(self.entgratfraeser()),
+                    )
+                    vent.aendere(
+                        op,
+                        tc,
+                        self._wert("breite"),
+                        entgrat_abstaende,
+                        self._halter_fuer(self.entgratfraeser()),
+                        flaechen,
                     )
                 else:
                     tc = js.controller_fuer(
@@ -2943,6 +3308,25 @@ class VierachsPanel:
                         halter=self._halter_fuer(self.planfraeser()),
                         flaechen=flaechen,
                         eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
+                    )
+                if entgraten_dazu:
+                    tc_entgraten = js.controller_ohne_transaktion(
+                        self.doc,
+                        self.job,
+                        self.entgratfraeser(),
+                        self.entgrateinsatz(),
+                        self.werkstoff(),
+                        self._programmnummer(self.entgratfraeser()),
+                    )
+                    vent.lege_an(
+                        self.job,
+                        tc_entgraten,
+                        self.achse(),
+                        self._wert("breite"),
+                        quer_auf_null=op.QuerAufNull,
+                        abstaende=entgrat_abstaende,
+                        halter=self._halter_fuer(self.entgratfraeser()),
+                        flaechen=flaechen,
                     )
                 self._maschine_merken()
                 frei = bisher is not None and not js.operationen_mit(bisher, self.job)
@@ -3149,6 +3533,8 @@ class VierachsPanel:
             _parameter().SetString(GEMERKT_SCHLICHTFRAESER, self.schlichtfraeser().kennung)
         if self.plan_an() and self.planfraeser() is not None:
             _parameter().SetString(GEMERKT_PLANFRAESER, self.planfraeser().kennung)
+        if self.entgraten_an() and self.entgratfraeser() is not None:
+            _parameter().SetString(GEMERKT_ENTGRATFRAESER, self.entgratfraeser().kennung)
 
     # --- Anzeige ------------------------------------------------------------------
 

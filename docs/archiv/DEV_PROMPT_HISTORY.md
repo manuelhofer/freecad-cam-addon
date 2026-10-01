@@ -12,6 +12,83 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-12 rundum-entgraten
+
+### EINGELESEN
+- W-003 V4d (`docs/spezifikation_vierachs.md`): „Rundum entgraten – an den Kanten der gewählten
+  Flächen (auch zwischen ihnen und dem Rest) eine Fase mit dem Fasenfräser (oder dem Kugelfräser
+  als Kantenbruch), Breite einstellbar (Vorschlag 0,3 mm); der Fräser folgt der Kante, die
+  Rundachse dreht mit“ (Manuel: „Und Entgraten nicht vergessen“); W-006 4.1 Punkt 8, 4.3.3,
+  S2; E5 (a): Vorschlag mit Grund, änderbar.
+- `vierachs_huelle.je_winkel` (Hüllfläche je Winkel mit jeder Fräserform), `vierachs_bahn`
+  (Punkt, `_eilgang`, `_zusammengefasst`, `_ende`, Befehle), `vierachs_plan` und
+  `vierachs_planbahn` (Operation und Bahn als Vorlage), `restmaterial` (Abtrag, Vergleich,
+  `fuer`), `kollision.INS_TEIL_ERLAUBT`, `gui_vierachs` (Block „Plan indexiert“),
+  `fraeserform.kegel` und `werkzeugform.kegel` (der Fasenfräser), FreeCADs Deburr (nur 2D).
+
+### DATEIEN
+- Neu: `camaddon/vierachs_entgratbahn.py`, `camaddon/vierachs_entgraten.py`,
+  `tests/test_vierachs_entgraten.py`, `tests/gui/szenario_vierachs_entgraten.py`
+- `camaddon/gui_vierachs.py`, `camaddon/restmaterial.py`, `camaddon/kollision.py`,
+  `camaddon/vierachs_operation.py`, `camaddon/job_schnittwerte.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/vierachs.html`, `README.md`,
+  `docs/spezifikation_vierachs.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Welle Ø 20 mit Abflachung zwischen zwei Wänden, Fasenfräser Ø 8 (90°, Spitze Ø 1), Fasenbreite
+0,3: Mit der Abflachung gewählt findet es ihre zwei langen Kanten zum Zylinder (Knick 36,9°),
+mit den Wänden dazu deren Bögen oben (90°) – keine Innenkante, keine Naht, keine Stirnkante;
+die Bahn steht je Punkt mit der Rundachse auf der Kante, die Spitze 0,3 unter der Berührung
+(X 9,72), die Stücke um die Abflachung herum verkettet ohne Abheben; nah am Futter fallen Kanten
+weg und werden gezählt; am Absatz einer Stufenwelle ein Ring rundum (eine Umdrehung). Der
+Abtrag im Prüffenster zeigt die Fase nicht als blau; die Kollisionsprüfung erlaubt der
+Operation das Teil. Im Assistenten ist der vierte Haken „Rundum entgraten“ vorgeschlagen, sobald
+es Außenkanten und einen Fasenfräser gibt („Vorschlag: an – 2 Außenkanten …, Fasenfräser T3 ist
+da“), „→ 2 Kanten, etwa …“; „Anlegen“ legt „Rundum entgraten T3“ an (2 Kanten, X 9,72, C je
+Kante fest), Doppelklick ändert die Fasenbreite.
+
+### DONE
+- Bahn (`vierachs_entgratbahn`): `kanten()` (Außenkanten der gewählten Flächen über die
+  Kanten des Körpers – Normalen beider Flächen, Richtung in die Fläche hinein über die Probe,
+  `isInside` neben der Kante; Knick ≥ 10°; keine Naht, keine Stirnkante), `Entgratwerte`,
+  `eindringtiefe()` (Fase: die Breite; Kugel: so tief, dass es so breit wird),
+  `entgraten()` (Hüllfläche an allen Kantenpunkten auf einmal mit `je_winkel`, Schatten und
+  Futterabstand sortieren Punkte aus, Stücke je Kante, Ringe erkannt und beim nächsten Punkt
+  begonnen, Stücke verkettet – das nächste zuerst, ohne Abheben, wo es anschließt –,
+  zusammengefasst mit höchstens 90° je Satz, Eilgang, Eintauchen, Länge im Vorschub).
+- Operation `vierachs_entgraten.RundumEntgraten` (Breite, Abstände, Flächen; Kanten und
+  Ausgelassen nur lesen), `bahn_fuer`, `vorschau` (gröber), `lege_an`, `aendere`,
+  `ist_entgraten`, `kann_entgraten` (Fasen-, Kugel-, Lollipopfräser); `vo.ist_rundum`,
+  `restmaterial.operationsarten_rundum`, „Schnittwerte in den Job“ mit Einsatz „Fasen“.
+- Abtrag: `Abtrag.fasen` – je Entgrat-Operation die Eindringtiefe; die Zellen, die sie trifft,
+  dürfen so tief ins Teil, ohne blau zu werden (`vergleiche(…, erlaubt)`); `fuer()` nimmt das
+  Aufmaß der letzten Operation, die eins hat. Kollision: `vierachs_entgraten` in
+  `INS_TEIL_ERLAUBT`.
+- Assistent: Block „Rundum entgraten“ (Fräser, Einsatz, Fasenbreite, Vorschau, gelber Satz zur
+  Lage), `_entgraten_vorschlagen` (kein Fräser / keine Kanten: gesperrt mit Satz; Fasenfräser:
+  an; nur Kugel: aus, mit Satz), Anlegen, Ändern, „dazu“ beim Ändern des Schruppens, Platz am
+  Revolver, Bedarf hinten, gemerkter Fräser. Dabei: „Plan indexiert“ wird nur noch
+  vorgeschlagen, wenn es einen Fräser mit ebener Stirn dafür gibt (`va.plan.kein_fraeser`).
+- Hilfe (de/en), README, Spezifikation (Stand V4d, mit der offenen Frage der schrägen Kante),
+  Status.
+
+### TEST
+- `test_vierachs_entgraten` (neu): Kanten (Abflachung, Wände, alle, eine Wand allein,
+  Eindringtiefe), Bahn (Fase, Rundachse, Eintauchen, verkettet, Länge, Bögen, Kugel, nah am
+  Futter, Fehler, Befehle), Stufenwelle (Ring), Abtrag mit Fase (blau ohne, keins mit),
+  Operation (anlegen, ändern, Stirn allein, Kugel, speichern und laden); `test_sprache`,
+  `test_hilfe` – in 1.1.3 ok. Der erste Lauf fand drei falsche Erwartungen im Test (die Stücke
+  verketten sich zu einer Fahrt, die Länge zählt auf dem Fasenradius, C liegt im Job anders)
+  und dass die Bahn nach dem Laden um Tausendstel anders zusammengefasst wird (ein anderes
+  Netz) – der Test prüft jetzt Kanten und Tiefe.
+- `szenario_vierachs_entgraten` (neu) in 1.1.3 ok, Bilder angesehen. Der erste Lauf: Der
+  Assistent nimmt an der vorgewählten Maschine die A-Achse mit der Stange längs X – das
+  Szenario liest Rundachse und Werkzeugrichtung jetzt aus der Operation; und „Plan indexiert“
+  war an (T1 mit Einsatz Schruppen kann es) – das Szenario nimmt den Haken heraus.
+
+### NEXT
+- Version 0.36.0, Push; W-006 S3 (2,5D Kern).
+
 ## P-2026-10-01-10 plan-zeilenende
 
 ### EINGELESEN

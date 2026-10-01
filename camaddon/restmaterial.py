@@ -303,11 +303,13 @@ def teilradien(netz, laengs, radial, stange, radius=SCHRITT_A / 2):
     return vh.schaftfraeser(netz, laengs, radial, radius, stange.a, stange.phi).r
 
 
-def vergleiche(stange, teil, aufmass, genau=None, nur=None):
+def vergleiche(stange, teil, aufmass, genau=None, nur=None, erlaubt=None):
     """Das Restmaterial gegen das fertige Teil (`teil`: teilradien()), je Zelle eingefärbt;
     `aufmass`: das Aufmaß, das stehen bleiben soll (mm). `genau`: das Teil auf den Strahlen
     (teilradien() mit GENAU) – nur was dort fehlt, ist blau. `nur`: (n_a, n_phi) die Zellen
     der gewählten Flächen – nur sie bekommen Grün, Gelb oder Rot; Blau gilt überall.
+    `erlaubt`: (n_a, n_phi) mm, so tief darf es je Zelle ins Teil gehen, ohne blau zu werden –
+    die Fase von „Rundum entgraten“ (Abtrag.fasen).
 
     Wo an einer Stelle manche Strahlen aus der Achse das Teil vor sich haben und andere nicht
     (sie sehen es nur hinter der Achse oder gar nicht), liegt es nicht rund um die Achse
@@ -334,6 +336,8 @@ def vergleiche(stange, teil, aufmass, genau=None, nur=None):
     # liegt als die halbe Änderung zum Nachbarn (Manuels Testteil: 0,11 mm an der Kante, 0,05
     # mm auf der Stirnebene – am Körper nachgemessen kein Eindringen, P-2026-09-30-44).
     schwelle = BLAU_AB + 0.5 * _spruenge(genau)
+    if erlaubt is not None:
+        schwelle = schwelle + erlaubt
     with np.errstate(invalid="ignore"):
         blau = tief < -schwelle
         farbe[blau] = BLAU
@@ -378,7 +382,9 @@ class Abtrag:
     Station weg ist. fuer() baut es – nur für Jobs mit runder Stange und „Rundum
     schruppen“ oder „Rundum schlichten“."""
 
-    def __init__(self, stange, laengs, radial, stationen, fraeser, aufmass, formen, flaechen=None):
+    def __init__(
+        self, stange, laengs, radial, stationen, fraeser, aufmass, formen, flaechen=None, fasen=None
+    ):
         self.stange = stange
         self.laengs, self.radial = laengs, radial
         # je Station (a, r, φ in Grad, fortlaufend), Operation, gültig – oder dazwischen der
@@ -396,6 +402,10 @@ class Abtrag:
         # Die Nummern der gewählten Flächen (V4) – None: alle; dazu ihre Zellen, einmal gerechnet.
         self.flaechen = flaechen
         self._nur = None
+        # „Rundum entgraten“ (V4d): je Operation (Nummer), wie tief ihre Fase ins Teil geht –
+        # so tief darf es dort sein, ohne blau zu werden (die Zellen, die sie trifft).
+        self.fasen = dict(fasen or {})
+        self._erlaubt = np.zeros(stange.r.shape)
         self.bis = 0  # abgetragen bis vor diese Station
 
     def bis_station(self, index):
@@ -403,6 +413,7 @@ class Abtrag:
         index = min(index, len(self.a) - 1)
         if index + 1 < self.bis:
             self.stange.zuruecksetzen()
+            self._erlaubt.fill(0.0)
             self.bis = 0
         k = np.arange(max(self.bis, 1), index + 1)
         fahren = (
@@ -411,6 +422,14 @@ class Abtrag:
         k = k[fahren]
         for nummer, fraeser in self.fraeser.items():
             stuecke = k[self.operation[k] == nummer]
+            if nummer in self.fasen and len(stuecke):
+                vorher = self.stange.r.copy()
+                self.stange.fahre_stuecke(self._punkte[stuecke - 1], self._punkte[stuecke], fraeser)
+                getroffen = self.stange.r < vorher
+                np.maximum(
+                    self._erlaubt, np.where(getroffen, self.fasen[nummer], 0.0), out=self._erlaubt
+                )
+                continue
             self.stange.fahre_stuecke(self._punkte[stuecke - 1], self._punkte[stuecke], fraeser)
         self.bis = max(self.bis, index + 1)
 
@@ -433,7 +452,14 @@ class Abtrag:
                     vf.vernetze(form), self.laengs, self.radial, self.stange.a, self.stange.phi
                 )
                 self._nur = np.isin(sicht.flaeche, sorted(self.flaechen))
-        return vergleiche(self.stange, self._teil[0], self.aufmass, self._teil[1], self._nur)
+        return vergleiche(
+            self.stange,
+            self._teil[0],
+            self.aufmass,
+            self._teil[1],
+            self._nur,
+            self._erlaubt if self.fasen else None,
+        )
 
 
 def fuer(abfahrt, job, am_werkstueck):
@@ -480,7 +506,26 @@ def fuer(abfahrt, job, am_werkstueck):
     gueltig = np.array(
         [s.stellungen is not None and s.operation in fraeser for s in abfahrt.stationen]
     )
-    aufmass = float(ops[abfahrt.operationen[rundum[-1]].name].Aufmass)
+    # Verglichen wird mit dem Aufmaß der letzten Operation, die eins hat („Rundum entgraten“
+    # hat keins: es schneidet in die Kanten – so tief darf es dort gehen, Abtrag.fasen).
+    from . import vierachs_entgratbahn as ve
+    from .vierachs_entgraten import ist_entgraten
+
+    aufmass = next(
+        (
+            float(ops[abfahrt.operationen[k].name].Aufmass)
+            for k in reversed(rundum)
+            if hasattr(ops[abfahrt.operationen[k].name], "Aufmass")
+        ),
+        0.0,
+    )
+    fasen = {}
+    for k in rundum:
+        op = ops[abfahrt.operationen[k].name]
+        if ist_entgraten(op):
+            breite = float(op.Breite)
+            form = fraeser[k]
+            fasen[k] = breite if isinstance(form, float) else ve.eindringtiefe(form, breite)
     # Haben alle Rundum-Operationen gewählte Flächen, zählt der Vergleich nur auf ihnen (V4).
     from . import vierachs_flaechen as vf
     from .vierachs_operation import flaechen as flaechen_von
@@ -503,6 +548,7 @@ def fuer(abfahrt, job, am_werkstueck):
         aufmass,
         formen,
         flaechen,
+        fasen,
     )
 
 
@@ -518,9 +564,9 @@ def _fraeser(tc):
 
 
 def operationsarten_rundum():
-    """Wie job_schnittwerte.operationsart() „Rundum schruppen“, „Rundum schlichten“ und „Plan
-    indexiert“ nennt (die Namen ihrer Module)."""
-    return ("vierachs_operation", "vierachs_schlichten", "vierachs_plan")
+    """Wie job_schnittwerte.operationsart() „Rundum schruppen“, „Rundum schlichten“, „Plan
+    indexiert“ und „Rundum entgraten“ nennt (die Namen ihrer Module)."""
+    return ("vierachs_operation", "vierachs_schlichten", "vierachs_plan", "vierachs_entgraten")
 
 
 # --- Darstellung (ohne Coin: Felder, die gui_abfahren in die Ansicht gibt) ---------------

@@ -846,6 +846,32 @@ bauen“):*
   zwischen ihnen und dem Rest) eine Fase mit dem Fasenfräser (oder dem
   Kugelfräser als Kantenbruch), Breite einstellbar (Vorschlag 0,3 mm); der
   Fräser folgt der Kante, die Rundachse dreht mit.
+  - *Stand 2026-10-01 (P-2026-10-01-12, 0.36.0):* gebaut – Operation
+    `vierachs_entgraten`, Bahn in `vierachs_entgratbahn`. Kanten (`kanten()`): jede
+    Kante, an der eine gewählte Fläche mit einer anderen um mindestens 10° nach außen
+    knickt (Probe neben der Kante im Körper: `isInside`), einmal; keine Innenkante, keine
+    Naht, keine tangentiale Rundung, keine Kante auf den Stirnen (vorne nimmt sie das
+    Planen, hinten das Abstechen). Bahn: je Punkt der Kante (alle 0,25 mm) steht die
+    Rundachse auf ihm, die Spitze sinkt auf dem Strahl bis zur Berührung (Hüllfläche
+    `je_winkel` mit der Fräserform gegen das ganze Teil) und um die Eindringtiefe tiefer –
+    die Fasenbreite, beim Kugelfräser so viel, dass der Kantenbruch so breit wird;
+    liegt die Berührung mehr als 0,05 mm über der Kante (Schatten: Absatz, enge Nut) oder
+    die Stelle hinter dem Futterabstand, fällt der Punkt weg, eine Kante ohne Punkte
+    zählt als „Ausgelassen“. Stücke werden zum nächsten verkettet, ohne Abheben, wo eines
+    beginnt, wo das vorige endet (eine Abflachung mit Wänden: einmal herum); ein Ring
+    rundum ist eine Umdrehung; zusammengefasst, höchstens 90° je Satz. Der Abtrag lässt
+    der Operation die Fase durch (`Abtrag.fasen`: so tief darf es an den getroffenen
+    Zellen ins Teil, ohne blau zu werden); die Kollisionsprüfung erlaubt ihr das Teil
+    (`INS_TEIL_ERLAUBT`). Assistent: vierter Haken „Rundum entgraten“ mit Fräser (Fasen-
+    oder Kugelfräser), Einsatz „Fasen“, Fasenbreite; vorgeschlagen mit Grund (E5), sobald
+    es Außenkanten und einen Fasenfräser gibt – mit nur einer Kugel bleibt der Haken aus,
+    der Satz sagt, wie es ginge; „→ 2 Kanten, etwa 1 min“; nachträglich ändern wie die
+    anderen, „dazu“ beim Ändern von „Rundum schruppen“. Dabei: „Plan indexiert“ wird nur
+    noch vorgeschlagen, wenn es einen Fräser mit ebener Stirn dafür gibt. Offen: Die
+    Fase mit dem Fräser auf dem Strahl ist an schrägen Kanten (Flanke einer Nut, 143°
+    an der Abflachung) keine gleichschenklige Fase, sondern eine Kerbe von etwa der
+    Breite – zum Entgraten genug; für eine maßhaltige Fase bräuchte es die Werkzeugachse
+    auf der Winkelhalbierenden (5 Achsen, 4.4).
 - **V4e – Prüfen** (Farben gebaut, P-2026-09-30-32 – haben alle Rundum-Operationen
   gewählte Flächen, vergleicht der Abtrag nur auf ihnen, Blau gilt überall; Szenario
   `szenario_flaechen_pruefen`)**:** Farben nur auf den gewählten Flächen; was nicht gewählt ist,

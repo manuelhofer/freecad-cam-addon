@@ -423,9 +423,10 @@ def _vorgeschlagener_name(name):
 
 def ist_rundum(op):
     """Ist `op` eine 4-Achs-Operation des Addons: „Rundum schruppen“, „Rundum schlichten“
-    (vierachs_schlichten) oder „Plan indexiert“ (vierachs_plan)?"""
+    (vierachs_schlichten), „Plan indexiert“ (vierachs_plan) oder „Rundum entgraten“
+    (vierachs_entgraten)?"""
     name = type(getattr(op, "Proxy", None)).__name__
-    return ist_schruppen(op) or name in ("RundumSchlichten", "PlanIndexiert")
+    return ist_schruppen(op) or name in ("RundumSchlichten", "PlanIndexiert", "RundumEntgraten")
 
 
 def ist_schruppen(op):

@@ -67,8 +67,16 @@ HOECHSTENS = 200000  # Stellen; danach hört es auf und sagt es
 # ein Befund („fährt ins fertige Teil“).
 EINDRINGEN = 0.05
 # Operationen, die ins fertige Teil schneiden sollen: Fase, Gravur, Gewinde, Bohrspitze
-# stehen selten im Modell.
-INS_TEIL_ERLAUBT = {"Deburr", "Engrave", "Vcarve", "ThreadMilling", "Tapping", "Drilling"}
+# stehen selten im Modell – auch „Rundum entgraten“ (vierachs_entgraten, W-003 V4d).
+INS_TEIL_ERLAUBT = {
+    "Deburr",
+    "Engrave",
+    "Vcarve",
+    "ThreadMilling",
+    "Tapping",
+    "Drilling",
+    "vierachs_entgraten",
+}
 MELDEN_ALLE = 0.1  # s: so oft ruft es den Fortschritt (und fragt, ob es weitergehen soll)
 # Grad: Deckt sich ein Körper um beide Winkel gedreht mit sich selbst, ist er rund um die
 # Achse – krumm gewählt, damit kein Futter mit drei oder vier Backen zufällig passt.
