@@ -107,8 +107,9 @@ preselected.</li>
 <b>row spacing</b> (ae, this far the rings step, at most the radius),
 <b>allowance at walls</b> (empty: 0.3 mm – stays on walls and islands, for the
 contour), <b>allowance at the floor</b> (empty: 0 – the face is finished) and
-the tick <b>climb milling</b> (material on the left of the direction of
-travel; without it conventional).</li>
+the tick <b>climb milling</b> (with a clockwise spindle, M3: the material on
+the right of the direction of travel – clockwise around a boss,
+counter-clockwise in a pocket; without it conventional).</li>
 <li>The path, like an HSM path: <b>rings</b> at full stepdown and narrow row
 spacing, without turning, with arcs in the corners. On a top face circling
 from the outside inwards: the first ring lies beside the stock in the air, the
@@ -160,7 +161,34 @@ enters the clearing allowance as “material beside the wall” at the contour
 (as long as the field is empty), and the contour says so: “… – only the
 allowance at the walls: clearing clears the pocket”.</p>
 
-<h3>5. Contour</h3>
+<h3>5. Hole milling</h3>
+<ul>
+<li>For <b>holes</b>: click the wall of a cylindrical hole – the list says
+“hole Ø 20, through” or “hole Ø 34, bottom 10”. An end mill smaller than the
+hole mills it completely; no drill needed, every size with one cutter.</li>
+<li><b>Stepdown per layer</b> (ap – only for holes larger than two cutters;
+smaller ones the helix mills in one go), <b>row spacing</b> (ae, this far the
+rings step outwards in large holes), <b>allowance for finishing</b> (empty:
+0.3 mm) and the ticks <b>finish the wall</b> and <b>climb milling</b>
+(counter-clockwise in the hole, G3).</li>
+<li>The path: down in a <b>helix</b> (G2/G3 with Z, as steep as the tool's
+plunge angle), once around at the bottom so the bottom is flat; in large holes
+<b>rings outwards</b> per layer, each with a half circle onto the next; finally
+the wall at the radius in one go, with half circles in from the middle and out
+again. Through holes 0.5 mm deeper so no burr remains. Several holes in the
+order of the shortest path.</li>
+<li>Grey below: “→ 2 holes, 2 layers, 24 turns, about 1 min”. Red says why it
+does not work (the hole is smaller than the cutter – then a smaller cutter or
+a drill).</li>
+<li><b>Hole milling against contour</b>: with only holes selected, the window
+computes both and ticks the faster (on the block with two holes: hole milling
+1.3 min, the contour 4.6 – it clears every offset with its own ramp). With
+other walls selected too, the contour runs only those.</li>
+<li>The operation is called “Bohrung fräsen T1”; the final depth is the lowest
+bottom (through holes 0.5 mm below).</li>
+</ul>
+
+<h3>6. Contour</h3>
 <ul>
 <li>For <b>walls</b>: vertical faces with a horizontal bottom edge – flat,
 round or free-form. The bottom edges of the selected walls join into
@@ -180,9 +208,9 @@ go</b>.</li>
 edge of the wall – per layer as many passes side by side as material stands
 beside the wall, from the outside towards the wall (last at radius plus
 allowance); then finishing once at the radius over the full height in one go
-(at most the cutting edge length per go). All in <b>climb milling</b>: the
-material on the left of the direction of travel – around a boss
-counter-clockwise, in a pocket clockwise. Outer corners become arcs (G2/G3),
+(at most the cutting edge length per go). All in <b>climb milling</b> (spindle
+clockwise, M3): the material on the right of the direction of travel – around
+a boss clockwise, in a pocket counter-clockwise. Outer corners become arcs (G2/G3),
 inner ones keep the cutter radius. Every pass enters and leaves
 <b>tangentially</b>: a straight line away from the wall and a quarter circle
 (each the cutter radius) – where that does not fit, shorter, finally

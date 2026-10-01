@@ -16,8 +16,9 @@ li { margin-bottom: 0.4em; }
 Werkzeugachse steht senkrecht. Der Knopf „Bearbeitung (Fräsen)“ öffnet das
 Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, alle in einem
 Fenster: Teil und Rohteil, die Flächen, dann je Bearbeitung ein Block mit
-Haken – <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Kontur</b> für
-Wände. „Anlegen“ legt alle angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
+Haken – <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Bohrung
+fräsen</b> für zylindrische Bohrungen, <b>Kontur</b> für Wände. „Anlegen“ legt alle angehakten
+an. Für ein rundes Rohteil mit Rundachse gibt es die
 <a href="vierachs.html">4-Achs-Bearbeitung</a>.</p>
 
 <h3>1. Teil und Rohteil</h3>
@@ -107,8 +108,9 @@ Vorschlag; setz den Haken, wenn die Tasche ausgeräumt werden soll).</li>
 <b>Zeilenabstand</b> (ae, so weit rücken die Ringe, höchstens der Radius),
 <b>Aufmaß an Wänden</b> (leer: 0,3 mm – bleibt an Wänden und Inseln stehen,
 für die Kontur), <b>Aufmaß am Boden</b> (leer: 0 – die Fläche ist fertig) und
-der Haken <b>Gleichlauf</b> (Material links der Fahrtrichtung; ohne ihn
-Gegenlauf).</li>
+der Haken <b>Gleichlauf</b> (bei rechtsdrehender Spindel, M3: das Material
+rechts der Fahrtrichtung – um einen Zapfen im Uhrzeigersinn, in einer Tasche
+gegen ihn; ohne ihn Gegenlauf).</li>
 <li>Die Bahn, wie ein HSM-Weg: <b>Ringe</b> bei voller Zustellung und
 schmalem Zeilenabstand, ohne Wenden, mit Bögen in den Ecken. Auf einer
 Oberseite von außen kreisend nach innen: Der erste Ring liegt neben dem
@@ -163,7 +165,36 @@ das Fenster bei der Kontur das Aufmaß des Räumens als „Material neben der
 Wand“ ein (solange das Feld leer ist), und die Kontur sagt es: „… – nur das
 Aufmaß an den Wänden: die Tasche räumt das Räumen“.</p>
 
-<h3>5. Kontur</h3>
+<h3>5. Bohrung fräsen</h3>
+<ul>
+<li>Für <b>Bohrungen</b>: die Wand einer zylindrischen Bohrung anklicken – in
+der Liste steht „Bohrung Ø 20, durchgehend“ oder „Bohrung Ø 34, Grund 10“.
+Ein Schaftfräser, kleiner als die Bohrung, fräst sie ganz; kein Bohrer
+nötig, jede Größe mit einem Fräser.</li>
+<li><b>Zustellung je Lage</b> (ap – nur für Bohrungen, die größer sind als
+zwei Fräser; kleinere fräst die Helix in einem Zug), <b>Zeilenabstand</b> (ae,
+so weit rücken die Ringe in großen Bohrungen nach außen), <b>Aufmaß zum
+Schlichten</b> (leer: 0,3 mm) und die Haken <b>Wand schlichten</b> und
+<b>Gleichlauf</b> (in der Bohrung gegen den Uhrzeigersinn, G3).</li>
+<li>Die Bahn: in einer <b>Helix</b> hinab (G2/G3 mit Z, so steil wie der
+Eintauchwinkel des Werkzeugs), unten einmal herum, damit der Grund eben ist;
+in großen Bohrungen je Lage <b>Ringe nach außen</b>, jeder mit einem
+Halbkreis auf den nächsten; zuletzt die Wand bei Radius in einem Zug, mit
+Halbkreisen aus der Mitte hinein und wieder heraus. Durchgehende Bohrungen
+0,5 mm tiefer, damit kein Grat bleibt. Mehrere Bohrungen in der Reihenfolge
+des kürzesten Wegs.</li>
+<li>Grau darunter: „→ 2 Bohrungen, 2 Lagen, 24 Umläufe, etwa 1 min“. Rot
+steht, warum es nicht geht (die Bohrung ist kleiner als der Fräser – dann
+ein kleinerer Fräser oder ein Bohrer).</li>
+<li><b>Bohrung fräsen gegen Kontur</b>: Sind nur Bohrungen gewählt, rechnet
+das Fenster beide und hakt die schnellere an (am Block mit zwei Bohrungen:
+Bohrung fräsen 1,3 min, die Kontur 4,6 – sie räumt jeden Versatz mit eigener
+Rampe). Sind dazu andere Wände gewählt, fährt die Kontur nur diese.</li>
+<li>Die Operation heißt „Bohrung fräsen T1“; die Endtiefe ist der tiefste
+Grund (durchgehend 0,5 mm darunter).</li>
+</ul>
+
+<h3>6. Kontur</h3>
 <ul>
 <li>Für <b>Wände</b>: senkrechte Flächen mit waagerechter Unterkante – eben,
 rund oder frei geformt. Die Unterkanten der gewählten Wände verbinden sich zu
@@ -182,9 +213,9 @@ trag hier ihr Aufmaß ein) und der Haken <b>Schlichten in einem Zug</b>.</li>
 Unterkante der Wand – je Lage so viele Bahnen nebeneinander, wie Material
 neben der Wand steht, von außen her zur Wand hin (zuletzt bei Radius plus
 Aufmaß); dann das Schlichten einmal bei Radius über die ganze Höhe in einem
-Zug (höchstens die Schneidenlänge je Zug). Alles im <b>Gleichlauf</b>: das
-Material links der Fahrtrichtung – um einen Zapfen gegen den Uhrzeigersinn, in
-einer Tasche mit ihm. Ecken außen werden Bögen (G2/G3), innen bleibt der
+Zug (höchstens die Schneidenlänge je Zug). Alles im <b>Gleichlauf</b> (Spindel
+rechtsdrehend, M3): das Material rechts der Fahrtrichtung – um einen Zapfen im
+Uhrzeigersinn, in einer Tasche gegen ihn. Ecken außen werden Bögen (G2/G3), innen bleibt der
 Fräserradius. Jede Bahn fährt <b>tangential</b> hinein und heraus: eine Gerade
 quer von der Wand weg und ein Viertelkreis (je der Fräserradius) – wo das
 nicht passt, kürzer, zuletzt senkrecht. Vor Absätzen und nicht gewählten
@@ -205,7 +236,7 @@ Unterkante.</li>
 </ul>
 
 <h3>Nachträglich ändern</h3>
-<p><b>Doppelklick</b> auf „Planfräsen …“, „Räumen …“ oder „Kontur …“ im Baum – oder rechte Maustaste,
+<p><b>Doppelklick</b> auf „Planfräsen …“, „Räumen …“, „Bohrung fräsen …“ oder „Kontur …“ im Baum – oder rechte Maustaste,
 <b>Bearbeiten</b>; oder die Operation bzw. ihren Job wählen und den Knopf
 „Bearbeitung (Fräsen)“ drücken – öffnet das Fenster mit Flächen, Fräser,
 Einsatz und Werten der Operation, nur mit ihrem Block. <b>Übernehmen</b> ändert sie – ein Schritt
@@ -214,7 +245,7 @@ alten nimmt das Fenster heraus, wenn ihn keine Operation mehr benutzt.</p>
 
 <h3>Was noch kommt</h3>
 <p>Der Einstieg (Rampe, Helix, senkrecht) nach Zeit, Trochoiden in engen
-Ecken, Bohrungen fräsen, Bohren und Gewinde aus dem Fenster, Fasen – nach dem
+Ecken, Bohren und Gewinde aus dem Fenster, Fasen – nach dem
 Plan in der Spezifikation W-006.</p>
 </body>
 </html>

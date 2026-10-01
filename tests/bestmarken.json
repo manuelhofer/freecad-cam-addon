@@ -13,15 +13,31 @@
   },
   "absatz/raeumen": {
     "eintauchen": 0,
-    "halte": 152,
-    "luft": 0.099,
+    "halte": 149,
+    "luft": 0.102,
     "rampen": 0,
     "varianten": {
-      "inseln": 3.118,
-      "rohteil": 2.033
+      "inseln": 3.258,
+      "rohteil": 2.035
     },
-    "wirkungsgrad": 0.781,
-    "zeit": 2.033
+    "wirkungsgrad": 0.78,
+    "zeit": 2.035
+  },
+  "bohrungen/bohrung fraesen": {
+    "eintauchen": 0,
+    "halte": 14,
+    "luft": 0.036,
+    "rampen": 2,
+    "wirkungsgrad": 0.843,
+    "zeit": 1.328
+  },
+  "bohrungen/kontur": {
+    "eintauchen": 0,
+    "halte": 1425,
+    "luft": 0.218,
+    "rampen": 189,
+    "wirkungsgrad": 0.22,
+    "zeit": 5.048
   },
   "platte/kontur tasche": {
     "eintauchen": 0,
@@ -64,11 +80,11 @@
   },
   "platte/raeumen": {
     "eintauchen": 3,
-    "halte": 716,
-    "luft": 0.043,
+    "halte": 715,
+    "luft": 0.042,
     "rampen": 0,
     "varianten": {
-      "inseln": 40.931,
+      "inseln": 41.005,
       "rohteil": 33.095
     },
     "wirkungsgrad": 0.89,
@@ -76,11 +92,11 @@
   },
   "platte/raeumen oben+tasche": {
     "eintauchen": 3,
-    "halte": 1174,
-    "luft": 0.043,
+    "halte": 1173,
+    "luft": 0.042,
     "rampen": 1,
     "varianten": {
-      "inseln": 42.221,
+      "inseln": 42.295,
       "rohteil": 34.378
     },
     "wirkungsgrad": 0.888,
@@ -127,8 +143,8 @@
   },
   "tasche/raeumen oben": {
     "eintauchen": 0,
-    "halte": 114,
-    "luft": 0.084,
+    "halte": 113,
+    "luft": 0.08,
     "rampen": 0,
     "varianten": {
       "inseln": 6.105,
@@ -169,19 +185,6 @@
   "zapfen/raeumen": {
     "eintauchen": 0,
     "halte": 7,
-    "luft": 0.103,
-    "rampen": 0,
-    "varianten": {
-      "inseln": 4.486,
-      "morph": 2.693,
-      "rohteil": 2.749
-    },
-    "wirkungsgrad": 0.733,
-    "zeit": 2.693
-  },
-  "zapfen/raeumen gegenlauf": {
-    "eintauchen": 0,
-    "halte": 7,
     "luft": 0.104,
     "rampen": 0,
     "varianten": {
@@ -192,12 +195,25 @@
     "wirkungsgrad": 0.731,
     "zeit": 2.697
   },
+  "zapfen/raeumen gegenlauf": {
+    "eintauchen": 0,
+    "halte": 7,
+    "luft": 0.103,
+    "rampen": 0,
+    "varianten": {
+      "inseln": 4.486,
+      "morph": 2.693,
+      "rohteil": 2.749
+    },
+    "wirkungsgrad": 0.733,
+    "zeit": 2.693
+  },
   "zapfen/raeumen+kontur": {
     "eintauchen": 0,
     "halte": 12,
-    "luft": 0.108,
+    "luft": 0.109,
     "rampen": 0,
-    "wirkungsgrad": 0.702,
-    "zeit": 2.819
+    "wirkungsgrad": 0.701,
+    "zeit": 2.823
   }
 }

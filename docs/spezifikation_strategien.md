@@ -273,7 +273,11 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
    in der Ausgabe, wo die Steuerung es kann (W-005).
 3. **Gleichmäßiger Eingriff.** Schruppen mit ae aus „Schruppwerte planen“,
    Trochoiden, wo die Nut voll würde; in Ecken nicht mehr als das geplante ae.
-4. **Gleichlauf** als Vorgabe, Gegenlauf wählbar.
+4. **Gleichlauf** als Vorgabe, Gegenlauf wählbar. Gleichlauf heißt bei
+   rechtsdrehender Spindel (M3): das Material rechts der Fahrtrichtung, wie
+   bei G41 – um einen Zapfen im Uhrzeigersinn, in einer Tasche oder Bohrung
+   gegen ihn. (Bis P-2026-10-01-27 stand hier „Material links“ – das war
+   Gegenlauf; seit P-2026-10-01-28 richtig herum, Kontur und Räumen.)
 5. **Keine Luftschnitte.** Bahn nur dort, wo Material steht (Abtrag) – bei
    Zeilen, Lagen und Restbearbeitung.
 6. **Restmaterial kennen.** Ein Abtragsmodell je Job (Abschnitt 7): jede
@@ -498,7 +502,7 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   der Wand steht (eine Tasche ganz) oder die Breite sagt –, in Lagen bis auf die
   Unterkante (plus „Tiefer“), dann Schlichten bei Radius in einem Zug
   (höchstens die Schneidenlänge je Zug); Gleichlauf (Grundsatz 4: Material
-  links – um einen Zapfen gegen den Uhrzeigersinn, in der Tasche mit ihm);
+  rechts – um einen Zapfen im Uhrzeigersinn, in der Tasche gegen ihn);
   Ein- und Ausfahren als Gerade quer von der Wand weg und Viertelkreis (je
   Fräserradius), kürzer, wo es nicht passt, zuletzt senkrecht; Rampe im
   Material, senkrecht in der Luft; die Hüllfläche im Raster mit zwei Netzen
@@ -563,8 +567,8 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   4,49 – der Morph gewinnt; am Absatz rohteil 2,03 (eine Spirale); auf der
   Platte rohteil 33,1 (morph gesperrt), inseln 40,5. Je Lauf der Eingang in dieser Reihenfolge: an den vorigen
   anhängen (die Spirale, bis 2 ae, der Weg frei), tangential aus dem Freien
-  (das Einfahren der Kontur auf der freien Seite – rechts im Gleichlauf,
-  links im Gegenlauf), quer aus dem Freien, das Anfangsstück nachholen, wenn
+  (das Einfahren der Kontur auf der freien Seite – links im Gleichlauf,
+  rechts im Gegenlauf), quer aus dem Freien, das Anfangsstück nachholen, wenn
   dahinter die Insel liegt, zuletzt die Rampe: rundum auf einem ganzen Ring
   (die Tasche: einmal je Lage), sonst längs des Laufs. „Frei“ heißt: unter der
   Stirn höchstens so viel ungeschnittenes Rohteil wie im Streifen ae, den
@@ -595,7 +599,30 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   `szenario_platte` (Oberseite und Taschenwand der Platte gewählt: Räumen
   über alles, die Kontur nur mit dem Aufmaß).
 - **S3g Bohren, Gewinde** – FreeCADs Operationen aus dem Assistenten mit den
-  Schnittwerten.
+  Schnittwerten. Zuerst gebaut (P-2026-10-01-29, 0.46.0): **Bohrung fräsen** –
+  zylindrische Bohrungen mit einem Schaftfräser, der kleiner ist als sie, ohne
+  Bohrer. `bohrung_bahn.py` erkennt die Bohrungen (senkrechte Zylinderflächen,
+  ganz herum, die Normale zur Achse; durchgehend, wenn unter dem Grund nichts
+  ist) und fräst je Bohrung: in einer Helix hinab (G2/G3 mit Z, Radius
+  höchstens 0,9 R, Steigung 2π · r · tan Eintauchwinkel), unten einmal herum;
+  ist die Bohrung größer als zwei Fräser, in Lagen (ap) mit Ringen nach außen
+  (ae, je ein Halbkreis hinüber); zuletzt die Wand bei Radius in einem Zug (je
+  Zug höchstens die Schneidenlänge), mit Halbkreisen aus der Mitte hinein und
+  heraus; Gleichlauf in der Bohrung gegen den Uhrzeigersinn (G3). Durchgehende
+  0,5 mm tiefer; mehrere in der Reihenfolge des kürzesten Wegs. Operation
+  `bohrung.BohrungFraesen` („Bohrung fräsen T1“), im Assistenten der Block
+  „Bohrung fräsen“ und der zweite Wettbewerb: Bohrung fräsen gegen Kontur auf
+  denselben Bohrungen – am Block mit Ø 20 durchgehend und Ø 34 × 10 1,33 min
+  gegen 4,6 (die Kontur räumt jeden Versatz mit eigener Rampe); sind dazu
+  andere Wände gewählt, fährt die Kontur nur diese. Räumt das Räumen den Boden
+  der Bohrung schon (Oberseite und Taschenwand der Platte), tritt Bohrung
+  fräsen nicht an – dort ist Räumen und die Kontur mit dem Aufmaß die Folge.
+  Prüfung `test_bohrung`, Szenario `szenario_bohrung`, Prüfstand-Teil (e). Der
+  Prüfstand fand am neuen Teil einen alten Fehler der Kontur: In einer kleinen
+  runden Bohrung biegt das Einfahren zur Wand zurück, und der Eilgang hinab
+  streifte den Ring, den die Bahn erst noch nimmt (23,8 mm³ im Eilgang) – jetzt
+  zählt der gemessene Abstand der Einfahrstelle zur Wand, auf beiden Seiten
+  der Stirn.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

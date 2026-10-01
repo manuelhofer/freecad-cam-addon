@@ -156,7 +156,11 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   ganzen Folgen, und die Kontur schlichtet nach dem Räumen nur noch das Aufmaß.
   Ein Prüfstand fährt jede Strategie an vier Maßstabsteilen im Quader ab und
   lässt keine Bahn langsamer werden. Jede Bearbeitung ist ein
-  Block mit Haken; „Anlegen“ legt alle angehakten an. Bohren folgt.
+  Block mit Haken; „Anlegen“ legt alle angehakten an. **Bohrung fräsen**:
+  zylindrische Bohrungen mit einem Schaftfräser, kleiner als sie – in einer
+  Helix hinab, große mit Ringen nach außen, die Wand in einem Zug; im
+  Wettbewerb mit der Kontur (in Bohrungen meist dreimal so schnell). Alles im
+  Gleichlauf (Spindel M3: das Material rechts der Fahrtrichtung).
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

@@ -67,6 +67,12 @@ def schritte(h):
     h.pruefe(not raeumen.hinweis.text(), f"rot: {raeumen.hinweis.text()!r}")
     h.pruefe(raeumen.aktiv() and not plan.aktiv(), "Haken: Räumen an, Planfräsen aus")
     h.pruefe(kontur.aktiv(), "Haken: Kontur aus")
+    # Die Tasche ist eine runde Sackbohrung – aber ihren Boden räumt das Räumen, die Kontur fährt
+    # nur das Aufmaß: „Bohrung fräsen“ tritt dort nicht an.
+    h.pruefe(not panel.bohrung.aktiv(), "Haken: Bohrung fräsen an")
+    h.pruefe(
+        not panel.bohrung.ergebnis.text(), f"Bohrung fräsen: {panel.bohrung.ergebnis.text()!r}"
+    )
     text = raeumen.ergebnis.text()
     h.pruefe(text.startswith("→ 2 Flächen: 2 Lagen,"), f"Räumen: {text!r}")
     h.pruefe("über alles die schnellste Folge" in text, f"Räumen: {text!r}")

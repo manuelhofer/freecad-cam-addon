@@ -21,6 +21,8 @@ from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, symbol
 from . import bahn as bn
+from . import bohrung as bo
+from . import bohrung_bahn as bb
 from . import fraeserform as ff
 from . import hoehenfeld as hf
 from . import job_schnittwerte as js
@@ -30,6 +32,7 @@ from . import planfraesen as pf
 from . import raeumen as ra
 from . import raeumen_bahn as rb
 from . import uebergabe_werkzeuge as ue
+from . import vierachs_bahn as vb
 from . import vierachs_plan as vplan
 from . import vierachs_planbahn as vp
 from . import vierachs_rohteil as vr
@@ -55,6 +58,7 @@ AUFMASS_ROHTEIL = 1.0  # mm je Seite, wie FreeCADs Job
 GEMERKT_FRAESER = "BaFraeser"  # Kennung des zuletzt gewählten Fräsers (Planfräsen)
 GEMERKT_KONTURFRAESER = "BaKonturFraeser"  # … für die Kontur
 GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
+GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 ROHTEIL_FELDER = ("oben", "seite", "unten")
@@ -108,8 +112,14 @@ def nullpunkte():
 
 
 def ist_bearbeitung(op):
-    """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“ oder „Kontur“?"""
-    return pf.ist_planfraesen(op) or ra.ist_raeumen(op) or ko.ist_kontur(op)
+    """Eine Operation dieses Assistenten – „Planfräsen“, „Räumen“, „Bohrung fräsen“ oder
+    „Kontur“?"""
+    return (
+        pf.ist_planfraesen(op)
+        or ra.ist_raeumen(op)
+        or bo.ist_bohrungsfraesen(op)
+        or ko.ist_kontur(op)
+    )
 
 
 class BefehlBearbeitung:
@@ -617,7 +627,126 @@ class _Kontur(_Strategie):
         }
 
 
-STRATEGIEN = (_Planfraesen, _Raeumen, _Kontur)
+class _Bohrung(_Strategie):
+    kennung = "bohrung"
+    gemerkt = GEMERKT_BOHRFRAESER
+    einsatz_reihenfolge = (wz.SCHRUPPEN, wz.SCHLICHTEN, wz.PLANEN)
+
+    def titel(self):
+        return tr("ba.bohrung")
+
+    def text(self):
+        return tr("ba.bohrung.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.bohrfraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.bohreinsatz.tooltip")
+
+    def felder(self):
+        return (
+            ("zustellung", tr("ba.zustellung"), tr("ba.bohrung.zustellung.tooltip")),
+            ("zeilenabstand", tr("ba.zeilenabstand"), tr("ba.bohrung.zeilenabstand.tooltip")),
+            ("aufmass", tr("ba.aufmass_schlichten"), tr("ba.aufmass_schlichten.tooltip")),
+        )
+
+    def haken(self):
+        return (
+            ("schlichten", tr("ba.wand_schlichten"), tr("ba.wand_schlichten.tooltip"), True),
+            ("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),
+        )
+
+    def passt(self, form, name):
+        return bb.ist_bohrung(form, name)
+
+    def unmoeglich_text(self):
+        return tr("ba.bohrung.keine")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "zustellung":
+            return einsatz.ap if einsatz is not None and einsatz.ap > 0 else bo.ZUSTELLUNG
+        if feld == "zeilenabstand":
+            if werkzeug is None or werkzeug.durchmesser <= 0:
+                return 0.0
+            r = werkzeug.durchmesser / 2
+            ae = einsatz.ae if einsatz is not None and einsatz.ae > 0 else r / 4
+            return min(ae, r)
+        return bo.AUFMASS
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        form = ff.von_werkzeug(werkzeug)
+        if form is None or vp.ebener_radius(form) <= 0:
+            raise ValueError(tr("bo.fehler.form"))
+        return bo.vorschau(
+            job,
+            job.Model.Group,
+            float(form.radius),
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            flaechen,
+            schlichten=werte["schlichten"],
+            gleichlauf=werte["gleichlauf"],
+            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+            eintauchwinkel=float(werkzeug.eintauchwinkel or 0.0) or vb.EINTAUCHWINKEL,
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+        )
+
+    def ergebnis_text(self, bahn, zeit):
+        bohrungen = (
+            tr("ba.zahl.bohrung")
+            if bahn.bohrungen == 1
+            else tr("ba.zahl.bohrungen", n=bahn.bohrungen)
+        )
+        lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
+        return tr(
+            "ba.ergebnis_bohrung",
+            bohrungen=bohrungen,
+            lagen=lagen,
+            umlaeufe=f"{bahn.umlaeufe:.0f}",
+            zeit=zeit,
+        )
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return bo.lege_an(
+            job,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            schlichten=werte["schlichten"],
+            gleichlauf=werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        bo.aendere(
+            op,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            schlichten=werte["schlichten"],
+            gleichlauf=werte["gleichlauf"],
+            flaechen=flaechen,
+        )
+
+    def ist(self, op):
+        return bo.ist_bohrungsfraesen(op)
+
+    def werte_von(self, op):
+        return {
+            "zustellung": float(op.Zustellung),
+            "zeilenabstand": float(op.Zeilenabstand),
+            "aufmass": float(op.Aufmass),
+            "schlichten": bool(op.Schlichten),
+            "gleichlauf": bool(op.Gleichlauf),
+        }
+
+
+STRATEGIEN = (_Planfraesen, _Raeumen, _Bohrung, _Kontur)
 
 
 def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
@@ -907,6 +1036,7 @@ class BearbeitungPanel:
         self.plan = next(b for b in self.bloecke if b.s.kennung == "planfraesen")
         self.raeumen = next(b for b in self.bloecke if b.s.kennung == "raeumen")
         self._raeumen_boeden = None  # nur diese Taschenböden räumen (_folge); None: alle
+        self.bohrung = next(b for b in self.bloecke if b.s.kennung == "bohrung")
         self.kontur = next(b for b in self.bloecke if b.s.kennung == "kontur")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
@@ -1449,6 +1579,15 @@ class BearbeitungPanel:
             elif self.plan.s.passt(form, name):
                 z = groesse_zeigen(hf.ebenen_oben(form, [name])[0].z, einheiten.LAENGE) or "0"
                 text, farbe = tr("ba.flaeche.eben", name=name, z=z), GRUEN
+            elif self.bohrung.s.passt(form, name):
+                b = bb.bohrungen(form, [name])[0]
+                d = groesse_zeigen(2 * b.radius, einheiten.LAENGE) or "0"
+                if b.durch:
+                    text = tr("ba.flaeche.bohrung_durch", name=name, d=d)
+                else:
+                    z = groesse_zeigen(b.z_unten, einheiten.LAENGE) or "0"
+                    text = tr("ba.flaeche.bohrung_sack", name=name, d=d, z=z)
+                farbe = GRUEN
             elif self.kontur.s.passt(form, name):
                 z = groesse_zeigen(kb.waende(form, [name])[0].z_unten, einheiten.LAENGE) or "0"
                 text, farbe = tr("ba.flaeche.wand", name=name, z=z), GRUEN
@@ -1483,7 +1622,10 @@ class BearbeitungPanel:
                 if not moeglich:
                     block.haken.setChecked(False)
                 elif not block.von_hand:
-                    block.haken.setChecked(block.s.vorgeschlagen(form, self.gewaehlte))
+                    vorschlag = block.s.vorgeschlagen(form, self.gewaehlte)
+                    if block is self.bohrung and self._von_raeumen_geraeumt(form):
+                        vorschlag = False  # Räumen + Kontur ist dort die Folge
+                    block.haken.setChecked(vorschlag)
                 block.zustand_zeigen()
         finally:
             self._fuellt = False
@@ -1631,8 +1773,7 @@ class BearbeitungPanel:
                     block.ergebnis.setText(tr("ba.kontur.nach_raeumen", text=block.ergebnis_basis))
             else:
                 block.leeren()
-        if boeden is None:
-            self._wettbewerb(form)
+        self._wettbewerb(form, nur_bohrung=boeden is not None)
         self._knoepfe_beschriften()
 
     def _zusatz(self, block, form):
@@ -1656,7 +1797,39 @@ class BearbeitungPanel:
         flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
         if block is self.raeumen and self._raeumen_boeden is not None:
             return list(self._raeumen_boeden)
+        if (
+            block is self.kontur
+            and self.bohrung.aktiv()
+            and not self._gleiche_flaechen(block, form)
+        ):
+            bohrungen = set(self.bohrung.s.flaechen_fuer(form, self.gewaehlte))
+            return [f for f in flaechen if f not in bohrungen]
         return flaechen
+
+    def _von_raeumen_geraeumt(self, form):
+        """Räumt das Räumen die Böden aller gewählten Bohrungen (Sackbohrungen, deren Wände
+        gewählt sind – rb.taschenboeden)? Dann ist dort Räumen und danach die Kontur mit dem
+        Aufmaß die Folge (Spezifikation Abschnitt 11), und „Bohrung fräsen“ tritt nicht an –
+        es würde die ganze Bohrung fräsen, die Kontur nur das Aufmaß (auf Manuels Platte:
+        „Bohrung fräsen wäre 1741 % langsamer“)."""
+        if not self.raeumen.aktiv():
+            return False
+        bohrungen = self.bohrung.s.flaechen_fuer(form, self.gewaehlte)
+        if not bohrungen:
+            return False
+        geraeumt = set(self._flaechen(self.raeumen, form))
+        for name in bohrungen:
+            boeden = rb.taschenboeden(form, [name])
+            if not boeden or not set(boeden) <= geraeumt:
+                return False
+        return True
+
+    def _gleiche_flaechen(self, block, form):
+        """Löst der Gegner des Blocks (_gegner) dieselbe Aufgabe – genau dieselben Flächen?"""
+        gegner = self._gegner(block)
+        return gegner is not None and set(block.s.flaechen_fuer(form, self.gewaehlte)) == set(
+            gegner.s.flaechen_fuer(form, self.gewaehlte)
+        )
 
     def _nur_boeden(self, form):
         """Die Taschenböden, die nur das Räumen kann – wenn außer ihnen auch ebene Flächen
@@ -1717,12 +1890,18 @@ class BearbeitungPanel:
             )
             raeumen.ergebnis.setText(tr("ba.wettbewerb.alles", text=alles[2], prozent=prozent))
 
+    def _paare(self):
+        """Die Strategien, die dieselbe Aufgabe lösen: Planfräsen und Räumen auf ebenen
+        Flächen, Bohrung fräsen und Kontur in Bohrungen."""
+        return ((self.plan, self.raeumen), (self.bohrung, self.kontur))
+
     def _gegner(self, block):
-        """Die Strategie, die dieselbe Aufgabe löst: Planfräsen und Räumen auf einer Fläche."""
-        if block is self.plan:
-            return self.raeumen
-        if block is self.raeumen:
-            return self.plan
+        """Die Strategie, die dieselbe Aufgabe löst wie `block` – oder None."""
+        for a, b in self._paare():
+            if block is a:
+                return b
+            if block is b:
+                return a
         return None
 
     def _im_wettbewerb(self, block):
@@ -1737,21 +1916,26 @@ class BearbeitungPanel:
         form = vr.modell(self.job).Shape
         if block is self.raeumen and self._nur_boeden(form) is not None:
             return True  # die Folge mit den Taschenböden (_folge)
-        return set(block.s.flaechen_fuer(form, self.gewaehlte)) == set(
-            gegner.s.flaechen_fuer(form, self.gewaehlte)
-        )
+        if block is self.bohrung and self._von_raeumen_geraeumt(form):
+            return False
+        return self._gleiche_flaechen(block, form)
 
-    def _wettbewerb(self, form):
-        """Planfräsen gegen Räumen auf denselben Flächen: der schnellere bekommt den Haken,
-        beide Zeilen sagen, um wie viel – solange niemand den Haken von Hand gesetzt hat."""
+    def _wettbewerb(self, form, nur_bohrung=False):
+        """Je Paar (_paare: Planfräsen gegen Räumen, Bohrung fräsen gegen Kontur) auf denselben
+        Flächen: der schnellere bekommt den Haken, beide Zeilen sagen, um wie viel – solange
+        niemand den Haken von Hand gesetzt hat. `nur_bohrung`: das erste Paar rechnet die Folge
+        (_folge)."""
         if self.zu_aendern is not None:
             return
-        a, b = self.plan, self.raeumen
+        for a, b in self._paare():
+            if nur_bohrung and a is self.plan:
+                continue
+            self._wettbewerb_paar(form, a, b)
+
+    def _wettbewerb_paar(self, form, a, b):
         if a.zeit is None or b.zeit is None or a.zeit <= 0 or b.zeit <= 0:
             return
-        if set(a.s.flaechen_fuer(form, self.gewaehlte)) != set(
-            b.s.flaechen_fuer(form, self.gewaehlte)
-        ):
+        if not self._gleiche_flaechen(a, form):
             return
         schneller, langsamer = (a, b) if a.zeit <= b.zeit else (b, a)
         prozent = int(round((langsamer.zeit / schneller.zeit - 1.0) * 100.0))

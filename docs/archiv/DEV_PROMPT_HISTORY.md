@@ -12,6 +12,99 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-29 bohrung-fraesen
+
+### EINGELESEN
+- Manuel (2026-10-01): „so viele Strategien wie möglich herstellen, so viele Szenarien
+  durchgehen wie nur geht“; Spezifikation Strategien S3g, Abschnitt 11 (die Platte), der
+  Entwurf `bohrung_bahn.py`/`bohrung.py` aus der Übergabe, `gui_bearbeitung` (Blöcke,
+  Wettbewerb), `kontur_bahn._lauf`, `pruefstand.messen`.
+
+### DATEIEN
+- `camaddon/bohrung_bahn.py` (neu), `camaddon/bohrung.py` (neu), `camaddon/gui_bearbeitung.py`,
+  `camaddon/gui_vierachs_operation.py`, `camaddon/job_schnittwerte.py`,
+  `camaddon/kontur_bahn.py`, `camaddon/pruefstand.py`, `translations/de.json`,
+  `translations/en.json`, `tests/test_bohrung.py` (neu), `tests/test_pruefstand.py`,
+  `tests/bestmarken.json`, `tests/gui/szenario_bohrung.py` (neu),
+  `tests/gui/szenario_platte.py`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.46.0)
+
+### AKZEPTANZKRITERIUM
+Am Block 100 × 60 × 20 mit Ø 20 durchgehend und Ø 34 × 10: beide Bohrungen erkannt, die Helix
+hinab mit G3 und Z (Steigung 2π · 3,7 · tan 3°), in der großen Ringe bis 10,7 und das
+Schlichten bei 11, die durchgehende 0,5 mm tiefer; im Quader in den Bohrungen nichts stehen
+geblieben, daneben nichts angeschnitten; schneller als die Kontur. Im Assistenten: zwei
+Bohrungen anklicken – die Liste nennt sie, Bohrung fräsen bekommt den Haken („– die
+schnellste; Kontur wäre 139 % langsamer“), „Anlegen“ legt nur „Bohrung fräsen T1“ an,
+Doppelklick ändert sie, „Auf der Maschine prüfen“ meldet nichts im Teil.
+
+### DONE
+- `bohrung_bahn.py`: Bohrungen erkennen, Helix, Ringe, Schlichten mit Halbkreisen, Gleichlauf
+  gegen den Uhrzeigersinn, Reihenfolge der nächsten; `bohrung.py`: die Operation.
+- Assistent: Block `_Bohrung` (Fräser, Einsatz Schruppen, ap, ae, Aufmaß, Haken „Wand
+  schlichten“ und „Gleichlauf“), die Liste „Bohrung Ø 20, durchgehend“ / „Bohrung Ø 34,
+  Grund 10“; der Wettbewerb je Paar (`_paare`): Bohrung fräsen gegen Kontur, wenn genau die
+  Bohrungen gewählt sind; sonst fährt die Kontur die anderen Wände. Räumt das Räumen den Boden
+  einer Bohrung (Oberseite und Taschenwand der Platte), tritt Bohrung fräsen nicht an – das
+  Platten-Szenario fand „Bohrung fräsen wäre 1741 % langsamer“ gegen die Kontur, die dort nur
+  das Aufmaß fährt.
+- Prüfstand: Teil (e) mit den zwei Bohrungen; der Rand einer durchgehenden Bohrung zählt als
+  Kante. Er fand einen alten Fehler der Kontur (auch in 0.45.0): In einer kleinen runden
+  Bohrung biegt das Einfahren zur Wand zurück, der Eilgang hinab streifte den Ring, den die
+  Bahn erst noch nimmt (23,8 mm³). Jetzt misst `_lauf` den Abstand der Einfahrstelle zur Wand
+  (`abstand_zur_wand`) und prüft beide Seiten der Stirn gegen das schon Geräumte
+  (`geraeumt` = (von, bis)); die Kontur dort 5,05 statt 4,59 min – richtig mit Rampe.
+
+### TEST
+- 1.1.3: `test_bohrung`, `test_kontur`, `test_raeumen`, `test_sprache`, `test_pruefstand`
+  (21 Bestmarken) grün; Szenarien `szenario_bohrung`, `szenario_platte`, `szenario_kontur`,
+  `szenario_raeumen`, `szenario_bearbeitung` grün. black/ruff grün.
+
+### NEXT
+- Bohren aus dem Assistenten (S3g: FreeCADs Bohren mit dem Bohrer aus der Werkzeugverwaltung,
+  im Wettbewerb mit Bohrung fräsen, wo ein passender Bohrer da ist), Fasen 2,5D.
+
+## P-2026-10-01-28 gleichlauf-richtig-herum
+
+### EINGELESEN
+- Manuel (2026-10-01): „Gleichlauf/Gegenlauf nicht vergessen“; Spezifikation Grundsatz 4
+  („Gleichlauf als Vorgabe“), `kontur_bahn._in_fahrtrichtung`, `_anfahrt`, `raeumen_bahn`
+  (`material_links`, `frei_rechts`, `inselringe`), Hilfe und Tooltips („Material links der
+  Fahrtrichtung“).
+- Nachgeschlagen: Bei rechtsdrehender Spindel (M3) ist Gleichlauf außen herum im Uhrzeigersinn,
+  in der Tasche gegen ihn (G41 – das Werkzeug links, das Material rechts); nachgerechnet: Mit
+  dem Material links tritt die Schneide bei Spandicke null ein (Gegenlauf).
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`, `camaddon/raeumen_bahn.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`,
+  `docs/aufbau.md`, `tests/test_kontur.py`, `tests/test_raeumen.py`
+
+### AKZEPTANZKRITERIUM
+Im Gleichlauf liegt das Material rechts der Fahrtrichtung: Die Kontur fährt außen um einen
+Zapfen im Uhrzeigersinn und in einer Tasche gegen ihn, das Räumen auf der Oberseite im
+Uhrzeigersinn, der Ring um die Insel in derselben Richtung wie die Spirale; Gegenlauf
+andersherum. Zeiten wie vorher (Zapfen 2,70 min in beiden Richtungen).
+
+### DONE
+- Kontur: die freie Seite links (`_in_fahrtrichtung` dreht um, wenn sie rechts liegt),
+  `_anfahrt` standardmäßig links. Räumen: `material_links = not gleichlauf`,
+  `frei_rechts = not gleichlauf`; `inselringe` dreht den genauen Ring, wenn das Material links
+  liegen soll (der Versatz der Kontur kommt jetzt mit dem Material rechts) – das Szenario
+  fand es: im Gegenlauf 18 statt 16 Ringe, weil der Ring um den Zapfen gegen die Spirale lief.
+- Texte: Grundsatz 4 mit M3 und G41, Hilfe, Tooltips „Gleichlauf“ (de/en).
+- Prüfung der Kontur: die Schrupp-Geraden längs der Wand ohne das Einfahren (die Einfahrt liegt
+  jetzt an der oberen Kante).
+
+### TEST
+- 1.1.3: `test_kontur`, `test_raeumen`, `test_pruefstand` grün; Szenarien `szenario_raeumen`,
+  `szenario_kontur`, `szenario_platte`, `szenario_bearbeitung` grün.
+
+### NEXT
+- Manuel fragen, ob seine Spindel rechts dreht (M3) – sonst wäre Gleichlauf andersherum; heute
+  fest M3.
+
 ## P-2026-10-01-27 morph-spirale-platte
 
 ### EINGELESEN

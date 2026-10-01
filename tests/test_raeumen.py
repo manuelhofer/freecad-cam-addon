@@ -5,7 +5,7 @@
 # im Freien oder in der Luft (Rampen nur, wo nichts frei ist), die Simulation im Quader –
 # nirgends ins Teil, auf der Fläche bleibt nichts stehen außer dem Aufmaß an Wänden –, die
 # Varianten und ihre Zeit: auf der Platte schlägt Räumen das Planfräsen, in der Tasche die
-# Kontur; Gleichlauf (gegen den Uhrzeigersinn auf der Oberseite) und Gegenlauf; Fehler mit
+# Kontur; Gleichlauf (M3: im Uhrzeigersinn auf der Oberseite) und Gegenlauf; Fehler mit
 # einem Satz; dann die CAM-Operation im Job: angelegt, gerechnet, geändert, gespeichert und
 # geladen.
 import math
@@ -246,10 +246,11 @@ pruefe(
 )
 pruefe(abs(bahn_a.z_min - 20.0) < 1e-9, f"Zapfen: z_min {bahn_a.z_min}")
 # Der erste Ring liegt außen in der Luft (Mitte R − ae = 4,5 außerhalb des Rohteils), im
-# Gleichlauf gegen den Uhrzeigersinn; der Fräser taucht im Freien ein und fährt tangential
+# Gleichlauf im Uhrzeigersinn (Spindel rechtsdrehend, M3: das Material rechts); der Fräser
+# taucht im Freien ein und fährt tangential
 # hinein (kein Punkt zwischen den Lagen = keine Rampe).
 ring = erster_ring(bahn_a, 20.0)
-pruefe(len(ring) > 8 and umlauf(ring) > 0, f"Zapfen: erster Ring {len(ring)} Punkte, Umlauf")
+pruefe(len(ring) > 8 and umlauf(ring) < 0, f"Zapfen: erster Ring {len(ring)} Punkte, Umlauf")
 pruefe(
     min(p[0] for p in ring) <= -5.5 + 1e-6 and max(p[0] for p in ring) >= 55.5 - 1e-6,
     f"Zapfen: erster Ring x {min(p[0] for p in ring)} … {max(p[0] for p in ring)}",
@@ -266,10 +267,10 @@ pruefe(
 )
 befehle = bn.befehle(bahn_a.punkte, VF, VF * 0.3)
 pruefe({"G0", "G1"} <= {b.Name for b in befehle}, "Zapfen: Befehle")
-# Gegenlauf: der erste Ring im Uhrzeigersinn.
+# Gegenlauf: der erste Ring gegen den Uhrzeigersinn.
 bahn_g = raeumen(teil_a, 20.0, werte_fuer(rohteil_a, 30.0, gleichlauf=False))
 ring_g = erster_ring(bahn_g, 20.0)
-pruefe(len(ring_g) > 8 and umlauf(ring_g) < 0, "Gegenlauf: erster Ring im Uhrzeigersinn")
+pruefe(len(ring_g) > 8 and umlauf(ring_g) > 0, "Gegenlauf: erster Ring gegen den Uhrzeigersinn")
 pruefe(abs(bahn_g.zeit - bahn_a.zeit) < 0.5, f"Gegenlauf: Zeit {bahn_g.zeit} statt {bahn_a.zeit}")
 # Die Variante vorgegeben: nur sie wird gerechnet.
 bahn_i = raeumen(teil_a, 20.0, werte_fuer(rohteil_a, 30.0, variante="inseln"))
@@ -364,9 +365,9 @@ pruefe(
     f"Tasche: Vorschub bis {max(p.z for p in in_tasche)}",
 )
 # Die Rampe rundum: Punkte zwischen 20 und 5, kein Zickzack (die x-y-Folge läuft in einer
-# Richtung um die Tasche: der Umlauf der Rampe ist im Uhrzeigersinn wie der Ring).
+# Richtung um die Tasche: der Umlauf der Rampe ist gegen den Uhrzeigersinn wie der Ring).
 rampe = [(p.x, p.y) for p in in_tasche if 5.0 + 1e-6 < p.z < 20.0 - 1e-6]
-pruefe(len(rampe) > 10 and umlauf(rampe) < 0, f"Tasche: Rampe {len(rampe)} Punkte, Umlauf")
+pruefe(len(rampe) > 10 and umlauf(rampe) > 0, f"Tasche: Rampe {len(rampe)} Punkte, Umlauf")
 rest, einschnitt = simuliert(bahn_c, teil_c, rohteil_c, 21.0, 5.0, 0.3)
 pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Tasche: Rest {rest}, Einschnitt {einschnitt}")
 # Gegen die Kontur mit denselben Werten (Versätze in Lagen, je mit Rampe): Räumen ist schneller.

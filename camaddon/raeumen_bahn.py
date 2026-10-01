@@ -19,7 +19,8 @@ immer volle Tiefe, mit ae Zustellung“).
   Feldes D von innen (der Mitte) nach außen bis an die Wände, mit Aufmaß; hinein über die
   Rampe auf dem innersten Ring, nur einmal je Lage. Die Lagen beginnen an der Oberkante der
   Wände, nicht am Rohteil darüber.
-- Gleichlauf: das Material links der Fahrtrichtung; Gegenlauf wählbar (Grundsatz 4).
+- Gleichlauf: das Material rechts der Fahrtrichtung (Spindel rechtsdrehend, M3 – wie G41);
+  Gegenlauf wählbar (Grundsatz 4).
 - Eintauchen nur, wo schon frei ist: Ein Raster merkt sich je Lage, wo der Fräser war; das
   tangentiale Ein- und Ausfahren (kontur_bahn._anfahrt) darf nur durch Freies oder Luft. Passt
   nichts, geht es über die Rampe längs des Laufs (vierachs_bahn._rampe). Aufeinanderfolgende
@@ -76,7 +77,7 @@ class Raeumwerte:
     sicher: float  # z für den Eilgang über allem
     rohteil: tuple  # (x_von, x_bis, y_von, y_bis) des Rohteils von oben
     aufmass_boden: float = 0.0  # bleibt auf der Fläche stehen (0: fertig)
-    gleichlauf: bool = True  # das Material links der Fahrtrichtung; sonst rechts (Gegenlauf)
+    gleichlauf: bool = True  # das Material rechts der Fahrtrichtung; sonst links (Gegenlauf)
     variante: str = None  # „rohteil“ oder „inseln“; None: beide rechnen, die schnellere
     einfahrradius: float = None  # der Viertelkreis hinein und heraus; None: der Vorschlag
     schneidenlaenge: float = 0.0  # 0: unbekannt – sonst höchstens so tief je Lage
@@ -575,9 +576,9 @@ class _Lage:
         self.reste = []  # [(Ring, Stellen)]: Anfangsstücke, die nach den Ringen nachkommen
         self.verschieben = True
         self.gedreht = False  # gerade ein ganzer Ring, der anderswo anfängt (_eingang_irgendwo)
-        # Die freie Seite der Bahn: rechts im Gleichlauf (das Material links), sonst links –
+        # Die freie Seite der Bahn: links im Gleichlauf (das Material rechts), sonst rechts –
         # dorthin gehen das Einfahren und der Weg quer hinein.
-        self.frei_rechts = bool(w.gleichlauf)
+        self.frei_rechts = not w.gleichlauf
 
     def frei(self, qx, qy):
         """Darf das Ein- und Ausfahren dorthin: im Raster, erlaubt, und unter der Stirn höchstens
@@ -844,7 +845,7 @@ class _Lage:
                 self._lauf(ring, stellen, False, False)
 
     def _seitlich(self, p0, t0):
-        """Der Punkt neben dem Anfang auf der freien Seite (rechts im Gleichlauf, links im
+        """Der Punkt neben dem Anfang auf der freien Seite (links im Gleichlauf, rechts im
         Gegenlauf), von dem aus der Fräser quer in die Bahn fährt: so weit wie möglich bis
         R + ae, mindestens ae, und der Weg frei."""
         rechts = (t0[1], -t0[0]) if self.frei_rechts else (-t0[1], t0[0])
@@ -1093,7 +1094,7 @@ def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt):
     )
     r_ein = w.einfahrradius if w.einfahrradius and w.einfahrradius > 0 else kb.EINFAHRT_ANTEIL * r
     gerade = kb.GERADE_ANTEIL * r
-    material_links = bool(w.gleichlauf)
+    material_links = not w.gleichlauf  # Gleichlauf (M3): das Material rechts
     genaue = inselringe(konturen, ebene, w, r, schritt, toleranz, material_links)
     vorige = oben
     gefahren = False
@@ -1311,8 +1312,8 @@ def inselringe(konturen, ebene, w, r, schritt, toleranz, material_links):
         versatz = kb._versatz(k, r + max(w.aufmass, 0.0), toleranz, schritt)
         if versatz is None:
             continue
-        segmente, _proben = versatz
-        if not material_links:
+        segmente, _proben = versatz  # in Fahrtrichtung der Kontur: das Material rechts
+        if material_links:
             segmente = [s.umgekehrt() for s in reversed(segmente)]
         ergebnis.append(_Ring(segmente, kb._abtasten(segmente, schritt, True), True, True))
     return ergebnis

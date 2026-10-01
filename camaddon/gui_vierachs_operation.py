@@ -13,12 +13,19 @@ from . import symbol
 
 
 def _ist_eben(objekt):
-    """Eine 2,5D-Operation (Planfräsen, Kontur) – ihr Assistent ist „Bearbeitung (Fräsen)“."""
+    """Eine 2,5D-Operation (Planfräsen, Räumen, Bohrung fräsen, Kontur) – ihr Assistent ist
+    „Bearbeitung (Fräsen)“."""
+    from . import bohrung as bo
     from . import kontur as ko
     from . import planfraesen as pf
     from . import raeumen as ra
 
-    return pf.ist_planfraesen(objekt) or ko.ist_kontur(objekt) or ra.ist_raeumen(objekt)
+    return (
+        pf.ist_planfraesen(objekt)
+        or ko.ist_kontur(objekt)
+        or ra.ist_raeumen(objekt)
+        or bo.ist_bohrungsfraesen(objekt)
+    )
 
 
 def bearbeiten(objekt):

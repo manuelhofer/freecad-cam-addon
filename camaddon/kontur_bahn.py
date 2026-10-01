@@ -13,8 +13,8 @@ Ausfahren, Schruppen in Lagen mit Aufmaß und Schlichten in einem Zug.
   sagt); in Lagen von der Oberkante des Rohteils bis auf die Unterkante (plus „tiefer“). Dann
   das Schlichten bei Radius: in einem Zug über die ganze Höhe, höchstens die Schneidenlänge je
   Zug.
-- Gleichlauf (Grundsatz 4): Das Material liegt links der Fahrtrichtung – um einen Zapfen gegen
-  den Uhrzeigersinn, in einer Tasche mit ihm.
+- Gleichlauf (Grundsatz 4): Bei rechtsdrehender Spindel (M3) liegt das Material rechts der
+  Fahrtrichtung (wie G41) – um einen Zapfen im Uhrzeigersinn, in einer Tasche gegen ihn.
 - Tangential hinein und heraus: eine Gerade (GERADE_ANTEIL · R) und ein Viertelkreis
   (EINFAHRT_ANTEIL · R) auf der freien Seite; passt das nicht (Hüllfläche, oder es käme einer
   Wand der Konturen näher als die Bahn darf – Radius plus Aufmaß), kürzer, zuletzt senkrecht. Im Material über die Rampe (vierachs_bahn._rampe) längs der Bahn, in der Luft
@@ -424,7 +424,7 @@ def _parallel(strecke, d):
 
 def _versatz(kontur, d, toleranz, schritt):
     """(Segmente, Proben) des Versatzes um `d` auf der freien Seite der Kontur, in Fahrtrichtung
-    (Material links); None, wenn es ihn nicht gibt (zu groß für die Tasche)."""
+    (Material rechts); None, wenn es ihn nicht gibt (zu groß für die Tasche)."""
     import FreeCAD
 
     ziel = (kontur.stelle[0] + kontur.normale[0] * d, kontur.stelle[1] + kontur.normale[1] * d)
@@ -455,13 +455,13 @@ def _versatz(kontur, d, toleranz, schritt):
 
 
 def _in_fahrtrichtung(segmente, proben, nahe, normale, schritt, geschlossen):
-    """Gleichlauf: das Material links. Liegt die freie Seite (die Normale) links der
-    Fahrtrichtung an der Stelle `nahe`, dreht sich die Bahn um."""
+    """Gleichlauf: das Material rechts, die freie Seite (die Normale) links. Liegt sie rechts
+    der Fahrtrichtung an der Stelle `nahe`, dreht sich die Bahn um."""
     n = len(proben.x)
     j = (nahe + 1) % n if geschlossen else min(nahe + 1, n - 1)
     i = nahe if j != nahe else nahe - 1
     tx, ty = proben.x[j] - proben.x[i], proben.y[j] - proben.y[i]
-    if -ty * normale[0] + tx * normale[1] > 0:
+    if -ty * normale[0] + tx * normale[1] < 0:
         segmente = [s.umgekehrt() for s in reversed(segmente)]
         proben = _abtasten(segmente, schritt, geschlossen)
     return segmente, proben
@@ -748,7 +748,8 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
     vorige = oben
     for lage in lagen:
         lage = float(lage)
-        frei_bis = 0.0  # so weit von der Wand ist diese Lage schon geräumt
+        # (von, bis): so nah und so fern von der Wand ist diese Lage schon geräumt
+        geraeumt = (math.inf, 0.0)
         gefahren = False
         for d, segmente, proben in reversed(schrupp):
             if _bahnen(
@@ -759,7 +760,7 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
                 proben,
                 lage,
                 vorige,
-                frei_bis,
+                geraeumt,
                 huelle,
                 ziel,
                 w,
@@ -769,7 +770,7 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
                 schritt,
             ):
                 gefahren = True
-                frei_bis = max(frei_bis, d + r)
+                geraeumt = (min(geraeumt[0], d - r), max(geraeumt[1], d + r))
         if gefahren:
             st.lagen += 1
             st.z_min = min(st.z_min, lage)
@@ -781,7 +782,7 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
     anzahl = 1
     if 0 < w.schneidenlaenge < hoehe - GLEICH:
         anzahl = max(1, int(math.ceil((hoehe - hf.LAGEN_SPIEL) / w.schneidenlaenge)))
-    frei_bis = (schrupp[-1][0] + r) if schrupp else 0.0
+    geraeumt = (schrupp[0][0] - r, schrupp[-1][0] + r) if schrupp else (math.inf, 0.0)
     for lage in oben - hoehe * np.arange(1, anzahl + 1) / anzahl:
         if _bahnen(
             st,
@@ -791,7 +792,7 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
             proben,
             float(lage),
             oben,
-            frei_bis,
+            geraeumt,
             huelle,
             ziel,
             w,
@@ -805,7 +806,7 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
 
 
 def _bahnen(
-    st, k, d, segmente, proben, lage, vorige, frei_bis, huelle, ziel, w, r, r_ein, gerade, schritt
+    st, k, d, segmente, proben, lage, vorige, geraeumt, huelle, ziel, w, r, r_ein, gerade, schritt
 ):
     """Eine Bahn (ein Versatz) auf einer Lage: wo die Hüllfläche es erlaubt und Rohteil liegt –
     geschlossen in einem Zug ab der Mitte der längsten Geraden, sonst in Läufen. Gibt die Zahl
@@ -850,7 +851,7 @@ def _bahnen(
             hinten,
             lage,
             vorige,
-            frei_bis,
+            geraeumt,
             huelle,
             ziel,
             w,
@@ -877,7 +878,7 @@ def _lauf(
     hinten,
     lage,
     vorige,
-    frei_bis,
+    geraeumt,
     huelle,
     ziel,
     w,
@@ -887,7 +888,8 @@ def _lauf(
     schritt,
 ):
     """Ein Lauf: Eilgang über den Anfang, hinab – in der Luft senkrecht, im Material über die
-    Rampe –, tangential hinein, die Bahn, tangential heraus, hinauf."""
+    Rampe –, tangential hinein, die Bahn, tangential heraus, hinauf. `geraeumt`: (von, bis) –
+    so nah und so fern von der Wand haben die Bahnen davor diese Lage schon geräumt."""
     x, y = proben.x[stellen], proben.y[stellen]
     p0 = (float(x[0]), float(y[0]))
     p1 = (float(x[-1]), float(y[-1]))
@@ -907,12 +909,18 @@ def _lauf(
     aus = _anfahrt(p1, t1, r_ein, gerade, frei, hinein=False)
     start = ein.aussen if ein is not None else p0
     reichweite = d + (ein.r_e + ein.laenge_gerade if ein is not None else 0.0)
+    # Wie nah kommt die Stirn am Einfahrpunkt der Wand – gemessen, nicht geschätzt: In einer
+    # kleinen runden Bohrung biegt das Einfahren zur Wand zurück, und der Eilgang hinab streifte
+    # den Ring, den die Bahn erst noch nimmt (vom Prüfstand gefunden, P-2026-10-01-29).
+    abstand = float(huelle.abstand_zur_wand(np.array([start[0]]), np.array([start[1]]), lage)[0])
+    nah = min(abstand, reichweite) - r
+    frei_von, frei_bis = geraeumt
     material = (
         vorige > lage + GLEICH
         and bool(_im_rohteil(np.array([start[0]]), np.array([start[1]]), w.rohteil, r)[0])
-        and reichweite + r > frei_bis + GLEICH
+        and (reichweite + r > frei_bis + GLEICH or nah < frei_von - GLEICH)
         # Mit der Breite steht weiter weg von der Wand nichts mehr: Dort taucht er im Freien ein.
-        and (w.breite <= 0 or reichweite - r < w.breite - GLEICH)
+        and (w.breite <= 0 or nah < w.breite - GLEICH)
     )
     punkte = st.punkte
     punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
@@ -937,10 +945,10 @@ def _lauf(
     st.bahnen += 1
 
 
-def _anfahrt(p, t, r_ein, gerade, frei, hinein, frei_rechts=True):
+def _anfahrt(p, t, r_ein, gerade, frei, hinein, frei_rechts=False):
     """Das Ein- (`hinein`) oder Ausfahren am Punkt `p` der Bahn mit der Fahrtrichtung `t`: der
-    Viertelkreis liegt auf der freien Seite – rechts (Gleichlauf, das Material links) oder
-    links (`frei_rechts` False: Gegenlauf) –, die Gerade davor bzw. danach quer von der Wand
+    Viertelkreis liegt auf der freien Seite – links (Gleichlauf, das Material rechts) oder
+    rechts (`frei_rechts`: Gegenlauf) –, die Gerade davor bzw. danach quer von der Wand
     weg. Passt es nicht (`frei` sagt nein), ohne Gerade, dann halb und viertel so groß; None,
     wenn gar nichts passt – dann senkrecht."""
     rechts = (t[1], -t[0]) if frei_rechts else (-t[1], t[0])

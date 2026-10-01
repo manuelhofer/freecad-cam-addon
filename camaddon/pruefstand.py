@@ -194,6 +194,7 @@ def messen(
         for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)):
             nachbar = np.roll(np.roll(hoehen, di, 0), dj, 1)
             kante |= np.abs(nachbar - hoehen) > 0.01
+            kante |= np.isnan(nachbar)  # daneben kein Teil: der Rand einer durchgehenden Bohrung
         innen = da & ~kante
         if innen.any():
             k.einschnitt = min(0.0, float(np.nanmin(unterschied[innen])))

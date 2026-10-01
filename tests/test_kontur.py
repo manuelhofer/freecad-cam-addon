@@ -2,7 +2,7 @@
 # bei (30, 15); Rohteil 1 mm rundum (Oberkante 21), Manuels Standardfräser Ø 12
 # (werkzeuge.standardwerkzeug: ae 1,5, ap 25, Schneidenlänge 26, Rampe 3°), Aufmaß 0,3,
 # Schlichten in einem Zug. Wände und Konturen (außen rundum, die Tasche innen), der Versatz
-# mit Bögen, Gleichlauf (außen gegen den Uhrzeigersinn, in der Tasche mit ihm), tangentiales
+# mit Bögen, Gleichlauf (M3: außen im Uhrzeigersinn, in der Tasche gegen ihn), tangentiales
 # Ein- und Ausfahren – das in der Tasche nicht näher an die gegenüberliegende Wand kommt als
 # der Radius (mit Ø 12 gefunden, P-2026-10-01-23) –, Rampe im Material, Lagen und Bahnen,
 # eine Wand allein (offen) und eine Taschenwand allein (die Nachbarn halten die Bahn an),
@@ -144,16 +144,18 @@ vorschub = [p for p in bahn.punkte if not p.eilgang]
 pruefe(sum(1 for p in vorschub if p.eintauchen) == bahn.bahnen, "je Bahn einmal hinab")
 pruefe(sum(1 for p in vorschub if p.bogen is not None) > 20, "Bögen")
 pruefe(not any(p.anteil < 1.0 for p in vorschub), "geschlossen: kein Austritt")
-# Gleichlauf: das Schlichten in der Tasche (z = 5) läuft im Uhrzeigersinn, außen (z = 0)
-# dagegen – das Material liegt links.
+# Gleichlauf (Spindel rechtsdrehend, M3 – wie G41): das Schlichten in der Tasche (z = 5) läuft
+# gegen den Uhrzeigersinn, außen (z = 0) mit ihm – das Material liegt rechts.
 innen = [
     (p.x, p.y)
     for p in vorschub
     if abs(p.z - 5.0) < 1e-9 and 24 < p.x < 76 and 9 < p.y < 51 and p.bogen is None
 ]
-pruefe(len(innen) > 4 and flaeche_umlauf(innen) < 0, f"Tasche im Uhrzeigersinn: {len(innen)}")
+pruefe(
+    len(innen) > 4 and flaeche_umlauf(innen) > 0, f"Tasche gegen den Uhrzeigersinn: {len(innen)}"
+)
 aussen = [(p.x, p.y) for p in vorschub if abs(p.z) < 1e-9 and p.bogen is None]
-pruefe(len(aussen) > 4 and flaeche_umlauf(aussen) > 0, "außen gegen den Uhrzeigersinn")
+pruefe(len(aussen) > 4 and flaeche_umlauf(aussen) < 0, "außen im Uhrzeigersinn")
 # Der Versatz: Schlichten bei 6 (x = −6 … 106), Schruppen bei 6,3 (die Ecken als Bögen R 6,3).
 schlicht_aussen = [p for p in vorschub if abs(p.z) < 1e-9]  # Schrupplage und Schlichten
 x_unten = {round(p.x, 3) for p in schlicht_aussen}
@@ -167,16 +169,26 @@ ecken = [
     if p.bogen is not None and abs(math.hypot(p.x - p.bogen[0], p.y - p.bogen[1]) - R) < 1e-6
 ]
 pruefe(len(ecken) >= 4, f"Ecken als Bögen: {len(ecken)}")
-schrupp_aussen = [p for p in vorschub if abs(p.z) < 1e-9 and abs(p.y) > 60]
+# Die Geraden längs der langen Seiten (ohne das Ein- und Ausfahren quer zur Wand).
+schrupp_aussen = [
+    b.y
+    for a, b in zip(vorschub, vorschub[1:], strict=False)
+    if abs(a.z) < 1e-9
+    and abs(b.z) < 1e-9
+    and b.bogen is None
+    and abs(a.y - b.y) < 1e-9
+    and abs(a.x - b.x) > 1.0
+    and abs(b.y) > 60
+]
 pruefe(
-    schrupp_aussen and abs(max(p.y for p in schrupp_aussen) - 66.3) < 1e-6,
-    f"Schruppen bei R + Aufmaß: y bis {max((p.y for p in schrupp_aussen), default=None)}",
+    schrupp_aussen and abs(max(schrupp_aussen) - 66.3) < 1e-6,
+    f"Schruppen bei R + Aufmaß: y bis {max(schrupp_aussen, default=None)}",
 )
-# Ein- und Ausfahren: der Viertelkreis R 6 (G2, im Uhrzeigersinn) an der Anfangsstelle, davor
+# Ein- und Ausfahren: der Viertelkreis R 6 (G3, gegen den Uhrzeigersinn) an der Anfangsstelle, davor
 # die Gerade 6 lang quer von der Wand weg – außen in der Luft: senkrecht hinab.
 start = next(i for i, p in enumerate(bahn.punkte) if not p.eilgang and abs(p.z) < 1e-9)
 hinein = bahn.punkte[start : start + 3]
-pruefe(hinein[0].eintauchen and hinein[2].bogen is not None and hinein[2].bogen[2], "Einfahrt")
+pruefe(hinein[0].eintauchen and hinein[2].bogen is not None and not hinein[2].bogen[2], "Einfahrt")
 pruefe(
     abs(bn.weg(hinein[0], hinein[1]) - R) < 1e-6
     and abs(math.hypot(hinein[2].x - hinein[2].bogen[0], hinein[2].y - hinein[2].bogen[1]) - R)

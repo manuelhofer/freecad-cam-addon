@@ -4,7 +4,7 @@
 # verschiedene Bahnen durchfahren“): Mit dem Standardfräser (Ø 12, ae 1,5, ap 25, vf 902) wird
 # jede 2,5D-Strategie in jeder Variante an den Maßstabsteilen gerechnet und im Quader
 # abgefahren – Manuels 50 × 50 mit Zapfen, der Block mit Absatz, der Block mit Tasche 40 × 30,
-# die Platte 200 × 200 (Abschnitt 11). Jede Bahn muss bestehen (nirgends ins Teil, nichts
+# die Platte 200 × 200 (Abschnitt 11), der Block mit zwei Bohrungen. Jede Bahn muss bestehen (nirgends ins Teil, nichts
 # stehen geblieben, im Eilgang nichts abgetragen, nicht zu viel Luft); jede Strategie nimmt von
 # ihren Varianten die schnellste; zwischen den Strategien steht fest, welche gewinnt; und keine
 # Bahn darf langsamer werden als ihre Bestmarke in tests/bestmarken.json (schneller immer –
@@ -21,6 +21,7 @@ sys.path.insert(0, ADDON)
 import FreeCAD
 import Part
 
+from camaddon import bohrung_bahn as bb
 from camaddon import fraeserform as ff
 from camaddon import hoehenfeld as hf
 from camaddon import kontur_bahn as kb
@@ -82,6 +83,13 @@ def teil_absatz():
 def teil_tasche():
     tasche = Part.Face(rund_rechteck(30, 15, 70, 45, 6, 5)).extrude(V(0, 0, 20))
     return Part.makeBox(100, 60, 20).cut(tasche).removeSplitter(), (-1.0, 101.0, -1.0, 61.0), 21.0
+
+
+def teil_bohrungen():
+    teil = Part.makeBox(100, 60, 20)
+    teil = teil.cut(Part.makeCylinder(10, 20, V(25, 30, 0)))  # durchgehend Ø 20
+    teil = teil.cut(Part.makeCylinder(17, 10, V(70, 30, 10)))  # Ø 34, Grund 10
+    return teil.removeSplitter(), (-1.0, 101.0, -1.0, 61.0), 21.0
 
 
 def teil_platte():
@@ -371,6 +379,27 @@ summe = (
 )
 print(f"Platte gesamt (Raeumen oben und Tasche, Kontur Tasche, Kontur Zapfen): {summe:.1f} min")
 pruefe(summe < 40.0, f"Platte: {summe:.1f} min gesamt – Abschnitt 11 verspricht etwa 35")
+
+# (e) Der Block mit zwei Bohrungen (W-006 S3g): Bohrung fräsen – Helix, Ringe, die Wand in einem
+#     Zug – gegen die Kontur in denselben Bohrungen.
+teil, rohteil, oben = teil_bohrungen()
+bohrungen = bb.bohrungen(teil)
+pruefe(len(bohrungen) == 2, f"Bohrungen: {len(bohrungen)}")
+gebohrt = bb.planen(
+    bb.Bohrwerte(
+        R, AP, AE, 0.3, oben, oben + 5.0,
+        schneidenlaenge=werkzeug.schneidenlaenge, eintauchwinkel=werkzeug.eintauchwinkel,
+        vorschub=VF, eintauchen=EINTAUCHEN,
+    ),
+    bohrungen,
+)  # fmt: skip
+messe("bohrungen/bohrung fraesen", [lauf(gebohrt)], teil, rohteil, oben, [10.0], 0.0)
+kon = kontur(teil, [b.name for b in bohrungen], rohteil, oben)
+messe("bohrungen/kontur", [lauf(kon)], teil, rohteil, oben, [10.0], 0.0)
+pruefe(
+    gemessen["bohrungen/bohrung fraesen"].zeit < gemessen["bohrungen/kontur"].zeit,
+    "Bohrungen: Bohrung fräsen ist nicht schneller als die Kontur",
+)
 
 # --- Die Bestmarken: langsamer darf keine werden ---------------------------------------------
 neu = {}
