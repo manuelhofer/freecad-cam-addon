@@ -18,7 +18,14 @@ hinein, auch nicht an Nachbarflächen.
   im Gleichlauf (das Material rechts, M3). Beide überlappen an der Grenze um UEBERLAPP. Die
   Neigung und die Höhenlinien kommen aus der Hüllfläche im Raster (RASTER): ihr Gradient, ihre
   Linien gleicher Höhe (Marching Squares, raeumen_bahn).
-- **Richtung:** längs x und längs y gerechnet, die schnellere zählt (Grundsatz 0). Im Zickzack
+- **Spirale** (P-2026-10-01-48): von der Mitte der Flächen nach außen, archimedisch mit dem
+  Zeilenabstand je Umlauf, die Spitze auf der Hüllfläche aus dem Raster (bilinear) – ohne
+  Wenden, wo die Zeilen an jedem Ende umkehren; gefräst nur, wo die gewählten Flächen die Höhe
+  bestimmen und es flacher ist als der Grenzwinkel. Neben längs x und längs y gerechnet – nur mit
+  Steil/Flach: Ihr Abstand liegt in der Ebene, an jeder Flanke einer Kuppel quer zur Steigung;
+  ohne Höhenlinien blieben dort höhere Grate als bei Zeilen (an der Halbkugel 0,15 statt
+  0,056 mm), die schnellere Zeit wäre nicht dasselbe Ergebnis.
+- **Richtung:** längs x, längs y und die Spirale gerechnet, die schnellste zählt (Grundsatz 0). Im Zickzack
   Zeile für Zeile hin und zurück; zwischen nahen Enden gleitet er hinüber (LUFT über der
   Hüllfläche beider Zeilen dazwischen), sonst Rückzug im Eilgang. Lücken in einer Zeile, kürzer
   als LUECKE_FAHREN, fährt er auf der Hüllfläche durch.
@@ -54,8 +61,9 @@ TOLERANZ_GERADE = 0.002  # mm – so weit darf ein ausgelassener Punkt von der G
 NACH_OBEN = 0.05  # so weit muss eine Normale nach oben zeigen (n_z) – sonst sieht er nichts
 GRENZWINKEL = 45.0  # Grad – steiler: Höhenlinien, flacher: Zeilen; 0: nur Zeilen
 UEBERLAPP = 3.0  # Grad – so weit überlappen Zeilen und Höhenlinien an der Grenze
-RASTER = 0.25  # mm – das Raster der Hüllfläche für Neigung und Höhenlinien
+RASTER = 0.25  # mm – das Raster der Hüllfläche für Neigung, Höhenlinien und die Spirale
 VORSCHAU_RASTER = 0.5  # mm – im Assistenten
+SPIRALE = "spirale"
 
 
 @dataclass
@@ -67,7 +75,7 @@ class Schlichtwerte:
     sicher: float  # z für den Eilgang über allem
     grathoehe: float = GRATHOEHE
     aufmass: float = 0.0  # bleibt auf den Flächen stehen
-    richtung: str = "auto"  # „auto“ (die schnellere), „x“ oder „y“
+    richtung: str = "auto"  # „auto“ (die schnellste), „x“, „y“ oder „spirale“
     grenzwinkel: float = GRENZWINKEL  # Grad – steiler: Höhenlinien; 0: nur Zeilen
     gleichlauf: bool = True  # Höhenlinien mit dem Material rechts (M3)
     sicherheit: float = vb.SICHERHEIT
@@ -89,6 +97,8 @@ class Schlichtbahn:
     laenge: float  # mm im Vorschub
     zeit: float  # Minuten (bahn.zeit)
     hoehenlinien: int = 0  # Höhen mit Höhenlinien (Steil/Flach)
+    spirale: bool = False  # eine Spirale statt Zeilen (dann `zeilen` 0)
+    umlaeufe: int = 0  # die Umläufe der Spirale
 
 
 # --- Flächen --------------------------------------------------------------------------------
@@ -469,6 +479,106 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, ras
     return Schlichtbahn(punkte, zeilen, laengs_x, abstand, z_min, laenge, zeit, hoehen)
 
 
+def _bilinear(raster, x, y):
+    """Die Hüllfläche aus dem Raster an (x, y), bilinear zwischen den vier Knoten – nan, wo einer
+    nichts trifft oder (x, y) außerhalb liegt."""
+    xs, ys, z = raster.xs, raster.ys, raster.z
+    sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
+    fx = (np.asarray(x, dtype=float) - xs[0]) / sx
+    fy = (np.asarray(y, dtype=float) - ys[0]) / sy
+    drin = (fx >= 0) & (fy >= 0) & (fx <= len(xs) - 1) & (fy <= len(ys) - 1)
+    i0 = np.clip(np.floor(fx).astype(int), 0, len(xs) - 2)
+    j0 = np.clip(np.floor(fy).astype(int), 0, len(ys) - 2)
+    tx, ty = fx - i0, fy - j0
+    ecken = (z[i0, j0], z[i0 + 1, j0], z[i0, j0 + 1], z[i0 + 1, j0 + 1])
+    endlich = np.all([np.isfinite(e) for e in ecken], axis=0) & drin
+    with np.errstate(invalid="ignore"):
+        wert = (
+            ecken[0] * (1 - tx) * (1 - ty)
+            + ecken[1] * tx * (1 - ty)
+            + ecken[2] * (1 - tx) * ty
+            + ecken[3] * tx * ty
+        )
+    return np.where(endlich, wert, np.nan)
+
+
+def _vereinfacht3d(punkte):
+    """Douglas-Peucker im Raum mit TOLERANZ_GERADE – die Indizes, die bleiben."""
+    n = len(punkte)
+    if n <= 2:
+        return list(range(n))
+    behalten = np.zeros(n, dtype=bool)
+    behalten[0] = behalten[-1] = True
+    stapel = [(0, n - 1)]
+    while stapel:
+        a, b = stapel.pop()
+        if b - a < 2:
+            continue
+        p, q = punkte[a], punkte[b]
+        d = q - p
+        laenge = float(np.linalg.norm(d))
+        innen = punkte[a + 1 : b]
+        if laenge < GLEICH:
+            abstand = np.linalg.norm(innen - p, axis=1)
+        else:
+            abstand = np.linalg.norm(np.cross(innen - p, d), axis=1) / laenge
+        k = int(np.argmax(abstand))
+        if abstand[k] > TOLERANZ_GERADE:
+            m = a + 1 + k
+            behalten[m] = True
+            stapel.append((a, m))
+            stapel.append((m, b))
+    return list(np.flatnonzero(behalten))
+
+
+def _spirale(raster, w, abstand, vorweg):
+    """Die Bahn als Spirale von der Mitte der gewählten Flächen nach außen – nach den
+    Höhenlinien `vorweg`; None, wo nichts zu fräsen ist."""
+    maske_raster = raster.gewaehlt.copy()
+    if w.grenzwinkel > 0:
+        with np.errstate(invalid="ignore"):
+            maske_raster &= ~(raster.neigung >= math.radians(w.grenzwinkel + UEBERLAPP))
+    zellen = np.argwhere(maske_raster)
+    if not len(zellen):
+        return None
+    gx, gy = raster.xs[zellen[:, 0]], raster.ys[zellen[:, 1]]
+    mitte = (float(gx.mean()), float(gy.mean()))
+    weite = float(np.max(np.hypot(gx - mitte[0], gy - mitte[1]))) + float(
+        raster.xs[1] - raster.xs[0]
+    )
+    b = abstand / (2 * math.pi)  # r = b · θ
+    winkel = [0.0]
+    theta = 0.0
+    while b * theta < weite:
+        theta += w.schritt / math.hypot(b * theta, b)
+        winkel.append(theta)
+    theta = np.array(winkel)
+    x = mitte[0] + b * theta * np.cos(theta)
+    y = mitte[1] + b * theta * np.sin(theta)
+    z = _bilinear(raster, x, y) + 0.0  # das Aufmaß steckt schon im Raster
+    maske = raster.bei(maske_raster, x, y) & np.isfinite(z)
+    laeufe = _laeufe(maske, z, w.schritt)
+    if not laeufe:
+        return None
+    punkte, laenge, hoehen, z_min = list(vorweg[0]), vorweg[1], vorweg[2], vorweg[3]
+    for anfang, ende in laeufe:
+        idx = np.arange(anfang, ende + 1)
+        raum = np.column_stack([x[idx], y[idx], z[idx]])
+        behalten = _vereinfacht3d(raum)
+        x0, y0, z0 = (float(v) for v in raum[behalten[0]])
+        laenge += _verbinden(punkte, x0, y0, z0, w, raster)
+        for i in behalten[1:]:
+            punkt = bn.Punkt(False, float(raum[i, 0]), float(raum[i, 1]), float(raum[i, 2]))
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
+        z_min = min(z_min, float(np.min(raum[:, 2])))
+    letzter = punkte[-1]
+    punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+    zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+    umlaeufe = int(math.ceil(float(theta[-1]) / (2 * math.pi)))
+    return Schlichtbahn(punkte, 0, True, abstand, z_min, laenge, zeit, hoehen, True, umlaeufe)
+
+
 def _hinueber(punkte, von, nach, z, u_werte, v_werte, w, xy):
     """Vom Ende (Zeile, Index) `von` zum Anfang `nach`: in der Nachbarzeile und nah gleitend
     (LUFT über der Hüllfläche beider Zeilen dazwischen), sonst im Eilgang über sicherer Höhe.
@@ -527,15 +637,22 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     abstand = zeilenabstand(w.form, w.grathoehe)
     raster = None
     vorweg = ([], 0.0, 0, math.inf)
-    if 0 < w.grenzwinkel < 90:
+    steil_flach = 0 < w.grenzwinkel < 90
+    richtungen = {"x": (True,), "y": (False,), "spirale": (SPIRALE,)}.get(
+        w.richtung, (True, False, SPIRALE) if steil_flach else (True, False)
+    )
+    if steil_flach or SPIRALE in richtungen:
         raster = _raster(netz_alle, netz_rest, geformt, box, w)
+    if steil_flach:
         vorweg = _hoehenlinien(raster, w, abstand)
-    richtungen = {"x": (True,), "y": (False,)}.get(w.richtung, (True, False))
     beste = None
-    for laengs_x in richtungen:
-        bahn = _eine_richtung(
-            netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, raster, vorweg
-        )
+    for richtung in richtungen:
+        if richtung == SPIRALE:
+            bahn = _spirale(raster, w, abstand, vorweg)
+        else:
+            bahn = _eine_richtung(
+                netz_alle, netz_rest, box, w, richtung, abstand, geformt, raster, vorweg
+            )
         if bahn is not None and (beste is None or bahn.zeit < beste.zeit):
             beste = bahn
     if beste is None:

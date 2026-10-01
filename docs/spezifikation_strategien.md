@@ -221,7 +221,18 @@ eben). Kein OCL.
    Halbkugel R 15 (Fuß senkrecht): an der Flanke 0,026 statt 0,056 mm, 4,2 statt
    3,2 min. An der Grenze liegen Zeilen und Höhenlinien im Raum um √2 weiter
    auseinander als in Ebene bzw. Wand – der Grat dort bis zum Doppelten; genau
-   hält ihn erst „Äquidistant“ (Punkt 5).
+   hält ihn erst „Äquidistant“ (Punkt 5). Dazu die **Spirale** (P-2026-10-01-48,
+   0.63.0): archimedisch von der Mitte der flachen gewählten Stellen nach außen, je
+   Umlauf um den Zeilenabstand, die Spitze auf der Hüllfläche aus dem Raster
+   (bilinear – zwischen den Knoten an einem Knick höher, nie tiefer), gefräst nur, wo
+   die gewählten Flächen die Höhe bestimmen und es flacher ist als der Grenzwinkel;
+   ohne Wenden, im Gleichlauf (gegen den Uhrzeigersinn nach außen: das Material
+   rechts). Sie rechnet neben längs X und längs Y, die schnellste zählt – aber nur mit
+   Steil/Flach: Ihr Abstand liegt in der Ebene, an jeder Flanke einer Kuppel quer zur
+   Steigung; ohne Höhenlinien bliebe an der Halbkugel 0,15 statt 0,056 mm stehen, die
+   schnellere Zeit wäre nicht dasselbe Ergebnis. Gemessen (`test_schlichten3d`): die
+   Kuppel 3,97 statt 4,51 min (45 Umläufe, im Quader −0,007 … 0,024 mm), die Halbkugel
+   mit Steil/Flach 3,69 statt 4,2 min bei 0,026 mm an der Flanke.
 5. **Äquidistant** (3D-Offset, gleichbleibende Grathöhe auf jeder Neigung) –
    die feinste Schlichtstrategie. Aufwand groß; nach 3 und 4.
 6. **Bleistift** (Kehlen) – dort, wo zwei Flächen sich treffen und der Fräser

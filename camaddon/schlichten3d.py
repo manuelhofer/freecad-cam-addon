@@ -29,7 +29,7 @@ from . import vierachs_schlichten as vs
 from .sprache import tr
 
 GRUPPE = "Fräsen"
-RICHTUNGEN = ("auto", "x", "y")
+RICHTUNGEN = ("auto", "x", "y", "spirale")
 
 
 class Schlichten3D(PathOp.ObjectOp):
@@ -56,6 +56,10 @@ class Schlichten3D(PathOp.ObjectOp):
     def opOnDocumentRestored(self, obj):
         if "Grenzwinkel" in self._eigenschaften(obj):
             obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
+        if "spirale" not in obj.getEnumerationsOfProperty("Richtung"):
+            richtung = str(obj.Richtung)
+            obj.Richtung = list(RICHTUNGEN)  # gespeichert vor der Spirale: die Wahl dazu
+            obj.Richtung = richtung
         self._editormodi(obj)
 
     @staticmethod
@@ -71,6 +75,7 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyInteger", "Zeilen", tr("s3.eigenschaft.zeilen")),
             ("App::PropertyInteger", "Hoehenlinien", tr("s3.eigenschaft.hoehenlinien")),
+            ("App::PropertyInteger", "Umlaeufe", tr("s3.eigenschaft.umlaeufe")),
             ("App::PropertyLength", "Abstand", tr("s3.eigenschaft.abstand")),
         ):
             if name not in obj.PropertiesList:
@@ -80,7 +85,7 @@ class Schlichten3D(PathOp.ObjectOp):
 
     @staticmethod
     def _editormodi(obj):
-        for name in ("Zeilen", "Hoehenlinien", "Abstand"):
+        for name in ("Zeilen", "Hoehenlinien", "Umlaeufe", "Abstand"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
 
     def opExecute(self, obj):
@@ -91,11 +96,12 @@ class Schlichten3D(PathOp.ObjectOp):
                 obj, self.job, self.model, self.horizFeed * 60.0, vo.eintauchvorschub(self)
             )
         except ValueError as fehler:
-            obj.Zeilen = obj.Hoehenlinien = 0
+            obj.Zeilen = obj.Hoehenlinien = obj.Umlaeufe = 0
             FreeCAD.Console.PrintError(f"{obj.Label}: {fehler}\n")
             self.commandlist.append(Path.Command(f"({vo._ascii(str(fehler))})"))
             return
         obj.Zeilen, obj.Hoehenlinien = ergebnis.zeilen, ergebnis.hoehenlinien
+        obj.Umlaeufe = ergebnis.umlaeufe
         obj.Abstand = round(float(ergebnis.abstand), 4)
         self.commandlist.extend(
             bn.befehle(ergebnis.punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))

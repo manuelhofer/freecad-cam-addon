@@ -4,8 +4,9 @@
 # 0,49; die Spitze nie unter der Platte (z ≥ 10). Im Quader – vorher die Kuppel mit 0,3 Aufmaß –
 # liegt danach jede Stelle der Kuppel höchstens 0,04 über ihr und nirgends darunter (nichts ins
 # Teil); die Platte daneben bleibt, wie sie war. Mit Aufmaß 0,2 bleiben 0,2 senkrecht zur
-# Fläche (auf der Kuppel senkrecht gemessen 0,2 / cos θ). Längs x und längs y
-# gerechnet, die schnellere zählt. Steil/Flach an einer Halbkugel R 15 (am Fuß senkrecht): Mit
+# Fläche (auf der Kuppel senkrecht gemessen 0,2 / cos θ). Längs x, längs y und als Spirale
+# gerechnet, die schnellste zählt – an der Kuppel die Spirale (ohne Wenden), im Quader so gut
+# wie die Zeilen. Steil/Flach an einer Halbkugel R 15 (am Fuß senkrecht): Mit
 # Höhenlinien, wo es steiler ist als 45°, bleibt an der Flanke höchstens 0,035 stehen, mit Zeilen
 # allein mehr als 0,045. Dann die Operation im Job: „3D-Schlichten T3“, Art „schlichten3d“.
 import math
@@ -67,16 +68,27 @@ def werte(**weiter):
 
 t0 = time.time()
 bahn = s3.planen(teil, kugel, werte())
-print(ascii(f"{bahn.zeilen} Zeilen, {bahn.hoehenlinien} Höhen, {bahn.zeit:.2f} min"))
+print(ascii(f"{bahn.zeilen} Zeilen, {bahn.umlaeufe} Umläufe, {bahn.hoehenlinien} Höhen, "
+            f"{bahn.zeit:.2f} min"))  # fmt: skip
 print(ascii(f"Rechenzeit {time.time() - t0:.1f} s"))
 nur_zeilen = s3.planen(teil, kugel, werte(grenzwinkel=0.0))
 pruefe(70 <= nur_zeilen.zeilen <= 100, f"Zeilen {nur_zeilen.zeilen}")
+pruefe(not nur_zeilen.spirale, "ohne Steil/Flach eine Spirale – sie hinterließe an Flanken mehr")
 pruefe(nur_zeilen.hoehenlinien == 0 and bahn.hoehenlinien > 0, "Höhenlinien")
 pruefe(bahn.z_min >= 10.0 - 1e-6, f"unter der Platte: {bahn.z_min}")
 nur_x = s3.planen(teil, kugel, werte(richtung="x"))
 nur_y = s3.planen(teil, kugel, werte(richtung="y"))
+spirale = s3.planen(teil, kugel, werte(richtung="spirale"))
 pruefe(nur_x.laengs_x and not nur_y.laengs_x, "Richtung nicht wie verlangt")
-pruefe(bahn.zeit <= min(nur_x.zeit, nur_y.zeit) + 1e-9, "nicht die schnellere Richtung")
+pruefe(
+    spirale.spirale and not nur_x.spirale and spirale.zeilen == 0 and spirale.umlaeufe > 30,
+    f"Spirale: {spirale.spirale}, {spirale.zeilen} Zeilen, {spirale.umlaeufe} Umläufe",
+)
+pruefe(bahn.zeit <= min(nur_x.zeit, nur_y.zeit, spirale.zeit) + 1e-9, "nicht die schnellste")
+pruefe(bahn.spirale and spirale.zeit < 0.95 * nur_x.zeit, f"Spirale {spirale.zeit:.2f} min, "
+       f"Zeilen {nur_x.zeit:.2f}")  # fmt: skip
+print(ascii(f"Spirale {spirale.zeit:.2f} min ({spirale.umlaeufe} Umläufe), längs x "
+            f"{nur_x.zeit:.2f}"))  # fmt: skip
 try:
     s3.planen(teil, andere, werte())
 except ValueError as grund:
@@ -100,16 +112,17 @@ def quader_nach(bahn_, aufmass_vorher=0.3):
     return q, soll
 
 
-q, soll = quader_nach(bahn)
-xs, ys = np.meshgrid(q.x, q.y, indexing="ij")
-r = np.hypot(xs - 30, ys - 30)
-rest = q.h - soll
-kuppel = r < 18.0  # fern vom Fuß
-pruefe(np.max(rest[kuppel]) < 0.04, f"stehen geblieben: {np.max(rest[kuppel]):.3f}")
-pruefe(np.min(rest) > -0.02, f"ins Teil: {np.min(rest):.3f}")
-platte_fern = r > 25.0  # die Platte weit neben der Kuppel: nicht gewählt, nicht gefräst
-pruefe(np.all(np.abs(rest[platte_fern] - 0.3) < 1e-9), "Platte daneben angeschnitten")
-print(ascii(f"Kuppel: Rest {np.min(rest[kuppel]):.3f} … {np.max(rest[kuppel]):.3f}"))
+for name, geprueft in (("auto", bahn), ("längs x", nur_x)):
+    q, soll = quader_nach(geprueft)
+    xs, ys = np.meshgrid(q.x, q.y, indexing="ij")
+    r = np.hypot(xs - 30, ys - 30)
+    rest = q.h - soll
+    kuppel = r < 18.0  # fern vom Fuß
+    pruefe(np.max(rest[kuppel]) < 0.04, f"{name}: stehen geblieben {np.max(rest[kuppel]):.3f}")
+    pruefe(np.min(rest) > -0.02, f"{name}: ins Teil {np.min(rest):.3f}")
+    platte_fern = r > 25.0  # die Platte weit neben der Kuppel: nicht gewählt, nicht gefräst
+    pruefe(np.all(np.abs(rest[platte_fern] - 0.3) < 1e-9), f"{name}: Platte angeschnitten")
+    print(ascii(f"Kuppel {name}: Rest {np.min(rest[kuppel]):.3f} … {np.max(rest[kuppel]):.3f}"))
 
 # Das Aufmaß gilt senkrecht zur Fläche: auf der Kuppel senkrecht gemessen 0,2 / cos θ, mit
 # cos θ = √(25² − r²) / 25 (oben 0,2, bei r 16 schon 0,26).
@@ -181,7 +194,10 @@ doc.recompute()
 op = s3op.lege_an(job, tc, 0.01, flaechen=kugel)
 doc.recompute()
 pruefe(op.Label == "3D-Schlichten T3", f"Name {op.Label}")
-pruefe(op.Zeilen == bahn.zeilen, f"Zeilen {op.Zeilen} statt {bahn.zeilen}")
+pruefe(
+    op.Zeilen == bahn.zeilen and op.Umlaeufe == bahn.umlaeufe,
+    f"Zeilen {op.Zeilen}, Umläufe {op.Umlaeufe} statt {bahn.zeilen}, {bahn.umlaeufe}",
+)
 pruefe(abs(float(op.FinalDepth) - 10.0) < 1e-6, f"Endtiefe {float(op.FinalDepth)}")
 pruefe(js.operationsart(op) == "schlichten3d", f"Art {js.operationsart(op)}")
 print(ascii(f"Operation: {len(op.Path.Commands)} Befehle"))

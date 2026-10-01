@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-48 schlichten3d-spirale
+
+### EINGELESEN
+- `schlichten3d_bahn` (`_raster`, `_eine_richtung`, `_laeufe`, `_verbinden`, `_hoehenlinien`,
+  `planen`), `schlichten3d` (Eigenschaften, Wiederherstellen), `gui_bearbeitung._Schlichten3D`,
+  `tests/test_schlichten3d.py`, `tests/gui/szenario_schlichten3d.py`.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py`, `camaddon/schlichten3d.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_schlichten3d.py`,
+  `tests/gui/szenario_schlichten3d.py`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.63.0)
+
+### AKZEPTANZKRITERIUM
+Kuppel Ø 40 mit Kugel Ø 6: „→ 6 Höhenlinien und eine Spirale mit 45 Umläufen, Abstand 0,49,
+etwa … min“; die Spirale 3,97 statt 4,51 min (längs X), im Quader −0,007 … 0,024 mm, nirgends ins
+Teil. Ohne Steil/Flach (Grenzwinkel 0) Zeilen wie bisher (an der Halbkugel 0,056 an der Flanke –
+die Spirale ließe 0,15). Eigenschaft Richtung mit „spirale“; ältere Dateien bekommen die Wahl
+dazu; Ergebnis „Umlaeufe“.
+
+### DONE
+- `_spirale`: archimedisch von der Mitte der flachen gewählten Stellen nach außen, je Umlauf um
+  den Zeilenabstand, auf der Hüllfläche aus dem Raster (`_bilinear`), Läufe wie bei den Zeilen,
+  im Raum vereinfacht (`_vereinfacht3d`); im Wettbewerb neben x und y nur mit Steil/Flach.
+- Operation: Richtung „spirale“, Ergebnis „Umlaeufe“; Assistent: „eine Spirale mit N
+  Umläufen“.
+
+### TEST
+- 1.1.3: `test_schlichten3d` grün; Szenarien `szenario_schlichten3d`, `szenario_bleistift` grün;
+  black/ruff grün.
+
+### NEXT
+- Restschlichten mit dem kleineren Kugelfräser; Räumen in schmalen Bereichen (Trochoiden).
+
 ## P-2026-10-01-47 nut-offen
 
 ### EINGELESEN

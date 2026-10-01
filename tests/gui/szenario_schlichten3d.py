@@ -2,8 +2,9 @@
 # Platte 60 × 60 × 10 mit einer Kuppel (Kugel R 25, Fuß Ø 40, oben z 20); T1 der Standardfräser
 # Ø 12, T3 ein Kugelfräser Ø 6. Die Kuppel anklicken: In der Liste „Freiform, unten 10“;
 # „3D-Schruppen“ angehakt mit T1, „→ 1 Lage und N Zwischenlagen, M Ringe, etwa … min“;
-# „3D-Schlichten“ angehakt mit T3 (der Kugelfräser ist vorgewählt), „→ N Höhenlinien und M Zeilen
-# längs X, Abstand 0,49, etwa … min“ (Steil/Flach: am Fuß ist die Kuppel steiler als 45°);
+# „3D-Schlichten“ angehakt mit T3 (der Kugelfräser ist vorgewählt), „→ N Höhenlinien und eine
+# Spirale mit M Umläufen, Abstand 0,49, etwa … min“ (Steil/Flach: am Fuß ist die Kuppel steiler
+# als 45°; die Spirale schneller als Zeilen);
 # Planfräsen und Räumen ohne Haken. „Anlegen“: „3D-Schruppen T1“, dann „3D-Schlichten T3“. „Auf der
 # Maschine prüfen“: am Ende nirgends ins Teil.
 import FreeCAD
@@ -79,9 +80,8 @@ def schritte(h):
     text = block.ergebnis.text()
     h.pruefe(
         text.startswith("→ ")
-        and " Höhenlinien und " in text
-        and " Zeilen längs " in text
-        and ", Abstand 0,49, etwa " in text,
+        and " Höhenlinien und eine Spirale mit " in text
+        and " Umläufen, Abstand 0,49, etwa " in text,
         f"3D-Schlichten: {text!r}",
     )
     h.pruefe(not block.hinweis.text(), f"rot: {block.hinweis.text()!r}")
@@ -107,7 +107,7 @@ def schritte(h):
         f"Operationen: {[o.Label for o in ops]}",
     )
     if ops:
-        h.pruefe(ops[-1].Zeilen > 50, f"Zeilen: {ops[-1].Zeilen}")
+        h.pruefe(ops[-1].Umlaeufe > 30, f"Umläufe: {ops[-1].Umlaeufe}")
         h.pruefe(ops[0].Zwischen >= 7, f"Zwischenlagen: {ops[0].Zwischen}")
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")

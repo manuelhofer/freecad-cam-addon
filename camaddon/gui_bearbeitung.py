@@ -1553,6 +1553,15 @@ class _Schlichten3D(_Strategie):
             "abstand": groesse_zeigen(bahn.abstand, einheiten.LAENGE, 2) or "0",
             "zeit": zeit,
         }
+        if bahn.spirale:
+            werte["umlaeufe"] = (
+                tr("ba.zahl.umlauf")
+                if bahn.umlaeufe == 1
+                else tr("ba.zahl.umlaeufe", n=bahn.umlaeufe)
+            )
+            if bahn.hoehenlinien:
+                return tr("ba.ergebnis_s3_spirale_steil", n=bahn.hoehenlinien, **werte)
+            return tr("ba.ergebnis_s3_spirale", **werte)
         if bahn.hoehenlinien:
             return tr("ba.ergebnis_s3_steil", n=bahn.hoehenlinien, **werte)
         return tr("ba.ergebnis_s3", **werte)

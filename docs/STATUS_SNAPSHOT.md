@@ -17,7 +17,10 @@ Manuels Test. **Offene Nuten**: zum Rand hin offen (an einem oder beiden Enden),
 der Luft hinein ohne Helix, die Wände im Gleichlauf – Nut 16 × 60, 8 tief, 0,85 min (Kontur 2,2);
 dabei gefunden: Räumen schnitt auf dem Grund einer Nut zuerst in voller Breite (nur scheinbar
 schneller) – an Nutgründen treten Räumen und Planfräsen nicht mehr an (-47); 0.62.0 – fertig
-und automatisch geprüft; wartet auf Manuels Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+und automatisch geprüft; wartet auf Manuels Test. **3D-Schlichten als Spirale**: von der Mitte
+nach außen ohne Wenden, neben Zeilen längs X und Y gerechnet (nur mit Steil/Flach, sonst wären
+die Grate an Flanken höher) – die Kuppel 3,97 statt 4,51 min (-48); 0.63.0 – fertig und
+automatisch geprüft; wartet auf Manuels Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
