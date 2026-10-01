@@ -1471,5 +1471,20 @@
     "ba.zahl.bohrung": "1 Bohrung",
     "ba.zahl.bohrungen": "{n} Bohrungen",
     "ba.flaeche.bohrung_durch": "{name}  Bohrung Ø {d}, durchgehend",
-    "ba.flaeche.bohrung_sack": "{name}  Bohrung Ø {d}, Grund {z}"
+    "ba.flaeche.bohrung_sack": "{name}  Bohrung Ø {d}, Grund {z}",
+    "bh.name": "Bohren {werkzeug}",
+    "bh.fehler.keine": "Keine Bohrung gewählt – die Wand einer durchgehenden Bohrung im 3D anklicken.",
+    "bh.fehler.sack": "Die Bohrung Ø {durchmesser} hat einen ebenen Grund – ein Bohrer ließe seine Spitze stehen; die fräst „Bohrung fräsen“.",
+    "bh.fehler.durchmesser": "Der Bohrer Ø {bohrer} passt nicht zur Bohrung Ø {durchmesser} – in der Werkzeugverwaltung einen Bohrer mit diesem Durchmesser anlegen.",
+    "ba.bohren": "Bohren",
+    "ba.bohren.text": "Bohrt durchgehende Bohrungen mit einem Bohrer aus der Werkzeugverwaltung, der ihren Durchmesser hat – FreeCADs Bohren (G81, tiefer als 3 × D in Hüben mit G83); die Spitze geht um ihre Länge unter den Grund, damit die Bohrung bis unten den vollen Durchmesser hat.",
+    "ba.bohren.nicht": "Für durchgehende Bohrungen, wenn die Werkzeugverwaltung einen Bohrer mit ihrem Durchmesser hat.",
+    "ba.bohrer.tooltip": "Ein Bohrer aus der Werkzeugverwaltung – vorgewählt der mit dem Durchmesser der Bohrung.",
+    "ba.bohren_einsatz.tooltip": "Die Schnittwerte – vorgewählt „Bohren“.",
+    "ba.bohren.hub": "Tiefe je Hub",
+    "ba.bohren.hub.tooltip": "So tief bohrt er je Hub, dann zurück auf R zum Spanbruch (G83). Leer: tiefer als 3 × D je 1 × D, flacher in einem Zug (G81).",
+    "ba.bohren.hub.leer": "automatisch",
+    "ba.ergebnis_bohren": "→ {bohrungen}, {hube}, etwa {zeit}",
+    "ba.zahl.hub": "1 Hub",
+    "ba.zahl.hube": "{n} Hübe"
 }

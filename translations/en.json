@@ -1471,5 +1471,20 @@
     "ba.zahl.bohrung": "1 hole",
     "ba.zahl.bohrungen": "{n} holes",
     "ba.flaeche.bohrung_durch": "{name}  hole Ø {d}, through",
-    "ba.flaeche.bohrung_sack": "{name}  hole Ø {d}, bottom {z}"
+    "ba.flaeche.bohrung_sack": "{name}  hole Ø {d}, bottom {z}",
+    "bh.name": "Drilling {werkzeug}",
+    "bh.fehler.keine": "No hole selected – click the wall of a through hole in the 3D view.",
+    "bh.fehler.sack": "The hole Ø {durchmesser} has a flat bottom – a drill would leave its tip; “Hole milling” mills it.",
+    "bh.fehler.durchmesser": "The drill Ø {bohrer} does not fit the hole Ø {durchmesser} – create a drill with this diameter in the tool management.",
+    "ba.bohren": "Drilling",
+    "ba.bohren.text": "Drills through holes with a drill from the tool management that has their diameter – FreeCAD's Drilling (G81, deeper than 3 × D in pecks with G83); the tip goes its length below the bottom so the hole has the full diameter all the way down.",
+    "ba.bohren.nicht": "For through holes, when the tool management has a drill with their diameter.",
+    "ba.bohrer.tooltip": "A drill from the tool management – preselected the one with the diameter of the hole.",
+    "ba.bohren_einsatz.tooltip": "The cutting data – “Drilling” preselected.",
+    "ba.bohren.hub": "Depth per peck",
+    "ba.bohren.hub.tooltip": "This deep per peck, then back to R to break the chip (G83). Empty: deeper than 3 × D 1 × D each, shallower in one go (G81).",
+    "ba.bohren.hub.leer": "automatic",
+    "ba.ergebnis_bohren": "→ {bohrungen}, {hube}, about {zeit}",
+    "ba.zahl.hub": "1 peck",
+    "ba.zahl.hube": "{n} pecks"
 }

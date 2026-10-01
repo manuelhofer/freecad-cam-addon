@@ -21,6 +21,7 @@ from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten, symbol
 from . import bahn as bn
+from . import bohren as bh
 from . import bohrung as bo
 from . import bohrung_bahn as bb
 from . import fraeserform as ff
@@ -59,6 +60,7 @@ GEMERKT_FRAESER = "BaFraeser"  # Kennung des zuletzt gewählten Fräsers (Planfr
 GEMERKT_KONTURFRAESER = "BaKonturFraeser"  # … für die Kontur
 GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
 GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
+GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
 ROHTEIL_FELDER = ("oben", "seite", "unten")
@@ -239,6 +241,11 @@ class _Strategie:
     def passt(self, form, name):
         """Kann die Strategie etwas mit der Fläche `name` von `form` anfangen?"""
         return False
+
+    def werkzeug_passt(self, werkzeug):
+        """Arbeitet die Strategie mit diesem Werkzeug? Vorgabe: ein Fräser mit ebener Stirn."""
+        form = ff.von_werkzeug(werkzeug)
+        return form is not None and vp.ebener_radius(form) > 0
 
     def flaechen_fuer(self, form, gewaehlte):
         return [name for name in gewaehlte if self.passt(form, name)]
@@ -627,6 +634,62 @@ class _Kontur(_Strategie):
         }
 
 
+class _Bohren(_Strategie):
+    """FreeCADs Bohren mit einem Bohrer aus der Werkzeugverwaltung (bohren)."""
+
+    kennung = "bohren"
+    gemerkt = GEMERKT_BOHRER
+    einsatz_reihenfolge = (wz.BOHREN,)
+
+    def titel(self):
+        return tr("ba.bohren")
+
+    def text(self):
+        return tr("ba.bohren.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.bohrer.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.bohren_einsatz.tooltip")
+
+    def felder(self):
+        return (("hub", tr("ba.bohren.hub"), tr("ba.bohren.hub.tooltip")),)
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art == wz.BOHRER
+
+    def passt(self, form, name):
+        return any(b.durch for b in bb.bohrungen(form, [name]))
+
+    def unmoeglich_text(self):
+        return tr("ba.bohren.nicht")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        return 0.0  # Hub: automatisch
+
+    def platzhalter(self, feld, werkzeug, einsatz):
+        return tr("ba.bohren.hub.leer")
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return bh.vorschau(job, werkzeug, flaechen, werte.get("vorschub", 0.0), werte["hub"])
+
+    def ergebnis_text(self, bahn, zeit):
+        bohrungen = (
+            tr("ba.zahl.bohrung")
+            if bahn.bohrungen == 1
+            else tr("ba.zahl.bohrungen", n=bahn.bohrungen)
+        )
+        hube = tr("ba.zahl.hub") if bahn.hube == 1 else tr("ba.zahl.hube", n=bahn.hube)
+        return tr("ba.ergebnis_bohren", bohrungen=bohrungen, hube=hube, zeit=zeit)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return bh.lege_an(job, tc, flaechen, werte["hub"])
+
+    def ist(self, op):
+        return False  # FreeCADs eigene Operation – sie ändert FreeCADs Fenster
+
+
 class _Bohrung(_Strategie):
     kennung = "bohrung"
     gemerkt = GEMERKT_BOHRFRAESER
@@ -746,7 +809,7 @@ class _Bohrung(_Strategie):
         }
 
 
-STRATEGIEN = (_Planfraesen, _Raeumen, _Bohrung, _Kontur)
+STRATEGIEN = (_Planfraesen, _Raeumen, _Bohren, _Bohrung, _Kontur)
 
 
 def _zahlenfeld(felder, name, text, tooltip, reihen, geaendert):
@@ -867,20 +930,18 @@ class _Block:
         """Die Einsätze mit Drehzahl und Vorschub – nur mit ihnen gibt es einen Controller."""
         return [e for e in werkzeug.einsaetze(werkstoff) if js.werte(werkzeug, e)[1] > 0]
 
-    @staticmethod
-    def _ebene_stirn(werkzeug):
-        form = ff.von_werkzeug(werkzeug)
-        return form is not None and vp.ebener_radius(form) > 0
-
     def fraeser_fuellen(self, bibliothek, werkstoff):
-        """Die Fräser mit ebener Stirn und Schnittwerten für den Werkstoff; vorgewählt der
+        """Die Werkzeuge, mit denen die Strategie arbeitet (_Strategie.werkzeug_passt: Fräser mit
+        ebener Stirn, beim Bohren Bohrer), mit Schnittwerten für den Werkstoff; vorgewählt der
         bisher gewählte, beim Ändern der der Operation, sonst der zuletzt benutzte, sonst
         einer mit dem ersten Einsatz der Reihenfolge, sonst ein Schaftfräser."""
         vorher = self.fraeser()
         self._fraeser = [
             w
             for w in sorted(bibliothek.werkzeuge, key=lambda w: w.nummer)
-            if w.durchmesser > 0 and self._ebene_stirn(w) and self._passende_einsaetze(w, werkstoff)
+            if w.durchmesser > 0
+            and self.s.werkzeug_passt(w)
+            and self._passende_einsaetze(w, werkstoff)
         ]
         kennungen = [w.kennung for w in self._fraeser]
         gemerkt = _parameter().GetString(self.s.gemerkt, "")
@@ -1036,6 +1097,7 @@ class BearbeitungPanel:
         self.plan = next(b for b in self.bloecke if b.s.kennung == "planfraesen")
         self.raeumen = next(b for b in self.bloecke if b.s.kennung == "raeumen")
         self._raeumen_boeden = None  # nur diese Taschenböden räumen (_folge); None: alle
+        self.bohren = next(b for b in self.bloecke if b.s.kennung == "bohren")
         self.bohrung = next(b for b in self.bloecke if b.s.kennung == "bohrung")
         self.kontur = next(b for b in self.bloecke if b.s.kennung == "kontur")
         self._beobachter = _Beobachter(self)
@@ -1612,10 +1674,13 @@ class BearbeitungPanel:
         solange ihn niemand von Hand gesetzt hat."""
         if self.zu_aendern is not None:
             return
+        self._bohrer_waehlen(form)
         self._fuellt = True
         try:
             for block in self.bloecke:
                 moeglich = block.s.moeglich(form, self.gewaehlte)
+                if block is self.bohren:
+                    moeglich = moeglich and self._bohrer_da(form)
                 block.moeglich = moeglich
                 block.haken.setEnabled(moeglich)
                 block.erklaerung.setText(block.s.text() if moeglich else block.s.unmoeglich_text())
@@ -1797,14 +1862,43 @@ class BearbeitungPanel:
         flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
         if block is self.raeumen and self._raeumen_boeden is not None:
             return list(self._raeumen_boeden)
-        if (
-            block is self.kontur
-            and self.bohrung.aktiv()
-            and not self._gleiche_flaechen(block, form)
-        ):
-            bohrungen = set(self.bohrung.s.flaechen_fuer(form, self.gewaehlte))
-            return [f for f in flaechen if f not in bohrungen]
+        if block is self.kontur and not self._gleiche_flaechen(block, form):
+            weg = set()
+            for anderer in (self.bohren, self.bohrung):
+                if anderer.aktiv():
+                    weg |= set(anderer.s.flaechen_fuer(form, self.gewaehlte))
+            return [f for f in flaechen if f not in weg]
         return flaechen
+
+    def _bohrer_da(self, form):
+        """Hat die Werkzeugverwaltung einen Bohrer, der alle gewählten Bohrungen bohrt – alle
+        durchgehend, alle mit seinem Durchmesser?"""
+        namen = [n for n in self.gewaehlte if bb.ist_bohrung(form, n)]
+        if not namen:
+            return False
+        liste = bb.bohrungen(form, namen)
+        if not liste or not all(b.durch for b in liste):
+            return False
+        return any(
+            all(abs(2 * b.radius - w.durchmesser) <= bh.GLEICH_D for b in liste)
+            for w in self.bohren._fraeser
+        )
+
+    def _bohrer_waehlen(self, form):
+        """Wählt im Block Bohren den Bohrer mit dem Durchmesser der gewählten Bohrungen – wenn
+        der gewählte nicht passt."""
+        liste = bb.bohrungen(form, [n for n in self.gewaehlte if bb.ist_bohrung(form, n)] or [""])
+        durchmesser = {round(2 * b.radius, 3) for b in liste}
+        if len(durchmesser) != 1:
+            return
+        d = durchmesser.pop()
+        jetzt = self.bohren.fraeser()
+        if jetzt is not None and abs(jetzt.durchmesser - d) <= bh.GLEICH_D:
+            return
+        for i, w in enumerate(self.bohren._fraeser):
+            if abs(w.durchmesser - d) <= bh.GLEICH_D:
+                self.bohren.wahl_fraeser.setCurrentIndex(i)
+                return
 
     def _von_raeumen_geraeumt(self, form):
         """Räumt das Räumen die Böden aller gewählten Bohrungen (Sackbohrungen, deren Wände
@@ -1824,12 +1918,12 @@ class BearbeitungPanel:
                 return False
         return True
 
-    def _gleiche_flaechen(self, block, form):
-        """Löst der Gegner des Blocks (_gegner) dieselbe Aufgabe – genau dieselben Flächen?"""
-        gegner = self._gegner(block)
-        return gegner is not None and set(block.s.flaechen_fuer(form, self.gewaehlte)) == set(
-            gegner.s.flaechen_fuer(form, self.gewaehlte)
-        )
+    def _gleiche_flaechen(self, block, form, andere=None):
+        """Löst `andere` – ohne: einer der Gegner des Blocks (_gegner) – dieselbe Aufgabe, genau
+        dieselben Flächen?"""
+        eigene = set(block.s.flaechen_fuer(form, self.gewaehlte))
+        gegner = [andere] if andere is not None else self._gegner(block)
+        return any(set(g.s.flaechen_fuer(form, self.gewaehlte)) == eigene for g in gegner)
 
     def _nur_boeden(self, form):
         """Die Taschenböden, die nur das Räumen kann – wenn außer ihnen auch ebene Flächen
@@ -1890,19 +1984,17 @@ class BearbeitungPanel:
             )
             raeumen.ergebnis.setText(tr("ba.wettbewerb.alles", text=alles[2], prozent=prozent))
 
-    def _paare(self):
+    def _gruppen(self):
         """Die Strategien, die dieselbe Aufgabe lösen: Planfräsen und Räumen auf ebenen
-        Flächen, Bohrung fräsen und Kontur in Bohrungen."""
-        return ((self.plan, self.raeumen), (self.bohrung, self.kontur))
+        Flächen; Bohren, Bohrung fräsen und Kontur in Bohrungen."""
+        return ((self.plan, self.raeumen), (self.bohren, self.bohrung, self.kontur))
 
     def _gegner(self, block):
-        """Die Strategie, die dieselbe Aufgabe löst wie `block` – oder None."""
-        for a, b in self._paare():
-            if block is a:
-                return b
-            if block is b:
-                return a
-        return None
+        """Die Strategien, die dieselbe Aufgabe lösen wie `block`."""
+        for gruppe in self._gruppen():
+            if block in gruppe:
+                return [b for b in gruppe if b is not block]
+        return []
 
     def _im_wettbewerb(self, block):
         """Rechnet der Block mit, obwohl er nicht angehakt ist – weil sein Gegner auf denselben
@@ -1910,59 +2002,60 @@ class BearbeitungPanel:
         Zeit entscheidet)?"""
         if self.zu_aendern is not None or not block.moeglich or block.von_hand:
             return False
-        gegner = self._gegner(block)
-        if gegner is None or not gegner.aktiv():
+        gegner = [g for g in self._gegner(block) if g.aktiv()]
+        if not gegner:
             return False
         form = vr.modell(self.job).Shape
         if block is self.raeumen and self._nur_boeden(form) is not None:
             return True  # die Folge mit den Taschenböden (_folge)
         if block is self.bohrung and self._von_raeumen_geraeumt(form):
             return False
-        return self._gleiche_flaechen(block, form)
+        return any(self._gleiche_flaechen(block, form, g) for g in gegner)
 
     def _wettbewerb(self, form, nur_bohrung=False):
-        """Je Paar (_paare: Planfräsen gegen Räumen, Bohrung fräsen gegen Kontur) auf denselben
-        Flächen: der schnellere bekommt den Haken, beide Zeilen sagen, um wie viel – solange
-        niemand den Haken von Hand gesetzt hat. `nur_bohrung`: das erste Paar rechnet die Folge
-        (_folge)."""
+        """Je Gruppe (_gruppen: Planfräsen gegen Räumen; Bohren, Bohrung fräsen und Kontur) auf
+        denselben Flächen: die schnellste bekommt den Haken, jede Zeile sagt, um wie viel –
+        solange niemand einen Haken der Gruppe von Hand gesetzt hat. `nur_bohrung`: die erste
+        Gruppe rechnet die Folge (_folge)."""
         if self.zu_aendern is not None:
             return
-        for a, b in self._paare():
-            if nur_bohrung and a is self.plan:
+        for gruppe in self._gruppen():
+            if nur_bohrung and self.plan in gruppe:
                 continue
-            self._wettbewerb_paar(form, a, b)
+            self._wettbewerb_gruppe(form, gruppe)
 
-    def _wettbewerb_paar(self, form, a, b):
-        if a.zeit is None or b.zeit is None or a.zeit <= 0 or b.zeit <= 0:
+    def _wettbewerb_gruppe(self, form, gruppe):
+        mit = [b for b in gruppe if b.zeit is not None and b.zeit > 0 and b.moeglich]
+        if len(mit) < 2:
             return
-        if not self._gleiche_flaechen(a, form):
+        if not all(self._gleiche_flaechen(mit[0], form, b) for b in mit[1:]):
             return
-        schneller, langsamer = (a, b) if a.zeit <= b.zeit else (b, a)
-        prozent = int(round((langsamer.zeit / schneller.zeit - 1.0) * 100.0))
-        schneller.ergebnis.setText(
+        mit.sort(key=lambda b: b.zeit)
+        schnellste, zweite = mit[0], mit[1]
+        schnellste.ergebnis.setText(
             tr(
                 "ba.wettbewerb.schnellste",
-                text=schneller.ergebnis_basis,
-                andere=langsamer.s.titel(),
-                prozent=prozent,
+                text=schnellste.ergebnis_basis,
+                andere=zweite.s.titel(),
+                prozent=int(round((zweite.zeit / schnellste.zeit - 1.0) * 100.0)),
             )
         )
-        langsamer.ergebnis.setText(
-            tr(
-                "ba.wettbewerb.langsamer",
-                text=langsamer.ergebnis_basis,
-                andere=schneller.s.titel(),
-                prozent=prozent,
+        for langsamer in mit[1:]:
+            langsamer.ergebnis.setText(
+                tr(
+                    "ba.wettbewerb.langsamer",
+                    text=langsamer.ergebnis_basis,
+                    andere=schnellste.s.titel(),
+                    prozent=int(round((langsamer.zeit / schnellste.zeit - 1.0) * 100.0)),
+                )
             )
-        )
-        if a.von_hand or b.von_hand:
+        if any(b.von_hand for b in gruppe):
             return
         self._fuellt = True
         try:
-            schneller.haken.setChecked(True)
-            langsamer.haken.setChecked(False)
-            schneller.zustand_zeigen()
-            langsamer.zustand_zeigen()
+            for b in mit:
+                b.haken.setChecked(b is schnellste)
+                b.zustand_zeigen()
         finally:
             self._fuellt = False
 

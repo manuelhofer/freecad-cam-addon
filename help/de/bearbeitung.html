@@ -16,8 +16,8 @@ li { margin-bottom: 0.4em; }
 Werkzeugachse steht senkrecht. Der Knopf „Bearbeitung (Fräsen)“ öffnet das
 Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, alle in einem
 Fenster: Teil und Rohteil, die Flächen, dann je Bearbeitung ein Block mit
-Haken – <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Bohrung
-fräsen</b> für zylindrische Bohrungen, <b>Kontur</b> für Wände. „Anlegen“ legt alle angehakten
+Haken – <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Bohren</b>
+und <b>Bohrung fräsen</b> für zylindrische Bohrungen, <b>Kontur</b> für Wände. „Anlegen“ legt alle angehakten
 an. Für ein rundes Rohteil mit Rundachse gibt es die
 <a href="vierachs.html">4-Achs-Bearbeitung</a>.</p>
 
@@ -165,7 +165,26 @@ das Fenster bei der Kontur das Aufmaß des Räumens als „Material neben der
 Wand“ ein (solange das Feld leer ist), und die Kontur sagt es: „… – nur das
 Aufmaß an den Wänden: die Tasche räumt das Räumen“.</p>
 
-<h3>5. Bohrung fräsen</h3>
+<h3>5. Bohren</h3>
+<ul>
+<li>Für <b>durchgehende Bohrungen</b>, wenn die Werkzeugverwaltung einen
+<b>Bohrer</b> mit ihrem Durchmesser hat – vorgewählt ist der passende. Eine
+Sackbohrung mit ebenem Grund kann ein Bohrer nicht (seine Spitze bliebe
+stehen); die fräst „Bohrung fräsen“.</li>
+<li>Angelegt wird <b>FreeCADs Bohren</b> (Path „Drilling“) mit den Schnittwerten
+des Einsatzes „Bohren“: die Spitze um ihre Länge unter den Grund, damit die
+Bohrung bis unten den vollen Durchmesser hat; die Ebene R 3 mm über dem
+Rohteil; flacher als 3 × D in einem Zug (G81), tiefer in Hüben (G83) –
+<b>Tiefe je Hub</b> (leer: je 1 × D). Ändern im Fenster von FreeCAD
+(Doppelklick).</li>
+<li>Grau darunter: „→ 1 Bohrung, 1 Hub, etwa 1 min“. Rot steht, warum es
+nicht geht (anderer Durchmesser, ebener Grund).</li>
+<li>Bohren, Bohrung fräsen und Kontur lösen in einer Bohrung dieselbe
+Aufgabe: Das Fenster rechnet alle, die gehen, und hakt die schnellste an –
+mit einem passenden Bohrer meist das Bohren.</li>
+</ul>
+
+<h3>6. Bohrung fräsen</h3>
 <ul>
 <li>Für <b>Bohrungen</b>: die Wand einer zylindrischen Bohrung anklicken – in
 der Liste steht „Bohrung Ø 20, durchgehend“ oder „Bohrung Ø 34, Grund 10“.
@@ -194,7 +213,7 @@ Rampe). Sind dazu andere Wände gewählt, fährt die Kontur nur diese.</li>
 Grund (durchgehend 0,5 mm darunter).</li>
 </ul>
 
-<h3>6. Kontur</h3>
+<h3>7. Kontur</h3>
 <ul>
 <li>Für <b>Wände</b>: senkrechte Flächen mit waagerechter Unterkante – eben,
 rund oder frei geformt. Die Unterkanten der gewählten Wände verbinden sich zu
@@ -245,7 +264,7 @@ alten nimmt das Fenster heraus, wenn ihn keine Operation mehr benutzt.</p>
 
 <h3>Was noch kommt</h3>
 <p>Der Einstieg (Rampe, Helix, senkrecht) nach Zeit, Trochoiden in engen
-Ecken, Bohren und Gewinde aus dem Fenster, Fasen – nach dem
+Ecken, Gewinde aus dem Fenster, Fasen – nach dem
 Plan in der Spezifikation W-006.</p>
 </body>
 </html>

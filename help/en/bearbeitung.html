@@ -16,7 +16,8 @@ li { margin-bottom: 0.4em; }
 vertical. The button “Machining (milling)” opens the window; the way from the
 part to the operations has three steps, all in one window: part and stock,
 the faces, then one block with a tick per machining – <b>Face milling</b> and
-<b>Clearing</b> for flat faces facing up, <b>Contour</b> for walls. “Create” creates all ticked
+<b>Clearing</b> for flat faces facing up, <b>Drilling</b> and <b>Hole milling</b> for
+cylindrical holes, <b>Contour</b> for walls. “Create” creates all ticked
 ones. For a round stock
 with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
 
@@ -161,7 +162,24 @@ enters the clearing allowance as “material beside the wall” at the contour
 (as long as the field is empty), and the contour says so: “… – only the
 allowance at the walls: clearing clears the pocket”.</p>
 
-<h3>5. Hole milling</h3>
+<h3>5. Drilling</h3>
+<ul>
+<li>For <b>through holes</b>, when the tool management has a <b>drill</b> with
+their diameter – the matching one is preselected. A blind hole with a flat
+bottom a drill cannot make (its tip would remain); “Hole milling” mills it.</li>
+<li>Created is <b>FreeCAD's Drilling</b> with the cutting data of the
+application “Drilling”: the tip its length below the bottom so the hole has
+the full diameter all the way down; the R plane 3 mm above the stock; shallower
+than 3 × D in one go (G81), deeper in pecks (G83) – <b>depth per peck</b>
+(empty: 1 × D each). Change it in FreeCAD's window (double-click).</li>
+<li>Grey below: “→ 1 hole, 1 peck, about 1 min”. Red says why it does not
+work (another diameter, flat bottom).</li>
+<li>Drilling, hole milling and contour solve the same task in a hole: the
+window computes all that work and ticks the fastest – with a matching drill
+usually drilling.</li>
+</ul>
+
+<h3>6. Hole milling</h3>
 <ul>
 <li>For <b>holes</b>: click the wall of a cylindrical hole – the list says
 “hole Ø 20, through” or “hole Ø 34, bottom 10”. An end mill smaller than the
@@ -188,7 +206,7 @@ other walls selected too, the contour runs only those.</li>
 bottom (through holes 0.5 mm below).</li>
 </ul>
 
-<h3>6. Contour</h3>
+<h3>7. Contour</h3>
 <ul>
 <li>For <b>walls</b>: vertical faces with a horizontal bottom edge – flat,
 round or free-form. The bottom edges of the selected walls join into
@@ -241,7 +259,7 @@ uses it any more.</p>
 
 <h3>What comes next</h3>
 <p>The entry (ramp, helix, vertical) by time, trochoids in tight corners,
-hole milling, drilling and threads from the window, chamfers – following the
+threads from the window, chamfers – following the
 plan in specification W-006.</p>
 </body>
 </html>

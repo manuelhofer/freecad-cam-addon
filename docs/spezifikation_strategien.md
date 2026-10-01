@@ -623,6 +623,19 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   streifte den Ring, den die Bahn erst noch nimmt (23,8 mm³ im Eilgang) – jetzt
   zählt der gemessene Abstand der Einfahrstelle zur Wand, auf beiden Seiten
   der Stirn.
+  Dann **Bohren** (P-2026-10-01-30, 0.47.0): FreeCADs Bohr-Operation
+  (Path.Op.Drilling) aus dem Assistenten mit einem Bohrer aus der
+  Werkzeugverwaltung – nur für durchgehende Bohrungen mit seinem Durchmesser
+  (eine Sackbohrung mit ebenem Grund kann ein Bohrer nicht). `bohren.py` legt
+  sie an (ohne FreeCADs Vorgaben, die bei mehreren Controllern nachfragen):
+  die gewählten Bohrungen als Basis, „Drill Tip“ (die Spitze unter den Grund),
+  R 3 mm über dem Rohteil, G98, Hübe ab 3 × D je 1 × D (G83), sonst G81; die
+  Zeit aus denselben Bewegungen (`planen`). Im Assistenten der Block „Bohren“
+  (nur Bohrer zur Auswahl, `_Strategie.werkzeug_passt`; vorgewählt der mit dem
+  Durchmesser der Bohrung) und der Wettbewerb in Gruppen (`_gruppen`): Bohren,
+  Bohrung fräsen und Kontur auf denselben Bohrungen – die schnellste bekommt
+  den Haken (zwei Bohrungen Ø 20: Bohren 0,77 min, Bohrung fräsen 1,09).
+  Prüfung `test_bohren`, Szenario `szenario_bohren`. Gewinde (Tapping) folgt.
 - **S3h Nullpunkt und Spannung** (Manuel, 2026-10-01): Der Nullpunkt des Jobs
   frei setzbar – aus einem Punkteraster des Rohteils (beim Quader 22 Punkte:
   die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten) und um x, y, z

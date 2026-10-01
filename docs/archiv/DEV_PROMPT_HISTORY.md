@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-01-30 bohren-aus-dem-assistenten
+
+### EINGELESEN
+- Spezifikation Strategien S3g („FreeCADs Operationen aus dem Assistenten mit den
+  Schnittwerten“), Katalog Punkt 7; FreeCAD 1.1.3 `Path/Op/Drilling.py`, `Path/Op/Base.py`
+  (`DoNotSetDefaultValues`, `setDefaultValues` → `findToolController` fragt bei mehreren
+  Controllern nach und scheitert ohne Oberfläche), `Path/Op/Gui/Base.py` (`ViewProvider`,
+  `CommandResources`); `job_schnittwerte` („Drilling“ → Einsatz Bohren), `reichweite`
+  (Bohrzyklen im Abfahren), `gui_bearbeitung` (Blöcke, Wettbewerb).
+
+### DATEIEN
+- `camaddon/bohren.py` (neu), `camaddon/gui_bearbeitung.py`, `translations/de.json`,
+  `translations/en.json`, `tests/test_bohren.py` (neu), `tests/gui/szenario_bohren.py` (neu),
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`,
+  `package.xml` (0.47.0)
+
+### AKZEPTANZKRITERIUM
+Mit einem Bohrer Ø 20 in der Werkzeugverwaltung und der Wand einer durchgehenden Bohrung Ø 20
+gewählt: Der Block „Bohren“ wählt den Bohrer von selbst, Bohren, Bohrung fräsen und Kontur
+rechnen, Bohren ist am schnellsten und behält den Haken („– die schnellste; Bohrung fräsen
+wäre 41 % langsamer“), die anderen sagen, um wie viel langsamer. Mit einer Sackbohrung dazu
+geht Bohren nicht (ebener Grund), Bohrung fräsen bekommt den Haken. „Anlegen“ legt FreeCADs
+„Bohren T2“ an: G81 mit Z −6,009 (die Spitze unter dem Grund), R 24; „Auf der Maschine prüfen“
+meldet nichts im Teil. Tiefer als 3 × D: G83 mit Q = D.
+
+### DONE
+- `bohren.py`: `passende`, `spitze`, `hub_fuer`, `planen` (die Bewegungen des Zyklus für die
+  Zeit), `vorschau`, `lege_an` (FreeCADs Drilling ohne seine Vorgaben angelegt: Basis, Höhen
+  wie unsere Operationen, FinalDepth am Grund, „Drill Tip“, R 3 mm über dem Rohteil, Hübe,
+  ohne Verweilen, G98; in der Oberfläche FreeCADs Ansicht der Operation), `ist_bohren`.
+- Assistent: `_Bohren` (nur Bohrer: `_Strategie.werkzeug_passt`; Feld „Tiefe je Hub“, leer
+  automatisch), `_bohrer_waehlen` (der Bohrer mit dem Durchmesser der Bohrungen),
+  `_bohrer_da` (möglich nur mit passendem Bohrer und durchgehenden Bohrungen); der Wettbewerb
+  in Gruppen (`_gruppen`, `_wettbewerb_gruppe`: die schnellste bekommt den Haken, die zweite
+  steht in ihrer Zeile, jede andere sagt, um wie viel langsamer); die Kontur ohne die
+  Bohrungen, die Bohren oder Bohrung fräsen nimmt.
+
+### TEST
+- 1.1.3: `test_bohren` (zwei Ø 20: Bohren 0,77 min, Bohrung fräsen 1,09), `test_sprache` grün;
+  Szenarien `szenario_bohren`, `szenario_bohrung`, `szenario_platte`, `szenario_raeumen`,
+  `szenario_bearbeitung`, `szenario_kontur` grün; black/ruff grün.
+
+### NEXT
+- Gewinde (Tapping) aus dem Assistenten: Kernloch Ø = Gewinde-Ø − Steigung, nach dem Bohren;
+  Fasen 2,5D.
+
 ## P-2026-10-01-29 bohrung-fraesen
 
 ### EINGELESEN
