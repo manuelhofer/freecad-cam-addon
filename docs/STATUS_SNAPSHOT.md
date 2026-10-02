@@ -183,7 +183,7 @@ Drehmaschine, sagt Schritt 1 rot, dass das Rohteil dort eine Stange ist, und „
 Maschinen der Liste an (P-2026-10-02-60, 0.113.0). Das Rohteil kann ein konstruierter
 Körper sein: In Schritt 1 „Teil aus dem Dokument“ – der Job nimmt den Körper, wie er im
 Modell liegt, der Nullpunkt rechnet mit ihm (P-2026-10-02-61, 0.114.0).
-Als Nächstes (Manuel, 2026-10-02; Spezifikation Strategien, Abschnitt 12): der Materialstand (W-012, 12.7) – jede Schrupp-Operation beginnt, wo nach den Operationen davor noch Material ist, zuerst die Nut (M1; darin aufgegangen W-011 S4b, der Rohteil-Körper), danach nach Manuels Antwort auf Frage 1 der zweite Lauf am selben Teil im selben Job, dann Räumen, Planfräsen, Kontur; die Eintauchstelle der geschlossenen Nut wählbar mit Vorschlag (12.8, Frage 2); Schlichten nach dem Räumen besprechen – eigener Fräser und eigene Werte, mit Aufmaß am Boden auch den Boden (Vorschlag in 12.4); der Prüfstand meldet zu viel Last für alle Strategien, nicht nur die Nut (12.1, offen). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+Als Nächstes (Manuel, 2026-10-02; Spezifikation Strategien, Abschnitt 12): der Materialstand (W-012, 12.7) – jede Schrupp-Operation beginnt, wo nach den Operationen davor noch Material ist, zuerst die Nut (M1; darin aufgegangen W-011 S4b, der Rohteil-Körper), danach der zweite Lauf am selben Teil im selben Job (Frage 1: a), dann Räumen, Planfräsen, Kontur; die Eintauchstelle der geschlossenen Nut wählbar mit Vorschlag, aus der Liste oder im Bild (12.8, Frage 2: a); Schlichten nach dem Räumen besprechen – eigener Fräser und eigene Werte, mit Aufmaß am Boden auch den Boden (Vorschlag in 12.4); der Prüfstand meldet zu viel Last für alle Strategien, nicht nur die Nut (12.1, offen). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
@@ -503,7 +503,8 @@ Ein Satz je Wunsch, W-ID fortlaufend.
   noch an Material steht, und nur das fräsen (Manuels Klotz: erst der Zapfen, dann beginnt die
   Nut bei z −10); die geschlossene Nut taucht helikal an einer wählbaren Stelle ein, mit
   Vorschlag (Manuel, 2026-10-02): [spezifikation_strategien.md](spezifikation_strategien.md),
-  Abschnitte 12.7 und 12.8 – wartet auf Frage 1 und 2; M1 geht ohne sie.
+  Abschnitte 12.7 und 12.8 – entschieden: Frage 1 (a) derselbe Job, Frage 2 (a) Liste und
+  Anklicken; Schritte M1–M4 und E1.
 - **W-004 Bedienung vereinfachen und automatisieren** – Durchsicht aller
   Fenster und Abläufe (2026-09-27, Manuels Auftrag): acht kleine Stellen
   (D-01 bis D-08), einfacher bedienen (D-10 bis D-14), automatisieren (D-20

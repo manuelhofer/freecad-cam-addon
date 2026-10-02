@@ -1695,6 +1695,8 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     neuer Job?“ Eine Frage mehr bei jedem Klick.
   - **(c) Wie heute:** jeder Lauf ein neuer Job. Der Materialstand gilt dann nur für die
     Operationen eines Laufs – man muss alle Flächen auf einmal anklicken.
+  - **Entschieden** (Manuel, 2026-10-02: „Frage 1. A“): **(a)** – derselbe Job, Schritt 1 grau,
+    „Neuer Job …“ für eine zweite Aufspannung.
 
     ```
      Schritt 1 von 3 – Aufspannung                         (a), das Teil hat schon einen Job
@@ -1749,6 +1751,7 @@ geht … und an einer von mir aus wählbaren Position in der Nut … aber natür
     Weniger im Fenster – aber welche Stelle gilt, sieht man nur in der Ansicht.
   - **(c) Abstand vom Ende in mm:** ein Zahlenfeld. Genau, aber man muss rechnen, und welches
     Ende gemeint ist, sieht man nicht.
+  - **Entschieden** (Manuel, 2026-10-02: „Frage 2 a“): **(a)** – Liste und Anklicken.
 
     ```
      Nut   Fräser [T1 VHM 12 ▾]   Einsatz [Dynamisch ▾]

@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-63 materialstand-entschieden
+
+### EINGELESEN
+- Manuel, 2026-10-02, auf die zwei Fragen zu W-012: „Frage 1. A Frage 2 a“.
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (12.7 und 12.8: Entschieden), `docs/STATUS_SNAPSHOT.md`
+
+### AKZEPTANZKRITERIUM
+Die Entscheidungen stehen bei den Fragen in der Spezifikation und im Snapshot.
+
+### DONE
+- Frage 1 (a): Ein zweiter Lauf am selben Teil geht in denselben Job (Schritt 1 grau, „Neuer
+  Job …“ für eine zweite Aufspannung). Frage 2 (a): Die Eintauchstelle der Nut aus einer Liste
+  oder im Bild angeklickt.
+
+### TEST
+- Nur Doku, kein Lauf.
+
+### NEXT
+- M1: der Materialstand und die Nut darauf.
+
 ## P-2026-10-02-62 vorschlag-materialstand
 
 ### EINGELESEN
