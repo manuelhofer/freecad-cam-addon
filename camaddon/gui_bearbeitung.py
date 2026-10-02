@@ -1410,7 +1410,9 @@ class _Schruppen3D(_Strategie):
         return s3b.ist_freiform(form, name)
 
     def vorgeschlagen(self, form, gewaehlte):
-        return bool(gewaehlte) and all(self.passt(form, n) for n in gewaehlte)
+        # Sobald eine Freiformfläche gewählt ist – auch neben Oberseite und Bohrungen (eine
+        # Formplatte, P-2026-10-02-14); gefräst werden nur die Freiformflächen (flaechen_fuer).
+        return any(self.passt(form, n) for n in gewaehlte)
 
     def unmoeglich_text(self):
         return tr("ba.r3.keine")
@@ -1620,7 +1622,9 @@ class _Schlichten3D(_Strategie):
         return s3b.ist_freiform(form, name)
 
     def vorgeschlagen(self, form, gewaehlte):
-        return bool(gewaehlte) and all(self.passt(form, n) for n in gewaehlte)
+        # Sobald eine Freiformfläche gewählt ist – auch neben Oberseite und Bohrungen (eine
+        # Formplatte, P-2026-10-02-14); gefräst werden nur die Freiformflächen (flaechen_fuer).
+        return any(self.passt(form, n) for n in gewaehlte)
 
     def unmoeglich_text(self):
         return tr("ba.s3.keine")

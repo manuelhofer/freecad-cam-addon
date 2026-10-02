@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-14 formplatte
+
+### EINGELESEN
+- `gui_bearbeitung` (`_Schruppen3D.vorgeschlagen`, `_Schlichten3D.vorgeschlagen`,
+  `_Restschruppen`, `_Restschlichten`, `_haken_vorschlagen`), `tests/gui/szenario_mulde.py`.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`, `help/de|en/bearbeitung.html`, `tests/gui/szenario_formplatte.py`
+  (neu), `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.76.0)
+
+### AKZEPTANZKRITERIUM
+Formplatte 100 × 100 × 30 mit Kugelmulde R 30 und vier Bohrungen Ø 9 (T1 Standardfräser, T2
+Bohrer Ø 9, T3 Kugel Ø 6): Oberseite, Mulde und Bohrungen angeklickt – Planfräsen oder Räumen,
+Bohren mit T2, 3D-Schruppen mit T1 und 3D-Schlichten mit T3 angehakt, kein roter Satz an einem
+angehakten Block; „Anlegen“ legt alle an; am Ende nirgends ins Teil.
+
+### DONE
+- Gefunden beim Erkunden: 3D-Schruppen und 3D-Schlichten waren nur vorgeschlagen, wenn alle
+  gewählten Flächen Freiformflächen waren – neben Oberseite und Bohrungen bekam die Mulde keine
+  Operation (stumm: kein Haken, keine Zeile).
+- Jetzt schlagen beide sich vor, sobald eine Freiformfläche gewählt ist; gefräst werden nur die
+  Freiformflächen (wie bisher `flaechen_fuer`). Restschruppen und Restschlichten bleiben von Hand.
+
+### TEST
+- 1.1.3: `szenario_formplatte` (neu), `szenario_mulde`, `szenario_schlichten3d`,
+  `szenario_schlichten3d_rand`, `szenario_restschlichten`, `szenario_restschruppen`,
+  `szenario_bleistift`, `szenario_strategien`, `szenario_platte` grün; black/ruff grün.
+
+### NEXT
+- Wie P-2026-10-02-11.
+
 ## P-2026-10-02-13 deckel
 
 ### EINGELESEN

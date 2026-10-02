@@ -161,7 +161,11 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    Wettbewerb nur heraus, wenn alle Gegner der Gruppe dieselben Flächen hatten, und die Kontur
    hatte auch die Wände der Tasche. Jetzt teilt er die Gruppe nach gleichen Flächen, auch die
    nicht angetretenen Blöcke: Wo einer geht und ein anderer rot ist, verliert der rote den Haken
-   (`szenario_deckel`: „Räumen T1“, „Bohren T2“, „Kontur T1“).
+   (`szenario_deckel`: „Räumen T1“, „Bohren T2“, „Kontur T1“). **Formplatte**
+   (P-2026-10-02-14, 0.76.0): Oberseite, Kugelmulde und vier Bohrungen angeklickt – die Mulde
+   bekam gar keine Operation: 3D-Schruppen und 3D-Schlichten schlugen sich nur vor, wenn allein
+   Freiformflächen gewählt waren. Jetzt, sobald eine dabei ist (gefräst werden nur sie);
+   `szenario_formplatte`: Planfräsen, Bohren, 3D-Schruppen T1, 3D-Schlichten T3.
 8. **Fasen / Entgraten** – an Kanten in der Ebene mit Fasenfräser oder
    Kugelfräser als Kantenbruch; Breite einstellbar; **auch an Kanten im Raum**
    und rundum (V4d). Aufwand mittel. Gebaut: rundum (V4d, 0.36.0) und im
