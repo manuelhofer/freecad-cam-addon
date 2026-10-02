@@ -7,7 +7,8 @@
 # in einer Lage –, die Insel oben danach nur noch über sich, in Ringen um das, was noch steht, die
 # obere Stufe zuletzt; zusammen höchstens 13 min (jede Fläche für sich vom Rohteil her: 26 min),
 # ohne Rest, nirgends ins Teil. Der Boden der kleinen Tasche: Der Ø 12 passt nicht hinein – ein
-# Satz statt einer Bahn rund um die Insel (B-006).
+# Satz statt einer Bahn rund um die Insel (B-006); mit den anderen Flächen zusammen fällt sie aus,
+# und die Bahn nennt sie (B-007).
 import os
 import sys
 
@@ -82,11 +83,13 @@ def vorschub_je_hoehe(bahn):
 
 
 pruefe(len(ebenen_bei(PLATTE, INSEL, STUFE, TASCHE)) == 4, "die vier ebenen Flächen")
+TASCHENBODEN = ebenen_bei(TASCHE)[0].name
 
 # --- Räumen über die drei offenen Höhen ---------------------------------------------------------
 bahn = raeumen(PLATTE, INSEL, STUFE)
 weg, folge = vorschub_je_hoehe(bahn)
 pruefe(bahn.flaechen == 3 and bahn.lagen == 3, f"{bahn.flaechen} Flächen, {bahn.lagen} Lagen")
+pruefe(bahn.ausgelassen == [], f"ohne die Tasche ausgelassen: {bahn.ausgelassen}")
 # Die tiefste zuerst, jede Höhe einmal – außen um die Insel 23 mm in einer Lage.
 pruefe(folge == [PLATTE, INSEL, STUFE], f"Reihenfolge der Höhen: {folge}")
 pruefe(bahn.zeit < 13.0, f"Räumen über drei Höhen: {bahn.zeit:.1f} min – das Ziel sind 8")
@@ -114,12 +117,14 @@ except ValueError as grund:
     pruefe(len(str(grund)) > 10, "Tasche: kein Satz")
 else:
     pruefe(False, "Tasche: eine Bahn, obwohl der Ø 12 nicht hineinpasst")
-# Mit den anderen zusammen fällt sie aus; die drei offenen Flächen bleiben, wie sie sind.
+# Mit den anderen zusammen fällt sie aus – und die Bahn sagt es (B-007); die drei offenen Flächen
+# bleiben, wie sie sind.
 alle = raeumen(PLATTE, INSEL, STUFE, TASCHE)
 pruefe(
     alle.flaechen == 3 and abs(alle.zeit - bahn.zeit) < 0.05,
     f"mit der Tasche: {alle.flaechen} Flächen, {alle.zeit:.2f} min",
 )
+pruefe(alle.ausgelassen == [TASCHENBODEN], f"ausgelassen: {alle.ausgelassen}")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

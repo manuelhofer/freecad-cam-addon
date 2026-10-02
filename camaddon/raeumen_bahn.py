@@ -143,6 +143,9 @@ class Raeumbahn:
     noch: float = 0.0
     weg: float = 0.0
     davor: list = field(default_factory=list)
+    # Die Böden von Taschen („Face26“ …), in die der Fräser nicht passt: Dort steht noch
+    # Material, aber kein Ring hat Platz – sie bleiben stehen (ein kleinerer Fräser).
+    ausgelassen: list = field(default_factory=list)
 
 
 # --- Das Raster: Hüllfläche, Rohteil, Freies ---------------------------------------------------
@@ -721,11 +724,13 @@ class _Stand:
     noch: float = 0.0  # mit Materialstand: was über den Flächen noch steht (mm³)
     weg: float = 0.0  # … und was die Operationen davor dort schon weggenommen haben
     davor: list = field(default_factory=list)  # … und welche das waren
+    ausgelassen: list = field(default_factory=list)  # Taschenböden, in die der Fräser nicht passt
 
     def dazu(self, teil):
         """Hängt die Bahn einer Fläche (`teil`, ein eigener _Stand) an."""
         self.punkte += teil.punkte
         self.rampen_bei += teil.rampen_bei
+        self.ausgelassen += teil.ausgelassen
         self.davor += [name for name in teil.davor if name not in self.davor]
         self.z_min = min(self.z_min, teil.z_min)
         for zahl in (
@@ -1216,6 +1221,7 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         st.noch,
         st.weg,
         st.davor,
+        st.ausgelassen,
     )
 
 
@@ -1344,7 +1350,11 @@ def _flaeche(st, netz, w, ebene, tasche, konturen, variante, r, schritt, stand=N
     if stand is not None or material is not None:
         hoehe, naechste, oben, decke = _mit_stand(st, feld, stand, material, oben, ziel, zugabe, w)
         if oben <= ziel + MATERIAL:
-            return  # über der Fläche steht nichts mehr, was der Fräser hier wegnehmen kann
+            # Über der Fläche steht nichts mehr, was der Fräser hier wegnehmen kann – steht in
+            # der Tasche noch etwas, passt er nicht hinein.
+            if tasche is not None and _steht_in_der_tasche(feld, naechste, ziel):
+                st.ausgelassen.append(ebene.name)
+            return
         if hoehe is not None and variante == "morph":
             raise _KeinMorph()  # der Morph fährt ganze Ringe – auch durch Weggefrästes
     anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / zustellung)))
@@ -1398,6 +1408,18 @@ def _flaeche(st, netz, w, ebene, tasche, konturen, variante, r, schritt, stand=N
     feld.ganzes_rohteil()
     if gefahren:
         st.flaechen += 1
+    elif tasche is not None and _steht_in_der_tasche(feld, naechste, ziel):
+        st.ausgelassen.append(ebene.name)  # Material, aber kein Ring: der Fräser passt nicht
+
+
+def _steht_in_der_tasche(feld, naechste, ziel):
+    """Steht in der Tasche (feld.nur) über ihrem Boden noch Material – abseits der Wände (zwei
+    Zellen: dort sieht das Raster die Wand selbst und das Aufmaß an ihr)? `naechste`: die Höhen
+    des Materialstands je Knoten; None: Das Rohteil steht noch ganz."""
+    innen = feld.nur & ~feld.aufweiten(~feld.nur, 2.0 * feld.schritt)
+    if naechste is not None:
+        innen = innen & (naechste > ziel + MATERIAL)
+    return innen.sum() * feld.schritt * feld.schritt >= MINDESTFLAECHE
 
 
 class _Material:

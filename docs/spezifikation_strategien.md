@@ -2002,6 +2002,13 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   das Räumen“), und fährt dort ins Volle; in den spitzen Ecken bleibt Material. *Soll:* Der
   Assistent sagt, welche Fläche der Fräser nicht kann, und schlägt dafür den größten Fräser der
   Werkzeugkiste vor, der hineinpasst – als eigene Operation danach (Schritt T3 unten).
+  **Zur Hälfte behoben:** P-2026-10-02-81, 0.124.1 – das Räumen nennt die Tasche
+  (`Raeumbahn.ausgelassen`; im Fenster „… In die Tasche Face26 passt der Ø 12 nicht – sie
+  bleibt stehen.“), und die Kontur behauptet nicht mehr, das Räumen habe sie geräumt: Sie sieht
+  im Materialstand selbst nach und fährt an den geräumten Wänden einmal beim Aufmaß ab, dann das
+  Schlichten. Nachgemessen: „Ins Volle“ fuhr sie auch vorher nicht – ihr Schlichtgang geht in
+  der Tasche über die Rampe hinab (3°), das begrenzt den Querschnitt. Offen bleibt T3: der
+  kleinere Fräser für die Tasche.
 - **B-008 Prüffenster: 12 mm „Rest“ auf einer Linie in der Mulde.** Die Naht der Mulde liegt
   genau auf einer Zeile des Rasters (y 0); ein Knoten genau auf einer Kante des Netzes zählt
   nicht, also sieht der Vergleich dort bis auf die Unterseite des Teils. Gefräst ist die Mulde

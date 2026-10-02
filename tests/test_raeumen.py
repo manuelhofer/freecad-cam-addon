@@ -495,6 +495,21 @@ except ValueError as grund:
     pruefe(len(str(grund)) > 10, "schmale Tasche: kein Satz")
 else:
     pruefe(False, "schmale Tasche in der Insel: eine Bahn, obwohl der Fräser nicht hineinpasst")
+# Mit der Platte zusammen: Die Platte wird geräumt, die schmale Tasche fällt aus – und die Bahn
+# nennt sie (B-007: bisher ohne ein Wort).
+ebenen_s = [e for e in hf.ebenen_oben(teil_s) if round(e.z) in (20, 30)]
+bahn_s = rb.planen(
+    hf.netze_je_hoehe(teil_s, ebenen_s),
+    werte_fuer(rohteil_e, 36.0),
+    ebenen_s,
+    ra.konturen_des_teils(teil_s),
+)
+boden_s = next(e.name for e in ebenen_s if round(e.z) == 30)
+pruefe(
+    bahn_s.flaechen == 1 and bahn_s.ausgelassen == [boden_s],
+    f"schmale Tasche: {bahn_s.flaechen} Flächen, ausgelassen {bahn_s.ausgelassen}",
+)
+pruefe(bahn_t.ausgelassen == [], f"Tasche in der Insel: ausgelassen {bahn_t.ausgelassen}")
 print(f"Tasche in der Insel: Raeumen {bahn_t.zeit:.2f} min")
 
 # --- (f) Mehrere Höhen in einer Bahn: die tiefste zuerst, jede Stelle einmal --------------------

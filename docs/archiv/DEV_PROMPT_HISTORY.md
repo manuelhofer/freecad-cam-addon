@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-81 raeumen-sagt-was-es-auslaesst
+
+### EINGELESEN
+- B-007 (Spezifikation Strategien, Abschnitt 13.4): An Manuels Testteil passt der Ø 12 nicht in
+  die dreieckige Tasche. Das Räumen ließ sie aus und sagte „3 Flächen“ – wer vier angeklickt
+  hat, merkt es nicht. Die Kontur schrieb dazu „nur das Aufmaß an den Wänden: die Tasche räumt
+  das Räumen“.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`Raeumbahn.ausgelassen`, `_steht_in_der_tasche`, `_flaeche`),
+  `camaddon/gui_bearbeitung.py` (`_raeumen_ausgelassen_zeigen`, `_raeumt`, `_kontur_davor`),
+  `translations/de|en.json`, `help/de|en/bearbeitung.html`, `tests/test_raeumen.py`,
+  `tests/test_testteil.py`, `tests/gui/szenario_testteil.py`,
+  `docs/spezifikation_strategien.md` (13.4), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.124.1)
+
+### AKZEPTANZKRITERIUM
+Testteil, alle Flächen angeklickt → unter „Räumen“ steht hinter dem Ergebnis: „In die Tasche
+Face26 passt der Ø 12 nicht – sie bleibt stehen.“; bei der Kontur steht nicht mehr „die Tasche
+räumt das Räumen“.
+
+### DONE
+- `Raeumbahn.ausgelassen`: die Böden der Taschen, in denen noch Material steht (abseits der
+  Wände, mehr als 2 mm²), für die aber kein Ring Platz hat. Fällt jede Fläche aus, bleibt es
+  beim Fehler mit einem Satz.
+- Im Fenster hängt der Satz hinter dem Ergebnis des Räumens (grau, wie das Ergebnis – „Anlegen“
+  geht weiter: die anderen Flächen räumt es ja).
+- `_kontur_davor`: „die Tasche räumt das Räumen“ gilt nur noch, wenn das Räumen jede Tasche der
+  Kontur wirklich räumt. Sonst gibt der Assistent der Kontur keine Breite vor; sie rechnet mit
+  dem Materialstand – an geräumten Wänden einmal beim Aufmaß ab, dann das Schlichten.
+- Gefundener Fehler in der eigenen Beschreibung (13.4): „fährt dort ins Volle“ stimmte so nicht
+  – der Schlichtgang der Kontur geht in der ungeräumten Tasche über die Rampe hinab; der
+  Querschnitt bleibt unter ae · ap. Sinnvoll ist es trotzdem nicht: Die Tasche braucht den
+  kleineren Fräser (T3, als Nächstes).
+
+### TESTS
+- `tests/test_raeumen.py` (OK: eine schmale Tasche neben der Platte fällt aus und wird genannt),
+  `tests/test_testteil.py` (OK: `ausgelassen == [Taschenboden]`), `tests/test_sprache.py` (OK).
+- `tests/gui/szenario_testteil.py` (OK): der Satz unter „Räumen“, die Kontur ohne „räumt das
+  Räumen“.
+- FreeCAD 1.1.4 auf Manuels Rechner; black und ruff sauber.
+
 ## P-2026-10-02-80 raeumen-ueber-mehrere-hoehen
 
 ### EINGELESEN

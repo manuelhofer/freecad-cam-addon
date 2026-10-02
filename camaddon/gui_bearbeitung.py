@@ -4264,7 +4264,31 @@ class BearbeitungPanel:
         self._schon_weg_abhaken()
         self._raeumen_folge_zeigen(form)
         self._ziel_zeigen(form)
+        self._raeumen_ausgelassen_zeigen()
         self._knoepfe_beschriften()
+
+    def _raeumt(self, form):
+        """Die Flächen, die das Räumen wirklich räumt: seine Flächen ohne die Böden der Taschen,
+        in die sein Fräser nicht passt (B-007; raeumen_bahn.Raeumbahn.ausgelassen)."""
+        ausgelassen = getattr(self.raeumen.vorschau, "ausgelassen", None) or []
+        return set(self._flaechen(self.raeumen, form)) - set(ausgelassen)
+
+    def _raeumen_ausgelassen_zeigen(self):
+        """Hinter das Ergebnis des Räumens, in welche Taschen sein Fräser nicht passt (B-007,
+        Manuels Testteil: die dreieckige Tasche und der Ø 12) – sie bleiben stehen; bisher fiel
+        das ohne ein Wort aus."""
+        block = self.raeumen
+        ausgelassen = list(getattr(block.vorschau, "ausgelassen", None) or [])
+        text = block.ergebnis.text()
+        if not ausgelassen or not text or block.fraeser() is None:
+            return
+        d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
+        flaechen = ", ".join(ausgelassen)
+        if len(ausgelassen) == 1:
+            neu = tr("ba.raeumen.ausgelassen", text=text, flaeche=flaechen, d=d)
+        else:
+            neu = tr("ba.raeumen.ausgelassen.mehrere", text=text, flaechen=flaechen, d=d)
+        block.ergebnis.setText(neu)
 
     def _schon_weg_abhaken(self):
         """Wer „Hier ist nichts mehr zu tun“ sagt (Materialstand, W-012), verliert den Haken –
@@ -4548,12 +4572,17 @@ class BearbeitungPanel:
         Kontur sonst alle Bahnen vom Rohteil her noch einmal, durch Luft (P-2026-10-02-17)."""
         if self.raeumen.aktiv():
             waende = self.kontur.s.flaechen_fuer(form, self.gewaehlte)
-            boeden = rb.taschenboeden(form, waende)
-            if boeden and set(boeden) & set(self._flaechen(self.raeumen, form)):
+            boeden = set(rb.taschenboeden(form, waende))
+            # Nur, wenn das Räumen jede dieser Taschen auch räumt: In eine, in die sein Fräser
+            # nicht passt, führe die Kontur sonst mit „nur das Aufmaß“ ins Volle (B-007) – dann
+            # sieht sie selbst nach, was noch steht (Materialstand).
+            if boeden and boeden <= self._raeumt(form):
                 return "tasche"
+            if boeden & set(self._flaechen(self.raeumen, form)):
+                return None
         vor = kb.boeden_vor(form, self._flaechen(self.kontur, form))
         if vor:
-            if self.raeumen.aktiv() and vor <= set(self._flaechen(self.raeumen, form)):
+            if self.raeumen.aktiv() and vor <= self._raeumt(form):
                 return "raeumen"
             if self.plan.aktiv() and vor <= set(self._flaechen(self.plan, form)):
                 return "planen"

@@ -1569,6 +1569,8 @@
     "ba.raeumen.folge": "{text} – danach die Wände schlichten ({n})",
     "ba.raeumen.folge_stopp": "{text} – Messstopp, dann die Wände schlichten ({n})",
     "ba.raeumen.folge_keine": "{text} – keine Wand mit Aufmaß an den geräumten Flächen, nichts zu schlichten",
+    "ba.raeumen.ausgelassen": "{text}. In die Tasche {flaeche} passt der Ø {d} nicht – sie bleibt stehen.",
+    "ba.raeumen.ausgelassen.mehrere": "{text}. In die Taschen {flaechen} passt der Ø {d} nicht – sie bleiben stehen.",
     "ba.raeumen.schlichten_name": "Wände schlichten {werkzeug}",
     "ms.name": "Messstopp",
     "ba.raeumen.text": "Räumt die ebenen Flächen nach oben mit Ringen – wie ein HSM-Weg: bei voller Zustellung und schmalem Zeilenabstand, ohne Wenden, von außen kreisend nach innen (auf der Oberseite) oder von innen nach außen (in einer Tasche), im Gleichlauf. Eingetaucht wird nur, wo schon frei ist, sonst tangential aus dem Freien hinein. An Wänden und Inseln bleibt das Aufmaß stehen – für die Kontur.",

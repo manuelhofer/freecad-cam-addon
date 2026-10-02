@@ -573,12 +573,15 @@ Ein Satz je Wunsch, W-ID fortlaufend.
 An Manuels Testteil gefunden (Spezifikation Strategien, Abschnitt 13.4, P-2026-10-02-78); B-006 (die
 Tasche räumt außerhalb ihrer Wände) ist behoben (P-2026-10-02-79, 0.123.1).
 
-- **B-007** Räumen: Eine Tasche, in die der Fräser nicht passt, fällt ohne ein Wort aus; die Kontur fährt
-  dort trotzdem ins Volle.
+- **B-007** Räumen: In eine Tasche, in die der Fräser nicht passt, fährt nur die Kontur (über die Rampe) –
+  es fehlt der kleinere Fräser dafür (T3); dass das Räumen sie auslässt, sagt es seit P-2026-10-02-81.
 - **B-008** Prüffenster: 12 mm „Rest“ auf einer Linie in einer Kugelmulde – die Naht liegt auf einer Zeile
   des Rasters; gefräst ist sie richtig.
 - **B-009** Assistent „Bearbeitung“: Unter „3D-Schruppen“ steht „… hat „Planfräsen“ schon weggenommen“,
   obwohl Räumen angehakt ist.
+- **B-010** Zwei Szenarien sind veraltet und schlagen fehl, schon auf dem Stand vor dieser Sitzung:
+  `szenario_kontur` (erwartet 9 Bahnen, seit P-2026-10-02-75 sind es 10) und `szenario_erster_start` (das
+  Menü hat seit P-2026-10-02-58 „Maschinen …“). Der Lauf über alle Szenarien in 1.1.4 steht aus.
 
 ## Offene Tasks
 
