@@ -27,7 +27,7 @@ from . import schnittdaten as sd
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from .sprache import tr
-from .uebergabe_werkzeuge import PRAEFIX, freecad_werkstoffe, parameter_fuer_cam
+from .uebergabe_werkzeuge import PRAEFIX, drehrichtung, freecad_werkstoffe, parameter_fuer_cam
 
 # Anteil des Vorschubs beim Eintauchen und Rampen – wie FreeCADs Vorgabe für
 # neue Presets. Beim Bohren ist der senkrechte Vorschub der Vorschub selbst.
@@ -541,6 +541,7 @@ def controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff="", 
     )
     job.Proxy.addToolController(tc)
     _setze_werte(tc, werkzeug, einsatz, werkstoff)
+    _setze_drehrichtung(tc, werkzeug)
     return tc
 
 
@@ -564,6 +565,7 @@ def controller_fuer(dokument, job, werkzeug, einsatz, werkstoff, operation, numm
         and all(o is operation for o in operationen_mit(bisher, job))
     ):
         _setze_werte(bisher, werkzeug, einsatz, werkstoff)
+        _setze_drehrichtung(bisher, werkzeug)
         name = controller_name(werkzeug, einsatz, nummer)
         if bisher.Label != name:
             bisher.Label = name
@@ -613,6 +615,14 @@ def _ohne_zaehler(bit, name):
     while f"{name} ({zaehler})" in andere:
         zaehler += 1
     bit.Label = f"{name} ({zaehler})"
+
+
+def _setze_drehrichtung(tc, werkzeug):
+    """Die Drehrichtung des Controllers aus dem Werkzeug (M3/M4, P-2026-10-02-40) – FreeCAD
+    übernimmt sie beim Anlegen vom ToolBit, ein wiederverwendetes kann noch die alte tragen."""
+    richtung = drehrichtung(werkzeug)
+    if hasattr(tc, "SpindleDir") and str(tc.SpindleDir) != richtung:
+        tc.SpindleDir = richtung
 
 
 def _setze_werte(tc, werkzeug, einsatz, werkstoff):

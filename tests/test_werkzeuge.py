@@ -416,6 +416,19 @@ pruefe(
 )
 pruefe(wz.standardwerkzeug(7).nummer == 7, "Standardfräser mit Nummer")
 
+# Die Drehrichtung am Werkzeug (Manuel, 2026-10-02): jeder Fräser und Bohrer hat sie, leer gilt
+# die übliche – links nur der Linksgewindebohrer –, gespeichert wie eingetragen.
+pruefe(not wz.dreht_links(wz.Werkzeug(art=wz.SCHAFTFRAESER)), "Schaftfräser dreht links")
+pruefe(wz.dreht_links(wz.Werkzeug(art=wz.GEWINDEBOHRER_LINKS)), "Linksgewindebohrer rechts")
+links = wz.Werkzeug(art=wz.SCHAFTFRAESER, drehrichtung=wz.LINKS)
+pruefe(wz.dreht_links(links), "eingetragen links, gilt nicht")
+wieder = wz.Werkzeug.aus_dict(links.als_dict())
+pruefe(wieder.drehrichtung == wz.LINKS, f"gespeichert: {wieder.drehrichtung!r}")
+pruefe(wz.Werkzeug.aus_dict({"drehrichtung": "quer"}).drehrichtung == "", "unlesbar")
+for art, soll in ((wz.SCHAFTFRAESER, True), (wz.BOHRER, True), (wz.GEWINDEBOHRER_RECHTS, True),
+                  (wz.DREHWERKZEUG, False), (wz.TASTER, False)):  # fmt: skip
+    pruefe(wz.hat_feld(wz.Werkzeug(art=art), wz.DREHRICHTUNG) == soll, f"{art}: Feld Drehrichtung")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

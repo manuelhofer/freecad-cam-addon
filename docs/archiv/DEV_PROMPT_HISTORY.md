@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-40 drehrichtung-am-werkzeug
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Natürlich muss man die Drehrichtung des Werkzeuges im Werkzeug
+  angeben.“ Spezifikation Werkzeugverwaltung, Abschnitt 14.
+- Bisher: die Richtung aus der Art (`uebergabe_werkzeuge.drehrichtung`), am Controller
+  `SpindleDir` – FreeCAD übernimmt beim Anlegen das `SpindleDirection` des ToolBits;
+  die Bahnen rechnen den Gleichlauf nach dem Controller (`spindel.py`, P-2026-10-02-20).
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`drehrichtung`, `DREHRICHTUNG`, `dreht_links`, `drehrichtung_text`,
+  Feld bei allen Fräsern und Bohrern), `camaddon/gui_werkzeuge.py` (Auswahl „Drehrichtung“),
+  `camaddon/uebergabe_werkzeuge.py`, `camaddon/werkzeuge_aus_cam.py`,
+  `camaddon/job_schnittwerte.py` (`_setze_drehrichtung`), `translations/de|en.json`,
+  `help/de|en/werkzeuge.html`, Tests, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.97.0)
+
+### AKZEPTANZKRITERIUM
+Werkzeugverwaltung → Schaftfräser → „Drehrichtung: links (M4)“, speichern → ein Controller mit
+ihm (Assistent „Bearbeitung“) dreht rückwärts (M4), Kontur und Räumen fahren mit ihm im
+Gleichlauf.
+
+### DONE
+- Feld „Drehrichtung“ bei jedem Fräser und Bohrer (rechts M3 / links M4), leer gilt die
+  übliche der Art (links nur der Linksgewindebohrer); gespeichert, an CAM als
+  `SpindleDirection`, aus CAM gelesen („Reverse“ → links).
+- Der Controller bekommt die Richtung auch, wenn er ein Werkzeug im Dokument wiederverwendet,
+  das noch die alte trägt (`controller_fuer`).
+
+### TEST
+- 1.1.3: `test_werkzeuge`, `test_uebergabe_werkzeuge`, `test_werkzeuge_aus_cam`,
+  `test_job_schnittwerte` (M4 am Controller, auch beim Ändern), `test_sprache`, `test_hilfe`;
+  `szenario_werkzeugverwaltung`, `szenario_werkzeugbilder`; black/ruff grün.
+
+### NEXT
+- Manuel klickt das Akzeptanzkriterium durch.
+
 ## P-2026-10-02-39 wuensche-frueh
 
 ### EINGELESEN

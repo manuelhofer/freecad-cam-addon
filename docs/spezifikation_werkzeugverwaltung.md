@@ -734,3 +734,4 @@ Manuel: „Natürlich muss man die Drehrichtung des Werkzeuges im Werkzeug angeb
   Art; der Controller übernimmt sie beim Anlegen.
 - **Fertig, wenn:** ein links schneidender Fräser in der Werkzeugverwaltung einen Controller
   mit M4 bekommt und Kontur und Räumen mit ihm im Gleichlauf fahren.
+- **Gebaut:** P-2026-10-02-40, 0.97.0.

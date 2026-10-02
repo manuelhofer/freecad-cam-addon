@@ -206,10 +206,11 @@ def parameter_fuer_cam(werkzeug):
 
 
 def drehrichtung(werkzeug):
-    """SpindleDirection in CAM: rückwärts für den Linksgewindebohrer, keine beim Taster."""
-    if werkzeug.art == wz.GEWINDEBOHRER_LINKS:
-        return "Reverse"
-    return "None" if werkzeug.art == wz.TASTER else "Forward"
+    """SpindleDirection in CAM: rückwärts, wenn das Werkzeug links dreht (M4 – eingetragen oder
+    der Linksgewindebohrer), keine beim Taster."""
+    if werkzeug.art == wz.TASTER:
+        return "None"
+    return "Reverse" if wz.dreht_links(werkzeug) else "Forward"
 
 
 def _rund(w):

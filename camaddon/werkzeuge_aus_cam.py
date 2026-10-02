@@ -118,7 +118,8 @@ def werkzeug_aus(bit, nummer):
     art = ARTEN.get(str(getattr(o, "ShapeType", "") or "").lower())
     if art is None:
         return None
-    if art == wz.GEWINDEBOHRER_RECHTS and str(getattr(o, "SpindleDirection", "")) == "Reverse":
+    rueckwaerts = str(getattr(o, "SpindleDirection", "")) == "Reverse"
+    if art == wz.GEWINDEBOHRER_RECHTS and rueckwaerts:
         art = wz.GEWINDEBOHRER_LINKS
     werte = {
         "durchmesser": _mm(o, "Diameter"),
@@ -149,6 +150,8 @@ def werkzeug_aus(bit, nummer):
         w.schneiden = schneiden if schneiden >= 1 else wz.ARTDATEN[art].beispiel["schneiden"]
     if wz.hat_feld(w, "schneidstoff"):
         w.schneidstoff = wz.HSS if "hss" in str(getattr(o, "Material", "")).lower() else wz.VHM
+    if wz.hat_feld(w, wz.DREHRICHTUNG) and rueckwaerts and art != wz.GEWINDEBOHRER_LINKS:
+        w.drehrichtung = wz.LINKS
     w.name = str(bit.label)
     return w
 

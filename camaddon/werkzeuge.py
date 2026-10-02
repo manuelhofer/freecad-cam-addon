@@ -11,6 +11,7 @@ Läuft ohne Oberfläche.
 """
 
 import copy
+import dataclasses
 import json
 import os
 import time
@@ -96,6 +97,10 @@ ZAHLEN_FELDER = LAENGEN_FELDER + WINKEL_FELDER + (STEIGUNG,)
 # Wie ein Drehwerkzeug die Platte trägt – gespeichert als diese Wörter; leer = unbekannt.
 RECHTS, LINKS, NEUTRAL = "rechts", "links", "neutral"
 AUSFUEHRUNGEN = (RECHTS, LINKS, NEUTRAL)
+# Wie die Spindel dreht, damit das Werkzeug schneidet (Manuel, 2026-10-02): RECHTS (M3, die
+# Regel) oder LINKS (M4); leer = wie bei der Art üblich (dreht_links).
+DREHRICHTUNG = "drehrichtung"
+DREHRICHTUNGEN = (RECHTS, LINKS)
 
 VHM, HSS = "vhm", "hss"
 # Spitzenwinkel eines Bohrers, wenn keiner eingetragen ist: üblich für Spiralbohrer.
@@ -237,7 +242,23 @@ def feld_text(feld, art):
         "plattenwinkel": tr("wv.plattenwinkel"),
         "stechtiefe": tr("wv.stechtiefe"),
         "ausfuehrung": tr("wv.ausfuehrung"),
+        DREHRICHTUNG: tr("wv.drehrichtung"),
     }[feld]
+
+
+def drehrichtung_text(drehrichtung):
+    """„rechts (M3)“ oder „links (M4)“."""
+    if drehrichtung == LINKS:
+        return tr("wv.drehrichtung.links")
+    return tr("wv.drehrichtung.rechts")
+
+
+def dreht_links(werkzeug):
+    """Dreht die Spindel für dieses Werkzeug links (M4)? Eingetragen, sonst wie üblich: nur der
+    Linksgewindebohrer."""
+    if werkzeug.drehrichtung in DREHRICHTUNGEN:
+        return werkzeug.drehrichtung == LINKS
+    return werkzeug.art == GEWINDEBOHRER_LINKS
 
 
 def ausfuehrung_text(ausfuehrung):
@@ -401,6 +422,7 @@ class Werkzeug:
     plattenwinkel: float = 0.0  # Grad (Drehwerkzeug); 0 = üblich
     stechtiefe: float = 0.0  # mm (Einstechwerkzeug)
     ausfuehrung: str = ""  # RECHTS, LINKS, NEUTRAL (Drehwerkzeuge)
+    drehrichtung: str = ""  # RECHTS (M3) oder LINKS (M4); leer = wie üblich (dreht_links)
     # Warngrenze des Planers: breiter als so viel % von D wird rot, bleibt aber
     # wählbar; 0 = keine. Vorgabe 10 %, egal wie viele Schneiden (Manuel).
     ae_warngrenze: float = 10.0
@@ -475,6 +497,7 @@ class Werkzeug:
             "spitzenwinkel": self.spitzenwinkel,
             **{feld: getattr(self, feld) for feld in NEUE_FELDER},
             "ausfuehrung": self.ausfuehrung,
+            "drehrichtung": self.drehrichtung,
             "ae_warngrenze": self.ae_warngrenze,
             "schneidstoff": self.schneidstoff,
             "bezeichnung": self.bezeichnung,
@@ -517,6 +540,9 @@ class Werkzeug:
             setattr(w, feld, min(max(_zahl(daten.get(feld), float, 0.0), 0.0), grenze))
         ausfuehrung = daten.get("ausfuehrung")
         w.ausfuehrung = ausfuehrung if ausfuehrung in AUSFUEHRUNGEN else ""
+        # Erst seit P-2026-10-02-40 – fehlt sie, gilt die übliche der Art.
+        drehrichtung = daten.get("drehrichtung")
+        w.drehrichtung = drehrichtung if drehrichtung in DREHRICHTUNGEN else ""
         # Erst seit P-2026-09-26-40 – fehlt sie, gilt die Vorgabe.
         w.ae_warngrenze = min(
             max(_zahl(daten.get("ae_warngrenze"), float, w.ae_warngrenze), 0.0), 100.0
@@ -935,6 +961,11 @@ ARTDATEN = {
     ),
 }
 ARTEN = tuple(ARTDATEN)  # in der Reihenfolge der Auswahl
+# Die Drehrichtung hat jeder Fräser und jeder Bohrer (Manuel, 2026-10-02: „Natürlich muss man
+# die Drehrichtung des Werkzeuges im Werkzeug angeben“) – im Dialog nach den Maßen.
+for _art, _daten in tuple(ARTDATEN.items()):
+    if _daten.gruppe in (GRUPPE_FRAESEN, GRUPPE_BOHREN):
+        ARTDATEN[_art] = dataclasses.replace(_daten, felder=_daten.felder + (DREHRICHTUNG,))
 
 # Welche Einsätze „+ Einsatz“ je Art anbietet; „eigen“ geht immer dazu. None:
 # keine Schnittwerte – Drehwerkzeuge (FreeCAD dreht nicht) und Taster.

@@ -431,6 +431,13 @@ pruefe(
     wieder is platz5 and (wieder.Label, wieder.ToolNumber) == ("T8 Vollnut", 8),
     f"auf P8 umgesteckt: {wieder.Label}, {wieder.ToolNumber}",
 )
+# Die Drehrichtung kommt vom Werkzeug (P-2026-10-02-40): links schneidend → M4 am Controller,
+# auch beim Ändern eines Controllers, dessen Werkzeug im Dokument noch die alte trägt.
+pruefe(str(wieder.SpindleDir) == "Forward", f"rechts: {wieder.SpindleDir}")
+fraeser.drehrichtung = wz.LINKS
+wieder = js.controller_fuer(dok, job, fraeser, einsaetze[0], "1.4301", tasche, 8)
+pruefe(str(wieder.SpindleDir) == "Reverse", f"links schneidend: {wieder.SpindleDir}")
+fraeser.drehrichtung = ""
 FreeCAD.closeDocument(dok.Name)
 sprache.setze_sprache(vorher_sprache)
 if fehler:

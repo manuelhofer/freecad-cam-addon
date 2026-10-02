@@ -193,6 +193,8 @@ fremde = {
             "Length": "60 mm",
             "ShankDiameter": "6 mm",
         },
+        # Links schneidend: CAM dreht ihn rückwärts – die Werkzeugverwaltung merkt sich „links“.
+        "attribute": {"SpindleDirection": "Reverse"},
     },
     "fremd_eigene": {
         "name": "Eigene Form",
@@ -223,6 +225,8 @@ pruefe_werte(
 )
 pruefe_werte("3/8-16", wz.GEWINDEBOHRER_RECHTS, durchmesser=9.525, steigung=1.5875)
 pruefe_werte("Konik 3", wz.KONIKFRAESER, durchmesser=2, kegelwinkel=3, schneidenlaenge=25)
+pruefe(neu["Konik 3"].drehrichtung == wz.LINKS, f"Konik: {neu['Konik 3'].drehrichtung!r}")
+pruefe(neu["M8 links"].drehrichtung == "", "Linksgewindebohrer: links ist dort die Art")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

@@ -333,6 +333,13 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_ausfuehrung.currentIndexChanged.connect(self._ausfuehrung_geaendert)
         self._felder["ausfuehrung"] = (QtGui.QLabel(), self.feld_ausfuehrung)
 
+        self.feld_drehrichtung = QtGui.QComboBox()
+        for drehrichtung in wz.DREHRICHTUNGEN:
+            self.feld_drehrichtung.addItem(wz.drehrichtung_text(drehrichtung), drehrichtung)
+        self.feld_drehrichtung.setToolTip(tr("wv.drehrichtung.tooltip"))
+        self.feld_drehrichtung.currentIndexChanged.connect(self._drehrichtung_geaendert)
+        self._felder[wz.DREHRICHTUNG] = (QtGui.QLabel(), self.feld_drehrichtung)
+
         # Wie bisher erreichbar: feld_durchmesser, zeile_eckradius, beschriftung_eckradius …
         for feld, (beschriftung, zeile) in self._felder.items():
             setattr(self, f"beschriftung_{feld}", beschriftung)
@@ -573,6 +580,8 @@ class WerkzeugDialog(QtGui.QDialog):
             eingabe.setText(self._zeigen(feld, getattr(w, feld)))
         self.feld_schneiden.setValue(w.schneiden)
         self.feld_ausfuehrung.setCurrentIndex(max(self.feld_ausfuehrung.findData(w.ausfuehrung), 0))
+        links = wz.LINKS if wz.dreht_links(w) else wz.RECHTS
+        self.feld_drehrichtung.setCurrentIndex(self.feld_drehrichtung.findData(links))
         self.feld_schneidstoff.setCurrentIndex(self.feld_schneidstoff.findData(w.schneidstoff))
         self.feld_bezeichnung.setText(w.bezeichnung)
         self.feld_name.setText(w.name)
@@ -821,6 +830,12 @@ class WerkzeugDialog(QtGui.QDialog):
             return
         self.werkzeug.ausfuehrung = self.feld_ausfuehrung.currentData() or ""
         self._beispiel_weg("ausfuehrung")
+        self._geaendert()
+
+    def _drehrichtung_geaendert(self, _index):
+        if self._fuellt or self.werkzeug is None:
+            return
+        self.werkzeug.drehrichtung = self.feld_drehrichtung.currentData() or ""
         self._geaendert()
 
     def _schneidstoff_geaendert(self, _index):

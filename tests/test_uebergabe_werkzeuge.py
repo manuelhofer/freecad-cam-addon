@@ -159,6 +159,16 @@ pruefe("eigenes_werkzeug" in bits, "fremdes Werkzeug entfernt")
 nummern = sorted(cam_assets.get("toolbitlibrary://camaddon")._bit_nos)
 pruefe(nummern == [3, 7, 13, 15, 17], f"Bibliothek danach: {nummern}")
 
+# Die Drehrichtung am Werkzeug geht als SpindleDirection nach CAM (P-2026-10-02-40).
+for art, drehrichtung, soll in (
+    (wz.SCHAFTFRAESER, "", "Forward"),
+    (wz.SCHAFTFRAESER, wz.LINKS, "Reverse"),
+    (wz.GEWINDEBOHRER_LINKS, "", "Reverse"),
+    (wz.TASTER, "", "None"),
+):
+    ist = ue.drehrichtung(wz.Werkzeug(art=art, drehrichtung=drehrichtung))
+    pruefe(ist == soll, f"{art} {drehrichtung!r}: {ist}")
+
 sprache.setze_sprache(vorher)
 if fehler:
     raise AssertionError("\n".join(fehler))
