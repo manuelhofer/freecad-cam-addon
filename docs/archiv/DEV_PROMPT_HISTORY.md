@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-33 vierachs-kompakt
+
+### EINGELESEN
+- P-2026-10-02-32; `gui_vierachs` (Schritt 2: `_schruppen_umgeschaltet`,
+  `_schlichten_umgeschaltet`, `_plan_umgeschaltet`, `_entgraten_umgeschaltet`, die Vorschläge
+  für Plan und Entgraten, der Ändern-Modus, der fremde Abschnitte abhakt und ausblendet).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`, `help/de|en/vierachs.html`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.95.0)
+
+### AKZEPTANZKRITERIUM
+Wie im Assistenten „Bearbeitung“: Ein nicht angehakter Abschnitt zeigt nur Titel, Erklärung und
+warum – keine ausgegrauten Felder.
+
+### DONE
+- Die Felder von Rundum schruppen, Rundum schlichten, Plan indexiert und Rundum entgraten
+  sichtbar, solange der Abschnitt angehakt ist (vorher nur gesperrt); der Satz mit dem Grund
+  steht außerhalb der Felder und bleibt.
+
+### TEST
+- 1.1.3: Szenarien `szenario_vierachs_flaechen`, `szenario_vierachs_schlichten`,
+  `szenario_vierachs_aendern`, `szenario_vierachs_nocke`, `szenario_vierachs_plan`,
+  `szenario_vierachs_entgraten`, `szenario_vierachs_schruppen`, `szenario_vierachs_drehteil`;
+  black/ruff grün.
+
+### NEXT
+- Manuels Urteil zu beiden Assistenten.
+
 ## P-2026-10-02-32 bearbeitung-kompakt
 
 ### EINGELESEN

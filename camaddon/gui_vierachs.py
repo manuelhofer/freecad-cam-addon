@@ -1205,6 +1205,7 @@ class VierachsPanel:
         self.ergebnis_schlichten = grau()
         self.lage_schlichten = gelb()
         self.schlichtfelder.setEnabled(False)
+        self.schlichtfelder.setVisible(False)
 
         # --- Plan indexiert (V4c) ---
         self.mit_plan = haken(tr("va.plan"), tr("va.plan.tooltip"), self._plan_umgeschaltet)
@@ -1242,6 +1243,7 @@ class VierachsPanel:
         self.ergebnis_plan = grau()
         self.lage_plan = gelb()
         self.planfelder.setEnabled(False)
+        self.planfelder.setVisible(False)
         self.mit_plan.setEnabled(False)  # bis eine ebene Fläche längs der Stange gewählt ist
 
         # --- Rundum entgraten (V4d) ---
@@ -1272,6 +1274,7 @@ class VierachsPanel:
         self.ergebnis_entgraten = grau()
         self.lage_entgraten = gelb()
         self.entgratfelder.setEnabled(False)
+        self.entgratfelder.setVisible(False)
         self.mit_entgraten.setEnabled(False)  # bis es Außenkanten und einen Fräser dafür gibt
 
         # --- Abstände für alle ---
@@ -2360,6 +2363,7 @@ class VierachsPanel:
         if not self._fuellt:
             self._plan_von_hand = True
         self.planfelder.setEnabled(an)
+        self.planfelder.setVisible(an)
         self.ergebnis_plan.setVisible(an)
         self._umgeschaltet()
 
@@ -2432,6 +2436,7 @@ class VierachsPanel:
         finally:
             self._fuellt = vorher
         self.planfelder.setEnabled(self.plan_an())
+        self.planfelder.setVisible(self.plan_an())
         self.ergebnis_plan.setVisible(self.plan_an())
         if self.plan_an() != war:
             self._umgeschaltet()
@@ -2643,6 +2648,7 @@ class VierachsPanel:
         if not self._fuellt:
             self._entgraten_von_hand = True
         self.entgratfelder.setEnabled(an)
+        self.entgratfelder.setVisible(an)
         self.ergebnis_entgraten.setVisible(an)
         self._umgeschaltet()
 
@@ -2694,6 +2700,7 @@ class VierachsPanel:
         finally:
             self._fuellt = vorher
         self.entgratfelder.setEnabled(self.entgraten_an())
+        self.entgratfelder.setVisible(self.entgraten_an())
         self.ergebnis_entgraten.setVisible(self.entgraten_an())
         if self.entgraten_an() != war:
             self._umgeschaltet()
@@ -2798,12 +2805,16 @@ class VierachsPanel:
             return self._vorschlag(feld)
 
     def _schruppen_umgeschaltet(self, an):
+        # Die Felder eines Abschnitts nur, solange er angehakt ist – sonst der Titel, die
+        # Erklärung und warum (Manuel, 2026-10-02: „die Bedienung schön“).
         self.schruppfelder.setEnabled(an)
+        self.schruppfelder.setVisible(an)
         self.ergebnis.setVisible(an)
         self._umgeschaltet()
 
     def _schlichten_umgeschaltet(self, an):
         self.schlichtfelder.setEnabled(an)
+        self.schlichtfelder.setVisible(an)
         self.ergebnis_schlichten.setVisible(an)
         self._umgeschaltet()
 
