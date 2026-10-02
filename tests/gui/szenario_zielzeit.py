@@ -48,6 +48,19 @@ def schritte(h):
     h.pruefe(panel is not None and panel.job is not None, "kein Fenster oder kein Job")
     if panel is None or panel.job is None:
         return
+    # Drei Schritte (P-2026-10-02-42): zuerst die Aufspannung, „Weiter“ geht mit dem Job.
+    h.pruefe(
+        panel.seite() == 0 and panel.seiten[0].isVisible() and not panel.seiten[1].isVisible(),
+        f"nicht Schritt 1: {panel.seite()}",
+    )
+    h.pruefe(panel.knopf_weiter.isEnabled() and not panel.knopf_zurueck.isVisible(), "Knöpfe")
+    h.pruefe(panel.schritt_text.text().startswith("Schritt 1 von 3"), panel.schritt_text.text())
+    h.bild("0_aufspannung", panel.form)
+    panel.knopf_weiter.click()
+    yield 300
+    h.pruefe(
+        panel.seite() == 1 and panel.seiten[1].isVisible(), f"nicht Schritt 2: {panel.seite()}"
+    )
     yield from h.warte_auf(lambda: bool(panel.ziel_text.text()), 120000)
     yield 500
     text = panel.ziel_text.text()
@@ -78,6 +91,24 @@ def schritte(h):
         "Passt nicht: aufgeklappt fehlen Zeilen",
     )
     h.bild("2_passt_nicht", panel.form)
+    panel.passt_nicht_knopf.click()
+    # Schritt 3: nur die Einstellungen der angehakten Strategien.
+    panel.knopf_weiter.click()
+    yield 500
+    angehakt = panel.aktive_bloecke()
+    h.pruefe(
+        panel.seite() == 2
+        and bool(angehakt)
+        and all(b.einstellungen.isVisible() for b in angehakt)
+        and not any(b.einstellungen.isVisible() for b in panel.bloecke if not b.aktiv()),
+        f"Schritt 3: {[b.s.titel() for b in angehakt]}",
+    )
+    h.pruefe(not panel.knopf_weiter.isVisible(), "Schritt 3 mit „Weiter“")
+    h.bild("3_einstellungen", panel.form)
+    panel.knopf_zurueck.click()
+    panel.knopf_zurueck.click()
+    yield 300
+    h.pruefe(panel.seite() == 0, f"zurück: Schritt {panel.seite() + 1}")
     panel.reject()
     yield 500
     FreeCAD.closeDocument(doc.Name)

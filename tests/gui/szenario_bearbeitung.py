@@ -70,7 +70,14 @@ def schritte(h):
     h.pruefe("Zeilen längs X; längs Y wäre es" in text, f"Richtung: {text!r}")
     zeile = panel.flaechen_liste.item(0).text() if panel.flaechen_liste.count() else ""
     h.pruefe(zeile.startswith(flaeche) and "eben nach oben" in zeile, f"Liste: {zeile!r}")
+    # Die drei Schritte (P-2026-10-02-42): Aufspannung, was soll weg, Einstellungen.
+    h.bild("1a_aufspannung", panel.form)
+    panel.knopf_weiter.click()
+    yield 300
     h.bild("1_bearbeitung", panel.form)
+    panel.knopf_weiter.click()
+    yield 300
+    h.bild("1c_einstellungen", panel.form)
 
     # Zustellung 2 statt der 25 des Einsatzes: drei Lagen; mehr Aufmaß oben: eine Lage mehr.
     plan.felder["zustellung"].setText("2")

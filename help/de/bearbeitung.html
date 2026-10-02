@@ -14,25 +14,26 @@ li { margin-bottom: 0.4em; }
 <h2>Bearbeitung (Fräsen)</h2>
 <p>Für ein Teil, das in einem <b>Quader</b> auf einer Fräse liegt – die
 Werkzeugachse steht senkrecht. Der Knopf „Bearbeitung (Fräsen)“ öffnet das
-Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, alle in einem
-Fenster: Teil und Rohteil, die Flächen, dann je Bearbeitung ein Block mit
-Haken – <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Bohren</b>
+Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, oben steht, in welchem
+man ist („Schritt 1 von 3 – Aufspannung“), unten führen <b>← Zurück</b> und <b>Weiter →</b>
+hin und her: die <b>Aufspannung</b> (Teil, Rohteil, Nullpunkt), <b>Was soll weg?</b> (die
+Flächen und je Bearbeitung ein Haken mit ihrer Zeit), die <b>Einstellungen</b> der
+angehakten. „Anlegen“ geht aus jedem Schritt – mit dem, was vorgeschlagen ist. Die
+Bearbeitungen: <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Bohren</b>
 und <b>Bohrung fräsen</b> für zylindrische Bohrungen, <b>Kontur</b> für Wände,
 <b>Gewinde bohren</b> in Kernlöcher, <b>Entgraten</b> an Oberkanten, <b>Zentrieren</b> und
 <b>Senken</b> an Bohrungen, <b>Restmaterial</b> mit dem kleineren Fräser. „Anlegen“ legt
 alle angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
 <a href="vierachs.html">4-Achs-Bearbeitung</a>.</p>
 
-<h3>1. Teil und Rohteil</h3>
+<h3>1. Aufspannung: Teil und Rohteil</h3>
 <ul>
 <li><b>Eine Fläche des Teils anklicken</b> (vorher oder im Fenster) – die
 Fläche, die eben werden soll, oder eine Wand für die Kontur. Das Teil ist damit gewählt, und der
 <b>Job mit dem Rohteil</b> entsteht sofort: ein Quader um das Teil mit
 <b>Aufmaß</b> oben, seitlich und unten (leer: 1 mm, wie FreeCADs Job). Die
-Felder ändern das Rohteil gleich mit. „Abbrechen“ nimmt alles zurück. Rohteil
-und Nullpunkt stehen eingeklappt in einer Zeile („Aufmaß 1 mm rundum ·
-Nullpunkt: wie im Modell“) – ein Klick auf <b>Rohteil und Nullpunkt</b> klappt
-die Felder auf.</li>
+Felder ändern das Rohteil gleich mit. „Abbrechen“ nimmt alles zurück. In Schritt 2
+steht oben grau, was hier gilt („Aufmaß 1 mm rundum · Nullpunkt: wie im Modell“).</li>
 <li><b>Nullpunkt</b> – wo X 0, Y 0, Z 0 des Programms liegen: „wie im
 Modell“, oder ein Punkt des Rohteils aus der Liste – die 8 Ecken, die 12
 Kantenmitten, die Mitte oben und unten (links/rechts ist X, vorne/hinten Y,
@@ -43,7 +44,7 @@ zeigen ihn, und die Prüfung „Auf der Maschine prüfen“ rechnet von dort.</l
 Nullpunkt, wie sie im Job stehen.</li>
 </ul>
 
-<h3>2. Flächen</h3>
+<h3>2. Was soll weg? Flächen und Bearbeitungen</h3>
 <ul>
 <li>Ohne Wahl wird die <b>Oberseite</b> des Teils plan gefräst – die höchsten
 ebenen Flächen. Der Satz unter der Liste nennt sie.</li>
@@ -57,17 +58,19 @@ solange keine Fläche oder eine ebene gewählt ist – und von den beiden nur di
 schnellere (siehe „Die Zeit entscheidet“ unten); Kontur, sobald eine Wand
 dabei ist (ohne Wand lässt sie sich nicht anhaken). Wer einen Haken selbst
 setzt oder nimmt, behält ihn.</li>
-<li><b>Was passt, steht oben:</b> die Blöcke, die mit der Wahl etwas zu tun
-haben. Angehakte zeigen ihre Erklärung und ihre Felder; nicht angehakte nur ihr
-Ergebnis (Zeit, und um wie viel langsamer sie wären) – die Erklärung steht im Tooltip am
-Titel, mit dem Haken kommen Erklärung und Felder. Darunter, eingeklappt,
+<li><b>Was passt, steht oben:</b> je Bearbeitung, die mit der Wahl etwas zu tun hat, der
+Haken mit ihrem Ergebnis (Zeit, und um wie viel langsamer sie wäre) – die Erklärung steht im
+Tooltip am Titel. Ihre Felder stehen in Schritt 3, solange sie angehakt ist. Darunter, eingeklappt,
 <b>Passt nicht zur Auswahl</b> mit der Zahl der Strategien, die mit dieser Wahl nicht gehen;
 ein Klick klappt die Liste auf: je Strategie eine Zeile mit dem Namen und dem Satz, was man
 dafür im 3D anklicken muss („Kontur – Keine Wand gewählt – eine senkrechte Fläche im 3D
 anklicken.“). Ist noch nichts gewählt, steht die Liste offen da.</li>
 </ul>
 
-<h3>3. Planfräsen</h3>
+<h3>3. Einstellungen – zum Beispiel Planfräsen</h3>
+<p>Je angehakte Bearbeitung ihr Titel, die Erklärung, Fräser, Einsatz und Felder – alles
+vorbelegt; darunter dieselbe Ergebniszeile wie in Schritt 2. Ist nichts angehakt, steht das
+dort. Beim Ändern (Doppelklick auf die Operation) öffnet das Fenster gleich hier.</p>
 <ul>
 <li><b>Werkstoff</b> – vom Rohteil, sonst der zuletzt benutzte; danach
 richten sich die Schnittwerte. „Werkzeugverwaltung …“ öffnet sie; speichert

@@ -131,6 +131,36 @@ def _grau(text=""):
     return etikett
 
 
+class _Satz(QtGui.QLabel):
+    """Ein Satz, der an zwei Stellen steht – im Überblick (Schritt 2) und bei den Einstellungen
+    (Schritt 3): setText schreibt auch in den Spiegel."""
+
+    def __init__(self, farbe):
+        super().__init__()
+        self.spiegel = QtGui.QLabel()
+        self._erlaubt = True
+        for etikett in (self, self.spiegel):
+            etikett.setWordWrap(True)
+            etikett.setStyleSheet(f"color: {farbe};")
+        self._sichtbarkeit()
+
+    def setText(self, text):  # noqa: N802 – Qt-Name
+        super().setText(text)
+        self.spiegel.setText(text)
+        self._sichtbarkeit()
+
+    def erlauben(self, an):
+        """Im Überblick nur, wenn die Strategie zur Wahl passt."""
+        self._erlaubt = bool(an)
+        self._sichtbarkeit()
+
+    def _sichtbarkeit(self):
+        # Leer nimmt der Satz keinen Platz (ein leeres Etikett ist eine Zeile hoch).
+        leer = not self.text()
+        self.setVisible(self._erlaubt and not leer)
+        self.spiegel.setVisible(not leer)
+
+
 def _klappknopf(text, tooltip):
     """Ein fetter Knopf mit Pfeil, der einen Bereich auf- und zuklappt."""
     knopf = QtGui.QToolButton()
@@ -2054,6 +2084,8 @@ class _Block:
         self.operation = None  # die angelegte Operation
         self.von_hand = False  # der Haken ist von Hand gesetzt – kein Vorschlag mehr
         self.moeglich = True  # die Strategie geht mit der Wahl der Flächen
+        # Schritt 2, der Überblick: der Haken mit dem Titel, das Ergebnis, rot was fehlt – oder,
+        # passt die Strategie nicht zur Wahl, eine Zeile „Titel – was man anklicken muss“.
         self.widget = QtGui.QWidget()
         aufbau = QtGui.QVBoxLayout(self.widget)
         aufbau.setContentsMargins(0, 0, 0, 0)
@@ -2064,14 +2096,26 @@ class _Block:
         self.haken.setFont(schrift)
         self.haken.toggled.connect(lambda _an: self.panel.haken_geklickt(self))
         aufbau.addWidget(self.haken)
-        # Passt die Strategie nicht zur Wahl: eine Zeile „Titel – was man anklicken muss“ statt
-        # des gesperrten Hakens und des Satzes darunter.
         self.kurz = _grau()
         self.kurz.setTextFormat(QtCore.Qt.RichText)
         self.kurz.hide()
         aufbau.addWidget(self.kurz)
+        self.ergebnis = _Satz(GRAU_TEXT)
+        aufbau.addWidget(self.ergebnis)
+        self.hinweis = _Satz(ROT)
+        aufbau.addWidget(self.hinweis)
+        # Schritt 3, die Einstellungen – nur solange angehakt: der Titel, die Erklärung, Fräser,
+        # Einsatz, Felder und Haken, darunter dasselbe Ergebnis.
+        self.einstellungen = QtGui.QWidget()
+        unten = QtGui.QVBoxLayout(self.einstellungen)
+        unten.setContentsMargins(0, 0, 0, 0)
+        self.titel = QtGui.QLabel(strategie.titel())
+        schrift = self.titel.font()
+        schrift.setBold(True)
+        self.titel.setFont(schrift)
+        unten.addWidget(self.titel)
         self.erklaerung = _grau(strategie.text())
-        aufbau.addWidget(self.erklaerung)
+        unten.addWidget(self.erklaerung)
         self.inhalt = QtGui.QWidget()
         innen = QtGui.QVBoxLayout(self.inhalt)
         innen.setContentsMargins(0, 0, 0, 0)
@@ -2096,13 +2140,9 @@ class _Block:
             self.haken_felder[feld] = kasten
             self.reihen.ganz(kasten)
         innen.addWidget(self.reihen.widget)
-        self.ergebnis = _grau()
-        innen.addWidget(self.ergebnis)
-        self.hinweis = QtGui.QLabel()
-        self.hinweis.setWordWrap(True)
-        self.hinweis.setStyleSheet(f"color: {ROT};")
-        innen.addWidget(self.hinweis)
-        aufbau.addWidget(self.inhalt)
+        unten.addWidget(self.inhalt)
+        unten.addWidget(self.ergebnis.spiegel)
+        unten.addWidget(self.hinweis.spiegel)
 
     # --- Zustand ---
 
@@ -2112,19 +2152,15 @@ class _Block:
         return self.moeglich and self.haken.isChecked()
 
     def zustand_zeigen(self):
-        # Passt die Strategie nicht zur Wahl, bleiben der Titel und der Satz, was man dafür
-        # anklicken muss – ihre Felder erst, wenn sie geht (Manuel, 2026-10-02: „die Bedienung
-        # schön“; mit allen Feldern aller Blöcke war das Fenster über 5000 Pixel lang).
-        self.inhalt.setVisible(self.moeglich)
-        self.inhalt.setEnabled(self.aktiv())
-        # Passt sie, ist aber nicht angehakt (der Wettbewerb nahm eine schnellere): nur ihr
-        # Ergebnis – die Zeit und um wie viel langsamer; die Felder kommen mit dem Haken.
-        self.reihen.widget.setVisible(self.aktiv())
-        # Die Erklärung, solange angehakt – oder als Satz, was man anklicken muss; sonst steht
-        # sie im Tooltip am Titel, und das Ergebnis genügt.
-        self.erklaerung.setVisible(self.aktiv())
+        # Im Überblick (Schritt 2): passt die Strategie, der Haken und ihr Ergebnis – die Zeit
+        # und um wie viel langsamer; passt sie nicht, der Titel und der Satz, was man dafür
+        # anklicken muss. Ihre Felder stehen in Schritt 3, solange sie angehakt ist (Manuel,
+        # 2026-10-02: „Du musst das irgendwie sinnvoll aufteilen … in Schritten“).
         self.haken.setVisible(self.moeglich)
+        self.ergebnis.erlauben(self.moeglich)
+        self.hinweis.erlauben(self.moeglich)
         self.kurz.setVisible(not self.moeglich)
+        self.einstellungen.setVisible(self.aktiv())
         if not self.moeglich:
             titel = html.escape(self.s.titel())
             self.kurz.setText(f"<b>{titel}</b> – {html.escape(self.erklaerung.text())}")
@@ -2355,9 +2391,11 @@ class BearbeitungPanel:
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
         if operation is not None:
             self._zum_aendern()
+            self.seite_zeigen(2)
             return
         if wahl is not None:
             self.teil_waehlen(*wahl)
+        self.seite_zeigen(0)
         self._auffrischen()
 
     # --- Aufbau -------------------------------------------------------------------------
@@ -2371,6 +2409,13 @@ class BearbeitungPanel:
         aufbau = QtGui.QVBoxLayout(form)
         kopf = kopfzeile(tr("ba.kopf"), "bearbeitung")
         aufbau.addWidget(kopf)
+        # Oben, in welchem der drei Schritte man ist; darunter, was dort zu tun ist.
+        self.schritt_text = QtGui.QLabel()
+        schrift = self.schritt_text.font()
+        schrift.setBold(True)
+        schrift.setPointSizeF(schrift.pointSizeF() * 1.15)
+        self.schritt_text.setFont(schrift)
+        aufbau.addWidget(self.schritt_text)
         self.anleitung = QtGui.QLabel(tr("ba.anleitung"))
         self.anleitung.setWordWrap(True)
         aufbau.addWidget(self.anleitung)
@@ -2391,29 +2436,24 @@ class BearbeitungPanel:
             ziel[0].addWidget(etikett)
             return etikett
 
-        # --- Teil und Rohteil ---
+        # Drei Schritte wie im 4-Achs-Assistenten (Manuel, 2026-10-02: „man fragt es in Schritten
+        # ab“, „Rohteil und Nullpunkt … wo man auf Weiter klicken kann, wenn's fertig ist“):
+        # Aufspannung – was soll weg – Einstellungen. „Anlegen“ geht aus jedem Schritt.
+        self.seiten = []
+        for _nummer in range(3):
+            seite = QtGui.QWidget()
+            seite_aufbau = QtGui.QVBoxLayout(seite)
+            seite_aufbau.setContentsMargins(0, 0, 0, 0)
+            aufbau.addWidget(seite)
+            self.seiten.append(seite)
+
+        # --- Schritt 1: Aufspannung – Teil, Rohteil, Nullpunkt ---
+        ziel[0] = self.seiten[0].layout()
         oben = _Reihen()
         self.teil_text = QtGui.QLabel(tr("ba.teil.keins"))
         self.teil_text.setWordWrap(True)
         oben.reihe(tr("ba.teil"), "", self.teil_text)
-        aufbau.addWidget(oben.widget)
-        # Rohteil und Nullpunkt bleiben meist, wie sie sind: eingeklappt, mit einer Zeile, was
-        # gilt; ein Klick klappt die Felder auf (Manuel, 2026-10-02: „die Bedienung schön“).
-        kopf = QtGui.QWidget()
-        kopf_aufbau = QtGui.QHBoxLayout(kopf)
-        kopf_aufbau.setContentsMargins(0, 0, 0, 0)
-        self.rohteil_knopf = _klappknopf(
-            tr("ba.rohteil_nullpunkt"), tr("ba.rohteil_nullpunkt.tooltip")
-        )
-        kopf_aufbau.addWidget(self.rohteil_knopf)
-        self.rohteil_kurz = _grau()
-        kopf_aufbau.addWidget(self.rohteil_kurz, 1)
-        aufbau.addWidget(kopf)
-        self.rohteil_bereich = QtGui.QWidget()
-        bereich = QtGui.QVBoxLayout(self.rohteil_bereich)
-        bereich.setContentsMargins(0, 0, 0, 0)
-        aufbau.addWidget(self.rohteil_bereich)
-        ziel[0] = bereich
+        ziel[0].addWidget(oben.widget)
         titel(tr("ba.rohteil"), tr("ba.rohteil.text"))
         grautext(tr("ba.rohteil.text"))
         rohteil = _Reihen()
@@ -2428,9 +2468,7 @@ class BearbeitungPanel:
             )
             eingabe.setPlaceholderText(groesse_zeigen(AUFMASS_ROHTEIL, einheiten.LAENGE) or "0")
         self.rohteilfelder = rohteil.widget
-        bereich.addWidget(self.rohteilfelder)
-
-        # --- Nullpunkt ---
+        ziel[0].addWidget(self.rohteilfelder)
         self.nullpunkt_titel = titel(tr("ba.nullpunkt"), tr("ba.nullpunkt.text"))
         self.nullpunkt_text = grautext(tr("ba.nullpunkt.text"))
         nullpunkt = _Reihen()
@@ -2458,19 +2496,19 @@ class BearbeitungPanel:
             )
             eingabe.setPlaceholderText("0")
         self.nullpunktfelder = nullpunkt.widget
-        bereich.addWidget(self.nullpunktfelder)
-        ziel[0] = aufbau
-        self.rohteil_knopf.toggled.connect(self._rohteil_aufklappen)
-        self._rohteil_aufklappen(False)
+        ziel[0].addWidget(self.nullpunktfelder)
 
-        # --- Flächen ---
+        # --- Schritt 2: was soll weg – Flächen, Werkstoff, Ziel, die Strategien im Überblick ---
+        ziel[0] = self.seiten[1].layout()
+        # Was in Schritt 1 gilt, als eine graue Zeile (ändern: „Zurück“).
+        self.rohteil_kurz = grautext()
         titel(tr("ba.flaechen"), tr("ba.flaechen.tooltip"))
         self.flaechen_liste = QtGui.QListWidget()
         self.flaechen_liste.setToolTip(tr("ba.flaechen.liste.tooltip"))
         self.flaechen_liste.itemDoubleClicked.connect(
             lambda eintrag: self.flaeche_umschalten(eintrag.data(QtCore.Qt.UserRole))
         )
-        aufbau.addWidget(self.flaechen_liste)
+        ziel[0].addWidget(self.flaechen_liste)
         self.flaechen_text = grautext()
         zeile = QtGui.QWidget()
         knoepfe = QtGui.QHBoxLayout(zeile)
@@ -2486,9 +2524,7 @@ class BearbeitungPanel:
             knopf(tr("ba.flaechen.leeren"), tr("ba.flaechen.leeren.tooltip"), self.flaechen_leeren)
         )
         knoepfe.addStretch()
-        aufbau.addWidget(zeile)
-
-        # --- Werkstoff und Werkzeugverwaltung ---
+        ziel[0].addWidget(zeile)
         werkstoff = _Reihen()
         self.wahl_werkstoff = QtGui.QComboBox()
         self.wahl_werkstoff.currentIndexChanged.connect(lambda _i: self._werkstoff_gewaehlt())
@@ -2505,21 +2541,22 @@ class BearbeitungPanel:
         )
         knoepfe.addStretch()
         werkstoff.ganz(zeile)
-        aufbau.addWidget(werkstoff.widget)
-
-        # --- Das Ziel: wie viel weg muss und wie lange es mindestens dauert (Manuel, 2026-10-02:
-        # „dass man erstmal ein Ziel rechnet von der Zeit her“) ---
+        ziel[0].addWidget(werkstoff.widget)
+        # Das Ziel: wie viel weg muss und wie lange es mindestens dauert (Manuel, 2026-10-02:
+        # „dass man erstmal ein Ziel rechnet von der Zeit her“).
         self.ziel_text = grautext()
         self.ziel_text.setToolTip(tr("ba.ziel.tooltip"))
-
-        # --- Die Bearbeitungen: je Strategie ein Block mit Haken – was zur Wahl passt oben,
-        # darunter knapp, was (noch) nicht passt (_bloecke_ordnen) ---
-        self._block_aufbau = aufbau
-        self._block_anfang = aufbau.count()
+        # Je Strategie ein Haken mit ihrem Ergebnis – was zur Wahl passt oben, darunter
+        # eingeklappt, was (noch) nicht passt (_bloecke_ordnen).
+        strategien = QtGui.QWidget()
+        self._block_aufbau = QtGui.QVBoxLayout(strategien)
+        self._block_aufbau.setContentsMargins(0, 0, 0, 0)
+        self._block_anfang = 0
+        ziel[0].addWidget(strategien)
         for strategie in STRATEGIEN:
             block = _Block(self, strategie())
             self.bloecke.append(block)
-            aufbau.addWidget(block.widget)
+            self._block_aufbau.addWidget(block.widget)
         # Was nicht passt, steht eingeklappt unter einer Zeile mit seiner Zahl; ein Klick zeigt je
         # Strategie, was man dafür im 3D anklicken muss.
         self.passt_nicht = QtGui.QWidget()
@@ -2530,13 +2567,35 @@ class BearbeitungPanel:
         self.passt_nicht_kurz = _grau(tr("ba.passt_nicht.zu"))
         kopf_aufbau.addWidget(self.passt_nicht_kurz, 1)
         self.passt_nicht.hide()
-        aufbau.addWidget(self.passt_nicht)
+        self._block_aufbau.addWidget(self.passt_nicht)
         self._reihe = [b.widget for b in self.bloecke] + [self.passt_nicht]
         self.passt_nicht_knopf.toggled.connect(self._passt_nicht_aufklappen)
+
+        # --- Schritt 3: die Einstellungen der angehakten Strategien ---
+        ziel[0] = self.seiten[2].layout()
+        self.nichts_angehakt = grautext(tr("ba.einstellungen.leer"))
+        for block in self.bloecke:
+            ziel[0].addWidget(block.einstellungen)
+            block.zustand_zeigen()
+        ziel[0] = aufbau
+        for seite in self.seiten:
+            seite.layout().addStretch()
+
+        # Unter allen Schritten: rot, was nicht geht, und „Zurück“ / „Weiter“.
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
         self.hinweis.setStyleSheet(f"color: {ROT};")
         aufbau.addWidget(self.hinweis)
+        zeile = QtGui.QWidget()
+        knoepfe = QtGui.QHBoxLayout(zeile)
+        knoepfe.setContentsMargins(0, 0, 0, 0)
+        self.knopf_zurueck = knopf(tr("ba.zurueck"), tr("ba.zurueck.tooltip"), self.zurueck)
+        knoepfe.addWidget(self.knopf_zurueck)
+        knoepfe.addStretch()
+        self.knopf_weiter = knopf(tr("ba.weiter"), tr("ba.weiter.tooltip"), self.weiter)
+        knoepfe.addWidget(self.knopf_weiter)
+        aufbau.addWidget(zeile)
+        self._seite = 0
         # Die Beschriftungen aller Blöcke gleich breit: die Felder stehen untereinander.
         reihen = [oben, rohteil, nullpunkt, werkstoff] + [b.reihen for b in self.bloecke]
         breite = max(r.breite_beschriftung() for r in reihen)
@@ -2545,6 +2604,51 @@ class BearbeitungPanel:
         aufbau.addStretch()
         ruhiges_mausrad(form)
         return form
+
+    # --- Die Schritte -----------------------------------------------------------------------
+
+    def seite(self):
+        """Der gezeigte Schritt: 0 Aufspannung, 1 was soll weg, 2 Einstellungen."""
+        return self._seite
+
+    def seite_zeigen(self, nummer):
+        """Zeigt den Schritt `nummer` (0–2): seine Seite, oben „Schritt 2 von 3 – …“, darunter
+        die passende Anleitung; „Zurück“ und „Weiter“, wo es sie gibt – weiter erst mit Job."""
+        self._seite = max(0, min(int(nummer), len(self.seiten) - 1))
+        for i, seite in enumerate(self.seiten):
+            seite.setVisible(i == self._seite)
+        namen = (
+            tr("ba.schritt.aufspannung"),
+            tr("ba.schritt.was"),
+            tr("ba.schritt.einstellungen"),
+        )
+        self.schritt_text.setText(
+            tr(
+                "ba.schritt",
+                nummer=self._seite + 1,
+                anzahl=len(self.seiten),
+                name=namen[self._seite],
+            )
+        )
+        if self.zu_aendern is None:
+            anleitungen = (
+                tr("ba.anleitung"),
+                tr("ba.anleitung.was"),
+                tr("ba.anleitung.einstellungen"),
+            )
+            self.anleitung.setText(anleitungen[self._seite])
+        self._rohteil_kurz_zeigen()
+        self.knopf_zurueck.setVisible(self._seite > 0)
+        self.knopf_weiter.setVisible(self._seite < len(self.seiten) - 1)
+        self.knopf_weiter.setEnabled(self.job is not None)
+        self.nichts_angehakt.setVisible(not self.aktive_bloecke())
+
+    def weiter(self):
+        if self.job is not None:
+            self.seite_zeigen(self._seite + 1)
+
+    def zurueck(self):
+        self.seite_zeigen(self._seite - 1)
 
     # --- Schnittstelle zu FreeCAD ---------------------------------------------------------
 
@@ -2689,6 +2793,7 @@ class BearbeitungPanel:
         self._bearbeitung_fuellen()
         self._flaechen_zeigen()
         self._auffrischen()
+        self.seite_zeigen(self._seite)  # mit dem Job geht „Weiter“
         self.vorschau_starten()
 
     def _neuer_job(self):
@@ -2731,14 +2836,8 @@ class BearbeitungPanel:
         except ValueError:
             return AUFMASS_ROHTEIL
 
-    def _rohteil_aufklappen(self, offen):
-        """Klappt Rohteil und Nullpunkt auf oder zu – zu steht nur die Zeile, was gilt."""
-        self.rohteil_knopf.setArrowType(QtCore.Qt.DownArrow if offen else QtCore.Qt.RightArrow)
-        self.rohteil_bereich.setVisible(offen)
-        self._rohteil_kurz_zeigen()
-
     def _rohteil_kurz_zeigen(self):
-        """„Aufmaß 1 mm rundum · Nullpunkt: wie im Modell“ – neben dem Knopf."""
+        """„Aufmaß 1 mm rundum · Nullpunkt: wie im Modell“ – oben in Schritt 2."""
         if not hasattr(self, "rohteil_kurz") or not hasattr(self, "wahl_nullpunkt"):
             return
         mm = einheiten.einheit(einheiten.LAENGE)
@@ -2894,6 +2993,8 @@ class BearbeitungPanel:
             block.von_hand = True
         finally:
             self._fuellt = False
+        for b in self.bloecke:
+            b.zustand_zeigen()
         self.rohteilfelder.setEnabled(False)
         for widget in (self.nullpunkt_titel, self.nullpunkt_text, self.nullpunktfelder):
             widget.setVisible(False)  # der Nullpunkt bleibt, wie er im Job steht
@@ -3093,6 +3194,7 @@ class BearbeitungPanel:
                 self._block_aufbau.insertWidget(self._block_anfang + i, widget)
             self._reihe = reihe
         self.passt_nicht.setVisible(bool(andere) and bool(passend))
+        self.nichts_angehakt.setVisible(not self.aktive_bloecke())
         self.passt_nicht_knopf.setText(tr("ba.passt_nicht", anzahl=len(andere)))
         offen = self.passt_nicht_knopf.isChecked() or not passend
         for widget in passend:
@@ -3113,6 +3215,7 @@ class BearbeitungPanel:
             return
         block.von_hand = True
         block.zustand_zeigen()
+        self.nichts_angehakt.setVisible(not self.aktive_bloecke())
         if block is self.reiben and self.job is not None:
             # Gerieben: kleiner vorbohren, Bohrung fräsen und Kontur treten dort nicht an.
             self._haken_vorschlagen(vr.modell(self.job).Shape)

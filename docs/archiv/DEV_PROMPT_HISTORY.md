@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-42 assistent-in-schritten
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Das Eingabefeld … erschlägt einen … Du musst das irgendwie sinnvoll
+  aufteilen … so kannst du das keinem vorsetzen“, „oder man fragt es in Schritten ab!“,
+  „Rohteil und Nullpunkt … extra Fenster, wo man auf Weiter klicken kann, wenn's fertig ist“.
+  Spezifikation Strategien 12.5 mit Skizze.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`seiten`, `seite_zeigen`, `weiter`, `zurueck`, `_Satz`;
+  `_Block`: Überblick `widget`, Einstellungen `einstellungen`), `translations/de|en.json`,
+  `help/de|en/bearbeitung.html`, `tests/gui/szenario_zielzeit.py`,
+  `tests/gui/szenario_bearbeitung.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.98.0)
+
+### AKZEPTANZKRITERIUM
+„Bearbeitung (Fräsen)“ öffnen → „Schritt 1 von 3 – Aufspannung“ mit Teil, Rohteil und
+Nullpunkt; „Weiter“ → Flächen, Werkstoff, Ziel und je Strategie Haken und Zeit; „Weiter“ → nur
+die Felder der angehakten; „Anlegen“ geht aus jedem Schritt.
+
+### DONE
+- Drei Seiten im selben Fenster, oben „Schritt n von 3 – …“ und die Anleitung des Schritts,
+  unten „← Zurück“ / „Weiter →“ (Weiter erst mit Job). Beim Ändern gleich Schritt 3.
+- Je Strategie zwei Teile: im Überblick Haken, Ergebnis, rot was fehlt – oder die eine Zeile,
+  was man anklicken muss; in Schritt 3 Titel, Erklärung, Fräser, Einsatz, Felder, Haken und
+  dieselben Sätze (`_Satz` schreibt in beide; leer nehmen sie keinen Platz).
+- „Rohteil und Nullpunkt“ nicht mehr eingeklappt (eigene Seite); was dort gilt, steht grau
+  oben in Schritt 2.
+- Höhen an Manuels Platte: Schritt 1 528, Schritt 2 513, Schritt 3 528 Pixel (eine Seite
+  vorher 771, zu Beginn der Nacht 5101).
+
+### TEST
+- 1.1.3: alle 33 Szenarien mit dem Assistenten grün; `test_sprache`, `test_hilfe`;
+  black/ruff grün.
+
+### NEXT
+- Aufspannung in Schritt 1: Unterseite anklicken, X drehen (P-2026-10-02-43).
+
 ## P-2026-10-02-41 nut-kreis-und-ae
 
 ### EINGELESEN

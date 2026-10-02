@@ -14,24 +14,26 @@ li { margin-bottom: 0.4em; }
 <h2>Machining (milling)</h2>
 <p>For a part that lies in a <b>block</b> on a mill – the tool axis is
 vertical. The button “Machining (milling)” opens the window; the way from the
-part to the operations has three steps, all in one window: part and stock,
-the faces, then one block with a tick per machining – <b>Face milling</b> and
+part to the operations has three steps; at the top it says which one you are in (“Step 1 of
+3 – Setup”), at the bottom <b>← Back</b> and <b>Next →</b> lead back and forth: the
+<b>setup</b> (part, stock, origin), <b>What comes off?</b> (the faces and one tick per
+machining with its time), the <b>settings</b> of the ticked ones. “Create” works from every
+step – with what is suggested. The machinings: <b>Face milling</b> and
 <b>Clearing</b> for flat faces facing up, <b>Drilling</b> and <b>Hole milling</b> for
 cylindrical holes, <b>Contour</b> for walls, <b>Tapping</b> in core holes,
 <b>Deburr</b> on top edges, <b>Spot drilling</b> and <b>Countersinking</b> at holes,
 <b>Rest material</b> with the smaller cutter. “Create” creates all ticked ones. For a round stock
 with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
 
-<h3>1. Part and stock</h3>
+<h3>1. Setup: part and stock</h3>
 <ul>
 <li><b>Click a face of the part</b> (before or in the window) – the face
 that should become flat, or a wall for the contour. The part is chosen with it, and the <b>job with the
 stock</b> is created at once: a block around the part with an
 <b>allowance</b> on top, at the sides and below (empty: 1 mm, like FreeCAD's
 job). The fields change the stock right away. “Cancel” takes everything
-back. Stock and zero point are folded into one line (“allowance 1 mm all round
-· origin: as in the model”) – a click on <b>Stock and origin</b> opens the
-fields.</li>
+back. Step 2 shows at the top in grey what applies here (“allowance 1 mm all round ·
+origin: as in the model”).</li>
 <li><b>Zero point</b> – where X 0, Y 0, Z 0 of the program lie: “as in the
 model”, or a point of the stock from the list – the 8 corners, the 12 edge
 middles, the centre top and bottom (left/right is X, front/back Y, bottom/top
@@ -42,7 +44,7 @@ machine” counts from there.</li>
 as they are in the job.</li>
 </ul>
 
-<h3>2. Faces</h3>
+<h3>2. What comes off? Faces and machinings</h3>
 <ul>
 <li>Without a choice the <b>top</b> of the part is milled flat – the highest
 flat faces. The sentence below the list names them.</li>
@@ -56,17 +58,19 @@ clearing as long as no face or a flat one is selected – and of the two only
 the faster (see “Time decides” below); contour as soon as a wall is among
 them (without a wall it cannot be ticked). Whoever sets or removes a tick
 keeps it.</li>
-<li><b>What fits is on top:</b> the blocks that have to do with the selection.
-Ticked ones show their explanation and their fields; unticked ones only their
-result (time, and how much slower they would be) – the explanation is in the tooltip of
-the title, explanation and fields come with the tick. Below, folded,
+<li><b>What fits is on top:</b> per machining that has to do with the selection, the tick
+with its result (time, and how much slower it would be) – the explanation is in the tooltip
+of the title. Its fields are in step 3 as long as it is ticked. Below, folded,
 <b>Does not fit the selection</b> with the number of strategies that do not work with this
 selection; a click opens the list: per strategy one line with its name and the sentence
 what to click in 3D for it (“Contour – No wall selected – click a vertical face in 3D.”).
 With nothing selected yet, the list stands open.</li>
 </ul>
 
-<h3>3. Face milling</h3>
+<h3>3. Settings – for example face milling</h3>
+<p>Per ticked machining its title, the explanation, cutter, application and fields – all
+preset; below, the same result line as in step 2. With nothing ticked, it says so there.
+When changing (double-click on the operation) the window opens right here.</p>
 <ul>
 <li><b>Material</b> – from the stock, otherwise the last used; the cutting data
 follow it. “Tool manager …” opens it; saving there makes the window read the

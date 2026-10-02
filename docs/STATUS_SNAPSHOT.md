@@ -134,7 +134,8 @@ eingeklappt unter „Passt nicht zur Auswahl (16)“ wie „Rohteil und Nullpunk
 0.96.4) – Manuels Platte jetzt 771 Pixel statt 5101. Alle 83 Szenarien auf 0.96.0 grün (danach je
 die Szenarien zum geänderten Teil). Die Drehrichtung am Werkzeug – rechts (M3) oder links (M4), vorbelegt
 nach der Art –, der Controller übernimmt sie, die Bahnen fahren den Gleichlauf danach (W-007,
-P-2026-10-02-40, 0.97.0).
+P-2026-10-02-40, 0.97.0). Der Assistent „Bearbeitung“ in drei Schritten – Aufspannung, Was soll weg?,
+Einstellungen – mit „Zurück“ und „Weiter“, „Anlegen“ aus jedem (W-009, P-2026-10-02-42, 0.98.0).
 Als Nächstes (Manuel, 2026-10-02 früh; Spezifikation Strategien, Abschnitt 12): Nuten in Bögen auch geschlossen, ae als Last mit Spielraum (12.1, 12.2, Manuels Entscheidung zu 12.1 offen); Räumen mit Schlichten und Messstopp (W-010); Home- und Wechselpunkt (W-008); Assistent in Schritten mit Aufspannung (W-009); Werkzeugkiste vorgefüllt (W-007); × Ziel je Strategie (12.3). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11); der schnellere Fräser aus der Zielzeit mit einem Klick übernehmen (wenn Manuel will); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
