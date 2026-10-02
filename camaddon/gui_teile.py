@@ -5,8 +5,8 @@ Fette Beschriftung für Pflichtfelder, Knopf, Feld mit Einheit, rote
 Hinweiszeile und das Grau für gerechnete oder geerbte Werte – einmal hier,
 damit jeder Dialog gleich aussieht (P-2026-09-25-54). Dazu das ruhige
 Mausrad: Auswahllisten, Drehfelder und Regler verstellt es nur, wenn sie den
-Fokus haben (ruhiges_mausrad) – und blaettere_zu, das einen Abschnitt im
-Aufgabenbereich nach oben holt.
+Fokus haben (ruhiges_mausrad) – blaettere_zu, das einen Abschnitt im
+Aufgabenbereich nach oben holt, und kurze_liste für lange Auswahllisten.
 """
 
 import contextlib
@@ -15,6 +15,7 @@ from PySide import QtCore, QtGui
 
 GRAU = QtGui.QColor("#6d6d6d")  # gerechnete oder geerbte Werte
 ROT = "#c0392b"  # Hinweise, was fehlt oder nicht passt
+LISTE_ZEILEN = 20  # so viele Einträge zeigt eine lange Auswahlliste auf einmal
 
 
 def fett(text):
@@ -129,6 +130,48 @@ class RuhigerRegler(QtGui.QSlider):
 _rad = None  # der eine Filter für alle Felder
 # Regler ja, Rollbalken nicht (auch sie sind QAbstractSlider) – die sollen blättern.
 _MIT_RAD = (QtGui.QComboBox, QtGui.QAbstractSpinBox, QtGui.QSlider)
+
+
+class _ListeBreit(QtCore.QObject):
+    """Beim Aufklappen: die Liste so breit wie ihr längster Eintrag, nicht nur so breit wie die
+    Auswahl – in einer schmalen Tabellenzelle wären die Namen sonst abgeschnitten."""
+
+    def eventFilter(self, rahmen, ereignis):
+        if ereignis.type() == QtCore.QEvent.Show:
+            liste = self.parent().view()
+            raender = rahmen.contentsMargins()
+            breite = (
+                liste.sizeHintForColumn(0)
+                + 2 * liste.frameWidth()
+                + liste.verticalScrollBar().sizeHint().width()
+                + raender.left()
+                + raender.right()
+            )
+            if breite > rahmen.width():
+                schirm = rahmen.screen().availableGeometry()
+                breite = min(breite, schirm.width())
+                links = max(schirm.left(), min(rahmen.x(), schirm.right() + 1 - breite))
+                rahmen.setGeometry(links, rahmen.y(), breite, rahmen.height())
+        return False
+
+
+def kurze_liste(wahl, zeilen=LISTE_ZEILEN):
+    """Die aufgeklappte Liste einer Auswahl höchstens `zeilen` Einträge hoch, mit Rollbalken,
+    und so breit wie ihr längster Eintrag; gibt `wahl` zurück. Manche Stile (unter Linux,
+    FreeCADs Themen) zeigen sonst alle Einträge auf einmal – höher als der Bildschirm, und der
+    erste („Alle Werkstoffe“) ist nicht mehr zu erreichen (Manuel, 2026-10-02)."""
+    wahl.setMaxVisibleItems(zeilen)
+    if wahl.property("kurze_liste"):
+        return wahl  # schon eingerichtet (die Werkstoffe werden neu gefüllt)
+    wahl.setProperty("kurze_liste", True)
+    # In diesen Stilen gilt maxVisibleItems nur mit der einfachen Liste (Qt: SH_ComboBox_Popup) –
+    # die ist aber nur so breit wie die Auswahl.
+    wahl.setStyleSheet("QComboBox { combobox-popup: 0; }")
+    liste = wahl.view()
+    # Der Rollbalken zeigt, dass unten mehr kommt; die Pfeile der großen Liste fallen weg.
+    liste.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+    liste.parentWidget().installEventFilter(_ListeBreit(wahl))
+    return wahl
 
 
 def ruhiges_mausrad(wurzel):

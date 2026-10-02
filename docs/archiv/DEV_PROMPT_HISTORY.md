@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-76 werkstoff-liste-kurz
+
+### EINGELESEN
+- Manuel, 2026-10-02 abends (mit Bildschirmfoto): „die Werkstoff-Liste ist zu groß, ich kann
+  „Alle Werkstoffe“ nicht mehr auswählen“.
+
+### DATEIEN
+- `camaddon/gui_teile.py` (`kurze_liste`, `_ListeBreit`), `camaddon/gui_werkzeuge.py`
+  (`werkstoffe_anbieten`), `camaddon/gui_schnittwerte.py` (Werkstoff je Zeile),
+  `tests/gui/szenario_schnittwerte.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.122.1)
+
+### AKZEPTANZKRITERIUM
+Aufgeklappt zeigt jede Werkstoff-Auswahl höchstens 20 Zeilen mit Rollbalken, oben „Alle
+Werkstoffe“, so breit wie die Namen, ganz auf dem Bildschirm.
+
+### DONE
+- Ursache: In FreeCADs Stilen unter Linux klappt eine Auswahl als Menü auf (Qt:
+  SH_ComboBox_Popup) – mit allen 57 Werkstoffen, maxVisibleItems gilt dort nicht. Unter Xvfb
+  füllt es den ganzen Bildschirm; bei Manuel (Wayland) ragte es darüber hinaus, „Alle
+  Werkstoffe“ oben war nicht zu erreichen.
+- `kurze_liste`: die einfache Liste (`combobox-popup: 0`), 20 Zeilen, Rollbalken; beim
+  Aufklappen so breit wie der längste Eintrag (sonst schneidet die schmale Tabellenzelle die
+  Namen ab). Gilt für alle Werkstoff-Auswahlen: Werkzeugverwaltung (je Zeile), Assistent
+  „Bearbeitung“, 4-Achs-Assistent, „Schnittwerte in den Job“.
+
+### TESTS
+- `tests/gui/szenario_schnittwerte.py` (OK, Bild `2b_werkstoffe_aufgeklappt`).
+
 ## P-2026-10-02-75 kontur-einmal-beim-aufmass
 
 ### EINGELESEN

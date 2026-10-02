@@ -212,7 +212,9 @@ Ein zweites an derselben Kuppel nimmt nur die Treppe, 0,14 statt 4,99 min (P-202
 Räumen, dann die Kontur im zweiten Lauf – am Ende 0,00 mm, nirgends ins Teil. Offen für Manuel:
 Fragen 3–5 in 12.7 (kurze Lücken durchfahren, schmaler Rand, Restmaterial – je mit Empfehlung,
 gebaut ist die Empfehlung) (P-2026-10-02-73). Nach Manuels Antwort auf Frage 4 fährt die Kontur mit
-Materialstand einmal beim Aufmaß an der Wand ab, dann schlichtet sie (P-2026-10-02-75, 0.122.0).
+Materialstand einmal beim Aufmaß an der Wand ab, dann schlichtet sie (P-2026-10-02-75, 0.122.0). Die
+Werkstoff-Auswahl klappt höchstens 20 Zeilen hoch auf, mit Rollbalken und ganzen Namen (Manuel:
+„Alle Werkstoffe“ war nicht mehr zu erreichen) (P-2026-10-02-76, 0.122.1).
 Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 12.1, 12.4, 12.7): Räumen nach der Last (Frage 6 – die schnellste Variante gewinnt, aber dauernd höchstens 1,25 ae, kurz bis 1,7: Ecken der Tasche und der Spalt am Zapfen in Bögen vorräumen, Adaptiv als weitere Variante); der Block „Schlichten danach“ (12.4 A); Lücken durchfahren oder abheben nach der Zeit (Frage 3). Offen bei Manuel: W-005 E1–E7, TCPM, Kollision von selbst, CAM mitziehen, Grenzwerte an der Maschine (Fragen 7–11); Netzzugang für die Herstellerwerte (W-007). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist

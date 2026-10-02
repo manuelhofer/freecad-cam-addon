@@ -26,7 +26,7 @@ from .gui_eingriff import EingriffBild
 from .gui_hilfe import kopfzeile
 from .gui_schruppwerte import SchruppDialog
 from .gui_strategie import StrategieDialog
-from .gui_teile import GRAU, hinweiszeile, knopf, ruhiges_mausrad
+from .gui_teile import GRAU, hinweiszeile, knopf, kurze_liste, ruhiges_mausrad
 from .gui_zahlen import (
     Zahlenpruefer,
     dezimal,
@@ -615,7 +615,7 @@ class SchnittwertBereich(QtGui.QWidget):
         if wahl is None:
             wahl = QtGui.QComboBox()
             wahl.setModel(self._werkstoffe.model())
-            wahl.setMaxVisibleItems(20)
+            kurze_liste(wahl)
             # Nicht so breit wie der längste Werkstoff – so breit wie die Zelle.
             wahl.setSizeAdjustPolicy(QtGui.QComboBox.AdjustToMinimumContentsLengthWithIcon)
             wahl.setMinimumContentsLength(8)

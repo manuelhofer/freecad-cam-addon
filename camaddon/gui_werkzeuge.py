@@ -22,7 +22,7 @@ from . import werkzeugkiste as wk
 from .gui_halter import HalterDialog
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
-from .gui_teile import GRAU, hinweiszeile, knopf, mit_einheit, ruhiges_mausrad
+from .gui_teile import GRAU, hinweiszeile, knopf, kurze_liste, mit_einheit, ruhiges_mausrad
 from .gui_werkstoffe import WerkstoffDialog
 from .gui_werkzeugbild import WerkzeugBild
 from .gui_werkzeugbild import symbol as art_symbol
@@ -117,8 +117,10 @@ def _parameter():
 def werkstoffe_anbieten(wahl, bibliothek):
     """Füllt eine Werkstoff-Auswahl: „Alle Werkstoffe“, eigene, dann die mitgelieferten nach ISO-Gruppe.
 
-    Auch der Dialog „Schnittwerte in den Job“ benutzt sie.
+    Auch der Dialog „Schnittwerte in den Job“ benutzt sie. Die Liste klappt höchstens 20 Zeilen
+    hoch auf (kurze_liste).
     """
+    kurze_liste(wahl)
     wahl.blockSignals(True)
     wahl.clear()
     wahl.addItem(tr("wv.alle_werkstoffe"), wz.ALLE)

@@ -18,6 +18,13 @@ def zelle(d, zeile, spalte):
     return d.schnittwerte.tabelle.item(zeile, spalte).text()
 
 
+def bildschirm(name):
+    """Der ganze (unsichtbare) Bildschirm – mit aufgeklappten Listen, die eigene Fenster sind."""
+    QtGui.QApplication.processEvents()
+    bild = QtGui.QApplication.primaryScreen().grabWindow(0)
+    bild.save(os.path.join(os.environ["CAMADDON_AUSGABE"], name + ".png"))
+
+
 def schritte(h):
     yield 500
     erster = h.modal()
@@ -255,6 +262,30 @@ def schritte(h):
         wahl.findData("eigen-1") == 2 and "MeinStahl" in wahl.itemText(2),
         f"eigener Werkstoff in der Auswahl: {wahl.findData('eigen-1')}",
     )
+    # Aufgeklappt: höchstens 20 Zeilen mit Rollbalken, oben „Alle Werkstoffe“, so breit wie die
+    # Namen – nicht alle Werkstoffe auf einmal, höher als der Bildschirm (Manuel, 2026-10-02:
+    # „die Werkstoff-Liste ist zu groß, ich kann „Alle Werkstoffe“ nicht mehr auswählen“).
+    wahl.showPopup()
+    yield 300
+    liste = wahl.view()
+    rahmen = liste.parentWidget()
+    schirm = rahmen.screen().availableGeometry()
+    oben = liste.visualRect(liste.model().index(0, 0))
+    h.pruefe(
+        liste.isVisible()
+        and liste.verticalScrollBar().isVisible()
+        and schirm.contains(rahmen.geometry())
+        and rahmen.height() < schirm.height() / 2
+        and liste.viewport().rect().contains(oben),
+        f"aufgeklappt: {wahl.count()} Einträge, {rahmen.geometry()}, oben {oben}",
+    )
+    h.pruefe(
+        rahmen.width() > liste.sizeHintForColumn(0),
+        f"Namen abgeschnitten: {rahmen.width()} für {liste.sizeHintForColumn(0)}",
+    )
+    bildschirm("2b_werkstoffe_aufgeklappt")
+    wahl.hidePopup()
+    yield 100
     d.bibliothek.eigene_werkstoffe.remove(eigener)
     s.zeige(s.werkzeug, d.bibliothek)
     yield 100
