@@ -107,7 +107,7 @@ class Revolverbild:
 
     def hinsehen(self):
         """Richtet die Kamera auf den Revolver mit den Werkzeugen."""
-        region = self.ansicht.getViewer().getSoRenderManager().getViewportRegion()
+        region = gui_abfahren.ausschnitt(self.ansicht)
         self.ansicht.getCameraNode().viewAll(self.wurzel, region, HINSEHEN_RAND)
 
     def weg(self):

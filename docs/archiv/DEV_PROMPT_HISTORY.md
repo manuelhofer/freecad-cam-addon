@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-83 kein-absturz-beim-schliessen
+
+### EINGELESEN
+- Der Lauf über alle Szenarien in FreeCAD 1.1.4 (Manuels Rechner, Arch-Paket mit Python 3.14;
+  B-010): `szenario_abfahren`, `szenario_bestueckung`, `szenario_rundum_drehmaschine` und
+  `szenario_vierachs_schruppen` endeten ohne Ergebnis – FreeCAD war abgestürzt.
+
+### DATEIEN
+- `camaddon/gui_abfahren.py` (`ausschnitt`, `Bild.hinsehen`), `camaddon/gui_bestueckung.py`
+  (`Revolverbild.hinsehen`), `tests/test_viewer.py` (neu), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.125.1)
+
+### AKZEPTANZKRITERIUM
+„Auf der Maschine prüfen“ → „Hinsehen“ → Fenster schließen → das Dokument der Maschine
+schließen: FreeCAD 1.1.4 läuft weiter.
+
+### DONE
+- Ursache (B-011), mit einem Szenario aus vier Zeilen eingegrenzt: Wer `ansicht.getViewer()`
+  einmal aus Python aufgerufen hat, dem stürzt FreeCAD 1.1.4 mit Python 3.14 ab, sobald diese
+  Ansicht zerstört wird (`View3DInventorViewer::~View3DInventorViewer` → `_Py_Dealloc`,
+  Speicherzugriffsfehler) – beim Schließen des Dokuments. Ohne den Aufruf nicht; Kamera und
+  Szenengraph zu holen schadet nicht. Ein Fehler in FreeCAD, den das Addon auslöste: bei
+  „Hinsehen“ im Fenster „Auf der Maschine prüfen“ und in der „Bestückung“ (dort schon beim
+  Öffnen).
+- Das Addon holt den Viewer nicht mehr: Den Ausschnitt für `viewAll` rechnet
+  `gui_abfahren.ausschnitt` aus der Größe der Ansicht (`getSize()`).
+- FreeCADs eigene Arbeitsbereiche Draft und BIM rufen `getViewer()` selbst auf – dort kann der
+  Absturz weiter auftreten; das liegt nicht am Addon.
+
+### TESTS
+- `tests/gui/szenario_abfahren.py`, `szenario_bestueckung.py`, `szenario_rundum_drehmaschine.py`,
+  `szenario_vierachs_schruppen.py`: vorher Absturz, jetzt OK (FreeCAD 1.1.4).
+- `tests/test_viewer.py` (neu, OK; Gegenprobe mit dem alten Stand: schlägt an): kein
+  `getViewer` im Quelltext des Addons – in 1.1.3 stürzte nichts ab, dort hält nur das es fest.
+- black und ruff sauber.
+
+### NEXT
+- B-010: die übrigen liegengebliebenen Szenarien.
+
 ## P-2026-10-02-82 rest-raeumen
 
 ### EINGELESEN

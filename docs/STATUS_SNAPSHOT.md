@@ -237,7 +237,11 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
   seit 2026-09-29): Quelltext gegen 1.1.3 verglichen – nichts in CAM,
   Assembly, PartDesign oder den Python-Schnittstellen des Addons
   (P-2026-09-29-01); der volle Lauf (Arbeitsregeln, Abschnitt 9) folgt, sobald
-  conda-forge 1.1.4 hat.
+  conda-forge 1.1.4 hat. Auf Manuels Rechner (1.1.4 als Arch-Paket, mit
+  Python 3.14) am 2026-10-02 gelaufen – dabei gefunden und behoben (B-011):
+  FreeCAD stürzte ab, sobald nach „Hinsehen“ („Auf der Maschine prüfen“,
+  „Bestückung“) ein Dokument zuging; das Addon holt den Viewer der Ansicht
+  nicht mehr nach Python (P-2026-10-02-83, 0.125.1) – wartet auf Manuels Test.
 
 ## Nächster Schritt (konkret)
 

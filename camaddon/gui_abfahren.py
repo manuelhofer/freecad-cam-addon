@@ -371,8 +371,7 @@ class Bild:
         blick.addChild(self._werkstueck)
         if 0 <= self.operation < len(self._op_platz):
             blick.addChild(self._plaetze[self._op_platz[self.operation][0]][1])
-        region = self.ansicht.getViewer().getSoRenderManager().getViewportRegion()
-        self.ansicht.getCameraNode().viewAll(blick, region, HINSEHEN_RAND)
+        self.ansicht.getCameraNode().viewAll(blick, ausschnitt(self.ansicht), HINSEHEN_RAND)
 
     def weg(self):
         """Nimmt die Körper aus der Ansicht."""
@@ -529,6 +528,16 @@ def ansicht_von(dokument):
     gui_dokument = FreeCADGui.getDocument(dokument.Name)
     ansichten = gui_dokument.mdiViewsOfType("Gui::View3DInventor") if gui_dokument else []
     return ansichten[0] if ansichten else None
+
+
+def ausschnitt(ansicht):
+    """Der Ausschnitt der 3D-Ansicht, wie Coin ihn für `viewAll` braucht – aus ihrer Größe.
+    Nicht über `ansicht.getViewer()`: Hat Python den Viewer einmal geholt, stürzt FreeCAD 1.1.4
+    (Python 3.14) ab, sobald die Ansicht zugeht – beim Schließen des Dokuments (B-011)."""
+    from pivy import coin
+
+    breite, hoehe = ansicht.getSize()
+    return coin.SbViewportRegion(breite, hoehe)
 
 
 # --- Der Abspieler ------------------------------------------------------------------------
