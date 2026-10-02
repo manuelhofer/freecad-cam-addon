@@ -152,6 +152,11 @@ def schritte(h):
         return
     op = nuten[0]
     h.pruefe(abs(float(op.FinalDepth) - 10.0) < 1e-6, f"Endtiefe {op.FinalDepth}")
+    # Derselbe Eintauchwinkel wie in der Vorschau: der am Fräser (P-2026-10-02-65; bis dahin 5°).
+    h.pruefe(
+        abs(float(op.Eintauchwinkel) - t1.eintauchwinkel) < 1e-6,
+        f"Eintauchwinkel {float(op.Eintauchwinkel)} statt {t1.eintauchwinkel}",
+    )
     befehle = [c.Name for c in op.Path.Commands]
     h.pruefe("G3" in befehle and "G2" not in befehle, "nicht im Gleichlauf (G3)")
     Gui.Selection.clearSelection()

@@ -174,6 +174,13 @@ class _Satz(QtGui.QLabel):
         self.spiegel.setVisible(not leer)
 
 
+def _eintauchwinkel(werkzeug):
+    """Der Eintauchwinkel (Grad) für Helix und Rampe: der am Fräser, sonst die Vorgabe – in der
+    Vorschau und in der angelegten Operation derselbe (bis P-2026-10-02-65 legte „Anlegen“ Nut
+    und Bohrung mit 5° an, die Vorschau rechnete mit den 3° des Standardfräsers)."""
+    return float(getattr(werkzeug, "eintauchwinkel", 0.0) or 0.0) or vb.EINTAUCHWINKEL
+
+
 def _material_text(bahn):
     """„noch 5,6 cm³ – 11,1 cm³ hat „Räumen T1“ schon weggenommen“ – für eine Bahn mit
     Materialstand (W-012), wenn die Operationen davor dort etwas weggenommen haben; sonst ""."""
@@ -812,7 +819,7 @@ class _Nut(_Strategie):
             schlichten=werte["schlichten"],
             gleichlauf=werte["gleichlauf"],
             schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
-            eintauchwinkel=float(werkzeug.eintauchwinkel or 0.0) or vb.EINTAUCHWINKEL,
+            eintauchwinkel=_eintauchwinkel(werkzeug),
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
             stand=werte.get("materialstand"),
@@ -836,6 +843,7 @@ class _Nut(_Strategie):
             schlichten=werte["schlichten"],
             gleichlauf=werte["gleichlauf"],
             flaechen=flaechen,
+            eintauchwinkel=werte.get("eintauchwinkel"),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -848,6 +856,7 @@ class _Nut(_Strategie):
             schlichten=werte["schlichten"],
             gleichlauf=werte["gleichlauf"],
             flaechen=flaechen,
+            eintauchwinkel=werte.get("eintauchwinkel"),
         )
 
     def ist(self, op):
@@ -1104,7 +1113,7 @@ class _Bohrung(_Strategie):
             schlichten=werte["schlichten"],
             gleichlauf=werte["gleichlauf"],
             schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
-            eintauchwinkel=float(werkzeug.eintauchwinkel or 0.0) or vb.EINTAUCHWINKEL,
+            eintauchwinkel=_eintauchwinkel(werkzeug),
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
         )
@@ -1134,6 +1143,7 @@ class _Bohrung(_Strategie):
             schlichten=werte["schlichten"],
             gleichlauf=werte["gleichlauf"],
             flaechen=flaechen,
+            eintauchwinkel=werte.get("eintauchwinkel"),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -1146,6 +1156,7 @@ class _Bohrung(_Strategie):
             schlichten=werte["schlichten"],
             gleichlauf=werte["gleichlauf"],
             flaechen=flaechen,
+            eintauchwinkel=werte.get("eintauchwinkel"),
         )
 
     def ist(self, op):
@@ -4866,6 +4877,7 @@ class BearbeitungPanel:
                     )
                     flaechen = self._flaechen(block, form)
                     werte = dict(block.werte(), **(self._zusatz(block, form) or {}))
+                    werte["eintauchwinkel"] = _eintauchwinkel(block.fraeser())
                     ops.append(block.s.lege_an(self.job, tc, werte, flaechen))
                     if block is self.raeumen and werte.get("wandschlichten"):
                         folge.extend(self._raeumen_schlichten(form, tc, flaechen, werte))
@@ -4932,6 +4944,7 @@ class BearbeitungPanel:
         form = vr.modell(self.job).Shape
         flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
         werte = block.werte()
+        werte["eintauchwinkel"] = _eintauchwinkel(block.fraeser())
         if block is self.gewindefraesen:
             werte["werkzeug"] = block.fraeser()  # Steigung und Zähne kennt CAM nicht
 

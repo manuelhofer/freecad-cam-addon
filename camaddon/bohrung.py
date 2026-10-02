@@ -211,6 +211,7 @@ def lege_an(
     gleichlauf=True,
     name=None,
     flaechen=(),
+    eintauchwinkel=None,
 ):
     """Legt „Bohrung fräsen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen
     und Höhen wie FreeCADs Operationen; die Endtiefe ist der tiefste Grund. Gibt die Operation
@@ -235,6 +236,8 @@ def lege_an(
     obj.Schlichten = bool(schlichten)
     obj.Gleichlauf = bool(gleichlauf)
     obj.Flaechen = list(flaechen)
+    if eintauchwinkel:  # der Winkel am Fräser, wie in der Vorschau des Assistenten
+        obj.Eintauchwinkel = float(eintauchwinkel)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("bo.name", werkzeug=f"T{tc.ToolNumber}"), obj
@@ -272,6 +275,7 @@ def aendere(
     schlichten=True,
     gleichlauf=True,
     flaechen=None,
+    eintauchwinkel=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
@@ -288,6 +292,8 @@ def aendere(
     obj.Gleichlauf = bool(gleichlauf)
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
+    if eintauchwinkel:
+        obj.Eintauchwinkel = float(eintauchwinkel)
     job = getattr(obj.Proxy, "job", None)
     if job is not None:
         _endtiefe(obj, job)

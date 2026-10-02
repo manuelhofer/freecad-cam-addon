@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-65 eintauchwinkel-wie-vorschau
+
+### EINGELESEN
+- Beim Bau von P-2026-10-02-64 gefunden: Die Vorschau von „Nut“ und „Bohrung fräsen“ rechnet mit
+  dem Eintauchwinkel am Fräser (Standardfräser 3°), die angelegte Operation mit der Vorgabe 5° –
+  Helix und Rampe der Bahn waren steiler und die Zeit eine andere als im Assistenten.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_eintauchwinkel` für Vorschau, „Anlegen“ und „Ändern“),
+  `camaddon/nut.py`, `camaddon/bohrung.py` (`eintauchwinkel=` beim Anlegen und Ändern),
+  `tests/test_nut.py`, `tests/gui/szenario_nut.py`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.115.1)
+
+### AKZEPTANZKRITERIUM
+Eine Nut mit dem Standardfräser anlegen: Die Operation hat den Eintauchwinkel 3° des Fräsers, ihre
+Bahn ist die der Vorschau.
+
+### DONE
+- Ein Helfer `_eintauchwinkel(werkzeug)` für Vorschau, Anlegen und Ändern; Nut und Bohrung
+  nehmen den Winkel an. Andere Operationen setzen ihn nicht aus dem Assistenten (Räumen,
+  Planfräsen, Kontur rechnen ihre Rampe anders) – nicht angefasst.
+
+### TEST
+- `test_nut` (1.1.3, KI ohne GUI): nach „Ändern“ mit 3° dieselbe Bahn wie die Vorschau.
+- `szenario_nut` (1.1.3): „Anlegen“ – die Nut hat den Winkel des Fräsers. Die Bohrung hat denselben
+  Code, eigens geprüft wurde sie nicht.
+
+### NEXT
+- M2: zweiter Lauf am selben Teil im selben Job.
+
 ## P-2026-10-02-64 materialstand-nut
 
 ### EINGELESEN

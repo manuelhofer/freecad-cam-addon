@@ -319,6 +319,20 @@ pruefe(js.operationsart(op) == "nut", f"Art {js.operationsart(op)}")
 pruefe(op.Boegen == boegen_a and op.Lagen == 2, f"Bögen {op.Boegen}, Lagen {op.Lagen}")
 befehle = [c.Name for c in op.Path.Commands]
 pruefe("G3" in befehle and "G2" not in befehle, "Bögen nicht G3")
+# Der Eintauchwinkel des Fräsers kommt in die Operation – ihre Bahn ist die der Vorschau
+# (P-2026-10-02-65; bis dahin rechnete die Operation mit 5°, die Vorschau mit dem Winkel am Fräser).
+nu.aendere(op, tc, 25.0, 1.5, nu.AUFMASS, eintauchwinkel=3.0)
+doc.recompute()
+gewaehlt = [boden_a, wand_b]
+vorschau = nu.vorschau(
+    job, job.Model.Group, 6.0, 25.0, 1.5, nu.AUFMASS, gewaehlt, eintauchwinkel=3.0
+)
+gerechnet = nu.rechne(op, job, job.Model.Group)
+pruefe(
+    abs(float(op.Eintauchwinkel) - 3.0) < 1e-9 and len(gerechnet.punkte) == len(vorschau.punkte),
+    f"Eintauchwinkel {float(op.Eintauchwinkel)}: {len(gerechnet.punkte)} statt "
+    f"{len(vorschau.punkte)} Punkte",
+)
 print(ascii(f"Operation: {len(befehle)} Befehle"))
 
 if fehler:
