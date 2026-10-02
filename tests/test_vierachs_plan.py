@@ -101,6 +101,48 @@ pruefe(
     all(-27.0 - 1e-6 <= p.a <= -13.0 + 1e-6 for p in vorschub),
     f"längs über die Wände hinaus: {min(p.a for p in vorschub)} … {max(p.a for p in vorschub)}",
 )
+
+
+# Nur im Gleichlauf (P-2026-10-02-24): jede Zeile für sich von vorne zum Futter (a fällt),
+# dazwischen abheben; die Zeilen quer mit M3 von +q nach −q – mit M4 andersherum.
+def fahrten_einzeln(b):
+    stuecke, jetzt = [], []
+    for p in b.punkte:
+        if p.eilgang:
+            if len(jetzt) > 1:
+                stuecke.append(jetzt)
+            jetzt = []
+        else:
+            jetzt.append(p)
+    return stuecke
+
+
+for gleichlauf, name in ((True, "M3"), (False, "M4")):
+    einzeln = vp.planen(
+        netz,
+        LAENGS,
+        RADIAL,
+        dataclasses.replace(werte, nur_gleichlauf=True, gleichlauf=gleichlauf),
+        ebenen,
+    )
+    pruefe(
+        (einzeln.lagen, einzeln.zeilen) == (bahn.lagen, bahn.zeilen),
+        f"{name}: {einzeln.lagen} Lagen, {einzeln.zeilen} Zeilen",
+    )
+    stuecke_e = fahrten_einzeln(einzeln)
+    pruefe(
+        len(stuecke_e) == einzeln.zeilen and all(st[-1].a < st[0].a for st in stuecke_e),
+        f"{name}: {len(stuecke_e)} Fahrten, nicht alle zum Futter",
+    )
+    qs = [round(st[-1].q, 3) for st in stuecke_e]
+    je_lage = max(1, einzeln.zeilen // max(einzeln.lagen, 1))
+    folge_ok = all(
+        all((b < a) == gleichlauf for a, b in zip(teil, teil[1:], strict=False))
+        for teil in (qs[i : i + je_lage] for i in range(0, len(qs), je_lage))
+    )
+    pruefe(folge_ok, f"{name}: Zeilen quer {qs}")
+
+
 # Jede Zeile reicht bis an die Wände – auch die äußeren in der Lage auf dem Zylinderradius,
 # die den Zylinder neben der Wand streifen dürften, aber nicht sollen.
 enden = {}

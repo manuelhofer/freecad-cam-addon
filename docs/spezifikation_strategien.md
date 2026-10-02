@@ -837,7 +837,19 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   deren Lage am Rohteil beginnt – am Zapfen 40 × 30 auf der Platte 100 × 80 fräste die
   Oberseite die ganze Platte 1 mm ab, der Boden darum danach noch einmal. Jetzt nicht
   (`planfraesen_bahn._abgedeckt`, die Zustellung dann wie vor einer Wand): am Zapfen 15,6 →
-  13,5 min, am Absatz 5,1 → 4,3 min.
+  13,5 min, am Absatz 5,1 → 4,3 min. **Nur im Gleichlauf** (P-2026-10-02-24, Manuel:
+  „auswählbar, ob er abhebt und wieder von vorne anfängt“): ein Haken im Block Planfräsen
+  (Eigenschaft `NurGleichlauf`). Aus: hin und her wie bisher. An: jede Zeile für sich
+  (`vierachs_bahn._einzeln`) in der Richtung, die mit den der Reihe nach folgenden Zeilen
+  das Material rechts hat (`_steigend`, `spindel.ist_gleichlauf`, M4 andersherum), danach
+  abheben und im Eilgang zurück; neben der eben gefrästen Zeile senkrecht hinein (dort steht
+  nur ihr Streifen ae – die Rampe von oben kostete am Block 60 × 40 jedes Mal 70 mm),
+  beginnt eine Zeile an einer Wand, erst an ihr zur vorigen und zurück, damit die Ecke der
+  Stirn nicht stehen bleibt. Block 60 × 40 mit Absatz: 2,25 statt 1,87 min. Am Block ohne
+  Absatz ist Planfräsen so 6 % langsamer als Räumen – der Wettbewerb gibt den Haken dann an
+  Räumen (`szenario_plan_gleichlauf`). Ebenso „Plan indexiert“ auf der Drehmaschine: jede
+  Zeile von vorne zum Futter, die Zeilen quer in der Folge, die dafür Gleichlauf ist; Haken
+  im 4-Achs-Assistenten. Rundum mit gewählten Flächen und Linien längs noch hin und her.
 - **S3e Kontur** – außen und innen mit tangentialem Ein- und Ausfahren,
   Schruppen mit Aufmaß und Schlichten in einem Schritt; Konturen versetzen im
   Bahnmodell (dann auch die Spirale fürs Planfräsen).

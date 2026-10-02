@@ -68,6 +68,12 @@ below.</li>
 <li><b>Stepdown per layer</b> (ap), <b>row spacing</b> (ae, at most as wide as
 the flat part of the tip) and <b>allowance</b> – empty, the grey suggestions
 from the application apply.</li>
+<li><b>climb milling only (lift, start again)</b>: off, the cutter runs the rows back
+and forth – fast, but every other row conventional. On, it runs every row climb
+milling, lifts at its end, rapids back and enters again at the start of the next;
+beside the row just milled vertically (only its strip ae is left there). If the tool
+controller is set to “Reverse” (M4), the direction turns with it. On the block
+60 × 40 with a step: 2.25 instead of 1.87 min.</li>
 <li>The path: rows along X or Y – the assistant computes both directions
 with their time and takes the faster one; the result line says how much
 slower the other would be –, back and forth, in

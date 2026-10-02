@@ -79,6 +79,7 @@ class PlanIndexiert(PathOp.ObjectOp):
             + vo.flaechen_eigenschaften()
             + (
                 ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
+                ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
                 ("App::PropertyInteger", "Ebenen", tr("vp.eigenschaft.ebenen")),
                 ("App::PropertyInteger", "Lagen", tr("vp.eigenschaft.lagen")),
                 ("App::PropertyInteger", "Zeilen", tr("vp.eigenschaft.zeilen")),
@@ -147,6 +148,7 @@ def rechne(obj, job, modell):
         float(obj.Eintauchwinkel),
         bohrer=bohrer,
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
+        nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
     )
 
 
@@ -198,6 +200,7 @@ def bahn_fuer(
     toleranz=vp.TOLERANZ,
     bohrer=None,
     gleichlauf=True,
+    nur_gleichlauf=False,
 ):
     """Die Bahn „Plan indexiert“ für Modell und Stange des Jobs. `abstaende`: (Überlauf,
     Abstand zum Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der
@@ -206,8 +209,9 @@ def bahn_fuer(
     `flaechen`: die gewählten Flächen („Face3“ …) – gefräst werden die ebenen längs der Stange
     darunter; `toleranz`: so fein wird das Teil vernetzt; `bohrer`: (Durchmesser,
     Spitzenwinkel) – die Querbohrungen radial bohren (bohrer_von()), ebene Flächen nicht;
-    `gleichlauf`: im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller). ValueError mit
-    einem Satz, wenn es nicht geht."""
+    `gleichlauf`: im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller); `nur_gleichlauf`:
+    die Zeilen jede im Gleichlauf, dazwischen abheben (sonst hin und her). ValueError mit einem
+    Satz, wenn es nicht geht."""
     laengs, radius, a_vorne, a_futter = vs._stange(job, laengs)
     form_teil = vs._teil(modell)
     ebenen = [] if bohrer else vp.ebenen(form_teil, laengs, radial, flaechen)
@@ -234,6 +238,7 @@ def bahn_fuer(
         rest=vs.rest_nach(schruppen, radius, a_futter, a_vorne) if schruppen else None,
         bohrer=bohrer,
         gleichlauf=gleichlauf,
+        nur_gleichlauf=nur_gleichlauf,
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
     return vp.planen(
@@ -262,6 +267,7 @@ def vorschau(
     flaechen=(),
     eintauchwinkel=vb.EINTAUCHWINKEL,
     bohrer=None,
+    nur_gleichlauf=False,
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten, bevor es die
     Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt. ValueError wie
@@ -282,6 +288,7 @@ def vorschau(
         eintauchwinkel,
         vp.VORSCHAU_TOLERANZ,
         bohrer,
+        nur_gleichlauf=nur_gleichlauf,
     )
 
 
@@ -310,6 +317,7 @@ def lege_an(
     halter=0.0,
     flaechen=(),
     eintauchwinkel=None,
+    nur_gleichlauf=False,
 ):
     """Legt „Plan indexiert“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
@@ -342,6 +350,7 @@ def lege_an(
     obj.Flaechen = list(flaechen)
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
+    obj.NurGleichlauf = bool(nur_gleichlauf)
     obj.Label = namen.eindeutig(obj.Document, name or _name(tc), obj)
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
@@ -360,10 +369,12 @@ def aendere(
     halter=None,
     flaechen=None,
     eintauchwinkel=None,
+    nur_gleichlauf=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `abstaende`, `halter`, `flaechen` und `eintauchwinkel` wie bei lege_an, ohne
-    bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
+    Transaktion; `abstaende`, `halter`, `flaechen`, `eintauchwinkel` und `nur_gleichlauf` wie
+    bei lege_an, ohne bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist.
+    """
     if _vorgeschlagener_name(obj.Label):
         obj.Label = namen.eindeutig(obj.Document, _name(tc), obj)
     obj.ToolController = tc
@@ -379,6 +390,8 @@ def aendere(
         obj.Flaechen = list(flaechen)
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
+    if nur_gleichlauf is not None:
+        obj.NurGleichlauf = bool(nur_gleichlauf)
 
 
 def _name(tc):

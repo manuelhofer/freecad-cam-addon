@@ -347,6 +347,16 @@ class _Planfraesen(_Strategie):
             ("aufmass", tr("ba.aufmass"), tr("ba.aufmass.tooltip")),
         )
 
+    def haken(self):
+        return (
+            (
+                "nur_gleichlauf",
+                tr("ba.nur_gleichlauf"),
+                tr("ba.nur_gleichlauf.tooltip"),
+                False,
+            ),
+        )
+
     def passt(self, form, name):
         return bool(hf.ebenen_oben(form, [name]))
 
@@ -376,6 +386,7 @@ class _Planfraesen(_Strategie):
             flaechen,
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
+            nur_gleichlauf=werte.get("nur_gleichlauf", False),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -410,11 +421,18 @@ class _Planfraesen(_Strategie):
             werte["zeilenabstand"],
             werte["aufmass"],
             flaechen=flaechen,
+            nur_gleichlauf=werte.get("nur_gleichlauf", False),
         )
 
     def aendere(self, op, tc, werte, flaechen):
         pf.aendere(
-            op, tc, werte["zustellung"], werte["zeilenabstand"], werte["aufmass"], flaechen=flaechen
+            op,
+            tc,
+            werte["zustellung"],
+            werte["zeilenabstand"],
+            werte["aufmass"],
+            flaechen=flaechen,
+            nur_gleichlauf=werte.get("nur_gleichlauf", False),
         )
 
     def ist(self, op):
@@ -425,6 +443,7 @@ class _Planfraesen(_Strategie):
             "zustellung": float(op.Zustellung),
             "zeilenabstand": float(op.Zeilenabstand),
             "aufmass": float(op.Aufmass),
+            "nur_gleichlauf": bool(getattr(op, "NurGleichlauf", False)),
         }
 
 

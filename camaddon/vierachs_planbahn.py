@@ -170,6 +170,9 @@ class Planwerte:
     # Im Gleichlauf für M3 (spindel.fuer_m3): Nut, Bohrung und die Wände der Mantelnut; False –
     # andersherum (M4). P-2026-10-02-23
     gleichlauf: bool = True
+    # Die Zeilen auf ebenen Flächen nur im Gleichlauf: jede von vorne zum Futter, danach abheben
+    # und von vorne (P-2026-10-02-24); sonst hin und her.
+    nur_gleichlauf: bool = False
 
 
 @dataclass
@@ -829,7 +832,17 @@ def planen(
                 continue
             mit_luecke = np.zeros((len(q_zeilen), anzahl + 2), dtype=bool)
             mit_luecke[:, 1:-1] = drin
-            for fahrt in vb._fahrten(mit_luecke):
+            if w.nur_gleichlauf:
+                # Jede Zeile von vorne zum Futter (fallendes a, beginnt vor der Stange in der
+                # Luft); die Zeilen quer in der Folge, in der das Material dafür auf der Seite
+                # des Gleichlaufs liegt – im Rahmen der Fläche: a = x, q = −y, zum Fräser z.
+                aufsteigend = sp.ist_gleichlauf(
+                    (0.0, 0.0, -1.0), (-1.0, 0.0, 0.0), (0.0, -1.0, 0.0)
+                ) == bool(w.gleichlauf)
+                fahrten = vb._einzeln(mit_luecke, False, absteigend=not aufsteigend)
+            else:
+                fahrten = vb._fahrten(mit_luecke)
+            for fahrt in fahrten:
                 a, q, m = _folge(fahrt, a_stellen, q_zeilen)
                 offen = float(a[0]) - radius >= w.a_stange_vorne  # vor der Stange: nur Luft
                 _einfahrt(punkte, a, q, lage, ebene.phi, vorige, offen, w, sicher)

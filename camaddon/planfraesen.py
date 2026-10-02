@@ -26,6 +26,7 @@ from . import bahn as bn
 from . import hoehenfeld as hf
 from . import namen
 from . import planfraesen_bahn as pb
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_schlichten as vs
@@ -77,6 +78,7 @@ class PlanFraesen(PathOp.ObjectOp):
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
             ("App::PropertyPercent", "VorschubAustritt", tr("pf.eigenschaft.austritt")),
+            ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
             ("App::PropertyInteger", "Ebenen", tr("pf.eigenschaft.ebenen")),
             ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
             ("App::PropertyInteger", "Zeilen", tr("pf.eigenschaft.zeilen")),
@@ -140,6 +142,8 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         float(obj.VorschubAustritt) / 100.0,
         vorschub=vorschub,
         eintauchen=eintauchen,
+        nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
+        gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
 
 
@@ -171,13 +175,16 @@ def bahn_fuer(
     schritt=pb.SCHRITT,
     vorschub=0.0,
     eintauchen=0.0,
+    nur_gleichlauf=False,
+    gleichlauf=True,
 ):
     """Die Bahn „Planfräsen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten Flächen
     („Face6“ …) – gefräst werden die ebenen nach oben darunter; leer: die Oberseite des Teils.
     `oben`: z, wo die Lagen beginnen (None: die Oberkante des Rohteils); `sicher`: z für den
     Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm); `vorschub` und `eintauchen` (mm/min)
-    für die Zeit, nach der je Fläche die Zeilenrichtung fällt. ValueError mit einem Satz,
-    wenn es nicht geht."""
+    für die Zeit, nach der je Fläche die Zeilenrichtung fällt; `nur_gleichlauf`: jede Zeile im
+    Gleichlauf, danach abheben und von vorne (sonst hin und her), `gleichlauf` die Richtung dafür
+    bei M3 (spindel.fuer_m3). ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = rohteil_von_oben(job)
     if oben is None:
@@ -202,6 +209,8 @@ def bahn_fuer(
         austritt=austritt,
         vorschub=vorschub,
         eintauchen=eintauchen,
+        nur_gleichlauf=nur_gleichlauf,
+        gleichlauf=gleichlauf,
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
     return pb.planen(netz, werte, ebenen, schritt)
@@ -217,6 +226,7 @@ def vorschau(
     flaechen=(),
     vorschub=0.0,
     eintauchen=0.0,
+    nur_gleichlauf=False,
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     weniger Stellen je Zeile. ValueError wie bahn_fuer()."""
@@ -233,10 +243,20 @@ def vorschau(
         schritt=pb.VORSCHAU_SCHRITT,
         vorschub=vorschub,
         eintauchen=eintauchen,
+        nur_gleichlauf=nur_gleichlauf,
     )
 
 
-def lege_an(job, tc, zustellung, zeilenabstand, aufmass=AUFMASS, name=None, flaechen=()):
+def lege_an(
+    job,
+    tc,
+    zustellung,
+    zeilenabstand,
+    aufmass=AUFMASS,
+    name=None,
+    flaechen=(),
+    nur_gleichlauf=False,
+):
     """Legt „Planfräsen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen
     und Höhen wie FreeCADs Operationen: die Starttiefe folgt dem Rohteil, die sichere Höhe und
     die Freifahrhöhe dem Einrichtblatt des Jobs; die Endtiefe ist die Fläche plus Aufmaß. Gibt
@@ -259,6 +279,7 @@ def lege_an(job, tc, zustellung, zeilenabstand, aufmass=AUFMASS, name=None, flae
     obj.Zeilenabstand = zeilenabstand
     obj.Aufmass = aufmass
     obj.Flaechen = list(flaechen)
+    obj.NurGleichlauf = bool(nur_gleichlauf)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("pf.name", werkzeug=f"T{tc.ToolNumber}"), obj
@@ -303,10 +324,10 @@ def _endtiefe(obj, job):
         obj.FinalDepth = min(e.z for e in ebenen) + float(obj.Aufmass)
 
 
-def aendere(obj, tc, zustellung, zeilenabstand, aufmass, flaechen=None):
+def aendere(obj, tc, zustellung, zeilenabstand, aufmass, flaechen=None, nur_gleichlauf=None):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
-    vorgeschlagene ist."""
+    Transaktion; `flaechen` und `nur_gleichlauf` ohne bleiben. Der Name folgt dem Werkzeug,
+    solange es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = namen.eindeutig(obj.Document, tr("pf.name", werkzeug=f"T{tc.ToolNumber}"), obj)
     obj.ToolController = tc
@@ -316,6 +337,8 @@ def aendere(obj, tc, zustellung, zeilenabstand, aufmass, flaechen=None):
     obj.Aufmass = aufmass
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
+    if nur_gleichlauf is not None:
+        obj.NurGleichlauf = bool(nur_gleichlauf)
     job = getattr(obj.Proxy, "job", None)
     if job is not None:
         _endtiefe(obj, job)

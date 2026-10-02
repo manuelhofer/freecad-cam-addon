@@ -500,6 +500,21 @@ def _von_bis(von, bis):
     return np.arange(von, bis + (1 if bis >= von else -1), 1 if bis >= von else -1)
 
 
+def _einzeln(drin, steigend, absteigend=False):
+    """Die Fahrten für „nur im Gleichlauf“ (P-2026-10-02-24): jedes Stück jeder Zeile eine
+    Fahrt für sich, alle in dieselbe Richtung (`steigend`: mit wachsenden Winkelschritten oder
+    Stellen) – dazwischen hebt der Fräser ab und setzt am Anfang der nächsten neu ein. Die
+    Zeilen der Reihe nach, `absteigend` von der letzten an. `drin` wie bei _fahrten()."""
+    fahrten = []
+    zeilen = range(drin.shape[0] - 1, -1, -1) if absteigend else range(drin.shape[0])
+    for m in zeilen:
+        for anfang, laenge in _bereiche(drin[m]):
+            letzte = anfang + laenge - 1
+            js = _von_bis(anfang, letzte) if steigend else _von_bis(letzte, anfang)
+            fahrten.append([("zeile", m, js)])
+    return fahrten
+
+
 def _fahrten(drin):
     """Wie die Zeilen hin und her gefahren werden: [[Teil, …], …] – je Fahrt, was ohne Abheben
     am Stück geht. Ein Teil ist ("zeile", m, js): Zeile m über die Winkelschritte js

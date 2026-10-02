@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-24 nur-gleichlauf
+
+### EINGELESEN
+- `planfraesen_bahn` (`_ebene`, `_fahrt`, `_einfahrt`, `_wandfahrt`, `_ueber_die_letzte`),
+  `vierachs_bahn._fahrten`/`_bereiche`, `vierachs_planbahn.planen`, `planfraesen`,
+  `vierachs_plan`, `gui_bearbeitung._Planfraesen`, `gui_vierachs` (Plan indexiert).
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`, `camaddon/planfraesen.py`, `camaddon/vierachs_bahn.py`,
+  `camaddon/vierachs_planbahn.py`, `camaddon/vierachs_plan.py`, `camaddon/gui_bearbeitung.py`,
+  `camaddon/gui_vierachs.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_planfraesen.py`, `tests/test_vierachs_plan.py`,
+  `tests/gui/szenario_plan_gleichlauf.py` (neu), `help/de|en/bearbeitung.html`,
+  `help/de|en/vierachs.html`, `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.86.0)
+
+### AKZEPTANZKRITERIUM
+Manuel auf die Frage, ob Zeilen hin und her bleiben oder nur im Gleichlauf fahren sollen:
+„Auswählbar … ob er abhebt und wieder von vorne anfängt.“ Ein Haken bei den Zeilen; an: jede Zeile
+im Gleichlauf, dazwischen abheben, nichts bleibt stehen.
+
+### DONE
+- `vierachs_bahn._einzeln`: jedes Stück jeder Zeile eine Fahrt, alle in eine Richtung, die
+  Zeilen auf- oder absteigend.
+- Planfräsen: `Planwerte.nur_gleichlauf`/`gleichlauf`, `_steigend` (Material bei den folgenden
+  Zeilen, `spindel.ist_gleichlauf`); neben der vorigen Zeile senkrecht hinein statt der Rampe
+  von oben (`_einfahrt(nachbar)`: am Block 2,6-mal → 1,2-mal so lang wie hin und her); an einer
+  Wand am Anfang erst an ihr zur vorigen Zeile und zurück, vor der letzten bis an den Rand.
+  Eigenschaft `NurGleichlauf`, Haken im Block Planfräsen.
+- Plan indexiert: jede Zeile von vorne zum Futter (beginnt vor der Stange in der Luft), die
+  Zeilen quer in der Folge, die dafür Gleichlauf ist; Eigenschaft `NurGleichlauf`, Haken im
+  4-Achs-Assistenten (auch beim Ändern).
+- Gefunden im Szenario: Am Block ohne Absatz ist Planfräsen nur im Gleichlauf 6 % langsamer als
+  Räumen – der Wettbewerb gibt den Haken an Räumen; von Hand wieder an geht.
+
+### TEST
+- 1.1.3: `test_planfraesen` (M3: alle Zeilen −x, M4 +x, je Zeile abgehoben, länger als hin und
+  her, an der Wand y 0 … 40), `test_vierachs_plan` (alle Fahrten zum Futter, Zeilen quer M3
+  fallend, M4 steigend), `test_sprache`, `test_hilfe`; Szenarien `szenario_plan_gleichlauf`
+  (neu), `szenario_vierachs_plan`, `szenario_absatz`, `szenario_zapfen`, `szenario_bearbeitung`
+  grün; black/ruff grün.
+
+### NEXT
+- Dasselbe für „Rundum“ mit gewählten Flächen und „Linien längs“.
+- Rundum entgraten nach Gleichlauf; die geschlossene Nut mit dem schonenden Schritt (Frage an
+  Manuel).
+
 ## P-2026-10-02-23 vierachs-gleichlauf
 
 ### EINGELESEN

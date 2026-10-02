@@ -5,11 +5,13 @@
 # 23 Zeilen längs x hin und her, Halbkreise am freien Ende, Rampe ins Material, beim Austritt
 # halber Vorschub; die Befehle mit G1, G2, G3 und F; die Zeit. Dann die CAM-Operation im Job:
 # angelegt (Tiefen und Höhen wie FreeCAD), gerechnet, geändert, auf den Absatz gestellt,
-# gespeichert und geladen.
+# gespeichert und geladen. Nur im Gleichlauf (P-2026-10-02-24): jede Zeile in Richtung Gleichlauf,
+# danach abheben und von vorne.
 import math
 import os
 import sys
 import tempfile
+from dataclasses import replace
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -340,6 +342,52 @@ for werte_falsch, ebenen_falsch, text in (
         pruefe(len(str(grund)) > 10, f"{text}: kein Satz")
     else:
         pruefe(False, f"{text}: keine Fehlermeldung")
+
+
+# --- Nur im Gleichlauf (P-2026-10-02-24) -----------------------------------------------------
+# Manuel: „auswählbar, ob er abhebt und wieder von vorne anfängt“. Die Zeilen folgen einander mit
+# wachsendem y, dort liegt das Material; mit M3 liegt es rechts der Fahrt, wenn x fällt: jede
+# Zeile vom freien Ende zur Wand, an ihr zurück zur vorigen, abheben, im Eilgang zurück, von
+# vorne. Gleich viele Zeilen, länger als hin und her; mit M4 umgekehrt – die Ecken an der Wand
+# dann am Anfang jeder Zeile. An der Wand bleibt in beiden nichts stehen (y 0 … 40).
+def zeilenfahrten(b):
+    ergebnis = []
+    for p, q in zip(b.punkte, b.punkte[1:], strict=False):
+        if q.eilgang or q.bogen is not None or abs(q.z - 20.0) > 1e-6 or abs(p.z - 20.0) > 1e-6:
+            continue
+        if abs(q.y - p.y) < 1e-9 and abs(q.x - p.x) > 1.0:
+            ergebnis.append(q.x - p.x)
+    return ergebnis
+
+
+def wandfahrt(b):
+    return sorted(
+        {
+            round(p.y, 2)
+            for p in b.punkte
+            if not p.eilgang and abs(p.z - 20.0) < 1e-6 and abs(p.x - x_links) < 1e-6
+        }
+    )
+
+
+for gleichlauf, name in ((True, "M3"), (False, "M4")):
+    einzeln = pb.planen(netz, replace(werte, nur_gleichlauf=True, gleichlauf=gleichlauf), [flaeche])
+    fahrten_e = zeilenfahrten(einzeln)
+    pruefe(einzeln.zeilen == bahn.zeilen, f"{name}: {einzeln.zeilen} Zeilen")
+    pruefe(
+        fahrten_e and all((dx < 0) == gleichlauf for dx in fahrten_e),
+        f"{name}: Richtungen {sorted({round(dx) for dx in fahrten_e})}",
+    )
+    abgehoben = sum(
+        1
+        for p, q in zip(einzeln.punkte, einzeln.punkte[1:], strict=False)
+        if q.eilgang and abs(q.z - 31.0) < 1e-9 and p.z < 31.0 - 1e-9
+    )
+    pruefe(abgehoben >= einzeln.zeilen, f"{name}: {abgehoben}-mal abgehoben")
+    pruefe(einzeln.zeit > bahn.zeit, f"{name}: {einzeln.zeit:.2f} nicht länger als {bahn.zeit:.2f}")
+    wand_e = wandfahrt(einzeln)
+    pruefe(wand_e and wand_e[0] <= 0.0 and wand_e[-1] >= 40.0, f"{name}: Wand {wand_e[:2]} …")
+    print(ascii(f"Nur im Gleichlauf ({name}): {einzeln.zeit:.2f} min, hin und her {bahn.zeit:.2f}"))
 
 # --- Die CAM-Operation im Job ---------------------------------------------------------------
 import Path.Main.Job as PathJob

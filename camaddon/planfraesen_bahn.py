@@ -34,6 +34,7 @@ import numpy as np
 
 from . import bahn as bn
 from . import hoehenfeld as hf
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_planbahn as vp
 from .sprache import tr
@@ -68,6 +69,12 @@ class Planwerte:
     laengs: bool = None
     vorschub: float = 0.0  # mm/min – für die Zeit im Vergleich; 0: 1000
     eintauchen: float = 0.0  # mm/min senkrecht ins Material; 0: wie der Vorschub
+    # Nur im Gleichlauf (Manuel 2026-10-02: „auswählbar, ob er abhebt und wieder von vorne
+    # anfängt“): jede Zeile in dieselbe Richtung, danach abheben und von vorne
+    # (vierachs_bahn._einzeln);
+    # sonst hin und her. `gleichlauf`: die Richtung dafür bei M3 (spindel.fuer_m3).
+    nur_gleichlauf: bool = False
+    gleichlauf: bool = True
 
 
 @dataclass
@@ -338,7 +345,11 @@ def _ebene(
             raster = raster.umgekehrt()
         mit_luecke = np.zeros((len(v_zeilen), anzahl + 2), dtype=bool)
         mit_luecke[:, 1:-1] = raster.drin
-        for fahrt in vb._fahrten(mit_luecke):
+        if w.nur_gleichlauf:
+            fahrten = vb._einzeln(mit_luecke, _steigend(raster, w.gleichlauf))
+        else:
+            fahrten = vb._fahrten(mit_luecke)
+        for fahrt in fahrten:
             laenge += _fahrt(punkte, fahrt, raster, lage, vorige, w)
             zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
         lagen_gesamt += 1
@@ -362,6 +373,17 @@ def _abgedeckt(tiefere, laengs_x, u, v, seite):
         if seite == 1 and ev[1] > v[1] + GLEICH and ev[0] <= v[1] + GLEICH:
             return True
     return False
+
+
+def _steigend(raster, gleichlauf):
+    """Läuft eine Zeile im Gleichlauf mit wachsenden Stellen? Die Zeilen folgen einander quer mit
+    wachsendem v – dort liegt das Material; der Fräser zeigt nach unten (spindel.ist_gleichlauf,
+    `gleichlauf` aus spindel.fuer_m3)."""
+    r_ = raster
+    du = 1.0 if len(r_.u_stellen) < 2 or r_.u_stellen[1] > r_.u_stellen[0] else -1.0
+    fx, fy = r_.xy(du, 0.0)
+    mx, my = r_.xy(0.0, 1.0)
+    return sp.ist_gleichlauf((0.0, 0.0, -1.0), (fx, fy, 0.0), (mx, my, 0.0)) == bool(gleichlauf)
 
 
 def _zeilen_quer(v_von, v_bis, rand, abstand):
@@ -422,7 +444,19 @@ def _fahrt(punkte, fahrt, raster, lage, vorige, w):
         else:
             teile.append((art, m, int(js) - 1))
     _art, m0, js0 = teile[0]
-    laenge = _einfahrt(punkte, r_, m0, js0, lage, vorige, w)
+    # Nur im Gleichlauf: Lief die vorige Zeile schon über den Anfang, steht dort nur noch ihr
+    # Streifen ae – senkrecht hinein statt der Rampe von oben.
+    nachbar = w.nur_gleichlauf and m0 > 0 and bool(r_.drin[m0 - 1, int(js0[0])])
+    laenge = _einfahrt(punkte, r_, m0, js0, lage, vorige, w, nachbar)
+    if w.nur_gleichlauf and len(js0) > 1:
+        # Beginnt die Zeile an einer Wand, bliebe dort zwischen ihr und der vorigen die Ecke
+        # der Stirn stehen (hin und her nimmt sie der Schritt): an der Wand hin und zurück.
+        richtung = 1 if js0[-1] > js0[0] else -1
+        start = r_.xy(r_.u_stellen[js0[0]], r_.v_zeilen[m0])
+        da = abs(punkte[-1].x - start[0]) < GLEICH and abs(punkte[-1].y - start[1]) < GLEICH
+        if da and _wand(r_, m0, int(js0[0]), -richtung):
+            laenge += _wandfahrt(punkte, r_, m0, int(js0[0]), lage, teile, 0)
+            laenge += _ueber_die_letzte(punkte, r_, m0, int(js0[0]), lage)
     for nummer, (art, m, js) in enumerate(teile):
         if art == "zeile":
             laenge += _zeile(punkte, r_, m, js, lage, w, nummer == 0)
@@ -493,10 +527,11 @@ def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
     return laenge
 
 
-def _einfahrt(punkte, r_, m, js, lage, vorige, w):
+def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False):
     """Über den Anfang der ersten Zeile im Eilgang, hinab bis knapp über das Material: in der
     Luft senkrecht mit dem Eintauchvorschub auf die Lage; im Rohteil senkrecht bis ans Material
-    und dann über die Rampe längs der Zeile. Gibt die Länge der Rampe zurück."""
+    und dann über die Rampe längs der Zeile – `nachbar` (neben der eben gefrästen Zeile, nur der
+    Streifen ae am Rand der Stirn) senkrecht. Gibt die Länge der Rampe zurück."""
     u = r_.u_stellen[js]
     v = float(r_.v_zeilen[m])
     x0, y0 = r_.xy(u[0], v)
@@ -506,7 +541,7 @@ def _einfahrt(punkte, r_, m, js, lage, vorige, w):
     knapp = min(w.sicher, oben + w.sicherheit)
     if knapp < w.sicher:
         punkte.append(bn.Punkt(True, x0, y0, knapp))
-    if luft or len(js) < 2 or vorige <= lage + GLEICH:
+    if luft or len(js) < 2 or vorige <= lage + GLEICH or nachbar:
         punkte.append(bn.Punkt(False, x0, y0, lage, True))
         return 0.0
     punkte.append(bn.Punkt(False, x0, y0, vorige, True))  # bis ans Material

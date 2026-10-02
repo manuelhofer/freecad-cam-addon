@@ -727,6 +727,7 @@ class VierachsPanel:
                 ("zeilenabstand", op.Zeilenabstand),
                 ("aufmass_plan", op.Aufmass),
             ]
+            self.plan_nur_gleichlauf.setChecked(bool(getattr(op, "NurGleichlauf", False)))
         elif self._art == ENTGRATEN:
             paare = [("breite", op.Breite)]
         else:
@@ -1209,6 +1210,12 @@ class VierachsPanel:
             ("aufmass_plan", tr("va.aufmass_plan"), tr("va.aufmass_plan.tooltip")),
         ):
             zahlenfeld(self.felder_plan, feld, text, tooltip, plan)
+        # Die Zeilen nur im Gleichlauf: jede von vorne zum Futter, dazwischen abheben
+        # (P-2026-10-02-24, Manuel: „auswählbar, ob er abhebt und wieder von vorne anfängt“).
+        self.plan_nur_gleichlauf = QtGui.QCheckBox(tr("ba.nur_gleichlauf"))
+        self.plan_nur_gleichlauf.setToolTip(tr("va.plan.nur_gleichlauf.tooltip"))
+        self.plan_nur_gleichlauf.toggled.connect(lambda _an: self._vorschau_starten())
+        plan.ganz(self.plan_nur_gleichlauf)
         self.mit_planbohrer = QtGui.QCheckBox()
         self.mit_planbohrer.setToolTip(tr("va.plan.mit_bohrer.tooltip"))
         self.mit_planbohrer.toggled.connect(lambda _an: self._planbohrer_umgeschaltet())
@@ -2444,6 +2451,7 @@ class VierachsPanel:
             flaechen,
             self._eintauchwinkel_fuer(werkzeug),
             bohrer,
+            nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
         )
 
     def _plan_text(self, bahn):
@@ -3338,6 +3346,7 @@ class VierachsPanel:
                             halter=self._halter_fuer(self.planfraeser()),
                             flaechen=plan_flaechen,
                             eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
+                            nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
                         )
                     )
                     if loecher:
@@ -3454,6 +3463,7 @@ class VierachsPanel:
                         self._halter_fuer(self.planfraeser()),
                         flaechen,
                         self._eintauchwinkel_fuer(self.planfraeser()),
+                        nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
                     )
                 elif self._art == ENTGRATEN:
                     tc = js.controller_fuer(
@@ -3537,6 +3547,7 @@ class VierachsPanel:
                         halter=self._halter_fuer(self.planfraeser()),
                         flaechen=plan_flaechen,
                         eintauchwinkel=self._eintauchwinkel_fuer(self.planfraeser()),
+                        nur_gleichlauf=self.plan_nur_gleichlauf.isChecked(),
                     )
                     if loecher:
                         self._bohrer_dazu_anlegen(self.achse(), op.QuerAufNull, loecher)
