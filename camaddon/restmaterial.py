@@ -883,27 +883,36 @@ def teilhoehen(netz, quader):
 
 
 def teilhoehen_kanten(netz, quader):
-    """(teil, erlaubt) für den Vergleich im Quader: die Oberseite des Teils je Zelle – auf einer
-    Kante die höhere Fläche (`hf.hoehen` ohne `innen`) – und je Zelle, wie tief es dort ins Teil
-    darf, ohne blau zu werden: 0, nur dicht an einer Kante (näher als zweimal die Toleranz des
-    Netzes) bis auf die tiefste Fläche dort (eine Wand: bis auf ihren Boden; der Rand des Teils:
-    beliebig). Das Netz ist ein Vieleck in der runden Wand – der Fräser, der genau bis an den
-    Kreis fährt, nimmt eine Zelle auf dem Kreis weg, die nach dem Netz noch zur Oberseite
-    gehört: auf Manuels Platte „20 mm im Teil“ am Rand der Tasche. Mit `innen` allein fiel
-    dagegen eine Zelle auf einer inneren Kante der Vernetzung – zwei Dreiecke derselben
-    Fläche – durch die Fläche auf die nächste darunter (dort die Unterseite: „bis 51 mm stehen
-    geblieben“ mitten auf der Oberseite; P-2026-10-01-27)."""
+    """(teil, erlaubt) für den Vergleich im Quader: die Oberseite des Teils je Zelle – dicht an
+    einer Kante (näher als zweimal die Toleranz des Netzes) die höchste Fläche dort – und je
+    Zelle, wie tief es dort ins Teil darf, ohne blau zu werden: 0, nur dicht an einer Kante bis
+    auf die tiefste Fläche dort (eine Wand: bis auf ihren Boden; der Rand des Teils: beliebig).
+    Das Netz ist ein Vieleck in der runden Wand – der Fräser, der genau bis an den Kreis fährt,
+    nimmt eine Zelle auf dem Kreis weg, die nach dem Netz noch zur Oberseite gehört: auf Manuels
+    Platte „20 mm im Teil“ am Rand der Tasche. Und umgekehrt (B-008, Manuels Testteil): Eine
+    Zelle, deren Mitte um ein Haar neben der Wand liegt (0,007 mm), erreicht der Fräser, der
+    genau an der Wand entlangfährt, gerade nicht – „12 mm stehen geblieben“ auf einer einzigen
+    Zelle. So dicht an der Kante gilt deshalb beides: stehen darf es bis zur höheren Fläche, weg
+    sein bis zur tieferen. Mit `innen` allein fiel dagegen eine Zelle auf einer inneren Kante
+    der Vernetzung – zwei Dreiecke derselben Fläche – durch die Fläche auf die nächste darunter
+    (dort die Unterseite: „bis 51 mm stehen geblieben“ mitten auf der Oberseite;
+    P-2026-10-01-27)."""
     from . import hoehenfeld as hf
 
     alle = hf.hoehen(netz, quader.x, quader.y)
     nah = 2.0 * max(float(getattr(netz, "toleranz", hf.TOLERANZ)), 0.005)
     tiefste = alle.copy()
+    hoechste = alle.copy()
     for dx, dy in ((nah, 0.0), (-nah, 0.0), (0.0, nah), (0.0, -nah)):
-        tiefste = np.minimum(tiefste, hf.hoehen(netz, quader.x + dx, quader.y + dy))
-    kante = np.isfinite(alle) & (tiefste < alle - 1e-6)
+        daneben = hf.hoehen(netz, quader.x + dx, quader.y + dy)
+        tiefste = np.minimum(tiefste, daneben)
+        hoechste = np.maximum(hoechste, daneben)
+    # Neben dem Teil bleibt „kein Teil“ – was dort vom Rohteil steht, ist kein Rest.
+    teil = np.where(np.isfinite(alle), hoechste, alle)
+    kante = np.isfinite(teil) & (tiefste < teil - 1e-6)
     erlaubt = np.zeros(alle.shape)
-    erlaubt[kante] = alle[kante] - tiefste[kante]
-    return alle, erlaubt
+    erlaubt[kante] = teil[kante] - tiefste[kante]
+    return teil, erlaubt
 
 
 def vergleiche_quader(quader, teil, aufmass, nur=None, erlaubt=None):

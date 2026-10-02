@@ -2018,6 +2018,10 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   nicht, also sieht der Vergleich dort bis auf die Unterseite des Teils. Gefräst ist die Mulde
   richtig (auf 0,02 mm). *Soll:* Ein Knoten auf einer Kante zählt, wenn beide Seiten dieselbe
   Höhe haben.
+  **Behoben:** P-2026-10-02-86, 0.125.3 – nachgemessen war es nicht die Naht: zwei einzelne
+  Zellen, deren Mitte 0,007 und 0,0001 mm neben einer Wand liegt, zählten mit der ganzen
+  Wandhöhe. So dicht an einer Kante darf es jetzt bis zur höheren Fläche stehen
+  (`restmaterial.teilhoehen_kanten`). Am Testteil bleiben 5 mm in den zwei spitzen Ecken der Tasche.
 - **B-009 „… hat „Planfräsen“ schon weggenommen“**, obwohl Räumen angehakt ist: Die Zeile unter
   „3D-Schruppen“ stammt aus dem Wettbewerb und wird nicht neu gerechnet, wenn der Haken wechselt.
 

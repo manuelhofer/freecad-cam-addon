@@ -106,6 +106,34 @@ pruefe(q.h[ix[30.0], int(np.argmin(np.abs(y - 36.0)))] == 26.0, "6 mm neben dem 
 q.zuruecksetzen()
 pruefe(q.h.min() == 26.0, "zurückgesetzt")
 
+# --- Eine Zelle um ein Haar neben einer Wand (B-008) -------------------------------------------
+# Der Absatz endet bei x 9,995: Die Zellen bei x 10 liegen nach dem Netz 0,005 mm neben seiner
+# Wand, über der tieferen Fläche (20). Der Fräser, der genau an der Wand entlangfährt, erreicht
+# ihre Mitte um ein Haar nicht – das Material steht dort noch auf 25. Das ist kein Rest von 5 mm
+# (an Manuels Testteil meldete das Prüffenster so „12 mm stehen geblieben“ auf einer Zelle); und
+# ist die Zelle weggefräst, ist das nicht „im Teil“. Eine Zelle weiter (x 10,5) zählt wie immer.
+knapp = Part.makeBox(60, 40, 20).fuse(Part.makeBox(9.995, 40, 5, V(0, 0, 20))).removeSplitter()
+knapp_netz = vh.vernetze(knapp)
+pruefe(abs(hf.hoehen(knapp_netz, x, y)[ix[10.0], iy] - 20.0) < 1e-9, "x 10 liegt neben der Wand")
+q.h[:] = np.where(np.isfinite(hf.hoehen(knapp_netz, x, y)), 20.0, 26.0)
+q.h[: ix[10.0] + 1, :] = 25.0  # der Absatz – und die Zellen bei x 10, um ein Haar daneben
+teil_knapp, erlaubt_knapp = rm.teilhoehen_kanten(knapp_netz, q)
+pruefe(abs(teil_knapp[ix[10.0], iy] - 25.0) < 1e-9, f"an der Wand: {teil_knapp[ix[10.0], iy]}")
+pruefe(abs(erlaubt_knapp[ix[10.0], iy] - 5.0) < 1e-9, f"erlaubt: {erlaubt_knapp[ix[10.0], iy]}")
+pruefe(abs(teil_knapp[ix[10.5], iy] - 20.0) < 1e-9 and erlaubt_knapp[ix[10.5], iy] == 0.0,
+       f"eine Zelle weiter: {teil_knapp[ix[10.5], iy]}, {erlaubt_knapp[ix[10.5], iy]}")  # fmt: skip
+pruefe(teil_knapp[ix[-1.0], iy] == hf.KEIN_TREFFER, "neben dem Teil bleibt kein Teil")
+v = rm.vergleiche_quader(q, teil_knapp, 0.0, erlaubt=erlaubt_knapp)
+pruefe(abs(v.groesster) < 1e-9, f"um ein Haar neben der Wand: {v.groesster} mm stehen geblieben")
+q.h[ix[10.0], :] = 20.0  # der Fräser hat sie doch erreicht
+v = rm.vergleiche_quader(q, teil_knapp, 0.0, erlaubt=erlaubt_knapp)
+pruefe(not (v.farbe == rm.BLAU).any() and abs(v.groesster) < 1e-9,
+       f"weggefräst: blau {(v.farbe == rm.BLAU).sum()}, Rest {v.groesster}")  # fmt: skip
+q.h[ix[10.5], :] = 25.0  # eine Zelle weiter stehen 5 mm: Das ist ein Rest
+v = rm.vergleiche_quader(q, teil_knapp, 0.0, erlaubt=erlaubt_knapp)
+pruefe(abs(v.groesster - 5.0) < 1e-9, f"eine Zelle weiter: {v.groesster} mm")
+q.zuruecksetzen()
+
 # --- Planfräsen auf der Beispiel-Fräse ---------------------------------------------------------
 import Path.Main.Job as PathJob
 

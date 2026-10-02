@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-86 kein-rest-neben-der-wand
+
+### EINGELESEN
+- B-008: Das Prüffenster meldet an Manuels Testteil „0,00 mm … 12,00 mm“ stehen geblieben.
+
+### DATEIEN
+- `camaddon/restmaterial.py` (`teilhoehen_kanten`), `tests/test_quader.py`,
+  `docs/spezifikation_strategien.md` (13.4), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.125.3)
+
+### AKZEPTANZKRITERIUM
+Am Testteil meldet das Prüffenster am Ende höchstens 5,00 mm – die zwei spitzen Ecken der Tasche.
+
+### DONE
+- Die Ursache war nicht die Naht der Mulde (so stand es in 13.4): Im Prüffenster nachgemessen
+  waren es zwei einzelne Zellen, deren Mitte 0,007 und 0,0001 mm neben einer Wand liegt. Nach dem
+  Netz gehören sie zur tieferen Fläche; der Fräser, der genau an der Wand entlangfährt, erreicht
+  ihre Mitte um ein Haar nicht – gemeldet wurde die ganze Wandhöhe (12 und 10 mm).
+- `teilhoehen_kanten`: Dichter als zweimal die Toleranz des Netzes an einer Kante gilt jetzt
+  beides – stehen darf es bis zur höheren Fläche, weg sein bis zur tieferen (das gab es schon).
+  Neben dem Teil bleibt „kein Teil“.
+- Am Testteil danach: 44 Zellen (11 mm²) mit 5 mm in den zwei spitzen Ecken der Tasche – genau
+  der Radius des Ø 6 –, sonst nichts über 1 mm.
+
+### TESTS
+- `tests/test_quader.py` (OK; neu: eine Zelle 0,005 mm neben der Wand; Gegenprobe mit dem alten
+  Stand schlägt an). Alle Prüfungen: 69 OK, Export übersprungen.
+- Der Lauf über alle Szenarien auf dem Stand nach P-2026-10-02-88 lief beim Ende der Sitzung noch
+  (21 von 97 OK, kein Fehler) – nachsehen und zu Ende führen (NEXT).
+
+### NEXT
+- B-009.
+
 ## P-2026-10-02-85 szenarien-nachgezogen
 
 ### EINGELESEN

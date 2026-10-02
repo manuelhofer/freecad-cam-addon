@@ -585,10 +585,9 @@ An Manuels Testteil gefunden (Spezifikation Strategien, Abschnitt 13.4, P-2026-1
 Tasche räumt außerhalb ihrer Wände) und B-007 (eine Tasche, in die der Fräser nicht passt, fällt still aus)
 sind behoben (P-2026-10-02-79, -81, -82). B-010 (neun Szenarien schlugen in FreeCAD 1.1.4 fehl) ist
 erledigt: vier stürzten ab (B-011, -83), eins zeigte einen Fehler der Kontur (B-012, -84), drei waren
-veraltet, eins lief nur nicht aus einer Kopie ohne Git (-85).
+veraltet, eins lief nur nicht aus einer Kopie ohne Git (-85). B-008 (12 mm „Rest“ im Prüffenster: zwei
+Zellen um ein Haar neben einer Wand, nicht die Naht der Mulde) ist behoben (-86, 0.125.3).
 
-- **B-008** Prüffenster: 12 mm „Rest“ auf einer Linie in einer Kugelmulde – die Naht liegt auf einer Zeile
-  des Rasters; gefräst ist sie richtig.
 - **B-009** Assistent „Bearbeitung“: Unter „3D-Schruppen“ steht „… hat „Planfräsen“ schon weggenommen“,
   obwohl Räumen angehakt ist.
 
