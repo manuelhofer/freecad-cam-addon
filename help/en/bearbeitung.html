@@ -655,6 +655,14 @@ the application “Full slot” is preselected when it has one.</li>
 with a ramp, about 1 min”. Red says why it does not work: the cutter is wider than the slot,
 or a closed slot is wider than nearly two cutters – a core would stay in the middle of the
 helix (a larger cutter, or “Clearing”).</li>
+<li><b>Only where material is left</b> (material state): the slot takes into account what the
+operations before it in the job have already removed – and the ticked strategies before it in
+the same window (face milling, clearing). A block already cleared around the boss down to −10,
+the slot 15 deep: the layers and the helix start at −10, not at the top of the stock – no path
+through air. Grey below it then says what is left to do: “5.6 cm³ left – “Clearing T1” already
+removed 11.1 cm³”; if nothing is left, red says “Nothing left to do here …”. If you change an
+operation before it (depth, cutter, deleted, moved), the slot recomputes by itself – otherwise
+its rapid move could go where there is material again.</li>
 <li><b>Open slots</b>: open towards the edge – at one end (a semicircle and two walls ending
 at the edge) or at both (two parallel walls with the floor between). The list says “open slot
 16 × 60, floor 12”. Behind the open end there is air: there the cutter goes down and enters

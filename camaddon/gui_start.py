@@ -22,6 +22,7 @@ from . import (
     gui_job_schnittwerte,
     gui_maschine,
     gui_maschinen,
+    gui_materialstand,
     gui_neue_maschine,
     gui_reichweite,
     gui_sprachwahl,
@@ -102,6 +103,7 @@ def starten():
     FreeCADGui.getMainWindow().workbenchActivated.connect(_werkzeugleiste_anhaengen)
     gui_sprachwahl.einstellungsseite_anmelden()
     gui_maschinen.beobachten()  # gespeicherte Maschinen kommen in die Liste (W-011)
+    gui_materialstand.beobachten()  # Operationen mit Materialstand rechnen nach (W-012)
     gui_sprachwahl.beim_ersten_start_fragen()
     gui_aktualisierung.beim_start()
     FreeCAD.Console.PrintLog("CAM-Addon geladen\n")

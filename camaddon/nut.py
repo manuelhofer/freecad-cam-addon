@@ -22,6 +22,7 @@ import Path.Op.Base as PathOp
 
 from . import bahn as bn
 from . import kontur as ko
+from . import materialstand as mst
 from . import namen
 from . import nut_bahn as nb
 from . import planfraesen as pf
@@ -81,6 +82,7 @@ class Nut(PathOp.ObjectOp):
             ("App::PropertyInteger", "Nuten", tr("nt.eigenschaft.nuten")),
             ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
             ("App::PropertyInteger", "Boegen", tr("nt.eigenschaft.boegen")),
+            ("App::PropertyString", "Materialstand", tr("nt.eigenschaft.materialstand")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -91,6 +93,7 @@ class Nut(PathOp.ObjectOp):
     def _editormodi(obj):
         for name in ("Nuten", "Lagen", "Boegen"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+        obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
         if "Kreise" in obj.PropertiesList:  # bis P-2026-10-02-52 (Trochoide): ausgeblendet
             obj.setEditorMode("Kreise", 2)
 
@@ -118,6 +121,11 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     form = vs.form_des_controllers(obj.ToolController)
     if form is None or vp.ebener_radius(form) <= 0:
         raise ValueError(tr("nt.fehler.form"))
+    # Was die Operationen davor schon weggenommen haben (W-012) – und woraus das gerechnet ist:
+    # Ändert sich davor etwas, rechnet gui_materialstand die Nut neu.
+    stand = mst.fuer(job, vor=obj)
+    if "Materialstand" in obj.PropertiesList:
+        obj.Materialstand = mst.kennung_vor(job, obj)
     return bahn_fuer(
         job,
         modell,
@@ -136,6 +144,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchwinkel=float(obj.Eintauchwinkel),
         vorschub=vorschub,
         eintauchen=eintauchen,
+        stand=stand,
     )
 
 
@@ -157,9 +166,11 @@ def bahn_fuer(
     eintauchwinkel=vb.EINTAUCHWINKEL,
     vorschub=0.0,
     eintauchen=0.0,
+    stand=None,
 ):
     """Die Bahn „Nut“ für Modell und Rohteil des Jobs. `flaechen`: Wände oder Grund der Nuten
-    („Face7“ …). ValueError mit einem Satz, wenn es nicht geht."""
+    („Face7“ …); `stand`: der Materialstand davor (materialstand) – die Lagen beginnen dann,
+    wo in der Nut noch Material ist. ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -185,7 +196,7 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
     )
-    return nb.planen(werte, liste)
+    return nb.planen(werte, liste, stand)
 
 
 def vorschau(job, modell, fraeser_radius, zustellung, zeilenabstand, aufmass, flaechen, **weiter):

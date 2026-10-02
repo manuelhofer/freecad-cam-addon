@@ -281,7 +281,7 @@
     "wv.fehler.speichern": "The tool manager could not be saved:\n{fehler}",
     "wv.fehler.laden": "The tool manager file could not be read ({fehler}).\n\nIt has been set aside as\n{datei}\nso nothing is lost. The tool manager starts empty.",
     "wv.schnittwerte": "Cutting data",
-        "wv.schnittwerte.leer": "No cutting data for this tool yet: “Enter guide values” fills the table for every material class, “+ Use case” adds a single row (roughing, finishing …), “Plan roughing values…” suggests ae and ap.",
+    "wv.schnittwerte.leer": "No cutting data for this tool yet: “Enter guide values” fills the table for every material class, “+ Use case” adds a single row (roughing, finishing …), “Plan roughing values…” suggests ae and ap.",
     "wv.eigene_werte": "Own values for one material …",
     "wv.eigene_werte.tooltip": "A material gets rows of its own: a copy of the rows that apply to it so far – those of its material class or those for all materials –, which you then change. The other materials of the class keep their values.",
     "wv.eigene_werte.titel": "Own values for one material",
@@ -1911,5 +1911,11 @@
     "ba.rest.davor.leer": "as for the contour",
     "ba.rest.davor.fehlt": "Which cutter came before? Enter its Ø – or tick the contour with the large cutter.",
     "ba.rest.zustellung.tooltip": "This deep per layer (ap) – empty: from the application.",
-    "ba.ergebnis_rest": "→ {stellen}, {lagen}, about {zeit}"
+    "ba.ergebnis_rest": "→ {stellen}, {lagen}, about {zeit}",
+    "nt.fehler.schon_weg": "Nothing left to do here – {wer} already removed it.",
+    "nt.zitat": "“{name}”",
+    "nt.und": "{vorne} and {hinten}",
+    "nt.eigenschaft.materialstand": "What the material state was computed from: the stock and the operations before (if anything before changes, the slot recomputes)",
+    "ba.material.einer": "{noch} left – {wer} already removed {weg}",
+    "ba.material.mehrere": "{noch} left – {wer} already removed {weg}"
 }

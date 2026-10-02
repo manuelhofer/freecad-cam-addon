@@ -281,7 +281,7 @@
     "wv.fehler.speichern": "Die Werkzeugverwaltung ließ sich nicht speichern:\n{fehler}",
     "wv.fehler.laden": "Die Datei der Werkzeugverwaltung war nicht lesbar ({fehler}).\n\nSie liegt jetzt als\n{datei}\nbeiseite, damit nichts verloren geht. Die Werkzeugverwaltung beginnt leer.",
     "wv.schnittwerte": "Schnittwerte",
-        "wv.schnittwerte.leer": "Noch keine Schnittwerte für dieses Werkzeug: „Richtwerte eintragen“ füllt die Tabelle für jede Werkstoffklasse, „+ Einsatz“ legt eine einzelne Zeile an (Schruppen, Schlichten …), „Schruppwerte planen…“ schlägt ae und ap vor.",
+    "wv.schnittwerte.leer": "Noch keine Schnittwerte für dieses Werkzeug: „Richtwerte eintragen“ füllt die Tabelle für jede Werkstoffklasse, „+ Einsatz“ legt eine einzelne Zeile an (Schruppen, Schlichten …), „Schruppwerte planen…“ schlägt ae und ap vor.",
     "wv.eigene_werte": "Eigene Werte für einen Werkstoff …",
     "wv.eigene_werte.tooltip": "Ein Werkstoff bekommt eigene Zeilen: eine Kopie der Zeilen, die bisher für ihn gelten – die seiner Werkstoffklasse oder die für alle Werkstoffe –, die du dann änderst. Die anderen Werkstoffe der Klasse behalten ihre Werte.",
     "wv.eigene_werte.titel": "Eigene Werte für einen Werkstoff",
@@ -1911,5 +1911,11 @@
     "ba.rest.davor.leer": "wie bei der Kontur",
     "ba.rest.davor.fehlt": "Welcher Fräser war davor? Seinen Ø eintragen – oder die Kontur mit dem großen Fräser anhaken.",
     "ba.rest.zustellung.tooltip": "So tief je Lage (ap) – leer: aus dem Einsatz.",
-    "ba.ergebnis_rest": "→ {stellen}, {lagen}, etwa {zeit}"
+    "ba.ergebnis_rest": "→ {stellen}, {lagen}, etwa {zeit}",
+    "nt.fehler.schon_weg": "Hier ist nichts mehr zu tun – das hat {wer} schon weggenommen.",
+    "nt.zitat": "„{name}“",
+    "nt.und": "{vorne} und {hinten}",
+    "nt.eigenschaft.materialstand": "Woraus der Materialstand gerechnet ist: das Rohteil und die Operationen davor (ändert sich davor etwas, rechnet die Nut neu)",
+    "ba.material.einer": "noch {noch} – {weg} hat {wer} schon weggenommen",
+    "ba.material.mehrere": "noch {noch} – {weg} haben {wer} schon weggenommen"
 }

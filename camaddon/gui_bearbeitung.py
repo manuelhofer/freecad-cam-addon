@@ -40,6 +40,7 @@ from . import job_schnittwerte as js
 from . import kontur as ko
 from . import kontur_bahn as kb
 from . import maschinenspeicher as msp
+from . import materialstand as mst
 from . import messstopp as ms
 from . import nut as nu
 from . import nut_bahn as nb
@@ -171,6 +172,21 @@ class _Satz(QtGui.QLabel):
         leer = not self.text()
         self.setVisible(self._erlaubt and not leer)
         self.spiegel.setVisible(not leer)
+
+
+def _material_text(bahn):
+    """„noch 5,6 cm³ – 11,1 cm³ hat „Räumen T1“ schon weggenommen“ – für eine Bahn mit
+    Materialstand (W-012), wenn die Operationen davor dort etwas weggenommen haben; sonst ""."""
+    weg, davor = getattr(bahn, "weg", 0.0), getattr(bahn, "davor", None)
+    if not davor or weg <= 0:
+        return ""
+    einheit = einheiten.einheit(einheiten.VOLUMEN)
+    noch = f"{groesse_fest(bahn.noch / 1000.0, einheiten.VOLUMEN, 1)} {einheit}"
+    weg = f"{groesse_fest(weg / 1000.0, einheiten.VOLUMEN, 1)} {einheit}"
+    wer = nb.wer_text(davor)
+    if len(davor) == 1:
+        return tr("ba.material.einer", noch=noch, weg=weg, wer=wer)
+    return tr("ba.material.mehrere", noch=noch, weg=weg, wer=wer)
 
 
 def _waende_um(form, boeden):
@@ -799,6 +815,7 @@ class _Nut(_Strategie):
             eintauchwinkel=float(werkzeug.eintauchwinkel or 0.0) or vb.EINTAUCHWINKEL,
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
+            stand=werte.get("materialstand"),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -2166,6 +2183,10 @@ class _Block:
         aufbau.addWidget(self.kurz)
         self.ergebnis = _Satz(GRAU_TEXT)
         aufbau.addWidget(self.ergebnis)
+        # Was nach den Operationen davor noch zu tun ist (W-012; Manuel: „Ist überhaupt noch
+        # viel Material vorhanden, was ich wegmachen muss“).
+        self.material = _Satz(GRAU_TEXT)
+        aufbau.addWidget(self.material)
         self.hinweis = _Satz(ROT)
         aufbau.addWidget(self.hinweis)
         # Schritt 3, die Einstellungen – nur solange angehakt: der Titel, die Erklärung, Fräser,
@@ -2206,6 +2227,7 @@ class _Block:
         innen.addWidget(self.reihen.widget)
         unten.addWidget(self.inhalt)
         unten.addWidget(self.ergebnis.spiegel)
+        unten.addWidget(self.material.spiegel)
         unten.addWidget(self.hinweis.spiegel)
 
     # --- Zustand ---
@@ -2222,6 +2244,7 @@ class _Block:
         # 2026-10-02: „Du musst das irgendwie sinnvoll aufteilen … in Schritten“).
         self.haken.setVisible(self.moeglich)
         self.ergebnis.erlauben(self.moeglich)
+        self.material.erlauben(self.moeglich)
         self.hinweis.erlauben(self.moeglich)
         self.kurz.setVisible(not self.moeglich)
         self.einstellungen.setVisible(self.aktiv())
@@ -2374,6 +2397,7 @@ class _Block:
         self.zeit = None
         self.ergebnis_basis = ""
         self.ergebnis.setText("")
+        self.material.setText("")
         self.hinweis.setText("")
         werkzeug, einsatz = self.fraeser(), self.einsatz()
         if werkzeug is None or einsatz is None:
@@ -2390,12 +2414,14 @@ class _Block:
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
         self.ergebnis_basis = self.s.ergebnis_text(self.vorschau, zeit)
         self.ergebnis.setText(self.ergebnis_basis)
+        self.material.setText(_material_text(self.vorschau))
 
     def leeren(self):
         self.vorschau = None
         self.zeit = None
         self.ergebnis_basis = ""
         self.ergebnis.setText("")
+        self.material.setText("")
         self.hinweis.setText("")
 
 
@@ -3907,6 +3933,8 @@ class BearbeitungPanel:
                 continue
             if block.aktiv() or self._im_wettbewerb(block):
                 zusatz = self._zusatz(block, form)
+                if block is self.nut:
+                    zusatz = dict(zusatz or {}, materialstand=self._materialstand(block))
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
                 if block is self.kontur:
                     kontur_zusatz = zusatz
@@ -4124,6 +4152,24 @@ class BearbeitungPanel:
         else:
             text = tr("ba.kontur.nach_raeumen", text=self.kontur.ergebnis_basis)
         self.kontur.ergebnis.setText(text)
+
+    def _materialstand(self, block):
+        """Der Materialstand vor dem Block (W-012): das Rohteil, die Operationen, die im Job
+        schon stehen – beim Ändern die vor der Operation –, dazu die Vorschauen der angehakten
+        Blöcke davor in diesem Lauf (sie werden vor ihm angelegt). None ohne Materialstand."""
+        if self.zu_aendern is not None:
+            return mst.fuer(self.job, vor=self.zu_aendern)
+        dazu = []
+        for anderer in self.bloecke:
+            if anderer is block:
+                break
+            werkzeug = anderer.fraeser()
+            if not anderer.aktiv() or anderer.vorschau is None or werkzeug is None:
+                continue
+            form = ff.von_werkzeug(werkzeug)
+            if form is not None:
+                dazu.append((anderer.s.titel(), anderer.vorschau.punkte, form))
+        return mst.fuer(self.job, dazu=dazu)
 
     def _zusatz(self, block, form):
         """Was der Assistent einem Block vorgibt: Räumt das Räumen den Boden einer Tasche, deren
@@ -4823,6 +4869,9 @@ class BearbeitungPanel:
                     ops.append(block.s.lege_an(self.job, tc, werte, flaechen))
                     if block is self.raeumen and werte.get("wandschlichten"):
                         folge.extend(self._raeumen_schlichten(form, tc, flaechen, werte))
+                    # Gleich rechnen: Die nächste rechnet mit dem Material, das diese lässt
+                    # (Materialstand, W-012) – FreeCAD rechnete sie sonst in beliebiger Folge.
+                    self.doc.recompute()
                 self.doc.recompute()
             except Exception:
                 self.doc.abortTransaction()

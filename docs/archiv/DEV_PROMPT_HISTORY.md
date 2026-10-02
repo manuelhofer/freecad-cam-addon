@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-64 materialstand-nut
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Dann muss natürlich vor jeder neuen Schrupp-Aktion auch geschaut werden …
+  Ist überhaupt noch viel Material vorhanden, was ich wegmachen muss“ – sein Klotz: erst den
+  Zapfen rausfahren, dann die Nut, „von z 0 anfangen???“ (W-012, Spezifikation Strategien 12.7,
+  Schritt M1).
+
+### DATEIEN
+- `camaddon/materialstand.py` (neu: Höhenfeld des Rohteils nach den Operationen davor und den
+  Vorschauen davor, Masken, noch/weg/wer, Kennung, gemerkte Stände),
+  `camaddon/gui_materialstand.py` (neu: Beobachter, `nachrechnen`), `camaddon/nut_bahn.py`
+  (je Nut ab dem höchsten Material, `noch`/`weg`/`davor`, „nichts mehr zu tun“),
+  `camaddon/nut.py` (Materialstand in `rechne`, Eigenschaft „Materialstand“),
+  `camaddon/gui_bearbeitung.py` (graue Zeile „noch …“, Materialstand für die Vorschau der Nut,
+  „Anlegen“ rechnet jede Operation gleich), `camaddon/gui_start.py` (Beobachter anmelden),
+  `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `tests/test_materialstand.py` (neu), `tests/gui/szenario_materialstand.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.115.0)
+
+### AKZEPTANZKRITERIUM
+Am Klotz erst den Boden um den Zapfen räumen, dann die Nut in denselben Job: Die Nut beginnt bei
+−10 statt oben am Rohteil, und ihr Block sagt grau, wie viel noch zu tun ist und wer den Rest
+schon weggenommen hat.
+
+### DONE
+- Der Materialstand rechnet wie die Simulation im Prüffenster: das Rohteil als Höhenfeld (0,5 mm),
+  darin die Bahnen der Operationen davor (`reichweite._bahn`, Bögen in Sehnen, Bohrzyklen), jede
+  mit der Form ihres Fräsers; ein Körper als Rohteil (W-011 S4) beginnt an seiner Oberseite – damit
+  ist S4b für die Nut erledigt. Manuels Klotz: 0,25 s.
+- Gefundener Fehler im eigenen Entwurf: Eine zweite Nut hinter einer fertigen begann wieder oben –
+  auf der Wand blieben Zellen stehen, weil die Sehnen der Bögen und die Teilschritte am Rand des
+  Fräsers einen Saum von Hundertsteln lassen. Der Fräser zählt im Materialstand um diesen Saum
+  breiter (`_grosszuegig`); jetzt sagt die zweite „Hier ist nichts mehr zu tun – das hat „Nut T1“
+  schon weggenommen.“
+- Sicherheit: Die Nut merkt sich, woraus sie gerechnet hat; ändert sich davor eine Bahn oder die
+  Folge (auch gelöscht), rechnet `gui_materialstand` sie neu – sonst führe ihr Eilgang dorthin,
+  wo jetzt doch Material steht. „Anlegen“ rechnet jede neue Operation sofort, damit die nächste
+  ihre Bahn sieht (FreeCAD rechnete sie sonst in beliebiger Folge).
+- Bewusst noch nicht: Räumen, Planfräsen, Kontur, 3D-Schruppen (M3, M4); der zweite Lauf im
+  selben Job (M2). Eine dünne Aufmaß-Wand unter 0,5 mm sieht das Raster nicht sicher.
+- Nebenbei gefunden, eigener Patch: Vorschau von Nut und Bohrung rechnen mit dem Eintauchwinkel
+  am Fräser (Standardfräser 3°), die angelegte Operation mit 5°. In `translations/de.json` rückte das
+  Umschreiben eine falsch eingerückte Zeile ein (nur Leerzeichen).
+
+### TEST
+- `test_materialstand` (1.1.3, KI ohne GUI): Klotz, Räumen dann Nut – über der Nut −10, Nut ab −10,
+  noch 5 / weg 10 mm über dem Grund, gemerkte Kennung, die Helix genau so viel kürzer wie die Luft;
+  eine zweite Nut: nichts mehr zu tun; Folge umgedreht: nachgerechnet, ab 0; Körper als Rohteil.
+- `szenario_materialstand` (1.1.3): Bilder „1_nut_ab_minus_10“ und „2_nut_aendern“ (graue Zeile),
+  die Operation davor gelöscht – die Nut rechnet von selbst neu, ab Oberkante Rohteil.
+
+### NEXT
+- M2: zweiter Lauf am selben Teil im selben Job; Eintauchwinkel angleichen; E1 Eintauchstelle.
+
 ## P-2026-10-02-63 materialstand-entschieden
 
 ### EINGELESEN

@@ -76,6 +76,7 @@ RUECKWEG = 3.0  # × Vorschub: so schnell quer zurück über die freie Seite (G1
 # (erlaubt ist eine Fräserbreite) – der Fräser greift vor seiner Mitte ein, so verteilt sich die
 # Last auf dem Bogen etwas breiter als gerechnet (der Prüfstand misst bis 6 % mehr).
 UEBER_WEG = 0.8
+MATERIAL_SPIEL = 0.01  # mm – so wenig über dem Grund gilt im Materialstand als nichts mehr
 
 
 @dataclass(frozen=True)
@@ -139,6 +140,11 @@ class Nutbahn:
     z_min: float
     laenge: float  # mm im Vorschub
     zeit: float  # Minuten (bahn.zeit)
+    # Mit Materialstand (W-012): was über den Gründen noch steht und was die Operationen davor
+    # dort schon weggenommen haben (mm³), und welche das waren; ohne 0, 0, [].
+    noch: float = 0.0
+    weg: float = 0.0
+    davor: list = None
 
 
 # --- Erkennung --------------------------------------------------------------------------------
@@ -881,9 +887,29 @@ def verfahren(nut, fraeser_radius, aufmass=0.0, offen_breit=True):
     return "vollnut" if r_l < VOLLNUT_ANTEIL * R else "boegen"
 
 
-def _nut(punkte, nut, w):
+def _maske(nut, w, stand):
+    """Wo der Fräser in und an der Nut fährt – die Maske im Materialstand: die Nut selbst;
+    an einer offenen Nut dazu der Weg draußen vor dem offenen Ende, wo er hinab fährt."""
+    if not nut.offen:
+        return stand.maske_um(nut.a, nut.b, nut.radius)
+    return stand.maske_um(nut.a, nut.b, nut.radius + 2.0 * w.fraeser_radius + kb.NAH + 1.0)
+
+
+def _oben(nut, w, stand, z_ende):
+    """Wo die Lagen der Nut beginnen: am Rohteil (w.oben) – mit Materialstand (W-012) am
+    höchsten Material, das in ihr noch steht; z_ende, wenn dort nichts mehr steht."""
+    if stand is None:
+        return w.oben
+    hoechste = stand.hoechste(_maske(nut, w, stand))
+    if hoechste is None or hoechste <= z_ende + MATERIAL_SPIEL:
+        return z_ende
+    return min(w.oben, hoechste)
+
+
+def _nut(punkte, nut, w, stand=None):
     """Eine Nut: in Bögen oder als Vollnut, dann rundum. Gibt (Länge, Lagen, Bögen, vollnut,
-    z_min) zurück; (0, 0, 0, False, inf), wenn über ihr nichts steht."""
+    z_min) zurück; (0, 0, 0, False, inf), wenn über ihr nichts steht. `stand`: der
+    Materialstand (materialstand) – die Lagen beginnen dann, wo in der Nut noch Material ist."""
     R = w.fraeser_radius
     aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
     art = verfahren(nut, R, aufmass)
@@ -896,7 +922,7 @@ def _nut(punkte, nut, w):
     r_w = max(nut.radius - R, 0.0)  # die Mitte des Fräsers an der Wand
     r_l = nut.radius - R - aufmass  # … auf den Bögen
     z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
-    oben = w.oben
+    oben = _oben(nut, w, stand, z_ende)
     if oben <= z_ende + GLEICH:
         return 0.0, 0, 0, False, math.inf
     uhr = not w.gleichlauf  # Gleichlauf in der Nut: gegen den Uhrzeigersinn (G3)
@@ -935,9 +961,11 @@ def _nut(punkte, nut, w):
     return weg, lagen, boegen, vollnut, z_ende
 
 
-def planen(werte, liste):
+def planen(werte, liste, stand=None):
     """Die Bahn „Nut“ (Nutbahn) für die Nuten `liste` ([Nut]) mit den Werten `werte`.
-    ValueError mit einem Satz, wenn es nicht geht."""
+    `stand`: der Materialstand vor der Nut (W-012) – jede Nut beginnt dann, wo in ihr noch
+    Material steht, und die Bahn sagt, was noch zu tun ist. ValueError mit einem Satz, wenn es
+    nicht geht."""
     w = werte
     if w.fraeser_radius <= 0:
         raise ValueError(tr("nt.fehler.form"))
@@ -958,8 +986,17 @@ def planen(werte, liste):
     laenge = 0.0
     lagen = boegen = vollnut = gefraest = 0
     z_min = math.inf
+    noch = weg = 0.0
+    davor = []
     for nut in folge:
-        stueck, n_lagen, n_boegen, ist_voll, z = _nut(punkte, nut, w)
+        if stand is not None:
+            maske = stand.maske_um(nut.a, nut.b, nut.radius)
+            grund = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
+            n_noch, n_weg = stand.volumen(maske, grund)
+            noch += n_noch
+            weg += n_weg
+            davor += [name for name in stand.wer(maske) if name not in davor]
+        stueck, n_lagen, n_boegen, ist_voll, z = _nut(punkte, nut, w, stand)
         if not n_lagen:
             continue
         gefraest += 1
@@ -969,6 +1006,16 @@ def planen(werte, liste):
         vollnut += int(ist_voll)
         z_min = min(z_min, z)
     if not gefraest:
+        if davor:
+            raise ValueError(tr("nt.fehler.schon_weg", wer=wer_text(davor)))
         raise ValueError(tr("nt.fehler.nichts"))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-    return Nutbahn(punkte, gefraest, lagen, boegen, vollnut, z_min, laenge, zeit)
+    return Nutbahn(punkte, gefraest, lagen, boegen, vollnut, z_min, laenge, zeit, noch, weg, davor)
+
+
+def wer_text(namen):
+    """„„Räumen T1““ – mehrere: „„Räumen T1“ und „Nut T2““."""
+    zitiert = [tr("nt.zitat", name=n) for n in namen]
+    if len(zitiert) == 1:
+        return zitiert[0]
+    return tr("nt.und", vorne=", ".join(zitiert[:-1]), hinten=zitiert[-1])

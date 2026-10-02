@@ -1712,6 +1712,16 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     Körper als Rohteil sein Höhenfeld), die Nut rechnet darauf, im Block „noch … cm³“; ändert
     sich eine Operation davor, rechnen die danach neu. Prüfung: Manuels Klotz, Zapfen und Nut in
     einem Lauf – die Nut beginnt bei z −10.
+    **Gebaut:** P-2026-10-02-64, 0.115.0 – `materialstand.fuer(job, vor, dazu)`: das Höhenfeld
+    im Raster 0,5 mm, die Operationen davor (auch FreeCADs, Bohrzyklen) und die Vorschauen der
+    angehakten Blöcke davor im selben Lauf; der Fräser um den Saum der Schritte breiter (sonst
+    stünden auf der Wand einer fertigen Nut Zellen bis oben). Die Nut nimmt je Nut das höchste
+    Material im Langloch (offen: dazu der Weg vor dem offenen Ende), Lagen und Helix beginnen
+    dort; steht nichts mehr: „Hier ist nichts mehr zu tun – das hat „…“ schon weggenommen.“ Sie
+    merkt sich die Kennung (Eigenschaft „Materialstand“); `gui_materialstand` rechnet sie neu,
+    wenn sich davor eine Bahn oder die Folge ändert. „Anlegen“ rechnet jede Operation gleich
+    nach dem Anlegen, damit die nächste ihre Bahn sieht. Manuels Klotz: Räumen 3,6 s,
+    Materialstand 0,25 s; Nut ab −10 (`test_materialstand`, `szenario_materialstand`).
   - **M2 Zweiter Lauf am selben Teil** nach Frage 1.
   - **M3 Das Räumen rechnet darauf:** Lagen und Ringe nur, wo Material steht. Prüfung: Nut
     zuerst, dann der Zapfen – über der Nut kein Schnitt in Luft.
