@@ -4,10 +4,12 @@
 # „Anlegen“ – das Räumen nimmt rundum alles bis aufs Aufmaß an der Wand. Dann die Wand des Zapfens
 # am Teil im Job: Die Kontur sagt „→ 1 Lage, 1 Bahn“ – sie schlichtet nur noch – und grau
 # „noch … – … hat „Räumen T1“ schon weggenommen“; „Anlegen“: ein Job mit beiden, die Kontur merkt
-# sich, woraus sie gerechnet hat.
+# sich, woraus sie gerechnet hat. „Auf der Maschine prüfen“: Am Ende bleibt nichts stehen, und
+# nichts ging ins Teil (Spezifikation Strategien 12.7, „Fertig, wenn“).
 import FreeCAD
 import FreeCADGui as Gui
 import Part
+from PySide import QtCore
 
 V = FreeCAD.Vector
 
@@ -21,7 +23,7 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import gui_bearbeitung
+    from camaddon import beispielmaschine, gui_bearbeitung, gui_reichweite
     from camaddon import kontur as ko
     from camaddon import materialstand as mst
     from camaddon import raeumen as ra
@@ -111,5 +113,36 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
     yield 800
     h.bild("2_raeumen_und_kontur")
+
+    # --- Auf der Maschine prüfen: am Ende nichts stehen geblieben, nichts ins Teil -------------
+    asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
+    yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is asm.Document)
+    yield 500
+    FreeCAD.setActiveDocument(doc.Name)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400  # siehe szenario_reichweite.py: 1.1.3 verarbeitet die Auswahl verzögert
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_AufMaschinePruefen"))
+    yield from h.warte_auf(lambda: gui_reichweite.PruefPanel.offen is not None)
+    pruef = gui_reichweite.PruefPanel.offen
+    h.pruefe(pruef is not None, "„Auf der Maschine prüfen“ öffnet kein Fenster")
+    if pruef is None:
+        return
+    yield 800
+    spieler = pruef.abspieler
+    spieler.setze_zeit(spieler.abfahrt.dauer)
+    yield 800
+    rest = spieler.rest.text()
+    print(ascii(f"Prüfen: {rest}"))
+    h.pruefe(
+        rest.startswith("Am Ende bleiben 0,00 mm") and "nirgends ins Teil" in rest,
+        f"{rest!r}",
+    )
+    Gui.SendMsgToActiveView("ViewFit")
+    spieler.knopf_hinsehen.click()
+    yield 500
+    h.bild("3_pruefen_farben")
+    pruef.reject()
+    yield 500
     FreeCAD.closeDocument(doc.Name)
     yield 300

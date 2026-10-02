@@ -208,7 +208,10 @@ Streifen am Rand steht; nach dem Räumen desselben Bodens „nichts mehr zu tun�
 1 mm Rand am Zapfen: 2,4 statt 33 min (P-2026-10-02-70, 0.119.0). Das 3D-Schruppen ebenso:
 Ein zweites an derselben Kuppel nimmt nur die Treppe, 0,14 statt 4,99 min (P-2026-10-02-71,
 0.120.0). Die Kontur ebenso: Nach dem Räumen schlichtet sie am Zapfen nur noch, 0,18 statt
-12,8 min; der Guss mit 1 mm Rand: 0,72 statt 38 min (P-2026-10-02-72, 0.121.0).
+12,8 min; der Guss mit 1 mm Rand: 0,72 statt 38 min (P-2026-10-02-72, 0.121.0). Im Prüffenster:
+Räumen, dann die Kontur im zweiten Lauf – am Ende 0,00 mm, nirgends ins Teil. Offen für Manuel:
+Fragen 3–5 in 12.7 (kurze Lücken durchfahren, schmaler Rand, Restmaterial – je mit Empfehlung,
+gebaut ist die Empfehlung) (P-2026-10-02-73).
 Als Nächstes (Manuel, 2026-10-02; Spezifikation Strategien, Abschnitt 12): der Materialstand (W-012, 12.7; M1–M4 und E1 gebaut) – Manuels Klotz in beiden Reihenfolgen im Prüffenster durchsehen („Fertig, wenn“); Schlichten nach dem Räumen besprechen – eigener Fräser und eigene Werte, mit Aufmaß am Boden auch den Boden (Vorschlag in 12.4); der Prüfstand meldet zu viel Last für alle Strategien, nicht nur die Nut (12.1, offen). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist

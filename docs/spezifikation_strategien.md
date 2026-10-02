@@ -1793,6 +1793,36 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
   ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war (außer über eine
   kurze Lücke, wo Durchfahren schneller ist als Abheben – Grundsatz 0), und die Nut nach dem
   Zapfen bei z −10 beginnt.
+  **Geprüft** (P-2026-10-02-73): Zapfen zuerst – die Nut beginnt bei −10; Nut zuerst – das
+  Räumen kreuzt sie nur über kurze Lücken, ein zweites Räumen und das Planfräsen danach haben
+  nichts mehr zu tun (`test_materialstand`, `szenario_raeumen_materialstand`). Räumen, dann die
+  Kontur am Zapfen in einem zweiten Lauf – sie schlichtet nur noch –: im Prüffenster „Am Ende
+  bleiben 0,00 mm … nirgends ins Teil“ (`szenario_kontur_materialstand`; oben auf dem Zapfen
+  1 mm Rohteil – seine Oberseite war nicht gewählt).
+- **Zur Besprechung** (gebaut ist je die Empfehlung; Manuel, 2026-10-02: „Fragen kann ich erst
+  morgen früh oder heute Abend alle beantworten“):
+  - **Frage 3 – eine kurze Lücke im Weggefrästen.** Räumen, Planfräsen und Kontur fahren über
+    eine Stelle, an der eine Operation davor schon alles weggenommen hat (Manuels Nut quer unter
+    den Ringen des Räumens).
+    - **(a) Empfehlung – im Vorschub durchfahren,** wenn die Lücke höchstens 2 D lang ist
+      (mindestens 20 mm): Abheben, hinüber und wieder Eintauchen dauert länger. An Manuels Klotz,
+      Nut zuerst: 25 Ringe kreuzen die Nut – durchfahren 8,42 min, abheben gut eine Minute mehr.
+    - **(b) Immer abheben:** nie ein Schnitt in Luft, aber langsamer.
+    - **(c) Eine andere Länge:** zum Beispiel 1 D oder 50 mm.
+  - **Frage 4 – ein schmaler Rand an der Wand.** Der Materialstand rechnet in Zellen von
+    0,5 mm. Ein Rand an einer Wand, kaum breiter als das Aufmaß plus eine Zelle (ein Guss mit
+    0,7 mm Rand bei Aufmaß 0,3), ist für die Schruppbahnen der Kontur unsichtbar – dann nimmt
+    ihn das Schlichten ganz, 0,7 mm statt 0,3.
+    - **(a) Empfehlung – so lassen:** Das Schlichten verträgt das; die Schruppbahnen fahren nur,
+      wo sicher Material steht.
+    - **(b) Die innerste Schruppbahn immer fahren,** wenn an der Wand Material steht: das
+      Schlichten nie mehr als das Aufmaß, dafür eine Bahn je Lage oft durch Luft.
+  - **Frage 5 – das Restmaterial.** Die Kontur mit dem kleineren Fräser in den Ecken rechnet
+    weiter ohne Materialstand.
+    - **(a) Empfehlung – so lassen:** Die Ecken sind oft kleiner als eine Zelle; mit
+      Materialstand bliebe dort Rest stehen.
+    - **(b) Mit Materialstand in feinerem Raster (0,25 mm)** nur für das Restmaterial: rechnet
+      etwa viermal so lange.
 
 ### 12.8 Eintauchen in die geschlossene Nut: an einer wählbaren Stelle
 

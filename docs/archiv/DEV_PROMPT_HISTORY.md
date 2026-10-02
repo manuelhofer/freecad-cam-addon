@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-73 materialstand-im-pruefenster-und-fragen
+
+### EINGELESEN
+- W-012 „Fertig, wenn“ (Spezifikation Strategien 12.7): im Prüffenster ein Teil ohne Rest.
+  Manuel, 2026-10-02: „Fragen kann ich erst morgen früh oder heute Abend alle beantworten in
+  Ruhe.... Solange bitte einfach weiter arbeiten!!!!“
+
+### DATEIEN
+- `tests/gui/szenario_kontur_materialstand.py` (dazu „Auf der Maschine prüfen“),
+  `docs/spezifikation_strategien.md` (12.7: geprüft, Fragen 3–5), `docs/STATUS_SNAPSHOT.md`
+
+### AKZEPTANZKRITERIUM
+Räumen, dann die Kontur im zweiten Lauf: im Prüffenster „Am Ende bleiben 0,00 mm …
+nirgends ins Teil“; die offenen Punkte stehen als Fragen mit Empfehlung in 12.7.
+
+### DONE
+- Szenario bis ins Prüffenster: „Am Ende bleiben 0,00 mm … 1,00 mm auf dem Teil (Aufmaß
+  0,30 mm), nirgends ins Teil“ – der 1 mm oben auf dem Zapfen, dessen Oberseite nicht gewählt war.
+- Fragen 3 (kurze Lücken durchfahren), 4 (schmaler Rand an der Wand), 5 (Restmaterial ohne
+  Materialstand) mit Optionen und Empfehlung; gebaut ist je die Empfehlung.
+
+### TESTS
+- `tests/gui/szenario_kontur_materialstand.py` (OK, drei Bilder).
+
 ## P-2026-10-02-72 kontur-auf-dem-materialstand
 
 ### EINGELESEN
