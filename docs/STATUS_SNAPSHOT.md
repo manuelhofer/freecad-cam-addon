@@ -225,7 +225,10 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
   räumt nur noch in ihrer Kontur (P-2026-10-02-79, 0.123.1). T1 gebaut: Räumen über mehrere Höhen – die
   tiefste Fläche zuerst, jede höhere nur, wo noch Material steht, in Ringen um das, was noch steht; am
   Testteil 12,4 statt 26,3 min, der Job 15 statt 29 (P-2026-10-02-80, 0.124.0) – fertig und automatisch
-  geprüft; wartet auf Manuels Test.
+  geprüft; wartet auf Manuels Test. T3 gebaut: Das Räumen sagt, in welche Tasche sein Fräser nicht passt
+  (-81); der neue Block „Rest räumen“ räumt sie mit dem größten Fräser, der hineinpasst, „Restmaterial“
+  bekommt den Haken für ihre Wände – am Testteil sechs Arbeitsschritte mit drei Werkzeugen (-82, 0.125.0) –
+  fertig und automatisch geprüft; wartet auf Manuels Test.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
@@ -239,9 +242,8 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
 ## Nächster Schritt (konkret)
 
 **Jetzt – W-013, Manuels Testteil** ([spezifikation_strategien.md](spezifikation_strategien.md),
-Abschnitt 13.5): T3 mit B-007 (was der Fräser nicht kann, bekommt der nächste),
-T2 (die dünne Lage oben mit dem Einsatz „Planen“), T1b (Ringe, die nichts mehr schneiden, fallen weg),
-B-008, B-009. T4 und T5 sind die Punkte aus „Als
+Abschnitt 13.5): B-009 (die Vorschauen nach dem Wettbewerb neu rechnen), B-008, B-010,
+T2 (die dünne Lage oben mit dem Einsatz „Planen“), T1b (Ringe, die nichts mehr schneiden, fallen weg). T4 und T5 sind die Punkte aus „Als
 Nächstes“ im Projektstatus: der Block „Schlichten danach“ und das Räumen nach der Last.
 
 **Geplant nach Manuels erstem Test (2026-09-26) – Reihenfolge A → B → C, Stufe A in Arbeit:**
@@ -571,10 +573,9 @@ Ein Satz je Wunsch, W-ID fortlaufend.
 ## Offene Bugs
 
 An Manuels Testteil gefunden (Spezifikation Strategien, Abschnitt 13.4, P-2026-10-02-78); B-006 (die
-Tasche räumt außerhalb ihrer Wände) ist behoben (P-2026-10-02-79, 0.123.1).
+Tasche räumt außerhalb ihrer Wände) und B-007 (eine Tasche, in die der Fräser nicht passt, fällt still aus)
+sind behoben (P-2026-10-02-79, -81, -82).
 
-- **B-007** Räumen: In eine Tasche, in die der Fräser nicht passt, fährt nur die Kontur (über die Rampe) –
-  es fehlt der kleinere Fräser dafür (T3); dass das Räumen sie auslässt, sagt es seit P-2026-10-02-81.
 - **B-008** Prüffenster: 12 mm „Rest“ auf einer Linie in einer Kugelmulde – die Naht liegt auf einer Zeile
   des Rasters; gefräst ist sie richtig.
 - **B-009** Assistent „Bearbeitung“: Unter „3D-Schruppen“ steht „… hat „Planfräsen“ schon weggenommen“,

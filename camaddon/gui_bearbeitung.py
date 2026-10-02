@@ -86,6 +86,7 @@ STANGE_ARTEN = (msp.DREHMASCHINE, msp.FRAESE_4)
 GEMERKT_FRAESER = "BaFraeser"  # Kennung des zuletzt gewählten Fräsers (Planfräsen)
 GEMERKT_KONTURFRAESER = "BaKonturFraeser"  # … für die Kontur
 GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
+GEMERKT_RESTRAEUMFRAESER = "BaRestRaeumFraeser"  # … fürs Rest räumen
 GEMERKT_NUTFRAESER = "BaNutFraeser"  # … für die Nut
 GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
@@ -769,6 +770,37 @@ class _Raeumen(_Strategie):
             "aufmass_boden": float(op.AufmassBoden),
             "gleichlauf": bool(op.Gleichlauf),
         }
+
+
+class _RestRaeumen(_Raeumen):
+    """Rest räumen (W-013 T3, B-007): räumt mit einem kleineren Fräser die Taschen, in die der
+    Fräser des Räumens nicht passt – ein zweites „Räumen“, nur dort, gleich nach dem ersten.
+    Welche Taschen das sind, sagt die Vorschau des Räumens (Raeumbahn.ausgelassen); Haken und
+    Fräser setzt das Fenster (BearbeitungPanel._restraeumen_einrichten)."""
+
+    kennung = "restraeumen"
+    gemerkt = GEMERKT_RESTRAEUMFRAESER
+
+    def titel(self):
+        return tr("ba.restraeumen")
+
+    def text(self):
+        return tr("ba.restraeumen.text")
+
+    def haken(self):
+        return (("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # nach der Vorschau des Räumens: _restraeumen_einrichten
+
+    def moeglich(self, form, gewaehlte):
+        return False  # erst, wenn das Räumen eine Tasche auslässt
+
+    def unmoeglich_text(self):
+        return tr("ba.restraeumen.nicht")
+
+    def ist(self, op):
+        return False  # zum Ändern ist es ein Räumen wie jedes
 
 
 class _Nut(_Strategie):
@@ -2173,6 +2205,7 @@ class _Reiben(_Strategie):
 STRATEGIEN = (
     _Planfraesen,
     _Raeumen,
+    _RestRaeumen,
     _Nut,
     _Zentrieren,
     _Bohren,
@@ -2676,6 +2709,7 @@ class BearbeitungPanel:
         self.zu_aendern = operation
         self.block_zu_aendern = None
         self._fuellt = False
+        self._ruhig = False  # das Fenster setzt selbst einen Fräser: keine neue Vorschau
         self.geschlossen = False
         self._knoepfe = None
         self._beobachter = None
@@ -2708,6 +2742,7 @@ class BearbeitungPanel:
         stopp = self.raeumen.haken_felder["messstopp"]
         stopp.setEnabled(schlichten.isChecked())
         schlichten.toggled.connect(stopp.setEnabled)
+        self.restraeumen = next(b for b in self.bloecke if b.s.kennung == "restraeumen")
         self.nut = next(b for b in self.bloecke if b.s.kennung == "nut")
         self._raeumen_boeden = None  # nur diese Taschenböden räumen (_folge); None: alle
         self.bohren = next(b for b in self.bloecke if b.s.kennung == "bohren")
@@ -4208,7 +4243,7 @@ class BearbeitungPanel:
     # --- Werte und Vorschau -----------------------------------------------------------------
 
     def vorschau_starten(self):
-        if self._fuellt or self.geschlossen:
+        if self._fuellt or self._ruhig or self.geschlossen:
             return
         for block in self.bloecke:
             block.vorschau = None
@@ -4232,11 +4267,17 @@ class BearbeitungPanel:
             ):
                 self._folge(form, boeden)
                 continue
+            if block is self.restraeumen:
+                self._restraeumen_einrichten(form)  # nach dem Räumen: was es ausließ
             if block.aktiv() or self._im_wettbewerb(block):
                 eigen = zusatz = self._zusatz(block, form)
                 stand = None
                 if block in (self.plan, self.nut, self.raeumen, self.kontur, self.schruppen3d):
                     stand = self._materialstand(block, form)
+                    zusatz = dict(zusatz or {}, materialstand=stand)
+                elif block is self.restraeumen:
+                    # Nach dem Räumen derselben Flächen – es tritt nicht gegen es an.
+                    stand = self._materialstand(block, form, flaechen=())
                     zusatz = dict(zusatz or {}, materialstand=stand)
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
                 if block is self.kontur:
@@ -4270,8 +4311,12 @@ class BearbeitungPanel:
     def _raeumt(self, form):
         """Die Flächen, die das Räumen wirklich räumt: seine Flächen ohne die Böden der Taschen,
         in die sein Fräser nicht passt (B-007; raeumen_bahn.Raeumbahn.ausgelassen)."""
-        ausgelassen = getattr(self.raeumen.vorschau, "ausgelassen", None) or []
-        return set(self._flaechen(self.raeumen, form)) - set(ausgelassen)
+        ausgelassen = set(getattr(self.raeumen.vorschau, "ausgelassen", None) or [])
+        rest = self.restraeumen
+        if rest.aktiv() and rest.vorschau is not None:
+            # Was „Rest räumen“ mit dem kleineren Fräser nachholt, ist geräumt.
+            ausgelassen &= set(getattr(rest.vorschau, "ausgelassen", None) or [])
+        return set(self._flaechen(self.raeumen, form)) - ausgelassen
 
     def _raeumen_ausgelassen_zeigen(self):
         """Hinter das Ergebnis des Räumens, in welche Taschen sein Fräser nicht passt (B-007,
@@ -4284,11 +4329,116 @@ class BearbeitungPanel:
             return
         d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
         flaechen = ", ".join(ausgelassen)
-        if len(ausgelassen) == 1:
+        rest = self.restraeumen
+        if rest.aktiv() and rest.vorschau is not None:
+            werkzeug = f"T{rest.fraeser().nummer}"
+            if len(ausgelassen) == 1:
+                neu = tr(
+                    "ba.raeumen.ausgelassen.rest", text=text, flaeche=flaechen, d=d, t=werkzeug
+                )
+            else:
+                neu = tr(
+                    "ba.raeumen.ausgelassen.rest.mehrere", text=text, flaechen=flaechen, d=d,
+                    t=werkzeug,
+                )  # fmt: skip
+        elif len(ausgelassen) == 1:
             neu = tr("ba.raeumen.ausgelassen", text=text, flaeche=flaechen, d=d)
         else:
             neu = tr("ba.raeumen.ausgelassen.mehrere", text=text, flaechen=flaechen, d=d)
         block.ergebnis.setText(neu)
+
+    def _restraeumen_einrichten(self, form):
+        """„Rest räumen“ nach der Vorschau des Räumens (W-013 T3; Manuel: „auch mit mehreren
+        Arbeitsschritten“): Lässt das Räumen eine Tasche aus, weil sein Fräser nicht hineinpasst,
+        und passt ein kleinerer aus der Werkzeugverwaltung, wird der Block möglich, bekommt den
+        größten, der passt, und – solange niemand ihn von Hand gesetzt hat – den Haken. Sonst
+        steht er bei dem, was nicht zur Wahl passt. Fährt die Kontur die Wände einer solchen
+        Tasche, bekommt auch „Restmaterial“ den Haken: Ihr Fräser kommt dort nicht überall hin."""
+        rest, gross = self.restraeumen, self.raeumen
+        ausgelassen = []
+        if gross.aktiv() and gross.fraeser() is not None and self.zu_aendern is None:
+            ausgelassen = list(getattr(gross.vorschau, "ausgelassen", None) or [])
+        passend = self._restraeumfraeser(form, ausgelassen) if ausgelassen else None
+        moeglich = passend is not None
+        geaendert = moeglich != rest.moeglich
+        self._fuellt = self._ruhig = True
+        try:
+            rest.moeglich = moeglich
+            rest.haken.setEnabled(moeglich)
+            rest.erklaerung.setText(rest.s.text() if moeglich else rest.s.unmoeglich_text())
+            if not moeglich:
+                rest.haken.setChecked(False)
+            elif not rest.von_hand:
+                rest.haken.setChecked(True)
+            # Der größte, der passt – ein kleinerer, von Hand gewählt, bleibt.
+            jetzt = rest.fraeser()
+            zu_gross = jetzt is None or (
+                moeglich and float(jetzt.durchmesser) > float(passend.durchmesser) + 1e-6
+            )
+            if moeglich and zu_gross:
+                self._fuellt = False  # die Einsätze des neuen Fräsers füllen
+                rest.fraeser_setzen(passend)
+                self._fuellt = True
+            rest.zustand_zeigen()
+            wand = self.rest
+            an_der_wand = set(_waende_um(form, ausgelassen)) & set(
+                self._flaechen(self.kontur, form)
+            )
+            dazu = rest.aktiv() and self.kontur.aktiv() and bool(an_der_wand)
+            if dazu and wand.moeglich and not wand.von_hand:
+                wand.haken.setChecked(True)
+                wand.zustand_zeigen()
+        finally:
+            self._fuellt = self._ruhig = False
+        if geaendert:
+            self._bloecke_ordnen()
+
+    def _restraeumfraeser(self, form, ausgelassen):
+        """Der größte Fräser der Werkzeugverwaltung, kleiner als der des Räumens, der in alle
+        Taschen passt, die es ausließ – None, wenn keiner. Probiert wird mit der Vorschau, vom
+        größten her; das Ergebnis je Wahl gemerkt."""
+        rest, gross = self.restraeumen, self.raeumen
+        gross_d = float(gross.fraeser().durchmesser)
+        werte = gross.werte()
+        schluessel = (
+            tuple(ausgelassen),
+            round(gross_d, 6),
+            round(float(werte["aufmass"]), 6),
+            tuple(w.kennung for w in rest._fraeser),
+            self.werkstoff(),
+        )
+        gemerkt = getattr(self, "_restraeumfraeser_gemerkt", None)
+        if gemerkt is not None and gemerkt[0] == schluessel:
+            return gemerkt[1]
+        passend = None
+        kleiner = [w for w in rest._fraeser if float(w.durchmesser) < gross_d - 1e-6]
+        for werkzeug in sorted(kleiner, key=lambda w: -float(w.durchmesser)):
+            einsaetze = rest._passende_einsaetze(werkzeug, self.werkstoff())
+            arten = [e.art for e in einsaetze]
+            einsatz = next(
+                (einsaetze[arten.index(a)] for a in rest.s.einsatz_reihenfolge if a in arten),
+                einsaetze[0] if einsaetze else None,
+            )
+            if einsatz is None:
+                continue
+            try:
+                bahn = ra.vorschau(
+                    self.job,
+                    self.job.Model.Group,
+                    ff.von_werkzeug(werkzeug),
+                    rest.s.vorschlag("zustellung", werkzeug, einsatz),
+                    rest.s.vorschlag("zeilenabstand", werkzeug, einsatz),
+                    float(werte["aufmass"]),
+                    ausgelassen,
+                    schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+                )
+            except (ValueError, RuntimeError):
+                continue  # passt auch nicht
+            if not bahn.ausgelassen:
+                passend = werkzeug
+                break
+        self._restraeumfraeser_gemerkt = (schluessel, passend)
+        return passend
 
     def _schon_weg_abhaken(self):
         """Wer „Hier ist nichts mehr zu tun“ sagt (Materialstand, W-012), verliert den Haken –
@@ -4703,6 +4853,11 @@ class BearbeitungPanel:
         flaechen = self._eigene(block, form)
         if block is self.raeumen and self._raeumen_boeden is not None:
             return list(self._raeumen_boeden)
+        if block is self.restraeumen:
+            # Nur die Taschen, die das Räumen ausließ (Raeumbahn.ausgelassen).
+            if not self.raeumen.aktiv():
+                return []
+            return list(getattr(self.raeumen.vorschau, "ausgelassen", None) or [])
         if (
             block is self.bohrung
             and self.bohren.aktiv()

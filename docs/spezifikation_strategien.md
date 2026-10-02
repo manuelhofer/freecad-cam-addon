@@ -2056,6 +2056,32 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   größte Fräser, der hineinpasst; der Assistent legt dafür eigene Operationen an und sagt es in
   einem Satz. *Fertig, wenn:* die Tasche am Testteil mit dem Ø 6 geräumt und geschlichtet ist
   und die Kontur des Ø 12 nicht mehr hineinfährt.
+  **Gebaut:** P-2026-10-02-82, 0.125.0 – ein neuer Block „Rest räumen“ gleich unter „Räumen“:
+
+  ```
+   ☑ Räumen        → 3 Flächen: 3 Lagen, 75 Ringe, etwa 12 min · 1,59 × Ziel …
+                     In die Tasche Face26 passt der Ø 12 nicht – die räumt „Rest räumen“ mit T3.
+   ☑ Rest räumen   → 1 Lage, 2 Ringe, etwa 1 min
+   ☑ Kontur        → 3 Konturen: 3 Lagen, 3 Bahnen, etwa 1 min – nur das Aufmaß an den Wänden …
+   ☑ Restmaterial  → 1 Stelle, 1 Lage, etwa 1 min
+  ```
+
+  - Er wird möglich, wenn das Räumen eine Tasche auslässt und ein kleinerer Fräser der
+    Werkzeugverwaltung hineinpasst; vorgewählt ist der größte, der passt (mit der Vorschau
+    probiert, vom größten her), der Haken ist gesetzt, solange ihn niemand von Hand wegnimmt.
+    Sonst steht er unter „Passt nicht zur Auswahl“.
+  - Er räumt nur die ausgelassenen Taschen, auf dem Materialstand nach dem Räumen, und wird eine
+    eigene Operation gleich danach („Räumen T3“).
+  - Fährt die Kontur die Wände einer solchen Tasche, bekommt „Restmaterial“ den Haken dazu – der
+    Fräser der Kontur kommt dort nicht überall hin.
+  - Am Testteil: sechs Arbeitsschritte mit drei Werkzeugen – Räumen T1, Räumen T3, Kontur T1,
+    Restmaterial T3, 3D-Schruppen T1, 3D-Schlichten T5 –, zusammen 15 min; in der Tasche bleiben
+    nur die beiden spitzen Ecken mit dem Radius des Ø 6 stehen (7 % ihres Bodens; vorher 29 %).
+  - **Nicht so gebaut wie beschrieben:** Die Kontur des Ø 12 fährt weiter in die Tasche – dort,
+    wo er ohne Aufmaß hineinpasst –, und „Restmaterial“ nimmt mit dem Ø 6, was er nicht
+    erreicht. Zwei Fräser an einer Wand statt einem: einfacher, aber mit einem Absatz, wo sie
+    sich treffen. Je Kontur ein eigener Fräser wäre ein zweiter Kontur-Block; offen, bis Manuel
+    es so will.
 - **T4 Wände schlichten, ohne sie einzeln anzuklicken:** der Block „Schlichten danach“
   (Abschnitt 12.4, Option A – entschieden).
 - **T5 Weniger abheben, die Last halten:** Abschnitt 12.1 (Frage 6) – Adaptiv als Variante, die

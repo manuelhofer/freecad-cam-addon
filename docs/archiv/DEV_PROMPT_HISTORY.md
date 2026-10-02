@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-82 rest-raeumen
+
+### EINGELESEN
+- W-013, Schritt T3 (Spezifikation Strategien, Abschnitt 13.5): „Was der Fräser nicht kann,
+  bekommt der nächste.“ An Manuels Testteil passt der Ø 12 nicht in die dreieckige Tasche; sie
+  blieb halb stehen.
+- Manuel, 2026-10-02: „das muss sinnvoll bearbeitet werden auch mit mehreren arbeitsschritten“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_RestRaeumen`, `_restraeumen_einrichten`,
+  `_restraeumfraeser`, `_raeumt`, `_raeumen_ausgelassen_zeigen`, `_flaechen`,
+  `_vorschau_rechnen`, `vorschau_starten` mit `_ruhig`), `translations/de|en.json`,
+  `help/de|en/bearbeitung.html`, `tests/gui/szenario_testteil.py`,
+  `docs/spezifikation_strategien.md` (13.5), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.125.0)
+
+### AKZEPTANZKRITERIUM
+Testteil, alle Flächen angeklickt → unter „Räumen“ steht angehakt „Rest räumen“ mit T3 (Ø 6),
+„Restmaterial“ ist angehakt; „Anlegen“ legt Räumen T1, Räumen T3, Kontur T1, Restmaterial T3,
+3D-Schruppen T1 und 3D-Schlichten T5 an.
+
+### DONE
+- Neuer Block „Rest räumen“ (Strategie `_RestRaeumen`, ein Räumen mit eigenem Fräser), in der
+  Folge gleich nach „Räumen“. Möglich wird er erst nach der Vorschau des Räumens: wenn es eine
+  Tasche auslässt und ein kleinerer Fräser hineinpasst. Der größte passende ist vorgewählt –
+  probiert mit der Vorschau, vom größten her, das Ergebnis je Wahl gemerkt –, der Haken gesetzt.
+- Er räumt nur die ausgelassenen Taschen, mit dem Materialstand nach dem Räumen (dieselben
+  Flächen, aber kein Gegner: `_materialstand(…, flaechen=())`).
+- „Restmaterial“ bekommt den Haken, wenn die Kontur Wände einer solchen Tasche fährt.
+- Der Satz unter „Räumen“ nennt den Block: „… – die räumt „Rest räumen“ mit T3.“ Was „Rest
+  räumen“ räumt, gilt für die Kontur als geräumt (`_raeumt`).
+- Während das Fenster selbst einen Fräser setzt, beginnt keine neue Vorschau (`_ruhig`) – sonst
+  hätte die laufende ihre Ergebnisse verloren.
+- Versuch vorher, verworfen: „Rest räumen“ über alle Flächen des Räumens statt nur über die
+  ausgelassenen – der Ø 6 mit ap 12 räumte dann auch den Mund der Kugelmulde in einer
+  Zwischenlage (0,5 min), das ist Sache des 3D-Schruppens.
+- Bewusst nicht: je Kontur ein eigener Fräser. Der Ø 12 schlichtet in der Tasche, wo er ohne
+  Aufmaß hinkommt, der Ø 6 den Rest (Spezifikation 13.5).
+- Dabei aufgefallen (B-009, wird als Nächstes behoben): Die Vorschau von „Rest räumen“ rechnet
+  wie die des 3D-Schruppens auf einem Materialstand, in dem noch das Planfräsen steckt, das im
+  Wettbewerb den Haken verliert – „… hat „Planfräsen“ schon weggenommen“. Die angelegte
+  Operation rechnet richtig.
+
+### TESTS
+- `tests/gui/szenario_testteil.py` (OK): die Haken, T3 in beiden Blöcken, die sechs Operationen
+  in ihrer Folge, „Auf der Maschine prüfen“ nirgends ins Teil. Der Rest in der Tasche im
+  Quader nachgemessen (Scratch): 7 % ihres Bodens statt 29 % – die zwei spitzen Ecken.
+- `tests/test_sprache.py`, `tests/test_hilfe.py` (OK).
+- Die 45 Szenarien des Assistenten mit dem neuen Block: 43 OK. Nicht OK, beide nicht von diesem
+  Patch: `szenario_absatz` (seit 0.124.0 ist das Räumen über zwei Höhen am Absatz 0,5 %
+  schneller als das Planfräsen und bekommt den Haken – das Szenario erwartet noch Planfräsen)
+  und `szenario_kontur` (seit P-2026-10-02-75 eine Lage und eine Bahn mehr, B-010).
+- FreeCAD 1.1.4 auf Manuels Rechner; black und ruff sauber.
+
+### NEXT
+- Die liegengebliebenen Szenarien (B-010), dann B-009.
+
 ## P-2026-10-02-81 raeumen-sagt-was-es-auslaesst
 
 ### EINGELESEN

@@ -5,10 +5,12 @@
 # Szenarien (T1 Ø 12, T2 Plan Ø 50, T3 Ø 6, T4 Ø 20), dazu T5 Kugel Ø 8 und T6 Fase 90°.
 # Alle Flächen anklicken – die vier ebenen, die Mulde, die Wände der Insel, der Stufe und der
 # Tasche. Räumen (T1) nimmt die drei offenen Höhen, die tiefste zuerst, jede Stelle einmal: unter
-# 13 min (bis 0.123.1 Höhe für Höhe von oben: 26 min). „Anlegen“: Räumen, Kontur, 3D-Schruppen,
-# 3D-Schlichten. „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
-# In die Tasche passt der Ø 12 nicht – das Räumen sagt es (B-007). Noch offen und hier nicht
-# geprüft: der kleinere Fräser für die Tasche (T3) und B-008 (12 mm „Rest“ auf der Naht der Mulde).
+# 13 min (bis 0.123.1 Höhe für Höhe von oben: 26 min). In die dreieckige Tasche passt der Ø 12
+# nicht: Das Räumen sagt es, „Rest räumen“ bekommt den Haken und den Ø 6 (T3) – den größten, der
+# hineinpasst –, und „Restmaterial“ den Haken für ihre Wände (T3). „Anlegen“: Räumen T1, Räumen
+# T3, Kontur T1, Restmaterial T3, 3D-Schruppen T1, 3D-Schlichten T5 – sechs Arbeitsschritte, drei
+# Werkzeuge. „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
+# Noch offen und hier nicht geprüft: B-008 (12 mm „Rest“ auf der Naht der Mulde).
 import os
 
 import FreeCAD
@@ -92,14 +94,21 @@ def schritte(h):
     )
     # Die tiefste Fläche zuerst, jede Stelle einmal: unter 13 min (das Ziel sind 8).
     h.pruefe(raeumen.zeit is not None and raeumen.zeit < 13.0, f"Räumen: {raeumen.zeit} min")
-    # In die dreieckige Tasche passt der Ø 12 nicht: Das Räumen sagt es (B-007), und die Kontur
-    # behauptet nicht mehr, das Räumen habe sie geräumt.
+    # In die dreieckige Tasche passt der Ø 12 nicht: Das Räumen sagt es (B-007), „Rest räumen“
+    # nimmt sie mit dem größten Fräser, der hineinpasst (T3, Ø 6), „Restmaterial“ ihre Wände.
+    rest_boden, rest_wand = panel.restraeumen, panel.rest
+    satz = f"In die Tasche {ebenen[27]} passt der Ø 12 nicht – die räumt „Rest räumen“ mit T3."
+    h.pruefe(satz in raeumen.ergebnis.text(), f"{raeumen.ergebnis.text()!r}")
     h.pruefe(
-        f"In die Tasche {ebenen[27]} passt der Ø 12 nicht" in raeumen.ergebnis.text(),
-        f"{raeumen.ergebnis.text()!r}",
+        rest_boden.aktiv() and rest_boden.fraeser().nummer == 3,
+        "Rest räumen: kein Haken oder nicht T3",
     )
+    h.pruefe(rest_boden.ergebnis.text().startswith("→ 1 Lage"), f"{rest_boden.ergebnis.text()!r}")
     h.pruefe(kontur.aktiv(), "Kontur: kein Haken")
-    h.pruefe("räumt das Räumen" not in kontur.ergebnis.text(), f"{kontur.ergebnis.text()!r}")
+    h.pruefe(
+        rest_wand.aktiv() and rest_wand.fraeser().nummer == 3,
+        "Restmaterial: kein Haken oder nicht T3",
+    )
     h.pruefe(r3.aktiv() and r3.fraeser().nummer == 1, "3D-Schruppen: kein Haken oder nicht T1")
     h.pruefe(s3.aktiv() and s3.fraeser().nummer == 5, "3D-Schlichten: kein Haken oder nicht T5")
     rot = [(b.s.kennung, b.hinweis.text()) for b in panel.bloecke if b.aktiv() and b.hinweis.text()]
@@ -122,6 +131,12 @@ def schritte(h):
         ("3D-Schlichten", s3op.ist_schlichten3d),
     ):
         h.pruefe(any(pruefung(o) for o in ops), f"kein {art}: {namen_ops}")
+    # Sechs Arbeitsschritte in dieser Folge, drei Werkzeuge.
+    erwartet = [
+        "Räumen T1", "Räumen T3", "Kontur T1", "Restmaterial T3", "3D-Schruppen T1",
+        "3D-Schlichten T5",
+    ]  # fmt: skip
+    h.pruefe(namen_ops == erwartet, f"Operationen: {namen_ops}")
     raeum_op = next((o for o in ops if ra.ist_raeumen(o)), None)
     if raeum_op is not None:
         h.pruefe(
