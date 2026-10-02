@@ -357,6 +357,10 @@ def name_fuer_neuen(einsatz, einsaetze):
     return f"{stamm} {zahl}"
 
 
+PLANEN_SCHAFT_AE = 0.7  # × D – ae des Einsatzes „Planen“ am Schaftfräser
+PLANEN_SCHAFT_AP = 0.1  # × D – sein ap
+
+
 def vorlage(werkzeug, art):
     """Ein neuer Einsatz mit ae und ap als übliche Anteile von D vorbelegt.
 
@@ -373,6 +377,10 @@ def vorlage(werkzeug, art):
         # Planfräser: drei Viertel der Breite, ein Drittel der Schneide.
         PLANEN: (d * 0.75, lang / 3),
     }.get(art, (0.0, 0.0))
+    if art == PLANEN and werkzeug.art != PLANFRAESER:
+        # Der Schaftfräser plant mit großem ae bei kleinem ap (Manuel, 2026-10-02: „der Ø 12
+        # darf bei kleinem ap ein größeres ae fahren“): 70 % des Ø, ein Zehntel des Ø tief.
+        ae, ap = PLANEN_SCHAFT_AE * d, PLANEN_SCHAFT_AP * d
     # Gerundet, wie es gezeigt wird: 0,01 mm, in inch 0,0001 in.
     return Einsatz(
         art=art,
@@ -1010,7 +1018,7 @@ for _art, _daten in tuple(ARTDATEN.items()):
 # Welche Einsätze „+ Einsatz“ je Art anbietet; „eigen“ geht immer dazu. None:
 # keine Schnittwerte – Drehwerkzeuge (FreeCAD dreht nicht) und Taster.
 EINSAETZE_JE_ART = {
-    SCHAFTFRAESER: (VOLLNUT, SCHRUPPEN, DYNAMISCH, SCHLICHTEN),
+    SCHAFTFRAESER: (VOLLNUT, SCHRUPPEN, DYNAMISCH, SCHLICHTEN, PLANEN),
     KUGELFRAESER: (SCHRUPPEN, SCHLICHTEN),
     TORUSFRAESER: (VOLLNUT, SCHRUPPEN, DYNAMISCH, SCHLICHTEN),
     KONIKFRAESER: (SCHLICHTEN,),
@@ -1126,11 +1134,16 @@ def beispielwerte_setzen(werkzeug, neu=False):
 def standardwerkzeug(nummer=1):
     """Manuels Standardfräser (2026-10-01): VHM Ø 12, 4 Schneiden (angenommen), Schneidenlänge 26,
     Rampe bis 3°; die Werte ae 1,5 mm, ap 25, fz 0,1, vc 85 m/min (→ n 2255, vf 902 mm/min) als
-    Einsätze Planen und Schruppen, Schlichten mit ae 0,3 (das Aufmaß der Kontur) und sonst
-    denselben Werten. Die eine Definition, mit der jede Strategie und jedes Szenario mit
-    Werkzeugwegen gerechnet und geprüft wird (Manuel: „generell sollte dann jede Strategie
-    und Szenario mit diesem Fräser und den Werten gerechnet und geprüft werden“) – siehe
-    docs/spezifikation_strategien.md, Abschnitt 11, und docs/arbeitsregeln.md, Abschnitt 5."""
+    Einsatz Schruppen, Schlichten mit ae 0,3 (das Aufmaß der Kontur) und sonst denselben Werten.
+    Planen mit großem ae bei kleinem ap (P-2026-10-02-54; Manuel: „der Ø 12 darf bei kleinem ap
+    ein größeres ae fahren … Werte im Netz“): ae 8,4 (0,7 D), ap 1,2 (0,1 D), fz 0,07 – bei ae
+    über D/2 ist der Span so dick wie fz, das ist der Span des Schruppens mit ae 1,5 und fz 0,1
+    (0,066 mm); fz 0,07 wie Garant/Hoffmann für Planfräsen mit VHM in Stahl bis 900 N/mm²
+    (Ø 14: 0,08) –, vc 85 wie beim Schruppen (n 2255, vf 631). Die eine Definition, mit der
+    jede Strategie und jedes Szenario mit Werkzeugwegen gerechnet und geprüft wird (Manuel:
+    „generell sollte dann jede Strategie und Szenario mit diesem Fräser und den Werten gerechnet
+    und geprüft werden“) – siehe docs/spezifikation_strategien.md, Abschnitt 11, und
+    docs/arbeitsregeln.md, Abschnitt 5."""
     werkzeug = Werkzeug(
         nummer=nummer,
         name="VHM 12",
@@ -1140,7 +1153,7 @@ def standardwerkzeug(nummer=1):
         eintauchwinkel=3.0,
     )
     werkzeug.schnittwerte[ALLE] = [
-        Einsatz(art=PLANEN, ae=1.5, ap=25.0, vc=85.0, fz=0.1),
+        Einsatz(art=PLANEN, ae=8.4, ap=1.2, vc=85.0, fz=0.07),
         Einsatz(art=SCHRUPPEN, ae=1.5, ap=25.0, vc=85.0, fz=0.1),
         Einsatz(art=SCHLICHTEN, ae=0.3, ap=25.0, vc=85.0, fz=0.1),
     ]

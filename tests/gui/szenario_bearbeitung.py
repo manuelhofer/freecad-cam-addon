@@ -1,6 +1,8 @@
 # „Bearbeitung (Fräsen)“ – der Assistent für ein Teil im Quader (W-006 S3c, S3h). Block 60 × 40 × 20
-# mit einem 5 mm höheren Absatz an der linken Seite, T1 Manuels Standardfräser Ø 12 (Einsatz
-# Planen: ae 1,5, ap 25). Die Fläche bei z = 20 anklicken, den Knopf drücken: Der Job mit dem
+# mit einem 5 mm höheren Absatz an der linken Seite, T1 Manuels Standardfräser Ø 12. Über der
+# Fläche stehen 6 mm: Das Planfräsen wählt nach der Zeit „Schruppen“ (ae 1,5, ap 25: eine Lage)
+# statt „Planen“ (ae 8,4, ap 1,2: fünf; P-2026-10-02-54). Die Fläche bei z = 20 anklicken, den
+# Knopf drücken: Der Job mit dem
 # Rohteil (1 mm Aufmaß) entsteht sofort, die Fläche steht grün in der Liste, die Vorschau sagt
 # „→ 1 Lage, 29 Zeilen“ (die erste und letzte greifen an den offenen Seiten nur so breit ins
 # Rohteil, dass Breite · Tiefe nicht über ae · ap liegt – P-2026-10-01-49); mit Zustellung 2 drei
@@ -63,7 +65,10 @@ def schritte(h):
     plan = panel.plan
     h.pruefe(plan.fraeser() is not None and plan.fraeser().nummer == 1, "Fräser T1")
     einsatz = plan.einsatz()
-    h.pruefe(einsatz is not None and einsatz.art == wz.PLANEN, "Einsatz Planen vorgewählt")
+    h.pruefe(
+        einsatz is not None and einsatz.art == wz.SCHRUPPEN,
+        f"Einsatz nach der Zeit: {einsatz.art if einsatz else None}",
+    )
     h.pruefe(plan.aktiv() and not panel.kontur.aktiv(), "Haken: Planfräsen an, Kontur aus")
     h.pruefe(not panel.kontur.haken.isEnabled(), "Kontur ohne Wand wählbar")
     yield from h.warte_auf(lambda: plan.vorschau is not None, 30000)

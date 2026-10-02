@@ -48,7 +48,9 @@ LANGSAMER_ZULAESSIG = 0.02  # so viel über der Bestmarke lässt die Rechnung sc
 werkzeug = wz.standardwerkzeug()
 R = werkzeug.durchmesser / 2
 form = ff.scheibe(R)
-planen = next(e for e in werkzeug.einsaetze(wz.ALLE) if e.art == wz.PLANEN)
+# Alle Strategien mit Manuels Werten (ae 1,5, ap 25) – auch das Planfräsen, das im Assistenten
+# den Einsatz „Planen“ nimmt (ae 8,4, ap 1,2; P-2026-10-02-54): So bleiben die Bestmarken
+# vergleichbar.
 schruppen = next(e for e in werkzeug.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
 VF = 902.0  # mm/min bei vc 85, fz 0,1, 4 Schneiden
 EINTAUCHEN = VF * 0.3
@@ -116,7 +118,7 @@ def planfraesen(teil, z, rohteil, oben, laengs=None):
     ]
     netz = hf.netze_je_hoehe(teil, ebenen)
     werte = pb.Planwerte(
-        form, planen.ap, planen.ae, 0.0, oben, oben + 5.0, rohteil,
+        form, AP, AE, 0.0, oben, oben + 5.0, rohteil,
         laengs=laengs, vorschub=VF, eintauchen=EINTAUCHEN,
     )  # fmt: skip
     return pb.planen(netz, werte, ebenen)

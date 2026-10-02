@@ -87,7 +87,10 @@ cutters again.</li>
 <li><b>Cutter</b> – a cutter with a flat tip (flat, torus or face mill) from
 the <a href="werkzeuge.html">tool manager</a> with cutting data for the
 material; <b>Application</b> – “Facing” preselected; speed and feed in grey
-below.</li>
+below. An end mill faces with a large ae at a small ap – the Ø 12 with ae 8.4 (0.7 D) and ap
+1.2 (0.1 D): so it takes the millimetre above the top in one layer, almost four times as fast
+as with ae 1.5. With more than a few millimetres above the face, “Roughing” is faster (there
+clearing usually wins).</li>
 <li><b>Stepdown per layer</b> (ap), <b>row spacing</b> (ae, at most as wide as
 the flat part of the tip) and <b>allowance</b> – empty, the grey suggestions
 from the application apply.</li>
@@ -227,7 +230,9 @@ reaches a fifth of its metal removal rate there (more than 12 hours); at 100 × 
 by how much tells how good it is. If another cutter from the tool manager would be clearly
 faster (by more than a fifth), it is named after it, with the smaller one that takes the
 rest in the corners afterwards: “Faster from the tool box: T2 Face mill Ø 50, then T1 Flat
-end mill Ø 12 for the rest – target 15 min.” Below it, <b>Use the faster cutters</b>: one click
+end mill Ø 12 for the rest – target 15 min.” Each cutter counts with its fastest application:
+a thin layer the Ø 12 with “Facing”, deep material with “Roughing”. Below it, <b>Use the faster
+cutters</b>: one click
 puts them into the strategies – a face mill into face milling and the one for the rest into
 clearing, a flat end mill into clearing and the one for the rest into rest machining –; then
 the competition is calculated again, and the target line counts with the cutter that is

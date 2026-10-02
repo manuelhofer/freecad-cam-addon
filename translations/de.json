@@ -1454,7 +1454,7 @@
     "ba.planfraesen": "Planfräsen",
     "ba.planfraesen.text": "Fräst die ebenen Flächen nach oben eben: Zeilen hin und her in Lagen vom Rohteil bis auf die Fläche plus Aufmaß, mit Überlauf über den Rand, Halbkreisen zwischen den Zeilen und halbem Vorschub beim Austritt; vor Absätzen hält die Zeile an.",
     "ba.planfraeser.tooltip": "Ein Fräser mit ebener Stirn aus der Werkzeugverwaltung mit Schnittwerten: Schaft-, Torus- oder Planfräser.",
-    "ba.planeinsatz.tooltip": "Welche Schnittwerte des Fräsers gelten – vorgewählt „Planen“. Er gibt Drehzahl, Vorschub, Zustellung (ap) und Zeilenabstand (ae).",
+    "ba.planeinsatz.tooltip": "Welche Schnittwerte des Fräsers gelten – vorgewählt der Einsatz, mit dem er hier schneller ist: „Planen“ (großes ae, kleines ap) für eine dünne Schicht, „Schruppen“ für tiefes Material. Er gibt Drehzahl, Vorschub, Zustellung (ap) und Zeilenabstand (ae).",
     "ba.zustellung": "Zustellung je Lage",
     "ba.zustellung.tooltip": "So tief je Lage. Leer: der graue Vorschlag, ap des Einsatzes aus der Werkzeugtabelle.",
     "ba.zeilenabstand": "Zeilenabstand",

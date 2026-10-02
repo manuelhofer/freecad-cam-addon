@@ -681,9 +681,12 @@ def _einsatz(werkzeug, art, klasse):
         einsatz.ap = 2.0
         einsatz.vc, einsatz.fz = vc, fz
         return _runden(einsatz)
-    grund = (GRUND_HSS if hss else GRUND_HM).get(art)
+    # Der Schaftfräser plant mit 0,7 D und 0,1 D tief (werkzeuge.vorlage) – vc und fz wie beim
+    # Schruppen: Über D/2 ist der Span so dick wie fz.
+    art_werte = wz.SCHRUPPEN if art == wz.PLANEN else art
+    grund = (GRUND_HSS if hss else GRUND_HM).get(art_werte)
     if grund is None:
-        grund = (GRUND_HM if hss else GRUND_HSS).get(art)
+        grund = (GRUND_HM if hss else GRUND_HSS).get(art_werte)
         if grund is None:
             return None
     vc, je_d, *fest = grund

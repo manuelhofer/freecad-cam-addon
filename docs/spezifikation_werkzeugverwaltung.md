@@ -754,6 +754,15 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
   gibt ihm eine Kopie der Zeilen, die bisher für ihn gelten (`Werkzeug.eigene_anlegen`: die
   eines Werkstoffs seiner Klasse oder die für alle; vorhandene bleiben). Ändert man sie, bleiben
   die anderen Werkstoffe der Klasse, wie sie sind – 1.4404 eigene, 1.4571 weiter wie 1.4301.
+- **Gebaut (P-2026-10-02-54, 0.109.0; Manuel, 2026-10-02: „der Ø 12 darf bei kleinem ap ein
+  größeres ae fahren … auch hier such dir aus dem Netz einen Fräser mit Zähnezahl“):** Der
+  Schaftfräser hat den Einsatz „Planen“: 0,7 D breit, 0,1 D tief (`werkzeuge.vorlage`), in der
+  Kiste und bei den Richtwerten mit vc und fz des Schruppens – bei ae über D/2 ist der Span so
+  dick wie fz. Manuels Standardfräser plant mit ae 8,4, ap 1,2, fz 0,07, vc 85 (Garant/Hoffmann
+  für Planfräsen mit VHM in Stahl bis 900 N/mm²: fz 0,08 bei Ø 14; die Seiten der Hersteller
+  waren gesperrt, die Werte stehen in den Suchergebnissen). Das Planfräsen im Assistenten
+  wählt zwischen „Planen“ und „Schruppen“ den Einsatz mit der kürzeren Zielzeit bis zu seinen
+  Flächen; die Zielzeit vergleicht je Fräser seinen schnellsten Einsatz.
 
 ## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
 

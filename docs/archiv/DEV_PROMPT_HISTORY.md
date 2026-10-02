@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-54 planen-einsatz-schaftfraeser
+
+### EINGELESEN
+- Manuel, 2026-10-02, auf „Darf der 12er bei kleinem ap ein größeres ae fahren, etwa mit einem
+  eigenen Einsatz ‚Planen‘? Dann wäre er bei flachen Stellen nicht so weit hinter dem
+  Planfräser“: „Ja, hab ich auch schon beantwortet – auch hier Werte im Netz“ (früher: „der
+  Ø 12 darf bei kleinem ap ein größeres ae fahren – auch hier such dir aus dem Netz einen
+  Fräser mit Zähnezahl“).
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (Standardfräser: Planen ae 8,4, ap 1,2, fz 0,07, vc 85; Schaftfräser
+  mit dem Einsatz Planen; Vorlage Planen am Schaftfräser 0,7 D × 0,1 D),
+  `camaddon/werkzeugkiste.py` (Planen am Schaftfräser mit vc und fz des Schruppens),
+  `camaddon/zielzeit.py` (`bestes_angebot`: je Fräser der schnellste Einsatz),
+  `camaddon/gui_bearbeitung.py` (`_planeinsatz_waehlen`: das Planfräsen nimmt den Einsatz mit
+  der kürzeren Zielzeit bis zu seinen Flächen), `translations/de|en.json`
+  (`ba.planeinsatz.tooltip`), `help/de|en/bearbeitung.html`, `help/de|en/werkzeuge.html`,
+  `tests/test_werkzeuge.py`, `tests/test_werkzeugkiste.py`, `tests/test_planfraesen.py`,
+  `tests/test_quader.py`, `tests/test_pruefstand.py` (Planfräsen mit Manuels Werten),
+  `tests/gui/szenario_planen.py` (neu), `tests/gui/szenario_bearbeitung.py`,
+  `tests/gui/szenario_werkzeugkiste.py`,
+  `docs/arbeitsregeln.md`, `docs/spezifikation_strategien.md`,
+  `docs/spezifikation_werkzeugverwaltung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.109.0)
+
+### AKZEPTANZKRITERIUM
+Der Standardfräser hat „Planen“ mit ae 8,4, ap 1,2, fz 0,07. Block 100 × 60, 1 mm über der
+Oberseite: Das Planfräsen nimmt „Planen“ – eine Lage, 8 Zeilen, etwa 2 min, das Räumen bräuchte
+6; mit Aufmaß oben 10 wechselt es von selbst zu „Schruppen“. Liegen 6 mm über der Fläche (Block
+mit Absatz), wählt es „Schruppen“ (eine Lage statt fünf). Die Zielzeit nimmt je Fräser seinen
+schnellsten Einsatz.
+
+### DONE
+- Werte aus dem Netz, soweit erreichbar: Die Seiten der Hersteller waren gesperrt; in den
+  Suchergebnissen Garant/Hoffmann: Planfräsen mit VHM in Stahl bis 900 N/mm² fz 0,08 (Ø 14).
+  Für den Ø 12 fz 0,07 – bei ae über D/2 ist der Span so dick wie fz, so dick wie der Span des
+  Schruppens mit ae 1,5 und fz 0,1 (0,066 mm).
+- Grundsatz 0: Mit „Planen“ fest vorgewählt verlor das Planfräsen am Absatz gegen das Räumen –
+  das Ganze wäre langsamer geworden. Jetzt entscheidet die Zielzeit je Einsatz.
+- Der Prüfstand rechnet alle Strategien weiter mit Manuels Werten (Bestmarken vergleichbar).
+
+### TEST
+- 1.1.3: `test_werkzeuge`, `test_werkzeugkiste`, `test_planfraesen` (dazu der Einsatz Planen:
+  5 Lagen zu 6 Zeilen), `test_quader`, `test_zielzeit`, `test_pruefstand`,
+  `test_job_schnittwerte`, `test_sprache`, `test_hilfe`; alle 87 Szenarien grün, dazu
+  `szenario_planen` (neu); black/ruff grün.
+
+### NEXT
+- Manuels Entscheidungen zu 12.1 (ae als Last) und 12.4 (Schlichten nach dem Räumen).
+
 ## P-2026-10-02-53 geschlossene-nut-in-boegen
 
 ### EINGELESEN

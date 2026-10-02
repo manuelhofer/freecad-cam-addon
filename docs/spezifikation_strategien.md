@@ -1266,8 +1266,9 @@ Lage mehr.
 Szenario mit diesem Fräser und den Werten gerechnet und geprüft werden, wenn
 es um Werkzeugwege geht“):** Der Fräser oben ist `werkzeuge.standardwerkzeug()`
 – die eine Definition (Ø 12, 4 Schneiden angenommen, Schneidenlänge 26, Rampe
-3°; Einsätze Planen und Schruppen mit ae 1,5 / ap 25 / fz 0,1 / vc 85,
-Schlichten mit ae 0,3, dem Aufmaß der Kontur). Mit ihm rechnen alle
+3°; Schruppen mit ae 1,5 / ap 25 / fz 0,1 / vc 85, Planen seit P-2026-10-02-54 mit
+ae 8,4 / ap 1,2 / fz 0,07 / vc 85 – das Planfräsen nimmt den, der für seine Flächen schneller
+ist –, Schlichten mit ae 0,3, dem Aufmaß der Kontur). Mit ihm rechnen alle
 Prüfungen und Szenarien der 2,5D-Strategien (`test_planfraesen`,
 `test_kontur`, `test_raeumen`, `test_quader`, `szenario_bearbeitung`,
 `szenario_kontur`, `szenario_raeumen`), mit
@@ -1299,7 +1300,9 @@ ap zählt also nur so weit, wie die Stelle es hergibt (Manuels zwei Beispiele, b
 Zeitspanvolumens; 100 × 100, 25 mm ab – 7,4 min, voll genutzt). Was der Fräser nicht
 erreicht (die Schließung des Bodens mit seiner Scheibe: Ecken und Nuten enger als er), ist
 sein Rest; `vergleiche()` stellt die Fräser einer Werkzeugkiste nebeneinander, je mit dem
-schnellsten kleineren für den Rest. Die Werkzeugkiste der Tests ist `werkzeuge.testkiste()`:
+Einsatz, der hier am schnellsten ist (`bestes_angebot`, P-2026-10-02-54: eine dünne Schicht
+der Ø 12 mit „Planen“, tiefes Material mit „Schruppen“), und mit dem schnellsten kleineren
+für den Rest. Die Werkzeugkiste der Tests ist `werkzeuge.testkiste()`:
 T1 Ø 12 (der Standardfräser), T2 Planfräser Ø 50 (z 5, ae 35, ap 2, vc 200, fz 0,15 →
 vf 955), T3 Ø 6 (ae 0,6, ap 12, vf 902), T4 Ø 20 (ae 2, ap 30, vf 649) – angenommene Werte.
 Der Assistent zeigt die Zielzeit grau über den Strategien, und den schnelleren Fräser aus

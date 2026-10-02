@@ -125,7 +125,9 @@ ein ASCII-Entwurf des Dialogs reicht.
     gerechnet und geprüft werden, wenn es um Werkzeugwege geht“): Jede
     Strategie, jede Prüfung und jedes Szenario, das Werkzeugwege rechnet, nimmt
     `werkzeuge.standardwerkzeug()` – VHM Ø 12, ae 1,5 mm, ap 25, fz 0,1,
-    vc 85 m/min, Rampe 3° – und die festen Vorgaben für die Zeit (Eilgang
+    vc 85 m/min, Rampe 3° (der Einsatz Schruppen; Planen seit P-2026-10-02-54 mit
+    ae 8,4, ap 1,2, fz 0,07 – der Prüfstand fährt auch das Planfräsen mit
+    Manuels Werten) – und die festen Vorgaben für die Zeit (Eilgang
     10 m/min, Beschleunigung 1 m/s², `export.VORGABE_…`). So sind die Zeiten
     aller Strategien vergleichbar (Spezifikation Strategien, Abschnitt 11),
     und was mit diesem Fräser nicht passt, fällt in der Prüfung auf (das

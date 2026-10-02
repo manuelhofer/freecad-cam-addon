@@ -1454,7 +1454,7 @@
     "ba.planfraesen": "Face milling",
     "ba.planfraesen.text": "Mills the flat faces facing up flat: rows back and forth in layers from the stock down to the face plus allowance, with overrun past the edge, semicircles between the rows and half feed on exit; before steps the row stops.",
     "ba.planfraeser.tooltip": "A cutter with a flat tip from the tool manager with cutting data: flat, torus or face mill.",
-    "ba.planeinsatz.tooltip": "Which cutting data of the cutter apply – “Facing” preselected. It gives speed, feed, stepdown (ap) and row spacing (ae).",
+    "ba.planeinsatz.tooltip": "Which cutting data of the cutter apply – preselected the application that is faster here: “Facing” (large ae, small ap) for a thin layer, “Roughing” for deep material. It gives speed, feed, stepdown (ap) and row spacing (ae).",
     "ba.zustellung": "Stepdown per layer",
     "ba.zustellung.tooltip": "This deep per layer. Empty: the grey suggestion, ap of the application from the tool table.",
     "ba.zeilenabstand": "Row spacing",

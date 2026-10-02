@@ -224,36 +224,37 @@ def werte(werkzeug, einsatz):
     return einsatz.ae, ap, vf
 
 
-def einsatz_zum_wegnehmen(werkzeug, werkstoff=wz.ALLE):
-    """Der Einsatz, mit dem der Fräser Material wegnimmt (WEGNEHMEN) und dem größten
-    Zeitspanvolumen – None, wenn er keinen mit Werten hat."""
-    besser = None
+def bestes_angebot(material, werkzeug, werkstoff=wz.ALLE):
+    """Das Angebot des Fräsers mit dem Einsatz zum Wegnehmen (WEGNEHMEN), der für dieses Material
+    am schnellsten ist – None, wenn er keinen mit Werten hat. Nicht der mit dem größten
+    Zeitspanvolumen: Eine dünne Schicht plant der Ø 12 mit „Planen“ (ae 8,4, ap 1,2) fast
+    viermal so schnell wie mit „Schruppen“ (ae 1,5, ap 25), tiefes Material umgekehrt
+    (P-2026-10-02-54)."""
+    bestes = None
     for einsatz in werkzeug.einsaetze(werkstoff):
-        if einsatz.art not in WEGNEHMEN or werte(werkzeug, einsatz) is None:
+        w = werte(werkzeug, einsatz) if einsatz.art in WEGNEHMEN else None
+        if w is None:
             continue
-        q = sd.zeitspanvolumen(*werte(werkzeug, einsatz))
-        if besser is None or q > besser[0]:
-            besser = (q, einsatz)
-    return besser[1] if besser else None
+        angebot = Angebot(werkzeug, einsatz, ziel(material, werkzeug.durchmesser / 2, *w))
+        if bestes is None or angebot.ziel.zeit < bestes.ziel.zeit:
+            bestes = angebot
+    return bestes
 
 
 def vergleiche(material, werkzeuge, werkstoff=wz.ALLE, rest_klein=0.02):
-    """Die Fräser der Werkzeugkiste nebeneinander: je Fräser (WEGNEHMER) mit seinem Einsatz zum
-    Wegnehmen die Zielzeit – und für seinen Rest (mehr als `rest_klein` des Volumens) der
-    schnellste kleinere, der ihn ganz schafft. [Angebot], das schnellste zuerst; wer am Ende
-    noch etwas stehen lässt, steht hinter allen, die alles schaffen."""
+    """Die Fräser der Werkzeugkiste nebeneinander: je Fräser (WEGNEHMER) mit seinem schnellsten
+    Einsatz zum Wegnehmen die Zielzeit (bestes_angebot) – und für seinen Rest (mehr als
+    `rest_klein` des Volumens) der schnellste kleinere, der ihn ganz schafft. [Angebot], das
+    schnellste zuerst; wer am Ende noch etwas stehen lässt, steht hinter allen, die alles
+    schaffen."""
     gesamt = material.volumen
     einzeln = []
     for werkzeug in werkzeuge:
         if werkzeug.art not in WEGNEHMER or werkzeug.durchmesser <= 0:
             continue
-        einsatz = einsatz_zum_wegnehmen(werkzeug, werkstoff)
-        if einsatz is None:
-            continue
-        ae, ap, vf = werte(werkzeug, einsatz)
-        einzeln.append(
-            Angebot(werkzeug, einsatz, ziel(material, werkzeug.durchmesser / 2, ae, ap, vf))
-        )
+        angebot = bestes_angebot(material, werkzeug, werkstoff)
+        if angebot is not None:
+            einzeln.append(angebot)
     for angebot in einzeln:
         if angebot.ziel.rest <= rest_klein * gesamt:
             continue

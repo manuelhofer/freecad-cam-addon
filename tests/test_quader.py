@@ -110,7 +110,7 @@ pruefe(q.h.min() == 26.0, "zurückgesetzt")
 import Path.Main.Job as PathJob
 
 user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))
-schaft = wz.standardwerkzeug()  # Ø 12, Planen mit ae 1,5 und ap 25: eine Lage, 23 Zeilen
+schaft = wz.standardwerkzeug()  # Ø 12, Planen mit ae 8,4 und ap 1,2: 5 Lagen zu 6 Zeilen
 planen = next(e for e in schaft.einsaetze(wz.ALLE) if e.art == wz.PLANEN)
 ue.uebergeben(wz.Bibliothek([schaft]))
 asm, ma = bm.fraesmaschine()
@@ -125,7 +125,7 @@ klon = job.Model.Group[0]
 flaeche = next(e.name for e in hf.ebenen_oben(klon.Shape) if abs(e.z - 20.0) < 1e-6)
 op = pf.lege_an(job, tc1, zustellung=planen.ap, zeilenabstand=planen.ae, flaechen=[flaeche])
 doc.recompute()
-pruefe(op.Lagen == 1 and op.Zeilen == 23, f"Planfräsen: {op.Lagen} Lagen, {op.Zeilen} Zeilen")
+pruefe(op.Lagen == 5 and op.Zeilen == 30, f"Planfräsen: {op.Lagen} Lagen, {op.Zeilen} Zeilen")
 p = rw.Pruefung(asm, ma)
 nullpunkt = rw.vorschlag_nullpunkt(job)
 fahrt = ab.abfahrt(p, job, nullpunkt)

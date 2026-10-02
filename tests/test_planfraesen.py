@@ -121,9 +121,10 @@ pruefe(abs(befehle[3].Parameters["F"] - 100.0 / 60.0) < 1e-9, "Eintauchvorschub"
 print("Bahn ok")
 
 # --- Planfräsen: eine Lage, Zeilen vor dem Absatz, Halbkreise, Rampe, Austritt ---------------
-# Mit den Werten des Standardfräsers: ae 1,5 als Zeilenabstand, ap 25 als Zustellung – die
-# 6 mm über der Fläche sind eine Lage.
-planen_einsatz = next(e for e in werkzeug.einsaetze(wz.ALLE) if e.art == wz.PLANEN)
+# Mit Manuels Werten (Einsatz Schruppen des Standardfräsers): ae 1,5 als Zeilenabstand, ap 25
+# als Zustellung – die 6 mm über der Fläche sind eine Lage. Den Einsatz Planen (ae 8,4, ap 1,2;
+# P-2026-10-02-54) prüft der Abschnitt danach.
+planen_einsatz = next(e for e in werkzeug.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
 werte = pb.Planwerte(
     form=form,
     zustellung=planen_einsatz.ap,
@@ -342,6 +343,34 @@ for werte_falsch, ebenen_falsch, text in (
         pruefe(len(str(grund)) > 10, f"{text}: kein Satz")
     else:
         pruefe(False, f"{text}: keine Fehlermeldung")
+
+
+# --- Der Einsatz Planen (P-2026-10-02-54): großes ae bei kleinem ap ---------------------------
+# Die 6 mm über der Fläche in 5 Lagen zu 1,2; je Lage 6 Zeilen, höchstens 8,4 auseinander – die
+# äußeren greifen nur so breit ins Rohteil, dass Breite · Tiefe nicht über ae · ap liegt.
+planen = next(e for e in werkzeug.einsaetze(wz.ALLE) if e.art == wz.PLANEN)
+mit_planen = pb.planen(
+    netz,
+    pb.Planwerte(
+        form=form,
+        zustellung=planen.ap,
+        zeilenabstand=planen.ae,
+        aufmass=0.0,
+        oben=26.0,
+        sicher=31.0,
+        rohteil=(-1.0, 61.0, -1.0, 41.0),
+    ),
+    [flaeche],
+)
+lage_1 = sorted(
+    {round(p.y, 6) for p in mit_planen.punkte if not p.eilgang and abs(p.z - 24.8) < 1e-6}
+)
+pruefe(
+    (mit_planen.lagen, mit_planen.zeilen) == (5, 30)
+    and all(b - a <= planen.ae + 1e-6 for a, b in zip(lage_1, lage_1[1:], strict=False)),
+    f"Planen: {mit_planen.lagen} Lagen, {mit_planen.zeilen} Zeilen, y {lage_1}",
+)
+print(ascii(f"Planen: {mit_planen.zeit:.2f} min; mit ae 1,5 / ap 25: {bahn.zeit:.2f} min"))
 
 
 # --- Nur im Gleichlauf (P-2026-10-02-24) -----------------------------------------------------

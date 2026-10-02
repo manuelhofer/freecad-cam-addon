@@ -437,7 +437,13 @@ class _Strategie:
 class _Planfraesen(_Strategie):
     kennung = "planfraesen"
     gemerkt = GEMERKT_FRAESER
-    einsatz_reihenfolge = (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN)
+    tief = False  # mit „Schruppen“ schneller als mit „Planen“ (Panel, _planeinsatz_waehlen)
+
+    @property
+    def einsatz_reihenfolge(self):
+        if self.tief:
+            return (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN)
+        return (wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN)
 
     def titel(self):
         return tr("ba.planfraesen")
@@ -3058,6 +3064,8 @@ class BearbeitungPanel:
         self._rohteil_setzen(self.job)
         self.doc.recompute()
         self._nullpunkt_setzen(self.job)  # die Ecken des Rohteils sind gewandert
+        # Mehr oder weniger über den Flächen: Planen oder Schruppen (P-2026-10-02-54).
+        self._planeinsatz_waehlen(vr.modell(self.job).Shape)
         self.vorschau_starten()
 
     # --- Nullpunkt ------------------------------------------------------------------------
@@ -3349,6 +3357,7 @@ class BearbeitungPanel:
         self._senker_waehlen(form)
         self._entgratfraeser_waehlen(form)
         self._nutfraeser_waehlen(form)
+        self._planeinsatz_waehlen(form)
         self._fuellt = True
         try:
             for block in self.bloecke:
@@ -4187,6 +4196,32 @@ class BearbeitungPanel:
         passend = [i for i, n in enumerate(anzahl) if n == max(anzahl)]
         wahl = max(passend, key=lambda i: self.bohren._fraeser[i].durchmesser)
         self.bohren.wahl_fraeser.setCurrentIndex(wahl if gerieben else passend[0])
+
+    def _planeinsatz_waehlen(self, form):
+        """Wählt im Planfräsen den Einsatz, mit dem der Fräser schneller ist (Grundsatz 0;
+        P-2026-10-02-54): „Planen“ – großes ae bei kleinem ap – für eine dünne Schicht,
+        „Schruppen“ mit der ganzen Schneide für tiefes Material. Je Einsatz die Zielzeit bis zu
+        seinen Flächen (zielzeit.ziel), die kürzere gewinnt. Neu gewählt wird nur, wenn sich das
+        ändert – sonst bleibt, was von Hand gewählt ist."""
+        block = self.plan
+        werkzeug = block.fraeser()
+        material = self._ziel_material(form) if werkzeug is not None else None
+        ebenen = hf.ebenen_oben(form, self._flaechen(block, form)) if material is not None else []
+        if not ebenen:
+            return
+        bis = material.bis(min(e.z for e in ebenen))
+        zeiten = {}
+        for einsatz in block._einsaetze:
+            werte = zz.werte(werkzeug, einsatz) if einsatz.art in zz.WEGNEHMEN else None
+            if werte is not None and einsatz.art in (wz.PLANEN, wz.SCHRUPPEN):
+                zeit = zz.ziel(bis, werkzeug.durchmesser / 2, *werte).zeit
+                zeiten[einsatz.art] = min(zeit, zeiten.get(einsatz.art, math.inf))
+        if len(zeiten) < 2:
+            return
+        tief = zeiten[wz.SCHRUPPEN] < zeiten[wz.PLANEN]
+        if tief != block.s.tief:
+            block.s.tief = tief
+            block.einsatz_fuellen(self.werkstoff())
 
     def _nutfraeser_waehlen(self, form):
         """Wählt im Block Nut einen Fräser, der in die gewählten Nuten passt, wenn der gewählte es

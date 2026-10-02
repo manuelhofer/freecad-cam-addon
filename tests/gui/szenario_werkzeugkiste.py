@@ -4,7 +4,8 @@
 # vorhanden sein“): Die leere Werkzeugverwaltung nennt „Werkzeuge der Hersteller …“; das Fenster
 # zeigt die Reihen, alle angehakt, der Tooltip sagt, woher Maße und Werte kommen. „Hinzufügen“
 # legt alle an, die Rückmeldung sagt wie viele. Der Jongen Ø 12 zeigt Hersteller, Artikel-Nr.,
-# Bestellen und Katalog mit „Öffnen“ und je Werkstoffklasse seine vier Einsätze. „Übernehmen“
+# Bestellen und Katalog mit „Öffnen“ und je Werkstoffklasse seine fünf Einsätze (seit
+# P-2026-10-02-54 mit „Planen“). „Übernehmen“
 # speichert; wieder geöffnet (wie nach einem Neustart) ist alles da, und ein zweites Mal kommt
 # nichts doppelt. Ein neues Werkzeug bietet „Richtwerte eintragen“ an (P-2026-10-02-47).
 import FreeCADGui as Gui
@@ -93,15 +94,15 @@ def schritte(h):
         f"Ø {d.feld_durchmesser.text()!r}, z {d.feld_schneiden.value()}",
     )
     zeilen = d.schnittwerte.tabelle.rowCount()
-    h.pruefe(zeilen == len(wk.VERTRETER) * 4, f"Schnittwerte: {zeilen} Zeilen")
+    h.pruefe(zeilen == len(wk.VERTRETER) * 5, f"Schnittwerte: {zeilen} Zeilen")
     h.bild("2_jongen_12", d)
     # Ein einzelner Werkstoff bekommt eigene Werte (P-2026-10-02-50): 1.4404 eine Kopie der
-    # Zeilen von 1.4301 – vier Zeilen mehr, die erste gewählt.
+    # Zeilen von 1.4301 – fünf Zeilen mehr, die erste gewählt.
     h.pruefe(d.schnittwerte.aktion_eigene.isEnabled(), "„Eigene Werte für einen Werkstoff“ aus")
     eigene = d.schnittwerte.eigene_werte("1.4404")
     yield 300
     h.pruefe(
-        len(eigene) == 4 and d.schnittwerte.tabelle.rowCount() == zeilen + 4,
+        len(eigene) == 5 and d.schnittwerte.tabelle.rowCount() == zeilen + 5,
         f"eigene Werte 1.4404: {len(eigene)}, {d.schnittwerte.tabelle.rowCount()} Zeilen",
     )
     h.pruefe(d.schnittwerte.gewaehlter_werkstoff == "1.4404", d.schnittwerte.gewaehlter_werkstoff)
@@ -152,7 +153,7 @@ def schritte(h):
     s.knopf_richtwerte.click()
     yield 300
     h.pruefe(
-        s.tabelle.rowCount() == len(wk.VERTRETER) * 4 and not s.knopf_richtwerte.isVisible(),
+        s.tabelle.rowCount() == len(wk.VERTRETER) * 5 and not s.knopf_richtwerte.isVisible(),
         f"Richtwerte: {s.tabelle.rowCount()} Zeilen",
     )
     h.bild("5_neu_richtwerte", d2)

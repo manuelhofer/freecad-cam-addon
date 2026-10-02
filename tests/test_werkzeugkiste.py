@@ -103,7 +103,18 @@ pruefe(
 )
 pruefe(f12.artikel.startswith("VHM 494W-12 HI06"), f"Jongen Ø 12: {f12.artikel!r}")
 arten_12 = [e.art for e in f12.einsaetze(wz.ALLE)]
-pruefe(arten_12 == [wz.VOLLNUT, wz.SCHRUPPEN, wz.DYNAMISCH, wz.SCHLICHTEN], f"Ø 12: {arten_12}")
+pruefe(
+    arten_12 == [wz.VOLLNUT, wz.SCHRUPPEN, wz.DYNAMISCH, wz.SCHLICHTEN, wz.PLANEN],
+    f"Ø 12: {arten_12}",
+)
+# Planen am Schaftfräser (P-2026-10-02-54): 0,7 D breit, 0,1 D tief, vc und fz wie Schruppen.
+planen_12 = next(e for e in f12.einsaetze(wz.ALLE) if e.art == wz.PLANEN)
+schruppen_12 = next(e for e in f12.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
+pruefe(
+    (planen_12.ae, planen_12.ap) == (8.4, 1.2)
+    and (planen_12.vc, planen_12.fz) == (schruppen_12.vc, schruppen_12.fz),
+    f"Ø 12 Planen: {planen_12}",
+)
 dynamisch = next(e for e in f12.einsaetze(wz.ALLE) if e.art == wz.DYNAMISCH)
 pruefe(nahe(dynamisch.ae, 1.2) and nahe(dynamisch.ap, 24), f"Ø 12 dynamisch: {dynamisch}")
 # Je Klasse eine Tabelle; was keine eigene hat, nimmt die seiner Klasse – sonst „alle“.
@@ -178,7 +189,7 @@ pruefe(wk.richtwerte_moeglich(neu), "Ø 10 ohne Richtwerte")
 pruefe(wk.richtwerte_eintragen(neu) == len(wk.VERTRETER), f"Richtwerte: {list(neu.schnittwerte)}")
 schruppen = next(e for e in neu.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
 pruefe(schruppen.vc == 180 and nahe(schruppen.fz, 0.05), f"Ø 10 Schruppen: {schruppen}")
-pruefe(len(neu.einsaetze("1.4404")) == 4, "Ø 10: Edelstahl ohne Zeilen")
+pruefe(len(neu.einsaetze("1.4404")) == 5, "Ø 10: Edelstahl ohne Zeilen")
 # Was schon da ist, bleibt; nur fehlende Klassen kommen dazu.
 eigen = wz.Werkzeug(art=wz.SCHAFTFRAESER, durchmesser=10.0)
 eigen.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=1, ap=10, vc=85, fz=0.1)]

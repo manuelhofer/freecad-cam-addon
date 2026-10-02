@@ -118,7 +118,7 @@ pruefe(wz.spitzenwinkel_fuer_cam(wz.Werkzeug(art=wz.ZENTRIERBOHRER)) == 60, "Zen
 pruefe(set(wz.EINSAETZE_JE_ART) == set(wz.ARTEN), "Einsätze nicht für jede Art festgelegt")
 pruefe(
     wz.einsatzarten(wz.SCHAFTFRAESER)
-    == (wz.VOLLNUT, wz.SCHRUPPEN, wz.DYNAMISCH, wz.SCHLICHTEN, wz.EIGEN),
+    == (wz.VOLLNUT, wz.SCHRUPPEN, wz.DYNAMISCH, wz.SCHLICHTEN, wz.PLANEN, wz.EIGEN),
     f"Schaftfräser: {wz.einsatzarten(wz.SCHAFTFRAESER)}",
 )
 pruefe(wz.einsatzarten(wz.GEWINDEBOHRER_LINKS) == (wz.GEWINDEBOHREN, wz.EIGEN), "Gewindebohrer")
@@ -406,14 +406,22 @@ pruefe(
     f"Standardfräser: {standard}",
 )
 einsaetze = {e.art: e for e in standard.einsaetze(wz.ALLE)}
+# Schruppen und Schlichten mit Manuels Werten, Planen mit großem ae bei kleinem ap
+# (P-2026-10-02-54: ae 8,4 = 0,7 D, ap 1,2 = 0,1 D, fz 0,07).
 pruefe(
     set(einsaetze) == {wz.PLANEN, wz.SCHRUPPEN, wz.SCHLICHTEN}
-    and all((e.ap, e.vc, e.fz) == (25.0, 85.0, 0.1) for e in einsaetze.values())
+    and all(
+        (e.ap, e.vc, e.fz) == (25.0, 85.0, 0.1) for e in einsaetze.values() if e.art != wz.PLANEN
+    )
     and einsaetze[wz.SCHRUPPEN].ae == 1.5
-    and einsaetze[wz.PLANEN].ae == 1.5
+    and (einsaetze[wz.PLANEN].ae, einsaetze[wz.PLANEN].ap) == (8.4, 1.2)
+    and (einsaetze[wz.PLANEN].vc, einsaetze[wz.PLANEN].fz) == (85.0, 0.07)
     and einsaetze[wz.SCHLICHTEN].ae == 0.3,
     f"Standardfräser, Einsätze: {einsaetze}",
 )
+# Die Vorlage „Planen“: am Planfräser ¾ der Breite, am Schaftfräser 0,7 D und 0,1 D tief.
+planen_12 = wz.vorlage(wz.Werkzeug(durchmesser=12, schneidenlaenge=26), wz.PLANEN)
+pruefe((planen_12.ae, planen_12.ap) == (8.4, 1.2), f"Vorlage Planen Ø 12: {planen_12}")
 pruefe(wz.standardwerkzeug(7).nummer == 7, "Standardfräser mit Nummer")
 
 # Die Drehrichtung am Werkzeug (Manuel, 2026-10-02): jeder Fräser und Bohrer hat sie, leer gilt
