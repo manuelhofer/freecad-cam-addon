@@ -1911,3 +1911,124 @@ geht … und an einer von mir aus wählbaren Position in der Nut … aber natür
   Rampe am Ende, das der Stelle am nächsten liegt (`test_nut`, `szenario_nut_eintauchen`).
 - **Fertig, wenn:** In Manuels Klotz die Helix der Nut an einer angeklickten Stelle in der Mitte
   eintaucht, in jeder Lage dort, und die Nut im Prüffenster ohne Rest fertig ist.
+
+## 13. Manuels Testteil für die 3-Achs-Fräse (W-013, 2026-10-02)
+
+Manuel: „dies ist ein testteil .. für fräsmaschinen ... 3 achs... das muss sinnvoll bearbeitet
+werden auch mit mehreren arbeitsschritten“ – `beispiele/testteil_3achs_fraese.FCStd`. Das Teil
+ist ab jetzt der Maßstab für den ganzen Weg im Assistenten „Bearbeitung“: nicht eine Strategie
+allein, sondern die Folge.
+
+### 13.1 Das Teil
+
+Ein PartDesign-Körper, 100 × 100 × 32:
+
+- die **Platte** 100 × 100 × 10 (Oberseite z 10, 65 cm²);
+- darauf die **Insel**, 12 hoch (z 10 … 22, 22,5 cm² oben): ein Umriss aus vier Geraden und drei
+  Bögen – außen R 12 und R 21,5, innen R 16,4 –, etwa von x −33 bis 37 und y −30 bis 32,5;
+- auf der Insel hinten links die **obere Stufe**, 10 hoch (z 22 … 32, 5,4 cm² oben); links und
+  hinten gehen ihre Wände mit denen der Insel 22 hoch durch;
+- in der oberen Stufe eine **dreieckige Tasche**, 5 tief (Boden z 27, 1,7 cm²), eine Ecke R 6,
+  zwei spitz; zwischen Tasche und Außenwand bleiben an zwei Stellen nur 1,4 und 1,7 mm;
+- in der Insel eine **Kugelmulde** Ø 25, 12,5 tief (FreeCAD führt sie als Torus mit R 0,01).
+
+```
+ y  50 ┌───────────────────────────────────────────────┐
+       │                 Platte  z 10                  │
+  32,5 │      ┌──────────────┬───────────╮             │
+       │      │ obere Stufe ╱             ╲  innen     │
+       │      │ z 32  ◣    ╱    Insel      ╲  R 16     │
+       │      │  Tasche   ╱     z 22        │          │
+    10 │      ├────────╮_╱                  │ R 21,5   │
+       │      │        ╭───────╮            │          │
+     0 │      │        │ Mulde │           ╱           │
+       │       ╲       ╰─Ø 25──╯         ╱             │
+   −28 │         ╲___R 12_____________╱                │
+   −50 └───────────────────────────────────────────────┘
+      x −50   −33        0      12        37          50
+```
+
+### 13.2 So würde man es fräsen
+
+Rohteil 102 × 102 × 34 (1 mm rundum, die Vorgabe des Assistenten), Nullpunkt Mitte oben; aus der
+Werkzeugkiste der Szenarien: T1 VHM Ø 12 (ae 1,5, ap 25), T3 VHM Ø 6, T5 Kugel Ø 8, T6 Fase 90°.
+
+1. **Außen um die Insel** bis auf die Platte: schruppen, 23 tief in einer Lage (ap 25, Schneide
+   26), von außen kreisend bis an den Umriss, Aufmaß 0,3 – das meiste Volumen (150 von 199 cm³).
+2. **Die Insel oben** (z 22): schruppen, 11 tief, vom Umriss der Insel nach innen bis an die obere
+   Stufe; über der Mulde gleich mit.
+3. **Die obere Stufe oben** (z 32): 1 mm plan – nur über ihr, nicht über dem ganzen Rohteil.
+4. **Die Tasche:** mit einem Fräser, der hineinpasst (Ø 6) – räumen, dann die Wand schlichten.
+5. **Die Mulde:** 3D-Schruppen mit dem Ø 12, 3D-Schlichten mit der Kugel.
+6. **Wände schlichten:** der Umriss der Insel, die obere Stufe.
+7. **Kanten entgraten.**
+
+Die Zielzeit des Schruppens mit dem Ø 12 (Abschnitt 12.3): **8 min** – 199 cm³, im Mittel
+18,4 mm tief.
+
+### 13.3 Was der Assistent daraus macht (gemessen, 0.123.0, FreeCAD 1.1.4)
+
+Alle Flächen angeklickt – die vier ebenen, die Mulde, alle Wände:
+
+| Operation | Zeit | Befund |
+| --- | ---: | --- |
+| Räumen T1 (3 Flächen) | 26,3 min · 3,4 × Ziel | 60-mal abgehoben, 14 % des Vorschubwegs in der Luft, Last bis 3,9 ae |
+| Kontur T1 (3 Konturen) | 0,7 min | fährt auch in die Tasche, die niemand geräumt hat |
+| 3D-Schruppen T1 | 0,7 min | 11-mal abgehoben |
+| 3D-Schlichten T5 | 1,6 min | – |
+| **zusammen** | **29,3 min** | im Prüffenster „0,00 … 12,00 mm“; in den spitzen Ecken der Tasche bleiben 5 mm |
+
+Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
+
+| Fläche | Zeit | Was dort geschieht |
+| --- | ---: | --- |
+| obere Stufe oben (z 32) | 9,5 min | 1 mm über das **ganze** Rohteil, mit ae 1,5 |
+| Insel oben (z 22) | 9,8 min | 11 mm über alles außerhalb der oberen Stufe – auch außen, wo danach noch 12 mm tiefer gefräst wird |
+| Platte (z 10) | 7,2 min | außen um die Insel, 23 mm – der einzige Schritt, der so nötig ist |
+| Taschenboden (z 27) | 10,7 min | B-006: 43 Ringe und 29 Rampen rund um die Insel statt in der Tasche (in den 26 min nicht mehr enthalten) |
+
+### 13.4 Befunde
+
+- **B-006 Die Tasche räumt außerhalb ihrer Wände.** In einer Tasche gilt als erlaubt, wo das
+  Teil nicht höher liegt als die Lage – auch neben der Insel, auf der die Tasche sitzt.
+  *Soll:* nur in ihrer Kontur. *Fertig, wenn:* der Taschenboden am Testteil allein nicht mehr um
+  die Insel fährt.
+- **B-007 Eine Tasche, in die der Fräser nicht passt, fällt still aus.** Der Ø 12 passt mit
+  Aufmaß nicht in die dreieckige Tasche; das Räumen lässt sie aus und sagt „3 Flächen“. Die
+  Kontur nimmt an, das Räumen habe sie geräumt („nur das Aufmaß an den Wänden: die Tasche räumt
+  das Räumen“), und fährt dort ins Volle; in den spitzen Ecken bleibt Material. *Soll:* Der
+  Assistent sagt, welche Fläche der Fräser nicht kann, und schlägt dafür den größten Fräser der
+  Werkzeugkiste vor, der hineinpasst – als eigene Operation danach (Schritt T3 unten).
+- **B-008 Prüffenster: 12 mm „Rest“ auf einer Linie in der Mulde.** Die Naht der Mulde liegt
+  genau auf einer Zeile des Rasters (y 0); ein Knoten genau auf einer Kante des Netzes zählt
+  nicht, also sieht der Vergleich dort bis auf die Unterseite des Teils. Gefräst ist die Mulde
+  richtig (auf 0,02 mm). *Soll:* Ein Knoten auf einer Kante zählt, wenn beide Seiten dieselbe
+  Höhe haben.
+- **B-009 „… hat „Planfräsen“ schon weggenommen“**, obwohl Räumen angehakt ist: Die Zeile unter
+  „3D-Schruppen“ stammt aus dem Wettbewerb und wird nicht neu gerechnet, wenn der Haken wechselt.
+
+### 13.5 Schritte (je ein Patch)
+
+- **T1 Räumen über mehrere Höhen: die tiefste Fläche zuerst, jede Stelle einmal.** Heute räumt
+  jede Fläche von oben her alles, was über ihr steht – auch dort, wo eine tiefere Fläche danach
+  noch einmal hinfährt. *Soll:* die tiefste Fläche zuerst, in so wenigen Lagen, wie Zustellung
+  und Schneide erlauben; jede höhere danach nur, wo noch Material steht (der Materialstand der
+  Flächen davor, in derselben Bahn), in Ringen vom Rand dessen her, was noch steht – außen in
+  der Luft beginnend, wie am Rohteil. *Fertig, wenn:* das Räumen der vier Höhen am Testteil
+  höchstens 1,5 × Ziel braucht (12 min statt 26), ohne Rest und ohne Schnitt ins Teil.
+- **T2 Die dünne Lage oben mit dem Einsatz „Planen“.** 1 mm Tiefe mit ae 1,5 ist verschenkt: Hat
+  der Fräser einen Einsatz für kleine Tiefen (der Ø 12: ae 8,4 bis ap 1,2), nimmt eine Lage, die
+  so dünn ist, dessen Zeilenabstand. *Fertig, wenn:* die obere Stufe oben in unter 0,3 min plan
+  ist.
+- **T3 Was der Fräser nicht kann, bekommt der nächste** (B-007): je Fläche und Kontur der
+  größte Fräser, der hineinpasst; der Assistent legt dafür eigene Operationen an und sagt es in
+  einem Satz. *Fertig, wenn:* die Tasche am Testteil mit dem Ø 6 geräumt und geschlichtet ist
+  und die Kontur des Ø 12 nicht mehr hineinfährt.
+- **T4 Wände schlichten, ohne sie einzeln anzuklicken:** der Block „Schlichten danach“
+  (Abschnitt 12.4, Option A – entschieden).
+- **T5 Weniger abheben, die Last halten:** Abschnitt 12.1 (Frage 6) – Adaptiv als Variante, die
+  schnellste, die die Last hält; Ecken und Spalte in Bögen.
+- **Fertig, wenn (W-013):** der Assistent am Testteil – alle Flächen angeklickt – einen Job
+  anlegt, der im Prüffenster ein Teil ohne Rest ergibt (bis auf Ecken, in die kein Fräser der
+  Kiste kommt; die nennt er), das Schruppen höchstens 1,5 × Ziel braucht und keine Bahn die Last
+  überschreitet.

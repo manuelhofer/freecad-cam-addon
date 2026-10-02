@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-78 testteil-3achs-beschrieben
+
+### EINGELESEN
+- Manuel, 2026-10-02 nachmittags, mit `testteil_3achs_fraese.FCStd`: „dies ist ein testteil ..
+  für fräsmaschinen ... 3 achs... das muss sinnvoll bearbeitet werden auch mit mehreren
+  arbeitsschritten ...“
+- Diese Sitzung läuft zum ersten Mal auf Manuels Rechner (CachyOS, FreeCAD 1.1.4 aus dem
+  Paket), nicht in der Cloud. Die Arbeitskopie dort war ein Klon vom 2026-09-25, 414 Commits
+  hinter `origin/main` – zuerst nachgezogen.
+
+### DATEIEN
+- `beispiele/testteil_3achs_fraese.FCStd` (neu, Manuels Datei), `beispiele/README.md`,
+  `docs/spezifikation_strategien.md` (Abschnitt 13, neu), `docs/STATUS_SNAPSHOT.md` (W-013,
+  B-006 bis B-009, nächster Schritt), `CHATSTART.md` (Lesekarte)
+
+### AKZEPTANZKRITERIUM
+Wer das Testteil bearbeiten soll, findet in einem Abschnitt: das Teil, wie man es fräsen würde,
+was der Assistent heute daraus macht – gemessen –, die Befunde und die Reihenfolge der Schritte.
+
+### DONE
+- Das Teil im Assistenten „Bearbeitung“ durchgespielt (unsichtbare Oberfläche), mit der
+  Werkzeugkiste der Szenarien, einer Kugel Ø 8 und einem Fasenfräser; alle Flächen angeklickt,
+  angelegt, „Auf der Maschine prüfen“. Jede Bahn Satz für Satz im Quader abgefahren: Zeit, Luft,
+  Abheben, Last.
+- Ergebnis: zusammen 29 min; das Räumen 26 min (3,4 × Ziel, 60-mal abgehoben), weil jede Fläche
+  von oben her alles räumt, was über ihr steht – 1 mm über das ganze Rohteil mit ae 1,5
+  (9,5 min), 11 mm über alles außerhalb der oberen Stufe (9,8 min), dann außen noch einmal
+  (7,2 min).
+- Vier Fehler gefunden (B-006 bis B-009): die Tasche räumt außerhalb ihrer Wände; eine Tasche,
+  in die der Fräser nicht passt, fällt still aus, und die Kontur fährt dort ins Volle; im
+  Prüffenster 12 mm „Rest“ auf der Naht der Mulde; „hat „Planfräsen“ schon weggenommen“ unter
+  3D-Schruppen.
+- Schritte T1–T5 in Abschnitt 13.5; T4 und T5 sind die Punkte, die schon als Nächstes anstanden
+  (Schlichten danach, Räumen nach der Last).
+- Nicht entschieden, weil die Zeit entscheidet (Grundsatz 0): die tiefste Fläche zuerst. Steht
+  als Vorschlag in T3: der Assistent legt für das, was ein Fräser nicht kann, von selbst eine
+  Operation mit dem größten passenden an – sagt Manuel etwas anderes, wird es anders.
+
+### TESTS
+- Nur Doku und eine Beispieldatei.
+- Zum Prüfen auf diesem Rechner: `freecadcmd` aus dem Paket mit eigenem, leerem Profil
+  (`FREECAD_USER_HOME`), damit Manuels Einstellungen und Werkzeuge unberührt bleiben; die
+  Szenarien unsichtbar über gamescope (Xvfb fehlt hier), Sprache der Umgebung auf Englisch wie
+  in der Cloud. black und ruff über `uvx`.
+
 ## P-2026-10-02-77 vdi-angetrieben-je-spannzange
 
 ### EINGELESEN

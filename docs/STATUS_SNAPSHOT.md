@@ -217,6 +217,11 @@ Werkstoff-Auswahl klappt höchstens 20 Zeilen hoch auf, mit Rollbalken und ganze
 „Alle Werkstoffe“ war nicht mehr zu erreichen) (P-2026-10-02-76, 0.122.1). Halter: VDI angetrieben
 radial und axial je mit ER16, ER20, ER25, ER32 als Untermenü in „Neu“ (P-2026-10-02-77, 0.123.0).
 Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 12.1, 12.4, 12.7): Räumen nach der Last (Frage 6 – die schnellste Variante gewinnt, aber dauernd höchstens 1,25 ae, kurz bis 1,7: Ecken der Tasche und der Spalt am Zapfen in Bögen vorräumen, Adaptiv als weitere Variante); der Block „Schlichten danach“ (12.4 A); Lücken durchfahren oder abheben nach der Zeit (Frage 3). Offen bei Manuel: W-005 E1–E7, TCPM, Kollision von selbst, CAM mitziehen, Grenzwerte an der Maschine (Fragen 7–11); Netzzugang für die Herstellerwerte (W-007). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+- **IN ARBEIT** – W-013 Manuels Testteil für die 3-Achs-Fräse (2026-10-02: „das muss sinnvoll bearbeitet
+  werden auch mit mehreren arbeitsschritten“): das Teil, wie man es fräsen würde, und was der Assistent
+  daraus macht, gemessen in [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 13 –
+  mit 0.123.0 zusammen 29 min (Räumen 26 min, 3,4 × Ziel, 60-mal abgehoben), die kleine Tasche bleibt halb
+  stehen; Befunde B-006 bis B-009, Schritte T1–T5 (P-2026-10-02-78).
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
@@ -228,6 +233,12 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
   conda-forge 1.1.4 hat.
 
 ## Nächster Schritt (konkret)
+
+**Jetzt – W-013, Manuels Testteil** ([spezifikation_strategien.md](spezifikation_strategien.md),
+Abschnitt 13.5): B-006 (die Tasche bleibt in ihrer Kontur), dann T1 (Räumen über mehrere Höhen: die
+tiefste Fläche zuerst, jede Stelle einmal), T3 mit B-007 (was der Fräser nicht kann, bekommt der nächste),
+T2 (die dünne Lage oben mit dem Einsatz „Planen“), B-008, B-009. T4 und T5 sind die Punkte aus „Als
+Nächstes“ im Projektstatus: der Block „Schlichten danach“ und das Räumen nach der Last.
 
 **Geplant nach Manuels erstem Test (2026-09-26) – Reihenfolge A → B → C, Stufe A in Arbeit:**
 
@@ -538,6 +549,10 @@ Ein Satz je Wunsch, W-ID fortlaufend.
   Vorschlag (Manuel, 2026-10-02): [spezifikation_strategien.md](spezifikation_strategien.md),
   Abschnitte 12.7 und 12.8 – entschieden: Frage 1 (a) derselbe Job, Frage 2 (a) Liste und
   Anklicken; Schritte M1–M4 und E1 (alle gebaut, M4 mit Planfräsen, Kontur und 3D-Schruppen).
+- **W-013 Testteil für die 3-Achs-Fräse** – Manuels Teil mit Platte, Insel, Stufe, Tasche und Kugelmulde
+  (`beispiele/testteil_3achs_fraese.FCStd`) bearbeitet der Assistent sinnvoll und in mehreren
+  Arbeitsschritten (Manuel, 2026-10-02):
+  [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 13.
 - **W-004 Bedienung vereinfachen und automatisieren** – Durchsicht aller
   Fenster und Abläufe (2026-09-27, Manuels Auftrag): acht kleine Stellen
   (D-01 bis D-08), einfacher bedienen (D-10 bis D-14), automatisieren (D-20
@@ -551,7 +566,16 @@ Ein Satz je Wunsch, W-ID fortlaufend.
 
 ## Offene Bugs
 
-Keine bekannten.
+Alle vier an Manuels Testteil gefunden (Spezifikation Strategien, Abschnitt 13.4, P-2026-10-02-78).
+
+- **B-006** Räumen: Der Boden einer Tasche auf einer Insel räumt rund um die Insel – überall, wo das Teil
+  tiefer liegt als ihr Boden.
+- **B-007** Räumen: Eine Tasche, in die der Fräser nicht passt, fällt ohne ein Wort aus; die Kontur fährt
+  dort trotzdem ins Volle.
+- **B-008** Prüffenster: 12 mm „Rest“ auf einer Linie in einer Kugelmulde – die Naht liegt auf einer Zeile
+  des Rasters; gefräst ist sie richtig.
+- **B-009** Assistent „Bearbeitung“: Unter „3D-Schruppen“ steht „… hat „Planfräsen“ schon weggenommen“,
+  obwohl Räumen angehakt ist.
 
 ## Offene Tasks
 
