@@ -17,8 +17,18 @@ immer volle Tiefe, mit ae Zustellung“).
   gerechnet, die schnellere zählt (Grundsatz 0).
 - **Tasche** (eine geschlossene Kontur um die Fläche, die freie Seite innen): die Ringe des
   Feldes D von innen (der Mitte) nach außen bis an die Wände, mit Aufmaß; hinein über die
-  Rampe auf dem innersten Ring, nur einmal je Lage. Die Lagen beginnen an der Oberkante der
-  Wände, nicht am Rohteil darüber.
+  Rampe auf dem innersten Ring, nur einmal je Lage. Die Ringe bleiben in der Kontur der Tasche
+  – auch wenn das Teil neben ihr tiefer liegt als ihr Boden (eine Tasche auf einer Insel). Die
+  Lagen beginnen am Rohteil; hat dieselbe Bahn die Fläche um die Tasche schon geräumt, an der
+  Oberkante ihrer Wände.
+- **Mehrere Flächen** (Spezifikation Strategien 13.5, T1 – Manuels Testteil mit Platte, Insel
+  und oberer Stufe): die offenen Flächen von unten nach oben. Die tiefste zuerst, gleich auf
+  ihre ganze Tiefe (so viele Lagen, wie Zustellung und Schneide verlangen); jede höhere danach
+  nur, wo über ihr noch Material steht – der Materialstand in der Bahn selbst (_Material) –, in
+  Ringen vom Rand dessen her, was noch steht (_Feld._tiefe_vom_material): außen in der Luft
+  beginnend, wie am Rand des Rohteils. Die Taschen zuletzt, von oben nach unten. Höhe für Höhe
+  von oben räumte jede Fläche alles, was über ihr steht – auch dort, wo eine tiefere danach
+  noch einmal hinfuhr: am Testteil 26 statt 12 min.
 - Gleichlauf: das Material rechts der Fahrtrichtung (Spindel rechtsdrehend, M3 – wie G41);
   Gegenlauf wählbar (Grundsatz 4).
 - Eintauchen nur, wo schon frei ist: Ein Raster merkt sich je Lage, wo der Fräser war; das
@@ -177,6 +187,9 @@ class _Feld:
         # In einer Tasche: nur die Knoten in ihrer Kontur (_flaeche) – sonst dürfte die Spitze
         # überall hin, wo das Teil tiefer liegt als ihr Boden.
         self.nur = None
+        # Mit Materialstand zählt `tiefe` vom Rand dessen, was noch steht (_tiefe_vom_material).
+        self._tiefe_rohteil = self.tiefe
+        self.vom_material = False
 
     def zellen(self, x, y):
         """(i, j) der Zellen, in denen (x, y) liegen – auf das Raster begrenzt."""
@@ -278,12 +291,59 @@ class _Feld:
         self.beruehrt = beruehrt & um
         self.eng = eng & um
         self.mit_material = True
+        self._tiefe_vom_material()
         return True
+
+    def _tiefe_vom_material(self):
+        """Mit Materialstand beginnen die Ringe vom Rohteil her am Rand dessen, was noch steht
+        (Spezifikation Strategien 13.5, T1): `tiefe` ist dann außerhalb davon der Abstand zu
+        ihm, negativ – wie am Rand des Rohteils. An Manuels Testteil steht nach dem Räumen um die
+        Insel über ihr noch ein Klotz mit ihrem Umriss; die Ringe der nächsten Fläche legen sich
+        um ihn, statt als Rechtecke des Rohteils durch die Luft zu laufen. Als außen gilt nur,
+        wohin der Fräser vom Rand her durch die Luft kommt: Ein Loch im Material (eine Nut, die
+        schon gefräst ist) beginnt keine Ringe, die Ringe von außen fahren darüber hinweg. Reicht
+        die Luft nirgends ins Rohteil, bleibt es beim Rechteck des Rohteils – genau, mit Bögen."""
+        material = self.rohteil_zellen
+        rand = np.zeros_like(material)
+        rand[0, :] = rand[-1, :] = rand[:, 0] = rand[:, -1] = True
+        start = np.where(rand & ~material, 0.0, np.inf)
+        aussen = np.isfinite(_geodaetisch(start, ~material, self.schritt))
+        luft = aussen & self._ganz[2]
+        if luft.sum() * self.schritt * self.schritt < MINDESTFLAECHE:
+            self.tiefe, self.vom_material = self._tiefe_rohteil, False
+            return
+        weit = self.r + 2.0 * self.schritt
+        self.tiefe = np.where(aussen, -self._abstand_bis(material, aussen, weit), self.schritt)
+        self.vom_material = True
+
+    def _abstand_bis(self, maske, wo, weit):
+        """(nx, ny) mm: je Knoten in `wo` sein Abstand zur Maske, höchstens `weit` – sonst
+        überall `weit`."""
+        abstand = np.full((self.nx, self.ny), float(weit))
+        band = wo & self.aufweiten(maske, weit)
+        if not band.any():
+            return abstand
+        innen = np.ones_like(maske)
+        innen[1:, :] &= maske[:-1, :]
+        innen[:-1, :] &= maske[1:, :]
+        innen[:, 1:] &= maske[:, :-1]
+        innen[:, :-1] &= maske[:, 1:]
+        ri, rj = np.nonzero(maske & ~innen)
+        rx, ry = self.xs[ri], self.ys[rj]
+        bi, bj = np.nonzero(band)
+        block = max(1, 2_000_000 // max(len(rx), 1))
+        for a in range(0, len(bi), block):
+            i, j = bi[a : a + block], bj[a : a + block]
+            dx = self.xs[i][:, None] - rx[None, :]
+            dy = self.ys[j][:, None] - ry[None, :]
+            abstand[i, j] = np.minimum(np.sqrt((dx * dx + dy * dy).min(axis=1)), weit)
+        return abstand
 
     def ganzes_rohteil(self):
         """Wieder das ganze Rohteil (ohne Materialstand)."""
         self.beruehrt, self.eng, self.rohteil_zellen = self._ganz
         self.mit_material = False
+        self.tiefe, self.vom_material = self._tiefe_rohteil, False
 
     def hoechstes(self, hoehe, x, y, lage):
         """Das höchste Material (`hoehe`) unter der Stirn um (x, y), um eine Zelle größer –
@@ -656,12 +716,23 @@ class _Stand:
     anschluesse: int = 0  # Läufe, die an den vorigen anschlossen (die Spirale)
     rampen_bei: list = field(default_factory=list)  # je Rampe: (Ring, Zahl der Stellen)
     nachgeholt: int = 0  # Anfangsstücke, die nach den Ringen um die Insel nachkamen
-    geraeumt: list = field(default_factory=list)  # (z, x_von, x_bis, y_von, y_bis) je Fläche
     z_min: float = math.inf
     laenge: float = 0.0
     noch: float = 0.0  # mit Materialstand: was über den Flächen noch steht (mm³)
     weg: float = 0.0  # … und was die Operationen davor dort schon weggenommen haben
     davor: list = field(default_factory=list)  # … und welche das waren
+
+    def dazu(self, teil):
+        """Hängt die Bahn einer Fläche (`teil`, ein eigener _Stand) an."""
+        self.punkte += teil.punkte
+        self.rampen_bei += teil.rampen_bei
+        self.davor += [name for name in teil.davor if name not in self.davor]
+        self.z_min = min(self.z_min, teil.z_min)
+        for zahl in (
+            "flaechen", "lagen", "ringe", "laeufe", "rampen", "einfahrten", "seitlich",
+            "anschluesse", "nachgeholt", "laenge", "noch", "weg",
+        ):  # fmt: skip
+            setattr(self, zahl, getattr(self, zahl) + getattr(teil, zahl))
 
 
 class _Lage:
@@ -1079,26 +1150,40 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     if not ebenen:
         raise ValueError(tr("ra.fehler.keine_ebene"))
     varianten = (w.variante,) if w.variante in VARIANTEN else VARIANTEN
-    if all(_tasche_um(e, konturen) is not None for e in ebenen):
+    taschen = {id(e): _tasche_um(e, konturen) for e in ebenen}
+    if all(taschen[id(e)] is not None for e in ebenen):
         varianten = ("inseln",)  # nur Taschen: die haben eine Art, von innen nach außen
+    # Die Reihenfolge (Spezifikation Strategien 13.5, T1; Manuels Testteil): die offenen Flächen
+    # von unten nach oben – jede Stelle wird einmal gefräst, gleich auf ihre Tiefe, statt Höhe
+    # für Höhe über alles hinweg, was darunter noch kommt –, danach die Taschen von oben nach
+    # unten (jede beginnt, wo die Fläche um sie schon geräumt ist).
+    folge = sorted((e for e in ebenen if taschen[id(e)] is None), key=lambda e: e.z)
+    folge += sorted((e for e in ebenen if taschen[id(e)] is not None), key=lambda e: -e.z)
     ergebnisse = {}
     davor = []  # wer vorher an den Flächen weggenommen hat (für den Satz, wenn nichts zu tun ist)
     for variante in varianten:
         st = _Stand()
-        try:
-            for ebene in sorted(ebenen, key=lambda e: -e.z):
-                _flaeche(
-                    st, hf.netz_fuer(netz, ebene), w, ebene, konturen, variante, r, schritt, stand
-                )
-        except _KeinMorph:
+        # Mehrere Flächen: Jede sieht, was die davor in dieser Bahn schon weggenommen haben.
+        material = _Material(w, stand) if len(folge) > 1 else None
+        gemorpht = False
+        for ebene in folge:
+            tasche = taschen[id(ebene)]
+            teil = _Stand()
+            lauf = (hf.netz_fuer(netz, ebene), w, ebene, tasche, konturen)
+            try:
+                _flaeche(teil, *lauf, variante, r, schritt, stand, material)
+                gemorpht |= variante == "morph" and tasche is None
+            except _KeinMorph:
+                # Der Morph passt nicht zu dieser Fläche: für sie die Ringe vom Rohteil her.
+                teil = _Stand()
+                _flaeche(teil, *lauf, "rohteil", r, schritt, stand, material)
+            st.dazu(teil)
+            if material is not None and teil.punkte:
+                material.fahre(teil.punkte)
+        if variante == "morph" and not gemorpht:
             if len(varianten) > 1:
-                continue  # der Morph passt nicht: die anderen Varianten entscheiden
-            variante = "rohteil"  # vorgegeben, passt aber nicht: die Ringe vom Rohteil her
-            st = _Stand()
-            for ebene in sorted(ebenen, key=lambda e: -e.z):
-                _flaeche(
-                    st, hf.netz_fuer(netz, ebene), w, ebene, konturen, variante, r, schritt, stand
-                )
+                continue  # der Morph passt nirgends: die anderen Varianten entscheiden
+            variante = "rohteil"  # vorgegeben, passt aber nicht: es waren die Ringe vom Rohteil
         davor = st.davor
         if st.flaechen == 0:
             continue
@@ -1206,21 +1291,21 @@ def _tasche_um(ebene, konturen):
     return beste[0] if beste else None
 
 
-def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt, stand=None):
-    """Eine Fläche räumen – alle Lagen, in der Variante; mit Materialstand (`stand`) nur, was
-    über ihr noch steht."""
-    tasche = _tasche_um(ebene, konturen)
+def _flaeche(st, netz, w, ebene, tasche, konturen, variante, r, schritt, stand=None, material=None):
+    """Eine Fläche räumen – alle Lagen, in der Variante. `tasche`: die Kontur um sie, wenn sie
+    der Boden einer Tasche ist (_tasche_um). Mit Materialstand nur, was über ihr noch steht:
+    `stand` ist der vor der Operation (materialstand), `material` der in dieser Bahn – was die
+    Flächen davor schon weggenommen haben (_Material)."""
     if tasche is not None:
         # In der Tasche gibt es nur die Ringe von innen nach außen – in jeder Variante, damit
         # alle dieselbe Arbeit tun (sonst „gewann“ eine, die die Tasche ausließ; P-2026-10-01-26).
         variante = "inseln"
     ziel = ebene.z + max(w.aufmass_boden, 0.0)
+    # Die Lagen beginnen am Rohteil – ob eine andere Operation es über der Fläche schon
+    # weggefräst hat, weiß die Bahn nur aus dem Materialstand (P-2026-10-01-26); mit ihm am
+    # höchsten Material, das der Fräser erreicht: in einer Tasche, um die diese Bahn schon
+    # geräumt hat, an der Oberkante ihrer Wände.
     oben = w.oben
-    if tasche is not None and _darueber_geraeumt(st, tasche):
-        # Die Fläche um die Tasche ist in dieser Bahn schon geräumt: die Lagen beginnen an der
-        # Oberkante der Wände. Sonst am Rohteil – ob eine andere Operation das Rohteil über der
-        # Tasche schon weggefräst hat, weiß die Bahn nicht (P-2026-10-01-26).
-        oben = min(w.oben, tasche.z_oben + max(w.aufmass_boden, 0.0))
     if oben <= ziel + GLEICH:
         return
     zustellung = w.zustellung
@@ -1256,8 +1341,8 @@ def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt, stand=None):
         feld.nur = _im_vieleck(feld.xs, feld.ys, *kb._kette(tasche, toleranz, schritt))
     hoehe = naechste = None
     decke = w.oben
-    if stand is not None:
-        hoehe, naechste, oben, decke = _mit_stand(st, feld, stand, oben, ziel, zugabe, w)
+    if stand is not None or material is not None:
+        hoehe, naechste, oben, decke = _mit_stand(st, feld, stand, material, oben, ziel, zugabe, w)
         if oben <= ziel + MATERIAL:
             return  # über der Fläche steht nichts mehr, was der Fräser hier wegnehmen kann
         if hoehe is not None and variante == "morph":
@@ -1313,24 +1398,55 @@ def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt, stand=None):
     feld.ganzes_rohteil()
     if gefahren:
         st.flaechen += 1
-    st.geraeumt.append((ebene.z, ebene.x_von, ebene.x_bis, ebene.y_von, ebene.y_bis))
 
 
-def _mit_stand(st, feld, stand, oben, ziel, zugabe, w):
-    """Der Materialstand über der Fläche (W-012): (Höhen je Knoten, die der nächsten Zelle,
-    wo die Lagen beginnen, Decke für den Eilgang) – die Höhen None, wenn über allen Lagen
-    überall noch das ganze Rohteil steht (dann wie ohne). Zählt dazu, was über der Fläche noch
-    steht und was die Operationen davor dort schon weggenommen haben: dort, wohin die Stirn
-    auf ihr kommt."""
+class _Material:
+    """Der Materialstand in der Bahn selbst (Spezifikation Strategien 13.5, T1): das Rohteil –
+    oder der Stand vor der Operation (`stand`, W-012) –, abgetragen um die Flächen, die diese
+    Bahn schon geräumt hat. So fräst jede Fläche nur, was über ihr noch steht: An Manuels
+    Testteil räumt erst die Platte außen um die Insel, 23 tief; die Insel oben danach nur noch
+    über sich, nicht noch einmal über allem."""
+
+    def __init__(self, w, stand):
+        from . import materialstand as mst  # erst hier: es bringt den Job mit
+        from . import restmaterial as rm
+
+        if stand is not None:
+            self.stand = mst._kopie(stand)
+        else:
+            x_von, x_bis, y_von, y_bis = w.rohteil
+            quader = rm.Quader(x_von, x_bis, y_von, y_bis, w.oben - 1.0, w.oben, mst.SCHRITT)
+            self.stand = mst.Materialstand(quader, quader.h.copy())
+        self._fraeser = mst._grosszuegig(w.form)
+        self._fahre = mst._fahre_punkte
+
+    def fahre(self, punkte):
+        """Die Bahn einer Fläche ([bahn.Punkt]) nimmt weg, was sie trifft."""
+        self._fahre(self.stand.quader, punkte, self._fraeser)
+
+    def hoehen_an(self, xs, ys, naechste=False):
+        """Wie materialstand.Materialstand.hoehen_an."""
+        return self.stand.hoehen_an(xs, ys, naechste)
+
+
+def _mit_stand(st, feld, stand, material, oben, ziel, zugabe, w):
+    """Der Materialstand über der Fläche: (Höhen je Knoten, die der nächsten Zelle, wo die
+    Lagen beginnen, Decke für den Eilgang) – die Höhen None, wenn über allen Lagen überall noch
+    das ganze Rohteil steht (dann wie ohne). Die Höhen kommen aus `material` (was diese Bahn
+    schon weggenommen hat, _Material), sonst aus `stand` (vor der Operation, W-012). Mit `stand`
+    zählt es dazu, was über der Fläche noch steht und was die Operationen davor dort schon
+    weggenommen haben: dort, wohin die Stirn auf ihr kommt."""
     rohteil = feld.rohteil_zellen
-    hoehe = np.where(rohteil, stand.hoehen_an(feld.xs, feld.ys), -np.inf)
-    naechste = np.where(rohteil, stand.hoehen_an(feld.xs, feld.ys, naechste=True), -np.inf)
-    bereich = rohteil & feld.aufweiten(feld.erlaubt_feld(ziel, ziel), feld.r)
-    maske = stand.maske_aus(feld.xs, feld.ys, bereich)
-    noch, weg = stand.volumen(maske, ziel)
-    st.noch += noch
-    st.weg += weg
-    st.davor += [name for name in stand.wer(maske) if name not in st.davor]
+    quelle = material if material is not None else stand
+    hoehe = np.where(rohteil, quelle.hoehen_an(feld.xs, feld.ys), -np.inf)
+    naechste = np.where(rohteil, quelle.hoehen_an(feld.xs, feld.ys, naechste=True), -np.inf)
+    if stand is not None:
+        bereich = rohteil & feld.aufweiten(feld.erlaubt_feld(ziel, ziel), feld.r)
+        maske = stand.maske_aus(feld.xs, feld.ys, bereich)
+        noch, weg = stand.volumen(maske, ziel)
+        st.noch += noch
+        st.weg += weg
+        st.davor += [name for name in stand.wer(maske) if name not in st.davor]
     if not (rohteil & (hoehe < oben - GLEICH)).any():
         return None, None, oben, w.oben
     # Die Lagen beginnen am höchsten Material, das der Fräser erreicht: je Knoten, wie tief die
@@ -1338,6 +1454,8 @@ def _mit_stand(st, feld, stand, oben, ziel, zugabe, w):
     # viel, die ausfällt, als Material, das stehen bleibt; auch was nur der Rand der Stirn trifft,
     # wie ein Rest an einer Wand).
     spitze = np.where(feld.roh <= ziel + GLEICH, ziel, feld.roh + zugabe)
+    if feld.nur is not None:
+        spitze = np.where(feld.nur, spitze, np.inf)  # in der Tasche: nur in ihrer Kontur
     tief = _kleinstes_um(spitze, int(max(feld.r - feld.schritt - 0.01, 0.0) / feld.schritt))
     erreicht = rohteil & (naechste > np.maximum(tief, ziel) + MATERIAL)
     if not erreicht.any():
@@ -1393,19 +1511,6 @@ def _luecken_zu(drin, ganz, proben, geschlossen, laenge):
         if np.sum(np.hypot(np.diff(proben.x[folge]), np.diff(proben.y[folge]))) <= laenge:
             ergebnis[luecke] = True
     return ergebnis
-
-
-def _darueber_geraeumt(st, tasche):
-    """Hat diese Bahn die Fläche, in der die Tasche liegt, schon geräumt – eine Fläche auf der
-    Höhe ihrer Oberkante, die sie umfasst?"""
-    bb = tasche.draht.BoundBox
-    for z, x_von, x_bis, y_von, y_bis in st.geraeumt:
-        if abs(z - tasche.z_oben) > kb.NAH:
-            continue
-        x_drin = x_von <= bb.XMin + GLEICH and x_bis >= bb.XMax - GLEICH
-        if x_drin and y_von <= bb.YMin + GLEICH and y_bis >= bb.YMax - GLEICH:
-            return True
-    return False
 
 
 def form_mit_aufmass(form, aufmass):
@@ -1522,7 +1627,9 @@ def _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz)
             if geschlossen and laenge < 2 * math.pi * ae:
                 continue  # winzig: der Ring davor deckt es ab
             i, j = feld.zellen(punkte[:, 0], punkte[:, 1])
-            nur_rand = bool((np.abs(G[i, j] - (feld.tiefe[i, j] + r)) <= schritt).all())
+            nur_rand = not feld.vom_material and bool(
+                (np.abs(G[i, j] - (feld.tiefe[i, j] + r)) <= schritt).all()
+            )
             if nur_rand and geschlossen:
                 ring = _rohteil_ring(w.rohteil, niveau - r, material_links, schritt)
             else:

@@ -222,7 +222,10 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
   daraus macht, gemessen in [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 13 –
   mit 0.123.0 zusammen 29 min (Räumen 26 min, 3,4 × Ziel, 60-mal abgehoben), die kleine Tasche bleibt halb
   stehen; Befunde B-006 bis B-009, Schritte T1–T5 (P-2026-10-02-78). B-006 behoben: Der Boden einer Tasche
-  räumt nur noch in ihrer Kontur (P-2026-10-02-79, 0.123.1).
+  räumt nur noch in ihrer Kontur (P-2026-10-02-79, 0.123.1). T1 gebaut: Räumen über mehrere Höhen – die
+  tiefste Fläche zuerst, jede höhere nur, wo noch Material steht, in Ringen um das, was noch steht; am
+  Testteil 12,4 statt 26,3 min, der Job 15 statt 29 (P-2026-10-02-80, 0.124.0) – fertig und automatisch
+  geprüft; wartet auf Manuels Test.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
@@ -236,9 +239,9 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
 ## Nächster Schritt (konkret)
 
 **Jetzt – W-013, Manuels Testteil** ([spezifikation_strategien.md](spezifikation_strategien.md),
-Abschnitt 13.5): T1 (Räumen über mehrere Höhen: die
-tiefste Fläche zuerst, jede Stelle einmal), T3 mit B-007 (was der Fräser nicht kann, bekommt der nächste),
-T2 (die dünne Lage oben mit dem Einsatz „Planen“), B-008, B-009. T4 und T5 sind die Punkte aus „Als
+Abschnitt 13.5): T3 mit B-007 (was der Fräser nicht kann, bekommt der nächste),
+T2 (die dünne Lage oben mit dem Einsatz „Planen“), T1b (Ringe, die nichts mehr schneiden, fallen weg),
+B-008, B-009. T4 und T5 sind die Punkte aus „Als
 Nächstes“ im Projektstatus: der Block „Schlichten danach“ und das Räumen nach der Last.
 
 **Geplant nach Manuels erstem Test (2026-09-26) – Reihenfolge A → B → C, Stufe A in Arbeit:**

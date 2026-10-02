@@ -12,6 +12,63 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-80 raeumen-ueber-mehrere-hoehen
+
+### EINGELESEN
+- W-013, Schritt T1 (Spezifikation Strategien, Abschnitt 13.5): An Manuels Testteil braucht das
+  Räumen 26 min bei einem Ziel von 8 – jede Fläche räumt von oben her alles, was über ihr
+  steht, auch dort, wo eine tiefere danach noch einmal hinfährt.
+- Manuel, 2026-10-02: „das muss sinnvoll bearbeitet werden auch mit mehreren arbeitsschritten“;
+  2026-10-01: „immer volle Tiefe mit ae-Zustellung“.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`planen`: Reihenfolge und `_Material`; `_flaeche`, `_mit_stand`,
+  `_Feld._tiefe_vom_material`, `_Feld._abstand_bis`, `_Stand.dazu`, `_ringe_vom_rohteil`; ohne
+  `_darueber_geraeumt`), `tests/test_testteil.py` (neu), `tests/test_raeumen.py` (f),
+  `tests/gui/szenario_testteil.py` (neu), `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md` (13.5), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.124.0)
+
+### AKZEPTANZKRITERIUM
+Testteil öffnen, die Platte, die Insel oben und die obere Stufe anklicken → „Bearbeitung“ →
+Räumen: „→ 3 Flächen: 3 Lagen, 75 Ringe, etwa 12 min“ (vorher 26 min); die Bahn beginnt außen
+um die Insel in voller Tiefe, danach nur noch über der Insel.
+
+### DONE
+- Reihenfolge in einer Bahn: die offenen Flächen von unten nach oben, danach die Taschen von
+  oben nach unten. Eine Tasche vor der Fläche um sie begänne am Rohteil – mehr Lagen, tiefere
+  Rampen –, und die Ringe der Fläche rissen über dem Loch ab; deshalb bleiben die Taschen
+  hinten.
+- `_Material`: der Materialstand in der Bahn selbst – das Rohteil (oder der Stand vor der
+  Operation), abgetragen um jede geplante Fläche. Die nächste Fläche rechnet darauf wie auf dem
+  Materialstand von W-012. `_darueber_geraeumt` (die Tasche unter einer schon geräumten Fläche)
+  ist damit überflüssig und weg.
+- Die Ringe „vom Rohteil her“ beginnen am Rand dessen, was noch steht (`_tiefe_vom_material`):
+  der Abstand zum Material außerhalb davon, bis R + 2 Zellen genau; als außen gilt, wohin der
+  Fräser vom Rand des Rasters durch die Luft kommt. Ein Loch im Material beginnt keine Ringe
+  (Manuels Klotz, die Nut zuerst: unverändert 8,42 min), das volle Rohteil bleibt beim Rechteck
+  mit Bögen (die Bestmarken des Prüfstands unverändert).
+- Der Morph gilt je Fläche: Passt er zu einer nicht, fährt sie die Ringe vom Rohteil her; passt
+  er zu keiner, entfällt die Variante wie bisher.
+- Am Testteil: Räumen 12,4 statt 26,3 min (1,59 × Ziel); der Job 15 statt 29 min.
+- Gefundene Grenzen, notiert statt mitgemacht:
+  - Die 1,5 × Ziel aus dem „Fertig, wenn“ sind knapp verfehlt – es fehlen T2 (1 mm oben mit
+    ae 1,5: 1,1 min) und T1b (neu: die Ringe in der Mitte, die nichts mehr schneiden).
+  - Wo ein Ring an einer Wand beginnt oder endet (die Insel oben an der oberen Stufe), taucht
+    der Fräser neben einem Span Material ein und fährt mit mehr als ae an – 19-mal am Testteil.
+    Das ist Schritt T5 (Last, Bögen).
+  - Je Fläche die schnellste Variante zu nehmen statt einer für die ganze Bahn wäre der nächste
+    Gewinn; `zeiten` meint heute die ganze Bahn je Variante, das bleibt so.
+
+### TESTS
+- `tests/test_testteil.py` (OK): Reihenfolge der Höhen, 12,45 min, Vorschub je Höhe, im Quader
+  ohne Rest und nirgends ins Teil; jede Fläche für sich 26,45 min.
+- `tests/test_raeumen.py` (OK, mit Abschnitt f), `tests/test_pruefstand.py` (OK; nur
+  „platte/raeumen oben+tasche“ 35,19 statt 35,26 min), `tests/test_materialstand.py` (OK, alle
+  Zeiten wie vorher).
+- `tests/gui/szenario_testteil.py` (OK, vier Bilder): alle Flächen angeklickt, angelegt, „Auf
+  der Maschine prüfen“ – nirgends ins Teil.
+- Alles in FreeCAD 1.1.4 auf Manuels Rechner; black und ruff sauber.
+
 ## P-2026-10-02-79 tasche-bleibt-in-ihrer-kontur
 
 ### EINGELESEN

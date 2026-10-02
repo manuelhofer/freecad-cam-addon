@@ -497,6 +497,67 @@ else:
     pruefe(False, "schmale Tasche in der Insel: eine Bahn, obwohl der Fräser nicht hineinpasst")
 print(f"Tasche in der Insel: Raeumen {bahn_t.zeit:.2f} min")
 
+# --- (f) Mehrere Höhen in einer Bahn: die tiefste zuerst, jede Stelle einmal --------------------
+# Dasselbe Teil: die Platte (z 20), die Insel oben (z 35) und der Boden der Tasche (z 30); das
+# Rohteil reicht bis 36. Erst die Platte außen um die Insel, 16 tief in einer Lage; dann die
+# Insel oben – nur noch über ihr, 1 mm, in Ringen um das, was noch steht; zuletzt die Tasche, von
+# der geräumten Oberseite an (Spezifikation Strategien 13.5, T1).
+ebenen_h = [e for e in hf.ebenen_oben(teil_e) if e.z > 19.0]
+pruefe(sorted(round(e.z) for e in ebenen_h) == [20, 30, 35], f"Höhen: {ebenen_h}")
+bahn_h = rb.planen(
+    hf.netze_je_hoehe(teil_e, ebenen_h),
+    werte_fuer(rohteil_e, 36.0),
+    ebenen_h,
+    ra.konturen_des_teils(teil_e),
+)
+folge_h, weg_h = [], {}
+for a, b in zip(bahn_h.punkte, bahn_h.punkte[1:], strict=False):
+    if b.eilgang or abs(b.z - a.z) > 1e-9:
+        continue
+    weg_h[b.z] = weg_h.get(b.z, 0.0) + bn.weg(a, b)
+    if not folge_h or folge_h[-1] != b.z:
+        folge_h.append(b.z)
+pruefe(folge_h == [20.0, 35.0, 30.0], f"mehrere Höhen: Reihenfolge {folge_h}")
+pruefe(
+    bahn_h.flaechen == 3 and bahn_h.lagen == 3,
+    f"mehrere Höhen: {bahn_h.flaechen} Flächen, {bahn_h.lagen} Lagen",
+)
+# Die Insel oben nur über sich: 50 × 40 mm bei ae 1,5 sind gut 1,3 m – nicht die 4 m über das
+# ganze Rohteil; und nirgends weiter draußen als der erste Ring neben der Insel samt Einfahren.
+oben_h = [p for p in bahn_h.punkte if not p.eilgang and abs(p.z - 35.0) < 1e-9]
+pruefe(weg_h[35.0] < 2200.0, f"mehrere Höhen: Insel oben {weg_h[35.0]:.0f} mm im Vorschub")
+pruefe(
+    all(25 - 3 * R <= p.x <= 75 + 3 * R and 10 - 3 * R <= p.y <= 50 + 3 * R for p in oben_h),
+    "mehrere Höhen: die Insel oben fährt über das ganze Rohteil",
+)
+# Die Tasche beginnt an der geräumten Oberseite der Insel (35), nicht am Rohteil (36).
+in_tasche_h = [
+    p for p in bahn_h.punkte if not p.eilgang and 35 + R <= p.x <= 65 - R and p.z < 35.0 - 1e-9
+]
+vorschub_h = [p for p in bahn_h.punkte if not p.eilgang and not p.eintauchen]
+pruefe(max(p.z for p in vorschub_h) <= 35.0 + 1e-9, "mehrere Höhen: Vorschub über der Insel")
+pruefe(len(in_tasche_h) > 10, "mehrere Höhen: die Tasche fehlt")
+einzeln_h = sum(
+    rb.planen(
+        hf.netze_je_hoehe(teil_e, [e]),
+        werte_fuer(rohteil_e, 36.0),
+        [e],
+        ra.konturen_des_teils(teil_e),
+    ).zeit
+    for e in ebenen_h
+)
+pruefe(
+    bahn_h.zeit < 0.75 * einzeln_h,
+    f"mehrere Höhen: zusammen {bahn_h.zeit:.2f} min, jede für sich {einzeln_h:.2f} min",
+)
+for hoehe_h in (20.0, 35.0, 30.0):
+    rest, einschnitt = simuliert(bahn_h, teil_e, rohteil_e, 36.0, hoehe_h, 0.3)
+    pruefe(
+        rest <= 0.05 and einschnitt >= -0.05,
+        f"mehrere Höhen, z {hoehe_h}: Rest {rest}, Einschnitt {einschnitt}",
+    )
+print(f"mehrere Hoehen: Raeumen {bahn_h.zeit:.2f} min, jede fuer sich {einzeln_h:.2f} min")
+
 # --- Fehler mit einem Satz --------------------------------------------------------------------
 netz_a = hf.netz_ohne(teil_a, [e.name for e in ebenen_a])
 for werte_falsch, ebenen_falsch, text in (

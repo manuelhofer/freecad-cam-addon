@@ -2019,6 +2019,28 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   Flächen davor, in derselben Bahn), in Ringen vom Rand dessen her, was noch steht – außen in
   der Luft beginnend, wie am Rohteil. *Fertig, wenn:* das Räumen der vier Höhen am Testteil
   höchstens 1,5 × Ziel braucht (12 min statt 26), ohne Rest und ohne Schnitt ins Teil.
+  **Gebaut:** P-2026-10-02-80, 0.124.0.
+  - `raeumen_bahn.planen`: die offenen Flächen von unten nach oben, danach die Taschen von oben
+    nach unten (eine Tasche in einer Fläche beginnt an ihrer Oberkante, wie bisher – vor der
+    Fläche um sie begänne sie am Rohteil, in mehr Lagen, und die Ringe der Fläche rissen über
+    dem Loch ab).
+  - `_Material`: das Rohteil (oder der Stand vor der Operation) als Höhenfeld, abgetragen um
+    jede Fläche, sobald sie geplant ist; die nächste rechnet darauf wie auf dem Materialstand
+    von W-012 – Lagen ab dem höchsten Material, Ringe nur, wo ihre Stirn Material trifft.
+  - `_Feld._tiefe_vom_material`: Die Ringe „vom Rohteil her“ beginnen am Rand dessen, was noch
+    steht – der erste R − ae daneben in der Luft –, wenn der Fräser dorthin von außen durch die
+    Luft kommt. Ein Loch im Material (eine schon gefräste Nut) beginnt keine Ringe; steht das
+    Rohteil noch ganz, bleibt es beim Rechteck mit Bögen.
+  - Am Testteil: **12,4 statt 26,3 min** (1,59 × Ziel), 3 Lagen, 75 Ringe – außen um die Insel
+    6,2 m Vorschub in einer Lage 23 tief, die Insel oben 2,6 m (vorher 8,8), die obere Stufe 1,0 m
+    (vorher 8,5); der ganze Job 15 statt 29 min. Im Quader ohne Rest, nirgends ins Teil
+    (`tests/test_testteil.py`, `tests/test_raeumen.py` (f), `szenario_testteil`).
+  - **Noch nicht erreicht:** die 1,5 × Ziel. Es fehlen die dünne Lage oben (T2: 1,1 min für
+    1 mm) und T1b.
+- **T1b Ringe, die nichts mehr schneiden, fallen weg.** Die Ringe vom Rand her laufen weiter,
+  bis die Mitte des Fräsers die Mitte des Materials erreicht – die letzten drei, vier schneiden
+  nichts mehr, weil der Ring davor mit dem Radius schon alles genommen hat (am Klotz und am
+  Testteil die grauen Ringe in der Mitte). *Fertig, wenn:* kein Ring ganz in der Luft fährt.
 - **T2 Die dünne Lage oben mit dem Einsatz „Planen“.** 1 mm Tiefe mit ae 1,5 ist verschenkt: Hat
   der Fräser einen Einsatz für kleine Tiefen (der Ø 12: ae 8,4 bis ap 1,2), nimmt eine Lage, die
   so dünn ist, dessen Zeilenabstand. *Fertig, wenn:* die obere Stufe oben in unter 0,3 min plan
