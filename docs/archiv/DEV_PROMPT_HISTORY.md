@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-90 schlichten-danach
+
+### EINGELESEN
+- W-013, Schritt T4; Spezifikation Strategien 12.4, Option A (Manuel, 2026-10-02: „genau so“;
+  dazu je die Empfehlung: Boden mit den Ringen des Räumens, Wände in Lagen mit dem ap des
+  Einsatzes, erst Boden, dann Wände).
+- Plan für die Nacht (Snapshot), Punkt 1.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_SchlichtenDanach`, `_Schlichtbahn`,
+  `_schlichten_danach_einrichten`, `_schlichten_danach_zusatz`, `_schlichten_danach_anlegen`;
+  weg: die Haken „Wände danach schlichten“ und „Messstopp“ im Räumen, `_raeumen_folge_zeigen`,
+  `_raeumen_schlichten`), `camaddon/restmaterial.py` (`fuer_quader`), `translations/de|en.json`,
+  `help/de|en/bearbeitung.html`, `tests/gui/szenario_raeumen_schlichten.py`,
+  `docs/spezifikation_strategien.md` (12.4, 13.5), `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.127.0)
+
+### AKZEPTANZKRITERIUM
+Block mit Zapfen, Räumen mit 0,5 am Boden, „Schlichten danach“ mit Messstopp: Räumen, Messstopp,
+Boden schlichten, Wände schlichten; im Prüffenster auf dem Boden bis an den Zapfen nichts stehen
+geblieben, keine Stufe.
+
+### DONE
+- Neuer Block „Schlichten danach“ gleich unter „Rest räumen“: wählbar, sobald das Räumen
+  angehakt ist; angehakt nur von Hand (ob geschlichtet wird, entscheidet, wer fräst). Fräser und
+  Einsatz vorgewählt: der des Räumens mit „Schlichten“; ein anderer Fräser bekommt seinen
+  Controller. Haken „Boden“, „Wände“ (beide an), „Messstopp davor“.
+- Boden: ein Räumen ohne Aufmaß am Boden auf dem Materialstand nach dem Räumen (eine Lage, die
+  Variante nach Zeit und Last), mit dem Aufmaß des Räumens an den Wänden. Abweichung von der
+  Empfehlung (a), selbst entschieden: Der Zeilenabstand am Boden ist ein eigenes Feld, leer der
+  halbe Fräserdurchmesser – das ae des Einsatzes „Schlichten“ (0,3 mm) ergäbe auf 100 mm über
+  300 Ringe. Steht in den Fragen an Manuel.
+- Wände: eine Kontur mit Breite = Aufmaß bis auf den fertigen Boden, in Lagen mit dem ap des
+  Einsatzes – die Wände um die Böden, die das Räumen räumt, ohne die, die die Kontur fährt.
+- Messstopp: vor dem ersten Schlichten, mit dem Controller davor; danach die Drehzahl des
+  Schlichtens.
+- Die zwei Haken im Räumen sind weg (sie gehen im Block auf).
+- Dabei behoben: Mit einem Messstopp im Job trug das Prüffenster das Rohteil nicht ab –
+  `restmaterial.fuer_quader` hielt eine Operation ohne Bewegung für ein Werkzeug „nicht von
+  oben“. Jetzt zählt sie nicht mit.
+
+### TESTS
+- `tests/gui/szenario_raeumen_schlichten.py` (neu geschrieben, OK): Block, Haken, Vorwahl T1
+  „Schlichten“, Ergebniszeile, die vier Operationen mit Flächen, Aufmaßen und Controllern, M0 im
+  Programm, im Prüffenster auf dem Boden höchstens 0,1 mm.
+- `tests/test_sprache.py` (OK). Nur das, was die Änderung trifft (Manuel). FreeCAD 1.1.4; black und
+  ruff sauber.
+
+### NEXT
+- Die Werkzeugliste (Plan Punkt 1b).
+
 ## P-2026-10-02-89 raeumen-adaptiv
 
 ### EINGELESEN

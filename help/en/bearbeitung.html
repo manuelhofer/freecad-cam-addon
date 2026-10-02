@@ -247,17 +247,20 @@ again –, a layer with nothing above it is left out. Grey: “93.7 cm³ left �
 removed 12.5 cm³”; if nothing is left, red “Nothing left to do here …”. A casting as stock that
 already has nearly the shape: only the rest, for instance a ring around the boss instead of the
 whole floor. If you change an operation before it, clearing recomputes by itself.</li>
-<li><b>Then finish the walls</b> – at the walls around the cleared faces (bosses, islands,
-steps) the allowance remains; with the tick the same cutter then runs along them in the
-allowance, with the “Finishing” application if it has one: an operation of its own, “Finish
-walls T1” (a contour with width = allowance, only the pass along the wall). The result line
-says so: “… – then finish the walls (1)”.</li>
-<li><b>Measuring stop before finishing</b> – only with the tick above: between clearing and
-finishing the program stops – Z moves above the stock, the spindle stops (M5, M0); measure,
-then start, the spindle runs up again with the finishing speed (M3). An operation of its own,
-“Measuring stop” (FreeCAD's “Custom”). A subroutine of the control such as Siemens “F_HOME”
-is written only by the add-on's own post processor (in progress); until then the program
-carries the comment (MESSSTOPP).</li>
+<li><b>Finish afterwards</b> – a block of its own right below clearing, available as soon as
+clearing is ticked; it is only ticked by hand. It has its own cutter and application –
+preselected the clearing cutter with “Finishing” – and three ticks: <b>Floor</b> (if clearing
+leaves a floor allowance, a clearing without floor allowance finishes it in one layer;
+“Stepover on the floor”, empty: half the cutter diameter), <b>Walls</b> (the walls around the
+cleared faces in the allowance, down to the finished floor – no step remains at the bottom;
+“Stepdown at the walls”, empty: the ap of the application; walls the contour runs, it
+finishes itself) and <b>Measuring stop before</b> (Z moves above the stock, the spindle stops –
+M5, M0; measure, then start, the spindle runs up again with the finishing speed; a subroutine
+such as Siemens “F_HOME” is written only by the add-on's own post processor, until then the
+program carries the comment (MESSSTOPP)). The result line: “→ Floor (0.5 mm) and 1 wall
+(0.3 mm), about 1 min – with a measuring stop before”. “Create” adds operations of their own:
+“Measuring stop”, “Finish floor T1” (a clearing) and “Finish walls T1” (a contour with width =
+allowance) – each one is changed on its own afterwards.</li>
 </ul>
 
 <h3>Time decides</h3>

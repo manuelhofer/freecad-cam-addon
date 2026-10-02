@@ -254,17 +254,20 @@ abzuheben und wieder einzufahren –, eine Lage, über der nichts mehr steht, f�
 nichts mehr zu tun …“. Ein Gussteil als Rohteil, das schon fast die Form hat: nur der Rest,
 etwa ein Ring um den Zapfen statt des ganzen Bodens. Ändert man eine Operation davor, rechnet
 das Räumen von selbst neu.</li>
-<li><b>Wände danach schlichten</b> – an den Wänden um die geräumten Flächen (Zapfen, Inseln,
-Absätze) bleibt das Aufmaß; mit dem Haken fährt derselbe Fräser sie danach im Aufmaß nach, mit
-dem Einsatz „Schlichten“, wenn er einen hat: eine eigene Operation „Wände schlichten T1“ (eine
-Kontur mit Breite = Aufmaß, nur der Zug an der Wand). Die Ergebniszeile sagt es: „… – danach
-die Wände schlichten (1)“.</li>
-<li><b>Messstopp vor dem Schlichten</b> – nur mit dem Haken davor: Zwischen Räumen und
-Schlichten hält das Programm an – Z fährt über das Rohteil, die Spindel steht (M5, M0); messen,
-dann Start, die Spindel läuft mit der Drehzahl des Schlichtens wieder an (M3). Eine eigene
-Operation „Messstopp“ (FreeCADs „Benutzerdefiniert“). Ein Unterprogramm der Steuerung wie
-Siemens „F_HOME“ schreibt erst der Postprozessor des Addons (in Arbeit); bis dahin steht im
-Programm der Kommentar (MESSSTOPP).</li>
+<li><b>Schlichten danach</b> – ein eigener Block gleich unter dem Räumen, wählbar, sobald das
+Räumen angehakt ist; angehakt wird er nur von Hand. Er hat einen eigenen Fräser und Einsatz –
+vorgewählt der Fräser des Räumens mit „Schlichten“ – und drei Haken: <b>Boden</b> (lässt das
+Räumen ein Aufmaß am Boden, fräst ein Räumen ohne Aufmaß am Boden ihn in einer Lage fertig;
+„Zeilenabstand am Boden“, leer: der halbe Fräserdurchmesser), <b>Wände</b> (die Wände um die
+geräumten Flächen im Aufmaß, bis auf den fertigen Boden – unten bleibt keine Stufe;
+„Zustellung an den Wänden“, leer: das ap des Einsatzes; Wände, die die Kontur fährt, schlichtet
+sie selbst) und <b>Messstopp davor</b> (Z fährt über das Rohteil, die Spindel steht – M5, M0;
+messen, dann Start, die Spindel läuft mit der Drehzahl des Schlichtens wieder an; ein
+Unterprogramm wie Siemens „F_HOME“ schreibt erst der Postprozessor des Addons, bis dahin steht
+im Programm der Kommentar (MESSSTOPP)). Die Ergebniszeile: „→ Boden (0,5 mm) und 1 Wand
+(0,3 mm), etwa 1 min – davor ein Messstopp“. „Anlegen“ legt dafür eigene Operationen an:
+„Messstopp“, „Boden schlichten T1“ (ein Räumen) und „Wände schlichten T1“ (eine Kontur mit
+Breite = Aufmaß) – jede ändert man danach für sich.</li>
 </ul>
 
 <h3>Die Zeit entscheidet</h3>

@@ -233,7 +233,9 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
   fertig und automatisch geprüft; wartet auf Manuels Test. T5 gebaut: die Variante „adaptiv“ (FreeCADs
   Adaptiv-Kern) – die schnellste Variante gewinnt nur, wenn sie die Last hält; am Testteil 10,7 statt
   12,4 min, 5-mal statt 56-mal abgehoben, Last bis 1,4 statt 5 ae, im Assistenten 1,48 × Ziel
-  (P-2026-10-02-89, 0.126.0) – wartet auf Manuels Test.
+  (P-2026-10-02-89, 0.126.0) – wartet auf Manuels Test. T4 gebaut: der Block „Schlichten danach“ –
+  Boden und Wände nach dem Räumen mit eigenem Fräser, auf Wunsch mit Messstopp (P-2026-10-02-90,
+  0.127.0) – wartet auf Manuels Test.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
@@ -256,14 +258,13 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
 **Jetzt – Plan für die Nacht vom 2026-10-02 auf den 03. (Manuel: „damit die Nacht durchgearbeitet
 wird“), der Reihe nach, je Punkt ein Patch mit Verlauf und Snapshot:**
 
-1. **T4 – der Block „Schlichten danach“** ([spezifikation_strategien.md](spezifikation_strategien.md),
-   Abschnitt 12.4, Option A, von Manuel entschieden): direkt unter „Räumen“, nur wählbar, wenn Räumen
-   angehakt ist; eigener Fräser und Einsatz (vorgewählt der Räumfräser mit „Schlichten“), Haken „Boden“,
-   „Wände“, „Messstopp davor“. Boden: die Ringe des Räumens in einer Lage mit dem ae des Einsatzes; Wände:
-   in Lagen mit dem ap des Einsatzes; erst Boden, dann Wände. Die Haken „Wände danach schlichten“ und
-   „Messstopp“ im Block Räumen gehen darin auf. *Fertig, wenn:* an Manuels Testteil – nur die ebenen
-   Flächen und die Mulde angeklickt – mit „Schlichten danach“ im Prüffenster an den Wänden kein Aufmaß
-   mehr steht.
+1. ~~**T4 – der Block „Schlichten danach“**~~ – gebaut (P-2026-10-02-90, 0.127.0).
+1b. **Die Werkzeugliste** (Manuel, 2026-10-02 nachts: „kümmer dich auch um die werkzeugliste“; W-007,
+   [spezifikation_werkzeugverwaltung.md](spezifikation_werkzeugverwaltung.md), Abschnitt 13 „Nicht
+   erreicht“): Die Seiten der Hersteller waren beim Bau gesperrt, alle Schnittwerte sind geschätzt,
+   Bestellen und Katalog sind Suchen. Jetzt geht das Netz (WebFetch frei): je Reihe die echten
+   Artikelnummern, Bestell-Links, Katalog-PDFs und – wo die Hersteller sie nennen – Schnittwerte je
+   Werkstoffklasse; was es nicht gibt, bleibt geschätzt und so gekennzeichnet.
 2. **T5d – Taschen:** Die Ringe halten in den Ecken einer Tasche die Last nicht (bis 4,1 ae), darum gewinnt
    dort „adaptiv“ und braucht länger (Tasche 40 × 30: 1,49 statt 0,88 min). Manuel, Frage 6: „Ecken kann
    man ja erstmal gesondert mit Bögen rausfahren … und dann wieder die Kontur der Tasche weiter“. *Fertig,

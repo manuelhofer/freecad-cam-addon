@@ -1097,6 +1097,10 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     for k, op in enumerate(abfahrt.operationen):
         if op.tc is None or getattr(op.tc, "Tool", None) is None:
             continue
+        if not any(s.operation == k and s.stellungen is not None for s in abfahrt.stationen):
+            # Fährt nichts ab – ein Messstopp hebt nur Z – und trägt nichts ab. Bis 0.126.0 hieß
+            # das „nicht von oben“: Mit einem Messstopp im Job blieb das Rohteil stehen.
+            continue
         if not _werkzeug_von_oben(abfahrt, k):
             return None
         fraeser[k] = _fraeser(op.tc)

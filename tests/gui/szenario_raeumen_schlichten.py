@@ -1,16 +1,18 @@
-# Räumen mit „Wände danach schlichten“ und „Messstopp vor dem Schlichten“ (W-010, P-2026-10-02-44;
-# Manuel, 2026-10-02: „Wenn ich jetzt Räumen gemacht habe und habe ein Aufmaß an den Wänden, aber
-# am Boden nichts … brauch ich noch eine Möglichkeit, das Ganze zu schlichten … zwischen Schruppen
-# und Schlichten eine Pause … gleich in derselben Maske“). Manuels Block 50 × 50 × 20 mit Zapfen
-# Ø 10, 10 hoch; T1 der Standardfräser. Die Oberseite anklicken – Räumen gewinnt. In Schritt 3
-# beide Haken: Das Ergebnis sagt „Messstopp, dann die Wände schlichten (1)“. „Anlegen“: Räumen,
-# Messstopp (M5, M0, M3 mit der Drehzahl des Schlichtens), Wände schlichten – die Kontur am Zapfen
-# mit Aufmaß und Breite 0,3 (nur der Zug an der Wand, mit dem Einsatz Schlichten). FreeCADs
-# LinuxCNC-Postprozessor schreibt M0 zwischen die beiden, und danach läuft die Spindel wieder.
+# „Schlichten danach“ (Spezifikation Strategien 12.4, Option A – Manuel, 2026-10-02: „genau so“;
+# vorher zwei Haken im Räumen, W-010): Manuels Block 50 × 50 × 20 mit Zapfen Ø 10, 10 hoch; T1
+# der Standardfräser. Die Oberseite anklicken – Räumen gewinnt; „Schlichten danach“ steht darunter,
+# ohne Haken. Im Räumen 0,5 mm Aufmaß am Boden, dann „Schlichten danach“ mit Messstopp anhaken:
+# vorgewählt T1 mit dem Einsatz „Schlichten“, das Ergebnis „→ Boden (0,5 mm) und 1 Wand (0,3 mm),
+# etwa … – davor ein Messstopp“. „Anlegen“: Räumen, Messstopp (M5, M0, M3 mit der Drehzahl des
+# Schlichtens), Boden schlichten (ein Räumen ohne Aufmaß am Boden), Wände schlichten (die Kontur
+# am Zapfen mit Aufmaß und Breite 0,3). FreeCADs LinuxCNC-Postprozessor schreibt M0 zwischen
+# Schruppen und Schlichten. „Auf der Maschine prüfen“: am Ende nirgends ins Teil und nichts stehen
+# geblieben – auch keine Stufe am Boden.
 import importlib
 
 import FreeCAD
 import FreeCADGui as Gui
+import numpy as np
 import Part
 
 V = FreeCAD.Vector
@@ -25,7 +27,9 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import gui_bearbeitung
+    from PySide import QtCore
+
+    from camaddon import beispielmaschine, gui_bearbeitung, gui_reichweite
     from camaddon import hoehenfeld as hf
     from camaddon import kontur as ko
     from camaddon import messstopp as ms
@@ -59,25 +63,36 @@ def schritte(h):
     h.pruefe(panel is not None and panel.job is not None, "kein Fenster oder kein Job")
     if panel is None or panel.job is None:
         return
-    raeumen = panel.raeumen
+    raeumen, danach = panel.raeumen, panel.schlichten_danach
     yield from h.warte_auf(lambda: raeumen.vorschau is not None, 60000)
     yield 500
     h.pruefe(raeumen.aktiv(), "Räumen nicht angehakt")
-    schlichten = raeumen.haken_felder["wandschlichten"]
-    stopp = raeumen.haken_felder["messstopp"]
-    h.pruefe(not schlichten.isChecked() and not stopp.isEnabled(), "Vorgabe: ohne Schlichten")
+    h.pruefe(danach.moeglich and not danach.aktiv(), "Schlichten danach: nicht da oder angehakt")
+    h.pruefe("wandschlichten" not in raeumen.haken_felder, "die alten Haken im Räumen")
     panel.knopf_weiter.click()
     panel.knopf_weiter.click()
     yield 300
-    schlichten.setChecked(True)
-    h.pruefe(stopp.isEnabled(), "Messstopp ohne Schlichten nicht wählbar")
-    stopp.setChecked(True)
-    yield from h.warte_auf(
-        lambda: "Messstopp, dann die Wände schlichten" in raeumen.ergebnis.text()
+    raeumen.felder["aufmass_boden"].setText("0,5")
+    danach.haken.setChecked(True)  # wie ein Klick: von Hand
+    danach.haken_felder["messstopp"].setChecked(True)
+    yield 1000
+    yield from h.warte_auf(lambda: danach.vorschau is not None and raeumen.vorschau is not None)
+    yield 500
+    h.pruefe(
+        danach.fraeser() is not None and danach.fraeser().nummer == 1, "Schlichten danach: nicht T1"
     )
-    text = raeumen.ergebnis.text()
-    h.pruefe(text.endswith("(1)"), f"Ergebnis: {text!r}")
-    h.bild("1_schlichten_messstopp", panel.form)
+    h.pruefe(
+        danach.einsatz() is not None and danach.einsatz().art == wz.SCHLICHTEN,
+        f"Schlichten danach: Einsatz {getattr(danach.einsatz(), 'art', None)}",
+    )
+    text = danach.ergebnis.text()
+    h.pruefe(
+        text.startswith("→ Boden (0,5 mm) und 1 Wand (0,3 mm), etwa ")
+        and text.endswith("– davor ein Messstopp"),
+        f"Ergebnis: {text!r}",
+    )
+    h.pruefe(not danach.hinweis.text(), f"rot: {danach.hinweis.text()!r}")
+    h.bild("1_schlichten_danach", panel.form)
 
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
     yield 1000
@@ -85,11 +100,14 @@ def schritte(h):
     ops = list(job.Operations.Group)
     namen = [o.Label for o in ops]
     print(ascii(f"Operationen: {namen}"))
-    h.pruefe(len(ops) == 3, f"Operationen: {namen}")
-    if len(ops) != 3:
+    h.pruefe(len(ops) == 4, f"Operationen: {namen}")
+    if len(ops) != 4:
         return
-    roh, halt, fein = ops
-    h.pruefe(ra.ist_raeumen(roh), f"zuerst nicht Räumen: {roh.Label}")
+    roh, halt, boden, fein = ops
+    h.pruefe(
+        ra.ist_raeumen(roh) and abs(float(roh.AufmassBoden) - 0.5) < 1e-6,
+        f"zuerst nicht Räumen mit 0,5 am Boden: {roh.Label}",
+    )
     h.pruefe(ms.ist_messstopp(halt), f"dann kein Messstopp: {halt.Label}")
     zeilen = list(halt.Gcode)
     h.pruefe(
@@ -98,11 +116,24 @@ def schritte(h):
     )
     h.pruefe(halt.ToolController is roh.ToolController, "Messstopp mit einem anderen Controller")
     h.pruefe(
+        ra.ist_raeumen(boden)
+        and float(boden.AufmassBoden) == 0.0
+        and abs(float(boden.Aufmass) - 0.3) < 1e-6
+        and list(boden.Flaechen) == [flaeche]
+        and boden.Label.startswith("Boden schlichten T1"),
+        f"Boden: {boden.Label!r}, {boden.AufmassBoden}, {boden.Aufmass}, {list(boden.Flaechen)}",
+    )
+    h.pruefe(
         ko.ist_kontur(fein) and list(fein.Flaechen) == [zapfen], f"Schlichten: {fein.Flaechen}"
     )
     h.pruefe(
         abs(float(fein.Aufmass) - 0.3) < 1e-6 and abs(float(fein.Breite) - 0.3) < 1e-6,
         f"Schlichten: Aufmaß {fein.Aufmass}, Breite {fein.Breite}",
+    )
+    h.pruefe(
+        boden.ToolController is fein.ToolController
+        and fein.ToolController is not roh.ToolController,
+        "Boden und Wände: nicht derselbe Controller „Schlichten“",
     )
     h.pruefe(
         zeilen[4] == f"M3 S{round(float(fein.ToolController.SpindleSpeed))}",
@@ -136,5 +167,43 @@ def schritte(h):
             h.pruefe(bool(vorher) and bool(nachher), "M0 nicht zwischen Räumen und Schlichten")
     yield 500
     h.bild("2_angelegt")
+
+    # --- Auf der Maschine prüfen: nichts stehen geblieben, keine Stufe am Boden --------------
+    asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
+    yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is asm.Document)
+    yield 500
+    FreeCAD.setActiveDocument(doc.Name)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400  # 1.1.3 verarbeitet die Auswahl verzögert
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_AufMaschinePruefen"))
+    yield from h.warte_auf(lambda: gui_reichweite.PruefPanel.offen is not None, 120000)
+    pruef = gui_reichweite.PruefPanel.offen
+    h.pruefe(pruef is not None, "„Auf der Maschine prüfen“ öffnet kein Fenster")
+    if pruef is None:
+        return
+    yield 1000
+    spieler = pruef.abspieler
+    spieler.setze_zeit(spieler.abfahrt.dauer)
+    yield from h.warte_auf(lambda: spieler.rest.text().startswith("Am Ende"), 300000)
+    rest = spieler.rest.text()
+    h.pruefe("nirgends ins Teil" in rest, f"{rest!r}")
+    # Auf dem Boden – bis an die Wand des Zapfens – bleibt nichts stehen, auch keine Stufe. (Oben
+    # auf dem Zapfen bleibt der Millimeter Rohteil: Den hat niemand angeklickt.)
+    abtrag = pruef.bild.abtrag
+    vergleich = abtrag.vergleich()
+    teil = np.where(np.isfinite(abtrag._teil), abtrag._teil, np.nan)
+    boden = np.isfinite(teil) & (np.abs(teil - np.nanmin(teil)) < 0.01)
+    rest = np.nan_to_num(vergleich.rest, nan=0.0)
+    h.pruefe(
+        boden.sum() > 1000 and float(rest[boden].max()) < 0.1,
+        f"auf dem Boden stehen geblieben: bis {float(rest[boden].max()):.2f} mm",
+    )
+    Gui.SendMsgToActiveView("ViewFit")
+    spieler.knopf_hinsehen.click()
+    yield 800
+    h.bild("3_pruefen_farben")
+    pruef.reject()
+    yield 500
     FreeCAD.closeDocument(doc.Name)
     yield 300

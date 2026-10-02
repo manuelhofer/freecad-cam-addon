@@ -1571,6 +1571,22 @@ anderen Werten schlichten oder mit einem anderen Werkzeug … Aber eins nach dem
 - **Entschieden (Manuel, 2026-10-02):** **A** „genau so“ – der eigene Block „Schlichten danach“;
   dazu je die Empfehlung (Boden mit den Ringen des Räumens, Wände in Lagen mit dem ap des
   Einsatzes, erst Boden, dann Wände).
+- **Gebaut (P-2026-10-02-90, 0.127.0):** der Block „Schlichten danach“ (`gui_bearbeitung.
+  _SchlichtenDanach`) gleich unter „Rest räumen“, wählbar, sobald das Räumen angehakt ist,
+  angehakt nur von Hand; die zwei Haken im Räumen sind weg. Fräser und Einsatz vorgewählt: der
+  des Räumens mit „Schlichten“. Haken „Boden“ (an; ohne Aufmaß am Boden gibt es dort nichts zu
+  tun), „Wände“ (an), „Messstopp davor“. Der Boden: ein Räumen ohne Aufmaß am Boden auf dem
+  Materialstand nach dem Räumen – eine Lage, die Variante nach Zeit und Last wie beim Räumen –,
+  mit dem Aufmaß des Räumens an den Wänden. Nicht ganz die Empfehlung (a): Der Zeilenabstand
+  am Boden ist nicht das ae des Einsatzes „Schlichten“ (0,3 mm – das Aufmaß der Wand, am Boden
+  über 300 Ringe auf 100 mm), sondern ein eigenes Feld, leer der halbe Fräserdurchmesser. Die
+  Wände: eine Kontur mit Breite = Aufmaß bis auf den fertigen Boden, in Lagen mit dem ap des
+  Einsatzes (Feld „Zustellung an den Wänden“) – ohne die Wände, die die Kontur fährt. Am Block
+  50 × 50 mit Zapfen, 0,5 am Boden: Räumen, Messstopp, Boden schlichten, Wände schlichten; im
+  Prüffenster auf dem Boden bis an den Zapfen nichts stehen geblieben
+  (`szenario_raeumen_schlichten`). Dabei behoben: Mit einem Messstopp im Job trug das
+  Prüffenster das Rohteil nicht ab (`restmaterial.fuer_quader` hielt die Operation ohne
+  Bewegung für ein Werkzeug „nicht von oben“).
 
 ### 12.5 Der Assistent in Schritten
 
@@ -2098,6 +2114,7 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
     es so will.
 - **T4 Wände schlichten, ohne sie einzeln anzuklicken:** der Block „Schlichten danach“
   (Abschnitt 12.4, Option A – entschieden).
+  **Gebaut:** P-2026-10-02-90, 0.127.0 (Abschnitt 12.4).
 - **T5 Weniger abheben, die Last halten:** Abschnitt 12.1 (Frage 6) – Adaptiv als Variante, die
   schnellste, die die Last hält; Ecken und Spalte in Bögen.
   **Gebaut:** P-2026-10-02-89, 0.126.0 – `raeumen_bahn`: die Variante „adaptiv“ (FreeCADs
