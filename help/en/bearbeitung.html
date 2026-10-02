@@ -379,11 +379,13 @@ remains, from the top edge of the pocket.</li>
 account what the operations before it in the job and the ticked strategies before it in the
 window have already removed. In each layer a roughing pass only runs where its cutter still
 meets material (across a short gap in feed); the layers start at the highest such material;
-where nothing stands at the entry, it goes straight down. Finishing always runs – the allowance
-on the wall is narrower than the material state can see. When clearing has already cleared the
-floor around the boss, only finishing remains even without an entry at “material beside the
-wall”: “→ 1 layer, 1 pass” and grey “… left – “Clearing T1” already removed …”. A casting as
-stock with only a 1 mm rim at the boss: 0.7 instead of 38 min. Rest material still computes
+where nothing stands at the entry, it goes straight down. Then it runs once along the wall at
+the allowance, over the full height – a rim narrower than the 0.5 mm grid is invisible to the
+material state; this way finishing never takes more than the allowance. Then finishing. When
+clearing has already cleared the floor around the boss, only the pass at the allowance and
+finishing remain even without an entry at “material beside the wall”: “→ 2 layers, 2 passes” and
+grey “… left – “Clearing T1” already removed …”. A casting as stock with only a 1 mm rim at the
+boss: 0.9 instead of 38 min. Rest material still computes
 without the material state – its corners are often smaller than its grid of 0.5 mm.</li>
 <li>In the operation's properties also <b>Deeper</b> (this much deeper than
 the bottom edge – to cut free) and the <b>lead-in radius</b>.</li>

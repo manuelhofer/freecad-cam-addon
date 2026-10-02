@@ -28,7 +28,9 @@ Ausfahren, Schruppen in Lagen mit Aufmaß und Schlichten in einem Zug.
   Rohteil, fährt jede Schruppbahn je Lage nur, wo ihre Stirn (eine Zelle kleiner) Material über
   der Lage trifft – über eine kurze Lücke im Vorschub –, die Lagen beginnen am höchsten solchen
   Material, und wo beim Eintauchen nichts steht, geht es senkrecht hinab statt über die Rampe.
-  Das Schlichten fährt immer: Das Aufmaß an der Wand ist schmaler als das Raster.
+  Danach fährt sie einmal beim Aufmaß an der Wand ab, über die ganze Höhe (Manuel: „fahr die
+  Kontur zumindest einmal auf 0,3 einfach an der Kontur ab“) – einen Rand, schmaler als das
+  Raster, sieht der Materialstand nicht; so nimmt das Schlichten nie mehr als das Aufmaß.
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -948,8 +950,15 @@ def _kontur(
             st.lagen += 1
             st.z_min = min(st.z_min, lage)
         vorige = lage
+    if mit_stand is not None and schrupp:
+        # Einmal beim Aufmaß an der Wand ab (Manuel, 2026-10-02: „wenn's heißt 0,3 ist
+        # Schlichtaufmaß .. fahr die Kontur zumindest einmal auf 0,3 einfach an der Kontur ab“).
+        _ein_zug(
+            st, k, w, r, r_ein, gerade, schritt, schrupp[0], schrupp, oben_schlichten, ziel, huelle,
+            mit_stand,
+        )  # fmt: skip
     if schlicht is not None:
-        _schlichten(
+        _ein_zug(
             st, k, w, r, r_ein, gerade, schritt, schlicht, schrupp, oben_schlichten, ziel, huelle,
             mit_stand,
         )  # fmt: skip
@@ -957,12 +966,11 @@ def _kontur(
         st.konturen -= 1  # hier war nichts mehr zu tun
 
 
-def _schlichten(
-    st, k, w, r, r_ein, gerade, schritt, schlicht, schrupp, oben, ziel, huelle, mit_stand
-):
-    """Das Schlichten bei Radius: in einem Zug über die ganze Höhe, höchstens die Schneidenlänge
-    je Zug."""
-    d, segmente, proben = schlicht
+def _ein_zug(st, k, w, r, r_ein, gerade, schritt, bahn, schrupp, oben, ziel, huelle, mit_stand):
+    """Ein Versatz (`bahn`: d, Segmente, Proben) in einem Zug über die ganze Höhe, höchstens die
+    Schneidenlänge je Zug – das Schlichten bei Radius, mit Materialstand vorher der beim
+    Aufmaß."""
+    d, segmente, proben = bahn
     hoehe = oben - ziel
     if hoehe <= GLEICH:
         return

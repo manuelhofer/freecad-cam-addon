@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-75 kontur-einmal-beim-aufmass
+
+### EINGELESEN
+- Manuel, 2026-10-02, zu Frage 4 (Spezifikation Strategien 12.7): „wenn's heißt 0,3 ist
+  Schlichtaufmaß .. fahr die Kontur zumindest einmal auf 0,3 einfach an der Kontur ab, dann ist
+  die Frage auch hinfällig !!!“
+
+### DATEIEN
+- `camaddon/kontur_bahn.py` (`_ein_zug`, vorher `_schlichten`: mit Materialstand erst der
+  innerste Versatz beim Aufmaß in einem Zug, dann das Schlichten), `tests/test_materialstand.py`,
+  `tests/gui/szenario_kontur_materialstand.py`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `help/de|en/bearbeitung.html`, `package.xml` (0.122.0)
+
+### AKZEPTANZKRITERIUM
+Kontur am Zapfen nach dem Räumen: der Zug beim Aufmaß und das Schlichten („→ 2 Lagen,
+2 Bahnen“); ohne Materialstand unverändert (Prüfstand).
+
+### DONE
+- Mit Materialstand und Schruppversätzen fährt die Kontur nach den Lagen einmal den innersten
+  Versatz (Radius + Aufmaß) über die ganze Höhe, höchstens die Schneidenlänge je Zug, dann das
+  Schlichten; ohne Schlichten bleibt dieser eine Zug (statt „nichts mehr zu tun“).
+- Klotz nach dem Räumen 0,36 statt 12,8 min; Guss 0,91 statt 38 min (5 Lagen, 5 Bahnen).
+
+### TESTS
+- `tests/test_materialstand.py` (OK), `tests/gui/szenario_kontur_materialstand.py` (OK),
+  `tests/test_pruefstand.py` (siehe Lauf).
+
 ## P-2026-10-02-74 antworten-fragen-3-bis-6-und-12-4
 
 ### EINGELESEN

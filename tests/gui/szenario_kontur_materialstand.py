@@ -2,7 +2,8 @@
 # Material vorhanden, was ich wegmachen muss“) an Manuels Klotz ohne Nut: 100 × 100, oben bei z 0
 # ein Zapfen Ø 30 bei x25 y25, rundum der Boden bei −10. Zuerst den Boden: „Bearbeitung“,
 # „Anlegen“ – das Räumen nimmt rundum alles bis aufs Aufmaß an der Wand. Dann die Wand des Zapfens
-# am Teil im Job: Die Kontur sagt „→ 1 Lage, 1 Bahn“ – sie schlichtet nur noch – und grau
+# am Teil im Job: Die Kontur sagt „→ 2 Lagen, 2 Bahnen“ – sie fährt einmal beim Aufmaß ab und
+# schlichtet (Manuel: „fahr die Kontur zumindest einmal auf 0,3 ... ab“) – und grau
 # „noch … – … hat „Räumen T1“ schon weggenommen“; „Anlegen“: ein Job mit beiden, die Kontur merkt
 # sich, woraus sie gerechnet hat. „Auf der Maschine prüfen“: Am Ende bleibt nichts stehen, und
 # nichts ging ins Teil (Spezifikation Strategien 12.7, „Fertig, wenn“).
@@ -90,7 +91,7 @@ def schritte(h):
     ergebnis, material = panel.kontur.ergebnis.text(), panel.kontur.material.text()
     print(ascii(f"Kontur: {ergebnis} / {material}"))
     h.pruefe(panel.kontur.aktiv(), "die Kontur nicht angehakt")
-    h.pruefe("1 Lage, 1 Bahn" in ergebnis, f"Kontur schruppt noch: {ergebnis!r}")
+    h.pruefe("2 Lagen, 2 Bahnen" in ergebnis, f"Kontur schruppt noch: {ergebnis!r}")
     h.pruefe(
         material.startswith("noch ")
         and material.endswith(f"hat „{raeumen[0].Label}“ schon weggenommen"),
@@ -107,7 +108,7 @@ def schritte(h):
             konturen[0].Materialstand == mst.kennung_vor(job, konturen[0]),
             "Kontur: woraus gerechnet nicht gemerkt",
         )
-        h.pruefe(konturen[0].Bahnen == 1, f"Kontur im Job: {konturen[0].Bahnen} Bahnen")
+        h.pruefe(konturen[0].Bahnen == 2, f"Kontur im Job: {konturen[0].Bahnen} Bahnen")
     Gui.Selection.clearSelection()
     Gui.ActiveDocument.ActiveView.viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")

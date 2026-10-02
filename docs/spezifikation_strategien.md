@@ -1810,7 +1810,10 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     Räumen: nur noch das Schlichten, 0,18 statt 12,8 min, „noch 0,3 cm³“ (das Aufmaß); der Guss
     mit 1 mm Rand am Zapfen: 0,72 statt 38 min (`test_materialstand`,
     `szenario_kontur_materialstand`). Grenze: Ein Rand, kaum breiter als das Aufmaß plus eine
-    Zelle, ist für die Schruppbahnen unsichtbar – dann nimmt ihn das Schlichten.
+    Zelle, ist für die Schruppbahnen unsichtbar – dafür fährt die Kontur seit P-2026-10-02-75
+    (0.122.0, Frage 4) mit Materialstand einmal beim Aufmaß an der Wand ab, über die ganze Höhe,
+    dann schlichtet sie: am Klotz nach dem Räumen 0,36 statt 12,8 min, 2 Bahnen; ohne Schlichten
+    bleibt dieser eine Zug; der Guss 0,91 statt 38 min.
 - **Fertig, wenn:** Manuels Klotz in beiden Reihenfolgen im Prüffenster ein Teil ohne Rest
   ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war (außer über eine
   kurze Lücke, wo Durchfahren schneller ist als Abheben – Grundsatz 0), und die Nut nach dem

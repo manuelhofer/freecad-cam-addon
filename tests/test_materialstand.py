@@ -12,8 +12,9 @@
 # oben nur am Zapfen bis 0, sonst bis −10 (W-011 S4b): Über der Nut steht es ohne jede Operation
 # bei −10, und Räumen und Planfräsen fahren mit 4 mm je Lage nur noch um den Zapfen – ein
 # Bruchteil der Zeit. Zweimal 3D-Schruppen an derselben Kuppel: Das zweite nimmt nur noch die
-# Treppe, die das erste ließ. Die Kontur am Zapfen nach dem Räumen schlichtet nur noch (ohne
-# Schlichten: nichts mehr zu tun); am Guss schruppt sie nur den Rand um den Zapfen.
+# Treppe, die das erste ließ. Die Kontur am Zapfen nach dem Räumen fährt nur noch einmal beim
+# Aufmaß ab und schlichtet (Manuel: „fahr die Kontur zumindest einmal auf 0,3 ... ab“); am Guss
+# schruppt sie nur den Rand um den Zapfen.
 import math
 import os
 import pathlib
@@ -223,23 +224,22 @@ def kontur_zeit(bahn):
 
 
 # Die Kontur am Zapfen danach (M4): Das Räumen hat den Boden bis aufs Aufmaß an der Wand geräumt –
-# sie schlichtet nur noch; ohne Materialstand schruppte sie den ganzen Boden noch einmal.
+# sie fährt einmal beim Aufmaß ab und schlichtet; ohne Materialstand schruppte sie den ganzen Boden
+# noch einmal.
 kontur_op = ko.lege_an(job, tc, einsatz.ap, einsatz.ae, flaechen=[wand])
 doc.recompute()
 kontur_mit = ko.rechne(kontur_op, job, job.Model.Group)
 kontur_ohne = ko.bahn_fuer(job, job.Model.Group, form, einsatz.ap, einsatz.ae, flaechen=[wand])
-pruefe(kontur_mit.bahnen == 1 and kontur_mit.davor[-1:] == ["Räumen T1"]
+pruefe(kontur_mit.bahnen == 2 and kontur_mit.davor[-1:] == ["Räumen T1"]
        and kontur_zeit(kontur_mit) < 0.1 * kontur_zeit(kontur_ohne),
        f"Kontur nach dem Räumen: {kontur_mit.bahnen} Bahnen, {kontur_zeit(kontur_mit):.2f} min "
        f"statt {kontur_zeit(kontur_ohne):.2f}, davor {kontur_mit.davor}")  # fmt: skip
 pruefe(kontur_op.Materialstand == mst.kennung_vor(job, kontur_op), "Kontur: Kennung nicht gemerkt")
-try:
-    ko.bahn_fuer(job, job.Model.Group, form, einsatz.ap, einsatz.ae, schlichten=False,
-                 flaechen=[wand], stand=mst.fuer(job, vor=kontur_op))  # fmt: skip
-except ValueError as grund_text:
-    pruefe("nichts mehr zu tun" in str(grund_text), f"Kontur ohne Schlichten: {grund_text}")
-else:
-    pruefe(False, "Kontur ohne Schlichten: kein Satz")
+# Ohne Schlichten: nur der eine Zug beim Aufmaß über die ganze Höhe.
+ohne_schlichten = ko.bahn_fuer(job, job.Model.Group, form, einsatz.ap, einsatz.ae, schlichten=False,
+                               flaechen=[wand], stand=mst.fuer(job, vor=kontur_op))  # fmt: skip
+pruefe(ohne_schlichten.bahnen == 1 and ohne_schlichten.lagen == 1,
+       f"Kontur ohne Schlichten: {ohne_schlichten.lagen} Lagen, {ohne_schlichten.bahnen} Bahnen")  # fmt: skip
 doc.removeObject(kontur_op.Name)
 doc.recompute()
 
@@ -286,7 +286,7 @@ if stand2 is not None:
         ko.bahn_fuer(job2, job2.Model.Group, form, 4.0, einsatz.ae, flaechen=[wand], stand=stand)
         for stand in (stand2, None)
     )
-    pruefe(kontur_guss.lagen == 4 and kontur_guss.bahnen == 4
+    pruefe(kontur_guss.lagen == 5 and kontur_guss.bahnen == 5
            and kontur_zeit(kontur_guss) < 0.1 * kontur_zeit(kontur_guss_ohne),
            f"Guss, Kontur: {kontur_guss.lagen} Lagen, {kontur_guss.bahnen} Bahnen, "
            f"{kontur_zeit(kontur_guss):.2f} min statt {kontur_zeit(kontur_guss_ohne):.2f}")  # fmt: skip
