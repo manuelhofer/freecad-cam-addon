@@ -475,14 +475,21 @@ bottom, as far apart in z as the rows in the plane, climb milling (material on t
 rows run only where it is shallower; at the border both overlap. On a hemisphere the flank keeps
 0.026 mm instead of 0.056 with rows alone. The operation's property “Grenzwinkel” changes the
 border, 0 means rows only.</li>
-<li>Computed along X, along Y and as a <b>spiral</b>, the <b>fastest</b> counts. Rows zigzag row
-by row, between near ends it glides across 0.1 mm above the face, otherwise it lifts. The spiral
-runs from the centre outwards, one row spacing further per turn, without reversals (climb
-milling) – on a dome 12 % faster than rows. It competes only with steep/shallow: its spacing
-lies in the plane, across the slope on the flanks; without contours higher ridges would remain
-there. Few blocks on straight stretches, in curves as many as the accuracy needs.</li>
-<li>Grey below: “→ 6 contours and a spiral with 45 turns, spacing 0.49, about 5 min” or
-“→ 87 rows along X, …”. Rough first – “3D roughing” is
+<li>Computed along X, along Y, as a <b>spiral</b> and <b>along the face</b>, the
+<b>fastest</b> counts. Rows zigzag row by row, between near ends it glides across 0.1 mm above
+the face, otherwise it lifts. The spiral runs from the centre outwards, one row spacing further
+per turn, without reversals (climb milling) – on a dome 12 % faster than rows. <b>Along the
+face</b> (flowline) the paths follow the curves of the face itself – on a dome the circles of
+latitude, on a cylinder the lines along its axis –, one row spacing apart in space everywhere,
+shallow or steep: no contours needed, closed circles in climb milling. On the dome another 13 %
+faster than the spiral, on a long cylinder 30 % faster than rows. Spiral and along the face
+compete only with steep/shallow (otherwise it computes rows only). Few blocks on straight
+stretches, in curves as many as the accuracy needs.</li>
+<li>It mills only where the cutter <b>touches</b> the selected faces – not in the margin where it
+merely rolls over the outer edge of a part or a step: there it removes nothing, and contours and
+spiral used to cut up to 0.05 mm into the side there.</li>
+<li>Grey below: “→ 46 curves along the face, spacing 0.49, about 4 min”, “→ 6 contours and a
+spiral with 45 turns, …” or “→ 87 rows along X, …”. Rough first – “3D roughing” is
 ticked along with it (section 16) –, otherwise the ball cuts into solid material. The
 operation is called “3D finishing T3”.</li>
 </ul>
@@ -555,7 +562,7 @@ cutter gets its own tool controller, the old one is removed if no operation
 uses it any more.</p>
 
 <h3>What comes next</h3>
-<p>The entry (ramp, helix, vertical) by time, trochoids in tight corners of pockets,
-equidistant finishing and flowline – following the plan in specification W-006.</p>
+<p>The entry (ramp, helix, vertical) by time, trochoids in tight corners of pockets and
+equidistant finishing – following the plan in specification W-006.</p>
 </body>
 </html>

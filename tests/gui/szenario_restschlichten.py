@@ -3,7 +3,8 @@
 # ein Kugelfräser Ø 2. Die Kuppel anklicken: „3D-Schruppen“ und „3D-Schlichten“ (T3) angehakt,
 # „Restschlichten“ nicht – den Haken setzt man selbst. Angehakt: T4 vorgewählt (der größte, der
 # kleiner ist als T3), „Fräser davor Ø“ leer mit „wie beim 3D-Schlichten“, die Vorschau „→ N
-# Höhenlinien und …“ (der Rest liegt am Fuß der Kuppel, wo die Kugel Ø 6 nicht in die Kehle kam).
+# Kurven entlang der Fläche …“ oder „→ N Höhenlinien …“ (der Rest liegt am Fuß der Kuppel, wo
+# die Kugel Ø 6 nicht in die Kehle kam: Kreise um die Kuppel).
 # „Anlegen“: „3D-Schruppen T1“, „3D-Schlichten T3“, „Restschlichten T4“ – mit Ø 6 und Eckenradius
 # 3 davor. Doppelklick auf „Restschlichten T4“ öffnet nur seinen Block, „Fräser davor Ø“ zeigt 6.
 import FreeCAD
@@ -95,7 +96,10 @@ def schritte(h):
         f"davor: {rest.felder['davor'].text()!r} / {rest.felder['davor'].placeholderText()!r}",
     )  # fmt: skip
     text = rest.ergebnis.text()
-    h.pruefe(text.startswith("→ ") and "Höhenlinien" in text, f"Restschlichten: {text!r}")
+    h.pruefe(
+        text.startswith("→ ") and ("Kurven entlang der Fläche" in text or "Höhenlinien" in text),
+        f"Restschlichten: {text!r}",
+    )
     h.pruefe(not rest.hinweis.text(), f"rot: {rest.hinweis.text()!r}")
     h.bild("1_restschlichten", panel.form)
 
@@ -115,7 +119,10 @@ def schritte(h):
         abs(float(op.DurchmesserDavor) - 6.0) < 1e-9 and abs(float(op.EckenradiusDavor) - 3.0) < 1e-9,
         f"davor: {float(op.DurchmesserDavor)}, {float(op.EckenradiusDavor)}",
     )  # fmt: skip
-    h.pruefe(op.Hoehenlinien > 0 and len(op.Path.Commands) > 50, f"Bahn: {op.Hoehenlinien}")
+    h.pruefe(
+        op.Hoehenlinien + op.Zeilen > 0 and len(op.Path.Commands) > 50,
+        f"Bahn: {op.Hoehenlinien} Höhen, {op.Zeilen} Zeilen",
+    )
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 800

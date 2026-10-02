@@ -266,7 +266,29 @@ eben). Kein OCL.
    3D-Schlichten, den Haken setzt man selbst (`szenario_bleistift`). Offen: mehrere
    Bahnen nebeneinander (Restschlichten mit dem kleineren Fräser, Punkt 8).
 7. **Fläche entlang** (Flowline) – Zeilen folgen den Flächenkurven (UV);
-   für Kegel, Rohre, Übergänge. Aufwand mittel bis groß.
+   für Kegel, Rohre, Übergänge. Aufwand mittel bis groß. Gebaut (P-2026-10-02-03, 0.67.0)
+   als vierte Richtung des 3D-Schlichtens („flaeche“): je gewählter Fläche die Kurven
+   gleicher Parameter, längs u und längs v gerechnet (die schnellere), quer so dicht, dass
+   zwei Nachbarn im Raum nirgends weiter als der Zeilenabstand auseinander liegen (an 64
+   Stellen je Kurve gemessen, quer vier Schritte je Abstand vorgerechnet); die Spitze dort,
+   wo der Fräser die Fläche an der Kurve berührt (die Achse um die Stütze des Fräsers zur
+   Seite der Normale – die Kugel: P + r · n), ihre Höhe aus der Hüllfläche im Raster (nie
+   ins Teil, auch nicht an Nachbarflächen), gefräst nur, wo die gewählten Flächen die Höhe
+   bestimmen. Offene Kurven im Zickzack, geschlossene (ein Kreis um eine Kuppel) immer im
+   Gleichlauf, von einem Kreis zum nächsten nur ein Schritt quer. Weil die Abstände im Raum
+   liegen, braucht sie keine Höhenlinien; sie tritt wie die Spirale nur mit Steil/Flach an.
+   Gemessen (Kugel Ø 6, Grathöhe 0,01, 796 mm/min): Kuppel Ø 40 auf der Platte – 46
+   Breitenkreise, 4,29 min (Spirale mit Höhenlinien 4,93, Zeilen 5,57), auf der Kuppel
+   −0,006 … 0,020 mm senkrecht zur Fläche; halbe Walze R 15 × 60 – 92 Linien längs der
+   Achse, 7,21 min (Zeilen mit Höhenlinien 10,33, Spirale 14,26), −0,003 … 0,017 mm; eine
+   Welle (B-Spline) 6,57 min – dort sind Zeilen längs X mit 6,41 schneller und bleiben.
+   Dabei gefunden und behoben: Wo die Kugel nur noch über eine Kante rollt (an der
+   Außenkante eines Teils, an einem Absatz), fällt die Hüllfläche fast senkrecht; aus dem
+   Raster gerechnet schnitten Höhenlinien und Spirale dort 0,05 mm in die Seite (an der
+   Kante 0,32 mm senkrecht). Jetzt fahren alle Richtungen nur, wo der Fräser die gewählten
+   Flächen innen berührt (`_beruehrt`: ihre Dreiecke um die Stütze verschoben ins Raster
+   gelegt, eine Zelle weiter) – die Welle ohne Platte −0,010 mm in jeder Richtung, die
+   nutzlose Höhenlinie am Rand fällt weg (`test_schlichten3d`, `szenario_schlichten3d`).
 8. **Restschlichten** – kleiner Fräser, nur wo nötig (aus Abtrag). Aufwand
    mittel (nach 6). Gebaut (P-2026-10-02-01, 0.65.0) – nicht aus einem Abtragsmodell,
    sondern aus beiden Fräsern: Die Hüllflächen des großen (davor) und des kleinen im

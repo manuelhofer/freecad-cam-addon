@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-03 flowline
+
+### EINGELESEN
+- `schlichten3d_bahn` (`planen`, `_raster`, `_Raster`, `_hoehenlinien`, `_gerichtet`,
+  `_spirale`, `_eine_richtung`, `_bilinear`, `_laeufe`, `_verbinden`, `_netze`),
+  `fraeserform.Form.stuetze`, `hoehenfeld.hoehen`, `vierachs_flaechen.vernetze`,
+  `schlichten3d` (Richtung, `opOnDocumentRestored`), `gui_bearbeitung._Schlichten3D`,
+  `bleistift_bahn.planen`.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py`, `camaddon/schlichten3d.py`, `camaddon/bleistift_bahn.py`,
+  `camaddon/gui_bearbeitung.py`, `translations/de.json`, `translations/en.json`,
+  `help/de|en/bearbeitung.html`, `tests/test_schlichten3d.py`,
+  `tests/gui/szenario_schlichten3d.py`, `tests/test_restschlichten.py`,
+  `tests/gui/szenario_restschlichten.py`, `docs/spezifikation_strategien.md`, `docs/aufbau.md`,
+  `README.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`,
+  `package.xml` (0.67.0)
+
+### AKZEPTANZKRITERIUM
+„Fläche entlang“ (Flowline, W-006 4.2 Punkt 7) als vierte Richtung des 3D-Schlichtens: An der
+Kuppel die Breitenkreise (etwa 48 bei Abstand 0,49), geschlossen und im Gleichlauf, schneller
+als die Spirale mit Höhenlinien; im Quader so gut wie die Zeilen, nirgends ins Teil; an der
+Halbkugel an der Flanke höchstens 0,035 mm ohne Höhenlinien. Im Assistenten „→ N Kurven entlang
+der Fläche, Abstand 0,49, etwa … min“. An einer Welle ohne Platte in keiner Richtung ins Teil.
+
+### DONE
+- `schlichten3d_bahn`: `_fluss_gitter`, `_fluss_kurven` (Querparameter so dicht, dass der
+  größte Abstand zweier Nachbarn im Raum den Zeilenabstand nicht übersteigt; quer erst grob,
+  dann vier Schritte je Abstand), `_fluss_kurve` (die Spitze, wo der Fräser die Fläche berührt:
+  die Achse um `Form.stuetze` zur Seite der Normale), `_geschlossen`, `_flaeche_entlang`
+  (offene Kurven im Zickzack, geschlossene mit dem Material rechts – `_material_rechts` aus
+  `_gerichtet` herausgelöst), `planen` mit Richtung `FLAECHE` (längs u und längs v, die
+  schnellere; nur mit Steil/Flach im Wettbewerb; ohne Höhenlinien, wenn sie allein rechnet).
+- Dabei gefunden: Wo die Kugel nur über eine Kante rollt (Außenkante, Absatz), fällt die
+  Hüllfläche fast senkrecht; aus dem Raster gerechnet schnitten Höhenlinien und Spirale dort
+  0,05 mm in die Seite (0,32 senkrecht an der Kante). `_beruehrt`: die Dreiecke der gewählten
+  Flächen um die Stütze verschoben ins Raster gelegt (`_netze` gibt sie mit), eine Zelle weiter
+  – `_Raster.innen`; gewählt gilt nur dort, die Zeilen enden dort auch.
+- `schlichten3d`: Richtung „flaeche“ (alte Dateien bekommen die Wahl dazu); Assistent: „→ N
+  Kurven entlang der Fläche, …“ (`ba.ergebnis_s3_flaeche`, `ba.zahl.kurve(n)`).
+
+### TEST
+- 1.1.3: `test_schlichten3d` (Kuppel: Fläche entlang 46 Kurven, schneller als die Spirale,
+  im Uhrzeigersinn; Halbkugel; Welle ohne Platte), `test_restschlichten`, `test_bleistift`
+  grün (Kuppel: Fläche entlang 3,43 min, Spirale 3,97; Restschlichten jetzt entlang der Fläche 2,78 statt 3,8 min, Kehle 0,177 mm); Szenarien `szenario_schlichten3d`, `szenario_restschlichten`, `szenario_bleistift` grün; black/ruff grün.
+
+### NEXT
+- Äquidistantes Schlichten (4.2 Punkt 5); Kontur in Bohrungen ohne Vollschnitt beim Einfahren.
+
 ## P-2026-10-02-02 restschruppen
 
 ### EINGELESEN

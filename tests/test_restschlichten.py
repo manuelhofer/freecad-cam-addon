@@ -66,8 +66,8 @@ ganz = s3.planen(teil, kuppel, werte(klein_form))
 pk = np.array([(p.x, p.y, p.z) for p in rest.punkte if not p.eilgang])
 r = np.hypot(pk[:, 0] - 30, pk[:, 1] - 30)
 print(ascii(f"Rest: {rest.zeit:.2f} min ({rest.hoehenlinien} Höhenlinien, Spirale {rest.spirale}, "
-            f"{rest.zeilen} Zeilen), r {r.min():.2f} … {r.max():.2f}; ganz mit Ø 2 "
-            f"{ganz.zeit:.2f} min, Ø 6 {gross.zeit:.2f} min"))  # fmt: skip
+            f"Fläche entlang {rest.flaeche}, {rest.zeilen} Zeilen), r {r.min():.2f} … "
+            f"{r.max():.2f}; ganz mit Ø 2 {ganz.zeit:.2f} min, Ø 6 {gross.zeit:.2f} min"))  # fmt: skip
 pruefe(r.min() > 16.0 and r.max() < 21.5, f"Rest: r {r.min():.2f} … {r.max():.2f}")
 pruefe(rest.zeit < 0.6 * ganz.zeit, f"Rest {rest.zeit:.2f} min, ganz {ganz.zeit:.2f}")
 
@@ -145,7 +145,10 @@ davor = s3op.form_davor(op)
 pruefe(davor is not None and davor.nur_kugel and abs(davor.radius - 3.0) < 1e-9, "Form davor")
 pruefe(js.operationsart(op) == "schlichten3d", f"Art {js.operationsart(op)}")
 befehle = len(op.Path.Commands)
-pruefe(befehle > 100 and op.Hoehenlinien > 0, f"Operation: {befehle} Befehle, {op.Hoehenlinien}")
+pruefe(
+    befehle > 100 and op.Hoehenlinien + op.Zeilen > 0,
+    f"Operation: {befehle} Befehle, {op.Hoehenlinien} Höhen, {op.Zeilen} Zeilen",
+)
 s3op.aendere(op, tc, s3.GRATHOEHE, flaechen=kuppel, davor=(0.0, 0.0))
 doc.recompute()
 pruefe(op.Label == "3D-Schlichten T3" and not s3op.ist_restschlichten(op), f"ganz: {op.Label}")

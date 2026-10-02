@@ -33,6 +33,21 @@ hinein, auch nicht an Nachbarflächen.
   Stücken wenige Sätze, in Rundungen so viele, wie die Genauigkeit braucht.
 - **Aufmaß:** der Fräser um das Aufmaß größer (Form.mit_aufmass), das Ergebnis um es gehoben –
   so bleibt es auch an steilen Stellen genau.
+- **Fläche entlang** (Flowline, W-006 4.2 Punkt 7, P-2026-10-02-03): je gewählter Fläche die
+  Kurven gleicher Parameter – längs u oder längs v, beide gerechnet –, quer so dicht, dass ihr
+  Abstand im Raum nirgends über dem Zeilenabstand liegt (gemessen an FLUSS_PROBEN Stellen je
+  Kurve); die Spitze dort, wo der Fräser die Fläche an der Kurve berührt (die Achse um seine
+  Stütze zur Seite der Normale, die Kugel: P + r · n), ihre Höhe aus der Hüllfläche im Raster –
+  nie ins Teil. Offene Kurven im Zickzack, geschlossene (ein Kreis um eine Kuppel) immer im
+  Gleichlauf. An einer Kuppel sind die Kurven längs u die Breitenkreise: gleich weit
+  auseinander auf der Fläche, flach wie steil, ohne Höhenlinien. Im Wettbewerb neben x, y und
+  der Spirale – nur mit Steil/Flach, wie die Spirale.
+- **Nicht über Kanten rollen** (P-2026-10-02-03): Höhenlinien, Spirale, Fläche entlang und
+  Zeilen fahren nur, wo der Fräser eine gewählte Fläche innen berührt (_beruehrt). Im Saum
+  dahinter rollt er nur über die Kante – an der Außenkante eines Teils, an einem Absatz –,
+  fräst nichts mehr, und die Hüllfläche fällt dort fast senkrecht: aus dem Raster gerechnet
+  schnitten Höhenlinien und Spirale in die Kante (an einer Welle ohne Platte 0,05 mm in die
+  Seite).
 - **Restschlichten** (W-006 4.2 Punkt 8, P-2026-10-02-01): Mit `davor` (die Form des größeren
   Fräsers, der vorher schlichtete) fährt er nur dort, wo der davor mehr als REST stehen ließ, als
   dieser wegnimmt – in Kehlen, engen Rundungen, Ecken. Beide Flächen, die die Fräser stehen
@@ -73,6 +88,9 @@ REST = 0.01  # mm – so viel mehr muss der Fräser davor stehen lassen, damit d
 _TIEF = -1e6  # mm – wo die Spitze nichts trifft: für den Schnitt beliebig tief
 VORSCHAU_RASTER = 0.5  # mm – im Assistenten
 SPIRALE = "spirale"
+FLAECHE = "flaeche"  # Richtung: entlang der Fläche (Flowline)
+FLUSS_PROBEN = 64  # so viele Stellen je Kurve, an denen der Abstand quer gemessen wird
+FLUSS_FEIN = 400  # so fein wird quer vorgerechnet
 
 
 @dataclass
@@ -84,7 +102,7 @@ class Schlichtwerte:
     sicher: float  # z für den Eilgang über allem
     grathoehe: float = GRATHOEHE
     aufmass: float = 0.0  # bleibt auf den Flächen stehen
-    richtung: str = "auto"  # „auto“ (die schnellste), „x“, „y“ oder „spirale“
+    richtung: str = "auto"  # „auto“ (die schnellste), „x“, „y“, „spirale“ oder „flaeche“
     grenzwinkel: float = GRENZWINKEL  # Grad – steiler: Höhenlinien; 0: nur Zeilen
     gleichlauf: bool = True  # Höhenlinien mit dem Material rechts (M3)
     sicherheit: float = vb.SICHERHEIT
@@ -112,6 +130,7 @@ class Schlichtbahn:
     hoehenlinien: int = 0  # Höhen mit Höhenlinien (Steil/Flach)
     spirale: bool = False  # eine Spirale statt Zeilen (dann `zeilen` 0)
     umlaeufe: int = 0  # die Umläufe der Spirale
+    flaeche: bool = False  # entlang der Fläche (dann `zeilen` die Kurven)
 
 
 # --- Flächen --------------------------------------------------------------------------------
@@ -169,8 +188,8 @@ def zeilenabstand(form, grathoehe):
 
 
 def _netze(form_teil, namen, toleranz):
-    """(das ganze Teil, das Teil ohne die Flächen `namen`) als vierachs_huelle.Netz – einmal
-    vernetzt."""
+    """(das ganze Teil, das Teil ohne die Flächen `namen`) als vierachs_huelle.Netz und die
+    gewählten Flächen allein (Punkte, Dreiecke, Fläche je Dreieck) – einmal vernetzt."""
     from . import vierachs_flaechen as vf
 
     fnetz = vf.vernetze(form_teil, toleranz)
@@ -180,7 +199,48 @@ def _netze(form_teil, namen, toleranz):
     neu = np.full(len(fnetz.netz.punkte), -1, dtype=np.int64)
     neu[benutzt] = np.arange(len(benutzt))
     rest = vh.Netz(fnetz.netz.punkte[benutzt], neu[dreiecke], toleranz)
-    return fnetz.netz, rest
+    gewaehlt = (fnetz.netz.punkte, fnetz.netz.dreiecke[~bleibt], fnetz.flaeche[~bleibt])
+    return fnetz.netz, rest, gewaehlt
+
+
+def _beruehrt(gewaehlt, form, xs, ys):
+    """Maske im Raster (xs, ys): wo die Spitze steht, wenn der Fräser `form` eine der gewählten
+    Flächen innen berührt. Jedes Dreieck wird verschoben – jeder Punkt um die Stütze des
+    Fräsers (Form.stuetze) zur Seite seiner Normale (gemittelt über die Dreiecke derselben
+    Fläche; die Kugel: um r · n) – und ins Raster gelegt. Was fehlt, ist der Saum, in dem er nur
+    noch über eine Kante rollt (an der Außenkante eines Teils, an einem Absatz): Dort fräst er an
+    den Flächen nichts mehr, und die Hüllfläche fällt fast senkrecht – aus dem Raster gerechnet,
+    schnitte er dort in die Kante (an einer Welle ohne Platte 0,05 mm in die Seite)."""
+    punkte, dreiecke, flaeche = gewaehlt
+    beruehrt = np.zeros((len(xs), len(ys)), dtype=bool)
+    for nummer in np.unique(flaeche):
+        d = dreiecke[flaeche == nummer]
+        a, b, c = punkte[d[:, 0]], punkte[d[:, 1]], punkte[d[:, 2]]
+        n = np.cross(b - a, c - a)  # so lang wie die doppelte Fläche: gewichtet
+        if float(np.sum(n[:, 2])) < 0:
+            n = -n  # die Fläche andersherum vernetzt
+        laenge = np.linalg.norm(n, axis=1)
+        nach_oben = n[:, 2] >= NACH_OBEN * np.maximum(laenge, 1e-300)
+        d, n = d[nach_oben], n[nach_oben]
+        if not len(d):
+            continue
+        normale = np.zeros_like(punkte)
+        for ecke in range(3):
+            np.add.at(normale, d[:, ecke], n)
+        benutzt = np.unique(d)
+        nb = normale[benutzt]
+        nb /= np.maximum(np.linalg.norm(nb, axis=1), 1e-300)[:, None]
+        seitlich = np.hypot(nb[:, 0], nb[:, 1])
+        rho, _z = form.stuetze(np.arctan2(seitlich, np.maximum(nb[:, 2], 0.0)))
+        weit = np.where(seitlich > 1e-9, rho / np.maximum(seitlich, 1e-9), 0.0)
+        verschoben = np.zeros((len(benutzt), 3))
+        verschoben[:, 0] = punkte[benutzt, 0] + weit * nb[:, 0]
+        verschoben[:, 1] = punkte[benutzt, 1] + weit * nb[:, 1]
+        neu = np.full(len(punkte), -1, dtype=np.int64)
+        neu[benutzt] = np.arange(len(benutzt))
+        flach = vh.Netz(verschoben, neu[d], 0.0)
+        beruehrt |= hf.hoehen(flach, xs, ys) > hf.KEIN_TREFFER / 2
+    return beruehrt
 
 
 # --- Bahn -----------------------------------------------------------------------------------
@@ -257,6 +317,7 @@ class _Raster:
     z: np.ndarray  # die Spitze (mit Aufmaß); −inf, wo der Fräser nichts trifft
     gewaehlt: np.ndarray  # die gewählten Flächen bestimmen die Höhe
     neigung: np.ndarray  # rad; nan, wo es keine gibt
+    innen: np.ndarray = None  # der Fräser berührt die gewählten Flächen innen (_beruehrt)
 
     def index(self, x, y):
         sx = self.xs[1] - self.xs[0]
@@ -270,9 +331,11 @@ class _Raster:
         return feld[i, j]
 
 
-def _raster(netz_alle, netz_rest, geformt, box, w):
+def _raster(netz_alle, netz_rest, geformt, box, w, gewaehlt_netz=None):
     """Die Hüllfläche im Raster über `box` ± R, mit und ohne die gewählten Flächen – beim
-    Restschlichten ± dem größeren Radius (der Fräser davor braucht seine Lagen am Rand)."""
+    Restschlichten ± dem größeren Radius (der Fräser davor braucht seine Lagen am Rand). Mit
+    `gewaehlt_netz` (aus _netze) gilt als gewählt nur, wo der Fräser die Flächen innen berührt
+    (_beruehrt), eine Zelle weiter."""
     davor = getattr(w, "davor", None)  # auch der Bleistift rechnet hier, ohne Fräser davor
     R = max(w.form.radius, davor.radius if davor is not None else 0.0)
     x0, x1 = box[0] - R, box[1] + R
@@ -284,10 +347,14 @@ def _raster(netz_alle, netz_rest, geformt, box, w):
     alle = hf.je_zeile(netz_alle, geformt, ys, x0, sx, nx, True)
     rest = hf.je_zeile(netz_rest, geformt, ys, x0, sx, nx, True)
     gewaehlt = np.isfinite(alle) & (alle > rest + MASKE)
+    innen = None
+    if gewaehlt_netz is not None:
+        innen = _erweitert(_beruehrt(gewaehlt_netz, geformt, xs, ys), 1.01 * max(sx, sy), sx, sy)
+        gewaehlt &= innen
     endlich = np.where(np.isfinite(alle), alle, np.nan)
     gx, gy = np.gradient(endlich, sx, sy)
     neigung = np.arctan(np.hypot(gx, gy))
-    return _Raster(xs, ys, alle + max(w.aufmass, 0.0), gewaehlt, neigung)
+    return _Raster(xs, ys, alle + max(w.aufmass, 0.0), gewaehlt, neigung, innen)
 
 
 def _verschoben(d, n):
@@ -387,6 +454,15 @@ def _stuecke(punkte, geschlossen, behalten):
 def _gerichtet(punkte, geschlossen, raster, gleichlauf):
     """Der Linienzug so gerichtet, dass das Material (die höhere Hüllfläche) rechts liegt –
     im Gegenlauf links."""
+    rechts_hoeher = _material_rechts(punkte, geschlossen, raster)
+    if rechts_hoeher is not None and rechts_hoeher != gleichlauf:
+        return punkte[::-1].copy()
+    return punkte
+
+
+def _material_rechts(punkte, geschlossen, raster):
+    """True, wenn rechts des Linienzugs `punkte` ([(x, y)]) die Hüllfläche höher liegt (das
+    Material), False links, None, wo beide Seiten gleich hoch sind."""
     n = len(punkte)
     stuecke = range(n if geschlossen else n - 1)
     laengen = [math.hypot(*(punkte[(i + 1) % n] - punkte[i])) for i in stuecke]
@@ -402,9 +478,7 @@ def _gerichtet(punkte, geschlossen, raster, gleichlauf):
         if abs(float(links) - float(rechts)) > 1e-6:
             rechts_hoeher = float(rechts) > float(links)
             break
-    if rechts_hoeher is not None and rechts_hoeher != gleichlauf:
-        return punkte[::-1].copy()
-    return punkte
+    return rechts_hoeher
 
 
 def _verbinden(punkte, x, y, z, w, raster=None):
@@ -522,6 +596,8 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, ras
             with np.errstate(invalid="ignore"):
                 steil = neigung >= math.radians(w.grenzwinkel + UEBERLAPP)
             maske &= ~steil
+        if raster.innen is not None:
+            maske &= raster.bei(raster.innen, xx, yy)  # nicht über Kanten rollen
         if w.davor is not None:
             maske &= raster.bei(raster.gewaehlt, xx, yy)  # nur der Rest
 
@@ -667,6 +743,134 @@ def _spirale(raster, w, abstand, vorweg):
     return Schlichtbahn(punkte, 0, True, abstand, z_min, laenge, zeit, hoehen, True, umlaeufe)
 
 
+def _fluss_gitter(f, laengs_u, ss, tt):
+    """[len(tt), len(ss), 3] – die Punkte der Fläche `f` an den Parametern längs `ss` und quer
+    `tt` (längs u: u = s, v = t)."""
+    if laengs_u:
+        return np.array([[tuple(f.valueAt(s, t)) for s in ss] for t in tt])
+    return np.array([[tuple(f.valueAt(t, s)) for s in ss] for t in tt])
+
+
+def _fluss_kurven(f, laengs_u, abstand):
+    """[t] – die Werte des Querparameters der Kurven einer Fläche `f` (längs u: v je Kurve),
+    so dicht, dass zwei Nachbarn im Raum nirgends weiter als `abstand` auseinander liegen.
+    Quer erst grob, dann so fein vorgerechnet, dass auf einen Abstand vier Schritte kommen."""
+    u0, u1, v0, v1 = f.ParameterRange
+    s0, s1, t0, t1 = (u0, u1, v0, v1) if laengs_u else (v0, v1, u0, u1)
+    ss = np.linspace(s0, s1, FLUSS_PROBEN)
+    grob = _fluss_gitter(f, laengs_u, ss, np.linspace(t0, t1, 17))
+    quer = float(np.linalg.norm(np.diff(grob, axis=0), axis=2).max(axis=1).sum())
+    fein = int(min(FLUSS_FEIN, max(16, math.ceil(4.0 * quer / abstand))))
+    tt = np.linspace(t0, t1, fein + 1)
+    P = _fluss_gitter(f, laengs_u, ss, tt)
+    schritte = np.linalg.norm(np.diff(P, axis=0), axis=2).max(axis=1)
+    weg = np.concatenate([[0.0], np.cumsum(schritte)])
+    if weg[-1] <= GLEICH:
+        return np.array([t0])
+    anzahl = max(1, int(math.ceil(weg[-1] / abstand - 1e-9)))
+    return np.interp(np.linspace(0.0, weg[-1], anzahl + 1), weg, tt)
+
+
+def _fluss_kurve(f, laengs_u, t, schritt, form):
+    """(x, y) der Spitze längs einer Kurve der Fläche `f` (Querparameter `t`), etwa `schritt`
+    auseinander: dort, wo der Fräser `form` die Fläche an der Kurve berührt – seine Achse um
+    den Abstand der Stütze (Form.stuetze) von P weg, zur Seite, zu der die Normale zeigt (die
+    Kugel: P + r · n). Stellen, an denen die Fläche nicht nach oben schaut, fallen weg (nan)."""
+    u0, u1, v0, v1 = f.ParameterRange
+    s0, s1 = (u0, u1) if laengs_u else (v0, v1)
+    grob = np.linspace(s0, s1, FLUSS_PROBEN)
+    pg = _fluss_gitter(f, laengs_u, grob, [t])[0]
+    weg = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(pg, axis=0), axis=1))])
+    anzahl = max(2, int(math.ceil(weg[-1] / schritt - 1e-9)) + 1)
+    ss = np.interp(np.linspace(0.0, weg[-1], anzahl), weg, grob)
+    p = np.full((anzahl, 3), np.nan)
+    n = np.full((anzahl, 3), np.nan)
+    for k, s in enumerate(ss):
+        u, v = (s, t) if laengs_u else (t, s)
+        try:
+            normale = f.normalAt(u, v)
+        except Exception:  # an einem Pol hat die Fläche keine Normale
+            continue
+        if normale.z < NACH_OBEN:
+            continue
+        p[k] = tuple(f.valueAt(u, v))
+        n[k] = tuple(normale)
+    seitlich = np.hypot(n[:, 0], n[:, 1])
+    with np.errstate(invalid="ignore"):
+        neigung = np.arctan2(seitlich, n[:, 2])
+        rho, _z = form.stuetze(np.nan_to_num(neigung))
+        weit = np.where(seitlich > 1e-9, rho / np.where(seitlich > 1e-9, seitlich, 1.0), 0.0)
+    return p[:, 0] + weit * n[:, 0], p[:, 1] + weit * n[:, 1]
+
+
+def _geschlossen(x, y, schritt):
+    """Ob die Kurve dort endet, wo sie beginnt (ein Kreis um eine Kuppel)."""
+    if not (np.isfinite(x[0]) and np.isfinite(x[-1])):
+        return False
+    return math.hypot(x[-1] - x[0], y[-1] - y[0]) <= schritt
+
+
+def _flaeche_entlang(form_teil, flaechen, raster, w, abstand, laengs_u, geformt):
+    """Die Bahn entlang der Flächen (Flowline): je Fläche die Kurven längs u (`laengs_u`) oder
+    längs v (_fluss_kurven), die Spitze auf der Hüllfläche aus dem Raster, nur wo die gewählten
+    Flächen die Höhe bestimmen. Offene Kurven im Zickzack, geschlossene immer mit dem Material
+    rechts (im Gegenlauf links) – von einer zur nächsten nur ein Schritt quer. None, wo nichts
+    zu fräsen ist."""
+    from . import vierachs_flaechen as vf
+
+    punkte = []
+    laenge = 0.0
+    kurven = 0
+    z_min = math.inf
+    rueckwaerts = False
+    for nummer in vf.nummern(flaechen):
+        f = form_teil.Faces[nummer]
+        for t in _fluss_kurven(f, laengs_u, abstand):
+            x, y = _fluss_kurve(f, laengs_u, float(t), w.schritt, geformt)
+            zu = _geschlossen(x, y, w.schritt)
+            if zu:
+                gueltig = np.isfinite(x)
+                rechts = _material_rechts(np.column_stack([x[gueltig], y[gueltig]]), True, raster)
+                umkehren = rechts is not None and rechts != w.gleichlauf
+            else:
+                umkehren = rueckwaerts
+            if umkehren:
+                x, y = x[::-1], y[::-1]
+            with np.errstate(invalid="ignore"):
+                z = _bilinear(raster, x, y)
+                maske = np.isfinite(x) & np.isfinite(z)
+            if maske.any():
+                maske &= raster.bei(raster.gewaehlt, np.nan_to_num(x), np.nan_to_num(y))
+            laeufe = _laeufe(maske, np.where(np.isfinite(x), z, np.nan), w.schritt)
+            if not laeufe:
+                continue
+            kurven += 1
+            if not zu:
+                rueckwaerts = not rueckwaerts
+            for anfang, ende in laeufe:
+                idx = np.arange(anfang, ende + 1)
+                idx = idx[np.isfinite(x[idx]) & np.isfinite(z[idx])]
+                if len(idx) < 2:
+                    continue
+                raum = np.column_stack([x[idx], y[idx], z[idx]])
+                behalten = _vereinfacht3d(raum)
+                x0, y0, z0 = (float(v) for v in raum[behalten[0]])
+                laenge += _verbinden(punkte, x0, y0, z0, w, raster)
+                for i in behalten[1:]:
+                    punkt = bn.Punkt(False, float(raum[i, 0]), float(raum[i, 1]), float(raum[i, 2]))
+                    laenge += bn.weg(punkte[-1], punkt)
+                    punkte.append(punkt)
+                z_min = min(z_min, float(np.min(raum[:, 2])))
+    if not punkte:
+        return None
+    letzter = punkte[-1]
+    punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+    zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+    return Schlichtbahn(
+        punkte, kurven, laengs_u, abstand, z_min, laenge, zeit, 0, False, 0, flaeche=True
+    )
+
+
 def _hinueber(punkte, von, nach, z, u_werte, v_werte, w, xy):
     """Vom Ende (Zeile, Index) `von` zum Anfang `nach`: in der Nachbarzeile und nah gleitend
     (LUFT über der Hüllfläche beider Zeilen dazwischen), sonst im Eilgang über sicherer Höhe.
@@ -720,28 +924,38 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
                 min(box[2], teil[2]),
                 max(box[3], teil[3]),
             )
-    netz_alle, netz_rest = _netze(form_teil, flaechen, toleranz)
+    netz_alle, netz_rest, netz_gewaehlt = _netze(form_teil, flaechen, toleranz)
     geformt = w.form.mit_aufmass(max(w.aufmass, 0.0))
     abstand = zeilenabstand(w.form, w.grathoehe)
     raster = None
     vorweg = ([], 0.0, 0, math.inf)
     steil_flach = 0 < w.grenzwinkel < 90
-    richtungen = {"x": (True,), "y": (False,), "spirale": (SPIRALE,)}.get(
-        w.richtung, (True, False, SPIRALE) if steil_flach else (True, False)
+    richtungen = {"x": (True,), "y": (False,), SPIRALE: (SPIRALE,), FLAECHE: (FLAECHE,)}.get(
+        w.richtung, (True, False, SPIRALE, FLAECHE) if steil_flach else (True, False)
     )
-    if steil_flach or SPIRALE in richtungen or w.davor is not None:
-        raster = _raster(netz_alle, netz_rest, geformt, box, w)
+    if steil_flach or SPIRALE in richtungen or FLAECHE in richtungen or w.davor is not None:
+        raster = _raster(netz_alle, netz_rest, geformt, box, w, netz_gewaehlt)
     if w.davor is not None:
         maske, _rest_mm = _rest(raster, netz_alle, w, abstand)
         raster.gewaehlt = raster.gewaehlt & maske
         if not raster.gewaehlt.any():
             raise ValueError(tr("s3.fehler.kein_rest"))
-    if steil_flach:
+    if steil_flach and set(richtungen) - {FLAECHE}:  # entlang der Fläche ohne Höhenlinien
         vorweg = _hoehenlinien(raster, w, abstand)
     beste = None
     for richtung in richtungen:
         if richtung == SPIRALE:
             bahn = _spirale(raster, w, abstand, vorweg)
+        elif richtung == FLAECHE:
+            # Entlang der Fläche liegen die Kurven im Raum gleich weit auseinander, flach wie
+            # steil – ohne Höhenlinien; längs u und längs v, die schnellere.
+            bahn = None
+            for laengs_u in (True, False):
+                kandidat = _flaeche_entlang(
+                    form_teil, flaechen, raster, w, abstand, laengs_u, geformt
+                )
+                if kandidat is not None and (bahn is None or kandidat.zeit < bahn.zeit):
+                    bahn = kandidat
         else:
             bahn = _eine_richtung(
                 netz_alle, netz_rest, box, w, richtung, abstand, geformt, raster, vorweg

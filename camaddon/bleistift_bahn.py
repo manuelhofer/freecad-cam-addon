@@ -274,7 +274,7 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
                 max(box[3], teil[3]),
             )
         )
-    netz_alle, netz_rest = sb._netze(form_teil, flaechen, toleranz)
+    netz_alle, netz_rest, _gewaehlt = sb._netze(form_teil, flaechen, toleranz)
     aufmass = max(w.aufmass, 0.0)
     geformt = w.form.mit_aufmass(aufmass)
     raster = sb._raster(netz_alle, netz_rest, geformt, box, w)
