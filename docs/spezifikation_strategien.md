@@ -304,7 +304,12 @@ eben). Kein OCL.
    Kante 0,32 mm senkrecht). Jetzt fahren alle Richtungen nur, wo der Fräser die gewählten
    Flächen innen berührt (`_beruehrt`: ihre Dreiecke um die Stütze verschoben ins Raster
    gelegt, eine Zelle weiter) – die Welle ohne Platte −0,010 mm in jeder Richtung, die
-   nutzlose Höhenlinie am Rand fällt weg (`test_schlichten3d`, `szenario_schlichten3d`).
+   nutzlose Höhenlinie am Rand fällt weg (`test_schlichten3d`, `szenario_schlichten3d`). In
+   der Oberfläche durchgespielt (P-2026-10-02-06): `szenario_schlichten3d_rand` – der Block mit
+   der Welle, die Operation auf die Spirale gestellt, „Auf der Maschine prüfen“ auf der
+   3-Achs-Fräse: nirgends ins Teil; `szenario_mulde` – eine Kugelmulde R 30 (12 tief) in der
+   Platte, 3D-Schruppen in Treppen von oben und 3D-Schlichten (Spirale mit Höhenlinien, 4,6
+   min), am Rand der Mulde rollt die Kugel über die Kante zur Oberseite: nirgends ins Teil.
 8. **Restschlichten** – kleiner Fräser, nur wo nötig (aus Abtrag). Aufwand
    mittel (nach 6). Gebaut (P-2026-10-02-01, 0.65.0) – nicht aus einem Abtragsmodell,
    sondern aus beiden Fräsern: Die Hüllflächen des großen (davor) und des kleinen im
@@ -334,14 +339,29 @@ Weiter (spezifikation_vierachs.md, V4c/V4d), in dieser Reihenfolge:
 2. **Plan indexiert (3+1)** – Rundachse steht, ebene Fläche parallel zur Achse
    wird wie beim Planfräsen gefräst (braucht Y an der Drehmaschine oder A an
    der Fräse); mit Versatz quer zur Werkzeugachse in Abfahren, Kollision und
-   Abtrag. Aufwand mittel.
+   Abtrag. Aufwand mittel. **Passfedernut** (P-2026-10-02-05, 0.69.0): Dabei gefunden –
+   der Grund einer Passfedernut (8 breit auf der Welle Ø 30) bekam mit dem Fräser Ø 8 gar
+   keine Bahn (die Wände stehen genau am Rand der Stirn, die Zeilen hielten an) und mit Ø 6
+   blieben die Enden 4 mm stehen. Jetzt erkennt `vierachs_planbahn.nuten` den Nutgrund im
+   Rahmen der Fläche (x längs, z ihre Normale, y = z × x) mit `nut_bahn.nuten` wie im Quader
+   und fräst ihn mit der Bahn „Nut“: in voller Breite die Zickzack-Rampe (der Vorschub kleiner,
+   `vierachs_bahn.Punkt.anteil`), schmaler die Trochoide, zuletzt die Wand rundum; zurück mit
+   a = x, Höhe = z, q = −y, C fest, Bögen in Sehnen (0,005 mm). Eine zu breite „Nut“ (eine
+   Abflachung zwischen zwei Wänden) fährt weiter Zeilen. Gemessen (`test_vierachs_plan`):
+   Ø 8 in 0,26 min bis an die Enden (die Mitte des Fräsers auf der Mittellinie), Ø 6 als
+   Trochoide 0,71 min; `szenario_vierachs_nut` auf der Beispiel-Drehmaschine: am Ende
+   „nirgends ins Teil“.
 3. **Rundum entgraten** (V4d) – Kanten der gewählten Flächen, die Rundachse
    dreht mit. Aufwand mittel.
 4. **Taschen und Nuten auf dem Mantel** – die Tasche in der Abwicklung rechnen
    (4.1.2/4.1.3), auf den Zylinder zurückwickeln (wie FreeCADs „wrap“, aber mit
    Abtrag und Kollision). Aufwand mittel.
 5. **Nockenwellen, Exzenter** – rundum schruppen kann es; schlichten mit
-   Linien längs und Grathöhe. Aufwand klein, prüfen.
+   Linien längs und Grathöhe. Aufwand klein, prüfen. Geprüft (P-2026-10-02-06,
+   `szenario_vierachs_nocke`): Welle Ø 30 × 100 mit einem Nocken Ø 44, 6 mm außermittig, auf
+   der Beispiel-Drehmaschine – „Rundum schruppen“ (T1 Ø 12) und „Rundum schlichten“ (T2 Kugel
+   Ø 6) angehakt und angelegt; „Auf der Maschine prüfen“: alle Achsen in ihren Grenzen,
+   „Nichts berührt sich“, am Ende nirgends ins Teil.
 
 ### 4.4 5 Achsen
 

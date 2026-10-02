@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-06 szenarien
+
+### EINGELESEN
+- `tests/gui/szenario_vierachs_schruppen.py`, `szenario_vierachs_schlichten.py`,
+  `szenario_schlichten3d.py` (Ablauf, Prüffenster), `vierachs_rohteil`, `beispielmaschine`.
+
+### DATEIEN
+- `tests/gui/szenario_vierachs_nocke.py` (neu), `tests/gui/szenario_schlichten3d_rand.py`
+  (neu), `tests/gui/szenario_mulde.py` (neu), `docs/spezifikation_strategien.md` (dazu die
+  Passfedernut aus P-2026-10-02-05 in 4.3 Punkt 2),
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Drei Teile, die es noch nicht gab, durch die Oberfläche bis „Auf der Maschine prüfen“: eine
+Nockenwelle auf der Drehmaschine (rundum schruppen und schlichten), eine Welle am Außenrand eines
+Blocks mit der Spirale auf der 3-Achs-Fräse, eine Kugelmulde in der Platte (3D-Schruppen und
+3D-Schlichten) – jedes Mal am Ende „nirgends ins Teil“.
+
+### DONE
+- `szenario_vierachs_nocke`: Welle Ø 30 mit Nocken Ø 44, 6 mm außermittig; beide Haken,
+  Anlegen, Achsen in Grenzen, „Nichts berührt sich“, am Ende nirgends ins Teil.
+- `szenario_schlichten3d_rand`: der Block mit der Welle (B-Spline) ohne Platte, die Operation
+  auf „spirale“ – die schnitt vor P-2026-10-02-03 0,05 mm in die Seite.
+- `szenario_mulde`: Kugelmulde R 30 in der Platte 80 × 80 × 20 – 3D-Schruppen T1 und
+  3D-Schlichten T3 angehakt, angelegt, geprüft.
+- Kopf-Probe (ohne Oberfläche) an der Mulde: 3D-Schruppen 2,0 min in Treppen, 3D-Schlichten
+  jede Richtung ohne Einschnitt (Spirale 4,58, Zeilen 5,06, äquidistant 5,33, Fläche entlang
+  5,50 min).
+
+### TEST
+- 1.1.3: die drei Szenarien grün.
+
+### NEXT
+- Taschen auf dem Mantel (gewickelt); der Einstieg nach Zeit.
+
 ## P-2026-10-02-05 passfedernut
 
 ### EINGELESEN
