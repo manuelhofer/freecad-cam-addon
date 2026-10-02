@@ -377,7 +377,10 @@ Weiter (spezifikation_vierachs.md, V4c/V4d), in dieser Reihenfolge:
    einer Ø 8 × 10, beide mit Spitze 118° – drei Bohrungen von vier Seiten, sieben Hübe, 0,21 min
    mit dem Bohrer Ø 8 (gefräst mit Ø 6: 1,34 min für die Querbohrungen oben); nirgends ins Teil;
    `szenario_vierachs_radialbohren`. Ein Tiefbohrzyklus als G83 (statt der Hübe als Sätze) folgt
-   mit dem Postprozessor (W-005).
+   mit dem Postprozessor (W-005). **Sechskant** (P-2026-10-02-10, Szenario): SW 24 vorne auf der
+   Welle Ø 30, alle sechs Flächen angeklickt, der Standardfräser Ø 12 (Planen mit ae 1,5, ap 25:
+   Zeilen 1,5 breit, die 3 mm in einer Lage) – sechs feste Stellungen der Rundachse, nichts
+   berührt sich, am Ende nirgends ins Teil (`szenario_vierachs_sechskant`).
 3. **Rundum entgraten** (V4d) – Kanten der gewählten Flächen, die Rundachse
    dreht mit. Aufwand mittel.
 4. **Taschen und Nuten auf dem Mantel** – die Tasche in der Abwicklung rechnen

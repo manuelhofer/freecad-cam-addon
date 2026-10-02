@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-10 sechskant
+
+### EINGELESEN
+- `tests/gui/szenario_vierachs_nut.py` (Vorlage), `werkzeuge.standardwerkzeug`,
+  `gui_vierachs._plan_vorschlagen`.
+
+### DATEIEN
+- `tests/gui/szenario_vierachs_sechskant.py` (neu), `docs/spezifikation_strategien.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`
+
+### AKZEPTANZKRITERIUM
+Sechskant SW 24 vorne auf der Welle Ø 30 auf der Beispiel-Drehmaschine: alle sechs Flächen
+angeklickt, „Plan indexiert“ an mit dem Standardfräser, „→ 6 Flächen: …“; angelegt sechs feste
+Stellungen der Rundachse; „Auf der Maschine prüfen“: Achsen in ihren Grenzen, nichts berührt
+sich, am Ende nirgends ins Teil.
+
+### DONE
+- Neues Szenario `szenario_vierachs_sechskant` (nur Prüfung, kein Code). Gesehen: Mit dem
+  Standardfräser (Planen ae 1,5, ap 25) fährt „Plan indexiert“ Zeilen 1,5 breit und die 3 mm in
+  einer Lage – so, wie Manuels Werte es sagen (nie mehr als ae · ap).
+
+### TEST
+- 1.1.3: `szenario_vierachs_sechskant` grün.
+
+### NEXT
+- Wie P-2026-10-02-09.
+
 ## P-2026-10-02-09 mantelnut
 
 ### EINGELESEN
