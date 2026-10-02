@@ -1370,11 +1370,20 @@ dazu: „Die Bahnen schauen auf den Bildern immer sehr eng.“
 - **Heute:** Die Bögen der offenen Nut rücken nur so weit vor, dass der Fräser die Delle nicht
   weiter umschlingt als eine gerade Wand mit ae – in der 16er Nut mit dem Ø 12 0,4 mm statt
   1,5. Der Prüfstand lässt nirgends mehr Querschnitt zu als ae · ap.
-- **Soll:** ae ist die Breite, die je Zug wegkommt. Im Mittel ae, dauernd zwischen 0,85 und
-  1,15 ae (so teilt sich eine Strecke in gleiche Schritte), kurz – beim Einfahren, auf
-  höchstens einer Fräserbreite Weg – bis 1,7 ae. Weniger geht immer.
-- **Fertig, wenn:** die Bögen der Nut um ae vorrücken (16er Nut: 1,5 statt 0,4 mm) und der
-  Prüfstand 1,7 ae kurz zulässt, mehr oder länger aber meldet.
+- **Warum es eng aussieht:** In der 16er Nut überstreicht jeder Bogen mit der Schneide die
+  ganze Breite, 15,4 mm, während die Mitte des Fräsers nur 5,3 mm fährt. Je mm Weg trägt er
+  so etwa dreimal den Schritt ab: Mit 0,4 mm Schritt misst der Prüfstand eine Breite im
+  Eingriff von 1,5 ae; mit 1,5 mm Schritt wären es über 5 ae – der Fräser hätte fast dreimal
+  so viel zu tun wie auf gerader Bahn mit ae 1,5. In breiten Nuten (30) rückt er um fast ae
+  vor. Der Schritt ist also nicht zu vorsichtig gezeichnet, sondern folgt der Last.
+- **Soll:** ae ist die Last, die der Fräser trägt – im Mittel so viel Material je mm Weg wie
+  auf gerader Bahn mit ae, dauernd zwischen 0,85 und 1,15 davon, kurz (beim Einfahren, auf
+  höchstens einer Fräserbreite Weg) bis 1,7. Weniger geht immer. So dürfen die Morph-Bögen
+  am Anfang einer Nut größer greifen, und der Prüfstand meldet erst über 1,7 ae.
+- **Zu entscheiden (Manuel):** (a) so, nach der Last – empfohlen; (b) Schritt wörtlich ae
+  (1,5 mm je Bogen) – weniger Bögen, aber die dreifache Last in schmalen Nuten.
+- **Fertig, wenn:** der Prüfstand 1,7 ae kurz zulässt, mehr oder länger aber meldet, und die
+  Bahnen den Spielraum nutzen, wo er Zeit spart.
 
 ### 12.2 Nuten in Bögen, auch geschlossene – und Konturen von der Seite her
 
@@ -1383,14 +1392,17 @@ nur, warum mitten drinnen ein kompletter Kreis gefahren wird … Und generell ka
 Art viele Konturen herstellen, sodass man sich immer mehr an die nötige Kontur annähert, indem
 man immer so seitlich einfährt.“
 
+- **Der volle Kreis** auf dem Bild von 05:13 war nur der Fräser selbst (Ø 12, zum
+  Größenvergleich gezeichnet); gefahren wird in der Mitte kein Kreis (Antwort von 05:14).
 - **Heute:** Die geschlossene Nut fährt nach der Helix volle Kreise (Trochoide); die hintere
-  Hälfte jedes Kreises fährt durch, was schon frei ist.
+  Hälfte jedes Kreises fährt im Schnellvorschub durch, was schon frei ist.
 - **Soll:** Nach der Helix am einen Ende Bögen wie in der offenen Nut – im Gleichlauf vor
   durchs Material von Wand zu Wand, quer zurück über die freie Seite im Schnellvorschub; am
-  anderen Ende gehen die Bögen in den Halbkreis über. Danach das Prinzip auf Taschen und
-  Konturen übertragen: Bögen, die sich von der freien Seite her an die Kontur herantasten.
+  anderen Ende gehen die Bögen in den Halbkreis über (je Schritt etwa ein Zehntel kürzer).
+  Danach das Prinzip auf Taschen und Konturen übertragen: Bögen, die sich von der freien
+  Seite her an die Kontur herantasten.
 - **Fertig, wenn:** in keiner Nut mehr ein voller Kreis außer der Helix steht und die
-  geschlossene Nut schneller ist als heute.
+  geschlossene Nut nicht langsamer ist als heute.
 
 ### 12.3 Die Zielzeit misst die Wegstrategie
 

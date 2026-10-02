@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-41 nut-kreis-und-ae
+
+### EINGELESEN
+- P-2026-10-02-39, 12.1/12.2; das Bild `boegen_skizze.png` von 05:13 (der rote Kreis: der
+  Fräser zum Größenvergleich, beantwortet 05:14); `test_nut_offen`: 16er Nut 171 Bögen,
+  Schritt 0,4, Prüfstand „Eingriff bis 1,5 ae“; 30er Nut „bis 0,9 ae“.
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (12.1, 12.2)
+
+### AKZEPTANZKRITERIUM
+12.1 sagt, warum die Bögen in schmalen Nuten eng liegen, und stellt Manuel (a)/(b) zur Wahl;
+12.2 sagt, dass in der Mitte kein Kreis gefahren wird.
+
+### DONE
+- Nachgerechnet: Kein Bogen der offenen Nuten über 200°, kein G2/G3 mit gleichem Anfang und
+  Ende; die geschlossene Nut fährt volle Kreise (hinten im Schnellvorschub).
+- Je Bogen überstreicht die Schneide 15,4 mm Breite auf 5,3 mm Weg der Mitte – ein Schritt
+  von 1,5 mm hieße die dreifache Last; deshalb ae als Last mit Spielraum vorgeschlagen.
+
+### TEST
+- Nur Doku (`test_nut_offen` lief zum Messen, grün).
+
+### NEXT
+- Manuels Wahl zu 12.1; die geschlossene Nut in Bögen (12.2).
+
 ## P-2026-10-02-40 drehrichtung-am-werkzeug
 
 ### EINGELESEN
