@@ -916,6 +916,7 @@ def _kontur(
     if oben <= ziel + GLEICH:
         lagen = []  # nichts mehr zu schruppen
     vorige = oben
+    einmal = False  # der innerste Versatz ist schon ganz gefahren, in einer Lage bis aufs Ziel
     for lage in lagen:
         lage = float(lage)
         # (von, bis): so nah und so fern von der Wand ist diese Lage schon geräumt
@@ -946,11 +947,17 @@ def _kontur(
             ):
                 gefahren = True
                 geraeumt = (min(geraeumt[0], d - r), max(geraeumt[1], d + r))
+                if proben is schrupp[0][2] and (maske is None or maske.all()):
+                    einmal = len(lagen) == 1
         if gefahren:
             st.lagen += 1
             st.z_min = min(st.z_min, lage)
         vorige = lage
-    if mit_stand is not None and schrupp:
+    # Der Zug beim Aufmaß wäre dieselbe Bahn noch einmal, wenn die eine Lage den innersten Versatz
+    # schon ganz gefahren hat und die Schneide über die Höhe reicht (B-012: eine Runde Luft).
+    hoehe = oben_schlichten - ziel
+    doppelt = einmal and not 0 < w.schneidenlaenge < hoehe - GLEICH
+    if mit_stand is not None and schrupp and not doppelt:
         # Einmal beim Aufmaß an der Wand ab (Manuel, 2026-10-02: „wenn's heißt 0,3 ist
         # Schlichtaufmaß .. fahr die Kontur zumindest einmal auf 0,3 einfach an der Kontur ab“).
         _ein_zug(

@@ -1813,7 +1813,11 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     Zelle, ist für die Schruppbahnen unsichtbar – dafür fährt die Kontur seit P-2026-10-02-75
     (0.122.0, Frage 4) mit Materialstand einmal beim Aufmaß an der Wand ab, über die ganze Höhe,
     dann schlichtet sie: am Klotz nach dem Räumen 0,36 statt 12,8 min, 2 Bahnen; ohne Schlichten
-    bleibt dieser eine Zug; der Guss 0,91 statt 38 min.
+    bleibt dieser eine Zug; der Guss 0,91 statt 38 min. Seit P-2026-10-02-84 (0.125.2) entfällt
+    der Zug, wenn die Kontur selbst in einer einzigen Lage geschruppt und dabei den innersten
+    Versatz ganz gefahren hat (und die Schneide über die Höhe reicht): Er wäre dieselbe Bahn noch
+    einmal – eine Runde Luft (B-012; `szenario_kontur` schlug seit -75 deshalb fehl: 5 Lagen und
+    10 Bahnen statt 4 und 9).
 - **Fertig, wenn:** Manuels Klotz in beiden Reihenfolgen im Prüffenster ein Teil ohne Rest
   ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war (außer über eine
   kurze Lücke, wo Durchfahren schneller ist als Abheben – Grundsatz 0), und die Nut nach dem

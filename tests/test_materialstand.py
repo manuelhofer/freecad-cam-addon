@@ -240,6 +240,21 @@ ohne_schlichten = ko.bahn_fuer(job, job.Model.Group, form, einsatz.ap, einsatz.a
                                flaechen=[wand], stand=mst.fuer(job, vor=kontur_op))  # fmt: skip
 pruefe(ohne_schlichten.bahnen == 1 and ohne_schlichten.lagen == 1,
        f"Kontur ohne Schlichten: {ohne_schlichten.lagen} Lagen, {ohne_schlichten.bahnen} Bahnen")  # fmt: skip
+# Schruppt die Kontur selbst – hier auf dem Stand vor dem Räumen, in dem nur eine Bahn am Rand des
+# Rohteils 5 tief gefahren ist –, dann in einer Lage: Der innerste Versatz ist damit schon einmal
+# ganz beim Aufmaß gefahren, der Zug beim Aufmaß wäre dieselbe Bahn noch einmal (B-012: seit
+# 0.122.0 eine Runde Luft, eine Lage mehr). So viele Lagen wie ohne Materialstand, nicht mehr
+# Bahnen.
+rand = [bn.Punkt(True, -60.0, -45.0, 5.0), bn.Punkt(False, -60.0, -45.0, -5.0, eintauchen=True),
+        bn.Punkt(False, 60.0, -45.0, -5.0), bn.Punkt(True, 60.0, -45.0, 5.0)]  # fmt: skip
+angefangen = mst.fuer(job, vor=raeumen, dazu=[("Rand", rand, fraeser.durchmesser / 2)])
+kontur_selbst = ko.bahn_fuer(job, job.Model.Group, form, einsatz.ap, einsatz.ae, flaechen=[wand],
+                             stand=angefangen)  # fmt: skip
+pruefe(kontur_ohne.lagen == 2 and kontur_ohne.bahnen > 5,
+       f"Kontur ohne Materialstand: {kontur_ohne.lagen} Lagen, {kontur_ohne.bahnen} Bahnen")  # fmt: skip
+pruefe(kontur_selbst.lagen == kontur_ohne.lagen and 5 < kontur_selbst.bahnen <= kontur_ohne.bahnen,
+       f"Kontur schruppt selbst: {kontur_selbst.lagen} Lagen, {kontur_selbst.bahnen} Bahnen, ohne "
+       f"Materialstand {kontur_ohne.lagen} und {kontur_ohne.bahnen}")  # fmt: skip
 doc.removeObject(kontur_op.Name)
 doc.recompute()
 

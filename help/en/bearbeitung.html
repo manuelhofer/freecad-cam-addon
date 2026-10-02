@@ -398,7 +398,9 @@ window have already removed. In each layer a roughing pass only runs where its c
 meets material (across a short gap in feed); the layers start at the highest such material;
 where nothing stands at the entry, it goes straight down. Then it runs once along the wall at
 the allowance, over the full height – a rim narrower than the 0.5 mm grid is invisible to the
-material state; this way finishing never takes more than the allowance. Then finishing. When
+material state; this way finishing never takes more than the allowance. If the contour itself
+roughed in a single layer and already ran the whole pass at the allowance, this pass is left out –
+it would be the same pass again. Then finishing. When
 clearing has already cleared the floor around the boss, only the pass at the allowance and
 finishing remain even without an entry at “material beside the wall”: “→ 2 layers, 2 passes” and
 grey “… left – “Clearing T1” already removed …”. A casting as stock with only a 1 mm rim at the

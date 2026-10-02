@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-84 kontur-zug-beim-aufmass-nicht-doppelt
+
+### EINGELESEN
+- B-010: `szenario_kontur` schlägt seit P-2026-10-02-75 fehl – „→ 2 Konturen: 5 Lagen,
+  10 Bahnen“ statt 4 und 9; ohne Schlichten 3 Lagen und 8 Bahnen statt 2 und 7.
+- P-2026-10-02-75 und Manuel dazu (2026-10-02): „fahr die Kontur zumindest einmal auf 0,3 einfach
+  an der Kontur ab“.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py` (`_kontur`: `einmal`, `doppelt`), `tests/test_materialstand.py`,
+  `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md` (12.7),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.125.2)
+
+### AKZEPTANZKRITERIUM
+`szenario_kontur` ist mit seinen alten Zahlen wieder grün (2 Konturen, 4 Lagen, 9 Bahnen); die
+Kontur am Zapfen nach dem Räumen bleibt bei „→ 2 Lagen, 2 Bahnen“.
+
+### DONE
+- Die Zahlen im Szenario waren nicht veraltet – die Bahn war schlechter geworden (B-012): Mit
+  Materialstand fuhr die Kontur den Zug beim Aufmaß immer, auch wenn sie selbst in einer einzigen
+  Lage geschruppt und dabei den innersten Versatz schon ganz gefahren hatte (die Tasche im
+  Szenario nach dem Planfräsen: 15 tief, ap 25). Dieselbe Bahn zweimal – eine Runde Luft.
+- Der Zug entfällt jetzt genau dann: eine Lage, der innerste Versatz darin ohne Lücke gefahren
+  (keine Maske des Materialstands oder überall Material), und die Schneide reicht über die Höhe
+  (sonst führe der Zug in mehreren Stufen, also anders). In allen anderen Fällen wie bisher – der
+  Grund für den Zug (ein Rand, schmaler als das Raster, den die Schruppbahnen nicht sehen)
+  besteht dort weiter.
+- Bewusst nicht: bei mehreren Lagen streichen. Dort hat der Zug über die ganze Höhe einen
+  Sinn (eine Wand ohne Stufen vor dem Schlichten).
+
+### TESTS
+- `tests/test_materialstand.py` (OK; neu: die Kontur schruppt selbst auf einem Materialstand –
+  so viele Lagen wie ohne; Gegenprobe mit dem alten Stand: 3 Lagen statt 2), `tests/test_kontur.py`
+  (OK), `tests/gui/szenario_kontur.py` (vorher FEHLER, jetzt OK),
+  `tests/gui/szenario_kontur_materialstand.py` (OK).
+- Alle Prüfungen und alle Szenarien: siehe P-2026-10-02-85.
+- FreeCAD 1.1.4 auf Manuels Rechner; black und ruff sauber.
+
+### NEXT
+- B-010: die drei Szenarien nachziehen.
+
 ## P-2026-10-02-83 kein-absturz-beim-schliessen
 
 ### EINGELESEN

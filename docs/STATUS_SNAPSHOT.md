@@ -212,7 +212,9 @@ Ein zweites an derselben Kuppel nimmt nur die Treppe, 0,14 statt 4,99 min (P-202
 Räumen, dann die Kontur im zweiten Lauf – am Ende 0,00 mm, nirgends ins Teil. Offen für Manuel:
 Fragen 3–5 in 12.7 (kurze Lücken durchfahren, schmaler Rand, Restmaterial – je mit Empfehlung,
 gebaut ist die Empfehlung) (P-2026-10-02-73). Nach Manuels Antwort auf Frage 4 fährt die Kontur mit
-Materialstand einmal beim Aufmaß an der Wand ab, dann schlichtet sie (P-2026-10-02-75, 0.122.0). Die
+Materialstand einmal beim Aufmaß an der Wand ab, dann schlichtet sie (P-2026-10-02-75, 0.122.0) – nicht
+doppelt, wenn sie in einer einzigen Lage selbst geschruppt und diese Bahn schon ganz gefahren hat (B-012,
+P-2026-10-02-84, 0.125.2). Die
 Werkstoff-Auswahl klappt höchstens 20 Zeilen hoch auf, mit Rollbalken und ganzen Namen (Manuel:
 „Alle Werkstoffe“ war nicht mehr zu erreichen) (P-2026-10-02-76, 0.122.1). Halter: VDI angetrieben
 radial und axial je mit ER16, ER20, ER25, ER32 als Untermenü in „Neu“ (P-2026-10-02-77, 0.123.0).
@@ -584,9 +586,11 @@ sind behoben (P-2026-10-02-79, -81, -82).
   des Rasters; gefräst ist sie richtig.
 - **B-009** Assistent „Bearbeitung“: Unter „3D-Schruppen“ steht „… hat „Planfräsen“ schon weggenommen“,
   obwohl Räumen angehakt ist.
-- **B-010** Zwei Szenarien sind veraltet und schlagen fehl, schon auf dem Stand vor dieser Sitzung:
-  `szenario_kontur` (erwartet 9 Bahnen, seit P-2026-10-02-75 sind es 10) und `szenario_erster_start` (das
-  Menü hat seit P-2026-10-02-58 „Maschinen …“). Der Lauf über alle Szenarien in 1.1.4 steht aus.
+- **B-010** Szenarien, die in FreeCAD 1.1.4 fehlschlagen (der Lauf über alle 98, 2026-10-02): vier stürzten
+  ab (B-011, behoben mit P-2026-10-02-83), `szenario_kontur` zeigte B-012 (behoben mit -84). Noch
+  nachzuziehen: `szenario_erster_start` (das Menü hat seit P-2026-10-02-58 „Maschinen …“),
+  `szenario_absatz` (seit 0.124.0 gewinnt dort das Räumen) und `szenario_schruppwerte` (wählt die Zeile
+  über die Werkstoff-Auswahl; das Qt von 1.1.4 gibt ihr danach den Fokus und die Zeile zurück).
 
 ## Offene Tasks
 
