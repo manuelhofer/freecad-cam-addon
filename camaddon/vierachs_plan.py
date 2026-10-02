@@ -185,7 +185,9 @@ def bahn_fuer(
         rest=vs.rest_nach(schruppen, radius, a_futter, a_vorne) if schruppen else None,
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
-    return vp.planen(netz, laengs, radial, werte, ebenen)
+    return vp.planen(
+        netz, laengs, radial, werte, ebenen, nuten_=vp.nuten(form_teil, laengs, radial, ebenen)
+    )
 
 
 def vorschau(

@@ -118,7 +118,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Rundachse steht, der Fräser mit ebener Stirn fährt Zeilen längs und rückt mit
   dem Y quer, in Lagen bis auf die Fläche: eben bis in die Ecken; vorgeschlagen,
   sobald eine gewählte Fläche so liegt und die Maschine eine Achse quer zur
-  Stange hat. **Rundum entgraten:** An den Außenkanten der gewählten Flächen
+  Stange hat. Der Grund einer **Passfedernut** wird als Nut gefräst – in voller
+  Breite mit der Rampe oder als Trochoide, die Wand rundum, bis an die Enden. **Rundum entgraten:** An den Außenkanten der gewählten Flächen
   fährt ein Fasenfräser entlang (oder ein Kugelfräser bricht sie rund), die
   Rundachse dreht mit – vorgeschlagen, sobald es solche Kanten und einen
   Fasenfräser gibt; Innenkanten, Rundungen und die Stirnen bleiben. Welche

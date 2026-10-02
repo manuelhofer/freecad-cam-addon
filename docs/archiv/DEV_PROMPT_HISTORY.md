@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-05 passfedernut
+
+### EINGELESEN
+- `vierachs_planbahn` (`ebenen`, `planen`, `_material_ueber`, `_zeilen_quer`), `vierachs_plan`
+  (`bahn_fuer`), `nut_bahn` (`nuten`, `verfahren`, `planen`, `Nut`, `Nutwerte`),
+  `vierachs_bahn` (`Punkt`, `befehle`, `dauer`), `restmaterial` (`Stange.schnitte`,
+  `vergleiche`, `Abtrag`, `fuer_rundum`, `teilradien`), `gui_vierachs._plan_text`.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`, `camaddon/vierachs_plan.py`, `camaddon/vierachs_bahn.py`,
+  `camaddon/restmaterial.py`, `camaddon/gui_vierachs.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/vierachs.html`, `tests/test_vierachs_plan.py`,
+  `tests/gui/szenario_vierachs_nut.py` (neu), `docs/spezifikation_strategien.md`, `README.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.69.0)
+
+### AKZEPTANZKRITERIUM
+Eine Passfedernut (8 breit, 30 lang, 4 tief auf der Welle Ø 30), ihr Grund mit „Plan indexiert“:
+mit Ø 8 in voller Breite über die Rampe bis an beide Enden, mit Ø 6 als Trochoide und die Wand
+rundum; die Mitte des Fräsers nie außerhalb des Langlochs, C fest; auf der Stange abgetragen
+nirgends ins Teil. Die Abflachung zwischen zwei Wänden bleibt bei Zeilen (2 Lagen, 6 Zeilen).
+Im Assistenten „– davon 1 als Nut: …“; „Auf der Maschine prüfen“ am Ende „nirgends ins Teil“.
+
+### DONE
+- Gefunden: Der Grund einer Passfedernut bekam mit dem Fräser in Nutbreite keine Bahn (die
+  Zeilen hielten an den Wänden, die genau am Rand der Stirn stehen), mit Ø 6 blieben die Enden
+  4 mm stehen.
+- `vierachs_planbahn.nuten` (der Rahmen der Fläche `_rahmen`: x längs, z ihre Normale,
+  y = z × x; darin `nut_bahn.nuten`), `_als_nut` (zu breite „Nuten“ fahren Zeilen),
+  `_eingeengt` (0,01 mm von Enden und Wänden), `_nut_punkte` (nut_bahn.planen, zurück a = x,
+  Höhe = z, q = −y, C fest, Bögen in Sehnen `_sehnen`), `planen(nuten_=…)`,
+  `Planbahn.nuten`; `vierachs_bahn.Punkt.anteil` (der kleinere Vorschub der Vollnut in
+  `befehle` und `dauer`).
+- `restmaterial`: Die Stange kennt je Strahl nur einen Radius – neben den Wänden der Nut läuft
+  der Strahl schräg durch die Wand auf den Grund, „Auf der Maschine prüfen“ meldete 3,89 mm
+  „im Teil“. `boden_radien` (wo der Strahl einen Grund von „Plan indexiert“ innerhalb der
+  Fläche trifft), `Abtrag(boeden=…)`, `_boeden`: bis zum Grund ist es nicht blau, darunter
+  schon.
+- Assistent: „– davon N als Nut: …“ (`va.plan.nuten`).
+
+### TEST
+- 1.1.3: `test_vierachs_plan` (Passfedernut Ø 8 und Ø 6, Abtrag auf der Stange, die
+  Abflachung unverändert), `test_vierachs_entgraten` grün; Szenarien `szenario_vierachs_nut`
+  (neu), `szenario_vierachs_plan`, `szenario_vierachs_schruppen`, `szenario_vierachs_entgraten`
+  grün; black/ruff grün.
+
+### NEXT
+- Taschen auf dem Mantel (gewickelt, 4.3 Punkt 4); Ecken unter 90° im Äquidistanten; der
+  Einstieg nach Zeit.
+
 ## P-2026-10-02-04 aequidistant
 
 ### EINGELESEN

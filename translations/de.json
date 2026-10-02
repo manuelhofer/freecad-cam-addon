@@ -1177,6 +1177,7 @@
     "va.aufmass_plan.tooltip": "So viel bleibt auf der Fläche stehen; 0 macht sie fertig.",
     "va.plan.ergebnis": "→ {lagen} Lagen, {zeilen} Zeilen, etwa {zeit}",
     "va.plan.ergebnis_flaechen": "→ {flaechen} Flächen: {lagen} Lagen, {zeilen} Zeilen, etwa {zeit}",
+    "va.plan.nuten": "– davon {n} als Nut: in voller Breite mit der Rampe oder als Trochoide, die Wand rundum.",
     "va.plan.keine_ebene": "Plan indexiert braucht eine gewählte ebene Fläche längs der Stange, die nach außen schaut (Abflachung, Nutboden) – klick sie im 3D an.",
     "va.plan.keine_querachse": "Plan indexiert braucht eine Achse quer zur Stange (bei C das Y) – „{maschine}“ hat keine.",
     "va.plan.vorschlag": "Vorschlag: an – eben längs der Stange: {flaechen}. So wird sie eben bis in die Ecken; mit dem Fräser auf dem Strahl von der Achse bliebe am Rand etwas stehen.",

@@ -29,6 +29,13 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
 - Hinein wie beim Schruppen: senkrecht mit dem Eintauchvorschub, wo die Zeile vor der Stange
   beginnt, sonst über die Rampe mit dem Eintauchwinkel längs der Zeile.
 
+- **Nut** (Passfedernut, P-2026-10-02-05): Ist die Fläche der Grund eines Langlochs (zwei
+  parallele Wände, an den Enden Halbkreise – nuten()), fräst sie die Bahn „Nut“ des Quaders
+  (nut_bahn: in voller Breite mit der Zickzack-Rampe, sonst die Trochoide, zuletzt die Wand
+  rundum) – gerechnet im Rahmen der Fläche (x längs, z ihre Normale, y = z × x), zurück mit
+  a = x, Höhe = z, Versatz = −y und der Rundachse fest. Mit Zeilen kam der Fräser nicht an die
+  Enden (4 mm blieben stehen) und mit dem Fräser so breit wie die Nut gar nicht hinein.
+
 Gerechnet wird in (a, Höhe, Winkel, Versatz) wie vierachs_bahn.Punkt – die Höhe längs der
 Werkzeugachse, der Winkel der der Rundachse, der Versatz quer. Läuft ohne Oberfläche.
 """
@@ -48,6 +55,9 @@ LUFT = vb.RING_LUFT  # mm – so weit bleibt eine Zeile vom Rand der Fläche weg
 UEBERLAUF_LAENGS = vb.UEBERLAUF_ZUGABE  # mm – so weit über Fläche und Fräser hinaus längs
 TOLERANZ = vb.TOLERANZ_SCHLICHTEN  # mm – so fein wird das Teil vernetzt: Wände genau
 VORSCHAU_TOLERANZ = 0.05  # mm – für die Vorschau im Assistenten
+SEHNE = 0.005  # mm – so weit weicht eine Sehne höchstens vom Bogen der Nut ab
+NUT_AE_ANTEIL = 0.25  # × D: so weit rückt die Trochoide in der Nut höchstens je Kreis vor
+NUT_LUFT = 0.01  # mm – so weit bleibt der Fräser in der Nut von den Enden und Wänden weg
 
 
 @dataclass(frozen=True)
@@ -147,6 +157,7 @@ class Planbahn:
     zeilen: int  # Zeilen, über alle Flächen und Lagen
     r_min: float  # die tiefste Spitze: Höhe längs der Werkzeugachse (mm)
     hinten_frei: float = 0.0  # wie bei vierachs_bahn.Bahn
+    nuten: int = 0  # so viele Flächen davon als Nut (nut_bahn)
 
 
 def ebener_radius(form):
@@ -156,10 +167,114 @@ def ebener_radius(form):
     return float(erstes.rho_bis) if erstes.art == ff.EBEN else 0.0
 
 
-def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A):
+def nuten(form, laengs, radial, flaechen):
+    """{Name: [nut_bahn.Nut]} – die Ebenen `flaechen` (ebenen()), die der Grund einer Nut sind:
+    im Rahmen der Ebene (_rahmen) erkennt nut_bahn das Langloch wie im Quader."""
+    from . import nut_bahn as nb
+
+    ergebnis = {}
+    for ebene in flaechen:
+        lokal = form.copy()
+        lokal.transformShape(_rahmen(laengs, radial, ebene))
+        gefunden = nb.nuten(lokal, [ebene.name])
+        if gefunden:
+            ergebnis[ebene.name] = gefunden
+    return ergebnis
+
+
+def _rahmen(laengs, radial, ebene):
+    """FreeCAD.Matrix: vom Job in den Rahmen der Ebene – x längs, z ihre Normale (zum
+    Werkzeug), y = z × x; der Ursprung auf der Achse. Dort ist a = x, die Höhe = z, q = −y."""
+    import FreeCAD
+
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    phi = math.radians(ebene.phi)
+    n = u_ * math.cos(phi) + v_ * math.sin(phi)
+    y = np.cross(n, l_)
+    zeilen = [float(c) for zeile in (l_, y, n) for c in (*zeile, 0.0)]
+    return FreeCAD.Matrix(*zeilen, 0.0, 0.0, 0.0, 1.0)
+
+
+def _sehnen(von, nach):
+    """[(x, y, z)] – der Bogen von `von` nach `nach` (bahn.Punkt mit `bogen`) in Sehnen, die
+    höchstens SEHNE vom Bogen abweichen; der letzte Punkt ist `nach`."""
+    from . import bahn as bn
+
+    mx, my, uhr = nach.bogen
+    r = math.hypot(von.x - mx, von.y - my)
+    winkel = bn.winkel(von, nach)
+    schritt = 2.0 * math.acos(max(-1.0, 1.0 - SEHNE / r)) if r > SEHNE else math.pi / 8
+    n = max(2, int(math.ceil(winkel / max(schritt, 1e-3))))
+    a0 = math.atan2(von.y - my, von.x - mx)
+    ergebnis = []
+    for i in range(1, n + 1):
+        t = i / n
+        a = a0 - t * winkel if uhr else a0 + t * winkel
+        ergebnis.append((mx + r * math.cos(a), my + r * math.sin(a), von.z + (nach.z - von.z) * t))
+    return ergebnis
+
+
+def _als_nut(liste, radius):
+    """Die Nuten aus `liste`, die die Bahn „Nut“ mit dem Fräser `radius` fräst: in voller Breite
+    oder mit der Trochoide – eine zu schmale auch (sie sagt es); eine zu breite (eine Abflachung
+    zwischen zwei Wänden) fährt Zeilen."""
+    from . import nut_bahn as nb
+
+    return [n for n in liste if nb.verfahren(n, radius) != "zu_breit"]
+
+
+def _eingeengt(nut, radius):
+    """Die Nut um NUT_LUFT kürzer an jedem geschlossenen Ende und, wo sie breiter ist als der
+    Fräser `radius`, um so viel schmaler: Läge der Fräser genau an, sähe ihn der Abtrag auf der
+    Stange (Raster 0,5 mm × 1°), wo ein Punkt genau auf dem Ende liegt, 4 mm in der Wand."""
+    import dataclasses
+
+    ux, uy = nut.b[0] - nut.a[0], nut.b[1] - nut.a[1]
+    laenge = math.hypot(ux, uy)
+    if laenge <= 2 * NUT_LUFT:
+        return nut
+    ux, uy = ux / laenge * NUT_LUFT, uy / laenge * NUT_LUFT
+    a = nut.a if nut.offen_a else (nut.a[0] + ux, nut.a[1] + uy)
+    b = nut.b if nut.offen_b else (nut.b[0] - ux, nut.b[1] - uy)
+    enger = min(NUT_LUFT, max(nut.radius - radius, 0.0))
+    return dataclasses.replace(nut, a=a, b=b, radius=nut.radius - enger)
+
+
+def _nut_punkte(liste, ebene, w, oben, sicher):
+    """([vierachs_bahn.Punkt], nut_bahn.Nutbahn) – die Nuten `liste` mit der Bahn „Nut“
+    (nut_bahn.planen: in voller Breite die Zickzack-Rampe, sonst die Trochoide, zuletzt die Wand
+    rundum), zurück in den Rahmen der Stange: a = x, die Höhe = z, q = −y, die Rundachse fest
+    auf der Ebene; Bögen in Sehnen."""
+    from . import nut_bahn as nb
+
+    radius = float(w.form.radius)
+    werte = nb.Nutwerte(
+        fraeser_radius=radius,
+        zustellung=w.zustellung,
+        zeilenabstand=min(w.zeilenabstand, NUT_AE_ANTEIL * 2.0 * radius),
+        oben=oben,
+        sicher=sicher,
+        eintauchwinkel=w.eintauchwinkel,
+        sicherheit=w.sicherheit,
+    )
+    bahn = nb.planen(werte, [_eingeengt(n, radius) for n in liste])
+    punkte = []
+    vorher = None
+    for p in bahn.punkte:
+        if vorher is not None and p.bogen is not None and not p.eilgang:
+            for x, y, z in _sehnen(vorher, p):
+                punkte.append(vb.Punkt(False, x, z, ebene.phi, p.eintauchen, -y, p.anteil))
+        else:
+            punkte.append(vb.Punkt(p.eilgang, p.x, p.z, ebene.phi, p.eintauchen, -p.y, p.anteil))
+        vorher = p
+    return punkte, bahn
+
+
+def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A, nuten_=None):
     """Die Bahn „Plan indexiert“ (Planbahn) über die Flächen `flaechen` ([Ebene], ebenen())
     mit den Werten `werte`; `netz` ist das Teil ohne diese Flächen (netz_ohne()), `laengs` und
-    `radial` wie in vierachs_huelle. ValueError mit einem Satz, wenn es nicht geht."""
+    `radial` wie in vierachs_huelle; `nuten_` ({Name: [nut_bahn.Nut]}, nuten()): diese Flächen
+    als Nut. ValueError mit einem Satz, wenn es nicht geht."""
     w = werte
     form = w.form
     radius = form.radius
@@ -185,13 +300,25 @@ def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A):
     geformt = form.mit_aufmass(netz.toleranz)
     sicher = w.stange_radius + w.sicherheit
     punkte = [vb.Punkt(True, a_anfang, sicher, 0.0)]
-    lagen_gesamt = zeilen_gesamt = flaechen_gefraest = 0
+    lagen_gesamt = zeilen_gesamt = flaechen_gefraest = nuten_gefraest = 0
     r_min = math.inf
     for ebene in sorted(flaechen, key=lambda e: e.phi):
         ziel = ebene.tiefe + w.aufmass
         oben = _material_ueber(w, ebene, radius)
         if oben <= ziel + vb.GLEICH:
             continue  # steht nichts mehr drüber
+        als_nut = _als_nut(nuten_.get(ebene.name, []) if nuten_ else [], radius)
+        if als_nut:
+            stueck, nut = _nut_punkte(als_nut, ebene, w, oben, sicher)
+            punkte.extend(stueck)
+            letzter = punkte[-1]
+            punkte.append(vb.Punkt(True, letzter.a, sicher, ebene.phi, q=letzter.q))
+            flaechen_gefraest += 1
+            nuten_gefraest += nut.nuten
+            lagen_gesamt += nut.lagen
+            zeilen_gesamt += nut.kreise + nut.vollnut
+            r_min = min(r_min, nut.z_min)
+            continue
         anzahl_lagen = max(1, int(math.ceil((oben - ziel) / w.zustellung - 1e-9)))
         lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
         q_zeilen = _zeilen_quer(ebene, r_eben + zugabe + LUFT, w.zeilenabstand)
@@ -248,6 +375,7 @@ def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A):
         zeilen_gesamt,
         r_min if math.isfinite(r_min) else 0.0,
         hinten_frei,
+        nuten_gefraest,
     )
 
 

@@ -257,6 +257,7 @@ class Punkt:
     phi: float
     eintauchen: bool = False
     q: float = 0.0
+    anteil: float = 1.0  # so viel vom Vorschub (die Nut in voller Breite: weniger)
 
 
 @dataclass
@@ -1292,7 +1293,7 @@ def befehle(
             if weg < 1e-6:
                 continue
             werte = lage(punkt)
-            f = eintauchen if punkt.eintauchen and eintauchen else vorschub
+            f = (eintauchen if punkt.eintauchen and eintauchen else vorschub) * punkt.anteil
             werte["F"] = f_vorher = _anderes_f(f / weg / 60.0, f_vorher)
             ergebnis.append(Path.Command("G1", werte))
         vorher = punkt
@@ -1326,6 +1327,6 @@ def dauer(bahn, vorschub, eintauchen=None):
     zeit = 0.0
     for von, nach in zip(bahn.punkte, bahn.punkte[1:], strict=False):
         if not nach.eilgang:
-            f = eintauchen if nach.eintauchen and eintauchen else vorschub
+            f = (eintauchen if nach.eintauchen and eintauchen else vorschub) * nach.anteil
             zeit += _weg(von, nach) / f
     return zeit

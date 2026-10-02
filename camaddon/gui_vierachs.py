@@ -2279,6 +2279,8 @@ class VierachsPanel:
             )
         else:
             text = tr("va.plan.ergebnis", lagen=bahn.lagen, zeilen=bahn.zeilen, zeit=zeit)
+        if getattr(bahn, "nuten", 0):
+            text += " " + tr("va.plan.nuten", n=bahn.nuten)
         if bahn.hinten_frei > 0:
             text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
         return text

@@ -5,7 +5,9 @@
 # festes C. Der Abtrag (restmaterial) mit Versatz: über der Abflachung bleibt die Ebene x = 8,
 # daneben die Stange; die Kugel versetzt trifft der Strahl, wo sie wirklich liegt. Dann die
 # CAM-Operation im Job: angelegt, gerechnet (Ebenen, Lagen, Zeilen), geändert, gespeichert und
-# geladen; ohne ebene Fläche oder mit Kugelfräser ein Satz statt einer Bahn.
+# geladen; ohne ebene Fläche oder mit Kugelfräser ein Satz statt einer Bahn. Eine Passfedernut
+# (8 breit auf der Welle Ø 30): mit Ø 8 in voller Breite, mit Ø 6 als Trochoide – die Mitte des
+# Fräsers im Langloch, bis an die Enden.
 import math
 import os
 import sys
@@ -25,6 +27,7 @@ from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
 from camaddon import vierachs_achsen as va
 from camaddon import vierachs_bahn as vb
+from camaddon import vierachs_huelle as vh
 from camaddon import vierachs_operation as vo
 from camaddon import vierachs_plan as vplan
 from camaddon import vierachs_planbahn as vp
@@ -129,6 +132,94 @@ pruefe(
     "Y nicht bis zum Rand",
 )
 print(ascii(f"Abflachung geplant: {len(bahn.punkte)} Punkte, {len(schnitte)} Saetze"))
+
+# Mit den Nuten gerechnet bleibt es dieselbe Bahn: Zwischen den Wänden wäre die Abflachung eine
+# offene Nut, 20 breit – zu breit für die Bahn „Nut“ mit Ø 6, also Zeilen.
+mit_nuten = vp.planen(
+    netz, LAENGS, RADIAL, werte, ebenen, nuten_=vp.nuten(flach_welle, LAENGS, RADIAL, ebenen)
+)
+pruefe(
+    (mit_nuten.nuten, mit_nuten.lagen, mit_nuten.zeilen) == (0, 2, 6),
+    f"Abflachung mit Nuten: {mit_nuten.nuten}, {mit_nuten.lagen}, {mit_nuten.zeilen}",
+)
+
+# --- Die Passfedernut (P-2026-10-02-05): 8 breit, 30 lang, 4 tief auf der Welle Ø 30 -------
+# Ihr Grund ist eine ebene Fläche längs der Stange – mit Zeilen kam der Fräser Ø 8 gar nicht
+# hinein (die Wände stehen genau am Rand der Stirn) und Ø 6 nicht an die Enden (4 mm blieben).
+# Jetzt die Bahn „Nut“ im Rahmen der Fläche: Ø 8 in voller Breite mit der Rampe (langsamer),
+# Ø 6 mit der Trochoide und der Wand rundum; die Mitte des Fräsers bleibt im Langloch.
+nutwelle = (
+    Part.makeCylinder(15, 80, V(0, 0, -80))
+    .cut(
+        Part.makeBox(10, 8, 22, V(11, -4, -41))
+        .fuse(Part.makeCylinder(4, 10, V(11, 0, -41), V(1, 0, 0)))
+        .fuse(Part.makeCylinder(4, 10, V(11, 0, -19), V(1, 0, 0)))
+    )
+    .removeSplitter()
+)
+nut_namen = [f"Face{i + 1}" for i in range(len(nutwelle.Faces))]
+nut_ebenen = vp.ebenen(nutwelle, LAENGS, RADIAL, nut_namen)
+pruefe(len(nut_ebenen) == 1 and abs(nut_ebenen[0].tiefe - 11.0) < 1e-6, f"Nutgrund: {nut_ebenen}")
+gefunden = vp.nuten(nutwelle, LAENGS, RADIAL, nut_ebenen)
+nut = next(iter(gefunden.values()), [None])[0]
+pruefe(
+    nut is not None and abs(nut.radius - 4.0) < 1e-6 and not nut.offen,
+    f"Passfedernut erkannt: {nut}",
+)
+nut_netz = vp.netz_ohne(nutwelle, [e.name for e in nut_ebenen])
+nut_teilnetz = vh.vernetze(nutwelle, 0.01)
+for r_f, erwartet in ((4.0, "voll"), (3.0, "trochoide")):
+    w_nut = vp.Planwerte(
+        form=ff.scheibe(r_f),
+        stange_radius=15.0,
+        zustellung=2.0,
+        zeilenabstand=2.0 * r_f * 0.6,
+        aufmass=0.0,
+        a_stange_vorne=1.0,
+        a_futter=-100.0,
+    )
+    b = vp.planen(nut_netz, LAENGS, RADIAL, w_nut, nut_ebenen, nuten_=gefunden)
+    im_teil = [p for p in b.punkte if not p.eilgang and p.r < 15.0 - 1e-6]
+    weit = max(
+        math.hypot(max(0.0, -41.0 - p.a, p.a + 19.0), p.q) for p in im_teil
+    )  # die Mitte des Fräsers vom Mittelstück der Nut
+    unten = [p for p in im_teil if p.r < 11.0 + 1e-6]
+    pruefe(b.nuten == 1 and b.r_min > 11.0 - 1e-6, f"Ø {2 * r_f:g}: {b.nuten} Nut, {b.r_min}")
+    pruefe(weit < 4.0 - r_f + 1e-3, f"Ø {2 * r_f:g}: die Mitte {weit:.3f} vom Mittelstück")
+    # Auf der Stange abgetragen (wie „Auf der Maschine prüfen“): nirgends ins Teil. Die Stange
+    # kennt je Strahl nur einen Radius; neben den Wänden läuft der Strahl schräg durch die Wand
+    # auf den Grund – bis zum Grund darf weg sein (restmaterial.boden_radien), darunter nicht.
+    abtrag = rm.Stange(16.0, -100.0, 1.0)
+    abtrag.fahre_stuecke(
+        [(p.a, p.r, p.phi, p.q) for p, n in zip(b.punkte, b.punkte[1:], strict=False) if not n.eilgang],
+        [(n.a, n.r, n.phi, n.q) for p, n in zip(b.punkte, b.punkte[1:], strict=False) if not n.eilgang],
+        ff.scheibe(r_f),
+    )  # fmt: skip
+    genau = rm.teilradien(nut_teilnetz, LAENGS, RADIAL, abtrag, rm.GENAU)
+    boden = rm.boden_radien(
+        abtrag, LAENGS, RADIAL, [(e, nutwelle.Faces[int(e.name[4:]) - 1]) for e in nut_ebenen]
+    )
+    erlaubt = np.where(np.isfinite(boden), np.maximum(genau - boden, 0.0), 0.0)
+    teil_r = rm.teilradien(nut_teilnetz, LAENGS, RADIAL, abtrag)
+    ohne = rm.vergleiche(abtrag, teil_r, 0.0, genau)
+    vergleich = rm.vergleiche(abtrag, teil_r, 0.0, genau, erlaubt=erlaubt)
+    pruefe(vergleich.kleinster >= -rm.BLAU_AB, f"Ø {2 * r_f:g}: ins Teil {vergleich.kleinster:.3f}")
+    print(ascii(f"  Stange: ohne den Grund {ohne.kleinster:.2f} „ins Teil“ (die Strahlen schräg "
+                f"durch die Wand), mit ihm {vergleich.kleinster:.3f}"))  # fmt: skip
+    pruefe(
+        unten
+        and min(p.a for p in unten) < -41.0 - (4.0 - r_f) + 0.03
+        and max(p.a for p in unten) > -19.0 + (4.0 - r_f) - 0.03,
+        f"Ø {2 * r_f:g}: nicht bis an die Enden",
+    )
+    if erwartet == "voll":
+        pruefe(any(p.anteil < 1.0 for p in im_teil), "Vollnut ohne kleineren Vorschub")
+    else:
+        pruefe(b.zeilen > 10, f"Trochoide: {b.zeilen} Kreise")
+    nut_befehle = [x for x in vb.befehle(b, LAENGS, RADIAL, "C", 1, 500.0) if x.Name == "G1"]
+    pruefe(len({round(x.Parameters["C"], 6) for x in nut_befehle}) == 1, "C dreht in der Nut")
+    print(ascii(f"Passfedernut Ø {2 * r_f:g}: {b.lagen} Lagen, {b.zeilen} Kreise/Fahrten, "
+                f"{vb.dauer(b, 500.0):.2f} min"))  # fmt: skip
 
 # Ohne ebene Fläche, ohne ebene Stirn, Zeilenabstand zu groß: ein Satz.
 for werte_falsch, flaechen_falsch, text in (

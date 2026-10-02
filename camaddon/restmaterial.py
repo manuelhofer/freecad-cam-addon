@@ -401,7 +401,17 @@ class Abtrag:
     schruppen“ oder „Rundum schlichten“."""
 
     def __init__(
-        self, stange, laengs, radial, stationen, fraeser, aufmass, formen, flaechen=None, fasen=None
+        self,
+        stange,
+        laengs,
+        radial,
+        stationen,
+        fraeser,
+        aufmass,
+        formen,
+        flaechen=None,
+        fasen=None,
+        boeden=None,
     ):
         self.stange = stange
         self.laengs, self.radial = laengs, radial
@@ -424,6 +434,10 @@ class Abtrag:
         # so tief darf es dort sein, ohne blau zu werden (die Zellen, die sie trifft).
         self.fasen = dict(fasen or {})
         self._erlaubt = np.zeros(stange.r.shape)
+        # „Plan indexiert“: [(vierachs_planbahn.Ebene, Part.Face)] – die Gründe, bis auf die der
+        # Fräser je Strahl darf; dazu ihre Radien je Zelle, einmal gerechnet (_boden_radien).
+        self.boeden = list(boeden or [])
+        self._boden = None
         self.bis = 0  # abgetragen bis vor diese Station
 
     def letzte(self):
@@ -474,14 +488,60 @@ class Abtrag:
                     vf.vernetze(form), self.laengs, self.radial, self.stange.a, self.stange.phi
                 )
                 self._nur = np.isin(sicht.flaeche, sorted(self.flaechen))
+        erlaubt = self._erlaubt if self.fasen else None
+        if self.boeden:
+            # Die Stange kennt je Strahl nur einen Radius: Neben den Wänden einer Nut läuft der
+            # Strahl schräg durch die Wand, dann durch die Nut auf ihren Grund – weg ist auf ihm
+            # alles bis zum Grund, und das ist richtig. Bis dorthin ist es nicht blau.
+            if self._boden is None:
+                self._boden = self._boden_radien()
+            with np.errstate(invalid="ignore"):
+                mehr = np.where(
+                    np.isfinite(self._boden), np.maximum(self._teil[1] - self._boden, 0.0), 0.0
+                )
+            erlaubt = mehr if erlaubt is None else np.maximum(erlaubt, mehr)
         return vergleiche(
             self.stange,
             self._teil[0],
             self.aufmass,
             self._teil[1],
             self._nur,
-            self._erlaubt if self.fasen else None,
+            erlaubt,
         )
+
+    def _boden_radien(self):
+        """boden_radien() für diese Stange und Gründe."""
+        return boden_radien(self.stange, self.laengs, self.radial, self.boeden)
+
+
+def boden_radien(stange, laengs, radial, boeden):
+    """(n_a, n_phi): je Zelle der Stange, wo der Strahl einen der Gründe `boeden`
+    ([(vierachs_planbahn.Ebene, Part.Face)], „Plan indexiert“) innerhalb der Fläche trifft,
+    sein Abstand von der Achse; sonst nan."""
+    import FreeCAD
+
+    radien = np.full(stange.r.shape, np.nan)
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    for ebene, flaeche in boeden:
+        phi0 = math.radians(ebene.phi)
+        n = u_ * math.cos(phi0) + v_ * math.sin(phi0)
+        quer = np.cross(l_, n)
+        delta = np.angle(np.exp(1j * (stange.phi - phi0)))
+        with np.errstate(invalid="ignore"):
+            q = ebene.tiefe * np.tan(delta)
+        spalten = np.flatnonzero(
+            (np.abs(delta) < math.radians(80))
+            & (q >= ebene.q_von - 1e-6)
+            & (q <= ebene.q_bis + 1e-6)
+        )
+        zeilen = np.flatnonzero((stange.a >= ebene.a_von - 1e-6) & (stange.a <= ebene.a_bis + 1e-6))
+        for i in zeilen:
+            for j in spalten:
+                p = l_ * stange.a[i] + n * ebene.tiefe + quer * q[j]
+                if flaeche.isInside(FreeCAD.Vector(*(float(c) for c in p)), 1e-3, True):
+                    r = ebene.tiefe / math.cos(float(delta[j]))
+                    radien[i, j] = r if np.isnan(radien[i, j]) else min(radien[i, j], r)
+    return radien
 
 
 def fuer(abfahrt, job, am_werkstueck):
@@ -581,7 +641,32 @@ def fuer_rundum(abfahrt, job, am_werkstueck):
         formen,
         flaechen,
         fasen,
+        _boeden(job, [ops[abfahrt.operationen[k].name] for k in rundum], laengs, radial),
     )
+
+
+def _boeden(job, operationen, laengs, radial):
+    """[(vierachs_planbahn.Ebene, Part.Face)] – die Flächen der „Plan indexiert“ unter
+    `operationen`: ihr Grund, bis auf den der Fräser je Strahl darf (Abtrag.vergleich)."""
+    from . import vierachs_planbahn as vp
+    from .vierachs_operation import flaechen as flaechen_von
+    from .vierachs_plan import ist_plan
+    from .vierachs_schlichten import _teil
+
+    plaene = [op for op in operationen if ist_plan(op)]
+    if not plaene:
+        return []
+    try:
+        form = _teil(getattr(job.Model, "Group", []))
+    except ValueError:
+        return []
+    l_ = tuple(float(c) for c in laengs)
+    u_ = tuple(float(c) for c in radial)
+    ergebnis = []
+    for op in plaene:
+        for ebene in vp.ebenen(form, l_, u_, flaechen_von(op)):
+            ergebnis.append((ebene, form.Faces[int(ebene.name[4:]) - 1]))
+    return ergebnis
 
 
 def _fraeser(tc):

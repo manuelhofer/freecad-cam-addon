@@ -1177,6 +1177,7 @@
     "va.aufmass_plan.tooltip": "This much stays on the face; 0 finishes it.",
     "va.plan.ergebnis": "→ {lagen} layers, {zeilen} rows, about {zeit}",
     "va.plan.ergebnis_flaechen": "→ {flaechen} faces: {lagen} layers, {zeilen} rows, about {zeit}",
+    "va.plan.nuten": "– {n} of them as a slot: full width with the ramp or as a trochoid, the wall all round.",
     "va.plan.keine_ebene": "Indexed facing needs a selected flat face along the bar facing outwards (flat, slot floor) – click it in 3D.",
     "va.plan.keine_querachse": "Indexed facing needs an axis across the bar (Y for C) – “{maschine}” has none.",
     "va.plan.vorschlag": "Suggestion: on – flat along the bar: {flaechen}. This makes it flat right into the corners; with the cutter on the ray from the axis something would remain at the edge.",
