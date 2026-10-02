@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-25 entgraten-gleichlauf
+
+### EINGELESEN
+- `vierachs_entgratbahn` (`kanten`, `entgraten`, `_stuecke`, `_fahrten`), `vierachs_entgraten`,
+  `tests/test_vierachs_entgraten.py`.
+
+### DATEIEN
+- `camaddon/vierachs_entgratbahn.py`, `camaddon/vierachs_entgraten.py`,
+  `tests/test_vierachs_entgraten.py`, `help/de|en/vierachs.html`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.87.0)
+
+### AKZEPTANZKRITERIUM
+Rest aus P-2026-10-02-23 („es geht um alle Maschinen“): „Rundum entgraten“ fuhr die Kanten nach
+Nähe, nicht nach Gleichlauf. Jetzt jede Kante im Gleichlauf, M4 andersherum; um eine Abflachung
+herum weiter eine verkettete Fahrt.
+
+### DONE
+- `kanten()`: je Kante `fahrt` (die Tangente in der Reihe der Punkte) und `material` (die
+  Summe der beiden Richtungen in die Flächen, also in die Ecke des Materials), beides im Rahmen an
+  der Kante (radial, quer, längs).
+- `_richtung`: `spindel.ist_gleichlauf` mit dem Werkzeug radial zur Achse; die Stücke einer
+  Kante fahren in der Reihe ihrer Punkte oder andersherum, fest; `_fahrten` nimmt solche Stücke
+  nur noch von ihrem Anfang (das nächste Stück wie bisher nach Nähe).
+- Operation: `gleichlauf=sp.fuer_m3(True, Controller)`.
+
+### TEST
+- 1.1.3: `test_vierachs_entgraten` (Ring am Absatz: M3 φ steigt, M4 fällt; um die Abflachung die
+  obere lange Kante nach vorn, die untere nach hinten, eine Fahrt), `test_hilfe`; Szenario
+  `szenario_vierachs_entgraten` grün; black/ruff grün.
+
+### NEXT
+- „Rundum schruppen“ mit gewählten Flächen und „Linien längs“: „nur im Gleichlauf“ wählbar.
+
 ## P-2026-10-02-24 nur-gleichlauf
 
 ### EINGELESEN

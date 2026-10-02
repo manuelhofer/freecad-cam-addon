@@ -97,7 +97,9 @@ Mantelnut-Wände, Querbohrung und Passfedernut drehen φ mit M3 und M4 richtig, 
 der Maschine (P-2026-10-02-23); 0.85.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
 **Nur im Gleichlauf** (Manuel: „auswählbar, ob er abhebt und wieder von vorne anfängt“): Haken bei
 Planfräsen und Plan indexiert – jede Zeile im Gleichlauf, abheben, von vorne (P-2026-10-02-24);
-0.86.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
+0.86.0 – fertig und automatisch geprüft; wartet auf Manuels Test. **Rundum entgraten im
+Gleichlauf**: je Kante die Seite des Materials aus den beiden Flächen, die Richtung jedes Stücks
+danach (P-2026-10-02-25); 0.87.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
 Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist

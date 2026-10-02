@@ -24,6 +24,7 @@ import Path
 import Path.Op.Base as PathOp
 
 from . import namen
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_entgratbahn as ve
 from . import vierachs_huelle as vh
@@ -132,6 +133,7 @@ def rechne(obj, job, modell):
         vo.abstaende(obj),
         vo.halter_zum_futter(obj),
         vo.flaechen(obj),
+        gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
 
 
@@ -147,13 +149,14 @@ def bahn_fuer(
     flaechen=(),
     toleranz=ve.TOLERANZ,
     schritt=ve.SCHRITT,
+    gleichlauf=True,
 ):
     """Die Bahn „Rundum entgraten“ für Modell und Stange des Jobs. `abstaende`: (Überlauf,
     Abstand zum Futter, Sicherheitsabstand); `halter`: so weit reicht der Halter seitlich über
     die Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen („Face3“ …; leer:
     alle) – entgratet werden ihre Außenkanten; `toleranz`: so fein wird das Teil vernetzt;
-    `schritt`: so dicht liegen die Punkte auf einer Kante. ValueError mit einem Satz, wenn es
-    nicht geht."""
+    `schritt`: so dicht liegen die Punkte auf einer Kante; `gleichlauf`: im Gleichlauf für M3
+    (spindel.fuer_m3 mit dem Controller). ValueError mit einem Satz, wenn es nicht geht."""
     laengs, radius, a_vorne, a_futter = vs._stange(job, laengs)
     form_teil = vs._teil(modell)
     kanten = ve.kanten(form_teil, laengs, radial, flaechen, schritt)
@@ -170,6 +173,7 @@ def bahn_fuer(
         ueberlauf=ueberlauf,
         abstand_futter=abstand_futter,
         halter=halter,
+        gleichlauf=gleichlauf,
     )
     netz = vh.vernetze(form_teil, toleranz)
     return ve.entgraten(netz, laengs, radial, werte, kanten)

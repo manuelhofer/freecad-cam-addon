@@ -614,8 +614,11 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
    (vorn fallend, hinten steigend); Helix der Querbohrung und Passfedernut wie im
    Quader im Rahmen der Fläche. In welche Richtung C dafür an der Maschine dreht,
    rechnen die Befehle mit ihrem Drehsinn (C = −Drehsinn · φ) – so stimmt es auf
-   jeder Maschine, mit C an der Drehmaschine wie mit A an der Fräse. Noch nicht:
-   „Rundum entgraten“ (die Kanten nach Nähe) und die Zeilen hin und her.
+   jeder Maschine, mit C an der Drehmaschine wie mit A an der Fräse. „Rundum
+   entgraten“ (P-2026-10-02-25): je Kante die Seite des Materials aus den beiden
+   Flächen daran (wohin sie von ihr weg zeigen), daraus die Richtung jedes Stücks –
+   um eine Abflachung herum bleibt es eine Fahrt. Die Zeilen hin und her wählbar
+   (P-2026-10-02-24).
 5. **Keine Luftschnitte.** Bahn nur dort, wo Material steht (Abtrag) – bei
    Zeilen, Lagen und Restbearbeitung.
 6. **Restmaterial kennen.** Ein Abtragsmodell je Job (Abschnitt 7): jede

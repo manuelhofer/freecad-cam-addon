@@ -15,8 +15,12 @@ als Kantenbruch –, die Rundachse dreht mit (Manuel: „Und Entgraten nicht ver
   Kugelfräser so viel, dass der Kantenbruch so breit wird. Berührt er vorher etwas anderes (die
   Kante liegt im Schatten: hinter einem Absatz, in einer Nut, die enger ist als der Fräser),
   lässt er den Punkt aus – eine Kante ganz ohne Punkte zählt als ausgelassen.
+- Im Gleichlauf (P-2026-10-02-25): Je Kante liegt das Material dort, wohin die beiden Flächen
+  von ihr weg zeigen (kanten(): `material`, im Rahmen an der Kante – radial, quer, längs);
+  spindel.ist_gleichlauf sagt, ob die Fahrt in der Reihe ihrer Punkte für M3 Gleichlauf ist –
+  sonst fährt jedes Stück andersherum (mit M4 umgekehrt). Die Richtung steht damit fest.
 - Von Stück zu Stück im Eilgang auf dem Sicherheitsradius, immer zu dem, das am nächsten
-  liegt, von dem Ende an, das näher liegt; beginnt eines, wo das vorige endet (die Naht des
+  liegt, von seinem Anfang an (ohne feste Richtung: von dem Ende, das näher liegt); beginnt eines, wo das vorige endet (die Naht des
   Zylinders teilt einen Bogen), geht es ohne Abheben weiter. Hinein mit dem Eintauchvorschub
   senkrecht auf den ersten Punkt. Ein Ring rundum wird ganz gefahren und endet, wo er begann
   (die Rundachse dreht eine Umdrehung). Was gerade weitergeht, fasst die Bahn zusammen
@@ -32,6 +36,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_huelle as vh
 from .sprache import tr
@@ -58,6 +63,10 @@ class Kante:
     geschlossen: bool  # ein Ring: Anfang und Ende sind derselbe Punkt
     knick: float  # Grad zwischen den Normalen beider Flächen (90 an einer rechten Kante)
     punkte: np.ndarray  # (n, 3) im Job, der Reihe nach, etwa `schritt` auseinander
+    # In der Mitte der Kante im Rahmen dort (radial, quer, längs): wohin sie in der Reihe der
+    # Punkte läuft und wo das Material liegt – für den Gleichlauf; None: unbekannt.
+    fahrt: tuple = None
+    material: tuple = None
 
 
 def kanten(form, laengs, radial, namen, schritt=SCHRITT, mindest_knick=MINDEST_KNICK):
@@ -131,6 +140,15 @@ def kanten(form, laengs, radial, namen, schritt=SCHRITT, mindest_knick=MINDEST_K
             continue  # auf der Stirn: die gibt es im Job noch nicht
         eigene = next(n for n in nummern if n in gewaehlt)
         andere = next(n for n in nummern if n != eigene)
+        fahrt = material = None
+        ort = np.array([p.x, p.y, p.z], dtype=float)
+        quer_zur_achse = ort - l_ * float(ort @ l_)
+        if np.linalg.norm(quer_zur_achse) > _GLEICH:
+            e_r = quer_zur_achse / np.linalg.norm(quer_zur_achse)
+            e_q = np.cross(l_, e_r)
+            rahmen = (e_r, e_q, l_)
+            fahrt = tuple(float(np.dot([e.x, e.y, e.z], achse)) for achse in rahmen)
+            material = tuple(float(np.dot([summe.x, summe.y, summe.z], achse)) for achse in rahmen)
         ergebnis.append(
             Kante(
                 f"Edge{i + 1}",
@@ -139,6 +157,8 @@ def kanten(form, laengs, radial, namen, schritt=SCHRITT, mindest_knick=MINDEST_K
                 bool(kante.isClosed()),
                 knick,
                 punkte,
+                fahrt,
+                material,
             )
         )
     return ergebnis
@@ -157,6 +177,7 @@ class Entgratwerte:
     ueberlauf: float = None  # längs über das Teil hinaus; None: Vorschlag
     abstand_futter: float = vb.ABSTAND_FUTTER
     halter: float = 0.0  # wie bei vierachs_bahn.Schruppwerte
+    gleichlauf: bool = True  # im Gleichlauf für M3 (spindel.fuer_m3); False: andersherum
 
 
 @dataclass
@@ -230,6 +251,12 @@ def entgraten(netz, laengs, radial, werte, kanten_):
         eigene = _stuecke(
             gut[anfang:ende], a[anfang:ende], beruehrt[anfang:ende] - tiefe, phi[anfang:ende], kante
         )
+        richtung = _richtung(kante, w.gleichlauf)
+        if richtung is not None:  # fest: in der Reihe der Punkte (True) oder andersherum
+            eigene = [
+                (sa, sr, sg, True) if richtung else (sa[::-1], sr[::-1], sg[::-1], True)
+                for sa, sr, sg, _fest in eigene
+            ]
         anfang = ende
         if eigene:
             gefahren += 1
@@ -244,14 +271,22 @@ def entgraten(netz, laengs, radial, werte, kanten_):
     return Entgratbahn(punkte, gefahren, ausgelassen, laenge, hinten_frei)
 
 
+def _richtung(kante, gleichlauf):
+    """Fährt der Fräser die Kante in der Reihe ihrer Punkte im Gleichlauf (True), andersherum
+    (False) – oder ist es unbekannt (None)? Das Werkzeug zeigt radial zur Achse."""
+    if kante.fahrt is None or kante.material is None:
+        return None
+    return sp.ist_gleichlauf((-1.0, 0.0, 0.0), kante.fahrt, kante.material) == bool(gleichlauf)
+
+
 def _stuecke(gut, a, r, phi, kante):
-    """[(a, r, φ in Grad, fortlaufend)] – die Stücke der Kante, die der Fräser fährt: die
+    """[(a, r, φ in Grad, fortlaufend, fest)] – die Stücke der Kante, die der Fräser fährt: die
     zusammenhängenden guten Punkte, mindestens zwei. Ein Ring, der ganz geht, ist ein Stück und
     endet, wo er begann; mit Lücke beginnt er hinter einer."""
     n = len(gut)
     if kante.geschlossen and n > 2:
         if gut.all():
-            return [(a, r, np.degrees(np.unwrap(phi)))]
+            return [(a, r, np.degrees(np.unwrap(phi)), False)]
         # Ohne den doppelten Endpunkt, und so gedreht, dass es hinter einer Lücke beginnt.
         gut, a, r, phi = gut[:-1], a[:-1], r[:-1], phi[:-1]
         erste_luecke = int(np.flatnonzero(~gut)[0])
@@ -262,7 +297,7 @@ def _stuecke(gut, a, r, phi, kante):
         if bis - von < 2:
             continue  # ein Punkt allein
         k = slice(von, bis)
-        ergebnis.append((a[k], r[k], np.degrees(np.unwrap(phi[k]))))
+        ergebnis.append((a[k], r[k], np.degrees(np.unwrap(phi[k])), False))
     return ergebnis
 
 
@@ -288,15 +323,16 @@ def _fahrten(punkte, stuecke, sicher, sicherheit):
         vorher = punkte[-1]
         # Das Stück, das am nächsten liegt – und von welchem Ende (beim Ring: welchem Punkt).
         beste = None
-        for i, (a, r, grad) in enumerate(offen):
+        for i, (a, r, grad, fest) in enumerate(offen):
             abstaende = _abstand(vorher, a, r, grad)
             ring = _ist_ring(a, r, grad)
-            k = int(np.argmin(abstaende[:-1] if ring else abstaende[[0, -1]]))
-            weit = float((abstaende[:-1] if ring else abstaende[[0, -1]])[k])
+            enden = abstaende[[0]] if fest else abstaende[[0, -1]]  # fest: nur vom Anfang
+            k = int(np.argmin(abstaende[:-1] if ring else enden))
+            weit = float((abstaende[:-1] if ring else enden)[k])
             if beste is None or weit < beste[0]:
                 beste = (weit, i, k, ring)
         weit, i, k, ring = beste
-        a, r, grad = offen.pop(i)
+        a, r, grad, _fest = offen.pop(i)
         if ring:
             a, r, grad = a[:-1], r[:-1], grad[:-1]
             reihe = (np.arange(len(a)) + k) % len(a)

@@ -5,11 +5,14 @@
 # Spitze Ø 1): die Rundachse steht auf jedem Punkt der Kante, die Spitze 0,3 unter der Kante,
 # Stücke ohne Abheben verkettet; der Kugelfräser als Kantenbruch; nah am Futter fallen Kanten
 # weg; am Absatz einer Stufenwelle ein Ring rundum. Der Abtrag lässt die Fase durch (kein
-# Blau). Dann die CAM-Operation im Job: angelegt, gerechnet, geändert, gespeichert und geladen.
+# Blau). Im Gleichlauf (P-2026-10-02-25): je Kante die Richtung, mit der das Material rechts der
+# Fahrt liegt (M3). Dann die CAM-Operation im Job: angelegt, gerechnet, geändert, gespeichert und
+# geladen.
 import math
 import os
 import sys
 import tempfile
+from dataclasses import replace
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -209,6 +212,35 @@ pruefe(
     f"Ring: a {ring[0].a}, φ {ring[0].phi} … {ring[-1].phi}, Länge {bahn_s.laenge}",
 )
 pruefe(sum(1 for p in bahn_s.punkte if p.eintauchen) == 1, "Ring: einmal hinein")
+# Im Gleichlauf (P-2026-10-02-25): Am Absatz liegt das Material längs hinten (die dicke Seite);
+# mit M3 von der Spindel aus rechts der Fahrt – φ steigt; andersherum (M4) fällt es.
+gegen_s = ve.entgraten(
+    vh.vernetze(stufe, ve.TOLERANZ), LAENGS, RADIAL, replace(werte, gleichlauf=False), k_s
+)
+ring_g = [p for p in gegen_s.punkte if not p.eilgang]
+pruefe(
+    ring[-1].phi > ring[0].phi and ring_g[-1].phi < ring_g[0].phi,
+    f"Ring: M3 φ {ring[0].phi} → {ring[-1].phi}, M4 {ring_g[0].phi} → {ring_g[-1].phi}",
+)
+# Um die Abflachung herum: die lange Kante oben (φ > 0) längs nach vorn, die untere nach hinten
+# – und alles weiter in einer Fahrt verkettet.
+oben_lang = [
+    (p, q)
+    for p, q in zip(bahn_w.punkte, bahn_w.punkte[1:], strict=False)
+    if not q.eilgang and not p.eilgang and abs(q.a - p.a) > 1.0 and q.phi > 1.0
+]
+unten_lang = [
+    (p, q)
+    for p, q in zip(bahn_w.punkte, bahn_w.punkte[1:], strict=False)
+    if not q.eilgang and not p.eilgang and abs(q.a - p.a) > 1.0 and q.phi < -1.0
+]
+pruefe(
+    oben_lang
+    and unten_lang
+    and all(q.a > p.a for p, q in oben_lang)
+    and all(q.a < p.a for p, q in unten_lang),
+    "Abflachung nicht im Gleichlauf",
+)
 
 # --- Der Abtrag lässt die Fase durch: ohne sie wäre die Kante blau -----------------------
 a_st, r_st, phi_st, op_st, gut_st = [], [], [], [], []
