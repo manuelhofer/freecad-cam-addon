@@ -38,6 +38,7 @@ from . import kontur_bahn as kb
 from . import nut as nu
 from . import nut_bahn as nb
 from . import planfraesen as pf
+from . import planfraesen_bahn as pfb
 from . import raeumen as ra
 from . import raeumen_bahn as rb
 from . import reiben as rbn
@@ -3063,6 +3064,7 @@ class BearbeitungPanel:
         form = vr.modell(self.job).Shape
         self._raeumen_boeden = None
         boeden = self._nur_boeden(form)
+        kontur_zusatz = None
         for block in self.bloecke:
             if (
                 block is self.raeumen
@@ -3074,8 +3076,9 @@ class BearbeitungPanel:
             if block.aktiv() or self._im_wettbewerb(block):
                 zusatz = self._zusatz(block, form)
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
-                if block is self.kontur and zusatz and block.ergebnis_basis:
-                    block.ergebnis.setText(tr("ba.kontur.nach_raeumen", text=block.ergebnis_basis))
+                if block is self.kontur:
+                    kontur_zusatz = zusatz
+                    self._kontur_text(form, zusatz)
                 if block is self.bohren and zusatz and block.ergebnis_basis:
                     d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
                     block.ergebnis.setText(
@@ -3084,13 +3087,37 @@ class BearbeitungPanel:
             else:
                 block.leeren()
         self._wettbewerb(form, nur_bohrung=boeden is not None)
+        # Nimmt der Wettbewerb dem Räumen den Haken (das Planfräsen ist schneller), räumt ein
+        # anderer Block vor der Kontur – ihr Rest an der Wand ist dann ein anderer: noch einmal
+        # (P-2026-10-02-17; sonst stand „1 Bahn … die Tasche räumt das Räumen“ ohne Räumen).
+        if self.kontur.aktiv() or self._im_wettbewerb(self.kontur):
+            zusatz = self._zusatz(self.kontur, form)
+            if zusatz != kontur_zusatz:
+                self.kontur.vorschau_rechnen(self.job, self._flaechen(self.kontur, form), zusatz)
+                self._kontur_text(form, zusatz)
+                self._wettbewerb(form, nur_bohrung=boeden is not None)
         self._knoepfe_beschriften()
+
+    def _kontur_text(self, form, zusatz):
+        """Der Satz der Kontur, wenn ein anderer Block vor ihr neben den Wänden räumt."""
+        if not zusatz or not self.kontur.ergebnis_basis:
+            return
+        davor = self._kontur_davor(form)
+        if davor == "planen":
+            text = tr("ba.kontur.nach_planen", text=self.kontur.ergebnis_basis)
+        elif davor == "raeumen":
+            text = tr("ba.kontur.nach_raeumen_boden", text=self.kontur.ergebnis_basis)
+        else:
+            text = tr("ba.kontur.nach_raeumen", text=self.kontur.ergebnis_basis)
+        self.kontur.ergebnis.setText(text)
 
     def _zusatz(self, block, form):
         """Was der Assistent einem Block vorgibt: Räumt das Räumen den Boden einer Tasche, deren
         Wände die Kontur fährt, und ist die Breite der Kontur leer, dann steht neben den Wänden
         nur noch das Aufmaß des Räumens – die Kontur schlichtet nur noch (Räumen + Kontur mit
-        Breite = Aufmaß, die schnellste Folge in der Tasche; Spezifikation Abschnitt 11)."""
+        Breite = Aufmaß, die schnellste Folge in der Tasche; Spezifikation Abschnitt 11). Fräst
+        das Planfräsen die Böden vor allen Wänden (ein Absatz), steht dort höchstens sein Rest
+        an der Wand (P-2026-10-02-17)."""
         if block is self.gewindefraesen:
             return {"werkzeug": block.fraeser()}  # Steigung und Zähne kennt CAM nicht
         if block is self.bohren:
@@ -3104,15 +3131,32 @@ class BearbeitungPanel:
             return self._davor_3d(self.restschlichten, self.schlichten3d)
         if block is self.restschruppen:
             return self._davor_3d(self.restschruppen, self.schruppen3d)
-        if block is not self.kontur or not self.raeumen.aktiv():
-            return None
-        if self.kontur.felder["breite"].text().strip():
-            return None  # von Hand eingetragen
-        waende = self.kontur.s.flaechen_fuer(form, self.gewaehlte)
-        boeden = rb.taschenboeden(form, waende)
-        if not boeden or not set(boeden) & set(self._flaechen(self.raeumen, form)):
-            return None
-        return {"breite": max(float(self.raeumen.werte()["aufmass"]), 0.01)}
+        if block is not self.kontur or self.kontur.felder["breite"].text().strip():
+            return None  # die Breite von Hand eingetragen
+        davor = self._kontur_davor(form)
+        if davor in ("tasche", "raeumen"):
+            return {"breite": max(float(self.raeumen.werte()["aufmass"]), 0.01)}
+        if davor == "planen":
+            return {"breite": pfb.rest_an_der_wand(float(self.plan.werte()["zeilenabstand"]))}
+        return None
+
+    def _kontur_davor(self, form):
+        """Wer vor der Kontur neben ihren Wänden räumt: „tasche“ – das Räumen den Boden einer
+        Tasche, deren Wände sie fährt; „raeumen“, „planen“ – das Räumen, das Planfräsen die Böden
+        vor allen ihren Wänden (ein Absatz, ein Zapfen); sonst None. An einem Absatz fuhr die
+        Kontur sonst alle Bahnen vom Rohteil her noch einmal, durch Luft (P-2026-10-02-17)."""
+        if self.raeumen.aktiv():
+            waende = self.kontur.s.flaechen_fuer(form, self.gewaehlte)
+            boeden = rb.taschenboeden(form, waende)
+            if boeden and set(boeden) & set(self._flaechen(self.raeumen, form)):
+                return "tasche"
+        vor = kb.boeden_vor(form, self._flaechen(self.kontur, form))
+        if vor:
+            if self.raeumen.aktiv() and vor <= set(self._flaechen(self.raeumen, form)):
+                return "raeumen"
+            if self.plan.aktiv() and vor <= set(self._flaechen(self.plan, form)):
+                return "planen"
+        return None
 
     def _davor_durchmesser(self):
         """Der Ø des Fräsers vor dem Restmaterial: eingetragen, sonst der der Kontur, sonst der

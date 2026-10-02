@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-17 absatz
+
+### EINGELESEN
+- `gui_bearbeitung` (`_vorschau_rechnen`, `_zusatz`, `_wettbewerb`, `_wettbewerb_gruppe`,
+  `_haken_setzen`, `_flaechen`), `planfraesen_bahn` (`planen`, `_ebene`, `_wandfahrt`),
+  `kontur_bahn` (`waende`, `ohne_flaechen`, `_kontur`: Breite), `raeumen_bahn.taschenboeden`.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`, `camaddon/kontur_bahn.py`, `camaddon/planfraesen_bahn.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `tests/gui/szenario_absatz.py` (neu), `tests/gui/szenario_zapfen.py` (neu),
+  `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.79.0)
+
+### AKZEPTANZKRITERIUM
+Block 80 × 50 × 30 mit einem Absatz 15 × 10 vorn (T1 Standardfräser), Oberseite, Absatzboden
+und Absatzwand angeklickt: Planfräsen fräst Oberseite und Absatzboden, die Kontur die Wand mit
+höchstens 3 Bahnen und dem Satz „… – nur der Rest an den Wänden: den Boden davor fräst das
+Planfräsen“; die angelegte Kontur hat eine Breite zwischen 0 und 3 und steht nach dem
+Planfräsen; „Auf der Maschine prüfen“: am Ende nirgends ins Teil. Ebenso um einen Zapfen
+40 × 30 × 10: mit dem Räumen „… – nur das Aufmaß an den Wänden: den Boden davor räumt das
+Räumen“.
+
+### DONE
+- Gefunden beim Erkunden (Absatz): Die Kontur fuhr 12 Bahnen vom Rohteil her (etwa 2 min), durch
+  Luft – den Boden davor hatte das Planfräsen schon gefräst. Die Regel „Breite = Aufmaß des
+  Räumens“ kannte nur geschlossene Taschen (`taschenboeden`).
+- `kontur_bahn.boeden_vor`: die ebenen Flächen nach oben an den Unterkanten der Wände – None,
+  wenn eine Wand unten an keinen solchen Boden stößt.
+- `planfraesen_bahn.rest_an_der_wand`: parallel zu den Zeilen bleibt an einer Wand höchstens ein
+  Zeilenabstand (die letzte freie Zeile), dazu die Zugabe der Hüllfläche.
+- Assistent: `_kontur_davor` (das Räumen für eine Tasche wie bisher; das Räumen oder das
+  Planfräsen, wenn es die Böden vor allen Wänden der Kontur fräst), `_zusatz` gibt danach die
+  Breite vor, „ba.kontur.nach_planen“ und „ba.kontur.nach_raeumen_boden“ (am Zapfen stand
+  „… die Tasche räumt das Räumen“). Dabei gefunden: Nahm der Wettbewerb (Planfräsen gegen
+  Räumen) dem Räumen den Haken, blieb die Vorschau der Kontur mit „… die Tasche räumt das
+  Räumen“ stehen – jetzt rechnet sie danach noch einmal, wenn sich ihre Vorgabe geändert hat.
+
+### TEST
+- 1.1.3: `test_sprache`, `test_hilfe` grün; `szenario_absatz`, `szenario_zapfen` (neu) und die 21 Szenarien des Assistenten
+  „Bearbeitung“ (siehe Commit) grün; black/ruff grün.
+
+### NEXT
+- Das Planfräsen selbst bis an eine Wand parallel zu den Zeilen (eine Zeile im Abstand R der
+  Wand statt gleich verteilter Zeilen, von denen die letzten wegfallen); wie P-2026-10-02-11.
+
 ## P-2026-10-02-16 hoehe-null
 
 ### EINGELESEN

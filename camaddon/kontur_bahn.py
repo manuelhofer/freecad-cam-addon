@@ -184,6 +184,32 @@ def ohne_flaechen(form, waende_):
     return sorted(ergebnis, key=lambda n: int(n[4:]))
 
 
+def boeden_vor(form, namen):
+    """Die Namen der ebenen Flächen nach oben an den Unterkanten der Wände `namen` – der Boden
+    vor einem Absatz, in einer Tasche; None, wenn eine Wand unten irgendwo an keinen solchen
+    Boden stößt (an die Unterseite des Teils, eine Bohrung): Dort räumt kein Planfräsen und
+    kein Räumen, was neben ihr steht (P-2026-10-02-17)."""
+    import Part
+
+    waende_ = waende(form, namen)
+    if not waende_:
+        return None
+    ebenen = {e.name for e in hf.ebenen_oben(form)}
+    nummern = {f.hashCode(): i for i, f in enumerate(form.Faces)}
+    boeden = set()
+    for wand in waende_:
+        for kante in wand.kanten:
+            unten = set()
+            for nachbar in form.ancestorsOfType(kante, Part.Face):
+                i = nummern.get(nachbar.hashCode())
+                if i is not None and f"Face{i + 1}" in ebenen:
+                    unten.add(f"Face{i + 1}")
+            if not unten:
+                return None
+            boeden |= unten
+    return boeden
+
+
 def _schluessel(kante):
     mitte = kante.valueAt((kante.FirstParameter + kante.LastParameter) / 2)
     return (round(mitte.x, 4), round(mitte.y, 4), round(mitte.z, 4), round(kante.Length, 4))

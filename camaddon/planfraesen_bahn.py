@@ -102,6 +102,13 @@ def ueberlauf_vorschlag(form):
     return UEBERLAUF_ANTEIL * 2 * form.radius
 
 
+def rest_an_der_wand(zeilenabstand):
+    """So viel lässt das Planfräsen an einer Wand höchstens stehen: parallel zu seinen Zeilen
+    bis zu einem Zeilenabstand (die letzte Zeile, die frei fährt), dazu die Zugabe der
+    Hüllfläche – so breit ist der Rest für die Kontur danach (P-2026-10-02-17)."""
+    return zeilenabstand + hf.TOLERANZ + vb.RAND
+
+
 def planen(netz, werte, ebenen, schritt=SCHRITT):
     """Die Bahn „Planfräsen“ (Planbahn) über die Flächen `ebenen` ([hoehenfeld.Ebene]) mit den
     Werten `werte`; `netz` ist das Teil ohne diese Flächen (hoehenfeld.netz_ohne). Je Fläche

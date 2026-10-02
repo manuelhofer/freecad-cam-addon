@@ -170,7 +170,15 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    Kontur hatte die gebohrten Ø 9 in ihrer Liste (mit dem Ø 12 übersprungen, mit einem kleineren
    Fräser wäre doppelt gefräst worden). Jetzt nimmt die Kontur die Flächen jedes anderen
    angehakten Blocks heraus, außer er wetteifert mit ihr um genau dieselben
-   (`szenario_lagerbock`).
+   (`szenario_lagerbock`). **Absatz** (P-2026-10-02-17, 0.79.0): Block 80 × 50 × 30 mit einem
+   Absatz 15 × 10 vorn, Oberseite, Absatzboden und -wand gewählt – die Kontur fuhr 12 Bahnen
+   vom Rohteil her (etwa 2 min), durch Luft: Den Boden davor hatte das Planfräsen schon
+   gefräst. Jetzt nimmt sie nur den Rest, den es an der Wand lässt (parallel zu seinen Zeilen
+   höchstens ein Zeilenabstand, `planfraesen_bahn.rest_an_der_wand`), sobald das Planfräsen
+   oder das Räumen die Böden vor allen ihren Wänden fräst (`kontur_bahn.boeden_vor`) – auch
+   um einen Zapfen („… den Boden davor räumt das Räumen“: 1 Bahn). Nimmt der Wettbewerb dem
+   Räumen den Haken, rechnet die Kontur danach noch einmal – sonst stand „… die Tasche räumt
+   das Räumen“ ohne Räumen (`szenario_absatz`, `szenario_zapfen`).
 8. **Fasen / Entgraten** – an Kanten in der Ebene mit Fasenfräser oder
    Kugelfräser als Kantenbruch; Breite einstellbar; **auch an Kanten im Raum**
    und rundum (V4d). Aufwand mittel. Gebaut: rundum (V4d, 0.36.0) und im
