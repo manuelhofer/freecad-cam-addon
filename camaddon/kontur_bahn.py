@@ -73,6 +73,9 @@ class Konturwerte:
     # (Kontur, x, y) → bool je Stelle: nur dort fahren – None: überall (Restmaterial:
     # nur_wo_der_grosse_nicht_hinkam).
     nur_wo: object = None
+    # Das Material rechts der Fahrtrichtung (Gleichlauf bei M3); False: links – Gleichlauf bei
+    # rückwärts drehender Spindel (M4, P-2026-10-02-20).
+    gleichlauf: bool = True
 
 
 @dataclass
@@ -475,9 +478,10 @@ def _parallel(strecke, d):
     )
 
 
-def _versatz(kontur, d, toleranz, schritt):
+def _versatz(kontur, d, toleranz, schritt, material_rechts=True):
     """(Segmente, Proben) des Versatzes um `d` auf der freien Seite der Kontur, in Fahrtrichtung
-    (Material rechts); None, wenn es ihn nicht gibt (zu groß für die Tasche)."""
+    (Material rechts, `material_rechts` False: links); None, wenn es ihn nicht gibt (zu groß für
+    die Tasche)."""
     import FreeCAD
 
     ziel = (kontur.stelle[0] + kontur.normale[0] * d, kontur.stelle[1] + kontur.normale[1] * d)
@@ -502,19 +506,26 @@ def _versatz(kontur, d, toleranz, schritt):
         abstand = np.hypot(proben.x - ziel[0], proben.y - ziel[1])
         if abstand.min() <= max(schritt, 0.01 * d):
             return _in_fahrtrichtung(
-                segmente, proben, int(abstand.argmin()), kontur.normale, schritt, kontur.geschlossen
+                segmente,
+                proben,
+                int(abstand.argmin()),
+                kontur.normale,
+                schritt,
+                kontur.geschlossen,
+                material_rechts,
             )
     return None
 
 
-def _in_fahrtrichtung(segmente, proben, nahe, normale, schritt, geschlossen):
-    """Gleichlauf: das Material rechts, die freie Seite (die Normale) links. Liegt sie rechts
-    der Fahrtrichtung an der Stelle `nahe`, dreht sich die Bahn um."""
+def _in_fahrtrichtung(segmente, proben, nahe, normale, schritt, geschlossen, material_rechts=True):
+    """Gleichlauf (M3): das Material rechts, die freie Seite (die Normale) links – mit
+    `material_rechts` False andersherum (M4). Liegt sie an der Stelle `nahe` auf der falschen
+    Seite der Fahrtrichtung, dreht sich die Bahn um."""
     n = len(proben.x)
     j = (nahe + 1) % n if geschlossen else min(nahe + 1, n - 1)
     i = nahe if j != nahe else nahe - 1
     tx, ty = proben.x[j] - proben.x[i], proben.y[j] - proben.y[i]
-    if -ty * normale[0] + tx * normale[1] < 0:
+    if (-ty * normale[0] + tx * normale[1] < 0) == bool(material_rechts):
         segmente = [s.umgekehrt() for s in reversed(segmente)]
         proben = _abtasten(segmente, schritt, geschlossen)
     return segmente, proben
@@ -796,7 +807,7 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
         abstaende = [r + aufmass + i * w.zeilenabstand for i in range(HOECHSTENS_VERSAETZE)]
     schrupp = []  # [(d, Segmente, Proben)] von der Wand nach außen
     for d in abstaende:
-        versatz = _versatz(k, d, toleranz, schritt)
+        versatz = _versatz(k, d, toleranz, schritt, w.gleichlauf)
         if versatz is None:
             break
         segmente, proben = versatz
@@ -805,7 +816,7 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
         schrupp.append((d, segmente, proben))
     schlicht = None
     if w.schlichten:
-        versatz = _versatz(k, r, toleranz, schritt)
+        versatz = _versatz(k, r, toleranz, schritt, w.gleichlauf)
         if versatz is not None and _im_rohteil(versatz[1].x, versatz[1].y, w.rohteil, r).any():
             schlicht = (r, versatz[0], versatz[1])
     alle = schrupp + ([schlicht] if schlicht is not None else [])
@@ -991,8 +1002,8 @@ def _lauf(
             (huelle.abstand_zur_wand(qx, qy, lage) >= mindest).all()
         )
 
-    ein = _anfahrt(p0, t0, r_ein, gerade, frei, hinein=True)
-    aus = _anfahrt(p1, t1, r_ein, gerade, frei, hinein=False)
+    ein = _anfahrt(p0, t0, r_ein, gerade, frei, hinein=True, frei_rechts=not w.gleichlauf)
+    aus = _anfahrt(p1, t1, r_ein, gerade, frei, hinein=False, frei_rechts=not w.gleichlauf)
     start = ein.aussen if ein is not None else p0
     reichweite = d + (ein.r_e + ein.laenge_gerade if ein is not None else 0.0)
     # Wie nah kommt die Stirn am Einfahrpunkt der Wand – gemessen, nicht geschätzt: In einer

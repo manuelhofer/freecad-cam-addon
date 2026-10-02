@@ -12,6 +12,53 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-20 m3-m4
+
+### EINGELESEN
+- FreeCADs `Path/Tool/Controller.py` (`SpindleDir`: Forward, Reverse, None; vom ToolBit
+  `SpindleDirection`), `Path/Op/PocketBase.py` (CutMode ohne Drehrichtung),
+  `uebergabe_werkzeuge.drehrichtung`; `kontur_bahn` (`_versatz`, `_in_fahrtrichtung`,
+  `_anfahrt`, `_lauf`), `entgrat_bahn`, `gewinde_bahn.richtung`, die `rechne` von `kontur`,
+  `entgraten`, `schlichten3d`, `raeumen`, `bohrung`, `nut`, `gewindefraesen`, `schruppen3d`.
+
+### DATEIEN
+- `camaddon/spindel.py` (neu), `camaddon/kontur_bahn.py`, `camaddon/entgrat_bahn.py`,
+  `camaddon/kontur.py`, `camaddon/entgraten.py`, `camaddon/schlichten3d.py`,
+  `camaddon/raeumen.py`, `camaddon/bohrung.py`, `camaddon/nut.py`, `camaddon/gewindefraesen.py`,
+  `camaddon/schruppen3d.py`, `translations/de.json`, `translations/en.json`,
+  `help/de|en/bearbeitung.html`, `tests/test_kontur.py`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.82.0)
+
+### AKZEPTANZKRITERIUM
+Manuel (2026-10-02) auf die Frage, ob seine Spindel mit M3 dreht: „Die kann beide Richtungen.“
+– Steht der Werkzeug-Controller einer Operation auf „Reverse“ (M4), fräst jede Bahn mit Gleichlauf
+weiter im Gleichlauf: das Material links der Fahrtrichtung, um einen Zapfen gegen den
+Uhrzeigersinn, in der Tasche mit ihm; ein Gewinde behält seine Steigungsrichtung. Mit „Forward“
+alles wie bisher.
+
+### DONE
+- `spindel.rueckwaerts(tc)`, `spindel.fuer_m3(gleichlauf, tc)`: was eine Bahn, die mit M3
+  rechnet, als „Gleichlauf“ braucht.
+- `kontur_bahn`: `Konturwerte.gleichlauf`, `_versatz(…, material_rechts)`,
+  `_in_fahrtrichtung(…, material_rechts)`, das Ein- und Ausfahren auf der freien Seite
+  (`frei_rechts`); `entgrat_bahn` ebenso; Kontur, Restmaterial, Entgraten, 3D-Schlichten
+  (Höhenlinien) bekommen `gleichlauf` aus dem Controller, Räumen, Bohrung fräsen, Nut, Gewinde
+  fräsen, 3D-Schruppen ihren Haken über `fuer_m3`. Ein Gewinde: Drehsinn und Steigrichtung
+  kehren sich zusammen um (`gewinde_bahn.richtung`) – rechtsgängig bleibt rechtsgängig.
+
+### TEST
+- 1.1.3: `test_kontur` (die Bahn mit `gleichlauf=False`: dieselben Lagen und Bahnen, in der
+  Tasche im Uhrzeigersinn, außen gegen ihn; die Operation mit `SpindleDir` „Reverse“ außen gegen
+  den Uhrzeigersinn, mit „Forward“ mit ihm; `fuer_m3`), `test_raeumen`, `test_bohrung`,
+  `test_nut`, `test_gewindefraesen`, `test_entgraten`, `test_schruppen3d`, `test_schlichten3d`,
+  `test_sprache`, `test_hilfe` und die Szenarien des Assistenten „Bearbeitung“ (siehe Commit)
+  grün; black/ruff grün.
+
+### NEXT
+- Die 4-Achs-Bahnen (Rundum schruppen/schlichten, Plan indexiert, Nut auf dem Mantel) nach der
+  Drehrichtung des angetriebenen Werkzeugs; ein Feld „links schneidend“ in der
+  Werkzeugverwaltung, das „Reverse“ an den Controller gibt.
+
 ## P-2026-10-02-19 rest-von-selbst
 
 ### EINGELESEN

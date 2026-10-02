@@ -28,6 +28,7 @@ from . import kontur_bahn as kb
 from . import namen
 from . import planfraesen as pf
 from . import raeumen_bahn as rb
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_schlichten as vs
@@ -155,7 +156,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         float(obj.Aufmass),
         vo.flaechen(obj),
         aufmass_boden=float(obj.AufmassBoden),
-        gleichlauf=bool(obj.Gleichlauf),
+        gleichlauf=sp.fuer_m3(obj.Gleichlauf, obj.ToolController),
         variante=variante if variante in rb.VARIANTEN else None,
         einfahrradius=einfahrradius if einfahrradius > 0 else None,
         schneidenlaenge=ko.schneidenlaenge(obj.ToolController),

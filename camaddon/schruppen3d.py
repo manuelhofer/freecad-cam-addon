@@ -30,6 +30,7 @@ from . import planfraesen as pf
 from . import raeumen as ra
 from . import raeumen_bahn as rb
 from . import schruppen3d_bahn as sr
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_schlichten as vs
@@ -133,7 +134,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         float(obj.Aufmass),
         vo.flaechen(obj),
         zwischen=float(obj.Zwischenlagen),
-        gleichlauf=bool(obj.Gleichlauf),
+        gleichlauf=sp.fuer_m3(obj.Gleichlauf, obj.ToolController),
         schneidenlaenge=ko.schneidenlaenge(obj.ToolController),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
         sicher=float(obj.SafeHeight),

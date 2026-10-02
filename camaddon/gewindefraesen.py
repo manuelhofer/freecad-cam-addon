@@ -26,6 +26,7 @@ from . import bohrung_bahn as bb
 from . import gewinde_bahn as gb
 from . import namen
 from . import planfraesen as pf
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_schlichten as vs
@@ -158,7 +159,7 @@ def rechne(obj, job, modell, vorschub=0.0, mit_hoehen=True):
         float(obj.Steigung),
         vo.flaechen(obj),
         zaehne=int(obj.Zaehne),
-        gleichlauf=bool(obj.Gleichlauf),
+        gleichlauf=sp.fuer_m3(obj.Gleichlauf, obj.ToolController),
         links=bool(obj.Linksgewinde),
         durchgaenge=int(obj.Durchgaenge),
         korrektur=float(obj.Korrektur),

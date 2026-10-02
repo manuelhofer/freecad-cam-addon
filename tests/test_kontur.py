@@ -8,6 +8,7 @@
 # eine Wand allein (offen) und eine Taschenwand allein (die Nachbarn halten die Bahn an),
 # Fehler mit einem Satz; dann die CAM-Operation im Job: angelegt (Tiefen und Höhen wie
 # FreeCAD), gerechnet, geändert, gespeichert und geladen.
+import dataclasses
 import math
 import os
 import sys
@@ -25,6 +26,7 @@ from camaddon import hoehenfeld as hf
 from camaddon import job_schnittwerte as js
 from camaddon import kontur as ko
 from camaddon import kontur_bahn as kb
+from camaddon import spindel as sp
 from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
 from camaddon import werkzeuge as wz
@@ -156,6 +158,39 @@ pruefe(
 )
 aussen = [(p.x, p.y) for p in vorschub if abs(p.z) < 1e-9 and p.bogen is None]
 pruefe(len(aussen) > 4 and flaeche_umlauf(aussen) < 0, "außen im Uhrzeigersinn")
+# Rückwärts drehende Spindel (M4, P-2026-10-02-20): Gleichlauf ist dann das Material links –
+# in der Tasche im Uhrzeigersinn, außen gegen ihn; dieselben Lagen und Bahnen.
+m4 = kb.planen(netz, dataclasses.replace(werte, gleichlauf=False), konturen, netz_fern=netz_fern)
+m4_vorschub = [p for p in m4.punkte if not p.eilgang]
+m4_innen = [
+    (p.x, p.y)
+    for p in m4_vorschub
+    if abs(p.z - 5.0) < 1e-9 and 24 < p.x < 76 and 9 < p.y < 51 and p.bogen is None
+]
+m4_aussen = [(p.x, p.y) for p in m4_vorschub if abs(p.z) < 1e-9 and p.bogen is None]
+pruefe(
+    (m4.lagen, m4.bahnen) == (bahn.lagen, bahn.bahnen)
+    and len(m4_innen) > 4
+    and flaeche_umlauf(m4_innen) < 0
+    and len(m4_aussen) > 4
+    and flaeche_umlauf(m4_aussen) > 0,
+    f"M4: {m4.lagen} Lagen, {m4.bahnen} Bahnen, innen {flaeche_umlauf(m4_innen):.0f}, "
+    f"außen {flaeche_umlauf(m4_aussen):.0f}",
+)
+
+
+class _Controller:
+    def __init__(self, richtung):
+        self.SpindleDir = richtung
+
+
+pruefe(
+    sp.fuer_m3(True, _Controller("Forward"))
+    and not sp.fuer_m3(True, _Controller("Reverse"))
+    and sp.fuer_m3(False, _Controller("Reverse"))
+    and sp.fuer_m3(True, object()),
+    "spindel.fuer_m3",
+)
 # Der Versatz: Schlichten bei 6 (x = −6 … 106), Schruppen bei 6,3 (die Ecken als Bögen R 6,3).
 schlicht_aussen = [p for p in vorschub if abs(p.z) < 1e-9]  # Schrupplage und Schlichten
 x_unten = {round(p.x, 3) for p in schlicht_aussen}
@@ -382,9 +417,33 @@ ko.aendere(op, tc1, ap, ae, 0.3, True, breite=1.0, flaechen=taschen_im_job)
 doc.recompute()
 pruefe(op.Bahnen == 1 + 1, f"Breite 1: {op.Bahnen} Bahnen")
 
-# Speichern und Laden: dieselbe Bahn.
+# Am Controller rückwärts (M4): Die Operation fährt außen gegen den Uhrzeigersinn.
 ko.aendere(op, tc1, ap, ae, 0.3, True, flaechen=waende_im_job)
 doc.recompute()
+
+
+def umlauf_bei(op, z):
+    """Die Fläche der Geraden im Vorschub auf der Höhe z – das Vorzeichen sagt die Richtung."""
+    punkte, x, y, zz = [], 0.0, 0.0, None
+    for b in op.Path.Commands:
+        x, y = b.Parameters.get("X", x), b.Parameters.get("Y", y)
+        zz = b.Parameters.get("Z", zz)
+        if b.Name == "G1" and zz is not None and abs(zz - z) < 1e-6:
+            punkte.append((x, y))
+    return flaeche_umlauf(punkte) if len(punkte) > 4 else 0.0
+
+
+vorwaerts = umlauf_bei(op, 0.0)
+tc1.SpindleDir = "Reverse"
+op.touch()
+doc.recompute()
+rueckwaerts = umlauf_bei(op, 0.0)
+tc1.SpindleDir = "Forward"
+op.touch()
+doc.recompute()
+pruefe(vorwaerts < 0 < rueckwaerts, f"M3 {vorwaerts:.0f}, M4 {rueckwaerts:.0f}")
+
+# Speichern und Laden: dieselbe Bahn.
 anzahl = len(op.Path.Commands)
 pfad = os.path.join(tempfile.mkdtemp(), "kontur.FCStd")
 doc.saveAs(pfad)

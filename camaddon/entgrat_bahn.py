@@ -73,6 +73,7 @@ class Entgratwerte:
     einfahrradius: float = None  # der Viertelkreis hinein und heraus; None: EINFAHRT
     sicherheit: float = vb.SICHERHEIT  # so weit über der Kante endet der Eilgang hinab
     profilradius: float = 0.0  # > 0: ein Radienfräser mit dieser Hohlkehle – er verrundet
+    gleichlauf: bool = True  # das Material rechts (M3); False: links – rückwärts (M4)
 
 
 @dataclass(frozen=True)
@@ -485,7 +486,7 @@ def planen(netz, werte, ketten_, schritt=SCHRITT, netz_fern=None):
         else:
             abstand = abstand_zur_wand(max(tiefe - fase, 0.0), w.spitzenwinkel, w.spitze)
         lage = k.z_kante - tiefe
-        versatz = kb._versatz(k.kontur, abstand, toleranz, schritt)
+        versatz = kb._versatz(k.kontur, abstand, toleranz, schritt, w.gleichlauf)
         if versatz is None:
             st.ausgelassen += 1
             continue
@@ -579,8 +580,8 @@ def _lauf(st, k, segmente, proben, stellen, lage, huelle, abstand, r_ein, w):
             (huelle.abstand_zur_wand(qx, qy, lage) >= mindest).all()
         )
 
-    ein = kb._anfahrt(p0, t0, r_ein, r_ein, frei, hinein=True)
-    aus = kb._anfahrt(p1, t1, r_ein, r_ein, frei, hinein=False)
+    ein = kb._anfahrt(p0, t0, r_ein, r_ein, frei, hinein=True, frei_rechts=not w.gleichlauf)
+    aus = kb._anfahrt(p1, t1, r_ein, r_ein, frei, hinein=False, frei_rechts=not w.gleichlauf)
     start = ein.aussen if ein is not None else p0
     punkte = st.punkte
     punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))

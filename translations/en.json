@@ -1433,7 +1433,7 @@
     "ba.aufmass_boden": "Allowance on the floor",
     "ba.aufmass_boden.tooltip": "How much stays on the face. Empty: 0 – the face is finished.",
     "ba.gleichlauf": "Climb milling",
-    "ba.gleichlauf.tooltip": "The material lies to the right of the direction of travel (climb milling with a clockwise spindle, M3 – kind to edge and surface): clockwise around a boss, counter-clockwise in a pocket. Unchecked: conventional milling, the material to the left.",
+    "ba.gleichlauf.tooltip": "The material lies to the right of the direction of travel (climb milling with a clockwise spindle, M3 – kind to edge and surface): clockwise around a boss, counter-clockwise in a pocket. Unchecked: conventional milling, the material to the left. With the tool controller set to “Reverse” (M4) the path runs the other way round.",
     "ba.raeumen.keine_flaeche": "No flat upward face and no pocket wall selected – clearing needs a top face or a pocket floor.",
     "ba.wettbewerb.schnellste": "{text} – the fastest; {andere} would be {prozent} % slower",
     "ba.wettbewerb.langsamer": "{text} – {prozent} % slower than {andere}",

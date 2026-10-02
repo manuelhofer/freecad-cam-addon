@@ -26,6 +26,7 @@ from . import fraeserform as ff
 from . import hoehenfeld as hf
 from . import namen
 from . import planfraesen as pf
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_schlichten as vs
@@ -138,6 +139,7 @@ def rechne(obj, job, modell):
         sicher=float(obj.SafeHeight),
         sicherheit=float(obj.Sicherheitsabstand),
         profilradius=profil,
+        gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
 
 
@@ -156,6 +158,7 @@ def bahn_fuer(
     toleranz=hf.TOLERANZ,
     schritt=eb.SCHRITT,
     profilradius=0.0,
+    gleichlauf=True,
 ):
     """Die Bahn „Entgraten“ für Modell und Rohteil des Jobs an den Flächen `flaechen` („Face6“ …:
     Wände, oder ebene Flächen nach oben – dann die Wände, die an ihren Kanten hinab gehen).
@@ -177,6 +180,7 @@ def bahn_fuer(
         einfahrradius=einfahrradius,
         sicherheit=sicherheit,
         profilradius=profilradius,
+        gleichlauf=gleichlauf,
     )
     netz_nah, netz_fern = eb.netze(form_teil, list(flaechen), toleranz)
     return eb.planen(netz_nah, werte, ketten, schritt, netz_fern)

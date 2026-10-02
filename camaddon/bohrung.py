@@ -24,6 +24,7 @@ from . import bohrung_bahn as bb
 from . import kontur as ko
 from . import namen
 from . import planfraesen as pf
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_planbahn as vp
@@ -128,7 +129,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vo.flaechen(obj),
         aufmass_boden=float(obj.AufmassBoden),
         schlichten=bool(obj.Schlichten),
-        gleichlauf=bool(obj.Gleichlauf),
+        gleichlauf=sp.fuer_m3(obj.Gleichlauf, obj.ToolController),
         tiefer=float(obj.Tiefer),
         schneidenlaenge=ko.schneidenlaenge(obj.ToolController),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),

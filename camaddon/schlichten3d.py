@@ -25,6 +25,7 @@ from . import fraeserform as ff
 from . import namen
 from . import planfraesen as pf
 from . import schlichten3d_bahn as sb
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_schlichten as vs
@@ -135,6 +136,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vorschub=vorschub,
         eintauchen=eintauchen,
         davor=form_davor(obj),
+        gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
 
 
@@ -174,9 +176,11 @@ def bahn_fuer(
     toleranz=sb.TOLERANZ_NETZ,
     raster=sb.RASTER,
     davor=None,
+    gleichlauf=True,
 ):
     """Die Bahn „3D-Schlichten“ über die Flächen `flaechen` des Modells – mit `davor` (Form des
-    Fräsers davor) nur der Rest. ValueError mit einem Satz, wenn es nicht geht."""
+    Fräsers davor) nur der Rest; `gleichlauf` False: die Höhenlinien mit dem Material links (M4).
+    ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     *_rohteil, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -197,6 +201,7 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
         davor=davor,
+        gleichlauf=gleichlauf,
     )
     return sb.planen(form_teil, list(flaechen), werte, toleranz)
 

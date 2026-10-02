@@ -1433,7 +1433,7 @@
     "ba.aufmass_boden": "Aufmaß am Boden",
     "ba.aufmass_boden.tooltip": "So viel bleibt auf der Fläche stehen. Leer: 0 – die Fläche ist fertig.",
     "ba.gleichlauf": "Gleichlauf",
-    "ba.gleichlauf.tooltip": "Das Material liegt rechts der Fahrtrichtung (Gleichlauf bei rechtsdrehender Spindel, M3 – schont Schneide und Oberfläche): um einen Zapfen im Uhrzeigersinn, in einer Tasche gegen ihn. Ohne Haken Gegenlauf: das Material links.",
+    "ba.gleichlauf.tooltip": "Das Material liegt rechts der Fahrtrichtung (Gleichlauf bei rechtsdrehender Spindel, M3 – schont Schneide und Oberfläche): um einen Zapfen im Uhrzeigersinn, in einer Tasche gegen ihn. Ohne Haken Gegenlauf: das Material links. Steht der Werkzeug-Controller auf „Reverse“ (M4), läuft die Bahn andersherum.",
     "ba.raeumen.keine_flaeche": "Keine ebene Fläche nach oben und keine Taschenwand gewählt – Räumen braucht eine Oberseite oder einen Taschenboden.",
     "ba.wettbewerb.schnellste": "{text} – die schnellste; {andere} wäre {prozent} % langsamer",
     "ba.wettbewerb.langsamer": "{text} – {prozent} % langsamer als {andere}",

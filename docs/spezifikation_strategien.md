@@ -574,7 +574,13 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
    rechtsdrehender Spindel (M3): das Material rechts der Fahrtrichtung, wie
    bei G41 – um einen Zapfen im Uhrzeigersinn, in einer Tasche oder Bohrung
    gegen ihn. (Bis P-2026-10-01-27 stand hier „Material links“ – das war
-   Gegenlauf; seit P-2026-10-01-28 richtig herum, Kontur und Räumen.)
+   Gegenlauf; seit P-2026-10-01-28 richtig herum, Kontur und Räumen.) Steht der
+   Werkzeug-Controller auf „Reverse“ (M4, Manuel 2026-10-02: die Spindel kann
+   beide Richtungen), spiegeln alle Bahnen mit Gleichlauf die Richtung – das
+   Material liegt dann links (`spindel.fuer_m3`; Kontur, Restmaterial,
+   Entgraten, 3D-Schlichten, Räumen, Bohrung fräsen, Nut, Gewinde fräsen,
+   3D-Schruppen; P-2026-10-02-20). FreeCADs eigene Operationen fragen danach
+   nicht. Die 4-Achs-Bahnen noch nicht.
 5. **Keine Luftschnitte.** Bahn nur dort, wo Material steht (Abtrag) – bei
    Zeilen, Lagen und Restbearbeitung.
 6. **Restmaterial kennen.** Ein Abtragsmodell je Job (Abschnitt 7): jede

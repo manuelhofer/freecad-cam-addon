@@ -25,6 +25,7 @@ from . import hoehenfeld as hf
 from . import kontur_bahn as kb
 from . import namen
 from . import planfraesen as pf
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_schlichten as vs
@@ -153,6 +154,7 @@ def rechne(obj, job, modell):
         eintauchwinkel=float(obj.Eintauchwinkel),
         austritt=float(obj.VorschubAustritt) / 100.0,
         radius_davor=float(getattr(obj, "RadiusDavor", 0.0) or 0.0),
+        gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
 
 
@@ -177,6 +179,7 @@ def bahn_fuer(
     toleranz=hf.TOLERANZ,
     schritt=kb.SCHRITT,
     radius_davor=0.0,
+    gleichlauf=True,
 ):
     """Die Bahn „Kontur“ für Modell und Rohteil des Jobs an den Wänden `flaechen` („Face6“ …).
     `oben`: z, wo die Lagen beginnen (None: die Oberkante des Rohteils); `sicher`: z für den
@@ -214,6 +217,7 @@ def bahn_fuer(
         eintauchwinkel=eintauchwinkel,
         austritt=austritt,
         nur_wo=nur_wo,
+        gleichlauf=gleichlauf,
     )
     waende = kb.waende(form_teil, list(flaechen))
     netz_nah, netz_fern = hf.netze_ohne(
