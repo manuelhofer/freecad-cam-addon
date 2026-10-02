@@ -456,9 +456,12 @@ class VierachsPanel:
 
     offen = None  # das gerade offene Fenster – für die Oberflächen-Szenarien
 
-    def __init__(self, dokument, wahl=None, operation=None):
+    def __init__(self, dokument, wahl=None, operation=None, maschine=None):
         VierachsPanel.offen = self
         self.doc = dokument
+        # Die Maschine, mit der es losgeht (Assembly oder ihr Dokument) – aus Schritt 1 des
+        # Assistenten „Bearbeitung“, wenn dort eine Drehmaschine gewählt war (W-011 S3).
+        self._maschine_vorwahl = maschine
         self.teil = None  # das Original, das in die Stange soll
         self.flaeche = None  # „FaceN“ der Stirnfläche
         self.vermessung = None
@@ -930,7 +933,7 @@ class VierachsPanel:
         raster.addWidget(beschriftung(tr("va.rundachse"), tr("va.rundachse.tooltip")), zeile, 0)
         raster.addWidget(self.wahl_achse, zeile, 1, 1, 2)
         zeile += 1
-        self._maschinen_fuellen()
+        self._maschinen_fuellen(vorwahl=self._maschine_vorwahl)
         self.wahl_maschine.currentIndexChanged.connect(
             lambda _i: None if self._fuellt else self._maschine_gewaehlt()
         )
@@ -1391,23 +1394,33 @@ class VierachsPanel:
         return self._maschinen[i] if 0 <= i < len(self._maschinen) else None
 
     def _maschinen_fuellen(self, vorwahl=None):
-        """Die Liste „Maschine“: die offenen Maschinen, die zuletzt benutzte zum Öffnen
-        (D-20), „ohne Maschine“. Vorgewählt die Maschine mit Assembly oder Dokument
-        `vorwahl`, sonst die erste mit einer Rundachse für die Stange, sonst „ohne“."""
+        """Die Liste „Maschine“: die offenen Maschinen, zum Öffnen die zuletzt benutzte (D-20)
+        und die aus der Liste „Maschinen …“, deren Rundachse die Stange dreht (W-011 S3),
+        „ohne Maschine“. Vorgewählt die Maschine mit Assembly oder Dokument `vorwahl`, sonst
+        die erste mit einer Rundachse für die Stange, sonst „ohne“."""
         import os
 
+        from . import maschinenspeicher as msp
         from . import reichweite as rw
         from .gui_reichweite import gleiche_datei
 
         offen = va.maschinen(self.doc)
         self._maschinen = list(offen)
+        self._aus_liste = {}  # Datei → Name aus der Liste der Maschinen
+
+        def dabei(pfad):
+            return any(gleiche_datei(e.assembly.Document.FileName, pfad) for e in offen) or any(
+                isinstance(e, str) and gleiche_datei(e, pfad) for e in self._maschinen
+            )
+
         gemerkt = rw.gemerkte_maschine()
-        if (
-            gemerkt
-            and os.path.isfile(gemerkt)
-            and not any(gleiche_datei(e.assembly.Document.FileName, gemerkt) for e in offen)
-        ):
+        if gemerkt and os.path.isfile(gemerkt) and not dabei(gemerkt):
             self._maschinen.append(gemerkt)
+        for eintrag in msp.laden():
+            if eintrag.art in (msp.DREHMASCHINE, msp.FRAESE_4, msp.FRAESE_5) and eintrag.vorhanden:
+                self._aus_liste[os.path.normcase(os.path.abspath(eintrag.datei))] = eintrag.name
+                if not dabei(eintrag.datei):
+                    self._maschinen.append(eintrag.datei)
         self._maschinen.append(None)
         wahl = next(
             (
@@ -1429,16 +1442,24 @@ class VierachsPanel:
             self._fuellt = vorher
         self._achsen_fuellen()
 
-    @staticmethod
-    def _maschinentext(eintrag):
+    def _maschinentext(self, eintrag):
         import os
+
+        from . import reichweite as rw
+        from .gui_reichweite import gleiche_datei
 
         if isinstance(eintrag, va.Maschinenwahl):
             if not eintrag.achsen:
                 return tr("va.maschine.ohne_rundachse", name=eintrag.name)
             return eintrag.name
         if isinstance(eintrag, str):
-            return tr("va.maschine.oeffnen", name=os.path.splitext(os.path.basename(eintrag))[0])
+            name = getattr(self, "_aus_liste", {}).get(os.path.normcase(os.path.abspath(eintrag)))
+            if name is not None and not gleiche_datei(eintrag, rw.gemerkte_maschine()):
+                return tr("va.maschine.aus_liste", name=name)
+            return tr(
+                "va.maschine.oeffnen",
+                name=name or os.path.splitext(os.path.basename(eintrag))[0],
+            )
         return tr("va.maschine.ohne")
 
     def _waehle_maschine_ohne_signal(self, index):

@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-60 drehmaschine-zum-vierachs
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Danach kann man bessere Entscheidungen treffen, wenn man das schon
+  weiß … Beispiel: Auf einer Drehbank ist das Rohteil selten eckig“ (W-011, S3).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`STANGE_ARTEN`, Hinweis je Art, `nur_vierachs`,
+  `zum_vierachs`, Weiter/Anlegen gesperrt auf der Drehmaschine), `camaddon/gui_vierachs.py`
+  (`maschine=` vorgewählt, Maschinen der Liste zum Öffnen), `translations/de.json`,
+  `translations/en.json`, `help/de|en/bearbeitung.html`, `help/de|en/vierachs.html`,
+  `tests/gui/szenario_bearbeitung_drehmaschine.py` (neu),
+  `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.113.0)
+
+### AKZEPTANZKRITERIUM
+Mit der Drehmaschine in Schritt 1 geht es nur über „Weiter im 4-Achs-Assistenten →“ weiter –
+dort sind Teil, Stirnfläche und Drehmaschine schon gewählt, Rundachse C.
+
+### DONE
+- Drehmaschine: roter Satz, Weiter/Anlegen gesperrt, Knopf; 4-Achs-Fräse: grauer Satz und
+  Knopf, der Quader bleibt möglich; 3-/5-Achs wie bisher.
+- Der Wechsel nimmt den Job zurück, öffnet die Maschine und den 4-Achs-Assistenten.
+
+### TEST
+- `test_sprache`, `test_hilfe`; Szenarien `szenario_bearbeitung_drehmaschine`,
+  `szenario_bearbeitung_maschine`, `szenario_vierachs_maschine`, `szenario_vierachs_nut`,
+  `szenario_rundum_drehmaschine`, `szenario_bearbeitung`, `szenario_vierachs_rohteil`,
+  `szenario_vierachs_aendern` (1.1.3). Angepasst: `szenario_vierachs_maschine` (die gemerkte
+  Maschine heißt jetzt wie in der Liste, nicht wie ihre Datei), `szenario_bearbeitung_maschine`
+  (die vorgewählte Drehmaschine zeigt den roten Satz).
+
+### NEXT
+- S4: Rohteil aus einem konstruierten Teil.
+
 ## P-2026-10-02-59 maschine-in-schritt-1
 
 ### EINGELESEN

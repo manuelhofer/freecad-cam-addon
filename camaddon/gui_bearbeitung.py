@@ -79,6 +79,8 @@ from .gui_zahlen import Zahlenpruefer, dezimal, groesse_fest, groesse_lesen, gro
 from .sprache import tr
 
 AUFMASS_ROHTEIL = 1.0  # mm je Seite, wie FreeCADs Job
+# Auf diesen Maschinen dreht eine Rundachse das Teil: Das Rohteil ist eine Stange (W-011 S3).
+STANGE_ARTEN = (msp.DREHMASCHINE, msp.FRAESE_4)
 GEMERKT_FRAESER = "BaFraeser"  # Kennung des zuletzt gewählten Fräsers (Planfräsen)
 GEMERKT_KONTURFRAESER = "BaKonturFraeser"  # … für die Kontur
 GEMERKT_RAEUMFRAESER = "BaRaeumFraeser"  # … fürs Räumen
@@ -2404,6 +2406,7 @@ class BearbeitungPanel:
     def __init__(self, dokument, wahl=None, operation=None):
         BearbeitungPanel.offen = self
         self.doc = dokument
+        self._wahl_anfang = wahl  # (Teil, „FaceN“) – für den Wechsel zum 4-Achs-Assistenten
         self.job = None
         self.teil = None
         self.bibliothek = None
@@ -2539,6 +2542,13 @@ class BearbeitungPanel:
         oben.reihe(tr("ba.maschine"), tr("ba.maschine.tooltip"), zeile)
         self.maschine_hinweis = _grau()
         oben.ganz(self.maschine_hinweis)
+        # Drehmaschine oder 4-Achs-Fräse: Das Rohteil ist eine Stange (W-011 S3) – weiter im
+        # 4-Achs-Assistenten, mit Teil, Fläche und Maschine.
+        self.knopf_vierachs = knopf(
+            tr("ba.maschine.vierachs"), tr("ba.maschine.vierachs.tooltip"), self.zum_vierachs
+        )
+        self.knopf_vierachs.setVisible(False)
+        oben.ganz(self.knopf_vierachs)
         self.teil_text = QtGui.QLabel(tr("ba.teil.keins"))
         self.teil_text.setWordWrap(True)
         oben.reihe(tr("ba.teil"), "", self.teil_text)
@@ -2789,7 +2799,7 @@ class BearbeitungPanel:
         letzte = self._seite == len(self.seiten) - 1
         self.knopf_zurueck.setVisible(self._seite > 0)
         self.knopf_weiter.setVisible(not letzte)
-        self.knopf_weiter.setEnabled(self.job is not None)
+        self.knopf_weiter.setEnabled(self.job is not None and not self.nur_vierachs())
         # Im letzten Schritt steht „Anlegen“ dort, wo vorher „Weiter“ stand (Manuel,
         # 2026-10-02: „als Mensch erwartet man dann den Button unten, wo der Weiter-Button war“).
         self.knopf_fertig.setVisible(letzte)
@@ -2797,7 +2807,7 @@ class BearbeitungPanel:
         self.nichts_angehakt.setVisible(not self.aktive_bloecke())
 
     def weiter(self):
-        if self.job is not None:
+        if self.job is not None and not self.nur_vierachs():
             self.seite_zeigen(self._seite + 1)
 
     def zurueck(self):
@@ -2844,6 +2854,9 @@ class BearbeitungPanel:
     def accept(self):
         if self.job is None:
             return self.reject()
+        if self.nur_vierachs():
+            QtGui.QMessageBox.information(self.form, tr("ba.titel"), tr("ba.maschine.drehmaschine"))
+            return False
         if self._rohteil_uhr.isActive():
             self._rohteil_uhr.stop()
             self._rohteil_anwenden()
@@ -3077,18 +3090,69 @@ class BearbeitungPanel:
         if getattr(self, "_maschinen_fuellt", False):
             return
         eintrag = self.maschine()
+        stange = eintrag is not None and eintrag.vorhanden and eintrag.art in STANGE_ARTEN
         if eintrag is None:
             self.maschine_hinweis.setText(tr("ba.maschine.leer"))
             self.maschine_hinweis.setStyleSheet(f"color: {GRAU_TEXT};")
         elif not eintrag.vorhanden:
             self.maschine_hinweis.setText(tr("ba.maschine.nicht_gefunden"))
             self.maschine_hinweis.setStyleSheet(f"color: {ROT};")
+        elif eintrag.art == msp.DREHMASCHINE:
+            self.maschine_hinweis.setText(tr("ba.maschine.drehmaschine"))
+            self.maschine_hinweis.setStyleSheet(f"color: {ROT};")
+        elif stange:
+            self.maschine_hinweis.setText(tr("ba.maschine.rundachse"))
+            self.maschine_hinweis.setStyleSheet(f"color: {GRAU_TEXT};")
         else:
             self.maschine_hinweis.setText("")
         self.maschine_hinweis.setVisible(bool(self.maschine_hinweis.text()))
+        self.knopf_vierachs.setVisible(stange and self.zu_aendern is None)
+        if hasattr(self, "knopf_weiter"):
+            self.seite_zeigen(self._seite)  # „Weiter“ geht auf der Drehmaschine nicht
         if eintrag is not None and self.job is not None and self.zu_aendern is None:
             rw.merke_maschine(self.job, eintrag.datei)
         self._rohteil_kurz_zeigen()
+
+    def nur_vierachs(self):
+        """Ob die gewählte Maschine eine Drehmaschine ist: Dann ist das Rohteil eine Stange, und
+        nur der 4-Achs-Assistent passt – „Weiter“ und „Anlegen“ gehen hier nicht."""
+        eintrag = self.maschine() if hasattr(self, "wahl_maschine") else None
+        return (
+            eintrag is not None
+            and eintrag.vorhanden
+            and eintrag.art == msp.DREHMASCHINE
+            and self.zu_aendern is None
+        )
+
+    def zum_vierachs(self):
+        """Drehmaschine oder 4-Achs-Fräse: Dieser Assistent schließt (der Job geht zurück), der
+        4-Achs-Assistent öffnet sich mit dem Teil, der angeklickten Fläche und der Maschine –
+        ihre Datei ist dann offen, er wählt sie vor."""
+        from . import gui_reichweite, gui_vierachs
+
+        eintrag = self.maschine()
+        if eintrag is None or not eintrag.vorhanden:
+            return
+        doc = self.doc
+        wahl = self._wahl_anfang or ((self.teil, None) if self.teil is not None else None)
+        self.reject()
+        try:
+            maschine = gui_reichweite.oeffne_datei(eintrag.datei)
+        except Exception as fehler:  # nicht mehr lesbar: ohne Maschine weiter
+            QtGui.QMessageBox.warning(
+                FreeCADGui.getMainWindow(),
+                tr("ba.titel"),
+                tr("ms.datei_fehler", datei=eintrag.datei, fehler=fehler),
+            )
+            maschine = None
+        gui_reichweite.zeige_dokument(doc)
+        FreeCAD.setActiveDocument(doc.Name)
+        QtCore.QTimer.singleShot(
+            0,
+            lambda: FreeCADGui.Control.showDialog(
+                gui_vierachs.VierachsPanel(doc, wahl, maschine=maschine)
+            ),
+        )
 
     def maschinen_oeffnen(self):
         """„Maschinen …“: die Liste zum Hinzufügen und Bauen; danach ist die Wahl neu gefüllt."""

@@ -87,11 +87,19 @@ def schritte(h):
         getattr(job, rw.EIGENSCHAFT_MASCHINE, "") == dateien["Drehmaschine"],
         f"am Job: {getattr(job, rw.EIGENSCHAFT_MASCHINE, '')!r}",
     )
-    h.pruefe(not panel.maschine_hinweis.isVisible(), "Hinweis bei gewählter Maschine")
+    # Die Drehmaschine vorgewählt: rot, dass das Rohteil dort eine Stange ist (W-011 S3).
+    h.pruefe(
+        panel.maschine_hinweis.isVisible() and panel.knopf_vierachs.isVisible(),
+        "kein Hinweis auf die Stange bei der Drehmaschine",
+    )
 
     # Die Fräse gewählt: Der Job merkt sie sich, Schritt 2 sagt es.
     wahl.setCurrentIndex(1)
     yield 300
+    h.pruefe(
+        not panel.maschine_hinweis.isVisible() and not panel.knopf_vierachs.isVisible(),
+        f"Hinweis bei der Fräse: {panel.maschine_hinweis.text()!r}",
+    )
     h.pruefe(
         getattr(job, rw.EIGENSCHAFT_MASCHINE, "") == dateien["Fraese"],
         f"Fräse nicht am Job: {getattr(job, rw.EIGENSCHAFT_MASCHINE, '')!r}",

@@ -7,8 +7,9 @@
 # die Maschine wieder längs Z. „Anlegen“, dann „Auf der Maschine prüfen“: Die Stange
 # liegt parallel zur C-Achse im Futter, nicht quer – genau auf ihrer Achse und mit der
 # Spannlänge (30 mm) im Futter (V2c). Zuletzt die gemerkte Maschine: gespeichert und
-# geschlossen steht sie als „„drehmaschine“ öffnen (zuletzt benutzt)“ zur Wahl – gewählt
-# öffnet sie sich, die Welle bleibt vorn, C gilt.
+# geschlossen steht sie mit ihrem Namen aus der Liste „Maschinen …“ (W-011) als „„Drehmaschine
+# mit Y-Achse“ öffnen (zuletzt benutzt)“ zur Wahl – gewählt öffnet sie sich, die Welle bleibt
+# vorn, C gilt.
 import os
 import tempfile
 
@@ -159,7 +160,7 @@ def schritte(h):
         return
     eintraege = [panel.wahl_maschine.itemText(i) for i in range(panel.wahl_maschine.count())]
     h.pruefe(
-        eintraege == ["„drehmaschine“ öffnen (zuletzt benutzt)", "ohne Maschine"]
+        eintraege == [f"„{name_maschine}“ öffnen (zuletzt benutzt)", "ohne Maschine"]
         and panel.wahl_maschine.currentIndex() == 1,
         f"Maschinen: {eintraege}, gewählt {panel.wahl_maschine.currentIndex()}",
     )

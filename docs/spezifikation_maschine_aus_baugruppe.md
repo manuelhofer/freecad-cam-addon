@@ -618,6 +618,15 @@ Rohteil selten eckig.“
     `szenario_bearbeitung_maschine`, `szenario_maschine_merken`.
   - **S3 Die Art entscheidet:** Drehmaschine oder 4-Achs-Fräse – weiter im 4-Achs-Assistenten
     mit einer Stange; 3- und 5-Achs-Fräse – der Quader wie heute (5-Achs vorerst wie 3-Achs).
+    **Gebaut:** P-2026-10-02-60, 0.113.0 – In Schritt 1 von „Bearbeitung“: Drehmaschine
+    gewählt – rot „Auf der Drehmaschine ist das Rohteil eine Stange …“, „Weiter“ und „Anlegen“
+    gesperrt (Anlegen sagt den Satz), der Knopf „Weiter im 4-Achs-Assistenten →“; 4-Achs-Fräse
+    – grau, dass beides geht, derselbe Knopf. Der Knopf schließt den Assistenten (der Job geht
+    zurück), öffnet die Datei der Maschine und den 4-Achs-Assistenten mit Teil, angeklickter
+    Fläche und der Maschine vorgewählt (`VierachsPanel(…, maschine=…)`). Der 4-Achs-Assistent
+    bietet die Maschinen der Liste mit Rundachse (Drehmaschine, 4-, 5-Achs) zum Öffnen an.
+    `szenario_bearbeitung_drehmaschine`. Noch nicht: ein Einstieg ohne Umweg – der Befehl
+    „Bearbeitung“ fragt erst die Maschine und öffnet gleich den passenden Assistenten.
   - **S4 Rohteil aus dem Dokument:** erst der Job mit dem Körper als Rohteil und seinen Maßen
     für die Bahnen (oben, Umriss); dann die Strategien ab seinem Material (keine Bahnen in der
     Luft, wo er schon frei ist).
