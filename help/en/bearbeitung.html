@@ -34,13 +34,20 @@ stock</b> is created at once: a block around the part with an
 job). The fields change the stock right away. “Cancel” takes everything
 back. Step 2 shows at the top in grey what applies here (“allowance 1 mm all round ·
 origin: as in the model”).</li>
+<li><b>Lying on</b> – which face of the part lies on the table: “as modelled”, or
+<b>Click a face …</b> and then a flat face in 3D – the part in the job turns so that it faces
+down; the model itself stays as it is. Without the button a click adds the face for
+machining, the part then never turns. “As modelled” turns it back.</li>
+<li><b>X points</b> – <b>↺ 90°</b> and <b>↻ 90°</b> turn the part in the job about Z (seen
+from above), so that X runs along the edge you want. Stock and origin follow both; the faces
+and all paths are computed in the new position.</li>
 <li><b>Zero point</b> – where X 0, Y 0, Z 0 of the program lie: “as in the
 model”, or a point of the stock from the list – the 8 corners, the 12 edge
 middles, the centre top and bottom (left/right is X, front/back Y, bottom/top
 Z) –, shifted by X, Y, Z (negative too). Part and stock move so that the point
 lies at the origin; the axes in the 3D view show it, and “Check on the
 machine” counts from there.</li>
-<li>When changing (double-click on the operation) stock and zero point stay
+<li>When changing (double-click on the operation) position, stock and zero point stay
 as they are in the job.</li>
 </ul>
 

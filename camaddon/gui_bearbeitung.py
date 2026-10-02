@@ -161,6 +161,15 @@ class _Satz(QtGui.QLabel):
         self.spiegel.setVisible(not leer)
 
 
+def _aussennormale(form, name):
+    """Die Normale der ebenen Fläche `name` („Face6“) von `form` aus dem Material heraus – None,
+    wenn es sie nicht gibt oder sie nicht eben ist."""
+    nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
+    if not 0 <= nummer < len(form.Faces) or not vr.ist_eben(form.Faces[nummer]):
+        return None
+    return vr.aussennormale(form.Faces[nummer])
+
+
 def _klappknopf(text, tooltip):
     """Ein fetter Knopf mit Pfeil, der einen Bereich auf- und zuklappt."""
     knopf = QtGui.QToolButton()
@@ -2365,6 +2374,8 @@ class BearbeitungPanel:
         self._nullpunkt_uhr.setInterval(NACHZIEHEN_MS)
         self._nullpunkt_uhr.timeout.connect(self._nullpunkt_anwenden)
         self._nullpunkte = nullpunkte()
+        self._unten = None  # die Fläche des Teils, die unten liegt („Face6“) – None: wie modelliert
+        self._viertel = 0  # X um so viele Viertel um Z gedreht
         self.bloecke = []
         self.form = self._baue()
         self.plan = next(b for b in self.bloecke if b.s.kennung == "planfraesen")
@@ -2453,7 +2464,40 @@ class BearbeitungPanel:
         self.teil_text = QtGui.QLabel(tr("ba.teil.keins"))
         self.teil_text.setWordWrap(True)
         oben.reihe(tr("ba.teil"), "", self.teil_text)
+        # Wie das Teil auf dem Tisch liegt (Manuel, 2026-10-02: „man klickt auf eine Fläche,
+        # welche dann sozusagen unten ist … fehlt nur noch die X- und Y-Achse – aber das muss
+        # sein“): in Schritt 1 macht ein Klick auf eine ebene Fläche sie zur Unterseite, X dreht
+        # in Vierteln um Z; Rohteil und Nullpunkt folgen.
+        zeile = QtGui.QWidget()
+        knoepfe = QtGui.QHBoxLayout(zeile)
+        knoepfe.setContentsMargins(0, 0, 0, 0)
+        self.unten_text = QtGui.QLabel(tr("ba.unten.modell"))
+        knoepfe.addWidget(self.unten_text, 1)
+        # Erst dieser Knopf macht den nächsten Klick zur Unterseite – ein Klick auf die Fläche,
+        # die bearbeitet werden soll, dreht so nie aus Versehen das Teil.
+        self.knopf_unten_waehlen = QtGui.QPushButton(tr("ba.unten.waehlen"))
+        self.knopf_unten_waehlen.setToolTip(tr("ba.unten.waehlen.tooltip"))
+        self.knopf_unten_waehlen.setCheckable(True)
+        knoepfe.addWidget(self.knopf_unten_waehlen)
+        self.knopf_unten_modell = knopf(
+            tr("ba.unten.zurueck"), tr("ba.unten.zurueck.tooltip"), lambda: self.unten_waehlen(None)
+        )
+        knoepfe.addWidget(self.knopf_unten_modell)
+        oben.reihe(tr("ba.unten"), tr("ba.unten.tooltip"), zeile)
+        zeile = QtGui.QWidget()
+        knoepfe = QtGui.QHBoxLayout(zeile)
+        knoepfe.setContentsMargins(0, 0, 0, 0)
+        self.x_text = QtGui.QLabel(tr("ba.x.modell"))
+        knoepfe.addWidget(self.x_text, 1)
+        self.knopf_x_links = knopf(tr("ba.x.links"), tr("ba.x.tooltip"), lambda: self.x_drehen(1))
+        knoepfe.addWidget(self.knopf_x_links)
+        self.knopf_x_rechts = knopf(
+            tr("ba.x.rechts"), tr("ba.x.tooltip"), lambda: self.x_drehen(-1)
+        )
+        knoepfe.addWidget(self.knopf_x_rechts)
+        oben.reihe(tr("ba.x"), tr("ba.x.tooltip"), zeile)
         ziel[0].addWidget(oben.widget)
+        self._lage_zeigen()
         titel(tr("ba.rohteil"), tr("ba.rohteil.text"))
         grautext(tr("ba.rohteil.text"))
         rohteil = _Reihen()
@@ -2763,7 +2807,65 @@ class BearbeitungPanel:
         if teil is None or flaeche is None or vr.original(teil) is not vr.original(klon):
             return
         FreeCADGui.Selection.clearSelection()
+        if self.knopf_unten_waehlen.isChecked() and self.zu_aendern is None:
+            self.knopf_unten_waehlen.setChecked(False)
+            self.unten_waehlen(flaeche)  # „Fläche anklicken …“: die Fläche, die unten liegt
+            return
         self.flaeche_umschalten(flaeche)
+
+    # --- Wie das Teil auf dem Tisch liegt -------------------------------------------------
+
+    def unten_waehlen(self, flaeche):
+        """Macht die ebene Fläche `flaeche` („Face6“) zur Unterseite: Das Teil im Job dreht sich
+        so, dass sie nach unten zeigt, Rohteil und Nullpunkt folgen. None: wie modelliert."""
+        if self.job is None or self.zu_aendern is not None:
+            return
+        if flaeche is not None and _aussennormale(self.teil.Shape, flaeche) is None:
+            self.hinweis.setText(tr("ba.unten.nicht_eben", name=flaeche))
+            return
+        self.hinweis.setText("")
+        self._unten = flaeche
+        self._lage_geaendert()
+
+    def x_drehen(self, viertel):
+        """Dreht das Teil im Job um Z – X zeigt danach ein Viertel weiter (+1: gegen den
+        Uhrzeigersinn, von oben gesehen)."""
+        if self.job is None or self.zu_aendern is not None:
+            return
+        self._viertel = (self._viertel + int(viertel)) % 4
+        self._lage_geaendert()
+
+    def aufspannung(self):
+        """Die Drehung vom Teil, wie es modelliert ist, in den Job: die Unterseite nach −Z, dann
+        um Z in Vierteln."""
+        drehung = FreeCAD.Rotation()
+        if self._unten is not None and self.teil is not None:
+            normale = _aussennormale(self.teil.Shape, self._unten)
+            if normale is not None:
+                drehung = FreeCAD.Rotation(normale, FreeCAD.Vector(0, 0, -1))
+        um_z = FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), 90.0 * self._viertel)
+        return um_z.multiply(drehung)
+
+    def _lage_geaendert(self):
+        self._lage_zeigen()
+        self._nullpunkt_setzen(self.job)
+        if FreeCADGui.ActiveDocument is not None and FreeCADGui.ActiveDocument.ActiveView:
+            FreeCADGui.SendMsgToActiveView("ViewFit")  # gedreht liegt das Teil woanders
+        self._flaechen_zeigen()
+        self._ziel_gemerkt = None  # gedreht kann der Kasten gleich bleiben, das Teil nicht
+        self.vorschau_starten()
+
+    def _lage_zeigen(self):
+        """„Face6 liegt unten“ / „wie modelliert“, „um 90° gedreht“ – neben den Knöpfen."""
+        if self._unten is None:
+            self.unten_text.setText(tr("ba.unten.modell"))
+        else:
+            self.unten_text.setText(tr("ba.unten.flaeche", name=self._unten))
+        self.knopf_unten_modell.setEnabled(self._unten is not None)
+        if self._viertel == 0:
+            self.x_text.setText(tr("ba.x.modell"))
+        else:
+            self.x_text.setText(tr("ba.x.gedreht", grad=90 * self._viertel))
 
     def teil_waehlen(self, teil, flaeche=None):
         """Das Teil für den Job – der Job mit dem Rohteil entsteht sofort (eine Transaktion,
@@ -2907,8 +3009,11 @@ class BearbeitungPanel:
         teil = vr.original(klon)
         lage = self.nullpunkt()
         punkt = FreeCAD.Vector()
+        drehung = FreeCAD.Placement(FreeCAD.Vector(), self.aufspannung())
         if lage is not None:
-            bb = teil.Shape.BoundBox
+            gedreht = teil.Shape.copy()
+            gedreht.Placement = drehung.multiply(gedreht.Placement)
+            bb = gedreht.BoundBox
             werte = {feld: self._rohteil_wert(feld) for feld in ROHTEIL_FELDER}
             unten = (bb.XMin - werte["seite"], bb.YMin - werte["seite"], bb.ZMin - werte["unten"])
             oben = (bb.XMax + werte["seite"], bb.YMax + werte["seite"], bb.ZMax + werte["oben"])
@@ -2919,7 +3024,11 @@ class BearbeitungPanel:
                 )
             )
             punkt = punkt + self._nullpunkt_versatz()
-        neu = FreeCAD.Placement(punkt * -1.0, FreeCAD.Rotation()).multiply(teil.Placement)
+        neu = (
+            FreeCAD.Placement(punkt * -1.0, FreeCAD.Rotation())
+            .multiply(drehung)
+            .multiply(teil.Placement)
+        )
         alt = klon.Placement
         if (alt.Base - neu.Base).Length < 1e-9 and alt.Rotation.isSame(neu.Rotation, 1e-9):
             return
@@ -2998,6 +3107,16 @@ class BearbeitungPanel:
         self.rohteilfelder.setEnabled(False)
         for widget in (self.nullpunkt_titel, self.nullpunkt_text, self.nullpunktfelder):
             widget.setVisible(False)  # der Nullpunkt bleibt, wie er im Job steht
+        # Wie das Teil liegt, bleibt ebenso.
+        self.unten_text.setText(tr("ba.lage.job"))
+        self.x_text.setText(tr("ba.lage.job"))
+        for widget in (
+            self.knopf_unten_waehlen,
+            self.knopf_unten_modell,
+            self.knopf_x_links,
+            self.knopf_x_rechts,
+        ):
+            widget.setEnabled(False)
         self.gewaehlte = list(getattr(op, "Flaechen", ()) or ())
         self._bearbeitung_fuellen()
         self._fuellt = True

@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-43 aufspannung
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Das Koordinatensystem, also wo ist X- und Y-Achse, sollte sich drehen
+  lassen … oder man macht's so, dass man auf eine Fläche klickt, welche dann sozusagen unten
+  ist, und man da dann ein Rohteil rausbekommt. Fehlt somit nur noch die X- und Y-Achse – aber
+  das muss sein.“ Spezifikation Strategien 12.6.
+- FreeCADs Rohteil „aus dem Modell“ rechnet seine Größe bei jedem Neuberechnen aus dem Kasten
+  der Klone (Path.Main.Stock.StockFromBase.execute), seine Lage nur beim Anlegen – darum
+  schiebt `_nullpunkt_setzen` es schon heute mit.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`unten_waehlen`, `x_drehen`, `aufspannung`, `_lage_zeigen`,
+  `_aussennormale`; `_nullpunkt_setzen` mit Drehung; `angeklickt`), `translations/de|en.json`,
+  `help/de|en/bearbeitung.html`, `tests/gui/szenario_aufspannung.py` (neu),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.99.0)
+
+### AKZEPTANZKRITERIUM
+Ein hochkant modelliertes Teil: Schritt 1 → „Fläche anklicken …“ → die Fläche, die auf dem Tisch
+liegt → das Teil liegt im Job flach, Rohteil und Nullpunkt folgen; „↺ 90°“ dreht X.
+
+### DONE
+- In Schritt 1 „Unten liegt“: „Fläche anklicken …“, dann eine ebene Fläche – der Klon im Job
+  dreht sich so, dass ihre Außennormale nach −Z zeigt (das Modell bleibt); „Wie modelliert“
+  zurück. „X zeigt“: ↺/↻ 90° um Z. Der Nullpunkt rechnet im gedrehten Kasten, das Rohteil
+  folgt, die Ansicht passt sich ein.
+- Ohne den Knopf nimmt ein Klick die Fläche wie bisher zur Bearbeitung dazu – ein Klick auf die
+  Fläche, die bearbeitet werden soll, dreht nie aus Versehen das Teil.
+- Beim Ändern bleibt die Lage, wie sie im Job steht (Knöpfe gesperrt).
+
+### TEST
+- 1.1.3: `szenario_aufspannung` (Platte 200 × 100 × 30 hochkant: ohne Knopf bleibt sie stehen,
+  mit Knopf liegt sie flach, 50 hoch, Zapfen oben, Rohteil 52; X gedreht tauscht Länge und
+  Breite; Oberseite in Schritt 2 eben nach oben; „Wie modelliert“ zurück),
+  `szenario_bearbeitung`, `szenario_zielzeit`, `szenario_kontur`; `test_sprache`, `test_hilfe`;
+  black/ruff grün.
+
+### NEXT
+- Manuel klickt das Akzeptanzkriterium durch; Räumen mit Schlichten und Messstopp (W-010).
+
 ## P-2026-10-02-42 assistent-in-schritten
 
 ### EINGELESEN
