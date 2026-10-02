@@ -722,6 +722,29 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
   S 90°, R rund …) als Drehwerkzeuge.
 - **Fertig, wenn:** Manuel die Werkzeugverwaltung öffnet und die Bohrer, Gewindebohrer,
   Fräser und Entgrater mit Werten, Bild und anklickbarem Katalog findet.
+- **Gebaut (P-2026-10-02-46, 0.102.0):** `camaddon/werkzeugkiste.py` mit 27 Reihen, 91
+  Werkzeugen: Ceratizit ClassicLine HSS DIN 338 (Manuels 32 Durchmesser, Längen nach DIN 338),
+  Gühring 5596 M2–M30 (Längen nach DIN 371/376, Kernloch in der Bezeichnung), Jongen UNI-Mill
+  VHM 494W HI06 Ø 3–20 (Ø 12 wie Manuels Fräser, die anderen nach DIN 6527 K), Garant 208165
+  Ø 6–16 (als VHM-Fasenfräser 90° angenommen), Sandvik CoroMill 345 Ø 50 z 4, je weitere Art ein
+  Beispiel, die Wendeplatten C, D, V, W, T, S, R (ISO 1832), Einstechen, Gewindedrehen. Im
+  Werkzeugfenster die Felder Hersteller, Artikel-Nr., Bestellen und Katalog mit „Öffnen“; unter
+  der Liste „Werkzeuge der Hersteller …“ (alle Reihen angehakt, Tooltip mit der Quelle).
+  Schnittwerte je **Werkstoffklasse** statt je Werkstoff (`werkstoffe.klasse`: P1 bis 750
+  N/mm², P2 vergütet und Werkzeugstahl, M, K, N1 Aluminium, N2 Kupfer/Messing, N3 Kunststoff,
+  S, H): P1 unter „Alle Werkstoffe“, jede andere Klasse unter einem Vertreter (1.7225, 1.4301,
+  0.6025, 3.2315, 2.0401, POM-C, 3.7165, 1.2379+H) – ein Werkstoff ohne eigene Zeilen nimmt die
+  eines Werkstoffs seiner Klasse (`Werkzeug.verwandter`), sonst die für alle. So hat der Bohrer
+  9 Zeilen statt 50.
+  **Nicht erreicht:** Die Seiten der Hersteller (jongen.de, hoffmann-group.com, ceratizit.com,
+  guehring.com, sandvik.coromant.com) waren aus der Umgebung gesperrt. Deshalb sind alle
+  Schnittwerte Richtwerte aus Grundwerten je Einsatz und Faktoren je Klasse (in der
+  Bezeichnung „Richtwerte (geschätzt)“); Artikelnummern nur, wo belegt oder von Manuel genannt
+  (Gühring 5596 M3–M10 nach Händlerangabe, Jongen nach dem Muster von 494W-12, Garant 208165,
+  CoroMill 345-050Q22-13M); Bestellen und Katalog sind Suchen nach Hersteller und Nummer, außer
+  bei Garant (Hoffmann-Seite nach dem Muster). Keine Bilder der Hersteller: Das Werkzeugfenster
+  zeichnet jedes Werkzeug aus seinen Maßen. Neue Werkzeuge bekommen die Richtwerte noch nicht
+  angeboten (nächster Schritt).
 
 ## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
 

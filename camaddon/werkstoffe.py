@@ -21,6 +21,12 @@ DATEI = os.path.join(ADDON_ORDNER, "daten", "werkstoffe.json")
 
 # Die Kennbuchstaben aus den Werkzeugkatalogen, in ihrer üblichen Reihenfolge.
 ISO_GRUPPEN = ("P", "M", "K", "N", "S", "H")
+# Die Klassen, nach denen Kataloge Schnittwerte nennen (klasse()): Stahl bis 750 N/mm² und
+# darüber, rostfrei austenitisch, Guss, Aluminium, Kupfer und Messing, Kunststoff, Titan und
+# Nickel, gehärtet.
+KLASSEN = ("P1", "P2", "M", "K", "N1", "N2", "N3", "S", "H")
+# Stähle bis etwa 750 N/mm² – weich genug für die Werte „Stahl“ jedes Katalogs.
+_WEICHE_STAEHLE = ("baustahl", "automatenstahl", "einsatzstahl", "waelzlagerstahl")
 
 
 @dataclass
@@ -97,6 +103,36 @@ def sortiert(werkstoffe):
 def finde(werkstoffe, kennung):
     """Der Werkstoff mit dieser Kennung, oder None."""
     return next((w for w in werkstoffe if w.kennung == kennung), None)
+
+
+def klasse(werkstoff):
+    """Die Klasse aus KLASSEN, nach der Kataloge Schnittwerte nennen: P1 Bau-, Automaten-,
+    Einsatz- und unvergüteter Vergütungsstahl, P2 vergüteter Stahl, Werkzeugstahl und rostfreier
+    martensitischer; M, K, S, H wie die ISO-Gruppe; N1 Aluminium, N2 Kupfer, Messing, Bronze,
+    N3 Kunststoff."""
+    iso, gruppe = werkstoff.iso, werkstoff.gruppe
+    if iso == "P":
+        weich = gruppe in _WEICHE_STAEHLE or (
+            gruppe == "verguetungsstahl" and werkstoff.zustand != "verguetet"
+        )
+        return "P1" if weich else "P2"
+    if iso == "N":
+        if gruppe.startswith("aluminium"):
+            return "N1"
+        return "N3" if gruppe == "kunststoff" else "N2"
+    return iso
+
+
+_klassen = None  # Kennung -> Klasse der mitgelieferten Werkstoffe, einmal gerechnet
+
+
+def klasse_von(kennung):
+    """Die Klasse des mitgelieferten Werkstoffs mit dieser Kennung – "" für eigene und
+    unbekannte."""
+    global _klassen
+    if _klassen is None:
+        _klassen = {w.kennung: klasse(w) for w in mitgelieferte()}
+    return _klassen.get(kennung, "")
 
 
 def neue_kennung(werkstoffe):

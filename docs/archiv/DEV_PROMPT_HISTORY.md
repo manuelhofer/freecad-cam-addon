@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-46 werkzeugkiste
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Ich hätte gerne die Werkzeugkiste vorgefüllt, und zwar Bohrer von
+  Ceratizit … Ø 2 … 19, außerdem von Gühring 5596 Blauring … alle metrischen Gewindebohrer bis
+  M30 und Fräser Jongen UNI-Mill VHM 494W-12 HI06 V-53939-FB2 in 3, 4, 5, 6, 8, 10, 12, 16, 20
+  … für jede Werkzeugart ein Beispiel … am liebsten mit Internetseite zum Bestellen und Link und
+  Artikelnummer … Entgraten Garant 208165 12 … in 6, 8, 10, 12, 16 … wenn es bei irgendeinem
+  Material keine Daten geben sollte, dann schätze … wenn ich in der Werkzeugkiste etwas
+  verändere oder hinzufüge, sollte es nach dem Neustart noch vorhanden sein … fürs Drehen die
+  Normformen C, V, D usw.“; „Messerkopf … mit Zähnezahl“. Spezifikation Werkzeugverwaltung 13.
+- Die Seiten der Hersteller und Händler waren aus der Umgebung gesperrt (EGRESS_BLOCKED); die
+  Suche lieferte nur Bruchstücke (Gühring 5596 M10 = „05596 010.000“, DIN 371, M3–M10; HSS-E
+  Bohrer 32 m/min bis 850 N/mm²; CoroMill 345 Ø 50 weit = 3 Platten).
+
+### DATEIEN
+- `camaddon/werkzeugkiste.py` (neu), `camaddon/werkstoffe.py` (`KLASSEN`, `klasse`,
+  `klasse_von`), `camaddon/werkzeuge.py` (Felder hersteller, artikel, link, katalog;
+  `verwandter`, `einsaetze` mit der Klasse; Hersteller in der Zeile und in der Suche),
+  `camaddon/gui_werkzeuge.py` (Felder mit „Öffnen“, Knopf und Fenster „Werkzeuge der
+  Hersteller“), `translations/de|en.json`, `help/de|en/werkzeuge.html`,
+  `tests/test_werkzeugkiste.py` (neu), `tests/gui/szenario_werkzeugkiste.py` (neu),
+  `docs/spezifikation_werkzeugverwaltung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.102.0)
+
+### AKZEPTANZKRITERIUM
+Leere Werkzeugverwaltung → „Werkzeuge der Hersteller …“ → „Hinzufügen“: 91 Werkzeuge; der
+Jongen Ø 12 zeigt Hersteller, Artikel-Nr., Bestellen und Katalog mit „Öffnen“ und 36 Zeilen
+Schnittwerte (9 Klassen × 4 Einsätze); nach „Übernehmen“ und Wiederöffnen ist alles da; ein
+zweites Mal kommt nichts doppelt.
+
+### DONE
+- 27 Reihen: Ceratizit ClassicLine HSS DIN 338 (32 Ø), Gühring 5596 M2–M30 (17), Jongen 494W
+  Ø 3–20 (9), Garant 208165 Ø 6–16 (5), CoroMill 345 Ø 50, 18 Beispiele (jede weitere Art, auch
+  Formfräser und Taster), Wendeplatten C/D/V/W/T/S/R, Einstechen, Gewindedrehen.
+- Schnittwerte je Werkstoffklasse: Grundwerte je Einsatz für Stahl bis 750 N/mm², Faktoren je
+  Klasse für Hartmetall und HSS; HSS-Bohrer mit f nach Durchmesser (Tabellenbuch); der
+  Gewindebohrer mit vc, der Vorschub ist die Steigung; Wendeplatten mit den Werten in der
+  Bezeichnung (FreeCAD dreht nicht).
+- Werte derselben Klasse gelten für jeden Werkstoff ohne eigene Zeilen (vorher: die für alle).
+- Nicht erreicht: belegte Artikelnummern und Katalog-PDFs für alles; Herstellerbilder (das
+  Fenster zeichnet das Werkzeug); Richtwerte beim Anlegen eines neuen Werkzeugs.
+
+### TEST
+- 1.1.3: `test_werkzeugkiste` (Klassen, Maße nach Norm, Werte, Hinzufügen, Speichern/Laden,
+  Datei 232 KB), `test_werkzeuge`, `test_job_schnittwerte`, `test_sprache`, `test_hilfe`;
+  `szenario_werkzeugkiste`, `szenario_werkzeugverwaltung`, `szenario_schnittwerte`,
+  `szenario_bearbeitung`, `szenario_zielzeit`; black/ruff grün.
+
+### NEXT
+- Beim neuen Werkzeug die Richtwerte der Kiste anbieten; Home- und Wechselpunkt (W-008).
+
 ## P-2026-10-02-45 ziel-je-strategie
 
 ### EINGELESEN

@@ -13,7 +13,9 @@ eingetippte Wort steht – „torus 10,5“, „T12“, „Hoffmann“.</p>
 aus dem Katalog des Herstellers. Drehzahl, Vorschub und Abtrag rechnet das
 Addon. In der ersten Spalte steht der <b>Werkstoff</b>, für den die Zeile
 gilt – „Alle Werkstoffe“ oder einer aus der Liste („Werkstoffe…“ oben zeigt
-sie mit Suche und allen Angaben).</li>
+sie mit Suche und allen Angaben). Hat ein Werkstoff keine eigene Zeile, gelten
+die eines Werkstoffs derselben Klasse – die für 1.4301 auch für 1.4404, die für
+42CrMo4 auch für 34CrNiMo6 –, sonst die für alle Werkstoffe.</li>
 <li><b>Schruppwerte planen…</b> – schlägt ae, ap und fz für das meiste
 Zeitspanvolumen vor und legt sie als „Schruppen dynamisch“ an.</li>
 <li><b>Speichern und an CAM übergeben</b> – die Werkzeuge stehen dann als
@@ -40,6 +42,18 @@ Durchmesser ein, fragt die Werkzeugverwaltung, ob ae und ap aller Einsätze
 im selben Verhältnis mit umgerechnet werden sollen (für alle Werkstoffe);
 vc und fz bleiben, die stehen im Katalog.</li>
 <li><b>Löschen</b> fragt vorher nach.</li>
+<li><b>Werkzeuge der Hersteller …</b> (unter der Liste) füllt die Werkzeugkiste mit echten
+Werkzeugen: Spiralbohrer HSS nach DIN 338 von Ø 2 bis 19 (Ceratizit ClassicLine),
+Gewindebohrer M2 bis M30 (Gühring 5596), VHM-Fräser Ø 3 bis 20 (Jongen UNI-Mill 494W),
+Entgrater Ø 6 bis 16 (Garant 208165), ein Messerkopf Ø 50 (Sandvik CoroMill 345), je weitere
+Art ein Beispiel und die Wendeplatten zum Drehen (C, D, V, W, T, S, R). Im Fenster ist jede
+Reihe angehakt; ihr Tooltip sagt, woher Maße, Nummern und Werte kommen. <b>Hinzufügen</b>
+legt sie mit den nächsten freien Nummern an – was schon da ist, bleibt, wie du es geändert
+hast. Jedes Werkzeug bringt Schnittwerte je Werkstoffklasse mit: eine Zeile je Einsatz für
+Stahl bis 750 N/mm² („Alle Werkstoffe“), vergüteten Stahl (42CrMo4), Edelstahl (1.4301),
+Guss, Aluminium, Messing, Kunststoff, Titan und gehärteten Stahl. Es sind <b>Richtwerte,
+geschätzt</b> – die Bezeichnung sagt es; vor dem ersten Schnitt mit dem Katalog
+vergleichen.</li>
 <li><b>Aus CAM übernehmen</b> (unten links) holt die Werkzeuge einer
 Werkzeugbibliothek von FreeCAD CAM: Art, T-Nummer, die Maße, die die Art hat
 (Durchmesser, Schneiden, Längen, Schaft, Winkel, Hals, Steigung …), und
@@ -126,6 +140,11 @@ Werkzeug-Controller übernimmt sie, und Kontur, Räumen und die anderen Bahnen d
 fahren den Gleichlauf danach – mit M4 liegt das Material auf der anderen Seite.</li>
 <li><b>Bezeichnung</b> – frei, zum Wiederfinden: Hersteller, Bestellnummer,
 Beschichtung.</li>
+<li><b>Hersteller</b> und <b>Artikel-Nr.</b> – wer das Werkzeug macht und unter welcher
+Nummer man es bestellt; die Suche oben findet beides.</li>
+<li><b>Bestellen</b> und <b>Katalog</b> – die Seite zum Bestellen und der Katalog oder das
+Datenblatt (PDF); <b>Öffnen</b> zeigt sie im Browser. Bei den Werkzeugen der Hersteller sucht
+der Link nach Hersteller und Nummer, solange du keine Seite einträgst.</li>
 </ul>
 <p>Ein leeres Zahlenfeld heißt „unbekannt“.</p>
 

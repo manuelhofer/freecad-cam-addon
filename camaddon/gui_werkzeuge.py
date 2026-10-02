@@ -18,6 +18,7 @@ from . import uebergabe_werkzeuge as ue
 from . import werkstoffe as ws
 from . import werkzeuge as wz
 from . import werkzeuge_aus_cam as aus_cam
+from . import werkzeugkiste as wk
 from .gui_halter import HalterDialog
 from .gui_hilfe import kopfzeile
 from .gui_schnittwerte import SchnittwertBereich
@@ -231,6 +232,9 @@ class WerkzeugDialog(QtGui.QDialog):
         for element in (self.knopf_neu, self.knopf_kopieren, self.knopf_loeschen):
             zeile.addWidget(element)
         aufbau.addLayout(zeile)
+        # Die Werkzeugkiste der Hersteller (W-007): Reihen echter Werkzeuge mit Werten.
+        self.knopf_kiste = knopf(tr("wv.kiste"), tr("wv.kiste.tooltip"), self.kiste_zeigen)
+        aufbau.addWidget(self.knopf_kiste)
         return rahmen
 
     def _bereich_werkzeug(self):
@@ -356,6 +360,36 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_bezeichnung.setPlaceholderText(tr("wv.bezeichnung.platzhalter"))
         self.feld_bezeichnung.setToolTip(tr("wv.bezeichnung.tooltip"))
         self.feld_bezeichnung.textEdited.connect(self._bezeichnung_geaendert)
+
+        # Woher das Werkzeug kommt (P-2026-10-02-46): Hersteller und Artikelnummer, dazu die
+        # Seite zum Bestellen und der Katalog – „Öffnen“ zeigt sie im Browser.
+        self._herkunft = []  # (Beschriftung, Zeile) – angeordnet unter der Bezeichnung
+        for eigenschaft, text, tooltip in (
+            ("hersteller", tr("wv.hersteller"), tr("wv.hersteller.tooltip")),
+            ("artikel", tr("wv.artikel"), tr("wv.artikel.tooltip")),
+            ("link", tr("wv.link"), tr("wv.link.tooltip")),
+            ("katalog", tr("wv.katalog"), tr("wv.katalog.tooltip")),
+        ):
+            feld = QtGui.QLineEdit()
+            feld.setToolTip(tooltip)
+            feld.textEdited.connect(lambda text, e=eigenschaft: self._text_geaendert(e, text))
+            setattr(self, f"feld_{eigenschaft}", feld)
+            zeile = feld
+            if eigenschaft in ("link", "katalog"):
+                zeile = QtGui.QWidget()
+                zeilen_aufbau = QtGui.QHBoxLayout(zeile)
+                zeilen_aufbau.setContentsMargins(0, 0, 0, 0)
+                zeilen_aufbau.addWidget(feld, 1)
+                oeffnen = knopf(
+                    tr("wv.oeffnen"),
+                    tr("wv.oeffnen.tooltip"),
+                    lambda f=feld: self.oeffnen(f.text()),
+                )
+                setattr(self, f"knopf_{eigenschaft}", oeffnen)
+                zeilen_aufbau.addWidget(oeffnen)
+            beschriftung = QtGui.QLabel(text)
+            beschriftung.setToolTip(tooltip)
+            self._herkunft.append((beschriftung, zeile))
 
         # Oben Nummer und Art, darunter der Name über die ganze Breite; die
         # Maße der Art ordnet _felder_anordnen() darunter an, zu zweit je Reihe.
@@ -584,6 +618,12 @@ class WerkzeugDialog(QtGui.QDialog):
         self.feld_drehrichtung.setCurrentIndex(self.feld_drehrichtung.findData(links))
         self.feld_schneidstoff.setCurrentIndex(self.feld_schneidstoff.findData(w.schneidstoff))
         self.feld_bezeichnung.setText(w.bezeichnung)
+        for eigenschaft in ("hersteller", "artikel", "link", "katalog"):
+            feld = getattr(self, f"feld_{eigenschaft}")
+            feld.setText(getattr(w, eigenschaft))
+            feld.setCursorPosition(0)  # der Anfang einer langen Adresse, nicht ihr Ende
+        self.knopf_link.setEnabled(bool(w.link))
+        self.knopf_katalog.setEnabled(bool(w.katalog))
         self.feld_name.setText(w.name)
         self._halter_anbieten()
         self._fuellt = False
@@ -622,6 +662,7 @@ class WerkzeugDialog(QtGui.QDialog):
             self.zeile_halter,
             self.beschriftung_bezeichnung,
             self.feld_bezeichnung,
+            *(teil for paar in self._herkunft for teil in paar),
             self.beispiel_hinweis,
             self.hinweis,
             self.werkzeugbild,
@@ -649,9 +690,14 @@ class WerkzeugDialog(QtGui.QDialog):
         gitter.addWidget(self.zeile_halter, unten + 1, 1, 1, 3)
         gitter.addWidget(self.beschriftung_bezeichnung, unten + 2, 0)
         gitter.addWidget(self.feld_bezeichnung, unten + 2, 1, 1, 3)
-        gitter.addWidget(self.beispiel_hinweis, unten + 3, 0, 1, 4)
-        gitter.addWidget(self.hinweis, unten + 4, 0, 1, 4)
-        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 5, 1, QtCore.Qt.AlignTop)
+        # Hersteller und Artikel, darunter Bestellen und Katalog – zu zweit je Reihe.
+        for i, (beschriftung, zeile) in enumerate(self._herkunft):
+            reihe, spalte = unten + 3 + i // 2, 2 * (i % 2)
+            gitter.addWidget(beschriftung, reihe, spalte)
+            gitter.addWidget(zeile, reihe, spalte + 1)
+        gitter.addWidget(self.beispiel_hinweis, unten + 5, 0, 1, 4)
+        gitter.addWidget(self.hinweis, unten + 6, 0, 1, 4)
+        gitter.addWidget(self.werkzeugbild, 0, 4, unten + 7, 1, QtCore.Qt.AlignTop)
 
     def _beispielfelder(self):
         return {
@@ -855,6 +901,25 @@ class WerkzeugDialog(QtGui.QDialog):
             return
         self.werkzeug.bezeichnung = text.strip()
 
+    def _text_geaendert(self, eigenschaft, text):
+        """Hersteller, Artikel, Bestellseite, Katalog – gespeichert mit OK oder Übernehmen."""
+        if self._fuellt or self.werkzeug is None:
+            return
+        setattr(self.werkzeug, eigenschaft, text.strip())
+        if eigenschaft in ("link", "katalog"):
+            getattr(self, f"knopf_{eigenschaft}").setEnabled(bool(text.strip()))
+
+    @staticmethod
+    def oeffnen(adresse):
+        """Öffnet die Bestellseite oder den Katalog im Browser (ohne „https://“ davor ergänzt).
+        Gibt zurück, ob es ging; ohne Adresse geschieht nichts."""
+        adresse = adresse.strip()
+        if not adresse:
+            return False
+        if "://" not in adresse:
+            adresse = "https://" + adresse
+        return bool(QtGui.QDesktopServices.openUrl(QtCore.QUrl(adresse)))
+
     def _zahl_uebernehmen(self, feld, eigenschaft):
         if self._fuellt or self.werkzeug is None:
             return
@@ -993,6 +1058,32 @@ class WerkzeugDialog(QtGui.QDialog):
     def aus_cam_bericht_zeigen(self, bericht):
         QtGui.QMessageBox.information(self, tr("wv.aus_cam"), aus_cam_text(bericht))
 
+    def kiste_zeigen(self):
+        """„Werkzeuge der Hersteller …“: die Reihen der Werkzeugkiste zum Anhaken; „Hinzufügen“
+        legt sie in die eigene (aus_kiste_hinzufuegen). Gibt das Fenster zurück."""
+        dialog = KisteDialog(self)
+        self.kiste = dialog
+        dialog.accepted.connect(lambda: self.aus_kiste_hinzufuegen(dialog.gewaehlt()))
+        dialog.open()
+        return dialog
+
+    def aus_kiste_hinzufuegen(self, kennungen):
+        """Legt die Reihen `kennungen` der Werkzeugkiste in die eigene; gespeichert wird mit OK
+        oder Übernehmen. Gibt den Bericht zurück (werkzeugkiste.Bericht); die Rückmeldung
+        zeigt `kiste_bericht_zeigen`."""
+        self._felder_uebernehmen()
+        bericht = wk.hinzufuegen(self.bibliothek, kennungen)
+        self._liste_aufbauen(auswahl=bericht.neu[0] if bericht.neu else self.werkzeug)
+        QtCore.QTimer.singleShot(0, lambda: self.kiste_bericht_zeigen(bericht))
+        return bericht
+
+    def kiste_bericht_zeigen(self, bericht):
+        QtGui.QMessageBox.information(
+            self,
+            tr("wv.kiste.titel"),
+            tr("wv.kiste.bericht", neu=len(bericht.neu), schon=len(bericht.schon_da)),
+        )
+
     def accept(self):
         """OK: speichern und schließen – schließt nicht, wenn das Speichern scheitert."""
         if self.uebernehmen():
@@ -1089,3 +1180,47 @@ def bericht_text(bericht):
         absaetze.append(tr("wv.cam.entfernt", anzahl=bericht.entfernt))
     absaetze.append(tr("wv.cam.weiter"))
     return "\n\n".join(absaetze)
+
+
+class KisteDialog(QtGui.QDialog):
+    """„Werkzeuge der Hersteller“ (W-007): die Reihen der Werkzeugkiste, alle angehakt – je Zeile
+    Hersteller, Reihe und Zahl der Größen; der Tooltip sagt, woher Maße, Nummern und Werte
+    kommen."""
+
+    def __init__(self, eltern=None):
+        super().__init__(eltern)
+        self.setWindowTitle(tr("wv.kiste.titel"))
+        self.resize(680, 560)
+        aufbau = QtGui.QVBoxLayout(self)
+        erklaerung = QtGui.QLabel(tr("wv.kiste.erklaerung"))
+        erklaerung.setWordWrap(True)
+        aufbau.addWidget(erklaerung)
+        self.liste = QtGui.QListWidget()
+        for reihe in wk.reihen():
+            text = tr(
+                "wv.kiste.reihe",
+                hersteller=reihe.hersteller or tr("wv.kiste.beispiel"),
+                titel=reihe.titel,
+                anzahl=reihe.anzahl,
+            )
+            eintrag = QtGui.QListWidgetItem(art_symbol(reihe.art), text)
+            eintrag.setData(QtCore.Qt.UserRole, reihe.kennung)
+            eintrag.setToolTip(reihe.quelle)
+            eintrag.setFlags(eintrag.flags() | QtCore.Qt.ItemIsUserCheckable)
+            eintrag.setCheckState(QtCore.Qt.Checked)
+            self.liste.addItem(eintrag)
+        aufbau.addWidget(self.liste, 1)
+        knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
+        self.knopf_hinzufuegen = knoepfe.button(QtGui.QDialogButtonBox.Ok)
+        self.knopf_hinzufuegen.setText(tr("wv.kiste.hinzufuegen"))
+        knoepfe.accepted.connect(self.accept)
+        knoepfe.rejected.connect(self.reject)
+        aufbau.addWidget(knoepfe)
+
+    def gewaehlt(self):
+        """Die Kennungen der angehakten Reihen."""
+        return [
+            self.liste.item(i).data(QtCore.Qt.UserRole)
+            for i in range(self.liste.count())
+            if self.liste.item(i).checkState() == QtCore.Qt.Checked
+        ]

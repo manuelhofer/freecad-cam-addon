@@ -428,16 +428,44 @@ class Werkzeug:
     ae_warngrenze: float = 10.0
     schneidstoff: str = VHM
     bezeichnung: str = ""  # frei: Hersteller, Bestellnummer, Beschichtung …
+    # Seit P-2026-10-02-46 (Werkzeugkiste der Hersteller): wer es macht, seine Nummer, wo man
+    # es bestellt und wo sein Katalog steht – die beiden Adressen öffnet der Dialog im Browser.
+    hersteller: str = ""
+    artikel: str = ""
+    link: str = ""
+    katalog: str = ""
     # Werkstoff-Kennung oder ALLE -> die Einsätze mit ihren Werten.
     schnittwerte: dict = field(default_factory=dict)
     # Felder, die noch Beispielwerte halten (grau gezeigt, aber gültig); nicht gespeichert.
     beispiel: set = field(default_factory=set, compare=False, repr=False)
 
     def einsaetze(self, werkstoff):
-        """Die Tabelle, die für den Werkstoff gilt: seine eigene, sonst die für alle Werkstoffe."""
+        """Die Tabelle, die für den Werkstoff gilt: seine eigene, sonst die eines Werkstoffs
+        derselben Klasse (verwandter()), sonst die für alle Werkstoffe."""
         if werkstoff in self.schnittwerte:
             return self.schnittwerte[werkstoff]
+        verwandt = self.verwandter(werkstoff)
+        if verwandt is not None:
+            return self.schnittwerte[verwandt]
         return self.schnittwerte.get(ALLE, [])
+
+    def verwandter(self, werkstoff):
+        """Der Werkstoff derselben Klasse (werkstoffe.klasse), dessen Werte für `werkstoff` gelten,
+        wenn er keine eigenen hat – Werte für 1.4301 gelten für 1.4404 (P-2026-10-02-46: die
+        Werkzeugkiste nennt Werte je Klasse, wie die Kataloge). None: keiner."""
+        if werkstoff == ALLE or werkstoff in self.schnittwerte:
+            return None
+        klasse = ws.klasse_von(werkstoff)
+        if not klasse:
+            return None
+        return next(
+            (
+                k
+                for k, liste in self.schnittwerte.items()
+                if k != ALLE and liste and ws.klasse_von(k) == klasse
+            ),
+            None,
+        )
 
     def hat_eigene(self, werkstoff):
         """Hat das Werkzeug für diesen Werkstoff eigene Werte?"""
@@ -501,6 +529,10 @@ class Werkzeug:
             "ae_warngrenze": self.ae_warngrenze,
             "schneidstoff": self.schneidstoff,
             "bezeichnung": self.bezeichnung,
+            "hersteller": self.hersteller,
+            "artikel": self.artikel,
+            "link": self.link,
+            "katalog": self.katalog,
             "name": self.name,
             # Eine leere Tabelle „für alle Werkstoffe“ ist dasselbe wie keine:
             # zum_bearbeiten() legt sie schon beim Ansehen an – das darf nicht
@@ -551,6 +583,9 @@ class Werkzeug:
             daten.get("schneidstoff") if daten.get("schneidstoff") in SCHNEIDSTOFFE else VHM
         )
         w.bezeichnung = str(daten.get("bezeichnung") or "")
+        # Erst seit P-2026-10-02-46 – fehlen sie, sind sie leer.
+        for text in ("hersteller", "artikel", "link", "katalog"):
+            setattr(w, text, str(daten.get(text) or ""))
         w.name = str(daten.get("name") or "")
         schnittwerte = daten.get("schnittwerte")
         if isinstance(schnittwerte, dict):
@@ -1148,7 +1183,8 @@ def zeile(werkzeug):
     gewählten Maßsystem (in inch „Ø 0.5“).
     """
     w = werkzeug
-    werte = {"nummer": w.nummer, "art": art_text(w.art), "werte": " · ".join(merkmale(w))}
+    teile = merkmale(w) + ([w.hersteller] if w.hersteller else [])
+    werte = {"nummer": w.nummer, "art": art_text(w.art), "werte": " · ".join(teile)}
     if w.name:
         return tr("wv.zeile.name", name=w.name, **werte)
     return tr("wv.zeile", **werte)
@@ -1249,7 +1285,8 @@ def passt(werkzeug, suche):
     def einheitlich(text):
         return text.lower().replace(",", ".").replace("ø", "")
 
-    text = einheitlich(f"{zeile(werkzeug)} {anzeigename(werkzeug)} {werkzeug.bezeichnung}")
+    w = werkzeug
+    text = einheitlich(f"{zeile(w)} {anzeigename(w)} {w.bezeichnung} {w.hersteller} {w.artikel}")
     return all(wort in text for wort in einheitlich(suche).split())
 
 

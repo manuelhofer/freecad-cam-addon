@@ -13,7 +13,9 @@ typed – “bull nose 10.5”, “T12”, “Hoffmann”.</p>
 from the manufacturer's catalogue. The addon calculates speed, feed and
 removal rate. The first column is the <b>material</b> the row applies to –
 “All materials” or one from the list (“Materials…” at the top shows it with
-search and all data).</li>
+search and all data). If a material has no row of its own, the rows of a material of
+the same class apply – those for 1.4301 also to 1.4404, those for 42CrMo4 also to
+34CrNiMo6 –, otherwise those for all materials.</li>
 <li><b>Plan roughing values…</b> – suggests ae, ap and fz for the highest
 removal rate and adds them as “Dynamic roughing”.</li>
 <li><b>Save and hand over to CAM</b> – the tools are then in FreeCAD CAM as
@@ -40,6 +42,17 @@ tool manager asks whether ae and ap of all use cases should be converted in
 the same ratio (for all materials); vc and fz stay, they come from the
 catalogue.</li>
 <li><b>Delete</b> asks first.</li>
+<li><b>Manufacturers' tools …</b> (below the list) fills the tool box with real tools: HSS
+twist drills to DIN 338 from Ø 2 to 19 (Ceratizit ClassicLine), taps M2 to M30 (Gühring
+5596), solid carbide end mills Ø 3 to 20 (Jongen UNI-Mill 494W), deburring tools Ø 6 to 16
+(Garant 208165), a face mill Ø 50 (Sandvik CoroMill 345), one example of every other type
+and the inserts for turning (C, D, V, W, T, S, R). In the window every series is ticked; its
+tooltip says where dimensions, numbers and values come from. <b>Add</b> creates them with the
+next free numbers – what is already there stays as you changed it. Every tool brings cutting
+data per material class: one row per use case for steel up to 750 N/mm² (“All materials”),
+quenched and tempered steel (42CrMo4), stainless steel (1.4301), cast iron, aluminium, brass,
+plastics, titanium and hardened steel. They are <b>guide values, estimated</b> – the
+description says so; compare them with the catalogue before the first cut.</li>
 <li><b>Import from CAM</b> (bottom left) takes the tools of a FreeCAD CAM tool
 library: type, T number, the dimensions the type has (diameter, flutes,
 lengths, shank, angles, neck, pitch …) and tool material; the name comes
@@ -123,6 +136,11 @@ itself). The tool controller takes it over, and contour, clearing and the other 
 add-on run climb milling accordingly – with M4 the material lies on the other side.</li>
 <li><b>Description</b> – free text to find it again: manufacturer, order
 number, coating.</li>
+<li><b>Manufacturer</b> and <b>Article no.</b> – who makes the tool and the number it is
+ordered by; the search at the top finds both.</li>
+<li><b>Order</b> and <b>Catalogue</b> – the page to order it and the catalogue or data sheet
+(PDF); <b>Open</b> shows them in the browser. For the manufacturers' tools the link searches
+for manufacturer and number as long as you enter no page.</li>
 </ul>
 <p>An empty number field means “unknown”.</p>
 
