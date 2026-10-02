@@ -129,6 +129,13 @@ class SchnittwertBereich(QtGui.QWidget):
         self.tabelle.setColumnWidth(WERKSTOFF, WERKSTOFF_BREITE)
         self.tabelle.itemChanged.connect(self._zelle_geaendert)
         self.tabelle.currentCellChanged.connect(lambda *_: self._hinweise())
+        # Ohne Zeile sagt ein Satz, wie es weitergeht – sonst stünde da eine leere Tabelle
+        # (Manuel, 2026-10-02: „die Bedienung schön“).
+        self.leer_hinweis = QtGui.QLabel(tr("wv.schnittwerte.leer"))
+        self.leer_hinweis.setWordWrap(True)
+        self.leer_hinweis.setStyleSheet(f"color: {GRAU.name()};")
+        self.leer_hinweis.hide()
+        aufbau.addWidget(self.leer_hinweis)
         aufbau.addWidget(self.tabelle, 1)
 
         zeile = QtGui.QHBoxLayout()
@@ -504,6 +511,7 @@ class SchnittwertBereich(QtGui.QWidget):
             self._zeile_schreiben(zeile, einsatz, kennung)
         self._fuellt = False
         self.knopf_minus.setEnabled(bool(self._liste))
+        self.leer_hinweis.setVisible(not self._liste)
         self.aktion_kopieren.setEnabled(bool(self._liste))
         planbar = sw.moeglich(self.werkzeug)
         self.knopf_planen.setEnabled(planbar)

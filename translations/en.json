@@ -259,6 +259,7 @@
     "wv.fehler.speichern": "The tool manager could not be saved:\n{fehler}",
     "wv.fehler.laden": "The tool manager file could not be read ({fehler}).\n\nIt has been set aside as\n{datei}\nso nothing is lost. The tool manager starts empty.",
     "wv.schnittwerte": "Cutting data",
+    "wv.schnittwerte.leer": "No cutting data for this tool yet: “+ Use case” adds the first row (roughing, finishing …), “Plan roughing values…” suggests ae and ap.",
     "wv.einsatz.plus": "+ Use case",
     "wv.einsatz.plus.tooltip": "New row: ae and ap are prefilled from the diameter, you enter vc and fz from the catalogue. Or a copy of the selected row – for a variant.",
     "wv.einsatz.minus": "− Use case",

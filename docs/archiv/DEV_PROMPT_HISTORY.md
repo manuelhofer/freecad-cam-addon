@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-34 schnittwerte-leer
+
+### EINGELESEN
+- Bild `szenario_werkzeugverwaltung/7_wieder_offen`: ein Werkzeug ohne Schnittwerte – eine
+  leere Tabelle, nichts sagt, wie es weitergeht. `gui_schnittwerte.SchnittwertBereich`.
+
+### DATEIEN
+- `camaddon/gui_schnittwerte.py`, `translations/de.json`, `translations/en.json`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.96.0)
+
+### AKZEPTANZKRITERIUM
+Ohne Zeile steht über der Tabelle grau, was man klickt: „+ Einsatz“, „Schruppwerte planen…“.
+
+### DONE
+- `leer_hinweis` über der Tabelle, sichtbar, solange sie keine Zeile hat (`_fuellen`).
+
+### TEST
+- 1.1.3: Szenarien `szenario_werkzeugverwaltung`, `szenario_schnittwerte`; `test_sprache`;
+  black/ruff grün.
+
+### NEXT
+- –
+
 ## P-2026-10-02-33 vierachs-kompakt
 
 ### EINGELESEN
