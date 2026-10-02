@@ -233,7 +233,8 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
   fertig und automatisch geprüft; wartet auf Manuels Test. T5 gebaut: die Variante „adaptiv“ (FreeCADs
   Adaptiv-Kern) – die schnellste Variante gewinnt nur, wenn sie die Last hält; am Testteil 10,7 statt
   12,4 min, 5-mal statt 56-mal abgehoben, Last bis 1,4 statt 5 ae, im Assistenten 1,48 × Ziel
-  (P-2026-10-02-89, 0.126.0) – wartet auf Manuels Test. T4 gebaut: der Block „Schlichten danach“ –
+  (P-2026-10-02-89, 0.126.0) – wartet auf Manuels Test. T2 gebaut: dünne Lagen breit, ae = R mit
+  Spanausgleich – am Testteil 10,3 min (P-2026-10-02-93, 0.128.0). T4 gebaut: der Block „Schlichten danach“ –
   Boden und Wände nach dem Räumen mit eigenem Fräser, auf Wunsch mit Messstopp (P-2026-10-02-90,
   0.127.0) – wartet auf Manuels Test.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
@@ -271,7 +272,7 @@ wird“), der Reihe nach, je Punkt ein Patch mit Verlauf und Snapshot:**
    man ja erstmal gesondert mit Bögen rausfahren … und dann wieder die Kontur der Tasche weiter“. *Fertig,
    wenn:* eine Variante an der Tasche 40 × 30 die Last hält (`raeumen_bahn.last`) und höchstens 1,1 min
    braucht. Gelingt das nach zwei Anläufen nicht: lassen, aufschreiben, weiter.
-3. **T2 – die dünne Lage mit dem Einsatz „Planen“:** 1 mm mit ae 1,5 ist verschenkt (obere Stufe am
+3. ~~**T2 – die dünne Lage mit dem Einsatz „Planen“**~~ – gebaut ohne den Einsatz: ae = R mit Spanausgleich (P-2026-10-02-93, 0.128.0). Bisher: 1 mm mit ae 1,5 ist verschenkt (obere Stufe am
    Testteil rund 1 min). Dazu müssen die Zielzeit (`zielzeit.ziel`) und die Last (`last`) denselben Einsatz
    kennen, sonst stimmt „× Ziel“ nicht. ae höchstens der Radius (die Ringe setzen das voraus).
 4. **Vorschau schneller:** Am Testteil rechnet der Assistent rund 20 s. Messen, wo die Zeit bleibt; Ziel 10 s.

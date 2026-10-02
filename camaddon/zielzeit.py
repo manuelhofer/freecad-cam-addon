@@ -23,6 +23,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import bahn as bn
 from . import hoehenfeld as hf
 from . import schnittdaten as sd
 from . import vierachs_huelle as vh
@@ -135,7 +136,8 @@ class Ziel:
 
 def ziel(material, radius, ae, ap, vf):
     """Die Zielzeit eines Schaftfräsers mit `radius` und den Werten `ae`, `ap` (mm) und `vf`
-    (mm/min) für das Material (material())."""
+    (mm/min) für das Material (material()). Eine dünne Schicht (bahn.DUENN) nimmt er breit, mit
+    ae = R und dem Vorschub, bei dem der Span so dick bleibt – wie das Räumen."""
     erreicht = np.maximum(_schliessung(material, radius), material.boden)
     hoehe = np.maximum(material.oben - erreicht, 0.0)
     hoehe = np.where(hoehe > DUENN, hoehe, 0.0)
@@ -143,6 +145,12 @@ def ziel(material, radius, ae, ap, vf):
     ueberstrichen = float(lagen.sum()) * material.zelle
     volumen = float(hoehe.sum()) * material.zelle
     zeit = ueberstrichen / (ae * vf) if ae > 0 and vf > 0 else math.inf
+    if 0 < ae < radius and vf > 0:
+        duenn = (hoehe > 0) & (hoehe <= bn.DUENN * 2.0 * radius + 1e-9)
+        if duenn.any():
+            anteil = bn.spanausgleich(ae, 2.0 * radius) / bn.spanausgleich(radius, 2.0 * radius)
+            flaeche = float(duenn.sum()) * material.zelle
+            zeit += flaeche / (radius * vf * anteil) - flaeche / (ae * vf)
     return Ziel(
         radius=radius,
         ae=ae,

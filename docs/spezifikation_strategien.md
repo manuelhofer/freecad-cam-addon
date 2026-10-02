@@ -2078,7 +2078,14 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   **Gebaut:** P-2026-10-02-88, 0.125.5 – ein Ring fährt nur, wenn seine Stirn noch Rohteil trifft
   (`_Lage._schneidet`). Streifen 100 × 20: 8 statt 11 Ringe, 2,18 statt 2,78 min; am Testteil
   12,38 statt 12,45 min.
-- **T2 Die dünne Lage oben mit dem Einsatz „Planen“.** 1 mm Tiefe mit ae 1,5 ist verschenkt: Hat
+- **T2 Die dünne Lage oben mit dem Einsatz „Planen“.** **Gebaut:** P-2026-10-02-93, 0.128.0 –
+  ohne den Einsatz: Eine Lage bis 0,1 D (bahn.DUENN) nimmt das Räumen mit ae = R und dem
+  Vorschubanteil, bei dem der Span so dick bleibt wie mit dem ae des Einsatzes
+  (`bahn.spanausgleich`, Ø 12 mit ae 1,5: 0,66 – der Einsatz „Planen“ des Standardfräsers fährt
+  0,70). Das geht ohne neue Eigenschaft an der Operation und für jeden Fräser. Die Zielzeit
+  rechnet dünne Stellen genauso (`zielzeit.ziel`), die Last misst sie gegen ihr ae
+  (`Raeumbahn.breit`). Block 60 × 40, 1 mm: 1,0 statt 2,7 min; Testteil: 10,3 statt 10,7 min.
+  1 mm Tiefe mit ae 1,5 ist verschenkt: Hat
   der Fräser einen Einsatz für kleine Tiefen (der Ø 12: ae 8,4 bis ap 1,2), nimmt eine Lage, die
   so dünn ist, dessen Zeilenabstand. *Fertig, wenn:* die obere Stufe oben in unter 0,3 min plan
   ist.

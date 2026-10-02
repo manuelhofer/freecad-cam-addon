@@ -19,6 +19,19 @@ GLEICH = 1e-9  # mm
 # LAST_KURZ – und nie mehr als r: Er umschlingt das Material höchstens zur Hälfte.
 LAST_DAUERND = 1.25  # × ae
 LAST_KURZ = 1.7  # × ae
+# Eine dünne Lage – höchstens so tief, × D – darf der Fräser breit nehmen (Manuel, 2026-10-02:
+# „der Ø 12 darf bei kleinem ap ein größeres ae fahren“): mit ae = R und so viel weniger Vorschub,
+# dass der Span so dick bleibt wie mit dem ae des Einsatzes (spanausgleich). Wie der Einsatz
+# „Planen“ am Schaftfräser (werkzeuge.PLANEN_SCHAFT_AP).
+DUENN = 0.1
+
+
+def spanausgleich(ae, d):
+    """Die größte Spandicke bei ae als Anteil von fz – 2 √(k (1 − k)) mit k = ae ÷ D, ab D/2
+    eins. Teilt man den Vorschub einer breiten Bahn durch das Verhältnis zweier solcher Anteile,
+    ist der Span so dick wie in der schmalen."""
+    k = min(max(ae, GLEICH) / max(d, GLEICH), 0.5)
+    return 2.0 * math.sqrt(k * (1.0 - k))
 
 
 @dataclass(frozen=True)

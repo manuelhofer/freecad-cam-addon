@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-93 duenne-lage-breit
+
+### EINGELESEN
+- W-013, Schritt T2 (Spezifikation Strategien 13.5); Manuel, 2026-10-02: „der Ø 12 darf bei kleinem
+  ap ein größeres ae fahren“. Plan der Nacht, Punkt 3.
+
+### DATEIEN
+- `camaddon/bahn.py` (`DUENN`, `spanausgleich`), `camaddon/raeumen_bahn.py` (`_flaeche`,
+  `Raeumbahn.breit`, `last`), `camaddon/zielzeit.py` (`ziel`), `tests/test_raeumen.py` ((f), (i)),
+  `tests/bestmarken.json`, `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md`
+  (13.5), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.128.0)
+
+### AKZEPTANZKRITERIUM
+1 mm über einem Block 60 × 40: in weniger als der Hälfte der Zeit (1,0 statt 2,7 min), eben, die
+Last gehalten.
+
+### DONE
+- Selbst entschieden: nicht der Einsatz „Planen“, sondern dieselbe Regel für jeden Fräser – eine
+  Lage bis 0,1 D nimmt das Räumen mit ae = R, der Vorschub mal spanausgleich(ae) ÷
+  spanausgleich(R), damit der Span so dick bleibt wie mit dem ae des Einsatzes (Ø 12, ae 1,5:
+  0,66; der Einsatz „Planen“ fährt 0,70 – fast dasselbe). So braucht die Operation keine neue
+  Eigenschaft, und die Werte bleiben die des Einsatzes.
+- Die Zielzeit rechnet dünne Stellen genauso (sonst wäre „× Ziel“ unter 1 möglich), die Last misst
+  sie gegen ihr ae (`Raeumbahn.breit`).
+- Gemessen: Block 60 × 40, 1 mm: 1,0 statt 2,7 min (adaptiv 0,85); Testteil 10,3 statt 10,7 min;
+  Prüfstand „tasche/raeumen oben“ 2,1 statt 5,2 min. Bestmarken neu geschrieben.
+- Prüfung (f) angepasst: Zusammen statt einzeln jetzt 0,80 statt 0,73 (auch die einzelne Insel
+  nimmt ihren Millimeter breit); waagerecht kein Vorschub über der Insel (die dünne Lage beginnt in
+  der Mitte mit einer Rampe von der Oberkante des Rohteils).
+
+### TESTS
+- `tests/test_raeumen.py` (neu (i)), `test_testteil.py`, `test_pruefstand.py`, `test_zielzeit.py`
+  (OK); `tests/gui/szenario_testteil.py` (OK). black und ruff sauber.
+
+### NEXT
+- T5d (Taschen: Ecken in Bögen), dann die Vorschau schneller.
+
 ## P-2026-10-02-92 werkzeugkiste-guehring-shop
 
 ### EINGELESEN

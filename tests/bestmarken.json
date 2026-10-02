@@ -82,28 +82,28 @@
   "platte/raeumen": {
     "eintauchen": 0,
     "halte": 119,
-    "luft": 0.014,
+    "luft": 0.013,
     "rampen": 0,
     "varianten": {
-      "adaptiv": 33.323,
+      "adaptiv": 33.246,
       "inseln": 41.005,
       "rohteil": 33.799
     },
-    "wirkungsgrad": 0.884,
-    "zeit": 33.323
+    "wirkungsgrad": 0.886,
+    "zeit": 33.246
   },
   "platte/raeumen oben+tasche": {
     "eintauchen": 0,
     "halte": 579,
-    "luft": 0.014,
+    "luft": 0.013,
     "rampen": 1,
     "varianten": {
-      "adaptiv": 34.653,
+      "adaptiv": 34.576,
       "inseln": 42.339,
       "rohteil": 35.129
     },
-    "wirkungsgrad": 0.883,
-    "zeit": 34.653
+    "wirkungsgrad": 0.885,
+    "zeit": 34.576
   },
   "platte/raeumen+kontur tasche": {
     "eintauchen": 0,
@@ -147,17 +147,17 @@
   },
   "tasche/raeumen oben": {
     "eintauchen": 0,
-    "halte": 9,
-    "luft": 0.014,
+    "halte": 47,
+    "luft": 0.008,
     "rampen": 0,
     "varianten": {
-      "adaptiv": 5.249,
-      "inseln": 5.761,
-      "morph": 5.761,
-      "rohteil": 5.761
+      "adaptiv": 2.055,
+      "inseln": 2.209,
+      "morph": 2.209,
+      "rohteil": 2.209
     },
-    "wirkungsgrad": 0.902,
-    "zeit": 5.249
+    "wirkungsgrad": 2.304,
+    "zeit": 2.055
   },
   "tasche/raeumen+kontur": {
     "eintauchen": 0,

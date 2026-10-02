@@ -58,6 +58,7 @@ immer volle Tiefe, mit ae Zustellung“).
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
 
+import dataclasses
 import hashlib
 import math
 from collections import OrderedDict
@@ -196,6 +197,7 @@ class Raeumbahn:
     ueberlastet: dict = field(default_factory=dict)
     tiefen: dict = field(default_factory=dict)  # {z der Lage: so tief schneidet sie} – für last()
     haelt: bool = True  # die gewählte Variante hält die Last (False: keine hält sie)
+    breit: dict = field(default_factory=dict)  # {z einer dünnen Lage: ihr ae} (bahn.DUENN)
 
 
 # --- Das Raster: Hüllfläche, Rohteil, Freies ---------------------------------------------------
@@ -780,12 +782,14 @@ class _Stand:
     davor: list = field(default_factory=list)  # … und welche das waren
     ausgelassen: list = field(default_factory=list)  # Taschenböden, in die der Fräser nicht passt
     tiefen: dict = field(default_factory=dict)  # {z der Lage: so tief schneidet sie} – für last()
+    breit: dict = field(default_factory=dict)  # {z einer dünnen Lage: ihr ae} – für last()
 
     def dazu(self, teil):
         """Hängt die Bahn einer Fläche (`teil`, ein eigener _Stand) an."""
         self.punkte += teil.punkte
         for z, tiefe in teil.tiefen.items():
             self.tiefen[z] = max(self.tiefen.get(z, 0.0), tiefe)
+        self.breit.update(teil.breit)
         self.rampen_bei += teil.rampen_bei
         self.ausgelassen += teil.ausgelassen
         self.davor += [name for name in teil.davor if name not in self.davor]
@@ -1375,6 +1379,7 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         ueberlastet,
         st.tiefen,
         haelt,
+        st.breit,
     )
 
 
@@ -1527,6 +1532,7 @@ def _flaeche(
     genaue = inselringe(konturen, ebene, w, r, schritt, toleranz, material_links)
     vorige = oben
     gefahren = False
+    w_flaeche = w
     for lage in lagen:
         lage = float(lage)
         erlaubt = feld.erlaubt_feld(lage, ziel)
@@ -1534,6 +1540,16 @@ def _flaeche(
             vorige = lage  # über der Lage nichts, was der Fräser hier wegnehmen kann
             continue
         feld.frei[:] = False
+        # Eine dünne Lage nimmt der Fräser breit, mit ae = R und dem Vorschub, bei dem der Span
+        # so dick bleibt (bahn.DUENN): An Manuels Testteil ist der Millimeter über der oberen
+        # Stufe in der Hälfte der Zeit weg.
+        w, w_lage, anteil = w_flaeche, w_flaeche, 1.0
+        if vorige - lage <= bn.DUENN * 2.0 * r + GLEICH and w.zeilenabstand < r - GLEICH:
+            w_lage = dataclasses.replace(w, zeilenabstand=r)
+            anteil = bn.spanausgleich(w.zeilenabstand, 2.0 * r) / bn.spanausgleich(r, 2.0 * r)
+            st.breit[round(lage, 4)] = r
+        w = w_lage
+        beginn = len(st.punkte)
         ablauf = _Lage(st, feld, w, r, r_ein, gerade, lage, vorige, erlaubt, schritt, oben, decke)
         ablauf.stand_hoehe = hoehe
         gesperrt = ~erlaubt
@@ -1567,6 +1583,12 @@ def _flaeche(
             _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, False, genaue)
         ablauf.reste_fahren()
         ablauf.heben()
+        if anteil < 1.0:
+            st.punkte[beginn:] = [
+                p if p.eilgang else dataclasses.replace(p, anteil=p.anteil * anteil)
+                for p in st.punkte[beginn:]
+            ]
+        w = w_flaeche
         if hoehe is not None:
             hoehe[feld.frei] = np.minimum(hoehe[feld.frei], lage)
         if st.ringe > ringe_vorher:
@@ -2071,7 +2093,6 @@ def last(st, w, stand=None):
     r = float(w.form.radius)
     rand = r + 2.0 * max(sx, sy)
     nx, ny = q.h.shape
-    ae = w.zeilenabstand
     groesste = lang = ueber = 0.0
     fenster = []  # [(Weg, Volumen)] der letzten Stücke, zusammen ≥ LAST_FENSTER
     for von, nach in zip(st.punkte, st.punkte[1:], strict=False):
@@ -2087,6 +2108,7 @@ def last(st, w, stand=None):
                 )
         eben = not nach.eilgang and not nach.eintauchen and abs(nach.z - von.z) <= GLEICH
         tiefe = st.tiefen.get(round(nach.z, 4)) if eben else None
+        ae = getattr(st, "breit", {}).get(round(nach.z, 4), w.zeilenabstand)
         if not tiefe or tiefe <= GLEICH:
             q.fahre_stuecke([s[0] for s in sehnen], [s[1] for s in sehnen], w.form)
             fenster, ueber = [], 0.0

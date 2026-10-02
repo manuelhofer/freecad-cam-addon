@@ -552,7 +552,14 @@ pruefe(
 in_tasche_h = [
     p for p in bahn_h.punkte if not p.eilgang and 35 + R <= p.x <= 65 - R and p.z < 35.0 - 1e-9
 ]
-vorschub_h = [p for p in bahn_h.punkte if not p.eilgang and not p.eintauchen]
+# Keine Lage über der Insel: waagerecht fährt der Vorschub nirgends höher als 35 (eine Rampe von
+# der Oberkante des Rohteils hinab gehört zur Lage – seit 0.128.0 beginnt die dünne Lage über der
+# Insel, breit genommen, in der Mitte mit einer).
+vorschub_h = [
+    b
+    for a, b in zip(bahn_h.punkte, bahn_h.punkte[1:], strict=False)
+    if not b.eilgang and not b.eintauchen and abs(b.z - a.z) < 1e-9
+]
 pruefe(max(p.z for p in vorschub_h) <= 35.0 + 1e-9, "mehrere Höhen: Vorschub über der Insel")
 pruefe(len(in_tasche_h) > 10, "mehrere Höhen: die Tasche fehlt")
 einzeln_h = sum(
@@ -564,8 +571,11 @@ einzeln_h = sum(
     ).zeit
     for e in ebenen_h
 )
+# Zusammen deutlich schneller als jede für sich. Seit 0.128.0 nimmt auch die einzelne Insel ihren
+# Millimeter über dem ganzen Rohteil breit (bahn.DUENN) – der Abstand ist kleiner als vorher
+# (0,80 statt 0,73).
 pruefe(
-    bahn_h.zeit < 0.75 * einzeln_h,
+    bahn_h.zeit < 0.85 * einzeln_h,
     f"mehrere Höhen: zusammen {bahn_h.zeit:.2f} min, jede für sich {einzeln_h:.2f} min",
 )
 for hoehe_h in (20.0, 35.0, 30.0):
@@ -692,6 +702,31 @@ print(
     f"Tasche adaptiv: {bahn_ht.zeit:.2f} min, Last bis {last_ht:.2f} ae; die Ringe "
     f"{bahn_ht.zeiten['inseln']:.2f} min, Last bis {bahn_ht.ueberlastet.get('inseln', 0):.2f} ae"
 )
+
+# --- (i) Eine dünne Lage breit (T2) -----------------------------------------------------------
+# Der Block 60 × 40 mit 1 mm Rohteil über der Oberseite: Die Lage ist dünner als 0,1 D – der
+# Fräser nimmt sie mit ae = R statt 1,5 und mit 66 % des Vorschubs, bei dem der Span so dick
+# bleibt wie mit ae 1,5 (bahn.spanausgleich): 1,0 statt 2,7 min. Die Fläche ist danach eben, und
+# die Last – gemessen mit ae = R – hält.
+teil_duenn = Part.makeBox(60, 40, 20)
+rohteil_duenn = (-1.0, 61.0, -1.0, 41.0)
+werte_duenn = werte_fuer(rohteil_duenn, 21.0, variante="rohteil")
+bahn_duenn = raeumen(teil_duenn, 20.0, werte_duenn)
+pruefe(bahn_duenn.breit == {20.0: R}, f"dünne Lage: {bahn_duenn.breit}")
+anteile_duenn = {
+    round(p.anteil, 3) for p in bahn_duenn.punkte if not p.eilgang and abs(p.z - 20.0) < 1e-9
+}
+soll_duenn = round(bn.spanausgleich(schruppen.ae, 2 * R), 3)
+pruefe(
+    soll_duenn in anteile_duenn and max(anteile_duenn) <= soll_duenn + 1e-9,
+    f"dünne Lage, Vorschub: {anteile_duenn}, {soll_duenn}",
+)
+pruefe(bahn_duenn.zeit < 1.2, f"dünne Lage: {bahn_duenn.zeit:.2f} min (mit ae 1,5: 2,72)")
+rest, einschnitt = simuliert(bahn_duenn, teil_duenn, rohteil_duenn, 21.0, 20.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"dünne Lage: Rest {rest}, Einschnitt {einschnitt}")
+last_duenn, _lang = rb.last(bahn_duenn, werte_duenn)
+pruefe(last_duenn <= bn.LAST_KURZ * rb.LAST_SPIEL, f"dünne Lage: Last bis {last_duenn:.2f} ae")
+print(f"duenne Lage: {bahn_duenn.zeit:.2f} min, Last bis {last_duenn:.2f}")
 
 # --- Fehler mit einem Satz --------------------------------------------------------------------
 netz_a = hf.netz_ohne(teil_a, [e.name for e in ebenen_a])
