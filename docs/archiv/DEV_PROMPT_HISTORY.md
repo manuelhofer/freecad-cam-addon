@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-23 vierachs-gleichlauf
+
+### EINGELESEN
+- `vierachs_bahn` (`schruppen`, `schlichten`, `_spirale`, `befehle`), `vierachs_planbahn`
+  (`_mantelnut_punkte`, `_bohrung_punkte`, `_nut_punkte`), `vierachs_operation`,
+  `vierachs_schlichten`, `vierachs_plan`, `vierachs_achsen` (Drehsinn), `spindel`.
+
+### DATEIEN
+- `camaddon/spindel.py`, `camaddon/vierachs_bahn.py`, `camaddon/vierachs_operation.py`,
+  `camaddon/vierachs_schlichten.py`, `camaddon/vierachs_plan.py`, `camaddon/vierachs_planbahn.py`,
+  `tests/test_vierachs_bahn.py`, `tests/test_vierachs_schlichten.py`, `tests/test_vierachs_plan.py`,
+  `help/de|en/vierachs.html`, `docs/spezifikation_strategien.md`,
+  `docs/spezifikation_vierachs.md`, `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`,
+  `package.xml` (0.85.0)
+
+### AKZEPTANZKRITERIUM
+Manuel: „Muss die Drehrichtung sich anpassen je nachdem wo der Fräser steht … bei
+Mantelbearbeitung eher C positionieren mit der Hauptspindel … und es geht nicht nur um meine
+Maschine, es geht um alle Maschinen!!!“ – Gleichlauf auf der Drehmaschine aus der Drehrichtung von
+C, gerechnet aus der Lage des Fräsers, für jede Maschine.
+
+### DONE
+- `spindel.ist_gleichlauf(achse, fahrt, material)`: Gleichlauf bei M3, wenn das Material von der
+  Spindel aus rechts der Fahrt liegt – (fahrt × −achse) · material > 0 –, im Rahmen des Teils; mit
+  M4 umgekehrt (`fuer_m3`). Senkrecht über dem Tisch G41, radial am Mantel macht C die Fahrt, längs
+  an der Stirn ebenso.
+- Spiralen (`_drehung`): Rundum schruppen und schlichten drehen φ steigend, wenn sie zum Futter
+  rücken (M3), fallend mit M4 – Hüllfläche, Ringe, Rest und `_spirale` mit fallendem Winkel. Die
+  Maschine übersetzt φ mit ihrem Drehsinn in C oder A (C = −Drehsinn · φ).
+- Mantelnut: die Zeilen an den Wänden je Seite im Gleichlauf (vorn φ fallend, hinten steigend
+  bei M3), je Paar zuerst die, die dort beginnt, wo der Fräser steht – gleich viele Fahrten.
+- Querbohrung (Helix) und Passfedernut: `gleichlauf` an `bohrung_bahn`/`nut_bahn` im Rahmen der
+  Fläche (wie im Quader).
+- Operationen: `gleichlauf=sp.fuer_m3(True, Controller)` an Rundum schruppen, Rundum schlichten,
+  Plan indexiert.
+
+### TEST
+- 1.1.3: `test_vierachs_bahn` (ist_gleichlauf für drei Lagen; Spirale φ steigt bei M3, fällt
+  andersherum, dieselbe Bahn gespiegelt; C mit Drehsinn +1), `test_vierachs_schlichten` (dasselbe
+  fürs Schlichten), `test_vierachs_plan` (Wände der Mantelnut je Seite, gleich viele Fahrten),
+  `test_vierachs_operation`, `test_vierachs_schlichten_op`, `test_vierachs_pruefen`; Szenarien
+  `szenario_vierachs_schruppen`, `_schlichten`, `_mantelnut`, `_querbohrung`, `_nut` grün;
+  black/ruff grün.
+
+### NEXT
+- „Rundum entgraten“: die Kanten fahren noch nach Nähe, nicht nach Gleichlauf (Materialseite aus
+  den Normalen der beiden Flächen).
+- Zeilen hin und her (Rundum mit Flächen, Linien längs, Plan indexiert): „nur im Gleichlauf“ wie
+  beim Planfräsen (P-2026-10-02-24).
+
 ## P-2026-10-02-22 nut-boegen
 
 ### EINGELESEN

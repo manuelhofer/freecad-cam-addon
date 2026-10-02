@@ -5,7 +5,8 @@
 # Exzenter auch zwischen den Punkten gegen die Formel. Dazu die Path-Befehle für C und A
 # mit G93 und die Fälle, die nicht gehen. Nur über gewählten Flächen (V4): Abflachung einer
 # Welle – gefräst wird nur, wo der Fräser sie berührt, in Zeilen hin und her; hinein über
-# eine Rampe.
+# eine Rampe. Gleichlauf über die Rundachse (P-2026-10-02-23): mit M3 steigt φ, während die
+# Spirale zum Futter rückt; andersherum (M4) fällt es – dieselbe Bahn gespiegelt.
 import math
 import os
 import sys
@@ -19,6 +20,7 @@ import numpy as np
 import Part
 
 from camaddon import restmaterial as rm
+from camaddon import spindel as sp
 from camaddon import vierachs_bahn as vb
 from camaddon import vierachs_flaechen as vf
 from camaddon import vierachs_huelle as vh
@@ -56,6 +58,47 @@ def schnitte(bahn):
 # --- Welle Ø 60 ------------------------------------------------------------------------------
 welle = vh.vernetze(Part.makeCylinder(30, 100, V(0, 0, -100)))
 bahn = vb.schruppen(welle, C_LAENGS, C_RADIAL, WERTE)
+
+# --- Gleichlauf über die Rundachse (P-2026-10-02-23) ------------------------------------------
+# spindel.ist_gleichlauf für jede Lage des Fräsers: M3, das Material rechts der Fahrt, von der
+# Spindel aus gesehen. Senkrecht über dem Tisch wie G41; radial am Mantel macht die Rundachse die
+# Fahrt: Rückt die Spirale zum Futter vor (−längs), muss φ steigen; nach vorn fallen.
+pruefe(sp.ist_gleichlauf((0, 0, -1), (1, 0, 0), (0, -1, 0)), "senkrecht: Material rechts")
+pruefe(not sp.ist_gleichlauf((0, 0, -1), (1, 0, 0), (0, 1, 0)), "senkrecht: Material links")
+pruefe(sp.ist_gleichlauf((-1, 0, 0), (0, 1, 0), (0, 0, -1)), "radial, zum Futter, φ steigt")
+pruefe(not sp.ist_gleichlauf((-1, 0, 0), (0, 1, 0), (0, 0, 1)), "radial, nach vorn, φ steigt")
+pruefe(sp.ist_gleichlauf((0, 0, -1), (0, 1, 0), (1, 0, 0)), "längs an der Stirn, außen")
+
+
+def erste_lage(b):
+    lage = []
+    for p in b.punkte[1:]:
+        if p.eilgang and lage:
+            break
+        if not p.eilgang:
+            lage.append(p)
+    return lage
+
+
+gleich = erste_lage(bahn)
+gegen_bahn = vb.schruppen(welle, C_LAENGS, C_RADIAL, replace(WERTE, gleichlauf=False))
+gegen = erste_lage(gegen_bahn)
+pruefe(
+    all(q.phi > p.phi for p, q in zip(gleich, gleich[1:], strict=False))
+    and all(q.a <= p.a for p, q in zip(gleich, gleich[1:], strict=False)),
+    "M3: φ steigt nicht, während die Spirale zum Futter rückt",
+)
+pruefe(
+    all(q.phi < p.phi for p, q in zip(gegen, gegen[1:], strict=False)),
+    "andersherum (M4): φ fällt nicht",
+)
+pruefe(
+    gegen_bahn.lagen == bahn.lagen and [(p.a, p.r) for p in gegen] == [(p.a, p.r) for p in gleich],
+    "andersherum nicht dieselbe Bahn gespiegelt",
+)
+befehle_gegen = vb.befehle(gegen_bahn, C_LAENGS, C_RADIAL, "C", 1, 500.0)
+c_werte = [b.Parameters["C"] for b in befehle_gegen if b.Name == "G1" and "C" in b.Parameters]
+pruefe(c_werte[5] > c_werte[0], "andersherum: C mit Drehsinn +1 steigt nicht (C = −φ)")
 pruefe(bahn.lagen == 5, f"Lagen: {bahn.lagen}")
 pruefe(30.3 <= bahn.r_min <= 30.33, f"tiefster Radius: {bahn.r_min}")
 start = bahn.punkte[0]

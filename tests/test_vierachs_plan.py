@@ -486,6 +486,36 @@ for nut in mantel:
     pruefe(hoechst < 0.05, f"Grund R {nut.radius}: Rest {hoechst:.3f}")
 print(ascii(f"Mantelnut: {mb.mantelnuten} Nuten, {mb.lagen} Lagen, {mb.zeilen} Fahrten, "
             f"{vb.dauer(mb, 500.0):.2f} min, ins Teil {vergleich_m.kleinster:.3f}"))  # fmt: skip
+
+
+# Die Zeilen an den Wänden im Gleichlauf (P-2026-10-02-23): Liegt das Material vorn (die Zeile
+# längs vor der Mitte), fällt φ für M3, hinten steigt es; andersherum (M4) umgekehrt – gleich
+# viele Fahrten.
+def wandzeilen(bahn, nut):
+    mitte = (nut.a_von + nut.a_bis) / 2
+    ergebnis = []
+    for p, q in zip(bahn.punkte, bahn.punkte[1:], strict=False):
+        if q.eilgang or abs(q.a - p.a) > 1e-9 or abs(q.r - nut.radius) > 1e-6:
+            continue
+        if abs(q.a - mitte) < 1e-6 or not nut.a_von < q.a < nut.a_bis or abs(q.phi - p.phi) < 1e-9:
+            continue
+        ergebnis.append((q.a > mitte, q.phi > p.phi))
+    return ergebnis
+
+
+zeilen_w = wandzeilen(mb, mantel[0])
+pruefe(zeilen_w and all(steigt != vorn for vorn, steigt in zeilen_w), f"Wände M3: {zeilen_w}")
+mb_gegen = vp.planen(
+    vp.netz_ohne(mantelwelle, []),
+    LAENGS,
+    RADIAL,
+    dataclasses.replace(w_mantel, gleichlauf=False),
+    [],
+    mantelnuten_=mantel,
+)
+zeilen_g = wandzeilen(mb_gegen, mantel[0])
+pruefe(zeilen_g and all(steigt == vorn for vorn, steigt in zeilen_g), f"Wände M4: {zeilen_g}")
+pruefe(mb_gegen.zeilen == mb.zeilen, f"M4: {mb_gegen.zeilen} statt {mb.zeilen} Fahrten")
 w_breit = dataclasses.replace(w_mantel, form=ff.scheibe(4.5))
 try:
     vp.planen(vp.netz_ohne(mantelwelle, []), LAENGS, RADIAL, w_breit, [], mantelnuten_=mantel)

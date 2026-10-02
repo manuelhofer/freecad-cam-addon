@@ -23,6 +23,7 @@ import Path
 import Path.Op.Base as PathOp
 
 from . import namen
+from . import spindel as sp
 from . import vierachs_achsen as va
 from . import vierachs_bahn as vb
 from . import vierachs_flaechen as vf
@@ -195,6 +196,7 @@ def rechne(obj, job, modell, fraeser_radius):
         halter_zum_futter(obj),
         flaechen(obj),
         float(obj.Eintauchwinkel),
+        gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
 
 
@@ -213,13 +215,15 @@ def bahn_fuer(
     halter=0.0,
     flaechen_=(),
     eintauchwinkel=vb.EINTAUCHWINKEL,
+    gleichlauf=True,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
     zum Futter wie vorgeschlagen; `halter`: so weit reicht der Halter seitlich über die
     Werkzeugachse (halter.seitlich); `flaechen_`: die gewählten Flächen („Face3“ …), leer:
-    rundum; `eintauchwinkel` (Grad) für die Rampe ins Material zwischen ihnen. ValueError
-    mit einem Satz, wenn es nicht geht."""
+    rundum; `eintauchwinkel` (Grad) für die Rampe ins Material zwischen ihnen; `gleichlauf`:
+    die Spirale im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller). ValueError mit einem
+    Satz, wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -244,6 +248,7 @@ def bahn_fuer(
         waende=waende(form, laengs),
         bereich=vf.bereich_fuer(form, laengs, radial, flaechen_, fraeser_radius),
         eintauchwinkel=eintauchwinkel,
+        gleichlauf=gleichlauf,
     )
     return vb.schruppen(vh.vernetze(form), laengs, radial, werte)
 

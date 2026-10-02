@@ -602,7 +602,20 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
    Material liegt dann links (`spindel.fuer_m3`; Kontur, Restmaterial,
    Entgraten, 3D-Schlichten, Räumen, Bohrung fräsen, Nut, Gewinde fräsen,
    3D-Schruppen; P-2026-10-02-20). FreeCADs eigene Operationen fragen danach
-   nicht. Die 4-Achs-Bahnen noch nicht.
+   nicht. **Allgemein, für jede Maschine** (Manuel: „es geht um alle Maschinen“,
+   P-2026-10-02-23): Gleichlauf entsteht aus der Bewegung an der Schneide, nicht
+   aus S allein. `spindel.ist_gleichlauf(achse, fahrt, material)` rechnet es im
+   Rahmen des Teils: Werkzeugachse vom Halter zur Spitze, die Fahrt gegenüber dem
+   Teil, die Seite des Materials – Gleichlauf bei M3, wenn das Material von der
+   Spindel aus rechts der Fahrt liegt, (fahrt × −achse) · material > 0. Senkrecht
+   über dem Tisch ist das G41; radial am Mantel macht die Rundachse die Fahrt: Die
+   Spirale von „Rundum schruppen/schlichten“ dreht φ steigend, wenn sie zum Futter
+   vorrückt (M3), fallend mit M4; die Wände der Mantelnut je Seite andersherum
+   (vorn fallend, hinten steigend); Helix der Querbohrung und Passfedernut wie im
+   Quader im Rahmen der Fläche. In welche Richtung C dafür an der Maschine dreht,
+   rechnen die Befehle mit ihrem Drehsinn (C = −Drehsinn · φ) – so stimmt es auf
+   jeder Maschine, mit C an der Drehmaschine wie mit A an der Fräse. Noch nicht:
+   „Rundum entgraten“ (die Kanten nach Nähe) und die Zeilen hin und her.
 5. **Keine Luftschnitte.** Bahn nur dort, wo Material steht (Abtrag) – bei
    Zeilen, Lagen und Restbearbeitung.
 6. **Restmaterial kennen.** Ein Abtragsmodell je Job (Abschnitt 7): jede

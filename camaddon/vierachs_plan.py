@@ -27,6 +27,7 @@ import Path
 import Path.Op.Base as PathOp
 
 from . import namen
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_planbahn as vp
@@ -145,6 +146,7 @@ def rechne(obj, job, modell):
         vo.flaechen(obj),
         float(obj.Eintauchwinkel),
         bohrer=bohrer,
+        gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
 
 
@@ -195,6 +197,7 @@ def bahn_fuer(
     eintauchwinkel=vb.EINTAUCHWINKEL,
     toleranz=vp.TOLERANZ,
     bohrer=None,
+    gleichlauf=True,
 ):
     """Die Bahn „Plan indexiert“ für Modell und Stange des Jobs. `abstaende`: (Überlauf,
     Abstand zum Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der
@@ -202,8 +205,9 @@ def bahn_fuer(
     `halter`: so weit reicht der Halter seitlich über die Werkzeugachse (halter.seitlich);
     `flaechen`: die gewählten Flächen („Face3“ …) – gefräst werden die ebenen längs der Stange
     darunter; `toleranz`: so fein wird das Teil vernetzt; `bohrer`: (Durchmesser,
-    Spitzenwinkel) – die Querbohrungen radial bohren (bohrer_von()), ebene Flächen nicht.
-    ValueError mit einem Satz, wenn es nicht geht."""
+    Spitzenwinkel) – die Querbohrungen radial bohren (bohrer_von()), ebene Flächen nicht;
+    `gleichlauf`: im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller). ValueError mit
+    einem Satz, wenn es nicht geht."""
     laengs, radius, a_vorne, a_futter = vs._stange(job, laengs)
     form_teil = vs._teil(modell)
     ebenen = [] if bohrer else vp.ebenen(form_teil, laengs, radial, flaechen)
@@ -229,6 +233,7 @@ def bahn_fuer(
         eintauchwinkel=eintauchwinkel,
         rest=vs.rest_nach(schruppen, radius, a_futter, a_vorne) if schruppen else None,
         bohrer=bohrer,
+        gleichlauf=gleichlauf,
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
     return vp.planen(

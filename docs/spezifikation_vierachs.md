@@ -1134,7 +1134,10 @@ die Abstände gelten für beide.
 3. **Mitte:** die runde Fläche, wenn das Teil so passt – sonst das ganze
    Teil (Abschnitt 5).
 4. **Spirale von vorne Richtung Futter, Gleichlauf** – das Teil bleibt am
-   Futter am längsten steif.
+   Futter am längsten steif. Der Gleichlauf kommt aus der Drehrichtung der
+   Rundachse: mit M3 steigt φ, während die Spirale zum Futter rückt, mit M4
+   („Reverse“ am Controller) fällt es (`spindel.ist_gleichlauf`, im Rahmen des
+   Teils; P-2026-10-02-23).
 5. **numpy statt OpenCamLib** – numpy ist in jeder FreeCAD-Version dabei,
    OpenCamLib nicht.
 6. **Vorschub G93** (Abschnitt 9), umstellbar unter „Mehr …“.

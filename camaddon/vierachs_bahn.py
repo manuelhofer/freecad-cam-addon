@@ -71,6 +71,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import spindel as sp
 from . import vierachs_huelle as vh
 from .sprache import tr
 
@@ -128,6 +129,8 @@ class Schruppwerte:
     # Wo die Mitte des Fräsers fräst (vierachs_flaechen.Bereich, V4); None: überall – rundum.
     bereich: object = None
     eintauchwinkel: float = EINTAUCHWINKEL  # Grad, für die Rampe ins Material
+    # Die Spirale im Gleichlauf für M3 (spindel.fuer_m3): False – andersherum (M4, Gegenlauf).
+    gleichlauf: bool = True
 
 
 @dataclass(frozen=True)
@@ -150,6 +153,7 @@ class Schlichtwerte:
     aufmass_schruppen: float = 0.0  # so viel ließ das Schruppen stehen
     bereich: object = None  # wie bei Schruppwerte
     muster: str = SPIRALE  # SPIRALE oder LINIEN (Linien längs, V4c)
+    gleichlauf: bool = True  # wie bei Schruppwerte
 
 
 @dataclass
@@ -270,6 +274,17 @@ class Bahn:
     hinten_frei: float = 0.0  # so viel vom hinteren Ende des Teils erreicht der Fräser nicht
 
 
+def _drehung(a_anfang, a_ende, gleichlauf):
+    """+1, wenn der Winkel der Spirale steigen muss, sonst −1 (P-2026-10-02-23). Im Rahmen des
+    Teils – radial (φ = 0), quer, längs – zeigt der Fräser zur Achse, fährt mit steigendem φ
+    quer, und das Material liegt dort, wohin die Spirale längs vorrückt: spindel.ist_gleichlauf
+    sagt, ob das für M3 Gleichlauf ist. Welche Richtung der Rundachse das an der Maschine ist,
+    rechnet befehle() mit ihrem Drehsinn – so stimmt es auf jeder Maschine."""
+    vor = 1.0 if a_ende > a_anfang else -1.0
+    steigend = sp.ist_gleichlauf((-1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, vor))
+    return 1 if steigend == bool(gleichlauf) else -1
+
+
 def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=vh.SCHRITT_PHI):
     """Die Schruppbahn (Bahn) für `netz` (vierachs_huelle.vernetze, im Job) mit den
     Schruppwerten `werte`; `laengs` und `radial` wie in vierachs_huelle.
@@ -320,10 +335,12 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         for stelle in ringe
     ]
 
+    drehung = _drehung(a_anfang, a_ende, w.gleichlauf)
+
     def boden(versatz):
         """Wie tief die Spitze an jedem Punkt der Spirale darf, wenn sie beim Winkel
-        phi[versatz] beginnt."""
-        winkel = (versatz + k) % je_umdrehung
+        phi[versatz] beginnt (drehung: mit steigendem oder fallendem Winkel)."""
+        winkel = (drehung * (versatz + k)) % je_umdrehung
         ergebnis = _ring_radien(huelle.bei(a, winkel), herkunft, winkel, ring_r, je_umdrehung)
         ergebnis = ergebnis + zugabe
         ergebnis = np.where(~np.isfinite(ergebnis) & (a < teil_hinten), w.stange_radius, ergebnis)
@@ -367,7 +384,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
     versatz = 0  # die Spirale einer Lage beginnt, wo die letzte endete
     for lage in range(1, lagen + 1):
         r = np.maximum(boden(versatz), w.stange_radius - lage * w.zustellung)
-        phi = (versatz + k) * schritt_phi
+        phi = drehung * (versatz + k) * schritt_phi
         for i in _knicke(r, int(round(HOECHSTENS_GRAD / schritt_phi)), a):
             punkte.append(Punkt(False, float(a[i]), float(r[i]), float(phi[i])))
         versatz += int(k[-1])
@@ -830,7 +847,10 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     anzahl = int(math.ceil((a_anfang - a_ende) / s * je_umdrehung - 1e-9))
     umdrehungen = int(math.ceil(anzahl / je_umdrehung))
     zugabe = w.aufmass + netz.toleranz  # das Netz liegt bis zu seiner Toleranz innen
-    anfang_je_winkel = a_anfang - s * (np.arange(je_umdrehung) / je_umdrehung + umdrehungen)
+    # Mit fallendem Winkel (drehung −1) kommt die Spirale am Winkel j vorbei, wo k ≡ −j.
+    drehung = _drehung(a_anfang, a_ende, w.gleichlauf)
+    erster = (drehung * np.arange(je_umdrehung)) % je_umdrehung
+    anfang_je_winkel = a_anfang - s * (erster / je_umdrehung + umdrehungen)
     huelle = vh.je_winkel(
         netz,
         laengs,
@@ -844,7 +864,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     huelle = _auffuellen(huelle, anfang_je_winkel, s, teil_vorne, teil_hinten) + zugabe
     k = np.arange(anzahl + 1)
     a = a_anfang - s * k / je_umdrehung
-    r = huelle[umdrehungen - k // je_umdrehung, k % je_umdrehung]
+    r = huelle[umdrehungen - k // je_umdrehung, (drehung * k) % je_umdrehung]
     # Vor jeder Wand hält die Spirale eine Umdrehung an (Ringgang, D-42) – die Hüllfläche
     # dort genau an dieser Stelle gerechnet; so weit vor der Wand, dass der um Aufmaß und
     # Vernetzung größere Fräser sie nicht streift.
@@ -864,7 +884,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         + zugabe
         for stelle in ringe
     ]
-    r = _ring_radien(r, herkunft, k, ring_r, je_umdrehung)
+    r = _ring_radien(r, herkunft, drehung * k, ring_r, je_umdrehung)
     anzahl = len(a) - 1
     r = np.where(np.isfinite(r), r, w.stange_radius)  # trifft rundum nichts: bleibt oben
     r = np.maximum(r, radius)  # nicht näher an die Achse
@@ -874,7 +894,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     stufen, grenze = [], 0.0
     if w.rest is not None:
         grenze = max(radius, w.aufmass_schruppen + SCHLICHT_ZUGABE)
-        oben = _nicht_tiefer(w.rest, form, 0.0, a, k * math.radians(schritt_phi))
+        oben = _nicht_tiefer(w.rest, form, 0.0, a, drehung * k * math.radians(schritt_phi))
         anzahl_stufen = int(math.ceil(max(float(np.max(oben - r)), 0.0) / grenze - 1e-9))
         stand = oben.copy()  # bis hier steht noch Material über der Spitze, je Punkt
         for stufe in range(1, anzahl_stufen):
@@ -888,14 +908,14 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
                 np.minimum(stand[von : bis + 1], hoehe[von : bis + 1], out=stand[von : bis + 1])
     sicher = w.stange_radius + w.sicherheit
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
-    winkel = k * schritt_phi
+    winkel = drehung * k * schritt_phi
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
     umdrehungen_vor = 0
     for r_stufe, stuecke in stufen:
         for von, bis in stuecke:
-            _spirale(punkte, a, r_stufe, winkel, von, bis, sicher, abstand)
+            _spirale(punkte, a, r_stufe, winkel, von, bis, sicher, abstand, drehung)
             umdrehungen_vor += (bis - von) / je_umdrehung
-    _spirale(punkte, a, r, winkel, 0, anzahl, sicher, abstand)
+    _spirale(punkte, a, r, winkel, 0, anzahl, sicher, abstand, drehung)
     punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
     return Schlichtbahn(
         punkte,
@@ -1082,12 +1102,15 @@ def _abschnitte(noetig, tiefe, je_umdrehung):
     return ergebnis
 
 
-def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand):
+def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1):
     """Hängt das Stück von..bis der Spirale an `punkte`: im Eilgang über den Anfang, hinein,
     die Spirale mit Sehnenfehler und zusammengefasst, radial hinaus. Der Winkel zählt weiter,
-    wo die Rundachse steht – sie dreht nicht zurück."""
+    wo die Rundachse steht – sie dreht nicht zurück (`drehung`: −1, wenn er fällt)."""
     weiter = punkte[-1].phi
-    versatz = 360.0 * math.ceil((weiter - winkel[von]) / 360.0 - 1e-9)
+    if drehung > 0:
+        versatz = 360.0 * math.ceil((weiter - winkel[von]) / 360.0 - 1e-9)
+    else:
+        versatz = -360.0 * math.ceil((winkel[von] - weiter) / 360.0 - 1e-9)
     stueck = r[von : bis + 1]
     stueck = stueck + _sehnenfehler(stueck)
     anfahren = Punkt(True, float(a[von]), sicher, float(winkel[von] + versatz))

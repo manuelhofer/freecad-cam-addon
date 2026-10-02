@@ -124,6 +124,22 @@ werte = vb.Schlichtwerte(
 beginn = time.time()
 bahn = vb.schlichten(netz, LAENGS, RADIAL, werte)
 dauer = time.time() - beginn
+# Gleichlauf über die Rundachse (P-2026-10-02-23): mit M3 steigt φ, während die Spirale zum
+# Futter rückt; andersherum (M4) fällt es – an der runden Welle dieselbe Bahn gespiegelt.
+gegen = vb.schlichten(netz, LAENGS, RADIAL, replace(werte, gleichlauf=False))
+im_vorschub = [p for p in bahn.punkte if not p.eilgang]
+gegen_vorschub = [p for p in gegen.punkte if not p.eilgang]
+pruefe(
+    im_vorschub[-1].phi > im_vorschub[0].phi and gegen_vorschub[-1].phi < gegen_vorschub[0].phi,
+    f"Winkel: {im_vorschub[0].phi}…{im_vorschub[-1].phi}, "
+    f"andersherum {gegen_vorschub[0].phi}…{gegen_vorschub[-1].phi}",
+)
+pruefe(
+    abs(gegen.umdrehungen - bahn.umdrehungen) < 1e-9
+    and abs(min(p.r for p in gegen_vorschub) - min(p.r for p in im_vorschub)) < 1e-6
+    and abs(len(gegen_vorschub) - len(im_vorschub)) <= 2,
+    f"andersherum: {gegen.umdrehungen} Umdrehungen, {len(gegen_vorschub)} Punkte",
+)
 start = bahn.punkte[0]
 pruefe(start.eilgang and start.a == 1.0 + 3.0 + 2.0 and start.r == 27.0, f"Start: {start}")
 a_ende = -42.0 - (3.0 + 0.5)  # Überlauf: Radius + 0,5

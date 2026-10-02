@@ -64,6 +64,7 @@ import numpy as np
 
 from . import einheiten
 from . import fraeserform as ff
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_huelle as vh
 from .sprache import tr
@@ -166,6 +167,9 @@ class Planwerte:
     # (Durchmesser, Spitzenwinkel) eines Bohrers: Die Querbohrungen werden radial gebohrt statt
     # gefräst (gebohrt()), ebene Flächen nicht; None: ein Fräser mit ebener Stirn.
     bohrer: tuple = None
+    # Im Gleichlauf für M3 (spindel.fuer_m3): Nut, Bohrung und die Wände der Mantelnut; False –
+    # andersherum (M4). P-2026-10-02-23
+    gleichlauf: bool = True
 
 
 @dataclass
@@ -415,11 +419,26 @@ def _mantelnut_punkte(nut, w, oben, sicher):
     dort = f_bis if dort == f_von else f_von
     punkte.append(vb.Punkt(False, a_mitte, z_ende, dort, anteil=anteil))
     fahrten += 1
-    for a in zeilen:
-        punkte.append(vb.Punkt(False, a, z_ende, dort))
-        dort = f_bis if dort == f_von else f_von
-        punkte.append(vb.Punkt(False, a, z_ende, dort))
-        fahrten += 1
+
+    # Die Zeilen an den Wänden im Gleichlauf (P-2026-10-02-23): Liegt das Material längs vorn
+    # (+), muss die Rundachse für M3 mit fallendem φ fahren, hinten mit steigendem – je Paar
+    # zuerst die Zeile, die dort beginnt, wo der Fräser steht; zurück die andere.
+    def steigt(seite):
+        return sp.ist_gleichlauf((-1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, seite)) == bool(
+            w.gleichlauf
+        )
+
+    for paar in range(0, len(zeilen), 2):
+        reihe = [(a, 1.0 if a > a_mitte else -1.0) for a in zeilen[paar : paar + 2]]
+        reihe.sort(key=lambda zeile: steigt(zeile[1]) != (dort == f_von))
+        for a, seite in reihe:
+            anfang, ende = (f_von, f_bis) if steigt(seite) else (f_bis, f_von)
+            if dort != anfang:  # am Ende der Nut quer hinüber (in ihr)
+                punkte.append(vb.Punkt(False, punkte[-1].a, z_ende, anfang))
+            punkte.append(vb.Punkt(False, a, z_ende, anfang))
+            punkte.append(vb.Punkt(False, a, z_ende, ende))
+            dort = ende
+            fahrten += 1
     punkte.append(vb.Punkt(True, punkte[-1].a, sicher, dort))
     lagen = max(1, int(math.ceil((oben - z_ende) / ap - 1e-9)))
     return punkte, lagen, fahrten
@@ -488,6 +507,7 @@ def _bohrung_punkte(bohrung, ebene, w, oben, sicher):
         sicher=sicher,
         eintauchwinkel=w.eintauchwinkel,
         sicherheit=w.sicherheit,
+        gleichlauf=w.gleichlauf,
     )
     bahn = bb.planen(werte, [_bohrung_eingeengt(bohrung, radius)])
     return _zurueck(bahn.punkte, ebene), bahn
@@ -658,6 +678,7 @@ def _nut_punkte(liste, ebene, w, oben, sicher):
         sicher=sicher,
         eintauchwinkel=w.eintauchwinkel,
         sicherheit=w.sicherheit,
+        gleichlauf=w.gleichlauf,
     )
     bahn = nb.planen(werte, [_eingeengt(n, radius) for n in liste])
     return _zurueck(bahn.punkte, ebene), bahn

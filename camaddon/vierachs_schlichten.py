@@ -32,6 +32,7 @@ import Path.Op.Base as PathOp
 from . import fraeserform as ff
 from . import namen
 from . import restmaterial as rm
+from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_flaechen as vf
 from . import vierachs_huelle as vh
@@ -186,6 +187,7 @@ def rechne(obj, job, modell):
         vo.halter_zum_futter(obj),
         vo.flaechen(obj),
         muster_der_operation(obj),
+        gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
 
 
@@ -216,13 +218,15 @@ def bahn_fuer(
     halter=0.0,
     flaechen=(),
     muster=vb.SPIRALE,
+    gleichlauf=True,
 ):
     """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
     davor (schruppbahnen()); `halter`: so weit reicht der Halter seitlich über die
     Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen („Face3“ …), leer:
-    rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN. ValueError mit einem Satz, wenn es
-    nicht geht."""
+    rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN; `gleichlauf`: die Spirale im Gleichlauf
+    für M3 (spindel.fuer_m3 mit dem Controller). ValueError mit einem Satz, wenn es nicht
+    geht."""
     if not schruppen:
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
     laengs, radius, a_vorne, a_futter = _stange(job, laengs)
@@ -235,6 +239,7 @@ def bahn_fuer(
         waende=vo.waende(form_teil, laengs),
         bereich=vf.bereich_fuer(form_teil, laengs, radial, flaechen, form.radius),
         muster=muster,
+        gleichlauf=gleichlauf,
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     return vb.schlichten(teil, laengs, radial, werte)

@@ -159,7 +159,11 @@ behind the part counts; if its holder reaches further than the cutter, it says
 operation the part-off width is enough.</p>
 <p><b>The path:</b> each layer is a spiral from the front – the cutter fully in
 front of the bar – to the overrun behind the part; there the tip stays at the
-depth of the last piece of contour. The edge of the cutter – or of its holder,
+depth of the last piece of contour. <b>Climb milling</b>: the rotary axis turns so
+that the material lies to the right of the motion, seen from the spindle – one way
+with M3, the other with M4 (“Reverse” on the tool controller); which direction of
+C or A that is, the add-on works out from the machine’s sense of rotation. The
+same for the walls of a slot on the circumference, cross holes and keyways. The edge of the cutter – or of its holder,
 if that reaches further – always stays the chuck distance in front of the
 clamping face. The operation remembers how far the holder reaches (property
 “Halter Zum Futter”). Where the part is higher than

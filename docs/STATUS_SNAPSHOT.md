@@ -91,6 +91,10 @@ Test. **Offene Nut in Bögen** (Manuels Halbkreis): je Schritt ein Halbkreis im 
 zu Wand, quer zurück im Schnellvorschub, am Anfang Morph-Bögen vom geraden Rand; der Schritt so
 klein, dass der Fräser die Delle nicht weiter umschlingt als eine gerade Wand mit ae; offene Nuten
 jeder Breite (P-2026-10-02-22); 0.84.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
+**4-Achs-Gleichlauf über C** (Manuel: „es geht um alle Maschinen“): im Rahmen des Teils aus
+Werkzeugachse, Fahrt und Materialseite gerechnet (`spindel.ist_gleichlauf`); Spiralen,
+Mantelnut-Wände, Querbohrung und Passfedernut drehen φ mit M3 und M4 richtig, C über den Drehsinn
+der Maschine (P-2026-10-02-23); 0.85.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
 Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
