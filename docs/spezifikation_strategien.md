@@ -155,7 +155,13 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    vorgewählt), „Bohrung fräsen“ den Rest; der Wettbewerb läuft je gleiche Flächen (wer allein
    steht, behält den Haken). Am Block mit Durchgangsbohrung Ø 20 und Sackbohrung Ø 34
    (`szenario_bohren`) bohrt jetzt der Bohrer Ø 20 die durchgehende, statt dass „Bohrung
-   fräsen“ beide fräst; `szenario_flansch`.
+   fräsen“ beide fräst; `szenario_flansch`. **Deckel** (P-2026-10-02-13, 0.75.0): Platte mit
+   Tasche R 6 und vier Bohrungen Ø 6,6, alle Flächen angeklickt – „Bohren“ bohrte die vier, doch
+   „Bohrung fräsen“ blieb rot angehakt („Ø 6,6 kleiner als der Fräser“): Den roten Block nahm der
+   Wettbewerb nur heraus, wenn alle Gegner der Gruppe dieselben Flächen hatten, und die Kontur
+   hatte auch die Wände der Tasche. Jetzt teilt er die Gruppe nach gleichen Flächen, auch die
+   nicht angetretenen Blöcke: Wo einer geht und ein anderer rot ist, verliert der rote den Haken
+   (`szenario_deckel`: „Räumen T1“, „Bohren T2“, „Kontur T1“).
 8. **Fasen / Entgraten** – an Kanten in der Ebene mit Fasenfräser oder
    Kugelfräser als Kantenbruch; Breite einstellbar; **auch an Kanten im Raum**
    und rundum (V4d). Aufwand mittel. Gebaut: rundum (V4d, 0.36.0) und im

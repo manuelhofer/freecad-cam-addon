@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-13 deckel
+
+### EINGELESEN
+- `gui_bearbeitung._wettbewerb_gruppe`, `_haken_setzen`, `_eigene`, `tests/gui/szenario_flansch.py`.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`, `tests/gui/szenario_deckel.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.75.0)
+
+### AKZEPTANZKRITERIUM
+Deckel 120 × 80 × 15 mit Tasche 80 × 40 × 8 (R 6) und vier Bohrungen Ø 6,6 (T1 Standardfräser,
+T2 Bohrer Ø 6,6), alle Flächen außer der Unterseite angeklickt: „Bohren“ angehakt (4 Bohrungen),
+„Bohrung fräsen“ ohne Haken, Räumen (oder Planfräsen) und Kontur angehakt, kein roter Satz an
+einem angehakten Block; „Anlegen“ legt Räumen, Bohren und Kontur an; am Ende nirgends ins Teil.
+
+### DONE
+- Gefunden beim Erkunden: „Bohrung fräsen“ blieb rot angehakt – `_wettbewerb_gruppe` teilte nur
+  die angetretenen Blöcke nach Flächen; ein roter Block auf den Flächen eines anderen verlor den
+  Haken nicht, wenn ein dritter (die Kontur mit den Taschenwänden) andere hatte.
+- Jetzt teilt `_wettbewerb_gruppe` alle Blöcke der Gruppe nach ihren Flächen (`_eigene`, leere
+  nicht) und rechnet je Teil mit mehr als einem Block den Wettbewerb – dort verliert ein roter
+  Block den Haken, wenn ein anderer dieselben Flächen kann.
+
+### TEST
+- 1.1.3: `szenario_deckel` (neu) und die Szenarien des Assistenten „Bearbeitung“ (siehe Commit)
+  grün; black/ruff grün.
+
+### NEXT
+- Wie P-2026-10-02-11.
+
 ## P-2026-10-02-12 flansch
 
 ### EINGELESEN

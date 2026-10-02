@@ -3598,11 +3598,14 @@ class BearbeitungPanel:
         if not mit:
             return
         teile = {}
-        for b in mit:
-            teile.setdefault(frozenset(self._eigene(b, form)), []).append(b)
+        for b in gruppe:
+            eigene = frozenset(self._eigene(b, form))
+            if eigene:
+                teile.setdefault(eigene, []).append(b)
         if len(teile) > 1:
             # Verschiedene Flächen (ein Flansch: der Bohrer die kleinen Bohrungen, der Fräser
-            # alle) – je gleiche Flächen ein eigener Wettbewerb, wer allein steht, bleibt.
+            # alle; ein Deckel: die Kontur auch die Wände der Tasche) – je gleiche Flächen ein
+            # eigener Wettbewerb; wer allein steht, bleibt; wer dort rot ist, verliert den Haken.
             for teil in teile.values():
                 if len(teil) > 1:
                     self._wettbewerb_gruppe(form, teil)
