@@ -244,11 +244,14 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
   FreeCAD stürzte ab, sobald nach „Hinsehen“ („Auf der Maschine prüfen“,
   „Bestückung“) ein Dokument zuging; das Addon holt den Viewer der Ansicht
   nicht mehr nach Python (P-2026-10-02-83, 0.125.1) – wartet auf Manuels Test.
+  Danach alle 71 Prüfungen (der Export übersprungen) und alle 98 Szenarien
+  grün (Stand P-2026-10-02-85; die 1.1.3 und der Wochen-Build liefen dabei
+  nicht mit – die gibt es auf Manuels Rechner nicht).
 
 ## Nächster Schritt (konkret)
 
 **Jetzt – W-013, Manuels Testteil** ([spezifikation_strategien.md](spezifikation_strategien.md),
-Abschnitt 13.5): B-009 (die Vorschauen nach dem Wettbewerb neu rechnen), B-008, B-010,
+Abschnitt 13.5): B-009 (die Vorschauen nach dem Wettbewerb neu rechnen), B-008,
 T2 (die dünne Lage oben mit dem Einsatz „Planen“), T1b (Ringe, die nichts mehr schneiden, fallen weg). T4 und T5 sind die Punkte aus „Als
 Nächstes“ im Projektstatus: der Block „Schlichten danach“ und das Räumen nach der Last.
 
@@ -580,17 +583,14 @@ Ein Satz je Wunsch, W-ID fortlaufend.
 
 An Manuels Testteil gefunden (Spezifikation Strategien, Abschnitt 13.4, P-2026-10-02-78); B-006 (die
 Tasche räumt außerhalb ihrer Wände) und B-007 (eine Tasche, in die der Fräser nicht passt, fällt still aus)
-sind behoben (P-2026-10-02-79, -81, -82).
+sind behoben (P-2026-10-02-79, -81, -82). B-010 (neun Szenarien schlugen in FreeCAD 1.1.4 fehl) ist
+erledigt: vier stürzten ab (B-011, -83), eins zeigte einen Fehler der Kontur (B-012, -84), drei waren
+veraltet, eins lief nur nicht aus einer Kopie ohne Git (-85).
 
 - **B-008** Prüffenster: 12 mm „Rest“ auf einer Linie in einer Kugelmulde – die Naht liegt auf einer Zeile
   des Rasters; gefräst ist sie richtig.
 - **B-009** Assistent „Bearbeitung“: Unter „3D-Schruppen“ steht „… hat „Planfräsen“ schon weggenommen“,
   obwohl Räumen angehakt ist.
-- **B-010** Szenarien, die in FreeCAD 1.1.4 fehlschlagen (der Lauf über alle 98, 2026-10-02): vier stürzten
-  ab (B-011, behoben mit P-2026-10-02-83), `szenario_kontur` zeigte B-012 (behoben mit -84). Noch
-  nachzuziehen: `szenario_erster_start` (das Menü hat seit P-2026-10-02-58 „Maschinen …“),
-  `szenario_absatz` (seit 0.124.0 gewinnt dort das Räumen) und `szenario_schruppwerte` (wählt die Zeile
-  über die Werkstoff-Auswahl; das Qt von 1.1.4 gibt ihr danach den Fokus und die Zeile zurück).
 
 ## Offene Tasks
 

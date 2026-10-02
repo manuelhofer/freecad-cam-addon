@@ -33,8 +33,11 @@ def schritte(h):
     d = gui_werkzeuge.WerkzeugDialog.offen
     s = d.schnittwerte
     h.pruefe(s.knopf_planen.isEnabled(), "„Schruppwerte planen“ nicht bedienbar")
-    # Gewählt ist die Schlicht-Zeile – der Planer nimmt trotzdem die Vollnut.
-    s.tabelle.setCurrentCell(1, 0)
+    # Gewählt ist die Schlicht-Zeile – der Planer nimmt trotzdem die Vollnut. Gewählt über die
+    # Spalte „Einsatz“, nicht über die Werkstoff-Auswahl in Spalte 0: Mit dem Qt von FreeCAD 1.1.4
+    # bekäme sonst die Auswahlbox den Fokus zurück, wenn der Planer zugeht, und mit ihr ihre Zeile
+    # (B-010) – wer mit der Maus auf „Schruppwerte planen…“ klickt, hat den Fokus auf dem Knopf.
+    s.tabelle.setCurrentCell(1, 1)
 
     QtCore.QTimer.singleShot(0, s.knopf_planen.click)
     yield 800

@@ -5,6 +5,10 @@
 # etwa 2 min) – durch Luft, denn den Boden davor hatte das Planfräsen schon gefräst. Jetzt
 # „→ … Bahnen … – nur der Rest an den Wänden: den Boden davor fräst das Planfräsen“ mit
 # höchstens 3 Bahnen. „Anlegen“, „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
+# Seit 0.124.0 (Räumen über mehrere Höhen, P-2026-10-02-80) ist das Räumen hier so schnell wie
+# das Planfräsen (4,35 gegen 4,37 min; vorher 26 % langsamer) und bekommt als die Schnellere den
+# Haken – die Kontur nimmt dann nur das Aufmaß an der Wand. Das Planfräsen bekommt den Haken hier
+# deshalb von Hand.
 import re
 
 import FreeCAD
@@ -68,9 +72,39 @@ def schritte(h):
         lambda: all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke), 300000
     )
     yield 3000
-    plan, kontur = panel.plan, panel.kontur
-    h.pruefe(plan.aktiv(), "Planfräsen: kein Haken")
+    plan, raeumen, kontur = panel.plan, panel.raeumen, panel.kontur
+    # Planfräsen gegen Räumen: Die Schnellere hat den Haken; das Räumen ist nicht mehr langsamer.
+    h.pruefe(plan.aktiv() != raeumen.aktiv(), "Planfräsen und Räumen: beide oder keins angehakt")
+    zeiten = f"Planfräsen {plan.zeit} min, Räumen {raeumen.zeit} min"
+    h.pruefe(bool(plan.zeit) and bool(raeumen.zeit), zeiten)
+    if plan.zeit and raeumen.zeit:
+        h.pruefe(raeumen.zeit < 1.05 * plan.zeit, zeiten)
+        h.pruefe(raeumen.aktiv() == (raeumen.zeit < plan.zeit), f"der Haken: {zeiten}")
     h.pruefe(kontur.aktiv(), "Kontur: kein Haken")
+    if raeumen.aktiv():
+        text = kontur.ergebnis.text()
+        bahnen = re.search(r"(\d+) Bahn", text)
+        h.pruefe(
+            text.endswith("nur das Aufmaß an den Wänden: den Boden davor räumt das Räumen")
+            and bahnen is not None
+            and int(bahnen.group(1)) <= 3,
+            f"Kontur nach dem Räumen: {text!r}",
+        )
+    panel.seite_zeigen(1)
+    yield 300
+    h.bild("1a_vorschlag", panel.form)
+    # Von Hand: Planfräsen statt Räumen.
+    if not plan.aktiv():
+        plan.haken.click()
+        yield 300
+    if raeumen.aktiv():
+        raeumen.haken.click()
+    yield 1000
+    yield from h.warte_auf(
+        lambda: all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke), 300000
+    )
+    yield 3000
+    h.pruefe(plan.aktiv() and not raeumen.aktiv(), "von Hand: Planfräsen statt Räumen")
     rot = [(b.s.kennung, b.hinweis.text()) for b in panel.bloecke if b.aktiv() and b.hinweis.text()]
     h.pruefe(not rot, f"rot angehakt: {rot}")
     text = kontur.ergebnis.text()

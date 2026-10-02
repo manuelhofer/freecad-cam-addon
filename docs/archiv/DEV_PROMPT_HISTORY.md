@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-85 szenarien-nachgezogen
+
+### EINGELESEN
+- B-010: der Lauf über alle 98 Szenarien in FreeCAD 1.1.4 auf Manuels Rechner – neun schlugen
+  fehl. Vier davon stürzten ab (B-011, P-2026-10-02-83), `szenario_kontur` zeigte B-012 (-84).
+
+### DATEIEN
+- `tests/gui/szenario_erster_start.py`, `tests/gui/szenario_absatz.py`,
+  `tests/gui/szenario_schruppwerte.py`, `docs/STATUS_SNAPSHOT.md`
+
+### AKZEPTANZKRITERIUM
+Alle 98 Szenarien laufen in FreeCAD 1.1.4 durch.
+
+### DONE
+- `szenario_erster_start`: Das Menü „CAM-Addon“ hat seit P-2026-10-02-58 dreizehn Einträge
+  („Maschinen …“ an zweiter Stelle); das Szenario zählte noch zwölf.
+- `szenario_absatz`: Seit 0.124.0 räumt das Räumen beide Höhen in einem Zug und ist am Absatz
+  so schnell wie das Planfräsen (4,35 gegen 4,37 min, vorher 5,49) – es bekommt als die
+  Schnellere den Haken. Nachgesehen: kein Fehler, die Regel des Wettbewerbs. Das Szenario prüft
+  jetzt, dass die Schnellere den Haken hat, das Räumen höchstens 5 % langsamer ist und die
+  Kontur danach nur das Aufmaß an der Wand nimmt; dann hakt es von Hand das Planfräsen an und
+  prüft wie bisher (die Kontur nimmt nur den Rest an der Wand, P-2026-10-02-17).
+- `szenario_schruppwerte`: Es wählte die Zeile über die Werkstoff-Auswahl in Spalte 0 und rief
+  den Planer aus dem Programm auf. Mit dem Qt von FreeCAD 1.1.4 bekommt die Auswahlbox den
+  Fokus zurück, wenn der Planer zugeht, und mit ihr ihre Zeile – die neue Zeile war dann nicht
+  mehr gewählt. Mit einem echten Mausklick auf „Schruppwerte planen…“ nachgestellt: Der Knopf
+  hat dann den Fokus, die neue Zeile bleibt gewählt – kein Fehler für Manuel. Das Szenario
+  wählt die Zeile jetzt über die Spalte „Einsatz“.
+- `szenario_update` (und `test_aktualisierung`): liefen nur in meiner Kopie ohne `.git` nicht;
+  aus der Arbeitskopie OK. Nichts zu ändern.
+
+### TESTS
+- Alle 98 Szenarien: OK (97 in einem Lauf aus einer Kopie des Stands, `szenario_update` aus
+  der Arbeitskopie). Alle 71 Prüfungen: 70 OK, `test_export` übersprungen (gibt es in 1.1.4
+  nicht).
+- FreeCAD 1.1.4 auf Manuels Rechner (Arch-Paket, Python 3.14); 1.1.3 und der Wochen-Build
+  liefen nicht mit. black und ruff sauber.
+
+### NEXT
+- B-009, B-008; dann T1b und T2 (W-013).
+
 ## P-2026-10-02-84 kontur-zug-beim-aufmass-nicht-doppelt
 
 ### EINGELESEN

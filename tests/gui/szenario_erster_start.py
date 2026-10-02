@@ -5,8 +5,9 @@
 # (hier der Punkt); gewählt wird das Komma. Die Wahl steht sofort in
 # user.cfg, die Knöpfe des Addons sind gleich deutsch, und die
 # Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich – mit den
-# neun Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle zwölf: oben „So geht’s“
-# (D-54), unten „Nach Updates suchen“ und „Über“ (D-13). „So geht’s“ öffnet
+# neun Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle dreizehn: oben „So geht’s“
+# (D-54), gleich darunter „Maschinen …“ (seit P-2026-10-02-58), unten „Nach
+# Updates suchen“ und „Über“ (D-13). „So geht’s“ öffnet
 # die Hilfeseite mit den sechs Schritten. Die Einstellungsseite ändert
 # Sprache und Dezimalzeichen.
 import os
@@ -121,8 +122,8 @@ def schritte(h):
     if menue is not None:
         eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
         h.pruefe(
-            len(eintraege) == 12
-            and eintraege[0] == "So geht’s"
+            len(eintraege) == 13
+            and eintraege[:2] == ["So geht’s", "Maschinen …"]
             and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
             and "Schnittwerte in den Job" in eintraege,
             f"Menü: {eintraege}",
