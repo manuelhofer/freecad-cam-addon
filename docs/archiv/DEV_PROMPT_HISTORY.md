@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-27 trochoide-rueckweg
+
+### EINGELESEN
+- `nut_bahn._trochoide`, `_bogen`, `tests/test_nut.py`.
+
+### DATEIEN
+- `camaddon/nut_bahn.py`, `tests/test_nut.py`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.89.0)
+
+### AKZEPTANZKRITERIUM
+Manuels „im Eilgang oder Schnellvorschub wieder auf die andere Seite“ auch in der geschlossenen
+Nut: Wo der Kreis der Trochoide durch schon freie Luft läuft, schneller – ohne am Schnitt etwas
+zu ändern.
+
+### DONE
+- `_luft_hinten(schritt, r_l)`: Der Fräser auf dem Kreis um c unter dem Winkel θ zur Fahrt liegt
+  ganz in der Hülle des vorigen Kreises (um c − s, Radius r_l + R), solange cos θ ≤ −s / (2 r_l)
+  (r_l ≤ 0,9 R: die Hülle ist ohne Loch). Diese Bögen hinten und die Schritte von Kreis zu Kreis
+  mit `RUECKWEG` × vf; `_bogen` mit `anteil`.
+- Gemessen: Prüfplatte (Nut 20 × 50, Vollnut 14) 1,84 → 1,69 min; Nut A allein 0,80 min.
+
+### TEST
+- 1.1.3: `test_nut` (21 Kreise, hinten ≥ 40 Sätze im Schnellvorschub, Prüfstand: im
+  Schnellvorschub nichts abgetragen, nirgends ins Teil), `test_vierachs_plan` (Passfedernut);
+  Szenarien `szenario_nut`, `szenario_vierachs_nut` grün; black/ruff grün.
+
+### NEXT
+- Den schonenden Schritt (gleicher Eingriffswinkel wie auf gerader Bahn) auch für die
+  geschlossene Nut? – Frage an Manuel; in schmalen Nuten gewönne dann öfter die Kontur.
+
 ## P-2026-10-02-26 rundum-zeilen-gleichlauf
 
 ### EINGELESEN

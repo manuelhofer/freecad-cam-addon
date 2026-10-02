@@ -12,7 +12,9 @@ Trochoide statt Vollschnitt.
   Radius r − R − Aufmaß um Mitten, die je Kreis um ae weiterrücken – im Gleichlauf gegen den
   Uhrzeigersinn (M3: vorn ist das Material rechts). Von Kreis zu Kreis geht es **hinten**
   weiter, wo schon alles frei ist: Der Fräser fährt nie mit voller Breite ins Material, der
-  Eingriff wächst auf jedem Kreis bis ae und fällt wieder. Die nächste Lage zurück.
+  Eingriff wächst auf jedem Kreis bis ae und fällt wieder. Hinten, wo der Kreis ganz in der
+  Hülle des vorigen liegt (_luft_hinten), und von Kreis zu Kreis im Schnellvorschub
+  (RUECKWEG, P-2026-10-02-27). Die nächste Lage zurück.
 - **Vollnut** (ist die Nut kaum breiter als der Fräser – die Kreise hätten weniger als
   VOLLNUT_ANTEIL · R): in einer Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben
   hinüber. Je Fahrt höchstens so viel tiefer, dass der Fräser nie mehr als ap und nie mehr als
@@ -535,9 +537,9 @@ def _hin(punkte, x, y, z, bogen=None, anteil=1.0):
     return laenge
 
 
-def _bogen(punkte, mitte, radius, von, bis, z_von, z_bis, uhr):
+def _bogen(punkte, mitte, radius, von, bis, z_von, z_bis, uhr, anteil=1.0):
     """Bögen um `mitte` von Winkel `von` nach `bis` (rad, in Fahrtrichtung), z linear, in Stücken
-    von höchstens einem Viertel. Gibt die Länge zurück."""
+    von höchstens einem Viertel, mit dem Anteil `anteil` am Vorschub. Gibt die Länge zurück."""
     anzahl = max(1, int(math.ceil(abs(bis - von) / (math.pi / 2) - 1e-9)))
     laenge = 0.0
     for i in range(1, anzahl + 1):
@@ -549,6 +551,7 @@ def _bogen(punkte, mitte, radius, von, bis, z_von, z_bis, uhr):
             mitte[1] + radius * math.sin(winkel),
             z_von + (z_bis - z_von) * t,
             bogen=(mitte[0], mitte[1], uhr),
+            anteil=anteil,
         )
     return laenge
 
@@ -557,6 +560,14 @@ def _richtung(von, nach):
     dx, dy = nach[0] - von[0], nach[1] - von[1]
     laenge = math.hypot(dx, dy)
     return dx / laenge, dy / laenge
+
+
+def _luft_hinten(schritt, r_l):
+    """Wie weit (rad) jeder Kreis der Trochoide von hinten aus nach beiden Seiten in der Luft
+    läuft: Steht der Fräser auf dem Kreis um c unter dem Winkel θ zur Fahrt, liegt er ganz in
+    der Hülle des Kreises davor (um c − schritt, Radius r_l + R), solange
+    |T − c + schritt| ≤ r_l – also cos θ ≤ −schritt / (2 r_l)."""
+    return max(0.0, math.pi - math.acos(max(-1.0, min(1.0, -schritt / (2.0 * r_l)))))
 
 
 def _trochoide(punkte, nut, w, r_l, oben, z_ende, uhr):
@@ -593,13 +604,24 @@ def _trochoide(punkte, nut, w, r_l, oben, z_ende, uhr):
         weg += _bogen(punkte, start, r_l, ende, ende + drehung * (2 * math.pi + rest), z, z, uhr)
         kreise += 1
         winkel = hinten
+        # Hinten liegt jeder Kreis in der Luft, die der Kreis davor freigefräst hat: dort im
+        # Schnellvorschub (P-2026-10-02-27, Manuels „im Eilgang oder Schnellvorschub wieder auf die
+        # andere Seite“), geschnitten wird nur vorn – genau wie bisher.
+        luft = _luft_hinten(schritt, r_l)
         s = 0.0
         while s < laenge_nut - GLEICH:
             s = min(s + schritt, laenge_nut)
             mitte = (start[0] + ux * s, start[1] + uy * s)
             # Hinten weiter: dort ist alles frei (schritt ≤ 2 r_l).
-            weg += _hin(punkte, mitte[0] - r_l * ux, mitte[1] - r_l * uy, z)
-            weg += _bogen(punkte, mitte, r_l, winkel, winkel + drehung * 2 * math.pi, z, z, uhr)
+            weg += _hin(punkte, mitte[0] - r_l * ux, mitte[1] - r_l * uy, z, anteil=RUECKWEG)
+            vorn_von = winkel + drehung * luft
+            vorn_bis = winkel + drehung * (2 * math.pi - luft)
+            if luft > GLEICH:
+                weg += _bogen(punkte, mitte, r_l, winkel, vorn_von, z, z, uhr, RUECKWEG)
+            weg += _bogen(punkte, mitte, r_l, vorn_von, vorn_bis, z, z, uhr)
+            if luft > GLEICH:
+                ende = winkel + drehung * 2 * math.pi
+                weg += _bogen(punkte, mitte, r_l, vorn_bis, ende, z, z, uhr, RUECKWEG)
             kreise += 1
         z_vorher = z
         start, ziel = ziel, start

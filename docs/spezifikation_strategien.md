@@ -166,7 +166,11 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    kleinen Schritt bräuchten etwa ein Viertel mehr. Der Prüfstand misst jetzt auch, was im
    Schnellvorschub abgetragen würde (`schnell_abtrag`, muss 0 sein). Offen: die
    geschlossene Nut (Trochoide) noch mit dem Schritt ae – sie schneidet in schmalen Nuten
-   ebenso dick (Frage an Manuel). **Dabei gefunden**: Auf dem Grund einer Nut ist Räumen nur scheinbar
+   ebenso dick (Frage an Manuel). Ihr Kreis läuft aber hinten durch Luft, die der vorige
+   freigefräst hat: Dort und von Kreis zu Kreis jetzt im Schnellvorschub (P-2026-10-02-27,
+   `_luft_hinten`: ganz in der Hülle des vorigen Kreises, solange cos θ ≤ −s / (2 r) – in der
+   Nut 20 mit Ø 12 je Kreis 2 × 64°); geschnitten wird wie bisher. Prüfplatte (Nut 20 × 50 und
+   Vollnut 14) 1,84 → 1,69 min, im Schnellvorschub nichts abgetragen (`test_nut`). **Dabei gefunden**: Auf dem Grund einer Nut ist Räumen nur scheinbar
    schneller – es schneidet zuerst in voller Breite (an der offenen Nut 0,19 min, ein
    Wirkungsgrad von 348 %, dazu 1,5 mm³ im Eilgang). Kann die Nut sie fräsen, treten
    Räumen und Planfräsen an Nutgründen nicht mehr an; ihre Zeile sagt warum (auch an der

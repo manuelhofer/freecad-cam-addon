@@ -25,6 +25,7 @@ from camaddon import fraeserform as ff
 from camaddon import job_schnittwerte as js
 from camaddon import nut as nu
 from camaddon import nut_bahn as nb
+from camaddon import pruefstand as ps
 from camaddon import restmaterial as rm
 from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
@@ -128,6 +129,16 @@ pruefe(bahn.lagen == 2, f"Lagen {bahn.lagen}")
 # A: 30 lang, ae 1,5 – 20 Kreise vorwärts und einer unten an der Helix.
 pruefe(bahn.kreise == 21, f"Kreise {bahn.kreise}")
 print(ascii(f"Zeit {bahn.zeit:.2f} min, {bahn.laenge:.0f} mm, {bahn.kreise} Kreise"))
+# Hinten in der Luft im Schnellvorschub (P-2026-10-02-27): dort trägt der Prüfstand nichts ab,
+# und nirgends geht es ins Teil.
+nur_a = nb.planen(werte(), [nut_a])
+k_a = ps.messen([ps.Bahnlauf(nur_a.punkte, 902.0, 300.0)], teil, (0, 100, 0, 60), 20.0, form,
+                1.5, 25.0, ebenen_z=[10.0], aufmass=0.3)  # fmt: skip
+schnell = [p for p in nur_a.punkte if p.anteil > 1.0]
+pruefe(len(schnell) >= 2 * 20, f"hinten im Schnellvorschub: {len(schnell)} Sätze")
+pruefe(k_a.schnell_abtrag <= 1e-9, f"im Schnellvorschub abgetragen: {k_a.schnell_abtrag:.2f} mm³")
+pruefe(k_a.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"A ins Teil: {k_a.einschnitt:.3f}")
+print(ascii(f"A: {nur_a.zeit:.2f} min | {ps.zeile(k_a)}"))
 
 # Die Mitte des Fräsers bleibt in der Nut: höchstens r − R neben der Mittellinie.
 punkte = bahn.punkte
