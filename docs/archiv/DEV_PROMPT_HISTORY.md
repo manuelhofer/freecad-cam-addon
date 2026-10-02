@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-44 raeumen-schlichten-messstopp
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Wenn ich jetzt Räumen gemacht habe und habe ein Aufmaß an den Wänden,
+  aber am Boden nichts … brauch ich noch eine Möglichkeit, das Ganze zu schlichten … zwischen
+  Schruppen und Schlichten eine Pause … sozusagen ein Messstopp, gleich in derselben Maske …
+  für Siemens als Beispiel F_HOME; M0 … dann wieder Start drücken, und es geht weiter mit
+  Schlichten.“ Spezifikation Strategien 12.4.
+- FreeCADs „Benutzerdefiniert“ (Path.Op.Custom) nimmt G-Code-Zeilen; `Path.Command("F_HOME")`
+  scheitert („Badly formatted GCode command“) – nur G- und M-Wörter gehen durch.
+
+### DATEIEN
+- `camaddon/messstopp.py` (neu), `camaddon/gui_bearbeitung.py` (Haken „Wände danach
+  schlichten“, „Messstopp vor dem Schlichten“ am Räumen, `_raeumen_schlichten`,
+  `_raeumen_folge_zeigen`, `_waende_um`), `translations/de|en.json`,
+  `help/de|en/bearbeitung.html`, `tests/gui/szenario_raeumen_schlichten.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.100.0)
+
+### AKZEPTANZKRITERIUM
+Räumen mit „Wände danach schlichten“ und „Messstopp“ → „Anlegen“ legt Räumen, Messstopp und
+„Wände schlichten T1“ an; im Programm steht M0 zwischen Räumen und Schlichten, danach läuft die
+Spindel wieder.
+
+### DONE
+- Die Wände, die nach dem Räumen das Aufmaß tragen: jede Wand, deren Unterkanten an einen der
+  geräumten Böden stoßen (Zapfen, Inseln, Absätze; `kontur_bahn.boeden_vor`).
+- „Wände schlichten T1“: eine Kontur mit Aufmaß = Breite = Aufmaß des Räumens (kein Schruppen,
+  nur der Zug an der Wand), mit dem Einsatz „Schlichten“ des Räumfräsers, wenn er einen hat.
+- Messstopp: Kommentar (MESSSTOPP), G0 auf die sichere Höhe über dem Rohteil, M5, M0, M3/M4 mit
+  der Drehzahl des Schlichtens; mit dem Controller des Räumens (kein Werkzeugwechsel davor).
+- Die Ergebniszeile sagt, was folgt („… – Messstopp, dann die Wände schlichten (1)“), oder
+  dass es nichts zu schlichten gibt; beim Ändern sind die beiden Haken weg.
+- Nicht erreicht: die Zeit des Schlichtens in der Ergebniszeile; „F_HOME“ (W-005).
+
+### TEST
+- 1.1.3: `szenario_raeumen_schlichten` (drei Operationen, Messstopp-Zeilen, die Kontur am
+  Zapfen mit 0,3/0,3, LinuxCNC-Postprozessor: M0 zwischen G1 des Räumens und des Schlichtens,
+  danach M3), `szenario_raeumen`; `test_sprache`, `test_hilfe`; black/ruff grün.
+
+### NEXT
+- Home- und Werkzeugwechselpunkt (W-008); der Messstopp fährt dann dorthin.
+
 ## P-2026-10-02-43 aufspannung
 
 ### EINGELESEN

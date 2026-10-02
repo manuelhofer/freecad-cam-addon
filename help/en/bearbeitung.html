@@ -173,6 +173,17 @@ face).</li>
 <li>The operation is called “Räumen T1”; start depth, safe height and
 clearance height as for face milling, the final depth is the lowest face plus
 the allowance at the floor.</li>
+<li><b>Then finish the walls</b> – at the walls around the cleared faces (bosses, islands,
+steps) the allowance remains; with the tick the same cutter then runs along them in the
+allowance, with the “Finishing” application if it has one: an operation of its own, “Finish
+walls T1” (a contour with width = allowance, only the pass along the wall). The result line
+says so: “… – then finish the walls (1)”.</li>
+<li><b>Measuring stop before finishing</b> – only with the tick above: between clearing and
+finishing the program stops – Z moves above the stock, the spindle stops (M5, M0); measure,
+then start, the spindle runs up again with the finishing speed (M3). An operation of its own,
+“Measuring stop” (FreeCAD's “Custom”). A subroutine of the control such as Siemens “F_HOME”
+is written only by the add-on's own post processor (in progress); until then the program
+carries the comment (MESSSTOPP).</li>
 </ul>
 
 <h3>Time decides</h3>

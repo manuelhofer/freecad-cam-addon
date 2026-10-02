@@ -37,6 +37,7 @@ from . import hoehenfeld as hf
 from . import job_schnittwerte as js
 from . import kontur as ko
 from . import kontur_bahn as kb
+from . import messstopp as ms
 from . import nut as nu
 from . import nut_bahn as nb
 from . import planfraesen as pf
@@ -159,6 +160,21 @@ class _Satz(QtGui.QLabel):
         leer = not self.text()
         self.setVisible(self._erlaubt and not leer)
         self.spiegel.setVisible(not leer)
+
+
+def _waende_um(form, boeden):
+    """Die Wände des Teils, die unten an die Böden `boeden` stoßen – Zapfen und Inseln auf ihnen,
+    Absätze davor: die nach dem Räumen das Aufmaß tragen (kontur_bahn.boeden_vor)."""
+    boeden = set(boeden)
+    ergebnis = []
+    for i, flaeche in enumerate(form.Faces):
+        name = f"Face{i + 1}"
+        if not kb.ist_wand(flaeche):
+            continue
+        vor = kb.boeden_vor(form, [name])
+        if vor and vor & boeden:
+            ergebnis.append(name)
+    return ergebnis
 
 
 def _aussennormale(form, name):
@@ -543,7 +559,19 @@ class _Raeumen(_Strategie):
         )
 
     def haken(self):
-        return (("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),)
+        # Danach die Wände im Aufmaß schlichten, davor auf Wunsch ein Messstopp (W-010; Manuel,
+        # 2026-10-02: „Brauch ich noch eine Möglichkeit, das Ganze zu schlichten … zwischen
+        # Schruppen und Schlichten eine Pause … gleich in derselben Maske“).
+        return (
+            ("gleichlauf", tr("ba.gleichlauf"), tr("ba.gleichlauf.tooltip"), True),
+            (
+                "wandschlichten",
+                tr("ba.raeumen.wandschlichten"),
+                tr("ba.raeumen.wandschlichten.tooltip"),
+                False,
+            ),
+            ("messstopp", tr("ba.raeumen.messstopp"), tr("ba.raeumen.messstopp.tooltip"), False),
+        )
 
     def passt(self, form, name):
         return bool(hf.ebenen_oben(form, [name])) or bool(kb.waende(form, [name]))
@@ -2380,6 +2408,10 @@ class BearbeitungPanel:
         self.form = self._baue()
         self.plan = next(b for b in self.bloecke if b.s.kennung == "planfraesen")
         self.raeumen = next(b for b in self.bloecke if b.s.kennung == "raeumen")
+        schlichten = self.raeumen.haken_felder["wandschlichten"]
+        stopp = self.raeumen.haken_felder["messstopp"]
+        stopp.setEnabled(schlichten.isChecked())
+        schlichten.toggled.connect(stopp.setEnabled)
         self.nut = next(b for b in self.bloecke if b.s.kennung == "nut")
         self._raeumen_boeden = None  # nur diese Taschenböden räumen (_folge); None: alle
         self.bohren = next(b for b in self.bloecke if b.s.kennung == "bohren")
@@ -3107,6 +3139,10 @@ class BearbeitungPanel:
         self.rohteilfelder.setEnabled(False)
         for widget in (self.nullpunkt_titel, self.nullpunkt_text, self.nullpunktfelder):
             widget.setVisible(False)  # der Nullpunkt bleibt, wie er im Job steht
+        # Schlichten und Messstopp nach dem Räumen legt nur „Anlegen“ an – sie sind eigene
+        # Operationen, die man für sich ändert.
+        for feld in ("wandschlichten", "messstopp"):
+            self.raeumen.haken_felder[feld].setVisible(False)
         # Wie das Teil liegt, bleibt ebenso.
         self.unten_text.setText(tr("ba.lage.job"))
         self.x_text.setText(tr("ba.lage.job"))
@@ -3504,6 +3540,7 @@ class BearbeitungPanel:
                 self.kontur.vorschau_rechnen(self.job, self._flaechen(self.kontur, form), zusatz)
                 self._kontur_text(form, zusatz)
                 self._wettbewerb(form, nur_bohrung=boeden is not None)
+        self._raeumen_folge_zeigen(form)
         self._ziel_zeigen(form)
         self._knoepfe_beschriften()
 
@@ -3562,6 +3599,23 @@ class BearbeitungPanel:
                     )
                 saetze.append(tr("ba.ziel.schneller", werkzeug=wer, zeit=_ziel_minuten(beste.zeit)))
         self.ziel_text.setText(" ".join(saetze))
+
+    def _raeumen_folge_zeigen(self, form):
+        """Hinter das Ergebnis des Räumens, was danach kommt – Wände schlichten, mit Messstopp –
+        oder dass es keine Wand im Aufmaß gibt."""
+        block = self.raeumen
+        if not block.aktiv() or not block.haken_felder["wandschlichten"].isChecked():
+            return
+        text = block.ergebnis.text()
+        if not text:
+            return
+        waende = _waende_um(form, self._flaechen(block, form))
+        if not waende or float(block.werte()["aufmass"]) <= 0:
+            block.ergebnis.setText(tr("ba.raeumen.folge_keine", text=text))
+        elif block.haken_felder["messstopp"].isChecked():
+            block.ergebnis.setText(tr("ba.raeumen.folge_stopp", text=text, n=len(waende)))
+        else:
+            block.ergebnis.setText(tr("ba.raeumen.folge", text=text, n=len(waende)))
 
     def _ziel_material(self, form):
         """Das Material zwischen Rohteil (Kasten des Jobs) und Teil (zielzeit.Material) – einmal
@@ -4248,6 +4302,8 @@ class BearbeitungPanel:
         form = vr.modell(self.job).Shape
         aktive = self.aktive_bloecke()
 
+        folge = []  # nach dem Räumen: Messstopp und Wände schlichten
+
         def anlegen():
             self.doc.openTransaction(tr("ba.transaktion.anlegen"))
             ops = []
@@ -4262,6 +4318,8 @@ class BearbeitungPanel:
                     flaechen = self._flaechen(block, form)
                     werte = dict(block.werte(), **(self._zusatz(block, form) or {}))
                     ops.append(block.s.lege_an(self.job, tc, werte, flaechen))
+                    if block is self.raeumen and werte.get("wandschlichten"):
+                        folge.extend(self._raeumen_schlichten(form, tc, flaechen, werte))
                 self.doc.recompute()
             except Exception:
                 self.doc.abortTransaction()
@@ -4281,7 +4339,37 @@ class BearbeitungPanel:
         for block, op in zip(aktive, self.operationen, strict=False):
             block.operation = op
         self.operation = self.operationen[0] if self.operationen else None
+        self.operationen += folge
         return True
+
+    def _raeumen_schlichten(self, form, tc, boeden, werte):
+        """Nach dem Räumen die Wände um die geräumten Böden im Aufmaß schlichten – mit dem Einsatz
+        „Schlichten“ des Räumfräsers, wenn er einen hat –, davor auf Wunsch der Messstopp. In der
+        Transaktion von _anlegen; gibt die neuen Operationen zurück."""
+        waende = _waende_um(form, boeden)
+        aufmass = float(werte["aufmass"])
+        werkzeug = self.raeumen.fraeser()
+        if not waende or aufmass <= 0 or werkzeug is None:
+            return []
+        schlichten = next(
+            (e for e in self.raeumen._einsaetze if e.art == wz.SCHLICHTEN), self.raeumen.einsatz()
+        )
+        tc_schlichten = js.controller_ohne_transaktion(
+            self.doc, self.job, werkzeug, schlichten, self.werkstoff()
+        )
+        ops = []
+        if werte.get("messstopp"):
+            ops.append(ms.lege_an(self.job, tc, tc_schlichten))
+        tiefe = float(werkzeug.schneidenlaenge or 0.0) or float(werte["zustellung"])
+        ae = schlichten.ae if schlichten.ae > 0 else aufmass
+        # Aufmaß = Breite: kein Schruppen, nur der Zug an der Wand.
+        name = tr("ba.raeumen.schlichten_name", werkzeug=f"T{tc_schlichten.ToolNumber}")
+        ops.append(
+            ko.lege_an(
+                self.job, tc_schlichten, tiefe, ae, aufmass, True, aufmass, name, flaechen=waende
+            )
+        )
+        return ops
 
     def _aendern(self):
         """Die Operation bekommt Fräser, Einsatz, Werte und Flächen aus ihrem Block – ein

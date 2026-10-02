@@ -176,6 +176,17 @@ steht nichts).</li>
 <li>Die Operation heißt „Räumen T1“; Starttiefe, sichere Höhe und Freifahrhöhe
 wie beim Planfräsen, die Endtiefe ist die tiefste Fläche plus Aufmaß am
 Boden.</li>
+<li><b>Wände danach schlichten</b> – an den Wänden um die geräumten Flächen (Zapfen, Inseln,
+Absätze) bleibt das Aufmaß; mit dem Haken fährt derselbe Fräser sie danach im Aufmaß nach, mit
+dem Einsatz „Schlichten“, wenn er einen hat: eine eigene Operation „Wände schlichten T1“ (eine
+Kontur mit Breite = Aufmaß, nur der Zug an der Wand). Die Ergebniszeile sagt es: „… – danach
+die Wände schlichten (1)“.</li>
+<li><b>Messstopp vor dem Schlichten</b> – nur mit dem Haken davor: Zwischen Räumen und
+Schlichten hält das Programm an – Z fährt über das Rohteil, die Spindel steht (M5, M0); messen,
+dann Start, die Spindel läuft mit der Drehzahl des Schlichtens wieder an (M3). Eine eigene
+Operation „Messstopp“ (FreeCADs „Benutzerdefiniert“). Ein Unterprogramm der Steuerung wie
+Siemens „F_HOME“ schreibt erst der Postprozessor des Addons (in Arbeit); bis dahin steht im
+Programm der Kommentar (MESSSTOPP).</li>
 </ul>
 
 <h3>Die Zeit entscheidet</h3>

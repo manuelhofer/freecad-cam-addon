@@ -1434,6 +1434,9 @@ geht weiter mit Schlichten. Das muss noch rein.“
   „F_HOME“ und „M0“.
 - **Fertig, wenn:** Räumen mit beiden Haken drei Operationen anlegt – Räumen, Messstopp,
   Schlichten – und das Programm an der Stelle anhält.
+- **Gebaut:** P-2026-10-02-44, 0.100.0 – „F_HOME“ und andere Unterprogramme kann FreeCADs
+  G-Code nicht tragen („Badly formatted GCode command“): Sie schreibt erst der Postprozessor des
+  Addons (W-005); bis dahin Kommentar (MESSSTOPP), Z hoch, M5, M0, M3 S….
 
 ### 12.5 Der Assistent in Schritten
 
