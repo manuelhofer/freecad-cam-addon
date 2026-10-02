@@ -149,6 +149,7 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
             if _umfasst(darueber, ebene):
                 oben = min(oben, darueber.z + w.aufmass)
         fertig.append(ebene)
+        tiefere = [e for e in ebenen if e.z < ebene.z - GLEICH]
         ergebnisse = []
         for laengs_x in kandidaten:
             e = _ebene(
@@ -163,6 +164,7 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
                 geformt,
                 schritt,
                 oben,
+                tiefere,
             )
             if e is not None:
                 ergebnisse.append(e)
@@ -206,9 +208,12 @@ def _umfasst(oben, unten):
     )
 
 
-def _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, schritt, oben):
+def _ebene(
+    netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, schritt, oben, tiefere=()
+):
     """Die Bahn über eine Fläche mit den Zeilen längs x (`laengs_x`) oder längs y, die Lagen ab
-    `oben` – None, wenn nichts zu fräsen ist (nichts drüber, keine Zeile mit Rohteil)."""
+    `oben` – None, wenn nichts zu fräsen ist (nichts drüber, keine Zeile mit Rohteil).
+    `tiefere`: die tieferen Flächen derselben Bahn (_abgedeckt)."""
     punkte = []
     lagen_gesamt = zeilen_gesamt = 0
     z_min = math.inf
@@ -242,11 +247,12 @@ def _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, 
     von, bis = min(u_von + weg_vom_ende, mitte), max(u_bis - weg_vom_ende, mitte)
     am_rand = np.abs(u_stellen - np.clip(u_stellen, von, bis)) <= schritt_u / 2 + GLEICH
     offen = [not np.any(roh_rand[i][am_rand] > ziel + GLEICH) for i in (0, 1)]
+    abgedeckt = [_abgedeckt(tiefere, laengs_x, (u_von, u_bis), (v_von, v_bis), i) for i in (0, 1)]
     # Die Lagen. Steht vor der ersten Zeile eine Wand (in einer Tasche immer), hat sie keine
     # freie Seite und schneidet in voller Breite: dann je Lage höchstens so tief, dass
     # 2 R · Tiefe nicht über ae · ap liegt (P-2026-10-01-49; im Taschenboden der Platte 20 tief).
     zustellung = w.zustellung
-    if not offen[0]:
+    if not offen[0] or abgedeckt[0]:
         zustellung = min(zustellung, w.zeilenabstand * w.zustellung / (2 * r_eben))
     anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / zustellung)))
     lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
@@ -263,9 +269,14 @@ def _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, 
     )
     v_start = v_von + r_eben - seite
     v_ende = v_bis - (r_eben - seite)
-    if offen[0]:
+    # Über die offene Seite bis an den Rand des Rohteils – außer eine tiefere Fläche derselben
+    # Bahn liegt dahinter: Deren Lagen beginnen am Rohteil und räumen es dort ohnehin; am Zapfen
+    # fräste die Oberseite sonst die ganze Platte 1 mm ab und der Boden darum danach noch einmal
+    # (P-2026-10-02-21). Ohne Ausgriff schneidet die erste Zeile dann in voller Breite – darum
+    # oben die Zustellung wie vor einer Wand.
+    if offen[0] and not abgedeckt[0]:
         v_start = min(v_start, roh_v[0] - r_eben + breit)
-    if offen[1]:
+    if offen[1] and not abgedeckt[1]:
         v_ende = max(v_ende, roh_v[1] + r_eben - breit)
     v_zeilen = _zeilen_quer(v_start, v_ende, 0.0, w.zeilenabstand)
     # Vor einer Wand längs der Zeilen (die Seite ist nicht offen) ragte die letzte Zeile in die
@@ -335,6 +346,22 @@ def _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, 
         z_min = min(z_min, lage)
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
     return _Ebene(punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit)
+
+
+def _abgedeckt(tiefere, laengs_x, u, v, seite):
+    """Liegt hinter der Seite `seite` (0: v_von, 1: v_bis) der Fläche mit den Ausdehnungen `u`
+    und `v` eine der `tiefere` Flächen (hoehenfeld.Ebene) – über die ganze Länge der Fläche,
+    von ihrem Rand an nach außen?"""
+    for e in tiefere:
+        eu = (e.x_von, e.x_bis) if laengs_x else (e.y_von, e.y_bis)
+        ev = (e.y_von, e.y_bis) if laengs_x else (e.x_von, e.x_bis)
+        if eu[0] > u[0] + GLEICH or eu[1] < u[1] - GLEICH:
+            continue
+        if seite == 0 and ev[0] < v[0] - GLEICH and ev[1] >= v[0] - GLEICH:
+            return True
+        if seite == 1 and ev[1] > v[1] + GLEICH and ev[0] <= v[1] + GLEICH:
+            return True
+    return False
 
 
 def _zeilen_quer(v_von, v_bis, rand, abstand):

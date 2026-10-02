@@ -284,6 +284,48 @@ pruefe(
 pruefe(abs(bahn_y.z_min - 10.0) < 1e-9 and bahn_y.lagen == 1, "schmal: eine Lage")
 pruefe(bahn_y.richtungen == (False,), f"schmal: Zeilen längs y – {bahn_y.richtungen}")
 
+# Zwei Flächen übereinander (P-2026-10-02-21): ein Zapfen 40 × 30 × 10 auf der Platte 100 × 80.
+# Die Oberseite des Zapfens greift nicht mehr bis an den Rand des Rohteils aus – dort liegt der
+# Boden derselben Bahn, dessen Lage am Rohteil beginnt und es ohnehin räumt; vorher fräste sie
+# die ganze Platte 1 mm ab: 151 Zeilen und 15,6 min, jetzt 117 Zeilen und 13,5 min.
+platte = Part.makeBox(100, 80, 20, V(0, 0, -30)).fuse(Part.makeBox(40, 30, 10, V(30, 25, -10)))
+platte = platte.removeSplitter()
+beide = [e for e in hf.ebenen_oben(platte) if e.z > -29]
+oben_zapfen = next(e for e in beide if abs(e.z) < 1e-6)
+pruefe(len(beide) == 2, f"Zapfen: {[(e.name, e.z) for e in beide]}")
+werte_zapfen = pb.Planwerte(form, 25.0, 1.5, 0.0, 1.0, 6.0, (-1.0, 101.0, -1.0, 81.0))
+netz_zapfen = hf.netz_ohne(platte, [e.name for e in beide])
+allein = pb.planen(netz_zapfen, werte_zapfen, [oben_zapfen])
+zusammen = pb.planen(netz_zapfen, werte_zapfen, beide)
+in_lage_0 = [p for p in zusammen.punkte if not p.eilgang and abs(p.z) < 1e-6]
+in_lage_allein = [p for p in allein.punkte if not p.eilgang and abs(p.z) < 1e-6]
+weit = R + pb.UEBERLAUF_ANTEIL * 2 * R + 1.0  # Stirn, Überlauf und etwas Luft
+
+
+def am_rand_des_rohteils(punkte):
+    """Reicht die Stirn (Radius R um die Punkte) quer bis an den Rand des Rohteils (−1 … 101
+    oder −1 … 81)?"""
+    xs, ys = [p.x for p in punkte], [p.y for p in punkte]
+    return (min(xs) - R < -1.0 and max(xs) + R > 101.0) or (
+        min(ys) - R < -1.0 and max(ys) + R > 81.0
+    )
+
+
+pruefe(
+    in_lage_0
+    and not am_rand_des_rohteils(in_lage_0)
+    and min(p.x for p in in_lage_0) > 30.0 - weit
+    and max(p.x for p in in_lage_0) < 70.0 + weit
+    and min(p.y for p in in_lage_0) > 25.0 - weit
+    and max(p.y for p in in_lage_0) < 55.0 + weit,
+    f"Zapfen oben: x {min(p.x for p in in_lage_0)} … {max(p.x for p in in_lage_0)}, "
+    f"y {min(p.y for p in in_lage_0)} … {max(p.y for p in in_lage_0)}",
+)
+pruefe(
+    zusammen.zeilen < 125 and zusammen.zeit < 14.0, f"Zapfen: {zusammen.zeilen}, {zusammen.zeit}"
+)
+pruefe(am_rand_des_rohteils(in_lage_allein), "Zapfen allein: nicht bis an den Rand des Rohteils")
+
 # Fehler mit einem Satz: Kugel, Zeilenabstand zu groß (über Ø), nichts über der Fläche, keine
 # Fläche.
 for werte_falsch, ebenen_falsch, text in (

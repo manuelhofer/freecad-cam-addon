@@ -796,7 +796,13 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   **längs** der Zeilen (P-2026-10-02-18, 0.80.0): Die gleich verteilten Zeilen
   ragten dort in die Wand und fielen weg, die letzte freie ließ bis zu einem
   Zeilenabstand stehen (gemessen 0,47 bis 0,58 mm) – jetzt fährt eine Zeile im
-  Abstand R + Zugabe an der Wand entlang: 0,025 mm (`test_planfraesen`).
+  Abstand R + Zugabe an der Wand entlang: 0,025 mm (`test_planfraesen`). Zwei Flächen
+  übereinander in derselben Bahn (P-2026-10-02-21, 0.83.0): Die obere griff über ihre offene
+  Seite bis an den Rand des Rohteils aus, auch wo dahinter eine tiefere derselben Bahn liegt,
+  deren Lage am Rohteil beginnt – am Zapfen 40 × 30 auf der Platte 100 × 80 fräste die
+  Oberseite die ganze Platte 1 mm ab, der Boden darum danach noch einmal. Jetzt nicht
+  (`planfraesen_bahn._abgedeckt`, die Zustellung dann wie vor einer Wand): am Zapfen 15,6 →
+  13,5 min, am Absatz 5,1 → 4,3 min.
 - **S3e Kontur** – außen und innen mit tangentialem Ein- und Ausfahren,
   Schruppen mit Aufmaß und Schlichten in einem Schritt; Konturen versetzen im
   Bahnmodell (dann auch die Spirale fürs Planfräsen).

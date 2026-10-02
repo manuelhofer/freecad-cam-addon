@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-21 planfraesen-darunter
+
+### EINGELESEN
+- `planfraesen_bahn` (`planen`: `fertig`, `_umfasst`; `_ebene`: `offen`, `breit`,
+  `v_start`/`v_ende`, Zustellung vor einer Wand), `tests/test_planfraesen.py`.
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`, `tests/test_planfraesen.py`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.83.0)
+
+### AKZEPTANZKRITERIUM
+Planfräsen über zwei Flächen übereinander (Zapfen 40 × 30 × 10 auf der Platte 100 × 80, beide
+Flächen gewählt): Die Oberseite des Zapfens fräst nur über dem Zapfen (mit Stirn und Überlauf),
+nicht die ganze Platte; allein gewählt weiter bis an den Rand des Rohteils. Schneller, der
+Prüfstand bei seinen Bestmarken, die Szenarien mit Planfräsen grün.
+
+### DONE
+- Gefunden beim Erkunden des Zapfens (P-2026-10-02-17): Räumen 14 min, Planfräsen 15 min, die
+  Spanmenge in gut 6 min. Ein Teil davon: Die obere Fläche räumte über ihre offene Seite das
+  Rohteil bis an seinen Rand ab, obwohl die tiefere Fläche derselben Bahn dort am Rohteil beginnt.
+- `planen` gibt `_ebene` die tieferen Flächen derselben Bahn; `_abgedeckt`: liegt hinter einer
+  Seite eine von ihnen über die ganze Länge, greift die Seite nicht aus, und die erste Zeile
+  schneidet dann in voller Breite – die Zustellung wie vor einer Wand.
+- Gemessen (Probe ohne Oberfläche, Standardfräser, vf 902): Zapfen 151 → 117 Zeilen,
+  15,58 → 13,45 min; Absatz 65 → 35 Zeilen, 5,06 → 4,34 min.
+
+### TEST
+- 1.1.3: `test_planfraesen` (Zapfen: oben nur über dem Zapfen, unter 125 Zeilen und 14 min;
+  allein bis an den Rand), `test_pruefstand`, `test_hilfe`; die Szenarien mit Planfräsen (siehe
+  Commit) grün; black/ruff grün.
+
+### NEXT
+- Dasselbe im Räumen (die Ringe der oberen Fläche über die ganze Platte); der Boden um den Zapfen
+  selbst (die geteilten Zeilen um den Zapfen).
+
 ## P-2026-10-02-20 m3-m4
 
 ### EINGELESEN
