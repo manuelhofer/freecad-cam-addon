@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-15 lagerbock
+
+### EINGELESEN
+- `gui_bearbeitung._flaechen` (Kontur), `_gleiche_flaechen`, `_eigene`,
+  `tests/gui/szenario_deckel.py` (Vorlage).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`, `tests/gui/szenario_lagerbock.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.77.0)
+
+### AKZEPTANZKRITERIUM
+Lagerbock 100 × 50 × 30 mit Lagerbohrung Ø 30 und zwei Senkungen Ø 14 × 8,5 über Ø 9 (T1
+Standardfräser, T2 Bohrer Ø 9), alle Zylinder, Oberseite und Gründe der Senkungen angeklickt:
+„Bohren“ die zwei Ø 9, genau einer von Kontur und „Bohrung fräsen“ für die Wände Ø 14 und Ø 30 –
+ohne die gebohrten Ø 9 in seiner Liste –, Planfräsen oder Räumen für die ebenen Flächen, kein
+roter Satz an einem angehakten Block; am Ende nirgends ins Teil.
+
+### DONE
+- Gefunden beim Erkunden: Die Kontur hatte die gebohrten Ø 9 in ihren Flächen – weil
+  „Bohrung fräsen“ dieselben Flächen hatte wie sie, nahm `_flaechen` gar nichts heraus.
+- Jetzt nimmt die Kontur die Flächen jedes angehakten Blocks (Bohren, Bohrung fräsen, Nut)
+  heraus, mit dem sie nicht um genau dieselben Flächen wetteifert (`_eigene`).
+
+### TEST
+- 1.1.3: `szenario_lagerbock` (neu) und 20 Szenarien des Assistenten „Bearbeitung“ (siehe Commit)
+  grün; black/ruff grün.
+
+### NEXT
+- Wie P-2026-10-02-11.
+
 ## P-2026-10-02-14 formplatte
 
 ### EINGELESEN

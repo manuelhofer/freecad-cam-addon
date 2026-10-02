@@ -72,8 +72,9 @@ Bohrer bohrt, „Bohrung fräsen“ den Rest (vorher ging „Anlegen“ gar nich
 die Kontur andere Wände hat – „Anlegen“ ging sonst nicht (P-2026-10-02-13); 0.75.0 – fertig und
 automatisch geprüft; wartet auf Manuels Test. **Formplatte**: Freiformflächen neben Oberseite und
 Bohrungen bekommen jetzt 3D-Schruppen und 3D-Schlichten (vorher keine Operation;
-P-2026-10-02-14); 0.76.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Als
-Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+P-2026-10-02-14); 0.76.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
+**Lagerbock**: Die Kontur fährt gebohrte Bohrungen nicht mehr mit (P-2026-10-02-15); 0.77.0 –
+fertig und automatisch geprüft; wartet auf Manuels Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3

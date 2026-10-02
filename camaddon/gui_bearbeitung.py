@@ -3215,10 +3215,12 @@ class BearbeitungPanel:
             weg = set()
             if self._gerieben(form):
                 weg |= set(self.reiben.s.flaechen_fuer(form, self.gewaehlte))
-            if not self._gleiche_flaechen(block, form):
-                for anderer in (self.bohren, self.bohrung, self.nut):
-                    if anderer.aktiv():
-                        weg |= set(anderer.s.flaechen_fuer(form, self.gewaehlte))
+            # Was ein anderer angehakter Block macht, fährt die Kontur nicht nach – außer er
+            # wetteifert mit ihr um genau dieselben Flächen (ein Lagerbock: die gebohrten Ø 9
+            # unter den Senkungen nicht, P-2026-10-02-15).
+            for anderer in (self.bohren, self.bohrung, self.nut):
+                if anderer.aktiv() and not self._gleiche_flaechen(block, form, anderer):
+                    weg |= set(self._eigene(anderer, form))
             return [f for f in flaechen if f not in weg]
         return flaechen
 

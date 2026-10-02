@@ -165,7 +165,12 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    (P-2026-10-02-14, 0.76.0): Oberseite, Kugelmulde und vier Bohrungen angeklickt – die Mulde
    bekam gar keine Operation: 3D-Schruppen und 3D-Schlichten schlugen sich nur vor, wenn allein
    Freiformflächen gewählt waren. Jetzt, sobald eine dabei ist (gefräst werden nur sie);
-   `szenario_formplatte`: Planfräsen, Bohren, 3D-Schruppen T1, 3D-Schlichten T3.
+   `szenario_formplatte`: Planfräsen, Bohren, 3D-Schruppen T1, 3D-Schlichten T3. **Lagerbock**
+   (P-2026-10-02-15, 0.77.0): Lagerbohrung Ø 30 und zwei Senkungen Ø 14 × 8,5 über Ø 9 – die
+   Kontur hatte die gebohrten Ø 9 in ihrer Liste (mit dem Ø 12 übersprungen, mit einem kleineren
+   Fräser wäre doppelt gefräst worden). Jetzt nimmt die Kontur die Flächen jedes anderen
+   angehakten Blocks heraus, außer er wetteifert mit ihr um genau dieselben
+   (`szenario_lagerbock`).
 8. **Fasen / Entgraten** – an Kanten in der Ebene mit Fasenfräser oder
    Kugelfräser als Kantenbruch; Breite einstellbar; **auch an Kanten im Raum**
    und rundum (V4d). Aufwand mittel. Gebaut: rundum (V4d, 0.36.0) und im
