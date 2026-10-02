@@ -40,6 +40,7 @@ from .sprache import tr
 
 UEBERLAUF_ANTEIL = 0.6  # vom Fräser-Ø: so weit läuft die Mitte längs über die Fläche hinaus
 SEITE_ANTEIL = 0.2  # vom Fräser-Ø: so weit ragt der ebene Teil der Stirn seitlich über den Rand
+WANDZEILE_NAH = 0.05  # mm – liegt eine Zeile so nah an der Zeile an der Wand, fährt sie allein
 AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
 SCHRITT = hf.SCHRITT  # mm – Raster längs der Zeilen
 VORSCHAU_SCHRITT = 1.0  # mm – für die Vorschau im Assistenten
@@ -103,9 +104,10 @@ def ueberlauf_vorschlag(form):
 
 
 def rest_an_der_wand(zeilenabstand):
-    """So viel lässt das Planfräsen an einer Wand höchstens stehen: parallel zu seinen Zeilen
-    bis zu einem Zeilenabstand (die letzte Zeile, die frei fährt), dazu die Zugabe der
-    Hüllfläche – so breit ist der Rest für die Kontur danach (P-2026-10-02-17)."""
+    """So viel lässt das Planfräsen an einer Wand höchstens stehen – so breit ist der Rest für
+    die Kontur danach (P-2026-10-02-17): ein Zeilenabstand und die Zugabe der Hüllfläche. Seit
+    der Zeile an der Wand (P-2026-10-02-18) ist es meist nur die Zugabe; der Zeilenabstand
+    bleibt die sichere Grenze (Bögen zwischen Zeilenenden an runden Wänden)."""
     return zeilenabstand + hf.TOLERANZ + vb.RAND
 
 
@@ -266,6 +268,17 @@ def _ebene(netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, 
     if offen[1]:
         v_ende = max(v_ende, roh_v[1] + r_eben - breit)
     v_zeilen = _zeilen_quer(v_start, v_ende, 0.0, w.zeilenabstand)
+    # Vor einer Wand längs der Zeilen (die Seite ist nicht offen) ragte die letzte Zeile in die
+    # Wand und fiel weg – die vorige ließ an ihr bis zu einem Zeilenabstand stehen (gemessen
+    # 0,5 mm, P-2026-10-02-18). Dazu eine Zeile, die an der Wand entlang fräst: die Stirn im
+    # Abstand der Zugabe von ihr.
+    r_voll = float(w.form.radius)
+    for seite_zu, v_wand in (
+        (not offen[0], v_von + r_voll + zugabe),
+        (not offen[1], v_bis - r_voll - zugabe),
+    ):
+        if seite_zu and not np.any(np.abs(v_zeilen - v_wand) < WANDZEILE_NAH):
+            v_zeilen = np.sort(np.append(v_zeilen, v_wand))
     # Keine Leerzeile: nur Zeilen, unter denen das Rohteil liegt.
     v_zeilen = v_zeilen[
         (v_zeilen + r_eben > roh_v[0] + GLEICH) & (v_zeilen - r_eben < roh_v[1] - GLEICH)

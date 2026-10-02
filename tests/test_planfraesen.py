@@ -229,7 +229,9 @@ bahn_y_erzwungen = pb.planen(netz, werte_y, [flaeche])
 # – und die erste Zeile hätte keine freie Seite: darum zwei Lagen zu 3 mm (2 R · 3 nicht über
 # ae · ap). Die Seite bei x 60 ist offen; dort greift die letzte Zeile bei 3 mm Tiefe 9,6 breit
 # (R − 0,2 Ø darüber hinaus). Der Zähler zählt die beiden Zeilen an der Absatzwand doppelt,
-# weil sie dort in zwei Stücken gefahren werden.
+# weil sie dort in zwei Stücken gefahren werden. Dazu die Zeile an der Absatzwand (x 10 + R +
+# Zugabe): Die Zeilen davor ragen in die Wand und fallen weg, die erste freie ließ 0,6 mm an ihr
+# stehen (P-2026-10-02-18).
 breit_y = min(2 * R - pb.SEITE_ANTEIL * 2 * R, planen_einsatz.ae * planen_einsatz.ap / 3.0)
 zeilen_y_erwartet = (
     int(math.ceil((61.0 + R - breit_y - (10.0 + rand_quer)) / planen_einsatz.ae - 1e-9)) + 1
@@ -239,9 +241,14 @@ x_zeilen_y = {
     for p in bahn_y_erzwungen.punkte
     if not p.eilgang and abs(p.z - 20.0) < 1e-6 and p.bogen is None
 }
+x_wand = 10.0 + R + hf.TOLERANZ + pb.vb.RAND
+pruefe(
+    any(abs(x - x_wand) < 1e-6 for x in x_zeilen_y),
+    f"keine Zeile an der Absatzwand (x {x_wand}): {sorted(x_zeilen_y)[:4]}",
+)
 pruefe(
     bahn_y_erzwungen.richtungen == (False,)
-    and len(x_zeilen_y) == zeilen_y_erwartet == 31
+    and len(x_zeilen_y) == zeilen_y_erwartet + 1 == 32
     and bahn_y_erzwungen.lagen == 2
     and bahn_y_erzwungen.zeilen >= zeilen_y_erwartet
     and bahn_y_erzwungen.zeit_andere is None

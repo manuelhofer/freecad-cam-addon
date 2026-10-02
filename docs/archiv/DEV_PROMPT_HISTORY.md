@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-18 planfraesen-wand
+
+### EINGELESEN
+- `planfraesen_bahn` (`planen`, `_ebene`: `offen`, `v_start`/`v_ende`, `_zeilen_quer`,
+  `_wandfahrt`), `tests/test_planfraesen.py`, `tests/test_pruefstand.py`.
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`, `tests/test_planfraesen.py`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.80.0)
+
+### AKZEPTANZKRITERIUM
+Eine ebene Fläche 60 lang mit einer Wand längs der Zeilen: Das Planfräsen fräst bis auf die
+Zugabe (0,025 mm) an die Wand heran – vorher blieben 0,47 bis 0,58 mm; Prüfstand und die
+Szenarien des Assistenten „Bearbeitung“ mit Planfräsen grün.
+
+### DONE
+- Gemessen (Probe ohne Oberfläche, Flächen 30, 15 und 22 breit, Ø 12, ae 1,5): Die gleich
+  verteilten Zeilen enden auf der Seite der Wand bei R − 0,2 Ø vom Rand – sie ragen in die Wand,
+  die Hüllfläche sperrt sie; die letzte freie ließ 0,47 bis 0,58 mm an der Wand.
+- `_ebene`: Ist eine Seite nicht offen, kommt eine Zeile im Abstand R + Zugabe von ihr dazu
+  (`WANDZEILE_NAH`: nicht, wenn schon eine so nah liegt). Jetzt 0,025 mm; je Fläche eine Zeile
+  mehr (0,08 min).
+
+### TEST
+- 1.1.3: `test_planfraesen` (längs y vor dem Absatz jetzt 32 Zeilenlagen mit der an der Wand),
+  `test_pruefstand`, `test_hilfe` und die Szenarien des Assistenten „Bearbeitung“ mit Planfräsen (siehe
+  Commit) grün; black/ruff grün.
+
+### NEXT
+- Der Rest für die Kontur nach dem Planfräsen (`rest_an_der_wand`) kann kleiner werden – dann
+  fällt ihre Bahn durch Luft weg; wie P-2026-10-02-11.
+
 ## P-2026-10-02-17 absatz
 
 ### EINGELESEN

@@ -780,7 +780,11 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   Rest (die Zeilen hin und her lassen an der Wand jeden zweiten Zwischenraum
   aus) – jetzt fährt der Fräser dort an der Wand entlang (Wandfahrt). Was
   bleibt: der Sicherheitsabstand (0,25 mm) vor jeder Wand, den die Kontur (S3e)
-  wegnimmt – im Raster von 0,5 mm sieht die Simulation ihn nicht.
+  wegnimmt – im Raster von 0,5 mm sieht die Simulation ihn nicht. Eine Wand
+  **längs** der Zeilen (P-2026-10-02-18, 0.80.0): Die gleich verteilten Zeilen
+  ragten dort in die Wand und fielen weg, die letzte freie ließ bis zu einem
+  Zeilenabstand stehen (gemessen 0,47 bis 0,58 mm) – jetzt fährt eine Zeile im
+  Abstand R + Zugabe an der Wand entlang: 0,025 mm (`test_planfraesen`).
 - **S3e Kontur** – außen und innen mit tangentialem Ein- und Ausfahren,
   Schruppen mit Aufmaß und Schlichten in einem Schritt; Konturen versetzen im
   Bahnmodell (dann auch die Spirale fürs Planfräsen).
