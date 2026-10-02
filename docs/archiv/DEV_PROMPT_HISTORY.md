@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-69 ziel-zeile-nach-dem-materialstand
+
+### EINGELESEN
+- Eigener Befund im Bild zu P-68: Über dem Räumen stand „Weg müssen 120,9 cm³“ (vom vollen
+  Rohteil), darunter „noch 93,7 cm³ – 12,5 cm³ hat „Nut T1“ schon weggenommen“ – zwei Zahlen,
+  die nicht zusammenpassen. W-012 M4 (Spezifikation Strategien 12.7): die Ziel-Zeile nach dem
+  Materialstand. Manuel, 2026-10-02: „Solange bitte einfach weiter arbeiten!!!!“
+
+### DATEIEN
+- `camaddon/zielzeit.py` (`Material.unter`), `camaddon/gui_bearbeitung.py` (`_ziel_material`
+  mit dem Materialstand des Jobs), `translations/de.json`, `translations/en.json`
+  (`ba.ziel.tooltip`), `help/de|en/bearbeitung.html`, `tests/test_zielzeit.py`,
+  `tests/gui/szenario_raeumen_materialstand.py`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.118.1)
+
+### AKZEPTANZKRITERIUM
+Manuels Klotz, Nut zuerst: Beim Boden um den Zapfen steht „Weg müssen …“ um die Nut kleiner als
+beim ersten Lauf; ohne Operation im Job wie bisher.
+
+### DONE
+- `Material.unter(oben)`: je Zelle nur, was unter dem Materialstand steht; der Assistent nimmt
+  den Stand nach den Operationen im Job (beim Ändern vor der Operation) – für „Weg müssen“, die
+  Zielzeit, den Vergleich mit der Werkzeugkiste, „× Ziel“ und die Wahl des Planen-Einsatzes.
+
+### TESTS
+- `tests/test_zielzeit.py` (OK), `tests/gui/szenario_raeumen_materialstand.py` (OK: „Weg müssen“
+  120,9 cm³ beim Grund der Nut, 103,4 cm³ beim Boden danach – die Nut, 17,5 cm³).
+
 ## P-2026-10-02-68 raeumen-auf-dem-materialstand
 
 ### EINGELESEN

@@ -1750,6 +1750,11 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     (`test_materialstand`, `szenario_raeumen_materialstand`). Das Planfräsen kennt den
     Materialstand noch nicht (M4) – im Wettbewerb rechnet es mit dem vollen Rohteil.
   - **M4 Planfräsen, Kontur, 3D-Schruppen** ebenso.
+    **Gebaut, die Ziel-Zeile:** P-2026-10-02-69, 0.118.1 – „Weg müssen … cm³“, die Zielzeit, der
+    Vergleich mit der Werkzeugkiste, „× Ziel“ und die Wahl des Planen-Einsatzes rechnen mit dem,
+    was nach den Operationen im Job noch steht (`zielzeit.Material.unter`, beim Ändern vor der
+    Operation). Manuels Klotz, Nut zuerst: beim Boden um den Zapfen rund 18 cm³ weniger als
+    vorher – die Nut (`test_zielzeit`, `szenario_raeumen_materialstand`).
 - **Fertig, wenn:** Manuels Klotz in beiden Reihenfolgen im Prüffenster ein Teil ohne Rest
   ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war (außer über eine
   kurze Lücke, wo Durchfahren schneller ist als Abheben – Grundsatz 0), und die Nut nach dem

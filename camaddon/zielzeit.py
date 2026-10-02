@@ -6,7 +6,8 @@ für die Arbeit überhaupt passt – oder ein anderer aus der Werkzeugkiste schn
 (vergleiche()).
 
 Von oben gesehen steht je Zelle Material der Höhe T über dem Teil (wo kein Teil ist: bis zu
-seinem Boden). Der Fräser nimmt es in ceil(T ÷ ap) gleichen Lagen, und jede Lage überstreicht
+seinem Boden) – im Assistenten, was nach den Operationen im Job noch steht (der Materialstand,
+W-012: Material.unter). Der Fräser nimmt es in ceil(T ÷ ap) gleichen Lagen, und jede Lage überstreicht
 die Zelle einmal mit der Breite ae: Zielzeit = Σ Zelle · Lagen ÷ (ae · vf). So zählt bei einer
 Fläche 1000 × 1000, von der 5 mm weg müssen, ap 5 – nicht das ap 25 des Einsatzes: viel
 Volumen, aber der Fräser schafft nur ein Fünftel seines Zeitspanvolumens; bei 100 × 100, 25 mm
@@ -66,6 +67,11 @@ class Material:
         """Was bleibt, wenn bis `erreicht` (je Zelle) weggenommen ist – für den nächsten Fräser."""
         oben = np.minimum(np.maximum(erreicht, self.boden), self.oben)
         return Material(self.x, self.y, oben, self.boden, self.sx, self.sy)
+
+    def unter(self, oben):
+        """Nur, was unter `oben` (je Zelle; −inf: nichts) noch steht – der Materialstand
+        (W-012): Was die Operationen davor schon weggenommen haben, muss nicht mehr weg."""
+        return Material(self.x, self.y, np.minimum(self.oben, oben), self.boden, self.sx, self.sy)
 
     def bis(self, z, oben=None):
         """Nur, was über `z` liegt – und mit `oben` unter dieser Höhe: was eine Strategie bis zu

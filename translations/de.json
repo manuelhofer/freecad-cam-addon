@@ -1538,7 +1538,7 @@
     "ba.ziel.danach": "{werkzeug}, danach {rest} für den Rest",
     "ba.ziel.werkzeug": "T{nummer} {art} Ø {d}",
     "ba.ziel.minuten": "{min} min",
-    "ba.ziel.tooltip": "Die Zielzeit, bevor eine Bahn gerechnet ist: das Volumen zwischen Rohteil und Teil, je Stelle in so vielen Lagen, wie das ap des Einsatzes verlangt, mit seinem ae und vf – als wäre der Fräser nie aus dem Eingriff. Bei wenig Tiefe nutzt er nur einen Teil seines ap: eine große Fläche, von der wenig weg muss, dauert lange. Jede Bahn braucht länger (Luft, Eintauchen, Eilgang) – um wie viel, sagt, wie gut sie ist. Wäre ein anderer Fräser aus der Werkzeugkiste deutlich schneller, steht er dahinter.",
+    "ba.ziel.tooltip": "Die Zielzeit, bevor eine Bahn gerechnet ist: das Volumen zwischen Rohteil und Teil – ohne, was die Operationen davor im Job schon weggenommen haben –, je Stelle in so vielen Lagen, wie das ap des Einsatzes verlangt, mit seinem ae und vf – als wäre der Fräser nie aus dem Eingriff. Bei wenig Tiefe nutzt er nur einen Teil seines ap: eine große Fläche, von der wenig weg muss, dauert lange. Jede Bahn braucht länger (Luft, Eintauchen, Eilgang) – um wie viel, sagt, wie gut sie ist. Wäre ein anderer Fräser aus der Werkzeugkiste deutlich schneller, steht er dahinter.",
     "ba.passt_nicht": "Passt nicht zur Auswahl ({anzahl})",
     "ba.passt_nicht.zu": "Klick zeigt, was man dafür im 3D anklicken muss.",
     "ba.passt_nicht.offen": "Dafür im 3D anklicken, was dabei steht.",

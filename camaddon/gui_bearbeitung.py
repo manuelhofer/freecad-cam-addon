@@ -4412,7 +4412,9 @@ class BearbeitungPanel:
 
     def _ziel_material(self, form):
         """Das Material zwischen Rohteil (Kasten des Jobs) und Teil (zielzeit.Material) – einmal
-        gerechnet je Teil und Rohteil."""
+        gerechnet je Teil und Rohteil –, darin, was nach den Operationen im Job noch steht (der
+        Materialstand, W-012; beim Ändern vor der Operation): Was eine Operation davor schon
+        weggenommen hat, muss nicht mehr weg."""
         rohteil = getattr(self.job, "Stock", None)
         if rohteil is None or getattr(rohteil, "Shape", None) is None or rohteil.Shape.isNull():
             return None
@@ -4424,15 +4426,26 @@ class BearbeitungPanel:
         )
         gemerkt = getattr(self, "_ziel_gemerkt", None)
         if gemerkt is not None and gemerkt[0] == schluessel:
-            return gemerkt[1]
-        try:
-            material = zz.material(
-                form, (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax), kasten.ZMax
+            material = gemerkt[1]
+        else:
+            try:
+                material = zz.material(
+                    form, (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax), kasten.ZMax
+                )
+            except Exception:  # ein Teil, das sich nicht vernetzen lässt: ohne Ziel
+                material = None
+            self._ziel_gemerkt = (schluessel, material)
+        stand = mst.fuer(self.job, vor=self.zu_aendern) if material is not None else None
+        if stand is None:
+            return material
+        gemerkt = getattr(self, "_ziel_stand", None)
+        if gemerkt is None or gemerkt[0] != (schluessel, stand.kennung):
+            gemerkt = (
+                (schluessel, stand.kennung),
+                material.unter(stand.hoehen_an(material.x, material.y)),
             )
-        except Exception:  # ein Teil, das sich nicht vernetzen lässt: ohne Ziel
-            material = None
-        self._ziel_gemerkt = (schluessel, material)
-        return material
+            self._ziel_stand = gemerkt
+        return gemerkt[1]
 
     def _kontur_text(self, form, zusatz):
         """Der Satz der Kontur, wenn ein anderer Block vor ihr neben den Wänden räumt."""

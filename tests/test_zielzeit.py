@@ -15,6 +15,7 @@ ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
 import FreeCAD
+import numpy as np
 import Part
 
 from camaddon import werkzeuge as wz
@@ -66,6 +67,13 @@ pruefe(nah(z.zeitspanvolumen, z.zeitspanvolumen_voll), f"100 × 100: Q {z.zeitsp
 m = zz.material(klotz, (0, 100, 0, 100), 50.0)
 z = zz.ziel(m, 6.0, AE, AP, VF)
 pruefe(nah(z.zeit, 2e4 / (AE * VF)) and nah(z.ap_wirksam, 15.0), f"30 mm: {z.zeit:.2f} min")
+# Nach einer Operation davor (Materialstand, W-012): Über der linken Hälfte steht nur noch bis 30
+# – links muss eine Lage weg (10 mm), rechts weiter zwei (30 mm).
+links = np.where(m.x[:, None] < 50.0, 30.0, np.inf) + np.zeros((1, len(m.y)))
+halb = m.unter(links)
+z = zz.ziel(halb, 6.0, AE, AP, VF)
+pruefe(nah(halb.volumen, 2e5) and nah(z.zeit, 1.5e4 / (AE * VF)),
+       f"nach der Operation davor: {halb.volumen:.0f} mm³, {z.zeit:.2f} min")  # fmt: skip
 
 # --- Der Rest in Ecken, die enger sind als der Fräser ---------------------------------------
 # Tasche 40 × 30, Ecken R 6, 15 tief im Block 100 × 60 × 20, Rohteil 1 mm darüber. Ø 12 kommt

@@ -1538,7 +1538,7 @@
     "ba.ziel.danach": "{werkzeug}, then {rest} for the rest",
     "ba.ziel.werkzeug": "T{nummer} {art} Ø {d}",
     "ba.ziel.minuten": "{min} min",
-    "ba.ziel.tooltip": "The target time, before any path is calculated: the volume between stock and part, at every spot in as many layers as the application's ap requires, at its ae and vf – as if the cutter were never out of the cut. Where it is shallow the cutter only uses part of its ap: a large face with little to remove takes long. Every path takes longer (air, plunging, rapids) – by how much tells how good it is. If another cutter from the tool box would be clearly faster, it is named after it.",
+    "ba.ziel.tooltip": "The target time, before any path is calculated: the volume between stock and part – without what the operations before it in the job have already removed –, at every spot in as many layers as the application's ap requires, at its ae and vf – as if the cutter were never out of the cut. Where it is shallow the cutter only uses part of its ap: a large face with little to remove takes long. Every path takes longer (air, plunging, rapids) – by how much tells how good it is. If another cutter from the tool box would be clearly faster, it is named after it.",
     "ba.passt_nicht": "Does not fit the selection ({anzahl})",
     "ba.passt_nicht.zu": "Click to see what to click in 3D for them.",
     "ba.passt_nicht.offen": "For them, click in 3D what it says next to each.",

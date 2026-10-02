@@ -3,8 +3,11 @@
 # an Manuels Klotz: 100 × 100, oben bei z 0 ein Zapfen Ø 30 bei x25 y25, rundum der Boden bei −10,
 # darin eine Nut 20 × 60 um x −10 y 0, Grund −15. Nut zuerst: den Grund der Nut anklicken,
 # „Bearbeitung“, „Anlegen“ – die Nut von oben bis −15. Dann den Boden um den Zapfen am Teil im Job:
-# Das Räumen sagt grau „noch … – … hat „Nut T1“ schon weggenommen“; „Anlegen“: ein Job mit beiden,
-# das Räumen merkt sich, woraus es gerechnet hat.
+# Das Räumen sagt grau „noch … – … hat „Nut T1“ schon weggenommen“, und „Weg müssen …“ darüber ist
+# um die Nut kleiner als beim ersten Mal (W-012 M4a); „Anlegen“: ein Job mit beiden, das Räumen
+# merkt sich, woraus es gerechnet hat.
+import re
+
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -54,6 +57,10 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
     gui_bearbeitung.nullpunkt_vorgeben(None)  # die Koordinaten wie im Modell
 
+    def weg_muessen(panel):  # „Weg müssen 120,9 cm³. …“ → 120.9
+        treffer = re.search(r"Weg müssen ([0-9.,]+) cm³", panel.ziel_text.text())
+        return float(treffer.group(1).replace(",", ".")) if treffer else None
+
     def oeffnen(objekt, name):
         Gui.Selection.clearSelection()
         Gui.Selection.addSelection(doc.Name, objekt.Name, name)
@@ -72,6 +79,7 @@ def schritte(h):
     yield from h.warte_auf(lambda: panel.nut.vorschau is not None, 180000)
     yield 1500
     h.pruefe(panel.nut.aktiv(), "die Nut nicht angehakt")
+    vorher = weg_muessen(panel)
     h.pruefe(panel.accept() is True, "Nut: „Anlegen“ ging nicht")
     yield 3000
     nuten = [o for o in job.Operations.Group if nu.ist_nut(o)]
@@ -92,6 +100,13 @@ def schritte(h):
     material = panel.raeumen.material.text()
     print(ascii(f"Räumen: {panel.raeumen.ergebnis.text()} / {material}"))
     h.pruefe(panel.raeumen.aktiv(), "das Räumen nicht angehakt")
+    # Die Nut ist weg: 40 × 20 + π · 10², von oben (+1) bis −15 – rund 17,8 cm³ weniger.
+    nachher = weg_muessen(panel)
+    print(ascii(f"Weg müssen: vorher {vorher}, nachher {nachher}"))
+    h.pruefe(
+        vorher is not None and nachher is not None and 15.0 < vorher - nachher < 21.0,
+        f"Weg müssen: vorher {vorher}, nachher {nachher}",
+    )
     h.pruefe(
         material.startswith("noch ")
         and material.endswith(f"hat „{nut_op.Label}“ schon weggenommen"),
