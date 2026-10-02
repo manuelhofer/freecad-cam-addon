@@ -2265,6 +2265,14 @@ class _Block:
         """Die Einsätze mit Drehzahl und Vorschub – nur mit ihnen gibt es einen Controller."""
         return [e for e in werkzeug.einsaetze(werkstoff) if js.werte(werkzeug, e)[1] > 0]
 
+    def fraeser_setzen(self, werkzeug):
+        """Wählt `werkzeug` in der Auswahl „Fräser“, wenn es dort steht; gibt zurück, ob."""
+        kennungen = [w.kennung for w in self._fraeser]
+        if werkzeug is None or werkzeug.kennung not in kennungen:
+            return False
+        self.wahl_fraeser.setCurrentIndex(kennungen.index(werkzeug.kennung))
+        return True
+
     def fraeser_fuellen(self, bibliothek, werkstoff):
         """Die Werkzeuge, mit denen die Strategie arbeitet (_Strategie.werkzeug_passt: Fräser mit
         ebener Stirn, beim Bohren Bohrer), mit Schnittwerten für den Werkstoff; vorgewählt der
@@ -2654,6 +2662,19 @@ class BearbeitungPanel:
         # „dass man erstmal ein Ziel rechnet von der Zeit her“).
         self.ziel_text = grautext()
         self.ziel_text.setToolTip(tr("ba.ziel.tooltip"))
+        # Der schnellere Fräser aus der Ziel-Zeile mit einem Klick – freiwillig (Manuel,
+        # 2026-10-02: „ja, aber man muss nicht – wenn man es mit einem Fräser fräsen will, ist
+        # das so“).
+        self._schneller = None  # zielzeit.Angebot hinter „Schneller aus der Werkzeugkiste“
+        self.knopf_schneller = knopf(
+            tr("ba.ziel.uebernehmen"), tr("ba.ziel.uebernehmen.tooltip"), self.schneller_uebernehmen
+        )
+        self.knopf_schneller.hide()
+        zeile_schneller = QtGui.QHBoxLayout()
+        zeile_schneller.setContentsMargins(0, 0, 0, 0)
+        zeile_schneller.addWidget(self.knopf_schneller)
+        zeile_schneller.addStretch()
+        ziel[0].addLayout(zeile_schneller)
         # Je Strategie ein Haken mit ihrem Ergebnis – was zur Wahl passt oben, darunter
         # eingeklappt, was (noch) nicht passt (_bloecke_ordnen).
         strategien = QtGui.QWidget()
@@ -3595,6 +3616,8 @@ class BearbeitungPanel:
         Kontur) mit seinen Werten dafür mindestens braucht – mit dem ap, das jede Stelle hergibt
         – und welcher Fräser der Werkzeugkiste schneller wäre (zielzeit; Manuel, 2026-10-02)."""
         self.ziel_text.setText("")
+        self._schneller = None
+        self.knopf_schneller.hide()
         material = self._ziel_material(form)
         if material is None or material.volumen <= 0:
             return
@@ -3603,7 +3626,10 @@ class BearbeitungPanel:
             tr("ba.ziel.volumen", volumen=f"{volumen} {einheiten.einheit(einheiten.VOLUMEN)}")
         ]
         eigene = None
-        for block in (self.raeumen, self.plan, self.kontur):
+        # Die angehakten zuerst: Nach „Übernehmen“ räumt oft das Planfräsen allein, und das
+        # Räumen behält nur den Fräser für den Rest.
+        bloecke = (self.raeumen, self.plan, self.kontur)
+        for block in sorted(bloecke, key=lambda b: not b.aktiv()):
             werkzeug, einsatz = block.fraeser(), block.einsatz()
             werte = zz.werte(werkzeug, einsatz) if werkzeug and einsatz else None
             if werte is not None and werkzeug.art in zz.WEGNEHMER:
@@ -3635,8 +3661,18 @@ class BearbeitungPanel:
             if eigene is not None:
                 gleich = [a for a in angebote if a.werkzeug.kennung == eigene[0].kennung]
                 vergleich = gleich[0].zeit if gleich else eigene[1].zeit
-            if eigene is None or (
-                beste.werkzeug.kennung != eigene[0].kennung and beste.zeit < 0.8 * vergleich
+            # Schon in den angehakten Strategien (übernommen): kein Angebot mehr.
+            genutzt = {
+                b.fraeser().kennung
+                for b in (self.plan, self.raeumen, self.kontur, self.rest)
+                if b.aktiv() and b.fraeser() is not None
+            }
+            schon = beste.werkzeug.kennung in genutzt and (
+                beste.danach is None or beste.danach.werkzeug.kennung in genutzt
+            )
+            if not schon and (
+                eigene is None
+                or (beste.werkzeug.kennung != eigene[0].kennung and beste.zeit < 0.8 * vergleich)
             ):
                 wer = _ziel_werkzeug(beste.werkzeug)
                 if beste.danach is not None:
@@ -3644,8 +3680,34 @@ class BearbeitungPanel:
                         "ba.ziel.danach", werkzeug=wer, rest=_ziel_werkzeug(beste.danach.werkzeug)
                     )
                 saetze.append(tr("ba.ziel.schneller", werkzeug=wer, zeit=_ziel_minuten(beste.zeit)))
+                if self.zu_aendern is None:
+                    self._schneller = beste
+                    self.knopf_schneller.show()
         self.ziel_text.setText(" ".join(saetze))
         self._ziel_je_block(form, material)
+
+    def schneller_uebernehmen(self):
+        """„Übernehmen“ unter der Ziel-Zeile: die schnelleren Fräser in die Strategien – ein
+        Planfräser ins Planfräsen und der für den Rest ins Räumen (das Räumen nimmt dann nur
+        die Taschenböden, _folge), ein Schaftfräser ins Räumen und der für den Rest ins
+        Restmaterial. Gibt zurück, ob sich etwas geändert hat."""
+        angebot = self._schneller
+        if angebot is None or self.job is None:
+            return False
+        erster = angebot.werkzeug
+        rest = angebot.danach.werkzeug if angebot.danach is not None else None
+        if erster.art == wz.PLANFRAESER:
+            paare = ((self.plan, erster), (self.raeumen, rest))
+        else:
+            paare = ((self.raeumen, erster), (self.rest, rest))
+        geaendert = False
+        for block, werkzeug in paare:
+            if werkzeug is not None and block.fraeser_setzen(werkzeug):
+                geaendert = True
+        if geaendert:
+            self.knopf_schneller.hide()
+            self.vorschau_starten()
+        return geaendert
 
     def _ziel_je_block(self, form, material):
         """Hinter die Zeit von Planfräsen und Räumen, wie gut ihr Weg ist (Manuel, 2026-10-02:

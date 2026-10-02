@@ -1483,6 +1483,8 @@
     "ba.ziel.mit": "Target with {werkzeug}: {zeit} – on average ap {ap}, {anteil} % of its metal removal rate.",
     "ba.ziel.rest": "{rest} in corners and slots narrower than it remain for a smaller one.",
     "ba.ziel.schneller": "Faster from the tool box: {werkzeug} – target {zeit}.",
+    "ba.ziel.uebernehmen": "Use the faster cutters",
+    "ba.ziel.uebernehmen.tooltip": "Puts the faster cutters from the target line into the strategies: a face mill into face milling and the one for the rest into clearing, an end mill into clearing and the one for the rest into rest material. Optional – whoever wants to mill everything with one cutter leaves it.",
     "ba.ziel.faktor": "{text} · {faktor} × target",
     "ba.ziel.danach": "{werkzeug}, then {rest} for the rest",
     "ba.ziel.werkzeug": "T{nummer} {art} Ø {d}",

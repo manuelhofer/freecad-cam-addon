@@ -1483,6 +1483,8 @@
     "ba.ziel.mit": "Ziel mit {werkzeug}: {zeit} – im Mittel ap {ap}, {anteil} % seines Zeitspanvolumens.",
     "ba.ziel.rest": "{rest} in Ecken und Nuten, enger als er, bleiben für einen kleineren.",
     "ba.ziel.schneller": "Schneller aus der Werkzeugkiste: {werkzeug} – Ziel {zeit}.",
+    "ba.ziel.uebernehmen": "Schnellere Fräser übernehmen",
+    "ba.ziel.uebernehmen.tooltip": "Setzt die schnelleren Fräser aus der Ziel-Zeile in die Strategien: einen Planfräser ins Planfräsen und den für den Rest ins Räumen, einen Schaftfräser ins Räumen und den für den Rest ins Restmaterial. Freiwillig – wer alles mit einem Fräser fräsen will, lässt es.",
     "ba.ziel.faktor": "{text} · {faktor} × Ziel",
     "ba.ziel.danach": "{werkzeug}, danach {rest} für den Rest",
     "ba.ziel.werkzeug": "T{nummer} {art} Ø {d}",

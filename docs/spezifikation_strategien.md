@@ -1303,7 +1303,14 @@ schnellsten kleineren für den Rest. Die Werkzeugkiste der Tests ist `werkzeuge.
 T1 Ø 12 (der Standardfräser), T2 Planfräser Ø 50 (z 5, ae 35, ap 2, vc 200, fz 0,15 →
 vf 955), T3 Ø 6 (ae 0,6, ap 12, vf 902), T4 Ø 20 (ae 2, ap 30, vf 649) – angenommene Werte.
 Der Assistent zeigt die Zielzeit grau über den Strategien, und den schnelleren Fräser aus
-der Werkzeugverwaltung, wenn einer um mehr als ein Fünftel schneller wäre.
+der Werkzeugverwaltung, wenn einer um mehr als ein Fünftel schneller wäre. Darunter
+„Schnellere Fräser übernehmen“ (P-2026-10-02-51, 0.107.0; Manuel: „Ja, aber man muss nicht –
+wenn man es mit einem Fräser fräsen will, ist das so“): Ein Klick setzt einen Planfräser ins
+Planfräsen und den für den Rest ins Räumen, einen Schaftfräser ins Räumen und den für den Rest
+ins Restmaterial; danach rechnet die Ziel-Zeile mit dem Fräser der angehakten Strategie und
+bietet nichts mehr an, was schon angehakt ist. Auf Manuels Platte: Planfräsen mit dem Ø 50
+29 min statt Räumen mit dem Ø 12 34 min – das Ziel des Ø 50 ist 14 min (2,17 × Ziel), hier
+lohnt die Arbeit an der Bahn.
 
 Die Maßstabsteile des Prüfstands mit dem Ø 12 (`test_zielzeit`; „Ziel“ ohne den Millimeter
 über der Oberseite, wo die Strategien danach laufen):

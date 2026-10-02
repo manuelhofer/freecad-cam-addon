@@ -12,6 +12,47 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-51 schnelleren-fraeser-uebernehmen
+
+### EINGELESEN
+- Manuel, 2026-10-02, auf die Frage, ob der schnellere Fräser aus der Ziel-Zeile mit einem
+  Klick in die Strategien soll: „Ja, aber man muss nicht – wenn man es mit einem Fräser fräsen
+  will, ist das so.“ Spezifikation Strategien, Abschnitt 11 (Zielzeit).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`knopf_schneller` unter der Ziel-Zeile, `_schneller`,
+  `schneller_uebernehmen`, `_Block.fraeser_setzen`; `_ziel_zeigen`: kein Angebot, wenn seine
+  Fräser schon angehakt sind, und das Ziel mit dem Fräser der angehakten Strategie),
+  `translations/de|en.json` (`ba.ziel.uebernehmen` …), `help/de|en/bearbeitung.html`,
+  `tests/gui/szenario_zielzeit.py`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.107.0)
+
+### AKZEPTANZKRITERIUM
+Manuels Platte mit der Werkzeugkiste der Tests: Unter „Schneller aus der Werkzeugkiste: T2
+Planfräser Ø 50, danach T1 Schaftfräser Ø 12 für den Rest – Ziel 15 min“ steht „Schnellere
+Fräser übernehmen“; ein Klick setzt T2 ins Planfräsen und T1 ins Räumen, der Wettbewerb rechnet
+neu (Planfräsen 29 statt Räumen 34 min), die Ziel-Zeile rechnet mit dem Planfräser und bietet
+nichts mehr an.
+
+### DONE
+- Der Knopf erscheint nur mit einem Angebot und nicht beim Ändern einer Operation;
+  freiwillig – wer alles mit einem Fräser fräsen will, lässt ihn.
+- Ein Planfräser kommt ins Planfräsen, der für den Rest ins Räumen; ein Schaftfräser ins Räumen,
+  der für den Rest ins Restmaterial.
+- Gefunden beim Prüfen: Die Ziel-Zeile rechnete nach dem Übernehmen weiter mit dem Fräser des
+  abgehakten Räumens und bot denselben Planfräser noch einmal an – jetzt zählen die angehakten
+  Strategien zuerst.
+
+### TEST
+- 1.1.3: `test_sprache`, `test_hilfe`; `szenario_zielzeit` (Bild „2b_uebernommen“);
+  black/ruff grün.
+
+### NEXT
+- Schlichten nach dem Räumen besprechen (Vorschlag in Spezifikation Strategien 12.4);
+  geschlossene Nuten in Bögen mit dem lastgerechten Schritt (12.2, Manuel: „Ja“); der Ø 12 mit
+  einem Einsatz „Planen“ für kleines ap und großes ae (Werte aus dem Netz). Auffällig: Das
+  Planfräsen mit dem Ø 50 liegt auf der Platte bei 2,17 × Ziel (29 statt 14 min).
+
 ## P-2026-10-02-50 eigene-werte-je-werkstoff
 
 ### EINGELESEN

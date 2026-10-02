@@ -104,6 +104,36 @@ def schritte(h):
     )
     h.bild("2_passt_nicht", panel.form)
     panel.passt_nicht_knopf.click()
+    # Der schnellere Fräser mit einem Klick (P-2026-10-02-51; Manuel: „ja, aber man muss
+    # nicht“): Der Planfräser kommt ins Planfräsen, der Ø 12 ins Räumen. Das Planfräsen gewinnt
+    # (29 statt 34 min); die Ziel-Zeile rechnet mit dem angehakten Planfräser und bietet nichts
+    # mehr an.
+    if raeumer is not None and raeumer.art != wz.PLANFRAESER:
+        h.pruefe(panel.knopf_schneller.isVisible(), "„Schnellere Fräser übernehmen“ fehlt")
+        panel.knopf_schneller.click()
+        yield 300
+        h.pruefe(
+            panel.plan.fraeser().nummer == 2 and panel.raeumen.fraeser().nummer == 1,
+            f"übernommen: Plan T{panel.plan.fraeser().nummer}, "
+            f"Räumen T{panel.raeumen.fraeser().nummer}",
+        )
+        yield from h.warte_auf(
+            lambda: panel.plan.vorschau is not None and panel.raeumen.vorschau is not None,
+            300000,
+        )
+        yield from h.warte_auf(lambda: bool(panel.ziel_text.text()), 120000)
+        yield 500
+        print(ascii(f"nach dem Übernehmen: {panel.ziel_text.text()}"))
+        print(ascii(f"Planfräsen: {panel.plan.ergebnis.text()}"))
+        print(ascii(f"Räumen: {panel.raeumen.ergebnis.text()}"))
+        h.pruefe(panel.plan.aktiv(), "Planfräsen mit dem Planfräser nicht angehakt")
+        h.pruefe(
+            "Ziel mit T2 Planfräser Ø 50" in panel.ziel_text.text()
+            and "Schneller aus der Werkzeugkiste" not in panel.ziel_text.text()
+            and not panel.knopf_schneller.isVisible(),
+            f"Ziel nach dem Übernehmen: {panel.ziel_text.text()!r}",
+        )
+        h.bild("2b_uebernommen", panel.form)
     # Schritt 3: nur die Einstellungen der angehakten Strategien.
     panel.knopf_weiter.click()
     yield 500
