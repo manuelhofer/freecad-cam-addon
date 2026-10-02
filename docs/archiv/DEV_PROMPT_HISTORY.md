@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-52 vorschlag-schlichten-nach-raeumen
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Das mit dem Wände-danach-Schlichten müssen wir nochmal besprechen …
+  Wenn ich jetzt Aufmaß Boden 0,5 einstelle, kann ich danach nicht nur Wände schlichten, da
+  muss er alles nochmal abfräsen … Außerdem will ich die Wände vielleicht mit anderen Werten
+  schlichten oder mit einem anderen Werkzeug … Aber eins nach dem anderen.“
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (12.4: „Zur Besprechung“ mit Optionen A–C, Skizze, vier
+  Fragen mit Empfehlung)
+
+### AKZEPTANZKRITERIUM
+Manuel kann mit „A“ (oder B/C) und je einem Buchstaben zu den vier Fragen entscheiden.
+
+### DONE
+- Empfehlung A: ein eigener Block „Schlichten danach“ unter dem Räumen mit Fräser, Einsatz,
+  Feldern und den Haken Boden, Wände, Messstopp davor; Boden von selbst an bei Aufmaß am Boden.
+
+### TEST
+- Nur Doku, kein Lauf.
+
+### NEXT
+- Nach Manuels Antwort bauen; bis dahin 12.2 (geschlossene Nuten in Bögen).
+
 ## P-2026-10-02-51 schnelleren-fraeser-uebernehmen
 
 ### EINGELESEN

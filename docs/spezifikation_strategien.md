@@ -1451,6 +1451,58 @@ geht weiter mit Schlichten. Das muss noch rein.“
   G-Code nicht tragen („Badly formatted GCode command“): Sie schreibt erst der Postprozessor des
   Addons (W-005); bis dahin Kommentar (MESSSTOPP), Z hoch, M5, M0, M3 S….
 
+**Zur Besprechung (Manuel, 2026-10-02: „Das mit dem Wände-danach-Schlichten müssen wir nochmal
+besprechen … Wenn ich jetzt Aufmaß Boden 0,5 einstelle, kann ich danach nicht nur Wände
+schlichten, da muss er alles nochmal abfräsen … Außerdem will ich die Wände vielleicht mit
+anderen Werten schlichten oder mit einem anderen Werkzeug … Aber eins nach dem anderen.“)**
+
+- **Heute:** „Wände danach schlichten“ fährt mit dem Räumfräser (Einsatz „Schlichten“, wenn er
+  einen hat) die Wände im Aufmaß nach, bis auf den fertigen Boden. Mit Aufmaß am Boden bleibt
+  der Boden 0,5 mm zu hoch – nur ein Streifen an der Wand ist fertig, mit einer Stufe davor.
+  Fräser und Werte lassen sich nicht wählen.
+- **Option A (Empfehlung) – ein eigener Block „Schlichten danach“** direkt unter „Räumen“, nur
+  wählbar, wenn Räumen angehakt ist. Er hat, was jede Strategie hat – Fräser, Einsatz, Felder –,
+  dazu die Haken „Boden“, „Wände“ und „Messstopp davor“. „Boden“ ist von selbst an, wenn das
+  Räumen Aufmaß am Boden lässt. Vorgewählt: der Räumfräser mit seinem Einsatz „Schlichten“.
+  In Schritt 3 steht er als eigener Abschnitt, das Räumen bleibt klein.
+- **Option B – alles im Block „Räumen“:** unter dem Haken „Schlichten danach“ ein
+  aufklappbarer Bereich mit Fräser, Einsatz, Boden, Wände, Messstopp. Weniger Blöcke, aber das
+  Räumen wird wieder groß – das, was Manuel am Assistenten „erschlägt“.
+- **Option C – mit den Strategien, die es gibt:** Räumen (Aufmaß 0) und Kontur (Aufmaß 0) ein
+  zweites Mal anhaken, jede mit ihrem Fräser. Kein neues Fenster, aber man muss wissen, wie;
+  der Haken „Wände danach schlichten“ fiele weg – gegen „gleich in derselben Maske“.
+
+```
+ Schritt 2 von 3 – Was soll weg?
+ ☑ Räumen             → 1 Lage, 73 Ringe, etwa 34 min · 1,14 × Ziel
+ ☑ Schlichten danach  → Boden 0,5 + Wände 0,3: 2 Bahnen, etwa 3 min
+
+ Schritt 3 von 3 – Einstellungen
+ Räumen
+   Fräser  [T1 VHM 12 ▾]   Einsatz [Schruppen ▾]
+   Zustellung 25 · Zeilenabstand 1,5 · Aufmaß Wand 0,3 · Aufmaß Boden 0,5
+ Schlichten danach
+   Fräser  [T3 VHM 10 ▾]   Einsatz [Schlichten ▾]
+   ☑ Boden (0,5 mm)   ☑ Wände (0,3 mm)   ☑ Messstopp davor
+   Zustellung [ leer: aus dem Einsatz ]   Zeilenabstand [ leer: aus dem Einsatz ]
+                                              [← Zurück]  [Anlegen]
+```
+
+- **Dazu zu entscheiden** (je mit Empfehlung):
+  1. Der Boden fährt (a) die Ringe des Räumens in einer Lage auf dem fertigen Boden mit dem ae
+     des Einsatzes – ohne Wenden, im Gleichlauf – oder (b) Zeilen wie das Planfräsen.
+     Empfehlung (a).
+  2. Die Wände fahren (a) mit dem ap des Einsatzes, eine Wand bis zu dieser Höhe in einem Zug,
+     höhere in Lagen, oder (b) immer in einem Zug über die ganze Schneide. Empfehlung (a).
+  3. Reihenfolge (a) erst Boden, dann Wände – der Boden lässt das Aufmaß an der Wand stehen,
+     die Wand fährt bis auf den fertigen Boden, unten bleibt keine Stufe – oder (b) erst Wände.
+     Empfehlung (a).
+  4. Ein anderer Fräser als der Räumfräser bekommt einen eigenen Controller; der Messstopp
+     steht vor dem ersten Schlichten. Ohne Wunsch keine Frage.
+- **Fertig, wenn:** Räumen mit Aufmaß 0,3 an den Wänden und 0,5 am Boden, „Schlichten danach“
+  mit einem anderen Fräser und Boden und Wänden angehakt, im Prüffenster ein Teil ohne Rest und
+  ohne Stufe am Boden ergibt.
+
 ### 12.5 Der Assistent in Schritten
 
 Manuel zum Bild des Assistenten: „Das erschlägt einen … Du musst das irgendwie sinnvoll
