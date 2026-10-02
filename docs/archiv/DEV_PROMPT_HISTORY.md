@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-67 eintauchstelle-der-nut
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Und in so eine geschlossene Nut einzutauchen … ist auch wichtig … dass das
+  helikal geht … und an einer von mir aus wählbaren Position in der Nut … aber natürlich mit
+  Vorschlag“; auf Frage 2 (Spezifikation Strategien 12.8): „Frage 2 a“ – Liste und Anklicken.
+
+### DATEIEN
+- `camaddon/nut_bahn.py` (`schluessel`, `stelle`, `anteil_bei`, `vorschlag_bei`, `_lagen_bei`,
+  `Nutwerte.eintauchen_bei`, `Nutbahn.stellen`), `camaddon/nut.py` (Eigenschaft
+  „Eintauchstellen“, `eintauchstellen`, `als_texte`), `camaddon/gui_bearbeitung.py` (Zeilen
+  „Eintauchen bei“ je Nut, „Im Bild wählen …“, der Klickpunkt aus dem Auswahl-Beobachter),
+  `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `tests/test_nut.py`, `tests/gui/szenario_nut_eintauchen.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.117.0)
+
+### AKZEPTANZKRITERIUM
+Eine geschlossene Nut, „Bearbeitung“ bis zu den Einstellungen: „Eintauchen bei“ zeigt den
+Vorschlag, die Enden und die Mitte; „Im Bild wählen …“ und ein Klick in die Nut setzt die Stelle,
+die Helix taucht in jeder Lage dort ein, und die angelegte Operation behält sie.
+
+### DONE
+- Feste Stelle in jeder Lage (Manuels Grund ist vorgebohrt oder eine dünne Wand am Ende): Helix
+  um P, Bögen bis B, im Schnellvorschub durch die freie Nut zurück, Bögen bis A.
+- Gefundener Fehler im eigenen Entwurf: Der Vorschlag maß zuerst das Material im Kreis der ganzen
+  Helix (r_l + R) – eine Bohrung Ø 10 unter dem Ø 12 fiel darin mit 27 % kaum ins Gewicht. Jetzt
+  im Kreis des Fräsers: dort taucht er ein.
+- Ohne Wahl und ohne geöffnete Stelle bleibt es, wie es war: abwechselnd an den Enden, keine Wege
+  zurück. Die Vollnut beginnt ihre Rampe am Ende, das der Stelle am nächsten liegt.
+- Nebenbei: `tests/gui/szenario_materialstand.py` aus P-2026-10-02-64 war nicht mit black
+  formatiert (eine zu lange Zeile) – nachgeholt.
+
+### TEST
+- `test_nut` (1.1.3, KI ohne GUI): Mitte gewählt – 2 Lagen, jede Helix um die Mitte, die Nut im
+  Quader leer, daneben nichts angeschnitten; Vorschlag mit einer Bohrung bei einem Viertel dort,
+  ohne Bohrung keiner.
+- `szenario_nut_eintauchen` (1.1.3): die Liste, die Mitte, „Im Bild wählen …“ mit Klick, „Anlegen“
+  – die Operation merkt sich die Stelle, ihre Helix um (32,5, 20); beim Ändern wieder in der Liste.
+
+### NEXT
+- M3: Räumen auf dem Materialstand.
+
 ## P-2026-10-02-66 ein-teil-ein-job
 
 ### EINGELESEN

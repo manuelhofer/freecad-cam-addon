@@ -65,7 +65,9 @@ def schritte(h):
         return
     job = panel.job
     panel.knopf_weiter.click()
-    yield from h.warte_auf(lambda: any(b.vorschau is not None for b in panel.aktive_bloecke()), 180000)
+    yield from h.warte_auf(
+        lambda: any(b.vorschau is not None for b in panel.aktive_bloecke()), 180000
+    )
     yield 1500
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
     yield 3000

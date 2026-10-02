@@ -391,11 +391,11 @@ class _Beobachter:
     def __init__(self, panel):
         self.panel = panel
 
-    def addSelection(self, _dokument, objekt, unterelement, _punkt):
+    def addSelection(self, _dokument, objekt, unterelement, punkt):
         if not unterelement:
             return
         # Erst wenn FreeCAD mit der Auswahl fertig ist – der Assistent ändert das Dokument.
-        QtCore.QTimer.singleShot(0, lambda: self.panel.angeklickt(objekt, unterelement))
+        QtCore.QTimer.singleShot(0, lambda: self.panel.angeklickt(objekt, unterelement, punkt))
 
 
 class _NurFlaechen:
@@ -857,6 +857,7 @@ class _Nut(_Strategie):
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
             stand=werte.get("materialstand"),
+            eintauchen_bei=werte.get("eintauchen_bei"),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -878,6 +879,7 @@ class _Nut(_Strategie):
             gleichlauf=werte["gleichlauf"],
             flaechen=flaechen,
             eintauchwinkel=werte.get("eintauchwinkel"),
+            eintauchstellen=werte.get("eintauchen_bei"),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -891,6 +893,7 @@ class _Nut(_Strategie):
             gleichlauf=werte["gleichlauf"],
             flaechen=flaechen,
             eintauchwinkel=werte.get("eintauchwinkel"),
+            eintauchstellen=werte.get("eintauchen_bei"),
         )
 
     def ist(self, op):
@@ -903,6 +906,7 @@ class _Nut(_Strategie):
             "aufmass": float(op.Aufmass),
             "schlichten": bool(op.Schlichten),
             "gleichlauf": bool(op.Gleichlauf),
+            "eintauchen_bei": nu.eintauchstellen(op),
         }
 
 
@@ -2270,6 +2274,17 @@ class _Block:
             self.haken_felder[feld] = kasten
             self.reihen.ganz(kasten)
         innen.addWidget(self.reihen.widget)
+        # Die Eintauchstelle je geschlossener Nut (W-012 E1; Manuel: „an einer von mir aus
+        # wählbaren Position in der Nut … aber natürlich mit Vorschlag“, Frage 2: a).
+        self.eintauchen = {}  # Schlüssel der Nut → Anteil von A nach B; ohne: der Vorschlag
+        self.stelle_waehlt = None  # „Im Bild wählen …“ wartet auf einen Klick: Schlüssel
+        self._stellen = []  # aus der letzten Vorschau: (Schlüssel, Anteil, vorgeschlagen, A, B)
+        self._stellen_zeilen = {}  # Schlüssel → die Teile ihrer Zeile
+        self.stellen_box = QtGui.QWidget()
+        self.stellen_aufbau = QtGui.QVBoxLayout(self.stellen_box)
+        self.stellen_aufbau.setContentsMargins(0, 0, 0, 0)
+        self.stellen_box.setVisible(False)
+        innen.addWidget(self.stellen_box)
         unten.addWidget(self.inhalt)
         unten.addWidget(self.ergebnis.spiegel)
         unten.addWidget(self.material.spiegel)
@@ -2319,7 +2334,139 @@ class _Block:
     def werte(self):
         werte = {feld: self.wert(feld) for feld in self.felder}
         werte.update({feld: kasten.isChecked() for feld, kasten in self.haken_felder.items()})
+        if self.s.kennung == "nut":
+            werte["eintauchen_bei"] = dict(self.eintauchen)
         return werte
+
+    # --- Die Eintauchstelle der Nut (W-012 E1) ---
+
+    def stellen_zeigen(self, stellen):
+        """Je geschlossener Nut eine Zeile „Eintauchen bei“: die Liste – der Vorschlag, die beiden
+        Enden, die Mitte, eine angeklickte Stelle – und „Im Bild wählen …“. Neu gebaut, wenn sich
+        die Nuten ändern; sonst nur die Texte."""
+        stellen = list(stellen or [])
+        gleich = [st[0] for st in stellen] == [st[0] for st in self._stellen]
+        self._stellen = stellen
+        if not gleich:
+            while self.stellen_aufbau.count():
+                alt = self.stellen_aufbau.takeAt(0).widget()
+                if alt is not None:
+                    alt.deleteLater()
+            self._stellen_zeilen = {}
+            for nummer, (schluessel, *_rest) in enumerate(stellen):
+                self._stellen_zeilen[schluessel] = self._stelle_zeile(nummer, len(stellen))
+        for schluessel, anteil, vorgeschlagen, a, b in stellen:
+            self._stelle_fuellen(schluessel, anteil, vorgeschlagen, a, b)
+        self.stellen_box.setVisible(bool(stellen))
+
+    def _stelle_zeile(self, nummer, anzahl):
+        zeile = QtGui.QWidget()
+        aufbau = QtGui.QHBoxLayout(zeile)
+        aufbau.setContentsMargins(0, 0, 0, 0)
+        text = tr("ba.nut.eintauchen")
+        if anzahl > 1:
+            text = tr("ba.nut.eintauchen.nut", n=nummer + 1)
+        etikett = QtGui.QLabel(text)
+        etikett.setToolTip(tr("ba.nut.eintauchen.tooltip"))
+        aufbau.addWidget(etikett)
+        wahl = QtGui.QComboBox()
+        wahl.setToolTip(tr("ba.nut.eintauchen.tooltip"))
+        ruhiges_mausrad(wahl)
+        aufbau.addWidget(wahl, 1)
+        im_bild = QtGui.QPushButton(tr("ba.nut.im_bild"))
+        im_bild.setToolTip(tr("ba.nut.im_bild.tooltip"))
+        im_bild.setCheckable(True)
+        aufbau.addWidget(im_bild)
+        self.stellen_aufbau.addWidget(zeile)
+        teile = {"wahl": wahl, "im_bild": im_bild}
+        wahl.currentIndexChanged.connect(lambda _i, t=teile: self._stelle_gewaehlt(t))
+        im_bild.toggled.connect(lambda an, t=teile: self._im_bild(t, an))
+        return teile
+
+    def _stelle_fuellen(self, schluessel, anteil, vorgeschlagen, a, b):
+        """Die Liste einer Nut: an erster Stelle der Vorschlag, dann Ende, Ende, Mitte und die
+        angeklickte Stelle; gewählt, was im Block steht."""
+        teile = self._stellen_zeilen[schluessel]
+        teile["schluessel"], teile["a"], teile["b"] = schluessel, a, b
+        wahl = teile["wahl"]
+
+        def ort(t):
+            x = a[0] + (b[0] - a[0]) * t
+            y = a[1] + (b[1] - a[1]) * t
+            return {
+                "x": groesse_zeigen(x, einheiten.LAENGE) or "0",
+                "y": groesse_zeigen(y, einheiten.LAENGE) or "0",
+            }
+
+        if vorgeschlagen and anteil is not None:
+            vorschlag = tr("ba.nut.vorschlag.stelle", **ort(anteil))
+        elif vorgeschlagen:
+            vorschlag = tr("ba.nut.vorschlag.enden")
+        else:  # gewählt – der Vorschlag rechnet erst ohne Wahl
+            vorschlag = tr("ba.nut.vorschlag")
+        eintraege = [
+            (vorschlag, None),
+            (tr("ba.nut.ende", **ort(0.0)), 0.0),
+            (tr("ba.nut.ende", **ort(1.0)), 1.0),
+            (tr("ba.nut.mitte", **ort(0.5)), 0.5),
+        ]
+        gewaehlt = self.eintauchen.get(schluessel)
+        if gewaehlt is not None and all(abs(gewaehlt - wert) > 1e-6 for _t, wert in eintraege[1:]):
+            eintraege.append((tr("ba.nut.angeklickt", **ort(gewaehlt)), gewaehlt))
+        wahl.blockSignals(True)
+        try:
+            wahl.clear()
+            for text, wert in eintraege:
+                wahl.addItem(text, wert)
+            index = 0
+            if gewaehlt is not None:
+                index = next(
+                    (i for i, (_t, w) in enumerate(eintraege) if w is not None
+                     and abs(w - gewaehlt) < 1e-6),
+                    0,
+                )  # fmt: skip
+            wahl.setCurrentIndex(index)
+        finally:
+            wahl.blockSignals(False)
+
+    def _stelle_gewaehlt(self, teile):
+        if self.panel._fuellt or "schluessel" not in teile:
+            return
+        wert = teile["wahl"].currentData()
+        if wert is None:
+            self.eintauchen.pop(teile["schluessel"], None)
+        else:
+            self.eintauchen[teile["schluessel"]] = float(wert)
+        self.panel.vorschau_starten()
+
+    def _im_bild(self, teile, an):
+        """„Im Bild wählen …“: der nächste Klick in die Nut ist ihre Eintauchstelle."""
+        for andere in self._stellen_zeilen.values():
+            if andere is not teile and andere["im_bild"].isChecked():
+                andere["im_bild"].blockSignals(True)
+                andere["im_bild"].setChecked(False)
+                andere["im_bild"].blockSignals(False)
+        self.stelle_waehlt = teile.get("schluessel") if an else None
+
+    def stelle_angeklickt(self, punkt):
+        """Der Klick für „Im Bild wählen …“: die Stelle der Mittellinie, die ihm am nächsten
+        liegt, wird die Eintauchstelle der Nut."""
+        teile = self._stellen_zeilen.get(self.stelle_waehlt)
+        self.stelle_waehlt = None
+        if teile is None:
+            return
+        teile["im_bild"].blockSignals(True)
+        teile["im_bild"].setChecked(False)
+        teile["im_bild"].blockSignals(False)
+        a, b = teile["a"], teile["b"]
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        laenge2 = dx * dx + dy * dy
+        anteil = 0.0
+        if laenge2 > 1e-12:
+            x, y = float(punkt[0]), float(punkt[1])
+            anteil = min(1.0, max(0.0, ((x - a[0]) * dx + (y - a[1]) * dy) / laenge2))
+        self.eintauchen[teile["schluessel"]] = anteil
+        self.panel.vorschau_starten()
 
     def kann_anlegen(self):
         return self.fraeser() is not None and self.einsatz() is not None and not self.hinweis.text()
@@ -2460,6 +2607,8 @@ class _Block:
         self.ergebnis_basis = self.s.ergebnis_text(self.vorschau, zeit)
         self.ergebnis.setText(self.ergebnis_basis)
         self.material.setText(_material_text(self.vorschau))
+        if self.s.kennung == "nut":
+            self.stellen_zeigen(getattr(self.vorschau, "stellen", None))
 
     def leeren(self):
         self.vorschau = None
@@ -3062,10 +3211,15 @@ class BearbeitungPanel:
 
     # --- Teil, Job, Rohteil ---------------------------------------------------------------
 
-    def angeklickt(self, objekt, unterelement):
+    def angeklickt(self, objekt, unterelement, punkt=None):
         """Eine angeklickte Fläche: ohne Job macht sie ihr Teil zum Teil des Jobs; mit Job nimmt
-        sie die Fläche dazu oder heraus."""
+        sie die Fläche dazu oder heraus – wartet „Im Bild wählen …“ auf eine Eintauchstelle der
+        Nut, ist der Punkt diese Stelle."""
         if self.geschlossen:
+            return
+        if self.nut.stelle_waehlt is not None and self.job is not None and punkt is not None:
+            FreeCADGui.Selection.clearSelection()
+            self.nut.stelle_angeklickt(punkt)
             return
         if self.job is None:
             wahl = gewaehlte_flaeche(self.doc)
@@ -3707,6 +3861,9 @@ class BearbeitungPanel:
         self._fuellt = True
         try:
             for feld, wert in block.s.werte_von(op).items():
+                if feld == "eintauchen_bei":  # die Eintauchstellen der Nut (W-012 E1)
+                    block.eintauchen = dict(wert)
+                    continue
                 if feld in block.haken_felder:
                     block.haken_felder[feld].setChecked(bool(wert))
                     continue

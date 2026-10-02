@@ -1779,5 +1779,15 @@ geht … und an einer von mir aus wählbaren Position in der Nut … aber natür
 
 - **Schritt E1** (ein Patch, nach M1): die Stelle nach Frage 2, der Vorschlag mit dem
   Materialstand.
+  **Gebaut:** P-2026-10-02-67, 0.117.0 – im Block „Nut“ je geschlossener Nut „Eintauchen bei“:
+  Vorschlag, Ende, Ende, Mitte (mit ihren Koordinaten), „angeklickt“; „Im Bild wählen …“ nimmt den
+  nächsten Klick in die Nut, die Stelle der Mittellinie daneben. Eine gewählte Stelle gilt für
+  jede Lage (`nut_bahn._lagen_bei`: Helix um P, Bögen nach B, im Schnellvorschub zurück, Bögen
+  nach A). Der Vorschlag (`vorschlag_bei`): längs der Mittellinie das Material im Kreis des
+  Fräsers über dem Grund – liegt eine Stelle unter 80 % der Enden (eine Bohrung, eine Tasche),
+  dort; sonst wie bisher abwechselnd an den Enden. Im Kreis der ganzen Helix fiel eine Bohrung
+  Ø 10 unter dem Ø 12 nicht ins Gewicht (gefunden im Test). Die Operation merkt sich die Stellen
+  („Eintauchstellen“, je Nut der Name ihrer ersten Wand und der Anteil). Die Vollnut beginnt ihre
+  Rampe am Ende, das der Stelle am nächsten liegt (`test_nut`, `szenario_nut_eintauchen`).
 - **Fertig, wenn:** In Manuels Klotz die Helix der Nut an einer angeklickten Stelle in der Mitte
   eintaucht, in jeder Lage dort, und die Nut im Prüffenster ohne Rest fertig ist.

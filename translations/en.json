@@ -1923,5 +1923,17 @@
     "ba.dazu.mehrere": "Into the job “{job}” – {n} operations, last {name}. Machine, stock and origin stay as they are there; the new operations come after them and take into account what is already removed.",
     "ba.neuer_job": "New job …",
     "ba.neuer_job.tooltip": "Create a new job instead of using this one – for a second setup, for example with the part turned over. You then choose machine, stock and origin again.",
-    "ba.anleitung.dazu": "The part already has a job – “Next” to what should go."
+    "ba.anleitung.dazu": "The part already has a job – “Next” to what should go.",
+    "nt.eigenschaft.eintauchstellen": "Where the helix plunges into the slot – per slot (name of its first wall) the fraction from one end to the other (0 … 1); without an entry the suggestion",
+    "ba.nut.eintauchen": "Plunge at",
+    "ba.nut.eintauchen.nut": "Slot {n}: plunge at",
+    "ba.nut.eintauchen.tooltip": "Where the helix plunges into the slot – in every layer there. The suggestion: where the least material is (a hole or pocket crosses the slot), otherwise alternating at the ends.",
+    "ba.nut.im_bild": "Pick in view …",
+    "ba.nut.im_bild.tooltip": "Then click a point on the floor or a wall of the slot – the helix moves there.",
+    "ba.nut.vorschlag": "Suggestion",
+    "ba.nut.vorschlag.enden": "Suggestion: alternating at the ends",
+    "ba.nut.vorschlag.stelle": "Suggestion: X {x} Y {y} – least material there",
+    "ba.nut.ende": "End X {x} Y {y}",
+    "ba.nut.mitte": "Middle X {x} Y {y}",
+    "ba.nut.angeklickt": "clicked X {x} Y {y}"
 }

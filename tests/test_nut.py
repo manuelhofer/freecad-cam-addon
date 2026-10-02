@@ -25,6 +25,7 @@ from Path.Tool.camassets import user_asset_store
 from camaddon import bahn as bn
 from camaddon import fraeserform as ff
 from camaddon import job_schnittwerte as js
+from camaddon import materialstand as mst
 from camaddon import nut as nu
 from camaddon import nut_bahn as nb
 from camaddon import pruefstand as ps
@@ -283,6 +284,45 @@ for nut, grund in ((nut_a, 10.0), (nut_b, -0.5)):
     pruefe(np.all(q.h[wand] < grund + 1e-6), f"Nut {nut.radius}: Aufmaß an der Wand")
 aussen = (abstand_nut(nut_a) > 10.05) & (abstand_nut(nut_b) > 7.05)
 pruefe(np.all(q.h[aussen] >= 20.0 - 1e-9), "neben den Nuten angeschnitten")
+
+# --- Die Eintauchstelle gewählt (W-012 E1): in der Mitte, in jeder Lage dort --------------------
+mitte = nb.stelle(nut_a, 0.5)
+bei = nb.planen(werte(zustellung=6.0, eintauchen_bei={nb.schluessel(nut_a): 0.5}), [nut_a])
+helix = [
+    b for a, b in zip(bei.punkte, bei.punkte[1:], strict=False) if b.bogen is not None and b.z < a.z
+]  # die Bögen abwärts: die Helix
+pruefe(
+    bei.lagen == 2 and helix and all(abs(p.bogen[0] - mitte[0]) < 1e-9 for p in helix),
+    f"Mitte: {bei.lagen} Lagen, Helix um {sorted({(p.bogen[0], p.bogen[1]) for p in helix})}",
+)
+pruefe(
+    [st[:3] for st in bei.stellen] == [(nb.schluessel(nut_a), 0.5, False)],
+    f"Stellen: {bei.stellen}",
+)
+q2 = rm.Quader(0, 100, 0, 60, -1, 20, schritt=0.25)
+q2.h[:] = 20.0
+fein_ = fein(bei.punkte)
+for a, b in zip(fein_, fein_[1:], strict=False):
+    q2.fahre((a.x, a.y, a.z), (b.x, b.y, b.z), form)
+d = abstand_nut(nut_a)
+pruefe(np.all(np.abs(q2.h[d < nut_a.radius - 0.3] - 10.0) < 1e-6), "Mitte: Nut nicht leer")
+pruefe(np.all(q2.h[d > 10.05] >= 20.0 - 1e-9), "Mitte: neben der Nut angeschnitten")
+# Der Vorschlag: Kreuzt eine Bohrung Ø 10 bis zum Grund die Nut bei x 32,5 (ein Viertel von A),
+# taucht die Helix dort ein; ohne Bohrung abwechselnd an den Enden (None).
+stand = mst.Materialstand(rm.Quader(0, 100, 0, 60, -1, 20), None)
+stand.quader.h[:] = 20.0
+stand.voll = stand.quader.h.copy()
+pruefe(nb.vorschlag_bei(nut_a, werte(), stand, r_l) is None, "Vorschlag ohne Bohrung")
+stand.quader.fahre((32.5, 20.0, 25.0), (32.5, 20.0, 10.0), 5.0)
+vorschlag = nb.vorschlag_bei(nut_a, werte(), stand, r_l)
+pruefe(vorschlag is not None and abs(vorschlag - 0.25) < 0.05, f"Vorschlag {vorschlag}")
+mit_bohrung = nb.planen(werte(), [nut_a], stand)
+pruefe(
+    mit_bohrung.stellen
+    and mit_bohrung.stellen[0][2]
+    and abs(mit_bohrung.stellen[0][1] - 0.25) < 0.05,
+    f"Stellen mit Bohrung: {mit_bohrung.stellen}",
+)
 
 # --- Werte, die nicht gehen ---------------------------------------------------------------------
 for titel, w_, satz in (

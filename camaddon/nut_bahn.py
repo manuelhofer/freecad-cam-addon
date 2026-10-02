@@ -54,7 +54,7 @@ Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from . import bahn as bn
 from . import einheiten
@@ -77,6 +77,11 @@ RUECKWEG = 3.0  # × Vorschub: so schnell quer zurück über die freie Seite (G1
 # Last auf dem Bogen etwas breiter als gerechnet (der Prüfstand misst bis 6 % mehr).
 UEBER_WEG = 0.8
 MATERIAL_SPIEL = 0.01  # mm – so wenig über dem Grund gilt im Materialstand als nichts mehr
+# Die Eintauchstelle (W-012 E1): So fein sucht der Vorschlag längs der Nut; liegt an einer Stelle
+# so viel weniger Material im Kreis der Helix als an den Enden (eine Bohrung, eine Tasche kreuzt
+# die Nut), taucht er dort ein.
+EINTAUCH_RASTER = 1.0  # mm
+EINTAUCH_WENIGER = 0.8  # × das Material an den Enden
 
 
 @dataclass(frozen=True)
@@ -126,6 +131,9 @@ class Nutwerte:
     sicherheit: float = vb.SICHERHEIT
     vorschub: float = 0.0  # mm/min – für die Zeit; 0: 1000
     eintauchen: float = 0.0
+    # Die gewählten Eintauchstellen (W-012 E1): je Nut (schluessel) der Anteil 0 … 1 von A nach
+    # B; ohne Eintrag der Vorschlag.
+    eintauchen_bei: dict = None
 
 
 @dataclass
@@ -145,6 +153,9 @@ class Nutbahn:
     noch: float = 0.0
     weg: float = 0.0
     davor: list = None
+    # Je geschlossene Nut: (schluessel, Anteil oder None – abwechselnd an den Enden,
+    # vorgeschlagen?, A, B) – für die Zeile „Eintauchen bei“ im Assistenten.
+    stellen: list = None
 
 
 # --- Erkennung --------------------------------------------------------------------------------
@@ -573,12 +584,15 @@ def _richtung(von, nach):
     return dx / laenge, dy / laenge
 
 
-def _geschlossene_lagen(punkte, nut, w, r_l, oben, z_ende, uhr):
+def _geschlossene_lagen(punkte, nut, w, r_l, oben, z_ende, uhr, bei=None):
     """Die Lagen einer geschlossenen Nut in Bögen (Spezifikation Strategien 12.2): je Lage am
     einen Ende die Helix hinab, unten noch einmal rundum – der Kreis um das Ende ist dann frei –
     und weiter bis an die Wand, an der die Bögen beginnen; dann die Bögen (_boegen) bis in den
     Halbkreis am anderen Ende. Die nächste Lage zurück. Beginnt hinten am Kreis um A (der Punkt
-    davor liegt dort). Gibt (Länge, Lagen, Bögen, das Ende, an dem sie aufhört) zurück."""
+    davor liegt dort). Mit `bei` (W-012 E1) an dieser Stelle (_lagen_bei). Gibt (Länge, Lagen,
+    Bögen, das Ende, an dem sie aufhört) zurück."""
+    if bei is not None:
+        return _lagen_bei(punkte, nut, w, r_l, oben, z_ende, uhr, bei)
     R = w.fraeser_radius
     ap = w.zustellung if w.zustellung > GLEICH else 2 * R
     if w.schneidenlaenge > 0:
@@ -613,6 +627,63 @@ def _geschlossene_lagen(punkte, nut, w, r_l, oben, z_ende, uhr):
         z_vorher = z
         start, ziel = ziel, start
     return weg, anzahl, boegen, start
+
+
+def _lagen_bei(punkte, nut, w, r_l, oben, z_ende, uhr, bei):
+    """Die Lagen mit fester Eintauchstelle P (Anteil `bei` von A nach B): je Lage die Helix um
+    P hinab, unten rundum, die Bögen von P bis in den Halbkreis bei B, im Schnellvorschub durch
+    die freie Nut zurück an P und die Bögen bis A; die nächste Lage wieder an P. Wer die Stelle
+    wählt, hat einen Grund – vorgebohrt, eine dünne Wand am Ende –, also gilt sie für jede Lage.
+    Beginnt hinten am Kreis um P. Gibt (Länge, Lagen, Bögen, das Ende, an dem sie aufhört)
+    zurück."""
+    R = w.fraeser_radius
+    ap = w.zustellung if w.zustellung > GLEICH else 2 * R
+    if w.schneidenlaenge > 0:
+        ap = min(ap, w.schneidenlaenge)
+    tiefe = oben - z_ende
+    anzahl = max(1, int(math.ceil(tiefe / ap - 1e-9)))
+    schritt = _bogenschritt(r_l, R, min(max(w.zeilenabstand, MIN_SCHRITT), R))
+    drehung = -1.0 if uhr else 1.0
+    seite = -drehung  # wie in _boegen: Gleichlauf beginnt an der Wand rechts der Fahrt
+    steigung = max(
+        2 * math.pi * r_l * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), MIN_STEIGUNG
+    )
+    p = stelle(nut, bei)
+    nach_b, nach_a = _richtung(nut.a, nut.b), _richtung(nut.b, nut.a)
+    laufe = [
+        (nach_b, math.hypot(nut.b[0] - p[0], nut.b[1] - p[1]), nut.b),
+        (nach_a, math.hypot(nut.a[0] - p[0], nut.a[1] - p[1]), nut.a),
+    ]
+    laufe = [lauf for lauf in laufe if lauf[1] > GLEICH]
+    weg = 0.0
+    boegen = 0
+    ende = nut.a
+    z_vorher = oben
+    for lage in range(1, anzahl + 1):
+        z = oben - tiefe * lage / anzahl
+        if lage > 1:  # durch die freie Nut zurück an den Kreis um P (auf der Seite des Endes)
+            ux, uy = _richtung(p, ende)
+            weg += _hin(punkte, p[0] + r_l * ux, p[1] + r_l * uy, z_vorher, anteil=RUECKWEG)
+        jetzt = punkte[-1]
+        winkel = math.atan2(jetzt.y - p[1], jetzt.x - p[0])
+        u = laufe[0][0]
+        wand = math.atan2(u[1], u[0]) + seite * math.pi / 2
+        umlaeufe = max(1, int(math.ceil((z_vorher - z) / steigung - 1e-9)))
+        unten = winkel + drehung * 2 * math.pi * umlaeufe
+        weg += _bogen(punkte, p, r_l, winkel, unten, z_vorher, z, uhr)
+        rest = (drehung * (wand - winkel)) % (2 * math.pi)
+        weg += _bogen(punkte, p, r_l, unten, unten + drehung * (2 * math.pi + rest), z, z, uhr)
+        for nummer, (u, laenge, ziel) in enumerate(laufe):
+            if nummer:  # zurück an die Wand bei P, an der die Bögen in diese Richtung beginnen
+                wand = math.atan2(u[1], u[0]) + seite * math.pi / 2
+                ort = (p[0] + r_l * math.cos(wand), p[1] + r_l * math.sin(wand))
+                weg += _hin(punkte, ort[0], ort[1], z, anteil=RUECKWEG)
+            stueck, n = _boegen(punkte, p, u, r_l, R, schritt, laenge, z, uhr, s_anfang=0.0)
+            weg += stueck
+            boegen += n
+            ende = ziel
+        z_vorher = z
+    return weg, anzahl, boegen, ende
 
 
 def _vollnut(punkte, nut, w, oben, z_ende):
@@ -887,6 +958,54 @@ def verfahren(nut, fraeser_radius, aufmass=0.0, offen_breit=True):
     return "vollnut" if r_l < VOLLNUT_ANTEIL * R else "boegen"
 
 
+def schluessel(nut):
+    """Woran man die Nut wiedererkennt (ihre Eintauchstelle merkt sich die Operation so): der
+    Name ihrer ersten Wand."""
+    return nut.waende[0] if nut.waende else f"{nut.a[0]:.3f},{nut.a[1]:.3f}"
+
+
+def stelle(nut, anteil):
+    """Der Punkt (x, y) auf der Mittellinie beim Anteil `anteil` (0: A, 1: B)."""
+    return (
+        nut.a[0] + (nut.b[0] - nut.a[0]) * anteil,
+        nut.a[1] + (nut.b[1] - nut.a[1]) * anteil,
+    )
+
+
+def anteil_bei(nut, x, y):
+    """Der Anteil der Stelle auf der Mittellinie, die (x, y) am nächsten liegt (0 … 1)."""
+    dx, dy = nut.b[0] - nut.a[0], nut.b[1] - nut.a[1]
+    laenge2 = dx * dx + dy * dy
+    if laenge2 < GLEICH:
+        return 0.0
+    return min(1.0, max(0.0, ((x - nut.a[0]) * dx + (y - nut.a[1]) * dy) / laenge2))
+
+
+def vorschlag_bei(nut, w, stand, r_l):
+    """Der Vorschlag für die Eintauchstelle (W-012 E1; Manuel: „an einer von mir aus wählbaren
+    Position in der Nut … aber natürlich mit Vorschlag“): Längs der Mittellinie (alle
+    EINTAUCH_RASTER) das Material im Kreis des Fräsers über dem Grund – dort taucht er ein, die
+    Helix um r_l räumt danach rundum; liegt eine Stelle um EINTAUCH_WENIGER unter dem an den
+    Enden – eine Bohrung oder Tasche kreuzt die Nut –, dort. Sonst None: abwechselnd an den
+    Enden, wie bisher (die Lagen ohne Weg zurück). Im Kreis der ganzen Helix (r_l + R) fiele eine
+    Bohrung kleiner als der Fräser kaum ins Gewicht."""
+    if stand is None or nut.laenge < GLEICH or r_l <= GLEICH:
+        return None
+    grund = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
+    anzahl = max(1, int(math.ceil(nut.laenge / EINTAUCH_RASTER)))
+    werte = []
+    for i in range(anzahl + 1):
+        anteil = i / anzahl
+        q = stelle(nut, anteil)
+        noch, _weg = stand.volumen(stand.maske_um(q, q, w.fraeser_radius), grund)
+        werte.append((noch, anteil))
+    an_den_enden = min(werte[0][0], werte[-1][0])
+    wenigste = min(werte)
+    if wenigste[0] < EINTAUCH_WENIGER * an_den_enden:
+        return wenigste[1]
+    return None
+
+
 def _maske(nut, w, stand):
     """Wo der Fräser in und an der Nut fährt – die Maske im Materialstand: die Nut selbst;
     an einer offenen Nut dazu der Weg draußen vor dem offenen Ende, wo er hinab fährt."""
@@ -906,10 +1025,12 @@ def _oben(nut, w, stand, z_ende):
     return min(w.oben, hoechste)
 
 
-def _nut(punkte, nut, w, stand=None):
+def _nut(punkte, nut, w, stand=None, bei=None):
     """Eine Nut: in Bögen oder als Vollnut, dann rundum. Gibt (Länge, Lagen, Bögen, vollnut,
     z_min) zurück; (0, 0, 0, False, inf), wenn über ihr nichts steht. `stand`: der
-    Materialstand (materialstand) – die Lagen beginnen dann, wo in der Nut noch Material ist."""
+    Materialstand (materialstand) – die Lagen beginnen dann, wo in der Nut noch Material ist.
+    `bei`: die Eintauchstelle (Anteil von A nach B) – die geschlossene Nut taucht in jeder Lage
+    dort ein; die Vollnut beginnt ihre Rampe am Ende, das ihr am nächsten liegt."""
     R = w.fraeser_radius
     aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
     art = verfahren(nut, R, aufmass)
@@ -939,11 +1060,14 @@ def _nut(punkte, nut, w, stand=None):
         letzter = punkte[-1]
         punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
         return weg, (1 if vollnut else lagen), boegen, vollnut, z_ende
+    if vollnut and bei is not None and bei > 0.5:
+        nut = replace(nut, a=nut.b, b=nut.a)  # die Rampe beginnt am Ende bei der Stelle
     if vollnut:
         start = nut.a
     else:
         ux, uy = _richtung(nut.a, nut.b)
-        start = (nut.a[0] - r_l * ux, nut.a[1] - r_l * uy)  # hinten am Kreis um A
+        mitte = stelle(nut, bei) if bei is not None else nut.a
+        start = (mitte[0] - r_l * ux, mitte[1] - r_l * uy)  # hinten am Kreis um die Stelle
     punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
     punkte.append(bn.Punkt(True, start[0], start[1], knapp))
     punkte.append(bn.Punkt(False, start[0], start[1], oben, True))
@@ -952,7 +1076,9 @@ def _nut(punkte, nut, w, stand=None):
         stueck, ende = _vollnut(punkte, nut, w, oben, z_ende)
         lagen, boegen = 1, 0
     else:
-        stueck, lagen, boegen, ende = _geschlossene_lagen(punkte, nut, w, r_l, oben, z_ende, uhr)
+        stueck, lagen, boegen, ende = _geschlossene_lagen(
+            punkte, nut, w, r_l, oben, z_ende, uhr, bei
+        )
     weg += stueck
     if r_w > GLEICH and (w.schlichten or vollnut):
         weg += _schlichten(punkte, nut, w, r_w, oben, z_ende, ende, uhr)
@@ -988,6 +1114,7 @@ def planen(werte, liste, stand=None):
     z_min = math.inf
     noch = weg = 0.0
     davor = []
+    stellen = []
     for nut in folge:
         if stand is not None:
             maske = stand.maske_um(nut.a, nut.b, nut.radius)
@@ -996,7 +1123,10 @@ def planen(werte, liste, stand=None):
             noch += n_noch
             weg += n_weg
             davor += [name for name in stand.wer(maske) if name not in davor]
-        stueck, n_lagen, n_boegen, ist_voll, z = _nut(punkte, nut, w, stand)
+        bei, vorgeschlagen = _bei(nut, w, stand)
+        if not nut.offen:
+            stellen.append((schluessel(nut), bei, vorgeschlagen, nut.a, nut.b))
+        stueck, n_lagen, n_boegen, ist_voll, z = _nut(punkte, nut, w, stand, bei)
         if not n_lagen:
             continue
         gefraest += 1
@@ -1010,7 +1140,22 @@ def planen(werte, liste, stand=None):
             raise ValueError(tr("nt.fehler.schon_weg", wer=wer_text(davor)))
         raise ValueError(tr("nt.fehler.nichts"))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-    return Nutbahn(punkte, gefraest, lagen, boegen, vollnut, z_min, laenge, zeit, noch, weg, davor)
+    return Nutbahn(
+        punkte, gefraest, lagen, boegen, vollnut, z_min, laenge, zeit, noch, weg, davor, stellen
+    )
+
+
+def _bei(nut, w, stand):
+    """(Anteil oder None, vorgeschlagen?) – die gewählte Eintauchstelle der Nut, sonst der
+    Vorschlag; offene Nuten tauchen draußen ein (None)."""
+    if nut.offen:
+        return None, True
+    gewaehlt = (w.eintauchen_bei or {}).get(schluessel(nut))
+    if gewaehlt is not None:
+        return min(1.0, max(0.0, float(gewaehlt))), False
+    aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
+    r_l = nut.radius - w.fraeser_radius - aufmass
+    return vorschlag_bei(nut, w, stand, max(r_l, 0.0)), True
 
 
 def wer_text(namen):

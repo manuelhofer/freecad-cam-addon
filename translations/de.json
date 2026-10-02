@@ -1923,5 +1923,17 @@
     "ba.dazu.mehrere": "In den Job „{job}“ – {n} Operationen, zuletzt {name}. Maschine, Rohteil und Nullpunkt bleiben, wie sie dort stehen; die neuen Operationen kommen dahinter und rechnen mit dem, was davor schon weg ist.",
     "ba.neuer_job": "Neuer Job …",
     "ba.neuer_job.tooltip": "Statt in diesen Job einen neuen anlegen – für eine zweite Aufspannung, etwa das Teil umgedreht. Dann wählst du Maschine, Rohteil und Nullpunkt neu.",
-    "ba.anleitung.dazu": "Das Teil hat schon einen Job – „Weiter“ zu dem, was weg soll."
+    "ba.anleitung.dazu": "Das Teil hat schon einen Job – „Weiter“ zu dem, was weg soll.",
+    "nt.eigenschaft.eintauchstellen": "Wo die Helix in die Nut eintaucht – je Nut (Name ihrer ersten Wand) der Anteil von einem Ende zum anderen (0 … 1); ohne Eintrag der Vorschlag",
+    "ba.nut.eintauchen": "Eintauchen bei",
+    "ba.nut.eintauchen.nut": "Nut {n}: eintauchen bei",
+    "ba.nut.eintauchen.tooltip": "Wo die Helix in die Nut eintaucht – in jeder Lage dort. Der Vorschlag: wo am wenigsten Material steht (eine Bohrung oder Tasche kreuzt die Nut), sonst abwechselnd an den Enden.",
+    "ba.nut.im_bild": "Im Bild wählen …",
+    "ba.nut.im_bild.tooltip": "Danach eine Stelle auf dem Grund oder an der Wand der Nut anklicken – die Helix rückt dorthin.",
+    "ba.nut.vorschlag": "Vorschlag",
+    "ba.nut.vorschlag.enden": "Vorschlag: abwechselnd an den Enden",
+    "ba.nut.vorschlag.stelle": "Vorschlag: X {x} Y {y} – dort steht am wenigsten",
+    "ba.nut.ende": "Ende X {x} Y {y}",
+    "ba.nut.mitte": "Mitte X {x} Y {y}",
+    "ba.nut.angeklickt": "angeklickt X {x} Y {y}"
 }

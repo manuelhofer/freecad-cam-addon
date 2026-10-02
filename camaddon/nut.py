@@ -83,6 +83,7 @@ class Nut(PathOp.ObjectOp):
             ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
             ("App::PropertyInteger", "Boegen", tr("nt.eigenschaft.boegen")),
             ("App::PropertyString", "Materialstand", tr("nt.eigenschaft.materialstand")),
+            ("App::PropertyStringList", "Eintauchstellen", tr("nt.eigenschaft.eintauchstellen")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -145,6 +146,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vorschub=vorschub,
         eintauchen=eintauchen,
         stand=stand,
+        eintauchen_bei=eintauchstellen(obj),
     )
 
 
@@ -167,6 +169,7 @@ def bahn_fuer(
     vorschub=0.0,
     eintauchen=0.0,
     stand=None,
+    eintauchen_bei=None,
 ):
     """Die Bahn „Nut“ für Modell und Rohteil des Jobs. `flaechen`: Wände oder Grund der Nuten
     („Face7“ …); `stand`: der Materialstand davor (materialstand) – die Lagen beginnen dann,
@@ -195,6 +198,7 @@ def bahn_fuer(
         sicherheit=sicherheit,
         vorschub=vorschub,
         eintauchen=eintauchen,
+        eintauchen_bei=eintauchen_bei or None,
     )
     return nb.planen(werte, liste, stand)
 
@@ -217,6 +221,7 @@ def lege_an(
     name=None,
     flaechen=(),
     eintauchwinkel=None,
+    eintauchstellen=None,
 ):
     """Legt „Nut“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen und Höhen
     wie FreeCADs Operationen; die Endtiefe ist der tiefste Grund. Gibt die Operation zurück."""
@@ -241,6 +246,7 @@ def lege_an(
     obj.Flaechen = list(flaechen)
     if eintauchwinkel:  # der Winkel am Fräser, wie in der Vorschau des Assistenten
         obj.Eintauchwinkel = float(eintauchwinkel)
+    obj.Eintauchstellen = als_texte(eintauchstellen)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("nt.name", werkzeug=f"T{tc.ToolNumber}"), obj
@@ -274,6 +280,7 @@ def aendere(
     gleichlauf=True,
     flaechen=None,
     eintauchwinkel=None,
+    eintauchstellen=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
@@ -291,9 +298,30 @@ def aendere(
         obj.Flaechen = list(flaechen)
     if eintauchwinkel:
         obj.Eintauchwinkel = float(eintauchwinkel)
+    if eintauchstellen is not None:
+        obj.Eintauchstellen = als_texte(eintauchstellen)
     job = getattr(obj.Proxy, "job", None)
     if job is not None:
         _endtiefe(obj, job)
+
+
+def eintauchstellen(obj):
+    """Die gewählten Eintauchstellen der Operation (W-012 E1): {Schlüssel der Nut: Anteil von A
+    nach B} aus ihrer Eigenschaft „Eintauchstellen“ („Face7=0.25“ je Nut); ohne Wahl leer – der
+    Vorschlag."""
+    ergebnis = {}
+    for text in getattr(obj, "Eintauchstellen", None) or []:
+        name, _gleich, wert = str(text).partition("=")
+        try:
+            ergebnis[name] = min(1.0, max(0.0, float(wert)))
+        except ValueError:
+            continue
+    return ergebnis
+
+
+def als_texte(stellen):
+    """{Schlüssel: Anteil} als Liste für die Eigenschaft „Eintauchstellen“."""
+    return [f"{name}={float(anteil):.4f}" for name, anteil in sorted((stellen or {}).items())]
 
 
 def _vorgeschlagener_name(name):
