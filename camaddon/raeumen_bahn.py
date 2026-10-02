@@ -118,6 +118,9 @@ ADAPTIV_SCHRITT = 0.9  # × ae
 # So fein rechnet der Kern (mm). Mit 0,1 griff er am Anfang einer Bahn an einer Wand kurz bis
 # 2,4 ae; mit 0,05 bleibt er an Manuels Testteil unter 1,9 (0,5 mm über 1,7) und ist nicht langsamer.
 ADAPTIV_GENAU = 0.05
+ADAPTIV_GENAU_VORSCHAU = (
+    0.1  # … in der Vorschau des Assistenten (gröberes Raster): doppelt so schnell
+)
 ADAPTIV_HALTEN = 3.0  # × D – so weit fährt er unten durchs Freie, statt abzuheben
 ADAPTIV_HELIX = 0.8  # × R – der Radius der Helix ins Volle (unter R: in der Mitte bleibt nichts)
 ADAPTIV_ECKEN = 0.02  # mm – so genau folgen die Vielecke für den Kern den Höhenlinien
@@ -783,10 +786,12 @@ class _Stand:
     ausgelassen: list = field(default_factory=list)  # Taschenböden, in die der Fräser nicht passt
     tiefen: dict = field(default_factory=dict)  # {z der Lage: so tief schneidet sie} – für last()
     breit: dict = field(default_factory=dict)  # {z einer dünnen Lage: ihr ae} – für last()
+    eng: bool = False  # der Adaptiv-Kern hatte kaum Platz (_ringe_adaptiv) – nachmessen
 
     def dazu(self, teil):
         """Hängt die Bahn einer Fläche (`teil`, ein eigener _Stand) an."""
         self.punkte += teil.punkte
+        self.eng = self.eng or teil.eng
         for z, tiefe in teil.tiefen.items():
             self.tiefen[z] = max(self.tiefen.get(z, 0.0), tiefe)
         self.breit.update(teil.breit)
@@ -1339,8 +1344,8 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     # Die schnellste gewinnt – aber nur, wenn sie die Last hält (Manuel, 2026-10-02, Frage 6:
     # „das was schneller ist ... gewinnt .. wenn man volle Tiefe fräst muss der ae schon in
     # einem Rahmen bleiben“). Nachgemessen wird der Reihe nach (last), bis eine hält – auch
-    # „adaptiv“: In einer Nut, kaum breiter als der Fräser, bleibt dem Kern kein Platz, und er
-    # fährt in voller Breite durch. Hält keine, gewinnt die mit der kleinsten Last, und die Bahn
+    # „adaptiv“, wo er kaum Platz hatte (_Stand.eng): In einer Nut, kaum breiter als der Fräser,
+    # fährt er in voller Breite durch. Hält keine, gewinnt die mit der kleinsten Last, und die Bahn
     # sagt es (`haelt`). Ohne den Adaptiv-Kern (oder mit einer Vorgabe) bleibt es bei der Zeit.
     reihe = sorted(ergebnisse, key=lambda v: ergebnisse[v][1])
     variante = reihe[0]
@@ -1348,6 +1353,8 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     haelt = True
     if "adaptiv" in ergebnisse:
         for variante in reihe:
+            if variante == "adaptiv" and not ergebnisse[variante][0].eng:
+                break  # er hält die Last nach seiner Bauart – nur wo er kaum Platz hat nicht
             groesste, lang = last(ergebnisse[variante][0], w, stand)
             if groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r:
                 break
@@ -1873,16 +1880,25 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
     material = _vielecke(feld.tiefe, feld, spiegeln)
     if not grenzen or not material:
         raise _KeinAdaptiv()
+    # Hat die Mitte kaum Platz neben der Bahn – weniger als 2 ae bis ans Gesperrte, eine Nut kaum
+    # breiter als der Fräser –, kann der Kern den Eingriff nicht halten: Dann misst planen() nach.
+    frei = np.isfinite(D) & (D >= 0) & ablauf.erlaubt & feld.rohteil_zellen
+    if frei.any() and float(D[frei].max()) < 2.0 * ae:
+        ablauf.st.eng = True
     kern.stepOverFactor = ADAPTIV_SCHRITT * ae / (2.0 * r)
     kern.toolDiameter = 2.0 * r
     kern.helixRampDiameter = 2.0 * ADAPTIV_HELIX * r
     kern.keepToolDownDistRatio = ADAPTIV_HALTEN
     kern.stockToLeave = 0.0
-    kern.tolerance = ADAPTIV_GENAU
+    kern.tolerance = (
+        ADAPTIV_GENAU_VORSCHAU if schritt >= VORSCHAU_SCHRITT - GLEICH else ADAPTIV_GENAU
+    )
     kern.forceInsideOut = False
     kern.finishingProfile = True
     kern.opType = innen
-    eingabe = repr((material, grenzen, kern.stepOverFactor, 2.0 * r, kern.helixRampDiameter))
+    eingabe = repr(
+        (material, grenzen, kern.stepOverFactor, 2.0 * r, kern.helixRampDiameter, kern.tolerance)
+    )
     schluessel = hashlib.blake2b(eingabe.encode("utf-8"), digest_size=16).hexdigest()
     gebiete = _ADAPTIV.get(schluessel)
     if gebiete is None:

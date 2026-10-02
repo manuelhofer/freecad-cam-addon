@@ -51,26 +51,51 @@ class Ebene:
 def ebenen_oben(form, namen=(), toleranz=VORSCHAU_TOLERANZ):
     """[Ebene] – die Flächen `namen` („Face3“ …; leer: alle) von `form` (Part.Shape), die eben
     sind und nach oben schauen (Außennormale +z). Die Ausdehnung kommt aus der Vernetzung der
-    Fläche (`toleranz`)."""
+    Fläche (`toleranz`). Je Fläche einmal gerechnet (_EBENE): Der Assistent fragt je Vorschau
+    über tausendmal nach denselben Flächen."""
     from . import vierachs_flaechen as vf
-    from . import vierachs_rohteil as vr
 
     nummern = vf.nummern(namen) if namen else range(len(form.Faces))
     ergebnis = []
     for nummer in nummern:
         if nummer >= len(form.Faces):
             continue
-        flaeche = form.Faces[nummer]
-        if not vr.ist_eben(flaeche):
-            continue
-        if vr.aussennormale(flaeche).z < 1.0 - GERADE:
-            continue
+        ebene = _ebene(form, nummer, toleranz)
+        if ebene is not None:
+            ergebnis.append(ebene)
+    return ergebnis
+
+
+_EBENE = {}  # (Prüfsumme der Form, Nummer, Toleranz) → Ebene oder None
+_EBENE_HOECHSTENS = 20000
+
+
+def _ebene(form, nummer, toleranz):
+    """Die Ebene der Fläche `nummer`, wenn sie eben ist und nach oben schaut – sonst None."""
+    from . import vierachs_rohteil as vr
+
+    flaeche = form.Faces[nummer]
+    try:
+        # Die Prüfsumme hängt am Speicher – mit dem Kasten der Fläche dazu verwechselt eine neue
+        # Form an derselben Stelle ihre Flächen nicht mit den alten.
+        kasten = flaeche.BoundBox
+        schluessel = (
+            form.hashCode(),
+            nummer,
+            tuple(round(v, 6) for v in (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax,
+                                        kasten.ZMin, kasten.ZMax)),
+            round(float(toleranz), 6),
+        )  # fmt: skip
+    except Exception:  # eine Form ohne Prüfsumme: rechnen
+        schluessel = None
+    if schluessel is not None and schluessel in _EBENE:
+        return _EBENE[schluessel]
+    ebene = None
+    if vr.ist_eben(flaeche) and vr.aussennormale(flaeche).z >= 1.0 - GERADE:
         punkte, _dreiecke = flaeche.copy().tessellate(toleranz)
-        if not punkte:
-            continue
-        p = np.array([[q.x, q.y, q.z] for q in punkte], dtype=float)
-        ergebnis.append(
-            Ebene(
+        if punkte:
+            p = np.array([[q.x, q.y, q.z] for q in punkte], dtype=float)
+            ebene = Ebene(
                 f"Face{nummer + 1}",
                 float(p[:, 2].mean()),
                 float(p[:, 0].min()),
@@ -78,8 +103,11 @@ def ebenen_oben(form, namen=(), toleranz=VORSCHAU_TOLERANZ):
                 float(p[:, 1].min()),
                 float(p[:, 1].max()),
             )
-        )
-    return ergebnis
+    if schluessel is not None:
+        if len(_EBENE) >= _EBENE_HOECHSTENS:
+            _EBENE.clear()
+        _EBENE[schluessel] = ebene
+    return ebene
 
 
 def oberseite(form, toleranz=VORSCHAU_TOLERANZ):

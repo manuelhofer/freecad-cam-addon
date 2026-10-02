@@ -202,14 +202,36 @@ def _waende_um(form, boeden):
     """Die Wände des Teils, die unten an die Böden `boeden` stoßen – Zapfen und Inseln auf ihnen,
     Absätze davor: die nach dem Räumen das Aufmaß tragen (kontur_bahn.boeden_vor)."""
     boeden = set(boeden)
+    return [name for name, vor in _boeden_vor_je_wand(form) if vor & boeden]
+
+
+_BOEDEN_VOR = {}  # Kennung der Form → [(Wand, frozenset der Böden vor ihr)]
+
+
+def _boeden_vor_je_wand(form):
+    """Je Wand des Teils die Böden vor ihr (kontur_bahn.boeden_vor) – je Form einmal gerechnet:
+    Der Assistent fragt je Vorschau mehrmals (am Testteil 0,7 s je Mal)."""
+    try:
+        kasten = form.BoundBox
+        schluessel = (form.hashCode(), len(form.Faces), round(form.Volume, 6)) + tuple(
+            round(v, 6) for v in (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax)
+        )
+    except Exception:  # eine Form ohne Prüfsumme: rechnen
+        schluessel = None
+    if schluessel is not None and schluessel in _BOEDEN_VOR:
+        return _BOEDEN_VOR[schluessel]
     ergebnis = []
     for i, flaeche in enumerate(form.Faces):
         name = f"Face{i + 1}"
         if not kb.ist_wand(flaeche):
             continue
         vor = kb.boeden_vor(form, [name])
-        if vor and vor & boeden:
-            ergebnis.append(name)
+        if vor:
+            ergebnis.append((name, frozenset(vor)))
+    if schluessel is not None:
+        if len(_BOEDEN_VOR) > 16:
+            _BOEDEN_VOR.clear()
+        _BOEDEN_VOR[schluessel] = ergebnis
     return ergebnis
 
 

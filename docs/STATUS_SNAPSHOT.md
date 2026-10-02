@@ -275,7 +275,7 @@ wird“), der Reihe nach, je Punkt ein Patch mit Verlauf und Snapshot:**
 3. ~~**T2 – die dünne Lage mit dem Einsatz „Planen“**~~ – gebaut ohne den Einsatz: ae = R mit Spanausgleich (P-2026-10-02-93, 0.128.0). Bisher: 1 mm mit ae 1,5 ist verschenkt (obere Stufe am
    Testteil rund 1 min). Dazu müssen die Zielzeit (`zielzeit.ziel`) und die Last (`last`) denselben Einsatz
    kennen, sonst stimmt „× Ziel“ nicht. ae höchstens der Radius (die Ringe setzen das voraus).
-4. **Vorschau schneller:** Am Testteil rechnet der Assistent rund 20 s. Messen, wo die Zeit bleibt; Ziel 10 s.
+4. **Vorschau schneller** (teils, P-2026-10-02-94, 0.128.1: am Testteil 24 → 17 s Rechnen, das Szenario 34 → 29 s; der Rest steckt in den Hüllflächen je Block): Am Testteil rechnet der Assistent rund 20 s. Messen, wo die Zeit bleibt; Ziel 10 s.
 5. **Snapshot kürzen** (nur Doku): Der Projektstatus ist weit über „ein Satz je Punkt“ hinaus.
 
 **Fragen an Manuel aus der Nacht** (je mit dem, was gebaut ist – ändern ist ein kleiner Patch):

@@ -12,6 +12,43 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-94 vorschau-schneller
+
+### EINGELESEN
+- Plan der Nacht, Punkt 4. Gemessen: Die Vorschau am Testteil (alle Flächen) brauchte nach
+  P-2026-10-02-89 bis -93 34 s statt 20 s (das Szenario vom Klick bis zur fertigen Vorschau).
+
+### DATEIEN
+- `camaddon/hoehenfeld.py` (`ebenen_oben`, `_ebene` mit `_EBENE`), `camaddon/gui_bearbeitung.py`
+  (`_waende_um`, `_boeden_vor_je_wand`), `camaddon/raeumen_bahn.py` (`ADAPTIV_GENAU_VORSCHAU`,
+  `_Stand.eng`, `planen`), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.128.1)
+
+### AKZEPTANZKRITERIUM
+Die Vorschau am Testteil rechnet spürbar kürzer, die Bahnen der Operationen bleiben gleich.
+
+### DONE
+- Mit cProfile in der Oberfläche gemessen (zwei Läufe der Vorschau, 24 s): das Räumen 11,6 s
+  (Adaptiv-Kern 3,5, die Lastmessung 3,3), `ebenen_oben` 2,6 s in 1306 Aufrufen, `_waende_um`
+  1,4 s.
+- `ebenen_oben`: je Fläche einmal gerechnet (Schlüssel: Prüfsumme der Form, Nummer, Kasten der
+  Fläche, Toleranz – der Kasten, damit eine neue Form an derselben Speicherstelle nicht verwechselt
+  wird).
+- `_waende_um`: die Böden vor jeder Wand je Form einmal.
+- Der Adaptiv-Kern rechnet in der Vorschau (Raster 1 mm) mit 0,1 mm statt 0,05 – die Operation
+  bleibt bei 0,05.
+- Die Lastmessung des Adaptiv-Kerns nur, wo er kaum Platz hat (`_Stand.eng`: weniger als 2 ae bis
+  ans Gesperrte, eine Nut kaum breiter als der Fräser); sonst hält er die Last nach seiner Bauart.
+- Danach: 17,4 s für die zwei Läufe, das Szenario 29 s. Der Rest: die Hüllflächen je Block
+  (`hoehenfeld.je_zeile`, 5,6 s in 68 Aufrufen) – jeder Block rechnet sie mit seinem Netz neu.
+
+### TESTS
+- `tests/test_raeumen.py`, `test_nut_offen.py` (die Nut: der Kern hat kaum Platz, wird gemessen und
+  verliert), `test_testteil.py`, `test_pruefstand.py`, `test_planfraesen.py` (OK);
+  `tests/gui/szenario_raeumen.py` (OK). black und ruff sauber.
+
+### NEXT
+- T5d (Taschen: Ecken in Bögen).
+
 ## P-2026-10-02-93 duenne-lage-breit
 
 ### EINGELESEN
