@@ -1451,6 +1451,7 @@
     "ba.ziel.mit": "Target with {werkzeug}: {zeit} – on average ap {ap}, {anteil} % of its metal removal rate.",
     "ba.ziel.rest": "{rest} in corners and slots narrower than it remain for a smaller one.",
     "ba.ziel.schneller": "Faster from the tool box: {werkzeug} – target {zeit}.",
+    "ba.ziel.faktor": "{text} · {faktor} × target",
     "ba.ziel.danach": "{werkzeug}, then {rest} for the rest",
     "ba.ziel.werkzeug": "T{nummer} {art} Ø {d}",
     "ba.ziel.minuten": "{min} min",

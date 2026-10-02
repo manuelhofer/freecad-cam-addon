@@ -67,6 +67,14 @@ class Material:
         oben = np.minimum(np.maximum(erreicht, self.boden), self.oben)
         return Material(self.x, self.y, oben, self.boden, self.sx, self.sy)
 
+    def bis(self, z, oben=None):
+        """Nur, was über `z` liegt – und mit `oben` unter dieser Höhe: was eine Strategie bis zu
+        ihren Flächen wegnimmt (Planfräsen der Oberseite: die Tasche darunter nicht; Räumen der
+        Taschenböden nach dem Planfräsen: nur die Tasche)."""
+        boden = np.maximum(self.boden, float(z))
+        deckel = self.oben if oben is None else np.minimum(self.oben, float(oben))
+        return Material(self.x, self.y, deckel, boden, self.sx, self.sy)
+
 
 def material(teil, rohteil, oben, unten=None, schritt=None):
     """Das Material über dem Teil (Part-Form) im Rohteil von oben – (x_von, x_bis, y_von,

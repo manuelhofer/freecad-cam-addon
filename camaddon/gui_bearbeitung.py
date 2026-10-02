@@ -16,6 +16,7 @@ _Strategie (was sie braucht, wie sie rechnet), ihr Block im Fenster ein _Block; 
 """
 
 import html
+import math
 
 import FreeCAD
 import FreeCADGui
@@ -3599,6 +3600,48 @@ class BearbeitungPanel:
                     )
                 saetze.append(tr("ba.ziel.schneller", werkzeug=wer, zeit=_ziel_minuten(beste.zeit)))
         self.ziel_text.setText(" ".join(saetze))
+        self._ziel_je_block(form, material)
+
+    def _ziel_je_block(self, form, material):
+        """Hinter die Zeit von Planfräsen und Räumen, wie gut ihr Weg ist (Manuel, 2026-10-02:
+        „Ist diese Wegestrategie wirklich gut?“): ihre Zeit geteilt durch die Zielzeit ihres
+        Fräsers mit ihren Werten für das, was bis zu ihren Flächen weg muss – „1,03 × Ziel“.
+        Räumt das Räumen nach dem Planfräsen nur die Taschenböden, zählt nur die Tasche."""
+        for block in (self.plan, self.raeumen):
+            werkzeug, einsatz, basis = block.fraeser(), block.einsatz(), block.ergebnis_basis
+            text = block.ergebnis.text()
+            if None in (block.zeit, werkzeug, einsatz) or not basis or not text.startswith(basis):
+                continue
+            ebenen = hf.ebenen_oben(form, self._flaechen(block, form))
+            if not ebenen:
+                continue
+            oben = None
+            if block is self.raeumen and self._raeumen_boeden is not None:
+                plan = hf.ebenen_oben(form, self._flaechen(self.plan, form))
+                oben = min(e.z for e in plan) if plan else None
+            werte = block.werte()
+            try:
+                ae, ap = float(werte["zeilenabstand"]), float(werte["zustellung"])
+            except (TypeError, ValueError):
+                continue
+            ziel = zz.ziel(
+                material.bis(min(e.z for e in ebenen), oben),
+                werkzeug.durchmesser / 2,
+                ae,
+                ap,
+                js.werte(werkzeug, einsatz)[1],
+            )
+            if not (0 < ziel.zeit < math.inf):
+                continue
+            # Gleich hinter die Zeit – was danach steht (Zeilenrichtung, Vergleich, Folge), bleibt.
+            zeit = _zeit_text(block.zeit)
+            ende = basis.find(zeit) + len(zeit)
+            if ende < len(zeit):
+                continue
+            faktor = dezimal(f"{block.zeit / ziel.zeit:.2f}")
+            neu = tr("ba.ziel.faktor", text=basis[:ende], faktor=faktor)
+            if not text.startswith(neu):
+                block.ergebnis.setText(neu + text[ende:])
 
     def _raeumen_folge_zeigen(self, form):
         """Hinter das Ergebnis des Räumens, was danach kommt – Wände schlichten, mit Messstopp –

@@ -1414,6 +1414,12 @@ Wegestrategie wirklich gut?“
   desselben Fräsers für dieselben Flächen (Abschnitt 11). Der Prüfstand führt × Ziel je Teil
   und Strategie; wo es groß ist, lohnt die Arbeit an der Bahn.
 - **Fertig, wenn:** die Ergebniszeile jedes Blocks „… etwa 34 min – 1,03 × Ziel“ zeigt.
+- **Gebaut:** P-2026-10-02-45, 0.101.0 – für Planfräsen und Räumen, gleich hinter der Zeit:
+  „→ 1 Lage, 163 Zeilen, etwa 43 min · 1,41 × Ziel – Zeilen längs X …“. Das Ziel rechnet mit
+  ihrem Fräser, ihrem ae und ap und dem vf ihres Einsatzes für das Material bis zu ihren Flächen
+  (`zielzeit.Material.bis`); räumt das Räumen nach dem Planfräsen nur die Taschenböden, zählt
+  nur die Tasche. Noch nicht: Kontur, Nut, Bohrung fräsen (ihr Ziel ist kein Volumen von oben)
+  und der Prüfstand.
 
 ### 12.4 Schlichten nach dem Räumen, Messstopp dazwischen
 

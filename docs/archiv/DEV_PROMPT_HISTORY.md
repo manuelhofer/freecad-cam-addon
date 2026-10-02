@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-45 ziel-je-strategie
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Man benötigt ja irgendeine Zeit, die sinnvoll ist, die man erreichen
+  kann … da geht's gar nicht um die Anzahl oder Größe an Fräsern, sondern einfach darum zu
+  sehen: Ist diese Wegestrategie wirklich gut?“ Spezifikation Strategien 12.3.
+
+### DATEIEN
+- `camaddon/zielzeit.py` (`Material.bis`), `camaddon/gui_bearbeitung.py` (`_ziel_je_block`),
+  `translations/de|en.json` (`ba.ziel.faktor`), `help/de|en/bearbeitung.html`,
+  `tests/gui/szenario_zielzeit.py`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.101.0)
+
+### AKZEPTANZKRITERIUM
+Manuels Platte, Oberseite angeklickt → in Schritt 2 steht hinter der Zeit von Planfräsen und
+Räumen „· 1,41 × Ziel“ (eine Zahl ab 1).
+
+### DONE
+- Je Block (Planfräsen, Räumen) die Zielzeit seines Fräsers mit seinem ae (Zeilenabstand), ap
+  (Zustellung) und dem vf seines Einsatzes für das Material über seiner tiefsten Fläche; räumt
+  das Räumen nach dem Planfräsen nur die Taschenböden, nur das Material unter der Planfläche.
+- Der Faktor steht gleich hinter der Zeit; Zeilenrichtung, Vergleich und Folge (Messstopp)
+  bleiben dahinter.
+- Nicht erreicht: Kontur, Nut, Bohrung fräsen; der Prüfstand.
+
+### TEST
+- 1.1.3: `szenario_zielzeit` (Planfräsen und Räumen mit × Ziel ≥ 1), `szenario_raeumen_schlichten`,
+  `szenario_platte`, `szenario_plan_gleichlauf`; `test_sprache`, `test_hilfe`; black/ruff grün.
+
+### NEXT
+- Werkzeugkiste vorgefüllt (W-007), Home- und Wechselpunkt (W-008).
+
 ## P-2026-10-02-44 raeumen-schlichten-messstopp
 
 ### EINGELESEN

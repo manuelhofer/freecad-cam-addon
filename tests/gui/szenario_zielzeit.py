@@ -6,6 +6,8 @@
 # Fräser des Räumens dafür mindestens braucht – mit dem ap, das die Stellen hergeben; und, weil
 # der Planfräser hier viel schneller wäre, dass er es wäre, mit dem Fräser für den Rest. Darunter
 # eingeklappt, was nicht zur Auswahl passt.
+import re
+
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -76,6 +78,16 @@ def schritte(h):
             f"kein schnellerer Fräser: {text!r}",
         )
     h.pruefe(bool(panel.ziel_text.toolTip()), "Ziel ohne Tooltip")
+    # Hinter der Zeit von Planfräsen und Räumen, wie weit ihr Weg über dem Ziel ihres Fräsers mit
+    # ihren Werten liegt (P-2026-10-02-45): „etwa 43 min · 1,41 × Ziel – Zeilen längs X …“.
+    for block in (panel.plan, panel.raeumen):
+        text = block.ergebnis.text()
+        print(ascii(f"{block.s.titel()}: {text}"))
+        treffer = re.search(r"etwa [^·–]+ · (\d+,\d+) × Ziel", text)
+        h.pruefe(
+            treffer is not None and float(treffer.group(1).replace(",", ".")) >= 1.0,
+            f"{block.s.titel()} ohne × Ziel: {text!r}",
+        )
     # Was nicht passt, steht eingeklappt unter einer Zeile mit seiner Zahl; ein Klick klappt auf.
     andere = [b for b in panel.bloecke if not b.moeglich]
     h.pruefe(
