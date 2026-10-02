@@ -93,6 +93,11 @@ GEMERKT_RESTFRAESER = "BaRestFraeser"  # … fürs Restmaterial
 GEMERKT_FRAESER_3D = "BaFraeser3D"  # … fürs 3D-Schlichten
 GEMERKT_RESTFRAESER_3D = "BaRestFraeser3D"  # … fürs Restschlichten
 GEMERKT_RESTSCHRUPPFRAESER = "BaRestSchruppFraeser"  # … fürs Restschruppen
+# Der zuletzt gewählte Nullpunkt: „modell“ oder „sx,sy,sz“ (nullpunkte()); ohne Eintrag die
+# Mitte oben des Rohteils (Manuel, 2026-10-02: „als Auswahl für den Nullpunkt ist Standard
+# erstmal oben mittig bitte ausgewählt“).
+GEMERKT_NULLPUNKT = "BaNullpunkt"
+NULLPUNKT_VORGABE = (0, 0, 1)
 REST_BREITE = 0.01  # mm – „Material neben der Wand“ beim Restmaterial: eine Bahn bei Radius
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
@@ -226,6 +231,25 @@ def nullpunkte():
     for sz in (1, -1):
         punkte.append((tr("np.mitte", a=z_namen[sz]), (0, 0, sz)))
     return punkte
+
+
+def nullpunkt_vorgeben(lage):
+    """Merkt `lage` ((sx, sy, sz) aus nullpunkte(), None: wie im Modell) als Nullpunkt für den
+    nächsten Job – wie nach „Anlegen“ mit dieser Wahl."""
+    text = "modell" if lage is None else ",".join(str(int(s)) for s in lage)
+    _parameter().SetString(GEMERKT_NULLPUNKT, text)
+
+
+def _gemerkter_nullpunkt():
+    """Der gemerkte Nullpunkt (sx, sy, sz) – None: wie im Modell; ohne Eintrag die Vorgabe."""
+    text = _parameter().GetString(GEMERKT_NULLPUNKT, "").strip()
+    if text == "modell":
+        return None
+    try:
+        lage = tuple(int(s) for s in text.split(","))
+    except ValueError:
+        return NULLPUNKT_VORGABE
+    return lage if len(lage) == 3 else NULLPUNKT_VORGABE
 
 
 def ist_bearbeitung(op):
@@ -2553,6 +2577,13 @@ class BearbeitungPanel:
         self.wahl_nullpunkt.addItem(tr("ba.nullpunkt.modell"), 0)
         for nummer, (text, _lage) in enumerate(self._nullpunkte, start=1):
             self.wahl_nullpunkt.addItem(text, nummer)
+        gemerkt = _gemerkter_nullpunkt()
+        if gemerkt is not None:
+            nummer = next(
+                (n for n, (_t, lage) in enumerate(self._nullpunkte, start=1) if lage == gemerkt),
+                0,
+            )
+            self.wahl_nullpunkt.setCurrentIndex(self.wahl_nullpunkt.findData(nummer))
         self.wahl_nullpunkt.currentIndexChanged.connect(lambda _i: self._nullpunkt_geaendert())
         nullpunkt.reihe(
             tr("ba.nullpunkt.wahl"), tr("ba.nullpunkt.wahl.tooltip"), self.wahl_nullpunkt
@@ -2671,6 +2702,10 @@ class BearbeitungPanel:
         knoepfe.addStretch()
         self.knopf_weiter = knopf(tr("ba.weiter"), tr("ba.weiter.tooltip"), self.weiter)
         knoepfe.addWidget(self.knopf_weiter)
+        # Dasselbe wie „OK“ der Aufgabe: „Anlegen“, beim Ändern „Übernehmen“.
+        self.knopf_fertig = knopf(tr("va.anlegen"), tr("ba.anlegen.tooltip"), self.accept)
+        self.knopf_fertig.hide()
+        knoepfe.addWidget(self.knopf_fertig)
         aufbau.addWidget(zeile)
         self._seite = 0
         # Die Beschriftungen aller Blöcke gleich breit: die Felder stehen untereinander.
@@ -2709,15 +2744,20 @@ class BearbeitungPanel:
         )
         if self.zu_aendern is None:
             anleitungen = (
-                tr("ba.anleitung"),
+                tr("ba.anleitung") if self.job is None else tr("ba.anleitung.job"),
                 tr("ba.anleitung.was"),
                 tr("ba.anleitung.einstellungen"),
             )
             self.anleitung.setText(anleitungen[self._seite])
         self._rohteil_kurz_zeigen()
+        letzte = self._seite == len(self.seiten) - 1
         self.knopf_zurueck.setVisible(self._seite > 0)
-        self.knopf_weiter.setVisible(self._seite < len(self.seiten) - 1)
+        self.knopf_weiter.setVisible(not letzte)
         self.knopf_weiter.setEnabled(self.job is not None)
+        # Im letzten Schritt steht „Anlegen“ dort, wo vorher „Weiter“ stand (Manuel,
+        # 2026-10-02: „als Mensch erwartet man dann den Button unten, wo der Weiter-Button war“).
+        self.knopf_fertig.setVisible(letzte)
+        self._knoepfe_beschriften()
         self.nichts_angehakt.setVisible(not self.aktive_bloecke())
 
     def weiter(self):
@@ -2742,16 +2782,19 @@ class BearbeitungPanel:
         return self._knoepfe.button(QtGui.QDialogButtonBox.Ok)
 
     def _knoepfe_beschriften(self):
-        ok = self.knopf_anlegen()
-        if ok is None:
-            return
-        if self.zu_aendern is not None:
-            ok.setText(tr("va.uebernehmen"))
-            ok.setToolTip(tr("ba.uebernehmen.tooltip"))
-        else:
-            ok.setText(tr("va.anlegen"))
-            ok.setToolTip(tr("ba.anlegen.tooltip"))
-        ok.setEnabled(self.job is not None and self._kann_anlegen())
+        aendern = self.zu_aendern is not None
+        geht = self.job is not None and self._kann_anlegen()
+        unten = getattr(self, "knopf_fertig", None)
+        for knopf_ in (self.knopf_anlegen(), unten):
+            if knopf_ is None:
+                continue
+            if aendern:
+                knopf_.setText(tr("va.uebernehmen"))
+                knopf_.setToolTip(tr("ba.uebernehmen.tooltip"))
+            else:
+                knopf_.setText(tr("va.anlegen"))
+                knopf_.setToolTip(tr("ba.anlegen.tooltip"))
+            knopf_.setEnabled(geht)
 
     def aktive_bloecke(self):
         return [b for b in self.bloecke if b.aktiv()]
@@ -2792,6 +2835,8 @@ class BearbeitungPanel:
         self._vor_dem_schliessen()
         for block in self.aktive_bloecke():
             block.merken()
+        if self.zu_aendern is None:
+            nullpunkt_vorgeben(self.nullpunkt())
         FreeCADGui.Control.closeDialog()
         self.doc.recompute()
         return True

@@ -18,7 +18,8 @@ Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, oben steht, in w
 man ist („Schritt 1 von 3 – Aufspannung“), unten führen <b>← Zurück</b> und <b>Weiter →</b>
 hin und her: die <b>Aufspannung</b> (Teil, Rohteil, Nullpunkt), <b>Was soll weg?</b> (die
 Flächen und je Bearbeitung ein Haken mit ihrer Zeit), die <b>Einstellungen</b> der
-angehakten. „Anlegen“ geht aus jedem Schritt – mit dem, was vorgeschlagen ist. Die
+angehakten; im letzten Schritt steht unten statt „Weiter →“ <b>Anlegen</b>. „Anlegen“ (auch
+„OK“ der Aufgabe) geht aus jedem Schritt – mit dem, was vorgeschlagen ist. Die
 Bearbeitungen: <b>Planfräsen</b> und <b>Räumen</b> für ebene Flächen nach oben, <b>Bohren</b>
 und <b>Bohrung fräsen</b> für zylindrische Bohrungen, <b>Kontur</b> für Wände,
 <b>Gewinde bohren</b> in Kernlöcher, <b>Entgraten</b> an Oberkanten, <b>Zentrieren</b> und
@@ -28,12 +29,12 @@ alle angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
 
 <h3>1. Aufspannung: Teil und Rohteil</h3>
 <ul>
-<li><b>Eine Fläche des Teils anklicken</b> (vorher oder im Fenster) – die
-Fläche, die eben werden soll, oder eine Wand für die Kontur. Das Teil ist damit gewählt, und der
-<b>Job mit dem Rohteil</b> entsteht sofort: ein Quader um das Teil mit
+<li><b>Die Fläche anklicken, die du bearbeiten willst</b> (vorher oder im Fenster) – die
+Fläche, die eben werden soll, oder eine Wand für die Kontur. Damit ist das Teil gewählt, und
+das Addon legt den <b>Job mit dem Rohteil</b> an: ein Quader um das Teil mit
 <b>Aufmaß</b> oben, seitlich und unten (leer: 1 mm, wie FreeCADs Job). Die
 Felder ändern das Rohteil gleich mit. „Abbrechen“ nimmt alles zurück. In Schritt 2
-steht oben grau, was hier gilt („Aufmaß 1 mm rundum · Nullpunkt: wie im Modell“).</li>
+steht oben grau, was hier gilt („Aufmaß 1 mm rundum · Nullpunkt: Mitte oben“).</li>
 <li><b>Unten liegt</b> – welche Fläche des Teils auf dem Tisch liegt: „wie modelliert“, oder
 <b>Fläche anklicken …</b> und dann eine ebene Fläche im 3D – das Teil im Job dreht sich so,
 dass sie nach unten zeigt; das Modell selbst bleibt, wie es ist. Ohne den Knopf nimmt ein
@@ -42,8 +43,9 @@ zurück.</li>
 <li><b>X zeigt</b> – <b>↺ 90°</b> und <b>↻ 90°</b> drehen das Teil im Job um Z (von oben
 gesehen), so dass X entlang der Kante läuft, die du willst. Rohteil und Nullpunkt folgen
 beidem; die Flächen und alle Bahnen rechnen in der neuen Lage.</li>
-<li><b>Nullpunkt</b> – wo X 0, Y 0, Z 0 des Programms liegen: „wie im
-Modell“, oder ein Punkt des Rohteils aus der Liste – die 8 Ecken, die 12
+<li><b>Nullpunkt</b> – wo X 0, Y 0, Z 0 des Programms liegen. Vorgewählt ist die
+<b>Mitte oben</b> des Rohteils, danach der Nullpunkt, mit dem du zuletzt angelegt hast. Zur
+Wahl: „wie im Modell“, oder ein Punkt des Rohteils aus der Liste – die 8 Ecken, die 12
 Kantenmitten, die Mitte oben und unten (links/rechts ist X, vorne/hinten Y,
 unten/oben Z) –, dazu um X, Y, Z verschoben (auch negativ). Teil und Rohteil
 rücken so, dass der Punkt im Ursprung liegt; die Achsen in der 3D-Ansicht

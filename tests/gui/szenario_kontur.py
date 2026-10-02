@@ -64,6 +64,9 @@ def schritte(h):
     Gui.Selection.addSelection(doc.Name, teil.Name, erste)
     yield 500
 
+    # Die Koordinaten dieses Szenarios gelten im Modell – nicht an der Mitte oben, die neue
+    # Vorgabe (P-2026-10-02-49).
+    gui_bearbeitung.nullpunkt_vorgeben(None)
     Gui.runCommand("CamAddon_Bearbeitung")
     yield 2000
     panel = gui_bearbeitung.BearbeitungPanel.offen

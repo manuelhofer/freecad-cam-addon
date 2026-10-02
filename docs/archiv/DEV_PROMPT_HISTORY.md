@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-49 bedienung-schritt-nullpunkt-anlegen
+
+### EINGELESEN
+- Manuel, 2026-10-02, zum Assistenten in Schritten: „Also die Menüführung ist gut … Der Satz
+  ‚Klick in der 3D-Ansicht eine Fläche des Teils an … Der Job mit dem Rohteil entsteht sofort‘
+  … Keine Ahnung, was das sagen soll … Wenn dann: Klick die Fläche an, die du bearbeiten
+  willst … Dann entsteht …“; „Und als Auswahl für den Nullpunkt ist Standard erstmal oben
+  mittig bitte ausgewählt“; „Unten ist ein Zurück-Button … dann mach bitte den Fertig- oder
+  Anlegen-Button AUCH unten mit dazu … Ja, ist doppelt gemoppelt, aber egal – als Mensch
+  erwartet man dann den Button unten, wo der Weiter-Button war.“ Spezifikation Strategien 12.5.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`GEMERKT_NULLPUNKT`, `NULLPUNKT_VORGABE`,
+  `nullpunkt_vorgeben`, `_gemerkter_nullpunkt`; Vorwahl beim Aufbau, Merken in `accept`;
+  `knopf_fertig` im letzten Schritt, `_knoepfe_beschriften` für beide Knöpfe; Anleitung zu
+  Schritt 1 ohne und mit Job), `translations/de|en.json` (`ba.anleitung`, `ba.anleitung.job`,
+  `befehl.bearbeitung.tooltip`), `help/de|en/bearbeitung.html`, 15 Szenarien, die mit
+  Koordinaten aus dem Modell rechnen (`nullpunkt_vorgeben(None)`: bearbeitung, bohrung,
+  entgraten, fase, formplatte, kontur, nut, nut_durch, nut_offen, raeumen, reiben, rundung,
+  sackgewinde, schlichten3d, senken), `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.105.0)
+
+### AKZEPTANZKRITERIUM
+Schritt 1 sagt vor dem Klick „Klick die Fläche an, die du bearbeiten willst – dann legt das
+Addon den Job mit dem Rohteil an“, danach, was jetzt zu tun ist. Beim ersten Mal ist der
+Nullpunkt „Mitte oben“, danach der des letzten „Anlegen“. Im letzten Schritt steht unten rechts
+„Anlegen“ (beim Ändern „Übernehmen“), wo vorher „Weiter →“ stand.
+
+### DONE
+- Der Satz zu Schritt 1 in zwei Fassungen (vor und nach dem Klick), der Tooltip des Befehls
+  ebenso ohne „entsteht sofort“.
+- Nullpunkt: Vorgabe Mitte oben, gemerkt nach „Anlegen“ (auch „wie im Modell“), beim Ändern
+  nicht.
+- „Anlegen“ unten im letzten Schritt, beschriftet und gesperrt wie „OK“ der Aufgabe.
+- Mit Mitte oben liefen 15 von 35 Szenarien rot (Grund −11 statt −10, Endtiefe, Rohteil): Sie
+  rechnen mit Koordinaten aus dem Modell und setzen jetzt „wie im Modell“ vorab; die anderen
+  20 laufen mit Mitte oben grün.
+
+### TEST
+- 1.1.3: `test_sprache`, `test_hilfe`; die 15 Szenarien, `szenario_zielzeit` (Schritt 3 mit
+  „Anlegen“ unten); black/ruff grün.
+
+### NEXT
+- Schlichten nach dem Räumen mit Manuel besprechen (eigener Fräser, eigene Werte, Boden mit
+  Aufmaß – Spezifikation Strategien 12.4).
+
 ## P-2026-10-02-48 home-wechselpunkt
 
 ### EINGELESEN

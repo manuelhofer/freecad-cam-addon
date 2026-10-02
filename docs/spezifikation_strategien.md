@@ -1479,6 +1479,16 @@ einfach als extra Fenster gesetzt werden, wo man auf Weiter klicken kann, wenn's
 
 - **Fertig, wenn:** keine Seite rollen muss (Aufgabenbereich 800 Pixel hoch), alles von heute
   erreichbar bleibt und Manuel den Assistenten ohne Erklärung bedient.
+- **Gebaut:** P-2026-10-02-42, 0.98.0 – drei Seiten mit „Zurück“ und „Weiter“, „Anlegen“ aus
+  jedem Schritt.
+- **Nachgebessert** (Manuel, 2026-10-02: „Also die Menüführung ist gut“; der Satz zu Schritt 1
+  „Keine Ahnung, was das sagen soll … Wenn dann: Klick die Fläche an, die du bearbeiten willst“;
+  „als Auswahl für den Nullpunkt ist Standard erstmal oben mittig“; „als Mensch erwartet man
+  dann den Button unten, wo der Weiter-Button war“): P-2026-10-02-49, 0.105.0 – Schritt 1 sagt
+  vor dem Klick „Klick die Fläche an, die du bearbeiten willst – dann legt das Addon den Job mit
+  dem Rohteil an“, danach, was jetzt zu tun ist; der Nullpunkt ist beim ersten Mal „Mitte
+  oben“, danach der des letzten „Anlegen“; im letzten Schritt steht „Anlegen“ unten rechts
+  (beim Ändern „Übernehmen“), dasselbe wie „OK“ der Aufgabe.
 
 ### 12.6 Aufspannung: welche Fläche unten liegt, wohin X zeigt
 
@@ -1492,3 +1502,5 @@ ein Rohteil rausbekommt. Fehlt somit nur noch die X- und Y-Achse – aber das mu
   oder eine Kante anklicken, ein Pfeil im 3D zeigt X und Y. Rohteil und Nullpunkt folgen.
 - **Fertig, wenn:** Manuels Platte, auf die Seite gelegt, mit einem Klick auf die Fläche wieder
   richtig im Job liegt und sich X um 90° drehen lässt – die Bahnen rechnen in der neuen Lage.
+- **Gebaut:** P-2026-10-02-43, 0.99.0 – „Unten liegt“ mit „Fläche anklicken …“ und „X zeigt“
+  mit ↺ 90° / ↻ 90°; Rohteil und Nullpunkt folgen.
