@@ -29,7 +29,9 @@ that should become flat, or a wall for the contour. The part is chosen with it, 
 stock</b> is created at once: a block around the part with an
 <b>allowance</b> on top, at the sides and below (empty: 1 mm, like FreeCAD's
 job). The fields change the stock right away. “Cancel” takes everything
-back.</li>
+back. Stock and zero point are folded into one line (“allowance 1 mm all round
+· origin: as in the model”) – a click on <b>Stock and origin</b> opens the
+fields.</li>
 <li><b>Zero point</b> – where X 0, Y 0, Z 0 of the program lie: “as in the
 model”, or a point of the stock from the list – the 8 corners, the 12 edge
 middles, the centre top and bottom (left/right is X, front/back Y, bottom/top
@@ -54,6 +56,11 @@ clearing as long as no face or a flat one is selected – and of the two only
 the faster (see “Time decides” below); contour as soon as a wall is among
 them (without a wall it cannot be ticked). Whoever sets or removes a tick
 keeps it.</li>
+<li><b>What fits is on top:</b> the blocks that have to do with the selection.
+Ticked ones show their fields; unticked ones only their result (time, and how
+much slower they would be) – the fields come with the tick. Below, grey and
+short, what does not fit: per block the sentence what to click in 3D for it
+(“No wall selected – click a vertical face in 3D.”).</li>
 </ul>
 
 <h3>3. Face milling</h3>

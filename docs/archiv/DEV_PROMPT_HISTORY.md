@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-32 bearbeitung-kompakt
+
+### EINGELESEN
+- Manuel 2026-10-02 (~06:55): „Immer warten ... Warum machst du solange nicht die Bedienung
+  schön??“ – das Bild des Assistenten aus `szenario_zielzeit`: 5101 Pixel hoch, alle 20 Blöcke
+  mit allen Feldern, auch die, die zur Wahl nicht passen.
+- `gui_bearbeitung` (`_baue`, `_Block`, `_haken_vorschlagen`, `_flaechen_zeigen`),
+  `docs/durchsicht_bedienbarkeit.md` (Durchsicht 3 erledigt).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`, `translations/de.json`, `translations/en.json`,
+  `help/de|en/bearbeitung.html`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.94.0)
+
+### AKZEPTANZKRITERIUM
+Man sieht ohne Rollen, was zur Wahl passt; was nicht passt, steht knapp da und sagt, was man
+anklicken muss; nichts geht verloren – alle Felder sind mit einem Klick da.
+
+### DONE
+- Blöcke, die nicht passen: nur Titel und der Satz, was man anklicken muss (`inhalt`
+  verborgen); die passenden oben, darunter die Zeile „Passt nicht zur Auswahl – dafür im 3D
+  anklicken, was darunter steht:“ und die anderen (`_bloecke_ordnen`).
+- Passende, nicht angehakte Blöcke (der Wettbewerb nahm eine schnellere): nur das Ergebnis
+  – Zeit und um wie viel langsamer –, die Felder kommen mit dem Haken.
+- „Rohteil und Nullpunkt“ eingeklappt, daneben grau, was gilt („Aufmaß 1 mm rundum ·
+  Nullpunkt: wie im Modell“); ein Klick klappt die Felder auf.
+- Die Flächenliste so hoch wie ihre Einträge (höchstens fünf, dann rollt sie).
+- Manuels Platte im Bild: 5101 → 2153 Pixel mit dem ersten Schritt, mit allen unter 2000.
+
+### TEST
+- 1.1.3: Szenarien `szenario_zielzeit`, `szenario_bearbeitung`, `szenario_raeumen`,
+  `szenario_platte`, `szenario_bohrung`, `szenario_kontur`, `szenario_nut_offen`,
+  `szenario_plan_gleichlauf`, `szenario_entgraten`; `test_sprache`, `test_hilfe`; black/ruff
+  grün. Ob es verständlicher ist, sagt Manuel.
+
+### NEXT
+- Dasselbe für den 4-Achs-Assistenten prüfen.
+
 ## P-2026-10-02-31 plan-indexiert-zwischen-den-zeilen
 
 ### EINGELESEN

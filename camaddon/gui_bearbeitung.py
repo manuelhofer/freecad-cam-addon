@@ -2089,7 +2089,14 @@ class _Block:
         return self.moeglich and self.haken.isChecked()
 
     def zustand_zeigen(self):
+        # Passt die Strategie nicht zur Wahl, bleiben der Titel und der Satz, was man dafür
+        # anklicken muss – ihre Felder erst, wenn sie geht (Manuel, 2026-10-02: „die Bedienung
+        # schön“; mit allen Feldern aller Blöcke war das Fenster über 5000 Pixel lang).
+        self.inhalt.setVisible(self.moeglich)
         self.inhalt.setEnabled(self.aktiv())
+        # Passt sie, ist aber nicht angehakt (der Wettbewerb nahm eine schnellere): nur ihr
+        # Ergebnis – die Zeit und um wie viel langsamer; die Felder kommen mit dem Haken.
+        self.reihen.widget.setVisible(self.aktiv())
 
     def fraeser(self):
         i = self.wahl_fraeser.currentIndex()
@@ -2337,18 +2344,20 @@ class BearbeitungPanel:
         self.anleitung.setWordWrap(True)
         aufbau.addWidget(self.anleitung)
 
+        ziel = [aufbau]  # wohin titel() und grautext() setzen
+
         def titel(text, tooltip=""):
             etikett = QtGui.QLabel(text)
             etikett.setToolTip(tooltip)
             schrift = etikett.font()
             schrift.setBold(True)
             etikett.setFont(schrift)
-            aufbau.addWidget(etikett)
+            ziel[0].addWidget(etikett)
             return etikett
 
         def grautext(text=""):
             etikett = _grau(text)
-            aufbau.addWidget(etikett)
+            ziel[0].addWidget(etikett)
             return etikett
 
         # --- Teil und Rohteil ---
@@ -2357,6 +2366,30 @@ class BearbeitungPanel:
         self.teil_text.setWordWrap(True)
         oben.reihe(tr("ba.teil"), "", self.teil_text)
         aufbau.addWidget(oben.widget)
+        # Rohteil und Nullpunkt bleiben meist, wie sie sind: eingeklappt, mit einer Zeile, was
+        # gilt; ein Klick klappt die Felder auf (Manuel, 2026-10-02: „die Bedienung schön“).
+        kopf = QtGui.QWidget()
+        kopf_aufbau = QtGui.QHBoxLayout(kopf)
+        kopf_aufbau.setContentsMargins(0, 0, 0, 0)
+        self.rohteil_knopf = QtGui.QToolButton()
+        self.rohteil_knopf.setArrowType(QtCore.Qt.RightArrow)
+        self.rohteil_knopf.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+        self.rohteil_knopf.setText(tr("ba.rohteil_nullpunkt"))
+        self.rohteil_knopf.setToolTip(tr("ba.rohteil_nullpunkt.tooltip"))
+        self.rohteil_knopf.setAutoRaise(True)
+        self.rohteil_knopf.setCheckable(True)
+        schrift = self.rohteil_knopf.font()
+        schrift.setBold(True)
+        self.rohteil_knopf.setFont(schrift)
+        kopf_aufbau.addWidget(self.rohteil_knopf)
+        self.rohteil_kurz = _grau()
+        kopf_aufbau.addWidget(self.rohteil_kurz, 1)
+        aufbau.addWidget(kopf)
+        self.rohteil_bereich = QtGui.QWidget()
+        bereich = QtGui.QVBoxLayout(self.rohteil_bereich)
+        bereich.setContentsMargins(0, 0, 0, 0)
+        aufbau.addWidget(self.rohteil_bereich)
+        ziel[0] = bereich
         titel(tr("ba.rohteil"), tr("ba.rohteil.text"))
         grautext(tr("ba.rohteil.text"))
         rohteil = _Reihen()
@@ -2371,7 +2404,7 @@ class BearbeitungPanel:
             )
             eingabe.setPlaceholderText(groesse_zeigen(AUFMASS_ROHTEIL, einheiten.LAENGE) or "0")
         self.rohteilfelder = rohteil.widget
-        aufbau.addWidget(self.rohteilfelder)
+        bereich.addWidget(self.rohteilfelder)
 
         # --- Nullpunkt ---
         self.nullpunkt_titel = titel(tr("ba.nullpunkt"), tr("ba.nullpunkt.text"))
@@ -2401,13 +2434,15 @@ class BearbeitungPanel:
             )
             eingabe.setPlaceholderText("0")
         self.nullpunktfelder = nullpunkt.widget
-        aufbau.addWidget(self.nullpunktfelder)
+        bereich.addWidget(self.nullpunktfelder)
+        ziel[0] = aufbau
+        self.rohteil_knopf.toggled.connect(self._rohteil_aufklappen)
+        self._rohteil_aufklappen(False)
 
         # --- Flächen ---
         titel(tr("ba.flaechen"), tr("ba.flaechen.tooltip"))
         self.flaechen_liste = QtGui.QListWidget()
         self.flaechen_liste.setToolTip(tr("ba.flaechen.liste.tooltip"))
-        self.flaechen_liste.setMaximumHeight(90)
         self.flaechen_liste.itemDoubleClicked.connect(
             lambda eintrag: self.flaeche_umschalten(eintrag.data(QtCore.Qt.UserRole))
         )
@@ -2453,11 +2488,21 @@ class BearbeitungPanel:
         self.ziel_text = grautext()
         self.ziel_text.setToolTip(tr("ba.ziel.tooltip"))
 
-        # --- Die Bearbeitungen: je Strategie ein Block mit Haken ---
+        # --- Die Bearbeitungen: je Strategie ein Block mit Haken – was zur Wahl passt oben,
+        # darunter knapp, was (noch) nicht passt (_bloecke_ordnen) ---
+        self._block_aufbau = aufbau
+        self._block_anfang = aufbau.count()
         for strategie in STRATEGIEN:
             block = _Block(self, strategie())
             self.bloecke.append(block)
             aufbau.addWidget(block.widget)
+        self.passt_nicht = _grau(tr("ba.passt_nicht"))
+        schrift = self.passt_nicht.font()
+        schrift.setBold(True)
+        self.passt_nicht.setFont(schrift)
+        self.passt_nicht.hide()
+        aufbau.addWidget(self.passt_nicht)
+        self._reihe = [b.widget for b in self.bloecke] + [self.passt_nicht]
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
         self.hinweis.setStyleSheet(f"color: {ROT};")
@@ -2656,7 +2701,33 @@ class BearbeitungPanel:
         except ValueError:
             return AUFMASS_ROHTEIL
 
+    def _rohteil_aufklappen(self, offen):
+        """Klappt Rohteil und Nullpunkt auf oder zu – zu steht nur die Zeile, was gilt."""
+        self.rohteil_knopf.setArrowType(QtCore.Qt.DownArrow if offen else QtCore.Qt.RightArrow)
+        self.rohteil_bereich.setVisible(offen)
+        self._rohteil_kurz_zeigen()
+
+    def _rohteil_kurz_zeigen(self):
+        """„Aufmaß 1 mm rundum · Nullpunkt: wie im Modell“ – neben dem Knopf."""
+        if not hasattr(self, "rohteil_kurz") or not hasattr(self, "wahl_nullpunkt"):
+            return
+        mm = einheiten.einheit(einheiten.LAENGE)
+        werte = [self._rohteil_wert(feld) for feld in ROHTEIL_FELDER]
+        zahlen = [groesse_zeigen(w, einheiten.LAENGE) or "0" for w in werte]
+        if len(set(zahlen)) == 1:
+            aufmass = tr("ba.rohteil.kurz_rundum", wert=f"{zahlen[0]} {mm}")
+        else:
+            aufmass = tr("ba.rohteil.kurz", oben=zahlen[0], seite=zahlen[1], unten=zahlen[2], mm=mm)
+        verschoben = any(self.felder_nullpunkt[f].text().strip() for f in VERSATZ_FELDER)
+        wahl = self.wahl_nullpunkt.currentText()
+        if verschoben:
+            nullpunkt = tr("ba.nullpunkt.kurz_verschoben", wahl=wahl)
+        else:
+            nullpunkt = tr("ba.nullpunkt.kurz", wahl=wahl)
+        self.rohteil_kurz.setText(f"{aufmass} · {nullpunkt}")
+
     def _rohteil_geaendert(self):
+        self._rohteil_kurz_zeigen()
         if not self._fuellt and self.job is not None and self.zu_aendern is None:
             self._rohteil_uhr.start()
 
@@ -2687,6 +2758,7 @@ class BearbeitungPanel:
         return FreeCAD.Vector(*werte)
 
     def _nullpunkt_geaendert(self):
+        self._rohteil_kurz_zeigen()
         if not self._fuellt and self.job is not None and self.zu_aendern is None:
             self._nullpunkt_uhr.start()
 
@@ -2906,6 +2978,12 @@ class BearbeitungPanel:
             self.flaechen_liste.addItem(eintrag)
             if nummer >= 0:
                 farben[nummer] = farbe
+        # Die Liste so hoch wie ihre Einträge – höchstens fünf, dann rollt sie.
+        zeile = max(self.flaechen_liste.sizeHintForRow(0), 1)
+        rand = 2 * self.flaechen_liste.frameWidth() + 4
+        self.flaechen_liste.setFixedHeight(
+            min(5, max(1, self.flaechen_liste.count())) * zeile + rand
+        )
         if not self.gewaehlte:
             namen = ", ".join(hf.oberseite(form)) or "–"
             self.flaechen_text.setText(tr("ba.flaechen.oberseite", namen=namen))
@@ -2969,6 +3047,21 @@ class BearbeitungPanel:
         self._restfraeser_waehlen()
         self._rest_vorschlagen(form)
         self._restschlichtfraeser_waehlen()
+        self._bloecke_ordnen()
+
+    def _bloecke_ordnen(self):
+        """Die Blöcke, die zur Wahl passen, oben – in ihrer Reihenfolge –, darunter unter einer
+        grauen Zeile, was (noch) nicht passt: nur der Titel und der Satz, was man anklicken muss."""
+        passend = [b.widget for b in self.bloecke if b.moeglich]
+        andere = [b.widget for b in self.bloecke if not b.moeglich]
+        reihe = passend + [self.passt_nicht] + andere
+        if reihe != self._reihe:
+            for widget in self._reihe:
+                self._block_aufbau.removeWidget(widget)
+            for i, widget in enumerate(reihe):
+                self._block_aufbau.insertWidget(self._block_anfang + i, widget)
+            self._reihe = reihe
+        self.passt_nicht.setVisible(bool(andere) and bool(passend))
 
     def haken_geklickt(self, block):
         if self._fuellt:
