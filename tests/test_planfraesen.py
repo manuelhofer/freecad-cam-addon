@@ -484,6 +484,35 @@ pruefe(len(op.Path.Commands) == anzahl, f"nach dem Laden {len(op.Path.Commands)}
 pruefe(op.getEditorMode("Zeilen") == ["ReadOnly"], "Zeilen nach dem Laden")
 print(ascii(f"Operation: {anzahl} Befehle"))
 
+# --- Großer Fräser, großes ae: zwischen den Zeilen frei (P-2026-10-02-30) -------------------
+# Manuels Platte mit dem Planfräser Ø 50, ae 35, ap 2: Die Zeilen liegen 30 mm auseinander. Am
+# Ende der Zeile vor dem Zapfen fuhr die Wandfahrt gerade zurück zur vorigen Zeile – 33,75 mm an
+# der Zapfenachse vorbei, nötig sind 25 + 10: in jeder Lage in den Zapfen. Jetzt wird auch
+# zwischen den Zeilen geprüft; nirgends unter seiner Oberkante näher als 35 mm.
+platte = Part.makeBox(200, 200, 30, V(-100, -100, -30))
+manuel = (
+    platte.fuse(Part.makeCylinder(10, 20, V(50, 50, 0)))
+    .cut(Part.makeCylinder(22.5, 20, V(-50, -50, -20)))
+    .removeSplitter()
+)
+ebenen_manuel = [e for e in hf.ebenen_oben(manuel) if abs(e.z) < 1e-6]
+werte_gross = pb.Planwerte(
+    ff.scheibe(25.0), 2.0, 35.0, 0.0, 20.0, 25.0, (-100.0, 100.0, -100.0, 100.0),
+    vorschub=955.0, eintauchen=286.0,
+)  # fmt: skip
+gross = pb.planen(hf.netze_je_hoehe(manuel, ebenen_manuel), werte_gross, ebenen_manuel)
+naechste = math.inf
+for von, nach in zip(gross.punkte, gross.punkte[1:], strict=False):
+    if nach.eilgang:
+        continue
+    for t in np.linspace(0.0, 1.0, 41):
+        z = von.z + t * (nach.z - von.z)
+        if z < 20.0 - 1e-6:
+            x, y = von.x + t * (nach.x - von.x), von.y + t * (nach.y - von.y)
+            naechste = min(naechste, math.hypot(x - 50.0, y - 50.0))
+pruefe(naechste >= 35.0 - 0.05, f"Ø 50 am Zapfen: {naechste:.2f} mm von der Achse (nötig 35)")
+print(f"Ø 50 auf der Platte: {gross.zeit:.1f} min, am Zapfen {naechste:.2f} mm von der Achse")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

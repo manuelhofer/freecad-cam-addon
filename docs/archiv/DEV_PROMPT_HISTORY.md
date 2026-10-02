@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-30 planfraesen-zwischen-den-zeilen
+
+### EINGELESEN
+- Der Versuch zur Zielzeit: Manuels Platte mit dem Planfräser Ø 50 (ae 35, ap 2) im Prüfstand –
+  „schneidet 20,00 mm ins Teil“. `planfraesen_bahn._ebene`, `_schritt`, `_wandfahrt`,
+  `_ueber_die_letzte`.
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py`, `tests/test_planfraesen.py`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.92.0)
+
+### AKZEPTANZKRITERIUM
+Kein Planfräsen schneidet ins Teil, gleich wie groß Fräser und Zeilenabstand sind; die Bahn des
+Standardfräsers (ae 1,5) bleibt, wie sie ist.
+
+### DONE
+- Ursache: Am Ende der Zeile vor dem Zapfen fuhr die Wandfahrt gerade zur vorigen Zeile zurück
+  (bei x 83,75 von y 60 nach 30) – geprüft waren nur die beiden Zeilen, nicht der Weg
+  dazwischen; der lief 33,75 mm an der Achse vorbei (nötig 25 + 10), in jeder der 10 Lagen.
+  Mit ae 1,5 bleibt zwischen zwei Zeilen höchstens g² ÷ 8R = 0,05 mm unentdeckt, mit ae 30 und
+  R 25 4,5 mm.
+- `_zwischen`: Prüfzeilen zwischen den Zeilen (und vor der ersten, hinter der letzten bis an den
+  Rand), nur wo g² ÷ 8R über ZWISCHEN_GENAU (0,05 mm) liegt, so dicht, dass dazwischen nicht
+  mehr bleibt; je Lage `_Raster.zwischen` und `zum_rand`. Schritt und Halbkreis nur, wo auch
+  dazwischen frei ist – sonst wird die Fahrt geteilt (`_geteilt`); die Wandfahrt und die Fahrt
+  über die letzte Zeile ebenso.
+- Gemessen: Ø 50 auf der Platte 27,2 → 26,9 min, nichts mehr im Teil; Ø 12 41,88 min wie vorher.
+
+### TEST
+- 1.1.3: `test_planfraesen` (neu: Ø 50 am Zapfen nirgends näher als 35 mm),
+  `test_pruefstand` (Bestmarken unverändert), Szenarien `szenario_bearbeitung`,
+  `szenario_plan_gleichlauf`; black/ruff grün.
+
+### NEXT
+- Plan indexiert (vierachs_planbahn) hat dieselben Schritte zwischen den Zeilen – mit Ø 6 und
+  ae 2,4 bleiben dort bis 0,24 mm unentdeckt; prüfen, ob eine Abflachung dort ein Hindernis
+  zwischen zwei Zeilen haben kann.
+- Mit dem Ø 50 bleibt zwischen den Zeilen um den Zapfen Material stehen (20 mm hoch) – die
+  Kontur am Zapfen muss danach mehr als ihr Aufmaß nehmen.
+
 ## P-2026-10-02-29 zielzeit
 
 ### EINGELESEN

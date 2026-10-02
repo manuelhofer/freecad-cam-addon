@@ -46,6 +46,11 @@ AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
 SCHRITT = hf.SCHRITT  # mm – Raster längs der Zeilen
 VORSCHAU_SCHRITT = 1.0  # mm – für die Vorschau im Assistenten
 GLEICH = vb.GLEICH
+# So tief bliebe ein Hindernis zwischen zwei Zeilen im Abstand g höchstens unentdeckt, wenn nur
+# auf den Zeilen geprüft wird: g² ÷ (8 R). Mehr – ein großer Fräser mit großem ae – und es wird
+# auch dazwischen geprüft, ob der Schritt und der Halbkreis von Zeile zu Zeile frei sind
+# (P-2026-10-02-30: Ø 50 mit ae 35 schnitt auf Manuels Platte quer in den Zapfen).
+ZWISCHEN_GENAU = 0.05  # mm
 
 
 @dataclass(frozen=True)
@@ -306,6 +311,20 @@ def _ebene(
     huelle = hf.je_zeile(netz, geformt, v_zeilen, u0, schritt_u, anzahl, laengs_x)
     roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
     hoehe = roh + zugabe
+    # Zwischen weit auseinanderliegenden Zeilen: Prüfzeilen für Schritt, Halbkreis und die
+    # Fahrten an der Wand – auch vor der ersten und hinter der letzten bis an den Rand.
+    zwischen_v, zwischen_von = _zwischen(v_zeilen, r_voll)
+    rand_v, rand_von = [], []
+    for seite_i, (a, b) in enumerate(((v_rand[0], v_zeilen[0]), (v_zeilen[-1], v_rand[1]))):
+        werte_rand, _von = _zwischen(np.array([a, b]), r_voll)
+        rand_v.extend(werte_rand)
+        rand_von.extend([seite_i] * len(werte_rand))
+    pruef_v = np.concatenate([zwischen_v, np.array(rand_v)])
+    if len(pruef_v):
+        roh_zw = hf.je_zeile(netz, geformt, pruef_v, u0, schritt_u, anzahl, laengs_x).T
+    else:
+        roh_zw = np.zeros((0, anzahl))
+    hoehe_zw = roh_zw + zugabe
     im_ueberlauf = (u_stellen >= u_von - ueberlauf - GLEICH) & (
         u_stellen <= u_bis + ueberlauf + GLEICH
     )
@@ -319,6 +338,13 @@ def _ebene(
         # Lage sonst vor ihr an (wie bei Plan indexiert, P-2026-10-01-10).
         erlaubt = (hoehe <= lage + GLEICH) | (roh <= ziel + GLEICH)
         erlaubt_rand = (hoehe_rand <= lage + GLEICH) | (roh_rand <= ziel + GLEICH)
+        erlaubt_zw = (hoehe_zw <= lage + GLEICH) | (roh_zw <= ziel + GLEICH)
+        zwischen = np.ones((max(len(v_zeilen) - 1, 0), anzahl), dtype=bool)
+        for k, m in enumerate(zwischen_von):
+            zwischen[m] &= erlaubt_zw[k]
+        zum_rand = np.ones((2, anzahl), dtype=bool)
+        for k, seite_i in enumerate(rand_von):
+            zum_rand[seite_i] &= erlaubt_zw[len(zwischen_von) + k]
         drin = erlaubt & im_ueberlauf[None, :]  # die Zeilen selbst
         if not drin.any():
             vorige = lage
@@ -335,6 +361,8 @@ def _ebene(
             w.zeilenabstand,
             v_rand,
             erlaubt_rand,
+            zwischen,
+            zum_rand,
         )
         # Von dem Ende beginnen, das in der Luft liegt – sonst vom Anfang.
         erste = int(np.flatnonzero(drin.any(axis=1))[0])
@@ -348,7 +376,7 @@ def _ebene(
         if w.nur_gleichlauf:
             fahrten = vb._einzeln(mit_luecke, _steigend(raster, w.gleichlauf))
         else:
-            fahrten = vb._fahrten(mit_luecke)
+            fahrten = _geteilt(vb._fahrten(mit_luecke), raster.zwischen)
         for fahrt in fahrten:
             laenge += _fahrt(punkte, fahrt, raster, lage, vorige, w)
             zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
@@ -357,6 +385,45 @@ def _ebene(
         z_min = min(z_min, lage)
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
     return _Ebene(punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit)
+
+
+def _zwischen(v_zeilen, radius):
+    """Die Prüfzeilen zwischen den Zeilen: (v, je die Nummer der Zeile davor) – nur, wo ein
+    Hindernis zwischen zwei Zeilen tiefer als ZWISCHEN_GENAU unentdeckt bliebe, so dicht,
+    dass es auch zwischen den Prüfzeilen nicht mehr ist."""
+    dicht = math.sqrt(8.0 * radius * ZWISCHEN_GENAU)
+    werte, von = [], []
+    for m in range(len(v_zeilen) - 1):
+        luecke = abs(float(v_zeilen[m + 1]) - float(v_zeilen[m]))
+        if luecke * luecke <= 8.0 * radius * ZWISCHEN_GENAU:
+            continue
+        anzahl = int(math.ceil(luecke / dicht - 1e-9))
+        for i in range(1, anzahl):
+            werte.append(
+                float(v_zeilen[m]) + (float(v_zeilen[m + 1]) - float(v_zeilen[m])) * i / anzahl
+            )
+            von.append(m)
+    return np.array(werte), von
+
+
+def _geteilt(fahrten, zwischen):
+    """Die Fahrten, an jedem Schritt geteilt, der nicht frei ist (`zwischen`: (Zeilen − 1, N),
+    zwischen Zeile m und m + 1 an der Stelle frei) – dort hebt der Fräser ab und setzt an der
+    nächsten Zeile neu ein."""
+    ergebnis = []
+    for fahrt in fahrten:
+        stueck = []
+        for teil in fahrt:
+            art, m, js = teil
+            if art == "schritt" and not bool(zwischen[m, int(js) - 1]):
+                if stueck:
+                    ergebnis.append(stueck)
+                stueck = []
+                continue
+            stueck.append(teil)
+        if stueck:
+            ergebnis.append(stueck)
+    return ergebnis
 
 
 def _abgedeckt(tiefere, laengs_x, u, v, seite):
@@ -412,6 +479,8 @@ class _Raster:
     zeilenabstand: float
     v_rand: tuple  # (von, bis) der Fläche quer – vor und hinter der ersten und letzten Zeile
     erlaubt_rand: np.ndarray  # (2, N): die Lage darf an den Rand – für die Wandfahrt
+    zwischen: np.ndarray  # (Zeilen − 1, N): zwischen Zeile m und m + 1 frei (_zwischen)
+    zum_rand: np.ndarray  # (2, N): vor der ersten, hinter der letzten Zeile bis an den Rand frei
 
     def umgekehrt(self):
         return _Raster(
@@ -426,6 +495,8 @@ class _Raster:
             self.zeilenabstand,
             self.v_rand,
             self.erlaubt_rand[:, ::-1],
+            self.zwischen[:, ::-1],
+            self.zum_rand[:, ::-1],
         )
 
     def xy(self, u, v):
@@ -491,7 +562,13 @@ def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
     v_m = float(r_.v_zeilen[m])
     ziele = []
     letzte = len(r_.v_zeilen) - 1
-    if ende and m == letzte and bool(r_.erlaubt_rand[1, j]) and r_.v_rand[1] > v_m + GLEICH:
+    if (
+        ende
+        and m == letzte
+        and bool(r_.erlaubt_rand[1, j])
+        and bool(r_.zum_rand[1, j])
+        and r_.v_rand[1] > v_m + GLEICH
+    ):
         ziele.append(r_.xy(u, r_.v_rand[1]))
     vorige = next(
         (js for art, m_, js in reversed(teile[:nummer]) if art == "zeile" and m_ == m - 1), None
@@ -502,15 +579,19 @@ def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
         # Anfang: Vor einem Zapfen endet diese Zeile mitten in der Fläche, die vorige begann am
         # anderen Ende, und die Wandfahrt zu ihrem Anfang lief quer durch den Zapfen (der
         # Prüfstand fand es, P-2026-10-01-26).
+        # Liegen die Zeilen weit auseinander (großer Fräser, großes ae), muss auch dazwischen
+        # frei sein – am runden Zapfen lief die Fahrt sonst quer hinein (P-2026-10-02-30).
         k = int(vorige[int(np.argmin(np.abs(np.asarray(vorige) - j)))])
-        unten = (float(r_.u_stellen[k]), float(r_.v_zeilen[m - 1]))
-    elif m >= 1 and bool(r_.erlaubt[m - 1, j]):
+        if bool(r_.zwischen[m - 1, min(j, k) : max(j, k) + 1].all()):
+            unten = (float(r_.u_stellen[k]), float(r_.v_zeilen[m - 1]))
+    elif m >= 1 and bool(r_.erlaubt[m - 1, j]) and bool(r_.zwischen[m - 1, j]):
         unten = (u, float(r_.v_zeilen[m - 1]))
     if (
         m <= 1
         and bool(r_.erlaubt_rand[0, j])
+        and bool(r_.zum_rand[0, j])
         and r_.v_rand[0] < float(r_.v_zeilen[0]) - GLEICH
-        and (m == 0 or bool(r_.erlaubt[0, j]))
+        and (m == 0 or (bool(r_.erlaubt[0, j]) and bool(r_.zwischen[0, j])))
     ):
         unten = (u, r_.v_rand[0])  # über die erste Zeile hinaus bis an den Rand
     if unten is not None:
@@ -603,7 +684,11 @@ def _schritt(punkte, r_, m, j, lage, teile, nummer):
     frei = 0 <= bis < len(r_.u_stellen)
     if frei:
         stellen = np.arange(j, bis + richtung, richtung)
-        frei = bool(r_.erlaubt[m, stellen].all() and r_.erlaubt[m + 1, stellen].all())
+        frei = bool(
+            r_.erlaubt[m, stellen].all()
+            and r_.erlaubt[m + 1, stellen].all()
+            and r_.zwischen[m, stellen].all()
+        )
     laenge = 0.0
     if frei and halb > GLEICH:
         u_mitte = u
@@ -630,7 +715,12 @@ def _ueber_die_letzte(punkte, r_, m, j, lage):
     Wand die Ecke stehen: erst an der Wand entlang bis an den Rand der Fläche und zurück, so
     weit es dort erlaubt ist (wie _wandfahrt vor der ersten Zeile). Gibt die Länge zurück."""
     v_m = float(r_.v_zeilen[m])
-    if m != len(r_.v_zeilen) - 1 or not bool(r_.erlaubt_rand[1, j]) or r_.v_rand[1] <= v_m + GLEICH:
+    if (
+        m != len(r_.v_zeilen) - 1
+        or not bool(r_.erlaubt_rand[1, j])
+        or not bool(r_.zum_rand[1, j])
+        or r_.v_rand[1] <= v_m + GLEICH
+    ):
         return 0.0
     hier = punkte[-1]
     laenge = 0.0

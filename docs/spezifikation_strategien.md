@@ -1321,3 +1321,13 @@ ganz, und das Räumen liegt nah am Ziel (1,02–1,11). Wo wenig weg muss, ist er
 Fräser: Den Millimeter über der Oberseite (100 × 60) braucht er mit ae 1,5 allein 3,8 min,
 der Planfräser 0,18. Das Planfräsen am Zapfen (2,94 × Ziel) und die Kontur (2,84) lassen
 am meisten liegen – dort lohnt die nächste Arbeit an der Bahn.
+
+Der Versuch mit der echten Bahn (Planfräsen mit dem Ø 50, ae 35, ap 2 auf Manuels Platte)
+fand einen Fehler: Am Ende der Zeile vor dem Zapfen fuhr die Wandfahrt gerade zur vorigen
+Zeile zurück, quer durch den Zapfen – geprüft waren nur die Zeilen, nicht der Weg dazwischen
+(mit ae 1,5 bleiben dort höchstens 0,05 mm unentdeckt, mit ae 30 und R 25 4,5 mm). Seit
+P-2026-10-02-30 prüft das Planfräsen auch zwischen weit auseinanderliegenden Zeilen. Danach:
+26,9 min (Ziel 11,9; die Zeilen laufen je 0,6 D über den Rand, zehn Lagen ap 2), dazu bleibt
+zwischen den Zeilen um den Zapfen Material für die Kontur. Mit dem Ø 12 räumt das Räumen die
+Platte in 33,9 min – der Planfräser lohnt sich hier weniger, als die Zielzeit verspricht.
+Offen: Plan indexiert hat dieselben Schritte zwischen den Zeilen (mit Ø 6, ae 2,4 bis 0,24 mm).
