@@ -19,6 +19,7 @@ THEMEN = [
     "achsen",
     "beschleunigung",
     "transformationen",
+    "maschinen",
     "neue_maschine",
     "aufnahmen",
     "bestueckung",

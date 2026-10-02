@@ -1,0 +1,33 @@
+<h2>Machines</h2>
+<p><b>Machines …</b> (menu CAM-Addon) shows your machines in one list: name, kind and file. A
+machine is a FreeCAD file with an assembly and the machine object from
+<a href="neue_maschine.html">New machine</a> or <b>Edit machine</b>. The list remembers where
+the files are – it does not copy them: if you change a machine, that counts at once.</p>
+
+<h3>How a machine gets onto the list</h3>
+<ul>
+<li>by itself when you <b>save</b> a file with a machine – also one you have just built with
+“New machine …”;</li>
+<li>by itself when you <b>check</b> on it (“Check on machine”) or pick it in an
+assistant;</li>
+<li>with <b>Add …</b>: choose a saved machine file.</li>
+</ul>
+
+<h3>The kind</h3>
+<p>The add-on reads the kind from the machine's axes: a <b>lathe</b> has a turret or a
+spindle that turns the part – behind it the stations and the extra axes (C, Y). Otherwise it
+is a <b>mill</b>: without a rotary axis 3-axis, with one 4-axis (A, B or C), with two 5-axis.
+Later the assistant's proposals follow from it – on the lathe a bar instead of a block.</p>
+
+<h3>The buttons</h3>
+<ul>
+<li><b>Add …</b> – choose a machine file.</li>
+<li><b>New machine …</b> – build one; it comes onto the list as soon as you save it.</li>
+<li><b>Edit</b> (or double-click) – opens the file and “Edit machine”.</li>
+<li><b>Find …</b> – if a file is red (“not found”), it is no longer there: show where it is
+now, the entry follows.</li>
+<li><b>Remove</b> – takes the machine off the list; the file stays. If you save it again, it
+comes back.</li>
+</ul>
+<p>The list is stored as <code>maschinen.json</code> in the folder <code>CamAddon</code> of
+your FreeCAD user data, like the tool management: it survives restart and update.</p>

@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-58 maschinen-liste
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Ich hätte gerne sozusagen einen Maschinen-Speicher … ich kann ja
+  mehrere Maschinen haben“; zu W-011: „1 a“ (Spezifikation Maschine aus Baugruppe, 12, S1).
+
+### DATEIEN
+- `camaddon/maschinenspeicher.py` (neu), `camaddon/gui_maschinen.py` (neu),
+  `camaddon/gui_start.py` (Befehl, Menü, Beobachter), `camaddon/reichweite.py`
+  (`merke_maschine` nimmt die Maschine in die Liste), `camaddon/hilfe.py`,
+  `resources/icons/maschinen.svg`, `translations/de.json`, `translations/en.json`,
+  `help/de|en/maschinen.html` (neu), `help/de|en/so_gehts.html`,
+  `tests/test_maschinenspeicher.py` (neu), `tests/gui/szenario_maschinen.py` (neu),
+  `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/aufbau.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.111.0)
+
+### AKZEPTANZKRITERIUM
+Menü CAM-Addon → „Maschinen …“ zeigt die gespeicherten Maschinen mit der richtigen Art; eine
+verschobene Datei steht rot mit „Suchen …“; Entfernen lässt die Datei stehen.
+
+### DONE
+- Die Liste merkt sich Verweise auf die Dateien (`maschinen.json` beim Benutzer); die Art aus
+  den Betriebsarten: Revolver oder Spindel im Tisch – Drehmaschine; sonst so viele Achsen wie
+  Rundachsen zum Positionieren (3-, 4-, 5-Achs).
+- Von selbst in die Liste: beim Speichern eines Dokuments mit Maschine (Beobachter), beim
+  Prüfen und bei der Wahl im Assistenten (`reichweite.merke_maschine`); dazu Hinzufügen ….
+- Fenster mit Bearbeiten (öffnet die Datei und „Maschine bearbeiten“), Suchen …, Entfernen.
+
+### TEST
+- `test_maschinenspeicher` (Art aller Beispielmaschinen, 4-Achs, doppelt, ungespeichert,
+  verschoben, entfernen, kaputte Liste, merke_maschine), `test_sprache`, `test_hilfe`,
+  `test_reichweite`.
+- Szenarien `szenario_maschinen`, `szenario_maschine_merken`, `szenario_neue_maschine`,
+  `szenario_maschine_bearbeiten` (1.1.3).
+
+### NEXT
+- S2: die Maschine in Schritt 1 des Assistenten „Bearbeitung“.
+
 ## P-2026-10-02-57 maschinen-speicher-entschieden
 
 ### EINGELESEN

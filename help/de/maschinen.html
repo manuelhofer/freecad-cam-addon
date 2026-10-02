@@ -1,0 +1,35 @@
+<h2>Maschinen</h2>
+<p><b>Maschinen …</b> (Menü CAM-Addon) zeigt deine Maschinen in einer Liste: Name, Art und
+Datei. Eine Maschine ist eine FreeCAD-Datei mit einer Baugruppe und dem Maschinenobjekt aus
+<a href="neue_maschine.html">Neue Maschine</a> oder <b>Maschine bearbeiten</b>. Die Liste
+merkt sich, wo die Dateien liegen – sie kopiert sie nicht: Änderst du eine Maschine, gilt das
+sofort.</p>
+
+<h3>Wie eine Maschine in die Liste kommt</h3>
+<ul>
+<li>von selbst, wenn du eine Datei mit einer Maschine <b>speicherst</b> – auch eine, die du
+gerade mit „Neue Maschine …“ gebaut hast;</li>
+<li>von selbst, wenn du auf ihr <b>prüfst</b> („Auf der Maschine prüfen“) oder sie in einem
+Assistenten wählst;</li>
+<li>mit <b>Hinzufügen …</b>: eine gespeicherte Maschinen-Datei wählen.</li>
+</ul>
+
+<h3>Die Art</h3>
+<p>Das Addon liest die Art aus den Achsen der Maschine: Eine <b>Drehmaschine</b> hat einen
+Revolver oder eine Spindel, die das Teil dreht – dahinter stehen die Plätze und die
+Zusatzachsen (C, Y). Sonst ist sie eine <b>Fräse</b>: ohne Rundachse 3-Achs, mit einer
+4-Achs (A, B oder C), mit zwei 5-Achs. Danach richtet sich später, was der Assistent
+vorschlägt – auf der Drehmaschine eine Stange statt eines Quaders.</p>
+
+<h3>Die Knöpfe</h3>
+<ul>
+<li><b>Hinzufügen …</b> – eine Maschinen-Datei wählen.</li>
+<li><b>Neue Maschine …</b> – eine bauen; in die Liste kommt sie, sobald du sie speicherst.</li>
+<li><b>Bearbeiten</b> (oder Doppelklick) – öffnet die Datei und „Maschine bearbeiten“.</li>
+<li><b>Suchen …</b> – steht eine Datei rot („nicht gefunden“), liegt sie nicht mehr dort:
+zeig, wo sie jetzt ist, der Eintrag zieht mit.</li>
+<li><b>Entfernen</b> – nimmt die Maschine aus der Liste; die Datei bleibt. Speicherst du sie
+wieder, kommt sie zurück.</li>
+</ul>
+<p>Die Liste liegt als <code>maschinen.json</code> im Ordner <code>CamAddon</code> deiner
+FreeCAD-Benutzerdaten, wie die Werkzeugverwaltung: Neustart und Update überlebt sie.</p>

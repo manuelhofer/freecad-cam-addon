@@ -33,7 +33,7 @@ from dataclasses import dataclass, field
 
 import FreeCAD
 
-from . import PARAMETER_PFAD, einheiten
+from . import PARAMETER_PFAD, einheiten, maschinenspeicher
 from . import bestueckung as bs
 from . import job_schnittwerte as js
 from . import maschine as m
@@ -310,10 +310,15 @@ def gemerkte_maschine(job=None):
 
 
 def merke_maschine(job, pfad):
-    """Merkt die Maschinendatei am Job und als zuletzt benutzte. Ein leerer Pfad – die
-    Maschine ist nie gespeichert worden – ändert nichts."""
+    """Merkt die Maschinendatei am Job und als zuletzt benutzte – und nimmt sie in die Liste
+    der Maschinen (maschinenspeicher, W-011). Ein leerer Pfad – die Maschine ist nie
+    gespeichert worden – ändert nichts."""
     if not pfad:
         return
+    try:
+        maschinenspeicher.merken_datei(pfad)
+    except Exception as fehler:  # die Liste ist ein Zusatz – das Prüfen geht vor
+        FreeCAD.Console.PrintWarning(f"CAM-Addon: Maschinen-Liste: {fehler}\n")
     FreeCAD.ParamGet(PARAMETER_PFAD).SetString(ZULETZT_MASCHINE, pfad)
     if getattr(job, EIGENSCHAFT_MASCHINE, "") == pfad:
         return

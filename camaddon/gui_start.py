@@ -21,6 +21,7 @@ from . import (
     gui_hilfe,
     gui_job_schnittwerte,
     gui_maschine,
+    gui_maschinen,
     gui_neue_maschine,
     gui_reichweite,
     gui_sprachwahl,
@@ -57,6 +58,7 @@ WERKZEUGLEISTE = [
 MENUE = [
     "CamAddon_SoGehts",
     "Separator",
+    "CamAddon_Maschinen",
     "CamAddon_NeueMaschine",
     "CamAddon_MaschineBearbeiten",
     "CamAddon_MaschineVerfahren",
@@ -79,6 +81,7 @@ def starten():
     BEFEHLE.update(
         {
             "CamAddon_SoGehts": gui_hilfe.BefehlSoGehts(),
+            "CamAddon_Maschinen": gui_maschinen.BefehlMaschinen(),
             "CamAddon_NeueMaschine": gui_neue_maschine.BefehlNeueMaschine(),
             "CamAddon_MaschineBearbeiten": gui_maschine.BefehlMaschineBearbeiten(),
             "CamAddon_MaschineVerfahren": gui_verfahren.BefehlMaschineVerfahren(),
@@ -98,6 +101,7 @@ def starten():
     gui_sprachwahl.NACH_SPRACHWAHL.append(befehle_beschriften)
     FreeCADGui.getMainWindow().workbenchActivated.connect(_werkzeugleiste_anhaengen)
     gui_sprachwahl.einstellungsseite_anmelden()
+    gui_maschinen.beobachten()  # gespeicherte Maschinen kommen in die Liste (W-011)
     gui_sprachwahl.beim_ersten_start_fragen()
     gui_aktualisierung.beim_start()
     FreeCAD.Console.PrintLog("CAM-Addon geladen\n")

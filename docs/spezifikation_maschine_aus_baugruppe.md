@@ -602,6 +602,10 @@ Rohteil selten eckig.“
     in einem Assistenten gewählt wird; das Fenster (Menü CAM-Addon → Maschinen …) mit
     Hinzufügen, Neue Maschine, Bearbeiten, Entfernen (nur aus der Liste). Fertig, wenn
     Manuel seine Maschinen dort sieht und eine fehlende Datei rot steht mit „Suchen …“.
+    **Gebaut:** P-2026-10-02-58, 0.111.0 – `maschinenspeicher.py`, `gui_maschinen.py`
+    (Menü CAM-Addon → Maschinen …), Hilfe „Maschinen“; die Art liest `beschreibe` aus den
+    Betriebsarten und Rollen (Revolver oder Spindel im Tisch: Drehmaschine; sonst die Zahl
+    der Rundachsen zum Positionieren); `test_maschinenspeicher`, `szenario_maschinen`.
   - **S2 Die Maschine in Schritt 1:** die Liste, vorgewählt wie oben; gemerkt am Job;
     „Auf der Maschine prüfen“ fragt nicht mehr, wenn der Job eine hat.
   - **S3 Die Art entscheidet:** Drehmaschine oder 4-Achs-Fräse – weiter im 4-Achs-Assistenten

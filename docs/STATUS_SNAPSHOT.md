@@ -171,8 +171,12 @@ geht“): im Mittel ae je mm Weg, in der Mitte der Bögen kurz bis 1,7 ae, über
 eine Fräserbreite am Stück, nie mehr als der halbe Fräser im Eingriff – Nut 20 × 50 31 statt 47
 Bögen, an der Wand die Nut wieder vorn (Kontur 28 % langsamer); offene Nut 16 × 60 1,25 statt
 1,68 min. Der Prüfstand misst die Last auf Bögen je Sehne und den Weg über 1,25 ae
-(P-2026-10-02-56, 0.110.0).
-Als Nächstes (Manuel, 2026-10-02; Spezifikation Strategien, Abschnitt 12): Schlichten nach dem Räumen besprechen – eigener Fräser und eigene Werte, mit Aufmaß am Boden auch den Boden (Vorschlag in 12.4); Maschinen-Speicher (W-011, entschieden: A – S1 Speicher und Fenster, S2 Maschine in Schritt 1, S3 die Art entscheidet, S4 Rohteil aus dem Dokument); der Prüfstand meldet zu viel Last für alle Strategien, nicht nur die Nut (12.1, offen). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+(P-2026-10-02-56, 0.110.0). Maschinen-Speicher (W-011, Manuel: „1 a“): Menü CAM-Addon →
+„Maschinen …“ zeigt die eigenen Maschinen mit Name, Art (aus den Achsen: Drehmaschine mit
+Revolver, 3-, 4-, 5-Achs-Fräse) und Datei; eine Maschine kommt von selbst dazu, wenn man sie
+speichert, auf ihr prüft oder sie im Assistenten wählt; Hinzufügen …, Bearbeiten, Suchen …
+(Datei verschoben), Entfernen (P-2026-10-02-58, 0.111.0).
+Als Nächstes (Manuel, 2026-10-02; Spezifikation Strategien, Abschnitt 12): Schlichten nach dem Räumen besprechen – eigener Fräser und eigene Werte, mit Aufmaß am Boden auch den Boden (Vorschlag in 12.4); Maschinen-Speicher (W-011: S1 gebaut; als Nächstes S2 die Maschine in Schritt 1 des Assistenten, S3 die Art entscheidet, S4 Rohteil aus dem Dokument); der Prüfstand meldet zu viel Last für alle Strategien, nicht nur die Nut (12.1, offen). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
