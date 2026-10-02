@@ -109,10 +109,15 @@ def groesse_fest(wert, groesse, stellen):
 
 
 def zahl_zeigen(wert):
-    """Zeigt eine Zahl im Zahlenformat der Oberfläche; 0 (unbekannt) als leeres Feld."""
+    """Zeigt eine Zahl im Zahlenformat der Oberfläche; 0 (unbekannt) als leeres Feld.
+
+    Auf 9 Nachkommastellen gerundet (eingeben lassen sich 6): Rechenrauschen wie
+    die Höhe −5,6e-18 einer Fläche auf 0 zeigt 0, nicht „-5,60364933565e-18“.
+    """
+    wert = round(float(wert or 0), 9)
     if not wert:
         return ""
-    return zahlenformat().toString(float(wert), "g", 12)  # 12 gültige Stellen
+    return zahlenformat().toString(wert, "g", 12)  # 12 gültige Stellen
 
 
 def winkel_zeigen(grad):

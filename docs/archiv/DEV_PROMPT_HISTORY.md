@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-16 hoehe-null
+
+### EINGELESEN
+- `gui_zahlen` (`zahl_zeigen`, `groesse_zeigen`), `einheiten.gerundet`,
+  `gui_bearbeitung._flaechen_zeigen`, `tests/gui/szenario_erster_start.py`.
+
+### DATEIEN
+- `camaddon/gui_zahlen.py`, `tests/gui/szenario_formplatte.py`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.78.0)
+
+### AKZEPTANZKRITERIUM
+Eine ebene Fläche auf Höhe 0 steht in der Flächenliste des Assistenten „Bearbeitung“ als
+„Höhe 0“ – nicht als „Höhe -5,60364933565e-18“; kein Zahlenfeld zeigt Rechenrauschen.
+
+### DONE
+- Gesehen auf dem Bild der Formplatte (Oberseite auf 0): „Face3  eben nach oben, Höhe
+  -5,60364933565e-18“. `zahl_zeigen` zeigte 12 gültige Stellen, auch von einem Rest der Rechnung.
+- `zahl_zeigen` rundet vorher auf 9 Nachkommastellen (eingeben lassen sich 6); was dann 0 ist,
+  bleibt leer wie bisher – die Liste zeigt dafür „0“.
+
+### TEST
+- 1.1.3: `szenario_formplatte` (prüft jetzt die Zeile „… eben nach oben, Höhe 0“ und keine
+  Zahl mit „e-“), `szenario_erster_start`, `szenario_felder`, `szenario_zoll` grün; black/ruff
+  grün.
+
+### NEXT
+- Wie P-2026-10-02-11.
+
 ## P-2026-10-02-15 lagerbock
 
 ### EINGELESEN

@@ -5,6 +5,8 @@
 # Freiformflächen gewählt waren – hier bekam die Mulde gar keine Operation. Jetzt: Planfräsen
 # oder Räumen für die Oberseite, Bohren mit T2, 3D-Schruppen mit T1 und 3D-Schlichten mit T3 für
 # die Mulde. „Anlegen“ legt alle an; „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
+import re
+
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -79,6 +81,13 @@ def schritte(h):
     rot = [(b.s.kennung, b.hinweis.text()) for b in panel.bloecke if b.aktiv() and b.hinweis.text()]
     h.pruefe(not rot, f"rot angehakt: {rot}")
     h.pruefe(bohren.ergebnis.text().startswith("→ 4 Bohrungen"), f"{bohren.ergebnis.text()!r}")
+    liste = panel.flaechen_liste
+    eintraege = [liste.item(i).text() for i in range(liste.count())]
+    h.pruefe(  # die Oberseite auf 0 – vorher „Höhe -5,60364933565e-18“
+        f"{oben}  eben nach oben, Höhe 0" in eintraege
+        and not any(re.search(r"\de-\d", t) for t in eintraege),
+        f"Flächenliste: {eintraege}",
+    )
     h.bild("1_formplatte", panel.form)
 
     # --- Anlegen ------------------------------------------------------------------------------
