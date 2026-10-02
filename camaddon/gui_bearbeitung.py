@@ -15,6 +15,8 @@ _Strategie (was sie braucht, wie sie rechnet), ihr Block im Fenster ein _Block; 
 (Tasche adaptiv, Bohren) kommen so dazu (S3f, S3g).
 """
 
+import html
+
 import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
@@ -2047,6 +2049,12 @@ class _Block:
         self.haken.setFont(schrift)
         self.haken.toggled.connect(lambda _an: self.panel.haken_geklickt(self))
         aufbau.addWidget(self.haken)
+        # Passt die Strategie nicht zur Wahl: eine Zeile „Titel – was man anklicken muss“ statt
+        # des gesperrten Hakens und des Satzes darunter.
+        self.kurz = _grau()
+        self.kurz.setTextFormat(QtCore.Qt.RichText)
+        self.kurz.hide()
+        aufbau.addWidget(self.kurz)
         self.erklaerung = _grau(strategie.text())
         aufbau.addWidget(self.erklaerung)
         self.inhalt = QtGui.QWidget()
@@ -2099,7 +2107,12 @@ class _Block:
         self.reihen.widget.setVisible(self.aktiv())
         # Die Erklärung, solange angehakt – oder als Satz, was man anklicken muss; sonst steht
         # sie im Tooltip am Titel, und das Ergebnis genügt.
-        self.erklaerung.setVisible(self.aktiv() or not self.moeglich)
+        self.erklaerung.setVisible(self.aktiv())
+        self.haken.setVisible(self.moeglich)
+        self.kurz.setVisible(not self.moeglich)
+        if not self.moeglich:
+            titel = html.escape(self.s.titel())
+            self.kurz.setText(f"<b>{titel}</b> – {html.escape(self.erklaerung.text())}")
 
     def fraeser(self):
         i = self.wahl_fraeser.currentIndex()

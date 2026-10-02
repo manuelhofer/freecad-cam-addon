@@ -128,8 +128,9 @@ Abschnitts nur, solange er angehakt ist (P-2026-10-02-33); 0.95.0 – fertig und
 geprüft. Werkzeugverwaltung: ohne Schnittwerte statt einer leeren Tabelle der Satz, wie es
 weitergeht (P-2026-10-02-34); 0.96.0 – fertig und automatisch geprüft. Der schnellere Fräser
 nennt seine Zeit als „Ziel“ – die echte Bahn braucht länger (P-2026-10-02-35, 0.96.1). Nicht
-angehakte, passende Blöcke ohne die Erklärung, nur mit dem Ergebnis (P-2026-10-02-36, 0.96.2) –
-Manuels Platte jetzt 1568 Pixel.
+angehakte, passende Blöcke ohne die Erklärung, nur mit dem Ergebnis (P-2026-10-02-36, 0.96.2);
+was nicht passt, je eine Zeile „Name – was man anklicken muss“ (P-2026-10-02-37, 0.96.3) –
+Manuels Platte jetzt 1166 Pixel statt 5101.
 Als Nächstes: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11); der schnellere Fräser aus der Zielzeit mit einem Klick übernehmen (wenn Manuel will); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist

@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-37 passt-nicht-eine-zeile
+
+### EINGELESEN
+- P-2026-10-02-32: Unter „Passt nicht zur Auswahl“ je Block zwei Zeilen – der gesperrte Haken
+  und darunter der Satz.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_Block`: `kurz`), `help/de|en/bearbeitung.html`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.96.3)
+
+### AKZEPTANZKRITERIUM
+Je Block, der nicht passt, eine Zeile: „**Name** – was man anklicken muss“.
+
+### DONE
+- `_Block.kurz` (Rich Text, Name fett) statt Haken und Erklärung, solange die Strategie nicht
+  geht; der Haken bleibt für alles andere, wie er war.
+- Manuels Platte im Bild: 1166 Pixel (zu Beginn der Nacht 5101).
+
+### TEST
+- 1.1.3: `szenario_zielzeit`, `szenario_bearbeitung`, `szenario_kontur`, `szenario_flansch`,
+  `szenario_bohrung`, `szenario_nut_offen`, `szenario_entgraten`, `szenario_gewinde`;
+  `test_hilfe`; black/ruff grün.
+
+### NEXT
+- Manuels Urteil, ob man so schneller findet, was man braucht.
+
 ## P-2026-10-02-36 erklaerung-mit-haken
 
 ### EINGELESEN
