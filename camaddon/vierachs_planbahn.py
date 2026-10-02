@@ -42,6 +42,11 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
   rundum) im Rahmen der Bohrung – die Rundachse auf ihre Öffnung, die Spitze längs ihrer Achse,
   quer versetzt mit dem Y, wenn sie nicht durch die Mitte geht. Eine durchgehende von beiden
   Seiten je bis zur Mitte der Stange.
+- **Radial bohren** (P-2026-10-02-08): Mit einem Bohrer (Planwerte.bohrer) werden die
+  Querbohrungen gebohrt statt gefräst (gebohrt_punkte(): wie „Bohren“ im Quader, tiefer als
+  3 × D in Hüben) – mit seinem Durchmesser, eine Sackbohrung nur mit seiner Spitze unten; eine
+  durchgehende von beiden Seiten, jede Seite mit der Spitze über die Mitte hinaus (so hat sie
+  überall den vollen Durchmesser, und X muss nur um die Länge der Spitze unter null).
 
 Gerechnet wird in (a, Höhe, Winkel, Versatz) wie vierachs_bahn.Punkt – die Höhe längs der
 Werkzeugachse, der Winkel der der Rundachse, der Versatz quer. Läuft ohne Oberfläche.
@@ -52,6 +57,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from . import einheiten
 from . import fraeserform as ff
 from . import vierachs_bahn as vb
 from . import vierachs_huelle as vh
@@ -152,6 +158,9 @@ class Planwerte:
     halter: float = 0.0  # wie bei vierachs_bahn.Schruppwerte
     eintauchwinkel: float = vb.EINTAUCHWINKEL  # Grad, für die Rampe ins Material
     rest: tuple = None  # (a, φ rad, r) nach dem Schruppen (restmaterial.Stange); None: Stange
+    # (Durchmesser, Spitzenwinkel) eines Bohrers: Die Querbohrungen werden radial gebohrt statt
+    # gefräst (gebohrt()), ebene Flächen nicht; None: ein Fräser mit ebener Stirn.
+    bohrer: tuple = None
 
 
 @dataclass
@@ -165,7 +174,9 @@ class Planbahn:
     r_min: float  # die tiefste Spitze: Höhe längs der Werkzeugachse (mm)
     hinten_frei: float = 0.0  # wie bei vierachs_bahn.Bahn
     nuten: int = 0  # so viele Flächen davon als Nut (nut_bahn)
-    bohrungen: int = 0  # so viele Bohrungen quer (bohrung_bahn), je Seite gezählt
+    bohrungen: int = 0  # so viele Bohrungen quer – eine durchgehende einmal, von beiden Seiten
+    huebe: int = 0  # mit dem Bohrer: so oft fährt er hinab, über alle Seiten
+    seiten: int = 0  # mit dem Bohrer: von so vielen Seiten gebohrt
 
 
 def ebener_radius(form):
@@ -258,12 +269,32 @@ def bohrungen(form, laengs, radial, namen):
     return ergebnis
 
 
-def boden_der_bohrung(laengs, radial, ebene, bohrung):
+@dataclass(frozen=True)
+class Kegelgrund:
+    """Der Grund einer gebohrten Sackbohrung: die Spitze des Bohrers, ein Kegel – im Rahmen
+    ihrer Ebene (a längs, q quer, die Höhe längs der Normale)."""
+
+    a: float  # die Achse der Bohrung, längs
+    q: float  # … und quer
+    spitze: float  # die Höhe der Spitze
+    radius: float  # der Radius der Bohrung
+    laenge: float  # so lang ist die Spitze: oben hat sie den Radius
+
+
+def boden_der_bohrung(laengs, radial, ebene, bohrung, bohrer=None, durch=False):
     """(Ebene, Part.Face): der Grund der Bohrung als Kreisscheibe im Job – für den Vergleich auf
-    der Stange (restmaterial.boden_radien)."""
+    der Stange (restmaterial.boden_radien). Mit `bohrer` ((Durchmesser, Spitzenwinkel), radial
+    gebohrt) ist der Grund einer Sackbohrung die Spitze des Bohrers: (Ebene, Kegelgrund); eine
+    durchgehende (`durch`) behält die Scheibe in der Mitte."""
     import FreeCAD
     import Part
 
+    if bohrer is not None and not durch:
+        from . import bohren as bh
+
+        lang = bh.spitze(*bohrer)
+        x, y = bohrung.mitte
+        return ebene, Kegelgrund(x, -y, bohrung.z_unten - lang, bohrung.radius, lang)
     l_, u_, v_ = vh.rahmen(laengs, radial)
     phi = math.radians(ebene.phi)
     n = u_ * math.cos(phi) + v_ * math.sin(phi)
@@ -302,6 +333,74 @@ def _bohrung_eingeengt(bohrung, radius):
 
     enger = min(NUT_LUFT, max(bohrung.radius - radius, 0.0))
     return dataclasses.replace(bohrung, radius=bohrung.radius - enger)
+
+
+def bohrer_passt(paare, bohrer):
+    """Bohrt der Bohrer `bohrer` ((Durchmesser, Spitzenwinkel)) alle Querbohrungen `paare`
+    ([(Ebene, Bohrung)], bohrungen()) – mit seinem Durchmesser, eine Sackbohrung mit seiner
+    Spitze unten? So prüft auch gebohrt_punkte(); False ohne Bohrung."""
+    from . import bohren as bh
+
+    if not paare or not bohrer:
+        return False
+    durchmesser, winkel = bohrer
+    seiten = {}
+    for ebene, _b in paare:
+        seiten[ebene.name] = seiten.get(ebene.name, 0) + 1
+    for ebene, b in paare:
+        if abs(2 * b.radius - durchmesser) > bh.GLEICH_D:
+            return False
+        if seiten[ebene.name] < 2 and (b.spitze <= 0 or abs(b.spitze - winkel) > bh.GLEICH_WINKEL):
+            return False
+    return True
+
+
+def gebohrt_punkte(bohrung, ebene, w, oben, sicher, durch):
+    """([vierachs_bahn.Punkt], Hübe, tiefste Spitze) – die Bohrung radial mit dem Bohrer
+    `w.bohrer` gebohrt, im Rahmen ihrer Ebene wie „Bohren“ (bohren.planen): über der Bohrung auf
+    die Ebene R knapp über dem Material, im Vorschub hinab – tiefer als 3 × D in Hüben von 1 × D,
+    je Hub zurück auf R und im Eilgang bis knapp über den Grund davor –, zuletzt auf die sichere
+    Höhe. Die Spitze geht um ihre Länge unter den Grund der Wand: bis dort hat die Bohrung den
+    vollen Durchmesser. `durch`: die Seite einer durchgehenden (bis zur Mitte; bohrungen()) –
+    sonst eine Sackbohrung, die unten die Spitze des Bohrers haben muss. ValueError mit einem
+    Satz, wenn der Bohrer nicht passt."""
+    from . import bahn as bn
+    from . import bohren as bh
+
+    durchmesser, winkel = w.bohrer
+    soll = einheiten.text(2 * bohrung.radius, einheiten.LAENGE)
+    if abs(2 * bohrung.radius - durchmesser) > bh.GLEICH_D:
+        bohrer = einheiten.text(durchmesser, einheiten.LAENGE)
+        raise ValueError(tr("bh.fehler.durchmesser", bohrer=bohrer, durchmesser=soll))
+    if not durch and bohrung.spitze <= 0:
+        raise ValueError(tr("vp.fehler.sack", durchmesser=soll))
+    if not durch and abs(bohrung.spitze - winkel) > bh.GLEICH_WINKEL:
+        raise ValueError(
+            tr(
+                "bh.fehler.spitze",
+                durchmesser=soll,
+                spitze=f"{bohrung.spitze:.0f}",
+                winkel=f"{winkel:.0f}",
+            )
+        )
+    unten = bohrung.z_unten - bh.spitze(durchmesser, winkel)
+    r_ebene = min(oben + w.sicherheit, sicher)
+    hub = bh.hub_fuer(oben - unten, durchmesser)
+    x, y = bohrung.mitte
+    punkte = [bn.Punkt(True, x, y, sicher), bn.Punkt(True, x, y, r_ebene)]
+    tiefe = r_ebene
+    huebe = 0
+    while tiefe > unten + 1e-9:
+        if hub > 0 and tiefe < r_ebene - 1e-9:
+            punkte.append(bn.Punkt(True, x, y, min(r_ebene, tiefe + bh.ABSTAND_HUB)))
+        ziel = max(unten, tiefe - hub) if hub > 0 else unten
+        punkte.append(bn.Punkt(False, x, y, ziel, True))
+        huebe += 1
+        tiefe = ziel
+        if hub > 0 and tiefe > unten + 1e-9:
+            punkte.append(bn.Punkt(True, x, y, r_ebene))
+    punkte.append(bn.Punkt(True, x, y, sicher))
+    return _zurueck(punkte, ebene), huebe, unten
 
 
 def _zurueck(punkte_lokal, ebene):
@@ -409,13 +508,19 @@ def planen(
     w = werte
     form = w.form
     radius = form.radius
-    r_eben = ebener_radius(form)
-    if r_eben <= 0:
-        raise ValueError(tr("vp.fehler.form"))
-    if w.zustellung <= 0 or w.zeilenabstand <= 0:
-        raise ValueError(tr("vp.fehler.werte"))
-    if w.zeilenabstand > 2 * r_eben:
-        raise ValueError(tr("vp.fehler.zeilenabstand"))
+    if w.bohrer is not None:
+        flaechen = []  # ein Bohrer fräst keine Fläche
+        if not bohrungen_:
+            raise ValueError(tr("vp.fehler.keine_bohrung"))
+        r_eben = radius
+    else:
+        r_eben = ebener_radius(form)
+        if r_eben <= 0:
+            raise ValueError(tr("vp.fehler.form"))
+        if w.zustellung <= 0 or w.zeilenabstand <= 0:
+            raise ValueError(tr("vp.fehler.werte"))
+        if w.zeilenabstand > 2 * r_eben:
+            raise ValueError(tr("vp.fehler.zeilenabstand"))
     if not flaechen and not bohrungen_:
         raise ValueError(tr("vp.fehler.keine_ebene"))
     teil_vorne, teil_hinten = _enden(
@@ -436,11 +541,26 @@ def planen(
     lagen_gesamt = zeilen_gesamt = flaechen_gefraest = nuten_gefraest = bohrungen_gefraest = 0
     r_min = math.inf
     gebohrt = set()  # Namen: eine durchgehende zählt einmal, auch von beiden Seiten gefräst
+    seiten = {}
+    for ebene, _b in bohrungen_:
+        seiten[ebene.name] = seiten.get(ebene.name, 0) + 1
+    huebe = seiten_gebohrt = 0
     for ebene, bohrung in sorted(bohrungen_, key=lambda eb: eb[0].phi):
         oben = _material_ueber(w, ebene, radius)
         if oben <= bohrung.z_unten + vb.GLEICH:
             continue  # steht nichts mehr drüber
-        stueck, bohrbahn = _bohrung_punkte(bohrung, ebene, w, oben, sicher)
+        if w.bohrer is not None:
+            # von beiden Seiten: eine durchgehende – jede Seite bis über die Mitte
+            stueck, hub_zahl, z_min = gebohrt_punkte(
+                bohrung, ebene, w, oben, sicher, seiten[ebene.name] > 1
+            )
+            huebe += hub_zahl
+            seiten_gebohrt += 1
+        else:
+            stueck, bohrbahn = _bohrung_punkte(bohrung, ebene, w, oben, sicher)
+            lagen_gesamt += bohrbahn.lagen
+            zeilen_gesamt += max(1, int(math.ceil(bohrbahn.umlaeufe)))
+            z_min = bohrbahn.z_min
         punkte.extend(stueck)
         letzter = punkte[-1]
         punkte.append(vb.Punkt(True, letzter.a, sicher, ebene.phi, q=letzter.q))
@@ -448,9 +568,7 @@ def planen(
             flaechen_gefraest += 1
             bohrungen_gefraest += 1
         gebohrt.add(ebene.name)
-        lagen_gesamt += bohrbahn.lagen
-        zeilen_gesamt += max(1, int(math.ceil(bohrbahn.umlaeufe)))
-        r_min = min(r_min, bohrbahn.z_min)
+        r_min = min(r_min, z_min)
     for ebene in sorted(flaechen, key=lambda e: e.phi):
         ziel = ebene.tiefe + w.aufmass
         oben = _material_ueber(w, ebene, radius)
@@ -526,6 +644,8 @@ def planen(
         hinten_frei,
         nuten_gefraest,
         bohrungen_gefraest,
+        huebe,
+        seiten_gebohrt,
     )
 
 

@@ -8,6 +8,7 @@
 # geladen; ohne ebene Fläche oder mit Kugelfräser ein Satz statt einer Bahn. Eine Passfedernut
 # (8 breit auf der Welle Ø 30): mit Ø 8 in voller Breite, mit Ø 6 als Trochoide – die Mitte des
 # Fräsers im Langloch, bis an die Enden.
+import dataclasses
 import math
 import os
 import sys
@@ -297,6 +298,128 @@ pruefe(vergleich_b.kleinster >= -rm.BLAU_AB, f"Querbohrungen: ins Teil {vergleic
 print(ascii(f"Querbohrungen: {bohr_bahn.bohrungen} Bohrungen von {len(paare)} Seiten, "
             f"{bohr_bahn.lagen} Lagen, {vb.dauer(bohr_bahn, 500.0):.2f} min, "
             f"ins Teil {vergleich_b.kleinster:.3f}"))  # fmt: skip
+
+# --- Radial bohren (P-2026-10-02-08): mit dem Bohrer Ø 8 (118°) statt dem Fräser – eine
+# durchgehende Ø 8 quer (von beiden Seiten, je mit der Spitze über die Mitte), eine Sackbohrung
+# Ø 8, 22 tief mit der Spitze des Bohrers unten (tiefer als 3 × D: in Hüben von 1 × D) und eine
+# flache, 10 tief, auch mit Spitze. Jeder Hub genau auf der Achse der Bohrung, die Spitze nie
+# tiefer als die gezeichnete; auf der Stange nirgends ins Teil – auch nicht unter dem Ende der
+# Wand, wo die Spitze tiefer geht (ihr Grund ist der Kegel, vierachs_planbahn.Kegelgrund). Ein
+# Bohrer Ø 6 passt nicht, ein ebener Grund geht nicht: je ein Satz.
+lang = 4.0 / math.tan(math.radians(59.0))
+bohrwelle2 = (
+    Part.makeCylinder(15, 100, V(0, 0, -100))
+    .cut(Part.makeCylinder(4, 27, V(-7, 0, -30), V(1, 0, 0)))
+    .cut(Part.makeCone(4, 0, lang, V(-7, 0, -30), V(-1, 0, 0)))
+    .cut(Part.makeCylinder(4, 40, V(0, -20, -70), V(0, 1, 0)))
+    .cut(Part.makeCylinder(4, 12, V(0, 5, -50), V(0, 1, 0)))
+    .cut(Part.makeCone(4, 0, lang, V(0, 5, -50), V(0, -1, 0)))
+    .removeSplitter()
+)
+namen2 = [
+    f"Face{i + 1}"
+    for i, f in enumerate(bohrwelle2.Faces)
+    if isinstance(f.Surface, Part.Cylinder) and abs(f.Surface.Radius - 4.0) < 1e-6
+]
+paare2 = vp.bohrungen(bohrwelle2, LAENGS, RADIAL, namen2)
+bohrer = vplan.bohrer_von(
+    wz.Werkzeug(nummer=2, art=wz.BOHRER, durchmesser=8.0, spitzenwinkel=118.0)
+)
+pruefe(bohrer == (8.0, 118.0), f"Bohrer: {bohrer}")
+pruefe(vplan.bohrer_von(wz.Werkzeug(nummer=1, durchmesser=8.0)) is None, "Fräser als Bohrer")
+pruefe(vp.bohrer_passt(paare2, bohrer), f"Bohrer passt nicht: {[(e.phi, b) for e, b in paare2]}")
+pruefe(not vp.bohrer_passt(paare2, (6.0, 118.0)), "Ø 6 passt zu Ø 8")
+pruefe(not vp.bohrer_passt(paare, bohrer), "Bohrer bei ebenem Grund")
+w_bohrer = vp.Planwerte(
+    form=vplan.form_des_bohrers(bohrer),
+    stange_radius=16.0,
+    zustellung=2.0,
+    zeilenabstand=3.6,
+    aufmass=0.0,
+    a_stange_vorne=1.0,
+    a_futter=-120.0,
+    bohrer=bohrer,
+)
+bb2 = vp.planen(vp.netz_ohne(bohrwelle2, []), LAENGS, RADIAL, w_bohrer, [], bohrungen_=paare2)
+pruefe(
+    bb2.bohrungen == 3 and bb2.seiten == 4 and bb2.huebe == 7,
+    f"Bohrungen {bb2.bohrungen}, Seiten {bb2.seiten}, Hübe {bb2.huebe}",
+)
+pruefe(abs(bb2.r_min - (-7.0 - lang)) < 1e-6, f"tiefste Spitze {bb2.r_min:.3f}")
+for ebene, b in paare2:
+    mitte_q = -b.mitte[1]
+    an_ihr = [
+        p
+        for p in bb2.punkte
+        if not p.eilgang and abs(p.phi - ebene.phi) < 1e-6 and abs(p.a - b.mitte[0]) < 6.0
+    ]
+    abseits = max((math.hypot(p.a - b.mitte[0], p.q - mitte_q) for p in an_ihr), default=99.0)
+    spitze = b.z_unten - lang  # eine durchgehende: z_unten 0, die Mitte
+    pruefe(
+        an_ihr and abseits < 1e-6 and min(p.r for p in an_ihr) > spitze - 1e-6,
+        f"Bohrung φ {ebene.phi:.0f}: abseits {abseits:.3f}, Spitze {min(p.r for p in an_ihr):.3f}",
+    )
+abtrag_r = rm.Stange(16.0, -120.0, 1.0)
+abtrag_r.fahre_stuecke(
+    [(p.a, p.r, p.phi, p.q) for p, n in zip(bb2.punkte, bb2.punkte[1:], strict=False) if not n.eilgang],
+    [(n.a, n.r, n.phi, n.q) for p, n in zip(bb2.punkte, bb2.punkte[1:], strict=False) if not n.eilgang],
+    vplan.form_des_bohrers(bohrer),
+)  # fmt: skip
+netz_r = vh.vernetze(bohrwelle2, 0.01)
+genau_r = rm.teilradien(netz_r, LAENGS, RADIAL, abtrag_r, rm.GENAU)
+namen_r = [e.name for e, _b in paare2]
+boden_r = rm.boden_radien(
+    abtrag_r,
+    LAENGS,
+    RADIAL,
+    [
+        vp.boden_der_bohrung(LAENGS, RADIAL, e, b, bohrer, namen_r.count(e.name) > 1)
+        for e, b in paare2
+    ],
+)
+erlaubt_r = np.where(np.isfinite(boden_r), np.maximum(genau_r - boden_r, 0.0), 0.0)
+vergleich_r = rm.vergleiche(
+    abtrag_r, rm.teilradien(netz_r, LAENGS, RADIAL, abtrag_r), 0.0, genau_r, erlaubt=erlaubt_r
+)
+pruefe(vergleich_r.kleinster >= -rm.BLAU_AB, f"Radial bohren: ins Teil {vergleich_r.kleinster:.3f}")
+scheiben = rm.boden_radien(
+    abtrag_r, LAENGS, RADIAL, [vp.boden_der_bohrung(LAENGS, RADIAL, e, b) for e, b in paare2]
+)
+erlaubt_s = np.where(np.isfinite(scheiben), np.maximum(genau_r - scheiben, 0.0), 0.0)
+vergleich_s = rm.vergleiche(
+    abtrag_r, rm.teilradien(netz_r, LAENGS, RADIAL, abtrag_r), 0.0, genau_r, erlaubt=erlaubt_s
+)
+print(ascii(f"  mit der Scheibe statt der Spitze: ins Teil {vergleich_s.kleinster:.3f}"))
+w_falsch = vp.Planwerte(
+    form=vplan.form_des_bohrers((6.0, 118.0)),
+    stange_radius=16.0,
+    zustellung=2.0,
+    zeilenabstand=3.6,
+    aufmass=0.0,
+    a_stange_vorne=1.0,
+    a_futter=-120.0,
+    bohrer=(6.0, 118.0),
+)
+for werte_b, welle_b, paare_b, text in (
+    (w_falsch, bohrwelle2, paare2, "Bohrer Ø 6"),
+    (
+        dataclasses.replace(
+            w_falsch, form=vplan.form_des_bohrers((10.0, 118.0)), bohrer=(10.0, 118.0)
+        ),
+        bohrwelle,
+        [(e, b) for e, b in paare if abs(b.radius - 5.0) < 1e-6],
+        "ebener Grund",
+    ),
+):
+    try:
+        vp.planen(vp.netz_ohne(welle_b, []), LAENGS, RADIAL, werte_b, [], bohrungen_=paare_b)
+        pruefe(False, f"{text}: keine Meldung")
+    except ValueError as meldung:
+        satz = str(meldung)
+        erwartet = ("Ø 6", "Ø 8") if text == "Bohrer Ø 6" else ("Ø 10", "ebenen Grund")
+        pruefe(all(teil in satz for teil in erwartet), f"{text}: {satz}")
+print(ascii(f"Radial bohren: {bb2.bohrungen} Bohrungen von {bb2.seiten} Seiten, {bb2.huebe} Huebe, "
+            f"{vb.dauer(bb2, 400.0, 400.0):.2f} min, ins Teil {vergleich_r.kleinster:.3f}"))  # fmt: skip
 
 # Ohne ebene Fläche, ohne ebene Stirn, Zeilenabstand zu groß: ein Satz.
 for werte_falsch, flaechen_falsch, text in (

@@ -10,6 +10,10 @@ Achse quer zur Stange (bei C das Y), in Lagen bis auf die Fläche plus Aufmaß. 
 schruppen“ des Jobs stehen ließen, rechnet sie mit: Die Lagen beginnen dort, wo noch Material
 steht.
 
+Mit einem Bohrer am Controller (P-2026-10-02-08) bohrt sie die gewählten Querbohrungen radial
+(vierachs_planbahn.gebohrt_punkte) und heißt „Radial bohren T2“; ebene Flächen fräst nur ein
+Fräser.
+
 Modul- und Klassenname stehen in jeder gespeicherten Datei – sie bleiben. Der Modulname ist
 zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operationsart): Einsatz
 „Planen“, sonst „Schruppen“ oder „Schlichten“. Kein Qt hier; die Anzeige ist die von „Rundum
@@ -77,12 +81,13 @@ class PlanIndexiert(PathOp.ObjectOp):
                 ("App::PropertyInteger", "Ebenen", tr("vp.eigenschaft.ebenen")),
                 ("App::PropertyInteger", "Lagen", tr("vp.eigenschaft.lagen")),
                 ("App::PropertyInteger", "Zeilen", tr("vp.eigenschaft.zeilen")),
+                ("App::PropertyInteger", "Huebe", tr("vp.eigenschaft.huebe")),
             ),
         )
 
     @staticmethod
     def _editormodi(obj):
-        for name in ("Ebenen", "Lagen", "Zeilen"):
+        for name in ("Ebenen", "Lagen", "Zeilen", "Huebe"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         if "Workplane" in obj.PropertiesList:  # Wochen-Build: die Bahn dreht selbst
             obj.setEditorMode("Workplane", 2)
@@ -93,11 +98,12 @@ class PlanIndexiert(PathOp.ObjectOp):
                 raise ValueError(tr("vo.fehler.vorschub"))
             bahn = rechne(obj, self.job, self.model)
         except ValueError as fehler:
-            obj.Ebenen = obj.Lagen = obj.Zeilen = 0
+            obj.Ebenen = obj.Lagen = obj.Zeilen = obj.Huebe = 0
             FreeCAD.Console.PrintError(f"{obj.Label}: {fehler}\n")
             self.commandlist.append(Path.Command(f"({vo._ascii(str(fehler))})"))
             return
         obj.Ebenen, obj.Lagen, obj.Zeilen = bahn.flaechen, bahn.lagen, bahn.zeilen
+        obj.Huebe = bahn.huebe
         if bahn.hinten_frei > 0:
             from .reichweite import weg_text
 
@@ -120,7 +126,8 @@ class PlanIndexiert(PathOp.ObjectOp):
 def rechne(obj, job, modell):
     """Die Bahn (vierachs_planbahn.Planbahn) für die Operation `obj` im Job – nach den „Rundum
     schruppen“ des Jobs. ValueError mit einem Satz, wenn es nicht geht."""
-    form = vs.form_des_controllers(obj.ToolController)
+    bohrer = bohrer_des_controllers(obj.ToolController)
+    form = form_des_bohrers(bohrer) if bohrer else vs.form_des_controllers(obj.ToolController)
     if form is None:
         raise ValueError(tr("vp.fehler.form"))
     return bahn_fuer(
@@ -137,7 +144,39 @@ def rechne(obj, job, modell):
         vo.halter_zum_futter(obj),
         vo.flaechen(obj),
         float(obj.Eintauchwinkel),
+        bohrer=bohrer,
     )
+
+
+def bohrer_von(werkzeug):
+    """(Durchmesser, Spitzenwinkel) eines Bohrers aus der Werkzeugverwaltung – None bei jedem
+    anderen Werkzeug: Mit ihm bohrt „Plan indexiert“ die Querbohrungen radial."""
+    from . import bohren as bh
+    from . import werkzeuge as wz
+
+    if werkzeug is None or werkzeug.art != wz.BOHRER or werkzeug.durchmesser <= 0:
+        return None
+    winkel = wz.wert(werkzeug, "spitzenwinkel") or bh.SPITZENWINKEL
+    return float(werkzeug.durchmesser), float(winkel)
+
+
+def bohrer_des_controllers(tc):
+    """bohrer_von() für das Werkzeug eines Werkzeug-Controllers (aus seinem ToolBit)."""
+    from .werkzeuge_aus_cam import vom_controller
+
+    try:
+        return bohrer_von(vom_controller(tc))
+    except AttributeError:  # kein ToolBit, wie CAM es anlegt
+        return None
+
+
+def form_des_bohrers(bohrer):
+    """Die Form des Bohrers (fraeserform): ein Kegel mit seinem Spitzenwinkel bis zum Ø."""
+    from . import bohren as bh
+    from . import fraeserform as ff
+
+    durchmesser, winkel = bohrer
+    return ff.kegel(0.0, durchmesser / 2, bh.spitze(durchmesser, winkel))
 
 
 def bahn_fuer(
@@ -155,18 +194,22 @@ def bahn_fuer(
     flaechen=(),
     eintauchwinkel=vb.EINTAUCHWINKEL,
     toleranz=vp.TOLERANZ,
+    bohrer=None,
 ):
     """Die Bahn „Plan indexiert“ für Modell und Stange des Jobs. `abstaende`: (Überlauf,
     Abstand zum Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der
     Schruppbahnen davor (vierachs_schlichten.schruppbahnen()) – die Lagen beginnen auf dem Rest;
     `halter`: so weit reicht der Halter seitlich über die Werkzeugachse (halter.seitlich);
     `flaechen`: die gewählten Flächen („Face3“ …) – gefräst werden die ebenen längs der Stange
-    darunter; `toleranz`: so fein wird das Teil vernetzt. ValueError mit einem Satz, wenn es
-    nicht geht."""
+    darunter; `toleranz`: so fein wird das Teil vernetzt; `bohrer`: (Durchmesser,
+    Spitzenwinkel) – die Querbohrungen radial bohren (bohrer_von()), ebene Flächen nicht.
+    ValueError mit einem Satz, wenn es nicht geht."""
     laengs, radius, a_vorne, a_futter = vs._stange(job, laengs)
     form_teil = vs._teil(modell)
-    ebenen = vp.ebenen(form_teil, laengs, radial, flaechen)
+    ebenen = [] if bohrer else vp.ebenen(form_teil, laengs, radial, flaechen)
     bohrungen = vp.bohrungen(form_teil, laengs, radial, flaechen)
+    if bohrer and not bohrungen:
+        raise ValueError(tr("vp.fehler.keine_bohrung"))
     if not ebenen and not bohrungen:
         raise ValueError(tr("vp.fehler.keine_ebene"))
     ueberlauf, abstand_futter, sicherheit = abstaende
@@ -184,6 +227,7 @@ def bahn_fuer(
         halter=halter,
         eintauchwinkel=eintauchwinkel,
         rest=vs.rest_nach(schruppen, radius, a_futter, a_vorne) if schruppen else None,
+        bohrer=bohrer,
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
     return vp.planen(
@@ -210,6 +254,7 @@ def vorschau(
     halter=0.0,
     flaechen=(),
     eintauchwinkel=vb.EINTAUCHWINKEL,
+    bohrer=None,
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten, bevor es die
     Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt. ValueError wie
@@ -229,6 +274,7 @@ def vorschau(
         flaechen,
         eintauchwinkel,
         vp.VORSCHAU_TOLERANZ,
+        bohrer,
     )
 
 
@@ -289,9 +335,7 @@ def lege_an(
     obj.Flaechen = list(flaechen)
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
-    obj.Label = namen.eindeutig(
-        obj.Document, name or tr("vp.name", werkzeug=f"T{tc.ToolNumber}"), obj
-    )
+    obj.Label = namen.eindeutig(obj.Document, name or _name(tc), obj)
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
 
@@ -314,7 +358,7 @@ def aendere(
     Transaktion; `abstaende`, `halter`, `flaechen` und `eintauchwinkel` wie bei lege_an, ohne
     bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
-        obj.Label = namen.eindeutig(obj.Document, tr("vp.name", werkzeug=f"T{tc.ToolNumber}"), obj)
+        obj.Label = namen.eindeutig(obj.Document, _name(tc), obj)
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.Zustellung = zustellung
@@ -330,9 +374,19 @@ def aendere(
         obj.Eintauchwinkel = eintauchwinkel
 
 
+def _name(tc):
+    """Der vorgeschlagene Name: „Plan indexiert T1“ – mit einem Bohrer „Radial bohren T2“."""
+    if bohrer_des_controllers(tc):
+        return tr("vp.name_bohren", werkzeug=f"T{tc.ToolNumber}")
+    return tr("vp.name", werkzeug=f"T{tc.ToolNumber}")
+
+
 def _vorgeschlagener_name(name):
-    """Ist `name` einer, wie lege_an ihn vergibt („Plan indexiert T1“) – auch mit „ (2)“ dahinter?"""
-    return namen.nach_vorlage(name, tr("vp.name", werkzeug="\0"))
+    """Ist `name` einer, wie lege_an ihn vergibt („Plan indexiert T1“, „Radial bohren T2“) –
+    auch mit „ (2)“ dahinter?"""
+    return namen.nach_vorlage(name, tr("vp.name", werkzeug="\0")) or namen.nach_vorlage(
+        name, tr("vp.name_bohren", werkzeug="\0")
+    )
 
 
 def ist_plan(op):

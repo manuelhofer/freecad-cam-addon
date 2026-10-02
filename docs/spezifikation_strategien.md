@@ -359,8 +359,25 @@ Weiter (spezifikation_vierachs.md, V4c/V4d), in dieser Reihenfolge:
    Vergleich auf der Stange (`boden_der_bohrung`). Gemessen (`test_vierachs_plan`): Welle Ø 30
    mit Sackbohrung Ø 10 × 8, einer um 3 mm versetzten und einer durchgehenden Ø 8 – vier Seiten,
    1,34 min mit Ø 6, die Mitte des Fräsers nie weiter als Radius − 3 von der Achse der Bohrung,
-   nirgends ins Teil; `szenario_vierachs_querbohrung`. Mit dem Bohrer (Spiralbohrer) radial
-   bohren: noch nicht.
+   nirgends ins Teil; `szenario_vierachs_querbohrung`. **Radial bohren** (P-2026-10-02-08,
+   0.71.0): Ist bei „Plan indexiert“ ein Bohrer gewählt (`vierachs_plan.bohrer_von`), werden die
+   Querbohrungen gebohrt statt gefräst (`vierachs_planbahn.gebohrt_punkte`, wie „Bohren“ im
+   Quader): auf die Ebene R knapp über dem Material, hinab, tiefer als 3 × D in Hüben von 1 × D;
+   eine durchgehende von beiden Seiten, jede mit der Spitze um ihre Länge über die Mitte (so hat
+   sie überall den vollen Durchmesser, und X muss nur um die Länge der Spitze unter null – ganz
+   durch von einer Seite bräuchte X bis −(R + Spitze)); eine Sackbohrung nur mit der Spitze des
+   Bohrers unten (sonst ein Satz: mit ebenem Grund fräst sie ein Fräser). Der Assistent nimmt
+   Bohrer in die Auswahl „Fräser“ auf und wählt einen vor, wenn nur Querbohrungen gewählt sind
+   und er sie alle bohrt (`vierachs_planbahn.bohrer_passt`) – bohren ist schneller als fräsen;
+   die Operation heißt dann „Radial bohren T2“ und trägt die Hübe. **Dabei gefunden**: Der Grund
+   einer gebohrten Sackbohrung ist die Spitze, ein Kegel – mit der Scheibe am Ende der Wand als
+   Grund meldete „Auf der Maschine prüfen“ bis 14 mm „im Teil“ (im Test −11,7). Jetzt kennt der
+   Vergleich die Spitze (`vierachs_planbahn.Kegelgrund`, `restmaterial._kegel_radien`). Gemessen
+   (`test_vierachs_plan`): Welle Ø 30 mit einer durchgehenden Ø 8, einer Sackbohrung Ø 8 × 22 und
+   einer Ø 8 × 10, beide mit Spitze 118° – drei Bohrungen von vier Seiten, sieben Hübe, 0,21 min
+   mit dem Bohrer Ø 8 (gefräst mit Ø 6: 1,34 min für die Querbohrungen oben); nirgends ins Teil;
+   `szenario_vierachs_radialbohren`. Ein Tiefbohrzyklus als G83 (statt der Hübe als Sätze) folgt
+   mit dem Postprozessor (W-005).
 3. **Rundum entgraten** (V4d) – Kanten der gewählten Flächen, die Rundachse
    dreht mit. Aufwand mittel.
 4. **Taschen und Nuten auf dem Mantel** – die Tasche in der Abwicklung rechnen

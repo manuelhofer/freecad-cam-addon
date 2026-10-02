@@ -495,6 +495,7 @@ class VierachsPanel:
         self._planeinsaetze = []
         self.vorschau_plan = None  # die grobe Bahn „Plan indexiert“ (vierachs_planbahn.Planbahn)
         self._plan_von_hand = False  # der Haken „Plan indexiert“ wurde von Hand gesetzt
+        self._planfraeser_von_hand = False  # das Werkzeug bei „Plan indexiert“ von Hand gewählt
         self._plan_erlaubt = True  # beim Ändern: ob „Plan indexiert“ dazukommen darf
         if vent.ist_entgraten(operation):
             self._art = ENTGRATEN
@@ -2082,7 +2083,9 @@ class VierachsPanel:
         self._planfraeser = [
             w
             for w in sorted(self.bibliothek.werkzeuge, key=lambda w: w.nummer)
-            if w.durchmesser > 0 and self._ebene_stirn(w) and self._passende_einsaetze(w, werkstoff)
+            if w.durchmesser > 0
+            and (self._ebene_stirn(w) or vplan.bohrer_von(w))
+            and self._passende_einsaetze(w, werkstoff)
         ]
         kennungen = [w.kennung for w in self._planfraeser]
         gemerkt = _parameter().GetString(GEMERKT_PLANFRAESER, "")
@@ -2096,6 +2099,7 @@ class VierachsPanel:
             wahl = min(
                 range(len(self._planfraeser)),
                 key=lambda i: (
+                    vplan.bohrer_von(self._planfraeser[i]) is not None,
                     not self._hat_einsatz(self._planfraeser[i], werkstoff, wz.PLANEN),
                     self._planfraeser[i].art != wz.SCHAFTFRAESER,
                     i,
@@ -2132,7 +2136,43 @@ class VierachsPanel:
 
     def _planfraeser_gewaehlt(self):
         if not self._fuellt:
+            self._planfraeser_von_hand = True
             self._planeinsatz_fuellen()
+
+    def planbohrer(self):
+        """(Durchmesser, Spitzenwinkel), wenn bei Plan indexiert ein Bohrer gewählt ist – er
+        bohrt die Querbohrungen radial (vierachs_plan.bohrer_von) –, sonst None."""
+        return vplan.bohrer_von(self.planfraeser())
+
+    def _planbohrer_vorschlagen(self, paare, nur_bohrungen):
+        """Sind nur Querbohrungen gewählt und bohrt ein Bohrer der Liste sie alle, ist er
+        vorgewählt (bohren geht schneller als fräsen); sonst wieder der Fräser – solange man
+        das Werkzeug nicht von Hand gewählt hat. Gibt den vorgeschlagenen Bohrer zurück."""
+        bohrer = next(
+            (
+                w
+                for w in self._planfraeser
+                if nur_bohrungen and vp.bohrer_passt(paare, vplan.bohrer_von(w))
+            ),
+            None,
+        )
+        if self._planfraeser_von_hand or self._art == PLAN:
+            return bohrer
+        jetzt = self.planfraeser()
+        if bohrer is not None:
+            ziel = bohrer
+        elif jetzt is not None and vplan.bohrer_von(jetzt):
+            ziel = next((w for w in self._planfraeser if not vplan.bohrer_von(w)), None)
+        else:
+            ziel = None
+        if ziel is not None and ziel is not jetzt:
+            self._fuellt = True
+            try:
+                self.wahl_planfraeser.setCurrentIndex(self._planfraeser.index(ziel))
+            finally:
+                self._fuellt = False
+            self._planeinsatz_fuellen()
+        return bohrer
 
     def _planeinsatz_fuellen(self):
         """Die Einsätze des Fräsers; vorgewählt „Planen“, sonst „Schruppen“, sonst „Schlichten“;
@@ -2175,10 +2215,12 @@ class VierachsPanel:
             return
         werkzeug, einsatz = self.planfraeser(), self.planeinsatz()
         self.schnittwerte_plan.setText(self._schnittwerte_text(werkzeug, einsatz))
+        bohrer = vplan.bohrer_von(werkzeug)
         for feld, eingabe in self.felder_plan.items():
             eingabe.setPlaceholderText(
                 groesse_zeigen(self._vorschlag(feld), einheiten.LAENGE) or "0"
             )
+            eingabe.setEnabled(not bohrer)  # der Bohrer braucht weder Lagen noch Zeilen
         self._vorschau_starten()
 
     def plan_an(self):
@@ -2223,11 +2265,21 @@ class VierachsPanel:
             geht, grund = True, tr("va.plan.kein_fraeser", flaechen=namen)
         else:
             namen = ", ".join(dict.fromkeys(e.name for e in ebenen))
-            nur_bohrungen = not vp.ebenen(
-                vr.modell(self.job).Shape, achse.laengs, va.radial(achse), self.flaechen()
-            )
-            text = "va.plan.vorschlag_bohrung" if nur_bohrungen else "va.plan.vorschlag"
-            geht, grund = True, tr(text, flaechen=namen)
+            form = vr.modell(self.job).Shape
+            laengs, radial = achse.laengs, va.radial(achse)
+            nur_bohrungen = not vp.ebenen(form, laengs, radial, self.flaechen())
+            paare = vp.bohrungen(form, laengs, radial, self.flaechen()) if nur_bohrungen else []
+            bohrer = self._planbohrer_vorschlagen(paare, nur_bohrungen)
+            if bohrer is not None:
+                geht, grund = True, tr(
+                    "va.plan.vorschlag_bohren",
+                    flaechen=namen,
+                    bohrer=self._platz_vorsatz(bohrer) + dezimal(wz.zeile(bohrer)),
+                )
+            elif nur_bohrungen:
+                geht, grund = True, tr("va.plan.vorschlag_bohrung", flaechen=namen)
+            else:
+                geht, grund = True, tr("va.plan.vorschlag", flaechen=namen)
         geht = geht and self._plan_erlaubt
         self.plan_grund.setText(grund)
         war = self.plan_an()
@@ -2251,12 +2303,13 @@ class VierachsPanel:
         ValueError mit einem Satz, wenn es nicht geht."""
         werkzeug = self.planfraeser()
         achse = self.achse()
+        bohrer = vplan.bohrer_von(werkzeug)
         return vplan.vorschau(
             self.job,
             self.job.Model.Group,
             achse.laengs,
             va.radial(achse),
-            ff.von_werkzeug(werkzeug),
+            vplan.form_des_bohrers(bohrer) if bohrer else ff.von_werkzeug(werkzeug),
             self._wert("zustellung_plan"),
             self._wert("zeilenabstand"),
             self._wert("aufmass_plan"),
@@ -2268,6 +2321,7 @@ class VierachsPanel:
             self._halter_fuer(werkzeug),
             self.flaechen(),
             self._eintauchwinkel_fuer(werkzeug),
+            bohrer,
         )
 
     def _plan_text(self, bahn):
@@ -2277,6 +2331,23 @@ class VierachsPanel:
 
         _n, vorschub, _senkrecht = js.werte(self.planfraeser(), self.planeinsatz())
         zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
+        if getattr(bahn, "seiten", 0):
+            n = bahn.bohrungen
+            text = tr(
+                "va.plan.ergebnis_bohren",
+                bohrungen=tr("va.plan.bohrung") if n == 1 else tr("va.plan.bohrungen_zahl", n=n),
+                seiten=(
+                    tr("va.plan.seite") if bahn.seiten == 1 else tr("va.plan.seiten", n=bahn.seiten)
+                ),
+                huebe=tr("va.plan.hub") if bahn.huebe == 1 else tr("va.plan.huebe", n=bahn.huebe),
+                zeit=zeit,
+            )
+            achse = self.achse()
+            if vp.ebenen(
+                vr.modell(self.job).Shape, achse.laengs, va.radial(achse), self.flaechen()
+            ):
+                text += " " + tr("va.plan.nur_bohrungen")
+            return text
         if bahn.flaechen > 1:
             text = tr(
                 "va.plan.ergebnis_flaechen",

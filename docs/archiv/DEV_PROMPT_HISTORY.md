@@ -12,6 +12,61 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-08 radial-bohren
+
+### EINGELESEN
+- `vierachs_planbahn` (`bohrungen`, `planen`, `_bohrung_punkte`, `_zurueck`,
+  `boden_der_bohrung`), `bohren` (`planen`, `spitze`, `hub_fuer`, `kann`), `vierachs_plan`
+  (`rechne`, `bahn_fuer`, `lege_an`, `aendere`), `restmaterial` (`boden_radien`, `_boeden`,
+  `_fraeser`, `_kegel`), `gui_vierachs` (`_planfraeser_fuellen`, `_plan_vorschlagen`,
+  `_plan_vorschau`, `_plan_text`, `_planeinsatz_gewaehlt`), `tests/test_sprache.py`.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`, `camaddon/vierachs_plan.py`, `camaddon/restmaterial.py`,
+  `camaddon/gui_vierachs.py`, `camaddon/schruppen3d_bahn.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/vierachs.html`, `tests/test_vierachs_plan.py`,
+  `tests/gui/szenario_vierachs_radialbohren.py` (neu), `docs/spezifikation_strategien.md`,
+  `docs/spezifikation_vierachs.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.71.0)
+
+### AKZEPTANZKRITERIUM
+Mit einem Bohrer Ø 8 (118°) bohrt „Plan indexiert“ die Querbohrungen radial: jede Seite genau
+auf der Achse der Bohrung, tiefer als 3 × D in Hüben von 1 × D, die Spitze nie tiefer als die
+gezeichnete; eine durchgehende von beiden Seiten je mit der Spitze über die Mitte; Bohrer mit
+falschem Ø und Sackbohrungen mit ebenem Grund: je ein Satz. Im Assistenten wird der Bohrer
+vorgewählt, wenn nur Querbohrungen gewählt sind und er sie alle bohrt; die Operation heißt
+„Radial bohren T2“; „Auf der Maschine prüfen“: Achsen in ihren Grenzen, nichts berührt sich,
+am Ende nirgends ins Teil.
+
+### DONE
+- `vierachs_planbahn`: `Planwerte.bohrer`, `gebohrt_punkte` (Ebene R = Material + Sicherheit,
+  Hübe wie `bohren.planen`), `bohrer_passt`, `Planbahn.huebe`/`.seiten`, `Kegelgrund` und
+  `boden_der_bohrung(…, bohrer, durch)`; `Planbahn.bohrungen` zählt eine durchgehende einmal.
+- `vierachs_plan`: `bohrer_von`, `bohrer_des_controllers`, `form_des_bohrers` (Kegel),
+  `rechne`/`bahn_fuer`/`vorschau(bohrer=…)`, Eigenschaft „Huebe“, Name „Radial bohren T…“
+  (`_name`, `_vorgeschlagener_name` kennt beide).
+- `restmaterial`: `boden_radien` kennt den `Kegelgrund` (`_kegel_radien`, je Zelle halbiert);
+  `_boeden` nimmt für eine Operation mit Bohrer die Spitze als Grund einer Sackbohrung. Ohne
+  sie meldete der Vergleich an der gebohrten Sackbohrung bis 14,23 mm „im Teil“ (im Test −11,7).
+- Assistent: Bohrer in der Auswahl „Fräser“ von „Plan indexiert“ (nie vorgewählt, außer
+  `_planbohrer_vorschlagen`: nur Querbohrungen, er bohrt alle, nicht von Hand gewählt),
+  „va.plan.vorschlag_bohren“, Zustellung/Zeilenabstand/Aufmaß grau, „va.plan.ergebnis_bohren“
+  (+ „va.plan.nur_bohrungen“, wenn auch ebene Flächen gewählt sind); „va.plan.text“ und
+  „va.plan.tooltip“ nennen die Querbohrung.
+- Nebenbei (test_sprache war rot): `schruppen3d_bahn` und `gui_vierachs._plan_vorschlagen`
+  setzten den Schlüssel in `tr()` aus einem Ausdruck zusammen – „r3.fehler.nichts“ und
+  „va.plan.vorschlag_bohrung“ galten als unbenutzt; jetzt je ein fester Text.
+
+### TEST
+- 1.1.3: `test_vierachs_plan` (Radial bohren: 3 Bohrungen von 4 Seiten, 7 Hübe, 0,21 min,
+  ins Teil −0,050; mit der Scheibe statt der Spitze −11,673) und `test_sprache` grün;
+  `szenario_vierachs_radialbohren` (neu), `szenario_vierachs_querbohrung`,
+  `szenario_vierachs_plan`, `szenario_vierachs_nut` grün; black/ruff grün.
+
+### NEXT
+- Der Tiefbohrzyklus als G83 (statt der Hübe als Sätze) mit dem Postprozessor (W-005);
+  Taschen auf dem Mantel (gewickelt); der Einstieg nach Zeit.
+
 ## P-2026-10-02-07 querbohrung
 
 ### EINGELESEN

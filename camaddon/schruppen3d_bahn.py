@@ -384,8 +384,10 @@ def planen(
             continue
         zeit = bn.zeit(st.punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
         ergebnisse[variante] = (st, zeit, haupt, zwischenlagen)
+    if not ergebnisse and davor is not None:
+        raise ValueError(tr("r3.fehler.kein_rest"))
     if not ergebnisse:
-        raise ValueError(tr("r3.fehler.kein_rest" if davor is not None else "r3.fehler.nichts"))
+        raise ValueError(tr("r3.fehler.nichts"))
     variante = min(ergebnisse, key=lambda v: ergebnisse[v][1])
     st, zeit, haupt, zwischenlagen = ergebnisse[variante]
     return Schruppbahn(

@@ -517,8 +517,11 @@ class Abtrag:
 def boden_radien(stange, laengs, radial, boeden):
     """(n_a, n_phi): je Zelle der Stange, wo der Strahl einen der Gründe `boeden`
     ([(vierachs_planbahn.Ebene, Part.Face)], „Plan indexiert“) innerhalb der Fläche trifft,
-    sein Abstand von der Achse; sonst nan."""
+    sein Abstand von der Achse; sonst nan. Statt der Fläche auch die Spitze einer gebohrten
+    Sackbohrung (vierachs_planbahn.Kegelgrund)."""
     import FreeCAD
+
+    from . import vierachs_planbahn as vp
 
     radien = np.full(stange.r.shape, np.nan)
     l_, u_, v_ = vh.rahmen(laengs, radial)
@@ -527,6 +530,9 @@ def boden_radien(stange, laengs, radial, boeden):
         n = u_ * math.cos(phi0) + v_ * math.sin(phi0)
         quer = np.cross(l_, n)
         delta = np.angle(np.exp(1j * (stange.phi - phi0)))
+        if isinstance(flaeche, vp.Kegelgrund):
+            _kegel_radien(radien, stange, flaeche, delta)
+            continue
         with np.errstate(invalid="ignore"):
             q = ebene.tiefe * np.tan(delta)
         spalten = np.flatnonzero(
@@ -542,6 +548,37 @@ def boden_radien(stange, laengs, radial, boeden):
                     r = ebene.tiefe / math.cos(float(delta[j]))
                     radien[i, j] = r if np.isnan(radien[i, j]) else min(radien[i, j], r)
     return radien
+
+
+def _kegel_radien(radien, stange, kegel, delta):
+    """Trägt in `radien` ein, wo der Strahl je Zelle die Spitze `kegel`
+    (vierachs_planbahn.Kegelgrund) trifft: r mit r·cos δ = Spitze + Steigung · Abstand von der
+    Achse der Bohrung – halbiert, je Zelle; Strahlen, die daneben gehen, bleiben."""
+    zeilen = np.flatnonzero(np.abs(stange.a - kegel.a) <= kegel.radius + 1e-6)
+    spalten = np.flatnonzero(np.abs(delta) < math.radians(80))
+    if not len(zeilen) or not len(spalten):
+        return
+    a = (stange.a[zeilen] - kegel.a)[:, None]
+    c = np.cos(delta[spalten])[None, :]
+    s = np.sin(delta[spalten])[None, :]
+    steigung = kegel.laenge / kegel.radius
+
+    def f(r):
+        return r * c - kegel.spitze - steigung * np.hypot(a, r * s - kegel.q)
+
+    unten = np.zeros((len(zeilen), len(spalten)))
+    oben = np.broadcast_to((max(kegel.spitze + kegel.laenge, 0.0) + 1.0) / c, unten.shape).copy()
+    geht = (f(unten) <= 0) & (f(oben) >= 0)
+    for _ in range(40):
+        mitte = (unten + oben) / 2
+        drueber = f(mitte) >= 0
+        oben = np.where(drueber, mitte, oben)
+        unten = np.where(drueber, unten, mitte)
+    r = (unten + oben) / 2
+    geht &= np.hypot(a, r * s - kegel.q) <= kegel.radius + 1e-6
+    for i, j in zip(*np.nonzero(geht), strict=True):
+        alt = radien[zeilen[i], spalten[j]]
+        radien[zeilen[i], spalten[j]] = r[i, j] if np.isnan(alt) else min(alt, r[i, j])
 
 
 def fuer(abfahrt, job, am_werkstueck):
@@ -650,7 +687,7 @@ def _boeden(job, operationen, laengs, radial):
     `operationen`: ihr Grund, bis auf den der Fräser je Strahl darf (Abtrag.vergleich)."""
     from . import vierachs_planbahn as vp
     from .vierachs_operation import flaechen as flaechen_von
-    from .vierachs_plan import ist_plan
+    from .vierachs_plan import bohrer_des_controllers, ist_plan
     from .vierachs_schlichten import _teil
 
     plaene = [op for op in operationen if ist_plan(op)]
@@ -664,10 +701,15 @@ def _boeden(job, operationen, laengs, radial):
     u_ = tuple(float(c) for c in radial)
     ergebnis = []
     for op in plaene:
-        for ebene in vp.ebenen(form, l_, u_, flaechen_von(op)):
-            ergebnis.append((ebene, form.Faces[int(ebene.name[4:]) - 1]))
-        for ebene, bohrung in vp.bohrungen(form, l_, u_, flaechen_von(op)):
-            ergebnis.append(vp.boden_der_bohrung(l_, u_, ebene, bohrung))
+        bohrer = bohrer_des_controllers(getattr(op, "ToolController", None))
+        if bohrer is None:  # ein Bohrer fräst keine Fläche
+            for ebene in vp.ebenen(form, l_, u_, flaechen_von(op)):
+                ergebnis.append((ebene, form.Faces[int(ebene.name[4:]) - 1]))
+        paare = vp.bohrungen(form, l_, u_, flaechen_von(op))
+        namen = [e.name for e, _b in paare]
+        for ebene, bohrung in paare:
+            durch = namen.count(ebene.name) > 1
+            ergebnis.append(vp.boden_der_bohrung(l_, u_, ebene, bohrung, bohrer, durch))
     return ergebnis
 
 
