@@ -264,7 +264,8 @@ wird“), der Reihe nach, je Punkt ein Patch mit Verlauf und Snapshot:**
    erreicht“): Die Seiten der Hersteller waren beim Bau gesperrt, alle Schnittwerte sind geschätzt,
    Bestellen und Katalog sind Suchen. Jetzt geht das Netz (WebFetch frei): je Reihe die echten
    Artikelnummern, Bestell-Links, Katalog-PDFs und – wo die Hersteller sie nennen – Schnittwerte je
-   Werkstoffklasse; was es nicht gibt, bleibt geschätzt und so gekennzeichnet.
+   Werkstoffklasse; was es nicht gibt, bleibt geschätzt und so gekennzeichnet. Jongen 494W und Garant
+   208165 nach Katalog und Datenblatt: P-2026-10-02-91, 0.127.1.
 2. **T5d – Taschen:** Die Ringe halten in den Ecken einer Tasche die Last nicht (bis 4,1 ae), darum gewinnt
    dort „adaptiv“ und braucht länger (Tasche 40 × 30: 1,49 statt 0,88 min). Manuel, Frage 6: „Ecken kann
    man ja erstmal gesondert mit Bögen rausfahren … und dann wieder die Kontur der Tasche weiter“. *Fertig,

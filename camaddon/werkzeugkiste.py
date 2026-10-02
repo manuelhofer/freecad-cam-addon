@@ -10,11 +10,13 @@ Je Reihe Hersteller, Bezeichnung, die Größen mit ihren Maßen und Schnittwerte
 Werkstoff, der für sie steht (VERTRETER) – Werte für 1.4301 gelten für jeden austenitischen
 (werkzeuge.Werkzeug.verwandter). So hat ein Bohrer neun Zeilen statt fünfzig.
 
-Die Werte sind Richtwerte, wie Kataloge sie für solche Werkzeuge nennen, aus Grundwerten je
-Einsatz für Stahl bis 750 N/mm² und Faktoren je Klasse gerechnet – die Seiten der Hersteller
-waren beim Zusammenstellen nicht zu erreichen (P-2026-10-02-46). Darum sagt jede Reihe in ihrer
-Bezeichnung „Richtwerte (geschätzt)“, und `quelle` sagt, was woher kommt. Wo eine Artikelnummer
-fehlt, ist sie nicht belegt; der Link sucht dann nach dem Werkzeug.
+Wo der Katalog des Herstellers sie nennt, sind Maße, Nummern und Schnittwerte die des Herstellers
+(katalogwerte; nachgeschlagen am 2026-10-02 nachts – beim Bau der Kiste, P-2026-10-02-46, waren
+seine Seiten gesperrt). Was er nicht nennt – andere Werkstoffklassen, Schlichten, Planen –, sind
+Richtwerte, wie Kataloge sie für solche Werkzeuge nennen, aus Grundwerten je Einsatz für Stahl
+bis 750 N/mm² und Faktoren je Klasse gerechnet. Die Bezeichnung jeder Reihe sagt, was woher
+kommt, `quelle` ausführlich. Wo eine Artikelnummer fehlt, ist sie nicht belegt; der Link sucht
+dann nach dem Werkzeug.
 
 hinzufuegen() legt die gewählten Reihen in die eigene Werkzeugkiste: mit der nächsten freien
 T-Nummer; was dort schon ist (gleicher Hersteller und Name), bleibt, wie es ist – auch mit den
@@ -23,9 +25,11 @@ T-Nummer; was dort schon ist (gleicher Hersteller und Name), bleibt, wie es ist 
 Läuft ohne Oberfläche.
 """
 
+import math
 from dataclasses import dataclass, field
 from urllib.parse import quote_plus
 
+from . import katalogwerte as kw
 from . import werkzeuge as wz
 
 # Unter welchem Werkstoff die Werte einer Klasse stehen – P1 unter „Alle Werkstoffe“: Damit
@@ -127,6 +131,9 @@ class Reihe:
     link: str = ""  # für alle Größen; leer: eine Suche nach Hersteller und Artikel
     katalog: str = ""  # leer: eine Suche nach dem Katalog
     schnittwerte: bool = True  # Drehwerkzeuge und Taster haben (noch) keine
+    # Aus dem Katalog des Herstellers: {Durchmesser: {Klasse: {Art: (vc, fz, ap, ae)}}}
+    # (katalogwerte) – was fehlt, wird geschätzt.
+    katalogwerte: dict = field(default_factory=dict)
 
     @property
     def anzahl(self):
@@ -247,84 +254,151 @@ def _gewindebohrer():
     )
 
 
-# DIN 6527 K (kurz): Durchmesser -> (Schneidenlänge, Gesamtlänge, Schaft); Ø 12 nach Jongen.
-_DIN_6527_K = {
-    3: (8, 57, 6), 4: (11, 57, 6), 5: (13, 57, 6), 6: (13, 57, 6), 8: (19, 63, 8),
-    10: (22, 72, 10), 12: (26, 84, 12), 16: (32, 92, 16), 20: (38, 104, 20),
-}  # fmt: skip
+# Jongens Werte gelten für jeden Durchmesser der Reihe; Schlichten und Planen nennt der Katalog
+# nicht – sie nehmen vc und fz des Eckfräsens (wie die Richtwerte das Planen vom Schruppen).
+JONGEN_TEXT = (
+    f"Schnittwerte: {kw.JONGEN_494W_STAND} (Schlichten und Planen wie Eckfräsen; Aluminium, "
+    f"Kupfer, Kunststoff und gehärteter Stahl {RICHTWERTE})"
+)
+
+
+def _jongen_werte():
+    return {float(d): werte for d, werte in kw.JONGEN_494W.items()}
 
 
 def _schaftfraeser():
+    """Jongen VHM 494W HI06 – Manuels Fräser (Ø 12) und die Größen, die er nannte, die es
+    scharfkantig gibt: Ø 6 bis 20 (Ø 3 gibt es in der Reihe nicht, Ø 4 und 5 nur mit Radius:
+    _schaftfraeser_r)."""
     groessen = []
-    for d, (schneide, gesamt, schaft) in _DIN_6527_K.items():
-        artikel = f"VHM 494W-{d} HI06"
-        if d == 12:
-            artikel += " (V-53939-FB2)"  # so stand er auf Manuels Fräser
+    for d in (6, 8, 10, 12, 16, 20):
+        nummer, schneide, nutzlaenge, hals, schaft, gesamt = kw.JONGEN_494W_MASSE[d]
         groessen.append(
             {
                 "durchmesser": float(d),
                 "schneidenlaenge": float(schneide),
                 "gesamtlaenge": float(gesamt),
                 "schaft": float(schaft),
+                "hals_d": float(hals),
+                "hals_laenge": float(nutzlaenge - schneide),
                 "name": f"494W D{d}",
-                "artikel": artikel,
-                "link": suche("Jongen", "UNI-Mill", "494W", f"{d} mm"),
+                "artikel": nummer,
+                "bezeichnung": f"VHM 494W-{d:02d} HI06 · {JONGEN_TEXT}",
+                "link": kw.JONGEN_SUCHE + nummer,
             }
         )
     return Reihe(
         kennung="jongen-494w",
         art=wz.SCHAFTFRAESER,
         hersteller="Jongen",
-        titel="UNI-Mill VHM 494W HI06, 4 Schneiden, Ø 3–20",
+        titel="UNI-Mill VHM 494W HI06, 4 Schneiden, Ø 6–20",
         quelle=(
-            "Jongen UNI-Mill VHM 494W HI06 (Manuels Ø 12: 494W-12 HI06, V-53939-FB2; "
-            "Schneidenlänge 26, Gesamtlänge 84, Schaft 12, 4 Schneiden). Die anderen Größen mit "
-            "den Längen nach DIN 6527 K und Nummern nach dem Muster von Ø 12 – prüfen. Werte: "
-            "Richtwerte für VHM-Schaftfräser mit 4 Schneiden, je Werkstoffklasse geschätzt."
+            f"{kw.JONGEN_494W_STAND}: Bestell-Nr., Schneidenlänge, Nutzlänge, Hals, Schaft und "
+            "Gesamtlänge (Seite 5), Schnittwerte für Eckfräsen, Vollnuten und trochoidal je "
+            "Werkstoffgruppe und Durchmesser (Seite 7–9). Manuels Ø 12: VU494M12B-HI06 (auf dem "
+            "Fräser V-53939-FB2). Ø 3 gibt es in der Reihe nicht, Ø 4 und 5 nur mit Eckenradius."
         ),
         groessen=tuple(groessen),
         gemeinsam={"schneiden": 4, "schneidstoff": wz.VHM},
-        bezeichnung=f"UNI-Mill VHM 494W HI06 · {RICHTWERTE}",
-        katalog=suche("Jongen", "UNI-Mill", "Katalog", "PDF"),
+        bezeichnung=f"UNI-Mill VHM 494W HI06 · {JONGEN_TEXT}",
+        katalog=kw.JONGEN_494W_KATALOG,
+        katalogwerte=_jongen_werte(),
+    )
+
+
+def _schaftfraeser_r():
+    """Jongen VHM 494W R HI06, Ø 4 und 5 – Manuel nannte sie; scharfkantig gibt es sie nicht."""
+    groessen = []
+    for d, (
+        nummer,
+        radius,
+        schneide,
+        nutzlaenge,
+        hals,
+        schaft,
+        gesamt,
+    ) in kw.JONGEN_494W_R_MASSE.items():
+        groessen.append(
+            {
+                "durchmesser": float(d),
+                "eckradius": float(radius),
+                "schneidenlaenge": float(schneide),
+                "gesamtlaenge": float(gesamt),
+                "schaft": float(schaft),
+                "hals_d": float(hals),
+                "hals_laenge": float(nutzlaenge - schneide),
+                "name": f"494W D{d} R{_zahl(radius)}",
+                "artikel": nummer,
+                "bezeichnung": f"VHM 494W-{d:02d} R{_zahl(radius * 10).zfill(2)} HI06 · {JONGEN_TEXT}",
+                "link": kw.JONGEN_SUCHE + nummer,
+            }
+        )
+    return Reihe(
+        kennung="jongen-494w-r",
+        art=wz.TORUSFRAESER,
+        hersteller="Jongen",
+        titel="UNI-Mill VHM 494W R HI06, Eckenradius, Ø 4 und 5",
+        quelle=(
+            f"{kw.JONGEN_494W_STAND}, Seite 6: Ø 4 mit R 0,4 und Ø 5 mit R 0,5 – Manuels Ø 4 und 5 "
+            "gibt es nur so. Schnittwerte wie der 494W (Seite 7–9; beim Rampen φ um 30 % kleiner)."
+        ),
+        groessen=tuple(groessen),
+        gemeinsam={"schneiden": 4, "schneidstoff": wz.VHM},
+        bezeichnung=f"UNI-Mill VHM 494W R HI06 · {JONGEN_TEXT}",
+        katalog=kw.JONGEN_494W_KATALOG,
+        katalogwerte=_jongen_werte(),
     )
 
 
 def _entgrater():
-    # Gesamtlänge wie DIN 6535 HA, Spitze 0,5 mm – angenommen.
-    laengen = {6: 57, 8: 63, 10: 72, 12: 83, 16: 92}
+    """Garant 208165 – laut Datenblatt ein VHM-Entgrater spiralisiert mit 60° Spitzenwinkel
+    (angenommen war ein Fasenfräser 90°)."""
     groessen = []
-    for d, gesamt in laengen.items():
+    katalog = {}
+    for d, (gesamt, fz_stahl, datenblatt) in kw.GARANT_208165_MASSE.items():
         groessen.append(
             {
                 "durchmesser": float(d),
-                "schneidenlaenge": round((d - 0.5) / 2, 2),
+                # Die Schneide geht bis an die Spitze: der Kegel mit 60° vom Ø bis zur Spitze.
+                "schneidenlaenge": round(d / 2 / math.tan(math.radians(30.0)), 2),
                 "gesamtlaenge": float(gesamt),
                 "schaft": float(d),
                 "name": f"208165 D{d}",
                 "artikel": f"208165 {d}",
-                "link": f"https://www.hoffmann-group.com/DE/de/hom/p/208165-{d}",
+                "link": f"{kw.GARANT_208165_SEITE}{d}",
+                "katalog": datenblatt,
             }
         )
+        # fz nennt das Datenblatt für Stahl bis 900 N/mm²; die anderen Klassen mit den Faktoren
+        # der Richtwerte.
+        katalog[float(d)] = {
+            klasse: {wz.FASEN: (vc, round(fz_stahl * FAKTOREN_HM[klasse][1], 3), None, None)}
+            for klasse, vc in kw.GARANT_208165_VC.items()
+        }
     return Reihe(
         kennung="garant-208165",
         art=wz.FASENFRAESER,
         hersteller="Garant",
-        titel="208165 Entgraten (Fasenfräser 90°), Ø 6–16",
+        titel="208165 VHM-Entgrater spiralisiert 60°, TiSiN, Ø 6–16",
         quelle=(
-            "Garant 208165 (Manuels Angabe „208165 12“, Hoffmann Group). Die Seite war nicht zu "
-            "erreichen: als VHM-Fasenfräser 90° mit 4 Schneiden angenommen, wie Garant 208070 und "
-            "208071; Längen wie DIN 6535 HA – mit dem Katalog vergleichen. Werte: Richtwerte für "
-            "VHM-Fasenfräser, je Werkstoffklasse geschätzt."
+            f"{kw.GARANT_208165_STAND}: VHM, TiSiN, 4 Schneiden, Spitzenwinkel 60°, Spiralwinkel "
+            "35°, Schaft DIN 6535 HA, Gesamtlänge je Ø; vc je Werkstoffgruppe, fz je Ø für Stahl "
+            "bis 900 N/mm² (die anderen Klassen mit Faktoren geschätzt; Kupfer und Messing nennt "
+            "das Datenblatt nicht)."
         ),
         groessen=tuple(groessen),
         gemeinsam={
             "schneiden": 4,
             "schneidstoff": wz.VHM,
-            "spitzenwinkel": 90.0,
-            "spitzen_d": 0.5,
+            "spitzenwinkel": 60.0,
+            "spitzen_d": 0.0,
         },
-        bezeichnung=f"Garant 208165, VHM 90° · {RICHTWERTE}",
-        katalog=suche("Garant", "Zerspanungshandbuch", "PDF"),
+        bezeichnung=(
+            f"Garant 208165, VHM 60°, TiSiN · Schnittwerte: {kw.GARANT_208165_STAND} (fz außer "
+            f"in Stahl und Kupfer/Messing {RICHTWERTE})"
+        ),
+        katalog="https://ecatalog.hoffmann-group.com/",
+        katalogwerte=katalog,
     )
 
 
@@ -594,6 +668,7 @@ def reihen():
         _bohrer(),
         _gewindebohrer(),
         _schaftfraeser(),
+        _schaftfraeser_r(),
         _entgrater(),
         _messerkopf(),
         *_beispiele(),
@@ -617,7 +692,7 @@ def werkzeuge(reihe):
         werte = dict(reihe.gemeinsam, **groesse)
         w = wz.Werkzeug(art=reihe.art)
         for feld, wert in werte.items():
-            if feld in ("link", "artikel", "name", "bezeichnung"):
+            if feld in ("link", "artikel", "name", "bezeichnung", "katalog"):
                 continue
             setattr(w, feld, wert)
         w.name = werte.get("name", "")
@@ -625,10 +700,11 @@ def werkzeuge(reihe):
         w.artikel = werte.get("artikel", "")
         w.bezeichnung = werte.get("bezeichnung", reihe.bezeichnung)
         w.link = werte.get("link") or reihe.link or suche(reihe.hersteller, w.artikel, w.name)
-        w.katalog = reihe.katalog
+        w.katalog = werte.get("katalog") or reihe.katalog
         if reihe.schnittwerte:
+            katalog = reihe.katalogwerte.get(float(w.durchmesser))
             for klasse, werkstoff in VERTRETER.items():
-                w.schnittwerte[werkstoff] = einsaetze(w, klasse)
+                w.schnittwerte[werkstoff] = einsaetze(w, klasse, katalog)
         ergebnis.append(w)
     return ergebnis
 
@@ -660,13 +736,39 @@ def richtwerte_eintragen(werkzeug):
     return neu
 
 
-def einsaetze(werkzeug, klasse):
-    """Die Einsätze des Werkzeugs für eine Werkstoffklasse – je Art, was sie anbietet."""
+def einsaetze(werkzeug, klasse, katalog=None):
+    """Die Einsätze des Werkzeugs für eine Werkstoffklasse – je Art, was sie anbietet; mit
+    `katalog` ({Klasse: {Art: (vc, fz, ap, ae)}}, katalogwerte) die Werte des Herstellers, wo er
+    sie nennt."""
     arten = wz.einsatzarten(werkzeug.art) or ()
-    return [e for e in (_einsatz(werkzeug, art, klasse) for art in arten) if e is not None]
+    werte = (katalog or {}).get(klasse) or {}
+    return [e for e in (_einsatz(werkzeug, art, klasse, werte) for art in arten) if e is not None]
 
 
-def _einsatz(werkzeug, art, klasse):
+def _aus_katalog(werkzeug, art, werte):
+    """Der Einsatz mit den Werten des Herstellers – Schlichten und Planen, die Kataloge für
+    Schaftfräser selten nennen, mit vc und fz des Schruppens (Eckfräsen); None ohne Werte."""
+    eigen = werte.get(art)
+    if eigen is None and art in (wz.SCHLICHTEN, wz.PLANEN) and wz.SCHRUPPEN in werte:
+        vc, fz, _ap, _ae = werte[wz.SCHRUPPEN]
+        eigen = (vc, fz, None, None)
+    if eigen is None:
+        return None
+    vc, fz, ap, ae = eigen
+    einsatz = wz.vorlage(werkzeug, art)
+    einsatz.vc, einsatz.fz = vc, fz
+    if ap:
+        einsatz.ap = min(ap, werkzeug.schneidenlaenge) if werkzeug.schneidenlaenge else ap
+    if ae:
+        einsatz.ae = ae
+    return _runden(einsatz)
+
+
+def _einsatz(werkzeug, art, klasse, katalog=None):
+    if katalog:
+        einsatz = _aus_katalog(werkzeug, art, katalog)
+        if einsatz is not None:
+            return einsatz
     hss = werkzeug.schneidstoff == wz.HSS
     faktor_vc, faktor_fz = (FAKTOREN_HSS if hss else FAKTOREN_HM)[klasse]
     d = werkzeug.durchmesser

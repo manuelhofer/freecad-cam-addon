@@ -81,7 +81,7 @@ def schritte(h):
         return
     yield 300
     h.pruefe(
-        d.feld_hersteller.text() == "Jongen" and d.feld_artikel.text().startswith("VHM 494W-12"),
+        d.feld_hersteller.text() == "Jongen" and d.feld_artikel.text() == "VU494M12B-HI06",
         f"Jongen Ø 12: {d.feld_hersteller.text()!r}, {d.feld_artikel.text()!r}",
     )
     h.pruefe(

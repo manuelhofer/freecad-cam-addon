@@ -764,6 +764,22 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
   wählt zwischen „Planen“ und „Schruppen“ den Einsatz mit der kürzeren Zielzeit bis zu seinen
   Flächen; die Zielzeit vergleicht je Fräser seinen schnellsten Einsatz.
 
+- **Gebaut (P-2026-10-02-91, 0.127.1; Manuel, 2026-10-02 nachts: „kümmer dich auch um die
+  werkzeugliste“):** Die Seiten der Hersteller sind jetzt erreichbar. `camaddon/katalogwerte.py`
+  hält, was ihre Kataloge sagen; `werkzeugkiste` nimmt es, wo es da ist, und schätzt nur den Rest
+  (`Reihe.katalogwerte`, `_aus_katalog`).
+  - **Jongen 494W:** Katalog „VHM 494W / 495W“ 11/2025 (PDF bei jongen.de/Downloads, als Katalog
+    am Werkzeug). Bestell-Nr. (Manuels Ø 12: VU494M12B-HI06), Schneidenlänge, Nutzlänge, Hals,
+    Schaft, Gesamtlänge; Schnittwerte je Ø und Werkstoffgruppe für Eckfräsen (→ Schruppen),
+    Vollnuten und trochoidal (→ Dynamisch) – P1 Baustahl, P2 niedrig legiert, M INOX
+    austenitisch, K GJL, S hitzebeständig. Schlichten und Planen nennt der Katalog nicht: vc und fz
+    des Eckfräsens. Ø 3 gibt es in der Reihe nicht; Ø 4 und 5 nur mit Eckenradius (494W R, eine
+    eigene Reihe als Torusfräser). Bestellen: die Suche im Jongen-Shop nach der Bestell-Nr.
+  - **Garant 208165:** laut Datenblatt der Hoffmann Group ein VHM-Entgrater spiralisiert **60°**,
+    TiSiN (angenommen war ein Fasenfräser 90°), Gesamtlänge je Ø, vc je Werkstoffgruppe, fz je Ø
+    in Stahl; das Datenblatt (PDF) als Katalog am Werkzeug.
+  - **Noch geschätzt:** Ceratizit, Gühring, Sandvik und die Beispiele (nächster Patch).
+
 ## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
 
 Manuel: „Natürlich muss man die Drehrichtung des Werkzeuges im Werkzeug angeben.“

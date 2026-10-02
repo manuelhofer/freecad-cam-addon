@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-91 werkzeugkiste-nach-katalog
+
+### EINGELESEN
+- Manuel, 2026-10-02 nachts: „und bitte kümmer dich auch um die werkzeugliste !“ – W-007,
+  Spezifikation Werkzeugverwaltung 13 „Nicht erreicht“: Beim Bau waren die Seiten der Hersteller
+  gesperrt. Jetzt geht das Netz (Manuel hat WebFetch freigegeben).
+
+### DATEIEN
+- `camaddon/katalogwerte.py` (neu), `camaddon/werkzeugkiste.py` (`Reihe.katalogwerte`,
+  `_aus_katalog`, `_schaftfraeser`, `_schaftfraeser_r`, `_entgrater`, `einsaetze`),
+  `tests/test_werkzeugkiste.py`, `tests/gui/szenario_werkzeugkiste.py`,
+  `docs/spezifikation_werkzeugverwaltung.md` (13), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.127.1)
+
+### AKZEPTANZKRITERIUM
+Jongen 494W und Garant 208165 in der Kiste mit den Nummern, Maßen und Schnittwerten des Herstellers;
+der Katalog am Werkzeug öffnet sein PDF.
+
+### DONE
+- Jongen-Katalog „VHM 494W / 495W“ 11/2025 heruntergeladen, die Tabellen Eckfräsen, Vollnuten,
+  Trochoidal (je 8 Werkstoffgruppen × 10 Durchmesser) ausgelesen; Maße und Bestell-Nr. von Seite 5
+  und 6. Manuels Ø 12 ist VU494M12B-HI06: Eckfräsen in Baustahl vc 210, fz 0,07, ap 22,2, ae 5,4
+  (Manuels eigene Werte am Standardfräser: vc 85, fz 0,1, ae 1,5 – unverändert, siehe Fragen).
+- Selbst entschieden: Ø 3 gibt es in der Reihe nicht – weggelassen; Ø 4 und 5 gibt es nur mit
+  Eckenradius 0,4/0,5 – eine eigene Reihe als Torusfräser. Schlichten und Planen: vc und fz des
+  Eckfräsens (der Katalog nennt sie nicht). Alu, Kupfer, Kunststoff, gehärtet: geschätzt wie bisher.
+- Garant 208165: ein Entgrater 60° (nicht 90°), Gesamtlängen 57/63/72/83/93, vc je Gruppe, fz
+  0,05–0,10 je Ø in Stahl; die anderen Klassen mit den Faktoren der Richtwerte.
+- Die Bezeichnung jeder Reihe sagt, was aus dem Katalog kommt und was geschätzt ist.
+
+### TESTS
+- `tests/test_werkzeugkiste.py` (OK), `tests/gui/szenario_werkzeugkiste.py` (OK). FreeCAD 1.1.4;
+  black und ruff sauber.
+
+### NEXT
+- Gühring 5596, Ceratizit-Bohrer, Sandvik CoroMill 345 nach Katalog.
+
 ## P-2026-10-02-90 schlichten-danach
 
 ### EINGELESEN

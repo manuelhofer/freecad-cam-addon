@@ -94,14 +94,30 @@ pruefe(next(w for w in gewinde if w.durchmesser == 12).artikel == "", "M12 mit e
 n, vf, _ = sd.rechne(m10, m10.einsaetze(wz.ALLE)[0])
 pruefe(nahe(vf, n * 1.5, 1e-6) and n > 0, f"M10: n {n}, vf {vf}")
 
+# Jongen 494W nach dem Katalog 11/2025 (seit P-2026-10-02-91): Ø 6–20 scharfkantig, Ø 4 und 5
+# nur mit Eckenradius (als Torusfräser), Ø 3 gibt es nicht.
 fraeser = wk.werkzeuge(wk.reihe("jongen-494w"))
-pruefe([w.durchmesser for w in fraeser] == [3, 4, 5, 6, 8, 10, 12, 16, 20], "Jongen: Größen")
+pruefe([w.durchmesser for w in fraeser] == [6, 8, 10, 12, 16, 20], "Jongen: Größen")
+mit_radius = wk.werkzeuge(wk.reihe("jongen-494w-r"))
+pruefe(
+    [(w.durchmesser, w.eckradius, w.art) for w in mit_radius]
+    == [(4, 0.4, wz.TORUSFRAESER), (5, 0.5, wz.TORUSFRAESER)],
+    f"Jongen mit Radius: {[(w.durchmesser, w.eckradius) for w in mit_radius]}",
+)
 f12 = next(w for w in fraeser if w.durchmesser == 12)
 pruefe(
-    (f12.schneiden, f12.schneidenlaenge, f12.gesamtlaenge, f12.schaft) == (4, 26, 84, 12),
-    f"Jongen Ø 12: z {f12.schneiden}, {f12.schneidenlaenge}/{f12.gesamtlaenge}",
+    (f12.schneiden, f12.schneidenlaenge, f12.gesamtlaenge, f12.schaft) == (4, 26, 84, 12)
+    and (f12.hals_d, f12.hals_laenge) == (11.2, 10),
+    f"Jongen Ø 12: z {f12.schneiden}, {f12.schneidenlaenge}/{f12.gesamtlaenge}, Hals {f12.hals_d}",
 )
-pruefe(f12.artikel.startswith("VHM 494W-12 HI06"), f"Jongen Ø 12: {f12.artikel!r}")
+pruefe(f12.artikel == "VU494M12B-HI06", f"Jongen Ø 12: {f12.artikel!r}")
+pruefe(f12.katalog.endswith(".pdf") and "VU494M12B-HI06" in f12.link, f"Links: {f12.link!r}")
+# Die Werte des Katalogs: Eckfräsen in Baustahl vc 210, fz 0,07, ap 22,2, ae 5,4; in 1.4301
+# (INOX austenitisch) vc 115, fz 0,05.
+eck = next(e for e in f12.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
+pruefe((eck.vc, eck.fz, eck.ap, eck.ae) == (210, 0.07, 22.2, 5.4), f"Ø 12 Eckfräsen: {eck}")
+eck_m = next(e for e in f12.einsaetze("1.4301") if e.art == wz.SCHRUPPEN)
+pruefe((eck_m.vc, eck_m.fz) == (115, 0.05), f"Ø 12 Eckfräsen in 1.4301: {eck_m}")
 arten_12 = [e.art for e in f12.einsaetze(wz.ALLE)]
 pruefe(
     arten_12 == [wz.VOLLNUT, wz.SCHRUPPEN, wz.DYNAMISCH, wz.SCHLICHTEN, wz.PLANEN],
@@ -116,7 +132,12 @@ pruefe(
     f"Ø 12 Planen: {planen_12}",
 )
 dynamisch = next(e for e in f12.einsaetze(wz.ALLE) if e.art == wz.DYNAMISCH)
-pruefe(nahe(dynamisch.ae, 1.2) and nahe(dynamisch.ap, 24), f"Ø 12 dynamisch: {dynamisch}")
+pruefe(
+    (dynamisch.vc, dynamisch.fz) == (250, 0.06)
+    and nahe(dynamisch.ae, 2.4)
+    and nahe(dynamisch.ap, 24.7),
+    f"Ø 12 trochoidal: {dynamisch}",
+)
 # Je Klasse eine Tabelle; was keine eigene hat, nimmt die seiner Klasse – sonst „alle“.
 pruefe(f12.einsaetze("1.4404") is f12.schnittwerte["1.4301"], "1.4404 nicht wie 1.4301")
 pruefe(f12.einsaetze("1.6582") is f12.schnittwerte["1.7225"], "1.6582 nicht wie 1.7225")
@@ -155,9 +176,17 @@ pruefe(nahe(planen.ae, 35) and nahe(planen.fz, 0.2), f"Messerkopf: {planen}")
 entgrater = wk.werkzeuge(wk.reihe("garant-208165"))
 pruefe(
     [w.artikel for w in entgrater] == [f"208165 {d}" for d in (6, 8, 10, 12, 16)]
-    and all(w.art == wz.FASENFRAESER and w.spitzenwinkel == 90 for w in entgrater),
-    f"Garant: {[w.artikel for w in entgrater]}",
+    and all(w.art == wz.FASENFRAESER and w.spitzenwinkel == 60 for w in entgrater),
+    f"Garant: {[(w.artikel, w.spitzenwinkel) for w in entgrater]}",
 )
+# Laut Datenblatt: Ø 12 L 83, in Stahl bis 750 N/mm² vc 115, fz 0,08; in Titan vc 50.
+g12 = next(w for w in entgrater if w.durchmesser == 12)
+fase = g12.einsaetze(wz.ALLE)[0]
+pruefe(
+    g12.gesamtlaenge == 83 and (fase.vc, fase.fz) == (115, 0.08) and g12.katalog.endswith(".pdf"),
+    f"Garant Ø 12: L {g12.gesamtlaenge}, {fase}, {g12.katalog!r}",
+)
+pruefe(g12.einsaetze("3.7165")[0].vc == 50, f"Garant Ø 12 in Titan: {g12.einsaetze('3.7165')}")
 
 platten = wk.werkzeuge(wk.reihe("iso-wendeplatten"))
 pruefe(
