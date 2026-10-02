@@ -1410,6 +1410,18 @@ man immer so seitlich einfährt.“
   Seite her an die Kontur herantasten.
 - **Fertig, wenn:** in keiner Nut mehr ein voller Kreis außer der Helix steht und die
   geschlossene Nut nicht langsamer ist als heute.
+- **Gebaut:** P-2026-10-02-53, 0.108.0 – die geschlossene Nut in Bögen: je Lage die Helix,
+  unten einmal rundum, dann Halbkreise von Wand zu Wand bis in den Halbkreis am anderen Ende
+  (`nut_bahn._geschlossene_lagen`, `_boegen` mit `s_anfang`); kein voller Kreis mehr außer
+  unten an der Helix (`test_nut`). Mit dem schonenden Schritt (Manuel, 2026-10-02, auf „Soll
+  die geschlossene Nut auch den schonenden Schritt bekommen? Dann gewinnt in schmalen Nuten
+  öfter die Kontur“: „Ja“) ist sie langsamer als die Kreise von gestern, nicht schneller: in
+  der Nut 20 × 50 mit dem Ø 12 0,65 statt 1,5 mm je Schritt, 47 Bögen statt 21 Kreisen,
+  1,20 statt 0,80 min – je Schritt sind die Bögen etwa ein Zehntel kürzer als ein Kreis, aber
+  es sind mehr als doppelt so viele. An der Wand liegen Nut und Kontur jetzt gleichauf
+  (die Kontur knapp vorn, „weniger als 1 % langsamer“). Mit ae als Last (12.1 (a), offen)
+  wäre der Schritt grob 0,9 mm – im Mittel so viel Material je mm Weg wie mit ae 1,5 auf
+  gerader Bahn – und die Nut wieder etwa so schnell wie mit den Kreisen.
 
 ### 12.3 Die Zielzeit misst die Wegstrategie
 

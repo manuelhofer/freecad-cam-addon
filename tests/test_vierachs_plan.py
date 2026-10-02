@@ -228,7 +228,7 @@ print(ascii(f"Abflachung mit Stift: {stift_bahn.zeilen} Zeilen, am Stift {am_sti
 # Ihr Grund ist eine ebene Fläche längs der Stange – mit Zeilen kam der Fräser Ø 8 gar nicht
 # hinein (die Wände stehen genau am Rand der Stirn) und Ø 6 nicht an die Enden (4 mm blieben).
 # Jetzt die Bahn „Nut“ im Rahmen der Fläche: Ø 8 in voller Breite mit der Rampe (langsamer),
-# Ø 6 mit der Trochoide und der Wand rundum; die Mitte des Fräsers bleibt im Langloch.
+# Ø 6 in Bögen (P-2026-10-02-53) und der Wand rundum; die Mitte des Fräsers bleibt im Langloch.
 nutwelle = (
     Part.makeCylinder(15, 80, V(0, 0, -80))
     .cut(
@@ -249,7 +249,7 @@ pruefe(
 )
 nut_netz = vp.netz_ohne(nutwelle, [e.name for e in nut_ebenen])
 nut_teilnetz = vh.vernetze(nutwelle, 0.01)
-for r_f, erwartet in ((4.0, "voll"), (3.0, "trochoide")):
+for r_f, erwartet in ((4.0, "voll"), (3.0, "boegen")):
     w_nut = vp.Planwerte(
         form=ff.scheibe(r_f),
         stange_radius=15.0,
@@ -296,10 +296,10 @@ for r_f, erwartet in ((4.0, "voll"), (3.0, "trochoide")):
     if erwartet == "voll":
         pruefe(any(p.anteil < 1.0 for p in im_teil), "Vollnut ohne kleineren Vorschub")
     else:
-        pruefe(b.zeilen > 10, f"Trochoide: {b.zeilen} Kreise")
+        pruefe(b.zeilen > 10, f"in Bögen: {b.zeilen} Bögen")
     nut_befehle = [x for x in vb.befehle(b, LAENGS, RADIAL, "C", 1, 500.0) if x.Name == "G1"]
     pruefe(len({round(x.Parameters["C"], 6) for x in nut_befehle}) == 1, "C dreht in der Nut")
-    print(ascii(f"Passfedernut Ø {2 * r_f:g}: {b.lagen} Lagen, {b.zeilen} Kreise/Fahrten, "
+    print(ascii(f"Passfedernut Ø {2 * r_f:g}: {b.lagen} Lagen, {b.zeilen} Bögen/Fahrten, "
                 f"{vb.dauer(b, 500.0):.2f} min"))  # fmt: skip
 
 # --- Querbohrungen (P-2026-10-02-07): auf der Welle Ø 30 eine Sackbohrung Ø 10, 8 tief (oben),

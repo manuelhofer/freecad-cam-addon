@@ -610,25 +610,27 @@ floor, the list says “slot 20 × 50, bottom 10” or “…, through”; one w
 slot. With an end mill no wider than the slot – fastest at 50 to 75 % of its width; one that
 fits is preselected.</li>
 <li>The path <b>never cuts at full width with the whole flute</b>. If the slot is wider than
-the cutter: down in a <b>helix</b> at one end, then in <b>circles</b> that advance by ae per
-turn (trochoidal) – from circle to circle it moves on at the back, where everything is
-already free, so the engagement grows to ae on each circle and falls again; at the back, where
-the circle runs through air already cleared, at high feed (3 × vf); in layers of ap, the next
-layer back. If it is barely wider (the circles would be less than a quarter of the
-cutter radius): down in a <b>zigzag ramp</b> along the slot, each pass at most so deep that
+the cutter: down in a <b>helix</b> at one end, once all round at the bottom, then in
+<b>arcs</b> up to the semicircle at the other end – each arc a semicircle, climb milling from
+one wall forward through the material to the other (a dent forms in the middle), back across
+the free side at high feed (3 × vf) and a little forward along the wall into the next; in
+layers of ap, the next layer back. The arcs advance so little that the cutter wraps the dent
+no further than a straight wall with ae – in the slot 20 wide with the Ø 12 and ae 1.5 that is
+0.65 mm per arc; so the chip stays as thick as planned. If it is barely wider (the arcs would
+have a radius under a quarter of the cutter radius): down in a <b>zigzag ramp</b> along the slot, each pass at most so deep that
 at full width it never cuts more than ap and never more than half the diameter – with the
 feed lowered so the chip stays as thick as with the application's small ae.</li>
 <li>Finally the <b>wall once all round</b> climb milling (counter-clockwise, G3), with
 semicircles in from the centre of one end and out again, in passes of at most the flute
 length. Through slots 0.5 mm deeper.</li>
-<li>Fields as for “Hole milling”: <b>stepdown per layer</b> (ap of the circles), <b>row
-spacing</b> (ae – this far the circles advance), <b>allowance for finishing</b>, the ticks
+<li>Fields as for “Hole milling”: <b>stepdown per layer</b> (ap of the arcs), <b>row
+spacing</b> (ae – it gives the step of the arcs), <b>allowance for finishing</b>, the ticks
 <b>finish the wall</b> and <b>climb milling</b>. If the cutter mills the slot at full width,
 the application “Full slot” is preselected when it has one.</li>
-<li>Grey below: “→ 1 slot, 1 layer, 21 circles, about 1 min” or “→ 1 slot at full width
+<li>Grey below: “→ 1 slot, 1 layer, 47 arcs, about 1 min” or “→ 1 slot at full width
 with a ramp, about 1 min”. Red says why it does not work: the cutter is wider than the slot,
-or the slot is wider than nearly two cutters – a core would stay in the middle of the
-circles (a larger cutter, or “Clearing”).</li>
+or a closed slot is wider than nearly two cutters – a core would stay in the middle of the
+helix (a larger cutter, or “Clearing”).</li>
 <li><b>Open slots</b>: open towards the edge – at one end (a semicircle and two walls ending
 at the edge) or at both (two parallel walls with the floor between). The list says “open slot
 16 × 60, floor 12”. Behind the open end there is air: there the cutter goes down and enters
@@ -643,7 +645,8 @@ wall, across outside (or round the semicircle), out along the other. Plate 60 ×
 wide, 8 deep, all the way through: 1.75 min (the contour at the walls 2.2). The line says
 “→ 1 slot, 1 layer, 171 arcs, about …”.</li>
 <li><b>Time decides</b>: at the walls the slot competes with the contour (in the slot
-20 × 50, 10 deep: 0.9 instead of 1.2 min). On the floor clearing and face milling compute as
+20 × 50, 10 deep, both take about 1.2 min – the contour narrowly ahead; the line then says
+“less than 1 % slower”). On the floor clearing and face milling compute as
 well but do not compete: in the slot they would first cut full width – more than ae, only
 seemingly faster (at the open slot 0.19 min, three times faster than ae · ap allows, and with
 a rapid into material). Their line says so.</li>

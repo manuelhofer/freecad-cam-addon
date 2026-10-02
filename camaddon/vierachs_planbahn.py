@@ -31,7 +31,7 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
 
 - **Nut** (Passfedernut, P-2026-10-02-05): Ist die Fläche der Grund eines Langlochs (zwei
   parallele Wände, an den Enden Halbkreise – nuten()), fräst sie die Bahn „Nut“ des Quaders
-  (nut_bahn: in voller Breite mit der Zickzack-Rampe, sonst die Trochoide, zuletzt die Wand
+  (nut_bahn: in voller Breite mit der Zickzack-Rampe, sonst in Bögen, zuletzt die Wand
   rundum) – gerechnet im Rahmen der Fläche (x längs, z ihre Normale, y = z × x), zurück mit
   a = x, Höhe = z, Versatz = −y und der Rundachse fest. Mit Zeilen kam der Fräser nicht an die
   Enden (4 mm blieben stehen) und mit dem Fräser so breit wie die Nut gar nicht hinein.
@@ -75,7 +75,7 @@ UEBERLAUF_LAENGS = vb.UEBERLAUF_ZUGABE  # mm – so weit über Fläche und Fräs
 TOLERANZ = vb.TOLERANZ_SCHLICHTEN  # mm – so fein wird das Teil vernetzt: Wände genau
 VORSCHAU_TOLERANZ = 0.05  # mm – für die Vorschau im Assistenten
 SEHNE = 0.005  # mm – so weit weicht eine Sehne höchstens vom Bogen der Nut ab
-NUT_AE_ANTEIL = 0.25  # × D: so weit rückt die Trochoide in der Nut höchstens je Kreis vor
+NUT_AE_ANTEIL = 0.25  # × D: höchstens dieses ae für die Bögen in der Nut
 NUT_LUFT = 0.01  # mm – so weit bleibt der Fräser in der Nut von den Enden und Wänden weg
 
 
@@ -641,7 +641,7 @@ def _sehnen(von, nach):
 
 def _als_nut(liste, radius):
     """Die Nuten aus `liste`, die die Bahn „Nut“ mit dem Fräser `radius` fräst: in voller Breite
-    oder mit der Trochoide – eine zu schmale auch (sie sagt es); eine zu breite (eine Abflachung
+    oder in Bögen – eine zu schmale auch (sie sagt es); eine zu breite (eine Abflachung
     zwischen zwei Wänden) fährt Zeilen."""
     from . import nut_bahn as nb
 
@@ -667,7 +667,7 @@ def _eingeengt(nut, radius):
 
 def _nut_punkte(liste, ebene, w, oben, sicher):
     """([vierachs_bahn.Punkt], nut_bahn.Nutbahn) – die Nuten `liste` mit der Bahn „Nut“
-    (nut_bahn.planen: in voller Breite die Zickzack-Rampe, sonst die Trochoide, zuletzt die Wand
+    (nut_bahn.planen: in voller Breite die Zickzack-Rampe, sonst in Bögen, zuletzt die Wand
     rundum), zurück in den Rahmen der Stange: a = x, die Höhe = z, q = −y, die Rundachse fest
     auf der Ebene; Bögen in Sehnen."""
     from . import nut_bahn as nb
@@ -795,7 +795,7 @@ def planen(
             flaechen_gefraest += 1
             nuten_gefraest += nut.nuten
             lagen_gesamt += nut.lagen
-            zeilen_gesamt += nut.kreise + nut.vollnut
+            zeilen_gesamt += nut.boegen + nut.vollnut
             r_min = min(r_min, nut.z_min)
             continue
         anzahl_lagen = max(1, int(math.ceil((oben - ziel) / w.zustellung - 1e-9)))

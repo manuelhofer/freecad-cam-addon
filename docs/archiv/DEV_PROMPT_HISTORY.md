@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-53 geschlossene-nut-in-boegen
+
+### EINGELESEN
+- Manuel zu den Bögen der offenen Nut: „So ähnlich mit den Kreisbögen war das gedacht. Frage
+  ist nur, warum mitten drinnen ein kompletter Kreis gefahren wird …“ (Spezifikation
+  Strategien 12.2); auf die Frage „Soll die geschlossene Nut auch den schonenden Schritt
+  bekommen? Dann gewinnt in schmalen Nuten öfter die Kontur“ (2026-10-02): „Ja“.
+
+### DATEIEN
+- `camaddon/nut_bahn.py` (`_geschlossene_lagen` statt `_trochoide` und `_luft_hinten`;
+  `_boegen` mit `s_anfang`; `verfahren` sagt „boegen“; `Nutbahn` ohne `kreise`),
+  `camaddon/nut.py` (Eigenschaft „Kreise“ fällt weg, in alten Dateien ausgeblendet),
+  `camaddon/gui_bearbeitung.py` (Zeile „… 47 Bögen …“, Fräserwahl; im Wettbewerb unter 1 %
+  „weniger als 1 % langsamer“ statt „0 %“), `camaddon/vierachs_planbahn.py` (Bögen zählen als
+  Fahrten der Passfedernut), `translations/de|en.json`, `help/de|en/bearbeitung.html`,
+  `help/de|en/vierachs.html`, `tests/test_nut.py`, `tests/test_nut_offen.py`,
+  `tests/test_vierachs_plan.py`, `tests/gui/szenario_nut.py`,
+  `tests/gui/szenario_nut_durch.py`, `tests/gui/szenario_nut_offen.py`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.108.0)
+
+### AKZEPTANZKRITERIUM
+Die Nut 20 × 50, 10 tief, mit dem Ø 12 (ae 1,5): Helix an A, unten einmal rundum, dann 47
+Bögen mit 0,65 mm Schritt bis in den Halbkreis um B, je Bogen quer zurück im Schnellvorschub;
+kein voller Kreis außer unten an der Helix; im Quader leer bis zum Grund, daneben nichts
+angeschnitten.
+
+### DONE
+- Die geschlossene Nut fährt Bögen wie die offene, mit dem schonenden Schritt (_bogenschritt).
+- Ehrlich: Sie ist dadurch langsamer als mit den Kreisen (1,20 statt 0,80 min) – der
+  Schritt ist 0,65 statt 1,5 mm; an der Wand liegen Nut und Kontur nun gleichauf, die Kontur
+  knapp vorn. Mit ae als Last (12.1 (a), Manuels Entscheidung offen) wäre der Schritt grob
+  0,9 mm.
+- Im Wettbewerb unter 1 % Unterschied „weniger als 1 % langsamer“ statt „0 % langsamer“.
+
+### TEST
+- 1.1.3: `test_nut` (Bögen, Schritt, quer zurück, an der Wand vor, kein voller Kreis, Quader,
+  Operation), `test_nut_offen`, `test_vierachs_plan` (Passfedernut Ø 6: 82 Bögen),
+  `test_sprache`, `test_hilfe`; `szenario_nut`, `szenario_nut_durch`, `szenario_nut_offen`,
+  `szenario_vierachs_nut`; black/ruff grün.
+
+### NEXT
+- Manuels Entscheidung zu 12.1 (ae als Last) – dann der Schritt der Bögen danach; der Ø 12
+  mit einem Einsatz „Planen“.
+
 ## P-2026-10-02-52 vorschlag-schlichten-nach-raeumen
 
 ### EINGELESEN

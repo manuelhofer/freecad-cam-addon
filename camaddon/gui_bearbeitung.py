@@ -702,8 +702,8 @@ class _Raeumen(_Strategie):
 
 
 class _Nut(_Strategie):
-    """Langlöcher in Kreisen (Trochoide), offene in Bögen, oder mit der Zickzack-Rampe (nut_bahn)
-    – tritt auf dem Grund gegen Räumen und Planfräsen an, an den Wänden gegen die Kontur."""
+    """Langlöcher in Bögen oder mit der Zickzack-Rampe (nut_bahn) – tritt auf dem Grund gegen
+    Räumen und Planfräsen an, an den Wänden gegen die Kontur."""
 
     kennung = "nut"
     gemerkt = GEMERKT_NUTFRAESER
@@ -795,17 +795,8 @@ class _Nut(_Strategie):
         if bahn.vollnut == bahn.nuten:
             return tr("ba.ergebnis_vollnut", nuten=nuten, zeit=zeit)
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
-        teile = []
-        if bahn.kreise or not bahn.boegen:
-            teile.append(
-                tr("ba.zahl.kreis") if bahn.kreise == 1 else tr("ba.zahl.kreise", n=bahn.kreise)
-            )
-        if bahn.boegen:  # offene Nuten (P-2026-10-02-22)
-            teile.append(
-                tr("ba.zahl.bogen") if bahn.boegen == 1 else tr("ba.zahl.boegen", n=bahn.boegen)
-            )
-        kreise = ", ".join(teile)
-        return tr("ba.ergebnis_nut", nuten=nuten, lagen=lagen, kreise=kreise, zeit=zeit)
+        boegen = tr("ba.zahl.bogen") if bahn.boegen == 1 else tr("ba.zahl.boegen", n=bahn.boegen)
+        return tr("ba.ergebnis_nut", nuten=nuten, lagen=lagen, boegen=boegen, zeit=zeit)
 
     def lege_an(self, job, tc, werte, flaechen):
         return nu.lege_an(
@@ -4199,8 +4190,8 @@ class BearbeitungPanel:
 
     def _nutfraeser_waehlen(self, form):
         """Wählt im Block Nut einen Fräser, der in die gewählten Nuten passt, wenn der gewählte es
-        nicht tut – am liebsten den größten, der Kreise fährt (Trochoide), sonst den größten, der
-        hineinpasst; und den Einsatz dazu: „Vollnut“ zuerst, wenn er sie in voller Breite fräst."""
+        nicht tut – am liebsten den größten, der Bögen fährt, sonst den größten, der hineinpasst;
+        und den Einsatz dazu: „Vollnut“ zuerst, wenn er sie in voller Breite fräst."""
         namen = [n for n in self.gewaehlte if nb.ist_nut(form, n)]
         liste = nb.nuten(form, namen) if namen else []
         if not liste:
@@ -4211,14 +4202,14 @@ class BearbeitungPanel:
         def arten(w):
             return {nb.verfahren(n, w.durchmesser / 2, aufmass) for n in liste}
 
-        geht = {"trochoide", "vollnut"}
+        geht = {"boegen", "vollnut"}
         wahl = block.wahl_fraeser.currentIndex()
         jetzt = block.fraeser()
         if jetzt is None or not arten(jetzt) <= geht:
-            kreise = [i for i, w in enumerate(block._fraeser) if arten(w) == {"trochoide"}]
+            boegen = [i for i, w in enumerate(block._fraeser) if arten(w) == {"boegen"}]
             passen = [i for i, w in enumerate(block._fraeser) if arten(w) <= geht]
-            if kreise or passen:
-                wahl = max(kreise or passen, key=lambda i: block._fraeser[i].durchmesser)
+            if boegen or passen:
+                wahl = max(boegen or passen, key=lambda i: block._fraeser[i].durchmesser)
         if not 0 <= wahl < len(block._fraeser):
             return
         vollnut = "vollnut" in arten(block._fraeser[wahl])
@@ -4401,23 +4392,29 @@ class BearbeitungPanel:
                 self._haken_setzen(gruppe, mit[0], rot + voll)
             return
         schnellste, zweite = mit[0], mit[1]
-        schnellste.ergebnis.setText(
-            tr(
-                "ba.wettbewerb.schnellste",
-                text=schnellste.ergebnis_basis,
-                andere=zweite.s.titel(),
-                prozent=int(round((zweite.zeit / schnellste.zeit - 1.0) * 100.0)),
+
+        def prozent(block):
+            return int(round((block.zeit / schnellste.zeit - 1.0) * 100.0))
+
+        # Unter 1 % nicht „0 % langsamer“, sondern „weniger als 1 %“ – den Haken hat trotzdem die
+        # schnellere (P-2026-10-02-53: die Nut in Bögen und die Kontur liegen oft gleichauf).
+        basis, andere = schnellste.ergebnis_basis, zweite.s.titel()
+        if prozent(zweite) < 1:
+            text = tr("ba.wettbewerb.schnellste_knapp", text=basis, andere=andere)
+        else:
+            text = tr(
+                "ba.wettbewerb.schnellste", text=basis, andere=andere, prozent=prozent(zweite)
             )
-        )
+        schnellste.ergebnis.setText(text)
         for langsamer in mit[1:]:
-            langsamer.ergebnis.setText(
-                tr(
-                    "ba.wettbewerb.langsamer",
-                    text=langsamer.ergebnis_basis,
-                    andere=schnellste.s.titel(),
-                    prozent=int(round((langsamer.zeit / schnellste.zeit - 1.0) * 100.0)),
+            basis, andere = langsamer.ergebnis_basis, schnellste.s.titel()
+            if prozent(langsamer) < 1:
+                text = tr("ba.wettbewerb.langsamer_knapp", text=basis, andere=andere)
+            else:
+                text = tr(
+                    "ba.wettbewerb.langsamer", text=basis, andere=andere, prozent=prozent(langsamer)
                 )
-            )
+            langsamer.ergebnis.setText(text)
         self._haken_setzen(gruppe, schnellste, mit[1:] + rot + voll)
 
     def _nur_nutgruende(self, form):

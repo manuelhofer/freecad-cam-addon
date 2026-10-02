@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Die CAM-Operation „Nut“ (W-006 4.1 Punkt 6) – Langlöcher mit einem Schaftfräser, der nicht
-breiter ist als sie: in Kreisen, die je Umlauf um ae weiterrücken (Trochoide), bei voller
-Schneide – offene Nuten in Bögen von außen; ist die Nut kaum breiter als der Fräser, in einer
-Zickzack-Rampe; zuletzt die Wand rundum (nut_bahn).
+breiter ist als sie: in Bögen bei voller Schneide – geschlossene nach einer Helix, offene von
+außen; ist die Nut kaum breiter als der Fräser, in einer Zickzack-Rampe; zuletzt die Wand
+rundum (nut_bahn).
 
 Wie „Bohrung fräsen“ (bohrung) eine eigene Operation (erbt FreeCADs ObjectOp) mit
 Werkzeug-Controller, Kühlmittel und FreeCADs Tiefen und Höhen. Beim Neuberechnen rechnet sie ihre
@@ -80,7 +80,6 @@ class Nut(PathOp.ObjectOp):
             ("App::PropertyAngle", "Eintauchwinkel", tr("nt.eigenschaft.eintauchwinkel")),
             ("App::PropertyInteger", "Nuten", tr("nt.eigenschaft.nuten")),
             ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
-            ("App::PropertyInteger", "Kreise", tr("nt.eigenschaft.kreise")),
             ("App::PropertyInteger", "Boegen", tr("nt.eigenschaft.boegen")),
         ):
             if name not in obj.PropertiesList:
@@ -90,8 +89,10 @@ class Nut(PathOp.ObjectOp):
 
     @staticmethod
     def _editormodi(obj):
-        for name in ("Nuten", "Lagen", "Kreise", "Boegen"):
+        for name in ("Nuten", "Lagen", "Boegen"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+        if "Kreise" in obj.PropertiesList:  # bis P-2026-10-02-52 (Trochoide): ausgeblendet
+            obj.setEditorMode("Kreise", 2)
 
     def opExecute(self, obj):
         try:
@@ -101,12 +102,11 @@ class Nut(PathOp.ObjectOp):
                 obj, self.job, self.model, self.horizFeed * 60.0, vo.eintauchvorschub(self)
             )
         except ValueError as fehler:
-            obj.Nuten = obj.Lagen = obj.Kreise = obj.Boegen = 0
+            obj.Nuten = obj.Lagen = obj.Boegen = 0
             FreeCAD.Console.PrintError(f"{obj.Label}: {fehler}\n")
             self.commandlist.append(Path.Command(f"({vo._ascii(str(fehler))})"))
             return
-        obj.Nuten, obj.Lagen, obj.Kreise = ergebnis.nuten, ergebnis.lagen, ergebnis.kreise
-        obj.Boegen = ergebnis.boegen
+        obj.Nuten, obj.Lagen, obj.Boegen = ergebnis.nuten, ergebnis.lagen, ergebnis.boegen
         self.commandlist.extend(
             bn.befehle(ergebnis.punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
         )

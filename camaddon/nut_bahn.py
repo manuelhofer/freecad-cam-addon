@@ -1,21 +1,23 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """2,5D, die Bahn „Nut“ (W-006 4.1 Punkt 6): Langlöcher – zwei gerade, parallele Wände, an den
-Enden Halbkreise – mit einem Schaftfräser, der nicht breiter ist als sie; mit Rampe oder
-Trochoide statt Vollschnitt.
+Enden Halbkreise – mit einem Schaftfräser, der nicht breiter ist als sie; mit Rampe oder in
+Bögen statt Vollschnitt.
 
 - **Erkennung** (nuten()): Eine Wand der Nut bringt die ganze Runde mit, ihr Grund die Wände an
   seinem Rand (_waende_der_nut). Die Unterkanten werden eine Kontur (kontur_bahn.konturen);
   geschlossen, die freie Seite innen, zwei Halbkreise mit gleichem Radius und dazwischen zwei
   Geraden: eine Nut mit den Mittelpunkten A und B der Halbkreise und der halben Breite r. Ohne
   Material unter dem Grund geht sie durch.
-- **Trochoide** (die Regel): je Lage (ap) eine Helix an einem Ende hinab, dann Kreise mit dem
-  Radius r − R − Aufmaß um Mitten, die je Kreis um ae weiterrücken – im Gleichlauf gegen den
-  Uhrzeigersinn (M3: vorn ist das Material rechts). Von Kreis zu Kreis geht es **hinten**
-  weiter, wo schon alles frei ist: Der Fräser fährt nie mit voller Breite ins Material, der
-  Eingriff wächst auf jedem Kreis bis ae und fällt wieder. Hinten, wo der Kreis ganz in der
-  Hülle des vorigen liegt (_luft_hinten), und von Kreis zu Kreis im Schnellvorschub
-  (RUECKWEG, P-2026-10-02-27). Die nächste Lage zurück.
-- **Vollnut** (ist die Nut kaum breiter als der Fräser – die Kreise hätten weniger als
+- **In Bögen** (die Regel; Spezifikation Strategien 12.2, P-2026-10-02-53): je Lage (ap) eine
+  Helix an einem Ende hinab, unten einmal rundum – der Kreis um das Ende ist dann frei –, dann
+  Bögen wie in der offenen Nut (unten) bis in den Halbkreis am anderen Ende: je Bogen ein
+  Halbkreis mit dem Radius r − R − Aufmaß im Gleichlauf von der einen Wand nach vorn durchs
+  Material zur anderen (M3: gegen den Uhrzeigersinn), quer zurück über die freie Seite im
+  Schnellvorschub, an der Wand vor in den nächsten – mit dem schonenden Schritt
+  (_bogenschritt; Manuel, 2026-10-02: „Ja“). Bis P-2026-10-02-52 volle Kreise (Trochoide), die
+  hinten durch schon freie Luft liefen: je Schritt gut ein Zehntel länger. Die nächste Lage
+  zurück.
+- **Vollnut** (ist die Nut kaum breiter als der Fräser – die Bögen hätten einen Radius unter
   VOLLNUT_ANTEIL · R): in einer Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben
   hinüber. Je Fahrt höchstens so viel tiefer, dass der Fräser nie mehr als ap und nie mehr als
   VOLLNUT_AP · D in voller Breite schneidet (die Rampe hin und zurück schneidet zweimal die
@@ -29,10 +31,9 @@ Trochoide statt Vollschnitt.
 - **Offene Nuten** (P-2026-10-01-47): zum Rand hin offen – an einem Ende (ein Halbkreis und
   zwei Geraden, die am Rand enden) oder an beiden (zwei parallele Wände, die freien Seiten
   zueinander, der Grund dazwischen). Hinter einem offenen Ende ist Luft (geprüft): Dort fährt
-  der Fräser im Eilgang hinab und von außen hinein – keine Helix. Die Kreise beginnen so weit
-  draußen, dass der erste gerade ae nimmt, und laufen bis ans andere Ende; dort hinaus ins
-  Freie oder, am Halbkreis, die nächste Lage mit der Helix zurück. Die Vollnut in Lagen von
-  außen geradeaus. Das Schlichten der Wände im Gleichlauf: an der einen Wand hinein, außen
+  der Fräser im Eilgang hinab und von außen hinein – keine Helix. Die Bögen (unten) beginnen
+  draußen und laufen bis ans andere Ende; dort hinaus ins Freie oder, am Halbkreis, hinauf und
+  die nächste Lage wieder von außen. Die Vollnut in Lagen von außen geradeaus. Das Schlichten der Wände im Gleichlauf: an der einen Wand hinein, außen
   (oder um den Halbkreis) hinüber, an der anderen heraus.
 - **Bögen statt Kreisen** in offenen Nuten (P-2026-10-02-22, Manuels Halbkreis): Je Schritt nur
   der Halbkreis, der schneidet – im Gleichlauf von der einen Wand nach vorn durchs Material zur
@@ -62,10 +63,10 @@ from .sprache import tr
 
 GLEICH = 1e-6
 TIEFER = 0.5  # mm – so weit unter den Grund einer durchgehenden Nut
-VOLLNUT_ANTEIL = 0.25  # × R: kleiner die Kreise der Trochoide, dann die Vollnut mit Rampe
-KERN_ANTEIL = 0.9  # × R: größer die Kreise, dann bliebe in ihrer Mitte ein Kern – zu breit
+VOLLNUT_ANTEIL = 0.25  # × R: kleiner der Radius der Bögen, dann die Vollnut mit Rampe
+KERN_ANTEIL = 0.9  # × R: größer der Radius der Helix, dann bliebe in ihrer Mitte ein Kern
 VOLLNUT_AP = 0.5  # × D: so tief schneidet der Fräser in voller Breite höchstens
-MIN_SCHRITT = 0.05  # mm – kürzer rückt die Trochoide nicht vor
+MIN_SCHRITT = 0.05  # mm – kürzer rücken die Bögen nicht vor
 MIN_STEIGUNG = 0.05  # mm je Umlauf – flacher wird keine Helix
 MIN_RAMPE = 0.01  # mm je Fahrt – flacher wird die Rampe der Vollnut nicht
 DURCH_PRUEFEN = 0.05  # mm unter dem Grund wird nach Material gesehen
@@ -106,8 +107,8 @@ class Nutwerte:
     """Was die Nut braucht; Längen in mm, z nach oben im Job."""
 
     fraeser_radius: float
-    zustellung: float  # ap je Lage der Trochoide
-    zeilenabstand: float  # ae: so weit rücken die Kreise der Trochoide je Kreis vor
+    zustellung: float  # ap je Lage
+    zeilenabstand: float  # ae: daraus der Schritt der Bögen (_bogenschritt)
     oben: float  # z, wo das Material beginnt (das Rohteil)
     sicher: float  # z für den Eilgang über allem
     aufmass: float = 0.0  # bleibt beim Schruppen an der Wand – fürs Schlichten
@@ -127,13 +128,12 @@ class Nutbahn:
 
     punkte: list  # [bahn.Punkt], der erste ist der Start (Eilgang, oben)
     nuten: int
-    lagen: int  # Lagen der Trochoide über alle Nuten (eine Vollnut zählt 1)
-    kreise: int  # Kreise der Trochoide über alle Nuten
+    lagen: int  # Lagen in Bögen über alle Nuten (eine Vollnut zählt 1)
+    boegen: int  # Bögen über alle Nuten und Lagen
     vollnut: int  # so viele Nuten in voller Breite mit Rampe
     z_min: float
     laenge: float  # mm im Vorschub
     zeit: float  # Minuten (bahn.zeit)
-    boegen: int = 0  # Bögen in offenen Nuten über alle Nuten
 
 
 # --- Erkennung --------------------------------------------------------------------------------
@@ -562,70 +562,46 @@ def _richtung(von, nach):
     return dx / laenge, dy / laenge
 
 
-def _luft_hinten(schritt, r_l):
-    """Wie weit (rad) jeder Kreis der Trochoide von hinten aus nach beiden Seiten in der Luft
-    läuft: Steht der Fräser auf dem Kreis um c unter dem Winkel θ zur Fahrt, liegt er ganz in
-    der Hülle des Kreises davor (um c − schritt, Radius r_l + R), solange
-    |T − c + schritt| ≤ r_l – also cos θ ≤ −schritt / (2 r_l)."""
-    return max(0.0, math.pi - math.acos(max(-1.0, min(1.0, -schritt / (2.0 * r_l)))))
-
-
-def _trochoide(punkte, nut, w, r_l, oben, z_ende, uhr):
-    """Je Lage eine Helix am einen Ende hinab, Kreise bis zum anderen, von Kreis zu Kreis hinten
-    weiter; die nächste Lage zurück. Beginnt hinten am Kreis um A (der Punkt davor liegt dort).
-    Gibt (Länge, Lagen, Kreise, das Ende, an dem sie aufhört) zurück."""
+def _geschlossene_lagen(punkte, nut, w, r_l, oben, z_ende, uhr):
+    """Die Lagen einer geschlossenen Nut in Bögen (Spezifikation Strategien 12.2): je Lage am
+    einen Ende die Helix hinab, unten noch einmal rundum – der Kreis um das Ende ist dann frei –
+    und weiter bis an die Wand, an der die Bögen beginnen; dann die Bögen (_boegen) bis in den
+    Halbkreis am anderen Ende. Die nächste Lage zurück. Beginnt hinten am Kreis um A (der Punkt
+    davor liegt dort). Gibt (Länge, Lagen, Bögen, das Ende, an dem sie aufhört) zurück."""
     R = w.fraeser_radius
     ap = w.zustellung if w.zustellung > GLEICH else 2 * R
     if w.schneidenlaenge > 0:
         ap = min(ap, w.schneidenlaenge)
     tiefe = oben - z_ende
     anzahl = max(1, int(math.ceil(tiefe / ap - 1e-9)))
-    schritt = min(max(w.zeilenabstand, MIN_SCHRITT), 2 * r_l)
+    schritt = _bogenschritt(r_l, R, min(max(w.zeilenabstand, MIN_SCHRITT), R))
     drehung = -1.0 if uhr else 1.0
+    seite = -drehung  # wie in _boegen: Gleichlauf beginnt an der Wand rechts der Fahrt
     steigung = max(
         2 * math.pi * r_l * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), MIN_STEIGUNG
     )
-    laenge_nut = nut.laenge
     weg = 0.0
-    kreise = 0
+    boegen = 0
     start, ziel = nut.a, nut.b
     z_vorher = oben
     for lage in range(1, anzahl + 1):
         z = oben - tiefe * lage / anzahl
-        ux, uy = _richtung(start, ziel)
-        hinten = math.atan2(-uy, -ux)
+        u = _richtung(start, ziel)
+        wand = math.atan2(u[1], u[0]) + seite * math.pi / 2
         jetzt = punkte[-1]
         winkel = math.atan2(jetzt.y - start[1], jetzt.x - start[0])
-        # Die Helix ganz herum (am Ende derselbe Winkel), unten noch einmal, dann nach hinten.
+        # Die Helix ganz herum (am Ende derselbe Winkel), unten noch einmal, dann an die Wand.
         umlaeufe = max(1, int(math.ceil((z_vorher - z) / steigung - 1e-9)))
         ende = winkel + drehung * 2 * math.pi * umlaeufe
         weg += _bogen(punkte, start, r_l, winkel, ende, z_vorher, z, uhr)
-        rest = (drehung * (hinten - winkel)) % (2 * math.pi)
+        rest = (drehung * (wand - winkel)) % (2 * math.pi)
         weg += _bogen(punkte, start, r_l, ende, ende + drehung * (2 * math.pi + rest), z, z, uhr)
-        kreise += 1
-        winkel = hinten
-        # Hinten liegt jeder Kreis in der Luft, die der Kreis davor freigefräst hat: dort im
-        # Schnellvorschub (P-2026-10-02-27, Manuels „im Eilgang oder Schnellvorschub wieder auf die
-        # andere Seite“), geschnitten wird nur vorn – genau wie bisher.
-        luft = _luft_hinten(schritt, r_l)
-        s = 0.0
-        while s < laenge_nut - GLEICH:
-            s = min(s + schritt, laenge_nut)
-            mitte = (start[0] + ux * s, start[1] + uy * s)
-            # Hinten weiter: dort ist alles frei (schritt ≤ 2 r_l).
-            weg += _hin(punkte, mitte[0] - r_l * ux, mitte[1] - r_l * uy, z, anteil=RUECKWEG)
-            vorn_von = winkel + drehung * luft
-            vorn_bis = winkel + drehung * (2 * math.pi - luft)
-            if luft > GLEICH:
-                weg += _bogen(punkte, mitte, r_l, winkel, vorn_von, z, z, uhr, RUECKWEG)
-            weg += _bogen(punkte, mitte, r_l, vorn_von, vorn_bis, z, z, uhr)
-            if luft > GLEICH:
-                ende = winkel + drehung * 2 * math.pi
-                weg += _bogen(punkte, mitte, r_l, vorn_bis, ende, z, z, uhr, RUECKWEG)
-            kreise += 1
+        stueck, n = _boegen(punkte, start, u, r_l, R, schritt, nut.laenge, z, uhr, s_anfang=0.0)
+        weg += stueck
+        boegen += n
         z_vorher = z
         start, ziel = ziel, start
-    return weg, anzahl, kreise, start
+    return weg, anzahl, boegen, start
 
 
 def _vollnut(punkte, nut, w, oben, z_ende):
@@ -717,22 +693,25 @@ def _offen_bei(nut, ende):
 
 
 def _bogenschritt(r_l, R, ae):
-    """So weit rücken die Bögen in der offenen Nut vor (mm): Der Fräser (Radius R, seine Mitte
-    auf dem Bogen mit dem Radius r_l) soll in der Delle (Radius r_l + R) nicht weiter
-    umschlingen als an einer geraden Wand mit ae – cos des Eingriffswinkels (R − ae) / R. Aus
-    den Kreisen um die alte und die neue Mitte der Delle: s² + 2 (r_l + R − ae) s = 2 r_l ae."""
+    """So weit rücken die Bögen vor (mm): Der Fräser (Radius R, seine Mitte auf dem Bogen mit
+    dem Radius r_l) soll in der Delle (Radius r_l + R) nicht weiter umschlingen als an einer
+    geraden Wand mit ae – cos des Eingriffswinkels (R − ae) / R. Aus den Kreisen um die alte
+    und die neue Mitte der Delle: s² + 2 (r_l + R − ae) s = 2 r_l ae."""
     a = r_l + R - ae
     return min(ae, max(MIN_SCHRITT, -a + math.sqrt(a * a + 2.0 * r_l * ae)))
 
 
-def _boegen(punkte, start, u, r_l, R, schritt, s_bis, z, uhr):
-    """Die Bögen einer Lage in der offenen Nut vom offenen Ende `start` in Richtung `u` bis zum
-    Halbkreis um die Mitte bei s_bis (die Mitte des Fräsers r_l neben der Mittellinie an den
-    Wänden): je Bogen im Gleichlauf von der einen Wand nach vorn durchs Material zur anderen,
-    quer über die freie Seite zurück im Schnellvorschub, an der Wand vor in den nächsten.
-    Zuerst morphen die Bögen vom geraden Rand zum Halbkreis: ihre Enden bei −R (der Fräser
-    berührt den Rand gerade), ihre Mitte je Bogen um `schritt` weiter. Der Punkt davor liegt
-    draußen vor dem Ende, in der Luft. Gibt (Länge, Bögen) zurück."""
+def _boegen(punkte, start, u, r_l, R, schritt, s_bis, z, uhr, s_anfang=None):
+    """Die Bögen einer Lage vom Ende `start` in Richtung `u` bis zum Halbkreis um die Mitte bei
+    s_bis (die Mitte des Fräsers r_l neben der Mittellinie an den Wänden): je Bogen im
+    Gleichlauf von der einen Wand nach vorn durchs Material zur anderen, quer über die freie
+    Seite zurück im Schnellvorschub, an der Wand vor in den nächsten. Ohne `s_anfang` (offenes
+    Ende) liegt der Punkt davor draußen vor dem Ende, in der Luft, und zuerst morphen die Bögen
+    vom geraden Rand zum Halbkreis: ihre Enden bei −R (der Fräser berührt den Rand gerade), ihre
+    Mitte je Bogen um `schritt` weiter. Mit `s_anfang` (geschlossene Nut) ist der Kreis um die
+    Mitte bei s_anfang schon frei (die Helix), der Fräser steht dort an der Wand, an der die
+    Bögen beginnen: gleich Halbkreise, der erste einen Schritt weiter. Gibt (Länge, Bögen)
+    zurück."""
     drehung = -1.0 if uhr else 1.0
     v = (-u[1], u[0])  # links der Fahrt
     seite = -drehung  # Gleichlauf (gegen den Uhrzeigersinn): von der Wand rechts nach links
@@ -741,14 +720,19 @@ def _boegen(punkte, start, u, r_l, R, schritt, s_bis, z, uhr):
     def ort(s, q):
         return (start[0] + u[0] * s + v[0] * q, start[1] + u[1] * s + v[1] * q)
 
-    s_w = -R
-    weg = _hin(punkte, *ort(s_w, seite * r_l), z)  # draußen an die Wand, in der Luft
-    tiefen = []
-    b = schritt
-    while b < r_l - GLEICH:
-        tiefen.append(b)
-        b += schritt
-    tiefen.append(r_l)
+    if s_anfang is None:
+        s_w = -R
+        weg = _hin(punkte, *ort(s_w, seite * r_l), z)  # draußen an die Wand, in der Luft
+        tiefen = []
+        b = schritt
+        while b < r_l - GLEICH:
+            tiefen.append(b)
+            b += schritt
+        tiefen.append(r_l)
+    else:
+        s_w = min(s_anfang + schritt, s_bis)
+        weg = _hin(punkte, *ort(s_w, seite * r_l), z)  # an der Wand vor
+        tiefen = [r_l]
     boegen = 0
     while True:
         for b in tiefen:
@@ -853,22 +837,22 @@ def _offen_schlichten(punkte, nut, w, r_w, oben, z_ende, uhr, knapp):
 
 
 def verfahren(nut, fraeser_radius, aufmass=0.0, offen_breit=True):
-    """Wie der Fräser mit dem Radius die Nut fräst: „trochoide“ (in offenen Nuten Bögen),
-    „vollnut“ – oder „zu_schmal“ (er passt nicht hinein), „zu_breit“ (in der Mitte der Kreise
-    bliebe ein Kern; in offenen Nuten nicht – ihre Bögen kommen von außen –, außer
-    `offen_breit` ist aus: Plan indexiert fräst eine breite Abflachung in Zeilen)."""
+    """Wie der Fräser mit dem Radius die Nut fräst: „boegen“, „vollnut“ – oder „zu_schmal“ (er
+    passt nicht hinein), „zu_breit“ (in der Mitte der Helix bliebe ein Kern; in offenen Nuten
+    nicht – ihre Bögen kommen von außen –, außer `offen_breit` ist aus: Plan indexiert fräst
+    eine breite Abflachung in Zeilen)."""
     R = fraeser_radius
     if nut.radius < R - 1e-3:
         return "zu_schmal"
     r_l = nut.radius - R - max(aufmass, 0.0)
     if r_l > KERN_ANTEIL * R + GLEICH and not (nut.offen and offen_breit):
         return "zu_breit"
-    return "vollnut" if r_l < VOLLNUT_ANTEIL * R else "trochoide"
+    return "vollnut" if r_l < VOLLNUT_ANTEIL * R else "boegen"
 
 
 def _nut(punkte, nut, w):
-    """Eine Nut: Trochoide, Bögen oder Vollnut, dann rundum. Gibt (Länge, Lagen, Kreise, Bögen,
-    vollnut, z_min) zurück; (0, 0, 0, 0, False, inf), wenn über ihr nichts steht."""
+    """Eine Nut: in Bögen oder als Vollnut, dann rundum. Gibt (Länge, Lagen, Bögen, vollnut,
+    z_min) zurück; (0, 0, 0, False, inf), wenn über ihr nichts steht."""
     R = w.fraeser_radius
     aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
     art = verfahren(nut, R, aufmass)
@@ -879,11 +863,11 @@ def _nut(punkte, nut, w):
     if art == "zu_breit":
         raise ValueError(tr("nt.fehler.zu_breit", breite=breite))
     r_w = max(nut.radius - R, 0.0)  # die Mitte des Fräsers an der Wand
-    r_l = nut.radius - R - aufmass  # … auf den Kreisen der Trochoide
+    r_l = nut.radius - R - aufmass  # … auf den Bögen
     z_ende = nut.z_unten - max(w.tiefer, 0.0) if nut.durch else nut.z_unten
     oben = w.oben
     if oben <= z_ende + GLEICH:
-        return 0.0, 0, 0, 0, False, math.inf
+        return 0.0, 0, 0, False, math.inf
     uhr = not w.gleichlauf  # Gleichlauf in der Nut: gegen den Uhrzeigersinn (G3)
     vollnut = art == "vollnut"
     knapp = min(w.sicher, oben + w.sicherheit)
@@ -897,7 +881,7 @@ def _nut(punkte, nut, w):
             weg += _offen_schlichten(punkte, nut, w, r_w, oben, z_ende, uhr, knapp)
         letzter = punkte[-1]
         punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
-        return weg, (1 if vollnut else lagen), 0, boegen, vollnut, z_ende
+        return weg, (1 if vollnut else lagen), boegen, vollnut, z_ende
     if vollnut:
         start = nut.a
     else:
@@ -909,15 +893,15 @@ def _nut(punkte, nut, w):
     weg = bn.weg(punkte[-2], punkte[-1])
     if vollnut:
         stueck, ende = _vollnut(punkte, nut, w, oben, z_ende)
-        lagen, kreise = 1, 0
+        lagen, boegen = 1, 0
     else:
-        stueck, lagen, kreise, ende = _trochoide(punkte, nut, w, r_l, oben, z_ende, uhr)
+        stueck, lagen, boegen, ende = _geschlossene_lagen(punkte, nut, w, r_l, oben, z_ende, uhr)
     weg += stueck
     if r_w > GLEICH and (w.schlichten or vollnut):
         weg += _schlichten(punkte, nut, w, r_w, oben, z_ende, ende, uhr)
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
-    return weg, lagen, kreise, 0, vollnut, z_ende
+    return weg, lagen, boegen, vollnut, z_ende
 
 
 def planen(werte, liste):
@@ -941,20 +925,19 @@ def planen(werte, liste):
         ort = naechste.b
     punkte = []
     laenge = 0.0
-    lagen = kreise = boegen = vollnut = gefraest = 0
+    lagen = boegen = vollnut = gefraest = 0
     z_min = math.inf
     for nut in folge:
-        stueck, n_lagen, n_kreise, n_boegen, ist_voll, z = _nut(punkte, nut, w)
+        stueck, n_lagen, n_boegen, ist_voll, z = _nut(punkte, nut, w)
         if not n_lagen:
             continue
         gefraest += 1
         laenge += stueck
         lagen += n_lagen
-        kreise += n_kreise
         boegen += n_boegen
         vollnut += int(ist_voll)
         z_min = min(z_min, z)
     if not gefraest:
         raise ValueError(tr("nt.fehler.nichts"))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-    return Nutbahn(punkte, gefraest, lagen, kreise, vollnut, z_min, laenge, zeit, boegen)
+    return Nutbahn(punkte, gefraest, lagen, boegen, vollnut, z_min, laenge, zeit)

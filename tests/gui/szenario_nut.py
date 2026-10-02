@@ -3,10 +3,12 @@
 # (55, 20); T1 der Standardfräser Ø 12 (ae 1,5, ap 25). Den Grund anklicken: Räumen und Nut
 # rechnen beide – Räumen schnitte in der Nut zuerst in voller Breite (mehr als ae) und tritt
 # nicht an: Die Nut bekommt den Haken, Räumen sagt „… – in der Nut schnitte es zuerst in voller
-# Breite …“ (P-2026-10-01-47). Statt des Grunds eine Wand: Nut gegen Kontur – die Nut
-# (Helix hinab, Kreise, die Wand rundum) ist schneller: „→ 1 Nut, 1 Lage, 21 Kreise, etwa … –
-# die schnellste; Kontur wäre N % langsamer“. „Anlegen“: nur „Nut T1“ mit Endtiefe 10 und G3
-# (Gleichlauf). „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
+# Breite …“ (P-2026-10-01-47). Statt des Grunds eine Wand: Nut gegen Kontur – die Nut (Helix
+# hinab, Bögen mit dem schonenden Schritt, die Wand rundum: „→ 1 Nut, 1 Lage, 47 Bögen, etwa …“)
+# und die Kontur liegen gleichauf (P-2026-10-02-53, Manuel: „Ja“ zum schonenden Schritt);
+# den Haken hat die schnellere, beide Zeilen sagen es. Zurück zum Grund, „Anlegen“: nur
+# „Nut T1“ mit Endtiefe 10 und G3 (Gleichlauf). „Auf der Maschine prüfen“: am Ende nirgends
+# ins Teil.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -79,6 +81,7 @@ def schritte(h):
         return
     job = panel.job
     nut_block, raeumen, kontur = panel.nut, panel.raeumen, panel.kontur
+    panel.knopf_weiter.click()  # Schritt 2: die Strategien mit ihrer Zeit (für die Bilder)
 
     # --- Der Grund: Räumen gegen Nut ------------------------------------------------------------
     yield from h.warte_auf(
@@ -87,7 +90,7 @@ def schritte(h):
     yield 1500
     text = nut_block.ergebnis.text()
     h.pruefe(nut_block.aktiv() and not raeumen.aktiv(), "Grund: die Nut nicht der Sieger")
-    h.pruefe(text.startswith("→ 1 Nut, 1 Lage, 21 Kreise, etwa "), f"Nut am Grund: {text!r}")
+    h.pruefe(text.startswith("→ 1 Nut, 1 Lage, 47 Bögen, etwa "), f"Nut am Grund: {text!r}")
     h.pruefe(
         "in der Nut schnitte es zuerst in voller Breite" in raeumen.ergebnis.text(),
         f"Räumen am Grund: {raeumen.ergebnis.text()!r}",
@@ -106,15 +109,33 @@ def schritte(h):
     )
     yield 1500
     text = nut_block.ergebnis.text()
-    h.pruefe(nut_block.aktiv() and not kontur.aktiv(), "Wand: Nut nicht der Sieger")
+    print(ascii(f"Nut an der Wand: {text}"))
+    print(ascii(f"Kontur an der Wand: {kontur.ergebnis.text()}"))
+    h.pruefe(nut_block.aktiv() != kontur.aktiv(), "Wand: nicht genau eine angehakt")
     h.pruefe(not raeumen.aktiv(), "Räumen angehakt")
-    h.pruefe(
-        text.startswith("→ 1 Nut, 1 Lage, 21 Kreise, etwa ")
-        and "die schnellste; Kontur wäre" in text,
-        f"Nut an der Wand: {text!r}",
+    h.pruefe(text.startswith("→ 1 Nut, 1 Lage, 47 Bögen, etwa "), f"Nut an der Wand: {text!r}")
+    sieger, zweite, name = (
+        (nut_block, kontur, "Kontur") if nut_block.aktiv() else (kontur, nut_block, "Nut")
     )
-    h.pruefe("% langsamer als Nut" in kontur.ergebnis.text(), f"{kontur.ergebnis.text()!r}")
+    h.pruefe(
+        f"die schnellste; {name} wäre" in sieger.ergebnis.text()
+        and "% langsamer als " in zweite.ergebnis.text(),
+        f"Wand: {sieger.ergebnis.text()!r} / {zweite.ergebnis.text()!r}",
+    )
     h.bild("2_wand", panel.form)
+
+    # --- Zurück zum Grund: dort die Nut --------------------------------------------------------
+    panel.flaeche_umschalten(wand)
+    panel.flaeche_umschalten(grund)
+    yield 300
+    yield from h.warte_auf(
+        lambda: nut_block.vorschau is not None and raeumen.vorschau is not None, 180000
+    )
+    yield 1500
+    h.pruefe(
+        nut_block.aktiv() and not kontur.aktiv() and not raeumen.aktiv(),
+        f"Grund: Nut {nut_block.aktiv()}, Kontur {kontur.aktiv()}, Räumen {raeumen.aktiv()}",
+    )
 
     # --- Anlegen ------------------------------------------------------------------------------
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")

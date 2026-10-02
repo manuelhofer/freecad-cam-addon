@@ -1,11 +1,12 @@
 # Prüft „Nut“ (W-006 4.1 Punkt 6): Platte 100 × 60 × 20 mit zwei Langlöchern – A 20 breit, 10
 # tief, Halbkreise um (25, 20) und (55, 20); B 14 breit, durchgehend, um (25, 45) und (75, 45).
-# Mit dem Standardfräser Ø 12 (ae 1,5, ap 25): A in Kreisen (Trochoide, Radius 10 − 6 − 0,3),
-# B in voller Breite mit der Zickzack-Rampe (je Fahrt höchstens 3 tiefer, der Vorschub für den
-# dicken Span gesenkt), beide zuletzt rundum an der Wand. Im Quader: die Nuten leer bis zum Grund
-# (B 0,5 tiefer), daneben nichts angeschnitten; die Kreise im Gleichlauf (G3); von Kreis zu Kreis
-# hinten weiter. Ein Fräser Ø 25 passt nicht, ein Ø 6 ist für A zu klein (ein Kern bliebe). Dann
-# die Operation im Job: „Nut T1“, Endtiefe −0,5 (B durch), Art „nut“.
+# Mit dem Standardfräser Ø 12 (ae 1,5, ap 25): A in Bögen (Radius 10 − 6 − 0,3, P-2026-10-02-53:
+# nach der Helix Halbkreise von Wand zu Wand mit dem schonenden Schritt, quer zurück im
+# Schnellvorschub), B in voller Breite mit der Zickzack-Rampe (je Fahrt höchstens 3 tiefer, der
+# Vorschub für den dicken Span gesenkt), beide zuletzt rundum an der Wand. Im Quader: die Nuten
+# leer bis zum Grund (B 0,5 tiefer), daneben nichts angeschnitten; die Bögen im Gleichlauf (G3).
+# Ein Fräser Ø 25 passt nicht, ein Ø 6 ist für A zu klein (ein Kern bliebe). Dann die Operation
+# im Job: „Nut T1“, Endtiefe −0,5 (B durch), Art „nut“.
 import math
 import os
 import pathlib
@@ -99,7 +100,7 @@ pruefe(
 t1 = wz.standardwerkzeug()
 form = ff.von_werkzeug(t1)
 R = 6.0
-pruefe(nb.verfahren(nut_a, R, 0.3) == "trochoide", "A nicht Trochoide")
+pruefe(nb.verfahren(nut_a, R, 0.3) == "boegen", "A nicht in Bögen")
 pruefe(nb.verfahren(nut_b, R, 0.3) == "vollnut", "B nicht Vollnut")
 pruefe(nb.verfahren(nut_a, 12.5) == "zu_schmal", "Ø 25 passt in A?")
 pruefe(nb.verfahren(nut_a, 3.0, 0.3) == "zu_breit", "Ø 6 in A kein Kern?")
@@ -126,16 +127,20 @@ bahn = nb.planen(werte(), [nut_a, nut_b])
 pruefe((bahn.nuten, bahn.vollnut) == (2, 1), f"{bahn.nuten} Nuten, {bahn.vollnut} Vollnut")
 pruefe(abs(bahn.z_min + 0.5) < 1e-9, f"z_min {bahn.z_min}")
 pruefe(bahn.lagen == 2, f"Lagen {bahn.lagen}")
-# A: 30 lang, ae 1,5 – 20 Kreise vorwärts und einer unten an der Helix.
-pruefe(bahn.kreise == 21, f"Kreise {bahn.kreise}")
-print(ascii(f"Zeit {bahn.zeit:.2f} min, {bahn.laenge:.0f} mm, {bahn.kreise} Kreise"))
-# Hinten in der Luft im Schnellvorschub (P-2026-10-02-27): dort trägt der Prüfstand nichts ab,
-# und nirgends geht es ins Teil.
+# A: 30 lang, r_l 3,7 – der schonende Schritt (in der Delle nicht mehr Umschlingung als an
+# einer geraden Wand mit ae 1,5) ist 0,65; bis in den Halbkreis um B 47 Bögen.
+r_l = 10 - R - 0.3
+schritt = nb._bogenschritt(r_l, R, 1.5)
+boegen_a = math.ceil(30.0 / schritt - 1e-9)
+pruefe(0.6 < schritt < 0.7 and bahn.boegen == boegen_a, f"Bögen {bahn.boegen}, Schritt {schritt}")
+print(ascii(f"Zeit {bahn.zeit:.2f} min, {bahn.laenge:.0f} mm, {bahn.boegen} Bögen"))
+# Quer zurück über die freie Seite im Schnellvorschub: dort trägt der Prüfstand nichts ab, und
+# nirgends geht es ins Teil.
 nur_a = nb.planen(werte(), [nut_a])
 k_a = ps.messen([ps.Bahnlauf(nur_a.punkte, 902.0, 300.0)], teil, (0, 100, 0, 60), 20.0, form,
                 1.5, 25.0, ebenen_z=[10.0], aufmass=0.3)  # fmt: skip
 schnell = [p for p in nur_a.punkte if p.anteil > 1.0]
-pruefe(len(schnell) >= 2 * 20, f"hinten im Schnellvorschub: {len(schnell)} Sätze")
+pruefe(len(schnell) == boegen_a - 1, f"quer im Schnellvorschub: {len(schnell)} Sätze")
 pruefe(k_a.schnell_abtrag <= 1e-9, f"im Schnellvorschub abgetragen: {k_a.schnell_abtrag:.2f} mm³")
 pruefe(k_a.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"A ins Teil: {k_a.einschnitt:.3f}")
 print(ascii(f"A: {nur_a.zeit:.2f} min | {ps.zeile(k_a)}"))
@@ -163,22 +168,40 @@ pruefe(boegen and not any(boegen), "Bögen im Uhrzeigersinn bei Gleichlauf")
 gegen = nb.planen(werte(gleichlauf=False), [nut_a])
 pruefe(all(p.bogen[2] for p in gegen.punkte if p.bogen is not None), "Gegenlauf nicht G2")
 
-# Von Kreis zu Kreis hinten weiter: die Geraden auf der Lage von A laufen in +x und liegen
-# r_l hinter der Mitte des nächsten Kreises (im freien Raum).
-r_l = 10 - R - 0.3
-geraden = [
+# Von Bogen zu Bogen: quer über die freie Seite zurück (2 r_l, links nach rechts der Fahrt in
+# +x) und an der rechten Wand um den Schritt vor in den nächsten Bogen.
+quer = [
+    (a, b)
+    for a, b in zip(punkte, punkte[1:], strict=False)
+    if b.anteil > 1.0 and abs(a.x - b.x) < 1e-6 and abs(a.y - b.y - 2 * r_l) < 1e-6
+]
+vor = [
     (a, b)
     for a, b in zip(punkte, punkte[1:], strict=False)
     if not b.eilgang
     and b.bogen is None
+    and b.anteil == 1.0
     and abs(a.z - 10) < 1e-9
-    and abs(b.z - 10) < 1e-9
-    and a.y < 32
-    and abs(b.y - 20) < 1e-9
-    and abs(a.y - 20) < 1e-9
-    and abs(b.x - a.x - 1.5) < 1e-6
+    and abs(a.y - (20 - r_l)) < 1e-9
+    and abs(b.y - (20 - r_l)) < 1e-9
+    and 0 < b.x - a.x < schritt + 1e-6
 ]
-pruefe(len(geraden) >= 19, f"Schritte hinten: {len(geraden)}")
+pruefe(len(quer) == boegen_a - 1, f"quer zurück: {len(quer)}")
+pruefe(len(vor) == boegen_a, f"an der Wand vor: {len(vor)}")
+# Kein voller Kreis außer unten an der Helix um A: Die Bögen mit r_l überstreichen um jede andere
+# Mitte höchstens 180° (das Schlichten fährt mit r − R = 4).
+um = {}
+for a, b in zip(punkte, punkte[1:], strict=False):
+    if (
+        b.bogen is not None
+        and abs(a.z - b.z) < 1e-9
+        and a.y < 32
+        and abs(math.hypot(b.x - b.bogen[0], b.y - b.bogen[1]) - r_l) < 1e-6
+    ):
+        schluessel = (round(b.bogen[0], 6), round(b.bogen[1], 6))
+        um[schluessel] = um.get(schluessel, 0.0) + bn.winkel(a, b)
+voll = [m for m, w in um.items() if w > math.pi + 1e-6]
+pruefe(voll == [(25.0, 20.0)] and len(um) == boegen_a + 1, f"volle Kreise um {voll}, {len(um)}")
 
 # Vollnut B: je Fahrt höchstens 3 tiefer (min(ap, D/2) / 2), Vorschub für den dicken Span.
 rampe = [
@@ -274,7 +297,7 @@ doc.recompute()
 pruefe(op.Label == "Nut T1" and op.Nuten == 2, f"{op.Label}, {op.Nuten} Nuten")
 pruefe(abs(float(op.FinalDepth) + 0.5) < 1e-6, f"Endtiefe {float(op.FinalDepth)}")
 pruefe(js.operationsart(op) == "nut", f"Art {js.operationsart(op)}")
-pruefe(op.Kreise == 21 and op.Lagen == 2, f"Kreise {op.Kreise}, Lagen {op.Lagen}")
+pruefe(op.Boegen == boegen_a and op.Lagen == 2, f"Bögen {op.Boegen}, Lagen {op.Lagen}")
 befehle = [c.Name for c in op.Path.Commands]
 pruefe("G3" in befehle and "G2" not in befehle, "Bögen nicht G3")
 print(ascii(f"Operation: {len(befehle)} Befehle"))

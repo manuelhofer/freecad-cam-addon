@@ -74,9 +74,7 @@ def pruefe_bahn(name, teil, nut, halb=8.0):
     pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"{name}: ins Teil {k.einschnitt:.3f}")
     pruefe(k.eilgang_abtrag <= 1e-9, f"{name}: im Eilgang {k.eilgang_abtrag:.1f} mm³")
     pruefe(k.schnell_abtrag <= 1e-9, f"{name}: im Schnellvorschub {k.schnell_abtrag:.1f} mm³")
-    pruefe(
-        bahn.boegen > 0 and bahn.kreise == 0, f"{name}: {bahn.boegen} Bögen, {bahn.kreise} Kreise"
-    )
+    pruefe(bahn.boegen > 0, f"{name}: {bahn.boegen} Bögen")
     boegen = [p for p in bahn.punkte if p.bogen is not None]
     pruefe(boegen and not any(p.bogen[2] for p in boegen), f"{name}: nicht im Gleichlauf (G3)")
     schnell = [p for p in bahn.punkte if p.anteil > 1.0]
@@ -152,7 +150,7 @@ waende, grund = waende_und_grund(weit)
 nut_w = nb.nuten(weit, grund)
 pruefe(len(nut_w) == 1 and abs(nut_w[0].radius - 15.0) < 1e-6, f"30 breit: {nut_w}")
 if nut_w:
-    pruefe(nb.verfahren(nut_w[0], R, 0.3) == "trochoide", "30 breit: nicht in Bögen")
+    pruefe(nb.verfahren(nut_w[0], R, 0.3) == "boegen", "30 breit: nicht in Bögen")
     pruefe_bahn("30 breit", weit, nut_w[0], halb=15.0)
 
 # --- (d) Der Wettbewerb wie im Assistenten --------------------------------------------------------

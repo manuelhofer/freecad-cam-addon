@@ -86,7 +86,7 @@ def schritte(h):
     if not nuten:
         return
     op = nuten[0]
-    h.pruefe(op.Boegen > 0 and op.Kreise == 0, f"Bögen {op.Boegen}, Kreise {op.Kreise}")
+    h.pruefe(op.Boegen > 0, f"Bögen {op.Boegen}")
     befehle = list(op.Path.Commands)
     namen = [c.Name for c in befehle]
     h.pruefe("G3" in namen and "G2" not in namen, "nicht im Gleichlauf (G3)")
