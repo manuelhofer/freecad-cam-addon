@@ -1137,7 +1137,9 @@ die Abstände gelten für beide.
    Futter am längsten steif. Der Gleichlauf kommt aus der Drehrichtung der
    Rundachse: mit M3 steigt φ, während die Spirale zum Futter rückt, mit M4
    („Reverse“ am Controller) fällt es (`spindel.ist_gleichlauf`, im Rahmen des
-   Teils; P-2026-10-02-23).
+   Teils; P-2026-10-02-23). Linien längs mit dem Haken „nur im Gleichlauf“: jede
+   Linie für sich, die Linien mit wachsendem φ – mit M3 vom Futter nach vorne
+   (P-2026-10-02-28).
 5. **numpy statt OpenCamLib** – numpy ist in jeder FreeCAD-Version dabei,
    OpenCamLib nicht.
 6. **Vorschub G93** (Abschnitt 9), umstellbar unter „Mehr …“.

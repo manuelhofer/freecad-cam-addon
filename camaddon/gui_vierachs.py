@@ -721,6 +721,7 @@ class VierachsPanel:
                 ("aufmass_schlichten", op.Aufmass),
             ]
             self._muster_setzen(vs.muster_der_operation(op), von_hand=True)
+            self.linien_nur_gleichlauf.setChecked(bool(getattr(op, "NurGleichlauf", False)))
         elif self._art == PLAN:
             paare = [
                 ("zustellung_plan", op.Zustellung),
@@ -1190,6 +1191,15 @@ class VierachsPanel:
         self.muster_grund = self._grau()
         self.muster_grund.setWordWrap(True)
         schlichten.ganz(self.muster_grund)
+        # Linien längs nur im Gleichlauf (P-2026-10-02-28) – die Spirale fährt immer so.
+        self.linien_nur_gleichlauf = QtGui.QCheckBox(tr("ba.nur_gleichlauf"))
+        self.linien_nur_gleichlauf.setToolTip(tr("va.linien.nur_gleichlauf.tooltip"))
+        self.linien_nur_gleichlauf.setEnabled(self.muster() == vb.LINIEN)
+        self.linien_nur_gleichlauf.toggled.connect(lambda _an: self._vorschau_starten())
+        self.wahl_muster.currentIndexChanged.connect(
+            lambda _i: self.linien_nur_gleichlauf.setEnabled(self.muster() == vb.LINIEN)
+        )
+        schlichten.ganz(self.linien_nur_gleichlauf)
         self.schlichtfelder = schlichten.widget
         aufbau.addWidget(self.schlichtfelder)
         self.ergebnis_schlichten = grau()
@@ -2078,6 +2088,7 @@ class VierachsPanel:
             self._halter_fuer(werkzeug),
             self.flaechen(),
             self.muster(),
+            nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
         )
 
     def _schlicht_text(self, bahn):
@@ -3329,6 +3340,7 @@ class VierachsPanel:
                             halter=self._halter_fuer(self.schlichtfraeser()),
                             flaechen=flaechen,
                             muster=muster,
+                            nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
                         )
                     )
                 if plan:
@@ -3450,6 +3462,7 @@ class VierachsPanel:
                         self._halter_fuer(self.schlichtfraeser()),
                         flaechen,
                         muster,
+                        nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
                     )
                 elif self._art == PLAN:
                     tc = js.controller_fuer(
@@ -3533,6 +3546,7 @@ class VierachsPanel:
                         halter=self._halter_fuer(self.schlichtfraeser()),
                         flaechen=flaechen,
                         muster=muster,
+                        nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
                     )
                 if plan_dazu:
                     plan_flaechen, loecher = self._plan_flaechen()

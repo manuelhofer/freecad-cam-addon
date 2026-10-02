@@ -87,6 +87,7 @@ class RundumSchlichten(PathOp.ObjectOp):
                 ("App::PropertyLength", "Schrittweite", tr("vs.eigenschaft.schrittweite")),
                 ("App::PropertyLength", "Aufmass", tr("vs.eigenschaft.aufmass")),
                 ("App::PropertyEnumeration", "Muster", tr("vs.eigenschaft.muster")),
+                ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
             )
             + vo.abstand_eigenschaften()
             + vo.flaechen_eigenschaften()
@@ -188,6 +189,7 @@ def rechne(obj, job, modell):
         vo.flaechen(obj),
         muster_der_operation(obj),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
+        nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
     )
 
 
@@ -219,13 +221,15 @@ def bahn_fuer(
     flaechen=(),
     muster=vb.SPIRALE,
     gleichlauf=True,
+    nur_gleichlauf=False,
 ):
     """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
     davor (schruppbahnen()); `halter`: so weit reicht der Halter seitlich über die
     Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen („Face3“ …), leer:
     rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN; `gleichlauf`: die Spirale im Gleichlauf
-    für M3 (spindel.fuer_m3 mit dem Controller). ValueError mit einem Satz, wenn es nicht
+    für M3 (spindel.fuer_m3 mit dem Controller); `nur_gleichlauf`: Linien längs jede für sich im
+    Gleichlauf statt hin und her (P-2026-10-02-28). ValueError mit einem Satz, wenn es nicht
     geht."""
     if not schruppen:
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
@@ -240,6 +244,7 @@ def bahn_fuer(
         bereich=vf.bereich_fuer(form_teil, laengs, radial, flaechen, form.radius),
         muster=muster,
         gleichlauf=gleichlauf,
+        nur_gleichlauf=nur_gleichlauf,
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     return vb.schlichten(teil, laengs, radial, werte)
@@ -257,6 +262,7 @@ def vorschau(
     halter=0.0,
     flaechen=(),
     muster=vb.SPIRALE,
+    nur_gleichlauf=False,
 ):
     """Die Schlichtbahn grob – für Umdrehungen, Zeit und ob es geht, im Assistenten, bevor es
     die Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt, alle
@@ -269,6 +275,7 @@ def vorschau(
         waende=vo.waende(form_teil, laengs),
         bereich=vf.bereich_fuer(form_teil, laengs, radial, flaechen, form.radius),
         muster=muster,
+        nur_gleichlauf=nur_gleichlauf,
     )
     teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
@@ -354,12 +361,14 @@ def lege_an(
     halter=0.0,
     flaechen=(),
     muster=vb.SPIRALE,
+    nur_gleichlauf=False,
 ):
     """Legt „Rundum schlichten“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand) – ohne: die Vorschläge; `halter`: so weit reicht der Halter
     seitlich über die Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen
-    („Face3“ …), leer: rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN. Gibt die
+    („Face3“ …), leer: rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN; `nur_gleichlauf`:
+    Linien längs jede für sich im Gleichlauf (P-2026-10-02-28). Gibt die
     Operation zurück. Angelegt wie „Rundum schruppen“ (vierachs_operation.lege_an), mit
     DoNotSetDefaultValues."""
     dokument = job.Document
@@ -385,6 +394,7 @@ def lege_an(
     obj.HalterZumFutter = halter
     obj.Flaechen = list(flaechen)
     obj.Muster = muster_wert(muster)
+    obj.NurGleichlauf = bool(nur_gleichlauf)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vs.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -396,11 +406,19 @@ def lege_an(
 
 
 def aendere(
-    obj, tc, schrittweite, aufmass, abstaende=None, halter=None, flaechen=None, muster=None
+    obj,
+    tc,
+    schrittweite,
+    aufmass,
+    abstaende=None,
+    halter=None,
+    flaechen=None,
+    muster=None,
+    nur_gleichlauf=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `abstaende`, `halter`, `flaechen` und `muster` wie bei lege_an, ohne bleiben
-    sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
+    Transaktion; `abstaende`, `halter`, `flaechen`, `muster` und `nur_gleichlauf` wie bei
+    lege_an, ohne bleiben sie. Der Name folgt dem Werkzeug, solange es der vorgeschlagene ist."""
     if _vorgeschlagener_name(obj.Label):
         obj.Label = namen.eindeutig(obj.Document, tr("vs.name", werkzeug=f"T{tc.ToolNumber}"), obj)
     obj.ToolController = tc
@@ -415,6 +433,8 @@ def aendere(
         obj.Flaechen = list(flaechen)
     if muster is not None and muster_wert(muster) != obj.Muster:
         obj.Muster = muster_wert(muster)
+    if nur_gleichlauf is not None and bool(nur_gleichlauf) != bool(obj.NurGleichlauf):
+        obj.NurGleichlauf = bool(nur_gleichlauf)
 
 
 def _vorgeschlagener_name(name):

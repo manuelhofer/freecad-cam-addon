@@ -157,6 +157,7 @@ class Schlichtwerte:
     bereich: object = None  # wie bei Schruppwerte
     muster: str = SPIRALE  # SPIRALE oder LINIEN (Linien längs, V4c)
     gleichlauf: bool = True  # wie bei Schruppwerte
+    nur_gleichlauf: bool = False  # Linien längs jede für sich im Gleichlauf (P-2026-10-02-28)
 
 
 @dataclass
@@ -1062,7 +1063,14 @@ def _schlichten_linien(
         gefraest = np.zeros(ziel.shape, dtype=bool)
         mit_luecke = np.zeros((n, anzahl + 2), dtype=bool)
         mit_luecke[:, 1:-1] = wo
-        for fahrt in _fahrten(mit_luecke):
+        if w.nur_gleichlauf:
+            # Jede Linie für sich, längs so, dass das Material – bei der nächsten Linie, mit
+            # wachsendem Winkel – für den Gleichlauf auf der richtigen Seite liegt.
+            steigend = sp.ist_gleichlauf((-1.0, 0.0, 0.0), (0.0, 0.0, 1.0), (0.0, 1.0, 0.0))
+            fahrten = _einzeln(mit_luecke, steigend == bool(w.gleichlauf))
+        else:
+            fahrten = _fahrten(mit_luecke)
+        for fahrt in fahrten:
             a, r, grad, m, k = folge(fahrt, ziel)
             grad = np.degrees(np.unwrap(np.radians(grad)))  # über die Naht bei 0° hinweg
             grad = grad + 360.0 * round((punkte[-1].phi - float(grad[0])) / 360.0)

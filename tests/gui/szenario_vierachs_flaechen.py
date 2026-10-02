@@ -87,6 +87,8 @@ def schritte(h):
         f"Grund rundum: {panel.muster_grund.text()!r}",
     )
     h.bild("1_rundum", panel.form)
+    # „nur im Gleichlauf“ gilt für Linien längs – die Spirale fährt immer so (P-2026-10-02-28).
+    h.pruefe(not panel.linien_nur_gleichlauf.isEnabled(), "„nur im Gleichlauf“ bei der Spirale")
 
     # --- Ein Klick auf die Abflachung --------------------------------------------------------
     job = panel.job
@@ -132,6 +134,15 @@ def schritte(h):
     )
     h.bild("2_abflachung", panel.form)
     h.bild("2b_abflachung_3d")
+    h.pruefe(panel.linien_nur_gleichlauf.isEnabled(), "„nur im Gleichlauf“ bei Linien gesperrt")
+    panel.linien_nur_gleichlauf.setChecked(True)
+    yield 300
+    yield from h.warte_auf(lambda: panel.vorschau_schlichten is not None, 30000)
+    h.pruefe(
+        "Linien längs" in panel.ergebnis_schlichten.text(),
+        f"nur im Gleichlauf: {panel.ergebnis_schlichten.text()!r}",
+    )
+    h.bild("2c_nur_gleichlauf", panel.form)
 
     # --- Alle Mantelflächen: rundum; leeren; wieder die Abflachung --------------------------
     panel.alle_mantelflaechen()
@@ -169,6 +180,12 @@ def schritte(h):
     if schlichten_op is not None:
         h.pruefe(schlichten_op.Muster == "Linien", f"Muster der Operation: {schlichten_op.Muster}")
         h.pruefe(schlichten_op.Linien > 0, f"Linien der Operation: {schlichten_op.Linien}")
+        # Jede Linie für sich: zwischen zwei Linien hebt der Fräser im Eilgang ab.
+        eilgaenge = sum(1 for b in schlichten_op.Path.Commands if b.Name == "G0")
+        h.pruefe(
+            schlichten_op.NurGleichlauf and eilgaenge > schlichten_op.Linien,
+            f"nur im Gleichlauf: {schlichten_op.NurGleichlauf}, {eilgaenge} Eilgänge",
+        )
     schruppen = next((o for o in ops if vo.ist_schruppen(o)), None)
     if schruppen is None:
         return

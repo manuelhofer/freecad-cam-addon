@@ -412,23 +412,20 @@ print(ascii(f"Abflachung: {len(teile)} Fahrten geschlichtet"))
 # Linie zu Linie wechselt die Richtung, die Linien liegen höchstens 0,5 mm ÷ r_max auseinander
 # (r_max = 10 + Vernetzung: 2,86°) und nur über der Abflachung; die Kugel bleibt überall aus dem
 # Teil (Ebene x = 8, Mantel Ø 20, die Kante dazwischen) und liegt über der Ebene auf ihr.
-linien = vb.schlichten(
-    vh.vernetze(flach_welle, vb.TOLERANZ_SCHLICHTEN),
-    LAENGS,
-    RADIAL,
-    vb.Schlichtwerte(
-        kugel_klein,
-        12.0,
-        0.5,
-        0.0,
-        1.0,
-        -60.0,
-        rest=(stange.a, stange.phi, stange.r),
-        aufmass_schruppen=0.3,
-        bereich=bereich_kugel,
-        muster=vb.LINIEN,
-    ),
+netz_flach = vh.vernetze(flach_welle, vb.TOLERANZ_SCHLICHTEN)
+linien_werte = vb.Schlichtwerte(
+    kugel_klein,
+    12.0,
+    0.5,
+    0.0,
+    1.0,
+    -60.0,
+    rest=(stange.a, stange.phi, stange.r),
+    aufmass_schruppen=0.3,
+    bereich=bereich_kugel,
+    muster=vb.LINIEN,
 )
+linien = vb.schlichten(netz_flach, LAENGS, RADIAL, linien_werte)
 im_vorschub = [p for p in linien.punkte if not p.eilgang]
 drin = bereich_kugel.bei([p.a for p in im_vorschub], np.radians([p.phi for p in im_vorschub]))
 pruefe(drin.all(), f"Linien: {int((~drin).sum())} Punkte außerhalb des Bereichs")
@@ -509,6 +506,44 @@ pruefe(
     f"{ueber_der_ebene - auf_der_ebene} Punkte nicht auf der Ebene",
 )
 print(ascii(f"Abflachung in Linien laengs: {linien.linien} Linien, {len(stuecke(linien))} Fahrten"))
+
+# Nur im Gleichlauf (P-2026-10-02-28): jede Linie eine Fahrt für sich – senkrecht hinein, am
+# Ende hinaus –, mit M3 von hinten nach vorn (a steigt: das Material der nächsten Linie, bei
+# größerem Winkel, liegt dann rechts der Fahrt), mit M4 andersherum. Dieselben Linien wie hin
+# und her, die Hauptfahrt mit wachsendem Winkel.
+for gleichlauf, vor in ((True, 1.0), (False, -1.0)):
+    einzeln = vb.schlichten(
+        netz_flach,
+        LAENGS,
+        RADIAL,
+        replace(linien_werte, nur_gleichlauf=True, gleichlauf=gleichlauf),
+    )
+    fahrten = stuecke(einzeln)
+    pruefe(
+        einzeln.linien == linien.linien and einzeln.vorstufen == linien.vorstufen,
+        f"nur Gleichlauf: {einzeln.linien} Linien, {einzeln.vorstufen} Vorstufen",
+    )
+    pruefe(
+        all(max(p.phi for p in f) - min(p.phi for p in f) < 1e-9 for f in fahrten),
+        "nur Gleichlauf: eine Fahrt über mehr als eine Linie",
+    )
+    # Eine Stufe nur an einer Stelle längs ist hinein und gleich wieder hinaus – ohne Richtung.
+    falsch = [f for f in fahrten if np.any(vor * np.diff([p.a for p in f]) < -1e-9)]
+    pruefe(not falsch, f"nur Gleichlauf (vor {vor:+}): {len(falsch)} Linien andersherum")
+    pruefe(
+        all(vor * (f[-1].a - f[0].a) > 0 for f in fahrten[-einzeln.linien :]),
+        "nur Gleichlauf: eine Linie der Hauptfahrt ohne Länge",
+    )
+    haupt_phi = [f[0].phi for f in fahrten[-einzeln.linien :]]
+    pruefe(
+        all(0 < y - x <= weit + 1e-6 for x, y in zip(haupt_phi, haupt_phi[1:], strict=False)),
+        f"nur Gleichlauf: Winkel der Hauptfahrt {haupt_phi[:4]} …",
+    )
+    pruefe(
+        len(fahrten) >= einzeln.linien and einzeln.umdrehungen < linien.umdrehungen + 1e-9,
+        f"nur Gleichlauf: {len(fahrten)} Fahrten, {einzeln.umdrehungen:.3f} Umdrehungen",
+    )
+print(ascii(f"Abflachung nur im Gleichlauf: {len(fahrten)} Fahrten"))
 
 # Rundum in Linien längs auf der Welle mit Absatz: 360 Linien (0,35 mm ÷ 20,005), jede auf
 # der Hüllfläche – nie im Teil, höchstens den Sehnenfehler darüber –, eine Fahrt für alles.

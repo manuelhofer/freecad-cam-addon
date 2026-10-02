@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-28 linien-gleichlauf
+
+### EINGELESEN
+- `vierachs_bahn._schlichten_linien`, `_einzeln`, `vierachs_schlichten`, `gui_vierachs`
+  (Schlichten-Abschnitt, Muster), `tests/test_vierachs_schlichten.py`.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `camaddon/vierachs_schlichten.py`, `camaddon/gui_vierachs.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_vierachs_schlichten.py`,
+  `tests/gui/szenario_vierachs_flaechen.py`, `help/de|en/vierachs.html`,
+  `docs/spezifikation_vierachs.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.90.0)
+
+### AKZEPTANZKRITERIUM
+Manuels „Auswählbar … ob er abhebt und wieder von vorne anfängt“ auch für „Linien längs“: aus
+hin und her wie bisher; an jede Linie für sich im Gleichlauf – für jede Maschine aus der
+Relativbewegung (spindel.ist_gleichlauf), mit M4 andersherum.
+
+### DONE
+- `Schlichtwerte.nur_gleichlauf`; in `_schlichten_linien` mit dem Haken `_einzeln` statt
+  `_fahrten`: Die Linien folgen mit wachsendem Winkel, das Material der nächsten liegt also bei
+  +v; Werkzeugachse −u, Fahrt ±l – mit M3 Gleichlauf, wenn a steigt (vom Futter nach vorne).
+- Operation: Eigenschaft `NurGleichlauf`; `bahn_fuer`, `vorschau`, `lege_an`, `aendere`.
+- Assistent: Haken „nur im Gleichlauf (abheben, von vorne)“ unter dem Muster, wählbar nur bei
+  „Linien längs“ (die Spirale fährt immer im Gleichlauf); beim Ändern geladen.
+
+### TEST
+- 1.1.3: `test_vierachs_schlichten` (Abflachung: dieselben Linien und Stufen, jede Fahrt eine
+  Linie, M3 a steigend, M4 fallend, Hauptfahrt mit wachsendem Winkel),
+  `szenario_vierachs_flaechen` (Haken bei der Spirale gesperrt, bei Linien an, die Operation
+  merkt ihn, Eilgänge zwischen den Linien); black/ruff grün.
+
+### NEXT
+- Manuel 2026-10-02: erst das Volumen und die Zielzeit (Volumen ÷ Zeitspanvolumen mit dem ap,
+  das die Stelle hergibt), dann die Strategien daran messen und den Fräser vorschlagen.
+
 ## P-2026-10-02-27 trochoide-rueckweg
 
 ### EINGELESEN

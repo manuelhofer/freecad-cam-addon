@@ -101,9 +101,9 @@ in <b>rows back and forth</b>: each row across the face, at its end one step
 along the axis, and the rotary axis turns back. It only lifts between separate
 faces. It enters by rapid down to just above what is left there, then along a
 ramp with the cutter's plunge angle from the tool manager (5° if none is
-given) – when finishing straight down at the plunge feed. When roughing you can
-choose <b>climb milling only (lift, start again)</b> – every row on its own, climb
-milling, the cutter lifts in between.</li>
+given) – when finishing straight down at the plunge feed. When roughing and for
+“lines along the axis” you can choose <b>climb milling only (lift, start
+again)</b> – every row on its own, climb milling, the cutter lifts in between.</li>
 <li>Both operations remember the faces (property “Flaechen”); when changing
 they are back in the list.</li>
 </ul>
@@ -240,6 +240,12 @@ groove, cam): there the spiral would only run rows across the face, the lines
 follow it lengthwise. Suggested is what fits the selected faces; the reason is
 shown in grey below (“Suggestion: lines along the axis – the selected faces do
 not go all round.”). If you want otherwise, choose it.</li>
+<li><b>climb milling only (lift, start again)</b> – only with lines along the axis:
+off, the cutter runs the lines back and forth, every other one conventional. On, it
+runs every line on its own in the same direction (with M3 from the chuck towards the
+front, with M4 the other way), lifts at its end and enters again at the start of the
+next – the surface becomes more even, it takes longer. The spiral always runs climb
+milling.</li>
 </ul>
 <p>In grey below: how many revolutions the spiral has and roughly how long it
 takes – say “→ 365 revolutions, about 1 h 35 min”, for lines along the axis
