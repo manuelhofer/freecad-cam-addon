@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-62 vorschlag-materialstand
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Restmaterial Berechnung … ein komplexes Teil durch Anklicken
+  verschiedener Flächen bearbeiten … Dann muss natürlich vor jeder neuen Schrupp-Aktion auch
+  geschaut werden … Was muss ich überhaupt machen … Ist überhaupt noch viel Material vorhanden“,
+  mit dem Klotz 100 × 100, Zapfen 10 tief bei x25 y25, Nut 15 tief bei x −10 y 0 – in beiden
+  Reihenfolgen; „Und in so eine geschlossene Nut einzutauchen … dass das helikal geht … an einer
+  von mir aus wählbaren Position in der Nut … aber natürlich mit Vorschlag“; „Und du bist schon
+  wieder viel am Prüfen … Immer fragen, ob das wirklich nötig ist, was du da alles prüfst.“
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (12.7 Materialstand, 12.8 Eintauchstelle der Nut – je
+  Heute, Soll, Frage mit Optionen und Empfehlung, Skizze, Schritte M1–M4 und E1),
+  `docs/spezifikation_maschine_aus_baugruppe.md` (S4b geht in M1 auf),
+  `docs/STATUS_SNAPSHOT.md` (W-012, Als Nächstes)
+
+### AKZEPTANZKRITERIUM
+Manuels Wunsch steht als Vorschlag mit seinem Klotz als Beispiel in der Spezifikation; die zwei
+Fragen, deren Antwort etwas ändert, mit Optionen und Empfehlung.
+
+### DONE
+- Befund: Jede Strategie beginnt an der Oberkante des Rohteils (Starttiefe „OpStockZMax“) und
+  deckt seinen Umriss ab; jeder Lauf des Assistenten legt einen neuen Job an. Zapfen zuerst: die
+  Helix der Nut dreht gut acht Umläufe (rund 190 mm) durch Luft. FreeCAD 1.1.3 kann
+  „UseRestMachining“ nur in seiner eigenen Tasche.
+- Gefragt wird nur, was der Assistent nicht selbst entscheiden kann: derselbe Job beim zweiten
+  Lauf (Frage 1), wie man die Eintauchstelle wählt (Frage 2). Selbst entschieden, mit
+  Begründung im Text: der Materialstand aus den Bahnen davor (wie Prüffenster und FreeCAD),
+  Luft nach Zeit weglassen oder im Schnellvorschub, neu rechnen, wenn sich davor etwas ändert
+  (sonst Eilgang ins Material), die gewählte Stelle für jede Lage.
+- Die Prüfregel bleibt, wie sie in den Arbeitsregeln steht: die eine Prüfdatei und das eine
+  Szenario zum geänderten Teil – zuletzt waren es mehrere Szenarien je Patch.
+
+### TEST
+- Nur Doku, kein Lauf.
+
+### NEXT
+- M1: der Materialstand und die Nut darauf (geht ohne die Antworten).
+
 ## P-2026-10-02-61 rohteil-aus-dem-dokument
 
 ### EINGELESEN

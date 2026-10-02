@@ -1610,3 +1610,154 @@ ein Rohteil rausbekommt. Fehlt somit nur noch die X- und Y-Achse – aber das mu
   richtig im Job liegt und sich X um 90° drehen lässt – die Bahnen rechnen in der neuen Lage.
 - **Gebaut:** P-2026-10-02-43, 0.99.0 – „Unten liegt“ mit „Fläche anklicken …“ und „X zeigt“
   mit ↺ 90° / ↻ 90°; Rohteil und Nullpunkt folgen.
+
+### 12.7 Materialstand: Jede Schrupp-Operation beginnt, wo noch Material ist (W-012)
+
+Manuel: „Sagen wir mal, wir wollen erst mal ein komplexes Teil durch Anklicken verschiedener
+Flächen bearbeiten … Dann muss natürlich vor jeder neuen Schrupp-Aktion auch geschaut werden …
+Was muss ich überhaupt machen … Ist überhaupt noch viel Material vorhanden, was ich wegmachen
+muss … Als Beispiel ein Klotz 100 × 100, es ist ein Zapfen, der 10 tief ist, bei x25 y25, und
+eine Nut, die 15 tief von Oberkante Zapfen ist … bei x −10 y 0 … Dann würde er, wenn ich erst
+die Nut anklicke, von z 0 bis z −15 die Nut herstellen … Und wenn ich dann den Zapfen will,
+denke ich, dass er die Nut ebenfalls mit bearbeiten würde … Oder andersherum … erst den Zapfen
+rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
+
+```
+ Schnitt durch Manuels Klotz (Nullpunkt Mitte oben; als Beispiel eine Nut 20 × 60 längs X)
+
+             Nut bei x −10                  Zapfen bei x 25
+ z   0 ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┌─────────┐ ─ ─ ─ ─   Rohteil oben = Zapfen oben
+                                        │ Zapfen  │
+ z −10 ────────┐           ┌────────────┘         └──────   Boden um den Zapfen
+               │    Nut    │
+ z −15         └───────────┘
+       x −50                                          x 50
+```
+
+- **Heute:**
+  - Jede Strategie rechnet vom Rohteil aus: Die Lagen beginnen an seiner Oberkante
+    (Starttiefe „OpStockZMax“), die Bahn deckt seinen Umriss ab. Was eine Operation davor schon
+    weggenommen hat, weiß sie nicht.
+  - **Zapfen zuerst, dann die Nut:** Das Räumen nimmt rundum 0 → −10. Die Nut beginnt trotzdem
+    bei z 0: Ihre Helix dreht sich 10 mm durch Luft – mit dem Standardfräser Ø 12 und 3° in der
+    Nut 20 gut acht Umläufe, rund 190 mm Weg im Vorschub, ohne einen Span.
+  - **Nut zuerst, dann der Zapfen:** Die Nut 0 → −15 ist richtig – das Material muss weg. Das
+    Räumen um den Zapfen fährt danach seine Ringe auch über die Nut, wo zwischen z 0 und −10
+    nichts mehr ist.
+  - Jeder Lauf des Assistenten legt einen **neuen Job** an, auch am selben Teil: Wer erst die
+    Nut anlegt und dann den Boden um den Zapfen anklickt, hat zwei Jobs mit je eigenem Rohteil,
+    keiner weiß vom anderen. In einem Lauf weiß das Räumen schon ein wenig (eine Tasche unter
+    einer Fläche, die es selbst geräumt hat, beginnt an ihrer Oberkante, 0.45.0; die
+    Kontur nimmt nur den Rest, den das Planfräsen lässt, P-2026-10-02-17) – über Operationen
+    hinweg nichts.
+  - FreeCAD 1.1.3 kann es nur für seine eigene „Tasche“ (Haken „UseRestMachining“: Bereiche
+    auslassen, die Operationen davor schon geräumt haben; im Wochen-Build auch „Adaptiv“), nicht
+    für die Strategien des Addons. Grundsatz 5 und 6 (Abschnitt 5) verlangen es schon: „Keine
+    Luftschnitte“, „ein Abtragsmodell je Job: jede Operation weiß, was die vorige ließ“.
+- **Soll:**
+  - **Der Materialstand vor jeder Bahn:** das Rohteil – der Quader oder der Körper aus dem
+    Dokument (W-011 S4; damit ist S4b erledigt) –, abgetragen um jede Operation, die im Job
+    davor steht: auch FreeCADs eigene, und die, die im selben Lauf des Assistenten vor ihr
+    angelegt werden (Planfräsen vor Räumen vor Nut …). Gerechnet wie die Simulation im
+    Prüffenster: ein Höhenfeld, wie hoch das Material an jeder Stelle (Raster 0,5 mm) noch steht
+    (`restmaterial.Quader`), darin die Bahnen der Operationen davor abgefahren. Von oben ist das
+    genau – ein Fräser, der von oben kommt, lässt nie einen Überhang stehen.
+  - **Jede Schrupp-Strategie rechnet darauf** (Räumen, Nut, Planfräsen, Kontur, 3D-Schruppen):
+    - Die Lagen beginnen oben am Material ihres Bereichs, nicht am Rohteil – die Nut nach dem
+      Zapfen ab z −10, ihre Helix nur noch 5 mm.
+    - Lagen und Stücke, in denen nichts mehr steht, fallen weg, oder der Fräser fährt sie im
+      Schnellvorschub – was schneller ist (Grundsatz 0). Der Zapfen nach der Nut: über der Nut
+      kein Schnitt in Luft.
+    - Hinab im Eilgang bis knapp über das Material, nicht nur bis knapp über das Rohteil.
+  - **Was noch zu tun ist, steht im Block** – Manuels „Ist überhaupt noch viel Material
+    vorhanden“. Steht nichts mehr: „Hier ist nichts mehr zu tun – das hat „Räumen T1“ schon
+    weggenommen“, und der Haken geht nicht von selbst an.
+
+    ```
+     ☑ Nut   → 1 Lage, … Bögen, etwa … min
+             noch 5,6 cm³ – 11,1 cm³ hat „Räumen T1“ schon weggenommen
+    ```
+
+  - **Ändert sich eine Operation davor** (Tiefe, Fräser, gelöscht, verschoben), rechnen die
+    danach von selbst neu – sonst stimmte ihr Materialstand nicht mehr, und im schlimmsten Fall
+    führe der Eilgang dorthin, wo jetzt doch Material steht. Das gilt auch, wenn man die
+    Operation in FreeCADs eigenem Dialog ändert.
+- **Frage 1 – ein zweiter Lauf am selben Teil.** Damit die Nut vom Räumen weiß, müssen beide im
+  selben Job stehen. Am Klotz liegt schon „Räumen T1“; jetzt klickst du den Grund der Nut an,
+  „Bearbeitung“:
+  - **(a) Empfehlung – derselbe Job:** Hat das Teil schon einen Job, kommen die neuen
+    Operationen dort hinein, hinter die vorhandenen. Schritt 1 zeigt Maschine, Rohteil und
+    Nullpunkt des Jobs grau (nur zum Lesen), „Weiter“ geht gleich zu Schritt 2. Für eine zweite
+    Aufspannung (das Teil umgedreht) oben der Knopf „Neuer Job …“. Hat das Teil mehrere Jobs:
+    der, dessen Teil man angeklickt hat (jeder Job hat sein eigenes im Bild), sonst der zuletzt
+    geänderte.
+  - **(b) Jedes Mal fragen:** „Der Klotz hat schon den Job „Job“ (1 Operation) – dazu oder ein
+    neuer Job?“ Eine Frage mehr bei jedem Klick.
+  - **(c) Wie heute:** jeder Lauf ein neuer Job. Der Materialstand gilt dann nur für die
+    Operationen eines Laufs – man muss alle Flächen auf einmal anklicken.
+
+    ```
+     Schritt 1 von 3 – Aufspannung                         (a), das Teil hat schon einen Job
+     In den Job „Job“ – 1 Operation: Räumen T1                       [Neuer Job …]
+     Maschine   3-Achs-Fräse                       (grau)
+     Rohteil    Quader 102 × 102 × 31              (grau)
+     Nullpunkt  Mitte oben                         (grau)
+                                                   [Abbrechen]  [Weiter →]
+    ```
+
+- **Schritte** (je ein Patch):
+  - **M1 Die Nut beginnt, wo noch Material ist:** der Materialstand (`materialstand.py`, mit dem
+    Körper als Rohteil sein Höhenfeld), die Nut rechnet darauf, im Block „noch … cm³“; ändert
+    sich eine Operation davor, rechnen die danach neu. Prüfung: Manuels Klotz, Zapfen und Nut in
+    einem Lauf – die Nut beginnt bei z −10.
+  - **M2 Zweiter Lauf am selben Teil** nach Frage 1.
+  - **M3 Das Räumen rechnet darauf:** Lagen und Ringe nur, wo Material steht. Prüfung: Nut
+    zuerst, dann der Zapfen – über der Nut kein Schnitt in Luft.
+  - **M4 Planfräsen, Kontur, 3D-Schruppen** ebenso.
+- **Fertig, wenn:** Manuels Klotz in beiden Reihenfolgen im Prüffenster ein Teil ohne Rest
+  ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war, und die Nut nach dem
+  Zapfen bei z −10 beginnt.
+
+### 12.8 Eintauchen in die geschlossene Nut: an einer wählbaren Stelle
+
+Manuel: „Und in so eine geschlossene Nut einzutauchen … ist auch wichtig … dass das helikal
+geht … und an einer von mir aus wählbaren Position in der Nut … aber natürlich mit Vorschlag …“
+
+- **Heute** (seit 0.108.0, 12.2): Die geschlossene Nut taucht schon helikal ein – je Lage eine
+  Helix am einen Ende (Radius r − R − Aufmaß, Steigung aus dem Eintauchwinkel des Fräsers, beim
+  Standardfräser 3°), unten einmal rundum, dann die Bögen bis ans andere Ende; die nächste Lage
+  taucht dort ein, wo die vorige aufhörte. Wählen lässt sich die Stelle nicht: Es ist das Ende,
+  an dem die Nut beginnt. Die Vollnut (kaum breiter als der Fräser) hat für eine Helix keinen
+  Platz; sie geht mit der Zickzack-Rampe längs der Nut hinab.
+- **Soll:**
+  - **Vorschlag:** wo über dem Grund am wenigsten Material steht (Materialstand, 12.7) – kreuzt
+    eine Bohrung oder Tasche die Nut, dort hinab, die Helix nur, wo Material ist; steht überall
+    gleich viel, das Ende, das der Fräser von der Operation davor am schnellsten erreicht. Der
+    Grund steht grau daneben.
+  - **Gewählt** gilt die Stelle für jede Lage – wer sie wählt, hat einen Grund (vorgebohrt, eine
+    dünne Wand am Ende). Liegt sie nicht an einem Ende, laufen die Bögen von ihr zum einen Ende,
+    im Schnellvorschub zurück durch die freie Nut und dann zum anderen. In der Vollnut beginnt
+    die Zickzack-Rampe an der gewählten Stelle.
+  - Die Helix sieht man in der Vorschau der Bahn im Bild.
+- **Frage 2 – wie wählt man die Stelle?**
+  - **(a) Empfehlung – Liste und Anklicken:** im Block „Nut“ die Zeile „Eintauchen bei“ mit
+    [Vorschlag · Ende X −30 Y 0 · Ende X 10 Y 0 · Mitte X −10 Y 0 · angeklickte Stelle] und dem
+    Knopf „Im Bild wählen …“: einen Punkt auf dem Grund der Nut anklicken – die Helix rückt
+    dorthin (so weit, dass sie in die Nut passt). Die Stellen mit ihren Koordinaten am
+    Nullpunkt, wie an der Maschine. Mehrere Nuten: je Nut eine Zeile.
+  - **(b) Nur Anklicken:** kein Feld; der Vorschlag steht grau da, ändern geht nur im Bild.
+    Weniger im Fenster – aber welche Stelle gilt, sieht man nur in der Ansicht.
+  - **(c) Abstand vom Ende in mm:** ein Zahlenfeld. Genau, aber man muss rechnen, und welches
+    Ende gemeint ist, sieht man nicht.
+
+    ```
+     Nut   Fräser [T1 VHM 12 ▾]   Einsatz [Dynamisch ▾]
+           Zustellung 25 · Zeilenabstand 1,5 · Aufmaß 0,3
+           Eintauchen bei [Vorschlag: Ende X −30 Y 0 ▾]   [Im Bild wählen …]
+                          grau: „von der Operation davor am schnellsten erreicht“
+    ```
+
+- **Schritt E1** (ein Patch, nach M1): die Stelle nach Frage 2, der Vorschlag mit dem
+  Materialstand.
+- **Fertig, wenn:** In Manuels Klotz die Helix der Nut an einer angeklickten Stelle in der Mitte
+  eintaucht, in jeder Lage dort, und die Nut im Prüffenster ohne Rest fertig ist.

@@ -638,7 +638,8 @@ Rohteil selten eckig.“
     `CreateFromBase`. Der Nullpunkt rechnet mit den Ecken des Körpers, sein Klon wandert mit
     dem Teil. Alle Strategien nehmen Umriss und Oberkante aus `rohteil_von_oben` – also vom
     Körper. `szenario_rohteil_teil`. **S4b offen:** Bahnen nur, wo der Körper Material hat
-    (heute gilt sein Umriss als voll).
+    (heute gilt sein Umriss als voll) – aufgegangen im Materialstand (W-012, Spezifikation
+    Strategien 12.7, Schritt M1): Das Höhenfeld beginnt an der Oberseite des Körpers.
 
 ## Entschieden
 
