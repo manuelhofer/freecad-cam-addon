@@ -630,6 +630,15 @@ Rohteil selten eckig.“
   - **S4 Rohteil aus dem Dokument:** erst der Job mit dem Körper als Rohteil und seinen Maßen
     für die Bahnen (oben, Umriss); dann die Strategien ab seinem Material (keine Bahnen in der
     Luft, wo er schon frei ist).
+    **S4a gebaut:** P-2026-10-02-61, 0.114.0 – Schritt 1: „Quader mit Aufmaß“ oder „Teil aus
+    dem Dokument“ mit der Liste der Körper (`rohteil_kandidaten`: geschlossene Körper oben im
+    Baum, nicht das Teil, nichts aus einem Job, keine Features in einem Körper). Der Job
+    bekommt einen Klon des Körpers als Rohteil wie bei FreeCADs „Rohteil aus vorhandenem
+    Körper“ (`createResourceClone`, `SetupStockObject`); zurück zum Quader wieder
+    `CreateFromBase`. Der Nullpunkt rechnet mit den Ecken des Körpers, sein Klon wandert mit
+    dem Teil. Alle Strategien nehmen Umriss und Oberkante aus `rohteil_von_oben` – also vom
+    Körper. `szenario_rohteil_teil`. **S4b offen:** Bahnen nur, wo der Körper Material hat
+    (heute gilt sein Umriss als voll).
 
 ## Entschieden
 

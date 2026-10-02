@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-61 rohteil-aus-dem-dokument
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Übrigens ... Rohteil kann auch ein konstruiertes Teil sein...“ (W-011,
+  S4).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`rohteil_kandidaten`, Wahl „Quader mit Aufmaß“ / „Teil aus
+  dem Dokument“, `_rohteil_setzen` mit Klon oder Quader, Nullpunkt mit den Ecken des Körpers,
+  graue Zeile, Ändern), `translations/de.json`, `translations/en.json`,
+  `help/de|en/bearbeitung.html`, `tests/gui/szenario_rohteil_teil.py` (neu),
+  `docs/spezifikation_maschine_aus_baugruppe.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.114.0)
+
+### AKZEPTANZKRITERIUM
+Ein konstruierter Körper im Dokument lässt sich in Schritt 1 als Rohteil wählen; der Job hat
+ihn als Rohteil, Umriss und Oberkante der Bahnen kommen von ihm, mit dem Nullpunkt wandert er.
+
+### DONE
+- Klon des Körpers als Rohteil wie FreeCADs eigenes Job-Fenster; zurück zum Quader möglich.
+- Der Nullpunkt („Mitte oben“ …) nimmt die Ecken des Körpers.
+- Wie beim Teil verschwindet das Original des Rohteil-Körpers, solange der Job seinen Klon
+  zeigt; der Quader oder „Abbrechen“ holen es zurück.
+
+### TEST
+- `test_sprache`, `test_hilfe`; Szenarien `szenario_rohteil_teil`, `szenario_bearbeitung`,
+  `szenario_planen`, `szenario_bearbeitung_maschine`, `szenario_bearbeitung_drehmaschine`,
+  `szenario_zielzeit`, `szenario_aufspannung` (1.1.3).
+
+### NEXT
+- S4b: Bahnen nur, wo der Körper Material hat.
+
 ## P-2026-10-02-60 drehmaschine-zum-vierachs
 
 ### EINGELESEN

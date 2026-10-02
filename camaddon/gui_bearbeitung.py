@@ -15,6 +15,7 @@ _Strategie (was sie braucht, wie sie rechnet), ihr Block im Fenster ein _Block; 
 (Tasche adaptiv, Bohren) kommen so dazu (S3f, S3g).
 """
 
+import contextlib
 import html
 import math
 
@@ -2398,6 +2399,33 @@ class _Block:
         self.hinweis.setText("")
 
 
+def rohteil_kandidaten(dokument, teil=None):
+    """Die Körper im Dokument, die das Rohteil sein können (W-011 S4): geschlossene Körper oben
+    im Baum – nicht das Teil selbst, nichts aus einem Job (Modell, Rohteil, Werkzeuge,
+    Operationen), keine Features in einem Körper, keine Gruppen. Nach dem Namen sortiert."""
+    ergebnis = []
+    for objekt in dokument.Objects:
+        if objekt is teil or not hasattr(objekt, "Shape") or hasattr(objekt, "Path"):
+            continue
+        if any(hasattr(objekt, e) for e in ("PathResource", "StockType", "ToolBitID", "ExtZpos")):
+            continue
+        if objekt.isDerivedFrom("App::DocumentObjectGroup"):
+            continue
+        if objekt.getParentGeoFeatureGroup() is not None:
+            continue  # ein Feature in einem Körper – der Körper zählt
+        ansicht = getattr(objekt, "ViewObject", None)
+        if ansicht is not None and not getattr(ansicht, "ShowInTree", True):
+            continue
+        try:
+            form = objekt.Shape
+            fest = not form.isNull() and form.Volume > 1e-9 and form.isClosed()
+        except Exception:  # eine kaputte Form: kein Rohteil
+            fest = False
+        if fest:
+            ergebnis.append(objekt)
+    return sorted(ergebnis, key=lambda o: o.Label)
+
+
 class BearbeitungPanel:
     """Aufgabenfenster „Bearbeitung (Fräsen)“ – anlegen, oder mit `operation=` ändern."""
 
@@ -2420,6 +2448,7 @@ class BearbeitungPanel:
         self._knoepfe = None
         self._beobachter = None
         self._sichtbar_vorher = None  # (Teil, war sichtbar) – das Original
+        self._rohteil_sichtbar_vorher = None  # (Körper, war sichtbar) – das Rohteil-Original
         self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
         self._job_offen = False  # die Transaktion des neuen Jobs ist offen
         self._job_fest = False  # der Job liegt schon als Schritt Rückgängig ab
@@ -2589,7 +2618,29 @@ class BearbeitungPanel:
         self.wahl_maschine.currentIndexChanged.connect(lambda _i: self._maschine_gewaehlt())
         self._lage_zeigen()
         titel(tr("ba.rohteil"), tr("ba.rohteil.text"))
-        grautext(tr("ba.rohteil.text"))
+        # Ein Quader mit Aufmaß – oder ein Körper aus dem Dokument (W-011 S4; Manuel,
+        # 2026-10-02: „Rohteil kann auch ein konstruiertes Teil sein“).
+        zeile = QtGui.QWidget()
+        knoepfe = QtGui.QHBoxLayout(zeile)
+        knoepfe.setContentsMargins(0, 0, 0, 0)
+        self.knopf_rohteil_quader = QtGui.QRadioButton(tr("ba.rohteil.quader"))
+        self.knopf_rohteil_quader.setToolTip(tr("ba.rohteil.text"))
+        self.knopf_rohteil_teil = QtGui.QRadioButton(tr("ba.rohteil.teil"))
+        self.knopf_rohteil_teil.setToolTip(tr("ba.rohteil.teil.tooltip"))
+        self.knopf_rohteil_quader.setChecked(True)
+        knoepfe.addWidget(self.knopf_rohteil_quader)
+        knoepfe.addWidget(self.knopf_rohteil_teil)
+        knoepfe.addStretch()
+        ziel[0].addWidget(zeile)
+        self.rohteil_erklaerung = grautext(tr("ba.rohteil.text"))
+        koerper = _Reihen()
+        self.wahl_rohteil = QtGui.QComboBox()
+        koerper.reihe(tr("ba.rohteil.koerper"), tr("ba.rohteil.teil.tooltip"), self.wahl_rohteil)
+        self.rohteil_koerper = koerper.widget
+        self.rohteil_koerper.setVisible(False)
+        ziel[0].addWidget(self.rohteil_koerper)
+        self.knopf_rohteil_teil.toggled.connect(lambda _an: self._rohteil_art_geaendert())
+        self.wahl_rohteil.currentIndexChanged.connect(lambda _i: self._rohteil_geaendert())
         rohteil = _Reihen()
         self.felder_rohteil = {}
         for feld, text, tooltip in (
@@ -2755,7 +2806,7 @@ class BearbeitungPanel:
         aufbau.addWidget(zeile)
         self._seite = 0
         # Die Beschriftungen aller Blöcke gleich breit: die Felder stehen untereinander.
-        reihen = [oben, rohteil, nullpunkt, werkstoff] + [b.reihen for b in self.bloecke]
+        reihen = [oben, koerper, rohteil, nullpunkt, werkstoff] + [b.reihen for b in self.bloecke]
         breite = max(r.breite_beschriftung() for r in reihen)
         for r in reihen:
             r.raster.setColumnMinimumWidth(0, breite)
@@ -3002,6 +3053,8 @@ class BearbeitungPanel:
             return
         self.teil = teil
         self.teil_text.setText(teil.Label)
+        if self.wahl_rohteil.count():
+            self._rohteil_liste_fuellen()  # das Teil selbst ist kein Rohteil
         try:
             self.job = _im_befehl(self._neuer_job)
         except Exception as fehler:  # CAM meldet vieles nur als Ausnahme
@@ -3167,11 +3220,87 @@ class BearbeitungPanel:
             )
         )
 
-    def _rohteil_setzen(self, job):
-        """Das Rohteil des Jobs mit dem Aufmaß aus den Feldern – ein Quader um das Teil."""
-        rohteil = getattr(job, "Stock", None)
-        if rohteil is None or not hasattr(rohteil, "ExtZpos"):
+    def _rohteil_liste_fuellen(self):
+        """Die Körper, die das Rohteil sein können – der gewählte bleibt, wenn es ihn noch gibt."""
+        vorher_name = self.wahl_rohteil.currentData()
+        vorher, self._fuellt = self._fuellt, True
+        try:
+            self.wahl_rohteil.clear()
+            for koerper in rohteil_kandidaten(self.doc, self.teil):
+                self.wahl_rohteil.addItem(koerper.Label, koerper.Name)
+            index = self.wahl_rohteil.findData(vorher_name) if vorher_name else -1
+            self.wahl_rohteil.setCurrentIndex(max(index, 0))
+        finally:
+            self._fuellt = vorher
+
+    def _rohteil_art_geaendert(self):
+        """Quader oder Körper aus dem Dokument: die Felder dazu, die Liste der Körper."""
+        teil = self.knopf_rohteil_teil.isChecked()
+        if teil and self.wahl_rohteil.count() == 0:
+            self._rohteil_liste_fuellen()
+        if teil and self.wahl_rohteil.count() == 0:
+            self.knopf_rohteil_teil.blockSignals(True)
+            self.knopf_rohteil_quader.setChecked(True)
+            self.knopf_rohteil_teil.blockSignals(False)
+            self.rohteil_erklaerung.setText(tr("ba.rohteil.keine_teile"))
             return
+        self.rohteil_erklaerung.setText(tr("ba.rohteil.teil.text" if teil else "ba.rohteil.text"))
+        self.rohteil_koerper.setVisible(teil)
+        self.rohteilfelder.setVisible(not teil)
+        self._rohteil_geaendert()
+
+    def rohteil_koerper_gewaehlt(self):
+        """Der Körper aus dem Dokument, der das Rohteil ist – None beim Quader mit Aufmaß."""
+        if not self.knopf_rohteil_teil.isChecked():
+            return None
+        name = self.wahl_rohteil.currentData()
+        return self.doc.getObject(name) if name else None
+
+    def _rohteil_original_zeigen(self, koerper):
+        """Wie beim Teil: Ist ein Körper das Rohteil, zeigt der Job seinen Klon, das Original
+        verschwindet – ein anderer Körper oder der Quader holt das vorige zurück."""
+        if self._rohteil_sichtbar_vorher is not None:
+            vorher, sichtbar = self._rohteil_sichtbar_vorher
+            if vorher is koerper:
+                return
+            self._rohteil_sichtbar_vorher = None
+            with contextlib.suppress(ReferenceError, RuntimeError, AttributeError):
+                vorher.ViewObject.Visibility = sichtbar
+        if koerper is not None and getattr(koerper, "ViewObject", None) is not None:
+            self._rohteil_sichtbar_vorher = (koerper, koerper.ViewObject.Visibility)
+            koerper.ViewObject.Visibility = False
+
+    def _rohteil_ersetzen(self, job, neu):
+        """Setzt `neu` als Rohteil des Jobs und löscht das alte (wie FreeCADs Job-Fenster)."""
+        alt = getattr(job, "Stock", None)
+        job.Stock = neu
+        if alt is not None and alt is not neu:
+            self.doc.removeObject(alt.Name)
+
+    def _rohteil_setzen(self, job):
+        """Das Rohteil des Jobs: der gewählte Körper aus dem Dokument (ein Klon von ihm, wie bei
+        FreeCADs „Rohteil aus vorhandenem Körper“) oder ein Quader um das Teil mit dem Aufmaß aus
+        den Feldern."""
+        import Path.Main.Job as PathJob
+        import Path.Main.Stock as PathStock
+
+        koerper = self.rohteil_koerper_gewaehlt()
+        rohteil = getattr(job, "Stock", None)
+        self._rohteil_original_zeigen(koerper)
+        if koerper is not None:
+            if koerper not in (getattr(rohteil, "Objects", None) or []):
+                FreeCAD.setActiveDocument(self.doc.Name)
+                klon = PathJob.createResourceClone(job, koerper, "Stock", "Stock")
+                PathStock.SetupStockObject(klon, PathStock.StockType.Unknown)
+                klon.Proxy.execute(klon)
+                if klon.ViewObject is not None:
+                    klon.ViewObject.Visibility = True
+                self._rohteil_ersetzen(job, klon)
+            return
+        if rohteil is None or not hasattr(rohteil, "ExtZpos"):
+            FreeCAD.setActiveDocument(self.doc.Name)
+            self._rohteil_ersetzen(job, PathStock.CreateFromBase(job))
+            rohteil = job.Stock
         werte = {feld: self._rohteil_wert(feld) for feld in ROHTEIL_FELDER}
         for name, wert in (
             ("ExtZpos", werte["oben"]),
@@ -3199,7 +3328,10 @@ class BearbeitungPanel:
         mm = einheiten.einheit(einheiten.LAENGE)
         werte = [self._rohteil_wert(feld) for feld in ROHTEIL_FELDER]
         zahlen = [groesse_zeigen(w, einheiten.LAENGE) or "0" for w in werte]
-        if len(set(zahlen)) == 1:
+        koerper = self.rohteil_koerper_gewaehlt() if hasattr(self, "knopf_rohteil_teil") else None
+        if koerper is not None:
+            aufmass = tr("ba.rohteil.kurz_teil", name=koerper.Label)
+        elif len(set(zahlen)) == 1:
             aufmass = tr("ba.rohteil.kurz_rundum", wert=f"{zahlen[0]} {mm}")
         else:
             aufmass = tr("ba.rohteil.kurz", oben=zahlen[0], seite=zahlen[1], unten=zahlen[2], mm=mm)
@@ -3270,11 +3402,15 @@ class BearbeitungPanel:
         lage = self.nullpunkt()
         punkt = FreeCAD.Vector()
         drehung = FreeCAD.Placement(FreeCAD.Vector(), self.aufspannung())
+        koerper = self.rohteil_koerper_gewaehlt()
         if lage is not None:
-            gedreht = teil.Shape.copy()
+            # Die Ecken des Rohteils: der Körper aus dem Dokument – oder Teil plus Aufmaß.
+            gedreht = (koerper if koerper is not None else teil).Shape.copy()
             gedreht.Placement = drehung.multiply(gedreht.Placement)
             bb = gedreht.BoundBox
             werte = {feld: self._rohteil_wert(feld) for feld in ROHTEIL_FELDER}
+            if koerper is not None:
+                werte = dict.fromkeys(ROHTEIL_FELDER, 0.0)
             unten = (bb.XMin - werte["seite"], bb.YMin - werte["seite"], bb.ZMin - werte["unten"])
             oben = (bb.XMax + werte["seite"], bb.YMax + werte["seite"], bb.ZMax + werte["oben"])
             punkt = FreeCAD.Vector(
@@ -3289,12 +3425,21 @@ class BearbeitungPanel:
             .multiply(drehung)
             .multiply(teil.Placement)
         )
+        rohteil = getattr(job, "Stock", None)
+        if koerper is not None and koerper in (getattr(rohteil, "Objects", None) or []):
+            # Der Klon des Körpers wandert wie das Teil: dieselbe Verschiebung und Drehung.
+            neu_rohteil = neu.multiply(teil.Placement.inverse()).multiply(koerper.Placement)
+            alt_rohteil = rohteil.Placement
+            if (alt_rohteil.Base - neu_rohteil.Base).Length > 1e-9 or not (
+                alt_rohteil.Rotation.isSame(neu_rohteil.Rotation, 1e-9)
+            ):
+                rohteil.Placement = neu_rohteil
+                self.doc.recompute()
         alt = klon.Placement
         if (alt.Base - neu.Base).Length < 1e-9 and alt.Rotation.isSame(neu.Rotation, 1e-9):
             return
         klon.Placement = neu
         self.doc.recompute()
-        rohteil = getattr(job, "Stock", None)
         if rohteil is not None and hasattr(rohteil, "ExtZpos"):
             kasten = klon.Shape.BoundBox
             rohteil.Placement = FreeCAD.Placement(
@@ -3320,6 +3465,7 @@ class BearbeitungPanel:
             self.teil.ViewObject.Visibility = False
 
     def _sichtbarkeit_zurueck(self):
+        self._rohteil_original_zeigen(None)
         if self._sichtbar_vorher is None:
             return
         teil, sichtbar = self._sichtbar_vorher
@@ -3349,6 +3495,15 @@ class BearbeitungPanel:
         rohteil = getattr(self.job, "Stock", None)
         self._fuellt = True
         try:
+            original = (getattr(rohteil, "Objects", None) or [None])[0]
+            if original is not None:  # ein Körper aus dem Dokument (W-011 S4)
+                self.wahl_rohteil.addItem(original.Label, original.Name)
+                self.knopf_rohteil_teil.setChecked(True)
+                self.rohteil_koerper.setVisible(True)
+                self.rohteilfelder.setVisible(False)
+            for knopf_art in (self.knopf_rohteil_quader, self.knopf_rohteil_teil):
+                knopf_art.setEnabled(False)
+            self.wahl_rohteil.setEnabled(False)
             if rohteil is not None and hasattr(rohteil, "ExtZpos"):
                 for feld, name in (("oben", "ExtZpos"), ("seite", "ExtXpos"), ("unten", "ExtZneg")):
                     wert = _mm(getattr(rohteil, name))
