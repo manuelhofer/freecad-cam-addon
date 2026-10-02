@@ -1085,7 +1085,7 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         if davor:
             from . import materialstand as mst  # erst hier: es bringt den Job mit
 
-            raise ValueError(tr("ms.fehler.schon_weg", wer=mst.wer_text(davor)))
+            raise mst.schon_weg(davor)
         raise ValueError(tr("ra.fehler.nichts"))
     variante = min(ergebnisse, key=lambda v: ergebnisse[v][1])
     st, zeit = ergebnisse[variante]

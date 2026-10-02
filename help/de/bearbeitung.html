@@ -153,6 +153,13 @@ Eilgang 10 m/min und Beschleunigung 1 m/s² (feste Vorgaben, siehe
 jeder Ecke, damit sich Strategien vergleichen lassen. Rot steht, warum es
 nicht geht (kein Fräser mit Schnittwerten, keine ebene Fläche nach oben, das
 Rohteil reicht nicht über die Fläche).</li>
+<li><b>Nur, wo noch Material ist</b> (Materialstand): Wie das Räumen rechnet das Planfräsen mit
+dem, was die Operationen davor im Job und die angehakten Strategien davor im selben Fenster
+schon weggenommen haben. Die Lagen beginnen am höchsten Material, das die Zeilen erreichen; je
+Lage fährt eine Zeile nur, wo noch Material steht, über eine kurze Lücke im Vorschub hinweg.
+Steht unter der Stirn nur am Rand ein schmaler Streifen, taucht sie senkrecht ein statt über die
+Rampe. Ist nichts mehr da: rot „Hier ist nichts mehr zu tun – das hat „Räumen T1“ schon
+weggenommen.“</li>
 <li><b>Anlegen</b> legt den Werkzeug-Controller und die Operation
 „Planfräsen T1“ im Job an – ein Schritt Rückgängig (Job und Rohteil ein
 zweiter). Die Operation hat FreeCADs Tiefen und Höhen: Die Starttiefe folgt

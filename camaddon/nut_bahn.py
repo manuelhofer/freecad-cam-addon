@@ -1139,7 +1139,7 @@ def planen(werte, liste, stand=None):
         if davor:
             from . import materialstand as mst  # erst hier: es bringt den Job mit
 
-            raise ValueError(tr("ms.fehler.schon_weg", wer=mst.wer_text(davor)))
+            raise mst.schon_weg(davor)
         raise ValueError(tr("nt.fehler.nichts"))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
     return Nutbahn(

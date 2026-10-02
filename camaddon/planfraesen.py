@@ -24,6 +24,7 @@ import Path.Op.Base as PathOp
 
 from . import bahn as bn
 from . import hoehenfeld as hf
+from . import materialstand as mst
 from . import namen
 from . import planfraesen_bahn as pb
 from . import spindel as sp
@@ -83,6 +84,7 @@ class PlanFraesen(PathOp.ObjectOp):
             ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
             ("App::PropertyInteger", "Zeilen", tr("pf.eigenschaft.zeilen")),
             ("App::PropertyString", "Richtung", tr("pf.eigenschaft.richtung")),
+            ("App::PropertyString", "Materialstand", tr("ms.eigenschaft.materialstand")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -93,6 +95,7 @@ class PlanFraesen(PathOp.ObjectOp):
     def _editormodi(obj):
         for name in ("Ebenen", "Lagen", "Zeilen", "Richtung"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+        obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
 
     def opExecute(self, obj):
         try:
@@ -125,6 +128,11 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     form = vs.form_des_controllers(obj.ToolController)
     if form is None:
         raise ValueError(tr("pf.fehler.form"))
+    # Was die Operationen davor schon weggenommen haben (W-012) – und woraus das gerechnet ist:
+    # Ändert sich davor etwas, rechnet gui_materialstand das Planfräsen neu.
+    stand = mst.fuer(job, vor=obj)
+    if "Materialstand" in obj.PropertiesList:
+        obj.Materialstand = mst.kennung_vor(job, obj)
     ueberlauf = float(obj.Ueberlauf)
     return bahn_fuer(
         job,
@@ -144,6 +152,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchen=eintauchen,
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
+        stand=stand,
     )
 
 
@@ -177,6 +186,7 @@ def bahn_fuer(
     eintauchen=0.0,
     nur_gleichlauf=False,
     gleichlauf=True,
+    stand=None,
 ):
     """Die Bahn „Planfräsen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten Flächen
     („Face6“ …) – gefräst werden die ebenen nach oben darunter; leer: die Oberseite des Teils.
@@ -184,7 +194,9 @@ def bahn_fuer(
     Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm); `vorschub` und `eintauchen` (mm/min)
     für die Zeit, nach der je Fläche die Zeilenrichtung fällt; `nur_gleichlauf`: jede Zeile im
     Gleichlauf, danach abheben und von vorne (sonst hin und her), `gleichlauf` die Richtung dafür
-    bei M3 (spindel.fuer_m3). ValueError mit einem Satz, wenn es nicht geht."""
+    bei M3 (spindel.fuer_m3); `stand`: der Materialstand davor (materialstand) – was die
+    Operationen davor weggenommen haben, fräst es nicht noch einmal. ValueError mit einem Satz,
+    wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = rohteil_von_oben(job)
     if oben is None:
@@ -213,7 +225,7 @@ def bahn_fuer(
         gleichlauf=gleichlauf,
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
-    return pb.planen(netz, werte, ebenen, schritt)
+    return pb.planen(netz, werte, ebenen, schritt, stand)
 
 
 def vorschau(
@@ -227,6 +239,7 @@ def vorschau(
     vorschub=0.0,
     eintauchen=0.0,
     nur_gleichlauf=False,
+    stand=None,
 ):
     """Die Bahn grob – für Lagen, Zeilen, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     weniger Stellen je Zeile. ValueError wie bahn_fuer()."""
@@ -244,6 +257,7 @@ def vorschau(
         vorschub=vorschub,
         eintauchen=eintauchen,
         nur_gleichlauf=nur_gleichlauf,
+        stand=stand,
     )
 
 

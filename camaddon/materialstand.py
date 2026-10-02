@@ -43,6 +43,7 @@ from .sprache import tr
 SCHRITT = rm.SCHRITT_XY  # mm – das Raster
 BOGENSCHRITT = 0.5  # mm – in so langen Sehnen fährt es Bögen ab
 GEMERKT = 8  # so viele Stände bleiben gemerkt
+MATERIAL = 0.05  # mm – so viel muss über einer Lage stehen, damit es als Material zählt
 _RUND = 1e-9  # so wenig darf sich eine Rundachse drehen
 
 
@@ -55,6 +56,11 @@ class Materialstand:
     namen: list = field(default_factory=list)  # die abgefahrenen Operationen, der Reihe nach
     gesenkt: list = field(default_factory=list)  # je Operation: die Zellen, die sie gesenkt hat
     kennung: tuple = ()  # woraus er gerechnet ist (kennung_vor, dazu die Bahnen von `dazu`)
+
+    @property
+    def schritt(self):
+        """Das Raster (mm)."""
+        return float(self.quader.x[1] - self.quader.x[0])
 
     @property
     def zelle(self):
@@ -127,6 +133,94 @@ class Materialstand:
         ergebnis = np.zeros((len(q.x), len(q.y)), dtype=bool)
         ergebnis[np.ix_(gi, gj)] = np.asarray(maske, dtype=bool)[np.ix_(i[gi], j[gj])]
         return ergebnis
+
+    def maske_um_punkte(self, x, y, radius):
+        """Die Zellen, die eine Scheibe mit `radius` um einen der Punkte (x, y) trifft – je Punkt
+        um seine nächste Zelle (auf eine Zelle genau)."""
+        q = self.quader
+        schritt_x, schritt_y = q.x[1] - q.x[0], q.y[1] - q.y[0]
+        i = np.rint((np.ravel(x) - q.x[0]) / schritt_x).astype(int)
+        j = np.rint((np.ravel(y) - q.y[0]) / schritt_y).astype(int)
+        gueltig = (i >= 0) & (i < len(q.x)) & (j >= 0) & (j < len(q.y))
+        punkte = np.zeros((len(q.x), len(q.y)), dtype=bool)
+        punkte[i[gueltig], j[gueltig]] = True
+        return _aufweiten(punkte, radius, schritt_x, schritt_y)
+
+    def hoechste_um(self, x, y, radius):
+        """Das höchste Material, das eine Scheibe mit `radius` um einen der Punkte trifft – None,
+        wo keins ist."""
+        return self.hoechste(self.maske_um_punkte(x, y, radius))
+
+    def hoechste_bei(self, x, y, radius):
+        """Das höchste Material unter einer Scheibe mit `radius` um (x, y) – −inf, wo keins ist
+        (nur das Fenster um die Stelle: schnell, für einzelne Stellen)."""
+        q = self.quader
+        schritt_x, schritt_y = q.x[1] - q.x[0], q.y[1] - q.y[0]
+        i0 = max(int(math.floor((x - radius - q.x[0]) / schritt_x)), 0)
+        i1 = min(int(math.ceil((x + radius - q.x[0]) / schritt_x)) + 1, len(q.x))
+        j0 = max(int(math.floor((y - radius - q.y[0]) / schritt_y)), 0)
+        j1 = min(int(math.ceil((y + radius - q.y[0]) / schritt_y)) + 1, len(q.y))
+        if i1 <= i0 or j1 <= j0:
+            return -math.inf
+        dx = q.x[i0:i1, None] - x
+        dy = q.y[None, j0:j1] - y
+        fenster = q.h[i0:i1, j0:j1][dx * dx + dy * dy <= radius * radius]
+        fenster = fenster[np.isfinite(fenster)]
+        return float(fenster.max()) if fenster.size else -math.inf
+
+    def trifft(self, lage, radius, x, y):
+        """Je Punkt (x, y, gleich geformt): Trifft eine Scheibe mit `radius` um ihn Material, das
+        mehr als MATERIAL über `lage` steht? (Um die nächste Zelle, auf eine Zelle genau.)"""
+        q = self.quader
+        schritt_x, schritt_y = q.x[1] - q.x[0], q.y[1] - q.y[0]
+        with np.errstate(invalid="ignore"):
+            ueber = q.h > lage + MATERIAL
+        weit = _aufweiten(ueber, radius, schritt_x, schritt_y)
+        x, y = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
+        i = np.rint((x - q.x[0]) / schritt_x).astype(int)
+        j = np.rint((y - q.y[0]) / schritt_y).astype(int)
+        gueltig = (i >= 0) & (i < len(q.x)) & (j >= 0) & (j < len(q.y))
+        ergebnis = np.zeros(x.shape, dtype=bool)
+        ergebnis[gueltig] = weit[i[gueltig], j[gueltig]]
+        return ergebnis
+
+
+_SCHEIBEN = OrderedDict()  # (Form, Schritte, Radius) → die Scheibe im Frequenzraum
+
+
+def _aufweiten(maske, radius, schritt_x, schritt_y):
+    """Die Maske um `radius` weiter: wahr, wo eine Scheibe mit dem Radius um die Zelle etwas
+    Wahres trifft (Faltung über die FFT, je Radius und Raster die Scheibe einmal)."""
+    if radius <= 0 or not maske.any():
+        return maske.copy()
+    mx = int(math.ceil(radius / schritt_x))
+    my = int(math.ceil(radius / schritt_y))
+    nx, ny = maske.shape
+    groesse = (nx + 2 * mx + 1, ny + 2 * my + 1)
+    schluessel = (groesse, round(schritt_x, 9), round(schritt_y, 9), round(radius, 6))
+    kern = _SCHEIBEN.get(schluessel)
+    if kern is None:
+        dx = np.arange(-mx, mx + 1)[:, None] * schritt_x
+        dy = np.arange(-my, my + 1)[None, :] * schritt_y
+        scheibe = np.zeros(groesse)
+        scheibe[: 2 * mx + 1, : 2 * my + 1] = dx * dx + dy * dy <= radius * radius + 1e-12
+        kern = _SCHEIBEN[schluessel] = np.fft.rfft2(scheibe)
+        while len(_SCHEIBEN) > 16:
+            _SCHEIBEN.popitem(last=False)
+    werte = np.zeros(groesse)
+    werte[:nx, :ny] = maske
+    gefaltet = np.fft.irfft2(np.fft.rfft2(werte) * kern, s=groesse)
+    return gefaltet[mx : mx + nx, my : my + ny] > 0.5
+
+
+class SchonWeg(ValueError):
+    """Über den Flächen steht nichts mehr, was die Operation wegnehmen kann – die Operationen
+    davor haben es schon weggenommen (W-012). Der Assistent nimmt ihr dann den Haken."""
+
+
+def schon_weg(davor):
+    """Der Fehler „Hier ist nichts mehr zu tun – das hat „…“ schon weggenommen.“"""
+    return SchonWeg(tr("ms.fehler.schon_weg", wer=wer_text(davor)))
 
 
 def wer_text(namen):

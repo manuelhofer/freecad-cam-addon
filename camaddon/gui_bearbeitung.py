@@ -566,6 +566,7 @@ class _Planfraesen(_Strategie):
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
             nur_gleichlauf=werte.get("nur_gleichlauf", False),
+            stand=werte.get("materialstand"),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -2210,6 +2211,7 @@ class _Block:
         self.vorwahl = None  # beim Ändern: Kennung des Fräsers der Operation
         self.tc_vorher = None  # beim Ändern: ihr Controller
         self.vorschau = None  # die grobe Bahn oder None
+        self.schon_weg = False  # „Hier ist nichts mehr zu tun“ (Materialstand, W-012)
         self.zeit = None  # Minuten der Vorschau (bahn.zeit) – für den Wettbewerb
         self.ergebnis_basis = ""  # die Ergebniszeile ohne den Vergleich
         self.operation = None  # die angelegte Operation
@@ -2588,6 +2590,7 @@ class _Block:
         der Kontur nach dem Räumen)."""
         self.vorschau = None
         self.zeit = None
+        self.schon_weg = False
         self.ergebnis_basis = ""
         self.ergebnis.setText("")
         self.material.setText("")
@@ -2602,6 +2605,7 @@ class _Block:
             self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)
         except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
             self.hinweis.setText(str(fehler))
+            self.schon_weg = isinstance(fehler, mst.SchonWeg)
             return
         self.zeit = bn.zeit(self.vorschau.punkte, vorschub, senkrecht) if vorschub > 0 else None
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
@@ -2614,6 +2618,7 @@ class _Block:
     def leeren(self):
         self.vorschau = None
         self.zeit = None
+        self.schon_weg = False
         self.ergebnis_basis = ""
         self.ergebnis.setText("")
         self.material.setText("")
@@ -4227,7 +4232,7 @@ class BearbeitungPanel:
                 continue
             if block.aktiv() or self._im_wettbewerb(block):
                 zusatz = self._zusatz(block, form)
-                if block in (self.nut, self.raeumen):
+                if block in (self.plan, self.nut, self.raeumen):
                     zusatz = dict(zusatz or {}, materialstand=self._materialstand(block, form))
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
                 if block is self.kontur:
@@ -4250,9 +4255,26 @@ class BearbeitungPanel:
                 self.kontur.vorschau_rechnen(self.job, self._flaechen(self.kontur, form), zusatz)
                 self._kontur_text(form, zusatz)
                 self._wettbewerb(form, nur_bohrung=boeden is not None)
+        self._schon_weg_abhaken()
         self._raeumen_folge_zeigen(form)
         self._ziel_zeigen(form)
         self._knoepfe_beschriften()
+
+    def _schon_weg_abhaken(self):
+        """Wer „Hier ist nichts mehr zu tun“ sagt (Materialstand, W-012), verliert den Haken –
+        solange ihn niemand von Hand gesetzt hat; sonst stünde dort ein Haken, und „Anlegen“
+        ginge nicht."""
+        weg = [b for b in self.bloecke if b.aktiv() and b.schon_weg and not b.von_hand]
+        if not weg:
+            return
+        self._fuellt = True
+        try:
+            for block in weg:
+                block.haken.setChecked(False)
+                block.zustand_zeigen()
+        finally:
+            self._fuellt = False
+        self.nichts_angehakt.setVisible(not self.aktive_bloecke())
 
     def _ziel_zeigen(self, form):
         """Wie viel weg muss und wie lange der Fräser des Räumens (sonst des Planfräsens, der
@@ -4986,7 +5008,10 @@ class BearbeitungPanel:
             raeumen.vorschau_rechnen(self.job, flaechen, mit_stand(flaechen))
             return
         if plan.vorschau is None:
-            plan.vorschau_rechnen(self.job, plan.s.flaechen_fuer(form, self.gewaehlte))
+            eben = plan.s.flaechen_fuer(form, self.gewaehlte)
+            plan.vorschau_rechnen(
+                self.job, eben, {"materialstand": self._materialstand(plan, form, eben)}
+            )
         raeumen.vorschau_rechnen(self.job, flaechen, mit_stand(flaechen))
         alles = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
         # Nur die Böden: Das Planfräsen fräst davor die ebenen Flächen – es gehört dazu.

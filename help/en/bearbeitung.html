@@ -150,6 +150,12 @@ rapid 10 m/min and acceleration 1 m/s² (fixed defaults, see
 every corner, so that strategies compare. In red stands why it
 does not work (no cutter with cutting data, no flat face facing up, the stock
 does not reach above the face).</li>
+<li><b>Only where material is left</b> (material state): like clearing, face milling takes into
+account what the operations before it in the job and the ticked strategies before it in the same
+window have already removed. The layers start at the highest material the rows reach; in each
+layer a row runs only where material is left, feeding across a short gap. Where only a narrow
+strip is left at the edge of the cutter, it plunges straight down instead of ramping. If
+nothing is left: red “Nothing left to do here – “Clearing T1” already removed it.”</li>
 <li><b>Create</b> adds the tool controller and the operation “Face milling T1”
 to the job – one undo step (job and stock a second one). The operation has
 FreeCAD's depths and heights: the start depth follows the stock, the final

@@ -22,6 +22,12 @@ in Lagen vom Rohteil bis auf die Fläche plus Aufmaß.
   erster Schritt: Grat beim Austritt).
 - Gleichlauf durchgehend (Grundsatz 4) kommt mit der Spirale von außen nach innen, sobald das
   Bahnmodell Konturen versetzen kann (S3e); hin und her ist jede zweite Zeile Gegenlauf.
+- Mit Materialstand (W-012, materialstand): Was die Operationen davor schon weggenommen haben,
+  fräst es nicht noch einmal. Die Lagen beginnen am höchsten Material, das die Zeilen
+  erreichen; je Lage fährt eine Zeile nur, wo ihre Stirn Material über der Lage trifft – über
+  eine kurze Lücke im Vorschub hinweg (wie das Räumen). Senkrecht hinein, wo unter der Stirn
+  höchstens am Rand ein Streifen ae steht (wie neben der vorigen Zeile) – die Rampe nur, wo
+  Material unter ihrer Mitte steht; der Eilgang hinab endet über dem Material unter der Stirn.
 
 Gerechnet in (u, v, z): u längs der Zeilen, v quer, z nach oben; die Punkte am Ende in x und
 y des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
@@ -46,6 +52,12 @@ AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
 SCHRITT = hf.SCHRITT  # mm – Raster längs der Zeilen
 VORSCHAU_SCHRITT = 1.0  # mm – für die Vorschau im Assistenten
 GLEICH = vb.GLEICH
+# Mit Materialstand: So viel muss über einer Lage stehen, damit es als Material zählt; eine Lücke
+# im Weggefrästen bis LUECKE Durchmesser (mindestens LUECKE_MIN) fährt die Zeile im Vorschub durch
+# – Abheben und wieder Einfahren dauert länger (wie raeumen_bahn).
+MATERIAL = 0.05  # mm
+LUECKE = 2.0
+LUECKE_MIN = 20.0  # mm
 
 
 @dataclass(frozen=True)
@@ -90,6 +102,11 @@ class Planbahn:
     richtungen: tuple = ()  # je gefräster Fläche: True = Zeilen längs x, False = längs y
     zeit: float = 0.0  # Minuten (bahn.zeit: Vorschub, Eilgang, Beschleunigung, Ecken)
     zeit_andere: float = None  # Minuten in der anderen Zeilenrichtung; None: nicht gerechnet
+    # Mit Materialstand (W-012): was über den Flächen noch steht und was die Operationen davor
+    # dort schon weggenommen haben (mm³), und welche das waren.
+    noch: float = 0.0
+    weg: float = 0.0
+    davor: list = None
 
 
 @dataclass
@@ -103,6 +120,9 @@ class _Ebene:
     laenge: float
     laengs_x: bool
     zeit: float  # Minuten
+    noch: float = 0.0  # mit Materialstand: wie Planbahn
+    weg: float = 0.0
+    davor: tuple = ()
 
 
 def ueberlauf_vorschlag(form):
@@ -118,12 +138,13 @@ def rest_an_der_wand(zeilenabstand):
     return zeilenabstand + hf.TOLERANZ + vb.RAND
 
 
-def planen(netz, werte, ebenen, schritt=SCHRITT):
+def planen(netz, werte, ebenen, schritt=SCHRITT, stand=None):
     """Die Bahn „Planfräsen“ (Planbahn) über die Flächen `ebenen` ([hoehenfeld.Ebene]) mit den
     Werten `werte`; `netz` ist das Teil ohne diese Flächen (hoehenfeld.netz_ohne). Je Fläche
     die Zeilen längs x oder längs y – ohne Vorgabe (`werte.laengs` None) beide gerechnet und
-    die schnellere genommen (bahn.zeit mit Vorschub, Eilgang und Beschleunigung). ValueError
-    mit einem Satz, wenn es nicht geht."""
+    die schnellere genommen (bahn.zeit mit Vorschub, Eilgang und Beschleunigung). `stand`: der
+    Materialstand davor (materialstand, W-012) – was die Operationen davor weggenommen haben,
+    fräst es nicht noch einmal. ValueError mit einem Satz, wenn es nicht geht."""
     w = werte
     form = w.form
     r_eben = vp.ebener_radius(form)
@@ -145,6 +166,8 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
     z_min = math.inf
     laenge = zeit = zeit_andere = 0.0
     richtungen = []
+    noch = weg = 0.0
+    davor = []
     kandidaten = (True, False) if w.laengs is None else (bool(w.laengs),)
     fertig = []  # die Flächen darüber, schon in dieser Bahn
     for ebene in sorted(ebenen, key=lambda e: -e.z):
@@ -172,9 +195,16 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
                 schritt,
                 oben,
                 tiefere,
+                stand,
             )
             if e is not None:
                 ergebnisse.append(e)
+        if stand is not None and ergebnisse:
+            # Was über der Fläche noch steht und wer dort schon war – aus der ersten Richtung.
+            noch += ergebnisse[0].noch
+            weg += ergebnisse[0].weg
+            davor += [name for name in ergebnisse[0].davor if name not in davor]
+            ergebnisse = [e for e in ergebnisse if e.lagen]
         if not ergebnisse:
             continue
         ergebnisse.sort(key=lambda e: e.zeit)
@@ -190,6 +220,10 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
         if zeit_andere is not None:
             zeit_andere = zeit_andere + ergebnisse[1].zeit if len(ergebnisse) > 1 else None
     if gefraest == 0:
+        if davor:
+            from . import materialstand as mst  # erst hier: es bringt den Job mit
+
+            raise mst.schon_weg(davor)
         raise ValueError(tr("pf.fehler.nichts"))
     return Planbahn(
         punkte,
@@ -201,6 +235,9 @@ def planen(netz, werte, ebenen, schritt=SCHRITT):
         tuple(richtungen),
         zeit,
         zeit_andere,
+        noch,
+        weg,
+        davor,
     )
 
 
@@ -216,11 +253,26 @@ def _umfasst(oben, unten):
 
 
 def _ebene(
-    netz, w, ebene, laengs_x, r_eben, ueberlauf, seite, zugabe, geformt, schritt, oben, tiefere=()
+    netz,
+    w,
+    ebene,
+    laengs_x,
+    r_eben,
+    ueberlauf,
+    seite,
+    zugabe,
+    geformt,
+    schritt,
+    oben,
+    tiefere=(),
+    stand=None,
+    gesenkt=False,
 ):
     """Die Bahn über eine Fläche mit den Zeilen längs x (`laengs_x`) oder längs y, die Lagen ab
     `oben` – None, wenn nichts zu fräsen ist (nichts drüber, keine Zeile mit Rohteil).
-    `tiefere`: die tieferen Flächen derselben Bahn (_abgedeckt)."""
+    `tiefere`: die tieferen Flächen derselben Bahn (_abgedeckt). `stand`: der Materialstand
+    davor – ohne Lage, wenn über der Fläche nichts mehr steht, was die Zeilen erreichen;
+    `gesenkt`: `oben` kommt schon aus ihm."""
     punkte = []
     lagen_gesamt = zeilen_gesamt = 0
     z_min = math.inf
@@ -324,7 +376,49 @@ def _ebene(
         u_stellen <= u_bis + ueberlauf + GLEICH
     )
     im_rohteil = (u_stellen + r_eben > roh_u[0] + GLEICH) & (u_stellen - r_eben < roh_u[1] - GLEICH)
+    material = None
+    noch = weg = 0.0
+    davor = ()
+    if stand is not None:
+        r_voll = float(w.form.radius)
+        innen, aussen = max(r_voll - stand.schritt, 0.0), r_voll + stand.schritt
+        uu, vv = np.meshgrid(u_stellen, v_zeilen)  # (Zeilen, Stellen)
+        xx, yy = (uu, vv) if laengs_x else (vv, uu)
+        # Was über der Fläche noch steht und wer dort schon war: wohin die Stirn auf ihr kommt.
+        boden = ((hoehe <= ziel + GLEICH) | (roh <= ziel + GLEICH)) & im_ueberlauf[None, :]
+        bereich = stand.maske_um_punkte(xx[boden], yy[boden], r_voll)
+        noch, weg = stand.volumen(bereich, ziel)
+        davor = tuple(stand.wer(bereich))
+        # Was die Zeilen überhaupt erreichen (auf der obersten Lage dürfen sie am weitesten).
+        frei_oben = ((hoehe <= oben + GLEICH) | (roh <= ziel + GLEICH)) & im_ueberlauf[None, :]
+        reich = stand.maske_um_punkte(xx[frei_oben], yy[frei_oben], innen)
+        voll = bool(reich.any()) and bool((stand.quader.h[reich] >= oben - GLEICH).all())
+        if not voll:  # sonst steht überall noch das ganze Rohteil: wie ohne Materialstand
+            hoechste = stand.hoechste(reich)
+            if hoechste is None or hoechste <= ziel + MATERIAL:
+                return _Ebene([], 0, 0, math.inf, 0.0, laengs_x, 0.0, noch, weg, davor)
+            if not gesenkt and hoechste < oben - GLEICH:
+                # Die Lagen beginnen am höchsten Material, das die Zeilen erreichen.
+                return _ebene(
+                    netz,
+                    w,
+                    ebene,
+                    laengs_x,
+                    r_eben,
+                    ueberlauf,
+                    seite,
+                    zugabe,
+                    geformt,
+                    schritt,
+                    hoechste,
+                    tiefere,
+                    stand,
+                    True,
+                )
+            mitte = max(r_voll - w.zeilenabstand, 0.0)  # der Teil der Stirn ohne den Streifen ae
+            material = (xx, yy, innen, aussen, max(LUECKE * 2.0 * r_voll, LUECKE_MIN), mitte)
     vorige = oben
+    vorher_drin = None
     for lage in lagen:
         lage = float(lage)
         # Die Lage darf dorthin, wo die Hüllfläche nicht höher liegt – und über den Rand
@@ -341,6 +435,15 @@ def _ebene(
         for k, seite_i in enumerate(rand_von):
             zum_rand[seite_i] &= erlaubt_zw[len(zwischen_von) + k]
         drin = erlaubt & im_ueberlauf[None, :]  # die Zeilen selbst
+        mitte_frei = None
+        if material is not None:
+            # Nur, wo die Stirn Material über der Lage trifft – über kurze Lücken hinweg; wo
+            # unter der Mitte der Stirn nichts steht, senkrecht hinein.
+            xx, yy, innen, aussen, luecke, mitte = material
+            ganz = drin
+            drin = drin & stand.trifft(lage, innen, xx, yy)
+            drin = _luecken_zu(drin, ganz, schritt_u, luecke)
+            mitte_frei = ~stand.trifft(lage, mitte, xx, yy)
         if not drin.any():
             vorige = lage
             continue
@@ -358,6 +461,10 @@ def _ebene(
             erlaubt_rand,
             zwischen,
             zum_rand,
+            mitte_frei,
+            vorher_drin,
+            stand if material is not None else None,
+            material[3] if material is not None else 0.0,
         )
         # Von dem Ende beginnen, das in der Luft liegt – sonst vom Anfang.
         erste = int(np.flatnonzero(drin.any(axis=1))[0])
@@ -377,9 +484,25 @@ def _ebene(
             zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
         lagen_gesamt += 1
         vorige = lage
+        vorher_drin = drin
         z_min = min(z_min, lage)
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-    return _Ebene(punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit)
+    return _Ebene(
+        punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit, noch, weg, davor
+    )
+
+
+def _luecken_zu(drin, ganz, schritt_u, laenge):
+    """`drin` (Zeilen × Stellen: fährt die Zeile hier?) mit den Lücken je Zeile gefüllt, die
+    höchstens `laenge` (mm) lang sind und ganz in `ganz` liegen – zwischen zwei Stücken
+    derselben Zeile (wie raeumen_bahn._luecken_zu)."""
+    ergebnis = drin.copy()
+    for m in range(drin.shape[0]):
+        stellen = np.flatnonzero(drin[m])
+        for a, b in zip(stellen[:-1], stellen[1:], strict=True):
+            if b - a > 1 and (b - a) * schritt_u <= laenge and ganz[m, a + 1 : b].all():
+                ergebnis[m, a + 1 : b] = True
+    return ergebnis
 
 
 def _abgedeckt(tiefere, laengs_x, u, v, seite):
@@ -437,6 +560,13 @@ class _Raster:
     erlaubt_rand: np.ndarray  # (2, N): die Lage darf an den Rand – für die Wandfahrt
     zwischen: np.ndarray  # (Zeilen − 1, N): zwischen Zeile m und m + 1 frei (_zwischen)
     zum_rand: np.ndarray  # (2, N): vor der ersten, hinter der letzten Zeile bis an den Rand frei
+    # Mit Materialstand: wo unter der Mitte der Stirn (ohne den Streifen ae) nichts über der
+    # Lage steht, wo die Lage davor fuhr, der Stand und wie weit um eine Stelle das Material für
+    # den Eilgang hinab zählt.
+    mitte_frei: np.ndarray = None  # (Zeilen, N)
+    vorher_drin: np.ndarray = None  # (Zeilen, N)
+    stand: object = None
+    aussen: float = 0.0
 
     def umgekehrt(self):
         return _Raster(
@@ -453,6 +583,10 @@ class _Raster:
             self.erlaubt_rand[:, ::-1],
             self.zwischen[:, ::-1],
             self.zum_rand[:, ::-1],
+            None if self.mitte_frei is None else self.mitte_frei[:, ::-1],
+            None if self.vorher_drin is None else self.vorher_drin[:, ::-1],
+            self.stand,
+            self.aussen,
         )
 
     def xy(self, u, v):
@@ -575,6 +709,17 @@ def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False):
     punkte.append(bn.Punkt(True, x0, y0, w.sicher))
     luft = not r_.im_rohteil[js[0]]
     oben = lage if luft else vorige
+    if r_.stand is not None and not luft:
+        # Mit Materialstand: Der Eilgang hinab endet über dem höchsten Material unter der Stirn –
+        # fuhr die Lage davor hier, höchstens auf ihr; steht unter der Mitte nichts, senkrecht.
+        hoch = r_.stand.hoechste_bei(x0, y0, r_.aussen)
+        if r_.vorher_drin is not None and bool(r_.vorher_drin[m, js[0]]):
+            hoch = min(hoch, vorige)
+        if hoch <= lage + MATERIAL:
+            luft, oben = True, lage
+        else:
+            nachbar = nachbar or bool(r_.mitte_frei[m, js[0]])
+            oben = hoch if nachbar else max(vorige, hoch)
     knapp = min(w.sicher, oben + w.sicherheit)
     if knapp < w.sicher:
         punkte.append(bn.Punkt(True, x0, y0, knapp))

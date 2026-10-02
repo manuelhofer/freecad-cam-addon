@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-70 planfraesen-auf-dem-materialstand
+
+### EINGELESEN
+- W-012 M4 (Spezifikation Strategien 12.7): das Planfräsen auf dem Materialstand – im Bild zu
+  P-68 bot es sich am fertig geräumten Boden noch mit der vollen Zeit an. Manuel, 2026-10-02:
+  „Solange bitte einfach weiter arbeiten!!!!“
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py` (`planen(…, stand)`, `_ebene` mit Stand: Lagen ab dem
+  höchsten erreichbaren Material, `_luecken_zu`, `_Raster.mitte_frei`/`vorher_drin`/`stand`,
+  `_einfahrt` senkrecht oder Rampe nach dem Material; `Planbahn.noch`/`weg`/`davor`),
+  `camaddon/planfraesen.py` (Eigenschaft „Materialstand“, `rechne`, `bahn_fuer`, `vorschau`),
+  `camaddon/materialstand.py` (`schritt`, `maske_um_punkte`, `hoechste_um`, `hoechste_bei`,
+  `trifft`, `_aufweiten`), `camaddon/gui_bearbeitung.py` (Planfräsen mit Materialstand, auch in
+  `_folge`), `help/de|en/bearbeitung.html`, `tests/test_materialstand.py`,
+  `tests/gui/szenario_raeumen_materialstand.py`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.119.0)
+
+### AKZEPTANZKRITERIUM
+Manuels Klotz: Nach dem Räumen sagt das Planfräsen desselben Bodens „nichts mehr zu tun“; der
+Guss mit Rand am Zapfen kostet einen Bruchteil der Zeit; ohne Materialstand dieselben Bahnen
+(Prüfstand).
+
+### DONE
+- Wie das Räumen (P-68): Lagen ab dem höchsten erreichbaren Material, Zeilen nur, wo die Stirn
+  Material über der Lage trifft, Lücken bis 2 D im Vorschub, „nichts mehr zu tun“, Kennung.
+- Erster Lauf am Guss: 8,0 statt 32,9 min – jedes Zeilenstück am Zapfen fuhr über die Rampe
+  (38 mm bei 5°) ein. Jetzt senkrecht hinein, wo unter der Mitte der Stirn nichts steht (nur am
+  Rand höchstens der Streifen ae – wie neben der vorigen Zeile); der Eilgang hinab endet über
+  dem Material unter der Stirn (`hoechste_bei`), fuhr die Lage davor dort, höchstens auf ihr:
+  2,4 min.
+- Gefunden im Bild des Szenarios: Am fertigen Boden sagten Planfräsen und Räumen rot „nichts
+  mehr zu tun“, hatten aber beide den Haken (scheitern alle einer Gruppe, entscheidet der
+  Wettbewerb nicht). Jetzt ist „nichts mehr zu tun“ ein eigener Fehler
+  (`materialstand.SchonWeg`); wer ihn hat, verliert den Haken, solange ihn niemand von Hand
+  gesetzt hat (`_schon_weg_abhaken`) – auch die Nut.
+
+### TESTS
+- `tests/test_materialstand.py` (OK), `tests/test_pruefstand.py` (OK – ohne Materialstand
+  dieselben Bahnen), `tests/gui/szenario_raeumen_materialstand.py` (OK, vier Bilder – das
+  vierte: derselbe Boden noch einmal, Planfräsen und Räumen rot, ohne Haken).
+
 ## P-2026-10-02-69 ziel-zeile-nach-dem-materialstand
 
 ### EINGELESEN

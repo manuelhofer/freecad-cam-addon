@@ -5,7 +5,8 @@
 # „Bearbeitung“, „Anlegen“ – die Nut von oben bis −15. Dann den Boden um den Zapfen am Teil im Job:
 # Das Räumen sagt grau „noch … – … hat „Nut T1“ schon weggenommen“, und „Weg müssen …“ darüber ist
 # um die Nut kleiner als beim ersten Mal (W-012 M4a); „Anlegen“: ein Job mit beiden, das Räumen
-# merkt sich, woraus es gerechnet hat.
+# merkt sich, woraus es gerechnet hat. Denselben Boden noch einmal: Räumen und Planfräsen sagen rot
+# „Hier ist nichts mehr zu tun …“ (M4b) und haben keinen Haken.
 import re
 
 import FreeCAD
@@ -132,5 +133,29 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
     yield 800
     h.bild("3_nut_und_raeumen")
+
+    # --- Derselbe Boden noch einmal: nichts mehr zu tun -----------------------------------------
+    yield from oeffnen(vr.modell(job), boden)
+    panel = gui_bearbeitung.BearbeitungPanel.offen
+    h.pruefe(panel is not None and panel.job is job, "dritter Lauf: nicht im Job")
+    if panel is None:
+        return
+    panel.knopf_weiter.click()
+
+    def nichts(block):
+        return "nichts mehr zu tun" in block.hinweis.text()
+
+    yield from h.warte_auf(lambda: nichts(panel.raeumen) and nichts(panel.plan), 180000)
+    yield 1000
+    print(ascii(f"Räumen: {panel.raeumen.hinweis.text()} / Plan: {panel.plan.hinweis.text()}"))
+    h.pruefe(nichts(panel.raeumen), f"Räumen: {panel.raeumen.hinweis.text()!r}")
+    h.pruefe(nichts(panel.plan), f"Planfräsen: {panel.plan.hinweis.text()!r}")
+    h.pruefe(
+        not panel.raeumen.aktiv() and not panel.plan.aktiv(),
+        "„nichts mehr zu tun“, aber noch angehakt",
+    )
+    h.bild("4_nichts_mehr_zu_tun", panel.form)
+    panel.reject()
+    yield 1000
     FreeCAD.closeDocument(doc.Name)
     yield 300

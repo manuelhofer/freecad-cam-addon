@@ -8,9 +8,10 @@
 # rechnet sie neu, jetzt von 0 an, und das Räumen dahinter auch (W-012 M3; Manuel: „wenn ich erst
 # die Nut anklicke … und dann den Zapfen will“): Es weiß, dass „Nut T1“ über der Nut schon 10 mm
 # weggenommen hat, und ist nicht langsamer als ohne Materialstand; ein zweites Räumen dahinter hat
-# nichts mehr zu tun. Ein Körper als Rohteil, oben nur am Zapfen bis 0, sonst bis −10 (W-011 S4b):
-# Über der Nut steht es ohne jede Operation bei −10, und das Räumen fährt mit 4 mm je Lage nur noch
-# um den Zapfen – ein Bruchteil der Zeit.
+# nichts mehr zu tun, ein Planfräsen des Bodens danach auch nicht (M4). Ein Körper als Rohteil,
+# oben nur am Zapfen bis 0, sonst bis −10 (W-011 S4b): Über der Nut steht es ohne jede Operation
+# bei −10, und Räumen und Planfräsen fahren mit 4 mm je Lage nur noch um den Zapfen – ein
+# Bruchteil der Zeit.
 import math
 import os
 import pathlib
@@ -31,6 +32,7 @@ from camaddon import gui_materialstand as gms
 from camaddon import job_schnittwerte as js
 from camaddon import materialstand as mst
 from camaddon import nut as nu
+from camaddon import planfraesen as pf
 from camaddon import raeumen as ra
 from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
@@ -194,6 +196,20 @@ else:
 doc.removeObject(zweites.Name)
 doc.recompute()
 
+# Planfräsen danach am selben Boden (M4): Das Räumen hat ihn schon fertig – nichts mehr zu tun.
+plan = pf.lege_an(job, tc, einsatz.ap, einsatz.ae, flaechen=[boden])
+doc.recompute()
+try:
+    pf.rechne(plan, job, job.Model.Group)
+except ValueError as grund_text:
+    pruefe("nichts mehr zu tun" in str(grund_text) and "Räumen T1" in str(grund_text),
+           f"Planfräsen danach: {grund_text}")  # fmt: skip
+else:
+    pruefe(False, "Planfräsen danach: kein Satz")
+pruefe(plan.Materialstand == mst.kennung_vor(job, plan), "Planfräsen: Kennung nicht gemerkt")
+doc.removeObject(plan.Name)
+doc.recompute()
+
 # --- Ein Körper als Rohteil: oben nur am Zapfen bis 0 (W-011 S4b) --------------------------------
 guss = Part.makeBox(102, 102, 21, V(-51, -51, -31)).fuse(Part.makeCylinder(16, 10, V(25, 25, -10)))
 koerper = doc.addObject("Part::Feature", "Guss")
@@ -223,6 +239,17 @@ if stand2 is not None:
     pruefe(guss_mit.lagen == 3 and guss_mit.ringe <= 6 and guss_mit.zeit < 0.2 * guss_ohne.zeit,
            f"Guss: {guss_mit.lagen} Lagen, {guss_mit.ringe} Ringe, {guss_mit.zeit:.2f} min "
            f"statt {guss_ohne.zeit:.2f} min")  # fmt: skip
+    # Ebenso das Planfräsen des Bodens: nur die Zeilen am Rand um den Zapfen.
+    plan_mit, plan_ohne = (
+        pf.bahn_fuer(job2, job2.Model.Group, form, 4.0, einsatz.ae, flaechen=[boden],
+                     vorschub=1000.0, stand=stand)
+        for stand in (stand2, None)
+    )  # fmt: skip
+    pruefe(0 < plan_mit.zeit < 0.12 * plan_ohne.zeit and plan_mit.weg == 0.0,
+           f"Guss, Planfräsen: {plan_mit.zeit:.2f} min statt {plan_ohne.zeit:.2f} min, "
+           f"weg {plan_mit.weg:.0f}")  # fmt: skip
+    print(ascii(f"Guss: Räumen {guss_mit.zeit:.2f} statt {guss_ohne.zeit:.2f} min, Planfräsen "
+                f"{plan_mit.zeit:.2f} statt {plan_ohne.zeit:.2f} min"))  # fmt: skip
 
 print(ascii(f"Räumen {zeit_raeumen:.1f} s, Materialstand {zeit_stand:.2f} s, "
             f"Nut {bahn.zeit:.2f} min statt {ohne.zeit:.2f} min, Räumen nach der Nut "

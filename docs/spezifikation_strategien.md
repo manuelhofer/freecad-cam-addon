@@ -1755,6 +1755,20 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     was nach den Operationen im Job noch steht (`zielzeit.Material.unter`, beim Ändern vor der
     Operation). Manuels Klotz, Nut zuerst: beim Boden um den Zapfen rund 18 cm³ weniger als
     vorher – die Nut (`test_zielzeit`, `szenario_raeumen_materialstand`).
+    **Gebaut, das Planfräsen:** P-2026-10-02-70, 0.119.0 – `planfraesen_bahn.planen(…, stand)`:
+    Die Lagen beginnen am höchsten Material, das die Zeilen erreichen (auf der obersten Lage
+    dürfen sie am weitesten); je Lage fährt eine Zeile nur, wo ihre Stirn (eine Zelle kleiner)
+    Material über der Lage trifft, über Lücken bis 2 D im Vorschub. Steht unter der Mitte der
+    Stirn nichts (nur am Rand höchstens der Streifen ae), taucht sie senkrecht ein wie neben der
+    vorigen Zeile – sonst über die Rampe; der Eilgang hinab endet über dem höchsten Material unter
+    der Stirn (fuhr die Lage davor dort, höchstens auf ihr). Steht im Bereich noch das volle
+    Rohteil, rechnet es wie bisher. „noch … – … schon weggenommen“, „nichts mehr zu tun“, Kennung
+    und Nachrechnen wie das Räumen; im Assistenten mit Materialstand, auch in der Folge mit dem
+    Räumen und im Wettbewerb. Manuels Klotz nach dem Räumen: „nichts mehr zu tun“; der Guss mit
+    1 mm Rand am Zapfen, 4 mm je Lage: 2,4 statt 33 min (zuerst 8 min – jedes Stück am Zapfen fuhr
+    über eine Rampe von 38 mm ein; `test_materialstand`, `szenario_raeumen_materialstand`). Wer
+    „nichts mehr zu tun“ sagt (`materialstand.SchonWeg`), verliert im Assistenten den Haken,
+    solange ihn niemand von Hand gesetzt hat.
 - **Fertig, wenn:** Manuels Klotz in beiden Reihenfolgen im Prüffenster ein Teil ohne Rest
   ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war (außer über eine
   kurze Lücke, wo Durchfahren schneller ist als Abheben – Grundsatz 0), und die Nut nach dem
