@@ -497,6 +497,75 @@ diesen Dialog heißt das konkret:
 - **Warnungen in Worten**, z. B. „Der Körper *Schenkel links* hängt an keinem
   Glied – er bleibt beim Schwenken stehen.“
 
+## 12. Maschinen-Speicher und Maschinenzuweisung (W-011, zur Besprechung)
+
+Manuel, 2026-10-02: „Ich hätte gerne sozusagen einen Maschinen-Speicher … ich kann ja mehrere
+Maschinen haben … und würde gerne auswählen können, auf welcher Maschine ich das Teil
+bearbeite … theoretisch richte ich mir meine 6 Maschinen ein: einmal 3-Achs, einmal 5-Achs,
+einmal 4-Achs, eine Drehbank mit Revolver … Und wenn ich dann ein Teil öffne im CAM, wäre
+erstmal die Abfrage ‚Maschinenzuweisung‘, also welche Maschine wird benutzt … Danach kann man
+bessere Entscheidungen treffen, wenn man das schon weiß … Beispiel: Auf einer Drehbank ist das
+Rohteil selten eckig.“
+
+- **Heute:** Eine Maschine ist eine FreeCAD-Datei mit einer Baugruppe (Abschnitt 5), gespeichert,
+  wo man will. Das Addon merkt sich genau eine – die zuletzt benutzte (D-20) – und am Job die,
+  auf der geprüft wurde. Der 4-Achs-Assistent fragt zuerst nach der Maschine (offene Maschinen
+  und die zuletzt benutzte), der Assistent „Bearbeitung (Fräsen)“ gar nicht: Er nimmt einen
+  Quader und eine 3-Achs-Fräse an. Eine Liste aller eigenen Maschinen gibt es nicht.
+- **Der Speicher:** eine Liste der eigenen Maschinen in `CamAddon/maschinen.json` im
+  Benutzerordner (wie die Werkzeugverwaltung, Neustart und Update überlebend): je Maschine
+  Name, Datei und was das Addon zum Entscheiden braucht, ohne die Datei zu öffnen – die Art
+  (3-Achs-Fräse, 4-Achs-Fräse mit Rundachse A oder B, 5-Achs-Fräse, Drehmaschine mit Revolver,
+  mit C/Y oder ohne), die Achsen, Werkzeugplätze, Höchstdrehzahl. In die Liste kommt eine
+  Maschine von selbst, wenn man sie mit „Neue Maschine …“ baut und speichert, sie zum Prüfen
+  öffnet oder in einem Assistenten wählt; dazu ein Fenster „Maschinen“ (Menü CAM-Addon) mit
+  Hinzufügen (Datei wählen), Neue Maschine, Bearbeiten (öffnet sie), Entfernen (nur aus der
+  Liste – die Datei bleibt).
+- **Option A (Empfehlung) – die Maschine ist die erste Frage im Assistenten:** Schritt 1 von
+  „Bearbeitung“ beginnt mit „Maschine“ (die Liste, vorgewählt die des Jobs, sonst die zuletzt
+  benutzte). Danach richtet sich alles: Drehmaschine oder 4-Achs-Fräse – das Rohteil ist eine
+  Stange längs ihrer Rundachse, es geht weiter wie im 4-Achs-Assistenten; 3-Achs-Fräse – ein
+  Quader wie heute; 5-Achs-Fräse – vorerst wie 3-Achs (Tisch und Kopf auf 0), später 3+2. Die
+  Wahl steht am Job: „Auf der Maschine prüfen“ öffnet sie ohne Frage, die Bestückung nimmt
+  ihren Revolver, der Postprozessor (W-005) später ihre Steuerung. Ein Einstieg für alles –
+  die Maschine entscheidet, welcher Assistent.
+- **Option B – eine eigene Abfrage, sobald ein Job entsteht:** auch bei FreeCADs eigenem
+  „Job“. Erfasst jeden Weg, greift aber in FreeCAD ein (jede neue Version kann das brechen),
+  und eine Frage mehr für alle, die nur schnell etwas probieren.
+- **Option C – nur am Job:** „Maschine zuweisen …“ am Job im Baum, die Assistenten fragen nicht.
+  Am wenigsten Eingriff, aber das Addon weiß es oft nicht, wenn es entscheidet.
+
+```
+ CAM-Addon → Maschinen …
+ ┌──────────────────────────────────────────────────────────────────┐
+ │ Name            Art                              Datei            │
+ │ DMU 50          5-Achs-Fräse (B, C)              …/dmu50.FCStd    │
+ │ Mazak QT 200    Drehmaschine, Revolver 12, C/Y   …/mazak.FCStd    │
+ │ Deckel FP4      3-Achs-Fräse                     …/fp4.FCStd      │
+ │ Rundtisch-Fräse 4-Achs-Fräse (A)                 …/fp4_a.FCStd    │
+ │ [Hinzufügen …] [Neue Maschine …] [Bearbeiten] [Entfernen]          │
+ └──────────────────────────────────────────────────────────────────┘
+
+ Bearbeitung – Schritt 1 von 3 – Aufspannung
+ ┌──────────────────────────────────────────────────────────────────┐
+ │ Maschine   [Mazak QT 200 – Drehmaschine mit Revolver        ▾]    │
+ │ Rohteil    Stange Ø 60 × 120 längs Z (von der Maschine)           │
+ │ Nullpunkt  [Mitte Stirn ▾]                                        │
+ │                                                    [Weiter →]     │
+ └──────────────────────────────────────────────────────────────────┘
+```
+
+- **Dazu zu entscheiden** (je mit Empfehlung):
+  1. A, B oder C – Empfehlung A.
+  2. Der Speicher hält (a) Verweise auf die Dateien, wo sie liegen – eine Änderung an der Datei
+     gilt sofort –, oder (b) Kopien in einem Ordner des Addons. Empfehlung (a); fehlt eine
+     Datei, sagt das Fenster es und bietet „Suchen …“ an.
+  3. Vorgewählt ist (a) die des Jobs, sonst die zuletzt benutzte, oder (b) eine feste
+     „Standard“-Maschine. Empfehlung (a).
+- **Fertig, wenn:** Manuel seine Maschinen einmal einträgt, beim nächsten Teil in Schritt 1 die
+  Drehmaschine wählt und eine Stange statt eines Quaders bekommt – und „Auf der Maschine
+  prüfen“ ohne Frage auf ihr prüft.
+
 ## Entschieden
 
 - **Speicherort:** eigenes Maschinenobjekt (Manuel, P-2026-09-25-08).

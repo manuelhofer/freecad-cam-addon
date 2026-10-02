@@ -474,6 +474,12 @@ Ein Satz je Wunsch, W-ID fortlaufend.
 - **W-010 Schlichten nach dem Räumen mit Messstopp** – in derselben Maske, der Halt mit den
   Befehlen der Maschine (Siemens: F_HOME, M0) (Manuel, 2026-10-02):
   [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 12.4.
+- **W-011 Maschinen-Speicher und Maschinenzuweisung** – mehrere eigene Maschinen (3-, 4-,
+  5-Achs, Drehmaschine mit Revolver) in einer Liste; beim Teil zuerst die Frage, auf welcher
+  Maschine, danach richtet sich alles (Drehmaschine: Stange statt Quader) (Manuel,
+  2026-10-02): Vorschlag mit Optionen A–C und Skizze in
+  [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md),
+  Abschnitt 12 – wartet auf Manuels Entscheidung.
 - **W-004 Bedienung vereinfachen und automatisieren** – Durchsicht aller
   Fenster und Abläufe (2026-09-27, Manuels Auftrag): acht kleine Stellen
   (D-01 bis D-08), einfacher bedienen (D-10 bis D-14), automatisieren (D-20

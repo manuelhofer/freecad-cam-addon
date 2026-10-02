@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-55 vorschlag-maschinen-speicher
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Ich hätte gerne sozusagen einen Maschinen-Speicher … mehrere Maschinen
+  … auswählen können, auf welcher Maschine ich das Teil bearbeite … meine 6 Maschinen: einmal
+  3-Achs, einmal 5-Achs, einmal 4-Achs, eine Drehbank mit Revolver … Und wenn ich dann ein Teil
+  öffne im CAM, wäre erstmal die Abfrage ‚Maschinenzuweisung‘ … Danach kann man bessere
+  Entscheidungen treffen … auf einer Drehbank ist das Rohteil selten eckig.“
+
+### DATEIEN
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Abschnitt 12, W-011: heute, Speicher,
+  Optionen A–C, Skizze, drei Fragen mit Empfehlung), `docs/STATUS_SNAPSHOT.md` (W-011)
+
+### AKZEPTANZKRITERIUM
+Manuel kann mit „A, 2a, 3a“ (oder anders) entscheiden.
+
+### DONE
+- Empfehlung A: Die Maschine ist die erste Frage im Assistenten „Bearbeitung“; ihre Art
+  entscheidet Rohteil und Assistenten (Drehmaschine/4-Achs: Stange, 3-Achs: Quader, 5-Achs
+  vorerst wie 3-Achs); der Speicher hält Verweise auf die Dateien.
+
+### TEST
+- Nur Doku, kein Lauf.
+
+### NEXT
+- Nach Manuels Antwort bauen; bis dahin 12.1 (a).
+
 ## P-2026-10-02-54 planen-einsatz-schaftfraeser
 
 ### EINGELESEN
