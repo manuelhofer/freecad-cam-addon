@@ -131,7 +131,8 @@ nennt seine Zeit als „Ziel“ – die echte Bahn braucht länger (P-2026-10-02
 angehakte, passende Blöcke ohne die Erklärung, nur mit dem Ergebnis (P-2026-10-02-36, 0.96.2);
 was nicht passt, je eine Zeile „Name – was man anklicken muss“ (P-2026-10-02-37, 0.96.3),
 eingeklappt unter „Passt nicht zur Auswahl (16)“ wie „Rohteil und Nullpunkt“ (P-2026-10-02-38,
-0.96.4) – Manuels Platte jetzt 771 Pixel statt 5101.
+0.96.4) – Manuels Platte jetzt 771 Pixel statt 5101. Alle 83 Szenarien auf 0.96.0 grün (danach je
+die Szenarien zum geänderten Teil).
 Als Nächstes: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11); der schnellere Fräser aus der Zielzeit mit einem Klick übernehmen (wenn Manuel will); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
