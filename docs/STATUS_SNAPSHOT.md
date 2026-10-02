@@ -277,6 +277,21 @@ wird“), der Reihe nach, je Punkt ein Patch mit Verlauf und Snapshot:**
 4. **Vorschau schneller:** Am Testteil rechnet der Assistent rund 20 s. Messen, wo die Zeit bleibt; Ziel 10 s.
 5. **Snapshot kürzen** (nur Doku): Der Projektstatus ist weit über „ein Satz je Punkt“ hinaus.
 
+**Fragen an Manuel aus der Nacht** (je mit dem, was gebaut ist – ändern ist ein kleiner Patch):
+
+1. *Schlichten danach, Zeilenabstand am Boden:* gebaut als eigenes Feld, leer der halbe
+   Fräserdurchmesser – nicht das ae des Einsatzes „Schlichten“ (0,3 mm: am Boden über 300 Ringe auf
+   100 mm). So lassen?
+2. *Dein Fräser laut Jongen:* Der Katalog nennt für den 494W-12 (VU494M12B-HI06) beim Eckfräsen in
+   Baustahl vc 210, fz 0,07, ap 22,2, ae 5,4 – dein Standardfräser rechnet mit vc 85, fz 0,1,
+   ae 1,5. Die Kiste hat jetzt die Katalogwerte; dein Standardfräser (und damit alle Prüfungen)
+   bleibt, wie er ist. Sollen deine Standardwerte näher an den Katalog?
+3. *Ceratizit-Bohrer:* Die Nummern WL173060311 und 1170305000 · 0095923748 finde ich nirgends –
+   ein Foto vom Etikett oder ein Link? Bis dahin: Maße nach DIN 338, Werte geschätzt.
+4. *Jongen Ø 3:* gibt es in der Reihe 494W nicht – weggelassen. Ein anderer Ø 3 (z. B. Garant)?
+5. *Gühring 5596:* Der Shop zeigt die Größen erst im Browser; Nummern für M2, M2,5 und ab M12 sind
+   ungeprüft (ab M12 heißt die Reihe vielleicht anders, DIN 376).
+
 **Regeln dafür** (Manuel, 2026-10-02: „du hast zwei stunden damit verbracht sachen zu testen für was?“):
 je Änderung nur die eine Prüfdatei und das eine Szenario zum geänderten Teil – kein Lauf über alles, auch
 nicht im Hintergrund. Lokal committen; nicht pushen (wurde in dieser Sitzung abgelehnt – Manuel pusht

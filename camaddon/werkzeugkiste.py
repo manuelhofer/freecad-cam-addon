@@ -215,6 +215,9 @@ _GEWINDE = (
 )  # fmt: skip
 
 
+GUEHRING_5596 = "https://webshop.guehring.de/5596"  # die Seite der Reihe im Gühring-Shop
+
+
 def _gewindebohrer():
     groessen = []
     for m, p, gesamt, gewinde, schaft in _GEWINDE:
@@ -231,10 +234,10 @@ def _gewindebohrer():
                 "name": f"5596 M{_zahl(m)}",
                 "artikel": artikel,
                 "bezeichnung": (
-                    f"Spiralnut, HSS-E, TiN, ISO 2/6H, Blauring · Kernloch Ø {_zahl(m - p)}"
-                    f" · {RICHTWERTE}"
+                    f"Spiralnut, HSS-E, TiN, Typ VA, Form C, ISO 2/6H, Blauring · Kernloch "
+                    f"Ø {_zahl(m - p)} · {RICHTWERTE}"
                 ),
-                "link": suche("Gühring", "5596", f"M{_zahl(m)}"),
+                "link": GUEHRING_5596,
             }
         )
     return Reihe(
@@ -243,14 +246,16 @@ def _gewindebohrer():
         hersteller="Gühring",
         titel="5596 Maschinen-Gewindebohrer HSS-E, Spiralnut, Blauring, M2–M30",
         quelle=(
-            "Gühring 5596: HSS-E, TiN, Spiralnut für Sacklöcher, ISO 2/6H, DIN 371 (Händler: "
-            "M3–M10, Nummer „05596 010.000“ für M10). M2, M2,5 und ab M12 (DIN 376) dieselbe Art "
-            "ohne belegte Nummer – beim Händler prüfen. Maße nach DIN 371/376. vc: Richtwerte "
-            "für HSS-E-Gewindebohrer, je Werkstoffklasse geschätzt; der Vorschub ist die Steigung."
+            "Gühring 5596 (Shop webshop.guehring.de/5596, 2026-10-02): Maschinen-Gewindebohrer "
+            "für metrische ISO-Gewinde, HSS-E, TiN, Typ VA, Form C, ISO2/6H, rechts, Bohrtiefe "
+            "3 × D, Grundloch. Die Tabelle der Größen lädt der Shop erst im Browser – Nummern "
+            "nach Händlern (M3–M10, „05596 010.000“ für M10); M2, M2,5 und ab M12 (DIN 376) "
+            "ohne belegte Nummer. Maße nach DIN 371/376. vc: Richtwerte für HSS-E-Gewindebohrer, "
+            "je Werkstoffklasse geschätzt; der Vorschub ist die Steigung."
         ),
         groessen=tuple(groessen),
         gemeinsam={"schneidstoff": wz.HSS},
-        katalog=suche("Gühring", "Gewindebohrer", "Katalog", "PDF"),
+        katalog=GUEHRING_5596,
     )
 
 

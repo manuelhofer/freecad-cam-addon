@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-92 werkzeugkiste-guehring-shop
+
+### EINGELESEN
+- Weiter mit der Werkzeugliste (Manuel, 2026-10-02 nachts).
+
+### DATEIEN
+- `camaddon/werkzeugkiste.py` (`GUEHRING_5596`, `_gewindebohrer`), `docs/STATUS_SNAPSHOT.md`
+  (Fragen an Manuel), `package.xml` (0.127.2)
+
+### AKZEPTANZKRITERIUM
+„Bestellen“ und „Katalog“ der Gühring-Gewindebohrer öffnen die Seite der Reihe im Gühring-Shop.
+
+### DONE
+- Gühring: Die Reihe 5596 hat eine Seite im Shop (webshop.guehring.de/5596): HSS-E, TiN, Typ VA,
+  Form C, ISO2/6H, 3 × D, Grundloch – Link und Katalog zeigen dorthin statt auf eine Suche. Die
+  Größentabelle lädt der Shop erst im Browser (die Such-Schnittstelle gab nichts zurück) – Nummern
+  und Maße bleiben wie bisher.
+- Ceratizit: Manuels Nummern WL173060311 und 1170305000 · 0095923748 sind nirgends zu finden –
+  bleibt bei DIN 338 und geschätzten Werten; Frage an Manuel.
+- Sandvik: Die Produktseite ist eine Anwendung im Browser; die gelesenen Daten passten nicht zum
+  Fräser (eine Platte CN1906) – nichts übernommen.
+- Die Fragen der Nacht stehen im Snapshot unter „Nächster Schritt“.
+
+### TESTS
+- `tests/test_werkzeugkiste.py` (OK). black und ruff sauber.
+
+### NEXT
+- Plan der Nacht: T2, T5d.
+
 ## P-2026-10-02-91 werkzeugkiste-nach-katalog
 
 ### EINGELESEN
