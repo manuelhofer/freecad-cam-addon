@@ -33,6 +33,13 @@ hinein, auch nicht an Nachbarflächen.
   Stücken wenige Sätze, in Rundungen so viele, wie die Genauigkeit braucht.
 - **Aufmaß:** der Fräser um das Aufmaß größer (Form.mit_aufmass), das Ergebnis um es gehoben –
   so bleibt es auch an steilen Stellen genau.
+- **Restschlichten** (W-006 4.2 Punkt 8, P-2026-10-02-01): Mit `davor` (die Form des größeren
+  Fräsers, der vorher schlichtete) fährt er nur dort, wo der davor mehr als REST stehen ließ, als
+  dieser wegnimmt – in Kehlen, engen Rundungen, Ecken. Beide Flächen, die die Fräser stehen
+  lassen, kommen aus ihrer Hüllfläche im Raster: je Stelle die tiefste Unterseite der Stirn über
+  alle Lagen der Spitze im Umkreis (`_schnitt`, gleitendes Minimum mit dem Profil der Stirn).
+  Was übersteht, ist der Rest; um R + Zeilenabstand erweitert, damit die Bahnen ihn ganz
+  überdecken. Zeilen, Höhenlinien und Spirale fahren nur dort.
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -62,6 +69,8 @@ NACH_OBEN = 0.05  # so weit muss eine Normale nach oben zeigen (n_z) – sonst s
 GRENZWINKEL = 45.0  # Grad – steiler: Höhenlinien, flacher: Zeilen; 0: nur Zeilen
 UEBERLAPP = 3.0  # Grad – so weit überlappen Zeilen und Höhenlinien an der Grenze
 RASTER = 0.25  # mm – das Raster der Hüllfläche für Neigung, Höhenlinien und die Spirale
+REST = 0.01  # mm – so viel mehr muss der Fräser davor stehen lassen, damit das Restschlichten fährt
+_TIEF = -1e6  # mm – wo die Spitze nichts trifft: für den Schnitt beliebig tief
 VORSCHAU_RASTER = 0.5  # mm – im Assistenten
 SPIRALE = "spirale"
 
@@ -83,6 +92,10 @@ class Schlichtwerte:
     raster: float = RASTER
     vorschub: float = 0.0  # mm/min – für die Zeit; 0: 1000
     eintauchen: float = 0.0
+    davor: object = (
+        None  # fraeserform.Form des größeren Fräsers davor: nur der Rest (Restschlichten)
+    )
+    rest: float = REST
 
 
 @dataclass
@@ -258,8 +271,10 @@ class _Raster:
 
 
 def _raster(netz_alle, netz_rest, geformt, box, w):
-    """Die Hüllfläche im Raster über `box` ± R, mit und ohne die gewählten Flächen."""
-    R = w.form.radius
+    """Die Hüllfläche im Raster über `box` ± R, mit und ohne die gewählten Flächen – beim
+    Restschlichten ± dem größeren Radius (der Fräser davor braucht seine Lagen am Rand)."""
+    davor = getattr(w, "davor", None)  # auch der Bleistift rechnet hier, ohne Fräser davor
+    R = max(w.form.radius, davor.radius if davor is not None else 0.0)
     x0, x1 = box[0] - R, box[1] + R
     y0, y1 = box[2] - R, box[3] + R
     nx = max(3, int(math.ceil((x1 - x0) / w.raster - 1e-9)) + 1)
@@ -273,6 +288,74 @@ def _raster(netz_alle, netz_rest, geformt, box, w):
     gx, gy = np.gradient(endlich, sx, sy)
     neigung = np.arctan(np.hypot(gx, gy))
     return _Raster(xs, ys, alle + max(w.aufmass, 0.0), gewaehlt, neigung)
+
+
+def _verschoben(d, n):
+    """(Ziel, Quelle) als slices: Ziel[k] = Quelle[k + d] in einer Achse der Länge n."""
+    return slice(max(0, -d), n - max(0, d)), slice(max(0, d), n - max(0, -d))
+
+
+def _schnitt(t, form, sx, sy):
+    """(nx, ny) mm: die Fläche, die der Fräser `form` stehen lässt, wenn seine Spitze überall auf
+    der Hüllfläche `t` fährt (−inf: trifft nichts) – je Stelle die tiefste Unterseite der Stirn
+    über alle Lagen der Spitze im Umkreis R (gleitendes Minimum mit dem Profil)."""
+    R = float(form.radius)
+    tief = np.where(np.isfinite(t), t, _TIEF)
+    nx, ny = tief.shape
+    flaeche = tief.copy()
+    ni, nj = int(R / sx + 1e-9), int(R / sy + 1e-9)
+    for di in range(-ni, ni + 1):
+        ziel_i, quelle_i = _verschoben(di, nx)
+        for dj in range(-nj, nj + 1):
+            rho = math.hypot(di * sx, dj * sy)
+            if (di == 0 and dj == 0) or rho > R + 1e-9:
+                continue
+            h = float(form.hoehe(min(rho, R)))
+            ziel_j, quelle_j = _verschoben(dj, ny)
+            ziel = flaeche[ziel_i, ziel_j]
+            np.minimum(ziel, tief[quelle_i, quelle_j] + h, out=ziel)
+    return flaeche
+
+
+def _erweitert(maske, weite, sx, sy):
+    """`maske` um `weite` (mm) erweitert – rund, im Raster."""
+    ergebnis = maske.copy()
+    nx, ny = maske.shape
+    ni, nj = int(weite / sx + 1e-9), int(weite / sy + 1e-9)
+    for di in range(-ni, ni + 1):
+        ziel_i, quelle_i = _verschoben(di, nx)
+        for dj in range(-nj, nj + 1):
+            if math.hypot(di * sx, dj * sy) > weite + 1e-9:
+                continue
+            ziel_j, quelle_j = _verschoben(dj, ny)
+            ziel = ergebnis[ziel_i, ziel_j]
+            np.logical_or(ziel, maske[quelle_i, quelle_j], out=ziel)
+    return ergebnis
+
+
+def _rest(raster, netz_alle, w, abstand):
+    """(Maske, Rest) im Raster: wo der Fräser davor (`w.davor`) mehr als `w.rest` stehen ließ,
+    als dieser wegnimmt – die Maske um R + Zeilenabstand erweitert; der Rest in mm."""
+    xs, ys = raster.xs, raster.ys
+    sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
+    x0, nx = float(xs[0]), len(xs)
+    flaeche_davor = _schnitt(hf.je_zeile(netz_alle, w.davor, ys, x0, sx, nx, True), w.davor, sx, sy)
+    flaeche = _schnitt(hf.je_zeile(netz_alle, w.form, ys, x0, sx, nx, True), w.form, sx, sy)
+    gueltig = (flaeche_davor > _TIEF / 2) & (flaeche > _TIEF / 2)
+    # Nur über dem Teil: Neben seinem Rand liegt die Hülle des größeren Fräsers, der um die Kante
+    # rollt, höher – in der Luft, kein Rest (an einer Kuppel ohne Platte 0,08 mm).
+    gueltig &= hf.hoehen(netz_alle, xs, ys, innen=True) > hf.KEIN_TREFFER / 2
+    # Am Rand des Rasters fehlen dem Fräser davor die Lagen draußen: dort kein Rest.
+    ki = int(math.ceil(float(w.davor.radius) / sx - 1e-9))
+    kj = int(math.ceil(float(w.davor.radius) / sy - 1e-9))
+    gueltig[:ki, :] = gueltig[-ki:, :] = False
+    gueltig[:, :kj] = gueltig[:, -kj:] = False
+    rest = np.where(gueltig, flaeche_davor - flaeche, 0.0)
+    # Zwischen zwei Rasterpunkten bleibt unter der kleinen Stirn ein Grat (Raster² ÷ 8 r): Was
+    # darunter liegt, ist Rechnung, kein Rest – doppelt genommen (im groben Raster der Vorschau
+    # sonst 0,02 mm „Rest“ an einer Kuppel ohne Kehle).
+    schwelle = max(w.rest, max(sx, sy) ** 2 / (4.0 * max(float(w.form.radius), GLEICH)))
+    return _erweitert(rest > schwelle, w.form.radius + abstand, sx, sy), rest
 
 
 def _stuecke(punkte, geschlossen, behalten):
@@ -431,13 +514,16 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, ras
     rest = hf.je_zeile(netz_rest, geformt, v_werte, u0, schritt, anzahl_u, laengs_x).T
     z = alle + max(w.aufmass, 0.0)
     maske = np.isfinite(alle) & (alle > rest + MASKE)
-    if raster is not None and w.grenzwinkel > 0:
+    if raster is not None:
         uu, vv = np.meshgrid(u_werte, v_werte)  # (Zeilen, Stellen)
         xx, yy = (uu, vv) if laengs_x else (vv, uu)
-        neigung = raster.bei(raster.neigung, xx, yy)
-        with np.errstate(invalid="ignore"):
-            steil = neigung >= math.radians(w.grenzwinkel + UEBERLAPP)
-        maske &= ~steil
+        if w.grenzwinkel > 0:
+            neigung = raster.bei(raster.neigung, xx, yy)
+            with np.errstate(invalid="ignore"):
+                steil = neigung >= math.radians(w.grenzwinkel + UEBERLAPP)
+            maske &= ~steil
+        if w.davor is not None:
+            maske &= raster.bei(raster.gewaehlt, xx, yy)  # nur der Rest
 
     def xy(u, v):
         return (u, v) if laengs_x else (v, u)
@@ -575,7 +661,9 @@ def _spirale(raster, w, abstand, vorweg):
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-    umlaeufe = int(math.ceil(float(theta[-1]) / (2 * math.pi)))
+    # Die Umläufe, in denen gefräst wird – beim Restschlichten liegt innen oft nichts.
+    gefraest = float(theta[laeufe[-1][1]] - theta[laeufe[0][0]])
+    umlaeufe = max(1, int(math.ceil(gefraest / (2 * math.pi) - 1e-9)))
     return Schlichtbahn(punkte, 0, True, abstand, z_min, laenge, zeit, hoehen, True, umlaeufe)
 
 
@@ -641,8 +729,13 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     richtungen = {"x": (True,), "y": (False,), "spirale": (SPIRALE,)}.get(
         w.richtung, (True, False, SPIRALE) if steil_flach else (True, False)
     )
-    if steil_flach or SPIRALE in richtungen:
+    if steil_flach or SPIRALE in richtungen or w.davor is not None:
         raster = _raster(netz_alle, netz_rest, geformt, box, w)
+    if w.davor is not None:
+        maske, _rest_mm = _rest(raster, netz_alle, w, abstand)
+        raster.gewaehlt = raster.gewaehlt & maske
+        if not raster.gewaehlt.any():
+            raise ValueError(tr("s3.fehler.kein_rest"))
     if steil_flach:
         vorweg = _hoehenlinien(raster, w, abstand)
     beste = None

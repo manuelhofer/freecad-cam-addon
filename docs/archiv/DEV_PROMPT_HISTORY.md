@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-01 restschlichten
+
+### EINGELESEN
+- `schlichten3d_bahn` (`_raster`, `_eine_richtung`, `_hoehenlinien`, `_spirale`, `planen`),
+  `schlichten3d` (Eigenschaften, `rechne`, `bahn_fuer`, `lege_an`, `aendere`, Namen),
+  `fraeserform` (`Form.hoehe`, `torus`, `kugel`), `hoehenfeld.hoehen`, `gui_bearbeitung`
+  (`_Schlichten3D`, `_Rest`, `_zusatz`, `_davor_durchmesser`, `_restfraeser_waehlen`, Blöcke),
+  `tests/test_bleistift.py`, `tests/gui/szenario_bleistift.py`.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py`, `camaddon/schlichten3d.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `tests/test_restschlichten.py` (neu), `tests/gui/szenario_restschlichten.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.65.0)
+
+### AKZEPTANZKRITERIUM
+Kuppel Ø 40 auf der Platte, 3D-Schlichten mit Kugel Ø 6, dann „Restschlichten“ mit Kugel Ø 2:
+die Bahn nur am Fuß (r 16 … 21,5), deutlich schneller als die ganze Kuppel mit Ø 2, in der Kehle
+weniger Rest als nach Ø 6 allein (gerechnet 0,13 statt 0,40), nirgends ins Teil, oben auf der
+Kuppel nichts gefahren. Eine Kuppel ohne Kehle: „Kein Rest“ – auch im groben Raster der Vorschau.
+Im Assistenten der Block „Restschlichten“: Haken von Hand, vorgewählt der größte kleinere
+Kugelfräser, „Fräser davor Ø“ leer = der des 3D-Schlichtens mit seiner Form; die Operation
+„Restschlichten T4“ mit Ø und Eckenradius davor; Ändern per Doppelklick behält den Eckenradius.
+
+### DONE
+- `schlichten3d_bahn`: `davor`/`rest` in den Werten; `_schnitt` (die Fläche, die ein Fräser stehen
+  lässt: gleitendes Minimum mit dem Profil der Stirn), `_erweitert`, `_rest` (nur über dem Teil,
+  fern vom Rasterrand, über REST und dem Raster-Grat Raster² ÷ 4 r); das Raster beim Restschlichten
+  um den größeren Radius weiter; die Maske in `raster.gewaehlt` – Zeilen, Höhenlinien, Spirale; die
+  Spirale zählt nur die Umläufe, in denen sie fräst.
+- `schlichten3d`: `DurchmesserDavor`, `EckenradiusDavor`, `form_davor`, `eckenradius`,
+  `ist_restschlichten`, Name „Restschlichten T…“.
+- Assistent: `_Restschlichten` (nach dem 3D-Schlichten), `_davor_3d`,
+  `_restschlichtfraeser_waehlen`; `_Schlichten3D.ist` ohne Restschlichten.
+
+### TEST
+- 1.1.3: `test_restschlichten` (neu), `test_schlichten3d`, `test_bleistift` grün; Szenarien
+  `szenario_restschlichten` (neu), `szenario_schlichten3d`, `szenario_bleistift` grün – das
+  Bleistift-Szenario fand zuerst, dass `_raster` auch mit den Werten des Bleistifts rechnet (ohne
+  `davor`; jetzt mit `getattr`); black/ruff grün.
+
+### NEXT
+- Restschruppen mit dem kleineren Schaftfräser (nach dem 3D-Schruppen); Kontur in Bohrungen ohne
+  Vollschnitt beim Einfahren.
+
 ## P-2026-10-01-49 nie-in-voller-breite
 
 ### EINGELESEN

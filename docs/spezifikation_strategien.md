@@ -256,7 +256,23 @@ eben). Kein OCL.
 7. **Fläche entlang** (Flowline) – Zeilen folgen den Flächenkurven (UV);
    für Kegel, Rohre, Übergänge. Aufwand mittel bis groß.
 8. **Restschlichten** – kleiner Fräser, nur wo nötig (aus Abtrag). Aufwand
-   mittel (nach 6).
+   mittel (nach 6). Gebaut (P-2026-10-02-01, 0.65.0) – nicht aus einem Abtragsmodell,
+   sondern aus beiden Fräsern: Die Hüllflächen des großen (davor) und des kleinen im
+   Raster, daraus je die Fläche, die der Fräser stehen lässt, wenn seine Spitze überall
+   fährt (gleitendes Minimum mit dem Profil der Stirn: je Stelle die tiefste Unterseite
+   im Umkreis R); wo die des großen mehr als 0,01 mm höher liegt, ist Rest – nur über dem
+   Teil (neben einer Kante rollt der große Fräser höher um sie, in der Luft) und über dem
+   Grat, den das Raster selbst unter der kleinen Stirn lässt (Raster² ÷ 4 r; sonst fand die
+   grobe Vorschau 0,02 mm „Rest“ an einer Kuppel ohne Kehle). Die Maske um R + Zeilenabstand
+   erweitert; dort fährt das 3D-Schlichten wie sonst (Höhenlinien, Zeilen, Spirale, die
+   schnellste). Als 3D-Schlichten mit `DurchmesserDavor` und `EckenradiusDavor` („Restschlichten
+   T4“); im Assistenten der Block „Restschlichten“ (Haken von Hand, vorgewählt der größte
+   kleinere Kugelfräser, Ø und Form davor vom 3D-Schlichten im Fenster). Gemessen
+   (`test_restschlichten`): Kuppel Ø 40 auf der Platte, nach Kugel Ø 6 mit Kugel Ø 2 – 3,8 min
+   (die ganze Kuppel mit Ø 2: 9,1), in der Kehle am Fuß 0,18 statt 0,44 mm (gerechnet
+   0,13 und 0,40), nirgends ins Teil; eine Kuppel ohne Kehle: „Kein Rest“
+   (`szenario_restschlichten`). Offen: die Platte daneben fährt es nicht (das 3D-Schlichten
+   fährt nur Freiformflächen) – die Kehle selbst nimmt der Bleistift.
 
 ### 4.3 Rundum und 4 Achsen (W-003)
 

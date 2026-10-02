@@ -28,7 +28,11 @@ herum), sein letzter Ring lief am Absatz voll an der Wand, die erste Zeile des P
 0,8 · Ø breit (jetzt höchstens so breit, dass Breite · Tiefe nicht über ae · ap liegt; vor einer
 Wand flachere Lagen), das 3D-Schruppen erbte den Biss in die Kuppel (4,8 ae, jetzt 1,6). Ehrlich
 gerechnet etwas langsamer: Platte gesamt 35,6 statt 34,8 min (-49); 0.64.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+automatisch geprüft; wartet auf Manuels Test. **Restschlichten** (W-006 4.2 Punkt 8): mit dem
+kleineren Kugelfräser nur dort, wo der große davor nicht hinkam – aus den Flächen, die beide
+stehen lassen; an der Kuppel nach Ø 6 mit Ø 2 3,8 min statt 9,1 für alles, in der Kehle 0,18 statt
+0,44 mm (P-2026-10-02-01); 0.65.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
+Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3

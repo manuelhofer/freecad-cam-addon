@@ -85,6 +85,7 @@ GEMERKT_ANBOHRER = "BaAnbohrer"  # … fürs Zentrieren
 GEMERKT_SENKER = "BaSenker"  # … fürs Senken
 GEMERKT_RESTFRAESER = "BaRestFraeser"  # … fürs Restmaterial
 GEMERKT_FRAESER_3D = "BaFraeser3D"  # … fürs 3D-Schlichten
+GEMERKT_RESTFRAESER_3D = "BaRestFraeser3D"  # … fürs Restschlichten
 REST_BREITE = 0.01  # mm – „Material neben der Wand“ beim Restmaterial: eine Bahn bei Radius
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
@@ -1573,10 +1574,103 @@ class _Schlichten3D(_Strategie):
         s3op.aendere(op, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
 
     def ist(self, op):
-        return s3op.ist_schlichten3d(op)
+        return s3op.ist_schlichten3d(op) and not s3op.ist_restschlichten(op)
 
     def werte_von(self, op):
         return {"grathoehe": float(op.Grathoehe), "aufmass": float(op.Aufmass)}
+
+
+class _Restschlichten(_Schlichten3D):
+    """Restschlichten: das 3D-Schlichten mit einem kleineren Fräser nur dort, wo der größere
+    davor nicht hinkam (schlichten3d mit DurchmesserDavor) – nach dem 3D-Schlichten, den Haken
+    setzt man selbst."""
+
+    kennung = "restschlichten"
+    gemerkt = GEMERKT_RESTFRAESER_3D
+    ARTEN = (wz.KUGELFRAESER, wz.TORUSFRAESER)
+
+    def titel(self):
+        return tr("ba.rs")
+
+    def text(self):
+        return tr("ba.rs.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.rs.fraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.rs.einsatz.tooltip")
+
+    def felder(self):
+        return (("davor", tr("ba.rs.davor"), tr("ba.rs.davor.tooltip")),) + super().felder()
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # ob der kleine Fräser nachkommt, entscheidet man selbst
+
+    def unmoeglich_text(self):
+        return tr("ba.rs.keine")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        if feld == "davor":
+            return 0.0  # vom Fenster (_zusatz)
+        return super().vorschlag(feld, werkzeug, einsatz)
+
+    def platzhalter(self, feld, werkzeug, einsatz):
+        if feld == "davor":
+            return tr("ba.rs.davor.leer")
+        return super().platzhalter(feld, werkzeug, einsatz)
+
+    @staticmethod
+    def davor(werte):
+        """(Ø, Eckenradius) des Fräsers davor aus den Werten – von Hand eingetragen eine Kugel.
+        ValueError mit einem Satz, wenn keiner da ist."""
+        durchmesser = float(werte.get("davor", 0.0) or 0.0)
+        if durchmesser <= 0:
+            raise ValueError(tr("ba.rs.davor.fehlt"))
+        eckenradius = werte.get("davor_eck")
+        return durchmesser, float(durchmesser / 2 if eckenradius is None else eckenradius)
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        form = ff.von_werkzeug(werkzeug)
+        if form is None:
+            raise ValueError(tr("s3.fehler.form"))
+        durchmesser, eckenradius = self.davor(werte)
+        return s3op.vorschau(
+            job,
+            job.Model.Group,
+            form,
+            werte["grathoehe"],
+            flaechen,
+            aufmass=werte["aufmass"],
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+            davor=ff.torus(durchmesser / 2, min(eckenradius, durchmesser / 2)),
+        )
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return s3op.lege_an(
+            job,
+            tc,
+            werte["grathoehe"],
+            werte["aufmass"],
+            flaechen=flaechen,
+            davor=self.davor(werte),
+        )
+
+    def aendere(self, op, tc, werte, flaechen):
+        s3op.aendere(
+            op, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen, davor=self.davor(werte)
+        )
+
+    def ist(self, op):
+        return s3op.ist_restschlichten(op)
+
+    def werte_von(self, op):
+        return {
+            "davor": float(op.DurchmesserDavor),
+            "grathoehe": float(op.Grathoehe),
+            "aufmass": float(op.Aufmass),
+        }
 
 
 class _Bleistift(_Strategie):
@@ -1754,6 +1848,7 @@ STRATEGIEN = (
     _Rest,
     _Schruppen3D,
     _Schlichten3D,
+    _Restschlichten,
     _Bleistift,
     _Senken,
     _Reiben,
@@ -2062,6 +2157,7 @@ class BearbeitungPanel:
         self.schruppen3d = next(b for b in self.bloecke if b.s.kennung == "schruppen3d")
         self.bleistift = next(b for b in self.bloecke if b.s.kennung == "bleistift")
         self.rest = next(b for b in self.bloecke if b.s.kennung == "rest")
+        self.restschlichten = next(b for b in self.bloecke if b.s.kennung == "restschlichten")
         self._beobachter = _Beobachter(self)
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
@@ -2712,6 +2808,7 @@ class BearbeitungPanel:
         finally:
             self._fuellt = False
         self._restfraeser_waehlen()
+        self._restschlichtfraeser_waehlen()
 
     def haken_geklickt(self, block):
         if self._fuellt:
@@ -2892,6 +2989,8 @@ class BearbeitungPanel:
                 return None  # von Hand eingetragen
             davor = self._davor_durchmesser()
             return {"davor": davor} if davor else None
+        if block is self.restschlichten:
+            return self._davor_3d()
         if block is not self.kontur or not self.raeumen.aktiv():
             return None
         if self.kontur.felder["breite"].text().strip():
@@ -2915,6 +3014,53 @@ class BearbeitungPanel:
             if gross.aktiv() and gross.fraeser() is not None:
                 return float(gross.fraeser().durchmesser)
         return None
+
+    def _davor_3d(self):
+        """{"davor": Ø, "davor_eck": Eckenradius} des Fräsers vor dem Restschlichten: ist das Feld
+        leer, der des 3D-Schlichtens in diesem Fenster (mit seiner Form); beim Ändern der
+        Eckenradius der Operation, solange ihr Ø im Feld steht – sonst None (von Hand
+        eingetragen gilt eine Kugel)."""
+        text = self.restschlichten.felder["davor"].text().strip()
+        if not text:
+            gross = self.schlichten3d
+            werkzeug = gross.fraeser() if gross.aktiv() else None
+            form = ff.von_werkzeug(werkzeug) if werkzeug is not None else None
+            if form is None:
+                return None
+            return {"davor": float(werkzeug.durchmesser), "davor_eck": s3op.eckenradius(form)}
+        op = self.zu_aendern
+        if op is None or not s3op.ist_restschlichten(op):
+            return None
+        try:
+            durchmesser = groesse_lesen(text, einheiten.LAENGE)
+        except ValueError:
+            return None
+        if abs(durchmesser - float(op.DurchmesserDavor)) > 1e-6:
+            return None
+        return {"davor_eck": float(op.EckenradiusDavor)}
+
+    def _restschlichtfraeser_waehlen(self):
+        """Wählt im Block Restschlichten den größten Fräser, der kleiner ist als der davor –
+        wenn der gewählte es nicht ist."""
+        davor = (self._davor_3d() or {}).get("davor")
+        if davor is None:
+            text = self.restschlichten.felder["davor"].text().strip()
+            try:
+                davor = groesse_lesen(text, einheiten.LAENGE) if text else None
+            except ValueError:
+                davor = None
+        if not davor:
+            return
+        jetzt = self.restschlichten.fraeser()
+        if jetzt is not None and jetzt.durchmesser < davor - 1e-6:
+            return
+        kleiner = [
+            (w.durchmesser, i)
+            for i, w in enumerate(self.restschlichten._fraeser)
+            if w.durchmesser < davor - 1e-6
+        ]
+        if kleiner:
+            self.restschlichten.wahl_fraeser.setCurrentIndex(max(kleiner)[1])
 
     def _restfraeser_waehlen(self):
         """Wählt im Block Restmaterial den größten Fräser, der kleiner ist als der davor – wenn

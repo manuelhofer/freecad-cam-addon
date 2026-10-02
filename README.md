@@ -196,7 +196,9 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   nach außen gerechnet, die schnellste zählt; wo es steiler ist als 45°, Höhenlinien
   statt Zeilen (Steil/Flach). **Bleistift**: die
   Kehlen nachfahren, wo die Kugel zwei Flächen zugleich berührt – etwa der Ring am Fuß
-  einer Kuppel, wo die Zeilen enden.
+  einer Kuppel, wo die Zeilen enden. **Restschlichten**: mit dem kleineren Kugelfräser nur
+  dort nachschlichten, wo der große davor nicht hinkam (Kehlen, enge Rundungen) – gerechnet aus
+  den Flächen, die beide Fräser stehen lassen.
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

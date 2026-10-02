@@ -383,6 +383,25 @@ large, its neck too thick, it does not reach deep enough.</li>
 around each hole it may go into the part up to the tip of the tooth, not beside it.</li>
 </ul>
 
+<h3>18. Rest finishing</h3>
+<ul>
+<li>After 3D finishing, finish again with a <b>smaller ball end mill</b> (or bull nose) only
+where the large one could not reach – in fillets, tight curves and corners of the freeform faces.
+You set the tick yourself; preselected is the largest ball end mill smaller than the one of 3D
+finishing.</li>
+<li><b>Cutter before Ø</b> (empty: the one of 3D finishing in the window, with its shape): from
+it, the surface the large one left is computed against the one the small one reaches – where the
+large one left more than 0.01 mm, there is rest. Entered by hand, the cutter before counts as a
+ball end mill. <b>Scallop height</b> and <b>stock</b> as in 3D finishing.</li>
+<li>There it runs like 3D finishing: contour lines where it is steep, rows or a spiral
+elsewhere – the fastest counts; by the radius of the small cutter and one row spacing beyond the
+rest, so that nothing remains.</li>
+<li>Grey below: “→ 10 contours and a spiral with …, about 4 min” (dome Ø 40 on the plate,
+ball Ø 2 after ball Ø 6 – the whole dome with Ø 2 would need 9 min). In the fillet at the foot
+0.18 instead of 0.44 mm remain. If there is no rest anywhere, it says so in red. The operation is
+called “Rest finishing T4”.</li>
+</ul>
+
 <h3>17. Pencil</h3>
 <ul>
 <li>For the <b>fillets</b> at freeform faces: where the ball end mill touches the selected face
@@ -521,7 +540,6 @@ uses it any more.</p>
 
 <h3>What comes next</h3>
 <p>The entry (ramp, helix, vertical) by time, trochoids in tight corners of pockets,
-open slots (towards the edge), rest finishing with the smaller ball end mill – following the
-plan in specification W-006.</p>
+rest roughing with the smaller cutter – following the plan in specification W-006.</p>
 </body>
 </html>
