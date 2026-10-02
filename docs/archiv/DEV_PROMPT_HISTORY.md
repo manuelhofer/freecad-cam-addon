@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-11 fraeser-und-bohrer
+
+### EINGELESEN
+- `gui_vierachs` (`BefehlVierachs.Activated`, `gewaehlte_operation`, `_plan_vorschlagen`,
+  `_plan_vorschau`, `_plan_text`, `accept` an beiden Stellen, wo „Plan indexiert“ angelegt
+  wird), `vierachs_plan.lege_an`, `job_schnittwerte.controller_ohne_transaktion`.
+
+### DATEIEN
+- `camaddon/gui_vierachs.py`, `translations/de.json`, `translations/en.json`,
+  `help/de|en/vierachs.html`, `tests/gui/szenario_vierachs_drehteil.py` (neu),
+  `docs/spezifikation_strategien.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.73.0)
+
+### AKZEPTANZKRITERIUM
+An einer Welle mit Abflachung, Mantelnut und Querbohrung: alle drei angeklickt, „Plan indexiert“
+mit dem Fräser T1, darunter angehakt „Die Querbohrungen mit … T2 … bohren“; „Anlegen“ legt im
+selben Job „Plan indexiert T1“ (Abflachung, Nut) und „Radial bohren T2“ (die Bohrung) an; „Auf
+der Maschine prüfen“: Achsen in ihren Grenzen, nichts berührt sich, am Ende nirgends ins Teil.
+
+### DONE
+- Gesehen: Ein zweiter Aufruf des Assistenten am selben Teil legt einen zweiten Job an (oder
+  öffnet die Plan-Operation zum Ändern) – Fräser und Bohrer im selben Job gingen nicht.
+- Assistent: Haken `mit_planbohrer` im Block „Plan indexiert“ (`_planbohrer_dazu`: nur mit
+  Querbohrungen neben Flächen oder Nuten, ein Fräser bei „Fräser“ und ein Bohrer, der alle
+  bohrt; angehakt, solange nicht von Hand abgewählt), `bohrer_dazu`, `_plan_flaechen` (die
+  Bohrungen heraus), `_bohrnamen`, `_bohreinsatz`, `_bohrer_dazu_anlegen`; die Vorschau rechnet
+  beide (`_vorschau_mit`, `vorschau_planbohren`), die Zeile „Dazu T2: …“
+  („va.plan.dazu_bohren“); „Anlegen“ an beiden Stellen. Wählt man das Werkzeug von Hand, wird
+  der Vorschlag neu bewertet. Bei gemischter Auswahl der Satz „va.plan.vorschlag_gemischt“
+  statt „eben längs der Stange: …“.
+
+### TEST
+- 1.1.3: `test_sprache` grün; `szenario_vierachs_drehteil` (neu), `szenario_vierachs_plan`,
+  `szenario_vierachs_nut`, `szenario_vierachs_querbohrung`, `szenario_vierachs_radialbohren`,
+  `szenario_vierachs_mantelnut`, `szenario_vierachs_sechskant` grün; black/ruff grün.
+
+### NEXT
+- Ein zweiter Aufruf des Assistenten am selben Teil sollte den Job weiterführen (statt einen
+  neuen anzulegen) – Manuel fragen, wie er es haben will.
+
 ## P-2026-10-02-10 sechskant
 
 ### EINGELESEN

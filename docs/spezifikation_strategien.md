@@ -380,7 +380,15 @@ Weiter (spezifikation_vierachs.md, V4c/V4d), in dieser Reihenfolge:
    mit dem Postprozessor (W-005). **Sechskant** (P-2026-10-02-10, Szenario): SW 24 vorne auf der
    Welle Ø 30, alle sechs Flächen angeklickt, der Standardfräser Ø 12 (Planen mit ae 1,5, ap 25:
    Zeilen 1,5 breit, die 3 mm in einer Lage) – sechs feste Stellungen der Rundachse, nichts
-   berührt sich, am Ende nirgends ins Teil (`szenario_vierachs_sechskant`).
+   berührt sich, am Ende nirgends ins Teil (`szenario_vierachs_sechskant`). **Fräser und Bohrer
+   zugleich** (P-2026-10-02-11, 0.73.0): Ein zweiter Aufruf des Assistenten am selben Teil legte
+   einen zweiten Job an (oder öffnete die Plan-Operation zum Ändern) – Fräser und Bohrer im
+   selben Job gingen nicht in einem Durchgang. Jetzt bietet „Plan indexiert“ neben dem Fräser
+   einen Haken für den Bohrer an, wenn auch Querbohrungen gewählt sind und ein Bohrer sie alle
+   bohrt (angehakt: bohren ist schneller); „Anlegen“ legt dann „Plan indexiert T1“ (ohne die
+   Bohrungen) und „Radial bohren T2“ (nur sie) in denselben Job. Der Vorschlag nennt bei
+   gemischter Auswahl jede Art (`szenario_vierachs_drehteil`: Abflachung, Mantelnut und
+   Querbohrung an einer Welle – nichts berührt sich, am Ende nirgends ins Teil).
 3. **Rundum entgraten** (V4d) – Kanten der gewählten Flächen, die Rundachse
    dreht mit. Aufwand mittel.
 4. **Taschen und Nuten auf dem Mantel** – die Tasche in der Abwicklung rechnen

@@ -122,7 +122,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Breite mit der Rampe oder als Trochoide, die Wand rundum, bis an die Enden; eine
   **Querbohrung** in der Helix (durchgehende von beiden Seiten) – oder, mit einem Bohrer
   ihres Durchmessers, **radial gebohrt** (tiefer als 3 × D in Hüben); eine **Nut auf dem
-  Mantel** (um die Stange herum) mit drehender Rundachse, in voller Breite oder in Zeilen.
+  Mantel** (um die Stange herum) mit drehender Rundachse, in voller Breite oder in Zeilen;
+  Fräser und Bohrer in einem Durchgang (zwei Operationen im selben Job).
   **Rundum entgraten:** An den Außenkanten der gewählten Flächen
   fährt ein Fasenfräser entlang (oder ein Kugelfräser bricht sie rund), die
   Rundachse dreht mit – vorgeschlagen, sobald es solche Kanten und einen
