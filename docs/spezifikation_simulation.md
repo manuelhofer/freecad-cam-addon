@@ -467,3 +467,14 @@ Werkzeugwechselpunkt … damit auch die Simulation korrekt ablaufen kann.“
   Wege mit.
 - **Fertig, wenn:** im Prüffenster die Maschine am Home-Punkt beginnt, zum Wechsel an den
   Wechselpunkt fährt und am Ende wieder am Home-Punkt steht.
+- **Gebaut (P-2026-10-02-48, 0.104.0):** je Linearachse „Home-Punkt“ und „Werkzeugwechsel“ in
+  „Maschine bearbeiten“ (Betriebsart: HomeAn/Home, WechselAn/Wechsel; gezählt wie der
+  Verfahrweg, im Durchmesser doppelt). Anders als oben **nicht vorbelegt**: Ohne eingetragenen
+  Home-Punkt bleibt das Abfahren wie bisher – sonst hätten sich alle Zeiten und Prüfungen der
+  Beispielmaschinen verschoben; das Ende des Verfahrwegs ist nicht immer „oben“. `abfahren`
+  fügt Stationen mit `ziel` HOME/WECHSEL ein: Anfang am Home-Punkt, erst X/Y über den ersten
+  Punkt, dann die Bahn; vor jedem Werkzeugwechsel erst Z (an der Drehmaschine mit X im
+  Durchmesser: X), dann alle zum Wechselpunkt, zurück erst die anderen; am Ende Z, dann Home.
+  Zeit und Kollision zählen die Wege mit; der Abspieler sagt „Home-Punkt“ bzw. „zum
+  Werkzeugwechsel“. Noch nicht: die Zeit des Wechsels selbst; der Messstopp fährt (noch) nicht
+  zum Wechselpunkt.

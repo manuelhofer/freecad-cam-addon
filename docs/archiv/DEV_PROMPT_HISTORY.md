@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-48 home-wechselpunkt
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Beim Starten steht der Fräser immer XYZ 0, so sieht's zumindest aus –
+  was nicht so cool ist, wenn der Nullpunkt unten am Teil angebracht ist. Daher muss es einen
+  Home-Punkt geben, der in der Maschine vielleicht angegeben wird, und vielleicht einen
+  Werkzeugwechselpunkt … damit auch die Simulation korrekt ablaufen kann.“ Spezifikation
+  Simulation 13 (W-008).
+
+### DATEIEN
+- `camaddon/maschine.py` (HomeAn, Home, WechselAn, Wechsel an der Betriebsart; `PUNKTE`),
+  `camaddon/abfahren.py` (`Station.ziel`, HOME/WECHSEL, `_heimat`, `_rueckzug`, Stationen am
+  Anfang, beim Werkzeugwechsel und am Ende), `camaddon/gui_details.py` (Felder Home-Punkt und
+  Werkzeugwechsel unter dem Verfahrweg), `camaddon/gui_abfahren.py` (Stelle „Home-Punkt“ bzw.
+  „zum Werkzeugwechsel“), `translations/de|en.json`, `help/de|en/achsen.html`,
+  `help/de|en/reichweite.html`, `tests/test_abfahren.py`, `tests/gui/szenario_home.py` (neu),
+  `tests/gui/szenario_maschine_bearbeiten.py`, `docs/spezifikation_simulation.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.104.0)
+
+### AKZEPTANZKRITERIUM
+Beispiel-Fräse mit Home-Punkt X1 −150, Y1 0, Z1 0 und Wechselpunkt X1 150, Job mit T1 und T2 →
+der Abspieler beginnt „„Kontur“ · Home-Punkt · 0:00,0“, fährt vor „Bohren“ zum Wechselpunkt
+(X1 150, „zum Werkzeugwechsel“) und endet am Home-Punkt.
+
+### DONE
+- Home und Wechsel je Linearachse, leer: keiner (Wechsel leer: wie Home); nicht vorbelegt –
+  ohne Eintrag bleibt das Abfahren wie bisher (alle Zeiten und Prüfungen unverändert).
+- Rückzug zuerst über Z (Fräse) bzw. X im Durchmesser (Drehmaschine), Anfahrt zuerst über die
+  anderen Achsen; Zeit und Kollision zählen die Wege mit.
+- Nicht erreicht: Wechselzeit, Messstopp zum Wechselpunkt.
+
+### TEST
+- 1.1.3: `test_abfahren` (13 Stationen Home → Bahn → Wechsel → Bahn → Home, ohne Home wie
+  zuvor), `test_kollision`, `test_fahrzeit`, `test_sprache`, `test_hilfe`; `szenario_home`,
+  `szenario_maschine_bearbeiten`, `szenario_abfahren`; black/ruff grün.
+
+### NEXT
+- Manuels Entscheidung zu ae als Last (Spezifikation Strategien 12.1); geschlossene Nuten in
+  Bögen (12.2).
+
 ## P-2026-10-02-47 richtwerte-neues-werkzeug
 
 ### EINGELESEN

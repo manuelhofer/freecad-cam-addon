@@ -100,6 +100,8 @@ class DetailKasten(QtGui.QFrame):
             # Im Durchmesser zeigen die Felder das Doppelte – wie die Steuerung (P-2026-09-30-54).
             faktor = 2.0 if linear and getattr(ba, "Durchmesser", False) else 1.0
             self._verfahrweg(ba.Gelenk, linear, lage, faktor)
+            if ba.Art == m.ART_LINEAR:
+                self._punkte(ba, faktor)
         if any(eigenschaft == "Beschleunigung" for eigenschaft, _pflicht in m.WERTE[ba.Art]):
             self.formular.addRow(self._verweis_beschleunigung())
         self.show()
@@ -175,6 +177,49 @@ class DetailKasten(QtGui.QFrame):
                 self._setze(gelenk, name + ende, neu)
                 self._setze(gelenk, schalter + ende, True)
             danach()
+
+        feld.editingFinished.connect(uebernehmen)
+        return feld
+
+    def _punkte(self, ba, faktor=1.0):
+        """Home- und Wechselpunkt der Linearachse (Spezifikation Simulation 13; Manuel,
+        2026-10-02: „Daher muss es einen Home-Punkt geben … und vielleicht einen
+        Werkzeugwechselpunkt … damit auch die Simulation korrekt ablaufen kann“) – gezählt wie
+        der Verfahrweg; leer: keiner, der Wechselpunkt leer: wie der Home-Punkt."""
+        einheit = einheiten.einheit(einheiten.LAENGE)
+        for name, text, leer, tooltip in (
+            ("Home", tr("dialog.home", einheit=einheit), tr("dialog.home.leer"),
+             tr("dialog.home.tooltip")),
+            ("Wechsel", tr("dialog.wechsel", einheit=einheit), tr("dialog.wechsel.leer"),
+             tr("dialog.wechsel.tooltip")),
+        ):  # fmt: skip
+            self.formular.addRow(text, self._punktfeld(ba, name, leer, tooltip, faktor))
+
+    def _punktfeld(self, ba, name, leer, tooltip, faktor=1.0):
+        """Ein Feld für Home- oder Wechselpunkt: Zahl – oder leer, dann ist „…An“ aus.
+        `faktor` 2: im Durchmesser."""
+        an = bool(getattr(ba, name + "An", False))
+        text = ""
+        if an:
+            wert = float(getattr(ba, name)) * faktor
+            text = groesse_zeigen(wert, einheiten.LAENGE, metrisch_stellen=4) or "0"
+        feld = QtGui.QLineEdit(text)
+        feld.setValidator(Zahlenpruefer(feld, mit_minus=True))
+        feld.setPlaceholderText(leer)
+        feld.setToolTip(tooltip)
+        ruhiges_mausrad(feld)
+
+        def uebernehmen():
+            eingabe = feld.text().strip()
+            if not eingabe:
+                self._setze(ba, name + "An", False)
+                return
+            try:
+                neu = groesse_lesen(eingabe, einheiten.LAENGE) / faktor
+            except ValueError:  # nur „-“ oder „,“: bleibt wie es war
+                return
+            self._setze(ba, name, neu)
+            self._setze(ba, name + "An", True)
 
         feld.editingFinished.connect(uebernehmen)
         return feld

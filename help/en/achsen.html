@@ -76,6 +76,13 @@ is shown doubled everywhere, with “Ø” in front: in the travel here, in “M
 machine” and in the check window. You then also type the diameter, and the
 add-on's post processor writes X that way. Calculations use the radius; the
 joint keeps its limits as a radius.</li>
+<li><b>Home position</b> and <b>Tool change</b> (Linear) – where the axis is when the machine
+is at home or at the tool change, counted like the travel. If an axis has a home position,
+traversing in the check window starts and ends there; before every tool change the machine
+moves to the change position – first Z up (on a lathe X away from the part), then the other
+axes; back to the part the other axes first, then Z. Time and collision count these moves
+too. Empty: no home position (traversing starts at the first point of the path); the change
+position empty: as home.</li>
 </ul>
 <p>How to find the acceleration is explained in
 <a href="beschleunigung.html">Finding the acceleration</a>.</p>

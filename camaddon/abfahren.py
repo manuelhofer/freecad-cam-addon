@@ -55,6 +55,13 @@ class Station:
     # mitfährt. Das Ganze None: Die Linearachsen erreichen den Punkt nicht.
     stellungen: tuple | None
     eilgang: bool  # die Bewegung hierher
+    # Eine Fahrt der Maschine, die nicht im Programm steht (Spezifikation Simulation 13):
+    # HOME zum Home-Punkt oder von ihm weg, WECHSEL zum Werkzeugwechselpunkt; "" die Bahn.
+    ziel: str = ""
+
+
+HOME = "home"
+WECHSEL = "wechsel"
 
 
 @dataclass
@@ -230,9 +237,48 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
 
     vorher = None  # (Punkt, Rundachsen, wirksame Stellungen) der letzten Station
     saetze = []  # fahrzeit.Satz je Station nach der ersten – die Zeiten kommen zum Schluss
+    # Home- und Wechselpunkt der Maschine (Spezifikation Simulation 13): Mit einem Home-Punkt
+    # beginnt und endet das Abfahren dort, vor jedem Werkzeugwechsel fährt die Maschine zum
+    # Wechselpunkt – zuerst die Achse, die das Werkzeug vom Teil wegzieht, und zurück zuerst
+    # die anderen.
+    home = _heimat(pruefung.maschine, ergebnis.achsen, "Home")
+    wechsel = tuple(
+        w if w is not None else h
+        for w, h in zip(_heimat(pruefung.maschine, ergebnis.achsen, "Wechsel"), home, strict=True)
+    )
+    zuerst = _rueckzug(pruefung.maschine, ergebnis.achsen)
+
+    def anfahren(stellungen, nummer, ziel):
+        """Eine Station außerhalb des Programms: die Maschine im Eilgang auf `stellungen`
+        (None: die Achse bleibt), ihr Punkt im Programm aus der Kinematik der Operation."""
+        nonlocal vorher
+        wirksam = _wirksam(vorher, stellungen, len(index))
+        if vorher is not None:
+            saetze.append(
+                fz.Satz(0.0, 0.0, 0.0, fest=_eilgangzeit(vorher[2], wirksam, tempo, beschleunigung))
+            )
+        werte = {a: w for a, w in zip(ergebnis.achsen, wirksam, strict=True) if w is not None}
+        punkt = tuple(ergebnis.kinematik(nummer).programm(werte))
+        rund = vorher[1] if vorher is not None else dict.fromkeys(rw.RUNDACHSEN, 0.0)
+        ergebnis.stationen.append(Station(0.0, nummer, 0, punkt, rund, stellungen, True, ziel))
+        vorher = (punkt, rund, wirksam)
+
+    def zurueckziehen(nach, nummer, ziel):
+        """Zum Wechsel- oder Home-Punkt: erst die Achse, die wegzieht, dann alle."""
+        if not any(n is not None for n in nach):
+            return
+        anfahren(tuple(n if z else None for n, z in zip(nach, zuerst, strict=True)), nummer, ziel)
+        anfahren(nach, nummer, ziel)
+
+    anflug = False  # die nächste Station kommt vom Home- oder Wechselpunkt
+    vorheriger_tc = None
     for op, tc, aufnahme, eingespannt, linear in vorbereitet:
         loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         nummer = len(ergebnis.operationen)
+        if nummer and tc is not vorheriger_tc and any(w is not None for w in wechsel):
+            zurueckziehen(wechsel, nummer - 1, WECHSEL)
+            anflug = True
+        vorheriger_tc = tc
         ergebnis.operationen.append(
             OperationAbfahrt(
                 op.Label,
@@ -245,11 +291,23 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 eingespannt.lage,
             )
         )
+        if nummer == 0 and any(h is not None for h in home):
+            anfahren(home, nummer, HOME)
+            anflug = True
         ohne_vorschub = False
         for schritt in rw._bahn(op.Path.Commands, lambda _name: None, rueckzug=True):
             for punkt, rund in _punkte(schritt, loesung(schritt.rund)[0]):
                 geloest, dreh = loesung(rund)
                 stellungen = _stellungen(geloest, dreh, punkt, linear, index)
+                if anflug and stellungen is not None:
+                    # Vom Home- oder Wechselpunkt: erst die anderen Achsen über den Punkt, die
+                    # wegziehende bleibt oben.
+                    anfahren(
+                        tuple(None if z else s for s, z in zip(stellungen, zuerst, strict=True)),
+                        nummer,
+                        HOME if nummer == 0 else WECHSEL,
+                    )
+                anflug = False
                 wirksam = _wirksam(vorher, stellungen, len(index))
                 if vorher is not None:
                     eilgang = _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung)
@@ -297,6 +355,8 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                     vorschub=f"{gezeigt} {einheiten.einheit(einheiten.VORSCHUB)}",
                 )
             )
+    if ergebnis.operationen:
+        zurueckziehen(home, len(ergebnis.operationen) - 1, HOME)
     zeit = 0.0
     for station, dauer in zip(ergebnis.stationen[1:], fz.zeiten(saetze), strict=True):
         zeit += dauer
@@ -397,6 +457,37 @@ def _vorschubsatz(vorher, punkt, rund, wirksam, vorschub, eilgang, tempo, beschl
         richtung if any(faehrt) else None,
         richtung if any(faehrt) else None,
     )
+
+
+def _heimat(maschine, achsen, eigenschaft):
+    """Je Achse die Stellung des Home-Punkts (`eigenschaft` "Home") oder des Wechselpunkts
+    ("Wechsel") aus der Betriebsart Linear – None, wo keiner eingetragen ist."""
+    betriebsarten = m.betriebsarten(maschine)
+    ergebnis = []
+    for achse in achsen:
+        ba = next(
+            (b for b in betriebsarten if b.Gelenk == achse.gelenk and b.Art == m.ART_LINEAR),
+            None,
+        )
+        gesetzt = achse.art == LINEAR and ba is not None and getattr(ba, eigenschaft + "An", False)
+        ergebnis.append(float(getattr(ba, eigenschaft)) if gesetzt else None)
+    return tuple(ergebnis)
+
+
+def _rueckzug(maschine, achsen):
+    """Je Achse, ob sie zum Wechsel- und Home-Punkt zuerst fährt: an der Fräse Z – das Werkzeug
+    hoch –, an der Drehmaschine (X im Durchmesser) X – das Werkzeug vom Teil weg."""
+    buchstabe = "X" if m.x_im_durchmesser(maschine) else "Z"
+    betriebsarten = m.betriebsarten(maschine)
+    ergebnis = []
+    for achse in achsen:
+        ba = next(
+            (b for b in betriebsarten if b.Gelenk == achse.gelenk and b.Art == m.ART_LINEAR),
+            None,
+        )
+        name = (ba.NcName or "").strip().upper() if ba is not None else ""
+        ergebnis.append(achse.art == LINEAR and name.startswith(buchstabe))
+    return tuple(ergebnis)
 
 
 def _beschleunigung(maschine, achsen):

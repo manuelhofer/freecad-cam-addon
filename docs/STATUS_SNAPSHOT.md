@@ -148,8 +148,11 @@ Werkzeugkiste der Hersteller: „Werkzeuge der Hersteller …“ legt 91 Werkzeu
 Hersteller, Artikel-Nr., Bestellen und Katalog zum Öffnen und Richtwerten je Werkstoffklasse
 (W-007, P-2026-10-02-46, 0.102.0; Herstellerseiten gesperrt, Werte geschätzt). Ein neues
 Werkzeug bietet „Richtwerte eintragen“ an – je Werkstoffklasse, aus seinen Maßen
-(P-2026-10-02-47, 0.103.0).
-Als Nächstes (Manuel, 2026-10-02 früh; Spezifikation Strategien, Abschnitt 12): Nuten in Bögen auch geschlossen, ae als Last mit Spielraum (12.1, 12.2, Manuels Entscheidung zu 12.1 offen); Home- und Wechselpunkt (W-008). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11); der schnellere Fräser aus der Zielzeit mit einem Klick übernehmen (wenn Manuel will); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+(P-2026-10-02-47, 0.103.0). Home- und Werkzeugwechselpunkt je Linearachse in „Maschine
+bearbeiten“: Ist einer eingetragen, beginnt und endet das Abfahren im Prüffenster dort, und
+vor jedem Werkzeugwechsel fährt die Maschine zum Wechselpunkt, Z zuerst (W-008,
+P-2026-10-02-48, 0.104.0).
+Als Nächstes (Manuel, 2026-10-02 früh; Spezifikation Strategien, Abschnitt 12): Nuten in Bögen auch geschlossen, ae als Last mit Spielraum (12.1, 12.2, Manuels Entscheidung zu 12.1 offen); Manuels Entscheidung zu 12.1 (ae als Last mit Spielraum). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11); der schnellere Fräser aus der Zielzeit mit einem Klick übernehmen (wenn Manuel will); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3

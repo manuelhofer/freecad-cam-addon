@@ -81,6 +81,13 @@ steht X überall doppelt da, mit „Ø“ davor: im Verfahrweg hier, in „Masch
 verfahren“ und im Prüffenster. Eingetippt wird dann auch der Durchmesser, und
 der Postprozessor des Addons schreibt X so. Gerechnet wird im Radius; das
 Gelenk behält seine Grenzen im Radius.</li>
+<li><b>Home-Punkt</b> und <b>Werkzeugwechsel</b> (Linear) – wo die Achse steht, wenn die
+Maschine am Home-Punkt bzw. zum Werkzeugwechsel steht, gezählt wie der Verfahrweg. Hat eine
+Achse einen Home-Punkt, beginnt und endet das Abfahren im Prüffenster dort; vor jedem
+Werkzeugwechsel fährt die Maschine zum Wechselpunkt – zuerst Z hoch (an der Drehmaschine X
+weg vom Teil), dann die anderen Achsen; zurück zum Teil erst die anderen, dann Z. Zeit und
+Kollision zählen diese Wege mit. Leer: kein Home-Punkt (das Abfahren beginnt am ersten Punkt
+der Bahn); der Wechselpunkt leer: wie der Home-Punkt.</li>
 </ul>
 <p>Wie man die Beschleunigung herausfindet, steht unter
 <a href="beschleunigung.html">Beschleunigung ermitteln</a>.</p>

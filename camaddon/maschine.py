@@ -76,6 +76,9 @@ WERTE = {
     ART_REVOLVER: [("Schaltzeit", False), ("Vdi", False)],
 }
 
+# Home- und Wechselpunkt einer Linearachse: Schalter und Stellung (Spezifikation Simulation 13).
+PUNKTE = ("HomeAn", "Home", "WechselAn", "Wechsel")
+
 # Arten von Aufnahmen (gespeichert, deshalb ASCII).
 AUFNAHME_WERKZEUG = "Werkzeug"
 AUFNAHME_WERKSTUECK = "Werkstueck"
@@ -240,6 +243,12 @@ class Betriebsart(_Proxy):
                 ("App::PropertyBool", "Durchmesser", tr("eigenschaft.durchmesser")),
                 # VDI-Größe des Revolvers – für die Halter-Vorlagen (P-2026-09-30-70).
                 ("App::PropertyFloat", "Vdi", tr("eigenschaft.vdi")),
+                # Home- und Wechselpunkt einer Linearachse (Spezifikation Simulation 13,
+                # P-2026-10-02-48): Stellung am Gelenk; „…An“ aus: keiner – 0 ist eine Stellung.
+                ("App::PropertyBool", "HomeAn", tr("eigenschaft.home_an")),
+                ("App::PropertyFloat", "Home", tr("eigenschaft.home")),
+                ("App::PropertyBool", "WechselAn", tr("eigenschaft.wechsel_an")),
+                ("App::PropertyFloat", "Wechsel", tr("eigenschaft.wechsel")),
             ],
         )
 
@@ -248,6 +257,10 @@ class Betriebsart(_Proxy):
         """Im Eigenschaften-Editor nur die Kennwerte zeigen, die zur Art gehören."""
         passend = {name for name, _pflicht in WERTE[objekt.Art]}
         alle = {name for liste in WERTE.values() for name, _pflicht in liste}
+        # Home und Wechsel trägt „Maschine bearbeiten“ ein; im Editor nur bei Linear zu sehen.
+        alle |= set(PUNKTE)
+        if objekt.Art == ART_LINEAR:
+            passend |= set(PUNKTE)
         # Beim Laden einer älteren Maschine fehlen spätere Kennwerte noch („Durchmesser“),
         # bis onDocumentRestored sie anlegt.
         for name in alle & set(objekt.PropertiesList):

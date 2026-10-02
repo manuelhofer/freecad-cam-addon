@@ -239,6 +239,34 @@ def schritte(h):
             f"wieder im Radius: {panel.details.feld(6).text()!r} … {panel.details.feld(7).text()!r}",
         )
 
+    # Home- und Wechselpunkt (P-2026-10-02-48): unter dem Verfahrweg, leer: keiner bzw. wie
+    # Home; eingetippt steht er an der Betriebsart, gelöscht ist er wieder aus.
+    panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
+    yield 100
+    x1 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "X1")
+    home, wechsel = panel.details.feld(9), panel.details.feld(10)
+    h.pruefe(
+        isinstance(home, QtGui.QLineEdit)
+        and isinstance(wechsel, QtGui.QLineEdit)
+        and home.text() == ""
+        and home.placeholderText() == "leer: keiner"
+        and wechsel.placeholderText() == "leer: wie Home",
+        f"Home/Wechsel: {home!r} {wechsel!r}",
+    )
+    if isinstance(home, QtGui.QLineEdit) and isinstance(wechsel, QtGui.QLineEdit):
+        tippen(home, "150")
+        tippen(wechsel, "0")
+        yield 200
+        h.pruefe(
+            x1.HomeAn and abs(x1.Home - 150) < 1e-9 and x1.WechselAn and x1.Wechsel == 0,
+            f"Home {x1.HomeAn} {x1.Home}, Wechsel {x1.WechselAn} {x1.Wechsel}",
+        )
+        h.bild("4d_home_wechsel", panel.form)
+        tippen(panel.details.feld(9), "")
+        tippen(panel.details.feld(10), "")
+        yield 200
+        h.pruefe(not x1.HomeAn and not x1.WechselAn, "Home/Wechsel lassen sich nicht löschen")
+
     # Ein Fehler: X1 ohne Eilgang -> Hinweis erscheint, Klick springt zur Achse.
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
     yield 100

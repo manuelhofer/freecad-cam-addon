@@ -181,6 +181,67 @@ p.verfahren.grundstellung()
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 
+# --- Home- und Wechselpunkt (Spezifikation Simulation 13, P-2026-10-02-48) -----------------
+# Mit Home-Punkt beginnt das Abfahren dort, fährt erst X und Y über den ersten Punkt, dann Z
+# hinunter; vor dem Werkzeugwechsel erst Z zum Wechselpunkt, dann X und Y; am Ende zurück
+# zum Home-Punkt, wieder Z zuerst. Ohne Home-Punkt bleibt alles wie zuvor.
+asm, ma = beispielmaschine.fraesmaschine()
+p = rw.Pruefung(asm, ma)
+heim = {"X1": 100.0, "Y1": 50.0, "Z1": 0.0}
+for ba in m.betriebsarten(ma):
+    if ba.Art == m.ART_LINEAR and ba.NcName in heim:
+        ba.Home, ba.HomeAn = heim[ba.NcName], True
+        if ba.NcName == "X1":
+            ba.Wechsel, ba.WechselAn = 200.0, True  # Y1 und Z1: wie Home
+wechsel = dict(heim, X1=200.0)
+erste = ["G0 X0 Y0 Z10", "G1 Z-5 F10", "G0 Z10"]
+zweite = ["G0 X50 Y30 Z10", "G1 Z-5 F10", "G0 Z10"]
+teil, job = neuer_job([(erste, 1), (zweite, 2)], "Heim")
+fahrt = ab.abfahrt(p, job, FreeCAD.Vector())
+st = fahrt.stationen
+ziele = [s.ziel for s in st]
+H, W = ab.HOME, ab.WECHSEL
+pruefe(
+    ziele == [H, H, "", "", "", W, W, W, "", "", "", H, H],
+    f"Home/Wechsel: {ziele}",
+)
+if len(st) == 13:
+    pruefe(
+        namen(ma, fahrt.stellungen_an(0)) == heim, f"Anfang: {namen(ma, fahrt.stellungen_an(0))}"
+    )
+    an_1, an_2 = namen(ma, fahrt.stellungen_an(1)), namen(ma, fahrt.stellungen_an(2))
+    pruefe(
+        an_1["Z1"] == heim["Z1"] and (an_1["X1"], an_1["Y1"]) == (an_2["X1"], an_2["Y1"]),
+        f"Anfahrt: erst X/Y {an_1}, dann Z {an_2}",
+    )
+    an_5 = namen(ma, fahrt.stellungen_an(5))
+    pruefe(
+        an_5["Z1"] == wechsel["Z1"] and an_5["X1"] == namen(ma, fahrt.stellungen_an(4))["X1"],
+        f"Wechsel: erst Z {an_5}",
+    )
+    pruefe(namen(ma, fahrt.stellungen_an(6)) == wechsel, f"Wechselpunkt: {fahrt.stellungen_an(6)}")
+    pruefe(
+        [s.operation for s in st[4:8]] == [0, 0, 0, 1] and fahrt.operationen[1].erste == 7,
+        f"Operationen: {[s.operation for s in st]}, erste {fahrt.operationen[1].erste}",
+    )
+    pruefe(namen(ma, fahrt.stellungen_an(12)) == heim, f"Ende: {fahrt.stellungen_an(12)}")
+    pruefe(all(s.eilgang for s in st if s.ziel), "Home/Wechsel nicht im Eilgang")
+    pruefe(all(st[i].zeit > st[i - 1].zeit for i in range(1, len(st))), "Zeiten steigen nicht")
+    # Die Spitze im Programm am Home-Punkt: X/Y wie die Anfahrt darüber nicht, Z darüber.
+    pruefe(st[0].punkt[2] > 10 and st[1].punkt[:2] == st[2].punkt[:2], f"Punkte: {st[0].punkt}")
+mit_heim = fahrt.dauer
+for ba in m.betriebsarten(ma):
+    if ba.Art == m.ART_LINEAR:
+        ba.HomeAn = ba.WechselAn = False
+fahrt = ab.abfahrt(p, job, FreeCAD.Vector())
+pruefe(
+    len(fahrt.stationen) == 6 and not any(s.ziel for s in fahrt.stationen),
+    f"ohne Home: {[s.ziel for s in fahrt.stationen]}",
+)
+pruefe(fahrt.dauer < mit_heim, f"ohne Home nicht kürzer: {fahrt.dauer} / {mit_heim}")
+FreeCAD.closeDocument(teil.Name)
+FreeCAD.closeDocument(asm.Document.Name)
+
 # --- Rundachse im Vorschub: Grad durch F ---------------------------------------------------
 # A1 ohne eingetragene Beschleunigung: die Vorgabe 1 U/s² = 360 °/s², einmal anfahren und
 # bremsen auf dem ganzen Schwenk (die 1°-Schritte liegen in einer Richtung).

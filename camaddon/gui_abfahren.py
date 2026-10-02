@@ -18,6 +18,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
+from . import abfahren as ab
 from . import bestueckung as bs
 from . import kollision as kb
 from . import maschine as m
@@ -818,8 +819,22 @@ class Abspieler(QtGui.QWidget):
         anteil = self.zeit / abfahrt.dauer if abfahrt.dauer > 0 else 0.0
         self.schieber.setValue(round(anteil * SCHIEBER_SCHRITTE))
         self.schieber.blockSignals(False)
-        self.stelle.setText(
-            tr(
+        if station.ziel == ab.HOME:  # außerhalb des Programms (Spezifikation Simulation 13)
+            stelle = tr(
+                "ab.stelle_home",
+                operation=op.name,
+                zeit=zeit_text(self.zeit),
+                dauer=zeit_text(abfahrt.dauer),
+            )
+        elif station.ziel == ab.WECHSEL:
+            stelle = tr(
+                "ab.stelle_wechsel",
+                operation=op.name,
+                zeit=zeit_text(self.zeit),
+                dauer=zeit_text(abfahrt.dauer),
+            )
+        else:
+            stelle = tr(
                 "ab.stelle",
                 operation=op.name,
                 satz=station.satz,
@@ -827,7 +842,7 @@ class Abspieler(QtGui.QWidget):
                 zeit=zeit_text(self.zeit),
                 dauer=zeit_text(abfahrt.dauer),
             )
-        )
+        self.stelle.setText(stelle)
         werte = self.werte
         pruefung = abfahrt.pruefung
         teile = []
