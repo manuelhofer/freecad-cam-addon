@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-31 plan-indexiert-zwischen-den-zeilen
+
+### EINGELESEN
+- `vierachs_planbahn.planen` (Zeilen, `vb._fahrten`, `_folge`), P-2026-10-02-30.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`ZWISCHEN_GENAU`, `_zwischen`, `_geteilt` – aus
+  `planfraesen_bahn` hierher, für beide), `camaddon/planfraesen_bahn.py`,
+  `camaddon/vierachs_planbahn.py`, `tests/test_vierachs_plan.py`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.93.0)
+
+### AKZEPTANZKRITERIUM
+Wie P-30 für Plan indexiert: Der Schritt quer zwischen zwei Zeilen streift nichts, was zwischen
+ihnen steht.
+
+### DONE
+- Gefunden mit einem Abtasten der Lage eines Stifts Ø 1,2 auf der Abflachung (Ø 6, ae 4 → Zeilen
+  2,98 auseinander, bis 0,37 mm unentdeckt): mit dem alten Stand 3,50 mm von Achse zu Achse
+  (nötig 3,6), jetzt 3,80.
+- Plan indexiert rechnet die Hüllfläche auch auf den Prüfzeilen dazwischen (`vh.je_versatz`)
+  und teilt die Fahrten an Schritten, die dort nicht frei sind.
+
+### TEST
+- 1.1.3: `test_vierachs_plan` (neu: der Stift; mit dem alten Stand rot, jetzt grün),
+  `test_planfraesen`; Szenarien `szenario_vierachs_plan`, `szenario_vierachs_nut`; black/ruff
+  grün. (Zwei FreeCAD-Prüfungen mit Werkzeugen gleichzeitig stören sich in der
+  Werkzeugbibliothek – „Asset … not found“; allein grün.)
+
+### NEXT
+- Die Planfräsbahn mit großem Fräser lässt um Inseln zwischen den Zeilen Material stehen.
+
 ## P-2026-10-02-30 planfraesen-zwischen-den-zeilen
 
 ### EINGELESEN

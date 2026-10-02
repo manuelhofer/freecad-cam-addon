@@ -812,6 +812,15 @@ def planen(
         huelle = vh.je_versatz(netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, q_zeilen)
         roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
         hoehe = roh + zugabe
+        # Zwischen weit auseinanderliegenden Zeilen auch dazwischen prüfen – der Schritt quer am
+        # Ende einer Zeile prüfte sonst nur die beiden Zeilen (P-2026-10-02-30).
+        zw_q, zw_von = vb._zwischen(q_zeilen, radius)
+        if len(zw_q):
+            roh_zw = vh.je_versatz(
+                netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, zw_q
+            ).T
+        else:
+            roh_zw = np.zeros((0, anzahl))
         # Wo die Stirn über das Ende der Fläche ragt, nur, wenn dort nichts höher steht als
         # die Fläche selbst – nicht über den Zylinder neben der Wand, den eine Lage auf seinem
         # Radius gerade noch streifen dürfte.
@@ -832,6 +841,12 @@ def planen(
                 continue
             mit_luecke = np.zeros((len(q_zeilen), anzahl + 2), dtype=bool)
             mit_luecke[:, 1:-1] = drin
+            erlaubt_zw = (roh_zw + zugabe <= lage + vb.GLEICH) & (
+                ~ragt[None, :] | (roh_zw <= ziel + vb.GLEICH)
+            )
+            zwischen = np.ones((max(len(q_zeilen) - 1, 0), anzahl), dtype=bool)
+            for k, m in enumerate(zw_von):
+                zwischen[m] &= erlaubt_zw[k]
             if w.nur_gleichlauf:
                 # Jede Zeile von vorne zum Futter (fallendes a, beginnt vor der Stange in der
                 # Luft); die Zeilen quer in der Folge, in der das Material dafür auf der Seite
@@ -841,7 +856,7 @@ def planen(
                 ) == bool(w.gleichlauf)
                 fahrten = vb._einzeln(mit_luecke, False, absteigend=not aufsteigend)
             else:
-                fahrten = vb._fahrten(mit_luecke)
+                fahrten = vb._geteilt(vb._fahrten(mit_luecke), zwischen)
             for fahrt in fahrten:
                 a, q, m = _folge(fahrt, a_stellen, q_zeilen)
                 offen = float(a[0]) - radius >= w.a_stange_vorne  # vor der Stange: nur Luft

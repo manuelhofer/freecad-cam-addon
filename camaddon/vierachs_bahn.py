@@ -82,6 +82,11 @@ ABSTAND_FUTTER = 5.0
 UEBERLAUF_ZUGABE = 0.5  # mm – Überlauf = Fräserradius + das: Der Fräser verlässt das Teil ganz
 RAND = 0.005  # mm – zum Aufmaß dazu, für Rundungen im Raster
 GLEICH = 1e-9  # mm – so wenig Unterschied gilt als derselbe Radius
+# So tief bliebe ein Hindernis zwischen zwei Zeilen im Abstand g höchstens unentdeckt, wenn nur
+# auf den Zeilen geprüft wird: g² ÷ (8 R). Mehr – ein großer Fräser mit großem ae – und auch
+# dazwischen wird geprüft, ob der Weg von Zeile zu Zeile frei ist (_zwischen; P-2026-10-02-30:
+# Ø 50 mit ae 35 schnitt beim Planfräsen auf Manuels Platte quer in den Zapfen).
+ZWISCHEN_GENAU = 0.05  # mm
 # So weit dreht die Rundachse höchstens in einem Satz: FreeCAD 1.1.3 zeigt einen Satz
 # über mehrere Umdrehungen als Gerade (PathSegmentWalker rechnet den Winkel modulo 360°).
 HOECHSTENS_GRAD = 90.0
@@ -533,6 +538,45 @@ def _fahrten(drin):
     ergebnis = []
     for teil in _zusammenhaengend(drin):
         ergebnis += _fahrten_eines(teil)
+    return ergebnis
+
+
+def _zwischen(v_zeilen, radius):
+    """Die Prüfzeilen zwischen den Zeilen: (v, je die Nummer der Zeile davor) – nur, wo ein
+    Hindernis zwischen zwei Zeilen tiefer als ZWISCHEN_GENAU unentdeckt bliebe, so dicht,
+    dass es auch zwischen den Prüfzeilen nicht mehr ist."""
+    dicht = math.sqrt(8.0 * radius * ZWISCHEN_GENAU)
+    werte, von = [], []
+    for m in range(len(v_zeilen) - 1):
+        luecke = abs(float(v_zeilen[m + 1]) - float(v_zeilen[m]))
+        if luecke * luecke <= 8.0 * radius * ZWISCHEN_GENAU:
+            continue
+        anzahl = int(math.ceil(luecke / dicht - 1e-9))
+        for i in range(1, anzahl):
+            werte.append(
+                float(v_zeilen[m]) + (float(v_zeilen[m + 1]) - float(v_zeilen[m])) * i / anzahl
+            )
+            von.append(m)
+    return np.array(werte), von
+
+
+def _geteilt(fahrten, zwischen):
+    """Die Fahrten, an jedem Schritt geteilt, der nicht frei ist (`zwischen`: (Zeilen − 1, N),
+    zwischen Zeile m und m + 1 an der Stelle frei) – dort hebt der Fräser ab und setzt an der
+    nächsten Zeile neu ein."""
+    ergebnis = []
+    for fahrt in fahrten:
+        stueck = []
+        for teil in fahrt:
+            art, m, js = teil
+            if art == "schritt" and not bool(zwischen[m, int(js) - 1]):
+                if stueck:
+                    ergebnis.append(stueck)
+                stueck = []
+                continue
+            stueck.append(teil)
+        if stueck:
+            ergebnis.append(stueck)
     return ergebnis
 
 

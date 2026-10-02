@@ -46,11 +46,6 @@ AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
 SCHRITT = hf.SCHRITT  # mm – Raster längs der Zeilen
 VORSCHAU_SCHRITT = 1.0  # mm – für die Vorschau im Assistenten
 GLEICH = vb.GLEICH
-# So tief bliebe ein Hindernis zwischen zwei Zeilen im Abstand g höchstens unentdeckt, wenn nur
-# auf den Zeilen geprüft wird: g² ÷ (8 R). Mehr – ein großer Fräser mit großem ae – und es wird
-# auch dazwischen geprüft, ob der Schritt und der Halbkreis von Zeile zu Zeile frei sind
-# (P-2026-10-02-30: Ø 50 mit ae 35 schnitt auf Manuels Platte quer in den Zapfen).
-ZWISCHEN_GENAU = 0.05  # mm
 
 
 @dataclass(frozen=True)
@@ -313,10 +308,10 @@ def _ebene(
     hoehe = roh + zugabe
     # Zwischen weit auseinanderliegenden Zeilen: Prüfzeilen für Schritt, Halbkreis und die
     # Fahrten an der Wand – auch vor der ersten und hinter der letzten bis an den Rand.
-    zwischen_v, zwischen_von = _zwischen(v_zeilen, r_voll)
+    zwischen_v, zwischen_von = vb._zwischen(v_zeilen, r_voll)
     rand_v, rand_von = [], []
     for seite_i, (a, b) in enumerate(((v_rand[0], v_zeilen[0]), (v_zeilen[-1], v_rand[1]))):
-        werte_rand, _von = _zwischen(np.array([a, b]), r_voll)
+        werte_rand, _von = vb._zwischen(np.array([a, b]), r_voll)
         rand_v.extend(werte_rand)
         rand_von.extend([seite_i] * len(werte_rand))
     pruef_v = np.concatenate([zwischen_v, np.array(rand_v)])
@@ -376,7 +371,7 @@ def _ebene(
         if w.nur_gleichlauf:
             fahrten = vb._einzeln(mit_luecke, _steigend(raster, w.gleichlauf))
         else:
-            fahrten = _geteilt(vb._fahrten(mit_luecke), raster.zwischen)
+            fahrten = vb._geteilt(vb._fahrten(mit_luecke), raster.zwischen)
         for fahrt in fahrten:
             laenge += _fahrt(punkte, fahrt, raster, lage, vorige, w)
             zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
@@ -385,45 +380,6 @@ def _ebene(
         z_min = min(z_min, lage)
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
     return _Ebene(punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit)
-
-
-def _zwischen(v_zeilen, radius):
-    """Die Prüfzeilen zwischen den Zeilen: (v, je die Nummer der Zeile davor) – nur, wo ein
-    Hindernis zwischen zwei Zeilen tiefer als ZWISCHEN_GENAU unentdeckt bliebe, so dicht,
-    dass es auch zwischen den Prüfzeilen nicht mehr ist."""
-    dicht = math.sqrt(8.0 * radius * ZWISCHEN_GENAU)
-    werte, von = [], []
-    for m in range(len(v_zeilen) - 1):
-        luecke = abs(float(v_zeilen[m + 1]) - float(v_zeilen[m]))
-        if luecke * luecke <= 8.0 * radius * ZWISCHEN_GENAU:
-            continue
-        anzahl = int(math.ceil(luecke / dicht - 1e-9))
-        for i in range(1, anzahl):
-            werte.append(
-                float(v_zeilen[m]) + (float(v_zeilen[m + 1]) - float(v_zeilen[m])) * i / anzahl
-            )
-            von.append(m)
-    return np.array(werte), von
-
-
-def _geteilt(fahrten, zwischen):
-    """Die Fahrten, an jedem Schritt geteilt, der nicht frei ist (`zwischen`: (Zeilen − 1, N),
-    zwischen Zeile m und m + 1 an der Stelle frei) – dort hebt der Fräser ab und setzt an der
-    nächsten Zeile neu ein."""
-    ergebnis = []
-    for fahrt in fahrten:
-        stueck = []
-        for teil in fahrt:
-            art, m, js = teil
-            if art == "schritt" and not bool(zwischen[m, int(js) - 1]):
-                if stueck:
-                    ergebnis.append(stueck)
-                stueck = []
-                continue
-            stueck.append(teil)
-        if stueck:
-            ergebnis.append(stueck)
-    return ergebnis
 
 
 def _abgedeckt(tiefere, laengs_x, u, v, seite):

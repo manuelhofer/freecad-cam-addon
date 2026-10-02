@@ -1330,4 +1330,6 @@ P-2026-10-02-30 prüft das Planfräsen auch zwischen weit auseinanderliegenden Z
 26,9 min (Ziel 11,9; die Zeilen laufen je 0,6 D über den Rand, zehn Lagen ap 2), dazu bleibt
 zwischen den Zeilen um den Zapfen Material für die Kontur. Mit dem Ø 12 räumt das Räumen die
 Platte in 33,9 min – der Planfräser lohnt sich hier weniger, als die Zielzeit verspricht.
-Offen: Plan indexiert hat dieselben Schritte zwischen den Zeilen (mit Ø 6, ae 2,4 bis 0,24 mm).
+Plan indexiert hatte dieselben Schritte zwischen den Zeilen: Ein Stift Ø 1,2 zwischen zwei
+Zeilen (Ø 6, ae 4) wurde um 0,1 mm gestreift – seit P-2026-10-02-31 prüft auch Plan indexiert
+dazwischen (`vierachs_bahn._zwischen`, `_geteilt`, gemeinsam mit dem Planfräsen).

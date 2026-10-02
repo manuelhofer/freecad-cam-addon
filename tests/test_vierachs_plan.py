@@ -186,6 +186,44 @@ pruefe(
     f"Abflachung mit Nuten: {mit_nuten.nuten}, {mit_nuten.lagen}, {mit_nuten.zeilen}",
 )
 
+# Ein Stift Ø 1,2, 2 hoch, zwischen zwei Zeilen auf der Abflachung (P-2026-10-02-30): Die
+# Zeilen liegen 2,98 auseinander – geprüft nur auf ihnen, bliebe ein Hindernis dazwischen bis
+# 2,98² ÷ (8 · 3) = 0,37 mm unentdeckt; der Schritt quer zwischen zwei Zeilen streifte den Stift
+# um 0,1 mm. Jetzt auch dazwischen geprüft: Unter seiner Oberkante kommt die Achse des Fräsers
+# der des Stifts nirgends näher als 3 + 0,6.
+_l, _u, quer = vh.rahmen(LAENGS, RADIAL)
+q_stift = float(np.dot((0.0, 1.49, 0.0), quer))
+mit_stift = flach_welle.fuse(Part.makeCylinder(0.6, 2.0, V(8, 1.49, -25), V(1, 0, 0)))
+mit_stift = mit_stift.removeSplitter()
+flach_stift = max(
+    (
+        (f"Face{i + 1}", f)
+        for i, f in enumerate(mit_stift.Faces)
+        if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-6
+    ),
+    key=lambda nf: nf[1].Area,
+)[0]
+ebenen_stift = [
+    e
+    for e in vp.ebenen(
+        mit_stift, LAENGS, RADIAL, [f"Face{i + 1}" for i in range(len(mit_stift.Faces))]
+    )
+    if e.name == flach_stift
+]
+stift_bahn = vp.planen(vp.netz_ohne(mit_stift, [flach_stift]), LAENGS, RADIAL, werte, ebenen_stift)
+am_stift = math.inf
+for von, nach in zip(stift_bahn.punkte, stift_bahn.punkte[1:], strict=False):
+    if nach.eilgang:
+        continue
+    for t in np.linspace(0.0, 1.0, 41):
+        r = von.r + t * (nach.r - von.r)
+        if r < 10.0 - 1e-6:
+            a = von.a + t * (nach.a - von.a)
+            q = von.q + t * (nach.q - von.q)
+            am_stift = min(am_stift, math.hypot(a + 25.0, q - q_stift))
+pruefe(am_stift >= 3.6 - 0.06, f"am Stift: Achse {am_stift:.3f} mm von seiner (nötig 3,6)")
+print(ascii(f"Abflachung mit Stift: {stift_bahn.zeilen} Zeilen, am Stift {am_stift:.3f} mm"))
+
 # --- Die Passfedernut (P-2026-10-02-05): 8 breit, 30 lang, 4 tief auf der Welle Ø 30 -------
 # Ihr Grund ist eine ebene Fläche längs der Stange – mit Zeilen kam der Fräser Ø 8 gar nicht
 # hinein (die Wände stehen genau am Rand der Stirn) und Ø 6 nicht an die Enden (4 mm blieben).
