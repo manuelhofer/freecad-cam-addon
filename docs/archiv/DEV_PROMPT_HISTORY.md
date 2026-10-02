@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-66 ein-teil-ein-job
+
+### EINGELESEN
+- Manuel, 2026-10-02: „ein komplexes Teil durch Anklicken verschiedener Flächen bearbeiten“; auf
+  Frage 1 (Spezifikation Strategien 12.7, W-012 M2): „Frage 1. A“ – ein zweiter Lauf am selben
+  Teil geht in denselben Job.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`angeklicktes_teil`, `vorhandener_job`, `_beginnen`,
+  `job_dazu`, `neuer_job`, `_aufspannung_zeigen` aus `_zum_aendern` gezogen,
+  `_aufspannung_fest` statt „nur beim Ändern“ an den Stellen, die die Aufspannung betreffen),
+  `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `tests/gui/szenario_zweiter_lauf.py` (neu), `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.116.0)
+
+### AKZEPTANZKRITERIUM
+Am Klotz erst den Boden anlegen, dann am Teil im Job den Grund der Nut anklicken, „Bearbeitung“:
+Schritt 1 sagt „In den Job „…“ – 1 Operation: …“, „Anlegen“ – ein Job mit beiden Operationen,
+die Nut beginnt bei −10.
+
+### DONE
+- Welcher Job: der, dessen Teil man im Bild angeklickt hat; sonst der zuletzt angelegte mit
+  diesem Teil – in der Spezifikation stand „der zuletzt geänderte“, das weiß FreeCAD nicht
+  (angepasst). Jobs mit Stange (4-Achs-Assistent) zählen nicht.
+- Schritt 1 wie beim Ändern einer Operation: Maschine, Rohteil, Nullpunkt und Lage nur zum Lesen
+  (`_aufspannung_zeigen`, für beide). Im vorhandenen Job nimmt „Anlegen“ keine unbenutzten
+  fremden Controller heraus – die könnte jemand dort mit Absicht angelegt haben.
+- „Neuer Job …“ schließt das Fenster und öffnet es neu mit einem neuen Job (wie „Weiter im
+  4-Achs-Assistenten“): kein halb zurückgesetztes Schritt-1-Fenster.
+- Gefundene Fehler im eigenen Entwurf (auf den Bildern des ersten Laufs): Oben in Schritt 1
+  stand noch der Satz für einen neuen Job („Der Job mit dem Rohteil ist angelegt … Fläche
+  anklicken …“) – jetzt „Das Teil hat schon einen Job – „Weiter“ zu dem, was weg soll.“ Und die
+  Nut zählte Planfräsen und Räumen desselben Laufs als „schon weggenommen“ („noch 0,3 cm³“) –
+  die treten am Grund der Nut nur gegen sie an. Blöcke mit denselben Flächen zählen jetzt nicht
+  als davor.
+
+### TEST
+- `szenario_zweiter_lauf` (1.1.3, KI): erster Lauf ein Job; zweiter Lauf im Job, Zeile und graue
+  Felder, die Nut mit Haken und Materialzeile, „Anlegen“ – ein Job, zwei Operationen, Nut ab −10;
+  „Neuer Job …“ – zwei Jobs, „Abbrechen“ – wieder einer. Bilder 1–3.
+
+### NEXT
+- E1 Eintauchstelle der Nut (Frage 2: a); M3 Räumen auf dem Materialstand.
+
 ## P-2026-10-02-65 eintauchwinkel-wie-vorschau
 
 ### EINGELESEN

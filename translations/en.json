@@ -1917,5 +1917,11 @@
     "nt.und": "{vorne} and {hinten}",
     "nt.eigenschaft.materialstand": "What the material state was computed from: the stock and the operations before (if anything before changes, the slot recomputes)",
     "ba.material.einer": "{noch} left – {wer} already removed {weg}",
-    "ba.material.mehrere": "{noch} left – {wer} already removed {weg}"
+    "ba.material.mehrere": "{noch} left – {wer} already removed {weg}",
+    "ba.dazu.keine": "Into the job “{job}” (no operation yet): machine, stock and origin stay as they are there.",
+    "ba.dazu.eine": "Into the job “{job}” – 1 operation: {name}. Machine, stock and origin stay as they are there; the new operations come after it and take into account what is already removed.",
+    "ba.dazu.mehrere": "Into the job “{job}” – {n} operations, last {name}. Machine, stock and origin stay as they are there; the new operations come after them and take into account what is already removed.",
+    "ba.neuer_job": "New job …",
+    "ba.neuer_job.tooltip": "Create a new job instead of using this one – for a second setup, for example with the part turned over. You then choose machine, stock and origin again.",
+    "ba.anleitung.dazu": "The part already has a job – “Next” to what should go."
 }

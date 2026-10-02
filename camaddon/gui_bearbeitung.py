@@ -323,7 +323,11 @@ class BefehlBearbeitung:
         if operation is not None:
             bearbeiten(operation)
             return
-        FreeCADGui.Control.showDialog(BearbeitungPanel(dokument, gewaehlte_flaeche(dokument)))
+        FreeCADGui.Control.showDialog(
+            BearbeitungPanel(
+                dokument, gewaehlte_flaeche(dokument), angeklickt=angeklicktes_teil(dokument)
+            )
+        )
 
 
 def gewaehlte_operation(dokument):
@@ -341,6 +345,36 @@ def gewaehlte_operation(dokument):
             if gefunden:
                 return gefunden[0]
     return None
+
+
+def angeklicktes_teil(dokument):
+    """Das angeklickte Objekt mit Form – ein Modell-Klon eines Jobs bleibt der Klon (so weiß
+    man, in welchem Job man geklickt hat); None ohne Auswahl."""
+    for auswahl in FreeCADGui.Selection.getSelectionEx(dokument.Name, 0):
+        for unterelement in auswahl.SubElementNames or [""]:
+            teil, _flaeche = _entlang(dokument, auswahl.Object, unterelement)
+            if teil is not None:
+                return teil
+    return None
+
+
+def vorhandener_job(dokument, teil, angeklickt=None):
+    """Der Job, in den ein weiterer Lauf am Teil `teil` geht (W-012 M2; Manuel, 2026-10-02:
+    „Frage 1. A“): der, dessen Teil man angeklickt hat (`angeklickt`: sein Modell-Klon), sonst
+    der zuletzt angelegte mit diesem Teil. Nur Jobs im Quader – einer mit Stange gehört dem
+    4-Achs-Assistenten. None, wenn das Teil noch keinen hat."""
+    passende = []
+    for job in js.jobs(dokument):
+        try:
+            klon = vr.modell(job)
+        except (AttributeError, IndexError):
+            continue
+        if vr.original(klon) is not teil or hasattr(getattr(job, "Stock", None), "Radius"):
+            continue
+        if angeklickt is not None and angeklickt is klon:
+            return job
+        passende.append(job)
+    return passende[-1] if passende else None
 
 
 def bearbeiten(operation):
@@ -2468,9 +2502,13 @@ class BearbeitungPanel:
 
     offen = None  # das offene Fenster – für die Oberflächen-Szenarien
 
-    def __init__(self, dokument, wahl=None, operation=None):
+    def __init__(self, dokument, wahl=None, operation=None, neu=False, angeklickt=None):
         BearbeitungPanel.offen = self
         self.doc = dokument
+        # Hat das Teil schon einen Job, kommen die neuen Operationen dort hinein (W-012 M2) –
+        # außer `neu`: „Neuer Job …“ für eine zweite Aufspannung.
+        self._neu = bool(neu)
+        self._job_dazu = False  # der Job war schon da: Aufspannung fest, nichts zurückzunehmen
         self._wahl_anfang = wahl  # (Teil, „FaceN“) – für den Wechsel zum 4-Achs-Assistenten
         self.job = None
         self.teil = None
@@ -2538,7 +2576,7 @@ class BearbeitungPanel:
             self.seite_zeigen(2)
             return
         if wahl is not None:
-            self.teil_waehlen(*wahl)
+            self._beginnen(wahl, angeklickt)
         self.seite_zeigen(0)
         self._auffrischen()
 
@@ -2593,6 +2631,19 @@ class BearbeitungPanel:
 
         # --- Schritt 1: Aufspannung – Maschine, Teil, Rohteil, Nullpunkt ---
         ziel[0] = self.seiten[0].layout()
+        # Hat das Teil schon einen Job, kommen die neuen Operationen dort hinein (W-012 M2).
+        self.dazu_zeile = QtGui.QWidget()
+        dazu = QtGui.QHBoxLayout(self.dazu_zeile)
+        dazu.setContentsMargins(0, 0, 0, 0)
+        self.dazu_text = QtGui.QLabel()
+        self.dazu_text.setWordWrap(True)
+        dazu.addWidget(self.dazu_text, 1)
+        self.knopf_neuer_job = knopf(
+            tr("ba.neuer_job"), tr("ba.neuer_job.tooltip"), lambda: self.neuer_job()
+        )
+        dazu.addWidget(self.knopf_neuer_job, 0, QtCore.Qt.AlignTop)
+        self.dazu_zeile.setVisible(False)
+        ziel[0].addWidget(self.dazu_zeile)
         oben = _Reihen()
         # Die Maschine zuerst (W-011 S2; Manuel, 2026-10-02: „Immer wenn ich ein Teil lade,
         # sollte ich die Maschine auswählen“): die Liste aus „Maschinen …“, gemerkt am Job.
@@ -2877,8 +2928,12 @@ class BearbeitungPanel:
             )
         )
         if self.zu_aendern is None:
+            if self._job_dazu:
+                erste = tr("ba.anleitung.dazu")  # die Zeile darunter sagt, welcher Job
+            else:
+                erste = tr("ba.anleitung") if self.job is None else tr("ba.anleitung.job")
             anleitungen = (
-                tr("ba.anleitung") if self.job is None else tr("ba.anleitung.job"),
+                erste,
                 tr("ba.anleitung.was"),
                 tr("ba.anleitung.einstellungen"),
             )
@@ -2972,7 +3027,7 @@ class BearbeitungPanel:
         self._vor_dem_schliessen()
         for block in self.aktive_bloecke():
             block.merken()
-        if self.zu_aendern is None:
+        if not self._aufspannung_fest():
             nullpunkt_vorgeben(self.nullpunkt())
         FreeCADGui.Control.closeDialog()
         self.doc.recompute()
@@ -3015,14 +3070,14 @@ class BearbeitungPanel:
         if self.job is None:
             wahl = gewaehlte_flaeche(self.doc)
             if wahl is not None:
-                self.teil_waehlen(*wahl)
+                self._beginnen(wahl, angeklicktes_teil(self.doc))
             return
         teil, flaeche = _entlang(self.doc, self.doc.getObject(objekt), unterelement)
         klon = vr.modell(self.job)
         if teil is None or flaeche is None or vr.original(teil) is not vr.original(klon):
             return
         FreeCADGui.Selection.clearSelection()
-        if self.knopf_unten_waehlen.isChecked() and self.zu_aendern is None:
+        if self.knopf_unten_waehlen.isChecked() and not self._aufspannung_fest():
             self.knopf_unten_waehlen.setChecked(False)
             self.unten_waehlen(flaeche)  # „Fläche anklicken …“: die Fläche, die unten liegt
             return
@@ -3033,7 +3088,7 @@ class BearbeitungPanel:
     def unten_waehlen(self, flaeche):
         """Macht die ebene Fläche `flaeche` („Face6“) zur Unterseite: Das Teil im Job dreht sich
         so, dass sie nach unten zeigt, Rohteil und Nullpunkt folgen. None: wie modelliert."""
-        if self.job is None or self.zu_aendern is not None:
+        if self.job is None or self._aufspannung_fest():
             return
         if flaeche is not None and _aussennormale(self.teil.Shape, flaeche) is None:
             self.hinweis.setText(tr("ba.unten.nicht_eben", name=flaeche))
@@ -3045,7 +3100,7 @@ class BearbeitungPanel:
     def x_drehen(self, viertel):
         """Dreht das Teil im Job um Z – X zeigt danach ein Viertel weiter (+1: gegen den
         Uhrzeigersinn, von oben gesehen)."""
-        if self.job is None or self.zu_aendern is not None:
+        if self.job is None or self._aufspannung_fest():
             return
         self._viertel = (self._viertel + int(viertel)) % 4
         self._lage_geaendert()
@@ -3081,6 +3136,67 @@ class BearbeitungPanel:
             self.x_text.setText(tr("ba.x.modell"))
         else:
             self.x_text.setText(tr("ba.x.gedreht", grad=90 * self._viertel))
+
+    def _beginnen(self, wahl, angeklickt=None):
+        """Das angeklickte Teil: Hat es schon einen Job, kommen die neuen Operationen dort
+        hinein (job_dazu), sonst entsteht ein neuer (teil_waehlen)."""
+        teil, flaeche = wahl
+        job = None if self._neu else vorhandener_job(self.doc, teil, angeklickt)
+        if job is not None:
+            self.job_dazu(job, flaeche)
+        else:
+            self.teil_waehlen(teil, flaeche)
+
+    def job_dazu(self, job, flaeche=None):
+        """Ein weiterer Lauf am Teil (W-012 M2): die neuen Operationen in den Job, den es schon
+        hat, hinter die vorhandenen – Maschine, Rohteil, Nullpunkt und Lage bleiben, wie sie
+        dort stehen (Schritt 1 grau). „Neuer Job …“ legt stattdessen einen neuen an."""
+        if self.job is not None or self.geschlossen:
+            return
+        self.job = job
+        self._job_dazu = True
+        self.teil = vr.original(vr.modell(job))
+        self.teil_text.setText(self.teil.Label)
+        self._aufspannung_zeigen()
+        ops = [o for o in js.operationen(job) if getattr(o, "Active", True)]
+        if not ops:
+            text = tr("ba.dazu.keine", job=job.Label)
+        elif len(ops) == 1:
+            text = tr("ba.dazu.eine", job=job.Label, name=ops[0].Label)
+        else:
+            text = tr("ba.dazu.mehrere", job=job.Label, n=len(ops), name=ops[-1].Label)
+        self.dazu_text.setText(text)
+        self.dazu_zeile.setVisible(True)
+        form = vr.modell(job).Shape
+        if flaeche and any(b.s.passt(form, flaeche) for b in self.bloecke):
+            self.gewaehlte = [flaeche]
+        else:
+            self.gewaehlte = []
+        FreeCADGui.Selection.clearSelection()
+        self._bearbeitung_fuellen()
+        self._flaechen_zeigen()
+        self._auffrischen()
+        self.seite_zeigen(self._seite)
+        self.vorschau_starten()
+
+    def neuer_job(self):
+        """„Neuer Job …“: statt in den vorhandenen Job einen neuen anlegen – eine zweite
+        Aufspannung. Dieses Fenster schließt, ein neues öffnet sich mit Teil und Flächen."""
+        if not self._job_dazu or self.teil is None:
+            return
+        dokument, teil = self.doc, self.teil
+        flaeche = self.gewaehlte[0] if self.gewaehlte else None
+        self.reject()
+
+        def oeffnen():
+            FreeCADGui.Control.showDialog(BearbeitungPanel(dokument, (teil, flaeche), neu=True))
+
+        QtCore.QTimer.singleShot(0, oeffnen)
+
+    def _aufspannung_fest(self):
+        """Stehen Maschine, Rohteil, Nullpunkt und Lage im Job schon fest – beim Ändern einer
+        Operation und bei einem weiteren Lauf am selben Job (W-012 M2)?"""
+        return self.zu_aendern is not None or self._job_dazu
 
     def teil_waehlen(self, teil, flaeche=None):
         """Das Teil für den Job – der Job mit dem Rohteil entsteht sofort (eine Transaktion,
@@ -3196,10 +3312,10 @@ class BearbeitungPanel:
         else:
             self.maschine_hinweis.setText("")
         self.maschine_hinweis.setVisible(bool(self.maschine_hinweis.text()))
-        self.knopf_vierachs.setVisible(stange and self.zu_aendern is None)
+        self.knopf_vierachs.setVisible(stange and not self._aufspannung_fest())
         if hasattr(self, "knopf_weiter"):
             self.seite_zeigen(self._seite)  # „Weiter“ geht auf der Drehmaschine nicht
-        if eintrag is not None and self.job is not None and self.zu_aendern is None:
+        if eintrag is not None and self.job is not None and not self._aufspannung_fest():
             rw.merke_maschine(self.job, eintrag.datei)
         self._rohteil_kurz_zeigen()
 
@@ -3211,7 +3327,7 @@ class BearbeitungPanel:
             eintrag is not None
             and eintrag.vorhanden
             and eintrag.art == msp.DREHMASCHINE
-            and self.zu_aendern is None
+            and not self._aufspannung_fest()
         )
 
     def zum_vierachs(self):
@@ -3386,11 +3502,11 @@ class BearbeitungPanel:
 
     def _rohteil_geaendert(self):
         self._rohteil_kurz_zeigen()
-        if not self._fuellt and self.job is not None and self.zu_aendern is None:
+        if not self._fuellt and self.job is not None and not self._aufspannung_fest():
             self._rohteil_uhr.start()
 
     def _rohteil_anwenden(self):
-        if self.job is None or self.zu_aendern is not None or self.geschlossen:
+        if self.job is None or self._aufspannung_fest() or self.geschlossen:
             return
         self._rohteil_setzen(self.job)
         self.doc.recompute()
@@ -3419,11 +3535,11 @@ class BearbeitungPanel:
 
     def _nullpunkt_geaendert(self):
         self._rohteil_kurz_zeigen()
-        if not self._fuellt and self.job is not None and self.zu_aendern is None:
+        if not self._fuellt and self.job is not None and not self._aufspannung_fest():
             self._nullpunkt_uhr.start()
 
     def _nullpunkt_anwenden(self):
-        if self.job is None or self.zu_aendern is not None or self.geschlossen:
+        if self.job is None or self._aufspannung_fest() or self.geschlossen:
             return
         self._nullpunkt_setzen(self.job)
         self.vorschau_starten()
@@ -3513,22 +3629,9 @@ class BearbeitungPanel:
         except (ReferenceError, RuntimeError):
             pass
 
-    def _zum_aendern(self):
-        """Mit den Werten der Operation: Teil und Rohteil wie im Job (nicht änderbar), Flächen,
-        ihr Block mit Fräser, Einsatz, Werten – die anderen Blöcke bleiben weg; „Übernehmen“
-        statt „Anlegen“."""
-        op = self.zu_aendern
-        self.job = job_von(op)
-        if self.job is None:
-            return
-        block = next((b for b in self.bloecke if b.s.ist(op)), None)
-        if block is None:
-            return
-        self.block_zu_aendern = block
-        block.tc_vorher = op.ToolController
-        self.teil = vr.original(vr.modell(self.job))
-        self.teil_text.setText(self.teil.Label)
-        self.anleitung.setText(tr("ba.aendern.text", name=op.Label))
+    def _aufspannung_zeigen(self):
+        """Maschine, Rohteil, Nullpunkt und Lage, wie sie im Job stehen – nur zum Lesen: beim
+        Ändern einer Operation und bei einem weiteren Lauf am selben Job (W-012 M2)."""
         rohteil = getattr(self.job, "Stock", None)
         self._fuellt = True
         try:
@@ -3545,6 +3648,45 @@ class BearbeitungPanel:
                 for feld, name in (("oben", "ExtZpos"), ("seite", "ExtXpos"), ("unten", "ExtZneg")):
                     wert = _mm(getattr(rohteil, name))
                     self.felder_rohteil[feld].setText(groesse_zeigen(wert, einheiten.LAENGE) or "0")
+        finally:
+            self._fuellt = False
+        self.rohteilfelder.setEnabled(False)
+        # Die des Jobs – sie bleibt, wie sie im Job steht (ohne: „keine“).
+        self._maschinen_fuellen(getattr(self.job, rw.EIGENSCHAFT_MASCHINE, ""))
+        self.wahl_maschine.setEnabled(False)
+        self.knopf_maschinen.setEnabled(False)
+        for widget in (self.nullpunkt_titel, self.nullpunkt_text, self.nullpunktfelder):
+            widget.setVisible(False)  # der Nullpunkt bleibt, wie er im Job steht
+        # Wie das Teil liegt, bleibt ebenso.
+        self.unten_text.setText(tr("ba.lage.job"))
+        self.x_text.setText(tr("ba.lage.job"))
+        for widget in (
+            self.knopf_unten_waehlen,
+            self.knopf_unten_modell,
+            self.knopf_x_links,
+            self.knopf_x_rechts,
+        ):
+            widget.setEnabled(False)
+
+    def _zum_aendern(self):
+        """Mit den Werten der Operation: Teil und Rohteil wie im Job (nicht änderbar), Flächen,
+        ihr Block mit Fräser, Einsatz, Werten – die anderen Blöcke bleiben weg; „Übernehmen“
+        statt „Anlegen“."""
+        op = self.zu_aendern
+        self.job = job_von(op)
+        if self.job is None:
+            return
+        block = next((b for b in self.bloecke if b.s.ist(op)), None)
+        if block is None:
+            return
+        self.block_zu_aendern = block
+        block.tc_vorher = op.ToolController
+        self.teil = vr.original(vr.modell(self.job))
+        self.teil_text.setText(self.teil.Label)
+        self.anleitung.setText(tr("ba.aendern.text", name=op.Label))
+        self._aufspannung_zeigen()
+        self._fuellt = True
+        try:
             for anderer in self.bloecke:
                 if anderer is not block:
                     anderer.widget.setVisible(False)
@@ -3556,27 +3698,10 @@ class BearbeitungPanel:
             self._fuellt = False
         for b in self.bloecke:
             b.zustand_zeigen()
-        self.rohteilfelder.setEnabled(False)
-        # Die des Jobs – sie bleibt, wie sie im Job steht (ohne: „keine“).
-        self._maschinen_fuellen(getattr(self.job, rw.EIGENSCHAFT_MASCHINE, ""))
-        self.wahl_maschine.setEnabled(False)
-        self.knopf_maschinen.setEnabled(False)
-        for widget in (self.nullpunkt_titel, self.nullpunkt_text, self.nullpunktfelder):
-            widget.setVisible(False)  # der Nullpunkt bleibt, wie er im Job steht
         # Schlichten und Messstopp nach dem Räumen legt nur „Anlegen“ an – sie sind eigene
         # Operationen, die man für sich ändert.
         for feld in ("wandschlichten", "messstopp"):
             self.raeumen.haken_felder[feld].setVisible(False)
-        # Wie das Teil liegt, bleibt ebenso.
-        self.unten_text.setText(tr("ba.lage.job"))
-        self.x_text.setText(tr("ba.lage.job"))
-        for widget in (
-            self.knopf_unten_waehlen,
-            self.knopf_unten_modell,
-            self.knopf_x_links,
-            self.knopf_x_rechts,
-        ):
-            widget.setEnabled(False)
         self.gewaehlte = list(getattr(op, "Flaechen", ()) or ())
         self._bearbeitung_fuellen()
         self._fuellt = True
@@ -3945,7 +4070,7 @@ class BearbeitungPanel:
             if block.aktiv() or self._im_wettbewerb(block):
                 zusatz = self._zusatz(block, form)
                 if block is self.nut:
-                    zusatz = dict(zusatz or {}, materialstand=self._materialstand(block))
+                    zusatz = dict(zusatz or {}, materialstand=self._materialstand(block, form))
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
                 if block is self.kontur:
                     kontur_zusatz = zusatz
@@ -4164,18 +4289,23 @@ class BearbeitungPanel:
             text = tr("ba.kontur.nach_raeumen", text=self.kontur.ergebnis_basis)
         self.kontur.ergebnis.setText(text)
 
-    def _materialstand(self, block):
+    def _materialstand(self, block, form):
         """Der Materialstand vor dem Block (W-012): das Rohteil, die Operationen, die im Job
         schon stehen – beim Ändern die vor der Operation –, dazu die Vorschauen der angehakten
-        Blöcke davor in diesem Lauf (sie werden vor ihm angelegt). None ohne Materialstand."""
+        Blöcke davor in diesem Lauf (sie werden vor ihm angelegt). Wer dieselben Flächen hat,
+        tritt gegen ihn an und kommt nicht davor (Räumen und Planfräsen am Grund der Nut). None
+        ohne Materialstand."""
         if self.zu_aendern is not None:
             return mst.fuer(self.job, vor=self.zu_aendern)
+        eigene = set(self._flaechen(block, form))
         dazu = []
         for anderer in self.bloecke:
             if anderer is block:
                 break
             werkzeug = anderer.fraeser()
             if not anderer.aktiv() or anderer.vorschau is None or werkzeug is None:
+                continue
+            if eigene & set(self._flaechen(anderer, form)):
                 continue
             form = ff.von_werkzeug(werkzeug)
             if form is not None:
@@ -4869,8 +4999,9 @@ class BearbeitungPanel:
             ops = []
             try:
                 ue.uebergeben(self.bibliothek)
-                fremde = js.unbenutzte_fremde_controller(self.job, self.bibliothek)
-                js.controller_weg(self.doc, fremde)
+                if not self._job_dazu:  # im vorhandenen Job bleibt, was dort steht
+                    fremde = js.unbenutzte_fremde_controller(self.job, self.bibliothek)
+                    js.controller_weg(self.doc, fremde)
                 for block in aktive:
                     tc = js.controller_ohne_transaktion(
                         self.doc, self.job, block.fraeser(), block.einsatz(), self.werkstoff()

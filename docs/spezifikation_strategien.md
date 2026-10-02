@@ -1690,7 +1690,7 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     Nullpunkt des Jobs grau (nur zum Lesen), „Weiter“ geht gleich zu Schritt 2. Für eine zweite
     Aufspannung (das Teil umgedreht) oben der Knopf „Neuer Job …“. Hat das Teil mehrere Jobs:
     der, dessen Teil man angeklickt hat (jeder Job hat sein eigenes im Bild), sonst der zuletzt
-    geänderte.
+    angelegte.
   - **(b) Jedes Mal fragen:** „Der Klotz hat schon den Job „Job“ (1 Operation) – dazu oder ein
     neuer Job?“ Eine Frage mehr bei jedem Klick.
   - **(c) Wie heute:** jeder Lauf ein neuer Job. Der Materialstand gilt dann nur für die
@@ -1723,6 +1723,13 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     nach dem Anlegen, damit die nächste ihre Bahn sieht. Manuels Klotz: Räumen 3,6 s,
     Materialstand 0,25 s; Nut ab −10 (`test_materialstand`, `szenario_materialstand`).
   - **M2 Zweiter Lauf am selben Teil** nach Frage 1.
+    **Gebaut:** P-2026-10-02-66, 0.116.0 – `vorhandener_job`: der Job, dessen Modell-Klon man
+    angeklickt hat, sonst der zuletzt angelegte mit dem Teil (nicht einer mit Stange). Schritt 1
+    zeigt „In den Job „…“ – 1 Operation: …“ mit „Neuer Job …“; Maschine, Rohteil, Nullpunkt und
+    Lage wie beim Ändern grau (`_aufspannung_zeigen`, `_aufspannung_fest`). „Anlegen“ hängt die
+    Operationen an, nimmt im vorhandenen Job keine fremden Controller heraus; „Abbrechen“ lässt
+    ihn, wie er war. „Neuer Job …“ schließt und öffnet den Assistenten mit einem neuen Job
+    (`szenario_zweiter_lauf`).
   - **M3 Das Räumen rechnet darauf:** Lagen und Ringe nur, wo Material steht. Prüfung: Nut
     zuerst, dann der Zapfen – über der Nut kein Schnitt in Luft.
   - **M4 Planfräsen, Kontur, 3D-Schruppen** ebenso.
