@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-12 flansch
+
+### EINGELESEN
+- `gui_bearbeitung` (`_haken_vorschlagen`, `_bohrer_da`, `_bohrer_waehlen`, `_flaechen`,
+  `_gleiche_flaechen`, `_im_wettbewerb`, `_wettbewerb_gruppe`, `_gruppen`), `_Bohren`,
+  `_Bohrung`, `bohren.kann`, `tests/gui/szenario_bohren.py`, `tests/gui/szenario_platte.py`.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py`, `help/de|en/bearbeitung.html`, `tests/gui/szenario_bohren.py`,
+  `tests/gui/szenario_flansch.py` (neu), `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.74.0)
+
+### AKZEPTANZKRITERIUM
+Flansch Ø 100 × 15 mit Mittelbohrung Ø 40 und sechs Bohrungen Ø 9 (T1 Standardfräser, T2 Bohrer
+Ø 9): Oberseite, Außenwand, Mittelbohrung und alle sechs angeklickt – „Bohren“ mit T2 die sechs
+(„→ 6 Bohrungen, 6 Hübe“), „Bohrung fräsen“ mit T1 die Ø 40 („→ 1 Bohrung …“), Kontur und
+Planfräsen dazu, kein roter Satz; „Anlegen“ legt alle an; am Ende nirgends ins Teil.
+
+### DONE
+- Gefunden beim Erkunden (Szenario ohne Prüfung): „Bohren“ wurde nicht angeboten (`_bohrer_da`
+  verlangte einen Bohrer für alle gewählten Bohrungen), „Bohrung fräsen“ stand rot („Ø 9 kleiner
+  als der Fräser“) – „Anlegen“ ging nicht.
+- `_bohrbare` (die gewählten Bohrungen, die ein Bohrer bohrt), `_eigene` (beim Bohren nur
+  diese), `_bohrer_da` (wenigstens eine), `_bohrer_waehlen` (der Bohrer mit den meisten),
+  `_flaechen` (Bohrung fräsen ohne die gebohrten, wenn beide nicht um dieselben wetteifern),
+  `_gleiche_flaechen` mit `_eigene`, `_wettbewerb_gruppe` je gleiche Flächen (wer allein steht,
+  behält den Haken).
+- `szenario_bohren`: mit der Sackbohrung dazu bleibt „Bohren“ für die durchgehende Ø 20,
+  „Bohrung fräsen“ nimmt nur die Sackbohrung, die Kontur verliert den Haken (früher fräste
+  „Bohrung fräsen“ beide).
+
+### TEST
+- 1.1.3: `szenario_flansch` (neu), `szenario_bohren` und die Szenarien des Assistenten
+  „Bearbeitung“ mit Bohrungen, Wänden und Flächen (siehe Commit) grün; black/ruff grün.
+
+### NEXT
+- Wie P-2026-10-02-11.
+
 ## P-2026-10-02-11 fraeser-und-bohrer
 
 ### EINGELESEN

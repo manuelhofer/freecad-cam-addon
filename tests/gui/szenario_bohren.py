@@ -4,8 +4,9 @@
 # T1 der Standardfräser Ø 12, T2 ein Bohrer Ø 20. Die Wand der durchgehenden Bohrung anklicken:
 # Bohren (mit T2 – dem Bohrer mit ihrem Durchmesser), Bohrung fräsen und Kontur rechnen alle drei –
 # Bohren ist am schnellsten, behält den Haken und sagt es; die beiden anderen verlieren ihn: „… –
-# N % langsamer als Bohren“. Die Sackbohrung dazu: Bohren geht nicht mehr (ein Bohrer ließe seine
-# Spitze stehen), Bohrung fräsen bekommt den Haken. Wieder nur die durchgehende: „Anlegen“ legt
+# N % langsamer als Bohren“. Die Sackbohrung dazu: Bohren bleibt für die durchgehende (die
+# Sackbohrung mit ebenem Grund kann ein Bohrer nicht), Bohrung fräsen bekommt den Haken für die
+# Sackbohrung, die Kontur nicht (P-2026-10-02-12). Wieder nur die durchgehende: „Anlegen“ legt
 # FreeCADs Bohren an – „Bohren T2“ mit G81. „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
 import FreeCAD
 import FreeCADGui as Gui
@@ -27,6 +28,7 @@ def schritte(h):
     from camaddon import beispielmaschine, gui_bearbeitung, gui_reichweite
     from camaddon import bohren as bh
     from camaddon import bohrung_bahn as bb
+    from camaddon import vierachs_rohteil as vr
     from camaddon import werkzeuge as wz
 
     t1 = wz.standardwerkzeug()
@@ -93,12 +95,23 @@ def schritte(h):
         )
     h.bild("1_bohren", panel.form)
 
-    # Die Sackbohrung dazu: Bohren geht nicht mehr, Bohrung fräsen bekommt den Haken.
+    # Die Sackbohrung dazu: Bohren bleibt für die durchgehende, Bohrung fräsen bekommt den Haken
+    # für die Sackbohrung, die Kontur nicht.
     panel.flaeche_umschalten(sack)
-    yield from h.warte_auf(lambda: bohrung.vorschau is not None, 60000)
+    yield from h.warte_auf(
+        lambda: bohrung.vorschau is not None and bohren.vorschau is not None, 60000
+    )
     yield 300
-    h.pruefe(not bohren.moeglich and not bohren.aktiv(), "mit Sackbohrung: Bohren möglich")
+    h.pruefe(bohren.moeglich and bohren.aktiv(), "mit Sackbohrung: Bohren ohne Haken")
     h.pruefe(bohrung.aktiv(), "mit Sackbohrung: Bohrung fräsen ohne Haken")
+    h.pruefe(not kontur.aktiv(), "mit Sackbohrung: Kontur mit Haken")
+    h.pruefe(
+        panel._flaechen(bohren, vr.modell(job).Shape) == [durch]
+        and panel._flaechen(bohrung, vr.modell(job).Shape) == [sack],
+        "mit Sackbohrung: Bohrungen nicht aufgeteilt",
+    )
+    text = bohrung.ergebnis.text()
+    h.pruefe(text.startswith("→ 1 Bohrung"), f"Bohrung fräsen: {text!r}")
     h.bild("2_mit_sackbohrung", panel.form)
     panel.flaeche_umschalten(sack)
     yield from h.warte_auf(lambda: bohren.vorschau is not None, 60000)

@@ -147,7 +147,15 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    Assistent legt sie mit den Schnittwerten aus der Werkzeugverwaltung an
    (Bohrer, Senker, Reibahle, Gewindebohrer sind schon Werkzeugarten).
    Aufwand klein. Gebaut: Bohren, Bohrung fräsen, Zentrieren, Senken, Gewinde bohren und
-   fräsen (S3g) und Reiben (P-2026-10-01-41, 0.57.0).
+   fräsen (S3g) und Reiben (P-2026-10-01-41, 0.57.0). **Flansch** (P-2026-10-02-12, 0.74.0):
+   Oberseite, Außenwand, Mittelbohrung Ø 40 und sechs Bohrungen Ø 9 zusammen angeklickt – der
+   Assistent bot „Bohren“ gar nicht an (sein Bohrer bohrt die Ø 40 nicht), und „Bohrung fräsen“
+   stand rot („Ø 9 kleiner als der Fräser“): „Anlegen“ ging nicht. Jetzt teilen sie sich die
+   Bohrungen – „Bohren“ nimmt die, die sein Bohrer bohrt (der Bohrer, der die meisten bohrt, ist
+   vorgewählt), „Bohrung fräsen“ den Rest; der Wettbewerb läuft je gleiche Flächen (wer allein
+   steht, behält den Haken). Am Block mit Durchgangsbohrung Ø 20 und Sackbohrung Ø 34
+   (`szenario_bohren`) bohrt jetzt der Bohrer Ø 20 die durchgehende, statt dass „Bohrung
+   fräsen“ beide fräst; `szenario_flansch`.
 8. **Fasen / Entgraten** – an Kanten in der Ebene mit Fasenfräser oder
    Kugelfräser als Kantenbruch; Breite einstellbar; **auch an Kanten im Raum**
    und rundum (V4d). Aufwand mittel. Gebaut: rundum (V4d, 0.36.0) und im

@@ -3194,10 +3194,19 @@ class BearbeitungPanel:
 
     def _flaechen(self, block, form):
         """Die Flächen des Blocks – beim Räumen ohne die, die das Planfräsen schon fräst
-        (_folge: dann nur die Taschenböden)."""
-        flaechen = block.s.flaechen_fuer(form, self.gewaehlte)
+        (_folge: dann nur die Taschenböden); beim Bohrungsfräsen ohne die, die das Bohren
+        bohrt, wenn beide nicht um dieselben Bohrungen wetteifern (ein Flansch: der Bohrer die
+        Lochkreisbohrungen, der Fräser die große in der Mitte; P-2026-10-02-12)."""
+        flaechen = self._eigene(block, form)
         if block is self.raeumen and self._raeumen_boeden is not None:
             return list(self._raeumen_boeden)
+        if (
+            block is self.bohrung
+            and self.bohren.aktiv()
+            and not self._gleiche_flaechen(block, form, self.bohren)
+        ):
+            gebohrt = set(self._eigene(self.bohren, form))
+            return [f for f in flaechen if f not in gebohrt]
         if block is self.kontur:
             weg = set()
             if self._gerieben(form):
@@ -3210,19 +3219,33 @@ class BearbeitungPanel:
         return flaechen
 
     def _bohrer_da(self, form, gerieben=False):
-        """Hat die Werkzeugverwaltung einen Bohrer, der alle gewählten Bohrungen bohrt – alle
-        durchgehend, alle mit seinem Durchmesser (`gerieben`: um die Reibzugabe kleiner)?"""
-        namen = [n for n in self.gewaehlte if bb.ist_bohrung(form, n)]
-        if not namen:
-            return False
-        liste = bb.bohrungen(form, namen)
-        return bool(liste) and any(
-            all(
-                bh.kann(b, w.durchmesser, w.spitzenwinkel or bh.SPITZENWINKEL, gerieben)
-                for b in liste
-            )
-            for w in self.bohren._fraeser
-        )
+        """Hat die Werkzeugverwaltung einen Bohrer, der wenigstens eine der gewählten Bohrungen
+        bohrt – durchgehend oder mit seiner Spitze darunter, mit seinem Durchmesser (`gerieben`:
+        um die Reibzugabe kleiner)? Die anderen fräst „Bohrung fräsen“ (P-2026-10-02-12)."""
+        return any(self._bohrbare(form, w, gerieben) for w in self.bohren._fraeser)
+
+    def _bohrbare(self, form, werkzeug=None, gerieben=False):
+        """Die gewählten Bohrungen, die der Bohrer `werkzeug` – ohne: der im Block Bohren –
+        bohrt (bohren.kann)."""
+        werkzeug = werkzeug or self.bohren.fraeser()
+        if werkzeug is None:
+            return []
+        winkel = werkzeug.spitzenwinkel or bh.SPITZENWINKEL
+        ergebnis = []
+        for name in self.gewaehlte:
+            if not bb.ist_bohrung(form, name):
+                continue
+            liste = bb.bohrungen(form, [name])
+            if liste and all(bh.kann(b, werkzeug.durchmesser, winkel, gerieben) for b in liste):
+                ergebnis.append(name)
+        return ergebnis
+
+    def _eigene(self, block, form):
+        """Die Flächen, mit denen der Block bei dieser Wahl arbeitet: beim Bohren nur die
+        Bohrungen, die sein Bohrer bohrt, sonst alle, mit denen er etwas anfangen kann."""
+        if block is self.bohren:
+            return self._bohrbare(form, gerieben=self._gerieben(form))
+        return block.s.flaechen_fuer(form, self.gewaehlte)
 
     def _gerieben(self, form):
         """Wird gerieben – Reiben angehakt, und eine Reibahle passt zu den gewählten Bohrungen?"""
@@ -3396,23 +3419,15 @@ class BearbeitungPanel:
     def _bohrer_waehlen(self, form, gerieben=False):
         """Wählt im Block Bohren den Bohrer mit dem Durchmesser der gewählten Bohrungen – wenn
         der gewählte nicht passt; `gerieben`: den größten, der um die Reibzugabe kleiner ist."""
-        liste = bb.bohrungen(form, [n for n in self.gewaehlte if bb.ist_bohrung(form, n)] or [""])
-        if not liste:
+        anzahl = [len(self._bohrbare(form, w, gerieben)) for w in self.bohren._fraeser]
+        if not anzahl or max(anzahl) == 0:
             return
-
-        def bohrt(w):
-            return all(
-                bh.kann(b, w.durchmesser, w.spitzenwinkel or bh.SPITZENWINKEL, gerieben)
-                for b in liste
-            )
-
         jetzt = self.bohren.fraeser()
-        if jetzt is not None and bohrt(jetzt):
+        if jetzt is not None and len(self._bohrbare(form, jetzt, gerieben)) == max(anzahl):
             return
-        passend = [i for i, w in enumerate(self.bohren._fraeser) if bohrt(w)]
-        if passend:
-            wahl = max(passend, key=lambda i: self.bohren._fraeser[i].durchmesser)
-            self.bohren.wahl_fraeser.setCurrentIndex(wahl if gerieben else passend[0])
+        passend = [i for i, n in enumerate(anzahl) if n == max(anzahl)]
+        wahl = max(passend, key=lambda i: self.bohren._fraeser[i].durchmesser)
+        self.bohren.wahl_fraeser.setCurrentIndex(wahl if gerieben else passend[0])
 
     def _nutfraeser_waehlen(self, form):
         """Wählt im Block Nut einen Fräser, der in die gewählten Nuten passt, wenn der gewählte es
@@ -3467,9 +3482,9 @@ class BearbeitungPanel:
     def _gleiche_flaechen(self, block, form, andere=None):
         """Löst `andere` – ohne: einer der Gegner des Blocks (_gegner) – dieselbe Aufgabe, genau
         dieselben Flächen?"""
-        eigene = set(block.s.flaechen_fuer(form, self.gewaehlte))
+        eigene = set(self._eigene(block, form))
         gegner = [andere] if andere is not None else self._gegner(block)
-        return any(set(g.s.flaechen_fuer(form, self.gewaehlte)) == eigene for g in gegner)
+        return any(set(self._eigene(g, form)) == eigene for g in gegner)
 
     def _nur_boeden(self, form):
         """Die Taschenböden, die nur das Räumen kann – wenn außer ihnen auch ebene Flächen
@@ -3580,7 +3595,17 @@ class BearbeitungPanel:
         eine andere auf denselben Flächen geht – sonst ginge „Anlegen“ nicht (ein Ø 12 passt
         nicht in die Bohrung Ø 8,5, die der Bohrer bohrt)."""
         mit = [b for b in gruppe if b.zeit is not None and b.zeit > 0 and b.moeglich]
-        if not mit or not all(self._gleiche_flaechen(mit[0], form, b) for b in mit[1:]):
+        if not mit:
+            return
+        teile = {}
+        for b in mit:
+            teile.setdefault(frozenset(self._eigene(b, form)), []).append(b)
+        if len(teile) > 1:
+            # Verschiedene Flächen (ein Flansch: der Bohrer die kleinen Bohrungen, der Fräser
+            # alle) – je gleiche Flächen ein eigener Wettbewerb, wer allein steht, bleibt.
+            for teil in teile.values():
+                if len(teil) > 1:
+                    self._wettbewerb_gruppe(form, teil)
             return
         # Auf dem Grund einer Nut schnitten Planfräsen und Räumen zuerst in voller Breite – mehr
         # als ae, nur scheinbar schneller (an der offenen Nut 0,19 statt 0,85 min, mit Eilgang
