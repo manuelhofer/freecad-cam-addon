@@ -1651,6 +1651,9 @@ class _Schlichten3D(_Strategie):
             "abstand": groesse_zeigen(bahn.abstand, einheiten.LAENGE, 2) or "0",
             "zeit": zeit,
         }
+        if getattr(bahn, "aequidistant", False):
+            ringe = tr("ba.zahl.ring") if bahn.zeilen == 1 else tr("ba.zahl.ringe", n=bahn.zeilen)
+            return tr("ba.ergebnis_s3_aequi", ringe=ringe, **werte)
         if getattr(bahn, "flaeche", False):
             kurven = (
                 tr("ba.zahl.kurve") if bahn.zeilen == 1 else tr("ba.zahl.kurven", n=bahn.zeilen)

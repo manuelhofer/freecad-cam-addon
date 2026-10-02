@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-04 aequidistant
+
+### EINGELESEN
+- `schlichten3d_bahn` (`planen`, `_hoehenlinien`, `_spirale`, `_flaeche_entlang`, `_verschoben`,
+  `_stuecke`, `_laeufe`, `_bilinear`), `raeumen_bahn._hoehenlinien` (Marching Squares),
+  `bleistift_bahn` (`_linien`, `_verschoben`, `RICHTUNGEN`), `schlichten3d` (Richtung),
+  `gui_bearbeitung._Schlichten3D.ergebnis_text`.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py`, `camaddon/schlichten3d.py`, `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `tests/test_schlichten3d.py`, `tests/gui/szenario_schlichten3d.py`,
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.68.0)
+
+### AKZEPTANZKRITERIUM
+„Äquidistant“ (W-006 4.2 Punkt 5) als fünfte Richtung des 3D-Schlichtens: Ringe vom Rand der
+gewählten Flächen nach innen, im Raum überall einen Zeilenabstand auseinander, ohne
+Höhenlinien; an der Kuppel etwa 50 Ringe, im Quader so gut wie die Zeilen, nirgends ins Teil;
+an der Halbkugel an der Flanke höchstens 0,035 mm; an der Welle ohne Platte nirgends ins Teil,
+in der Mitte kein Grat stehen (der Gang über den Grat). Die Operation mit Richtung
+„aequidistant“ rechnet und lässt sich auf der Maschine prüfen.
+
+### DONE
+- `_abstandsfeld`: der kürzeste Weg auf der Hüllfläche im Raum vom Rand der Maske – 16
+  Nachbarn (bis zum Rösselsprung, höchstens 2,7 % zu lang), Zeile für Zeile vorwärts und
+  rückwärts, in der Zeile mit der laufenden Summe der Schritte in einem Zug; bis sich nichts
+  ändert (höchstens ABSTAND_RUNDEN). Nur numpy.
+- `_aequidistant`: die Linien gleichen Abstands vom Rand (Marching Squares) alle Zeilenabstand,
+  der innerste höchstens einen halben Abstand unter dem höchsten Wert; im Gleichlauf, der
+  nächste Anfang zuerst, die Spitze auf der Hüllfläche aus dem Raster.
+- `_grate`: flache Grate des Abstandsfelds (längs flacher als GRAT_STEIGUNG), an denen der
+  letzte Ring mehr als einen halben Abstand entfernt liegt, verkettet wie beim Bleistift – ein
+  Gang darüber. Vorher blieb an der Welle in der Mitte 0,04 mm.
+- `planen`: Richtung `AEQUI` im Wettbewerb (nur mit Steil/Flach), ohne Höhenlinien.
+- `schlichten3d`: Richtung „aequidistant“; Assistent „→ N Ringe äquidistant, …“.
+
+### TEST
+- 1.1.3: `test_schlichten3d` (Kuppel, Halbkugel, Welle auch äquidistant),
+  `test_restschlichten` grün; `szenario_schlichten3d` (die Operation auf „aequidistant“
+  gestellt, dann auf der Maschine geprüft) grün; black/ruff grün.
+
+### NEXT
+- Ecken unter 90° im Äquidistanten; der Einstieg nach Zeit; Kontur in Bohrungen ohne
+  Vollschnitt beim Einfahren.
+
 ## P-2026-10-02-03 flowline
 
 ### EINGELESEN

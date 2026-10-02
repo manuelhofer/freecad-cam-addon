@@ -482,14 +482,19 @@ per turn, without reversals (climb milling) – on a dome 12 % faster than rows.
 face</b> (flowline) the paths follow the curves of the face itself – on a dome the circles of
 latitude, on a cylinder the lines along its axis –, one row spacing apart in space everywhere,
 shallow or steep: no contours needed, closed circles in climb milling. On the dome another 13 %
-faster than the spiral, on a long cylinder 30 % faster than rows. Spiral and along the face
-compete only with steep/shallow (otherwise it computes rows only). Few blocks on straight
+faster than the spiral, on a long cylinder 30 % faster than rows. <b>Equidistant</b> lays rings
+from the edge of the selected faces inwards, one row spacing apart in space everywhere – across
+all selected faces, shallow or steep; where the rings of both sides end at a ridge (the middle of a
+rectangle) it runs along the ridge once. It leaves the least (on the dome 0.017 instead of
+0.020 mm) but takes a little longer there. Spiral, along the face and equidistant compete only
+with steep/shallow (otherwise it computes rows only); the operation's property “Richtung” fixes
+one. Few blocks on straight
 stretches, in curves as many as the accuracy needs.</li>
 <li>It mills only where the cutter <b>touches</b> the selected faces – not in the margin where it
 merely rolls over the outer edge of a part or a step: there it removes nothing, and contours and
 spiral used to cut up to 0.05 mm into the side there.</li>
-<li>Grey below: “→ 46 curves along the face, spacing 0.49, about 4 min”, “→ 6 contours and a
-spiral with 45 turns, …” or “→ 87 rows along X, …”. Rough first – “3D roughing” is
+<li>Grey below: “→ 46 curves along the face, spacing 0.49, about 4 min”, “→ 51 rings
+equidistant, …”, “→ 6 contours and a spiral with 45 turns, …” or “→ 87 rows along X, …”. Rough first – “3D roughing” is
 ticked along with it (section 16) –, otherwise the ball cuts into solid material. The
 operation is called “3D finishing T3”.</li>
 </ul>
@@ -562,7 +567,7 @@ cutter gets its own tool controller, the old one is removed if no operation
 uses it any more.</p>
 
 <h3>What comes next</h3>
-<p>The entry (ramp, helix, vertical) by time, trochoids in tight corners of pockets and
-equidistant finishing – following the plan in specification W-006.</p>
+<p>The entry (ramp, helix, vertical) by time and trochoids in tight corners of pockets –
+following the plan in specification W-006.</p>
 </body>
 </html>

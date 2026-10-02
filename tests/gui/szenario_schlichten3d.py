@@ -5,8 +5,9 @@
 # „3D-Schlichten“ angehakt mit T3 (der Kugelfräser ist vorgewählt), „→ N Kurven entlang der
 # Fläche, Abstand 0,49, etwa … min“ (die Breitenkreise der Kuppel: schneller als Höhenlinien mit
 # Spirale oder Zeilen);
-# Planfräsen und Räumen ohne Haken. „Anlegen“: „3D-Schruppen T1“, dann „3D-Schlichten T3“. „Auf der
-# Maschine prüfen“: am Ende nirgends ins Teil.
+# Planfräsen und Räumen ohne Haken. „Anlegen“: „3D-Schruppen T1“, dann „3D-Schlichten T3“. Die
+# Richtung der Operation auf „aequidistant“: Ringe im gleichen Abstand. „Auf der Maschine prüfen“:
+# am Ende nirgends ins Teil.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -111,6 +112,16 @@ def schritte(h):
     Gui.SendMsgToActiveView("ViewFit")
     yield 800
     h.bild("2_angelegt")
+
+    # --- Die Richtung „aequidistant“ an der Operation ----------------------------------------
+    if ops:
+        ops[-1].Richtung = "aequidistant"
+        doc.recompute()
+        yield 1000
+        h.pruefe(
+            ops[-1].Zeilen >= 40 and len(ops[-1].Path.Commands) > 100,
+            f"äquidistant: {ops[-1].Zeilen} Ringe, {len(ops[-1].Path.Commands)} Befehle",
+        )
 
     # --- Auf der Maschine prüfen ------------------------------------------------------------
     asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)

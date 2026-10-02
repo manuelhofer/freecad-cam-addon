@@ -193,9 +193,10 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   **3D-Schlichten**: Freiformflächen (Kuppeln, Rundungen, Schrägen) in parallelen
   Zeilen mit dem Kugelfräser, die Spitze auf der Hüllfläche des ganzen Teils, der
   Zeilenabstand aus der Grathöhe – längs X, längs Y, als Spirale von der Mitte
-  nach außen und entlang der Fläche (Flowline: den Kurven der Fläche nach, im Raum
-  überall gleich weit auseinander) gerechnet, die schnellste zählt; wo es steiler ist
-  als 45°, Höhenlinien statt Zeilen (Steil/Flach). **Bleistift**: die
+  nach außen, entlang der Fläche (Flowline: den Kurven der Fläche nach, im Raum
+  überall gleich weit auseinander) und äquidistant (Ringe vom Rand nach innen, im Raum
+  überall gleich weit, über alle gewählten Flächen) gerechnet, die schnellste zählt; wo es
+  steiler ist als 45°, Höhenlinien statt Zeilen (Steil/Flach). **Bleistift**: die
   Kehlen nachfahren, wo die Kugel zwei Flächen zugleich berührt – etwa der Ring am Fuß
   einer Kuppel, wo die Zeilen enden. **Restschlichten**: mit dem kleineren Kugelfräser nur
   dort nachschlichten, wo der große davor nicht hinkam (Kehlen, enge Rundungen) – gerechnet aus

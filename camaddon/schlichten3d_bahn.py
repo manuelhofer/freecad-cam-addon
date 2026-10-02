@@ -89,6 +89,10 @@ _TIEF = -1e6  # mm – wo die Spitze nichts trifft: für den Schnitt beliebig ti
 VORSCHAU_RASTER = 0.5  # mm – im Assistenten
 SPIRALE = "spirale"
 FLAECHE = "flaeche"  # Richtung: entlang der Fläche (Flowline)
+AEQUI = "aequidistant"  # Richtung: Ringe im gleichen Abstand im Raum (3D-Offset)
+ABSTAND_RUNDEN = 12  # höchstens so oft hin und zurück, bis das Abstandsfeld steht
+GRAT_STEIGUNG = 0.5  # so flach muss ein Grat des Abstandsfelds längs laufen, damit er eine Bahn
+# bekommt – an der Ecke eines Rechtecks steigt er mit 0,71 und die Ringe laufen um ihn herum
 FLUSS_PROBEN = 64  # so viele Stellen je Kurve, an denen der Abstand quer gemessen wird
 FLUSS_FEIN = 400  # so fein wird quer vorgerechnet
 
@@ -102,7 +106,9 @@ class Schlichtwerte:
     sicher: float  # z für den Eilgang über allem
     grathoehe: float = GRATHOEHE
     aufmass: float = 0.0  # bleibt auf den Flächen stehen
-    richtung: str = "auto"  # „auto“ (die schnellste), „x“, „y“, „spirale“ oder „flaeche“
+    richtung: str = (
+        "auto"  # „auto“ (die schnellste), „x“, „y“, „spirale“, „flaeche“, „aequidistant“
+    )
     grenzwinkel: float = GRENZWINKEL  # Grad – steiler: Höhenlinien; 0: nur Zeilen
     gleichlauf: bool = True  # Höhenlinien mit dem Material rechts (M3)
     sicherheit: float = vb.SICHERHEIT
@@ -131,6 +137,7 @@ class Schlichtbahn:
     spirale: bool = False  # eine Spirale statt Zeilen (dann `zeilen` 0)
     umlaeufe: int = 0  # die Umläufe der Spirale
     flaeche: bool = False  # entlang der Fläche (dann `zeilen` die Kurven)
+    aequidistant: bool = False  # Ringe im gleichen Abstand (dann `zeilen` die Ringe)
 
 
 # --- Flächen --------------------------------------------------------------------------------
@@ -871,6 +878,164 @@ def _flaeche_entlang(form_teil, flaechen, raster, w, abstand, laengs_u, geformt)
     )
 
 
+def _abstandsfeld(raster, maske):
+    """mm je Knoten: der kürzeste Weg auf der Hüllfläche – im Raum gemessen, über die Nachbarn
+    bis zum Rösselsprung (16 Richtungen: höchstens 2,7 % zu lang, die Ringe also eher enger) –
+    von außerhalb der `maske` (dort 0). Zeile für Zeile hin und zurück, bis sich nichts mehr
+    ändert; in einer Zeile entlang mit der laufenden Summe der Schritte (der Weg längs der Zeile
+    ist ihre Summe: das Minimum über alle Anfänge in einem Zug)."""
+    xs, ys = raster.xs, raster.ys
+    sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
+    z = np.where(np.isfinite(raster.z), raster.z, np.nan)
+    nx, ny = z.shape
+    d = np.where(maske, np.inf, 0.0)
+
+    def schritt(z1, z2, di, dj):
+        dz = np.nan_to_num(z2 - z1, nan=0.0)  # neben dem Teil: eben
+        return np.sqrt((di * sx) ** 2 + (dj * sy) ** 2 + dz * dz)
+
+    laengs = schritt(z[:, :-1], z[:, 1:], 0, 1)
+    summe = np.concatenate([np.zeros((nx, 1)), np.cumsum(laengs, axis=1)], axis=1)
+    nachbarn = ((1, 0), (1, 1), (1, -1), (1, 2), (1, -2), (2, 1), (2, -1))
+    for _runde in range(ABSTAND_RUNDEN):
+        vorher = d.copy()
+        for vor in (1, -1):
+            for i in range(nx) if vor == 1 else range(nx - 1, -1, -1):
+                zeile = d[i]
+                for di, dj in nachbarn:
+                    k = i - vor * di
+                    if not 0 <= k < nx:
+                        continue
+                    ziel, quelle = _verschoben(dj, ny)  # (i, j) von (k, j + dj)
+                    kandidat = d[k, quelle] + schritt(z[i, ziel], z[k, quelle], di, dj)
+                    np.minimum(zeile[ziel], kandidat, out=zeile[ziel])
+                c = summe[i]
+                np.minimum(zeile, c + np.minimum.accumulate(zeile - c), out=zeile)
+                r = c[-1] - c
+                np.minimum(zeile, r + np.minimum.accumulate((zeile - r)[::-1])[::-1], out=zeile)
+        if np.array_equal(vorher, d):
+            break
+    return d
+
+
+def _aequidistant(raster, w, abstand):
+    """Die Bahn äquidistant (3D-Offset): Ringe vom Rand der gewählten Flächen nach innen, im
+    Raum überall `abstand` auseinander – die Linien gleichen Abstands vom Rand
+    (_abstandsfeld, Marching Squares), die Spitze auf der Hüllfläche aus dem Raster; flach wie
+    steil derselbe Abstand, ohne Höhenlinien. Im Gleichlauf (das Material rechts), von Ring zu
+    Ring der nächste Anfang. Der innerste Ring liegt höchstens einen halben Abstand unter dem
+    höchsten Wert. None, wo nichts zu fräsen ist."""
+    from . import raeumen_bahn as rb
+
+    maske = raster.gewaehlt
+    if not maske.any():
+        return None
+    feld = _abstandsfeld(raster, maske)
+    zelle = float(max(raster.xs[1] - raster.xs[0], raster.ys[1] - raster.ys[0]))
+    hoechst = float(np.max(feld[maske]))
+    erste = min(0.6 * zelle, 0.5 * hoechst)
+    letzte = max(erste, hoechst - 0.5 * abstand)
+    anzahl = int(math.ceil((letzte - erste) / abstand - 1e-9)) + 1
+    punkte = []
+    laenge = 0.0
+    ringe = 0
+    z_min = math.inf
+    for stufe in np.linspace(erste, letzte, anzahl):
+        stuecke = []
+        for linie, geschlossen in rb._hoehenlinien(feld, raster.xs, raster.ys, float(stufe)):
+            behalten = raster.bei(maske, linie[:, 0], linie[:, 1])
+            for teil, zu in _stuecke(linie, geschlossen, behalten):
+                if len(teil) >= 2:
+                    stuecke.append((_gerichtet(teil, zu, raster, w.gleichlauf), zu))
+        if not stuecke:
+            continue
+        ringe += 1
+        while stuecke:
+            ort = (punkte[-1].x, punkte[-1].y) if punkte else tuple(stuecke[0][0][0])
+            abstaende = [
+                (
+                    float(np.min(np.hypot(t[:, 0] - ort[0], t[:, 1] - ort[1])))
+                    if zu
+                    else math.hypot(t[0][0] - ort[0], t[0][1] - ort[1])
+                )
+                for t, zu in stuecke
+            ]
+            teil, zu = stuecke.pop(int(np.argmin(abstaende)))
+            if zu:
+                i = int(np.argmin(np.hypot(teil[:, 0] - ort[0], teil[:, 1] - ort[1])))
+                teil = np.vstack([np.roll(teil, -i, axis=0), np.roll(teil, -i, axis=0)[:1]])
+            with np.errstate(invalid="ignore"):
+                z = _bilinear(raster, teil[:, 0], teil[:, 1])
+            gut = np.isfinite(z)
+            for anfang, ende in _laeufe(gut, z, w.schritt):
+                raum = np.column_stack([teil[anfang : ende + 1], z[anfang : ende + 1]])
+                raum = raum[np.isfinite(raum[:, 2])]
+                if len(raum) < 2:
+                    continue
+                behalten = _vereinfacht3d(raum)
+                x0, y0, z0 = (float(v) for v in raum[behalten[0]])
+                laenge += _verbinden(punkte, x0, y0, z0, w, raster)
+                for k in behalten[1:]:
+                    punkt = bn.Punkt(False, float(raum[k, 0]), float(raum[k, 1]), float(raum[k, 2]))
+                    laenge += bn.weg(punkte[-1], punkt)
+                    punkte.append(punkt)
+                z_min = min(z_min, float(np.min(raum[:, 2])))
+    # Die Grate: Wo die Ringe beider Seiten an einem flachen Grat des Abstandsfelds enden (die
+    # Mitte eines Rechtecks), liegt der letzte Ring um feld − Stufe neben dem Grat – mehr als ein
+    # halber Abstand, und zwischen beiden Seiten bliebe mehr als ein Abstand. Dort einmal den
+    # Grat entlang.
+    for x, y in _grate(feld, maske, raster, np.linspace(erste, letzte, anzahl), abstand):
+        with np.errstate(invalid="ignore"):
+            z = _bilinear(raster, x, y)
+        raum = np.column_stack([x, y, z])
+        raum = raum[np.isfinite(raum[:, 2])]
+        if len(raum) < 2:
+            continue
+        behalten = _vereinfacht3d(raum)
+        x0, y0, z0 = (float(v) for v in raum[behalten[0]])
+        laenge += _verbinden(punkte, x0, y0, z0, w, raster)
+        for k in behalten[1:]:
+            punkt = bn.Punkt(False, float(raum[k, 0]), float(raum[k, 1]), float(raum[k, 2]))
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
+        z_min = min(z_min, float(np.min(raum[:, 2])))
+    if not punkte:
+        return None
+    letzter = punkte[-1]
+    punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+    zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+    return Schlichtbahn(
+        punkte, ringe, True, abstand, z_min, laenge, zeit, 0, False, 0, aequidistant=True
+    )
+
+
+def _grate(feld, maske, raster, stufen, abstand):
+    """[(x, y)] – die Linien längs der flachen Grate des Abstandsfelds `feld`, an denen der
+    nächste Ring darunter mehr als einen halben `abstand` entfernt liegt: der Grat (in einer der
+    vier Richtungen nicht niedriger als beide Nachbarn), längs flacher als GRAT_STEIGUNG, zu
+    Linien verkettet wie beim Bleistift."""
+    from . import bleistift_bahn as bb
+
+    xs, ys = raster.xs, raster.ys
+    sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
+    f = np.where(maske, feld, -np.inf)
+    kamm = np.zeros(f.shape, dtype=bool)
+    for di, dj in bb.RICHTUNGEN:
+        vor = np.nan_to_num(bb._verschoben(f, di, dj), nan=-np.inf)
+        zurueck = np.nan_to_num(bb._verschoben(f, -di, -dj), nan=-np.inf)
+        kamm |= (f >= vor) & (f >= zurueck) & ((f > vor) | (f > zurueck))
+    unter = stufen[np.clip(np.searchsorted(stufen, feld, side="right") - 1, 0, len(stufen) - 1)]
+    gx, gy = np.gradient(np.where(maske, feld, 0.0), sx, sy)
+    grat = kamm & maske & (feld - unter > 0.5 * abstand) & (np.hypot(gx, gy) < GRAT_STEIGUNG)
+    linien = []
+    for zellen, _zu in bb._linien(grat):
+        if len(zellen) < 2:
+            continue
+        ij = np.array(zellen)
+        linien.append((xs[ij[:, 0]], ys[ij[:, 1]]))
+    return linien
+
+
 def _hinueber(punkte, von, nach, z, u_werte, v_werte, w, xy):
     """Vom Ende (Zeile, Index) `von` zum Anfang `nach`: in der Nachbarzeile und nah gleitend
     (LUFT über der Hüllfläche beider Zeilen dazwischen), sonst im Eilgang über sicherer Höhe.
@@ -930,22 +1095,28 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     raster = None
     vorweg = ([], 0.0, 0, math.inf)
     steil_flach = 0 < w.grenzwinkel < 90
-    richtungen = {"x": (True,), "y": (False,), SPIRALE: (SPIRALE,), FLAECHE: (FLAECHE,)}.get(
-        w.richtung, (True, False, SPIRALE, FLAECHE) if steil_flach else (True, False)
-    )
-    if steil_flach or SPIRALE in richtungen or FLAECHE in richtungen or w.davor is not None:
+    richtungen = {
+        "x": (True,),
+        "y": (False,),
+        SPIRALE: (SPIRALE,),
+        FLAECHE: (FLAECHE,),
+        AEQUI: (AEQUI,),
+    }.get(w.richtung, (True, False, SPIRALE, FLAECHE, AEQUI) if steil_flach else (True, False))
+    if steil_flach or {SPIRALE, FLAECHE, AEQUI} & set(richtungen) or w.davor is not None:
         raster = _raster(netz_alle, netz_rest, geformt, box, w, netz_gewaehlt)
     if w.davor is not None:
         maske, _rest_mm = _rest(raster, netz_alle, w, abstand)
         raster.gewaehlt = raster.gewaehlt & maske
         if not raster.gewaehlt.any():
             raise ValueError(tr("s3.fehler.kein_rest"))
-    if steil_flach and set(richtungen) - {FLAECHE}:  # entlang der Fläche ohne Höhenlinien
+    if steil_flach and set(richtungen) - {FLAECHE, AEQUI}:  # die beiden ohne Höhenlinien
         vorweg = _hoehenlinien(raster, w, abstand)
     beste = None
     for richtung in richtungen:
         if richtung == SPIRALE:
             bahn = _spirale(raster, w, abstand, vorweg)
+        elif richtung == AEQUI:
+            bahn = _aequidistant(raster, w, abstand)
         elif richtung == FLAECHE:
             # Entlang der Fläche liegen die Kurven im Raum gleich weit auseinander, flach wie
             # steil – ohne Höhenlinien; längs u und längs v, die schnellere.

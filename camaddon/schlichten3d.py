@@ -31,7 +31,7 @@ from . import vierachs_schlichten as vs
 from .sprache import tr
 
 GRUPPE = "Fräsen"
-RICHTUNGEN = ("auto", "x", "y", "spirale", "flaeche")
+RICHTUNGEN = ("auto", "x", "y", "spirale", "flaeche", "aequidistant")
 
 
 class Schlichten3D(PathOp.ObjectOp):
@@ -62,7 +62,7 @@ class Schlichten3D(PathOp.ObjectOp):
             obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
         if set(RICHTUNGEN) - set(obj.getEnumerationsOfProperty("Richtung")):
             richtung = str(obj.Richtung)
-            obj.Richtung = list(RICHTUNGEN)  # gespeichert vor Spirale oder Fläche: die Wahl dazu
+            obj.Richtung = list(RICHTUNGEN)  # gespeichert vor einer neuen Richtung: die Wahl dazu
             obj.Richtung = richtung
         self._editormodi(obj)
 

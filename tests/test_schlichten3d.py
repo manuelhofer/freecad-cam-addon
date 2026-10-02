@@ -4,11 +4,11 @@
 # 0,49; die Spitze nie unter der Platte (z ≥ 10). Im Quader – vorher die Kuppel mit 0,3 Aufmaß –
 # liegt danach jede Stelle der Kuppel höchstens 0,04 über ihr und nirgends darunter (nichts ins
 # Teil); die Platte daneben bleibt, wie sie war. Mit Aufmaß 0,2 bleiben 0,2 senkrecht zur
-# Fläche (auf der Kuppel senkrecht gemessen 0,2 / cos θ). Längs x, längs y, als Spirale und
-# entlang der Fläche gerechnet, die schnellste zählt – an der Kuppel entlang der Fläche (die
-# Breitenkreise, gleich weit auseinander, flach wie steil: ohne Höhenlinien und Wenden, um 5 %
-# schneller als die Spirale), die Spirale schneller als Zeilen; im Quader alle so gut wie die
-# Zeilen. Steil/Flach an einer Halbkugel R 15 (am Fuß senkrecht): Mit Höhenlinien, wo es steiler
+# Fläche (auf der Kuppel senkrecht gemessen 0,2 / cos θ). Längs x, längs y, als Spirale, entlang
+# der Fläche und äquidistant gerechnet, die schnellste zählt – an der Kuppel entlang der Fläche
+# (die Breitenkreise, gleich weit auseinander, flach wie steil: ohne Höhenlinien und Wenden, um
+# 5 % schneller als die Spirale), die Spirale schneller als Zeilen; äquidistant Ringe vom Fuß
+# nach oben, im Raum gleich weit; im Quader alle so gut wie die Zeilen. Steil/Flach an einer Halbkugel R 15 (am Fuß senkrecht): Mit Höhenlinien, wo es steiler
 # ist als 45°, bleibt an der Flanke höchstens 0,035 stehen, entlang der Fläche ebenso, mit Zeilen
 # allein mehr als 0,045. Eine Welle am Rand eines Blocks ohne Platte: nirgends ins Teil, auch nicht
 # an der Außenkante. Dann die Operation im Job: „3D-Schlichten T3“, Art „schlichten3d“.
@@ -82,6 +82,13 @@ nur_x = s3.planen(teil, kugel, werte(richtung="x"))
 nur_y = s3.planen(teil, kugel, werte(richtung="y"))
 spirale = s3.planen(teil, kugel, werte(richtung="spirale"))
 flaeche = s3.planen(teil, kugel, werte(richtung="flaeche"))
+aequi = s3.planen(teil, kugel, werte(richtung="aequidistant"))
+# Äquidistant: Ringe vom Fuß nach oben, im Raum auf der Hüllfläche (Radius 28) gemessen –
+# 28 · 0,927 / 0,49 = 53, etwas enger durch die Nachbarn im Raster.
+pruefe(
+    aequi.aequidistant and 44 <= aequi.zeilen <= 60 and aequi.hoehenlinien == 0,
+    f"äquidistant: {aequi.aequidistant}, {aequi.zeilen} Ringe",
+)
 pruefe(nur_zeilen.hoehenlinien == 0 and spirale.hoehenlinien > 0, "Höhenlinien")
 pruefe(nur_x.laengs_x and not nur_y.laengs_x, "Richtung nicht wie verlangt")
 pruefe(
@@ -95,14 +102,15 @@ pruefe(
     f"entlang der Fläche: {flaeche.flaeche}, {flaeche.zeilen} Kurven",
 )
 pruefe(
-    bahn.zeit <= min(nur_x.zeit, nur_y.zeit, spirale.zeit, flaeche.zeit) + 1e-9,
+    bahn.zeit <= min(nur_x.zeit, nur_y.zeit, spirale.zeit, flaeche.zeit, aequi.zeit) + 1e-9,
     "nicht die schnellste",
 )
 pruefe(bahn.flaeche and flaeche.zeit < 0.95 * spirale.zeit, f"Fläche {flaeche.zeit:.2f} min, "
        f"Spirale {spirale.zeit:.2f}")  # fmt: skip
 pruefe(spirale.zeit < 0.95 * nur_x.zeit, f"Spirale {spirale.zeit:.2f}, Zeilen {nur_x.zeit:.2f}")
-print(ascii(f"Fläche {flaeche.zeit:.2f} min ({flaeche.zeilen} Kurven), Spirale "
-            f"{spirale.zeit:.2f} min ({spirale.umlaeufe} Umläufe), längs x {nur_x.zeit:.2f}"))  # fmt: skip
+print(ascii(f"Fläche {flaeche.zeit:.2f} min ({flaeche.zeilen} Kurven), äquidistant "
+            f"{aequi.zeit:.2f} min ({aequi.zeilen} Ringe), Spirale {spirale.zeit:.2f} min "
+            f"({spirale.umlaeufe} Umläufe), längs x {nur_x.zeit:.2f}"))  # fmt: skip
 # Die Kreise im Gleichlauf: um die Kuppel im Uhrzeigersinn (von oben), das Material rechts.
 pv = [p for p in flaeche.punkte if not p.eilgang]
 drehung = sum(
@@ -134,7 +142,12 @@ def quader_nach(bahn_, aufmass_vorher=0.3):
     return q, soll
 
 
-for name, geprueft in (("auto", bahn), ("längs x", nur_x), ("Spirale", spirale)):
+for name, geprueft in (
+    ("auto", bahn),
+    ("längs x", nur_x),
+    ("Spirale", spirale),
+    ("äquidistant", aequi),
+):
     q, soll = quader_nach(geprueft)
     xs, ys = np.meshgrid(q.x, q.y, indexing="ij")
     r = np.hypot(xs - 30, ys - 30)
@@ -164,7 +177,7 @@ halb = Part.makeSphere(15, V(30, 30, 10)).common(Part.makeBox(60, 60, 20, V(0, 0
 teil_h = Part.makeBox(60, 60, 10).fuse(halb).removeSplitter()
 kugel_h = [f"Face{i + 1}" for i, f in enumerate(teil_h.Faces) if isinstance(f.Surface, Part.Sphere)]
 netz_h = vf.vernetze(teil_h, 0.005).netz
-for grenz, richtung in ((0.0, "auto"), (45.0, "x"), (45.0, "flaeche")):
+for grenz, richtung in ((0.0, "auto"), (45.0, "x"), (45.0, "flaeche"), (45.0, "aequidistant")):
     bahn_h = s3.planen(
         teil_h, kugel_h, werte(grenzwinkel=grenz, richtung=richtung, oben=25.0, sicher=30.0)
     )
@@ -185,9 +198,12 @@ for grenz, richtung in ((0.0, "auto"), (45.0, "x"), (45.0, "flaeche")):
     name = f"{grenz:g}° {richtung}"
     pruefe(np.min(rest_h[r_h < 14]) > -0.02, f"{name}: ins Teil {np.min(rest_h[r_h < 14]):.3f}")
     pruefe(np.max(rest_h[r_h < 9]) < 0.03, f"{name}: oben {np.max(rest_h[r_h < 9]):.3f}")
-    if richtung == "flaeche":
-        pruefe(np.max(flanke) < 0.035, f"entlang der Fläche: Flanke {np.max(flanke):.3f}")
-        pruefe(bahn_h.flaeche and bahn_h.hoehenlinien == 0, "entlang der Fläche: Höhenlinien")
+    if richtung in ("flaeche", "aequidistant"):
+        pruefe(np.max(flanke) < 0.035, f"{richtung}: Flanke {np.max(flanke):.3f}")
+        pruefe(
+            (bahn_h.flaeche or bahn_h.aequidistant) and bahn_h.hoehenlinien == 0,
+            f"{richtung}: Höhenlinien",
+        )
     elif grenz:
         pruefe(np.max(flanke) < 0.035, f"Steil/Flach: Flanke {np.max(flanke):.3f}")
         pruefe(bahn_h.hoehenlinien > 10, f"Höhen {bahn_h.hoehenlinien}")
@@ -214,7 +230,7 @@ welle = [
     f"Face{i + 1}" for i, f in enumerate(block.Faces) if isinstance(f.Surface, Part.BSplineSurface)
 ]
 netz_w = vf.vernetze(block, 0.005).netz
-for richtung in ("auto", "spirale", "x"):
+for richtung in ("auto", "spirale", "x", "aequidistant"):
     bahn_w = s3.planen(block, welle, werte(richtung=richtung))
     q_w = rm.Quader(0, 60, 0, 40, 0, 20.5, schritt=0.2)
     soll_w = hf.hoehen(netz_w, q_w.x, q_w.y)

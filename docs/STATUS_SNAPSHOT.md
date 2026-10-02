@@ -41,7 +41,11 @@ Kurven der Fläche, im Raum überall einen Zeilenabstand auseinander; an der Kup
 4,93 min (Spirale), an einer Walze 7,2 statt 10,3 (Zeilen). Dabei behoben: An der Außenkante
 eines Teils schnitten Höhenlinien und Spirale 0,05 mm in die Seite – jetzt fährt das
 3D-Schlichten nur, wo der Fräser die Flächen berührt (P-2026-10-02-03); 0.67.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+automatisch geprüft; wartet auf Manuels Test. **Äquidistant** (W-006 4.2 Punkt 5): die fünfte
+Richtung – Ringe vom Rand nach innen, im Raum überall einen Zeilenabstand auseinander, über alle
+gewählten Flächen, mit einem Gang über flache Grate; an der Kuppel der feinste Rest (0,017 statt
+0,020 mm), die Zeit gewinnt dort weiter die Fläche entlang (P-2026-10-02-04); 0.68.0 – fertig
+und automatisch geprüft; wartet auf Manuels Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
