@@ -208,9 +208,10 @@ def bahn_fuer(
     form_teil = vs._teil(modell)
     ebenen = [] if bohrer else vp.ebenen(form_teil, laengs, radial, flaechen)
     bohrungen = vp.bohrungen(form_teil, laengs, radial, flaechen)
+    mantelnuten = [] if bohrer else vp.mantelnuten(form_teil, laengs, radial, flaechen)
     if bohrer and not bohrungen:
         raise ValueError(tr("vp.fehler.keine_bohrung"))
-    if not ebenen and not bohrungen:
+    if not ebenen and not bohrungen and not mantelnuten:
         raise ValueError(tr("vp.fehler.keine_ebene"))
     ueberlauf, abstand_futter, sicherheit = abstaende
     werte = vp.Planwerte(
@@ -238,6 +239,7 @@ def bahn_fuer(
         ebenen,
         nuten_=vp.nuten(form_teil, laengs, radial, ebenen),
         bohrungen_=bohrungen,
+        mantelnuten_=mantelnuten,
     )
 
 

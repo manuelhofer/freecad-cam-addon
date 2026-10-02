@@ -2236,8 +2236,9 @@ class VierachsPanel:
         self._umgeschaltet()
 
     def _plan_ebenen(self):
-        """[vierachs_planbahn.Ebene] – die gewählten ebenen Flächen längs der Stange und die
-        gewählten Bohrungen quer zu ihr (je Seite eine)."""
+        """[vierachs_planbahn.Ebene, …] – die gewählten ebenen Flächen längs der Stange, die
+        gewählten Bohrungen quer zu ihr (je Seite eine) und die Nuten auf dem Mantel
+        (vierachs_planbahn.Mantelnut) – alle mit ihrem Namen."""
         flaechen = self.flaechen()
         if not flaechen or self.job is None:
             return []
@@ -2245,7 +2246,8 @@ class VierachsPanel:
         form = vr.modell(self.job).Shape
         laengs, radial = achse.laengs, va.radial(achse)
         ebenen = vp.ebenen(form, laengs, radial, flaechen)
-        return ebenen + [e for e, _b in vp.bohrungen(form, laengs, radial, flaechen)]
+        bohrungen = [e for e, _b in vp.bohrungen(form, laengs, radial, flaechen)]
+        return ebenen + bohrungen + vp.mantelnuten(form, laengs, radial, flaechen)
 
     def _plan_vorschlagen(self):
         """Ob „Plan indexiert“ geht – gewählte ebene Flächen längs der Stange und an der
@@ -2267,8 +2269,10 @@ class VierachsPanel:
             namen = ", ".join(dict.fromkeys(e.name for e in ebenen))
             form = vr.modell(self.job).Shape
             laengs, radial = achse.laengs, va.radial(achse)
-            nur_bohrungen = not vp.ebenen(form, laengs, radial, self.flaechen())
-            paare = vp.bohrungen(form, laengs, radial, self.flaechen()) if nur_bohrungen else []
+            eben = vp.ebenen(form, laengs, radial, self.flaechen())
+            mantel = vp.mantelnuten(form, laengs, radial, self.flaechen())
+            paare = vp.bohrungen(form, laengs, radial, self.flaechen())
+            nur_bohrungen = bool(paare) and not eben and not mantel
             bohrer = self._planbohrer_vorschlagen(paare, nur_bohrungen)
             if bohrer is not None:
                 geht, grund = True, tr(
@@ -2278,6 +2282,8 @@ class VierachsPanel:
                 )
             elif nur_bohrungen:
                 geht, grund = True, tr("va.plan.vorschlag_bohrung", flaechen=namen)
+            elif mantel and not eben and not paare:
+                geht, grund = True, tr("va.plan.vorschlag_mantel", flaechen=namen)
             else:
                 geht, grund = True, tr("va.plan.vorschlag", flaechen=namen)
         geht = geht and self._plan_erlaubt
@@ -2343,8 +2349,10 @@ class VierachsPanel:
                 zeit=zeit,
             )
             achse = self.achse()
-            if vp.ebenen(
-                vr.modell(self.job).Shape, achse.laengs, va.radial(achse), self.flaechen()
+            form = vr.modell(self.job).Shape
+            laengs, radial = achse.laengs, va.radial(achse)
+            if vp.ebenen(form, laengs, radial, self.flaechen()) or vp.mantelnuten(
+                form, laengs, radial, self.flaechen()
             ):
                 text += " " + tr("va.plan.nur_bohrungen")
             return text
@@ -2362,6 +2370,8 @@ class VierachsPanel:
             text += " " + tr("va.plan.nuten", n=bahn.nuten)
         if getattr(bahn, "bohrungen", 0):
             text += " " + tr("va.plan.bohrungen", n=bahn.bohrungen)
+        if getattr(bahn, "mantelnuten", 0):
+            text += " " + tr("va.plan.mantelnuten", n=bahn.mantelnuten)
         if bahn.hinten_frei > 0:
             text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
         return text

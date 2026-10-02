@@ -47,6 +47,11 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
   3 × D in Hüben) – mit seinem Durchmesser, eine Sackbohrung nur mit seiner Spitze unten; eine
   durchgehende von beiden Seiten, jede Seite mit der Spitze über die Mitte hinaus (so hat sie
   überall den vollen Durchmesser, und X muss nur um die Länge der Spitze unter null).
+- **Nut auf dem Mantel** (P-2026-10-02-09): Ist die gewählte Fläche der Grund einer Nut um die
+  Stange (ein Zylinder um die Achse über einen Teil des Umfangs, abgewickelt ein Rechteck –
+  mantelnuten()), dreht die Rundachse: in der Mitte in voller Breite eine Zickzack-Rampe wie die
+  Vollnut, ist die Nut breiter, Zeilen zu beiden Seiten bis an die Wände (_mantelnut_punkte).
+  „Rundum schruppen“ kam mit dem Fräser in Nutbreite gar nicht hinein.
 
 Gerechnet wird in (a, Höhe, Winkel, Versatz) wie vierachs_bahn.Punkt – die Höhe längs der
 Werkzeugachse, der Winkel der der Rundachse, der Versatz quer. Läuft ohne Oberfläche.
@@ -177,6 +182,7 @@ class Planbahn:
     bohrungen: int = 0  # so viele Bohrungen quer – eine durchgehende einmal, von beiden Seiten
     huebe: int = 0  # mit dem Bohrer: so oft fährt er hinab, über alle Seiten
     seiten: int = 0  # mit dem Bohrer: von so vielen Seiten gebohrt
+    mantelnuten: int = 0  # so viele Flächen davon als Nut auf dem Mantel (Rundachse dreht)
 
 
 def ebener_radius(form):
@@ -279,6 +285,166 @@ class Kegelgrund:
     spitze: float  # die Höhe der Spitze
     radius: float  # der Radius der Bohrung
     laenge: float  # so lang ist die Spitze: oben hat sie den Radius
+
+
+@dataclass(frozen=True)
+class Mantelnut:
+    """Eine Nut auf dem Mantel (W-006 4.3.4): ihr Grund ein Zylinder um die Stangenachse über
+    einen Teil des Umfangs, in der Abwicklung ein Rechteck – längs von a_von bis a_bis, rundum
+    von phi_von bis phi_bis (Grad, phi_von < phi_bis); an den Enden Wände in Ebenen durch die
+    Achse, längs Wände quer zu ihr (eine Nut, mit Revolution oder Nut in PartDesign gemacht)."""
+
+    name: str
+    radius: float  # der Grund
+    a_von: float
+    a_bis: float
+    phi_von: float
+    phi_bis: float
+
+
+def mantelnuten(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
+    """[Mantelnut] – die Flächen `namen` von `form`, die der Grund einer Nut auf dem Mantel
+    sind: ein Zylinder um die Stangenachse, das Material innen (die Normale zeigt von der Achse
+    weg), über weniger als den ganzen Umfang, der Rand in der Abwicklung ein Rechteck. Andere
+    zählen nicht (der ganze Umfang ist Sache von „Rundum schruppen“)."""
+    import Part
+
+    from . import vierachs_flaechen as vf
+
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    ergebnis = []
+    for nummer in vf.nummern(namen):
+        if nummer >= len(form.Faces):
+            continue
+        flaeche = form.Faces[nummer]
+        zylinder = flaeche.Surface
+        if not isinstance(zylinder, Part.Cylinder):
+            continue
+        d = np.array(tuple(zylinder.Axis), dtype=float)
+        mitte = np.array(tuple(zylinder.Center), dtype=float)
+        if abs(abs(float(d @ l_)) - 1.0) > 1e-6 or np.linalg.norm(mitte - l_ * (mitte @ l_)) > 1e-4:
+            continue  # nicht um die Stangenachse
+        radius = float(zylinder.Radius)
+        u0, u1, v0, v1 = flaeche.ParameterRange
+        p = np.array(tuple(flaeche.valueAt((u0 + u1) / 2, (v0 + v1) / 2)), dtype=float)
+        n = np.array(tuple(flaeche.normalAt((u0 + u1) / 2, (v0 + v1) / 2)), dtype=float)
+        aussen = p - l_ * (p @ l_)
+        if float(n @ aussen) <= 0:
+            continue  # das Material außen: eine Bohrung längs, kein Nutgrund
+        phi_m = math.atan2(float(p @ v_), float(p @ u_))
+        rand = []
+        for kante in flaeche.Edges:
+            rand.extend(kante.discretize(Deflection=toleranz))
+        if not rand:
+            continue
+        q = np.array([[pt.x, pt.y, pt.z] for pt in rand], dtype=float)
+        a = q @ l_
+        phi = np.angle(np.exp(1j * (np.arctan2(q @ v_, q @ u_) - phi_m)))
+        a_von, a_bis = float(a.min()), float(a.max())
+        f_von, f_bis = float(phi.min()), float(phi.max())
+        if f_bis - f_von > math.radians(359.0) or a_bis - a_von < 1e-3:
+            continue  # rundum
+        eng = 2 * toleranz
+        am_rand = (
+            (np.abs(a - a_von) < eng)
+            | (np.abs(a - a_bis) < eng)
+            | (np.abs(phi - f_von) * radius < eng)
+            | (np.abs(phi - f_bis) * radius < eng)
+        )
+        if not am_rand.all():
+            continue  # in der Abwicklung kein Rechteck
+        ergebnis.append(
+            Mantelnut(
+                f"Face{nummer + 1}",
+                radius,
+                a_von,
+                a_bis,
+                math.degrees(phi_m + f_von),
+                math.degrees(phi_m + f_bis),
+            )
+        )
+    return ergebnis
+
+
+def _mantelnut_punkte(nut, w, oben, sicher):
+    """([vierachs_bahn.Punkt], Lagen, Fahrten) – die Nut auf dem Mantel: Die Rundachse dreht,
+    der Fräser fährt längs der Nut rundum. Erst in der Mitte in voller Breite eine Zickzack-Rampe
+    hinab wie die Vollnut im Quader (nut_bahn._vollnut: je Fahrt höchstens ap / 2, der Vorschub
+    so viel kleiner, dass der Span so dick ist wie beim Einsatz mit ae), unten einmal hinüber;
+    ist die Nut breiter, dann Zeilen zu beiden Seiten in voller Tiefe, höchstens ae auseinander,
+    bis an die Wände. An den Enden bleibt die Stirn – am Grund am breitesten – vor den Wänden
+    durch die Achse. ValueError mit einem Satz, wenn der Fräser nicht hineinpasst."""
+    from . import nut_bahn as nb
+
+    radius = float(w.form.radius)
+    breite = nut.a_bis - nut.a_von
+    breit_text = einheiten.text(breite, einheiten.LAENGE)
+    if 2 * radius > breite + 2 * NUT_LUFT + bh_gleich():
+        fraeser = einheiten.text(2 * radius, einheiten.LAENGE)
+        raise ValueError(tr("vp.fehler.mantel_breit", fraeser=fraeser, breite=breit_text))
+    halb = math.degrees(math.asin(min(1.0, (radius + NUT_LUFT) / nut.radius)))
+    f_von, f_bis = nut.phi_von + halb, nut.phi_bis - halb
+    if f_bis < f_von:
+        raise ValueError(tr("vp.fehler.mantel_kurz", breite=breit_text))
+    a_mitte = (nut.a_von + nut.a_bis) / 2
+    frei = max(breite / 2 - radius - NUT_LUFT, 0.0)
+    zeilen = []
+    if frei > vb.GLEICH:
+        anzahl = max(1, int(math.ceil(frei / max(w.zeilenabstand, vb.GLEICH) - 1e-9)))
+        for k in range(1, anzahl + 1):
+            zeilen.extend((a_mitte + frei * k / anzahl, a_mitte - frei * k / anzahl))
+    z_ende = nut.radius + w.aufmass
+    ap = w.zustellung if w.zustellung > vb.GLEICH else 2 * radius
+    ap = min(ap, nb.VOLLNUT_AP * 2 * radius)
+    laenge = nut.radius * math.radians(max(f_bis - f_von, 0.0))
+    stufe = min(laenge * math.tan(math.radians(max(w.eintauchwinkel, 0.1))), ap / 2)
+    stufe = max(stufe, nb.MIN_RAMPE)
+    k = min(max(w.zeilenabstand, vb.GLEICH) / (2 * radius), 0.5)
+    anteil = 2 * math.sqrt(k * (1 - k))
+    punkte = [
+        vb.Punkt(True, a_mitte, sicher, f_von),
+        vb.Punkt(True, a_mitte, oben + w.sicherheit, f_von),
+        vb.Punkt(False, a_mitte, oben, f_von, True),  # bis ans Material, in der Luft
+    ]
+    z, dort, fahrten = oben, f_von, 0
+    while z > z_ende + vb.GLEICH:
+        z = max(z - stufe, z_ende)
+        dort = f_bis if dort == f_von else f_von
+        punkte.append(vb.Punkt(False, a_mitte, z, dort, anteil=anteil))
+        fahrten += 1
+    dort = f_bis if dort == f_von else f_von
+    punkte.append(vb.Punkt(False, a_mitte, z_ende, dort, anteil=anteil))
+    fahrten += 1
+    for a in zeilen:
+        punkte.append(vb.Punkt(False, a, z_ende, dort))
+        dort = f_bis if dort == f_von else f_von
+        punkte.append(vb.Punkt(False, a, z_ende, dort))
+        fahrten += 1
+    punkte.append(vb.Punkt(True, punkte[-1].a, sicher, dort))
+    lagen = max(1, int(math.ceil((oben - z_ende) / ap - 1e-9)))
+    return punkte, lagen, fahrten
+
+
+def _mantel_ueber(w, nut, radius):
+    """So hoch steht über der Nut noch Material: die Stange – oder nach dem Schruppen der Rest
+    über ihr und so weit daneben, wie der Fräser reicht."""
+    if w.rest is None:
+        return float(w.stange_radius)
+    rest_a, rest_phi, rest_r = w.rest
+    laengs = (rest_a >= nut.a_von - radius) & (rest_a <= nut.a_bis + radius)
+    mitte = math.radians((nut.phi_von + nut.phi_bis) / 2)
+    weit = math.radians((nut.phi_bis - nut.phi_von) / 2) + radius / nut.radius
+    quer = np.abs(np.angle(np.exp(1j * (rest_phi - mitte)))) <= weit
+    if not laengs.any() or not quer.any():
+        return float(w.stange_radius)
+    return min(float(w.stange_radius), float(np.max(rest_r[np.ix_(laengs, quer)])))
+
+
+def bh_gleich():
+    """So genau muss der Fräser zur Breite der Nut passen (mm) – wie der Bohrer zur Bohrung."""
+    from . import bohren as bh
+
+    return bh.GLEICH_D
 
 
 def boden_der_bohrung(laengs, radial, ebene, bohrung, bohrer=None, durch=False):
@@ -498,18 +664,28 @@ def _nut_punkte(liste, ebene, w, oben, sicher):
 
 
 def planen(
-    netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A, nuten_=None, bohrungen_=()
+    netz,
+    laengs,
+    radial,
+    werte,
+    flaechen,
+    schritt_a=vh.SCHRITT_A,
+    nuten_=None,
+    bohrungen_=(),
+    mantelnuten_=(),
 ):
     """Die Bahn „Plan indexiert“ (Planbahn) über die Flächen `flaechen` ([Ebene], ebenen())
     mit den Werten `werte`; `netz` ist das Teil ohne diese Flächen (netz_ohne()), `laengs` und
     `radial` wie in vierachs_huelle; `nuten_` ({Name: [nut_bahn.Nut]}, nuten()): diese Flächen
-    als Nut; `bohrungen_` ([(Ebene, Bohrung)], bohrungen()): Querbohrungen. ValueError mit einem
-    Satz, wenn es nicht geht."""
+    als Nut; `bohrungen_` ([(Ebene, Bohrung)], bohrungen()): Querbohrungen; `mantelnuten_`
+    ([Mantelnut], mantelnuten()): Nuten auf dem Mantel. ValueError mit einem Satz, wenn es nicht
+    geht."""
     w = werte
     form = w.form
     radius = form.radius
     if w.bohrer is not None:
         flaechen = []  # ein Bohrer fräst keine Fläche
+        mantelnuten_ = ()
         if not bohrungen_:
             raise ValueError(tr("vp.fehler.keine_bohrung"))
         r_eben = radius
@@ -521,10 +697,10 @@ def planen(
             raise ValueError(tr("vp.fehler.werte"))
         if w.zeilenabstand > 2 * r_eben:
             raise ValueError(tr("vp.fehler.zeilenabstand"))
-    if not flaechen and not bohrungen_:
+    if not flaechen and not bohrungen_ and not mantelnuten_:
         raise ValueError(tr("vp.fehler.keine_ebene"))
     teil_vorne, teil_hinten = _enden(
-        netz, laengs, radial, list(flaechen) + [e for e, _b in bohrungen_]
+        netz, laengs, radial, list(flaechen) + [e for e, _b in bohrungen_] + list(mantelnuten_)
     )
     ueberlauf = vb.ueberlauf_vorschlag(radius) if w.ueberlauf is None else w.ueberlauf
     a_anfang = w.a_stange_vorne + radius + w.sicherheit
@@ -569,6 +745,18 @@ def planen(
             bohrungen_gefraest += 1
         gebohrt.add(ebene.name)
         r_min = min(r_min, z_min)
+    mantel_gefraest = 0
+    for nut in sorted(mantelnuten_, key=lambda n: n.phi_von):
+        oben = _mantel_ueber(w, nut, radius)
+        if oben <= nut.radius + w.aufmass + vb.GLEICH:
+            continue  # steht nichts mehr drüber
+        stueck, lagen, fahrten = _mantelnut_punkte(nut, w, oben, sicher)
+        punkte.extend(stueck)
+        flaechen_gefraest += 1
+        mantel_gefraest += 1
+        lagen_gesamt += lagen
+        zeilen_gesamt += fahrten
+        r_min = min(r_min, nut.radius + w.aufmass)
     for ebene in sorted(flaechen, key=lambda e: e.phi):
         ziel = ebene.tiefe + w.aufmass
         oben = _material_ueber(w, ebene, radius)
@@ -646,6 +834,7 @@ def planen(
         bohrungen_gefraest,
         huebe,
         seiten_gebohrt,
+        mantel_gefraest,
     )
 
 

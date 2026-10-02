@@ -382,7 +382,23 @@ Weiter (spezifikation_vierachs.md, V4c/V4d), in dieser Reihenfolge:
    dreht mit. Aufwand mittel.
 4. **Taschen und Nuten auf dem Mantel** – die Tasche in der Abwicklung rechnen
    (4.1.2/4.1.3), auf den Zylinder zurückwickeln (wie FreeCADs „wrap“, aber mit
-   Abtrag und Kollision). Aufwand mittel.
+   Abtrag und Kollision). Aufwand mittel. **Nut auf dem Mantel** (P-2026-10-02-09, 0.72.0):
+   Gemessen, was es schon gab: An einer Nut 8 breit, 4 tief über 120° (der Grund ein Zylinder
+   R 11 um die Stangenachse, die Enden Ebenen durch die Achse – wie mit „Nut“ in PartDesign
+   gedreht) kam „Rundum schruppen“ mit dem Fräser Ø 8 gar nicht hinein (4 mm blieben), mit
+   Ø 6 im Mittel 0,08 mm Rest in 1,33 min (1000 mm/min). Jetzt erkennt
+   `vierachs_planbahn.mantelnuten` einen gewählten Nutgrund (Zylinder um die Achse, Material
+   innen, weniger als der ganze Umfang, in der Abwicklung ein Rechteck), und „Plan indexiert“
+   fräst ihn mit drehender Rundachse (`_mantelnut_punkte`): in der Mitte in voller Breite die
+   Zickzack-Rampe wie die Vollnut im Quader (je Fahrt höchstens ap / 2, Vorschub nach dem
+   Span), unten einmal hinüber, ist die Nut breiter, Zeilen zu beiden Seiten in voller Tiefe,
+   höchstens ae auseinander. Rundum hält die Stirn vor den Enden so viel Abstand, wie sie am
+   Grund breit ist (asin(r ÷ R)) – oben bleibt dort ein Keil stehen: Wände durch die Achse
+   schneidet ein Fräser auf der Mitte nicht genau (das ginge nur mit dem Y). Gemessen
+   (`test_vierachs_plan`): die Nut 8 × 4 über 120° und eine 12 × 3 über 90° mit Ø 8 – 0,43 min
+   (500 mm/min), der Grund ohne Rest, nirgends ins Teil; `szenario_vierachs_mantelnut`. Offen:
+   Nuten, die nicht rechteckig abgewickelt sind (Kurvennut, Schmiernut als Wendel), Taschen mit
+   Inseln, die Enden mit dem Y genau.
 5. **Nockenwellen, Exzenter** – rundum schruppen kann es; schlichten mit
    Linien längs und Grathöhe. Aufwand klein, prüfen. Geprüft (P-2026-10-02-06,
    `szenario_vierachs_nocke`): Welle Ø 30 × 100 mit einem Nocken Ø 44, 6 mm außermittig, auf

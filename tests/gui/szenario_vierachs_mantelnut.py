@@ -1,16 +1,13 @@
-# Radial bohren auf der Drehmaschine mit C und Y (P-2026-10-02-08): Welle Ø 30 × 80 längs X,
-# oben eine Sackbohrung Ø 8, 12 tief mit der Spitze eines Bohrers (118°) unten, weiter hinten
-# eine durchgehende Ø 8 quer; die Beispiel-Drehmaschine ist offen, T1 ein Schaftfräser Ø 6
-# („Planen“), T2 ein Bohrer Ø 8 (118°, „Bohren“), beide im Halter „VDI30 angetrieben radial“.
-# Die Stirnfläche angeklickt, Stange Ø 32, „Weiter“; „Rundum schruppen“ und „Rundum schlichten“
-# aus. Ein Klick auf beide Bohrungen: „Plan indexiert“ geht an, vorgewählt T2, der Bohrer
-# („Vorschlag: an – radial bohren mit … T2 …“), Zustellung und Zeilenabstand grau; die Vorschau
-# sagt „→ 2 Bohrungen gebohrt (von 3 Seiten), 3 Hübe, etwa …“. „Anlegen“: „Radial bohren T2“,
-# die Sätze mit festem C je Seite. „Auf der Maschine prüfen“: „Alle Achsen bleiben in ihren
-# Grenzen.“, am Ende „nirgends ins Teil“. Ein Doppelklick auf die Operation öffnet den
-# Assistenten wieder mit dem Bohrer, „Übernehmen“ lässt sie „Radial bohren T2“.
-import math
-
+# Nut auf dem Mantel auf der Drehmaschine mit C (P-2026-10-02-09): Welle Ø 30 × 80 längs X, in
+# der Mitte eine Nut 8 breit, 4 tief über 120° des Umfangs (der Grund ein Zylinder R 11, die
+# Enden Ebenen durch die Achse – wie mit „Nut“ in PartDesign gedreht); die Beispiel-Drehmaschine
+# ist offen, T1 ein Schaftfräser Ø 8 („Planen“) im Halter „VDI30 angetrieben radial“. Die
+# Stirnfläche angeklickt, Stange Ø 32, „Weiter“; „Rundum schruppen“ und „Rundum schlichten“ aus
+# („Rundum schruppen“ kam mit Ø 8 gar nicht in die Nut). Ein Klick auf den Grund der Nut: „Plan
+# indexiert“ geht an mit „Vorschlag: an – Nut auf dem Mantel: …“, die Vorschau sagt „– davon 1
+# als Nut auf dem Mantel …“. „Anlegen“: „Plan indexiert T1“, die Rundachse dreht in den Sätzen.
+# „Auf der Maschine prüfen“: „Alle Achsen bleiben in ihren Grenzen.“, „Nichts berührt sich“, am
+# Ende „nirgends ins Teil“.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -34,43 +31,36 @@ def schritte(h):
     from camaddon import vierachs_rohteil as vr
     from camaddon import werkzeuge as wz
 
-    t1 = wz.Werkzeug(nummer=1, durchmesser=6, schneiden=3, schneidenlaenge=20,
+    t1 = wz.Werkzeug(nummer=1, durchmesser=8, schneiden=3, schneidenlaenge=20,
                      laenge_spindelnase=125)  # fmt: skip
-    t1.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.PLANEN, ae=3.6, ap=2, vc=150, fz=0.04)]
-    t2 = wz.Werkzeug(nummer=2, art=wz.BOHRER, durchmesser=8, schneiden=2, schneidenlaenge=60,
-                     spitzenwinkel=118.0, schneidstoff=wz.HSS,
-                     laenge_spindelnase=125)  # fmt: skip
-    t2.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25.0, fz=0.1)]
-    bibliothek = wz.Bibliothek([t1, t2])
-    for werkzeug in (t1, t2):
-        werkzeug.halter = bibliothek.neuer_halter("vdi30_radial").kennung
+    t1.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.PLANEN, ae=3.2, ap=2, vc=150, fz=0.04)]
+    bibliothek = wz.Bibliothek([t1])
+    t1.halter = bibliothek.neuer_halter("vdi30_radial").kennung
     bibliothek.speichern()
 
     asm, _maschine = beispielmaschine.lade(beispielmaschine.DREHMASCHINE)
     yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is asm.Document)
     yield 300
 
-    doc = FreeCAD.newDocument("Radialbohren")
+    doc = FreeCAD.newDocument("Mantelnut")
     doc.UndoMode = 1
     teil = doc.addObject("Part::Feature", "Welle")
-    lang = 4.0 / math.tan(math.radians(59.0))  # die Spitze des Bohrers Ø 8 mit 118°
-    welle = Part.makeCylinder(15, 80, V(), V(1, 0, 0))
-    welle = welle.cut(Part.makeCylinder(4, 17, V(30, 0, 3)))  # Sackbohrung oben, 12 tief
-    welle = welle.cut(Part.makeCone(4, 0, lang, V(30, 0, 3), V(0, 0, -1)))  # ihre Spitze
-    welle = welle.cut(Part.makeCylinder(4, 40, V(55, -20, 0), V(0, 1, 0)))  # durchgehend quer
-    teil.Shape = welle.removeSplitter()
+    x = V(1, 0, 0)
+    ring = Part.makeCylinder(16, 8, V(30, 0, 0), x).cut(Part.makeCylinder(11, 8, V(30, 0, 0), x))
+    nut = ring.common(Part.makeCylinder(16, 8, V(30, 0, 0), x, 120))
+    teil.Shape = Part.makeCylinder(15, 80, V(), x).cut(nut).removeSplitter()
     doc.recompute()
     stirn = next(
         f"Face{i + 1}"
         for i, f in enumerate(teil.Shape.Faces)
-        if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9
+        if vr.ist_eben(f) and (vr.aussennormale(f) - V(1, 0, 0)).Length < 1e-9 and f.Area > 600
     )
-    bohrungen = [
+    grund = [
         f"Face{i + 1}"
         for i, f in enumerate(teil.Shape.Faces)
-        if isinstance(f.Surface, Part.Cylinder) and f.Surface.Radius < 6.0
+        if isinstance(f.Surface, Part.Cylinder) and abs(f.Surface.Radius - 11.0) < 1e-6
     ]
-    h.pruefe(len(bohrungen) == 2, f"Bohrungen: {bohrungen}")
+    h.pruefe(len(grund) == 1, f"Grund: {grund}")
     Gui.activateWorkbench("CAMWorkbench")
     Gui.ActiveDocument.ActiveView.viewIsometric()
     Gui.SendMsgToActiveView("ViewFit")
@@ -95,32 +85,27 @@ def schritte(h):
     panel.mit_schlichten.setChecked(False)
     yield 300
 
-    # --- Die beiden Bohrungen: der Bohrer vorgewählt ----------------------------------------
+    # --- Der Grund der Nut: „Plan indexiert“ als Nut auf dem Mantel ------------------------
     job = panel.job
     klon = vr.modell(job)
-    for name in bohrungen:
-        Gui.Selection.addSelection(doc.Name, klon.Name, name)
+    Gui.Selection.addSelection(doc.Name, klon.Name, grund[0])
     yield 500
-    h.pruefe(sorted(panel.flaechen()) == sorted(bohrungen), f"gewählt: {panel.flaechen()}")
-    h.pruefe(panel.mit_plan.isChecked(), "„Plan indexiert“ mit den Bohrungen aus")
-    h.pruefe(panel.planfraeser() is not None and panel.planfraeser().nummer == 2, "nicht T2")
-    grund = panel.plan_grund.text()
-    h.pruefe(grund.startswith("Vorschlag: an – radial bohren mit "), f"Grund: {grund!r}")
-    h.pruefe(
-        not panel.felder_plan["zustellung_plan"].isEnabled(), "Zustellung beim Bohrer nicht grau"
-    )
+    h.pruefe(panel.flaechen() == grund, f"gewählt: {panel.flaechen()}")
+    h.pruefe(panel.mit_plan.isChecked(), "„Plan indexiert“ mit dem Nutgrund aus")
+    vorschlag = panel.plan_grund.text()
+    h.pruefe(vorschlag.startswith("Vorschlag: an – Nut auf dem Mantel: "), f"Grund: {vorschlag!r}")
+    h.pruefe(panel.planfraeser() is not None and panel.planfraeser().nummer == 1, "nicht T1")
     yield from h.warte_auf(lambda: panel.vorschau_plan is not None, 60000)
     text = panel.ergebnis_plan.text()
     h.pruefe(
-        text.startswith("→ 2 Bohrungen gebohrt (von 3 Seiten), 3 Hübe, etwa "),
-        f"Vorschau: {text!r}",
+        text.startswith("→ ") and "davon 1 als Nut auf dem Mantel" in text, f"Vorschau: {text!r}"
     )
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")
     from camaddon.gui_teile import blaettere_zu
 
     blaettere_zu(panel.mit_plan)
     yield 300
-    h.bild("1_radial_bohren", panel.form)
+    h.bild("1_mantelnut", panel.form)
 
     # --- Anlegen ------------------------------------------------------------------------------
     panel.accept()
@@ -128,14 +113,13 @@ def schritte(h):
     h.pruefe(gui_vierachs.VierachsPanel.offen is None, "Fenster noch offen")
     ops = [o for o in job.Operations.Group if vo.ist_rundum(o)]
     plan = next((o for o in ops if vplan.ist_plan(o)), None)
-    h.pruefe(plan is not None and plan.Label == "Radial bohren T2", f"Operationen: {ops}")
+    h.pruefe(plan is not None and plan.Label == "Plan indexiert T1", f"Operationen: {ops}")
     if plan is None:
         return
-    h.pruefe(plan.Huebe == 3 and plan.Ebenen == 2, f"Hübe {plan.Huebe}, Ebenen {plan.Ebenen}")
     schnitte = [b for b in plan.Path.Commands if b.Name == "G1"]
-    h.pruefe(len(schnitte) >= 3, f"{len(schnitte)} Sätze")
-    c_werte = {round(b.Parameters.get("C", 0.0), 3) for b in schnitte}
-    h.pruefe(len(c_werte) == 3, f"C je Seite fest: {sorted(c_werte)}")
+    h.pruefe(len(schnitte) > 5, f"{len(schnitte)} Sätze")
+    c_werte = [b.Parameters.get("C", 0.0) for b in schnitte]
+    h.pruefe(max(c_werte) - min(c_werte) > 60, f"C dreht nicht: {min(c_werte)} … {max(c_werte)}")
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 500
@@ -176,27 +160,5 @@ def schritte(h):
     h.bild("3_am_ende_farben")
     pruef.reject()
     yield 500
-
-    # --- Ändern: Doppelklick öffnet den Assistenten mit dem Bohrer ------------------------
-    FreeCAD.setActiveDocument(doc.Name)
-    plan.ViewObject.Proxy.doubleClicked(plan.ViewObject)
-    yield 1000
-    panel = gui_vierachs.VierachsPanel.offen
-    h.pruefe(panel is not None and panel.zu_aendern is plan, "Doppelklick öffnet nichts")
-    if panel is None:
-        return
-    h.pruefe(
-        panel.planfraeser() is not None and panel.planfraeser().nummer == 2, "beim Ändern: Bohrer"
-    )
-    yield from h.warte_auf(lambda: panel.vorschau_plan is not None, 30000)
-    text = panel.ergebnis_plan.text()
-    h.pruefe(text.startswith("→ 2 Bohrungen gebohrt"), f"beim Ändern: {text!r}")
-    h.bild("4_aendern", panel.form)
-    h.pruefe(panel.accept() is True, "„Übernehmen“ ging nicht")
-    yield 1500
-    h.pruefe(
-        plan.Label == "Radial bohren T2" and plan.Huebe == 3,
-        f"nach dem Ändern: {plan.Label}, {plan.Huebe} Hübe",
-    )
     FreeCAD.closeDocument(doc.Name)
     yield 300

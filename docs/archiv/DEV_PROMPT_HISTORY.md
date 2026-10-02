@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-09 mantelnut
+
+### EINGELESEN
+- `vierachs_planbahn` (`planen`, `_enden`, `_material_ueber`, `bohrungen`), `nut_bahn`
+  (`_vollnut`, `VOLLNUT_AP`, `MIN_RAMPE`), `vierachs_bahn` (`schruppen`, `Schruppwerte`,
+  `befehle`, `_weg`), `vierachs_operation.bahn_fuer`, `vierachs_flaechen.bereich_fuer`,
+  `gui_vierachs` (`_plan_ebenen`, `_plan_vorschlagen`, `_plan_text`).
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`, `camaddon/vierachs_plan.py`, `camaddon/gui_vierachs.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/vierachs.html`,
+  `tests/test_vierachs_plan.py`, `tests/gui/szenario_vierachs_mantelnut.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/spezifikation_vierachs.md`, `README.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.72.0)
+
+### AKZEPTANZKRITERIUM
+Eine Nut auf dem Mantel (Grund ein Zylinder um die Stangenachse über einen Teil des Umfangs,
+abgewickelt ein Rechteck) fräst „Plan indexiert“ mit drehender Rundachse: mit dem Fräser in
+Nutbreite in voller Breite (Zickzack-Rampe), breiter in Zeilen; der Grund danach ohne Rest, an
+den Enden nichts in den Wänden, auf der Stange nirgends ins Teil. Im Assistenten geht der Haken
+mit dem Nutgrund an („Nut auf dem Mantel“), „Auf der Maschine prüfen“: Achsen in ihren Grenzen,
+nichts berührt sich, am Ende nirgends ins Teil.
+
+### DONE
+- Gemessen (Probe ohne Oberfläche): An der Nut 8 × 4 über 120° kam „Rundum schruppen“ mit Ø 8
+  gar nicht hinein (4 mm blieben), mit Ø 6 im Mittel 0,08 mm Rest in 1,33 min (1000 mm/min).
+- `vierachs_planbahn`: `Mantelnut`, `mantelnuten` (Zylinder um die Achse, Material innen,
+  < 359°, der Rand abgewickelt ein Rechteck), `_mantelnut_punkte` (Zickzack-Rampe wie
+  `nut_bahn._vollnut`, dann Zeilen zu beiden Seiten in voller Tiefe ≤ ae; rundum Abstand
+  asin((r + Luft) ÷ R) von den Wänden durch die Achse), `_mantel_ueber`, `planen(mantelnuten_=…)`,
+  `Planbahn.mantelnuten`; ein Bohrer fräst keine.
+- `vierachs_plan.bahn_fuer`: die Mantelnuten dazu.
+- Assistent: `_plan_ebenen` mit den Mantelnuten, „va.plan.vorschlag_mantel“,
+  „va.plan.mantelnuten“; der Bohrer nur, wenn ausschließlich Querbohrungen gewählt sind;
+  „va.plan.keine_ebene“ und „vp.fehler.keine_ebene“ nennen die Mantelnut;
+  „vp.fehler.mantel_breit“, „vp.fehler.mantel_kurz“.
+
+### TEST
+- 1.1.3: `test_vierachs_plan` (Mantelnut: 2 Nuten, 5 Lagen, 14 Fahrten, 0,43 min bei 500 mm/min,
+  der Grund ohne Rest, ins Teil 0,000; Ø 9 in der Nut 8: ein Satz) und `test_sprache` grün;
+  `szenario_vierachs_mantelnut` (neu), `szenario_vierachs_plan`, `szenario_vierachs_nut`,
+  `szenario_vierachs_querbohrung`, `szenario_vierachs_radialbohren` grün (dieses jetzt auch mit
+  „Ändern“: der Doppelklick öffnet den Assistenten mit dem Bohrer, „Übernehmen“ lässt „Radial
+  bohren T2“ mit 3 Hüben); black/ruff grün.
+
+### NEXT
+- Nuten, die abgewickelt nicht rechteckig sind (Kurvennut, Schmiernut als Wendel), Taschen mit
+  Inseln; die Enden mit dem Y genau (die Seite des Fräsers in der Ebene durch die Achse).
+
 ## P-2026-10-02-08 radial-bohren
 
 ### EINGELESEN

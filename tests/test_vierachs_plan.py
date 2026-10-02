@@ -421,6 +421,78 @@ for werte_b, welle_b, paare_b, text in (
 print(ascii(f"Radial bohren: {bb2.bohrungen} Bohrungen von {bb2.seiten} Seiten, {bb2.huebe} Huebe, "
             f"{vb.dauer(bb2, 400.0, 400.0):.2f} min, ins Teil {vergleich_r.kleinster:.3f}"))  # fmt: skip
 
+
+# --- Nut auf dem Mantel (P-2026-10-02-09): auf der Welle Ø 30 eine Nut 8 breit, 4 tief über
+# 120° (der Grund ein Zylinder R 11, die Enden Ebenen durch die Achse) und eine 12 breit, 3 tief
+# über 90°. „Rundum schruppen“ kam mit dem Fräser Ø 8 gar nicht in die 8 breite hinein (4 mm
+# blieben stehen). Jetzt: die Rundachse dreht, Ø 8 fährt die schmale in voller Breite mit der
+# Zickzack-Rampe hinab, die breite dazu in Zeilen bis an die Wände; der Grund danach eben (rund),
+# an den Enden nichts in den Wänden, auf der Stange nirgends ins Teil.
+def _umfangsnut(z, breite, tiefe, winkel):
+    ring = Part.makeCylinder(16, breite, V(0, 0, z)).cut(
+        Part.makeCylinder(15 - tiefe, breite, V(0, 0, z))
+    )
+    return ring.common(Part.makeCylinder(16, breite, V(0, 0, z), V(0, 0, 1), winkel))
+
+
+mantelwelle = (
+    Part.makeCylinder(15, 100, V(0, 0, -100))
+    .cut(_umfangsnut(-50, 8, 4, 120))
+    .cut(_umfangsnut(-80, 12, 3, 90))
+    .removeSplitter()
+)
+mantel_namen = [
+    f"Face{i + 1}"
+    for i, f in enumerate(mantelwelle.Faces)
+    if isinstance(f.Surface, Part.Cylinder) and f.Surface.Radius < 14.0
+]
+mantel = sorted(vp.mantelnuten(mantelwelle, LAENGS, RADIAL, mantel_namen), key=lambda n: n.a_von)
+pruefe(
+    [(round(n.radius, 3), round(n.a_von, 2), round(n.a_bis, 2), round(n.phi_bis - n.phi_von, 1))
+     for n in mantel] == [(12.0, -80.0, -68.0, 90.0), (11.0, -50.0, -42.0, 120.0)],
+    f"Mantelnuten: {mantel}",
+)  # fmt: skip
+w_mantel = vp.Planwerte(
+    form=ff.scheibe(4.0),
+    stange_radius=16.0,
+    zustellung=2.0,
+    zeilenabstand=3.2,
+    aufmass=0.0,
+    a_stange_vorne=1.0,
+    a_futter=-120.0,
+)
+mb = vp.planen(vp.netz_ohne(mantelwelle, []), LAENGS, RADIAL, w_mantel, [], mantelnuten_=mantel)
+pruefe(mb.mantelnuten == 2 and mb.flaechen == 2, f"Mantelnuten gefräst: {mb.mantelnuten}")
+pruefe(abs(mb.r_min - 11.0) < 1e-6, f"tiefste Spitze {mb.r_min}")
+abtrag_m = rm.Stange(16.0, -120.0, 1.0)
+abtrag_m.fahre_stuecke(
+    [(p.a, p.r, p.phi, p.q) for p, n in zip(mb.punkte, mb.punkte[1:], strict=False) if not n.eilgang],
+    [(n.a, n.r, n.phi, n.q) for p, n in zip(mb.punkte, mb.punkte[1:], strict=False) if not n.eilgang],
+    ff.scheibe(4.0),
+)  # fmt: skip
+netz_m = vh.vernetze(mantelwelle, 0.01)
+genau_m = rm.teilradien(netz_m, LAENGS, RADIAL, abtrag_m, rm.GENAU)
+vergleich_m = rm.vergleiche(abtrag_m, rm.teilradien(netz_m, LAENGS, RADIAL, abtrag_m), 0.0, genau_m)
+pruefe(vergleich_m.kleinster >= -rm.BLAU_AB, f"Mantelnut: ins Teil {vergleich_m.kleinster:.3f}")
+grad = np.degrees(abtrag_m.phi) % 360.0
+for nut in mantel:
+    # der Grund: längs innen, rundum so weit, wie die Stirn an die Enden kommt
+    rand = math.degrees(math.asin(4.01 / nut.radius)) + 2.0
+    zeilen_m = (abtrag_m.a > nut.a_von + 0.3) & (abtrag_m.a < nut.a_bis - 0.3)
+    drin = (grad - nut.phi_von) % 360.0
+    spalten_m = (drin > rand) & (drin < nut.phi_bis - nut.phi_von - rand)
+    rest_m = (abtrag_m.r - genau_m)[np.ix_(zeilen_m, spalten_m)]
+    hoechst = float(np.nanmax(rest_m)) if rest_m.size else math.inf
+    pruefe(hoechst < 0.05, f"Grund R {nut.radius}: Rest {hoechst:.3f}")
+print(ascii(f"Mantelnut: {mb.mantelnuten} Nuten, {mb.lagen} Lagen, {mb.zeilen} Fahrten, "
+            f"{vb.dauer(mb, 500.0):.2f} min, ins Teil {vergleich_m.kleinster:.3f}"))  # fmt: skip
+w_breit = dataclasses.replace(w_mantel, form=ff.scheibe(4.5))
+try:
+    vp.planen(vp.netz_ohne(mantelwelle, []), LAENGS, RADIAL, w_breit, [], mantelnuten_=mantel)
+    pruefe(False, "Fräser Ø 9 in der Nut 8: keine Meldung")
+except ValueError as meldung:
+    pruefe("Ø 9" in str(meldung) and "8" in str(meldung), f"Fräser Ø 9: {meldung}")
+
 # Ohne ebene Fläche, ohne ebene Stirn, Zeilenabstand zu groß: ein Satz.
 for werte_falsch, flaechen_falsch, text in (
     (werte, [], "keine Fläche"),
