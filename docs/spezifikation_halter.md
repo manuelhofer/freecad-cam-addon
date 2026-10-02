@@ -337,3 +337,16 @@ maschine ist .. also reicht VDI halter aus“. Gebaut:
   Größe („VDI40 angetrieben radial · ER16“). Ohne Maschine die Maße für VDI 30
   und ein Name ohne Zahl. Die Bezeichnung sagt weiter „Beispielmaße – nach
   Katalog prüfen“.
+
+Nachtrag P-2026-10-02-77 – Manuel (2026-10-02): „warum bekomme ich bei dem VDI
+angetrieben radial und axial nur ER16?“ Gebaut:
+
+- Angetrieben radial und axial gibt es je mit **ER16, ER20, ER25, ER32**
+  (`halter.GRUPPEN`, Schlüssel `vdi_radial_er20` …; `vdi_radial`/`vdi_axial`
+  allein heißen weiter ER16). Im Menü „Neu“ je ein Untermenü „VDI angetrieben
+  radial“ / „… axial“ mit den vier Spannzangen; der Halter heißt „VDI40
+  angetrieben radial · ER25“.
+- Beispielmaße (VDI 30): Spanntiefe 20/24/28/40 mm, Spannmutter Ø 28/34/42/50 mm;
+  der Körper bleibt (ER32: Ø 60). Die **Spannmutter wächst nicht** mit der
+  VDI-Größe – ihr Ø hängt an der Spannzange; das gilt auch für „VDI axial mit
+  ER25“. Der Körper, Kopf und Versatz wachsen wie bisher.

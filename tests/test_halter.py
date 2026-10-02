@@ -117,6 +117,40 @@ pruefe(
     and hl.vorlage_text("er32", 50) == hl.vorlage_text("er32"),
     "Vorlagentext mit Größe",
 )
+# Angetrieben je Spannzange (Manuel, 2026-10-02: „warum bekomme ich bei dem VDI angetrieben radial
+# und axial nur ER16?“): radial und axial je ER16, ER20, ER25, ER32. Die Spannmutter hat ihr Maß
+# von der Spannzange und wächst nicht mit der VDI-Größe, der Körper schon.
+pruefe(
+    list(hl.GRUPPEN) == ["vdi_radial", "vdi_axial"]
+    and all(list(g) == ["ER16", "ER20", "ER25", "ER32"] for g in hl.GRUPPEN.values())
+    and all(v in hl.VORLAGEN for g in hl.GRUPPEN.values() for v in g.values()),
+    f"Gruppen: {hl.GRUPPEN}",
+)
+pruefe(
+    hl.gruppe_text("vdi_radial") == "VDI angetrieben radial"
+    and hl.gruppe_text("vdi_axial", 40) == "VDI40 angetrieben axial",
+    "Titel der Untermenüs",
+)
+radial_er25 = hl.aus_vorlage(hl.GRUPPEN["vdi_radial"]["ER25"], vdi=40)
+pruefe(
+    radial_er25.name == "VDI40 angetrieben radial · ER25"
+    and radial_er25.gewinkelt
+    and nahe(radial_er25.spanntiefe, 28)
+    and nahe(radial_er25.abschnitte[0].d_oben, 50 * 40 / 30)
+    and nahe(radial_er25.abschnitte[-1].d_oben, 42),
+    f"radial ER25 an VDI 40: {radial_er25}",
+)
+axial_er32 = hl.aus_vorlage(hl.GRUPPEN["vdi_axial"]["ER32"])
+pruefe(
+    axial_er32.name == "VDI angetrieben axial · ER32"
+    and not axial_er32.gewinkelt
+    and nahe(axial_er32.abschnitte[-1].d_oben, 50),
+    f"axial ER32: {axial_er32}",
+)
+pruefe(
+    nahe(gross.abschnitte[-1].d_oben, 28),
+    f"ER16 an VDI 40: Mutter {gross.abschnitte[-1].d_oben}",
+)
 kopf = hl.aus_vorlage("winkelkopf_90")
 pruefe(kopf.gewinkelt and nahe(kopf.versatz, 110), f"Winkelkopf: {kopf}")
 # Seitlich über die Werkzeugachse (fürs Futter bei Rundum): der halbe größte Ø, beim

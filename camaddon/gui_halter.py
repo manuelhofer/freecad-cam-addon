@@ -113,10 +113,18 @@ class HalterDialog(QtGui.QDialog):
         self.menue_neu.addAction(tr("hd.neu.leer"), lambda: self.neu())
         self.menue_neu.addSeparator()
         vdi = _vdi_offener_maschinen()
+        in_gruppe = {v: g for g, vorlagen in hl.GRUPPEN.items() for v in vorlagen.values()}
         for schluessel in hl.VORLAGEN:
-            self.menue_neu.addAction(
-                hl.vorlage_text(schluessel, vdi), lambda s=schluessel: self.neu(s)
-            )
+            gruppe = in_gruppe.get(schluessel)
+            if gruppe is None:
+                self.menue_neu.addAction(
+                    hl.vorlage_text(schluessel, vdi), lambda s=schluessel: self.neu(s)
+                )
+            elif schluessel == next(iter(hl.GRUPPEN[gruppe].values())):
+                # Angetrieben je Spannzange: ein Untermenü „VDI angetrieben radial“ → ER16 …
+                untermenue = self.menue_neu.addMenu(hl.gruppe_text(gruppe, vdi))
+                for er, vorlage in hl.GRUPPEN[gruppe].items():
+                    untermenue.addAction(er, lambda s=vorlage: self.neu(s))
         self.knopf_neu.setMenu(self.menue_neu)
         self.knopf_kopieren = knopf(tr("hd.kopieren"), tr("hd.kopieren.tooltip"), self.kopieren)
         self.knopf_loeschen = knopf(tr("hd.loeschen"), tr("hd.loeschen.tooltip"), self.loeschen)

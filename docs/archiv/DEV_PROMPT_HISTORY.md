@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-77 vdi-angetrieben-je-spannzange
+
+### EINGELESEN
+- Manuel, 2026-10-02 abends (Bildschirmfoto Menü „Neu“ im Fenster „Halter“): „warum bekomme ich
+  bei dem VDI angetrieben radial und axial nur ER16???“
+
+### DATEIEN
+- `camaddon/halter.py` (`GRUPPEN`, `gruppe_text`, Vorlagen `vdi_radial_er16` … `vdi_axial_er32`,
+  Spannmutter ohne VDI-Faktor), `camaddon/gui_halter.py` (Untermenüs), `translations/de|en.json`,
+  `tests/test_halter.py`, `tests/gui/szenario_halter_richtung.py`,
+  `docs/spezifikation_halter.md`, `help/de|en/halter.html`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.123.0)
+
+### AKZEPTANZKRITERIUM
+„Halter …“ → „Neu“: „VDI angetrieben radial“ und „VDI angetrieben axial“ sind Untermenüs mit
+ER16, ER20, ER25, ER32; „ER25“ legt „VDI… angetrieben radial · ER25“ an, Spannmutter Ø 42 auch
+an VDI 40.
+
+### DONE
+- Je Spannzange eigene Beispielmaße (VDI 30): Spanntiefe 20/24/28/40, Mutter Ø 28/34/42/50; der
+  Körper wie bisher (ER32: Ø 60). Die Spannmutter (letzter Abschnitt) wächst nicht mit der
+  VDI-Größe – auch bei „VDI axial mit ER25“ nicht mehr; Körper, Kopf und Versatz wie bisher.
+- Die alten Schlüssel (`vdi_radial`, `vdi_axial`, `vdi30_…`) heißen weiter ER16.
+
+### TESTS
+- `tests/test_halter.py`, `tests/test_sprache.py` (OK, 1.1.3),
+  `tests/gui/szenario_halter_richtung.py` (OK, 1.1.3, Bild `0_neu_untermenue`),
+  `tests/gui/szenario_halter.py` (OK).
+
 ## P-2026-10-02-76 werkstoff-liste-kurz
 
 ### EINGELESEN
