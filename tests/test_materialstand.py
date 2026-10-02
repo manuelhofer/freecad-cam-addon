@@ -11,7 +11,8 @@
 # nichts mehr zu tun, ein Planfräsen des Bodens danach auch nicht (M4). Ein Körper als Rohteil,
 # oben nur am Zapfen bis 0, sonst bis −10 (W-011 S4b): Über der Nut steht es ohne jede Operation
 # bei −10, und Räumen und Planfräsen fahren mit 4 mm je Lage nur noch um den Zapfen – ein
-# Bruchteil der Zeit.
+# Bruchteil der Zeit. Zweimal 3D-Schruppen an derselben Kuppel: Das zweite nimmt nur noch die
+# Treppe, die das erste ließ.
 import math
 import os
 import pathlib
@@ -34,6 +35,7 @@ from camaddon import materialstand as mst
 from camaddon import nut as nu
 from camaddon import planfraesen as pf
 from camaddon import raeumen as ra
+from camaddon import schruppen3d as r3op
 from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
 from camaddon import vierachs_schlichten as vs
@@ -250,6 +252,36 @@ if stand2 is not None:
            f"weg {plan_mit.weg:.0f}")  # fmt: skip
     print(ascii(f"Guss: Räumen {guss_mit.zeit:.2f} statt {guss_ohne.zeit:.2f} min, Planfräsen "
                 f"{plan_mit.zeit:.2f} statt {plan_ohne.zeit:.2f} min"))  # fmt: skip
+
+# --- 3D-Schruppen (M4): zweimal dieselbe Kuppel ------------------------------------------------
+platte3d = Part.makeBox(60, 60, 10)
+kappe = Part.makeSphere(25, V(30, 30, -5)).common(Part.makeBox(60, 60, 15, V(0, 0, 10)))
+kuppel_teil = platte3d.fuse(kappe).removeSplitter()
+kugel = [f"Face{i + 1}" for i, f in enumerate(kuppel_teil.Faces)
+         if isinstance(f.Surface, Part.Sphere)]  # fmt: skip
+kuppel = doc.addObject("Part::Feature", "Kuppel")
+kuppel.Shape = kuppel_teil
+doc.recompute()
+job3 = PathJob.Create("Job", [kuppel])
+job3.Stock.ExtZpos = 0.0
+doc.recompute()
+tc3 = js.controller_ohne_transaktion(doc, job3, fraeser, einsatz)
+doc.recompute()
+erstes = r3op.lege_an(job3, tc3, 25.0, 1.5, 0.3, flaechen=kugel)
+zweites = r3op.lege_an(job3, tc3, 25.0, 1.5, 0.3, flaechen=kugel)
+doc.recompute()
+bahn_3d = r3op.rechne(erstes, job3, job3.Model.Group, 1000.0)
+try:
+    rest_3d = r3op.rechne(zweites, job3, job3.Model.Group, 1000.0)
+    zeit_rest = rest_3d.zeit
+    pruefe(rest_3d.zeit < 0.3 * bahn_3d.zeit and rest_3d.davor == [erstes.Label],
+           f"zweites 3D-Schruppen: {rest_3d.zeit:.2f} min nach {bahn_3d.zeit:.2f}, "
+           f"davor {rest_3d.davor}")  # fmt: skip
+except ValueError as grund_text:
+    zeit_rest = 0.0
+    pruefe("nichts mehr zu tun" in str(grund_text), f"zweites 3D-Schruppen: {grund_text}")
+pruefe(zweites.Materialstand == mst.kennung_vor(job3, zweites), "3D: Kennung nicht gemerkt")
+print(ascii(f"3D-Schruppen: {bahn_3d.zeit:.2f} min, das zweite danach {zeit_rest:.2f} min"))
 
 print(ascii(f"Räumen {zeit_raeumen:.1f} s, Materialstand {zeit_stand:.2f} s, "
             f"Nut {bahn.zeit:.2f} min statt {ohne.zeit:.2f} min, Räumen nach der Nut "

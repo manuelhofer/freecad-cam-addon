@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-71 3d-schruppen-auf-dem-materialstand
+
+### EINGELESEN
+- W-012 M4 (Spezifikation Strategien 12.7): das 3D-Schruppen auf dem Materialstand. Manuel,
+  2026-10-02: „Solange bitte einfach weiter arbeiten!!!!“
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py` (`planen(…, stand)`, `_mit_stand`, `Schruppbahn.noch`/`weg`/
+  `davor`), `camaddon/schruppen3d.py` (Eigenschaft „Materialstand“, `rechne`, `bahn_fuer`),
+  `camaddon/materialstand.py` (`volumen(…, boden)`: über dem Teil), `camaddon/gui_bearbeitung.py`
+  (das 3D-Schruppen mit Materialstand), `tests/test_materialstand.py`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`, `help/de|en/bearbeitung.html`,
+  `package.xml` (0.120.0)
+
+### AKZEPTANZKRITERIUM
+Zweimal 3D-Schruppen an derselben Kuppel: Das zweite nimmt nur, was das erste ließ; ohne
+Vorgänger wie bisher (`szenario_mulde`).
+
+### DONE
+- Das Raster der Höhen (wie beim Restschruppen) beginnt mit dem Materialstand; zeigt er nicht
+  überall das volle Rohteil, ist jede Lage eine Zwischenlage (nur, wo Material steht, das der
+  Fräser erreicht), die Lagen beginnen am höchsten solchen Material; „nichts mehr zu tun“.
+- „noch“ über dem Teil (`hoehenfeld.hoehen` im Raster des Stands), nicht über seinem tiefsten
+  Punkt – sonst zählte die Kuppel selbst mit.
+- Kuppel: das erste 4,99 min, das zweite danach 0,14 min.
+
+### TESTS
+- `tests/test_materialstand.py` (OK), `tests/gui/szenario_mulde.py` (OK, ohne Vorgänger wie bisher).
+
 ## P-2026-10-02-70 planfraesen-auf-dem-materialstand
 
 ### EINGELESEN

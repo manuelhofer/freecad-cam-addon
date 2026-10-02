@@ -25,6 +25,7 @@ from . import bahn as bn
 from . import fraeserform as ff
 from . import hoehenfeld as hf
 from . import kontur as ko
+from . import materialstand as mst
 from . import namen
 from . import planfraesen as pf
 from . import raeumen as ra
@@ -86,6 +87,7 @@ class Schruppen3D(PathOp.ObjectOp):
             ("App::PropertyInteger", "Ringe", tr("ra.eigenschaft.ringe")),
             ("App::PropertyLength", "DurchmesserDavor", tr("r3.eigenschaft.davor")),
             ("App::PropertyLength", "EckenradiusDavor", tr("r3.eigenschaft.eckenradius_davor")),
+            ("App::PropertyString", "Materialstand", tr("ms.eigenschaft.materialstand")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -96,6 +98,7 @@ class Schruppen3D(PathOp.ObjectOp):
     def _editormodi(obj):
         for name in ("Lagen", "Zwischen", "Ringe"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+        obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
 
     def opExecute(self, obj):
         try:
@@ -125,6 +128,11 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     form = vs.form_des_controllers(obj.ToolController)
     if form is None:
         raise ValueError(tr("ra.fehler.form"))
+    # Was die Operationen davor schon weggenommen haben (W-012) – und woraus das gerechnet ist:
+    # Ändert sich davor etwas, rechnet gui_materialstand das 3D-Schruppen neu.
+    stand = mst.fuer(job, vor=obj)
+    if "Materialstand" in obj.PropertiesList:
+        obj.Materialstand = mst.kennung_vor(job, obj)
     return bahn_fuer(
         job,
         modell,
@@ -143,6 +151,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vorschub=vorschub,
         eintauchen=eintauchen,
         davor=form_davor(obj),
+        stand=stand,
     )
 
 
@@ -176,9 +185,11 @@ def bahn_fuer(
     vorschub=0.0,
     eintauchen=0.0,
     davor=None,
+    stand=None,
 ):
     """Die Bahn „3D-Schruppen“ über den Freiformflächen `flaechen` für Modell und Rohteil des
-    Jobs – mit `davor` (Form des größeren Fräsers davor) nur der Rest. ValueError mit einem
+    Jobs – mit `davor` (Form des größeren Fräsers davor) nur der Rest; mit `stand` (der
+    Materialstand davor) nur, was die Operationen davor übrig ließen. ValueError mit einem
     Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = pf.rohteil_von_oben(job)
@@ -201,7 +212,7 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
     )
-    return sr.planen(form_teil, list(flaechen), werte, zwischen, toleranz, schritt, davor)
+    return sr.planen(form_teil, list(flaechen), werte, zwischen, toleranz, schritt, davor, stand)
 
 
 def vorschau(job, modell, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter):

@@ -1769,6 +1769,13 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     über eine Rampe von 38 mm ein; `test_materialstand`, `szenario_raeumen_materialstand`). Wer
     „nichts mehr zu tun“ sagt (`materialstand.SchonWeg`), verliert im Assistenten den Haken,
     solange ihn niemand von Hand gesetzt hat.
+    **Gebaut, das 3D-Schruppen:** P-2026-10-02-71, 0.120.0 – `schruppen3d_bahn.planen(…,
+    stand)`: Das Raster der Höhen beginnt mit dem Materialstand; zeigt er nicht überall das volle
+    Rohteil, räumt jede Lage wie beim Restschruppen nur, wo Material steht, das der Fräser
+    erreicht (die Varianten fallen weg), und die Lagen beginnen am höchsten solchen Material.
+    „noch“ zählt über dem Teil, nicht über seinem tiefsten Punkt. Zweimal 3D-Schruppen an der
+    Kuppel: das zweite 0,14 statt 4,99 min – nur die Treppe (`test_materialstand`,
+    `szenario_mulde`). Offen: die Kontur (die Wand steht feiner als das Raster von 0,5 mm).
 - **Fertig, wenn:** Manuels Klotz in beiden Reihenfolgen im Prüffenster ein Teil ohne Rest
   ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war (außer über eine
   kurze Lücke, wo Durchfahren schneller ist als Abheben – Grundsatz 0), und die Nut nach dem

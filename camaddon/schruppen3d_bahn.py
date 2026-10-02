@@ -22,6 +22,10 @@ aus dem Freien oder über die Rampe.
   tief, wie seine Hüllfläche ihn lässt, gleitend über seine Scheibe (`_nach_davor`; ohne die
   Treppe seiner Lagen, die nimmt das Schlichten). Dann räumt jede Lage wie eine Zwischenlage:
   nur wo darüber Material steht, das dieser erreicht – in engen Lücken, Ecken, Kehlen.
+- **Materialstand** (W-012, materialstand): Mit `stand` beginnt das Raster mit dem, was die
+  Operationen davor im Job übrig ließen. Steht über den Lagen nicht überall das volle Rohteil,
+  räumt jede Lage wie beim Restschruppen nur, wo Material steht (die Varianten fallen dann
+  weg), und die Lagen beginnen am höchsten Material, das der Fräser erreicht.
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -68,6 +72,11 @@ class Schruppbahn:
     variante: str  # die Variante der Hauptlagen
     zeiten: dict = field(default_factory=dict)  # Minuten je gerechneter Variante
     rampen: int = 0
+    # Mit Materialstand (W-012): was über den Flächen noch steht und was die Operationen davor
+    # dort schon weggenommen haben (mm³), und welche das waren.
+    noch: float = 0.0
+    weg: float = 0.0
+    davor: list = field(default_factory=list)
 
 
 class _Lage3D(rb._Lage):
@@ -226,10 +235,11 @@ def _lagen(oben, ziel, zustellung, zwischen):
     return folge, (oben - ziel) / anzahl
 
 
-def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None):
+def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None, stand=None):
     """Alle Lagen in der Variante (die der Hauptlagen); gibt (Hauptlagen, Zwischenlagen) mit
     Schnitt zurück. Mit `davor` (Form des größeren Fräsers davor) nur der Rest: jede Lage wie
-    eine Zwischenlage, das Material aus _nach_davor."""
+    eine Zwischenlage, das Material aus _nach_davor. Mit `stand` (Materialstand) ebenso, wenn
+    er nicht überall das volle Rohteil zeigt."""
     aufmass = max(w.aufmass, 0.0)
     ziel = z_unten + aufmass
     oben = w.oben
@@ -263,6 +273,15 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None)
     if davor is not None:
         nach = _nach_davor(feld, netz, davor, aufmass, toleranz, ziel)
         hoehe = np.where(feld.rohteil_zellen, np.minimum(oben, nach), -np.inf)
+    mit_stand = False
+    if stand is not None:
+        hoehe, oben, mit_stand = _mit_stand(
+            st, feld, netz, stand, hoehe, oben, ziel, z_unten, zugabe
+        )
+        if oben <= ziel + MATERIAL:
+            return 0, 0  # über den Flächen steht nichts mehr, was der Fräser erreicht
+        if mit_stand and variante != "rohteil":
+            raise rb._KeinMorph()  # jede Lage wie eine Zwischenlage: keine Varianten
     aufweiten = _Aufweiten(feld)
     stempel = _scheibe(r, schritt)
     gx, gy = np.meshgrid(feld.xs, feld.ys, indexing="ij")
@@ -276,7 +295,8 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None)
         erlaubt = feld.erlaubt_feld(lage, z_unten)
         gesperrt = _breiter(~erlaubt)
         werte = w
-        ist_zwischen = zwischenlage or davor is not None  # der Rest: nur, wo Material steht
+        # Der Rest (davor, Materialstand): nur, wo Material steht.
+        ist_zwischen = zwischenlage or davor is not None or mit_stand
         if ist_zwischen:
             # Die Ringe nur für das, was über der Lage steht und der Fräser hier erreicht – eine
             # Zelle weniger weit als die Stirn vom Freien, damit der Rand am Gesperrten (den der
@@ -335,6 +355,33 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None)
     return haupt, zwischenlagen
 
 
+def _mit_stand(st, feld, netz, stand, hoehe, oben, ziel, z_unten, zugabe):
+    """Der Materialstand im Raster (W-012): (Höhen, wo die Lagen beginnen, ob er gilt) – die
+    Höhen nicht über dem, was der Stand zeigt; gilt er (nicht überall das volle Rohteil über den
+    Lagen), beginnen die Lagen am höchsten Material, das der Fräser erreicht. Zählt dazu, was
+    über dem Teil noch steht und was die Operationen davor dort schon weggenommen haben."""
+    rohteil = feld.rohteil_zellen
+    vom_stand = np.where(rohteil, stand.hoehen_an(feld.xs, feld.ys), -np.inf)
+    bereich = rohteil & feld.aufweiten(feld.erlaubt_feld(ziel, z_unten), feld.r)
+    maske = stand.maske_aus(feld.xs, feld.ys, bereich)
+    wer = stand.wer(maske)
+    if wer:  # nur dann steht die Zeile darunter: über dem Teil, nicht über seinem Tiefsten
+        teil = hf.hoehen(netz, stand.quader.x, stand.quader.y)
+        noch, weg = stand.volumen(maske, ziel, np.where(np.isfinite(teil), teil, ziel))
+        st.noch += noch
+        st.weg += weg
+        st.davor += [name for name in wer if name not in st.davor]
+    if not (rohteil & (vom_stand < oben - GLEICH)).any():
+        return hoehe, oben, False
+    hoehe = np.where(rohteil, np.minimum(hoehe, vom_stand), -np.inf)
+    spitze = np.where(feld.roh <= z_unten + GLEICH, z_unten, feld.roh + zugabe)
+    tief = rb._kleinstes_um(spitze, int(max(feld.r - feld.schritt - 0.01, 0.0) / feld.schritt))
+    erreicht = rohteil & (hoehe > np.maximum(tief, ziel) + MATERIAL)
+    if not erreicht.any():
+        return hoehe, ziel, True
+    return hoehe, min(oben, float(hoehe[erreicht].max())), True
+
+
 def bereich(form_teil, namen):
     """(Namen der Freiformflächen unter `namen`, ihr tiefster Punkt z) – ValueError mit einem
     Satz, wenn keine darunter ist."""
@@ -348,11 +395,19 @@ def bereich(form_teil, namen):
 
 
 def planen(
-    form_teil, namen, werte, zwischen=ZWISCHEN, toleranz=hf.TOLERANZ, schritt=SCHRITT, davor=None
+    form_teil,
+    namen,
+    werte,
+    zwischen=ZWISCHEN,
+    toleranz=hf.TOLERANZ,
+    schritt=SCHRITT,
+    davor=None,
+    stand=None,
 ):
     """Die Bahn „3D-Schruppen“ (Schruppbahn) über den Freiformflächen `namen` von `form_teil`
     mit den Werten `werte` (raeumen_bahn.Raeumwerte; `aufmass` gilt überall, auch unten) – mit
-    `davor` (Form des größeren Fräsers davor, ebene Stirn) nur der Rest, den er ließ.
+    `davor` (Form des größeren Fräsers davor, ebene Stirn) nur der Rest, den er ließ; mit
+    `stand` (materialstand, W-012) nur, was die Operationen davor im Job übrig ließen.
     ValueError mit einem Satz, wenn es nicht geht."""
     from . import vierachs_flaechen as vf
 
@@ -372,18 +427,24 @@ def planen(
     if davor is not None:
         varianten = ("rohteil",)  # jede Lage wie eine Zwischenlage: keine Varianten
     ergebnisse = {}
+    wer_davor = []  # wer vorher dort weggenommen hat (für den Satz, wenn nichts zu tun ist)
     for variante in varianten:
         st = rb._Stand()
         try:
             haupt, zwischenlagen = _schruppen(
-                st, netz, w, z_unten, variante, r, schritt, zwischen, davor
+                st, netz, w, z_unten, variante, r, schritt, zwischen, davor, stand
             )
         except rb._KeinMorph:
             continue
+        wer_davor = st.davor
         if st.ringe == 0:
             continue
         zeit = bn.zeit(st.punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
         ergebnisse[variante] = (st, zeit, haupt, zwischenlagen)
+    if not ergebnisse and wer_davor:
+        from . import materialstand as mst  # erst hier: es bringt den Job mit
+
+        raise mst.schon_weg(wer_davor)
     if not ergebnisse and davor is not None:
         raise ValueError(tr("r3.fehler.kein_rest"))
     if not ergebnisse:
@@ -402,4 +463,7 @@ def planen(
         variante,
         {v: e[1] for v, e in ergebnisse.items()},
         st.rampen,
+        st.noch,
+        st.weg,
+        st.davor,
     )

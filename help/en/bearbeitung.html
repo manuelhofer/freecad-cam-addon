@@ -584,6 +584,12 @@ under the cutter.</li>
 <li>Grey below: “→ 1 layer and 9 intermediate layers, 26 rings, about 5 min” (standard cutter,
 the dome Ø 40 on the plate 60 × 60). In a bowl the full layer finds nothing, then only the
 intermediate layers count. The operation is called “3D roughing T1”.</li>
+<li><b>Only where material is left</b> (material state): like clearing, 3D roughing takes into
+account what the operations before it in the job and the ticked strategies before it in the
+window have already removed. Then every layer runs like an intermediate layer – only where
+material the cutter reaches is left – starting at the highest such material. A second 3D
+roughing on the same dome thus only takes the steps (0.14 instead of 4.99 min); if nothing is
+left: red “Nothing left to do here …”.</li>
 </ul>
 
 <h3>15. 3D finishing</h3>

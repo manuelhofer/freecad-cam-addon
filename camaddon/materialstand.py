@@ -86,10 +86,13 @@ class Materialstand:
         werte = werte[np.isfinite(werte)]
         return float(werte.max()) if len(werte) else None
 
-    def volumen(self, maske, z_unten):
+    def volumen(self, maske, z_unten, boden=None):
         """(noch, weg) in mm³: was in der Maske über `z_unten` noch steht – und was die
-        Operationen davor dort schon weggenommen haben."""
+        Operationen davor dort schon weggenommen haben; mit `boden` (je Zelle, das Teil von
+        oben) nur, was über ihm steht."""
         h, voll = self.quader.h[maske], self.voll[maske]
+        if boden is not None:
+            z_unten = np.maximum(np.asarray(boden)[maske], z_unten)
         noch = np.where(np.isfinite(h), np.maximum(h - z_unten, 0.0), 0.0)
         vorher = np.where(np.isfinite(voll), np.maximum(voll - z_unten, 0.0), 0.0)
         return float(noch.sum()) * self.zelle, float((vorher - noch).sum()) * self.zelle

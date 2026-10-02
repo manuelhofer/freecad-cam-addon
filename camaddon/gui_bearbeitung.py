@@ -1660,6 +1660,7 @@ class _Schruppen3D(_Strategie):
             schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
+            stand=werte.get("materialstand"),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -4232,7 +4233,7 @@ class BearbeitungPanel:
                 continue
             if block.aktiv() or self._im_wettbewerb(block):
                 zusatz = self._zusatz(block, form)
-                if block in (self.plan, self.nut, self.raeumen):
+                if block in (self.plan, self.nut, self.raeumen, self.schruppen3d):
                     zusatz = dict(zusatz or {}, materialstand=self._materialstand(block, form))
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
                 if block is self.kontur:
