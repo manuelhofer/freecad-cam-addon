@@ -161,7 +161,10 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Zeilen sagen, um wie viel; mit einer Tasche dazu rechnet das Fenster die
   ganzen Folgen, und die Kontur schlichtet nach dem Räumen nur noch das Aufmaß.
   Ein Prüfstand fährt jede Strategie an vier Maßstabsteilen im Quader ab und
-  lässt keine Bahn langsamer werden. Jede Bearbeitung ist ein
+  lässt keine Bahn langsamer werden. **Das Ziel** steht vorher grau darüber: wie
+  viel weg muss und wie lange der Fräser mit seinen Werten dafür mindestens
+  braucht – mit dem ap, das jede Stelle hergibt –, und welcher Fräser aus der
+  Werkzeugverwaltung deutlich schneller wäre. Jede Bearbeitung ist ein
   Block mit Haken; „Anlegen“ legt alle angehakten an. **Bohrung fräsen**:
   zylindrische Bohrungen mit einem Schaftfräser, kleiner als sie – in einer
   Helix hinab, große mit Ringen nach außen, die Wand in einem Zug; im
