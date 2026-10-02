@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-74 antworten-fragen-3-bis-6-und-12-4
+
+### EINGELESEN
+- Manuel, 2026-10-02 abends, zu den Fragen 3–6 (Spezifikation Strategien 12.7, 12.1) und 12.4,
+  dazu zu seinem Bild des Räumens am Klotz („siehst du diese vielen roten Linien??? ... effektiv
+  ist da nur ein Kreis“).
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (12.1: Messung der Last und Entscheidung Frage 6; 12.4:
+  entschieden A; 12.7: Fragen 3–5 beantwortet), `docs/STATUS_SNAPSHOT.md` (Als Nächstes)
+
+### AKZEPTANZKRITERIUM
+Manuels Antworten stehen wörtlich bei den Fragen; „Als Nächstes“ nennt die Reihenfolge.
+
+### DONE
+- Frage 3 (a), künftig nach der Zeit; Frage 4: einmal beim Aufmaß an der Wand ab; Frage 5: so
+  lassen; 12.4 A; Frage 6: die schnellste Variante, die die Last hält – Ecken in Bögen vorräumen,
+  Adaptiv als Variante. Messung der Last (Querschnitt ÷ ae · Lagentiefe) und der Versuch mit
+  FreeCADs Adaptiv-Kern in 12.1.
+
+### TESTS
+- Nur Doku.
+
 ## P-2026-10-02-73 materialstand-im-pruefenster-und-fragen
 
 ### EINGELESEN

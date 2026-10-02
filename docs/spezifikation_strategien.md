@@ -1426,6 +1426,25 @@ dazu: „Die Bahnen schauen auf den Bildern immer sehr eng.“
     Planfräsen beim Einfahren und der Keil unter der Helix zeigen heute bis 8 ae; teils dünne,
     breite Schnitte, die keine Last sind (dort zählt der Querschnitt). Das ist der nächste
     Schritt.
+  - **Gemessen (P-2026-10-02-74, Last = Querschnitt ÷ (ae · Lagentiefe)):** Räumen in der
+    Tasche 40 × 30 – an den scharfen Ecken der Ringe bis 3,4 ae, 29 mm am Stück über 1,7;
+    Räumen am Rohteilrand 1,6 ae (46 mm), um den Zapfen der Platte 1,67 ae (ein ganzer Ring);
+    Bohrung fräsen 2 ae (10 mm). FreeCADs Adaptiv-Kern (`area.Adaptive2d`) hält mit 0,9 · ae/D
+    als Schritt überall höchstens 1,25 ae; im Offenen ist er schneller (Zapfen 2,0 statt 2,7 min,
+    Platte 30 statt 34, Manuels Klotz 9,4 statt 9,8), in Taschen langsamer (+30 bis +100 %).
+  - **Entschieden (Manuel, 2026-10-02, Frage 6):** „das was schneller ist ... gewinnt .. wenn
+    man volle Tiefe fräst muss der ae schon in einem Rahmen bleiben der nicht das Doppelte ist ..
+    bei einem ae von 1.5mm ... sind 3.5mm nicht drinnen ... aber 2mm wären ... vertretbar ..
+    solange das nicht ein Dauerzustand ist .. und Ecken kann man ja erstmal gesondert mit Bögen
+    rausfahren .. grob vorarbeiten bis man zu den Ecken kommt, diese dann wie eine Nut grob
+    vorarbeiten mit Bögen .. und dann wieder die Kontur der Tasche weiter“. Also: Die schnellste
+    Variante gewinnt, aber nur, wenn sie die Last hält (dauernd höchstens 1,25 ae, kurz bis
+    1,7, nie das Doppelte); Ecken der Tasche vorräumen wie eine Nut in Bögen, dann die Ringe
+    weiter; Adaptiv rechnet als weitere Variante mit. Zu Manuels Bild (Klotz, Zapfen am Rand,
+    22-mal hoch und runter, weil der Spalt zwischen Zapfen und Rand – 11 mm – schmaler ist als
+    der Fräser): „effektiv ist da nur ein Kreis ... nachdem außenrum alles bis auf ae+Aufmaß
+    weggeräumt wurde“ – den Spalt ebenso mit Bögen vorräumen statt jeden Ring abreißen zu
+    lassen (oder Adaptiv, wenn schneller).
 
 ### 12.2 Nuten in Bögen, auch geschlossene – und Konturen von der Seite her
 
@@ -1549,6 +1568,9 @@ anderen Werten schlichten oder mit einem anderen Werkzeug … Aber eins nach dem
 - **Fertig, wenn:** Räumen mit Aufmaß 0,3 an den Wänden und 0,5 am Boden, „Schlichten danach“
   mit einem anderen Fräser und Boden und Wänden angehakt, im Prüffenster ein Teil ohne Rest und
   ohne Stufe am Boden ergibt.
+- **Entschieden (Manuel, 2026-10-02):** **A** „genau so“ – der eigene Block „Schlichten danach“;
+  dazu je die Empfehlung (Boden mit den Ringen des Räumens, Wände in Lagen mit dem ap des
+  Einsatzes, erst Boden, dann Wände).
 
 ### 12.5 Der Assistent in Schritten
 
@@ -1800,7 +1822,15 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
   bleiben 0,00 mm … nirgends ins Teil“ (`szenario_kontur_materialstand`; oben auf dem Zapfen
   1 mm Rohteil – seine Oberseite war nicht gewählt).
 - **Zur Besprechung** (gebaut ist je die Empfehlung; Manuel, 2026-10-02: „Fragen kann ich erst
-  morgen früh oder heute Abend alle beantworten“):
+  morgen früh oder heute Abend alle beantworten“) – **beantwortet** (Manuel, 2026-10-02):
+  Frage 3 (a) „Frage hätte sich erübrigt, wenn man ‚schneller gewinnt‘ durchziehen würde“ –
+  künftig entscheidet die Zeit (durchfahren oder abheben, was schneller ist), ohne Frage.
+  Frage 4 – nicht (a): „wenn's heißt 0,3 ist Schlichtaufmaß .. fahr die Kontur zumindest einmal
+  auf 0,3 einfach an der Kontur ab, dann ist die Frage auch hinfällig“. Frage 5 – so lassen:
+  „wenn ein Konstrukteur in einer Tasche keine Rundungen reinkonstruiert ... dann ist das sein
+  Pech ... natürlich muss man in einer Tasche einfach die Rundung des Fräsers zulassen ...
+  wenn wir zu 5-Achs-Strategien und Ausweichfräsen kommen ... dann können wir über einen Weg
+  reden“.
   - **Frage 3 – eine kurze Lücke im Weggefrästen.** Räumen, Planfräsen und Kontur fahren über
     eine Stelle, an der eine Operation davor schon alles weggenommen hat (Manuels Nut quer unter
     den Ringen des Räumens).
