@@ -1,7 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Die CAM-Operation „3D-Schruppen“ (W-006 4.2 Punkt 1) – das Rohteil über Freiformflächen in
 Lagen wegräumen: Hauptlagen bei vollem ap und schmalem ae wie das Räumen, dazwischen
-Zwischenlagen nur dort, wo über der Fläche noch eine Treppe steht (schruppen3d_bahn).
+Zwischenlagen nur dort, wo über der Fläche noch eine Treppe steht (schruppen3d_bahn). Mit dem
+Durchmesser des Fräsers davor (`DurchmesserDavor` > 0) ist sie „Restschruppen“ (W-006 4.2
+Punkt 2): nur, was der größere Fräser davor stehen ließ.
 
 Wie „Räumen“ eine eigene Operation (erbt FreeCADs ObjectOp) mit Werkzeug-Controller,
 Kühlmittel und FreeCADs Tiefen und Höhen. Beim Neuberechnen rechnet sie ihre Bahn aus Modell
@@ -20,6 +22,7 @@ import Path
 import Path.Op.Base as PathOp
 
 from . import bahn as bn
+from . import fraeserform as ff
 from . import hoehenfeld as hf
 from . import kontur as ko
 from . import namen
@@ -56,6 +59,8 @@ class Schruppen3D(PathOp.ObjectOp):
         obj.Gleichlauf = True
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.Eintauchwinkel = vb.EINTAUCHWINKEL
+        obj.DurchmesserDavor = 0.0  # 0: das ganze Rohteil; sonst Restschruppen
+        obj.EckenradiusDavor = 0.0
         self._editormodi(obj)
 
     def opOnDocumentRestored(self, obj):
@@ -78,6 +83,8 @@ class Schruppen3D(PathOp.ObjectOp):
             ("App::PropertyInteger", "Lagen", tr("r3.eigenschaft.lagen")),
             ("App::PropertyInteger", "Zwischen", tr("r3.eigenschaft.zwischen")),
             ("App::PropertyInteger", "Ringe", tr("ra.eigenschaft.ringe")),
+            ("App::PropertyLength", "DurchmesserDavor", tr("r3.eigenschaft.davor")),
+            ("App::PropertyLength", "EckenradiusDavor", tr("r3.eigenschaft.eckenradius_davor")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -134,7 +141,18 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchwinkel=float(obj.Eintauchwinkel),
         vorschub=vorschub,
         eintauchen=eintauchen,
+        davor=form_davor(obj),
     )
+
+
+def form_davor(obj):
+    """Die Form des Fräsers davor (fraeserform.Form) – None, wenn die Operation das ganze
+    Rohteil schruppt. Eckenradius 0: Schaftfräser, sonst Torus (bis Ø/2)."""
+    durchmesser = float(getattr(obj, "DurchmesserDavor", 0.0) or 0.0)
+    if durchmesser <= 0:
+        return None
+    radius = durchmesser / 2
+    return ff.torus(radius, min(float(getattr(obj, "EckenradiusDavor", 0.0) or 0.0), radius))
 
 
 def bahn_fuer(
@@ -156,9 +174,11 @@ def bahn_fuer(
     schritt=sr.SCHRITT,
     vorschub=0.0,
     eintauchen=0.0,
+    davor=None,
 ):
     """Die Bahn „3D-Schruppen“ über den Freiformflächen `flaechen` für Modell und Rohteil des
-    Jobs. ValueError mit einem Satz, wenn es nicht geht."""
+    Jobs – mit `davor` (Form des größeren Fräsers davor) nur der Rest. ValueError mit einem
+    Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -180,7 +200,7 @@ def bahn_fuer(
         vorschub=vorschub,
         eintauchen=eintauchen,
     )
-    return sr.planen(form_teil, list(flaechen), werte, zwischen, toleranz, schritt)
+    return sr.planen(form_teil, list(flaechen), werte, zwischen, toleranz, schritt, davor)
 
 
 def vorschau(job, modell, form, zustellung, zeilenabstand, aufmass, flaechen, **weiter):
@@ -209,9 +229,11 @@ def lege_an(
     gleichlauf=True,
     name=None,
     flaechen=(),
+    davor=(0.0, 0.0),
 ):
-    """Legt „3D-Schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Die
-    Endtiefe ist der tiefste Punkt der Flächen plus Aufmaß. Gibt die Operation zurück."""
+    """Legt „3D-Schruppen“ im Job an – mit `davor` (Ø, Eckenradius des Fräsers davor; Ø > 0)
+    als „Restschruppen“ – ohne eigene Transaktion, die hält der Aufrufer. Die Endtiefe ist der
+    tiefste Punkt der Flächen plus Aufmaß. Gibt die Operation zurück."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "Schruppen3D")
     obj.addProperty("App::PropertyBool", "DoNotSetDefaultValues", "Path")
@@ -226,11 +248,10 @@ def lege_an(
     obj.CoolantMode = job.SetupSheet.CoolantMode
     pf._hoehen(obj, proxy, job)
     _werte(obj, zustellung, zeilenabstand, aufmass, zwischen, gleichlauf)
+    obj.DurchmesserDavor, obj.EckenradiusDavor = (float(davor[0]), float(davor[1]))
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
-    obj.Label = namen.eindeutig(
-        obj.Document, name or tr("r3.name", werkzeug=f"T{tc.ToolNumber}"), obj
-    )
+    obj.Label = namen.eindeutig(obj.Document, name or _name(tc, float(davor[0])), obj)
     if FreeCAD.GuiUp:
         from . import gui_vierachs_operation
 
@@ -266,12 +287,15 @@ def aendere(
     zwischen=sr.ZWISCHEN,
     gleichlauf=True,
     flaechen=None,
+    davor=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
-    Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
-    vorgeschlagene ist."""
+    Transaktion; `flaechen` und `davor` ohne bleiben. Der Name folgt dem Werkzeug, solange es
+    der vorgeschlagene ist."""
+    if davor is not None:
+        obj.DurchmesserDavor, obj.EckenradiusDavor = (float(davor[0]), float(davor[1]))
     if _vorgeschlagener_name(obj.Label):
-        obj.Label = namen.eindeutig(obj.Document, tr("r3.name", werkzeug=f"T{tc.ToolNumber}"), obj)
+        obj.Label = namen.eindeutig(obj.Document, _name(tc, float(obj.DurchmesserDavor)), obj)
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     _werte(obj, zustellung, zeilenabstand, aufmass, zwischen, gleichlauf)
@@ -282,11 +306,26 @@ def aendere(
         _endtiefe(obj, job)
 
 
+def _name(tc, durchmesser_davor=0.0):
+    """„3D-Schruppen T1“ – oder „Restschruppen T5“."""
+    if durchmesser_davor > 0:
+        return tr("rr.name", werkzeug=f"T{tc.ToolNumber}")
+    return tr("r3.name", werkzeug=f"T{tc.ToolNumber}")
+
+
 def _vorgeschlagener_name(name):
-    """Ist `name` einer, wie lege_an ihn vergibt („3D-Schruppen T1“) – auch mit „ (2)“?"""
-    return namen.nach_vorlage(name, tr("r3.name", werkzeug="\0"))
+    """Ist `name` einer, wie lege_an ihn vergibt („3D-Schruppen T1“, „Restschruppen T5“) – auch
+    mit „ (2)“?"""
+    return namen.nach_vorlage(name, tr("r3.name", werkzeug="\0")) or namen.nach_vorlage(
+        name, tr("rr.name", werkzeug="\0")
+    )
 
 
 def ist_schruppen3d(op):
-    """Ist `op` eine Operation dieses Moduls – „3D-Schruppen“?"""
+    """Ist `op` eine Operation dieses Moduls – „3D-Schruppen“ oder „Restschruppen“?"""
     return isinstance(getattr(op, "Proxy", None), Schruppen3D)
+
+
+def ist_restschruppen(op):
+    """Ist `op` „3D-Schruppen“ als „Restschruppen“ – mit dem Fräser davor?"""
+    return ist_schruppen3d(op) and float(getattr(op, "DurchmesserDavor", 0.0) or 0.0) > 0

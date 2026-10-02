@@ -190,7 +190,19 @@ eben). Kein OCL.
    Räumen ihren Boden noch einmal ganz (es weiß nicht, was schon weg ist); die
    Zwischenlagen mit der Kugel (Restschruppen, Punkt 2).
 2. **Restschruppen** – kleiner Fräser nur dort, wo der große nicht hinkam
-   (Abtrag). Aufwand mittel.
+   (Abtrag). Aufwand mittel. Gebaut (P-2026-10-02-02, 0.66.0) – ohne Abtragsmodell: Was der
+   große Fräser (ebene Stirn) stehen ließ, folgt aus seiner Hüllfläche – je Zelle die tiefste
+   Lage seiner Stirn über ihr, gleitend über die Scheibe (ohne die Treppe seiner Lagen, die
+   nimmt das Schlichten). Damit beginnt das Raster des 3D-Schruppens für den kleinen; jede Lage
+   räumt wie eine Zwischenlage, nur wo Material steht, das er erreicht. Als 3D-Schruppen mit
+   `DurchmesserDavor`/`EckenradiusDavor` („Restschruppen T5“); im Assistenten der Block
+   „Restschruppen“ (Haken von Hand, der größte kleinere Fräser, Ø und Form davor vom
+   3D-Schruppen). Gemessen (`test_restschruppen`): zwei Kuppeln R 12 mit 5,2 mm zwischen den
+   Füßen, nach Ø 12 (4,2 min) mit Ø 6: 0,28 min, nur im Tal, dort 62 statt 138 mm³ über dem
+   Aufmaß (das Höchste 2,2 statt 4,1 mm – auch Ø 6 kommt im Spalt nicht ganz hinunter),
+   nirgends ins Teil; eine Kuppel allein: „Kein Rest“ (`szenario_restschruppen`). Dabei
+   gefunden: Der Morph des Räumens rechnete an zwei Kuppeln fast endlos – jetzt nur mit einer
+   Insel und mit einer Bremse, wenn er nicht vorankommt.
 3. **Schlichten Zeilen** (parallel) – Raster in einem Winkel, Zickzack oder
    einseitig, **Grathöhe als Maß** (Schrittweite aus Grathöhe und Fräserform,
    `vierachs_bahn.rillenhoehe` gibt es schon), Zeilen nur über der Fläche,
@@ -700,7 +712,8 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   zu Ring gleitet die Bahn über 2 R hinüber, ohne Absetzen. Liegt die Insel
   nicht in der Mitte (der schmalste Spalt kleiner als 0,4 des breitesten) oder
   berührt sie den Rand, rechnet der Morph nicht (er würde zu eng, auf der
-  Platte 66 min); dann zählen die anderen Varianten – und „inseln“ (nur die
+  Platte 66 min) – ebenso bei mehreren Inseln, und kommt er zwölfmal nacheinander nicht voran,
+  endet er (an zwei Kuppeln rechnete er sonst fast endlos, P-2026-10-02-02); dann zählen die anderen Varianten – und „inseln“ (nur die
   Ringe um Wände und Inseln; in der Tasche von innen nach außen; Taschen
   rechnen nur diese Variante). Auf Manuels 50 × 50 mit Zapfen: morph 2,70 min
   (eine Einfahrt, keine Rampe, 7 Halte), rohteil 3,03, inseln 4,49 – der Morph

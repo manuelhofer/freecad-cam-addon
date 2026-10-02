@@ -55,6 +55,9 @@ MORPH_SCHRITTE = 18  # Halbierungen bei der Suche nach dem nächsten Ring
 # Morph nicht: Wo der Spalt schmal ist, lägen die Ringe viel zu eng (die Platte mit dem Zapfen
 # außerhalb der Mitte: 66 statt 33 min). Dann wird er gar nicht gerechnet.
 MORPH_VERHAELTNIS = 0.4
+# Kommt der Morph so oft nacheinander nicht voran (je ein Viertel weiter), endet er – dann nimmt
+# der Ring an der Insel den Rest (sonst rechnete er an zwei Inseln fast endlos, P-2026-10-02-02).
+MORPH_OHNE_FORTSCHRITT = 12
 
 
 class _KeinMorph(Exception):
@@ -1471,6 +1474,9 @@ def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genau
         return  # keine Insel: die Ringe vom Rohteil her sind schon rund genug
     if (insel & (feld.tiefe <= aussen + ae)).any():
         raise _KeinMorph()  # die Insel reicht bis an den Rand
+    um_inseln = [g for _p, g in _hoehenlinien(D, feld.xs, feld.ys, 0.0) if g]
+    if len(um_inseln) > 1:
+        raise _KeinMorph()  # mehrere Inseln: der Morph rundet auf eine zu
     erster = _rohteil_ring(w.rohteil, aussen, material_links, schritt)
     if erster is None:
         return
@@ -1496,10 +1502,13 @@ def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genau
         return
     u_insel = float(_bilinear(u, feld, kx, ky).max())  # darüber liegt jeder Ring außerhalb
     niveau = 1.0
+    ohne_fortschritt = 0
     for _nummer in range(1, 100000):
         eingriff = feld.eingriff()
         if float(_bilinear(eingriff, feld, kx, ky).max()) <= grenze + 1e-9:
             break  # der Ring um die Insel ist dran
+        if ohne_fortschritt >= MORPH_OHNE_FORTSCHRITT:
+            break
         unten, oben_ = u_insel, niveau
         for _ in range(MORPH_SCHRITTE):
             mitte = 0.5 * (unten + oben_)
@@ -1510,6 +1519,9 @@ def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genau
                 unten = mitte
         if oben_ >= niveau - 1e-9:
             oben_ = niveau - 0.25 * (niveau - u_insel)  # kein Fortschritt: ein Viertel weiter
+            ohne_fortschritt += 1
+        else:
+            ohne_fortschritt = 0
         niveau = oben_
         ringe = []
         for punkte, geschlossen in _hoehenlinien(u, feld.xs, feld.ys, niveau):

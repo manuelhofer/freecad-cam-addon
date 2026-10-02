@@ -16,6 +16,12 @@ aus dem Freien oder über die Rampe.
   unter der Stirn Material ist. Bei der kleinen Tiefe dürfen die Ringe weiter auseinander: so
   viel Material je mm wie in der Hauptlage (ae · ap gleich), höchstens der Radius.
 - Der Eilgang hinab endet über dem höchsten Material unter der Stirn (das Raster).
+- **Restschruppen** (W-006 4.2 Punkt 2, P-2026-10-02-02): Mit `davor` (die Form des größeren
+  Fräsers, der vorher schruppte) beginnt das Raster nicht mit dem vollen Rohteil, sondern mit
+  dem, was der große stehen ließ: je Zelle die tiefste Lage seiner ebenen Stirn über ihr – so
+  tief, wie seine Hüllfläche ihn lässt, gleitend über seine Scheibe (`_nach_davor`; ohne die
+  Treppe seiner Lagen, die nimmt das Schlichten). Dann räumt jede Lage wie eine Zwischenlage:
+  nur wo darüber Material steht, das dieser erreicht – in engen Lücken, Ecken, Kehlen.
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -176,6 +182,28 @@ def _ringe_zwischen(ablauf, feld, w, D, material, material_links, schritt, toler
         rb._naechster_zuerst(ablauf, ringe, True, f"zwischen {nummer}", nur)
 
 
+def _nach_davor(feld, netz, davor, aufmass, toleranz, ziel):
+    """(nx, ny) mm: bis wohin das Material reicht, nachdem der größere Fräser `davor` (Form mit
+    ebener Stirn) überall so tief fuhr, wie er kann – je Zelle die tiefste Lage seiner ebenen
+    Stirn über ihr (gleitendes Minimum über die Scheibe); wo ihn nichts hält, bis aufs Ziel."""
+    geformt = rb.form_mit_aufmass(davor, aufmass + toleranz)
+    roh = hf.je_zeile(netz, geformt, feld.ys, feld.x0, feld.schritt, feld.nx, True)
+    zugabe = aufmass + toleranz + vb.RAND
+    spitze = np.where(roh <= ziel + GLEICH, ziel, np.maximum(roh + zugabe, ziel))
+    radius = max(float(vp.ebener_radius(davor)) - 0.01, feld.schritt)
+    m = int(radius / feld.schritt + 1e-9)
+    hoehe = spitze.copy()
+    for di in range(-m, m + 1):
+        ziel_i, quelle_i = sb._verschoben(di, feld.nx)
+        for dj in range(-m, m + 1):
+            if (di == 0 and dj == 0) or math.hypot(di, dj) * feld.schritt > radius + 1e-9:
+                continue
+            ziel_j, quelle_j = sb._verschoben(dj, feld.ny)
+            teil = hoehe[ziel_i, ziel_j]
+            np.minimum(teil, spitze[quelle_i, quelle_j], out=teil)
+    return hoehe
+
+
 def _lagen(oben, ziel, zustellung, zwischen):
     """([(z, ist_zwischenlage, vorige)], ap der Hauptlagen) – die Hauptlagen von oben bis
     `ziel`, je höchstens `zustellung` und gleich weit, nach jeder die Zwischenlagen darüber bis
@@ -198,9 +226,10 @@ def _lagen(oben, ziel, zustellung, zwischen):
     return folge, (oben - ziel) / anzahl
 
 
-def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen):
+def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen, davor=None):
     """Alle Lagen in der Variante (die der Hauptlagen); gibt (Hauptlagen, Zwischenlagen) mit
-    Schnitt zurück."""
+    Schnitt zurück. Mit `davor` (Form des größeren Fräsers davor) nur der Rest: jede Lage wie
+    eine Zwischenlage, das Material aus _nach_davor."""
     aufmass = max(w.aufmass, 0.0)
     ziel = z_unten + aufmass
     oben = w.oben
@@ -231,6 +260,9 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen):
     )
     rechteck = (feld.rohteil_zellen, feld.beruehrt, feld.eng)
     hoehe = np.where(feld.rohteil_zellen, oben, -np.inf)
+    if davor is not None:
+        nach = _nach_davor(feld, netz, davor, aufmass, toleranz, ziel)
+        hoehe = np.where(feld.rohteil_zellen, np.minimum(oben, nach), -np.inf)
     aufweiten = _Aufweiten(feld)
     stempel = _scheibe(r, schritt)
     gx, gy = np.meshgrid(feld.xs, feld.ys, indexing="ij")
@@ -240,10 +272,11 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen):
     material_links = not w.gleichlauf  # Gleichlauf (M3): das Material rechts
     haupt = zwischenlagen = 0
     folge, ap_haupt = _lagen(oben, ziel, zustellung, zwischen)
-    for lage, ist_zwischen, vorige in folge:
+    for lage, zwischenlage, vorige in folge:
         erlaubt = feld.erlaubt_feld(lage, z_unten)
         gesperrt = _breiter(~erlaubt)
         werte = w
+        ist_zwischen = zwischenlage or davor is not None  # der Rest: nur, wo Material steht
         if ist_zwischen:
             # Die Ringe nur für das, was über der Lage steht und der Fräser hier erreicht – eine
             # Zelle weniger weit als die Stirn vom Freien, damit der Rand am Gesperrten (den der
@@ -294,7 +327,7 @@ def _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen):
         ablauf.heben()
         hoehe[feld.frei] = np.minimum(hoehe[feld.frei], lage)
         if st.ringe > vorher:
-            if ist_zwischen:
+            if zwischenlage:
                 zwischenlagen += 1
             else:
                 haupt += 1
@@ -314,9 +347,12 @@ def bereich(form_teil, namen):
     return flaechen, z_unten
 
 
-def planen(form_teil, namen, werte, zwischen=ZWISCHEN, toleranz=hf.TOLERANZ, schritt=SCHRITT):
+def planen(
+    form_teil, namen, werte, zwischen=ZWISCHEN, toleranz=hf.TOLERANZ, schritt=SCHRITT, davor=None
+):
     """Die Bahn „3D-Schruppen“ (Schruppbahn) über den Freiformflächen `namen` von `form_teil`
-    mit den Werten `werte` (raeumen_bahn.Raeumwerte; `aufmass` gilt überall, auch unten).
+    mit den Werten `werte` (raeumen_bahn.Raeumwerte; `aufmass` gilt überall, auch unten) – mit
+    `davor` (Form des größeren Fräsers davor, ebene Stirn) nur der Rest, den er ließ.
     ValueError mit einem Satz, wenn es nicht geht."""
     from . import vierachs_flaechen as vf
 
@@ -330,12 +366,18 @@ def planen(form_teil, namen, werte, zwischen=ZWISCHEN, toleranz=hf.TOLERANZ, sch
         raise ValueError(tr("ra.fehler.zeilenabstand"))
     _flaechen, z_unten = bereich(form_teil, namen)
     netz = vf.vernetze(form_teil, toleranz).netz
+    if davor is not None and vp.ebener_radius(davor) <= 0:
+        raise ValueError(tr("ra.fehler.form"))
     varianten = (w.variante,) if w.variante in rb.VARIANTEN else rb.VARIANTEN
+    if davor is not None:
+        varianten = ("rohteil",)  # jede Lage wie eine Zwischenlage: keine Varianten
     ergebnisse = {}
     for variante in varianten:
         st = rb._Stand()
         try:
-            haupt, zwischenlagen = _schruppen(st, netz, w, z_unten, variante, r, schritt, zwischen)
+            haupt, zwischenlagen = _schruppen(
+                st, netz, w, z_unten, variante, r, schritt, zwischen, davor
+            )
         except rb._KeinMorph:
             continue
         if st.ringe == 0:
@@ -343,7 +385,7 @@ def planen(form_teil, namen, werte, zwischen=ZWISCHEN, toleranz=hf.TOLERANZ, sch
         zeit = bn.zeit(st.punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
         ergebnisse[variante] = (st, zeit, haupt, zwischenlagen)
     if not ergebnisse:
-        raise ValueError(tr("r3.fehler.nichts"))
+        raise ValueError(tr("r3.fehler.kein_rest" if davor is not None else "r3.fehler.nichts"))
     variante = min(ergebnisse, key=lambda v: ergebnisse[v][1])
     st, zeit, haupt, zwischenlagen = ergebnisse[variante]
     return Schruppbahn(

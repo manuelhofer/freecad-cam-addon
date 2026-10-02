@@ -198,7 +198,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   Kehlen nachfahren, wo die Kugel zwei Flächen zugleich berührt – etwa der Ring am Fuß
   einer Kuppel, wo die Zeilen enden. **Restschlichten**: mit dem kleineren Kugelfräser nur
   dort nachschlichten, wo der große davor nicht hinkam (Kehlen, enge Rundungen) – gerechnet aus
-  den Flächen, die beide Fräser stehen lassen.
+  den Flächen, die beide Fräser stehen lassen. **Restschruppen**: mit dem kleineren Fräser nur,
+  was der große beim 3D-Schruppen stehen ließ (enge Lücken, Ecken).
 - **Beispiele:** `beispiele/` – Manuels Testteil für die 4-Achs-Bearbeitung
   (Loft mit D-Profil), mit Anleitung in `beispiele/README.md`.
 

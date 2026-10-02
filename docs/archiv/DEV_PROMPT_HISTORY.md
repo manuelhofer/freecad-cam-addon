@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-02 restschruppen
+
+### EINGELESEN
+- `schruppen3d_bahn` (`_schruppen`, `_lagen`, `_Aufweiten`, `_ringe_zwischen`, `planen`),
+  `schruppen3d` (Eigenschaften, `rechne`, `bahn_fuer`, `lege_an`, `aendere`, Namen),
+  `raeumen_bahn._Feld` (`roh`, `erlaubt_feld`, `zugabe`), `vierachs_planbahn.ebener_radius`,
+  `gui_bearbeitung` (`_Schruppen3D`, `_Restschlichten`, `_davor_3d`).
+
+### DATEIEN
+- `camaddon/schruppen3d_bahn.py`, `camaddon/schruppen3d.py`, `camaddon/raeumen_bahn.py`,
+  `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `tests/test_restschruppen.py` (neu), `tests/gui/szenario_restschruppen.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/aufbau.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.66.0)
+
+### AKZEPTANZKRITERIUM
+Zwei Kuppeln (R 12, Fuß Ø 20,8) mit 5,2 mm zwischen den Füßen: nach dem 3D-Schruppen mit Ø 12
+schruppt „Restschruppen“ mit Ø 6 nur im Tal dazwischen; im Quader steht dort danach deutlich
+weniger, nirgends ins Teil, im Eilgang nichts; eine Kuppel allein: „Kein Rest“. Im Assistenten
+der Block „Restschruppen“ (Haken von Hand, vorgewählt der größte kleinere Fräser mit ebener
+Stirn, Ø und Form davor vom 3D-Schruppen); die Operation „Restschruppen T5“ mit Ø 12 und
+Eckenradius 0 davor.
+
+### DONE
+- `schruppen3d_bahn`: `_nach_davor` (das Material nach dem großen Fräser aus seiner Hüllfläche:
+  je Zelle die tiefste Lage seiner ebenen Stirn, gleitend über die Scheibe), `_schruppen(davor)`:
+  jede Lage wie eine Zwischenlage, nur wo Material steht; gezählt nach der Art der Lage; nur die
+  Variante „rohteil“; „Kein Rest“, wenn nichts zu fräsen ist.
+- `schruppen3d`: `DurchmesserDavor`, `EckenradiusDavor`, `form_davor`, `ist_restschruppen`, Name
+  „Restschruppen T…“.
+- Dabei gefunden: Der Morph des Räumens rechnete an zwei Kuppeln fast endlos (die Schleife bis
+  100 000 Runden, je ein Viertel weiter ohne Fortschritt) – jetzt nur mit einer Insel
+  (`_hoehenlinien(D, 0)` zählt die Ringe um Inseln) und nach `MORPH_OHNE_FORTSCHRITT` Runden ohne
+  Fortschritt Schluss; betrifft auch Räumen und 3D-Schruppen.
+- Assistent: `_Restschruppen` (nach dem 3D-Schruppen), `_davor_3d(rest, gross)` und die Wahl des
+  größten kleineren Fräsers für beide Rest-Blöcke; `_Schruppen3D.ist` ohne Restschruppen.
+
+### TEST
+- 1.1.3: `test_restschruppen` (neu; im Tal 138 → 62 mm³, 0,28 min), `test_schruppen3d` (Kuppel
+  unverändert 6,11 min), `test_raeumen`, `test_pruefstand` grün; Szenarien `szenario_restschruppen`
+  (neu) und `szenario_restschlichten` (der gemeinsame `_davor_3d`) grün; black/ruff grün.
+
+### NEXT
+- Äquidistantes Schlichten (4.2 Punkt 5); Kontur in Bohrungen ohne Vollschnitt beim Einfahren.
+
 ## P-2026-10-02-01 restschlichten
 
 ### EINGELESEN

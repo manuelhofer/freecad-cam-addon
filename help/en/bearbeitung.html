@@ -383,6 +383,22 @@ large, its neck too thick, it does not reach deep enough.</li>
 around each hole it may go into the part up to the tip of the tooth, not beside it.</li>
 </ul>
 
+<h3>19. Rest roughing</h3>
+<ul>
+<li>After 3D roughing, rough with a <b>smaller cutter</b> (flat face) only what the large one
+left – in narrow gaps between freeform faces, in corners and fillets it could not get down into.
+You set the tick yourself; preselected is the largest cutter smaller than the one of 3D
+roughing.</li>
+<li><b>Cutter before Ø</b> (empty: the one of 3D roughing in the window, with its shape): what
+remains is computed from its envelope – as deep as its flat face got. Entered by hand, the cutter
+before counts as a flat end mill. The other fields as in 3D roughing.</li>
+<li>There it runs layers like 3D roughing (full depth of cut, intermediate layers for the
+steps), but only where material stands above the layer that the small one reaches. The steps the
+large one left on the faces remain for finishing.</li>
+<li>If there is no rest anywhere, it says so in red. The operation is called “Rest roughing T5”
+and comes after 3D roughing.</li>
+</ul>
+
 <h3>18. Rest finishing</h3>
 <ul>
 <li>After 3D finishing, finish again with a <b>smaller ball end mill</b> (or bull nose) only
@@ -540,6 +556,6 @@ uses it any more.</p>
 
 <h3>What comes next</h3>
 <p>The entry (ramp, helix, vertical) by time, trochoids in tight corners of pockets,
-rest roughing with the smaller cutter – following the plan in specification W-006.</p>
+equidistant finishing and flowline – following the plan in specification W-006.</p>
 </body>
 </html>
