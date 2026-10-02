@@ -124,7 +124,13 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    davor von der Kontur oder dem Räumen im Fenster, vorgewählt der größte
    kleinere Fräser). Am Taschenteil mit scharfen Ecken: nach Ø 12 R 6, nach
    Ø 4 R 2, vier Stellen je Lage (`test_rest`, `szenario_rest`). Restmaterial
-   auf Böden (Räumen mit dem kleineren) folgt mit dem Abtragsmodell.
+   auf Böden (Räumen mit dem kleineren) folgt mit dem Abtragsmodell. Den Haken
+   setzt der Assistent selbst (Manuel, 2026-10-02: „Ja“; P-2026-10-02-19, 0.81.0),
+   wenn die Kontur gezeichnete Rundungen innen fährt, die kleiner sind als ihr
+   Fräser, und ein kleinerer da ist (`kontur_bahn.innenrundungen`: Stück Zylinder
+   mit senkrechter Achse, keine ganze Bohrung, zur Achse hin frei) – an der Tasche
+   mit Ecken R 4 nach dem Ø 12 T3 Ø 6 (`szenario_ecken`). Scharfe Ecken nicht: dort
+   kommt kein Fräser ganz hin, wie weit, entscheidet man selbst.
 6. **Nut** – mit Rampe oder Trochoide statt Vollschnitt. Aufwand klein bis
    mittel. Gebaut (P-2026-10-01-40, 0.56.0) für geschlossene Langlöcher, mit und
    ohne Grund (S3g, „Nut“). Offene Nuten (P-2026-10-01-47, 0.62.0): an einem Ende

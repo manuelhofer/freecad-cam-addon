@@ -210,6 +210,29 @@ def boeden_vor(form, namen):
     return boeden
 
 
+def innenrundungen(form, namen):
+    """[(Name, Radius)] der gezeichneten Rundungen innen unter den Wänden `namen`: ein Stück
+    Zylinder mit senkrechter Achse (keine ganze Bohrung), zur Achse hin frei – die Ecke einer
+    Tasche. Ein Fräser mit größerem Radius kommt nicht hinein (P-2026-10-02-19)."""
+    import Part
+
+    ergebnis = []
+    for wand in waende(form, namen):
+        flaeche = wand.flaeche
+        zylinder = flaeche.Surface
+        if not isinstance(zylinder, Part.Cylinder) or abs(abs(zylinder.Axis.z) - 1.0) > 1e-6:
+            continue
+        u0, u1, v0, v1 = flaeche.ParameterRange
+        if u1 - u0 >= 2 * math.pi - 1e-6:
+            continue  # eine ganze Bohrung
+        u, v = (u0 + u1) / 2, (v0 + v1) / 2
+        punkt, normale = flaeche.valueAt(u, v), flaeche.normalAt(u, v)
+        zur_achse = zylinder.Center - punkt
+        if normale.x * zur_achse.x + normale.y * zur_achse.y > 0:
+            ergebnis.append((wand.name, float(zylinder.Radius)))
+    return ergebnis
+
+
 def _schluessel(kante):
     mitte = kante.valueAt((kante.FirstParameter + kante.LastParameter) / 2)
     return (round(mitte.x, 4), round(mitte.y, 4), round(mitte.z, 4), round(kante.Length, 4))

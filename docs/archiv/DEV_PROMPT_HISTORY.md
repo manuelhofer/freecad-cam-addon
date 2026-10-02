@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-19 rest-von-selbst
+
+### EINGELESEN
+- `gui_bearbeitung` (`_haken_vorschlagen`, `_restfraeser_waehlen`, `_davor_durchmesser`,
+  `_Rest.vorgeschlagen`), `kontur_bahn` (`waende`, `ist_wand`), `tests/test_rest.py`.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py`, `camaddon/gui_bearbeitung.py`, `translations/de.json`,
+  `translations/en.json`, `help/de|en/bearbeitung.html`, `tests/test_rest.py`,
+  `tests/gui/szenario_ecken.py` (neu), `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.81.0)
+
+### AKZEPTANZKRITERIUM
+Manuel (2026-10-02) auf die Frage, ob der Assistent „Restmaterial“ selbst anhaken soll, wenn
+gezeichnete Rundungen kleiner sind als der Fräser und ein kleinerer in der Werkzeugverwaltung
+steht: „Ja.“ – Tasche 50 × 30 × 10 mit Ecken R 4, T1 Ø 12, T3 Ø 6: Boden und Wände angeklickt,
+„Restmaterial“ mit T3 angehakt, ohne Klick; von Hand abgehakt bleibt er ab, auch wenn sich die
+Wahl ändert; „Anlegen“: „Restmaterial T3“ nach der Kontur; am Ende nirgends ins Teil.
+
+### DONE
+- `kontur_bahn.innenrundungen`: die Wände, die ein Stück Zylinder mit senkrechter Achse sind –
+  keine ganze Bohrung, zur Achse hin frei (die Ecke einer Tasche).
+- `BearbeitungPanel._rest_vorschlagen` nach `_restfraeser_waehlen`: Kontur angehakt, ein
+  kleinerer Fräser gewählt, eine Rundung innen kleiner als der Radius der Kontur (Bohrungen
+  ausgenommen) – dann der Haken, solange ihn niemand von Hand gesetzt hat. Scharfe Ecken nicht.
+- „ba.rest.text“ und die Hilfe sagen es.
+
+### TEST
+- 1.1.3: `test_rest` (Tasche R 4: vier Rundungen innen, Zapfen R 4: keine), `test_sprache`,
+  `test_hilfe`; `szenario_ecken` (neu) und die Szenarien des Assistenten „Bearbeitung“ (siehe
+  Commit) grün; black/ruff grün.
+
+### NEXT
+- Gleichlauf nach der Drehrichtung am Controller (Manuel: die Spindel kann beide).
+
 ## P-2026-10-02-18 planfraesen-wand
 
 ### EINGELESEN

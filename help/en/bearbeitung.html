@@ -350,7 +350,10 @@ spots narrower than it, a <b>smaller</b> one takes – after the contour with Ø
 corner keeps a radius 6, after the Ø 4 only a radius 2.</li>
 <li><b>Cutter</b>: the largest one smaller than the one before is preselected. <b>Cutter
 before Ø</b> (empty: the one of the contour, else the one of the clearing in this window)
-and <b>Depth per layer</b> (empty: from the application). You set the tick yourself.</li>
+and <b>Depth per layer</b> (empty: from the application). The assistant sets the
+<b>tick</b> itself when the contour runs drawn inner fillets smaller than its cutter (a corner
+R 4 after the Ø 12) and a smaller one is there; otherwise you set it – and unticked by hand
+it stays off.</li>
 <li>The path: one beside the wall, only where the small cutter's circle sticks out of the
 large one's way, and longer by its radius so it joins cleanly; in layers from the top of the
 wall down, climb milling, tangentially in and out, straight down in the open area the large

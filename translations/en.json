@@ -1747,7 +1747,7 @@
     "rm.fehler.nicht_groesser": "The cutter before must be larger than this one – otherwise there is no rest material for it.",
     "rm.fehler.nichts": "The cutter before reached everywhere – no rest material remains at these walls.",
     "ba.rest": "Rest material",
-    "ba.rest.text": "Takes with a smaller cutter what the large one left at the selected walls – in inner corners and at spots narrower than it: one path beside the wall, only where the small one sticks out of the large one's way, in layers, climb milling, tangentially in and out. Comes after the contour; you set the tick yourself.",
+    "ba.rest.text": "Takes with a smaller cutter what the large one left at the selected walls – in inner corners and at spots narrower than it: one path beside the wall, only where the small one sticks out of the large one's way, in layers, climb milling, tangentially in and out. Comes after the contour. The assistant sets the tick when drawn inner fillets are smaller than the contour's cutter and a smaller one is there.",
     "ba.rest.nicht": "For walls, after a larger cutter – click the walls the contour runs along.",
     "ba.restfraeser.tooltip": "A cutter with a flat face from the tool management, smaller than the one before – the largest smaller one preselected.",
     "ba.resteinsatz.tooltip": "The cutting data – “Finishing” preselected.",

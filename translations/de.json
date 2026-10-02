@@ -1747,7 +1747,7 @@
     "rm.fehler.nicht_groesser": "Der Fräser davor muss größer sein als dieser – sonst gibt es kein Restmaterial für ihn.",
     "rm.fehler.nichts": "Der Fräser davor kam überall hin – an diesen Wänden bleibt kein Restmaterial.",
     "ba.rest": "Restmaterial",
-    "ba.rest.text": "Holt mit einem kleineren Fräser, was der große an den gewählten Wänden stehen ließ – in Ecken innen und an Stellen, schmaler als er: eine Bahn neben der Wand, nur dort, wo der kleine aus dem Weg des großen herausragt, in Lagen, im Gleichlauf, tangential hinein und heraus. Kommt nach der Kontur; den Haken setzt man selbst.",
+    "ba.rest.text": "Holt mit einem kleineren Fräser, was der große an den gewählten Wänden stehen ließ – in Ecken innen und an Stellen, schmaler als er: eine Bahn neben der Wand, nur dort, wo der kleine aus dem Weg des großen herausragt, in Lagen, im Gleichlauf, tangential hinein und heraus. Kommt nach der Kontur. Den Haken setzt der Assistent, wenn gezeichnete Rundungen innen kleiner sind als der Fräser der Kontur und ein kleinerer da ist.",
     "ba.rest.nicht": "Für Wände, nach einem größeren Fräser – die Wände anklicken, die die Kontur fährt.",
     "ba.restfraeser.tooltip": "Ein Fräser mit ebener Stirn aus der Werkzeugverwaltung, kleiner als der davor – vorgewählt der größte, der kleiner ist.",
     "ba.resteinsatz.tooltip": "Die Schnittwerte – vorgewählt „Schlichten“.",

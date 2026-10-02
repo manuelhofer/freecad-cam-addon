@@ -174,6 +174,26 @@ pruefe((op.Lagen, op.Bahnen) == (2, 8), f"Operation: {op.Lagen} Lagen, {op.Bahne
 pruefe(js.operationsart(op) == "kontur", f"Art {js.operationsart(op)}")
 print(ascii(f"Operation: {len(op.Path.Commands)} Befehle"))
 
+# --- Gezeichnete Rundungen innen (P-2026-10-02-19): danach hakt der Assistent „Restmaterial“ an.
+# Eine Tasche 50 × 30 × 10 mit den senkrechten Ecken R 4: vier Rundungen innen; ein Zapfen mit
+# denselben Ecken: außen, keine; eine Bohrung Ø 8: ganz rund, keine.
+tasche = Part.makeBox(50, 30, 10, V(25, 15, -10))
+senkrecht = [k for k in tasche.Edges if abs(k.BoundBox.ZMax - k.BoundBox.ZMin) > 1]
+platte = Part.makeBox(100, 60, 20, V(0, 0, -20)).cut(tasche.makeFillet(4, senkrecht))
+platte = platte.cut(Part.makeCylinder(4, 20, V(10, 10, -20))).removeSplitter()
+alle = [f"Face{i + 1}" for i in range(len(platte.Faces))]
+innen = kb.innenrundungen(platte, alle)
+pruefe(
+    len(innen) == 4 and all(abs(r - 4.0) < 1e-6 for _n, r in innen),
+    f"Tasche mit R 4: {innen}",
+)
+zapfen = Part.makeBox(100, 60, 20, V(0, 0, -20)).fuse(
+    tasche.makeFillet(4, senkrecht).translate(V(0, 0, 10))
+)
+zapfen = zapfen.removeSplitter()
+aussen = kb.innenrundungen(zapfen, [f"Face{i + 1}" for i in range(len(zapfen.Faces))])
+pruefe(aussen == [], f"Zapfen mit R 4: {aussen}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

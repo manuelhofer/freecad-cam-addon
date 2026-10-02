@@ -1299,7 +1299,7 @@ class _Rest(_Strategie):
         return bool(kb.waende(form, [name]))
 
     def vorgeschlagen(self, form, gewaehlte):
-        return False  # ob der kleine Fräser nachkommt, entscheidet man selbst
+        return False  # nach den Rundungen und den Fräsern: BearbeitungPanel._rest_vorschlagen
 
     def unmoeglich_text(self):
         return tr("ba.rest.nicht")
@@ -2920,6 +2920,7 @@ class BearbeitungPanel:
         finally:
             self._fuellt = False
         self._restfraeser_waehlen()
+        self._rest_vorschlagen(form)
         self._restschlichtfraeser_waehlen()
 
     def haken_geklickt(self, block):
@@ -3239,6 +3240,31 @@ class BearbeitungPanel:
         ]
         if kleiner:
             self.rest.wahl_fraeser.setCurrentIndex(max(kleiner)[1])
+
+    def _rest_vorschlagen(self, form):
+        """Der Haken bei „Restmaterial“, wenn die Kontur gezeichnete Rundungen innen fährt, die
+        kleiner sind als ihr Fräser, und ein kleinerer da ist (Manuel, 2026-10-02: „Ja“) – sonst
+        blieb in einer Ecke R 4 nach dem Ø 12 R 6 stehen. Von Hand gesetzt bleibt er, wie er ist."""
+        rest = self.rest
+        klein = rest.fraeser()
+        if rest.von_hand or not rest.moeglich or klein is None or not self.kontur.aktiv():
+            return
+        gross = self.kontur.fraeser()
+        if gross is None or float(klein.durchmesser) >= float(gross.durchmesser) - 1e-6:
+            return
+        waende = rest.s.flaechen_fuer(form, self.gewaehlte)
+        bohrungen = {b.name for b in bb.bohrungen(form, waende)}
+        radius = float(gross.durchmesser) / 2
+        if any(
+            r < radius - 1e-6 and name not in bohrungen
+            for name, r in kb.innenrundungen(form, waende)
+        ):
+            self._fuellt = True
+            try:
+                rest.haken.setChecked(True)
+                rest.zustand_zeigen()
+            finally:
+                self._fuellt = False
 
     def _flaechen(self, block, form):
         """Die Flächen des Blocks – beim Räumen ohne die, die das Planfräsen schon fräst
