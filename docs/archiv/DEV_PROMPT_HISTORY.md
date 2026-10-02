@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-38 passt-nicht-einklappen
+
+### EINGELESEN
+- P-2026-10-02-37: Unter „Passt nicht zur Auswahl“ je Block eine Zeile – bei Manuels Platte
+  16 Zeilen, der größte Teil des Fensters.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_klappknopf`, `passt_nicht_knopf`, `_passt_nicht_aufklappen`,
+  `_bloecke_ordnen`), `translations/de|en.json`, `tests/gui/szenario_zielzeit.py`,
+  `help/de|en/bearbeitung.html`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.96.4)
+
+### AKZEPTANZKRITERIUM
+Was nicht passt, steht eingeklappt unter „Passt nicht zur Auswahl (16)“; ein Klick zeigt die
+Zeilen. Passt noch nichts (nichts gewählt), steht die Liste offen da.
+
+### DONE
+- Ein Knopf wie bei „Rohteil und Nullpunkt“ (beide jetzt aus `_klappknopf`), daneben grau
+  „Klick zeigt, was man dafür im 3D anklicken muss.“
+- Manuels Platte im Bild: 771 Pixel (zu Beginn der Nacht 5101).
+
+### TEST
+- 1.1.3: `szenario_zielzeit` (eingeklappt, Zahl, aufgeklappt alle Zeilen, zwei Bilder),
+  `szenario_bearbeitung`, `szenario_kontur`, `szenario_bohrung`; `test_hilfe`; black/ruff grün.
+
+### NEXT
+- Manuels Urteil, ob er die Liste lieber offen hätte.
+
 ## P-2026-10-02-37 passt-nicht-eine-zeile
 
 ### EINGELESEN

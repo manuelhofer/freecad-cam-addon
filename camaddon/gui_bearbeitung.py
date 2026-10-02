@@ -131,6 +131,21 @@ def _grau(text=""):
     return etikett
 
 
+def _klappknopf(text, tooltip):
+    """Ein fetter Knopf mit Pfeil, der einen Bereich auf- und zuklappt."""
+    knopf = QtGui.QToolButton()
+    knopf.setArrowType(QtCore.Qt.RightArrow)
+    knopf.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
+    knopf.setText(text)
+    knopf.setToolTip(tooltip)
+    knopf.setAutoRaise(True)
+    knopf.setCheckable(True)
+    schrift = knopf.font()
+    schrift.setBold(True)
+    knopf.setFont(schrift)
+    return knopf
+
+
 def nullpunkte():
     """[(Text, (sx, sy, sz))] – die 22 Punkte des Rohteil-Quaders zur Wahl als Nullpunkt
     (Manuel, 2026-10-01): die 8 Ecken, die 12 Kantenmitten, die Mitte oben und unten;
@@ -2387,16 +2402,9 @@ class BearbeitungPanel:
         kopf = QtGui.QWidget()
         kopf_aufbau = QtGui.QHBoxLayout(kopf)
         kopf_aufbau.setContentsMargins(0, 0, 0, 0)
-        self.rohteil_knopf = QtGui.QToolButton()
-        self.rohteil_knopf.setArrowType(QtCore.Qt.RightArrow)
-        self.rohteil_knopf.setToolButtonStyle(QtCore.Qt.ToolButtonTextBesideIcon)
-        self.rohteil_knopf.setText(tr("ba.rohteil_nullpunkt"))
-        self.rohteil_knopf.setToolTip(tr("ba.rohteil_nullpunkt.tooltip"))
-        self.rohteil_knopf.setAutoRaise(True)
-        self.rohteil_knopf.setCheckable(True)
-        schrift = self.rohteil_knopf.font()
-        schrift.setBold(True)
-        self.rohteil_knopf.setFont(schrift)
+        self.rohteil_knopf = _klappknopf(
+            tr("ba.rohteil_nullpunkt"), tr("ba.rohteil_nullpunkt.tooltip")
+        )
         kopf_aufbau.addWidget(self.rohteil_knopf)
         self.rohteil_kurz = _grau()
         kopf_aufbau.addWidget(self.rohteil_kurz, 1)
@@ -2512,13 +2520,19 @@ class BearbeitungPanel:
             block = _Block(self, strategie())
             self.bloecke.append(block)
             aufbau.addWidget(block.widget)
-        self.passt_nicht = _grau(tr("ba.passt_nicht"))
-        schrift = self.passt_nicht.font()
-        schrift.setBold(True)
-        self.passt_nicht.setFont(schrift)
+        # Was nicht passt, steht eingeklappt unter einer Zeile mit seiner Zahl; ein Klick zeigt je
+        # Strategie, was man dafür im 3D anklicken muss.
+        self.passt_nicht = QtGui.QWidget()
+        kopf_aufbau = QtGui.QHBoxLayout(self.passt_nicht)
+        kopf_aufbau.setContentsMargins(0, 0, 0, 0)
+        self.passt_nicht_knopf = _klappknopf("", tr("ba.passt_nicht.tooltip"))
+        kopf_aufbau.addWidget(self.passt_nicht_knopf)
+        self.passt_nicht_kurz = _grau(tr("ba.passt_nicht.zu"))
+        kopf_aufbau.addWidget(self.passt_nicht_kurz, 1)
         self.passt_nicht.hide()
         aufbau.addWidget(self.passt_nicht)
         self._reihe = [b.widget for b in self.bloecke] + [self.passt_nicht]
+        self.passt_nicht_knopf.toggled.connect(self._passt_nicht_aufklappen)
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
         self.hinweis.setStyleSheet(f"color: {ROT};")
@@ -3067,7 +3081,8 @@ class BearbeitungPanel:
 
     def _bloecke_ordnen(self):
         """Die Blöcke, die zur Wahl passen, oben – in ihrer Reihenfolge –, darunter unter einer
-        grauen Zeile, was (noch) nicht passt: nur der Titel und der Satz, was man anklicken muss."""
+        Zeile mit ihrer Zahl, was (noch) nicht passt: eingeklappt, bis man darauf klickt, dann je
+        Strategie der Titel und der Satz, was man anklicken muss. Passt nichts, steht alles da."""
         passend = [b.widget for b in self.bloecke if b.moeglich]
         andere = [b.widget for b in self.bloecke if not b.moeglich]
         reihe = passend + [self.passt_nicht] + andere
@@ -3078,6 +3093,20 @@ class BearbeitungPanel:
                 self._block_aufbau.insertWidget(self._block_anfang + i, widget)
             self._reihe = reihe
         self.passt_nicht.setVisible(bool(andere) and bool(passend))
+        self.passt_nicht_knopf.setText(tr("ba.passt_nicht", anzahl=len(andere)))
+        offen = self.passt_nicht_knopf.isChecked() or not passend
+        for widget in passend:
+            widget.setVisible(True)
+        for widget in andere:
+            widget.setVisible(offen)
+
+    def _passt_nicht_aufklappen(self, offen):
+        """Klappt die Liste auf oder zu, was nicht zur Wahl passt."""
+        self.passt_nicht_knopf.setArrowType(QtCore.Qt.DownArrow if offen else QtCore.Qt.RightArrow)
+        self.passt_nicht_kurz.setText(
+            tr("ba.passt_nicht.offen") if offen else tr("ba.passt_nicht.zu")
+        )
+        self._bloecke_ordnen()
 
     def haken_geklickt(self, block):
         if self._fuellt:

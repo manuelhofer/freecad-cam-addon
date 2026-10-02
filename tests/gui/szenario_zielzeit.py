@@ -4,7 +4,8 @@
 # mit Zapfen und Tasche, die Werkzeugkiste der Tests (werkzeuge.testkiste: T1 Ø 12, T2 Planfräser
 # Ø 50, T3 Ø 6, T4 Ø 20). Über den Strategien steht grau, wie viel weg muss und wie lange der
 # Fräser des Räumens dafür mindestens braucht – mit dem ap, das die Stellen hergeben; und, weil
-# der Planfräser hier viel schneller wäre, dass er es wäre, mit dem Fräser für den Rest.
+# der Planfräser hier viel schneller wäre, dass er es wäre, mit dem Fräser für den Rest. Darunter
+# eingeklappt, was nicht zur Auswahl passt.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -62,7 +63,21 @@ def schritte(h):
             f"kein schnellerer Fräser: {text!r}",
         )
     h.pruefe(bool(panel.ziel_text.toolTip()), "Ziel ohne Tooltip")
+    # Was nicht passt, steht eingeklappt unter einer Zeile mit seiner Zahl; ein Klick klappt auf.
+    andere = [b for b in panel.bloecke if not b.moeglich]
+    h.pruefe(
+        panel.passt_nicht.isVisible() and f"({len(andere)})" in panel.passt_nicht_knopf.text(),
+        f"Passt nicht: {panel.passt_nicht_knopf.text()!r}",
+    )
+    h.pruefe(not any(b.widget.isVisible() for b in andere), "Passt nicht: nicht eingeklappt")
     h.bild("1_ziel", panel.form)
+    panel.passt_nicht_knopf.click()
+    yield 500
+    h.pruefe(
+        bool(andere) and all(b.widget.isVisible() and b.kurz.isVisible() for b in andere),
+        "Passt nicht: aufgeklappt fehlen Zeilen",
+    )
+    h.bild("2_passt_nicht", panel.form)
     panel.reject()
     yield 500
     FreeCAD.closeDocument(doc.Name)
