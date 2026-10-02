@@ -2097,6 +2097,9 @@ class _Block:
         # Passt sie, ist aber nicht angehakt (der Wettbewerb nahm eine schnellere): nur ihr
         # Ergebnis – die Zeit und um wie viel langsamer; die Felder kommen mit dem Haken.
         self.reihen.widget.setVisible(self.aktiv())
+        # Die Erklärung, solange angehakt – oder als Satz, was man anklicken muss; sonst steht
+        # sie im Tooltip am Titel, und das Ergebnis genügt.
+        self.erklaerung.setVisible(self.aktiv() or not self.moeglich)
 
     def fraeser(self):
         i = self.wahl_fraeser.currentIndex()

@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-36 erklaerung-mit-haken
+
+### EINGELESEN
+- P-2026-10-02-32: Der Verlierer des Wettbewerbs (Planfräsen an der Platte) zeigte noch drei
+  Zeilen Erklärung über seinem Ergebnis.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_Block.zustand_zeigen`), `help/de|en/bearbeitung.html`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.96.2)
+
+### AKZEPTANZKRITERIUM
+Ein passender, nicht angehakter Block: Titel und Ergebnis; die Erklärung im Tooltip am Titel.
+
+### DONE
+- `erklaerung` sichtbar, solange angehakt oder als Satz, was man anklicken muss.
+
+### TEST
+- 1.1.3: `szenario_zielzeit`, `szenario_bearbeitung`, `szenario_raeumen`,
+  `szenario_plan_gleichlauf`; `test_hilfe`.
+
+### NEXT
+- –
+
 ## P-2026-10-02-35 ziel-wort
 
 ### EINGELESEN
