@@ -332,6 +332,36 @@ class SchnittwertBereich(QtGui.QWidget):
         self._fuellen()
         self.tabelle.setCurrentCell(self._zeile_von(einsatz), spalte)
 
+    def eigene_werte_waehlen(self):
+        """„Eigene Werte für einen Werkstoff …“: fragt, für welchen (eigene_werte)."""
+        namen, kennungen = [], []
+        for i in range(self._werkstoffe.count()):
+            kennung = self._werkstoffe.itemData(i)
+            if kennung is None or kennung == wz.ALLE:
+                continue
+            namen.append(self._werkstoffe.itemText(i))
+            kennungen.append(kennung)
+        text, ok = QtGui.QInputDialog.getItem(
+            self, tr("wv.eigene_werte.titel"), tr("wv.eigene_werte.frage"), namen, 0, False
+        )
+        if ok and text in namen:
+            self.eigene_werte(kennungen[namen.index(text)])
+
+    def eigene_werte(self, kennung):
+        """Eigene Zeilen für den Werkstoff `kennung`: eine Kopie der Zeilen, die bisher für ihn
+        gelten – die seiner Werkstoffklasse oder die für alle –, zum Ändern. Gibt seine Zeilen
+        zurück (leer, wenn es nichts zu kopieren gibt)."""
+        if self.werkzeug is None or kennung == wz.ALLE or not self.werkzeug.einsaetze(kennung):
+            return []
+        neu = not self.werkzeug.schnittwerte.get(kennung)
+        liste = self.werkzeug.eigene_anlegen(kennung)
+        if neu:
+            self._geaendert()
+        self._liste = self._alle_zeilen()
+        self._fuellen()
+        self.tabelle.setCurrentCell(self._zeile_von(liste[0]), EINSATZ)
+        return liste
+
     def richtwerte_eintragen(self):
         """Richtwerte je Werkstoffklasse (werkzeugkiste.richtwerte_eintragen); was schon da ist,
         bleibt. Gibt zurück, für wie viele Werkstoffe Zeilen dazukamen."""
@@ -523,6 +553,9 @@ class SchnittwertBereich(QtGui.QWidget):
         self.menue_plus.addSeparator()
         self.aktion_kopieren = self.menue_plus.addAction(tr("wv.einsatz.kopieren"))
         self.aktion_kopieren.triggered.connect(lambda _an=False: self.einsatz_kopieren())
+        self.aktion_eigene = self.menue_plus.addAction(tr("wv.eigene_werte"))
+        self.aktion_eigene.setToolTip(tr("wv.eigene_werte.tooltip"))
+        self.aktion_eigene.triggered.connect(lambda _an=False: self.eigene_werte_waehlen())
         self.aktion_richtwerte = self.menue_plus.addAction(tr("wv.richtwerte.menue"))
         self.aktion_richtwerte.setToolTip(tr("wv.richtwerte.tooltip"))
         self.aktion_richtwerte.triggered.connect(lambda _an=False: self.richtwerte_eintragen())
@@ -541,6 +574,7 @@ class SchnittwertBereich(QtGui.QWidget):
         self.knopf_richtwerte.setVisible(not self._liste and moeglich)
         self.aktion_richtwerte.setEnabled(moeglich)
         self.aktion_kopieren.setEnabled(bool(self._liste))
+        self.aktion_eigene.setEnabled(bool(self._liste))
         planbar = sw.moeglich(self.werkzeug)
         self.knopf_planen.setEnabled(planbar)
         self.knopf_planen.setToolTip(

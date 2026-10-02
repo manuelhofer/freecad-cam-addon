@@ -472,8 +472,13 @@ class Werkzeug:
         return werkstoff != ALLE and werkstoff in self.schnittwerte
 
     def eigene_anlegen(self, werkstoff):
-        """Eigene Werte für den Werkstoff – als Kopie der Werte für alle Werkstoffe."""
-        vorlage_liste = self.schnittwerte.get(ALLE, [])
+        """Eigene Werte für den Werkstoff – als Kopie der Werte, die bisher für ihn gelten: die
+        eines Werkstoffs seiner Klasse (verwandter()) oder die für alle Werkstoffe (Manuel,
+        2026-10-02: „dennoch die Möglichkeit, für die einzelnen Werkstoffe auch unterschiedliche
+        Werte zu setzen“). Hat er schon eigene, bleiben sie."""
+        if self.schnittwerte.get(werkstoff):
+            return self.schnittwerte[werkstoff]
+        vorlage_liste = self.einsaetze(werkstoff)
         self.schnittwerte[werkstoff] = [Einsatz.aus_dict(e.als_dict()) for e in vorlage_liste]
         return self.schnittwerte[werkstoff]
 

@@ -95,6 +95,17 @@ def schritte(h):
     zeilen = d.schnittwerte.tabelle.rowCount()
     h.pruefe(zeilen == len(wk.VERTRETER) * 4, f"Schnittwerte: {zeilen} Zeilen")
     h.bild("2_jongen_12", d)
+    # Ein einzelner Werkstoff bekommt eigene Werte (P-2026-10-02-50): 1.4404 eine Kopie der
+    # Zeilen von 1.4301 – vier Zeilen mehr, die erste gewählt.
+    h.pruefe(d.schnittwerte.aktion_eigene.isEnabled(), "„Eigene Werte für einen Werkstoff“ aus")
+    eigene = d.schnittwerte.eigene_werte("1.4404")
+    yield 300
+    h.pruefe(
+        len(eigene) == 4 and d.schnittwerte.tabelle.rowCount() == zeilen + 4,
+        f"eigene Werte 1.4404: {len(eigene)}, {d.schnittwerte.tabelle.rowCount()} Zeilen",
+    )
+    h.pruefe(d.schnittwerte.gewaehlter_werkstoff == "1.4404", d.schnittwerte.gewaehlter_werkstoff)
+    h.bild("2b_eigene_1_4404", d)
 
     # Speichern, schließen, wieder öffnen – wie nach einem Neustart.
     h.pruefe(d.uebernehmen(), "„Übernehmen“ ging nicht")

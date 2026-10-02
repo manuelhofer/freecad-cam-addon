@@ -748,6 +748,12 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
   Tabelle „Richtwerte eintragen“ (`werkzeugkiste.richtwerte_eintragen`: dieselben Grundwerte und
   Klassenfaktoren wie die Kiste, aus Art, Durchmesser, Schneiden, Schneidstoff); später über
   „+ Einsatz“ → „Richtwerte je Werkstoffklasse“ – nur für Klassen ohne eigene Zeilen.
+- **Gebaut (P-2026-10-02-50, 0.106.0; Manuel, 2026-10-02: „Ja, kann man machen, aber ich hätte
+  dennoch gerne die Möglichkeit, für die einzelnen Werkstoffe auch unterschiedliche Werte zu
+  setzen“):** „+ Einsatz“ → „Eigene Werte für einen Werkstoff …“ fragt nach dem Werkstoff und
+  gibt ihm eine Kopie der Zeilen, die bisher für ihn gelten (`Werkzeug.eigene_anlegen`: die
+  eines Werkstoffs seiner Klasse oder die für alle; vorhandene bleiben). Ändert man sie, bleiben
+  die anderen Werkstoffe der Klasse, wie sie sind – 1.4404 eigene, 1.4571 weiter wie 1.4301.
 
 ## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
 

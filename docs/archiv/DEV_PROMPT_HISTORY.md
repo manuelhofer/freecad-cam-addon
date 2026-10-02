@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-50 eigene-werte-je-werkstoff
+
+### EINGELESEN
+- Manuel, 2026-10-02, zu den Werkstoffklassen der Werkzeugkiste („Werte für 1.4301 gelten auch
+  für 1.4404“): „Ja, kann man machen, aber ich hätte dennoch gerne die Möglichkeit, für die
+  einzelnen Werkstoffe auch unterschiedliche Werte zu setzen!!!!!“ Spezifikation
+  Werkzeugverwaltung 13.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`Werkzeug.eigene_anlegen`: Kopie der Zeilen, die bisher für den
+  Werkstoff gelten – seiner Klasse oder für alle –, vorhandene bleiben),
+  `camaddon/gui_schnittwerte.py` (`aktion_eigene` unter „+ Einsatz“, `eigene_werte_waehlen`,
+  `eigene_werte`), `translations/de|en.json` (`wv.eigene_werte` …,
+  `wv.schnittwerte.werkstoffe`), `help/de|en/werkzeuge.html`, `tests/test_werkzeugkiste.py`,
+  `tests/gui/szenario_werkzeugkiste.py`, `docs/spezifikation_werkzeugverwaltung.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.106.0)
+
+### AKZEPTANZKRITERIUM
+Jongen Ø 12 aus der Kiste, „+ Einsatz“ → „Eigene Werte für einen Werkstoff …“ → 1.4404: Die
+Tabelle hat vier Zeilen mehr (eine Kopie der Zeilen von 1.4301), die erste ist gewählt; ändert
+man sie, bleibt 1.4301, wie es war, und 1.4571 nimmt weiter die Werte von 1.4301.
+
+### DONE
+- Ein Eintrag unter „+ Einsatz“ mit der Liste der Werkstoffe; der gewählte bekommt eine Kopie
+  dessen, was bisher für ihn galt, und ist danach in der Tabelle gewählt.
+- `eigene_anlegen` kopiert jetzt die geltenden Zeilen (vorher immer die für alle Werkstoffe)
+  und überschreibt keine vorhandenen; die bisherigen Aufrufer (Werkzeuge nur mit Zeilen für
+  alle) bekommen dasselbe wie vorher.
+- Der Satz über der Tabelle nennt die Klassen und den neuen Eintrag.
+
+### TEST
+- 1.1.3: `test_werkzeugkiste`, `test_werkzeuge`, `test_sprache`, `test_hilfe`;
+  `szenario_werkzeugkiste` (Bild „2b_eigene_1_4404“), `szenario_schnittwerte`,
+  `szenario_werkzeugverwaltung`; black/ruff grün.
+
+### NEXT
+- Der schnellere Fräser aus der Ziel-Zeile mit einem Klick (Manuel: „ja, aber man muss nicht“).
+
 ## P-2026-10-02-49 bedienung-schritt-nullpunkt-anlegen
 
 ### EINGELESEN

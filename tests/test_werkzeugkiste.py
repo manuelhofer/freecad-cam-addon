@@ -114,6 +114,21 @@ pruefe(f12.einsaetze("1.0570") is f12.schnittwerte[wz.ALLE], "St 52 nicht wie �
 pruefe(f12.einsaetze("eigen-1") is f12.schnittwerte[wz.ALLE], "eigener nicht wie „alle“")
 pruefe(f12.verwandter("1.4404") == "1.4301", f"verwandt: {f12.verwandter('1.4404')!r}")
 pruefe(f12.verwandter("1.4301") is None, "1.4301 hat eigene Werte")
+# Trotzdem eigene Werte je Werkstoff (P-2026-10-02-50; Manuel: „dennoch die Möglichkeit, für
+# die einzelnen Werkstoffe auch unterschiedliche Werte zu setzen“): 1.4404 bekommt eine Kopie
+# der Zeilen von 1.4301; ändert man sie, bleibt 1.4301, wie es war, und 1.4571 nimmt weiter 1.4301.
+v4a = f12.eigene_anlegen("1.4404")
+pruefe(
+    [e.art for e in v4a] == [e.art for e in f12.schnittwerte["1.4301"]]
+    and v4a[0] is not f12.schnittwerte["1.4301"][0],
+    f"eigene für 1.4404: {v4a}",
+)
+v4a[0].vc = 55.0
+pruefe(f12.einsaetze("1.4404")[0].vc == 55.0, "1.4404: eigene Werte gelten nicht")
+pruefe(f12.schnittwerte["1.4301"][0].vc != 55.0, "1.4301 mit verändert")
+pruefe(f12.einsaetze("1.4571") is f12.schnittwerte["1.4301"], "1.4571 nicht mehr wie 1.4301")
+pruefe(f12.eigene_anlegen("1.4404") is v4a, "zweites Anlegen überschreibt")
+del f12.schnittwerte["1.4404"]
 gehaertet = next(e for e in f12.einsaetze("1.2379+H") if e.art == wz.SCHRUPPEN)
 weich = next(e for e in f12.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
 pruefe(0 < gehaertet.vc < weich.vc and 0 < gehaertet.fz < weich.fz, "gehärtet nicht langsamer")

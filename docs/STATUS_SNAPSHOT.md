@@ -155,6 +155,9 @@ P-2026-10-02-48, 0.104.0). Auf Manuels Blick auf die Schritte („die Menüführ
 Schritt 1 sagt „Klick die Fläche an, die du bearbeiten willst – dann legt das Addon den Job mit
 dem Rohteil an“, der Nullpunkt ist beim ersten Mal „Mitte oben“, danach der zuletzt angelegte,
 und im letzten Schritt steht „Anlegen“ unten, wo „Weiter“ stand (P-2026-10-02-49, 0.105.0).
+Ein einzelner Werkstoff bekommt trotz der Klassen eigene Schnittwerte: „+ Einsatz“ → „Eigene
+Werte für einen Werkstoff …“ kopiert die Zeilen, die bisher für ihn gelten, zum Ändern
+(P-2026-10-02-50, 0.106.0).
 Als Nächstes (Manuel, 2026-10-02 früh; Spezifikation Strategien, Abschnitt 12): Nuten in Bögen auch geschlossen, ae als Last mit Spielraum (12.1, 12.2, Manuels Entscheidung zu 12.1 offen); Manuels Entscheidung zu 12.1 (ae als Last mit Spielraum). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11); der schnellere Fräser aus der Zielzeit mit einem Klick übernehmen (wenn Manuel will); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
