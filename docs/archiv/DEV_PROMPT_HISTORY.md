@@ -12,6 +12,64 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-89 raeumen-adaptiv
+
+### EINGELESEN
+- W-013, Schritt T5; Spezifikation Strategien 12.1, Frage 6 (Manuel, 2026-10-02): „das was
+  schneller ist ... gewinnt .. wenn man volle Tiefe fräst muss der ae schon in einem Rahmen
+  bleiben der nicht das Doppelte ist“; „Adaptiv rechnet als weitere Variante mit“.
+- Gemessen am Testteil: Die Ringe heben 56-mal ab und fahren, wo ein Ring an einer Wand beginnt,
+  quer in den Streifen – bis 5 ae.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`_ringe_adaptiv`, `_adaptiv_gebiet`, `_adaptiv_einstieg`,
+  `_adaptiv_helix`, `_weg_frei`, `_vielecke`, `_dicht`, `last`, `_Lage._schwenke_ein`, `planen`,
+  `ALLE_VARIANTEN`, `RINGE`, Hüllfläche je Fläche nur einmal), `camaddon/raeumen.py`,
+  `camaddon/gui_bearbeitung.py` (Ergebniszeile, Wettbewerb am Grund der Nut),
+  `camaddon/pruefstand.py` (`schnellweg`), `translations/de|en.json`, `help/de|en/bearbeitung.html`,
+  `tests/test_raeumen.py` (h), `tests/test_testteil.py`, `tests/test_nut_offen.py`,
+  `tests/test_pruefstand.py`, `tests/bestmarken.json`, `tests/gui/szenario_raeumen.py`,
+  `docs/spezifikation_strategien.md` (13.5), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.126.0)
+
+### AKZEPTANZKRITERIUM
+Am Testteil räumt die schnellste Variante, die die Last hält: unter 11,5 min, höchstens 10-mal
+abgehoben, Last kurz höchstens 1,7 ae.
+
+### DONE
+- Neue Variante „adaptiv“: FreeCADs Adaptiv-Kern räumt jede Lage; hinein von außen durch die
+  Luft (rückwärts auf der Geraden seines ersten Stücks, bis die Stirn frei ist), in der Tasche
+  über eine Helix; zurück unten durchs Freie mit dreifachem Vorschub (G1), sonst abheben; danach
+  der genaue Ring an der Wand, auf den der Fräser über 2 R gleitend einschwenkt statt quer
+  hineinzufahren. Gegenlauf: gespiegelt gerechnet. Geprüft wird nach (Mitte im Erlaubten,
+  Eintauchen im Freien) – sonst bekommt die Fläche Ringe.
+- `planen`: Die Varianten werden nach der Zeit sortiert und der Reihe nach gemessen (`last`),
+  bis eine die Last hält. Auch „adaptiv“ wird gemessen: In einer Nut, kaum breiter als der
+  Fräser, fuhr der Kern in der groben Vorschau in voller Breite durch und gewann gegen die Nut.
+- Vorgabe „ringe“ (Eigenschaft Variante): die schnellste der Ringe wie bisher.
+- Der Assistent schreibt „adaptiv“ statt der Zahl der Ringe und sagt, wenn Ringe schneller
+  wären, die Last aber nicht halten, oder wenn keine Bahn sie hält.
+- Prüfstand: Wege im Schnellvorschub durchs Freie zählen nicht mehr als Vorschub in der Luft.
+- Die Hüllfläche je Fläche wird für alle Varianten nur einmal gerechnet (Testteil: 8 statt 14 s).
+- T1b nachgebessert: Der Ring an der Wand fiel nach dem Adaptiv-Kern als „Luft“ aus (an der
+  Wand blieb bis 0,9 mm) – `_schneidet` rechnet mit dem ganzen Radius.
+- Der Kern rechnet bei gleicher Eingabe nicht immer dieselbe Bahn (Platte 33,3 … 33,7 min); sein
+  Ergebnis bleibt je Eingabe in der Sitzung gemerkt.
+- Gemessen: Testteil 10,7 statt 12,4 min, 5-mal statt 56-mal abgehoben, Last bis 1,4 statt 5 ae,
+  im Assistenten 1,48 × Ziel; Zapfen 2,43 (Morph 2,70); Absatz 2,54 (2,66); Platte 33,3 (33,9).
+  Langsamer, mit Absicht: Tasche 40 × 30 1,49 statt 0,88 min – die Ringe greifen dort bis 4,1 ae.
+  Die Bestmarken sind deshalb neu geschrieben.
+
+### TESTS
+- `tests/test_raeumen.py`, `test_testteil.py`, `test_nut_offen.py`, `test_pruefstand.py`,
+  `test_materialstand.py`, `test_schruppen3d.py`, `test_restschruppen.py`, `test_goldene_bahnen.py`,
+  `test_sprache.py`, `test_hilfe.py` (OK).
+- `tests/gui/szenario_testteil.py`, `szenario_raeumen.py`, `szenario_nut.py`,
+  `szenario_nut_offen.py`, `szenario_mulde.py`, `szenario_vierachs_nut.py` (OK). Kein Lauf über
+  alles (Manuel: nur, was die Änderung trifft). FreeCAD 1.1.4; black und ruff sauber.
+
+### NEXT
+- Der Plan für die Nacht im Snapshot („Nächster Schritt“): T4, T5d, T2, Vorschau, Snapshot.
+
 ## P-2026-10-02-88 kein-ring-in-der-luft
 
 ### EINGELESEN

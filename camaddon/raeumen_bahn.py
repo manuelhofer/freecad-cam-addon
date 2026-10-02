@@ -13,8 +13,8 @@ immer volle Tiefe, mit ae Zustellung“).
   innen, der erste außen in der Luft (Mitte R − ae außerhalb), dann je ae weiter hinein; wo
   eine Insel sie unterbricht, Läufe; zuletzt um jede Insel die Ringe des Feldes D von außen
   nach innen, so viele, wie dort noch etwas steht. Variante „inseln“ – nur die Ringe des
-  Feldes D, von weit außen (am Rand des Rohteils) nach innen bis an die Inseln. Beide werden
-  gerechnet, die schnellere zählt (Grundsatz 0).
+  Feldes D, von weit außen (am Rand des Rohteils) nach innen bis an die Inseln. Alle werden
+  gerechnet, die schnellste zählt (Grundsatz 0) – wenn sie die Last hält (siehe „Adaptiv“).
 - **Tasche** (eine geschlossene Kontur um die Fläche, die freie Seite innen): die Ringe des
   Feldes D von innen (der Mitte) nach außen bis an die Wände, mit Aufmaß; hinein über die
   Rampe auf dem innersten Ring, nur einmal je Lage. Die Ringe bleiben in der Kontur der Tasche
@@ -29,6 +29,16 @@ immer volle Tiefe, mit ae Zustellung“).
   beginnend, wie am Rand des Rohteils. Die Taschen zuletzt, von oben nach unten. Höhe für Höhe
   von oben räumte jede Fläche alles, was über ihr steht – auch dort, wo eine tiefere danach
   noch einmal hinfuhr: am Testteil 26 statt 12 min.
+- **Adaptiv** (Spezifikation Strategien 12.1, Frage 6, und 13.5, T5): als weitere Variante räumt
+  FreeCADs Adaptiv-Kern (area.Adaptive2d) jede Lage in Bahnen, die ihren Eingriff halten – von
+  außen durch die Luft hinein (in der Tasche über eine Helix), an Wänden entlang ohne quer in
+  den Streifen zu fahren, zurück unten durchs Freie statt abzuheben; den schmalen Rand an den
+  Wänden nimmt danach der genaue Ring. Die Ringe greifen dort, wo einer an einer Wand beginnt
+  oder in die Ecke einer Tasche fährt, kurz mit dem Drei- bis Fünffachen von ae. Darum gewinnt
+  die schnellste Variante nur, wenn sie die Last hält (last(): kurz höchstens bahn.LAST_KURZ,
+  über bahn.LAST_DAUERND höchstens eine Fräserbreite am Stück); sonst die nächste. An Manuels
+  Testteil: adaptiv 10,7 min, 5-mal abgehoben, Last bis 1,4 ae – die Ringe 12,4 min, 56-mal,
+  bis 5 ae. Mit der Vorgabe „ringe“ bleibt es bei den Ringen.
 - Gleichlauf: das Material rechts der Fahrtrichtung (Spindel rechtsdrehend, M3 – wie G41);
   Gegenlauf wählbar (Grundsatz 4).
 - Eintauchen nur, wo schon frei ist: Ein Raster merkt sich je Lage, wo der Fräser war; das
@@ -48,7 +58,9 @@ immer volle Tiefe, mit ae Zustellung“).
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
 
+import hashlib
 import math
+from collections import OrderedDict
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -63,7 +75,9 @@ from .sprache import tr
 SCHRITT = 0.5  # mm – das Raster und der Abstand der Stellen auf den Ringen
 VORSCHAU_SCHRITT = 1.0  # mm – für die Vorschau im Assistenten
 AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
-VARIANTEN = ("rohteil", "morph", "inseln")
+VARIANTEN = ("rohteil", "morph", "inseln")  # die Ringe – auch die des 3D-Schruppens
+ALLE_VARIANTEN = (*VARIANTEN, "adaptiv")  # dazu FreeCADs Adaptiv-Kern (nur das Räumen)
+RINGE = "ringe"  # als Vorgabe: nur die Ringe, die schnellste von ihnen – ohne Blick auf die Last
 # Der Morph nimmt an seiner breitesten Stelle so viel Eingriff wie ein gerader Schnitt mit
 # ae mal diesem Faktor – nicht mehr (Manuels ae ist die Grenze); anderswo weniger.
 MORPH_EINGRIFF = 1.0
@@ -92,6 +106,35 @@ class _KeinMorph(Exception):
     """Der Morph passt nicht zu dieser Fläche – die Variante entfällt."""
 
 
+class _KeinAdaptiv(Exception):
+    """Der Adaptiv-Kern passt nicht zu dieser Fläche (oder fehlt) – sie bekommt Ringe."""
+
+
+# Die Variante „adaptiv“ (Spezifikation Strategien 12.1, Frage 6, und 13.5, T5): FreeCADs
+# Adaptiv-Kern (area.Adaptive2d) hält den Eingriff – er rückt je Bahn um ADAPTIV_SCHRITT · ae,
+# gemessen bleibt die Last damit unter bahn.LAST_DAUERND.
+ADAPTIV_SCHRITT = 0.9  # × ae
+# So fein rechnet der Kern (mm). Mit 0,1 griff er am Anfang einer Bahn an einer Wand kurz bis
+# 2,4 ae; mit 0,05 bleibt er an Manuels Testteil unter 1,9 (0,5 mm über 1,7) und ist nicht langsamer.
+ADAPTIV_GENAU = 0.05
+ADAPTIV_HALTEN = 3.0  # × D – so weit fährt er unten durchs Freie, statt abzuheben
+ADAPTIV_HELIX = 0.8  # × R – der Radius der Helix ins Volle (unter R: in der Mitte bleibt nichts)
+ADAPTIV_ECKEN = 0.02  # mm – so genau folgen die Vielecke für den Kern den Höhenlinien
+RUECKWEG = 3.0  # × Vorschub: so schnell unten durchs Freie (G1, wie nut_bahn.RUECKWEG)
+# Der Kern rechnet bei gleicher Eingabe nicht jedes Mal dieselbe Bahn (an Manuels Platte 33,3 …
+# 33,7 min). Damit dieselbe Rechnung in einer Sitzung dieselbe Bahn gibt – die Vorschau, das
+# Anlegen, das Nachrechnen –, bleiben seine letzten Ergebnisse je Eingabe gemerkt.
+ADAPTIV_GEMERKT = 12
+_ADAPTIV = OrderedDict()  # Prüfsumme der Eingabe → [(Start, Mitte der Helix, Stücke)]
+FREI_ZULAESSIG = 0.02  # Anteil der Stirn, der auf dem Weg durchs Freie Rohteil treffen darf
+# Die Last einer Bahn (last): der Querschnitt, den der Fräser je mm Weg abträgt, durch
+# ae · Lagentiefe – über LAST_FENSTER mm gemittelt, in Stücken von LAST_SEHNE; LAST_SPIEL: so
+# viel misst das Raster zu viel.
+LAST_FENSTER = 3.0  # mm
+LAST_SEHNE = 1.0  # mm
+LAST_SPIEL = 1.06
+
+
 GLEICH = vb.GLEICH
 _WINZIG = 1e-9
 
@@ -109,7 +152,9 @@ class Raeumwerte:
     rohteil: tuple  # (x_von, x_bis, y_von, y_bis) des Rohteils von oben
     aufmass_boden: float = 0.0  # bleibt auf der Fläche stehen (0: fertig)
     gleichlauf: bool = True  # das Material rechts der Fahrtrichtung; sonst links (Gegenlauf)
-    variante: str = None  # „rohteil“ oder „inseln“; None: beide rechnen, die schnellere
+    # „rohteil“, „morph“, „inseln“, „adaptiv“ – oder „ringe“ (RINGE): die schnellste der Ringe;
+    # None: alle rechnen, die schnellste, die die Last hält.
+    variante: str = None
     einfahrradius: float = None  # der Viertelkreis hinein und heraus; None: der Vorschlag
     schneidenlaenge: float = 0.0  # 0: unbekannt – sonst höchstens so tief je Lage
     sicherheit: float = vb.SICHERHEIT  # so weit über dem Material endet der Eilgang hinab
@@ -131,7 +176,7 @@ class Raeumbahn:
     z_min: float  # die tiefste Spitze (mm)
     laenge: float  # mm im Vorschub
     zeit: float  # Minuten (bahn.zeit)
-    variante: str  # die gerechnete Variante („rohteil“, „inseln“)
+    variante: str  # die gerechnete Variante („rohteil“, „morph“, „inseln“, „adaptiv“)
     zeiten: dict = field(default_factory=dict)  # Minuten je gerechneter Variante
     rampen: int = 0  # Läufe über die Rampe ins Material
     einfahrten: int = 0  # Läufe, die im Freien eintauchten und tangential oder quer hineinfuhren
@@ -146,6 +191,11 @@ class Raeumbahn:
     # Die Böden von Taschen („Face26“ …), in die der Fräser nicht passt: Dort steht noch
     # Material, aber kein Ring hat Platz – sie bleiben stehen (ein kleinerer Fräser).
     ausgelassen: list = field(default_factory=list)
+    # Varianten, die die Last nicht halten: {Variante: größte Last in ae} (bahn.LAST_KURZ,
+    # bahn.LAST_DAUERND) – die schneller gewesen wären; hält keine, steht die gewählte dabei.
+    ueberlastet: dict = field(default_factory=dict)
+    tiefen: dict = field(default_factory=dict)  # {z der Lage: so tief schneidet sie} – für last()
+    haelt: bool = True  # die gewählte Variante hält die Last (False: keine hält sie)
 
 
 # --- Das Raster: Hüllfläche, Rohteil, Freies ---------------------------------------------------
@@ -155,7 +205,9 @@ class _Feld:
     """Das Raster über dem Bereich: die Hüllfläche (so tief darf die Spitze), ob der Fräser das
     Rohteil berührt, und – je Lage – wo er schon war (`frei`)."""
 
-    def __init__(self, netz, geformt, zugabe, r, x0, x1, y0, y1, schritt, rohteil, rand_eng):
+    def __init__(
+        self, netz, geformt, zugabe, r, x0, x1, y0, y1, schritt, rohteil, rand_eng, roh=None
+    ):
         self.schritt = float(schritt)
         self.zugabe = zugabe
         self.r = r
@@ -165,7 +217,9 @@ class _Feld:
         self.ny = max(3, int(math.ceil((y1 - self.y0) / schritt)) + 2)
         self.xs = self.x0 + schritt * np.arange(self.nx)
         self.ys = self.y0 + schritt * np.arange(self.ny)
-        if len(netz.dreiecke):
+        if roh is not None and roh.shape == (self.nx, self.ny):
+            self.roh = roh  # schon gerechnet (eine andere Variante derselben Fläche)
+        elif len(netz.dreiecke):
             self.roh = hf.je_zeile(netz, geformt, self.ys, self.x0, schritt, self.nx, True)
         else:
             self.roh = np.full((self.nx, self.ny), hf.KEIN_TREFFER)
@@ -725,10 +779,13 @@ class _Stand:
     weg: float = 0.0  # … und was die Operationen davor dort schon weggenommen haben
     davor: list = field(default_factory=list)  # … und welche das waren
     ausgelassen: list = field(default_factory=list)  # Taschenböden, in die der Fräser nicht passt
+    tiefen: dict = field(default_factory=dict)  # {z der Lage: so tief schneidet sie} – für last()
 
     def dazu(self, teil):
         """Hängt die Bahn einer Fläche (`teil`, ein eigener _Stand) an."""
         self.punkte += teil.punkte
+        for z, tiefe in teil.tiefen.items():
+            self.tiefen[z] = max(self.tiefen.get(z, 0.0), tiefe)
         self.rampen_bei += teil.rampen_bei
         self.ausgelassen += teil.ausgelassen
         self.davor += [name for name in teil.davor if name not in self.davor]
@@ -777,8 +834,10 @@ class _Lage:
         self.reste = []  # [(Ring, Stellen)]: Anfangsstücke, die nach den Ringen nachkommen
         self.verschieben = True
         # Was der Fräser auf dieser Lage überhaupt wegnehmen kann: Rohteil, das seine Stirn von
-        # einer erlaubten Stelle aus trifft (eine Zelle weniger: das Raster rundet).
+        # einer erlaubten Stelle aus trifft (_schneidet).
         self._abtragbar = None
+        # Nach dem Adaptiv-Kern: auf einen ganzen Ring gleitend einschwenken (_schwenke_ein).
+        self.einschwenken = False
         self.gedreht = False  # gerade ein ganzer Ring, der anderswo anfängt (_eingang_irgendwo)
         # Die freie Seite der Bahn: links im Gleichlauf (das Material rechts), sonst rechts –
         # dorthin gehen das Einfahren und der Weg quer hinein.
@@ -830,6 +889,8 @@ class _Lage:
         laeufe = []  # [(Stellen, Austritt hinten)]
         if ring.geschlossen and drin.all():
             start = self._start(x, y)
+            if self.einschwenken:
+                start = self._schwenke_ein(ring, start)
             laeufe.append((np.arange(start, start + n + 1) % n, False))
         elif ring.geschlossen:
             luecke = int(np.flatnonzero(~drin)[0])
@@ -875,7 +936,10 @@ class _Lage:
         nur ein Kreis“)."""
         feld = self.feld
         if self._abtragbar is None:
-            self._abtragbar = feld.aufweiten(self.erlaubt, max(self.r - self.schritt - 0.01, 0.0))
+            # Mit dem ganzen Radius: Der Ring an der Wand nimmt nach dem Adaptiv-Kern nur noch
+            # einen Rand, schmaler als eine Zelle – eine Zelle weniger gerechnet, fiele er als
+            # „Luft“ aus, und an der Wand bliebe bis 0,9 mm statt des Aufmaßes.
+            self._abtragbar = feld.aufweiten(self.erlaubt, max(self.r - 0.01, 0.0))
         roh = feld.rohteil_zellen & ~feld.frei & self._abtragbar
         if not roh.any():
             return False
@@ -886,6 +950,47 @@ class _Lage:
         if self.ort is not None:
             return int(np.argmin(np.hypot(x - self.ort[0], y - self.ort[1])))
         return 0
+
+    def _schwenke_ein(self, ring, start):
+        """Nach dem Adaptiv-Kern steht der Fräser neben dem Ring an der Wand, davor ein schmaler
+        Rand. Quer in ihn hinein hätte er kurz die drei- bis vierfache Breite im Eingriff – er
+        schwenkt stattdessen längs des Rings über 2 R gleitend auf ihn ein (wie die Spirale des
+        Morphs, _spirale); das Stück, das er dabei überspringt, schneidet der Ring an seinem Ende.
+        Gibt die Stelle zurück, an der der Ring dann beginnt – `start`, wenn es nicht passt."""
+        if not self.unten or self.ort is None:
+            return start
+        x, y = ring.proben.x, ring.proben.y
+        n = len(x)
+        abstand = math.hypot(x[start] - self.ort[0], y[start] - self.ort[1])
+        if not _WINZIG < abstand <= 2.0 * self.w.zeilenabstand + self.schritt:
+            return start
+        stuecke = np.hypot(np.diff(np.append(x, x[0])), np.diff(np.append(y, y[0])))
+        weit = 2.0 * self.r
+        if float(stuecke.sum()) < 2.0 * weit:
+            return start
+        folge = (start + np.arange(n)) % n
+        weg = np.concatenate([[0.0], np.cumsum(stuecke[folge])])
+        k = int(np.searchsorted(weg, weit))
+        stellen = folge[: k + 1]
+        tx, ty = x[(stellen + 1) % n] - x[stellen], y[(stellen + 1) % n] - y[stellen]
+        lang = np.maximum(np.hypot(tx, ty), _WINZIG)
+        seite = 1.0 if self.frei_rechts else -1.0
+        qx, qy = seite * ty / lang, -seite * tx / lang  # zur freien Seite
+        if (self.ort[0] - x[start]) * qx[0] + (self.ort[1] - y[start]) * qy[0] < 0.5 * abstand:
+            return start  # der Fräser steht nicht auf der freien Seite
+        rest = abstand * (1.0 - weg[: k + 1] / weg[k])
+        px, py = x[stellen] + qx * rest, y[stellen] + qy * rest
+        if not self.feld.im_raster(px, py).all():
+            return start
+        punkte = self.st.punkte
+        for i in range(1, k + 1):
+            punkt = bn.Punkt(False, float(px[i]), float(py[i]), self.lage)
+            self.st.laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
+        self.feld.merke(px, py)
+        self.ort = (float(x[stellen[-1]]), float(y[stellen[-1]]))
+        self.st.anschluesse += 1
+        return int(stellen[-1])
 
     def _lauf(self, ring, stellen, hinten, ganz):
         """Ein Lauf; `ganz`: der ganze geschlossene Ring (die Stellen enden am Anfang)."""
@@ -1174,10 +1279,16 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         raise ValueError(tr("ra.fehler.zeilenabstand"))
     if not ebenen:
         raise ValueError(tr("ra.fehler.keine_ebene"))
-    varianten = (w.variante,) if w.variante in VARIANTEN else VARIANTEN
+    if w.variante == RINGE:
+        varianten = VARIANTEN
+    else:
+        varianten = (w.variante,) if w.variante in ALLE_VARIANTEN else ALLE_VARIANTEN
     taschen = {id(e): _tasche_um(e, konturen) for e in ebenen}
-    if all(taschen[id(e)] is not None for e in ebenen):
-        varianten = ("inseln",)  # nur Taschen: die haben eine Art, von innen nach außen
+    if all(taschen[id(e)] is not None for e in ebenen) and w.variante != "adaptiv":
+        # Nur Taschen: Die Ringe haben dort eine Art, von innen nach außen.
+        ringe = w.variante == RINGE or w.variante in VARIANTEN
+        varianten = ("inseln",) if ringe else ("inseln", "adaptiv")
+    huellen = {}  # je Fläche die Hüllfläche im Raster – für jede Variante dieselbe
     # Die Reihenfolge (Spezifikation Strategien 13.5, T1; Manuels Testteil): die offenen Flächen
     # von unten nach oben – jede Stelle wird einmal gefräst, gleich auf ihre Tiefe, statt Höhe
     # für Höhe über alles hinweg, was darunter noch kommt –, danach die Taschen von oben nach
@@ -1190,24 +1301,25 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         st = _Stand()
         # Mehrere Flächen: Jede sieht, was die davor in dieser Bahn schon weggenommen haben.
         material = _Material(w, stand) if len(folge) > 1 else None
-        gemorpht = False
+        eigen = False  # der Morph oder der Adaptiv-Kern hat an einer Fläche gepasst
         for ebene in folge:
             tasche = taschen[id(ebene)]
             teil = _Stand()
             lauf = (hf.netz_fuer(netz, ebene), w, ebene, tasche, konturen)
             try:
-                _flaeche(teil, *lauf, variante, r, schritt, stand, material)
-                gemorpht |= variante == "morph" and tasche is None
-            except _KeinMorph:
-                # Der Morph passt nicht zu dieser Fläche: für sie die Ringe vom Rohteil her.
+                _flaeche(teil, *lauf, variante, r, schritt, stand, material, huellen)
+                eigen |= variante == "adaptiv" or (variante == "morph" and tasche is None)
+            except (_KeinMorph, _KeinAdaptiv):
+                # Passt nicht zu dieser Fläche: für sie die Ringe vom Rohteil her (in der Tasche
+                # die von innen nach außen).
                 teil = _Stand()
-                _flaeche(teil, *lauf, "rohteil", r, schritt, stand, material)
+                _flaeche(teil, *lauf, "rohteil", r, schritt, stand, material, huellen)
             st.dazu(teil)
             if material is not None and teil.punkte:
                 material.fahre(teil.punkte)
-        if variante == "morph" and not gemorpht:
+        if variante in ("morph", "adaptiv") and not eigen:
             if len(varianten) > 1:
-                continue  # der Morph passt nirgends: die anderen Varianten entscheiden
+                continue  # passt nirgends: die anderen Varianten entscheiden
             variante = "rohteil"  # vorgegeben, passt aber nicht: es waren die Ringe vom Rohteil
         davor = st.davor
         if st.flaechen == 0:
@@ -1220,7 +1332,25 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
 
             raise mst.schon_weg(davor)
         raise ValueError(tr("ra.fehler.nichts"))
-    variante = min(ergebnisse, key=lambda v: ergebnisse[v][1])
+    # Die schnellste gewinnt – aber nur, wenn sie die Last hält (Manuel, 2026-10-02, Frage 6:
+    # „das was schneller ist ... gewinnt .. wenn man volle Tiefe fräst muss der ae schon in
+    # einem Rahmen bleiben“). Nachgemessen wird der Reihe nach (last), bis eine hält – auch
+    # „adaptiv“: In einer Nut, kaum breiter als der Fräser, bleibt dem Kern kein Platz, und er
+    # fährt in voller Breite durch. Hält keine, gewinnt die mit der kleinsten Last, und die Bahn
+    # sagt es (`haelt`). Ohne den Adaptiv-Kern (oder mit einer Vorgabe) bleibt es bei der Zeit.
+    reihe = sorted(ergebnisse, key=lambda v: ergebnisse[v][1])
+    variante = reihe[0]
+    ueberlastet = {}
+    haelt = True
+    if "adaptiv" in ergebnisse:
+        for variante in reihe:
+            groesste, lang = last(ergebnisse[variante][0], w, stand)
+            if groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r:
+                break
+            ueberlastet[variante] = groesste
+        else:
+            variante = min(ueberlastet, key=ueberlastet.get)
+            haelt = False
     st, zeit = ergebnisse[variante]
     return Raeumbahn(
         st.punkte,
@@ -1242,6 +1372,9 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         st.weg,
         st.davor,
         st.ausgelassen,
+        ueberlastet,
+        st.tiefen,
+        haelt,
     )
 
 
@@ -1317,14 +1450,20 @@ def _tasche_um(ebene, konturen):
     return beste[0] if beste else None
 
 
-def _flaeche(st, netz, w, ebene, tasche, konturen, variante, r, schritt, stand=None, material=None):
+def _flaeche(
+    st, netz, w, ebene, tasche, konturen, variante, r, schritt, stand=None, material=None,
+    huellen=None,
+):  # fmt: skip
     """Eine Fläche räumen – alle Lagen, in der Variante. `tasche`: die Kontur um sie, wenn sie
     der Boden einer Tasche ist (_tasche_um). Mit Materialstand nur, was über ihr noch steht:
     `stand` ist der vor der Operation (materialstand), `material` der in dieser Bahn – was die
-    Flächen davor schon weggenommen haben (_Material)."""
-    if tasche is not None:
-        # In der Tasche gibt es nur die Ringe von innen nach außen – in jeder Variante, damit
-        # alle dieselbe Arbeit tun (sonst „gewann“ eine, die die Tasche ausließ; P-2026-10-01-26).
+    Flächen davor schon weggenommen haben (_Material). `huellen`: {Fläche: Hüllfläche im Raster}
+    – jede Variante rechnet auf derselben, sie wird nur einmal gerechnet (an Manuels Testteil
+    0,8 s je Fläche und Variante)."""
+    if tasche is not None and variante != "adaptiv":
+        # In der Tasche gibt es von den Ringen nur die von innen nach außen – in jeder Variante,
+        # damit alle dieselbe Arbeit tun (sonst „gewann“ eine, die die Tasche ausließ;
+        # P-2026-10-01-26).
         variante = "inseln"
     ziel = ebene.z + max(w.aufmass_boden, 0.0)
     # Die Lagen beginnen am Rohteil – ob eine andere Operation es über der Fläche schon
@@ -1358,7 +1497,10 @@ def _flaeche(st, netz, w, ebene, tasche, konturen, variante, r, schritt, stand=N
         schritt,
         w.rohteil,
         w.zeilenabstand + schritt,
+        None if huellen is None else huellen.get(ebene.name),
     )
+    if huellen is not None:
+        huellen[ebene.name] = feld.roh
     if tasche is not None:
         # Die Tasche endet an ihren Wänden: Liegt das Teil daneben tiefer als ihr Boden (eine
         # Tasche in einer Insel), dürfte die Spitze sonst auch dorthin – an Manuels Testteil
@@ -1407,9 +1549,15 @@ def _flaeche(st, netz, w, ebene, tasche, konturen, variante, r, schritt, stand=N
             gesperrt & feld.im_raster(*np.meshgrid(feld.xs, feld.ys, indexing="ij"))
         )
         ringe_vorher = st.ringe
+        st.tiefen[round(lage, 4)] = max(st.tiefen.get(round(lage, 4), 0.0), vorige - lage)
         if tasche is None and variante == "inseln" and not np.isfinite(D).any():
             variante = "rohteil"  # keine Insel: nur die Ringe vom Rohteil her
-        if tasche is None and variante == "rohteil":
+        if variante == "adaptiv":
+            # Der Kern räumt bis auf einen Rand vor dem Gesperrten, den nimmt der Ring an der Wand.
+            _ringe_adaptiv(ablauf, feld, w, r, D, schritt)
+            ablauf.einschwenken = True
+            _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
+        elif tasche is None and variante == "rohteil":
             _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz)
             _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
         elif tasche is None and variante == "morph":
@@ -1630,6 +1778,341 @@ def _geodaetisch(start, frei, schritt):
         if np.array_equal(vorher, G):
             break
     return G
+
+
+def _vielecke(werte, feld, spiegeln=False):
+    """Die geschlossenen Höhenlinien des Feldes `werte` beim Niveau 0 als Vielecke [[x, y], …],
+    das erste Eck am Ende noch einmal – für den Adaptiv-Kern. `spiegeln`: an der y-Achse
+    gespiegelt."""
+    vorzeichen = -1.0 if spiegeln else 1.0
+    ergebnis = []
+    for punkte, geschlossen in _hoehenlinien(werte, feld.xs, feld.ys, 0.0):
+        if not geschlossen or len(punkte) < 3:
+            continue
+        punkte = _vereinfacht(punkte, ADAPTIV_ECKEN, True)
+        if len(punkte) < 3:
+            continue
+        ecken = [[vorzeichen * float(x), float(y)] for x, y in punkte]
+        ergebnis.append([*ecken, ecken[0]])
+    return ergebnis
+
+
+def _dicht(ecken, schritt):
+    """(x, y) längs des Linienzugs `ecken` (m, 2) – seine Ecken und dazwischen Stellen, höchstens
+    `schritt` auseinander."""
+    ecken = np.asarray(ecken, dtype=float).reshape(-1, 2)
+    if len(ecken) < 2:
+        return ecken[:, 0].copy(), ecken[:, 1].copy()
+    weg = np.hypot(np.diff(ecken[:, 0]), np.diff(ecken[:, 1]))
+    anzahl = np.maximum(1, np.ceil(weg / schritt)).astype(np.int64)
+    stueck = np.repeat(np.arange(len(anzahl)), anzahl)
+    vorher = np.repeat(np.cumsum(anzahl) - anzahl, anzahl)
+    t = (np.arange(len(stueck)) - vorher + 1) / anzahl[stueck]
+    x = ecken[stueck, 0] + t * (ecken[stueck + 1, 0] - ecken[stueck, 0])
+    y = ecken[stueck, 1] + t * (ecken[stueck + 1, 1] - ecken[stueck, 1])
+    return np.concatenate([ecken[:1, 0], x]), np.concatenate([ecken[:1, 1], y])
+
+
+def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
+    """Die Variante „adaptiv“ auf einer Lage: FreeCADs Adaptiv-Kern (area.Adaptive2d, der Kern
+    der CAM-Operation „Adaptive“) räumt, was der Fräser auf der Lage erreicht – in Bahnen, die
+    ihren Eingriff halten: von außen durch die Luft hinein, wo es geht (sonst über eine Helix),
+    im Material weiter mit höchstens ADAPTIV_SCHRITT · ae, an Wänden entlang ohne quer
+    hineinzufahren, zurück unten durchs Freie statt abzuheben. Manuel, 2026-10-02, zu den
+    Ringen, die an einer Insel abreißen: „effektiv ist da nur ein Kreis“ – und zur Last: die
+    schnellste Variante gewinnt, wenn sie sie hält. An seinem Testteil hob das Räumen mit den
+    Ringen 56-mal ab und fuhr an jeder Wand quer in den Streifen (bis 5 ae); so 6-mal, 11 statt
+    12,4 min.
+
+    Der Kern bekommt Vielecke aus dem Raster: das Gebiet, in dem die Schneide sein darf – die
+    Höhenlinie 0 des Feldes D (der Abstand zum Gesperrten, das dafür schon um eine Zelle breiter
+    ist), nach außen R + ae über das Rohteil hinaus –, und das Material (der Rand des Rohteils
+    oder dessen, was noch steht). Den schmalen Rand am Gesperrten nimmt danach der Ring an der
+    Wand (_ringe_um_inseln), genau gerechnet. Der Kern fräst im Gleichlauf; für Gegenlauf wird gespiegelt. Geprüft wird
+    hier nach: Die Mitte bleibt im Erlaubten, eingetaucht wird im Freien – sonst _KeinAdaptiv,
+    und die Fläche bekommt Ringe."""
+    try:
+        import area  # FreeCADs libarea
+
+        kern = area.Adaptive2d()
+        innen = area.AdaptiveOperationType.ClearingInside
+        schneiden = area.AdaptiveMotionType.Cutting
+        durchs_freie = area.AdaptiveMotionType.LinkClear
+    except Exception as fehler:  # ein FreeCAD ohne den Kern
+        raise _KeinAdaptiv() from fehler
+    ae = w.zeilenabstand
+    spiegeln = not w.gleichlauf
+    # Das Gebiet im Maß der Schneide (der Kern rückt selbst um R nach innen): so weit die Mitte
+    # darf, und R dazu.
+    gebiet = feld._tiefe_rohteil + (r + ae) + r
+    if np.isfinite(D).any():
+        gebiet = np.minimum(gebiet, np.where(np.isfinite(D), D, _UNERREICHT) + r)
+    grenzen = _vielecke(gebiet, feld, spiegeln)
+    material = _vielecke(feld.tiefe, feld, spiegeln)
+    if not grenzen or not material:
+        raise _KeinAdaptiv()
+    kern.stepOverFactor = ADAPTIV_SCHRITT * ae / (2.0 * r)
+    kern.toolDiameter = 2.0 * r
+    kern.helixRampDiameter = 2.0 * ADAPTIV_HELIX * r
+    kern.keepToolDownDistRatio = ADAPTIV_HALTEN
+    kern.stockToLeave = 0.0
+    kern.tolerance = ADAPTIV_GENAU
+    kern.forceInsideOut = False
+    kern.finishingProfile = True
+    kern.opType = innen
+    eingabe = repr((material, grenzen, kern.stepOverFactor, 2.0 * r, kern.helixRampDiameter))
+    schluessel = hashlib.blake2b(eingabe.encode("utf-8"), digest_size=16).hexdigest()
+    gebiete = _ADAPTIV.get(schluessel)
+    if gebiete is None:
+        try:
+            ergebnisse = kern.Execute(material, grenzen, lambda _wege: False)
+        except Exception as fehler:
+            raise _KeinAdaptiv() from fehler
+        vorzeichen = -1.0 if spiegeln else 1.0
+        gebiete = []
+        for ergebnis in ergebnisse:
+            stuecke = []
+            for art, ecken in ergebnis.AdaptivePaths:
+                ecken = np.asarray(ecken, dtype=float).reshape(-1, 2)
+                if len(ecken):
+                    ecken[:, 0] *= vorzeichen
+                    stuecke.append((art == schneiden, art == durchs_freie, ecken))
+            start = (vorzeichen * float(ergebnis.StartPoint[0]), float(ergebnis.StartPoint[1]))
+            mitte = (
+                vorzeichen * float(ergebnis.HelixCenterPoint[0]),
+                float(ergebnis.HelixCenterPoint[1]),
+            )
+            gebiete.append((start, mitte, stuecke))
+        _ADAPTIV[schluessel] = gebiete
+        while len(_ADAPTIV) > ADAPTIV_GEMERKT:
+            _ADAPTIV.popitem(last=False)
+    else:
+        _ADAPTIV.move_to_end(schluessel)
+    gefahren = False
+    for start, mitte, stuecke in gebiete:
+        gefahren |= _adaptiv_gebiet(ablauf, feld, w, r, schritt, start, mitte, stuecke)
+    if not gefahren:
+        raise _KeinAdaptiv()
+
+
+def _adaptiv_gebiet(ablauf, feld, w, r, schritt, start, mitte, stuecke):
+    """Fährt ein Gebiet des Adaptiv-Kerns: hinein bei `start` – von außen durch die Luft, oder
+    über die Helix um `mitte` –, dann seine Stücke [(schneidet, durchs Freie, Ecken (m, 2))]:
+    schneiden im Vorschub, durchs Freie unten mit RUECKWEG · Vorschub, sonst abheben. Merkt sich
+    das Freie. Gibt zurück, ob etwas gefahren wurde."""
+    schnitte = [ecken for schneidet, _frei, ecken in stuecke if schneidet and len(ecken) >= 2]
+    if not schnitte:
+        return False
+    for ecken in schnitte:  # die Mitte bleibt, wo sie darf
+        x, y = _dicht(ecken, schritt)
+        if not (feld.im_raster(x, y).all() and feld.bei(ablauf.erlaubt, x, y).all()):
+            raise _KeinAdaptiv()
+    st, lage = ablauf.st, ablauf.lage
+    punkte = st.punkte
+    erstes = schnitte[0]
+    richtung = kb._einheit(float(erstes[1][0] - erstes[0][0]), float(erstes[1][1] - erstes[0][1]))
+    hoch = ablauf.knapp if ablauf.unten else w.sicher
+    if ablauf.unten and ablauf.ort is not None:
+        punkte.append(bn.Punkt(True, ablauf.ort[0], ablauf.ort[1], hoch))
+    laenge = 0.0
+    radius = math.hypot(start[0] - mitte[0], start[1] - mitte[1])
+    if radius > 0.01:
+        laenge += _adaptiv_helix(ablauf, feld, w, start, mitte, radius, richtung, hoch, schritt)
+        st.rampen += 1
+        st.rampen_bei.append(("adaptiv", 0))
+    else:
+        ein = _adaptiv_einstieg(ablauf, feld, w, r, start, richtung, schritt)
+        punkte.append(bn.Punkt(True, ein[0], ein[1], hoch))
+        punkte.append(bn.Punkt(True, ein[0], ein[1], ablauf._hinab(ein, hoch)))
+        punkte.append(bn.Punkt(False, ein[0], ein[1], lage, True))
+        if math.hypot(ein[0] - start[0], ein[1] - start[1]) > _WINZIG:
+            punkt = bn.Punkt(False, start[0], start[1], lage)
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
+            feld.merke(*_dicht([ein, start], schritt))
+        st.einfahrten += 1
+    unten = True
+    ort = (float(start[0]), float(start[1]))
+    for schneidet, frei, ecken in stuecke:
+        if not schneidet:
+            weg = np.vstack([[ort], ecken])
+            if unten and frei and _weg_frei(ablauf, feld, weg, schritt):
+                for x, y in ecken:
+                    punkte.append(bn.Punkt(False, float(x), float(y), lage, False, None, RUECKWEG))
+                st.anschluesse += 1
+            elif unten:
+                punkte.append(bn.Punkt(True, ort[0], ort[1], ablauf.knapp))
+                unten = False
+            ort = (float(ecken[-1][0]), float(ecken[-1][1]))
+            continue
+        if len(ecken) < 2:
+            continue
+        anfang = (float(ecken[0][0]), float(ecken[0][1]))
+        if not unten:
+            # Nach dem Abheben hinab am Anfang des Stücks – dort ist nach dem Kern frei.
+            if float(feld.ungeschnitten([anfang[0]], [anfang[1]])[0]) > ablauf.schwelle:
+                raise _KeinAdaptiv()
+            punkte.append(bn.Punkt(True, anfang[0], anfang[1], ablauf.knapp))
+            punkte.append(bn.Punkt(True, anfang[0], anfang[1], ablauf._hinab(anfang, ablauf.knapp)))
+            punkte.append(bn.Punkt(False, anfang[0], anfang[1], lage, True))
+            unten = True
+        elif math.hypot(anfang[0] - ort[0], anfang[1] - ort[1]) > _WINZIG:
+            punkt = bn.Punkt(False, anfang[0], anfang[1], lage)
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
+        for x, y in ecken[1:]:
+            punkt = bn.Punkt(False, float(x), float(y), lage)
+            laenge += bn.weg(punkte[-1], punkt)
+            punkte.append(punkt)
+        feld.merke(*_dicht(ecken, schritt))
+        ort = (float(ecken[-1][0]), float(ecken[-1][1]))
+        st.ringe += 1
+    ablauf.unten = unten
+    ablauf.ort = ort if unten else None
+    st.laenge += laenge
+    st.laeufe += 1
+    st.z_min = min(st.z_min, lage)
+    return True
+
+
+def _weg_frei(ablauf, feld, ecken, schritt):
+    """Liegt der Weg `ecken` (m, 2) ganz im Freien: die Mitte im Erlaubten, unter der Stirn
+    kein Rohteil mehr (bis auf das Rauschen des Rasters)?"""
+    x, y = _dicht(ecken, schritt)
+    if not (feld.im_raster(x, y).all() and feld.bei(ablauf.erlaubt, x, y).all()):
+        return False
+    return bool(float(np.max(feld.ungeschnitten(x, y))) <= FREI_ZULAESSIG)
+
+
+def _adaptiv_einstieg(ablauf, feld, w, r, start, richtung, schritt):
+    """Wo der Fräser eintaucht, bevor er von außen ins Gebiet fährt. Der Kern beginnt mit dem
+    halben Schritt im Material – dort einzutauchen hieße, einen Saum über die ganze Tiefe
+    senkrecht zu nehmen. Rückwärts auf der Geraden seines ersten Stücks liegt die Stirn nach
+    wenigen Millimetern ganz in der Luft: dort hinab, dann im Vorschub hinein. Geht das nicht
+    (dahinter ist gesperrt), bleibt der Start, wenn unter der Stirn nicht mehr steht, als jeder
+    Ring beim Einfahren treffen darf; sonst _KeinAdaptiv."""
+    d = schritt
+    for k in range(int(math.ceil((2.0 * r + w.zeilenabstand) / schritt)) + 1):
+        p = (start[0] - richtung[0] * k * schritt, start[1] - richtung[1] * k * schritt)
+        if not feld.im_raster([p[0]], [p[1]]).all():
+            break
+        if not feld.bei(ablauf.erlaubt, [p[0]], [p[1]]).all():
+            break
+        xs = [p[0], p[0] + d, p[0] - d, p[0], p[0]]
+        ys = [p[1], p[1], p[1], p[1] + d, p[1] - d]
+        if float(np.max(feld.ungeschnitten(xs, ys))) <= 0.0:
+            return p
+    if float(feld.ungeschnitten([start[0]], [start[1]])[0]) <= ablauf.schwelle:
+        return (float(start[0]), float(start[1]))
+    raise _KeinAdaptiv()
+
+
+def _adaptiv_helix(ablauf, feld, w, start, mitte, radius, richtung, hoch, schritt):
+    """Ins Volle über die Helix um `mitte` (der Kern rechnet mit ihr: Danach ist der Kreis mit
+    Radius der Helix + R frei): mit dem Eintauchwinkel in ganzen Umläufen hinab, dann ein Umlauf
+    in der Tiefe – Bögen mit z, im Drehsinn des ersten Stücks danach. Gibt die Länge zurück."""
+    lage, punkte = ablauf.lage, ablauf.st.punkte
+    winkel = math.atan2(start[1] - mitte[1], start[0] - mitte[0])
+    kreuz = (start[0] - mitte[0]) * richtung[1] - (start[1] - mitte[1]) * richtung[0]
+    uhr = kreuz < 0
+    rundum = winkel + np.linspace(0.0, 2.0 * math.pi, max(8, int(2 * math.pi * radius / schritt)))
+    kx, ky = mitte[0] + radius * np.cos(rundum), mitte[1] + radius * np.sin(rundum)
+    if not (feld.im_raster(kx, ky).all() and feld.bei(ablauf.erlaubt, kx, ky).all()):
+        raise _KeinAdaptiv()
+    oben_hier = ablauf.vorige
+    knapp = min(hoch, ablauf._material_oben(start) + w.sicherheit)
+    punkte.append(bn.Punkt(True, start[0], start[1], hoch))
+    punkte.append(bn.Punkt(True, start[0], start[1], knapp))
+    punkte.append(bn.Punkt(False, start[0], start[1], oben_hier, True))
+    steil = math.tan(math.radians(w.eintauchwinkel if w.eintauchwinkel > 0 else vb.EINTAUCHWINKEL))
+    je_umlauf = 2.0 * math.pi * radius * steil
+    umlaeufe = max(1, int(math.ceil((oben_hier - lage) / je_umlauf - 1e-9)))
+    laenge = 0.0
+    for viertel in range(1, 4 * (umlaeufe + 1) + 1):
+        a = winkel + (-1.0 if uhr else 1.0) * 0.5 * math.pi * viertel
+        z = max(lage, oben_hier + (lage - oben_hier) * viertel / (4.0 * umlaeufe))
+        punkt = bn.Punkt(
+            False,
+            mitte[0] + radius * math.cos(a),
+            mitte[1] + radius * math.sin(a),
+            z,
+            False,
+            (mitte[0], mitte[1], uhr),
+        )
+        laenge += bn.weg(punkte[-1], punkt)
+        punkte.append(punkt)
+    feld.merke(kx, ky)
+    return laenge
+
+
+def last(st, w, stand=None):
+    """(größte Last, längster Weg am Stück über bahn.LAST_DAUERND in mm) der Bahn `st` (eine
+    Raeumbahn oder ihr _Stand: `punkte` und `tiefen`) mit den Werten `w` – die
+    Last ist der Querschnitt, den der Fräser je mm Weg abträgt, durch ae · Lagentiefe
+    (Spezifikation Strategien 12.1), über LAST_FENSTER mm gemittelt. Die Bahn wird dazu im
+    Quader des Rohteils abgefahren (oder im Materialstand `stand`); Eintauchen und Rampen
+    tragen ab, zählen aber nicht – ihr Eingriff folgt dem Eintauchwinkel. Die Zellen am Rand
+    des Rohteils zählen halb: Sein Rand liegt auf ihren Mitten."""
+    from . import materialstand as mst  # erst hier: es bringt den Job mit
+    from . import restmaterial as rm
+
+    if stand is not None:
+        q = mst._kopie(stand).quader
+    else:
+        x_von, x_bis, y_von, y_bis = w.rohteil
+        q = rm.Quader(x_von, x_bis, y_von, y_bis, w.oben - 1.0, w.oben, mst.SCHRITT)
+    gewicht = np.ones(q.h.shape)
+    gewicht[0, :] *= 0.5
+    gewicht[-1, :] *= 0.5
+    gewicht[:, 0] *= 0.5
+    gewicht[:, -1] *= 0.5
+    sx, sy = float(q.x[1] - q.x[0]), float(q.y[1] - q.y[0])
+    zelle = sx * sy
+    r = float(w.form.radius)
+    rand = r + 2.0 * max(sx, sy)
+    nx, ny = q.h.shape
+    ae = w.zeilenabstand
+    groesste = lang = ueber = 0.0
+    fenster = []  # [(Weg, Volumen)] der letzten Stücke, zusammen ≥ LAST_FENSTER
+    for von, nach in zip(st.punkte, st.punkte[1:], strict=False):
+        sehnen = []
+        for a, b in mst.sehnen(von, nach):
+            n = max(1, int(math.ceil(math.dist(a[:2], b[:2]) / LAST_SEHNE)))
+            for k in range(n):
+                sehnen.append(
+                    (
+                        tuple(a[i] + (b[i] - a[i]) * k / n for i in range(3)),
+                        tuple(a[i] + (b[i] - a[i]) * (k + 1) / n for i in range(3)),
+                    )
+                )
+        eben = not nach.eilgang and not nach.eintauchen and abs(nach.z - von.z) <= GLEICH
+        tiefe = st.tiefen.get(round(nach.z, 4)) if eben else None
+        if not tiefe or tiefe <= GLEICH:
+            q.fahre_stuecke([s[0] for s in sehnen], [s[1] for s in sehnen], w.form)
+            fenster, ueber = [], 0.0
+            continue
+        for a, b in sehnen:
+            i0 = max(int(math.floor((min(a[0], b[0]) - rand - q.x[0]) / sx)), 0)
+            i1 = min(int(math.ceil((max(a[0], b[0]) + rand - q.x[0]) / sx)) + 1, nx)
+            j0 = max(int(math.floor((min(a[1], b[1]) - rand - q.y[0]) / sy)), 0)
+            j1 = min(int(math.ceil((max(a[1], b[1]) + rand - q.y[0]) / sy)) + 1, ny)
+            if i1 <= i0 or j1 <= j0:
+                continue
+            vorher = q.h[i0:i1, j0:j1].copy()
+            q.fahre_stuecke([a], [b], w.form)
+            gesenkt = np.where(np.isfinite(vorher), vorher - q.h[i0:i1, j0:j1], 0.0)
+            volumen = float((gesenkt * gewicht[i0:i1, j0:j1]).sum()) * zelle
+            fenster.append((math.dist(a[:2], b[:2]), volumen))
+            weg = sum(f[0] for f in fenster)
+            while len(fenster) > 1 and weg - fenster[0][0] >= LAST_FENSTER:
+                weg -= fenster.pop(0)[0]
+            if weg < LAST_FENSTER * 0.999:
+                continue
+            last = sum(f[1] for f in fenster) / weg / (ae * tiefe)
+            groesste = max(groesste, last)
+            ueber = ueber + fenster[-1][0] if last > bn.LAST_DAUERND else 0.0
+            lang = max(lang, ueber)
+    return groesste, lang
 
 
 def _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz):

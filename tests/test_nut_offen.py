@@ -194,7 +194,25 @@ k_raeumen = ps.messen([ps.Bahnlauf(raeumen.punkte, VF, VF * 0.3)], ii, (0, 60, 0
 print(ascii(f"Wettbewerb: Nut {bahn_ii.zeit:.2f}, Räumen {raeumen.zeit:.2f} (Wirkungsgrad "
             f"{k_raeumen.wirkungsgrad * 100:.0f} %), Kontur {zeit_kontur:.2f} min"))  # fmt: skip
 pruefe(bahn_ii.zeit < zeit_kontur, f"Nut {bahn_ii.zeit:.2f} nicht schneller als die Kontur")
-pruefe(k_raeumen.wirkungsgrad > 1.0, "Räumen in der Nut nicht in voller Breite?")
+# Das Räumen ohne Vorgabe: adaptiv – es hält die Last auch in der Nut (keine volle Breite mehr),
+# ist aber langsamer als die Bögen der Nut. Mit den Ringen schnitte es in voller Breite (mehr
+# Abtrag, als ae · ap erlaubt: ein Wirkungsgrad über 100 %) – nur scheinbar schnell.
+pruefe(
+    raeumen.variante == "adaptiv" and k_raeumen.wirkungsgrad < 1.0 and bahn_ii.zeit < raeumen.zeit,
+    f"Räumen in der Nut: {raeumen.variante}, {raeumen.zeit:.2f} min, Wirkungsgrad "
+    f"{k_raeumen.wirkungsgrad * 100:.0f} %",
+)
+ringe = rb.planen(
+    hf.netze_je_hoehe(ii, ebenen, hf.TOLERANZ),
+    rb.Raeumwerte(form=form, zustellung=AP, zeilenabstand=AE, aufmass=0.3, oben=20.0,
+                  sicher=25.0, rohteil=(0, 60, 0, 40), variante=rb.RINGE, schneidenlaenge=26.0,
+                  eintauchwinkel=3.0, vorschub=VF, eintauchen=VF * 0.3),
+    ebenen,
+    kb.konturen(ii, [f"Face{i + 1}" for i in range(len(ii.Faces))]),
+)  # fmt: skip
+k_ringe = ps.messen([ps.Bahnlauf(ringe.punkte, VF, VF * 0.3)], ii, (0, 60, 0, 40), 20.0,
+                    form, AE, 8.0, ebenen_z=[12.0], aufmass=0.3)  # fmt: skip
+pruefe(k_ringe.wirkungsgrad > 1.0, "Ringe in der Nut nicht in voller Breite?")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

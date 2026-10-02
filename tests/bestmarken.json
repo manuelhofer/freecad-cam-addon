@@ -5,23 +5,24 @@
     "luft": 0.107,
     "rampen": 1,
     "varianten": {
-      "andere": 4.811,
+      "andere": 4.956,
       "gewaehlt": 2.079
     },
     "wirkungsgrad": 0.77,
     "zeit": 2.079
   },
   "absatz/raeumen": {
-    "eintauchen": 1,
-    "halte": 173,
-    "luft": 0.127,
+    "eintauchen": 0,
+    "halte": 112,
+    "luft": 0.079,
     "rampen": 0,
     "varianten": {
+      "adaptiv": 2.543,
       "inseln": 3.258,
       "rohteil": 2.657
     },
-    "wirkungsgrad": 0.595,
-    "zeit": 2.657
+    "wirkungsgrad": 0.633,
+    "zeit": 2.543
   },
   "bohrungen/bohrung fraesen": {
     "eintauchen": 0,
@@ -52,7 +53,7 @@
     "halte": 5,
     "luft": 0.176,
     "rampen": 0,
-    "wirkungsgrad": 0.068,
+    "wirkungsgrad": 0.084,
     "zeit": 0.164
   },
   "platte/planfraesen": {
@@ -68,39 +69,41 @@
     "zeit": 41.875
   },
   "platte/planfraesen oben+tasche": {
-    "eintauchen": 0,
-    "halte": 808,
+    "eintauchen": 7,
+    "halte": 801,
     "luft": 0.061,
-    "rampen": 67,
+    "rampen": 60,
     "varianten": {
-      "gewaehlt": 47.885
+      "gewaehlt": 47.747
     },
-    "wirkungsgrad": 0.639,
-    "zeit": 47.903
+    "wirkungsgrad": 0.641,
+    "zeit": 47.766
   },
   "platte/raeumen": {
-    "eintauchen": 2,
-    "halte": 534,
-    "luft": 0.013,
-    "rampen": 1,
+    "eintauchen": 0,
+    "halte": 119,
+    "luft": 0.014,
+    "rampen": 0,
     "varianten": {
+      "adaptiv": 33.323,
       "inseln": 41.005,
-      "rohteil": 33.864
+      "rohteil": 33.799
     },
-    "wirkungsgrad": 0.87,
-    "zeit": 33.864
+    "wirkungsgrad": 0.884,
+    "zeit": 33.323
   },
   "platte/raeumen oben+tasche": {
-    "eintauchen": 2,
-    "halte": 994,
+    "eintauchen": 0,
+    "halte": 579,
     "luft": 0.014,
-    "rampen": 2,
+    "rampen": 1,
     "varianten": {
-      "inseln": 42.409,
-      "rohteil": 35.264
+      "adaptiv": 34.653,
+      "inseln": 42.339,
+      "rohteil": 35.129
     },
-    "wirkungsgrad": 0.868,
-    "zeit": 35.264
+    "wirkungsgrad": 0.883,
+    "zeit": 34.653
   },
   "platte/raeumen+kontur tasche": {
     "eintauchen": 0,
@@ -132,35 +135,37 @@
   },
   "tasche/raeumen": {
     "eintauchen": 0,
-    "halte": 160,
-    "luft": 0.003,
+    "halte": 222,
+    "luft": 0.155,
     "rampen": 1,
     "varianten": {
+      "adaptiv": 1.494,
       "inseln": 0.877
     },
-    "wirkungsgrad": 1.019,
-    "zeit": 0.877
+    "wirkungsgrad": 0.598,
+    "zeit": 1.494
   },
   "tasche/raeumen oben": {
     "eintauchen": 0,
-    "halte": 113,
-    "luft": 0.08,
+    "halte": 9,
+    "luft": 0.014,
     "rampen": 0,
     "varianten": {
-      "inseln": 6.105,
-      "morph": 6.105,
-      "rohteil": 6.105
+      "adaptiv": 5.249,
+      "inseln": 5.761,
+      "morph": 5.761,
+      "rohteil": 5.761
     },
-    "wirkungsgrad": 0.776,
-    "zeit": 6.105
+    "wirkungsgrad": 0.902,
+    "zeit": 5.249
   },
   "tasche/raeumen+kontur": {
     "eintauchen": 0,
-    "halte": 169,
-    "luft": 0.029,
+    "halte": 231,
+    "luft": 0.159,
     "rampen": 1,
-    "wirkungsgrad": 0.909,
-    "zeit": 1.031
+    "wirkungsgrad": 0.569,
+    "zeit": 1.648
   },
   "zapfen/kontur": {
     "eintauchen": 0,
@@ -183,37 +188,39 @@
     "zeit": 5.7
   },
   "zapfen/raeumen": {
-    "eintauchen": 0,
-    "halte": 7,
-    "luft": 0.104,
+    "eintauchen": 1,
+    "halte": 23,
+    "luft": 0.055,
     "rampen": 0,
     "varianten": {
+      "adaptiv": 2.434,
       "inseln": 4.545,
       "morph": 2.697,
       "rohteil": 3.033
     },
-    "wirkungsgrad": 0.731,
-    "zeit": 2.697
+    "wirkungsgrad": 0.811,
+    "zeit": 2.434
   },
   "zapfen/raeumen gegenlauf": {
     "eintauchen": 0,
-    "halte": 7,
-    "luft": 0.103,
+    "halte": 15,
+    "luft": 0.05,
     "rampen": 0,
     "varianten": {
+      "adaptiv": 2.387,
       "inseln": 4.486,
       "morph": 2.693,
       "rohteil": 3.034
     },
-    "wirkungsgrad": 0.733,
-    "zeit": 2.693
+    "wirkungsgrad": 0.827,
+    "zeit": 2.387
   },
   "zapfen/raeumen+kontur": {
-    "eintauchen": 0,
-    "halte": 12,
-    "luft": 0.109,
+    "eintauchen": 1,
+    "halte": 28,
+    "luft": 0.063,
     "rampen": 0,
-    "wirkungsgrad": 0.701,
-    "zeit": 2.823
+    "wirkungsgrad": 0.773,
+    "zeit": 2.56
   }
 }

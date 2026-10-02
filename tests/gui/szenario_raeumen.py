@@ -1,8 +1,9 @@
 # „Bearbeitung (Fräsen)“ mit dem Räumen und dem Wettbewerb der Strategien (W-006 S3f, Grundsatz
 # 0). Manuels Beispiel: Block 50 × 50 × 20 mit einem Zapfen Ø 10, 10 hoch in der Mitte; T1 der
 # Standardfräser Ø 12 (ae 1,5, ap 25). Die Oberseite bei z = 20 anklicken, den Knopf drücken:
-# Der Job entsteht, Planfräsen und Räumen rechnen beide – Räumen ist schneller (eine Lage, Ringe
-# von außen nach innen, zuletzt um den Zapfen, keine Rampe), bekommt den Haken und sagt es: „… – die schnellste;
+# Der Job entsteht, Planfräsen und Räumen rechnen beide – Räumen ist schneller (eine Lage,
+# adaptiv: von außen nach innen, zuletzt der genaue Ring um den Zapfen, keine Rampe; seit 0.126.0
+# die schnellste Variante, die die Last hält – vorher der Morph), bekommt den Haken und sagt es: „… – die schnellste;
 # Planfräsen wäre N % langsamer“; beim Planfräsen steht „… – N % langsamer als Räumen“, sein
 # Haken ist weg (56 Zeilen: die erste greift bei 20 mm Tiefe nur 1,9 mm ins Rohteil, damit
 # Breite · Tiefe nicht über ae · ap liegt – P-2026-10-01-49). „Anlegen“: nur „Räumen T1“, mit Bögen. Doppelklick darauf öffnet das Fenster nur
@@ -76,7 +77,8 @@ def schritte(h):
     h.pruefe(raeumen.aktiv() and not plan.aktiv(), "Haken: Räumen an, Planfräsen aus")
     h.pruefe(not panel.kontur.aktiv(), "Haken: Kontur an")
     text = raeumen.ergebnis.text()
-    h.pruefe(text.startswith("→ 1 Lage, ") and " Ringe, etwa 3 min" in text, f"Räumen: {text!r}")
+    h.pruefe(text.startswith("→ 1 Lage, adaptiv, etwa ") and "min" in text, f"Räumen: {text!r}")
+    h.pruefe(raeumen.zeit is not None and raeumen.zeit < 2.7, f"Räumen: {raeumen.zeit} min")
     h.pruefe("– die schnellste; Planfräsen wäre" in text and "% langsamer" in text, f"{text!r}")
     text_plan = plan.ergebnis.text()
     h.pruefe(text_plan.startswith("→ 1 Lage, 56 Zeilen, etwa 6 min"), f"Planfräsen: {text_plan!r}")
@@ -96,11 +98,12 @@ def schritte(h):
     op = ops[0]
     h.pruefe(op.Label == "Räumen T1", f"Name: {op.Label}")
     h.pruefe(
-        (op.Ebenen, op.Lagen) == (1, 1) and 15 <= op.Ringe <= 20,
-        f"{op.Ebenen}, {op.Lagen}, {op.Ringe}",
+        (op.Ebenen, op.Lagen) == (1, 1) and op.Ringe >= 1, f"{op.Ebenen}, {op.Lagen}, {op.Ringe}"
     )
-    ringe_vorher = op.Ringe
-    h.pruefe(op.Gerechnet.startswith("morph "), f"Gerechnet: {op.Gerechnet!r}")
+    h.pruefe(
+        op.Gerechnet.startswith("adaptiv ") and "morph" in op.Gerechnet,
+        f"Gerechnet: {op.Gerechnet!r}",
+    )
     h.pruefe(list(op.Flaechen) == [flaeche], f"Flächen: {list(op.Flaechen)}")
     namen = {b.Name for b in op.Path.Commands}
     h.pruefe("G2" in namen or "G3" in namen, f"keine Bögen: {namen}")
@@ -130,7 +133,10 @@ def schritte(h):
     h.pruefe(panel.accept() is True, "„Übernehmen“ ging nicht")
     yield 1500
     h.pruefe(op.Gleichlauf is False, "nach dem Ändern: Gleichlauf")
-    h.pruefe(op.Ringe == ringe_vorher, f"nach dem Ändern: {op.Ringe} statt {ringe_vorher} Ringe")
+    h.pruefe(
+        op.Gerechnet.startswith("adaptiv ") and op.Ringe >= 1,
+        f"nach dem Ändern: {op.Gerechnet!r}, {op.Ringe}",
+    )
 
     # --- Auf der Maschine prüfen: der Quader wird abgetragen, am Ende Farben -----------------
     asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)

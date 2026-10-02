@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Die CAM-Operation „Räumen“ (W-006 S3f) – eine ebene Fläche nach oben (die Oberseite, der
-Boden einer Tasche) mit Ringen räumen: bei vollem ap und schmalem ae, ohne Wenden, von außen
-kreisend nach innen (offene Fläche) oder von innen nach außen (Tasche), im Gleichlauf.
+Boden einer Tasche) räumen: bei vollem ap und schmalem ae, ohne Wenden, im Gleichlauf – mit
+Ringen (von außen kreisend nach innen, in der Tasche von innen nach außen) oder adaptiv
+(FreeCADs Adaptiv-Kern hält den Eingriff): die schnellste Variante, die die Last hält.
 
 Wie „Planfräsen“ (planfraesen) und „Kontur“ (kontur) eine eigene Operation (erbt FreeCADs
 ObjectOp) mit Werkzeug-Controller, Kühlmittel und FreeCADs Tiefen und Höhen. Beim Neuberechnen
-rechnet sie ihre Bahn aus Modell und Rohteil des Jobs (raeumen_bahn.planen) – in beiden
-Varianten (Ringe vom Rohteil her, Ringe um die Inseln her), die schnellere zählt (Grundsatz 0)
-–, mit dem Fräser aus dem ToolBit des Controllers und den Vorschüben des Controllers für die
+rechnet sie ihre Bahn aus Modell und Rohteil des Jobs (raeumen_bahn.planen) – in allen
+Varianten, die schnellste zählt, wenn sie die Last hält (Grundsatz 0; Variante „ringe“: nur die
+Ringe, ohne Blick auf die Last) –, mit dem Fräser aus dem ToolBit des Controllers und den Vorschüben des Controllers für die
 Zeit.
 
 Modul- und Klassenname stehen in jeder gespeicherten Datei – sie bleiben. Der Modulname ist
@@ -39,7 +40,7 @@ GRUPPE = "Fräsen"  # die Gruppe der Eigenschaften
 ZUSTELLUNG = 2.0  # mm – Vorschlag, solange nichts anderes gesagt ist
 AUFMASS = 0.3  # mm – bleibt an Wänden und Inseln stehen
 AUSTRITT = 50  # % des Vorschubs beim Austritt aus dem Rohteil
-VARIANTEN = ("automatisch",) + rb.VARIANTEN
+VARIANTEN = ("automatisch", rb.RINGE) + rb.ALLE_VARIANTEN
 
 
 class Raeumen(PathOp.ObjectOp):
@@ -133,11 +134,15 @@ class Raeumen(PathOp.ObjectOp):
 
 
 def gerechnet_text(ergebnis):
-    """„rohteil 36,9 min · inseln 41,4 min“ – die Varianten mit ihrer Zeit, die gewählte vorn."""
+    """„adaptiv 1,4 min · inseln 0,8 min (Last 4,1 ae)“ – die Varianten mit ihrer Zeit, die
+    gewählte vorn; in Klammern die Last derer, die schneller wären, sie aber nicht halten."""
     teile = [f"{ergebnis.variante} {ergebnis.zeit:.1f} min"]
     for name, zeit in ergebnis.zeiten.items():
         if name != ergebnis.variante:
-            teile.append(f"{name} {zeit:.1f} min")
+            teil = f"{name} {zeit:.1f} min"
+            if name in ergebnis.ueberlastet:
+                teil += f" (Last {ergebnis.ueberlastet[name]:.1f} ae)"
+            teile.append(teil)
     return " · ".join(teile)
 
 
@@ -165,7 +170,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vo.flaechen(obj),
         aufmass_boden=float(obj.AufmassBoden),
         gleichlauf=sp.fuer_m3(obj.Gleichlauf, obj.ToolController),
-        variante=variante if variante in rb.VARIANTEN else None,
+        variante=variante if variante in VARIANTEN[1:] else None,
         einfahrradius=einfahrradius if einfahrradius > 0 else None,
         schneidenlaenge=ko.schneidenlaenge(obj.ToolController),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),  # nie über dem Rohteil

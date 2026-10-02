@@ -4,11 +4,14 @@
 # Insel (z 10 … 22), auf ihr eine obere Stufe (z 22 … 32) mit einer dreieckigen Tasche (Boden
 # z 27), in der Insel eine Kugelmulde. Rohteil 102 × 102 × 34, der Standardfräser Ø 12.
 # Räumen über die drei offenen Höhen (T1): die tiefste Fläche zuerst – außen um die Insel, 23 tief
-# in einer Lage –, die Insel oben danach nur noch über sich, in Ringen um das, was noch steht, die
-# obere Stufe zuletzt; zusammen höchstens 13 min (jede Fläche für sich vom Rohteil her: 26 min),
-# ohne Rest, nirgends ins Teil. Der Boden der kleinen Tasche: Der Ø 12 passt nicht hinein – ein
-# Satz statt einer Bahn rund um die Insel (B-006); mit den anderen Flächen zusammen fällt sie aus,
-# und die Bahn nennt sie (B-007).
+# in einer Lage –, die Insel oben danach nur noch über sich, um das, was noch steht, die obere
+# Stufe zuletzt; ohne Rest, nirgends ins Teil. Mit den Ringen 12,4 min (jede Fläche für sich vom
+# Rohteil her: 26 min), 56-mal abgehoben, und wo ein Ring an einer Wand beginnt, fährt der Fräser
+# quer in den Streifen – bis 5 ae. Ohne Vorgabe gewinnt deshalb die Variante „adaptiv“ (T5):
+# unter 11,5 min, höchstens 10-mal abgehoben, die Last gehalten (kurz höchstens 1,7 ae, über
+# 1,25 ae höchstens eine Fräserbreite am Stück). Der Boden der kleinen Tasche: Der Ø 12 passt
+# nicht hinein – ein Satz statt einer Bahn rund um die Insel (B-006); mit den anderen Flächen
+# zusammen fällt sie aus, und die Bahn nennt sie (B-007).
 import os
 import sys
 
@@ -58,22 +61,33 @@ def ebenen_bei(*hoehen):
     return [e for z in hoehen for e in hf.ebenen_oben(teil) if abs(e.z - z) < 1e-6]
 
 
-def raeumen(*hoehen):
-    ebenen = ebenen_bei(*hoehen)
-    werte = rb.Raeumwerte(
-        form, AP, AE, 0.3, OBEN, OBEN + 5.0, ROHTEIL,
+def werte_fuer(variante=None):
+    return rb.Raeumwerte(
+        form, AP, AE, 0.3, OBEN, OBEN + 5.0, ROHTEIL, variante=variante,
         schneidenlaenge=werkzeug.schneidenlaenge, eintauchwinkel=werkzeug.eintauchwinkel,
         vorschub=VF, eintauchen=VF * 0.3,
     )  # fmt: skip
+
+
+def raeumen(*hoehen, variante=None):
+    ebenen = ebenen_bei(*hoehen)
     netz = hf.netze_je_hoehe(teil, ebenen)
-    return rb.planen(netz, werte, ebenen, ra.konturen_des_teils(teil))
+    return rb.planen(netz, werte_fuer(variante), ebenen, ra.konturen_des_teils(teil))
+
+
+def abgehoben(bahn):
+    """So oft hebt die Bahn ab: Eilgänge nach einem Satz im Vorschub."""
+    return sum(
+        1 for a, b in zip(bahn.punkte, bahn.punkte[1:], strict=False) if b.eilgang and not a.eilgang
+    )
 
 
 def vorschub_je_hoehe(bahn):
-    """{z: mm im Vorschub auf dieser Höhe} und die Höhen in der Reihenfolge der Bahn."""
+    """{z: mm im Vorschub auf dieser Höhe} – ohne die Wege durchs Freie – und die Höhen in der
+    Reihenfolge der Bahn."""
     weg, folge = {}, []
     for a, b in zip(bahn.punkte, bahn.punkte[1:], strict=False):
-        if b.eilgang or abs(b.z - a.z) > 1e-9:
+        if b.eilgang or abs(b.z - a.z) > 1e-9 or b.anteil > 1.0:
             continue
         z = round(b.z, 3)
         weg[z] = weg.get(z, 0.0) + bn.weg(a, b)
@@ -92,18 +106,40 @@ pruefe(bahn.flaechen == 3 and bahn.lagen == 3, f"{bahn.flaechen} Flächen, {bahn
 pruefe(bahn.ausgelassen == [], f"ohne die Tasche ausgelassen: {bahn.ausgelassen}")
 # Die tiefste zuerst, jede Höhe einmal – außen um die Insel 23 mm in einer Lage.
 pruefe(folge == [PLATTE, INSEL, STUFE], f"Reihenfolge der Höhen: {folge}")
-pruefe(bahn.zeit < 13.0, f"Räumen über drei Höhen: {bahn.zeit:.1f} min – das Ziel sind 8")
+# Die schnellste Variante, die die Last hält: adaptiv – schneller als die Ringe, und es hebt kaum
+# noch ab (mit den Ringen 56-mal).
+pruefe(
+    bahn.variante == "adaptiv" and bahn.zeit < min(bahn.zeiten["rohteil"], 11.5),
+    f"Räumen über drei Höhen: {bahn.variante}, {bahn.zeiten} – das Ziel sind 8 min",
+)
+pruefe(abgehoben(bahn) <= 10, f"Räumen über drei Höhen: {abgehoben(bahn)}-mal abgehoben")
+groesste, lang = rb.last(bahn, werte_fuer())
+pruefe(
+    groesste <= bn.LAST_KURZ * rb.LAST_SPIEL and lang <= 2 * R,
+    f"Last bis {groesste:.2f} ae, {lang:.1f} mm am Stück über {bn.LAST_DAUERND} ae",
+)
 # Die Insel oben und die obere Stufe nur noch über sich: vom Rohteil her wären es 8,8 und 8,5 m.
 pruefe(weg[INSEL] < 3200.0, f"Insel oben: {weg[INSEL]:.0f} mm im Vorschub")
 pruefe(weg[STUFE] < 1300.0, f"obere Stufe: {weg[STUFE]:.0f} mm im Vorschub")
-# Im Quader abgefahren: nirgends ins Teil, auf den drei Flächen bleibt nichts stehen.
+# Im Quader abgefahren: nirgends ins Teil, auf den drei Flächen bleibt nichts stehen, wenig Luft.
 k = ps.messen(
     [ps.Bahnlauf(bahn.punkte, VF, VF * 0.3)], teil, ROHTEIL, OBEN, form, AE, AP,
     ebenen_z=[PLATTE, INSEL, STUFE], aufmass=0.3,
 )  # fmt: skip
-for satz in ps.urteile(k, sicher_nur=True):
+for satz in ps.urteile(k):
     pruefe(False, f"Räumen über drei Höhen: {satz}")
-print(f"Raeumen ueber drei Hoehen: {bahn.zeit:.2f} min ({bahn.zeiten}) – {ps.zeile(k)}")
+print(
+    f"Raeumen ueber drei Hoehen: {bahn.zeit:.2f} min ({bahn.zeiten}), {abgehoben(bahn)}-mal "
+    f"abgehoben, Last bis {groesste:.2f} ae – {ps.zeile(k)}"
+)
+# Die Ringe (so rechnete es bis 0.125.5): langsamer, und sie halten die Last nicht.
+ringe = raeumen(PLATTE, INSEL, STUFE, variante=rb.RINGE)
+last_ringe, _lang = rb.last(ringe, werte_fuer(rb.RINGE))
+pruefe(ringe.zeit < 13.0 and abgehoben(ringe) > 30, f"Ringe: {ringe.zeit:.1f} min")
+pruefe(last_ringe > 2.0, f"Ringe: Last bis {last_ringe:.2f} ae – halten sie jetzt?")
+print(
+    f"mit den Ringen: {ringe.zeit:.2f} min, {abgehoben(ringe)}-mal abgehoben, Last bis {last_ringe:.2f} ae"
+)
 
 # Jede Fläche für sich vom Rohteil her (so rechnete es bis 0.123.1): zusammen gut das Doppelte.
 einzeln = sum(raeumen(z).zeit for z in (PLATTE, INSEL, STUFE))

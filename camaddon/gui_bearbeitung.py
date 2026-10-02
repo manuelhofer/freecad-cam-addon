@@ -723,17 +723,34 @@ class _Raeumen(_Strategie):
 
     def ergebnis_text(self, bahn, zeit):
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
-        ringe = tr("ba.zahl.ring") if bahn.ringe == 1 else tr("ba.zahl.ringe", n=bahn.ringe)
+        if bahn.variante == "adaptiv":
+            ringe = tr("ba.zahl.adaptiv")  # die Zahl seiner Bahnen sagt nichts
+        else:
+            ringe = tr("ba.zahl.ring") if bahn.ringe == 1 else tr("ba.zahl.ringe", n=bahn.ringe)
         if bahn.flaechen > 1:
             flaechen = tr("ba.zahl.flaechen", n=bahn.flaechen)
-            return tr(
+            text = tr(
                 "ba.ergebnis_raeumen_flaechen",
                 flaechen=flaechen,
                 lagen=lagen,
                 ringe=ringe,
                 zeit=zeit,
             )
-        return tr("ba.ergebnis_raeumen", lagen=lagen, ringe=ringe, zeit=zeit)
+        else:
+            text = tr("ba.ergebnis_raeumen", lagen=lagen, ringe=ringe, zeit=zeit)
+        # Ringe wären schneller gewesen, halten die Last aber nicht (Manuel, 2026-10-02: die
+        # schnellste gewinnt nur, wenn der ae im Rahmen bleibt) – das Fenster sagt es.
+        ueberlastet = getattr(bahn, "ueberlastet", None) or {}
+        schneller = [v for v in ueberlastet if 0 < bahn.zeiten.get(v, 0.0) < bahn.zeit]
+        if not getattr(bahn, "haelt", True):
+            last = dezimal(f"{ueberlastet.get(bahn.variante, 0.0):.1f}")
+            text = tr("ba.raeumen.haelt_nicht", text=text, last=last)
+        elif schneller:
+            variante = min(schneller, key=lambda v: bahn.zeiten[v])
+            prozent = int(round((1.0 - bahn.zeiten[variante] / bahn.zeit) * 100.0))
+            last = dezimal(f"{ueberlastet[variante]:.1f}")
+            text = tr("ba.raeumen.ueberlastet", text=text, prozent=prozent, last=last)
+        return text
 
     def lege_an(self, job, tc, werte, flaechen):
         return ra.lege_an(
@@ -5323,9 +5340,13 @@ class BearbeitungPanel:
         # Auf dem Grund einer Nut schnitten Planfräsen und Räumen zuerst in voller Breite – mehr
         # als ae, nur scheinbar schneller (an der offenen Nut 0,19 statt 0,85 min, mit Eilgang
         # ins Material). Kann die Nut sie fräsen, treten sie nicht an (P-2026-10-01-47).
+        # Hält das Räumen die Last auch in der Nut („adaptiv“ in einer breiten, seit 0.126.0),
+        # tritt es an wie jede andere, die Zeit entscheidet.
         voll = []
         if self.nut in mit and self._nur_nutgruende(form):
-            voll = [b for b in mit if b in (self.plan, self.raeumen)]
+            bahn = self.raeumen.vorschau
+            haelt = getattr(bahn, "variante", "") == "adaptiv" and getattr(bahn, "haelt", False)
+            voll = [b for b in mit if b is self.plan or (b is self.raeumen and not haelt)]
             for b in voll:
                 b.ergebnis.setText(tr("ba.wettbewerb.vollschnitt", text=b.ergebnis_basis))
             mit = [b for b in mit if b not in voll]

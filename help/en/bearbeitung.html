@@ -197,7 +197,20 @@ in as few layers as stepdown and cutting edge allow. Each higher face then
 comes only where material is still left above it; its rings wrap around what
 still stands instead of running over the whole stock height by height. Pockets
 come last, each from its top edge. This way every spot is cut once.</li>
-<li>The window computes three variants and takes the fastest: “rohteil” (the
+<li><b>Adaptive or rings – the fastest path that keeps the load.</b> ae is the
+load the cutter is meant to carry: briefly up to 1.7 times, for longer than one
+cutter width not above 1.25 times. The rings do not keep that everywhere –
+where a ring starts at a wall the cutter moves sideways into the strip, and in
+the corner of a pocket it takes three to five times as much. So the window also
+computes <b>“adaptiv”</b> (the core of FreeCAD's “Adaptive”): passes that keep
+their engagement, entering from outside through the air (in a pocket down a
+helix), running along walls, returning through the cleared area at depth with
+three times the feed instead of lifting; the narrow rim at the walls is taken
+by an exact ring at the end. If the rings would be faster but do not keep the
+load, the line says so: “… – rings would be 43 % faster but overload the cutter
+(up to 4.1 ae)”. If you want the rings anyway: set <b>Variante</b> to “ringe”
+in the operation's properties.</li>
+<li>The window also computes three variants of the rings: “rohteil” (the
 rings around what still stands: from the stock edge and from the islands, each
 ae further, equally spaced everywhere – the rectangle bites into the boss, the
 rings around it come last), “morph” (the first ring is a rectangle, then each
@@ -208,7 +221,8 @@ boss; only when the boss stands roughly in the middle) and “inseln” (rings
 only around the walls and islands; in a pocket the only one). In the operation's
 properties <b>Gerechnet</b> lists each with its time; <b>Variante</b> fixes
 one.</li>
-<li>Grey below: “→ 1 layer, 15 rings, about 3 min”. Red says why it does not
+<li>Grey below: “→ 1 layer, adaptive, about 3 min” or “→ 1 layer, 15 rings,
+about 3 min”. Red says why it does not
 work (no flat floor, the cutter does not fit in, nothing stands above the
 face). If the cutter does not fit into just one of several faces – a small
 pocket –, it clears the others, and the result says: “The Ø 12 does not fit

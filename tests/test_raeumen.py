@@ -66,7 +66,9 @@ def rund_rechteck(x0, y0, x1, y1, r, z):
     return Part.Wire(kanten)
 
 
-def werte_fuer(rohteil, oben, aufmass=0.3, variante=None, gleichlauf=True):
+def werte_fuer(rohteil, oben, aufmass=0.3, variante=rb.RINGE, gleichlauf=True):
+    """Die Werte – ohne Angabe für die Ringe (die schnellste Variante von ihnen): Die Abschnitte
+    (a) bis (g) prüfen die Ringe; die Wahl mit dem Adaptiv-Kern prüft (h) mit `variante=None`."""
     return rb.Raeumwerte(
         form,
         schruppen.ap,
@@ -597,6 +599,100 @@ for satz in ps.urteile(k_g, sicher_nur=True):
     pruefe(False, f"Streifen: {satz}")
 print(f"Streifen: {bahn_g.ringe} Ringe, {bahn_g.zeit:.2f} min, Luft {k_g.luftanteil * 100:.0f} %")
 
+# --- (h) Die schnellste Variante, die die Last hält – mit FreeCADs Adaptiv-Kern (T5) -----------
+# Manuel, 2026-10-02: „das was schneller ist ... gewinnt .. wenn man volle Tiefe fräst muss der
+# ae schon in einem Rahmen bleiben der nicht das Doppelte ist“. Ohne Vorgabe rechnen die Ringe
+# und „adaptiv“. Am Zapfen ist adaptiv die schnellste (2,45 gegen 2,70 min mit dem Morph), hebt
+# höchstens zweimal ab und hält die Last. In der Tasche wären die Ringe schneller (0,78 gegen
+# 1,31 min), greifen in ihren Ecken aber mit dem Vierfachen – sie fallen durch, adaptiv gewinnt
+# und sagt es (`ueberlastet`). Mit der Vorgabe „ringe“ bleibt es bei den Ringen.
+
+
+def abgehoben(bahn):
+    """So oft hebt die Bahn ab: Eilgänge nach einem Satz im Vorschub."""
+    return sum(
+        1 for a, b in zip(bahn.punkte, bahn.punkte[1:], strict=False) if b.eilgang and not a.eilgang
+    )
+
+
+def drehsinn(bahn, anzahl=400):
+    """> 0: Die ersten Sätze im Vorschub drehen gegen den Uhrzeigersinn."""
+    p = [(q.x, q.y) for q in bahn.punkte if not q.eilgang and not q.eintauchen][:anzahl]
+    summe = 0.0
+    for a, b, c in zip(p, p[1:], p[2:], strict=False):
+        summe += (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0])
+    return summe
+
+
+werte_h = werte_fuer(rohteil_a, 30.0, variante=None)
+bahn_h = raeumen(teil_a, 20.0, werte_h)
+pruefe(
+    bahn_h.variante == "adaptiv"
+    and set(bahn_h.zeiten) == {"rohteil", "morph", "inseln", "adaptiv"},
+    f"Zapfen, ohne Vorgabe: {bahn_h.variante} {bahn_h.zeiten}",
+)
+pruefe(bahn_h.zeit < bahn_a.zeit and not bahn_h.ueberlastet, f"Zapfen adaptiv: {bahn_h.zeit} min")
+pruefe(abgehoben(bahn_h) <= 3, f"Zapfen adaptiv: {abgehoben(bahn_h)}-mal abgehoben")
+rest, einschnitt = simuliert(bahn_h, teil_a, rohteil_a, 30.0, 20.0, 0.3)
+pruefe(
+    rest <= 0.05 and einschnitt >= -0.05, f"Zapfen adaptiv: Rest {rest}, Einschnitt {einschnitt}"
+)
+last_h, lang_h = rb.last(bahn_h, werte_h)
+pruefe(
+    last_h <= bn.LAST_KURZ * rb.LAST_SPIEL and lang_h <= 2 * R,
+    f"Zapfen adaptiv: Last bis {last_h:.2f} ae, {lang_h:.1f} mm am Stück über {bn.LAST_DAUERND} ae",
+)
+k_h = ps.messen(
+    [ps.Bahnlauf(bahn_h.punkte, VF, VF * 0.3)], teil_a, rohteil_a, 30.0, form, schruppen.ae,
+    schruppen.ap, ebenen_z=[20.0], aufmass=0.3,
+)  # fmt: skip
+for satz in ps.urteile(k_h):
+    pruefe(False, f"Zapfen adaptiv: {satz}")
+# Der letzte Ring ist auch hier der genaue Kreis um den Zapfen.
+kreis_h = [
+    p
+    for p in bahn_h.punkte
+    if not p.eilgang and p.bogen is not None and abs(math.hypot(p.x - 25, p.y - 25) - 11.3) < 0.01
+]
+pruefe(len(kreis_h) >= 2, f"Zapfen adaptiv: {len(kreis_h)} Bögen auf dem Kreis um den Zapfen")
+# Gegenlauf: gespiegelt gerechnet – der Drehsinn kehrt sich um, das Ergebnis bleibt.
+bahn_hg = raeumen(teil_a, 20.0, werte_fuer(rohteil_a, 30.0, variante="adaptiv", gleichlauf=False))
+pruefe(drehsinn(bahn_h) * drehsinn(bahn_hg) < 0, "adaptiv im Gegenlauf: derselbe Drehsinn")
+rest, einschnitt = simuliert(bahn_hg, teil_a, rohteil_a, 30.0, 20.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"adaptiv Gegenlauf: Rest {rest}, {einschnitt}")
+# Die Ringe am Zapfen halten die Last – sie fielen nicht durch, sie sind nur langsamer.
+last_a, lang_a = rb.last(bahn_a, werte_fuer(rohteil_a, 30.0))
+pruefe(last_a <= bn.LAST_KURZ * rb.LAST_SPIEL, f"Zapfen, Morph: Last bis {last_a:.2f} ae")
+print(
+    f"Zapfen adaptiv: {bahn_h.zeit:.2f} min, Last bis {last_h:.2f} ae, "
+    f"{abgehoben(bahn_h)}-mal abgehoben; Morph Last bis {last_a:.2f} ae"
+)
+# Die Tasche 40 × 30: Die Ringe wären schneller, halten die Last aber nicht.
+werte_ht = werte_fuer(rohteil_c, 21.0, variante=None)
+bahn_ht = raeumen(teil_c, 5.0, werte_ht)
+pruefe(
+    bahn_ht.variante == "adaptiv" and bahn_ht.zeiten["inseln"] < bahn_ht.zeiten["adaptiv"],
+    f"Tasche, ohne Vorgabe: {bahn_ht.variante} {bahn_ht.zeiten}",
+)
+pruefe(
+    bahn_ht.ueberlastet.get("inseln", 0.0) > 2.0,
+    f"Tasche: die Ringe überlasten nicht? {bahn_ht.ueberlastet}",
+)
+pruefe(bahn_ht.rampen == 1, f"Tasche adaptiv: {bahn_ht.rampen} Rampen (die Helix)")
+rest, einschnitt = simuliert(bahn_ht, teil_c, rohteil_c, 21.0, 5.0, 0.3)
+pruefe(
+    rest <= 0.05 and einschnitt >= -0.05, f"Tasche adaptiv: Rest {rest}, Einschnitt {einschnitt}"
+)
+last_ht, lang_ht = rb.last(bahn_ht, werte_ht)
+pruefe(
+    last_ht <= bn.LAST_KURZ * rb.LAST_SPIEL and lang_ht <= 2 * R,
+    f"Tasche adaptiv: Last bis {last_ht:.2f} ae, {lang_ht:.1f} mm am Stück",
+)
+print(
+    f"Tasche adaptiv: {bahn_ht.zeit:.2f} min, Last bis {last_ht:.2f} ae; die Ringe "
+    f"{bahn_ht.zeiten['inseln']:.2f} min, Last bis {bahn_ht.ueberlastet.get('inseln', 0):.2f} ae"
+)
+
 # --- Fehler mit einem Satz --------------------------------------------------------------------
 netz_a = hf.netz_ohne(teil_a, [e.name for e in ebenen_a])
 for werte_falsch, ebenen_falsch, text in (
@@ -647,11 +743,12 @@ pruefe(
     f"Tiefen {float(op.StartDepth)} … {float(op.FinalDepth)}",
 )
 pruefe(
-    (op.Ebenen, op.Lagen, op.Ringe, op.Laeufe) == (1, 1, bahn_a.ringe, bahn_a.laeufe),
+    (op.Ebenen, op.Lagen, op.Ringe, op.Laeufe) == (1, 1, bahn_h.ringe, bahn_h.laeufe),
     f"Operation: {op.Ebenen}, {op.Lagen}, {op.Ringe}, {op.Laeufe}",
 )
 pruefe(
-    op.Gerechnet.startswith("morph ") and "inseln" in op.Gerechnet, f"Gerechnet: {op.Gerechnet!r}"
+    op.Gerechnet.startswith("adaptiv ") and "morph" in op.Gerechnet and "inseln" in op.Gerechnet,
+    f"Gerechnet: {op.Gerechnet!r}",
 )
 pruefe(op.Gleichlauf is True and str(op.Variante) == "automatisch", "Vorgaben")
 befehle = op.Path.Commands
@@ -687,6 +784,9 @@ pruefe(
     op.Gerechnet.startswith("inseln ") and "rohteil" not in op.Gerechnet,
     f"nur inseln: {op.Gerechnet!r}",
 )
+op.Variante = "ringe"  # die schnellste der Ringe, ohne Blick auf die Last
+doc.recompute()
+pruefe("adaptiv" not in op.Gerechnet and "morph" in op.Gerechnet, f"nur Ringe: {op.Gerechnet!r}")
 ra.aendere(op, tc1, schruppen.ap, schruppen.ae, 0.3)
 op.Variante = "automatisch"
 doc.recompute()

@@ -230,7 +230,10 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
   geprüft; wartet auf Manuels Test. T3 gebaut: Das Räumen sagt, in welche Tasche sein Fräser nicht passt
   (-81); der neue Block „Rest räumen“ räumt sie mit dem größten Fräser, der hineinpasst, „Restmaterial“
   bekommt den Haken für ihre Wände – am Testteil sechs Arbeitsschritte mit drei Werkzeugen (-82, 0.125.0) –
-  fertig und automatisch geprüft; wartet auf Manuels Test.
+  fertig und automatisch geprüft; wartet auf Manuels Test. T5 gebaut: die Variante „adaptiv“ (FreeCADs
+  Adaptiv-Kern) – die schnellste Variante gewinnt nur, wenn sie die Last hält; am Testteil 10,7 statt
+  12,4 min, 5-mal statt 56-mal abgehoben, Last bis 1,4 statt 5 ae, im Assistenten 1,48 × Ziel
+  (P-2026-10-02-89, 0.126.0) – wartet auf Manuels Test.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
@@ -250,12 +253,37 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
 
 ## Nächster Schritt (konkret)
 
-**Jetzt – W-013, Manuels Testteil** ([spezifikation_strategien.md](spezifikation_strategien.md),
-Abschnitt 13.5): zuerst den Lauf über alle Szenarien auf dem Stand nach P-2026-10-02-88 zu Ende führen
-(lief beim Ende der Sitzung noch). B-008, B-009 und T1b sind gebaut (-86 bis -88). Dann T5 – am Testteil
-misst das Räumen bis 5 ae Last, wo ein Ring an einer Wand beginnt; ein Versuch mit FreeCADs Adaptiv-Kern
-hält am Zapfen 1,18 ae und ist schneller (Verlauf -88) –, T4 und T2. T4 und T5 sind die Punkte aus „Als
-Nächstes“ im Projektstatus: der Block „Schlichten danach“ und das Räumen nach der Last.
+**Jetzt – Plan für die Nacht vom 2026-10-02 auf den 03. (Manuel: „damit die Nacht durchgearbeitet
+wird“), der Reihe nach, je Punkt ein Patch mit Verlauf und Snapshot:**
+
+1. **T4 – der Block „Schlichten danach“** ([spezifikation_strategien.md](spezifikation_strategien.md),
+   Abschnitt 12.4, Option A, von Manuel entschieden): direkt unter „Räumen“, nur wählbar, wenn Räumen
+   angehakt ist; eigener Fräser und Einsatz (vorgewählt der Räumfräser mit „Schlichten“), Haken „Boden“,
+   „Wände“, „Messstopp davor“. Boden: die Ringe des Räumens in einer Lage mit dem ae des Einsatzes; Wände:
+   in Lagen mit dem ap des Einsatzes; erst Boden, dann Wände. Die Haken „Wände danach schlichten“ und
+   „Messstopp“ im Block Räumen gehen darin auf. *Fertig, wenn:* an Manuels Testteil – nur die ebenen
+   Flächen und die Mulde angeklickt – mit „Schlichten danach“ im Prüffenster an den Wänden kein Aufmaß
+   mehr steht.
+2. **T5d – Taschen:** Die Ringe halten in den Ecken einer Tasche die Last nicht (bis 4,1 ae), darum gewinnt
+   dort „adaptiv“ und braucht länger (Tasche 40 × 30: 1,49 statt 0,88 min). Manuel, Frage 6: „Ecken kann
+   man ja erstmal gesondert mit Bögen rausfahren … und dann wieder die Kontur der Tasche weiter“. *Fertig,
+   wenn:* eine Variante an der Tasche 40 × 30 die Last hält (`raeumen_bahn.last`) und höchstens 1,1 min
+   braucht. Gelingt das nach zwei Anläufen nicht: lassen, aufschreiben, weiter.
+3. **T2 – die dünne Lage mit dem Einsatz „Planen“:** 1 mm mit ae 1,5 ist verschenkt (obere Stufe am
+   Testteil rund 1 min). Dazu müssen die Zielzeit (`zielzeit.ziel`) und die Last (`last`) denselben Einsatz
+   kennen, sonst stimmt „× Ziel“ nicht. ae höchstens der Radius (die Ringe setzen das voraus).
+4. **Vorschau schneller:** Am Testteil rechnet der Assistent rund 20 s. Messen, wo die Zeit bleibt; Ziel 10 s.
+5. **Snapshot kürzen** (nur Doku): Der Projektstatus ist weit über „ein Satz je Punkt“ hinaus.
+
+**Regeln dafür** (Manuel, 2026-10-02: „du hast zwei stunden damit verbracht sachen zu testen für was?“):
+je Änderung nur die eine Prüfdatei und das eine Szenario zum geänderten Teil – kein Lauf über alles, auch
+nicht im Hintergrund. Lokal committen; nicht pushen (wurde in dieser Sitzung abgelehnt – Manuel pusht
+morgens). Braucht ein Punkt Manuels Entscheidung: die Frage mit Auswahl hier aufschreiben und mit dem
+nächsten Punkt weitermachen. FreeCADs Adaptiv-Kern rechnet bei gleicher Eingabe nicht immer dieselbe Bahn
+(±1,5 % Zeit) – Vergleiche in Prüfungen mit Spielraum. Am Ende ein kurzer Bericht für Manuel: was er
+klicken soll und was er dann sehen muss.
+
+T5 (Adaptiv als Variante, die schnellste, die die Last hält) ist gebaut: P-2026-10-02-89, 0.126.0.
 
 **Geplant nach Manuels erstem Test (2026-09-26) – Reihenfolge A → B → C, Stufe A in Arbeit:**
 

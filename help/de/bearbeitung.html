@@ -202,7 +202,20 @@ kommt danach nur noch dort dran, wo über ihr noch Material steht; ihre Ringe
 legen sich um das, was noch steht, statt Höhe für Höhe über das ganze Rohteil
 zu laufen. Taschen kommen zuletzt, jede von ihrer Oberkante an. So wird jede
 Stelle einmal gefräst.</li>
-<li>Drei Varianten rechnet das Fenster und nimmt die schnellste: „rohteil“
+<li><b>Adaptiv oder Ringe – die schnellste Bahn, die die Last hält.</b> ae ist
+die Last, die der Fräser tragen soll: kurz darf es bis zum 1,7-Fachen gehen,
+länger als eine Fräserbreite nicht über das 1,25-Fache. Die Ringe halten das
+nicht überall – wo ein Ring an einer Wand beginnt, fährt der Fräser quer in
+den Streifen, und in der Ecke einer Tasche fasst er das Drei- bis Fünffache.
+Deshalb rechnet das Fenster auch <b>„adaptiv“</b> (der Kern von FreeCADs
+„Adaptive“): Bahnen, die ihren Eingriff halten, von außen durch die Luft
+hinein (in der Tasche über eine Helix), an Wänden entlang, zurück unten durchs
+Freie mit dreifachem Vorschub statt abzuheben; den schmalen Rand an den Wänden
+nimmt zuletzt ein genauer Ring. Wären die Ringe schneller, halten die Last
+aber nicht, steht es dabei: „… – Ringe wären 43 % schneller, überlasten den
+Fräser aber (bis 4,1 ae)“. Wer die Ringe trotzdem will: in den Eigenschaften
+der Operation <b>Variante</b> „ringe“.</li>
+<li>Drei Varianten der Ringe rechnet das Fenster dazu: „rohteil“
 (die Ringe um das, was noch steht: vom Rohteilrand her und von den Inseln her
 je ae weiter, überall gleich weit auseinander – das Rechteck beißt in den
 Zapfen, zuletzt die Ringe um ihn), „morph“ (der erste Ring ist ein Rechteck,
@@ -214,7 +227,8 @@ steht) und „inseln“ (Ringe nur um die Wände und Inseln; in einer Tasche die
 einzige). In den
 Eigenschaften der Operation steht unter <b>Gerechnet</b> jede mit ihrer Zeit;
 <b>Variante</b> legt eine fest.</li>
-<li>Grau darunter: „→ 1 Lage, 15 Ringe, etwa 3 min“. Rot steht, warum es
+<li>Grau darunter: „→ 1 Lage, adaptiv, etwa 3 min“ oder „→ 1 Lage, 15 Ringe,
+etwa 3 min“. Rot steht, warum es
 nicht geht (kein ebener Boden, der Fräser passt nicht hinein, über der Fläche
 steht nichts). Passt der Fräser nur in eine von mehreren Flächen nicht – eine
 kleine Tasche –, räumt er die anderen, und hinter dem Ergebnis steht: „In die

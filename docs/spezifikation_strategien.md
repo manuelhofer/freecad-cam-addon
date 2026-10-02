@@ -2100,6 +2100,21 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   (Abschnitt 12.4, Option A – entschieden).
 - **T5 Weniger abheben, die Last halten:** Abschnitt 12.1 (Frage 6) – Adaptiv als Variante, die
   schnellste, die die Last hält; Ecken und Spalte in Bögen.
+  **Gebaut:** P-2026-10-02-89, 0.126.0 – `raeumen_bahn`: die Variante „adaptiv“ (FreeCADs
+  `area.Adaptive2d` mit Vielecken aus dem Raster des Planers; Einstieg von außen in der Luft,
+  in der Tasche über eine Helix; zurück unten durchs Freie mit dreifachem Vorschub; danach
+  der genaue Ring an der Wand, auf den der Fräser gleitend einschwenkt). `planen` misst die
+  Last jeder Variante der Reihe nach (`last`: Querschnitt je mm Weg ÷ ae · Lagentiefe) und
+  nimmt die schnellste, die sie hält (kurz höchstens 1,7 ae, über 1,25 ae höchstens eine
+  Fräserbreite am Stück); hält keine, die mit der kleinsten Last, und der Assistent sagt es.
+  Vorgabe „ringe“: nur die Ringe, ohne Blick auf die Last.
+  Gemessen: Testteil 10,7 statt 12,4 min, 5-mal statt 56-mal abgehoben, Last bis 1,4 statt
+  5 ae; Zapfen 2,43 statt 2,70; Klotz 9,0 statt 9,7; Platte 33,3 statt 33,9. In Taschen
+  gewinnt adaptiv, weil die Ringe in den Ecken bis 4,1 ae greifen – und braucht länger
+  (40 × 30: 1,49 statt 0,88 min; offen: T5d, Ecken in Bögen). In einer Nut, kaum breiter als
+  der Fräser, hält keine Variante die Last – dort fräst weiter die Nut in Bögen.
+  Der Kern rechnet bei gleicher Eingabe nicht immer dieselbe Bahn (±1,5 % Zeit); in einer
+  Sitzung bleibt sein Ergebnis je Eingabe gemerkt.
 - **Fertig, wenn (W-013):** der Assistent am Testteil – alle Flächen angeklickt – einen Job
   anlegt, der im Prüffenster ein Teil ohne Rest ergibt (bis auf Ecken, in die kein Fräser der
   Kiste kommt; die nennt er), das Schruppen höchstens 1,5 × Ziel braucht und keine Bahn die Last

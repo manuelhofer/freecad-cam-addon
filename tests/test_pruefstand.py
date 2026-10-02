@@ -137,6 +137,12 @@ def raeumen(teil, z, rohteil, oben, variante=None, gleichlauf=True):
     return rb.planen(netz, werte, ebenen, ra.konturen_des_teils(teil))
 
 
+def schnellste_die_haelt(bahn):
+    """Die Zeit der schnellsten Variante, die die Last hält (raeumen_bahn.planen misst sie nach:
+    kurz höchstens 1,7 ae, über 1,25 ae höchstens eine Fräserbreite am Stück)."""
+    return min(z for v, z in bahn.zeiten.items() if v not in bahn.ueberlastet)
+
+
 def kontur(teil, waende, rohteil, oben, breite=0.0):
     konturen = kb.konturen(teil, waende)
     netz, fern = hf.netze_ohne(teil, [kb.ohne_flaechen(teil, kb.waende(teil, waende)), waende])
@@ -209,7 +215,7 @@ pruefe(plan.zeit <= plan.zeit_andere + 1e-9, "Zapfen: Planfräsen nimmt die lang
 raeumt = raeumen(teil, 20.0, rohteil, oben)
 messe("zapfen/raeumen", [lauf(raeumt)], teil, rohteil, oben, [20.0], 0.3, raeumt.zeiten)
 pruefe(
-    abs(raeumt.zeit - min(raeumt.zeiten.values())) < 1e-9,
+    abs(raeumt.zeit - schnellste_die_haelt(raeumt)) < 1e-9,
     "Zapfen: Räumen nimmt die langsamere Variante",
 )
 gegen = raeumen(teil, 20.0, rohteil, oben, gleichlauf=False)
@@ -238,7 +244,7 @@ messe("absatz/planfraesen", [lauf(plan)], teil, rohteil, oben, [20.0], 0.0,
 raeumt = raeumen(teil, 20.0, rohteil, oben)
 messe("absatz/raeumen", [lauf(raeumt)], teil, rohteil, oben, [20.0], 0.3, raeumt.zeiten)
 pruefe(
-    abs(raeumt.zeit - min(raeumt.zeiten.values())) < 1e-9,
+    abs(raeumt.zeit - schnellste_die_haelt(raeumt)) < 1e-9,
     "Absatz: Räumen nimmt die langsamere Variante",
 )
 pruefe(
@@ -285,7 +291,7 @@ messe("platte/planfraesen", [lauf(plan)], teil, rohteil, oben, [0.0], 0.0,
 raeumt = raeumen(teil, 0.0, rohteil, oben)
 messe("platte/raeumen", [lauf(raeumt)], teil, rohteil, oben, [0.0], 0.3, raeumt.zeiten)
 pruefe(
-    abs(raeumt.zeit - min(raeumt.zeiten.values())) < 1e-9,
+    abs(raeumt.zeit - schnellste_die_haelt(raeumt)) < 1e-9,
     "Platte: Räumen nimmt die langsamere Variante",
 )
 pruefe(

@@ -77,6 +77,9 @@ class Kennzahlen:
     einschnitt: float = 0.0  # mm – das tiefste ins Teil (negativ)
     eilgang_abtrag: float = 0.0  # mm³ – im Eilgang abgetragen (muss 0 sein)
     schnell_abtrag: float = 0.0  # mm³ – im Schnellvorschub (mehr als vf) abgetragen (muss 0 sein)
+    schnellweg: float = (
+        0.0  # mm im Schnellvorschub durchs Freie – ein Weg, kein Vorschub in der Luft
+    )
     eintauchungen: int = 0  # senkrechte Fahrten mit Eintauchvorschub, die Material trafen
     rampen: int = 0  # schräge Fahrten hinab im Vorschub, die Material trafen (Stücke)
     halte: int = 0  # Stopps: Ecken ab 15°, um Eilgänge, am Anfang und Ende
@@ -236,10 +239,16 @@ def messen(
                 k.eilgang_abtrag += abtrag
                 in_rampe = False
                 continue
-            k.vorschubweg += weg
             trifft = abtrag > _NICHTS
             if nach.anteil > 1.0 + 1e-9:
-                k.schnell_abtrag += abtrag  # quer zurück über die freie Seite (nut_bahn)
+                # Quer zurück über die freie Seite (nut_bahn), unten durchs Freie (das Räumen
+                # „adaptiv“): Das ist ein Weg wie der Eilgang, kein Vorschub in der Luft.
+                k.schnell_abtrag += abtrag
+                if not trifft:
+                    k.schnellweg += weg
+                    in_rampe = False
+                    continue
+            k.vorschubweg += weg
             if not trifft:
                 k.luftweg += weg
             hinab = nach.z < von.z - _NICHTS
