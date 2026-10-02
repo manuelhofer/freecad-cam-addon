@@ -133,7 +133,7 @@ was nicht passt, je eine Zeile „Name – was man anklicken muss“ (P-2026-10-
 eingeklappt unter „Passt nicht zur Auswahl (16)“ wie „Rohteil und Nullpunkt“ (P-2026-10-02-38,
 0.96.4) – Manuels Platte jetzt 771 Pixel statt 5101. Alle 83 Szenarien auf 0.96.0 grün (danach je
 die Szenarien zum geänderten Teil).
-Als Nächstes: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11); der schnellere Fräser aus der Zielzeit mit einem Klick übernehmen (wenn Manuel will); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+Als Nächstes (Manuel, 2026-10-02 früh; Spezifikation Strategien, Abschnitt 12): Nuten in Bögen auch geschlossen, Bogenschritt ae statt 0,4 mm (12.1, 12.2); Drehrichtung am Werkzeug (W-007); Räumen mit Schlichten und Messstopp (W-010); Home- und Wechselpunkt (W-008); Assistent in Schritten mit Aufspannung (W-009); Werkzeugkiste vorgefüllt (W-007); × Ziel je Strategie (12.3). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11); der schnellere Fräser aus der Zielzeit mit einem Klick übernehmen (wenn Manuel will); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
@@ -425,6 +425,22 @@ Ein Satz je Wunsch, W-ID fortlaufend.
   Werkzeug, C-Achse ein und aus, Vorschub (Manuel 2026-09-30: „A sollte unsere
   option sein“). Plan mit Entscheidungen E1–E5:
   [spezifikation_steuerung.md](spezifikation_steuerung.md).
+- **W-007 Werkzeugkiste vorgefüllt** – Ceratizit-Bohrer Ø 2–19, Gühring-Gewindebohrer bis
+  M30, Jongen UNI-Mill Ø 3–20, Garant-Entgrater Ø 6–16, ein Messerkopf und je Werkzeugart ein
+  Beispiel – mit Artikelnummer, Bestell-Link, Bild, Katalog (PDF) und Schnittwerten je
+  Werkstoff, fehlende geschätzt; Drehrichtung am Werkzeug; ISO-Wendeplatten fürs Drehen
+  (Manuel, 2026-10-02): [spezifikation_werkzeugverwaltung.md](spezifikation_werkzeugverwaltung.md),
+  Abschnitte 13 und 14.
+- **W-008 Home-Punkt und Werkzeugwechselpunkt** an der Maschine, das Abfahren beginnt und
+  endet dort (Manuel, 2026-10-02): [spezifikation_simulation.md](spezifikation_simulation.md),
+  Abschnitt 13.
+- **W-009 Assistent „Bearbeitung“ in Schritten** – Aufspannung (Fläche unten, X-Richtung,
+  Rohteil, Nullpunkt), Was soll weg, Einstellungen (Manuel, 2026-10-02: „so kannst du das
+  keinem vorsetzen“): [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitte
+  12.5 und 12.6.
+- **W-010 Schlichten nach dem Räumen mit Messstopp** – in derselben Maske, der Halt mit den
+  Befehlen der Maschine (Siemens: F_HOME, M0) (Manuel, 2026-10-02):
+  [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 12.4.
 - **W-004 Bedienung vereinfachen und automatisieren** – Durchsicht aller
   Fenster und Abläufe (2026-09-27, Manuels Auftrag): acht kleine Stellen
   (D-01 bis D-08), einfacher bedienen (D-10 bis D-14), automatisieren (D-20

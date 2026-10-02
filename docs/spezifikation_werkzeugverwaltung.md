@@ -677,3 +677,60 @@ Je Patch einer, als Klickweg:
   dynamisch → das Urteil nennt das 2,5-fache Zeitspanvolumen und ein Zwölftel
   des Schneidenwegs.
 - Bei allen: Manuel versteht die Fenster ohne Erklärung.
+
+
+## 13. Die Werkzeugkiste vorgefüllt (Manuel, 2026-10-02)
+
+Manuel: „Ich hätte gerne die Werkzeugkiste vorgefüllt, und zwar Bohrer von Ceratizit
+WL173060311 Classicline oder 1170305000 0095923748, von denen die Werte holen, Bohrer von Ø 2,
+2,5, 3, 3,3, 4, 4,2, 4,5, 5, 6, 6,5, 6,8, 7, 8, 8,5, 8,8, 9, 10, 10,2, 10,5, 11, 11,8, 12, 12,5,
+13, 13,5, 14, 15, 15,5, 17, 17,5, 18, 19; außerdem von Gühring 5596 Blauring C M5 ISO HSS
+EV23120483 alle metrischen Gewindebohrer bis M30; und Fräser Jongen UNI-Mill VHM 494W-12 HI06
+V-53939-FB2 in 3, 4, 5, 6, 8, 10, 12, 16, 20 – das als Referenz nehmen und sich generell für jede
+Werkzeugart aus dem Netz ein Beispiel suchen und dort eintragen, am liebsten mit Internetseite
+zum Bestellen, Link und Artikelnummer … direkt mit Bildern dabei, und direkt auch eine Liste
+des Herstellers, PDF, wo der Benutzer draufklicken kann und sich das PDF öffnet … Entgraten:
+Garant 208165 12, diese in 6, 8, 10, 12, 16. Wenn es bei irgendeinem Material keine Daten geben
+sollte, dann schätze anhand der vorhandenen Daten, wie es funktionieren könnte, sodass auf
+jeden Fall etwas drinsteht. Außerdem: Wenn ich in der Werkzeugkiste etwas verändere oder
+hinzufüge, sollte es nach dem Neustart noch vorhanden sein. Fürs Drehen gibt es die
+Normformen C, V, D usw. – die müssten mit rein.“ Dazu: „Messerkopf: such dir einen Messerkopf
+aus dem Netz und dessen Werte für Stahl, mit Zähnezahl“; der Ø 12 darf bei kleinem ap ein
+größeres ae fahren – „auch hier such dir aus dem Netz einen Fräser mit Zähnezahl“. Und: „Für
+alle Fräser Beispielschnittwerte für die einzelnen Materialien und Bearbeitungsläufe aus dem
+Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.“
+
+- **Bohrer:** Ceratizit (die beiden Nummern sind zu prüfen), die 32 Durchmesser oben.
+- **Gewindebohrer:** Gühring 5596 (HSS-E, ISO), M2 bis M30 im Regelgewinde.
+- **Fräser:** Jongen UNI-Mill VHM 494W, Ø 3, 4, 5, 6, 8, 10, 12, 16, 20.
+- **Entgraten:** Garant 208165, Ø 6, 8, 10, 12, 16.
+- **Messerkopf:** einer mit Werten für Stahl und seiner Schneidenzahl.
+- **Je weitere Werkzeugart ein Beispiel:** Torus, Kugel, NC-Anbohrer, Kegelsenker, Reibahle,
+  Gewindefräser, Radienfräser, Nutenfräser … (die 26 Arten in
+  `spezifikation_werkzeugarten.md`).
+- **Je Werkzeug:** Hersteller, Artikelnummer, Bestell-Link, Bild, Katalog oder Datenblatt
+  (PDF) – im Werkzeugfenster anklickbar, öffnet im Browser.
+- **Schnittwerte** je Werkstoffgruppe und Einsatz aus dem Katalog; fehlt eine Gruppe,
+  geschätzt aus den vorhandenen und als „geschätzt“ gekennzeichnet. Wer ein neues Werkzeug
+  anlegt, bekommt die Werte eines passenden Beispiels angeboten.
+- **Bleibt nach Neustart:** Die eigene Werkzeugkiste liegt schon heute in
+  `CamAddon/werkzeugverwaltung.json` im Benutzerordner von FreeCAD und überlebt Neustart und
+  Update (Abschnitt 9). Die Vorbelegung kommt einmal hinein – beim ersten Öffnen oder über
+  „Werkzeuge der Hersteller hinzufügen …“ – und überschreibt nie, was der Benutzer geändert
+  hat.
+- **Drehen:** die ISO-Formen der Wendeschneidplatten (C 80°, D 55°, V 35°, W 80°, T 60°,
+  S 90°, R rund …) als Drehwerkzeuge.
+- **Fertig, wenn:** Manuel die Werkzeugverwaltung öffnet und die Bohrer, Gewindebohrer,
+  Fräser und Entgrater mit Werten, Bild und anklickbarem Katalog findet.
+
+## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
+
+Manuel: „Natürlich muss man die Drehrichtung des Werkzeuges im Werkzeug angeben.“
+
+- **Heute:** Die Drehrichtung folgt aus der Art (Linksgewindebohrer rückwärts, Taster keine,
+  sonst vorwärts) und steht am Werkzeug-Controller; die Bahnen rechnen den Gleichlauf nach dem
+  Controller (P-2026-10-02-20).
+- **Soll:** ein Feld „Drehrichtung: rechts (M3) / links (M4)“ am Werkzeug, vorbelegt nach der
+  Art; der Controller übernimmt sie beim Anlegen.
+- **Fertig, wenn:** ein links schneidender Fräser in der Werkzeugverwaltung einen Controller
+  mit M4 bekommt und Kontur und Räumen mit ihm im Gleichlauf fahren.

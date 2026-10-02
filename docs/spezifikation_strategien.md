@@ -1352,3 +1352,122 @@ jede Zeile ein Stück weiter zu ihr als die vorige – dieses Stück schneidet d
 waagrecht in voller Tiefe, vorher lag es in einer Rampe. Darum noch nicht eingebaut; fertig wird
 es mit einem Konturgang um die Insel vor den Zellen (dann bleibt neben ihr kein Halbmond), oder
 die Zellen hinter der Insel laufen auf sie zu statt von ihr weg.
+
+
+## 12. Manuels Punkte vom 2026-10-02 (früh)
+
+Nach den Bildern der Nacht; jeder Punkt mit dem, was heute ist, was sein soll und woran man
+erkennt, dass es fertig ist. Reihenfolge in `STATUS_SNAPSHOT.md`.
+
+### 12.1 ae ist ein Richtwert
+
+Manuel: „Ae 1.5 bedeutet, dass versucht wird, dass immer etwa 1,5 mm vom Material weggenommen
+werden … ob das nun 1,5, 1,3 oder 1,7 sind, spielt keine Rolle … von dem Maß können kurzzeitig
+auch mal 70 % mehr genommen werden, wenn fürs Einfahren nötig ist … oder eben beim Einfahren
+auch sehr wenig … wenn's dadurch dann eine bessere Zeit ergibt und man sich Wege sparen kann“;
+dazu: „Die Bahnen schauen auf den Bildern immer sehr eng.“
+
+- **Heute:** Die Bögen der offenen Nut rücken nur so weit vor, dass der Fräser die Delle nicht
+  weiter umschlingt als eine gerade Wand mit ae – in der 16er Nut mit dem Ø 12 0,4 mm statt
+  1,5. Der Prüfstand lässt nirgends mehr Querschnitt zu als ae · ap.
+- **Soll:** ae ist die Breite, die je Zug wegkommt. Im Mittel ae, dauernd zwischen 0,85 und
+  1,15 ae (so teilt sich eine Strecke in gleiche Schritte), kurz – beim Einfahren, auf
+  höchstens einer Fräserbreite Weg – bis 1,7 ae. Weniger geht immer.
+- **Fertig, wenn:** die Bögen der Nut um ae vorrücken (16er Nut: 1,5 statt 0,4 mm) und der
+  Prüfstand 1,7 ae kurz zulässt, mehr oder länger aber meldet.
+
+### 12.2 Nuten in Bögen, auch geschlossene – und Konturen von der Seite her
+
+Manuel zu den Bögen der offenen Nut: „So ähnlich mit den Kreisbögen war das gedacht. Frage ist
+nur, warum mitten drinnen ein kompletter Kreis gefahren wird … Und generell kann man auf diese
+Art viele Konturen herstellen, sodass man sich immer mehr an die nötige Kontur annähert, indem
+man immer so seitlich einfährt.“
+
+- **Heute:** Die geschlossene Nut fährt nach der Helix volle Kreise (Trochoide); die hintere
+  Hälfte jedes Kreises fährt durch, was schon frei ist.
+- **Soll:** Nach der Helix am einen Ende Bögen wie in der offenen Nut – im Gleichlauf vor
+  durchs Material von Wand zu Wand, quer zurück über die freie Seite im Schnellvorschub; am
+  anderen Ende gehen die Bögen in den Halbkreis über. Danach das Prinzip auf Taschen und
+  Konturen übertragen: Bögen, die sich von der freien Seite her an die Kontur herantasten.
+- **Fertig, wenn:** in keiner Nut mehr ein voller Kreis außer der Helix steht und die
+  geschlossene Nut schneller ist als heute.
+
+### 12.3 Die Zielzeit misst die Wegstrategie
+
+Manuel: „Man benötigt ja irgendeine Zeit, die sinnvoll ist, die man erreichen kann … da geht's
+gar nicht um die Anzahl oder Größe an Fräsern, sondern einfach darum zu sehen: Ist diese
+Wegestrategie wirklich gut?“
+
+- **Soll:** Je Strategie steht neben ihrer Zeit „× Ziel“ – ihre Zeit geteilt durch die Zielzeit
+  desselben Fräsers für dieselben Flächen (Abschnitt 11). Der Prüfstand führt × Ziel je Teil
+  und Strategie; wo es groß ist, lohnt die Arbeit an der Bahn.
+- **Fertig, wenn:** die Ergebniszeile jedes Blocks „… etwa 34 min – 1,03 × Ziel“ zeigt.
+
+### 12.4 Schlichten nach dem Räumen, Messstopp dazwischen
+
+Manuel: „Wenn ich jetzt Räumen gemacht habe und habe ein Aufmaß an den Wänden, aber am Boden
+nichts … brauch ich noch eine Möglichkeit, das Ganze zu schlichten … Aber was vielleicht
+wichtig ist: dass man zwischen Schruppen und Schlichten eine Pause setzen kann – sozusagen ein
+Messstopp, gleich in derselben Maske –, um dann im Postprozessor direkt zu wissen, für Siemens
+als Beispiel F_HOME; M0 … Dann kann der Bediener messen und dann wieder Start drücken, und es
+geht weiter mit Schlichten. Das muss noch rein.“
+
+- **Heute:** Das Aufmaß an den Wänden schlichtet nur die Kontur – und die geht nur, wenn man
+  Wände anklickt. Einen Halt im Programm legt das Addon nicht an.
+- **Soll:** Im Block „Räumen“ zwei Haken: „Wände danach schlichten“ (die Wände aller gewählten
+  Flächen im Aufmaß, mit demselben Fräser oder einem eigenen) und „Messstopp vor dem
+  Schlichten“. Der Messstopp ist eine eigene Operation im Job zwischen den beiden (FreeCADs
+  „Benutzerdefiniert“ mit G-Code); ihre Zeilen kommen von der Maschine (W-005), vorbelegt:
+  Z auf sichere Höhe, M5, M0, danach die Spindel wieder an (M3 S…) – an Manuels Siemens
+  „F_HOME“ und „M0“.
+- **Fertig, wenn:** Räumen mit beiden Haken drei Operationen anlegt – Räumen, Messstopp,
+  Schlichten – und das Programm an der Stelle anhält.
+
+### 12.5 Der Assistent in Schritten
+
+Manuel zum Bild des Assistenten: „Das erschlägt einen … Du musst das irgendwie sinnvoll
+aufteilen. Das ist viel zu viel … Funktionen sollten alle da sein, aber das zu viel muss
+einfacher werden“, „so kannst du das keinem vorsetzen“; „Oder man macht für die Strategien
+einzelne Knöpfe, oder man fragt es in Schritten ab!“; „Rohteil und Nullpunkt können auch
+einfach als extra Fenster gesetzt werden, wo man auf Weiter klicken kann, wenn's fertig ist.“
+
+- **Heute:** eine Seite mit allem – Teil, Rohteil, Nullpunkt, Flächen, Werkstoff, Ziel, je
+  Strategie ein Block mit Feldern; eingeklappt immer noch 771 Pixel.
+- **Soll:** drei Seiten wie im 4-Achs-Assistenten, unten „Zurück“ und „Weiter“:
+
+```
+ Schritt 1 von 3 – Aufspannung            Schritt 2 von 3 – Was soll weg?
+ ┌──────────────────────────────────┐     ┌────────────────────────────────────┐
+ │ Teil        Platte               │     │ Flächen  Face3 eben, Höhe 0        │
+ │ Unten liegt [Fläche anklicken]   │     │          [Oberseite] [leeren]      │
+ │ X zeigt     [↺ 90°] [↻ 90°]      │     │ Weg 906 cm³ – Ziel 33 min mit T1   │
+ │ Rohteil     1 mm rundum   ▸      │     │ ☑ Räumen        34 min  1,03 × Ziel│
+ │ Nullpunkt   Oben Mitte ▾  ▸      │     │ ☐ Planfräsen    43 min  1,30 × Ziel│
+ │                                  │     │ ▸ Passt nicht zur Auswahl (16)     │
+ │                     [Weiter →]   │     │          [← Zurück]  [Weiter →]    │
+ └──────────────────────────────────┘     └────────────────────────────────────┘
+ Schritt 3 von 3 – Einstellungen
+ ┌────────────────────────────────────────────────┐
+ │ Räumen – T1 VHM 12 · Schruppen                 │
+ │   Zustellung 25 · Zeilenabstand 1,5 · Aufmaß 0,3 │
+ │   ☑ Wände danach schlichten  ☑ Messstopp davor │
+ │   ▸ mehr (Boden, Gleichlauf …)                 │
+ │                       [← Zurück]  [Anlegen]    │
+ └────────────────────────────────────────────────┘
+```
+
+- **Fertig, wenn:** keine Seite rollen muss (Aufgabenbereich 800 Pixel hoch), alles von heute
+  erreichbar bleibt und Manuel den Assistenten ohne Erklärung bedient.
+
+### 12.6 Aufspannung: welche Fläche unten liegt, wohin X zeigt
+
+Manuel: „Das Koordinatensystem, also wo ist X- und Y-Achse, sollte sich drehen lassen. Oder man
+macht's so, dass man auf eine Fläche klickt, welche dann sozusagen unten ist, und man da dann
+ein Rohteil rausbekommt. Fehlt somit nur noch die X- und Y-Achse – aber das muss sein.“
+
+- **Heute:** Das Teil liegt im Job so, wie es modelliert ist; Z zeigt nach oben im Modell.
+- **Soll:** Schritt 1: „Unten liegt:“ eine Fläche anklicken – der Job dreht das Teil so, dass
+  sie nach unten zeigt (FreeCADs Job kann das Modell selbst drehen); „X zeigt:“ ↺ 90° / ↻ 90°
+  oder eine Kante anklicken, ein Pfeil im 3D zeigt X und Y. Rohteil und Nullpunkt folgen.
+- **Fertig, wenn:** Manuels Platte, auf die Seite gelegt, mit einem Klick auf die Fläche wieder
+  richtig im Job liegt und sich X um 90° drehen lässt – die Bahnen rechnen in der neuen Lage.

@@ -448,3 +448,22 @@ Bereiche dazu.
   Abstand.
 - Ohne Kollision: „Nichts berührt sich, nichts kommt näher als 1,00 mm.“
 - Manuel versteht die Sätze ohne Erklärung.
+
+
+## 13. Home-Punkt und Werkzeugwechselpunkt (Manuel, 2026-10-02)
+
+Manuel: „Beim Starten steht der Fräser immer XYZ 0, so sieht's zumindest aus – was nicht so
+cool ist, wenn der Nullpunkt unten am Teil angebracht ist. Daher muss es einen Home-Punkt
+geben, der in der Maschine vielleicht angegeben wird, und vielleicht einen
+Werkzeugwechselpunkt … damit auch die Simulation korrekt ablaufen kann.“
+
+- **Heute:** Das Abfahren beginnt am ersten Punkt der Bahn; davor steht die Maschine bei 0 der
+  Achsen.
+- **Soll:** In „Maschine bearbeiten“ je Maschine ein Home-Punkt (je Linearachse eine
+  Stellung, vorbelegt: Z ganz oben, X und Y am Ende ihres Wegs) und ein Werkzeugwechselpunkt
+  (vorbelegt: der Home-Punkt). Das Abfahren beginnt und endet am Home-Punkt; vor jedem
+  Werkzeugwechsel fährt es zum Wechselpunkt – erst Z, dann X und Y –, danach zum ersten Punkt
+  der nächsten Operation – erst X und Y, dann Z. Reichweite, Kollision und Zeit zählen diese
+  Wege mit.
+- **Fertig, wenn:** im Prüffenster die Maschine am Home-Punkt beginnt, zum Wechsel an den
+  Wechselpunkt fährt und am Ende wieder am Home-Punkt steht.

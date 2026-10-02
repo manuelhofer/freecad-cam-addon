@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-39 wuensche-frueh
+
+### EINGELESEN
+- Manuels Nachricht nach dem Bericht von 07:36: Drehrichtung am Werkzeug; der volle Kreis
+  „mitten drinnen“ (die geschlossene Nut fährt volle Trochoiden-Kreise); Konturen seitlich
+  annähern; der Assistent „erschlägt einen“ – in Schritten; ae ist ein Richtwert (kurz bis
+  +70 %); die Zielzeit misst die Wegstrategie; Messerkopf und Jongen-Fräser aus dem Netz;
+  Rohteil und Nullpunkt als eigener Schritt, Fläche unten anklicken, X/Y drehen; Schlichten
+  nach dem Räumen mit Messstopp (Siemens F_HOME; M0); Home- und Werkzeugwechselpunkt der
+  Maschine; Werkzeugkiste vorgefüllt (Ceratizit, Gühring, Jongen, Garant), mit Links, PDF,
+  Bildern, Schnittwerten, geschätzten Lücken; ISO-Wendeplatten fürs Drehen.
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (Abschnitt 12 mit Skizze des Assistenten in Schritten),
+  `docs/spezifikation_werkzeugverwaltung.md` (13, 14), `docs/spezifikation_simulation.md`
+  (13), `docs/STATUS_SNAPSHOT.md` (W-007 bis W-010, Als Nächstes)
+
+### AKZEPTANZKRITERIUM
+Jeder Punkt aus Manuels Nachricht steht mit Heute, Soll und „Fertig, wenn“ in einer
+Spezifikation und als Satz im Snapshot.
+
+### DONE
+- Der volle Kreis: die offene Nut hat keinen (nachgerechnet, kein Bogen über 200°), die
+  geschlossene fährt volle Kreise – Manuels Satz gelesen als Antwort auf die Frage, ob sie auch
+  den schonenden Schritt bekommt: Bögen statt Kreise.
+
+### TEST
+- Nur Doku.
+
+### NEXT
+- 12.1/12.2: Bogenschritt ae, geschlossene Nut in Bögen.
+
 ## P-2026-10-02-38 passt-nicht-einklappen
 
 ### EINGELESEN
