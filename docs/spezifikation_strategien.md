@@ -350,7 +350,17 @@ Weiter (spezifikation_vierachs.md, V4c/V4d), in dieser Reihenfolge:
    Abflachung zwischen zwei Wänden) fährt weiter Zeilen. Gemessen (`test_vierachs_plan`):
    Ø 8 in 0,26 min bis an die Enden (die Mitte des Fräsers auf der Mittellinie), Ø 6 als
    Trochoide 0,71 min; `szenario_vierachs_nut` auf der Beispiel-Drehmaschine: am Ende
-   „nirgends ins Teil“.
+   „nirgends ins Teil“. **Querbohrungen** (P-2026-10-02-07, 0.70.0): Eine gewählte Bohrung
+   quer zur Stange – eine ganze Zylinderfläche, Achse rechtwinklig zur Stange, das Material
+   außen (`vierachs_planbahn.bohrungen`) – fräst „Plan indexiert“ mit der Bahn „Bohrung
+   fräsen“ (Helix hinab, Ringe, die Wand rundum) im Rahmen der Bohrung: die Rundachse auf ihre
+   Öffnung, quer versetzt mit dem Y, wenn sie nicht durch die Mitte geht; eine durchgehende von
+   beiden Seiten je bis zur Mitte der Stange. Der Grund jeder Seite als Kreisscheibe für den
+   Vergleich auf der Stange (`boden_der_bohrung`). Gemessen (`test_vierachs_plan`): Welle Ø 30
+   mit Sackbohrung Ø 10 × 8, einer um 3 mm versetzten und einer durchgehenden Ø 8 – vier Seiten,
+   1,34 min mit Ø 6, die Mitte des Fräsers nie weiter als Radius − 3 von der Achse der Bohrung,
+   nirgends ins Teil; `szenario_vierachs_querbohrung`. Mit dem Bohrer (Spiralbohrer) radial
+   bohren: noch nicht.
 3. **Rundum entgraten** (V4d) – Kanten der gewählten Flächen, die Rundachse
    dreht mit. Aufwand mittel.
 4. **Taschen und Nuten auf dem Mantel** – die Tasche in der Abwicklung rechnen

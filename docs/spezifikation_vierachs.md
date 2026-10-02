@@ -445,7 +445,8 @@ Manuel, welche Steuerung er hat).
 - **Drehen**, Planen der Stirnseite, **Abstechen** – das macht die Maschine
   (FreeCAD dreht nicht).
 - **Axiales Werkzeug** auf der Stirnseite (TRANSMIT) und **indexiert 3+1**
-  (Achse steht, eben gefräst: Taschen, Querbohrungen) – eine spätere Stufe.
+  (Achse steht, eben gefräst: Taschen) – eine spätere Stufe. Querbohrungen und
+  Passfedernuten fräst inzwischen „Plan indexiert“ (W-006, P-2026-10-02-05/-07).
   Im Wochen-Build helfen dafür FreeCADs Arbeitsebenen. Ebene Abflachungen
   parallel zur Achse fräst V4c („Plan indexiert“).
 - **Hinterschnitte:** Was ein radiales Werkzeug nicht erreicht, bleibt stehen

@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-07 querbohrung
+
+### EINGELESEN
+- `vierachs_planbahn` (`ebenen`, `nuten`, `_rahmen`, `_nut_punkte`, `planen`), `bohrung_bahn`
+  (`bohrungen`, `Bohrung`, `Bohrwerte`, `planen`), `restmaterial` (`_boeden`, `boden_radien`),
+  `gui_vierachs` (`_plan_ebenen`, `_plan_vorschlagen`, `_plan_text`), `vierachs_plan.bahn_fuer`.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py`, `camaddon/vierachs_plan.py`, `camaddon/restmaterial.py`,
+  `camaddon/gui_vierachs.py`, `translations/de.json`, `translations/en.json`,
+  `help/de|en/vierachs.html`, `tests/test_vierachs_plan.py`,
+  `tests/gui/szenario_vierachs_querbohrung.py` (neu), `docs/spezifikation_strategien.md`,
+  `docs/spezifikation_vierachs.md`, `README.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.70.0)
+
+### AKZEPTANZKRITERIUM
+Auf der Welle Ø 30 eine Sackbohrung Ø 10 × 8, eine um 3 mm quer versetzte und eine durchgehende
+Ø 8: „Plan indexiert“ fräst jede Seite mit der Helix – die Rundachse auf der Öffnung, die Mitte des
+Fräsers Ø 6 nie weiter als Radius − 3 von der Achse der Bohrung, nie unter ihrem Grund; die
+durchgehende von beiden Seiten je bis zur Mitte; auf der Stange nirgends ins Teil. Im Assistenten
+geht der Haken mit den Bohrungen an („quer zur Stange gebohrt“), „Auf der Maschine prüfen“ am
+Ende „nirgends ins Teil“.
+
+### DONE
+- `vierachs_planbahn.bohrungen` (je Seite (Ebene, Bohrung im Rahmen der Ebene): ganze
+  Zylinderfläche, Achse rechtwinklig zur Stange, die Öffnung die Seite weiter von der Achse;
+  durchgehend beide Seiten bis z 0), `boden_der_bohrung` (der Grund als Kreisscheibe),
+  `_bohrung_punkte` (bohrung_bahn.planen), `_bohrung_eingeengt` (0,01 mm), `_zurueck` (aus
+  `_nut_punkte` herausgelöst), `planen(bohrungen_=…)`, `Planbahn.bohrungen`.
+- `vierachs_plan.bahn_fuer`: Bohrungen dazu; ohne Ebene und ohne Bohrung der Satz wie bisher.
+- `restmaterial._boeden`: die Gründe der Bohrungen.
+- Assistent: der Haken geht auch mit Bohrungen an („va.plan.vorschlag_bohrung“), die Zeile
+  „– davon N als Bohrung quer zur Stange …“ (`va.plan.bohrungen`); eine durchgehende zählt als
+  eine Fläche und eine Bohrung, obwohl sie von beiden Seiten gefräst wird (sonst stand bei zwei
+  angeklickten Bohrungen „3 Flächen“). „va.plan.keine_ebene“ und „vp.fehler.keine_ebene“
+  nennen die Querbohrung mit.
+
+### TEST
+- 1.1.3: `test_vierachs_plan` (Querbohrungen, Passfedernut, Abflachung) grün;
+  `szenario_vierachs_querbohrung` (neu) und `szenario_vierachs_plan` grün; black/ruff grün.
+
+### NEXT
+- Radial bohren mit dem Bohrer (Spiralbohrer, Tiefbohrzyklus); Taschen auf dem Mantel
+  (gewickelt); der Einstieg nach Zeit.
+
 ## P-2026-10-02-06 szenarien
 
 ### EINGELESEN

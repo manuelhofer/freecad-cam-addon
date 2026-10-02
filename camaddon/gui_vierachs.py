@@ -2194,12 +2194,16 @@ class VierachsPanel:
         self._umgeschaltet()
 
     def _plan_ebenen(self):
-        """[vierachs_planbahn.Ebene] – die gewählten ebenen Flächen längs der Stange."""
+        """[vierachs_planbahn.Ebene] – die gewählten ebenen Flächen längs der Stange und die
+        gewählten Bohrungen quer zu ihr (je Seite eine)."""
         flaechen = self.flaechen()
         if not flaechen or self.job is None:
             return []
         achse = self.achse()
-        return vp.ebenen(vr.modell(self.job).Shape, achse.laengs, va.radial(achse), flaechen)
+        form = vr.modell(self.job).Shape
+        laengs, radial = achse.laengs, va.radial(achse)
+        ebenen = vp.ebenen(form, laengs, radial, flaechen)
+        return ebenen + [e for e, _b in vp.bohrungen(form, laengs, radial, flaechen)]
 
     def _plan_vorschlagen(self):
         """Ob „Plan indexiert“ geht – gewählte ebene Flächen längs der Stange und an der
@@ -2218,8 +2222,12 @@ class VierachsPanel:
             namen = ", ".join(e.name for e in ebenen)
             geht, grund = True, tr("va.plan.kein_fraeser", flaechen=namen)
         else:
-            namen = ", ".join(e.name for e in ebenen)
-            geht, grund = True, tr("va.plan.vorschlag", flaechen=namen)
+            namen = ", ".join(dict.fromkeys(e.name for e in ebenen))
+            nur_bohrungen = not vp.ebenen(
+                vr.modell(self.job).Shape, achse.laengs, va.radial(achse), self.flaechen()
+            )
+            text = "va.plan.vorschlag_bohrung" if nur_bohrungen else "va.plan.vorschlag"
+            geht, grund = True, tr(text, flaechen=namen)
         geht = geht and self._plan_erlaubt
         self.plan_grund.setText(grund)
         war = self.plan_an()
@@ -2281,6 +2289,8 @@ class VierachsPanel:
             text = tr("va.plan.ergebnis", lagen=bahn.lagen, zeilen=bahn.zeilen, zeit=zeit)
         if getattr(bahn, "nuten", 0):
             text += " " + tr("va.plan.nuten", n=bahn.nuten)
+        if getattr(bahn, "bohrungen", 0):
+            text += " " + tr("va.plan.bohrungen", n=bahn.bohrungen)
         if bahn.hinten_frei > 0:
             text += " " + tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
         return text

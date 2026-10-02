@@ -666,6 +666,8 @@ def _boeden(job, operationen, laengs, radial):
     for op in plaene:
         for ebene in vp.ebenen(form, l_, u_, flaechen_von(op)):
             ergebnis.append((ebene, form.Faces[int(ebene.name[4:]) - 1]))
+        for ebene, bohrung in vp.bohrungen(form, l_, u_, flaechen_von(op)):
+            ergebnis.append(vp.boden_der_bohrung(l_, u_, ebene, bohrung))
     return ergebnis
 
 

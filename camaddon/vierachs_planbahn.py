@@ -36,6 +36,13 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
   a = x, Höhe = z, Versatz = −y und der Rundachse fest. Mit Zeilen kam der Fräser nicht an die
   Enden (4 mm blieben stehen) und mit dem Fräser so breit wie die Nut gar nicht hinein.
 
+- **Querbohrung** (P-2026-10-02-07): Eine gewählte Bohrung quer zur Stange (eine ganze
+  Zylinderfläche, ihre Achse rechtwinklig zur Stange, das Material außen – bohrungen()) fräst
+  die Bahn „Bohrung fräsen“ des Quaders (bohrung_bahn: in der Helix hinab, Ringe, die Wand
+  rundum) im Rahmen der Bohrung – die Rundachse auf ihre Öffnung, die Spitze längs ihrer Achse,
+  quer versetzt mit dem Y, wenn sie nicht durch die Mitte geht. Eine durchgehende von beiden
+  Seiten je bis zur Mitte der Stange.
+
 Gerechnet wird in (a, Höhe, Winkel, Versatz) wie vierachs_bahn.Punkt – die Höhe längs der
 Werkzeugachse, der Winkel der der Rundachse, der Versatz quer. Läuft ohne Oberfläche.
 """
@@ -158,6 +165,7 @@ class Planbahn:
     r_min: float  # die tiefste Spitze: Höhe längs der Werkzeugachse (mm)
     hinten_frei: float = 0.0  # wie bei vierachs_bahn.Bahn
     nuten: int = 0  # so viele Flächen davon als Nut (nut_bahn)
+    bohrungen: int = 0  # so viele Bohrungen quer (bohrung_bahn), je Seite gezählt
 
 
 def ebener_radius(form):
@@ -180,6 +188,135 @@ def nuten(form, laengs, radial, flaechen):
         if gefunden:
             ergebnis[ebene.name] = gefunden
     return ergebnis
+
+
+def bohrungen(form, laengs, radial, namen):
+    """[(Ebene, bohrung_bahn.Bohrung)] – die Flächen `namen` von `form`, die eine Bohrung quer zur
+    Stange sind: eine ganze Zylinderfläche, ihre Achse rechtwinklig zur Stange, das Material
+    außen. Je Seite, von der sie gefräst wird, ein Paar: die Ebene (φ zur Öffnung, die Tiefe ihr
+    Grund, längs und quer ihr Umriss) und die Bohrung im Rahmen der Ebene (_rahmen) – eine
+    durchgehende von beiden Seiten, je bis zur Mitte der Stange."""
+    import dataclasses
+
+    import Part
+
+    from . import bohrung_bahn as bb
+    from . import vierachs_flaechen as vf
+
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    ergebnis = []
+    for nummer in vf.nummern(namen):
+        if nummer >= len(form.Faces):
+            continue
+        flaeche = form.Faces[nummer]
+        zylinder = flaeche.Surface
+        if not isinstance(zylinder, Part.Cylinder):
+            continue
+        d = np.array(tuple(zylinder.Axis), dtype=float)
+        if abs(float(d @ l_)) > GERADE:
+            continue  # längs der Stange: keine Querbohrung
+        mitte = np.array(tuple(zylinder.Center), dtype=float)
+        punkte, _dreiecke = flaeche.copy().tessellate(VORSCHAU_TOLERANZ)
+        if not punkte:
+            continue
+        p = np.array([[pt.x, pt.y, pt.z] for pt in punkte], dtype=float)
+        t = (p - mitte) @ d
+        enden = (mitte + d * float(t.min()), mitte + d * float(t.max()))
+        weit = [float(np.linalg.norm(e - l_ * float(e @ l_))) for e in enden]
+        richtungen = []
+        for ende, gegen in ((0, 1), (1, 0)):
+            if weit[ende] >= weit[gegen] - VORSCHAU_TOLERANZ:
+                n = enden[ende] - enden[gegen]
+                n = n - l_ * float(n @ l_)
+                richtungen.append(n / np.linalg.norm(n))
+        durch = len(richtungen) == 2
+        for n in richtungen:
+            phi = math.degrees(math.atan2(float(n @ v_), float(n @ u_)))
+            name = f"Face{nummer + 1}"
+            vorlaeufig = Ebene(name, phi, 0.0, 0.0, 0.0, 0.0, 0.0)
+            lokal = form.copy()
+            lokal.transformShape(_rahmen(laengs, radial, vorlaeufig))
+            gefunden = bb.bohrungen(lokal, [name])
+            if not gefunden:
+                continue
+            b = gefunden[0]
+            if durch or b.durch:
+                # durchgehend: von dieser Seite bis zur Mitte der Stange (die andere fräst den Rest)
+                b = dataclasses.replace(b, z_unten=max(b.z_unten, 0.0), durch=False, spitze=0.0)
+            if b.z_oben <= b.z_unten + vb.GLEICH:
+                continue
+            ebene = Ebene(
+                name,
+                phi,
+                b.z_unten,
+                b.mitte[0] - b.radius,
+                b.mitte[0] + b.radius,
+                -b.mitte[1] - b.radius,
+                -b.mitte[1] + b.radius,
+            )
+            ergebnis.append((ebene, b))
+    return ergebnis
+
+
+def boden_der_bohrung(laengs, radial, ebene, bohrung):
+    """(Ebene, Part.Face): der Grund der Bohrung als Kreisscheibe im Job – für den Vergleich auf
+    der Stange (restmaterial.boden_radien)."""
+    import FreeCAD
+    import Part
+
+    l_, u_, v_ = vh.rahmen(laengs, radial)
+    phi = math.radians(ebene.phi)
+    n = u_ * math.cos(phi) + v_ * math.sin(phi)
+    quer = np.cross(l_, n)
+    x, y = bohrung.mitte
+    mitte = l_ * x + quer * (-y) + n * bohrung.z_unten
+    kreis = Part.makeCircle(
+        bohrung.radius, FreeCAD.Vector(*(float(c) for c in mitte)), FreeCAD.Vector(*n)
+    )
+    return ebene, Part.Face(Part.Wire(kreis))
+
+
+def _bohrung_punkte(bohrung, ebene, w, oben, sicher):
+    """([vierachs_bahn.Punkt], bohrung_bahn.Bohrbahn) – die Bohrung mit der Bahn „Bohrung
+    fräsen“ (Helix, Ringe, die Wand rundum), zurück in den Rahmen der Stange wie die Nut."""
+    from . import bohrung_bahn as bb
+
+    radius = float(w.form.radius)
+    werte = bb.Bohrwerte(
+        fraeser_radius=radius,
+        zustellung=w.zustellung,
+        zeilenabstand=min(w.zeilenabstand, NUT_AE_ANTEIL * 2.0 * radius),
+        aufmass=0.0,
+        oben=oben,
+        sicher=sicher,
+        eintauchwinkel=w.eintauchwinkel,
+        sicherheit=w.sicherheit,
+    )
+    bahn = bb.planen(werte, [_bohrung_eingeengt(bohrung, radius)])
+    return _zurueck(bahn.punkte, ebene), bahn
+
+
+def _bohrung_eingeengt(bohrung, radius):
+    """Die Bohrung um NUT_LUFT enger, wo sie breiter ist als der Fräser – wie bei der Nut."""
+    import dataclasses
+
+    enger = min(NUT_LUFT, max(bohrung.radius - radius, 0.0))
+    return dataclasses.replace(bohrung, radius=bohrung.radius - enger)
+
+
+def _zurueck(punkte_lokal, ebene):
+    """[vierachs_bahn.Punkt] – Punkte im Rahmen der Ebene (bahn.Punkt) zurück: a = x, die Höhe
+    = z, q = −y, die Rundachse fest auf der Ebene; Bögen in Sehnen."""
+    punkte = []
+    vorher = None
+    for p in punkte_lokal:
+        if vorher is not None and p.bogen is not None and not p.eilgang:
+            for x, y, z in _sehnen(vorher, p):
+                punkte.append(vb.Punkt(False, x, z, ebene.phi, p.eintauchen, -y, p.anteil))
+        else:
+            punkte.append(vb.Punkt(p.eilgang, p.x, p.z, ebene.phi, p.eintauchen, -p.y, p.anteil))
+        vorher = p
+    return punkte
 
 
 def _rahmen(laengs, radial, ebene):
@@ -258,23 +395,17 @@ def _nut_punkte(liste, ebene, w, oben, sicher):
         sicherheit=w.sicherheit,
     )
     bahn = nb.planen(werte, [_eingeengt(n, radius) for n in liste])
-    punkte = []
-    vorher = None
-    for p in bahn.punkte:
-        if vorher is not None and p.bogen is not None and not p.eilgang:
-            for x, y, z in _sehnen(vorher, p):
-                punkte.append(vb.Punkt(False, x, z, ebene.phi, p.eintauchen, -y, p.anteil))
-        else:
-            punkte.append(vb.Punkt(p.eilgang, p.x, p.z, ebene.phi, p.eintauchen, -p.y, p.anteil))
-        vorher = p
-    return punkte, bahn
+    return _zurueck(bahn.punkte, ebene), bahn
 
 
-def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A, nuten_=None):
+def planen(
+    netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A, nuten_=None, bohrungen_=()
+):
     """Die Bahn „Plan indexiert“ (Planbahn) über die Flächen `flaechen` ([Ebene], ebenen())
     mit den Werten `werte`; `netz` ist das Teil ohne diese Flächen (netz_ohne()), `laengs` und
     `radial` wie in vierachs_huelle; `nuten_` ({Name: [nut_bahn.Nut]}, nuten()): diese Flächen
-    als Nut. ValueError mit einem Satz, wenn es nicht geht."""
+    als Nut; `bohrungen_` ([(Ebene, Bohrung)], bohrungen()): Querbohrungen. ValueError mit einem
+    Satz, wenn es nicht geht."""
     w = werte
     form = w.form
     radius = form.radius
@@ -285,9 +416,11 @@ def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A, nuten_
         raise ValueError(tr("vp.fehler.werte"))
     if w.zeilenabstand > 2 * r_eben:
         raise ValueError(tr("vp.fehler.zeilenabstand"))
-    if not flaechen:
+    if not flaechen and not bohrungen_:
         raise ValueError(tr("vp.fehler.keine_ebene"))
-    teil_vorne, teil_hinten = _enden(netz, laengs, radial, flaechen)
+    teil_vorne, teil_hinten = _enden(
+        netz, laengs, radial, list(flaechen) + [e for e, _b in bohrungen_]
+    )
     ueberlauf = vb.ueberlauf_vorschlag(radius) if w.ueberlauf is None else w.ueberlauf
     a_anfang = w.a_stange_vorne + radius + w.sicherheit
     a_ende = vb._ende(teil_hinten, ueberlauf, radius, w)
@@ -300,8 +433,24 @@ def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A, nuten_
     geformt = form.mit_aufmass(netz.toleranz)
     sicher = w.stange_radius + w.sicherheit
     punkte = [vb.Punkt(True, a_anfang, sicher, 0.0)]
-    lagen_gesamt = zeilen_gesamt = flaechen_gefraest = nuten_gefraest = 0
+    lagen_gesamt = zeilen_gesamt = flaechen_gefraest = nuten_gefraest = bohrungen_gefraest = 0
     r_min = math.inf
+    gebohrt = set()  # Namen: eine durchgehende zählt einmal, auch von beiden Seiten gefräst
+    for ebene, bohrung in sorted(bohrungen_, key=lambda eb: eb[0].phi):
+        oben = _material_ueber(w, ebene, radius)
+        if oben <= bohrung.z_unten + vb.GLEICH:
+            continue  # steht nichts mehr drüber
+        stueck, bohrbahn = _bohrung_punkte(bohrung, ebene, w, oben, sicher)
+        punkte.extend(stueck)
+        letzter = punkte[-1]
+        punkte.append(vb.Punkt(True, letzter.a, sicher, ebene.phi, q=letzter.q))
+        if ebene.name not in gebohrt:
+            flaechen_gefraest += 1
+            bohrungen_gefraest += 1
+        gebohrt.add(ebene.name)
+        lagen_gesamt += bohrbahn.lagen
+        zeilen_gesamt += max(1, int(math.ceil(bohrbahn.umlaeufe)))
+        r_min = min(r_min, bohrbahn.z_min)
     for ebene in sorted(flaechen, key=lambda e: e.phi):
         ziel = ebene.tiefe + w.aufmass
         oben = _material_ueber(w, ebene, radius)
@@ -376,6 +525,7 @@ def planen(netz, laengs, radial, werte, flaechen, schritt_a=vh.SCHRITT_A, nuten_
         r_min if math.isfinite(r_min) else 0.0,
         hinten_frei,
         nuten_gefraest,
+        bohrungen_gefraest,
     )
 
 

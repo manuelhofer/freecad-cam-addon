@@ -221,6 +221,83 @@ for r_f, erwartet in ((4.0, "voll"), (3.0, "trochoide")):
     print(ascii(f"Passfedernut Ø {2 * r_f:g}: {b.lagen} Lagen, {b.zeilen} Kreise/Fahrten, "
                 f"{vb.dauer(b, 500.0):.2f} min"))  # fmt: skip
 
+# --- Querbohrungen (P-2026-10-02-07): auf der Welle Ø 30 eine Sackbohrung Ø 10, 8 tief (oben),
+# eine Ø 10 um 3 quer versetzt (Y) und eine durchgehende Ø 8 quer (längs Y) ----------------------
+# Je Seite die Bahn „Bohrung fräsen“ im Rahmen der Bohrung: Helix hinab, die Wand rundum; die
+# Mitte des Fräsers Ø 6 nie weiter als 2 von der Achse der Bohrung, nie tiefer als ihr Grund; die
+# durchgehende von beiden Seiten je bis zur Mitte. Auf der Stange nirgends ins Teil.
+bohrwelle = (
+    Part.makeCylinder(15, 100, V(0, 0, -100))
+    .cut(Part.makeCylinder(5, 10, V(7, 0, -20), V(1, 0, 0)))
+    .cut(Part.makeCylinder(5, 10, V(8, 3, -45), V(1, 0, 0)))
+    .cut(Part.makeCylinder(4, 40, V(0, -20, -70), V(0, 1, 0)))
+    .removeSplitter()
+)
+quer_namen = [
+    f"Face{i + 1}"
+    for i, f in enumerate(bohrwelle.Faces)
+    if isinstance(f.Surface, Part.Cylinder) and abs(f.Surface.Radius - 15.0) > 1e-6
+]
+paare = vp.bohrungen(bohrwelle, LAENGS, RADIAL, quer_namen)
+seiten = sorted((round(e.phi), round(b.z_unten, 3), round(b.radius, 3)) for e, b in paare)
+pruefe(
+    seiten == [(-90, 0.0, 4.0), (0, 7.0, 5.0), (0, 8.0, 5.0), (90, 0.0, 4.0)],
+    f"Querbohrungen: {seiten}",
+)
+versetzt = [e for e, b in paare if abs(b.z_unten - 8.0) < 1e-6]
+pruefe(
+    versetzt and abs((versetzt[0].q_von + versetzt[0].q_bis) / 2 - 3.0) < 1e-6,
+    f"Versatz quer: {versetzt and (versetzt[0].q_von, versetzt[0].q_bis)}",
+)
+w_bohr = vp.Planwerte(
+    form=ff.scheibe(3.0),
+    stange_radius=16.0,
+    zustellung=2.0,
+    zeilenabstand=3.6,
+    aufmass=0.0,
+    a_stange_vorne=1.0,
+    a_futter=-120.0,
+)
+bohr_bahn = vp.planen(vp.netz_ohne(bohrwelle, []), LAENGS, RADIAL, w_bohr, [], bohrungen_=paare)
+pruefe(
+    bohr_bahn.bohrungen == 3 and bohr_bahn.flaechen == 3 and bohr_bahn.r_min > -1e-6,
+    f"Bohrungen: {bohr_bahn.bohrungen}, Flächen {bohr_bahn.flaechen}",
+)
+for ebene, b in paare:
+    mitte_q = -b.mitte[1]
+    an_ihr = [
+        p
+        for p in bohr_bahn.punkte
+        if not p.eilgang
+        and abs(p.phi - ebene.phi) < 1e-6
+        and p.r < 15.5
+        and math.hypot(p.a - b.mitte[0], p.q - mitte_q) < 6.0
+    ]
+    weit = max((math.hypot(p.a - b.mitte[0], p.q - mitte_q) for p in an_ihr), default=99.0)
+    pruefe(
+        an_ihr and weit < b.radius - 3.0 + 1e-3 and min(p.r for p in an_ihr) > b.z_unten - 1e-6,
+        f"Bohrung φ {ebene.phi:.0f}, Grund {b.z_unten}: Mitte bis {weit:.3f}",
+    )
+abtrag_b = rm.Stange(16.0, -120.0, 1.0)
+abtrag_b.fahre_stuecke(
+    [(p.a, p.r, p.phi, p.q) for p, n in zip(bohr_bahn.punkte, bohr_bahn.punkte[1:], strict=False) if not n.eilgang],
+    [(n.a, n.r, n.phi, n.q) for p, n in zip(bohr_bahn.punkte, bohr_bahn.punkte[1:], strict=False) if not n.eilgang],
+    ff.scheibe(3.0),
+)  # fmt: skip
+bohr_netz = vh.vernetze(bohrwelle, 0.01)
+genau_b = rm.teilradien(bohr_netz, LAENGS, RADIAL, abtrag_b, rm.GENAU)
+boden_b = rm.boden_radien(
+    abtrag_b, LAENGS, RADIAL, [vp.boden_der_bohrung(LAENGS, RADIAL, e, b) for e, b in paare]
+)
+erlaubt_b = np.where(np.isfinite(boden_b), np.maximum(genau_b - boden_b, 0.0), 0.0)
+vergleich_b = rm.vergleiche(
+    abtrag_b, rm.teilradien(bohr_netz, LAENGS, RADIAL, abtrag_b), 0.0, genau_b, erlaubt=erlaubt_b
+)
+pruefe(vergleich_b.kleinster >= -rm.BLAU_AB, f"Querbohrungen: ins Teil {vergleich_b.kleinster:.3f}")
+print(ascii(f"Querbohrungen: {bohr_bahn.bohrungen} Bohrungen von {len(paare)} Seiten, "
+            f"{bohr_bahn.lagen} Lagen, {vb.dauer(bohr_bahn, 500.0):.2f} min, "
+            f"ins Teil {vergleich_b.kleinster:.3f}"))  # fmt: skip
+
 # Ohne ebene Fläche, ohne ebene Stirn, Zeilenabstand zu groß: ein Satz.
 for werte_falsch, flaechen_falsch, text in (
     (werte, [], "keine Fläche"),

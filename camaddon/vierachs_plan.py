@@ -166,7 +166,8 @@ def bahn_fuer(
     laengs, radius, a_vorne, a_futter = vs._stange(job, laengs)
     form_teil = vs._teil(modell)
     ebenen = vp.ebenen(form_teil, laengs, radial, flaechen)
-    if not ebenen:
+    bohrungen = vp.bohrungen(form_teil, laengs, radial, flaechen)
+    if not ebenen and not bohrungen:
         raise ValueError(tr("vp.fehler.keine_ebene"))
     ueberlauf, abstand_futter, sicherheit = abstaende
     werte = vp.Planwerte(
@@ -186,7 +187,13 @@ def bahn_fuer(
     )
     netz = vp.netz_ohne(form_teil, [e.name for e in ebenen], toleranz)
     return vp.planen(
-        netz, laengs, radial, werte, ebenen, nuten_=vp.nuten(form_teil, laengs, radial, ebenen)
+        netz,
+        laengs,
+        radial,
+        werte,
+        ebenen,
+        nuten_=vp.nuten(form_teil, laengs, radial, ebenen),
+        bohrungen_=bohrungen,
     )
 
 
