@@ -188,7 +188,8 @@ Ein Addon, das die CAM-Oberfläche von FreeCAD bedienbarer macht.
   nicht breiter ist als sie – nie in voller Breite mit ganzer Schneide: in
   Kreisen, die je Umlauf um ae vorrücken (Trochoide), oder in einer
   Zickzack-Rampe, wenn die Nut kaum breiter ist; zuletzt die Wand rundum. Sie
-  fräst auch offene Nuten – zum Rand hin offen, von außen hinein ohne Helix – und
+  fräst auch offene Nuten – zum Rand hin offen, von außen hinein ohne Helix, in Bögen im
+  Gleichlauf von Wand zu Wand und quer zurück im Schnellvorschub, jede Breite – und
   tritt an den Wänden gegen die Kontur an; auf dem Grund einer Nut schnitten Räumen
   und Planfräsen in voller Breite und treten dort nicht an. **Reiben** mit
   der Reibahle auf Maß (G85, im Vorschub heraus) – dann bohrt „Bohren“ kleiner vor.

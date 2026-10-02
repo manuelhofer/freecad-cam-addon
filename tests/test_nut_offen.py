@@ -8,7 +8,11 @@
 # geschlossen (beide Enden zu). (d) Wettbewerb wie im Assistenten: Die Nut ist schneller als die
 # Kontur an den Wänden. Räumen auf dem Grund wäre nur scheinbar schneller – es schneidet zuerst
 # in voller Breite, schneller als ae · ap · vf erlaubt (Wirkungsgrad über 100 %): Darum tritt es
-# an Nutgründen nicht an.
+# an Nutgründen nicht an. (e) In Bögen statt Kreisen (P-2026-10-02-22, Manuels Halbkreis): je
+# Bogen im Gleichlauf (G3) von Wand zu Wand, quer zurück im Schnellvorschub (3 × vf) – dabei nichts
+# abgetragen; der Schritt so klein, dass der Fräser die Delle nicht weiter umschlingt als eine
+# gerade Wand mit ae. (f) Eine offene Nut 30 breit – früher „zu breit“ (ein Kern bliebe in den
+# Kreisen) – geht jetzt in Bögen, ebenso leer und nirgends ins Teil.
 import os
 import sys
 
@@ -62,13 +66,22 @@ def werte():
     )  # fmt: skip
 
 
-def pruefe_bahn(name, teil, nut):
+def pruefe_bahn(name, teil, nut, halb=8.0):
     bahn = nb.planen(werte(), [nut])
     k = ps.messen([ps.Bahnlauf(bahn.punkte, VF, VF * 0.3)], teil, (0, 60, 0, 40), 20.0, form,
                   AE, AP, ebenen_z=[12.0], aufmass=0.0)  # fmt: skip
-    print(ascii(f"{name}: {bahn.kreise} Kreise, {bahn.zeit:.2f} min | {ps.zeile(k)}"))
+    print(ascii(f"{name}: {bahn.boegen} Bögen, {bahn.zeit:.2f} min | {ps.zeile(k)}"))
     pruefe(k.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"{name}: ins Teil {k.einschnitt:.3f}")
     pruefe(k.eilgang_abtrag <= 1e-9, f"{name}: im Eilgang {k.eilgang_abtrag:.1f} mm³")
+    pruefe(k.schnell_abtrag <= 1e-9, f"{name}: im Schnellvorschub {k.schnell_abtrag:.1f} mm³")
+    pruefe(
+        bahn.boegen > 0 and bahn.kreise == 0, f"{name}: {bahn.boegen} Bögen, {bahn.kreise} Kreise"
+    )
+    boegen = [p for p in bahn.punkte if p.bogen is not None]
+    pruefe(boegen and not any(p.bogen[2] for p in boegen), f"{name}: nicht im Gleichlauf (G3)")
+    schnell = [p for p in bahn.punkte if p.anteil > 1.0]
+    pruefe(schnell and all(abs(p.anteil - nb.RUECKWEG) < 1e-9 for p in schnell),
+           f"{name}: kein Rückweg im Schnellvorschub")  # fmt: skip
     pruefe(k.eintauchungen == 0 and k.rampen == 0, f"{name}: {k.eintauchungen} Eintauchen, "
            f"{k.rampen} Rampen")  # fmt: skip
     pruefe(k.rest <= ps.REST_ZULAESSIG, f"{name}: Rest {k.rest:.2f} auf dem Grund")
@@ -85,9 +98,9 @@ def pruefe_bahn(name, teil, nut):
     innen = grund.copy()
     for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (1, -1), (-1, 1), (-1, -1)):
         innen &= np.roll(np.roll(grund, di, 0), dj, 1)
-    in_der_nut = (np.abs(ys - 20.0) < 7.5) & innen
+    in_der_nut = (np.abs(ys - 20.0) < halb - 0.5) & innen
     pruefe(np.max(rest[in_der_nut]) < 0.05, f"{name}: in der Nut {np.max(rest[in_der_nut]):.2f}")
-    daneben = np.abs(ys - 20.0) > 8.5
+    daneben = np.abs(ys - 20.0) > halb + 0.5
     pruefe(np.max(np.abs(rest[daneben])) < 1e-6, f"{name}: daneben angeschnitten")
     return bahn
 
@@ -127,6 +140,20 @@ zu = platte.cut(
 waende, grund = waende_und_grund(zu)
 geschlossen = nb.nuten(zu, grund)
 pruefe(len(geschlossen) == 1 and not geschlossen[0].offen, f"zu: {geschlossen}")
+
+# --- (e) Der Schritt der Bögen: in der schmalen Nut klein, in breiten fast ae --------------------
+schmal = nb._bogenschritt(8.0 - R - 0.3, R, AE)
+breit = nb._bogenschritt(40.0 - R - 0.3, R, AE)
+pruefe(0.3 < schmal < 0.5 and 1.2 < breit < AE, f"Schritt: schmal {schmal:.3f}, breit {breit:.3f}")
+
+# --- (f) Breiter als zwei Fräser: früher zu breit, jetzt in Bögen ---------------------------------
+weit = platte.cut(Part.makeBox(60, 30, 8, V(0, 5, 12))).removeSplitter()
+waende, grund = waende_und_grund(weit)
+nut_w = nb.nuten(weit, grund)
+pruefe(len(nut_w) == 1 and abs(nut_w[0].radius - 15.0) < 1e-6, f"30 breit: {nut_w}")
+if nut_w:
+    pruefe(nb.verfahren(nut_w[0], R, 0.3) == "trochoide", "30 breit: nicht in Bögen")
+    pruefe_bahn("30 breit", weit, nut_w[0], halb=15.0)
 
 # --- (d) Der Wettbewerb wie im Assistenten --------------------------------------------------------
 waende, grund = waende_und_grund(ii)

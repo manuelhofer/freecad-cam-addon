@@ -1,11 +1,14 @@
 # „Bearbeitung (Fräsen)“ an einer offenen Nut (W-006 4.1 Punkt 6, P-2026-10-01-47): Platte
 # 60 × 40 × 20 mit einer Nut 16 breit, 8 tief, längs X ganz durch – an beiden Enden offen; T1 der
 # Standardfräser Ø 12 (ae 1,5, ap 25). Eine Wand anklicken: In der Liste „offene Nut 16 × 60,
-# Grund 12“; Nut gegen Kontur – die Nut (von außen hinein, ohne Helix, Kreise, die Wände im
-# Gleichlauf) ist schneller: „→ 1 Nut, 1 Lage, 46 Kreise, etwa … – die schnellste; Kontur wäre
-# N % langsamer“. Den Grund dazu: Räumen schnitte in der Nut in voller Breite und tritt nicht
-# an. „Anlegen“: nur „Nut T1“ mit Endtiefe 12. „Auf der Maschine prüfen“: am Ende nirgends ins
-# Teil.
+# Grund 12“; Nut gegen Kontur – seit den Bögen (P-2026-10-02-22) ist hier die Kontur etwas
+# schneller: Die Bögen rücken in der schmalen Nut nur 0,4 mm vor, damit der Fräser die Delle
+# nicht weiter umschlingt als eine gerade Wand mit ae („→ 1 Nut, 1 Lage, … Bögen, etwa … – N %
+# langsamer als Kontur“). Den Grund dazu: Räumen schnitte in der Nut in voller Breite und tritt
+# nicht an – die Nut fräst ihn. „Anlegen“: nur „Nut T1“ mit Endtiefe 12. „Auf der Maschine
+# prüfen“: am Ende nirgends ins Teil.
+import re
+
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -80,10 +83,11 @@ def schritte(h):
     )
     yield 1500
     text = nut_block.ergebnis.text()
-    h.pruefe(nut_block.aktiv() and not kontur.aktiv(), "Wand: Nut nicht der Sieger")
+    # Die Bögen rücken in der schmalen Nut nur 0,4 mm vor (der Fräser umschlingt die Delle):
+    # Die Kontur – in voller Breite mit kleinerer Zustellung – ist hier etwas schneller.
+    h.pruefe(kontur.aktiv() and not nut_block.aktiv(), "Wand: Kontur nicht der Sieger")
     h.pruefe(
-        text.startswith("→ 1 Nut, 1 Lage, 46 Kreise, etwa ")
-        and "die schnellste; Kontur wäre" in text,
+        re.match(r"→ 1 Nut, 1 Lage, \d+ Bögen, etwa ", text) and "langsamer als Kontur" in text,
         f"Nut an der Wand: {text!r}",
     )
     h.pruefe(not nut_block.hinweis.text(), f"rot: {nut_block.hinweis.text()!r}")
@@ -121,6 +125,7 @@ def schritte(h):
         return
     op = nuten[0]
     h.pruefe(abs(float(op.FinalDepth) - 12.0) < 1e-6, f"Endtiefe {op.FinalDepth}")
+    h.pruefe(op.Boegen > 0 and op.Kreise == 0, f"Bögen {op.Boegen}, Kreise {op.Kreise}")
     befehle = [c.Name for c in op.Path.Commands]
     h.pruefe("G3" in befehle and "G2" not in befehle, "nicht im Gleichlauf (G3)")
     Gui.Selection.clearSelection()

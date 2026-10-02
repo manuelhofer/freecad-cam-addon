@@ -560,8 +560,8 @@ class _Raeumen(_Strategie):
 
 
 class _Nut(_Strategie):
-    """Langlöcher in Kreisen (Trochoide) oder mit der Zickzack-Rampe (nut_bahn) – tritt auf dem
-    Grund gegen Räumen und Planfräsen an, an den Wänden gegen die Kontur."""
+    """Langlöcher in Kreisen (Trochoide), offene in Bögen, oder mit der Zickzack-Rampe (nut_bahn)
+    – tritt auf dem Grund gegen Räumen und Planfräsen an, an den Wänden gegen die Kontur."""
 
     kennung = "nut"
     gemerkt = GEMERKT_NUTFRAESER
@@ -653,7 +653,16 @@ class _Nut(_Strategie):
         if bahn.vollnut == bahn.nuten:
             return tr("ba.ergebnis_vollnut", nuten=nuten, zeit=zeit)
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
-        kreise = tr("ba.zahl.kreis") if bahn.kreise == 1 else tr("ba.zahl.kreise", n=bahn.kreise)
+        teile = []
+        if bahn.kreise or not bahn.boegen:
+            teile.append(
+                tr("ba.zahl.kreis") if bahn.kreise == 1 else tr("ba.zahl.kreise", n=bahn.kreise)
+            )
+        if bahn.boegen:  # offene Nuten (P-2026-10-02-22)
+            teile.append(
+                tr("ba.zahl.bogen") if bahn.boegen == 1 else tr("ba.zahl.boegen", n=bahn.boegen)
+            )
+        kreise = ", ".join(teile)
         return tr("ba.ergebnis_nut", nuten=nuten, lagen=lagen, kreise=kreise, zeit=zeit)
 
     def lege_an(self, job, tc, werte, flaechen):

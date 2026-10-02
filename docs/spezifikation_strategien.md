@@ -144,7 +144,29 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    Halbkreis hinüber, an der anderen heraus. Platte 60 × 40, Nut 16 breit, 8 tief, ganz
    durch, Standardfräser: 0,85 min, 46 Kreise, kein Eintauchen, keine Rampe, im Quader
    leer und die Wände fertig (`test_nut_offen`, `szenario_nut_offen`); die Kontur an den
-   Wänden 2,2 min. **Dabei gefunden**: Auf dem Grund einer Nut ist Räumen nur scheinbar
+   Wänden 2,2 min. **Bögen statt Kreisen** (P-2026-10-02-22, Manuel: „im Gleichlauf
+   einen Halbkreis fahren, so dass mittig eine Delle entsteht, im Eilgang oder
+   Schnellvorschub wieder auf die andere Seite und die nächste Morph-Bahn“): In offenen
+   Nuten fährt je Schritt nur noch der Halbkreis, der schneidet – im Gleichlauf (M3: gegen
+   den Uhrzeigersinn, G3) von der einen Wand nach vorn durchs Material zur anderen –, dann
+   quer über die freie Seite zurück im Schnellvorschub (`RUECKWEG` = 3 × vf als G1: im
+   Eilgang fährt nicht jede Steuerung gerade, und G0 auf Tiefe neben der Wand wäre auf
+   manchen Maschinen gefährlich), an der Wand ein Stück vor in den nächsten Bogen. Die
+   ersten Bögen morphen vom geraden Rand zum Halbkreis (ihre Enden bleiben bei −R an der
+   Wand, ihre Mitte rückt je Bogen vor) – keiner schneidet in der Luft. Jede Lage beginnt
+   draußen am offenen Ende, ohne Helix; so hat eine offene Nut keine Grenze in der Breite
+   mehr („zu breit“ gilt nur noch für geschlossene). **Schonend**: In der Delle umschlingt
+   der Fräser das Material weiter als an einer geraden Wand – mit dem Schritt ae wären es
+   in der Nut 16 breit mit Ø 12 rund 70° statt 41°, der Span 1,4-mal so dick. Der Schritt
+   ist darum so klein, dass der Eingriffswinkel dem auf gerader Bahn mit ae gleicht
+   (`_bogenschritt`: s² + 2 (r + R − ae) s = 2 r ae, r der Radius der Bögen): dort 0,40
+   statt 1,5 mm, in einer Nut 30 breit 0,95, in breiten fast ae; der Vorschub bleibt voll.
+   Gemessen (`test_nut_offen`): Nut 16 breit 1,75 min (vorher 0,85 – die Kreise schnitten
+   dort zu dick), weiter schneller als die Kontur (2,2 min); dieselben Kreise mit dem
+   kleinen Schritt bräuchten etwa ein Viertel mehr. Der Prüfstand misst jetzt auch, was im
+   Schnellvorschub abgetragen würde (`schnell_abtrag`, muss 0 sein). Offen: die
+   geschlossene Nut (Trochoide) noch mit dem Schritt ae – sie schneidet in schmalen Nuten
+   ebenso dick (Frage an Manuel). **Dabei gefunden**: Auf dem Grund einer Nut ist Räumen nur scheinbar
    schneller – es schneidet zuerst in voller Breite (an der offenen Nut 0,19 min, ein
    Wirkungsgrad von 348 %, dazu 1,5 mm³ im Eilgang). Kann die Nut sie fräsen, treten
    Räumen und Planfräsen an Nutgründen nicht mehr an; ihre Zeile sagt warum (auch an der

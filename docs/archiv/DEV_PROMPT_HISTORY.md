@@ -12,6 +12,62 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-22 nut-boegen
+
+### EINGELESEN
+- `nut_bahn` (offene Nuten: `_offene_lagen`, `_kreise`, `_vor_dem_ende`, `verfahren`),
+  `nut.py`, `gui_bearbeitung._Nut`, `pruefstand.messen`, `tests/test_nut_offen.py`,
+  `tests/gui/szenario_nut_offen.py`.
+
+### DATEIEN
+- `camaddon/nut_bahn.py`, `camaddon/nut.py`, `camaddon/pruefstand.py`, `camaddon/vierachs_planbahn.py`,
+  `camaddon/gui_bearbeitung.py`, `translations/de.json`, `translations/en.json`,
+  `tests/test_nut_offen.py`, `tests/gui/szenario_nut_offen.py`, `tests/gui/szenario_nut_durch.py`
+  (neu), `help/de|en/bearbeitung.html`, `README.md`, `docs/aufbau.md`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.84.0)
+
+### AKZEPTANZKRITERIUM
+Manuel: „Wenn man eine Nut mitten durch einen 4eckigen Klotz fräsen will, ist die beste,
+schonendste und vielleicht auch schnellste Strategie, im Gleichlauf einen Halbkreis zu fahren, so
+dass mittig eine Delle entsteht, im Eilgang oder Schnellvorschub wieder auf die andere Seite und
+die nächste Morph-Bahn.“ Offene Nuten so: je Schritt ein Halbkreis im Gleichlauf, quer zurück im
+Schnellvorschub, nichts im Schnellvorschub abgetragen, die Nut leer, nirgends ins Teil; auch
+breiter als zwei Fräser.
+
+### DONE
+- `_boegen`: je Schritt ein Bogen im Gleichlauf (G3 bei M3) von der einen Wand nach vorn zur
+  anderen, quer zurück mit `RUECKWEG` = 3 × vf (G1 – G0 fährt nicht auf jeder Steuerung gerade),
+  an der Wand vor in den nächsten. Am Anfang Morph-Bögen: die Enden bei −R an der Wand, die Mitte
+  je Bogen vor, bis zum Halbkreis – keiner in der Luft.
+- `_bogenschritt`: In der Delle umschlingt der Fräser das Material weiter als an einer geraden
+  Wand (Nut 16, Ø 12, Schritt ae 1,5: 70° statt 41°, der Span 1,4-mal so dick). Der Schritt so,
+  dass der Eingriffswinkel dem auf gerader Bahn mit ae gleicht: s² + 2 (r + R − ae) s = 2 r ae
+  (Nut 16: 0,40; Nut 30: 0,95). Zuerst versucht: Vorschub je Bogenstück senken (gleicher
+  Abtrag je Zeit) – der Eingriffswinkel bliebe 140°/70°, verworfen.
+- Jede Lage von außen (keine Helix mehr am Halbkreis); `verfahren`: „zu breit“ nur noch für
+  geschlossene Nuten. `Nutbahn.boegen`, Eigenschaft `Boegen` an der Operation, „… Bögen“ in der
+  Zeile des Assistenten.
+- Plan indexiert (`vierachs_planbahn._als_nut`): eine breite Abflachung zwischen zwei Wänden
+  ist dort weiter keine Nut, sondern Zeilen (`verfahren(..., offen_breit=False)`) – zuerst von
+  `test_vierachs_plan` gefunden.
+- `pruefstand`: `schnell_abtrag` – was mit mehr als vf abgetragen würde (muss 0 sein).
+- Gemessen (Standardfräser, vf 902): Nut 16 × 60 1,68 min (vorher 0,85 mit zu dickem Span);
+  die Kontur an den Wänden 2,2 (Probe), in der Oberfläche ist sie dort jetzt 11 % schneller und
+  gewinnt; Nut 30 × 60 (früher „zu breit“) 3,27 min, im Klotz 80 × 60 die Nut 30 × 80 4:46 min.
+
+### TEST
+- 1.1.3: `test_nut_offen` (Bögen G3, Rückweg 3 × F, nichts im Schnellvorschub, Schritt schmal
+  0,3…0,5 und breit 1,2…1,5, Nut 30 breit leer), `test_nut`, `test_vierachs_plan`, `test_hilfe`,
+  `test_sprache`; Szenarien `szenario_nut_offen` (an der Wand gewinnt jetzt die Kontur, am Grund
+  die Nut), `szenario_nut_durch` (neu, Manuels Klotz), `szenario_nut`, `szenario_vierachs_nut`
+  grün; black/ruff grün.
+
+### NEXT
+- Die geschlossene Nut (Trochoide) schneidet in schmalen Nuten ebenso zu dick – dort auch der
+  kleinere Schritt? (Frage an Manuel: dann gewinnt dort öfter die Kontur.)
+- Bögen auch beim Räumen von der offenen Seite (Absatz, Zapfen) und auf dem Mantel.
+
 ## P-2026-10-02-21 planfraesen-darunter
 
 ### EINGELESEN

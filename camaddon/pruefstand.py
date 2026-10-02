@@ -72,6 +72,7 @@ class Kennzahlen:
     rest: float = 0.0  # mm – das meiste, was auf den Flächen stehen blieb (fern der Wände)
     einschnitt: float = 0.0  # mm – das tiefste ins Teil (negativ)
     eilgang_abtrag: float = 0.0  # mm³ – im Eilgang abgetragen (muss 0 sein)
+    schnell_abtrag: float = 0.0  # mm³ – im Schnellvorschub (mehr als vf) abgetragen (muss 0 sein)
     eintauchungen: int = 0  # senkrechte Fahrten mit Eintauchvorschub, die Material trafen
     rampen: int = 0  # schräge Fahrten hinab im Vorschub, die Material trafen (Stücke)
     halte: int = 0  # Stopps: Ecken ab 15°, um Eilgänge, am Anfang und Ende
@@ -215,6 +216,8 @@ def messen(
                 continue
             k.vorschubweg += weg
             trifft = abtrag > _NICHTS
+            if nach.anteil > 1.0 + 1e-9:
+                k.schnell_abtrag += abtrag  # quer zurück über die freie Seite (nut_bahn)
             if not trifft:
                 k.luftweg += weg
             hinab = nach.z < von.z - _NICHTS
@@ -276,6 +279,8 @@ def urteile(k, sicher_nur=False):
         saetze.append(f"lässt {k.rest:.2f} mm auf der Fläche stehen")
     if k.eilgang_abtrag > _NICHTS:
         saetze.append(f"trägt im Eilgang ab ({k.eilgang_abtrag:.1f} mm³)")
+    if k.schnell_abtrag > _NICHTS:
+        saetze.append(f"trägt im Schnellvorschub ab ({k.schnell_abtrag:.1f} mm³)")
     if not sicher_nur and k.luftanteil > LUFT_ZULAESSIG:
         saetze.append(f"fährt {k.luftanteil * 100:.0f} % des Vorschubwegs in der Luft")
     if not sicher_nur and k.voll > BREIT_WEG:

@@ -87,7 +87,11 @@ Gleichlauf – gespiegelt (P-2026-10-02-20); 0.82.0 – fertig und automatisch g
 Manuels Test. **Planfräsen übereinander**: Die obere Fläche fräst nicht mehr die ganze Platte ab,
 wo der Boden derselben Operation ohnehin am Rohteil beginnt – Zapfen 15,6 → 13,5 min, Absatz
 5,1 → 4,3 min (P-2026-10-02-21); 0.83.0 – fertig und automatisch geprüft; wartet auf Manuels
-Test. Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+Test. **Offene Nut in Bögen** (Manuels Halbkreis): je Schritt ein Halbkreis im Gleichlauf von Wand
+zu Wand, quer zurück im Schnellvorschub, am Anfang Morph-Bögen vom geraden Rand; der Schritt so
+klein, dass der Fräser die Delle nicht weiter umschlingt als eine gerade Wand mit ae; offene Nuten
+jeder Breite (P-2026-10-02-22); 0.84.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
+Als Nächstes: der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3

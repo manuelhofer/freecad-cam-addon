@@ -622,7 +622,7 @@ def _als_nut(liste, radius):
     zwischen zwei Wänden) fährt Zeilen."""
     from . import nut_bahn as nb
 
-    return [n for n in liste if nb.verfahren(n, radius) != "zu_breit"]
+    return [n for n in liste if nb.verfahren(n, radius, offen_breit=False) != "zu_breit"]
 
 
 def _eingeengt(nut, radius):
