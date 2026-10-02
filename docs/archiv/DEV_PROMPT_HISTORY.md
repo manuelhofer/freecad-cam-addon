@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-47 richtwerte-neues-werkzeug
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Generell kannst du für alle Fräser mal Beispielschnittwerte für die
+  einzelnen Materialien und Bearbeitungsläufe aus dem Netz suchen und direkt mit anbieten, wenn
+  jemand einen Fräser erstellen will.“ Spezifikation Werkzeugverwaltung 13.
+
+### DATEIEN
+- `camaddon/werkzeugkiste.py` (`richtwerte_moeglich`, `richtwerte_eintragen`),
+  `camaddon/gui_schnittwerte.py` (Knopf „Richtwerte eintragen“ an der leeren Tabelle, Eintrag
+  im Menü „+ Einsatz“), `translations/de|en.json`, `help/de|en/werkzeuge.html`,
+  `tests/test_werkzeugkiste.py`, `tests/gui/szenario_werkzeugkiste.py`,
+  `docs/spezifikation_werkzeugverwaltung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.103.0)
+
+### AKZEPTANZKRITERIUM
+„Neu“ → über der leeren Tabelle „Richtwerte eintragen“ → ein Klick: 36 Zeilen (9 Klassen × 4
+Einsätze des Schaftfräsers).
+
+### DONE
+- Dieselben Grundwerte und Klassenfaktoren wie die Werkzeugkiste, aus Art, Durchmesser,
+  Schneiden und Schneidstoff; nur Klassen ohne eigene Zeilen bekommen welche.
+- Der Knopf erscheint nur bei leerer Tabelle und wenn sich rechnen lässt (Durchmesser da, Art
+  mit Einsätzen); danach über „+ Einsatz“.
+
+### TEST
+- 1.1.3: `test_werkzeugkiste`, `test_sprache`, `test_hilfe`; `szenario_werkzeugkiste`,
+  `szenario_werkzeugverwaltung`, `szenario_schnittwerte`; black/ruff grün.
+
+### NEXT
+- Home- und Wechselpunkt (W-008).
+
 ## P-2026-10-02-46 werkzeugkiste
 
 ### EINGELESEN

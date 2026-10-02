@@ -20,6 +20,7 @@ from . import schnittdaten as sd
 from . import schruppwerte as sw
 from . import werkstoffe as ws
 from . import werkzeuge as wz
+from . import werkzeugkiste as wk
 from .gui_eingriff import BREITE as BILD_BREITE
 from .gui_eingriff import EingriffBild
 from .gui_hilfe import kopfzeile
@@ -135,7 +136,16 @@ class SchnittwertBereich(QtGui.QWidget):
         self.leer_hinweis.setWordWrap(True)
         self.leer_hinweis.setStyleSheet(f"color: {GRAU.name()};")
         self.leer_hinweis.hide()
-        aufbau.addWidget(self.leer_hinweis)
+        # Ein neues Werkzeug bekommt Richtwerte je Werkstoffklasse mit einem Klick (P-2026-10-02-47;
+        # Manuel: „direkt mit anbieten, wenn jemand einen Fräser erstellen will“).
+        self.knopf_richtwerte = knopf(
+            tr("wv.richtwerte"), tr("wv.richtwerte.tooltip"), self.richtwerte_eintragen
+        )
+        self.knopf_richtwerte.hide()
+        leer = QtGui.QHBoxLayout()
+        leer.addWidget(self.leer_hinweis, 1)
+        leer.addWidget(self.knopf_richtwerte, 0, QtCore.Qt.AlignTop)
+        aufbau.addLayout(leer)
         aufbau.addWidget(self.tabelle, 1)
 
         zeile = QtGui.QHBoxLayout()
@@ -322,6 +332,18 @@ class SchnittwertBereich(QtGui.QWidget):
         self._fuellen()
         self.tabelle.setCurrentCell(self._zeile_von(einsatz), spalte)
 
+    def richtwerte_eintragen(self):
+        """Richtwerte je Werkstoffklasse (werkzeugkiste.richtwerte_eintragen); was schon da ist,
+        bleibt. Gibt zurück, für wie viele Werkstoffe Zeilen dazukamen."""
+        if self.werkzeug is None:
+            return 0
+        neu = wk.richtwerte_eintragen(self.werkzeug)
+        if neu:
+            self._geaendert()
+            self._liste = self._alle_zeilen()
+            self._fuellen()
+        return neu
+
     def einsatz_anlegen(self, art, werkstoff=None):
         """Neue Zeile mit ae und ap aus dem Durchmesser vorbelegt – für `werkstoff` (Kennung),
         ohne Angabe für den Werkstoff der gewählten Zeile, ohne Zeile für alle Werkstoffe; gibt
@@ -501,6 +523,9 @@ class SchnittwertBereich(QtGui.QWidget):
         self.menue_plus.addSeparator()
         self.aktion_kopieren = self.menue_plus.addAction(tr("wv.einsatz.kopieren"))
         self.aktion_kopieren.triggered.connect(lambda _an=False: self.einsatz_kopieren())
+        self.aktion_richtwerte = self.menue_plus.addAction(tr("wv.richtwerte.menue"))
+        self.aktion_richtwerte.setToolTip(tr("wv.richtwerte.tooltip"))
+        self.aktion_richtwerte.triggered.connect(lambda _an=False: self.richtwerte_eintragen())
 
     def _fuellen(self):
         """Schreibt alle Zeilen neu; die gewählte Zeile bleibt gewählt."""
@@ -512,6 +537,9 @@ class SchnittwertBereich(QtGui.QWidget):
         self._fuellt = False
         self.knopf_minus.setEnabled(bool(self._liste))
         self.leer_hinweis.setVisible(not self._liste)
+        moeglich = self.werkzeug is not None and wk.richtwerte_moeglich(self.werkzeug)
+        self.knopf_richtwerte.setVisible(not self._liste and moeglich)
+        self.aktion_richtwerte.setEnabled(moeglich)
         self.aktion_kopieren.setEnabled(bool(self._liste))
         planbar = sw.moeglich(self.werkzeug)
         self.knopf_planen.setEnabled(planbar)

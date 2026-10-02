@@ -157,6 +157,22 @@ for r in reihen:
                     f"{r.kennung} {w.name} {kennung} {e.art}: vc {e.vc}, fz {e.fz}",
                 )
 
+# --- Richtwerte für ein neues Werkzeug (P-2026-10-02-47) --------------------------------------
+neu = wz.Werkzeug(art=wz.SCHAFTFRAESER, durchmesser=10.0, schneiden=3, schneidenlaenge=22.0)
+pruefe(wk.richtwerte_moeglich(neu), "Ø 10 ohne Richtwerte")
+pruefe(wk.richtwerte_eintragen(neu) == len(wk.VERTRETER), f"Richtwerte: {list(neu.schnittwerte)}")
+schruppen = next(e for e in neu.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
+pruefe(schruppen.vc == 180 and nahe(schruppen.fz, 0.05), f"Ø 10 Schruppen: {schruppen}")
+pruefe(len(neu.einsaetze("1.4404")) == 4, "Ø 10: Edelstahl ohne Zeilen")
+# Was schon da ist, bleibt; nur fehlende Klassen kommen dazu.
+eigen = wz.Werkzeug(art=wz.SCHAFTFRAESER, durchmesser=10.0)
+eigen.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=1, ap=10, vc=85, fz=0.1)]
+pruefe(wk.richtwerte_eintragen(eigen) == len(wk.VERTRETER) - 1, "eigene Zeilen überschrieben?")
+pruefe(eigen.schnittwerte[wz.ALLE][0].vc == 85 and len(eigen.schnittwerte[wz.ALLE]) == 1, "„alle“")
+pruefe(wk.richtwerte_eintragen(eigen) == 0, "zweimal eingetragen")
+pruefe(not wk.richtwerte_moeglich(wz.Werkzeug(art=wz.SCHAFTFRAESER)), "ohne Ø möglich")
+pruefe(not wk.richtwerte_moeglich(wz.Werkzeug(art=wz.DREHWERKZEUG)), "Drehwerkzeug möglich")
+
 # --- in die eigene Werkzeugkiste -----------------------------------------------------------
 eigene = wz.standardwerkzeug(1)
 bibliothek = wz.Bibliothek([eigene])

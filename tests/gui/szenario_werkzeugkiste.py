@@ -6,7 +6,7 @@
 # legt alle an, die Rückmeldung sagt wie viele. Der Jongen Ø 12 zeigt Hersteller, Artikel-Nr.,
 # Bestellen und Katalog mit „Öffnen“ und je Werkstoffklasse seine vier Einsätze. „Übernehmen“
 # speichert; wieder geöffnet (wie nach einem Neustart) ist alles da, und ein zweites Mal kommt
-# nichts doppelt.
+# nichts doppelt. Ein neues Werkzeug bietet „Richtwerte eintragen“ an (P-2026-10-02-47).
 import FreeCADGui as Gui
 from PySide import QtCore, QtGui
 
@@ -129,5 +129,22 @@ def schritte(h):
         not bericht.neu and len(bericht.schon_da) == gesamt and d2.liste.count() == gesamt,
         f"zweites Mal: {len(bericht.neu)} neu",
     )
+    # Ein neues Werkzeug bekommt die Richtwerte mit einem Klick (P-2026-10-02-47).
+    d2.knopf_neu.click()
+    yield 300
+    s = d2.schnittwerte
+    h.pruefe(
+        s.tabelle.rowCount() == 0 and s.knopf_richtwerte.isVisible() and s.leer_hinweis.isVisible(),
+        "neues Werkzeug: „Richtwerte eintragen“ fehlt",
+    )
+    h.bild("4_neu_leer", d2)
+    s.knopf_richtwerte.click()
+    yield 300
+    h.pruefe(
+        s.tabelle.rowCount() == len(wk.VERTRETER) * 4 and not s.knopf_richtwerte.isVisible(),
+        f"Richtwerte: {s.tabelle.rowCount()} Zeilen",
+    )
+    h.bild("5_neu_richtwerte", d2)
+    h.pruefe(d2.uebernehmen(), "„Übernehmen“ ging nicht")
     d2.reject()
     yield 300

@@ -743,8 +743,11 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
   (Gühring 5596 M3–M10 nach Händlerangabe, Jongen nach dem Muster von 494W-12, Garant 208165,
   CoroMill 345-050Q22-13M); Bestellen und Katalog sind Suchen nach Hersteller und Nummer, außer
   bei Garant (Hoffmann-Seite nach dem Muster). Keine Bilder der Hersteller: Das Werkzeugfenster
-  zeichnet jedes Werkzeug aus seinen Maßen. Neue Werkzeuge bekommen die Richtwerte noch nicht
-  angeboten (nächster Schritt).
+  zeichnet jedes Werkzeug aus seinen Maßen.
+- **Gebaut (P-2026-10-02-47, 0.103.0):** Ein Werkzeug ohne Schnittwerte zeigt über der leeren
+  Tabelle „Richtwerte eintragen“ (`werkzeugkiste.richtwerte_eintragen`: dieselben Grundwerte und
+  Klassenfaktoren wie die Kiste, aus Art, Durchmesser, Schneiden, Schneidstoff); später über
+  „+ Einsatz“ → „Richtwerte je Werkstoffklasse“ – nur für Klassen ohne eigene Zeilen.
 
 ## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
 

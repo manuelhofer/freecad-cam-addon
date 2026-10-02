@@ -633,6 +633,33 @@ def werkzeuge(reihe):
     return ergebnis
 
 
+def richtwerte_moeglich(werkzeug):
+    """Lassen sich für das Werkzeug Richtwerte rechnen? Es braucht Einsätze und, wo die Art
+    einen hat, einen Durchmesser (fz hängt an ihm)."""
+    if wz.einsatzarten(werkzeug.art) is None:
+        return False
+    return werkzeug.durchmesser > 0 or not wz.hat_feld(werkzeug, "durchmesser")
+
+
+def richtwerte_eintragen(werkzeug):
+    """Trägt die Richtwerte je Werkstoffklasse ein – wie bei den Werkzeugen der Hersteller, aus
+    Art, Durchmesser, Schneiden und Schneidstoff (Manuel, 2026-10-02: „Beispielschnittwerte für
+    die einzelnen Materialien und Bearbeitungsläufe … direkt mit anbieten, wenn jemand einen
+    Fräser erstellen will“). Was schon eingetragen ist, bleibt. Gibt zurück, für wie viele
+    Werkstoffe (Vertreter der Klassen) neue Zeilen dazukamen."""
+    if not richtwerte_moeglich(werkzeug):
+        return 0
+    neu = 0
+    for klasse, werkstoff in VERTRETER.items():
+        if werkzeug.schnittwerte.get(werkstoff):
+            continue
+        liste = einsaetze(werkzeug, klasse)
+        if liste:
+            werkzeug.schnittwerte[werkstoff] = liste
+            neu += 1
+    return neu
+
+
 def einsaetze(werkzeug, klasse):
     """Die Einsätze des Werkzeugs für eine Werkstoffklasse – je Art, was sie anbietet."""
     arten = wz.einsatzarten(werkzeug.art) or ()
