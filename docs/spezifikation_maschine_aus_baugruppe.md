@@ -497,7 +497,7 @@ diesen Dialog heißt das konkret:
 - **Warnungen in Worten**, z. B. „Der Körper *Schenkel links* hängt an keinem
   Glied – er bleibt beim Schwenken stehen.“
 
-## 12. Maschinen-Speicher und Maschinenzuweisung (W-011, zur Besprechung)
+## 12. Maschinen-Speicher und Maschinenzuweisung (W-011, entschieden)
 
 Manuel, 2026-10-02: „Ich hätte gerne sozusagen einen Maschinen-Speicher … ich kann ja mehrere
 Maschinen haben … und würde gerne auswählen können, auf welcher Maschine ich das Teil
@@ -565,6 +565,50 @@ Rohteil selten eckig.“
 - **Fertig, wenn:** Manuel seine Maschinen einmal einträgt, beim nächsten Teil in Schritt 1 die
   Drehmaschine wählt und eine Stange statt eines Quaders bekommt – und „Auf der Maschine
   prüfen“ ohne Frage auf ihr prüft.
+- **Entschieden (Manuel, 2026-10-02):** „1 a … 2 ??¿ 3? Versteh die Fragen nicht … Immer wenn
+  ich ein Teil lade, sollte ich die Maschine auswählen … Wenn ich das Teil dann woanders
+  bearbeite … kann ich das noch mal laden … Übrigens … Rohteil kann auch ein konstruiertes Teil
+  sein.“
+  - **Option A:** Die Maschine ist die erste Frage, wenn man ein Teil bearbeitet (Schritt 1 des
+    Assistenten). Jeder Job hat seine Maschine. Wird das Teil woanders bearbeitet, wählt man in
+    Schritt 1 die andere Maschine – für einen neuen Job oder diesen; der Job merkt sich die
+    letzte Wahl.
+  - **Frage 2 und 3 nach der Empfehlung** (Manuel verstand sie nicht – hier einfacher): Die
+    Liste merkt sich, wo die Maschinen-Dateien liegen, sie kopiert sie nicht; ändert man eine
+    Maschine, gilt das sofort. Vorgewählt ist beim neuen Teil die Maschine vom letzten Mal, beim
+    Job seine.
+  - **Rohteil aus einem konstruierten Teil:** In Schritt 1 neben „Quader mit Aufmaß“ (Fräse)
+    bzw. „Stange“ (Drehmaschine, 4-Achs) „Teil aus dem Dokument“ – ein Körper, den man
+    konstruiert hat (vorgefräst, gegossen, geschweißt). Der Job bekommt ihn als Rohteil
+    (FreeCADs Rohteil aus einem vorhandenen Körper); die Strategien beginnen mit seinem
+    Material statt mit einem Quader – wo er schon frei ist, fräsen sie nicht.
+
+```
+ Bearbeitung – Schritt 1 von 3 – Aufspannung
+ ┌──────────────────────────────────────────────────────────────────┐
+ │ Maschine   [Deckel FP4 – 3-Achs-Fräse                       ▾]    │
+ │            [Maschinen …]                                          │
+ │ Rohteil    (•) Quader mit Aufmaß    ( ) Teil aus dem Dokument     │
+ │            Aufmaß oben [1]  rundum [1]   |   [Guss-Rohteil    ▾]  │
+ │ Nullpunkt  [Mitte oben ▾]                                         │
+ │                                                    [Weiter →]     │
+ └──────────────────────────────────────────────────────────────────┘
+```
+
+- **Schritte** (je ein Patch, jeder für sich nützlich):
+  - **S1 Der Speicher und das Fenster „Maschinen“:** `maschinen.json` mit Name, Datei, Art (aus
+    den Achsen gelesen: Drehmaschine mit Revolver – mit C, mit Y –, 3-, 4-, 5-Achs-Fräse),
+    Achsen, Plätzen; von selbst ergänzt, wenn eine Maschine gebaut, zum Prüfen geöffnet oder
+    in einem Assistenten gewählt wird; das Fenster (Menü CAM-Addon → Maschinen …) mit
+    Hinzufügen, Neue Maschine, Bearbeiten, Entfernen (nur aus der Liste). Fertig, wenn
+    Manuel seine Maschinen dort sieht und eine fehlende Datei rot steht mit „Suchen …“.
+  - **S2 Die Maschine in Schritt 1:** die Liste, vorgewählt wie oben; gemerkt am Job;
+    „Auf der Maschine prüfen“ fragt nicht mehr, wenn der Job eine hat.
+  - **S3 Die Art entscheidet:** Drehmaschine oder 4-Achs-Fräse – weiter im 4-Achs-Assistenten
+    mit einer Stange; 3- und 5-Achs-Fräse – der Quader wie heute (5-Achs vorerst wie 3-Achs).
+  - **S4 Rohteil aus dem Dokument:** erst der Job mit dem Körper als Rohteil und seinen Maßen
+    für die Bahnen (oben, Umriss); dann die Strategien ab seinem Material (keine Bahnen in der
+    Luft, wo er schon frei ist).
 
 ## Entschieden
 

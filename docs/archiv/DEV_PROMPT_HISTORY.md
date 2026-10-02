@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-57 maschinen-speicher-entschieden
+
+### EINGELESEN
+- Manuel, 2026-10-02, zu W-011: „1 a 2 ??¿ 3? Versteh die Fragen nicht... Immer wenn ich ein
+  Teil lade sollte ich die Maschine auswählen.... Wenn ich das Teil dann wo anders bearbeite ...
+  Kann ich das noch mal laden .... Übrigens ... Rohteil kann auch ein konstruiertes Teil sein...“
+
+### DATEIEN
+- `docs/spezifikation_maschine_aus_baugruppe.md` (Abschnitt 12: Entschieden, Skizze mit
+  Rohteil-Wahl, Schritte S1–S4), `docs/STATUS_SNAPSHOT.md`
+
+### AKZEPTANZKRITERIUM
+Die Entscheidung und die Schritte stehen in der Spezifikation; Frage 2 und 3 in einfachen
+Worten mit der gewählten Antwort.
+
+### DONE
+- Option A; Frage 2 und 3 nach der Empfehlung (Verweise auf die Dateien; vorgewählt die des
+  Jobs, sonst die vom letzten Mal); jeder Job hat seine Maschine, woanders bearbeiten = in
+  Schritt 1 die andere wählen; Rohteil auch „Teil aus dem Dokument“.
+
+### TEST
+- Nur Doku, kein Lauf.
+
+### NEXT
+- S1: Speicher und Fenster „Maschinen“.
+
 ## P-2026-10-02-56 boegen-ae-als-last
 
 ### EINGELESEN
