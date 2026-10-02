@@ -2025,6 +2025,9 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
 - **B-009 „… hat „Planfräsen“ schon weggenommen“**, obwohl Räumen angehakt ist: Die Zeile unter
   „3D-Schruppen“ stammt aus dem Wettbewerb und wird nicht neu gerechnet, wenn der Haken wechselt.
 
+  **Behoben:** P-2026-10-02-87, 0.125.4 – nach dem Wettbewerb rechnet jeder Block neu, dessen
+  Materialstand sich geändert hat (`_block_rechnen`).
+
 ### 13.5 Schritte (je ein Patch)
 
 - **T1 Räumen über mehrere Höhen: die tiefste Fläche zuerst, jede Stelle einmal.** Heute räumt

@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-87 vorschau-nach-dem-wettbewerb
+
+### EINGELESEN
+- B-009: Unter „Rest räumen“ und „3D-Schruppen“ steht „… hat „Planfräsen“ schon weggenommen“,
+  obwohl das Räumen angehakt ist.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_vorschau_rechnen`, neu `_block_rechnen`),
+  `tests/gui/szenario_testteil.py`, `docs/spezifikation_strategien.md` (13.4),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.125.4)
+
+### AKZEPTANZKRITERIUM
+Am Testteil steht unter „Rest räumen“ und „3D-Schruppen“ „… hat „Räumen“ schon weggenommen“.
+
+### DONE
+- Ursache (mit einer Spur der Aufrufe gesehen): Planfräsen und Räumen sind beide vorgeschlagen;
+  die Blöcke dahinter rechneten auf dem Material beider, erst danach nahm der Wettbewerb dem
+  Planfräsen den Haken. Neu gerechnet wurde nur die Kontur.
+- Jetzt merkt sich jeder Block, woraus seine Vorschau gerechnet ist (Flächen, Vorgaben,
+  Materialstand); nach dem Wettbewerb rechnet neu, bei wem sich das geändert hat, und der
+  Wettbewerb entscheidet noch einmal – höchstens zwei Runden. Die Sonderregel für die Kontur
+  geht darin auf. Was der Wettbewerb dem Verlierer hingeschrieben hat, bleibt stehen.
+
+### TESTS
+- `tests/gui/szenario_testteil.py` (OK; Gegenprobe mit dem alten Stand schlägt an), dazu der
+  Rest im Prüffenster (B-008). Die 45 Szenarien des Assistenten mit der ersten Fassung: 44 OK,
+  `szenario_platte` nicht (der Satz des Planfräsens war weg) – behoben, einzeln OK.
+- Der Lauf über alle Szenarien auf dem Stand nach P-2026-10-02-88 lief beim Ende der Sitzung noch
+  (21 von 97 OK, kein Fehler) – nachsehen und zu Ende führen (NEXT).
+
+### NEXT
+- T1b.
+
 ## P-2026-10-02-86 kein-rest-neben-der-wand
 
 ### EINGELESEN

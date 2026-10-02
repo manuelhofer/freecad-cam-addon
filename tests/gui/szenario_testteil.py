@@ -10,7 +10,10 @@
 # hineinpasst –, und „Restmaterial“ den Haken für ihre Wände (T3). „Anlegen“: Räumen T1, Räumen
 # T3, Kontur T1, Restmaterial T3, 3D-Schruppen T1, 3D-Schlichten T5 – sechs Arbeitsschritte, drei
 # Werkzeuge. „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
-# Noch offen und hier nicht geprüft: B-008 (12 mm „Rest“ auf der Naht der Mulde).
+# Unter „Rest räumen“ und „3D-Schruppen“ steht grau, was das Räumen davor schon weggenommen hat
+# (B-009: dort stand „Planfräsen“, das den Haken im Wettbewerb verliert).
+# Im Prüffenster bleiben nur die zwei spitzen Ecken der Tasche stehen (B-008: zwei Zellen um ein
+# Haar neben einer Wand zählten als 12 mm Rest).
 import os
 
 import FreeCAD
@@ -34,6 +37,7 @@ def schritte(h):
     from camaddon import kontur as ko
     from camaddon import kontur_bahn as kb
     from camaddon import raeumen as ra
+    from camaddon import restmaterial as rm
     from camaddon import schlichten3d as s3op
     from camaddon import schruppen3d as r3op
     from camaddon import werkzeuge as wz
@@ -111,6 +115,12 @@ def schritte(h):
     )
     h.pruefe(r3.aktiv() and r3.fraeser().nummer == 1, "3D-Schruppen: kein Haken oder nicht T1")
     h.pruefe(s3.aktiv() and s3.fraeser().nummer == 5, "3D-Schlichten: kein Haken oder nicht T5")
+    # Wer davor schon etwas weggenommen hat: das Räumen – nicht das Planfräsen, das im Wettbewerb
+    # den Haken verliert (B-009: Die Blöcke dahinter rechneten auf seinem Material).
+    h.pruefe(not panel.plan.aktiv(), "Planfräsen: angehakt")
+    for block in (rest_boden, r3):
+        text = block.material.text()
+        h.pruefe("„Räumen“" in text and "Planfräsen" not in text, f"{block.s.kennung}: {text!r}")
     rot = [(b.s.kennung, b.hinweis.text()) for b in panel.bloecke if b.aktiv() and b.hinweis.text()]
     h.pruefe(not rot, f"rot angehakt: {rot}")
     panel.seite_zeigen(1)
@@ -179,6 +189,15 @@ def schritte(h):
     yield from h.warte_auf(lambda: spieler.rest.text().startswith("Am Ende"), 600000)
     rest = spieler.rest.text()
     h.pruefe(rest.startswith("Am Ende bleiben") and "nirgends ins Teil" in rest, f"{rest!r}")
+    # Stehen bleiben nur die beiden spitzen Ecken der Tasche, 5 tief – dorthin kommt kein Fräser
+    # der Kiste (zusammen 11 mm²). B-008: Zwei Zellen, um ein Haar neben einer Wand, zählten als
+    # 12 und 10 mm Rest.
+    vergleich = pruef.bild.abtrag.vergleich()
+    rot = int((vergleich.farbe == rm.ROT).sum())
+    h.pruefe(
+        vergleich.groesster < 5.01 and 0 < rot <= 60,
+        f"Rest: bis {vergleich.groesster:.2f} mm, {rot} rote Zellen – {rest!r}",
+    )
     Gui.SendMsgToActiveView("ViewFit")
     spieler.knopf_hinsehen.click()
     yield 1500

@@ -4258,55 +4258,69 @@ class BearbeitungPanel:
         form = vr.modell(self.job).Shape
         self._raeumen_boeden = None
         boeden = self._nur_boeden(form)
-        kontur_zusatz = None  # (was der Assistent der Kontur vorgab, woraus ihr Materialstand)
+        gerechnet = {}  # Block → woraus seine Vorschau gerechnet ist (_block_rechnen)
         for block in self.bloecke:
-            if (
-                block is self.raeumen
-                and boeden is not None
-                and (block.aktiv() or self._im_wettbewerb(block))
-            ):
-                self._folge(form, boeden)
-                continue
-            if block is self.restraeumen:
-                self._restraeumen_einrichten(form)  # nach dem Räumen: was es ausließ
-            if block.aktiv() or self._im_wettbewerb(block):
-                eigen = zusatz = self._zusatz(block, form)
-                stand = None
-                if block in (self.plan, self.nut, self.raeumen, self.kontur, self.schruppen3d):
-                    stand = self._materialstand(block, form)
-                    zusatz = dict(zusatz or {}, materialstand=stand)
-                elif block is self.restraeumen:
-                    # Nach dem Räumen derselben Flächen – es tritt nicht gegen es an.
-                    stand = self._materialstand(block, form, flaechen=())
-                    zusatz = dict(zusatz or {}, materialstand=stand)
-                block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
-                if block is self.kontur:
-                    kontur_zusatz = (eigen, getattr(stand, "kennung", None))
-                    self._kontur_text(form, eigen)
-                if block is self.bohren and zusatz and block.ergebnis_basis:
-                    d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
-                    block.ergebnis.setText(
-                        tr("ba.bohren.vorbohren", text=block.ergebnis_basis, d=d)
-                    )
-            else:
-                block.leeren()
+            self._block_rechnen(block, form, boeden, gerechnet)
         self._wettbewerb(form, nur_bohrung=boeden is not None)
-        # Nimmt der Wettbewerb dem Räumen den Haken (das Planfräsen ist schneller), räumt ein
-        # anderer Block vor der Kontur – ihr Rest an der Wand ist dann ein anderer: noch einmal
-        # (P-2026-10-02-17; sonst stand „1 Bahn … die Tasche räumt das Räumen“ ohne Räumen).
-        if self.kontur.aktiv() or self._im_wettbewerb(self.kontur):
-            eigen = self._zusatz(self.kontur, form)
-            stand = self._materialstand(self.kontur, form)
-            if (eigen, getattr(stand, "kennung", None)) != kontur_zusatz:
-                zusatz = dict(eigen or {}, materialstand=stand)
-                self.kontur.vorschau_rechnen(self.job, self._flaechen(self.kontur, form), zusatz)
-                self._kontur_text(form, eigen)
-                self._wettbewerb(form, nur_bohrung=boeden is not None)
+        # Der Wettbewerb setzt Haken um: Das Planfräsen verliert ihn ans Räumen oder umgekehrt.
+        # Wer dahinter gerechnet hat, stand dann auf dem Material des Verlierers („… hat
+        # „Planfräsen“ schon weggenommen“ unter dem 3D-Schruppen, obwohl das Räumen angehakt ist –
+        # B-009; die Kontur mit „die Tasche räumt das Räumen“ ohne Räumen, P-2026-10-02-17): Er
+        # rechnet noch einmal, und der Wettbewerb entscheidet mit den neuen Zeiten. Höchstens
+        # zweimal – dann steht es.
+        for _runde in range(2):
+            neu = [b for b in self.bloecke if self._block_rechnen(b, form, boeden, gerechnet, True)]
+            if not neu:
+                break
+            self._wettbewerb(form, nur_bohrung=boeden is not None)
         self._schon_weg_abhaken()
         self._raeumen_folge_zeigen(form)
         self._ziel_zeigen(form)
         self._raeumen_ausgelassen_zeigen()
         self._knoepfe_beschriften()
+
+    def _block_rechnen(self, block, form, boeden, gerechnet, nur_anders=False):
+        """Die Vorschau eines Blocks, wenn er angehakt ist oder im Wettbewerb steht; sonst leer.
+        `gerechnet` merkt je Block, woraus sie gerechnet ist – seine Flächen, was der Assistent
+        ihm vorgibt, sein Materialstand. Mit `nur_anders` (nach dem Wettbewerb) rechnet er nur,
+        wenn sich daran etwas geändert hat. Gibt zurück, ob er gerechnet hat."""
+        if nur_anders and boeden is not None and block in (self.plan, self.raeumen):
+            return False  # die Folge (_folge) hat beide gerechnet, mit ihren Sätzen
+        dabei = block.aktiv() or self._im_wettbewerb(block)
+        if block is self.raeumen and boeden is not None and dabei:
+            self._folge(form, boeden)  # setzt die Haken selbst, vor allen dahinter
+            return False
+        if block is self.restraeumen:
+            self._restraeumen_einrichten(form)  # nach dem Räumen: was es ausließ
+            dabei = block.aktiv() or self._im_wettbewerb(block)
+        if not dabei:
+            # Nach dem Wettbewerb bleibt stehen, was er dem Verlierer hingeschrieben hat – nur
+            # „Rest räumen“ ohne Räumen davor hat nichts mehr zu sagen.
+            if not nur_anders or block is self.restraeumen:
+                block.leeren()
+                gerechnet.pop(block, None)
+            return False
+        eigen = zusatz = self._zusatz(block, form)
+        stand = None
+        if block in (self.plan, self.nut, self.raeumen, self.kontur, self.schruppen3d):
+            stand = self._materialstand(block, form)
+            zusatz = dict(zusatz or {}, materialstand=stand)
+        elif block is self.restraeumen:
+            # Nach dem Räumen derselben Flächen – es tritt nicht gegen es an.
+            stand = self._materialstand(block, form, flaechen=())
+            zusatz = dict(zusatz or {}, materialstand=stand)
+        flaechen = self._flaechen(block, form)
+        woraus = (tuple(flaechen), eigen, getattr(stand, "kennung", None))
+        if nur_anders and gerechnet.get(block) == woraus:
+            return False
+        block.vorschau_rechnen(self.job, flaechen, zusatz)
+        gerechnet[block] = woraus
+        if block is self.kontur:
+            self._kontur_text(form, eigen)
+        if block is self.bohren and zusatz and block.ergebnis_basis:
+            d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
+            block.ergebnis.setText(tr("ba.bohren.vorbohren", text=block.ergebnis_basis, d=d))
+        return True
 
     def _raeumt(self, form):
         """Die Flächen, die das Räumen wirklich räumt: seine Flächen ohne die Böden der Taschen,
