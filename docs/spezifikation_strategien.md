@@ -1333,3 +1333,22 @@ Platte in 33,9 min – der Planfräser lohnt sich hier weniger, als die Zielzeit
 Plan indexiert hatte dieselben Schritte zwischen den Zeilen: Ein Stift Ø 1,2 zwischen zwei
 Zeilen (Ø 6, ae 4) wurde um 0,1 mm gestreift – seit P-2026-10-02-31 prüft auch Plan indexiert
 dazwischen (`vierachs_bahn._zwischen`, `_geteilt`, gemeinsam mit dem Planfräsen).
+
+**Nächster Schritt: Planfräsen Zelle für Zelle (Versuch, noch nicht eingebaut).** Am Zapfen
+braucht das Planfräsen 2,9 × das Ziel: `vierachs_bahn._fahrten` wechselt hinter einer Insel
+nach jeder Zeile die Seite – jede Zeile wird eine neue Fahrt mit Rampe (3° auf 10 mm: 190 mm
+lang; 54 Rampen, 187 Halte). Versuch: die Zeilen in Zellen zerlegen (Stücke, die von Zeile zu
+Zeile eins zu eins überlappen; bei Teilung oder Vereinigung an der Insel endet die Zelle) und
+jede Zelle für sich hin und her fahren, eine neue Zelle vom Ende in der Luft aus:
+
+| Teil | heute | Zellen |
+| --- | --- | --- |
+| 50 × 50 mit Zapfen | 5,70 min, 54 Rampen | 3,79 min, 9 Rampen |
+| Manuels Platte | 41,88 min, 60 Rampen | 35,22 min, keine |
+| Platte oben + Tasche | 47,90 min | 41,11 min |
+
+Dabei aber „voll 4 mm“ (vorher 0) und Eingriff bis 6,3 ae (vorher 4,0): Hinter der Insel reicht
+jede Zeile ein Stück weiter zu ihr als die vorige – dieses Stück schneidet die Zelle jetzt
+waagrecht in voller Tiefe, vorher lag es in einer Rampe. Darum noch nicht eingebaut; fertig wird
+es mit einem Konturgang um die Insel vor den Zellen (dann bleibt neben ihr kein Halbmond), oder
+die Zellen hinter der Insel laufen auf sie zu statt von ihr weg.
