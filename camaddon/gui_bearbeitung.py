@@ -54,6 +54,7 @@ from . import vierachs_planbahn as vp
 from . import vierachs_rohteil as vr
 from . import werkzeuge as wz
 from . import werkzeugform as wf
+from . import zielzeit as zz
 from .gui_hilfe import kopfzeile
 from .gui_maschine import _EnterBleibtImDialog
 from .gui_teile import ROT, knopf, mit_einheit, ruhiges_mausrad
@@ -105,6 +106,19 @@ def _mm(wert):
         return float(wert.getValueAs("mm"))
     except AttributeError:
         return float(wert)
+
+
+def _ziel_minuten(minuten):
+    """„0,4 min“, „7,4 min“ unter 10 Minuten, darüber wie _zeit_text („31 min“, „2 h 5 min“)."""
+    if minuten < 10.0:
+        return tr("ba.ziel.minuten", min=dezimal(f"{minuten:.1f}"))
+    return _zeit_text(minuten)
+
+
+def _ziel_werkzeug(werkzeug):
+    """„T2 Planfräser Ø 50“."""
+    d = groesse_zeigen(werkzeug.durchmesser, einheiten.LAENGE) or "0"
+    return tr("ba.ziel.werkzeug", nummer=werkzeug.nummer, art=wz.art_text(werkzeug.art), d=d)
 
 
 def _grau(text=""):
@@ -2434,6 +2448,11 @@ class BearbeitungPanel:
         werkstoff.ganz(zeile)
         aufbau.addWidget(werkstoff.widget)
 
+        # --- Das Ziel: wie viel weg muss und wie lange es mindestens dauert (Manuel, 2026-10-02:
+        # „dass man erstmal ein Ziel rechnet von der Zeit her“) ---
+        self.ziel_text = grautext()
+        self.ziel_text.setToolTip(tr("ba.ziel.tooltip"))
+
         # --- Die Bearbeitungen: je Strategie ein Block mit Haken ---
         for strategie in STRATEGIEN:
             block = _Block(self, strategie())
@@ -3125,7 +3144,88 @@ class BearbeitungPanel:
                 self.kontur.vorschau_rechnen(self.job, self._flaechen(self.kontur, form), zusatz)
                 self._kontur_text(form, zusatz)
                 self._wettbewerb(form, nur_bohrung=boeden is not None)
+        self._ziel_zeigen(form)
         self._knoepfe_beschriften()
+
+    def _ziel_zeigen(self, form):
+        """Wie viel weg muss und wie lange der Fräser des Räumens (sonst des Planfräsens, der
+        Kontur) mit seinen Werten dafür mindestens braucht – mit dem ap, das jede Stelle hergibt
+        – und welcher Fräser der Werkzeugkiste schneller wäre (zielzeit; Manuel, 2026-10-02)."""
+        self.ziel_text.setText("")
+        material = self._ziel_material(form)
+        if material is None or material.volumen <= 0:
+            return
+        volumen = groesse_fest(material.volumen / 1000.0, einheiten.VOLUMEN, 1)
+        saetze = [
+            tr("ba.ziel.volumen", volumen=f"{volumen} {einheiten.einheit(einheiten.VOLUMEN)}")
+        ]
+        eigene = None
+        for block in (self.raeumen, self.plan, self.kontur):
+            werkzeug, einsatz = block.fraeser(), block.einsatz()
+            werte = zz.werte(werkzeug, einsatz) if werkzeug and einsatz else None
+            if werte is not None and werkzeug.art in zz.WEGNEHMER:
+                eigene = (werkzeug, zz.ziel(material, werkzeug.durchmesser / 2, *werte))
+                break
+        if eigene is not None:
+            werkzeug, ziel = eigene
+            ap = groesse_zeigen(ziel.ap_wirksam, einheiten.LAENGE, 1) or "0"
+            saetze.append(
+                tr(
+                    "ba.ziel.mit",
+                    werkzeug=_ziel_werkzeug(werkzeug),
+                    zeit=_ziel_minuten(ziel.zeit),
+                    ap=f"{ap} {einheiten.einheit(einheiten.LAENGE)}",
+                    anteil=int(round(100.0 * ziel.ap_wirksam / ziel.ap)),
+                )
+            )
+            if ziel.rest > 0.02 * material.volumen:
+                rest = groesse_fest(ziel.rest / 1000.0, einheiten.VOLUMEN, 1)
+                saetze.append(
+                    tr("ba.ziel.rest", rest=f"{rest} {einheiten.einheit(einheiten.VOLUMEN)}")
+                )
+        angebote = []
+        if self.bibliothek is not None:
+            angebote = zz.vergleiche(material, self.bibliothek.werkzeuge, self.werkstoff())
+        if angebote:
+            beste = angebote[0]
+            vergleich = None
+            if eigene is not None:
+                gleich = [a for a in angebote if a.werkzeug.kennung == eigene[0].kennung]
+                vergleich = gleich[0].zeit if gleich else eigene[1].zeit
+            if eigene is None or (
+                beste.werkzeug.kennung != eigene[0].kennung and beste.zeit < 0.8 * vergleich
+            ):
+                wer = _ziel_werkzeug(beste.werkzeug)
+                if beste.danach is not None:
+                    wer = tr(
+                        "ba.ziel.danach", werkzeug=wer, rest=_ziel_werkzeug(beste.danach.werkzeug)
+                    )
+                saetze.append(tr("ba.ziel.schneller", werkzeug=wer, zeit=_ziel_minuten(beste.zeit)))
+        self.ziel_text.setText(" ".join(saetze))
+
+    def _ziel_material(self, form):
+        """Das Material zwischen Rohteil (Kasten des Jobs) und Teil (zielzeit.Material) – einmal
+        gerechnet je Teil und Rohteil."""
+        rohteil = getattr(self.job, "Stock", None)
+        if rohteil is None or getattr(rohteil, "Shape", None) is None or rohteil.Shape.isNull():
+            return None
+        kasten, teil = rohteil.Shape.BoundBox, form.BoundBox
+        schluessel = tuple(
+            round(w, 6)
+            for w in (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax, kasten.ZMax)
+            + (teil.XMin, teil.XMax, teil.YMin, teil.YMax, teil.ZMin, teil.ZMax, form.Volume)
+        )
+        gemerkt = getattr(self, "_ziel_gemerkt", None)
+        if gemerkt is not None and gemerkt[0] == schluessel:
+            return gemerkt[1]
+        try:
+            material = zz.material(
+                form, (kasten.XMin, kasten.XMax, kasten.YMin, kasten.YMax), kasten.ZMax
+            )
+        except Exception:  # ein Teil, das sich nicht vernetzen lässt: ohne Ziel
+            material = None
+        self._ziel_gemerkt = (schluessel, material)
+        return material
 
     def _kontur_text(self, form, zusatz):
         """Der Satz der Kontur, wenn ein anderer Block vor ihr neben den Wänden räumt."""

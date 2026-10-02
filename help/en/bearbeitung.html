@@ -180,6 +180,22 @@ clearing its allowance): “… – only the rest at the walls: face milling mil
 front”, “… – only the allowance at the walls: clearing clears the floor in front”. At a <b>slot</b> the window also
 computes the slot – on its floor against clearing, at its walls against the contour.</p>
 
+<h3>The target</h3>
+<p>Above the strategies, in grey, it says how much has to go and how long the cutter of
+clearing (otherwise of face milling, of the contour) needs for it at least with its values –
+before any path is calculated: “906.2 cm³ have to go. Target with T1 Flat end mill Ø 12:
+33 min – on average ap 20.6 mm, 82 % of its metal removal rate.” It is calculated spot by
+spot: as many layers as the application's ap requires, each at its ae and feed – as if the
+cutter were never out of the cut. Where little has to go, the cutter only uses part of its
+ap: taking 5 mm off a face of 1000 × 1000 is a lot of volume, but the Ø 12 at ae 1.5 only
+reaches a fifth of its metal removal rate there (more than 12 hours); at 100 × 100 and
+25 mm it is fully used. Every path takes longer than the target (air, plunging, rapids) –
+by how much tells how good it is. If another cutter from the tool manager would be clearly
+faster (by more than a fifth), it is named after it, with the smaller one that takes the
+rest in the corners afterwards: “Faster from the tool box: T2 Face mill Ø 50, then T1 Flat
+end mill Ø 12 for the rest – 15 min.” What the cutter cannot reach – corners and slots
+narrower than it – the sentence says too (“… remain for a smaller one”).</p>
+
 <h3>5. Drilling</h3>
 <ul>
 <li>For <b>through holes</b> and <b>blind holes with a drill tip</b>, when the tool

@@ -1076,6 +1076,38 @@ def standardwerkzeug(nummer=1):
     return werkzeug
 
 
+def testkiste():
+    """Die Werkzeugkiste für Szenarien, in denen der Fräser selbst zur Wahl steht (Manuel,
+    2026-10-02: „macht der 12er Fräser überhaupt Sinn für so einen Test oder sollten wir doch
+    noch andere Fräser definieren …“): der Standardfräser Ø 12 (T1), dazu ein Planfräser Ø 50
+    für große flache Flächen (T2: 5 Schneiden, ae 35 = 0,7 D, ap 2, vc 200, fz 0,15 →
+    vf 955), ein VHM Ø 6 für enge Stellen (T3: ae 0,6, ap 12, vc 85, fz 0,05 → vf 902) und ein
+    VHM Ø 20 für tiefe, weite (T4: ae 2, ap 30, vc 85, fz 0,12 → vf 649). Angenommene Werte
+    wie beim Standardfräser – zum Vergleichen, nicht für die Maschine."""
+    plan = Werkzeug(
+        nummer=2, name="Plan 50", art=PLANFRAESER, durchmesser=50.0, schneiden=5,
+        schneidenlaenge=6.0,
+    )  # fmt: skip
+    plan.schnittwerte[ALLE] = [Einsatz(art=PLANEN, ae=35.0, ap=2.0, vc=200.0, fz=0.15)]
+    klein = Werkzeug(
+        nummer=3, name="VHM 6", durchmesser=6.0, schneiden=4, schneidenlaenge=13.0,
+        eintauchwinkel=3.0,
+    )  # fmt: skip
+    klein.schnittwerte[ALLE] = [
+        Einsatz(art=SCHRUPPEN, ae=0.6, ap=12.0, vc=85.0, fz=0.05),
+        Einsatz(art=SCHLICHTEN, ae=0.2, ap=12.0, vc=85.0, fz=0.05),
+    ]
+    gross = Werkzeug(
+        nummer=4, name="VHM 20", durchmesser=20.0, schneiden=4, schneidenlaenge=38.0,
+        eintauchwinkel=3.0,
+    )  # fmt: skip
+    gross.schnittwerte[ALLE] = [
+        Einsatz(art=SCHRUPPEN, ae=2.0, ap=30.0, vc=85.0, fz=0.12),
+        Einsatz(art=SCHLICHTEN, ae=0.3, ap=30.0, vc=85.0, fz=0.12),
+    ]
+    return [standardwerkzeug(1), plan, klein, gross]
+
+
 def zeile(werkzeug):
     """Eine Zeile für die Liste: „T3  Schaftfräser Ø 12 · z 3 · VHM“, mit eigenem
     Namen „T3  Fräser VHM 12 · Schaftfräser Ø 12 · z 3 · VHM“; je Art, was sie

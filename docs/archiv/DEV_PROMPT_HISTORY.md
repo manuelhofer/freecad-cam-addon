@@ -12,6 +12,61 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-29 zielzeit
+
+### EINGELESEN
+- Manuel 2026-10-02 (~06:05): „Wir haben ja jetzt einen Fräser mit fixen Werten … Sollte immer
+  erst berechnet werden … wie viel Volumen müssen zerspant werden … wie lange dauert es bei den
+  Werten … theoretisch … Wenn ich nur eine Fläche habe 1000x1000 und muss davon 5mm abnehmen
+  … muss man dann auch mit einem ap von 5mm rechnen … Was natürlich besser ist, man hat
+  100x100 und muss 25mm davon wegnehmen … dass man erstmal ein Ziel rechnet von der Zeit her
+  … macht der 12er Fräser überhaupt Sinn für so einen Test oder sollten wir doch noch andere
+  Fräser definieren … dem Benutzer im Zweifelsfall von seiner Werkzeugkiste den besten Fräser
+  vorschlagen“.
+- `pruefstand.py` (Untergrenze nach der Bahn, ein ap für alles), `restmaterial`,
+  `hoehenfeld.hoehen`, `werkzeuge.standardwerkzeug`, `gui_bearbeitung` (Vorschau, Wettbewerb).
+
+### DATEIEN
+- neu: `camaddon/zielzeit.py`, `tests/test_zielzeit.py`, `tests/gui/szenario_zielzeit.py`
+- `camaddon/werkzeuge.py` (`testkiste()`), `camaddon/gui_bearbeitung.py`,
+  `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.91.0)
+
+### AKZEPTANZKRITERIUM
+Vor jeder Bahn steht fest, wie viel weg muss und wie lange der Fräser dafür mindestens braucht –
+mit dem ap, das jede Stelle hergibt; Manuels zwei Beispiele kommen heraus (739 min / 7,4 min);
+der Assistent zeigt es und nennt den schnelleren Fräser aus der Werkzeugkiste.
+
+### DONE
+- `zielzeit.material`: von oben je Zelle der Boden (das Teil, daneben sein Boden) unter der
+  Oberseite des Rohteils; ohne `innen` (eine Mitte auf der Diagonale einer Deckfläche fiel
+  sonst durch: 0,8 % zu viel).
+- `zielzeit.ziel`: je Zelle ceil(T ÷ ap) Lagen, Zeit = Σ Zelle · Lagen ÷ (ae · vf), wirksames ap,
+  Rest = was die Schließung des Bodens mit der Scheibe des Fräsers (eine halbe Zelle kleiner)
+  nicht erreicht. Dehnen/Schrumpfen je Zeile mit laufendem Maximum in log₂ Schritten – die
+  Platte 1000 × 1000 in 0,1 s.
+- `zielzeit.vergleiche`: je Fräser der Kiste (Schaft-, Torus-, Plan-, Nutenfräser) sein Einsatz
+  zum Wegnehmen mit dem größten Zeitspanvolumen, für seinen Rest (mehr als 2 %) der schnellste
+  kleinere, der ihn schafft; sortiert, wer alles schafft, zuerst.
+- `werkzeuge.testkiste()`: T1 Ø 12, T2 Planfräser Ø 50, T3 Ø 6, T4 Ø 20 (angenommene Werte).
+- Assistent „Bearbeitung“: grauer Satz über den Strategien („Weg müssen … Ziel mit T1 …: …
+  – im Mittel ap …, … % seines Zeitspanvolumens. Schneller aus der Werkzeugkiste: …“), das
+  Material je Teil und Rohteil einmal gerechnet.
+
+### TEST
+- 1.1.3: `test_zielzeit` (Manuels Beispiele, zwei Lagen bei 30 mm, Rest in Ecken Ø 12/20/50,
+  Werkzeugkiste, Maßstabsteile neben den Bestmarken – keine Bahn unter ihrem Ziel),
+  `test_sprache`; Szenarien `szenario_zielzeit` (neu), `szenario_platte`,
+  `szenario_bearbeitung`; black/ruff grün.
+
+### NEXT
+- Frage an Manuel: Darf bei kleinem ap ein größeres ae gelten (der Einsatz „Planen“ des Ø 12 hat
+  heute dieselben ae 1,5 / ap 25 wie „Schruppen“)? Stimmen die angenommenen Werte des
+  Planfräsers Ø 50?
+- Die Bahnen mit dem größten Abstand zum Ziel zuerst verbessern (Planfräsen am Zapfen 2,9 ×,
+  Kontur 2,8 ×, Bohrung fräsen 2,0 ×).
+
 ## P-2026-10-02-28 linien-gleichlauf
 
 ### EINGELESEN

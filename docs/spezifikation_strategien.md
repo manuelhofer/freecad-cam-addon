@@ -1286,3 +1286,38 @@ Abstand der Bahn (Radius + Aufmaß), sonst wird es kürzer. Die 4-Achs-Prüfunge
 (runde Stange, Manuels Testteil) behalten ihre Werkzeuge: Dort wählt das Teil
 den Fräser (Kugel Ø 6 fürs Schlichten, Ø 6 für Plan indexiert) – ob auch sie
 auf den Ø 12 sollen, entscheidet Manuel.
+
+**Die Zielzeit (Manuel, 2026-10-02: „Das man erstmal ein Ziel rechnet von der Zeit her …
+macht der 12er Fräser überhaupt Sinn für so einen Test oder sollten wir doch noch andere
+Fräser definieren … dem Benutzer im Zweifelsfall von seiner Werkzeugkiste den besten Fräser
+vorschlagen“; P-2026-10-02-29):** `zielzeit.py` rechnet vor jeder Bahn, wie viel weg muss
+(von oben, je Zelle das Material über dem Teil, neben dem Teil bis zu seinem Boden) und wie
+lange ein Fräser mit seinen Werten dafür mindestens braucht: je Zelle ceil(T ÷ ap) Lagen,
+jede überstreicht die Zelle mit der Breite ae – Zielzeit = Σ Zelle · Lagen ÷ (ae · vf). Das
+ap zählt also nur so weit, wie die Stelle es hergibt (Manuels zwei Beispiele, beide in
+`test_zielzeit`: 1000 × 1000, 5 mm ab – 739 min mit dem Ø 12, ein Fünftel seines
+Zeitspanvolumens; 100 × 100, 25 mm ab – 7,4 min, voll genutzt). Was der Fräser nicht
+erreicht (die Schließung des Bodens mit seiner Scheibe: Ecken und Nuten enger als er), ist
+sein Rest; `vergleiche()` stellt die Fräser einer Werkzeugkiste nebeneinander, je mit dem
+schnellsten kleineren für den Rest. Die Werkzeugkiste der Tests ist `werkzeuge.testkiste()`:
+T1 Ø 12 (der Standardfräser), T2 Planfräser Ø 50 (z 5, ae 35, ap 2, vc 200, fz 0,15 →
+vf 955), T3 Ø 6 (ae 0,6, ap 12, vf 902), T4 Ø 20 (ae 2, ap 30, vf 649) – angenommene Werte.
+Der Assistent zeigt die Zielzeit grau über den Strategien, und den schnelleren Fräser aus
+der Werkzeugverwaltung, wenn einer um mehr als ein Fünftel schneller wäre.
+
+Die Maßstabsteile des Prüfstands mit dem Ø 12 (`test_zielzeit`; „Ziel“ ohne den Millimeter
+über der Oberseite, wo die Strategien danach laufen):
+
+| Teil | weg | Ziel Ø 12 | ap im Mittel | schnellste Bahn | × Ziel | Werkzeugkiste |
+| --- | --- | --- | --- | --- | --- | --- |
+| 50 × 50 mit Zapfen | 26,2 cm³ | 1,94 min | 10,0 mm | Räumen 2,69 | 1,39 | Plan 50: 0,39 min |
+| Block mit Absatz | 13,6 cm³ | 1,63 min (mit 1 mm oben 1,92) | 5,2 mm | Planfräsen 2,08 | 1,28 | Plan 50: 0,21 min |
+| Tasche 40 × 30 | 23,8 cm³ | 0,86 min (mit 1 mm oben 4,67) | 3,8 mm | Räumen 0,88 | 1,02 | Plan 50 + Ø 12: 1,05 min |
+| Zwei Bohrungen | 15,4 cm³ | 0,67 min (mit 1 mm oben 4,67) | 2,4 mm | Bohrung fräsen 1,33 | 1,99 | Plan 50 + Ø 12: 0,86 min |
+| Manuels Platte | 825,2 cm³ | 30,50 min | 20,0 mm | Räumen 33,86 | 1,11 | Plan 50 + Ø 12: 13,0 min |
+
+Was daraus folgt: Wo tief weg muss (die Platte, die Tasche), nutzt der Ø 12 sein ap fast
+ganz, und das Räumen liegt nah am Ziel (1,02–1,11). Wo wenig weg muss, ist er der falsche
+Fräser: Den Millimeter über der Oberseite (100 × 60) braucht er mit ae 1,5 allein 3,8 min,
+der Planfräser 0,18. Das Planfräsen am Zapfen (2,94 × Ziel) und die Kontur (2,84) lassen
+am meisten liegen – dort lohnt die nächste Arbeit an der Bahn.
