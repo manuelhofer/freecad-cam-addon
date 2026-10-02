@@ -1775,7 +1775,20 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     erreicht (die Varianten fallen weg), und die Lagen beginnen am höchsten solchen Material.
     „noch“ zählt über dem Teil, nicht über seinem tiefsten Punkt. Zweimal 3D-Schruppen an der
     Kuppel: das zweite 0,14 statt 4,99 min – nur die Treppe (`test_materialstand`,
-    `szenario_mulde`). Offen: die Kontur (die Wand steht feiner als das Raster von 0,5 mm).
+    `szenario_mulde`).
+    **Gebaut, die Kontur:** P-2026-10-02-72, 0.121.0 – `kontur_bahn.planen(…, stand)`: Zeigt der
+    Materialstand dort, wohin die Stirn kommt, nicht überall das ganze Rohteil, fährt jede
+    Schruppbahn je Lage nur, wo ihre Stirn eine Zelle kleiner Material über der Lage trifft – so
+    zählen weder die Wand noch das Aufmaß an ihr, das eine Operation davor ließ –, über Lücken bis
+    2 D im Vorschub; die Lagen beginnen am höchsten solchen Material; steht beim Eintauchen unter
+    der Stirn nichts, geht es senkrecht hinab statt über die Rampe. Das Schlichten fährt immer (das
+    Aufmaß ist schmaler als das Raster), ab dem höchsten Material an der Wand. „noch“ zählt über
+    dem Teil; ohne Schlichten und ohne Material „nichts mehr zu tun“. Das Restmaterial rechnet
+    ohne Materialstand – seine Ecken sind oft kleiner als das Raster. Manuels Klotz nach dem
+    Räumen: nur noch das Schlichten, 0,18 statt 12,8 min, „noch 0,3 cm³“ (das Aufmaß); der Guss
+    mit 1 mm Rand am Zapfen: 0,72 statt 38 min (`test_materialstand`,
+    `szenario_kontur_materialstand`). Grenze: Ein Rand, kaum breiter als das Aufmaß plus eine
+    Zelle, ist für die Schruppbahnen unsichtbar – dann nimmt ihn das Schlichten.
 - **Fertig, wenn:** Manuels Klotz in beiden Reihenfolgen im Prüffenster ein Teil ohne Rest
   ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war (außer über eine
   kurze Lücke, wo Durchfahren schneller ist als Abheben – Grundsatz 0), und die Nut nach dem

@@ -23,6 +23,7 @@ import Path.Op.Base as PathOp
 from . import bahn as bn
 from . import hoehenfeld as hf
 from . import kontur_bahn as kb
+from . import materialstand as mst
 from . import namen
 from . import planfraesen as pf
 from . import spindel as sp
@@ -87,6 +88,7 @@ class Kontur(PathOp.ObjectOp):
             ("App::PropertyInteger", "Konturen", tr("ko.eigenschaft.konturen")),
             ("App::PropertyInteger", "Lagen", tr("ko.eigenschaft.lagen")),
             ("App::PropertyInteger", "Bahnen", tr("ko.eigenschaft.bahnen")),
+            ("App::PropertyString", "Materialstand", tr("ms.eigenschaft.materialstand")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -97,6 +99,7 @@ class Kontur(PathOp.ObjectOp):
     def _editormodi(obj):
         for name in ("Konturen", "Lagen", "Bahnen"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+        obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
 
     def opExecute(self, obj):
         try:
@@ -134,6 +137,13 @@ def rechne(obj, job, modell):
     form = vs.form_des_controllers(obj.ToolController)
     if form is None:
         raise ValueError(tr("ko.fehler.form"))
+    # Was die Operationen davor schon weggenommen haben (W-012) – und woraus das gerechnet ist:
+    # Ändert sich davor etwas, rechnet gui_materialstand die Kontur neu. Das Restmaterial nicht:
+    # Seine Ecken sind oft kleiner als das Raster des Materialstands.
+    radius_davor = float(getattr(obj, "RadiusDavor", 0.0) or 0.0)
+    stand = mst.fuer(job, vor=obj) if radius_davor <= 0 else None
+    if "Materialstand" in obj.PropertiesList:
+        obj.Materialstand = mst.kennung_vor(job, obj)
     einfahrradius = float(obj.Einfahrradius)
     return bahn_fuer(
         job,
@@ -153,8 +163,9 @@ def rechne(obj, job, modell):
         sicherheit=float(obj.Sicherheitsabstand),
         eintauchwinkel=float(obj.Eintauchwinkel),
         austritt=float(obj.VorschubAustritt) / 100.0,
-        radius_davor=float(getattr(obj, "RadiusDavor", 0.0) or 0.0),
+        radius_davor=radius_davor,
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
+        stand=stand,
     )
 
 
@@ -180,12 +191,14 @@ def bahn_fuer(
     schritt=kb.SCHRITT,
     radius_davor=0.0,
     gleichlauf=True,
+    stand=None,
 ):
     """Die Bahn „Kontur“ für Modell und Rohteil des Jobs an den Wänden `flaechen` („Face6“ …).
     `oben`: z, wo die Lagen beginnen (None: die Oberkante des Rohteils); `sicher`: z für den
     Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm). `radius_davor` > 0: Restmaterial –
-    nur, wo ein Fräser mit diesem Radius davor nicht hinkam (W-006 4.1 Punkt 5). ValueError
-    mit einem Satz, wenn es nicht geht."""
+    nur, wo ein Fräser mit diesem Radius davor nicht hinkam (W-006 4.1 Punkt 5). `stand`: der
+    Materialstand davor (materialstand, W-012) – nur, was die Operationen davor übrig ließen.
+    ValueError mit einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -223,7 +236,7 @@ def bahn_fuer(
     netz_nah, netz_fern = hf.netze_ohne(
         form_teil, [kb.ohne_flaechen(form_teil, waende), [w.name for w in waende]], toleranz
     )
-    bahn = kb.planen(netz_nah, werte, konturen, schritt, netz_fern)
+    bahn = kb.planen(netz_nah, werte, konturen, schritt, netz_fern, stand)
     if nur_wo is not None and bahn.bahnen == 0:
         raise ValueError(tr("rm.fehler.nichts"))
     return bahn
@@ -241,6 +254,7 @@ def vorschau(
     breite=0.0,
     schneidenlaenge=0.0,
     radius_davor=0.0,
+    stand=None,
 ):
     """Die Bahn grob – für Lagen, Bahnen, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     weiter abgetastet. ValueError wie bahn_fuer()."""
@@ -258,6 +272,7 @@ def vorschau(
         toleranz=hf.VORSCHAU_TOLERANZ,
         schritt=kb.VORSCHAU_SCHRITT,
         radius_davor=radius_davor,
+        stand=stand,
     )
 
 

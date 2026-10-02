@@ -12,7 +12,8 @@
 # oben nur am Zapfen bis 0, sonst bis −10 (W-011 S4b): Über der Nut steht es ohne jede Operation
 # bei −10, und Räumen und Planfräsen fahren mit 4 mm je Lage nur noch um den Zapfen – ein
 # Bruchteil der Zeit. Zweimal 3D-Schruppen an derselben Kuppel: Das zweite nimmt nur noch die
-# Treppe, die das erste ließ.
+# Treppe, die das erste ließ. Die Kontur am Zapfen nach dem Räumen schlichtet nur noch (ohne
+# Schlichten: nichts mehr zu tun); am Guss schruppt sie nur den Rand um den Zapfen.
 import math
 import os
 import pathlib
@@ -29,8 +30,10 @@ import Path.Main.Job as PathJob
 import Path.Main.Stock as PathStock
 from Path.Tool.camassets import user_asset_store
 
+from camaddon import bahn as bn
 from camaddon import gui_materialstand as gms
 from camaddon import job_schnittwerte as js
+from camaddon import kontur as ko
 from camaddon import materialstand as mst
 from camaddon import nut as nu
 from camaddon import planfraesen as pf
@@ -74,6 +77,8 @@ def flaeche(z):
 
 boden = flaeche(-10.0)
 grund = flaeche(-15.0)
+wand = next(f"Face{i + 1}" for i, f in enumerate(teil.Faces)
+            if isinstance(f.Surface, Part.Cylinder) and abs(f.Surface.Radius - 15.0) < 1e-6)  # fmt: skip
 
 user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))
 fraeser = wz.standardwerkzeug()
@@ -212,6 +217,32 @@ pruefe(plan.Materialstand == mst.kennung_vor(job, plan), "Planfräsen: Kennung n
 doc.removeObject(plan.Name)
 doc.recompute()
 
+
+def kontur_zeit(bahn):
+    return bn.zeit(bahn.punkte, 1000.0, 300.0)
+
+
+# Die Kontur am Zapfen danach (M4): Das Räumen hat den Boden bis aufs Aufmaß an der Wand geräumt –
+# sie schlichtet nur noch; ohne Materialstand schruppte sie den ganzen Boden noch einmal.
+kontur_op = ko.lege_an(job, tc, einsatz.ap, einsatz.ae, flaechen=[wand])
+doc.recompute()
+kontur_mit = ko.rechne(kontur_op, job, job.Model.Group)
+kontur_ohne = ko.bahn_fuer(job, job.Model.Group, form, einsatz.ap, einsatz.ae, flaechen=[wand])
+pruefe(kontur_mit.bahnen == 1 and kontur_mit.davor[-1:] == ["Räumen T1"]
+       and kontur_zeit(kontur_mit) < 0.1 * kontur_zeit(kontur_ohne),
+       f"Kontur nach dem Räumen: {kontur_mit.bahnen} Bahnen, {kontur_zeit(kontur_mit):.2f} min "
+       f"statt {kontur_zeit(kontur_ohne):.2f}, davor {kontur_mit.davor}")  # fmt: skip
+pruefe(kontur_op.Materialstand == mst.kennung_vor(job, kontur_op), "Kontur: Kennung nicht gemerkt")
+try:
+    ko.bahn_fuer(job, job.Model.Group, form, einsatz.ap, einsatz.ae, schlichten=False,
+                 flaechen=[wand], stand=mst.fuer(job, vor=kontur_op))  # fmt: skip
+except ValueError as grund_text:
+    pruefe("nichts mehr zu tun" in str(grund_text), f"Kontur ohne Schlichten: {grund_text}")
+else:
+    pruefe(False, "Kontur ohne Schlichten: kein Satz")
+doc.removeObject(kontur_op.Name)
+doc.recompute()
+
 # --- Ein Körper als Rohteil: oben nur am Zapfen bis 0 (W-011 S4b) --------------------------------
 guss = Part.makeBox(102, 102, 21, V(-51, -51, -31)).fuse(Part.makeCylinder(16, 10, V(25, 25, -10)))
 koerper = doc.addObject("Part::Feature", "Guss")
@@ -250,8 +281,19 @@ if stand2 is not None:
     pruefe(0 < plan_mit.zeit < 0.12 * plan_ohne.zeit and plan_mit.weg == 0.0,
            f"Guss, Planfräsen: {plan_mit.zeit:.2f} min statt {plan_ohne.zeit:.2f} min, "
            f"weg {plan_mit.weg:.0f}")  # fmt: skip
+    # Die Kontur am Zapfen: nur der Rand, je Lage eine Bahn, und das Schlichten.
+    kontur_guss, kontur_guss_ohne = (
+        ko.bahn_fuer(job2, job2.Model.Group, form, 4.0, einsatz.ae, flaechen=[wand], stand=stand)
+        for stand in (stand2, None)
+    )
+    pruefe(kontur_guss.lagen == 4 and kontur_guss.bahnen == 4
+           and kontur_zeit(kontur_guss) < 0.1 * kontur_zeit(kontur_guss_ohne),
+           f"Guss, Kontur: {kontur_guss.lagen} Lagen, {kontur_guss.bahnen} Bahnen, "
+           f"{kontur_zeit(kontur_guss):.2f} min statt {kontur_zeit(kontur_guss_ohne):.2f}")  # fmt: skip
     print(ascii(f"Guss: Räumen {guss_mit.zeit:.2f} statt {guss_ohne.zeit:.2f} min, Planfräsen "
-                f"{plan_mit.zeit:.2f} statt {plan_ohne.zeit:.2f} min"))  # fmt: skip
+                f"{plan_mit.zeit:.2f} statt {plan_ohne.zeit:.2f} min, Kontur "
+                f"{kontur_zeit(kontur_guss):.2f} statt {kontur_zeit(kontur_guss_ohne):.2f} "
+                f"min"))  # fmt: skip
 
 # --- 3D-Schruppen (M4): zweimal dieselbe Kuppel ------------------------------------------------
 platte3d = Part.makeBox(60, 60, 10)
@@ -283,6 +325,8 @@ except ValueError as grund_text:
 pruefe(zweites.Materialstand == mst.kennung_vor(job3, zweites), "3D: Kennung nicht gemerkt")
 print(ascii(f"3D-Schruppen: {bahn_3d.zeit:.2f} min, das zweite danach {zeit_rest:.2f} min"))
 
+print(ascii(f"Kontur nach dem Räumen: {kontur_zeit(kontur_mit):.2f} statt "
+            f"{kontur_zeit(kontur_ohne):.2f} min"))  # fmt: skip
 print(ascii(f"Räumen {zeit_raeumen:.1f} s, Materialstand {zeit_stand:.2f} s, "
             f"Nut {bahn.zeit:.2f} min statt {ohne.zeit:.2f} min, Räumen nach der Nut "
             f"{zeit_mit:.1f} s, {mit.zeit:.2f} min statt {ohne_r.zeit:.2f} min"))  # fmt: skip

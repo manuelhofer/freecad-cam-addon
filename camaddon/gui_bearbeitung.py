@@ -979,6 +979,7 @@ class _Kontur(_Strategie):
             flaechen,
             werte["breite"],
             schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
+            stand=werte.get("materialstand"),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -4222,7 +4223,7 @@ class BearbeitungPanel:
         form = vr.modell(self.job).Shape
         self._raeumen_boeden = None
         boeden = self._nur_boeden(form)
-        kontur_zusatz = None
+        kontur_zusatz = None  # (was der Assistent der Kontur vorgab, woraus ihr Materialstand)
         for block in self.bloecke:
             if (
                 block is self.raeumen
@@ -4232,13 +4233,15 @@ class BearbeitungPanel:
                 self._folge(form, boeden)
                 continue
             if block.aktiv() or self._im_wettbewerb(block):
-                zusatz = self._zusatz(block, form)
-                if block in (self.plan, self.nut, self.raeumen, self.schruppen3d):
-                    zusatz = dict(zusatz or {}, materialstand=self._materialstand(block, form))
+                eigen = zusatz = self._zusatz(block, form)
+                stand = None
+                if block in (self.plan, self.nut, self.raeumen, self.kontur, self.schruppen3d):
+                    stand = self._materialstand(block, form)
+                    zusatz = dict(zusatz or {}, materialstand=stand)
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
                 if block is self.kontur:
-                    kontur_zusatz = zusatz
-                    self._kontur_text(form, zusatz)
+                    kontur_zusatz = (eigen, getattr(stand, "kennung", None))
+                    self._kontur_text(form, eigen)
                 if block is self.bohren and zusatz and block.ergebnis_basis:
                     d = groesse_zeigen(block.fraeser().durchmesser, einheiten.LAENGE) or "0"
                     block.ergebnis.setText(
@@ -4251,10 +4254,12 @@ class BearbeitungPanel:
         # anderer Block vor der Kontur – ihr Rest an der Wand ist dann ein anderer: noch einmal
         # (P-2026-10-02-17; sonst stand „1 Bahn … die Tasche räumt das Räumen“ ohne Räumen).
         if self.kontur.aktiv() or self._im_wettbewerb(self.kontur):
-            zusatz = self._zusatz(self.kontur, form)
-            if zusatz != kontur_zusatz:
+            eigen = self._zusatz(self.kontur, form)
+            stand = self._materialstand(self.kontur, form)
+            if (eigen, getattr(stand, "kennung", None)) != kontur_zusatz:
+                zusatz = dict(eigen or {}, materialstand=stand)
                 self.kontur.vorschau_rechnen(self.job, self._flaechen(self.kontur, form), zusatz)
-                self._kontur_text(form, zusatz)
+                self._kontur_text(form, eigen)
                 self._wettbewerb(form, nur_bohrung=boeden is not None)
         self._schon_weg_abhaken()
         self._raeumen_folge_zeigen(form)

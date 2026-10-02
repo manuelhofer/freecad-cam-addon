@@ -385,6 +385,16 @@ steht, warum es nicht geht (keine Wand, der Fräser passt nicht in die Tasche,
 neben den Wänden steht nichts). Räumt das Räumen die Tasche, steht bei
 „Material neben der Wand“ von selbst sein Aufmaß (0,3) – dann bleibt eine
 Bahn, ab der Oberkante der Tasche.</li>
+<li><b>Nur, wo noch Material ist</b> (Materialstand): Wie das Räumen rechnet die Kontur mit dem,
+was die Operationen davor im Job und die angehakten Strategien davor im Fenster schon
+weggenommen haben. Je Lage fährt eine Schruppbahn nur, wo ihr Fräser noch Material trifft (über
+eine kurze Lücke im Vorschub); die Lagen beginnen am höchsten solchen Material; wo beim
+Hineinfahren nichts steht, geht es senkrecht hinab. Das Schlichten fährt immer – das Aufmaß an der
+Wand ist schmaler, als der Materialstand sieht. Hat ein Räumen den Boden um den Zapfen schon
+geräumt, bleibt so auch ohne Eintrag bei „Material neben der Wand“ nur das Schlichten: „→ 1 Lage,
+1 Bahn“ und grau „noch … – … hat „Räumen T1“ schon weggenommen“. Ein Guss als Rohteil, der nur
+am Zapfen 1 mm Rand hat: 0,7 statt 38 min. Das Restmaterial rechnet weiter ohne
+Materialstand – seine Ecken sind oft kleiner als dessen Raster von 0,5 mm.</li>
 <li>In den Eigenschaften der Operation außerdem <b>Tiefer</b> (so viel tiefer
 als die Unterkante – zum Freischneiden) und der <b>Einfahrradius</b>.</li>
 <li>Die Operation heißt „Kontur T1“; Starttiefe, sichere Höhe und

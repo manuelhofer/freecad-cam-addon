@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-72 kontur-auf-dem-materialstand
+
+### EINGELESEN
+- W-012 M4 (Spezifikation Strategien 12.7): die Kontur auf dem Materialstand. Manuel,
+  2026-10-02: „Ist überhaupt noch viel Material vorhanden, was ich wegmachen muss“; „Solange
+  bitte einfach weiter arbeiten!!!!“
+
+### DATEIEN
+- `camaddon/kontur_bahn.py` (`planen(…, stand)`, `_mit_stand`, `_MitStand`, `_schlichten`,
+  Masken in `_bahnen`, senkrecht in der Luft in `_lauf`, `Konturbahn.noch`/`weg`/`davor`),
+  `camaddon/kontur.py` (Eigenschaft „Materialstand“, `rechne`, `bahn_fuer`, `vorschau`),
+  `camaddon/gui_bearbeitung.py` (die Kontur mit Materialstand, auch nach dem Wettbewerb),
+  `tests/test_materialstand.py`, `tests/gui/szenario_kontur_materialstand.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`, `help/de|en/bearbeitung.html`,
+  `package.xml` (0.121.0)
+
+### AKZEPTANZKRITERIUM
+Kontur am Zapfen nach dem Räumen desselben Bodens: nur noch das Schlichten, grau „noch … – … hat
+„Räumen T1“ schon weggenommen“; ohne Materialstand wie bisher (Prüfstand unverändert).
+
+### DONE
+- Je Lage fährt eine Schruppbahn nur, wo ihre Stirn (eine Zelle kleiner) Material über der Lage
+  trifft, über Lücken bis 2 D (mindestens 20 mm) im Vorschub (`raeumen_bahn._luecken_zu`); die
+  Lagen beginnen am höchsten solchen Material; senkrecht hinein, wo unter der Stirn nichts steht;
+  der Eilgang hinab endet über dem höchsten Material unter ihr.
+- Das Schlichten fährt immer, ab dem höchsten Material an der Wand; das Restmaterial ohne
+  Materialstand.
+- Klotz nach dem Räumen: 0,18 statt 12,8 min (1 Lage, 1 Bahn); ohne Schlichten „nichts mehr zu
+  tun“; Guss mit 1 mm Rand: 0,72 statt 38 min.
+
+### TESTS
+- `tests/test_materialstand.py` (OK), `tests/test_pruefstand.py` (OK, unverändert),
+  `tests/gui/szenario_kontur_materialstand.py` (OK, zwei Bilder).
+
 ## P-2026-10-02-71 3d-schruppen-auf-dem-materialstand
 
 ### EINGELESEN

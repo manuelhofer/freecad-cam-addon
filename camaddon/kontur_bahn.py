@@ -23,6 +23,12 @@ Ausfahren, Schruppen in Lagen mit Aufmaß und Schlichten in einem Zug.
   an ihren waagerechten Kanten, ohne_flaechen()) hält jede Bahn vor Absätzen und anderen Wänden
   an; wo kein Rohteil liegt, fährt keine Bahn (Grundsatz 5); beim Austritt aus dem Rohteil
   langsamer.
+- Mit Materialstand (W-012, materialstand): Was die Operationen davor schon weggenommen haben,
+  fräst sie nicht noch einmal. Zeigt er dort, wohin die Stirn kommt, nicht überall das ganze
+  Rohteil, fährt jede Schruppbahn je Lage nur, wo ihre Stirn (eine Zelle kleiner) Material über
+  der Lage trifft – über eine kurze Lücke im Vorschub –, die Lagen beginnen am höchsten solchen
+  Material, und wo beim Eintauchen nichts steht, geht es senkrecht hinab statt über die Rampe.
+  Das Schlichten fährt immer: Das Aufmaß an der Wand ist schmaler als das Raster.
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -49,6 +55,12 @@ HOECHSTENS_VERSAETZE = 200  # so viele Schruppbahnen je Kontur höchstens (vom R
 WAND_SPIEL = 0.05  # mm – so viel näher an eine Wand darf das Ein- und Ausfahren (Sehnen der Kette)
 REST_SPIEL = 0.02  # mm – so weit muss der kleine Fräser aus dem großen ragen, damit er dort fährt
 GLEICH = vb.GLEICH
+# Mit Materialstand: So viel muss über einer Lage stehen, damit es als Material zählt. Eine Lücke im
+# Weggefrästen, so lang wie höchstens LUECKE Durchmesser (mindestens LUECKE_MIN), fährt die Bahn im
+# Vorschub durch, statt abzuheben und wieder einzufahren – wie beim Räumen.
+MATERIAL = 0.05  # mm
+LUECKE = 2.0
+LUECKE_MIN = 20.0  # mm
 
 
 @dataclass(frozen=True)
@@ -88,6 +100,11 @@ class Konturbahn:
     bahnen: int  # Bahnen über alle Konturen und Lagen (je mit Ein- und Ausfahren)
     z_min: float  # die tiefste Spitze (mm)
     laenge: float  # mm im Vorschub
+    # Mit Materialstand (W-012): was dort, wohin die Stirn kommt, über dem Teil noch steht und was
+    # die Operationen davor dort schon weggenommen haben (mm³), und ihre Namen.
+    noch: float = 0.0
+    weg: float = 0.0
+    davor: list = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -711,6 +728,32 @@ class _Stand:
     bahnen: int = 0
     z_min: float = math.inf
     laenge: float = 0.0
+    bereich: object = None  # mit Materialstand: die Zellen, wohin die Stirn kommt
+    ziel: float = math.inf  # die tiefste Unterkante dabei
+    mit_material: bool = False  # eine Kontur fuhr nur, wo Material steht
+
+
+@dataclass(frozen=True)
+class _MitStand:
+    """Der Materialstand an einer Kontur (W-012), wenn er dort nicht überall das ganze Rohteil
+    zeigt."""
+
+    stand: object  # materialstand.Materialstand
+    innen: float  # mm: so weit trifft die Stirn sicher (eine Zelle kleiner)
+    luecke: float  # mm: so lange Lücken fährt die Bahn im Vorschub durch
+
+    def trifft(self, lage, proben_je):
+        """Je Bahn (ihre Proben): wo ihre Stirn Material über der Lage trifft."""
+        x = np.concatenate([p.x for p in proben_je])
+        y = np.concatenate([p.y for p in proben_je])
+        alle = self.stand.trifft(lage, self.innen, x, y)
+        return np.split(alle, np.cumsum([len(p.x) for p in proben_je])[:-1])
+
+    def drin(self, drin, ganz, proben, geschlossen):
+        """`drin` mit den kurzen Lücken gefüllt, die ganz in `ganz` liegen (raeumen_bahn)."""
+        from . import raeumen_bahn as rb  # erst hier: es braucht dieses Modul
+
+        return rb._luecken_zu(drin, ganz, proben, geschlossen, self.luecke)
 
 
 @dataclass(frozen=True)
@@ -727,11 +770,12 @@ class _Anfahrt:
     laenge_gerade: float
 
 
-def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None):
+def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None, stand=None):
     """Die Bahn „Kontur“ (Konturbahn) an den Konturen `konturen_` ([Kontur]) mit den Werten
     `werte`; `netz` ist das Teil ohne die Wände und ihre Nachbarn (hoehenfeld.netz_ohne mit
     ohne_flaechen()), `netz_fern` das Teil nur ohne die Wände – es zählt weiter weg von der Wand
-    (_Huelle). ValueError mit einem Satz, wenn es nicht geht."""
+    (_Huelle). Mit `stand` (materialstand, W-012) nur, was die Operationen davor übrig ließen.
+    ValueError mit einem Satz, wenn es nicht geht."""
     w = werte
     form = w.form
     r = float(form.radius)
@@ -767,7 +811,20 @@ def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None):
             schritt,
             kette,
             waende,
+            stand,
         )
+    noch, weg, davor = 0.0, 0.0, []
+    if stand is not None and st.bereich is not None:
+        # Über dem Teil: An der Wand trifft die Stirn auch Zellen im Teil – sie zählen nicht.
+        boden = hf.hoehen(
+            netz_fern if netz_fern is not None else netz, stand.quader.x, stand.quader.y
+        )
+        noch, weg = stand.volumen(st.bereich, st.ziel, boden)
+        davor = stand.wer(st.bereich)
+    if st.mit_material and st.bahnen == 0 and davor:
+        from . import materialstand as mst  # erst hier: es bringt den Job mit
+
+        raise mst.schon_weg(davor)
     if st.konturen == 0:
         raise ValueError(tr("ko.fehler.nichts"))
     return Konturbahn(
@@ -777,12 +834,18 @@ def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None):
         st.bahnen,
         st.z_min if math.isfinite(st.z_min) else 0.0,
         st.laenge,
+        noch,
+        weg,
+        davor,
     )
 
 
-def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schritt, kette, waende):
+def _kontur(
+    st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schritt, kette, waende, stand=None
+):
     """Eine Kontur: die Versätze fürs Schruppen (so viele, wie Rohteil neben der Wand steht),
-    der fürs Schlichten, die Hüllfläche über allem, dann die Lagen."""
+    der fürs Schlichten, die Hüllfläche über allem, dann die Lagen – mit `stand` (W-012) nur,
+    wo noch Material steht."""
     ziel = k.z_unten - max(w.tiefer, 0.0)
     oben = w.oben
     if w.breite > 0:
@@ -838,15 +901,28 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
         waende,
     )
     st.konturen += 1
+    bahnen_vorher = st.bahnen
+    mit_stand, oben_schruppen, oben_schlichten = None, oben, oben
+    if stand is not None:
+        mit_stand, oben_schruppen, oben_schlichten = _mit_stand(
+            st, stand, schrupp, schlicht, oben, ziel, r
+        )
+    if mit_stand is not None:
+        oben = oben_schruppen  # die Lagen beginnen am höchsten Material, das sie erreichen
     anzahl_lagen = max(1, int(math.ceil((oben - ziel - hf.LAGEN_SPIEL) / w.zustellung)))
     lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
+    if oben <= ziel + GLEICH:
+        lagen = []  # nichts mehr zu schruppen
     vorige = oben
     for lage in lagen:
         lage = float(lage)
         # (von, bis): so nah und so fern von der Wand ist diese Lage schon geräumt
         geraeumt = (math.inf, 0.0)
         gefahren = False
-        for d, segmente, proben in reversed(schrupp):
+        masken = [None] * len(schrupp)
+        if mit_stand is not None and schrupp:
+            masken = mit_stand.trifft(lage, [p for _d, _s, p in schrupp])
+        for (d, segmente, proben), maske in zip(reversed(schrupp), reversed(masken), strict=True):
             if _bahnen(
                 st,
                 k,
@@ -863,6 +939,8 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
                 r_ein,
                 gerade,
                 schritt,
+                mit_stand,
+                maske,
             ):
                 gefahren = True
                 geraeumt = (min(geraeumt[0], d - r), max(geraeumt[1], d + r))
@@ -870,10 +948,24 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
             st.lagen += 1
             st.z_min = min(st.z_min, lage)
         vorige = lage
-    if schlicht is None:
-        return
+    if schlicht is not None:
+        _schlichten(
+            st, k, w, r, r_ein, gerade, schritt, schlicht, schrupp, oben_schlichten, ziel, huelle,
+            mit_stand,
+        )  # fmt: skip
+    if mit_stand is not None and st.bahnen == bahnen_vorher:
+        st.konturen -= 1  # hier war nichts mehr zu tun
+
+
+def _schlichten(
+    st, k, w, r, r_ein, gerade, schritt, schlicht, schrupp, oben, ziel, huelle, mit_stand
+):
+    """Das Schlichten bei Radius: in einem Zug über die ganze Höhe, höchstens die Schneidenlänge
+    je Zug."""
     d, segmente, proben = schlicht
     hoehe = oben - ziel
+    if hoehe <= GLEICH:
+        return
     anzahl = 1
     if 0 < w.schneidenlaenge < hoehe - GLEICH:
         anzahl = max(1, int(math.ceil((hoehe - hf.LAGEN_SPIEL) / w.schneidenlaenge)))
@@ -895,15 +987,71 @@ def _kontur(st, k, w, r, r_ein, gerade, netz, netz_fern, geformt, zugabe, schrit
             r_ein,
             gerade,
             schritt,
+            mit_stand,
         ):
             st.lagen += 1
             st.z_min = min(st.z_min, float(lage))
 
 
+def _mit_stand(st, stand, schrupp, schlicht, oben, ziel, r):
+    """Der Materialstand an der Kontur (W-012): (_MitStand, wo die Lagen des Schruppens beginnen,
+    wo das Schlichten beginnt) – (None, oben, oben), wenn dort, wohin die Stirn kommt, noch
+    überall das Rohteil bis über `oben` steht (dann wie ohne). Merkt sich die Zellen fürs
+    „noch“."""
+    alle = schrupp + ([schlicht] if schlicht is not None else [])
+    x = np.concatenate([p.x for _d, _s, p in alle])
+    y = np.concatenate([p.y for _d, _s, p in alle])
+    bereich = stand.maske_um_punkte(x, y, r)
+    st.bereich = bereich if st.bereich is None else st.bereich | bereich
+    st.ziel = min(st.ziel, ziel)
+    with np.errstate(invalid="ignore"):
+        voll = stand.quader.h[bereich] >= oben - MATERIAL  # −inf (kein Rohteil) zählt als tiefer
+    if voll.all():
+        return None, oben, oben
+    st.mit_material = True
+    # Was die Schruppbahnen wegnehmen können: was ihre Stirn trifft, eine Zelle kleiner – so
+    # zählt die Wand nicht und auch nicht das Aufmaß an ihr, das eine Operation davor ließ.
+    innen = max(r - stand.schritt, 0.5 * r)
+    oben_schruppen = ziel
+    if schrupp:
+        hoch = stand.hoechste_um(
+            np.concatenate([p.x for _d, _s, p in schrupp]),
+            np.concatenate([p.y for _d, _s, p in schrupp]),
+            innen,
+        )
+        if hoch is not None:
+            oben_schruppen = min(oben, hoch)
+    # Das Schlichten beginnt am höchsten Material an der Wand – auch im Teil, eine Zelle weiter:
+    # lieber zu hoch als zu tief.
+    oben_schlichten = oben
+    if schlicht is not None:
+        hoch = stand.hoechste_um(schlicht[2].x, schlicht[2].y, r + stand.schritt)
+        oben_schlichten = min(oben, max(hoch, oben_schruppen)) if hoch is not None else ziel
+    luecke = max(LUECKE * 2 * r, LUECKE_MIN)
+    return _MitStand(stand, innen, luecke), oben_schruppen, oben_schlichten
+
+
 def _bahnen(
-    st, k, d, segmente, proben, lage, vorige, geraeumt, huelle, ziel, w, r, r_ein, gerade, schritt
+    st,
+    k,
+    d,
+    segmente,
+    proben,
+    lage,
+    vorige,
+    geraeumt,
+    huelle,
+    ziel,
+    w,
+    r,
+    r_ein,
+    gerade,
+    schritt,
+    mit_stand=None,
+    maske=None,
 ):
     """Eine Bahn (ein Versatz) auf einer Lage: wo die Hüllfläche es erlaubt und Rohteil liegt –
+    mit `maske` (Materialstand) nur, wo ihre Stirn Material trifft, über kurze Lücken hinweg –,
     geschlossen in einem Zug ab der Mitte der längsten Geraden, sonst in Läufen. Gibt die Zahl
     der Läufe zurück."""
     x, y = proben.x, proben.y
@@ -915,6 +1063,8 @@ def _bahnen(
     drin = erlaubt & im_rohteil
     if w.nur_wo is not None:
         drin = drin & np.asarray(w.nur_wo(k, x, y), dtype=bool)
+    if maske is not None:
+        drin = mit_stand.drin(drin & maske, drin, proben, k.geschlossen)
     if not drin.any():
         return 0
     laeufe = []  # [(Stellen, Austritt hinten)]
@@ -956,6 +1106,7 @@ def _bahnen(
             r_ein,
             gerade,
             schritt,
+            mit_stand,
         )
         anzahl += 1
     return anzahl
@@ -983,10 +1134,12 @@ def _lauf(
     r_ein,
     gerade,
     schritt,
+    mit_stand=None,
 ):
     """Ein Lauf: Eilgang über den Anfang, hinab – in der Luft senkrecht, im Material über die
     Rampe –, tangential hinein, die Bahn, tangential heraus, hinauf. `geraeumt`: (von, bis) –
-    so nah und so fern von der Wand haben die Bahnen davor diese Lage schon geräumt."""
+    so nah und so fern von der Wand haben die Bahnen davor diese Lage schon geräumt; mit
+    `mit_stand` (Materialstand) dazu, was die Operationen davor weggenommen haben."""
     x, y = proben.x[stellen], proben.y[stellen]
     p0 = (float(x[0]), float(y[0]))
     p1 = (float(x[-1]), float(y[-1]))
@@ -1019,9 +1172,17 @@ def _lauf(
         # Mit der Breite steht weiter weg von der Wand nichts mehr: Dort taucht er im Freien ein.
         and (w.breite <= 0 or nah < w.breite - GLEICH)
     )
+    oben_hier = vorige if material else lage
+    if mit_stand is not None and material:
+        # Steht unter der Stirn (eine Zelle weiter) nichts mehr über der Lage, taucht er dort
+        # senkrecht ein; sonst endet der Eilgang über dem höchsten Material unter ihr.
+        ms = mit_stand.stand
+        if ms.hoechste_bei(start[0], start[1], r + ms.schritt) <= lage + MATERIAL:
+            material, oben_hier = False, lage
+        else:
+            oben_hier = max(oben_hier, ms.hoechste_bei(start[0], start[1], r))
     punkte = st.punkte
     punkte.append(bn.Punkt(True, start[0], start[1], w.sicher))
-    oben_hier = vorige if material else lage
     knapp = min(w.sicher, oben_hier + w.sicherheit)
     if knapp < w.sicher - GLEICH:
         punkte.append(bn.Punkt(True, start[0], start[1], knapp))
