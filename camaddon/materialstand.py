@@ -38,6 +38,7 @@ from . import fraeserform as ff
 from . import hoehenfeld as hf
 from . import reichweite as rw
 from . import restmaterial as rm
+from .sprache import tr
 
 SCHRITT = rm.SCHRITT_XY  # mm – das Raster
 BOGENSCHRITT = 0.5  # mm – in so langen Sehnen fährt es Bögen ab
@@ -90,6 +91,50 @@ class Materialstand:
     def wer(self, maske):
         """Die Namen der Operationen, die in der Maske etwas weggenommen haben, der Reihe nach."""
         return [n for n, g in zip(self.namen, self.gesenkt, strict=True) if (g & maske).any()]
+
+    def hoehen_an(self, xs, ys, naechste=False):
+        """(len(xs), len(ys)): wie hoch das Material über den Knoten eines anderen Rasters noch
+        steht – je Knoten das Höchste der Zellen um ihn (lieber Material sehen, wo keins ist, als
+        keins, wo es steht), mit `naechste` die nächste Zelle; außerhalb des Rohteils −inf."""
+        q = self.quader
+        schritt_x, schritt_y = q.x[1] - q.x[0], q.y[1] - q.y[0]
+        fx = (np.asarray(xs, dtype=float) - q.x[0]) / schritt_x
+        fy = (np.asarray(ys, dtype=float) - q.y[0]) / schritt_y
+        if naechste:
+            versatz_x, versatz_y = [np.rint(fx).astype(int)], [np.rint(fy).astype(int)]
+        else:
+            versatz_x = [np.floor(fx).astype(int) + d for d in (0, 1)]
+            versatz_y = [np.floor(fy).astype(int) + d for d in (0, 1)]
+        ergebnis = np.full((len(fx), len(fy)), -np.inf)
+        for i in versatz_x:
+            gi = (i >= 0) & (i < len(q.x))
+            for j in versatz_y:
+                gj = (j >= 0) & (j < len(q.y))
+                werte = np.full((len(fx), len(fy)), -np.inf)
+                werte[np.ix_(gi, gj)] = q.h[np.ix_(i[gi], j[gj])]
+                np.maximum(ergebnis, werte, out=ergebnis)
+        return ergebnis
+
+    def maske_aus(self, xs, ys, maske):
+        """Die Zellen, über denen eine Maske eines anderen Rasters (Knoten `xs` × `ys`) wahr
+        ist – je Zelle der nächste Knoten; außerhalb des Rasters falsch."""
+        q = self.quader
+        schritt_x, schritt_y = xs[1] - xs[0], ys[1] - ys[0]
+        i = np.rint((q.x - xs[0]) / schritt_x).astype(int)
+        j = np.rint((q.y - ys[0]) / schritt_y).astype(int)
+        gi = (i >= 0) & (i < len(xs))
+        gj = (j >= 0) & (j < len(ys))
+        ergebnis = np.zeros((len(q.x), len(q.y)), dtype=bool)
+        ergebnis[np.ix_(gi, gj)] = np.asarray(maske, dtype=bool)[np.ix_(i[gi], j[gj])]
+        return ergebnis
+
+
+def wer_text(namen):
+    """„„Räumen T1““ – mehrere: „„Räumen T1“ und „Nut T2““."""
+    zitiert = [tr("ms.zitat", name=n) for n in namen]
+    if len(zitiert) == 1:
+        return zitiert[0]
+    return tr("ms.und", vorne=", ".join(zitiert[:-1]), hinten=zitiert[-1])
 
 
 _GEMERKT = OrderedDict()  # Kennung → Materialstand

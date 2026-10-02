@@ -2,8 +2,8 @@
 """Rechnet Operationen mit Materialstand neu, wenn sich davor etwas ändert (W-012,
 Spezifikation Strategien 12.7).
 
-Eine Operation mit Materialstand (heute die Nut) rechnet mit dem, was die Operationen davor im
-Job übrig lassen, und merkt sich, woraus (ihre Eigenschaft „Materialstand“:
+Eine Operation mit Materialstand (die Nut, das Räumen) rechnet mit dem, was die Operationen davor
+im Job übrig lassen, und merkt sich, woraus (ihre Eigenschaft „Materialstand“:
 materialstand.kennung_vor). Ändert sich davor etwas – eine Bahn, die Reihenfolge, eine
 Operation gelöscht –, stimmt ihr Materialstand nicht mehr; im schlimmsten Fall führe ihr
 Eilgang dorthin, wo jetzt doch Material steht. Der Beobachter merkt sich das Dokument und prüft,
@@ -18,7 +18,6 @@ from PySide import QtCore
 
 from . import job_schnittwerte as js
 from . import materialstand as mst
-from . import nut as nu
 
 
 def mit_materialstand(op):
@@ -28,7 +27,7 @@ def mit_materialstand(op):
     for _tiefe in range(16):
         if basis is None:
             return None
-        if nu.ist_nut(basis) and "Materialstand" in basis.PropertiesList:
+        if "Materialstand" in basis.PropertiesList:
             return basis
         basis = getattr(basis, "Base", None)
         if basis is not None and not hasattr(basis, "Path"):

@@ -1732,9 +1732,27 @@ rausfahren … und wenn ich die Nut anklicke, von z 0 anfangen???“
     (`szenario_zweiter_lauf`).
   - **M3 Das Räumen rechnet darauf:** Lagen und Ringe nur, wo Material steht. Prüfung: Nut
     zuerst, dann der Zapfen – über der Nut kein Schnitt in Luft.
+    **Gebaut:** P-2026-10-02-68, 0.118.0 – `raeumen_bahn.planen(…, stand)`: Je Lage ist Rohteil
+    nur, was über ihr steht; die Ringe (vom Rohteil her, um die Inseln) fahren nur, wo ihre
+    Stirn Material trifft, das sie dort wegnehmen kann (eine Zelle weniger weit als die Stirn
+    vom Erlaubten, wie im 3D-Schruppen); eine Lage ohne solches fällt aus; die Lagen beginnen
+    am höchsten Material, das der Fräser erreicht. Über eine Lücke im Weggefrästen bis 2 D
+    (mindestens 20 mm) fährt der Ring im Vorschub hinweg – Abheben und wieder Einfahren dauert
+    länger (an Manuels Klotz, Nut zuerst, 25-mal: eine Minute mehr); erst eine längere hebt er
+    ab. Der Eilgang hinab endet über dem höchsten Material unter der Stirn. Steht im Bereich
+    über allen Lagen noch das volle Rohteil, rechnet es wie bisher; der Morph fällt mit
+    Materialstand aus (er fährt ganze Ringe, auch durch Weggefrästes). Unter dem Ergebnis grau
+    „noch … – … hat „…“ schon weggenommen“ (dort, wohin die Stirn auf der Fläche kommt); steht
+    nichts mehr: „Hier ist nichts mehr zu tun – das hat „…“ schon weggenommen.“ Es merkt sich
+    die Kennung wie die Nut; `gui_materialstand` rechnet es neu. Manuels Klotz, Nut zuerst:
+    8,42 statt 8,48 min, „11,3 cm³ hat „Nut T1“ schon weggenommen“; ein Guss als Rohteil, der
+    nur am Zapfen 1 mm Rand hat, mit 4 mm je Lage: 3 Ringe um den Zapfen, 0,56 statt 25 min
+    (`test_materialstand`, `szenario_raeumen_materialstand`). Das Planfräsen kennt den
+    Materialstand noch nicht (M4) – im Wettbewerb rechnet es mit dem vollen Rohteil.
   - **M4 Planfräsen, Kontur, 3D-Schruppen** ebenso.
 - **Fertig, wenn:** Manuels Klotz in beiden Reihenfolgen im Prüffenster ein Teil ohne Rest
-  ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war, und die Nut nach dem
+  ergibt, keine Operation dort in Luft schneidet, wo eine davor schon war (außer über eine
+  kurze Lücke, wo Durchfahren schneller ist als Abheben – Grundsatz 0), und die Nut nach dem
   Zapfen bei z −10 beginnt.
 
 ### 12.8 Eintauchen in die geschlossene Nut: an einer wählbaren Stelle

@@ -195,8 +195,13 @@ Maschine, Rohteil und Nullpunkt grau; „Neuer Job …“ für eine zweite Aufsp
 (P-2026-10-02-66, 0.116.0). Die Eintauchstelle der geschlossenen Nut ist wählbar (Manuel, Frage 2:
 a): „Eintauchen bei“ mit Vorschlag, den Enden, der Mitte oder „Im Bild wählen …“ – die Helix
 taucht in jeder Lage dort ein; der Vorschlag nimmt eine Stelle, an der eine Bohrung oder Tasche
-die Nut schon geöffnet hat (P-2026-10-02-67, 0.117.0).
-Als Nächstes (Manuel, 2026-10-02; Spezifikation Strategien, Abschnitt 12): der Materialstand (W-012, 12.7; M1 Nut, M2 ein Teil – ein Job und E1 Eintauchstelle gebaut): Räumen (M3), Planfräsen, Kontur, 3D-Schruppen (M4) – mit ihnen auch die Ziel-Zeile („Weg müssen … cm³“) und die Gegner im Wettbewerb nach dem Materialstand; Schlichten nach dem Räumen besprechen – eigener Fräser und eigene Werte, mit Aufmaß am Boden auch den Boden (Vorschlag in 12.4); der Prüfstand meldet zu viel Last für alle Strategien, nicht nur die Nut (12.1, offen). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+die Nut schon geöffnet hat (P-2026-10-02-67, 0.117.0). Das Räumen rechnet ebenso mit dem
+Materialstand (M3; Manuel: „erst die Nut … dann den Zapfen“): je Lage nur, wo noch Material
+steht, über eine kurze Lücke im Weggefrästen im Vorschub hinweg, eine Lage ohne fällt aus; grau
+„noch 93,7 cm³ – 12,5 cm³ hat „Nut T1“ schon weggenommen“, ein zweites Räumen sagt „Hier ist
+nichts mehr zu tun …“. Manuels Klotz, Nut zuerst: 8,42 statt 8,48 min; ein Guss als Rohteil
+mit nur 1 mm Rand am Zapfen: 0,56 statt 25 min (P-2026-10-02-68, 0.118.0).
+Als Nächstes (Manuel, 2026-10-02; Spezifikation Strategien, Abschnitt 12): der Materialstand (W-012, 12.7; M1 Nut, M2 ein Teil – ein Job, E1 Eintauchstelle und M3 Räumen gebaut): Planfräsen, Kontur, 3D-Schruppen (M4) – mit ihnen auch die Ziel-Zeile („Weg müssen … cm³“, heute noch vom vollen Rohteil) und die Gegner im Wettbewerb nach dem Materialstand; Schlichten nach dem Räumen besprechen – eigener Fräser und eigene Werte, mit Aufmaß am Boden auch den Boden (Vorschlag in 12.4); der Prüfstand meldet zu viel Last für alle Strategien, nicht nur die Nut (12.1, offen). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
@@ -517,7 +522,7 @@ Ein Satz je Wunsch, W-ID fortlaufend.
   Nut bei z −10); die geschlossene Nut taucht helikal an einer wählbaren Stelle ein, mit
   Vorschlag (Manuel, 2026-10-02): [spezifikation_strategien.md](spezifikation_strategien.md),
   Abschnitte 12.7 und 12.8 – entschieden: Frage 1 (a) derselbe Job, Frage 2 (a) Liste und
-  Anklicken; Schritte M1–M4 und E1.
+  Anklicken; Schritte M1–M4 und E1 (gebaut: M1–M3, E1).
 - **W-004 Bedienung vereinfachen und automatisieren** – Durchsicht aller
   Fenster und Abläufe (2026-09-27, Manuels Auftrag): acht kleine Stellen
   (D-01 bis D-08), einfacher bedienen (D-10 bis D-14), automatisieren (D-20

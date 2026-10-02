@@ -1137,7 +1137,9 @@ def planen(werte, liste, stand=None):
         z_min = min(z_min, z)
     if not gefraest:
         if davor:
-            raise ValueError(tr("nt.fehler.schon_weg", wer=wer_text(davor)))
+            from . import materialstand as mst  # erst hier: es bringt den Job mit
+
+            raise ValueError(tr("ms.fehler.schon_weg", wer=mst.wer_text(davor)))
         raise ValueError(tr("nt.fehler.nichts"))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
     return Nutbahn(
@@ -1156,11 +1158,3 @@ def _bei(nut, w, stand):
     aufmass = max(w.aufmass, 0.0) if w.schlichten else 0.0
     r_l = nut.radius - w.fraeser_radius - aufmass
     return vorschlag_bei(nut, w, stand, max(r_l, 0.0)), True
-
-
-def wer_text(namen):
-    """„„Räumen T1““ – mehrere: „„Räumen T1“ und „Nut T2““."""
-    zitiert = [tr("nt.zitat", name=n) for n in namen]
-    if len(zitiert) == 1:
-        return zitiert[0]
-    return tr("nt.und", vorne=", ".join(zitiert[:-1]), hinten=zitiert[-1])

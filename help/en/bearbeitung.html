@@ -202,6 +202,14 @@ face).</li>
 <li>The operation is called “Räumen T1”; start depth, safe height and
 clearance height as for face milling, the final depth is the lowest face plus
 the allowance at the floor.</li>
+<li><b>Only where material is left</b> (material state): clearing takes into account what the
+operations before it in the job and the ticked strategies before it in the same window have
+already removed. In each layer the rings run only where material is left; across a short gap
+(a slot already milled, say) the cutter keeps feeding – that is faster than lifting and entering
+again –, a layer with nothing above it is left out. Grey: “93.7 cm³ left – “Slot T1” already
+removed 12.5 cm³”; if nothing is left, red “Nothing left to do here …”. A casting as stock that
+already has nearly the shape: only the rest, for instance a ring around the boss instead of the
+whole floor. If you change an operation before it, clearing recomputes by itself.</li>
 <li><b>Then finish the walls</b> – at the walls around the cleared faces (bosses, islands,
 steps) the allowance remains; with the tick the same cutter then runs along them in the
 allowance, with the “Finishing” application if it has one: an operation of its own, “Finish

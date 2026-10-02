@@ -5,8 +5,12 @@
 # bei −10; die Nut beginnt dort (ihr erster Vorschub bei −10, nicht bei 0), „noch“ sind 5 mm über
 # ihrem Grund, „weg“ hat „Räumen T1“ die 10 mm darüber; sie merkt sich, woraus sie gerechnet hat.
 # Nut zuerst (die Folge im Job umgedreht): Ihr Materialstand stimmt nicht mehr – nachrechnen
-# rechnet sie neu, jetzt von 0 an. Ein Körper als Rohteil, oben nur am Zapfen bis 0, sonst bis −10
-# (W-011 S4b): Über der Nut steht es ohne jede Operation bei −10.
+# rechnet sie neu, jetzt von 0 an, und das Räumen dahinter auch (W-012 M3; Manuel: „wenn ich erst
+# die Nut anklicke … und dann den Zapfen will“): Es weiß, dass „Nut T1“ über der Nut schon 10 mm
+# weggenommen hat, und ist nicht langsamer als ohne Materialstand; ein zweites Räumen dahinter hat
+# nichts mehr zu tun. Ein Körper als Rohteil, oben nur am Zapfen bis 0, sonst bis −10 (W-011 S4b):
+# Über der Nut steht es ohne jede Operation bei −10, und das Räumen fährt mit 4 mm je Lage nur noch
+# um den Zapfen – ein Bruchteil der Zeit.
 import math
 import os
 import pathlib
@@ -30,6 +34,7 @@ from camaddon import nut as nu
 from camaddon import raeumen as ra
 from camaddon import sprache
 from camaddon import uebergabe_werkzeuge as ue
+from camaddon import vierachs_schlichten as vs
 from camaddon import werkzeuge as wz
 
 fehler = []
@@ -153,9 +158,41 @@ job.Operations.Group = [nut_op, raeumen]
 doc.recompute()
 pruefe(nut_op.Materialstand != mst.kennung_vor(job, nut_op), "Kennung stimmt nach dem Umdrehen?")
 neu = gms.nachrechnen(doc)
-pruefe(neu == [nut_op], f"nachgerechnet: {[o.Label for o in neu]}")
+pruefe(neu == [nut_op, raeumen], f"nachgerechnet: {[o.Label for o in neu]}")
 pruefe(abs(erster_vorschub(nut_op)) < 0.01, f"Nut zuerst beginnt bei {erster_vorschub(nut_op)}")
 pruefe(not gms.nachrechnen(doc), "zweimal nachgerechnet")
+
+# Das Räumen hinter der Nut: Es kennt die Nut – über ihr hat „Nut T1“ die 10 mm bis zum Boden schon
+# weggenommen – und ist nicht langsamer als dasselbe Räumen ohne Materialstand.
+form = vs.form_des_controllers(tc)
+
+
+def raeumen_bahn(job, zustellung, stand=None):
+    return ra.bahn_fuer(job, job.Model.Group, form, zustellung, einsatz.ae, flaechen=[boden],
+                        vorschub=1000.0, stand=stand)  # fmt: skip
+
+
+uhr = time.time()
+mit = raeumen_bahn(job, einsatz.ap, mst.fuer(job, vor=raeumen))
+zeit_mit = time.time() - uhr
+ohne_r = raeumen_bahn(job, einsatz.ap)
+pruefe(mit.davor == ["Nut T1"] and abs(mit.weg / (10.0 * FLAECHE_NUT) - 1.0) < 0.05,
+       f"Räumen: {mit.davor}, weg {mit.weg:.0f} mm³ statt {10.0 * FLAECHE_NUT:.0f}")  # fmt: skip
+pruefe(mit.zeit <= ohne_r.zeit + 1e-9, f"Räumen {mit.zeit:.2f} min, ohne {ohne_r.zeit:.2f} min")
+pruefe(raeumen.Materialstand == mst.kennung_vor(job, raeumen), "Räumen: Kennung nicht gemerkt")
+
+# Zweimal räumen: nichts mehr zu tun.
+zweites = ra.lege_an(job, tc, einsatz.ap, einsatz.ae, flaechen=[boden])
+doc.recompute()
+try:
+    ra.rechne(zweites, job, job.Model.Group)
+except ValueError as grund_text:
+    pruefe("nichts mehr zu tun" in str(grund_text) and "Räumen T1" in str(grund_text),
+           f"zweites Räumen: {grund_text}")  # fmt: skip
+else:
+    pruefe(False, "zweites Räumen: kein Satz")
+doc.removeObject(zweites.Name)
+doc.recompute()
 
 # --- Ein Körper als Rohteil: oben nur am Zapfen bis 0 (W-011 S4b) --------------------------------
 guss = Part.makeBox(102, 102, 21, V(-51, -51, -31)).fuse(Part.makeCylinder(16, 10, V(25, 25, -10)))
@@ -179,9 +216,17 @@ if stand2 is not None:
            f"Körper: über der Nut {oben_nut}, am Zapfen {oben_zapfen}")  # fmt: skip
     pruefe(not math.isfinite(stand2.quader.h[0, 0]) or stand2.quader.h[0, 0] <= -10.0 + 1e-6,
            f"Ecke {stand2.quader.h[0, 0]}")  # fmt: skip
+    # Das Räumen des Bodens mit 4 mm je Lage: über dem Boden steht nur noch der Rand um den
+    # Zapfen (Ø 32 statt 30) – je Lage ein, zwei Ringe statt des ganzen Bodens.
+    guss_mit = raeumen_bahn(job2, 4.0, stand2)
+    guss_ohne = raeumen_bahn(job2, 4.0)
+    pruefe(guss_mit.lagen == 3 and guss_mit.ringe <= 6 and guss_mit.zeit < 0.2 * guss_ohne.zeit,
+           f"Guss: {guss_mit.lagen} Lagen, {guss_mit.ringe} Ringe, {guss_mit.zeit:.2f} min "
+           f"statt {guss_ohne.zeit:.2f} min")  # fmt: skip
 
 print(ascii(f"Räumen {zeit_raeumen:.1f} s, Materialstand {zeit_stand:.2f} s, "
-            f"Nut {bahn.zeit:.2f} min statt {ohne.zeit:.2f} min"))  # fmt: skip
+            f"Nut {bahn.zeit:.2f} min statt {ohne.zeit:.2f} min, Räumen nach der Nut "
+            f"{zeit_mit:.1f} s, {mit.zeit:.2f} min statt {ohne_r.zeit:.2f} min"))  # fmt: skip
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

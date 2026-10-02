@@ -12,6 +12,65 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-68 raeumen-auf-dem-materialstand
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Dann würde er, wenn ich erst die Nut anklicke, von z 0 bis z −15 die Nut
+  herstellen … Und wenn ich dann den Zapfen will, denke ich, dass er die Nut ebenfalls mit
+  bearbeiten würde“ – W-012 M3 (Spezifikation Strategien 12.7): das Räumen auf dem
+  Materialstand. „Und du bist schon wieder viel am Prüfen … immer fragen, ob das wirklich nötig
+  ist“: eine Prüfdatei, der Prüfstand (Bahnmodul), ein Szenario.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`planen(…, stand)`, `_mit_stand`, `_kleinstes_um`,
+  `_luecken_zu`, `_Feld.aufweiten`/`material_setzen`/`ganzes_rohteil`/`hoechstes`,
+  `_Lage.stand_hoehe`, Decke; `Raeumbahn.noch`/`weg`/`davor`), `camaddon/raeumen.py`
+  (Eigenschaft „Materialstand“, `rechne` mit Stand und Kennung, `bahn_fuer`/`vorschau` mit
+  `stand`), `camaddon/materialstand.py` (`hoehen_an(…, naechste)`, `maske_aus`, `wer_text` aus
+  `nut_bahn`), `camaddon/nut_bahn.py`, `camaddon/nut.py`, `camaddon/gui_materialstand.py`
+  (rechnet auch das Räumen nach), `camaddon/gui_bearbeitung.py` (der Materialstand für das
+  Räumen, auch in `_folge`; `_materialstand(…, flaechen, mit)`), `translations/de.json`,
+  `translations/en.json` (`ms.fehler.schon_weg`, `ms.zitat`, `ms.und`,
+  `ms.eigenschaft.materialstand` statt `nt.…`), `help/de|en/bearbeitung.html`,
+  `tests/test_materialstand.py`, `tests/gui/szenario_raeumen_materialstand.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`, `docs/aufbau.md`,
+  `package.xml` (0.118.0)
+
+### AKZEPTANZKRITERIUM
+Manuels Klotz, Nut zuerst, dann den Boden um den Zapfen anklicken: Das Räumen sagt grau, was
+die Nut schon weggenommen hat, ist nicht langsamer als ohne Materialstand, und ein zweites
+Räumen dahinter hat „nichts mehr zu tun“; ohne Vorgänger rechnet es wie bisher (Prüfstand).
+
+### DONE
+- Je Lage ist Rohteil nur, was über ihr steht; die Ringe fahren nur, wo ihre Stirn Material
+  trifft, das sie dort wegnehmen kann; eine Lage ohne fällt aus; die Lagen beginnen am höchsten
+  Material, das der Fräser erreicht.
+- Erster Lauf an Manuels Klotz: das Räumen eine Minute **langsamer** (9,45 statt 8,48 min) – 25
+  Ringe rissen über der Nut ab und fuhren zweimal ein. Jetzt fährt ein Ring über eine Lücke bis
+  2 D (mindestens 20 mm) im Vorschub hinweg (`_luecken_zu`).
+- Gefundener Fehler im eigenen Entwurf: Der Eilgang hinab sah innerhalb einer Lage nicht, was
+  sie schon geräumt hatte – 228 mm Eintauchen im Vorschub mehr; `hoechstes` zählt das Freie der
+  Lage höchstens bis zur Lage. Danach 8,42 statt 8,48 min.
+- Gefundener Fehler im eigenen Entwurf (die Prüfdatei fand ihn): Ein Rest, den nur der Rand der
+  Stirn trifft (der Guss mit 1 mm Rand um den Zapfen), galt als „nichts“ – die Lagen begannen
+  an Material, über dem die Spitze stehen kann. Jetzt das Tiefste, das die Spitze ringsum darf
+  (`_kleinstes_um`, ein Quadrat statt der Stirn: lieber eine Lage zu viel).
+- Gefundener Fehler aus M2: `_materialstand` überschrieb im Lauf über die Blöcke `form` (das
+  Teil) mit der Form des Fräsers – beim zweiten Block davor hätte es nicht mehr gepasst.
+- Ergebnis: Manuels Klotz, Nut zuerst: 8,42 statt 8,48 min, „noch 93,7 cm³ – 12,5 cm³ hat
+  „Nut T1“ schon weggenommen“; ein zweites Räumen: „Hier ist nichts mehr zu tun – das hat „Nut
+  T1“ und „Räumen T1“ schon weggenommen.“ Guss mit 1 mm Rand am Zapfen, 4 mm je Lage: 3 Ringe,
+  0,56 statt 25 min.
+
+### TESTS
+- `tests/test_materialstand.py` (OK), `tests/test_pruefstand.py` (OK – ohne Materialstand
+  dieselben Bahnen), `tests/gui/szenario_raeumen_materialstand.py` (OK, drei Bilder).
+
+### OFFEN
+- M4: Planfräsen, Kontur, 3D-Schruppen auf dem Materialstand – mit ihnen die Ziel-Zeile („Weg
+  müssen … cm³“, heute vom vollen Rohteil) und der Wettbewerb (das Planfräsen rechnet noch mit
+  dem vollen Rohteil).
+
 ## P-2026-10-02-67 eintauchstelle-der-nut
 
 ### EINGELESEN

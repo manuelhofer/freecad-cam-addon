@@ -25,6 +25,7 @@ from . import bahn as bn
 from . import hoehenfeld as hf
 from . import kontur as ko
 from . import kontur_bahn as kb
+from . import materialstand as mst
 from . import namen
 from . import planfraesen as pf
 from . import raeumen_bahn as rb
@@ -91,6 +92,7 @@ class Raeumen(PathOp.ObjectOp):
             ("App::PropertyInteger", "Ringe", tr("ra.eigenschaft.ringe")),
             ("App::PropertyInteger", "Laeufe", tr("ra.eigenschaft.laeufe")),
             ("App::PropertyString", "Gerechnet", tr("ra.eigenschaft.gerechnet")),
+            ("App::PropertyString", "Materialstand", tr("ms.eigenschaft.materialstand")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -103,6 +105,7 @@ class Raeumen(PathOp.ObjectOp):
     def _editormodi(obj):
         for name in ("Ebenen", "Lagen", "Ringe", "Laeufe", "Gerechnet"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+        obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
 
     def opExecute(self, obj):
         try:
@@ -145,6 +148,11 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     form = vs.form_des_controllers(obj.ToolController)
     if form is None:
         raise ValueError(tr("ra.fehler.form"))
+    # Was die Operationen davor schon weggenommen haben (W-012) – und woraus das gerechnet ist:
+    # Ändert sich davor etwas, rechnet gui_materialstand das Räumen neu.
+    stand = mst.fuer(job, vor=obj)
+    if "Materialstand" in obj.PropertiesList:
+        obj.Materialstand = mst.kennung_vor(job, obj)
     einfahrradius = float(obj.Einfahrradius)
     variante = str(obj.Variante)
     return bahn_fuer(
@@ -167,6 +175,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         austritt=float(obj.VorschubAustritt) / 100.0,
         vorschub=vorschub,
         eintauchen=eintauchen,
+        stand=stand,
     )
 
 
@@ -192,13 +201,15 @@ def bahn_fuer(
     schritt=rb.SCHRITT,
     vorschub=0.0,
     eintauchen=0.0,
+    stand=None,
 ):
     """Die Bahn „Räumen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten Flächen
     („Face6“ …) – geräumt werden die ebenen nach oben darunter; leer: die Oberseite des Teils.
     `oben`: z, wo die Lagen beginnen (None: die Oberkante des Rohteils); `sicher`: z für den
     Eilgang (None: Oberkante + Sicherheitsabstand + 3 mm); `vorschub` und `eintauchen` (mm/min)
-    für die Zeit, nach der die Variante fällt. ValueError mit einem Satz, wenn es nicht
-    geht."""
+    für die Zeit, nach der die Variante fällt; `stand`: der Materialstand davor (materialstand)
+    – was die Operationen davor weggenommen haben, fräst es nicht noch einmal. ValueError mit
+    einem Satz, wenn es nicht geht."""
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -229,7 +240,7 @@ def bahn_fuer(
         eintauchen=eintauchen,
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
-    return rb.planen(netz, werte, ebenen, konturen_des_teils(form_teil), schritt)
+    return rb.planen(netz, werte, ebenen, konturen_des_teils(form_teil), schritt, stand)
 
 
 def konturen_des_teils(form_teil):
@@ -254,6 +265,7 @@ def vorschau(
     schneidenlaenge=0.0,
     vorschub=0.0,
     eintauchen=0.0,
+    stand=None,
 ):
     """Die Bahn grob – für Lagen, Ringe, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     gröberes Raster. ValueError wie bahn_fuer()."""
@@ -272,6 +284,7 @@ def vorschau(
         schritt=rb.VORSCHAU_SCHRITT,
         vorschub=vorschub,
         eintauchen=eintauchen,
+        stand=stand,
     )
 
 

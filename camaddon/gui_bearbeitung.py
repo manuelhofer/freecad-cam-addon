@@ -190,7 +190,7 @@ def _material_text(bahn):
     einheit = einheiten.einheit(einheiten.VOLUMEN)
     noch = f"{groesse_fest(bahn.noch / 1000.0, einheiten.VOLUMEN, 1)} {einheit}"
     weg = f"{groesse_fest(weg / 1000.0, einheiten.VOLUMEN, 1)} {einheit}"
-    wer = nb.wer_text(davor)
+    wer = mst.wer_text(davor)
     if len(davor) == 1:
         return tr("ba.material.einer", noch=noch, weg=weg, wer=wer)
     return tr("ba.material.mehrere", noch=noch, weg=weg, wer=wer)
@@ -716,6 +716,7 @@ class _Raeumen(_Strategie):
             schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
+            stand=werte.get("materialstand"),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -4226,7 +4227,7 @@ class BearbeitungPanel:
                 continue
             if block.aktiv() or self._im_wettbewerb(block):
                 zusatz = self._zusatz(block, form)
-                if block is self.nut:
+                if block in (self.nut, self.raeumen):
                     zusatz = dict(zusatz or {}, materialstand=self._materialstand(block, form))
                 block.vorschau_rechnen(self.job, self._flaechen(block, form), zusatz)
                 if block is self.kontur:
@@ -4446,27 +4447,28 @@ class BearbeitungPanel:
             text = tr("ba.kontur.nach_raeumen", text=self.kontur.ergebnis_basis)
         self.kontur.ergebnis.setText(text)
 
-    def _materialstand(self, block, form):
+    def _materialstand(self, block, form, flaechen=None, mit=()):
         """Der Materialstand vor dem Block (W-012): das Rohteil, die Operationen, die im Job
         schon stehen – beim Ändern die vor der Operation –, dazu die Vorschauen der angehakten
-        Blöcke davor in diesem Lauf (sie werden vor ihm angelegt). Wer dieselben Flächen hat,
-        tritt gegen ihn an und kommt nicht davor (Räumen und Planfräsen am Grund der Nut). None
-        ohne Materialstand."""
+        Blöcke davor in diesem Lauf (sie werden vor ihm angelegt; die in `mit` auch ohne Haken).
+        Wer dieselben Flächen hat (`flaechen`, ohne: die des Blocks), tritt gegen ihn an und
+        kommt nicht davor (Räumen und Planfräsen am Grund der Nut). None ohne Materialstand."""
         if self.zu_aendern is not None:
             return mst.fuer(self.job, vor=self.zu_aendern)
-        eigene = set(self._flaechen(block, form))
+        eigene = set(self._flaechen(block, form) if flaechen is None else flaechen)
         dazu = []
         for anderer in self.bloecke:
             if anderer is block:
                 break
             werkzeug = anderer.fraeser()
-            if not anderer.aktiv() or anderer.vorschau is None or werkzeug is None:
+            dabei = anderer.aktiv() or anderer in mit
+            if not dabei or anderer.vorschau is None or werkzeug is None:
                 continue
             if eigene & set(self._flaechen(anderer, form)):
                 continue
-            form = ff.von_werkzeug(werkzeug)
-            if form is not None:
-                dazu.append((anderer.s.titel(), anderer.vorschau.punkte, form))
+            fraeser = ff.von_werkzeug(werkzeug)
+            if fraeser is not None:
+                dazu.append((anderer.s.titel(), anderer.vorschau.punkte, fraeser))
         return mst.fuer(self.job, dazu=dazu)
 
     def _zusatz(self, block, form):
@@ -4962,14 +4964,20 @@ class BearbeitungPanel:
         bekommt die Haken (Grundsatz 0), solange niemand sie von Hand gesetzt hat. Sind beide
         angehakt, räumt das Räumen nur die Böden: keine Fläche zweimal."""
         plan, raeumen = self.plan, self.raeumen
+        flaechen = raeumen.s.flaechen_fuer(form, self.gewaehlte)
+
+        def mit_stand(eigene, mit=()):  # der Materialstand vor dem Räumen dieser Flächen
+            return {"materialstand": self._materialstand(raeumen, form, eigene, mit)}
+
         if not plan.aktiv() and (plan.von_hand or not plan.moeglich):
-            raeumen.vorschau_rechnen(self.job, raeumen.s.flaechen_fuer(form, self.gewaehlte))
+            raeumen.vorschau_rechnen(self.job, flaechen, mit_stand(flaechen))
             return
         if plan.vorschau is None:
             plan.vorschau_rechnen(self.job, plan.s.flaechen_fuer(form, self.gewaehlte))
-        raeumen.vorschau_rechnen(self.job, raeumen.s.flaechen_fuer(form, self.gewaehlte))
+        raeumen.vorschau_rechnen(self.job, flaechen, mit_stand(flaechen))
         alles = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
-        raeumen.vorschau_rechnen(self.job, boeden)
+        # Nur die Böden: Das Planfräsen fräst davor die ebenen Flächen – es gehört dazu.
+        raeumen.vorschau_rechnen(self.job, boeden, mit_stand(boeden, (plan,)))
         nur = (raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, raeumen.hinweis.text())
         zeiten = (plan.zeit, alles[1], nur[1])
         if not (plan.von_hand or raeumen.von_hand) and all(z and z > 0 for z in zeiten):
@@ -4988,6 +4996,7 @@ class BearbeitungPanel:
         else:
             raeumen.vorschau, raeumen.zeit, raeumen.ergebnis_basis, hinweis = alles
         raeumen.ergebnis.setText(raeumen.ergebnis_basis)
+        raeumen.material.setText(_material_text(raeumen.vorschau))
         raeumen.hinweis.setText(hinweis)
         if not all(z and z > 0 for z in zeiten):
             return

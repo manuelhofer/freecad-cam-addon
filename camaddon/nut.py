@@ -82,7 +82,7 @@ class Nut(PathOp.ObjectOp):
             ("App::PropertyInteger", "Nuten", tr("nt.eigenschaft.nuten")),
             ("App::PropertyInteger", "Lagen", tr("pf.eigenschaft.lagen")),
             ("App::PropertyInteger", "Boegen", tr("nt.eigenschaft.boegen")),
-            ("App::PropertyString", "Materialstand", tr("nt.eigenschaft.materialstand")),
+            ("App::PropertyString", "Materialstand", tr("ms.eigenschaft.materialstand")),
             ("App::PropertyStringList", "Eintauchstellen", tr("nt.eigenschaft.eintauchstellen")),
         ):
             if name not in obj.PropertiesList:
