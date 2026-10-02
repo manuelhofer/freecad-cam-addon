@@ -1992,7 +1992,10 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
 - **B-006 Die Tasche räumt außerhalb ihrer Wände.** In einer Tasche gilt als erlaubt, wo das
   Teil nicht höher liegt als die Lage – auch neben der Insel, auf der die Tasche sitzt.
   *Soll:* nur in ihrer Kontur. *Fertig, wenn:* der Taschenboden am Testteil allein nicht mehr um
-  die Insel fährt.
+  die Insel fährt. **Behoben:** P-2026-10-02-79, 0.123.1 – in einer Tasche sind nur die Knoten
+  in ihrer Kontur erlaubt (`raeumen_bahn._im_vieleck`). Am Testteil sagt das Räumen des
+  Taschenbodens mit dem Ø 12 jetzt, dass der Fräser nicht hineinpasst (weiter mit B-007); über
+  die vier Flächen 26 statt 37 min.
 - **B-007 Eine Tasche, in die der Fräser nicht passt, fällt still aus.** Der Ø 12 passt mit
   Aufmaß nicht in die dreieckige Tasche; das Räumen lässt sie aus und sagt „3 Flächen“. Die
   Kontur nimmt an, das Räumen habe sie geräumt („nur das Aufmaß an den Wänden: die Tasche räumt

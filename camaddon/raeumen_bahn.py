@@ -174,6 +174,9 @@ class _Feld:
         self._ganz = (self.beruehrt, self.eng, self.rohteil_zellen)  # das ganze Rohteil
         self.mit_material = False  # gerade mit Materialstand (material_setzen)
         self._scheiben = {}  # je Radius die Scheibe im Frequenzraum, für aufweiten()
+        # In einer Tasche: nur die Knoten in ihrer Kontur (_flaeche) – sonst dürfte die Spitze
+        # überall hin, wo das Teil tiefer liegt als ihr Boden.
+        self.nur = None
 
     def zellen(self, x, y):
         """(i, j) der Zellen, in denen (x, y) liegen – auf das Raster begrenzt."""
@@ -187,8 +190,10 @@ class _Feld:
 
     def erlaubt_feld(self, lage, ziel):
         """(nx, ny): darf die Spitze auf der Lage in die Zelle? Nicht, wo die Hüllfläche höher
-        liegt – es sei denn, nichts steht höher als das Ziel (die Fläche selbst)."""
-        return (self.roh + self.zugabe <= lage + GLEICH) | (self.roh <= ziel + GLEICH)
+        liegt – es sei denn, nichts steht höher als das Ziel (die Fläche selbst) –, und in einer
+        Tasche nur in ihrer Kontur (`nur`)."""
+        erlaubt = (self.roh + self.zugabe <= lage + GLEICH) | (self.roh <= ziel + GLEICH)
+        return erlaubt if self.nur is None else erlaubt & self.nur
 
     def bei(self, feld, x, y):
         """Der Wert des Feldes an (x, y) – der strengste der vier Nachbarn bei Wahrheitswerten
@@ -524,6 +529,24 @@ def _umlauf(punkte):
     """Die Fläche des Umlaufs: > 0 gegen den Uhrzeigersinn."""
     x, y = punkte[:, 0], punkte[:, 1]
     return 0.5 * float(np.sum(x * np.roll(y, -1) - np.roll(x, -1) * y))
+
+
+def _im_vieleck(xs, ys, px, py):
+    """(len(xs), len(ys)) – liegt der Knoten (xs[i], ys[j]) im geschlossenen Vieleck mit den
+    Ecken (px, py)? Zeile für Zeile: Zwischen dem ersten und zweiten, dem dritten und vierten …
+    Schnitt der Zeile mit den Kanten liegt sie innen."""
+    px, py = np.asarray(px, dtype=float), np.asarray(py, dtype=float)
+    qx, qy = np.roll(px, -1), np.roll(py, -1)
+    xs = np.asarray(xs, dtype=float)
+    maske = np.zeros((len(xs), len(ys)), dtype=bool)
+    for j, y in enumerate(ys):
+        kreuzt = (py <= y) != (qy <= y)
+        if not kreuzt.any():
+            continue
+        anteil = (y - py[kreuzt]) / (qy[kreuzt] - py[kreuzt])
+        schnitte = np.sort(px[kreuzt] + anteil * (qx[kreuzt] - px[kreuzt]))
+        maske[:, j] = np.searchsorted(schnitte, xs) % 2 == 1
+    return maske
 
 
 # --- Die Ringe ------------------------------------------------------------------------------------
@@ -1225,6 +1248,12 @@ def _flaeche(st, netz, w, ebene, konturen, variante, r, schritt, stand=None):
         w.rohteil,
         w.zeilenabstand + schritt,
     )
+    if tasche is not None:
+        # Die Tasche endet an ihren Wänden: Liegt das Teil daneben tiefer als ihr Boden (eine
+        # Tasche in einer Insel), dürfte die Spitze sonst auch dorthin – an Manuels Testteil
+        # räumte der Boden der kleinen Tasche rund um die Insel, 10 min und 29 Rampen statt
+        # 15 s (P-2026-10-02-78).
+        feld.nur = _im_vieleck(feld.xs, feld.ys, *kb._kette(tasche, toleranz, schritt))
     hoehe = naechste = None
     decke = w.oben
     if stand is not None:

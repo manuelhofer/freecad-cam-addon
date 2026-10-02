@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-79 tasche-bleibt-in-ihrer-kontur
+
+### EINGELESEN
+- B-006 (Spezifikation Strategien, Abschnitt 13.4): An Manuels Testteil räumte der Boden der
+  kleinen Tasche (z 27, auf der oberen Stufe der Insel) allein 10,7 min – 43 Ringe und 29 Rampen
+  rund um die Insel, Last bis 8 ae.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`_Feld.nur`, `erlaubt_feld`, `_im_vieleck`, `_flaeche`),
+  `tests/test_raeumen.py` (Abschnitt e), `docs/spezifikation_strategien.md` (13.4),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.123.1)
+
+### AKZEPTANZKRITERIUM
+Das Räumen eines Taschenbodens fährt nur in der Tasche – auch wenn das Teil neben ihr tiefer
+liegt als ihr Boden; passt der Fräser nicht hinein, sagt es das in einem Satz.
+
+### DONE
+- Ursache: In einer Tasche galt als erlaubt, wo die Hüllfläche des Teils nicht höher liegt als
+  die Lage. An den Maßstabsteilen liegt neben jeder Tasche die Oberseite – höher, also gesperrt.
+  An Manuels Testteil sitzt die Tasche auf einer Insel: Daneben liegt das Teil 5 und 17 mm
+  tiefer, im Feld um die Tasche (ihr Rahmen plus 3 R + ae) also erlaubt – die Ringe „der
+  Tasche“ liefen rund um die Insel, mit Rampen ins volle Rohteil.
+- In einer Tasche sind nur die Knoten in ihrer Kontur erlaubt: `_im_vieleck` über die
+  Unterkanten ihrer Wände (`kontur_bahn._kette`), Zeile für Zeile; `_Feld.erlaubt_feld` nimmt
+  die Maske mit – auch für das, was „noch“ steht (Materialstand).
+- Am Testteil: Der Ø 12 passt mit Aufmaß nicht in die dreieckige Tasche – das Räumen sagt jetzt
+  „… die Tasche ist schmaler als der Fräser“. Über die vier Flächen 26 statt 37 min.
+- Bewusst nicht in diesem Patch: Der Assistent sagt noch nicht, dass er die Tasche auslässt
+  (B-007, Schritt T3).
+
+### TESTS
+- `tests/test_raeumen.py` (OK): eine Tasche 30 × 26 in einer Insel, neben der das Teil 10 mm
+  tiefer liegt – alle Punkte in der Tasche, 0,43 min, ohne Rest, nicht ins Teil; eine Tasche
+  schmaler als der Fräser: ein Satz statt einer Bahn. Gegenprobe mit dem alten Code: 5,27 min
+  und Punkte außerhalb – die Prüfung schlägt fehl.
+- `tests/test_pruefstand.py` (OK, unverändert). black und ruff sauber.
+- Alles in FreeCAD 1.1.4 auf Manuels Rechner; 1.1.3 und der Wochen-Build sind hier nicht
+  eingerichtet.
+
 ## P-2026-10-02-78 testteil-3achs-beschrieben
 
 ### EINGELESEN

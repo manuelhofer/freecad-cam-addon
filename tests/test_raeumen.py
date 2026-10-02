@@ -466,6 +466,37 @@ pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Platte beide: Rest {rest}, Einsch
 print(f"Platte beide: Raeumen {bahn_f.zeit:.2f} min")
 print("Platte ok")
 
+# --- (e) Eine Tasche in einer Insel: daneben liegt das Teil tiefer als ihr Boden ---------------
+# Manuels Testteil (2026-10-02): Der Boden der kleinen Tasche oben auf der Insel räumte rund um
+# die Insel – überall, wo das Teil tiefer liegt als der Boden. Die Tasche endet an ihren Wänden.
+insel_e = Part.makeBox(50, 40, 15, V(25, 10, 20))  # die Insel von z 20 bis 35
+tasche_e = Part.Face(rund_rechteck(35, 17, 65, 43, 7, 30)).extrude(V(0, 0, 5))  # Boden bei 30
+teil_e = Part.makeBox(100, 60, 20).fuse(insel_e).cut(tasche_e).removeSplitter()
+rohteil_e = (-1.0, 101.0, -1.0, 61.0)
+bahn_t = raeumen(teil_e, 30.0, werte_fuer(rohteil_e, 36.0))
+in_tasche = [p for p in bahn_t.punkte if not p.eilgang]
+pruefe(
+    all(35 + R <= p.x <= 65 - R and 17 + R <= p.y <= 43 - R for p in in_tasche),
+    f"Tasche in der Insel: x {min(p.x for p in in_tasche):.2f} … {max(p.x for p in in_tasche):.2f}, "
+    f"y {min(p.y for p in in_tasche):.2f} … {max(p.y for p in in_tasche):.2f}",
+)
+pruefe(
+    bahn_t.variante == "inseln" and bahn_t.rampen == 1 and bahn_t.zeit < 0.6,
+    f"Tasche in der Insel: {bahn_t.zeiten}, {bahn_t.rampen} Rampen",
+)
+rest, einschnitt = simuliert(bahn_t, teil_e, rohteil_e, 36.0, 30.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Tasche in der Insel: Rest {rest}, {einschnitt}")
+# Schmaler als der Fräser: Dann geht es nicht – mit einem Satz, statt um die Insel zu fahren.
+schmal_e = Part.makeBox(10, 26, 5, V(45, 17, 30))
+teil_s = Part.makeBox(100, 60, 20).fuse(insel_e).cut(schmal_e).removeSplitter()
+try:
+    raeumen(teil_s, 30.0, werte_fuer(rohteil_e, 36.0))
+except ValueError as grund:
+    pruefe(len(str(grund)) > 10, "schmale Tasche: kein Satz")
+else:
+    pruefe(False, "schmale Tasche in der Insel: eine Bahn, obwohl der Fräser nicht hineinpasst")
+print(f"Tasche in der Insel: Raeumen {bahn_t.zeit:.2f} min")
+
 # --- Fehler mit einem Satz --------------------------------------------------------------------
 netz_a = hf.netz_ohne(teil_a, [e.name for e in ebenen_a])
 for werte_falsch, ebenen_falsch, text in (
