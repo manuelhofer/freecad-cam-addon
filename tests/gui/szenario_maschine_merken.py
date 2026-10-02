@@ -7,7 +7,8 @@
 # „Neue Maschine …“ baut die gewählte Bauart und prüft gleich auf ihr; eine
 # ungespeicherte merkt sich nichts. „Maschine öffnen …“ mit einer Datei ohne
 # Maschine sagt das; mit der Datei der Maschine prüft es auf ihr. Sind zwei
-# Maschinen offen, fragt das Addon – die gemerkte steht vorn.
+# Maschinen offen und hat der Job seine, gilt sie ohne Frage (W-011 S2); hat er
+# keine, fragt das Addon – die zuletzt benutzte steht vorn.
 import os
 import shutil
 import tempfile
@@ -208,9 +209,15 @@ def schritte(h):
     yield from schliessen()
     h.pruefe(gemerkt_am_job() == datei, f"nach „Maschine öffnen …“: {gemerkt_am_job()!r}")
 
-    # --- Zwei Maschinen offen: Das Addon fragt, die gemerkte vorn ---------------------------
+    # --- Zwei Maschinen offen, der Job hat seine: ohne Frage auf ihr (W-011 S2) ----------------
     zweite, _m2 = beispielmaschine.lade(beispielmaschine.FRAESE_3)
     yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is zweite.Document)
+    yield from pruefen()
+    ohne_frage("bei zwei Maschinen, der Job hat seine")
+    yield from schliessen()
+
+    # --- … hat er keine: Das Addon fragt, die zuletzt benutzte vorn ----------------------------
+    job.removeProperty(rw.EIGENSCHAFT_MASCHINE)
     yield from pruefen()
     frage = h.modal()
     h.pruefe(isinstance(frage, QtGui.QInputDialog), f"keine Frage bei zwei Maschinen: {frage}")

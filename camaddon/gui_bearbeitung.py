@@ -38,6 +38,7 @@ from . import hoehenfeld as hf
 from . import job_schnittwerte as js
 from . import kontur as ko
 from . import kontur_bahn as kb
+from . import maschinenspeicher as msp
 from . import messstopp as ms
 from . import nut as nu
 from . import nut_bahn as nb
@@ -46,6 +47,7 @@ from . import planfraesen_bahn as pfb
 from . import raeumen as ra
 from . import raeumen_bahn as rb
 from . import reiben as rbn
+from . import reichweite as rw
 from . import schlichten3d as s3op
 from . import schlichten3d_bahn as s3b
 from . import schruppen3d as r3op
@@ -2520,9 +2522,23 @@ class BearbeitungPanel:
             aufbau.addWidget(seite)
             self.seiten.append(seite)
 
-        # --- Schritt 1: Aufspannung – Teil, Rohteil, Nullpunkt ---
+        # --- Schritt 1: Aufspannung – Maschine, Teil, Rohteil, Nullpunkt ---
         ziel[0] = self.seiten[0].layout()
         oben = _Reihen()
+        # Die Maschine zuerst (W-011 S2; Manuel, 2026-10-02: „Immer wenn ich ein Teil lade,
+        # sollte ich die Maschine auswählen“): die Liste aus „Maschinen …“, gemerkt am Job.
+        zeile = QtGui.QWidget()
+        knoepfe = QtGui.QHBoxLayout(zeile)
+        knoepfe.setContentsMargins(0, 0, 0, 0)
+        self.wahl_maschine = QtGui.QComboBox()
+        knoepfe.addWidget(self.wahl_maschine, 1)
+        self.knopf_maschinen = knopf(
+            tr("befehl.maschinen.titel"), tr("ba.maschine.liste.tooltip"), self.maschinen_oeffnen
+        )
+        knoepfe.addWidget(self.knopf_maschinen)
+        oben.reihe(tr("ba.maschine"), tr("ba.maschine.tooltip"), zeile)
+        self.maschine_hinweis = _grau()
+        oben.ganz(self.maschine_hinweis)
         self.teil_text = QtGui.QLabel(tr("ba.teil.keins"))
         self.teil_text.setWordWrap(True)
         oben.reihe(tr("ba.teil"), "", self.teil_text)
@@ -2559,6 +2575,8 @@ class BearbeitungPanel:
         knoepfe.addWidget(self.knopf_x_rechts)
         oben.reihe(tr("ba.x"), tr("ba.x.tooltip"), zeile)
         ziel[0].addWidget(oben.widget)
+        self._maschinen_fuellen()
+        self.wahl_maschine.currentIndexChanged.connect(lambda _i: self._maschine_gewaehlt())
         self._lage_zeigen()
         titel(tr("ba.rohteil"), tr("ba.rohteil.text"))
         grautext(tr("ba.rohteil.text"))
@@ -2980,6 +2998,7 @@ class BearbeitungPanel:
             return
         self._job_offen = True
         self._job_zeigen()
+        self._maschine_gewaehlt()  # der neue Job bekommt die gewählte Maschine
         if self.nullpunkt() is not None or self._nullpunkt_versatz().Length > 0:
             self._nullpunkt_setzen(self.job)
         form = vr.modell(self.job).Shape
@@ -3008,6 +3027,81 @@ class BearbeitungPanel:
         if _globale_transaktionen():
             FreeCAD.setActiveTransaction(tr("ba.titel"), True)
         return job
+
+    # --- Maschine (W-011 S2) ------------------------------------------------------------------
+
+    def _maschinen_fuellen(self, auswahl=None):
+        """Die Maschinen aus der Liste („Maschinen …“) in die Wahl. Vorgewählt `auswahl` (eine
+        Datei; "" heißt keine), ohne die des Jobs, sonst die zuletzt benutzte, sonst die
+        erste. Ohne Maschine in der Liste steht „keine“ da – der Assistent rechnet dann mit
+        einer 3-Achs-Fräse."""
+        eintraege = msp.laden()
+        gewollt = auswahl is not None
+        if not gewollt:
+            auswahl = rw.gemerkte_maschine(self.job)
+        index = next(
+            (i for i, e in enumerate(eintraege) if msp.gleiche_datei(e.datei, auswahl)), None
+        )
+        keine = not eintraege or (index is None and gewollt)
+        self._maschinen_fuellt = True
+        try:
+            self.wahl_maschine.clear()
+            if keine:
+                self.wahl_maschine.addItem(tr("ba.maschine.keine"), "")
+            for eintrag in eintraege:
+                art = msp.art_text(eintrag)
+                text = (
+                    eintrag.name
+                    if eintrag.name == art
+                    else tr("ba.maschine.eintrag", name=eintrag.name, art=art)
+                )
+                if not eintrag.vorhanden:
+                    text = tr("ba.maschine.fehlt", maschine=text)
+                self.wahl_maschine.addItem(text, eintrag.datei)
+            if index is not None:
+                self.wahl_maschine.setCurrentIndex(index + int(keine))
+            else:
+                self.wahl_maschine.setCurrentIndex(0)
+        finally:
+            self._maschinen_fuellt = False
+        self._maschine_gewaehlt()
+
+    def maschine(self):
+        """Der Eintrag der gewählten Maschine (maschinenspeicher.Eintrag) – oder None."""
+        datei = self.wahl_maschine.currentData() or ""
+        return msp.finde(msp.laden(), datei) if datei else None
+
+    def _maschine_gewaehlt(self):
+        """Die Wahl gilt: am Job gemerkt (und als zuletzt benutzt), der Satz darunter, die
+        graue Zeile in Schritt 2."""
+        if getattr(self, "_maschinen_fuellt", False):
+            return
+        eintrag = self.maschine()
+        if eintrag is None:
+            self.maschine_hinweis.setText(tr("ba.maschine.leer"))
+            self.maschine_hinweis.setStyleSheet(f"color: {GRAU_TEXT};")
+        elif not eintrag.vorhanden:
+            self.maschine_hinweis.setText(tr("ba.maschine.nicht_gefunden"))
+            self.maschine_hinweis.setStyleSheet(f"color: {ROT};")
+        else:
+            self.maschine_hinweis.setText("")
+        self.maschine_hinweis.setVisible(bool(self.maschine_hinweis.text()))
+        if eintrag is not None and self.job is not None and self.zu_aendern is None:
+            rw.merke_maschine(self.job, eintrag.datei)
+        self._rohteil_kurz_zeigen()
+
+    def maschinen_oeffnen(self):
+        """„Maschinen …“: die Liste zum Hinzufügen und Bauen; danach ist die Wahl neu gefüllt."""
+        from . import gui_maschinen
+
+        dialog = gui_maschinen.oeffne()
+        dialog.finished.connect(
+            lambda _ergebnis: (
+                self._maschinen_fuellen(self.wahl_maschine.currentData() or None)
+                if not self.geschlossen
+                else None
+            )
+        )
 
     def _rohteil_setzen(self, job):
         """Das Rohteil des Jobs mit dem Aufmaß aus den Feldern – ein Quader um das Teil."""
@@ -3051,7 +3145,11 @@ class BearbeitungPanel:
             nullpunkt = tr("ba.nullpunkt.kurz_verschoben", wahl=wahl)
         else:
             nullpunkt = tr("ba.nullpunkt.kurz", wahl=wahl)
-        self.rohteil_kurz.setText(f"{aufmass} · {nullpunkt}")
+        teile = [aufmass, nullpunkt]
+        eintrag = self.maschine() if hasattr(self, "wahl_maschine") else None
+        if eintrag is not None:
+            teile.insert(0, tr("ba.maschine.kurz", name=eintrag.name))
+        self.rohteil_kurz.setText(" · ".join(teile))
 
     def _rohteil_geaendert(self):
         self._rohteil_kurz_zeigen()
@@ -3203,6 +3301,10 @@ class BearbeitungPanel:
         for b in self.bloecke:
             b.zustand_zeigen()
         self.rohteilfelder.setEnabled(False)
+        # Die des Jobs – sie bleibt, wie sie im Job steht (ohne: „keine“).
+        self._maschinen_fuellen(getattr(self.job, rw.EIGENSCHAFT_MASCHINE, ""))
+        self.wahl_maschine.setEnabled(False)
+        self.knopf_maschinen.setEnabled(False)
         for widget in (self.nullpunkt_titel, self.nullpunkt_text, self.nullpunktfelder):
             widget.setVisible(False)  # der Nullpunkt bleibt, wie er im Job steht
         # Schlichten und Messstopp nach dem Räumen legt nur „Anlegen“ an – sie sind eigene

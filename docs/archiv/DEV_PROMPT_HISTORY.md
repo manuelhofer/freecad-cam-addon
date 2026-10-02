@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-59 maschine-in-schritt-1
+
+### EINGELESEN
+- Manuel, 2026-10-02: „Immer wenn ich ein Teil lade, sollte ich die Maschine auswählen ...
+  Wenn ich das Teil dann woanders bearbeite ... kann ich das noch mal laden“ (W-011, S2).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (Reihe „Maschine“ in Schritt 1, `_maschinen_fuellen`,
+  `_maschine_gewaehlt`, `maschine`, `maschinen_oeffnen`, graue Zeile in Schritt 2),
+  `camaddon/gui_reichweite.py` (`maschine_fuer` mit `_maschine_des_jobs`),
+  `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `help/de|en/reichweite.html`, `tests/gui/szenario_bearbeitung_maschine.py` (neu),
+  `tests/gui/szenario_maschine_merken.py`, `docs/spezifikation_maschine_aus_baugruppe.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.112.0)
+
+### AKZEPTANZKRITERIUM
+Schritt 1 zeigt die Maschinen der Liste, vorgewählt die vom letzten Mal; der Job merkt die
+Wahl; „Auf der Maschine prüfen“ öffnet sie ohne Frage.
+
+### DONE
+- Die Wahl geht sofort an den Job (auch an den neuen, sobald er entsteht); beim Ändern einer
+  Operation zeigt die Reihe die Maschine des Jobs und ist fest.
+- Prüfen: Hat der Job seine Maschine, gilt sie – offen oder aus ihrer Datei geöffnet –, auch
+  wenn andere offen sind; ohne fragt es wie bisher (die zuletzt benutzte vorn).
+
+### TEST
+- `test_sprache`, `test_hilfe`, `test_reichweite`; Szenarien `szenario_bearbeitung_maschine`,
+  `szenario_maschine_merken`, `szenario_bearbeitung`, `szenario_zielzeit`, `szenario_planen`,
+  `szenario_nut`, `szenario_vierachs_maschine`, `szenario_bestueckung` (1.1.3).
+
+### NEXT
+- S3: Drehmaschine oder 4-Achs-Fräse gewählt – weiter im 4-Achs-Assistenten mit der Stange.
+
 ## P-2026-10-02-58 maschinen-liste
 
 ### EINGELESEN

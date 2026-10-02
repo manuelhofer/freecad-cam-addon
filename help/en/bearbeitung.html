@@ -16,7 +16,7 @@ li { margin-bottom: 0.4em; }
 vertical. The button “Machining (milling)” opens the window; the way from the
 part to the operations has three steps; at the top it says which one you are in (“Step 1 of
 3 – Setup”), at the bottom <b>← Back</b> and <b>Next →</b> lead back and forth: the
-<b>setup</b> (part, stock, origin), <b>What comes off?</b> (the faces and one tick per
+<b>setup</b> (machine, part, stock, origin), <b>What comes off?</b> (the faces and one tick per
 machining with its time), the <b>settings</b> of the ticked ones; in the last step
 <b>Create</b> stands at the bottom instead of “Next →”. “Create” (also “OK” of the task)
 works from every step – with what is suggested. The machinings: <b>Face milling</b> and
@@ -26,8 +26,14 @@ cylindrical holes, <b>Contour</b> for walls, <b>Tapping</b> in core holes,
 <b>Rest material</b> with the smaller cutter. “Create” creates all ticked ones. For a round stock
 with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
 
-<h3>1. Setup: part and stock</h3>
+<h3>1. Setup: machine, part and stock</h3>
 <ul>
+<li><b>Machine</b> – at the very top: on which of your machines you mill the part, from the
+list in <a href="maschinen.html">Machines …</a> (the button next to it opens it). The one from
+last time is preselected; the job remembers the choice, and <b>Check on machine</b> then uses
+it without asking. If you machine the part elsewhere later, choose the other one here. If
+there is no machine in the list yet, it says “– no machine –”, and the assistant assumes a
+3-axis mill. In step 2 the machine is shown first in the grey line.</li>
 <li><b>Click the face you want to machine</b> (before or in the window) – the face
 that should become flat, or a wall for the contour. This chooses the part, and the add-on
 creates the <b>job with the stock</b>: a block around the part with an

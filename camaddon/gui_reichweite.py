@@ -85,9 +85,13 @@ class BefehlAufMaschinePruefen:
 def maschine_fuer(job, hauptfenster):
     """Die Maschine, auf der der Job geprüft wird: (Assembly, Maschine) oder None.
 
-    Ist keine offen, öffnet sich die gemerkte – auf der zuletzt geprüft wurde (D-20) –, und
-    fehlt auch die, fragt eine Meldung. Ist eine offen, gilt sie; sind mehrere offen, fragt
-    das Addon, die gemerkte vorgewählt."""
+    Hat der Job seine Maschine (Schritt 1 des Assistenten, die letzte Prüfung – W-011 S2),
+    gilt sie ohne Frage: offen oder aus ihrer Datei geöffnet. Sonst: Ist keine offen, öffnet
+    sich die zuletzt benutzte (D-20), und fehlt auch die, fragt eine Meldung. Ist eine offen,
+    gilt sie; sind mehrere offen, fragt das Addon, die zuletzt benutzte vorgewählt."""
+    eigene = _maschine_des_jobs(job)
+    if eigene is not None:
+        return eigene
     gemerkt = rw.gemerkte_maschine(job)
     maschinen = offene_maschinen(job.Document)
     if not maschinen and gemerkt and os.path.isfile(gemerkt):
@@ -101,6 +105,28 @@ def maschine_fuer(job, hauptfenster):
         maschinen.sort(key=lambda e: not gleiche_datei(e[0].Document.FileName, gemerkt))
         return waehle_maschine(maschinen)
     return maschinen[0] if maschinen else None
+
+
+def _maschine_des_jobs(job):
+    """(Assembly, Maschine) der Maschine, die am Job steht – offen oder aus ihrer Datei
+    geöffnet; None, wenn er keine hat, die Datei fehlt oder keine Maschine enthält."""
+    datei = getattr(job, rw.EIGENSCHAFT_MASCHINE, "")
+    if not datei or not os.path.isfile(datei):
+        return None
+
+    def offen():
+        return next(
+            (e for e in offene_maschinen(job.Document)
+             if gleiche_datei(e[0].Document.FileName, datei)),
+            None,
+        )  # fmt: skip
+
+    gefunden = offen()
+    if gefunden is None:
+        with contextlib.suppress(Exception):  # nicht mehr lesbar – dann wie ohne
+            oeffne_datei(datei)
+        gefunden = offen()
+    return gefunden
 
 
 def maschine_oeffnen(hauptfenster, job):

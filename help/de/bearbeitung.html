@@ -16,7 +16,7 @@ li { margin-bottom: 0.4em; }
 Werkzeugachse steht senkrecht. Der Knopf „Bearbeitung (Fräsen)“ öffnet das
 Fenster; der Weg vom Teil zu den Operationen hat drei Schritte, oben steht, in welchem
 man ist („Schritt 1 von 3 – Aufspannung“), unten führen <b>← Zurück</b> und <b>Weiter →</b>
-hin und her: die <b>Aufspannung</b> (Teil, Rohteil, Nullpunkt), <b>Was soll weg?</b> (die
+hin und her: die <b>Aufspannung</b> (Maschine, Teil, Rohteil, Nullpunkt), <b>Was soll weg?</b> (die
 Flächen und je Bearbeitung ein Haken mit ihrer Zeit), die <b>Einstellungen</b> der
 angehakten; im letzten Schritt steht unten statt „Weiter →“ <b>Anlegen</b>. „Anlegen“ (auch
 „OK“ der Aufgabe) geht aus jedem Schritt – mit dem, was vorgeschlagen ist. Die
@@ -27,8 +27,15 @@ und <b>Bohrung fräsen</b> für zylindrische Bohrungen, <b>Kontur</b> für Wänd
 alle angehakten an. Für ein rundes Rohteil mit Rundachse gibt es die
 <a href="vierachs.html">4-Achs-Bearbeitung</a>.</p>
 
-<h3>1. Aufspannung: Teil und Rohteil</h3>
+<h3>1. Aufspannung: Maschine, Teil und Rohteil</h3>
 <ul>
+<li><b>Maschine</b> – ganz oben: auf welcher deiner Maschinen du das Teil fräst, aus der
+Liste in <a href="maschinen.html">Maschinen …</a> (der Knopf daneben öffnet sie). Vorgewählt
+ist die vom letzten Mal; der Job merkt sich die Wahl, und <b>Auf der Maschine prüfen</b>
+nimmt sie dann ohne Frage. Fräst du das Teil später woanders, wählst du hier die andere.
+Steht noch keine Maschine in der Liste, steht da „– keine Maschine –“, und der Assistent
+rechnet mit einer 3-Achs-Fräse. In Schritt 2 steht die Maschine vorn in der grauen
+Zeile.</li>
 <li><b>Die Fläche anklicken, die du bearbeiten willst</b> (vorher oder im Fenster) – die
 Fläche, die eben werden soll, oder eine Wand für die Kontur. Damit ist das Teil gewählt, und
 das Addon legt den <b>Job mit dem Rohteil</b> an: ein Quader um das Teil mit

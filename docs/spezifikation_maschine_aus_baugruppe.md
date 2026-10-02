@@ -608,6 +608,14 @@ Rohteil selten eckig.“
     der Rundachsen zum Positionieren); `test_maschinenspeicher`, `szenario_maschinen`.
   - **S2 Die Maschine in Schritt 1:** die Liste, vorgewählt wie oben; gemerkt am Job;
     „Auf der Maschine prüfen“ fragt nicht mehr, wenn der Job eine hat.
+    **Gebaut:** P-2026-10-02-59, 0.112.0 – `gui_bearbeitung`: Reihe „Maschine“ oben in
+    Schritt 1 (`wahl_maschine`, Knopf „Maschinen …“), vorgewählt die des Jobs, sonst die
+    zuletzt benutzte, sonst die erste; ohne Liste „– keine Maschine –“ mit dem Satz, dass der
+    Assistent dann mit einer 3-Achs-Fräse rechnet; die Wahl geht sofort an den Job
+    (`reichweite.merke_maschine`), Schritt 2 zeigt „Maschine: …“ vorn in der grauen Zeile; beim
+    Ändern einer Operation fest. `gui_reichweite.maschine_fuer`: die Maschine des Jobs ohne
+    Frage (`_maschine_des_jobs`, öffnet ihre Datei); nur ohne fragt es wie bisher.
+    `szenario_bearbeitung_maschine`, `szenario_maschine_merken`.
   - **S3 Die Art entscheidet:** Drehmaschine oder 4-Achs-Fräse – weiter im 4-Achs-Assistenten
     mit einer Stange; 3- und 5-Achs-Fräse – der Quader wie heute (5-Achs vorerst wie 3-Achs).
   - **S4 Rohteil aus dem Dokument:** erst der Job mit dem Körper als Rohteil und seinen Maßen
