@@ -131,6 +131,9 @@ class Schruppwerte:
     eintauchwinkel: float = EINTAUCHWINKEL  # Grad, für die Rampe ins Material
     # Die Spirale im Gleichlauf für M3 (spindel.fuer_m3): False – andersherum (M4, Gegenlauf).
     gleichlauf: bool = True
+    # Mit gewählten Flächen die Zeilen nur im Gleichlauf: jede für sich, dazwischen abheben
+    # (P-2026-10-02-26); sonst hin und her.
+    nur_gleichlauf: bool = False
 
 
 @dataclass(frozen=True)
@@ -507,10 +510,14 @@ def _einzeln(drin, steigend, absteigend=False):
     Zeilen der Reihe nach, `absteigend` von der letzten an. `drin` wie bei _fahrten()."""
     fahrten = []
     zeilen = range(drin.shape[0] - 1, -1, -1) if absteigend else range(drin.shape[0])
+    n = drin.shape[1]
     for m in zeilen:
         for anfang, laenge in _bereiche(drin[m]):
-            letzte = anfang + laenge - 1
-            js = _von_bis(anfang, letzte) if steigend else _von_bis(letzte, anfang)
+            if laenge >= n:  # rundum: einmal ganz herum, endet, wo er begann
+                js = _von_bis(0, n) if steigend else _von_bis(0, -n)
+            else:
+                letzte = anfang + laenge - 1
+                js = _von_bis(anfang, letzte) if steigend else _von_bis(letzte, anfang)
             fahrten.append([("zeile", m, js)])
     return fahrten
 
@@ -674,7 +681,14 @@ def _schruppen_zeilen(punkte, zeilen_a, boden, boden_bei, lagen, w, schritt_phi)
     n = boden.shape[1]
     phi_werte = np.radians(schritt_phi * np.arange(n))
     drin = w.bereich.bei(zeilen_a[:, None], phi_werte[None, :])
-    fahrten = _fahrten(drin)
+    if w.nur_gleichlauf:
+        # Jede Zeile für sich, der Winkel so, dass das Material – bei der nächsten Zeile längs –
+        # für den Gleichlauf auf der richtigen Seite liegt (P-2026-10-02-26).
+        vor = 1.0 if len(zeilen_a) > 1 and zeilen_a[1] > zeilen_a[0] else -1.0
+        steigend = sp.ist_gleichlauf((-1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, vor))
+        fahrten = _einzeln(drin, steigend == bool(w.gleichlauf))
+    else:
+        fahrten = _fahrten(drin)
     sicher = w.stange_radius + w.sicherheit
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     nah = np.concatenate([[False], np.diff(-zeilen_a) <= w.fraeser_radius + GLEICH])

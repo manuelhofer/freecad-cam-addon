@@ -852,7 +852,9 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   Absatz ist Planfräsen so 6 % langsamer als Räumen – der Wettbewerb gibt den Haken dann an
   Räumen (`szenario_plan_gleichlauf`). Ebenso „Plan indexiert“ auf der Drehmaschine: jede
   Zeile von vorne zum Futter, die Zeilen quer in der Folge, die dafür Gleichlauf ist; Haken
-  im 4-Achs-Assistenten. Rundum mit gewählten Flächen und Linien längs noch hin und her.
+  im 4-Achs-Assistenten. Ebenso „Rundum schruppen“ mit gewählten Flächen (P-2026-10-02-26):
+  jede Zeile rund um die Stange für sich, der Winkel so, dass das Material bei der nächsten
+  Zeile längs auf der Seite des Gleichlaufs liegt. „Linien längs“ (Schlichten) noch hin und her.
 - **S3e Kontur** – außen und innen mit tangentialem Ein- und Ausfahren,
   Schruppen mit Aufmaß und Schlichten in einem Schritt; Konturen versetzen im
   Bahnmodell (dann auch die Spirale fürs Planfräsen).

@@ -736,6 +736,7 @@ class VierachsPanel:
                 ("steigung", op.VorschubJeUmdrehung),
                 ("aufmass", op.Aufmass),
             ]
+            self.schruppen_nur_gleichlauf.setChecked(bool(getattr(op, "NurGleichlauf", False)))
         paare += [("abstand_futter", op.AbstandFutter), ("sicherheit", op.Sicherheitsabstand)]
         self.gewaehlte = list(vo.flaechen(op))
         self._flaechen_zeigen()
@@ -1125,6 +1126,11 @@ class VierachsPanel:
             ("aufmass", tr("va.aufmass"), tr("va.aufmass.tooltip")),
         ):
             zahlenfeld(self.felder_schruppen, feld, text, tooltip, schruppen)
+        # Mit gewählten Flächen die Zeilen nur im Gleichlauf (P-2026-10-02-26).
+        self.schruppen_nur_gleichlauf = QtGui.QCheckBox(tr("ba.nur_gleichlauf"))
+        self.schruppen_nur_gleichlauf.setToolTip(tr("va.schruppen.nur_gleichlauf.tooltip"))
+        self.schruppen_nur_gleichlauf.toggled.connect(lambda _an: self._vorschau_starten())
+        schruppen.ganz(self.schruppen_nur_gleichlauf)
         self.schruppfelder = schruppen.widget
         aufbau.addWidget(self.schruppfelder)
         self.ergebnis = grau()
@@ -2887,6 +2893,7 @@ class VierachsPanel:
                     self._halter_fuer(werkzeug),
                     self.flaechen(),
                     self._eintauchwinkel(),
+                    nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
                 )
             except ValueError as fehler:
                 gruende.append(str(fehler))
@@ -3298,6 +3305,7 @@ class VierachsPanel:
                             halter=self._halter_fuer(self.fraeser()),
                             flaechen_=flaechen,
                             eintauchwinkel=self._eintauchwinkel(),
+                            nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
                         )
                     )
                 if schlichten:
@@ -3503,6 +3511,7 @@ class VierachsPanel:
                         halter_=self._halter_fuer(self.fraeser()),
                         flaechen_=flaechen,
                         eintauchwinkel=self._eintauchwinkel(),
+                        nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
                     )
                 if schlichten_dazu:
                     tc_neu = js.controller_ohne_transaktion(

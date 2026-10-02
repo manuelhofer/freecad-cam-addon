@@ -86,6 +86,7 @@ class RundumSchruppen(PathOp.ObjectOp):
             + flaechen_eigenschaften()
             + (
                 ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
+                ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
                 ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
             ),
         )
@@ -197,6 +198,7 @@ def rechne(obj, job, modell, fraeser_radius):
         flaechen(obj),
         float(obj.Eintauchwinkel),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
+        nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
     )
 
 
@@ -216,6 +218,7 @@ def bahn_fuer(
     flaechen_=(),
     eintauchwinkel=vb.EINTAUCHWINKEL,
     gleichlauf=True,
+    nur_gleichlauf=False,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -249,6 +252,7 @@ def bahn_fuer(
         bereich=vf.bereich_fuer(form, laengs, radial, flaechen_, fraeser_radius),
         eintauchwinkel=eintauchwinkel,
         gleichlauf=gleichlauf,
+        nur_gleichlauf=nur_gleichlauf,
     )
     return vb.schruppen(vh.vernetze(form), laengs, radial, werte)
 
@@ -310,6 +314,7 @@ def lege_an(
     halter=0.0,
     flaechen_=(),
     eintauchwinkel=None,
+    nur_gleichlauf=False,
 ):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
     (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
@@ -344,6 +349,7 @@ def lege_an(
     obj.Flaechen = list(flaechen_)
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
+    obj.NurGleichlauf = bool(nur_gleichlauf)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -383,6 +389,7 @@ def aendere(
     halter_=None,
     flaechen_=None,
     eintauchwinkel=None,
+    nur_gleichlauf=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`, `halter_`,
@@ -403,6 +410,8 @@ def aendere(
         obj.Flaechen = list(flaechen_)
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
+    if nur_gleichlauf is not None:
+        obj.NurGleichlauf = bool(nur_gleichlauf)
 
 
 def setze_achse(obj, achse, quer_auf_null=None):

@@ -6,7 +6,8 @@
 # mit G93 und die Fälle, die nicht gehen. Nur über gewählten Flächen (V4): Abflachung einer
 # Welle – gefräst wird nur, wo der Fräser sie berührt, in Zeilen hin und her; hinein über
 # eine Rampe. Gleichlauf über die Rundachse (P-2026-10-02-23): mit M3 steigt φ, während die
-# Spirale zum Futter rückt; andersherum (M4) fällt es – dieselbe Bahn gespiegelt.
+# Spirale zum Futter rückt; andersherum (M4) fällt es – dieselbe Bahn gespiegelt. Mit
+# Flächen nur im Gleichlauf (P-2026-10-02-26): jede Zeile für sich in einer Richtung.
 import math
 import os
 import sys
@@ -498,6 +499,33 @@ rest_ecke = float((ecke - ebene).max())
 pruefe(rest_ecke < 1.3, f"in den Ecken der Abflachung bleiben {rest_ecke:.3f} mm")
 gegenueber = stange.r[:, np.abs(winkel) >= 120]
 pruefe(float(gegenueber.min()) == 12.0, f"gegenüber abgetragen: bis {float(gegenueber.min())}")
+# Nur im Gleichlauf (P-2026-10-02-26): jede Zeile für sich, mit M3 φ steigend (die Zeilen rücken
+# zum Futter, dort ist das Material), dazwischen abheben; M4 andersherum. Über der Abflachung
+# bleibt nicht mehr stehen als hin und her.
+for gleichlauf, name in ((True, "M3"), (False, "M4")):
+    einzeln = vb.schruppen(
+        vh.vernetze(flach_welle),
+        C_LAENGS,
+        C_RADIAL,
+        replace(werte_flach, nur_gleichlauf=True, gleichlauf=gleichlauf),
+    )
+    # Je Fahrt (zwischen zwei Eilgängen) vom Anfang zum Ende: der Winkel in einer Richtung (die
+    # Rampe der ersten Zeile einer Lage fährt hin und her, am Ende steht sie wieder am Anfang).
+    fahrten_e, jetzt = [], []
+    for p in einzeln.punkte:
+        if p.eilgang:
+            if len(jetzt) > 1:
+                fahrten_e.append(jetzt)
+            jetzt = []
+        else:
+            jetzt.append(p)
+    pruefe(
+        len(fahrten_e) >= 2 * einzeln.lagen
+        and all((f[-1].phi > f[0].phi) == gleichlauf for f in fahrten_e),
+        f"{name}: Zeilen nicht alle in einer Richtung "
+        f"{[round(f[-1].phi - f[0].phi, 1) for f in fahrten_e]}",
+    )
+    pruefe(einzeln.lagen == flach_bahn.lagen, f"{name}: {einzeln.lagen} Lagen")
 print(
     ascii(
         f"Abflachung: {flach_bahn.lagen} Lagen, {rampen} Rampen, {senkrechte} senkrecht, "

@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-26 rundum-zeilen-gleichlauf
+
+### EINGELESEN
+- `vierachs_bahn._schruppen_zeilen`, `_einzeln`, `vierachs_operation` (Eigenschaften, `lege_an`,
+  `aendere`, `bahn_fuer`), `gui_vierachs` (Rundum schruppen).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py`, `camaddon/vierachs_operation.py`, `camaddon/gui_vierachs.py`,
+  `translations/de.json`, `translations/en.json`, `tests/test_vierachs_bahn.py`,
+  `help/de|en/vierachs.html`, `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.88.0)
+
+### AKZEPTANZKRITERIUM
+Wie P-2026-10-02-24 für „Rundum schruppen“ mit gewählten Flächen (Zeilen rund um die Stange hin
+und her): „nur im Gleichlauf (abheben, von vorne)“ wählbar.
+
+### DONE
+- `_schruppen_zeilen`: mit `nur_gleichlauf` die Fahrten aus `_einzeln` – der Winkel so, dass das
+  Material bei der nächsten Zeile längs für M3 rechts liegt (M4 andersherum); neben der Zeile
+  davor senkrecht hinein (wie bisher), die erste Zeile einer Lage über die Rampe.
+- `_einzeln`: Zeilen ganz rundum einmal herum bis zum Anfang.
+- Eigenschaft `NurGleichlauf` an „Rundum schruppen“, Haken im 4-Achs-Assistenten unter den
+  Schruppwerten (beim Ändern aus der Operation).
+
+### TEST
+- 1.1.3: `test_vierachs_bahn` (Abflachung: je Fahrt φ steigend mit M3, fallend mit M4, gleich
+  viele Lagen), `test_vierachs_operation`, `test_sprache`, `test_hilfe`; Szenarien
+  `szenario_vierachs_flaechen`, `szenario_vierachs_schruppen`, `szenario_vierachs_aendern` grün;
+  black/ruff grün.
+
+### NEXT
+- „Linien längs“ (Schlichten) wählbar; die geschlossene Nut mit dem schonenden Schritt (Frage an
+  Manuel).
+
 ## P-2026-10-02-25 entgraten-gleichlauf
 
 ### EINGELESEN
