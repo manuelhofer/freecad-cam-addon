@@ -13,10 +13,9 @@ Bögen statt Vollschnitt.
   Bögen wie in der offenen Nut (unten) bis in den Halbkreis am anderen Ende: je Bogen ein
   Halbkreis mit dem Radius r − R − Aufmaß im Gleichlauf von der einen Wand nach vorn durchs
   Material zur anderen (M3: gegen den Uhrzeigersinn), quer zurück über die freie Seite im
-  Schnellvorschub, an der Wand vor in den nächsten – mit dem schonenden Schritt
-  (_bogenschritt; Manuel, 2026-10-02: „Ja“). Bis P-2026-10-02-52 volle Kreise (Trochoide), die
-  hinten durch schon freie Luft liefen: je Schritt gut ein Zehntel länger. Die nächste Lage
-  zurück.
+  Schnellvorschub, an der Wand vor in den nächsten – mit dem Schritt nach der Last
+  (_bogenschritt, unten). Bis P-2026-10-02-52 volle Kreise (Trochoide), die hinten durch schon
+  freie Luft liefen: je Schritt gut ein Zehntel länger. Die nächste Lage zurück.
 - **Vollnut** (ist die Nut kaum breiter als der Fräser – die Bögen hätten einen Radius unter
   VOLLNUT_ANTEIL · R): in einer Zickzack-Rampe längs der Mittellinie hinab, unten einmal eben
   hinüber. Je Fahrt höchstens so viel tiefer, dass der Fräser nie mehr als ap und nie mehr als
@@ -39,15 +38,17 @@ Bögen statt Vollschnitt.
   der Halbkreis, der schneidet – im Gleichlauf von der einen Wand nach vorn durchs Material zur
   anderen, so dass in der Mitte eine Delle entsteht –, dann quer über die freie Seite zurück
   im Schnellvorschub (RUECKWEG × Vorschub, G1: im Eilgang fährt nicht jede Steuerung gerade)
-  und an der Wand um ae vor in den nächsten Bogen. Der Eingriff wächst auf jedem Bogen von 0 an
-  der Wand bis zum Schritt in der Mitte und fällt wieder. In der Delle umschlingt der Fräser das
-  Material weiter als an einer geraden Wand: Der Schritt ist so klein, dass der Eingriffswinkel
-  in der Mitte nicht größer ist als auf gerader Bahn mit ae (_bogenschritt) – so bleibt der Span
-  wie geplant, beim vollen Vorschub (in einer Nut, kaum breiter als der Fräser, gut ein Viertel
-  von ae; in breiten fast ae). Am Anfang morphen die Bögen vom geraden Rand
-  zum Halbkreis: Die Enden bleiben an der Wand stehen, die Mitte rückt je Bogen um ae vor –
-  keiner schneidet in der Luft. Jede Lage beginnt draußen am offenen Ende (keine Helix): So
-  hat eine offene Nut keine Grenze in der Breite – in ihrer Mitte bleibt kein Kern.
+  und an der Wand vor in den nächsten Bogen. Der Eingriff wächst auf jedem Bogen von 0 an der
+  Wand bis in die Mitte und fällt wieder. ae ist die Last (Spezifikation Strategien 12.1 (a),
+  P-2026-10-02-56; _bogenschritt): Je Bogen nimmt der Fräser im Mittel so viel Material je mm
+  Weg wie auf gerader Bahn mit ae, in der Mitte kurz bis 1,7 ae, über 1,25 ae nie länger als
+  eine Fräserbreite Weg, und er umschlingt das Material nie mehr als zur Hälfte – mit dem Ø 12
+  und ae 1,5 in der Nut 20 rückt er um 0,97 mm vor (bis P-2026-10-02-55 der schonende Schritt,
+  0,65: in der Mitte nicht mehr Umschlingung als an einer geraden Wand mit ae). Am Anfang
+  morphen die Bögen vom geraden Rand zum Halbkreis: Die Enden bleiben an der Wand stehen, die
+  Mitte rückt je Bogen um den Schritt vor – keiner schneidet in der Luft. Jede Lage beginnt
+  draußen am offenen Ende (keine Helix): So hat eine offene Nut keine Grenze in der Breite – in
+  ihrer Mitte bleibt kein Kern.
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -71,6 +72,10 @@ MIN_STEIGUNG = 0.05  # mm je Umlauf – flacher wird keine Helix
 MIN_RAMPE = 0.01  # mm je Fahrt – flacher wird die Rampe der Vollnut nicht
 DURCH_PRUEFEN = 0.05  # mm unter dem Grund wird nach Material gesehen
 RUECKWEG = 3.0  # × Vorschub: so schnell quer zurück über die freie Seite (G1, nicht G0)
+# × D: so lang am Stück rechnet _bogenschritt die Last über bahn.LAST_DAUERND · ae höchstens
+# (erlaubt ist eine Fräserbreite) – der Fräser greift vor seiner Mitte ein, so verteilt sich die
+# Last auf dem Bogen etwas breiter als gerechnet (der Prüfstand misst bis 6 % mehr).
+UEBER_WEG = 0.8
 
 
 @dataclass(frozen=True)
@@ -693,12 +698,38 @@ def _offen_bei(nut, ende):
 
 
 def _bogenschritt(r_l, R, ae):
-    """So weit rücken die Bögen vor (mm): Der Fräser (Radius R, seine Mitte auf dem Bogen mit
-    dem Radius r_l) soll in der Delle (Radius r_l + R) nicht weiter umschlingen als an einer
-    geraden Wand mit ae – cos des Eingriffswinkels (R − ae) / R. Aus den Kreisen um die alte
-    und die neue Mitte der Delle: s² + 2 (r_l + R − ae) s = 2 r_l ae."""
-    a = r_l + R - ae
-    return min(ae, max(MIN_SCHRITT, -a + math.sqrt(a * a + 2.0 * r_l * ae)))
+    """So weit rücken die Bögen vor (mm) – ae ist die Last (Spezifikation Strategien 12.1 (a);
+    Manuel, 2026-10-02: „im Mittel … Sogar 25 %, solange es noch über r geht“).
+
+    Je Bogen nimmt der Fräser (Radius R, seine Mitte auf dem Bogen mit dem Radius r_l) den
+    Streifen zwischen zwei Dellen (Radius ρ = r_l + R) im Abstand s: 2 ρ s auf π r_l + s Weg
+    (der Halbkreis, das Stück an der Wand; quer zurück fährt er in der Luft). Im Mittel so viel
+    je mm wie auf gerader Bahn mit ae: s = π r_l ae / (2 ρ − ae). Auf dem Bogen wächst die
+    Breite im Eingriff von 0 an der Wand bis in die Mitte und fällt wieder – im Winkel θ vom
+    Scheitel t (2 ρ − t) / (2 r_l) mit t = s cos θ, in der Mitte etwa π/2 · ae. Dort höchstens
+    bahn.LAST_KURZ · ae; über bahn.LAST_DAUERND · ae höchstens UEBER_WEG Fräserbreiten Weg am
+    Stück – das begrenzt den Schritt in breiten Nuten, wo die Bögen lang sind. Nie über r: In
+    der Delle umschlingt der Fräser das Material höchstens wie eine gerade Wand mit ae = R
+    (Eingriffswinkel 90°) – aus den Kreisen um die alte und die neue Mitte der Delle:
+    s² + 2 r_l s ≤ 2 r_l R."""
+    if r_l <= GLEICH:
+        return MIN_SCHRITT
+    rho = r_l + R
+
+    def bis(last, cos):
+        # So groß darf s sein, damit die Breite bei cos θ höchstens `last` ist.
+        rest = rho * rho - 2.0 * last * r_l
+        if rest < 0.0 or cos <= GLEICH:
+            return math.inf
+        return (rho - math.sqrt(rest)) / cos
+
+    schritt = math.pi * r_l * ae / (2.0 * rho - ae)
+    schritt = min(schritt, bis(bn.LAST_KURZ * ae, 1.0))
+    halb = UEBER_WEG * R / r_l  # der halbe Weg über LAST_DAUERND, als Winkel auf dem Bogen
+    if halb < math.pi / 2:
+        schritt = min(schritt, bis(bn.LAST_DAUERND * ae, math.cos(halb)))
+    schritt = min(schritt, -r_l + math.sqrt(r_l * r_l + 2.0 * r_l * R))
+    return max(MIN_SCHRITT, schritt)
 
 
 def _boegen(punkte, start, u, r_l, R, schritt, s_bis, z, uhr, s_anfang=None):

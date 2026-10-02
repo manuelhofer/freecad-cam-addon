@@ -12,6 +12,13 @@ import math
 from dataclasses import dataclass
 
 GLEICH = 1e-9  # mm
+# ae ist die Last (Spezifikation Strategien 12.1 (a); Manuel, 2026-10-02: „im Mittel … Sogar
+# 25 %, solange es noch über r geht … Radius des Durchmessers“): Im Mittel trägt der Fräser so
+# viel Material je mm Weg ab wie auf gerader Bahn mit ae, über eine Fräserbreite Weg am Stück
+# höchstens LAST_DAUERND davon, kurz (in der Mitte eines Bogens, beim Einfahren) höchstens
+# LAST_KURZ – und nie mehr als r: Er umschlingt das Material höchstens zur Hälfte.
+LAST_DAUERND = 1.25  # × ae
+LAST_KURZ = 1.7  # × ae
 
 
 @dataclass(frozen=True)

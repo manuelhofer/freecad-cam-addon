@@ -10,8 +10,8 @@
 # in voller Breite, schneller als ae · ap · vf erlaubt (Wirkungsgrad über 100 %): Darum tritt es
 # an Nutgründen nicht an. (e) In Bögen statt Kreisen (P-2026-10-02-22, Manuels Halbkreis): je
 # Bogen im Gleichlauf (G3) von Wand zu Wand, quer zurück im Schnellvorschub (3 × vf) – dabei nichts
-# abgetragen; der Schritt so klein, dass der Fräser die Delle nicht weiter umschlingt als eine
-# gerade Wand mit ae. (f) Eine offene Nut 30 breit – früher „zu breit“ (ein Kern bliebe in den
+# abgetragen; der Schritt nach der Last (P-2026-10-02-56): im Mittel ae, in der Mitte der Bögen
+# höchstens 1,7 ae, über 1,25 ae nie länger als eine Fräserbreite. (f) Eine offene Nut 30 breit – früher „zu breit“ (ein Kern bliebe in den
 # Kreisen) – geht jetzt in Bögen, ebenso leer und nirgends ins Teil.
 import os
 import sys
@@ -23,6 +23,7 @@ import FreeCAD
 import numpy as np
 import Part
 
+from camaddon import bahn as bn
 from camaddon import fraeserform as ff
 from camaddon import hoehenfeld as hf
 from camaddon import kontur_bahn as kb
@@ -100,6 +101,13 @@ def pruefe_bahn(name, teil, nut, halb=8.0):
     pruefe(np.max(rest[in_der_nut]) < 0.05, f"{name}: in der Nut {np.max(rest[in_der_nut]):.2f}")
     daneben = np.abs(ys - 20.0) > halb + 0.5
     pruefe(np.max(np.abs(rest[daneben])) < 1e-6, f"{name}: daneben angeschnitten")
+    # ae ist die Last (Spezifikation Strategien 12.1 (a)), im feinen Raster: in der Mitte der
+    # Bögen und beim Einfahren höchstens LAST_KURZ · ae, über LAST_DAUERND · ae nie länger als
+    # eine Fräserbreite am Stück.
+    k = ps.messen([ps.Bahnlauf(bahn.punkte, VF, VF * 0.3)], teil, (0, 60, 0, 40), 20.0, form,
+                  AE, AP, ebenen_z=[12.0], raster=0.1)  # fmt: skip
+    print(ascii(f"{name} Last: {ps.zeile(k)}"))
+    pruefe(k.eingriff_max <= bn.LAST_KURZ and k.last_lang <= 2 * R, f"{name}: {ps.zeile(k)}")
     return bahn
 
 
@@ -139,10 +147,17 @@ waende, grund = waende_und_grund(zu)
 geschlossen = nb.nuten(zu, grund)
 pruefe(len(geschlossen) == 1 and not geschlossen[0].offen, f"zu: {geschlossen}")
 
-# --- (e) Der Schritt der Bögen: in der schmalen Nut klein, in breiten fast ae --------------------
+# --- (e) Der Schritt der Bögen nach der Last: In der schmalen Nut überstreicht jeder Bogen die
+# ganze Breite auf kurzem Weg – der Schritt kleiner als ae; in breiten etwas größer (über
+# LAST_DAUERND · ae höchstens eine Fräserbreite am Stück) ------------------------------------------
 schmal = nb._bogenschritt(8.0 - R - 0.3, R, AE)
 breit = nb._bogenschritt(40.0 - R - 0.3, R, AE)
-pruefe(0.3 < schmal < 0.5 and 1.2 < breit < AE, f"Schritt: schmal {schmal:.3f}, breit {breit:.3f}")
+pruefe(0.55 < schmal < 0.6 and AE < breit < bn.LAST_DAUERND * AE,
+       f"Schritt: schmal {schmal:.3f}, breit {breit:.3f}")  # fmt: skip
+# Nie über r: Bei großem ae umschlingt der Fräser die Delle höchstens wie eine gerade Wand mit R.
+r_l = 10.0 - R - 0.3
+gross = nb._bogenschritt(r_l, R, R)
+pruefe(abs(gross * gross + 2 * r_l * gross - 2 * r_l * R) < 1e-9, f"Schritt bei ae = R: {gross}")
 
 # --- (f) Breiter als zwei Fräser: früher zu breit, jetzt in Bögen ---------------------------------
 weit = platte.cut(Part.makeBox(60, 30, 8, V(0, 5, 12))).removeSplitter()

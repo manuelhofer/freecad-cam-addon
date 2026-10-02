@@ -161,6 +161,8 @@ Aufwand (klein: Tage, mittel: eine Woche, groß: mehr) und was sie braucht.
    ist darum so klein, dass der Eingriffswinkel dem auf gerader Bahn mit ae gleicht
    (`_bogenschritt`: s² + 2 (r + R − ae) s = 2 r ae, r der Radius der Bögen): dort 0,40
    statt 1,5 mm, in einer Nut 30 breit 0,95, in breiten fast ae; der Vorschub bleibt voll.
+   **Abgelöst** (P-2026-10-02-56, Manuel zu 12.1: „a“): Der Schritt folgt jetzt der Last – im
+   Mittel ae je mm Weg, in der Mitte der Bögen kurz bis 1,7 ae (12.1); in der Nut 16 0,58 mm.
    Gemessen (`test_nut_offen`): Nut 16 breit 1,75 min (vorher 0,85 – die Kreise schnitten
    dort zu dick), weiter schneller als die Kontur (2,2 min); dieselben Kreise mit dem
    kleinen Schritt bräuchten etwa ein Viertel mehr. Der Prüfstand misst jetzt auch, was im
@@ -1377,7 +1379,7 @@ auch mal 70 % mehr genommen werden, wenn fürs Einfahren nötig ist … oder ebe
 auch sehr wenig … wenn's dadurch dann eine bessere Zeit ergibt und man sich Wege sparen kann“;
 dazu: „Die Bahnen schauen auf den Bildern immer sehr eng.“
 
-- **Heute:** Die Bögen der offenen Nut rücken nur so weit vor, dass der Fräser die Delle nicht
+- **Bis P-2026-10-02-55:** Die Bögen der offenen Nut rücken nur so weit vor, dass der Fräser die Delle nicht
   weiter umschlingt als eine gerade Wand mit ae – in der 16er Nut mit dem Ø 12 0,4 mm statt
   1,5. Der Prüfstand lässt nirgends mehr Querschnitt zu als ae · ap.
 - **Warum es eng aussieht:** In der 16er Nut überstreicht jeder Bogen mit der Schneide die
@@ -1394,6 +1396,36 @@ dazu: „Die Bahnen schauen auf den Bildern immer sehr eng.“
   (1,5 mm je Bogen) – weniger Bögen, aber die dreifache Last in schmalen Nuten.
 - **Fertig, wenn:** der Prüfstand 1,7 ae kurz zulässt, mehr oder länger aber meldet, und die
   Bahnen den Spielraum nutzen, wo er Zeit spart.
+- **Entschieden (Manuel, 2026-10-02):** „a: im Mittel würde ich sagen. Sogar 25 %, solange es
+  noch über r geht … Also Radius des Durchmessers“. Gelesen als: ae ist die Last im Mittel;
+  dauernd bis 25 % mehr; und **nie über r** – der Fräser umschlingt das Material höchstens zur
+  Hälfte (Eingriffswinkel 90°, wie eine gerade Wand mit ae = D/2). Kurz bis 1,7 ae bleibt
+  (Manuels Satz oben). Ist „über r“ anders gemeint, sagt Manuel es.
+- **Gebaut:** P-2026-10-02-56, 0.110.0.
+  - `bahn.LAST_DAUERND` = 1,25 und `bahn.LAST_KURZ` = 1,7 (× ae) – die eine Stelle für alle
+    Strategien.
+  - `nut_bahn._bogenschritt`: im Mittel ae – je Bogen 2 ρ s Fläche auf π r_l + s Weg (ρ = r_l +
+    R), s = π r_l ae / (2 ρ − ae); in der Mitte höchstens 1,7 ae (die Breite dort
+    s (2 ρ − s) / (2 r_l)); über 1,25 ae höchstens 0,8 Fräserbreiten am Stück gerechnet
+    (`UEBER_WEG` – der Fräser greift vor seiner Mitte ein, gemessen wird bis 6 % mehr; erlaubt
+    ist eine Fräserbreite); nie über r: s² + 2 r_l s ≤ 2 r_l R. Mit dem Ø 12, ae 1,5 und
+    Aufmaß 0,3: Nut 16 0,58 mm (vorher 0,40), Nut 20 0,97 (0,65), Nut 30 1,36 (0,95), Nut 40
+    1,44 (1,10) – in breiten Nuten begrenzt die Fräserbreite über 1,25 ae den Schritt, die Last
+    im Mittel ist dort 0,85 ae; in sehr breiten wird der Schritt etwas größer als ae.
+  - Der Prüfstand misst die Breite im Eingriff auf Bögen **je Sehne** (vorher je Bogen
+    gemittelt – er sah die Spitze in der Mitte nicht), auf Wunsch im feineren Raster (`raster`;
+    die Bögen rücken kaum mehr als eine Zelle von 0,5 mm vor), und den längsten Weg am Stück
+    über 1,25 ae (`last_lang`, in der Zeile).
+  - Gemessen (Raster 0,1): in der Mitte der Bögen höchstens 1,6 ae, über 1,25 ae höchstens
+    10 mm am Stück. Nut 16 × 60 offen 1,68 → 1,25 min (171 → 118 Bögen), mit Halbkreis
+    0,99 → 0,73, Nut 30 offen 3,27 → 2,38, geschlossene Nut 20 × 50 47 → 31 Bögen. An den
+    Wänden ist die Nut wieder vorn: die Kontur 28 % langsamer (20 × 50), 21 % (16 × 60 offen).
+    `test_nut`, `test_nut_offen` prüfen Schritt und Last.
+  - **Offen:** Über 1,7 ae oder länger über 1,25 ae meldet der Prüfstand bisher nur in den
+    Prüfungen der Nut, in `urteile()` noch nicht für alle Strategien – Räumen in Ecken,
+    Planfräsen beim Einfahren und der Keil unter der Helix zeigen heute bis 8 ae; teils dünne,
+    breite Schnitte, die keine Last sind (dort zählt der Querschnitt). Das ist der nächste
+    Schritt.
 
 ### 12.2 Nuten in Bögen, auch geschlossene – und Konturen von der Seite her
 
@@ -1422,9 +1454,9 @@ man immer so seitlich einfährt.“
   der Nut 20 × 50 mit dem Ø 12 0,65 statt 1,5 mm je Schritt, 47 Bögen statt 21 Kreisen,
   1,20 statt 0,80 min – je Schritt sind die Bögen etwa ein Zehntel kürzer als ein Kreis, aber
   es sind mehr als doppelt so viele. An der Wand liegen Nut und Kontur jetzt gleichauf
-  (die Kontur knapp vorn, „weniger als 1 % langsamer“). Mit ae als Last (12.1 (a), offen)
-  wäre der Schritt grob 0,9 mm – im Mittel so viel Material je mm Weg wie mit ae 1,5 auf
-  gerader Bahn – und die Nut wieder etwa so schnell wie mit den Kreisen.
+  (die Kontur knapp vorn, „weniger als 1 % langsamer“). Mit ae als Last (12.1 (a),
+  P-2026-10-02-56) ist der Schritt 0,97 mm – 31 Bögen, die Nut wieder vorn (die Kontur 28 %
+  langsamer).
 
 ### 12.3 Die Zielzeit misst die Wegstrategie
 

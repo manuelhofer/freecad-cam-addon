@@ -4,9 +4,9 @@
 # rechnen beide – Räumen schnitte in der Nut zuerst in voller Breite (mehr als ae) und tritt
 # nicht an: Die Nut bekommt den Haken, Räumen sagt „… – in der Nut schnitte es zuerst in voller
 # Breite …“ (P-2026-10-01-47). Statt des Grunds eine Wand: Nut gegen Kontur – die Nut (Helix
-# hinab, Bögen mit dem schonenden Schritt, die Wand rundum: „→ 1 Nut, 1 Lage, 47 Bögen, etwa …“)
-# und die Kontur liegen gleichauf (P-2026-10-02-53, Manuel: „Ja“ zum schonenden Schritt);
-# den Haken hat die schnellere, beide Zeilen sagen es. Zurück zum Grund, „Anlegen“: nur
+# hinab, Bögen mit dem Schritt nach der Last, P-2026-10-02-56: „→ 1 Nut, 1 Lage, 31 Bögen,
+# etwa …“; die Wand rundum) gegen die Kontur an der Wand; den Haken hat die schnellere, beide
+# Zeilen sagen es. Zurück zum Grund, „Anlegen“: nur
 # „Nut T1“ mit Endtiefe 10 und G3 (Gleichlauf). „Auf der Maschine prüfen“: am Ende nirgends
 # ins Teil.
 import FreeCAD
@@ -90,7 +90,7 @@ def schritte(h):
     yield 1500
     text = nut_block.ergebnis.text()
     h.pruefe(nut_block.aktiv() and not raeumen.aktiv(), "Grund: die Nut nicht der Sieger")
-    h.pruefe(text.startswith("→ 1 Nut, 1 Lage, 47 Bögen, etwa "), f"Nut am Grund: {text!r}")
+    h.pruefe(text.startswith("→ 1 Nut, 1 Lage, 31 Bögen, etwa "), f"Nut am Grund: {text!r}")
     h.pruefe(
         "in der Nut schnitte es zuerst in voller Breite" in raeumen.ergebnis.text(),
         f"Räumen am Grund: {raeumen.ergebnis.text()!r}",
@@ -113,7 +113,7 @@ def schritte(h):
     print(ascii(f"Kontur an der Wand: {kontur.ergebnis.text()}"))
     h.pruefe(nut_block.aktiv() != kontur.aktiv(), "Wand: nicht genau eine angehakt")
     h.pruefe(not raeumen.aktiv(), "Räumen angehakt")
-    h.pruefe(text.startswith("→ 1 Nut, 1 Lage, 47 Bögen, etwa "), f"Nut an der Wand: {text!r}")
+    h.pruefe(text.startswith("→ 1 Nut, 1 Lage, 31 Bögen, etwa "), f"Nut an der Wand: {text!r}")
     sieger, zweite, name = (
         (nut_block, kontur, "Kontur") if nut_block.aktiv() else (kontur, nut_block, "Nut")
     )

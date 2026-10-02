@@ -1,10 +1,9 @@
 # „Bearbeitung (Fräsen)“ an einer offenen Nut (W-006 4.1 Punkt 6, P-2026-10-01-47): Platte
 # 60 × 40 × 20 mit einer Nut 16 breit, 8 tief, längs X ganz durch – an beiden Enden offen; T1 der
 # Standardfräser Ø 12 (ae 1,5, ap 25). Eine Wand anklicken: In der Liste „offene Nut 16 × 60,
-# Grund 12“; Nut gegen Kontur – seit den Bögen (P-2026-10-02-22) ist hier die Kontur etwas
-# schneller: Die Bögen rücken in der schmalen Nut nur 0,4 mm vor, damit der Fräser die Delle
-# nicht weiter umschlingt als eine gerade Wand mit ae („→ 1 Nut, 1 Lage, … Bögen, etwa … – N %
-# langsamer als Kontur“). Den Grund dazu: Räumen schnitte in der Nut in voller Breite und tritt
+# Grund 12“; Nut gegen Kontur: Die Bögen (P-2026-10-02-22) rücken nach der Last vor
+# (P-2026-10-02-56: im Mittel ae – in der schmalen Nut 0,58 mm); den Haken hat die schnellere,
+# beide Zeilen sagen es („→ 1 Nut, 1 Lage, … Bögen, etwa …“). Den Grund dazu: Räumen schnitte in der Nut in voller Breite und tritt
 # nicht an – die Nut fräst ihn. „Anlegen“: nur „Nut T1“ mit Endtiefe 12. „Auf der Maschine
 # prüfen“: am Ende nirgends ins Teil.
 import re
@@ -86,12 +85,17 @@ def schritte(h):
     )
     yield 1500
     text = nut_block.ergebnis.text()
-    # Die Bögen rücken in der schmalen Nut nur 0,4 mm vor (der Fräser umschlingt die Delle):
-    # Die Kontur – in voller Breite mit kleinerer Zustellung – ist hier etwas schneller.
-    h.pruefe(kontur.aktiv() and not nut_block.aktiv(), "Wand: Kontur nicht der Sieger")
+    print(ascii(f"Nut an der Wand: {text}"))
+    print(ascii(f"Kontur an der Wand: {kontur.ergebnis.text()}"))
+    h.pruefe(nut_block.aktiv() != kontur.aktiv(), "Wand: nicht genau eine angehakt")
+    h.pruefe(re.match(r"→ 1 Nut, 1 Lage, \d+ Bögen, etwa ", text), f"Nut an der Wand: {text!r}")
+    sieger, zweite, name = (
+        (nut_block, kontur, "Kontur") if nut_block.aktiv() else (kontur, nut_block, "Nut")
+    )
     h.pruefe(
-        re.match(r"→ 1 Nut, 1 Lage, \d+ Bögen, etwa ", text) and "langsamer als Kontur" in text,
-        f"Nut an der Wand: {text!r}",
+        f"die schnellste; {name} wäre" in sieger.ergebnis.text()
+        and "% langsamer als " in zweite.ergebnis.text(),
+        f"Wand: {sieger.ergebnis.text()!r} / {zweite.ergebnis.text()!r}",
     )
     h.pruefe(not nut_block.hinweis.text(), f"rot: {nut_block.hinweis.text()!r}")
     liste = panel.flaechen_liste.item(0).text() if panel.flaechen_liste.count() else ""

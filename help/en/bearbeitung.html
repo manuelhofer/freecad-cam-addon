@@ -619,9 +619,12 @@ the cutter: down in a <b>helix</b> at one end, once all round at the bottom, the
 <b>arcs</b> up to the semicircle at the other end – each arc a semicircle, climb milling from
 one wall forward through the material to the other (a dent forms in the middle), back across
 the free side at high feed (3 × vf) and a little forward along the wall into the next; in
-layers of ap, the next layer back. The arcs advance so little that the cutter wraps the dent
-no further than a straight wall with ae – in the slot 20 wide with the Ø 12 and ae 1.5 that is
-0.65 mm per arc; so the chip stays as thick as planned. If it is barely wider (the arcs would
+layers of ap, the next layer back. How far the arcs advance follows the <b>load</b>: per arc
+the cutter removes on average as much material per mm of path as on a straight path with ae.
+On every arc the engagement grows from the wall to the middle and falls again – in the middle
+briefly up to 1.7 ae, above 1.25 ae never for longer than one cutter width of path, and never
+more than half the cutter engaged. In the slot 20 wide with the Ø 12 and ae 1.5 that is
+0.97 mm per arc. If it is barely wider (the arcs would
 have a radius under a quarter of the cutter radius): down in a <b>zigzag ramp</b> along the slot, each pass at most so deep that
 at full width it never cuts more than ap and never more than half the diameter – with the
 feed lowered so the chip stays as thick as with the application's small ae.</li>
@@ -632,7 +635,7 @@ length. Through slots 0.5 mm deeper.</li>
 spacing</b> (ae – it gives the step of the arcs), <b>allowance for finishing</b>, the ticks
 <b>finish the wall</b> and <b>climb milling</b>. If the cutter mills the slot at full width,
 the application “Full slot” is preselected when it has one.</li>
-<li>Grey below: “→ 1 slot, 1 layer, 47 arcs, about 1 min” or “→ 1 slot at full width
+<li>Grey below: “→ 1 slot, 1 layer, 31 arcs, about 1 min” or “→ 1 slot at full width
 with a ramp, about 1 min”. Red says why it does not work: the cutter is wider than the slot,
 or a closed slot is wider than nearly two cutters – a core would stay in the middle of the
 helix (a larger cutter, or “Clearing”).</li>
@@ -642,16 +645,16 @@ at the edge) or at both (two parallel walls with the floor between). The list sa
 from outside – no helix, no plunge. Then it mills in <b>arcs</b>: each arc a semicircle, climb
 milling from one wall forward through the material to the other – a dent forms in the middle
 –, back across the free side at high feed (3 × vf), and a little forward along the wall into
-the next arc. The first arcs blend gradually from the straight edge into the semicircle. The
-arcs advance so little that the cutter wraps the dent no further than a straight wall with ae –
-in a narrow slot only part of it; the chip stays as thick as planned. Every layer starts
-outside, so an open slot may be any width. It finishes the walls climb milling: in along one
+the next arc. The first arcs blend gradually from the straight edge into the semicircle. How
+far the arcs advance follows the load as above: in a narrow slot every arc sweeps the whole
+width on a short path – the step is smaller than ae (in the slot 16 with the Ø 12 0.58 mm), in
+wide ones somewhat larger. Every layer starts outside, so an open slot may be any width. It finishes the walls climb milling: in along one
 wall, across outside (or round the semicircle), out along the other. Plate 60 × 40, slot 16
-wide, 8 deep, all the way through: 1.75 min (the contour at the walls 2.2). The line says
-“→ 1 slot, 1 layer, 171 arcs, about …”.</li>
+wide, 8 deep, all the way through: 1.25 min (the contour at the walls 2.2). The line says
+“→ 1 slot, 1 layer, 118 arcs, about …”.</li>
 <li><b>Time decides</b>: at the walls the slot competes with the contour (in the slot
-20 × 50, 10 deep, both take about 1.2 min – the contour narrowly ahead; the line then says
-“less than 1 % slower”). On the floor clearing and face milling compute as
+20 × 50, 10 deep, the slot is ahead – the contour's line says “28 % slower than Slot”; in the
+open slot 16 × 60 it is 21 %). On the floor clearing and face milling compute as
 well but do not compete: in the slot they would first cut full width – more than ae, only
 seemingly faster (at the open slot 0.19 min, three times faster than ae · ap allows, and with
 a rapid into material). Their line says so.</li>

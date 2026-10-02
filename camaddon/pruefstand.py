@@ -10,7 +10,8 @@ Simulation im Quader (restmaterial.Quader) fährt sie Satz für Satz ab:
 - sinnvoll: wenig Vorschub in der Luft, wenig Eintauchen und Rampen im Material, wenig Halte;
 - schonend: die Breite im Eingriff (der Querschnitt im Schnitt durch die Schnitttiefe) – nie in
   voller Breite durchs volle Material, das ist nur scheinbar schnell; wie weit sie über ae geht
-  (in Ecken), steht in der Zeile (P-2026-10-01-49);
+  (in Ecken, in der Mitte eines Bogens) und wie lange am Stück über bahn.LAST_DAUERND · ae,
+  steht in der Zeile (P-2026-10-01-49, P-2026-10-02-56);
 - kurz: die Zeit gegen die Untergrenze – das Volumen durch das Zeitspanvolumen ae · ap · vf,
   als wäre der Fräser nie aus dem Eingriff – ergibt den Wirkungsgrad.
 `messen()` gibt die Kennzahlen, `urteile()` die Sätze, wo eine Bahn durchfällt. Die Prüfung
@@ -37,12 +38,15 @@ LUFT_ZULAESSIG = 0.30  # Anteil des Vorschubwegs ohne Abtrag – mehr ist unsinn
 NAHE_WAND = 0.75  # mm – so weit um Höheres zählt die Fläche nicht (das Aufmaß kommt dazu)
 # Die Breite im Eingriff: das abgetragene Volumen je mm Weg durch die Schnitttiefe (die größte
 # Absenkung, die der Satz bewirkt), gemittelt über BREIT_FENSTER mm – das Raster des Quaders
-# zählt eine Zelle erst, wenn der Fräser ihre Mitte überstreicht. Rampen (der Fräser sinkt)
+# zählt eine Zelle erst, wenn der Fräser ihre Mitte überstreicht. Bögen zählen je Sehne
+# (BOGENSCHRITT): Auf den Bögen der Nut wächst die Breite von der Wand bis in die Mitte – über den
+# ganzen Bogen gemittelt sähe der Prüfstand die Spitze nicht. Rampen (der Fräser sinkt)
 # zählen nicht: Ihr Eingriff folgt dem Eintauchwinkel des Werkzeugs; dünne Schnitte (weniger
 # als MIN_TIEFE) auch nicht. Mehr als VOLL_ANTEIL des Durchmessers breit und dabei mehr
 # Querschnitt als ae · ap über BREIT_WEG mm im Vorschub ist ein Vollschnitt – breit und flach
 # (Planen 1 mm tief) ist keine Last; die größte Breite, gemessen in ae, steht in der Zeile (in
-# den Ecken einer Tasche mehr als ae).
+# den Ecken einer Tasche mehr als ae), dazu der längste Weg am Stück mit mehr als
+# bahn.LAST_DAUERND · ae (Spezifikation Strategien 12.1: höchstens eine Fräserbreite).
 VOLL_ANTEIL = 0.75
 BREIT_FENSTER = 3.0  # mm
 BREIT_WEG = 5.0  # mm
@@ -78,6 +82,7 @@ class Kennzahlen:
     halte: int = 0  # Stopps: Ecken ab 15°, um Eilgänge, am Anfang und Ende
     voll: float = 0.0  # mm Vorschub mit mehr als VOLL_ANTEIL · D im Eingriff (Vollschnitt)
     eingriff_max: float = 0.0  # die größte Breite im Eingriff, als Vielfaches von ae
+    last_lang: float = 0.0  # mm – der längste Weg am Stück mit mehr als LAST_DAUERND · ae
 
     @property
     def luftanteil(self):
@@ -153,6 +158,7 @@ def messen(
     unten=None,
     tiefe=None,
     vorher=(),
+    raster=SCHRITT,
 ):
     """Misst die Bahnen `laeufe` ([Bahnlauf], in dieser Reihenfolge) am Teil (Part-Form) im
     Rohteil (x_von, x_bis, y_von, y_bis bis `oben`) mit dem Fräser `form` (fraeserform.Form
@@ -161,12 +167,14 @@ def messen(
     Höherem); `unten`: der Boden des Quaders (None: unter dem Teil); `tiefe`: so hoch steht das
     Material über der Fläche (None: von `oben` bis zur tiefsten Fläche) – für die Untergrenze,
     in einer Tasche die Höhe ihrer Wände; `vorher`: Bahnen ([Bahnlauf]), die davor liefen –
-    sie formen das Rohteil, zählen aber nicht (die Oberseite vor der Tasche)."""
+    sie formen das Rohteil, zählen aber nicht (die Oberseite vor der Tasche); `raster`: so fein
+    der Quader (mm) – feiner für die Breite im Eingriff bei kleinen Schritten (die Bögen der Nut
+    rücken weniger als eine Zelle vor)."""
     x_von, x_bis, y_von, y_bis = rohteil
     if unten is None:
         unten = teil.BoundBox.ZMin - 1.0
-    q = rm.Quader(x_von, x_bis, y_von, y_bis, unten, oben, SCHRITT)
-    zelle = SCHRITT * SCHRITT
+    q = rm.Quader(x_von, x_bis, y_von, y_bis, unten, oben, raster)
+    zelle = raster * raster
     for lauf in vorher:
         for von, nach in zip(lauf.punkte, lauf.punkte[1:], strict=False):
             stuecke = _stuecke(von, nach)
@@ -175,7 +183,8 @@ def messen(
     k = Kennzahlen()
     vorschub = 0.0
     radius = float(getattr(form, "radius", form))
-    fenster = []  # [(Weg, Abtrag, Weg · Tiefe)] der letzten Sätze, zusammen ≥ BREIT_FENSTER
+    fenster = []  # [(Weg, Abtrag, Weg · Tiefe)] der letzten Stücke, zusammen ≥ BREIT_FENSTER
+    ueber = 0.0  # mm am Stück mit mehr als LAST_DAUERND · ae
     for lauf in laeufe:
         punkte = lauf.punkte
         if not punkte:
@@ -186,29 +195,42 @@ def messen(
         in_rampe = False
         for von, nach in zip(punkte, punkte[1:], strict=False):
             stuecke = _stuecke(von, nach)
-            ausschnitt = _ausschnitt(q, stuecke, radius)
-            vorher = q.h[ausschnitt].copy()
-            q.fahre_stuecke([s[0] for s in stuecke], [s[1] for s in stuecke], form)
-            gesenkt = vorher - q.h[ausschnitt]
-            abtrag = float(gesenkt.sum()) * zelle
-            tiefe_hier = float(gesenkt.max()) if gesenkt.size else 0.0
-            weg = bn.weg(von, nach)
-            if nach.eilgang or nach.eintauchen or nach.z < von.z - _NICHTS:
+            zaehlt = not (nach.eilgang or nach.eintauchen or nach.z < von.z - _NICHTS)
+            if not zaehlt:
                 fenster = []  # Eintauchen und Rampen zählen für sich
-            else:
-                waagerecht = math.hypot(nach.x - von.x, nach.y - von.y)
-                fenster.append((waagerecht, abtrag, waagerecht * tiefe_hier))
+                ueber = 0.0
+            # Ein Bogen je Sehne, damit das Fenster die Spitze in seiner Mitte sieht.
+            gruppen = [[s] for s in stuecke] if zaehlt and nach.bogen is not None else [stuecke]
+            abtrag = 0.0
+            for gruppe in gruppen:
+                ausschnitt = _ausschnitt(q, gruppe, radius)
+                vorher = q.h[ausschnitt].copy()
+                q.fahre_stuecke([s[0] for s in gruppe], [s[1] for s in gruppe], form)
+                gesenkt = vorher - q.h[ausschnitt]
+                hier = float(gesenkt.sum()) * zelle
+                abtrag += hier
+                if not zaehlt:
+                    continue
+                a, b = gruppe[0][0], gruppe[-1][1]
+                waagerecht = math.hypot(b[0] - a[0], b[1] - a[1])
+                tiefe_hier = float(gesenkt.max()) if gesenkt.size else 0.0
+                fenster.append((waagerecht, hier, waagerecht * tiefe_hier))
                 summe = sum(f[0] for f in fenster)
                 while len(fenster) > 1 and summe - fenster[0][0] >= BREIT_FENSTER:
                     summe -= fenster.pop(0)[0]
                 flaeche = sum(f[2] for f in fenster)
-                if summe >= BREIT_FENSTER and flaeche >= MIN_TIEFE * summe:
-                    breite = sum(f[1] for f in fenster) / flaeche
-                    if ae > 0:
-                        k.eingriff_max = max(k.eingriff_max, breite / ae)
-                    querschnitt = breite * flaeche / summe
-                    if breite > VOLL_ANTEIL * 2.0 * radius and querschnitt > ae * ap:
-                        k.voll += waagerecht
+                if summe < BREIT_FENSTER or flaeche < MIN_TIEFE * summe:
+                    ueber = 0.0
+                    continue
+                breite = sum(f[1] for f in fenster) / flaeche
+                if ae > 0:
+                    k.eingriff_max = max(k.eingriff_max, breite / ae)
+                    ueber = ueber + waagerecht if breite > bn.LAST_DAUERND * ae else 0.0
+                    k.last_lang = max(k.last_lang, ueber)
+                querschnitt = breite * flaeche / summe
+                if breite > VOLL_ANTEIL * 2.0 * radius and querschnitt > ae * ap:
+                    k.voll += waagerecht
+            weg = bn.weg(von, nach)
             if nach.eilgang:
                 k.eilgangweg += weg
                 k.eilgang_abtrag += abtrag
@@ -253,7 +275,7 @@ def messen(
         innen = da & ~kante
         if innen.any():
             k.einschnitt = min(0.0, float(np.nanmin(unterschied[innen])))
-        m = int(math.ceil((max(aufmass, 0.0) + NAHE_WAND) / SCHRITT))
+        m = int(math.ceil((max(aufmass, 0.0) + NAHE_WAND) / raster))
         for z in ebenen_z:
             flaeche = da & (np.abs(teilhoehe - z) < 0.01)
             hoch = da & (teilhoehe > z + 0.01)
@@ -295,5 +317,6 @@ def zeile(k):
         f"Luft {k.luftanteil * 100:3.0f} %  Eilgang {k.eilgangweg / 1000:5.2f} m  "
         f"Halte {k.halte:4d}  Eintauchen {k.eintauchungen:2d}  Rampen {k.rampen:2d}  "
         f"Rest {k.rest:.2f}  Einschnitt {k.einschnitt:.2f}  "
-        f"Eingriff bis {k.eingriff_max:.1f} ae, voll {k.voll:.0f} mm"
+        f"Eingriff bis {k.eingriff_max:.1f} ae, über {bn.LAST_DAUERND:g} ae {k.last_lang:.0f} mm "
+        f"am Stück, voll {k.voll:.0f} mm"
     )

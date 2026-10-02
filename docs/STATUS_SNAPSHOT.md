@@ -165,8 +165,14 @@ Schritt (Manuel: „Ja“); dadurch langsamer als mit den Kreisen (Nut 20 × 50:
 0,80 min), an der Wand liegt die Kontur jetzt knapp vorn (P-2026-10-02-53, 0.108.0). Der
 Ø 12 plant mit großem ae bei kleinem ap: Einsatz „Planen“ mit ae 8,4, ap 1,2, fz 0,07 (Manuel:
 „Ja … Werte im Netz“); das Planfräsen nimmt den Einsatz, der für seine Flächen schneller ist,
-und die Zielzeit je Fräser seinen schnellsten (P-2026-10-02-54, 0.109.0).
-Als Nächstes (Manuel, 2026-10-02; Spezifikation Strategien, Abschnitt 12): Schlichten nach dem Räumen besprechen – eigener Fräser und eigene Werte, mit Aufmaß am Boden auch den Boden (Vorschlag in 12.4); Manuels Entscheidung zu 12.1 (ae als Last – der Schritt der Bögen danach). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
+und die Zielzeit je Fräser seinen schnellsten (P-2026-10-02-54, 0.109.0). Der Schritt der
+Bögen folgt jetzt der Last (Manuel zu 12.1: „a: im Mittel … Sogar 25 %, solange es noch über r
+geht“): im Mittel ae je mm Weg, in der Mitte der Bögen kurz bis 1,7 ae, über 1,25 ae höchstens
+eine Fräserbreite am Stück, nie mehr als der halbe Fräser im Eingriff – Nut 20 × 50 31 statt 47
+Bögen, an der Wand die Nut wieder vorn (Kontur 28 % langsamer); offene Nut 16 × 60 1,25 statt
+1,68 min. Der Prüfstand misst die Last auf Bögen je Sehne und den Weg über 1,25 ae
+(P-2026-10-02-56, 0.110.0).
+Als Nächstes (Manuel, 2026-10-02; Spezifikation Strategien, Abschnitt 12): Schlichten nach dem Räumen besprechen – eigener Fräser und eigene Werte, mit Aufmaß am Boden auch den Boden (Vorschlag in 12.4); Maschinen-Speicher (W-011, wartet auf A/B/C); der Prüfstand meldet zu viel Last für alle Strategien, nicht nur die Nut (12.1, offen). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
 - **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
   26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
   der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3

@@ -12,6 +12,50 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-56 boegen-ae-als-last
+
+### EINGELESEN
+- Manuel, 2026-10-02, auf „Wie soll ae bei den Bögen gelten (12.1)? (a) ae ist die Last – im
+  Mittel ±15 %, beim Einfahren kurz bis 1,7 ae; (b) der Schritt wörtlich ae“: „a: im Mittel
+  würde ich sagen. Sogar 25 % solange es noch über r geht... Also Radius des Durchmessers..“
+- Gelesen: Last im Mittel ae, dauernd bis 25 % mehr, kurz bis 1,7 ae; nie über r – der Fräser
+  umschlingt das Material höchstens zur Hälfte (Eingriffswinkel 90°).
+
+### DATEIEN
+- `camaddon/bahn.py` (`LAST_DAUERND` 1,25, `LAST_KURZ` 1,7), `camaddon/nut_bahn.py`
+  (`_bogenschritt` nach der Last, `UEBER_WEG`, Text oben), `camaddon/pruefstand.py` (Bögen je
+  Sehne im Fenster, `last_lang`, `raster`, Zeile), `tests/test_nut.py`, `tests/test_nut_offen.py`,
+  `tests/gui/szenario_nut.py`, `tests/gui/szenario_nut_offen.py`, `help/de|en/bearbeitung.html`,
+  `docs/spezifikation_strategien.md` (12.1 Entschieden/Gebaut, 12.2, Abschnitt 4.1),
+  `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.110.0)
+
+### AKZEPTANZKRITERIUM
+Die Bögen rücken so weit vor, dass der Fräser im Mittel so viel Material je mm Weg nimmt wie
+auf gerader Bahn mit ae; der Prüfstand (Raster 0,1) misst in der Mitte der Bögen höchstens
+1,7 ae und über 1,25 ae höchstens eine Fräserbreite am Stück.
+
+### DONE
+- Schritt s = π r_l ae / (2 (r_l + R) − ae), begrenzt durch 1,7 ae in der Mitte, 0,8
+  Fräserbreiten über 1,25 ae (gerechnet; der Prüfstand misst bis 6 % mehr) und
+  s² + 2 r_l s ≤ 2 r_l R (nie über r). Ø 12, ae 1,5, Aufmaß 0,3: Nut 16 0,58 (vorher 0,40),
+  Nut 20 0,97 (0,65), Nut 30 1,36 (0,95), Nut 40 1,44 (1,10).
+- Der Prüfstand sah auf Bögen nur den Mittelwert je Viertelbogen (1,05 ae statt 1,29 an der
+  Spitze); jetzt je Sehne von 0,5 mm. Im Raster 0,5 rauschen kleine Schritte bis 90 % – die
+  Last prüfen die Nut-Tests darum im Raster 0,1.
+- Gemessen: Spitze 1,5–1,6 ae, über 1,25 ae 3–10 mm am Stück. Offene Nut 16 × 60 1,68 → 1,25
+  min (171 → 118 Bögen), mit Halbkreis 0,99 → 0,73, Nut 30 3,27 → 2,38; geschlossene Nut
+  20 × 50 47 → 31 Bögen, an der Wand die Nut vorn (Kontur 28 % langsamer; offen 16 × 60: 21 %).
+
+### TEST
+- `test_nut`, `test_nut_offen`, `test_vierachs_plan`, `test_schruppen3d` grün (kopflos).
+- Szenarien `szenario_nut`, `szenario_nut_offen`, `szenario_nut_durch`, `szenario_bearbeitung`,
+  `szenario_kontur`, `szenario_raeumen`, `szenario_entgraten` (1.1.3).
+
+### NEXT
+- Der Prüfstand meldet zu viel Last für alle Strategien (`urteile()`); heute zeigen Räumen in
+  Ecken, Planfräsen beim Einfahren und der Keil unter der Helix bis 8 ae – teils dünne, breite
+  Schnitte (dort zählt der Querschnitt).
+
 ## P-2026-10-02-55 vorschlag-maschinen-speicher
 
 ### EINGELESEN

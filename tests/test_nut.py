@@ -1,9 +1,10 @@
 # Prüft „Nut“ (W-006 4.1 Punkt 6): Platte 100 × 60 × 20 mit zwei Langlöchern – A 20 breit, 10
 # tief, Halbkreise um (25, 20) und (55, 20); B 14 breit, durchgehend, um (25, 45) und (75, 45).
 # Mit dem Standardfräser Ø 12 (ae 1,5, ap 25): A in Bögen (Radius 10 − 6 − 0,3, P-2026-10-02-53:
-# nach der Helix Halbkreise von Wand zu Wand mit dem schonenden Schritt, quer zurück im
-# Schnellvorschub), B in voller Breite mit der Zickzack-Rampe (je Fahrt höchstens 3 tiefer, der
-# Vorschub für den dicken Span gesenkt), beide zuletzt rundum an der Wand. Im Quader: die Nuten
+# nach der Helix Halbkreise von Wand zu Wand, quer zurück im Schnellvorschub; der Schritt nach
+# der Last, P-2026-10-02-56: im Mittel ae, kurz bis 1,7 ae), B in voller Breite mit der
+# Zickzack-Rampe (je Fahrt höchstens 3 tiefer, der Vorschub für den dicken Span gesenkt), beide
+# zuletzt rundum an der Wand. Im Quader: die Nuten
 # leer bis zum Grund (B 0,5 tiefer), daneben nichts angeschnitten; die Bögen im Gleichlauf (G3).
 # Ein Fräser Ø 25 passt nicht, ein Ø 6 ist für A zu klein (ein Kern bliebe). Dann die Operation
 # im Job: „Nut T1“, Endtiefe −0,5 (B durch), Art „nut“.
@@ -127,12 +128,13 @@ bahn = nb.planen(werte(), [nut_a, nut_b])
 pruefe((bahn.nuten, bahn.vollnut) == (2, 1), f"{bahn.nuten} Nuten, {bahn.vollnut} Vollnut")
 pruefe(abs(bahn.z_min + 0.5) < 1e-9, f"z_min {bahn.z_min}")
 pruefe(bahn.lagen == 2, f"Lagen {bahn.lagen}")
-# A: 30 lang, r_l 3,7 – der schonende Schritt (in der Delle nicht mehr Umschlingung als an
-# einer geraden Wand mit ae 1,5) ist 0,65; bis in den Halbkreis um B 47 Bögen.
+# A: 30 lang, r_l 3,7 – ae ist die Last (Spezifikation Strategien 12.1 (a)): je Bogen im Mittel
+# so viel Material je mm Weg wie auf gerader Bahn mit ae 1,5, der Schritt π r_l ae / (2 (r_l + R)
+# − ae) = 0,97 (bis P-2026-10-02-55 der schonende 0,65); bis in den Halbkreis um B 31 Bögen.
 r_l = 10 - R - 0.3
 schritt = nb._bogenschritt(r_l, R, 1.5)
 boegen_a = math.ceil(30.0 / schritt - 1e-9)
-pruefe(0.6 < schritt < 0.7 and bahn.boegen == boegen_a, f"Bögen {bahn.boegen}, Schritt {schritt}")
+pruefe(0.95 < schritt < 1.0 and bahn.boegen == boegen_a == 31, f"Bögen {bahn.boegen}, {schritt}")
 print(ascii(f"Zeit {bahn.zeit:.2f} min, {bahn.laenge:.0f} mm, {bahn.boegen} Bögen"))
 # Quer zurück über die freie Seite im Schnellvorschub: dort trägt der Prüfstand nichts ab, und
 # nirgends geht es ins Teil.
@@ -144,6 +146,23 @@ pruefe(len(schnell) == boegen_a - 1, f"quer im Schnellvorschub: {len(schnell)} S
 pruefe(k_a.schnell_abtrag <= 1e-9, f"im Schnellvorschub abgetragen: {k_a.schnell_abtrag:.2f} mm³")
 pruefe(k_a.einschnitt > -ps.EINSCHNITT_ZULAESSIG, f"A ins Teil: {k_a.einschnitt:.3f}")
 print(ascii(f"A: {nur_a.zeit:.2f} min | {ps.zeile(k_a)}"))
+# Die Last auf den Bögen, im feinen Raster (der Schritt ist kaum größer als eine Zelle von 0,5):
+# in der Mitte jedes Bogens höchstens LAST_KURZ · ae, über LAST_DAUERND · ae nie länger als eine
+# Fräserbreite am Stück. Die Helix und der Kreis unten formen das Rohteil – sie zählen nicht
+# (ihr Keil ist breit und flach).
+erster = next(
+    i
+    for i, p in enumerate(nur_a.punkte)
+    if i and p.bogen is None and not p.eilgang and not p.eintauchen and abs(p.z - 10) < 1e-9
+)
+k_last = ps.messen([ps.Bahnlauf(nur_a.punkte[erster - 1 :], 902.0, 300.0)], teil,
+                   (0, 100, 0, 60), 20.0, form, 1.5, 25.0, ebenen_z=[10.0], aufmass=0.3,
+                   vorher=[ps.Bahnlauf(nur_a.punkte[:erster], 902.0, 300.0)], raster=0.1)  # fmt: skip
+pruefe(
+    1.25 < k_last.eingriff_max <= bn.LAST_KURZ and k_last.last_lang <= 2 * R,
+    f"A Last: {ps.zeile(k_last)}",
+)
+print(ascii(f"A Bögen: {ps.zeile(k_last)}"))
 
 # Die Mitte des Fräsers bleibt in der Nut: höchstens r − R neben der Mittellinie.
 punkte = bahn.punkte
