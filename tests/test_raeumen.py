@@ -26,6 +26,7 @@ from camaddon import hoehenfeld as hf
 from camaddon import job_schnittwerte as js
 from camaddon import kontur_bahn as kb
 from camaddon import planfraesen_bahn as pb
+from camaddon import pruefstand as ps
 from camaddon import raeumen as ra
 from camaddon import raeumen_bahn as rb
 from camaddon import restmaterial as rm
@@ -572,6 +573,29 @@ for hoehe_h in (20.0, 35.0, 30.0):
         f"mehrere Höhen, z {hoehe_h}: Rest {rest}, Einschnitt {einschnitt}",
     )
 print(f"mehrere Hoehen: Raeumen {bahn_h.zeit:.2f} min, jede fuer sich {einzeln_h:.2f} min")
+
+# --- (g) Kein Ring ganz in der Luft (T1b) -----------------------------------------------------
+# Ein Streifen 100 × 20 ohne Insel, 6 mm über der Oberseite: Die Ringe vom Rand her nehmen je
+# 1,5 mm; nach dem siebten oder achten steht nichts mehr (11 mm bis zur Mitte des Rohteils).
+# Bis 0.125.2 liefen sie weiter, bis die Mitte des Fräsers die Mitte des Rohteils erreichte –
+# elf Ringe, die letzten drei ganz in der Luft: 27 % des Vorschubwegs, 2,78 statt 2,18 min.
+teil_g = Part.makeBox(100, 20, 20)
+rohteil_g = (-1.0, 101.0, -1.0, 21.0)
+bahn_g = raeumen(teil_g, 20.0, werte_fuer(rohteil_g, 26.0, variante="rohteil"))
+pruefe(7 <= bahn_g.ringe <= 9, f"Streifen: {bahn_g.ringe} Ringe")
+pruefe(bahn_g.zeit < 2.3, f"Streifen: {bahn_g.zeit:.2f} min")
+rest, einschnitt = simuliert(bahn_g, teil_g, rohteil_g, 26.0, 20.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Streifen: Rest {rest}, Einschnitt {einschnitt}")
+k_g = ps.messen(
+    [ps.Bahnlauf(bahn_g.punkte, VF, VF * 0.3)], teil_g, rohteil_g, 26.0, form, schruppen.ae,
+    schruppen.ap, ebenen_z=[20.0], aufmass=0.3,
+)  # fmt: skip
+pruefe(
+    k_g.luftanteil < 0.10, f"Streifen: {k_g.luftanteil * 100:.0f} % des Vorschubwegs in der Luft"
+)
+for satz in ps.urteile(k_g, sicher_nur=True):
+    pruefe(False, f"Streifen: {satz}")
+print(f"Streifen: {bahn_g.ringe} Ringe, {bahn_g.zeit:.2f} min, Luft {k_g.luftanteil * 100:.0f} %")
 
 # --- Fehler mit einem Satz --------------------------------------------------------------------
 netz_a = hf.netz_ohne(teil_a, [e.name for e in ebenen_a])

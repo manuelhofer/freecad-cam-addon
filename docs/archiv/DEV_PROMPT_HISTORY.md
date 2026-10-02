@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-88 kein-ring-in-der-luft
+
+### EINGELESEN
+- W-013, Schritt T1b (Spezifikation Strategien 13.5); Manuel am Klotz: „effektiv ist da nur ein
+  Kreis“.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`_Lage._schneidet`, `_Lage.ring`), `tests/test_raeumen.py` (g),
+  `docs/spezifikation_strategien.md` (13.5), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.125.5)
+
+### AKZEPTANZKRITERIUM
+Kein Ring fährt ganz in der Luft: ein Streifen 100 × 20 in 8 statt 11 Ringen.
+
+### DONE
+- Ein Ring fährt nur noch, wenn seine Stirn irgendwo Rohteil trifft, das auf der Lage weg kann
+  und das die Ringe davor nicht schon genommen haben (das Raster `frei` der Lage).
+- Gemessen: Streifen 100 × 20 2,18 statt 2,78 min (Luft 7 statt 27 %), Block 60 × 40 2,72 statt
+  2,86; Prüfstand „tasche/raeumen oben“ 5,76 statt 6,11, „tasche/raeumen“ 0,78 statt 0,88; das
+  Testteil 12,38 statt 12,45 min – dort bringt es fast nichts. Überall ohne Rest.
+- Die Bestmarken sind nicht neu geschrieben (schneller ist erlaubt).
+- Versuch für T5, nur im Scratch, nichts im Addon: FreeCADs Adaptiv-Kern (`area.Adaptive2d`)
+  anstelle der Ringe vom Rohteil her, mit dem Raster des Planers (Vielecke aus dem Feld D,
+  danach die Ringe an den Wänden) – am Zapfen 2,60 statt 3,03 min, Last bis 1,18 statt 1,64 ae,
+  2-mal statt 9-mal abgehoben, 0,1 s Rechenzeit. Offen dabei: Das Eintauchen am Anfang trifft
+  Material (im Eilgang 25 mm³) – es braucht die Einfahrlogik der Lage (`_hinab`, `frei`).
+  Gemessen am Testteil (Ringe): Last bis 5 ae, je 1,5–4 mm lang, dort, wo ein Ring an einer Wand
+  beginnt und der Fräser quer in den Streifen fährt (`_seitlich`).
+
+### TESTS
+- `tests/test_raeumen.py` (OK; Gegenprobe mit dem alten Stand: 11 Ringe, schlägt an),
+  `test_testteil`, `test_pruefstand`, `test_goldene_bahnen`, `test_materialstand` (OK). Alle
+  Prüfungen: 69 OK, Export übersprungen.
+- Der Lauf über alle Szenarien auf dem Stand nach P-2026-10-02-88 lief beim Ende der Sitzung noch
+  (21 von 97 OK, kein Fehler) – nachsehen und zu Ende führen (NEXT).
+
+### NEXT
+- Den Lauf über alle Szenarien zu Ende führen. Dann T5 (Adaptiv als Variante, die schnellste, die
+  die Last hält), T4 („Schlichten danach“), T2 (dünne Lage mit „Planen“ – dazu muss die Zielzeit
+  denselben Einsatz kennen).
+
 ## P-2026-10-02-87 vorschau-nach-dem-wettbewerb
 
 ### EINGELESEN

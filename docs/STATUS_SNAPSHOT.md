@@ -251,8 +251,10 @@ Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 
 ## Nächster Schritt (konkret)
 
 **Jetzt – W-013, Manuels Testteil** ([spezifikation_strategien.md](spezifikation_strategien.md),
-Abschnitt 13.5): B-009 (die Vorschauen nach dem Wettbewerb neu rechnen), B-008,
-T2 (die dünne Lage oben mit dem Einsatz „Planen“), T1b (Ringe, die nichts mehr schneiden, fallen weg). T4 und T5 sind die Punkte aus „Als
+Abschnitt 13.5): zuerst den Lauf über alle Szenarien auf dem Stand nach P-2026-10-02-88 zu Ende führen
+(lief beim Ende der Sitzung noch). B-008, B-009 und T1b sind gebaut (-86 bis -88). Dann T5 – am Testteil
+misst das Räumen bis 5 ae Last, wo ein Ring an einer Wand beginnt; ein Versuch mit FreeCADs Adaptiv-Kern
+hält am Zapfen 1,18 ae und ist schneller (Verlauf -88) –, T4 und T2. T4 und T5 sind die Punkte aus „Als
 Nächstes“ im Projektstatus: der Block „Schlichten danach“ und das Räumen nach der Last.
 
 **Geplant nach Manuels erstem Test (2026-09-26) – Reihenfolge A → B → C, Stufe A in Arbeit:**

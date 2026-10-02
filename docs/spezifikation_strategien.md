@@ -2059,6 +2059,9 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   bis die Mitte des Fräsers die Mitte des Materials erreicht – die letzten drei, vier schneiden
   nichts mehr, weil der Ring davor mit dem Radius schon alles genommen hat (am Klotz und am
   Testteil die grauen Ringe in der Mitte). *Fertig, wenn:* kein Ring ganz in der Luft fährt.
+  **Gebaut:** P-2026-10-02-88, 0.125.5 – ein Ring fährt nur, wenn seine Stirn noch Rohteil trifft
+  (`_Lage._schneidet`). Streifen 100 × 20: 8 statt 11 Ringe, 2,18 statt 2,78 min; am Testteil
+  12,38 statt 12,45 min.
 - **T2 Die dünne Lage oben mit dem Einsatz „Planen“.** 1 mm Tiefe mit ae 1,5 ist verschenkt: Hat
   der Fräser einen Einsatz für kleine Tiefen (der Ø 12: ae 8,4 bis ap 1,2), nimmt eine Lage, die
   so dünn ist, dessen Zeilenabstand. *Fertig, wenn:* die obere Stufe oben in unter 0,3 min plan

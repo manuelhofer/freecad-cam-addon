@@ -776,6 +776,9 @@ class _Lage:
         self.schwelle = 1.5 * abschnitt / (math.pi * r * r) + 0.02
         self.reste = []  # [(Ring, Stellen)]: Anfangsstücke, die nach den Ringen nachkommen
         self.verschieben = True
+        # Was der Fräser auf dieser Lage überhaupt wegnehmen kann: Rohteil, das seine Stirn von
+        # einer erlaubten Stelle aus trifft (eine Zelle weniger: das Raster rundet).
+        self._abtragbar = None
         self.gedreht = False  # gerade ein ganzer Ring, der anderswo anfängt (_eingang_irgendwo)
         # Die freie Seite der Bahn: links im Gleichlauf (das Material rechts), sonst rechts –
         # dorthin gehen das Einfahren und der Weg quer hinein.
@@ -822,6 +825,8 @@ class _Lage:
                 drin = _luecken_zu(drin, ganz, proben, ring.geschlossen, laenge)
         if not drin.any():
             return 0
+        if not self._schneidet(x[drin], y[drin]):
+            return 0  # der ganze Ring führe durch die Luft (T1b)
         laeufe = []  # [(Stellen, Austritt hinten)]
         if ring.geschlossen and drin.all():
             start = self._start(x, y)
@@ -860,6 +865,21 @@ class _Lage:
             self._lauf(ring, stellen, hinten, ring.geschlossen and len(stellen) == n + 1)
         self.st.ringe += 1
         return 1
+
+    def _schneidet(self, x, y):
+        """Trifft die Stirn an den Stellen (x, y) irgendwo noch Rohteil, das auf dieser Lage weg
+        kann und das die Ringe davor nicht schon genommen haben? Die Ringe vom Rand her laufen,
+        bis die Mitte des Fräsers die Mitte des Materials erreicht – die letzten (R ÷ ae, beim
+        Ø 12 mit ae 1,5 vier) träfen nur noch, was der Ring davor mit seinem Radius schon
+        weggenommen hat (Spezifikation Strategien 13.5, T1b; Manuel am Klotz: „effektiv ist da
+        nur ein Kreis“)."""
+        feld = self.feld
+        if self._abtragbar is None:
+            self._abtragbar = feld.aufweiten(self.erlaubt, max(self.r - self.schritt - 0.01, 0.0))
+        roh = feld.rohteil_zellen & ~feld.frei & self._abtragbar
+        if not roh.any():
+            return False
+        return bool(feld.aufweiten(roh, self.r - 0.01)[feld.zellen(x, y)].any())
 
     def _start(self, x, y):
         """Wo ein ganzer Ring beginnt: der Spitze am nächsten – sonst auf der längsten Geraden."""
