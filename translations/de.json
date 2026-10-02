@@ -1419,7 +1419,7 @@
     "ba.ziel.volumen": "Weg müssen {volumen}.",
     "ba.ziel.mit": "Ziel mit {werkzeug}: {zeit} – im Mittel ap {ap}, {anteil} % seines Zeitspanvolumens.",
     "ba.ziel.rest": "{rest} in Ecken und Nuten, enger als er, bleiben für einen kleineren.",
-    "ba.ziel.schneller": "Schneller aus der Werkzeugkiste: {werkzeug} – {zeit}.",
+    "ba.ziel.schneller": "Schneller aus der Werkzeugkiste: {werkzeug} – Ziel {zeit}.",
     "ba.ziel.danach": "{werkzeug}, danach {rest} für den Rest",
     "ba.ziel.werkzeug": "T{nummer} {art} Ø {d}",
     "ba.ziel.minuten": "{min} min",

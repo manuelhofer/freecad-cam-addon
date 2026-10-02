@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-02-35 ziel-wort
+
+### EINGELESEN
+- Der Versuch mit der echten Planfräsbahn Ø 50 (P-2026-10-02-30): 26,9 min, die Zielzeit 11,9.
+  Der Satz „Schneller aus der Werkzeugkiste: … – 15 min.“ las sich wie eine Zusage.
+
+### DATEIEN
+- `translations/de.json`, `translations/en.json`, `help/de|en/bearbeitung.html`,
+  `docs/STATUS_SNAPSHOT.md`, `docs/archiv/DEV_PROMPT_HISTORY.md`, `package.xml` (0.96.1)
+
+### AKZEPTANZKRITERIUM
+Der Vorschlag sagt, dass seine Zeit ein Ziel ist, keine Bahnzeit.
+
+### DONE
+- „… – Ziel 15 min.“ / „… – target 15 min.“; die Hilfe ebenso.
+
+### TEST
+- 1.1.3: `szenario_zielzeit`, `test_sprache`, `test_hilfe`.
+
+### NEXT
+- –
+
 ## P-2026-10-02-34 schnittwerte-leer
 
 ### EINGELESEN
