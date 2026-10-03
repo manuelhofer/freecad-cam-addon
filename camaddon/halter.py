@@ -370,6 +370,11 @@ def vorschlag(schaft_d):
     return halter
 
 
+def vorschlag_kurz(halter):
+    """„ER25“ – der vorgeschlagene Halter kurz, für schmale Felder."""
+    return halter.kennung[len(VORSCHLAG_KENNUNG) :].upper()
+
+
 def ist_vorschlag(halter):
     """Ist es der vorgeschlagene Halter (vorschlag), kein gewählter?"""
     return halter is not None and halter.kennung.startswith(VORSCHLAG_KENNUNG)

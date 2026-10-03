@@ -10,7 +10,7 @@ entscheidet am Ende über alles zusammen.
 
 from PySide import QtGui
 
-from . import einheiten, schraege_achse
+from . import einheiten, export, schraege_achse
 from . import maschine as m
 from .gui_hilfe import zeige_hilfe
 from .gui_teile import hinweiszeile, mit_einheit, ruhiges_mausrad
@@ -92,7 +92,7 @@ class DetailKasten(QtGui.QFrame):
             if eigenschaft in ("Endlos", "Durchmesser"):
                 feld = self._schalter(ba, eigenschaft)
             else:
-                feld = self._zahlenfeld(ba, eigenschaft, pflicht)
+                feld = self._zahlenfeld(ba, eigenschaft, pflicht, _vorgabe(eigenschaft, linear))
             feld.setToolTip(ba.getDocumentationOfProperty(eigenschaft))
             self.formular.addRow(_beschriftung(text, fett=pflicht), feld)
 
@@ -306,7 +306,7 @@ class DetailKasten(QtGui.QFrame):
         )
         return feld
 
-    def _zahlenfeld(self, objekt, eigenschaft, pflicht):
+    def _zahlenfeld(self, objekt, eigenschaft, pflicht, vorgabe=None):
         # Eilgang und Vorschub in mm/min oder ipm; gespeichert in mm/min.
         if eigenschaft in VORSCHUEBE:
             feld = QtGui.QLineEdit(groesse_zeigen(getattr(objekt, eigenschaft), VORSCHUB))
@@ -321,7 +321,14 @@ class DetailKasten(QtGui.QFrame):
                 return zahl_lesen(feld.text())
 
         feld.setValidator(Zahlenpruefer(feld))
-        feld.setPlaceholderText(tr("feld.pflicht") if pflicht else tr("feld.unbekannt"))
+        # Leer gilt die Vorgabe, grau im Feld (D-14).
+        if vorgabe is None:
+            platzhalter = tr("feld.pflicht") if pflicht else tr("feld.unbekannt")
+        elif eigenschaft in VORSCHUEBE:
+            platzhalter = tr("feld.vorgabe", wert=groesse_zeigen(vorgabe, VORSCHUB))
+        else:
+            platzhalter = tr("feld.vorgabe", wert=zahl_zeigen(vorgabe))
+        feld.setPlaceholderText(platzhalter)
         feld.editingFinished.connect(lambda: self._setze(objekt, eigenschaft, lesen()))
         return feld
 
@@ -442,6 +449,19 @@ class DetailKasten(QtGui.QFrame):
         )
         verweis.linkActivated.connect(lambda thema: zeige_hilfe(self, thema))
         return verweis
+
+
+def _vorgabe(eigenschaft, linear):
+    """Womit das Addon rechnet, solange das Feld leer ist (export.VORGABE_*, wie bei der
+    Übergabe an CAM und im Prüffenster) – grau im Feld (D-14, Manuel 2026-10-03: „graue
+    Standardwerte kann man hinterlegen, ja“); None, wenn es keine gibt."""
+    if eigenschaft == "Eilgang":
+        return export.VORGABE_EILGANG
+    if eigenschaft == "Geschwindigkeit":
+        return export.VORGABE_DREHGESCHWINDIGKEIT
+    if eigenschaft == "Beschleunigung":
+        return export.VORGABE_BESCHLEUNIGUNG if linear else export.VORGABE_DREHBESCHLEUNIGUNG
+    return None
 
 
 def _name(ba):

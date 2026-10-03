@@ -9,18 +9,37 @@ machine is faster; enter its values (under “Edit machine” at the operating
 mode) and the time in the check window is its own. Three ways, from exact
 to rough:</p>
 
+<p>Empty fields show the default used for the calculation in grey. Only the <b>largest
+spindle speed</b> has none: without it nothing limits the speed – it is on the rating plate
+or in the data sheet.</p>
+
 <h3>1. The control's machine data</h3>
 <p>Most exact. <b>Read only, never change.</b> Often only visible with a key
-switch or password.</p>
+switch or password; the passwords for changing them are with the machine builder – reading
+usually does not need them.</p>
 <ul>
-<li><b>Siemens 840D sl:</b> MD32000 <i>MAX_AX_VELO</i> (rapid),
+<li><b>Siemens 840D sl (also with ShopTurn/ShopMill):</b> operating area
+<i>Commissioning</i> → <i>Machine data</i> → <i>Axis MD</i>; choose the axis with
+<i>Axis +</i>/<i>Axis −</i>, <i>Search</i> for the number.
+MD32000 <i>MAX_AX_VELO</i> (rapid),
 MD32300 <i>MAX_AX_ACCEL</i> (acceleration, m/s² or rev/s²),
 MD32431 <i>MAX_AX_JERK</i> (jerk),
-MD36100/36110 <i>POS_LIMIT_MINUS/PLUS</i> (software limits).</li>
-<li><b>Fanuc:</b> parameters 1420 (rapid) and 1620 (rapid time constant in ms).
-Acceleration ≈ rapid ÷ time constant. Match the units: mm/min ÷ 60,000 gives
-m/s, ms ÷ 1000 gives s.</li>
-<li><b>LinuxCNC:</b> <i>MAX_VELOCITY</i> and <i>MAX_ACCELERATION</i> in the INI file.</li>
+MD36100/36110 <i>POS_LIMIT_MINUS/PLUS</i> (software limits);
+spindle: MD35100 <i>SPIND_VELO_LIMIT</i> (largest speed).</li>
+<li><b>Fanuc:</b> key <i>SYSTEM</i> → <i>PARAM</i>, type the number → <i>NO.SRH</i>.
+Parameters 1420 (rapid) and 1620 (rapid time constant in ms); spindle: 3741 (largest speed
+of the first gear range). Acceleration ≈ rapid ÷ time constant. Match the units:
+mm/min ÷ 60,000 gives m/s, ms ÷ 1000 gives s.</li>
+<li><b>Heidenhain (TNC 620/640):</b> key <i>MOD</i> → <i>Code number</i>. The code number
+for the user parameters is in the control's user manual. Rapid and acceleration are mostly
+in the machine builder's parameters – then the data sheet or the builder is quicker.</li>
+<li><b>Haas:</b> rapid and largest spindle speed are in the model's data sheet
+(haascnc.com, the machine's page, “Specifications”).</li>
+<li><b>LinuxCNC:</b> in the INI file per axis <i>MAX_VELOCITY</i> (in mm/s – times 60 gives
+mm/min) and <i>MAX_ACCELERATION</i> (in mm/s² – divided by 1000 gives m/s²); spindle:
+<i>MAX_FORWARD_VELOCITY</i> in section <i>[SPINDLE_0]</i>.</li>
+<li><b>Mach3/Mach4:</b> <i>Config</i> → <i>Motor Tuning</i>: <i>Velocity</i> (units per
+minute) and <i>Acceleration</i> (units per s²).</li>
 </ul>
 <p><i>Note:</i> these numbers come from general knowledge, not from your
 machine's manual – check there if in doubt.</p>

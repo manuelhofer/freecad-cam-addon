@@ -78,13 +78,17 @@ def schritte(h):
     eingeben(beschleunigung, "3,5")
     h.pruefe(x1.Beschleunigung == 3.5, f"„3,5“ getippt ergibt {x1.Beschleunigung}")
 
-    # Ein geleertes Feld heißt „unbekannt“; beim Eilgang (Pflicht) folgt ein Hinweis.
+    # Ein geleertes Feld heißt „unbekannt“; beim Eilgang gilt dann grau die Vorgabe – kein
+    # Hinweis mehr (D-14, Manuel 2026-10-03).
     eingeben(eilgang, "")
     yield 300
     h.pruefe(x1.Eilgang == 0, f"geleertes Feld: Eilgang bleibt {x1.Eilgang}")
+    h.pruefe(
+        eilgang.placeholderText() == "leer: 10000", f"Eilgang grau: {eilgang.placeholderText()!r}"
+    )
     texte = [panel.hinweise.item(i).text() for i in range(panel.hinweise.count())]
     h.pruefe(
-        any("X1" in t and "Eilgang" in t for t in texte), f"fehlender Eilgang: Hinweise {texte}"
+        not any("X1" in t and "Eilgang" in t for t in texte), f"Hinweis trotz Vorgabe: {texte}"
     )
     h.bild("2_eilgang_geleert")
     panel.reject()

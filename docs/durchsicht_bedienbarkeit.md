@@ -191,7 +191,7 @@ und auf der Einstellungsseite. **Fertig, wenn:** jeder Befehl im Menü steht und
 die Werkzeugleiste sieben Symbole hat.
 *Erledigt (P-2026-09-27-28).*
 
-### D-14 Kennwerte einer neuen Achse: Pflicht ohne Beispiel – entschieden: graue Standardwerte, Hilfe je Steuerung (Manuel, 2026-10-03)
+### D-14 Kennwerte einer neuen Achse: Pflicht ohne Beispiel – erledigt (P-2026-10-03-16): graue Vorgaben, Hilfe je Steuerung
 **Heute:** Eilgang und Drehzahl sind Pflicht, die Felder zeigen „bitte
 eintragen“ bzw. „unbekannt“, bis man tippt – beim Werkzeug stehen dagegen graue
 Beispielwerte, die gelten, bis man eigene einträgt. **Vorschlag:** entweder

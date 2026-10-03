@@ -60,7 +60,7 @@ ERLAUBT = {LINEAR: [ART_LINEAR], DREH: [ART_POSITIONIEREN, ART_SPINDEL, ART_REVO
 # aus Datenblatt und Maschinendaten – siehe Spezifikation W-001, Abschnitt 4.
 WERTE = {
     ART_LINEAR: [
-        ("Eilgang", True),
+        ("Eilgang", False),  # leer: export.VORGABE_EILGANG (D-14)
         ("VorschubMax", False),
         ("Beschleunigung", False),
         ("Ruck", False),
@@ -68,7 +68,7 @@ WERTE = {
     ],
     ART_POSITIONIEREN: [
         ("Endlos", False),
-        ("Geschwindigkeit", True),
+        ("Geschwindigkeit", False),  # leer: export.VORGABE_DREHGESCHWINDIGKEIT (D-14)
         ("Beschleunigung", False),
         ("Ruck", False),
     ],

@@ -888,6 +888,7 @@ class WerkzeugDialog(QtGui.QDialog):
             platzhalter = tr(
                 "wv.laenge_spindelnase.platzhalter_vorschlag",
                 wert=groesse_zeigen(wz.laenge_mit_vorschlag(w, halter), einheiten.LAENGE),
+                halter=hl.vorschlag_kurz(halter),
             )
         elif halter is not None:
             platzhalter = tr(

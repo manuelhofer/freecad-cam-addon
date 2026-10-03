@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-16 achswerte-grau-hilfe-je-steuerung
+
+### EINGELESEN
+- Manuel, 2026-10-03: „graue Standardwerte kann man hinterlegen, ja … die Beschleunigung ist
+  immer bissi schwierig rauszubekommen … die verschiedenen Maschinenparameter für verschiedene
+  Steuerungen, wo man es nachlesen kann … und wie man hinkommt“. Durchsicht D-14.
+
+### DATEIEN
+- `camaddon/gui_details.py` (`_vorgabe`, grau „leer: …“), `camaddon/maschine.py` (Eilgang und
+  Geschwindigkeit keine Pflicht mehr), `camaddon/halter.py` (`vorschlag_kurz`),
+  `camaddon/gui_werkzeuge.py` („leer: 101 mit ER25“), Übersetzungen, `help/de|en/beschleunigung.html`,
+  Szenarien `szenario_felder`, `szenario_maschine_bearbeiten`, `szenario_halter`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.140.0).
+
+### AKZEPTANZKRITERIUM
+Leere Felder Eilgang, Geschwindigkeit und Beschleunigung zeigen grau die Vorgabe, mit der
+gerechnet wird (10000 mm/min, 100 U/min, 1 m/s² bzw. 1 U/s²), ohne Hinweis „fehlt noch“. Die
+größte Drehzahl der Spindel bleibt Pflicht (ohne sie begrenzt nichts). Die Hilfe „Wie finde
+ich die Beschleunigung heraus?“ nennt je Steuerung (Siemens, Fanuc, Heidenhain, Haas,
+LinuxCNC, Mach) den Weg zu den Werten.
+
+### TESTS
+- `tests/test_maschine.py`, Szenarien `szenario_felder`, `szenario_maschine_bearbeiten`,
+  `szenario_halter` (Bild `0_vorschlag`) – OK. black und ruff sauber.
+
+### NEXT
+- Gühring 8330/5596 in die Kiste; Absatz an der Wand messen; Manuels Test 0.134–0.140.
+
 ## P-2026-10-03-15 halter-vorschlag-und-cam-mitziehen
 
 ### EINGELESEN

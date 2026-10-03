@@ -10,18 +10,39 @@ schneller; trag ihre Werte ein (unter „Maschine bearbeiten“ an der
 Betriebsart), dann ist die Zeit im Prüffenster ihre. Drei Wege, von genau
 nach grob:</p>
 
+<p>Leere Felder zeigen grau die Vorgabe, mit der gerechnet wird. Nur die <b>größte
+Drehzahl der Spindel</b> hat keine: Ohne sie begrenzt nichts die Drehzahl – sie steht auf
+dem Typenschild oder im Datenblatt.</p>
+
 <h3>1. Maschinendaten der Steuerung</h3>
 <p>Am genauesten. <b>Nur lesen, nichts ändern.</b> Oft nur mit Schlüsselschalter
-oder Kennwort sichtbar.</p>
+oder Kennwort sichtbar; die Kennwörter zum Ändern hat der Maschinenhersteller – zum
+Lesen braucht man sie meist nicht.</p>
 <ul>
-<li><b>Siemens 840D sl:</b> MD32000 <i>MAX_AX_VELO</i> (Eilgang),
+<li><b>Siemens 840D sl (auch mit ShopTurn/ShopMill):</b> Bedienbereich
+<i>Inbetriebnahme</i> → <i>Maschinendaten</i> → <i>Achs-MD</i>; die Achse mit
+<i>Achse +</i>/<i>Achse −</i> wählen, mit <i>Suchen</i> die Nummer.
+MD32000 <i>MAX_AX_VELO</i> (Eilgang),
 MD32300 <i>MAX_AX_ACCEL</i> (Beschleunigung, m/s² bzw. U/s²),
 MD32431 <i>MAX_AX_JERK</i> (Ruck),
-MD36100/36110 <i>POS_LIMIT_MINUS/PLUS</i> (Software-Endschalter).</li>
-<li><b>Fanuc:</b> Parameter 1420 (Eilgang) und 1620 (Zeitkonstante des Eilgangs in ms).
+MD36100/36110 <i>POS_LIMIT_MINUS/PLUS</i> (Software-Endschalter);
+Spindel: MD35100 <i>SPIND_VELO_LIMIT</i> (größte Drehzahl).</li>
+<li><b>Fanuc:</b> Taste <i>SYSTEM</i> → <i>PARAM</i>, die Nummer eintippen →
+<i>NR.SUCH</i> (NO.SRH). Parameter 1420 (Eilgang) und 1620 (Zeitkonstante des Eilgangs
+in ms); Spindel: 3741 (größte Drehzahl der ersten Getriebestufe).
 Beschleunigung ≈ Eilgang ÷ Zeitkonstante. Einheiten angleichen: mm/min ÷ 60 000
 ergibt m/s, ms ÷ 1000 ergibt s.</li>
-<li><b>LinuxCNC:</b> <i>MAX_VELOCITY</i> und <i>MAX_ACCELERATION</i> in der INI-Datei.</li>
+<li><b>Heidenhain (TNC 620/640):</b> Taste <i>MOD</i> → <i>Schlüsselzahl</i>. Die
+Schlüsselzahl für die Benutzerparameter steht im Benutzerhandbuch der Steuerung. Eilgang
+und Beschleunigung liegen meist in den Parametern des Maschinenherstellers – dann sind
+Datenblatt oder Hersteller der schnellere Weg.</li>
+<li><b>Haas:</b> Eilgang und größte Drehzahl stehen im Datenblatt des Modells
+(haascnc.com, Seite der Maschine, „Spezifikationen“).</li>
+<li><b>LinuxCNC:</b> in der INI-Datei je Achse <i>MAX_VELOCITY</i> (in mm/s – mal 60
+ergibt mm/min) und <i>MAX_ACCELERATION</i> (in mm/s² – geteilt durch 1000 ergibt m/s²);
+Spindel: <i>MAX_FORWARD_VELOCITY</i> im Abschnitt <i>[SPINDLE_0]</i>.</li>
+<li><b>Mach3/Mach4:</b> <i>Config</i> → <i>Motor Tuning</i>: <i>Velocity</i>
+(Einheiten je Minute) und <i>Acceleration</i> (Einheiten je s²).</li>
 </ul>
 <p><i>Hinweis:</i> Die Nummern stammen aus allgemeinem Wissen, nicht aus dem
 Handbuch deiner Maschine – im Zweifel dort nachsehen.</p>

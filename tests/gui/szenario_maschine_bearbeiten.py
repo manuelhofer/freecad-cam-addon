@@ -267,25 +267,27 @@ def schritte(h):
         yield 200
         h.pruefe(not x1.HomeAn and not x1.WechselAn, "Home/Wechsel lassen sich nicht löschen")
 
-    # Ein Fehler: X1 ohne Eilgang -> Hinweis erscheint, Klick springt zur Achse.
-    panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
+    # Ein Fehler: S4 ohne größte Drehzahl -> Hinweis erscheint, Klick springt zur Spindel. (Der
+    # Eilgang hat seit D-14 eine graue Vorgabe und fehlt nie.)
+    panel.achsen.setCurrentItem(eintrag(panel.achsen, "S4"))
     yield 100
+    drehzahl_vorher = panel.details.feld(1).text()
     tippen(panel.details.feld(1), "")
     yield 300
     texte = [panel.hinweise.item(i).text() for i in range(panel.hinweise.count())]
     h.pruefe(
-        any("X1" in t and "Eilgang" in t for t in texte),
-        f"fehlender Eilgang nicht gemeldet: {texte}",
+        any("S4" in t and "Drehzahl" in t for t in texte),
+        f"fehlende Drehzahl nicht gemeldet: {texte}",
     )
     panel.aufnahmen.setCurrentItem(None)
     panel.hinweise.itemClicked.emit(panel.hinweise.item(0))
     aktuell = panel.achsen.currentItem()
     h.pruefe(
-        aktuell is not None and aktuell.text(0).startswith("X1"),
-        "Klick auf Hinweis springt nicht zu X1",
+        aktuell is not None and aktuell.text(0).startswith("S4"),
+        "Klick auf Hinweis springt nicht zu S4",
     )
     del aktuell
-    tippen(panel.details.feld(1), "24000")
+    tippen(panel.details.feld(1), drehzahl_vorher or "24000")
     yield 300
     h.bild("5_hinweis_geklickt")
 
@@ -338,7 +340,9 @@ def schritte(h):
         f"vorgeschlagen: {paare}",
     )
     texte = [panel.hinweise.item(i).text() for i in range(panel.hinweise.count())]
-    h.pruefe(any("Eilgang" in t for t in texte), f"fehlender Eilgang nicht gemeldet: {texte}")
+    # Der Eilgang hat seit D-14 eine graue Vorgabe; es fehlt die größte Drehzahl.
+    h.pruefe(any("S1" in t and "Drehzahl" in t for t in texte), f"fehlende Drehzahl: {texte}")
+    h.pruefe(not any("Eilgang" in t for t in texte), f"Hinweis zum Eilgang trotz Vorgabe: {texte}")
     h.pruefe(not panel.knopf_vorschlagen.isEnabled(), "„Vorschlagen“ nach dem Vorschlag bedienbar")
     h.bild("6_vorgeschlagen")
     panel.reject()

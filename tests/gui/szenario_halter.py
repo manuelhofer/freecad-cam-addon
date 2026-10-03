@@ -1,5 +1,6 @@
 # Halter (W-002 Stufe D): In der Werkzeugverwaltung ein Werkzeug mit 83 mm
-# Gesamtlänge; neben der Länge ab Spindelnase „Halter – ohne –“ und „Halter …“.
+# Gesamtlänge; neben der Länge ab Spindelnase grau der vorgeschlagene Halter (D-23: Schaft
+# Ø 12 → ER25) und „Halter …“, im leeren Feld „leer: 101 mit ER25“ (70 + Auskragung 26 + 5).
 # Das Fenster „Halter“ ist leer; „Neu“ → „Spannzangenfutter ER32 · SK40“: die
 # Kontur Flansch Ø63 × 16, Körper Ø50 × 54, „Länge 70,00 mm · größter Ø
 # 63,00 mm“, das Bild zeigt Halter und Werkzeug, über OK „OK: T1 bekommt den
@@ -49,11 +50,16 @@ def schritte(h):
     tippen(d.feld_gesamtlaenge, "83")
     yield 200
     h.pruefe(d.feld_halter.count() == 1, f"Halter-Auswahl: {d.feld_halter.count()} Einträge")
-    h.pruefe(d.feld_halter.currentText() == "– ohne –", f"Halter: {d.feld_halter.currentText()}")
     h.pruefe(
-        d.feld_laenge_spindelnase.placeholderText() == "leer: Gesamtlänge 83",
+        d.feld_halter.currentText().startswith("Keiner gewählt – geprüft wird mit")
+        and "ER25" in d.feld_halter.currentText(),
+        f"Halter: {d.feld_halter.currentText()}",
+    )
+    h.pruefe(
+        d.feld_laenge_spindelnase.placeholderText() == "leer: 101 mit ER25",
         f"Platzhalter ohne Halter: {d.feld_laenge_spindelnase.placeholderText()!r}",
     )
+    h.bild("0_vorschlag", d)
 
     # --- Das Fenster „Halter“: leer, dann aus der Vorlage ER32 ------------------------------
     QtCore.QTimer.singleShot(0, d.knopf_halter.click)
@@ -156,7 +162,7 @@ def schritte(h):
     h.pruefe(f.liste.count() == 0 and f.leer.isVisible(), "nicht gelöscht")
     f.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield 300
-    h.pruefe(d.feld_halter.currentText() == "– ohne –", "T1 hat noch einen Halter")
+    h.pruefe(d.feld_halter.currentIndex() == 0, "T1 hat noch einen Halter")
     d.knoepfe.button(QtGui.QDialogButtonBox.Ok).click()
     yield 500
     gespeichert = wz.Bibliothek.laden()
