@@ -155,6 +155,59 @@ pruefe(
     and not any("SUPA" in z for z in mit_f_home),
     f"F_HOME: {[z for z in mit_f_home if 'F_HOME' in z or z.startswith('T')]}",
 )
+# --- Die Haken und das Glätten (P-2026-10-03-27; Spezifikation Steuerung, Abschnitte 5, 7, 8) ---
+# Siemens vorbelegt: G64, G642, CTOL mit der Toleranz, SOFT im Kopf – COMPCAD (Option) nicht.
+kopf = siemens[: siemens.index("; Rundum schruppen T1")]
+pruefe(
+    all(z in kopf for z in ("G64", "G642", "CTOL=0.010", "SOFT")) and "COMPCAD" not in kopf,
+    f"Siemens-Kopf: {kopf}",
+)
+lcnc = pp.programm([tasche], pp.steuerung("linuxcnc"), None, "Platte").zeilen
+pruefe("G64 P0.010 Q0.010" in lcnc, f"LinuxCNC G64: {lcnc[:5]}")
+mit_compcad = pp.programm(
+    [rundum],
+    pp.steuerung("siemens", {"glaetten": ["g64", "compcad"], "toleranz": 0.02}),
+    dreh,
+    "Welle",
+)
+pruefe(
+    "COMPCAD" in mit_compcad.zeilen
+    and "G642" not in mit_compcad.zeilen
+    and any("COMPCAD" in h for h in mit_compcad.hinweise),
+    f"COMPCAD: {mit_compcad.zeilen[:8]} {mit_compcad.hinweise}",
+)
+pruefe(
+    pp.steuerung("siemens", {"toleranz": 5.0, "kuehlung": "nein", "g93": 1}).toleranz == 1.0
+    and pp.steuerung("siemens", {"kuehlung": "nein"}).kuehlung is True,
+    "falsche Werte angenommen",
+)
+# Alles aus: keine Kommentare, keine Kühlung, kein Wechselpunkt, keine C-Achse ein/aus.
+aus = {"kommentare": False, "kuehlung": False, "wechselpunkt": False, "c_achse": False}
+ohne_alles = pp.programm([rundum, tasche], pp.steuerung("siemens", aus), dreh_wp, "Welle").zeilen
+pruefe(
+    not any(z.startswith(";") for z in ohne_alles)
+    and "M8" not in ohne_alles
+    and not any("SUPA" in z or "SPOS" in z or "SPCOF" in z for z in ohne_alles),
+    f"alles aus: {ohne_alles[:12]}",
+)
+# Satznummern: N10, N20 … – nicht vor „%“, „O0001“ und Kommentaren.
+fanuc_n = pp.programm([tasche], pp.steuerung("fanuc", {"satznummern": True}), None, "P").zeilen
+pruefe(
+    fanuc_n[:3] == ["%", "O0001 (P)", "N10 G17 G21 G40 G49 G80 G90"]
+    and fanuc_n[-1] == "%"
+    and all(z.startswith(("N", "(", "%", "O")) for z in fanuc_n),
+    f"Satznummern: {fanuc_n[:6]} … {fanuc_n[-3:]}",
+)
+# Ohne G93 (S5): F in mm/min, so dass die Zeit stimmt – von X42 Z3 C0 nach X38 Z0 C90 in
+# 1/3 min: √(4² + 3² + 90²) · 3 = 270,416 mm/min; kein G93, kein G94.
+ohne_g93 = pp.programm([rundum], pp.steuerung("siemens", {"g93": False}), dreh, "Welle").zeilen
+pruefe(
+    "G1 X76.000 Z0.000 C4=90.000 F270.416" in ohne_g93
+    and "G93" not in ohne_g93
+    and "G94" not in ohne_g93,
+    f"ohne G93: {[z for z in ohne_g93 if z.startswith(('G1', 'G9'))]}",
+)
+
 geaendert = pp.steuerung("fanuc", {"angetrieben_ein": "M{m}3 S{s}", "unbekannt": "x"})
 pruefe("M33 S3000" in pp.programm([rundum], geaendert, dreh).zeilen, "geänderter Befehl gilt nicht")
 vorschau = pp.programm([tasche, tasche], pp.steuerung("linuxcnc"), None, vorschau=2)

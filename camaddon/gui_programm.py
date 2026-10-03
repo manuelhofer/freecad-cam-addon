@@ -4,9 +4,11 @@
 Manuel (2026-10-03): „ich möchte nicht den Postprozessor-Generator von FreeCAD nutzen … ich
 hätte gern einen guten Postprozessor-Manager“; FreeCADs „Nachbearbeitung“ brach in 1.1.4 mit
 „Post processor not identified“ ab. Das Fenster: Job, die Maschine des Jobs mit dem, was der
-Postprozessor von ihr weiß, die Steuerung (gemerkt am Job und je Maschine), ihre Befehle zum
-Ändern (gemerkt je Steuerung; gelb, was der Maschinenhersteller festlegt), die Vorschau der
-ersten Sätze und „Speichern“. Die Maschine ist wählbar – jede offene, auch ungespeichert, und
+Postprozessor von ihr weiß, die Steuerung (gemerkt am Job und je Maschine), links ihre
+Einstellungen in Gruppen – Haken mit einem Satz Erklärung, die Befehle zum Ändern, gelb, was der
+Maschinenhersteller festlegt (gemerkt je Steuerung; Manuel, 2026-10-03: „die Optionen im
+Postprozessor besser beschreiben, darstellen, mit Haken machen“) –, rechts die Vorschau der
+ersten Sätze, unten „Speichern“. Die Maschine ist wählbar – jede offene, auch ungespeichert, und
 die gemerkten (Manuel, 2026-10-03: seine neue Drehmaschine war offen, aber nicht gespeichert,
 und das Fenster schrieb „Keine Maschine am Job“).
 """
@@ -24,12 +26,99 @@ from . import maschinenspeicher as msp
 from . import postprozessor as pp
 from . import reichweite as rw
 from .gui_hilfe import kopfzeile
-from .gui_teile import knopf, ruhiges_mausrad
+from .gui_teile import GRAU, knopf, ruhiges_mausrad
+from .gui_zahlen import zahlenformat
 from .sprache import tr
 
 EIGENSCHAFT_STEUERUNG = "CamAddonSteuerung"  # am Job: die Kennung der Steuerung
 VORSCHAU_SAETZE = 300  # so viele Bewegungssätze zeigt die Vorschau
 GELB = "#c4a000"
+
+# Die Gruppen der Einstellungen: (Gruppe, Anker in der Hilfe, Haken und Befehle darin).
+GRUPPEN = (
+    ("programm", "programm", ("kommentare", "satznummern", "kopf", "kopf_drehen", "ende")),
+    (
+        "wechsel",
+        "wechsel",
+        (
+            "wechsel_fraesen",
+            "wechsel_drehen",
+            "wechselpunkt",
+            "wechselpunkt_mks",
+            "wechselpunkt_wks",
+        ),
+    ),
+    (
+        "spindel",
+        "spindel",
+        (
+            "spindel_ein",
+            "spindel_aus",
+            "angetrieben_ein",
+            "angetrieben_aus",
+            "kuehlung",
+            "kuehlung_flut",
+            "kuehlung_nebel",
+            "kuehlung_aus",
+        ),
+    ),
+    ("c_achse", "c_achse", ("c_achse", "c_ein", "c_aus")),
+    ("vorschub", "vorschub", ("g93", "vorschub_zeit", "vorschub_minute", "vorschub_minute_drehen")),
+    ("glaetten", "glaetten", ()),
+)
+# Was nur an der Drehmaschine bzw. nur an der Fräse gilt – sonst nicht gezeigt.
+NUR_DREHEN = {
+    "kopf_drehen",
+    "wechsel_drehen",
+    "angetrieben_ein",
+    "angetrieben_aus",
+    "vorschub_minute_drehen",
+    "c_achse",
+    "c_ein",
+    "c_aus",
+}
+NUR_FRAESEN = {"wechsel_fraesen", "vorschub_minute"}
+# Befehle, die nur mit ihrem Haken gelten.
+HAKEN_VON = {
+    "wechselpunkt_mks": "wechselpunkt",
+    "wechselpunkt_wks": "wechselpunkt",
+    "kuehlung_flut": "kuehlung",
+    "kuehlung_nebel": "kuehlung",
+    "kuehlung_aus": "kuehlung",
+    "c_ein": "c_achse",
+    "c_aus": "c_achse",
+    "vorschub_zeit": "g93",
+    "vorschub_minute": "g93",
+    "vorschub_minute_drehen": "g93",
+}
+
+
+def _fett(widget, fett):
+    """Fett, was der Benutzer geändert hat."""
+    schrift = widget.font()
+    schrift.setBold(bool(fett))
+    widget.setFont(schrift)
+
+
+def gruppen_titel(gruppe):
+    return {
+        "programm": tr("pp.gruppe.programm"),
+        "wechsel": tr("pp.gruppe.wechsel"),
+        "spindel": tr("pp.gruppe.spindel"),
+        "c_achse": tr("pp.gruppe.c_achse"),
+        "vorschub": tr("pp.gruppe.vorschub"),
+        "glaetten": tr("pp.gruppe.glaetten"),
+    }[gruppe]
+
+
+def _erklaerung(text, einruecken=False, farbe=None):
+    """Ein Satz Erklärung unter einer Einstellung – grau (oder `farbe`), umbrochen."""
+    zeile = QtGui.QLabel(text)
+    zeile.setWordWrap(True)
+    zeile.setStyleSheet(
+        f"color: {farbe or GRAU.name()};" + (" margin-left: 22px;" if einruecken else "")
+    )
+    return zeile
 
 
 def _parameter():
@@ -37,12 +126,13 @@ def _parameter():
 
 
 def gespeicherte_aenderungen(kennung):
-    """{Feld: Text} – was der Benutzer an den Befehlen dieser Steuerung geändert hat."""
+    """{Feld: Wert} – was der Benutzer an dieser Steuerung geändert hat: Befehle (Text), Haken,
+    Toleranz und Glätten (pp.gueltige_aenderungen)."""
     try:
         werte = json.loads(_parameter().GetString(f"Steuerung_{kennung}", "") or "{}")
     except ValueError:
         return {}
-    return {k: v for k, v in werte.items() if k in pp.BEFEHLSFELDER and isinstance(v, str)}
+    return pp.gueltige_aenderungen(werte) if isinstance(werte, dict) else {}
 
 
 def aenderungen_merken(kennung, aenderungen):
@@ -128,8 +218,12 @@ class ProgrammDialog(QtGui.QDialog):
         self._maschinen = []  # [(Name, Pfad, Dokument)] – pp.maschinen_zur_wahl()
         self._ungespeichert = False  # die gewählte Maschine liegt in keiner Datei
         self._fuellt = False
+        self.haken = {}  # Haken der Einstellungen: Feld → QCheckBox (Szenarien)
+        self.felder = {}  # Befehle: Feld → (Name, Eingabe)
+        self.glaetten_haken = {}  # Kennung → QCheckBox
+        self.feld_toleranz = None
         self.setWindowTitle(tr("pp.titel"))
-        self.resize(820, 760)
+        self.resize(1180, 840)
         aufbau = QtGui.QVBoxLayout(self)
         aufbau.addWidget(kopfzeile(tr("pp.titel"), "programm"))
         erklaerung = QtGui.QLabel(tr("pp.erklaerung"))
@@ -158,49 +252,43 @@ class ProgrammDialog(QtGui.QDialog):
             self.wahl_steuerung.addItem(s.name, kennung)
         self.wahl_steuerung.setToolTip(tr("pp.steuerung.tooltip"))
         self.wahl_steuerung.currentIndexChanged.connect(self._steuerung_gewaehlt)
-        self.knopf_befehle = knopf(tr("pp.befehle"), tr("pp.befehle.tooltip"), self._befehle_zeigen)
-        self.knopf_befehle.setCheckable(True)
-        zeile = QtGui.QHBoxLayout()
-        zeile.addWidget(self.wahl_steuerung, 1)
-        zeile.addWidget(self.knopf_befehle)
         raster.addWidget(QtGui.QLabel(tr("pp.steuerung")), 2, 0)
-        raster.addLayout(zeile, 2, 1)
+        raster.addWidget(self.wahl_steuerung, 2, 1)
         raster.setColumnStretch(1, 1)
         aufbau.addLayout(raster)
 
-        # Die Befehle der Steuerung – eingeklappt, bis man „Befehle …“ drückt.
-        self.befehle = QtGui.QWidget()
-        befehle_aufbau = QtGui.QVBoxLayout(self.befehle)
-        befehle_aufbau.setContentsMargins(0, 0, 0, 0)
-        self.tabelle = QtGui.QTableWidget(len(pp.BEFEHLSFELDER), 2)
-        self.tabelle.setHorizontalHeaderLabels([tr("pp.spalte.befehl"), tr("pp.spalte.text")])
-        self.tabelle.horizontalHeader().setStretchLastSection(True)
-        self.tabelle.verticalHeader().setVisible(False)
-        self.tabelle.itemChanged.connect(self._befehl_geaendert)
-        befehle_aufbau.addWidget(self.tabelle)
-        zeile = QtGui.QHBoxLayout()
-        self.befehle_hinweis = QtGui.QLabel(tr("pp.befehle.hinweis"))
-        self.befehle_hinweis.setWordWrap(True)
-        zeile.addWidget(self.befehle_hinweis, 1)
+        # Links die Einstellungen der Steuerung in Gruppen, rechts die Vorschau.
+        teiler = QtGui.QSplitter(QtCore.Qt.Horizontal)
+        links = QtGui.QWidget()
+        links_aufbau = QtGui.QVBoxLayout(links)
+        links_aufbau.setContentsMargins(0, 0, 0, 0)
+        self.einstellungen = QtGui.QScrollArea()
+        self.einstellungen.setWidgetResizable(True)
+        self.einstellungen.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        links_aufbau.addWidget(self.einstellungen, 1)
         self.knopf_zuruecksetzen = knopf(
             tr("pp.zuruecksetzen"), tr("pp.zuruecksetzen.tooltip"), self.zuruecksetzen
         )
-        zeile.addWidget(self.knopf_zuruecksetzen)
-        befehle_aufbau.addLayout(zeile)
-        self.befehle.hide()
-        aufbau.addWidget(self.befehle)
-
+        links_aufbau.addWidget(self.knopf_zuruecksetzen, 0, QtCore.Qt.AlignRight)
+        teiler.addWidget(links)
+        rechts = QtGui.QWidget()
+        rechts_aufbau = QtGui.QVBoxLayout(rechts)
+        rechts_aufbau.setContentsMargins(0, 0, 0, 0)
         self.hinweise = QtGui.QLabel()
         self.hinweise.setWordWrap(True)
         self.hinweise.setStyleSheet(f"color: {GELB};")
-        aufbau.addWidget(self.hinweise)
-        aufbau.addWidget(QtGui.QLabel(tr("pp.vorschau")))
+        rechts_aufbau.addWidget(self.hinweise)
+        rechts_aufbau.addWidget(QtGui.QLabel(tr("pp.vorschau")))
         self.vorschau = QtGui.QPlainTextEdit()
         self.vorschau.setReadOnly(True)
         schrift = QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
         self.vorschau.setFont(schrift)
         self.vorschau.setLineWrapMode(QtGui.QPlainTextEdit.NoWrap)
-        aufbau.addWidget(self.vorschau, 1)
+        rechts_aufbau.addWidget(self.vorschau, 1)
+        teiler.addWidget(rechts)
+        teiler.setStretchFactor(0, 5)
+        teiler.setStretchFactor(1, 6)
+        aufbau.addWidget(teiler, 1)
 
         zeile = QtGui.QHBoxLayout()
         zeile.addWidget(QtGui.QLabel(tr("pp.datei")))
@@ -294,6 +382,7 @@ class ProgrammDialog(QtGui.QDialog):
             self.info = pp.Maschineninfo()
         self.maschine_text.setText(self._maschine_beschreiben())
         if not self._fuellt:
+            self._einstellungen_bauen()
             self.vorschau_rechnen()
 
     def _maschine_beschreiben(self):
@@ -348,62 +437,195 @@ class ProgrammDialog(QtGui.QDialog):
     def _steuerung_gewaehlt(self, *_):
         if not self._fuellt:
             steuerung_merken(self.job, self.kennung())
-        self._tabelle_fuellen()
+        self._einstellungen_bauen()
         self.feld_datei.setText(pp.dateiname(self.job, self.steuerung()))
         self.vorschau_rechnen()
 
-    # --- Befehle ------------------------------------------------------------------------
+    # --- Einstellungen ------------------------------------------------------------------
 
-    def _befehle_zeigen(self):
-        self.befehle.setVisible(self.knopf_befehle.isChecked())
+    def _zeigen(self, feld):
+        """Gilt die Einstellung an der gewählten Maschine? Drehmaschine oder Fräse, der
+        Wechselpunkt in MKS oder WKS."""
+        drehen = self.info.drehmaschine
+        if (feld in NUR_DREHEN and not drehen) or (feld in NUR_FRAESEN and drehen):
+            return False
+        if feld == "wechselpunkt_mks":
+            return not self.info.wechsel_wks
+        if feld == "wechselpunkt_wks":
+            return self.info.wechsel_wks
+        return True
 
-    def _tabelle_fuellen(self):
+    def _einstellungen_bauen(self):
+        """Die Einstellungen der gewählten Steuerung, in Gruppen – neu je Steuerung und
+        Maschine (nur, was dort gilt)."""
         s = self.steuerung()
         geaendert = gespeicherte_aenderungen(self.kennung())
-        self.tabelle.blockSignals(True)
-        try:
-            for zeile, feld in enumerate(pp.BEFEHLSFELDER):
-                titel, erklaerung = pp.feld_text(feld)
-                name = QtGui.QTableWidgetItem(titel)
-                name.setFlags(QtCore.Qt.ItemIsEnabled)
-                name.setToolTip(erklaerung)
-                text = QtGui.QTableWidgetItem(getattr(s, feld).replace("\n", " | "))
-                text.setData(QtCore.Qt.UserRole, feld)
-                if feld in s.vom_hersteller:
-                    for eintrag in (name, text):
-                        eintrag.setForeground(QtGui.QColor(GELB))
-                    text.setToolTip(tr("pp.feld.hersteller"))
-                if feld in geaendert:
-                    schrift = text.font()
-                    schrift.setBold(True)
-                    text.setFont(schrift)
-                self.tabelle.setItem(zeile, 0, name)
-                self.tabelle.setItem(zeile, 1, text)
-            self.tabelle.resizeColumnToContents(0)
-        finally:
-            self.tabelle.blockSignals(False)
+        self.haken, self.felder, self.glaetten_haken = {}, {}, {}
+        self.feld_toleranz = None
+        inhalt = QtGui.QWidget()
+        aufbau = QtGui.QVBoxLayout(inhalt)
+        titel = QtGui.QLabel(f"<b>{tr('pp.einstellungen', steuerung=s.name)}</b>")
+        aufbau.addWidget(titel)
+        aufbau.addWidget(_erklaerung(tr("pp.einstellungen.erklaerung")))
+        for gruppe, anker, felder in GRUPPEN:
+            sichtbar = [f for f in felder if self._zeigen(f)]
+            if gruppe != "glaetten" and not sichtbar:
+                continue
+            kasten = QtGui.QFrame()
+            kasten.setFrameShape(QtGui.QFrame.StyledPanel)
+            kasten_aufbau = QtGui.QVBoxLayout(kasten)
+            kasten_aufbau.addWidget(kopfzeile(gruppen_titel(gruppe), "programm", anker))
+            if gruppe == "glaetten":
+                self._glaetten_bauen(kasten_aufbau, s, geaendert)
+            for feld in sichtbar:
+                if feld in pp.HAKEN:
+                    self._haken_bauen(kasten_aufbau, feld, s, geaendert)
+                else:
+                    self._feld_bauen(kasten_aufbau, feld, s, geaendert)
+            aufbau.addWidget(kasten)
+        aufbau.addWidget(_erklaerung(tr("pp.befehle.hinweis")))
+        aufbau.addStretch(1)
+        self.einstellungen.setWidget(inhalt)
+        ruhiges_mausrad(inhalt)
+        self._abhaengige_schalten()
 
-    def _befehl_geaendert(self, eintrag):
-        feld = eintrag.data(QtCore.Qt.UserRole)
-        if feld not in pp.BEFEHLSFELDER:
+    def _haken_bauen(self, aufbau, feld, s, geaendert):
+        name, erklaerung = pp.haken_text(feld)
+        haken = QtGui.QCheckBox(name)
+        haken.setChecked(bool(getattr(s, feld)))
+        _fett(haken, feld in geaendert)
+        haken.toggled.connect(lambda an, f=feld: self.option_setzen(f, bool(an)))
+        aufbau.addWidget(haken)
+        aufbau.addWidget(_erklaerung(erklaerung, einruecken=True))
+        self.haken[feld] = haken
+
+    def _feld_bauen(self, aufbau, feld, s, geaendert):
+        name, erklaerung = pp.feld_text(feld)
+        titel = QtGui.QLabel(name)
+        _fett(titel, feld in geaendert)
+        farbe = None
+        if feld in s.vom_hersteller:
+            titel.setStyleSheet(f"color: {GELB};")
+            erklaerung = f"{erklaerung} {tr('pp.feld.hersteller')}"
+            farbe = GELB
+        text = getattr(s, feld).replace("\n", " | ")
+        schrift = QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
+        if feld == "wechselpunkt_mks" and s.wechselpunkt_vorschlaege:
+            # Zur Wahl, was die Steuerung dafür hat (Siemens: SUPA, F_HOME, G75), frei änderbar.
+            eingabe = QtGui.QComboBox()
+            eingabe.setEditable(True)
+            eingabe.addItems(list(s.wechselpunkt_vorschlaege))
+            eingabe.setEditText(text)
+            eingabe.lineEdit().setFont(schrift)
+            eingabe.activated.connect(
+                lambda _i, f=feld, e=eingabe: self._eingabe_fertig(f, e.currentText())
+            )
+            eingabe.lineEdit().editingFinished.connect(
+                lambda f=feld, e=eingabe: self._eingabe_fertig(f, e.currentText())
+            )
+        else:
+            eingabe = QtGui.QLineEdit(text)
+            eingabe.setFont(schrift)
+            eingabe.editingFinished.connect(
+                lambda f=feld, e=eingabe: self._eingabe_fertig(f, e.text())
+            )
+        eingabe.setToolTip(erklaerung)
+        aufbau.addWidget(titel)
+        aufbau.addWidget(eingabe)
+        aufbau.addWidget(_erklaerung(erklaerung, farbe=farbe))
+        self.felder[feld] = (titel, eingabe)
+
+    def _glaetten_bauen(self, aufbau, s, geaendert):
+        if not s.glaetten_angebot:
+            aufbau.addWidget(_erklaerung(tr("pp.glaetten.keine")))
             return
-        self.befehl_setzen(feld, eintrag.text().replace(" | ", "\n"))
+        an = {g.kennung for g in s.glaetten_an()}
+        for g in s.glaetten_angebot:
+            name, erklaerung = pp.glaetten_text(s.kennung, g.kennung)
+            haken = QtGui.QCheckBox(name)
+            haken.setChecked(g.kennung in an)
+            _fett(haken, "glaetten" in geaendert and (g.kennung in an) != g.an)
+            haken.toggled.connect(lambda _an: self._glaetten_umgeschaltet())
+            aufbau.addWidget(haken)
+            aufbau.addWidget(_erklaerung(erklaerung, einruecken=True))
+            if g.option:
+                aufbau.addWidget(_erklaerung(tr("pp.option.erklaerung"), True, GELB))
+            self.glaetten_haken[g.kennung] = haken
+        if any("{toleranz}" in g.befehl for g in s.glaetten_angebot):
+            zeile = QtGui.QHBoxLayout()
+            beschriftung = QtGui.QLabel(tr("pp.glaetten.toleranz"))
+            _fett(beschriftung, "toleranz" in geaendert)
+            zeile.addWidget(beschriftung)
+            feld = QtGui.QDoubleSpinBox()
+            feld.setLocale(zahlenformat())
+            feld.setDecimals(3)
+            feld.setRange(*pp.TOLERANZ_BEREICH)
+            feld.setSingleStep(0.005)
+            feld.setSuffix(" mm")
+            feld.setValue(s.toleranz)
+            feld.valueChanged.connect(lambda wert: self.option_setzen("toleranz", float(wert)))
+            zeile.addWidget(feld)
+            zeile.addStretch(1)
+            aufbau.addLayout(zeile)
+            aufbau.addWidget(_erklaerung(tr("pp.glaetten.toleranz.erklaerung")))
+            self.feld_toleranz = feld
+
+    def _abhaengige_schalten(self):
+        """Befehle, deren Haken aus ist, sind grau – sie stehen dann nicht im Programm."""
+        for feld, (titel, eingabe) in self.felder.items():
+            haken = self.haken.get(HAKEN_VON.get(feld))
+            an = haken is None or haken.isChecked()
+            titel.setEnabled(an)
+            eingabe.setEnabled(an)
+
+    def _eingabe_fertig(self, feld, text):
+        text = text.replace(" | ", "\n")
+        if text != getattr(self.steuerung(), feld):
+            self.befehl_setzen(feld, text)
+
+    def _glaetten_umgeschaltet(self):
+        self.option_setzen(
+            "glaetten", [k for k, haken in self.glaetten_haken.items() if haken.isChecked()]
+        )
 
     def befehl_setzen(self, feld, text):
         """Ändert einen Befehl der gewählten Steuerung (gemerkt je Steuerung)."""
+        self.option_setzen(feld, text)
+        if feld in self.felder:
+            titel, eingabe = self.felder[feld]
+            _fett(titel, feld in gespeicherte_aenderungen(self.kennung()))
+            gezeigt = getattr(self.steuerung(), feld).replace("\n", " | ")
+            if isinstance(eingabe, QtGui.QComboBox):
+                eingabe.setEditText(gezeigt)
+            elif eingabe.text() != gezeigt:
+                eingabe.setText(gezeigt)
+
+    def option_setzen(self, feld, wert):
+        """Ändert eine Einstellung der gewählten Steuerung – Befehl, Haken, Toleranz oder die
+        Liste der Befehle zum Glätten; gleich wie vorbelegt: nicht gemerkt."""
+        vorgabe_s = pp.STEUERUNGEN[self.kennung()]
+        if feld == "glaetten":
+            vorgabe = [g.kennung for g in vorgabe_s.glaetten_angebot if g.an]
+            gleich = sorted(wert) == sorted(vorgabe)
+        elif feld == "toleranz":
+            gleich = abs(float(wert) - vorgabe_s.toleranz) < 1e-9
+        else:
+            gleich = wert == getattr(vorgabe_s, feld)
         aenderungen = gespeicherte_aenderungen(self.kennung())
-        if text == getattr(pp.STEUERUNGEN[self.kennung()], feld):
+        if gleich:
             aenderungen.pop(feld, None)
         else:
-            aenderungen[feld] = text
+            aenderungen[feld] = list(wert) if feld == "glaetten" else wert
         aenderungen_merken(self.kennung(), aenderungen)
-        self._tabelle_fuellen()
+        if feld in self.haken:
+            _fett(self.haken[feld], not gleich)
+        self._abhaengige_schalten()
         self.vorschau_rechnen()
 
     def zuruecksetzen(self):
-        """Alle Befehle der gewählten Steuerung wie vorbelegt."""
+        """Alle Einstellungen der gewählten Steuerung wie vorbelegt."""
         aenderungen_merken(self.kennung(), {})
-        self._tabelle_fuellen()
+        self._einstellungen_bauen()
         self.vorschau_rechnen()
 
     # --- Vorschau und Speichern ---------------------------------------------------------

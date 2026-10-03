@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.148.1 (P-2026-10-03-26). Alles, was hier als gebaut steht,
+Stand 0.149.0 (P-2026-10-03-27). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -44,8 +44,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Werkzeuge je mit S und C, die Maschine im Fenster wählbar, auch ungespeichert
   (P-2026-10-03-25: Manuels S4/C4 und S1/C1 → `SPOS[4]=0`, `C4=…`, `M1=3 S1=…`); SUPA im
   Siemens-Handbuch nachgeprüft, F_HOME (ShopTurn) und G75 als eintragbarer Weg zum Wechselpunkt
-  (-26). Offen: Steuerung an der Maschine
-  (S2), Glätten (S4), ohne G93 (S5), Transformationen (S6), Wochen-Build (S7); die Rundachse
+  (-26); die Einstellungen als Haken mit Erklärung in Gruppen, Glätten je Steuerung (S4),
+  Vorschub ohne G93 (S5), Satznummern (-27). Offen: Steuerung an der Maschine
+  (S2), Transformationen (S6), Wochen-Build (S7); die Rundachse
   zwischen zwei Operationen nicht über viele Umdrehungen auf 0 zurückdrehen (Manuel probiert,
   was seine Maschine macht).
 - **W-006 Frässtrategien** – 2,5D komplett (Planfräsen, Räumen mit Ringen, Morph, Inseln und

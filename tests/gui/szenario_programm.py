@@ -2,9 +2,11 @@
 # der Beispiel-Drehmaschine (gespeichert, der Job merkt sie sich). Das Fenster nennt die
 # Maschine – Drehmaschine, X im Durchmesser, „Hauptspindel S1, C-Achse C1“, „T1…T12 → S3 (C3)“.
 # Siemens 840D: in der Vorschau „T1 D1“, „SPOS[1]=0“, „M3=3 S3=…“, die Rundachse „C1=…“. Fanuc:
-# gelb der Hinweis, dass der Maschinenhersteller das angetriebene Werkzeug festlegt. „Befehle …“
-# klappt die Liste auf; „C-Achse ein“ geändert steht in der Vorschau, „Zurücksetzen“ holt die
-# Vorbelegung. „Speichern“ schreibt die Datei, der Job merkt sich die Steuerung. Dann wie
+# gelb der Hinweis, dass der Maschinenhersteller das angetriebene Werkzeug festlegt. Links die
+# Einstellungen in Gruppen (P-2026-10-03-27): Haken mit Erklärung, bei Fanuc die Befehle zum
+# Glätten aus (Optionen); „C-Achse ein“ geändert steht in der Vorschau, „Zurücksetzen“ holt die
+# Vorbelegung. Siemens: G64, G642, CTOL, SOFT an, COMPCAD aus; „Satznummern“ angehakt → N10 …;
+# COMPCAD angehakt → gelb, dass es eine Option sein kann. „Speichern“ schreibt die Datei, der Job merkt sich die Steuerung. Dann wie
 # Manuels Drehmaschine (P-2026-10-03-25): eine zweite, nicht gespeichert, Hauptspindel S4/C4,
 # angetriebene Werkzeuge S1/C1 – in der Liste „… – nicht gespeichert“; gewählt: „SPOS[4]=0“,
 # „M1=3 S1=…“, „C4=…“, unter der Maschine der Satz, dass der Job sie sich erst merkt, wenn sie
@@ -106,9 +108,13 @@ def schritte(h):
         f"Fanuc-Hinweis: {d.hinweise.text()!r}",
     )
     h.pruefe("T0101" in d.vorschau.toPlainText(), "Fanuc: T0101 fehlt")
-    d.knopf_befehle.click()
-    yield 300
-    h.pruefe(d.befehle.isVisible(), "„Befehle …“ klappt nichts auf")
+    haken = {"kommentare", "satznummern", "wechselpunkt", "kuehlung", "c_achse", "g93"}
+    h.pruefe(haken <= set(d.haken), f"Haken: {sorted(d.haken)}")
+    h.pruefe(
+        set(d.glaetten_haken) == {"g08", "g051"}
+        and not any(x.isChecked() for x in d.glaetten_haken.values()),
+        f"Fanuc glätten: {sorted(d.glaetten_haken)}",
+    )
     d.befehl_setzen("c_ein", "M18 (C EIN)")
     yield 500
     h.pruefe("M18 (C EIN)" in d.vorschau.toPlainText(), "geänderter Befehl nicht in der Vorschau")
@@ -118,6 +124,26 @@ def schritte(h):
     h.pruefe("M18" not in d.vorschau.toPlainText(), "Zurücksetzen wirkt nicht")
     d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("siemens"))
     yield 500
+    an = sorted(k for k, x in d.glaetten_haken.items() if x.isChecked())
+    h.pruefe(an == ["ctol", "g64", "g642", "soft"], f"Siemens glätten an: {an}")
+    h.pruefe("CTOL=0.010" in d.vorschau.toPlainText(), "CTOL fehlt in der Vorschau")
+    d.haken["satznummern"].setChecked(True)
+    d.glaetten_haken["compcad"].setChecked(True)
+    yield 500
+    text = d.vorschau.toPlainText()
+    h.pruefe("N10 G17 G71 G90 G40" in text and "COMPCAD" in text, f"Haken: {text[:300]!r}")
+    h.pruefe("COMPCAD" in d.hinweise.text(), f"Hinweis COMPCAD: {d.hinweise.text()!r}")
+    h.bild("2b_siemens_einstellungen", d)
+    leiste = d.einstellungen.verticalScrollBar()
+    leiste.setValue(leiste.maximum())
+    yield 300
+    h.bild("2c_siemens_glaetten", d)
+    d.zuruecksetzen()
+    yield 300
+    h.pruefe(
+        "N10" not in d.vorschau.toPlainText() and not d.haken["satznummern"].isChecked(),
+        "Zurücksetzen nimmt die Satznummern nicht weg",
+    )
     ziel = os.path.join(ordner, "welle.mpf")
     d.feld_datei.setText(ziel)
     gespeichert = d.speichern()

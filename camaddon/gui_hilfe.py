@@ -14,8 +14,9 @@ from .sprache import tr
 FENSTER_GROESSE = (560, 520)  # Breite, Höhe in Pixeln
 
 
-def kopfzeile(titel, thema=None):
-    """Überschrift eines Bereichs; mit `thema` rechts der Knopf (?) zu dieser Hilfeseite."""
+def kopfzeile(titel, thema=None, anker=None):
+    """Überschrift eines Bereichs; mit `thema` rechts der Knopf (?) zu dieser Hilfeseite –
+    mit `anker` gleich an die Stelle <a name="anker"> darin."""
     zeile = QtGui.QWidget()
     aufbau = QtGui.QHBoxLayout(zeile)
     aufbau.setContentsMargins(0, 0, 0, 0)
@@ -26,7 +27,7 @@ def kopfzeile(titel, thema=None):
         knopf.setText("?")
         knopf.setToolTip(tr("hilfe.knopf.tooltip"))
         knopf.setObjectName("hilfe_" + thema)  # daran finden ihn die Szenarien
-        knopf.clicked.connect(lambda: zeige_hilfe(zeile, thema))
+        knopf.clicked.connect(lambda: zeige_hilfe(zeile, thema, anker))
         aufbau.addWidget(knopf)
     return zeile
 
@@ -50,13 +51,13 @@ class BefehlSoGehts:
         zeige_hilfe(FreeCADGui.getMainWindow(), "so_gehts")
 
 
-def zeige_hilfe(eltern, thema):
-    """Öffnet die Hilfeseite `thema`.
+def zeige_hilfe(eltern, thema, anker=None):
+    """Öffnet die Hilfeseite `thema` – mit `anker` an dieser Stelle.
 
     Nicht modal: Man soll lesen und gleichzeitig im Dialog weiterarbeiten
     können.
     """
-    fenster = HilfeFenster(eltern, thema)
+    fenster = HilfeFenster(eltern, thema, anker)
     fenster.setAttribute(QtCore.Qt.WA_DeleteOnClose)
     fenster.show()
 
@@ -66,7 +67,7 @@ class HilfeFenster(QtGui.QDialog):
 
     offen = None  # das zuletzt geöffnete Fenster – für die Oberflächen-Szenarien
 
-    def __init__(self, eltern, thema):
+    def __init__(self, eltern, thema, anker=None):
         super().__init__(eltern)
         HilfeFenster.offen = self
         self.setWindowTitle(tr("hilfe.titel"))
@@ -77,7 +78,10 @@ class HilfeFenster(QtGui.QDialog):
         self.browser.setOpenExternalLinks(True)
         pfad = hilfe.hilfe_datei(thema)
         if pfad:
-            self.browser.setSource(QtCore.QUrl.fromLocalFile(pfad))
+            adresse = QtCore.QUrl.fromLocalFile(pfad)
+            if anker:
+                adresse.setFragment(anker)
+            self.browser.setSource(adresse)
         knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
         knoepfe.rejected.connect(self.close)
         aufbau = QtGui.QVBoxLayout(self)

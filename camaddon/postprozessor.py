@@ -47,9 +47,25 @@ from .sprache import tr
 
 STELLEN = 3  # Nachkommastellen der Koordinaten und des Vorschubs je Minute
 STELLEN_G93 = 5  # in G93 ist F 1 ÷ Zeit – oft kleiner als 1
+SATZNUMMER_SCHRITT = 10  # N10, N20 …
+TOLERANZ_BEREICH = (0.001, 1.0)  # mm – die Toleranz fürs Glätten
+BEWEGUNG = ("G0", "G00", "G1", "G01", "G2", "G02", "G3", "G03")
+WEG_ADRESSEN = ("X", "Y", "Z", "A", "B", "C")  # zählen beim Vorschub ohne G93
 # Die Reihenfolge der Adressen in einem Satz.
 ADRESSEN = ("X", "Y", "Z", "A", "B", "C", "U", "V", "W", "I", "J", "K", "R", "P", "Q", "L", "F")
 ROTATION = ("A", "B", "C")
+
+
+@dataclass(frozen=True)
+class Glaetten:
+    """Ein Befehl für Vorausschau und Glätten (Spezifikation Steuerung, Abschnitt 7): die
+    Zeilen im Programmkopf ({toleranz}: die Toleranz in mm), ob er vorbelegt an ist und ob er
+    eine Option der Steuerung sein kann – ohne sie bleibt die Steuerung mit Alarm stehen."""
+
+    kennung: str
+    befehl: str
+    an: bool
+    option: bool = False
 
 
 @dataclass(frozen=True)
@@ -86,10 +102,31 @@ class Steuerung:
     nur_buchstabe: bool = True  # die Rundachse nur mit ihrem Buchstaben (C statt C4)
     # Befehle, die ein Maschinenhersteller festlegt – im Fenster gelb, im Programm ein Hinweis.
     vom_hersteller: tuple = ()
+    glaetten_angebot: tuple = ()  # [Glaetten] – was die Steuerung dafür hat
+    wechselpunkt_vorschlaege: tuple = ()  # Befehle zur Wahl für „Zum Wechselpunkt (MKS)“
+    # Die Haken (Manuel, 2026-10-03: „die Optionen im Postprozessor besser beschreiben,
+    # darstellen, mit Haken machen“; Spezifikation Steuerung, Abschnitte 7 und 8).
+    kommentare: bool = True  # Operation und Werkzeug als Kommentar
+    satznummern: bool = False  # N10, N20 … vor jedem Satz
+    kuehlung: bool = True  # M8/M7 und M9 wie an der Operation
+    wechselpunkt: bool = True  # vor jedem Werkzeugwechsel und am Ende zum Wechselpunkt
+    c_achse: bool = True  # Drehmaschine: C-Achse ein und aus
+    g93: bool = True  # Bahnen mit Rundachse in G93; aus: F in mm/min, Zeit wie G93 (S5)
+    glaetten: tuple = None  # Kennungen der eingeschalteten Glaetten; None: die vorbelegten
+    toleranz: float = 0.01  # mm – fürs Glätten (G642/CTOL, G64 P)
 
     def ersetzt(self, **werte):
         """Eine Kopie mit geänderten Befehlen."""
         return dataclasses.replace(self, **werte)
+
+    def glaetten_an(self):
+        """Die eingeschalteten Glaetten, in der Reihenfolge des Angebots."""
+        an = (
+            {g.kennung for g in self.glaetten_angebot if g.an}
+            if self.glaetten is None
+            else set(self.glaetten)
+        )
+        return [g for g in self.glaetten_angebot if g.kennung in an]
 
 
 # Felder, die man im Fenster ändern kann – in dieser Reihenfolge, mit ihrem Text.
@@ -115,7 +152,11 @@ BEFEHLSFELDER = (
     "kuehlung_aus",
 )
 
+# Die Haken – (Name, Typ) wie in Steuerung; im Fenster je eine Zeile mit Erklärung.
+HAKEN = ("kommentare", "satznummern", "kuehlung", "wechselpunkt", "c_achse", "g93")
+
 _KOPF_FRAESEN = "%\n{kommentar_name}\nG17 G21 G40 G49 G80 G90"
+_MKS = ("G53 G0 {achsen}",)
 _ENDE = "M5\nM9\nM30\n%"
 
 STEUERUNGEN = {
@@ -138,13 +179,16 @@ STEUERUNGEN = {
         "G93",
         "G94",
         "G94",
+        # LinuxCNC: G64 P (Toleranz der Bahn) Q (gerade Stücke zusammenfassen).
+        glaetten_angebot=(Glaetten("g64", "G64 P{toleranz} Q{toleranz}", True),),
+        wechselpunkt_vorschlaege=_MKS,
     ),
     "siemens": Steuerung(
         "siemens",
         "Siemens 840D",
         ".mpf",
         "; ",
-        "{kommentar_name}\nG17 G71 G90 G40\nG64",
+        "{kommentar_name}\nG17 G71 G90 G40",
         "M5\nM9\nM30",
         "G18",
         "T{t} M6",
@@ -163,6 +207,18 @@ STEUERUNGEN = {
         wechselpunkt_mks="G0 SUPA D0 {achsen}",
         gleich_bei_nummer=True,
         nur_buchstabe=False,
+        # Programmierhandbuch Arbeitsvorbereitung 10/2015 (S. 470–471: CTOL) und Grundlagen
+        # (G64, G642, SOFT); COMPCAD ist der Satzkompressor – oft eine Option.
+        glaetten_angebot=(
+            Glaetten("g64", "G64", True),
+            Glaetten("g642", "G642", True),
+            Glaetten("ctol", "CTOL={toleranz}", True),
+            Glaetten("soft", "SOFT", True),
+            Glaetten("compcad", "COMPCAD", False, True),
+        ),
+        # S. 109: „G0 G40 G60 G90 SUPA X450 Y300 Z300 D0 … Werkzeugwechselpunkt anfahren“;
+        # F_HOME ist ShopTurns Zyklus, G75 „Festpunkt anfahren“ (P-2026-10-03-26).
+        wechselpunkt_vorschlaege=("G0 SUPA D0 {achsen}", "F_HOME", "G75 {achsen} FP=1"),
     ),
     "fanuc": Steuerung(
         "fanuc",
@@ -184,6 +240,12 @@ STEUERUNGEN = {
         "G94",
         "G98",
         vom_hersteller=("angetrieben_ein", "angetrieben_aus", "c_ein", "c_aus"),
+        # Vorausschau und AI-Konturregelung sind bei Fanuc Optionen – vorbelegt aus.
+        glaetten_angebot=(
+            Glaetten("g08", "G08 P1", False, True),
+            Glaetten("g051", "G05.1 Q1", False, True),
+        ),
+        wechselpunkt_vorschlaege=_MKS,
     ),
     "haas": Steuerung(
         "haas",
@@ -204,6 +266,9 @@ STEUERUNGEN = {
         "G93",
         "G94",
         "G98",
+        # Ohne G187 gilt die Glättung aus Einstellung 191 der Maschine.
+        glaetten_angebot=(Glaetten("g187", "G187 P3", False),),
+        wechselpunkt_vorschlaege=_MKS,
     ),
     "mach": Steuerung(
         "mach",
@@ -224,6 +289,8 @@ STEUERUNGEN = {
         "G93",
         "G94",
         "G94",
+        glaetten_angebot=(Glaetten("g64", "G64", True),),
+        wechselpunkt_vorschlaege=_MKS,
     ),
 }
 VORGABE = "linuxcnc"  # ohne Wahl: wie LinuxCNC (Spezifikation Steuerung, Abschnitt 4)
@@ -306,13 +373,74 @@ def feld_text(feld):
     }.get(feld, (feld, ""))
 
 
+def haken_text(feld):
+    """(Name, Erklärung) eines Hakens fürs Fenster – die Schlüssel wörtlich."""
+    return {
+        "kommentare": (tr("pp.haken.kommentare"), tr("pp.haken.kommentare.erklaerung")),
+        "satznummern": (tr("pp.haken.satznummern"), tr("pp.haken.satznummern.erklaerung")),
+        "kuehlung": (tr("pp.haken.kuehlung"), tr("pp.haken.kuehlung.erklaerung")),
+        "wechselpunkt": (tr("pp.haken.wechselpunkt"), tr("pp.haken.wechselpunkt.erklaerung")),
+        "c_achse": (tr("pp.haken.c_achse"), tr("pp.haken.c_achse.erklaerung")),
+        "g93": (tr("pp.haken.g93"), tr("pp.haken.g93.erklaerung")),
+    }.get(feld, (feld, ""))
+
+
+def glaetten_text(steuerung_kennung, kennung):
+    """(Name, Erklärung) eines Befehls zum Glätten der Steuerung – die Schlüssel wörtlich."""
+    return {
+        ("linuxcnc", "g64"): (
+            tr("pp.glaetten.linuxcnc.g64"),
+            tr("pp.glaetten.linuxcnc.g64.erklaerung"),
+        ),
+        ("siemens", "g64"): (
+            tr("pp.glaetten.siemens.g64"),
+            tr("pp.glaetten.siemens.g64.erklaerung"),
+        ),
+        ("siemens", "g642"): (
+            tr("pp.glaetten.siemens.g642"),
+            tr("pp.glaetten.siemens.g642.erklaerung"),
+        ),
+        ("siemens", "ctol"): (
+            tr("pp.glaetten.siemens.ctol"),
+            tr("pp.glaetten.siemens.ctol.erklaerung"),
+        ),
+        ("siemens", "soft"): (
+            tr("pp.glaetten.siemens.soft"),
+            tr("pp.glaetten.siemens.soft.erklaerung"),
+        ),
+        ("siemens", "compcad"): (
+            tr("pp.glaetten.siemens.compcad"),
+            tr("pp.glaetten.siemens.compcad.erklaerung"),
+        ),
+        ("fanuc", "g08"): (tr("pp.glaetten.fanuc.g08"), tr("pp.glaetten.fanuc.g08.erklaerung")),
+        ("fanuc", "g051"): (tr("pp.glaetten.fanuc.g051"), tr("pp.glaetten.fanuc.g051.erklaerung")),
+        ("haas", "g187"): (tr("pp.glaetten.haas.g187"), tr("pp.glaetten.haas.g187.erklaerung")),
+        ("mach", "g64"): (tr("pp.glaetten.mach.g64"), tr("pp.glaetten.mach.g64.erklaerung")),
+    }.get((steuerung_kennung, kennung), (kennung, ""))
+
+
 def steuerung(kennung, aenderungen=None):
     """Die Steuerung mit dieser Kennung (sonst die Vorgabe), mit den Änderungen `aenderungen`
-    ({Feld: Text}) des Benutzers."""
+    des Benutzers: {Befehl: Text, Haken: bool, "toleranz": mm, "glaetten": [Kennung]} – was
+    nicht passt, zählt nicht."""
     s = STEUERUNGEN.get(kennung) or STEUERUNGEN[VORGABE]
-    if aenderungen:
-        s = s.ersetzt(**{k: v for k, v in aenderungen.items() if k in BEFEHLSFELDER})
-    return s
+    return s.ersetzt(**gueltige_aenderungen(aenderungen)) if aenderungen else s
+
+
+def gueltige_aenderungen(aenderungen):
+    """Die Änderungen, die zu einer Steuerung passen (steuerung())."""
+    werte = {}
+    for feld, wert in (aenderungen or {}).items():
+        passt = (feld in BEFEHLSFELDER and isinstance(wert, str)) or (
+            feld in HAKEN and isinstance(wert, bool)
+        )
+        if passt:
+            werte[feld] = wert
+        elif feld == "toleranz" and isinstance(wert, (int, float)) and not isinstance(wert, bool):
+            werte[feld] = min(max(float(wert), TOLERANZ_BEREICH[0]), TOLERANZ_BEREICH[1])
+        elif feld == "glaetten" and isinstance(wert, (list, tuple)):
+            werte[feld] = tuple(str(k) for k in wert)
+    return werte
 
 
 def _zahl(wert, stellen=STELLEN):
@@ -336,7 +464,7 @@ def _fuellen(vorlage, **werte):
 
 
 def _zeilen(text):
-    return [z for z in (text or "").split("\n") if z.strip()]
+    return [z.rstrip() for z in (text or "").split("\n") if z.strip()]
 
 
 def _adresse(s, buchstabe, info):
@@ -366,21 +494,31 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     `info`. `vorschau`: höchstens so viele Bewegungssätze, dann ein Hinweis – fürs Fenster."""
     info = info or Maschineninfo()
     zeilen, hinweise = [], []
-    kommentar_name = _kommentar(s, name or tr("pp.programm"))
+
+    def notiz(text):
+        if s.kommentare:
+            zeilen.append(_kommentar(s, text))
+
+    kommentar_name = _kommentar(s, name or tr("pp.programm")) if s.kommentare else ""
     for zeile in _zeilen(_fuellen(s.kopf, kommentar_name=kommentar_name, name=name)):
         zeilen.append(zeile)
     if info.drehmaschine:
         zeilen.extend(_zeilen(s.kopf_drehen))
+    for glaetten in s.glaetten_an():
+        zeilen.extend(_zeilen(_fuellen(glaetten.befehl, toleranz=_zahl(s.toleranz))))
+        if glaetten.option:
+            hinweise.append(tr("pp.hinweis.option", befehl=glaetten.befehl.split("\n")[0]))
     if not info.name:
         hinweise.append(tr("pp.hinweis.ohne_maschine"))
     werkzeug = None
     spindel_an = None  # ("haupt" oder Nummer des Antriebs, Drehzahl, Richtung)
     c_an = False
     g93 = False
+    stand = {}  # Adresse → Wert, wie zuletzt angefahren (für den Vorschub ohne G93)
     saetze = 0
     gesehen = set()
     for abschnitt in abschnitte:
-        zeilen.append(_kommentar(s, abschnitt.name))
+        notiz(abschnitt.name)
         befehle = [_befehl(b) for b in abschnitt.befehle]
         if abschnitt.werkzeug and abschnitt.werkzeug != werkzeug:
             if spindel_an is not None:
@@ -388,12 +526,12 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 spindel_an = None
             zeilen.extend(_zum_wechselpunkt(s, info))
             if abschnitt.werkzeugname:
-                zeilen.append(_kommentar(s, f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}"))
+                notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
             vorlage = s.wechsel_drehen if info.drehmaschine else s.wechsel_fraesen
             zeilen.append(_fuellen(vorlage, t=int(abschnitt.werkzeug)))
             werkzeug = abschnitt.werkzeug
         mit_rundachse = any(set(p) & set(ROTATION) for _n, p in befehle)
-        if info.drehmaschine and mit_rundachse and not c_an:
+        if info.drehmaschine and mit_rundachse and not c_an and s.c_achse:
             # Auch ohne Befehl der Hinweis: Gerade dann muss ihn jemand eintragen (Fanuc).
             _hersteller(s, "c_ein", hinweise, gesehen, zeilen)
             if s.c_ein:
@@ -413,41 +551,57 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 zeilen.append(_fuellen(s.spindel_ein, m=m, s=drehzahl))
             spindel_an = soll
         kuehlung = {"Flood": s.kuehlung_flut, "Mist": s.kuehlung_nebel}.get(abschnitt.kuehlung)
+        if not s.kuehlung:
+            kuehlung = None
         if kuehlung:
             zeilen.append(kuehlung)
         for name_, parameter in befehle:
             if name_.startswith("("):
-                zeilen.append(_kommentar(s, name_.strip("()")))
+                notiz(name_.strip("()"))
                 continue
             gross = name_.upper()
             if gross == "G93":
                 g93 = True
-                zeilen.append(s.vorschub_zeit)
+                if s.g93:
+                    zeilen.append(s.vorschub_zeit)
                 continue
             if gross == "G94":
                 g93 = False
-                zeilen.append(s.vorschub_minute_drehen if info.drehmaschine else s.vorschub_minute)
+                if s.g93:
+                    vorlage = s.vorschub_minute_drehen if info.drehmaschine else s.vorschub_minute
+                    zeilen.append(vorlage)
                 continue
             if info.drehmaschine and gross in ("G98", "G99") and s.vorschub_minute_drehen == "G98":
                 # An Fanuc- und Haas-Drehmaschinen heißt G98/G99 Vorschub je Minute/Umdrehung,
                 # nicht Rückzug im Bohrzyklus – weglassen.
                 continue
             woerter = [gross]
+            bewegung = gross in BEWEGUNG
+            weg = _weg(stand, parameter) if bewegung else 0.0
+            if bewegung:
+                stand.update({a: float(parameter[a]) for a in WEG_ADRESSEN if a in parameter})
             for adresse in ADRESSEN:
                 if adresse not in parameter:
                     continue
                 wert = float(parameter[adresse])
                 if adresse == "F":
                     wert *= 60.0
+                    if g93 and not s.g93:
+                        # Ohne G93 (S5): F in mm/min so, dass die Zeit des Satzes stimmt – der Weg
+                        # aus X, Y, Z und den Rundachsen in Grad (Spezifikation, Abschnitt 5).
+                        if weg > 1e-9:
+                            woerter.append(_wort(s, "F", _zahl(weg * wert)))
+                        continue
                     woerter.append(_wort(s, "F", _zahl(wert, STELLEN_G93 if g93 else STELLEN)))
                     continue
                 if adresse == "X" and info.drehmaschine and info.x_durchmesser:
                     wert *= 2.0
                 woerter.append(_wort(s, _adresse(s, adresse, info), _zahl(wert)))
             zeilen.append(" ".join(woerter))
-            if gross in ("G0", "G00", "G1", "G01", "G2", "G02", "G3", "G03"):
+            if bewegung:
                 saetze += 1
                 if vorschau is not None and saetze >= vorschau:
+                    zeilen = _nummeriert(zeilen, s)
                     zeilen.append(_kommentar(s, tr("pp.vorschau_ende")))
                     return Programm(zeilen, hinweise, saetze)
         if kuehlung:
@@ -459,10 +613,42 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     if c_an and s.c_aus:
         zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
     zeilen.extend(_zeilen(s.ende))
-    return Programm(zeilen, hinweise, saetze)
+    return Programm(_nummeriert(zeilen, s), hinweise, saetze)
+
+
+def _weg(stand, parameter):
+    """Der Weg eines Satzes von `stand` aus: √(ΔX² + ΔY² + ΔZ² + ΔA² + ΔB² + ΔC²), die Rundachsen
+    in Grad – so zählen Steuerungen ohne G93 den Vorschub; ein Bogen zählt als Sehne."""
+    summe = 0.0
+    for adresse in WEG_ADRESSEN:
+        if adresse in parameter and adresse in stand:
+            summe += (float(parameter[adresse]) - stand[adresse]) ** 2
+    return summe**0.5
+
+
+def _nummeriert(zeilen, s):
+    """Mit Satznummern (N10, N20 …), wenn die Steuerung sie schreiben soll – nicht vor „%“, der
+    Programmnummer (O…) und reinen Kommentaren."""
+    if not s.satznummern:
+        return zeilen
+    ergebnis, nummer = [], 0
+    for zeile in zeilen:
+        roh = zeile.strip()
+        if roh == "%" or re.match(r"O\d", roh) or roh.startswith(("(", ";")):
+            ergebnis.append(zeile)
+            continue
+        nummer += SATZNUMMER_SCHRITT
+        ergebnis.append(f"N{nummer} {zeile}")
+    return ergebnis
 
 
 def _zum_wechselpunkt(s, info):
+    if not s.wechselpunkt:
+        return []
+    return _wechselpunkt_saetze(s, info)
+
+
+def _wechselpunkt_saetze(s, info):
     """Die Sätze zum Wechselpunkt: zuerst die Achse, die das Werkzeug wegzieht (an der
     Drehmaschine X, sonst Z), dann die anderen – leer ohne Wechselpunkt oder Befehl. Ein Befehl
     ohne {achsen} kennt den Punkt selbst – etwa ShopTurns Zyklus F_HOME, der zum
@@ -514,7 +700,8 @@ def _hersteller(s, feld, hinweise, gesehen, zeilen):
     gesehen.add(feld)
     satz = tr("pp.hinweis.hersteller", befehl=feld_text(feld)[0], steuerung=s.name)
     hinweise.append(satz)
-    zeilen.append(_kommentar(s, satz))
+    if s.kommentare:
+        zeilen.append(_kommentar(s, satz))
 
 
 # --- Aus FreeCAD ---------------------------------------------------------------------------

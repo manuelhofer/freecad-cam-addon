@@ -18,66 +18,130 @@ ihr weiß: Drehmaschine oder Fräse, X im Durchmesser, die Hauptspindel und ihre
 Maschine schreibt er wie für eine Fräse.</li>
 <li><b>Steuerung</b>: LinuxCNC, Siemens 840D, Fanuc, Haas oder Mach3/Mach4. Der Job merkt sich
 die Wahl, ebenso die Maschine – beim nächsten Job auf ihr ist sie vorgewählt.</li>
-<li>Die <b>Vorschau</b> zeigt die ersten Sätze. <b>Speichern</b> schreibt das ganze Programm
-in die Datei (vorgeschlagen: neben dem Dokument, mit der Endung der Steuerung – .ngc, .mpf,
-.nc, .tap).</li>
+<li><b>Links die Einstellungen, rechts die Vorschau</b> mit den ersten Sätzen – jede Änderung
+siehst du sofort.</li>
+<li><b>Speichern</b> schreibt das ganze Programm in die Datei (vorgeschlagen: neben dem
+Dokument, mit der Endung der Steuerung – .ngc, .mpf, .nc, .tap).</li>
 </ol>
 
-<h3>Was er schreibt</h3>
+<h3>Die Einstellungen</h3>
+<p>Sie gelten je Steuerung in allen Jobs und sind so vorbelegt, dass du nichts ändern musst,
+um anzufangen. Jede Zeile hat einen Satz Erklärung, jede Gruppe ein <b>?</b>, das hierher
+springt. <b>Fett</b> ist, was du geändert hast; <b>gelb</b>, was der Maschinenhersteller
+festlegt (bei Fanuc das angetriebene Werkzeug und die C-Achse – im Programm steht dann ein
+Kommentar dazu). Gezeigt ist nur, was an der gewählten Maschine gilt – an der Fräse also keine
+C-Achse und kein angetriebenes Werkzeug. Ist ein Haken aus, sind die Befehle darunter grau:
+Sie stehen dann nicht im Programm. <b>Zurücksetzen</b> holt die Vorbelegung zurück.</p>
+<p>Platzhalter in den Befehlen: {t} Werkzeugnummer, {s} Drehzahl, {m} 3 oder 4
+(Drehrichtung), {n} Nummer des Antriebs, {h} Nummer der Hauptspindel, {achsen} die Achsen des
+Wechselpunkts; „|“ trennt Zeilen.</p>
+
+<a name="programm"></a>
+<h3>Programm</h3>
+<ul>
+<li><b>Kommentare</b> – vor jedem Abschnitt der Name der Operation und des Werkzeugs
+(„; Rundum schruppen T1“), am Anfang der Name des Jobs. Aus: nur Sätze – manche Steuerungen
+mögen keine langen Kommentare.</li>
+<li><b>Satznummern</b> – N10, N20 … vor jedem Satz, nicht vor „%“, der Programmnummer und
+Kommentaren. Nötig sind sie nicht; manche Bediener springen damit im Programm.</li>
+<li><b>Programmanfang, Anfang an der Drehmaschine, Programmende</b> – die festen Zeilen:
+Maßsystem, Ebene (an der Drehmaschine G18), am Ende Spindel und Kühlung aus, M30.</li>
+</ul>
+
+<a name="wechsel"></a>
+<h3>Werkzeugwechsel</h3>
 <ul>
 <li><b>Werkzeugwechsel</b> – an der Fräse „T1 M6“, an der Drehmaschine wie die Steuerung es
 will: Siemens „T1 D1“, Fanuc „T0101“, Haas „T101“.</li>
-<li><b>Spindel</b> – „M3 S…“ (links M4). An der Drehmaschine dreht M3 aber das Teil: Ein
-<b>angetriebenes Werkzeug</b> bekommt den Befehl seines Antriebs mit dessen Nummer aus der
-Maschine – Siemens „M1=3 S1=…“ (Antrieb S1), Haas „M133 P…“, LinuxCNC „M3 $1 S…“.</li>
-<li><b>C-Achse ein und aus</b> – vor der ersten Bahn mit der Rundachse und am Ende, mit der
-Nummer der Hauptspindel: Siemens „SPOS[4]=0“ / „SPCOF(4)“ (Hauptspindel S4), Haas „M154“ /
-„M155“.</li>
-<li><b>X im Durchmesser</b>, wenn die Maschine X so zählt (Haken in „Maschine bearbeiten“) –
-die Bahnen rechnen den Radius, im Programm steht das Doppelte.</li>
-<li><b>Rundachse</b> – die C-Achse der Hauptspindel, bei Siemens mit ihrem NC-Namen aus der
-Maschine, eine Nummer mit „=“ („C4=90.000“); sonst ihr Buchstabe.</li>
-<li><b>Vorschub</b> – in Bahnen mit der Rundachse G93 (F ist 1 ÷ Minuten je Satz), danach
-zurück auf Vorschub je Minute: an der Fräse G94, an Fanuc- und Haas-Drehmaschinen G98 (dort
-ist G94 ein Plandrehzyklus).</li>
-<li><b>Kühlung</b> – wie an der Operation eingestellt (Flut M8, Nebel M7), danach M9.</li>
-</ul>
-
-<h3>Hauptspindel und angetriebene Werkzeuge</h3>
-<p>Eine Drehmaschine mit angetriebenen Werkzeugen hat zwei Spindeln, jede mit einem <b>S</b>
-und einem <b>C</b>: Die <b>Hauptspindel</b> dreht das Teil (S) oder positioniert es (C) – beim
-Fräsen positioniert sie: „SPOS[4]=0“, dann „C4=…“ in den Sätzen. Der <b>Werkzeugantrieb</b>
-dreht das Werkzeug („M1=3 S1=…“); seine C-Achse richtet es nur aus und steht nie in der
-Bahn. Welche Spindel was tut, erkennt der Postprozessor an der Maschine: An welcher Spindel
-die Werkzeugplätze hängen („Angetrieben von“), die ist der Antrieb; die andere ist die
-Hauptspindel. Die Namen stehen in „Maschine bearbeiten“; „Neue Maschine …“ fragt bei der
-Drehmaschine nach den Nummern.</p>
-<p><b>Zum Wechselpunkt</b> fährt das Programm bei Siemens mit „G0 SUPA D0 X… Z…“ – in
-Maschinenkoordinaten, ohne Werkzeugkorrektur; so steht es auch im Beispiel des
-Siemens-Handbuchs (Arbeitsvorbereitung, Werkzeugwechselroutine). Zwei andere Wege trägst du
-unter <b>Befehle …</b> bei „Zum Wechselpunkt (MKS)“ ein:</p>
+<li><b>Zum Wechselpunkt fahren</b> – vor jedem Werkzeugwechsel und am Ende, zuerst allein die
+Achse, die das Werkzeug wegzieht (an der Drehmaschine X, sonst Z). Den Punkt trägst du in
+„Maschine bearbeiten“ unter „Home und Werkzeugwechsel“ ein, in Maschinenkoordinaten (MKS) oder
+ab dem Nullpunkt des Jobs (WKS). Bei Siemens „G0 SUPA D0 X… Z…“ – SUPA schaltet alle
+Verschiebungen ab, D0 die Werkzeugkorrektur; so steht es auch im Siemens-Handbuch
+(Arbeitsvorbereitung 10/2015, S. 109, Werkzeugwechselroutine). Im Feld darunter stehen zwei
+andere Wege zur Wahl:
 <ul>
 <li><b>F_HOME</b> – an einer Maschine mit ShopTurn: der ShopTurn-Zyklus, der zum
 Werkzeugwechselpunkt fährt, den du dort eingestellt hast. Ein Befehl ohne {achsen} steht
-einmal vor jedem Werkzeugwechsel und am Ende. Ob F_HOME in einem reinen G-Code-Programm (ohne
+einmal vor jedem Wechsel und am Ende. Ob F_HOME in einem reinen G-Code-Programm (ohne
 ShopTurn-Programmkopf) deinen Punkt kennt, prüf in der Simulation der Steuerung.</li>
-<li><b>G75 {achsen} FP=1</b> – „Festpunkt anfahren“: der Werkzeugwechselpunkt aus den
-Maschinendaten (MD30600); die Werte hinter den Achsen zählen nicht.</li>
+<li><b>G75 {achsen} FP=1</b> – „Festpunkt anfahren“: der Punkt aus den Maschinendaten
+(MD30600); die Werte hinter den Achsen zählen nicht.</li>
+</ul></li>
 </ul>
-<p><b>Vor dem ersten Lauf</b> das Programm in der Simulation deiner Steuerung ansehen: Die
-Befehle für C-Achse und Antrieb richten sich nach dem Siemens-Handbuch, an der Maschine legt
-der Hersteller manches anders fest.</p>
 
-<h3>Befehle ändern</h3>
-<p><b>Befehle …</b> klappt die Liste der Befehle auf: Programmanfang und -ende,
-Werkzeugwechsel, Spindel, angetriebenes Werkzeug, C-Achse, Vorschub, Kühlung. Jeder lässt sich
-ändern – manches legt der Maschinenhersteller fest, das ist <b>gelb</b> (bei Fanuc das
-angetriebene Werkzeug und die C-Achse); im Programm steht dann ein Kommentar dazu.
-Platzhalter: {t} Werkzeugnummer, {s} Drehzahl, {m} 3 oder 4 (Drehrichtung), {n} Nummer des
-Antriebs, {h} Nummer der Hauptspindel; „|“ trennt Zeilen. Geändert gilt je Steuerung für alle Jobs; <b>Zurücksetzen</b>
-holt die Vorbelegung zurück.</p>
+<a name="spindel"></a>
+<h3>Spindel und Kühlung</h3>
+<ul>
+<li><b>Spindel ein und aus</b> – „M3 S…“ (links M4), „M5“.</li>
+<li><b>Angetriebenes Werkzeug</b> – an der Drehmaschine dreht M3 das Teil: Ein angetriebenes
+Werkzeug bekommt den Befehl seines Antriebs mit dessen Nummer aus der Maschine – Siemens
+„M1=3 S1=…“ (Antrieb S1), Haas „M133 P…“, LinuxCNC „M3 $1 S…“.</li>
+<li><b>Kühlung</b> – wie an der Operation eingestellt: Flut M8, Nebel M7, danach M9. Aus,
+wenn du sie an der Maschine von Hand schaltest.</li>
+</ul>
+<p><b>Hauptspindel und angetriebene Werkzeuge.</b> Eine Drehmaschine mit angetriebenen
+Werkzeugen hat zwei Spindeln, jede mit einem S und einem C: Die Hauptspindel dreht das Teil
+(S) oder positioniert es (C) – beim Fräsen positioniert sie: „SPOS[4]=0“, dann „C4=…“ in den
+Sätzen. Der Werkzeugantrieb dreht das Werkzeug („M1=3 S1=…“); seine C-Achse richtet es nur aus
+und steht nie in der Bahn. Welche Spindel was tut, erkennt der Postprozessor an der Maschine:
+An welcher Spindel die Werkzeugplätze hängen („Angetrieben von“), die ist der Antrieb; die
+andere ist die Hauptspindel. Die Namen stehen in „Maschine bearbeiten“; „Neue Maschine …“
+fragt bei der Drehmaschine nach den Nummern.</p>
+
+<a name="c_achse"></a>
+<h3>C-Achse (Drehmaschine)</h3>
+<ul>
+<li><b>C-Achse ein- und ausschalten</b> – vor der ersten Bahn mit der Rundachse schaltet die
+Hauptspindel von Drehzahl auf Positionieren um, am Ende zurück, mit ihrer Nummer: Siemens
+„SPOS[4]=0“ / „SPCOF(4)“ (Hauptspindel S4), Haas „M154“ / „M155“. Aus, wenn deine Maschine
+das selbst macht.</li>
+<li><b>Die Rundachse</b> in den Sätzen ist die C-Achse der Hauptspindel – bei Siemens mit
+ihrem NC-Namen aus der Maschine, eine Nummer mit „=“ („C4=90.000“); sonst ihr Buchstabe.</li>
+<li><b>X im Durchmesser</b>, wenn die Maschine X so zählt (Haken in „Maschine bearbeiten“) –
+die Bahnen rechnen den Radius, im Programm steht das Doppelte.</li>
+</ul>
+
+<a name="vorschub"></a>
+<h3>Vorschub</h3>
+<ul>
+<li><b>Vorschub 1 ÷ Zeit (G93)</b> – in Bahnen, in denen die Rundachse mitfährt, ist F die
+Zeit je Satz (1 ÷ Minuten). So stimmt der Vorschub am Werkzeug, egal wie weit es von der Achse
+weg ist. Danach zurück auf Vorschub je Minute: an der Fräse G94, an Fanuc- und
+Haas-Drehmaschinen G98 (dort ist G94 ein Plandrehzyklus).</li>
+<li><b>Ohne G93</b> (Haken aus) – für Steuerungen, die G93 nicht können: F in mm/min, so
+gerechnet, dass jeder Satz so lange dauert wie mit G93. Der Weg zählt aus X, Y, Z und der
+Rundachse in Grad – so rechnen Steuerungen den Vorschub, wenn Linear- und Rundachsen zusammen
+fahren. Prüf an deiner Steuerung, ob sie es auch so zählt.</li>
+</ul>
+
+<a name="glaetten"></a>
+<h3>Vorausschau und Glätten</h3>
+<p>Rundum-Bahnen bestehen aus tausenden kurzen Sätzen. Ohne Vorausschau bremst eine Steuerung
+an jedem Satzende – die Maschine ruckelt, die Oberfläche wird schlechter und es dauert länger.
+Jede Steuerung hat dafür Befehle; sie stehen am Programmanfang. Vorbelegt ist, was bei der
+Steuerung üblich ist; was nicht jede Maschine hat, ist aus und gelb markiert – ohne die Option
+bleibt die Steuerung mit Alarm stehen.</p>
+<ul>
+<li><b>Siemens 840D</b> – an: <b>G64</b> (Bahnsteuerbetrieb), <b>G642</b> (Überschleifen mit
+Toleranz), <b>CTOL</b> (die Toleranz im Programm statt aus den Maschinendaten), <b>SOFT</b>
+(ruckbegrenzt beschleunigen); aus: <b>COMPCAD</b> (Satzkompressor – oft eine Option). Quelle:
+Siemens-Programmierhandbuch Arbeitsvorbereitung 10/2015, S. 470–471 (CTOL), dazu die Befehlsliste
+(G64, G642, SOFT, COMPCAD).</li>
+<li><b>LinuxCNC</b> – an: <b>G64 P… Q…</b>, die Ecken höchstens um die Toleranz gerundet.</li>
+<li><b>Mach3/Mach4</b> – an: <b>G64</b> (Constant Velocity).</li>
+<li><b>Fanuc</b> – aus: <b>G08 P1</b> (Vorausschau) und <b>G05.1 Q1</b> (AI-Konturregelung),
+beides Optionen; nicht aus einer Anleitung nachgeprüft.</li>
+<li><b>Haas</b> – aus: <b>G187 P3</b> (Glätten fein); ohne den Befehl gilt Einstellung 191 der
+Maschine.</li>
+</ul>
+<p><b>Toleranz</b>: so weit darf die Steuerung beim Glätten von der programmierten Bahn
+abweichen – vorbelegt 0,01 mm. Kleiner ist genauer, aber langsamer.</p>
+
+<p><b>Vor dem ersten Lauf</b> das Programm in der Simulation deiner Steuerung ansehen: Die
+Befehle für C-Achse, Antrieb und Glätten richten sich nach den Handbüchern der Steuerung; an der
+Maschine legt der Hersteller manches anders fest.</p>
 
 <h3>Noch nicht</h3>
-<p>Vorausschau und Glätten als Haken je Steuerung (Siemens G642, SOFT …), Steuerungen ohne G93
-(der Vorschub so gerechnet, dass die Zeit stimmt), Zylinder- und Polartransformation
-(TRACYL, TRANSMIT) – geplant, siehe Spezifikation W-005.</p>
+<p>Zylinder- und Polartransformation (TRACYL, TRANSMIT) – geplant, siehe Spezifikation
+W-005.</p>

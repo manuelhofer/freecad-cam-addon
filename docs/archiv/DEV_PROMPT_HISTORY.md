@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-27 postprozessor-einstellungen
+
+### EINGELESEN
+- Manuel, 2026-10-03: „ja, mach das alles mal, vor allem die Optionen im Postprozessor besser
+  beschreiben, darstellen, mit Haken machen“. Spezifikation Steuerung, Abschnitte 5, 7, 8 (S4, S5).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`Glaetten`, `Steuerung.glaetten_angebot`,
+  `wechselpunkt_vorschlaege`, Haken, `glaetten`, `toleranz`, `glaetten_an`; `HAKEN`,
+  `haken_text`, `glaetten_text`, `gueltige_aenderungen`; im Programm Glätten im Kopf,
+  Satznummern `_nummeriert`, Vorschub ohne G93 `_weg`), `camaddon/gui_programm.py` (Einstellungen
+  in Gruppen links, Vorschau rechts; `option_setzen`, `haken`, `glaetten_haken`),
+  `camaddon/gui_hilfe.py` (Anker), Übersetzungen, Hilfe `programm.html` (de/en, neu gegliedert),
+  `tests/test_postprozessor.py`, `tests/gui/szenario_programm.py`, Spezifikation Steuerung (12),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.149.0).
+
+### AKZEPTANZKRITERIUM
+- Im Fenster „Programm schreiben“ stehen die Einstellungen der Steuerung in Gruppen, jede Option
+  als Haken mit einem Satz Erklärung, jede Gruppe mit „?“ an ihre Stelle der Hilfe; jede
+  Änderung steht sofort in der Vorschau. Siemens schreibt G64, G642, CTOL, SOFT; ohne G93 stimmt
+  die Zeit je Satz.
+
+### DONE
+- Wie oben; Screenshots `2b_siemens_einstellungen` (Satznummern, COMPCAD mit gelbem Hinweis)
+  und `2c_siemens_glaetten`.
+
+### TESTS
+- `tests/test_postprozessor.py`, `test_sprache.py`, `test_hilfe.py` – OK; Szenario
+  `szenario_programm` – OK. black und ruff sauber.
+
+### NEXT
+- Die Vorschau im Assistenten „Bearbeitung“ schneller (Hüllflächen-Zwischenspeicher).
+
 ## P-2026-10-03-26 supa-f-home
 
 ### EINGELESEN

@@ -356,3 +356,24 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
     jedem Werkzeugwechsel und am Ende – auch ohne Wechselpunkt an der Maschine (bis -25 stand er
     zweimal da: erst X allein, dann alle). Vorbelegt bleibt `G0 SUPA D0 {achsen}`: Es geht an
     jeder 840D, auch ohne ShopTurn. Hilfe „Programm schreiben“ nennt beide anderen Wege.
+- **P-2026-10-03-27 – die Einstellungen als Haken, Glätten (S4), Vorschub ohne G93 (S5):**
+  Manuel (2026-10-03): „ja, mach das alles mal, vor allem die Optionen im Postprozessor besser
+  beschreiben, darstellen, mit Haken machen“. Gebaut, nach Abschnitt 7 und 8 (aber im Fenster
+  „Programm schreiben“, je Steuerung gemerkt – S2, an der Maschine, bleibt offen):
+  - Links die Einstellungen in Gruppen (Programm, Werkzeugwechsel, Spindel und Kühlung, C-Achse,
+    Vorschub, Vorausschau und Glätten), jede mit „?“ an ihre Stelle der Hilfe (`kopfzeile` mit
+    Anker); jeder Haken und jeder Befehl mit einem Satz Erklärung, fett geändert, gelb vom
+    Hersteller; gezeigt nur, was an der gewählten Maschine gilt; ist ein Haken aus, sind die
+    Befehle darunter grau. Rechts die Vorschau. „Zum Wechselpunkt (MKS)“ als Auswahl mit
+    freiem Text (Siemens: SUPA, F_HOME, G75).
+  - Haken in `Steuerung`: `kommentare`, `satznummern` (N10 … nicht vor %, O-Nummer, Kommentar),
+    `kuehlung`, `wechselpunkt`, `c_achse`, `g93`; dazu `glaetten` (Kennungen) und `toleranz`
+    (0,001 … 1 mm). `gueltige_aenderungen` nimmt nur, was passt.
+  - Glätten je Steuerung (`Glaetten`): Siemens G64, G642, CTOL={toleranz}, SOFT an, COMPCAD aus
+    (Option – gelb im Fenster und als Hinweis über der Vorschau); LinuxCNC `G64 P Q` an;
+    Mach `G64` an; Fanuc `G08 P1`, `G05.1 Q1` aus (Optionen, nicht nachgeprüft); Haas
+    `G187 P3` aus. Siemens nachgelesen: Arbeitsvorbereitung 10/2015, S. 470–471 (CTOL), dazu die
+    Befehlsliste. Das `G64` stand bis -26 fest im Siemens-Kopf.
+  - S5: ohne G93 F in mm/min = Weg ÷ Zeit des Satzes, der Weg aus X, Y, Z, A, B, C (Rundachsen
+    in Grad, X als Radius, ein Bogen als Sehne); G93 und G94 entfallen dann. Geprüft: X42 Z3 C0 →
+    X38 Z0 C90 in ⅓ min gibt F270.416.
