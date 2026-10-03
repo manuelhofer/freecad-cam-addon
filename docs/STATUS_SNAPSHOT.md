@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.135.0 (P-2026-10-03-09). Alles, was hier als gebaut steht,
+Stand 0.136.0 (P-2026-10-03-10). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -32,8 +32,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   und D-50 bis D-57 erledigt. Offen zur Entscheidung ([Durchsicht](durchsicht_bedienbarkeit.md),
   Abschnitt 6): D-14, D-22, D-24, D-27; D-23 wartet auf die Antwort zur Ausspannlänge; Reste
   von D-20 und D-26.
-- **W-005 Programm für jede Steuerung** – Plan steht (P-2026-09-30-42/-43), wartet auf
-  Manuels E1–E7.
+- **W-005 Programm für jede Steuerung** – E1–E7 entschieden (je Empfehlung, Manuel
+  2026-10-03); gebaut: der eigene Postprozessor mit dem Fenster „Programm schreiben …“ (S1, S3,
+  Teile von S2/S4; P-2026-10-03-10). Offen: Steuerung an der Maschine (S2), Glätten (S4), ohne
+  G93 (S5), Transformationen (S6), Wochen-Build (S7).
 - **W-006 Frässtrategien** – 2,5D komplett (Planfräsen, Räumen mit Ringen, Morph, Inseln und
   adaptiv, Kontur, Nut offen und geschlossen, Bohrung fräsen, Bohren, Zentrieren, Senken,
   Reiben, Gewinde bohren und fräsen, Entgraten mit Fase und Rundung, Restmaterial), 3D
@@ -104,6 +106,13 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
    öffnet die Produktseite, Nutzlänge 49, Gesamtlänge 103, Schaft 10, 140°. Beim Jongen Ø 12
    (0.131.0): „Hals-Ø d1 11,2“ und „Auskragung N 36“ wie im Katalogblatt, das Bild zeigt den
    Hals.
+10. **Programm schreiben (0.136.0):** Job wählen → Werkzeugleiste „Programm schreiben …“
+   (letzter Knopf). Oben steht, was der Postprozessor von deiner Drehmaschine weiß
+   („Drehmaschine · X im Durchmesser · C heißt C… · angetrieben: T1…T12 → S…“), darunter die
+   Steuerung (Siemens 840D wählen) und die Vorschau: „T1 D1“, „SPOS=0“, „M3=3 S3=…“ (Antrieb mit
+   seiner Nummer), X doppelt (Durchmesser), „C4=…“. „Befehle …“ zeigt alle Befehle zum Ändern –
+   bitte mit deiner Steuerung vergleichen (C-Achse ein/aus, Antrieb, Werkzeugwechsel) und mir
+   sagen, was an deiner Maschine anders heißt. „Speichern“ schreibt die .mpf neben dein Dokument.
 9. **Die Y-Achse an deinem 4-Achs-Teil (0.135.0):** im 4-Achs-Assistenten mit deiner
    Drehmaschine (mit Y), alle Mantelflächen: unter „Plan indexiert“ steht „Mit der Querachse
    geht Face4 eben in Zeilen … Face4 fällt längs um 8,5° …“, der Haken ist frei, aber nicht
@@ -154,10 +163,9 @@ sind nur die Quelle, keine Erweiterung nötig; „das Teil muss herauskommen“ 
 **Danach, der Reihe nach:**
 
 1. Was Manuels Test ergibt.
-2. **W-005 Programm für jede Steuerung** – eigener Postprozessor mit Manager (Manuel,
-   2026-10-03: „ich hätte gern einen guten Postprozessor-Manager … außerdem funktioniert der
-   [von FreeCAD] mit 4 Achs nicht und für 5 Achs wird's auch nix“); Plan und E1–E7 in
-   `spezifikation_steuerung.md`.
+2. **W-005 weiter:** die Steuerung an der Maschine („Maschine bearbeiten“, S2), Vorausschau
+   und Glätten als Haken (S4), Vorschub ohne G93 (S5) – nach Manuels Blick auf die Befehle
+   seiner Steuerung.
 3. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
    (`hoehenfeld.je_zeile`); Ziel 10 s am Testteil.
 4. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,

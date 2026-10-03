@@ -12,6 +12,55 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-10 postprozessor-programm-schreiben
+
+### EINGELESEN
+- Manuel, 2026-10-03, mit Bildern (Menü CAM ohne Postprozessor, Hilfe „6 Programm schreiben“,
+  Fehlerliste „Post processor not identified“, „PostProcessor has no attribute 'load'“ in
+  FreeCAD 1.1.4): „ich möchte nicht den Postprozessor-Generator von FreeCAD nutzen, weil ich
+  glaube, der ist scheiße – ich hätte gern einen guten Postprozessor-Manager … außerdem
+  funktioniert der mit 4 Achs nicht und für 5 Achs wird's auch nix … darum sollten wir vll
+  unsere eigenen bauen?“; danach: „das mit dem Postprozessor – ja, die Spezifikationen nehmen“.
+  Spezifikation Steuerung (W-005), Abschnitte 1–11.
+
+### DATEIEN
+- `camaddon/postprozessor.py` (neu), `camaddon/gui_programm.py` (neu), `camaddon/gui_start.py`
+  (Befehl in Leiste und Menü), `camaddon/hilfe.py` (Thema), `camaddon/werkstoffe.py`
+  (`klasse_text` mit wörtlichen Schlüsseln), `resources/icons/programm.svg`,
+  `translations/de|en.json`, `help/de|en/programm.html` (neu), `help/de|en/so_gehts.html`,
+  `docs/spezifikation_steuerung.md` (Entscheidung, Abschnitt 12), `docs/STATUS_SNAPSHOT.md`,
+  `tests/test_postprozessor.py` (neu), `tests/gui/szenario_programm.py` (neu),
+  `tests/gui/szenario_erster_start.py` (zehn Knöpfe, vierzehn Menüeinträge), `package.xml`
+  (0.136.0)
+
+### AKZEPTANZKRITERIUM
+Ein Job wird mit dem eigenen Postprozessor für LinuxCNC, Siemens 840D, Fanuc, Haas oder Mach
+geschrieben – an der Drehmaschine mit X im Durchmesser, C-Achse ein/aus, dem Befehl fürs
+angetriebene Werkzeug und G98 statt G94 bei Fanuc/Haas; die Befehle lassen sich im Fenster
+ändern.
+
+### DONE
+- Kern und Fenster wie in der Spezifikation, Abschnitt 12. Die Maschine kommt aus der Datei,
+  die sich der Job gemerkt hat (verborgen geöffnet, wenn sie nicht offen ist): Art aus
+  `maschinenspeicher.beschreibe`, X aus `maschine.x_im_durchmesser`, Rundachse aus der
+  Betriebsart „Positionieren“, angetrieben aus den Aufnahmen mit Spindel (Platz = T-Nummer).
+- **Gefundene Fehler:** In der Spezifikation stand für Siemens „M5=3“ (Antrieb aus) – richtig
+  `M3=5` (Spindel vorn). Die Werkstoffklassen aus P-2026-10-03-02 hatten zusammengesetzte
+  Schlüssel (`werkstoff.klasse.{…}`), die die Sprachprüfung nicht findet – jetzt wörtlich; die
+  Prüfung lief in P-02 nicht. Der Knopf „Befehle …“ rief seine Aktion ohne Argument auf
+  (Szenario).
+- **Nicht gebaut:** S2 (Steuerung in „Maschine bearbeiten“), S4–S7.
+
+### TESTS
+- `tests/test_postprozessor.py` (OK: Fräse LinuxCNC, Drehmaschine Siemens/Haas/Fanuc, geänderte
+  Befehle, Vorschau, ein echter Rundum-Job mit 3316 Sätzen), `tests/test_sprache.py`,
+  `tests/test_hilfe.py` (OK); `tests/gui/szenario_programm.py` (OK, Bilder `1_siemens`,
+  `2_fanuc_befehle`, `3_gespeichert`). `szenario_erster_start` nur angepasst, nicht gelaufen.
+  black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf die Befehle seiner Steuerung; dann S2/S4/S5.
+
 ## P-2026-10-03-09 vierachs-plan-schraeg-y-achse
 
 ### EINGELESEN

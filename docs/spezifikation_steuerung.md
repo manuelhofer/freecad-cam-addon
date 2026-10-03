@@ -11,6 +11,13 @@ es beim bedienen lernen kann“, die Einzelheiten hinter eigenen Fenstern oder
 Hilfeseiten, damit nichts überladen wirkt. Die Einzelheiten sind Claudes
 Vorschläge, zur Besprechung (Abschnitt 11).
 
+**Entschieden am 2026-10-03** (Manuel: „das mit dem Postprozessor – ja, die Spezifikationen
+nehmen“; dazu „ich möchte nicht den Postprozessor-Generator von FreeCAD nutzen … ich hätte gern
+einen guten Postprozessor-Manager … außerdem funktioniert der mit 4 Achs nicht“ – FreeCADs
+„Nachbearbeitung“ brach bei ihm in 1.1.4 mit „Post processor not identified“ ab): E1–E7 je die
+Empfehlung (a). **Gebaut (P-2026-10-03-10):** S1 und S3 im eigenen Befehl „Programm schreiben …“
+statt über FreeCADs Postprozessor-Liste (E3 entfällt damit vorerst) – Abschnitt 12.
+
 Grundlage: [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
 (Maschine, Betriebsarten, Aufnahmen), [spezifikation_vierachs.md](spezifikation_vierachs.md)
 (Rundum-Operationen, G93, Postprozessoren von FreeCAD geprüft: P-2026-09-30-36).
@@ -264,3 +271,25 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   **Empfehlung**; (b) alles aus, jeder schaltet selbst ein – nichts
   passiert ungefragt, aber ohne Glätten ruckelt es; (c) alles an – am
   schnellsten, aber eine Maschine ohne die Option bleibt mit Alarm stehen.
+
+## 12. Gebaut
+
+- **P-2026-10-03-10 – „Programm schreiben …“ (S1, S3, Teile von S2 und S4):**
+  `camaddon/postprozessor.py` (ohne Oberfläche: `Steuerung` je Steuerung mit allen Befehlen,
+  `STEUERUNGEN` LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4; `Maschineninfo` – Drehmaschine,
+  X im Durchmesser, NC-Name der Rundachse, angetriebene Plätze → Nummer des Antriebs – aus der
+  Maschine, die sich der Job gemerkt hat; `programm()` aus `abschnitte(job)`), das Fenster
+  `camaddon/gui_programm.py` (Job, Maschine, Steuerung, „Befehle …“ zum Ändern mit
+  Zurücksetzen, gelb was der Hersteller festlegt, Vorschau der ersten 300 Sätze, Datei,
+  Speichern), Befehl in Werkzeugleiste und Menü, Hilfe `programm.html`.
+  - Die Steuerung merkt sich der Job (`CamAddonSteuerung`) und je Maschinendatei der
+    Parameter – E2 (a) noch nicht an der Maschine selbst („Maschine bearbeiten“: S2).
+  - Siemens: `M{n}={m} S{n}={s}` für den Antrieb (die Spindelnummer vorn: `M3=3` dreht Spindel
+    3 rechts; die Tabelle in Abschnitt 3 hatte „M5=3“ fürs Ausschalten – richtig ist `M3=5`),
+    C-Achse `SPOS=0` / `SPCOF`, Rundachse mit NC-Namen und „=“ (`C1=90.000`).
+  - Fanuc: angetriebenes Werkzeug und C-Achse legt der Hersteller fest – vorbelegt `M3 S…`
+    bzw. leer, im Fenster gelb, im Programm ein Kommentar.
+  - Noch nicht: Vorausschau und Glätten als Haken (S4), Vorschub ohne G93 (S5),
+    Transformationen (S6), Wochen-Build-Eintrag (S7), Musterausgaben als Dateien
+    (`tests/daten/programm_*.nc`) – die Prüfung `tests/test_postprozessor.py` prüft die Sätze
+    direkt.

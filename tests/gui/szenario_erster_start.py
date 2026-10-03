@@ -5,7 +5,7 @@
 # (hier der Punkt); gewählt wird das Komma. Die Wahl steht sofort in
 # user.cfg, die Knöpfe des Addons sind gleich deutsch, und die
 # Werkzeugleiste hängt im Assembly- und im CAM-Arbeitsbereich – mit den
-# neun Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle dreizehn: oben „So geht’s“
+# zehn Arbeitsbefehlen; das Menü „CAM-Addon“ hat alle vierzehn: oben „So geht’s“
 # (D-54), gleich darunter „Maschinen …“ (seit P-2026-10-02-58), unten „Nach
 # Updates suchen“ und „Über“ (D-13). „So geht’s“ öffnet
 # die Hilfeseite mit den sechs Schritten. Die Einstellungsseite ändert
@@ -101,8 +101,9 @@ def schritte(h):
     )
     h.bild("4_cam_werkzeugleiste")
 
-    # Die Werkzeugleiste: die neun Arbeitsbefehle, mit „Bestückung“ (W-002 Stufe G) und
-    # „Bearbeitung (Fräsen)“ (W-006 S3c). Das Menü „CAM-Addon“: alle (D-13).
+    # Die Werkzeugleiste: die zehn Arbeitsbefehle, mit „Bestückung“ (W-002 Stufe G),
+    # „Bearbeitung (Fräsen)“ (W-006 S3c) und „Programm schreiben“ (W-005). Das Menü „CAM-Addon“:
+    # alle (D-13).
     leiste = next(
         t
         for t in FreeCADGui.getMainWindow().findChildren(QtGui.QToolBar)
@@ -110,7 +111,7 @@ def schritte(h):
     )
     knoepfe = [a.text() for a in leiste.actions() if not a.isSeparator()]
     h.pruefe(
-        len(knoepfe) == 9 and "Bestückung" in knoepfe and knoepfe[-1] == "Bearbeitung (Fräsen)",
+        len(knoepfe) == 10 and "Bestückung" in knoepfe and knoepfe[-1] == "Programm schreiben …",
         f"Werkzeugleiste: {knoepfe}",
     )
     h.pruefe("Nach Updates suchen" not in knoepfe, "„Nach Updates suchen“ in der Leiste")
@@ -122,7 +123,7 @@ def schritte(h):
     if menue is not None:
         eintraege = [a.text() for a in menue.actions() if not a.isSeparator()]
         h.pruefe(
-            len(eintraege) == 13
+            len(eintraege) == 14
             and eintraege[:2] == ["So geht’s", "Maschinen …"]
             and eintraege[-2:] == ["Nach Updates suchen", "Über das CAM-Addon"]
             and "Schnittwerte in den Job" in eintraege,

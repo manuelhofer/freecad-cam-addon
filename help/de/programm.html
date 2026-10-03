@@ -1,0 +1,54 @@
+<h2>Programm schreiben</h2>
+<p>Der <b>Postprozessor des Addons</b> macht aus einem CAM-Job das Programm für deine
+Steuerung. Er schreibt alle aktiven Operationen des Jobs in ihrer Reihenfolge – die des
+Addons und FreeCADs eigene – und weiß von der Maschine, was eine Drehmaschine anders braucht.
+FreeCADs Postprozessoren sind für Fräsmaschinen gebaut; an der Drehmaschine mit C-Achse und
+angetriebenem Werkzeug fehlte dort einiges.</p>
+
+<h3>So geht’s</h3>
+<ol>
+<li>Den Job im Baum wählen (oder eine seiner Operationen), dann <b>Programm schreiben …</b>
+in der Werkzeugleiste CAM-Addon.</li>
+<li><b>Maschine</b>: Was der Postprozessor von der Maschine des Jobs weiß – Drehmaschine oder
+Fräse, X im Durchmesser, wie die Rundachse heißt („C heißt C4“), welche Plätze angetrieben
+sind („T1 → S3“). Gemerkt hat sich der Job die Maschine beim Prüfen auf der Maschine oder im
+4-Achs-Assistenten. Ohne Maschine schreibt er wie für eine Fräse.</li>
+<li><b>Steuerung</b>: LinuxCNC, Siemens 840D, Fanuc, Haas oder Mach3/Mach4. Der Job merkt sich
+die Wahl, ebenso die Maschine – beim nächsten Job auf ihr ist sie vorgewählt.</li>
+<li>Die <b>Vorschau</b> zeigt die ersten Sätze. <b>Speichern</b> schreibt das ganze Programm
+in die Datei (vorgeschlagen: neben dem Dokument, mit der Endung der Steuerung – .ngc, .mpf,
+.nc, .tap).</li>
+</ol>
+
+<h3>Was er schreibt</h3>
+<ul>
+<li><b>Werkzeugwechsel</b> – an der Fräse „T1 M6“, an der Drehmaschine wie die Steuerung es
+will: Siemens „T1 D1“, Fanuc „T0101“, Haas „T101“.</li>
+<li><b>Spindel</b> – „M3 S…“ (links M4). An der Drehmaschine dreht M3 aber das Teil: Ein
+<b>angetriebenes Werkzeug</b> bekommt den Befehl seines Antriebs mit dessen Nummer aus der
+Maschine – Siemens „M3=3 S3=…“, Haas „M133 P…“, LinuxCNC „M3 $1 S…“.</li>
+<li><b>C-Achse ein und aus</b> – vor der ersten Bahn mit der Rundachse und am Ende: Siemens
+„SPOS=0“ / „SPCOF“, Haas „M154“ / „M155“.</li>
+<li><b>X im Durchmesser</b>, wenn die Maschine X so zählt (Haken in „Maschine bearbeiten“) –
+die Bahnen rechnen den Radius, im Programm steht das Doppelte.</li>
+<li><b>Rundachse</b> – bei Siemens mit dem NC-Namen aus der Maschine, eine Nummer mit „=“
+(„C4=90.000“); sonst ihr Buchstabe.</li>
+<li><b>Vorschub</b> – in Bahnen mit der Rundachse G93 (F ist 1 ÷ Minuten je Satz), danach
+zurück auf Vorschub je Minute: an der Fräse G94, an Fanuc- und Haas-Drehmaschinen G98 (dort
+ist G94 ein Plandrehzyklus).</li>
+<li><b>Kühlung</b> – wie an der Operation eingestellt (Flut M8, Nebel M7), danach M9.</li>
+</ul>
+
+<h3>Befehle ändern</h3>
+<p><b>Befehle …</b> klappt die Liste der Befehle auf: Programmanfang und -ende,
+Werkzeugwechsel, Spindel, angetriebenes Werkzeug, C-Achse, Vorschub, Kühlung. Jeder lässt sich
+ändern – manches legt der Maschinenhersteller fest, das ist <b>gelb</b> (bei Fanuc das
+angetriebene Werkzeug und die C-Achse); im Programm steht dann ein Kommentar dazu.
+Platzhalter: {t} Werkzeugnummer, {s} Drehzahl, {m} 3 oder 4 (Drehrichtung), {n} Nummer des
+Antriebs; „|“ trennt Zeilen. Geändert gilt je Steuerung für alle Jobs; <b>Zurücksetzen</b>
+holt die Vorbelegung zurück.</p>
+
+<h3>Noch nicht</h3>
+<p>Vorausschau und Glätten als Haken je Steuerung (Siemens G642, SOFT …), Steuerungen ohne G93
+(der Vorschub so gerechnet, dass die Zeit stimmt), Zylinder- und Polartransformation
+(TRACYL, TRANSMIT) – geplant, siehe Spezifikation W-005.</p>

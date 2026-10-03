@@ -24,6 +24,7 @@ from . import (
     gui_maschinen,
     gui_materialstand,
     gui_neue_maschine,
+    gui_programm,
     gui_reichweite,
     gui_sprachwahl,
     gui_verfahren,
@@ -53,6 +54,7 @@ WERKZEUGLEISTE = [
     "CamAddon_AufMaschinePruefen",
     "CamAddon_Vierachs",
     "CamAddon_Bearbeitung",
+    "CamAddon_ProgrammSchreiben",
 ]
 # Das Menü: oben „So geht’s“ (D-54), dann alle Befehle mit Text – auch „Nach Updates
 # suchen“ und „Über“, die in der Werkzeugleiste nur Platz kosteten (Durchsicht W-004, D-13).
@@ -70,6 +72,7 @@ MENUE = [
     "CamAddon_AufMaschinePruefen",
     "CamAddon_Vierachs",
     "CamAddon_Bearbeitung",
+    "CamAddon_ProgrammSchreiben",
     "Separator",
     "CamAddon_UpdateSuchen",
     "CamAddon_Ueber",
@@ -92,6 +95,7 @@ def starten():
             "CamAddon_AufMaschinePruefen": gui_reichweite.BefehlAufMaschinePruefen(),
             "CamAddon_Vierachs": gui_vierachs.BefehlVierachs(),
             "CamAddon_Bearbeitung": gui_bearbeitung.BefehlBearbeitung(),
+            "CamAddon_ProgrammSchreiben": gui_programm.BefehlProgrammSchreiben(),
             "CamAddon_Ueber": BefehlUeber(),
             "CamAddon_UpdateSuchen": gui_aktualisierung.BefehlUpdateSuchen(),
         }

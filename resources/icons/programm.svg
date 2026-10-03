@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „Programm schreiben“: ein Blatt mit G-Code-Zeilen, grüner Pfeil zur Maschine. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect x="6" y="4" width="34" height="46" rx="2" fill="#ffffff" stroke="#2e3436" stroke-width="2"/>
+  <path d="M11 14 H34 M11 21 H30 M11 28 H34 M11 35 H26 M11 42 H32" stroke="#204a87" stroke-width="3"/>
+  <rect x="40" y="38" width="20" height="20" rx="2" fill="#babdb6" stroke="#2e3436" stroke-width="2"/>
+  <path d="M30 52 H44" stroke="#4e9a06" stroke-width="4"/>
+  <path d="M42 45 L50 52 L42 59 Z" fill="#4e9a06"/>
+</svg>

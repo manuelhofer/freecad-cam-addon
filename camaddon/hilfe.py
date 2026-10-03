@@ -34,6 +34,7 @@ THEMEN = [
     "reichweite",
     "vierachs",
     "bearbeitung",
+    "programm",
 ]
 
 

@@ -216,7 +216,17 @@ def iso_text(iso):
 def klasse_text(klasse):
     """Die Klasse in Worten, wie sie in der Werkstoff-Spalte steht: „M – rostfreier Stahl“,
     „P1 – Stahl bis 750 N/mm²“."""
-    return tr(f"werkstoff.klasse.{klasse.lower()}")
+    return {
+        "P1": tr("werkstoff.klasse.p1"),
+        "P2": tr("werkstoff.klasse.p2"),
+        "M": tr("werkstoff.klasse.m"),
+        "K": tr("werkstoff.klasse.k"),
+        "N1": tr("werkstoff.klasse.n1"),
+        "N2": tr("werkstoff.klasse.n2"),
+        "N3": tr("werkstoff.klasse.n3"),
+        "S": tr("werkstoff.klasse.s"),
+        "H": tr("werkstoff.klasse.h"),
+    }.get(klasse, klasse)
 
 
 def anzeige(werkstoff):
