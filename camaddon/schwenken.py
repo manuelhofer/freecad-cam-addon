@@ -413,7 +413,7 @@ class Schwenkung:
         return abs(abs(z[2]) - 1.0) < 1e-9
 
 
-def befehle_ohne_zyklus(befehle, schwenkung):
+def befehle_ohne_zyklus(befehle, schwenkung, schon_oben=False):
     """Die Sätze einer Ebene (Path.Command in Koordinaten der Ebene) als Sätze im Programm ohne
     Schwenkzyklus: X, Y, Z durch die Abbildung, die Rundachsen der Ebene im ersten Satz mit
     Bewegung (davor ein eigener Satz G0 mit ihnen). Bögen bleiben Bögen, wenn die Ebene im
@@ -425,7 +425,8 @@ def befehle_ohne_zyklus(befehle, schwenkung):
     Wo das Werkzeug nach dem Schwenken steht, weiß die Ebene nicht: Sätze, bevor X, Y und Z der
     Ebene bekannt sind (der übliche erste „G0 Z…“ ohne X, Y), fallen weg – das Werkzeug steht
     schon auf der Schwenkhöhe darüber. Zum ersten bekannten Punkt fährt es auf der Schwenkhöhe
-    über ihn (auf der Achse der Ebene) und dann die Achse entlang hinunter."""
+    über ihn (auf der Achse der Ebene) und dann die Achse entlang hinunter. `schon_oben`: Die
+    Maschine steht am Wechselpunkt ganz oben – kein „G0 Z…“ auf die Schwenkhöhe davor."""
     import Path
 
     if schwenkung.abbildung is None:
@@ -455,7 +456,7 @@ def befehle_ohne_zyklus(befehle, schwenkung):
         name = befehl.Name.upper()
         werte = dict(befehl.Parameters)
         if name in BEWEGUNG + BOGEN + ZYKLEN and not gefahren:
-            if schwenkung.hoehe is not None:
+            if schwenkung.hoehe is not None and not schon_oben:
                 # Erst hoch genug, dass sich das Rohteil frei dreht (wie CYCLE800 _FR = 1).
                 ergebnis.append(Path.Command("G0", {"Z": float(schwenkung.hoehe)}))
             ergebnis.append(Path.Command("G0", dict(rund)))

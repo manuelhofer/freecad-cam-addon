@@ -453,6 +453,20 @@ for s in (pp.steuerung("linuxcnc"), pp.steuerung("siemens", {"schwenkzyklus": Fa
         any(z.startswith("G1") and f"X{soll[0]:.3f}" in z for z in zeilen),
         f"{s.name}: erster Satz nicht gerechnet ({soll})",
     )
+# Mit Wechselpunkt Z in MKS (ganz oben) schwenkt die Maschine dort – nicht erst wieder hinunter
+# auf die Schwenkhöhe, weder hin noch zurück.
+oben = pp.Maschineninfo("5-Achs")
+oben.wechselpunkt = {"Z": 150.0}
+zeilen = pp.programm(teile, pp.steuerung("linuxcnc"), oben, "Block").zeilen
+davor = [
+    next(v for v in reversed(zeilen[:k]) if v.startswith(("G0", "G1", "G53")))
+    for k, z in enumerate(zeilen)
+    if z.startswith("G0 A")
+]
+pruefe(
+    len(davor) == 2 and all(z == "G53 G0 Z150.000" for z in davor),
+    f"mit Wechselpunkt vor dem Schwenken: {davor}",
+)
 
 # --- F4: auf der Maschine prüfen – an allen drei 5-Achs-Beispielen ---------------------------------
 from camaddon import abfahren as ab  # noqa: E402

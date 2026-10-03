@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-52 schwenken-oben
+
+### EINGELESEN
+- Das LinuxCNC-Programm des Schwenkteils (P-43): „G53 G0 Z150“, dann „G0 Z131.137“ hinunter,
+  dann „G0 A… C…“ – am Ende ebenso.
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`_wechselpunkt_oben`; `_schwenken_aus(…, oben)`; die Umrechnung
+  ohne Zyklus mit `schon_oben`), `camaddon/schwenken.py` (`befehle_ohne_zyklus(…, schon_oben=)`),
+  `tests/test_schwenken.py`, Spezifikation (15.3), `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.157.1).
+
+### AKZEPTANZKRITERIUM
+- Mit Wechselpunkt Z in MKS steht vor beiden „G0 A…“ (hin und zurück) als letzter Fahrsatz
+  „G53 G0 Z150.000“; ohne Wechselpunkt weiter die Schwenkhöhe.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_schwenken.py`, `tests/test_postprozessor.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1 … D-5, E-1 … E-4, E8.
+
 ## P-2026-10-03-51 szenario-angestellt
 
 ### EINGELESEN

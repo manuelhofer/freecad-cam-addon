@@ -544,8 +544,16 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
         notiz(abschnitt.name)
         befehle_roh = abschnitt.befehle
         if abschnitt.schwenkung is not None and not zyklus:
+            # Fährt die Maschine davor zum Wechselpunkt ganz oben, schwenkt sie dort – nicht
+            # erst wieder hinunter auf die Schwenkhöhe.
+            wechselt = (abschnitt.werkzeug and abschnitt.werkzeug != werkzeug) or not sw.gleiche(
+                geschwenkt, abschnitt.schwenkung
+            )
+            oben = bool(wechselt) and _wechselpunkt_oben(s, info)
             try:
-                befehle_roh = sw.befehle_ohne_zyklus(befehle_roh, abschnitt.schwenkung)
+                befehle_roh = sw.befehle_ohne_zyklus(
+                    befehle_roh, abschnitt.schwenkung, schon_oben=oben
+                )
             except ValueError as grund:
                 hinweise.append(f"{abschnitt.name}: {grund}")
                 zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))
@@ -558,7 +566,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 spindel_an = None
             zeilen.extend(_zum_wechselpunkt(s, info))
             if geschwenkt is not None and not sw.gleiche(geschwenkt, abschnitt.schwenkung):
-                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus))
+                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, _wechselpunkt_oben(s, info)))
                 geschwenkt = None
             if abschnitt.werkzeugname:
                 notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
@@ -574,7 +582,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                     spindel_an = None
                 zeilen.extend(_zum_wechselpunkt(s, info))
             if geschwenkt is not None and abschnitt.schwenkung is None:
-                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus))
+                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, _wechselpunkt_oben(s, info)))
             if abschnitt.schwenkung is not None:
                 rund = sw.text_rundachsen(abschnitt.schwenkung.rund, programm=True)
                 notiz(tr("pp.ebene", rundachsen=rund))
@@ -662,7 +670,8 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     if werkzeug is not None:
         zeilen.extend(_zum_wechselpunkt(s, info))
     if geschwenkt is not None:
-        zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus))
+        oben = werkzeug is not None and _wechselpunkt_oben(s, info)
+        zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, oben))
     if c_an and s.c_aus:
         zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
     zeilen.extend(_zeilen(s.ende))
@@ -676,13 +685,14 @@ def _schwenken_ein(s, schwenkung):
     return _zeilen(_fuellen(s.schwenken, **{k: _zahl(v) for k, v in werte.items()}))
 
 
-def _schwenken_aus(s, schwenkung, zyklus):
+def _schwenken_aus(s, schwenkung, zyklus, oben=False):
     """Zurück aus der Ebene: der Zyklus zurück – ohne Zyklus erst hoch genug
-    (Schwenkung.hoehe), dann die Rundachsen auf 0."""
+    (Schwenkung.hoehe; `oben`: die Maschine steht schon am Wechselpunkt ganz oben), dann die
+    Rundachsen auf 0."""
     if zyklus:
         return _zeilen(s.schwenken_aus)
     zeilen = []
-    if schwenkung.hoehe is not None:
+    if schwenkung.hoehe is not None and not oben:
         zeilen.append(f"G0 {_wort(s, 'Z', _zahl(schwenkung.hoehe))}")
     woerter = [_wort(s, b, _zahl(0.0)) for b in sorted(schwenkung.rund)]
     if woerter:
@@ -720,6 +730,20 @@ def _zum_wechselpunkt(s, info):
     if not s.wechselpunkt:
         return []
     return _wechselpunkt_saetze(s, info)
+
+
+def _wechselpunkt_oben(s, info):
+    """Steht die Fräse nach _zum_wechselpunkt mit Z ganz oben – höher als jede Schwenkhöhe? Ja
+    mit Z im Wechselpunkt in MKS (G53, SUPA: das Ende des Verfahrwegs) oder einem Befehl, der den
+    Punkt selbst kennt (F_HOME); in WKS weiß es niemand."""
+    if not s.wechselpunkt or info.drehmaschine:
+        return False
+    vorlage = s.wechselpunkt_wks if info.wechsel_wks else s.wechselpunkt_mks
+    if not vorlage:
+        return False
+    if "{achsen}" not in vorlage:
+        return bool(info.name)
+    return not info.wechsel_wks and "Z" in info.wechselpunkt
 
 
 def _wechselpunkt_saetze(s, info):
