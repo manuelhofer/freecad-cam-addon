@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-28 vorschau-zwischenspeicher
+
+### EINGELESEN
+- Manuel, 2026-10-03: „ja, mach das alles mal“ – Punkt 1 der Liste: die Vorschau im
+  Assistenten „Bearbeitung“ schneller (Snapshot „Danach“ 3, Ziel 10 s am Testteil).
+
+### DATEIEN
+- `camaddon/hoehenfeld.py` (`je_zeile` mit Zwischenspeicher `_ZWISCHEN`, `_kennung`,
+  `_je_zeile`), `camaddon/kontur_bahn.py` (`waende` je Fläche gemerkt: `_wand`, `_WAND`),
+  `camaddon/gui_bearbeitung.py` (`_vorschau_rechnen` merkt sich je Lauf die Flächen je Block:
+  `_flaechen_merk` in `_eigene`), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.149.1).
+
+### AKZEPTANZKRITERIUM
+- Die Vorschau am Testteil (alle Flächen) rechnet spürbar kürzer, die Bahnen bleiben gleich.
+
+### DONE
+- Gemessen mit cProfile im Szenario (alle Flächen, Lauf direkt): erster Lauf 13,7 → 10,4 s,
+  zweiter 9,3 → 4,7 s. Vorher kamen 5,4 von 8,5 s Hüllfläche aus Wiederholungen derselben
+  Rechnung; `waende` 0,88 → 0,45 s; die Flächen je Strategie 95-mal je Lauf → einmal je Block.
+  Bandweise rechnen wie `vierachs_huelle.je_stellung` gibt dasselbe (bis 2e-14 mm), ist hier
+  aber langsamer (0,15 statt 0,11 s je Hüllfläche) – gelassen.
+
+### TESTS
+- `tests/test_kontur.py`, `test_testteil.py` (Räumen 10,28 min wie vorher) – OK; Szenario
+  `szenario_testteil` – OK. black und ruff sauber.
+
+### NEXT
+- Planfräsen Zelle für Zelle; Rundum schruppen an steilen Stellen feiner.
+
 ## P-2026-10-03-27 postprozessor-einstellungen
 
 ### EINGELESEN

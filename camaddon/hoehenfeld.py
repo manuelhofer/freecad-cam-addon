@@ -17,6 +17,8 @@ Rahmen: x und y wie im Job, z nach oben; die Zeilen laufen längs x oder längs 
 Oberfläche.
 """
 
+import hashlib
+from collections import OrderedDict
 from dataclasses import dataclass
 
 import numpy as np
@@ -169,11 +171,52 @@ def netz_fuer(netz, ebene):
     return netz[ebene.name] if isinstance(netz, dict) else netz
 
 
+# Die letzten Hüllflächen (je_zeile) – je Netz, Form und Raster. Die Vorschau im Assistenten
+# rechnete dieselbe bis zu neunmal: Der Wettbewerb rechnet Blöcke noch einmal, und jede neue
+# Vorschau alle (am Testteil 5,4 von 8,5 s in zwei Läufen, P-2026-10-03-28).
+_ZWISCHEN = OrderedDict()
+_ZWISCHEN_HOECHSTENS = 96
+
+
+def _kennung(netz):
+    """Ein Fingerabdruck des Netzes: seine Punkte und Dreiecke."""
+    pruef = hashlib.blake2b(digest_size=16)
+    for teil in (netz.punkte, netz.dreiecke):
+        feld = np.ascontiguousarray(teil)
+        pruef.update(str(feld.shape).encode())
+        pruef.update(feld.tobytes())
+    return pruef.digest()
+
+
 def je_zeile(netz, form, v_werte, u0, schritt, anzahl, laengs_x=True):
     """Die Hüllfläche je Zeile: z[k, j] (mm) – so tief darf die Spitze eines Fräsers mit der
     Form `form` (fraeserform.Form) an der Stelle u0 + k · schritt auf der Zeile v_werte[j];
     KEIN_TREFFER, wo er das Teil nicht trifft. `u` ist die Stelle längs der Zeile – x mit
-    `laengs_x`, sonst y –, `v` der Versatz quer."""
+    `laengs_x`, sonst y –, `v` der Versatz quer. Dieselbe Rechnung kommt aus dem Zwischenspeicher
+    (eine Kopie – wer sie ändert, ändert nicht das Gemerkte)."""
+    v = np.ascontiguousarray(v_werte, dtype=float)
+    schluessel = (
+        _kennung(netz),
+        form,
+        v.tobytes(),
+        float(u0),
+        float(schritt),
+        int(anzahl),
+        bool(laengs_x),
+    )
+    gemerkt = _ZWISCHEN.get(schluessel)
+    if gemerkt is not None:
+        _ZWISCHEN.move_to_end(schluessel)
+        return gemerkt.copy()
+    ergebnis = _je_zeile(netz, form, v, u0, schritt, anzahl, laengs_x)
+    _ZWISCHEN[schluessel] = ergebnis.copy()
+    while len(_ZWISCHEN) > _ZWISCHEN_HOECHSTENS:
+        _ZWISCHEN.popitem(last=False)
+    return ergebnis
+
+
+def _je_zeile(netz, form, v_werte, u0, schritt, anzahl, laengs_x):
+    """je_zeile() ohne Zwischenspeicher."""
     punkte = netz.punkte
     a = punkte[:, 0] if laengs_x else punkte[:, 1]
     quer = punkte[:, 1] if laengs_x else punkte[:, 0]

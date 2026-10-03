@@ -4429,10 +4429,19 @@ class BearbeitungPanel:
         self._knoepfe_beschriften()
 
     def _vorschau_rechnen(self):
-        """Die grobe Bahn je angehaktem Block – und damit „Anlegen“ weiß, ob es geht."""
+        """Die grobe Bahn je angehaktem Block – und damit „Anlegen“ weiß, ob es geht. Was die
+        Strategien mit den gewählten Flächen anfangen können, gilt für den ganzen Lauf
+        (_eigene, P-2026-10-03-28: am Testteil 95 Fragen je Lauf)."""
         self._vorschau_uhr.stop()
         if self.geschlossen or self.job is None:
             return
+        self._flaechen_merk = {}
+        try:
+            self._vorschau_rechnen_mit_merk()
+        finally:
+            self._flaechen_merk = None
+
+    def _vorschau_rechnen_mit_merk(self):
         form = vr.modell(self.job).Shape
         self._raeumen_boeden = None
         boeden = self._nur_boeden(form)
@@ -5208,7 +5217,12 @@ class BearbeitungPanel:
         Bohrungen, die sein Bohrer bohrt, sonst alle, mit denen er etwas anfangen kann."""
         if block is self.bohren:
             return self._bohrbare(form, gerieben=self._gerieben(form))
-        return block.s.flaechen_fuer(form, self.gewaehlte)
+        merk = getattr(self, "_flaechen_merk", None)
+        if merk is None:
+            return block.s.flaechen_fuer(form, self.gewaehlte)
+        if id(block) not in merk:
+            merk[id(block)] = list(block.s.flaechen_fuer(form, self.gewaehlte))
+        return list(merk[id(block)])
 
     def _gerieben(self, form):
         """Wird gerieben – Reiben angehakt, und eine Reibahle passt zu den gewählten Bohrungen?"""

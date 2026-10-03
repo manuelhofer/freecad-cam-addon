@@ -162,26 +162,54 @@ def _waagerecht(kante, z):
 
 def waende(form, namen):
     """[Wand] – die Flächen `namen` („Face3“ …) von `form` (Part.Shape), die senkrecht stehen und
-    eine waagerechte Unterkante haben; andere zählen nicht."""
+    eine waagerechte Unterkante haben; andere zählen nicht. Je Fläche einmal gerechnet (_WAND):
+    Der Assistent „Bearbeitung“ fragt je Vorschau über tausendmal nach denselben Flächen
+    (P-2026-10-03-28, wie hoehenfeld.ebenen_oben)."""
     from . import vierachs_flaechen as vf
 
+    anzahl = len(form.Faces)
     ergebnis = []
     for nummer in vf.nummern(namen):
-        if nummer >= len(form.Faces):
+        if nummer >= anzahl:
             continue
-        flaeche = form.Faces[nummer]
-        if not ist_wand(flaeche):
-            continue
-        bb = flaeche.BoundBox
-        if bb.ZMax - bb.ZMin <= NAH:
-            continue
-        kanten = tuple(k for k in flaeche.Edges if _waagerecht(k, bb.ZMin))
-        if not kanten:
-            continue
-        ergebnis.append(
-            Wand(f"Face{nummer + 1}", nummer, flaeche, float(bb.ZMin), float(bb.ZMax), kanten)
-        )
+        wand = _wand(form, nummer)
+        if wand is not None:
+            ergebnis.append(wand)
     return ergebnis
+
+
+_WAND = {}  # (Prüfsumme der Form, Nummer, Kasten der Fläche) → Wand oder None
+_WAND_HOECHSTENS = 20000
+
+
+def _wand(form, nummer):
+    """Die Wand der Fläche `nummer` – oder None, wenn sie keine ist."""
+    flaeche = form.Faces[nummer]
+    bb = flaeche.BoundBox
+    try:
+        # Die Prüfsumme hängt am Speicher – mit dem Kasten der Fläche dazu verwechselt eine neue
+        # Form an derselben Stelle ihre Flächen nicht mit den alten (wie hoehenfeld._ebene).
+        schluessel = (
+            form.hashCode(),
+            nummer,
+            tuple(round(v, 6) for v in (bb.XMin, bb.XMax, bb.YMin, bb.YMax, bb.ZMin, bb.ZMax)),
+        )
+    except Exception:  # eine Form ohne Prüfsumme: rechnen
+        schluessel = None
+    if schluessel is not None and schluessel in _WAND:
+        return _WAND[schluessel]
+    wand = None
+    if ist_wand(flaeche) and bb.ZMax - bb.ZMin > NAH:
+        kanten = tuple(k for k in flaeche.Edges if _waagerecht(k, bb.ZMin))
+        if kanten:
+            wand = Wand(
+                f"Face{nummer + 1}", nummer, flaeche, float(bb.ZMin), float(bb.ZMax), kanten
+            )
+    if schluessel is not None:
+        if len(_WAND) >= _WAND_HOECHSTENS:
+            _WAND.clear()
+        _WAND[schluessel] = wand
+    return wand
 
 
 def ohne_flaechen(form, waende_):

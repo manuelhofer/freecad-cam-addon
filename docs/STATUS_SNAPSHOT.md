@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.149.0 (P-2026-10-03-27). Alles, was hier als gebaut steht,
+Stand 0.149.1 (P-2026-10-03-28). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -199,15 +199,14 @@ Beantwortet am 2026-10-03 (abends):
 **Danach, der Reihe nach:**
 
 1. Was Manuels Test ergibt.
-2. **W-005 weiter:** die Steuerung an der Maschine („Maschine bearbeiten“, S2), Vorausschau
-   und Glätten als Haken (S4), Vorschub ohne G93 (S5) – nach Manuels Blick auf die Befehle
-   seiner Steuerung.
-3. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
-   (`hoehenfeld.je_zeile`); Ziel 10 s am Testteil. Gemessen 2026-10-03 (Szenario mit cProfile,
-   alle Flächen): erster Lauf 13,7 s, zweiter 9,3 s; `je_zeile` 111 Aufrufe in beiden Läufen,
-   8,5 s, davon 5,4 s Wiederholungen derselben Rechnung (gleiches Netz, Form, Raster) – ein
-   Zwischenspeicher je Eingabe spart sie; danach je Zeile ein Aufruf des Kerns zu viel (3544
-   `_form_treffen` – je Band wie `vierachs_huelle.je_stellung`).
+2. **W-005 weiter:** die Steuerung an der Maschine („Maschine bearbeiten“, S2) – nach Manuels
+   Blick auf die Befehle seiner Steuerung; S4 (Glätten) und S5 (ohne G93) sind gebaut
+   (P-2026-10-03-27).
+3. ~~Die Vorschau weiter beschleunigen~~ – P-2026-10-03-28: am Testteil (alle Flächen) erster
+   Lauf 10,4 s statt 13,7, jeder weitere 4,7 statt 9,3 (Zwischenspeicher für die Hüllflächen
+   `hoehenfeld.je_zeile` und die Wände `kontur_bahn.waende`, die Flächen je Strategie einmal je
+   Lauf). Bandweise rechnen wie `je_stellung` war hier langsamer (0,15 statt 0,11 s), gelassen.
+   Was bleibt: das Räumen (3,9 s, viermal je Lauf), 3D-Schruppen, Planfräsen, Kontur je ~1,3 s.
 4. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
    Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel).
 5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
