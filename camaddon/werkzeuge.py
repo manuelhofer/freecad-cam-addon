@@ -80,6 +80,7 @@ LAENGEN_FELDER = (
     "spitzen_d",
     "hals_d",
     "hals_laenge",
+    "auskragung",  # N: Schneidenlänge + Hals – ein Feld der Oberfläche (Werkzeug.auskragung)
     "profilradius",
     "schneidenbreite",
     "stechtiefe",
@@ -235,6 +236,7 @@ def feld_text(feld, art):
         "flankenwinkel": tr("wv.flankenwinkel"),
         "hals_d": tr("wv.hals_d"),
         "hals_laenge": tr("wv.hals_laenge"),
+        "auskragung": tr("wv.auskragung"),
         "profilradius": tr("wv.profilradius"),
         STEIGUNG: tr("wv.steigung"),
         "schneidenbreite": tr("wv.schneidenbreite"),
@@ -446,6 +448,19 @@ class Werkzeug:
     schnittwerte: dict = field(default_factory=dict)
     # Felder, die noch Beispielwerte halten (grau gezeigt, aber gültig); nicht gespeichert.
     beispiel: set = field(default_factory=set, compare=False, repr=False)
+
+    @property
+    def auskragung(self):
+        """N im Katalog (Manuel, 2026-10-03: „das N fehlt uns … die Auskragung“): von der Spitze
+        bis zum Schaft – Schneidenlänge plus Hals; 0, solange beides fehlt. Gespeichert wird der
+        Hals (hals_laenge), wie bei Lollipop und Schwalbenschwanz."""
+        if not self.schneidenlaenge and not self.hals_laenge:
+            return 0.0
+        return self.schneidenlaenge + self.hals_laenge
+
+    @auskragung.setter
+    def auskragung(self, wert):
+        self.hals_laenge = max(float(wert) - self.schneidenlaenge, 0.0) if wert else 0.0
 
     def einsaetze(self, werkstoff):
         """Die Tabelle, die für den Werkstoff gilt: seine eigene, sonst die seiner
@@ -765,6 +780,9 @@ class Artdaten:
 # Was fast jeder Fräser und Bohrer hat.
 _GRUNDFELDER = ("durchmesser", "schneiden", "schneidenlaenge", "gesamtlaenge", "schaft")
 _SCHNEIDSTOFF = ("schneidstoff",)
+# Fräser mit Hals (Jongen 494W: d1 11,2 unter Ø 12, N 36 bei Schneidenlänge 26): Hals-Ø d1 und
+# die Auskragung N (Manuel, 2026-10-03: „das N fehlt uns in unserer Liste … und der d1“).
+_HALS = ("hals_d", "auskragung")
 _ZOLL = 25.4  # mm
 
 
@@ -784,19 +802,19 @@ def _zoll(**werte):
 ARTDATEN = {
     SCHAFTFRAESER: Artdaten(
         GRUPPE_FRAESEN,
-        _GRUNDFELDER + _SCHNEIDSTOFF + ("eintauchwinkel",),
+        _GRUNDFELDER + _HALS + _SCHNEIDSTOFF + ("eintauchwinkel",),
         {"durchmesser": 12.0, "schneiden": 3, "schneidenlaenge": 26.0},
         _zoll(durchmesser=1 / 2, schneiden=3, schneidenlaenge=1),
     ),
     KUGELFRAESER: Artdaten(
         GRUPPE_FRAESEN,
-        _GRUNDFELDER + _SCHNEIDSTOFF + ("eintauchwinkel",),
+        _GRUNDFELDER + _HALS + _SCHNEIDSTOFF + ("eintauchwinkel",),
         {"durchmesser": 12.0, "schneiden": 2, "schneidenlaenge": 24.0},
         _zoll(durchmesser=1 / 2, schneiden=2, schneidenlaenge=1),
     ),
     TORUSFRAESER: Artdaten(
         GRUPPE_FRAESEN,
-        _GRUNDFELDER + _SCHNEIDSTOFF + ("eintauchwinkel", "eckradius"),
+        _GRUNDFELDER + _HALS + _SCHNEIDSTOFF + ("eintauchwinkel", "eckradius"),
         {"durchmesser": 12.0, "schneiden": 4, "schneidenlaenge": 26.0, "eckradius": 1.0},
         _zoll(durchmesser=1 / 2, schneiden=4, schneidenlaenge=1, eckradius=0.03),
     ),
@@ -1129,8 +1147,10 @@ def gewindebohrer(art):
 
 
 def hat_feld(werkzeug, feld):
-    """Hat die Art des Werkzeugs dieses Feld?"""
-    return feld in ARTDATEN[werkzeug.art].felder
+    """Hat die Art des Werkzeugs dieses Feld? Den Hals (hals_laenge) hat auch, wer die
+    Auskragung N zeigt – sie ist Schneidenlänge plus Hals."""
+    felder = ARTDATEN[werkzeug.art].felder
+    return feld in felder or (feld == "hals_laenge" and "auskragung" in felder)
 
 
 def ueblich(art, feld):

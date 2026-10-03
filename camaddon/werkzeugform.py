@@ -157,18 +157,32 @@ def _tan(grad):
 # --- Fräsen ---------------------------------------------------------------------
 
 
+def _mit_hals(w, lc, s, unsicher, schaft_unsicher):
+    """Schaft über der Schneide – mit dem Hals dazwischen, wenn das Werkzeug einen hat
+    (Auskragung N über der Schneidenlänge): so dick wie der Hals-Ø d1, ohne ihn wie die
+    Schneide."""
+    hals_laenge = wz.mass(w, "hals_laenge")
+    if hals_laenge <= 0:
+        return [_schaft(w, lc, s, schaft_unsicher)]
+    hals = (wz.mass(w, "hals_d") or w.durchmesser) / 2
+    hals_oben = lc + hals_laenge
+    return [
+        _schaft(w, hals_oben, s, schaft_unsicher),
+        Teil(SCHAFT, _rechteck(-hals, lc, hals, hals_oben), unsicher),
+    ]
+
+
 def _schaftfraeser(w, unsicher, schaft_unsicher):
     r, lc, s = _masse(w)
     schneide = Teil(SCHNEIDE, _symmetrisch([(r, lc), (r, 0), (0, 0)]), unsicher, WENDEL_RECHTS)
-    return [_schaft(w, lc, s, schaft_unsicher), schneide]
+    return _mit_hals(w, lc, s, unsicher, schaft_unsicher) + [schneide]
 
 
 def _kugelfraeser(w, unsicher, schaft_unsicher):
     r, lc, s = _masse(w)
     lc = max(lc, r)
     rechts = [(r, lc)] + _bogen(0, r, r, 0, -90)
-    return [
-        _schaft(w, lc, s, schaft_unsicher),
+    return _mit_hals(w, lc, s, unsicher, schaft_unsicher) + [
         Teil(SCHNEIDE, _symmetrisch(rechts), unsicher, WENDEL_RECHTS),
     ]
 
@@ -177,8 +191,7 @@ def _torusfraeser(w, unsicher, schaft_unsicher):
     r, lc, s = _masse(w)
     e = min(wz.mass(w, "eckradius"), r)
     rechts = [(r, max(lc, e))] + _bogen(r - e, e, e, 0, -90) + [(0, 0)]
-    return [
-        _schaft(w, max(lc, e), s, schaft_unsicher),
+    return _mit_hals(w, max(lc, e), s, unsicher, schaft_unsicher) + [
         Teil(SCHNEIDE, _symmetrisch(rechts), unsicher, WENDEL_RECHTS),
     ]
 

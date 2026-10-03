@@ -1256,6 +1256,7 @@ def _tooltip(feld):
         "spitzen_d": tr("wv.spitzen_d.tooltip"),
         "hals_d": tr("wv.hals_d.tooltip"),
         "hals_laenge": tr("wv.hals_laenge.tooltip"),
+        "auskragung": tr("wv.auskragung.tooltip"),
         "profilradius": tr("wv.profilradius.tooltip"),
         "schneidenbreite": tr("wv.schneidenbreite.tooltip"),
         "stechtiefe": tr("wv.stechtiefe.tooltip"),

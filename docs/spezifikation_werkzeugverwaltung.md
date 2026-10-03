@@ -805,6 +805,14 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
     Gesamtlänge und Schaft je Bereich von den Seiten (Ø 3 … 19 nachgeschlagen). Ø 2 und 2,5 gibt
     es dort nicht – weggelassen (Frage an Manuel). Schnittwerte nennt die Seite nicht:
     Richtwerte für VHM-Bohrer mit Innenkühlung (vc 100 in P1, f je Ø), geschätzt.
+  - **Hals-Ø d1 und Auskragung N (P-2026-10-03-05; Manuel, 2026-10-03, mit dem Jongen-Blatt:
+    „das N fehlt uns in unserer Liste … die Auskragung … und der d1“):** Schaft-, Kugel- und
+    Torusfräser zeigen die beiden Felder (`werkzeuge._HALS`). N ist ein Feld der Oberfläche
+    (`Werkzeug.auskragung`: Schneidenlänge plus Hals), gespeichert bleibt der Hals
+    (`hals_laenge`) wie bei Lollipop und Schwalbenschwanz; `hat_feld` kennt den Hals bei jeder
+    Art mit N. Das Bild zeichnet den Hals (`werkzeugform._mit_hals`), Reichweite und Kollision
+    rechnen mit ihm (sie lasen `hals_laenge` schon immer über `mass`). Die Kiste hatte die
+    Werte schon (Jongen 494W: N 36, d1 11,2 bei Ø 12).
   - **Geklärt (Manuel, 2026-10-03):** „andere Hersteller aufnehmen“ war kein Wunsch nach
     einer Erweiterung – gemeint war von Anfang an: die Herstellerseiten nach Werten durchsuchen
     und je Werkzeugart ein paar reale Werkzeuge mit Werten und Bestell-Link zum Übernehmen

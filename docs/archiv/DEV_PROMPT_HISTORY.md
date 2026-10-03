@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-05 hals-und-auskragung
+
+### EINGELESEN
+- Manuel, 2026-10-03, mit dem Jongen-Datenblatt VHM 494W HI06 (D, s, l, N, d1, d, L, Z, IK) und
+  dem Bild seines T1: „das N fehlt uns in unserer Liste … die Auskragung … und der d1“.
+  Spezifikation Werkzeugarten (Felder je Art), Werkzeugverwaltung 13.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`_HALS`, `LAENGEN_FELDER` + „auskragung“, `Werkzeug.auskragung`,
+  `hat_feld`, `feld_text`), `camaddon/werkzeugform.py` (`_mit_hals`), `camaddon/gui_werkzeuge.py`
+  (Tooltip), `translations/de|en.json`, `help/de|en/werkzeuge.html`,
+  `docs/spezifikation_werkzeugverwaltung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.131.0)
+
+### AKZEPTANZKRITERIUM
+Der Jongen Ø 12 zeigt im Formular Hals-Ø d1 11,2 und Auskragung N 36, das Bild den Hals; ein
+Fräser ohne Hals zeigt als N seine Schneidenlänge.
+
+### DONE
+- N als Feld der Oberfläche (Schneidenlänge + Hals), gespeichert bleibt der Hals; Reichweite
+  und Kollision kannten den Hals schon über `mass` – jetzt auch bei Schaft-, Kugel- und
+  Torusfräser (`hat_feld`).
+- **Gefundener Fehler im eigenen Entwurf:** das neue Feld fehlte in der Tooltip-Tabelle der
+  Werkzeugverwaltung – der Dialog ging nicht auf (KeyError beim Bau; im Szenario gesehen).
+
+### TESTS
+- `tests/test_werkzeuge.py` (OK); `tests/gui/szenario_werkzeugkiste.py` (OK – damit auch der
+  Baum der Kiste aus P-2026-10-03-02 zum ersten Mal grün; Bild `2_jongen_12` mit N und d1).
+  black und ruff sauber.
+
+### NEXT
+- Manuels nächste Aufgabe („hab ich noch eine andere Aufgabe … warten, bis ich's vorbereitet
+  habe“).
+
 ## P-2026-10-03-04 teil-muss-herauskommen
 
 ### EINGELESEN
