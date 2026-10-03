@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-04 teil-muss-herauskommen
+
+### EINGELESEN
+- Grundsatz 0 (Spezifikation Strategien 5), ergänzt in P-2026-10-03-03 nach Manuel: „es hilft
+  ja nichts, wenn man eine Platte mit einem Ø-20-Zapfen gezeichnet hat, aber der Zapfen ist dann
+  nicht rund, weil die Werkzeugwege so schneller waren“; Snapshot „Danach“, Schritt 2.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_fertige_flaechen`, `_unfertige`, `_unfertig_zeigen`, das rote
+  Feld `unfertig` unter den Schritten), `translations/de|en.json` (`ba.unfertig`,
+  `ba.unfertig.keiner`), `help/de|en/bearbeitung.html`, `docs/spezifikation_strategien.md` (5),
+  `docs/STATUS_SNAPSHOT.md`, `tests/gui/szenario_raeumen_schlichten.py`, `package.xml` (0.130.0)
+
+### AKZEPTANZKRITERIUM
+Lässt das Räumen Aufmaß am Boden und nichts schlichtet ihn, steht unter den Schritten rot, welche
+Fläche ohne genaue Bahn bliebe und welcher Haken sie fertig macht; mit dem Haken ist die Zeile weg.
+
+### DONE
+- Je Block die Flächen, die er genau fertig macht (`_fertige_flaechen`): Planfräsen ohne
+  Aufmaß, Räumen und Rest räumen ohne Aufmaß am Boden (nur Böden), „Schlichten danach“ nach
+  seinen Haken Boden/Wände, Nut/Kontur/Bohrung mit „Schlichten“ oder ohne Aufmaß, Bohren,
+  Gewinde, Gewindefräsen, Entgraten, Senken, Reiben, 3D-Schlichten, Restschlichten; nicht:
+  3D-Schruppen, Restschruppen (Aufmaß), Restmaterial (Ecken), Bleistift (Kehlen), Zentrieren.
+- Je gewählte Fläche, mit der eine Strategie etwas anfangen kann: ohne genaue Bahn → die
+  Zeile mit bis zu vier Flächen und den Blöcken, die sie fertig machten (einmal je Block
+  gerechnet, nicht je Fläche).
+- **Gefundener Fehler im eigenen Entwurf:** Die Zeile stand zuerst in Schritt 2 (bei den
+  Haken) – die Aufmaß-Felder sind in Schritt 3; jetzt unter allen Schritten, neben dem roten
+  Fehlerhinweis.
+
+### TESTS
+- `tests/gui/szenario_raeumen_schlichten.py` (OK, FreeCAD 1.1.4): Aufmaß am Boden 0,5 → Zeile
+  mit „Schlichten danach“, Haken → weg; Bild `0_unfertig`. Keine Prüfdatei (nur Oberfläche).
+  black und ruff sauber.
+
+### NEXT
+- Snapshot „Danach“, Schritt 2: die Vorschau weiter beschleunigen.
+
 ## P-2026-10-03-03 grundsatz-teil-und-pruefregel
 
 ### EINGELESEN

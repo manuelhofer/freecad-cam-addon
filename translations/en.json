@@ -1574,6 +1574,8 @@
     "ba.zahl.flaechen": "{n} faces",
     "ba.zahl.ring": "1 ring",
     "ba.zahl.ringe": "{n} rings",
+    "ba.unfertig": "No exact final path – the part would not be as drawn there: {flaechen}. Tick for it: {bloecke}.",
+    "ba.unfertig.keiner": "No exact final path – the part would not be as drawn there: {flaechen}. None of the strategies offered finishes them here.",
     "ba.zahl.adaptiv": "adaptive",
     "ba.raeumen.ueberlastet": "{text} – rings would be {prozent} % faster but overload the cutter (up to {last} ae)",
     "ba.raeumen.haelt_nicht": "{text} – no path keeps the load here (up to {last} ae): too narrow for this cutter",

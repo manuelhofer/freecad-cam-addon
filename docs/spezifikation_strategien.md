@@ -542,10 +542,14 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
      gewählten Grathöhe. Nur Bahnen, die das Teil so hinterlassen, treten im
      Wettbewerb an; unter ihnen entscheidet die Zeit. Der Prüfstand
      (Abschnitt 9) hält das für Rest, Schnitt ins Teil, Eilgang im Material
-     und Last. *Offen:* Der Assistent sagt noch nicht, wenn eine gewählte
-     Fläche am Ende keine genaue Bahn hat (Kontur und „Schlichten danach“
-     abgehakt – die Wand bliebe im Aufmaß, der Zapfen wäre ein Vieleck aus
-     dem Räumen); das soll er, rot, mit dem Haken, der fehlt.
+     und Last. **Gebaut (P-2026-10-03-04):** Der Assistent sagt rot unter
+     den Schritten, welche gewählte Fläche am Ende keine genaue Bahn hätte
+     (`_fertige_flaechen` je Block: Planfräsen und Räumen ohne Aufmaß am
+     Boden, Nut/Kontur/Bohrung mit „Schlichten“, „Schlichten danach“ mit
+     seinen Haken, Bohren, Reiben, Senken, Gewinde, Entgraten, 3D-Schlichten;
+     Schruppen mit Aufmaß zählt nicht), und welche Haken sie fertig machten:
+     „Ohne genaue Bahn am Ende – das Teil wäre dort nicht, wie gezeichnet:
+     Face3. Dafür anhaken: „Planfräsen“, „Schlichten danach“.“
 
    Gebaut: die Zeilenrichtung des Planfräsens (beide gerechnet, die
    schnellere; P-2026-10-01-24); die Varianten des Räumens (vom Rohteil her

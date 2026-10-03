@@ -72,12 +72,26 @@ def schritte(h):
     panel.knopf_weiter.click()
     panel.knopf_weiter.click()
     yield 300
+    # Grundsatz 0 (Manuel, 2026-10-03: „das Teil sollte danach schon so ausschauen, wie's
+    # ausschauen soll“): Lässt das Räumen 0,5 am Boden und nichts schlichtet ihn, steht es rot
+    # über den Blöcken – mit dem Haken, der fehlt; mit „Schlichten danach“ ist die Zeile weg.
+    h.pruefe(panel.unfertig.isHidden(), f"rot ohne Grund: {panel.unfertig.text()!r}")
     raeumen.felder["aufmass_boden"].setText("0,5")
+    yield 1000
+    yield from h.warte_auf(lambda: raeumen.vorschau is not None)
+    yield 300
+    rot = panel.unfertig.text()
+    h.pruefe(
+        not panel.unfertig.isHidden() and flaeche in rot and "„Schlichten danach“" in rot,
+        f"Boden im Aufmaß ohne Zeile: {rot!r}",
+    )
+    h.bild("0_unfertig", panel.form)
     danach.haken.setChecked(True)  # wie ein Klick: von Hand
     danach.haken_felder["messstopp"].setChecked(True)
     yield 1000
     yield from h.warte_auf(lambda: danach.vorschau is not None and raeumen.vorschau is not None)
     yield 500
+    h.pruefe(panel.unfertig.isHidden(), f"Zeile bleibt: {panel.unfertig.text()!r}")
     h.pruefe(
         danach.fraeser() is not None and danach.fraeser().nummer == 1, "Schlichten danach: nicht T1"
     )

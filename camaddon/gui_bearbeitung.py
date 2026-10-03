@@ -3238,7 +3238,14 @@ class BearbeitungPanel:
         for seite in self.seiten:
             seite.layout().addStretch()
 
-        # Unter allen Schritten: rot, was nicht geht, und „Zurück“ / „Weiter“.
+        # Unter allen Schritten: rot, welche gewählte Fläche am Ende keine genaue Bahn hätte
+        # (Grundsatz 0; Manuel, 2026-10-03: „das Teil sollte danach schon so ausschauen, wie's
+        # ausschauen soll“), rot, was nicht geht, und „Zurück“ / „Weiter“.
+        self.unfertig = QtGui.QLabel()
+        self.unfertig.setWordWrap(True)
+        self.unfertig.setStyleSheet(f"color: {ROT};")
+        self.unfertig.hide()
+        aufbau.addWidget(self.unfertig)
         self.hinweis = QtGui.QLabel()
         self.hinweis.setWordWrap(True)
         self.hinweis.setStyleSheet(f"color: {ROT};")
@@ -4447,7 +4454,83 @@ class BearbeitungPanel:
         self._schon_weg_abhaken()
         self._ziel_zeigen(form)
         self._raeumen_ausgelassen_zeigen()
+        self._unfertig_zeigen(form)
         self._knoepfe_beschriften()
+
+    # --- Das Teil muss herauskommen (Grundsatz 0) -------------------------------------------
+
+    def _fertige_flaechen(self, block, form):
+        """Die gewählten Flächen, die der Block mit seinen Werten genau fertig macht – so, wie
+        sie gezeichnet sind: ohne Aufmaß, mit seinem Haken „Schlichten“. Schruppen mit Aufmaß
+        (Räumen an Wänden, 3D-Schruppen, Rest räumen an Wänden) zählt nicht, auch nicht, was
+        nur Ecken (Restmaterial), Kehlen (Bleistift) oder Anbohrungen (Zentrieren) macht."""
+        werte = block.werte()
+        if block is self.plan:
+            return self._flaechen(block, form) if not float(werte.get("aufmass", 0.0)) else []
+        if block in (self.raeumen, self.restraeumen):
+            if float(werte.get("aufmass_boden", 0.0)):
+                return []
+            return self._raeumt(form) if block is self.raeumen else self._flaechen(block, form)
+        if block is self.schlichten_danach:
+            zusatz = self._schlichten_danach_zusatz(form)
+            flaechen = list(zusatz.get("boden_flaechen", ())) if werte.get("boden") else []
+            if werte.get("waende"):
+                flaechen += list(zusatz.get("wand_flaechen", ()))
+            return flaechen
+        if block in (self.nut, self.kontur, self.bohrung):
+            if werte.get("schlichten") or not float(werte.get("aufmass", 0.0)):
+                return self._flaechen(block, form)
+            return []
+        if block in (
+            self.bohren,
+            self.gewinde,
+            self.gewindefraesen,
+            self.entgraten,
+            self.senken,
+            self.reiben,
+            self.schlichten3d,
+            self.restschlichten,
+        ):
+            return self._flaechen(block, form)
+        return []
+
+    def _unfertige(self, form):
+        """[(Fläche, [Blöcke, die sie fertig machten])] für jede gewählte Fläche, die am Ende
+        keine genaue Bahn hätte – ohne die, mit denen keine Strategie etwas anfangen kann (die
+        stehen rot in der Liste)."""
+        je_block = {
+            b: set(self._fertige_flaechen(b, form)) for b in self.bloecke if b.aktiv() or b.moeglich
+        }
+        fertig = set().union(*(je_block[b] for b in self.aktive_bloecke()))
+        ergebnis = []
+        for name in self.gewaehlte:
+            if name in fertig or not any(b.s.passt(form, name) for b in self.bloecke):
+                continue
+            koennten = [b for b in self.bloecke if not b.aktiv() and name in je_block.get(b, ())]
+            ergebnis.append((name, koennten))
+        return ergebnis
+
+    def _unfertig_zeigen(self, form):
+        """Rot über den Blöcken, welche gewählte Fläche am Ende keine genaue Bahn hätte – ein
+        Zapfen aus dem Räumen wäre ein Vieleck im Aufmaß – und welcher Haken sie fertig macht."""
+        unfertig = self._unfertige(form) if self.job is not None else []
+        if not unfertig:
+            self.unfertig.hide()
+            return
+        namen = [name for name, _k in unfertig]
+        flaechen = ", ".join(namen[:4]) + (" …" if len(namen) > 4 else "")
+        bloecke = []
+        for _name, koennten in unfertig:
+            for block in koennten:
+                if block not in bloecke:
+                    bloecke.append(block)
+        if bloecke:
+            titel = ", ".join(f"„{b.s.titel()}“" for b in bloecke)
+            text = tr("ba.unfertig", flaechen=flaechen, bloecke=titel)
+        else:
+            text = tr("ba.unfertig.keiner", flaechen=flaechen)
+        self.unfertig.setText(dezimal(text))
+        self.unfertig.show()
 
     def _block_rechnen(self, block, form, boeden, gerechnet, nur_anders=False):
         """Die Vorschau eines Blocks, wenn er angehakt ist oder im Wettbewerb steht; sonst leer.

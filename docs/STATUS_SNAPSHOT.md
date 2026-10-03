@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.129.0 (P-2026-10-03-02). Alles, was hier als gebaut steht,
+Stand 0.130.0 (P-2026-10-03-04). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -101,6 +101,11 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
    öffnet die Produktseite, Nutzlänge 49, Gesamtlänge 103, Schaft 10, 140°.
 4. **Dünne Lage:** am Testteil ist die obere Stufe (1 mm) im Prüffenster plan und ohne Rest;
    im Räumen fährt diese Lage mit ae = Fräserradius (Hilfe „Bearbeitung“, „Dünne Lagen breit“).
+5. **Das Teil muss herauskommen (0.130.0):** in Schritt 3 beim Räumen „Aufmaß am Boden“ 0,5
+   eintragen, „Schlichten danach“ abgehakt lassen → unter den Schritten rot: „Ohne genaue Bahn
+   am Ende – das Teil wäre dort nicht, wie gezeichnet: Face…. Dafür anhaken: „Planfräsen“,
+   „Schlichten danach“.“ Haken bei „Schlichten danach“ → die Zeile ist weg. Ebenso, wenn du
+   die Kontur abhakst, solange eine Wand gewählt ist.
 
 **Fragen an Manuel** (gebaut ist je die Empfehlung; ändern ist ein kleiner Patch). Beantwortet
 am 2026-10-03: Zeilenabstand am Boden bleibt der halbe Ø; der Standardfräser bleibt bei vc 85 /
@@ -122,19 +127,14 @@ sind nur die Quelle, keine Erweiterung nötig; „das Teil muss herauskommen“ 
 **Danach, der Reihe nach:**
 
 1. Was Manuels Test ergibt.
-2. **Das Teil muss herauskommen** (Grundsatz 0, Manuel 2026-10-03): Der Assistent sagt rot,
-   wenn eine gewählte Fläche am Ende keine genaue Bahn hat – Wände ohne Kontur und ohne
-   „Schlichten danach“ blieben im Aufmaß, ein Zapfen aus dem Räumen wäre ein Vieleck –, mit
-   dem Haken, der fehlt. *Fertig, wenn:* am Testteil mit abgehakter Kontur und abgehaktem
-   „Schlichten danach“ die Zeile steht und mit einem der Haken verschwindet.
-3. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
+2. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
    (`hoehenfeld.je_zeile`); Ziel 10 s am Testteil.
-4. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
+3. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
    Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel).
-5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
+4. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
    Bereiche; Spannhöhe.
-6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
-7. W-005 Programm für jede Steuerung (nach E1–E7); W-002 F2; W-003 V2b, V6, V7.
+5. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
+6. W-005 Programm für jede Steuerung (nach E1–E7); W-002 F2; W-003 V2b, V6, V7.
 
 **Regeln dafür** (Manuel, 2026-10-02: „du hast zwei stunden damit verbracht sachen zu testen
 für was?“; 2026-10-03: „ob das nötig ist oder nicht, musst dennoch du entscheiden … wenn es nötig

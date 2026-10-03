@@ -1574,6 +1574,8 @@
     "ba.zahl.flaechen": "{n} Flächen",
     "ba.zahl.ring": "1 Ring",
     "ba.zahl.ringe": "{n} Ringe",
+    "ba.unfertig": "Ohne genaue Bahn am Ende – das Teil wäre dort nicht, wie gezeichnet: {flaechen}. Dafür anhaken: {bloecke}.",
+    "ba.unfertig.keiner": "Ohne genaue Bahn am Ende – das Teil wäre dort nicht, wie gezeichnet: {flaechen}. Keine angebotene Strategie macht sie hier fertig.",
     "ba.zahl.adaptiv": "adaptiv",
     "ba.raeumen.ueberlastet": "{text} – Ringe wären {prozent} % schneller, überlasten den Fräser aber (bis {last} ae)",
     "ba.raeumen.haelt_nicht": "{text} – keine Bahn hält hier die Last (bis {last} ae): zu eng für diesen Fräser",
