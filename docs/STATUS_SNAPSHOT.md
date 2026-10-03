@@ -89,14 +89,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
   Werkzeugen. Offen: T5d (unten); die 1,5 × Ziel zeigt der Assistent fürs Räumen (1,48 vor
   T2), für den ganzen Job ist sie nicht gemessen. **Befund 2026-10-04 nachts (zum Besprechen,
-  nichts geändert):** Das Räumen T1 fährt 28 % seines Vorschubs (3,1 m, etwa 3,4 min) in Läufen
-  über 20 mm durch die Luft – die geschlossenen Ringe um die Insel (Lagen −23 und −11) kommen,
-  nachdem dieselbe Operation dort schon geräumt hat, und schneiden nur noch stellenweise; die
-  Lücken-Regel (ab 2 · D abheben) kennt nur das Material früherer Operationen. Gemessen mit dem
-  Materialstand Satz für Satz (Fräser genau); die anderen fünf Arbeitsschritte fahren keine
-  solchen Läufe. Vorschlag: Die Ringe rechnen mit dem, was die Operation selbst schon
-  weggenommen hat (dort nicht fahren bzw. abheben) – oder Manuels Idee, über der Lücke schneller
-  zu fahren.
+  nichts geändert):** Das Räumen T1 fährt 3,5 m im Vorschub ohne Material (Materialstand Satz
+  für Satz nachgefahren, Fräser genau) – davon 2,9 m die Verbindungen des Adaptiv-Kerns „durchs
+  Freie“, die schon mit RUECKWEG 3 × Vorschub fahren (2 706 mm/min), 0,5 m mit dem
+  Schnittvorschub; zusammen etwa 1,6 min von 10. Die anderen fünf Arbeitsschritte fahren keine
+  Läufe über 20 mm durch die Luft. Möglich: die langen Verbindungen noch schneller (bis zum
+  Höchstvorschub der Maschine) – nach Manuels Idee, wenn es trotz Bremsen Zeit bringt; geschätzt
+  höchstens knapp 1 min.
 - **FreeCAD-Versionen:** 1.1.4 auf Manuels Rechner (Arch-Paket, Python 3.14) – alle 71
   Prüfungen und 98 Szenarien grün mit P-2026-10-02-85, seither je die Prüfung und das Szenario
   zum geänderten Teil. 1.1.3 und Wochen-Build 26.3.0 dev (2026-09-16) zuletzt voll grün mit
