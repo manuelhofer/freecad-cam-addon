@@ -295,7 +295,9 @@ eben). Kein OCL.
    „Grenzwinkel“, 0: nur Zeilen), Höhenlinien (Marching Squares aus
    `raeumen_bahn`), wo es steiler ist, überlappend um 3°; in z so weit auseinander
    wie die Zeilen in der Ebene, von oben nach unten, im Gleichlauf (das Material –
-   die höhere Hüllfläche – rechts), nahe Stücke gleitend verbunden. An der
+   die höhere Hüllfläche – rechts), nahe Stücke gleitend verbunden; kurze Lücken der Maske
+   (bis R) entlang einer Höhenlinie fährt sie durch (B-013, P-2026-10-04-12: in der Mulde des
+   Testteils mit der Kugel Ø 8 65 statt 11 Hübe im Vorschub, 1,01 → 0,92 min). An der
    Halbkugel R 15 (Fuß senkrecht): an der Flanke 0,026 statt 0,056 mm, 4,2 statt
    3,2 min. An der Grenze liegen Zeilen und Höhenlinien im Raum um √2 weiter
    auseinander als in Ebene bzw. Wand – der Grat dort bis zum Doppelten; genau

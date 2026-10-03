@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-12 hoehenlinien-ohne-luecken (B-013)
+
+### EINGELESEN
+- Die Bilder der Mulde (3D-Schlichten, Kugel Ø 8) vom Abend: die Höhe über dem Weg zappelt am
+  oberen Rand. Nachgemessen: der oberste Ring (Z 17,17) hebt an acht fast symmetrischen Stellen
+  im Vorschub um 1,0–1,13 mm ab und gleich wieder hinunter, an vier um 0,1 mm – aus Symmetrie
+  müsste er auf Z 17,17 bleiben.
+
+### BEFUND (B-013)
+- `_hoehenlinien` teilt jede Höhenlinie, wo die Maske „steil und gewählt“ aussetzt; zwei Stücke
+  verbindet `_verbinden` mit LUFT über der Hüllfläche im Raster – an der steilen Wand liegt die
+  nächste Zelle gut 1 mm höher. Die Maske setzt am Muldenrand an den Ecken der Vernetzung aus:
+  dort berührt die Kugel die Kante statt der Fläche (`_beruehrt`), Lücken von 0,5–1 mm.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py` (`_luecken_gefuellt`: Lücken der Maske bis R entlang der
+  Höhenlinie werden durchfahren – auf der Höhenlinie bleibt die Spitze auf der Hüllfläche),
+  Spezifikation Strategien 4.2 Punkt 4, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.164.1).
+
+### AKZEPTANZKRITERIUM
+- Mulde des Testteils: Kugel Ø 8 65 → 11 Hübe im Vorschub (die übrigen je 0,1 mm zwischen zwei
+  Höhen), 1,009 → 0,919 min; Kugel Ø 6 51 → 13, 1,395 → 1,337 min. Nirgends ins Teil.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_schlichten3d.py`, `tests/test_restschlichten.py` – OK; Szenario `szenario_mulde` –
+  OK („nirgends ins Teil“, auch am Rand). black und ruff sauber.
+
+### NEXT
+- Manuels Durchsicht der Bahnen (Kontur, Mulde, Nut, Planen, Tasche).
+
 ## P-2026-10-04-11 schraubstock-als-koerper
 
 ### EINGELESEN

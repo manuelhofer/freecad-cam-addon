@@ -47,7 +47,9 @@ hinein, auch nicht an Nachbarflächen.
   dahinter rollt er nur über die Kante – an der Außenkante eines Teils, an einem Absatz –,
   fräst nichts mehr, und die Hüllfläche fällt dort fast senkrecht: aus dem Raster gerechnet
   schnitten Höhenlinien und Spirale in die Kante (an einer Welle ohne Platte 0,05 mm in die
-  Seite).
+  Seite). Eine Lücke dieser Maske entlang einer Höhenlinie, höchstens R lang, fährt sie durch
+  (B-013, P-2026-10-04-12): Am Rand einer Mulde berührt die Kugel an den Ecken der Vernetzung
+  die Kante statt der Fläche – der Ring zerfiel in Stücke, jedes mit einem Hub von gut 1 mm.
 - **Restschlichten** (W-006 4.2 Punkt 8, P-2026-10-02-01): Mit `davor` (die Form des größeren
   Fräsers, der vorher schlichtete) fährt er nur dort, wo der davor mehr als REST stehen ließ, als
   dieser wegnimmt – in Kehlen, engen Rundungen, Ecken. Beide Flächen, die die Fräser stehen
@@ -458,6 +460,34 @@ def _stuecke(punkte, geschlossen, behalten):
     return ergebnis
 
 
+def _luecken_gefuellt(punkte, geschlossen, behalten, laenge):
+    """`behalten` mit den Lücken gefüllt, die zwischen zwei behaltenen Ecken liegen und entlang
+    des Linienzugs höchstens `laenge` (mm) lang sind – beim geschlossenen über den Anfang
+    hinweg."""
+    n = len(punkte)
+    if n < 3 or behalten.all() or not behalten.any():
+        return behalten
+    ergebnis = behalten.copy()
+    reihe = np.arange(n)
+    if geschlossen:
+        reihe = np.roll(reihe, -int(np.flatnonzero(behalten)[0]))  # beginnt bei einer behaltenen
+    werte = behalten[reihe]
+    k = 0
+    while k < n:
+        if werte[k]:
+            k += 1
+            continue
+        a = k
+        while k < n and not werte[k]:
+            k += 1
+        if not geschlossen and (a == 0 or k == n):
+            continue  # am offenen Ende: keine Lücke zwischen zwei Stücken
+        folge = reihe[a - 1 : k + 1] if k < n else np.concatenate([reihe[a - 1 :], reihe[:1]])
+        if np.sum(np.hypot(*np.diff(punkte[folge, :2], axis=0).T)) <= laenge:
+            ergebnis[reihe[a:k]] = True
+    return ergebnis
+
+
 def _gerichtet(punkte, geschlossen, raster, gleichlauf):
     """Der Linienzug so gerichtet, dass das Material (die höhere Hüllfläche) rechts liegt –
     im Gegenlauf links."""
@@ -541,6 +571,10 @@ def _hoehenlinien(raster, w, abstand_z):
         stuecke = []
         for linie, geschlossen in rb._hoehenlinien(raster.z, raster.xs, raster.ys, z):
             behalten = raster.bei(steil, linie[:, 0], linie[:, 1])
+            # Kurze Lücken der Maske (am Rand einer Mulde berührt die Kugel an den Ecken der
+            # Vernetzung die Kante statt der Fläche) zerteilten den Ring – jede kostete einen
+            # Hub. Entlang der Höhenlinie bleibt die Spitze auf der Hüllfläche: durchfahren.
+            behalten = _luecken_gefuellt(linie, geschlossen, behalten, w.form.radius)
             for teil, zu in _stuecke(linie, geschlossen, behalten):
                 teil = rb._vereinfacht(teil, TOLERANZ_GERADE, zu)
                 if len(teil) >= 2:

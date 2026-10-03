@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.164.0 (P-2026-10-04-11). Alles, was hier als gebaut steht,
+Stand 0.164.1 (P-2026-10-04-12). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -340,8 +340,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Keine. B-001 bis B-012 sind behoben (Befunde und Beleg im Verlauf); die nächste freie Nummer
-ist B-013.
+Keine. B-001 bis B-013 sind behoben (Befunde und Beleg im Verlauf); die nächste freie Nummer
+ist B-014.
 
 ## Offene Tasks
 
