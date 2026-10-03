@@ -108,7 +108,10 @@ und 16.4 (E-2 … E-4). **Zum Ausprobieren (3+2):** `beispiele/schwenkteil_5achs
 die 30°-Schräge anklicken → **Ebene schwenken (3+2) …** → grün „Face…: 30° geschwenkt →
 A−30 C0“ → OK → der Assistent öffnet in der Ebene → Anlegen; Grundjob → **Programm schreiben**
 (Siemens: zweimal `CYCLE800(1,"",0,27,…)`, am Ende `CYCLE800()`); **Auf der Maschine prüfen**
-→ im Abspieler „… – Ebene A−30 C0“, der Tisch steht auf A−30.
+→ im Abspieler „… – Ebene A−30 C0“, der Tisch steht auf A−30. **Drehteil (V2b,
+P-2026-10-04-01):** eine Welle, „4-Achs-Bearbeitung“, ihren **Mantel** nahe dem rechten Ende
+anklicken → „Welle, Face… (rund Ø …, ihre Achse ist die Stangenachse)“, das rechte Ende vorne;
+**Umdrehen** → das linke.
 
 **Die Nacht vom 2026-10-02 auf den 03. ist abgearbeitet** (Manuel: „arbeite die Nacht durch …
 so viel wie möglich umsetzen und automatisch pushen“): T4 „Schlichten danach“
