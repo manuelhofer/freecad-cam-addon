@@ -267,6 +267,44 @@ def schritte(h):
         yield 200
         h.pruefe(not x1.HomeAn and not x1.WechselAn, "Home/Wechsel lassen sich nicht löschen")
 
+    # „Home und Werkzeugwechsel“ (Manuel, 2026-10-03: „finde in Maschine bearbeiten keinen
+    # Werkzeugwechselpunkt … sollte MKS sein … oder wechselbar“): unter den Achsen je
+    # Linearachse eine Zeile, darüber der Bezug, ab Werk MKS. In den Wechsel von Z1 getippt,
+    # steht er an der Betriebsart; auf WKS gestellt, sagt das leere Feld „bleibt stehen“.
+    yield 300
+    felder = panel.punkte_felder
+    h.pruefe(
+        {name for name, _art in felder} >= {"X1", "Z1"}
+        and panel.wahl_wechsel_bezug.currentData() == m.WECHSEL_MKS,
+        f"Home und Werkzeugwechsel: {sorted(felder)}, {panel.wahl_wechsel_bezug.currentData()}",
+    )
+    z1 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "Z1")
+    if ("Z1", "Wechsel") in felder:
+        tippen(felder[("Z1", "Wechsel")], "480")
+        yield 300
+        h.pruefe(z1.WechselAn and abs(z1.Wechsel - 480) < 1e-9, f"Z1 Wechsel {z1.Wechsel}")
+    panel.wahl_wechsel_bezug.setCurrentIndex(panel.wahl_wechsel_bezug.findData(m.WECHSEL_WKS))
+    yield 300
+    h.pruefe(m.wechsel_bezug(panel.maschine) == m.WECHSEL_WKS, "Bezug nicht WKS")
+    leer = panel.punkte_felder.get(("X1", "Wechsel"))
+    h.pruefe(
+        leer is not None and leer.placeholderText() == "leer: bleibt stehen",
+        f"WKS leer: {leer.placeholderText() if leer is not None else None!r}",
+    )
+    # Die Details von X1 darüber sagen es auch.
+    unten = panel.details.feld(10)
+    h.pruefe(
+        isinstance(unten, QtGui.QLineEdit) and unten.placeholderText() == "leer: bleibt stehen",
+        f"Details WKS: {unten.placeholderText() if isinstance(unten, QtGui.QLineEdit) else unten!r}",
+    )
+    h.bild("4e_home_und_werkzeugwechsel", panel.form)
+    panel.wahl_wechsel_bezug.setCurrentIndex(panel.wahl_wechsel_bezug.findData(m.WECHSEL_MKS))
+    yield 300
+    if ("Z1", "Wechsel") in panel.punkte_felder:
+        tippen(panel.punkte_felder[("Z1", "Wechsel")], "")
+        yield 300
+    h.pruefe(not z1.WechselAn, "Z1 Wechsel lässt sich nicht löschen")
+
     # Ein Fehler: S4 ohne größte Drehzahl -> Hinweis erscheint, Klick springt zur Spindel. (Der
     # Eilgang hat seit D-14 eine graue Vorgabe und fehlt nie.)
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "S4"))

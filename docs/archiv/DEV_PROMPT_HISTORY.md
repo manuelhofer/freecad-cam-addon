@@ -12,6 +12,58 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-19 wechselpunkt-mks-wks
+
+### EINGELESEN
+- Manuel, 2026-10-03, mit zwei Bildern aus dem Prüffenster (sein Testteil, „Rundum schlichten
+  T1“): „hier nach dem Schruppen schaut ziemlich viel Blau an der einen Seite raus … schau mal,
+  ob das alles gut berechnet wurde, auf der anderen Seite ist das nicht der Fall“; „zwischen
+  Schruppen und Schlichten dreht das C runter auf 0 … was wir hier aber noch benötigen: einen
+  Werkzeugwechselpunkt … der war in der Maschine glaub ich zum Einstellen, richtig?“; dann: „finde
+  in Maschine bearbeiten keinen Werkzeugwechselpunkt … der Werkzeugwechselpunkt sollte MKS, also
+  nicht WKS sein … oder es sollte wechselbar sein, sagen wir es so“. Spezifikation Simulation 13,
+  Spezifikation Steuerung.
+
+### DATEIEN
+- `camaddon/maschine.py` (`WechselBezug` an der Maschine, `WECHSEL_MKS/WKS`, `wechsel_bezug`,
+  `wechselpunkt`), `camaddon/gui_maschine.py` (Abschnitt „Home und Werkzeugwechsel“ unter den
+  Achsen, Bezug wählbar), `camaddon/gui_details.py` (Feld „Werkzeugwechsel (mm, WKS)“),
+  `camaddon/abfahren.py` (Wechselpunkt in WKS: die Spitze im Programm, mit dem Werkzeug davor
+  gelöst; kein leerer Schritt „erst Z“), `camaddon/postprozessor.py` (`wechselpunkt_mks/_wks`,
+  `_zum_wechselpunkt`, `Maschineninfo.wechselpunkt/wechsel_wks`), `camaddon/gui_programm.py`
+  (der Wechselpunkt in der Zeile „Maschine“), `camaddon/gui_abfahren.py` (das Teil beim
+  Abspielen grau-grün statt hellblau), Übersetzungen, Hilfe Achsen (de/en), Tests
+  `test_postprozessor`, `test_abfahren`, Szenario `szenario_maschine_bearbeiten`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.143.0).
+
+### AKZEPTANZKRITERIUM
+- „Maschine bearbeiten“ zeigt unter den Achsen „Home und Werkzeugwechsel“: „Wechselpunkt zählt
+  in“ MKS (ab Werk) oder WKS, darunter je Linearachse Home und Wechsel.
+- „Programm schreiben …“ fährt vor jedem Werkzeugwechsel und am Ende zum Wechselpunkt: in MKS
+  „G53 G0 X… Z…“ (Siemens „G0 SUPA D0 X… Z…“), in WKS „G0 X… Z…“, zuerst die Achse, die das
+  Werkzeug wegzieht (Drehmaschine X, sonst Z); X im Durchmesser wie im Programm.
+- Das Abfahren im Prüffenster fährt dorthin wie das Programm.
+
+### DONE
+- Das Blau an Manuels Teil nachgerechnet (Job nachgebaut: Stange Ø 80, Ø 12 mit 22,2 / 5,4 /
+  0,3, Kugel Ø 10 mit 0,5 und Querachse, Beispiel-Drehmaschine): Die Schruppbahn bleibt überall
+  mindestens 0,324 mm über der genauen Hüllfläche, der Abtrag im Fenster lässt nach dem Schruppen
+  mindestens 0,328 mm stehen, nach dem Schlichten keine blaue Zelle. Das Blau war das hellblaue
+  Soll-Teil, das durch die halb durchsichtige Stange schien, wo nur das Aufmaß drübersteht (auf
+  der ebenen Seite); auf der runden Seite stehen die Rillen der Spirale höher. Darum ist das Teil
+  beim Abspielen jetzt grau-grün.
+- Nicht geändert: C dreht zwischen zwei Operationen auf 0 zurück (jede Operation beginnt bei
+  C 0); Manuel probiert, was seine Maschine damit macht.
+
+### TESTS
+- `tests/test_postprozessor.py`, `test_abfahren.py`, `test_maschine.py`, `test_sprache.py` – OK;
+  Szenarien `szenario_maschine_bearbeiten` (Bild `4e_home_und_werkzeugwechsel`),
+  `szenario_programm`, `szenario_rundum_drehmaschine` – OK. black und ruff sauber.
+
+### NEXT
+- Manuel: an seiner Maschine den Wechselpunkt eintragen und das Programm vergleichen; was die
+  Steuerung bei „C0“ nach vielen Umdrehungen macht.
+
 ## P-2026-10-03-18 spirale-mit-querachse
 
 ### EINGELESEN

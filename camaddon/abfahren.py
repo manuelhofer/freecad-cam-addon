@@ -263,10 +263,20 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     # Wechselpunkt – zuerst die Achse, die das Werkzeug vom Teil wegzieht, und zurück zuerst
     # die anderen.
     home = _heimat(pruefung.maschine, ergebnis.achsen, "Home")
-    wechsel = tuple(
-        w if w is not None else h
-        for w, h in zip(_heimat(pruefung.maschine, ergebnis.achsen, "Wechsel"), home, strict=True)
-    )
+    # Der Wechselpunkt in MKS (wie der Verfahrweg; leer: der Home-Punkt) – oder in WKS: die
+    # Spitze des Werkzeugs, ab dem Nullpunkt des Jobs, je Achse mit eigenem Wechselpunkt; die
+    # anderen bleiben stehen (Manuel, 2026-10-03: „sollte MKS sein … oder wechselbar“).
+    wechsel_wks = {}
+    if m.wechsel_bezug(pruefung.maschine) == m.WECHSEL_WKS:
+        wechsel_wks = _wechsel_wks(pruefung.maschine, ergebnis.achsen)
+        wechsel = (None,) * len(ergebnis.achsen)
+    else:
+        wechsel = tuple(
+            w if w is not None else h
+            for w, h in zip(
+                _heimat(pruefung.maschine, ergebnis.achsen, "Wechsel"), home, strict=True
+            )
+        )
     zuerst = _rueckzug(pruefung.maschine, ergebnis.achsen)
 
     def anfahren(stellungen, nummer, ziel):
@@ -288,18 +298,24 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         """Zum Wechsel- oder Home-Punkt: erst die Achse, die wegzieht, dann alle."""
         if not any(n is not None for n in nach):
             return
-        anfahren(tuple(n if z else None for n, z in zip(nach, zuerst, strict=True)), nummer, ziel)
+        erst = tuple(n if z else None for n, z in zip(nach, zuerst, strict=True))
+        if any(n is not None for n in erst):  # hat die wegziehende Achse keinen Wert: gleich alle
+            anfahren(erst, nummer, ziel)
         anfahren(nach, nummer, ziel)
 
     anflug = False  # die nächste Station kommt vom Home- oder Wechselpunkt
     vorheriger_tc = None
+    davor = None  # (Lösung, Linearachsen) der Operation davor – für den Wechselpunkt in WKS
     for op, tc, aufnahme, eingespannt, linear in vorbereitet:
         loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         nummer = len(ergebnis.operationen)
-        if nummer and tc is not vorheriger_tc and any(w is not None for w in wechsel):
-            zurueckziehen(wechsel, nummer - 1, WECHSEL)
-            anflug = True
+        if nummer and tc is not vorheriger_tc:
+            ziel = _wechsel_ziel(wechsel, wechsel_wks, vorher, davor, index)
+            if any(w is not None for w in ziel):
+                zurueckziehen(ziel, nummer - 1, WECHSEL)
+                anflug = True
         vorheriger_tc = tc
+        davor = (loesung, linear)
         ergebnis.operationen.append(
             OperationAbfahrt(
                 op.Label,
@@ -507,6 +523,45 @@ def _heimat(maschine, achsen, eigenschaft):
         gesetzt = achse.art == LINEAR and ba is not None and getattr(ba, eigenschaft + "An", False)
         ergebnis.append(float(getattr(ba, eigenschaft)) if gesetzt else None)
     return tuple(ergebnis)
+
+
+def _wechsel_wks(maschine, achsen):
+    """{Achse: (Index im Programmpunkt X/Y/Z, Wert)} der Linearachsen mit eigenem Wechselpunkt,
+    wenn er in WKS zählt – der Wert die Stelle der Spitze im Programm (mm; X der Drehmaschine
+    als Radius, wie gespeichert)."""
+    betriebsarten = m.betriebsarten(maschine)
+    ergebnis = {}
+    for achse in achsen:
+        ba = next(
+            (b for b in betriebsarten if b.Gelenk == achse.gelenk and b.Art == m.ART_LINEAR),
+            None,
+        )
+        if achse.art != LINEAR or ba is None or not getattr(ba, "WechselAn", False):
+            continue
+        buchstabe = m.programmname(ba)[:1].upper()
+        if buchstabe in "XYZ":
+            ergebnis[achse] = ("XYZ".index(buchstabe), float(ba.Wechsel))
+    return ergebnis
+
+
+def _wechsel_ziel(mks, wks, vorher, davor, index):
+    """Die Stellungen zum Werkzeugwechsel: in MKS `mks`; in WKS (`wks` nicht leer) der Punkt der
+    Spitze, an dem die Operation davor endete, mit den Werten des Wechselpunkts, gelöst mit
+    ihrem Werkzeug – nur die Achsen mit eigenem Wechselpunkt fahren."""
+    if not wks or vorher is None or davor is None:
+        return mks
+    loesung, linear = davor
+    punkt = list(vorher[0])
+    for stelle, wert in wks.values():
+        punkt[stelle] = wert
+    geloest, _dreh = loesung(vorher[1])
+    if geloest is None:
+        return mks
+    werte = list(mks)
+    for achse, wert in zip(linear, geloest.werte(*punkt), strict=True):
+        if achse in wks and achse in index:
+            werte[index[achse]] = wert
+    return tuple(werte)
 
 
 def _rueckzug(maschine, achsen):

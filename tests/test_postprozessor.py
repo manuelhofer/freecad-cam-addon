@@ -4,6 +4,7 @@
 # Haas und Fanuc – und ein echter 4-Achs-Job (Rundum schruppen) durch abschnitte().
 # Ausführen: freecadcmd tests/test_postprozessor.py
 
+import dataclasses
 import os
 import pathlib
 import sys
@@ -101,6 +102,33 @@ pruefe(
     len(fanuc.hinweise) == 2 and all("Maschinenhersteller" in x for x in fanuc.hinweise),
     f"Fanuc Hinweise (C-Achse und Antrieb): {fanuc.hinweise}",
 )
+# Zum Wechselpunkt (Manuel, 2026-10-03): vor jedem Werkzeugwechsel und am Ende, zuerst X allein
+# (an der Drehmaschine zieht X das Werkzeug weg), X im Durchmesser; in MKS mit G53 bzw. Siemens
+# SUPA, in WKS als G0.
+dreh_wp = pp.Maschineninfo(
+    "Drehmaschine", True, True, {"C": "C4"}, {1: "3"}, {"X": 150.0, "Z": 300.0}
+)
+zweites = dataclasses.replace(rundum, name="Rundum schlichten T2", werkzeug=2)
+siemens_wp = pp.programm([rundum, zweites], pp.steuerung("siemens"), dreh_wp, "Welle").zeilen
+wp = [z for z in siemens_wp if z.startswith("G0 SUPA D0")]
+pruefe(
+    wp == ["G0 SUPA D0 X300.000", "G0 SUPA D0 X300.000 Z300.000"] * 3,
+    f"Siemens Wechselpunkt: {wp}",
+)
+pruefe(
+    siemens_wp.index("G0 SUPA D0 X300.000 Z300.000") < siemens_wp.index("T1 D1")
+    and siemens_wp.index("T1 D1") < siemens_wp.index("T2 D1"),
+    "Wechselpunkt nicht vor dem Wechsel",
+)
+haas_wp = pp.programm([rundum], pp.steuerung("haas"), dreh_wp, "Welle").zeilen
+pruefe("G53 G0 X300.000" in haas_wp and "G53 G0 X300.000 Z300.000" in haas_wp, f"Haas: {haas_wp}")
+wks = dataclasses.replace(dreh_wp, wechsel_wks=True)
+lcnc_wks = pp.programm([rundum], pp.steuerung("linuxcnc"), wks, "Welle").zeilen
+pruefe(
+    "G0 X300.000 Z300.000" in lcnc_wks and not any("G53" in z for z in lcnc_wks),
+    f"WKS: {lcnc_wks}",
+)
+pruefe(not any("SUPA" in z for z in siemens), "ohne Wechselpunkt trotzdem SUPA")
 geaendert = pp.steuerung("fanuc", {"angetrieben_ein": "M{m}3 S{s}", "unbekannt": "x"})
 pruefe("M33 S3000" in pp.programm([rundum], geaendert, dreh).zeilen, "geänderter Befehl gilt nicht")
 vorschau = pp.programm([tasche, tasche], pp.steuerung("linuxcnc"), None, vorschau=2)

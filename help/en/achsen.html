@@ -83,6 +83,13 @@ moves to the change position – first Z up (on a lathe X away from the part), t
 axes; back to the part the other axes first, then Z. Time and collision count these moves
 too. Empty: no home position (traversing starts at the first point of the path); the change
 position empty: as home.</li>
+<li><b>Home and tool change</b> – below the axes, the points of all linear axes once more in
+one place, one row per axis. Above them: <b>Change point counts in</b> <b>MCS</b> (machine
+coordinates, the default – like the travel, independent of workpiece and tool; “G53 G0” in
+the program, “G0 SUPA D0” on Siemens) or <b>WCS</b> (workpiece coordinates – the tool tip,
+from the job's zero point; “G0” in the program; axes without a value stay). Home always counts
+in MCS. “Write program …” goes there before every tool change and at the end – first the axis
+that pulls the tool away, then the others –, and so does traversing in the check window.</li>
 </ul>
 <p>How to find the acceleration is explained in
 <a href="beschleunigung.html">Finding the acceleration</a>.</p>

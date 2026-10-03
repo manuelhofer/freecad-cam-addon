@@ -19,6 +19,11 @@ gewählten Steuerung (STEUERUNGEN: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Ma
 - Vorschub: G93 (1 ÷ Zeit) und zurück auf Vorschub je Minute mit dem Befehl der Steuerung –
   bei Fanuc und Haas an der Drehmaschine G98 (G94 ist dort ein Plandrehzyklus).
 - F wie FreeCAD es speichert (mm/s bzw. 1 ÷ s) mal 60; in G93 mit mehr Stellen.
+- Vor jedem Werkzeugwechsel und am Ende zum Wechselpunkt der Maschine (Manuel, 2026-10-03:
+  „was wir hier aber noch benötigen: einen Werkzeugwechselpunkt … MKS, nicht WKS … oder
+  wechselbar“): zuerst die Achse, die das Werkzeug wegzieht (an der Drehmaschine X, sonst Z),
+  dann die anderen – in MKS mit dem Befehl der Steuerung („G53 G0“, Siemens „G0 SUPA D0“), in
+  WKS als „G0“ im Programm.
 
 Ohne Maschine schreibt er für eine Fräse – nichts schlechter als FreeCADs Postprozessoren.
 Die Befehle jeder Steuerung lassen sich ändern (Steuerung ist ein dataclass, ersetzt wird mit
@@ -69,6 +74,9 @@ class Steuerung:
     kuehlung_flut: str = "M8"
     kuehlung_nebel: str = "M7"
     kuehlung_aus: str = "M9"
+    # Zum Wechselpunkt der Maschine – {achsen}: „X200.000 Z300.000“; in MKS bzw. WKS.
+    wechselpunkt_mks: str = "G53 G0 {achsen}"
+    wechselpunkt_wks: str = "G0 {achsen}"
     gleich_bei_nummer: bool = False  # Siemens: Adresse mit Nummer schreibt „C4=…“
     nur_buchstabe: bool = True  # die Rundachse nur mit ihrem Buchstaben (C statt C4)
     # Befehle, die ein Maschinenhersteller festlegt – im Fenster gelb, im Programm ein Hinweis.
@@ -86,6 +94,8 @@ BEFEHLSFELDER = (
     "ende",
     "wechsel_fraesen",
     "wechsel_drehen",
+    "wechselpunkt_mks",
+    "wechselpunkt_wks",
     "spindel_ein",
     "spindel_aus",
     "angetrieben_ein",
@@ -143,6 +153,9 @@ STEUERUNGEN = {
         "G93",
         "G94",
         "G94",
+        # SUPA: Maschinenkoordinaten ohne Verschiebungen; D0 ohne Werkzeugkorrektur – der
+        # Wechselpunkt gilt für den Werkzeugträger.
+        wechselpunkt_mks="G0 SUPA D0 {achsen}",
         gleich_bei_nummer=True,
         nur_buchstabe=False,
     ),
@@ -220,6 +233,9 @@ class Maschineninfo:
     x_durchmesser: bool = False  # X im Programm als Durchmesser (Drehmaschine)
     rundachsen: dict = field(default_factory=dict)  # Buchstabe → NC-Name („C“ → „C4“)
     angetrieben: dict = field(default_factory=dict)  # Werkzeugnummer → Nummer des Antriebs
+    # Der Wechselpunkt: Buchstabe → Stellung (mm; X als Radius, wie gespeichert); leer: keiner.
+    wechselpunkt: dict = field(default_factory=dict)
+    wechsel_wks: bool = False  # er zählt in Werkstückkoordinaten (sonst MKS)
 
 
 @dataclass
@@ -256,6 +272,14 @@ def feld_text(feld):
         "ende": (tr("pp.feld.ende"), tr("pp.feld.ende.tooltip")),
         "wechsel_fraesen": (tr("pp.feld.wechsel_fraesen"), tr("pp.feld.wechsel_fraesen.tooltip")),
         "wechsel_drehen": (tr("pp.feld.wechsel_drehen"), tr("pp.feld.wechsel_drehen.tooltip")),
+        "wechselpunkt_mks": (
+            tr("pp.feld.wechselpunkt_mks"),
+            tr("pp.feld.wechselpunkt_mks.tooltip"),
+        ),
+        "wechselpunkt_wks": (
+            tr("pp.feld.wechselpunkt_wks"),
+            tr("pp.feld.wechselpunkt_wks.tooltip"),
+        ),
         "spindel_ein": (tr("pp.feld.spindel_ein"), tr("pp.feld.spindel_ein.tooltip")),
         "spindel_aus": (tr("pp.feld.spindel_aus"), tr("pp.feld.spindel_aus.tooltip")),
         "angetrieben_ein": (tr("pp.feld.angetrieben_ein"), tr("pp.feld.angetrieben_ein.tooltip")),
@@ -354,6 +378,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
             if spindel_an is not None:
                 zeilen.extend(_spindel_aus(s, spindel_an))
                 spindel_an = None
+            zeilen.extend(_zum_wechselpunkt(s, info))
             if abschnitt.werkzeugname:
                 zeilen.append(_kommentar(s, f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}"))
             vorlage = s.wechsel_drehen if info.drehmaschine else s.wechsel_fraesen
@@ -421,10 +446,39 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
             zeilen.append(s.kuehlung_aus)
     if spindel_an is not None:
         zeilen.extend(_spindel_aus(s, spindel_an))
+    if werkzeug is not None:
+        zeilen.extend(_zum_wechselpunkt(s, info))
     if c_an and s.c_aus:
         zeilen.extend(_zeilen(s.c_aus))
     zeilen.extend(_zeilen(s.ende))
     return Programm(zeilen, hinweise, saetze)
+
+
+def _zum_wechselpunkt(s, info):
+    """Die Sätze zum Wechselpunkt: zuerst die Achse, die das Werkzeug wegzieht (an der
+    Drehmaschine X, sonst Z), dann die anderen – leer ohne Wechselpunkt oder Befehl."""
+    if not info.wechselpunkt:
+        return []
+    vorlage = s.wechselpunkt_wks if info.wechsel_wks else s.wechselpunkt_mks
+    if not vorlage:
+        return []
+    zuerst = "X" if info.drehmaschine else "Z"
+
+    def woerter(buchstaben):
+        ergebnis = []
+        for b in buchstaben:
+            wert = float(info.wechselpunkt[b])
+            if b == "X" and info.drehmaschine and info.x_durchmesser:
+                wert *= 2.0
+            ergebnis.append(_wort(s, b, _zahl(wert)))
+        return " ".join(ergebnis)
+
+    reihenfolge = [b for b in ("X", "Y", "Z") if b in info.wechselpunkt]
+    zeilen = []
+    if zuerst in reihenfolge and len(reihenfolge) > 1:
+        zeilen.extend(_zeilen(_fuellen(vorlage, achsen=woerter([zuerst]))))
+    zeilen.extend(_zeilen(_fuellen(vorlage, achsen=woerter(reihenfolge))))
+    return zeilen
 
 
 def _spindel_aus(s, an):
@@ -517,6 +571,10 @@ def _info_aus(dok, m, msp):
             eintrag.art == msp.DREHMASCHINE,
             m.x_im_durchmesser(maschine),
         )
+        info.wechselpunkt = {
+            b.upper(): w for b, w in m.wechselpunkt(maschine).items() if b.upper() in "XYZ"
+        }
+        info.wechsel_wks = m.wechsel_bezug(maschine) == m.WECHSEL_WKS
         for ba in m.betriebsarten(maschine):
             buchstabe = m.programmname(ba).upper()
             if ba.Art == m.ART_POSITIONIEREN and buchstabe in ROTATION:

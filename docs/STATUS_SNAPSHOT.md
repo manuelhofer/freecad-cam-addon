@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.142.0 (P-2026-10-03-18). Alles, was hier als gebaut steht,
+Stand 0.143.0 (P-2026-10-03-19). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -37,8 +37,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   von D-20 und D-26.
 - **W-005 Programm für jede Steuerung** – E1–E7 entschieden (je Empfehlung, Manuel
   2026-10-03); gebaut: der eigene Postprozessor mit dem Fenster „Programm schreiben …“ (S1, S3,
-  Teile von S2/S4; P-2026-10-03-10). Offen: Steuerung an der Maschine (S2), Glätten (S4), ohne
-  G93 (S5), Transformationen (S6), Wochen-Build (S7).
+  Teile von S2/S4; P-2026-10-03-10); der Wechselpunkt der Maschine in MKS oder WKS, vor jedem
+  Werkzeugwechsel und am Ende angefahren (P-2026-10-03-19). Offen: Steuerung an der Maschine
+  (S2), Glätten (S4), ohne G93 (S5), Transformationen (S6), Wochen-Build (S7); die Rundachse
+  zwischen zwei Operationen nicht über viele Umdrehungen auf 0 zurückdrehen (Manuel probiert,
+  was seine Maschine macht).
 - **W-006 Frässtrategien** – 2,5D komplett (Planfräsen, Räumen mit Ringen, Morph, Inseln und
   adaptiv, Kontur, Nut offen und geschlossen, Bohrung fräsen, Bohren, Zentrieren, Senken,
   Reiben, Gewinde bohren und fräsen, Entgraten mit Fase und Rundung, Restmaterial), 3D

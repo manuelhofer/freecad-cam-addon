@@ -30,7 +30,7 @@ from .gui_details import DetailKasten
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, ruhiges_mausrad
 from .gui_verteilhilfe import VerteilDialog
-from .gui_zahlen import winkel_zeigen
+from .gui_zahlen import Zahlenpruefer, groesse_lesen, groesse_zeigen, winkel_zeigen
 from .kette import HINWEIS, LINEAR
 from .sprache import tr
 
@@ -218,6 +218,7 @@ class MaschinenPanel:
         self._aufbau = QtGui.QVBoxLayout(form)
         self._baue_namenszeile()
         self._baue_achsen()
+        self._baue_punkte()
         # Der Kasten wandert jeweils unter die Liste, in der gerade etwas
         # gewählt ist (siehe _details_zeigen).
         self.details = DetailKasten(self._setze)
@@ -266,6 +267,126 @@ class MaschinenPanel:
             [self.knopf_betriebsart, self.knopf_ba_weg, self.knopf_vorschlagen]
         )
         self._aufbau.addWidget(self.achsen_knoepfe)
+
+    def _baue_punkte(self):
+        """„Home und Werkzeugwechsel“: die Punkte aller Linearachsen an einer Stelle, dazu, worin
+        der Wechselpunkt zählt (Manuel, 2026-10-03: „finde in Maschine bearbeiten keinen
+        Werkzeugwechselpunkt … sollte MKS, also nicht WKS sein … oder es sollte wechselbar
+        sein“). Dieselben Werte wie in den Details einer Linearachse."""
+        self._aufbau.addWidget(kopfzeile(tr("dialog.punkte"), "achsen"))
+        self.punkte_kasten = QtGui.QWidget()
+        self.punkte_formular = QtGui.QFormLayout(self.punkte_kasten)
+        self.punkte_formular.setContentsMargins(0, 0, 0, 0)
+        self._aufbau.addWidget(self.punkte_kasten)
+        self.punkte_felder = {}  # (Betriebsart-Name, "Home"/"Wechsel") -> QLineEdit
+
+    def _fuelle_punkte(self):
+        """Baut „Home und Werkzeugwechsel“ neu: der Bezug, dann je Linearachse ihre Zeile."""
+        if self.geschlossen:
+            return
+        while self.punkte_formular.rowCount():
+            self.punkte_formular.removeRow(0)
+        self.punkte_felder = {}
+        self.wahl_wechsel_bezug = QtGui.QComboBox()
+        for bezug, text in (
+            (m.WECHSEL_MKS, tr("dialog.wechsel_bezug.mks")),
+            (m.WECHSEL_WKS, tr("dialog.wechsel_bezug.wks")),
+        ):
+            self.wahl_wechsel_bezug.addItem(text, bezug)
+        self.wahl_wechsel_bezug.setCurrentIndex(
+            max(0, self.wahl_wechsel_bezug.findData(m.wechsel_bezug(self.maschine)))
+        )
+        self.wahl_wechsel_bezug.setToolTip(tr("dialog.wechsel_bezug.tooltip"))
+        self.wahl_wechsel_bezug.currentIndexChanged.connect(self._wechsel_bezug_gewaehlt)
+        ruhiges_mausrad(self.wahl_wechsel_bezug)
+        self.punkte_formular.addRow(tr("dialog.wechsel_bezug"), self.wahl_wechsel_bezug)
+        linear = [ba for ba in m.betriebsarten(self.maschine) if ba.Art == m.ART_LINEAR]
+        if not linear:
+            leer = QtGui.QLabel(tr("dialog.punkte.leer"))
+            leer.setStyleSheet(f"color: {GRAU.name()};")
+            leer.setWordWrap(True)
+            self.punkte_formular.addRow(leer)
+            return
+        wks = m.wechsel_bezug(self.maschine) == m.WECHSEL_WKS
+        for ba in sorted(linear, key=m.name_von):
+            faktor = 2.0 if getattr(ba, "Durchmesser", False) else 1.0
+            zeile = QtGui.QWidget()
+            aufbau = QtGui.QHBoxLayout(zeile)
+            aufbau.setContentsMargins(0, 0, 0, 0)
+            for name, text, leer, tooltip in (
+                ("Home", tr("dialog.punkte.home"), tr("dialog.home.leer"),
+                 tr("dialog.home.tooltip")),
+                ("Wechsel", tr("dialog.punkte.wechsel"),
+                 tr("dialog.wechsel.leer_wks") if wks else tr("dialog.wechsel.leer"),
+                 tr("dialog.wechsel.tooltip")),
+            ):  # fmt: skip
+                aufbau.addWidget(QtGui.QLabel(text))
+                feld = self._punktfeld(ba, name, leer, tooltip, faktor)
+                self.punkte_felder[(m.name_von(ba), name)] = feld
+                aufbau.addWidget(feld, 1)
+            durchmesser = " Ø" if faktor != 1.0 else ""
+            self.punkte_formular.addRow(f"{m.name_von(ba)}{durchmesser}", zeile)
+
+    def _punktfeld(self, ba, name, leer, tooltip, faktor):
+        """Ein Feld für Home oder Wechsel der Achse `ba`: Zahl – oder leer, dann ist „…An“ aus;
+        `faktor` 2: im Durchmesser."""
+        from . import einheiten
+
+        an = bool(getattr(ba, name + "An", False))
+        text = ""
+        if an:
+            wert = float(getattr(ba, name)) * faktor
+            text = groesse_zeigen(wert, einheiten.LAENGE, metrisch_stellen=4) or "0"
+        feld = QtGui.QLineEdit(text)
+        feld.setValidator(Zahlenpruefer(feld, mit_minus=True))
+        feld.setPlaceholderText(leer)
+        feld.setToolTip(tooltip)
+        ruhiges_mausrad(feld)
+
+        def uebernehmen():
+            eingabe = feld.text().strip()
+            if not eingabe:
+                self._setze_punkt(ba, name + "An", False)
+                return
+            try:
+                neu = groesse_lesen(eingabe, einheiten.LAENGE) / faktor
+            except ValueError:  # nur „-“ oder „,“: bleibt wie es war
+                return
+            self._setze_punkt(ba, name, neu)
+            self._setze_punkt(ba, name + "An", True)
+
+        feld.editingFinished.connect(uebernehmen)
+        return feld
+
+    def _setze_punkt(self, ba, eigenschaft, wert):
+        """Aus „Home und Werkzeugwechsel“: übernehmen; zeigen die Details gerade diese Achse,
+        sie danach neu (zeitversetzt – ihr Feld könnte gerade sein Signal senden)."""
+        if getattr(ba, eigenschaft) == wert:
+            return
+        setattr(ba, eigenschaft, wert)
+        self._auffrischen()
+        art, objekt = _zeilendaten(self.achsen.currentItem())
+        if art == ZEILE_BETRIEBSART and objekt is ba:
+            QtCore.QTimer.singleShot(0, lambda: self._details_neu(ba))
+
+    def _details_neu(self, ba):
+        if self.geschlossen:
+            return
+        art, objekt = _zeilendaten(self.achsen.currentItem())
+        if art == ZEILE_BETRIEBSART and objekt is ba:
+            self._details_zeigen(art, objekt)
+
+    def _wechsel_bezug_gewaehlt(self, _index):
+        bezug = self.wahl_wechsel_bezug.currentData()
+        if bezug and bezug != m.wechsel_bezug(self.maschine):
+            if "WechselBezug" not in self.maschine.PropertiesList:
+                self.maschine.Proxy.onDocumentRestored(self.maschine)
+            self.maschine.WechselBezug = bezug
+            self._auffrischen()
+            QtCore.QTimer.singleShot(0, self._fuelle_punkte)  # die Platzhalter sagen es anders
+            art, objekt = _zeilendaten(self.achsen.currentItem())
+            if art == ZEILE_BETRIEBSART:  # die Details einer Linearachse auch
+                QtCore.QTimer.singleShot(0, lambda: self._details_neu(objekt))
 
     def _baue_transformationen(self):
         self._aufbau.addWidget(kopfzeile(tr("dialog.transformationen"), "transformationen"))
@@ -520,6 +641,7 @@ class MaschinenPanel:
         """
         self.details.leeren()
         self._fuelle_achsen(auswahl)
+        self._fuelle_punkte()
         self._fuelle_transformationen(auswahl)
         self._fuelle_aufnahmen(auswahl)
         self._fuelle_glieder()
@@ -652,6 +774,9 @@ class MaschinenPanel:
         setattr(objekt, eigenschaft, wert)
         if beschriften:
             m.beschrifte(objekt)
+        if eigenschaft in ("Home", "HomeAn", "Wechsel", "WechselAn", "NcName", "Art"):
+            # Aus den Details einer Achse: „Home und Werkzeugwechsel“ zeigt es dann auch.
+            QtCore.QTimer.singleShot(0, self._fuelle_punkte)
         if eigenschaft in ("Lcs", "Platz", "Schraeg", "Ausgleich", "Durchmesser"):
             # Das kann eine Aufnahme in eine Revolvergruppe hinein- oder aus
             # ihr herausschieben bzw. Winkel und Beispiel einer schrägen Achse

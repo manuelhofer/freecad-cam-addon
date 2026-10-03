@@ -40,7 +40,11 @@ SCHAFT = (0.62, 0.62, 0.65)
 HALTER = (0.35, 0.35, 0.40)  # angedeutet, ohne Halter aus der Werkzeugverwaltung
 HALTER_ECHT = (0.60, 0.63, 0.67)  # der Halter mit seiner Kontur
 ROHTEIL = (0.85, 0.65, 0.35)
-MODELL = (0.45, 0.60, 0.80)
+# Das fertige Teil beim Abspielen: grau-grün, nicht blau – Blau heißt im Vergleich „im Teil“,
+# und wo nur das Aufmaß drübersteht, schien ein hellblaues Teil durch die Stange (Manuel,
+# 2026-10-03: „nach dem Schruppen schaut ziemlich viel Blau an der einen Seite raus“ – es war
+# das Teil, nicht ein Schnitt hinein).
+MODELL = (0.55, 0.62, 0.52)
 VORSCHUB_LINIE = (0.10, 0.35, 0.90)
 EILGANG_LINIE = (0.90, 0.15, 0.10)
 HALTER_MINDESTENS = 25.0  # mm Ø des angedeuteten Halters
@@ -199,7 +203,7 @@ class Bild:
         self._teil_schalten()
 
     def _teil_schalten(self):
-        """Vor dem Ende das Teil hellblau unter der halb durchsichtigen Stange; am Ende grau
+        """Vor dem Ende das Teil grau-grün unter der halb durchsichtigen Stange; am Ende grau
         unter ihr – oder, ohne den Haken „Teil“, weg und die Stange deckend in den Farben."""
         am_ende = self._am_ende and self.abtrag is not None
         self.modell_schalter.whichChild = 0 if self._teil_an or not am_ende else -1

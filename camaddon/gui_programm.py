@@ -246,6 +246,15 @@ class ProgrammDialog(QtGui.QDialog):
                 for n, t in je_antrieb.items()
             )
             teile.append(tr("pp.maschine.angetrieben", plaetze=plaetze))
+        if i.wechselpunkt:
+            punkt = " ".join(
+                f"{b} {(w * 2.0 if b == 'X' and i.drehmaschine and i.x_durchmesser else w):g}"
+                for b, w in sorted(i.wechselpunkt.items())
+            )
+            bezug = "WKS" if i.wechsel_wks else "MKS"
+            teile.append(tr("pp.maschine.wechselpunkt", punkt=punkt, bezug=bezug))
+        else:
+            teile.append(tr("pp.maschine.ohne_wechselpunkt"))
         return f"{i.name} – " + " · ".join(teile)
 
     def kennung(self):

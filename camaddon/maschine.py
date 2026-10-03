@@ -189,6 +189,47 @@ class Maschine(_Proxy):
     def onDocumentRestored(self, objekt):
         # Das Kennzeichen braucht niemand zu sehen oder zu ändern.
         objekt.setEditorMode("Typ", _AUSGEBLENDET)
+        # Worin der Werkzeugwechselpunkt gezählt wird (Manuel, 2026-10-03: „der
+        # Werkzeugwechselpunkt sollte MKS, also nicht WKS sein … oder es sollte wechselbar
+        # sein“) – ältere Maschinen bekommen es beim Laden, gezählt in MKS wie bisher.
+        if "WechselBezug" not in objekt.PropertiesList:
+            objekt.addProperty(
+                "App::PropertyEnumeration",
+                "WechselBezug",
+                "Maschine",
+                tr("eigenschaft.wechsel_bezug"),
+            )
+            objekt.WechselBezug = list(WECHSEL_BEZUEGE)
+            objekt.WechselBezug = WECHSEL_MKS
+
+
+# Worin Home- und Wechselpunkt zählen (gespeichert, deshalb ASCII): MKS – Maschinenkoordinaten,
+# wie der Verfahrweg; WKS – Werkstückkoordinaten, ab dem Nullpunkt des Jobs, die Spitze des
+# Werkzeugs (nur der Wechselpunkt; Home zählt immer in MKS).
+WECHSEL_MKS = "MKS"
+WECHSEL_WKS = "WKS"
+WECHSEL_BEZUEGE = (WECHSEL_MKS, WECHSEL_WKS)
+
+
+def wechsel_bezug(maschine):
+    """WECHSEL_MKS oder WECHSEL_WKS – ohne Eigenschaft (ältere Maschine): MKS."""
+    wert = str(getattr(maschine, "WechselBezug", WECHSEL_MKS) or WECHSEL_MKS)
+    return wert if wert in WECHSEL_BEZUEGE else WECHSEL_MKS
+
+
+def wechselpunkt(maschine):
+    """{Programmname: Stellung (mm)} der Linearachsen, die einen eigenen Wechselpunkt haben –
+    sonst ihr Home-Punkt; leer, wenn keine einen hat. Gezählt wie wechsel_bezug() sagt; X der
+    Drehmaschine als Radius (wie gespeichert)."""
+    ergebnis = {}
+    for ba in betriebsarten(maschine):
+        if ba.Art != ART_LINEAR:
+            continue
+        if getattr(ba, "WechselAn", False):
+            ergebnis[programmname(ba)] = float(ba.Wechsel)
+        elif getattr(ba, "HomeAn", False) and wechsel_bezug(maschine) == WECHSEL_MKS:
+            ergebnis[programmname(ba)] = float(ba.Home)
+    return ergebnis
 
 
 class Betriebsart(_Proxy):

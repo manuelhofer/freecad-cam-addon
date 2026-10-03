@@ -187,11 +187,18 @@ class DetailKasten(QtGui.QFrame):
         Werkzeugwechselpunkt … damit auch die Simulation korrekt ablaufen kann“) – gezählt wie
         der Verfahrweg; leer: keiner, der Wechselpunkt leer: wie der Home-Punkt."""
         einheit = einheiten.einheit(einheiten.LAENGE)
+        maschine = next((o for o in ba.InList if getattr(o, "Typ", "") == m.TYP_MASCHINE), None)
+        wks = maschine is not None and m.wechsel_bezug(maschine) == m.WECHSEL_WKS
+        if wks:
+            wechsel = tr("dialog.wechsel_wks", einheit=einheit)
+            wechsel_leer = tr("dialog.wechsel.leer_wks")
+        else:
+            wechsel = tr("dialog.wechsel", einheit=einheit)
+            wechsel_leer = tr("dialog.wechsel.leer")
         for name, text, leer, tooltip in (
             ("Home", tr("dialog.home", einheit=einheit), tr("dialog.home.leer"),
              tr("dialog.home.tooltip")),
-            ("Wechsel", tr("dialog.wechsel", einheit=einheit), tr("dialog.wechsel.leer"),
-             tr("dialog.wechsel.tooltip")),
+            ("Wechsel", wechsel, wechsel_leer, tr("dialog.wechsel.tooltip")),
         ):  # fmt: skip
             self.formular.addRow(text, self._punktfeld(ba, name, leer, tooltip, faktor))
 

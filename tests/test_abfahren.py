@@ -230,6 +230,28 @@ if len(st) == 13:
     # Die Spitze im Programm am Home-Punkt: X/Y wie die Anfahrt darüber nicht, Z darüber.
     pruefe(st[0].punkt[2] > 10 and st[1].punkt[:2] == st[2].punkt[:2], f"Punkte: {st[0].punkt}")
 mit_heim = fahrt.dauer
+# Der Wechselpunkt in WKS (Manuel, 2026-10-03: „sollte MKS sein … oder wechselbar“): X 200 ist
+# dann die Spitze im Programm – die Operation davor endete bei (0, 0, 10), zum Wechsel fährt
+# nur X, auf (200, 0, 10); Y und Z haben keinen eigenen Wechselpunkt und bleiben stehen.
+pruefe(m.wechsel_bezug(ma) == m.WECHSEL_MKS, f"Vorgabe: {m.wechsel_bezug(ma)}")
+ma.WechselBezug = m.WECHSEL_WKS
+fahrt = ab.abfahrt(p, job, FreeCAD.Vector())
+am_wechsel = [s for s in fahrt.stationen if s.ziel == ab.WECHSEL]
+# Die Stationen zum Wechsel: am Wechselpunkt (Z hat keinen Wert – kein Schritt „erst Z“), dann
+# über den ersten Punkt der nächsten Operation.
+pruefe(
+    len(am_wechsel) == 2
+    and all(
+        abs(a - b) < 1e-6 for a, b in zip(am_wechsel[0].punkt, (200.0, 0.0, 10.0), strict=True)
+    ),
+    f"WKS: Spitze am Wechselpunkt {[s.punkt for s in am_wechsel]}",
+)
+pruefe(m.wechselpunkt(ma) == {"X": 200.0}, f"WKS: wechselpunkt {m.wechselpunkt(ma)}")
+ma.WechselBezug = m.WECHSEL_MKS
+pruefe(
+    m.wechselpunkt(ma) == {"X": 200.0, "Y": 50.0, "Z": 0.0},
+    f"MKS: wechselpunkt {m.wechselpunkt(ma)} (Y und Z wie Home)",
+)
 for ba in m.betriebsarten(ma):
     if ba.Art == m.ART_LINEAR:
         ba.HomeAn = ba.WechselAn = False

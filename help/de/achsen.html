@@ -88,6 +88,14 @@ Werkzeugwechsel fährt die Maschine zum Wechselpunkt – zuerst Z hoch (an der D
 weg vom Teil), dann die anderen Achsen; zurück zum Teil erst die anderen, dann Z. Zeit und
 Kollision zählen diese Wege mit. Leer: kein Home-Punkt (das Abfahren beginnt am ersten Punkt
 der Bahn); der Wechselpunkt leer: wie der Home-Punkt.</li>
+<li><b>Home und Werkzeugwechsel</b> – unter den Achsen stehen die Punkte aller Linearachsen
+noch einmal an einer Stelle, je Achse eine Zeile. Darüber: <b>Wechselpunkt zählt in</b>
+<b>MKS</b> (Maschinenkoordinaten, ab Werk – wie der Verfahrweg, unabhängig von Werkstück und
+Werkzeug; im Programm „G53 G0“, bei Siemens „G0 SUPA D0“) oder <b>WKS</b>
+(Werkstückkoordinaten – die Spitze des Werkzeugs, ab dem Nullpunkt des Jobs; im Programm
+„G0“; Achsen ohne Wert bleiben stehen). Home zählt immer in MKS. „Programm schreiben …“
+fährt vor jedem Werkzeugwechsel und am Ende dorthin – zuerst die Achse, die das Werkzeug
+wegzieht, dann die anderen –, genauso das Abfahren im Prüffenster.</li>
 </ul>
 <p>Wie man die Beschleunigung herausfindet, steht unter
 <a href="beschleunigung.html">Beschleunigung ermitteln</a>.</p>
