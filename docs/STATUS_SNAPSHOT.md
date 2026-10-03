@@ -251,7 +251,10 @@ Beantwortet am 2026-10-03 (abends):
    davon 59 s in OpenCascades `distToShape` (22 389 Aufrufe, 2,6 ms), 15 s Python um die
    Hüllquader (`_stelle.lage`, `_luecke`). Je Paar: **44 s „Kern gegen Teil“** (ins fertige
    Teil, im Vorschub fast an jeder Stelle: 20 771 Aufrufe, 2,1 ms), 14 s Werkzeug gegen
-   „Rundtisch“ (790 Aufrufe, 17 ms je Aufruf), der Rest unter 1 s. Idee: je Fläche des Teils
+   „Rundtisch“ (790 Aufrufe, 17 ms je Aufruf), der Rest unter 1 s. **Nachgemessen: Je Fläche
+   vorfiltern bringt nichts** (am Schwenkteil 2,4 statt 2,1 ms je Abstand – OpenCascade filtert
+   selbst); „steckt ganz drin“ (`isInside`) kostet 0,3 ms. Was bliebe: weniger Abstände rechnen
+   (bessere Schranken), nicht billigere. Frühere Idee: je Fläche des Teils
    vorfiltern (Hüllquader,
    näher zuerst, exakt mit Abbruch) – dann aber eigens prüfen, ob ein Werkzeugteil ganz im Teil
    steckt (das sagt `distToShape` zwischen Körpern heute mit 0). Nur mit einem Vergleich aller
