@@ -441,3 +441,105 @@ def _bogen_punkte(anfang, ende, mitte, uhr):
         )
     punkte[-1] = tuple(ende)
     return punkte
+
+
+# --- Die Ebene als Job (F2) ------------------------------------------------------------------
+
+
+def text_rundachsen(rund):
+    """„A−30 C0“ – die Rundachsen in der Reihenfolge A, B, C, ganze Grad ohne Komma."""
+    from . import einheiten
+
+    zeichen = einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
+    teile = []
+    for buchstabe in sorted(rund):
+        zahl = f"{_rund(rund[buchstabe]):.3f}".rstrip("0").rstrip(".")
+        teile.append(f"{buchstabe}{zahl.replace('.', zeichen).replace('-', '−')}")
+    return " ".join(teile)
+
+
+def ist_ebene(job):
+    """Ist der Job eine geschwenkte Ebene (hat er einen Grundjob)?"""
+    return getattr(job, "Grundjob", None) is not None and hasattr(job, "Ebene")
+
+
+def ebene_von(job):
+    """Das Placement der Ebene des Jobs im Grundjob – None, wenn der Job keine Ebene ist."""
+    return FreeCAD.Placement(job.Ebene) if ist_ebene(job) else None
+
+
+def rundachsen_von(job):
+    """Die Rundachsen der Ebene des Jobs ({"A": Grad, …}) – leer ohne Ebene."""
+    text = getattr(job, "Rundachsen", "") if ist_ebene(job) else ""
+    rund = {}
+    for teil in text.replace("−", "-").replace(",", ".").split():
+        if len(teil) > 1 and teil[0] in "ABC":
+            try:
+                rund[teil[0]] = float(teil[1:])
+            except ValueError:
+                continue
+    return rund
+
+
+def _eigenschaften(job):
+    for art, name, tip in (
+        ("App::PropertyLink", "Grundjob", tr("sw.eigenschaft.grundjob")),
+        ("App::PropertyPlacement", "Ebene", tr("sw.eigenschaft.ebene")),
+        ("App::PropertyString", "Flaeche", tr("sw.eigenschaft.flaeche")),
+        ("App::PropertyString", "Rundachsen", tr("sw.eigenschaft.rundachsen")),
+    ):
+        if name not in job.PropertiesList:
+            job.addProperty(art, name, GRUPPE, tip)
+    for name in ("Ebene", "Flaeche", "Rundachsen"):
+        job.setEditorMode(name, 1)  # nur lesen: gerechnet
+
+
+def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None):
+    """Legt die geschwenkte Ebene der Fläche `flaeche` („Face12“, am Modell des Grundjobs) als
+    neuen Job an (Spezifikation Strategien 15.1) – ohne eigene Transaktion: Das Modell liegt so,
+    dass die Fläche nach oben zeigt und auf z 0 liegt, das Rohteil ist das des Grundjobs, mit
+    ihm gedreht (ein Klon); dazu die Eigenschaften „5-Achs“. `maschine`: sw.Maschine für die
+    Rundachsen – ohne: Tisch/Tisch A, C. Gibt den Job zurück; ValueError mit einem Satz, wenn
+    die Fläche nicht eben ist oder die Maschine sie nicht erreicht."""
+    import Path.Main.Job as PathJob
+    import Path.Main.Stock as PathStock
+
+    from . import vierachs_rohteil as vr
+
+    klon_grund = vr.modell(grundjob)
+    ebene_ = ebene_aus_flaeche(klon_grund.Shape, flaeche, x_richtung=x_richtung)
+    normale = normale_der(ebene_)
+    if maschine is not None:
+        loesungen = maschine.loese(normale)
+        if not loesungen:
+            raise ValueError(tr("sw.fehler.keine_stellung", flaeche=flaeche))
+        rund = loesungen[0]
+        if not all(a.erlaubt(rund[a.buchstabe]) for a in maschine.rundachsen):
+            raise ValueError(
+                tr("sw.fehler.grenze", flaeche=flaeche, rundachsen=text_rundachsen(rund))
+            )
+    else:
+        rund = rundachsen_ohne_maschine(normale)
+    dokument = grundjob.Document
+    FreeCAD.setActiveDocument(dokument.Name)
+    teil = vr.original(klon_grund)
+    job = PathJob.Create("Job", [teil])
+    zurueck = ebene_.inverse()
+    vr.modell(job).Placement = zurueck.multiply(klon_grund.Placement)
+    rohteil_grund = getattr(grundjob, "Stock", None)
+    if rohteil_grund is not None:
+        rohteil = PathJob.createResourceClone(job, rohteil_grund, "Stock", "Stock")
+        PathStock.SetupStockObject(rohteil, PathStock.StockType.Unknown)
+        rohteil.Placement = zurueck.multiply(rohteil_grund.Placement)
+        alt = job.Stock
+        job.Stock = rohteil
+        if alt is not None and alt is not rohteil:
+            dokument.removeObject(alt.Name)
+    _eigenschaften(job)
+    job.Grundjob = grundjob
+    job.Ebene = ebene_
+    job.Flaeche = flaeche
+    job.Rundachsen = text_rundachsen(rund)
+    job.Label = name or tr("sw.job", job=grundjob.Label, flaeche=flaeche, rundachsen=job.Rundachsen)
+    dokument.recompute()
+    return job

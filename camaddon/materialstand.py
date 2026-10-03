@@ -333,8 +333,14 @@ def _rohteil_kennung(job):
 
 
 def _ist_quader(rohteil):
-    """Ist das Rohteil ein Kasten – der Quader des Jobs (mit Aufmaß oder mit Maßen)?"""
-    return hasattr(rohteil, "ExtZpos") or hasattr(rohteil, "Length")
+    """Ist das Rohteil ein Kasten längs der Achsen des Jobs – der Quader des Jobs (mit Aufmaß
+    oder mit Maßen), nicht gedreht? Ein gedrehter (das Rohteil einer geschwenkten Ebene,
+    schwenken.lege_an) zählt wie ein Körper: Sonst stünde Material in den Ecken seines
+    Kastens, die es nicht gibt."""
+    if not (hasattr(rohteil, "ExtZpos") or hasattr(rohteil, "Length")):
+        return False
+    drehung = getattr(getattr(rohteil, "Placement", None), "Rotation", None)
+    return drehung is None or drehung.isIdentity()
 
 
 def _rohteil(job, kennung):

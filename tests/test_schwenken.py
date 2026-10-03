@@ -1,7 +1,8 @@
 # Prüft 3+2 (W-014 F1, Spezifikation Strategien 15): die Ebene einer schrägen Fläche, die
 # Rundachsen dafür – aus der Kette der drei 5-Achs-Beispielmaschinen und ohne Maschine –, die
 # Punkte ins Programm ohne Schwenkzyklus (die Spitze steht am gedrehten Werkstück, wo sie soll)
-# und die Winkel für CYCLE800.
+# und die Winkel für CYCLE800. F2: die Ebene als Job – das Modell mit der Schräge oben, das Rohteil
+# des Grundjobs mit gedreht, und das Räumen fräst die Schräge wie jede Fläche nach oben.
 import math
 import os
 import sys
@@ -213,6 +214,84 @@ except ValueError as grund:
     pruefe("Bohr" in str(grund), f"Zyklus quer: {grund}")
 else:
     pruefe(False, "Bohrzyklus quer zur Ebene ohne Fehler")
+
+# --- F2: die Ebene als Job ----------------------------------------------------------------------
+import Path.Main.Job as PathJob  # noqa: E402
+
+from camaddon import job_schnittwerte as js  # noqa: E402
+from camaddon import materialstand as mst  # noqa: E402
+from camaddon import pruefstand as ps  # noqa: E402
+from camaddon import raeumen as ra  # noqa: E402
+from camaddon import uebergabe_werkzeuge as ue  # noqa: E402
+from camaddon import vierachs_rohteil as vr  # noqa: E402
+from camaddon import werkzeuge as wz  # noqa: E402
+
+fraeser = wz.standardwerkzeug()
+ue.uebergeben(wz.Bibliothek([fraeser]))
+einsatz = next(e for e in fraeser.schnittwerte[wz.ALLE] if e.art == wz.SCHRUPPEN)
+doc = FreeCAD.newDocument("Schraege")
+objekt = doc.addObject("Part::Feature", "Block")
+objekt.Shape = teil
+doc.recompute()
+grundjob = PathJob.Create("Job", [objekt])
+grundjob.Stock.ExtZpos = 1.0
+doc.recompute()
+rohteil_grund = grundjob.Stock.Shape.copy()
+planjob = sw.lege_an(grundjob, schraege)
+pruefe(sw.ist_ebene(planjob) and not sw.ist_ebene(grundjob), "Ebene am Job")
+pruefe(planjob.Grundjob == grundjob and planjob.Flaeche == schraege, "Grundjob, Fläche")
+pruefe(sw.rundachsen_von(planjob) == {"A": -NEIGUNG, "C": 0.0}, f"Rundachsen {planjob.Rundachsen}")
+pruefe(planjob.Ebene.isSame(e, 1e-9), "Ebene am Job nicht die der Fläche")
+# Im Job der Ebene zeigt die Schräge nach oben und liegt auf z 0.
+klon = vr.modell(planjob)
+lokal = klon.Shape.getElement(schraege)
+pruefe(
+    nahe(lokal.BoundBox.ZMin, 0.0)
+    and nahe(lokal.BoundBox.ZMax, 0.0)
+    and nahe_v(sw.aussennormale(lokal), (0, 0, 1)),
+    f"Schräge im Job der Ebene: {lokal.BoundBox}",
+)
+# Das Rohteil ist das des Grundjobs, mit gedreht – gleich groß, an derselben Stelle am Teil.
+rohteil_ebene = planjob.Stock.Shape
+pruefe(nahe(rohteil_ebene.Volume, rohteil_grund.Volume, 1e-6), "Rohteil: anderes Volumen")
+zurueck = rohteil_ebene.copy()
+zurueck.Placement = e.multiply(zurueck.Placement)
+pruefe(
+    all(
+        min(math.dist(v.Point, w.Point) for w in rohteil_grund.Vertexes) < 1e-6
+        for v in zurueck.Vertexes
+    ),
+    "Rohteil der Ebene nicht das des Grundjobs",
+)
+pruefe(not mst._ist_quader(planjob.Stock), "gedrehtes Rohteil als Kasten")
+stand = mst.fuer(planjob)
+pruefe(stand is not None, "kein Materialstand in der Ebene")
+if stand is not None:
+    # Über der Mitte der Schräge steht das Rohteil so hoch wie die Ecke des Blocks über der
+    # Schräge – plus 1 mm Aufmaß oben, schräg gemessen.
+    mitte = lokal.CenterOfMass
+    hoehe = float(stand.hoehen_an([mitte.x], [mitte.y])[0][0])
+    pruefe(5.0 < hoehe < 20.0, f"Rohteil über der Schräge: {hoehe:.2f} mm")
+
+# Räumen auf der Schräge – wie auf jeder Fläche nach oben.
+tc = js.controller_ohne_transaktion(doc, planjob, fraeser, einsatz)
+doc.recompute()
+op = ra.lege_an(planjob, tc, einsatz.ap, einsatz.ae, flaechen=[schraege])
+doc.recompute()
+pruefe(
+    op.Ebenen == 1 and len(op.Path.Commands) > 20, f"Räumen: {op.Ebenen} Flächen, {op.Gerechnet}"
+)
+bahn = ra.rechne(op, planjob, planjob.Model.Group, 902.0, 270.0)
+bb = rohteil_ebene.BoundBox
+k = ps.messen(
+    [ps.Bahnlauf(bahn.punkte, 902.0, 270.0)], klon.Shape, (bb.XMin, bb.XMax, bb.YMin, bb.YMax),
+    bb.ZMax, ra.vs.form_des_controllers(tc), einsatz.ae, einsatz.ap, ebenen_z=[0.0],
+    aufmass=0.3,
+)  # fmt: skip
+pruefe(k.einschnitt > -0.02, f"Räumen der Schräge schneidet ins Teil: {ps.zeile(k)}")
+pruefe(k.rest < 0.5, f"Räumen der Schräge lässt stehen: {ps.zeile(k)}")
+print(f"Räumen auf der Schräge: {bahn.zeit:.2f} min, {bahn.variante} – {ps.zeile(k)}")
+FreeCAD.closeDocument(doc.Name)
 
 if fehler:
     raise AssertionError("\n".join(fehler))

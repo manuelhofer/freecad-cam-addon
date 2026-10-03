@@ -2410,6 +2410,10 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
 - **F2 Ebene als Job:** `lege_an(grundjob, flaeche)` – Klon des Modells gedreht, Rohteil als
   gedrehter Quader (der Materialstand liest ihn als Körper), Eigenschaften „5-Achs“. Jede
   Strategie rechnet darin; Prüfung: Räumen der Schräge, im Grundjob nachgemessen.
+  **Gebaut:** P-2026-10-03-36 – das Rohteil ist ein Klon des Rohteils des Grundjobs, mit der
+  Ebene gedreht (`createResourceClone`); ein gedrehter Kasten zählt im Materialstand als Körper
+  (`materialstand._ist_quader`). Am Block mit 30°-Schräge: Räumen der Schräge 2,9 min, kein Rest,
+  kein Einschnitt.
 - **F3 Programm:** „Programm schreiben“ für einen Job mit Ebene – Siemens mit CYCLE800, die
   anderen ohne Zyklus; der Grundjob mit seinen Ebenen in einem Programm.
 - **F4 Auf der Maschine prüfen:** Reichweite, Abfahren, Kollision für einen Job mit Ebene – die

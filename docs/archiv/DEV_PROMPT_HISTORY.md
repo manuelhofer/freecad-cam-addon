@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-36 ebene-als-job
+
+### EINGELESEN
+- Spezifikation Strategien 15.3, F2.
+
+### DATEIEN
+- `camaddon/schwenken.py` (`lege_an`, `ist_ebene`, `ebene_von`, `rundachsen_von`,
+  `text_rundachsen`, Eigenschaften „5-Achs“ am Job), `camaddon/materialstand.py` (`_ist_quader`:
+  nur ein ungedrehter Kasten), `tests/test_schwenken.py` (F2), Übersetzungen (`sw.*`),
+  Spezifikation Strategien (15.3 F2), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.152.1).
+
+### AKZEPTANZKRITERIUM
+- Ein Job der Ebene, in dem die Schräge nach oben zeigt, mit dem Rohteil des Grundjobs; eine
+  Strategie des Addons fräst die Schräge darin ohne Rest und Einschnitt.
+
+### DONE
+- Klon des Modells mit Ebene⁻¹ · Lage im Grundjob, Rohteil als Klon des Rohteils des Grundjobs
+  mit derselben Drehung (gleiches Volumen, dieselben Ecken am Teil), Materialstand aus dem
+  gedrehten Rohteil. Räumen auf der Schräge (Block 100 × 60 × 40, 30°): 2,9 min, Rest 0,
+  Einschnitt 0.
+
+### TESTS
+- `tests/test_schwenken.py` – OK. black und ruff sauber.
+
+### NEXT
+- F3: „Programm schreiben“ für einen Job mit Ebene (Siemens CYCLE800, sonst ohne Zyklus).
+
 ## P-2026-10-03-35 schwenken-kern
 
 ### EINGELESEN
