@@ -152,16 +152,35 @@ fz 0,1 / ae 1,5 / ap 25; Ceratizit ist CoreLine WPC UNI (eingetragen), Ø 2 und 
 weg; die Kiste bleibt nach Werkzeugart mit ein paar realen Werkzeugen je Art – die Hersteller
 sind nur die Quelle, keine Erweiterung nötig; „das Teil muss herauskommen“ ist Grundsatz 0.
 
-1. *Jongen Ø 3:* gibt es in der Reihe 494W nicht – weggelassen. Ein anderer Ø 3 (z. B. Garant)?
-2. *Gühring 5596:* Der Shop zeigt die Größen erst im Browser; Nummern für M2, M2,5 und ab M12
-   sind ungeprüft (ab M12 heißt die Reihe vielleicht anders, DIN 376).
-3. *Materialstand, Fragen 3–5 in der Spezifikation Strategien 12.7* (kurze Lücken
-   durchfahren, schmaler Rand, Restmaterial): gebaut ist je die Empfehlung – so lassen?
-4. *Zwei Fräser an einer Wand (T3):* Die Kontur des Ø 12 fährt in die Tasche, wo er ohne
-   Aufmaß hineinpasst, „Restmaterial“ nimmt mit dem Ø 6 den Rest – mit einem Absatz, wo sie
-   sich treffen. So lassen, oder je Kontur ein eigener Fräser (ein zweiter Kontur-Block)?
-5. *Außerdem offen bei dir:* TCPM (W-001), D-14/D-22/D-24/D-27 (Durchsicht, Abschnitt 6),
-   D-23 (Ausspannlänge).
+Beantwortet am 2026-10-03 (abends):
+
+- *Zwei Fräser an einer Wand:* Ist der Absatz, wo Kontur (Ø 12) und Restmaterial (Ø 6) sich
+  treffen, im Bereich 0,0005 mm, bleibt es so; ist er mehr, bekommt jede Kontur ihren eigenen
+  Fräser. **Zu tun:** den Absatz am Testteil messen, danach entscheiden.
+- *Materialstand:* über kurze Lücken fahren, nicht abheben (so gebaut). Idee von Manuel: über
+  der Lücke schneller fahren – nur, wenn es trotz Bremsen und Beschleunigen Zeit bringt.
+- *TCPM:* bleibt aus. Es soll auf **allen** Maschinen gehen; die G-Sätze ohne TCPM geben
+  dasselbe Teil (die Achsstellungen rechnet das Addon). Was eine Maschine kann, stellt man im
+  Postprozessor ein (TCPM später als Haken, W-005).
+- *Siemens-Befehle:* Manuel programmiert an der Maschine mit ShopTurn, G-Code selten – er kann
+  sie nicht prüfen. Die Befehle bleiben nach dem Siemens-Handbuch; vor dem ersten Lauf das
+  Programm in der Simulation der Steuerung ansehen (gehört in die Hilfe „Programm schreiben“).
+  Kein ShopTurn-Ausgang.
+- *Neue Achse (D-14):* graue Standardwerte für Eilgang und Drehzahl (wie beim Werkzeug). Die
+  Hilfe „Wie finde ich die Beschleunigung heraus?“ ausbauen: je Steuerung (Siemens, Heidenhain,
+  Fanuc, Haas, LinuxCNC), wo Eilgang, Drehzahl und Beschleunigung in den Maschinendaten stehen
+  und wie man hinkommt (Zugriffsstufe, Schlüsselzahl – z. B. Heidenhain MOD).
+- *Kollision (D-22):* bleibt auf Klick – sonst startet das Abfahren noch träger; das ist bei
+  großen Bahnen heute schon langsam (gehört zu „Vorschau beschleunigen“).
+- *Halter vorschlagen (D-23):* ja – nach Schaft-Ø ER16/ER25/ER32/ER40, herausstehen
+  Auskragung N + 5 mm. **Zu bauen.**
+- *An CAM übergeben (D-27):* ja – „OK“ und „Übernehmen“ übergeben mit, sobald einmal
+  übergeben wurde. **Zu bauen.**
+- *Gewindebohrer:* Gühring 8330 (https://webshop.guehring.de/8330) in die Kiste; der Shop zeigt
+  die Größen erst im Browser – im Browser nachschlagen. Jongen Ø 3 und Gühring 5596 entfallen.
+
+Noch offen bei Manuel: D-24 (Richtwerte – mit „Richtwerte eintragen“ und den Klassen wohl
+erledigt, zum Abhaken).
 
 **Danach, der Reihe nach:**
 
