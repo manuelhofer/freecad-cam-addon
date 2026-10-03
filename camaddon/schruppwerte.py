@@ -359,13 +359,20 @@ def _schraege_achsen(maschine):
 
 class MaschinenWerte(NamedTuple):
     """Was der Planer von einer Maschine übernimmt; 0 = unbekannt. `datei`: die
-    Maschinendatei, wenn sie gespeichert ist."""
+    Maschinendatei, wenn sie gespeichert ist; `gemerkt`: aus der Liste der Maschinen, die Datei
+    ist nicht offen."""
 
     name: str
     drehzahl: float
     vorschub: float
     leistung: float = 0.0
     datei: str = ""
+    gemerkt: bool = False
+
+    @property
+    def text(self):
+        """Wie die Maschine im Menü „Von der Maschine“ heißt."""
+        return tr("sp.maschine.gemerkt", name=self.name) if self.gemerkt else self.name
 
 
 def vorbelegung(drehzahl, vorschub, gefundene, leistung=0.0, zuletzt=""):
@@ -430,11 +437,12 @@ def maschinen(gemerkte=None):
             continue
         gefunden.append(
             MaschinenWerte(
-                tr("sp.maschine.gemerkt", name=eintrag.name),
+                eintrag.name,
                 eintrag.werkzeugdrehzahl,
                 eintrag.vorschub,
                 eintrag.leistung,
                 eintrag.datei,
+                gemerkt=True,
             )
         )
     return gefunden

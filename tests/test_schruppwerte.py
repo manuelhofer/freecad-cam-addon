@@ -220,15 +220,11 @@ gemerkte = [
 ]
 werte = sw.maschinen(gemerkte=gemerkte)
 if werte != [
-    sw.MaschinenWerte(
-        tr("sp.maschine.gemerkt", name="Meine Fräse"),
-        15000,
-        9000,
-        11,
-        "/nirgends/meine_fraese.FCStd",
-    )
+    sw.MaschinenWerte("Meine Fräse", 15000, 9000, 11, "/nirgends/meine_fraese.FCStd", True)
 ]:
     fehler.append(f"gemerkte Maschinen: {werte}")
+if werte and werte[0].text != tr("sp.maschine.gemerkt", name="Meine Fräse"):
+    fehler.append(f"im Menü: {werte[0].text}")
 
 # Vorbelegen: nur, wenn Drehzahl und Vorschub leer sind – von der zuletzt benutzten Maschine,
 # sonst von der einzigen; die Leistung von ihr, wenn sie sie kennt.

@@ -159,7 +159,7 @@ class SchruppDialog(QtGui.QDialog):
         self.knopf_maschine.setAutoDefault(False)
         self.menue_maschine = QtGui.QMenu(self.knopf_maschine)
         for werte in gefundene:
-            aktion = self.menue_maschine.addAction(werte.name)
+            aktion = self.menue_maschine.addAction(werte.text)
             aktion.triggered.connect(
                 lambda _an=False, w=werte: self.von_maschine(w.drehzahl, w.vorschub, w.leistung)
             )

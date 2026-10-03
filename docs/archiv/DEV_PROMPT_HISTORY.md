@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-16 planer-name-der-maschine
+
+### EINGELESEN
+- Probelauf „Schruppwerte planen“ mit einer gemerkten Maschine (Datei nicht offen): Menü und
+  Vorbelegung stimmen, der graue Satz las sich „Drehzahl, Vorschub und Leistung von „Meine Fräse
+  (aus der Liste der Maschinen)““.
+
+### DATEIEN
+- `camaddon/schruppwerte.py` (`MaschinenWerte.gemerkt`, `.text` – der Zusatz nur im Menü),
+  `camaddon/gui_schruppwerte.py`, `tests/test_schruppwerte.py`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.164.5).
+
+### AKZEPTANZKRITERIUM
+- Im Menü „Meine Fräse (aus der Liste der Maschinen)“, im grauen Satz „… von „Meine Fräse““.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_schruppwerte.py` – OK; Probelauf im Arbeitsordner (gemerkte Maschine: Menü,
+  Vorbelegung 15000/9000/11, Übernahme aus dem Menü) – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Durchsicht und Entscheidungen.
+
 ## P-2026-10-04-15 programm-ohne-dopplungen
 
 ### EINGELESEN
