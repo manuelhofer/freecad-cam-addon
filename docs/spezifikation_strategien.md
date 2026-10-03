@@ -2096,6 +2096,22 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   **Behoben:** P-2026-10-02-87, 0.125.4 – nach dem Wettbewerb rechnet jeder Block neu, dessen
   Materialstand sich geändert hat (`_block_rechnen`).
 
+- **B-010 Die Kontur fährt an der Stufenwand Rampen statt eines Bogens.** Beim Ansehen der
+  Bahn (2026-10-03, Nacht): Die Stufenwand bei z 22 bekam drei Läufe mit je 194 mm Rampe (3°,
+  hin und her längs der 54-mm-Wand) statt des tangentialen Bogens aus der Luft – 1,77 min für
+  die Kontur. Zwei Ursachen: (1) Die Höhe einer Wand galt für ihre ganze Unterkante
+  (`Kontur.z_oben` = die höchste Wand der Kette; die Rückwand des Testteils ist eine Fläche,
+  über der Insel 22, unter der Stufe 32) – neben der Inselkante schien überall eine 32 hohe Wand
+  zu stehen; (2) das Ein- und Ausfahren musste zu jeder Wand mehr Abstand halten als die Bahn an
+  ihrem Ende selbst hat (der Versatz einer offenen Wand liegt an der Ecke zur nächsten Wand ein
+  paar Hundertstel näher). **Behoben:** P-2026-10-03-34 – die Höhe je Stelle der Unterkante
+  (`_wandkanten`: eine senkrechte Gerade durch die Wand, in Stücke gleicher Höhe geteilt;
+  `Kontur.wandkanten`), und der Abstand des Einfahrens höchstens der Abstand der Bahnenden
+  (`_lauf`). Kontur am Testteil 1,07 statt 1,77 min, die Stufenwand aus der Luft mit Bogen.
+  Offen (zu besprechen): Nach dem Räumen fährt die Kontur jede Wand zweimal – einmal „beim
+  Aufmaß“, weil das Raster des Materialstands die 0,3 mm am genauen Ring als Zelle Material
+  zeigt, dann das Schlichten; die erste Runde nimmt nichts (Insel: 290 mm, Stufe: 92 mm).
+
 ### 13.5 Schritte (je ein Patch)
 
 - **T1 Räumen über mehrere Höhen: die tiefste Fläche zuerst, jede Stelle einmal.** Heute räumt

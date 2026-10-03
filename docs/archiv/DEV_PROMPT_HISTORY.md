@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-34 kontur-eingang-an-der-ecke
+
+### EINGELESEN
+- Manuel, 2026-10-03: „Du machst einfach mal ein paar Sachen, die du für richtig hältst, bis
+  morgen früh.“ Beim Vorbereiten der Bilder für die Durchsicht (Kontur am Testteil nach dem
+  Räumen, mit Materialstand) fiel B-010 auf (Spezifikation Strategien 13.4).
+
+### DATEIEN
+- `camaddon/kontur_bahn.py` (`Kontur.wandkanten`, `_wandkanten`, WANDHOEHE_SCHRITT; `planen`:
+  die Wände je Stelle mit ihrer Höhe; `_lauf`: `mindest` höchstens der Abstand der Bahnenden),
+  Spezifikation Strategien (13.4 B-010), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.151.3).
+
+### AKZEPTANZKRITERIUM
+- Die Stufenwand des Testteils bei z 22 fährt aus der Luft mit Bogen hinein statt über die Rampe;
+  die Kontur-Prüfungen bleiben grün.
+
+### DONE
+- Kontur am Testteil (alle Wände, nach dem Räumen): 1,07 statt 1,77 min; die drei Läufe an der
+  Stufenwand je 92 mm statt 115 + 194 mm Rampe. Höhe je Stelle der Unterkante statt je Kette.
+- Gefunden, nicht geändert (zu besprechen): die doppelte Runde je Wand nach dem Räumen (beim
+  Aufmaß, dann Schlichten – die erste nimmt nichts).
+
+### TESTS
+- `tests/test_kontur.py`, `tests/test_entgraten.py`, `tests/test_rest.py` – OK. black und ruff
+  sauber.
+
+### NEXT
+- Bilder für die Durchsicht: Tasche Ø 6 (fertig), Kontur (fertig), Mulde 3D, Planfräsen, Nut,
+  rundum; morgen Manuels Blick.
+
 ## P-2026-10-03-33 adaptiv-bleibt
 
 ### EINGELESEN

@@ -53,6 +53,7 @@ GERADE_ANTEIL = 1.0  # vom Fräserradius: die Gerade vor dem Bogen
 AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
 SENKRECHT = 1e-6  # so wenig darf die Normale einer Wand von waagerecht abweichen
 NAH = 1e-5  # mm – so nah ist dieselbe Stelle
+WANDHOEHE_SCHRITT = 1.0  # mm – so dicht wird die Höhe einer Wand über ihrer Unterkante abgefragt
 HOECHSTENS_VERSAETZE = 200  # so viele Schruppbahnen je Kontur höchstens (vom Rohteil her)
 WAND_SPIEL = 0.05  # mm – so viel näher an eine Wand darf das Ein- und Ausfahren (Sehnen der Kette)
 REST_SPIEL = 0.02  # mm – so weit muss der kleine Fräser aus dem großen ragen, damit er dort fährt
@@ -127,11 +128,16 @@ class Kontur:
 
     draht: object  # Part.Wire der Unterkanten, bei z_unten
     z_unten: float
-    z_oben: float
+    z_oben: float  # die höchste Wand der Kette
     geschlossen: bool
     stelle: tuple  # (x, y) auf der längsten Unterkante
     normale: tuple  # (nx, ny) dort, zur freien Seite (vom Material weg)
     waende: tuple  # die Namen der Wände
+    # Je Wand ihre Unterkanten mit ihrer eigenen Höhe: [(x, y, z_oben)] – für den Abstand, den
+    # das Ein- und Ausfahren einer anderen Kontur zu ihr hält (P-2026-10-03-34: Die Inselkontur
+    # des Testteils galt mit ihren zwei Wänden, die bis zur Stufe durchgehen, überall als 32
+    # hoch – die Stufenwand bei z 22 fand neben der Inselkante keinen Eingang und fuhr Rampen).
+    wandkanten: tuple = ()
 
 
 # --- Wände und Konturen -----------------------------------------------------------------------
@@ -302,6 +308,41 @@ def _freie_seite(wand, kante):
     return (float(mitte.x), float(mitte.y)), (float(n.x / laenge), float(n.y / laenge))
 
 
+def _wandkanten(wand, kante):
+    """[(x, y, z_oben)] – die Unterkante `kante` der Wand in Stücke gleicher Höhe geteilt: Eine
+    Wand kann über ihrer Unterkante verschieden hoch sein (die Rückwand des Testteils: über der
+    Insel 22, wo die Stufe aufsitzt 32 – eine Fläche). Die Höhe je Stelle: wo eine senkrechte
+    Gerade durch die Stelle die Wand verlässt."""
+    import FreeCAD
+    import Part
+
+    punkte = kante.discretize(Distance=WANDHOEHE_SCHRITT)
+    if len(punkte) < 2:
+        punkte = [kante.Vertexes[0].Point, kante.Vertexes[-1].Point]
+    hoehen = []
+    for q in punkte:
+        linie = Part.makeLine(
+            FreeCAD.Vector(q.x, q.y, wand.z_unten - 1.0),
+            FreeCAD.Vector(q.x, q.y, wand.z_oben + 1.0),
+        )
+        try:
+            ecken = wand.flaeche.section(linie).Vertexes
+        except Exception:
+            ecken = []
+        hoehen.append(max((v.Point.z for v in ecken), default=wand.z_oben))
+    stuecke = []
+    anfang = 0
+    for i in range(1, len(punkte) + 1):
+        if i == len(punkte) or abs(hoehen[i] - hoehen[anfang]) > 0.01:
+            bis = min(i + 1, len(punkte))  # das Stück bis zur ersten Stelle der nächsten Höhe
+            xs = np.array([q.x for q in punkte[anfang:bis]], dtype=float)
+            ys = np.array([q.y for q in punkte[anfang:bis]], dtype=float)
+            if len(xs) >= 2:
+                stuecke.append((xs, ys, float(hoehen[anfang])))
+            anfang = i
+    return stuecke
+
+
 def konturen(form, namen):
     """[Kontur] – die Unterkanten der Wände `namen` zu Ketten verbunden: Wände mit derselben
     Unterkante, soweit ihre Unterkanten zusammenhängen (Part.sortEdges); die tiefsten zuletzt.
@@ -333,6 +374,11 @@ def konturen(form, namen):
             wand = wand_der_kante.get(_schluessel(laengste), beteiligt[0])
             stelle, normale = _freie_seite(wand, laengste)
             draht = Part.Wire(kette)
+            wandkanten = []
+            for kante in kette:
+                w_ = wand_der_kante.get(_schluessel(kante))
+                if w_ is not None:
+                    wandkanten += _wandkanten(w_, kante)
             ergebnis.append(
                 Kontur(
                     draht,
@@ -342,6 +388,7 @@ def konturen(form, namen):
                     stelle,
                     normale,
                     tuple(sorted({w.name for w in beteiligt}, key=lambda n: int(n[4:]))),
+                    tuple(wandkanten),
                 )
             )
     return sorted(ergebnis, key=lambda k: -k.z_unten)
@@ -824,7 +871,14 @@ def planen(netz, werte, konturen_, schritt=SCHRITT, netz_fern=None, stand=None):
     # Die Unterkanten aller Konturen: das Band der Hüllfläche je Kontur und der Abstand, den
     # das Ein- und Ausfahren zu jeder Wand hält.
     ketten = [(k, _kette(k, netz.toleranz, 2 * schritt)) for k in konturen_]
-    waende = [(kx, ky, k.geschlossen, k.z_oben) for k, (kx, ky) in ketten]
+    # Je Wand mit ihrer eigenen Höhe (Kontur.wandkanten); ohne die Angabe die ganze Kette mit
+    # ihrer höchsten Wand.
+    waende = []
+    for k, (kx, ky) in ketten:
+        if k.wandkanten:
+            waende += [(wx, wy, False, z_oben) for wx, wy, z_oben in k.wandkanten]
+        else:
+            waende.append((kx, ky, k.geschlossen, k.z_oben))
     st = _Stand()
     for kontur, kette in ketten:
         _kontur(
@@ -1190,8 +1244,14 @@ def _lauf(
     t1 = _einheit(x[-1] - x[-2], y[-1] - y[-2])
 
     # Hinein und heraus nicht näher an eine Wand als die Bahn selbst darf: beim Schruppen
-    # Radius + Aufmaß, beim Schlichten der Radius (die Hüllfläche sieht diese Wände nicht).
+    # Radius + Aufmaß, beim Schlichten der Radius (die Hüllfläche sieht diese Wände nicht) –
+    # und nicht näher, als die Bahn an ihren Enden ohnehin ist: An einer Ecke, wo eine offene
+    # Wand auf eine höhere trifft, liegt der Versatz am Ende ein paar Hundertstel näher an der
+    # Ecke als am Rest; sonst fände das Einfahren dort nie Platz (Testteil, die Stufenwand an
+    # der Inselkante: drei Rampen von 194 mm statt eines Bogens, P-2026-10-03-34).
     mindest = min(d, r + max(w.aufmass, 0.0)) - WAND_SPIEL
+    an_den_enden = huelle.abstand_zur_wand(np.array([p0[0], p1[0]]), np.array([p0[1], p1[1]]), lage)
+    mindest = min(mindest, float(an_den_enden.min()) - GLEICH)
 
     def frei(qx, qy):
         return bool(huelle.erlaubt(qx, qy, lage, ziel).all()) and bool(
