@@ -1768,7 +1768,10 @@ def _nicht_tiefer(rest, form, grenze, a, phi):
                 delta = j * schritt_phi
                 seitlich = r_p * abs(math.sin(delta))
                 abstand = np.sqrt((i * schritt_a) ** 2 + seitlich * seitlich)
-                unter = abstand <= radius
+                # Genau am Rand berührt die Stirn nur – ohne Volumen. Mitgezählt meldete das
+                # Schlichten an Manuels Teil 35 mm Rest hinter dem Teil, wo der Rand der Kugel
+                # die stehende Stange am Abstich streifte (P-2026-10-03-30).
+                unter = abstand < radius - 1e-9
                 wert = r_p * math.cos(delta) - form.hoehe(np.minimum(abstand, radius))
                 np.maximum(tiefste, np.where(unter, wert, -math.inf), out=tiefste)
     tiefste -= grenze

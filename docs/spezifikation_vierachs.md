@@ -1142,7 +1142,17 @@ die Abstände gelten für beide.
     mitten in der Umdrehung auf, und das gerade Stück zum Abstechen (P-08) war
     ein Schraubenstück mit der Steigung der Spirale – die Welle Ø 60 zeigte
     hinten 1,2 mm Rest über dem Schlichten statt 0,3.
-    *Offen:* das Schruppen an steilen Stellen feiner rechnen; das Prüffenster malt den
+    *Das Schruppen an steilen Stellen feiner (P-2026-10-03-30, gemessen an Manuels Teil,
+    Kugel R 5 bzw. Schaft R 6, ap 22,2, 5,4 mm/U, Aufmaß 0,3):* Das Raster rundum feiner
+    lässt am Teil weniger stehen – Kugel 10,6 mm (1°), 8,4 (0,5°), 8,0 (0,25°); Schaft 11,5 /
+    9,3 / 9,2 –, aber die Schruppbahn hat doppelt bzw. viermal so viele Sätze. Ohne den
+    höchsten Nachbarn (`Huelle.sicher`) fuhr der Schaftfräser zwischen den Punkten bis 0,236
+    mm an die Fläche (0,06 ins Aufmaß). Gelassen: Die Keile sind zum größten Teil echt.
+    Dabei gefunden und behoben: `_nicht_tiefer` zählte den Rand der Stirn genau im Abstand R
+    mit – hinter dem Teil, wo der Rand der Kugel die stehende Stange am Abstich nur streift,
+    meldete das Schlichten „Rest höchstens 35,4 mm“; jetzt 15,1, am Teil 10,6 (die gerade
+    weitergeführte Stufe des Teilendes an den steilen Kanten der flachen Seite).
+    *Offen:* das Prüffenster malt den
     Abtrag weiter mit `restmaterial.Stange` – es kennt keine Fahrt über die
     Mitte (die Spitze zählt dort als 0). *Gemessen an Manuels Teil (P-2026-10-03-25,
     Schruppen Kugel Ø 10 und Schlichten 0,5 mm, ohne und mit Y):* Die Spitze kommt höchstens

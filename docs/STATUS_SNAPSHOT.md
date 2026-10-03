@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.150.0 (P-2026-10-03-29). Alles, was hier als gebaut steht,
+Stand 0.150.1 (P-2026-10-03-30). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -213,7 +213,8 @@ Beantwortet am 2026-10-03 (abends):
 5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
    Bereiche; Spannhöhe.
 6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
-7. W-002 F2; W-003 V2b, V6, V7; das Schruppen rundum an steilen Stellen feiner (Keile);
+7. W-002 F2; W-003 V2b, V6, V7; (das Schruppen rundum an steilen Stellen: gemessen, die Keile
+   sind größtenteils echt – P-2026-10-03-30);
    „ausweichen“ mit
    dem Y (Kugel nicht mit der Spitze, Anstellwinkel quer – Spezifikation Vierachs V4c+),
    Vorläufer fürs 5-Achs-Fräsen.

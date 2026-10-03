@@ -720,6 +720,18 @@ dauer = time.time() - beginn
 print(ascii(f"Welle mit Nocken: {len(bahn.punkte)} Punkte in {dauer:.1f} s"))
 pruefe(dauer < 30.0, f"zu langsam: {dauer:.1f} s")
 
+# --- Der Rand der Stirn berührt nur (P-2026-10-03-30) -----------------------------------------
+# Hinter a −10 steht die Stange noch ganz (40), davor ist alles weg. Die Kugel R 5 bei a −5 reicht
+# mit ihrem Rand genau bis −10 – sie berührt die Stange dort ohne Volumen. Mitgezählt meldete das
+# Schlichten an Manuels Teil 35 mm Rest hinter dem Teil.
+rest_a = np.arange(-30.0, 0.25, 0.5)
+rest_phi = vh.raster_phi(1.0)
+rest_r = np.where(rest_a[:, None] < -10.0 + 1e-9, 40.0, 0.0) + np.zeros((1, len(rest_phi)))
+oben_rand = vb._nicht_tiefer(
+    (rest_a, rest_phi, rest_r), ff.kugel(5.0), 0.0, np.array([-5.0]), np.zeros(1)
+)
+pruefe(float(oben_rand[0]) < 1.0, f"Rand der Kugel zählt als Rest: {float(oben_rand[0]):.2f}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()  # FreeCADCmd 1.1.3 schreibt Fortschritt ohne Zeilenende davor

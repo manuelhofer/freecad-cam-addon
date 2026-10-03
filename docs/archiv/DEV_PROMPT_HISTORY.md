@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-30 rest-am-rand
+
+### EINGELESEN
+- Manuel, 2026-10-03: „ja, mach das alles mal“ – Punkt 5: Rundum schruppen an steilen Stellen
+  feiner (Spezifikation Vierachs V5b „Offen“: Keile bis 9 mm).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`_nicht_tiefer`: der Rand der Stirn genau bei R zählt nicht),
+  `tests/test_vierachs_schlichten.py` (Rand der Kugel vor stehender Stange), Spezifikation
+  Vierachs (V5b), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.150.1).
+
+### AKZEPTANZKRITERIUM
+- Gemessen, ob ein feineres Schrupp-Raster lohnt; der Rest fürs Schlichten ohne Fehlalarm.
+
+### DONE
+- Manuels Teil: Rest am Teil mit 1° / 0,5° / 0,25° Raster: Kugel 10,6 / 8,4 / 8,0 mm, Schaft
+  11,5 / 9,3 / 9,2 – bei doppelt bzw. viermal so vielen Sätzen; gelassen. Ohne den höchsten
+  Nachbarn 0,06 mm ins Aufmaß – gelassen.
+- Behoben: „Rest höchstens“ des Schlichtens nach dem Kugelfräser 35,4 mm – der Rand der Kugel
+  streifte hinter dem Teil die stehende Stange (Abstand genau R, ohne Volumen); jetzt 15,1.
+
+### TESTS
+- `tests/test_vierachs_schlichten.py` (neu: Rand der Kugel), `test_vierachs_schlichten_op.py` –
+  OK. black und ruff sauber.
+
+### NEXT
+- Manuels Test; W-005 S2 nach seinem Blick auf die Steuerung.
+
 ## P-2026-10-03-29 planfraesen-zellen
 
 ### EINGELESEN
