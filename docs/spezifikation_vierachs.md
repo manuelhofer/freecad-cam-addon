@@ -1010,7 +1010,16 @@ die Abstände gelten für beide.
     Teilende: der Überlauf fräst die Kante fertig und schneidet dabei neben
     einem dünnen Ende tief ein – Manuel (2026-10-03): „auf ner Drehbank kann
     man das abstechen … das Bauteil ist instabil geworden, weil hinten so viel
-    weg ist“ → eine Wahl „hinten nicht fertig fräsen“ wäre klein (Frage).
+    weg ist“. *Gebaut (P-2026-10-03-08), nach Manuels Antwort („nach dem Teil
+    einfach noch die Abstechlänge als gerades Stück weiter … wenn da eine Gerade
+    ist, wo es mit der kompletten Schneide auftrifft, verläuft das [Stechschwert]
+    nicht so extrem“):* Hinter dem Teil fährt die Spitze je Winkel die Tiefe am
+    Teilende gerade weiter (Schruppen `_hinten_gerade` wie Schlichten
+    `_auffuellen`; eine Kugel rollte dort hinter der Kante bis zu ihrem Radius
+    tiefer), und der Überlauf ist jetzt Abstechbreite + 0,5 mm statt
+    Fräserradius + 0,5 – das gerade Stück fürs Stechschwert, dahinter bleibt das
+    Material, das das Teil hält. Die Kante hinten ist fertig, sobald die Mitte
+    das Teilende erreicht.
 - **V5c – Operation** „Rundum schlichten T2“
   (`vierachs_operation.RundumSchlichten`, der Name bleibt in jeder Datei):
   Eigenschaften Schrittweite, Aufmaß, Überlauf, Abstand zum Futter,

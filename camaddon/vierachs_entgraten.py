@@ -237,7 +237,7 @@ def lege_an(
     obj.Breite = breite
     radius = float(tc.Tool.Diameter) / 2
     obj.Ueberlauf, obj.AbstandFutter, obj.Sicherheitsabstand = (
-        abstaende or vo.vorgeschlagene_abstaende(radius)
+        abstaende or vo.vorgeschlagene_abstaende(radius, job)
     )
     obj.HalterZumFutter = halter
     obj.Flaechen = list(flaechen)

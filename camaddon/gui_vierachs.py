@@ -750,7 +750,7 @@ class VierachsPanel:
                 text = groesse_zeigen(wert, einheiten.LAENGE) or "0"  # Aufmaß 0 ist eine Zahl
                 self._feld(feld).setText(text)
         ueberlauf = float(op.Ueberlauf)
-        if abs(ueberlauf - vb.ueberlauf_vorschlag(float(op.OpToolDiameter) / 2)) > 1e-6:
+        if abs(ueberlauf - vb.ueberlauf_vorschlag(0.0, vr.abstechbreite(self.job))) > 1e-6:
             self._feld("ueberlauf").setText(groesse_zeigen(ueberlauf, einheiten.LAENGE) or "0")
 
     # --- Schnittstelle zu FreeCAD ---------------------------------------------
@@ -1759,7 +1759,7 @@ class VierachsPanel:
         werkzeug, einsatz = self.fraeser(), self.einsatz()
         self.schnittwerte.setText(self._schnittwerte_text(werkzeug, einsatz))
         for feld, eingabe in self.felder_schruppen.items():
-            if feld == "ueberlauf":  # je Fräser: sein Radius + 0,5 mm
+            if feld == "ueberlauf":  # die Abstechbreite + 0,5 mm
                 eingabe.setPlaceholderText(
                     tr(
                         "va.ueberlauf.vorschlag",
@@ -2815,7 +2815,7 @@ class VierachsPanel:
             return vo.AUFMASS
         if feld in ("ueberlauf", "abstand_futter", "sicherheit"):
             radius = self.fraeser().durchmesser / 2 if self.fraeser() is not None else 0.0
-            ueberlauf, abstand, sicherheit = vo.vorgeschlagene_abstaende(radius)
+            ueberlauf, abstand, sicherheit = vo.vorgeschlagene_abstaende(radius, self.job)
             return {"ueberlauf": ueberlauf, "abstand_futter": abstand}.get(feld, sicherheit)
         einsatz = self.einsatz()
         if feld == "zustellung":
@@ -3123,8 +3123,8 @@ class VierachsPanel:
         )
 
     def _ueberlauf_fuer(self, werkzeug):
-        """Der Überlauf für diesen Fräser (mm): eingetragen gilt er für beide Bearbeitungen,
-        leer je Fräser sein Radius + 0,5 mm."""
+        """Der Überlauf (mm): eingetragen gilt er für alle Bearbeitungen, leer die Abstechbreite
+        + 0,5 mm – das gerade Stück hinter dem Teil fürs Abstechen (P-2026-10-03-08)."""
         text = self.felder_schruppen["ueberlauf"].text()
         if text.strip():
             try:
@@ -3132,7 +3132,7 @@ class VierachsPanel:
             except ValueError:
                 pass
         radius = werkzeug.durchmesser / 2 if werkzeug is not None else 0.0
-        return vb.ueberlauf_vorschlag(radius)
+        return vb.ueberlauf_vorschlag(radius, self._laenge("abstechbreite"))
 
     def _halter_fuer(self, werkzeug):
         """So weit reicht der Halter des Fräsers aus der Werkzeugverwaltung seitlich über die

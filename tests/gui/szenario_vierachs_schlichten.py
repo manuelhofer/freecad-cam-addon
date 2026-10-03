@@ -81,7 +81,7 @@ def schritte(h):
     grau = panel.felder_schlichten["schrittweite"].placeholderText()
     h.pruefe(grau == "0,3", f"Schrittweite grau: {grau!r}")
     grau = panel.felder_schruppen["ueberlauf"].placeholderText()
-    h.pruefe(grau == "Radius + 0,5", f"Überlauf grau: {grau!r}")
+    h.pruefe(grau == "Abstechbreite + 0,5", f"Überlauf grau: {grau!r}")
     yield from h.warte_auf(
         lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 30000
     )
@@ -94,7 +94,7 @@ def schritte(h):
     )
     ausspannen = panel.ausspannen.text()
     h.pruefe(
-        "Überlauf 6,5 + Fräserradius 6,0 + Abstand zum Futter 5,0" in ausspannen,
+        "Überlauf 3,5 + Fräserradius 6,0 + Abstand zum Futter 5,0" in ausspannen,
         f"Ausspannen: {ausspannen!r}",
     )
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")

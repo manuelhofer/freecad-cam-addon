@@ -127,7 +127,7 @@ def schritte(h):
     )
     ausspannen = panel.ausspannen.text()
     h.pruefe(
-        "Überlauf 6,5 + Halter über die Werkzeugachse 27,5 + Abstand zum Futter 5,0" in ausspannen,
+        "Überlauf 3,5 + Halter über die Werkzeugachse 27,5 + Abstand zum Futter 5,0" in ausspannen,
         f"Ausspannen: {ausspannen!r}",
     )
     h.pruefe(not panel.hinweis_bearbeitung.text(), f"rot: {panel.hinweis_bearbeitung.text()!r}")

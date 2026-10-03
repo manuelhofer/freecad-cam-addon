@@ -500,6 +500,11 @@ def _drehlage(platz, normale, laengs):
     return 0.0 if winkel >= 360.0 else winkel
 
 
+def abstechbreite(job):
+    """Die Abstechbreite des Jobs (mm) – ohne gemerkte die Vorgabe."""
+    return float(getattr(job, EIGENSCHAFT_ABSTECHBREITE, ABSTECHBREITE) or ABSTECHBREITE)
+
+
 def spannlaenge(job):
     """Wie tief die Stange eines Jobs aus dem Assistenten im Futter steckt (mm), sonst 0."""
     return float(getattr(job, EIGENSCHAFT_SPANNLAENGE, 0.0) or 0.0)

@@ -113,11 +113,11 @@ pruefe(radien[:4] == [38.0, 36.0, 34.0, 32.0], f"Radien der Lagen: {radien[:6]}"
 # Wo die Stirn das um das Aufmaß dickere Teil trifft (a ≤ 6,3), bleibt sie darüber.
 ueber = [p.r for p in schnitte(bahn) if -100 - R - 0.3 <= p.a <= R + 0.3]
 pruefe(min(ueber) >= 30.3, f"zu tief über dem Teil: {min(ueber)}")
-# Längs: von vorne bis 6,5 mm hinter das Teil (Mitte des Fräsers) – der Fräser verlässt
-# es ganz; dort bleibt die Spitze auf der Tiefe der letzten Kontur, statt hochzuspringen.
-pruefe(min(p.a for p in bahn.punkte) == -100.0 - R - 0.5, "hinteres Ende")
+# Längs: von vorne bis 3,5 mm hinter das Teil (Mitte des Fräsers; Abstechbreite + 0,5) – dort
+# fährt die Spitze das Profil des Teilendes gerade weiter, fürs Stechschwert (P-2026-10-03-08).
+pruefe(min(p.a for p in bahn.punkte) == -100.0 - 3.5, "hinteres Ende")
 letzte = [p for p in schnitte(bahn) if p.r < 32]
-im_ueberlauf = [p.r for p in letzte if p.a < -100 - R - 0.3]
+im_ueberlauf = [p.r for p in letzte if p.a < -100 - 0.3]
 pruefe(im_ueberlauf and max(im_ueberlauf) < 30.4, f"im Überlauf: {im_ueberlauf[:3]}")
 pruefe(bahn.hinten_frei == 0, f"hinten frei: {bahn.hinten_frei}")
 pruefe(max(p.a for p in bahn.punkte) == start.a, "vorderes Ende")
@@ -311,7 +311,7 @@ try:
     fehler.append("Halter ohne Platz: kein Fehler")
 except ValueError as grund:
     pruefe(str(grund) == tr("vb.fehler.platz_halter"), f"kein Platz für den Halter: {grund}")
-pruefe(vb.ueberlauf_vorschlag(6.0) == 6.5, "Vorschlag Überlauf")
+pruefe(vb.ueberlauf_vorschlag(6.0) == 3.5, "Vorschlag Überlauf: Abstechbreite + 0,5")
 # Kugel- und Torusfräser rechnen wie ein Schaftfräser: Zwischen den Bahnen bleiben Rillen –
 # Kugel Ø 12 mit 4,8 mm je Umdrehung gut 0,5 mm, Torus mit Eckradius 1 erst ab 10 mm.
 pruefe(abs(vb.rillenhoehe(6.0, 6.0, 4.8) - (6 - math.sqrt(36 - 2.4**2))) < 1e-12, "Kugel")

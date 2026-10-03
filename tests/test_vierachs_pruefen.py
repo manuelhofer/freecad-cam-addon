@@ -60,7 +60,7 @@ stirn = next(
 )
 lage = vr.berechne(welle.Shape, stirn, achse, durchmesser=50)
 # Die Stange ragt so weit heraus, dass der Kopf des Halters – 27,5 mm über die Werkzeugachse
-# hinaus zum Futter hin – vor dem Futter bleibt: Überlauf 6,5 + 27,5 + Abstand 5 ≈ 40 mm
+# hinaus zum Futter hin – vor dem Futter bleibt: Überlauf 3,5 + 27,5 + Abstand 5 ≈ 37 mm
 # (so rechnet es der Assistent, P-2026-09-30-14).
 stange = vr.Stange(50.0, frei_hinten=40.0)
 job = vr.richte_ein(doc, welle, lage, stange, achse, beschriftung="Welle 4 Achsen")

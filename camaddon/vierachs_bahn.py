@@ -10,11 +10,14 @@ Hüllfläche plus Aufmaß (vierachs_huelle, mit dem Radius R + Aufmaß). Danach
 geht es radial hinaus und im Eilgang nach vorne zur nächsten Lage.
 
 - Wo die Stirn das Teil nicht trifft, schneidet die Lage.
-- Hinten läuft die Spirale über das Teil hinaus, bis der Fräser es ganz
-  verlassen hat: Die Mitte des Fräsers kommt den Überlauf hinter das Teil
-  (Vorschlag Fräserradius + UEBERLAUF_ZUGABE), dort auf der Tiefe des letzten
-  Stücks Kontur – die Kante hinten am Teil wird fertig (Manuel, 2026-09-29:
-  „da muss man schon mindestens mal 6.5 drüber fahren“). Der Rand des Fräsers
+- Hinten läuft die Spirale über das Teil hinaus: Die Mitte des Fräsers kommt den Überlauf
+  hinter das Teil und fährt dort das Profil des Teilendes gerade weiter – die Kante hinten
+  wird fertig, und das Stechschwert trifft beim Abstechen auf ein gerades Stück statt auf eine
+  Schräge, an der es verläuft (Manuel, 2026-10-03: „nach dem Teil einfach noch die
+  Abstechlänge als gerades Stück weiter“). Vorschlag: Abstechbreite + UEBERLAUF_ZUGABE; bis
+  P-2026-10-03-08 Fräserradius + 0,5 (Manuel, 2026-09-29: „mindestens mal 6.5 drüber
+  fahren“) – mit dem geraden Stück ist die Kante schon fertig, sobald die Mitte das Teilende
+  erreicht; mehr Überlauf nähme hinten nur Material weg, das das Teil hält. Der Rand des Fräsers
   bleibt aber immer den Abstand zum Futter vor der Spannfläche; wie weit die
   Stange dafür herausragen muss, rechnet der Assistent (vierachs_rohteil).
 - Die Spitze folgt der Hüllfläche auch über die Drehmitte hinaus (r < 0: der Fräser
@@ -86,7 +89,8 @@ SICHERHEIT = 2.0  # mm – so weit über und vor der Stange fährt der Fräser i
 # mm – so weit bleibt der Rand des Fräsers vor der Spannfläche (Vorschlag): deutlich mehr
 # als der Warnabstand der Kollisionsprüfung (1 mm).
 ABSTAND_FUTTER = 5.0
-UEBERLAUF_ZUGABE = 0.5  # mm – Überlauf = Fräserradius + das: Der Fräser verlässt das Teil ganz
+UEBERLAUF_ZUGABE = 0.5  # mm – Überlauf = Abstechbreite + das
+ABSTECHBREITE = 3.0  # mm – wie vierachs_rohteil.ABSTECHBREITE, ohne Job
 RAND = 0.005  # mm – zum Aufmaß dazu, für Rundungen im Raster
 GLEICH = 1e-9  # mm – so wenig Unterschied gilt als derselbe Radius
 # So tief bliebe ein Hindernis zwischen zwei Zeilen im Abstand g höchstens unentdeckt, wenn nur
@@ -203,9 +207,10 @@ def rillenhoehe(fraeser_radius, eckradius, steigung):
     return eckradius - math.sqrt(eckradius * eckradius - seitlich * seitlich)
 
 
-def ueberlauf_vorschlag(fraeser_radius):
-    """Der Überlauf, bis der Fräser das Teil ganz verlassen hat: Radius + UEBERLAUF_ZUGABE."""
-    return fraeser_radius + UEBERLAUF_ZUGABE
+def ueberlauf_vorschlag(_fraeser_radius=0.0, abstechbreite=ABSTECHBREITE):
+    """Der Überlauf hinter dem Teil: das gerade Stück fürs Abstechen, Abstechbreite +
+    UEBERLAUF_ZUGABE – gleich für jeden Fräser (bis P-2026-10-03-08: Radius + 0,5)."""
+    return abstechbreite + UEBERLAUF_ZUGABE
 
 
 def _ende(teil_hinten, ueberlauf, radius, w):
@@ -349,7 +354,7 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
             return vh.fraeser(netz, laengs, radial, form, stellen, phi_werte)
         return vh.schaftfraeser(netz, laengs, radial, radius + w.aufmass, stellen, phi_werte)
 
-    huelle = _hinten_weiter(huelle_bei(a_werte).sicher(), teil_hinten)
+    huelle = _hinten_gerade(huelle_bei(a_werte).sicher(), teil_hinten)
     zugabe = w.aufmass + netz.toleranz + RAND
     # Vor jeder Wand hält die Spirale eine Umdrehung an: Sonst kommt der Fräser nur auf
     # einem Teil des Umfangs bis an die Wand (D-42). Die Hüllfläche dort genau an der Stelle
@@ -1352,15 +1357,16 @@ def _zusammengefasst(r, toleranz, hoechstens, fest=()):
     return bleibt
 
 
-def _hinten_weiter(huelle, teil_hinten):
-    """Hinter dem Teil (a < teil_hinten), wo der Fräser es nicht mehr trifft, gilt die Tiefe
-    des letzten Stücks Kontur davor – im Überlauf fährt er so aus dem Teil heraus, wie er an
-    dessen Ende war, statt auf den Stangenradius zu springen."""
+def _hinten_gerade(huelle, teil_hinten):
+    """Hinter dem Teil (a < teil_hinten) je Winkel die Tiefe am Teilende: Im Überlauf fährt der
+    Fräser das Profil des Teilendes gerade weiter, statt hinter der Kante hinabzurollen – eine
+    Kugel sank dort bis zu ihrem Radius tiefer und schnitt eine Kerbe hinter das Teil
+    (P-2026-10-03-08; wie _auffuellen beim Schlichten). Wo er am Teilende nichts trifft, bleibt
+    es leer – dort bleibt er oben."""
     r = huelle.r.copy()
-    for i in range(len(huelle.a) - 2, -1, -1):  # von vorne nach hinten
-        if huelle.a[i] < teil_hinten:
-            leer = ~np.isfinite(r[i])
-            r[i, leer] = r[i + 1, leer]
+    hinten = np.flatnonzero(huelle.a < teil_hinten)
+    if len(hinten) and hinten[-1] + 1 < len(huelle.a):
+        r[hinten] = r[hinten[-1] + 1]
     return vh.Huelle(huelle.a, huelle.phi, r)
 
 

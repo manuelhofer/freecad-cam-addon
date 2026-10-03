@@ -204,8 +204,8 @@ def schritte(h):
         panel.feld_drehlage.text(),
     )
     h.pruefe(felder == ("80", "1", "3", "30", ""), f"Schritt 1 wie im Job: {felder}")
-    # Die Länge zählt den Platz für T2 hinter dem Teil mit (Überlauf 4,5 + 4 + 5).
-    h.pruefe("144,5" in panel.laenge_text.text(), f"Länge: {panel.laenge_text.text()!r}")
+    # Die Länge zählt den Platz für T2 hinter dem Teil mit (Überlauf 3,5 + 4 + 5).
+    h.pruefe("143,5" in panel.laenge_text.text(), f"Länge: {panel.laenge_text.text()!r}")
     h.pruefe(
         panel.buchstabe() == "A" and panel.wahl_achse.count() == 3,
         f"Rundachse {panel.buchstabe()}, {panel.wahl_achse.count()} Einträge",

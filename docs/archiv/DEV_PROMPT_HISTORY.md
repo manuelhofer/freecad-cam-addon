@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-08 vierachs-hinten-gerade-zum-abstechen
+
+### EINGELESEN
+- Manuel, 2026-10-03, auf die Frage „hinten nicht fertig fräsen?“: „fänd ich gut … aber was
+  macht er dann hinten? … wenn man nicht den Werkzeugradius mindestens übers Teil hinweg
+  bearbeitet, ist ja die Fläche nicht korrekt … vll sinnvoll zu sagen ‚ok, nach dem Teil einfach
+  noch die Abstechlänge als gerades Stück weiter‘ … wenn man absticht und da ist irgendwie eine
+  Schräge, verläuft ja das Stechschwert … wenn da eine Gerade ist, wo es mit der kompletten
+  Schneide auftrifft, verläuft das nicht so extrem“. Spezifikation Vierachs V3b/V5b.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`_hinten_gerade` statt `_hinten_weiter`, `ueberlauf_vorschlag`,
+  `ABSTECHBREITE`), `camaddon/vierachs_rohteil.py` (`abstechbreite(job)`),
+  `camaddon/vierachs_operation.py` (`vorgeschlagene_abstaende(…, job)`), `vierachs_plan.py`,
+  `vierachs_schlichten.py`, `vierachs_entgraten.py`, `camaddon/gui_vierachs.py` (Vorschlag aus
+  dem Feld Abstechbreite), `translations/de|en.json`, `docs/spezifikation_vierachs.md`,
+  `docs/STATUS_SNAPSHOT.md`, Tests und Szenarien mit dem alten Überlauf, `package.xml` (0.134.0)
+
+### AKZEPTANZKRITERIUM
+Hinter dem Teil fährt der Fräser das Profil des Teilendes gerade weiter, so lang wie die
+Abstechbreite + 0,5 mm, und nicht tiefer; dahinter bleibt Material.
+
+### DONE
+- Das Schruppen nahm hinter dem Teil, wo der Fräser es noch berührte, seine eigene Hüllfläche
+  – seit P-2026-10-03-07 mit der Kugelform rollte die Kugel dort hinter der Kante bis zu ihrem
+  Radius tiefer (eine Kerbe hinter dem Teil); jetzt gilt hinter dem Teil je Winkel die Tiefe am
+  Teilende (wie beim Schlichten schon).
+- Überlauf-Vorschlag Abstechbreite + 0,5 mm (aus dem Job oder dem Feld in Schritt 1) statt
+  Fräserradius + 0,5 – für den Ø 10 3,5 statt 5,5 mm, für den Ø 12 3,5 statt 6,5 mm.
+
+### TESTS
+- `tests/test_vierachs_bahn.py`, `tests/test_vierachs_operation.py` (OK, Erwartungen auf 3,5 mm);
+  `tests/gui/szenario_rundum_drehmaschine.py` (OK). Nur angepasst, nicht gelaufen:
+  `szenario_vierachs_schruppen`, `szenario_vierachs_schlichten`, `szenario_vierachs_aendern`
+  (Texte mit dem neuen Überlauf). black und ruff sauber.
+
+### NEXT
+- Die Y-Achse: ebene Flächen schräg zur Achse mit „Plan indexiert“ (Manuels Teil), dann W-005.
+
 ## P-2026-10-03-07 vierachs-ueber-die-mitte
 
 ### EINGELESEN

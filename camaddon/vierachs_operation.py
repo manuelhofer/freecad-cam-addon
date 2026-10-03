@@ -360,7 +360,7 @@ def lege_an(
     obj.Zustellung = zustellung
     obj.VorschubJeUmdrehung = steigung
     obj.Aufmass = aufmass
-    _setze_abstaende(obj, abstaende or vorgeschlagene_abstaende(float(tc.Tool.Diameter) / 2))
+    _setze_abstaende(obj, abstaende or vorgeschlagene_abstaende(float(tc.Tool.Diameter) / 2, job))
     obj.HalterZumFutter = halter
     obj.Flaechen = list(flaechen_)
     if eintauchwinkel:
@@ -376,9 +376,15 @@ def lege_an(
     return obj
 
 
-def vorgeschlagene_abstaende(fraeser_radius):
-    """(Überlauf, Abstand zum Futter, Sicherheitsabstand), wie vorgeschlagen (mm)."""
-    return vb.ueberlauf_vorschlag(fraeser_radius), vb.ABSTAND_FUTTER, vb.SICHERHEIT
+def vorgeschlagene_abstaende(fraeser_radius, job=None):
+    """(Überlauf, Abstand zum Futter, Sicherheitsabstand), wie vorgeschlagen (mm) – der Überlauf
+    aus der Abstechbreite des Jobs."""
+    abstech = vr.abstechbreite(job) if job is not None else vb.ABSTECHBREITE
+    return (
+        vb.ueberlauf_vorschlag(fraeser_radius, abstech),
+        vb.ABSTAND_FUTTER,
+        vb.SICHERHEIT,
+    )
 
 
 def abstaende(obj):

@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.133.0 (P-2026-10-03-07). Alles, was hier als gebaut steht,
+Stand 0.134.0 (P-2026-10-03-08). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -104,6 +104,10 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
    öffnet die Produktseite, Nutzlänge 49, Gesamtlänge 103, Schaft 10, 140°. Beim Jongen Ø 12
    (0.131.0): „Hals-Ø d1 11,2“ und „Auskragung N 36“ wie im Katalogblatt, das Bild zeigt den
    Hals.
+8. **Hinten am 4-Achs-Teil (0.134.0):** hinter dem Teil fährt der Fräser das Profil des
+   Teilendes 3,5 mm gerade weiter (Abstechbreite 3 + 0,5) und hört dort auf – das Stechschwert
+   trifft auf ein gerades Stück, dahinter bleibt das Material. Im Assistenten steht beim
+   Überlauf grau „Abstechbreite + 0,5“, die Stange muss 2 mm weniger herausragen.
 7. **Dein 4-Achs-Teil (0.133.0):** Job neu anlegen (Rundum schruppen Kugel Ø 10, ap 5,
    5 mm/U, Aufmaß 0,3; Rundum schlichten 0,2) → Prüffenster: der Kern an der Drehmitte und die
    Wulst auf der Fläche sind weg, das Schlichten beginnt vorne, Zeit rechnerisch etwa 2 h statt
@@ -123,7 +127,8 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
    die Kontur abhakst, solange eine Wand gewählt ist.
 
 **Fragen an Manuel** (gebaut ist je die Empfehlung; ändern ist ein kleiner Patch). Beantwortet
-am 2026-10-03: Zeilenabstand am Boden bleibt der halbe Ø; der Standardfräser bleibt bei vc 85 /
+am 2026-10-03: hinten ein gerades Stück der Abstechlänge (gebaut, 0.134.0); W-005 nach den
+Empfehlungen der Spezifikation (wird gebaut); Zeilenabstand am Boden bleibt der halbe Ø; der Standardfräser bleibt bei vc 85 /
 fz 0,1 / ae 1,5 / ap 25; Ceratizit ist CoreLine WPC UNI (eingetragen), Ø 2 und 2,5 bleiben
 weg; die Kiste bleibt nach Werkzeugart mit ein paar realen Werkzeugen je Art – die Hersteller
 sind nur die Quelle, keine Erweiterung nötig; „das Teil muss herauskommen“ ist Grundsatz 0.
@@ -136,12 +141,7 @@ sind nur die Quelle, keine Erweiterung nötig; „das Teil muss herauskommen“ 
 4. *Zwei Fräser an einer Wand (T3):* Die Kontur des Ø 12 fährt in die Tasche, wo er ohne
    Aufmaß hineinpasst, „Restmaterial“ nimmt mit dem Ø 6 den Rest – mit einem Absatz, wo sie
    sich treffen. So lassen, oder je Kontur ein eigener Fräser (ein zweiter Kontur-Block)?
-5. *Hinten am Teil (Abstechen):* Der Überlauf fräst die hintere Kante fertig und schneidet
-   dabei neben einem dünnen Ende tief ein. Soll es eine Wahl „hinten nicht fertig fräsen“ geben
-   – die Kante bleibt fürs Abstechen, das Teil bleibt stabil?
-6. *W-005 Postprozessor:* Ich treffe E1–E7 nach den Empfehlungen in
-   `spezifikation_steuerung.md`, wenn du nichts anderes sagst – und baue ihn als Nächstes.
-7. *Außerdem offen bei dir:* TCPM (W-001), D-14/D-22/D-24/D-27 (Durchsicht, Abschnitt 6),
+5. *Außerdem offen bei dir:* TCPM (W-001), D-14/D-22/D-24/D-27 (Durchsicht, Abschnitt 6),
    D-23 (Ausspannlänge).
 
 **Danach, der Reihe nach:**

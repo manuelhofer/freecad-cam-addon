@@ -79,15 +79,15 @@ pruefe(min(b.Parameters["C"] for b in schnitte) < -3600, "C dreht nicht mehrmals
 ueber = [b.Parameters["X"] for b in schnitte if -106.3 <= b.Parameters["Z"] <= 6.3]
 pruefe(min(ueber) >= 30.3, f"zu tief: {min(ueber)}")
 # Hinten: die Mitte des Fräsers 6,5 mm hinter dem Teil (Überlauf) – das Futter bei −117,5.
-pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-106.5)) < 1e-9, "hinteres Ende")
-pruefe(vo.abstaende(op) == (6.5, 5.0, 2.0), f"Überlauf, Abstand, Sicherheit: {vo.abstaende(op)}")
+pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-103.5)) < 1e-9, "hinteres Ende")
+pruefe(vo.abstaende(op) == (3.5, 5.0, 2.0), f"Überlauf, Abstand, Sicherheit: {vo.abstaende(op)}")
 # Eine Operation aus 0.26 (ohne Überlauf und Abstand zum Futter): Beim Laden bekommt sie
 # die Werte, mit denen ihre Bahn bleibt, wie sie war – 2 mm vor dem Futter.
 op.removeProperty("Ueberlauf")
 op.removeProperty("AbstandFutter")
 op.removeProperty("HalterZumFutter")  # bis 0.28: nur der Fräser vor dem Futter
 op.Proxy.opOnDocumentRestored(op)
-pruefe(vo.abstaende(op) == (6.5, 2.0, 2.0), f"alte Operation: {vo.abstaende(op)}")
+pruefe(vo.abstaende(op) == (3.5, 2.0, 2.0), f"alte Operation: {vo.abstaende(op)}")
 pruefe(vo.halter_zum_futter(op) == 0.0, f"alter Halter: {vo.halter_zum_futter(op)}")
 op.AbstandFutter = 5.0
 # Ein Halter, der 27,5 mm über die Werkzeugachse reicht: Er bleibt 5 mm vor dem Futter
