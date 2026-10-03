@@ -2605,6 +2605,13 @@ Kollision mit Rundachsen je Station.
   **G93 (P-2026-10-03-56):** `programm_ohne_tcpm(…, g93=True)` – je Satz 1 ÷ Zeit aus dem Weg der
   Spitze am Werkstück (dreht sich nur die Achse: der größte Winkel in Grad wie mm); am Beispiel
   40 mm mit 10 mm/s → 4,0 s in „Auf der Maschine prüfen“.
+  **Verdichten (P-2026-10-04-13):** Ohne TCPM fährt die Maschine zwischen zwei Sätzen jede Achse
+  linear; dreht sich eine Rundachse, wandert die Spitze am Werkstück von der Geraden weg (ein
+  Satz von 20 mm, in dem die Achse um 40° kippt: in der Mitte 5,5 mm am Tisch/Tisch, 21,7 am
+  Kopf/Tisch, 18,7 am Kopf/Kopf). `programm_ohne_tcpm` halbiert solche Sätze (`verdichtet`,
+  `abweichung`: die Spitze in der Satzmitte über die umgekehrte `Abbildung`), bis sie höchstens
+  `TOLERANZ` 0,005 mm daneben liegt – dort 65 bzw. 129 Punkte, bis 0,0046 mm, auch bei einem und
+  drei Vierteln des Satzes. G93 zählt je Teilsatz; zusammen bleibt die Zeit.
 - **S2 Kugelfräser angestellt** (Vorschlag für zuerst): das 3D-Schlichten, das es gibt, mit
   Anstellwinkel. Beim Kugelfräser bleibt der Mittelpunkt der Kugel, wo er ist – nur die Achse
   kippt um ihn; die Bahn muss nicht neu gerechnet werden, nur die Achse je Punkt (voreilend in
@@ -2642,7 +2649,7 @@ sie gerade so weit, dass zwischen Achse und Normale 15° liegen. Die Variante �
 Zeit und schneidet nirgends mit der Spitze; ihre größte Änderung je Satz war 4,5° (eine stetige
 Fassung, A = min(0, β − 15°), braucht 4,9 min). Ohne TCPM fährt die Maschine zwischen zwei
 Punkten jede Achse linear – bei 4,5° je Satz weicht die Spitze am Tisch/Tisch bis etwa 0,08 mm
-ab; gebaut müsste die Bahn dort dichter werden. Kollision nicht geprüft. Bilder:
+ab; seit P-2026-10-04-13 verdichtet der Kern solche Sätze selbst. Kollision nicht geprüft. Bilder:
 Draufsicht nach Schnitt-Ø je Variante, Seitenansicht mit dem Werkzeug (im Bericht an Manuel).
 
 ### 16.4 Zu entscheiden (Manuel)

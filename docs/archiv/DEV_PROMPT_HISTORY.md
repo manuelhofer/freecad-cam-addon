@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-13 simultan-verdichten
+
+### EINGELESEN
+- Versuch an der Kuppel (Spezifikation 16.3): Ohne TCPM fährt die Maschine zwischen zwei Sätzen
+  jede Achse linear – bei 4,5° je Satz lag die Spitze am Tisch/Tisch bis etwa 0,08 mm neben der
+  Bahn; der Kern S1 schrieb die Punkte, wie sie kamen.
+
+### DATEIEN
+- `camaddon/simultan.py` (`abweichung`: die Spitze in der Satzmitte über die umgekehrte
+  `Abbildung`; `verdichtet`: Sätze im Vorschub halbieren, die Achse gemittelt, die Rundachsen
+  nachgeführt, bis TOLERANZ 0,005 mm, höchstens TIEFE 10; `programm_ohne_tcpm(…, toleranz=)`),
+  `tests/test_simultan.py`, Spezifikation Strategien 16.3, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.164.2).
+
+### AKZEPTANZKRITERIUM
+- Ein Satz von 20 mm, die Achse kippt um 40°: ungeteilt in der Mitte 5,5 / 21,7 / 18,7 mm
+  neben der Geraden (Tisch/Tisch, Kopf/Tisch, Kopf/Kopf), verdichtet 65 / 129 / 65 Punkte und
+  höchstens 0,0014 / 0,0013 / 0,0046 mm – auch bei einem und drei Vierteln jedes Teilsatzes,
+  unabhängig nachgerechnet. G93: zusammen 4,000 s wie ungeteilt; „Auf der Maschine prüfen“ 4 s.
+
+### DONE
+- Wie oben. Keine Strategie nutzt den Kern – nichts geändert, was das Addon wählt.
+
+### TESTS
+- `tests/test_simultan.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu E-2, E-3 (Empfehlung nach dem Versuch: S2, „nur so viel wie nötig“, eine
+  Rundachse).
+
 ## P-2026-10-04-12 hoehenlinien-ohne-luecken (B-013)
 
 ### EINGELESEN

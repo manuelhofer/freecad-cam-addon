@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.164.1 (P-2026-10-04-12). Alles, was hier als gebaut steht,
+Stand 0.164.2 (P-2026-10-04-13). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -81,8 +81,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - **W-015 5 Achsen simultan** – Entwurf zum Besprechen (Spezifikation Strategien 16): Kern,
   Kugelfräser angestellt, Flanke, Wegkippen; E-2 und E-3 entscheidet Manuel (E-1 TCPM: aus, schon
   beantwortet; damit auch E-4: Rundachsen). Gebaut nur der
-  Kern S1 ohne TCPM und ohne Oberfläche (`simultan.py`); keine Strategie, nichts geändert, was das
-  Addon wählt.
+  Kern S1 ohne TCPM und ohne Oberfläche (`simultan.py`, seit P-2026-10-04-13 mit Verdichten auf
+  0,005 mm); keine Strategie, nichts geändert, was das Addon wählt. Versuch an der Kuppel
+  (Spezifikation 16.3): „nur A, so wenig wie nötig“ kostet 6 % Zeit, nirgends vc = 0.
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei

@@ -4,7 +4,9 @@
 # die Senkrechte (den Pol) auf +20°, während die Spitze 40 mm fährt; und die Achse läuft 25°
 # geneigt auf einem Kegel um Z (120°), die Spitze steht. Nachgeprüft mit „Auf der Maschine
 # prüfen“: Die Spitze steht am gedrehten Werkstück auf jedem Punkt der Bahn, die Werkzeugachse
-# ist die gewünschte, keine Rundachse springt (höchstens 6° von Punkt zu Punkt).
+# ist die gewünschte, keine Rundachse springt (höchstens 6° von Punkt zu Punkt). Ohne TCPM
+# wandert die Spitze zwischen zwei Sätzen von der Geraden, wenn sich Rundachsen drehen: Das
+# Programm setzt Punkte dazwischen, bis sie höchstens 0,005 mm daneben liegt.
 import math
 import os
 import sys
@@ -105,19 +107,73 @@ for bauplan in (
         )
         if bahn is kippen:
             # G93: je Satz 1 ÷ Zeit – die Spitze fährt 40 mm mit 10 mm/s, also 4 s (der erste
-            # Satz ist der Anfang, im Eilgang).
+            # Satz ist der Anfang, im Eilgang). Ungeteilt jeder Satz F 10; verdichtet (die
+            # Rundachse dreht 1° je mm) zusammen dieselben 4 s.
             eil = [si.Punkt(bahn[0].spitze, bahn[0].achse, eilgang=True)] + bahn[1:]
-            g93 = si.programm_ohne_tcpm(maschine, eil, g93=True)
+            ungeteilt = si.programm_ohne_tcpm(maschine, eil, g93=True, toleranz=None)
             pruefe(
-                g93[0].Name == "G93" and g93[-1].Name == "G94"
-                and all(nahe_f(c.Parameters["F"], 10.0) for c in g93[2:-1]),
-                f"{name}: G93 {[c.toGCode() for c in g93[:4]]}",
+                ungeteilt[0].Name == "G93" and ungeteilt[-1].Name == "G94"
+                and all(nahe_f(c.Parameters["F"], 10.0) for c in ungeteilt[2:-1]),
+                f"{name}: G93 {[c.toGCode() for c in ungeteilt[:4]]}",
             )  # fmt: skip
+            g93 = si.programm_ohne_tcpm(maschine, eil, g93=True)
+            summe = sum(1.0 / c.Parameters["F"] for c in g93[2:-1])
+            pruefe(abs(summe - 4.0) < 1e-3, f"{name}: verdichtet {summe:.6f} s statt 4")
             op.Gcode = [c.toGCode() for c in g93]
             doc.recompute()
             fahrt = ab.abfahrt(p, job, null)
             dauer = fahrt.stationen[-1].zeit - fahrt.stationen[0].zeit
             pruefe(abs(dauer - 4.0) < 0.05, f"{name}: G93 dauert {dauer:.3f} s statt 4")
+    FreeCAD.closeDocument(asm.Document.Name)
+
+# Ohne TCPM fährt die Maschine zwischen zwei Sätzen jede Achse linear: Kippt die Achse in einem
+# Satz von 20 mm um 40°, liegt die Spitze in seiner Mitte weit neben der Geraden. Verdichtet
+# liegt sie in jedem Teilsatz – auch bei einem und drei Vierteln, unabhängig nachgerechnet –
+# höchstens um die Toleranz daneben.
+
+
+def neben_der_geraden(maschine, a, b, ra, rb, t):
+    """Die Spitze am Werkstück beim Anteil t des Satzes a → b (Maschine linear, ohne TCPM): ihr
+    Abstand von der Geraden a → b."""
+    r = {k: ra[k] + t * (rb[k] - ra[k]) for k in ra}
+    pa, pb = maschine.abbildung(ra).punkt(a.spitze), maschine.abbildung(rb).punkt(b.spitze)
+    programm = V(*(u + t * (v - u) for u, v in zip(pa, pb, strict=True)))
+    abb = maschine.abbildung(r)
+    d = programm - V(*abb.b)
+    spitze = V(*(sum(abb.a[k][i] * (d.x, d.y, d.z)[k] for k in range(3)) for i in range(3)))
+    return spitze.distanceToLine(V(*a.spitze), V(*b.spitze) - V(*a.spitze))
+
+
+s40 = math.sin(math.radians(20.0))
+c40 = math.cos(math.radians(20.0))
+gross = [
+    si.Punkt((10.0, 20.0, 45.0), (-s40, 0.0, c40), vorschub=10.0),
+    si.Punkt((30.0, 20.0, 45.0), (s40, 0.0, c40), vorschub=10.0),
+]
+for bauplan in (
+    beispielmaschine.fuenfachs_tisch_tisch,
+    beispielmaschine.fuenfachs_kopf_tisch,
+    beispielmaschine.fuenfachs_kopf_kopf,
+):
+    name = bauplan.__name__
+    asm, ma = bauplan()
+    p = rw.Pruefung(asm, ma)
+    tc = op.ToolController
+    maschine = sw.Maschine(p, p.werkzeugaufnahme(tc.ToolNumber), rw.einspannung(tc, None), null)
+    rund = si.rundachsen_entlang(maschine, [b.achse for b in gross])
+    vorher = si.abweichung(maschine, gross[0], gross[1], rund[0], rund[1])
+    dicht, dicht_rund = si.verdichtet(maschine, gross, rund)
+    schlimmste = max(
+        neben_der_geraden(maschine, a, b, ra, rb, t)
+        for a, b, ra, rb in zip(dicht, dicht[1:], dicht_rund, dicht_rund[1:], strict=False)
+        for t in (0.25, 0.5, 0.75)
+    )
+    print(f"{name}: ungeteilt {vorher:.3f} mm, verdichtet {len(dicht)} Punkte, {schlimmste:.4f} mm")
+    pruefe(vorher > 0.1, f"{name}: ungeteilt nur {vorher:.4f} mm daneben")
+    pruefe(
+        len(dicht) > 2 and schlimmste <= si.TOLERANZ + 1e-6,
+        f"{name}: verdichtet {len(dicht)} Punkte, bis {schlimmste:.4f} mm daneben",
+    )
     FreeCAD.closeDocument(asm.Document.Name)
 
 # Ein Punkt, den die Maschine nicht treffen kann (unter den Tisch): der Satz, warum.

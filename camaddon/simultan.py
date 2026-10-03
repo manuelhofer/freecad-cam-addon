@@ -10,7 +10,10 @@ mehr ändert, bleibt sie stehen) – und X, Y, Z, wie eine Steuerung ohne TCPM s
 
 Wie die Bahn entsteht (Kugelfräser angestellt, Flanke …) und ob das Programm TCPM nimmt,
 entscheidet Manuel (Spezifikation 16.4); die Rundachsen entlang der Bahn braucht jeder Weg –
-auch die Prüfung auf der Maschine. Läuft ohne Oberfläche.
+auch die Prüfung auf der Maschine. Ohne TCPM fährt die Maschine zwischen zwei Sätzen jede Achse
+linear; dreht sich dabei eine Rundachse, wandert die Spitze am Werkstück von der Geraden weg.
+programm_ohne_tcpm() setzt deshalb Punkte dazwischen, bis die Spitze in der Mitte jedes Satzes
+höchstens `toleranz` neben der Geraden liegt (`verdichtet`). Läuft ohne Oberfläche.
 """
 
 import math
@@ -26,6 +29,8 @@ GENAU = 1e-13  # 1 − cos des Winkels zwischen Werkzeugachse und Ziel: genau ge
 DAEMPFUNG = 1e-9  # gegen die Singularität am Pol (Anteil an der Spur von JᵀJ)
 GROESSTER_SCHRITT = 10.0  # Grad je Rechenschritt – sonst springt es am Pol auf den anderen Ast
 KUERZESTE_ZEIT = 1e-3  # s – so kurz dauert ein Satz mit G93 mindestens
+TOLERANZ = 0.005  # mm – so weit darf die Spitze in der Mitte eines Satzes neben der Geraden liegen
+TIEFE = 10  # so oft halbiert verdichtet() einen Satz höchstens (1024 Stücke)
 
 
 @dataclass
@@ -109,17 +114,83 @@ def _nachfuehren(maschine, n, werte):
     return werte if 1.0 - float(d @ ziel) <= grenze else None
 
 
-def programm_ohne_tcpm(maschine, punkte, g93=False):
+def abweichung(maschine, von, nach, rund_von, rund_nach):
+    """Wie weit (mm) die Spitze am Werkstück in der Mitte des Satzes `von` → `nach` (Punkt) neben
+    der Geraden liegt, wenn die Maschine X, Y, Z und die Rundachsen (`rund_…`) linear fährt –
+    ohne TCPM. None, wenn die Maschine an einer Stellung keine Abbildung hat."""
+    mitte = {k: (rund_von[k] + rund_nach[k]) / 2 for k in rund_von}
+    a0, a1, am = (maschine.abbildung(r) for r in (rund_von, rund_nach, mitte))
+    if a0 is None or a1 is None or am is None:
+        return None
+    p0, p1 = a0.punkt(von.spitze), a1.punkt(nach.spitze)
+    programm = [(u + v) / 2 for u, v in zip(p0, p1, strict=True)]
+    d = [programm[i] - am.b[i] for i in range(3)]
+    spitze = [sum(am.a[k][i] * d[k] for k in range(3)) for i in range(3)]  # Aᵀ · (P − b)
+    soll = [(u + v) / 2 for u, v in zip(von.spitze, nach.spitze, strict=True)]
+    return math.dist(spitze, soll)
+
+
+def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ):
+    """(Punkte, Rundachsen) – zwischen zwei Sätzen im Vorschub so viele Punkte auf der Geraden
+    dazu (die Achse dazwischen gemittelt, die Rundachsen von davor aus nachgeführt), bis die
+    Spitze in der Mitte jedes Satzes höchstens `toleranz` neben ihr liegt (abweichung);
+    höchstens TIEFE-mal halbiert. Eilgänge bleiben, wie sie sind."""
+    if not punkte:
+        return [], []
+    neu_punkte, neu_rund = [punkte[0]], [rund[0]]
+    buchstaben = [a.buchstabe for a in maschine.rundachsen]
+
+    def halbieren(von, nach, r_von, r_nach, tiefe):
+        fehler = abweichung(maschine, von, nach, r_von, r_nach)
+        if fehler is None or fehler <= toleranz or tiefe >= TIEFE:
+            neu_punkte.append(nach)
+            neu_rund.append(r_nach)
+            return
+        achse = [(u + v) / 2 for u, v in zip(von.achse, nach.achse, strict=True)]
+        n = FreeCAD.Vector(*achse)
+        if n.Length < 1e-9:
+            neu_punkte.append(nach)
+            neu_rund.append(r_nach)
+            return
+        n.normalize()
+        werte = _nachfuehren(maschine, n, [r_von[b] for b in buchstaben])
+        if werte is None:
+            neu_punkte.append(nach)
+            neu_rund.append(r_nach)
+            return
+        r_mitte = {b: sw._rund(w) for b, w in zip(buchstaben, werte, strict=True)}
+        mitte = Punkt(
+            tuple((u + v) / 2 for u, v in zip(von.spitze, nach.spitze, strict=True)),
+            (n.x, n.y, n.z),
+            vorschub=nach.vorschub,
+        )
+        halbieren(von, mitte, r_von, r_mitte, tiefe + 1)
+        halbieren(mitte, nach, r_mitte, r_nach, tiefe + 1)
+
+    for i in range(1, len(punkte)):
+        if punkte[i].eilgang:
+            neu_punkte.append(punkte[i])
+            neu_rund.append(rund[i])
+        else:
+            halbieren(punkte[i - 1], punkte[i], rund[i - 1], rund[i], 0)
+    return neu_punkte, neu_rund
+
+
+def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ):
     """[Path.Command] – die Bahn (Punkt …) mit den Rundachsen je Punkt und X, Y, Z, wie eine
     Steuerung ohne TCPM sie liest. Zwischen zwei Punkten fährt die Maschine jede Achse linear –
     die Spitze bleibt nur nahe der Geraden, wenn die Punkte dicht liegen. `g93`: der Vorschub
     als 1 ÷ Zeit (G93 … G94): je Satz die Zeit aus dem Weg der Spitze am Werkstück und dem
     Vorschub – dreht sich nur die Achse, zählt der größte Winkel in Grad wie mm; F wie
-    FreeCADs Bahnen ÷ 60 (1 ÷ Sekunden). ValueError mit einem Satz wie rundachsen_entlang, oder
-    wenn die Maschine keine drei Linearachsen hat."""
+    FreeCADs Bahnen ÷ 60 (1 ÷ Sekunden). `toleranz`: Sätze im Vorschub so dicht, dass die Spitze
+    in ihrer Mitte höchstens so weit neben der Geraden liegt (verdichtet; 0 oder None: wie
+    gegeben). ValueError mit einem Satz wie rundachsen_entlang, oder wenn die Maschine keine drei
+    Linearachsen hat."""
     import Path
 
     rund = rundachsen_entlang(maschine, [p.achse for p in punkte])
+    if toleranz:
+        punkte, rund = verdichtet(maschine, punkte, rund, toleranz)
     befehle = [Path.Command("G93")] if g93 else []
     vorschub, davor = 0.0, None
     for punkt, stellung in zip(punkte, rund, strict=True):
