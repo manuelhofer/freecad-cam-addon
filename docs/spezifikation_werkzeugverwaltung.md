@@ -813,6 +813,19 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
     Art mit N. Das Bild zeichnet den Hals (`werkzeugform._mit_hals`), Reichweite und Kollision
     rechnen mit ihm (sie lasen `hals_laenge` schon immer über `mass`). Die Kiste hatte die
     Werte schon (Jongen 494W: N 36, d1 11,2 bei Ø 12).
+  - **GARANT von der Hoffmann Group statt Beispielen (P-2026-10-03-11; Manuel, 2026-10-03:
+    „wo du nichts gefunden hast, beispielsweise bei dem Kugelfräser – Hoffmann Group oder WEMAG
+    sind Anlaufstellen, wo du alles bekommst“):** Kugelfräser 207424 10 (Diabolo
+    Vollradiusfräser HPC Ø 10, Z 3, L 100), Torusfräser 206260 10/1,0 (HPC ZOX, Z 3, LC 22,
+    L 72), Lollipop 207175 10 (Kugelfräser 220°, Z 2, L 120 – Hals geschätzt), Gewindefräser
+    139663 M10 (Master TM AlTiN, DC 8,1, Z 6, LC 20,25, L 82, Schaft 12, IK), Zentrierbohrer
+    111000 2,5 (DIN 333 A), NC-Anbohrer 121020 10 (VHM 90°, L 70), Gewindebohrer links
+    132800 M10, Kegelsenker 150152 20,5 (Präzision, DIN 335 C, Z 3, L 63), Reibahle 163000 10
+    (H7 HSS-E, Z 6, LC 38, L 133) – je mit Artikel, Link auf die Seite und Maßen von dort
+    (`werkzeugkiste._hoffmann`). Schnittwerte zeigt Hoffmann nur über ToolScout: weiter
+    Richtwerte. Konik-, Schwalbenschwanz-, Viertelkreis-, Scheibennut- und Formfräser,
+    Flachsenker, Bohrstange, Ausspindelkopf und Taster bleiben Beispiele (kein passender
+    Einzelartikel gefunden; WEMAG nicht nachgeschlagen).
   - **Geklärt (Manuel, 2026-10-03):** „andere Hersteller aufnehmen“ war kein Wunsch nach
     einer Erweiterung – gemeint war von Anfang an: die Herstellerseiten nach Werten durchsuchen
     und je Werkzeugart ein paar reale Werkzeuge mit Werten und Bestell-Link zum Übernehmen

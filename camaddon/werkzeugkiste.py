@@ -455,21 +455,54 @@ def _beispiel(kennung, art, titel, quelle, werte, name, schneidstoff=wz.VHM):
     )
 
 
+HOFFMANN_SEITE = "https://www.hoffmann-group.com/DE/de/hom/p/{artikel}"
+
+
+def _hoffmann(kennung, art, titel, artikel, werte, name, schneidstoff=wz.VHM, quelle=""):
+    """Ein GARANT-Werkzeug der Hoffmann Group – Artikel, Maße und Link nachgeschlagen am
+    2026-10-03 auf hoffmann-group.com (Manuel: „Hoffmann Group oder WEMAG sind Anlaufstellen,
+    wo du alles bekommst … dort findet man dann auch alle Daten“). Schnittwerte nennt die Seite
+    nur über ToolScout: Richtwerte, je Werkstoffklasse geschätzt. `artikel` wie auf der Seite
+    („207424 10“); der Link nimmt die Form der Adresse („207424-10“)."""
+    adresse = artikel.replace(" ", "-").replace("/", "@2F")
+    seite = HOFFMANN_SEITE.format(artikel=adresse)
+    werte = dict(werte, name=name, artikel=artikel, link=seite, katalog=seite)
+    return Reihe(
+        kennung=kennung,
+        art=art,
+        hersteller="Hoffmann Group",
+        titel=titel,
+        quelle=(
+            f"Hoffmann Group, {seite} (2026-10-03): Artikel {artikel}, Maße von der Seite. "
+            + (quelle + " " if quelle else "")
+            + "Schnittwerte: Richtwerte, je Werkstoffklasse geschätzt."
+        ),
+        groessen=(werte,),
+        gemeinsam={"schneidstoff": schneidstoff},
+        bezeichnung=f"GARANT {titel} · {RICHTWERTE}",
+        katalog=seite,
+        schnittwerte=wz.einsatzarten(art) is not None,
+    )
+
+
 def _beispiele():
-    """Je weitere Art ein Werkzeug, wie es in jeder Werkstatt liegt."""
+    """Je weitere Art ein Werkzeug – wo eins nachgeschlagen ist, ein echtes von der Hoffmann
+    Group (GARANT), sonst eins, wie es in jeder Werkstatt liegt."""
     ueblich = "Maße wie üblich, Werte je Werkstoffklasse geschätzt."
     return (
-        _beispiel(
-            "beispiel-torus", wz.TORUSFRAESER, "Torusfräser VHM Ø 10 R1, 4 Schneiden", ueblich,
-            {"durchmesser": 10.0, "eckradius": 1.0, "schneiden": 4, "schneidenlaenge": 22.0,
+        _hoffmann(
+            "garant-torus", wz.TORUSFRAESER, "VHM-Torusfräser HPC ZOX Ø 10 R1, 3 Schneiden",
+            "206260 10/1,0",
+            {"durchmesser": 10.0, "eckradius": 1.0, "schneiden": 3, "schneidenlaenge": 22.0,
              "gesamtlaenge": 72.0, "schaft": 10.0},
-            "Torus D10 R1",
+            "206260 D10 R1",
         ),
-        _beispiel(
-            "beispiel-kugel", wz.KUGELFRAESER, "Kugelfräser VHM Ø 10, 2 Schneiden", ueblich,
-            {"durchmesser": 10.0, "schneiden": 2, "schneidenlaenge": 10.0, "gesamtlaenge": 72.0,
+        _hoffmann(
+            "garant-kugel", wz.KUGELFRAESER,
+            "Diabolo VHM-Vollradiusfräser HPC TiAlN Ø 10, 3 Schneiden", "207424 10",
+            {"durchmesser": 10.0, "schneiden": 3, "schneidenlaenge": 18.0, "gesamtlaenge": 100.0,
              "schaft": 10.0},
-            "Kugel D10",
+            "207424 D10", quelle="Bis 65 HRC, Radiustoleranz ±0,005 mm.",
         ),
         _beispiel(
             "beispiel-konik", wz.KONIKFRAESER, "Konikfräser VHM Ø 4, 3°", ueblich,
@@ -484,11 +517,13 @@ def _beispiele():
              "hals_d": 8.0, "gesamtlaenge": 60.0, "schaft": 12.0},
             "Schwalbe D20",
         ),
-        _beispiel(
-            "beispiel-lollipop", wz.LOLLIPOPFRAESER, "Lollipopfräser VHM Ø 8", ueblich,
-            {"durchmesser": 8.0, "schneiden": 4, "hals_d": 5.0, "hals_laenge": 20.0,
-             "gesamtlaenge": 60.0, "schaft": 8.0},
-            "Lollipop D8",
+        _hoffmann(
+            "garant-lollipop", wz.LOLLIPOPFRAESER, "VHM-Kugelfräser 220° TiAlN Ø 10, 2 Schneiden",
+            "207175 10",
+            {"durchmesser": 10.0, "schneiden": 2, "hals_d": 6.5, "hals_laenge": 30.0,
+             "gesamtlaenge": 120.0, "schaft": 10.0},
+            "207175 D10 220Grad",
+            quelle="Hals-Ø und Halslänge nennt die Seite nicht – geschätzt.",
         ),
         _beispiel(
             "beispiel-radius", wz.RADIENFRAESER, "Viertelkreisfräser VHM R3", ueblich,
@@ -510,40 +545,42 @@ def _beispiele():
              "schaft": 10.0},
             "Form D10",
         ),
-        _beispiel(
-            "beispiel-gewindefraeser", wz.GEWINDEFRAESER,
-            "Gewindefräser VHM M10 × 1,5, 3 Schneiden", ueblich,
-            {"durchmesser": 8.0, "steigung": 1.5, "flankenwinkel": 60.0, "schneiden": 3,
-             "schneidenlaenge": 20.0, "hals_d": 6.2, "hals_laenge": 22.0, "gesamtlaenge": 63.0,
-             "schaft": 8.0},
-            "GF M10x1.5",
+        _hoffmann(
+            "garant-gewindefraeser", wz.GEWINDEFRAESER,
+            "Master TM Schaft-Gewindefräser AlTiN M10 × 1,5, 6 Schneiden, IK", "139663 M10",
+            {"durchmesser": 8.1, "steigung": 1.5, "flankenwinkel": 60.0, "schneiden": 6,
+             "schneidenlaenge": 20.25, "gesamtlaenge": 82.0, "schaft": 12.0},
+            "139663 M10",
+            quelle="Bis 2 × D, mit Senkstufe 90°; der Hals nennt die Seite nicht – geschätzt.",
         ),
-        _beispiel(
-            "beispiel-zentrierbohrer", wz.ZENTRIERBOHRER,
-            "Zentrierbohrer DIN 333 A 2,5 × 6,3 HSS", "Maße nach DIN 333 A, Werte geschätzt.",
+        _hoffmann(
+            "garant-zentrierbohrer", wz.ZENTRIERBOHRER, "Zentrierbohrer HSS DIN 333 A 2,5",
+            "111000 2,5",
             {"durchmesser": 2.5, "spitzenwinkel": 60.0, "schneiden": 2, "schneidenlaenge": 3.1,
              "gesamtlaenge": 45.0, "schaft": 6.3},
-            "Zentrier A2.5", wz.HSS,
+            "111000 A2.5", wz.HSS, quelle="Maße nach DIN 333 A.",
         ),
-        _beispiel(
-            "beispiel-nc-anbohrer", wz.NC_ANBOHRER, "NC-Anbohrer VHM 90° Ø 10", ueblich,
-            {"durchmesser": 10.0, "spitzenwinkel": 90.0, "schneiden": 2, "schneidenlaenge": 20.0,
-             "gesamtlaenge": 72.0, "schaft": 10.0},
-            "NC90 D10",
+        _hoffmann(
+            "garant-nc-anbohrer", wz.NC_ANBOHRER, "VHM-NC-Anbohrer 90° unbeschichtet Ø 10",
+            "121020 10",
+            {"durchmesser": 10.0, "spitzenwinkel": 90.0, "schneiden": 2, "schneidenlaenge": 24.0,
+             "gesamtlaenge": 70.0, "schaft": 10.0},
+            "121020 D10",
         ),
-        _beispiel(
-            "beispiel-gewinde-links", wz.GEWINDEBOHRER_LINKS,
-            "Gewindebohrer M10 × 1,5 links, HSS-E", "Maße nach DIN 371, Werte geschätzt.",
+        _hoffmann(
+            "garant-gewinde-links", wz.GEWINDEBOHRER_LINKS,
+            "Maschinen-Gewindebohrer Linksgewinde HSS-E 6H M10 × 1,5", "132800 M10",
             {"durchmesser": 10.0, "steigung": 1.5, "schneidenlaenge": 24.0,
              "gesamtlaenge": 100.0, "schaft": 10.0},
-            "M10 LH", wz.HSS,
+            "132800 M10 LH", wz.HSS,
+            quelle="Längen nach DIN 371 – die Seite war nicht im Einzelnen zu lesen.",
         ),
-        _beispiel(
-            "beispiel-kegelsenker", wz.KEGELSENKER, "Kegelsenker 90° DIN 335 C Ø 20,5 HSS",
-            "Maße nach DIN 335 C, Werte geschätzt.",
+        _hoffmann(
+            "garant-kegelsenker", wz.KEGELSENKER,
+            "Präzisions-Kegelsenker 90° HSS DIN 335 C Ø 20,5, 3 Schneiden", "150152 20,5",
             {"durchmesser": 20.5, "spitzenwinkel": 90.0, "spitzen_d": 4.5, "schneiden": 3,
              "gesamtlaenge": 63.0, "schaft": 10.0},
-            "Senker90 D20.5", wz.HSS,
+            "150152 D20.5", wz.HSS,
         ),
         _beispiel(
             "beispiel-flachsenker", wz.FLACHSENKER, "Flachsenker DIN 373 für M8 (Ø 15) HSS",
@@ -552,12 +589,12 @@ def _beispiele():
              "gesamtlaenge": 100.0, "schaft": 12.5},
             "Flachsenker M8", wz.HSS,
         ),
-        _beispiel(
-            "beispiel-reibahle", wz.REIBAHLE, "Maschinenreibahle Ø 10 H7 HSS-E, DIN 212",
-            "Maße nach DIN 212, Werte geschätzt.",
+        _hoffmann(
+            "garant-reibahle", wz.REIBAHLE, "Maschinenreibahle H7 HSS-E Ø 10, 6 Schneiden",
+            "163000 10",
             {"durchmesser": 10.0, "schneiden": 6, "schneidenlaenge": 38.0, "gesamtlaenge": 133.0,
              "schaft": 10.0},
-            "Reibahle D10 H7", wz.HSS,
+            "163000 D10 H7", wz.HSS,
         ),
         _beispiel(
             "beispiel-bohrstange", wz.BOHRSTANGE, "Bohrstange mit Wendeplatte, ab Ø 16",
