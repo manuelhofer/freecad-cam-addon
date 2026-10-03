@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-11 werkzeugkiste-garant-hoffmann
+
+### EINGELESEN
+- Manuel, 2026-10-03: „kommen wir noch zur Werkzeugverwaltung … wo du nichts gefunden hast,
+  beispielsweise bei dem Kugelfräser – Hoffmann Group oder WEMAG sind Anlaufstellen, wo du alles
+  bekommst, daher einfach dort nachschauen, dort findet man dann auch alle Daten“.
+  Spezifikation Werkzeugverwaltung 13.
+
+### DATEIEN
+- `camaddon/werkzeugkiste.py` (`HOFFMANN_SEITE`, `_hoffmann`, neun Reihen),
+  `docs/spezifikation_werkzeugverwaltung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.137.0). Zwei Commits: der zweite zieht Snapshot und Verlauf nach (das Doku-Skript brach ab).
+
+### AKZEPTANZKRITERIUM
+Für Kugel-, Torus-, Lollipop-, Gewindefräser, Zentrierbohrer, NC-Anbohrer, Linksgewindebohrer,
+Kegelsenker und Reibahle bietet die Kiste ein echtes GARANT-Werkzeug mit Artikel, Link und den
+Maßen von der Hoffmann-Seite.
+
+### DONE
+- Nachgeschlagen auf hoffmann-group.com (Suche und Produktseiten); Artikel und Maße in der
+  Spezifikation. Die Adresse des Links nimmt die Form der Seite („206260-10@2F1,0“).
+- **Nicht erreicht:** Schnittwerte (Hoffmann zeigt sie über ToolScout, nicht auf der Seite);
+  Hals von Lollipop und Gewindefräser; Konik, Schwalbenschwanz, Viertelkreis (nur als Set),
+  Scheibennut, Formfräser, Flachsenker, Bohrstange, Ausspindelkopf, Taster bleiben Beispiele;
+  WEMAG nicht nachgeschlagen.
+
+### TESTS
+- `tests/test_werkzeugkiste.py` (OK), `tests/gui/szenario_werkzeugkiste.py` (OK, Bild
+  `1_kiste` mit den Hoffmann-Reihen). black und ruff sauber.
+
+### NEXT
+- Manuels Test der Stände 0.134–0.137.
+
 ## P-2026-10-03-10 postprozessor-programm-schreiben
 
 ### EINGELESEN

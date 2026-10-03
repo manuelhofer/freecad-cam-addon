@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.136.0 (P-2026-10-03-10). Alles, was hier als gebaut steht,
+Stand 0.137.0 (P-2026-10-03-11). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -47,7 +47,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Katalog und Datenblatt (P-2026-10-02-91), Gühring 5596 mit Shop-Link (-92), Ceratizit
   CoreLine WPC UNI nach Manuels Link mit Nummer und Maßen je Größe (P-2026-10-03-02). Gühring
   und Sandvik bleiben geschätzt. Werkstoffklassen in der Tabelle, die Liste und die Kiste als
-  Baum je Werkzeugart, Mehrfachauswahl zum Löschen, einzelne Größen aus der Kiste (-02).
+  Baum je Werkzeugart, Mehrfachauswahl zum Löschen, einzelne Größen aus der Kiste (-02). Neun
+  Arten (Kugel, Torus, Lollipop, Gewindefräser, Zentrier-, NC-Anbohrer, Gewindebohrer links,
+  Kegelsenker, Reibahle) sind echte GARANT-Werkzeuge der Hoffmann Group mit Artikel und Link
+  (-11).
 - **W-008 bis W-012** – gebaut: Home- und Wechselpunkt; der Assistent in drei Schritten mit
   Aufspannung, Maschine zuerst, Rohteil aus dem Dokument, ein Teil – ein Job; Messstopp
   (jetzt im Block „Schlichten danach“); Maschinen-Speicher; Materialstand mit wählbarer
