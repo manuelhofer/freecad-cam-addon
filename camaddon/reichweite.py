@@ -35,6 +35,7 @@ import FreeCAD
 
 from . import PARAMETER_PFAD, einheiten, maschinenspeicher
 from . import bestueckung as bs
+from . import halter as hl
 from . import job_schnittwerte as js
 from . import maschine as m
 from . import verfahren as vf
@@ -68,6 +69,7 @@ MITTE = {"X": "I", "Y": "J", "Z": "K"}  # Mittelpunkt eines Kreises, ab seinem S
 # Woher die Länge eines Werkzeugs kommt.
 LAENGE_SPINDELNASE = "spindelnase"  # eingetragen: ab Spindelnase, mit Halter
 LAENGE_HALTER = "halter"  # geschätzt: Halterlänge + Gesamtlänge − Spanntiefe
+LAENGE_VORSCHLAG = "vorschlag"  # im vorgeschlagenen Halter: Halterlänge + Auskragung + 5
 LAENGE_GESAMT = "gesamt"  # Gesamtlänge aus der Werkzeugverwaltung, ohne Halter
 LAENGE_GESCHAETZT = "geschaetzt"  # keine Gesamtlänge eingetragen: geschätzt wie für CAM
 LAENGE_CAM = "cam"  # Länge des CAM-Werkzeugs, ohne Halter
@@ -346,7 +348,9 @@ def werkzeuglaenge(tc, bibliothek):
     if werkzeug is not None:
         if werkzeug.laenge_spindelnase:
             return werkzeug.laenge_spindelnase, LAENGE_SPINDELNASE
-        halter = bibliothek.halter_von(werkzeug)
+        halter = bibliothek.halter_fuer_pruefung(werkzeug)
+        if hl.ist_vorschlag(halter):
+            return wz.laenge_mit_vorschlag(werkzeug, halter), LAENGE_VORSCHLAG
         if halter is not None:
             return wz.laenge_mit_halter(werkzeug, halter), LAENGE_HALTER
         if werkzeug.gesamtlaenge:
@@ -382,8 +386,6 @@ class Einspannung:
 def einspannung(tc, bibliothek):
     """Die Einspannung des Werkzeugs eines Controllers: seine Länge (werkzeuglaenge) und die
     Lage aus seinem Halter in der Werkzeugverwaltung."""
-    from . import halter as hl
-
     halter = werkzeughalter(tc, bibliothek)
     lage = hl.lage(halter) if halter is not None and halter.gewinkelt else None
     return Einspannung(werkzeuglaenge(tc, bibliothek)[0], lage)
@@ -456,11 +458,12 @@ def _stirn_vom_bit(tc):
 
 
 def werkzeughalter(tc, bibliothek):
-    """Der Halter des Werkzeugs aus der Werkzeugverwaltung (halter.Halter), oder None."""
+    """Der Halter des Werkzeugs aus der Werkzeugverwaltung (halter.Halter) – ohne gewählten der
+    vorgeschlagene (Bibliothek.halter_fuer_pruefung) –, oder None."""
     if bibliothek is None:
         return None
     werkzeug = js.werkzeug_von(tc, bibliothek)
-    return bibliothek.halter_von(werkzeug) if werkzeug is not None else None
+    return bibliothek.halter_fuer_pruefung(werkzeug) if werkzeug is not None else None
 
 
 def _mm(wert):
@@ -978,6 +981,10 @@ class _Sammler:
                 self.hinweis(Hinweis(tr("rw.laenge_halter_gewinkelt", **werte), nummer))
             else:
                 self.hinweis(Hinweis(tr("rw.laenge_halter", **werte), nummer))
+        elif quelle == LAENGE_VORSCHLAG:
+            halter = werkzeughalter(tc, bibliothek)
+            werte["halter"] = hl.text(halter) if halter is not None else ""
+            self.hinweis(Hinweis(tr("rw.laenge_vorschlag", **werte), nummer))
         elif quelle == LAENGE_GESAMT:
             self.hinweis(Hinweis(tr("rw.laenge_gesamt", **werte), nummer))
         elif quelle == LAENGE_GESCHAETZT:

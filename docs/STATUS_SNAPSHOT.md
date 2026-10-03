@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.138.0 (P-2026-10-03-12). Alles, was hier als gebaut steht,
+Stand 0.139.0 (P-2026-10-03-15). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -31,7 +31,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - **W-004 Bedienung** – D-01 bis D-13, D-20, D-21, D-25, D-26, D-28 bis D-30, D-40 bis D-47
   und D-50 bis D-57 erledigt, D-24 mit „Richtwerte eintragen“ und den Werkstoffklassen.
   Entschieden ([Durchsicht](durchsicht_bedienbarkeit.md), Abschnitt 6; Manuel, 2026-10-03):
-  D-22 bleibt auf Klick; zu bauen D-14 (graue Werte), D-23, D-27. Reste von D-20 und D-26.
+  D-22 bleibt auf Klick; D-23 und D-27 gebaut (0.139.0); zu bauen D-14 (graue Werte). Reste
+  von D-20 und D-26.
 - **W-005 Programm für jede Steuerung** – E1–E7 entschieden (je Empfehlung, Manuel
   2026-10-03); gebaut: der eigene Postprozessor mit dem Fenster „Programm schreiben …“ (S1, S3,
   Teile von S2/S4; P-2026-10-03-10). Offen: Steuerung an der Maschine (S2), Glätten (S4), ohne
@@ -173,9 +174,9 @@ Beantwortet am 2026-10-03 (abends):
 - *Kollision (D-22):* bleibt auf Klick – sonst startet das Abfahren noch träger; das ist bei
   großen Bahnen heute schon langsam (gehört zu „Vorschau beschleunigen“).
 - *Halter vorschlagen (D-23):* ja – nach Schaft-Ø ER16/ER25/ER32/ER40, herausstehen
-  Auskragung N + 5 mm. **Zu bauen.**
+  Auskragung N + 5 mm. Gebaut (0.139.0).
 - *An CAM übergeben (D-27):* ja – „OK“ und „Übernehmen“ übergeben mit, sobald einmal
-  übergeben wurde. **Zu bauen.**
+  übergeben wurde. Gebaut (0.139.0).
 - *Gewindebohrer:* Gühring 8330 (https://webshop.guehring.de/8330) in die Kiste; der Shop zeigt
   die Größen erst im Browser – im Browser nachschlagen. Gühring 5596 bleibt, die Nummern für
   M2, M2,5 und ab M12 dort ebenso nachschlagen (Manuel: „der geht genauso, ist auch gut“).

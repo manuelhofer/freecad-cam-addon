@@ -127,6 +127,20 @@ def verfuegbar():
     return True
 
 
+def schon_uebergeben():
+    """Steht die Bibliothek „CAM-Addon“ schon in CAM? Dann ziehen OK und Übernehmen in der
+    Werkzeugverwaltung sie mit (D-27) – wer einmal übergeben hat, arbeitet in CAM nie mit
+    alten Werkzeugen."""
+    if not verfuegbar():
+        return False
+    from Path.Tool.camassets import cam_assets
+
+    return any(
+        uri.asset_id == BIBLIOTHEK_ID
+        for uri in cam_assets.list_assets(asset_type="toolbitlibrary", store="local")
+    )
+
+
 def presets_moeglich():
     """Kennt diese FreeCAD-Version Schnittwert-Presets am Werkzeug? (Wochen-Build ja, 1.1.3 nein)"""
     try:

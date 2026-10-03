@@ -747,6 +747,17 @@ def laenge_mit_halter(werkzeug, halter):
     return halter.laenge + max(stueck, reichweite(werkzeug))
 
 
+def laenge_mit_vorschlag(werkzeug, halter):
+    """Die Länge ab Spindelnase im vorgeschlagenen Halter (halter.vorschlag): Halterlänge +
+    Auskragung + 5 mm – höchstens so weit, wie das Werkzeug mit seiner Gesamtlänge reicht."""
+    ueberstand = reichweite(werkzeug) + hl.VORSCHLAG_ZUGABE
+    if werkzeug.gesamtlaenge:
+        ueberstand = min(
+            ueberstand, max(werkzeug.gesamtlaenge - halter.spanntiefe, reichweite(werkzeug))
+        )
+    return halter.laenge + ueberstand
+
+
 def _zahl(wert, typ, ersatz):
     try:
         return typ(wert)
@@ -1404,6 +1415,9 @@ class Bibliothek:
         self.werkzeuge = list(werkzeuge or [])
         self.eigene_werkstoffe = list(eigene_werkstoffe or [])
         self.halter = list(halter or [])
+        # Ohne gewählten Halter prüfen Reichweite und Kollision mit dem vorgeschlagenen
+        # (halter.vorschlag, D-23); aus nur in Prüfungen, die das Werkzeug allein meinen.
+        self.halter_vorschlagen = True
 
     # --- Werkzeuge --------------------------------------------------------------
 
@@ -1456,6 +1470,14 @@ class Bibliothek:
         if not werkzeug.halter:
             return None
         return next((h for h in self.halter if h.kennung == werkzeug.halter), None)
+
+    def halter_fuer_pruefung(self, werkzeug):
+        """Der gewählte Halter – sonst der vorgeschlagene nach Schaft-Ø (halter.vorschlag,
+        D-23) –, oder None (ohne Durchmesser, oder halter_vorschlagen aus)."""
+        halter = self.halter_von(werkzeug)
+        if halter is not None or not self.halter_vorschlagen or werkzeug.durchmesser <= 0:
+            return halter
+        return hl.vorschlag(schaft_fuer_cam(werkzeug))
 
     def laenge_ab_spindelnase(self, werkzeug):
         """Die Länge ab Spindelnase in mm: gemessen, sonst mit Halter geschätzt – ohne Halter

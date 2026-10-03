@@ -238,7 +238,7 @@ Fortschritt und jederzeit abbrechbar; der Knopf bleibt für „noch einmal“.
 Offen: große Jobs rechnen länger – ab welcher Größe nur auf Klick?
 **Fertig, wenn:** nach dem Öffnen ohne Klick das Kollisionsurteil erscheint.
 
-### D-23 Halter vorschlagen (mittel)
+### D-23 Halter vorschlagen (mittel) – erledigt (P-2026-10-03-15)
 **Heute:** Ohne Halter prüft die Kollision nur das Werkzeug („T1: ohne Halter
 geprüft …“); den Halter wählt man je Werkzeug von Hand. **Vorschlag:** ein
 Standard-Halter nach Schaft-Ø (Einstellung; Vorgabe aus den Vorlagen, etwa bis
@@ -286,7 +286,7 @@ Minute steht und „Auf der Maschine prüfen“ mit diesen Grenzen rechnet.
 *3-Achs-Fräse erledigt (P-2026-09-27-24); offen: Tischgröße, 5-Achs mit
 Schwenkbereichen.*
 
-### D-27 Die CAM-Bibliothek beim Speichern mitziehen (klein bis mittel)
+### D-27 Die CAM-Bibliothek beim Speichern mitziehen (klein bis mittel) – erledigt (P-2026-10-03-15, ohne eigene Einstellung)
 **Heute:** OK in der Werkzeugverwaltung speichert nur dort; CAM sieht eine
 Änderung erst nach „Speichern und an CAM übergeben“ – wer es vergisst, arbeitet
 in CAM mit alten Werkzeugen. **Vorschlag:** Wurde schon einmal übergeben,

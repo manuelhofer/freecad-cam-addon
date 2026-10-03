@@ -420,9 +420,14 @@ class _Welt:
                     Koerper(_werkzeug_name(art, nummer, halter), art, form, glied, basis)
                     for art, form in werkzeugkoerper(masse, op.laenge, halter, mit_kern=True)
                 ]
-                if halter is None and nummer not in ohne_halter:
+                if (halter is None or hl.ist_vorschlag(halter)) and nummer not in ohne_halter:
                     ohne_halter.add(nummer)
-                    satz = tr("kb.ohne_halter", werkzeug=f"T{nummer}")
+                    if halter is None:
+                        satz = tr("kb.ohne_halter", werkzeug=f"T{nummer}")
+                    else:
+                        satz = tr(
+                            "kb.halter_vorschlag", werkzeug=f"T{nummer}", halter=hl.text(halter)
+                        )
                     ergebnis.hinweise.append(rw.Hinweis(satz, nummer))
             self.werkzeuge.append(gebaut[schluessel])
 

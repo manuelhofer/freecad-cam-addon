@@ -73,6 +73,7 @@ gewinde.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.GEWINDEBOHREN, vc=10)]
 lolli = wz.Werkzeug(nummer=17, art=wz.LOLLIPOPFRAESER, durchmesser=8, hals_laenge=20)
 bibliothek = wz.Bibliothek([fraeser, torus, bohrer, ohne, dreh, reibahle, gewinde, lolli])
 
+pruefe(not ue.schon_uebergeben(), "schon_uebergeben vor der ersten Übergabe")
 bericht = ue.uebergeben(bibliothek)
 pruefe((bericht.werkzeuge, bericht.ohne_durchmesser) == (6, 1), f"Bericht: {bericht}")
 pruefe(bericht.ohne_form == ["T11 Drehwerkzeug"], f"ohne Form: {bericht.ohne_form}")
@@ -158,6 +159,9 @@ pruefe(f"camaddon_{torus.kennung}" not in bits, "Torusfräser nicht entfernt")
 pruefe("eigenes_werkzeug" in bits, "fremdes Werkzeug entfernt")
 nummern = sorted(cam_assets.get("toolbitlibrary://camaddon")._bit_nos)
 pruefe(nummern == [3, 7, 13, 15, 17], f"Bibliothek danach: {nummern}")
+
+# Einmal übergeben: Die Bibliothek steht in CAM, OK und Übernehmen ziehen sie mit (D-27).
+pruefe(ue.schon_uebergeben(), "schon_uebergeben nach der Übergabe falsch")
 
 # Die Drehrichtung am Werkzeug geht als SpindleDirection nach CAM (P-2026-10-02-40).
 for art, drehrichtung, soll in (

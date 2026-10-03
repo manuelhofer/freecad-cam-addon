@@ -353,6 +353,28 @@ def aus_vorlage(schluessel, vdi=None):
     return halter
 
 
+# Der Halter, mit dem geprüft wird, solange beim Werkzeug keiner gewählt ist (D-23, Manuel
+# 2026-10-03: „ja ja beides gut“): nach Schaft-Ø bis 10 ER16, bis 16 ER25, bis 20 ER32, darüber
+# ER40; das Werkzeug steht Auskragung N + 5 mm heraus.
+VORSCHLAG_BIS = ((10.0, "er16"), (16.0, "er25"), (20.0, "er32"))
+VORSCHLAG_SONST = "er40"
+VORSCHLAG_ZUGABE = 5.0  # mm über die Auskragung hinaus
+VORSCHLAG_KENNUNG = "vorschlag:"
+
+
+def vorschlag(schaft_d):
+    """Der vorgeschlagene Halter für einen Schaft-Ø (mm) – eine Vorlage, nicht gespeichert."""
+    schluessel = next((s for bis, s in VORSCHLAG_BIS if schaft_d <= bis + 1e-9), VORSCHLAG_SONST)
+    halter = aus_vorlage(schluessel)
+    halter.kennung = VORSCHLAG_KENNUNG + schluessel
+    return halter
+
+
+def ist_vorschlag(halter):
+    """Ist es der vorgeschlagene Halter (vorschlag), kein gewählter?"""
+    return halter is not None and halter.kennung.startswith(VORSCHLAG_KENNUNG)
+
+
 def _vorlage(schluessel, vdi):
     """(Schlüssel, VDI-Größe oder 0): Ein alter Schlüssel „vdi30_…“ heißt VDI 30; für alles
     außer den VDI-Vorlagen zählt keine Größe."""

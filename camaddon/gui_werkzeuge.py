@@ -878,11 +878,18 @@ class WerkzeugDialog(QtGui.QDialog):
                 schaft = tr("wv.schaft.platzhalter.geschaetzt", wert=wert)
         self.feld_gesamtlaenge.setPlaceholderText(laenge)
         self.feld_schaft.setPlaceholderText(schaft)
-        # Leer gilt mit Halter Halterlänge + Gesamtlänge − Spanntiefe, ohne die Gesamtlänge –
-        # eingetragen oder geschätzt.
-        halter = self.bibliothek.halter_von(w) if w is not None else None
+        # Leer gilt mit Halter Halterlänge + Gesamtlänge − Spanntiefe, ohne gewählten die Länge
+        # im vorgeschlagenen (Halterlänge + Auskragung + 5 mm, D-23), ohne Durchmesser die
+        # Gesamtlänge – eingetragen oder geschätzt.
+        halter = self.bibliothek.halter_fuer_pruefung(w) if w is not None else None
         gesamt = (w.gesamtlaenge or wz.geschaetzte_laenge(w)) if w is not None else 0.0
-        if halter is not None:
+        self._halter_ohne_beschriften(halter)
+        if hl.ist_vorschlag(halter):
+            platzhalter = tr(
+                "wv.laenge_spindelnase.platzhalter_vorschlag",
+                wert=groesse_zeigen(wz.laenge_mit_vorschlag(w, halter), einheiten.LAENGE),
+            )
+        elif halter is not None:
             platzhalter = tr(
                 "wv.laenge_spindelnase.platzhalter_halter",
                 wert=groesse_zeigen(wz.laenge_mit_halter(w, halter), einheiten.LAENGE),
@@ -955,6 +962,18 @@ class WerkzeugDialog(QtGui.QDialog):
         kennung = self.werkzeug.halter if self.werkzeug is not None else ""
         auswahl.setCurrentIndex(max(auswahl.findData(kennung), 0))
         auswahl.blockSignals(False)
+
+    def _halter_ohne_beschriften(self, halter):
+        """Die erste Zeile der Halter-Auswahl: „ohne“ – oder, solange keiner gewählt ist, grau der
+        Halter, mit dem geprüft wird (D-23)."""
+        if self.feld_halter.count() == 0:
+            return
+        if hl.ist_vorschlag(halter):
+            self.feld_halter.setItemText(0, tr("wv.halter.vorschlag", halter=hl.text(halter)))
+            self.feld_halter.setItemData(0, GRAU, QtCore.Qt.ForegroundRole)
+        else:
+            self.feld_halter.setItemText(0, tr("wv.halter.ohne"))
+            self.feld_halter.setItemData(0, None, QtCore.Qt.ForegroundRole)
 
     def _halter_gewaehlt(self, index):
         w = self.werkzeug
@@ -1123,8 +1142,13 @@ class WerkzeugDialog(QtGui.QDialog):
             )
             return wz.Bibliothek()
 
-    def uebernehmen(self):
-        """„Übernehmen“: speichert und lässt den Dialog offen. True, wenn es geklappt hat."""
+    def uebernehmen(self, mit_cam=True):
+        """„Übernehmen“: speichert und lässt den Dialog offen. True, wenn es geklappt hat.
+
+        Steht die Bibliothek „CAM-Addon“ schon in CAM, geht sie gleich mit (D-27, Manuel
+        2026-10-03: „ja“); klappt das nicht, bleibt das Speichern gültig und der Fehler steht
+        im Bericht-Fenster von FreeCAD.
+        """
         self._felder_uebernehmen()
         try:
             self.bibliothek.speichern(self.pfad)
@@ -1135,6 +1159,12 @@ class WerkzeugDialog(QtGui.QDialog):
             return False
         self._gespeichert = self.bibliothek.kopie()
         self.gespeichert.emit()
+        if mit_cam:
+            try:
+                if ue.schon_uebergeben():
+                    ue.uebergeben(self.bibliothek)
+            except Exception as fehler:  # jeder Fehler von CAM soll als Satz ankommen
+                FreeCAD.Console.PrintError(f"CAM-Addon: Übergabe an CAM: {fehler}\n")
         return True
 
     def an_cam_uebergeben(self):
@@ -1143,7 +1173,7 @@ class WerkzeugDialog(QtGui.QDialog):
         Gibt den Bericht zurück (oder None); das Fenster mit der Rückmeldung
         zeigt `bericht_zeigen`, damit die Szenarien es ohne Fenster prüfen können.
         """
-        if not self.uebernehmen():
+        if not self.uebernehmen(mit_cam=False):
             return None
         try:
             bericht = ue.uebergeben(self.bibliothek)

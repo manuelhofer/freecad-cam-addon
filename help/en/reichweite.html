@@ -191,7 +191,7 @@ spot and the view centres on it.</li>
 <li>It takes a few seconds depending on the path; meanwhile the button says
 <b>Cancel</b>. If job, origin or workpiece mount change, the result no longer
 applies and disappears.</li>
-<li>A tool without holder is checked without one – a note says so.</li>
+<li>A tool without a chosen holder is checked with the suggested one (by shank Ø ER16 to ER40, reach + 5 mm out) – a note says so.</li>
 </ul>
 
 <h3>How it calculates</h3>
@@ -201,7 +201,7 @@ reads them –, not a finished NC program.</li>
 <li><b>Tool:</b> the tip lies one tool length in front of the tool mount,
 against its Z axis. The length comes from the tool manager – the gauge length,
 otherwise estimated with the holder (holder length + overall length − clamping
-depth), without a holder the overall length –, otherwise from the CAM tool; a
+depth), without a chosen holder in the suggested one (holder length + reach + 5 mm) –, otherwise from the CAM tool; a
 note says which.</li>
 <li><b>Turret:</b> tool T3 sits in station P3; the turret is indexed to its
 working position for it.</li>

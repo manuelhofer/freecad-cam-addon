@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-15 halter-vorschlag-und-cam-mitziehen
+
+### EINGELESEN
+- Manuel, 2026-10-03: „Halter vorschlagen … ER16/25/32/40 … Auskragung N + 5 mm <-- ja ja beides
+  gut .. beides so machen“; „An CAM übergeben … OK und Übernehmen gleich mit <- ja“; „dann
+  los“. Durchsicht D-23, D-27.
+
+### DATEIEN
+- `camaddon/halter.py` (`vorschlag`, `ist_vorschlag`, `VORSCHLAG_*`), `camaddon/werkzeuge.py`
+  (`laenge_mit_vorschlag`, `Bibliothek.halter_fuer_pruefung`, `halter_vorschlagen`),
+  `camaddon/reichweite.py` (`LAENGE_VORSCHLAG`, `werkzeughalter` mit Vorschlag),
+  `camaddon/kollision.py` (Hinweis `kb.halter_vorschlag`), `camaddon/gui_werkzeuge.py` (grau in
+  der Halter-Auswahl und im Feld „Länge ab Spindelnase“; `uebernehmen(mit_cam=True)`),
+  `camaddon/uebergabe_werkzeuge.py` (`schon_uebergeben`), Übersetzungen, Hilfe Werkzeuge und
+  Reichweite (de/en), Tests `test_kollision`, `test_reichweite`, `test_uebergabe_werkzeuge`,
+  `docs/durchsicht_bedienbarkeit.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.139.0).
+
+### AKZEPTANZKRITERIUM
+- Ein Werkzeug ohne gewählten Halter zeigt in der Werkzeugverwaltung grau „Keiner gewählt –
+  geprüft wird mit Spannzangenfutter ER… “ und im leeren Feld „Länge ab Spindelnase“ „leer: …
+  im vorgeschlagenen Halter“. „Auf der Maschine prüfen“ und die Kollision rechnen damit und
+  sagen es im Hinweis.
+- Wurde einmal „Speichern und an CAM übergeben“ geklickt, schreiben OK und Übernehmen die
+  Bibliothek „CAM-Addon“ in CAM jedes Mal mit.
+
+### DONE
+- Vorschlag nach Schaft-Ø: bis 10 ER16, bis 16 ER25, bis 20 ER32, darüber ER40 (die Vorlagen mit
+  Beispielmaßen); Länge = Halterlänge + Auskragung + 5 mm, höchstens so weit, wie die
+  Gesamtlänge reicht. Das Abfahren und die Bestückung zeichnen den vorgeschlagenen Halter.
+- D-27 ohne eigene Einstellung – immer an, sobald die Bibliothek in CAM steht. Klappt die
+  Übergabe beim Speichern nicht, bleibt das Speichern gültig; der Fehler steht im
+  Bericht-Fenster.
+
+### TESTS
+- `tests/test_uebergabe_werkzeuge.py`, `tests/test_kollision.py` (Werkzeug allein mit
+  `halter_vorschlagen = False`, neu ein Fall mit Vorschlag), `tests/test_reichweite.py` (85 mm im
+  ER16), `tests/test_abfahren.py`, `tests/test_vierachs_pruefen.py` – alle OK. black und ruff
+  sauber.
+
+### NEXT
+- D-14 graue Achswerte und Hilfe je Steuerung; Gühring 8330/5596; Absatz an der Wand messen.
+
 ## P-2026-10-03-12 messerkopf-statt-planfraeser
 
 ### EINGELESEN

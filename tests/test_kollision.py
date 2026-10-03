@@ -66,11 +66,13 @@ nullpunkt = rw.vorschlag_nullpunkt(job)
 pruefe(tuple(nullpunkt) == (-50, -30, 1), f"Nullpunkt: {nullpunkt}")
 
 
-def pruefen(bahn, werkzeug, warnabstand=kb.WARNABSTAND, fortschritt=None):
-    """Die Bahn mit diesem Werkzeug (T1 in der Werkzeugverwaltung) abfahren und prüfen."""
+def pruefen(bahn, werkzeug, warnabstand=kb.WARNABSTAND, fortschritt=None, vorschlagen=False):
+    """Die Bahn mit diesem Werkzeug (T1 in der Werkzeugverwaltung) abfahren und prüfen. Ohne
+    `vorschlagen` das Werkzeug allein, wenn es keinen Halter hat (nicht im vorgeschlagenen)."""
     op.Gcode = bahn
     teil.recompute()
     bibliothek = wz.Bibliothek([werkzeug])
+    bibliothek.halter_vorschlagen = vorschlagen
     if werkzeug.halter:
         halter = wz.Bibliothek().neuer_halter("er16")
         halter.kennung = werkzeug.halter
@@ -101,6 +103,16 @@ pruefe(
     f"Hinweise: {e.hinweise}",
 )
 pruefe(e.stellen < 200, f"zu viele Stellen für drei Sätze: {e.stellen}")
+# Ohne gewählten Halter prüft sie mit dem vorgeschlagenen (D-23): Schaft Ø 5 → ER16, das
+# Werkzeug steht Auskragung 5 + 5 mm heraus – 10 mm über Z10 ist die Mutter noch frei.
+e = pruefen(["G0 X50 Y30 Z30", "G1 Z10 F10", "G0 Z30"], t1(), vorschlagen=True)
+pruefe(
+    len(e.hinweise) == 1
+    and e.hinweise[0].startswith("T1: mit dem vorgeschlagenen Halter")
+    and "ER16" in e.hinweise[0],
+    f"Hinweise mit Vorschlag: {e.hinweise}",
+)
+print(ascii(f"mit Vorschlag: {sorted(paare(e))}"))
 
 # --- An der Taschenwand: der Schaft --------------------------------------------------------
 e = pruefen(["G0 X50 Y30 Z30", "G1 Z8 F10", "G1 X67.5"], t1())

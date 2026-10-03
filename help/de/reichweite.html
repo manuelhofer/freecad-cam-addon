@@ -198,7 +198,7 @@ Kugel zeigt die Stelle, die Ansicht rückt sie in die Mitte.</li>
 <li>Es dauert je nach Bahn ein paar Sekunden; der Knopf heißt solange
 <b>Abbrechen</b>. Ändert sich Job, Nullpunkt oder Werkstückaufnahme, gilt das
 Ergebnis nicht mehr und verschwindet.</li>
-<li>Ein Werkzeug ohne Halter prüft es ohne – ein Hinweis sagt es.</li>
+<li>Ein Werkzeug ohne gewählten Halter prüft es mit dem vorgeschlagenen (nach Schaft-Ø ER16 bis ER40, Auskragung + 5 mm heraus) – ein Hinweis sagt es.</li>
 </ul>
 
 <h3>Wie gerechnet wird</h3>
@@ -208,7 +208,8 @@ Postprozessor sie liest –, nicht ein fertiges NC-Programm.</li>
 <li><b>Werkzeug:</b> Die Spitze liegt um die Werkzeuglänge vor der
 Werkzeugaufnahme, gegen deren Z-Achse. Die Länge kommt aus der
 Werkzeugverwaltung – die Länge ab Spindelnase, sonst mit dem Halter geschätzt
-(Halterlänge + Gesamtlänge − Spanntiefe), ohne Halter die Gesamtlänge –,
+(Halterlänge + Gesamtlänge − Spanntiefe), ohne gewählten Halter im vorgeschlagenen
+(Halterlänge + Auskragung + 5 mm) –,
 sonst vom CAM-Werkzeug; der Hinweis sagt, welche.</li>
 <li><b>Revolver:</b> Das Werkzeug T3 sitzt auf Platz P3; der Revolver steht
 dafür in Arbeitsstellung.</li>

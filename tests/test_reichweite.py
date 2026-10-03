@@ -188,6 +188,17 @@ FreeCAD.closeDocument(teil_a.Name)
 # Die Werkzeugverwaltung kennt T1 (Ø 5 mm): ihre Gesamtlänge gilt – oder geschätzt. 10 mm
 # länger als die 50 des CAM-Werkzeugs: Die Spindel steht 10 mm höher.
 bibliothek = wz.Bibliothek([wz.Werkzeug(nummer=1, durchmesser=5.0, gesamtlaenge=60.0)])
+# Ohne gewählten Halter rechnet sie im vorgeschlagenen (D-23): Schaft Ø 5 → ER16 (70 mm), das
+# Werkzeug steht Auskragung (Schneide 2 × D = 10) + 5 mm heraus – 85 mm.
+laenge = rw.werkzeuglaenge(op.ToolController, bibliothek)
+pruefe(laenge == (85.0, rw.LAENGE_VORSCHLAG), f"Länge im vorgeschlagenen Halter: {laenge}")
+e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
+pruefe(
+    "gerechnet mit 85.00 mm im vorgeschlagenen Halter Spannzangenfutter ER16" in e.hinweise[0],
+    f"Hinweis Vorschlag: {e.hinweise}",
+)
+# Ohne Vorschlag gilt die Gesamtlänge – oder geschätzt.
+bibliothek.halter_vorschlagen = False
 e = p.pruefe_job(job, FreeCAD.Vector(), bibliothek)
 pruefe(bereich(e, "Z1") == (-78.0, -60.0), f"Z1 mit 60 mm: {bereich(e, 'Z1')}")
 # Das Werkzeug heißt jetzt wie in der Werkzeugverwaltung – so auch dasselbe Werkzeug zweier
