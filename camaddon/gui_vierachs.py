@@ -2128,7 +2128,7 @@ class VierachsPanel:
                 self._wert("sicherheit"),
             ),
             self._halter_fuer(werkzeug),
-            self.flaechen(),
+            self._schlicht_flaechen(),
             self.muster(),
             nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
         )
@@ -2306,9 +2306,35 @@ class VierachsPanel:
             flaechen=loecher,
         )
 
+    def _plan_namen(self):
+        """Die Flächen, auf die „Plan indexiert“ schaut: die gewählten – oder rundum (alle
+        Mantelflächen) mit einer Achse quer zur Stange die ebenen Mantelflächen, auch schräg zur
+        Achse (P-2026-10-03-09; Manuel: „die Maschine hat eine Y-Achse … den Winkel richtig
+        stellen und die Y-Achse verfahren“)."""
+        flaechen = self.flaechen()
+        if flaechen or self.job is None or not self.achse().quer:
+            return flaechen
+        achse = self.achse()
+        form = vr.modell(self.job).Shape
+        mantel = vf.namen(vf.mantelflaechen(self._sicht()))
+        return [e.name for e in vp.ebenen(form, achse.laengs, va.radial(achse), mantel)]
+
+    def _schlicht_flaechen(self):
+        """Die Flächen für „Rundum schlichten“: die gewählten – rundum mit „Plan indexiert“ für
+        die ebenen Mantelflächen alle anderen Mantelflächen (sonst führe die Spirale die ebenen
+        noch einmal)."""
+        flaechen = self.flaechen()
+        if flaechen or not self.plan_an() or self.job is None:
+            return flaechen
+        eben = set(self._plan_namen())
+        if not eben:
+            return flaechen
+        mantel = vf.namen(vf.mantelflaechen(self._sicht()))
+        return [f for f in mantel if f not in eben]
+
     def _plan_flaechen(self):
         """(Flächen für „Plan indexiert“, Flächen für den Bohrer daneben – oder None)."""
-        flaechen = self.flaechen()
+        flaechen = self._plan_namen()
         if self.bohrer_dazu() is None:
             return flaechen, None
         loecher = self._bohrnamen()
@@ -2410,7 +2436,7 @@ class VierachsPanel:
         """[vierachs_planbahn.Ebene, …] – die gewählten ebenen Flächen längs der Stange, die
         gewählten Bohrungen quer zu ihr (je Seite eine) und die Nuten auf dem Mantel
         (vierachs_planbahn.Mantelnut) – alle mit ihrem Namen."""
-        flaechen = self.flaechen()
+        flaechen = self._plan_namen()
         if not flaechen or self.job is None:
             return []
         achse = self.achse()
@@ -2441,9 +2467,10 @@ class VierachsPanel:
             namen = ", ".join(dict.fromkeys(e.name for e in ebenen))
             form = vr.modell(self.job).Shape
             laengs, radial = achse.laengs, va.radial(achse)
-            eben = vp.ebenen(form, laengs, radial, self.flaechen())
-            mantel = vp.mantelnuten(form, laengs, radial, self.flaechen())
-            paare = vp.bohrungen(form, laengs, radial, self.flaechen())
+            namen_plan = self._plan_namen()
+            eben = vp.ebenen(form, laengs, radial, namen_plan)
+            mantel = vp.mantelnuten(form, laengs, radial, namen_plan)
+            paare = vp.bohrungen(form, laengs, radial, namen_plan)
             nur_bohrungen = bool(paare) and not eben and not mantel
             bohrer = self._planbohrer_vorschlagen(paare, nur_bohrungen)
             self._planbohrer_dazu(paare, bool(eben or mantel))
@@ -2459,6 +2486,16 @@ class VierachsPanel:
                 geht, grund = True, tr("va.plan.vorschlag_mantel", flaechen=namen)
             elif paare or mantel:
                 geht, grund = True, tr("va.plan.vorschlag_gemischt", flaechen=namen)
+            elif not self.flaechen():  # rundum: ein Angebot, kein Haken von selbst
+                schraeg = [e for e in eben if e.steigung]
+                grund = tr("va.plan.vorschlag_rundum", flaechen=namen)
+                if schraeg:
+                    grund += " " + tr(
+                        "va.plan.schraeg",
+                        flaeche=schraeg[0].name,
+                        winkel=dezimal(f"{schraeg[0].neigung:.1f}"),
+                    )
+                geht = True
             else:
                 geht, grund = True, tr("va.plan.vorschlag", flaechen=namen)
         geht = geht and self._plan_erlaubt
@@ -2471,7 +2508,8 @@ class VierachsPanel:
             if not geht:
                 self.mit_plan.setChecked(False)
             elif not self._plan_von_hand and self.zu_aendern is None:
-                self.mit_plan.setChecked(bool(self._planfraeser))
+                # Rundum nur angeboten: Der Haken kommt von Hand (P-2026-10-03-09).
+                self.mit_plan.setChecked(bool(self._planfraeser) and bool(self.flaechen()))
         finally:
             self._fuellt = vorher
         self.planfelder.setEnabled(self.plan_an())
@@ -3338,6 +3376,7 @@ class VierachsPanel:
         else:
             name = tr("va.transaktion.schruppen") if schruppen else tr("va.transaktion.schlichten")
         flaechen = self.flaechen()
+        schlicht_flaechen = self._schlicht_flaechen()
         muster = self.muster()
 
         def anlegen():
@@ -3389,7 +3428,7 @@ class VierachsPanel:
                             quer_auf_null=achse.quer,
                             abstaende=schlicht_abstaende,
                             halter=self._halter_fuer(self.schlichtfraeser()),
-                            flaechen=flaechen,
+                            flaechen=schlicht_flaechen,
                             muster=muster,
                             nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
                         )
@@ -3487,6 +3526,7 @@ class VierachsPanel:
         else:
             name = tr("va.transaktion.aendern")
         flaechen = self.flaechen()
+        schlicht_flaechen = self._schlicht_flaechen()
         muster = self.muster()
 
         def aendern():
@@ -3511,7 +3551,7 @@ class VierachsPanel:
                         self._wert("aufmass_schlichten"),
                         schlicht_abstaende,
                         self._halter_fuer(self.schlichtfraeser()),
-                        flaechen,
+                        schlicht_flaechen,
                         muster,
                         nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
                     )
@@ -3595,7 +3635,7 @@ class VierachsPanel:
                         quer_auf_null=op.QuerAufNull,
                         abstaende=schlicht_abstaende,
                         halter=self._halter_fuer(self.schlichtfraeser()),
-                        flaechen=flaechen,
+                        flaechen=schlicht_flaechen,
                         muster=muster,
                         nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
                     )

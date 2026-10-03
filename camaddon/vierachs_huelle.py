@@ -134,12 +134,15 @@ def raster_phi(schritt_grad=SCHRITT_PHI):
     return np.radians(360.0 / anzahl) * np.arange(anzahl)
 
 
-def schaftfraeser(netz, laengs, radial, radius, a_werte, phi_werte):
+def schaftfraeser(netz, laengs, radial, radius, a_werte, phi_werte, nur_vorne=False):
     """Hüllfläche des Schaftfräsers mit `radius` gegen `netz` (Huelle).
 
     `a_werte` (aufsteigend, gleicher Abstand) und `phi_werte` (rad) geben das
     Raster; `laengs` und `radial` die Rundachs-Koordinaten im Job. Die Achse
-    geht durch den Nullpunkt des Jobs.
+    geht durch den Nullpunkt des Jobs. `nur_vorne`: nur Kanten und Dreiecke, die
+    (teils) vor der Achse liegen – so sieht der Strahl von der Achse nach außen das
+    Teil, wie das Prüffenster es braucht (restmaterial.teilradien; bis P-2026-10-03-07
+    galt das für alle).
     """
     l_, u_, v_ = rahmen(laengs, radial)
     punkte = netz.punkte
@@ -155,8 +158,12 @@ def schaftfraeser(netz, laengs, radial, radius, a_werte, phi_werte):
         x = u * c + v * s
         y = v * c - u * s
         spalte = np.full(len(a_werte), KEIN_TREFFER)
-        _kanten_treffen(spalte, a, x, y, kanten, radius, a_werte[0], schritt)
-        _dreiecke_treffen(spalte, a, x, y, netz.dreiecke, radius, a_werte[0], schritt)
+        k, d = kanten, netz.dreiecke
+        if nur_vorne:
+            k = k[np.maximum(x[k[:, 0]], x[k[:, 1]]) > 0]
+            d = d[np.maximum(np.maximum(x[d[:, 0]], x[d[:, 1]]), x[d[:, 2]]) > 0]
+        _kanten_treffen(spalte, a, x, y, k, radius, a_werte[0], schritt)
+        _dreiecke_treffen(spalte, a, x, y, d, radius, a_werte[0], schritt)
         r[:, j] = spalte
     return Huelle(a_werte, np.asarray(phi_werte, dtype=float), r)
 

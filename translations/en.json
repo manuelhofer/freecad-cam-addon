@@ -1285,6 +1285,8 @@
     "va.plan.vorschlag_bohren": "Suggestion: on – drill radially with {bohrer}: {flaechen}. The rotary axis faces its opening, the drill goes down – faster than milling.",
     "va.plan.keine_ebene": "Indexed facing needs a selected flat face along the bar facing outwards (flat, slot floor), a hole across the bar or the floor of a slot on the outside of the bar – click it in 3D.",
     "va.plan.keine_querachse": "Indexed facing needs an axis across the bar (Y for C) – “{maschine}” has none.",
+    "va.plan.vorschlag_rundum": "With the cross axis, {flaechen} can be machined flat in rows – the rotary axis stands still, Y steps across, the cutter runs straight passes along. Tick it: “Finish all round” then leaves them out.",
+    "va.plan.schraeg": "{flaeche} slopes along by {winkel}° – the rows follow it, also below the centre of rotation; last a finishing layer so dense that at most 0.01 mm stays between the rows (the flat end sits at an angle there: the machine has no swivel axis).",
     "va.plan.vorschlag": "Suggestion: on – flat along the bar: {flaechen}. This makes it flat right into the corners; with the cutter on the ray from the axis something would remain at the edge.",
     "va.plan.dazu": "Tick it: “Apply” adds “Indexed facing”.",
     "va.plan.schon": "“{name}” already exists in the job – double-click it to change it.",

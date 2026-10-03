@@ -12,6 +12,16 @@ seine Stirn schräg zur Fläche, am Rand und in den Ecken bleibt etwas stehen; s
 
 - Jede gewählte ebene Fläche, deren Außennormale quer zur Stange von der Achse weg zeigt
   (ebenen()), kommt einmal dran: die Rundachse auf den Winkel ihrer Normale, dann die Lagen.
+- **Schräg zur Achse** (P-2026-10-03-09; Manuels Teil: die flache Seite des D-Profils fällt
+  längs um 8,6° und geht hinten unter die Drehmitte – „den Winkel richtig stellen und die
+  Y-Achse verfahren … dass sie im Flow eine schöne Gerade fahren kann“): Neigt sich die Fläche
+  längs bis SCHRAEG_HOECHSTENS, steht die Rundachse auf den Winkel ihrer Normale quer zur
+  Stange, und jede Zeile fährt längs eine Gerade, deren Höhe der Fläche folgt (Ebene.hoehe) –
+  auch unter die Drehmitte. Die ebene Stirn steht dann um die Neigung schräg zur Fläche (die
+  Rundachse kippt nur quer zur Stange; längs bräuchte es eine Schwenkachse): Zwischen zwei
+  Zeilen bleibt (R − √(R² − (s/2)²)) · tan α stehen. Die Lagen fräsen mit dem Zeilenabstand bis
+  auf die Fläche, danach fährt eine Schlichtlage auf ihr mit dem Abstand, bei dem höchstens
+  GRAT_SCHRAEG stehen bleibt (grat_zeilenabstand).
 - Lagen: von dem, was über der Fläche steht (die Stange, oder nach dem Schruppen der Rest), in
   gleichen Schritten von höchstens der Zustellung bis auf ihre Tiefe plus Aufmaß.
 - Zeilen je Lage: quer von Rand zu Rand der Fläche – der ebene Teil der Stirn reicht bis an den
@@ -70,6 +80,8 @@ from . import vierachs_huelle as vh
 from .sprache import tr
 
 GERADE = 1e-6  # so wenig darf eine Normale längs der Stange zeigen
+SCHRAEG_HOECHSTENS = 30.0  # Grad – so weit darf sich eine ebene Fläche längs neigen
+GRAT_SCHRAEG = 0.01  # mm – so viel bleibt auf einer schrägen Fläche höchstens zwischen Zeilen
 LUFT = vb.RING_LUFT  # mm – so weit bleibt eine Zeile vom Rand der Fläche weg (wie der Ring)
 UEBERLAUF_LAENGS = vb.UEBERLAUF_ZUGABE  # mm – so weit über Fläche und Fräser hinaus längs
 TOLERANZ = vb.TOLERANZ_SCHLICHTEN  # mm – so fein wird das Teil vernetzt: Wände genau
@@ -86,18 +98,36 @@ class Ebene:
 
     name: str  # „Face3“
     phi: float  # Grad – der Winkel der Außennormale: dorthin stellt die Rundachse die Fläche
-    tiefe: float  # mm – ihr Abstand von der Achse: die Höhe der Spitze auf ihr
+    tiefe: float  # mm – ihr Abstand von der Achse (bei a = 0): die Höhe der Spitze auf ihr
     a_von: float
     a_bis: float
     q_von: float
     q_bis: float
+    # mm je mm längs: so steigt die Fläche längs der Werkzeugachse (schräg zur Stange,
+    # P-2026-10-03-09); 0 – parallel zur Stange.
+    steigung: float = 0.0
+
+    def hoehe(self, a):
+        """Die Höhe der Fläche längs der Werkzeugachse an der Stelle `a` (auch numpy)."""
+        return self.tiefe + self.steigung * a
+
+    @property
+    def neigung(self):
+        """Grad – so weit neigt sich die Fläche längs gegen die Stange."""
+        return math.degrees(math.atan(abs(self.steigung)))
+
+    @property
+    def hoechste(self):
+        """Die größte Höhe der Fläche über ihre Länge (mm)."""
+        return float(max(self.hoehe(self.a_von), self.hoehe(self.a_bis)))
 
 
 def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
     """[Ebene] – die Flächen `namen` („Face3“ …) von `form` (Part.Shape), die eben sind und
-    deren Außennormale quer zur Stangenachse von der Achse weg zeigt. Andere zählen nicht:
-    Zylinder, eine Stirn oder ein Absatz quer zur Achse, eine Ebene, die zur Achse schaut. Die
-    Ausdehnung längs und quer kommt aus der Vernetzung der Fläche (`toleranz`)."""
+    deren Außennormale quer zur Stangenachse von der Achse weg zeigt – auch längs geneigt bis
+    SCHRAEG_HOECHSTENS (Ebene.steigung). Andere zählen nicht: Zylinder, eine Stirn oder ein
+    Absatz quer zur Achse, eine Ebene, die zur Achse schaut. Die Ausdehnung längs und quer kommt
+    aus der Vernetzung der Fläche (`toleranz`)."""
     from . import vierachs_flaechen as vf
     from . import vierachs_rohteil as vr
 
@@ -111,30 +141,59 @@ def ebenen(form, laengs, radial, namen, toleranz=VORSCHAU_TOLERANZ):
             continue
         normale = vr.aussennormale(flaeche)
         n = np.array([normale.x, normale.y, normale.z], dtype=float)
-        if abs(float(n @ l_)) > GERADE:
+        laengs_anteil = float(n @ l_)
+        if abs(laengs_anteil) > math.sin(math.radians(SCHRAEG_HOECHSTENS)):
             continue
+        # Die Normale quer zur Stange: dorthin zeigt das Werkzeug; die Höhe längs ihr fällt
+        # oder steigt längs um −(n·l) ÷ (n·n_quer).
+        n_quer = n - laengs_anteil * l_
+        quer_anteil = float(np.linalg.norm(n_quer))
+        n_quer = n_quer / quer_anteil
+        if abs(laengs_anteil) <= GERADE:
+            laengs_anteil = 0.0
         punkte, _dreiecke = flaeche.copy().tessellate(toleranz)
         if not punkte:
             continue
         p = np.array([[pt.x, pt.y, pt.z] for pt in punkte], dtype=float)
-        tiefe = float(np.mean(p @ n))
-        if tiefe <= GERADE:
-            continue  # schaut zur Achse hin: von außen nicht zu fräsen
         a = p @ l_
-        q = p @ np.cross(l_, n)
-        phi = math.degrees(math.atan2(float(n @ v_), float(n @ u_)))
-        ergebnis.append(
-            Ebene(
-                f"Face{nummer + 1}",
-                phi,
-                tiefe,
-                float(a.min()),
-                float(a.max()),
-                float(q.min()),
-                float(q.max()),
-            )
+        ebene = Ebene(
+            f"Face{nummer + 1}",
+            math.degrees(math.atan2(float(n_quer @ v_), float(n_quer @ u_))),
+            float(np.mean(p @ n)) / quer_anteil,
+            float(a.min()),
+            float(a.max()),
+            float((p @ np.cross(l_, n_quer)).min()),
+            float((p @ np.cross(l_, n_quer)).max()),
+            -laengs_anteil / quer_anteil,
         )
+        if ebene.hoechste <= GERADE:
+            continue  # schaut zur Achse hin: von außen nicht zu fräsen
+        ergebnis.append(ebene)
     return ergebnis
+
+
+def _anheben(form, steigung):
+    """So hoch (mm) muss die Spitze über einer Fläche stehen, die längs mit `steigung` steigt,
+    damit die Stirn (fraeserform.Form) sie bergauf nicht schneidet: das Größte von
+    |Steigung| · ρ − z(ρ) über die Stirn – die ebene Stirn trägt am Rand (R · tan α)."""
+    if abs(steigung) <= GERADE:
+        return 0.0
+    rho = np.linspace(0.0, form.radius, 201)
+    return float(np.max(abs(steigung) * rho - form.hoehe(rho)))
+
+
+def grat_zeilenabstand(ebene, r_eben, grat=GRAT_SCHRAEG):
+    """Der Zeilenabstand (mm), bei dem auf der schrägen Fläche höchstens `grat` zwischen zwei
+    Zeilen stehen bleibt: Die ebene Stirn (Radius r_eben) steht um die Neigung α schräg, an der
+    Seite der Zeile im Abstand y bleibt (r − √(r² − y²)) · tan α – None, wenn die Fläche nicht
+    schräg ist oder jeder Abstand bis 2 r reicht."""
+    tan_a = abs(ebene.steigung)
+    if tan_a <= GERADE or r_eben <= 0:
+        return None
+    rest = r_eben - grat / tan_a
+    if rest <= 0:
+        return None
+    return 2.0 * math.sqrt(max(r_eben * r_eben - rest * rest, 0.0))
 
 
 def netz_ohne(form, namen, toleranz=TOLERANZ):
@@ -206,6 +265,8 @@ def nuten(form, laengs, radial, flaechen):
 
     ergebnis = {}
     for ebene in flaechen:
+        if ebene.steigung:
+            continue  # ein Nutgrund liegt parallel zur Stange
         lokal = form.copy()
         lokal.transformShape(_rahmen(laengs, radial, ebene))
         gefunden = nb.nuten(lokal, [ebene.name])
@@ -782,7 +843,10 @@ def planen(
         zeilen_gesamt += fahrten
         r_min = min(r_min, nut.radius + w.aufmass)
     for ebene in sorted(flaechen, key=lambda e: e.phi):
-        ziel = ebene.tiefe + w.aufmass
+        # Das Aufmaß steht senkrecht auf der Fläche – längs der Werkzeugachse etwas mehr; auf
+        # einer schrägen Fläche trägt die Stirn bergauf am Rand, die Spitze bleibt so viel höher.
+        aufmass = w.aufmass * math.sqrt(1.0 + ebene.steigung**2) + _anheben(form, ebene.steigung)
+        ziel = min(float(ebene.hoehe(ebene.a_von)), float(ebene.hoehe(ebene.a_bis))) + aufmass
         oben = _material_ueber(w, ebene, radius)
         if oben <= ziel + vb.GLEICH:
             continue  # steht nichts mehr drüber
@@ -799,8 +863,15 @@ def planen(
             r_min = min(r_min, nut.z_min)
             continue
         anzahl_lagen = max(1, int(math.ceil((oben - ziel) / w.zustellung - 1e-9)))
-        lagen = oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen
+        lagen = list(oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen)
         q_zeilen = _zeilen_quer(ebene, r_eben + zugabe + LUFT, w.zeilenabstand)
+        # Schräg zur Stange: zuletzt eine Schlichtlage auf der Fläche mit dem Zeilenabstand, bei
+        # dem höchstens GRAT_SCHRAEG stehen bleibt – wenn der Zeilenabstand mehr ließe.
+        fein = grat_zeilenabstand(ebene, r_eben)
+        q_fein = None
+        if fein is not None and fein < w.zeilenabstand - vb.GLEICH and w.aufmass <= vb.GLEICH:
+            q_fein = _zeilen_quer(ebene, r_eben + zugabe + LUFT, fein)
+            lagen.append(None)  # die Schlichtlage
         a_von = max(a_ende, ebene.a_von - radius - UEBERLAUF_LAENGS)
         a_bis = min(a_anfang, ebene.a_bis + radius + UEBERLAUF_LAENGS)
         if a_bis <= a_von + vb.GLEICH:
@@ -809,40 +880,49 @@ def planen(
         a_stellen = np.linspace(a_von, a_bis, anzahl)
         schritt = float(a_stellen[1] - a_stellen[0])
         rad = math.radians(ebene.phi)
-        huelle = vh.je_versatz(netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, q_zeilen)
-        roh = huelle.T  # (Zeilen, Stellen); −inf, wo er nichts trifft
-        hoehe = roh + zugabe
-        # Zwischen weit auseinanderliegenden Zeilen auch dazwischen prüfen – der Schritt quer am
-        # Ende einer Zeile prüfte sonst nur die beiden Zeilen (P-2026-10-02-30).
-        zw_q, zw_von = vb._zwischen(q_zeilen, radius)
-        if len(zw_q):
-            roh_zw = vh.je_versatz(
-                netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, zw_q
-            ).T
-        else:
-            roh_zw = np.zeros((0, anzahl))
+        # Die Fläche je Stelle längs – bei einer schrägen steigt sie (ziel ist ihr tiefster Punkt).
+        ziel_a = ebene.hoehe(a_stellen) + aufmass
         # Wo die Stirn über das Ende der Fläche ragt, nur, wenn dort nichts höher steht als
         # die Fläche selbst – nicht über den Zylinder neben der Wand, den eine Lage auf seinem
         # Radius gerade noch streifen dürfte.
         ragt = (a_stellen < ebene.a_von + radius + vb.GLEICH) | (
             a_stellen > ebene.a_bis - radius - vb.GLEICH
         )
-        frei = ~ragt[None, :] | (roh <= ziel + vb.GLEICH)
+
+        bezug = (netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, radius, ragt, ziel_a)
+        grob = _zeilen_rechnen(bezug, q_zeilen)
+        oben_grob = _oben_je_zeile(w, ebene, q_zeilen, a_stellen, radius)
         flaechen_gefraest += 1
         vorige = oben
         for lage in lagen:
-            lage = float(lage)
+            schlichtlage = lage is None
+            if schlichtlage:  # auf der Fläche, mit dem feinen Zeilenabstand
+                lage = ziel
+                q_zeilen = q_fein
+                roh, roh_zw, zw_von, frei = _zeilen_rechnen(bezug, q_zeilen)
+                noetig = np.ones(anzahl, dtype=bool)
+            else:
+                lage = float(lage)
+                roh, roh_zw, zw_von, frei = grob
+                # Wo die Fläche über der Lage davor liegt, ist schon alles weg.
+                noetig = ziel_a < vorige - vb.GLEICH
+            hoehe = roh + zugabe
+            lage_a = np.maximum(lage, ziel_a)  # schräg: die Lage, nie unter der Fläche
             # Zeilen, deren ebene Stirn in dieser Lage noch die Stange trifft.
             w_lage = math.sqrt(max(w.stange_radius**2 - lage * lage, 0.0))
             zeilen_da = np.abs(q_zeilen) - r_eben < w_lage - vb.GLEICH
-            drin = (hoehe <= lage + vb.GLEICH) & frei & zeilen_da[:, None]
+            drin = (
+                (hoehe <= lage_a[None, :] + vb.GLEICH) & frei & zeilen_da[:, None] & noetig[None, :]
+            )
+            if not schlichtlage:  # nur, wo über der Lage noch Material steht
+                drin &= oben_grob > lage_a[None, :] + vb.GLEICH
             if not drin.any():
                 vorige = lage
                 continue
             mit_luecke = np.zeros((len(q_zeilen), anzahl + 2), dtype=bool)
             mit_luecke[:, 1:-1] = drin
-            erlaubt_zw = (roh_zw + zugabe <= lage + vb.GLEICH) & (
-                ~ragt[None, :] | (roh_zw <= ziel + vb.GLEICH)
+            erlaubt_zw = (roh_zw + zugabe <= lage_a[None, :] + vb.GLEICH) & (
+                ~ragt[None, :] | (roh_zw <= ziel_a[None, :] + vb.GLEICH)
             )
             zwischen = np.ones((max(len(q_zeilen) - 1, 0), anzahl), dtype=bool)
             for k, m in enumerate(zw_von):
@@ -859,15 +939,19 @@ def planen(
                 fahrten = vb._geteilt(vb._fahrten(mit_luecke), zwischen)
             for fahrt in fahrten:
                 a, q, m = _folge(fahrt, a_stellen, q_zeilen)
+                r = np.interp(a, a_stellen, lage_a)  # schräg: die Höhe folgt der Fläche
                 offen = float(a[0]) - radius >= w.a_stange_vorne  # vor der Stange: nur Luft
-                _einfahrt(punkte, a, q, lage, ebene.phi, vorige, offen, w, sicher)
-                for i in _knicke(a, q):
-                    punkte.append(vb.Punkt(False, float(a[i]), lage, ebene.phi, q=float(q[i])))
+                ueber = vorige if not schlichtlage else float(r[0]) + aufmass + vb.GLEICH
+                _einfahrt(punkte, a, q, float(r[0]), ebene.phi, ueber, offen, w, sicher, r)
+                for i in _knicke(a, q, r):
+                    punkte.append(
+                        vb.Punkt(False, float(a[i]), float(r[i]), ebene.phi, q=float(q[i]))
+                    )
                 punkte.append(vb.Punkt(True, float(a[-1]), sicher, ebene.phi, q=float(q[-1])))
                 zeilen_gesamt += len(set(m[m >= 0].tolist()))
+                r_min = min(r_min, float(np.min(r)))
             lagen_gesamt += 1
             vorige = lage
-            r_min = min(r_min, lage)
     if flaechen_gefraest == 0:
         raise ValueError(tr("vp.fehler.nichts"))
     letzter = punkte[-1]
@@ -885,6 +969,24 @@ def planen(
         seiten_gebohrt,
         mantel_gefraest,
     )
+
+
+def _zeilen_rechnen(bezug, q_zeilen):
+    """(Hüllfläche, Hüllfläche dazwischen, von welcher Zeile, frei) für diese Zeilen einer Fläche:
+    die Hüllfläche je Zeile und Stelle (−inf, wo er nichts trifft), zwischen weit
+    auseinanderliegenden Zeilen auch dazwischen – der Schritt quer am Ende einer Zeile prüfte
+    sonst nur die beiden Zeilen (P-2026-10-02-30) –, und wo die Stirn über das Ende der Fläche
+    ragen darf. `bezug`: (netz, laengs, radial, Form, Winkel rad, a_von, Schritt, Anzahl,
+    Radius, ragt, Fläche je Stelle) aus planen()."""
+    netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, radius, ragt, ziel_a = bezug
+    roh = vh.je_versatz(netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, q_zeilen).T
+    zw_q, zw_von = vb._zwischen(q_zeilen, radius)
+    if len(zw_q):
+        roh_zw = vh.je_versatz(netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, zw_q).T
+    else:
+        roh_zw = np.zeros((0, anzahl))
+    frei = ~ragt[None, :] | (roh <= ziel_a[None, :] + vb.GLEICH)
+    return roh, roh_zw, zw_von, frei
 
 
 def _enden(netz, laengs, radial, flaechen):
@@ -908,12 +1010,49 @@ def _material_ueber(w, ebene, radius):
     rest_a, rest_phi, rest_r = w.rest
     laengs = (rest_a >= ebene.a_von - radius) & (rest_a <= ebene.a_bis + radius)
     breit = max(abs(ebene.q_von), abs(ebene.q_bis)) + radius
-    weit = math.atan2(breit, ebene.tiefe)
+    weit = math.atan2(breit, ebene.hoechste)
     abstand = np.angle(np.exp(1j * (rest_phi - math.radians(ebene.phi))))
     quer = np.abs(abstand) <= weit
     if not laengs.any() or not quer.any():
         return float(w.stange_radius)
     return min(float(w.stange_radius), float(np.max(rest_r[np.ix_(laengs, quer)])))
+
+
+def _oben_je_zeile(w, ebene, q_zeilen, a_stellen, radius):
+    """(Zeilen, Stellen): so hoch steht längs der Werkzeugachse noch Material unter der Stirn
+    einer Zeile – die Stange, oder nach dem Schruppen der Rest (w.rest): je Punkt des Rests
+    seine Höhe r · cos δ und sein Versatz r · sin δ zur Fläche hin; das Höchste, was die Stirn
+    (Radius) an der Stelle der Zeile überdeckt. So fahren die Lagen nicht durch Luft, die das
+    Schruppen schon geräumt hat (P-2026-10-03-09: an Manuels Teil 21 Lagen über einem Rest von
+    0,3 mm)."""
+    q_zeilen = np.asarray(q_zeilen, dtype=float)
+    if w.rest is None:
+        quer = np.maximum(np.abs(q_zeilen) - radius, 0.0)
+        oben = np.sqrt(np.maximum(w.stange_radius**2 - quer * quer, 0.0))
+        return np.repeat(oben[:, None], len(a_stellen), axis=1)
+    rest_a, rest_phi, rest_r = w.rest
+    delta = np.angle(np.exp(1j * (rest_phi - math.radians(ebene.phi))))
+    vorn = np.abs(delta) < math.pi / 2
+    hoch = rest_r[:, vorn] * np.cos(delta[vorn])[None, :]  # (Stellen des Rests, Strahlen)
+    quer = rest_r[:, vorn] * np.sin(delta[vorn])[None, :]
+    je_zeile = np.full((len(q_zeilen), len(rest_a)), -math.inf)
+    for m, q in enumerate(q_zeilen):
+        unter = np.abs(quer - q) <= radius
+        je_zeile[m] = np.max(np.where(unter, hoch, -math.inf), axis=1)
+    # Längs: was die Stirn um ihren Radius vor und hinter der Stelle überdeckt.
+    schritt = float(rest_a[1] - rest_a[0]) if len(rest_a) > 1 else radius
+    weit = int(math.ceil(radius / schritt))
+    breit = je_zeile.copy()
+    for k in range(1, weit + 1):
+        breit[:, k:] = np.maximum(breit[:, k:], je_zeile[:, :-k])
+        breit[:, :-k] = np.maximum(breit[:, :-k], je_zeile[:, k:])
+    links = np.clip(np.searchsorted(rest_a, a_stellen) - 1, 0, len(rest_a) - 1)
+    rechts = np.clip(links + 1, 0, len(rest_a) - 1)
+    oben = np.maximum(breit[:, links], breit[:, rechts])
+    # Vor und hinter der Stange steht nichts.
+    draussen = (a_stellen > rest_a[-1] + radius) | (a_stellen < rest_a[0] - radius)
+    oben[:, draussen] = -math.inf
+    return np.minimum(oben, w.stange_radius)
 
 
 def _zeilen_quer(ebene, rand, abstand):
@@ -941,9 +1080,10 @@ def _folge(fahrt, a_stellen, q_zeilen):
     return tuple(np.concatenate([t[i] for t in teile]) for i in range(3))
 
 
-def _knicke(a, q):
-    """Die Punkte, die bleiben: Anfang, Ende und wo die Fahrt die Richtung längs wechselt oder
-    quer rückt – dazwischen liegt sie gerade."""
+def _knicke(a, q, r=None):
+    """Die Punkte, die bleiben: Anfang, Ende und wo die Fahrt die Richtung längs wechselt, quer
+    rückt oder (`r`, auf einer schrägen Fläche) ihre Steigung ändert – dazwischen liegt sie
+    gerade."""
     n = len(a)
     if n <= 2:
         return range(n)
@@ -953,6 +1093,11 @@ def _knicke(a, q):
     bleibt[1:-1] = (
         (da[:-1] * da[1:] <= 0) | (np.abs(dq[:-1]) > vb.GLEICH) | (np.abs(dq[1:]) > vb.GLEICH)
     )
+    if r is not None:
+        dr = np.diff(r)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            steigung = np.where(np.abs(da) > vb.GLEICH, dr / np.where(da == 0, 1.0, da), 0.0)
+        bleibt[1:-1] |= np.abs(np.diff(steigung)) > 1e-6
     return np.flatnonzero(bleibt)
 
 
@@ -974,11 +1119,12 @@ def _eilgang(punkte, a, r, phi, q):
             punkte.append(punkt)
 
 
-def _einfahrt(punkte, a, q, lage, phi, oben, offen, w, sicher):
+def _einfahrt(punkte, a, q, lage, phi, oben, offen, w, sicher, r_fahrt=None):
     """Über den Anfang der Fahrt, im Eilgang bis knapp über `oben` (höher steht dort nichts),
     hinein: senkrecht mit dem Eintauchvorschub, wo die Zeile vor der Stange beginnt (`offen`)
     oder für eine Rampe zu kurz ist – sonst über die Rampe mit dem Eintauchwinkel längs der
-    ersten Zeile, hin und her, bis sie unten ist, und auf ihr zurück zum Anfang."""
+    ersten Zeile, hin und her, bis sie unten ist, und auf ihr zurück zum Anfang. `r_fahrt`: die
+    Höhe je Punkt der Fahrt (schräge Fläche); ohne überall `lage`."""
     a0, q0 = float(a[0]), float(q[0])
     _eilgang(punkte, a0, sicher, phi, q0)
     knapp = min(sicher, oben + w.sicherheit)
@@ -991,7 +1137,7 @@ def _einfahrt(punkte, a, q, lage, phi, oben, offen, w, sicher):
         punkte.append(vb.Punkt(False, a0, lage, phi, True, q0))
         return
     punkte.append(vb.Punkt(False, a0, oben, phi, True, q0))  # bis ans Material
-    r = np.full(len(a), lage)
+    r = np.full(len(a), lage) if r_fahrt is None else np.asarray(r_fahrt, dtype=float)
     winkel = np.full(len(a), phi)
     for stelle_a, stelle_r, _phi in vb._rampe(a, r, winkel, 0, erste, oben, w):
         punkte.append(vb.Punkt(False, stelle_a, stelle_r, phi, q=q0))

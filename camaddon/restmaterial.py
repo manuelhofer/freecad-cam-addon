@@ -198,16 +198,6 @@ class Stange:
         else:
             bis_hier = _stirn(form, r_t, d, delta, gueltig, alle[zelle], q_t)
         da = gueltig & np.isfinite(bis_hier)
-        # Ein Strahl schräg zur Werkzeugachse verlässt den Fräser (Schaft so dick wie die Stirn)
-        # wieder bei R ÷ |sin Δ|. Steht dort darüber noch Material, bohrte der Fräser einen
-        # Tunnel hindurch – das kennt die Stange nicht (ein Radius je Strahl); sie ließe dann
-        # alles darüber verschwinden (P-2026-10-03-07: Fahrten nahe der Achse rissen im
-        # Prüffenster Löcher in Nachbarstrahlen). Lieber bleibt der Tunnel voll.
-        with np.errstate(divide="ignore"):
-            austritt = radius / np.maximum(np.abs(np.sin(delta)), 1e-12)
-        da &= (alle[zelle] <= austritt[:, None, :] + self._schritt_a) | (
-            np.abs(delta)[:, None, :] < 1e-9
-        )
         if da.any():  # eine Zelle kann mehrmals vorkommen – at() nimmt das kleinste
             np.minimum.at(alle, zelle[da], bis_hier[da])
 
@@ -324,7 +314,7 @@ def teilradien(netz, laengs, radial, stange, radius=SCHRITT_A / 2):
     """Die Radien des fertigen Teils im Raster der Stange – −inf, wo es keins gibt, negativ, wo
     es nur hinter der Achse liegt. Die Scheibe einer halben Rasterweite fasst, was zwischen den
     Strahlen liegt; mit `radius` GENAU liest es das Teil auf den Strahlen."""
-    return vh.schaftfraeser(netz, laengs, radial, radius, stange.a, stange.phi).r
+    return vh.schaftfraeser(netz, laengs, radial, radius, stange.a, stange.phi, nur_vorne=True).r
 
 
 def vergleiche(stange, teil, aufmass, genau=None, nur=None, erlaubt=None):
@@ -543,19 +533,21 @@ def boden_radien(stange, laengs, radial, boeden):
         if isinstance(flaeche, vp.Kegelgrund):
             _kegel_radien(radien, stange, flaeche, delta)
             continue
-        with np.errstate(invalid="ignore"):
-            q = ebene.tiefe * np.tan(delta)
-        spalten = np.flatnonzero(
-            (np.abs(delta) < math.radians(80))
-            & (q >= ebene.q_von - 1e-6)
-            & (q <= ebene.q_bis + 1e-6)
-        )
         zeilen = np.flatnonzero((stange.a >= ebene.a_von - 1e-6) & (stange.a <= ebene.a_bis + 1e-6))
         for i in zeilen:
+            # Schräg zur Stange (P-2026-10-03-09) liegt die Fläche je Stelle anders hoch.
+            tiefe = float(ebene.hoehe(stange.a[i]))
+            with np.errstate(invalid="ignore"):
+                q = tiefe * np.tan(delta)
+            spalten = np.flatnonzero(
+                (np.abs(delta) < math.radians(80))
+                & (q >= ebene.q_von - 1e-6)
+                & (q <= ebene.q_bis + 1e-6)
+            )
             for j in spalten:
-                p = l_ * stange.a[i] + n * ebene.tiefe + quer * q[j]
+                p = l_ * stange.a[i] + n * tiefe + quer * q[j]
                 if flaeche.isInside(FreeCAD.Vector(*(float(c) for c in p)), 1e-3, True):
-                    r = ebene.tiefe / math.cos(float(delta[j]))
+                    r = tiefe / math.cos(float(delta[j]))
                     radien[i, j] = r if np.isnan(radien[i, j]) else min(radien[i, j], r)
     return radien
 

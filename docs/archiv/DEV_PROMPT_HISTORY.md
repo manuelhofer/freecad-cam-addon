@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-09 vierachs-plan-schraeg-y-achse
+
+### EINGELESEN
+- Manuel, 2026-10-03: „die Geschichte mit der Y-Achse hast du gar nicht verfolgt?? wobei sie
+  doch so wichtig wäre auch fürs 5-Achs-Fräsen später, dass man eine Berechnung für eine Bahn
+  findet, die auch ausweichen und anders ‚denken‘ in manchen Szenarien“; vorher: „man kann doch
+  dann für dieses Stück den Winkel richtig stellen und die Y-Achse verfahren … vorher die
+  Y-Achse schon ein wenig zurücknehmen, so dass sie im Flow eine schöne Gerade fahren kann“.
+  Spezifikation Vierachs V4c, `vierachs_planbahn`, `gui_vierachs`.
+
+### DATEIEN
+- `camaddon/vierachs_planbahn.py` (`Ebene.steigung/hoehe/neigung/hoechste`, `ebenen` schräg bis
+  30°, `grat_zeilenabstand`, `_anheben`, `_oben_je_zeile`, `_zeilen_rechnen`, Schlichtlage,
+  `_knicke` mit r, `_einfahrt` mit r je Punkt), `camaddon/restmaterial.py` (`boden_radien`
+  schräg; `teilradien` nur vor der Achse; die Tunnel-Regel aus P-2026-10-03-07 wieder raus),
+  `camaddon/vierachs_huelle.py` (`schaftfraeser(nur_vorne)`), `camaddon/gui_vierachs.py`
+  (`_plan_namen`, `_schlicht_flaechen`, Angebot rundum), `translations/de|en.json`,
+  `help/de|en/vierachs.html`, `docs/spezifikation_vierachs.md` (V4c+), `docs/STATUS_SNAPSHOT.md`,
+  `tests/test_vierachs_plan.py` (schräg 10°), `tests/test_vierachs_schlichten.py` (Vorstufen mit
+  3 mm je Umdrehung), `tests/gui/szenario_vierachs_plan.py` (rundum angeboten), `package.xml`
+  (0.135.0)
+
+### AKZEPTANZKRITERIUM
+An Manuels Teil fräst „Plan indexiert“ die längs um 8,5° fallende flache Seite in geraden
+Zeilen mit C fest und Y quer, nie unter der Fläche; der Assistent bietet es rundum an, und
+„Rundum schlichten“ lässt die Fläche dann aus.
+
+### DONE
+- Gemessen an Manuels Teil (`plan4.py` im Scratch): Face4 φ −90°, 8,5°, vorne 13 über der
+  Achse, hinten 0,4 darunter; Plan nach dem Schruppen 9,3 min (vor `_oben_je_zeile` 20,4 –
+  21 Lagen durch Luft), knappste Spitze genau auf Fläche + Anheben (0,90 mm); Schlichten ohne
+  Face4 52,4 statt 88,4 min.
+- **Gefundene Fehler (auch aus P-2026-10-03-07, dort nicht gelaufen):** Die Hüllfläche mit dem
+  Teil hinter der Achse änderte `restmaterial.teilradien` – das Prüffenster vergleicht je Strahl
+  von der Achse nach außen; jetzt `nur_vorne` wie zuvor (Radial bohren: −12,6 mm „ins Teil“).
+  Die Tunnel-Regel in `restmaterial.Stange` ließ neben einer Abflachung Material stehen, das
+  Plan indexiert sehr wohl nimmt (Rest bei 36°: 12 statt 9,9) – wieder raus. Die Vorstufen des
+  Schlichtens mit 3 mm je Umdrehung: die Erwartungen im Test nachgezogen.
+- Schräge Ebenen: ohne Schwenkachse steht die ebene Stirn um α schräg – Grat zwischen Zeilen
+  (R − √(R² − (s/2)²)) · tan α, Schlichtlage mit ≤ 0,01 mm (Ø 12, 8,5°: 1,8 mm Abstand).
+- **Nicht gebaut:** „Ausweichen“ quer mit dem Y (Anstellwinkel, Kugel nicht mit der Spitze) –
+  in der Spezifikation V4c+ beschrieben, als eigene Stufe.
+
+### TESTS
+- `tests/test_vierachs_plan.py` (OK, neu: schräg 10°), danach einmal die 4-Achs-Prüfdateien, weil
+  die Hüllfläche (P-2026-10-03-07) und `restmaterial` geändert waren: `test_vierachs_huelle`,
+  `_flaechen`, `_schlichten` (zuerst rot: Vorstufen, nachgezogen), `test_restmaterial`,
+  `test_vierachs_entgraten`, `test_vierachs_pruefen` (OK). Szenarien: `szenario_vierachs_plan`
+  (OK, rundum angeboten), `szenario_rundum_drehmaschine` (OK). black und ruff sauber.
+
+### NEXT
+- W-005 Postprozessor nach der Spezifikation (Manuel: „ja, die Spezifikationen nehmen“).
+
 ## P-2026-10-03-08 vierachs-hinten-gerade-zum-abstechen
 
 ### EINGELESEN

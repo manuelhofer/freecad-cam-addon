@@ -773,6 +773,40 @@ pruefe(len(op.Path.Commands) == anzahl, f"nach dem Laden {len(op.Path.Commands)}
 pruefe(op.getEditorMode("Zeilen") == ["ReadOnly"], "Zeilen nach dem Laden")
 print(ascii(f"Operation: {anzahl} Befehle"))
 
+# --- Schräg zur Achse (P-2026-10-03-09, Manuels D-Profil): eine Abflachung, die längs um 10°
+# fällt – vorne 8 mm über der Achse, 40 mm weiter hinten 8 − 40 · tan 10° = 0,95 mm. Die Zeilen
+# folgen ihr, nie unter die Fläche plus das, was die schräge Stirn bergauf braucht (R · tan α);
+# zuletzt eine Schlichtlage mit dem Zeilenabstand für höchstens 0,01 mm Grat.
+neigung = math.radians(10.0)
+keil = Part.makeBox(20, 40, 60, V(0, -20, -50))
+keil.rotate(V(0, 0, 0), V(0, 1, 0), 10.0)  # dreht die Unterseite x = 0 um die Querachse
+keil.translate(V(8, 0, 0))
+schraeg_welle = Part.makeCylinder(15, 45, V(0, 0, -45)).cut(keil).removeSplitter()
+schraeg_namen = [f"Face{i + 1}" for i in range(len(schraeg_welle.Faces))]
+schraeg = vp.ebenen(schraeg_welle, LAENGS, RADIAL, schraeg_namen)
+pruefe(len(schraeg) == 1, f"schräge Ebenen: {schraeg}")
+if schraeg:
+    s = schraeg[0]
+    pruefe(
+        abs(s.neigung - 10.0) < 0.01 and abs(s.hoehe(0.0) - 8.0) < 0.01,
+        f"schräg: Neigung {s.neigung:.3f}°, vorne {s.hoehe(0.0):.3f}",
+    )
+    w_schraeg = dataclasses.replace(werte, stange_radius=17.0, zeilenabstand=4.0, a_futter=-80.0)
+    sb = vp.planen(vp.netz_ohne(schraeg_welle, [s.name]), LAENGS, RADIAL, w_schraeg, schraeg)
+    hub = 3.0 * math.tan(neigung)
+    im_bereich = [p for p in sb.punkte if not p.eilgang and s.a_von <= p.a <= s.a_bis]
+    knapp = min(p.r - (s.hoehe(p.a) + hub) for p in im_bereich)
+    pruefe(-1e-6 <= knapp < 0.05, f"schräg: knappste Spitze {knapp:.4f} über Fläche + R·tan α")
+    fein = vp.grat_zeilenabstand(s, 3.0)
+    pruefe(fein is not None and 0.5 < fein < 4.0, f"feiner Zeilenabstand {fein}")
+    unten = sorted({round(p.q, 6) for p in im_bereich if p.r - (s.hoehe(p.a) + hub) < 1e-6})
+    abstaende = np.diff(unten) if len(unten) > 1 else np.array([0.0])
+    pruefe(
+        len(unten) > 3 and float(np.max(abstaende)) <= fein + 1e-6,
+        f"Schlichtlage: {len(unten)} Zeilen, größter Abstand {float(np.max(abstaende)):.3f}",
+    )
+    print(ascii(f"Schraeg 10 Grad: {sb.lagen} Lagen, {sb.zeilen} Zeilen, fein {fein:.2f} mm"))
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

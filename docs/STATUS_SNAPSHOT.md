@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.134.0 (P-2026-10-03-08). Alles, was hier als gebaut steht,
+Stand 0.135.0 (P-2026-10-03-09). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -104,6 +104,13 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
    öffnet die Produktseite, Nutzlänge 49, Gesamtlänge 103, Schaft 10, 140°. Beim Jongen Ø 12
    (0.131.0): „Hals-Ø d1 11,2“ und „Auskragung N 36“ wie im Katalogblatt, das Bild zeigt den
    Hals.
+9. **Die Y-Achse an deinem 4-Achs-Teil (0.135.0):** im 4-Achs-Assistenten mit deiner
+   Drehmaschine (mit Y), alle Mantelflächen: unter „Plan indexiert“ steht „Mit der Querachse
+   geht Face4 eben in Zeilen … Face4 fällt längs um 8,5° …“, der Haken ist frei, aber nicht
+   gesetzt. Setzen, Fräser mit ebener Stirn (Ø 12) → „Anlegen“: „Plan indexiert T…“ fräst die
+   flache Seite in geraden Zeilen längs, C steht, Y rückt quer – hinten unter der Drehmitte (X
+   unter null); „Rundum schlichten“ lässt Face4 aus. Gerechnet: Plan 9 min + Schlichten 52 min
+   statt 88 min Spirale; die flache Seite eben bis 0,01 mm.
 8. **Hinten am 4-Achs-Teil (0.134.0):** hinter dem Teil fährt der Fräser das Profil des
    Teilendes 3,5 mm gerade weiter (Abstechbreite 3 + 0,5) und hört dort auf – das Stechschwert
    trifft auf ein gerades Stück, dahinter bleibt das Material. Im Assistenten steht beim
@@ -158,7 +165,9 @@ sind nur die Quelle, keine Erweiterung nötig; „das Teil muss herauskommen“ 
 5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
    Bereiche; Spannhöhe.
 6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
-7. W-002 F2; W-003 V2b, V6, V7; das Schruppen rundum an steilen Stellen feiner (Keile).
+7. W-002 F2; W-003 V2b, V6, V7; das Schruppen rundum an steilen Stellen feiner (Keile);
+   „ausweichen“ mit dem Y (Kugel nicht mit der Spitze, Anstellwinkel quer – Spezifikation
+   Vierachs V4c+), Vorläufer fürs 5-Achs-Fräsen.
 
 **Regeln dafür** (Manuel, 2026-10-02: „du hast zwei stunden damit verbracht sachen zu testen
 für was?“; 2026-10-03: „ob das nötig ist oder nicht, musst dennoch du entscheiden … wenn es nötig

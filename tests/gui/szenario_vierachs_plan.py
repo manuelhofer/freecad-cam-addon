@@ -72,14 +72,13 @@ def schritte(h):
     yield 300
     h.pruefe(panel.seite == 2, f"Seite {panel.seite}")
 
-    # --- Ohne Flächen: gesperrt, mit dem Grund ----------------------------------------------
+    # --- Ohne Flächen (rundum): mit dem Y angeboten, ohne Haken (P-2026-10-03-09) -----------
     h.pruefe(
-        not panel.mit_plan.isEnabled() and not panel.mit_plan.isChecked(), "Plan ohne Fläche an"
+        panel.mit_plan.isEnabled() and not panel.mit_plan.isChecked(), "Plan rundum nicht angeboten"
     )
     text = panel.plan_grund.text()
-    h.pruefe(
-        text.startswith("Plan indexiert braucht eine gewählte ebene Fläche"), f"Grund: {text!r}"
-    )
+    h.pruefe(text.startswith("Mit der Querachse geht Face"), f"Grund: {text!r}")
+    h.pruefe(panel._schlicht_flaechen() == [], "rundum ohne Haken: Schlichten nicht rundum")
     yield from h.warte_auf(
         lambda: panel.vorschau is not None and panel.vorschau_schlichten is not None, 30000
     )

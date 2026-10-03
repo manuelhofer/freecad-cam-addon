@@ -1285,6 +1285,8 @@
     "va.plan.vorschlag_bohren": "Vorschlag: an – radial bohren mit {bohrer}: {flaechen}. Die Rundachse steht auf ihrer Öffnung, der Bohrer fährt hinab – schneller als fräsen.",
     "va.plan.keine_ebene": "Plan indexiert braucht eine gewählte ebene Fläche längs der Stange, die nach außen schaut (Abflachung, Nutboden), eine Bohrung quer zur Stange oder den Grund einer Nut auf dem Mantel – klick sie im 3D an.",
     "va.plan.keine_querachse": "Plan indexiert braucht eine Achse quer zur Stange (bei C das Y) – „{maschine}“ hat keine.",
+    "va.plan.vorschlag_rundum": "Mit der Querachse geht {flaechen} eben in Zeilen – die Rundachse steht, das Y rückt quer, der Fräser fährt gerade Bahnen längs. Anhaken: „Rundum schlichten“ lässt sie dann aus.",
+    "va.plan.schraeg": "{flaeche} fällt längs um {winkel}° – die Zeilen folgen ihr, auch unter die Drehmitte; zuletzt eine Schlichtlage so dicht, dass zwischen den Zeilen höchstens 0,01 mm stehen bleibt (die ebene Stirn steht dort schräg: eine Schwenkachse hat die Maschine nicht).",
     "va.plan.vorschlag": "Vorschlag: an – eben längs der Stange: {flaechen}. So wird sie eben bis in die Ecken; mit dem Fräser auf dem Strahl von der Achse bliebe am Rand etwas stehen.",
     "va.plan.dazu": "Haken setzen: „Übernehmen“ legt „Plan indexiert“ dazu an.",
     "va.plan.schon": "„{name}“ gibt es im Job schon – ein Doppelklick darauf ändert es.",

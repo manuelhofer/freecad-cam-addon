@@ -231,13 +231,14 @@ pruefe(abs(tief_ohne - 15.0) < 0.02, f"ohne Schutz in die Nut: {tief_ohne:.3f}")
 pruefe(mit.grenze == 3.0 and mit.vorstufen == 1, f"Grenze {mit.grenze}, {mit.vorstufen} Stufen")
 teile = stuecke(mit)
 pruefe(len(teile) == 2, f"{len(teile)} Stücke statt Stufe und Schlichten")
-# Die Stufe: nur wo der Kugelfräser mehr als 3 mm unter den Rest käme – am Grund der Nut
-# (a −21 … −19; daneben hebt ihn die senkrechte Wand gleich über 17,3 mm) –, und dort nicht
-# tiefer als Ø 40 + Aufmaß − 3 mm = 17,3 mm. Sie taucht eine Umdrehung vorher ein, wo die
-# Wand ihn noch hebt – nicht am Grund.
+# Die Stufe: nur wo der Kugelfräser mehr als 3 mm unter den Rest käme – in der Nut (ab
+# a −21; daneben hebt ihn die senkrechte Wand gleich über 17,3 mm) –, und dort nicht tiefer als
+# Ø 40 + Aufmaß − 3 mm = 17,3 mm. Sie taucht eine Umdrehung vorher ein, wo die Wand ihn noch
+# hebt – nicht am Grund. Seit P-2026-10-03-07 fährt sie mit dem Fräserradius je Umdrehung
+# (3 mm statt der Schrittweite 0,35): Ihre letzte Umdrehung liegt deshalb bis −16,1.
 a_stufe, r_stufe = dicht(mit, teile[:1])
 pruefe(
-    -21.1 < a_stufe.min() <= -21 and -19 <= a_stufe.max() < -18.5,
+    -21.1 < a_stufe.min() <= -21 and -19 <= a_stufe.max() < -15.9,
     f"Stufe von {a_stufe.min()} bis {a_stufe.max()}",
 )
 tief_stufe = r_stufe[(a_stufe > -21) & (a_stufe < -19)].min()
@@ -253,7 +254,7 @@ pruefe(
     f"neben der Nut: {r_mit[aussen].min():.3f} … {r_mit[aussen].max():.3f}",
 )
 mehr = mit.umdrehungen - ohne.umdrehungen
-pruefe(abs(mehr - (a_stufe.max() - a_stufe.min()) / 0.35) < 1.01, f"Umdrehungen der Stufe: {mehr}")
+pruefe(abs(mehr - (a_stufe.max() - a_stufe.min()) / 3.0) < 1.01, f"Umdrehungen der Stufe: {mehr}")
 # Die Rundachse dreht nie zurück, auch zwischen den Stücken.
 winkel = [p.phi for p in mit.punkte]
 pruefe(all(b >= a - 1e-9 for a, b in zip(winkel, winkel[1:], strict=False)), "C dreht zurück")

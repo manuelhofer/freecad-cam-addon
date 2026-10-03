@@ -800,6 +800,28 @@ bauen“):*
     steht, steht seine Stirn schräg zu ihr – an ihrem Rand bleibt etwas mehr stehen, in
     den Ecken an ihren Wänden gut 1 mm (mit Ringgang). Eben fräst sie erst „Plan
     indexiert“ (V4c).
+- **V4c+ – Plan indexiert schräg und rundum angeboten** (P-2026-10-03-09; Manuel,
+  2026-10-03: „die Maschine hat eine Y-Achse … man kann doch dann für dieses Stück den Winkel
+  richtig stellen und die Y-Achse verfahren … dass sie im Flow eine schöne Gerade fahren kann“,
+  „die Geschichte mit der Y-Achse hast du gar nicht verfolgt?“): `vierachs_planbahn.ebenen`
+  nimmt Ebenen, die längs bis 30° fallen (`Ebene.steigung`, `hoehe(a)`); die Zeilen folgen der
+  Fläche längs, auch unter die Drehmitte; die Spitze steht um das höher, was die schräge Stirn
+  bergauf braucht (`_anheben`: R · tan α beim Schaftfräser). Ohne Schwenkachse steht die ebene
+  Stirn um α schräg zur Fläche – zwischen Zeilen bleibt (R − √(R² − (s/2)²)) · tan α; darum
+  zuletzt eine Schlichtlage mit `grat_zeilenabstand` (≤ 0,01 mm). Die Lagen fahren nur, wo
+  über ihnen noch Material steht (`_oben_je_zeile` aus dem Rest nach dem Schruppen) – vorher
+  zählte der höchste Rest im ganzen Winkelfenster, an Manuels Teil 21 Lagen durch Luft. Im
+  Assistenten bietet „Plan indexiert“ rundum (alle Mantelflächen) mit Querachse die ebenen
+  Mantelflächen an, ohne Haken; gesetzt, lässt „Rundum schlichten“ sie aus
+  (`_schlicht_flaechen`). Manuels Teil (Kugel Ø 10 schruppt, Ø 12 plant Face4 8,5° schräg,
+  Kugel schlichtet den Rest mit 0,2): Plan 9,3 min + Schlichten 52 min statt 88 min Spirale
+  rundum – und die flache Seite eben bis auf 0,01 mm statt mit der Kugelspitze gefahren.
+  *Für 5 Achsen und „ausweichen“:* Mit Y allein ändert sich die Richtung des Werkzeugs zum
+  Teil nur mit C, also quer zur Stange; eine längs geneigte Fläche bräuchte eine Schwenkachse
+  (B). Mit Y lässt sich aber der Winkel von Werkzeug und Fläche quer wählen – C auf φ_Normale
+  + δ, das Y bringt das Werkzeug wieder auf den Punkt –, so schneidet eine Kugel nicht mit der
+  Spitze (Schnittgeschwindigkeit 0): der Vorläufer des Anstellwinkels beim 5-Achs-Fräsen.
+  Offen, als eigene Stufe zu planen.
 - **V4c – Strategien je Werkzeug und Fläche** (Manuel: „mehrere Strategien, je
   nach Werkzeug kann das anders ausfallen“): für jede Auswahl ein Vorschlag, im
   Assistenten änderbar –
@@ -1005,8 +1027,7 @@ die Abstände gelten für beide.
     gesehen 2–3 mm je Grad fällt –, sind echt; sie nehmen die Vorstufen.
     *Offen:* das Schruppen dort feiner rechnen; das Prüffenster malt den
     Abtrag weiter mit `restmaterial.Stange` – es kennt keine Fahrt über die
-    Mitte (die Spitze zählt dort als 0) und lässt Tunnel durch Nachbarstrahlen
-    jetzt aus (lieber zu viel Material zeigen als Löcher); hinten das
+    Mitte (die Spitze zählt dort als 0); hinten das
     Teilende: der Überlauf fräst die Kante fertig und schneidet dabei neben
     einem dünnen Ende tief ein – Manuel (2026-10-03): „auf ner Drehbank kann
     man das abstechen … das Bauteil ist instabil geworden, weil hinten so viel
