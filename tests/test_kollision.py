@@ -367,6 +367,40 @@ e = pruefen(["G0 X50 Y30 Z30", "G1 Z10 F10"], t1(), fortschritt=lambda _anteil: 
 pruefe(e.abgebrochen and e.befunde == [], "Abbrechen")
 pruefe(e.hinweise[-1].startswith("Abgebrochen – geprüft bis 0:00.0 von "), f"{e.hinweise}")
 
+# --- Werkzeugwechsel ohne Wechselpunkt: Die Maschine wechselt, wo sie steht ----------------------
+# T1 (50 mm) endet 2 mm über dem Teil, T2 ist 10 mm länger: Seine Schneide steckt nach dem
+# Wechsel 8 mm im Teil – der Befund sagt, dass es am Wechsel liegt und was hilft. Ist T2 kürzer,
+# stößt nichts an.
+from Path.Tool import Controller  # noqa: E402
+
+FreeCAD.setActiveDocument(teil.Name)
+op.Gcode = ["G0 X10 Y30 Z30", "G0 Z22"]
+tc2 = Controller.Create("T2", tool=op.ToolController.Tool, toolNumber=2)
+job.Proxy.addToolController(tc2)
+zweite = PathCustom.Create("Zweite")
+zweite.ToolController = tc2
+zweite.Gcode = ["G0 Z30", "G0 X50 Y30 Z30"]
+teil.recompute()
+for laenge, soll in ((60.0, "T2"), (45.0, None)):
+    bibliothek = wz.Bibliothek([t1(), t1(nummer=2, gesamtlaenge=laenge)])
+    bibliothek.halter_vorschlagen = False
+    fahrt = ab.abfahrt(p, job, nullpunkt, bibliothek)
+    e = kb.kollision(fahrt, job, nullpunkt, bibliothek)
+    if soll is None:
+        pruefe(e.befunde == [], f"T2 kürzer: {[b.text() for b in e.befunde]}")
+        continue
+    pruefe(
+        e.befunde
+        and all(
+            b.wechsel == "T2"
+            and b.operation == "Zweite"
+            and "kein Wechselpunkt eingetragen" in b.text()
+            for b in e.befunde
+        ),
+        f"am Wechsel: {[b.text() for b in e.befunde]}",
+    )
+teil.removeObject(zweite.Name)
+
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 assert not fehler, "\n".join(fehler)

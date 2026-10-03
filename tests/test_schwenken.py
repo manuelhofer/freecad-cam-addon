@@ -215,6 +215,26 @@ except ValueError as grund:
     pruefe("Bohr" in str(grund), f"Zyklus quer: {grund}")
 else:
     pruefe(False, "Bohrzyklus quer zur Ebene ohne Fehler")
+# Beginnt die Ebene mit „G0 Z…“ ohne X, Y (wie jede Operation in FreeCAD): kein erfundener Punkt
+# X0 Y0 der Ebene – auf der Schwenkhöhe über den ersten bekannten Punkt, dann hinunter.
+hoch = sw.Schwenkung(e, rund, sw.abbildung_ohne_maschine(rund), hoehe=120.0)
+anfang = sw.befehle_ohne_zyklus(
+    [
+        Path.Command("G0", {"Z": 10.0}),
+        Path.Command("G0", {"X": 10.0, "Y": 5.0}),
+        Path.Command("G1", {"Z": -2.0, "F": 300.0}),
+    ],
+    hoch,
+)
+wege = [[c.Parameters.get(k) for k in "XYZ"] for c in anfang if "A" not in c.Parameters]
+soll = gesamt.punkt((10.0, 5.0, 10.0))
+pruefe(
+    len(wege) == 4
+    and wege[0] == [None, None, 120.0]
+    and nahe_v(wege[1], (soll[0], soll[1], 120.0), 1e-9)
+    and nahe_v(wege[2], soll, 1e-9),
+    f"Anfang der Ebene: {[c.toGCode() for c in anfang]}",
+)
 
 # --- F2: die Ebene als Job ----------------------------------------------------------------------
 import Path.Main.Job as PathJob  # noqa: E402
@@ -331,53 +351,70 @@ for s in (pp.steuerung("linuxcnc"), pp.steuerung("siemens", {"schwenkzyklus": Fa
     ein = next((z for z in zeilen if z.startswith("G0 A")), "")
     pruefe(ein.startswith("G0 A-30.000 C0.000"), f"{s.name}: Rundachsen {ein!r}")
     pruefe(zeilen.count("G0 A0.000 C0.000") == 1, f"{s.name}: Rundachsen nicht zurück")
+    # Vor jedem Schwenken hoch genug, dass sich das Rohteil frei dreht – auch ohne Wechselpunkt.
+    for k, z in enumerate(zeilen):
+        if z.startswith("G0 A"):
+            davor = zeilen[k - 1]
+            hoch = float(davor.split("Z")[1]) if davor.startswith("G0 Z") else -math.inf
+            pruefe(
+                hoch >= schwenkung.hoehe - 1e-3 and hoch > rohteil_grund.BoundBox.ZMax + 10.0,
+                f"{s.name}: vor {z!r} nicht hoch genug: {davor!r}",
+            )
     soll = gesamt.punkt([float(erster.Parameters.get(k, 0.0)) for k in "XYZ"])
     pruefe(
         any(z.startswith("G1") and f"X{soll[0]:.3f}" in z for z in zeilen),
         f"{s.name}: erster Satz nicht gerechnet ({soll})",
     )
 
-# --- F4: auf der Maschine prüfen – Tisch/Tisch -------------------------------------------------
+# --- F4: auf der Maschine prüfen – an allen drei 5-Achs-Beispielen ---------------------------------
 from camaddon import abfahren as ab  # noqa: E402
 
-asm, ma = beispielmaschine.fuenfachs_tisch_tisch()
-p = rw.Pruefung(asm, ma)
-null = rw.nullpunkt(grundjob)
-pruefe(rw.nullpunkt(planjob) == null, "Nullpunkt der Ebene nicht der des Grundjobs")
-pruefe(rw.grundjob_von(planjob) is grundjob, "grundjob_von")
-ergebnis = p.pruefe_job(planjob, null)
-pruefe(
-    not [h for h in ergebnis.hinweise if "Ebene" in h or "Rundachsen" in h],
-    f"Prüfen der Ebene: {ergebnis.hinweise}",
-)
-a1 = [b for b in ergebnis.bereiche if b.name == "A1"]
-pruefe(
-    a1 and nahe(min(a1[0].von, a1[0].bis), -NEIGUNG, 1e-6),
-    f"A1: {[(b.name, b.von, b.bis) for b in ergebnis.bereiche]}",
-)
-fahrt = ab.abfahrt(p, grundjob, null)
-nummer = next(i for i, o in enumerate(fahrt.operationen) if o.name == op.Label)
-punkte = fahrt.am_werkstueck()
-zurueck_in_ebene = e.inverse()
-tiefste = math.inf
-anzahl = 0
-for station, am in zip(fahrt.stationen, punkte, strict=True):
-    if station.operation != nummer or station.ziel or station.eilgang or station.stellungen is None:
-        continue
-    lokal = zurueck_in_ebene.multVec(V(*am))
-    tiefste = min(tiefste, lokal.z)
-    anzahl += 1
-pruefe(anzahl > 50, f"Abfahren der Ebene: {anzahl} Stationen im Vorschub")
-pruefe(tiefste > -1e-6, f"Abfahren der Ebene: die Spitze {tiefste:.4f} mm unter der Schräge")
-# Der erste Satz im Vorschub der Operation: am gedrehten Werkstück genau dort, wo die Bahn der
-# Ebene ihn hat – durch den Grundjob, die Rundachsen und die Linearachsen ohne TCPM.
-erster_lokal = [float(erster.Parameters.get(k, 0.0)) for k in "XYZ"]
-soll = e.multVec(V(*erster_lokal))
-pruefe(
-    any(math.dist(am, soll) < 1e-5 for am in punkte),
-    f"erster Satz am Werkstück nicht bei {soll}",
-)
-FreeCAD.closeDocument(asm.Document.Name)
+for bauplan, schwenkachse in (
+    (beispielmaschine.fuenfachs_tisch_tisch, "A1"),
+    (beispielmaschine.fuenfachs_kopf_tisch, "B1"),
+    (beispielmaschine.fuenfachs_kopf_kopf, "A1"),
+):
+    name = bauplan.__name__
+    asm, ma = bauplan()
+    p = rw.Pruefung(asm, ma)
+    null = rw.nullpunkt(grundjob)
+    pruefe(rw.nullpunkt(planjob) == null, "Nullpunkt der Ebene nicht der des Grundjobs")
+    pruefe(rw.grundjob_von(planjob) is grundjob, "grundjob_von")
+    ergebnis = p.pruefe_job(planjob, null)
+    pruefe(
+        not [h for h in ergebnis.hinweise if "Ebene" in h or "Rundachsen" in h],
+        f"{name}: Prüfen der Ebene: {ergebnis.hinweise}",
+    )
+    schwenk = [b for b in ergebnis.bereiche if b.name == schwenkachse]
+    pruefe(
+        schwenk and nahe(max(abs(schwenk[0].von), abs(schwenk[0].bis)), NEIGUNG, 1e-4),
+        f"{name}: {[(b.name, b.von, b.bis) for b in ergebnis.bereiche]}",
+    )
+    fahrt = ab.abfahrt(p, grundjob, null)
+    nummer = next(i for i, o in enumerate(fahrt.operationen) if o.name == op.Label)
+    punkte = fahrt.am_werkstueck()
+    zurueck_in_ebene = e.inverse()
+    tiefste = math.inf
+    anzahl = 0
+    for station, am in zip(fahrt.stationen, punkte, strict=True):
+        if station.operation != nummer or station.ziel or station.eilgang:
+            continue
+        if station.stellungen is None:
+            continue
+        lokal = zurueck_in_ebene.multVec(V(*am))
+        tiefste = min(tiefste, lokal.z)
+        anzahl += 1
+    pruefe(anzahl > 50, f"{name}: {anzahl} Stationen im Vorschub")
+    pruefe(tiefste > -1e-6, f"{name}: die Spitze {tiefste:.4f} mm unter der Schräge")
+    # Der erste Satz im Vorschub der Operation: am gedrehten Werkstück genau dort, wo die Bahn
+    # der Ebene ihn hat – durch den Grundjob, die Rundachsen und die Linearachsen ohne TCPM.
+    erster_lokal = [float(erster.Parameters.get(k, 0.0)) for k in "XYZ"]
+    soll = e.multVec(V(*erster_lokal))
+    pruefe(
+        any(math.dist(am, soll) < 1e-5 for am in punkte),
+        f"{name}: erster Satz am Werkstück nicht bei {soll}",
+    )
+    FreeCAD.closeDocument(asm.Document.Name)
 FreeCAD.closeDocument(doc.Name)
 
 # --- F6: was der Grundjob weggefräst hat, kennt die Ebene ------------------------------------------

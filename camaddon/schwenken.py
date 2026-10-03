@@ -333,6 +333,9 @@ class Schwenkung:
     rund: dict
     abbildung: Abbildung
     hinweise: list = field(default_factory=list)
+    # Ohne Schwenkzyklus: Z im Programm, auf das das Werkzeug vor dem Schwenken fährt – über dem
+    # Raum, den das Rohteil beim Schwenken überstreicht (schwenkhoehe); None: keine Fahrt davor.
+    hoehe: float = None
 
     def gesamt(self):
         """Die Abbildung Ebene → Programm."""
@@ -356,7 +359,12 @@ def befehle_ohne_zyklus(befehle, schwenkung):
     Schwenkzyklus: X, Y, Z durch die Abbildung, die Rundachsen der Ebene im ersten Satz mit
     Bewegung (davor ein eigener Satz G0 mit ihnen). Bögen bleiben Bögen, wenn die Ebene im
     Programm in XY liegt, sonst Geraden (höchstens SEHNE daneben); Bohrzyklen nur in XY –
-    sonst ValueError."""
+    sonst ValueError.
+
+    Wo das Werkzeug nach dem Schwenken steht, weiß die Ebene nicht: Sätze, bevor X, Y und Z der
+    Ebene bekannt sind (der übliche erste „G0 Z…“ ohne X, Y), fallen weg – das Werkzeug steht
+    schon auf der Schwenkhöhe darüber. Zum ersten bekannten Punkt fährt es auf der Schwenkhöhe
+    über ihn (auf der Achse der Ebene) und dann die Achse entlang hinunter."""
     import Path
 
     if schwenkung.abbildung is None:
@@ -364,24 +372,47 @@ def befehle_ohne_zyklus(befehle, schwenkung):
     gesamt = schwenkung.gesamt()
     in_xy = schwenkung.in_xy()
     gespiegelt = in_xy and gesamt.richtung((0.0, 0.0, 1.0))[2] < 0
-    stand = [0.0, 0.0, 0.0]
-    gefahren = False
+    stand = [None, None, None]
+    gefahren = angefahren = False
     ergebnis = []
     rund = dict(schwenkung.rund)
+
+    def anfahren(ziel):
+        """Vor dem ersten bekannten Punkt: über ihn auf die Schwenkhöhe (die Achse der Ebene
+        entlang), von dort fährt der Satz selbst hinunter."""
+        achse = gesamt.richtung((0.0, 0.0, 1.0))
+        p = gesamt.punkt(ziel)
+        if schwenkung.hoehe is None or achse[2] < 0.1 or p[2] >= schwenkung.hoehe:
+            return
+        t = (float(schwenkung.hoehe) - p[2]) / achse[2]
+        oben = gesamt.punkt((ziel[0], ziel[1], ziel[2] + t))
+        ergebnis.append(Path.Command("G0", dict(zip("XYZ", oben, strict=True))))
+
     for befehl in befehle:
         name = befehl.Name.upper()
         werte = dict(befehl.Parameters)
         if name in BEWEGUNG + BOGEN + ZYKLEN and not gefahren:
+            if schwenkung.hoehe is not None:
+                # Erst hoch genug, dass sich das Rohteil frei dreht (wie CYCLE800 _FR = 1).
+                ergebnis.append(Path.Command("G0", {"Z": float(schwenkung.hoehe)}))
             ergebnis.append(Path.Command("G0", dict(rund)))
             gefahren = True
-        if name in BEWEGUNG:
-            ziel = [float(werte.get(k, stand[i])) for i, k in enumerate("XYZ")]
-            neu = {k: v for k, v in werte.items() if k not in "XYZ"}
+        if name in BEWEGUNG + BOGEN + ZYKLEN:
+            ziel = [werte[k] if k in werte else stand[i] for i, k in enumerate("XYZ")]
+            if None in ziel:  # noch nicht bekannt, wo in der Ebene: merken, nicht fahren
+                stand = ziel
+                continue
+            ziel = [float(w) for w in ziel]
+            if not angefahren:
+                oben = ziel[2] if "R" not in werte else max(ziel[2], float(werte["R"]))
+                anfahren([ziel[0], ziel[1], oben])
+                angefahren = True
+        if name in BEWEGUNG or (name in BOGEN and None in stand):  # Bogen von unbekannt: gerade
+            neu = {k: v for k, v in werte.items() if k not in "XYZIJK"}
             neu.update(zip("XYZ", gesamt.punkt(ziel), strict=True))
-            ergebnis.append(Path.Command(befehl.Name, neu))
+            ergebnis.append(Path.Command(befehl.Name if name in BEWEGUNG else "G1", neu))
             stand = ziel
         elif name in BOGEN:
-            ziel = [float(werte.get(k, stand[i])) for i, k in enumerate("XYZ")]
             mitte = [stand[0] + float(werte.get("I", 0.0)), stand[1] + float(werte.get("J", 0.0))]
             uhr = name in ("G2", "G02")
             if in_xy:
@@ -403,7 +434,6 @@ def befehle_ohne_zyklus(befehle, schwenkung):
         elif name in ZYKLEN:
             if not in_xy:
                 raise ValueError(tr("sw.fehler.zyklus"))
-            ziel = [float(werte.get(k, stand[i])) for i, k in enumerate("XYZ")]
             neu = dict(werte)
             p = gesamt.punkt(ziel)
             neu.update(zip("XYZ", p, strict=True))
@@ -554,21 +584,57 @@ def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None):
     return job
 
 
+SCHWENK_RAND = 20.0  # mm – so viel Luft über dem Raum, den das Rohteil beim Schwenken überstreicht
+SCHWENK_STUFEN = 6  # so viele Stellungen je Rundachse zwischen 0 und dem Ziel werden gerechnet
+
+
+def schwenkhoehe(rohteil_form, abbildung_bei, rund, rand=SCHWENK_RAND):
+    """Z im Programm (ohne TCPM), über dem die Spitze stehen muss, damit sich das Rohteil frei
+    von 0 auf die Rundachsen `rund` dreht: die höchste Ecke seines Kastens in allen
+    Zwischenstellungen (je Rundachse SCHWENK_STUFEN von 0 bis zum Ziel, alle zusammen), plus
+    `rand`. `abbildung_bei`: rund → Abbildung (Grundjob → Programm) oder None."""
+    bb = rohteil_form.BoundBox
+    ecken = [
+        (x, y, z)
+        for x in (bb.XMin, bb.XMax)
+        for y in (bb.YMin, bb.YMax)
+        for z in (bb.ZMin, bb.ZMax)
+    ]
+    buchstaben = sorted(rund)
+    stufen = [
+        [rund[b] * k / (SCHWENK_STUFEN - 1) for k in range(SCHWENK_STUFEN)] for b in buchstaben
+    ]
+    gitter = [[]]
+    for werte in stufen:
+        gitter = [g + [w] for g in gitter for w in werte]
+    hoechste = max(e[2] for e in ecken)
+    for werte in gitter:
+        abbildung = abbildung_bei(dict(zip(buchstaben, werte, strict=True)))
+        if abbildung is None:
+            continue
+        hoechste = max(hoechste, max(abbildung.punkt(e)[2] for e in ecken))
+    return hoechste + rand
+
+
 def schwenkung_fuer(job, maschine=None):
-    """Die Schwenkung (Ebene, Rundachsen, Abbildung ins Programm ohne Zyklus) eines Jobs mit
-    Ebene – None ohne. Die Abbildung aus `maschine` (sw.Maschine); ohne Maschine nur für
+    """Die Schwenkung (Ebene, Rundachsen, Abbildung ins Programm ohne Zyklus, Höhe davor) eines
+    Jobs mit Ebene – None ohne. Die Abbildung aus `maschine` (sw.Maschine); ohne Maschine nur für
     Tisch/Tisch A, C mit dem Drehpunkt im Nullpunkt des Grundjobs, sonst None (dann geht nur der
     Schwenkzyklus der Steuerung)."""
     if not ist_ebene(job):
         return None
     rund = rundachsen_von(job)
     if maschine is not None:
-        abbildung = maschine.abbildung(rund)
+        abbildung_bei = maschine.abbildung
     elif set(rund) == {"A", "C"}:
-        abbildung = abbildung_ohne_maschine(rund)
+        abbildung_bei = abbildung_ohne_maschine
     else:
-        abbildung = None
-    return Schwenkung(ebene_von(job), rund, abbildung)
+        return Schwenkung(ebene_von(job), rund, None)
+    rohteil = getattr(getattr(job.Grundjob, "Stock", None), "Shape", None)
+    hoehe = None
+    if rohteil is not None and not rohteil.isNull():
+        hoehe = schwenkhoehe(rohteil, abbildung_bei, rund)
+    return Schwenkung(ebene_von(job), rund, abbildung_bei(rund), hoehe=hoehe)
 
 
 def ebenen_von(grundjob):

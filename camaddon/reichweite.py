@@ -866,7 +866,11 @@ class Pruefung:
                 raise ValueError(tr("sw.fehler.keine_stellung", flaeche=ebene.Flaeche))
             rund = loesungen[0]
         abbildung = maschine.abbildung(rund)
-        return sw.befehle_ohne_zyklus(befehle, sw.Schwenkung(lage, rund, abbildung))
+        rohteil = getattr(getattr(ebene.Grundjob, "Stock", None), "Shape", None)
+        hoehe = None
+        if rohteil is not None and not rohteil.isNull():
+            hoehe = sw.schwenkhoehe(rohteil, maschine.abbildung, rund)
+        return sw.befehle_ohne_zyklus(befehle, sw.Schwenkung(lage, rund, abbildung, hoehe=hoehe))
 
     def _bestueckung_pruefen(self, job, bibliothek, sammler):
         """Stecken im Job zwei Werkzeuge auf einem Revolverplatz (W-002 Stufe G)? Die Maschine
@@ -1271,16 +1275,22 @@ def _anteil(phi, start, ueberstrichen):
     return t if 0.0 < t < 1.0 else None
 
 
-def _bahn(befehle, unbekannt, rueckzug=False):
+def _bahn(befehle, unbekannt, rueckzug=False, start=None):
     """Liest die Befehle einer Bahn; liefert je Punkt und je Kreisbogen einen _Schritt.
 
     Punkte, deren X, Y oder Z noch niemand gesetzt hat (am Anfang einer
     Operation), werden übersprungen. Unbekannte Befehle mit Bewegung meldet
     `unbekannt(name)`. `rueckzug`: nach einem Bohrzyklus auch der Punkt, auf den
     er zurückzieht – fürs Abfahren; die Reichweite kennt die Höhe schon.
+    `start`: (Punkt, Rundachsen), wo das Werkzeug vor dem ersten Satz steht – dann
+    zählen auch die Sätze ohne X und Y davor (in einer geschwenkten Ebene: hoch auf
+    die Schwenkhöhe und das Schwenken).
     """
     lage = {"X": None, "Y": None, "Z": None}
     rund = dict.fromkeys(RUNDACHSEN, 0.0)
+    if start is not None:
+        lage = dict(zip("XYZ", (float(w) for w in start[0]), strict=True))
+        rund.update(start[1])
     absolut = True
     ebene = "G17"
     rueckzug_auf_r = False  # G99: nach dem Zyklus auf R, sonst (G98) auf die Ausgangshöhe

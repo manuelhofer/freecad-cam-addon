@@ -285,6 +285,9 @@ class Befund:
     stelle: object = None  # FreeCAD.Vector: wo, in Koordinaten der Assembly
     ins_teil: bool = False  # die Schneide fährt im Vorschub ins fertige Teil
     x_durchmesser: bool = False  # X im Programm als Durchmesser (Drehmaschine)
+    # Gleich nach einem Werkzeugwechsel ohne Wechselpunkt: das neue Werkzeug („T2“) – die
+    # Maschine wechselt, wo sie steht, ein längeres steckt dann im Teil.
+    wechsel: str = ""
 
     def text(self):
         werte = {
@@ -295,15 +298,17 @@ class Befund:
             "punkt": rw.punkt_text(self.punkt, self.x_durchmesser),
         }
         if self.ins_teil:
-            return tr("kb.ins_teil", **werte)
-        if self.beruehrung and self.eilgang:
-            return tr("kb.beruehrung.eilgang", **werte)
-        if self.beruehrung:
-            return tr("kb.beruehrung", **werte)
-        werte["abstand"] = rw.weg_text(self.abstand)
-        if self.eilgang:
-            return tr("kb.naehe.eilgang", **werte)
-        return tr("kb.naehe", **werte)
+            text = tr("kb.ins_teil", **werte)
+        elif self.beruehrung and self.eilgang:
+            text = tr("kb.beruehrung.eilgang", **werte)
+        elif self.beruehrung:
+            text = tr("kb.beruehrung", **werte)
+        else:
+            werte["abstand"] = rw.weg_text(self.abstand)
+            text = tr("kb.naehe.eilgang", **werte) if self.eilgang else tr("kb.naehe", **werte)
+        if self.wechsel:
+            text += " " + tr("kb.wechsel_ohne_punkt", werkzeug=self.wechsel)
+        return text
 
 
 @dataclass
@@ -740,6 +745,16 @@ class _Welt:
         if bisher is not None and bisher.abstand <= abstand + 1e-9:
             return
         punkt = tuple(p + s * (q - p) for p, q in zip(station.punkt, ziel.punkt, strict=True))
+        wechsel = ""
+        if station.operation != ziel.operation:  # ohne Wechselpunkt direkt von der davor
+            vorher, jetzt = (abfahrt.operationen[k] for k in (station.operation, ziel.operation))
+            nummer = getattr(jetzt.tc, "ToolNumber", None)
+            if (
+                nummer is not None
+                and nummer != getattr(vorher.tc, "ToolNumber", None)
+                and jetzt.laenge > vorher.laenge + 1e-6
+            ):
+                wechsel = f"T{nummer}"
         self.schlimmste[schluessel] = Befund(
             beruehrung=abstand <= BERUEHRT,
             eilgang=ziel.eilgang,
@@ -754,6 +769,7 @@ class _Welt:
             stelle=stelle,
             ins_teil=paar.nur_vorschub,
             x_durchmesser=abfahrt.pruefung.x_durchmesser,
+            wechsel=wechsel,
         )
 
 

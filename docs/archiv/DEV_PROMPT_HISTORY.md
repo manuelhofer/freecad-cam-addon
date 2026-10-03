@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-41 schwenken-sicher
+
+### EINGELESEN
+- Spezifikation Strategien 15.3 (F3, F4), Simulation 13 (Home- und Wechselpunkt), das eigene
+  Szenario am ganzen Schwenkteil: die Kollision fand „Bohren T2“ in der 45°-Ebene.
+
+### DATEIEN
+- `camaddon/schwenken.py` (`schwenkhoehe`, `Schwenkung.hoehe`, `befehle_ohne_zyklus`: erst
+  Schwenkhöhe, kein Punkt vor bekanntem X, Y, Anfahrt über den ersten Punkt),
+  `camaddon/postprozessor.py` (zurück über die Schwenkhöhe), `camaddon/reichweite.py`
+  (`Pruefung.befehle` mit Höhe, `_bahn(start=…)`), `camaddon/abfahren.py` (eine Ebene beginnt,
+  wo die Operation davor endete), `camaddon/kollision.py` (`Befund.wechsel`), Übersetzungen
+  (`kb.wechsel_ohne_punkt`), `tests/test_schwenken.py` (drei Maschinen, Schwenkhöhe, Anfang der
+  Ebene), `tests/test_kollision.py` (Wechsel ohne Wechselpunkt), `tests/gui/szenario_schwenkteil.py`
+  (neu), `beispiele/schwenkteil_5achs.FCStd` (neu) und `beispiele/README.md`, Spezifikation
+  (F4, D-5), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.154.2).
+
+### AKZEPTANZKRITERIUM
+- Ohne Schwenkzyklus steht vor jedem `G0 A… C…` ein `G0 Z…` über dem Raum, den das Rohteil beim
+  Schwenken überstreicht; keine Ebene fährt einen erfundenen Punkt X0 Y0 an; „Auf der Maschine
+  prüfen“ fährt Hochfahren und Schwenken mit; das Schwenkteil (zwei Ebenen, zwei Werkzeuge) ist
+  auf der Tisch/Tisch-Maschine mit Wechselpunkt kollisionsfrei.
+
+### DONE
+- Wie oben, an allen drei 5-Achs-Beispielen. Der Fund aus dem Szenario: Der erste „G0 Z24“ der
+  Bohrung (ohne X, Y) wurde zu X20 Y26,6 im Programm – quer durchs Teil. Danach blieb eine
+  Berührung am Wechsel T1 → T2: ohne Wechselpunkt wechselt die Maschine, wo sie steht, und der
+  34 mm längere Bohrer steckt im Teil – das sagt der Befund jetzt; Vorschlag D-5.
+
+### TESTS
+- `tests/test_schwenken.py`, `tests/test_kollision.py` – OK; Szenario `szenario_schwenkteil` –
+  OK, „Nichts berührt sich“. black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2 und D-1 … D-5; simultan zu besprechen; Siemens: G81 → CYCLE81 vorschlagen.
+
 ## P-2026-10-03-40 materialstand-ebene
 
 ### EINGELESEN

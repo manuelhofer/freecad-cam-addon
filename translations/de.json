@@ -1184,6 +1184,7 @@
     "kb.beruehrung.eilgang": "In „{operation}“ berühren sich im Eilgang {a} und {b} (Satz {satz}, bei {punkt}).",
     "kb.naehe": "In „{operation}“ kommen sich {a} und {b} auf {abstand} nahe (Satz {satz}, bei {punkt}).",
     "kb.naehe.eilgang": "In „{operation}“ kommen sich im Eilgang {a} und {b} auf {abstand} nahe (Satz {satz}, bei {punkt}).",
+    "kb.wechsel_ohne_punkt": "Das ist gleich beim Werkzeugwechsel: An der Maschine ist kein Wechselpunkt eingetragen, also wechselt sie, wo sie steht – und {werkzeug} reicht weiter hinunter als das Werkzeug davor. Ein Wechselpunkt (Z oben) in „Maschine bearbeiten“ unter „Home und Werkzeugwechsel“ fährt vorher weg.",
     "kb.ohne_halter": "{werkzeug}: ohne Halter geprüft – den Halter wählst du beim Werkzeug in der Werkzeugverwaltung.",
     "kb.schon_beruehrt": "{a} und {b} berühren sich schon in der Grundstellung – dieses Paar prüft die Kollision nicht.",
     "kb.kein_teil": "Der Job hat kein Modell – gegen das Teil wurde nicht geprüft.",

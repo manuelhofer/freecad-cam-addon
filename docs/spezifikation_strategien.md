@@ -2428,6 +2428,17 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   passen die Rundachsen am Job nicht zur Maschine, neu gelöst), `grundjob_von` für Nullpunkt,
   Modell und Rohteil (Abfahren, Kollision). Am Tisch/Tisch-Beispiel: A1 auf −30°, die Spitze
   am gedrehten Werkstück genau auf der Bahn der Ebene, nirgends unter der Schräge.
+  **Nachgezogen:** P-2026-10-03-41 – an allen drei 5-Achs-Beispielen geprüft (Tisch/Tisch,
+  Kopf/Tisch mit B, Kopf/Kopf). Ohne Zyklus fährt das Programm vor dem Schwenken auf die
+  Schwenkhöhe (`schwenkhoehe`: die höchste Ecke des Rohteils in allen Zwischenstellungen der
+  Rundachsen + 20 mm), auch ohne Wechselpunkt; der erste „G0 Z…“ einer Operation ohne X, Y
+  erfindet keinen Punkt X0 Y0 der Ebene mehr (er fuhr quer durchs Teil) – auf der Schwenkhöhe
+  über den ersten bekannten Punkt, dann die Achse der Ebene entlang hinunter. „Auf der Maschine
+  prüfen“ fährt das Hochfahren und Schwenken mit (`_bahn(start=…)`), die Kollision prüft es.
+  Am Beispielteil `beispiele/schwenkteil_5achs.FCStd` (Schräge mit Tasche, 45°-Fläche mit
+  Bohrung, Tasche oben; Szenario `szenario_schwenkteil`): nichts stößt an. Fand dabei: Ohne
+  Wechselpunkt wechselt die Maschine, wo sie steht – der Bohrer T2 (34 mm länger als T1)
+  steckte dann im Teil; der Befund sagt das jetzt dazu (`kb.wechsel_ohne_punkt`, D-5).
 - **F5 Assistent:** in „Bearbeitung“ Schritt 1 an einer 5-Achs-Maschine „Ebene schwenken:
   Fläche anklicken“ – der neue Job mit der Ebene, die Rundachsen in einem Satz.
   **Gebaut anders:** P-2026-10-03-39 – ein eigener Befehl „Ebene schwenken (3+2) …“ statt eines
@@ -2452,3 +2463,8 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   wenn der Nullpunkt im Job zur Aufnahme passt wie in „Auf der Maschine prüfen“.
 - **D-4 Ein Programm je Aufspannung:** „Programm schreiben“ für den Grundjob schreibt seine
   Ebenen gleich mit (je Ebene einmal geschwenkt) – oder lieber je Ebene ein Programm?
+- **D-5 Wechselpunkt der Beispielmaschinen:** Keine Beispielmaschine hat einen (P-2026-10-02-48:
+  nicht vorbelegt, sonst hätten sich alle Zeiten verschoben). Ohne ihn meldet die Kollision bei
+  jedem Wechsel auf ein längeres Werkzeug eine Berührung, die eine echte Maschine mit M6 nicht
+  hat – jetzt mit dem Satz, dass es am Wechsel liegt. Vorschlag: die Beispielmaschinen bekommen
+  einen Wechselpunkt Z ganz oben.

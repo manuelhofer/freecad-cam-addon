@@ -253,7 +253,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             befehle = pruefung.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
         except ValueError:
             continue  # die Reichweite sagt, warum
-        vorbereitet.append((op, tc, aufnahme, eingespannt, linear, befehle))
+        vorbereitet.append((op, tc, aufnahme, eingespannt, linear, befehle, ebene is not None))
         bewegt.update(pruefung.gefahrene_achsen(aufnahme))
     ergebnis.achsen = [a for a in pruefung.kette.achsen if a in bewegt]
     index = {a: i for i, a in enumerate(ergebnis.achsen)}
@@ -311,7 +311,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     anflug = False  # die nächste Station kommt vom Home- oder Wechselpunkt
     vorheriger_tc = None
     davor = None  # (Lösung, Linearachsen) der Operation davor – für den Wechselpunkt in WKS
-    for op, tc, aufnahme, eingespannt, linear, befehle in vorbereitet:
+    for op, tc, aufnahme, eingespannt, linear, befehle, geschwenkt in vorbereitet:
         loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         nummer = len(ergebnis.operationen)
         if nummer and tc is not vorheriger_tc:
@@ -337,7 +337,10 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             anfahren(home, nummer, HOME)
             anflug = True
         ohne_vorschub = False
-        for schritt in rw._bahn(befehle, lambda _name: None, rueckzug=True):
+        # In einer Ebene beginnt die Operation dort, wo die davor endete: hoch auf die
+        # Schwenkhöhe, schwenken – das fährt die Maschine mit, und die Kollision prüft es.
+        start = vorher[:2] if geschwenkt and vorher is not None else None
+        for schritt in rw._bahn(befehle, lambda _name: None, rueckzug=True, start=start):
             for punkt, rund in _punkte(schritt, loesung(schritt.rund)[0]):
                 geloest, dreh = loesung(rund)
                 stellungen = _stellungen(geloest, dreh, punkt, linear, index)

@@ -677,11 +677,17 @@ def _schwenken_ein(s, schwenkung):
 
 
 def _schwenken_aus(s, schwenkung, zyklus):
-    """Zurück aus der Ebene: der Zyklus zurück – ohne Zyklus die Rundachsen auf 0."""
+    """Zurück aus der Ebene: der Zyklus zurück – ohne Zyklus erst hoch genug
+    (Schwenkung.hoehe), dann die Rundachsen auf 0."""
     if zyklus:
         return _zeilen(s.schwenken_aus)
+    zeilen = []
+    if schwenkung.hoehe is not None:
+        zeilen.append(f"G0 {_wort(s, 'Z', _zahl(schwenkung.hoehe))}")
     woerter = [_wort(s, b, _zahl(0.0)) for b in sorted(schwenkung.rund)]
-    return [" ".join(["G0", *woerter])] if woerter else []
+    if woerter:
+        zeilen.append(" ".join(["G0", *woerter]))
+    return zeilen
 
 
 def _weg(stand, parameter):
