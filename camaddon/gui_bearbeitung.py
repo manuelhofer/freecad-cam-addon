@@ -2904,6 +2904,7 @@ class BearbeitungPanel:
         self._knoepfe = None
         self._beobachter = None
         self._sichtbar_vorher = None  # (Teil, war sichtbar) – das Original
+        self._aufspannung_vorher = []  # [(Objekt, war sichtbar)] – gui_schwenken.zeige_job
         self._rohteil_sichtbar_vorher = None  # (Körper, war sichtbar) – das Rohteil-Original
         self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
         self._job_offen = False  # die Transaktion des neuen Jobs ist offen
@@ -3434,6 +3435,11 @@ class BearbeitungPanel:
 
     def reject(self):
         self._vor_dem_schliessen()
+        if self._aufspannung_vorher:
+            from .gui_schwenken import zeige_wieder
+
+            zeige_wieder(self._aufspannung_vorher)
+            self._aufspannung_vorher = []
         if self._job_offen:
             self._sichtbarkeit_zurueck()
             self.doc.abortTransaction()
@@ -3561,6 +3567,10 @@ class BearbeitungPanel:
         self._job_dazu = True
         self.teil = vr.original(vr.modell(job))
         self.teil_text.setText(self.teil.Label)
+        # Hat der Job geschwenkte Ebenen (3+2), nur sein Teil und seine Bahnen im Bild.
+        from .gui_schwenken import zeige_job
+
+        self._aufspannung_vorher = zeige_job(job)
         self._aufspannung_zeigen()
         ops = [o for o in js.operationen(job) if getattr(o, "Active", True)]
         if not ops:

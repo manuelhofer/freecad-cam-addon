@@ -2474,6 +2474,9 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   **Bestückung:** P-2026-10-03-45 – Grundjob und Ebenen sind ein Programm, also eine
   Bestückung (`bestueckung.aufspannung`): Doppelt belegte Plätze, „Platz für …“ und Umlegen
   sehen alle Jobs der Aufspannung; das Fenster „Bestückung“ sagt es in einem grauen Satz.
+  **Im Bild:** P-2026-10-03-46 – öffnet der Assistent in einem Job einer Aufspannung mit Ebenen,
+  sind nur dessen Teil und Bahnen sichtbar, die der anderen Jobs nicht (`gui_schwenken.zeige_job`;
+  „Abbrechen“ stellt es zurück) – bis dahin lag im Grundjob das gedrehte Teil der Ebene im Bild.
 - **F6 danach:** der Materialstand über Ebenen hinweg, simultan (Flanke, Anstellwinkel).
   **Materialstand gebaut:** P-2026-10-03-40 – eine Ebene beginnt, wo nach dem Grundjob und den
   Ebenen davor noch Material steht: je Säule ihres Rasters von der Oberkante des gedrehten

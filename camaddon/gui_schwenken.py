@@ -232,12 +232,43 @@ def _zeigen(job):
     Teil im Grundjob und das Original ausgeblendet – sonst lägen die Bahnen der Ebene neben
     einem anders gedrehten Teil."""
     klon = vr.modell(job)
-    for objekt in (vr.modell(job.Grundjob), vr.original(klon)):
-        if objekt.ViewObject is not None:
-            objekt.ViewObject.Visibility = False
+    original = vr.original(klon)
+    if original.ViewObject is not None:
+        original.ViewObject.Visibility = False
+    zeige_job(job)
     if klon.ViewObject is not None:
-        klon.ViewObject.Visibility = True
         klon.ViewObject.Transparency = 0
+
+
+def zeige_job(job):
+    """Von den Jobs der Aufspannung (Grundjob und geschwenkte Ebenen) nur `job` zeigen: sein
+    Modell und seine Operationen sichtbar, die der anderen nicht – jede Ebene hat ihr Teil anders
+    gedreht, und ihre Bahnen passen nur zu ihm. Gibt [(Objekt, war sichtbar)] zurück (für
+    zeige_wieder); ohne Ebenen: nichts geändert, leer."""
+    from . import bestueckung as bs
+
+    jobs = bs.aufspannung(job)
+    vorher = []
+    if len(jobs) < 2:
+        return vorher
+    for j in jobs:
+        for objekt in (vr.modell(j), getattr(j, "Operations", None)):
+            ansicht = getattr(objekt, "ViewObject", None)
+            if ansicht is None:
+                continue
+            vorher.append((objekt, ansicht.Visibility))
+            ansicht.Visibility = j is job
+    return vorher
+
+
+def zeige_wieder(vorher):
+    """Die Sichtbarkeit, wie zeige_job sie vorfand."""
+    for objekt, sichtbar in vorher:
+        try:
+            if objekt.ViewObject is not None:
+                objekt.ViewObject.Visibility = sichtbar
+        except (ReferenceError, RuntimeError):  # inzwischen gelöscht
+            pass
 
 
 def _bearbeiten(job, flaeche):

@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-46 aufspannung-im-bild
+
+### EINGELESEN
+- Bild 5 aus `szenario_schwenken` (P-44): Der Assistent im Grundjob zeigte das gedrehte Teil
+  der Ebene – `gui_schwenken._zeigen` hatte das Teil des Grundjobs ausgeblendet.
+
+### DATEIEN
+- `camaddon/gui_schwenken.py` (`zeige_job`, `zeige_wieder`; `_zeigen` damit),
+  `camaddon/gui_bearbeitung.py` (`job_dazu` zeigt nur den Job, `reject` stellt zurück),
+  `tests/gui/szenario_schwenken.py`, Spezifikation (15.3), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.155.3).
+
+### AKZEPTANZKRITERIUM
+- Im Assistenten des Grundjobs: sein Teil und seine Operationen sichtbar, Teil und Operationen
+  der Ebene nicht.
+
+### DONE
+- Wie oben (Bild 5 neu).
+
+### TESTS
+- Szenario `szenario_schwenken` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2 und D-1 … D-5; simultan zu besprechen; Siemens: G81 → CYCLE81 vorschlagen.
+
 ## P-2026-10-03-45 bestueckung-aufspannung
 
 ### EINGELESEN

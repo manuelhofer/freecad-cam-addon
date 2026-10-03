@@ -193,6 +193,16 @@ def schritte(h):
         "Assistent: keine Zeile „geschwenkt fräsen“",
     )
     h.pruefe("30° schräg" in a.schwenken_text.text(), f"Assistent: {a.schwenken_text.text()!r}")
+    # Im Grundjob nur sein Teil und seine Bahnen – die Ebene hat ihr Teil anders gedreht.
+    h.pruefe(
+        klon.ViewObject.Visibility
+        and grundjob.Operations.ViewObject.Visibility
+        and not vr.modell(planjob).ViewObject.Visibility
+        and not planjob.Operations.ViewObject.Visibility,
+        "Assistent im Grundjob: das Teil der Ebene im Bild",
+    )
+    Gui.SendMsgToActiveView("ViewFit")
+    yield 300
     h.bild("5_assistent_schraeg")
     a.schwenken_knopf.click()
     yield from h.warte_auf(lambda: gui_schwenken.SchwenkenPanel.offen is not None, 15000)
