@@ -2546,6 +2546,14 @@ Kollision mit Rundachsen je Station.
 - **S1 Kern:** Bahn mit Achse → Rundachsen stetig, Achsen ohne TCPM; Programm mit `TRAORI` und
   ohne. Prüfung: eine Gerade mit kippender Achse an den drei 5-Achs-Beispielen – die Spitze bleibt
   am gedrehten Werkstück auf der Bahn.
+  **Gebaut ohne TCPM (P-2026-10-03-49), ohne Oberfläche:** `simultan.py` – `rundachsen_entlang`
+  (der erste Punkt die beste Stellung, jeder weitere gedämpft nach Gauß-Newton vom Punkt davor
+  aus: am Pol bleibt die freie Achse stehen, endlose Achsen laufen über ±180° weiter),
+  `programm_ohne_tcpm`. `tests/test_simultan.py`: an allen drei Beispielen kippt die Achse von
+  −20° über die Senkrechte auf +20° ohne Umschlag (Tisch/Tisch: A −20 → 20, C bleibt 90) und
+  läuft 120° auf einem Kegel (C stetig bis −210°); die Spitze liegt am gedrehten Werkstück unter
+  0,001 µm neben der Bahn, keine Rundachse springt. Offen: `TRAORI` (E-1), ob C über ±180°
+  hinaus programmiert werden darf (Modulo-Achse an der Steuerung?), G93, die Strategien.
 - **S2 Kugelfräser angestellt** (Vorschlag für zuerst): das 3D-Schlichten, das es gibt, mit
   Anstellwinkel. Beim Kugelfräser bleibt der Mittelpunkt der Kugel, wo er ist – nur die Achse
   kippt um ihn; die Bahn muss nicht neu gerechnet werden, nur die Achse je Punkt (voreilend in

@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-49 simultan-kern
+
+### EINGELESEN
+- Spezifikation Strategien 16 (S1), `schwenken.Maschine` (`loese`, `richtung`, `abbildung`).
+  Den Kern braucht jeder Weg aus 16.4 – auch mit TRAORI muss „Auf der Maschine prüfen“ die
+  Rundachsen je Punkt kennen; er ändert nichts, was das Addon wählt.
+
+### DATEIEN
+- `camaddon/simultan.py` (neu: `Punkt`, `rundachsen_entlang`, `_nachfuehren`,
+  `programm_ohne_tcpm`), `camaddon/schwenken.py` (`Maschine.abbildung` merkt sich die Lösung bei
+  Rundachsen 0), Übersetzungen (`si.fehler.*`), `tests/test_simultan.py` (neu),
+  Spezifikation (16.3), `docs/aufbau.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.156.0).
+
+### AKZEPTANZKRITERIUM
+- An den drei 5-Achs-Beispielen: Achse kippt durch den Pol ohne Umschlag, läuft auf einem Kegel
+  stetig; die Spitze am gedrehten Werkstück auf jedem Punkt (über „Auf der Maschine prüfen“),
+  die Werkzeugachse auf 0,001°; ein Punkt unter den Tisch: der Satz, warum.
+
+### DONE
+- Wie oben; alle drei Maschinen und beide Bahnen in 2,6 s.
+
+### TESTS
+- `tests/test_simultan.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu E-1 … E-4; dann S2 (Kugelfräser angestellt) oder S3 (Flanke).
+
 ## P-2026-10-03-48 ebene-vorhanden
 
 ### EINGELESEN

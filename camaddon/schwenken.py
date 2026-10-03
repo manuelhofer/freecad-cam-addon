@@ -311,10 +311,12 @@ class Maschine:
         import numpy
 
         p = self.pruefung
-        null = p._loese(
-            self.aufnahme, self.laenge, self.nullpunkt, self.linear,
-            p._dreh_wege(self.aufnahme, self.drehachsen, {}),
-        )  # fmt: skip
+        null = getattr(self, "_null", None)
+        if null is None:  # für jede Stellung dieselbe – einmal (simultan: je Punkt der Bahn)
+            null = self._null = p._loese(
+                self.aufnahme, self.laenge, self.nullpunkt, self.linear,
+                p._dreh_wege(self.aufnahme, self.drehachsen, {}),
+            )  # fmt: skip
         gedreht = p._loese(
             self.aufnahme, self.laenge, self.nullpunkt, self.linear,
             p._dreh_wege(self.aufnahme, self.drehachsen, rund),
