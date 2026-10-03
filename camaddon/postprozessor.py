@@ -723,7 +723,10 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 if adresse == "X" and info.drehmaschine and info.x_durchmesser:
                     wert *= 2.0
                 woerter.append(_wort(s, _adresse(s, adresse, info), _zahl(wert)))
-            zeilen.append(" ".join(woerter))
+            zeile = " ".join(woerter)
+            if gross in ("G0", "G00") and zeilen and zeilen[-1] == zeile:
+                continue  # derselbe Eilgang noch einmal (absolut): nichts zu fahren
+            zeilen.append(zeile)
             if bewegung:
                 saetze += 1
                 if vorschau is not None and saetze >= vorschau:
@@ -741,7 +744,9 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
         zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, oben))
     if c_an and s.c_aus:
         zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
-    zeilen.extend(_zeilen(s.ende))
+    for zeile in _zeilen(s.ende):
+        if not (zeilen and zeile == zeilen[-1]):  # „M5“ nach „M5“: schon aus
+            zeilen.append(zeile)
     return Programm(_nummeriert(zeilen, s), hinweise, saetze)
 
 

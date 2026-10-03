@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-15 programm-ohne-dopplungen
+
+### EINGELESEN
+- Das Siemens-Programm von Manuels Testteil (aus dem Job des Szenarios, Beispiel-Fräse)
+  durchgesehen – Manuel kann G-Code nicht selbst prüfen (Status, „Siemens-Befehle“): kein F0,
+  kein G1 ohne F davor, sechs Werkzeugwechsel; aber zweimal ein Satz gleich dem davor –
+  `G0 X-33.197 Y39.194 Z2.000` doppelt (Rückzug- gleich Anfahrhöhe) und `M5` doppelt am Ende
+  (nach der letzten Operation und im Programmfuß).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`programm`: ein Eilgang gleich dem Satz davor entfällt; ein Satz
+  des Programmfußes gleich dem davor ebenso), Spezifikation Steuerung (E8, Absatz G0 … F0),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.164.4).
+
+### AKZEPTANZKRITERIUM
+- Testteil, Siemens und LinuxCNC: 0 doppelte Sätze (vorher 2), Ende `G0 Z5.000`, `M5`, `M9`,
+  `M30`; sonst dieselben Sätze.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_postprozessor.py` – OK; Szenario `szenario_programm` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Durchsicht und Entscheidungen.
+
 ## P-2026-10-04-14 vorschau-merken
 
 ### EINGELESEN

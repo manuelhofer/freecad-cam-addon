@@ -293,7 +293,9 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   vorbelegt wie oben, G80/G98/G99 entfallen dort; an der Drehmaschine bleibt es bei G81 ff.
   (CYCLE83 bohrte ohne `_AXN` entlang Z). Gruppe „Bohrzyklen“ im Fenster, Hilfe „Programm
   schreiben“ (Anker `bohren`). Dazu: `G0 … F0` (aus FreeCADs Bohren) schreibt der Postprozessor
-  ohne F – modal hielte F0 einen folgenden G1 ohne F an.
+  ohne F – modal hielte F0 einen folgenden G1 ohne F an. Seit P-2026-10-04-15 schreibt er einen
+  Eilgang, der wörtlich gleich dem Satz davor ist, nicht noch einmal (absolut: nichts zu fahren),
+  und am Ende keinen Satz des Programmfußes, der gleich dem davor ist (`M5` nach `M5`).
 
 ## 12. Gebaut
 
