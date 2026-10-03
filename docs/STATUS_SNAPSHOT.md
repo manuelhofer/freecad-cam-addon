@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.161.0 (P-2026-10-04-08). Alles, was hier als gebaut steht,
+Stand 0.162.0 (P-2026-10-04-09). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -35,9 +35,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - **W-004 Bedienung** – D-01 bis D-13, D-20, D-21, D-25, D-26, D-28 bis D-30, D-40 bis D-47
   und D-50 bis D-57 erledigt, D-24 mit „Richtwerte eintragen“ und den Werkstoffklassen.
   Entschieden ([Durchsicht](durchsicht_bedienbarkeit.md), Abschnitt 6; Manuel, 2026-10-03):
-  D-22 bleibt auf Klick; D-23, D-27 (0.139.0) und D-14 (0.140.0) gebaut. Reste
-  von D-20 (Spindelleistung, „Schruppwerte planen“ mit der gemerkten Maschine) und D-26
-  (Tischgröße; die 5-Achs-Fräsen mit Wegen und Schwenkbereichen: P-2026-10-04-08).
+  D-22 bleibt auf Klick; D-23, D-27 (0.139.0) und D-14 (0.140.0) gebaut; D-20 fertig
+  (P-2026-10-04-09: Spindelleistung, „Schruppwerte planen“ mit der gemerkten Maschine). Rest
+  von D-26: Tischgröße (die 5-Achs-Fräsen mit Wegen und Schwenkbereichen: P-2026-10-04-08).
 - **W-005 Programm für jede Steuerung** – E1–E7 entschieden (je Empfehlung, Manuel
   2026-10-03); gebaut: der eigene Postprozessor mit dem Fenster „Programm schreiben …“ (S1, S3,
   Teile von S2/S4; P-2026-10-03-10); der Wechselpunkt der Maschine in MKS oder WKS, vor jedem

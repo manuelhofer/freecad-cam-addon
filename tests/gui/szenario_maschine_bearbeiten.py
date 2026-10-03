@@ -80,7 +80,7 @@ def schritte(h):
     for gelenk, art, name, werte in (
         ("Z", m.ART_LINEAR, "Z1", ["30000"]),
         ("X", m.ART_LINEAR, "X1", ["24000"]),
-        ("Spindel", m.ART_SPINDEL, "S4", ["4000"]),
+        ("Spindel", m.ART_SPINDEL, "S4", ["4000", None, "7,5"]),  # Nennleistung (D-20)
         ("Spindel", m.ART_POSITIONIEREN, "C4", [None, "100"]),
         ("Revolverachse", m.ART_REVOLVER, "T", []),
     ):
@@ -95,6 +95,11 @@ def schritte(h):
             if wert is not None:
                 tippen(panel.details.feld(i), wert)
         yield 100
+
+    s4 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "S4")
+    h.pruefe(
+        (s4.Drehzahl, s4.Leistung) == (4000, 7.5), f"S4: {s4.Drehzahl} U/min, {s4.Leistung} kW"
+    )
 
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
     yield 300

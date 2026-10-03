@@ -73,7 +73,7 @@ WERTE = {
         ("Beschleunigung", False),
         ("Ruck", False),
     ],
-    ART_SPINDEL: [("Drehzahl", True), ("Hochlaufzeit", False)],
+    ART_SPINDEL: [("Drehzahl", True), ("Hochlaufzeit", False), ("Leistung", False)],
     ART_REVOLVER: [("Schaltzeit", False), ("Vdi", False)],
 }
 
@@ -133,6 +133,7 @@ def wert_text(eigenschaft):
         "Geschwindigkeit": tr("wert.geschwindigkeit"),
         "Drehzahl": tr("wert.drehzahl"),
         "Hochlaufzeit": tr("wert.hochlaufzeit"),
+        "Leistung": tr("wert.leistung"),
         "Schaltzeit": tr("wert.schaltzeit"),
         "Vdi": tr("wert.vdi"),
     }[eigenschaft]
@@ -303,6 +304,8 @@ class Betriebsart(_Proxy):
                 ("App::PropertyFloat", "Home", tr("eigenschaft.home")),
                 ("App::PropertyBool", "WechselAn", tr("eigenschaft.wechsel_an")),
                 ("App::PropertyFloat", "Wechsel", tr("eigenschaft.wechsel")),
+                # Nennleistung einer Spindel – für „Schruppwerte planen“ (Durchsicht D-20).
+                ("App::PropertyFloat", "Leistung", tr("eigenschaft.leistung")),
             ],
         )
 

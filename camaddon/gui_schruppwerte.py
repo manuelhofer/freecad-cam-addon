@@ -13,6 +13,7 @@ import FreeCAD
 from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, einheiten
+from . import reichweite as rw
 from . import schnittdaten as sd
 from . import schruppwerte as sw
 from . import werkzeuge as wz
@@ -125,10 +126,12 @@ class SchruppDialog(QtGui.QDialog):
         formular = QtGui.QFormLayout(maschine)
         gemerkt = _parameter()
         gefundene = sw.maschinen()
-        drehzahl, vorschub, von_maschine = sw.vorbelegung(
+        drehzahl, vorschub, leistung, von_maschine = sw.vorbelegung(
             gemerkt.GetFloat(GEMERKT["drehzahl"], 0.0),
             gemerkt.GetFloat(GEMERKT["vorschub"], 0.0),
             gefundene,
+            leistung=gemerkt.GetFloat(GEMERKT["leistung"], 0.0),
+            zuletzt=rw.gemerkte_maschine(),
         )
         self.feld_drehzahl = self._feld(
             formular,
@@ -148,16 +151,18 @@ class SchruppDialog(QtGui.QDialog):
             formular,
             tr("sp.leistung"),
             tr("sp.leistung.tooltip"),
-            gemerkt.GetFloat(GEMERKT["leistung"], 0.0),
+            leistung,
             einheit="kW",
         )
         self.knopf_maschine = QtGui.QPushButton(tr("sp.von_maschine"))
         self.knopf_maschine.setToolTip(tr("sp.von_maschine.tooltip"))
         self.knopf_maschine.setAutoDefault(False)
         self.menue_maschine = QtGui.QMenu(self.knopf_maschine)
-        for name, n_max, vf_max in gefundene:
-            aktion = self.menue_maschine.addAction(name)
-            aktion.triggered.connect(lambda _an=False, n=n_max, v=vf_max: self.von_maschine(n, v))
+        for werte in gefundene:
+            aktion = self.menue_maschine.addAction(werte.name)
+            aktion.triggered.connect(
+                lambda _an=False, w=werte: self.von_maschine(w.drehzahl, w.vorschub, w.leistung)
+            )
         self.knopf_maschine.setMenu(self.menue_maschine)
         self.knopf_maschine.setVisible(not self.menue_maschine.isEmpty())
         formular.addRow("", self.knopf_maschine)
@@ -467,12 +472,15 @@ class SchruppDialog(QtGui.QDialog):
 
     # --- Aktionen -------------------------------------------------------------------
 
-    def von_maschine(self, drehzahl, vorschub):
-        """Übernimmt Höchstdrehzahl und höchsten Vorschub einer Maschine (0 = lässt das Feld)."""
+    def von_maschine(self, drehzahl, vorschub, leistung=0.0):
+        """Übernimmt Höchstdrehzahl, höchsten Vorschub und Spindelleistung einer Maschine
+        (0 = lässt das Feld)."""
         if drehzahl > 0:
             self.feld_drehzahl.setText(zahl_zeigen(drehzahl))
         if vorschub > 0:
             self.feld_vorschub.setText(groesse_zeigen(vorschub, einheiten.VORSCHUB))
+        if leistung > 0:
+            self.feld_leistung.setText(zahl_zeigen(leistung))
 
     def setze(self, feld, text):
         """Tippt `text` in ein Feld (Name wie „vc“, „leistung“) – für die Szenarien."""

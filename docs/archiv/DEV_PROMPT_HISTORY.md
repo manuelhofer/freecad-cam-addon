@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-09 spindelleistung-gemerkte-maschine
+
+### EINGELESEN
+- Durchsicht D-20: „Offen: „Schruppwerte planen“ nimmt die gemerkte Maschine,
+  Spindelleistung.“ – der Planer kannte nur Maschinen in offenen Dokumenten, die Leistung
+  merkte er sich für alle Maschinen gleich.
+
+### DATEIEN
+- `camaddon/maschine.py` (Kennwert `Leistung` der Spindel, „Nennleistung (kW)“),
+  `camaddon/schruppwerte.py` (`_werkzeugspindeln`, `leistung_der_maschine`, `MaschinenWerte`,
+  `maschinen(gemerkte=None)` mit der Liste der Maschinen, `vorbelegung(…, leistung, zuletzt)`),
+  `camaddon/maschinenspeicher.py` (`Eintrag.werkzeugdrehzahl`, `vorschub`, `leistung`),
+  `camaddon/gui_schruppwerte.py` (Vorbelegung von der zuletzt benutzten Maschine, „Von der
+  Maschine“ mit Leistung), Übersetzungen, Hilfe „Schruppwerte planen“ und „Achsen“ (de/en),
+  `tests/test_schruppwerte.py`, `tests/gui/szenario_maschine_bearbeiten.py`, Durchsicht D-20,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.162.0).
+
+### AKZEPTANZKRITERIUM
+- „Maschine bearbeiten“ → Spindel S4: Zeile „Nennleistung (kW)“, 7,5 getippt → 7,5 kW an der
+  Spindel. Der Planer übernimmt die Leistung der Spindel, die das Werkzeug antreibt (an der
+  Drehmaschine nicht die der Hauptspindel); eine gespeicherte Maschine, deren Datei nicht offen
+  ist, steht unter „Von der Maschine“ als „… (aus der Liste der Maschinen)“; sind Drehzahl und
+  Vorschub leer, kommen sie von der zuletzt benutzten Maschine.
+
+### DONE
+- Wie oben. Ältere Einträge der Liste bekommen die Werte beim nächsten Speichern der Maschine.
+
+### TESTS
+- `tests/test_schruppwerte.py`, `tests/test_maschinenspeicher.py`, `tests/test_maschine.py`,
+  `tests/test_sprache.py` – OK; Szenarien `szenario_maschine_bearbeiten`,
+  `szenario_schruppwerte` – OK. black und ruff sauber.
+
+### NEXT
+- D-26 Tischgröße; Manuels Antworten zu D-1, D-2, D-4, D-5, E-2, E-3.
+
 ## P-2026-10-04-08 neue-fuenfachs-maschine
 
 ### EINGELESEN

@@ -54,6 +54,11 @@ class Eintrag:
     revolver: bool = False
     plaetze: int = 0  # Werkzeugaufnahmen
     drehzahl: float = 0.0  # 1/min – die höchste aller Spindeln
+    # Für „Schruppwerte planen“, wenn die Datei nicht offen ist (Durchsicht D-20): die Spindel,
+    # die das Werkzeug antreibt, der kleinste Höchstvorschub, die Nennleistung (kW).
+    werkzeugdrehzahl: float = 0.0
+    vorschub: float = 0.0
+    leistung: float = 0.0
 
     @property
     def vorhanden(self):
@@ -132,6 +137,13 @@ def beschreibe(assembly, maschine):
         float(getattr(ba, "Drehzahl", 0.0) or 0.0) for ba in arten if ba.Art == m.ART_SPINDEL
     ]
     eintrag.drehzahl = max(drehzahlen, default=0.0)
+    from . import schruppwerte  # hier: schruppwerte liest die Liste selbst
+
+    try:
+        eintrag.werkzeugdrehzahl, eintrag.vorschub = schruppwerte.grenzen_der_maschine(maschine)
+        eintrag.leistung = schruppwerte.leistung_der_maschine(maschine)
+    except Exception as fehler:  # wie oben: eine halb gebaute Maschine stört die Liste nicht
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Grenzen von {maschine.Label}: {fehler}\n")
     if rollen is None:
         return eintrag
     teil_dreht = any(ba.Art == m.ART_SPINDEL and rollen.get(ba.Gelenk) == m.TISCH for ba in arten)

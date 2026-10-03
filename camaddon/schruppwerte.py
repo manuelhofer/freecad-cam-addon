@@ -19,14 +19,16 @@ Läuft ohne Oberfläche.
 
 import math
 from dataclasses import dataclass, field
+from typing import NamedTuple
 
 import FreeCAD
 
-from . import einheiten, schraege_achse
+from . import einheiten, maschinenspeicher, schraege_achse
 from . import kette as kette_modul
 from . import maschine as maschine_modul
 from . import schnittdaten as sd
 from . import werkzeuge as wz
+from .sprache import tr
 
 # ae in % von D, die der Planer durchrechnet; dazu die Grenze selbst.
 STUFEN = (2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30, 40, 50)
@@ -300,14 +302,7 @@ def grenzen_der_maschine(maschine):
     (schraege_achse.hoechstwert).
     """
     arten = maschine_modul.betriebsarten(maschine)
-    spindeln = [b for b in arten if b.Art == maschine_modul.ART_SPINDEL and b.Drehzahl > 0]
-    antreibend = {
-        a.Spindel.Name
-        for a in maschine_modul.aufnahmen(maschine)
-        if a.Art == maschine_modul.AUFNAHME_WERKZEUG and a.Spindel is not None
-    }
-    werkzeugspindeln = [b for b in spindeln if b.Name in antreibend] or spindeln
-    drehzahl = max((b.Drehzahl for b in werkzeugspindeln), default=0.0)
+    drehzahl = max((b.Drehzahl for b in _werkzeugspindeln(maschine)), default=0.0)
     schraeg = _schraege_achsen(maschine)
     vorschuebe = []
     for b in arten:
@@ -325,6 +320,31 @@ def grenzen_der_maschine(maschine):
     return drehzahl, min(vorschuebe, default=0.0)
 
 
+def _werkzeugspindeln(maschine):
+    """Die Spindeln mit Drehzahl, die ein Werkzeug antreiben (Werkzeugaufnahme mit Spindel);
+    fehlt diese Zuordnung, alle Spindeln mit Drehzahl."""
+    spindeln = [
+        b
+        for b in maschine_modul.betriebsarten(maschine)
+        if b.Art == maschine_modul.ART_SPINDEL and b.Drehzahl > 0
+    ]
+    antreibend = {
+        a.Spindel.Name
+        for a in maschine_modul.aufnahmen(maschine)
+        if a.Art == maschine_modul.AUFNAHME_WERKZEUG and a.Spindel is not None
+    }
+    return [b for b in spindeln if b.Name in antreibend] or spindeln
+
+
+def leistung_der_maschine(maschine):
+    """Die Nennleistung in kW der Spindel, die das Werkzeug antreibt (wie die Drehzahl in
+    grenzen_der_maschine); 0 = unbekannt (Durchsicht D-20)."""
+    return max(
+        (float(getattr(b, "Leistung", 0.0) or 0.0) for b in _werkzeugspindeln(maschine)),
+        default=0.0,
+    )
+
+
 def _schraege_achsen(maschine):
     """{Betriebsart der schrägen Achse: (α, ausgleichende Betriebsart)} einer Maschine."""
     assembly = maschine_modul.assembly_von(maschine)
@@ -337,24 +357,53 @@ def _schraege_achsen(maschine):
     }
 
 
-def vorbelegung(drehzahl, vorschub, gefundene):
-    """(Drehzahl, Vorschub, Name der Maschine oder „“) zum Vorbelegen der Maschinenfelder.
+class MaschinenWerte(NamedTuple):
+    """Was der Planer von einer Maschine übernimmt; 0 = unbekannt. `datei`: die
+    Maschinendatei, wenn sie gespeichert ist."""
 
-    `drehzahl` und `vorschub` sind die gemerkten Werte (0 oder negativ:
-    keine). Sind beide leer und ist genau eine Maschine offen, kommen sie
-    von ihr – bei mehreren wählt man mit „Von der Maschine“.
+    name: str
+    drehzahl: float
+    vorschub: float
+    leistung: float = 0.0
+    datei: str = ""
+
+
+def vorbelegung(drehzahl, vorschub, gefundene, leistung=0.0, zuletzt=""):
+    """(Drehzahl, Vorschub, Leistung, Name der Maschine oder „“) zum Vorbelegen der
+    Maschinenfelder.
+
+    `drehzahl`, `vorschub` und `leistung` sind die gemerkten Werte (0 oder negativ:
+    keine). Sind Drehzahl und Vorschub leer, kommen sie von einer Maschine aus
+    `gefundene` (MaschinenWerte): von der zuletzt benutzten (`zuletzt`, ihre Datei – D-20),
+    sonst von der einzigen; die Leistung dann auch, wenn die Maschine sie kennt. Bei mehreren
+    ohne die zuletzt benutzte wählt man mit „Von der Maschine“.
     """
-    if drehzahl <= 0 and vorschub <= 0 and len(gefundene) == 1:
-        name, drehzahl, vorschub = gefundene[0]
-        return drehzahl, vorschub, name
-    return max(drehzahl, 0.0), max(vorschub, 0.0), ""
+    leistung = max(leistung, 0.0)
+    if drehzahl <= 0 and vorschub <= 0:
+        quelle = None
+        if zuletzt:
+            quelle = next(
+                (
+                    g
+                    for g in gefundene
+                    if g.datei and maschinenspeicher.gleiche_datei(g.datei, zuletzt)
+                ),
+                None,
+            )
+        if quelle is None and len(gefundene) == 1:
+            quelle = gefundene[0]
+        if quelle is not None:
+            return quelle.drehzahl, quelle.vorschub, quelle.leistung or leistung, quelle.name
+    return max(drehzahl, 0.0), max(vorschub, 0.0), leistung, ""
 
 
-def maschinen():
-    """Die Maschinen (W-001) in allen offenen Dokumenten, die Drehzahl oder Vorschub kennen.
+def maschinen(gemerkte=None):
+    """Die Maschinen (W-001), die Drehzahl oder Vorschub kennen: die in allen offenen
+    Dokumenten, dann die aus der Liste der Maschinen (maschinenspeicher, W-011), deren Datei
+    nicht offen ist – mit den Werten, die sie beim letzten Speichern hatten (D-20).
 
-    Liste von (Beschriftung, Drehzahl, Vorschub); die Beschriftung nennt das
-    Dokument, wenn mehrere Dokumente offen sind.
+    Liste von MaschinenWerte; die Beschriftung nennt das Dokument, wenn mehrere Dokumente
+    offen sind. `gemerkte`: die Liste der Maschinen (None: maschinenspeicher.laden()).
     """
     gefunden = []
     dokumente = list(FreeCAD.listDocuments().values())
@@ -368,5 +417,24 @@ def maschinen():
             name = objekt.Label
             if len(dokumente) > 1:
                 name = f"{name} ({dokument.Label})"
-            gefunden.append((name, drehzahl, vorschub))
+            gefunden.append(
+                MaschinenWerte(
+                    name, drehzahl, vorschub, leistung_der_maschine(objekt), dokument.FileName
+                )
+            )
+    offen = [d.FileName for d in dokumente if d.FileName]
+    for eintrag in maschinenspeicher.laden() if gemerkte is None else gemerkte:
+        if eintrag.werkzeugdrehzahl <= 0 and eintrag.vorschub <= 0:
+            continue
+        if any(maschinenspeicher.gleiche_datei(eintrag.datei, datei) for datei in offen):
+            continue
+        gefunden.append(
+            MaschinenWerte(
+                tr("sp.maschine.gemerkt", name=eintrag.name),
+                eintrag.werkzeugdrehzahl,
+                eintrag.vorschub,
+                eintrag.leistung,
+                eintrag.datei,
+            )
+        )
     return gefunden

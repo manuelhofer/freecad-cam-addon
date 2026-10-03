@@ -217,8 +217,9 @@ direkt das Fenster zeigt.
 *Prüffenster erledigt (P-2026-09-27-19): merkt die Maschine am Job und als
 zuletzt benutzte, öffnet sie selbst, die Meldung hat beide Knöpfe; bei
 mehreren offenen fragt es weiter, die gemerkte vorn – im Fenster gibt es keine
-Auswahl der Maschine. Offen: „Schruppwerte planen“ nimmt die gemerkte
-Maschine, Spindelleistung.*
+Auswahl der Maschine. „Schruppwerte planen“ (P-2026-10-04-09): die Spindel hat „Nennleistung
+(kW)“; „Von der Maschine“ übernimmt Drehzahl, Vorschub und Leistung auch aus der Liste der
+Maschinen (Werte vom letzten Speichern), vorbelegt ist die zuletzt benutzte. Erledigt.*
 
 ### D-21 Den Job in allen offenen Dokumenten finden (klein)
 **Heute:** „Im aktiven Dokument gibt es keinen CAM-Job …“ – etwa direkt nach

@@ -1,7 +1,8 @@
 # Prüft den Planer für Schruppwerte (schruppwerte.py) an Manuels Schaftfräser
 # Ø 12, 3 Schneiden: Spandickenausgleich je ae, Vorschlag an der ae-Grenze,
 # an der Leistungsgrenze der Spindel, mit begrenzter Drehzahl und begrenztem
-# Vorschub – und die Grenzen einer Maschine aus W-001.
+# Vorschub – und die Grenzen einer Maschine aus W-001, mit Spindelleistung und aus der Liste
+# der Maschinen (D-20).
 import os
 import sys
 
@@ -186,21 +187,65 @@ for achse, vorschub in zip(
     achse.VorschubMax = vorschub
 if sw.grenzen_der_maschine(ma) != (3000, 6000):
     fehler.append(f"mit Antrieb und Vorschub: {sw.grenzen_der_maschine(ma)}")
-if ("Testdrehmaschine", 3000, 6000) not in sw.maschinen():
-    fehler.append(f"Maschinen: {sw.maschinen()}")
+# Die Leistung der Spindel, die das Werkzeug antreibt (D-20) – nicht die der Hauptspindel.
+next(b for b in m.betriebsarten(ma) if b.Art == m.ART_SPINDEL and b is not angetrieben).Leistung = (
+    30
+)
+angetrieben.Leistung = 7.5
+if sw.leistung_der_maschine(ma) != 7.5:
+    fehler.append(f"Leistung: {sw.leistung_der_maschine(ma)}")
+offen = [w for w in sw.maschinen(gemerkte=[]) if w.name == "Testdrehmaschine"]
+if [(w.drehzahl, w.vorschub, w.leistung) for w in offen] != [(3000, 6000, 7.5)]:
+    fehler.append(f"Maschinen: {sw.maschinen(gemerkte=[])}")
+# Die Liste der Maschinen (W-011) merkt sich die Werte für den Planer.
+from camaddon import maschinenspeicher as ms  # noqa: E402
+from camaddon.sprache import tr  # noqa: E402
+
+eintrag = ms.beschreibe(asm, ma)
+if (eintrag.werkzeugdrehzahl, eintrag.vorschub, eintrag.leistung) != (3000, 6000, 7.5):
+    fehler.append(f"Eintrag: {eintrag}")
 FreeCAD.closeDocument(dok.Name)
 
-# Vorbelegen: nur, wenn beide Felder leer sind, und nur bei genau einer Maschine.
-eine = [("Fräse", 24000.0, 8000.0)]
+# Gemerkte Maschinen, deren Datei nicht offen ist, bietet der Planer mit an (D-20); ohne
+# Drehzahl und Vorschub nicht.
+gemerkte = [
+    ms.Eintrag(
+        "Meine Fräse",
+        "/nirgends/meine_fraese.FCStd",
+        werkzeugdrehzahl=15000,
+        vorschub=9000,
+        leistung=11,
+    ),
+    ms.Eintrag("Leere", "/nirgends/leer.FCStd"),
+]
+werte = sw.maschinen(gemerkte=gemerkte)
+if werte != [
+    sw.MaschinenWerte(
+        tr("sp.maschine.gemerkt", name="Meine Fräse"),
+        15000,
+        9000,
+        11,
+        "/nirgends/meine_fraese.FCStd",
+    )
+]:
+    fehler.append(f"gemerkte Maschinen: {werte}")
+
+# Vorbelegen: nur, wenn Drehzahl und Vorschub leer sind – von der zuletzt benutzten Maschine,
+# sonst von der einzigen; die Leistung von ihr, wenn sie sie kennt.
+eine = [sw.MaschinenWerte("Fräse", 24000.0, 8000.0, 11.0, "/a/fraese.FCStd")]
+zwei = eine + [sw.MaschinenWerte("Andere", 18000.0, 6000.0, 0.0, "/a/andere.FCStd")]
 for leer in (-1, 0):
-    if sw.vorbelegung(leer, leer, eine) != (24000.0, 8000.0, "Fräse"):
+    if sw.vorbelegung(leer, leer, eine) != (24000.0, 8000.0, 11.0, "Fräse"):
         fehler.append(f"Vorbelegung: {sw.vorbelegung(leer, leer, eine)}")
-if sw.vorbelegung(12000, 0, eine) != (12000, 0, ""):
+if sw.vorbelegung(12000, 0, eine) != (12000, 0, 0.0, ""):
     fehler.append("eingetragene Drehzahl überschrieben")
-if sw.vorbelegung(-1, -1, eine * 2) != (0, 0, ""):
+if sw.vorbelegung(-1, -1, zwei) != (0, 0, 0.0, ""):
     fehler.append("bei zwei Maschinen vorbelegt")
-if sw.vorbelegung(12000, -1, []) != (12000, 0, ""):
-    fehler.append("gemerkte Drehzahl verloren")
+zuletzt = sw.vorbelegung(-1, -1, zwei, leistung=5.5, zuletzt="/a/andere.FCStd")
+if zuletzt != (18000.0, 6000.0, 5.5, "Andere"):
+    fehler.append(f"zuletzt benutzte: {zuletzt}")
+if sw.vorbelegung(12000, -1, [], leistung=4) != (12000, 0, 4, ""):
+    fehler.append("gemerkte Drehzahl oder Leistung verloren")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

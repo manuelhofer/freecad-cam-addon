@@ -39,9 +39,11 @@ hardened steel. It applies to this tool and is saved with it (OK in the tool
 manager). Empty: no warning limit.</li>
 <li><b>Machine</b> – maximum speed, maximum cutting feed and spindle power. An
 empty field means: no limit. If the machine is described with <b>Edit
-machine</b> and its document is open, <b>From the machine</b> takes speed and
-feed from it; if it is exactly one and both fields are empty, its values are
-already filled in. The feed is the smallest cutting feed of its linear axes;
+machine</b>, <b>From the machine</b> takes speed, feed and power (the rated
+power of its spindle) – from an open document or from the list of your
+machines with the values of its last save. If speed and feed are empty, the
+values of the machine you last checked on are already filled in – or those of
+the only open one. The feed is the smallest cutting feed of its linear axes;
 with an <b>inclined axis</b>, the one Y manages in the program – both slides
 move for it, so it is less than that of the inclined slide alone. The planner
 remembers the values for next time.</li>
