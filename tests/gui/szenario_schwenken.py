@@ -207,3 +207,22 @@ def schritte(h):
     h.bild("6_schwenken_aus_assistent")
     if zweites is not None:
         zweites.reject()
+
+    # --- Bestückung: Grundjob und Ebene sind eine Aufspannung, ein Programm ---------------------
+    from camaddon import gui_bestueckung
+
+    yield 500
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(doc.Name, grundjob.Name)
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_Bestueckung"))
+    yield from h.warte_auf(lambda: gui_bestueckung.BestueckungsPanel.offen is not None, 15000)
+    b = gui_bestueckung.BestueckungsPanel.offen
+    h.pruefe(b is not None, "Bestückung öffnet kein Fenster")
+    if b is not None:
+        yield 500
+        h.pruefe(
+            not b.aufspannung.isHidden() and planjob.Label in b.aufspannung.text(),
+            f"Bestückung: {b.aufspannung.text()!r}",
+        )
+        h.bild("7_bestueckung", b.form)
+        b.reject()

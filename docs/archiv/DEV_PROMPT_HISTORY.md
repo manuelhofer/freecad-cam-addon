@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-45 bestueckung-aufspannung
+
+### EINGELESEN
+- Spezifikation Werkzeugverwaltung (Stufe G: Bestückung je Job), Strategien 15 (D-4: ein
+  Programm je Aufspannung); `bestueckung.eintraege` sah nur die Controller eines Jobs.
+
+### DATEIEN
+- `camaddon/bestueckung.py` (`aufspannung`, `eintraege` über alle Jobs der Aufspannung),
+  `camaddon/gui_bestueckung.py` (grauer Satz „Eine Aufspannung, ein Programm …“),
+  Übersetzungen (`bs.aufspannung`), `tests/test_bestueckung.py`, `tests/gui/szenario_schwenken.py`,
+  Spezifikation (15.3), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.155.2).
+
+### AKZEPTANZKRITERIUM
+- In der Ebene hat ein Werkzeug den Platz aus dem Grundjob; ein anderes auf demselben Platz ist
+  doppelt, aus beiden Jobs gesehen; Umlegen in der Ebene legt es in der ganzen Aufspannung um.
+
+### DONE
+- Wie oben; das Fenster „Bestückung“ am Grundjob nennt Grundjob und Ebene (Bild 7 im Szenario).
+
+### TESTS
+- `tests/test_bestueckung.py` – OK; Szenarien `szenario_bestueckung`, `szenario_schwenken` – OK.
+  black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2 und D-1 … D-5; simultan zu besprechen; Siemens: G81 → CYCLE81 vorschlagen.
+
 ## P-2026-10-03-44 assistent-schraeg
 
 ### EINGELESEN

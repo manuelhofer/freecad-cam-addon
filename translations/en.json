@@ -1028,6 +1028,7 @@
     "befehl.so_gehts.titel": "Getting started",
     "befehl.so_gehts.tooltip": "The way from the part to the program in six steps – machine, tools, part and machining, tool loading, check, program – with the button for each step and links to all help pages.",
     "bs.titel": "Tool loading",
+    "bs.aufspannung": "One setup, one program: {jobs} – the base job and its swivelled planes share the tool assignment.",
     "bs.erklaerung": "Which tool sits in which station belongs to the job: the number in the program is the station – T3 sits in P3. Pick a tool for a station and it moves there; if another one was there, the two swap.",
     "bs.kein_job": "There is no CAM job in any open document. Open the document with the job – this command then shows its tool loading.",
     "bs.frei": "– free –",

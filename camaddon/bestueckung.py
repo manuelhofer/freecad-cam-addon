@@ -20,6 +20,10 @@ tauschen die beiden (lege_um).
 Die Plätze kommen von der Maschine (reichweite.Pruefung.platznummern); ohne
 Revolver gilt wie bisher die Nummer aus der Werkzeugverwaltung. Läuft ohne
 Oberfläche.
+
+Ein Grundjob und seine geschwenkten Ebenen (3+2, schwenken.py) sind eine Aufspannung
+und ein Programm: Sie teilen die Bestückung – ein Werkzeug hat in allen dieselbe
+Nummer, ein Platz ein Werkzeug (aufspannung).
 """
 
 import re
@@ -64,12 +68,26 @@ def _schluessel(tc, werkzeug):
     return "cam:" + (bit.Name if bit is not None else tc.Name)
 
 
+def aufspannung(job):
+    """Die Jobs, die mit `job` ein Programm sind: sein Grundjob (ist er eine geschwenkte Ebene)
+    und dessen Ebenen – ohne Ebenen nur `job`."""
+    from . import schwenken as sw
+
+    grund = getattr(job, "Grundjob", None) if sw.ist_ebene(job) else None
+    grund = grund or job
+    return [grund] + [e for e in sw.ebenen_von(grund) if e is not grund]
+
+
 def eintraege(job, bibliothek):
-    """Die Werkzeuge des Jobs (Eintrag), in der Reihenfolge ihrer ersten Controller –
-    ohne unbenutzte fremde Controller."""
-    fremd = set(js.unbenutzte_fremde_controller(job, bibliothek)) if bibliothek else set()
+    """Die Werkzeuge des Jobs (Eintrag) – mit allen Jobs seiner Aufspannung –, in der
+    Reihenfolge ihrer ersten Controller, ohne unbenutzte fremde Controller."""
+    jobs = aufspannung(job)
+    fremd = set()
+    if bibliothek:
+        for j in jobs:
+            fremd.update(js.unbenutzte_fremde_controller(j, bibliothek))
     nach_schluessel = {}
-    for tc in js.werkzeug_controller(job):
+    for tc in (tc for j in jobs for tc in js.werkzeug_controller(j)):
         if tc in fremd:
             continue
         werkzeug = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None

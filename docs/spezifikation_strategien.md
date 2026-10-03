@@ -2471,6 +2471,9 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   TypeError (`int(...)`), FreeCAD zeigte die Knöpfe nicht – die Szenarien riefen `accept()`
   direkt und merkten es nicht. `scripts/oberflaeche_testen.sh` lässt ein Szenario jetzt
   scheitern, wenn im Log ein Traceback aus dem Addon steht.
+  **Bestückung:** P-2026-10-03-45 – Grundjob und Ebenen sind ein Programm, also eine
+  Bestückung (`bestueckung.aufspannung`): Doppelt belegte Plätze, „Platz für …“ und Umlegen
+  sehen alle Jobs der Aufspannung; das Fenster „Bestückung“ sagt es in einem grauen Satz.
 - **F6 danach:** der Materialstand über Ebenen hinweg, simultan (Flanke, Anstellwinkel).
   **Materialstand gebaut:** P-2026-10-03-40 – eine Ebene beginnt, wo nach dem Grundjob und den
   Ebenen davor noch Material steht: je Säule ihres Rasters von der Oberkante des gedrehten

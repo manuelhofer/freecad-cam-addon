@@ -120,6 +120,24 @@ pruefe(bs.platz_fuer(job, kugel, bibliothek, [1, 5]) is None, "voll, aber ein Pl
 pruefe(bs.platz_fuer(job, kugel, bibliothek, [1, 5, 6]) == 6, "nicht der freie P6")
 pruefe(bs.platz_fuer(None, bohrer, bibliothek, PLAETZE) == 3, "ohne Job nicht die Nummer")
 
+# Eine geschwenkte Ebene (3+2) ist mit dem Job eine Aufspannung und ein Programm: Sie teilt seine
+# Bestückung. Der Fräser hat in ihr den Platz aus dem Job (P1); die Kugel, von Hand auf P5 gelegt,
+# wo im Job der Bohrer steckt, ist doppelt – aus beiden Jobs gesehen.
+from camaddon import schwenken as sw  # noqa: E402
+
+ebene = sw.lege_an(job, "Face1")
+dok.recompute()
+pruefe(bs.aufspannung(ebene) == [job, ebene] == bs.aufspannung(job), "Aufspannung")
+pruefe(bs.platz_fuer(ebene, fraeser, bibliothek, PLAETZE) == 1, "Fräser in der Ebene nicht P1")
+tc_kugel = js.controller_ohne_transaktion(dok, ebene, kugel, einsatz(kugel), nummer=5)
+for j in (job, ebene):
+    doppelt = [(n, sorted(e.werkzeug.kennung for e in es)) for n, es in bs.doppelt(j, bibliothek)]
+    pruefe(doppelt == [(5, sorted([bohrer.kennung, kugel.kennung]))], f"Ebene doppelt: {doppelt}")
+# Umlegen in der Ebene legt das Werkzeug in der ganzen Aufspannung um.
+bs.lege_um(ebene, bs.eintrag_von(ebene, kugel, bibliothek), 6, bibliothek)
+pruefe(auf() == {1: [fraeser.kennung], 5: [bohrer.kennung], 6: [kugel.kennung]}, f"{auf()}")
+pruefe(tc_kugel.ToolNumber == 6, "Kugel in der Ebene nicht auf P6")
+
 # Umbenennen nur, wo der Name mit der Nummer beginnt.
 pruefe(bs.umbenannt("T3 Schruppen", 3, 5) == "T5 Schruppen", "T3 → T5")
 pruefe(bs.umbenannt("T33 Schruppen", 3, 5) == "T33 Schruppen", "T33 umbenannt")

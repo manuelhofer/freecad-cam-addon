@@ -441,6 +441,9 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
      Nummer (`ToolNumber`) ruft das Programm auf, und am Revolver ist sie der Platz
      – T3 steckt auf P3. Eine zweite Liste gibt es nicht; so können Programm und
      Bestückung nicht auseinanderlaufen.
+   - Ein **Grundjob mit geschwenkten Ebenen** (3+2, Spezifikation Strategien 15) ist ein
+     Programm: Seine Ebenen teilen seine Bestückung (P-2026-10-03-45,
+     `bestueckung.aufspannung`).
    - Ein **Werkzeug des Jobs** sind alle Controller mit demselben Werkzeug aus der
      Werkzeugverwaltung (dieselbe Kennung), sonst mit demselben CAM-Werkzeug.
      Unbenutzte fremde Controller (FreeCADs „TC: 5mm Endmill“, D-30) zählen nicht.

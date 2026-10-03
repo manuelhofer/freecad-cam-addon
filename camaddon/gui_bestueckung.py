@@ -198,6 +198,9 @@ class BestueckungsPanel:
         raster.addWidget(QtGui.QLabel(tr("rw.maschine")), 1, 0)
         raster.addWidget(maschine, 1, 1)
         aufbau.addLayout(raster)
+        # Ein Grundjob mit geschwenkten Ebenen (3+2): ein Programm, eine Bestückung.
+        self.aufspannung = _satz(GRAU)
+        aufbau.addWidget(self.aufspannung)
 
         self.hinweis = _satz(GRAU)
         aufbau.addWidget(self.hinweis)
@@ -234,6 +237,13 @@ class BestueckungsPanel:
     def fuellen(self):
         """Die Auswahlen nach der Bestückung des Jobs, die Sätze darunter, das Bild."""
         self.eintraege = bs.eintraege(self.job, self.bibliothek)
+        jobs = bs.aufspannung(self.job)
+        self.aufspannung.setText(
+            tr("bs.aufspannung", jobs=", ".join(f"„{j.Label}“" for j in jobs))
+            if len(jobs) > 1
+            else ""
+        )
+        self.aufspannung.setVisible(len(jobs) > 1)
         auf = bs.auf_plaetzen(self.job, self.bibliothek, self.eintraege)
         nummern = {platz.Platz for platz in self.plaetze}
         for platz, wahl in self.wahlen.items():
