@@ -224,6 +224,47 @@ def je_versatz(netz, laengs, radial, form, phi0, a0, schritt, anzahl, q_werte):
     return r
 
 
+def je_stellung(netz, laengs, radial, form, phi, q, a):
+    """Die Hüllfläche eines Fräsers mit der Form `form` für beliebige Stellungen: je Stellung k
+    kommt er aus der Richtung phi[k] (rad), seine Achse um q[k] (mm) quer versetzt, an der Stelle
+    a[k] längs – r[k] die Höhe der Spitze längs seiner Achse; KEIN_TREFFER, wo er das Teil nicht
+    trifft. Je Richtung rechnen alle ihre Stellungen in einem Zug – die Kerne nehmen den Versatz
+    je Stelle –, aufgeteilt in Bänder quer (BAND_JE_RADIUS Fräserradien breit), damit je Band nur
+    die Kanten und Dreiecke dazukommen, die quer unter den Fräser reichen (vierachs_quer, V5e:
+    die Spirale mit der Querachse für Schaft- und Torusfräser)."""
+    phi = np.asarray(phi, dtype=float)
+    q = np.asarray(q, dtype=float)
+    a = np.asarray(a, dtype=float)
+    ergebnis = np.full(len(a), KEIN_TREFFER)
+    if not len(a):
+        return ergebnis
+    l_, u_, v_ = rahmen(laengs, radial)
+    punkte = netz.punkte
+    a_p = punkte @ l_
+    u = punkte @ u_
+    v = punkte @ v_
+    kanten = _kanten(netz.dreiecke)
+    band = BAND_JE_RADIUS * max(form.aussen().radius, 1.0)
+    for richtung in np.unique(phi):
+        in_richtung = np.flatnonzero(phi == richtung)
+        c, s = math.cos(richtung), math.sin(richtung)
+        x = u * c + v * s
+        y = v * c - u * s
+        baender = np.floor(q[in_richtung] / band).astype(np.int64)
+        for nummer in np.unique(baender):
+            welche = in_richtung[baender == nummer]
+            welche = welche[np.argsort(a[welche], kind="stable")]
+            spalte = np.full(len(welche), KEIN_TREFFER)
+            _form_treffen(
+                spalte, a_p, x, y, kanten, netz.dreiecke, form, a[welche], None, q[welche]
+            )
+            ergebnis[welche] = spalte
+    return ergebnis
+
+
+BAND_JE_RADIUS = 2.0  # so breit (in Fräserradien) ist ein Band quer in je_stellung
+
+
 def _kanten(dreiecke):
     """Die Kanten der Dreiecke, jede einmal: (k, 2) Punktnummern."""
     paare = np.concatenate([dreiecke[:, [0, 1]], dreiecke[:, [1, 2]], dreiecke[:, [2, 0]]])
@@ -233,9 +274,15 @@ def _kanten(dreiecke):
 
 def _ausbreiten(von, bis, a0, schritt, anzahl):
     """Je Intervall [von, bis] (mm) die Rasterstellen darin: (welches, index) – welches
-    Intervall und welche Stelle, für alle zusammen."""
-    i_von = np.maximum(np.ceil((von - a0) / schritt - 1e-9), 0).astype(np.int64)
-    i_bis = np.minimum(np.floor((bis - a0) / schritt + 1e-9), anzahl - 1).astype(np.int64)
+    Intervall und welche Stelle, für alle zusammen. Ohne `schritt` (None) ist `a0` die Folge
+    der Stellen selbst (aufsteigend, beliebige Abstände) – so rechnen die Kerne nur dort, wo
+    eine Werkzeugstellung sie braucht (vierachs_quer)."""
+    if schritt is None:
+        i_von = np.searchsorted(a0, von - 1e-9, side="left").astype(np.int64)
+        i_bis = (np.searchsorted(a0, bis + 1e-9, side="right") - 1).astype(np.int64)
+    else:
+        i_von = np.maximum(np.ceil((von - a0) / schritt - 1e-9), 0).astype(np.int64)
+        i_bis = np.minimum(np.floor((bis - a0) / schritt + 1e-9), anzahl - 1).astype(np.int64)
     je = np.maximum(i_bis - i_von + 1, 0)
     beginn = np.cumsum(je) - je
     welches = np.repeat(np.arange(len(je)), je)
@@ -243,18 +290,24 @@ def _ausbreiten(von, bis, a0, schritt, anzahl):
     return welches, index
 
 
-def _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt):
+def _stelle(a0, schritt, index):
+    """Die Stelle längs zu den Rasternummern `index` (siehe _ausbreiten)."""
+    return a0[index] if schritt is None else a0 + schritt * index
+
+
+def _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt, versatz=None):
     """Die höchste Stelle jeder Kante unter der Scheibe – an ihrem Ende oder wo sie den
     Kreis schneidet –, für alle Stellen a zugleich; in `spalte` eingetragen.
 
     Auch Kanten hinter der Achse (x ≤ 0) zählen: Die Spitze darf über die Achse hinaus, bis
     sie das Teil dahinter trifft (P-2026-10-03-07; bis dahin sperrte vierachs_bahn sie einen
     Fräserradius vor der Achse, und Kanten dahinter zählten nicht).
+
+    `versatz`: je Stelle der Versatz der Werkzeugachse quer (mm, je_stellung); ohne: 0.
     """
     radius += _SAUM
     p, q = kanten[:, 0], kanten[:, 1]
-    y_p, y_q = y[p], y[q]
-    zaehlt = (np.minimum(np.abs(y_p), np.abs(y_q)) <= radius) | (y_p * y_q < 0)
+    zaehlt = _im_band(np.minimum(y[p], y[q]), np.maximum(y[p], y[q]), radius, versatz)
     p, q = p[zaehlt], q[zaehlt]
     if not len(p):
         return
@@ -266,9 +319,9 @@ def _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt):
     )
     if not len(index):
         return
-    a_p, y_p, x_p = a_p[welches], y_p[welches], x_p[welches]
+    a_p, y_p, x_p = a_p[welches], y_p[welches] - _quer(versatz, index), x_p[welches]
     d_a, d_y, d_x, qa = d_a[welches], d_y[welches], d_x[welches], qa[welches]
-    neben = a_p - (a0 + schritt * index)
+    neben = a_p - _stelle(a0, schritt, index)
     # Die Punkte der Kante in der Scheibe: qa·t² + qb·t + qc ≤ 0, 0 ≤ t ≤ 1.
     qb = 2.0 * (d_a * neben + d_y * y_p)
     qc = neben * neben + y_p * y_p - radius * radius
@@ -287,15 +340,16 @@ def _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt):
     np.maximum.at(spalte, index[trifft], wert[trifft])
 
 
-def _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form=None):
+def _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form=None, versatz=None):
     """Wo der Kreis die Ebene eines Dreiecks am höchsten schneidet und diese Stelle im
     Dreieck liegt – für alle Stellen a zugleich; in `spalte` eingetragen. Mit `form`
-    (fraeserform.Form): die Stelle des Profils, die die Ebene zuerst berührt."""
+    (fraeserform.Form): die Stelle des Profils, die die Ebene zuerst berührt. `versatz` wie
+    bei _kanten_treffen."""
     radius += _SAUM
     p, q, s = dreiecke[:, 0], dreiecke[:, 1], dreiecke[:, 2]
     unten = np.minimum(np.minimum(y[p], y[q]), y[s])
     oben = np.maximum(np.maximum(y[p], y[q]), y[s])
-    zaehlt = (unten <= radius) & (oben >= -radius)  # auch hinter der Achse, wie die Kanten
+    zaehlt = _im_band(unten, oben, radius, versatz)  # auch hinter der Achse, wie die Kanten
     p, q, s = p[zaehlt], q[zaehlt], s[zaehlt]
     if not len(p):
         return
@@ -323,6 +377,12 @@ def _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form=None)
         beruehrt, hoch = form.stuetze(np.where(flach, 0.0, np.arctan2(schraeg, n_x)))
     versatz_a = np.where(flach, 0.0, -beruehrt * n_a / teiler)
     y_stern = np.where(flach, 0.0, -beruehrt * n_y / teiler)
+    if versatz is not None:
+        _dreiecke_versetzt(
+            spalte, a, x, y, (p, q, s), (n_a, n_y, n_x), versatz_a, y_stern, hoch, form,
+            a0, schritt, versatz,
+        )  # fmt: skip
+        return
     # Die Gerade y = y_stern schneidet das Dreieck (von oben gesehen) von s_von bis s_bis.
     s_von = np.full(len(p), math.inf)
     s_bis = np.full(len(p), -math.inf)
@@ -344,7 +404,7 @@ def _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form=None)
         return
     auswahl = np.nonzero(trifft)[0][welches]
     p = p[auswahl]
-    stelle_a = a0 + schritt * index + versatz_a[auswahl]
+    stelle_a = _stelle(a0, schritt, index) + versatz_a[auswahl]
     wert = (
         x[p]
         - (n_a[auswahl] * (stelle_a - a[p]) + n_y[auswahl] * (y_stern[auswahl] - y[p]))
@@ -355,64 +415,126 @@ def _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form=None)
     np.maximum.at(spalte, index, wert)
 
 
+def _dreiecke_versetzt(
+    spalte, a, x, y, ecken, normale, versatz_a, y_stern, hoch, form, a0, schritt, versatz
+):
+    """_dreiecke_treffen mit einem Versatz je Stelle: Die Gerade, auf der die Stirn die Ebene
+    zuerst berührt, liegt dann je Stelle bei y_stern + versatz – je Paar (Dreieck, Stelle)
+    geschnitten. Gepaart wird über das ganze Dreieck längs (verschoben um versatz_a)."""
+    p, q, s = ecken
+    n_a, n_y, n_x = normale
+    a_unten = np.minimum(np.minimum(a[p], a[q]), a[s]) - versatz_a
+    a_oben = np.maximum(np.maximum(a[p], a[q]), a[s]) - versatz_a
+    welches, index = _ausbreiten(a_unten, a_oben, a0, schritt, len(spalte))
+    if not len(index):
+        return
+    gerade = y_stern[welches] + versatz[index]
+    s_von = np.full(len(index), math.inf)
+    s_bis = np.full(len(index), -math.inf)
+    for k1, k2 in ((p, q), (q, s), (s, p)):
+        y1, y2 = y[k1][welches], y[k2][welches]
+        dy = y2 - y1
+        with np.errstate(divide="ignore", invalid="ignore"):
+            t = (gerade - y1) / dy
+        auf = (np.abs(dy) > _KLEIN) & (t >= 0.0) & (t <= 1.0)
+        a1, a2 = a[k1][welches], a[k2][welches]
+        stelle = a1 + np.where(auf, t, 0.0) * (a2 - a1)
+        s_von = np.where(auf, np.minimum(s_von, stelle), s_von)
+        s_bis = np.where(auf, np.maximum(s_bis, stelle), s_bis)
+    stelle_a = _stelle(a0, schritt, index) + versatz_a[welches]
+    trifft = (s_von <= stelle_a + 1e-9) & (stelle_a <= s_bis + 1e-9)
+    if not trifft.any():
+        return
+    w, i = welches[trifft], index[trifft]
+    ecke = p[w]
+    wert = (
+        x[ecke]
+        - (n_a[w] * (stelle_a[trifft] - a[ecke]) + n_y[w] * (gerade[trifft] - y[ecke])) / n_x[w]
+    )
+    if form is not None:
+        wert = wert - hoch[w]
+    np.maximum.at(spalte, i, wert)
+
+
+def _im_band(unten, oben, radius, versatz):
+    """Welche Elemente (quer von `unten` bis `oben`) unter einen Fräser mit `radius` kommen
+    können – um die Achse (ohne Versatz) oder um irgendeinen der Versätze."""
+    if versatz is None:
+        return (unten <= radius) & (oben >= -radius)
+    return (unten <= float(np.max(versatz)) + radius) & (oben >= float(np.min(versatz)) - radius)
+
+
+def _quer(versatz, index):
+    """Der Versatz quer je Paar – ohne Versatz 0."""
+    return 0.0 if versatz is None else versatz[index]
+
+
 # --- Jede Fräserform (V5a) -----------------------------------------------------------------
 
 _GOLDEN = (math.sqrt(5.0) - 1.0) / 2.0
 _GOLDEN_SCHRITTE = 25  # die Suche längs einer Kante: auf 1e-5 der Länge unter dem Fräser
 
 
-def _form_treffen(spalte, a, x, y, kanten, dreiecke, form, a0, schritt):
+def _form_treffen(spalte, a, x, y, kanten, dreiecke, form, a0, schritt, versatz=None):
     """Wie tief die Spitze eines Fräsers mit `form` an jeder Stelle a0 + k · schritt darf –
-    gegen Ecken, Dreiecke und Kanten; in `spalte` eingetragen."""
+    gegen Ecken, Dreiecke und Kanten; in `spalte` eingetragen. `versatz`: je Stelle der
+    Versatz der Werkzeugachse quer (je_stellung); ohne: 0."""
     form = form.aussen()
     radius = form.radius
     if form.eben:  # der Schaftfräser: wie immer
-        _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt)
-        _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt)
+        _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt, versatz)
+        _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, versatz=versatz)
         return
-    _ecken_treffen(spalte, a, x, y, form, a0, schritt)
-    _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form)
+    _ecken_treffen(spalte, a, x, y, form, a0, schritt, versatz)
+    _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form, versatz)
     if form.nur_kugel:
-        _kanten_kugel(spalte, a, x, y, kanten, form.kugel, a0, schritt)
+        _kanten_kugel(spalte, a, x, y, kanten, form.kugel, a0, schritt, versatz)
         return
     for rand, hoehe in form.scheiben():  # wo eine Kante unter Scheibe oder Rand herauskommt
         teil = np.full(len(spalte), KEIN_TREFFER)
-        _kanten_treffen(teil, a, x, y, kanten, rand, a0, schritt)
+        _kanten_treffen(teil, a, x, y, kanten, rand, a0, schritt, versatz)
         np.maximum(spalte, teil - hoehe, out=spalte)
-    _kanten_suchen(spalte, a, x, y, kanten, form, a0, schritt)
+    _kanten_suchen(spalte, a, x, y, kanten, form, a0, schritt, versatz)
 
 
-def _ecken_treffen(spalte, a, x, y, form, a0, schritt):
+def _ecken_treffen(spalte, a, x, y, form, a0, schritt, versatz=None):
     """Die Punkte (a, x, y) unter dem Fräser: Die Spitze darf bis x − z(Abstand) – für alle
     Stellen a zugleich; in `spalte` eingetragen. Auch Punkte hinter der Achse (x ≤ 0) zählen
     (wie bei den Kanten, P-2026-10-03-07)."""
     radius = form.radius + _SAUM
-    zaehlt = np.nonzero(np.abs(y) <= radius)[0]
+    zaehlt = np.nonzero(_im_band(y, y, radius, versatz))[0]
     if not len(zaehlt):
         return
     a_p, x_p, y_p = a[zaehlt], x[zaehlt], y[zaehlt]
-    halb = np.sqrt(np.maximum(radius * radius - y_p * y_p, 0.0))
+    if versatz is None:
+        halb = np.sqrt(np.maximum(radius * radius - y_p * y_p, 0.0))
+    else:  # quer je Stelle anders: längs so weit wie der Fräser, gesiebt nach dem Abstand
+        halb = np.full(len(y_p), radius)
     welches, index = _ausbreiten(a_p - halb, a_p + halb, a0, schritt, len(spalte))
     if not len(index):
         return
-    abstand = np.hypot(a_p[welches] - (a0 + schritt * index), y_p[welches])
+    abstand = np.hypot(
+        a_p[welches] - _stelle(a0, schritt, index), y_p[welches] - _quer(versatz, index)
+    )
+    if versatz is not None:
+        unter = abstand <= radius
+        welches, index, abstand = welches[unter], index[unter], abstand[unter]
     wert = x_p[welches] - form.hoehe(np.minimum(abstand, form.radius))
     np.maximum.at(spalte, index, wert)
 
 
-def _kanten_im_streifen(a, x, y, kanten, radius):
+def _kanten_im_streifen(a, x, y, kanten, radius, versatz=None):
     """Die Kanten, die unter den Fräser kommen können: (p, q) Punktnummern."""
     p, q = kanten[:, 0], kanten[:, 1]
-    y_p, y_q = y[p], y[q]
-    zaehlt = (np.minimum(np.abs(y_p), np.abs(y_q)) <= radius) | (y_p * y_q < 0)
+    zaehlt = _im_band(np.minimum(y[p], y[q]), np.maximum(y[p], y[q]), radius, versatz)
     return p[zaehlt], q[zaehlt]  # auch hinter der Achse (P-2026-10-03-07)
 
 
-def _kanten_kugel(spalte, a, x, y, kanten, radius, a0, schritt):
+def _kanten_kugel(spalte, a, x, y, kanten, radius, a0, schritt, versatz=None):
     """Die Kugel mit `radius` (Mitte radius über der Spitze) gegen die Kanten, genau: Ihre Mitte
     liegt im Abstand radius von der Geraden der Kante – die höhere Lösung, wenn der Fußpunkt
     zwischen den Enden liegt. Die Enden selbst rechnet _ecken_treffen."""
-    p, q = _kanten_im_streifen(a, x, y, kanten, radius + _SAUM)
+    p, q = _kanten_im_streifen(a, x, y, kanten, radius + _SAUM, versatz)
     if not len(p):
         return
     d_a, d_y, d_x = a[q] - a[p], y[q] - y[p], x[q] - x[p]
@@ -435,8 +557,8 @@ def _kanten_kugel(spalte, a, x, y, kanten, radius, a0, schritt):
     )
     if not len(index):
         return
-    w_a = a0 + schritt * index - a_p[welches]
-    w_y = -y[p][welches]
+    w_a = _stelle(a0, schritt, index) - a_p[welches]
+    w_y = _quer(versatz, index) - y[p][welches]
     e_a, e_y, e_x = e_a[welches], e_y[welches], e_x[welches]
     quadrat, laenge = quadrat[welches], laenge[welches]
     laengs = w_a * e_a + w_y * e_y
@@ -450,11 +572,11 @@ def _kanten_kugel(spalte, a, x, y, kanten, radius, a0, schritt):
     np.maximum.at(spalte, index[trifft], wert[trifft])
 
 
-def _kanten_paare(spalte, a, x, y, kanten, radius, a0, schritt):
+def _kanten_paare(spalte, a, x, y, kanten, radius, a0, schritt, versatz=None):
     """Je Kante und Stelle a das Stück der Kante unter dem Fräser (Abstand ≤ radius zur
     Werkzeugachse) – nur, wo es höher liegen kann als, was `spalte` schon hat. Gibt (Stelle,
     Anfang (a, y, x), Richtung (a, y, x), t_von, t_bis) oder None."""
-    p, q = _kanten_im_streifen(a, x, y, kanten, radius)
+    p, q = _kanten_im_streifen(a, x, y, kanten, radius, versatz)
     if not len(p):
         return None
     welches, index = _ausbreiten(
@@ -466,9 +588,9 @@ def _kanten_paare(spalte, a, x, y, kanten, radius, a0, schritt):
     hoechstens = np.maximum(x[p], x[q])  # höher als das Ende kann sie nicht (z ≥ 0)
     offen = hoechstens > spalte[index]
     p, q, index = p[offen], q[offen], index[offen]
-    anfang = (a[p], y[p], x[p])
+    anfang = (a[p], y[p] - _quer(versatz, index), x[p])
     richtung = (a[q] - a[p], y[q] - y[p], x[q] - x[p])
-    neben = anfang[0] - (a0 + schritt * index)
+    neben = anfang[0] - _stelle(a0, schritt, index)
     qa = richtung[0] ** 2 + richtung[1] ** 2
     qb = 2.0 * (richtung[0] * neben + richtung[1] * anfang[1])
     qc = neben * neben + anfang[1] ** 2 - radius * radius
@@ -492,16 +614,16 @@ def _kanten_paare(spalte, a, x, y, kanten, radius, a0, schritt):
     )
 
 
-def _kanten_suchen(spalte, a, x, y, kanten, form, a0, schritt):
+def _kanten_suchen(spalte, a, x, y, kanten, form, a0, schritt, versatz=None):
     """Das Profil (konvex, fraeserform.Form.aussen) gegen die Kanten: Längs einer Kante ist x
     linear, der Abstand zur Werkzeugachse konvex und das Profil konvex und steigend –
     x − z(Abstand) also konkav. Seine höchste Stelle auf dem Stück unter dem Fräser findet der
     goldene Schnitt."""
-    paare = _kanten_paare(spalte, a, x, y, kanten, form.radius, a0, schritt)
+    paare = _kanten_paare(spalte, a, x, y, kanten, form.radius, a0, schritt, versatz)
     if paare is None:
         return
     index, anfang, richtung, unten, oben = paare
-    stelle = a0 + schritt * index
+    stelle = _stelle(a0, schritt, index)
 
     def hoehe(t):
         abstand = np.hypot(anfang[0] + t * richtung[0] - stelle, anfang[1] + t * richtung[1])

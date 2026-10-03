@@ -12,6 +12,48 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-22 querachse-jeder-fraeser-schlichten-feiner
+
+### EINGELESEN
+- Manuel, 2026-10-03: „Strategien sind alle gebaut?“ – auf die Empfehlung „Y beim Schruppen und
+  für Torus- und Schaftfräser“: „ja, mach weiter“. Spezifikation Vierachs V5e.
+
+### DATEIEN
+- `camaddon/vierachs_quer.py` (neu: `stellungen`), `camaddon/vierachs_huelle.py`
+  (`je_stellung`; `_ausbreiten`/`_stelle` mit beliebigen Stellen; `versatz` je Stelle in
+  `_kanten_treffen`, `_dreiecke_treffen` mit `_dreiecke_versetzt`, `_ecken_treffen`,
+  `_kanten_kugel`, `_kanten_paare`, `_kanten_suchen`, `_form_treffen`; `_im_band`, `_quer`),
+  `camaddon/vierachs_bahn.py` (`_spirale_quer` → `_quer_plan`, `_uebergaenge`,
+  `_quer_ausgeben`; `_zusammen_quer` seitlich 0,02 für Fräser ohne Kugel; `_verfeinert`;
+  `_spirale`/`_zusammengefasst`/`_sehnenfehler`/`_a_knicke` mit ungleichen Abständen),
+  `camaddon/vierachs_schlichten.py`, `camaddon/gui_vierachs.py` (Haken für jeden Fräser),
+  Übersetzungen, Hilfe Vierachs (de/en), Spezifikation Vierachs V5e, Tests
+  `test_vierachs_schlichten` (Scheibe und Torus mit Y am D-Profil), `test_goldene_bahnen`
+  (welle_absatz_schlichten neu: Zwischenpunkte an der Wand), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.145.0).
+
+### AKZEPTANZKRITERIUM
+- „Rundum schlichten“ mit „Mit der Querachse (Y)“ geht mit Schaft- und Torusfräser: auf der
+  ebenen Seite steht C, die Stirn liegt flach auf, Y fährt; nirgends ins Teil.
+- Das Schlichten ohne Querachse schneidet an den Kanten einer ebenen Seite nicht mehr ein
+  (Manuels Teil: 0,22/0,38 mm → 0,0024/0,0033 mm unter der Hüllfläche).
+
+### DONE
+- Gemessen mit einer unabhängigen Prüfung (Oberfläche dicht abgetastet, je Stellung der Bahn –
+  auch zwischen den Punkten – ob ein Punkt im Fräser liegt) und mit der genauen Hüllfläche
+  zwischen den Punkten; Zahlen in der Spezifikation (V5e).
+- Rest: Scheibe und Torus mit Y liegen an Manuels Teil am hinteren Ende bis 0,007–0,009 mm unter
+  der Hüllfläche (mit Netztoleranz 0,005 als Zugabe).
+
+### TESTS
+- `tests/test_vierachs_huelle.py`, `test_vierachs_bahn.py`, `test_vierachs_schlichten.py`,
+  `test_vierachs_schlichten_op.py`, `test_goldene_bahnen.py` (neu geschrieben),
+  `test_bleistift.py`, `test_sprache.py` – OK; Szenario `szenario_vierachs_schlichten` – OK.
+  black und ruff sauber.
+
+### NEXT
+- Die Querachse beim Schruppen (P-23).
+
 ## P-2026-10-03-21 guehring-8330
 
 ### EINGELESEN

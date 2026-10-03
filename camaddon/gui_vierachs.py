@@ -1874,9 +1874,10 @@ class VierachsPanel:
         return self.wahl_muster.currentData() or vb.SPIRALE
 
     def _querachse_vorschlagen(self):
-        """Der Haken „mit der Querachse“ (V5e): geht mit der Spirale, einem Kugelfräser und einer
-        Achse quer zur Stange an der Maschine – dann vorgeschlagen (angehakt), solange man ihn
-        nicht von Hand gesetzt hat; sonst aus und gesperrt, der Grund steht grau darunter."""
+        """Der Haken „mit der Querachse“ (V5e): geht mit der Spirale und einer Achse quer zur
+        Stange an der Maschine, mit jedem Fräser, dessen Form das Addon kennt (P-2026-10-03-22:
+        auch Schaft- und Torusfräser) – dann vorgeschlagen (angehakt), solange man ihn nicht von
+        Hand gesetzt hat; sonst aus und gesperrt, der Grund steht grau darunter."""
         if self.job is None:
             return
         achse = self.achse()
@@ -1886,10 +1887,12 @@ class VierachsPanel:
             geht, grund = False, tr("va.querachse.keine", maschine=achse.maschine)
         elif self.muster() != vb.SPIRALE:
             geht, grund = False, tr("va.querachse.nur_spirale")
-        elif form is None or not form.nur_kugel:
-            geht, grund = False, tr("va.querachse.nur_kugel")
-        else:
+        elif form is None:
+            geht, grund = False, tr("va.querachse.ohne_form")
+        elif form.nur_kugel:
             geht, grund = True, tr("va.querachse.vorschlag")
+        else:
+            geht, grund = True, tr("va.querachse.vorschlag_stirn")
         self.querachse_grund.setText(grund)
         vorher = self._fuellt
         self._fuellt = True

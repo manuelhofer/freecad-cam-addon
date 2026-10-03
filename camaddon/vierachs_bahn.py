@@ -75,12 +75,14 @@ Läuft ohne Oberfläche.
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
+from . import fraeserform as ff
 from . import spindel as sp
 from . import vierachs_huelle as vh
+from . import vierachs_quer as vq
 from .sprache import tr
 
 SICHERHEIT = 2.0  # mm – so weit über und vor der Stange fährt der Fräser im Eilgang
@@ -103,6 +105,11 @@ SCHRITT_PHI_SCHLICHTEN = 0.5  # Grad – so dicht liegen die Punkte der Schlicht
 # Mit der Querachse: Springt ψ zwischen zwei Punkten um mehr als so viele Winkelschritte, ist
 # es eine Innenecke – das Werkzeug dreht dort um die ruhende Kugelmitte (_spirale_quer).
 QUER_SPRUNG = 4
+# Springt die Mitte der Kugel zwischen zwei Punkten des Plans mehr als so viel mal so weit, wie
+# die Spirale je Schritt vorrückt, kommen Zwischenstellungen dazu – alle QUER_UEBERGANG mm.
+QUER_SPRUNG_MITTE = 3.0
+QUER_UEBERGANG = 0.05  # mm
+QUER_UMGEBUNG = 3  # Schritte davor und danach
 # Beim Zusammenfassen mit der Querachse (_zusammen_quer): so weit darf die Kugelmitte zwischen
 # zwei bleibenden Punkten nach innen (zum Teil) und seitlich (an eine andere Stelle derselben
 # Bahn) von den ausgelassenen Punkten abweichen; nach außen BAHN_TOLERANZ.
@@ -111,11 +118,20 @@ QUER_SPRUNG = 4
 QUER_GLATT = 8
 QUER_INNEN = 0.0005  # mm
 QUER_SEITLICH = 0.5  # mm – fünf Punkte weit; längs rückt die Spirale dabei um Tausendstel
+# … bei Schaft- und Torusfräsern (geprüft am Weg der Spitze): Seitlich verschoben läge die
+# ebene Stirn in einer Kehle tiefer – so wenig nur.
+QUER_SEITLICH_SPITZE = 0.02  # mm
 TOLERANZ_SCHLICHTEN = 0.005  # mm – so fein wird das Teil fürs Schlichten vernetzt
 BAHN_TOLERANZ = 0.002  # mm – so weit darf die zusammengefasste Bahn über den Punkten liegen
 # mm – höchstens so viel hebt der Sehnenfehler einen Punkt: Er gilt für Rundungen; an einer
 # Kante springt die Hüllfläche, dort dringt die Gerade kaum ein (längs, um Tausendstel).
 SEHNE_HOECHSTENS = 0.02
+# Wölbt sich die Hüllfläche zwischen zwei Punkten der Spirale um mehr als so viel nach außen,
+# rechnet _verfeinert dort Zwischenpunkte – höchstens FEIN_HOECHSTENS je Schritt.
+SEHNE_FEIN = 0.002  # mm
+FEIN_HOECHSTENS = 32
+FEIN_DURCHGAENGE = 3
+FEIN_KLEINSTER = 1.0 / 256  # so fein (in Punkten der Spirale) teilt _verfeinert höchstens
 # mm – so viel weiter als Fräser, Aufmaß und Vernetzung steht ein Ring vor der Wand (D-42)
 RING_LUFT = 0.01
 EINTAUCHWINKEL = 5.0  # Grad – so steil taucht die Rampe ein, wenn das Werkzeug nichts sagt
@@ -968,8 +984,12 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         )
 
     s = w.schrittweite
+    quer = bool(w.querachse)
+    # Mit der Querachse plant eine Kugel mit dem Radius des Fräsers (vierachs_quer) – die Spirale
+    # des Fräsers selbst braucht es dann nicht.
+    plan = w if not quer or form.nur_kugel else replace(w, form=ff.kugel(radius))
     spirale = _spirale_rechnen(
-        netz, laengs, radial, w, s, a_anfang, a_ende, teil_vorne, teil_hinten, schritt_phi
+        netz, laengs, radial, plan, s, a_anfang, a_ende, teil_vorne, teil_hinten, schritt_phi
     )
     a, r, winkel, anzahl, je_umdrehung, drehung = spirale
     # Eine Spirale, von vorne nach hinten, mit der Schrittweite – was das Schruppen stehen
@@ -978,11 +998,34 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
     abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
     punkte = [Punkt(True, a_anfang, sicher, 0.0)]
     rest_ueber = _rest_ueber(w, form, r, a, np.radians(winkel))
-    quer = bool(w.querachse) and form.nur_kugel
     if quer:
-        r_min = _spirale_quer(punkte, a, r, winkel, sicher, abstand, drehung, radius, schritt_phi)
+        # Der Plan von der Kugel, die Stellungen und die Höhe der Spitze aus der Hüllfläche des
+        # Fräsers (vierachs_quer).
+        zugabe = w.aufmass + netz.toleranz
+
+        def umrechnen(a_p, x_p, q_p, psi_p):
+            return vq.stellungen(
+                netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne
+            )
+
+        r_min = _spirale_quer(
+            punkte,
+            a,
+            r,
+            winkel,
+            sicher,
+            abstand,
+            drehung,
+            radius,
+            schritt_phi,
+            umrechnen,
+            form.nur_kugel,
+        )
     else:
-        _spirale(punkte, a, r, winkel, 0, anzahl, sicher, abstand, drehung)
+        a, r, winkel, t = _verfeinert(
+            netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne
+        )
+        _spirale(punkte, a, r, winkel, 0, len(a) - 1, sicher, abstand, drehung, t)
         r_min = float(np.min(r))
     punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
     return Schlichtbahn(
@@ -1224,22 +1267,84 @@ def _schlichten_linien(
     )
 
 
-def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1):
+def _verfeinert(netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne):
+    """Die Spirale (a, r, Winkel) mit Zwischenpunkten, wo die Hüllfläche sich zwischen zwei
+    Punkten um mehr als SEHNE_FEIN nach außen wölbt (geschätzt: ein Viertel dessen, was ein Punkt
+    über der Sehne seiner Nachbarn liegt – bei gleichen Abständen die zweite Differenz / 8):
+    dort 2, 4 … FEIN_HOECHSTENS Teilschritte, die Hüllfläche je Zwischenpunkt genau
+    (vierachs_huelle.je_stellung); bis zu FEIN_DURCHGAENGE Mal, denn an einem Knick der
+    Hüllfläche (die Stirn springt von einer Fläche auf eine Kante) bleibt nach einem Durchgang
+    ein Rest. Gibt (a, r, Winkel, t) zurück – t die gebrochene Nummer je Punkt (für _spirale).
+    Gefunden an Manuels Teil (P-2026-10-03-22): Von der Achse aus gesehen steigt die Hüllfläche
+    an den Kanten seiner ebenen Seite um 3–4 mm je Grad und biegt dabei – die Gerade zwischen
+    zwei Punkten 0,5° auseinander lag bis 0,22 mm (Kugel) und 0,38 mm (Schaftfräser) unter ihr,
+    der Fräser schnitt ins Teil (der Sehnenfehler hebt höchstens SEHNE_HOECHSTENS)."""
+    t = np.arange(len(r), dtype=float)
+    zugabe = w.aufmass + netz.toleranz
+    geformt = form.mit_aufmass(zugabe)
+    for _ in range(FEIN_DURCHGAENGE):
+        if len(r) < 3:
+            break
+        anteil = (t[1:-1] - t[:-2]) / (t[2:] - t[:-2])
+        ueber = np.zeros(len(r))
+        ueber[1:-1] = r[1:-1] - (r[:-2] + anteil * (r[2:] - r[:-2]))
+        wolbung = np.maximum(ueber[:-1], ueber[1:]) / 4.0  # je Schritt i … i + 1
+        weite = np.diff(t)
+        noetig = np.isfinite(wolbung) & (wolbung > SEHNE_FEIN) & (weite > FEIN_KLEINSTER * 2)
+        if not noetig.any():
+            break
+        stufen = int(round(math.log2(FEIN_HOECHSTENS)))
+        exponent = np.ceil(np.log2(np.sqrt(wolbung[noetig] / SEHNE_FEIN)))
+        teile = (2 ** np.clip(exponent, 1, stufen)).astype(np.int64)
+        schritte = np.flatnonzero(noetig)
+        teile = np.minimum(
+            teile, np.maximum(2, (weite[schritte] / FEIN_KLEINSTER).astype(np.int64))
+        )
+        je = teile - 1
+        welcher = np.repeat(schritte, je)
+        bruch = (np.arange(int(je.sum())) - np.repeat(np.cumsum(je) - je, je) + 1) / np.repeat(
+            teile, je
+        )
+        a_z = a[welcher] + bruch * (a[welcher + 1] - a[welcher])
+        winkel_z = winkel[welcher] + bruch * (winkel[welcher + 1] - winkel[welcher])
+        t_z = t[welcher] + bruch * (t[welcher + 1] - t[welcher])
+        # Die Richtung auf eine Umdrehung gebracht und gerundet: gleiche Richtungen rechnen
+        # zusammen; davor und dahinter wie am Ende des Teils.
+        richtung = np.radians(np.round(np.mod(winkel_z, 360.0), 6))
+        stelle = np.clip(a_z, teil_hinten, teil_vorne)
+        r_z = (
+            vh.je_stellung(netz, laengs, radial, geformt, richtung, np.zeros(len(a_z)), stelle)
+            + zugabe
+        )
+        r_z = np.where(np.isfinite(r_z), r_z, w.stange_radius)
+        r_z = np.maximum(r_z, w.r_tiefste)
+        t_alle = np.concatenate([t, t_z])
+        ordnung = np.argsort(t_alle, kind="stable")
+        a = np.concatenate([a, a_z])[ordnung]
+        r = np.concatenate([r, r_z])[ordnung]
+        winkel = np.concatenate([winkel, winkel_z])[ordnung]
+        t = t_alle[ordnung]
+    return a, r, winkel, t
+
+
+def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1, t=None):
     """Hängt das Stück von..bis der Spirale an `punkte`: im Eilgang über den Anfang, hinein,
     die Spirale mit Sehnenfehler und zusammengefasst, radial hinaus. Der Winkel zählt weiter,
-    wo die Rundachse steht – sie dreht nicht zurück (`drehung`: −1, wenn er fällt)."""
+    wo die Rundachse steht – sie dreht nicht zurück (`drehung`: −1, wenn er fällt). `t`: mit
+    Zwischenpunkten (_verfeinert) die gebrochene Nummer je Punkt."""
     weiter = punkte[-1].phi
     if drehung > 0:
         versatz = 360.0 * math.ceil((weiter - winkel[von]) / 360.0 - 1e-9)
     else:
         versatz = -360.0 * math.ceil((winkel[von] - weiter) / 360.0 - 1e-9)
     stueck = r[von : bis + 1]
-    stueck = stueck + _sehnenfehler(stueck)
+    teil_t = None if t is None else t[von : bis + 1]
+    stueck = stueck + _sehnenfehler(stueck, teil_t)
     anfahren = Punkt(True, float(a[von]), sicher, float(winkel[von] + versatz))
     if anfahren != punkte[-1]:
         punkte.append(anfahren)
-    ringe = np.flatnonzero(_a_knicke(a[von : bis + 1])) + 1
-    for i in _zusammengefasst(stueck, BAHN_TOLERANZ, abstand, ringe.tolist()):
+    ringe = np.flatnonzero(_a_knicke(a[von : bis + 1], teil_t)) + 1
+    for i in _zusammengefasst(stueck, BAHN_TOLERANZ, abstand, ringe.tolist(), teil_t):
         j = von + i
         punkte.append(Punkt(False, float(a[j]), float(stueck[i]), float(winkel[j] + versatz)))
     punkte.append(Punkt(True, float(a[bis]), sicher, float(winkel[bis] + versatz)))
@@ -1304,14 +1409,34 @@ def _ableitung(werte, stellen):
     return ergebnis
 
 
-def _spirale_quer(punkte, a, r, winkel, sicher, abstand, drehung, radius, schritt_phi):
-    """Hängt die ganze Spirale mit der Querachse an `punkte` (normale_quer): die Rundachse
-    steht auf ψ, die Spitze bei x längs der Werkzeugachse, quer um q versetzt. Springt ψ
-    zwischen zwei Punkten um mehr als QUER_SPRUNG Schritte (eine Innenecke: dort liegt die
-    Kugel in der Ecke, die Normale ist nicht eindeutig; um eine Außenkante rollt sie mit
-    1–3° je Punkt, das bleibt), dreht das Werkzeug um die ruhende Kugelmitte in Schritten von
-    `schritt_phi` – die Kugel bleibt dabei, wo sie ist. Zusammengefasst wird mit
-    _zusammen_quer. Gibt die tiefste Spitze zurück."""
+def _spirale_quer(
+    punkte, a, r, winkel, sicher, abstand, drehung, radius, schritt_phi, umrechnen, kugel
+):
+    """Hängt die ganze Spirale mit der Querachse an `punkte` (_quer_plan, normale_quer): die
+    Rundachse steht auf ψ, die Spitze bei x längs der Werkzeugachse, quer um q versetzt.
+    `umrechnen`: (a, x, q, ψ) → (ψ, x, q) – die Stellungen des Fräsers mit der Höhe aus seiner
+    Hüllfläche (vierachs_quer.stellungen); auch für die Kugel, denn ihre Zwischenstellungen
+    (_uebergaenge) liegen nicht auf ihr. Geprüft wird der Weg der Kugelmitte (`kugel`) bzw. der
+    Spitze. Gibt die tiefste Spitze zurück."""
+    a_p, x_p, q_p, psi_p, fest, eingefuegt = _quer_plan(a, r, winkel, radius, schritt_phi)
+    pruef_radius = radius if kugel else 0.0
+    if not kugel:
+        psi_p, x_p, q_p = umrechnen(a_p, x_p, q_p, psi_p)
+    elif eingefuegt.any():  # die Kugel: ihr Plan liegt auf der Hüllfläche, die Übergänge nicht
+        w = np.flatnonzero(eingefuegt)
+        psi_w, x_w, q_w = umrechnen(a_p[w], x_p[w], q_p[w], psi_p[w])
+        psi_p, x_p, q_p = psi_p.copy(), x_p.copy(), q_p.copy()
+        psi_p[w], x_p[w], q_p[w] = psi_w, x_w, q_w
+    _quer_ausgeben(punkte, a_p, x_p, q_p, psi_p, fest, sicher, abstand, drehung, pruef_radius)
+    return float(np.min(x_p))
+
+
+def _quer_plan(a, r, winkel, radius, schritt_phi):
+    """Der Plan der Spirale mit der Querachse für eine Kugel mit `radius` (normale_quer):
+    (a, Spitze x, Versatz q, ψ in Grad, Punkte, die bleiben, eingefügte Zwischenstellungen). Springt ψ zwischen zwei Punkten um
+    mehr als QUER_SPRUNG Schritte (eine Innenecke: dort liegt die Kugel in der Ecke, die Normale
+    ist nicht eindeutig; um eine Außenkante rollt sie mit 1–3° je Punkt, das bleibt), dreht das
+    Werkzeug um die ruhende Kugelmitte in Schritten von `schritt_phi`."""
     psi, x, q = normale_quer(r, winkel, radius, a)
     rho = np.asarray(r, dtype=float) + radius
     phi = np.radians(np.asarray(winkel, dtype=float))
@@ -1335,43 +1460,92 @@ def _spirale_quer(punkte, a, r, winkel, sicher, abstand, drehung, radius, schrit
         teile_q.append(q[k : k + 1])
         teile_psi.append(psi[k : k + 1])
         anzahl += 1
-    a_alle = np.concatenate(teile_a)
-    x_alle = np.concatenate(teile_x)
-    q_alle = np.concatenate(teile_q)
-    psi_alle = np.concatenate(teile_psi)
+    a_alle, x_alle, q_alle, psi_alle, fest, eingefuegt = _uebergaenge(
+        np.concatenate(teile_a),
+        np.concatenate(teile_x),
+        np.concatenate(teile_q),
+        np.concatenate(teile_psi),
+        fest,
+        radius,
+    )
     fest.extend((np.flatnonzero(_a_knicke(a_alle)) + 1).tolist())
-    fest = [i for i in fest if 0 < i < len(a_alle) - 1]
+    fest = sorted({i for i in fest if 0 < i < len(a_alle) - 1})
+    return a_alle, x_alle, q_alle, psi_alle, fest, eingefuegt
+
+
+def _uebergaenge(a, x, q, psi, fest, radius):
+    """Wo die Mitte der Kugel zwischen zwei Punkten des Plans springt – viel weiter als die
+    Schritte um sie herum (QUER_SPRUNG_MITTE) –, Zwischenstellungen auf der Geraden
+    zwischen den beiden Mitten, alle QUER_UEBERGANG; ihre Höhe rechnet danach die Hüllfläche
+    (vierachs_quer.stellungen). Das geschieht, wo das Teil unter die Drehmitte geht: Von der Achse
+    aus sieht die Spirale dort nicht jede Stelle der Hüllfläche, die Mitte springt (an Manuels
+    Teil hinten um gut 1 mm – die Gerade darüber schnitt 0,05 mm ins Teil, P-2026-10-03-22).
+    Gibt (a, x, q, ψ, fest, eingefügt) zurück, die Nummern in `fest` verschoben, `eingefügt` je
+    Punkt, ob er dazukam."""
+    eingefuegt = np.zeros(len(a), dtype=bool)
+    if len(a) < 2:
+        return a, x, q, psi, fest, eingefuegt
+    rad = np.radians(psi)
+    mx = (x + radius) * np.cos(rad) - q * np.sin(rad)
+    my = (x + radius) * np.sin(rad) + q * np.cos(rad)
+    sprung = np.hypot(np.diff(mx), np.diff(my))
+    # Ein Sprung ist ein Schritt, viel weiter als die Schritte um ihn herum (je QUER_UMGEBUNG
+    # davor und danach, ihr Median) – auf einer ebenen Fläche wandert die Mitte quer, ohne dass
+    # ψ sich dreht, das ist kein Sprung.
+    breit = np.pad(sprung, QUER_UMGEBUNG, mode="edge")
+    fenster = np.lib.stride_tricks.sliding_window_view(breit, 2 * QUER_UMGEBUNG + 1)
+    umgebung = np.median(fenster, axis=1)
+    noetig = sprung > QUER_SPRUNG_MITTE * umgebung + QUER_UEBERGANG
+    if not noetig.any():
+        return a, x, q, psi, fest, eingefuegt
+    schritte = np.flatnonzero(noetig)
+    teile = np.ceil(sprung[schritte] / QUER_UEBERGANG).astype(np.int64)
+    je = teile - 1
+    welcher = np.repeat(schritte, je)
+    bruch = (np.arange(int(je.sum())) - np.repeat(np.cumsum(je) - je, je) + 1) / np.repeat(
+        teile, je
+    )
+    a_z = a[welcher] + bruch * (a[welcher + 1] - a[welcher])
+    psi_z = psi[welcher] + bruch * (psi[welcher + 1] - psi[welcher])
+    mx_z = mx[welcher] + bruch * (mx[welcher + 1] - mx[welcher])
+    my_z = my[welcher] + bruch * (my[welcher + 1] - my[welcher])
+    rad_z = np.radians(psi_z)
+    x_z = mx_z * np.cos(rad_z) + my_z * np.sin(rad_z) - radius
+    q_z = my_z * np.cos(rad_z) - mx_z * np.sin(rad_z)
+    t_alle = np.concatenate([np.arange(len(a), dtype=float), welcher + bruch])
+    ordnung = np.argsort(t_alle, kind="stable")
+    neue_nummer = np.empty(len(t_alle), dtype=np.int64)
+    neue_nummer[ordnung] = np.arange(len(t_alle))
+    return (
+        np.concatenate([a, a_z])[ordnung],
+        np.concatenate([x, x_z])[ordnung],
+        np.concatenate([q, q_z])[ordnung],
+        np.concatenate([psi, psi_z])[ordnung],
+        [int(neue_nummer[i]) for i in fest],
+        np.concatenate([eingefuegt, np.ones(len(a_z), dtype=bool)])[ordnung],
+    )
+
+
+def _quer_ausgeben(punkte, a, x, q, psi, fest, sicher, abstand, drehung, radius):
+    """Hängt die Stellungen (a, x, q, ψ) an `punkte`: im Eilgang über den Anfang, die Punkte
+    zusammengefasst (_zusammen_quer, geprüft am Weg des Punkts `radius` über der Spitze), am Ende
+    radial hinaus. Der Winkel zählt weiter, wo die Rundachse steht."""
     weiter = punkte[-1].phi
     if drehung > 0:
-        versatz = 360.0 * math.ceil((weiter - psi_alle[0]) / 360.0 - 1e-9)
+        versatz = 360.0 * math.ceil((weiter - psi[0]) / 360.0 - 1e-9)
     else:
-        versatz = -360.0 * math.ceil((psi_alle[0] - weiter) / 360.0 - 1e-9)
-    anfahren = Punkt(
-        True, float(a_alle[0]), sicher, float(psi_alle[0] + versatz), q=float(q_alle[0])
-    )
+        versatz = -360.0 * math.ceil((psi[0] - weiter) / 360.0 - 1e-9)
+    anfahren = Punkt(True, float(a[0]), sicher, float(psi[0] + versatz), q=float(q[0]))
     if anfahren != punkte[-1]:
         punkte.append(anfahren)
-    for i in _zusammen_quer(x_alle, q_alle, psi_alle, radius, BAHN_TOLERANZ, abstand, fest):
+    for i in _zusammen_quer(x, q, psi, radius, BAHN_TOLERANZ, abstand, fest):
         punkte.append(
-            Punkt(
-                False,
-                float(a_alle[i]),
-                float(x_alle[i]),
-                float(psi_alle[i] + versatz),
-                q=float(q_alle[i]),
-            )
+            Punkt(False, float(a[i]), float(x[i]), float(psi[i] + versatz), q=float(q[i]))
         )
-    letzter = len(a_alle) - 1
+    letzter = len(a) - 1
     punkte.append(
-        Punkt(
-            True,
-            float(a_alle[letzter]),
-            sicher,
-            float(psi_alle[letzter] + versatz),
-            q=float(q_alle[letzter]),
-        )
+        Punkt(True, float(a[letzter]), sicher, float(psi[letzter] + versatz), q=float(q[letzter]))
     )
-    return float(np.min(x_alle))
 
 
 def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=()):
@@ -1383,7 +1557,9 @@ def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=()):
     höchstens `toleranz` außen und QUER_INNEN innen liegt und quer dazu höchstens
     QUER_SEITLICH – quer heißt nur: an einer anderen Stelle derselben Bahn. Je Lauf das
     längste Stück, das passt (verdoppeln, dann halbieren), höchstens `hoechstens` Punkte;
-    die Punkte in `fest` bleiben (Ringe, Innenecken)."""
+    die Punkte in `fest` bleiben (Ringe, Innenecken). Mit radius 0 (die Spitze eines Fräsers,
+    der keine Kugel ist) seitlich höchstens QUER_SEITLICH_SPITZE."""
+    seitlich_hoechstens = QUER_SEITLICH if radius > 0 else QUER_SEITLICH_SPITZE
     n = len(x)
     rad = np.radians(np.asarray(psi, dtype=float))
     c, s = np.cos(rad), np.sin(rad)
@@ -1409,7 +1585,7 @@ def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=()):
         return bool(
             np.all(laengs <= toleranz)
             and np.all(laengs >= -QUER_INNEN)
-            and np.all(np.abs(seitlich) <= QUER_SEITLICH)
+            and np.all(np.abs(seitlich) <= seitlich_hoechstens)
         )
 
     grenzen = sorted({0, n - 1} | {i for i in fest if 0 < i < n - 1})
@@ -1499,37 +1675,45 @@ def _nicht_tiefer(rest, form, grenze, a, phi):
     return ergebnis
 
 
-def _sehnenfehler(r):
+def _sehnenfehler(r, t=None):
     """Um so viel heben sich die Punkte, damit die Gerade zwischen zwei Punkten nicht unter die
     Hüllfläche fällt, wo sie sich nach außen wölbt: ein Achtel der zweiten Differenz, je
-    Punkt das größte der Nachbarschaft, höchstens SEHNE_HOECHSTENS."""
+    Punkt das größte der Nachbarschaft, höchstens SEHNE_HOECHSTENS. `t`: wo die Punkte liegen
+    (Nummer der Spirale, mit Zwischenpunkten gebrochen – _verfeinert); ohne: gleich weit."""
     wolbung = np.zeros(len(r))
-    if len(r) >= 3:
+    if len(r) >= 3 and t is None:
         zweite = -(r[:-2] - 2.0 * r[1:-1] + r[2:])
         wolbung[1:-1] = np.clip(zweite / 8.0, 0.0, SEHNE_HOECHSTENS)
+    elif len(r) >= 3:  # über der Sehne der Nachbarn – gleich weit ist das die zweite Differenz/2
+        t = np.asarray(t, dtype=float)
+        anteil = (t[1:-1] - t[:-2]) / (t[2:] - t[:-2])
+        ueber = r[1:-1] - (r[:-2] + anteil * (r[2:] - r[:-2]))
+        wolbung[1:-1] = np.clip(ueber / 4.0, 0.0, SEHNE_HOECHSTENS)
     heben = wolbung.copy()
     heben[1:] = np.maximum(heben[1:], wolbung[:-1])
     heben[:-1] = np.maximum(heben[:-1], wolbung[1:])
     return heben
 
 
-def _zusammengefasst(r, toleranz, hoechstens, fest=()):
+def _zusammengefasst(r, toleranz, hoechstens, fest=(), t=None):
     """Die Punkte, die bleiben: Anfang, Ende, die Punkte in `fest` und so wenige dazwischen,
     dass die Gerade zwischen zwei bleibenden Punkten über keinem ausgelassenen liegt und
     höchstens `toleranz` darüber – zwischen ihnen sind a und φ linear (an den Punkten in
-    `fest` knickt a: ein Ring beginnt oder endet). Höchstens `hoechstens` Punkte weit."""
+    `fest` knickt a: ein Ring beginnt oder endet). Höchstens `hoechstens` Punkte weit. `t` wie
+    bei _sehnenfehler: a und φ sind dann linear in t, die Weite zählt in t."""
     werte = r.tolist()
+    stelle = list(range(len(werte))) if t is None else np.asarray(t, dtype=float).tolist()
     fest = set(fest)
     bleibt = [0]
     anfang = 0
     unten, oben = -math.inf, math.inf  # erlaubte Steigung ab dem Anfang
     for i in range(1, len(werte)):
-        schritte = i - anfang
+        schritte = stelle[i] - stelle[anfang]
         steigung = (werte[i] - werte[anfang]) / schritte
         if schritte > hoechstens or not unten <= steigung <= oben:
             anfang = i - 1
             bleibt.append(anfang)
-            schritte = 1
+            schritte = stelle[i] - stelle[anfang]
             unten, oben = -math.inf, math.inf
         # Ab hier muss die Gerade über Punkt i liegen, höchstens `toleranz` darüber.
         unten = max(unten, (werte[i] - werte[anfang]) / schritte)
@@ -1571,9 +1755,13 @@ def _knicke(r, abstand, a=None, phi=None):
     return np.nonzero(bleibt)[0]
 
 
-def _a_knicke(a):
-    """Je innerem Punkt: Ändert `a` dort seine Steigung – beginnt oder endet ein Ring?"""
-    return np.abs(np.diff(a, 2)) > GLEICH
+def _a_knicke(a, t=None):
+    """Je innerem Punkt: Ändert `a` dort seine Steigung – beginnt oder endet ein Ring? `t` wie
+    bei _sehnenfehler: die Steigung über t."""
+    if t is None:
+        return np.abs(np.diff(a, 2)) > GLEICH
+    steigung = np.diff(a) / np.diff(np.asarray(t, dtype=float))
+    return np.abs(np.diff(steigung)) > GLEICH
 
 
 def befehle(

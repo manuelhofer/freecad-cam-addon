@@ -138,8 +138,6 @@ class RundumSchlichten(PathOp.ObjectOp):
 
             hinweis = tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
             FreeCAD.Console.PrintWarning(f"{obj.Label}: {hinweis}\n")
-        if bool(getattr(obj, "Querachse", False)) and not bahn.querachse and not bahn.linien:
-            FreeCAD.Console.PrintWarning(f"{obj.Label}: {tr('vs.querachse.nur_kugel')}\n")
         if bahn.rest_ueber > float(obj.Aufmass) + REST_VIEL:
             from .reichweite import weg_text
 

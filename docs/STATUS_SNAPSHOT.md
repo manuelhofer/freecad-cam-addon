@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.144.0 (P-2026-10-03-21). Alles, was hier als gebaut steht,
+Stand 0.145.0 (P-2026-10-03-22). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -27,8 +27,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   schlichten, Gleichlauf über C; die Spitze fährt über die Drehmitte hinaus, Kugel und Torus
   rechnen mit ihrer Form (P-2026-10-03-07, Manuels Teil neben der Achse); V5e die Spirale
   mit der Querachse (P-2026-10-03-18, Manuels Y-Gedanke: auf ebenen Flächen hält C, Y fährt
-  die Gerade – mit dem Kugelfräser). Offen: V2b (Drehteile), V6, V7; die Querachse beim
-  Schruppen und für Torus/Scheibe; das Prüffenster malt Fahrten über die Mitte noch nicht
+  die Gerade – seit P-2026-10-03-22 mit jedem Fräser). Offen: V2b (Drehteile), V6, V7; die
+  Querachse beim Schruppen; das Prüffenster malt Fahrten über die Mitte noch nicht
   (Spezifikation Vierachs, V5b „Offen“).
 - **W-004 Bedienung** – D-01 bis D-13, D-20, D-21, D-25, D-26, D-28 bis D-30, D-40 bis D-47
   und D-50 bis D-57 erledigt, D-24 mit „Richtwerte eintragen“ und den Werkstoffklassen.
@@ -203,7 +203,7 @@ Beantwortet am 2026-10-03 (abends):
    Bereiche; Spannhöhe.
 6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
 7. W-002 F2; W-003 V2b, V6, V7; das Schruppen rundum an steilen Stellen feiner (Keile);
-   die Querachse auch beim Schruppen und für Torus/Scheibe (V5e „Offen“); „ausweichen“ mit
+   die Querachse auch beim Schruppen (V5e „Offen“); „ausweichen“ mit
    dem Y (Kugel nicht mit der Spitze, Anstellwinkel quer – Spezifikation Vierachs V4c+),
    Vorläufer fürs 5-Achs-Fräsen.
 

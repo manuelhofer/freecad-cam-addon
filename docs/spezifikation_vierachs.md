@@ -863,11 +863,34 @@ bauen“):*
   hat (`Stangenachse.quer`), das Muster die Spirale ist und ein Kugelfräser schlichtet; sonst
   gesperrt mit Grund. An der Operation die Eigenschaft `Querachse`; ohne Kugel spiralisiert
   sie wie ohne und sagt es im Ausgabefenster. „Plan indexiert“ bleibt für Maschinen, die so
-  fräsen wollen, und für Torus und Scheibe. *Offen:* die Querachse beim Schruppen und für
-  Torus/Scheibe – dafür muss die Hüllfläche je Stellung (ψ, Y) gerechnet werden
-  (`vierachs_huelle.je_versatz` kann es für feste Richtungen; je Punkt der Spirale wäre es
-  ein Aufruf je Punkt). Das Prüffenster trägt den Abtrag mit dem Versatz quer ab
-  (`restmaterial` kennt q seit V4c).
+  fräsen wollen. Das Prüffenster trägt den Abtrag mit dem Versatz quer ab (`restmaterial`
+  kennt q seit V4c).
+  *Jeder Fräser (P-2026-10-03-22; Manuel: „ja, mach weiter“):* `vierachs_quer.stellungen` – der
+  Plan bleibt der der Kugel mit dem Radius des Fräsers; ein Schaft- oder Torusfräser steht mit
+  seiner Achse durch dieselbe Mitte (auf einer Ebene liegt die Stirn dann flach auf, um eine
+  Außenkante dreht er sich um die Kante), ψ rastet auf 0,25° ein (die Mitte bleibt, der Versatz
+  folgt), die Höhe der Spitze rechnet die Hüllfläche des Fräsers in genau dieser Stellung:
+  `vierachs_huelle.je_stellung` – die Kerne nehmen dafür beliebige Stellen längs (statt eines
+  Rasters) und einen Versatz quer je Stelle, je Richtung rechnet ein Aufruf alle Stellungen eines
+  Bands quer (2 R breit). Gleich wie `je_versatz` (Abweichung 0), an Manuels Teil 57 000
+  Stellungen in 4,4 s (einzeln je Spalte waren es 57 s). Der Schaftfräser mit Aufmaß rechnet als
+  Scheibe mit Radius + Aufmaß (sonst ein Torus mit Eckradius 0,005 – der teure Weg). Seitlich
+  fasst `_zusammen_quer` bei ihnen nur 0,02 mm zusammen (eine verschobene Stirn läge in einer
+  Kehle tiefer). Wo die Mitte im Plan springt – weiter als das Dreifache der Schritte um sie
+  herum (nach einer Drehung um eine Innenecke, wo das Teil unter die Drehmitte geht) –, setzt
+  `_uebergaenge` Zwischenstellungen auf die Gerade zwischen den Mitten, alle 0,05 mm, ihre Höhe
+  aus der Hüllfläche (auch für die Kugel; ihre Planpunkte liegen ohnehin auf ihr). Geprüft an
+  Manuels Teil mit der genauen Hüllfläche zwischen den Punkten der fertigen Bahn: Kugel R 5 bis
+  0,0048 mm unter ihr (vorher 0,047), Scheibe R 6 0,0073, Torus R 5 r 1 0,0086 (mit der
+  Netztoleranz 0,005 als Zugabe – ins wahre Teil wenige Tausendstel); Rechenzeit 11 / 8 / 20 s.
+  D-Profil (`test_vierachs_schlichten`): Scheibe und Torus auf der Ebene C steht, Spitze 6,005,
+  nirgends ins Teil. *Dabei gefunden und behoben – das Schlichten ohne Querachse:* Von der Achse
+  aus gesehen steigt die Hüllfläche an den Kanten von Manuels ebener Seite um 3–4 mm je Grad
+  und biegt dabei; die Gerade zwischen zwei Punkten 0,5° auseinander lag bis 0,22 mm (Kugel)
+  und 0,38 mm (Scheibe) unter ihr – der Fräser schnitt ins Teil (der Sehnenfehler hob höchstens
+  0,02). `vierachs_bahn._verfeinert` rechnet dort Zwischenpunkte (bis 32 je Schritt, bis
+  dreimal), `_spirale`, `_zusammengefasst`, `_sehnenfehler` und `_a_knicke` rechnen mit
+  ungleichen Abständen: danach 0,0024 / 0,0033 mm. *Offen:* die Querachse beim Schruppen.
 - **V4c – Strategien je Werkzeug und Fläche** (Manuel: „mehrere Strategien, je
   nach Werkzeug kann das anders ausfallen“): für jede Auswahl ein Vorschlag, im
   Assistenten änderbar –

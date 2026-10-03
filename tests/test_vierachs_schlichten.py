@@ -327,11 +327,42 @@ dauer_q, dauer_r = vb.dauer(quer_d, 1000.0), vb.dauer(radial_d, 1000.0)
 pruefe(
     0.8 * dauer_r <= dauer_q <= 1.3 * dauer_r, f"quer: {dauer_q:.1f} min, radial {dauer_r:.1f} min"
 )
-# Ohne Kugel (Torus) bleibt es die Spirale ohne Querachse.
-torus_q = vb.schlichten(
-    netz_d, LAENGS, RADIAL, replace(werte_d, form=ff.torus(5.0, 1.0), querachse=True)
+# Schaft- und Torusfräser mit der Querachse (P-2026-10-03-22, vierachs_quer): der Plan von der
+# Kugel mit ihrem Radius, die Höhe aus ihrer eigenen Hüllfläche. Auf der Abflachung steht C,
+# die Stirn liegt flach auf (Spitze bei 6,005), Y fährt; nirgends ins D-Profil (je Stellung:
+# kein Punkt des Umrisses unter der Stirn höher als die Stirn dort – bis auf die Vernetzung);
+# C dreht nie zurück.
+t_um = np.linspace(0.0, 2.0 * math.pi, 20000, endpoint=False)
+kreis_d = np.column_stack([20.0 * np.cos(t_um), 20.0 * np.sin(t_um)])
+umriss_d = np.vstack(
+    [
+        kreis_d[kreis_d[:, 0] <= 6.0],
+        np.column_stack([np.full(2000, 6.0), np.linspace(-w_d, w_d, 2000)]),
+    ]
 )
-pruefe(not torus_q.querachse and all(abs(p.q) < 1e-9 for p in torus_q.punkte), "Torus mit Y")
+for fr_q, s_q in ((ff.scheibe(6.0), 2.0), (ff.torus(5.0, 1.0), 1.0)):
+    flach_q = vb.schlichten(
+        netz_d, LAENGS, RADIAL, replace(werte_d, form=fr_q, schrittweite=s_q, querachse=True)
+    )
+    pts_q = [p for p in flach_q.punkte if not p.eilgang and -59.0 < p.a < -1.0]
+    tiefst = -math.inf
+    for p in pts_q[::5]:
+        c, s = math.cos(math.radians(p.phi)), math.sin(math.radians(p.phi))
+        hoch = umriss_d[:, 0] * c + umriss_d[:, 1] * s
+        neben = np.abs(umriss_d[:, 1] * c - umriss_d[:, 0] * s - p.q)
+        unter = neben <= fr_q.radius
+        if unter.any():
+            tiefst = max(tiefst, float(np.max(hoch[unter] - (p.r + fr_q.hoehe(neben[unter])))))
+    winkel_q = np.array([p.phi for p in pts_q]) % 360.0
+    eben_q = [p for p, w_ in zip(pts_q, winkel_q, strict=True) if min(w_, 360.0 - w_) < 1e-6]
+    pruefe(
+        flach_q.querachse and tiefst <= 0.0 and len(eben_q) > 50
+        and all(abs(p.r - 6.005) < 1e-3 for p in eben_q)
+        and max(p.q for p in eben_q) > 10.0 and min(p.q for p in eben_q) < -10.0,
+        f"R {fr_q.radius}: ins Teil {tiefst:+.4f}, {len(eben_q)} Punkte auf der Ebene",
+    )  # fmt: skip
+    schritte_q = np.diff([p.phi for p in flach_q.punkte])
+    pruefe(float(np.min(schritte_q)) >= -1e-9, f"R {fr_q.radius}: C dreht zurück")
 print(
     ascii(
         f"D-Profil mit Querachse: {len(quer_d.punkte)} Punkte, {dauer_q:.1f} min (radial {dauer_r:.1f})"
