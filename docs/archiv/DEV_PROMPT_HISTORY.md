@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-29 planfraesen-zellen
+
+### EINGELESEN
+- Manuel, 2026-10-03: „ja, mach das alles mal“ – Punkt 4: Planfräsen Zelle für Zelle
+  (Spezifikation Strategien, Abschnitt 11, Versuch ohne Einbau: voll 4 mm, Eingriff bis 6,3 ae).
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py` (`_zellen`, `_monoton`, `_bereit`, `_zellenfahrten`;
+  `_Raster.gespiegelt`, `_Raster.vor`; Wandfahrten in Zählrichtung der Zeilen),
+  `tests/bestmarken.json` (die fünf Einträge des Planfräsens), Spezifikation Strategien (11),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.150.0).
+
+### AKZEPTANZKRITERIUM
+- Am Zapfen und auf der Platte kürzer, mit weniger Rampen; nirgends in voller Breite, Eingriff
+  nicht höher als vorher, nichts stehen geblieben, nirgends ins Teil.
+
+### DONE
+- Prüfstand: Zapfen 5,70 → 4,05 min (54 → 13 Rampen, Eingriff 4,0 → 3,2 ae, über 1,25 ae
+  28 → 2 mm am Stück), Platte 41,88 → 35,20 min (60 → 0 Rampen, 6,0 → 5,8 ae), Platte oben +
+  Tasche 47,77 → 41,81 min. Ein erster Lauf ohne `_bereit` schnitt auf der Platte 253 mm in
+  voller Breite (eine Zelle neben dem Zapfen begann von oben, bevor darüber gefräst war).
+
+### TESTS
+- `tests/test_pruefstand.py` (Bestmarken des Planfräsens neu), `test_planfraesen.py`,
+  `test_testteil.py` – OK; Szenarien `szenario_testteil`, `szenario_bearbeitung` – OK. black und
+  ruff sauber.
+
+### NEXT
+- Rundum schruppen an steilen Stellen feiner (Keile).
+
 ## P-2026-10-03-28 vorschau-zwischenspeicher
 
 ### EINGELESEN

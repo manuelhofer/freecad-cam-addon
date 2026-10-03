@@ -1390,6 +1390,33 @@ waagrecht in voller Tiefe, vorher lag es in einer Rampe. Darum noch nicht eingeb
 es mit einem Konturgang um die Insel vor den Zellen (dann bleibt neben ihr kein Halbmond), oder
 die Zellen hinter der Insel laufen auf sie zu statt von ihr weg.
 
+**Gebaut (P-2026-10-03-29; Manuel: „ja, mach das alles mal“)** – ohne Konturgang, mit zwei
+Regeln (`planfraesen_bahn._zellenfahrten`):
+
+- *Die Zeilenenden rücken nicht vor* (`_monoton`): Eine Zelle wird dort geteilt, wo ein Ende der
+  Zeile – an einer Insel oder Wand – über das der vorigen hinaus vorrücken würde, und in der
+  Richtung gefahren, in der es zurückweicht. Neben dem Zapfen: unten bis zum breitesten Punkt
+  aufwärts, oben von der Zeile über ihm abwärts – beide auf ihn zu.
+- *Eine Zelle beginnt neben Gefrästem* (`_bereit`): Ihre erste Zeile braucht vor sich schon
+  Gefrästes oder kein Material. Ohne diese Regel begann die obere Hälfte neben dem Zapfen der
+  Platte, bevor die Zeilen darüber gefräst waren – 253 mm in voller Breite. Die Zelle über der
+  Insel läuft darum von oben herab, dann die oberen Hälften zu ihr hin.
+- Die nächste Zelle: lieber eine, die in der Luft beginnt, sonst die nächstgelegene. Eine Zelle,
+  die zur ersten Zeile hin läuft, rechnet auf dem quer gespiegelten Raster
+  (`_Raster.gespiegelt`; die Wandfahrten vergleichen in Zählrichtung der Zeilen, `_Raster.vor`).
+
+Prüfstand (Standardfräser, ae 1,5, ap 25):
+
+| Teil | vorher | jetzt |
+| --- | --- | --- |
+| 50 × 50 mit Zapfen | 5,70 min, 54 Rampen, Eingriff bis 4,0 ae, über 1,25 ae 28 mm am Stück | 4,05 min, 13 Rampen, bis 3,2 ae, 2 mm |
+| Manuels Platte | 41,88 min, 60 Rampen, bis 6,0 ae | 35,20 min, keine Rampe, bis 5,8 ae |
+| Platte oben + Tasche | 47,77 min | 41,81 min |
+
+Nirgends in voller Breite, nirgends ins Teil, nichts stehen geblieben. Am Zapfen 2,05 × Ziel
+(vorher 2,9); an der Platte liegt das Räumen (33,9 min) weiter vorn.
+
+
 
 ## 12. Manuels Punkte vom 2026-10-02 (früh)
 

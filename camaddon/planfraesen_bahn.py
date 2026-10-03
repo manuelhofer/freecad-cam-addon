@@ -477,10 +477,11 @@ def _ebene(
         mit_luecke[:, 1:-1] = raster.drin
         if w.nur_gleichlauf:
             fahrten = vb._einzeln(mit_luecke, _steigend(raster, w.gleichlauf))
+            fahrten = [(raster, fahrt) for fahrt in fahrten]
         else:
-            fahrten = vb._geteilt(vb._fahrten(mit_luecke), raster.zwischen)
-        for fahrt in fahrten:
-            laenge += _fahrt(punkte, fahrt, raster, lage, vorige, w)
+            fahrten = _zellenfahrten(raster, mit_luecke)
+        for raster_fahrt, fahrt in fahrten:
+            laenge += _fahrt(punkte, fahrt, raster_fahrt, lage, vorige, w)
             zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
         lagen_gesamt += 1
         vorige = lage
@@ -490,6 +491,130 @@ def _ebene(
     return _Ebene(
         punkte, lagen_gesamt, zeilen_gesamt, z_min, laenge, laengs_x, zeit, noch, weg, davor
     )
+
+
+def _zellen(drin):
+    """Die Zellen des Bereichs (Zeilen × Stellen, mit der Lücke an beiden Enden): Stücke
+    benachbarter Zeilen, die sich eins zu eins überlappen – teilt sich der Bereich an einer Insel
+    oder läuft er hinter ihr wieder zusammen, endet die Zelle. [[(m, anfang, länge), …], …] in
+    der Reihenfolge ihrer ersten Zeile."""
+    stuecke = [vb._bereiche(drin[m]) for m in range(drin.shape[0])]
+    zellen, offen = [], {}  # offen: Stück der vorigen Zeile → Nummer seiner Zelle
+
+    def ueber(a, laenge, liste):
+        return [k for k, (b, l_b) in enumerate(liste) if b <= a + laenge - 1 and a <= b + l_b - 1]
+
+    for m, liste in enumerate(stuecke):
+        vorher = stuecke[m - 1] if m else []
+        neu = {}
+        for k, (anfang, laenge) in enumerate(liste):
+            oben = ueber(anfang, laenge, vorher)
+            if len(oben) == 1 and oben[0] in offen and ueber(*vorher[oben[0]], liste) == [k]:
+                neu[k] = offen[oben[0]]
+                zellen[neu[k]].append((m, anfang, laenge))
+                continue
+            zellen.append([(m, anfang, laenge)])
+            neu[k] = len(zellen) - 1
+        offen = neu
+    return zellen
+
+
+def _monoton(zelle, vor=0):
+    """Die Zelle in Stücke, die sich in einer Richtung fahren lassen, ohne dass ein Ende der
+    Zeile über das der vorigen hinaus vorrückt (mehr als `vor` Stellen): Vor einer Insel fräste
+    das vorrückende Stück sonst neben ihr waagrecht in voller Breite (Spezifikation Strategien,
+    Abschnitt 11). [(Zeilen, aufwärts erlaubt, abwärts erlaubt)] – aufwärts: zur letzten Zeile
+    hin."""
+    teile, start, auf, ab = [], 0, True, True
+    for i in range(len(zelle) - 1):
+        _m0, a0, l0 = zelle[i]
+        _m1, a1, l1 = zelle[i + 1]
+        e0, e1 = a0 + l0 - 1, a1 + l1 - 1
+        weiter_auf = auf and not (a1 < a0 - vor or e1 > e0 + vor)
+        weiter_ab = ab and not (a0 < a1 - vor or e0 > e1 + vor)
+        if not (weiter_auf or weiter_ab):
+            teile.append((zelle[start : i + 1], auf, ab))
+            start, auf, ab = i + 1, True, True
+        else:
+            auf, ab = weiter_auf, weiter_ab
+    teile.append((zelle[start:], auf, ab))
+    return teile
+
+
+def _bereit(fertig, zeilen, auf):
+    """Darf die Zelle so beginnen? Ihre erste Zeile braucht daneben – vor ihr in Fahrtrichtung –
+    schon Gefrästes oder kein Material: Sonst schnitte sie in voller Breite (an der Platte 253 mm,
+    als eine Zelle über dem Zapfen von oben her begann, bevor die Zeilen darüber gefräst waren)."""
+    m, anfang, laenge = zeilen[0] if auf else zeilen[-1]
+    nachbar = m - 1 if auf else m + 1
+    if not 0 <= nachbar < fertig.shape[0]:
+        return True
+    return bool(fertig[nachbar, anfang : anfang + laenge].all())
+
+
+def _zellenfahrten(raster, mit_luecke):
+    """Die Fahrten einer Lage Zelle für Zelle (Spezifikation Strategien, Abschnitt 11): Jede
+    Zelle hin und her für sich, in einer Richtung, in der die Zeilenenden an einer Insel oder
+    Wand nicht vorrücken (_monoton), und erst, wenn vor ihrer ersten Zeile schon gefräst ist
+    (_bereit) – bis P-2026-10-03-29 wechselte die Bahn hinter einer Insel nach jeder Zeile die
+    Seite, jede Zeile wurde eine Fahrt mit Rampe (am Zapfen 54). Die nächste Zelle: lieber eine,
+    die in der Luft beginnt, sonst die nächstgelegene. [(Raster, Fahrt)] – das Raster gespiegelt
+    für Zellen, die zur ersten Zeile hin laufen."""
+    gespiegelt = raster.gespiegelt()
+    zeilen = len(raster.v_zeilen)
+    n = mit_luecke.shape[1]
+    stuecke = [t for zelle in _zellen(mit_luecke) for t in _monoton(zelle)]
+    # Was schon gefräst ist – und was es nie wird (kein Material): beides „fertig“.
+    fertig = ~mit_luecke
+    hier = None  # (u, v) – wo der Fräser steht
+    ergebnis = []
+    while stuecke:
+        beste = None
+        for nur_bereite in (True, False):
+            for nummer, (zeilen_, darf_auf, darf_ab) in enumerate(stuecke):
+                for auf in [r for r, darf in ((True, darf_auf), (False, darf_ab)) if darf]:
+                    if nur_bereite and not _bereit(fertig, zeilen_, auf):
+                        continue
+                    m, anfang, laenge = zeilen_[0] if auf else zeilen_[-1]
+                    for stelle, richtung in ((anfang, 1), (anfang + laenge - 1, -1)):
+                        j = min(max(stelle - 1, 0), len(raster.u_stellen) - 1)
+                        u, v = float(raster.u_stellen[j]), float(raster.v_zeilen[m])
+                        luft = not bool(raster.im_rohteil[j])
+                        weg = 0.0 if hier is None else math.hypot(u - hier[0], v - hier[1])
+                        schluessel = (not luft, weg, m if auf else zeilen - 1 - m)
+                        if beste is None or schluessel < beste[0]:
+                            beste = (schluessel, nummer, auf, richtung)
+            if beste is not None:
+                break
+        _schluessel, nummer, auf, richtung = beste
+        zeilen_, _darf_auf, _darf_ab = stuecke.pop(nummer)
+        for m, anfang, laenge in zeilen_:
+            fertig[m, anfang : anfang + laenge] = True
+        r_ = raster if auf else gespiegelt
+        feld = mit_luecke if auf else mit_luecke[::-1]
+        folge = zeilen_ if auf else [(zeilen - 1 - m, a, l_) for m, a, l_ in reversed(zeilen_)]
+        fahrten, fahrt, ende = [], None, 0
+        for m, anfang, laenge in folge:
+            letzte = anfang + laenge - 1
+            teile = None
+            if fahrt:
+                teile = vb._anschluss(feld[m - 1], ende, anfang, laenge, richtung, m, n)
+            if teile is None:
+                if fahrt:
+                    fahrten.append(fahrt)
+                js = vb._von_bis(anfang, letzte) if richtung > 0 else vb._von_bis(letzte, anfang)
+                fahrt = [("zeile", m, js)]
+            else:
+                fahrt.extend(teile)
+            ende = int(fahrt[-1][2][-1])
+            richtung = -richtung
+        fahrten.append(fahrt)
+        for teil in vb._geteilt(fahrten, r_.zwischen):
+            ergebnis.append((r_, teil))
+        m_ende = int(fahrt[-1][1])
+        j_ende = min(max(ende - 1, 0), len(raster.u_stellen) - 1)
+        hier = (float(r_.u_stellen[j_ende]), float(r_.v_zeilen[m_ende]))
+    return ergebnis
 
 
 def _luecken_zu(drin, ganz, schritt_u, laenge):
@@ -589,6 +714,34 @@ class _Raster:
             self.aussen,
         )
 
+    def gespiegelt(self):
+        """Quer gespiegelt: die Zeilen von der letzten an gezählt – für Zellen, die zur ersten
+        Zeile hin gefahren werden (_zellenfahrten)."""
+        return _Raster(
+            self.u_stellen,
+            self.v_zeilen[::-1],
+            self.drin[::-1],
+            self.erlaubt[::-1],
+            self.im_rohteil,
+            self.laengs_x,
+            self.roh_u,
+            self.r_eben,
+            self.zeilenabstand,
+            (self.v_rand[1], self.v_rand[0]),
+            self.erlaubt_rand[::-1],
+            self.zwischen[::-1],
+            self.zum_rand[::-1],
+            None if self.mitte_frei is None else self.mitte_frei[::-1],
+            None if self.vorher_drin is None else self.vorher_drin[::-1],
+            self.stand,
+            self.aussen,
+        )
+
+    def vor(self, v_a, v_b):
+        """Liegt v_b in Zählrichtung der Zeilen mehr als GLEICH hinter v_a?"""
+        steigend = len(self.v_zeilen) < 2 or self.v_zeilen[-1] >= self.v_zeilen[0]
+        return (v_b - v_a if steigend else v_a - v_b) > GLEICH
+
     def xy(self, u, v):
         return (float(u), float(v)) if self.laengs_x else (float(v), float(u))
 
@@ -657,7 +810,7 @@ def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
         and m == letzte
         and bool(r_.erlaubt_rand[1, j])
         and bool(r_.zum_rand[1, j])
-        and r_.v_rand[1] > v_m + GLEICH
+        and r_.vor(v_m, r_.v_rand[1])
     ):
         ziele.append(r_.xy(u, r_.v_rand[1]))
     vorige = next(
@@ -680,7 +833,7 @@ def _wandfahrt(punkte, r_, m, j, lage, teile, nummer, ende=False):
         m <= 1
         and bool(r_.erlaubt_rand[0, j])
         and bool(r_.zum_rand[0, j])
-        and r_.v_rand[0] < float(r_.v_zeilen[0]) - GLEICH
+        and r_.vor(r_.v_rand[0], float(r_.v_zeilen[0]))
         and (m == 0 or (bool(r_.erlaubt[0, j]) and bool(r_.zwischen[0, j])))
     ):
         unten = (u, r_.v_rand[0])  # über die erste Zeile hinaus bis an den Rand
@@ -820,7 +973,7 @@ def _ueber_die_letzte(punkte, r_, m, j, lage):
         m != len(r_.v_zeilen) - 1
         or not bool(r_.erlaubt_rand[1, j])
         or not bool(r_.zum_rand[1, j])
-        or r_.v_rand[1] <= v_m + GLEICH
+        or not r_.vor(v_m, r_.v_rand[1])
     ):
         return 0.0
     hier = punkte[-1]

@@ -5,7 +5,7 @@
     "luft": 0.107,
     "rampen": 1,
     "varianten": {
-      "andere": 4.956,
+      "andere": 5.01,
       "gewaehlt": 2.079
     },
     "wirkungsgrad": 0.77,
@@ -58,26 +58,26 @@
   },
   "platte/planfraesen": {
     "eintauchen": 0,
-    "halte": 213,
-    "luft": 0.058,
-    "rampen": 60,
+    "halte": 74,
+    "luft": 0.037,
+    "rampen": 0,
     "varianten": {
-      "andere": 41.875,
-      "gewaehlt": 41.875
+      "andere": 35.2,
+      "gewaehlt": 35.2
     },
-    "wirkungsgrad": 0.704,
-    "zeit": 41.875
+    "wirkungsgrad": 0.837,
+    "zeit": 35.2
   },
   "platte/planfraesen oben+tasche": {
-    "eintauchen": 7,
-    "halte": 801,
-    "luft": 0.061,
-    "rampen": 60,
+    "eintauchen": 0,
+    "halte": 494,
+    "luft": 0.04,
+    "rampen": 14,
     "varianten": {
-      "gewaehlt": 47.747
+      "gewaehlt": 41.796
     },
-    "wirkungsgrad": 0.641,
-    "zeit": 47.766
+    "wirkungsgrad": 0.733,
+    "zeit": 41.81
   },
   "platte/raeumen": {
     "eintauchen": 0,
@@ -177,15 +177,15 @@
   },
   "zapfen/planfraesen": {
     "eintauchen": 0,
-    "halte": 187,
-    "luft": 0.199,
-    "rampen": 54,
+    "halte": 87,
+    "luft": 0.153,
+    "rampen": 13,
     "varianten": {
-      "andere": 5.7,
-      "gewaehlt": 5.7
+      "andere": 4.047,
+      "gewaehlt": 4.047
     },
-    "wirkungsgrad": 0.346,
-    "zeit": 5.7
+    "wirkungsgrad": 0.488,
+    "zeit": 4.047
   },
   "zapfen/raeumen": {
     "eintauchen": 1,

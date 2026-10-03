@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.149.1 (P-2026-10-03-28). Alles, was hier als gebaut steht,
+Stand 0.150.0 (P-2026-10-03-29). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -207,8 +207,9 @@ Beantwortet am 2026-10-03 (abends):
    `hoehenfeld.je_zeile` und die Wände `kontur_bahn.waende`, die Flächen je Strategie einmal je
    Lauf). Bandweise rechnen wie `je_stellung` war hier langsamer (0,15 statt 0,11 s), gelassen.
    Was bleibt: das Räumen (3,9 s, viermal je Lauf), 3D-Schruppen, Planfräsen, Kontur je ~1,3 s.
-4. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
-   Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel).
+4. ~~Planfräsen Zelle für Zelle~~ – P-2026-10-03-29: Zapfen 5,70 → 4,05 min (13 statt 54
+   Rampen), Platte 41,88 → 35,20 min, nirgends in voller Breite (Spezifikation Strategien,
+   Abschnitt 11). Der Konturgang um Inseln war dafür nicht nötig.
 5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
    Bereiche; Spannhöhe.
 6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
