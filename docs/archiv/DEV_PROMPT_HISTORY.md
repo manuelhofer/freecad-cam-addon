@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-02 drehteil-aendern
+
+### EINGELESEN
+- P-2026-10-04-01, offen: „Ändern“ (`vierachs_rohteil.einstellung`) suchte vorne nur eine ebene
+  Stirnfläche – ein Drehteil mit Kegelspitze vorne fand es nicht wieder.
+
+### DATEIEN
+- `camaddon/vierachs_rohteil.py` (`_runde_laengs`, `Einstellung.umgedreht`),
+  `camaddon/gui_vierachs.py` (`_schritt1_aus` übernimmt „umgedreht“),
+  `tests/test_vierachs_rohteil.py`, Spezifikation Vierachs (V2b), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.159.1).
+
+### AKZEPTANZKRITERIUM
+- Ein Job aus dem Drehteil mit Kegelspitze vorne: zurückgerechnet die runde Fläche, Mitte auf
+  ihrer Achse, A längs X, die Stange Ø 40.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_vierachs_rohteil.py` – OK; Szenario `szenario_vierachs_aendern` – OK. black und
+  ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2 und V2b; seine Antworten zu D-1, D-2, D-4, D-5, E-2 … E-4.
+
 ## P-2026-10-04-01 drehteil-am-mantel
 
 ### EINGELESEN

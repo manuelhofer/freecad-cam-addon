@@ -685,6 +685,7 @@ class VierachsPanel:
         „Rundachse“, und ein Klick auf eine andere Fläche des Teils legt es neu."""
         self.teil, self.flaeche = einstellung.teil, einstellung.flaeche
         self.vermessung, self.mitte = einstellung.vermessung, einstellung.mitte
+        self._nahe, self.umgedreht = None, einstellung.umgedreht
         stange, laenge = einstellung.stange, einheiten.LAENGE
         self._fuellt = True
         try:

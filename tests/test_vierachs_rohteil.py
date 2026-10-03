@@ -304,6 +304,30 @@ dok.recompute()
 pruefe(len(dok.Objects) == objekte_vorher, f"nach Rückgängig: {[o.Name for o in dok.Objects]}")
 FreeCAD.closeDocument(dok.Name)
 
+# Ein Job aus dem Drehteil (V2b, Kegelspitze vorne – vorne keine ebene Stirnfläche): Zurück-
+# gerechnet findet „Ändern“ die runde Fläche, die Mitte auf ihrer Achse, A längs X und die Stange.
+dok_dt = FreeCAD.newDocument("Drehteil")
+dt_teil = dok_dt.addObject("Part::Feature", "Drehteil")
+dt_teil.Shape = drehteil
+dok_dt.recompute()
+dt_mess = vr.vermesse(dt_teil.Shape, dt_teil.Shape.getElement(
+    next(f"Face{i + 1}" for i, f in enumerate(dt_teil.Shape.Faces)
+         if isinstance(f.Surface, Part.Cylinder))
+), nahe=FreeCAD.Vector(70, 0, 15))  # fmt: skip
+dt_lage = vr.lage(dt_mess, "A", vr.MITTE_AUTO, 0.0, 40)
+dt_job = vr.richte_ein(dok_dt, dt_teil, dt_lage, vr.Stange(40.0, 1.0, 3.0, 30.0), "A")
+dok_dt.recompute()
+e = vr.einstellung(dt_job)
+pruefe(
+    e is not None
+    and e.vermessung.rund
+    and e.mitte == vr.MITTE_FLAECHE
+    and gleich(e.laengs, FreeCAD.Vector(1, 0, 0))
+    and e.stange == vr.Stange(40.0, 1.0, 3.0, 30.0),
+    f"Drehteil zurückgerechnet: {e}",
+)
+FreeCAD.closeDocument(dok_dt.Name)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()  # FreeCADCmd 1.1.3 schreibt Fortschritt ohne Zeilenende davor

@@ -518,8 +518,8 @@ Stange muss also längs Z liegen. Deshalb in drei Schritten:
   des Teils, das dem Klickpunkt näher liegt, das Ende bei a = 0, die Mitte der Fläche auf der
   Achse (`Vermessung.rund`). Im Assistenten der Klickpunkt aus der Auswahl, der Knopf
   „Umdrehen“ (nur an runden Flächen), „Achse der runden Fläche“ als Mitte; eine Freiform:
-  „weder eben noch rund“. Noch nicht: „Ändern“ eines solchen Jobs findet die Lage wieder,
-  wenn vorne eine ebene Stirnfläche ist (`einstellung`), sonst nicht.
+  „weder eben noch rund“. „Ändern“ findet die Lage wieder – mit ebener Stirnfläche vorne wie
+  bisher, sonst über die runde Fläche längs der Stange (`_runde_laengs`, P-2026-10-04-02).
 - **V2c – das Prüffenster.** Dreht ein Programm um eine Achse, die die
   Maschine nicht hat (A auf der Drehmaschine mit C), sagt es ein Hinweis statt
   eines schiefen Bildes. Der Vorschlag für den Nullpunkt steckt eine Stange

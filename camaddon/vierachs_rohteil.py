@@ -470,6 +470,7 @@ class Einstellung:
     mitte: str  # MITTE_FLAECHE oder MITTE_TEIL
     drehlage: float  # Grad, 0 … 360
     stange: Stange
+    umgedreht: bool = False  # eine runde Fläche (V2b): mit „Umdrehen“ vermessen
 
 
 def einstellung(job):
@@ -496,10 +497,14 @@ def einstellung(job):
         return None
     laengs = rohteil.Placement.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
     platz = klon.Placement.multiply(teil.Placement.inverse())  # Welt → Job
-    flaeche = _stirnflaeche(form, platz, laengs)
-    if flaeche is None:
-        return None
-    vermessung = vermesse(form, form.getElement(flaeche))
+    flaeche, umgedreht = _stirnflaeche(form, platz, laengs), False
+    if flaeche is not None:
+        vermessung = vermesse(form, form.getElement(flaeche))
+    else:  # ein Drehteil ohne ebene Stirnfläche vorne (V2b): die runde Fläche längs
+        gefunden = _runde_laengs(form, platz, laengs)
+        if gefunden is None:
+            return None
+        flaeche, vermessung, umgedreht = gefunden
     drehlage = _drehlage(platz, vermessung.normale, laengs)
     if drehlage is None:
         return None
@@ -527,7 +532,7 @@ def einstellung(job):
         spann,
         luecke if luecke > abstechbreite + GENAU else 0.0,
     )
-    return Einstellung(teil, flaeche, vermessung, laengs, mitte, drehlage, stange)
+    return Einstellung(teil, flaeche, vermessung, laengs, mitte, drehlage, stange, umgedreht)
 
 
 def _stirnflaeche(form, platz, laengs):
@@ -541,6 +546,20 @@ def _stirnflaeche(form, platz, laengs):
             platz.multVec(flaeche.CenterOfMass).dot(laengs)
         ) < 1e-6 * max(1.0, form.BoundBox.DiagonalLength):
             return f"Face{nummer}"
+    return None
+
+
+def _runde_laengs(form, platz, laengs):
+    """(„FaceN“, Vermessung, umgedreht) der ersten runden Fläche, deren Achse nach `platz` längs
+    der Stange liegt und vermessen nach vorne zeigt – oder None."""
+    for nummer, flaeche in enumerate(form.Faces, start=1):
+        rund = achse_der_runden(flaeche)
+        if rund is None or abs(abs(platz.Rotation.multVec(rund[1]).dot(laengs)) - 1) > 1e-6:
+            continue
+        for umgedreht in (False, True):
+            vermessung = vermesse(form, flaeche, None, umgedreht)
+            if (platz.Rotation.multVec(vermessung.normale) - laengs).Length < 1e-6:
+                return f"Face{nummer}", vermessung, umgedreht
     return None
 
 
