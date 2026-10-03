@@ -12,6 +12,72 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-02 werkzeugverwaltung-klassen-baum
+
+### EINGELESEN
+- Manuel, 2026-10-03 früh, nach dem ersten Blick auf die Werkzeugkiste (drei Bilder): „unglücklich,
+  dass bei Werkstoff jetzt doch spezifische Werkstoffe drinstehen … wir nehmen die Obergruppen,
+  aber man kann auch für einzelne Werkstoffe noch Werte setzen“; „kann man irgendwo Links
+  eintragen?“ (geht: Bestellen/Katalog am Werkzeug); „vll dass man da auch was zum Aufklappen
+  macht … die Gruppe Schaftfräser, die Gruppe Bohrer“; danach: „wenn ich nun mehrere löschen
+  möchte … Mehrfachauswahl … vll sogar komplette Kategorien“; „bei der Liste von den Herstellern
+  … ebenfalls diese Einteilung … EINZELNE Bohrer aufnehmen, nicht gleich alle“; „andere
+  Hersteller in die Liste mit aufnehmen?“. Antworten auf die Fragen der Nacht: (1) halber Ø
+  bleibt, (2) Standardfräser bleibt (vc 85 / fz 0,1 / ae 1,5 / ap 25 – „das würde nur die
+  Berechnung neu starten“), (3) Ceratizit 1170311000 CoreLine WPC UNI DIN 6537 mit Link.
+  Grundsatz: „die Form des Bauteils und das Akkurate mit reinnehmen“.
+- Spezifikation Werkzeugverwaltung 13, Strategien 5 (Grundsatz 0).
+
+### DATEIEN
+- `camaddon/werkstoffe.py` (`klasse_von` für Klassen, `ist_klasse`, `klasse_iso`, `klasse_text`),
+  `camaddon/werkzeuge.py` (`einsaetze`, `verwandter`, `_vertreter_zu_klassen`, `zeile_ohne_nummer`),
+  `camaddon/werkzeugkiste.py` (Klassen statt VERTRETER, `richtwerte_eintragen` ohne P1 bei
+  „alle“, `hinzufuegen` mit einzelnen Größen, Ceratizit WPC UNI, `F_BOHRER_HM`, `BOHREN_VC_HM`),
+  `camaddon/gui_werkzeuge.py` (`Werkzeugbaum`, Mehrfachauswahl, `werkzeug_loeschen`,
+  `KisteDialog` als Baum, `werkstoffe_anbieten(klassen=)`), `camaddon/gui_schnittwerte.py`
+  (Klassen in der Spalte), `translations/de|en.json`, `help/de|en/werkzeuge.html`,
+  `docs/spezifikation_werkzeugverwaltung.md` (13), `docs/spezifikation_strategien.md` (5),
+  `docs/arbeitsregeln.md`, `CLAUDE.md` (Obergrenze Prüfen), `tests/test_werkzeugkiste.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py`, `szenario_werkzeugkiste.py`, `szenario_aus_cam.py`,
+  `szenario_zoll.py` (Baum statt Liste), `package.xml` (0.129.0)
+
+### AKZEPTANZKRITERIUM
+In der Schnittwert-Tabelle steht je Klasse „M – rostfreier Stahl“ statt 1.4301; die
+Werkzeugliste ist nach Art gegliedert und löscht mehrere auf einmal; die Hersteller-Kiste bietet
+einzelne Größen; Manuels Bohrer sind die von Ceratizit mit echter Nummer und Link.
+
+### DONE
+- Klassen als Kennungen der Zeilen (siehe Spezifikation Werkzeugverwaltung 13); alte Dateien
+  wandern beim Laden zu den Klassen; die Werkstoff-Auswahl am Rohteil (Job, Assistenten) ohne
+  Klassen.
+- `Werkzeugbaum`: je Art eine Gruppe, zugeklappte gemerkt, Suche zeigt nur Gruppen mit
+  Treffern, Mehrfachauswahl; „Löschen“ fragt mit Anzahl und bis zu zwölf Zeilen.
+- `KisteDialog`: Art → Reihe → Größe mit dreistufigen Haken, „Alle anhaken/abhaken“;
+  `gewaehlt()` liefert Reihen oder (Reihe, Nummer).
+- Ceratizit: Muster 11703 + Ø in µm an Ø 3, 3,3, 4, 4,2, 5, 5,5, 6, 6,8, 7, 8,5, 9, 10,2, 11,
+  12,5, 15, 17, 19 auf cuttingtools.ceratizit.com nachgeschlagen (Ø 2 und 2,5: Serverfehler –
+  nicht in der Reihe); Maße je Bereich, 140°, IK, TiAlN, VHM; vc 100 / f je Ø als Richtwerte.
+- Eine automatische Vorbefüllung der Werkzeugkiste war gebaut und ist wieder raus – Manuel
+  hatte den Knopf nur übersehen; ungefragt 90 Werkzeuge wären für jeden Neuen erst einmal
+  Löscharbeit.
+- Grundsatz 0 ergänzt: das Ergebnis (Form, Genauigkeit) steht vor der Zeit; was der Prüfstand
+  dafür noch nicht misst, steht dabei.
+- **Gefundene Fehler im eigenen Entwurf:** die Reihenfolge der Auswahl nach dem Löschen
+  (zuerst falsch gerechnet, dann „hinter dem letzten gelöschten“); im Szenario der Kiste
+  blieben `VERTRETER`-Zählungen stehen.
+- **Nicht gebaut:** andere Hersteller selbst aufnehmen (Frage an Manuel, Vorschlag im Snapshot).
+
+### TESTS
+- `tests/test_werkzeugkiste.py` (OK, FreeCAD 1.1.4). Szenarien: `szenario_werkzeugverwaltung`
+  (OK, mit Baum und Gruppe löschen), `szenario_werkzeugkiste` lief bis zum Bild des Baums und
+  scheiterte an einer veralteten Zählung im Szenario (ersetzt) – **nicht wiederholt**, ebenso
+  `szenario_aus_cam` und `szenario_zoll` (nur angepasst): Manuel, 2026-10-03: „deine Obsession
+  mit Testen … du testest mehr als dass du Code schreibst“ – harte Obergrenze in CLAUDE.md und
+  Arbeitsregeln 5. black und ruff sauber.
+
+### NEXT
+- Manuels Antwort zu Ø 2 / 2,5 (Ceratizit) und zu „andere Hersteller aufnehmen“.
+
 ## P-2026-10-03-01 snapshot-gekuerzt
 
 ### EINGELESEN

@@ -524,7 +524,18 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
      sein als die bisherige, sonst kommt sie nicht in den Vorschlag; die
      Prüfung rechnet das nach.
    - *Vor der Zeit* stehen nur Sicherheit (nirgends ins Teil, Aufmaß,
-     Kollision, Reichweite) und die Grenzen des Einsatzes.
+     Kollision, Reichweite) und die Grenzen des Einsatzes – **und das
+     Ergebnis** (Manuel, 2026-10-03: „wir haben ja als Spezifikation die Zeit
+     als größten Faktor, was nicht ganz richtig ist … die Form des Bauteils
+     und eben das Akkurate da schon auch mit reinnehmen … das Teil sollte
+     danach schon so ausschauen, wie's ausschauen soll“): Eine Bahn tritt nur
+     an, wenn das Teil danach ist, wie es gezeichnet ist – kein Rest, nirgends
+     ins Teil, die Wand im Aufmaß, die Last im Rahmen; erst unter denen
+     entscheidet die Zeit. Der Prüfstand (Abschnitt 9) hält das heute für
+     Rest, Schnitt ins Teil, Eilgang im Material und Last; was er noch nicht
+     misst: die Oberfläche (Grat am Boden, Zeilen an Wänden) und wie genau
+     eine Näherung (Raster 0,05 mm, Vielecke des Adaptiv-Kerns) die
+     Zeichnung trifft – offen (siehe 13.5, „Fertig, wenn“).
 
    Gebaut: die Zeilenrichtung des Planfräsens (beide gerechnet, die
    schnellere; P-2026-10-01-24); die Varianten des Räumens (vom Rohteil her

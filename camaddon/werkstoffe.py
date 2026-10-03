@@ -128,11 +128,25 @@ _klassen = None  # Kennung -> Klasse der mitgelieferten Werkstoffe, einmal gerec
 
 def klasse_von(kennung):
     """Die Klasse des mitgelieferten Werkstoffs mit dieser Kennung – "" für eigene und
-    unbekannte."""
+    unbekannte. Eine Klasse selbst (ist_klasse) ist ihre eigene Klasse: Schnittwerte stehen
+    je Klasse (Manuel, 2026-10-03: „wir nehmen die Obergruppen, aber man kann auch für
+    einzelne Werkstoffe noch Werte setzen“)."""
     global _klassen
+    if kennung in KLASSEN:
+        return kennung
     if _klassen is None:
         _klassen = {w.kennung: klasse(w) for w in mitgelieferte()}
     return _klassen.get(kennung, "")
+
+
+def ist_klasse(kennung):
+    """Steht die Kennung für eine Werkstoffklasse (KLASSEN) statt für einen Werkstoff?"""
+    return kennung in KLASSEN
+
+
+def klasse_iso(klasse):
+    """Der ISO-Kennbuchstabe der Klasse: P1 und P2 → P, N1 bis N3 → N."""
+    return klasse[0]
 
 
 def neue_kennung(werkstoffe):
@@ -197,6 +211,12 @@ def iso_text(iso):
         "S": tr("werkstoff.iso.s"),
         "H": tr("werkstoff.iso.h"),
     }[iso]
+
+
+def klasse_text(klasse):
+    """Die Klasse in Worten, wie sie in der Werkstoff-Spalte steht: „M – rostfreier Stahl“,
+    „P1 – Stahl bis 750 N/mm²“."""
+    return tr(f"werkstoff.klasse.{klasse.lower()}")
 
 
 def anzeige(werkstoff):

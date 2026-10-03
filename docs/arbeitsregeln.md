@@ -120,6 +120,16 @@ ein ASCII-Entwurf des Dialogs reicht.
     writing“), und etwa `szenario_erster_start` scheitert – mit dem Code hat
     das nichts zu tun, der Lauf zählt trotzdem nicht (P-2026-09-27-33).
   - Reine Doku-Änderungen brauchen keinen Testlauf.
+  - **Harte Obergrenze** (Manuel, 2026-10-03: „deine Obsession mit Testen … du
+    testest mehr als dass du Code schreibst … kann man das nicht irgendwo
+    niederschreiben, dass es einfach zu viele Tests sind“): je Patch höchstens
+    **ein** Lauf einer Prüfdatei und höchstens **ein** Szenario-Lauf. Schlägt
+    er fehl: beheben und denselben Lauf wiederholen – kein zweiter zur
+    Sicherheit, kein Messlauf, kein Lauf, um eine Frage zu beantworten, kein
+    Szenario zu einem Teil, das nur nebenbei angepasst wurde. Was danach noch
+    kaputt sein könnte, findet Manuel oder ein späterer Lauf – das ist so
+    gewollt. Am 2026-10-03 früh waren es ein Messlauf, vier Prüfläufe und zwei
+    Szenarien für einen Patch – zu viel.
   - **Jeder Lauf mit Speicherdeckel** (Manuels Rechner, Linux mit systemd):
     `systemd-run --user --scope -q -p MemoryMax=16G -p MemorySwapMax=0 freecadcmd …`
     – so auch Szenarien und eigene Versuchsskripte. Wächst ein Lauf aus dem

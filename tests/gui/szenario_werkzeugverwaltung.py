@@ -98,8 +98,8 @@ def schritte(h):
     tippen(d.feld_bezeichnung, "Hoffmann 12 mm")  # QTest tippt nur ASCII
     yield 200
     h.pruefe(
-        d.liste.item(0).text() == "T1  Schaftfräser Ø 12 · z 3 · VHM",
-        f"Listenzeile: {d.liste.item(0).text()!r}",
+        d.liste.eintraege()[0].text(0) == "T1  Schaftfräser Ø 12 · z 3 · VHM",
+        f"Listenzeile: {d.liste.eintraege()[0].text(0)!r}",
     )
     h.pruefe(not d.hinweis.isVisible(), f"Hinweis trotz vollständiger Werte: {d.hinweis.text()!r}")
     h.pruefe(d.werkzeugbild.werkzeug is d.werkzeug, "Werkzeugbild zeigt nicht das gewählte")
@@ -133,8 +133,8 @@ def schritte(h):
     yield 100
     h.pruefe(d.werkzeug.name == "Fraeser VHM 12", f"Name: {d.werkzeug.name!r}")
     h.pruefe(
-        d.liste.item(0).text().startswith("T1  Fraeser VHM 12 · Schaftfräser"),
-        f"Listenzeile mit Name: {d.liste.item(0).text()!r}",
+        d.liste.eintraege()[0].text(0).startswith("T1  Fraeser VHM 12 · Schaftfräser"),
+        f"Listenzeile mit Name: {d.liste.eintraege()[0].text(0)!r}",
     )
     h.bild("5c_name", d)
 
@@ -248,17 +248,21 @@ def schritte(h):
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
     yield 800
     d = gui_werkzeuge.WerkzeugDialog.offen
-    h.pruefe(d.liste.count() == 2, f"{d.liste.count()} Werkzeuge nach Wiederöffnen")
+    h.pruefe(
+        len(d.liste.eintraege()) == 2, f"{len(d.liste.eintraege())} Werkzeuge nach Wiederöffnen"
+    )
     # Suche: nur der Torusfräser; das gewählte Werkzeug folgt.
     d.suche.setText("torus")
     yield 100
-    sichtbar = [d.liste.item(z).text() for z in range(2) if not d.liste.item(z).isHidden()]
+    sichtbar = [
+        d.liste.eintraege()[z].text(0) for z in range(2) if not d.liste.eintraege()[z].isHidden()
+    ]
     h.pruefe(len(sichtbar) == 1 and "Torus" in sichtbar[0], f"Suche „torus“: {sichtbar}")
     h.pruefe(d.werkzeug is not None and d.werkzeug.art == wz.TORUSFRAESER, "Auswahl folgt nicht")
     h.bild("7a_suche", d)
     d.suche.clear()
     yield 100
-    d.liste.setCurrentRow(0)
+    d.liste.setCurrentItem(d.liste.eintraege()[0])
     yield 200
     h.bild("7_wieder_offen", d)
 
@@ -300,6 +304,25 @@ def schritte(h):
         f"Werkstoff der ersten Zeile: {s.tabelle.cellWidget(0, gs.WERKSTOFF).currentData()!r}",
     )
     h.bild("9b_erster_einsatz", d)
+    # Mehrere auf einmal löschen (Manuel, 2026-10-03): drei Werkzeuge in zwei Gruppen
+    # (Schaftfräser, Torusfräser); die Gruppe „Schaftfräser“ markiert nimmt beide Schaftfräser.
+    gruppen = [d.liste.topLevelItem(i) for i in range(d.liste.topLevelItemCount())]
+    h.pruefe(
+        [g.text(0) for g in gruppen] == ["Schaftfräser (2)", "Torusfräser (1)"],
+        f"Gruppen: {[g.text(0) for g in gruppen]}",
+    )
+    d.liste.clearSelection()
+    gruppen[0].setSelected(True)
+    h.pruefe(
+        [w.art for w in d.liste.ausgewaehlte()] == [wz.SCHAFTFRAESER] * 2,
+        f"markiert: {[wz.zeile(w) for w in d.liste.ausgewaehlte()]}",
+    )
+    d.werkzeug_loeschen(fragen=False)
+    yield 200
+    rest = [e.text(0) for e in d.liste.eintraege()]
+    h.pruefe(len(rest) == 1 and "Torus" in rest[0], f"nach dem Löschen der Gruppe: {rest}")
+    h.pruefe(d.werkzeug is not None and d.werkzeug.art == wz.TORUSFRAESER, "Auswahl danach")
+    h.bild("9c_gruppe_geloescht", d)
     QtCore.QTimer.singleShot(0, d.reject)
     yield 500
     frage = h.modal()

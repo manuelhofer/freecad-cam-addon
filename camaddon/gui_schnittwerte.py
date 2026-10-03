@@ -248,7 +248,7 @@ class SchnittwertBereich(QtGui.QWidget):
         # die zählt nicht (_werkstoff_gewechselt).
         self._fuellt = True
         try:
-            werkstoffe_anbieten(self._werkstoffe, bibliothek)
+            werkstoffe_anbieten(self._werkstoffe, bibliothek, klassen=True)
         finally:
             self._fuellt = False
         ohne = wz.einsatzarten(werkzeug.art) is None
@@ -311,6 +311,8 @@ class SchnittwertBereich(QtGui.QWidget):
         return ws.finde(self.bibliothek.alle_werkstoffe(), kennung)
 
     def _werkstoff_text(self, kennung):
+        if ws.ist_klasse(kennung):
+            return ws.klasse_text(kennung)
         werkstoff = self._werkstoff_objekt(kennung)
         return ws.anzeige(werkstoff) if werkstoff is not None else tr("wv.alle_werkstoffe")
 
@@ -629,7 +631,10 @@ class SchnittwertBereich(QtGui.QWidget):
         wahl.blockSignals(True)
         wahl.setCurrentIndex(index)
         wahl.blockSignals(False)
-        wahl.setToolTip(werkstoff_info(self._werkstoff_objekt(kennung)))
+        if ws.ist_klasse(kennung):
+            wahl.setToolTip(tr("wv.klasse.info", klasse=ws.klasse_text(kennung)))
+        else:
+            wahl.setToolTip(werkstoff_info(self._werkstoff_objekt(kennung)))
 
     def _werkstoff_gewechselt(self, wahl):
         """In einer Zeile wurde ein anderer Werkstoff gewählt."""

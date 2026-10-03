@@ -59,8 +59,8 @@ def schritte(h):
         f"neu in Zoll: {d.feld_durchmesser.text()!r} {d.feld_schneidenlaenge.text()!r} {einheit!r}",
     )
     h.pruefe(
-        d.liste.item(0).text() == "T1  Schaftfräser Ø 0.5 · z 3 · VHM",
-        f"Listenzeile: {d.liste.item(0).text()!r}",
+        d.liste.eintraege()[0].text(0) == "T1  Schaftfräser Ø 0.5 · z 3 · VHM",
+        f"Listenzeile: {d.liste.eintraege()[0].text(0)!r}",
     )
     tippen(d.feld_durchmesser, "0.375")
     yield 100

@@ -46,7 +46,10 @@ def schritte(h):
     else:
         h.pruefe(False, f"keine Rückmeldung: {meldung}")
     yield 300
-    h.pruefe(d.liste.count() == 13, f"{d.liste.count()} Werkzeuge in der Liste statt 13")
+    h.pruefe(
+        len(d.liste.eintraege()) == 13,
+        f"{len(d.liste.eintraege())} Werkzeuge in der Liste statt 13",
+    )
     h.pruefe(d.geaendert, "Übernommenes gilt nicht als Änderung")
     h.bild("2_liste", d)
 
@@ -56,11 +59,14 @@ def schritte(h):
         ("30 Deg. V-Bit", wz.FASENFRAESER, "4_gravierstichel"),
         ("Slitting Saw", wz.NUTENFRAESER, "5_saege"),
     ):
-        zeile = next((i for i in range(d.liste.count()) if name in d.liste.item(i).text()), None)
+        zeile = next(
+            (i for i in range(len(d.liste.eintraege())) if name in d.liste.eintraege()[i].text(0)),
+            None,
+        )
         h.pruefe(zeile is not None, f"{name} fehlt in der Liste")
         if zeile is None:
             continue
-        d.liste.setCurrentRow(zeile)
+        d.liste.setCurrentItem(d.liste.eintraege()[zeile])
         yield 300
         h.pruefe(d.werkzeug.art == art, f"{name}: {d.werkzeug.art}")
         h.bild(bild, d)
@@ -74,8 +80,8 @@ def schritte(h):
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
     yield 800
     d = gui_werkzeuge.WerkzeugDialog.offen
-    for zeile in range(d.liste.count()):
-        d.liste.setCurrentRow(zeile)
+    for zeile in range(len(d.liste.eintraege())):
+        d.liste.setCurrentItem(d.liste.eintraege()[zeile])
         yield 50
     h.pruefe(not d.geaendert, "Ansehen gilt als Änderung")
     QtCore.QTimer.singleShot(0, d.reject)  # eine Rückfrage blockierte sonst

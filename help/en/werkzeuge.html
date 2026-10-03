@@ -50,18 +50,23 @@ empty table: one click, and every material class gets the use cases of the type 
 ae and ap – calculated from diameter, flutes and tool material as for the manufacturers'
 tools (estimated). Later the same works via <b>+ Use case</b> → “Guide values per material
 class”; what is already entered stays.</li>
-<li><b>Delete</b> asks first.</li>
-<li><b>Manufacturers' tools …</b> (below the list) fills the tool box with real tools: HSS
-twist drills to DIN 338 from Ø 2 to 19 (Ceratizit ClassicLine), taps M2 to M30 (Gühring
-5596), solid carbide end mills Ø 3 to 20 (Jongen UNI-Mill 494W), deburring tools Ø 6 to 16
-(Garant 208165), a face mill Ø 50 (Sandvik CoroMill 345), one example of every other type
-and the inserts for turning (C, D, V, W, T, S, R). In the window every series is ticked; its
-tooltip says where dimensions, numbers and values come from. <b>Add</b> creates them with the
-next free numbers – what is already there stays as you changed it. Every tool brings cutting
-data per material class: one row per use case for steel up to 750 N/mm² (“All materials”),
-quenched and tempered steel (42CrMo4), stainless steel (1.4301), cast iron, aluminium, brass,
-plastics, titanium and hardened steel. They are <b>guide values, estimated</b> – the
-description says so; compare them with the catalogue before the first cut.</li>
+<li>The list is grouped by <b>tool type</b> – “Drills (30)”, “End mills (6)” – and every
+group can be collapsed (it remembers that). Select several tools with Ctrl or Shift, a whole
+group via its row; <b>Delete</b> removes all selected ones and asks first.</li>
+<li><b>Manufacturers' tools …</b> (below the list) fills the tool box with real tools: solid
+carbide high-performance drills Ø 3 to 19 (Ceratizit CoreLine WPC UNI, 5 × D, DIN 6537, with
+dimensions and article numbers from the Ceratizit page), taps M2 to M30 (Gühring 5596), solid
+carbide end mills Ø 6 to 20 (Jongen UNI-Mill 494W, from the catalogue), deburring tools Ø 6 to
+16 (Garant 208165, from the data sheet), a face mill Ø 50 (Sandvik CoroMill 345), one example
+of every other type and the inserts for turning (C, D, V, W, T, S, R). The window shows them
+as a tree: tool type → series → size, each with a tick – so you can take single sizes of a
+series only; “Tick all” and “Untick all” help. The tooltip of a series says where dimensions,
+numbers and values come from. <b>Add</b> creates them with the next free numbers – what is
+already there stays as you changed it. Every tool brings cutting data per <b>material
+class</b> (P1 steel up to 750 N/mm², P2 quenched and tempered steel, M stainless, K cast
+iron, N1 aluminium, N2 brass, N3 plastics, S titanium, H hardened); where the catalogue does
+not give them, they are <b>guide values, estimated</b> – the description says so; compare them
+with the catalogue before the first cut.</li>
 <li><b>Import from CAM</b> (bottom left) takes the tools of a FreeCAD CAM tool
 library: type, T number, the dimensions the type has (diameter, flutes,
 lengths, shank, angles, neck, pitch …) and tool material; the name comes

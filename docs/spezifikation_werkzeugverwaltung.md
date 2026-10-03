@@ -779,6 +779,36 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
     TiSiN (angenommen war ein Fasenfräser 90°), Gesamtlänge je Ø, vc je Werkstoffgruppe, fz je Ø
     in Stahl; das Datenblatt (PDF) als Katalog am Werkzeug.
   - **Noch geschätzt:** Ceratizit, Gühring, Sandvik und die Beispiele (nächster Patch).
+- **Gebaut (P-2026-10-03-02; Manuel, 2026-10-03 früh, nach dem ersten Blick auf die Kiste):**
+  - **Werkstoffklassen statt Vertreter** („unglücklich, dass bei Werkstoff jetzt doch
+    spezifische Werkstoffe drinstehen … wir nehmen die Obergruppen, aber man kann auch für
+    einzelne Werkstoffe noch Werte setzen“): Die Zeilen einer Klasse stehen unter ihrer Kennung
+    („M“), die Werkstoff-Spalte zeigt „M – rostfreier Stahl“ (`werkstoffe.klasse_text`), die
+    Auswahl der Spalte bietet „Alle Werkstoffe“, die neun Klassen, dann die Werkstoffe. Ein
+    Werkstoff ohne eigene Zeilen nimmt die seiner Klasse, sonst „Alle Werkstoffe“; ohne
+    gewählten Werkstoff gelten „Alle Werkstoffe“, sonst P1 (`Werkzeug.einsaetze`). Alte Dateien
+    mit Vertretern wandern beim Laden zu den Klassen (`werkzeuge._vertreter_zu_klassen`), Zeilen
+    einzelner Werkstoffe bleiben. „Richtwerte eintragen“ lässt P1 aus, wenn es Zeilen für alle
+    gibt – Manuels Standardfräser behält seine Werte für Stahl. Die Auswahl des Werkstoffs am
+    Rohteil (Job, Assistenten) bleibt ohne Klassen.
+  - **Die Liste als Baum** („vll dass man da auch was zum Aufklappen macht … die Gruppe
+    Schaftfräser, die Gruppe Bohrer“): `gui_werkzeuge.Werkzeugbaum` – je Art eine Gruppe
+    „Bohrer (30)“, zugeklappte Gruppen gemerkt (`WvZugeklappt`), die Suche zeigt nur Gruppen mit
+    Treffern. **Mehrfach löschen** („wenn ich mehrere löschen möchte … vll sogar komplette
+    Kategorien“): mehrere markieren oder eine Gruppe, „Löschen“ fragt mit der Anzahl.
+  - **Die Kiste als Baum mit einzelnen Größen** („diese Einteilung … und EINZELNE Bohrer
+    aufnehmen, nicht gleich alle“): Werkzeugart → Reihe → Größe, Haken dreistufig, „Alle
+    anhaken“ / „Alle abhaken“; `werkzeugkiste.hinzufuegen` nimmt Reihen oder (Reihe, Nummer).
+  - **Ceratizit nach Manuels Link** (Artikel 1170311000, cuttingtools.ceratizit.com): Die Reihe
+    ist CoreLine **WPC UNI**, VHM 5 × D nach DIN 6537, Innenkühlung, TiAlN, 140° – nicht HSS
+    DIN 338. Artikelnummer = 11703 + Ø in µm, Link je Größe auf die Produktseite; Nutzlänge,
+    Gesamtlänge und Schaft je Bereich von den Seiten (Ø 3 … 19 nachgeschlagen). Ø 2 und 2,5 gibt
+    es dort nicht – weggelassen (Frage an Manuel). Schnittwerte nennt die Seite nicht:
+    Richtwerte für VHM-Bohrer mit Innenkühlung (vc 100 in P1, f je Ø), geschätzt.
+  - **Nicht gebaut:** andere Hersteller selbst in die Kiste aufnehmen („die Möglichkeit, andere
+    Hersteller in die Liste mit aufzunehmen“) – dafür bräuchte es eine eigene Katalogdatei oder
+    einen Editor für Reihen; Vorschlag: Manuel nennt Hersteller, Reihe und Katalog, Claude trägt
+    sie als Reihe ein. Offen als Wunsch.
 
 ## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
 

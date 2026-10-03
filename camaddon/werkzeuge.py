@@ -448,29 +448,38 @@ class Werkzeug:
     beispiel: set = field(default_factory=set, compare=False, repr=False)
 
     def einsaetze(self, werkstoff):
-        """Die Tabelle, die für den Werkstoff gilt: seine eigene, sonst die eines Werkstoffs
-        derselben Klasse (verwandter()), sonst die für alle Werkstoffe."""
-        if werkstoff in self.schnittwerte:
-            return self.schnittwerte[werkstoff]
+        """Die Tabelle, die für den Werkstoff gilt: seine eigene, sonst die seiner
+        Werkstoffklasse (verwandter()), sonst die für alle Werkstoffe – und ohne gewählten
+        Werkstoff (ALLE) ohne solche die für Stahl (P1): Damit rechnet jedes Werkzeug der
+        Werkzeugkiste, solange kein Werkstoff gewählt ist."""
+        eigene = self.schnittwerte.get(werkstoff)
+        if eigene:
+            return eigene
         verwandt = self.verwandter(werkstoff)
         if verwandt is not None:
             return self.schnittwerte[verwandt]
-        return self.schnittwerte.get(ALLE, [])
+        alle = self.schnittwerte.get(ALLE)
+        if alle:
+            return alle
+        return self.schnittwerte.get(ws.KLASSEN[0], [])
 
     def verwandter(self, werkstoff):
-        """Der Werkstoff derselben Klasse (werkstoffe.klasse), dessen Werte für `werkstoff` gelten,
-        wenn er keine eigenen hat – Werte für 1.4301 gelten für 1.4404 (P-2026-10-02-46: die
-        Werkzeugkiste nennt Werte je Klasse, wie die Kataloge). None: keiner."""
-        if werkstoff == ALLE or werkstoff in self.schnittwerte:
+        """Die Kennung, deren Werte für `werkstoff` gelten, wenn er keine eigenen hat: seine
+        Werkstoffklasse (werkstoffe.klasse – „M“ für 1.4301 wie für 1.4404; Manuel, 2026-10-03:
+        „wir nehmen die Obergruppen“), sonst ein Werkstoff derselben Klasse mit Werten (so
+        standen die Klassen bis P-2026-10-02-94: unter einem Vertreter wie 1.4301). None: keine."""
+        if werkstoff == ALLE or self.schnittwerte.get(werkstoff):
             return None
         klasse = ws.klasse_von(werkstoff)
         if not klasse:
             return None
+        if klasse != werkstoff and self.schnittwerte.get(klasse):
+            return klasse
         return next(
             (
                 k
                 for k, liste in self.schnittwerte.items()
-                if k != ALLE and liste and ws.klasse_von(k) == klasse
+                if k != ALLE and k != klasse and liste and ws.klasse_von(k) == klasse
             ),
             None,
         )
@@ -607,7 +616,36 @@ class Werkzeug:
                 for werkstoff, liste in schnittwerte.items()
                 if isinstance(liste, list)
             }
+            _vertreter_zu_klassen(w.schnittwerte)
         return w
+
+
+# Bis P-2026-10-02-94 standen die Werte einer Werkstoffklasse unter einem Werkstoff, der für
+# sie stand (Werkzeugkiste und „Richtwerte eintragen“) – Manuel, 2026-10-03: „unglücklich, dass
+# bei Werkstoff jetzt doch spezifische Werkstoffe drinstehen“. Seither stehen sie unter der
+# Klasse; _vertreter_zu_klassen zieht alte Dateien nach.
+_VERTRETER_ALT = {
+    "1.7225": "P2",
+    "1.4301": "M",
+    "0.6025": "K",
+    "3.2315": "N1",
+    "2.0401": "N2",
+    "POM-C": "N3",
+    "3.7165": "S",
+    "1.2379+H": "H",
+}
+
+
+def _vertreter_zu_klassen(schnittwerte):
+    """Hat ein Werkzeug Zeilen für alle acht Vertreter (so legten Kiste und Richtwerte sie an)
+    und noch keine für ihre Klassen, wandern sie zu den Klassen. Zeilen für einzelne Werkstoffe
+    daneben bleiben."""
+    if not all(schnittwerte.get(v) for v in _VERTRETER_ALT):
+        return
+    if any(k in schnittwerte for k in _VERTRETER_ALT.values()):
+        return
+    for vertreter, klasse in _VERTRETER_ALT.items():
+        schnittwerte[klasse] = schnittwerte.pop(vertreter)
 
 
 # --- Maße, eingetragen oder geschätzt ---------------------------------------
@@ -1206,6 +1244,15 @@ def zeile(werkzeug):
     if w.name:
         return tr("wv.zeile.name", name=w.name, **werte)
     return tr("wv.zeile", **werte)
+
+
+def zeile_ohne_nummer(werkzeug):
+    """Die Listenzeile ohne T-Nummer: „HSS D10 · Bohrer Ø 10 · z 2 · HSS · Ceratizit“ – für
+    Werkzeuge, die noch keine Nummer haben (die Werkzeugkiste der Hersteller)."""
+    w = werkzeug
+    teile = merkmale(w) + ([w.hersteller] if w.hersteller else [])
+    text = f"{art_text(w.art)} {' · '.join(teile)}"
+    return f"{w.name} · {text}" if w.name else text
 
 
 def merkmale(werkzeug):

@@ -50,19 +50,24 @@ denselben Fräser in einem anderen Durchmesser. Trägt man dann den neuen
 Durchmesser ein, fragt die Werkzeugverwaltung, ob ae und ap aller Einsätze
 im selben Verhältnis mit umgerechnet werden sollen (für alle Werkstoffe);
 vc und fz bleiben, die stehen im Katalog.</li>
-<li><b>Löschen</b> fragt vorher nach.</li>
+<li>Die Liste ist nach <b>Werkzeugart</b> gegliedert – „Bohrer (30)“, „Schaftfräser (6)“ –,
+jede Gruppe lässt sich zuklappen (das merkt sie sich). Mehrere Werkzeuge markierst du mit
+Strg oder Umschalt, eine ganze Gruppe über ihre Zeile; <b>Löschen</b> nimmt alle markierten
+weg und fragt vorher nach.</li>
 <li><b>Werkzeuge der Hersteller …</b> (unter der Liste) füllt die Werkzeugkiste mit echten
-Werkzeugen: Spiralbohrer HSS nach DIN 338 von Ø 2 bis 19 (Ceratizit ClassicLine),
-Gewindebohrer M2 bis M30 (Gühring 5596), VHM-Fräser Ø 3 bis 20 (Jongen UNI-Mill 494W),
-Entgrater Ø 6 bis 16 (Garant 208165), ein Messerkopf Ø 50 (Sandvik CoroMill 345), je weitere
-Art ein Beispiel und die Wendeplatten zum Drehen (C, D, V, W, T, S, R). Im Fenster ist jede
-Reihe angehakt; ihr Tooltip sagt, woher Maße, Nummern und Werte kommen. <b>Hinzufügen</b>
-legt sie mit den nächsten freien Nummern an – was schon da ist, bleibt, wie du es geändert
-hast. Jedes Werkzeug bringt Schnittwerte je Werkstoffklasse mit: eine Zeile je Einsatz für
-Stahl bis 750 N/mm² („Alle Werkstoffe“), vergüteten Stahl (42CrMo4), Edelstahl (1.4301),
-Guss, Aluminium, Messing, Kunststoff, Titan und gehärteten Stahl. Es sind <b>Richtwerte,
-geschätzt</b> – die Bezeichnung sagt es; vor dem ersten Schnitt mit dem Katalog
-vergleichen.</li>
+Werkzeugen: VHM-Hochleistungsbohrer Ø 3 bis 19 (Ceratizit CoreLine WPC UNI, 5 × D, DIN 6537,
+mit Maßen und Artikelnummern der Ceratizit-Seite), Gewindebohrer M2 bis M30 (Gühring 5596),
+VHM-Fräser Ø 6 bis 20 (Jongen UNI-Mill 494W, nach Katalog), Entgrater Ø 6 bis 16 (Garant
+208165, nach Datenblatt), ein Messerkopf Ø 50 (Sandvik CoroMill 345), je weitere Art ein
+Beispiel und die Wendeplatten zum Drehen (C, D, V, W, T, S, R). Das Fenster zeigt sie als
+Baum: Werkzeugart → Reihe → Größe, jede mit Haken – so nimmst du auch nur einzelne Größen
+einer Reihe; „Alle anhaken“ und „Alle abhaken“ helfen dabei. Der Tooltip einer Reihe sagt,
+woher Maße, Nummern und Werte kommen. <b>Hinzufügen</b> legt sie mit den nächsten freien
+Nummern an – was schon da ist, bleibt, wie du es geändert hast. Jedes Werkzeug bringt
+Schnittwerte je <b>Werkstoffklasse</b> mit (P1 Stahl bis 750 N/mm², P2 vergüteter Stahl, M
+rostfrei, K Guss, N1 Aluminium, N2 Messing, N3 Kunststoff, S Titan, H gehärtet); wo der
+Katalog sie nicht nennt, sind es <b>Richtwerte, geschätzt</b> – die Bezeichnung sagt es; vor
+dem ersten Schnitt mit dem Katalog vergleichen.</li>
 <li><b>Aus CAM übernehmen</b> (unten links) holt die Werkzeuge einer
 Werkzeugbibliothek von FreeCAD CAM: Art, T-Nummer, die Maße, die die Art hat
 (Durchmesser, Schneiden, Längen, Schaft, Winkel, Hals, Steigung …), und

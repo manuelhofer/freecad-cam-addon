@@ -23,6 +23,7 @@ def schritte(h):
     QtCore.QLocale.setDefault(QtCore.QLocale(QtCore.QLocale.German, QtCore.QLocale.Germany))
 
     from camaddon import gui_werkzeuge
+    from camaddon import werkstoffe as ws
     from camaddon import werkzeugkiste as wk
 
     Gui.runCommand("CamAddon_Werkzeugverwaltung")
@@ -44,15 +45,34 @@ def schritte(h):
         return
     reihen = wk.reihen()
     gesamt = sum(r.anzahl for r in reihen)
-    h.pruefe(kiste.liste.count() == len(reihen), f"{kiste.liste.count()} Reihen")
-    h.pruefe(kiste.gewaehlt() == [r.kennung for r in reihen], "nicht alle angehakt")
-    erste = kiste.liste.item(0)
+    eintraege = kiste.reihen_eintraege()
+    h.pruefe(len(eintraege) == len(reihen), f"{len(eintraege)} Reihen")
+    h.pruefe(set(kiste.gewaehlt()) == {r.kennung for r in reihen}, "nicht alle angehakt")
+    # Je Werkzeugart eine Gruppe, darin die Reihen, darin die Größen (Manuel, 2026-10-03).
+    bohrer = next((e for e in eintraege if e.text(0).startswith("Ceratizit · CoreLine")), None)
+    h.pruefe(bohrer is not None, "Reihe Ceratizit fehlt")
+    if bohrer is None:
+        return
     h.pruefe(
-        erste.text().startswith("Ceratizit · ClassicLine") and erste.text().endswith("(32)"),
-        f"erste Reihe: {erste.text()!r}",
+        bohrer.text(0).endswith("(30)") and bohrer.parent().text(0).startswith("Bohrer ("),
+        f"Reihe: {bohrer.text(0)!r} unter {bohrer.parent().text(0)!r}",
     )
-    h.pruefe("DIN 338" in erste.toolTip(), f"Tooltip: {erste.toolTip()!r}")
+    h.pruefe("ceratizit.com" in bohrer.toolTip(0), f"Tooltip: {bohrer.toolTip(0)!r}")
+    h.pruefe(bohrer.childCount() == 30, f"{bohrer.childCount()} Größen")
+    # Einzelne Größen: die Reihe abhaken, eine Größe anhaken – nur sie wird hinzugefügt.
+    bohrer.setCheckState(0, QtCore.Qt.Unchecked)
+    bohrer.child(3).setCheckState(0, QtCore.Qt.Checked)
+    kennung = bohrer.data(0, QtCore.Qt.UserRole)
+    gewaehlt = kiste.gewaehlt()
+    h.pruefe(
+        (kennung, 3) in gewaehlt and kennung not in gewaehlt and len(gewaehlt) == len(reihen),
+        f"einzelne Größe: {[g for g in gewaehlt if not isinstance(g, str)]}",
+    )
+    h.pruefe(bohrer.checkState(0) == QtCore.Qt.PartiallyChecked, f"Reihe: {bohrer.checkState(0)}")
+    bohrer.setExpanded(True)
     h.bild("1_kiste", kiste)
+    bohrer.setCheckState(0, QtCore.Qt.Checked)
+    h.pruefe(set(kiste.gewaehlt()) == {r.kennung for r in reihen}, "wieder alle angehakt")
     kiste.knopf_hinzufuegen.click()
     yield 800
     meldung = h.modal()
@@ -65,16 +85,23 @@ def schritte(h):
     else:
         h.pruefe(False, f"keine Rückmeldung: {meldung}")
     yield 300
-    h.pruefe(d.liste.count() == gesamt, f"{d.liste.count()} Werkzeuge statt {gesamt}")
+    h.pruefe(
+        len(d.liste.eintraege()) == gesamt, f"{len(d.liste.eintraege())} Werkzeuge statt {gesamt}"
+    )
     h.pruefe(d.geaendert, "Hinzugefügtes gilt nicht als Änderung")
 
     def waehle(dialog, name):
         zeile = next(
-            (i for i in range(dialog.liste.count()) if name in dialog.liste.item(i).text()), None
+            (
+                i
+                for i in range(len(dialog.liste.eintraege()))
+                if name in dialog.liste.eintraege()[i].text(0)
+            ),
+            None,
         )
         h.pruefe(zeile is not None, f"{name} fehlt in der Liste")
         if zeile is not None:
-            dialog.liste.setCurrentRow(zeile)
+            dialog.liste.setCurrentItem(dialog.liste.eintraege()[zeile])
         return zeile is not None
 
     if not waehle(d, "494W D12"):
@@ -94,10 +121,10 @@ def schritte(h):
         f"Ø {d.feld_durchmesser.text()!r}, z {d.feld_schneiden.value()}",
     )
     zeilen = d.schnittwerte.tabelle.rowCount()
-    h.pruefe(zeilen == len(wk.VERTRETER) * 5, f"Schnittwerte: {zeilen} Zeilen")
+    h.pruefe(zeilen == len(ws.KLASSEN) * 5, f"Schnittwerte: {zeilen} Zeilen")
     h.bild("2_jongen_12", d)
     # Ein einzelner Werkstoff bekommt eigene Werte (P-2026-10-02-50): 1.4404 eine Kopie der
-    # Zeilen von 1.4301 – fünf Zeilen mehr, die erste gewählt.
+    # Zeilen seiner Klasse M – fünf Zeilen mehr, die erste gewählt.
     h.pruefe(d.schnittwerte.aktion_eigene.isEnabled(), "„Eigene Werte für einen Werkstoff“ aus")
     eigene = d.schnittwerte.eigene_werte("1.4404")
     yield 300
@@ -116,19 +143,19 @@ def schritte(h):
     yield 800
     d2 = gui_werkzeuge.WerkzeugDialog.offen
     h.pruefe(
-        d2 is not None and d2 is not d and d2.liste.count() == gesamt,
-        f"wieder geöffnet: {d2.liste.count() if d2 is not None else None}",
+        d2 is not None and d2 is not d and len(d2.liste.eintraege()) == gesamt,
+        f"wieder geöffnet: {len(d2.liste.eintraege()) if d2 is not None else None}",
     )
     if d2 is None:
         return
-    if waehle(d2, "HSS D8,5"):
+    if waehle(d2, "WPC D8,5"):
         yield 300
         h.pruefe(
             d2.feld_durchmesser.text() == "8,5" and d2.feld_hersteller.text() == "Ceratizit",
             f"Bohrer: {d2.feld_durchmesser.text()!r}, {d2.feld_hersteller.text()!r}",
         )
         h.pruefe(
-            d2.schnittwerte.tabelle.rowCount() == len(wk.VERTRETER),
+            d2.schnittwerte.tabelle.rowCount() == len(ws.KLASSEN),
             f"Bohrer: {d2.schnittwerte.tabelle.rowCount()} Zeilen",
         )
         h.bild("3_bohrer_8_5", d2)
@@ -138,7 +165,7 @@ def schritte(h):
     if isinstance(meldung, QtGui.QMessageBox):
         meldung.accept()
     h.pruefe(
-        not bericht.neu and len(bericht.schon_da) == gesamt and d2.liste.count() == gesamt,
+        not bericht.neu and len(bericht.schon_da) == gesamt and len(d2.liste.eintraege()) == gesamt,
         f"zweites Mal: {len(bericht.neu)} neu",
     )
     # Ein neues Werkzeug bekommt die Richtwerte mit einem Klick (P-2026-10-02-47).
@@ -153,7 +180,7 @@ def schritte(h):
     s.knopf_richtwerte.click()
     yield 300
     h.pruefe(
-        s.tabelle.rowCount() == len(wk.VERTRETER) * 5 and not s.knopf_richtwerte.isVisible(),
+        s.tabelle.rowCount() == len(ws.KLASSEN) * 5 and not s.knopf_richtwerte.isVisible(),
         f"Richtwerte: {s.tabelle.rowCount()} Zeilen",
     )
     h.bild("5_neu_richtwerte", d2)

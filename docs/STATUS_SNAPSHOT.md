@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.128.1 (P-2026-10-02-94), gekürzt am 2026-10-03. Alles, was hier als gebaut steht,
+Stand 0.129.0 (P-2026-10-03-02). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -38,9 +38,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Bleistift, Restschlichten), Materialstand in jeder Schrupp-Operation, Prüfstand mit
   Bestmarken, Zielzeit und „× Ziel“, Wettbewerb der Strategien im Assistenten. Offen: siehe
   „Danach“ unten.
-- **W-007 Werkzeugkiste** – gebaut (91 Werkzeuge); Jongen 494W und Garant 208165 nach
-  Katalog und Datenblatt (P-2026-10-02-91), Gühring 5596 mit Shop-Link (-92). Ceratizit,
-  Gühring und Sandvik bleiben geschätzt (Fragen 3–5 unten).
+- **W-007 Werkzeugkiste** – gebaut (88 Werkzeuge); Jongen 494W und Garant 208165 nach
+  Katalog und Datenblatt (P-2026-10-02-91), Gühring 5596 mit Shop-Link (-92), Ceratizit
+  CoreLine WPC UNI nach Manuels Link mit Nummer und Maßen je Größe (P-2026-10-03-02). Gühring
+  und Sandvik bleiben geschätzt. Werkstoffklassen in der Tabelle, die Liste und die Kiste als
+  Baum je Werkzeugart, Mehrfachauswahl zum Löschen, einzelne Größen aus der Kiste (-02).
 - **W-008 bis W-012** – gebaut: Home- und Wechselpunkt; der Assistent in drei Schritten mit
   Aufspannung, Maschine zuerst, Rohteil aus dem Dokument, ein Teil – ein Job; Messstopp
   (jetzt im Block „Schlichten danach“); Maschinen-Speicher; Materialstand mit wählbarer
@@ -90,38 +92,45 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
    beim Räumen und dem Haken „Messstopp davor“: „→ Boden (0,5 mm) und … Wände (0,3 mm), etwa …
    – davor ein Messstopp“. „Anlegen“ → im Job hinter „Räumen T1“: „Messstopp“, „Boden
    schlichten T…“, „Wände schlichten T…“; im Prüffenster ist der Boden am Ende 0,00 mm.
-3. **Werkzeugkiste:** Werkzeugverwaltung → „Werkzeuge der Hersteller …“ → Jongen 494W Ø 12
-   (VU494M12B-HI06): Einsätze „Schruppen“ (vc 210, fz 0,07, ap 22,2, ae 5,4 in Baustahl),
-   „Vollnut“ und „Dynamisch“ aus dem Katalog, „Katalog“ öffnet das PDF, „Bestellen“ die Suche;
-   Garant 208165 je Ø mit Datenblatt; Gühring 5596 mit dem Shop als „Bestellen“.
+3. **Werkzeugverwaltung (0.129.0):** Die Liste ist nach Art gegliedert („Bohrer (30)“,
+   zuklappbar); in der Schnittwert-Tabelle steht je Zeile „M – rostfreier Stahl“ statt
+   1.4301 (deine alten Zeilen wandern beim Öffnen von selbst zu den Klassen). Eine Gruppe
+   anklicken → „Löschen“ fragt „30 Werkzeuge löschen?“ mit Liste. „Werkzeuge der Hersteller …“
+   zeigt Art → Reihe → Größe mit Haken; „Alle abhaken“, dann bei Ceratizit eine Größe
+   anhaken → „Hinzufügen“ legt nur die an. Ceratizit Ø 8,5: Artikel 1170308500, „Bestellen“
+   öffnet die Produktseite, Nutzlänge 49, Gesamtlänge 103, Schaft 10, 140°.
 4. **Dünne Lage:** am Testteil ist die obere Stufe (1 mm) im Prüffenster plan und ohne Rest;
    im Räumen fährt diese Lage mit ae = Fräserradius (Hilfe „Bearbeitung“, „Dünne Lagen breit“).
 
-**Fragen an Manuel** (gebaut ist je die Empfehlung; ändern ist ein kleiner Patch):
+**Fragen an Manuel** (gebaut ist je die Empfehlung; ändern ist ein kleiner Patch). Beantwortet
+am 2026-10-03: Zeilenabstand am Boden bleibt der halbe Ø; der Standardfräser bleibt bei vc 85 /
+fz 0,1 / ae 1,5 / ap 25; Ceratizit ist CoreLine WPC UNI (eingetragen).
 
-1. *Schlichten danach, Zeilenabstand am Boden:* eigenes Feld, leer der halbe
-   Fräserdurchmesser – nicht das ae des Einsatzes „Schlichten“ (0,3 mm wären am Boden über
-   300 Ringe auf 100 mm). So lassen?
-2. *Dein Fräser laut Jongen:* Der Katalog nennt für den 494W-12 beim Eckfräsen in Baustahl
-   vc 210, fz 0,07, ap 22,2, ae 5,4 – dein Standardfräser rechnet mit vc 85, fz 0,1, ae 1,5.
-   Die Kiste hat die Katalogwerte, dein Standardfräser (und damit alle Prüfungen) bleibt.
-   Sollen deine Standardwerte näher an den Katalog?
-3. *Ceratizit-Bohrer:* Die Nummern WL173060311 und 1170305000 · 0095923748 finde ich
-   nirgends – ein Foto vom Etikett oder ein Link? Bis dahin Maße nach DIN 338, Werte geschätzt.
-4. *Jongen Ø 3:* gibt es in der Reihe 494W nicht – weggelassen. Ein anderer Ø 3 (z. B. Garant)?
-5. *Gühring 5596:* Der Shop zeigt die Größen erst im Browser; Nummern für M2, M2,5 und ab M12
+1. *Ceratizit Ø 2 und 2,5:* gibt es in der Reihe WPC UNI 5 × D nicht (Serverfehler für
+   1170302000/1170302500) – weggelassen. Hast du die als andere Reihe (Nummer)?
+2. *Andere Hersteller in die Kiste aufnehmen:* heute nur im Code (`werkzeugkiste.py`).
+   Vorschlag: du nennst Hersteller, Reihe und Katalog-Link, Claude trägt sie als Reihe ein;
+   eine eigene Katalogdatei zum Selbst-Erweitern wäre ein eigener Wunsch (W-014?). Reicht der
+   Vorschlag?
+3. *Jongen Ø 3:* gibt es in der Reihe 494W nicht – weggelassen. Ein anderer Ø 3 (z. B. Garant)?
+4. *Gühring 5596:* Der Shop zeigt die Größen erst im Browser; Nummern für M2, M2,5 und ab M12
    sind ungeprüft (ab M12 heißt die Reihe vielleicht anders, DIN 376).
-6. *Materialstand, Fragen 3–5 in der Spezifikation Strategien 12.7* (kurze Lücken
+5. *Materialstand, Fragen 3–5 in der Spezifikation Strategien 12.7* (kurze Lücken
    durchfahren, schmaler Rand, Restmaterial): gebaut ist je die Empfehlung – so lassen?
-7. *Zwei Fräser an einer Wand (T3):* Die Kontur des Ø 12 fährt in die Tasche, wo er ohne
+6. *Zwei Fräser an einer Wand (T3):* Die Kontur des Ø 12 fährt in die Tasche, wo er ohne
    Aufmaß hineinpasst, „Restmaterial“ nimmt mit dem Ø 6 den Rest – mit einem Absatz, wo sie
    sich treffen. So lassen, oder je Kontur ein eigener Fräser (ein zweiter Kontur-Block)?
+7. *Form und Genauigkeit vor der Zeit* (dein Satz von heute, jetzt Grundsatz 0): Der Prüfstand
+   misst Rest, Schnitt ins Teil, Eilgang im Material und Last – nicht die Oberfläche (Grat,
+   Zeilen) und nicht, wie genau Raster und Vielecke die Zeichnung treffen. Soll das als
+   Nächstes gemessen werden (Grathöhe am Boden, Abweichung an der Wand), oder meinst du etwas
+   anderes mit „akkurat“?
 8. *Außerdem offen bei dir:* TCPM (W-001), W-005 E1–E7, D-14/D-22/D-24/D-27 (Durchsicht,
    Abschnitt 6), D-23 (Ausspannlänge).
 
 **Danach, der Reihe nach:**
 
-1. Was Manuels Test ergibt.
+1. Was Manuels Test ergibt; seine Antworten zu Ø 2/2,5 und „andere Hersteller“.
 2. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
    (`hoehenfeld.je_zeile`); Ziel 10 s am Testteil.
 3. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,

@@ -43,10 +43,10 @@ pruefe(
     all(ws.klasse(w) in ws.KLASSEN for w in ws.mitgelieferte()),
     "ein mitgelieferter Werkstoff ohne Klasse",
 )
-pruefe(
-    {ws.klasse_von(k) for k in wk.VERTRETER.values() if k != wz.ALLE} == set(ws.KLASSEN) - {"P1"},
-    "die Vertreter decken nicht jede Klasse",
-)
+# Eine Klasse ist ihre eigene Klasse – so stehen die Zeilen der Kiste unter „M“, nicht unter 1.4301
+# (Manuel, 2026-10-03: „wir nehmen die Obergruppen“).
+pruefe(all(ws.klasse_von(k) == k and ws.ist_klasse(k) for k in ws.KLASSEN), "Klasse als Kennung")
+pruefe(ws.klasse_text("M").startswith("M – "), f"Klassentext: {ws.klasse_text('M')!r}")
 
 # --- die Reihen ----------------------------------------------------------------------------
 reihen = wk.reihen()
@@ -55,28 +55,42 @@ pruefe(len(set(kennungen)) == len(kennungen), f"doppelte Kennung: {kennungen}")
 arten = {r.art for r in reihen}
 pruefe(arten == set(wz.ARTEN), f"ohne Beispiel: {sorted(set(wz.ARTEN) - arten)}")
 
-bohrer = wk.werkzeuge(wk.reihe("ceratizit-classicline-din338"))
+bohrer = wk.werkzeuge(wk.reihe("ceratizit-wpc-uni-5d"))
 durchmesser = [w.durchmesser for w in bohrer]
 pruefe(
-    durchmesser == [float(d) for d in wk._BOHRER] and len(bohrer) == 32,
+    durchmesser == [float(d) for d in wk._BOHRER] and len(bohrer) == 30,
     f"Bohrer: {durchmesser}",
 )
+# Ø 8,5 nach der Produktseite (2026-10-03): Nutzlänge 49, Gesamtlänge 103, Schaft 10, 140°,
+# Artikel 1170308500 mit Link auf die Seite.
 b85 = next(w for w in bohrer if w.durchmesser == 8.5)
 pruefe(
-    (b85.schneidenlaenge, b85.gesamtlaenge, b85.schaft, b85.spitzenwinkel) == (75, 117, 8.5, 118),
-    f"Ø 8,5 nach DIN 338: {b85.schneidenlaenge}, {b85.gesamtlaenge}",
+    (b85.schneidenlaenge, b85.gesamtlaenge, b85.schaft, b85.spitzenwinkel) == (49, 103, 10, 140),
+    f"Ø 8,5 nach Ceratizit: {b85.schneidenlaenge}, {b85.gesamtlaenge}, {b85.schaft}",
 )
-pruefe(b85.hersteller == "Ceratizit" and b85.schneidstoff == wz.HSS, "Ø 8,5: Hersteller")
-pruefe(b85.link.startswith("https://") and b85.katalog.startswith("https://"), "Ø 8,5: Links")
+pruefe(b85.hersteller == "Ceratizit" and b85.schneidstoff == wz.VHM, "Ø 8,5: Hersteller")
+pruefe(
+    b85.artikel == "1170308500" and b85.link == wk.CERATIZIT_ARTIKEL.format(artikel="1170308500"),
+    f"Ø 8,5: {b85.artikel}, {b85.link}",
+)
+pruefe(b85.name == "WPC D8.5" and "WPC-UNI.8,50.R.5D" in b85.bezeichnung, f"Ø 8,5: {b85.name}")
+pruefe(b85.katalog.startswith("https://"), "Ø 8,5: Katalog")
+# Die Bereiche: Ø 3 (23/66/6), Ø 11 (56/118/12), Ø 19 (77/153/20) – wie die Seiten sagen.
+masse = {w.durchmesser: (w.schneidenlaenge, w.gesamtlaenge, w.schaft) for w in bohrer}
+pruefe(
+    masse[3.0] == (23, 66, 6) and masse[11.0] == (56, 118, 12) and masse[19.0] == (77, 153, 20),
+    f"Maße: {masse[3.0]}, {masse[11.0]}, {masse[19.0]}",
+)
 stahl = b85.einsaetze(wz.ALLE)
 pruefe(len(stahl) == 1 and stahl[0].art == wz.BOHREN, f"Ø 8,5 Einsätze: {stahl}")
-# f bei Ø 8,5 zwischen 0,15 (Ø 8) und 0,20 (Ø 12): 0,156 – je Schneide 0,078.
-pruefe(stahl[0].vc == 30 and nahe(stahl[0].fz, 0.078), f"Ø 8,5 Stahl: {stahl[0]}")
+# VHM mit Innenkühlung: vc 100; f bei Ø 8,5 zwischen 0,18 (Ø 8) und 0,24 (Ø 12): 0,1875 – je
+# Schneide 0,094.
+pruefe(stahl[0].vc == 100 and nahe(stahl[0].fz, 0.094), f"Ø 8,5 Stahl: {stahl[0]}")
 v2a = b85.einsaetze("1.4301")[0]
 pruefe(v2a.vc < stahl[0].vc and v2a.fz < stahl[0].fz, f"Ø 8,5 in 1.4301: {v2a}")
 alu = b85.einsaetze("3.2315")[0]
 pruefe(alu.vc > stahl[0].vc, f"Ø 8,5 in Alu: {alu}")
-pruefe(len(b85.schnittwerte) == len(wk.VERTRETER), f"Tabellen: {list(b85.schnittwerte)}")
+pruefe(len(b85.schnittwerte) == len(ws.KLASSEN), f"Tabellen: {list(b85.schnittwerte)}")
 
 gewinde = wk.werkzeuge(wk.reihe("guehring-5596"))
 pruefe(
@@ -138,27 +152,58 @@ pruefe(
     and nahe(dynamisch.ap, 24.7),
     f"Ø 12 trochoidal: {dynamisch}",
 )
-# Je Klasse eine Tabelle; was keine eigene hat, nimmt die seiner Klasse – sonst „alle“.
-pruefe(f12.einsaetze("1.4404") is f12.schnittwerte["1.4301"], "1.4404 nicht wie 1.4301")
-pruefe(f12.einsaetze("1.6582") is f12.schnittwerte["1.7225"], "1.6582 nicht wie 1.7225")
-pruefe(f12.einsaetze("2.4668") is f12.schnittwerte["3.7165"], "Inconel nicht wie Titan")
-pruefe(f12.einsaetze("1.0570") is f12.schnittwerte[wz.ALLE], "St 52 nicht wie „alle“")
-pruefe(f12.einsaetze("eigen-1") is f12.schnittwerte[wz.ALLE], "eigener nicht wie „alle“")
-pruefe(f12.verwandter("1.4404") == "1.4301", f"verwandt: {f12.verwandter('1.4404')!r}")
-pruefe(f12.verwandter("1.4301") is None, "1.4301 hat eigene Werte")
+# Je Klasse eine Tabelle unter ihrer Kennung; ein Werkstoff ohne eigene nimmt die seiner Klasse,
+# ohne gewählten Werkstoff gilt Stahl (P1) – keine Zeilen „für alle“.
+pruefe(set(f12.schnittwerte) == set(ws.KLASSEN), f"Zeilen je Klasse: {sorted(f12.schnittwerte)}")
+pruefe(f12.einsaetze("1.4404") is f12.schnittwerte["M"], "1.4404 nicht wie M")
+pruefe(f12.einsaetze("1.6582") is f12.schnittwerte["P2"], "1.6582 nicht wie P2")
+pruefe(f12.einsaetze("2.4668") is f12.schnittwerte["S"], "Inconel nicht wie Titan")
+pruefe(f12.einsaetze("1.0570") is f12.schnittwerte["P1"], "St 52 nicht wie P1")
+pruefe(f12.einsaetze(wz.ALLE) is f12.schnittwerte["P1"], "ohne Werkstoff nicht wie P1")
+pruefe(f12.einsaetze("eigen-1") is f12.schnittwerte["P1"], "eigener nicht wie P1")
+pruefe(f12.verwandter("1.4404") == "M", f"verwandt: {f12.verwandter('1.4404')!r}")
+pruefe(f12.verwandter("M") is None, "M hat eigene Werte")
 # Trotzdem eigene Werte je Werkstoff (P-2026-10-02-50; Manuel: „dennoch die Möglichkeit, für
 # die einzelnen Werkstoffe auch unterschiedliche Werte zu setzen“): 1.4404 bekommt eine Kopie
-# der Zeilen von 1.4301; ändert man sie, bleibt 1.4301, wie es war, und 1.4571 nimmt weiter 1.4301.
+# der Zeilen von M; ändert man sie, bleibt M, wie es war, und 1.4571 nimmt weiter M.
 v4a = f12.eigene_anlegen("1.4404")
 pruefe(
-    [e.art for e in v4a] == [e.art for e in f12.schnittwerte["1.4301"]]
-    and v4a[0] is not f12.schnittwerte["1.4301"][0],
+    [e.art for e in v4a] == [e.art for e in f12.schnittwerte["M"]]
+    and v4a[0] is not f12.schnittwerte["M"][0],
     f"eigene für 1.4404: {v4a}",
 )
 v4a[0].vc = 55.0
 pruefe(f12.einsaetze("1.4404")[0].vc == 55.0, "1.4404: eigene Werte gelten nicht")
-pruefe(f12.schnittwerte["1.4301"][0].vc != 55.0, "1.4301 mit verändert")
-pruefe(f12.einsaetze("1.4571") is f12.schnittwerte["1.4301"], "1.4571 nicht mehr wie 1.4301")
+pruefe(f12.schnittwerte["M"][0].vc != 55.0, "M mit verändert")
+pruefe(f12.einsaetze("1.4571") is f12.schnittwerte["M"], "1.4571 nicht mehr wie M")
+# Alte Dateien (Klassen unter Vertretern wie 1.4301) wandern beim Laden zu den Klassen; Zeilen
+# für einzelne Werkstoffe daneben bleiben.
+alt = wz.Werkzeug.aus_dict(
+    {
+        "art": wz.SCHAFTFRAESER,
+        "durchmesser": 12,
+        "schnittwerte": {
+            k: [{"art": wz.SCHRUPPEN, "vc": 100}]
+            for k in (
+                wz.ALLE,
+                "1.7225",
+                "1.4301",
+                "0.6025",
+                "3.2315",
+                "2.0401",
+                "POM-C",
+                "3.7165",
+                "1.2379+H",
+                "1.4404",
+            )
+        },
+    }
+)
+pruefe(
+    set(alt.schnittwerte) == {wz.ALLE, "1.4404"} | (set(ws.KLASSEN) - {"P1"}),
+    f"alte Vertreter nicht zu Klassen: {sorted(alt.schnittwerte)}",
+)
+pruefe(alt.einsaetze("1.0570") is alt.schnittwerte[wz.ALLE], "alte Datei: St 52 nicht wie „alle“")
 pruefe(f12.eigene_anlegen("1.4404") is v4a, "zweites Anlegen überschreibt")
 del f12.schnittwerte["1.4404"]
 gehaertet = next(e for e in f12.einsaetze("1.2379+H") if e.art == wz.SCHRUPPEN)
@@ -215,15 +260,18 @@ for r in reihen:
 # --- Richtwerte für ein neues Werkzeug (P-2026-10-02-47) --------------------------------------
 neu = wz.Werkzeug(art=wz.SCHAFTFRAESER, durchmesser=10.0, schneiden=3, schneidenlaenge=22.0)
 pruefe(wk.richtwerte_moeglich(neu), "Ø 10 ohne Richtwerte")
-pruefe(wk.richtwerte_eintragen(neu) == len(wk.VERTRETER), f"Richtwerte: {list(neu.schnittwerte)}")
+pruefe(wk.richtwerte_eintragen(neu) == len(ws.KLASSEN), f"Richtwerte: {list(neu.schnittwerte)}")
+pruefe(set(neu.schnittwerte) == set(ws.KLASSEN), f"Richtwerte je Klasse: {list(neu.schnittwerte)}")
 schruppen = next(e for e in neu.einsaetze(wz.ALLE) if e.art == wz.SCHRUPPEN)
 pruefe(schruppen.vc == 180 and nahe(schruppen.fz, 0.05), f"Ø 10 Schruppen: {schruppen}")
 pruefe(len(neu.einsaetze("1.4404")) == 5, "Ø 10: Edelstahl ohne Zeilen")
-# Was schon da ist, bleibt; nur fehlende Klassen kommen dazu.
+# Was schon da ist, bleibt; nur fehlende Klassen kommen dazu – und P1 keine, wenn es Zeilen für
+# alle Werkstoffe gibt: Die gelten dann für Stahl (Manuels Standardfräser).
 eigen = wz.Werkzeug(art=wz.SCHAFTFRAESER, durchmesser=10.0)
 eigen.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.SCHRUPPEN, ae=1, ap=10, vc=85, fz=0.1)]
-pruefe(wk.richtwerte_eintragen(eigen) == len(wk.VERTRETER) - 1, "eigene Zeilen überschrieben?")
+pruefe(wk.richtwerte_eintragen(eigen) == len(ws.KLASSEN) - 1, "eigene Zeilen überschrieben?")
 pruefe(eigen.schnittwerte[wz.ALLE][0].vc == 85 and len(eigen.schnittwerte[wz.ALLE]) == 1, "„alle“")
+pruefe("P1" not in eigen.schnittwerte and eigen.einsaetze("1.0570")[0].vc == 85, "P1 statt „alle“")
 pruefe(wk.richtwerte_eintragen(eigen) == 0, "zweimal eingetragen")
 pruefe(not wk.richtwerte_moeglich(wz.Werkzeug(art=wz.SCHAFTFRAESER)), "ohne Ø möglich")
 pruefe(not wk.richtwerte_moeglich(wz.Werkzeug(art=wz.DREHWERKZEUG)), "Drehwerkzeug möglich")
@@ -239,10 +287,10 @@ pruefe(nummern == list(range(1, gesamt + 2)), f"Nummern: {nummern[:5]} … {numm
 pruefe(bibliothek.mit_nummer(1) is eigene, "T1 nicht mehr das eigene")
 # Was der Benutzer ändert, bleibt; ein zweites Mal kommt nichts doppelt.
 jongen_12 = next(w for w in bibliothek.werkzeuge if w.name == "494W D12")
-jongen_12.schnittwerte[wz.ALLE][0].vc = 99.0
+jongen_12.schnittwerte["P1"][0].vc = 99.0
 nochmal = wk.hinzufuegen(bibliothek, kennungen)
 pruefe(not nochmal.neu and len(nochmal.schon_da) == gesamt, f"doppelt: {len(nochmal.neu)}")
-pruefe(jongen_12.schnittwerte[wz.ALLE][0].vc == 99.0, "Änderung überschrieben")
+pruefe(jongen_12.schnittwerte["P1"][0].vc == 99.0, "Änderung überschrieben")
 # Nach dem Neustart noch da: speichern, laden, gleich.
 pfad = os.path.join(tempfile.mkdtemp(), "CamAddon", wz.DATEINAME)
 bibliothek.speichern(pfad)
@@ -253,7 +301,7 @@ pruefe(
     wieder.hersteller == "Jongen" and wieder.link == jongen_12.link and wieder.katalog,
     f"geladen: {wieder.hersteller!r}, {wieder.link!r}",
 )
-pruefe(wieder.einsaetze("1.4571") == wieder.schnittwerte["1.4301"], "geladen: Klasse M")
+pruefe(wieder.einsaetze("1.4571") == wieder.schnittwerte["M"], "geladen: Klasse M")
 pruefe("Jongen" in wz.zeile(wieder), f"Zeile ohne Hersteller: {wz.zeile(wieder)!r}")
 pruefe(wz.passt(wieder, "jongen 494w"), "Suche findet den Hersteller nicht")
 groesse = os.path.getsize(pfad)

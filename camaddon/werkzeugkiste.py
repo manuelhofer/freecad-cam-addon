@@ -6,9 +6,10 @@ mit Internetseite zum Bestellen, Link und Artikelnummer … wenn es bei irgendei
 Daten geben sollte, dann schätze anhand der vorhandenen Daten …“).
 
 Je Reihe Hersteller, Bezeichnung, die Größen mit ihren Maßen und Schnittwerte je Werkstoffklasse
-(werkstoffe.KLASSEN): Stahl bis 750 N/mm² unter „Alle Werkstoffe“, jede andere Klasse unter einem
-Werkstoff, der für sie steht (VERTRETER) – Werte für 1.4301 gelten für jeden austenitischen
-(werkzeuge.Werkzeug.verwandter). So hat ein Bohrer neun Zeilen statt fünfzig.
+(werkstoffe.KLASSEN), jede Klasse unter ihrer Kennung („M“) – Werte für M gelten für jeden
+austenitischen Werkstoff (werkzeuge.Werkzeug.verwandter), ohne gewählten Werkstoff die für P1.
+So hat ein Bohrer neun Zeilen statt fünfzig (bis P-2026-10-02-94 standen sie unter einem
+Vertreter wie 1.4301; Manuel, 2026-10-03: lieber die Obergruppen).
 
 Wo der Katalog des Herstellers sie nennt, sind Maße, Nummern und Schnittwerte die des Herstellers
 (katalogwerte; nachgeschlagen am 2026-10-02 nachts – beim Bau der Kiste, P-2026-10-02-46, waren
@@ -30,21 +31,8 @@ from dataclasses import dataclass, field
 from urllib.parse import quote_plus
 
 from . import katalogwerte as kw
+from . import werkstoffe as ws
 from . import werkzeuge as wz
-
-# Unter welchem Werkstoff die Werte einer Klasse stehen – P1 unter „Alle Werkstoffe“: Damit
-# rechnet jedes Werkzeug, solange kein Werkstoff gewählt ist.
-VERTRETER = {
-    "P1": wz.ALLE,
-    "P2": "1.7225",  # 42CrMo4 vergütet
-    "M": "1.4301",
-    "K": "0.6025",  # GG-25
-    "N1": "3.2315",  # EN AW-6082
-    "N2": "2.0401",  # Ms 58
-    "N3": "POM-C",
-    "S": "3.7165",  # Titan Grade 5
-    "H": "1.2379+H",  # 58–62 HRC
-}
 
 # Faktoren auf vc und fz je Klasse, bezogen auf Stahl bis 750 N/mm² (P1) – wie sie sich in den
 # Katalogen für Vollhartmetall/Hartmetall und für HSS ungefähr verhalten.
@@ -110,6 +98,10 @@ PLANEN_HM = {
 # (Tabellenbuch); dazwischen geradlinig.
 F_BOHRER = ((2.0, 0.04), (3.0, 0.06), (5.0, 0.10), (8.0, 0.15), (12.0, 0.20), (20.0, 0.28))
 BOHREN_VC_HSS = 30.0  # m/min in P1
+# VHM-Bohrer mit Innenkühlung (TiAlN, 5×D) in P1: vc um 100 m/min, f je Umdrehung wie die
+# Kataloge für solche Bohrer (Ø 3 um 0,08, Ø 8,5 um 0,2, Ø 16 um 0,3) – Richtwerte.
+F_BOHRER_HM = ((3.0, 0.08), (5.0, 0.12), (8.0, 0.18), (12.0, 0.24), (16.0, 0.30), (20.0, 0.34))
+BOHREN_VC_HM = 100.0  # m/min in P1
 
 RICHTWERTE = "Richtwerte (geschätzt)"
 
@@ -152,55 +144,65 @@ def _zahl(wert):
 
 # --- die Reihen ---------------------------------------------------------------------------
 
-# DIN 338, kurze Spiralbohrer: (Durchmesser bis, Gesamtlänge l1, Spirallänge l2).
-_DIN_338 = (
-    (2.12, 49, 24), (2.36, 53, 27), (2.65, 57, 30), (3.00, 61, 33), (3.35, 65, 36),
-    (3.75, 70, 39), (4.25, 75, 43), (4.75, 80, 47), (5.30, 86, 52), (6.00, 93, 57),
-    (6.70, 101, 63), (7.50, 109, 69), (8.50, 117, 75), (9.50, 125, 81), (10.60, 133, 87),
-    (11.80, 142, 94), (13.20, 151, 101), (14.00, 160, 108), (15.00, 169, 114),
-    (16.00, 178, 120), (17.00, 184, 125), (18.00, 191, 130), (19.00, 198, 135),
-    (20.00, 205, 140),
+# Ceratizit CoreLine WPC UNI, VHM-Hochleistungsbohrer 5×D nach DIN 6537 (lang), Schaft DIN 6535
+# HB, Innenkühlung, TiAlN, 140° – Manuels Bohrer (2026-10-03: „Artikel-Nr.: 1170311000 CoreLine –
+# Hochleistungsbohrer, DIN 6537 – WPC UNI“). Die Artikelnummer ist 11703 + Ø in µm (1170308500 =
+# Ø 8,5); je Durchmesserbereich (bis, Nutzlänge LU, Gesamtlänge, Schaft), nachgeschlagen am
+# 2026-10-03 auf cuttingtools.ceratizit.com für Ø 3, 3,3, 4, 4,2, 5, 5,5, 6, 6,8, 7, 8,5, 9,
+# 10,2, 11, 12,5, 15, 17 und 19. Ø 2 und 2,5 gibt es in der Reihe nicht.
+_WPC_UNI = (
+    (3.99, 23, 66, 6), (4.99, 29, 74, 6), (6.0, 35, 82, 6), (8.0, 43, 91, 8),
+    (10.0, 49, 103, 10), (12.0, 56, 118, 12), (14.0, 60, 124, 14), (16.0, 63, 133, 16),
+    (18.0, 71, 143, 18), (20.0, 77, 153, 20),
 )  # fmt: skip
-# Manuels Durchmesser (2026-10-02).
+# Manuels Durchmesser (2026-10-02), ohne Ø 2 und 2,5.
 _BOHRER = (
-    2, 2.5, 3, 3.3, 4, 4.2, 4.5, 5, 6, 6.5, 6.8, 7, 8, 8.5, 8.8, 9, 10, 10.2, 10.5, 11, 11.8,
-    12, 12.5, 13, 13.5, 14, 15, 15.5, 17, 17.5, 18, 19,
+    3, 3.3, 4, 4.2, 4.5, 5, 6, 6.5, 6.8, 7, 8, 8.5, 8.8, 9, 10, 10.2, 10.5, 11, 11.8, 12, 12.5,
+    13, 13.5, 14, 15, 15.5, 17, 17.5, 18, 19,
 )  # fmt: skip
+CERATIZIT_ARTIKEL = "https://cuttingtools.ceratizit.com/de/de/products/{artikel}.html"
 
 
-def _din_338(d):
-    return next((l1, l2) for bis, l1, l2 in _DIN_338 if d <= bis + 1e-9)
+def _wpc_uni(d):
+    return next((lu, l1, schaft) for bis, lu, l1, schaft in _WPC_UNI if d <= bis + 1e-9)
 
 
 def _bohrer():
     groessen = []
     for d in _BOHRER:
-        gesamt, spirale = _din_338(d)
+        nutz, gesamt, schaft = _wpc_uni(d)
+        artikel = f"11703{round(d * 1000):05d}"
         groessen.append(
             {
                 "durchmesser": float(d),
-                "schneidenlaenge": float(spirale),
+                "schneidenlaenge": float(nutz),
                 "gesamtlaenge": float(gesamt),
-                "schaft": float(d),
-                "name": f"HSS D{_zahl(d)}",
-                "link": suche("Ceratizit", "ClassicLine", "DIN 338", "HSS", f"{_zahl(d)} mm"),
+                "schaft": float(schaft),
+                "name": f"WPC D{_zahl(d)}",
+                "artikel": artikel,
+                "bezeichnung": (
+                    "WPC-UNI." + f"{d:.2f}".replace(".", ",") + ".R.5D.DIN6535.IK.HB TiAlN"
+                    f" · Bohrtiefe bis 5 × D · {RICHTWERTE}"
+                ),
+                "link": CERATIZIT_ARTIKEL.format(artikel=artikel),
+                "katalog": CERATIZIT_ARTIKEL.format(artikel=artikel),
             }
         )
     return Reihe(
-        kennung="ceratizit-classicline-din338",
+        kennung="ceratizit-wpc-uni-5d",
         art=wz.BOHRER,
         hersteller="Ceratizit",
-        titel="ClassicLine Spiralbohrer HSS DIN 338, 118°",
+        titel="CoreLine WPC UNI VHM-Hochleistungsbohrer 5×D, DIN 6537, IK, TiAlN, Ø 3–19",
         quelle=(
-            "Manuels Angabe: WL173060311 ClassicLine / 1170305000 · 0095923748 – diese Nummern "
-            "ließen sich nicht nachschlagen. Maße nach DIN 338 (kurz), Spitze 118°. Werte: "
-            "Richtwerte für HSS-Spiralbohrer (Tabellenbuch; Gühring nennt für HSS-E 32 m/min bis "
-            "850 N/mm², 17 m/min bis 1000 N/mm²), je Werkstoffklasse geschätzt."
+            "Ceratizit, cuttingtools.ceratizit.com (2026-10-03): Maße (Nutzlänge, Gesamtlänge, "
+            "Schaft) und Artikelnummern je Größe von der Produktseite; Spitze 140°, Innenkühlung, "
+            "TiAlN, Bohrtiefe bis 5 × D. Schnittwerte nennt die Seite nicht: Richtwerte für "
+            "VHM-Bohrer mit Innenkühlung, je Werkstoffklasse geschätzt."
         ),
         groessen=tuple(groessen),
-        gemeinsam={"schneiden": 2, "schneidstoff": wz.HSS, "spitzenwinkel": 118.0},
-        bezeichnung=f"ClassicLine, HSS, DIN 338 · {RICHTWERTE}",
-        katalog=suche("Ceratizit", "ClassicLine", "Katalog", "PDF"),
+        gemeinsam={"schneiden": 2, "schneidstoff": wz.VHM, "spitzenwinkel": 140.0},
+        bezeichnung=f"CoreLine WPC UNI, VHM, DIN 6537, 5 × D · {RICHTWERTE}",
+        katalog=suche("Ceratizit", "CoreLine", "WPC UNI", "Katalog"),
     )
 
 
@@ -708,8 +710,8 @@ def werkzeuge(reihe):
         w.katalog = werte.get("katalog") or reihe.katalog
         if reihe.schnittwerte:
             katalog = reihe.katalogwerte.get(float(w.durchmesser))
-            for klasse, werkstoff in VERTRETER.items():
-                w.schnittwerte[werkstoff] = einsaetze(w, klasse, katalog)
+            for klasse in ws.KLASSEN:
+                w.schnittwerte[klasse] = einsaetze(w, klasse, katalog)
         ergebnis.append(w)
     return ergebnis
 
@@ -726,17 +728,21 @@ def richtwerte_eintragen(werkzeug):
     """Trägt die Richtwerte je Werkstoffklasse ein – wie bei den Werkzeugen der Hersteller, aus
     Art, Durchmesser, Schneiden und Schneidstoff (Manuel, 2026-10-02: „Beispielschnittwerte für
     die einzelnen Materialien und Bearbeitungsläufe … direkt mit anbieten, wenn jemand einen
-    Fräser erstellen will“). Was schon eingetragen ist, bleibt. Gibt zurück, für wie viele
-    Werkstoffe (Vertreter der Klassen) neue Zeilen dazukamen."""
+    Fräser erstellen will“). Was schon eingetragen ist, bleibt; Stahl bis 750 N/mm² (P1)
+    bekommt keine Zeilen, wenn es Zeilen für alle Werkstoffe gibt – die gelten dann für ihn
+    (Manuels Standardfräser hat seine Werte dort). Gibt zurück, für wie viele Klassen neue
+    Zeilen dazukamen."""
     if not richtwerte_moeglich(werkzeug):
         return 0
     neu = 0
-    for klasse, werkstoff in VERTRETER.items():
-        if werkzeug.schnittwerte.get(werkstoff):
+    for klasse in ws.KLASSEN:
+        if werkzeug.schnittwerte.get(klasse):
+            continue
+        if klasse == ws.KLASSEN[0] and werkzeug.schnittwerte.get(wz.ALLE):
             continue
         liste = einsaetze(werkzeug, klasse)
         if liste:
-            werkzeug.schnittwerte[werkstoff] = liste
+            werkzeug.schnittwerte[klasse] = liste
             neu += 1
     return neu
 
@@ -778,8 +784,8 @@ def _einsatz(werkzeug, art, klasse, katalog=None):
     faktor_vc, faktor_fz = (FAKTOREN_HSS if hss else FAKTOREN_HM)[klasse]
     d = werkzeug.durchmesser
     if art == wz.BOHREN:
-        f = _f_bohrer(d) * faktor_fz
-        vc = BOHREN_VC_HSS * faktor_vc
+        f = _f_bohrer(d, F_BOHRER if hss else F_BOHRER_HM) * faktor_fz
+        vc = (BOHREN_VC_HSS if hss else BOHREN_VC_HM) * faktor_vc
         return _runden(wz.Einsatz(art=art, vc=vc, fz=f / max(werkzeug.schneiden, 1)))
     if art == wz.PLANEN and werkzeug.art == wz.PLANFRAESER:
         vc, fz = PLANEN_HM[klasse]
@@ -806,9 +812,9 @@ def _einsatz(werkzeug, art, klasse, katalog=None):
     return _runden(einsatz)
 
 
-def _f_bohrer(d):
-    """Vorschub je Umdrehung des HSS-Bohrers in P1 – aus F_BOHRER, außen festgehalten."""
-    punkte = F_BOHRER
+def _f_bohrer(d, punkte=F_BOHRER):
+    """Vorschub je Umdrehung des Bohrers in P1 – aus `punkte` (F_BOHRER für HSS, F_BOHRER_HM für
+    VHM), dazwischen geradlinig, außen festgehalten."""
     if d <= punkte[0][0]:
         return punkte[0][1]
     for (d0, f0), (d1, f1) in zip(punkte, punkte[1:], strict=False):
@@ -835,15 +841,22 @@ class Bericht:
 
 
 def hinzufuegen(bibliothek, kennungen):
-    """Legt die Werkzeuge der Reihen `kennungen` in `bibliothek` – je mit der nächsten freien
-    T-Nummer. Ein Werkzeug mit gleichem Hersteller und Namen gibt es schon: Es bleibt, wie es
-    ist. Gespeichert wird hier nichts – das macht der Dialog mit OK oder Übernehmen."""
+    """Legt Werkzeuge der Kiste in `bibliothek` – je mit der nächsten freien T-Nummer. Jeder
+    Eintrag in `kennungen` ist eine Reihe (ihre Kennung: alle Größen) oder eine einzelne Größe
+    (Kennung, Nummer in der Reihe; Manuel, 2026-10-03: „EINZELNE Bohrer aufnehmen von einem
+    Hersteller, nicht gleich alle“). Ein Werkzeug mit gleichem Hersteller und Namen gibt es
+    schon: Es bleibt, wie es ist. Gespeichert wird hier nichts – das macht der Dialog mit OK
+    oder Übernehmen."""
     bericht = Bericht()
-    for kennung in kennungen:
+    for eintrag in kennungen:
+        kennung, nummer = eintrag if isinstance(eintrag, tuple) else (eintrag, None)
         gefunden = reihe(kennung)
         if gefunden is None:
             continue
-        for werkzeug in werkzeuge(gefunden):
+        alle = werkzeuge(gefunden)
+        if nummer is not None and not 0 <= nummer < len(alle):
+            continue
+        for werkzeug in alle if nummer is None else [alle[nummer]]:
             if _schon_da(bibliothek, werkzeug):
                 bericht.schon_da.append(werkzeug.name)
                 continue

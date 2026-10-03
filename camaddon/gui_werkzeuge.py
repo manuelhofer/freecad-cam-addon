@@ -114,16 +114,22 @@ def _parameter():
     return FreeCAD.ParamGet(PARAMETER_PFAD)
 
 
-def werkstoffe_anbieten(wahl, bibliothek):
-    """Füllt eine Werkstoff-Auswahl: „Alle Werkstoffe“, eigene, dann die mitgelieferten nach ISO-Gruppe.
+def werkstoffe_anbieten(wahl, bibliothek, klassen=False):
+    """Füllt eine Werkstoff-Auswahl: „Alle Werkstoffe“, mit `klassen` die Werkstoffklassen
+    („M – rostfreier Stahl“; für die Zeilen der Schnittwert-Tabelle, Manuel, 2026-10-03: „wir
+    nehmen die Obergruppen“), eigene, dann die mitgelieferten nach ISO-Gruppe.
 
-    Auch der Dialog „Schnittwerte in den Job“ benutzt sie. Die Liste klappt höchstens 20 Zeilen
-    hoch auf (kurze_liste).
+    Auch der Dialog „Schnittwerte in den Job“ benutzt sie – ohne Klassen: Am Rohteil steht ein
+    Werkstoff. Die Liste klappt höchstens 20 Zeilen hoch auf (kurze_liste).
     """
     kurze_liste(wahl)
     wahl.blockSignals(True)
     wahl.clear()
     wahl.addItem(tr("wv.alle_werkstoffe"), wz.ALLE)
+    if klassen:
+        wahl.insertSeparator(wahl.count())
+        for klasse in ws.KLASSEN:
+            wahl.addItem(iso_symbol(ws.klasse_iso(klasse)), ws.klasse_text(klasse), klasse)
     gruppen = [ws.sortiert(bibliothek.eigene_werkstoffe)]
     mitgeliefert = ws.sortiert(ws.mitgelieferte())
     for iso in ws.ISO_GRUPPEN:
@@ -135,6 +141,143 @@ def werkstoffe_anbieten(wahl, bibliothek):
         for werkstoff in gruppe:
             wahl.addItem(iso_symbol(werkstoff.iso), ws.anzeige(werkstoff), werkstoff.kennung)
     wahl.blockSignals(False)
+
+
+class Werkzeugbaum(QtGui.QTreeWidget):
+    """Die Werkzeugliste, nach Werkzeugart gegliedert – je Art eine Gruppe zum Auf- und
+    Zuklappen („Schaftfräser (6)“), darin die Werkzeuge nach Nummer (Manuel, 2026-10-03: „dass
+    nicht alle Werkzeuge untereinander dort stehen“). Welche Gruppen zugeklappt sind, merkt
+    sie sich (WvZugeklappt)."""
+
+    gewaehlt = QtCore.Signal(object)  # das gewählte Werkzeug, oder None
+
+    def __init__(self):
+        super().__init__()
+        self.setHeaderHidden(True)
+        self.setRootIsDecorated(True)
+        self.setIndentation(14)
+        # Mehrere markieren (Strg, Umschalt) oder eine ganze Gruppe – zum Löschen auf einmal
+        # (Manuel, 2026-10-03: „eine Mehrfachauswahl … vll sogar komplette Kategorien“).
+        self.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
+        self._gruppen = {}  # Art -> Gruppenzeile
+        self._eintraege = []  # die Werkzeugzeilen, in der Reihenfolge der Anzeige
+        self._gemeldet = None  # das zuletzt über `gewaehlt` gemeldete Werkzeug
+        self.currentItemChanged.connect(self._aktuell_geaendert)
+        self.itemExpanded.connect(lambda _e: self._zugeklappt_merken())
+        self.itemCollapsed.connect(lambda _e: self._zugeklappt_merken())
+
+    def aufbauen(self, werkzeuge, auswahl=None):
+        """Baut den Baum neu: je Art, die vorkommt, eine Gruppe; wählt `auswahl`, sonst das
+        erste Werkzeug. Meldet das gewählte über `gewaehlt`."""
+        zugeklappt = self._zugeklappt()
+        self.blockSignals(True)
+        self.clear()
+        self._gruppen, self._eintraege = {}, []
+        gewaehlt = None
+        for art in wz.ARTEN:
+            der_art = [w for w in werkzeuge if w.art == art]
+            if not der_art:
+                continue
+            gruppe = QtGui.QTreeWidgetItem([f"{wz.art_text(art)} ({len(der_art)})"])
+            gruppe.setIcon(0, art_symbol(art))
+            gruppe.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+            gruppe.setData(0, QtCore.Qt.UserRole, art)
+            schrift = gruppe.font(0)
+            schrift.setBold(True)
+            gruppe.setFont(0, schrift)
+            self.addTopLevelItem(gruppe)
+            self._gruppen[art] = gruppe
+            for werkzeug in der_art:
+                eintrag = QtGui.QTreeWidgetItem([dezimal(wz.zeile(werkzeug))])
+                eintrag.setData(0, QtCore.Qt.UserRole, werkzeug)
+                gruppe.addChild(eintrag)
+                self._eintraege.append(eintrag)
+                if werkzeug is auswahl:
+                    gewaehlt = eintrag
+            gruppe.setExpanded(art not in zugeklappt)
+        if gewaehlt is None and self._eintraege:
+            gewaehlt = self._eintraege[0]
+        if gewaehlt is not None:
+            gewaehlt.parent().setExpanded(True)
+        self.setCurrentItem(gewaehlt)
+        self.blockSignals(False)
+        self._gemeldet = self.werkzeug()
+        self.gewaehlt.emit(self._gemeldet)
+
+    def eintraege(self):
+        """Die Werkzeugzeilen in der Reihenfolge der Anzeige (für Suche und Szenarien)."""
+        return list(self._eintraege)
+
+    def werkzeug(self, eintrag=None):
+        """Das Werkzeug einer Zeile – ohne Zeile das der gewählten; None bei einer Gruppe."""
+        eintrag = self.currentItem() if eintrag is None else eintrag
+        if eintrag is None or eintrag.parent() is None:
+            return None
+        return eintrag.data(0, QtCore.Qt.UserRole)
+
+    def ausgewaehlte(self):
+        """Die markierten Werkzeuge in der Reihenfolge der Anzeige – eine markierte Gruppe
+        zählt mit allen ihren (gezeigten) Werkzeugen; nichts markiert: das gewählte."""
+        markiert = set()
+        for eintrag in self.selectedItems():
+            if eintrag.parent() is None:
+                markiert.update(
+                    eintrag.child(i)
+                    for i in range(eintrag.childCount())
+                    if not eintrag.child(i).isHidden()
+                )
+            else:
+                markiert.add(eintrag)
+        werkzeuge = [e.data(0, QtCore.Qt.UserRole) for e in self._eintraege if e in markiert]
+        if not werkzeuge and self._gemeldet is not None:
+            werkzeuge = [self._gemeldet]
+        return werkzeuge
+
+    def waehle(self, werkzeug):
+        """Wählt die Zeile des Werkzeugs (und klappt ihre Gruppe auf)."""
+        for eintrag in self._eintraege:
+            if eintrag.data(0, QtCore.Qt.UserRole) is werkzeug:
+                eintrag.parent().setExpanded(True)
+                self.setCurrentItem(eintrag)
+                return
+
+    def auffrischen(self, werkzeug):
+        """Schreibt die Zeile des Werkzeugs neu, ohne den Baum neu zu bauen."""
+        for eintrag in self._eintraege:
+            if eintrag.data(0, QtCore.Qt.UserRole) is werkzeug:
+                eintrag.setText(0, dezimal(wz.zeile(werkzeug)))
+
+    def filtern(self, suche):
+        """Zeigt nur die Werkzeuge, die die Suche findet, und nur Gruppen mit Treffern – beim
+        Suchen aufgeklappt; ist das gewählte weg, das erste gezeigte."""
+        for eintrag in self._eintraege:
+            eintrag.setHidden(not wz.passt(eintrag.data(0, QtCore.Qt.UserRole), suche))
+        for gruppe in self._gruppen.values():
+            treffer = [gruppe.child(i) for i in range(gruppe.childCount())]
+            treffer = [e for e in treffer if not e.isHidden()]
+            gruppe.setHidden(not treffer)
+            if suche and treffer:
+                gruppe.setExpanded(True)
+        aktuell = self.currentItem()
+        if aktuell is not None and not aktuell.isHidden():
+            return
+        sichtbar = [e for e in self._eintraege if not e.isHidden()]
+        self.setCurrentItem(sichtbar[0] if sichtbar else None)
+
+    def _aktuell_geaendert(self, aktuell, _vorher):
+        if aktuell is not None and aktuell.parent() is None:
+            return  # eine Gruppe (markiert zum Löschen): das gewählte Werkzeug bleibt
+        self._gemeldet = self.werkzeug(aktuell)
+        self.gewaehlt.emit(self._gemeldet)
+
+    def _zugeklappt(self):
+        return set(_parameter().GetString("WvZugeklappt", "").split(","))
+
+    def _zugeklappt_merken(self):
+        if self.signalsBlocked():
+            return
+        zu = [art for art, gruppe in self._gruppen.items() if not gruppe.isExpanded()]
+        _parameter().SetString("WvZugeklappt", ",".join(zu))
 
 
 class WerkzeugDialog(QtGui.QDialog):
@@ -220,8 +363,8 @@ class WerkzeugDialog(QtGui.QDialog):
         self.suche.setClearButtonEnabled(True)
         self.suche.textChanged.connect(lambda *_: self._filtern())
         aufbau.addWidget(self.suche)
-        self.liste = QtGui.QListWidget()
-        self.liste.currentRowChanged.connect(self._werkzeug_gewaehlt)
+        self.liste = Werkzeugbaum()
+        self.liste.gewaehlt.connect(self._werkzeug_gewaehlt)
         aufbau.addWidget(self.liste, 1)
         zeile = QtGui.QHBoxLayout()
         self.knopf_neu = knopf(tr("wv.neu"), tr("wv.neu.tooltip"), self.werkzeug_anlegen)
@@ -516,19 +659,9 @@ class WerkzeugDialog(QtGui.QDialog):
         return next((w for w in self.bibliothek.werkzeuge if w.kennung == kennung), None)
 
     def _liste_aufbauen(self, auswahl=None):
-        """Baut die Liste neu (sortiert nach Nummer) und wählt `auswahl` oder das erste Werkzeug."""
-        self._reihenfolge = self.bibliothek.sortierte_werkzeuge()
-        if auswahl in self._reihenfolge:
-            zeile = self._reihenfolge.index(auswahl)
-        else:
-            zeile = 0 if self._reihenfolge else -1
-        self.liste.blockSignals(True)
-        self.liste.clear()
-        for werkzeug in self._reihenfolge:
-            self.liste.addItem(dezimal(wz.zeile(werkzeug)))
-        self.liste.setCurrentRow(zeile)
-        self.liste.blockSignals(False)
-        self._werkzeug_gewaehlt(zeile)
+        """Baut die Liste neu (je Art eine Gruppe, darin nach Nummer) und wählt `auswahl` oder
+        das erste Werkzeug."""
+        self.liste.aufbauen(self.bibliothek.sortierte_werkzeuge(), auswahl)
         # Ein neues oder gewähltes Werkzeug, das die Suche verstecken würde:
         # lieber die Suche leeren, als es unsichtbar zu bearbeiten.
         if self.werkzeug is not None and not wz.passt(self.werkzeug, self.suche.text()):
@@ -537,24 +670,15 @@ class WerkzeugDialog(QtGui.QDialog):
 
     def _filtern(self):
         """Zeigt nur die Werkzeuge, die die Suche findet; ist das gewählte weg, das erste gezeigte."""
-        suche = self.suche.text()
-        for zeile, werkzeug in enumerate(self._reihenfolge):
-            self.liste.item(zeile).setHidden(not wz.passt(werkzeug, suche))
-        aktuell = self.liste.currentItem()
-        if aktuell is None or not aktuell.isHidden():
-            return
-        sichtbar = [z for z in range(self.liste.count()) if not self.liste.item(z).isHidden()]
-        self.liste.setCurrentRow(sichtbar[0] if sichtbar else -1)
+        self.liste.filtern(self.suche.text())
 
     def _zeile_auffrischen(self):
         """Schreibt die Listenzeile des gewählten Werkzeugs neu, ohne die Liste neu zu bauen."""
-        if self.werkzeug is None:
-            return
-        eintrag = self.liste.item(self._reihenfolge.index(self.werkzeug))
-        eintrag.setText(dezimal(wz.zeile(self.werkzeug)))
+        if self.werkzeug is not None:
+            self.liste.auffrischen(self.werkzeug)
 
-    def _werkzeug_gewaehlt(self, zeile):
-        self.werkzeug = self._reihenfolge[zeile] if 0 <= zeile < len(self._reihenfolge) else None
+    def _werkzeug_gewaehlt(self, werkzeug):
+        self.werkzeug = werkzeug
         if self.werkzeug is not None:
             _parameter().SetString("WvWerkzeug", self.werkzeug.kennung)
         self._felder_fuellen()
@@ -577,25 +701,35 @@ class WerkzeugDialog(QtGui.QDialog):
         return kopie
 
     def werkzeug_loeschen(self, fragen=True):
-        """„Löschen“: nach Rückfrage; `fragen=False` für die Szenarien."""
-        if self.werkzeug is None:
+        """„Löschen“: alle markierten Werkzeuge (eine markierte Gruppe: ihre Werkzeuge), sonst
+        das gewählte – nach Rückfrage; `fragen=False` für die Szenarien."""
+        weg = self.liste.ausgewaehlte()
+        if not weg:
             return
         if fragen:
+            zeilen = [dezimal(wz.zeile(w)) for w in weg]
+            if len(weg) == 1:
+                frage = tr("wv.loeschen.frage", werkzeug=zeilen[0])
+            else:
+                liste = "\n".join(zeilen[:12] + (["…"] if len(zeilen) > 12 else []))
+                frage = tr("wv.loeschen.frage_mehrere", anzahl=len(weg), liste=liste)
             antwort = QtGui.QMessageBox.question(
                 self,
                 tr("wv.titel"),
-                tr("wv.loeschen.frage", werkzeug=dezimal(wz.zeile(self.werkzeug))),
+                frage,
                 QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                 QtGui.QMessageBox.No,
             )
             if antwort != QtGui.QMessageBox.Yes:
                 return
-        zeile = self._reihenfolge.index(self.werkzeug)
-        self.bibliothek.entferne(self.werkzeug)
-        naechstes = self.bibliothek.sortierte_werkzeuge()
-        self._liste_aufbauen(
-            auswahl=naechstes[min(zeile, len(naechstes) - 1)] if naechstes else None
-        )
+        # Danach das nächste in der Anzeige hinter dem letzten gelöschten, sonst das davor.
+        angezeigt = [e.data(0, QtCore.Qt.UserRole) for e in self.liste.eintraege()]
+        letzte = max(angezeigt.index(w) for w in weg)
+        for werkzeug in weg:
+            self.bibliothek.entferne(werkzeug)
+        rest = [w for w in angezeigt if w not in weg]
+        zeile = min(letzte - len(weg) + 1, len(rest) - 1)  # alle gelöschten lagen davor
+        self._liste_aufbauen(auswahl=rest[zeile] if rest else None)
 
     # --- Felder des Werkzeugs --------------------------------------------------------
 
@@ -864,7 +998,7 @@ class WerkzeugDialog(QtGui.QDialog):
         # Beispielfelder und leere Felder bekommen die Beispiele der neuen Art.
         wz.beispielwerte_setzen(self.werkzeug)
         self._felder_fuellen()
-        self._zeile_auffrischen()
+        self._liste_aufbauen(auswahl=self.werkzeug)  # in die Gruppe der neuen Art
 
     def _schneiden_geaendert(self, wert):
         if self._fuellt or self.werkzeug is None:
@@ -1185,44 +1319,100 @@ def bericht_text(bericht):
 
 
 class KisteDialog(QtGui.QDialog):
-    """„Werkzeuge der Hersteller“ (W-007): die Reihen der Werkzeugkiste, alle angehakt – je Zeile
-    Hersteller, Reihe und Zahl der Größen; der Tooltip sagt, woher Maße, Nummern und Werte
-    kommen."""
+    """„Werkzeuge der Hersteller“ (W-007): die Werkzeugkiste als Baum – je Werkzeugart eine
+    Gruppe, darin die Reihen der Hersteller, darin jede Größe mit eigenem Haken (Manuel,
+    2026-10-03: „diese Einteilung … und EINZELNE Bohrer aufnehmen, nicht gleich alle“). Alle
+    angehakt; der Tooltip einer Reihe sagt, woher Maße, Nummern und Werte kommen."""
 
     def __init__(self, eltern=None):
         super().__init__(eltern)
         self.setWindowTitle(tr("wv.kiste.titel"))
-        self.resize(680, 560)
+        self.resize(720, 600)
         aufbau = QtGui.QVBoxLayout(self)
         erklaerung = QtGui.QLabel(tr("wv.kiste.erklaerung"))
         erklaerung.setWordWrap(True)
         aufbau.addWidget(erklaerung)
-        self.liste = QtGui.QListWidget()
-        for reihe in wk.reihen():
-            text = tr(
-                "wv.kiste.reihe",
-                hersteller=reihe.hersteller or tr("wv.kiste.beispiel"),
-                titel=reihe.titel,
-                anzahl=reihe.anzahl,
-            )
-            eintrag = QtGui.QListWidgetItem(art_symbol(reihe.art), text)
-            eintrag.setData(QtCore.Qt.UserRole, reihe.kennung)
-            eintrag.setToolTip(reihe.quelle)
-            eintrag.setFlags(eintrag.flags() | QtCore.Qt.ItemIsUserCheckable)
-            eintrag.setCheckState(QtCore.Qt.Checked)
-            self.liste.addItem(eintrag)
-        aufbau.addWidget(self.liste, 1)
+        self.baum = QtGui.QTreeWidget()
+        self.baum.setHeaderHidden(True)
+        self.baum.setIndentation(16)
+        self._reihen = []  # die Zeilen der Reihen, in der Reihenfolge der Anzeige
+        haken = (
+            QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsAutoTristate
+        )
+        reihen = wk.reihen()
+        for art in wz.ARTEN:
+            der_art = [r for r in reihen if r.art == art]
+            if not der_art:
+                continue
+            anzahl = sum(r.anzahl for r in der_art)
+            gruppe = QtGui.QTreeWidgetItem([f"{wz.art_text(art)} ({anzahl})"])
+            gruppe.setIcon(0, art_symbol(art))
+            gruppe.setFlags(haken)
+            schrift = gruppe.font(0)
+            schrift.setBold(True)
+            gruppe.setFont(0, schrift)
+            self.baum.addTopLevelItem(gruppe)
+            for reihe in der_art:
+                zeile = QtGui.QTreeWidgetItem(
+                    [
+                        tr(
+                            "wv.kiste.reihe",
+                            hersteller=reihe.hersteller or tr("wv.kiste.beispiel"),
+                            titel=reihe.titel,
+                            anzahl=reihe.anzahl,
+                        )
+                    ]
+                )
+                zeile.setData(0, QtCore.Qt.UserRole, reihe.kennung)
+                zeile.setToolTip(0, reihe.quelle)
+                zeile.setFlags(haken)
+                gruppe.addChild(zeile)
+                self._reihen.append(zeile)
+                for nummer, werkzeug in enumerate(wk.werkzeuge(reihe)):
+                    groesse = QtGui.QTreeWidgetItem([dezimal(wz.zeile_ohne_nummer(werkzeug))])
+                    groesse.setData(0, QtCore.Qt.UserRole, (reihe.kennung, nummer))
+                    groesse.setFlags(haken)
+                    groesse.setCheckState(0, QtCore.Qt.Checked)
+                    zeile.addChild(groesse)
+            gruppe.setExpanded(True)
+        aufbau.addWidget(self.baum, 1)
+        unten = QtGui.QHBoxLayout()
+        self.knopf_alle = knopf(
+            tr("wv.kiste.alle"), tr("wv.kiste.alle.tooltip"), lambda: self.alle_setzen(True)
+        )
+        self.knopf_keine = knopf(
+            tr("wv.kiste.keine"), tr("wv.kiste.keine.tooltip"), lambda: self.alle_setzen(False)
+        )
+        unten.addWidget(self.knopf_alle)
+        unten.addWidget(self.knopf_keine)
+        unten.addStretch()
         knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel)
         self.knopf_hinzufuegen = knoepfe.button(QtGui.QDialogButtonBox.Ok)
         self.knopf_hinzufuegen.setText(tr("wv.kiste.hinzufuegen"))
         knoepfe.accepted.connect(self.accept)
         knoepfe.rejected.connect(self.reject)
-        aufbau.addWidget(knoepfe)
+        unten.addWidget(knoepfe)
+        aufbau.addLayout(unten)
+
+    def reihen_eintraege(self):
+        """Die Zeilen der Reihen in der Reihenfolge der Anzeige (für die Szenarien)."""
+        return list(self._reihen)
+
+    def alle_setzen(self, an):
+        """„Alle anhaken“ / „Alle abhaken“."""
+        zustand = QtCore.Qt.Checked if an else QtCore.Qt.Unchecked
+        for i in range(self.baum.topLevelItemCount()):
+            self.baum.topLevelItem(i).setCheckState(0, zustand)
 
     def gewaehlt(self):
-        """Die Kennungen der angehakten Reihen."""
-        return [
-            self.liste.item(i).data(QtCore.Qt.UserRole)
-            for i in range(self.liste.count())
-            if self.liste.item(i).checkState() == QtCore.Qt.Checked
-        ]
+        """Was angehakt ist: je Reihe ihre Kennung, wenn alle Größen angehakt sind, sonst
+        (Kennung, Nummer) je angehakter Größe – so, wie werkzeugkiste.hinzufuegen es nimmt."""
+        auswahl = []
+        for zeile in self._reihen:
+            groessen = [zeile.child(i) for i in range(zeile.childCount())]
+            angehakt = [g for g in groessen if g.checkState(0) == QtCore.Qt.Checked]
+            if len(angehakt) == len(groessen):
+                auswahl.append(zeile.data(0, QtCore.Qt.UserRole))
+            else:
+                auswahl.extend(g.data(0, QtCore.Qt.UserRole) for g in angehakt)
+        return auswahl
