@@ -120,6 +120,9 @@ class Wand:
     z_unten: float
     z_oben: float
     kanten: tuple  # die Unterkanten (Part.Edge), alle bei z_unten
+    # Je Unterkante (_schluessel) ihre Stücke gleicher Höhe (_wandkanten) – einmal gerechnet: Die
+    # Wand selbst ist je Form gemerkt (_WAND), die Vorschau fragt je Lauf zehnmal (konturen).
+    stuecke: dict = field(default_factory=dict, compare=False, repr=False)
 
 
 @dataclass
@@ -378,7 +381,10 @@ def konturen(form, namen):
             for kante in kette:
                 w_ = wand_der_kante.get(_schluessel(kante))
                 if w_ is not None:
-                    wandkanten += _wandkanten(w_, kante)
+                    k_ = _schluessel(kante)
+                    if k_ not in w_.stuecke:
+                        w_.stuecke[k_] = _wandkanten(w_, kante)
+                    wandkanten += w_.stuecke[k_]
             ergebnis.append(
                 Kontur(
                     draht,

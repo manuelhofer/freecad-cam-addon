@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-03 wandhoehen-gemerkt
+
+### EINGELESEN
+- Die Vorschau des Assistenten am Testteil (alle Flächen) mit cProfile (Szenario im
+  Arbeitsordner): warm 5,9 s, davon 1,6 s `kontur_bahn._wandkanten` (150 Aufrufe, 4 468
+  OpenCascade-Schnitte) – seit P-2026-10-03-34 je Lauf zehnmal für dieselben Wände.
+
+### DATEIEN
+- `camaddon/kontur_bahn.py` (`Wand.stuecke`: je Unterkante die Stücke gleicher Höhe, einmal je
+  Wand – die Wand selbst ist je Form gemerkt), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.159.2).
+
+### AKZEPTANZKRITERIUM
+- Dieselben Bahnen (goldene Bahnen, Kontur), die Vorschau warm schneller.
+
+### DONE
+- Warm 5,9 → 4,2 s, kalt 9,6 s.
+
+### TESTS
+- `tests/test_kontur.py`, `tests/test_goldene_bahnen.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2 und V2b; seine Antworten zu D-1, D-2, D-4, D-5, E-2 … E-4.
+
 ## P-2026-10-04-02 drehteil-aendern
 
 ### EINGELESEN
