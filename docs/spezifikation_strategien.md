@@ -2108,9 +2108,12 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   (`_wandkanten`: eine senkrechte Gerade durch die Wand, in Stücke gleicher Höhe geteilt;
   `Kontur.wandkanten`), und der Abstand des Einfahrens höchstens der Abstand der Bahnenden
   (`_lauf`). Kontur am Testteil 1,07 statt 1,77 min, die Stufenwand aus der Luft mit Bogen.
-  Offen (zu besprechen): Nach dem Räumen fährt die Kontur jede Wand zweimal – einmal „beim
-  Aufmaß“, weil das Raster des Materialstands die 0,3 mm am genauen Ring als Zelle Material
-  zeigt, dann das Schlichten; die erste Runde nimmt nichts (Insel: 290 mm, Stufe: 92 mm).
+  Nach dem Räumen fährt die Kontur jede Wand zweimal – einmal „beim Aufmaß“, dann das
+  Schlichten; die erste Runde nimmt dort nichts (Insel: 290 mm, Stufe: 92 mm). **So gewollt**
+  (nachgelesen 2026-10-04 nachts): Manuel wollte die Runde ausdrücklich („fahr die Kontur
+  zumindest einmal auf 0,3 einfach an der Kontur ab“, `kontur_bahn`, Kopf) – einen Rand
+  schmaler als das Raster sieht der Materialstand nicht; so nimmt das Schlichten nie mehr als
+  das Aufmaß. Bleibt.
 
 ### 13.5 Schritte (je ein Patch)
 
