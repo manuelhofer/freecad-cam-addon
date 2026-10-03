@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-06 messstopp-zum-wechselpunkt
+
+### EINGELESEN
+- Spezifikation Strategien 12.4 (Messstopp: „an Manuels Siemens F_HOME und M0“ – „schreibt
+  erst der Postprozessor des Addons“), Simulation 13 („der Messstopp fährt (noch) nicht zum
+  Wechselpunkt“). Den Postprozessor gibt es seit P-2026-10-03-10; er kannte den Messstopp nicht.
+
+### DATEIEN
+- `camaddon/postprozessor.py` (im Messstopp statt „G0 Z…“ `_zum_wechselpunkt`),
+  `camaddon/abfahren.py` (der Messstopp fährt zum Wechselpunkt, die nächste Operation kommt von
+  dort), `tests/test_postprozessor.py`, `tests/test_abfahren.py`, Spezifikationen (Strategien
+  12.4, Simulation 13), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.159.5).
+
+### AKZEPTANZKRITERIUM
+- Mit Wechselpunkt Z 150 (MKS): LinuxCNC „G53 G0 Z150.000“, M5, M0, M3; Siemens mit „F_HOME“:
+  „F_HOME“, M5 …; ohne Wechselpunkt „G0 Z25.000“ wie bisher. Im Abfahren zwei Stationen „zum
+  Werkzeugwechsel“ im Messstopp, die zweite am Wechselpunkt.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_postprozessor.py`, `tests/test_abfahren.py` – OK; Szenario
+  `szenario_raeumen_schlichten` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1, D-2, D-4, D-5, E-2, E-3.
+
 ## P-2026-10-04-05 rundachsen-gleichstand
 
 ### EINGELESEN

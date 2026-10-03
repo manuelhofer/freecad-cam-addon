@@ -476,5 +476,5 @@ Werkzeugwechselpunkt … damit auch die Simulation korrekt ablaufen kann.“
   Punkt, dann die Bahn; vor jedem Werkzeugwechsel erst Z (an der Drehmaschine mit X im
   Durchmesser: X), dann alle zum Wechselpunkt, zurück erst die anderen; am Ende Z, dann Home.
   Zeit und Kollision zählen die Wege mit; der Abspieler sagt „Home-Punkt“ bzw. „zum
-  Werkzeugwechsel“. Noch nicht: die Zeit des Wechsels selbst; der Messstopp fährt (noch) nicht
-  zum Wechselpunkt.
+  Werkzeugwechsel“. Noch nicht: die Zeit des Wechsels selbst. Der Messstopp fährt seit
+  P-2026-10-04-06 zum Wechselpunkt (wie im Programm), die Operation danach kommt von dort.

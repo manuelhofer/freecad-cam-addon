@@ -43,6 +43,7 @@ import dataclasses
 import re
 from dataclasses import dataclass, field
 
+from . import messstopp as ms
 from . import schwenken as sw
 from .sprache import tr
 
@@ -659,10 +660,20 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
             kuehlung = None
         if kuehlung:
             zeilen.append(kuehlung)
+        messstopp = False  # nach dem Kommentar des Messstopps: sein „G0 Z…“ kommt noch
         for name_, parameter in befehle:
             if name_.startswith("("):
                 notiz(name_.strip("()"))
+                messstopp = messstopp or name_ == ms.KOMMENTAR
                 continue
+            if messstopp and name_.upper() in ("G0", "G00") and set(parameter) <= {"Z", "F"}:
+                # Zum Messen an den Wechselpunkt (Spezifikation Strategien 12.4: an Manuels
+                # Siemens F_HOME) – ohne einen bleibt es beim Z hoch.
+                messstopp = False
+                weg = _zum_wechselpunkt(s, info)
+                if weg:
+                    zeilen.extend(weg)
+                    continue
             gross = name_.upper()
             if gross == "G93":
                 g93 = True

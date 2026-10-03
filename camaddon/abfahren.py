@@ -26,6 +26,7 @@ from . import einheiten, export
 from . import fahrzeit as fz
 from . import job_schnittwerte as js
 from . import maschine as m
+from . import messstopp as ms
 from . import reichweite as rw
 from .kette import LINEAR
 from .sprache import tr
@@ -339,6 +340,14 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         if nummer == 0 and any(h is not None for h in home):
             anfahren(home, nummer, HOME)
             anflug = True
+        if ms.ist_messstopp(op) and vorher is not None:
+            # Zum Messen weg vom Teil: an den Wechselpunkt, wie der Postprozessor ihn schreibt
+            # (Spezifikation Strategien 12.4, an Manuels Siemens F_HOME) – statt nur Z hoch.
+            ziel = _wechsel_ziel(wechsel, wechsel_wks, vorher, davor, index)
+            if any(w is not None for w in ziel):
+                zurueckziehen(ziel, nummer, WECHSEL)
+                anflug = True
+                continue
         ohne_vorschub = False
         # In einer Ebene beginnt die Operation dort, wo die davor endete: hoch auf die
         # Schwenkhöhe, schwenken – das fährt die Maschine mit, und die Kollision prüft es.

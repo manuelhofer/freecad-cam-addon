@@ -230,6 +230,20 @@ if len(st) == 13:
     # Die Spitze im Programm am Home-Punkt: X/Y wie die Anfahrt darüber nicht, Z darüber.
     pruefe(st[0].punkt[2] > 10 and st[1].punkt[:2] == st[2].punkt[:2], f"Punkte: {st[0].punkt}")
 mit_heim = fahrt.dauer
+# Ein Messstopp zwischen zwei Operationen (Spezifikation Strategien 12.4): Er fährt an den
+# Wechselpunkt wie der Postprozessor – erst Z, dann alle –, die Operation danach kommt von dort;
+# sein eigenes „G0 Z…“ fährt er nicht.
+from camaddon import messstopp as ms  # noqa: E402
+
+teil_m, job_m = neuer_job([(erste, 1), (ms.zeilen(25.0, 900.0), 1), (zweite, 1)], "Messen")
+fahrt_m = ab.abfahrt(p, job_m, FreeCAD.Vector())
+im_messstopp = [s.ziel for s in fahrt_m.stationen if s.operation == 1]
+pruefe(im_messstopp == [W, W], f"Messstopp: {im_messstopp}")
+pruefe(
+    namen(ma, fahrt_m.stellungen_an(fahrt_m.operationen[1].erste + 1)) == wechsel,
+    "Messstopp nicht am Wechselpunkt",
+)
+FreeCAD.closeDocument(teil_m.Name)
 # Der Wechselpunkt in WKS (Manuel, 2026-10-03: „sollte MKS sein … oder wechselbar“): X 200 ist
 # dann die Spitze im Programm – die Operation davor endete bei (0, 0, 10), zum Wechsel fährt
 # nur X, auf (200, 0, 10); Y und Z haben keinen eigenen Wechselpunkt und bleiben stehen.

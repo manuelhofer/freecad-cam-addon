@@ -319,6 +319,27 @@ pruefe(
 dreh_b = pp.programm([bohren], pp.steuerung("siemens"), dreh, "B").zeilen
 pruefe(any(x.startswith("G81 ") for x in dreh_b), "Drehmaschine: G81 nicht behalten")
 
+# --- Messstopp (Spezifikation Strategien 12.4): zum Messen an den Wechselpunkt ----------------
+# Mit Wechselpunkt Z 150 (MKS) statt „G0 Z25“ der Weg dorthin, dann M5, M0, M3; an der Siemens
+# mit „F_HOME“ als Befehl genau das; ohne Wechselpunkt bleibt „G0 Z25“.
+from camaddon import messstopp as ms  # noqa: E402
+
+messen = pp.Abschnitt(
+    "Messstopp", 2, 900.0, False, "None", [C(z) for z in ms.zeilen(25.0, 900.0)], "Bohrer"
+)
+mit_wp = pp.Maschineninfo("Fräse")
+mit_wp.wechselpunkt = {"Z": 150.0}
+z_lcnc = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), mit_wp, "M").zeilen
+k = z_lcnc.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_lcnc else -1
+pruefe(z_lcnc[k + 1 : k + 5] == ["G53 G0 Z150.000", "M5", "M0", "M3"], f"Messstopp: {z_lcnc[k:]}")
+fhome = pp.steuerung("siemens", {"wechselpunkt_mks": "F_HOME"})
+z_sie = pp.programm([bohren, messen], fhome, mit_wp, "M").zeilen
+k = z_sie.index("; MESSSTOPP") if "; MESSSTOPP" in z_sie else -1
+pruefe(z_sie[k + 1 : k + 3] == ["F_HOME", "M5"], f"Siemens F_HOME: {z_sie[k:]}")
+z_ohne = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), fraese, "M").zeilen
+k = z_ohne.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_ohne else -1
+pruefe(z_ohne[k + 1] == "G0 Z25.000", f"ohne Wechselpunkt: {z_ohne[k:]}")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()
