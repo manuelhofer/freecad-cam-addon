@@ -261,6 +261,61 @@ def _gewindebohrer():
     )
 
 
+GUEHRING_8330 = "https://webshop.guehring.de/8330"
+GUEHRING_KATALOG_GEWINDE = (
+    "https://guehring.com/wp-content/downloads/CH/GUHRING-CH_Gewindewerkzeuge_DE.pdf"
+)
+# Gühring 8330 aus dem Katalog „Top-Auswahl Gewindewerkzeuge“ (Gühring Schweiz, gültig bis
+# 2026-12-31): (M, P, Schaft d2, Vierkant SW, Kernloch dk, l1, l2 Gewindelänge, l5) je Größe.
+_GUEHRING_8330 = (
+    (2, 0.4, 2.8, 2.1, 1.6, 45, 4.5, 13.5), (2.5, 0.45, 2.8, 2.1, 2.05, 50, 5, 14.5),
+    (3, 0.5, 3.5, 2.7, 2.5, 56, 6, 18), (4, 0.7, 4.5, 3.4, 3.3, 63, 7.5, 21),
+    (5, 0.8, 6, 4.9, 4.2, 70, 8.5, 25), (6, 1.0, 6, 4.9, 5, 80, 11, 30),
+    (8, 1.25, 8, 6.2, 6.8, 90, 14, 35), (10, 1.5, 10, 8, 8.5, 100, 16, 39),
+    (12, 1.75, 9, 7, 10.2, 110, 18.5, 49), (16, 2.0, 12, 9, 14, 110, 20, 54),
+)  # fmt: skip
+
+
+def _gewindebohrer_8330():
+    """Gühring 8330 (Manuel, 2026-10-03: „Gewindebohrer von Gühring … webshop.guehring.de/8330,
+    der hier?“) – Sackloch, HSS-E TiAlN, Form C, 3 × D, 6HX."""
+    groessen = []
+    for m, p, schaft, _sw, kernloch, gesamt, gewinde, _l5 in _GUEHRING_8330:
+        groessen.append(
+            {
+                "durchmesser": float(m),
+                "steigung": p,
+                "schneidenlaenge": float(gewinde),
+                "gesamtlaenge": float(gesamt),
+                "schaft": float(schaft),
+                "name": f"8330 M{_zahl(m)}",
+                "artikel": f"8330 {m:.3f}",
+                "bezeichnung": (
+                    f"Sackloch, HSS-E, TiAlN, Form C, 6HX, DIN {371 if m <= 10 else 376} · "
+                    f"Kernloch Ø {_zahl(kernloch)} · {RICHTWERTE}"
+                ),
+                "link": GUEHRING_8330,
+            }
+        )
+    return Reihe(
+        kennung="guehring-8330",
+        art=wz.GEWINDEBOHRER_RECHTS,
+        hersteller="Gühring",
+        titel="8330 Maschinen-Gewindebohrer HSS-E TiAlN, Sackloch, 3 × D, M2–M16",
+        quelle=(
+            "Gühring 8330, Katalog „Top-Auswahl Gewindewerkzeuge“ von Gühring Schweiz (gültig bis "
+            "2026-12-31, guehring.com): Bestell-Nr. „8330 12.000“, Steigung, Schaft, Gewindelänge "
+            "l2, Gesamtlänge und Kernloch je Größe; HSS-E, TiAlN, DIN 371/376, rechts, Form C, "
+            "3 × D, 6HX, Sackloch; geeignet für Stahl und rostfreien Stahl (P, M), bedingt für "
+            "Guss, NE-Metalle und Titan. vc: Richtwerte für HSS-E-Gewindebohrer, je "
+            "Werkstoffklasse geschätzt; der Vorschub ist die Steigung."
+        ),
+        groessen=tuple(groessen),
+        gemeinsam={"schneidstoff": wz.HSS},
+        katalog=GUEHRING_KATALOG_GEWINDE,
+    )
+
+
 # Jongens Werte gelten für jeden Durchmesser der Reihe; Schlichten und Planen nennt der Katalog
 # nicht – sie nehmen vc und fz des Eckfräsens (wie die Richtwerte das Planen vom Schruppen).
 JONGEN_TEXT = (
@@ -711,6 +766,7 @@ def reihen():
     return (
         _bohrer(),
         _gewindebohrer(),
+        _gewindebohrer_8330(),
         _schaftfraeser(),
         _schaftfraeser_r(),
         _entgrater(),

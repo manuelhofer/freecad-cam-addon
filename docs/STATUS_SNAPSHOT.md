@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.143.0 (P-2026-10-03-19). Alles, was hier als gebaut steht,
+Stand 0.144.0 (P-2026-10-03-21). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -183,10 +183,11 @@ Beantwortet am 2026-10-03 (abends):
   Auskragung N + 5 mm. Gebaut (0.139.0).
 - *An CAM übergeben (D-27):* ja – „OK“ und „Übernehmen“ übergeben mit, sobald einmal
   übergeben wurde. Gebaut (0.139.0).
-- *Gewindebohrer:* Gühring 8330 (https://webshop.guehring.de/8330) in die Kiste; der Shop zeigt
-  die Größen erst im Browser – im Browser nachschlagen. Gühring 5596 bleibt, die Nummern für
-  M2, M2,5 und ab M12 dort ebenso nachschlagen (Manuel: „der geht genauso, ist auch gut“).
-  Jongen Ø 3 entfällt.
+- *Gewindebohrer:* Gühring 8330 in der Kiste (P-2026-10-03-21, M2–M16 mit Bestell-Nr. und Maßen
+  aus dem Gühring-Katalog; der Shop sperrte den Abruf hier mit 403). Gühring 5596 bleibt, wie
+  er ist – M2, M2,5 und ab M12 ohne belegte Nummer (Manuel: „effektiv ist's nicht wichtig …
+  hauptsache Beispiele mit echten Daten vom Hersteller und ein Link zum Nachlesen“). Jongen
+  Ø 3 entfällt.
 
 **Danach, der Reihe nach:**
 

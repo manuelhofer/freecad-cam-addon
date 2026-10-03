@@ -701,7 +701,9 @@ alle Fräser Beispielschnittwerte für die einzelnen Materialien und Bearbeitung
 Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.“
 
 - **Bohrer:** Ceratizit (die beiden Nummern sind zu prüfen), die 32 Durchmesser oben.
-- **Gewindebohrer:** Gühring 5596 (HSS-E, ISO), M2 bis M30 im Regelgewinde.
+- **Gewindebohrer:** Gühring 5596 (HSS-E, ISO), M2 bis M30 im Regelgewinde; Gühring 8330
+  (HSS-E TiAlN, Sackloch, 3 × D, M2–M16; P-2026-10-03-21, Maße und Bestell-Nr. „8330 12.000“
+  aus dem Katalog „Top-Auswahl Gewindewerkzeuge“ von Gühring Schweiz, gültig bis 2026-12-31).
 - **Fräser:** Jongen UNI-Mill VHM 494W, Ø 3, 4, 5, 6, 8, 10, 12, 16, 20.
 - **Entgraten:** Garant 208165, Ø 6, 8, 10, 12, 16.
 - **Messerkopf:** einer mit Werten für Stahl und seiner Schneidenzahl.

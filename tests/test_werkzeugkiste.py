@@ -107,6 +107,21 @@ pruefe("Kernloch Ø 8.5" in m10.bezeichnung, f"M10: {m10.bezeichnung!r}")
 pruefe(next(w for w in gewinde if w.durchmesser == 12).artikel == "", "M12 mit erfundener Nummer")
 n, vf, _ = sd.rechne(m10, m10.einsaetze(wz.ALLE)[0])
 pruefe(nahe(vf, n * 1.5, 1e-6) and n > 0, f"M10: n {n}, vf {vf}")
+# Gühring 8330 (Manuel, 2026-10-03) aus dem Katalog: M2–M16 ohne M14, Bestell-Nr. „8330 12.000“,
+# M12 mit Schaft 9, l1 110, Gewinde 18,5, Kernloch 10,2.
+g8330 = wk.werkzeuge(wk.reihe("guehring-8330"))
+pruefe(
+    [w.durchmesser for w in g8330] == [2, 2.5, 3, 4, 5, 6, 8, 10, 12, 16],
+    f"8330: {[w.durchmesser for w in g8330]}",
+)
+m12 = next(w for w in g8330 if w.durchmesser == 12)
+pruefe(
+    (m12.artikel, m12.steigung, m12.schaft, m12.gesamtlaenge, m12.schneidenlaenge)
+    == ("8330 12.000", 1.75, 9.0, 110.0, 18.5)
+    and "Kernloch Ø 10.2" in m12.bezeichnung
+    and m12.hersteller == "Gühring",
+    f"8330 M12: {m12.artikel!r}, {m12.schaft}, {m12.gesamtlaenge}, {m12.bezeichnung!r}",
+)
 
 # Jongen 494W nach dem Katalog 11/2025 (seit P-2026-10-02-91): Ø 6–20 scharfkantig, Ø 4 und 5
 # nur mit Eckenradius (als Torusfräser), Ø 3 gibt es nicht.

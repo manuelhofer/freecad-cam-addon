@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-21 guehring-8330
+
+### EINGELESEN
+- Manuel, 2026-10-03: „Gewindebohrer von Gühring … https://webshop.guehring.de/8330 der hier?“;
+  „zu den Werkzeugen und den Daten … effektiv ist's nicht wichtig … hauptsache man hat Beispiele
+  zum Auswählen mit echten Daten, die vom Hersteller kommen, und einen Link zum Nachlesen“.
+
+### DATEIEN
+- `camaddon/werkzeugkiste.py` (`_gewindebohrer_8330`, `GUEHRING_8330`,
+  `GUEHRING_KATALOG_GEWINDE`), `tests/test_werkzeugkiste.py`,
+  `docs/spezifikation_werkzeugverwaltung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.144.0).
+
+### AKZEPTANZKRITERIUM
+„Werkzeuge der Hersteller …“ zeigt unter „Gewindebohrer“ die Reihe Gühring 8330 mit M2–M16
+(ohne M14): Bestell-Nr. „8330 12.000“, Steigung, Schaft, Gesamt- und Gewindelänge, Kernloch in
+der Bezeichnung, Link zum Shop, Katalog als PDF.
+
+### DONE
+- Der Gühring-Shop antwortet dem Browser hier mit 403; die Daten stammen aus dem Katalog
+  „Top-Auswahl Gewindewerkzeuge“ von Gühring Schweiz (guehring.com, PDF). Die 5596 steht dort
+  nicht – sie bleibt, wie sie war.
+
+### TESTS
+- `tests/test_werkzeugkiste.py`, Szenario `szenario_werkzeugkiste` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Test der Stände 0.134–0.144.
+
+## P-2026-10-03-20 absatz-an-der-wand-gemessen
+
+### EINGELESEN
+- Manuel, 2026-10-03: „ich weiß nicht, von welchem Absatz du redest … wenn dieser 0,0005 mm ist,
+  ist das definitiv zu vernachlässigen … wenn das mehr ist, jede Kontur eigenen Fräser“.
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (T3), `docs/STATUS_SNAPSHOT.md` – nur Doku.
+
+### DONE
+- Am Testteil über den Assistenten angelegt (wie `szenario_testteil`), die Bahnen von Kontur T1
+  und Restmaterial T3 gegen den Umriss der Tasche gemessen: am Übergang 0,0000 mm, nirgends mehr
+  als geometrisch nötig, ins Teil höchstens 0,0097 mm. Es bleibt bei zwei Fräsern an einer Wand.
+
+### TESTS
+- Keine (Messung im Scratchpad).
+
 ## P-2026-10-03-19 wechselpunkt-mks-wks
 
 ### EINGELESEN
