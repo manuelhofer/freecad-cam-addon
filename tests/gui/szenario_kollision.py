@@ -42,6 +42,18 @@ def schritte(h):
     )
     er16 = bibliothek.neuer_halter("er16").kennung
     bibliothek.speichern()
+    # Seit „Halter vorschlagen“ (D-23, P-2026-10-03-15) prüfte das Fenster T1 im vorgeschlagenen
+    # ER16 – länger, die Spindel setzte nicht mehr auf. Hier gilt T1 allein (wie in
+    # test_kollision): Das Fenster lädt die Werkzeugverwaltung ohne Vorschlag.
+    laden = gui_reichweite._bibliothek
+
+    def ohne_vorschlag():
+        geladen = laden()
+        if geladen is not None:
+            geladen.halter_vorschlagen = False
+        return geladen
+
+    gui_reichweite._bibliothek = ohne_vorschlag
 
     asm, _maschine = beispielmaschine.lade(beispielmaschine.FRAESE_3)
     yield from h.warte_auf(lambda: FreeCAD.ActiveDocument is asm.Document)

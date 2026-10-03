@@ -2459,6 +2459,13 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   steckte dann im Teil; der Befund sagt das jetzt dazu (`kb.wechsel_ohne_punkt`, D-5).
   **Im Abspieler:** P-2026-10-03-55 – die Operationen einer Ebene stehen in der Auswahl als
   „Räumen T1 (3) – Ebene A−45 C−90“ (`OperationAbfahrt.ebene`).
+  **Kopf/Kopf nachgeprüft:** P-2026-10-03-57 – das Schwenkteil auf der Kopf/Kopf-Maschine: Die
+  Kollision meldete beim ausgeschriebenen G83 den Wiedereinstieg zwischen den Hüben („berühren
+  sich im Eilgang die Schneide von T2 und das Teil“) – die Bohrung im fertigen Teil ist so groß
+  wie der Bohrer. Jetzt zählt die Schneide gegen das Teil nicht in einem Eilgang, der ganz auf
+  geraden Vorschubwegen derselben Operation liegt (`kollision._auf_wegen`). Dazu meldet die
+  Reichweite dort ehrlich: Z1 bräuchte −263,6 mm, die Grenze ist −250 (die 45°-Ebene mit
+  geneigtem Kopf) – eine Grenze der Beispielmaschine.
 - **F5 Assistent:** in „Bearbeitung“ Schritt 1 an einer 5-Achs-Maschine „Ebene schwenken:
   Fläche anklicken“ – der neue Job mit der Ebene, die Rundachsen in einem Satz.
   **Gebaut anders:** P-2026-10-03-39 – ein eigener Befehl „Ebene schwenken (3+2) …“ statt eines

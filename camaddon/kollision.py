@@ -89,6 +89,7 @@ RUND_PRUEFWINKEL = (37.1, 131.7)
 SCHNEIDE, HALS, SCHAFT, HALTER = "schneide", "hals", "schaft", "halter"
 KERN = "kern"  # die Schneide, um EINDRINGEN kleiner – nur gegen das Teil im Vorschub
 MASCHINE, TEIL = "maschine", "teil"
+VORSCHUBWEGE = 200  # so viele gerade Vorschubwege merkt sich die Prüfung je Operation
 WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
 
 
@@ -446,6 +447,10 @@ class _Welt:
         # auseinander: zuletzt genau gerechnet, minus dem Weg seither; genau hier gerechnet?)
         self._schranken = {}
         self._operation = None  # die Operation des letzten Abschnitts
+        # Die geraden Vorschubwege der Operation [(Anfang, Ende)] (Programmpunkte, Rundachsen
+        # gleich) – ein Eilgang darauf fährt die Schneide, wo sie schon im Vorschub war.
+        self._vorschubwege = []
+        self._eigener_zuletzt = False  # lag der Abschnitt davor auf einem eigenen Weg?
 
     # --- Paare --------------------------------------------------------------------------
 
@@ -606,7 +611,10 @@ class _Welt:
             self._schranken = {}
         else:
             self._schranken = {k: self._schranken[k] for k in schluessel if k in self._schranken}
+        if ziel.operation != self._operation:
+            self._vorschubwege = []
         self._operation = ziel.operation
+        eigener_weg = self._eigener_weg(stationen[i], ziel, naechste != i)
         # Ein Eilgang, der dort beginnt, wo ein Vorschub aufhörte: je Paar der Schneide der
         # Abstand am Anfang (nach unten abgeschätzt).
         anfang = {} if ziel.eilgang and not stationen[i].eilgang else None
@@ -616,7 +624,9 @@ class _Welt:
             self.ergebnis.stellen += 1
             if self.ergebnis.stellen > HOECHSTENS:
                 return False
-            weiter = self._stelle(i, naechste, s, paare, paarwege, schluessel, ziel, anfang)
+            weiter = self._stelle(
+                i, naechste, s, paare, paarwege, schluessel, ziel, anfang, eigener_weg
+            )
             if s >= 1.0 or naechste == i:
                 return True
             neu = min(1.0, s + weiter)
@@ -638,7 +648,28 @@ class _Welt:
         if self._fortschritt(self.station / len(self.abfahrt.stationen)) is False:
             raise _Abbruch
 
-    def _stelle(self, i, naechste, s, paare, paarwege, schluessel, ziel, anfang=None):
+    def _eigener_weg(self, station, ziel, bewegt):
+        """Merkt einen geraden Vorschubweg; für einen Eilgang: Liegt er ganz auf den geraden
+        Vorschubwegen der Operation davor (`_auf_wegen`)? Etwa der Wiedereinstieg zwischen den
+        Hüben eines Tieflochbohrens (G83 ausgeschrieben, 3+2 am Schwenkkopf): Die Schneide fährt
+        in die Bohrung, die sie eben gebohrt hat – im fertigen Teil ist die so groß wie sie, der
+        Abstand an der Wand 0, eine Berührung ist es nicht."""
+        if not bewegt:  # die letzte Station: ihre Stelle gehört zum Abschnitt davor
+            return self._eigener_zuletzt
+        self._eigener_zuletzt = False
+        if station.operation != ziel.operation or station.rund != ziel.rund:
+            return False
+        anfang, ende = FreeCAD.Vector(*station.punkt), FreeCAD.Vector(*ziel.punkt)
+        if not ziel.eilgang:
+            self._vorschubwege.append((anfang, ende))
+            del self._vorschubwege[:-VORSCHUBWEGE]
+            return False
+        self._eigener_zuletzt = _auf_wegen(anfang, ende, self._vorschubwege)
+        return self._eigener_zuletzt
+
+    def _stelle(
+        self, i, naechste, s, paare, paarwege, schluessel, ziel, anfang=None, eigener_weg=False
+    ):
         """Prüft die Stelle beim Anteil `s` zwischen Station i und der nächsten; gibt zurück,
         wie weit (als Anteil) es von hier sicher weitergeht: je Paar, das hier zählt, sein
         Abstand (nach unten abgeschätzt) minus Warnabstand, mindestens MIN_SCHRITT, geteilt
@@ -684,6 +715,8 @@ class _Welt:
         for k, (paar, weg) in enumerate(zip(paare, paarwege, strict=True)):
             if paar.nur_eilgang and not ziel.eilgang or paar.nur_vorschub and ziel.eilgang:
                 continue
+            if paar.nur_eilgang and eigener_weg:
+                continue  # die Schneide fährt, wo sie eben im Vorschub war (_eigener_weg)
             if self._beruehrt_schon(ziel.operation, paar):
                 continue  # schlimmer wird es nicht
             # Beim Kern zählt nur eine Berührung: kein Warnabstand, auch nicht für den Schritt.
@@ -779,6 +812,34 @@ def _zaehlt(paar, k, abstand, s, anfang):
     if anfang is None or not paar.nur_eilgang:
         return True
     return s > 0.0 and abstand < anfang.get(k, math.inf) - 1e-6
+
+
+def _auf_wegen(anfang, ende, wege, genau=1e-6):
+    """Liegt die Strecke `anfang` → `ende` ganz auf `wege` [(Anfang, Ende)] – auf derselben
+    Geraden, lückenlos aneinander?"""
+    d = ende - anfang
+    laenge = d.Length
+    if laenge < genau:
+        return False
+    richtung = d * (1.0 / laenge)
+
+    def neben(p):
+        v = p - anfang
+        return (v - richtung * v.dot(richtung)).Length
+
+    stuecke = sorted(
+        tuple(sorted(((p - anfang).dot(richtung), (q - anfang).dot(richtung))))
+        for p, q in wege
+        if neben(p) <= genau and neben(q) <= genau
+    )
+    gedeckt = None  # bis hierher liegt die Strecke auf den Wegen
+    for t0, t1 in stuecke:
+        if gedeckt is None:
+            if t0 <= genau and t1 >= -genau:
+                gedeckt = t1
+        elif t0 <= gedeckt + genau:
+            gedeckt = max(gedeckt, t1)
+    return gedeckt is not None and gedeckt >= laenge - genau
 
 
 def _luecke(h1, h2):

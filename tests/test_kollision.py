@@ -41,6 +41,7 @@ from camaddon import reichweite as rw
 from camaddon import werkzeuge as wz
 
 sprache.setze_sprache("de")
+V = FreeCAD.Vector
 fehler = []
 
 
@@ -366,6 +367,22 @@ pruefe(not any("Grundstellung" in h for h in e.hinweise), f"Hinweis zu Führunge
 e = pruefen(["G0 X50 Y30 Z30", "G1 Z10 F10"], t1(), fortschritt=lambda _anteil: False)
 pruefe(e.abgebrochen and e.befunde == [], "Abbrechen")
 pruefe(e.hinweise[-1].startswith("Abgebrochen – geprüft bis 0:00.0 von "), f"{e.hinweise}")
+
+# --- Eilgang auf dem eigenen Vorschubweg (G83 ausgeschrieben): keine Berührung ----------------
+# An der Taschenwand (x 30) mit T1 Ø 5 im Vorschub hinab bis Z 18 – die Schneide liegt an der Wand
+# –, im Eilgang hoch und auf demselben Weg wieder bis Z 18,5 hinunter: Dort war die Schneide eben
+# im Vorschub, das ist keine Berührung. 0,1 mm daneben (x 32,4) steckt sie in der Wand: schon.
+e = pruefen(["G0 X32.5 Y30 Z30", "G1 Z18 F10", "G0 Z25", "G0 Z18.5"], t1())
+pruefe(e.befunde == [], f"Eilgang auf dem eigenen Weg: {[b.text() for b in e.befunde]}")
+e = pruefen(["G0 X32.5 Y30 Z30", "G1 Z18 F10", "G0 Z25", "G0 X32.4", "G0 Z18.5"], t1())
+pruefe(
+    ("die Schneide von T1", "das Teil", True, True) in paare(e),
+    f"Eilgang neben dem eigenen Weg: {[b.text() for b in e.befunde]}",
+)
+pruefe(kb._auf_wegen(V(0, 0, 5), V(0, 0, 1), [(V(0, 0, 5), V(0, 0, 2)), (V(0, 0, 2.5), V(0, 0, 0))]),
+       "zwei Hübe nicht lückenlos")  # fmt: skip
+pruefe(not kb._auf_wegen(V(0, 0, 5), V(0, 0, 1), [(V(0, 0, 5), V(0, 0, 3)), (V(0, 0, 2.5), V(0, 0, 0))]),
+       "Lücke zwischen zwei Hüben übersehen")  # fmt: skip
 
 # --- Werkzeugwechsel ohne Wechselpunkt: Die Maschine wechselt, wo sie steht ----------------------
 # T1 (50 mm) endet 2 mm über dem Teil, T2 ist 10 mm länger: Seine Schneide steckt nach dem

@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-57 eilgang-im-eigenen-weg
+
+### EINGELESEN
+- Das Schwenkteil-Szenario als Kopie auf der Kopf/Kopf-Maschine (Frage: geht 3+2 am Schwenkkopf
+  von vorn bis hinten?): Befund „In „Bohren T2“ berühren sich im Eilgang die Schneide von T2 und
+  das Teil (Satz 18 …)“ – der Wiedereinstieg des ausgeschriebenen G83 in die eigene Bohrung.
+- Beim Gegenprüfen war `szenario_kollision` rot – schon seit P-2026-10-03-15 (Halter
+  vorschlagen, D-23: T1 im vorgeschlagenen ER16 ist länger, die Spindel setzt nicht mehr auf;
+  eingegrenzt mit einem Worktree: P-14 grün, P-15 rot).
+
+### DATEIEN
+- `camaddon/kollision.py` (`_eigener_weg`, `_auf_wegen`, VORSCHUBWEGE: die Schneide gegen das
+  Teil zählt nicht in einem Eilgang ganz auf den geraden Vorschubwegen der Operation – auch an
+  der letzten Station), `tests/test_kollision.py`, `tests/gui/szenario_kollision.py` (T1 allein,
+  ohne Vorschlag), Spezifikation (15.3), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.158.4).
+
+### AKZEPTANZKRITERIUM
+- An der Taschenwand: im Vorschub hinab, hoch, im Eilgang auf demselben Weg hinunter – kein
+  Befund; 0,1 mm daneben – „berühren sich im Eilgang“. Das Schwenkteil auf Kopf/Kopf: Kollision
+  frei. `szenario_kollision` wieder grün.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_kollision.py`, `tests/test_vierachs_pruefen.py` – OK; Szenarien
+  `szenario_kollision` – OK, Schwenkteil auf Kopf/Kopf (Kopie im Arbeitsordner) – OK.
+  black und ruff sauber.
+
+### NEXT
+- Ob weitere Szenarien seit P-2026-10-02-85 unbemerkt rot sind (einmal alle laufen lassen).
+
 ## P-2026-10-03-56 simultan-g93
 
 ### EINGELESEN
