@@ -176,6 +176,14 @@ def schritte(h):
         ) as datei:
             datei.write(text)
         h.bild("0_programm", d)
+        h.pruefe("keine zwei Rundachsen" not in d.hinweise.text(), f"{d.hinweise.text()!r}")
+        # Ohne Maschine: der gedachte Tisch A, C um den Nullpunkt – ein Hinweis sagt es.
+        d.wahl_maschine.setCurrentIndex(0)
+        yield 800
+        h.pruefe(
+            "keine zwei Rundachsen" in d.hinweise.text(),
+            f"ohne Maschine kein Hinweis: {d.hinweise.text()!r}",
+        )
         d.reject()
         yield 300
 

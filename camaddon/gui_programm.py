@@ -231,19 +231,38 @@ def abschnitte_mit_maschine(job, gewaehlt):
     die Rundachsen und Punkte aus ihrer Kette, je Werkzeug mit seiner Länge, wie „Auf der
     Maschine prüfen“. Liegt sie nur in ihrer Datei, wird sie dafür verborgen geöffnet und wieder
     geschlossen. Ohne Maschine mit zwei Rundachsen wie bisher (Tisch A, C um den Nullpunkt)."""
+    return _abschnitte_und_kette(job, gewaehlt)[0]
+
+
+def _abschnitte_und_kette(job, gewaehlt):
+    """(abschnitte_mit_maschine, ohne Kette): ob eine Ebene ohne die Kette einer Maschine mit
+    zwei Rundachsen gerechnet ist – dann gilt der gedachte Tisch A, C um den Nullpunkt."""
     from . import schwenken as sw
 
-    if gewaehlt is None or not (sw.ist_ebene(job) or sw.ebenen_von(job)):
-        return pp.abschnitte(job)
+    if not (sw.ist_ebene(job) or sw.ebenen_von(job)):
+        return pp.abschnitte(job), False
+    if gewaehlt is None:
+        return pp.abschnitte(job), True
     _name, pfad, dok = gewaehlt
     verborgen = None
     if dok is None:
         try:
             dok = verborgen = FreeCAD.openDocument(pfad, True)
         except Exception:  # nicht lesbar: wie ohne Maschine
-            return pp.abschnitte(job)
+            return pp.abschnitte(job), True
     try:
-        return pp.abschnitte(job, _maschine_je_operation(job, dok))
+        fuer = _maschine_je_operation(job, dok)
+        if fuer is None:
+            return pp.abschnitte(job), True
+        ohne = []
+
+        def gemerkt(op):
+            maschine = fuer(op)
+            if maschine is None:
+                ohne.append(op)
+            return maschine
+
+        return pp.abschnitte(job, gemerkt), bool(ohne)
     finally:
         if verborgen is not None:
             FreeCAD.closeDocument(verborgen.Name)
@@ -307,6 +326,7 @@ class ProgrammDialog(QtGui.QDialog):
         self._maschinen = []  # [(Name, Pfad, Dokument)] – pp.maschinen_zur_wahl()
         self._ungespeichert = False  # die gewählte Maschine liegt in keiner Datei
         self._teile = None  # die Abschnitte des Jobs, je gewählter Maschine einmal gerechnet
+        self._ohne_kette = False  # eine Ebene ohne die Kette einer 5-Achs-Maschine gerechnet
         self._fuellt = False
         self.haken = {}  # Haken der Einstellungen: Feld → QCheckBox (Szenarien)
         self.felder = {}  # Befehle: Feld → (Name, Eingabe)
@@ -725,8 +745,13 @@ class ProgrammDialog(QtGui.QDialog):
         if self._teile is None:
             k = self.wahl_maschine.currentIndex() - 1
             gewaehlt = self._maschinen[k] if 0 <= k < len(self._maschinen) else None
-            self._teile = abschnitte_mit_maschine(self.job, gewaehlt)
-        return pp.programm(self._teile, self.steuerung(), self.info, self.job.Label, vorschau)
+            self._teile, self._ohne_kette = _abschnitte_und_kette(self.job, gewaehlt)
+        s = self.steuerung()
+        programm = pp.programm(self._teile, s, self.info, self.job.Label, vorschau)
+        if self._ohne_kette and not (s.schwenkzyklus and s.schwenken):
+            # Sonst stillschweigend: der gedachte Tisch A, C um den Nullpunkt (schwenken).
+            programm.hinweise.append(tr("pp.hinweis.ebene_ohne_kette"))
+        return programm
 
     def vorschau_rechnen(self):
         if self.job is None:

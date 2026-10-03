@@ -2435,6 +2435,9 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   Rückzugshöhe (G98/G99) – bis dahin auf der Tiefe, ein folgendes „G0 X Y“ wäre dort quer
   gefahren. Kopf/Kopf geprüft: Programm und Prüfen fahren dieselben Sätze, die Spitze erreicht
   den Bohrungsgrund.
+  Rechnet das Fenster eine Ebene ohne die Kette einer Maschine mit zwei Rundachsen (keine
+  gewählt, eine 3-Achs-Fräse), sagt ein Hinweis unter der Vorschau, dass der gedachte Tisch A, C
+  um den Nullpunkt gilt (P-2026-10-04-04).
   **Nachgezogen:** P-2026-10-03-52 – steht die Maschine nach dem Wechselpunkt mit Z in MKS ganz
   oben (oder einem Befehl wie F_HOME), schwenkt sie dort: kein „G0 Z…“ mehr hinunter auf die
   Schwenkhöhe davor, beim Zurückschwenken ebenso (`postprozessor._wechselpunkt_oben`,

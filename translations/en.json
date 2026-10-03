@@ -1789,6 +1789,7 @@
     "pp.feld.schwenken.tooltip": "Before the operations of a swivelled plane. {x0} {y0} {z0}: the plane's origin in the base job, {a} {b} {c}: its angles axis by axis about Z, Y, X. Siemens: CYCLE800 with retract Z, the swivel data set between the quotes (empty: the only one) and direction −1.",
     "pp.feld.schwenken_aus": "Plane back",
     "pp.feld.schwenken_aus.tooltip": "After the last operation of a swivelled plane and at the end of the program.",
+    "pp.hinweis.ebene_ohne_kette": "The planes (3+2) are written without a swivel cycle, but the selected machine has no two rotary axes – computed as an A table (about X) with rotary table C, the pivot at the zero point. Select the 5-axis machine or the swivel cycle.",
     "pp.ebene": "Plane swivelled: {rundachsen}",
     "sw.fehler.ohne_maschine": "Without swivel cycle the program needs the machine for the rotary axes {rundachsen} – without it only for an A, C table with the pivot at the zero point.",
     "sw.fehler.keine_stellung": "There is no position of the rotary axes for {flaeche} – the tool cannot stand perpendicular on the face.",

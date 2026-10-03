@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-04 hinweis-ebene-ohne-kette
+
+### EINGELESEN
+- `gui_programm.abschnitte_mit_maschine` (P-43): ohne Maschine mit zwei Rundachsen still der
+  gedachte Tisch A, C um den Nullpunkt.
+
+### DATEIEN
+- `camaddon/gui_programm.py` (`_abschnitte_und_kette`, der Hinweis in `_programm`),
+  Übersetzungen (`pp.hinweis.ebene_ohne_kette`), `tests/gui/szenario_schwenkteil.py`,
+  Spezifikation (15.3), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.159.3).
+
+### AKZEPTANZKRITERIUM
+- Schwenkteil, LinuxCNC: mit der 5-Achs-Maschine kein Hinweis; „keine Maschine“ gewählt: „… hat
+  keine zwei Rundachsen – gerechnet ist wie ein Tisch A … Wähl die 5-Achs-Maschine oder den
+  Schwenkzyklus.“
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_sprache.py` – OK; Szenario `szenario_schwenkteil` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2 und V2b; seine Antworten zu D-1, D-2, D-4, D-5, E-2 … E-4.
+
 ## P-2026-10-04-03 wandhoehen-gemerkt
 
 ### EINGELESEN
