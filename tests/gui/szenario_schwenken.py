@@ -170,3 +170,40 @@ def schritte(h):
     spieler.knopf_hinsehen.click()
     yield 500
     h.bild("4b_auf_der_maschine_nah")
+
+    # --- Im Assistenten des Grundjobs: die Schräge gewählt → „Ebene schwenken (3+2) …“ -----------
+    # Die Liste sagt „30° schräg“, darunter die Zeile mit dem Knopf; er schließt den Assistenten
+    # und öffnet „Ebene schwenken“ mit der Fläche.
+    pruefung.reject()
+    yield 800
+    Gui.Control.showDialog(
+        gui_bearbeitung.BearbeitungPanel(doc, (block, schraege), angeklickt=klon)
+    )
+    yield from h.warte_auf(lambda: gui_bearbeitung.BearbeitungPanel.offen is not None, 15000)
+    a = gui_bearbeitung.BearbeitungPanel.offen
+    h.pruefe(a is not None and a.job is grundjob, "Assistent nicht im Grundjob")
+    if a is None:
+        return
+    if schraege not in a.gewaehlte:
+        a.flaeche_umschalten(schraege)
+    a.seite_zeigen(1)
+    yield 800
+    h.pruefe(
+        not a.schwenken_zeile.isHidden() and not a.schwenken_knopf.isHidden(),
+        "Assistent: keine Zeile „geschwenkt fräsen“",
+    )
+    h.pruefe("30° schräg" in a.schwenken_text.text(), f"Assistent: {a.schwenken_text.text()!r}")
+    h.bild("5_assistent_schraeg")
+    a.schwenken_knopf.click()
+    yield from h.warte_auf(lambda: gui_schwenken.SchwenkenPanel.offen is not None, 15000)
+    zweites = gui_schwenken.SchwenkenPanel.offen
+    h.pruefe(
+        zweites is not None
+        and zweites.flaeche == schraege
+        and zweites.ergebnis.text().endswith("A−30 C0"),
+        "„Ebene schwenken“ aus dem Assistenten: "
+        + (zweites.ergebnis.text() if zweites is not None else "kein Fenster"),
+    )
+    h.bild("6_schwenken_aus_assistent")
+    if zweites is not None:
+        zweites.reject()

@@ -244,6 +244,19 @@ def _aussennormale(form, name):
     return vr.aussennormale(form.Faces[nummer])
 
 
+def _schraeg(form, name):
+    """Wie weit die ebene Fläche `name` gegen die Waagerechte geneigt ist (Grad) – None, wenn sie
+    nicht eben ist, nach oben zeigt, eine senkrechte Wand ist (das fräst der Job ohne Schwenken)
+    oder nach unten zeigt. Dann geht sie geschwenkt (3+2, gui_schwenken)."""
+    normale = _aussennormale(form, name)
+    if normale is None:
+        return None
+    winkel = math.degrees(math.acos(max(-1.0, min(1.0, normale.z))))
+    if winkel < 0.5 or abs(winkel - 90.0) < 0.5 or winkel > 179.5:
+        return None
+    return winkel
+
+
 def _klappknopf(text, tooltip):
     """Ein fetter Knopf mit Pfeil, der einen Bereich auf- und zuklappt."""
     knopf = QtGui.QToolButton()
@@ -3171,6 +3184,19 @@ class BearbeitungPanel:
         )
         knoepfe.addStretch()
         ziel[0].addWidget(zeile)
+        # Eine schräge ebene Fläche gewählt: geschwenkt fräsen (3+2, W-014).
+        self.schwenken_zeile = QtGui.QWidget()
+        schwenken = QtGui.QVBoxLayout(self.schwenken_zeile)
+        schwenken.setContentsMargins(0, 0, 0, 0)
+        self.schwenken_text = QtGui.QLabel()
+        self.schwenken_text.setWordWrap(True)
+        schwenken.addWidget(self.schwenken_text)
+        self.schwenken_knopf = knopf(
+            tr("ba.schwenken.knopf"), tr("ba.schwenken.knopf.tooltip"), self.ebene_schwenken
+        )
+        schwenken.addWidget(self.schwenken_knopf, 0, QtCore.Qt.AlignLeft)
+        self.schwenken_zeile.hide()
+        ziel[0].addWidget(self.schwenken_zeile)
         werkstoff = _Reihen()
         self.wahl_werkstoff = QtGui.QComboBox()
         self.wahl_werkstoff.currentIndexChanged.connect(lambda _i: self._werkstoff_gewaehlt())
@@ -4130,6 +4156,7 @@ class BearbeitungPanel:
         Haken der Blöcke, wie die Wahl sie nahelegt."""
         self.flaechen_liste.clear()
         self.flaechen_liste.setVisible(bool(self.gewaehlte))
+        self.schwenken_zeile.hide()
         if self.job is None:
             self.flaechen_text.setText("")
             return
@@ -4182,6 +4209,9 @@ class BearbeitungPanel:
                 text, farbe = tr("ba.flaeche.freiform", name=name, z=z), GRUEN
             elif eb.ist_fase(form, name):
                 text, farbe = tr("ba.flaeche.fase", name=name), GRUEN
+            elif _schraeg(form, name) is not None:
+                winkel = f"{_schraeg(form, name):.0f}"
+                text, farbe = tr("ba.flaeche.schraeg", name=name, winkel=winkel), ROT
             else:
                 text, farbe = tr("ba.flaeche.nichts", name=name), ROT
             eintrag = QtGui.QListWidgetItem(dezimal(text))
@@ -4201,8 +4231,43 @@ class BearbeitungPanel:
             self.flaechen_text.setText(tr("ba.flaechen.oberseite", namen=namen))
         else:
             self.flaechen_text.setText(tr("ba.flaechen.nur"))
+        self._schwenken_zeigen(form)
         self._farben_zeigen(farben)
         self._haken_vorschlagen(form)
+
+    def _schwenken_zeigen(self, form):
+        """Ist eine gewählte Fläche schräg, die Zeile „geschwenkt fräsen“ – der Knopf nur, wenn
+        der Job schon steht (ein neuer entsteht erst mit „Anlegen“)."""
+        schraege = [n for n in self.gewaehlte if _schraeg(form, n) is not None]
+        if not schraege:
+            return
+        name = schraege[0]
+        winkel = f"{_schraeg(form, name):.0f}"
+        if self._job_offen:
+            self.schwenken_text.setText(tr("ba.schwenken.erst_anlegen", name=name, winkel=winkel))
+        else:
+            self.schwenken_text.setText(tr("ba.schwenken.text", name=name, winkel=winkel))
+        self.schwenken_knopf.setVisible(not self._job_offen)
+        self.schwenken_zeile.show()
+
+    def ebene_schwenken(self):
+        """„Ebene schwenken (3+2) …“: Der Assistent schließt (ohne anzulegen), das Fenster dafür
+        öffnet mit der ersten schrägen Fläche – im Grundjob dieses Jobs."""
+        if self.job is None or self._job_offen:
+            return
+        form = vr.modell(self.job).Shape
+        schraege = [n for n in self.gewaehlte if _schraeg(form, n) is not None]
+        if not schraege:
+            return
+        grundjob, flaeche = rw.grundjob_von(self.job), schraege[0]
+        self.reject()
+
+        def oeffnen():
+            from .gui_schwenken import SchwenkenPanel
+
+            FreeCADGui.Control.showDialog(SchwenkenPanel(grundjob, flaeche))
+
+        QtCore.QTimer.singleShot(0, oeffnen)
 
     def _haken_vorschlagen(self, form):
         """Je Block: möglich mit dieser Wahl? Dann der Haken, wie die Wahl ihn nahelegt –

@@ -2462,6 +2462,15 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   Achse, zwei Durchmesser weiter, kein Material; bei Durchgangsbohrungen das Ende, das mehr nach
   oben zeigt), die Ebene geht durch die Mitte dieses Endes (`achse_der_wand`). Für Bohrungen, um
   deren Eintritt keine ebene Fläche ist (in einer Rundung, an einem Zylinder).
+  **Im Assistenten:** P-2026-10-03-44 – eine gewählte schräge ebene Fläche (nicht waagerecht,
+  keine senkrechte Wand, nicht nach unten) steht in der Liste als „30° schräg – im Job nicht,
+  geschwenkt ja“, darunter ein Satz und der Knopf „Ebene schwenken (3+2) …“: schließt den
+  Assistenten ohne anzulegen und öffnet „Ebene schwenken“ mit der Fläche, im Grundjob. In einem
+  gerade erst entstandenen Job (noch nicht angelegt) nur der Satz: erst „Anlegen“. Dabei
+  gefunden: `getStandardButtons` im Fenster „Ebene schwenken“ warf seit P-39 unter PySide6 einen
+  TypeError (`int(...)`), FreeCAD zeigte die Knöpfe nicht – die Szenarien riefen `accept()`
+  direkt und merkten es nicht. `scripts/oberflaeche_testen.sh` lässt ein Szenario jetzt
+  scheitern, wenn im Log ein Traceback aus dem Addon steht.
 - **F6 danach:** der Materialstand über Ebenen hinweg, simultan (Flanke, Anstellwinkel).
   **Materialstand gebaut:** P-2026-10-03-40 – eine Ebene beginnt, wo nach dem Grundjob und den
   Ebenen davor noch Material steht: je Säule ihres Rasters von der Oberkante des gedrehten

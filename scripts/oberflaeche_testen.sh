@@ -40,6 +40,12 @@ for szenario in "$@"; do
         # auch wenn das Ergebnis OK war.
         echo "FEHLER $name - FreeCAD hat sich nicht beendet (Zeitlimit $zeitlimit_s s)"
         fehler=1
+    elif grep -A 30 "^Traceback" "$ausgabe/freecad.log" | grep -q 'File ".*camaddon/'; then
+        # Ein Fehler im Addon, den Qt oder FreeCAD nur ins Log schreibt (etwa in
+        # getStandardButtons) - das Szenario selbst merkt ihn nicht.
+        echo "FEHLER $name - Traceback aus dem Addon im Log:"
+        grep -A 30 "^Traceback" "$ausgabe/freecad.log" | head -30
+        fehler=1
     elif [ "$(cat "$ausgabe/ergebnis.txt" 2>/dev/null)" = "OK" ]; then
         echo "ok     $name"
     else

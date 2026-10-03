@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-44 assistent-schraeg
+
+### EINGELESEN
+- Spezifikation Strategien 15.3 (F5: im Assistenten „Ebene schwenken“), `gui_bearbeitung`
+  (Flächenliste, `_flaechen_zeigen`, `neuer_job` als Muster fürs Schließen und Öffnen).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_schraeg`, Zeile „geschwenkt fräsen“ mit Knopf,
+  `_schwenken_zeigen`, `ebene_schwenken`), `camaddon/gui_schwenken.py` (`getStandardButtons`
+  ohne `int`), Übersetzungen (`ba.flaeche.schraeg`, `ba.schwenken.*`), Hilfe `bearbeitung.html`
+  (de/en), `scripts/oberflaeche_testen.sh` (Traceback aus dem Addon im Log = Fehler),
+  `tests/gui/szenario_schwenken.py`, Spezifikation (F5), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.155.1).
+
+### AKZEPTANZKRITERIUM
+- Im Assistenten des Grundjobs die 30°-Schräge gewählt: „Face3 ist 30° schräg …“ und der Knopf;
+  ein Klick öffnet „Ebene schwenken“ mit Face3, grün „A−30 C0“, mit OK und Cancel.
+
+### DONE
+- Wie oben (Bilder 5 und 6 im Szenario). Der Fehler in `getStandardButtons` stand seit P-39 im
+  Log jedes Laufs, das Szenario war trotzdem grün; jetzt nicht mehr möglich.
+
+### TESTS
+- Szenario `szenario_schwenken` – OK, kein Traceback. black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2 und D-1 … D-5; simultan zu besprechen; Siemens: G81 → CYCLE81 vorschlagen.
+
 ## P-2026-10-03-43 programm-mit-maschine
 
 ### EINGELESEN
