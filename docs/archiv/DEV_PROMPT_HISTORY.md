@@ -12,6 +12,51 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-17 schlichten-eine-spirale-rest-ganze-stirn
+
+### EINGELESEN
+- Manuel, 2026-10-03, mit sechs Bildern seines Teils (Rundum schruppen T2 Ø 12, Rundum
+  schlichten T1 Kugel Ø 10 mit 0,5, Plan indexiert T2; Prüffenster): „warum fährt der beim
+  Schlichten mit dem Kugelfräser nicht einfach einmal wie beim Schruppen, sondern (übertrieben)
+  100 mal dieselbe Bahn … fängt mal in der Mitte an … einfach spiralisiert, mit einer seitlichen
+  Zustellung von der Angabe … wenn der Haken Plan indexiert drin ist, macht er alle planen Flächen
+  weg, aber es ist keine ‚Was ist schon bearbeitet‘-Prüfung vorgeschaltet … arbeitet hier in der
+  Luft … das mit dem Mehrfach-Spiralisieren beim Schlichten und mittig anfangen muss raus“.
+  Spezifikation Vierachs, V5b.
+
+### DATEIEN
+- `camaddon/vierachs_schlichten.py` (`rest_nach` mit der ganzen Stirn; „RestHoechstens“ statt
+  „Vorstufen“, `REST_VIEL`, Hinweis `vb.rest_viel`), `camaddon/vierachs_bahn.py` (Vorstufen
+  raus in Spirale, Zeilen und Linien; `Schlichtbahn.rest_ueber`, `_rest_ueber`; Ring am Ende
+  jeder Spirale: `_ringe(ende=True)`, `_mit_ringen`, Ringzeile hinter dem Teil aus der
+  hintersten Zeile), `camaddon/vierachs_planbahn.py` (Lagen von dem, was über den Zeilen steht;
+  `_oben_je_zeile` längs genau), Übersetzungen, Hilfe Vierachs (de/en), Spezifikation Vierachs,
+  Tests `test_vierachs_schlichten`, `_schlichten_op`, `test_goldene_bahnen` (Bahnen neu
+  geschrieben), Szenarien `szenario_vierachs_schlichten`, `szenario_vierachs_plan`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.141.0).
+
+### AKZEPTANZKRITERIUM
+- „Rundum schlichten“ ist eine Spirale von vorne nach hinten mit der Schrittweite; an der
+  Operation steht „Rest höchstens“ (was das Schruppen darüber ließ), keine „Vorstufen“.
+- Der Rest nach dem Schruppen zählt die ganze Stirn des Schruppfräsers: Welle Ø 60 nach dem
+  Schaftfräser Ø 12 → Rest höchstens 0,3 mm; D-Profil → „Plan indexiert“ 4 statt 9 Lagen.
+- Jede Spirale endet mit einer vollen Umdrehung am Ende (das Ende rund).
+
+### DONE
+- Gemessen: die Vorstufen kamen aus dem blinden `rest_nach` (R · tan δ), die Luftlagen beim
+  Plan ebenso; der Rest 1,2 mm hinten an der Welle kam vom Spiralende mitten in der Umdrehung.
+- Nicht geändert: Zeilen (gewählte Flächen) und Linien längs nehmen den Rest ebenfalls in einem
+  Zug; die Einfahrt beginnt knapp über ihm wie bisher.
+
+### TESTS
+- `tests/test_vierachs_bahn.py`, `test_vierachs_schlichten.py`, `test_vierachs_schlichten_op.py`,
+  `test_vierachs_plan.py`, `test_vierachs_pruefen.py`, `test_goldene_bahnen.py` – OK;
+  Szenarien `szenario_vierachs_schlichten`, `szenario_vierachs_plan` – OK. black und ruff sauber.
+
+### NEXT
+- Die Spirale mit der Querachse (Manuels Y-Gedanke): C hält auf der ebenen Fläche, Y fährt die
+  Gerade – als eigener Patch.
+
 ## P-2026-10-03-16 achswerte-grau-hilfe-je-steuerung
 
 ### EINGELESEN

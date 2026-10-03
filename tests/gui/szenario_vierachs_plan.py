@@ -3,9 +3,9 @@
 # Planen und Schruppen), T2 Kugelfräser Ø 4 (Schlichten). Schritt 2 ohne Flächen: der Haken
 # „Plan indexiert“ gesperrt, grau der Grund. Ein Klick auf die Abflachung: der Haken geht an
 # (Vorschlag mit Grund), die Vorschau sagt „→ 2 Lagen, 6 Zeilen“. „Anlegen“: drei Operationen,
-# „Plan indexiert T1“ mit 2 Lagen und 6 Zeilen, die Sätze mit Y und festem C. Doppelklick
+# „Plan indexiert T1“ mit 2 Lagen und 6–9 Zeilen, die Sätze mit Y und festem C. Doppelklick
 # darauf öffnet den Assistenten mit ihren Werten; „Übernehmen“ mit 1 mm Zustellung rechnet
-# sie neu – mehr Lagen.
+# sie neu – vom Rest nach dem Schruppen aus, feiner.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -120,8 +120,12 @@ def schritte(h):
     h.pruefe(plan is not None and plan.Label == "Plan indexiert T1", f"Plan: {plan and plan.Label}")
     if plan is None:
         return
+    # Mit dem Rest nach dem Schruppen (seit P-2026-10-03-17 mit der ganzen Stirn gerechnet):
+    # zwei Lagen; dicht an den Wänden ließ die Schruppspirale einen Keil (ihr Ring kommt mit
+    # der runden Stirn dort nur schmal hin), den nehmen in der oberen Lage zwei kurze Zeilen
+    # mehr – 9 statt 6.
     h.pruefe(
-        (plan.Ebenen, plan.Lagen, plan.Zeilen) == (1, 2, 6),
+        plan.Ebenen == 1 and plan.Lagen == 2 and 6 <= plan.Zeilen <= 9,
         f"{plan.Ebenen}, {plan.Lagen}, {plan.Zeilen}",
     )
     h.pruefe(list(plan.Flaechen) == [abflachung], f"Flächen: {list(plan.Flaechen)}")
@@ -153,7 +157,12 @@ def schritte(h):
     yield from h.warte_auf(lambda: panel.vorschau_plan is not None, 30000)
     h.pruefe(panel.accept() is True, "„Übernehmen“ ging nicht")
     yield 1500
-    # Die Lagen beginnen auf dem Rest nach dem Schruppen (gut Ø 20,6): mit 1 mm mehr als zwei.
-    h.pruefe(plan.Lagen >= 3, f"nach dem Ändern: {plan.Lagen} Lagen")
+    # Die Lagen beginnen auf dem Rest nach dem Schruppen (Aufmaß 0,3 über Ø 16, dazu der Keil
+    # an den Wänden bis gut 9,4): mit 1 mm Zustellung zwei Lagen, feiner als vorher die zwei
+    # mit 2 mm – mehr Zeilen.
+    h.pruefe(
+        plan.Lagen >= 2 and plan.Zeilen >= 9,
+        f"nach dem Ändern: {plan.Lagen} Lagen, {plan.Zeilen} Zeilen",
+    )
     FreeCAD.closeDocument(doc.Name)
     yield 300

@@ -145,9 +145,18 @@ pruefe(start.eilgang and start.a == 1.0 + 3.0 + 2.0 and start.r == 27.0, f"Start
 a_ende = -42.0 - (3.0 + 0.5)  # Überlauf: Radius + 0,5
 vorschub = [p for p in bahn.punkte if not p.eilgang]
 pruefe(abs(vorschub[-1].a - a_ende) < 0.35 / 720 + 1e-9, f"Ende bei {vorschub[-1].a}")
-pruefe(abs(bahn.umdrehungen - (6.0 - a_ende) / 0.35) < 1 / 720, f"{bahn.umdrehungen} Umdrehungen")
+# … plus eine Umdrehung als Ring am Ende, damit das Ende rund ist (P-2026-10-03-17): Die
+# letzten 720 Punkte im Vorschub liegen alle bei a_ende, eine volle Umdrehung.
+pruefe(
+    abs(bahn.umdrehungen - (6.0 - a_ende) / 0.35 - 1) < 1 / 720, f"{bahn.umdrehungen} Umdrehungen"
+)
+ring_ende = [p for p in vorschub if abs(p.a - a_ende) < 1e-9]
+pruefe(
+    len(ring_ende) >= 2 and ring_ende[-1].phi - ring_ende[0].phi >= 359.5 - 1e-6,
+    f"Ring am Ende: {len(ring_ende)} Punkte",
+)
 pruefe(abs(bahn.kammhoehe - (3 - math.sqrt(9 - 0.175**2))) < 1e-12, f"Kammhöhe {bahn.kammhoehe}")
-pruefe(bahn.vorstufen == 0 and bahn.hinten_frei == 0.0, "ohne Rest: Stufen oder hinten frei")
+pruefe(bahn.rest_ueber == 0.0 and bahn.hinten_frei == 0.0, "ohne Rest: Rest oder hinten frei")
 pruefe(len(stuecke(bahn)) == 1, f"{len(stuecke(bahn))} Stücke ohne Rest")
 a, r = dicht(bahn)
 soll = im_schnitt(umriss, kugel, np.clip(a, -42.0, 0.0))  # davor und dahinter: am Ende
@@ -214,38 +223,20 @@ mit = vb.schlichten(
     netz,
     LAENGS,
     RADIAL,
-    vb.Schlichtwerte(
-        kugel,
-        25.0,
-        0.35,
-        0.0,
-        1.0,
-        -70.0,
-        rest=(stange.a, stange.phi, stange.r),
-        aufmass_schruppen=0.3,
-    ),
+    vb.Schlichtwerte(kugel, 25.0, 0.35, 0.0, 1.0, -70.0, rest=(stange.a, stange.phi, stange.r)),
 )
 a_ohne, r_ohne = dicht(ohne)
 tief_ohne = r_ohne[(a_ohne > -21) & (a_ohne < -19)].min()
 pruefe(abs(tief_ohne - 15.0) < 0.02, f"ohne Schutz in die Nut: {tief_ohne:.3f}")
-pruefe(mit.grenze == 3.0 and mit.vorstufen == 1, f"Grenze {mit.grenze}, {mit.vorstufen} Stufen")
-teile = stuecke(mit)
-pruefe(len(teile) == 2, f"{len(teile)} Stücke statt Stufe und Schlichten")
-# Die Stufe: nur wo der Kugelfräser mehr als 3 mm unter den Rest käme – in der Nut (ab
-# a −21; daneben hebt ihn die senkrechte Wand gleich über 17,3 mm) –, und dort nicht tiefer als
-# Ø 40 + Aufmaß − 3 mm = 17,3 mm. Sie taucht eine Umdrehung vorher ein, wo die Wand ihn noch
-# hebt – nicht am Grund. Seit P-2026-10-03-07 fährt sie mit dem Fräserradius je Umdrehung
-# (3 mm statt der Schrittweite 0,35): Ihre letzte Umdrehung liegt deshalb bis −16,1.
-a_stufe, r_stufe = dicht(mit, teile[:1])
-pruefe(
-    -21.1 < a_stufe.min() <= -21 and -19 <= a_stufe.max() < -15.9,
-    f"Stufe von {a_stufe.min()} bis {a_stufe.max()}",
-)
-tief_stufe = r_stufe[(a_stufe > -21) & (a_stufe < -19)].min()
-pruefe(17.2 <= tief_stufe <= 17.45, f"Stufe in der Nut: {tief_stufe:.3f}")
-pruefe(teile[0][0].r >= 18.2, f"Stufe taucht bis {teile[0][0].r:.3f} ein")
-# Danach das Schlichten bis auf den Grund, neben der Nut auf Ø 40.
-a_mit, r_mit = dicht(mit, teile[1:])
+# Mit dem Rest nach dem Schruppen: dieselbe eine Spirale (Manuel, 2026-10-03: keine Stufen,
+# nicht mittendrin anfangen) – in der Nut nimmt sie in einem Zug, was der Ø 12 nicht
+# erreichte: rest_ueber ≈ 5 mm (Ø 40 + Aufmaß 0,3 über dem Grund Ø 30); der Wert steht an der
+# Operation, die Bahn ist dieselbe.
+pruefe(len(stuecke(mit)) == 1, f"{len(stuecke(mit))} Stücke statt einer Spirale")
+pruefe(5.0 <= mit.rest_ueber <= 5.4, f"Rest über der Bahn: {mit.rest_ueber:.3f}")
+pruefe(abs(mit.umdrehungen - ohne.umdrehungen) < 1e-9, "mit Rest andere Umdrehungen")
+pruefe(ohne.rest_ueber == 0.0, f"ohne Rest: rest_ueber {ohne.rest_ueber}")
+a_mit, r_mit = dicht(mit)
 tief_mit = r_mit[(a_mit > -21) & (a_mit < -19)].min()
 pruefe(abs(tief_mit - 15.0) < 0.02, f"geschlichtet in der Nut: {tief_mit:.3f}")
 aussen = (a_mit > -14) & (a_mit < -2)
@@ -253,43 +244,20 @@ pruefe(
     float(np.max(np.abs(r_mit[aussen] - 20.0))) < 0.02,
     f"neben der Nut: {r_mit[aussen].min():.3f} … {r_mit[aussen].max():.3f}",
 )
-mehr = mit.umdrehungen - ohne.umdrehungen
-pruefe(abs(mehr - (a_stufe.max() - a_stufe.min()) / 3.0) < 1.01, f"Umdrehungen der Stufe: {mehr}")
-# Die Rundachse dreht nie zurück, auch zwischen den Stücken.
+# Die Rundachse dreht nie zurück.
 winkel = [p.phi for p in mit.punkte]
 pruefe(all(b >= a - 1e-9 for a, b in zip(winkel, winkel[1:], strict=False)), "C dreht zurück")
-# Mehrere Stufen: Kugelfräser Ø 2, Grenze 1 mm – von oben nach unten 19,3 … 15,3 mm, jede
-# höchstens 1 mm unter der davor, dann der Grund. Jede taucht am Rand ein, wo die Wand den
-# Fräser über 19 mm hebt.
+# Ein Kugelfräser Ø 2: ebenso eine Spirale, der Rest derselbe.
 klein = vb.schlichten(
     netz,
     LAENGS,
     RADIAL,
     vb.Schlichtwerte(
-        ff.kugel(1.0),
-        25.0,
-        0.35,
-        0.0,
-        1.0,
-        -70.0,
-        rest=(stange.a, stange.phi, stange.r),
-        aufmass_schruppen=0.3,
+        ff.kugel(1.0), 25.0, 0.35, 0.0, 1.0, -70.0, rest=(stange.a, stange.phi, stange.r)
     ),
 )
-pruefe(klein.grenze == 1.0 and klein.vorstufen == 5, f"Ø 2: {klein.vorstufen} Stufen")
-tiefen = []
-for teil in stuecke(klein):
-    a_t, r_t = dicht(klein, [teil])
-    grund = (a_t > -22.5) & (a_t < -17.5)
-    tiefen.append(round(float(r_t[grund].min()), 2) if grund.any() else None)
-soll = [19.3, 18.3, 17.3, 16.3, 15.3, 15.0]
-pruefe(
-    len(tiefen) == len(soll)
-    and all(abs(t - s) <= 0.15 for t, s in zip(tiefen, soll, strict=False)),
-    f"Ø 2 in der Nut: {tiefen}",
-)
-eintauchen = [teil[0].r for teil in stuecke(klein)[:-1]]
-pruefe(min(eintauchen) >= 19.0, f"Ø 2 taucht ein bis {min(eintauchen):.3f}")
+pruefe(len(stuecke(klein)) == 1, f"Ø 2: {len(stuecke(klein))} Stücke")
+pruefe(5.0 <= klein.rest_ueber <= 5.4, f"Ø 2: Rest über der Bahn {klein.rest_ueber:.3f}")
 
 # --- Ringgang vor der Wand (D-42) ----------------------------------------------------------
 # Die Welle mit Absatz von oben: Die Wand bei −30 schaut zum Futter. Mit 2 mm je Umdrehung
@@ -381,7 +349,6 @@ flach = vb.schlichten(
         1.0,
         -60.0,
         rest=(stange.a, stange.phi, stange.r),
-        aufmass_schruppen=0.3,
         bereich=bereich_kugel,
     ),
 )
@@ -389,16 +356,15 @@ im_vorschub = [p for p in flach.punkte if not p.eilgang]
 drin = bereich_kugel.bei([p.a for p in im_vorschub], np.radians([p.phi for p in im_vorschub]))
 pruefe(drin.all(), f"Schlichten: {int((~drin).sum())} Punkte außerhalb des Bereichs")
 teile = stuecke(flach)
-pruefe(1 <= len(teile) <= 1 + flach.vorstufen * 4, f"Schlichten: {len(teile)} Fahrten")
+pruefe(1 <= len(teile) <= 4, f"Schlichten: {len(teile)} Fahrten")
 knapp = 0
 for vorher, punkt in zip(flach.punkte, flach.punkte[1:], strict=False):
     if vorher.eilgang and not punkt.eilgang:
         pruefe(punkt.eintauchen, f"hinein ohne Eintauchvorschub bei a {punkt.a:.2f}")
         knapp += vorher.r < 12.0 + 2.0 - 1e-9
-        # Knapp: der Sicherheitsabstand über dem Rest, und der ist nach den Stufen höchstens
-        # die Grenze (der Radius der Kugel) über der Bahn.
+        # Knapp: der Sicherheitsabstand über dem Rest, höchstens rest_ueber über der Bahn.
         tief = vorher.r - punkt.r
-        pruefe(tief <= 2.0 + flach.grenze + 1e-6, f"taucht {tief:.2f} mm ein")
+        pruefe(tief <= 2.0 + flach.rest_ueber + 1e-6, f"taucht {tief:.2f} mm ein")
 pruefe(knapp == len(teile), f"nur {knapp} von {len(teile)} Stücken knapp über dem Rest")
 winkel = [p.phi for p in flach.punkte[1:]]
 pruefe(max(winkel) - min(winkel) < 120.0, f"C dreht von {min(winkel):.0f}° bis {max(winkel):.0f}°")
@@ -422,7 +388,6 @@ linien_werte = vb.Schlichtwerte(
     1.0,
     -60.0,
     rest=(stange.a, stange.phi, stange.r),
-    aufmass_schruppen=0.3,
     bereich=bereich_kugel,
     muster=vb.LINIEN,
 )
@@ -432,9 +397,9 @@ drin = bereich_kugel.bei([p.a for p in im_vorschub], np.radians([p.phi for p in 
 pruefe(drin.all(), f"Linien: {int((~drin).sum())} Punkte außerhalb des Bereichs")
 weit = math.degrees(0.5 / (10.0 + vb.TOLERANZ_SCHLICHTEN))
 pruefe(2 <= linien.linien <= 360.0 / weit, f"{linien.linien} Linien")
-# An den Wänden ließ das Schruppen hier (ohne Ringgang) einen schmalen Streifen stehen, höher
-# als die Grenze – eine Stufe davor, dicht an den Wänden.
-pruefe(linien.vorstufen <= 1, f"Linien: {linien.vorstufen} Vorstufen")
+# An den Wänden ließ das Schruppen hier (ohne Ringgang) einen schmalen Streifen stehen – den
+# nehmen die Linien in einem Zug; rest_ueber sagt, wie hoch er ist.
+pruefe(0.0 < linien.rest_ueber < 4.0, f"Linien: Rest über der Bahn {linien.rest_ueber:.3f}")
 
 
 def linien_von(stueck):
@@ -521,8 +486,8 @@ for gleichlauf, vor in ((True, 1.0), (False, -1.0)):
     )
     fahrten = stuecke(einzeln)
     pruefe(
-        einzeln.linien == linien.linien and einzeln.vorstufen == linien.vorstufen,
-        f"nur Gleichlauf: {einzeln.linien} Linien, {einzeln.vorstufen} Vorstufen",
+        einzeln.linien == linien.linien and einzeln.rest_ueber == linien.rest_ueber,
+        f"nur Gleichlauf: {einzeln.linien} Linien, Rest {einzeln.rest_ueber}",
     )
     pruefe(
         all(max(p.phi for p in f) - min(p.phi for p in f) < 1e-9 for f in fahrten),

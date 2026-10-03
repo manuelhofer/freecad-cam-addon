@@ -10,10 +10,11 @@ Ihr Muster (V4c, Eigenschaft „Muster“) ist die Spirale oder „Linien“ lä
 festem Winkel – für Flächen, die nicht rundum gehen (vierachs_bahn, Muster LINIEN); der
 Assistent schlägt es nach den gewählten Flächen vor.
 
-Was die „Rundum schruppen“ des Jobs stehen ließen, rechnet sie mit: deren Bahnen trägt sie
-von der Stange ab (restmaterial), und tiefer als den Radius ihres Fräsers schneidet sie
-nie – wo mehr stehen blieb, fährt sie in Stufen vor. Ohne „Rundum schruppen“ im Job geht
-sie nicht – sie nähme die ganze Stange in einem Zug.
+Was die „Rundum schruppen“ des Jobs stehen ließen, rechnet sie mit (rest_nach): Die Spirale
+nimmt es in einem Zug, „Rest höchstens“ sagt, wie viel das ist (Manuel, 2026-10-03: „einfach
+spiralisiert, mit einer seitlichen Zustellung von der Angabe“; bis P-2026-10-03-17 fuhr sie
+dort vorher in Stufen und fing mittendrin an). Ohne „Rundum schruppen“ im Job geht sie
+nicht – sie nähme die ganze Stange in einem Zug.
 
 Modul- und Klassenname stehen in jeder gespeicherten Datei – sie bleiben. Der Modulname ist
 zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operationsart): Einsatz
@@ -51,6 +52,9 @@ SCHRITTWEITE_ANTEIL = 0.02  # ohne ae im Einsatz: D/50 – wie die Vorlage „Sc
 # für jede Eingabe. Die Operation rechnet dann genau.
 VORSCHAU_TOLERANZ = 0.05  # mm – Vernetzung
 VORSCHAU_SCHRITT_PHI = 2.0  # Grad je Punkt
+# Steht nach dem Schruppen mehr als Aufmaß + das über der Bahn, sagt es die Operation: Dort
+# schneidet der Schlichtfräser in einem Zug tief – das Schruppen kam nicht hin.
+REST_VIEL = 1.0  # mm
 
 
 class RundumSchlichten(PathOp.ObjectOp):
@@ -96,7 +100,7 @@ class RundumSchlichten(PathOp.ObjectOp):
             + (
                 ("App::PropertyLength", "Kammhoehe", tr("vs.eigenschaft.kammhoehe")),
                 ("App::PropertyFloat", "Umdrehungen", tr("vs.eigenschaft.umdrehungen")),
-                ("App::PropertyInteger", "Vorstufen", tr("vs.eigenschaft.vorstufen")),
+                ("App::PropertyLength", "RestHoechstens", tr("vs.eigenschaft.rest_hoechstens")),
                 ("App::PropertyInteger", "Linien", tr("vs.eigenschaft.linien")),
             ),
         )
@@ -106,8 +110,10 @@ class RundumSchlichten(PathOp.ObjectOp):
 
     @staticmethod
     def _editormodi(obj):
-        for name in ("Kammhoehe", "Umdrehungen", "Vorstufen", "Linien"):
+        for name in ("Kammhoehe", "Umdrehungen", "RestHoechstens", "Linien"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+        if "Vorstufen" in obj.PropertiesList:  # bis 0.140: die Stufen vor der Spirale
+            obj.setEditorMode("Vorstufen", 2)
         if "Workplane" in obj.PropertiesList:  # Wochen-Build: die Bahn dreht selbst
             obj.setEditorMode("Workplane", 2)
 
@@ -124,18 +130,18 @@ class RundumSchlichten(PathOp.ObjectOp):
             return
         obj.Kammhoehe = bahn.kammhoehe
         obj.Umdrehungen = round(bahn.umdrehungen, 1)
-        obj.Vorstufen = bahn.vorstufen
+        obj.RestHoechstens = bahn.rest_ueber
         obj.Linien = bahn.linien
         if bahn.hinten_frei > 0:
             from .reichweite import weg_text
 
             hinweis = tr("vb.hinten_frei", laenge=weg_text(bahn.hinten_frei))
             FreeCAD.Console.PrintWarning(f"{obj.Label}: {hinweis}\n")
-        if bahn.vorstufen:
+        if bahn.rest_ueber > float(obj.Aufmass) + REST_VIEL:
             from .reichweite import weg_text
 
-            hinweis = tr("vb.vorstufen", stufen=bahn.vorstufen, grenze=weg_text(bahn.grenze))
-            FreeCAD.Console.PrintMessage(f"{obj.Label}: {hinweis}\n")
+            hinweis = tr("vb.rest_viel", rest=weg_text(bahn.rest_ueber))
+            FreeCAD.Console.PrintWarning(f"{obj.Label}: {hinweis}\n")
         self.commandlist.extend(
             vb.befehle(
                 bahn,
@@ -239,7 +245,6 @@ def bahn_fuer(
     werte = replace(
         werte,
         rest=rest_nach(schruppen, radius, a_futter, a_vorne),
-        aufmass_schruppen=max(auf for _bahn, _radius, auf in schruppen),
         waende=vo.waende(form_teil, laengs),
         bereich=vf.bereich_fuer(form_teil, laengs, radial, flaechen, form.radius),
         muster=muster,
@@ -315,37 +320,70 @@ def _teil(modell):
 
 
 def rest_nach(schruppen, radius, a_von, a_bis):
-    """Was nach den Schruppbahnen aus jeder Richtung noch steht: je (a, φ) der Radius, bis zu
-    dem die Spitze eines Schruppfräsers aus dieser Richtung kam – zwischen den Umdrehungen um
-    seine Form höher (die Rillen) –, sonst der Stangenradius. (a, φ in rad, r) wie
-    restmaterial.Stange, für vierachs_bahn._nicht_tiefer.
+    """Was nach den Schruppbahnen noch steht: je (a, φ) der kleinste Radius, bis zu dem die
+    Stirn eines Schruppfräsers kam, sonst der Stangenradius. (a, φ in rad, r) wie
+    restmaterial.Stange – für den Rest über dem Schlichten (rest_ueber) und die Lagen von
+    „Plan indexiert“ (vierachs_planbahn._oben_je_zeile).
 
-    Bis P-2026-10-03-07 simulierte das restmaterial.Stange: ein Außenradius je Strahl. Der
-    kennt keinen Kern an der Achse, der weg ist, und keine Fahrt über die Mitte – an Manuels
-    Teil neben der Achse sah das Schlichten einen Kern, der nicht da war, und fuhr 7 Vorstufen
-    mit 0,2 mm Schritt (115 min). Was aus einer Richtung steht, sagt die Bahn aus dieser
-    Richtung selbst."""
+    Die Stirn zählt ganz – längs und quer: Ein Punkt der Stirn im Abstand ρ von der
+    Werkzeugachse liegt um form.hoehe(ρ) über der Spitze; quer um Δt versetzt steht er vom
+    Strahl der Spitze aus unter dem Winkel δ = atan(Δt ÷ (r + h)) im Radius (r + h) ÷ cos δ. Je
+    Spalte des Rasters (Winkel δ) und Stelle längs (Δa) rechnet es diesen Radius für alle Punkte
+    der Bahn zugleich. Bis P-2026-10-03-17 zählte nur das Längsprofil auf dem Strahl der Spitze:
+    Der Schaftfräser Ø 12 schien auf Manuels ebener Fläche bis 6 mm stehen zu lassen (R · tan δ),
+    die er längst weg hatte – daraus wurden Vorstufen beim Schlichten und Lagen in der Luft bei
+    „Plan indexiert“. Vorher (bis P-2026-10-03-07) simulierte es restmaterial.Stange, die keinen
+    Kern an der Achse kennt, der weg ist.
+    """
     schritt_a, schritt_phi = rm.SCHRITT_A, math.radians(rm.SCHRITT_PHI)
     a = np.arange(a_von, a_bis + schritt_a / 2, schritt_a)
     phi = vh.raster_phi(rm.SCHRITT_PHI)
-    r = np.full((len(a), len(phi)), float(radius))
+    n_phi = len(phi)
+    r = np.full((len(a), n_phi), float(radius))
     for bahn, fraeser, _aufmass in schruppen:
         form = fraeser if isinstance(fraeser, ff.Form) else ff.scheibe(float(fraeser))
         pa, pr, pphi = _im_vorschub(bahn, schritt_a, radius * schritt_phi)
         if not len(pa):
             continue
-        spalten = np.rint(pphi / schritt_phi).astype(np.int64) % len(phi)
-        reichweite = int(math.ceil(form.radius / schritt_a))
-        for versatz in range(-reichweite, reichweite + 1):
-            zeilen = np.rint((pa - a_von) / schritt_a).astype(np.int64) + versatz
-            drin = (zeilen >= 0) & (zeilen < len(a))
+        stirn = form.radius
+        zeile0 = np.rint((pa - a_von) / schritt_a).astype(np.int64)
+        spalte0 = np.rint(pphi / schritt_phi).astype(np.int64)
+        # So weit reicht die Stirn seitlich, als Winkel von der Achse aus – nur zur eigenen
+        # Seite (δ unter 90°): Was eine Stirn jenseits der Achse wegnimmt, ist auf den Strahlen
+        # dort ein Kern an der Achse, und den kennt ein Außenradius je Strahl nicht.
+        weit = np.where(pr > 0, np.arctan2(stirn, np.maximum(pr, 1e-9)), math.pi / 2)
+        reichweite = int(math.ceil(stirn / schritt_a))
+        j_bis = min(n_phi // 4, int(math.ceil(float(np.max(weit)) / schritt_phi)))
+        for j in range(-j_bis, j_bis + 1):
+            delta = j * schritt_phi
+            cos_d, tan_d = math.cos(delta), math.tan(delta)
+            if cos_d < 1e-6:
+                continue
+            drin = np.abs(delta) <= weit + 1e-9
             if not drin.any():
                 continue
-            hoehe = form.hoehe(np.abs(a[zeilen[drin]] - pa[drin]))
-            steht = np.isfinite(hoehe)
-            np.minimum.at(
-                r, (zeilen[drin][steht], spalten[drin][steht]), pr[drin][steht] + hoehe[steht]
-            )
+            r0, z0, s0 = pr[drin], zeile0[drin], spalte0[drin]
+            spalten = (s0 + j) % n_phi
+            for i in range(-reichweite, reichweite + 1):
+                zeilen = z0 + i
+                im_raster = (zeilen >= 0) & (zeilen < len(a))
+                if not im_raster.any():
+                    continue
+                da = i * schritt_a
+                # Die Höhe der Stirn dort, wo sie den Strahl trifft – mit der Höhe steigt der
+                # Versatz quer, deshalb zweimal; die höhere zählt (der Fräser bleibt höher).
+                dt = np.maximum(r0, 0.0) * tan_d
+                h = form.hoehe(np.hypot(da, dt))
+                dt = np.maximum(r0 + np.where(np.isfinite(h), h, 0.0), 0.0) * tan_d
+                h2 = form.hoehe(np.hypot(da, dt))
+                h = np.maximum(h, h2)
+                steht = np.isfinite(h) & im_raster
+                # Steht die Spitze über der Achse (r + h ≤ 0), nimmt die Stirn auf diesem Strahl
+                # alles bis zur Achse – es bleibt nichts (negativ, wie die Spitze selbst).
+                hoch = r0 + h
+                wert = np.where(hoch > 0, hoch / cos_d, hoch)
+                if steht.any():
+                    np.minimum.at(r, (zeilen[steht], spalten[steht]), wert[steht])
     return a, phi, r
 
 

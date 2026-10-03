@@ -68,7 +68,6 @@ def schlichten(bauen):
         a_stange_vorne=1.0,
         a_futter=a_futter,
         rest=vs.rest_nach([(grob, 6.0, 0.3)], stange, a_futter, 1.0),
-        aufmass_schruppen=0.3,
     )
     return vb.schlichten(vh.vernetze(form, vb.TOLERANZ_SCHLICHTEN), LAENGS, RADIAL, werte)
 

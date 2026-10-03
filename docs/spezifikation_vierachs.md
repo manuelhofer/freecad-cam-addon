@@ -1025,7 +1025,33 @@ die Abstände gelten für beide.
     Umdrehungen). Die Keile, die das Raster des Schruppens (1°, höchster
     Nachbar) an steilen Stellen lässt – bis 9 mm, wo die Fläche von der Kante
     gesehen 2–3 mm je Grad fällt –, sind echt; sie nehmen die Vorstufen.
-    *Offen:* das Schruppen dort feiner rechnen; das Prüffenster malt den
+    *Zurückgenommen (P-2026-10-03-17; Manuel, 2026-10-03, an seinem Teil:
+    „warum fährt der beim Schlichten … nicht einfach einmal wie beim Schruppen
+    auch, sondern (übertrieben) 100 mal dieselbe Bahn … der fährt da einmal
+    durch und dann nochmal und fängt mal in der Mitte an … einfach
+    spiralisiert, mit einer seitlichen Zustellung von der Angabe … das mit dem
+    Mehrfach-Spiralisieren beim Schlichten und mittig anfangen muss raus“):*
+    Keine Vorstufen mehr. Schlichten ist eine Spirale von vorne nach hinten
+    mit der Schrittweite; was das Schruppen stehen ließ, nimmt sie in einem
+    Zug. An der Operation steht „Rest höchstens“ (`Schlichtbahn.rest_ueber`),
+    ist es mehr als Aufmaß + 1 mm, sagt es das Ausgabefenster. Die Vorstufen
+    an Manuels Teil kamen zudem aus einem Fehler: `rest_nach` kannte nur das
+    Längsprofil des Schruppfräsers auf dem Strahl seiner Spitze – der
+    Schaftfräser Ø 12 schien auf der ebenen Fläche R · tan δ (bis 6 mm) stehen
+    zu lassen, was er längst weg hatte. Jetzt zählt die ganze Stirn, längs und
+    quer (je Spalte des Rasters der Radius (r + h) ÷ cos δ, nur zur eigenen
+    Seite der Achse – jenseits wäre es ein Kern, den ein Außenradius je Strahl
+    nicht kennt). Dasselbe gab „Plan indexiert“ Lagen in der Luft (Manuel: „es
+    ist keine ‚Was ist schon bearbeitet‘-Prüfung vorgeschaltet … arbeitet hier
+    in der Luft“): Seine Lagen beginnen jetzt an dem, was wirklich über den
+    Zeilen steht (`_oben_je_zeile`, längs genau um den Radius), nicht am
+    Höchsten im Sektor (den Flanken des Zylinders) – D-Profil, Ø 12 schruppt:
+    4 statt 9 Lagen. Außerdem endet jede Spirale (Schruppen je Lage,
+    Schlichten) mit einer Umdrehung als Ring an ihrem Ende: Sonst hört sie
+    mitten in der Umdrehung auf, und das gerade Stück zum Abstechen (P-08) war
+    ein Schraubenstück mit der Steigung der Spirale – die Welle Ø 60 zeigte
+    hinten 1,2 mm Rest über dem Schlichten statt 0,3.
+    *Offen:* das Schruppen an steilen Stellen feiner rechnen; das Prüffenster malt den
     Abtrag weiter mit `restmaterial.Stange` – es kennt keine Fahrt über die
     Mitte (die Spitze zählt dort als 0); hinten das
     Teilende: der Überlauf fräst die Kante fertig und schneidet dabei neben

@@ -115,8 +115,13 @@ pruefe(min(ueber) >= 29.999 and max(ueber) <= 30.01, f"über dem Teil: {min(uebe
 pruefe(abs(min(b.Parameters["Z"] for b in schnitte) - (-103.5)) < 0.001, "hinteres Ende")
 kamm = 3 - math.sqrt(9 - 0.15**2)
 pruefe(abs(op.Kammhoehe.Value - kamm) < 1e-9, f"Kammhöhe {op.Kammhoehe}")
-pruefe(abs(op.Umdrehungen - (1 + 3 + 2 + 103.5) / 0.3) < 0.1, f"Umdrehungen {op.Umdrehungen}")
-pruefe(op.Vorstufen == 0, f"Vorstufen: {op.Vorstufen}")
+# … plus die eine Umdrehung des Rings am Ende (P-2026-10-03-17).
+pruefe(abs(op.Umdrehungen - (1 + 3 + 2 + 103.5) / 0.3 - 1) < 0.1, f"Umdrehungen {op.Umdrehungen}")
+# Die Welle Ø 60 aus der Stange Ø 70, geschruppt mit Aufmaß 0,3: Über der Spirale stehen das
+# Aufmaß und die Rillen des Schruppens (Scheibe Ø 12 mit 4,8 mm je Umdrehung: 0) – „Rest
+# höchstens“ etwa 0,3 mm, keine Vorstufen mehr (P-2026-10-03-17).
+pruefe(0.25 <= op.RestHoechstens.Value <= 0.45, f"Rest höchstens: {op.RestHoechstens}")
+pruefe("Vorstufen" not in op.PropertiesList, "Vorstufen noch da")
 pruefe(op.getEditorMode("Kammhoehe") == ["ReadOnly"], "Kammhöhe änderbar")
 pruefe(op.Muster == "Spirale" and op.Linien == 0, f"Muster: {op.Muster}, {op.Linien} Linien")
 

@@ -862,16 +862,7 @@ def planen(
             zeilen_gesamt += nut.boegen + nut.vollnut
             r_min = min(r_min, nut.z_min)
             continue
-        anzahl_lagen = max(1, int(math.ceil((oben - ziel) / w.zustellung - 1e-9)))
-        lagen = list(oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen)
         q_zeilen = _zeilen_quer(ebene, r_eben + zugabe + LUFT, w.zeilenabstand)
-        # Schräg zur Stange: zuletzt eine Schlichtlage auf der Fläche mit dem Zeilenabstand, bei
-        # dem höchstens GRAT_SCHRAEG stehen bleibt – wenn der Zeilenabstand mehr ließe.
-        fein = grat_zeilenabstand(ebene, r_eben)
-        q_fein = None
-        if fein is not None and fein < w.zeilenabstand - vb.GLEICH and w.aufmass <= vb.GLEICH:
-            q_fein = _zeilen_quer(ebene, r_eben + zugabe + LUFT, fein)
-            lagen.append(None)  # die Schlichtlage
         a_von = max(a_ende, ebene.a_von - radius - UEBERLAUF_LAENGS)
         a_bis = min(a_anfang, ebene.a_bis + radius + UEBERLAUF_LAENGS)
         if a_bis <= a_von + vb.GLEICH:
@@ -892,6 +883,25 @@ def planen(
         bezug = (netz, laengs, radial, geformt, rad, a_von, schritt, anzahl, radius, ragt, ziel_a)
         grob = _zeilen_rechnen(bezug, q_zeilen)
         oben_grob = _oben_je_zeile(w, ebene, q_zeilen, a_stellen, radius)
+        # Die Lagen von dem aus, was wirklich über den Zeilen steht (nach dem Schruppen der
+        # Rest unter der Stirn, _oben_je_zeile) – nicht vom Höchsten im ganzen Sektor: Das sind
+        # die Flanken des Zylinders neben der Fläche, und von dort aus lagen die Lagen in der
+        # Luft (Manuel, 2026-10-03: „keine ‚Was ist schon bearbeitet‘-Prüfung vorgeschaltet …
+        # arbeitet hier in der Luft“; P-2026-10-03-17).
+        steht = oben_grob[np.isfinite(oben_grob)]
+        if steht.size:
+            oben = min(oben, max(float(steht.max()), ziel))
+        if oben <= ziel + vb.GLEICH:
+            continue  # steht nichts mehr drüber
+        anzahl_lagen = max(1, int(math.ceil((oben - ziel) / w.zustellung - 1e-9)))
+        lagen = list(oben - (oben - ziel) * np.arange(1, anzahl_lagen + 1) / anzahl_lagen)
+        # Schräg zur Stange: zuletzt eine Schlichtlage auf der Fläche mit dem Zeilenabstand, bei
+        # dem höchstens GRAT_SCHRAEG stehen bleibt – wenn der Zeilenabstand mehr ließe.
+        fein = grat_zeilenabstand(ebene, r_eben)
+        q_fein = None
+        if fein is not None and fein < w.zeilenabstand - vb.GLEICH and w.aufmass <= vb.GLEICH:
+            q_fein = _zeilen_quer(ebene, r_eben + zugabe + LUFT, fein)
+            lagen.append(None)  # die Schlichtlage
         flaechen_gefraest += 1
         vorige = oben
         for lage in lagen:
@@ -1039,19 +1049,18 @@ def _oben_je_zeile(w, ebene, q_zeilen, a_stellen, radius):
     for m, q in enumerate(q_zeilen):
         unter = np.abs(quer - q) <= radius
         je_zeile[m] = np.max(np.where(unter, hoch, -math.inf), axis=1)
-    # Längs: was die Stirn um ihren Radius vor und hinter der Stelle überdeckt.
+    # Längs: was die Stirn um ihren Radius vor und hinter der Stelle überdeckt – genau die
+    # Stellen des Rests in diesem Abstand, nicht eine Rasterzeile mehr: Eine Zeile mehr ist
+    # neben einer Wand schon die Wand, und die Lage darüber fräste dort Luft.
     schritt = float(rest_a[1] - rest_a[0]) if len(rest_a) > 1 else radius
-    weit = int(math.ceil(radius / schritt))
-    breit = je_zeile.copy()
-    for k in range(1, weit + 1):
-        breit[:, k:] = np.maximum(breit[:, k:], je_zeile[:, :-k])
-        breit[:, :-k] = np.maximum(breit[:, :-k], je_zeile[:, k:])
-    links = np.clip(np.searchsorted(rest_a, a_stellen) - 1, 0, len(rest_a) - 1)
-    rechts = np.clip(links + 1, 0, len(rest_a) - 1)
-    oben = np.maximum(breit[:, links], breit[:, rechts])
-    # Vor und hinter der Stange steht nichts.
-    draussen = (a_stellen > rest_a[-1] + radius) | (a_stellen < rest_a[0] - radius)
-    oben[:, draussen] = -math.inf
+    a_stellen = np.asarray(a_stellen, dtype=float)
+    i_von = np.ceil((a_stellen - radius - rest_a[0]) / schritt - 1e-6).astype(np.int64)
+    i_bis = np.floor((a_stellen + radius - rest_a[0]) / schritt + 1e-6).astype(np.int64)
+    oben = np.full((len(q_zeilen), len(a_stellen)), -math.inf)
+    for k, (von, bis) in enumerate(zip(i_von.tolist(), i_bis.tolist(), strict=True)):
+        von, bis = max(von, 0), min(bis, len(rest_a) - 1)
+        if von <= bis:
+            oben[:, k] = je_zeile[:, von : bis + 1].max(axis=1)
     return np.minimum(oben, w.stange_radius)
 
 
