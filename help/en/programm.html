@@ -126,9 +126,14 @@ origin in the base job, direction −1. Then the blocks are in plane coordinates
 computes rotary axes and tool length itself, the zero point stays on the part. Back with
 “CYCLE800()”. Source: Siemens programming manual job planning 10/2015, pp. 678–681.</li>
 <li><b>Without cycle</b> (tick off, or the control has no command for it: LinuxCNC, Mach, Fanuc,
-Haas) – first to the change point, then “G0 A… C…”, the blocks with X, Y, Z computed for the
-rotated machine, afterwards the rotary axes to 0. Computed from the machine; without a machine
-only for an A table (about X) with rotary table C, the pivot at the base job's zero point.</li>
+Haas) – first to the change point and to the <b>swivel height</b> (above the space the stock
+sweeps while swivelling, + 20 mm), then “G0 A… C…”, over the first point and down along the tool
+axis; the blocks with X, Y, Z computed for the rotated machine, afterwards back to the swivel
+height and the rotary axes to 0. Computed from the <b>selected machine</b>, per tool with its
+length – exactly like “Check on machine” (on a swivel head the points depend on the length).
+Drilling cycles stay when the plane lies level in the program (swivel table); on a swivel head
+they are written out as rapid and feed moves, G83 in pecks. Without a machine only for an A table
+(about X) with rotary table C, the pivot at the base job's zero point.</li>
 </ul>
 <p><b>Before the first run</b> look at it in the control's simulation: whether the swivel data
 set, the direction and the retract suit the machine is decided by the machine builder.</p>

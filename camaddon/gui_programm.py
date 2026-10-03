@@ -208,6 +208,74 @@ class BefehlProgrammSchreiben:
         dialog.show()
 
 
+def abschnitte_mit_maschine(job, gewaehlt):
+    """pp.abschnitte des Jobs – hat er Ebenen (3+2), mit der gewählten Maschine `gewaehlt`
+    ((Name, Pfad, Dokument) aus pp.maschinen_zur_wahl): Ohne Schwenkzyklus rechnet das Programm
+    die Rundachsen und Punkte aus ihrer Kette, je Werkzeug mit seiner Länge, wie „Auf der
+    Maschine prüfen“. Liegt sie nur in ihrer Datei, wird sie dafür verborgen geöffnet und wieder
+    geschlossen. Ohne Maschine mit zwei Rundachsen wie bisher (Tisch A, C um den Nullpunkt)."""
+    from . import schwenken as sw
+
+    if gewaehlt is None or not (sw.ist_ebene(job) or sw.ebenen_von(job)):
+        return pp.abschnitte(job)
+    _name, pfad, dok = gewaehlt
+    verborgen = None
+    if dok is None:
+        try:
+            dok = verborgen = FreeCAD.openDocument(pfad, True)
+        except Exception:  # nicht lesbar: wie ohne Maschine
+            return pp.abschnitte(job)
+    try:
+        return pp.abschnitte(job, _maschine_je_operation(job, dok))
+    finally:
+        if verborgen is not None:
+            FreeCAD.closeDocument(verborgen.Name)
+
+
+def _maschine_je_operation(job, dok):
+    """Eine Funktion Operation → schwenken.Maschine (je Werkzeugnummer einmal) für die erste
+    Maschine im Dokument – None, wenn es keine gibt; die Funktion gibt None, wenn die Maschine
+    für das Werkzeug keine Aufnahme oder keine zwei Rundachsen hat."""
+    from . import maschine as m
+    from . import schwenken as sw
+    from .gui_reichweite import _bibliothek
+
+    gefunden = next(
+        (
+            (o, m.finde_maschine(o))
+            for o in dok.Objects
+            if o.TypeId == "Assembly::AssemblyObject" and m.finde_maschine(o) is not None
+        ),
+        None,
+    )
+    if gefunden is None:
+        return None
+    try:
+        pruefung = rw.Pruefung(*gefunden)
+    except Exception as fehler:  # eine kaputte Maschine: wie ohne
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Programm: {fehler}\n")
+        return None
+    bibliothek = _bibliothek()
+    nullpunkt = rw.nullpunkt(job)
+    je_nummer = {}
+
+    def fuer(op):
+        tc = getattr(op, "ToolController", None)
+        nummer = int(getattr(tc, "ToolNumber", 0) or 0)
+        if nummer not in je_nummer:
+            aufnahme = pruefung.werkzeugaufnahme(nummer) if tc is not None else None
+            maschine = None
+            if aufnahme is not None:
+                laenge = rw.einspannung(tc, bibliothek)
+                maschine = sw.Maschine(pruefung, aufnahme, laenge, nullpunkt)
+                if len(maschine.rundachsen) < 2:
+                    maschine = None
+            je_nummer[nummer] = maschine
+        return je_nummer[nummer]
+
+    return fuer
+
+
 class ProgrammDialog(QtGui.QDialog):
     """Job, Maschine, Steuerung, Befehle, Vorschau, Datei – und „Speichern“."""
 
@@ -221,6 +289,7 @@ class ProgrammDialog(QtGui.QDialog):
         self.info = pp.Maschineninfo()
         self._maschinen = []  # [(Name, Pfad, Dokument)] – pp.maschinen_zur_wahl()
         self._ungespeichert = False  # die gewählte Maschine liegt in keiner Datei
+        self._teile = None  # die Abschnitte des Jobs, je gewählter Maschine einmal gerechnet
         self._fuellt = False
         self.haken = {}  # Haken der Einstellungen: Feld → QCheckBox (Szenarien)
         self.felder = {}  # Befehle: Feld → (Name, Eingabe)
@@ -373,6 +442,7 @@ class ProgrammDialog(QtGui.QDialog):
         der Job sie (wie beim Prüfen)."""
         k = self.wahl_maschine.currentIndex() - 1
         self._ungespeichert = False
+        self._teile = None
         if 0 <= k < len(self._maschinen):
             _name, pfad, dok = self._maschinen[k]
             if dok is not None:
@@ -635,9 +705,11 @@ class ProgrammDialog(QtGui.QDialog):
     # --- Vorschau und Speichern ---------------------------------------------------------
 
     def _programm(self, vorschau=None):
-        return pp.programm(
-            pp.abschnitte(self.job), self.steuerung(), self.info, self.job.Label, vorschau
-        )
+        if self._teile is None:
+            k = self.wahl_maschine.currentIndex() - 1
+            gewaehlt = self._maschinen[k] if 0 <= k < len(self._maschinen) else None
+            self._teile = abschnitte_mit_maschine(self.job, gewaehlt)
+        return pp.programm(self._teile, self.steuerung(), self.info, self.job.Label, vorschau)
 
     def vorschau_rechnen(self):
         if self.job is None:

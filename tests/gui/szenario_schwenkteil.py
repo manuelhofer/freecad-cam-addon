@@ -145,6 +145,40 @@ def schritte(h):
     ) as d:
         d.write(siemens.text)
 
+    # --- „Programm schreiben“ ohne Schwenkzyklus: mit der Kette der Maschine gerechnet -----------
+    # (je Werkzeug mit seiner Länge, wie „Auf der Maschine prüfen“) – nicht wie ein gedachter
+    # Tisch A, C um den Nullpunkt: Der Nullpunkt liegt nicht im Drehpunkt der Maschine.
+    from camaddon import gui_programm
+
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(doc.Name, grundjob.Name)
+    yield 300
+    Gui.runCommand("CamAddon_ProgrammSchreiben")
+    yield 1500
+    d = gui_programm.ProgrammDialog.offen
+    h.pruefe(d is not None, "„Programm schreiben“ öffnet kein Fenster")
+    if d is not None:
+        d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("linuxcnc"))
+        yield 800
+        text = d._programm().text
+        gewaehlt = (asm.Document.Name, pfad_maschine, asm.Document)
+        mit = pp.programm(
+            gui_programm.abschnitte_mit_maschine(grundjob, gewaehlt), d.steuerung(), d.info,
+            grundjob.Label,
+        ).text  # fmt: skip
+        ohne = pp.programm(pp.abschnitte(grundjob), d.steuerung(), d.info, grundjob.Label).text
+        h.pruefe(
+            text == mit and text != ohne, "das Fenster rechnet die Ebenen nicht mit der Maschine"
+        )
+        h.pruefe("G0 A-30.000 C0.000" in text, "LinuxCNC: Rundachsen der Schräge fehlen")
+        with open(
+            os.path.join(os.environ.get("CAMADDON_AUSGABE", ordner), "schwenkteil.ngc"), "w"
+        ) as datei:
+            datei.write(text)
+        h.bild("0_programm", d)
+        d.reject()
+        yield 300
+
     # --- Auf der Maschine prüfen ------------------------------------------------------------------
     Gui.Selection.clearSelection()
     Gui.Selection.addSelection(grundjob)

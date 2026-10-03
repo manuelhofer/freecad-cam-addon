@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-43 programm-mit-maschine
+
+### EINGELESEN
+- Spezifikation Strategien 15.3 (F3, F4), D-3; `gui_programm._programm` rief `pp.abschnitte(job)`
+  ohne Maschine auf – ohne Zyklus rechnete das Programm wie ein Tisch A, C um den Nullpunkt,
+  „Auf der Maschine prüfen“ mit der echten Kette und Werkzeuglänge.
+
+### DATEIEN
+- `camaddon/schwenken.py` (`passende_rundachsen`, `schwenkung_fuer` mit ihr; Bohrzyklen quer
+  zur Ebene ausgeschrieben: `AUSGESCHRIEBEN`, `FREI`, `_zyklus_ausgeschrieben`; nach dem Zyklus
+  die Rückzugshöhe statt der Tiefe), `camaddon/reichweite.py` (`Pruefung.befehle` mit
+  `passende_rundachsen`), `camaddon/postprozessor.py` (`abschnitte` mit Maschine je Operation),
+  `camaddon/gui_programm.py` (`abschnitte_mit_maschine`, `_maschine_je_operation`, je gewählter
+  Maschine einmal gerechnet), Hilfe `programm.html` (de/en), `tests/test_schwenken.py`,
+  `tests/gui/szenario_schwenkteil.py`, Spezifikation (F3), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.155.0).
+
+### AKZEPTANZKRITERIUM
+- Ohne Schwenkzyklus schreibt das Fenster für eine Ebene dieselben Sätze, die „Auf der Maschine
+  prüfen“ fährt (Kopf/Kopf: Satz für Satz gleich); am Schwenkkopf geht Bohren (G83 in Hüben,
+  die Spitze am Bohrungsgrund); nach einem Bohrzyklus fährt ein „G0 X Y“ auf der Rückzugshöhe.
+
+### DONE
+- Wie oben. Im Szenario rechnet das Fenster mit der Tisch/Tisch-Maschine, anders als der
+  gedachte Tisch um den Nullpunkt (der Nullpunkt liegt nicht im Drehpunkt). Gesehen, nicht
+  geändert: am Ende nach dem Wechselpunkt noch einmal auf die Schwenkhöhe, M5 doppelt.
+
+### TESTS
+- `tests/test_schwenken.py` – OK; Szenario `szenario_schwenkteil` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2 und D-1 … D-5; simultan zu besprechen; Siemens: G81 → CYCLE81 vorschlagen.
+
 ## P-2026-10-03-42 ebene-aus-bohrung
 
 ### EINGELESEN

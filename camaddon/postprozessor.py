@@ -785,19 +785,29 @@ def abschnitte(job, maschine=None, mit_ebenen=True):
     """[Abschnitt] – die aktiven Operationen des Jobs mit Bahn, in ihrer Reihenfolge. Ist der
     Job eine geschwenkte Ebene (3+2), tragen sie ihre Schwenkung; hat er Ebenen
     (`mit_ebenen`), folgen deren Operationen – ein Programm für die Aufspannung (Spezifikation
-    Strategien 15, F3). `maschine`: schwenken.Maschine für das Programm ohne Schwenkzyklus."""
-    ergebnis = _abschnitte_des_jobs(job, sw.schwenkung_fuer(job, maschine))
+    Strategien 15, F3). `maschine`: schwenken.Maschine für das Programm ohne Schwenkzyklus –
+    oder eine Funktion Operation → schwenken.Maschine (oder None), je Werkzeug mit seiner Länge:
+    Am Schwenkkopf hängen die Punkte im Programm davon ab."""
+    ergebnis = _abschnitte_des_jobs(job, maschine)
     if mit_ebenen and not sw.ist_ebene(job):
         for ebene in sw.ebenen_von(job):
-            ergebnis += _abschnitte_des_jobs(ebene, sw.schwenkung_fuer(ebene, maschine))
+            ergebnis += _abschnitte_des_jobs(ebene, maschine)
     return ergebnis
 
 
-def _abschnitte_des_jobs(job, schwenkung):
+def _abschnitte_des_jobs(job, maschine):
     ergebnis = []
+    geschwenkt = sw.ist_ebene(job)
+    gerechnet = {}  # id(Maschine) → (Maschine, Schwenkung): je Werkzeug einmal
     for op in getattr(getattr(job, "Operations", None), "Group", []):
         if not getattr(op, "Active", True) or getattr(op, "Path", None) is None:
             continue
+        schwenkung = None
+        if geschwenkt:
+            fuer_op = maschine(op) if callable(maschine) else maschine
+            if id(fuer_op) not in gerechnet:
+                gerechnet[id(fuer_op)] = (fuer_op, sw.schwenkung_fuer(job, fuer_op))
+            schwenkung = gerechnet[id(fuer_op)][1]
         tc = getattr(op, "ToolController", None)
         nummer = int(getattr(tc, "ToolNumber", 0) or 0) if tc is not None else 0
         drehzahl = float(getattr(tc, "SpindleSpeed", 0.0) or 0.0) if tc is not None else 0.0

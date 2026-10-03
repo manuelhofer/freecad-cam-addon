@@ -39,6 +39,10 @@ SEHNE = 0.01  # mm – so weit weicht ein Bogen als Geraden höchstens ab
 BEWEGUNG = ("G0", "G00", "G1", "G01")
 BOGEN = ("G2", "G02", "G3", "G03")
 ZYKLEN = ("G73", "G81", "G82", "G83", "G85", "G86", "G89")
+# Diese Bohrzyklen schreibt befehle_ohne_zyklus als Bewegungen aus, wenn die Ebene im Programm
+# nicht in XY liegt (Schwenkkopf); G86 (Spindel steht beim Heraus) nicht.
+AUSGESCHRIEBEN = ("G73", "G81", "G82", "G83", "G85", "G89")
+FREI = 0.5  # mm – so weit über der letzten Tiefe setzt ein Hub (G83) wieder an, so weit bricht G73
 
 
 # --- Die Ebene ------------------------------------------------------------------------------
@@ -392,8 +396,10 @@ def befehle_ohne_zyklus(befehle, schwenkung):
     """Die Sätze einer Ebene (Path.Command in Koordinaten der Ebene) als Sätze im Programm ohne
     Schwenkzyklus: X, Y, Z durch die Abbildung, die Rundachsen der Ebene im ersten Satz mit
     Bewegung (davor ein eigener Satz G0 mit ihnen). Bögen bleiben Bögen, wenn die Ebene im
-    Programm in XY liegt, sonst Geraden (höchstens SEHNE daneben); Bohrzyklen nur in XY –
-    sonst ValueError.
+    Programm in XY liegt, sonst Geraden (höchstens SEHNE daneben); Bohrzyklen ebenso – sonst
+    ausgeschrieben als Eilgang und Vorschub die Achse der Ebene entlang (AUSGESCHRIEBEN; die
+    übrigen: ValueError). Nach einem Zyklus steht das Werkzeug auf seiner Rückzugshöhe (G98: wo
+    es davor stand, G99: auf R), nicht auf der Tiefe.
 
     Wo das Werkzeug nach dem Schwenken steht, weiß die Ebene nicht: Sätze, bevor X, Y und Z der
     Ebene bekannt sind (der übliche erste „G0 Z…“ ohne X, Y), fallen weg – das Werkzeug steht
@@ -408,6 +414,8 @@ def befehle_ohne_zyklus(befehle, schwenkung):
     gespiegelt = in_xy and gesamt.richtung((0.0, 0.0, 1.0))[2] < 0
     stand = [None, None, None]
     gefahren = angefahren = False
+    auf_r = False  # G99: nach dem Zyklus auf R, sonst (G98) zurück auf die Höhe davor
+    zyklus = {}  # Z, R, Q, P des letzten Bohrzyklus (modal)
     ergebnis = []
     rund = dict(schwenkung.rund)
 
@@ -431,6 +439,11 @@ def befehle_ohne_zyklus(befehle, schwenkung):
                 ergebnis.append(Path.Command("G0", {"Z": float(schwenkung.hoehe)}))
             ergebnis.append(Path.Command("G0", dict(rund)))
             gefahren = True
+        if name in ("G98", "G99"):
+            auf_r = name == "G99"
+        if name in ZYKLEN:
+            zyklus.update({k: float(werte[k]) for k in "ZRQP" if k in werte})
+            werte.update({k: zyklus[k] for k in "ZR" if k in zyklus})
         if name in BEWEGUNG + BOGEN + ZYKLEN:
             ziel = [werte[k] if k in werte else stand[i] for i, k in enumerate("XYZ")]
             if None in ziel:  # noch nicht bekannt, wo in der Ebene: merken, nicht fahren
@@ -466,18 +479,61 @@ def befehle_ohne_zyklus(befehle, schwenkung):
                     ergebnis.append(Path.Command("G1", satz))
             stand = ziel
         elif name in ZYKLEN:
-            if not in_xy:
+            r = float(werte.get("R", ziel[2]))
+            davor = stand[2] if stand[2] is not None else r
+            if in_xy:
+                neu = dict(werte)
+                neu.update(zip("XYZ", gesamt.punkt(ziel), strict=True))
+                if "R" in werte:
+                    neu["R"] = gesamt.punkt((ziel[0], ziel[1], r))[2]
+                ergebnis.append(Path.Command(befehl.Name, neu))
+            elif name in AUSGESCHRIEBEN:
+                for art, punkt, satz in _zyklus_ausgeschrieben(name, werte, zyklus, davor, auf_r):
+                    if punkt is not None:
+                        satz.update(zip("XYZ", gesamt.punkt(punkt), strict=True))
+                    ergebnis.append(Path.Command(art, satz))
+            else:
                 raise ValueError(tr("sw.fehler.zyklus"))
-            neu = dict(werte)
-            p = gesamt.punkt(ziel)
-            neu.update(zip("XYZ", p, strict=True))
-            if "R" in werte:
-                neu["R"] = gesamt.punkt((ziel[0], ziel[1], float(werte["R"])))[2]
-            ergebnis.append(Path.Command(befehl.Name, neu))
-            stand = ziel
+            stand = [ziel[0], ziel[1], r if auf_r else davor]
+        elif not in_xy and name in ("G80", "G98", "G99"):
+            continue  # ohne Zyklen im Programm ohne Sinn
         else:
             ergebnis.append(befehl)
     return ergebnis
+
+
+def _zyklus_ausgeschrieben(name, werte, zyklus, davor, auf_r):
+    """Ein Bohrzyklus als [(Befehl, Punkt in der Ebene oder None, {Adresse: Wert})]: über dem
+    Loch auf der Höhe davor, im Eilgang auf R, im Vorschub auf die Tiefe – G83 in Hüben von Q,
+    zwischen ihnen zurück auf R und im Eilgang bis FREI über die letzte Tiefe, G73 in Hüben mit
+    FREI zurück (Spänebrechen) –, G82/G89 mit Verweilen (G4 P), G85/G89 im Vorschub heraus;
+    dann auf die Rückzugshöhe (G99: R, sonst die Höhe davor)."""
+    x, y = float(werte["X"]), float(werte["Y"])
+    tief, r = float(werte["Z"]), float(werte.get("R", davor))
+    vorschub = {"F": werte["F"]} if "F" in werte else {}
+    q = float(zyklus.get("Q", 0.0)) if name in ("G73", "G83") else 0.0
+    saetze = [("G0", (x, y, davor), {})]
+    if abs(r - davor) > GLEICH:
+        saetze.append(("G0", (x, y, r), {}))
+    if q > GLEICH:
+        tiefe = r
+        while tiefe > tief + GLEICH:
+            if name == "G83" and tiefe < r - GLEICH:
+                saetze.append(("G0", (x, y, tiefe + FREI), {}))
+            tiefe = max(tief, tiefe - q)
+            saetze.append(("G1", (x, y, tiefe), dict(vorschub)))
+            if tiefe > tief + GLEICH:
+                saetze.append(("G0", (x, y, r if name == "G83" else tiefe + FREI), {}))
+    else:
+        saetze.append(("G1", (x, y, tief), dict(vorschub)))
+    if name in ("G82", "G89") and zyklus.get("P", 0.0) > 0.0:
+        saetze.append(("G4", None, {"P": zyklus["P"]}))
+    if name in ("G85", "G89"):
+        saetze.append(("G1", (x, y, r), dict(vorschub)))
+    zurueck = r if auf_r else davor
+    if saetze[-1][1] is None or abs(saetze[-1][1][2] - zurueck) > GLEICH:
+        saetze.append(("G0", (x, y, zurueck), {}))
+    return saetze
 
 
 def _bogen_punkte(anfang, ende, mitte, uhr):
@@ -650,15 +706,30 @@ def schwenkhoehe(rohteil_form, abbildung_bei, rund, rand=SCHWENK_RAND):
     return hoechste + rand
 
 
+def passende_rundachsen(maschine, lage, rund):
+    """Die Rundachsen für die Ebene `lage` an `maschine` (sw.Maschine): `rund` (am Job gemerkt),
+    wenn sie diese Achsen hat und das Werkzeug damit in der Normalen steht – sonst neu gelöst,
+    die beste Stellung; None, wenn keine die Normale trifft."""
+    normale = normale_der(lage)
+    buchstaben = {a.buchstabe for a in maschine.rundachsen}
+    if set(rund) == buchstaben and maschine.richtung(rund).dot(normale) >= 1.0 - 1e-6:
+        return rund
+    loesungen = maschine.loese(normale)
+    return loesungen[0] if loesungen else None
+
+
 def schwenkung_fuer(job, maschine=None):
     """Die Schwenkung (Ebene, Rundachsen, Abbildung ins Programm ohne Zyklus, Höhe davor) eines
-    Jobs mit Ebene – None ohne. Die Abbildung aus `maschine` (sw.Maschine); ohne Maschine nur für
-    Tisch/Tisch A, C mit dem Drehpunkt im Nullpunkt des Grundjobs, sonst None (dann geht nur der
-    Schwenkzyklus der Steuerung)."""
+    Jobs mit Ebene – None ohne. Die Abbildung aus `maschine` (sw.Maschine; die Rundachsen passend
+    zu ihr); ohne Maschine nur für Tisch/Tisch A, C mit dem Drehpunkt im Nullpunkt des Grundjobs,
+    sonst None (dann geht nur der Schwenkzyklus der Steuerung)."""
     if not ist_ebene(job):
         return None
     rund = rundachsen_von(job)
     if maschine is not None:
+        rund = passende_rundachsen(maschine, ebene_von(job), rund)
+        if rund is None:
+            return Schwenkung(ebene_von(job), rundachsen_von(job), None)
         abbildung_bei = maschine.abbildung
     elif set(rund) == {"A", "C"}:
         abbildung_bei = abbildung_ohne_maschine

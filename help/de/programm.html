@@ -130,9 +130,15 @@ Ebene; die Steuerung rechnet Rundachsen und Werkzeuglänge selbst, der Nullpunkt
 Zurück mit „CYCLE800()“. Quelle: Siemens-Programmierhandbuch Arbeitsvorbereitung 10/2015,
 S. 678–681.</li>
 <li><b>Ohne Zyklus</b> (Haken aus, oder die Steuerung hat keinen Befehl dafür: LinuxCNC, Mach,
-Fanuc, Haas) – vorher zum Wechselpunkt, dann „G0 A… C…“, die Sätze mit X, Y, Z für die gedrehte
-Maschine gerechnet, danach die Rundachsen auf 0. Gerechnet aus der Maschine; ohne Maschine nur
-für einen Tisch A (um X) mit Rundtisch C, den Drehpunkt im Nullpunkt des Grundjobs.</li>
+Fanuc, Haas) – vorher zum Wechselpunkt und auf die <b>Schwenkhöhe</b> (über dem Raum, den das
+Rohteil beim Schwenken überstreicht, + 20 mm), dann „G0 A… C…“, über den ersten Punkt und die
+Werkzeugachse entlang hinunter; die Sätze mit X, Y, Z für die gedrehte Maschine gerechnet,
+danach zurück auf die Schwenkhöhe und die Rundachsen auf 0. Gerechnet aus der <b>gewählten
+Maschine</b>, je Werkzeug mit seiner Länge – genau wie „Auf der Maschine prüfen“ (am Schwenkkopf
+hängen die Punkte von der Länge ab). Bohrzyklen bleiben, wenn die Ebene im Programm waagerecht
+liegt (Schwenktisch); am Schwenkkopf stehen sie ausgeschrieben als Eilgang und Vorschub, G83 in
+Hüben. Ohne Maschine nur für einen Tisch A (um X) mit Rundtisch C, den Drehpunkt im Nullpunkt des
+Grundjobs.</li>
 </ul>
 <p><b>Vor dem ersten Lauf</b> in der Simulation der Steuerung ansehen: Ob der Schwenkdatensatz,
 die Richtung und das Freifahren zur Maschine passen, legt der Maschinenhersteller fest.</p>

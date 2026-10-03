@@ -2421,6 +2421,17 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   „Mit dem Schwenkzyklus der Steuerung“; ohne Zyklus vorher zum Wechselpunkt, `G0 A… C…`, die
   Sätze gerechnet, danach die Rundachsen auf 0. `abschnitte(grundjob)` nimmt die Ebenen des
   Grundjobs mit (D-4 unten).
+  **Nachgezogen:** P-2026-10-03-43 – „Programm schreiben“ rechnet die Ebenen ohne Zyklus mit
+  der gewählten Maschine, je Werkzeug mit seiner Länge (`gui_programm.abschnitte_mit_maschine`,
+  `pp.abschnitte(job, Operation → Maschine)`): bis dahin rechnete es ohne Maschine (Tisch A, C um
+  den Nullpunkt), „Auf der Maschine prüfen“ aber mit ihr – Prüfung und Programm konnten
+  verschiedene Zahlen haben. Passen die Rundachsen am Job nicht zur Maschine, neu gelöst
+  (`passende_rundachsen`). Am Schwenkkopf (die Ebene im Programm nicht in XY) schreibt die
+  Umrechnung Bohrzyklen aus (G73, G81, G82, G83, G85, G89; G83 in Hüben, 0,5 mm vor der letzten
+  Tiefe wieder an) statt abzulehnen; nach einem Zyklus steht das Werkzeug auf seiner
+  Rückzugshöhe (G98/G99) – bis dahin auf der Tiefe, ein folgendes „G0 X Y“ wäre dort quer
+  gefahren. Kopf/Kopf geprüft: Programm und Prüfen fahren dieselben Sätze, die Spitze erreicht
+  den Bohrungsgrund.
 - **F4 Auf der Maschine prüfen:** Reichweite, Abfahren, Kollision für einen Job mit Ebene – die
   Sätze ohne Zyklus gerechnet, mit den Rundachsen der Ebene.
   **Gebaut:** P-2026-10-03-38 – `reichweite.operationen_mit_ebene` (der Grundjob mit seinen

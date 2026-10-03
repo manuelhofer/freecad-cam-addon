@@ -857,14 +857,9 @@ class Pruefung:
 
         maschine = sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs)
         lage = sw.ebene_von(ebene)
-        normale = sw.normale_der(lage)
-        rund = sw.rundachsen_von(ebene)
-        buchstaben = {a.buchstabe for a in maschine.rundachsen}
-        if set(rund) != buchstaben or maschine.richtung(rund).dot(normale) < 1.0 - 1e-6:
-            loesungen = maschine.loese(normale)
-            if not loesungen:
-                raise ValueError(tr("sw.fehler.keine_stellung", flaeche=ebene.Flaeche))
-            rund = loesungen[0]
+        rund = sw.passende_rundachsen(maschine, lage, sw.rundachsen_von(ebene))
+        if rund is None:
+            raise ValueError(tr("sw.fehler.keine_stellung", flaeche=ebene.Flaeche))
         abbildung = maschine.abbildung(rund)
         rohteil = getattr(getattr(ebene.Grundjob, "Stock", None), "Shape", None)
         hoehe = None

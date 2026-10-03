@@ -242,12 +242,55 @@ pruefe(
     ),
     f"Bogen als Geraden: {len(auf_dem_kreis)} Sätze",
 )
+# Bohrzyklen quer zur Ebene: ausgeschrieben, die Achse der Ebene entlang. G81 (G98): über dem Loch
+# auf der Höhe davor, auf R, im Vorschub auf die Tiefe, zurück auf die Höhe davor.
+zurueck_in_ebene = e.inverse()
+
+
+def in_der_ebene(befehle):
+    """[(Befehl, (x, y, z) in der Ebene)] der Sätze mit X, Y, Z."""
+    return [
+        (c.Name, tuple(round(v, 6) for v in zurueck_in_ebene.multVec(V(*(c.Parameters[k] for k in "XYZ")))))
+        for c in befehle
+        if all(k in c.Parameters for k in "XYZ")
+    ]  # fmt: skip
+
+
+bohr = [s for s in in_der_ebene(sw.befehle_ohne_zyklus(saetze, quer)) if s[1][:2] == (20.0, 10.0)]
+pruefe(
+    bohr == [("G0", (20, 10, -2)), ("G0", (20, 10, 2)), ("G1", (20, 10, -5)), ("G0", (20, 10, -2)),
+             ("G0", (20, 10, 10))],
+    f"G81 ausgeschrieben: {bohr}",
+)  # fmt: skip
+# G83 mit G99 in Hüben von 4: zwischen ihnen auf R, wieder hinab bis 0,5 über die letzte Tiefe;
+# danach auf R – und ein „G0 X Y“ ohne Z fährt dort, nicht auf der Tiefe.
+tief = [
+    Path.Command("G0", {"X": 0.0, "Y": 0.0, "Z": 10.0}),
+    Path.Command("G99"),
+    Path.Command("G83", {"X": 5.0, "Y": 5.0, "Z": -9.0, "R": 2.0, "Q": 4.0, "F": 1.0}),
+    Path.Command("G83", {"X": 15.0, "Y": 5.0, "Z": -9.0, "R": 2.0, "Q": 4.0, "F": 1.0}),
+    Path.Command("G80"),
+    Path.Command("G0", {"X": 30.0, "Y": 5.0}),
+]
+gebohrt = sw.befehle_ohne_zyklus(tief, quer)
+hoehen = [p[2] for _n, p in in_der_ebene(gebohrt) if p[:2] == (5.0, 5.0)]
+pruefe(hoehen == [10, 2, -2, 2, -1.5, -6, 2, -5.5, -9, 2], f"G83 erstes Loch: {hoehen}")
+hoehen = [p[2] for _n, p in in_der_ebene(gebohrt) if p[:2] == (15.0, 5.0)]
+pruefe(hoehen == [2, -2, 2, -1.5, -6, 2, -5.5, -9, 2], f"G83 zweites Loch: {hoehen}")
+pruefe(
+    in_der_ebene(gebohrt)[-1] == ("G0", (30, 5, 2)), f"nach dem Zyklus: {in_der_ebene(gebohrt)[-1]}"
+)
+pruefe(
+    not any(c.Name in ("G80", "G83", "G99") for c in gebohrt)
+    and all(c.Parameters.get("F") == 1.0 for c in gebohrt if c.Name == "G1"),
+    f"G83 ausgeschrieben: {[c.toGCode() for c in gebohrt]}",
+)
 try:
-    sw.befehle_ohne_zyklus(saetze, quer)
+    sw.befehle_ohne_zyklus([Path.Command("G86", {"X": 1.0, "Y": 1.0, "Z": -3.0, "R": 2.0})], quer)
 except ValueError as grund:
-    pruefe("Bohr" in str(grund), f"Zyklus quer: {grund}")
+    pruefe("Bohr" in str(grund), f"G86 quer: {grund}")
 else:
-    pruefe(False, "Bohrzyklus quer zur Ebene ohne Fehler")
+    pruefe(False, "G86 quer zur Ebene ohne Fehler")
 # Beginnt die Ebene mit „G0 Z…“ ohne X, Y (wie jede Operation in FreeCAD): kein erfundener Punkt
 # X0 Y0 der Ebene – auf der Schwenkhöhe über den ersten bekannten Punkt, dann hinunter.
 hoch = sw.Schwenkung(e, rund, sw.abbildung_ohne_maschine(rund), hoehe=120.0)
@@ -564,6 +607,51 @@ if bohrungen:
         any(z.startswith(("G81", "G83")) and f"X{soll[0]:.3f} Y{soll[1]:.3f}" in z for z in lcnc),
         f"LinuxCNC: Bohrzyklus nicht gerechnet ({soll}): {[z for z in lcnc if z.startswith('G8')]}",
     )
+    # Am Schwenkkopf (Kopf/Kopf) liegt die Ebene im Programm nicht in XY: der Bohrzyklus
+    # ausgeschrieben. Mit der Maschine je Werkzeug (seine Länge) stehen im Programm dieselben
+    # Sätze, die „Auf der Maschine prüfen“ fährt – und die Spitze erreicht am gedrehten
+    # Werkstück den Grund der Bohrung.
+    asm, ma = beispielmaschine.fuenfachs_kopf_kopf()
+    p = rw.Pruefung(asm, ma)
+    null = rw.nullpunkt(grundjob)
+    bib = wz.Bibliothek([fraeser, b85])
+
+    def je_op(o):
+        t = o.ToolController
+        return sw.Maschine(p, p.werkzeugaufnahme(t.ToolNumber), rw.einspannung(t, bib), null)
+
+    teile_kopf = pp.abschnitte(grundjob, je_op)
+    abschnitt = next(t for t in teile_kopf if t.name == bohr_op.Label)
+    pruefe(not abschnitt.schwenkung.in_xy(), "Kopf/Kopf: die Ebene im Programm in XY")
+    kopf = pp.programm(teile_kopf, pp.steuerung("linuxcnc"), pp.Maschineninfo("5-Achs"), "B")
+    pruefe(
+        not any(z.startswith(("G81", "G83")) for z in kopf.zeilen)
+        and not any("Bohr" in h for h in kopf.hinweise),
+        f"Kopf/Kopf: {kopf.hinweise}, {[z for z in kopf.zeilen if z.startswith('G8')]}",
+    )
+    im_programm = sw.befehle_ohne_zyklus(abschnitt.befehle, abschnitt.schwenkung)
+    gefahren = p.befehle(bohr_op, planjob, p.werkzeugaufnahme(2), rw.einspannung(tc, bib), null)
+    pruefe(
+        [c.Name for c in im_programm] == [c.Name for c in gefahren]
+        and all(
+            nahe(a.Parameters.get(k, 0.0), b.Parameters.get(k, 0.0), 1e-9)
+            for a, b in zip(im_programm, gefahren, strict=True)
+            for k in "XYZAC"
+        ),
+        "Kopf/Kopf: Programm und Prüfen fahren verschieden",
+    )
+    fahrt = ab.abfahrt(p, grundjob, null, bib)
+    nummer = next(i for i, o in enumerate(fahrt.operationen) if o.name == bohr_op.Label)
+    grund = e.multVec(V(ORT.x, ORT.y, float(zyklen[0].Parameters["Z"])))
+    am_teil = [
+        am for s, am in zip(fahrt.stationen, fahrt.am_werkstueck(), strict=True)
+        if s.operation == nummer
+    ]  # fmt: skip
+    pruefe(
+        am_teil and min(math.dist(am, grund) for am in am_teil) < 1e-4,
+        f"Kopf/Kopf: die Spitze nicht am Grund {grund}",
+    )
+    FreeCAD.closeDocument(asm.Document.Name)
 # Statt der Schräge die Wand der Bohrung angeklickt: dieselbe Ebene, die Bohrung darin senkrecht.
 wand_im_grundjob = wand(vr.modell(grundjob).Shape)
 ueber_wand = sw.lege_an(grundjob, wand_im_grundjob)
