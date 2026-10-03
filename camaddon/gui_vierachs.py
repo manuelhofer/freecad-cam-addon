@@ -518,6 +518,7 @@ class VierachsPanel:
         self.vorschau_schlichten = None  # die grobe Schlichtbahn (vierachs_bahn.Schlichtbahn)
         self._schlichten_vorgewaehlt = False  # der Haken „Rundum schlichten“ ist gesetzt
         self._muster_von_hand = False  # das Muster wurde von Hand gewählt: kein Vorschlag mehr
+        self._querachse_von_hand = False  # der Haken „mit der Querachse“ von Hand gesetzt
         self.gewaehlte = []  # die Flächen zum Fräsen („Face3“ …), V4 – leer: rundum
         self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
         self._transaktion_offen = False  # beim Ändern: Schritt 1 hat etwas geändert
@@ -725,6 +726,11 @@ class VierachsPanel:
             ]
             self._muster_setzen(vs.muster_der_operation(op), von_hand=True)
             self.linien_nur_gleichlauf.setChecked(bool(getattr(op, "NurGleichlauf", False)))
+            self._querachse_von_hand = True
+            self._querachse_vorschlagen()
+            self.schlichten_querachse.setChecked(
+                self.schlichten_querachse.isEnabled() and bool(getattr(op, "Querachse", False))
+            )
         elif self._art == PLAN:
             paare = [
                 ("zustellung_plan", op.Zustellung),
@@ -1215,6 +1221,15 @@ class VierachsPanel:
             lambda _i: self.linien_nur_gleichlauf.setEnabled(self.muster() == vb.LINIEN)
         )
         schlichten.ganz(self.linien_nur_gleichlauf)
+        # Die Spirale mit der Querachse (V5e, Manuels Y-Gedanke): vorgeschlagen, wenn die
+        # Maschine eine Achse quer zur Stange hat und ein Kugelfräser schlichtet.
+        self.schlichten_querachse = QtGui.QCheckBox(tr("va.querachse"))
+        self.schlichten_querachse.setToolTip(tr("va.querachse.tooltip"))
+        self.schlichten_querachse.toggled.connect(lambda _an: self._querachse_umgeschaltet())
+        schlichten.ganz(self.schlichten_querachse)
+        self.querachse_grund = self._grau()
+        self.querachse_grund.setWordWrap(True)
+        schlichten.ganz(self.querachse_grund)
         self.schlichtfelder = schlichten.widget
         aufbau.addWidget(self.schlichtfelder)
         self.ergebnis_schlichten = grau()
@@ -1652,6 +1667,7 @@ class VierachsPanel:
         self._planfraeser_fuellen()
         self._entgratfraeser_fuellen()
         self._muster_vorschlagen()
+        self._querachse_vorschlagen()
         self._plan_vorschlagen()
         self._entgraten_vorschlagen()
         if self.zu_aendern is None and not self._schlichten_vorgewaehlt:
@@ -1816,6 +1832,7 @@ class VierachsPanel:
     def _flaechen_geaendert(self):
         self._flaechen_zeigen()
         self._muster_vorschlagen()
+        self._querachse_vorschlagen()
         self._plan_vorschlagen()
         self._entgraten_vorschlagen()
         self._vorschau_starten()
@@ -1856,10 +1873,50 @@ class VierachsPanel:
         """Das gewählte Muster fürs Schlichten: vierachs_bahn.SPIRALE oder LINIEN."""
         return self.wahl_muster.currentData() or vb.SPIRALE
 
+    def _querachse_vorschlagen(self):
+        """Der Haken „mit der Querachse“ (V5e): geht mit der Spirale, einem Kugelfräser und einer
+        Achse quer zur Stange an der Maschine – dann vorgeschlagen (angehakt), solange man ihn
+        nicht von Hand gesetzt hat; sonst aus und gesperrt, der Grund steht grau darunter."""
+        if self.job is None:
+            return
+        achse = self.achse()
+        werkzeug = self.schlichtfraeser()
+        form = ff.von_werkzeug(werkzeug) if werkzeug is not None else None
+        if not achse.quer:
+            geht, grund = False, tr("va.querachse.keine", maschine=achse.maschine)
+        elif self.muster() != vb.SPIRALE:
+            geht, grund = False, tr("va.querachse.nur_spirale")
+        elif form is None or not form.nur_kugel:
+            geht, grund = False, tr("va.querachse.nur_kugel")
+        else:
+            geht, grund = True, tr("va.querachse.vorschlag")
+        self.querachse_grund.setText(grund)
+        vorher = self._fuellt
+        self._fuellt = True
+        try:
+            self.schlichten_querachse.setEnabled(geht)
+            if not geht:
+                self.schlichten_querachse.setChecked(False)
+            elif not self._querachse_von_hand:
+                self.schlichten_querachse.setChecked(True)
+        finally:
+            self._fuellt = vorher
+
+    def querachse(self):
+        """Schlichten mit der Querachse (angehakt und möglich)?"""
+        return self.schlichten_querachse.isEnabled() and self.schlichten_querachse.isChecked()
+
+    def _querachse_umgeschaltet(self):
+        if self._fuellt:
+            return
+        self._querachse_von_hand = True
+        self._vorschau_starten()
+
     def _muster_gewaehlt(self):
         if self._fuellt:
             return
         self._muster_von_hand = True
+        self._querachse_vorschlagen()
         self._vorschau_starten()
 
     def flaechen(self):
@@ -2093,6 +2150,7 @@ class VierachsPanel:
             eingabe.setPlaceholderText(
                 groesse_zeigen(self._vorschlag(feld), einheiten.LAENGE) or "0"
             )
+        self._querachse_vorschlagen()
         self._vorschau_starten()
 
     def _schruppen_da(self):
@@ -2131,6 +2189,7 @@ class VierachsPanel:
             self._schlicht_flaechen(),
             self.muster(),
             nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
+            querachse=self.querachse(),
         )
 
     def _schlicht_text(self, bahn):
@@ -3431,6 +3490,7 @@ class VierachsPanel:
                             flaechen=schlicht_flaechen,
                             muster=muster,
                             nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
+                            querachse=self.querachse(),
                         )
                     )
                 if plan:
@@ -3554,6 +3614,7 @@ class VierachsPanel:
                         schlicht_flaechen,
                         muster,
                         nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
+                        querachse=self.querachse(),
                     )
                 elif self._art == PLAN:
                     tc = js.controller_fuer(
@@ -3638,6 +3699,7 @@ class VierachsPanel:
                         flaechen=schlicht_flaechen,
                         muster=muster,
                         nur_gleichlauf=self.linien_nur_gleichlauf.isChecked(),
+                        querachse=self.querachse(),
                     )
                 if plan_dazu:
                     plan_flaechen, loecher = self._plan_flaechen()

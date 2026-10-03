@@ -138,12 +138,13 @@ def schritte(h):
     h.pruefe(werte == (1.5, 3.2, 0.5), f"Werte: {werte}")
     namen = [b.Name for b in op.Path.Commands]
     h.pruefe(op.Lagen > 5 and "G93" in namen, f"Bahn: {op.Lagen} Lagen")
-    # T2 ist kleiner: Die Stange ragt 4 mm weniger heraus – ein eigener Schritt davor.
+    # T2 ist kleiner: Die Stange ragt 2 mm weniger heraus (der Fräserradius; der Überlauf ist
+    # seit P-2026-10-03-08 Abstechbreite + 0,5, nicht Radius + 0,5) – ein eigener Schritt davor.
     h.pruefe(
         doc.UndoNames == ["Rundum schruppen ändern", "Stange ändern"] + schritte_vorher,
         f"{doc.UndoNames}",
     )
-    h.pruefe(abs(job.Stock.Height.Value - 144.5) < 1e-6, f"Stange mit T2: {job.Stock.Height}")
+    h.pruefe(abs(job.Stock.Height.Value - 143.5) < 1e-6, f"Stange mit T2: {job.Stock.Height}")
     tc_t2 = op.ToolController
     schritte_vorher = list(doc.UndoNames)
     Gui.Selection.clearSelection()

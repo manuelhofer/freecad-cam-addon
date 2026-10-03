@@ -259,6 +259,85 @@ klein = vb.schlichten(
 pruefe(len(stuecke(klein)) == 1, f"Ø 2: {len(stuecke(klein))} Stücke")
 pruefe(5.0 <= klein.rest_ueber <= 5.4, f"Ø 2: Rest über der Bahn {klein.rest_ueber:.3f}")
 
+# --- Die Spirale mit der Querachse (V5e, Manuels Y-Gedanke) -------------------------------
+# Ein D-Profil: Welle Ø 40 mit einer Abflachung bei x = 6, Kugel Ø 10. Mit `querachse` steht
+# die Werkzeugachse längs der Normalen: Auf der Abflachung hält die Rundachse (ψ = 0), die
+# Spitze steht bei x = 6 (+ Netz 0,005), der Versatz quer läuft über die Fläche; die Mitte
+# der Kugel bleibt überall genau R vom Teil (im Rahmen des Teils gerechnet: Rot(ψ) · (x + R,
+# q)); die Rundachse dreht nie zurück; die Bahn ist nicht länger als ohne.
+d_profil = (
+    Part.makeCylinder(20, 60, V(0, 0, -60))
+    .cut(Part.makeBox(40, 60, 80, V(6, -30, -70)))
+    .removeSplitter()
+)
+netz_d = vh.vernetze(d_profil, vb.TOLERANZ_SCHLICHTEN)
+kugel_5 = ff.kugel(5.0)
+werte_d = vb.Schlichtwerte(kugel_5, 25.0, 1.0, 0.0, 1.0, -80.0)
+radial_d = vb.schlichten(netz_d, LAENGS, RADIAL, werte_d)
+quer_d = vb.schlichten(netz_d, LAENGS, RADIAL, replace(werte_d, querachse=True))
+pruefe(quer_d.querachse and not radial_d.querachse, "querachse am Ergebnis")
+pruefe(abs(quer_d.umdrehungen - radial_d.umdrehungen) < 1e-9, "quer: andere Umdrehungen")
+im_vorschub = [p for p in quer_d.punkte if not p.eilgang]
+psi_d = np.radians([p.phi for p in im_vorschub])
+x_d = np.array([p.r for p in im_vorschub])
+q_d = np.array([p.q for p in im_vorschub])
+a_d = np.array([p.a for p in im_vorschub])
+mitte_x = (x_d + 5.0) * np.cos(psi_d) - q_d * np.sin(psi_d)
+mitte_y = (x_d + 5.0) * np.sin(psi_d) + q_d * np.cos(psi_d)
+w_d = math.sqrt(400.0 - 36.0)  # halbe Breite der Abflachung
+ecke = np.minimum(np.hypot(mitte_x - 6.0, mitte_y - w_d), np.hypot(mitte_x - 6.0, mitte_y + w_d))
+abstand_d = np.where(
+    mitte_x > 6.0,
+    np.where(np.abs(mitte_y) <= w_d, mitte_x - 6.0, ecke),
+    np.hypot(mitte_x, mitte_y) - 20.0,
+)
+im_teil = (a_d < -0.5) & (a_d > -59.5)
+pruefe(
+    abstand_d[im_teil].min() >= 5.0 - 1e-3 and abstand_d[im_teil].max() <= 5.0 + 0.2,
+    f"quer: Kugelmitte {abstand_d[im_teil].min():.4f} … {abstand_d[im_teil].max():.4f} vom Teil",
+)
+auf_ebene = im_teil & (np.abs(mitte_y) < w_d - 5.5) & (mitte_x > 5.9)
+psi_ebene = np.degrees(psi_d[auf_ebene]) % 360.0
+psi_ebene = np.where(psi_ebene > 180.0, psi_ebene - 360.0, psi_ebene)
+pruefe(
+    auf_ebene.sum() > 50 and float(np.max(np.abs(psi_ebene))) < 0.02,
+    f"auf der Ebene dreht C: ψ bis {float(np.max(np.abs(psi_ebene))):.4f}°",
+)
+pruefe(
+    float(np.max(np.abs(x_d[auf_ebene] - 6.005))) < 1e-3,
+    f"auf der Ebene: Spitze {x_d[auf_ebene].min():.4f} … {x_d[auf_ebene].max():.4f}",
+)
+# Die tiefste Spitze: ihr X – mit leicht geneigter Achse an den Rändern der Ebene Tausendstel
+# weniger als 6,005 (die Kugelmitte liegt trotzdem genau).
+pruefe(abs(quer_d.r_min - 6.005) < 0.01, f"quer: tiefste Spitze {quer_d.r_min:.4f}")
+pruefe(q_d[auf_ebene].min() < -5.0 and q_d[auf_ebene].max() > 5.0, "quer: Y läuft nicht")
+schritte_c = np.diff([p.phi for p in quer_d.punkte])
+pruefe(
+    float(np.min(schritte_c)) >= -1e-9, f"quer: C dreht zurück um {float(np.min(schritte_c)):.3f}°"
+)
+pruefe(
+    len(quer_d.punkte) < 1.5 * len(radial_d.punkte),
+    f"quer: {len(quer_d.punkte)} Punkte, radial {len(radial_d.punkte)}",
+)
+# Die Befehle tragen das Y in jedem Satz, X ist die Spitze längs der Werkzeugachse.
+befehle_q = vb.befehle(quer_d, LAENGS, RADIAL, "C", 1, 1000.0)
+schnitte_q = [b for b in befehle_q if b.Name == "G1"]
+pruefe(all("Y" in b.Parameters for b in schnitte_q), "quer: Satz ohne Y")
+dauer_q, dauer_r = vb.dauer(quer_d, 1000.0), vb.dauer(radial_d, 1000.0)
+pruefe(
+    0.8 * dauer_r <= dauer_q <= 1.3 * dauer_r, f"quer: {dauer_q:.1f} min, radial {dauer_r:.1f} min"
+)
+# Ohne Kugel (Torus) bleibt es die Spirale ohne Querachse.
+torus_q = vb.schlichten(
+    netz_d, LAENGS, RADIAL, replace(werte_d, form=ff.torus(5.0, 1.0), querachse=True)
+)
+pruefe(not torus_q.querachse and all(abs(p.q) < 1e-9 for p in torus_q.punkte), "Torus mit Y")
+print(
+    ascii(
+        f"D-Profil mit Querachse: {len(quer_d.punkte)} Punkte, {dauer_q:.1f} min (radial {dauer_r:.1f})"
+    )
+)
+
 # --- Ringgang vor der Wand (D-42) ----------------------------------------------------------
 # Die Welle mit Absatz von oben: Die Wand bei −30 schaut zum Futter. Mit 2 mm je Umdrehung
 # liegt die Spirale auf einem Teil des Umfangs 2 mm (die Kante hebt die Kugel) und 4 mm vor

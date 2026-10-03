@@ -822,6 +822,52 @@ bauen“):*
   + δ, das Y bringt das Werkzeug wieder auf den Punkt –, so schneidet eine Kugel nicht mit der
   Spitze (Schnittgeschwindigkeit 0): der Vorläufer des Anstellwinkels beim 5-Achs-Fräsen.
   Offen, als eigene Stufe zu planen.
+- **V5e – Die Spirale mit der Querachse** (P-2026-10-03-18; Manuel, 2026-10-03: „mein Gedanke
+  war eigentlich ein anderer: das Spiralisieren um das Bauteil herum nicht nur mit X und Z
+  und C, sondern eben auch Y mitnehmen … berechnet man Drehung und Koordinaten so, dass die
+  Drehung und X so passt, dass die lange Gerade exakt vom Winkel her zur Y-Achse steht, und
+  man mit der Y-Achse fährt, ohne C zu bewegen, und dann wieder mit der C-Drehung anfängt …
+  nur in Bereichen, wo es vom Weg her unters Drehzentrum geht … schon eine Spiralisierung,
+  aber halt mit allen Achsen … ich denke, die Mitte wird's uns danken“; „das aktuell
+  Vorhandene eben für Maschinen, die keine Y-Achse haben, kann man ja lassen“): Die
+  Schlichtspirale wird wie bisher gerechnet (die Spitze auf dem Strahl φ, `_spirale_rechnen`)
+  und dann je Punkt umgerechnet (`vierachs_bahn.normale_quer`): Die Mitte der Kugel liegt bei
+  ρ = r + R auf dem Strahl; die Normale der Kurve ρ(φ) im Querschnitt hat den Winkel ψ = φ −
+  atan(ρ′ ÷ ρ). Steht das Werkzeug unter ψ zum Teil (Rundachse auf ψ), liegt die Mitte quer um
+  ρ · sin(φ − ψ) neben der Werkzeugachse (`Punkt.q`, das Y) und längs bei ρ · cos(φ − ψ) – die
+  Spitze um R darunter (`Punkt.r`, das X). Auf dem Zylinder ist ψ = φ: die Spirale wie bisher.
+  Auf einer ebenen Fläche in der Tiefe d ist ψ ihre Normale – die Rundachse hält –, die Spitze
+  steht bei d, das Y läuft als (d + R) · tan(φ − ψ) über die Fläche: genau Manuels Gerade, auch
+  unter die Drehmitte (an seinem Teil: die Spitze bleibt bei X = d, nichts fährt über die
+  Mitte). Die Kugelmitte liegt dabei für jedes ψ genau auf der Hüllfläche – ψ bestimmt nur,
+  wie das Werkzeug steht; darum geht es nur mit dem Kugelfräser (Torus und Scheibe bräuchten
+  die Hüllfläche je Stellung – offen, siehe unten). ρ′ kommt aus vier Nachbarn (Fehler h⁴),
+  ψ wird über ±8 Punkte geglättet (das Netz ist facettiert; die Normale einer Facettenkante
+  springt um Zehntelgrad, und die Rundachse liefe zurück) – jede Glättung ist eine gültige
+  Stellung. An einer Innenecke springt ψ (die Kugel liegt in der Ecke): das Werkzeug dreht
+  dort um die ruhende Kugelmitte in 0,5°-Schritten. Je Ring (das Ende, vor Wänden) wird für
+  sich abgeleitet; der Ring am Ende fährt das Profil des Teilendes gerade weiter wie die
+  Spirale (nicht die Kugel hinter der Kante hinab – auch beim Schruppen). Zusammengefasst
+  wird im Rahmen des Teils (`_zusammen_quer`): Die Maschine fährt X, Y und C zugleich
+  geradlinig, die Kugelmitte läuft dabei auf Rot(ψ(t)) · (x(t) + R, q(t)) – auf der Ebene eine
+  Gerade, auf dem Zylinder ein Bogen, beides genau; ein Punkt kann weg, wenn diese Kurve an
+  ihm längs der Normalen höchstens 0,002 mm außen (0,0005 innen) und quer höchstens 0,5 mm
+  (eine andere Stelle derselben Bahn) liegt – je Lauf das längste Stück (verdoppeln,
+  halbieren). Der Weg für G93 (`_weg`) ist jetzt die Sehne im Rahmen des Teils, zum Bogen
+  gestreckt, so weit die Rundachse dreht – dreht nur sie, der Bogen; fährt nur das Y, die
+  Gerade (vorher: Radius · Winkel plus Komponenten, als wären sie unabhängig – bei X, Y und C
+  zugleich bis sechsfach zu lang). D-Profil Ø 40, Abflachung bei 6, Kugel Ø 10, 1 mm: 19 220
+  Punkte (radial 23 196), 9,3 min (radial 8,4), die Mitte überall 5,005 … 5,18 vom Teil, auf
+  der Ebene ψ auf 0,000°, Spitze X = 6,005, C dreht nie zurück. Im Assistenten der Haken
+  „Mit der Querachse (Y)“ unter dem Muster – vorgeschlagen, wenn die Maschine die Achse quer
+  hat (`Stangenachse.quer`), das Muster die Spirale ist und ein Kugelfräser schlichtet; sonst
+  gesperrt mit Grund. An der Operation die Eigenschaft `Querachse`; ohne Kugel spiralisiert
+  sie wie ohne und sagt es im Ausgabefenster. „Plan indexiert“ bleibt für Maschinen, die so
+  fräsen wollen, und für Torus und Scheibe. *Offen:* die Querachse beim Schruppen und für
+  Torus/Scheibe – dafür muss die Hüllfläche je Stellung (ψ, Y) gerechnet werden
+  (`vierachs_huelle.je_versatz` kann es für feste Richtungen; je Punkt der Spirale wäre es
+  ein Aufruf je Punkt). Das Prüffenster trägt den Abtrag mit dem Versatz quer ab
+  (`restmaterial` kennt q seit V4c).
 - **V4c – Strategien je Werkzeug und Fläche** (Manuel: „mehrere Strategien, je
   nach Werkzeug kann das anders ausfallen“): für jede Auswahl ein Vorschlag, im
   Assistenten änderbar –

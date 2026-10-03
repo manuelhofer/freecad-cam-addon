@@ -12,6 +12,59 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-18 spirale-mit-querachse
+
+### EINGELESEN
+- Manuel, 2026-10-03: „die Geschichte mit der Y-Achse – mein Gedanke war eigentlich ein anderer:
+  das Spiralisieren um das Bauteil herum nicht nur mit X und Z und C, sondern eben auch Y
+  mitnehmen … Drehung und X so, dass die lange Gerade exakt vom Winkel her zur Y-Achse steht,
+  und dann mit der Y-Achse fahren, ohne C zu bewegen, und dann wieder mit der C-Drehung
+  anfangen … ich denke, die Mitte wird's uns danken“; „das aktuell Vorhandene eben für
+  Maschinen, die keine Y-Achse haben, kann man ja lassen“. Spezifikation Vierachs, V5e.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`Schlichtwerte.querachse`, `Schlichtbahn.querachse`,
+  `normale_quer`, `_ableitung`, `_spirale_quer`, `_zusammen_quer`, `QUER_*`; `_weg` als Sehne
+  im Rahmen des Teils; der Ring am Ende hinter dem Teil folgt dem Profil des Teilendes, auch
+  beim Schruppen), `camaddon/vierachs_schlichten.py` (Eigenschaft `Querachse`, `rechne`,
+  `bahn_fuer`, `vorschau`, `lege_an`, `aendere`; Hinweis ohne Kugel), `camaddon/gui_vierachs.py`
+  (Haken „Mit der Querachse (Y)“, `_querachse_vorschlagen`, `querachse()`), Übersetzungen,
+  Hilfe Vierachs (de/en), Spezifikation Vierachs V5e, Tests `test_vierachs_schlichten`
+  (D-Profil), `test_vierachs_bahn`, Szenarien `szenario_vierachs_schlichten` (Haken, Y in den
+  Sätzen), `szenario_vierachs_aendern`, `szenario_vierachs_schruppen` (Reste von P-08: Stange
+  2 mm statt 4 mm kürzer), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.142.0).
+
+### AKZEPTANZKRITERIUM
+- Im 4-Achs-Assistenten unter dem Muster der Haken „Mit der Querachse (Y)“, vorgeschlagen mit
+  Querachse an der Maschine, Spirale und Kugelfräser; sonst gesperrt mit Grund.
+- Die Operation fährt dann mit X, Y und C: Auf einer ebenen Fläche steht C, Y fährt die Gerade,
+  X bleibt in der Tiefe der Fläche – auch unter der Drehmitte; auf dem Zylinder die Spirale wie
+  bisher. Die Kugelmitte liegt überall genau auf der Hüllfläche (D-Profil: 5,005 … 5,18 mm bei
+  R 5), C dreht nie zurück, die Bahn ist nicht länger als ohne (19 220 statt 23 196 Punkte).
+- Ohne Kugel (Torus, Scheibe) spiralisiert es wie ohne und sagt es im Ausgabefenster.
+
+### DONE
+- Nur die Kugel: Ihre Mitte liegt für jede Stellung der Werkzeugachse gleich; darum ist die
+  Umrechnung exakt und braucht keine zweite Hüllfläche. ψ aus vier Nachbarn, über ±8 Punkte
+  geglättet; Innenecken drehen um die ruhende Mitte; je Ring für sich abgeleitet.
+- Zusammengefasst wird im Rahmen des Teils (die Maschine interpoliert X, Y, C linear – auf
+  der Ebene eine Gerade, auf dem Zylinder ein Bogen, beides genau).
+- Der Weg für G93 ist jetzt die Sehne im Teil, zum Bogen gestreckt – vorher zählten Radius ·
+  Winkel und die Komponenten, als wären sie unabhängig.
+- **Nicht gebaut:** die Querachse beim Schruppen und für Torus/Scheibe (die Hüllfläche müsste je
+  Stellung gerechnet werden); „ausweichen“ (V4c+) bleibt offen.
+
+### TESTS
+- `tests/test_vierachs_schlichten.py` (neu: D-Profil mit Querachse), `test_vierachs_bahn.py`,
+  `test_vierachs_schlichten_op.py`, `test_vierachs_entgraten.py`, `test_vierachs_plan.py`,
+  `test_vierachs_pruefen.py`, `test_goldene_bahnen.py` – OK; Szenarien
+  `szenario_vierachs_schlichten`, `_plan`, `_aendern`, `_schruppen`, `szenario_rundum_drehmaschine`,
+  `szenario_erster_start` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Test an seinem Teil: Rundum schlichten mit dem Kugelfräser und dem Haken – auf der
+  Fläche hält C und Y fährt; „Plan indexiert“ dafür weglassen.
+
 ## P-2026-10-03-17 schlichten-eine-spirale-rest-ganze-stirn
 
 ### EINGELESEN

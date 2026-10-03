@@ -8,7 +8,7 @@
 # (Ø 80,0 mm → Ø 60,…)“ und „Die Stange muss 137,0 mm aus dem Futter ragen: Planaufmaß
 # 1,0 + Teil 100,0 + Überlauf 3,5 + Halter über die Werkzeugachse 27,5 + Abstand zum
 # Futter 5,0.“ (V3f; der Kopf des Halters reicht weiter als der Fräser); der Knopf heißt
-# „Anlegen“. „Anlegen“: Die Stange ist 170,0 mm lang (30 im Futter), die
+# „Anlegen“. „Anlegen“: Die Stange ist 167,0 mm lang (30 im Futter), die
 # Bahn endet 3,5 mm hinter dem Teil. Im Job stehen der
 # Controller „T1 Schruppen“ (FreeCADs Vorgabe-Controller ist weg) und „Rundum
 # schruppen T1“ mit fünf Lagen und G93. „Auf der Maschine prüfen“ (V3e, T1 mit 125 mm
@@ -147,7 +147,8 @@ def schritte(h):
         h.pruefe(op.Lagen == 5 and "G93" in namen and namen[-1] == "G94", f"Bahn: {op.Lagen}")
         hinten = min(b.Parameters["Z"] for b in op.Path.Commands if b.Name == "G1")
         h.pruefe(abs(hinten + 103.5) < 1e-6, f"Bahn endet bei Z {hinten}")
-        h.pruefe(abs(job.Stock.Height.Value - 170.0) < 1e-6, f"Stange: {job.Stock.Height}")
+        # 137 + Spannlänge 30 (Überlauf Abstechbreite + 0,5 seit P-2026-10-03-08).
+        h.pruefe(abs(job.Stock.Height.Value - 167.0) < 1e-6, f"Stange: {job.Stock.Height}")
         h.pruefe(abs(op.HalterZumFutter.Value - 27.5) < 1e-9, f"Halter: {op.HalterZumFutter}")
         h.pruefe(op.ToolController is controller[0], "Operation ohne den neuen Controller")
     Gui.Selection.clearSelection()
