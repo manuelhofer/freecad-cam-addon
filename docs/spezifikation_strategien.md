@@ -2611,6 +2611,29 @@ Kollision mit Rundachsen je Station.
 - **S4 Wegkippen**, wenn der Halter sonst anstößt.
 - **S5 Entgraten in 3D.**
 
+**Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
+Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je
+0,5 mm). Die Kugel bleibt in allen Varianten, wo sie ist – nur die Achse kippt um ihre Mitte;
+je Punkt der Schnitt-Ø am Berührpunkt (2R · sin φ, φ = Winkel zwischen Achse und
+Flächennormale) und für die simultanen Varianten die Rundachsen der Tisch/Tisch-Maschine
+(`simultan.rundachsen_entlang`), die Zeit aus dem Abfahren mit G93 und Beschleunigung:
+
+| Werkzeugachse | Zeit | Bahn mit Schnitt-Ø < 1 mm | Rundachsen |
+|---|---|---|---|
+| senkrecht (heute) | 3,35 min | 5,4 % (bis Ø 0 auf dem Gipfel) | – |
+| 3+2 fest 15° nach +Y | 3,35 min | 5,3 % (bis Ø 0,06 – die Stelle wandert nur) | A 15 fest |
+| simultan, 15° zur Fläche voreilend | 21,5 min | 0 % (überall Ø 1,55) | C dreht je Umlauf einmal herum (21 169°), A 2 314° |
+| simultan, so wenig wie nötig, Richtung frei | 7,9 min | 0 % | in der Mitte (Ø 13) dreht C je Umlauf herum (4 860°) |
+| simultan, so wenig wie nötig, **nur A** (immer in der Ebene YZ) | **3,54 min** | 0 % | A 0 … 29,5°, C steht |
+
+„So wenig wie nötig“: Ist die Fläche steiler als 15°, bleibt die Achse senkrecht; sonst kippt
+sie gerade so weit, dass zwischen Achse und Normale 15° liegen. Die Variante „nur A“ kostet 6 %
+Zeit und schneidet nirgends mit der Spitze; ihre größte Änderung je Satz war 4,5° (eine stetige
+Fassung, A = min(0, β − 15°), braucht 4,9 min). Ohne TCPM fährt die Maschine zwischen zwei
+Punkten jede Achse linear – bei 4,5° je Satz weicht die Spitze am Tisch/Tisch bis etwa 0,08 mm
+ab; gebaut müsste die Bahn dort dichter werden. Kollision nicht geprüft. Bilder:
+Draufsicht nach Schnitt-Ø je Variante, Seitenansicht mit dem Werkzeug (im Bericht an Manuel).
+
 ### 16.4 Zu entscheiden (Manuel)
 
 - **E-1 TCPM:** ~~Hat deine Maschine `TRAORI`?~~ Schon beantwortet (Status, „Beantwortet am
@@ -2618,7 +2641,10 @@ Kollision mit Rundachsen je Station.
   geben dasselbe Teil … TCPM später als Haken.“ Der Kern S1 rechnet ohne TCPM.
 - **E-2 Zuerst:** S2 (Kugelfräser angestellt) oder S3 (Flanke)?
 - **E-3 Anstellwinkel:** fest mit einem Feld (z. B. 15° voreilend, 0° seitwärts) – oder aus der
-  Neigung der Fläche?
+  Neigung der Fläche? Nach dem Versuch an der Kuppel (oben) **Empfehlung:** aus der Neigung der
+  Fläche, nur so viel wie nötig (Feld: der kleinste Winkel zwischen Achse und Fläche, 15°), und
+  nur in einer Ebene (eine Rundachse) – 6 % mehr Zeit statt 136 % (Richtung frei) oder 540 %
+  (fest voreilend auf der Spirale).
 - **E-4 Orientierung im Programm:** ~~als Richtungsvektor oder als Rundachsen?~~ Mit E-1
   entschieden: ohne TCPM gehen nur Rundachsen (A, C) – Richtungsvektoren (`A3= B3= C3=`)
   brauchen TRAORI.
