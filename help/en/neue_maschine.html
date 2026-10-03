@@ -44,7 +44,7 @@ for Z: both ends count from the spindle nose). These become the limits of the
 joints. The machine is built at X Ø 550 (radius 275)
 and Z 220 mm; if that lies outside your travels, it moves inside.</li>
 <li><b>Turret stations</b> – the addon distributes this many stations in a
-circle (P1 … Pn), each a VDI mount on the tool drive S3. The turret carries no
+circle (P1 … Pn), each a VDI mount on the tool drive (S3). The turret carries no
 fixed holders: how a tool stands is up to its holder in the tool manager.</li>
 <li><b>Turret</b> – where the mounts sit. <b>VDI in the face</b> (axial): the
 holders go into the disc along Z – a straight holder drills along Z, an angled
@@ -58,9 +58,14 @@ the face lie 40 mm inside the edge, those on the circumference on the edge.</li>
 <li><b>VDI size</b> – the shank Ø of the holders (VDI 20 … 60), the size of
 the ring around each mount. Choose the holders to match in the tool
 manager.</li>
-<li><b>Maximum speed</b> – of the <b>main spindle</b> (S1) and of the
-<b>driven tools</b> in the turret (tool drive S3); the second is often lower. “Plan
+<li><b>Maximum speed</b> – of the <b>main spindle</b> and of the
+<b>driven tools</b> in the turret (tool drive); the second is often lower. “Plan
 roughing values” takes it from the machine.</li>
+<li><b>Spindles</b> – the numbers of the <b>main spindle</b> (default 1) and of the
+<b>driven tools</b> (default 3). Each gets an S and a C with its number: the main spindle S1
+(turns the part) and C1 (positions it, the rotary axis for milling), the tool drive S3 (turns
+the tool) and C3 (orients it). If your control calls them e.g. S4/C4 and S1/C1, enter 4 and 1
+– then the postprocessor writes “SPOS[4]=0”, “C4=…” and “M1=3 S1=…”.</li>
 </ul>
 <h3>The dimensions of the 3-axis mill</h3>
 <ul>
@@ -79,7 +84,7 @@ afterwards in the assembly.</p>
 machine. To show them: select “Joints” under the assembly in the tree and
 press the space bar.</p>
 <h3>Axis names as on your control</h3>
-<p>The example machines call the axes S1, C1, X1, Z1, T and S3. If your control
-names them differently – say C4 and S4 for the main spindle, C1 and S1 for the
-driven tools –, open “Edit machine” after building, click the row and change
-the <b>NC name</b>. The program then calls the axes that way.</p>
+<p>The example machines call the axes X1, Y1, Z1, T and the spindles S1/C1 and S3/C3 (on the
+lathe you enter the spindle numbers right above). If your control names them differently,
+open “Edit machine” after building, click the row and change the <b>NC name</b>. The program
+then calls the axes that way.</p>

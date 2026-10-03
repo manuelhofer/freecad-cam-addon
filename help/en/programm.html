@@ -8,10 +8,13 @@ milling machines; on a lathe with C axis and driven tools several things were mi
 <ol>
 <li>Select the job in the tree (or one of its operations), then <b>Write program …</b> in
 the CAM-Addon toolbar.</li>
-<li><b>Machine</b>: what the postprocessor knows about the job's machine – lathe or mill, X
-as diameter, the name of the rotary axis (“C is called C4”), which stations are driven
-(“T1 → S3”). The job remembered its machine when it was checked on the machine or in the
-4-axis assistant. Without a machine it writes as for a mill.</li>
+<li><b>Machine</b>: choose the machine – any open one, even one not saved yet (“… – not
+saved”), and the remembered ones. Preselected is the one the job remembered when it was
+checked on the machine or in the 4-axis assistant; if it has none, the first open one. If the
+chosen one is in a file, the job remembers it. Below it says what the postprocessor knows:
+lathe or mill, X as diameter, the main spindle and its C axis (“main spindle S4, C axis C4”),
+which stations are driven (“T1…T12 → S1 (C1)”). Without a machine it writes as for a
+mill.</li>
 <li><b>Control</b>: LinuxCNC, Siemens 840D, Fanuc, Haas or Mach3/Mach4. The job remembers the
 choice, so does the machine – for the next job on it, it is preselected.</li>
 <li>The <b>preview</b> shows the first blocks. <b>Save</b> writes the whole program to the
@@ -25,25 +28,38 @@ file (suggested: next to the document, with the control's extension – .ngc, .m
 “T1 D1”, Fanuc “T0101”, Haas “T101”.</li>
 <li><b>Spindle</b> – “M3 S…” (left M4). On a lathe, though, M3 turns the part: a <b>driven
 tool</b> gets the command of its drive with the drive's number from the machine – Siemens
-“M3=3 S3=…”, Haas “M133 P…”, LinuxCNC “M3 $1 S…”.</li>
-<li><b>C axis on and off</b> – before the first path with the rotary axis and at the end:
-Siemens “SPOS=0” / “SPCOF”, Haas “M154” / “M155”.</li>
+“M1=3 S1=…” (drive S1), Haas “M133 P…”, LinuxCNC “M3 $1 S…”.</li>
+<li><b>C axis on and off</b> – before the first path with the rotary axis and at the end, with
+the number of the main spindle: Siemens “SPOS[4]=0” / “SPCOF(4)” (main spindle S4), Haas
+“M154” / “M155”.</li>
 <li><b>X as diameter</b> if the machine counts X that way (tick in “Edit machine”) – the
 paths compute the radius, the program shows twice that.</li>
-<li><b>Rotary axis</b> – with Siemens the NC name from the machine, a number with “=”
-(“C4=90.000”); otherwise its letter.</li>
+<li><b>Rotary axis</b> – the C axis of the main spindle, with Siemens its NC name from the
+machine, a number with “=” (“C4=90.000”); otherwise its letter.</li>
 <li><b>Feed</b> – in paths with the rotary axis G93 (F is 1 ÷ minutes per block), then back
 to feed per minute: G94 on a mill, G98 on Fanuc and Haas lathes (there G94 is a facing
 cycle).</li>
 <li><b>Coolant</b> – as set at the operation (flood M8, mist M7), then M9.</li>
 </ul>
 
+<h3>Main spindle and driven tools</h3>
+<p>A lathe with driven tools has two spindles, each with an <b>S</b> and a <b>C</b>: the
+<b>main spindle</b> turns the part (S) or positions it (C) – for milling it positions:
+“SPOS[4]=0”, then “C4=…” in the blocks. The <b>tool drive</b> turns the tool (“M1=3 S1=…”);
+its C axis only orients it and never appears in the path. Which spindle does what, the
+postprocessor tells from the machine: the spindle the tool stations hang on (“Driven by”) is
+the drive; the other one is the main spindle. The names are in “Edit machine”; “New
+machine …” asks for the numbers on the lathe.</p>
+<p><b>Before the first run</b> look at the program in your control's simulation: the commands
+for the C axis and the drive follow the Siemens manual; on the machine the builder decides
+some things differently.</p>
+
 <h3>Changing commands</h3>
 <p><b>Commands …</b> opens the list of commands: program start and end, tool change, spindle,
 driven tool, C axis, feed, coolant. Each can be changed – some are decided by the machine
 builder, those are <b>yellow</b> (with Fanuc the driven tool and the C axis); the program
 then contains a comment about it. Placeholders: {t} tool number, {s} speed, {m} 3 or 4
-(direction), {n} number of the drive; “|” separates lines. Changes apply per control to all
+(direction), {n} number of the drive, {h} number of the main spindle; “|” separates lines. Changes apply per control to all
 jobs; <b>Reset</b> brings the defaults back.</p>
 
 <h3>Not yet</h3>

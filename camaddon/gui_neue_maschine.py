@@ -226,6 +226,27 @@ class NeueMaschineDialog(QtGui.QDialog):
             reihe.addWidget(teil)
         formular.addRow(tr("neu.drehzahl"), zeile)
 
+        # Die Nummern der Spindeln: je ein S und ein C (Manuel, 2026-10-03: „ein S und ein C für die
+        # Hauptspindel … und ein S und ein C für die angetriebenen Werkzeuge“).
+        self.feld_hauptspindel = _nummernfeld(
+            vorgabe.hauptspindel, tr("neu.spindeln.haupt.tooltip")
+        )
+        self.feld_werkzeugantrieb = _nummernfeld(
+            vorgabe.werkzeugantrieb, tr("neu.spindeln.antrieb.tooltip")
+        )
+        self.spindeln = QtGui.QWidget()
+        reihe = QtGui.QHBoxLayout(self.spindeln)
+        reihe.setContentsMargins(0, 0, 0, 0)
+        for teil in (
+            QtGui.QLabel(tr("neu.spindeln.haupt")),
+            self.feld_hauptspindel,
+            QtGui.QLabel(tr("neu.spindeln.antrieb")),
+            self.feld_werkzeugantrieb,
+        ):
+            reihe.addWidget(teil)
+        reihe.addStretch(1)
+        formular.addRow(tr("neu.spindeln"), self.spindeln)
+
         self._nur_drehmaschine = [
             self.feld_bett,
             self.feld_y_winkel,
@@ -234,6 +255,7 @@ class NeueMaschineDialog(QtGui.QDialog):
             self.wahl_revolver,
             self.feld_scheibe,
             self.wahl_vdi,
+            self.spindeln,
         ]
         # Wer etwas ändert, bekommt den alten roten Satz nicht mehr zu sehen.
         felder = [
@@ -243,6 +265,8 @@ class NeueMaschineDialog(QtGui.QDialog):
             self.feld_drehzahl,
             self.feld_drehzahl_werkzeuge,
             self.feld_scheibe,
+            self.feld_hauptspindel,
+            self.feld_werkzeugantrieb,
         ]
         felder += [f for paar in self.felder_weg.values() for f in paar]
         for feld in felder:
@@ -306,6 +330,8 @@ class NeueMaschineDialog(QtGui.QDialog):
             if drehmaschine:
                 self.drehzahl_spindel.setText(tr("neu.drehzahl.hauptspindel"))
                 self.feld_drehzahl_werkzeuge.setValue(round(vorgabe.drehzahl_werkzeuge))
+                self.feld_hauptspindel.setValue(vorgabe.hauptspindel)
+                self.feld_werkzeugantrieb.setValue(vorgabe.werkzeugantrieb)
             else:
                 self.drehzahl_spindel.setText(tr("neu.drehzahl.spindel"))
             self.drehzahl_werkzeuge.setVisible(drehmaschine)
@@ -379,6 +405,8 @@ class NeueMaschineDialog(QtGui.QDialog):
             scheibe=_wert(self.feld_scheibe, vorgabe.scheibe),
             vdi=self.wahl_vdi.currentData(),
             x_durchmesser=bool(self.wahl_x.currentData()),
+            hauptspindel=self.feld_hauptspindel.value(),
+            werkzeugantrieb=self.feld_werkzeugantrieb.value(),
         )
 
     def accept(self):
@@ -405,6 +433,16 @@ def _drehzahlfeld(wert, tooltip):
     feld.setSingleStep(100)
     feld.setValue(round(wert))
     feld.setSuffix(" " + tr("neu.drehzahl.einheit"))
+    feld.setToolTip(tooltip)
+    return feld
+
+
+def _nummernfeld(wert, tooltip):
+    """Die Nummer einer Spindel: S und C heißen danach (4 → S4 und C4)."""
+    feld = QtGui.QSpinBox()
+    feld.setRange(*beispielmaschine.SPINDELNUMMER_BEREICH)
+    feld.setValue(int(wert))
+    feld.setPrefix("S/C ")
     feld.setToolTip(tooltip)
     return feld
 

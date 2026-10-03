@@ -1,10 +1,14 @@
 # „Programm schreiben“ (W-005, P-2026-10-03-10): eine Welle Ø 60 mit „Rundum schruppen T1“ auf
 # der Beispiel-Drehmaschine (gespeichert, der Job merkt sie sich). Das Fenster nennt die
-# Maschine – Drehmaschine, X im Durchmesser, „C heißt C1“, „T1 → S3“ (P1 angetrieben von S3).
-# Siemens 840D: in der Vorschau „T1 D1“, „SPOS=0“, „M3=3 S3=…“, die Rundachse „C1=…“. Fanuc:
+# Maschine – Drehmaschine, X im Durchmesser, „Hauptspindel S1, C-Achse C1“, „T1…T12 → S3 (C3)“.
+# Siemens 840D: in der Vorschau „T1 D1“, „SPOS[1]=0“, „M3=3 S3=…“, die Rundachse „C1=…“. Fanuc:
 # gelb der Hinweis, dass der Maschinenhersteller das angetriebene Werkzeug festlegt. „Befehle …“
 # klappt die Liste auf; „C-Achse ein“ geändert steht in der Vorschau, „Zurücksetzen“ holt die
-# Vorbelegung. „Speichern“ schreibt die Datei, der Job merkt sich die Steuerung.
+# Vorbelegung. „Speichern“ schreibt die Datei, der Job merkt sich die Steuerung. Dann wie
+# Manuels Drehmaschine (P-2026-10-03-25): eine zweite, nicht gespeichert, Hauptspindel S4/C4,
+# angetriebene Werkzeuge S1/C1 – in der Liste „… – nicht gespeichert“; gewählt: „SPOS[4]=0“,
+# „M1=3 S1=…“, „C4=…“, unter der Maschine der Satz, dass der Job sie sich erst merkt, wenn sie
+# gespeichert ist.
 import os
 import tempfile
 
@@ -35,6 +39,12 @@ def schritte(h):
     asm, _maschine = beispielmaschine.lade(beispielmaschine.DREHMASCHINE)
     pfad_maschine = os.path.join(ordner, "drehmaschine.FCStd")
     asm.Document.saveAs(pfad_maschine)
+    yield 300
+    meine, _ma = beispielmaschine.drehmaschine(
+        beispielmaschine.DrehmaschinenMasse(
+            name="Meine Drehmaschine", hauptspindel=4, werkzeugantrieb=1
+        )
+    )
     yield 300
 
     t1 = wz.Werkzeug(nummer=1, durchmesser=12, schneiden=3, schneidenlaenge=26)
@@ -73,13 +83,20 @@ def schritte(h):
         return
     maschine = d.maschine_text.text()
     h.pruefe(
-        "Drehmaschine" in maschine and "X im Durchmesser" in maschine and "T1…T12 → S3" in maschine,
+        "Drehmaschine" in maschine
+        and "X im Durchmesser" in maschine
+        and "Hauptspindel S1, C-Achse C1" in maschine
+        and "T1…T12 → S3 (C3)" in maschine,
         f"Maschine: {maschine!r}",
+    )
+    eintraege = [d.wahl_maschine.itemText(k) for k in range(d.wahl_maschine.count())]
+    h.pruefe(
+        "Meine Drehmaschine – nicht gespeichert" in eintraege, f"Maschinen zur Wahl: {eintraege}"
     )
     d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("siemens"))
     yield 800
     text = d.vorschau.toPlainText()
-    for soll in ("T1 D1", "SPOS=0", "M3=3 S3=", "G93", "C1="):
+    for soll in ("T1 D1", "SPOS[1]=0", "M3=3 S3=", "G93", "C1="):
         h.pruefe(soll in text, f"Siemens-Vorschau ohne {soll!r}: {text[:400]!r}")
     h.bild("1_siemens", d)
     d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("fanuc"))
@@ -114,5 +131,25 @@ def schritte(h):
         zeilen[-1] == "M30" and len(zeilen) > 100, f"Datei: {len(zeilen)} Zeilen, {zeilen[-1:]}"
     )
     h.bild("3_gespeichert", d)
+
+    # Wie Manuels Maschine: S4/C4 die Hauptspindel, S1/C1 die angetriebenen Werkzeuge.
+    h.pruefe(d.maschine_waehlen("Meine Drehmaschine"), "„Meine Drehmaschine“ nicht zur Wahl")
+    yield 800
+    maschine = d.maschine_text.text()
+    h.pruefe(
+        "Hauptspindel S4, C-Achse C4" in maschine
+        and "T1…T12 → S1 (C1)" in maschine
+        and "speichere sie" in maschine,
+        f"Meine Drehmaschine: {maschine!r}",
+    )
+    text = d.vorschau.toPlainText()
+    for soll in ("SPOS[4]=0", "M1=3 S1=", "C4="):
+        h.pruefe(soll in text, f"S4/C4-Vorschau ohne {soll!r}: {text[:400]!r}")
+    h.pruefe("C1=" not in text and "C3=" not in text, "die C-Achse des Antriebs in der Bahn")
+    h.pruefe(
+        getattr(job, rw.EIGENSCHAFT_MASCHINE, "") == pfad_maschine,
+        "ungespeicherte Maschine am Job gemerkt",
+    )
+    h.bild("4_meine_drehmaschine", d)
     d.reject()
     yield 300

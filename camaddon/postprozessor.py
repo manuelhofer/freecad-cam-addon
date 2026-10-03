@@ -13,9 +13,13 @@ gewählten Steuerung (STEUERUNGEN: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Ma
 - Werkzeugwechsel an der Fräse „T1 M6“, an der Drehmaschine je Steuerung („T1 D1“, „T0101“,
   „T101“); die Spindel „M3 S…“ – ein angetriebenes Werkzeug mit dem Befehl der Steuerung und
   der Nummer seines Antriebs (S3 → 3: Siemens „M3=3 S3=…“, Haas „M133 P…“).
-- An der Drehmaschine vor der ersten Bahn mit der Rundachse „C-Achse ein“, danach „aus“; X im
-  Durchmesser, wenn die Maschine X so zählt (E4: wie die Steuerung von Haus aus zählt); die
-  Rundachse mit dem NC-Namen der Maschine (Siemens mit „=“ bei einer Nummer: „C4=90.000“).
+- An der Drehmaschine vor der ersten Bahn mit der Rundachse „C-Achse ein“, danach „aus“ – mit
+  der Nummer der Hauptspindel (Siemens „SPOS[4]=0“); X im Durchmesser, wenn die Maschine X so
+  zählt (E4: wie die Steuerung von Haus aus zählt); die Rundachse mit dem NC-Namen der C-Achse
+  der Hauptspindel (Siemens mit „=“ bei einer Nummer: „C4=90.000“). Welche Spindel was tut,
+  sagt maschine.spindeln() (Manuel, 2026-10-03: „in meinem Beispiel: C4 muss sich
+  positionieren, das ist die Hauptspindel, und S1 muss die Drehzahl anmachen“): Die C-Achse
+  eines Werkzeugantriebs richtet nur das Werkzeug aus und ist nie die Rundachse der Bahn.
 - Vorschub: G93 (1 ÷ Zeit) und zurück auf Vorschub je Minute mit dem Befehl der Steuerung –
   bei Fanuc und Haas an der Drehmaschine G98 (G94 ist dort ein Plandrehzyklus).
 - F wie FreeCAD es speichert (mm/s bzw. 1 ÷ s) mal 60; in G93 mit mehr Stellen.
@@ -51,7 +55,8 @@ ROTATION = ("A", "B", "C")
 @dataclass(frozen=True)
 class Steuerung:
     """Die Befehle einer Steuerung. Platzhalter: {t} Werkzeugnummer, {s} Drehzahl, {m} 3 oder 4
-    (Drehrichtung), {n} Nummer des Antriebs, {name} Programmname. Leer: der Befehl entfällt."""
+    (Drehrichtung), {n} Nummer des Antriebs, {h} Nummer der Hauptspindel, {name} Programmname.
+    Leer: der Befehl entfällt."""
 
     kennung: str
     name: str
@@ -148,8 +153,8 @@ STEUERUNGEN = {
         "M5",
         "M{n}={m} S{n}={s}",
         "M{n}=5",
-        "SPOS=0",
-        "SPCOF",
+        "SPOS[{h}]=0",
+        "SPCOF({h})",
         "G93",
         "G94",
         "G94",
@@ -236,6 +241,9 @@ class Maschineninfo:
     # Der Wechselpunkt: Buchstabe → Stellung (mm; X als Radius, wie gespeichert); leer: keiner.
     wechselpunkt: dict = field(default_factory=dict)
     wechsel_wks: bool = False  # er zählt in Werkstückkoordinaten (sonst MKS)
+    hauptspindel: str = ""  # ihre Nummer („4“ bei S4/C4); leer: keine bekannt
+    hauptspindel_name: str = ""  # ihr NC-Name („S4“)
+    antrieb_c: dict = field(default_factory=dict)  # Nummer des Antriebs → seine C-Achse („C1“)
 
 
 @dataclass
@@ -389,7 +397,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
             # Auch ohne Befehl der Hinweis: Gerade dann muss ihn jemand eintragen (Fanuc).
             _hersteller(s, "c_ein", hinweise, gesehen, zeilen)
             if s.c_ein:
-                zeilen.extend(_zeilen(s.c_ein))
+                zeilen.extend(_zeilen(_fuellen(s.c_ein, h=_haupt(info))))
                 c_an = True
         antrieb = info.angetrieben.get(int(abschnitt.werkzeug or 0)) if info.drehmaschine else None
         soll = (antrieb or "haupt", round(abschnitt.drehzahl, 3), abschnitt.rueckwaerts)
@@ -449,7 +457,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     if werkzeug is not None:
         zeilen.extend(_zum_wechselpunkt(s, info))
     if c_an and s.c_aus:
-        zeilen.extend(_zeilen(s.c_aus))
+        zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
     zeilen.extend(_zeilen(s.ende))
     return Programm(zeilen, hinweise, saetze)
 
@@ -479,6 +487,11 @@ def _zum_wechselpunkt(s, info):
         zeilen.extend(_zeilen(_fuellen(vorlage, achsen=woerter([zuerst]))))
     zeilen.extend(_zeilen(_fuellen(vorlage, achsen=woerter(reihenfolge))))
     return zeilen
+
+
+def _haupt(info):
+    """Die Nummer der Hauptspindel für {h} – ohne bekannte die 1."""
+    return info.hauptspindel or "1"
 
 
 def _spindel_aus(s, an):
@@ -528,34 +541,72 @@ def abschnitte(job):
 
 
 def maschineninfo(job):
-    """Maschineninfo aus der Maschine, die sich der Job gemerkt hat (D-20) – ist ihre Datei
-    nicht offen, wird sie verborgen geöffnet und wieder geschlossen. Ohne: Maschineninfo()."""
+    """Maschineninfo aus der Maschine, die sich der Job gemerkt hat (D-20) – ohne:
+    Maschineninfo()."""
+    from . import reichweite as rw
+
+    return maschineninfo_datei(rw.gemerkte_maschine(job))
+
+
+def maschineninfo_datei(pfad):
+    """Maschineninfo aus der Maschinendatei `pfad` – ist sie nicht offen, wird sie verborgen
+    geöffnet und wieder geschlossen. Ohne Datei: Maschineninfo()."""
     import os
 
     import FreeCAD
 
-    from . import maschine as m
     from . import maschinenspeicher as msp
-    from . import reichweite as rw
 
-    pfad = rw.gemerkte_maschine(job)
     if not pfad or not os.path.isfile(pfad):
         return Maschineninfo()
     dok = next(
         (d for d in FreeCAD.listDocuments().values() if msp.gleiche_datei(d.FileName, pfad)),
         None,
     )
-    geoeffnet = dok is None
-    if geoeffnet:
-        try:
-            dok = FreeCAD.openDocument(pfad, True)
-        except Exception:  # eine beschädigte Datei: ohne Maschine schreiben
-            return Maschineninfo()
+    if dok is not None:
+        return maschineninfo_dokument(dok)
     try:
-        return _info_aus(dok, m, msp)
+        dok = FreeCAD.openDocument(pfad, True)
+    except Exception:  # eine beschädigte Datei: ohne Maschine schreiben
+        return Maschineninfo()
+    try:
+        return maschineninfo_dokument(dok)
     finally:
-        if geoeffnet:
-            FreeCAD.closeDocument(dok.Name)
+        FreeCAD.closeDocument(dok.Name)
+
+
+def maschineninfo_dokument(dok):
+    """Maschineninfo aus der ersten Maschine im (offenen) Dokument – auch ungespeichert."""
+    from . import maschine as m
+    from . import maschinenspeicher as msp
+
+    return _info_aus(dok, m, msp)
+
+
+def maschinen_zur_wahl():
+    """[(Name, Pfad, Dokument)] – die Maschinen, für die geschrieben werden kann: erst die offenen
+    (auch ungespeicherte – Pfad leer), dann die gemerkten aus der Liste der Maschinen
+    (maschinenspeicher), die nicht offen sind (Dokument None). Manuel (2026-10-03) hatte eine
+    Drehmaschine angelegt, aber nicht gespeichert – das Fenster schrieb „Keine Maschine am Job“."""
+    import FreeCAD
+
+    from . import maschine as m
+    from . import maschinenspeicher as msp
+
+    ergebnis = []
+    for dok in FreeCAD.listDocuments().values():
+        for objekt in dok.Objects:
+            if getattr(objekt, "TypeId", "") != "Assembly::AssemblyObject":
+                continue
+            maschine = m.finde_maschine(objekt)
+            if maschine is not None:
+                ergebnis.append((maschine.Label, dok.FileName or "", dok))
+                break
+    offen = [pfad for _name, pfad, _dok in ergebnis if pfad]
+    for eintrag in msp.laden():
+        if eintrag.vorhanden and not any(msp.gleiche_datei(eintrag.datei, p) for p in offen):
+            ergebnis.append((eintrag.name, eintrag.datei, None))
+    return ergebnis
 
 
 def _info_aus(dok, m, msp):
@@ -575,10 +626,22 @@ def _info_aus(dok, m, msp):
             b.upper(): w for b, w in m.wechselpunkt(maschine).items() if b.upper() in "XYZ"
         }
         info.wechsel_wks = m.wechsel_bezug(maschine) == m.WECHSEL_WKS
-        for ba in m.betriebsarten(maschine):
+        spindeln = m.spindeln(maschine)
+        info.hauptspindel = m.nc_nummer(spindeln.haupt)
+        if spindeln.haupt is not None:
+            info.hauptspindel_name = spindeln.haupt.NcName.strip()
+        # Die C-Achse der Hauptspindel zuerst: Sie dreht das Teil. Die C-Achse eines
+        # Werkzeugantriebs richtet nur das Werkzeug aus – nie die Rundachse der Bahn.
+        positionieren = [ba for ba in m.betriebsarten(maschine) if ba.Art == m.ART_POSITIONIEREN]
+        if spindeln.haupt_c is not None:
+            positionieren.sort(key=lambda ba: ba is not spindeln.haupt_c)
+        for ba in positionieren:
             buchstabe = m.programmname(ba).upper()
-            if ba.Art == m.ART_POSITIONIEREN and buchstabe in ROTATION:
+            if buchstabe in ROTATION and not spindeln.ist_antrieb_c(ba):
                 info.rundachsen.setdefault(buchstabe, ba.NcName.strip() or buchstabe)
+        for spindel, c in spindeln.antriebe:
+            if c is not None and m.nc_nummer(spindel):
+                info.antrieb_c[m.nc_nummer(spindel)] = c.NcName.strip()
         for aufnahme in m.aufnahmen(maschine):
             spindel = getattr(aufnahme, "Spindel", None)
             if aufnahme.Art != m.AUFNAHME_WERKZEUG or spindel is None:

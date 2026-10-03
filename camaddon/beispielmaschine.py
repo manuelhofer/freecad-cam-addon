@@ -8,8 +8,9 @@ gewählte in einem neuen Dokument an, ihr Maschinenobjekt schon ausgefüllt:
 
 - Drehmaschine mit Y-Achse, Schrägbett wie eine CLX: Hauptspindel S1/C1 –
   ihre Achse ist Z –, Revolver T mit zwölf Plätzen, jeder eine VDI30-Aufnahme
-  am Werkzeugantrieb S3; wie das Werkzeug steht (radial, axial), sagt sein
-  Halter aus der Werkzeugverwaltung (W-002 Stufe E);
+  am Werkzeugantrieb S3/C3 (die Nummern sind Maße: Manuels Maschine hat S4/C4
+  und S1/C1); wie das Werkzeug steht (radial, axial), sagt sein Halter aus der
+  Werkzeugverwaltung (W-002 Stufe E);
 - 3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z;
 - 5-Achs Tisch/Tisch: Schwenkbrücke A mit Rundtisch C, X, Y, Z im Kopf;
 - 5-Achs Kopf/Kopf: Portal mit Gabelkopf A/B, der Tisch steht;
@@ -707,6 +708,7 @@ SCHEIBE_BEREICH = (240.0, 600.0)  # mm Ø der Revolverscheibe
 BETTNEIGUNG_BEREICH = (0.0, 60.0)  # Grad; 0 ist ein Flachbett
 Y_WINKEL_BEREICH = (-60.0, 60.0)  # Grad; 0 heißt Y rechtwinklig zu X
 PLAETZE_BEREICH = (4, 24)
+SPINDELNUMMER_BEREICH = (1, 9)  # S1 … S9 – so zählen Siemens-Steuerungen ihre Spindeln
 # mm, je Richtung – auch lange Maschinen (Manuel, 2026-09-30: Z ließ sich nur bis 999
 # eintippen, „es gibt maschinen die sind deutlich länger“)
 GROESSTER_WEG = 10000.0
@@ -750,6 +752,11 @@ class DrehmaschinenMasse:
     # X im Durchmesser (Manuel, 2026-09-30: „Ja mit Umschalter wichtig ist ja nur was dann
     # beim Postprozess raus kommt“, P-2026-09-30-54).
     x_durchmesser: bool = True
+    # Die Nummern der Spindeln – je eine Spindel S und eine C-Achse (Manuel, 2026-10-03: „es muss
+    # … ein S und ein C für die Hauptspindel geben und ein S und ein C für die angetriebenen
+    # Werkzeuge“; an seiner Maschine S4/C4 die Hauptspindel, S1/C1 die angetriebenen Werkzeuge).
+    hauptspindel: int = 1
+    werkzeugantrieb: int = 3
 
     def fehler(self):
         """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
@@ -765,6 +772,11 @@ class DrehmaschinenMasse:
             ergebnis.append(("drehzahl", tr("neu.drehzahl_fehlt")))
         if self.drehzahl_werkzeuge <= 0:
             ergebnis.append(("drehzahl_werkzeuge", tr("neu.drehzahl_werkzeuge_fehlt")))
+        for feld in ("hauptspindel", "werkzeugantrieb"):
+            if not SPINDELNUMMER_BEREICH[0] <= getattr(self, feld) <= SPINDELNUMMER_BEREICH[1]:
+                ergebnis.append((feld, tr("neu.spindelnummer_bereich")))
+        if self.hauptspindel == self.werkzeugantrieb:
+            ergebnis.append(("werkzeugantrieb", tr("neu.spindelnummer_gleich")))
         if self.revolver not in REVOLVERARTEN:
             ergebnis.append(("revolver", tr("neu.revolver_unbekannt")))
         if not SCHEIBE_BEREICH[0] <= self.scheibe <= SCHEIBE_BEREICH[1]:
@@ -874,7 +886,9 @@ def drehmaschine(masse=None):
     Hauptspindel S1 (Drehzahl) und C1 (positionieren) – ihre Achse ist Z.
     Auf dem Bett Z-Schlitten, X-Schlitten, darauf Y-Schlitten mit dem
     Revolver T (12 Plätze). Jeder Platz ist eine Aufnahme (VDI30), alle am
-    Werkzeugantrieb S3 – an der Stirn der Scheibe oder an ihrem Umfang (_revolver()).
+    Werkzeugantrieb S3 (Drehzahl) und C3 (richtet das Werkzeug aus) – an der Stirn der
+    Scheibe oder an ihrem Umfang (_revolver()). Die Nummern geben `hauptspindel` und
+    `werkzeugantrieb` der Maße.
     Halter trägt der Revolver nicht fest: Sie kommen mit den Werkzeugen aus der
     Werkzeugverwaltung (W-002 Stufe E, Manuel 2026-09-30) und stellen das Werkzeug zur
     Aufnahme. Die Werkzeuge selbst zeigt das Prüffenster. Das Futter ist die
@@ -990,12 +1004,16 @@ def drehmaschine(masse=None):
     x1.Durchmesser = bool(masse.x_durchmesser)
     y1 = _linear(ma, y, "Y1", 12000, 5000, 4)
     _linear(ma, z, "Z1", 30000, 10000, 6)
-    _spindel(ma, hauptspindel, "S1", masse.drehzahl, 2.5)
-    _positionieren(ma, hauptspindel, "C1", 100, endlos=True)
+    h, w = int(masse.hauptspindel), int(masse.werkzeugantrieb)
+    _spindel(ma, hauptspindel, f"S{h}", masse.drehzahl, 2.5)
+    _positionieren(ma, hauptspindel, f"C{h}", 100, endlos=True)
     t = m.neue_betriebsart(ma, revolverachse, m.ART_REVOLVER, "T")
     t.Schaltzeit = 0.25
     t.Vdi = float(masse.vdi)  # für die Halter-Vorlagen (P-2026-09-30-70)
-    s3 = _spindel(ma, werkzeugantrieb, "S3", masse.drehzahl_werkzeuge, 0.5)
+    s3 = _spindel(ma, werkzeugantrieb, f"S{w}", masse.drehzahl_werkzeuge, 0.5)
+    # Die C-Achse des Antriebs richtet das angetriebene Werkzeug aus – keine Achse der Bahn: Ihr
+    # Gelenk liegt nicht auf dem Weg vom Werkzeug zum Teil.
+    _positionieren(ma, werkzeugantrieb, f"C{w}", 100, endlos=True)
     m.neue_aufnahme(ma, spannflaeche, m.AUFNAHME_WERKSTUECK, tr("beispiel.futter"))
     plaetze = m.verteile_plaetze(ma, kette_modul.lies_kette(asm), t, platz1, masse.plaetze)
     for platz in plaetze:  # angetrieben: jeder Platz am Werkzeugantrieb

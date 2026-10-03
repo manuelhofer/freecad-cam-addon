@@ -303,3 +303,34 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   (`G0 {achsen}`) sind unter „Befehle …“ änderbar; zuerst allein die Achse, die das Werkzeug
   wegzieht (Drehmaschine X, sonst Z), X im Durchmesser wie im Programm. In WKS fahren nur die
   Achsen mit eigenem Wechselpunkt, in MKS gilt ohne ihn der Home-Punkt.
+- **P-2026-10-03-25 – Hauptspindel und angetriebene Werkzeuge, die Maschine zur Wahl:** Manuel
+  (2026-10-03): „ich habe eine Maschine erstellt, Drehmaschine mit Y-Achse … wenn angetriebene
+  Werkzeuge, muss es ein S und ein C für die Hauptspindel geben und ein S und ein C für die
+  angetriebenen Werkzeuge … dann muss natürlich der Postprozessor wissen, welche Achse was macht
+  – in meinem Beispiel: C4 muss sich positionieren, das ist die Hauptspindel, und S1 muss die
+  Drehzahl anmachen“ (seine Maschine: S4/C4 die Hauptspindel, S1/C1 die angetriebenen Werkzeuge,
+  Abschnitt 11). Gebaut:
+  - `maschine.spindeln()`: der Antrieb ist eine Spindel, an der eine Werkzeugaufnahme hängt
+    („Angetrieben von“), die Hauptspindel die erste andere (lieber mit C-Achse am selben
+    Gelenk); die C-Achse einer Spindel ist die Betriebsart „Positionieren“ an ihrem Gelenk.
+  - `Maschineninfo.hauptspindel` (Nummer), `hauptspindel_name`, `antrieb_c`; die Rundachse der
+    Bahn ist die C-Achse der Hauptspindel – die C-Achse eines Antriebs richtet nur das Werkzeug
+    aus und ist nie die Rundachse (auch nicht in der Übergabe an FreeCADs Maschinendefinition:
+    `export.antrieb_c`). In der Kinematik stört sie nicht: Ihr Gelenk liegt nicht auf dem Weg
+    vom Werkzeug zum Teil.
+  - Platzhalter `{h}` (Nummer der Hauptspindel, ohne bekannte 1): Siemens „C-Achse ein“
+    `SPOS[{h}]=0`, „aus“ `SPCOF({h})` (bis -24 `SPOS=0` / `SPCOF`, die Masterspindel). Mit
+    Manuels Maschine: `SPOS[4]=0`, `M1=3 S1=…`, `C4=…`, `M1=5`, `SPCOF(4)`.
+  - Die Beispiel-Drehmaschine hat am Werkzeugantrieb jetzt auch die C-Achse (S3/C3); „Neue
+    Maschine …“ fragt bei der Drehmaschine nach den Nummern der Spindeln (vorbelegt 1 und 3;
+    Manuel trägt 4 und 1 ein).
+  - „Programm schreiben“: die Maschine zur Wahl – jede offene, auch ungespeichert, und die
+    gemerkten (`postprozessor.maschinen_zur_wahl`); vorgewählt die des Jobs, sonst die erste
+    offene; gewählt mit Datei merkt sich der Job sie. Grund: Manuels neue Drehmaschine war
+    offen, aber nicht gespeichert – das Fenster schrieb „Keine Maschine am Job“ und das
+    Programm wie für eine Fräse (`M3 S5570`, `C-1.000`).
+  - Hilfe „Programm schreiben“: Abschnitt „Hauptspindel und angetriebene Werkzeuge“, dazu „vor
+    dem ersten Lauf in der Simulation der Steuerung ansehen“ (entschieden 2026-10-03, Abschnitt
+    11 „Siemens-Befehle“).
+  - Nicht nachgeprüft an einer echten Steuerung: `SPOS[n]`/`SPCOF(n)` nach dem
+    Siemens-Programmierhandbuch; Manuel programmiert an der Maschine mit ShopTurn.

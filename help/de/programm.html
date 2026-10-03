@@ -9,10 +9,13 @@ angetriebenem Werkzeug fehlte dort einiges.</p>
 <ol>
 <li>Den Job im Baum wählen (oder eine seiner Operationen), dann <b>Programm schreiben …</b>
 in der Werkzeugleiste CAM-Addon.</li>
-<li><b>Maschine</b>: Was der Postprozessor von der Maschine des Jobs weiß – Drehmaschine oder
-Fräse, X im Durchmesser, wie die Rundachse heißt („C heißt C4“), welche Plätze angetrieben
-sind („T1 → S3“). Gemerkt hat sich der Job die Maschine beim Prüfen auf der Maschine oder im
-4-Achs-Assistenten. Ohne Maschine schreibt er wie für eine Fräse.</li>
+<li><b>Maschine</b>: Wähle die Maschine – jede offene, auch eine noch nicht gespeicherte
+(„… – nicht gespeichert“), und die gemerkten. Vorgewählt ist die, die sich der Job beim Prüfen
+auf der Maschine oder im 4-Achs-Assistenten gemerkt hat; hat er keine, die erste offene. Liegt
+die gewählte in einer Datei, merkt sich der Job sie. Darunter steht, was der Postprozessor von
+ihr weiß: Drehmaschine oder Fräse, X im Durchmesser, die Hauptspindel und ihre C-Achse
+(„Hauptspindel S4, C-Achse C4“), welche Plätze angetrieben sind („T1…T12 → S1 (C1)“). Ohne
+Maschine schreibt er wie für eine Fräse.</li>
 <li><b>Steuerung</b>: LinuxCNC, Siemens 840D, Fanuc, Haas oder Mach3/Mach4. Der Job merkt sich
 die Wahl, ebenso die Maschine – beim nächsten Job auf ihr ist sie vorgewählt.</li>
 <li>Die <b>Vorschau</b> zeigt die ersten Sätze. <b>Speichern</b> schreibt das ganze Programm
@@ -26,18 +29,32 @@ in die Datei (vorgeschlagen: neben dem Dokument, mit der Endung der Steuerung �
 will: Siemens „T1 D1“, Fanuc „T0101“, Haas „T101“.</li>
 <li><b>Spindel</b> – „M3 S…“ (links M4). An der Drehmaschine dreht M3 aber das Teil: Ein
 <b>angetriebenes Werkzeug</b> bekommt den Befehl seines Antriebs mit dessen Nummer aus der
-Maschine – Siemens „M3=3 S3=…“, Haas „M133 P…“, LinuxCNC „M3 $1 S…“.</li>
-<li><b>C-Achse ein und aus</b> – vor der ersten Bahn mit der Rundachse und am Ende: Siemens
-„SPOS=0“ / „SPCOF“, Haas „M154“ / „M155“.</li>
+Maschine – Siemens „M1=3 S1=…“ (Antrieb S1), Haas „M133 P…“, LinuxCNC „M3 $1 S…“.</li>
+<li><b>C-Achse ein und aus</b> – vor der ersten Bahn mit der Rundachse und am Ende, mit der
+Nummer der Hauptspindel: Siemens „SPOS[4]=0“ / „SPCOF(4)“ (Hauptspindel S4), Haas „M154“ /
+„M155“.</li>
 <li><b>X im Durchmesser</b>, wenn die Maschine X so zählt (Haken in „Maschine bearbeiten“) –
 die Bahnen rechnen den Radius, im Programm steht das Doppelte.</li>
-<li><b>Rundachse</b> – bei Siemens mit dem NC-Namen aus der Maschine, eine Nummer mit „=“
-(„C4=90.000“); sonst ihr Buchstabe.</li>
+<li><b>Rundachse</b> – die C-Achse der Hauptspindel, bei Siemens mit ihrem NC-Namen aus der
+Maschine, eine Nummer mit „=“ („C4=90.000“); sonst ihr Buchstabe.</li>
 <li><b>Vorschub</b> – in Bahnen mit der Rundachse G93 (F ist 1 ÷ Minuten je Satz), danach
 zurück auf Vorschub je Minute: an der Fräse G94, an Fanuc- und Haas-Drehmaschinen G98 (dort
 ist G94 ein Plandrehzyklus).</li>
 <li><b>Kühlung</b> – wie an der Operation eingestellt (Flut M8, Nebel M7), danach M9.</li>
 </ul>
+
+<h3>Hauptspindel und angetriebene Werkzeuge</h3>
+<p>Eine Drehmaschine mit angetriebenen Werkzeugen hat zwei Spindeln, jede mit einem <b>S</b>
+und einem <b>C</b>: Die <b>Hauptspindel</b> dreht das Teil (S) oder positioniert es (C) – beim
+Fräsen positioniert sie: „SPOS[4]=0“, dann „C4=…“ in den Sätzen. Der <b>Werkzeugantrieb</b>
+dreht das Werkzeug („M1=3 S1=…“); seine C-Achse richtet es nur aus und steht nie in der
+Bahn. Welche Spindel was tut, erkennt der Postprozessor an der Maschine: An welcher Spindel
+die Werkzeugplätze hängen („Angetrieben von“), die ist der Antrieb; die andere ist die
+Hauptspindel. Die Namen stehen in „Maschine bearbeiten“; „Neue Maschine …“ fragt bei der
+Drehmaschine nach den Nummern.</p>
+<p><b>Vor dem ersten Lauf</b> das Programm in der Simulation deiner Steuerung ansehen: Die
+Befehle für C-Achse und Antrieb richten sich nach dem Siemens-Handbuch, an der Maschine legt
+der Hersteller manches anders fest.</p>
 
 <h3>Befehle ändern</h3>
 <p><b>Befehle …</b> klappt die Liste der Befehle auf: Programmanfang und -ende,
@@ -45,7 +62,7 @@ Werkzeugwechsel, Spindel, angetriebenes Werkzeug, C-Achse, Vorschub, Kühlung. J
 ändern – manches legt der Maschinenhersteller fest, das ist <b>gelb</b> (bei Fanuc das
 angetriebene Werkzeug und die C-Achse); im Programm steht dann ein Kommentar dazu.
 Platzhalter: {t} Werkzeugnummer, {s} Drehzahl, {m} 3 oder 4 (Drehrichtung), {n} Nummer des
-Antriebs; „|“ trennt Zeilen. Geändert gilt je Steuerung für alle Jobs; <b>Zurücksetzen</b>
+Antriebs, {h} Nummer der Hauptspindel; „|“ trennt Zeilen. Geändert gilt je Steuerung für alle Jobs; <b>Zurücksetzen</b>
 holt die Vorbelegung zurück.</p>
 
 <h3>Noch nicht</h3>

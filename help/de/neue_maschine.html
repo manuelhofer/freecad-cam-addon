@@ -45,7 +45,7 @@ Grenzen der Gelenke. Gebaut steht die Maschine bei
 X Ø 550 (Radius 275) und Z 220 mm; liegt das außerhalb deiner Wege, fährt sie
 hinein.</li>
 <li><b>Revolverplätze</b> – so viele Plätze verteilt das Addon im Kreis
-(P1 … Pn), jeden als VDI-Aufnahme am Werkzeugantrieb S3. Halter trägt der
+(P1 … Pn), jeden als VDI-Aufnahme am Werkzeugantrieb (S3). Halter trägt der
 Revolver nicht fest: Wie ein Werkzeug steht, sagt sein Halter in der
 Werkzeugverwaltung.</li>
 <li><b>Revolver</b> – wo die Aufnahmen sitzen. <b>VDI in der Stirn</b>
@@ -62,9 +62,15 @@ dem Rand.</li>
 <li><b>VDI-Größe</b> – der Schaft-Ø der Halter (VDI 20 … 60); so groß ist der
 Ring um jede Aufnahme. Die Halter wählst du in der Werkzeugverwaltung passend
 dazu.</li>
-<li><b>Höchstdrehzahl</b> – der <b>Hauptspindel</b> (S1) und der
-<b>angetriebenen Werkzeuge</b> im Revolver (Werkzeugantrieb S3); die zweite ist oft
+<li><b>Höchstdrehzahl</b> – der <b>Hauptspindel</b> und der
+<b>angetriebenen Werkzeuge</b> im Revolver (Werkzeugantrieb); die zweite ist oft
 kleiner. Sie übernimmt „Schruppwerte planen“ von der Maschine.</li>
+<li><b>Spindeln</b> – die Nummern der <b>Hauptspindel</b> (vorbelegt 1) und der
+<b>angetriebenen Werkzeuge</b> (vorbelegt 3). Jede bekommt ein S und ein C mit ihrer Nummer:
+die Hauptspindel S1 (dreht das Teil) und C1 (positioniert es, beim Fräsen die Rundachse), der
+Werkzeugantrieb S3 (dreht das Werkzeug) und C3 (richtet es aus). Heißen sie an deiner Steuerung
+etwa S4/C4 und S1/C1, trag 4 und 1 ein – so schreibt der Postprozessor „SPOS[4]=0“, „C4=…“
+und „M1=3 S1=…“.</li>
 </ul>
 <h3>Die Maße der 3-Achs-Fräse</h3>
 <ul>
@@ -84,8 +90,7 @@ der Baugruppe.</p>
 Achsen) verdeckten die Maschine. Zeigen: im Baum unter der Baugruppe
 „Joints“ wählen und die Leertaste drücken.</p>
 <h3>Achsnamen wie an deiner Steuerung</h3>
-<p>Die Beispielmaschinen nennen die Achsen S1, C1, X1, Z1, T und S3. Heißen sie
-an deiner Steuerung anders – etwa C4 und S4 für die Hauptspindel, C1 und S1 für
-die angetriebenen Werkzeuge –, öffne nach dem Bauen „Maschine bearbeiten“, klick
-die Zeile an und ändere den <b>NC-Namen</b>. Das Programm nennt die Achsen dann
-so.</p>
+<p>Die Beispielmaschinen nennen die Achsen X1, Y1, Z1, T und die Spindeln S1/C1 und S3/C3
+(die Nummern der Spindeln trägst du bei der Drehmaschine gleich oben ein). Heißen sie an
+deiner Steuerung anders, öffne nach dem Bauen „Maschine bearbeiten“, klick die Zeile an und
+ändere den <b>NC-Namen</b>. Das Programm nennt die Achsen dann so.</p>

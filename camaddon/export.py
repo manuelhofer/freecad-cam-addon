@@ -91,10 +91,15 @@ def baue_cam_maschine(maschine, kette=None):
 
     # Die Achsen der Kette stehen vom Bett nach außen; das wird ihre
     # Reihenfolge in CAM.
+    spindeln = m.spindeln(maschine)
     for reihenfolge, achse in enumerate(kette.achsen):
         ba = _achs_betriebsart(maschine, achse.gelenk)
         if ba is None:
             continue  # z. B. eine reine Spindel: in CAM keine Achse
+        if spindeln.ist_antrieb_c(ba):
+            # Die C-Achse eines Werkzeugantriebs richtet das Werkzeug aus – keine Achse der Bahn.
+            bericht.nicht_uebertragen.append(tr("export.antrieb_c", name=m.name_von(ba)))
+            continue
         name = m.name_von(ba)
         if achse.gelenk not in rollen:
             bericht.zu_pruefen.append(tr("export.rolle_unbekannt", name=name))

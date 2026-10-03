@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # Der Postprozessor des Addons (W-005, P-2026-10-03-10): Musterausgaben aus Abschnitten – eine
 # Fräse mit LinuxCNC, eine Drehmaschine mit C-Achse und angetriebenem Werkzeug für Siemens,
-# Haas und Fanuc – und ein echter 4-Achs-Job (Rundum schruppen) durch abschnitte().
+# Haas und Fanuc – und ein echter 4-Achs-Job (Rundum schruppen) durch abschnitte(). Wie Manuels
+# Drehmaschine (P-2026-10-03-25): die Hauptspindel S4/C4, die angetriebenen Werkzeuge S1/C1 –
+# C4 positioniert („SPOS[4]=0“, „C4=…“), S1 dreht („M1=3 S1=…“); die Beispielmaschine mit diesen
+# Nummern gibt genau das an den Postprozessor, ihre C1 ist nie die Rundachse der Bahn.
 # Ausführen: freecadcmd tests/test_postprozessor.py
 
 import dataclasses
@@ -18,6 +21,7 @@ import Part
 import Path
 from Path.Tool.camassets import user_asset_store
 
+from camaddon import beispielmaschine as bm
 from camaddon import job_schnittwerte as js
 from camaddon import postprozessor as pp
 from camaddon import sprache
@@ -84,12 +88,24 @@ rundum = pp.Abschnitt(
 siemens = pp.programm([rundum], pp.steuerung("siemens"), dreh, "Welle").zeilen
 pruefe(siemens[0] == "; Welle" and "G18" in siemens, f"Siemens Kopf: {siemens[:4]}")
 pruefe("T1 D1" in siemens, f"Siemens Wechsel: {siemens}")
-pruefe("SPOS=0" in siemens and "M3=3 S3=3000" in siemens, f"Siemens C/Antrieb: {siemens}")
+# Ohne bekannte Hauptspindel: Spindel 1.
+pruefe("SPOS[1]=0" in siemens and "M3=3 S3=3000" in siemens, f"Siemens C/Antrieb: {siemens}")
 pruefe("G1 X76.000 Z0.000 C4=90.000 F3.00000" in siemens, f"Siemens Satz: {siemens}")
-pruefe(siemens.index("SPOS=0") < siemens.index("G0 X84.000 Z3.000 C4=0.000"), "C vor der Bahn")
+pruefe(siemens.index("SPOS[1]=0") < siemens.index("G0 X84.000 Z3.000 C4=0.000"), "C vor der Bahn")
 pruefe(
-    "M3=5" in siemens and "SPCOF" in siemens and siemens.index("M3=5") < siemens.index("SPCOF"),
+    "M3=5" in siemens
+    and "SPCOF(1)" in siemens
+    and siemens.index("M3=5") < siemens.index("SPCOF(1)"),
     f"Siemens aus: {siemens[-6:]}",
+)
+# Wie Manuels Maschine: Hauptspindel 4, angetrieben an S1.
+manuel = pp.Maschineninfo("Drehmaschine", True, True, {"C": "C4"}, {1: "1"}, hauptspindel="4")
+siemens_4 = pp.programm([rundum], pp.steuerung("siemens"), manuel, "Welle").zeilen
+pruefe(
+    siemens_4.index("SPOS[4]=0") < siemens_4.index("M1=3 S1=3000")
+    and "G1 X76.000 Z0.000 C4=90.000 F3.00000" in siemens_4
+    and siemens_4.index("M1=5") < siemens_4.index("SPCOF(4)"),
+    f"Siemens S4/C4 und S1: {siemens_4}",
 )
 haas = pp.programm([rundum], pp.steuerung("haas"), dreh, "Welle").zeilen
 pruefe("T101" in haas and "M154" in haas and "M133 P3000" in haas, f"Haas: {haas[:9]}")
@@ -133,6 +149,31 @@ geaendert = pp.steuerung("fanuc", {"angetrieben_ein": "M{m}3 S{s}", "unbekannt":
 pruefe("M33 S3000" in pp.programm([rundum], geaendert, dreh).zeilen, "geänderter Befehl gilt nicht")
 vorschau = pp.programm([tasche, tasche], pp.steuerung("linuxcnc"), None, vorschau=2)
 pruefe(vorschau.saetze == 2 and "Vorschau endet" in vorschau.zeilen[-1], "Vorschau")
+
+# --- Aus der Maschine: die Beispiel-Drehmaschine mit den Nummern von Manuels Maschine ---------
+for nummern, erwartet in (
+    ((4, 1), ("4", "S4", {"C": "C4"}, "1", {"1": "C1"})),
+    ((1, 3), ("1", "S1", {"C": "C1"}, "3", {"3": "C3"})),
+):
+    asm, ma = bm.drehmaschine(
+        bm.DrehmaschinenMasse(hauptspindel=nummern[0], werkzeugantrieb=nummern[1])
+    )
+    info = pp.maschineninfo_dokument(asm.Document)
+    antriebe = set(info.angetrieben.values())
+    ist = (info.hauptspindel, info.hauptspindel_name, info.rundachsen, *antriebe, info.antrieb_c)
+    pruefe(
+        info.drehmaschine
+        and len(antriebe) == 1
+        and len(info.angetrieben) == 12
+        and ist == erwartet,
+        f"Maschine {nummern}: {ist}",
+    )
+    FreeCAD.closeDocument(asm.Document.Name)
+pruefe(
+    bm.DrehmaschinenMasse(hauptspindel=2, werkzeugantrieb=2).fehler()
+    and bm.DrehmaschinenMasse(hauptspindel=0).fehler(),
+    "gleiche oder ungültige Spindelnummern gehen durch",
+)
 
 # --- Ein echter Job: Welle, Rundum schruppen, durch abschnitte() -------------------------------
 user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))

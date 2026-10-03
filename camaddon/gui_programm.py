@@ -6,7 +6,9 @@ hätte gern einen guten Postprozessor-Manager“; FreeCADs „Nachbearbeitung“
 „Post processor not identified“ ab. Das Fenster: Job, die Maschine des Jobs mit dem, was der
 Postprozessor von ihr weiß, die Steuerung (gemerkt am Job und je Maschine), ihre Befehle zum
 Ändern (gemerkt je Steuerung; gelb, was der Maschinenhersteller festlegt), die Vorschau der
-ersten Sätze und „Speichern“.
+ersten Sätze und „Speichern“. Die Maschine ist wählbar – jede offene, auch ungespeichert, und
+die gemerkten (Manuel, 2026-10-03: seine neue Drehmaschine war offen, aber nicht gespeichert,
+und das Fenster schrieb „Keine Maschine am Job“).
 """
 
 import json
@@ -18,6 +20,7 @@ from PySide import QtCore, QtGui
 
 from . import PARAMETER_PFAD, symbol
 from . import job_schnittwerte as js
+from . import maschinenspeicher as msp
 from . import postprozessor as pp
 from . import reichweite as rw
 from .gui_hilfe import kopfzeile
@@ -122,6 +125,8 @@ class ProgrammDialog(QtGui.QDialog):
         self.jobs = list(jobs)
         self.job = job
         self.info = pp.Maschineninfo()
+        self._maschinen = []  # [(Name, Pfad, Dokument)] – pp.maschinen_zur_wahl()
+        self._ungespeichert = False  # die gewählte Maschine liegt in keiner Datei
         self._fuellt = False
         self.setWindowTitle(tr("pp.titel"))
         self.resize(820, 760)
@@ -138,10 +143,16 @@ class ProgrammDialog(QtGui.QDialog):
         self.wahl_job.currentIndexChanged.connect(self._job_gewaehlt)
         raster.addWidget(QtGui.QLabel(tr("pp.job")), 0, 0)
         raster.addWidget(self.wahl_job, 0, 1)
+        self.wahl_maschine = QtGui.QComboBox()
+        self.wahl_maschine.setToolTip(tr("pp.maschine.wahl.tooltip"))
+        self.wahl_maschine.currentIndexChanged.connect(self._maschine_gewaehlt)
         self.maschine_text = QtGui.QLabel()
         self.maschine_text.setWordWrap(True)
+        spalte = QtGui.QVBoxLayout()
+        spalte.addWidget(self.wahl_maschine)
+        spalte.addWidget(self.maschine_text)
         raster.addWidget(QtGui.QLabel(tr("pp.maschine")), 1, 0, QtCore.Qt.AlignTop)
-        raster.addWidget(self.maschine_text, 1, 1)
+        raster.addLayout(spalte, 1, 1)
         self.wahl_steuerung = QtGui.QComboBox()
         for kennung, s in pp.STEUERUNGEN.items():
             self.wahl_steuerung.addItem(s.name, kennung)
@@ -218,15 +229,72 @@ class ProgrammDialog(QtGui.QDialog):
         if not 0 <= index < len(self.jobs):
             return
         self.job = self.jobs[index]
-        self.info = pp.maschineninfo(self.job)
-        self.maschine_text.setText(self._maschine_beschreiben())
         self._fuellt = True
         try:
+            self._maschinen_fuellen()
             kennung = steuerung_des_jobs(self.job)
             self.wahl_steuerung.setCurrentIndex(max(0, self.wahl_steuerung.findData(kennung)))
         finally:
             self._fuellt = False
         self._steuerung_gewaehlt()
+
+    def _maschinen_fuellen(self):
+        """Die Maschinen zur Wahl – gewählt die, die sich der Job gemerkt hat; hat er keine, die
+        erste offene (auch ungespeichert); sonst „keine“."""
+        self._maschinen = pp.maschinen_zur_wahl()
+        pfad = rw.gemerkte_maschine(self.job)
+        gewaehlt = next(
+            (k for k, (_n, p, _d) in enumerate(self._maschinen) if msp.gleiche_datei(p, pfad)),
+            None,
+        )
+        if gewaehlt is None and pfad and os.path.isfile(pfad):
+            self._maschinen.append((os.path.splitext(os.path.basename(pfad))[0], pfad, None))
+            gewaehlt = len(self._maschinen) - 1
+        if gewaehlt is None:
+            gewaehlt = next(
+                (k for k, (_n, _p, d) in enumerate(self._maschinen) if d is not None), None
+            )
+        self.wahl_maschine.blockSignals(True)
+        try:
+            self.wahl_maschine.clear()
+            self.wahl_maschine.addItem(tr("pp.maschine.keine_wahl"))
+            for name, pfad_, dok in self._maschinen:
+                if dok is not None and not pfad_:
+                    name = f"{name} – {tr('pp.maschine.nicht_gespeichert')}"
+                self.wahl_maschine.addItem(name)
+            self.wahl_maschine.setCurrentIndex(0 if gewaehlt is None else gewaehlt + 1)
+        finally:
+            self.wahl_maschine.blockSignals(False)
+        self._maschine_gewaehlt()
+
+    def maschine_waehlen(self, name):
+        """Wählt die Maschine mit diesem Namen (wie in der Liste, ohne Zusatz) – für die
+        Szenarien; gibt zurück, ob es sie gibt."""
+        for k, (n, _p, _d) in enumerate(self._maschinen):
+            if n == name:
+                self.wahl_maschine.setCurrentIndex(k + 1)
+                return True
+        return False
+
+    def _maschine_gewaehlt(self, *_):
+        """Was der Postprozessor von der gewählten Maschine weiß; gewählt mit Datei, merkt sich
+        der Job sie (wie beim Prüfen)."""
+        k = self.wahl_maschine.currentIndex() - 1
+        self._ungespeichert = False
+        if 0 <= k < len(self._maschinen):
+            _name, pfad, dok = self._maschinen[k]
+            if dok is not None:
+                self.info = pp.maschineninfo_dokument(dok)
+            else:
+                self.info = pp.maschineninfo_datei(pfad)
+            self._ungespeichert = not pfad
+            if pfad and not self._fuellt and self.job is not None:
+                rw.merke_maschine(self.job, pfad)
+        else:
+            self.info = pp.Maschineninfo()
+        self.maschine_text.setText(self._maschine_beschreiben())
+        if not self._fuellt:
+            self.vorschau_rechnen()
 
     def _maschine_beschreiben(self):
         i = self.info
@@ -235,14 +303,25 @@ class ProgrammDialog(QtGui.QDialog):
         teile = [tr("pp.maschine.drehen") if i.drehmaschine else tr("pp.maschine.fraesen")]
         if i.drehmaschine:
             teile.append(tr("pp.maschine.x_d") if i.x_durchmesser else tr("pp.maschine.x_r"))
-        for buchstabe, name in sorted(i.rundachsen.items()):
+        rundachsen = dict(i.rundachsen)
+        if i.drehmaschine and (i.hauptspindel_name or "C" in rundachsen):
+            teile.append(
+                tr(
+                    "pp.maschine.hauptspindel",
+                    s=i.hauptspindel_name or "–",
+                    c=rundachsen.pop("C", "–"),
+                )
+            )
+        for buchstabe, name in sorted(rundachsen.items()):
             teile.append(tr("pp.maschine.rundachse", buchstabe=buchstabe, name=name))
         if i.angetrieben:
             je_antrieb = {}
             for t, n in sorted(i.angetrieben.items()):
                 je_antrieb.setdefault(n, []).append(t)
             plaetze = ", ".join(
-                f"T{t[0]} → S{n}" if len(t) == 1 else f"T{t[0]}…T{t[-1]} → S{n}"
+                (f"T{t[0]}" if len(t) == 1 else f"T{t[0]}…T{t[-1]}")
+                + f" → S{n}"
+                + (f" ({i.antrieb_c[n]})" if n in i.antrieb_c else "")
                 for n, t in je_antrieb.items()
             )
             teile.append(tr("pp.maschine.angetrieben", plaetze=plaetze))
@@ -255,7 +334,10 @@ class ProgrammDialog(QtGui.QDialog):
             teile.append(tr("pp.maschine.wechselpunkt", punkt=punkt, bezug=bezug))
         else:
             teile.append(tr("pp.maschine.ohne_wechselpunkt"))
-        return f"{i.name} – " + " · ".join(teile)
+        text = f"{i.name} – " + " · ".join(teile)
+        if self._ungespeichert:
+            text += "\n" + tr("pp.maschine.ungespeichert")
+        return text
 
     def kennung(self):
         return self.wahl_steuerung.currentData() or pp.VORGABE

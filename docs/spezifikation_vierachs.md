@@ -1144,7 +1144,12 @@ die Abstände gelten für beide.
     hinten 1,2 mm Rest über dem Schlichten statt 0,3.
     *Offen:* das Schruppen an steilen Stellen feiner rechnen; das Prüffenster malt den
     Abtrag weiter mit `restmaterial.Stange` – es kennt keine Fahrt über die
-    Mitte (die Spitze zählt dort als 0); hinten das
+    Mitte (die Spitze zählt dort als 0). *Gemessen an Manuels Teil (P-2026-10-03-25,
+    Schruppen Kugel Ø 10 und Schlichten 0,5 mm, ohne und mit Y):* Die Spitze kommt höchstens
+    0,38 mm über die Mitte; nach dem Schlichten alles grün, nirgends blau, ohne Vergleich nur
+    die letzten 3 mm hinten (das Teilende liegt nicht rund um die Achse); nach dem Schruppen
+    mit Y 30 297 grüne und 2 740 rote Zellen (ohne Y 10 529 und 6 083) – für sein Teil kein
+    Umbau nötig, erst für Teile weit neben der Achse; hinten das
     Teilende: der Überlauf fräst die Kante fertig und schneidet dabei neben
     einem dünnen Ende tief ein – Manuel (2026-10-03): „auf ner Drehbank kann
     man das abstechen … das Bauteil ist instabil geworden, weil hinten so viel

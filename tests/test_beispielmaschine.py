@@ -94,7 +94,7 @@ App.closeDocument(doc.Name)
 
 # Alle Bauarten zur Auswahl.
 ACHSEN = {
-    beispielmaschine.DREHMASCHINE: ["C1", "S1", "S3", "T", "X1", "Y1", "Z1"],
+    beispielmaschine.DREHMASCHINE: ["C1", "C3", "S1", "S3", "T", "X1", "Y1", "Z1"],
     beispielmaschine.FRAESE_3: ["S1", "X1", "Y1", "Z1"],
     beispielmaschine.TISCH_TISCH: ["A1", "C1", "S1", "X1", "Y1", "Z1"],
     beispielmaschine.KOPF_KOPF: ["A1", "B1", "S1", "X1", "Y1", "Z1"],
@@ -143,6 +143,15 @@ for art in beispielmaschine.ARTEN:
         angetrieben = sorted(a.Label for a in plaetze if getattr(a.Spindel, "NcName", "") == "S3")
         pruefe(len(plaetze) == 12, f"Revolverplätze: {len(plaetze)}")
         pruefe(len(angetrieben) == 12, f"angetrieben: {angetrieben}")
+        # Je ein S und ein C (Manuel, 2026-10-03): S1/C1 die Hauptspindel, S3/C3 der Antrieb –
+        # maschine.spindeln() weiß, welche was tut.
+        sp = m.spindeln(ma)
+        rollen_ = (
+            sp.haupt.NcName,
+            sp.haupt_c.NcName,
+            [(s.NcName, c.NcName if c else None) for s, c in sp.antriebe],
+        )
+        pruefe(rollen_ == ("S1", "C1", [("S3", "C3")]), f"Spindeln: {rollen_}")
         namen = {o.Label for o in doc.Objects}
         pruefe(not {"HalterRadial", "HalterAxial"} & namen, "fester Halter am Revolver")
         pruefe({"Aufnahme01", "Aufnahme12"} <= namen, "Aufnahmen an der Stirn fehlen")

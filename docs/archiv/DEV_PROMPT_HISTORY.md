@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-25 hauptspindel-und-antrieb
+
+### EINGELESEN
+- Manuel, 2026-10-03 (mit Bild des Fensters „Programm schreiben“: „Keine Maschine am Job“,
+  `M3 S5570`, `C-1.000`): „widmen wir uns mal dem Postprozessor … ich habe eine Maschine
+  erstellt, Drehmaschine mit Y-Achse … wenn angetriebene Werkzeuge, muss es ein S und ein C für
+  die Hauptspindel geben und ein S und ein C für die angetriebenen Werkzeuge … bitte das mal für
+  die Demo-Maschine reinbauen … dann muss natürlich der Postprozessor wissen, welche Achse was
+  macht – in meinem Beispiel: C4 muss sich positionieren, das ist die Hauptspindel, und S1 muss
+  die Drehzahl anmachen“. Spezifikation Steuerung (Abschnitt 11: C4/S4 und C1/S1 an seiner
+  Maschine).
+- Davor (Manuel: „mach mal weiter“): das Prüffenster an seinem 4-Achs-Teil gemessen und die
+  Vorschau am 3-Achs-Testteil profiliert – beides nur notiert (Spezifikation Vierachs V5b,
+  Snapshot „Danach“ 3).
+
+### DATEIEN
+- `camaddon/maschine.py` (`Spindeln`, `spindeln`, `nc_nummer`), `camaddon/postprozessor.py`
+  (`Maschineninfo.hauptspindel`, `hauptspindel_name`, `antrieb_c`; Siemens `SPOS[{h}]=0` /
+  `SPCOF({h})`; `maschineninfo_datei`, `maschineninfo_dokument`, `maschinen_zur_wahl`),
+  `camaddon/gui_programm.py` (Maschine zur Wahl, `maschine_waehlen`), `camaddon/beispielmaschine.py`
+  (`DrehmaschinenMasse.hauptspindel`/`werkzeugantrieb`, C am Werkzeugantrieb,
+  `SPINDELNUMMER_BEREICH`), `camaddon/gui_neue_maschine.py` (Zeile „Spindeln“),
+  `camaddon/export.py` (C des Antriebs keine Achse), Übersetzungen, Hilfe `programm.html` und
+  `neue_maschine.html` (de/en), `tests/test_postprozessor.py`, `tests/test_beispielmaschine.py`,
+  `tests/gui/szenario_programm.py`, `tests/gui/szenario_verfahren_schraeg.py`, Spezifikation
+  Steuerung (12) und Vierachs (V5b), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.148.0).
+
+### AKZEPTANZKRITERIUM
+- An einer Drehmaschine mit Hauptspindel S4/C4 und angetriebenen Werkzeugen S1/C1 schreibt der
+  Postprozessor für Siemens `SPOS[4]=0`, `M1=3 S1=…`, die Bahn mit `C4=…` (nie C1), am Ende
+  `M1=5` und `SPCOF(4)`. Die Beispiel-Drehmaschine hat je ein S und ein C; „Neue Maschine …“
+  fragt nach den Nummern. „Programm schreiben“ bietet jede offene Maschine an, auch eine
+  ungespeicherte.
+
+### DONE
+- Wie oben; die Kinematik bleibt unberührt (die C des Antriebs liegt nicht auf dem Weg vom
+  Werkzeug zum Teil), der 4-Achs-Assistent nimmt weiter nur Rundachsen im Tisch.
+- Screenshot `4_meine_drehmaschine`: „Meine Drehmaschine – nicht gespeichert“, darunter
+  „Hauptspindel S4, C-Achse C4 · angetrieben: T1…T12 → S1 (C1)“ und der Satz zum Speichern;
+  die Vorschau beginnt nach `T1 D1` mit `SPOS[4]=0`.
+
+### TESTS
+- `tests/test_postprozessor.py`, `test_beispielmaschine.py`, `test_sprache.py` – OK; Szenarien
+  `szenario_programm`, `szenario_neue_maschine`, `szenario_verfahren_schraeg` – OK. black und
+  ruff sauber.
+
+### NEXT
+- Manuel: seine Drehmaschine mit „Neue Maschine …“ und den Nummern 4 und 1 neu bauen (oder in
+  „Maschine bearbeiten“ am Werkzeugantrieb ein C1 dazu), dann „Programm schreiben“.
+
 ## P-2026-10-03-24 zeilen-zwischen-den-punkten
 
 ### EINGELESEN

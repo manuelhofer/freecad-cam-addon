@@ -38,6 +38,7 @@ Läuft ohne Oberfläche.
 """
 
 import re
+from dataclasses import dataclass, field
 
 import FreeCAD
 
@@ -641,6 +642,67 @@ def x_im_durchmesser(maschine):
         and programmname(ba).upper() == "X"
         for ba in betriebsarten(maschine)
     )
+
+
+@dataclass
+class Spindeln:
+    """Welche Spindel was tut (spindeln()): die Hauptspindel und ihre C-Achse – an der
+    Drehmaschine dreht sie das Teil, im Achsbetrieb positioniert sie es –, und die Antriebe der
+    Werkzeuge, je mit der C-Achse, die das angetriebene Werkzeug ausrichtet (None ohne)."""
+
+    haupt: object = None  # Betriebsart (Spindel) – oder None
+    haupt_c: object = None  # Betriebsart (Positionieren) am selben Gelenk – oder None
+    antriebe: list = field(default_factory=list)  # [(Spindel, Positionieren oder None)]
+
+    def ist_antrieb_c(self, ba):
+        """Richtet `ba` ein angetriebenes Werkzeug aus (keine Achse der Bahn)?"""
+        return any(c is ba for _s, c in self.antriebe if c is not None)
+
+
+def spindeln(maschine):
+    """Spindeln der Maschine nach ihrer Aufgabe (Manuel, 2026-10-03: „es muss … ein S und ein
+    C für die Hauptspindel geben und ein S und ein C für die angetriebenen Werkzeuge … der
+    Postprozessor muss wissen, welche Achse was macht – in meinem Beispiel: C4 muss sich
+    positionieren, das ist die Hauptspindel, und S1 muss die Drehzahl anmachen“). Ein Antrieb
+    ist eine Spindel, an der eine Werkzeugaufnahme hängt; die Hauptspindel die erste andere –
+    lieber eine mit C-Achse am selben Gelenk. Die C-Achse einer Spindel ist die Betriebsart
+    „Positionieren“ an ihrem Gelenk."""
+    ergebnis = Spindeln()
+    if maschine is None:
+        return ergebnis
+    arten = betriebsarten(maschine)
+
+    def c_von(spindel):
+        return next(
+            (
+                ba
+                for ba in arten
+                if ba.Art == ART_POSITIONIEREN
+                and spindel.Gelenk is not None
+                and ba.Gelenk == spindel.Gelenk
+            ),
+            None,
+        )
+
+    antriebe = []
+    for aufnahme in aufnahmen(maschine):
+        spindel = getattr(aufnahme, "Spindel", None)
+        if aufnahme.Art != AUFNAHME_WERKZEUG or spindel is None or not ist_betriebsart(spindel):
+            continue
+        if spindel.Art == ART_SPINDEL and all(s is not spindel for s in antriebe):
+            antriebe.append(spindel)
+    ergebnis.antriebe = [(s, c_von(s)) for s in antriebe]
+    andere = [ba for ba in arten if ba.Art == ART_SPINDEL and all(ba is not s for s in antriebe)]
+    mit_c = [ba for ba in andere if c_von(ba) is not None]
+    ergebnis.haupt = (mit_c or andere or [None])[0]
+    if ergebnis.haupt is not None:
+        ergebnis.haupt_c = c_von(ergebnis.haupt)
+    return ergebnis
+
+
+def nc_nummer(ba):
+    """Die Nummer im NC-Namen („S4“ → „4“), "" ohne."""
+    return re.sub(r"\D", "", getattr(ba, "NcName", "") or "") if ba is not None else ""
 
 
 def globale_platzierung(objekt):

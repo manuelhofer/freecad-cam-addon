@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.147.0 (P-2026-10-03-24). Alles, was hier als gebaut steht,
+Stand 0.148.0 (P-2026-10-03-25). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -29,8 +29,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   mit der Querachse (P-2026-10-03-18, Manuels Y-Gedanke: auf ebenen Flächen hält C, Y fährt
   die Gerade – seit P-2026-10-03-22 mit jedem Fräser, seit -23 auch beim Schruppen); die Bahnen
   auch zwischen den Punkten nicht im Teil (Spirale -22, Zeilen -24). Offen:
-  V2b (Drehteile), V6, V7; das Prüffenster malt Fahrten über die Mitte noch nicht
-  (Spezifikation Vierachs, V5b „Offen“).
+  V2b (Drehteile), V6, V7; das Prüffenster malt Fahrten über die Mitte noch nicht – an Manuels
+  Teil ohne Folgen gemessen (P-2026-10-03-25: alles grün, nirgends blau), erst für Teile weit
+  neben der Achse (Spezifikation Vierachs, V5b „Offen“).
 - **W-004 Bedienung** – D-01 bis D-13, D-20, D-21, D-25, D-26, D-28 bis D-30, D-40 bis D-47
   und D-50 bis D-57 erledigt, D-24 mit „Richtwerte eintragen“ und den Werkstoffklassen.
   Entschieden ([Durchsicht](durchsicht_bedienbarkeit.md), Abschnitt 6; Manuel, 2026-10-03):
@@ -39,7 +40,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - **W-005 Programm für jede Steuerung** – E1–E7 entschieden (je Empfehlung, Manuel
   2026-10-03); gebaut: der eigene Postprozessor mit dem Fenster „Programm schreiben …“ (S1, S3,
   Teile von S2/S4; P-2026-10-03-10); der Wechselpunkt der Maschine in MKS oder WKS, vor jedem
-  Werkzeugwechsel und am Ende angefahren (P-2026-10-03-19). Offen: Steuerung an der Maschine
+  Werkzeugwechsel und am Ende angefahren (P-2026-10-03-19); Hauptspindel und angetriebene
+  Werkzeuge je mit S und C, die Maschine im Fenster wählbar, auch ungespeichert
+  (P-2026-10-03-25: Manuels S4/C4 und S1/C1 → `SPOS[4]=0`, `C4=…`, `M1=3 S1=…`). Offen: Steuerung an der Maschine
   (S2), Glätten (S4), ohne G93 (S5), Transformationen (S6), Wochen-Build (S7); die Rundachse
   zwischen zwei Operationen nicht über viele Umdrehungen auf 0 zurückdrehen (Manuel probiert,
   was seine Maschine macht).
@@ -197,7 +200,11 @@ Beantwortet am 2026-10-03 (abends):
    und Glätten als Haken (S4), Vorschub ohne G93 (S5) – nach Manuels Blick auf die Befehle
    seiner Steuerung.
 3. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
-   (`hoehenfeld.je_zeile`); Ziel 10 s am Testteil.
+   (`hoehenfeld.je_zeile`); Ziel 10 s am Testteil. Gemessen 2026-10-03 (Szenario mit cProfile,
+   alle Flächen): erster Lauf 13,7 s, zweiter 9,3 s; `je_zeile` 111 Aufrufe in beiden Läufen,
+   8,5 s, davon 5,4 s Wiederholungen derselben Rechnung (gleiches Netz, Form, Raster) – ein
+   Zwischenspeicher je Eingabe spart sie; danach je Zeile ein Aufruf des Kerns zu viel (3544
+   `_form_treffen` – je Band wie `vierachs_huelle.je_stellung`).
 4. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
    Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel).
 5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der

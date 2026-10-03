@@ -77,7 +77,8 @@ def schritte(h):
         return
     h.pruefe(panel.knopf_programm.isChecked(), "steht nicht zuerst auf „wie im Programm“")
     namen = sorted(vf.namen(panel.maschine, a) for a in panel.zeilen)
-    h.pruefe(namen == ["C1", "T", "Werkzeugantrieb", "Z1"], f"Achsen der Maschine: {namen}")
+    # Der Werkzeugantrieb heißt nach seiner C-Achse (C3, P-2026-10-03-25).
+    h.pruefe(namen == ["C1", "C3", "T", "Z1"], f"Achsen der Maschine: {namen}")
     h.pruefe(sorted(panel.programmzeilen) == ["x", "y"], f"Programm: {list(panel.programmzeilen)}")
     beschriftungen = [w.text() for w in panel.raster.findChildren(QtGui.QLabel)]
     h.pruefe("X" in beschriftungen and "Y" in beschriftungen, f"Namen: {beschriftungen}")
