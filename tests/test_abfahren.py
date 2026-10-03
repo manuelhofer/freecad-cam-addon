@@ -230,6 +230,20 @@ if len(st) == 13:
     # Die Spitze im Programm am Home-Punkt: X/Y wie die Anfahrt darüber nicht, Z darüber.
     pruefe(st[0].punkt[2] > 10 and st[1].punkt[:2] == st[2].punkt[:2], f"Punkte: {st[0].punkt}")
 mit_heim = fahrt.dauer
+# Die Zeit des Wechsels selbst (Spezifikation Simulation 13): 10 s je Wechsel – T1 → T2 einmal.
+ma.Wechselzeit = 10.0
+mit_zeit = ab.abfahrt(p, job, FreeCAD.Vector())
+pruefe(
+    mit_zeit.werkzeugwechsel == 1 and abs(mit_zeit.dauer - mit_heim - 10.0) < 1e-6,
+    f"Wechselzeit: {mit_zeit.dauer - mit_heim:.3f} s mehr, {mit_zeit.werkzeugwechsel} Wechsel",
+)
+vor_v, vor_e = fahrt.anteile()
+mit_v, mit_e = mit_zeit.anteile()
+pruefe(
+    abs(mit_v - vor_v) < 1e-6 and abs(mit_e - vor_e) < 1e-6,
+    f"Wechselzeit in Vorschub/Eilgang: {mit_v - vor_v:.3f}, {mit_e - vor_e:.3f}",
+)
+ma.Wechselzeit = 0.0
 # Ein Messstopp zwischen zwei Operationen (Spezifikation Strategien 12.4): Er fährt an den
 # Wechselpunkt wie der Postprozessor – erst Z, dann alle –, die Operation danach kommt von dort;
 # sein eigenes „G0 Z…“ fährt er nicht.
@@ -239,6 +253,7 @@ teil_m, job_m = neuer_job([(erste, 1), (ms.zeilen(25.0, 900.0), 1), (zweite, 1)]
 fahrt_m = ab.abfahrt(p, job_m, FreeCAD.Vector())
 im_messstopp = [s.ziel for s in fahrt_m.stationen if s.operation == 1]
 pruefe(im_messstopp == [W, W], f"Messstopp: {im_messstopp}")
+pruefe(fahrt_m.werkzeugwechsel == 0, f"Messstopp als Wechsel gezählt: {fahrt_m.werkzeugwechsel}")
 pruefe(
     namen(ma, fahrt_m.stellungen_an(fahrt_m.operationen[1].erste + 1)) == wechsel,
     "Messstopp nicht am Wechselpunkt",

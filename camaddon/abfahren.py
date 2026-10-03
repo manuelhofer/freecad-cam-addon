@@ -94,6 +94,9 @@ class Abfahrt:
     stationen: list = field(default_factory=list)
     operationen: list = field(default_factory=list)
     hinweise: list = field(default_factory=list)
+    werkzeugwechsel: int = 0  # so oft wechselt das Werkzeug (für die Wechselzeit)
+    wechselzeit: float = 0.0  # s je Wechsel, in den Zeiten der Stationen enthalten
+    wechsel_vor: set = field(default_factory=set, repr=False)  # Stationen nach einem Wechsel
     nullpunkt: object = None  # Vector von der Werkstückaufnahme zum Nullpunkt des Jobs
     _zeiten: list = field(default_factory=list, repr=False)
     _wirksam: list = field(default_factory=list, repr=False)
@@ -120,8 +123,12 @@ class Abfahrt:
         """(Vorschub, Eilgang) in s – wie viel der Zeit die Maschine im Vorschub fährt und wie
         viel im Eilgang (Manuel, 2026-10-03: „die Bearbeitung dauert rechnerisch … min“)."""
         vorschub = eilgang = 0.0
-        for davor, station in zip(self.stationen, self.stationen[1:], strict=False):
+        for i, (davor, station) in enumerate(
+            zip(self.stationen, self.stationen[1:], strict=False), start=1
+        ):
             dauer = station.zeit - davor.zeit
+            if i in self.wechsel_vor:  # der Wechsel selbst ist keine Fahrt
+                dauer -= self.wechselzeit
             if station.eilgang:
                 eilgang += dauer
             else:
@@ -312,6 +319,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
 
     anflug = False  # die nächste Station kommt vom Home- oder Wechselpunkt
     vorheriger_tc = None
+    gewechselt = []  # je Werkzeugwechsel die Station, vor der er dauert (Wechselzeit)
     davor = None  # (Lösung, Linearachsen) der Operation davor – für den Wechselpunkt in WKS
     for op, tc, aufnahme, eingespannt, linear, befehle, ebene in vorbereitet:
         geschwenkt = ebene is not None
@@ -322,6 +330,8 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             if any(w is not None for w in ziel):
                 zurueckziehen(ziel, nummer - 1, WECHSEL)
                 anflug = True
+            if getattr(tc, "ToolNumber", None) != getattr(vorheriger_tc, "ToolNumber", None):
+                gewechselt.append(len(ergebnis.stationen))
         vorheriger_tc = tc
         davor = (loesung, linear)
         ergebnis.operationen.append(
@@ -415,9 +425,15 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     if ergebnis.operationen:
         zurueckziehen(home, len(ergebnis.operationen) - 1, HOME)
     zeit = 0.0
-    for station, dauer in zip(ergebnis.stationen[1:], fz.zeiten(saetze), strict=True):
-        zeit += dauer
+    dauert = m.wechselzeit(pruefung.maschine)
+    wechsel_vor = set(gewechselt) if dauert > 0 else set()
+    for i, (station, dauer) in enumerate(
+        zip(ergebnis.stationen[1:], fz.zeiten(saetze), strict=True), start=1
+    ):
+        zeit += dauer + (dauert if i in wechsel_vor else 0.0)
         station.zeit = zeit
+    ergebnis.werkzeugwechsel = len(gewechselt)
+    ergebnis.wechselzeit, ergebnis.wechsel_vor = dauert, wechsel_vor
     ergebnis._fertig()
     return ergebnis
 

@@ -202,6 +202,13 @@ class Maschine(_Proxy):
             )
             objekt.WechselBezug = list(WECHSEL_BEZUEGE)
             objekt.WechselBezug = WECHSEL_MKS
+        # Wie lange ein Werkzeugwechsel selbst dauert (s; Spezifikation Simulation 13) – 0: nicht
+        # gezählt, wie bisher.
+        if "Wechselzeit" not in objekt.PropertiesList:
+            objekt.addProperty(
+                "App::PropertyFloat", "Wechselzeit", "Maschine", tr("eigenschaft.wechselzeit")
+            )
+            objekt.Wechselzeit = 0.0
 
 
 # Worin Home- und Wechselpunkt zählen (gespeichert, deshalb ASCII): MKS – Maschinenkoordinaten,
@@ -210,6 +217,11 @@ class Maschine(_Proxy):
 WECHSEL_MKS = "MKS"
 WECHSEL_WKS = "WKS"
 WECHSEL_BEZUEGE = (WECHSEL_MKS, WECHSEL_WKS)
+
+
+def wechselzeit(maschine):
+    """Wie lange ein Werkzeugwechsel dauert (s) – 0 ohne Angabe."""
+    return max(0.0, float(getattr(maschine, "Wechselzeit", 0.0) or 0.0))
 
 
 def wechsel_bezug(maschine):

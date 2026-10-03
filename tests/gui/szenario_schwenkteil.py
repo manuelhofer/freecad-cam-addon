@@ -49,6 +49,7 @@ def schritte(h):
     for ba in mm.betriebsarten(_maschine):
         if ba.Art == mm.ART_LINEAR and ba.NcName == "Z1":
             ba.Wechsel, ba.WechselAn = 150.0, True  # Z ganz oben
+    _maschine.Wechselzeit = 8.0  # ein Wechsel dauert 8 s (Spezifikation Simulation 13)
     pfad_maschine = os.path.join(ordner, "fuenfachs.FCStd")
     asm.Document.saveAs(pfad_maschine)
     yield 300
@@ -202,6 +203,8 @@ def schritte(h):
     fahrt = spieler.abfahrt
     namen = [o.name for o in fahrt.operationen] if fahrt is not None else []
     h.pruefe(len(namen) >= 4, f"Operationen im Abspieler: {namen}")
+    zeit = pruefung.urteil_zeit.text()
+    h.pruefe("Werkzeugwechsel 1 × 8 s" in zeit, f"Zeit ohne den Wechsel: {zeit!r}")
     h.bild("1_fenster", pruefung.form)
     for k, (job, bild) in enumerate(((ebene1, "2_schraege"), (ebene2, "3_45_grad"))):
         op = job.Operations.Group[0]

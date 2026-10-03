@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-07 wechselzeit
+
+### EINGELESEN
+- Spezifikation Simulation 13: „Noch nicht: die Zeit des Wechsels selbst“; der Tooltip der
+  Zeit sagte „Nicht dabei: der Werkzeugwechsel selbst“.
+
+### DATEIEN
+- `camaddon/maschine.py` (Eigenschaft `Wechselzeit`, `wechselzeit()`), `camaddon/gui_maschine.py`
+  („Werkzeugwechsel dauert … s“ unter „Home und Werkzeugwechsel“), `camaddon/abfahren.py` (je
+  Wechsel die Zeit dazu, `werkzeugwechsel`, `wechselzeit`, `wechsel_vor`; `anteile` ohne sie),
+  `camaddon/gui_reichweite.py` (Zeile „Zeit“ mit „Werkzeugwechsel n × …“), Übersetzungen
+  (`eigenschaft.wechselzeit`, `dialog.wechselzeit*`, `rw.zeit.wechsel`, `rw.zeit.tooltip`),
+  `tests/test_abfahren.py`, `tests/gui/szenario_maschine_bearbeiten.py`,
+  `tests/gui/szenario_schwenkteil.py`, Spezifikation Simulation 13, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.160.0).
+
+### AKZEPTANZKRITERIUM
+- 10 s je Wechsel: ein Job mit T1 → T2 dauert genau 10 s länger, Vorschub und Eilgang bleiben;
+  ein Messstopp ist kein Wechsel. Im Fenster „8“ getippt → 8 s, leer → 0. Am Schwenkteil steht
+  „…, Werkzeugwechsel 1 × 8 s“.
+
+### DONE
+- Wie oben. Vorgabe 0: Ohne Eintrag ändert sich keine Zeit.
+
+### TESTS
+- `tests/test_abfahren.py`, `tests/test_maschine.py`, `tests/test_sprache.py` – OK; Szenarien
+  `szenario_maschine_bearbeiten`, `szenario_schwenkteil` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1, D-2, D-4, D-5, E-2, E-3.
+
 ## P-2026-10-04-06 messstopp-zum-wechselpunkt
 
 ### EINGELESEN

@@ -30,7 +30,14 @@ from .gui_details import DetailKasten
 from .gui_hilfe import kopfzeile
 from .gui_teile import GRAU, ruhiges_mausrad
 from .gui_verteilhilfe import VerteilDialog
-from .gui_zahlen import Zahlenpruefer, groesse_lesen, groesse_zeigen, winkel_zeigen
+from .gui_zahlen import (
+    Zahlenpruefer,
+    groesse_lesen,
+    groesse_zeigen,
+    winkel_zeigen,
+    zahl_lesen,
+    zahl_zeigen,
+)
 from .kette import HINWEIS, LINEAR
 from .sprache import tr
 
@@ -300,6 +307,18 @@ class MaschinenPanel:
         self.wahl_wechsel_bezug.currentIndexChanged.connect(self._wechsel_bezug_gewaehlt)
         ruhiges_mausrad(self.wahl_wechsel_bezug)
         self.punkte_formular.addRow(tr("dialog.wechsel_bezug"), self.wahl_wechsel_bezug)
+        # Wie lange der Wechsel selbst dauert – „Auf der Maschine prüfen“ zählt es je Wechsel.
+        self.feld_wechselzeit = QtGui.QLineEdit(zahl_zeigen(m.wechselzeit(self.maschine)))
+        self.feld_wechselzeit.setValidator(Zahlenpruefer(self.feld_wechselzeit))
+        self.feld_wechselzeit.setPlaceholderText("0")
+        self.feld_wechselzeit.setToolTip(tr("dialog.wechselzeit.tooltip"))
+        self.feld_wechselzeit.editingFinished.connect(self._wechselzeit_gesetzt)
+        zeile_zeit = QtGui.QWidget()
+        aufbau_zeit = QtGui.QHBoxLayout(zeile_zeit)
+        aufbau_zeit.setContentsMargins(0, 0, 0, 0)
+        aufbau_zeit.addWidget(self.feld_wechselzeit, 1)
+        aufbau_zeit.addWidget(QtGui.QLabel("s"))
+        self.punkte_formular.addRow(tr("dialog.wechselzeit"), zeile_zeit)
         linear = [ba for ba in m.betriebsarten(self.maschine) if ba.Art == m.ART_LINEAR]
         if not linear:
             leer = QtGui.QLabel(tr("dialog.punkte.leer"))
@@ -375,6 +394,18 @@ class MaschinenPanel:
         art, objekt = _zeilendaten(self.achsen.currentItem())
         if art == ZEILE_BETRIEBSART and objekt is ba:
             self._details_zeigen(art, objekt)
+
+    def _wechselzeit_gesetzt(self):
+        """„Werkzeugwechsel dauert“: übernehmen (leer: 0 – nicht gezählt)."""
+        try:
+            wert = max(0.0, zahl_lesen(self.feld_wechselzeit.text()))
+        except ValueError:  # nur „,“: bleibt wie es war
+            return
+        if "Wechselzeit" not in self.maschine.PropertiesList:
+            self.maschine.Proxy.onDocumentRestored(self.maschine)
+        if abs(float(self.maschine.Wechselzeit) - wert) > 1e-9:
+            self.maschine.Wechselzeit = wert
+            self._auffrischen()
 
     def _wechsel_bezug_gewaehlt(self, _index):
         bezug = self.wahl_wechsel_bezug.currentData()

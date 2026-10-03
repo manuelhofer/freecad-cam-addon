@@ -548,6 +548,14 @@ class PruefPanel:
             vorschub=ab.dauer_text(vorschub),
             eilgang=ab.dauer_text(eilgang),
         )
+        wechsel = len(abfahrt.wechsel_vor)
+        if abfahrt.wechselzeit > 0 and wechsel:
+            text = tr(
+                "rw.zeit.wechsel",
+                text=text,
+                anzahl=wechsel,
+                je=ab.dauer_text(abfahrt.wechselzeit),
+            )
         je_operation = abfahrt.dauer_je_operation()
         if len(je_operation) > 1:
             teile = [f"„{name}“ {ab.dauer_text(s)}" for name, s in je_operation]
