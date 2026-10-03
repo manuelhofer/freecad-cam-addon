@@ -271,6 +271,24 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   **Empfehlung**; (b) alles aus, jeder schaltet selbst ein – nichts
   passiert ungefragt, aber ohne Glätten ruckelt es; (c) alles an – am
   schnellsten, aber eine Maschine ohne die Option bleibt mit Alarm stehen.
+- **E8 – Bohrzyklen an Siemens (Vorschlag, 2026-10-03 Nacht):** Heute schreibt der
+  Postprozessor für jede Steuerung FreeCADs Bohrzyklen als `G81`/`G82`/`G83`/`G73`/`G85` mit
+  X, Y, Z, R (und Q, P). Eine 840D liest im SINUMERIK-Sprachmodus `G290` – dem Standard – keine
+  G81 ff.; die gibt es nur im ISO-Sprachmodus `G291` (Grundlagen 03/2010, S. 535, Gruppe 47;
+  in der Liste der G-Funktionen fehlt G81). Ein Siemens-Programm mit Bohren bliebe also mit
+  Alarm stehen. Vorschlag – je Bohrung über dem Loch (`G0 X… Y…`), dann der Zyklus
+  (Arbeitsvorbereitung 10/2015, S. 651–663):
+  - `G81` → `CYCLE81(RTP, RFP, 0, DP)`, `G82` → `CYCLE82(RTP, RFP, 0, DP, , DTB)`;
+  - `G83` → `CYCLE83(RTP, RFP, 0, DP, , FDEP, , 0, 0, 0, 1, 1)` – Entspanen (VARI 1), erste
+    Tiefe FDEP = R − Q, gleiche Zustellung (Degression 0); `G73` ebenso mit VARI 0
+    (Spänebrechen);
+  - `G85` → `CYCLE85(RTP, RFP, 0, DP, , 0, F, F)` – hinein und heraus im Vorschub;
+  - dabei RTP (Rückzugsebene) = die Höhe vor dem Zyklus bei G98, R bei G99; RFP (Bezugspunkt) = R;
+    Sicherheitsabstand SDIS 0 (R enthält ihn schon); DP = Z absolut; F vorher im Satz `F…`.
+  Die Befehle stünden unter „Befehle …“ zum Ändern wie die anderen. (a) so bauen –
+  **Empfehlung**; (b) Siemens schreibt `G291` vor die Bohrzyklen und `G290` danach – geht nur
+  mit der Option ISO-Dialekt; (c) wie heute. Vor dem ersten Lauf in der Simulation der Steuerung
+  ansehen, wie CYCLE83 mit Degression 0 zustellt.
 
 ## 12. Gebaut
 

@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-47 vorschlaege-simultan-siemens
+
+### EINGELESEN
+- Siemens Arbeitsvorbereitung 10/2015 (TRAORI S. 301, A3=/B3=/C3=, LEAD/TILT S. 315–316;
+  CYCLE81–85 S. 651–663), Grundlagen 03/2010 (G290/G291, S. 535).
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (Abschnitt 16: 5 Achsen simultan, Entwurf, E-1 bis E-4;
+  schon mit ae65e0f gepusht), `docs/spezifikation_steuerung.md` (E8: Bohrzyklen an Siemens als
+  CYCLE81/82/83/85), `docs/STATUS_SNAPSHOT.md` (W-015).
+
+### AKZEPTANZKRITERIUM
+- Manuel kann am Morgen entscheiden, ohne nachzulesen: simultan – was, in welcher Reihenfolge,
+  mit oder ohne TCPM; Siemens-Bohrzyklen – so bauen oder nicht.
+
+### DONE
+- Nur Doku, kein Code.
+
+### TESTS
+- Keine (Doku).
+
+### NEXT
+- Manuels Antworten zu D-1 … D-5, E-1 … E-4 (Abschnitt 16), E8 (Steuerung).
+
 ## P-2026-10-03-46 aufspannung-im-bild
 
 ### EINGELESEN
