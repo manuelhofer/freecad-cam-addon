@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.164.2 (P-2026-10-04-13). Alles, was hier als gebaut steht,
+Stand 0.164.3 (P-2026-10-04-14). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -247,7 +247,10 @@ Beantwortet am 2026-10-03 (abends):
    Lauf). Bandweise rechnen wie `je_stellung` war hier langsamer (0,15 statt 0,11 s), gelassen.
    Was bleibt: das Räumen (3,9 s, viermal je Lauf), 3D-Schruppen, Planfräsen, Kontur je ~1,3 s.
    P-2026-10-04-03: Die Höhen der Wände (B-010, `_wandkanten`) kosteten seit P-34 1,6 s je
-   Lauf – jetzt je Wand gemerkt: warm 5,9 → 4,2 s am Testteil (alle Flächen).
+   Lauf – jetzt je Wand gemerkt: warm 5,9 → 4,2 s am Testteil (alle Flächen). P-2026-10-04-14:
+   Jeder Block merkt seine Vorschau über die Läufe (Schlüssel: Strategie, Flächen, Werkzeug,
+   Einsatz, Werte, Materialstand, Teil und Rohteil) – ein zweiter Lauf ohne Änderung 4,2 → 0,4 s;
+   ändert sich ein Feld, rechnet nur, was davon abhängt.
 4. ~~Planfräsen Zelle für Zelle~~ – P-2026-10-03-29: Zapfen 5,70 → 4,05 min (13 statt 54
    Rampen), Platte 41,88 → 35,20 min, nirgends in voller Breite (Spezifikation Strategien,
    Abschnitt 11). Der Konturgang um Inseln war dafür nicht nötig.

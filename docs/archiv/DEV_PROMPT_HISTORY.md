@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-14 vorschau-merken
+
+### EINGELESEN
+- Status „Danach“ Punkt 3 (die Vorschau beschleunigen) und das Profil des Assistenten am
+  Testteil (alle Flächen): warm 4,2 s je Lauf – jede Änderung, auch eines Felds im letzten Block,
+  rechnete alle Blöcke neu (zweimal Räumen 2,1 s, 3D-Schlichten 0,9, 3D-Schruppen 0,6).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_merk_schluessel`; `BearbeitungPanel.vorschau_merk`;
+  `_Block.vorschau_rechnen` nimmt die gemerkte Vorschau, wenn sich nichts geändert hat, wovon sie
+  abhängt – Strategie, Flächen, Werkzeug, Einsatz, alle Werte, die Kennung des Materialstands,
+  Lage, Hüllquader, Volumen und Form von Teil und Rohteil; höchstens VORSCHAU_MERK 60),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.164.3).
+
+### AKZEPTANZKRITERIUM
+- Am Testteil (alle Flächen) ein zweiter Lauf ohne Änderung 4,22 → 0,37 s; der erste bleibt
+  (9,5 s). Ein geändertes Feld rechnet seinen Block und die dahinter (deren Materialstand sich
+  ändert) – „Zustellung 2“ → „3 Lagen“, „Aufmaß oben 3“ → „4 Lagen“, zurück → „1 Lage“ wie
+  vorher.
+
+### DONE
+- Wie oben. Was sich nicht eindeutig als Text schreiben lässt, trifft nie – dann wird gerechnet.
+
+### TESTS
+- Szenarien `szenario_bearbeitung`, `szenario_testteil` – OK; Profil `szenario_vorschau_profil`
+  (Arbeitsordner). black und ruff sauber.
+
+### NEXT
+- Manuels Durchsicht und Entscheidungen.
+
 ## P-2026-10-04-13 simultan-verdichten
 
 ### EINGELESEN

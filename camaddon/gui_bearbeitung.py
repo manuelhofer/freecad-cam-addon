@@ -18,6 +18,7 @@ _Strategie (was sie braucht, wie sie rechnet), ihr Block im Fenster ein _Block; 
 import contextlib
 import html
 import math
+from collections import OrderedDict
 
 import FreeCAD
 import FreeCADGui
@@ -109,6 +110,7 @@ NULLPUNKT_VORGABE = (0, 0, 1)
 REST_BREITE = 0.01  # mm – „Material neben der Wand“ beim Restmaterial: eine Bahn bei Radius
 VORSCHAU_MS = 400  # nach der letzten Eingabe so lange warten, dann die Bahn rechnen
 NACHZIEHEN_MS = 250  # das Rohteil nach einer Eingabe nachziehen
+VORSCHAU_MERK = 60  # so viele Vorschauen merkt sich der Assistent (_Block.vorschau_rechnen)
 ROHTEIL_FELDER = ("oben", "seite", "unten")
 VERSATZ_FELDER = ("x", "y", "z")  # der Nullpunkt, vom gewählten Punkt aus verschoben
 
@@ -2826,11 +2828,20 @@ class _Block:
             return
         _n, vorschub, senkrecht = js.werte(werkzeug, einsatz)
         werte = dict(self.werte(), vorschub=vorschub, eintauchen=senkrecht, **(zusatz or {}))
+        # Woraus nichts anders ist als beim letzten Mal, kommt dasselbe heraus – nur das ändert
+        # sich, wovon die Vorschau abhängt (am Testteil warm 4,2 s je Lauf für alle Blöcke).
+        schluessel = _merk_schluessel(self.s.kennung, job, werkzeug, einsatz, werte, flaechen)
+        merk = getattr(self.panel, "vorschau_merk", None)
+        if schluessel is not None and merk is not None and schluessel in merk:
+            merk.move_to_end(schluessel)
+            self._gemerkt_zeigen(merk[schluessel])
+            return
         try:
             self.vorschau = self.s.vorschau(job, werkzeug, werte, flaechen)
         except (ValueError, RuntimeError) as fehler:  # RuntimeError: OCC am Netz
             self.hinweis.setText(str(fehler))
             self.schon_weg = isinstance(fehler, mst.SchonWeg)
+            self._merken(merk, schluessel)
             return
         self.zeit = bn.zeit(self.vorschau.punkte, vorschub, senkrecht) if vorschub > 0 else None
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
@@ -2839,6 +2850,32 @@ class _Block:
         self.material.setText(_material_text(self.vorschau))
         if self.s.kennung == "nut":
             self.stellen_zeigen(getattr(self.vorschau, "stellen", None))
+        self._merken(merk, schluessel)
+
+    def _merken(self, merk, schluessel):
+        """Merkt, was die Vorschau ergab – höchstens VORSCHAU_MERK, die ältesten fallen heraus."""
+        if schluessel is None or merk is None:
+            return
+        merk[schluessel] = (
+            self.vorschau,
+            self.zeit,
+            self.schon_weg,
+            self.ergebnis_basis,
+            self.material.text(),
+            self.hinweis.text(),
+        )
+        while len(merk) > VORSCHAU_MERK:
+            merk.popitem(last=False)
+
+    def _gemerkt_zeigen(self, gemerkt):
+        vorschau, zeit, schon_weg, basis, material, hinweis = gemerkt
+        self.vorschau, self.zeit, self.schon_weg = vorschau, zeit, schon_weg
+        self.ergebnis_basis = basis
+        self.ergebnis.setText(basis)
+        self.material.setText(material)
+        self.hinweis.setText(hinweis)
+        if self.s.kennung == "nut" and vorschau is not None:
+            self.stellen_zeigen(getattr(vorschau, "stellen", None))
 
     def leeren(self):
         self.vorschau = None
@@ -2848,6 +2885,39 @@ class _Block:
         self.ergebnis.setText("")
         self.material.setText("")
         self.hinweis.setText("")
+
+
+def _merk_schluessel(kennung, job, werkzeug, einsatz, werte, flaechen):
+    """Woraus die Vorschau eines Blocks gerechnet wird, als Text: Strategie, Flächen, Werkzeug,
+    Einsatz, alle Werte (der Materialstand mit seiner Kennung), Teil und Rohteil im Job (Lage,
+    Hüllquader, Volumen, Form). Was sich nicht eindeutig schreiben lässt (eine Adresse im Text),
+    trifft nie – dann wird gerechnet. None, wenn es nicht geht."""
+    try:
+        stand = werte.get("materialstand")
+        rein = sorted((k, repr(v)) for k, v in werte.items() if k != "materialstand")
+        teile = []
+        for objekt in (vr.modell(job), getattr(job, "Stock", None)):
+            form = getattr(objekt, "Shape", None)
+            if form is None or form.isNull():
+                teile.append(None)
+                continue
+            bb = form.BoundBox
+            huelle = (bb.XMin, bb.YMin, bb.ZMin, bb.XMax, bb.YMax, bb.ZMax)
+            teile.append((repr(objekt.Placement), huelle, round(form.Volume, 6), form.hashCode()))
+        text = repr(
+            (
+                kennung,
+                tuple(flaechen),
+                repr(werkzeug),
+                repr(einsatz),
+                rein,
+                getattr(stand, "kennung", None) if stand is not None else None,
+                teile,
+            )
+        )
+    except Exception:  # ein Wert ohne Text – dann eben rechnen
+        return None
+    return None if " at 0x" in text else text
 
 
 def rohteil_kandidaten(dokument, teil=None):
@@ -2906,6 +2976,8 @@ class BearbeitungPanel:
         self._sichtbar_vorher = None  # (Teil, war sichtbar) – das Original
         self._aufspannung_vorher = []  # [(Objekt, war sichtbar)] – gui_schwenken.zeige_job
         self._rohteil_sichtbar_vorher = None  # (Körper, war sichtbar) – das Rohteil-Original
+        # Je Block gemerkte Vorschauen über die Läufe hinweg: woraus gerechnet → was herauskam.
+        self.vorschau_merk = OrderedDict()
         self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
         self._job_offen = False  # die Transaktion des neuen Jobs ist offen
         self._job_fest = False  # der Job liegt schon als Schritt Rückgängig ab
