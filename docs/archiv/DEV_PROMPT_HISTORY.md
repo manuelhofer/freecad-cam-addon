@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-37 schwenken-programm
+
+### EINGELESEN
+- Spezifikation Strategien 15.3, F3; Siemens Arbeitsvorbereitung 10/2015, S. 678–681 (CYCLE800:
+  _FR, _TC, _ST, _MODE bitcodiert – „Drehreihenfolge ZYX … Dezimal 27“ –, Bezugspunkte, _DIR,
+  _FR_I, _DMODE); Grundlagen, Beispiel „N10 CYCLE800() ; Rücksetzen der geschwenkten Ebene“.
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`Steuerung.schwenken`, `schwenken_aus`, Haken `schwenkzyklus`;
+  `Abschnitt.schwenkung`; `programm`: schwenken nach dem Werkzeugwechsel, vor der Spindel –
+  mit Zyklus oder ohne; `abschnitte(job, maschine, mit_ebenen)`), `camaddon/schwenken.py`
+  (`schwenkung_fuer`, `ebenen_von`, `gleiche`, `text_rundachsen(programm=)`; ohne Maschine
+  nur A, C), `camaddon/gui_programm.py` (Gruppe „Ebene schwenken (3+2)“, nur an der Fräse),
+  Hilfe `programm.html` (de/en, Anker „schwenken“), Übersetzungen, `tests/test_schwenken.py`
+  (F3), Spezifikation (F3, D-4), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.153.0).
+
+### AKZEPTANZKRITERIUM
+- Der Grundjob mit einer Ebene als ein Programm: Siemens mit CYCLE800 (Ursprung, Winkel ZYX)
+  vor der Spindel und CYCLE800() am Ende, die Sätze wie in der Ebene; LinuxCNC und Siemens ohne
+  Haken mit `G0 A-30 C0`, gerechneten Sätzen und den Rundachsen am Ende auf 0.
+
+### DONE
+- Wie oben; Kommentar „Ebene geschwenkt: A-30 C0“ in ASCII. Fehler beim Rechnen (Bohrzyklus
+  quer zur Ebene, ohne Maschine bei B, C) als Hinweis und Kommentar, der Abschnitt entfällt.
+
+### TESTS
+- `tests/test_schwenken.py`, `tests/test_postprozessor.py`, `tests/test_sprache.py`,
+  `tests/test_hilfe.py`, `szenario_programm` – OK. black und ruff sauber.
+
+### NEXT
+- F4: „Auf der Maschine prüfen“ für einen Job mit Ebene.
+
 ## P-2026-10-03-36 ebene-als-job
 
 ### EINGELESEN

@@ -291,6 +291,50 @@ k = ps.messen(
 pruefe(k.einschnitt > -0.02, f"Räumen der Schräge schneidet ins Teil: {ps.zeile(k)}")
 pruefe(k.rest < 0.5, f"Räumen der Schräge lässt stehen: {ps.zeile(k)}")
 print(f"Räumen auf der Schräge: {bahn.zeit:.2f} min, {bahn.variante} – {ps.zeile(k)}")
+
+# --- F3: das Programm ----------------------------------------------------------------------------
+from camaddon import postprozessor as pp  # noqa: E402
+
+teile = pp.abschnitte(grundjob)
+pruefe(
+    len(teile) == 1 and teile[0].schwenkung is not None and teile[0].name == op.Label,
+    f"Abschnitte des Grundjobs: {[(a.name, a.schwenkung) for a in teile]}",
+)
+pruefe(pp.abschnitte(grundjob, mit_ebenen=False) == [], "Grundjob ohne Ebenen nicht leer")
+pruefe(len(pp.abschnitte(planjob)) == 1, "Job der Ebene allein")
+info = pp.Maschineninfo("5-Achs")
+# Siemens: CYCLE800 mit dem Ursprung der Ebene und den Winkeln achsweise Z, Y, X; die Sätze in
+# Koordinaten der Ebene, wie die Operation sie hat; am Ende zurück.
+siemens = pp.programm(teile, pp.steuerung("siemens"), info, "Block").zeilen
+x0, y0, z0 = (f"{v:.3f}" for v in e.Base)
+zyklus = f'CYCLE800(1,"",0,27,{x0},{y0},{z0},0.000,0.000,30.000,0,0,0,-1,0,1)'
+pruefe(zyklus in siemens, f"kein {zyklus}: {[z for z in siemens if 'CYCLE' in z]}")
+pruefe(
+    siemens.index(zyklus) < next(i for i, z in enumerate(siemens) if z.startswith("M3")),
+    "CYCLE800 nach dem Spindelstart",
+)
+pruefe("CYCLE800()" in siemens[-5:], f"Ende: {siemens[-6:]}")
+pruefe("; Ebene geschwenkt: A-30 C0" in siemens, "Kommentar zur Ebene")
+erster = next(c for c in op.Path.Commands if c.Name in ("G1", "G01"))
+pruefe(
+    any(z.startswith("G1") and f"X{erster.Parameters['X']:.3f}" in z for z in siemens),
+    "Siemens: Sätze nicht in Koordinaten der Ebene",
+)
+pruefe(not any(" A" in z or "C=" in z for z in siemens if z.startswith("G")), "Siemens: Rundachsen")
+# Ohne Zyklus (LinuxCNC; Siemens mit Haken aus): die Rundachsen und gerechnete X, Y, Z.
+schwenkung = teile[0].schwenkung
+gesamt = schwenkung.gesamt()
+for s in (pp.steuerung("linuxcnc"), pp.steuerung("siemens", {"schwenkzyklus": False})):
+    zeilen = pp.programm(teile, s, info, "Block").zeilen
+    pruefe(not any("CYCLE800" in z for z in zeilen), f"{s.name} ohne Zyklus: CYCLE800")
+    ein = next((z for z in zeilen if z.startswith("G0 A")), "")
+    pruefe(ein.startswith("G0 A-30.000 C0.000"), f"{s.name}: Rundachsen {ein!r}")
+    pruefe(zeilen.count("G0 A0.000 C0.000") == 1, f"{s.name}: Rundachsen nicht zurück")
+    soll = gesamt.punkt([float(erster.Parameters.get(k, 0.0)) for k in "XYZ"])
+    pruefe(
+        any(z.startswith("G1") and f"X{soll[0]:.3f}" in z for z in zeilen),
+        f"{s.name}: erster Satz nicht gerechnet ({soll})",
+    )
 FreeCAD.closeDocument(doc.Name)
 
 if fehler:

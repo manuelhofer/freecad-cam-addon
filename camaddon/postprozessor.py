@@ -43,6 +43,7 @@ import dataclasses
 import re
 from dataclasses import dataclass, field
 
+from . import schwenken as sw
 from .sprache import tr
 
 STELLEN = 3  # Nachkommastellen der Koordinaten und des Vorschubs je Minute
@@ -114,6 +115,13 @@ class Steuerung:
     g93: bool = True  # Bahnen mit Rundachse in G93; aus: F in mm/min, Zeit wie G93 (S5)
     glaetten: tuple = None  # Kennungen der eingeschalteten Glaetten; None: die vorbelegten
     toleranz: float = 0.01  # mm – fürs Glätten (G642/CTOL, G64 P)
+    # 3+2 (W-014, Spezifikation Strategien 15): die Ebene mit dem Schwenkzyklus der Steuerung
+    # schwenken – {x0} {y0} {z0}: der Ursprung der Ebene im Grundjob, {a} {b} {c}: ihre Winkel
+    # achsweise um Z, Y, X. Leer oder Haken aus: ohne Zyklus, die Rundachsen und X, Y, Z im
+    # Programm gerechnet (schwenken.befehle_ohne_zyklus).
+    schwenken: str = ""
+    schwenken_aus: str = ""
+    schwenkzyklus: bool = True
 
     def ersetzt(self, **werte):
         """Eine Kopie mit geänderten Befehlen."""
@@ -150,10 +158,12 @@ BEFEHLSFELDER = (
     "kuehlung_flut",
     "kuehlung_nebel",
     "kuehlung_aus",
+    "schwenken",
+    "schwenken_aus",
 )
 
 # Die Haken – (Name, Typ) wie in Steuerung; im Fenster je eine Zeile mit Erklärung.
-HAKEN = ("kommentare", "satznummern", "kuehlung", "wechselpunkt", "c_achse", "g93")
+HAKEN = ("kommentare", "satznummern", "kuehlung", "wechselpunkt", "c_achse", "g93", "schwenkzyklus")
 
 _KOPF_FRAESEN = "%\n{kommentar_name}\nG17 G21 G40 G49 G80 G90"
 _MKS = ("G53 G0 {achsen}",)
@@ -219,6 +229,12 @@ STEUERUNGEN = {
         # S. 109: „G0 G40 G60 G90 SUPA X450 Y300 Z300 D0 … Werkzeugwechselpunkt anfahren“;
         # F_HOME ist ShopTurns Zyklus, G75 „Festpunkt anfahren“ (P-2026-10-03-26).
         wechselpunkt_vorschlaege=("G0 SUPA D0 {achsen}", "F_HOME", "G75 {achsen} FP=1"),
+        # S. 678–681: CYCLE800(_FR, _TC, _ST, _MODE, _X0, _Y0, _Z0, _A, _B, _C, _X1, _Y1, _Z1,
+        # _DIR, _FR_I, _DMODE) – Freifahren Maschinenachse Z, Schwenkdatensatz "" (nur einer),
+        # neu, Modus 27 (achsweise, Reihenfolge Z, Y, X), Bezugspunkt vor der Drehung, die
+        # Winkel, Richtung −1, G17. Zurück: CYCLE800() (Grundlagen, Beispiel N10).
+        schwenken='CYCLE800(1,"",0,27,{x0},{y0},{z0},{a},{b},{c},0,0,0,-1,0,1)',
+        schwenken_aus="CYCLE800()",
     ),
     "fanuc": Steuerung(
         "fanuc",
@@ -325,6 +341,8 @@ class Abschnitt:
     kuehlung: str = "None"  # FreeCADs CoolantMode: None, Flood, Mist
     befehle: list = field(default_factory=list)
     werkzeugname: str = ""
+    # 3+2: die Schwenkung des Jobs (schwenken.Schwenkung) – die Befehle in Koordinaten der Ebene.
+    schwenkung: object = None
 
 
 @dataclass
@@ -370,6 +388,8 @@ def feld_text(feld):
         "kuehlung_flut": (tr("pp.feld.kuehlung_flut"), tr("pp.feld.kuehlung_flut.tooltip")),
         "kuehlung_nebel": (tr("pp.feld.kuehlung_nebel"), tr("pp.feld.kuehlung_nebel.tooltip")),
         "kuehlung_aus": (tr("pp.feld.kuehlung_aus"), tr("pp.feld.kuehlung_aus.tooltip")),
+        "schwenken": (tr("pp.feld.schwenken"), tr("pp.feld.schwenken.tooltip")),
+        "schwenken_aus": (tr("pp.feld.schwenken_aus"), tr("pp.feld.schwenken_aus.tooltip")),
     }.get(feld, (feld, ""))
 
 
@@ -382,6 +402,7 @@ def haken_text(feld):
         "wechselpunkt": (tr("pp.haken.wechselpunkt"), tr("pp.haken.wechselpunkt.erklaerung")),
         "c_achse": (tr("pp.haken.c_achse"), tr("pp.haken.c_achse.erklaerung")),
         "g93": (tr("pp.haken.g93"), tr("pp.haken.g93.erklaerung")),
+        "schwenkzyklus": (tr("pp.haken.schwenkzyklus"), tr("pp.haken.schwenkzyklus.erklaerung")),
     }.get(feld, (feld, ""))
 
 
@@ -517,19 +538,49 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     stand = {}  # Adresse → Wert, wie zuletzt angefahren (für den Vorschub ohne G93)
     saetze = 0
     gesehen = set()
+    geschwenkt = None  # die Schwenkung, in der die Maschine gerade steht
+    zyklus = bool(s.schwenkzyklus and s.schwenken)
     for abschnitt in abschnitte:
         notiz(abschnitt.name)
-        befehle = [_befehl(b) for b in abschnitt.befehle]
+        befehle_roh = abschnitt.befehle
+        if abschnitt.schwenkung is not None and not zyklus:
+            try:
+                befehle_roh = sw.befehle_ohne_zyklus(befehle_roh, abschnitt.schwenkung)
+            except ValueError as grund:
+                hinweise.append(f"{abschnitt.name}: {grund}")
+                zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))
+                continue
+        befehle = [_befehl(b) for b in befehle_roh]
+        gewechselt = False
         if abschnitt.werkzeug and abschnitt.werkzeug != werkzeug:
             if spindel_an is not None:
                 zeilen.extend(_spindel_aus(s, spindel_an))
                 spindel_an = None
             zeilen.extend(_zum_wechselpunkt(s, info))
+            if geschwenkt is not None and not sw.gleiche(geschwenkt, abschnitt.schwenkung):
+                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus))
+                geschwenkt = None
             if abschnitt.werkzeugname:
                 notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
             vorlage = s.wechsel_drehen if info.drehmaschine else s.wechsel_fraesen
             zeilen.append(_fuellen(vorlage, t=int(abschnitt.werkzeug)))
             werkzeug = abschnitt.werkzeug
+            gewechselt = True
+        if not sw.gleiche(geschwenkt, abschnitt.schwenkung):
+            # Eine andere Ebene: erst weg vom Teil (ohne Zyklus; CYCLE800 fährt selbst frei).
+            if not gewechselt and not zyklus:
+                if spindel_an is not None:
+                    zeilen.extend(_spindel_aus(s, spindel_an))
+                    spindel_an = None
+                zeilen.extend(_zum_wechselpunkt(s, info))
+            if geschwenkt is not None and abschnitt.schwenkung is None:
+                zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus))
+            if abschnitt.schwenkung is not None:
+                rund = sw.text_rundachsen(abschnitt.schwenkung.rund, programm=True)
+                notiz(tr("pp.ebene", rundachsen=rund))
+                if zyklus:
+                    zeilen.extend(_schwenken_ein(s, abschnitt.schwenkung))
+            geschwenkt = abschnitt.schwenkung
         mit_rundachse = any(set(p) & set(ROTATION) for _n, p in befehle)
         if info.drehmaschine and mit_rundachse and not c_an and s.c_achse:
             # Auch ohne Befehl der Hinweis: Gerade dann muss ihn jemand eintragen (Fanuc).
@@ -610,10 +661,27 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
         zeilen.extend(_spindel_aus(s, spindel_an))
     if werkzeug is not None:
         zeilen.extend(_zum_wechselpunkt(s, info))
+    if geschwenkt is not None:
+        zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus))
     if c_an and s.c_aus:
         zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
     zeilen.extend(_zeilen(s.ende))
     return Programm(_nummeriert(zeilen, s), hinweise, saetze)
+
+
+def _schwenken_ein(s, schwenkung):
+    """Der Schwenkzyklus für die Ebene (Steuerung.schwenken)."""
+    (x0, y0, z0), (a, b, c) = sw.zyklus_winkel(schwenkung.ebene)
+    werte = {"x0": x0, "y0": y0, "z0": z0, "a": a, "b": b, "c": c}
+    return _zeilen(_fuellen(s.schwenken, **{k: _zahl(v) for k, v in werte.items()}))
+
+
+def _schwenken_aus(s, schwenkung, zyklus):
+    """Zurück aus der Ebene: der Zyklus zurück – ohne Zyklus die Rundachsen auf 0."""
+    if zyklus:
+        return _zeilen(s.schwenken_aus)
+    woerter = [_wort(s, b, _zahl(0.0)) for b in sorted(schwenkung.rund)]
+    return [" ".join(["G0", *woerter])] if woerter else []
 
 
 def _weg(stand, parameter):
@@ -707,8 +775,19 @@ def _hersteller(s, feld, hinweise, gesehen, zeilen):
 # --- Aus FreeCAD ---------------------------------------------------------------------------
 
 
-def abschnitte(job):
-    """[Abschnitt] – die aktiven Operationen des Jobs mit Bahn, in ihrer Reihenfolge."""
+def abschnitte(job, maschine=None, mit_ebenen=True):
+    """[Abschnitt] – die aktiven Operationen des Jobs mit Bahn, in ihrer Reihenfolge. Ist der
+    Job eine geschwenkte Ebene (3+2), tragen sie ihre Schwenkung; hat er Ebenen
+    (`mit_ebenen`), folgen deren Operationen – ein Programm für die Aufspannung (Spezifikation
+    Strategien 15, F3). `maschine`: schwenken.Maschine für das Programm ohne Schwenkzyklus."""
+    ergebnis = _abschnitte_des_jobs(job, sw.schwenkung_fuer(job, maschine))
+    if mit_ebenen and not sw.ist_ebene(job):
+        for ebene in sw.ebenen_von(job):
+            ergebnis += _abschnitte_des_jobs(ebene, sw.schwenkung_fuer(ebene, maschine))
+    return ergebnis
+
+
+def _abschnitte_des_jobs(job, schwenkung):
     ergebnis = []
     for op in getattr(getattr(job, "Operations", None), "Group", []):
         if not getattr(op, "Active", True) or getattr(op, "Path", None) is None:
@@ -727,6 +806,7 @@ def abschnitte(job):
                 str(getattr(op, "CoolantMode", "None")),
                 list(op.Path.Commands),
                 getattr(werkzeug, "Label", "") if werkzeug is not None else "",
+                schwenkung,
             )
         )
     return ergebnis

@@ -112,6 +112,27 @@ in degrees – that is how controls compute the feed when linear and rotary axes
 Check that your control counts it the same way.</li>
 </ul>
 
+<a name="schwenken"></a>
+<h3>Swivel plane (3+2)</h3>
+<p>A <b>swivelled plane</b> is a job the addon swivels from a base job: the part stays clamped,
+the rotary axes turn it (or the head) until the tool stands perpendicular on an inclined face.
+When you write the base job, the operations of its planes follow in the same program – each
+plane swivelled once, back at the end.</p>
+<ul>
+<li><b>With the control's swivel cycle</b> (preset for Siemens) – before the plane's operations
+“CYCLE800(1,"",0,27,X0,Y0,Z0,A,B,C,0,0,0,-1,0,1)”: retract in Z, the swivel data set (between
+the quotes; empty if the machine has only one), new, axis by axis about Z, Y, X, the plane's
+origin in the base job, direction −1. Then the blocks are in plane coordinates; the control
+computes rotary axes and tool length itself, the zero point stays on the part. Back with
+“CYCLE800()”. Source: Siemens programming manual job planning 10/2015, pp. 678–681.</li>
+<li><b>Without cycle</b> (tick off, or the control has no command for it: LinuxCNC, Mach, Fanuc,
+Haas) – first to the change point, then “G0 A… C…”, the blocks with X, Y, Z computed for the
+rotated machine, afterwards the rotary axes to 0. Computed from the machine; without a machine
+only for an A table (about X) with rotary table C, the pivot at the base job's zero point.</li>
+</ul>
+<p><b>Before the first run</b> look at it in the control's simulation: whether the swivel data
+set, the direction and the retract suit the machine is decided by the machine builder.</p>
+
 <a name="glaetten"></a>
 <h3>Look-ahead and smoothing</h3>
 <p>Rotary paths consist of thousands of short blocks. Without look-ahead a control brakes at

@@ -115,6 +115,28 @@ Rundachse in Grad – so rechnen Steuerungen den Vorschub, wenn Linear- und Rund
 fahren. Prüf an deiner Steuerung, ob sie es auch so zählt.</li>
 </ul>
 
+<a name="schwenken"></a>
+<h3>Ebene schwenken (3+2)</h3>
+<p>Eine <b>geschwenkte Ebene</b> ist ein Job, den das Addon aus einem Grundjob schwenkt: Das Teil
+bleibt gespannt, die Rundachsen drehen es (oder den Kopf), bis das Werkzeug senkrecht auf einer
+schrägen Fläche steht. Schreibst du den Grundjob, folgen die Operationen seiner Ebenen im selben
+Programm – je Ebene einmal geschwenkt, am Ende zurück.</p>
+<ul>
+<li><b>Mit dem Schwenkzyklus der Steuerung</b> (vorbelegt bei Siemens) – vor den Operationen der
+Ebene „CYCLE800(1,"",0,27,X0,Y0,Z0,A,B,C,0,0,0,-1,0,1)“: Freifahren in Z, der Schwenkdatensatz
+(zwischen den Anführungszeichen; leer, wenn die Maschine nur einen hat), neu, achsweise um Z, Y,
+X, der Ursprung der Ebene im Grundjob, Richtung −1. Danach stehen die Sätze in Koordinaten der
+Ebene; die Steuerung rechnet Rundachsen und Werkzeuglänge selbst, der Nullpunkt bleibt am Teil.
+Zurück mit „CYCLE800()“. Quelle: Siemens-Programmierhandbuch Arbeitsvorbereitung 10/2015,
+S. 678–681.</li>
+<li><b>Ohne Zyklus</b> (Haken aus, oder die Steuerung hat keinen Befehl dafür: LinuxCNC, Mach,
+Fanuc, Haas) – vorher zum Wechselpunkt, dann „G0 A… C…“, die Sätze mit X, Y, Z für die gedrehte
+Maschine gerechnet, danach die Rundachsen auf 0. Gerechnet aus der Maschine; ohne Maschine nur
+für einen Tisch A (um X) mit Rundtisch C, den Drehpunkt im Nullpunkt des Grundjobs.</li>
+</ul>
+<p><b>Vor dem ersten Lauf</b> in der Simulation der Steuerung ansehen: Ob der Schwenkdatensatz,
+die Richtung und das Freifahren zur Maschine passen, legt der Maschinenhersteller fest.</p>
+
 <a name="glaetten"></a>
 <h3>Vorausschau und Glätten</h3>
 <p>Rundum-Bahnen bestehen aus tausenden kurzen Sätzen. Ohne Vorausschau bremst eine Steuerung

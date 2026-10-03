@@ -359,6 +359,8 @@ def befehle_ohne_zyklus(befehle, schwenkung):
     sonst ValueError."""
     import Path
 
+    if schwenkung.abbildung is None:
+        raise ValueError(tr("sw.fehler.ohne_maschine", rundachsen=text_rundachsen(schwenkung.rund)))
     gesamt = schwenkung.gesamt()
     in_xy = schwenkung.in_xy()
     gespiegelt = in_xy and gesamt.richtung((0.0, 0.0, 1.0))[2] < 0
@@ -446,15 +448,17 @@ def _bogen_punkte(anfang, ende, mitte, uhr):
 # --- Die Ebene als Job (F2) ------------------------------------------------------------------
 
 
-def text_rundachsen(rund):
-    """„A−30 C0“ – die Rundachsen in der Reihenfolge A, B, C, ganze Grad ohne Komma."""
+def text_rundachsen(rund, programm=False):
+    """„A−30 C0“ – die Rundachsen in der Reihenfolge A, B, C, ohne Nullen hinter dem Komma.
+    `programm`: für einen Kommentar im Programm – Punkt und „-“, nur ASCII."""
     from . import einheiten
 
-    zeichen = einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
+    zeichen = einheiten.PUNKT if programm else einheiten.gewaehltes_dezimalzeichen() or "."
+    minus = "-" if programm else "−"
     teile = []
     for buchstabe in sorted(rund):
         zahl = f"{_rund(rund[buchstabe]):.3f}".rstrip("0").rstrip(".")
-        teile.append(f"{buchstabe}{zahl.replace('.', zeichen).replace('-', '−')}")
+        teile.append(f"{buchstabe}{zahl.replace('.', zeichen).replace('-', minus)}")
     return " ".join(teile)
 
 
@@ -543,3 +547,37 @@ def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None):
     job.Label = name or tr("sw.job", job=grundjob.Label, flaeche=flaeche, rundachsen=job.Rundachsen)
     dokument.recompute()
     return job
+
+
+def schwenkung_fuer(job, maschine=None):
+    """Die Schwenkung (Ebene, Rundachsen, Abbildung ins Programm ohne Zyklus) eines Jobs mit
+    Ebene – None ohne. Die Abbildung aus `maschine` (sw.Maschine); ohne Maschine nur für
+    Tisch/Tisch A, C mit dem Drehpunkt im Nullpunkt des Grundjobs, sonst None (dann geht nur der
+    Schwenkzyklus der Steuerung)."""
+    if not ist_ebene(job):
+        return None
+    rund = rundachsen_von(job)
+    if maschine is not None:
+        abbildung = maschine.abbildung(rund)
+    elif set(rund) == {"A", "C"}:
+        abbildung = abbildung_ohne_maschine(rund)
+    else:
+        abbildung = None
+    return Schwenkung(ebene_von(job), rund, abbildung)
+
+
+def ebenen_von(grundjob):
+    """Die Jobs der Ebenen, die aus `grundjob` geschwenkt sind – in der Reihenfolge im
+    Dokument."""
+    return [
+        o
+        for o in grundjob.Document.Objects
+        if o is not grundjob and ist_ebene(o) and o.Grundjob == grundjob
+    ]
+
+
+def gleiche(a, b):
+    """Sind zwei Schwenkungen (oder None) dieselbe Ebene?"""
+    if a is None or b is None:
+        return a is b
+    return a.ebene.isSame(b.ebene, 1e-9) and a.rund == b.rund

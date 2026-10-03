@@ -2416,6 +2416,11 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   kein Einschnitt.
 - **F3 Programm:** „Programm schreiben“ für einen Job mit Ebene – Siemens mit CYCLE800, die
   anderen ohne Zyklus; der Grundjob mit seinen Ebenen in einem Programm.
+  **Gebaut:** P-2026-10-03-37 – `Steuerung.schwenken`/`schwenken_aus` (Siemens
+  `CYCLE800(1,"",0,27,…,-1,0,1)` / `CYCLE800()`, editierbar wie jeder Befehl), Haken
+  „Mit dem Schwenkzyklus der Steuerung“; ohne Zyklus vorher zum Wechselpunkt, `G0 A… C…`, die
+  Sätze gerechnet, danach die Rundachsen auf 0. `abschnitte(grundjob)` nimmt die Ebenen des
+  Grundjobs mit (D-4 unten).
 - **F4 Auf der Maschine prüfen:** Reichweite, Abfahren, Kollision für einen Job mit Ebene – die
   Sätze ohne Zyklus gerechnet, mit den Rundachsen der Ebene.
 - **F5 Assistent:** in „Bearbeitung“ Schritt 1 an einer 5-Achs-Maschine „Ebene schwenken:
@@ -2430,3 +2435,5 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
 - **D-2 Richtung:** CYCLE800 `_DIR` −1 (kleinerer Wert der ersten Rundachse) – oder +1?
 - **D-3 Ohne Zyklus:** Drehpunkt der Rundachsen aus der Maschine (die Baugruppe) – stimmt nur,
   wenn der Nullpunkt im Job zur Aufnahme passt wie in „Auf der Maschine prüfen“.
+- **D-4 Ein Programm je Aufspannung:** „Programm schreiben“ für den Grundjob schreibt seine
+  Ebenen gleich mit (je Ebene einmal geschwenkt) – oder lieber je Ebene ein Programm?
