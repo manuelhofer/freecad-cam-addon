@@ -65,6 +65,11 @@ GRUPPEN = (
     ("c_achse", "c_achse", ("c_achse", "c_ein", "c_aus")),
     ("vorschub", "vorschub", ("g93", "vorschub_zeit", "vorschub_minute", "vorschub_minute_drehen")),
     ("schwenken", "schwenken", ("schwenkzyklus", "schwenken", "schwenken_aus")),
+    (
+        "bohren",
+        "bohren",
+        ("bohren", "bohren_verweilen", "tiefbohren", "spaenebrechen", "reiben"),
+    ),
     ("glaetten", "glaetten", ()),
 )
 # Was nur an der Drehmaschine bzw. nur an der Fräse gilt – sonst nicht gezeigt.
@@ -78,7 +83,18 @@ NUR_DREHEN = {
     "c_ein",
     "c_aus",
 }
-NUR_FRAESEN = {"wechsel_fraesen", "vorschub_minute", "schwenkzyklus", "schwenken", "schwenken_aus"}
+NUR_FRAESEN = {
+    "wechsel_fraesen",
+    "vorschub_minute",
+    "schwenkzyklus",
+    "schwenken",
+    "schwenken_aus",
+    "bohren",
+    "bohren_verweilen",
+    "tiefbohren",
+    "spaenebrechen",
+    "reiben",
+}
 # Befehle, die nur mit ihrem Haken gelten.
 HAKEN_VON = {
     "wechselpunkt_mks": "wechselpunkt",
@@ -111,6 +127,7 @@ def gruppen_titel(gruppe):
         "c_achse": tr("pp.gruppe.c_achse"),
         "vorschub": tr("pp.gruppe.vorschub"),
         "schwenken": tr("pp.gruppe.schwenken"),
+        "bohren": tr("pp.gruppe.bohren"),
         "glaetten": tr("pp.gruppe.glaetten"),
     }[gruppe]
 

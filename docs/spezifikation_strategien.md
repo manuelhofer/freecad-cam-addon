@@ -2581,8 +2581,9 @@ Kollision mit Rundachsen je Station.
 
 ### 16.4 Zu entscheiden (Manuel)
 
-- **E-1 TCPM:** Hat deine Maschine `TRAORI` (Option 5-Achs-Transformation)? Dann zuerst mit
-  TRAORI; sonst alles ohne TCPM, an die Maschine gebunden.
+- **E-1 TCPM:** ~~Hat deine Maschine `TRAORI`?~~ Schon beantwortet (Status, „Beantwortet am
+  2026-10-03 abends“): „TCPM bleibt aus. Es soll auf allen Maschinen gehen; die G-Sätze ohne TCPM
+  geben dasselbe Teil … TCPM später als Haken.“ Der Kern S1 rechnet ohne TCPM.
 - **E-2 Zuerst:** S2 (Kugelfräser angestellt) oder S3 (Flanke)?
 - **E-3 Anstellwinkel:** fest mit einem Feld (z. B. 15° voreilend, 0° seitwärts) – oder aus der
   Neigung der Fläche?

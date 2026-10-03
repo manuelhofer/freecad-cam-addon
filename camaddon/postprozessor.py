@@ -122,6 +122,16 @@ class Steuerung:
     schwenken: str = ""
     schwenken_aus: str = ""
     schwenkzyklus: bool = True
+    # Bohrzyklen (Spezifikation Steuerung, E8): FreeCADs G81, G82, G83, G73 und G85 als Befehl
+    # der Steuerung – je Bohrung über dem Loch („G0 X… Y…“), dann der Befehl mit {rtp}
+    # Rückzugsebene (G98: die Höhe davor, G99: R), {rfp} Bezugsebene (R), {dp} Tiefe (Z),
+    # {fdep} erste Tiefe (R − Q), {q} Zustellung, {dtb} Verweilen (P, s), {f} Vorschub (mm/min).
+    # Leer: der Zyklus bleibt als G-Code. Ist einer gesetzt, entfallen G80, G98 und G99.
+    bohren: str = ""
+    bohren_verweilen: str = ""
+    tiefbohren: str = ""
+    spaenebrechen: str = ""
+    reiben: str = ""
 
     def ersetzt(self, **werte):
         """Eine Kopie mit geänderten Befehlen."""
@@ -160,7 +170,21 @@ BEFEHLSFELDER = (
     "kuehlung_aus",
     "schwenken",
     "schwenken_aus",
+    "bohren",
+    "bohren_verweilen",
+    "tiefbohren",
+    "spaenebrechen",
+    "reiben",
 )
+
+# Welcher Befehl der Steuerung für welchen Bohrzyklus steht.
+ZYKLUS_FELDER = {
+    "G81": "bohren",
+    "G82": "bohren_verweilen",
+    "G83": "tiefbohren",
+    "G73": "spaenebrechen",
+    "G85": "reiben",
+}
 
 # Die Haken – (Name, Typ) wie in Steuerung; im Fenster je eine Zeile mit Erklärung.
 HAKEN = ("kommentare", "satznummern", "kuehlung", "wechselpunkt", "c_achse", "g93", "schwenkzyklus")
@@ -235,6 +259,16 @@ STEUERUNGEN = {
         # Winkel, Richtung −1, G17. Zurück: CYCLE800() (Grundlagen, Beispiel N10).
         schwenken='CYCLE800(1,"",0,27,{x0},{y0},{z0},{a},{b},{c},0,0,0,-1,0,1)',
         schwenken_aus="CYCLE800()",
+        # G81 ff. gibt es nur im ISO-Sprachmodus G291 (Grundlagen 03/2010, S. 535); nach dem
+        # Handbuch (Arbeitsvorbereitung 10/2015, S. 651–663): CYCLE81(RTP, RFP, SDIS, DP),
+        # CYCLE82(…, DPR, DTB), CYCLE83(…, DPR, FDEP, FDPR, _DAM, DTB, DTS, FRF, VARI) mit
+        # Degression 0, FRF 1 und VARI 1 Entspanen (G83) bzw. 0 Spänebrechen (G73),
+        # CYCLE85(…, DPR, DTB, FFR, RFF) heraus im Vorschub. SDIS 0: R enthält ihn schon.
+        bohren="CYCLE81({rtp},{rfp},0,{dp})",
+        bohren_verweilen="CYCLE82({rtp},{rfp},0,{dp},,{dtb})",
+        tiefbohren="CYCLE83({rtp},{rfp},0,{dp},,{fdep},,0,0,0,1,1)",
+        spaenebrechen="CYCLE83({rtp},{rfp},0,{dp},,{fdep},,0,0,0,1,0)",
+        reiben="CYCLE85({rtp},{rfp},0,{dp},,0,{f},{f})",
     ),
     "fanuc": Steuerung(
         "fanuc",
@@ -390,6 +424,14 @@ def feld_text(feld):
         "kuehlung_aus": (tr("pp.feld.kuehlung_aus"), tr("pp.feld.kuehlung_aus.tooltip")),
         "schwenken": (tr("pp.feld.schwenken"), tr("pp.feld.schwenken.tooltip")),
         "schwenken_aus": (tr("pp.feld.schwenken_aus"), tr("pp.feld.schwenken_aus.tooltip")),
+        "bohren": (tr("pp.feld.bohren"), tr("pp.feld.bohren.tooltip")),
+        "bohren_verweilen": (
+            tr("pp.feld.bohren_verweilen"),
+            tr("pp.feld.bohren_verweilen.tooltip"),
+        ),
+        "tiefbohren": (tr("pp.feld.tiefbohren"), tr("pp.feld.tiefbohren.tooltip")),
+        "spaenebrechen": (tr("pp.feld.spaenebrechen"), tr("pp.feld.spaenebrechen.tooltip")),
+        "reiben": (tr("pp.feld.reiben"), tr("pp.feld.reiben.tooltip")),
     }.get(feld, (feld, ""))
 
 
@@ -538,6 +580,9 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     stand = {}  # Adresse → Wert, wie zuletzt angefahren (für den Vorschub ohne G93)
     saetze = 0
     gesehen = set()
+    auf_r = False  # G99: Bohrzyklen ziehen auf R zurück, sonst (G98) auf die Höhe davor
+    # Nur an der Fräse – an der Drehmaschine bohrte CYCLE83 ohne _AXN entlang der falschen Achse.
+    zyklen_als_befehl = not info.drehmaschine and any(getattr(s, f) for f in ZYKLUS_FELDER.values())
     geschwenkt = None  # die Schwenkung, in der die Maschine gerade steht
     zyklus = bool(s.schwenkzyklus and s.schwenken)
     for abschnitt in abschnitte:
@@ -634,6 +679,15 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 # An Fanuc- und Haas-Drehmaschinen heißt G98/G99 Vorschub je Minute/Umdrehung,
                 # nicht Rückzug im Bohrzyklus – weglassen.
                 continue
+            if gross in ("G98", "G99"):
+                auf_r = gross == "G99"
+            if zyklen_als_befehl and gross in ("G80", "G98", "G99"):
+                continue  # die Zyklen der Steuerung kennen sie nicht (Siemens: ISO-Modus)
+            vorlage = getattr(s, ZYKLUS_FELDER.get(gross, ""), "") if zyklen_als_befehl else ""
+            if vorlage:
+                zeilen.extend(_zyklus_als_befehl(s, vorlage, parameter, stand, auf_r))
+                saetze += 1
+                continue
             woerter = [gross]
             bewegung = gross in BEWEGUNG
             weg = _weg(stand, parameter) if bewegung else 0.0
@@ -643,6 +697,8 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 if adresse not in parameter:
                     continue
                 wert = float(parameter[adresse])
+                if adresse == "F" and gross in ("G0", "G00") and wert == 0.0:
+                    continue  # FreeCADs Bohren schreibt „G0 … F0“ – modal hielte F0 den G1 danach an
                 if adresse == "F":
                     wert *= 60.0
                     if g93 and not s.g93:
@@ -676,6 +732,38 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
         zeilen.extend(_zeilen(_fuellen(s.c_aus, h=_haupt(info))))
     zeilen.extend(_zeilen(s.ende))
     return Programm(_nummeriert(zeilen, s), hinweise, saetze)
+
+
+def _zyklus_als_befehl(s, vorlage, parameter, stand, auf_r):
+    """Ein Bohrzyklus (G81 ff.) als Befehl der Steuerung: über das Loch („G0 X… Y…“), der
+    Vorschub, dann `vorlage` mit {rtp} {rfp} {dp} {fdep} {q} {dtb} {f} (Steuerung.bohren …).
+    `stand` folgt: X, Y des Lochs, Z die Rückzugsebene."""
+    zeilen = []
+    lage = [a for a in ("X", "Y") if a in parameter]
+    neu = [a for a in lage if stand.get(a) is None or abs(stand[a] - float(parameter[a])) > 1e-9]
+    if neu:  # schon über dem Loch: kein Satz
+        zeilen.append(" ".join(["G0", *(_wort(s, a, _zahl(float(parameter[a]))) for a in lage)]))
+    davor = stand.get("Z")
+    tief = float(parameter.get("Z", davor if davor is not None else 0.0))
+    r = float(parameter.get("R", davor if davor is not None else tief))
+    rtp = r if auf_r or davor is None else max(davor, r)
+    q = float(parameter.get("Q", 0.0))
+    f = float(parameter.get("F", 0.0)) * 60.0
+    if f > 0:
+        zeilen.append(_wort(s, "F", _zahl(f)))
+    werte = {
+        "rtp": rtp,
+        "rfp": r,
+        "dp": tief,
+        "fdep": max(tief, r - q) if q > 0 else tief,
+        "q": q,
+        "dtb": float(parameter.get("P", 0.0)),
+        "f": f,
+    }
+    zeilen.extend(_zeilen(_fuellen(vorlage, **{k: _zahl(v) for k, v in werte.items()})))
+    stand.update({a: float(parameter[a]) for a in lage})
+    stand["Z"] = rtp
+    return zeilen
 
 
 def _schwenken_ein(s, schwenkung):

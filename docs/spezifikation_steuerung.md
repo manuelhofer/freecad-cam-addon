@@ -271,7 +271,7 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   **Empfehlung**; (b) alles aus, jeder schaltet selbst ein – nichts
   passiert ungefragt, aber ohne Glätten ruckelt es; (c) alles an – am
   schnellsten, aber eine Maschine ohne die Option bleibt mit Alarm stehen.
-- **E8 – Bohrzyklen an Siemens (Vorschlag, 2026-10-03 Nacht):** Heute schreibt der
+- **E8 – Bohrzyklen an Siemens (2026-10-03 Nacht):** Heute schreibt der
   Postprozessor für jede Steuerung FreeCADs Bohrzyklen als `G81`/`G82`/`G83`/`G73`/`G85` mit
   X, Y, Z, R (und Q, P). Eine 840D liest im SINUMERIK-Sprachmodus `G290` – dem Standard – keine
   G81 ff.; die gibt es nur im ISO-Sprachmodus `G291` (Grundlagen 03/2010, S. 535, Gruppe 47;
@@ -285,10 +285,15 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   - `G85` → `CYCLE85(RTP, RFP, 0, DP, , 0, F, F)` – hinein und heraus im Vorschub;
   - dabei RTP (Rückzugsebene) = die Höhe vor dem Zyklus bei G98, R bei G99; RFP (Bezugspunkt) = R;
     Sicherheitsabstand SDIS 0 (R enthält ihn schon); DP = Z absolut; F vorher im Satz `F…`.
-  Die Befehle stünden unter „Befehle …“ zum Ändern wie die anderen. (a) so bauen –
-  **Empfehlung**; (b) Siemens schreibt `G291` vor die Bohrzyklen und `G290` danach – geht nur
-  mit der Option ISO-Dialekt; (c) wie heute. Vor dem ersten Lauf in der Simulation der Steuerung
-  ansehen, wie CYCLE83 mit Degression 0 zustellt.
+  Die Befehle stehen unter „Befehle …“ zum Ändern wie die anderen. **Entschieden** durch
+  Manuels Regel vom 2026-10-03 abends („Die Befehle bleiben nach dem Siemens-Handbuch; vor dem
+  ersten Lauf das Programm in der Simulation der Steuerung ansehen“) – G81 ff. stehen dort nur im
+  ISO-Teil. **Gebaut (P-2026-10-03-53):** `Steuerung.bohren`, `bohren_verweilen`, `tiefbohren`,
+  `spaenebrechen`, `reiben` (leer: der G-Code bleibt – LinuxCNC, Fanuc, Haas, Mach); bei Siemens
+  vorbelegt wie oben, G80/G98/G99 entfallen dort; an der Drehmaschine bleibt es bei G81 ff.
+  (CYCLE83 bohrte ohne `_AXN` entlang Z). Gruppe „Bohrzyklen“ im Fenster, Hilfe „Programm
+  schreiben“ (Anker `bohren`). Dazu: `G0 … F0` (aus FreeCADs Bohren) schreibt der Postprozessor
+  ohne F – modal hielte F0 einen folgenden G1 ohne F an.
 
 ## 12. Gebaut
 

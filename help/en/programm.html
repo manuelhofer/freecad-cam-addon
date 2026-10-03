@@ -138,6 +138,21 @@ they are written out as rapid and feed moves, G83 in pecks. Without a machine on
 <p><b>Before the first run</b> look at it in the control's simulation: whether the swivel data
 set, the direction and the retract suit the machine is decided by the machine builder.</p>
 
+<a name="bohren"></a>
+<h3>Drilling cycles</h3>
+<p>FreeCAD's drilling writes <b>G81</b> (drill), <b>G82</b> (with dwell), <b>G83</b> (deep,
+chip removal), <b>G73</b> (chip breaking) and <b>G85</b> (reaming) with X, Y, Z (depth), R
+(reference plane) and Q, P. LinuxCNC, Fanuc, Haas and Mach know them like that. A <b>Siemens
+840D</b> knows them only in ISO mode (G291, an option); in the standard mode (G290) the addon
+therefore writes per hole “G0 X… Y…” over the hole, the feed and the control's cycle:
+<b>CYCLE81</b>, <b>CYCLE82</b>, <b>CYCLE83</b> (chip removal; G73: chip breaking) and
+<b>CYCLE85</b> – retract plane with G98 the height before, with G99 R; reference plane R,
+safety distance 0, depth absolute, for deep drilling the first depth R − Q and equal infeeds.
+Source: Siemens programming manual job planning 10/2015, pp. 651–663; fundamentals 03/2010,
+p. 535. The commands are under “Drilling cycles” to change; empty keeps the G-code. On a lathe
+it stays G81 etc.</p>
+<p><b>Before the first run</b> look in the control's simulation at how CYCLE83 feeds in.</p>
+
 <a name="glaetten"></a>
 <h3>Look-ahead and smoothing</h3>
 <p>Rotary paths consist of thousands of short blocks. Without look-ahead a control brakes at

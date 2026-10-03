@@ -267,6 +267,58 @@ pruefe(p_job.saetze > 100, f"Sätze: {p_job.saetze}")
 pruefe(pp.dateiname(job, pp.steuerung("siemens")).endswith(".mpf"), "Dateiname")
 print(ascii(f"Job: {p_job.saetze} Saetze, {len(p_job.zeilen)} Zeilen"))
 
+# --- Bohrzyklen (Spezifikation Steuerung, E8): Siemens CYCLE81/83/85 statt G81 ff. -------------
+# G98: Rückzug auf die Höhe davor (5), G99: auf R (2); Tiefbohren mit der ersten Tiefe R − Q.
+# LinuxCNC und die Drehmaschine behalten den G-Code.
+bohren = pp.Abschnitt(
+    "Bohren",
+    2,
+    900.0,
+    False,
+    "None",
+    [
+        C("G90"),
+        C("G0", {"Z": 20.0}),
+        C("G98"),
+        C("G0", {"X": 10.0, "Y": 10.0}),
+        C("G0", {"Z": 5.0, "F": 0.0}),  # wie FreeCADs Bohren: F0 im Eilgang fällt weg
+        C("G81", {"X": 10.0, "Y": 10.0, "Z": -8.0, "R": 2.0, "F": 2.0}),
+        C("G83", {"X": 30.0, "Y": 10.0, "Z": -20.0, "R": 2.0, "Q": 5.0, "F": 2.0}),
+        C("G80"),
+        C("G99"),
+        C("G85", {"X": 50.0, "Y": 10.0, "Z": -6.0, "R": 2.0, "F": 1.0}),
+        C("G80"),
+        C("G0", {"Z": 20.0}),
+    ],
+    "Bohrer",
+)
+fraese = pp.Maschineninfo("Fräse")
+siemens_b = pp.programm([bohren], pp.steuerung("siemens"), fraese, "B").zeilen
+soll = [
+    "G0 Z5.000",
+    "F120.000",
+    "CYCLE81(5.000,2.000,0,-8.000)",
+    "G0 X30.000 Y10.000",
+    "F120.000",
+    "CYCLE83(5.000,2.000,0,-20.000,,-3.000,,0,0,0,1,1)",
+    "G0 X50.000 Y10.000",
+    "F60.000",
+    "CYCLE85(2.000,2.000,0,-6.000,,0,60.000,60.000)",
+]
+erste = siemens_b.index(soll[0]) if soll[0] in siemens_b else -1
+pruefe(siemens_b[erste : erste + len(soll)] == soll, f"Siemens Bohrzyklen: {siemens_b}")
+pruefe(
+    not any(x.split(" ")[0] in ("G80", "G81", "G83", "G85", "G98", "G99") for x in siemens_b),
+    f"Siemens: G8x/G98/G99 übrig: {siemens_b}",
+)
+lcnc_b = pp.programm([bohren], pp.steuerung("linuxcnc"), fraese, "B").zeilen
+pruefe(
+    any(x.startswith("G83 ") and "Q5.000" in x for x in lcnc_b) and "G98" in lcnc_b,
+    f"LinuxCNC Bohrzyklen: {lcnc_b}",
+)
+dreh_b = pp.programm([bohren], pp.steuerung("siemens"), dreh, "B").zeilen
+pruefe(any(x.startswith("G81 ") for x in dreh_b), "Drehmaschine: G81 nicht behalten")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

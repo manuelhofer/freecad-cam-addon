@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-53 siemens-bohrzyklen
+
+### EINGELESEN
+- Spezifikation Steuerung E8 (P-47), Status „Beantwortet am 2026-10-03 abends“: Siemens-Befehle
+  nach dem Handbuch, TCPM aus. Siemens Arbeitsvorbereitung 10/2015 S. 651–663, Grundlagen
+  03/2010 S. 535.
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`Steuerung.bohren` … `reiben`, `ZYKLUS_FELDER`,
+  `_zyklus_als_befehl`; G98/G99 gemerkt, G80/G98/G99 bei Zyklen der Steuerung weg; `G0 … F0`
+  ohne F), `camaddon/gui_programm.py` (Gruppe „Bohrzyklen“, nur an der Fräse), Übersetzungen
+  (`pp.gruppe.bohren`, `pp.feld.bohren*` …), Hilfe `programm.html` (de/en, Anker `bohren`),
+  `tests/test_postprozessor.py`, Spezifikationen (Steuerung E8, Strategien 16.4 E-1),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.158.0).
+
+### AKZEPTANZKRITERIUM
+- Siemens an der Fräse: G81 → „F…“ + `CYCLE81(5.000,2.000,0,-8.000)`, G83 →
+  `CYCLE83(5.000,2.000,0,-20.000,,-3.000,,0,0,0,1,1)`, G85 mit G99 → `CYCLE85(2.000,…)`; kein G80,
+  G98, G99 übrig; LinuxCNC und die Drehmaschine unverändert; `G0 Z5 F0` → `G0 Z5.000`.
+
+### DONE
+- Wie oben; im Schwenkteil bohrt das Siemens-Programm in der 45°-Ebene nach CYCLE800 mit
+  `CYCLE83(22.092,22.092,0,-22.554,,13.592,,0,0,0,1,1)`.
+
+### TESTS
+- `tests/test_postprozessor.py`, `tests/test_hilfe.py`, `tests/test_sprache.py` – OK; Szenarien
+  `szenario_programm`, `szenario_schwenkteil` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1 … D-5, E-2 … E-4; vor dem ersten Lauf CYCLE83 in der Simulation
+  der Steuerung ansehen.
+
 ## P-2026-10-03-52 schwenken-oben
 
 ### EINGELESEN

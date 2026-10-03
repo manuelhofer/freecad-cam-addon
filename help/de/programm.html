@@ -143,6 +143,21 @@ Grundjobs.</li>
 <p><b>Vor dem ersten Lauf</b> in der Simulation der Steuerung ansehen: Ob der Schwenkdatensatz,
 die Richtung und das Freifahren zur Maschine passen, legt der Maschinenhersteller fest.</p>
 
+<a name="bohren"></a>
+<h3>Bohrzyklen</h3>
+<p>FreeCADs Bohren schreibt <b>G81</b> (bohren), <b>G82</b> (mit Verweilen), <b>G83</b>
+(tief, Entspanen), <b>G73</b> (Spänebrechen) und <b>G85</b> (Reiben) mit X, Y, Z (Tiefe),
+R (Bezugsebene) und Q, P. LinuxCNC, Fanuc, Haas und Mach kennen sie so. Eine
+<b>Siemens 840D</b> kennt sie nur im ISO-Modus (G291, eine Option); im Standard (G290) schreibt
+das Addon darum je Bohrung „G0 X… Y…“ über das Loch, den Vorschub und den Zyklus der Steuerung:
+<b>CYCLE81</b>, <b>CYCLE82</b>, <b>CYCLE83</b> (Entspanen; G73: Spänebrechen) und <b>CYCLE85</b>
+– Rückzugsebene bei G98 die Höhe davor, bei G99 R; Bezugsebene R, Sicherheitsabstand 0, Tiefe
+absolut, beim Tiefbohren die erste Tiefe R − Q und gleich große Zustellungen. Quelle:
+Siemens-Programmierhandbuch Arbeitsvorbereitung 10/2015, S. 651–663; Grundlagen 03/2010,
+S. 535. Die Befehle stehen unter „Bohrzyklen“ zum Ändern; leer bleibt der G-Code. An der
+Drehmaschine bleibt es bei G81 ff.</p>
+<p><b>Vor dem ersten Lauf</b> in der Simulation der Steuerung ansehen, wie CYCLE83 zustellt.</p>
+
 <a name="glaetten"></a>
 <h3>Vorausschau und Glätten</h3>
 <p>Rundum-Bahnen bestehen aus tausenden kurzen Sätzen. Ohne Vorausschau bremst eine Steuerung

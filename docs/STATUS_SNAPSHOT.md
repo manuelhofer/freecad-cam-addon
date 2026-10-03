@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.157.1 (P-2026-10-03-52). Alles, was hier als gebaut steht,
+Stand 0.158.0 (P-2026-10-03-53). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -78,7 +78,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Bohren am Schwenkkopf, Knopf im Assistenten, Bestückung je Aufspannung.
   Offen: Manuels Entscheidungen D-1 bis D-5.
 - **W-015 5 Achsen simultan** – Entwurf zum Besprechen (Spezifikation Strategien 16): Kern,
-  Kugelfräser angestellt, Flanke, Wegkippen; E-1 bis E-4 entscheidet Manuel. Gebaut nur der
+  Kugelfräser angestellt, Flanke, Wegkippen; E-2 bis E-4 entscheidet Manuel (E-1 TCPM: aus,
+  schon beantwortet). Gebaut nur der
   Kern S1 ohne TCPM und ohne Oberfläche (`simultan.py`); keine Strategie, nichts geändert, was das
   Addon wählt.
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
@@ -295,6 +296,12 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Kugelmulde (`beispiele/testteil_3achs_fraese.FCStd`) bearbeitet der Assistent sinnvoll und
   in mehreren Arbeitsschritten (Manuel, 2026-10-02):
   [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 13.
+- **W-014 5 Achsen, 3+2** – eine schräge Ebene schwenken und darin wie an einer 3-Achs-Maschine
+  fräsen; ein Programm je Aufspannung (Manuel, 2026-10-03: „fang von mir aus mit 5-Achs-Strategien
+  an“): [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 15.
+- **W-015 5 Achsen simultan** – die Werkzeugachse entlang der Bahn (Kugel angestellt, Flanke,
+  Wegkippen), Entwurf zum Besprechen: [spezifikation_strategien.md](spezifikation_strategien.md),
+  Abschnitt 16.
 
 ## Offene Bugs
 
