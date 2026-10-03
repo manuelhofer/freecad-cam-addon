@@ -228,6 +228,13 @@ Beantwortet am 2026-10-03 (abends):
 5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
    Bereiche; Spannhöhe.
 6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
+   **Kollision schneller** (gemessen 2026-10-04 nachts, Schwenkteil, 10 799 Stationen): 75 s,
+   davon 59 s in OpenCascades `distToShape` (22 389 Aufrufe, 2,6 ms), 15 s Python um die
+   Hüllquader (`_stelle.lage`, `_luecke`). Idee: je Fläche des Teils vorfiltern (Hüllquader,
+   näher zuerst, exakt mit Abbruch) – dann aber eigens prüfen, ob ein Werkzeugteil ganz im Teil
+   steckt (das sagt `distToShape` zwischen Körpern heute mit 0). Nur mit einem Vergleich aller
+   Befunde vorher/nachher; nicht nachts gebaut. „Auf der Maschine prüfen“ öffnet seit
+   P-2026-10-03-54 schneller (12 000 Punkte: 1,8 → 1,3 s).
 7. W-002 F2; W-003 V2b, V6, V7; (das Schruppen rundum an steilen Stellen: gemessen, die Keile
    sind größtenteils echt – P-2026-10-03-30);
    „ausweichen“ mit
