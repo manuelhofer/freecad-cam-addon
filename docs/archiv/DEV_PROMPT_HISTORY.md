@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-07 vierachs-ueber-die-mitte
+
+### EINGELESEN
+- Manuel, 2026-10-03, mit acht Bildern seines 4-Achs-Teils auf der Drehmaschine: „im Zentrum
+  dieses Bauteils bleibt ja etwas stehen“ (der Hubbel), „die Hubbel mittig müssen und dürfen so
+  nicht bleiben“, „warum fängt der [beim Schlichten] da mittig an“, „der arbeitet auch ewig und
+  drei Tage da hinten rum“, „vorne, wo es über der Drehmitte ist, macht das Ganze zu viel
+  Material weg, und hinten, wo es unter der Drehmitte ist, nicht genug“. Spezifikation
+  Vierachs V3b/V5b, `vierachs_bahn`, `vierachs_huelle`, `restmaterial`.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`Schruppwerte.form`, `r_tiefste`, Hülle mit Form, Deckel weg,
+  „trifft nichts“ → Achse, `_spirale_rechnen`, Vorstufen mit grober Steigung),
+  `camaddon/vierachs_huelle.py` (Kanten, Ecken, Dreiecke hinter der Achse zählen),
+  `camaddon/vierachs_flaechen.py` (ebenso), `camaddon/vierachs_operation.py`
+  (`form_des_controllers`, `bahn_fuer(form, r_tiefste)`), `camaddon/vierachs_schlichten.py`
+  (`schruppbahnen` mit Form, `rest_nach` aus den Bahnen), `camaddon/restmaterial.py` (Tunnel
+  auslassen), `camaddon/gui_vierachs.py` (Form in der Vorschau), `help/de|en/vierachs.html`,
+  `docs/spezifikation_vierachs.md`, `docs/STATUS_SNAPSHOT.md`, `tests/test_vierachs_bahn.py`,
+  `package.xml` (0.133.0). Zwei Commits: der zweite zieht Snapshot und Verlauf nach (das
+  Doku-Skript brach ab).
+
+### AKZEPTANZKRITERIUM
+An Manuels Teil bleibt kein Kern an der Drehmitte und keine Wulst auf der Fläche unter der
+Mitte; das Schlichten beginnt vorne; die Zeit sinkt.
+
+### DONE
+- Befund mit Messskripten (`mess4b.py`, `huelle4.py`, `exz.py` im Scratch): Die Spitze blieb
+  einen Fräserradius vor der Achse (Schruppen und Schlichten), das Schruppen rechnete die Kugel
+  als Scheibe (auf der schrägen Fläche bis 8 mm Rest), die Hüllfläche ließ alles hinter der
+  Achse weg (am Exzenter −inf → die Lage fuhr 3 mm ins Teil, sobald der Deckel weg war), und
+  das Rest-Modell je Strahl sah einen Kern, den es nicht gab (7 Vorstufen, 1400 Umdrehungen).
+- Gemessen am Teil (Kugel Ø 10, ap 5, 5 mm/U, Aufmaß 0,3; Schlichten 0,2): Schruppen 7 Lagen
+  24,9 min → 9 Lagen 30,6 min, r_min −4,7; Rest nach dem Schruppen überall ≤ 0,7 mm außer
+  Keilen; Schlichten 135 → 90 min, 7 Vorstufen in 70 statt 1400 Umdrehungen, beginnt bei
+  a = 1,5 (vorne). Exzenter im Test: knappste Stelle +0,025 mm über dem Aufmaß.
+- **Gefundene Fehler im eigenen Entwurf:** die Hülle ohne das Teil hinter der Achse (seit V3a,
+  damals vom Deckel gedeckt); `restmaterial.Stange` kann eine Fahrt über die Mitte nicht
+  darstellen (bleibt fürs Prüffenster, dort nur Tunnel ausgelassen).
+- **Nicht gebaut:** das Schruppen an steilen Stellen feiner (die Keile); „hinten nicht fertig
+  fräsen“ (Frage an Manuel); die Y-Achse fürs Ebene (nicht nötig: über die Mitte reicht).
+
+### TESTS
+- `tests/test_vierachs_schlichten_op.py` (OK), `tests/test_vierachs_bahn.py` (OK, die
+  Exzenter-Erwartung auf „über die Achse bis zur nahen Seite“);
+  `tests/gui/szenario_rundum_drehmaschine.py` (OK). black und ruff sauber.
+
+### NEXT
+- W-005 Postprozessor (Snapshot „Danach“ 2).
+
 ## P-2026-10-03-06 vierachs-anlegen-unten-und-zeit
 
 ### EINGELESEN

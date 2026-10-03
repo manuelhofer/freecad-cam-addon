@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.132.0 (P-2026-10-03-06). Alles, was hier als gebaut steht,
+Stand 0.133.0 (P-2026-10-03-07). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -24,7 +24,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - **W-003 4-Achs-Bearbeitung** – gebaut: V1 Teil in die Stange, V2a/V2c Achse von der
   Maschine, V3 Rundum schruppen, V4 Flächen wählen (Linien längs, Plan indexiert mit
   Passfedernut, Mantelnut, Querbohrungen und Radial bohren, Rundum entgraten), V5 Rundum
-  schlichten, Gleichlauf über C. Offen: V2b (Drehteile), V6, V7.
+  schlichten, Gleichlauf über C; die Spitze fährt über die Drehmitte hinaus, Kugel und Torus
+  rechnen mit ihrer Form (P-2026-10-03-07, Manuels Teil neben der Achse). Offen: V2b
+  (Drehteile), V6, V7; das Prüffenster malt Fahrten über die Mitte noch nicht (Spezifikation
+  Vierachs, V5b „Offen“).
 - **W-004 Bedienung** – D-01 bis D-13, D-20, D-21, D-25, D-26, D-28 bis D-30, D-40 bis D-47
   und D-50 bis D-57 erledigt. Offen zur Entscheidung ([Durchsicht](durchsicht_bedienbarkeit.md),
   Abschnitt 6): D-14, D-22, D-24, D-27; D-23 wartet auf die Antwort zur Ausspannlänge; Reste
@@ -101,6 +104,12 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
    öffnet die Produktseite, Nutzlänge 49, Gesamtlänge 103, Schaft 10, 140°. Beim Jongen Ø 12
    (0.131.0): „Hals-Ø d1 11,2“ und „Auskragung N 36“ wie im Katalogblatt, das Bild zeigt den
    Hals.
+7. **Dein 4-Achs-Teil (0.133.0):** Job neu anlegen (Rundum schruppen Kugel Ø 10, ap 5,
+   5 mm/U, Aufmaß 0,3; Rundum schlichten 0,2) → Prüffenster: der Kern an der Drehmitte und die
+   Wulst auf der Fläche sind weg, das Schlichten beginnt vorne, Zeit rechnerisch etwa 2 h statt
+   2 h 40 (Schruppen 9 Lagen, 31 min; Schlichten 90 min – die 0,2 mm Schrittweite ist der
+   Löwenanteil: 0,5 mm wären 6 µm Kammhöhe und 36 min). Was du im Prüffenster noch siehst,
+   stimmt nicht ganz: Fahrten über die Mitte malt es nicht (die Spitze zählt dort als 0).
 6. **4-Achs-Assistent und Prüffenster (0.132.0):** In Schritt 1 steht unten rechts „Weiter“,
    in Schritt 2 neben „Zurück“ rechts „Anlegen“ (beim Ändern „Übernehmen“) – wie oben. Im
    Prüffenster unter „Schnittwerte“ die Zeile **Zeit**: „rechnerisch 2 h 40 min – Vorschub …,
@@ -127,20 +136,29 @@ sind nur die Quelle, keine Erweiterung nötig; „das Teil muss herauskommen“ 
 4. *Zwei Fräser an einer Wand (T3):* Die Kontur des Ø 12 fährt in die Tasche, wo er ohne
    Aufmaß hineinpasst, „Restmaterial“ nimmt mit dem Ø 6 den Rest – mit einem Absatz, wo sie
    sich treffen. So lassen, oder je Kontur ein eigener Fräser (ein zweiter Kontur-Block)?
-5. *Außerdem offen bei dir:* TCPM (W-001), W-005 E1–E7, D-14/D-22/D-24/D-27 (Durchsicht,
-   Abschnitt 6), D-23 (Ausspannlänge).
+5. *Hinten am Teil (Abstechen):* Der Überlauf fräst die hintere Kante fertig und schneidet
+   dabei neben einem dünnen Ende tief ein. Soll es eine Wahl „hinten nicht fertig fräsen“ geben
+   – die Kante bleibt fürs Abstechen, das Teil bleibt stabil?
+6. *W-005 Postprozessor:* Ich treffe E1–E7 nach den Empfehlungen in
+   `spezifikation_steuerung.md`, wenn du nichts anderes sagst – und baue ihn als Nächstes.
+7. *Außerdem offen bei dir:* TCPM (W-001), D-14/D-22/D-24/D-27 (Durchsicht, Abschnitt 6),
+   D-23 (Ausspannlänge).
 
 **Danach, der Reihe nach:**
 
 1. Was Manuels Test ergibt.
-2. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
+2. **W-005 Programm für jede Steuerung** – eigener Postprozessor mit Manager (Manuel,
+   2026-10-03: „ich hätte gern einen guten Postprozessor-Manager … außerdem funktioniert der
+   [von FreeCAD] mit 4 Achs nicht und für 5 Achs wird's auch nix“); Plan und E1–E7 in
+   `spezifikation_steuerung.md`.
+3. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
    (`hoehenfeld.je_zeile`); Ziel 10 s am Testteil.
-3. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
+4. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
    Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel).
-4. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
+5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
    Bereiche; Spannhöhe.
-5. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
-6. W-005 Programm für jede Steuerung (nach E1–E7); W-002 F2; W-003 V2b, V6, V7.
+6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
+7. W-002 F2; W-003 V2b, V6, V7; das Schruppen rundum an steilen Stellen feiner (Keile).
 
 **Regeln dafür** (Manuel, 2026-10-02: „du hast zwei stunden damit verbracht sachen zu testen
 für was?“; 2026-10-03: „ob das nötig ist oder nicht, musst dennoch du entscheiden … wenn es nötig
