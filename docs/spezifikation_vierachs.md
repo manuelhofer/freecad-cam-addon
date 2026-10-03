@@ -552,8 +552,22 @@ wählen. Die bisherigen Stufen V4 (Controller ohne Transaktion) und V5
   vor das Futter: Der Rand des Fräsers bleibt 2 mm vor der Spannfläche (bis
   V3e 1 mm – so knapp wie der Warnabstand der Kollisionsprüfung). Trifft
   das Werkzeug hinter dem Teil nichts, bleibt es oben (das Material bleibt);
-  vor dem Teil schneidet es die Lage. Der Achse kommt die Spitze nicht näher
-  als der Fräserradius. Zwischen den Lagen radial hinaus auf Stangenradius
+  vor dem Teil schneidet es die Lage. ~~Der Achse kommt die Spitze nicht näher
+  als der Fräserradius.~~ Seit P-2026-10-03-07 folgt sie der Hüllfläche auch
+  über die Drehmitte hinaus (r < 0, auf der Drehmaschine X unter null;
+  `Schruppwerte.r_tiefste` begrenzt es für eine Maschine, die das nicht kann),
+  und die Hüllfläche sieht auch das Teil hinter der Achse (vierachs_huelle:
+  die Filter „x > 0“ an Kanten, Ecken und Dreiecken sind weg). Trifft die
+  Stirn rundum nichts, reicht die Spitze bis zur Achse (hinter dem Teil bleibt
+  sie oben). Ein Fräser mit runder Stirn rechnet mit seiner Form (`form`),
+  nicht mehr wie ein Schaftfräser – der ließ auf einer schrägen Fläche bis
+  0,6 R stehen. Grund: Manuels Teil (`beispiele/test4achsbearbeitung.FCStd`),
+  das neben der Achse liegt: Um die Achse blieb ein Kern Ø 2 R („Hubbel“), auf
+  der Fläche unter der Mitte eine Wulst; das Schlichten holte beides in sieben
+  Vorstufen mit 0,2 mm je Umdrehung (135 min, mittig beginnend). Jetzt:
+  Schruppen 9 Lagen bis −4,7, 30,6 min (statt 7 Lagen, 24,9), Rest überall
+  ≤ 0,7 mm außer in den Keilen des Rasters; Schlichten 90 min, beginnt vorne.
+  Zwischen den Lagen radial hinaus auf Stangenradius
   plus Sicherheitsabstand und im Eilgang nach vorne. Ausgabe: G1 mit X als
   Radius, Z und C (bzw. A oder B) auf 0,001, zwischen G93 und G94, F = 1 ÷
   Zeit. Liegen Punkte in (a, r, φ) auf einer Geraden, bleibt nur der letzte.
@@ -978,7 +992,25 @@ die Abstände gelten für beide.
     eine Stufe auf 17,3 mm, nur über dem Grund der Nut, und taucht am Rand
     ein, wo die Wand sie über 18,2 mm hebt; Kugel Ø 2 fährt fünf, 19,3 bis
     15,3 mm. Welle mit Absatz im Assistenten: 3 Stufen, 403 statt 365
-    Umdrehungen.
+    Umdrehungen. *P-2026-10-03-07:* Die Vorstufen fahren mit dem Fräserradius
+    je Umdrehung statt mit der Schrittweite (sie sind Schruppen mit dem
+    Schlichtfräser; an Manuels Teil 7 Stufen in 70 statt 1400 Umdrehungen),
+    die Spirale danach nimmt die Rillen. Der Rest nach dem Schruppen kommt
+    nicht mehr aus `restmaterial.Stange` (ein Außenradius je Strahl – der
+    kennt keinen Kern an der Achse, der weg ist, und keine Fahrt über die
+    Mitte), sondern aus jeder Richtung aus den Schruppbahnen selbst
+    (`vierachs_schlichten.rest_nach`: Spitze plus Form zwischen den
+    Umdrehungen). Die Keile, die das Raster des Schruppens (1°, höchster
+    Nachbar) an steilen Stellen lässt – bis 9 mm, wo die Fläche von der Kante
+    gesehen 2–3 mm je Grad fällt –, sind echt; sie nehmen die Vorstufen.
+    *Offen:* das Schruppen dort feiner rechnen; das Prüffenster malt den
+    Abtrag weiter mit `restmaterial.Stange` – es kennt keine Fahrt über die
+    Mitte (die Spitze zählt dort als 0) und lässt Tunnel durch Nachbarstrahlen
+    jetzt aus (lieber zu viel Material zeigen als Löcher); hinten das
+    Teilende: der Überlauf fräst die Kante fertig und schneidet dabei neben
+    einem dünnen Ende tief ein – Manuel (2026-10-03): „auf ner Drehbank kann
+    man das abstechen … das Bauteil ist instabil geworden, weil hinten so viel
+    weg ist“ → eine Wahl „hinten nicht fertig fräsen“ wäre klein (Frage).
 - **V5c – Operation** „Rundum schlichten T2“
   (`vierachs_operation.RundumSchlichten`, der Name bleibt in jeder Datei):
   Eigenschaften Schrittweite, Aufmaß, Überlauf, Abstand zum Futter,

@@ -198,6 +198,16 @@ class Stange:
         else:
             bis_hier = _stirn(form, r_t, d, delta, gueltig, alle[zelle], q_t)
         da = gueltig & np.isfinite(bis_hier)
+        # Ein Strahl schräg zur Werkzeugachse verlässt den Fräser (Schaft so dick wie die Stirn)
+        # wieder bei R ÷ |sin Δ|. Steht dort darüber noch Material, bohrte der Fräser einen
+        # Tunnel hindurch – das kennt die Stange nicht (ein Radius je Strahl); sie ließe dann
+        # alles darüber verschwinden (P-2026-10-03-07: Fahrten nahe der Achse rissen im
+        # Prüffenster Löcher in Nachbarstrahlen). Lieber bleibt der Tunnel voll.
+        with np.errstate(divide="ignore"):
+            austritt = radius / np.maximum(np.abs(np.sin(delta)), 1e-12)
+        da &= (alle[zelle] <= austritt[:, None, :] + self._schritt_a) | (
+            np.abs(delta)[:, None, :] < 1e-9
+        )
         if da.any():  # eine Zelle kann mehrmals vorkommen – at() nimmt das kleinste
             np.minimum.at(alle, zelle[da], bis_hier[da])
 

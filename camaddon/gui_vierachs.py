@@ -2955,6 +2955,7 @@ class VierachsPanel:
                     self.flaechen(),
                     self._eintauchwinkel(),
                     nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
+                    form=ff.von_werkzeug(werkzeug),
                 )
             except ValueError as fehler:
                 gruende.append(str(fehler))

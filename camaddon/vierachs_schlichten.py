@@ -23,9 +23,11 @@ zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operation
 Läuft ohne Oberfläche.
 """
 
+import math
 from dataclasses import replace
 
 import FreeCAD
+import numpy as np
 import Path
 import Path.Op.Base as PathOp
 
@@ -161,12 +163,7 @@ def muster_der_operation(obj):
     return MUSTER_WERTE.get(getattr(obj, "Muster", None), vb.SPIRALE)
 
 
-def form_des_controllers(tc):
-    """Die Form des Fräsers eines Werkzeug-Controllers (fraeserform.Form), oder None."""
-    from .werkzeuge_aus_cam import vom_controller
-
-    werkzeug = vom_controller(tc)
-    return ff.von_werkzeug(werkzeug) if werkzeug is not None else None
+form_des_controllers = vo.form_des_controllers  # die Form des Fräsers eines Controllers
 
 
 def rechne(obj, job, modell):
@@ -194,14 +191,17 @@ def rechne(obj, job, modell):
 
 
 def schruppbahnen(job, modell):
-    """[(Bahn, Fräserradius, Aufmaß)] der aktiven „Rundum schruppen“ im Job, deren Bahn geht."""
+    """[(Bahn, Fräser, Aufmaß)] der aktiven „Rundum schruppen“ im Job, deren Bahn geht – der
+    Fräser als seine Form (fraeserform.Form), sonst als Radius: So nimmt rest_nach() mit der
+    Kugel weg, was die Kugel wegnimmt (P-2026-10-03-07)."""
     ergebnis = []
     for op in getattr(getattr(job, "Operations", None), "Group", []):
         if not vo.ist_schruppen(op) or not getattr(op, "Active", True):
             continue
         radius = float(op.OpToolDiameter) / 2
+        fraeser = form_des_controllers(op.ToolController) or radius
         try:
-            ergebnis.append((vo.rechne(op, job, modell, radius), radius, float(op.Aufmass)))
+            ergebnis.append((vo.rechne(op, job, modell, radius), fraeser, float(op.Aufmass)))
         except ValueError:
             continue  # ohne Bahn nimmt sie nichts weg
     return ergebnis
@@ -315,28 +315,68 @@ def _teil(modell):
 
 
 def rest_nach(schruppen, radius, a_von, a_bis):
-    """Was von der Stange (Radius, von a_von bis a_bis) nach den Schruppbahnen bleibt:
-    (a, φ in rad, r) wie restmaterial.Stange."""
-    stange = rm.Stange(radius, a_von, a_bis)
-    for bahn, fraeser_radius, _aufmass in schruppen:
-        von, nach, einzeln = [], [], []
-        vorher = None
-        for punkt in bahn.punkte:
-            if punkt.eilgang:
-                vorher = None
+    """Was nach den Schruppbahnen aus jeder Richtung noch steht: je (a, φ) der Radius, bis zu
+    dem die Spitze eines Schruppfräsers aus dieser Richtung kam – zwischen den Umdrehungen um
+    seine Form höher (die Rillen) –, sonst der Stangenradius. (a, φ in rad, r) wie
+    restmaterial.Stange, für vierachs_bahn._nicht_tiefer.
+
+    Bis P-2026-10-03-07 simulierte das restmaterial.Stange: ein Außenradius je Strahl. Der
+    kennt keinen Kern an der Achse, der weg ist, und keine Fahrt über die Mitte – an Manuels
+    Teil neben der Achse sah das Schlichten einen Kern, der nicht da war, und fuhr 7 Vorstufen
+    mit 0,2 mm Schritt (115 min). Was aus einer Richtung steht, sagt die Bahn aus dieser
+    Richtung selbst."""
+    schritt_a, schritt_phi = rm.SCHRITT_A, math.radians(rm.SCHRITT_PHI)
+    a = np.arange(a_von, a_bis + schritt_a / 2, schritt_a)
+    phi = vh.raster_phi(rm.SCHRITT_PHI)
+    r = np.full((len(a), len(phi)), float(radius))
+    for bahn, fraeser, _aufmass in schruppen:
+        form = fraeser if isinstance(fraeser, ff.Form) else ff.scheibe(float(fraeser))
+        pa, pr, pphi = _im_vorschub(bahn, schritt_a, radius * schritt_phi)
+        if not len(pa):
+            continue
+        spalten = np.rint(pphi / schritt_phi).astype(np.int64) % len(phi)
+        reichweite = int(math.ceil(form.radius / schritt_a))
+        for versatz in range(-reichweite, reichweite + 1):
+            zeilen = np.rint((pa - a_von) / schritt_a).astype(np.int64) + versatz
+            drin = (zeilen >= 0) & (zeilen < len(a))
+            if not drin.any():
                 continue
-            stelle = (punkt.a, punkt.r, punkt.phi)
-            if vorher is None:  # aus dem Eilgang: bis hierher in der Luft
-                einzeln.append(stelle)
-            else:
-                von.append(vorher)
-                nach.append(stelle)
-            vorher = stelle
-        if einzeln:
-            a, r, phi = zip(*einzeln, strict=True)
-            stange.schnitte(a, r, phi, fraeser_radius)
-        stange.fahre_stuecke(von, nach, fraeser_radius)  # alle Stücke auf einmal
-    return stange.a, stange.phi, stange.r
+            hoehe = form.hoehe(np.abs(a[zeilen[drin]] - pa[drin]))
+            steht = np.isfinite(hoehe)
+            np.minimum.at(
+                r, (zeilen[drin][steht], spalten[drin][steht]), pr[drin][steht] + hoehe[steht]
+            )
+    return a, phi, r
+
+
+def _im_vorschub(bahn, schritt_a, schritt_bogen):
+    """Die Punkte der Bahn im Vorschub als (a, r, φ in rad), dicht genug fürs Raster: zwischen
+    zwei Punkten so viele Zwischenpunkte, dass kein Schritt länger als `schritt_a` längs oder
+    `schritt_bogen` im Bogen ist."""
+    a, r, phi = [], [], []
+    vorher = None
+    for punkt in bahn.punkte:
+        if punkt.eilgang:
+            vorher = None
+            continue
+        jetzt = (punkt.a, punkt.r, math.radians(punkt.phi))
+        if vorher is not None:
+            weg = max(
+                abs(jetzt[0] - vorher[0]),
+                abs(jetzt[2] - vorher[2]) * max(abs(jetzt[1]), abs(vorher[1]), 1.0),
+            )
+            anzahl = max(1, int(math.ceil(weg / min(schritt_a, schritt_bogen))))
+            for k in range(1, anzahl + 1):
+                t = k / anzahl
+                a.append(vorher[0] + t * (jetzt[0] - vorher[0]))
+                r.append(vorher[1] + t * (jetzt[1] - vorher[1]))
+                phi.append(vorher[2] + t * (jetzt[2] - vorher[2]))
+        else:
+            a.append(jetzt[0])
+            r.append(jetzt[1])
+            phi.append(jetzt[2])
+        vorher = jetzt
+    return np.array(a), np.array(r), np.array(phi)
 
 
 def schrittweite_vorschlag(werkzeug, einsatz):

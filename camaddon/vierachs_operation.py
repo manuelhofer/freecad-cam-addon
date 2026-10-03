@@ -18,10 +18,13 @@ Qt hier; die Anzeige liegt in gui_vierachs_operation.py.
 Läuft ohne Oberfläche.
 """
 
+import math
+
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import fraeserform as ff
 from . import namen
 from . import spindel as sp
 from . import vierachs_achsen as va
@@ -179,6 +182,14 @@ def eigenschaften_anlegen(obj, liste):
     return neu
 
 
+def form_des_controllers(tc):
+    """Die Form des Fräsers eines Werkzeug-Controllers (fraeserform.Form), oder None."""
+    from .werkzeuge_aus_cam import vom_controller
+
+    werkzeug = vom_controller(tc)
+    return ff.von_werkzeug(werkzeug) if werkzeug is not None else None
+
+
 def rechne(obj, job, modell, fraeser_radius):
     """Die Bahn (vierachs_bahn.Bahn) für die Operation `obj` im Job – ValueError mit einem
     Satz, wenn es nicht geht."""
@@ -199,6 +210,7 @@ def rechne(obj, job, modell, fraeser_radius):
         float(obj.Eintauchwinkel),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
+        form=form_des_controllers(obj.ToolController),
     )
 
 
@@ -219,6 +231,8 @@ def bahn_fuer(
     eintauchwinkel=vb.EINTAUCHWINKEL,
     gleichlauf=True,
     nur_gleichlauf=False,
+    form=None,
+    r_tiefste=-math.inf,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
@@ -235,7 +249,7 @@ def bahn_fuer(
     formen = [o.Shape for o in modell if not o.Shape.isNull()]
     if not formen:
         raise ValueError(tr("vo.fehler.modell"))
-    form = formen[0] if len(formen) == 1 else _verbunden(formen)
+    teil = formen[0] if len(formen) == 1 else _verbunden(formen)
     werte = vb.Schruppwerte(
         fraeser_radius=fraeser_radius,
         stange_radius=radius,
@@ -248,13 +262,15 @@ def bahn_fuer(
         ueberlauf=ueberlauf,
         abstand_futter=vb.ABSTAND_FUTTER if abstand_futter is None else abstand_futter,
         halter=halter,
-        waende=waende(form, laengs),
-        bereich=vf.bereich_fuer(form, laengs, radial, flaechen_, fraeser_radius),
+        waende=waende(teil, laengs),
+        bereich=vf.bereich_fuer(teil, laengs, radial, flaechen_, fraeser_radius),
         eintauchwinkel=eintauchwinkel,
         gleichlauf=gleichlauf,
         nur_gleichlauf=nur_gleichlauf,
+        form=form,
+        r_tiefste=r_tiefste,
     )
-    return vb.schruppen(vh.vernetze(form), laengs, radial, werte)
+    return vb.schruppen(vh.vernetze(teil), laengs, radial, werte)
 
 
 def stange(job, laengs):

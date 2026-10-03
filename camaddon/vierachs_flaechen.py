@@ -103,7 +103,7 @@ class Sicht:
 def sicht(fnetz, laengs, radial, a_werte, phi_werte):
     """Was ein Strahl von außen zur Achse an den Stellen `a_werte` (aufsteigend, gleicher
     Abstand) unter den Winkeln `phi_werte` (rad) trifft (Sicht) – `laengs` und `radial` wie in
-    vierachs_huelle. Treffer hinter der Achse zählen nicht."""
+    vierachs_huelle. Auch Treffer hinter der Achse zählen (P-2026-10-03-07)."""
     netz = fnetz.netz
     l_, u_, v_ = vh.rahmen(laengs, radial)
     punkte = netz.punkte
@@ -157,14 +157,13 @@ def sicht(fnetz, laengs, radial, a_werte, phi_werte):
 
 
 def _strahl(a, x, y, dreiecke, a0, schritt, anzahl):
-    """Wo die Strahlen y = 0 an den Stellen a0 + k · schritt die Dreiecke treffen, x > 0:
-    (Zelle k, Dreieck, x) für alle Treffer, oder None. Ein Dreieck schneidet die Ebene y = 0 in
-    einer Strecke; über ihr ist x linear."""
+    """Wo die Strahlen y = 0 an den Stellen a0 + k · schritt die Dreiecke treffen – auch hinter
+    der Achse (x ≤ 0; P-2026-10-03-07): (Zelle k, Dreieck, x) für alle Treffer, oder None. Ein
+    Dreieck schneidet die Ebene y = 0 in einer Strecke; über ihr ist x linear."""
     p, q, s = dreiecke[:, 0], dreiecke[:, 1], dreiecke[:, 2]
     y_p, y_q, y_s = y[p], y[q], y[s]
     zaehlt = np.minimum(np.minimum(y_p, y_q), y_s) <= 0.0
     zaehlt &= np.maximum(np.maximum(y_p, y_q), y_s) >= 0.0
-    zaehlt &= np.maximum(np.maximum(x[p], x[q]), x[s]) > 0.0
     auswahl = np.flatnonzero(zaehlt)
     if not len(auswahl):
         return None

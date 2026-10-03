@@ -240,14 +240,14 @@ def _kanten_treffen(spalte, a, x, y, kanten, radius, a0, schritt):
     """Die höchste Stelle jeder Kante unter der Scheibe – an ihrem Ende oder wo sie den
     Kreis schneidet –, für alle Stellen a zugleich; in `spalte` eingetragen.
 
-    Kanten ganz hinter der Achse (x ≤ 0) zählen nicht: So nah kommt das Werkzeug
-    der Achse ohnehin nicht (vierachs_bahn sperrt sie).
+    Auch Kanten hinter der Achse (x ≤ 0) zählen: Die Spitze darf über die Achse hinaus, bis
+    sie das Teil dahinter trifft (P-2026-10-03-07; bis dahin sperrte vierachs_bahn sie einen
+    Fräserradius vor der Achse, und Kanten dahinter zählten nicht).
     """
     radius += _SAUM
     p, q = kanten[:, 0], kanten[:, 1]
     y_p, y_q = y[p], y[q]
     zaehlt = (np.minimum(np.abs(y_p), np.abs(y_q)) <= radius) | (y_p * y_q < 0)
-    zaehlt &= np.maximum(x[p], x[q]) > 0
     p, q = p[zaehlt], q[zaehlt]
     if not len(p):
         return
@@ -288,8 +288,7 @@ def _dreiecke_treffen(spalte, a, x, y, dreiecke, radius, a0, schritt, form=None)
     p, q, s = dreiecke[:, 0], dreiecke[:, 1], dreiecke[:, 2]
     unten = np.minimum(np.minimum(y[p], y[q]), y[s])
     oben = np.maximum(np.maximum(y[p], y[q]), y[s])
-    zaehlt = (unten <= radius) & (oben >= -radius)
-    zaehlt &= np.maximum(np.maximum(x[p], x[q]), x[s]) > 0  # wie bei den Kanten
+    zaehlt = (unten <= radius) & (oben >= -radius)  # auch hinter der Achse, wie die Kanten
     p, q, s = p[zaehlt], q[zaehlt], s[zaehlt]
     if not len(p):
         return
@@ -378,10 +377,10 @@ def _form_treffen(spalte, a, x, y, kanten, dreiecke, form, a0, schritt):
 
 def _ecken_treffen(spalte, a, x, y, form, a0, schritt):
     """Die Punkte (a, x, y) unter dem Fräser: Die Spitze darf bis x − z(Abstand) – für alle
-    Stellen a zugleich; in `spalte` eingetragen. Punkte hinter der Achse (x ≤ 0) zählen nicht
-    (wie bei den Kanten)."""
+    Stellen a zugleich; in `spalte` eingetragen. Auch Punkte hinter der Achse (x ≤ 0) zählen
+    (wie bei den Kanten, P-2026-10-03-07)."""
     radius = form.radius + _SAUM
-    zaehlt = np.nonzero((np.abs(y) <= radius) & (x > 0))[0]
+    zaehlt = np.nonzero(np.abs(y) <= radius)[0]
     if not len(zaehlt):
         return
     a_p, x_p, y_p = a[zaehlt], x[zaehlt], y[zaehlt]
@@ -399,8 +398,7 @@ def _kanten_im_streifen(a, x, y, kanten, radius):
     p, q = kanten[:, 0], kanten[:, 1]
     y_p, y_q = y[p], y[q]
     zaehlt = (np.minimum(np.abs(y_p), np.abs(y_q)) <= radius) | (y_p * y_q < 0)
-    zaehlt &= np.maximum(x[p], x[q]) > 0
-    return p[zaehlt], q[zaehlt]
+    return p[zaehlt], q[zaehlt]  # auch hinter der Achse (P-2026-10-03-07)
 
 
 def _kanten_kugel(spalte, a, x, y, kanten, radius, a0, schritt):

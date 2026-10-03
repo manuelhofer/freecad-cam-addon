@@ -172,8 +172,11 @@ for a, b in zip(bahn.punkte, bahn.punkte[1:], strict=False):
 pruefe(schlimmste >= -1e-6, f"Exzenter: {schlimmste:.4f} mm ins Aufmaß")
 pruefe(schlimmste < 0.2, f"Exzenter: überall mindestens {schlimmste:.4f} mm Luft")
 print(ascii(f"Exzenter: {bahn.lagen} Lagen, knappste Stelle {schlimmste:.4f} mm"))
-# Ohne Teil darunter reicht die Lage bis an die Sperre (Fräserradius), nicht weiter.
-pruefe(min(p.r for p in schnitte(bahn)) >= R, "näher an die Achse als der Fräserradius")
+# Wo der Exzenter hinter der Achse liegt, kreuzt die Spitze sie: bis an seine nahe Seite
+# (15 − 10 = 5 mm hinter der Achse, plus Aufmaß), nicht weiter – bis P-2026-10-03-07 blieb sie
+# einen Fräserradius vor der Achse stehen (Manuels Teil neben der Achse: ein Kern blieb).
+tiefste = min(p.r for p in schnitte(bahn) if -100 + R <= p.a <= -R)
+pruefe(-5.0 - WERTE.aufmass - 0.1 <= tiefste < 0.0, f"über die Achse: tiefste Spitze {tiefste:.2f}")
 
 # --- Path-Befehle ------------------------------------------------------------------------------
 kurz = vb.Bahn(

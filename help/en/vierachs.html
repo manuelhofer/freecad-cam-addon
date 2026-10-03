@@ -177,8 +177,9 @@ same for the walls of a slot on the circumference, cross holes and keyways. The 
 if that reaches further – always stays the chuck distance in front of the
 clamping face. The operation remembers how far the holder reaches (property
 “Halter Zum Futter”). Where the part is higher than
-the layer, the tip follows the part plus allowance; it never comes closer to
-the axis than the cutter radius. In front of every <b>wall</b> across the axis
+the layer, the tip follows the part plus allowance – also across the centre of
+rotation (X below zero) where the part lies beside the axis; a ball nose or bull nose cutter
+is computed with its shape, not like an end mill. In front of every <b>wall</b> across the axis
 – a shoulder, the flank of a groove – the spiral pauses for one revolution
 (ring pass): that way the cutter reaches the wall all round; otherwise it would
 only touch it on part of the circumference. Between layers it goes out radially
