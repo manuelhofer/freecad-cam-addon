@@ -10,7 +10,8 @@ own</b>: in it the face points up, and every strategy computes as always.</p>
 assistant creates it). Best with the 5-axis machine set on the job (step 1 of the assistant or
 “Check on machine”).</li>
 <li>Click the <b>inclined face</b> on the part and <b>Swivel plane (3+2) …</b> in the CAM-Addon
-toolbar. For an <b>angled hole</b> with no flat face around its entry (in a fillet, say), click
+toolbar – or select the inclined face in the <b>Machining</b> assistant, where the button
+<b>Swivel plane (3+2) …</b> appears. For an <b>angled hole</b> with no flat face around its entry (in a fillet, say), click
 its <b>wall</b>: the tool then stands in the hole's axis, the plane goes through its open end.
 With no suitable face: <b>Or angles</b> – tilt and direction (“15° towards 90°”: 15° from the
 vertical, the head towards +Y), then <b>Apply</b>. 3D finishing, say, then mills with a <b>tilted
@@ -18,13 +19,18 @@ ball end mill</b>: the same surface in the same time, only the ball no longer cu
 on top (where the cutting speed is 0) – at 15° with Ø 1.55 instead of 0 (ball Ø 6).</li>
 <li>The window shows the base job, the machine and in green how far the plane is swivelled and
 where the rotary axes go: “Face12: swivelled 30° → A−30 C0”. Clicking another face while it is
-open takes that one. Red says why it does not work (not planar, horizontal, the rotary axes
-cannot get there).</li>
+open takes that one. Red says why it does not work (neither flat nor the wall of a hole,
+horizontal, the rotary axes cannot get there).</li>
 <li><b>OK</b> creates the plane's job (“Job … – plane Face12 (A−30 C0)”): the model rotated, the
 base job's stock rotated with it. With the tick the <b>Machining</b> assistant opens in it right
-away, the face selected – choose strategies and create as always.</li>
+away, the face selected – choose strategies and create as always. If the plane exists
+already (the same face, or a parallel one), the window says so, and OK opens it instead of
+creating a second one.</li>
 <li><b>Write program</b> for the base job: its planes go into the program, each swivelled once
-(with Siemens by CYCLE800). <b>Check on machine</b> for the base job runs the planes too.</li>
+– with Siemens by CYCLE800, otherwise computed from the selected machine
+(<a href="programm.html#schwenken">Write program</a>). <b>Check on machine</b> for the base job
+runs the planes too, with the retract and swivel in between; the player shows “… – plane
+A−30 C0”. Base job and planes share one <a href="bestueckung.html">tool loading</a>.</li>
 </ol>
 
 <h3>How it is computed</h3>
@@ -45,4 +51,5 @@ planes before it (higher in the tree) – like every operation with material sta
 job changes, the plane's operations recompute.</p>
 
 <h3>Not yet</h3>
-<p>Simultaneous – flank milling, finishing with lead angle – comes later.</p>
+<p>Simultaneous – flank milling, a lead angle that follows the feed direction – comes later. A
+fixed lead angle works already: “Or angles” (above).</p>
