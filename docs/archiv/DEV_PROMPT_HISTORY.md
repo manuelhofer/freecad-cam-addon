@@ -12,6 +12,57 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-31 manuels-raeumen
+
+### EINGELESEN
+- Manuel, 2026-10-03, zu den Bildern des Räumens am Testteil (je Lage): Lage 10 – erst die
+  Ecken und Streifen des Rohteils als Stiche wegräumen, bis das Band um die Insel gleich breit
+  ist, dann Ringe exakt der Kontur entlang, die Wellen „mit Schnellvorschub“ zurück; Lage 22 –
+  erst eine Nut an der Stufenwand in Halbkreisen, dann Schleifen von beiden Rändern nach innen,
+  die Mulde dabei mitnehmen. „Mich würde einfach nur die zeitliche Differenz interessieren.“
+  Prototyp +4 % / +3 % → „wir nehmen sie mit auf … definitiv“; „und die andere hast du falsch
+  verstanden“ (Lage 22: Schleifen, nicht Versätze der Stufe mit Luftenden).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (Variante „stiche“: `_ringe_stiche`, `_komponenten`,
+  `_nut_an_der_wand`, `_boegen_laengs`, `_stiche_um_inseln`, `_schleifen_nach_innen`, `_enge`,
+  `_laeufe_zyklisch`; `_Lage._rueckweg_aussen`, `_kasten_frei`, `_bahn_mit_ecken`,
+  `_sichel_leer`, `frei(ohne_sperre, schwelle)`; `last()` mit Vorschubanteil; Vorzug in
+  `planen`; STICHE_VORZUG, NUT_BOGEN, ECKE_BOGEN, ECKE_BLICK, SICHEL_VOLL, STICHE_ANFAHRT,
+  ENG_BLICK, NUT_SCHRITT_SPIEL, RUECKLAUF_ABSTAND, STICHE_LUECKE), `camaddon/kontur_bahn.py`
+  (`_bahnpunkte(…, anteile)`), `camaddon/gui_bearbeitung.py` (Text „Stiche und Ringe“, „adaptiv
+  wäre … schneller“), `translations/de|en.json`, `help/de|en/bearbeitung.html`,
+  `tests/test_raeumen.py` ((j) Stiche am Zapfen; (h) mit „stiche“ in den Zeiten; Platte:
+  Räumen schlägt Planfräsen ohne 10 % – seit P-29 nur 4 % davor), `tests/test_testteil.py`
+  (stiche gewinnt, 12,6 min, 3-mal hinauf, 0 Rampen), Spezifikation Strategien (14),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.151.0).
+
+### AKZEPTANZKRITERIUM
+- Manuels zwei Muster als Variante des Räumens, gegen die anderen gerechnet; am Testteil
+  nichts stehen geblieben, nichts ins Teil, die Last gehalten, keine Rampe, Gleichlauf.
+
+### DONE
+- Gebaut wie in Spezifikation Strategien 14.1 (Inseln/Seitenwände, Nut in Bögen längs einer
+  gekrümmten Linie, Stiche nach Bereitschaft und Nähe, Ringe gleitend, Schleifen nach innen,
+  Rücklauf unten außen herum im Eilgang, Eckenbögen, weniger Vorschub an engen Linksbögen).
+- Testteil: stiche 12,56 min (adaptiv 10,28, +22 %), Last bis 1,67 ae (hält), 3-mal hinauf,
+  53 Rückläufe unten, Rest 0, Einschnitt 0. Je Lage: 8,18 / 4,07 / 0,40 gegen 6,64 / 3,35 /
+  0,29 (Prototyp 6,91 / 3,44). Der Vorschubweg ist kürzer (5,8 statt 6,6 m um die Insel); die
+  Zeit kosten die Halte des Zeitmodells vor und nach jedem Eilgang (540 statt 172) und die
+  Bögen der Nut. Zapfen 50 × 50: 3,74 statt 2,43 (adaptiv gewinnt).
+- Verworfen: Zwischenstiche mit halbem ae an engen Bögen (62-mal abheben, 14,4 min).
+- Prüfstand-Zeichnung für Bilder je Lage (Scratch `bild.py`): Reihenfolge in Farbe, Eilgang,
+  Eintauchen, Pfeile, Höhe über dem Weg – Manuel sieht so jede Bahn und sagt, was er ändern würde.
+
+### TESTS
+- `tests/test_raeumen.py`, `tests/test_testteil.py`, `tests/test_sprache.py`,
+  `tests/test_hilfe.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Entscheidungen D-1 bis D-6 (Spezifikation Strategien 14.3): Vorzug 25 %?, Halte im
+  Eilgang im Zeitmodell, die Mulde, Taschen (Bild 2: die Tasche mit dem Ø 6), Linkskurven,
+  Nutbreite. Dann Bild 2.
+
 ## P-2026-10-03-30 rest-am-rand
 
 ### EINGELESEN

@@ -7,9 +7,12 @@
 # in einer Lage –, die Insel oben danach nur noch über sich, um das, was noch steht, die obere
 # Stufe zuletzt; ohne Rest, nirgends ins Teil. Mit den Ringen 12,4 min (jede Fläche für sich vom
 # Rohteil her: 26 min), 56-mal abgehoben, und wo ein Ring an einer Wand beginnt, fährt der Fräser
-# quer in den Streifen – bis 5 ae. Ohne Vorgabe gewinnt deshalb die Variante „adaptiv“ (T5):
-# unter 11,5 min, höchstens 10-mal abgehoben, die Last gehalten (kurz höchstens 1,7 ae, über
-# 1,25 ae höchstens eine Fräserbreite am Stück). Der Boden der kleinen Tasche: Der Ø 12 passt
+# quer in den Streifen – bis 5 ae. Die schnellste, die die Last hält, ist „adaptiv“ (T5): unter
+# 11,5 min, höchstens 10-mal abgehoben. Ohne Vorgabe gewinnt aber Manuels Räumen („stiche“,
+# Spezifikation Strategien 14, P-2026-10-03-31): Stiche von außen nach innen, Ringe um die
+# Insel, die Nut an der Stufe, Schleifen nach innen – lesbar, überall Gleichlauf, die Last
+# gehalten; es hat den Vorzug, solange es höchstens 25 % langsamer ist (12,6 min; die Rückläufe
+# außen herum zählen im Zeitmodell mit Halt vor und nach jedem Eilgang). Der Boden der kleinen Tasche: Der Ø 12 passt
 # nicht hinein – ein Satz statt einer Bahn rund um die Insel (B-006); mit den anderen Flächen
 # zusammen fällt sie aus, und die Bahn nennt sie (B-007).
 import os
@@ -107,12 +110,26 @@ pruefe(bahn.ausgelassen == [], f"ohne die Tasche ausgelassen: {bahn.ausgelassen}
 # Die tiefste zuerst, jede Höhe einmal – außen um die Insel 23 mm in einer Lage.
 pruefe(folge == [PLATTE, INSEL, STUFE], f"Reihenfolge der Höhen: {folge}")
 # Die schnellste Variante, die die Last hält: adaptiv – schneller als die Ringe, und es hebt kaum
-# noch ab (mit den Ringen 56-mal).
+# noch ab (mit den Ringen 56-mal). Den Vorzug hat Manuels Räumen („stiche“), bis 25 % langsamer.
 pruefe(
-    bahn.variante == "adaptiv" and bahn.zeit < min(bahn.zeiten["rohteil"], 11.5),
+    bahn.variante == rb.STICHE
+    and bahn.zeiten["adaptiv"] < min(bahn.zeiten["rohteil"], 11.5)
+    and bahn.zeit <= rb.STICHE_VORZUG * bahn.zeiten["adaptiv"]
+    and bahn.zeit < 13.0,
     f"Räumen über drei Höhen: {bahn.variante}, {bahn.zeiten} – das Ziel sind 8 min",
 )
-pruefe(abgehoben(bahn) <= 10, f"Räumen über drei Höhen: {abgehoben(bahn)}-mal abgehoben")
+# Hinauf geht es nur zwischen den Flächen und wo kein Weg unten frei ist; die Stiche kehren
+# unten außen um das Rohteil zurück (Eilgang auf der Lage).
+hinauf = sum(
+    1
+    for a, b in zip(bahn.punkte, bahn.punkte[1:], strict=False)
+    if b.eilgang and not a.eilgang and b.z > a.z + 1.0
+)
+pruefe(hinauf <= 10, f"Räumen über drei Höhen: {hinauf}-mal hinaufgehoben")
+pruefe(
+    bahn.rampen == 0 and bahn.haelt,
+    f"Räumen über drei Höhen: {bahn.rampen} Rampen, hält {bahn.haelt}",
+)
 groesste, lang = rb.last(bahn, werte_fuer())
 pruefe(
     groesste <= bn.LAST_KURZ * rb.LAST_SPIEL and lang <= 2 * R,
@@ -129,8 +146,8 @@ k = ps.messen(
 for satz in ps.urteile(k):
     pruefe(False, f"Räumen über drei Höhen: {satz}")
 print(
-    f"Raeumen ueber drei Hoehen: {bahn.zeit:.2f} min ({bahn.zeiten}), {abgehoben(bahn)}-mal "
-    f"abgehoben, Last bis {groesste:.2f} ae – {ps.zeile(k)}"
+    f"Raeumen ueber drei Hoehen: {bahn.variante} {bahn.zeit:.2f} min ({bahn.zeiten}), {hinauf}-mal "
+    f"hinauf, {abgehoben(bahn)} Rücklaeufe, Last bis {groesste:.2f} ae – {ps.zeile(k)}"
 )
 # Die Ringe (so rechnete es bis 0.125.5): langsamer, und sie halten die Last nicht.
 ringe = raeumen(PLATTE, INSEL, STUFE, variante=rb.RINGE)
@@ -143,7 +160,7 @@ print(
 
 # Jede Fläche für sich vom Rohteil her (so rechnete es bis 0.123.1): zusammen gut das Doppelte.
 einzeln = sum(raeumen(z).zeit for z in (PLATTE, INSEL, STUFE))
-pruefe(bahn.zeit < 0.6 * einzeln, f"zusammen {bahn.zeit:.1f} min, einzeln {einzeln:.1f} min")
+pruefe(bahn.zeit < 0.65 * einzeln, f"zusammen {bahn.zeit:.1f} min, einzeln {einzeln:.1f} min")
 print(f"jede Flaeche fuer sich: {einzeln:.2f} min")
 
 # --- Der Boden der kleinen Tasche: Der Ø 12 passt nicht hinein (B-006) ----------------------------

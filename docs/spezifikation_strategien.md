@@ -2216,3 +2216,117 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   anlegt, der im Prüffenster ein Teil ohne Rest ergibt (bis auf Ecken, in die kein Fräser der
   Kiste kommt; die nennt er), das Schruppen höchstens 1,5 × Ziel braucht und keine Bahn die Last
   überschreitet.
+
+## 14. Manuels Räumen: Stiche und Ringe, Nut und Schleifen (2026-10-03)
+
+Manuel sah die Bahn des Räumens am Testteil (Bild je Lage: Reihenfolge in Farbe, Eilgang rot,
+Eintauchen grün) und zeichnete, wie er fahren würde. Zwei Bilder, zwei Muster:
+
+- **Lage 10, um die Insel** (adaptiv: die Spirale vom Rohteilrand her, links im schmalen Band
+  wellig – „das versteh ich nicht, warum macht man das?“): *Rot* die Ecken und Streifen des
+  Rohteils Stich für Stich wegräumen, „so dass die Entfernung zur Kontur die gleiche ist wie die
+  kleinste Stelle von der Kontur zum Rohteil“; *blau* dann Ringe exakt der Kontur entlang,
+  Schritt ae, bis zum Aufmaß; die Wellen „schön mit Schnellvorschub“ zurück.
+- **Lage 22, die Insel oben** (adaptiv: Spirale zur Stufe hin, der letzte Gang an der Stufenwand
+  wellig): *Blau* zuerst eine Nut an der Stufenwand entlang, in Halbkreisen wie die offene Nut;
+  *rot* dann geschlossene Schleifen, die von beiden Rändern – Inselkante und Nut – nach innen
+  wandern, bis die Mitte frei ist; *schwarz* die Mulde dabei mitnehmen, so weit Rampe und ap
+  erlauben. (Den ersten Anlauf – Versätze der Stufe mit Enden in der Luft – hatte ich falsch
+  verstanden.)
+
+Ihn interessierte die Zeit. Prototyp (Raster, eigene Zeichnung, derselbe Prüfstand): Lage 10
+6,91 statt 6,65 min (+4 %), Lage 22 3,44 statt 3,35 (+3 %), Eingriff höchstens 1,1 statt
+1,7 ae auf der Insel oben. Manuel: „wir nehmen sie mit auf … definitiv“.
+
+### 14.1 Die Regeln (gebaut, P-2026-10-03-31, Variante „stiche“ in `raeumen_bahn`)
+
+Je Lage (`_ringe_stiche`), auf dem Raster des Feldes (`_Feld`, 0,5 mm) mit dem Materialstand:
+
+1. **Was ist Insel, was Seitenwand?** Jedes zusammenhängende Stück des Gesperrten (`_komponenten`):
+   grenzt es an Luft (Zellen ohne Material, die nicht gesperrt sind – die Stufe an der Inselkante,
+   eine Wand am Rohteilrand), ist es eine Seitenwand; sonst eine Insel (rundum im Material).
+2. **Die Nut an jeder Seitenwand** (`_nut_an_der_wand`, `_boegen_laengs`): Mittellinie ist der
+   Versatz der Wand bei r_l = R/2 (die Nut 2 (R + r_l) = 1,5 D breit), nur wo unter ihr Material
+   liegt, am Anfang R in die Luft hinaus; die Bögen wie `nut_bahn._boegen`, nur längs einer
+   gekrümmten Linie (je Bogen der Rahmen an seiner Stelle): im Gleichlauf von der einen Wand nach
+   vorn zur anderen, quer zurück im Schnellvorschub (3 × F, G1), je Bogen 0,9 ·
+   `_bogenschritt` weiter (das Raster misst an den Bögen sonst 1,82 statt 1,7 ae); vom Ende her,
+   das der Spitze näher liegt.
+3. **Inseln → Stiche und Ringe** (`_stiche_um_inseln`): die Höhenlinien des Abstands zu den
+   Inseln bei j · ae (die Ringe davor um eine Zelle nach innen, damit der Schritt auf den
+   genauen Ring am Aufmaß ae bleibt), von außen nach innen. Je Höhenlinie die Stiche: die
+   Läufe, unter deren Stirn in ihrem eigenen Streifen [L − R, L − R + ae] noch Material steht
+   (Lücken bis 2 R im Vorschub durchfahren). Ist der ganze Ring so ein Lauf, ein Ring. Ein
+   Stich ist dran, wenn kein Stich weiter außen (bis 2 R + ae) mehr offen ist, dessen Streifen
+   unter seiner Stirn liegt (`blockiert`); von den fertigen der nächste am Weg, ein Ring
+   beginnt an der Stelle, die der Spitze am nächsten liegt, gleitend über 2 R (`_schwenke_ein`)
+   statt quer in den Streifen. Die Läufe fährt `_Lage._lauf` wie bisher (Anfahrt als kleiner
+   Bogen, STICHE_ANFAHRT · R statt des Viertelkreises mit R; der Schritt auf den genauen Ring
+   darf das Band dort unter der Stirn haben, das er gleich nimmt).
+4. **Keine Insel → Schleifen** (`_schleifen_nach_innen`): die Höhenlinien des Abstands zum Rand
+   des Materials (Rohteilkante, Luft, die Nut; `abstand_zu(~material)`) bei −(R − ae) + j · ae,
+   geschlossen, je Niveau der nächste zuerst; sie hängen aneinander (ae auseinander).
+5. **Rücklauf unten** (`_Lage._rueckweg_aussen`): Ist im Kasten um die Spitze und den Anfang des
+   nächsten Stichs (um R breiter) nichts mehr und nichts gesperrt, gerade im Eilgang auf der
+   Lage – sonst, wenn beide neben dem Rohteil stehen, außen herum auf dem Rechteck R + 2 mm
+   neben dem Rohteil, achsparallel (auch ein Eilgang, der die Achsen einzeln fährt, bleibt so
+   draußen); sonst wie bisher hinauf, hin, hinab.
+6. **Eckenbögen** (`_Lage._bahn_mit_ecken`): An einer scharfen Ecke zur Materialseite (ab 45°,
+   Richtung über 2 mm vor und nach der Ecke gemessen – die Höhenlinien wellen sich im Raster um
+   Hundertstel) schnitte der Fräser beim Drehen auf der Stelle die Sichel zwischen der Ecke des
+   Rings davor (C1, d = ae ÷ sin(α/2) außen) und dieser (C2) auf einmal (Last bis 3 ae).
+   Stattdessen hält er vor der Ecke bei Q1 (Lot von C1 auf die Gerade), fährt über C1 nach innen
+   und um C1 Bögen, je ae weiter hinaus bis d, von der Normalen der zweiten Geraden zu der der
+   ersten (Gleichlauf), zurück über die Innenseite im Schnellvorschub, dann zur Ecke und weiter.
+   Nur, wenn in der Sichel noch Material steht (`_sichel_leer`), und nicht in der dünnen Lage
+   (ae = R). Am Testteil kommt keine Ecke dran: Die Spitzen der Versätze an der Innenrundung
+   liegen in der Luft, die Ecken der Schleifen in der Nut.
+7. **Enge Bögen von dem Material weg** (`_enge`): Biegt der Ring mit dem Radius ρ nach links
+   (Material rechts), ist der Streifen außen (ρ + R − ae/2) ÷ ρ mal so lang wie der Weg der Mitte
+   – an der Innenrundung R 16,4 des Testteils das 2,2-Fache. Dort fährt der Satz mit so viel
+   weniger Vorschub, dass die Last je Zeit bei 1,25 ae bleibt (`anteile` in
+   `kontur_bahn._bahnpunkte`); `last()` rechnet den Vorschubanteil mit (Volumen je mm ×
+   Anteil). Zwischenstiche (halbes ae, nur an der engen Stelle) waren schlechter: 62-mal
+   abheben, 14,4 min.
+8. **Zuletzt** der Ring am Gesperrten, wo noch etwas steht (`_ringe_um_inseln`, `nur_rest`) –
+   nicht nach einer Nut (die Bögen lassen an der Wand nur Dellen von Hundertsteln).
+9. **Wahl:** Ohne Vorgabe rechnet `planen` die Variante mit; sie hat den **Vorzug**, wenn sie die
+   Last hält und höchstens STICHE_VORZUG = 1,25 mal so lange braucht wie die schnellste, die sie
+   hält. Der Assistent sagt dann „adaptiv wäre 18 % schneller; Manuels Räumen (Stiche) hat den
+   Vorzug“. Taschen (geschlossene Kontur) bleiben bei den Ringen von innen nach außen
+   (`_flaeche`: Tasche → „inseln“).
+
+### 14.2 Gemessen (Testteil, Ø 12, ae 1,5, drei Höhen, Prüfstand)
+
+| | adaptiv | stiche | Prototyp |
+| --- | ---: | ---: | ---: |
+| Lage 10 (um die Insel) | 6,64 min, Luft 4 %, Halte 172 | 8,18 min, Luft 6 %, Halte 540, Vorschub 5,82 statt 6,63 m | 6,91 min, Halte 181 |
+| Lage 22 (Insel oben) | 3,35 min, Luft 12 % | 4,07 min, Luft 21 %, Halte 790 (die Nut: ≈ 100 Bögen) | 3,44 min |
+| Lage 32 (Stufe, 1 mm) | 0,29 min | 0,40 min | – |
+| zusammen | 10,28 min, Last bis 1,42 ae | 12,56 min (+22 %), Last bis 1,67 ae, 3-mal hinauf, 53 Rückläufe unten, 0 Rampen, Rest 0 | ≈ 10,6 min |
+
+Wo die 22 % bleiben: Der Vorschubweg ist kürzer als bei adaptiv; die Zeit kostet das
+Zeitmodell (`fahrzeit`: Halt vor und nach jedem Eilgang, 540 statt 172 Halte auf der Lage 10 –
+je Stich die Anfahrt, der Rücklauf außen herum in 3–4 Sätzen), die Bögen der Nut (je Bogen
+Halbkreis, Rücklauf, Schritt) und der kleinere Vorschub an der Innenrundung. Eine Steuerung mit
+Vorausschau im Eilgang (Siemens G64, LinuxCNC) hält an den Ecken des Rücklaufs nicht; das
+Modell rechnet zu Manuels Ungunsten (W-001, Stufe 4d: „die Achsen fahren einzeln, jede hält“).
+Zapfen 50 × 50: 3,74 statt 2,43 min (adaptiv gewinnt).
+
+### 14.3 Offen (Entscheidungen für Manuel)
+
+- **D-1 Der Vorzug:** 25 % (so gewinnt es am Testteil) – oder weniger (5 %: dann gewinnt dort
+  adaptiv und die Variante ist nur über die Eigenschaft „Variante“ zu haben) – oder immer, wenn
+  es die Last hält?
+- **D-2 Das Zeitmodell im Eilgang:** Hält Manuels Steuerung vor und nach jedem G0? Wenn nicht,
+  sollte `fahrzeit` Eilgänge wie Vorschubsätze durchfahren lassen (Ecke ab 15°) – das nähme
+  der Variante den größten Teil der 22 %.
+- **D-3 Die Mulde** (schwarz in Bild 2): Die Schleifen über der Mulde hinab, so weit Rampe und
+  ap erlauben – nicht gebaut.
+- **D-4 Taschen:** Welches Muster in einer geschlossenen Tasche – Helix in die Mitte, dann
+  Schleifen nach außen (heute: Ringe von innen), oder zuerst die Nut an der Wand (braucht eine
+  Helix)? Mit Bild 2 (die Tasche mit dem Ø 6).
+- **D-5 Scharfe Linkskurven** (eine Insel mit einspringender Ecke): Dort bleibt in der Ecke des
+  Streifens ein Rest, den der nächste Ring mit einem Schlag nimmt – noch ohne Eckenbögen.
+- **D-6 Die Nutbreite:** 1,5 D (r_l = R/2) – Manuels Striche sahen schmaler aus; schmaler als
+  D geht in Bögen nicht.

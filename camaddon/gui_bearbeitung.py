@@ -738,6 +738,8 @@ class _Raeumen(_Strategie):
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
         if bahn.variante == "adaptiv":
             ringe = tr("ba.zahl.adaptiv")  # die Zahl seiner Bahnen sagt nichts
+        elif bahn.variante == rb.STICHE:
+            ringe = tr("ba.zahl.stiche", n=bahn.laeufe)  # Manuels Räumen: Stiche und Ringe
         else:
             ringe = tr("ba.zahl.ring") if bahn.ringe == 1 else tr("ba.zahl.ringe", n=bahn.ringe)
         if bahn.flaechen > 1:
@@ -763,6 +765,11 @@ class _Raeumen(_Strategie):
             prozent = int(round((1.0 - bahn.zeiten[variante] / bahn.zeit) * 100.0))
             last = dezimal(f"{ueberlastet[variante]:.1f}")
             text = tr("ba.raeumen.ueberlastet", text=text, prozent=prozent, last=last)
+        elif bahn.variante == rb.STICHE and 0 < bahn.zeiten.get("adaptiv", 0.0) < bahn.zeit:
+            # Manuels Räumen hat den Vorzug (raeumen_bahn.STICHE_VORZUG) – was es kostet, steht da.
+            prozent = int(round((1.0 - bahn.zeiten["adaptiv"] / bahn.zeit) * 100.0))
+            if prozent >= 1:
+                text = tr("ba.raeumen.stiche_vorzug", text=text, prozent=prozent)
         return text
 
     def lege_an(self, job, tc, werte, flaechen):
@@ -5631,7 +5638,9 @@ class BearbeitungPanel:
         voll = []
         if self.nut in mit and self._nur_nutgruende(form):
             bahn = self.raeumen.vorschau
-            haelt = getattr(bahn, "variante", "") == "adaptiv" and getattr(bahn, "haelt", False)
+            haelt = getattr(bahn, "variante", "") in ("adaptiv", rb.STICHE) and getattr(
+                bahn, "haelt", False
+            )
             voll = [b for b in mit if b is self.plan or (b is self.raeumen and not haelt)]
             for b in voll:
                 b.ergebnis.setText(tr("ba.wettbewerb.vollschnitt", text=b.ergebnis_basis))

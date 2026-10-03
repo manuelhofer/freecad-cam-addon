@@ -1330,29 +1330,36 @@ def _rampe(punkte, ein, x, y, lage, vorige, w, schritt):
     return laenge
 
 
-def _bahnpunkte(punkte, segmente, proben, stellen, lage, hinten, austritt, r):
+def _bahnpunkte(punkte, segmente, proben, stellen, lage, hinten, austritt, r, anteile=None):
     """Die Sätze der Bahn über die Stellen: je Segmentgrenze ein Satz – Gerade oder Bogen (G2/G3)
     –, der letzte bis zum Ende des Laufs. Endet der Lauf, weil das Rohteil endet (`hinten`),
-    fahren die letzten 2 R mit dem Austritts-Anteil des Vorschubs. Gibt die Länge zurück."""
+    fahren die letzten 2 R mit dem Austritts-Anteil des Vorschubs. `anteile`: je Probe ein
+    Vorschubanteil (≤ 1) – ein Satz fährt mit dem kleinsten seiner Proben. Gibt die Länge
+    zurück."""
     x, y, seg = proben.x, proben.y, proben.segment
     langsam_ab = None
     if hinten:
         weg = np.concatenate([[0.0], np.cumsum(np.hypot(np.diff(x[stellen]), np.diff(y[stellen])))])
         langsam_ab = int(np.flatnonzero(weg[-1] - weg <= 2 * r + GLEICH)[0])
     laenge = 0.0
+    satz_ab = 0  # die erste Stelle des laufenden Satzes
     for pos in range(1, len(stellen)):
         i, h = int(stellen[pos]), int(stellen[pos - 1])
         letzte = pos == len(stellen) - 1
         if seg[i] == seg[h] and not letzte and pos != langsam_ab:
             continue
         langsam = langsam_ab is not None and (pos > langsam_ab or langsam_ab == 0)
+        anteil = austritt if langsam else 1.0
+        if anteile is not None:
+            anteil = min(anteil, float(np.min(anteile[stellen[satz_ab : pos + 1]])))
+        satz_ab = pos
         punkt = bn.Punkt(
             False,
             float(x[i]),
             float(y[i]),
             lage,
             bogen=segmente[int(seg[h])].bogen,
-            anteil=austritt if langsam else 1.0,
+            anteil=anteil,
         )
         if bn.weg(punkte[-1], punkt) < 1e-9:
             continue

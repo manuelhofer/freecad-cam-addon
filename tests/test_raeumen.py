@@ -427,8 +427,10 @@ print(
     f"Platte oben: Raeumen {bahn_d.zeit:.1f} min ({bahn_d.zeiten}), Planfraesen {plan_d.zeit:.1f} min"
 )
 pruefe(bahn_d.variante == "rohteil", f"Platte: Variante {bahn_d.variante} {bahn_d.zeiten}")
+# Seit das Planfräsen Zelle für Zelle fährt (P-2026-10-03-29: 35,2 statt 41,9 min), liegt das
+# Räumen nur noch 4 % davor (33,8 min) – es schlägt es, mehr nicht.
 pruefe(
-    bahn_d.zeit < plan_d.zeit * 0.9,
+    bahn_d.zeit < plan_d.zeit,
     f"Platte: Räumen {bahn_d.zeit} min, Planfräsen {plan_d.zeit} min",
 )
 pruefe(bahn_d.zeit < 36.0, f"Platte: {bahn_d.zeit} min (Abschnitt 11: etwa 33)")
@@ -636,9 +638,11 @@ def drehsinn(bahn, anzahl=400):
 
 werte_h = werte_fuer(rohteil_a, 30.0, variante=None)
 bahn_h = raeumen(teil_a, 20.0, werte_h)
+# Ohne Vorgabe rechnet es auch Manuels Räumen („stiche“, Abschnitt (i)); am Zapfen ist das mit
+# seinen Rückläufen außen herum über die Hälfte langsamer als adaptiv – adaptiv gewinnt.
 pruefe(
     bahn_h.variante == "adaptiv"
-    and set(bahn_h.zeiten) == {"rohteil", "morph", "inseln", "adaptiv"},
+    and set(bahn_h.zeiten) == {"rohteil", "morph", "inseln", "adaptiv", "stiche"},
     f"Zapfen, ohne Vorgabe: {bahn_h.variante} {bahn_h.zeiten}",
 )
 pruefe(bahn_h.zeit < bahn_a.zeit and not bahn_h.ueberlastet, f"Zapfen adaptiv: {bahn_h.zeit} min")
@@ -701,6 +705,66 @@ pruefe(
 print(
     f"Tasche adaptiv: {bahn_ht.zeit:.2f} min, Last bis {last_ht:.2f} ae; die Ringe "
     f"{bahn_ht.zeiten['inseln']:.2f} min, Last bis {bahn_ht.ueberlastet.get('inseln', 0):.2f} ae"
+)
+
+# --- (j) Manuels Räumen: Stiche und Ringe (Spezifikation Strategien 14, 2026-10-03) ------------
+# Am Zapfen: erst die Stiche – die Versätze des Zapfens von außen nach innen, jeder nur, wo in
+# seinem Streifen noch Material steht, zurück unten außen um das Rohteil herum im Eilgang –,
+# dann die Ringe um den Zapfen Band für Band bis zum genauen Kreis, ohne Rampe und ohne quer in
+# den Streifen zu fahren (gleitend auf den nächsten Ring). Im Uhrzeiger um den Zapfen: Material
+# rechts, Gleichlauf. Die Last hält (an engen Linksbögen weniger Vorschub); nichts bleibt
+# stehen, nichts ins Teil.
+werte_s = werte_fuer(rohteil_a, 30.0, variante=rb.STICHE)
+bahn_s = raeumen(teil_a, 20.0, werte_s)
+pruefe(
+    bahn_s.variante == rb.STICHE and set(bahn_s.zeiten) == {rb.STICHE},
+    f"Zapfen Stiche: {bahn_s.variante} {bahn_s.zeiten}",
+)
+pruefe(
+    bahn_s.rampen == 0 and bahn_s.haelt,
+    f"Zapfen Stiche: {bahn_s.rampen} Rampen, hält {bahn_s.haelt}",
+)
+pruefe(
+    bahn_s.punkte
+    and all(
+        p.bogen[2]
+        for p in bahn_s.punkte
+        if p.bogen is not None and abs(math.hypot(p.x - 25, p.y - 25) - 11.3) < 0.01
+    ),
+    "Zapfen Stiche: der Kreis um den Zapfen nicht im Uhrzeiger (G2)",
+)
+rest, einschnitt = simuliert(bahn_s, teil_a, rohteil_a, 30.0, 20.0, 0.3)
+pruefe(rest <= 0.05 and einschnitt >= -0.05, f"Zapfen Stiche: Rest {rest}, Einschnitt {einschnitt}")
+last_s, lang_s = rb.last(bahn_s, werte_s)
+pruefe(
+    last_s <= bn.LAST_KURZ * rb.LAST_SPIEL and lang_s <= 2 * R,
+    f"Zapfen Stiche: Last bis {last_s:.2f} ae, {lang_s:.1f} mm am Stück über {bn.LAST_DAUERND} ae",
+)
+kreis_s = [
+    p
+    for p in bahn_s.punkte
+    if not p.eilgang and p.bogen is not None and abs(math.hypot(p.x - 25, p.y - 25) - 11.3) < 0.01
+]
+pruefe(len(kreis_s) >= 2, f"Zapfen Stiche: {len(kreis_s)} Bögen auf dem Kreis um den Zapfen")
+# Die Stiche in den Ecken des Rohteils kehren unten außen herum zurück (Eilgang auf der Lage),
+# die Ringe um den Zapfen hängen aneinander: hinauf geht es nur am Ende.
+hinauf = sum(
+    1
+    for a, b in zip(bahn_s.punkte, bahn_s.punkte[1:], strict=False)
+    if b.eilgang and not a.eilgang and b.z > a.z + 1.0
+)
+pruefe(hinauf <= 1, f"Zapfen Stiche: {hinauf}-mal hinaufgehoben")
+pruefe(abgehoben(bahn_s) >= 10, f"Zapfen Stiche: {abgehoben(bahn_s)} Rückläufe unten")
+k_s = ps.messen(
+    [ps.Bahnlauf(bahn_s.punkte, VF, VF * 0.3)], teil_a, rohteil_a, 30.0, form, schruppen.ae,
+    schruppen.ap, ebenen_z=[20.0], aufmass=0.3,
+)  # fmt: skip
+for satz in ps.urteile(k_s, sicher_nur=True):
+    pruefe(False, f"Zapfen Stiche: {satz}")
+print(
+    f"Zapfen Stiche: {bahn_s.zeit:.2f} min, Last bis {last_s:.2f} ae, {hinauf}-mal hinauf, "
+    f"{abgehoben(bahn_s)} Rücklaeufe, {bahn_s.ringe} Ringe, {bahn_s.laeufe} Läufe, "
+    f"Luft {k_s.luftanteil * 100:.0f} %"
 )
 
 # --- (i) Eine dünne Lage breit (T2) -----------------------------------------------------------

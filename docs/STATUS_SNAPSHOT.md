@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.150.1 (P-2026-10-03-30). Alles, was hier als gebaut steht,
+Stand 0.151.0 (P-2026-10-03-31). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -49,8 +49,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   (S2), Transformationen (S6), Wochen-Build (S7); die Rundachse
   zwischen zwei Operationen nicht über viele Umdrehungen auf 0 zurückdrehen (Manuel probiert,
   was seine Maschine macht).
-- **W-006 Frässtrategien** – 2,5D komplett (Planfräsen, Räumen mit Ringen, Morph, Inseln und
-  adaptiv, Kontur, Nut offen und geschlossen, Bohrung fräsen, Bohren, Zentrieren, Senken,
+- **W-006 Frässtrategien** – 2,5D komplett (Planfräsen, Räumen mit Ringen, Morph, Inseln,
+  adaptiv und Manuels Räumen „stiche“ (P-2026-10-03-31: Stiche und Ringe, Nut und Schleifen;
+  es hat den Vorzug bis 25 % mehr Zeit – Spezifikation Strategien 14, D-1 bis D-6 offen),
+  Kontur, Nut offen und geschlossen, Bohrung fräsen, Bohren, Zentrieren, Senken,
   Reiben, Gewinde bohren und fräsen, Entgraten mit Fase und Rundung, Restmaterial), 3D
   komplett (Schruppen, Restschruppen, Schlichten in fünf Richtungen mit Steil/Flach,
   Bleistift, Restschlichten), Materialstand in jeder Schrupp-Operation, Prüfstand mit
@@ -102,11 +104,15 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
 **Jetzt – Manuel testet.** Zuerst das Neue dieser Nacht am Testteil
 (`beispiele/testteil_3achs_fraese.FCStd`; Klickwege: Hilfe „So geht’s“):
 
-1. **Räumen adaptiv:** Teil öffnen, Oberseite anklicken → Bearbeitung → Schritt 2 alle
-   Flächen anhaken → Schritt 3: beim Block „Räumen“ steht „→ 3 Flächen: … Lagen, adaptiv,
-   etwa 10 min · rund 1,5 × Ziel“. Wo Ringe schneller wären, aber den Fräser überlasten, hängt
-   „– Ringe wären 41 % schneller, überlasten den Fräser aber (bis 4,1 ae)“ dran (so an einer
-   Tasche 40 × 30). Im Prüffenster: nirgends ins Teil, nichts stehen geblieben.
+1. **Räumen – Manuels Räumen (Stiche):** Teil öffnen, Oberseite anklicken → Bearbeitung →
+   Schritt 2 alle Flächen anhaken → Schritt 3: beim Block „Räumen“ steht „→ 3 Flächen: … Lagen,
+   72 Stiche und Ringe, etwa 13 min – adaptiv wäre 18 % schneller; Manuels Räumen (Stiche) hat
+   den Vorzug …“. In der 3D-Ansicht nach dem Anlegen: um die Insel erst die Stiche in den
+   Ecken des Rohteils (zurück unten außen herum), dann die Ringe bis an die Insel; auf der Insel
+   oben die Nut an der Stufe in Bögen, dann die Schleifen nach innen. Wo Ringe schneller
+   wären, aber den Fräser überlasten, hängt „– Ringe wären 41 % schneller, überlasten den Fräser
+   aber (bis 4,1 ae)“ dran (so an einer Tasche 40 × 30). Im Prüffenster: nirgends ins Teil,
+   nichts stehen geblieben. Wer die Zeit will: Eigenschaft „Variante“ auf „adaptiv“.
 2. **Schlichten danach:** gleich unter „Räumen“ der Block „Schlichten danach“ mit Fräser,
    Einsatz „Schlichten“, Zustellung an den Wänden, Zeilenabstand am Boden und den Haken
    Boden, Wände, Messstopp davor → „→ … Wände (0,3 mm), etwa …“; mit „Aufmaß am Boden“ 0,5
