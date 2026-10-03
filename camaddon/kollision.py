@@ -23,7 +23,9 @@ am Nullpunkt, die Bauteile der Maschine an ihren Gliedern. Geprüft wird
 Zwei Maschinenteile (oder das Teil und ein Maschinenteil), die sich schon in
 der Grundstellung berühren, prüft es nicht – so liegen Führungen und
 Spannflächen aufeinander; hängen sie nicht an einem gemeinsamen Gelenk, sagt
-es ein Hinweis. Das Rohteil zählt nicht: Das Addon trägt kein Material ab.
+es ein Hinweis. Das Rohteil zählt bei den Abständen nicht (Entscheidung 4c-7: kein Fehlalarm in
+einer gefrästen Tasche) – nur ein Eilgang durch Rohteil, das dort noch steht, ist ein Befund
+(`rohteil`, _eilgaenge_ins_rohteil: mit dem Abtrag im Quader, restmaterial.fuer_quader).
 
 Entlang der Bahn geht es in Schritten, in denen sich kein Paar um mehr als
 seinen Abstand minus Warnabstand näherkommt, mindestens MIN_SCHRITT – so
@@ -290,6 +292,8 @@ class Befund:
     # Gleich nach einem Werkzeugwechsel ohne Wechselpunkt: das neue Werkzeug („T2“) – die
     # Maschine wechselt, wo sie steht, ein längeres steckt dann im Teil.
     wechsel: str = ""
+    # Ein Eilgang durch Rohteil, das dort noch steht (_eilgaenge_ins_rohteil): so tief (mm).
+    ins_rohteil: float = 0.0
 
     def text(self):
         werte = {
@@ -299,7 +303,9 @@ class Befund:
             "satz": self.satz,
             "punkt": rw.punkt_text(self.punkt, self.x_durchmesser),
         }
-        if self.ins_teil:
+        if self.ins_rohteil > 0:
+            text = tr("kb.ins_rohteil", tiefe=rw.weg_text(self.ins_rohteil), **werte)
+        elif self.ins_teil:
             text = tr("kb.ins_teil", **werte)
         elif self.beruehrung and self.eilgang:
             text = tr("kb.beruehrung.eilgang", **werte)
@@ -330,13 +336,21 @@ class Ergebnis:
 
 
 def kollision(
-    abfahrt, job, nullpunkt_des_jobs, bibliothek=None, warnabstand=WARNABSTAND, fortschritt=None
+    abfahrt,
+    job,
+    nullpunkt_des_jobs,
+    bibliothek=None,
+    warnabstand=WARNABSTAND,
+    fortschritt=None,
+    rohteil=False,
 ):
     """Prüft die Abfahrt (abfahren.abfahrt) auf Berührungen; gibt ein Ergebnis zurück.
 
     `fortschritt(anteil)` wird zwischendurch gerufen (0 … 1, höchstens alle
     MELDEN_ALLE Sekunden); gibt es False zurück, hört die Prüfung auf
-    (Ergebnis.abgebrochen).
+    (Ergebnis.abgebrochen). `rohteil`: auch die Eilgänge durch Rohteil, das dort noch steht
+    (_eilgaenge_ins_rohteil) – das Fenster prüft es, die Prüfungen mit erfundenen Bahnen in einem
+    ungeräumten Rohteil nicht.
     """
     ergebnis = Ergebnis(warnabstand)
     pruefung = abfahrt.pruefung
@@ -354,13 +368,56 @@ def kollision(
     except _Abbruch:
         ergebnis.abgebrochen = True
         ergebnis.hinweise.append(tr("kb.abgebrochen", **_bis_hier(abfahrt, welt.station)))
+    befunde = list(welt.schlimmste.values())
+    if rohteil and not ergebnis.abgebrochen:
+        befunde += _eilgaenge_ins_rohteil(abfahrt, job)
     # Berührungen zuerst, dann was nur näher kommt – je nach der Zeit.
-    ergebnis.befunde = sorted(
-        welt.schlimmste.values(), key=lambda b: (not b.beruehrung, b.zeit, b.a, b.b)
-    )
+    ergebnis.befunde = sorted(befunde, key=lambda b: (not b.beruehrung, b.zeit, b.a, b.b))
     if fortschritt is not None and not ergebnis.abgebrochen:
         fortschritt(1.0)
     return ergebnis
+
+
+def _eilgaenge_ins_rohteil(abfahrt, job):
+    """[Befund] – je Operation der Eilgang, der am tiefsten durch Rohteil fährt, das dort noch
+    steht. Die Abstände oben kennen nur das fertige Teil; was vom Rohteil noch steht, weiß der
+    Abtrag im Quader (restmaterial.fuer_quader: ein Kasten als Rohteil, Werkzeuge von oben, keine
+    Rundachse) – sonst nichts."""
+    from . import restmaterial as rm
+
+    try:
+        abtrag = rm.fuer_quader(abfahrt, job, abfahrt.am_werkstueck())
+    except Exception as fehler:  # ohne Abtrag bleibt die Prüfung, wie sie war
+        FreeCAD.Console.PrintLog(f"CAM-Addon: Eilgänge ins Rohteil: {fehler}\n")
+        return []
+    if abtrag is None:
+        return []
+    schlimmste = {}
+    for k, tiefe, _stelle in abtrag.eilgaenge_ins_material([s.eilgang for s in abfahrt.stationen]):
+        nummer = abfahrt.stationen[k].operation
+        if nummer not in schlimmste or tiefe > schlimmste[nummer][1]:
+            schlimmste[nummer] = (k, tiefe)
+    befunde = []
+    for nummer, (k, tiefe) in schlimmste.items():
+        station = abfahrt.stationen[k]
+        op = abfahrt.operationen[nummer]
+        befunde.append(
+            Befund(
+                beruehrung=True,
+                eilgang=True,
+                operation=op.name,
+                a=tr("kb.schneide", werkzeug=f"T{getattr(op.tc, 'ToolNumber', 0)}"),
+                b=tr("kb.rohteil"),
+                abstand=0.0,
+                zeit=station.zeit,
+                station=k,
+                satz=station.satz,
+                punkt=rw._programmpunkt(station.punkt, station.rund),
+                x_durchmesser=abfahrt.pruefung.x_durchmesser,
+                ins_rohteil=tiefe,
+            )
+        )
+    return befunde
 
 
 class _Abbruch(Exception):

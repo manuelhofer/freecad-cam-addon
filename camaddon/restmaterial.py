@@ -66,6 +66,7 @@ from . import vierachs_huelle as vh
 SCHRITT_A = 0.5  # mm – Raster längs der Achse
 SCHRITT_PHI = 1.0  # Grad – Raster rundum
 SCHRITT_XY = 0.5  # mm – Raster des Quaders (2,5D)
+EILGANG_SCHWELLE = 0.1  # mm – so viel Material darf ein Eilgang (im Raster) streifen
 TEILSCHRITT = 0.5  # mm – so fein fährt der Fräser zwischen zwei Punkten der Bahn
 TEILSCHRITTE_JE_BLOCK = 50000  # so viele Teilschritte rechnet fahre_stuecke() auf einmal
 GENAU = 1e-3  # mm – mit einer so kleinen Scheibe liest der Vergleich das Teil auf dem Strahl
@@ -1018,6 +1019,51 @@ class QuaderAbtrag:
                 if nummer in self.ringe:
                     self._fasen_erlaubt[getroffen & self._in_ringen(nummer)] = np.inf
         self.bis = max(self.bis, index + 1)
+
+    def eilgaenge_ins_material(self, eilgang, schwelle=EILGANG_SCHWELLE):
+        """[(Station, Tiefe in mm, (x, y))] – die Eilgänge, die Material wegnähmen, das dort noch
+        steht: der Reihe nach abgefahren, auf einer eigenen Kopie des Quaders – die Vorschübe
+        zwischen zwei Eilgängen gebündelt, jeder Eilgang für sich mit der Form seines Fräsers.
+        `eilgang`: je Station, ob die Maschine sie im Eilgang anfährt. Senkt ein Eilgang das
+        Höhenfeld irgendwo um mehr als `schwelle`, fährt er durchs Material (die Kollision kennt
+        das Rohteil sonst nicht)."""
+        import copy
+
+        quader = copy.deepcopy(self.quader)
+        quader.zuruecksetzen()
+        vorschub = []  # Stationen, deren Stück im Vorschub noch zu fahren ist
+        ergebnis = []
+
+        def vorschub_fahren():
+            if not vorschub:
+                return
+            stationen = np.asarray(vorschub)
+            for nummer, fraeser in self.fraeser.items():
+                k = stationen[self.operation[stationen] == nummer]
+                if len(k):
+                    quader.fahre_stuecke(self.punkte[k - 1], self.punkte[k], fraeser)
+            vorschub.clear()
+
+        for k in range(1, len(self.punkte)):
+            if not (
+                self.gueltig[k - 1]
+                and self.gueltig[k]
+                and self.operation[k - 1] == self.operation[k]
+            ):
+                continue
+            if not eilgang[k]:
+                vorschub.append(k)
+                continue
+            vorschub_fahren()
+            vorher = quader.h.copy()
+            fraeser = self.fraeser[int(self.operation[k])]
+            quader.fahre_stuecke(self.punkte[k - 1 : k], self.punkte[k : k + 1], fraeser)
+            weg = vorher - quader.h
+            tiefe = float(weg.max()) if weg.size else 0.0
+            if tiefe > schwelle:
+                i, j = np.unravel_index(int(np.argmax(weg)), weg.shape)
+                ergebnis.append((k, tiefe, (float(quader.x[i]), float(quader.y[j]))))
+        return ergebnis
 
     def _in_ringen(self, nummer):
         """Die Zellen in den Kreisen der Operation `nummer` (ringe) – einmal gerechnet."""

@@ -149,7 +149,7 @@ class KollisionsBereich(QtGui.QWidget):
         self._melde()
         try:
             ergebnis = kb.kollision(
-                abfahrt, job, nullpunkt, bibliothek, warnabstand, self._fortschritt
+                abfahrt, job, nullpunkt, bibliothek, warnabstand, self._fortschritt, rohteil=True
             )
         finally:
             self.laeuft = False

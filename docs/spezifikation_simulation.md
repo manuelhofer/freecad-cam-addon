@@ -214,6 +214,14 @@ Besprechung:
   - Nicht geprüft: das Rohteil (das Addon trägt kein Material ab – dafür
     gibt es den CAM-Simulator); Teile, die zusammen fahren; Paare, die sich
     schon in der Grundstellung berühren (Führungen) – ein Hinweis nennt sie.
+  - **Eilgang durchs Rohteil (P-2026-10-04-17, zur Bestätigung durch Manuel):** Seit es den
+    Abtrag im Quader gibt (W-006 S3d), fährt „Kollision prüfen“ ihn der Reihe nach mit
+    (`restmaterial.QuaderAbtrag.eilgaenge_ins_material`): Nimmt ein Eilgang mit der Form seines
+    Fräsers mehr als 0,1 mm Rohteil weg, das dort noch steht, ist das eine Berührung („… fährt
+    die Schneide von T1 im Eilgang durch Rohteil, das dort noch steht – bis … tief“). Der
+    Vorschub zählt nicht – kein Fehlalarm in einer gefrästen Tasche (Entscheidung 7). Nur für
+    Jobs, deren Abtrag geht (Kasten, Werkzeuge von oben, keine Rundachse). Am Testteil und am
+    Schwenkteil: keiner; ein eingeschleuster Eilgang quer durchs Rohteil: gefunden.
 - **Melden:** Berührung – Abstand 0 oder ineinander – rot; näher als der
   **Warnabstand** gelb. Der Warnabstand ist 1 mm und im Fenster einstellbar.
 - **Wie gerechnet wird:** Werkzeug und Halter als Drehkörper, Maschinenteile
@@ -403,7 +411,10 @@ Bereiche dazu.
 7. **Wogegen prüft 4c?** Das Addon trägt kein Material ab. – *Entschieden
    (Manuel, 2026-09-26):* gegen das fertige Teil, die Spannmittel und die
    Maschine – kein Fehlalarm, wenn der Schaft in eine gefräste Tasche taucht;
-   Material, das noch nicht abgetragen ist, sieht die Prüfung nicht.
+   Material, das noch nicht abgetragen ist, sieht die Prüfung nicht. *Ergänzt (Claude,
+   2026-10-04 nachts, zur Bestätigung):* Eilgänge durch Rohteil, das noch steht, meldet sie –
+   mit dem Abtrag, also ohne Fehlalarm in gefrästen Taschen (Abschnitt 4c oben); der Vorschub
+   bleibt, wie entschieden. Abschalten: `rohteil=True` in `gui_kollision`.
 8. **Nach 4b** – *Entschieden:* 4c, mit der Halter-Verwaltung davor.
 
 ## 10. Akzeptanzkriterien 4a

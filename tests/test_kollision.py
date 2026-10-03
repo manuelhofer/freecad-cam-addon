@@ -7,6 +7,8 @@
 # - Eilgang quer durchs Teil: Schneide und Schaft berühren es, „im Eilgang“;
 # - Eilgang nach einem Vorschub: der Rückzug vom Taschenboden ist kein Befund, der Eilgang
 #   hinunter auf den Boden schon;
+# - Eilgang durchs Rohteil, das über der Tasche noch steht (mit rohteil=True wie im Fenster):
+#   ein Befund mit der Tiefe; im Vorschub hinab nicht;
 # - Halter ER16 (Mutter Ø 28) bei 80 mm Länge ab Spindelnase, 1 mm zu tief neben
 #   der Tasche: Der Halter berührt das Teil;
 # - kurzes Werkzeug (25 mm) neben dem rechten Spanneisen (die Schraube 60 mm hoch, oben bei
@@ -417,6 +419,36 @@ for laenge, soll in ((60.0, "T2"), (45.0, None)):
         f"am Wechsel: {[b.text() for b in e.befunde]}",
     )
 teil.removeObject(zweite.Name)
+
+# --- Eilgang durchs Rohteil (das Fenster prüft mit rohteil=True) ---------------------------------
+# Das Rohteil ist der Kasten um das Teil, über der Tasche nie geräumt: Im Eilgang von Z 30 auf
+# Z 10 hinab fährt die Schneide durch Rohteil, das dort noch steht – ein Befund mit der Tiefe
+# (bis zur Oberseite des Rohteils). Derselbe Weg im Vorschub hinab und im Eilgang zurück: nichts.
+# Ohne `rohteil` wie bisher (die Prüfungen oben fahren erfundene Bahnen im ungeräumten Rohteil).
+oben = job.Stock.Shape.BoundBox.ZMax
+bibliothek = wz.Bibliothek([t1()])
+bibliothek.halter_vorschlagen = False
+for bahn, soll in (
+    (["G0 X50 Y30 Z30", "G0 Z10", "G0 Z30"], oben - 10.0),
+    (["G0 X50 Y30 Z30", "G1 Z10 F10", "G0 Z30"], None),
+):
+    op.Gcode = bahn
+    teil.recompute()
+    fahrt = ab.abfahrt(p, job, nullpunkt, bibliothek)
+    e = kb.kollision(fahrt, job, nullpunkt, bibliothek, rohteil=True)
+    rohteil = [b for b in e.befunde if b.ins_rohteil > 0]
+    if soll is None:
+        pruefe(not rohteil, f"im Vorschub hinab: {[b.text() for b in rohteil]}")
+        continue
+    pruefe(
+        len(rohteil) == 1
+        and abs(rohteil[0].ins_rohteil - soll) < 0.6
+        and rohteil[0].beruehrung
+        and "im Eilgang durch Rohteil" in rohteil[0].text(),
+        f"Eilgang durchs Rohteil (soll {soll:.1f}): {[b.text() for b in e.befunde]}",
+    )
+    e = kb.kollision(fahrt, job, nullpunkt, bibliothek)
+    pruefe(not any(b.ins_rohteil for b in e.befunde), "ohne rohteil=True ein Rohteil-Befund")
 
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)

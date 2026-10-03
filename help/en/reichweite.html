@@ -182,8 +182,10 @@ drilling may cut into the part: the model rarely shows their result;</li>
 against fixtures, table, chuck and the part;</li>
 <li>what carries the workpiece against the fixed bed.</li>
 </ul>
-<p>The <b>stock</b> does not count: the addon removes no material – what has
-not been cut yet is shown by the CAM simulator. Parts that already touch in
+<p>The <b>stock</b> does not count for the distances – what has not been cut yet is shown by
+the CAM simulator. Only a <b>rapid through stock</b> that is still there is reported: where the
+stock is a box and the tools come from above, the check removes in order what the paths take
+away; would a rapid take more than 0.1 mm of material with it, that is a crash. Parts that already touch in
 the home position (a slide on its guide, say) are not checked.</p>
 <ul>
 <li><b>Warning distance</b> – if two bodies come closer than this, it shows in

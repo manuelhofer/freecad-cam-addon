@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-17 eilgang-durchs-rohteil
+
+### EINGELESEN
+- `kollision.py`: „Das Rohteil zählt nicht: Das Addon trägt kein Material ab.“ – ein Eilgang
+  durch Rohteil, das noch steht (ein Crash), blieb ungemeldet. Spezifikation Simulation,
+  Entscheidung 7 (Manuel, 2026-09-26): gegen das fertige Teil – kein Fehlalarm, wenn der Schaft
+  in eine gefräste Tasche taucht; damals gab es keinen Abtrag.
+- Nachgemessen am Testteil und am Schwenkteil (Materialstand Satz für Satz): kein Eilgang
+  durchs Material; ein eingeschleuster Eilgang quer durchs Rohteil auf Z −10: gefunden (10 mm).
+
+### DATEIEN
+- `camaddon/restmaterial.py` (`QuaderAbtrag.eilgaenge_ins_material`: der Reihe nach auf einer
+  Kopie, Vorschübe gebündelt, jeder Eilgang mit der Form seines Fräsers; `EILGANG_SCHWELLE`
+  0,1 mm), `camaddon/kollision.py` (`kollision(…, rohteil=False)`, `_eilgaenge_ins_rohteil`,
+  `Befund.ins_rohteil`), `camaddon/gui_kollision.py` (das Fenster prüft mit `rohteil=True`),
+  Übersetzungen (`kb.rohteil`, `kb.ins_rohteil`), Hilfe „Auf der Maschine prüfen“ (de/en),
+  `tests/test_kollision.py`, Spezifikation Simulation (4c, Entscheidung 7 ergänzt – zur
+  Bestätigung), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.165.0).
+
+### AKZEPTANZKRITERIUM
+- Taschenteil, Rohteil nie geräumt: „G0 Z30 → G0 Z10“ über der Tasche → eine Berührung „… fährt
+  die Schneide von T1 im Eilgang durch Rohteil, das dort noch steht – bis 11 mm tief“; derselbe
+  Weg im Vorschub hinab und im Eilgang zurück → nichts; ohne `rohteil` wie bisher. Testteil
+  (12 606 Stationen, 69 Eilgänge): nichts, 0,2 s.
+
+### DONE
+- Wie oben. Nur, wo der Abtrag im Quader geht (Kasten, von oben, keine Rundachse) – 3+2 und
+  4 Achsen bleiben, wie sie waren.
+
+### TESTS
+- `tests/test_kollision.py` – OK; Szenario `szenario_kollision` – OK. black und ruff sauber.
+
+### NEXT
+- Manuel bestätigt die Ergänzung der Entscheidung 7 (oder `rohteil=True` im Fenster weg).
+
 ## P-2026-10-04-16 planer-name-der-maschine
 
 ### EINGELESEN
