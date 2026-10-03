@@ -110,6 +110,7 @@ QUER_SPRUNG = 4
 QUER_SPRUNG_MITTE = 3.0
 QUER_UEBERGANG = 0.05  # mm
 QUER_UMGEBUNG = 3  # Schritte davor und danach
+QUER_MEHR_LAGEN = 3  # so viele Lagen mehr als rundum höchstens beim Schruppen mit der Querachse
 # Beim Zusammenfassen mit der Querachse (_zusammen_quer): so weit darf die Kugelmitte zwischen
 # zwei bleibenden Punkten nach innen (zum Teil) und seitlich (an eine andere Stelle derselben
 # Bahn) von den ausgelassenen Punkten abweichen; nach außen BAHN_TOLERANZ.
@@ -178,6 +179,10 @@ class Schruppwerte:
     form: object = None
     # So nah darf die Spitze der Achse kommen – negativ: darüber hinaus (P-2026-10-03-07).
     r_tiefste: float = -math.inf
+    # Die Spirale mit der Querachse (V5e, P-2026-10-03-23): je Punkt die Werkzeugachse längs der
+    # Normalen – auf einer ebenen Fläche hält die Rundachse, die Querachse fährt die Gerade; je
+    # Lage höchstens die Zustellung unter die Stange (vierachs_quer.lagen_grenze).
+    querachse: bool = False
 
 
 @dataclass(frozen=True)
@@ -469,6 +474,19 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         _schruppen_zeilen(punkte, zeilen_a, boden_zeilen, boden_bei, lagen, w, schritt_phi)
         _eilgang(punkte, a_anfang, sicher, punkte[-1].phi)
         return Bahn(punkte, lagen, r_min, hinten_frei)
+    if w.querachse:
+        lagen = _schruppen_quer(
+            punkte,
+            netz,
+            laengs,
+            radial,
+            w,
+            (a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte),
+            (a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher),
+            lagen,
+            schritt_phi,
+        )
+        return Bahn(punkte, lagen, r_min, hinten_frei)
     versatz = 0  # die Spirale einer Lage beginnt, wo die letzte endete
     for lage in range(1, lagen + 1):
         r = np.maximum(boden(versatz), w.stange_radius - lage * w.zustellung)
@@ -479,6 +497,62 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
     return Bahn(punkte, lagen, r_min, hinten_frei)
+
+
+def _schruppen_quer(punkte, netz, laengs, radial, w, spirale, rahmen_, lagen, schritt_phi):
+    """Die Lagen von „Rundum schruppen“ mit der Querachse (P-2026-10-03-23): je Lage der Plan
+    einer Kugel mit dem Radius des Fräsers (_quer_plan auf ihrer Hüllfläche mit Aufmaß), die
+    Stellungen und Höhen des Fräsers aus seiner Hüllfläche (vierachs_quer.stellungen), je Lage
+    nicht tiefer als die Zustellung unter die Stange (vierachs_quer.lagen_grenze). Mehr Lagen als
+    rundum, wenn die Grenze die letzte noch über dem Teil hält. Gibt die Zahl der Lagen zurück."""
+    a, k, herkunft, ringe_spirale, je_umdrehung, drehung, phi_werte = spirale
+    a_werte, teil_hinten, teil_vorne, a_anfang, a_ende, sicher = rahmen_
+    radius = w.fraeser_radius
+    form = w.form if w.form is not None else ff.scheibe(radius)
+    kugel = ff.kugel(radius).mit_aufmass(w.aufmass)
+    zugabe = w.aufmass + netz.toleranz + RAND
+    huelle = _hinten_gerade(
+        vh.fraeser(netz, laengs, radial, kugel, a_werte, phi_werte), teil_hinten
+    )
+    rundum = np.arange(je_umdrehung)
+    ring_r = []
+    for stelle in ringe_spirale:
+        zeile = vh.fraeser(netz, laengs, radial, kugel, np.array([stelle]), phi_werte).r[0]
+        if stelle < teil_hinten:  # hinter dem Teil: das Ende gerade weiter
+            gerade = huelle.bei(np.full(je_umdrehung, stelle), rundum)
+            zeile = np.where(np.isfinite(gerade), gerade, zeile)
+        ring_r.append(zeile)
+    abstand = int(round(HOECHSTENS_GRAD / schritt_phi))
+    kugelform = form.nur_kugel
+
+    def lage_rechnen(versatz, tiefer):
+        winkel_i = (drehung * (versatz + k)) % je_umdrehung
+        r = _ring_radien(huelle.bei(a, winkel_i), herkunft, winkel_i, ring_r, je_umdrehung)
+        r = r + zugabe
+        r = np.where(np.isfinite(r), r, w.stange_radius)  # trifft nichts: oben
+        winkel = drehung * (versatz + k) * schritt_phi
+        a_p, x_p, q_p, psi_p, fest, _neu = _quer_plan(a, r, winkel, radius, schritt_phi)
+        psi_p, x_p, q_p = vq.stellungen(
+            netz, laengs, radial, form, zugabe, a_p, x_p, q_p, psi_p, teil_hinten, teil_vorne
+        )
+        grenze = vq.lagen_grenze(w.stange_radius, q_p, radius, tiefer)
+        x = np.maximum(np.maximum(x_p, grenze), w.r_tiefste)
+        return a_p, x, q_p, psi_p, fest, bool(np.any(grenze > x_p + BAHN_TOLERANZ))
+
+    versatz = 0
+    lage = 0
+    while True:
+        lage += 1
+        a_p, x, q_p, psi_p, fest, noch = lage_rechnen(versatz, lage * w.zustellung)
+        _quer_ausgeben(
+            punkte, a_p, x, q_p, psi_p, fest, sicher, abstand, drehung, radius if kugelform else 0.0
+        )
+        punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
+        versatz += int(k[-1])
+        if lage >= lagen and not noch:
+            return lage
+        if lage >= lagen + QUER_MEHR_LAGEN:
+            return lage
 
 
 def _rampe(a, r, phi, von, bis, oben, w):

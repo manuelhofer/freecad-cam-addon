@@ -145,6 +145,13 @@ free one. In the program it is called like its station (see
 case's ap). <b>Feed per revolution</b> – how far the spiral advances along the
 bar per revolution (the use case's ae, at most the diameter). <b>Finishing
 allowance</b> – what stays all round (0.3 mm suggested).</li>
+<li><b>With the cross axis (Y)</b> – every layer uses all axes: the tool axis stands
+along the surface normal, on a flat side the rotary axis holds and the cross axis drives
+the straight line – the finishing allowance stays even there, also where the face goes
+below the turning centre. Per layer the cutter cuts at most the step-down below the bar,
+measured at the highest spot under its face. Suggested when the machine has an axis across
+the bar and roughing runs all round (with selected faces it runs rows). The preview
+computes without the cross axis – layers and time are almost the same.</li>
 </ul>
 <p><b>Distances</b> – apply to roughing and finishing:</p>
 <ul>

@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-23 querachse-schruppen
+
+### EINGELESEN
+- Manuel, 2026-10-03: „ja, mach weiter“ (Y beim Schruppen und für Torus- und Schaftfräser).
+  Spezifikation Vierachs V5e.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`Schruppwerte.querachse`, `_schruppen_quer`,
+  `QUER_MEHR_LAGEN`), `camaddon/vierachs_quer.py` (`lagen_grenze`),
+  `camaddon/vierachs_operation.py` (Eigenschaft `Querachse`, `rechne`, `bahn_fuer`, `lege_an`,
+  `aendere`), `camaddon/vierachs_schlichten.py` (`rest_nach` und `_im_vorschub` mit Versatz quer),
+  `camaddon/gui_vierachs.py` (Haken unter „Rundum schruppen“, `_haken_setzen`,
+  `querachse_schruppen`), Übersetzungen, Hilfe Vierachs (de/en), Spezifikation Vierachs V5e,
+  `tests/test_vierachs_bahn.py` (D-Profil mit Y), `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.146.0).
+
+### AKZEPTANZKRITERIUM
+- Unter „Rundum schruppen“ der Haken „Mit der Querachse (Y)“ (rundum, mit Querachse an der
+  Maschine vorgeschlagen). Jede Lage folgt der Fläche: auf der ebenen Seite hält C, Y fährt;
+  nie ins Aufmaß; je Lage höchstens die Zustellung unter die Stange.
+
+### DONE
+- Manuels Teil: 2 Lagen, 5,1 min (rundum 4,9), mindestens 0,302 über der Fläche, fürs Schlichten
+  höchstens 7,7 statt 11,5 mm Rest; D-Profil im Test: auf der Abflachung die letzte Lage bei
+  6 + Aufmaß, Y von −8 bis +8 und weiter.
+
+### TESTS
+- `tests/test_vierachs_bahn.py`, `test_vierachs_schlichten.py`, `test_vierachs_plan.py`,
+  `test_vierachs_pruefen.py`, `test_goldene_bahnen.py`, `test_sprache.py` – OK; Szenarien
+  `szenario_vierachs_schruppen`, `_aendern`, `_schlichten`, `szenario_rundum_drehmaschine` – OK.
+  black und ruff sauber.
+
+### NEXT
+- Manuels Test an seinem Teil: beide Haken an, Prüffenster.
+
 ## P-2026-10-03-22 querachse-jeder-fraeser-schlichten-feiner
 
 ### EINGELESEN

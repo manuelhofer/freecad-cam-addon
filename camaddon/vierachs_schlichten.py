@@ -349,7 +349,7 @@ def rest_nach(schruppen, radius, a_von, a_bis):
     r = np.full((len(a), n_phi), float(radius))
     for bahn, fraeser, _aufmass in schruppen:
         form = fraeser if isinstance(fraeser, ff.Form) else ff.scheibe(float(fraeser))
-        pa, pr, pphi = _im_vorschub(bahn, schritt_a, radius * schritt_phi)
+        pa, pr, pphi, pq = _im_vorschub(bahn, schritt_a, radius * schritt_phi)
         if not len(pa):
             continue
         stirn = form.radius
@@ -357,19 +357,23 @@ def rest_nach(schruppen, radius, a_von, a_bis):
         spalte0 = np.rint(pphi / schritt_phi).astype(np.int64)
         # So weit reicht die Stirn seitlich, als Winkel von der Achse aus – nur zur eigenen
         # Seite (δ unter 90°): Was eine Stirn jenseits der Achse wegnimmt, ist auf den Strahlen
-        # dort ein Kern an der Achse, und den kennt ein Außenradius je Strahl nicht.
-        weit = np.where(pr > 0, np.arctan2(stirn, np.maximum(pr, 1e-9)), math.pi / 2)
+        # dort ein Kern an der Achse, und den kennt ein Außenradius je Strahl nicht. Mit der
+        # Querachse (Versatz q, V5e) liegt die Stirn von q − R bis q + R quer.
+        hoehe0 = np.maximum(pr, 1e-9)
+        unten = np.where(pr > 0, np.arctan2(pq - stirn, hoehe0), -math.pi / 2)
+        oben = np.where(pr > 0, np.arctan2(pq + stirn, hoehe0), math.pi / 2)
         reichweite = int(math.ceil(stirn / schritt_a))
-        j_bis = min(n_phi // 4, int(math.ceil(float(np.max(weit)) / schritt_phi)))
-        for j in range(-j_bis, j_bis + 1):
+        j_von = max(-(n_phi // 4), int(math.floor(float(np.min(unten)) / schritt_phi)))
+        j_bis = min(n_phi // 4, int(math.ceil(float(np.max(oben)) / schritt_phi)))
+        for j in range(j_von, j_bis + 1):
             delta = j * schritt_phi
             cos_d, tan_d = math.cos(delta), math.tan(delta)
             if cos_d < 1e-6:
                 continue
-            drin = np.abs(delta) <= weit + 1e-9
+            drin = (delta >= unten - 1e-9) & (delta <= oben + 1e-9)
             if not drin.any():
                 continue
-            r0, z0, s0 = pr[drin], zeile0[drin], spalte0[drin]
+            r0, z0, s0, q0 = pr[drin], zeile0[drin], spalte0[drin], pq[drin]
             spalten = (s0 + j) % n_phi
             for i in range(-reichweite, reichweite + 1):
                 zeilen = z0 + i
@@ -379,9 +383,9 @@ def rest_nach(schruppen, radius, a_von, a_bis):
                 da = i * schritt_a
                 # Die Höhe der Stirn dort, wo sie den Strahl trifft – mit der Höhe steigt der
                 # Versatz quer, deshalb zweimal; die höhere zählt (der Fräser bleibt höher).
-                dt = np.maximum(r0, 0.0) * tan_d
+                dt = np.maximum(r0, 0.0) * tan_d - q0
                 h = form.hoehe(np.hypot(da, dt))
-                dt = np.maximum(r0 + np.where(np.isfinite(h), h, 0.0), 0.0) * tan_d
+                dt = np.maximum(r0 + np.where(np.isfinite(h), h, 0.0), 0.0) * tan_d - q0
                 h2 = form.hoehe(np.hypot(da, dt))
                 h = np.maximum(h, h2)
                 steht = np.isfinite(h) & im_raster
@@ -395,19 +399,20 @@ def rest_nach(schruppen, radius, a_von, a_bis):
 
 
 def _im_vorschub(bahn, schritt_a, schritt_bogen):
-    """Die Punkte der Bahn im Vorschub als (a, r, φ in rad), dicht genug fürs Raster: zwischen
+    """Die Punkte der Bahn im Vorschub als (a, r, φ in rad, q), dicht genug fürs Raster: zwischen
     zwei Punkten so viele Zwischenpunkte, dass kein Schritt länger als `schritt_a` längs oder
-    `schritt_bogen` im Bogen ist."""
-    a, r, phi = [], [], []
+    quer oder `schritt_bogen` im Bogen ist."""
+    a, r, phi, q = [], [], [], []
     vorher = None
     for punkt in bahn.punkte:
         if punkt.eilgang:
             vorher = None
             continue
-        jetzt = (punkt.a, punkt.r, math.radians(punkt.phi))
+        jetzt = (punkt.a, punkt.r, math.radians(punkt.phi), punkt.q)
         if vorher is not None:
             weg = max(
                 abs(jetzt[0] - vorher[0]),
+                abs(jetzt[3] - vorher[3]),
                 abs(jetzt[2] - vorher[2]) * max(abs(jetzt[1]), abs(vorher[1]), 1.0),
             )
             anzahl = max(1, int(math.ceil(weg / min(schritt_a, schritt_bogen))))
@@ -416,12 +421,14 @@ def _im_vorschub(bahn, schritt_a, schritt_bogen):
                 a.append(vorher[0] + t * (jetzt[0] - vorher[0]))
                 r.append(vorher[1] + t * (jetzt[1] - vorher[1]))
                 phi.append(vorher[2] + t * (jetzt[2] - vorher[2]))
+                q.append(vorher[3] + t * (jetzt[3] - vorher[3]))
         else:
             a.append(jetzt[0])
             r.append(jetzt[1])
             phi.append(jetzt[2])
+            q.append(jetzt[3])
         vorher = jetzt
-    return np.array(a), np.array(r), np.array(phi)
+    return np.array(a), np.array(r), np.array(phi), np.array(q)
 
 
 def schrittweite_vorschlag(werkzeug, einsatz):

@@ -561,6 +561,77 @@ heraus = sum(
 pruefe(heraus == 2 * zwei_bahn.lagen, f"{heraus}-mal heraus bei {zwei_bahn.lagen} Lagen")
 print(ascii(f"Zwei Abflachungen: {zwei_bahn.lagen} Lagen, {heraus}-mal heraus"))
 
+# --- Schruppen mit der Querachse (V5e, P-2026-10-03-23) -----------------------------------
+# D-Profil: Welle Ø 40 mit einer Abflachung bei x = 6, Stange Ø 50, Schaftfräser Ø 12, ap 5,
+# 4 mm je Umdrehung, Aufmaß 0,3. Je Lage folgt die Spirale der Fläche: Die Werkzeugachse steht
+# auf der Normalen, auf der Abflachung hält die Rundachse (ψ = 0) und die Querachse fährt. Nie
+# ins Aufmaß – geprüft mit der genauen Hüllfläche des Fräsers in jeder Stellung, auch zwischen
+# den Punkten; je Lage höchstens die Zustellung unter die Stange (lagen_grenze); in der letzten
+# Lage liegt die Stirn auf der Abflachung bei 6 + Aufmaß.
+from camaddon import fraeserform as ff  # noqa: E402
+from camaddon import vierachs_quer as vq  # noqa: E402
+
+d_teil = Part.makeCylinder(20, 60, V(0, 0, -60)).cut(Part.makeBox(40, 60, 80, V(6, -30, -70)))
+d_netz = vh.vernetze(d_teil.removeSplitter())
+d_werte = vb.Schruppwerte(
+    6.0, 25.0, 5.0, 4.0, 0.3, 1.0, -80.0, form=ff.scheibe(6.0), querachse=True
+)
+d_bahn = vb.schruppen(d_netz, C_LAENGS, C_RADIAL, d_werte)
+d_rund = vb.schruppen(d_netz, C_LAENGS, C_RADIAL, replace(d_werte, querachse=False))
+stellen = []
+for p0, p1 in zip(d_bahn.punkte, d_bahn.punkte[1:], strict=False):
+    if p0.eilgang or p1.eilgang:
+        continue
+    n = max(1, int(math.ceil(max(abs(p1.phi - p0.phi) / 0.2, abs(p1.q - p0.q) / 0.2))))
+    tt = np.linspace(0.0, 1.0, n + 1)[1:]
+    stellen.append(
+        np.column_stack(
+            [
+                p0.a + tt * (p1.a - p0.a),
+                p0.r + tt * (p1.r - p0.r),
+                p0.phi + tt * (p1.phi - p0.phi),
+                p0.q + tt * (p1.q - p0.q),
+            ]
+        )
+    )
+stellen = np.vstack(stellen)
+stellen = stellen[(stellen[:, 0] > -59.0) & (stellen[:, 0] < -1.0)]
+huelle_d = vh.je_stellung(
+    d_netz,
+    C_LAENGS,
+    C_RADIAL,
+    ff.scheibe(6.0),
+    np.radians(np.round(np.mod(stellen[:, 2], 360.0), 3)),
+    stellen[:, 3],
+    stellen[:, 0],
+)
+ueber = stellen[:, 1] - huelle_d
+pruefe(
+    float(np.nanmin(ueber)) >= 0.3 - 0.01,
+    f"Querachse: ins Aufmaß – Spitze nur {float(np.nanmin(ueber)):.3f} über der Fläche",
+)
+pruefe(d_bahn.lagen >= d_rund.lagen, f"Querachse: {d_bahn.lagen} Lagen, rundum {d_rund.lagen}")
+eben = [
+    p
+    for p in d_bahn.punkte
+    if not p.eilgang and -59.0 < p.a < -1.0 and min(p.phi % 360.0, 360.0 - p.phi % 360.0) < 1e-6
+]
+tief_eben = [p for p in eben if abs(p.r - 6.3) < 0.03]
+pruefe(
+    len(tief_eben) > 20
+    and max(p.q for p in tief_eben) > 8.0
+    and min(p.q for p in tief_eben) < -8.0,
+    f"Querachse: auf der Abflachung {len(eben)} Punkte, davon auf 6,3: {len(tief_eben)}",
+)
+grenze_1 = vq.lagen_grenze(25.0, np.array([0.0, 10.0, 40.0]), 6.0, 5.0)
+pruefe(
+    abs(grenze_1[0] - 20.0) < 1e-9
+    and abs(grenze_1[1] - (math.sqrt(625.0 - 16.0) - 5.0)) < 1e-9
+    and grenze_1[2] == -math.inf,
+    f"lagen_grenze: {grenze_1}",
+)
+print(ascii(f"Schruppen mit Querachse: {d_bahn.lagen} Lagen, {len(d_bahn.punkte)} Punkte"))
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

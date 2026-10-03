@@ -90,6 +90,7 @@ class RundumSchruppen(PathOp.ObjectOp):
             + (
                 ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
                 ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
+                ("App::PropertyBool", "Querachse", tr("vo.eigenschaft.querachse")),
                 ("App::PropertyInteger", "Lagen", tr("vo.eigenschaft.lagen")),
             ),
         )
@@ -211,6 +212,7 @@ def rechne(obj, job, modell, fraeser_radius):
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         form=form_des_controllers(obj.ToolController),
+        querachse=bool(getattr(obj, "Querachse", False)),
     )
 
 
@@ -233,14 +235,16 @@ def bahn_fuer(
     nur_gleichlauf=False,
     form=None,
     r_tiefste=-math.inf,
+    querachse=False,
 ):
     """Die Schruppbahn für Modell und Stange des Jobs – auch für die Vorschau im Assistenten,
     bevor es die Operation gibt. Ohne Angabe gelten Sicherheitsabstand, Überlauf und Abstand
     zum Futter wie vorgeschlagen; `halter`: so weit reicht der Halter seitlich über die
     Werkzeugachse (halter.seitlich); `flaechen_`: die gewählten Flächen („Face3“ …), leer:
     rundum; `eintauchwinkel` (Grad) für die Rampe ins Material zwischen ihnen; `gleichlauf`:
-    die Spirale im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller). ValueError mit einem
-    Satz, wenn es nicht geht."""
+    die Spirale im Gleichlauf für M3 (spindel.fuer_m3 mit dem Controller); `querachse`: die
+    Spirale mit der Querachse (vierachs_bahn.Schruppwerte.querachse). ValueError mit einem Satz,
+    wenn es nicht geht."""
     laengs = FreeCAD.Vector(laengs)
     if laengs.Length < GERADE:
         raise ValueError(tr("vo.fehler.achse"))
@@ -269,6 +273,7 @@ def bahn_fuer(
         nur_gleichlauf=nur_gleichlauf,
         form=form,
         r_tiefste=r_tiefste,
+        querachse=querachse,
     )
     return vb.schruppen(vh.vernetze(teil), laengs, radial, werte)
 
@@ -331,6 +336,7 @@ def lege_an(
     flaechen_=(),
     eintauchwinkel=None,
     nur_gleichlauf=False,
+    querachse=False,
 ):
     """Legt „Rundum schruppen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer
     (der Assistent). `achse`: vierachs_achsen.Stangenachse. `abstaende`: (Überlauf, Abstand
@@ -366,6 +372,7 @@ def lege_an(
     if eintauchwinkel:
         obj.Eintauchwinkel = eintauchwinkel
     obj.NurGleichlauf = bool(nur_gleichlauf)
+    obj.Querachse = bool(querachse)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vo.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -412,6 +419,7 @@ def aendere(
     flaechen_=None,
     eintauchwinkel=None,
     nur_gleichlauf=None,
+    querachse=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion, die hält der Aufrufer (der Assistent beim Ändern). `abstaende_`, `halter_`,
@@ -434,6 +442,8 @@ def aendere(
         obj.Eintauchwinkel = eintauchwinkel
     if nur_gleichlauf is not None:
         obj.NurGleichlauf = bool(nur_gleichlauf)
+    if querachse is not None and bool(querachse) != bool(getattr(obj, "Querachse", False)):
+        obj.Querachse = bool(querachse)
 
 
 def setze_achse(obj, achse, quer_auf_null=None):

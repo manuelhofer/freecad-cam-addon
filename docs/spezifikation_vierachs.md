@@ -890,7 +890,21 @@ bauen“):*
   und 0,38 mm (Scheibe) unter ihr – der Fräser schnitt ins Teil (der Sehnenfehler hob höchstens
   0,02). `vierachs_bahn._verfeinert` rechnet dort Zwischenpunkte (bis 32 je Schritt, bis
   dreimal), `_spirale`, `_zusammengefasst`, `_sehnenfehler` und `_a_knicke` rechnen mit
-  ungleichen Abständen: danach 0,0024 / 0,0033 mm. *Offen:* die Querachse beim Schruppen.
+  ungleichen Abständen: danach 0,0024 / 0,0033 mm.
+  *Schruppen (P-2026-10-03-23):* `Schruppwerte.querachse`, `vierachs_bahn._schruppen_quer` – je
+  Lage der Plan der Kugel mit dem Fräserradius auf ihrer Hüllfläche mit Aufmaß (Raster 1°,
+  `_hinten_gerade`, die Ringe wie rundum), die Stellungen und Höhen des Fräsers aus seiner
+  Hüllfläche (`vierachs_quer.stellungen`), je Lage x ≥ `vierachs_quer.lagen_grenze`: die
+  höchste Stelle der Stange unter der Stirn (quer von |q| − R) minus Lage · Zustellung – so
+  schneidet keine Lage mehr als die Zustellung, auch quer versetzt (gerechnet mit der Stange,
+  nicht mit dem Rest der Lage davor; die Stellungen jeder Lage liegen um den Versatz der Spirale
+  anders). Mehr Lagen als rundum, solange die Grenze die letzte noch über dem Teil hält
+  (höchstens 3). `vierachs_schlichten.rest_nach` rechnet den Versatz quer mit (die Stirn von
+  q − R bis q + R). Manuels Teil, Ø 12, 22,2 / 5,4 / 0,3: 2 Lagen, 5,1 min (rundum 4,9), die Spitze
+  überall mindestens 0,302 über der Fläche (genaue Hüllfläche zwischen den Punkten), danach
+  steht fürs Schlichten höchstens 7,7 statt 11,5 mm (die Stellen unter der Drehmitte), 3,6 s
+  gerechnet. Im Assistenten der Haken „Mit der Querachse (Y)“ auch unter „Rundum schruppen“ –
+  nur rundum (mit Flächen fährt es Zeilen); die Vorschau rechnet ohne Querachse.
 - **V4c – Strategien je Werkzeug und Fläche** (Manuel: „mehrere Strategien, je
   nach Werkzeug kann das anders ausfallen“): für jede Auswahl ein Vorschlag, im
   Assistenten änderbar –

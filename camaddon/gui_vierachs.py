@@ -519,6 +519,7 @@ class VierachsPanel:
         self._schlichten_vorgewaehlt = False  # der Haken „Rundum schlichten“ ist gesetzt
         self._muster_von_hand = False  # das Muster wurde von Hand gewählt: kein Vorschlag mehr
         self._querachse_von_hand = False  # der Haken „mit der Querachse“ von Hand gesetzt
+        self._querachse_schruppen_von_hand = False  # … beim Schruppen
         self.gewaehlte = []  # die Flächen zum Fräsen („Face3“ …), V4 – leer: rundum
         self._farben_vorher = None  # (Klon, DiffuseColor, ShapeAppearance) vor dem Färben
         self._transaktion_offen = False  # beim Ändern: Schritt 1 hat etwas geändert
@@ -747,6 +748,11 @@ class VierachsPanel:
                 ("aufmass", op.Aufmass),
             ]
             self.schruppen_nur_gleichlauf.setChecked(bool(getattr(op, "NurGleichlauf", False)))
+            self._querachse_schruppen_von_hand = True
+            self._querachse_vorschlagen()
+            self.schruppen_querachse.setChecked(
+                self.schruppen_querachse.isEnabled() and bool(getattr(op, "Querachse", False))
+            )
         paare += [("abstand_futter", op.AbstandFutter), ("sicherheit", op.Sicherheitsabstand)]
         self.gewaehlte = list(vo.flaechen(op))
         self._flaechen_zeigen()
@@ -1153,6 +1159,16 @@ class VierachsPanel:
         self.schruppen_nur_gleichlauf.setToolTip(tr("va.schruppen.nur_gleichlauf.tooltip"))
         self.schruppen_nur_gleichlauf.toggled.connect(lambda _an: self._vorschau_starten())
         schruppen.ganz(self.schruppen_nur_gleichlauf)
+        # Schruppen mit der Querachse (V5e, P-2026-10-03-23) – wie beim Schlichten.
+        self.schruppen_querachse = QtGui.QCheckBox(tr("va.querachse"))
+        self.schruppen_querachse.setToolTip(tr("va.querachse.schruppen.tooltip"))
+        self.schruppen_querachse.toggled.connect(
+            lambda _an: self._querachse_schruppen_umgeschaltet()
+        )
+        schruppen.ganz(self.schruppen_querachse)
+        self.querachse_grund_schruppen = self._grau()
+        self.querachse_grund_schruppen.setWordWrap(True)
+        schruppen.ganz(self.querachse_grund_schruppen)
         self.schruppfelder = schruppen.widget
         aufbau.addWidget(self.schruppfelder)
         self.ergebnis = grau()
@@ -1784,6 +1800,7 @@ class VierachsPanel:
                 )
             else:
                 eingabe.setPlaceholderText(groesse_zeigen(self._vorschlag(feld), einheiten.LAENGE))
+        self._querachse_vorschlagen()
         self._vorschau_starten()
 
     @staticmethod
@@ -1894,14 +1911,31 @@ class VierachsPanel:
         else:
             geht, grund = True, tr("va.querachse.vorschlag_stirn")
         self.querachse_grund.setText(grund)
+        self._haken_setzen(self.schlichten_querachse, geht, self._querachse_von_hand)
+        # Beim Schruppen: rundum (mit gewählten Flächen fährt es Zeilen) und ein Fräser mit Form.
+        schrupp_form = ff.von_werkzeug(self.fraeser()) if self.fraeser() is not None else None
+        if not achse.quer:
+            geht, grund = False, tr("va.querachse.keine", maschine=achse.maschine)
+        elif self.flaechen():
+            geht, grund = False, tr("va.querachse.nur_rundum")
+        elif schrupp_form is None:
+            geht, grund = False, tr("va.querachse.ohne_form")
+        else:
+            geht, grund = True, tr("va.querachse.schruppen.vorschlag")
+        self.querachse_grund_schruppen.setText(grund)
+        self._haken_setzen(self.schruppen_querachse, geht, self._querachse_schruppen_von_hand)
+
+    def _haken_setzen(self, haken, geht, von_hand):
+        """Ein Haken „mit der Querachse“: frei und vorgeschlagen, wenn es geht – solange er nicht
+        von Hand gesetzt ist –, sonst aus und gesperrt."""
         vorher = self._fuellt
         self._fuellt = True
         try:
-            self.schlichten_querachse.setEnabled(geht)
+            haken.setEnabled(geht)
             if not geht:
-                self.schlichten_querachse.setChecked(False)
-            elif not self._querachse_von_hand:
-                self.schlichten_querachse.setChecked(True)
+                haken.setChecked(False)
+            elif not von_hand:
+                haken.setChecked(True)
         finally:
             self._fuellt = vorher
 
@@ -1909,10 +1943,20 @@ class VierachsPanel:
         """Schlichten mit der Querachse (angehakt und möglich)?"""
         return self.schlichten_querachse.isEnabled() and self.schlichten_querachse.isChecked()
 
+    def querachse_schruppen(self):
+        """Schruppen mit der Querachse (angehakt und möglich)?"""
+        return self.schruppen_querachse.isEnabled() and self.schruppen_querachse.isChecked()
+
     def _querachse_umgeschaltet(self):
         if self._fuellt:
             return
         self._querachse_von_hand = True
+        self._vorschau_starten()
+
+    def _querachse_schruppen_umgeschaltet(self):
+        if self._fuellt:
+            return
+        self._querachse_schruppen_von_hand = True
         self._vorschau_starten()
 
     def _muster_gewaehlt(self):
@@ -3469,6 +3513,7 @@ class VierachsPanel:
                             flaechen_=flaechen,
                             eintauchwinkel=self._eintauchwinkel(),
                             nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
+                            querachse=self.querachse_schruppen(),
                         )
                     )
                 if schlichten:
@@ -3680,6 +3725,7 @@ class VierachsPanel:
                         flaechen_=flaechen,
                         eintauchwinkel=self._eintauchwinkel(),
                         nur_gleichlauf=self.schruppen_nur_gleichlauf.isChecked(),
+                        querachse=self.querachse_schruppen(),
                     )
                 if schlichten_dazu:
                     tc_neu = js.controller_ohne_transaktion(
