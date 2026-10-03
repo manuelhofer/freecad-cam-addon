@@ -9,10 +9,10 @@
 # Rohteil her: 26 min), 56-mal abgehoben, und wo ein Ring an einer Wand beginnt, fährt der Fräser
 # quer in den Streifen – bis 5 ae. Die schnellste, die die Last hält, ist „adaptiv“ (T5): unter
 # 11,5 min, höchstens 10-mal abgehoben. Ohne Vorgabe gewinnt aber Manuels Räumen („stiche“,
-# Spezifikation Strategien 14, P-2026-10-03-31): Stiche von außen nach innen, Ringe um die
-# Insel, die Nut an der Stufe, Schleifen nach innen – lesbar, überall Gleichlauf, die Last
-# gehalten; es hat den Vorzug, solange es höchstens 25 % langsamer ist (12,6 min; die Rückläufe
-# außen herum zählen im Zeitmodell mit Halt vor und nach jedem Eilgang). Der Boden der kleinen Tasche: Der Ø 12 passt
+# Spezifikation Strategien 14, P-2026-10-03-31/-32): Stiche von außen nach innen, Ringe um
+# die Insel, an der Stufe wieder Stiche – lesbar, überall Gleichlauf, die Last
+# gehalten; es hat den Vorzug, solange es höchstens 25 % langsamer ist (12,4 min; die Rückläufe
+# zählen im Zeitmodell mit Halt vor und nach jedem Eilgang). Der Boden der kleinen Tasche: Der Ø 12 passt
 # nicht hinein – ein Satz statt einer Bahn rund um die Insel (B-006); mit den anderen Flächen
 # zusammen fällt sie aus, und die Bahn nennt sie (B-007).
 import os
@@ -118,14 +118,15 @@ pruefe(
     and bahn.zeit < 13.0,
     f"Räumen über drei Höhen: {bahn.variante}, {bahn.zeiten} – das Ziel sind 8 min",
 )
-# Hinauf geht es nur zwischen den Flächen und wo kein Weg unten frei ist; die Stiche kehren
-# unten außen um das Rohteil zurück (Eilgang auf der Lage).
+# Um die Insel kehren die Stiche unten außen um das Rohteil zurück (Eilgang auf der Lage); auf
+# der Insel oben (die Stufe als Wand am Rand) liegt zwischen dem Ende eines Stichs und dem
+# Anfang des nächsten die Insel – dort hebt es ab (knapp über das Rohteil): rund 25-mal.
 hinauf = sum(
     1
     for a, b in zip(bahn.punkte, bahn.punkte[1:], strict=False)
     if b.eilgang and not a.eilgang and b.z > a.z + 1.0
 )
-pruefe(hinauf <= 10, f"Räumen über drei Höhen: {hinauf}-mal hinaufgehoben")
+pruefe(hinauf <= 30, f"Räumen über drei Höhen: {hinauf}-mal hinaufgehoben")
 pruefe(
     bahn.rampen == 0 and bahn.haelt,
     f"Räumen über drei Höhen: {bahn.rampen} Rampen, hält {bahn.haelt}",

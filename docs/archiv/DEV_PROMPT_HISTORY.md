@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-32 stiche-auch-an-der-wand
+
+### EINGELESEN
+- Manuel, 2026-10-03, zum Bild der Insel oben aus P-31: „warum zuckeln die Morph-Kreise so
+  … eher eine Zickzack-Linie“, „die Kreise außen – warum so viele“, „die vielen D's … schaut
+  sehr wackelig aus“, der Anfang in der Luft „muss halt noch weg“; „effektiv müssen wir das von
+  mir beschriebene für Bild zwei nicht verwenden, wenn's länger dauert und nicht schonender
+  ist“; „macht das Sinn, wenn wir es eh verwerfen?“ – nein.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`_ringe_stiche`: alles Gesperrte wie eine Insel – Stiche; ohne
+  Gesperrtes `_ringe_vom_rohteil`; Nut (`_nut_an_der_wand`, `_boegen_laengs`), Schleifen
+  (`_schleifen_nach_innen`) und `_komponenten` entfernt; `abtragbar` ohne das Aufmaß an der
+  Wand; `_Lage._rueckweg_frei`: Rücklauf durchs Freie über `_geodaetisch`, Korridor und
+  Kasten, G0 oder 3 × F, länger als 3 D: abheben), `tests/test_testteil.py` (12,4 min, bis
+  30-mal hinauf), Spezifikation Strategien (14.1, 14.2, D-3/D-4/D-6), Hilfe de/en,
+  Übersetzungen, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.151.1).
+
+### AKZEPTANZKRITERIUM
+- Die Insel oben ohne Nut und Schleifen: gerade, ruhige Stiche wie um die Insel; nicht
+  langsamer als mit Nut, Eingriff kleiner, Rest 0, nichts ins Teil.
+
+### DONE
+- Insel oben: 3,79 statt 4,07 min, Eingriff bis 1,47 statt 1,67 ae, Luft 13 statt 21 %, kein
+  Zickzack; 25-mal hinauf (zwischen zwei Stichen liegt die Insel; unten herum im Schnellvorschub
+  wäre länger). Zusammen 12,37 min (+20 % zu adaptiv), Last hält, 0 Rampen.
+- Ein Scheinstich an der bündigen Wand (Lage 22, in der Luft, 20 mm) weg: Das Aufmaß an der
+  Wand zählte im Raster als Streifen.
+
+### TESTS
+- `tests/test_testteil.py`, `tests/test_raeumen.py`, `tests/test_sprache.py`,
+  `tests/test_hilfe.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf das neue Bild der Insel oben; D-1, D-2, D-6; dann Bild 2 (die Tasche).
+
 ## P-2026-10-03-31 manuels-raeumen
 
 ### EINGELESEN

@@ -87,13 +87,11 @@ RINGE = "ringe"  # als Vorgabe: nur die Ringe, die schnellste von ihnen – ohne
 # Das Zeitmodell hält vor und nach jedem Eilgang an, und die Stiche kehren im Eilgang außen
 # herum zurück (eine Steuerung mit Vorausschau im Eilgang, Siemens G64, hält dort nicht).
 STICHE_VORZUG = 1.25
-NUT_BOGEN = 0.5  # × R: der Radius der Bögen der Nut an der Wand (Breite der Nut 2 (R + r_l))
 ECKE_BOGEN = 45.0  # Grad – ab so viel Richtungswechsel nach rechts (Gleichlauf) die Eckenbögen
 ECKE_BLICK = 2.0  # mm – so weit vor und nach der Ecke wird die Richtung gemessen
 SICHEL_VOLL = 0.3  # Anteil der Sichel an einer Ecke, der noch Material sein muss für Eckenbögen
 STICHE_ANFAHRT = 0.25  # × R: Bogen und Gerade der Anfahrt eines Stichs (mindestens ae)
 ENG_BLICK = 2.0  # mm – so weit auseinander liegen die drei Stellen für den Radius eines Bogens
-NUT_SCHRITT_SPIEL = 0.9  # × nut_bahn._bogenschritt: der Schritt der Bögen der Nut an der Wand
 RUECKLAUF_ABSTAND = (
     2.0  # mm neben dem Rohteil läuft der Rücklauf außen herum (Eilgang, achsparallel)
 )
@@ -1165,6 +1163,80 @@ class _Lage:
             return False
         return bool(self.erlaubt[a0:a1, b0:b1].all())
 
+    def _rueckweg_frei(self, p, q):
+        """Von p nach q unten im Eilgang durchs Freie (Zellen, deren Stirn kein Material mehr
+        trifft, nicht gesperrt) – um das Gesperrte herum: der kürzeste Weg im Raster
+        (_geodaetisch), in so wenige gerade Sätze gefasst, dass der Kasten um jeden frei bleibt
+        (_kasten_frei). Gibt zurück, ob die Spitze nun bei q steht."""
+        feld = self.feld
+        gitter = np.meshgrid(feld.xs, feld.ys, indexing="ij")
+        material = feld.rohteil_zellen & ~feld.frei & feld.im_raster(*gitter)
+        frei = ~feld.aufweiten(material, self.r + feld.schritt) & self.erlaubt
+        iq, jq = feld.zellen([q[0]], [q[1]])
+        ip, jp = feld.zellen([p[0]], [p[1]])
+        ziel = (int(iq[0]), int(jq[0]))
+        ort = (int(ip[0]), int(jp[0]))
+        frei[ziel] = frei[ort] = True
+        start = np.full(frei.shape, np.inf)
+        start[ziel] = 0.0
+        G = _geodaetisch(start, frei, feld.schritt)
+        if not np.isfinite(G[ort]):
+            return False
+        # Bergab von der Spitze zum Ziel.
+        weg = [ort]
+        i, j = ort
+        for _ in range(frei.size):
+            if (i, j) == ziel:
+                break
+            beste, naechste = G[i, j], None
+            for di in (-1, 0, 1):
+                for dj in (-1, 0, 1):
+                    a, b = i + di, j + dj
+                    if (di or dj) and 0 <= a < feld.nx and 0 <= b < feld.ny and G[a, b] < beste:
+                        beste, naechste = G[a, b], (a, b)
+            if naechste is None:
+                return False
+            i, j = naechste
+            weg.append((i, j))
+        else:
+            return False
+        punkte = [(float(feld.xs[i]), float(feld.ys[j])) for i, j in weg]
+        punkte[0], punkte[-1] = (float(p[0]), float(p[1])), (float(q[0]), float(q[1]))
+
+        def korridor_frei(a, b):
+            """Bleibt die Stirn auf der Geraden von a nach b im Freien?"""
+            n = max(1, int(math.ceil(math.dist(a, b) / feld.schritt)))
+            xs = a[0] + (b[0] - a[0]) * np.arange(n + 1) / n
+            ys = a[1] + (b[1] - a[1]) * np.arange(n + 1) / n
+            return bool(frei[feld.zellen(xs, ys)].all())
+
+        # In wenige gerade Sätze fassen: so weit voraus, wie der Korridor frei bleibt. Im Eilgang,
+        # wo auch der Kasten frei ist (die Achsen dürfen einzeln fahren); sonst im Schnellvorschub
+        # (G1, RUECKWEG × F – wie nut_bahn: im Eilgang fährt nicht jede Steuerung gerade). Wird
+        # der Weg im Schnellvorschub länger als ADAPTIV_HALTEN · D, ist Abheben schneller.
+        saetze = []
+        k = 0
+        while k < len(punkte) - 1:
+            m = len(punkte) - 1
+            while m > k + 1 and not korridor_frei(punkte[k], punkte[m]):
+                m -= 1
+            saetze.append((punkte[m], self._kasten_frei(punkte[k], punkte[m])))
+            k = m
+        langsam = sum(
+            math.dist(a, b)
+            for (a, _e), (b, eil) in zip([(punkte[0], True)] + saetze, saetze, strict=False)
+            if not eil
+        )
+        if langsam > ADAPTIV_HALTEN * 2.0 * self.r:
+            return False
+        for (x, y), eil in saetze:
+            if math.hypot(x - self.st.punkte[-1].x, y - self.st.punkte[-1].y) > _WINZIG:
+                if eil:
+                    self.st.punkte.append(bn.Punkt(True, x, y, self.lage))
+                else:
+                    self.st.punkte.append(bn.Punkt(False, x, y, self.lage, anteil=RUECKWEG))
+        return True
+
     def _rueckweg_aussen(self, start):
         """Manuels Räumen: Von der Spitze (unten, neben dem Rohteil) zu `start` (auch neben dem
         Rohteil) unten im Eilgang außen herum – auf dem Rechteck RUECKLAUF_ABSTAND neben dem
@@ -1182,7 +1254,7 @@ class _Lage:
             punkte.append(bn.Punkt(True, float(q[0]), float(q[1]), self.lage))
             return True
         if self._aussen(p) < -1.0 or self._aussen(q) < -1.0:
-            return False
+            return self._rueckweg_frei(p, q)
         a = self.r + RUECKLAUF_ABSTAND
         ecken = [(x0 - a, y0 - a), (x1 + a, y0 - a), (x1 + a, y1 + a), (x0 - a, y1 + a)]
 
@@ -2463,29 +2535,6 @@ def last(st, w, stand=None):
 # --- Manuels Räumen: Stiche und Ringe, Nut und Schleifen (2026-10-03) ---------------------------
 
 
-def _komponenten(maske):
-    """Die zusammenhängenden Stücke der Maske (8er-Nachbarschaft) als Liste von Masken."""
-    rest = maske.copy()
-    stuecke = []
-    while rest.any():
-        i, j = np.argwhere(rest)[0]
-        stueck = np.zeros_like(rest)
-        stueck[i, j] = True
-        while True:
-            weiter = stueck.copy()
-            for di in (-1, 0, 1):
-                for dj in (-1, 0, 1):
-                    if di or dj:
-                        weiter |= np.roll(np.roll(stueck, di, 0), dj, 1)
-            weiter &= rest
-            if np.array_equal(weiter, stueck):
-                break
-            stueck = weiter
-        stuecke.append(stueck)
-        rest &= ~stueck
-    return stuecke
-
-
 def _laeufe_zyklisch(maske, geschlossen, luecke):
     """Die Läufe (Index-Bereiche) der wahren Stellen – Lücken bis `luecke` Stellen dazwischen
     überbrückt, bei geschlossenen Ringen über den Anfang hinweg. Gibt [(Stellen, ganz)]: `ganz`
@@ -2526,20 +2575,21 @@ def _laeufe_zyklisch(maske, geschlossen, luecke):
 
 
 def _ringe_stiche(ablauf, feld, w, r, D, material_links, schritt, toleranz, genaue):
-    """Manuels Räumen (2026-10-03, Spezifikation Strategien 14) auf einer Lage.
+    """Manuels Räumen (2026-10-03, Spezifikation Strategien 14) auf einer Lage: Stiche – die
+    Versätze des Gesperrten (Inseln, Wände) von außen nach innen, jeder nur dort, wo in seinem
+    Streifen [L − R, L − R + ae] noch Material steht, aus der Luft hinein und in die Luft hinaus;
+    ein Stich ist dran, wenn außerhalb von ihm nichts mehr steht, von den fertigen der nächste
+    am Weg; zurück unten außen um das Rohteil herum im Eilgang (_rueckweg_aussen). Ist der
+    Versatz rundum im Material, ein ganzer Ring: Band für Band bis ans Gesperrte, gleitend von
+    einem auf den nächsten. Ohne Gesperrtes die Ringe vom Rohteilrand her (_ringe_vom_rohteil).
+    An jeder scharfen Ecke zur Materialseite Eckenbögen (_Lage._bahn_mit_ecken), an engen Bögen
+    von dem Material weg weniger Vorschub. Zuletzt der Ring am Gesperrten, wo noch etwas steht.
 
-    - **Seitenwände** (Gesperrtes, das an Luft grenzt – die Stufe auf der Insel, eine Wand am
-      Rand): zuerst eine Nut daran entlang, in Bögen wie die offene Nut (Halbkreise mit
-      schnellem Rücklauf), von einem offenen Ende her; die Wand ist dann frei.
-    - **Inseln** (Gesperrtes rundum im Material): Stiche – die Versätze der Inseln von außen nach
-      innen, jeder nur dort, wo in seinem Streifen [L − R, L − R + ae] noch Material steht; ein
-      Stich ist dran, wenn außerhalb von ihm nichts mehr steht, von den fertigen der nächste am
-      Weg; zurück unten außen um das Rohteil herum im Eilgang (_rueckweg_aussen). Ist der
-      Versatz rundum im Material, ein ganzer Ring: Band für Band bis an die Insel.
-    - **Ohne Insel**: Schleifen – die Versätze des Rands des Materials (Rohteilkante, Luft und
-      die Nut) nach innen, Schritt ae, geschlossen, bis die Mitte frei ist.
-    - An jeder scharfen Ecke zur Materialseite Eckenbögen (_Lage._bahn_mit_ecken).
-    Zuletzt die Ringe am Gesperrten, wo noch etwas steht (_ringe_um_inseln)."""
+    Manuels zweites Muster für eine Wand am Rand (erst eine Nut daran entlang in Bögen, dann
+    Schleifen von beiden Rändern nach innen) war gebaut und gemessen (P-2026-10-03-31: Insel
+    oben 4,07 statt 3,35 min, die Schleifen aus dem Raster zackig) – verworfen (Manuel: nicht
+    verwenden, wenn es länger dauert und nicht schonender ist). Die Stiche an derselben Wand:
+    3,4 min, Eingriff höchstens 1,1 ae."""
     ablauf.eckenboegen = True
     # Die Anfahrt kurz: ein Stich kommt aus der Luft neben dem Rohteil, da reicht ein kleiner
     # Bogen (die Kontur braucht den Viertelkreis mit R, sie taucht neben der Wand ein).
@@ -2548,90 +2598,21 @@ def _ringe_stiche(ablauf, feld, w, r, D, material_links, schritt, toleranz, gena
     gitter = np.meshgrid(feld.xs, feld.ys, indexing="ij")
     im_raster = feld.im_raster(*gitter)
     gesperrt = np.isfinite(D) & (D < 0) & im_raster
-    abtragbar = feld.aufweiten(ablauf.erlaubt, max(r - 0.01, 0.0))
+    # Was die Stiche wegnehmen können: Rohteil, das die Stirn von einer erlaubten Stelle aus
+    # trifft – ohne das Aufmaß an der Wand und eine Zelle (sonst zählt die Wand selbst im Raster
+    # als Streifen, und ein Stich führe an einer bündigen Wand in der Luft entlang).
+    abtragbar = feld.aufweiten(ablauf.erlaubt, max(r - feld.zugabe - schritt, 0.0))
     material = feld.rohteil_zellen & ~feld.frei & abtragbar & im_raster
     if not material.any():
         return
-    # Inseln und Seitenwände: Gesperrtes, das an Luft grenzt (kein Material, nicht gesperrt), ist
-    # eine Seitenwand; am Rand des Rasters auch.
-    luft = ~feld.rohteil_zellen & ~gesperrt & im_raster
-    luft[0, :] = luft[-1, :] = luft[:, 0] = luft[:, -1] = True
-    inseln, waende = [], []
-    for stueck in _komponenten(gesperrt):
-        rand = feld.aufweiten(stueck, 1.5 * schritt) & ~stueck
-        (waende if (rand & luft).any() else inseln).append(stueck)
-    # Die Nut an jeder Seitenwand.
-    laeufe_vorher = ablauf.st.laeufe
-    for wand in waende:
-        _nut_an_der_wand(ablauf, feld, w, r, wand, D, material, schritt)
-        material = feld.rohteil_zellen & ~feld.frei & abtragbar & im_raster
-    mit_nut = ablauf.st.laeufe > laeufe_vorher
-    if inseln:
-        insel = np.zeros_like(gesperrt)
-        for stueck in inseln:
-            insel |= stueck
-        D_i = D if len(waende) == 0 else feld.abstand_zu(insel)
+    if gesperrt.any():
         _stiche_um_inseln(
-            ablauf, feld, w, r, D_i, gesperrt, material, material_links, schritt, toleranz, genaue
+            ablauf, feld, w, r, D, gesperrt, material, material_links, schritt, toleranz, genaue
         )
     else:
-        _schleifen_nach_innen(
-            ablauf, feld, w, r, gesperrt, material, material_links, schritt, toleranz
-        )
+        _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz)
     ablauf.eckenboegen = False
-    # Zuletzt der Ring am Gesperrten, wo noch etwas steht – nicht nach einer Nut: Die Bögen
-    # lassen an der Wand nur Dellen von Hundertsteln, der Ring führe dafür einmal herum.
-    if not mit_nut:
-        _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
-
-
-def _nut_an_der_wand(ablauf, feld, w, r, wand, D, material, schritt):
-    """Die Nut an einer Seitenwand entlang, in Bögen (nut_bahn): Die Mittellinie ist der Versatz
-    der Wand bei r_l = NUT_BOGEN · R (die Nut ist 2 (R + r_l) breit), nur wo unter der Stirn noch
-    Material liegt, verlängert in die Luft; die Bögen von dem Ende her, das der Spitze näher
-    liegt – im Gleichlauf von der einen Wand nach vorn zur anderen, quer zurück im
-    Schnellvorschub, je Bogen um den Schritt nach der Last (nut_bahn._bogenschritt) weiter."""
-    r_l = NUT_BOGEN * r
-    D_w = feld.abstand_zu(wand)
-    trifft = feld.aufweiten(material, r_l + schritt)
-    nah = r_l - 2.0 * schritt
-    sperre = np.isfinite(D) & np.less(D, nah) & ~(np.isfinite(D_w) & (D_w < nah))
-    for punkte, geschlossen in _hoehenlinien(D_w, feld.xs, feld.ys, r_l, sperre):
-        if len(punkte) < 3:
-            continue
-        i, j = feld.zellen(punkte[:, 0], punkte[:, 1])
-        eigen = trifft[i, j] & feld.bei(ablauf.erlaubt, punkte[:, 0], punkte[:, 1])
-        laeufe = _laeufe_zyklisch(eigen, geschlossen, int(round(2.0 * r / schritt)))
-        for stellen, ganz in laeufe:
-            if ganz:
-                continue  # rundum im Material: keine offene Seite – die Schleifen nehmen es
-            stellen = list(stellen)
-            n = len(punkte)
-            ort = _letzter_ort(ablauf)
-            if ort is not None and math.dist(punkte[stellen[-1]], ort) < math.dist(
-                punkte[stellen[0]], ort
-            ):
-                stellen = stellen[::-1]
-            # Am Anfang R in die Luft hinaus (so weit die Linie reicht): die Bögen morphen vom
-            # Rand her hinein, wie die offene Nut.
-            weit = int(round(r / schritt))
-            richtung = 1 if stellen[0] <= stellen[-1] else -1  # (zyklisch: so wie gelaufen)
-            if len(stellen) > 1:
-                richtung = 1 if (stellen[1] - stellen[0]) % n == 1 else -1
-            vorn = []
-            for m in range(weit, 0, -1):
-                k = stellen[0] - richtung * m
-                if geschlossen:
-                    k %= n
-                elif not 0 <= k < n:
-                    continue
-                if trifft[i[k], j[k]]:
-                    continue  # schon Material: das gehört zur Nut selbst
-                vorn.append(k)
-            linie = punkte[np.asarray(vorn + stellen, dtype=int)]
-            if len(linie) < 2:
-                continue
-            _boegen_laengs(ablauf, feld, w, r, r_l, linie, schritt)
+    _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, True, genaue)
 
 
 def _letzter_ort(ablauf):
@@ -2643,83 +2624,6 @@ def _letzter_ort(ablauf):
         p = ablauf.st.punkte[-1]
         return (float(p.x), float(p.y))
     return None
-
-
-def _boegen_laengs(ablauf, feld, w, r, r_l, linie, schritt):
-    """Die Bögen der Nut längs der Linie (ihrer Mittellinie), wie nut_bahn._boegen – nur dass
-    die Linie gekrümmt sein darf: je Bogen der Rahmen an seiner Stelle."""
-    st = ablauf.st
-    punkte = st.punkte
-    lage = ablauf.lage
-    seglen = np.hypot(*np.diff(linie, axis=0).T)
-    sl = np.concatenate([[0.0], np.cumsum(seglen)])
-    gesamt = float(sl[-1])
-    if gesamt <= 2.0 * r:
-        return
-
-    def rahmen(s):
-        s = min(max(s, 0.0), gesamt)
-        k = max(min(int(np.searchsorted(sl, s, side="right")) - 1, len(seglen) - 1), 0)
-        t = (s - sl[k]) / seglen[k] if seglen[k] > _WINZIG else 0.0
-        p = linie[k] + (linie[k + 1] - linie[k]) * t
-        u = (linie[k + 1] - linie[k]) / max(seglen[k], _WINZIG)
-        return p, u, np.array([-u[1], u[0]])
-
-    def ort(s, q):
-        p, _u, v = rahmen(s)
-        return (float(p[0] + v[0] * q), float(p[1] + v[1] * q))
-
-    uhr = not w.gleichlauf
-    seite = 1.0 if uhr else -1.0  # Gleichlauf: an der Wand rechts beginnen
-    # Etwas kleiner als in der Nut: Das Raster misst an den Bögen bis 1,82 ae statt 1,7.
-    schritt_b = NUT_SCHRITT_SPIEL * nb._bogenschritt(r_l, r, w.zeilenabstand)
-    start = ort(0.0, seite * r_l)
-    # Hin: unten außen herum, wenn es geht, sonst hinauf, hin, hinab (der Anfang liegt in der Luft).
-    if not ablauf._rueckweg_aussen(start):
-        hoch = ablauf.knapp if ablauf.unten else w.sicher
-        if ablauf.unten and ablauf.ort is not None:
-            punkte.append(bn.Punkt(True, ablauf.ort[0], ablauf.ort[1], hoch))
-        punkte.append(bn.Punkt(True, start[0], start[1], hoch))
-        knapp = ablauf._hinab(start, hoch)
-        punkte.append(bn.Punkt(True, start[0], start[1], knapp))
-        punkte.append(bn.Punkt(False, start[0], start[1], lage, True))
-    laenge = 0.0
-    s_w = 0.0
-    tiefen = []
-    b = schritt_b
-    while b < r_l - _WINZIG:
-        tiefen.append(b)
-        b += schritt_b
-    tiefen.append(r_l)
-    s_bis = gesamt - r
-    for _ in range(100000):
-        fertig = False
-        for b in tiefen:
-            p, u, _v = rahmen(s_w)
-            richtung = math.atan2(u[1], u[0])
-            rho = (r_l * r_l + b * b) / (2.0 * b)
-            mitte = (float(p[0] + u[0] * (b - rho)), float(p[1] + u[1] * (b - rho)))
-            winkel = math.atan2(seite * r_l, rho - b)
-            von, bis = richtung + winkel, richtung - winkel
-            laenge += nb._bogen(punkte, mitte, rho, von, bis, lage, lage, uhr)
-            ablauf._merke_bogen(mitte, rho, von, bis)
-            if s_w >= s_bis - _WINZIG and b >= r_l - _WINZIG:
-                fertig = True
-                break
-            laenge += nb._hin(punkte, *ort(s_w, seite * r_l), lage, anteil=nb.RUECKWEG)
-        if fertig:
-            break
-        tiefen = [r_l]
-        s_w = min(s_w + schritt_b, s_bis)
-        laenge += nb._hin(punkte, *ort(s_w, seite * r_l), lage)
-    letzter = punkte[-1]
-    ablauf.unten = True
-    ablauf.ort = (float(letzter.x), float(letzter.y))
-    st.laenge += laenge
-    st.laeufe += 1
-    st.ringe += 1
-    st.einfahrten += 1
-    st.z_min = min(st.z_min, lage)
 
 
 def _stiche_um_inseln(
@@ -2759,9 +2663,8 @@ def _stiche_um_inseln(
     def stiche_aus(j, niveau, ring, breite):
         """Die Stiche eines Rings beim Niveau: wo in seinem Streifen [niveau − R, niveau − R +
         breite] unter der Stirn noch Material steht."""
-        eigen_feld = feld.aufweiten(
-            material & (D_i >= niveau - r - schritt) & (D_i <= niveau - r + breite + schritt), r
-        )
+        kern = material & (D_i >= niveau - r - schritt) & (D_i <= niveau - r + breite + schritt)
+        eigen_feld = feld.aufweiten(kern, r)
         x, y = ring.proben.x, ring.proben.y
         drin = feld.im_raster(x, y)
         if not ring.genau:
@@ -2879,39 +2782,6 @@ def _kosten(stich, ort):
     else:
         d = math.hypot(float(x[stellen[0]]) - ort[0], float(y[stellen[0]]) - ort[1])
     return (d, -j)
-
-
-def _schleifen_nach_innen(
-    ablauf, feld, w, r, gesperrt, material, material_links, schritt, toleranz
-):
-    """Die Schleifen: die Versätze des Rands des Materials (Rohteilkante, Luft, die Nut) nach
-    innen – die Höhenlinien des Abstands zum Rand bei −(R − ae) + j · ae –, geschlossen, bis die
-    Mitte frei ist; je Niveau der nächste zuerst."""
-    ae = w.zeilenabstand
-    F = feld.abstand_zu(~material)
-    drin = material & np.isfinite(F)
-    if not drin.any():
-        return
-    hoechste = float(F[drin].max())
-    niveau = -(r - ae)
-    j = 0
-    while niveau <= hoechste + schritt:
-        ringe = []
-        for punkte, geschlossen in _hoehenlinien(F, feld.xs, feld.ys, niveau, gesperrt):
-            if len(punkte) < 2:
-                continue
-            laenge = float(np.sum(np.hypot(*np.diff(punkte, axis=0).T)))
-            if geschlossen and laenge < 2 * math.pi * ae:
-                continue
-            ring = _ring_aus_linie(
-                punkte, geschlossen, material_links, feld, niveau, F, schritt, toleranz,
-                material_hoch=True,
-            )  # fmt: skip
-            if ring is not None:
-                ringe.append(ring)
-        _naechster_zuerst(ablauf, ringe, False, f"schleife {j}", luft=True)
-        j += 1
-        niveau += ae
 
 
 def _ringe_vom_rohteil(ablauf, feld, w, r, D, material_links, schritt, toleranz):
