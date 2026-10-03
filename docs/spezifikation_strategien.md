@@ -2608,5 +2608,6 @@ Kollision mit Rundachsen je Station.
 - **E-2 Zuerst:** S2 (Kugelfräser angestellt) oder S3 (Flanke)?
 - **E-3 Anstellwinkel:** fest mit einem Feld (z. B. 15° voreilend, 0° seitwärts) – oder aus der
   Neigung der Fläche?
-- **E-4 Orientierung im Programm:** als Richtungsvektor (`A3= B3= C3=`, unabhängig von der
-  Kinematik) oder als Rundachsen (A, C)?
+- **E-4 Orientierung im Programm:** ~~als Richtungsvektor oder als Rundachsen?~~ Mit E-1
+  entschieden: ohne TCPM gehen nur Rundachsen (A, C) – Richtungsvektoren (`A3= B3= C3=`)
+  brauchen TRAORI.

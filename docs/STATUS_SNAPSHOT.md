@@ -78,8 +78,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Bohren am Schwenkkopf, Knopf im Assistenten, Bestückung je Aufspannung.
   Offen: Manuels Entscheidungen D-1, D-2, D-4, D-5 (D-3 durch die TCPM-Antwort entschieden).
 - **W-015 5 Achsen simultan** – Entwurf zum Besprechen (Spezifikation Strategien 16): Kern,
-  Kugelfräser angestellt, Flanke, Wegkippen; E-2 bis E-4 entscheidet Manuel (E-1 TCPM: aus,
-  schon beantwortet). Gebaut nur der
+  Kugelfräser angestellt, Flanke, Wegkippen; E-2 und E-3 entscheidet Manuel (E-1 TCPM: aus, schon
+  beantwortet; damit auch E-4: Rundachsen). Gebaut nur der
   Kern S1 ohne TCPM und ohne Oberfläche (`simultan.py`); keine Strategie, nichts geändert, was das
   Addon wählt.
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
@@ -103,7 +103,7 @@ Knopf im Assistenten, Programm mit der gewählten Maschine (Siemens CYCLE800, so
 Bohren am Schwenkkopf, Kollision und Abfahren mit Schwenken, Bestückung je Aufspannung;
 Siemens-Bohrzyklen CYCLE81/83/85; der Kern für simultan (ohne TCPM, G93); „Auf der Maschine
 prüfen“ öffnet schneller. Zu entscheiden: Spezifikation Strategien 15.4 (D-1, D-2, D-4, D-5)
-und 16.4 (E-2 … E-4). **Zum Ausprobieren (3+2):** `beispiele/schwenkteil_5achs.FCStd`,
+und 16.4 (E-2, E-3). **Zum Ausprobieren (3+2):** `beispiele/schwenkteil_5achs.FCStd`,
 „Beispielmaschine laden …“ → 5-Achs Tisch/Tisch; Oberseite anklicken → Bearbeitung → Job;
 die 30°-Schräge anklicken → **Ebene schwenken (3+2) …** → grün „Face…: 30° geschwenkt →
 A−30 C0“ → OK → der Assistent öffnet in der Ebene → Anlegen; Grundjob → **Programm schreiben**
