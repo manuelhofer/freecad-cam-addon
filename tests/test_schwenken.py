@@ -150,6 +150,11 @@ for bauplan in (
     maschine = sw.Maschine(p, aufnahme, LAENGE, V())
     buchstaben = sorted(a.buchstabe for a in maschine.rundachsen)
     pruefe(len(buchstaben) == 2, f"{bauplan.__name__}: Rundachsen {buchstaben}")
+    if bauplan is beispielmaschine.fuenfachs_tisch_tisch:
+        # Gleich weit geschwenkt (A−45 C−90 und A45 C90): der kleinere Wert der ersten
+        # Rundachse zuerst – wie CYCLE800 mit _DIR −1.
+        erste = maschine.loese(V(1, 0, 1).normalize())[0]
+        pruefe(erste == {"A": -45.0, "C": -90.0}, f"Gleichstand: {erste}")
     for normale in (n_soll, V(1, 0, 1).normalize(), V(0, 0, 1)):
         loesungen = maschine.loese(normale)
         if not loesungen:

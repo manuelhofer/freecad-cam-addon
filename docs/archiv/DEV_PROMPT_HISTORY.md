@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-05 rundachsen-gleichstand
+
+### EINGELESEN
+- Spezifikation 15.4 D-2 (CYCLE800 `_DIR`): Bei gleich weitem Schwenk (A−45 C−90 / A45 C90)
+  entschied in `Maschine.loese` die Suchreihenfolge.
+
+### DATEIEN
+- `camaddon/schwenken.py` (`Maschine.loese`: bei Gleichstand der kleinere Wert der ersten
+  Rundachse), `tests/test_schwenken.py`, Spezifikation (15.4), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.159.4).
+
+### AKZEPTANZKRITERIUM
+- Tisch/Tisch, 45°-Fläche nach +X: A−45 C−90 zuerst.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_schwenken.py`, `tests/test_simultan.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1, D-2, D-4, D-5, E-2, E-3.
+
 ## P-2026-10-04-04 hinweis-ebene-ohne-kette
 
 ### EINGELESEN

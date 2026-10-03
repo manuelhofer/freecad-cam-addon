@@ -2521,6 +2521,8 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   rechnet (der kleinste Schwenk). Fest −1 passt nur, wenn die erste Rundachse dabei den
   kleineren Wert hat. **Vorschlag:** `_DIR` je Ebene passend zur gerechneten Stellung – dafür
   die Frage: Welche Rundachse ist in deinem Schwenkdatensatz die erste (A oder C, bzw. B)?
+  Schon gebaut (P-2026-10-04-05): Bei gleich weitem Schwenk wählt `Maschine.loese` den kleineren
+  Wert der ersten Rundachse (bisher entschied die Suchreihenfolge) – wie `_DIR` −1.
 - **D-3 Ohne Zyklus:** Drehpunkt der Rundachsen aus der Maschine (die Baugruppe) – stimmt nur,
   wenn der Nullpunkt im Job zur Aufnahme passt wie in „Auf der Maschine prüfen“.
   **Entschieden** durch Manuels Antwort zu TCPM (Status, 2026-10-03 abends: „die G-Sätze ohne

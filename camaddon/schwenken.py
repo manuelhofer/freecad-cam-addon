@@ -268,7 +268,8 @@ class Maschine:
     def loese(self, normale):
         """Die Stellungen der Rundachsen ([{"A": Grad, …}]), in denen die Werkzeugachse die
         Normale ist – die beste zuerst: innerhalb der Grenzen, der kleinste Schwenk (Summe der
-        Beträge). Leer, wenn keine Stellung die Normale trifft."""
+        Beträge), bei Gleichstand der kleinere Wert der ersten Rundachse. Leer, wenn keine
+        Stellung die Normale trifft."""
         n = FreeCAD.Vector(normale)
         n.normalize()
         achsen = self.rundachsen
@@ -314,8 +315,11 @@ class Maschine:
             loesungen.append(rund)
 
         def guete(rund):
+            # Bei gleich weitem Schwenk die kleineren Werte der Rundachsen der Reihe nach – wie
+            # CYCLE800 mit _DIR −1 (Spezifikation 15.4, D-2); sonst entschiede die Suche.
             drinnen = all(a.erlaubt(rund[a.buchstabe]) for a in achsen)
-            return (not drinnen, sum(abs(rund[a.buchstabe]) for a in achsen))
+            schwenk = round(sum(abs(rund[a.buchstabe]) for a in achsen), 6)
+            return (not drinnen, schwenk, tuple(rund[a.buchstabe] for a in achsen))
 
         return sorted(loesungen, key=guete)
 
