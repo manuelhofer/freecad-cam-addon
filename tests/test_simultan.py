@@ -30,6 +30,10 @@ def pruefe(bedingung, text):
         fehler.append(text)
 
 
+def nahe_f(a, b):
+    return abs(a - b) < 1e-6 * max(1.0, abs(b))
+
+
 sprache.setze_sprache("de")
 
 import Path.Main.Job as PathJob  # noqa: E402
@@ -99,6 +103,21 @@ for bauplan in (
         print(
             f"{name}, {bahn_name}: Sprung {sprung:.2f}°, Spitze {weg:.2e} mm, {rund[0]}…{rund[-1]}"
         )
+        if bahn is kippen:
+            # G93: je Satz 1 ÷ Zeit – die Spitze fährt 40 mm mit 10 mm/s, also 4 s (der erste
+            # Satz ist der Anfang, im Eilgang).
+            eil = [si.Punkt(bahn[0].spitze, bahn[0].achse, eilgang=True)] + bahn[1:]
+            g93 = si.programm_ohne_tcpm(maschine, eil, g93=True)
+            pruefe(
+                g93[0].Name == "G93" and g93[-1].Name == "G94"
+                and all(nahe_f(c.Parameters["F"], 10.0) for c in g93[2:-1]),
+                f"{name}: G93 {[c.toGCode() for c in g93[:4]]}",
+            )  # fmt: skip
+            op.Gcode = [c.toGCode() for c in g93]
+            doc.recompute()
+            fahrt = ab.abfahrt(p, job, null)
+            dauer = fahrt.stationen[-1].zeit - fahrt.stationen[0].zeit
+            pruefe(abs(dauer - 4.0) < 0.05, f"{name}: G93 dauert {dauer:.3f} s statt 4")
     FreeCAD.closeDocument(asm.Document.Name)
 
 # Ein Punkt, den die Maschine nicht treffen kann (unter den Tisch): der Satz, warum.

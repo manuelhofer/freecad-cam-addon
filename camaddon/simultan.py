@@ -25,6 +25,7 @@ SCHRITT = 1e-4  # Grad – so weit dreht eine Rundachse für die Ableitung der W
 GENAU = 1e-13  # 1 − cos des Winkels zwischen Werkzeugachse und Ziel: genau genug
 DAEMPFUNG = 1e-9  # gegen die Singularität am Pol (Anteil an der Spur von JᵀJ)
 GROESSTER_SCHRITT = 10.0  # Grad je Rechenschritt – sonst springt es am Pol auf den anderen Ast
+KUERZESTE_ZEIT = 1e-3  # s – so kurz dauert ein Satz mit G93 mindestens
 
 
 @dataclass
@@ -108,22 +109,40 @@ def _nachfuehren(maschine, n, werte):
     return werte if 1.0 - float(d @ ziel) <= grenze else None
 
 
-def programm_ohne_tcpm(maschine, punkte):
+def programm_ohne_tcpm(maschine, punkte, g93=False):
     """[Path.Command] – die Bahn (Punkt …) mit den Rundachsen je Punkt und X, Y, Z, wie eine
     Steuerung ohne TCPM sie liest. Zwischen zwei Punkten fährt die Maschine jede Achse linear –
-    die Spitze bleibt nur nahe der Geraden, wenn die Punkte dicht liegen. ValueError mit einem
-    Satz wie rundachsen_entlang, oder wenn die Maschine keine drei Linearachsen hat."""
+    die Spitze bleibt nur nahe der Geraden, wenn die Punkte dicht liegen. `g93`: der Vorschub
+    als 1 ÷ Zeit (G93 … G94): je Satz die Zeit aus dem Weg der Spitze am Werkstück und dem
+    Vorschub – dreht sich nur die Achse, zählt der größte Winkel in Grad wie mm; F wie
+    FreeCADs Bahnen ÷ 60 (1 ÷ Sekunden). ValueError mit einem Satz wie rundachsen_entlang, oder
+    wenn die Maschine keine drei Linearachsen hat."""
     import Path
 
     rund = rundachsen_entlang(maschine, [p.achse for p in punkte])
-    befehle = []
+    befehle = [Path.Command("G93")] if g93 else []
+    vorschub, davor = 0.0, None
     for punkt, stellung in zip(punkte, rund, strict=True):
         abbildung = maschine.abbildung(stellung)
         if abbildung is None:
             raise ValueError(tr("si.fehler.linear"))
         werte = dict(zip("XYZ", abbildung.punkt(punkt.spitze), strict=True))
         werte.update(stellung)
-        if not punkt.eilgang and punkt.vorschub > 0:
-            werte["F"] = float(punkt.vorschub)
+        if punkt.vorschub > 0:
+            vorschub = float(punkt.vorschub)
+        if not punkt.eilgang and vorschub > 0:
+            if g93:
+                weg = 0.0
+                if davor is not None:
+                    weg = max(
+                        math.dist(davor[0], punkt.spitze),
+                        max(abs(stellung[k] - davor[1][k]) for k in stellung),
+                    )
+                werte["F"] = 1.0 / max(weg / vorschub, KUERZESTE_ZEIT)
+            elif punkt.vorschub > 0:
+                werte["F"] = vorschub
         befehle.append(Path.Command("G0" if punkt.eilgang else "G1", werte))
+        davor = (punkt.spitze, stellung)
+    if g93:
+        befehle.append(Path.Command("G94"))
     return befehle

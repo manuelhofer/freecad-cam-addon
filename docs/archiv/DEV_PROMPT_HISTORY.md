@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-56 simultan-g93
+
+### EINGELESEN
+- Spezifikation Strategien 16.2 („Vorschub: G93 wie bei 4 Achsen“), `abfahren` (G93: F = 1 ÷
+  Sekunden in FreeCADs Bahnen).
+
+### DATEIEN
+- `camaddon/simultan.py` (`programm_ohne_tcpm(…, g93=)`, KUERZESTE_ZEIT), `tests/test_simultan.py`,
+  Spezifikation (16.3), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.158.3).
+
+### AKZEPTANZKRITERIUM
+- Die Kippbahn (40 mm, 10 mm/s) mit G93: je Satz F = 10 (1 ÷ 0,1 s), am Ende G94; „Auf der
+  Maschine prüfen“ rechnet 4,0 s – an allen drei 5-Achs-Beispielen.
+
+### DONE
+- Wie oben. Noch ohne Strategie und Oberfläche.
+
+### TESTS
+- `tests/test_simultan.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1, D-2, D-4, D-5, E-2 … E-4.
+
 ## P-2026-10-03-55 abspieler-ebene
 
 ### EINGELESEN
