@@ -2290,10 +2290,7 @@ Je Lage (`_ringe_stiche`), auf dem Raster des Feldes (`_Feld`, 0,5 mm) mit dem M
    Anteil). Zwischenstiche (halbes ae, nur an der engen Stelle) waren schlechter: 62-mal
    abheben, 14,4 min.
 8. **Zuletzt** der Ring am Gesperrten, wo noch etwas steht (`_ringe_um_inseln`, `nur_rest`).
-9. **Wahl:** Ohne Vorgabe rechnet `planen` die Variante mit; sie hat den **Vorzug**, wenn sie die
-   Last hält und höchstens STICHE_VORZUG = 1,25 mal so lange braucht wie die schnellste, die sie
-   hält. Der Assistent sagt dann „adaptiv wäre 18 % schneller; Manuels Räumen (Stiche) hat den
-   Vorzug“. Taschen (geschlossene Kontur) bleiben bei den Ringen von innen nach außen
+9. **Wahl:** nur auf Vorgabe (Eigenschaft „Variante“ = „stiche“; D-1). Taschen (geschlossene Kontur) bleiben bei den Ringen von innen nach außen
    (`_flaeche`: Tasche → „inseln“).
 
 ### 14.2 Gemessen (Testteil, Ø 12, ae 1,5, drei Höhen, Prüfstand)
@@ -2323,9 +2320,11 @@ Zapfen 50 × 50: 3,74 statt 2,43 min (adaptiv gewinnt).
 
 ### 14.3 Offen (Entscheidungen für Manuel)
 
-- **D-1 Der Vorzug:** 25 % (so gewinnt es am Testteil) – oder weniger (5 %: dann gewinnt dort
-  adaptiv und die Variante ist nur über die Eigenschaft „Variante“ zu haben) – oder immer, wenn
-  es die Last hält?
+- **D-1 Der Vorzug – entschieden** (Manuel, 2026-10-03, nach dem Bild der Insel oben: „nimm
+  das wieder raus, wir lassen adaptiv … und es nächste Mal bitte erst mit mir besprechen“):
+  kein Vorzug, ohne Vorgabe rechnet „stiche“ nicht mit (P-2026-10-03-33). Die Variante bleibt
+  als Wahl in der Eigenschaft „Variante“; die Regel: Was das Addon von sich aus wählt, wird
+  vorher mit Manuel besprochen.
 - **D-2 Das Zeitmodell im Eilgang:** Hält Manuels Steuerung vor und nach jedem G0? Wenn nicht,
   sollte `fahrzeit` Eilgänge wie Vorschubsätze durchfahren lassen (Ecke ab 15°) – das nähme
   der Variante den größten Teil der 22 %.

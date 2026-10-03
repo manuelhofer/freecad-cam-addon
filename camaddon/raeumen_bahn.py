@@ -78,15 +78,13 @@ SCHRITT = 0.5  # mm – das Raster und der Abstand der Stellen auf den Ringen
 VORSCHAU_SCHRITT = 1.0  # mm – für die Vorschau im Assistenten
 AUSTRITT_ANTEIL = 0.5  # vom Vorschub: so langsam beim Austritt aus dem Rohteil
 VARIANTEN = ("rohteil", "morph", "inseln")  # die Ringe – auch die des 3D-Schruppens
-STICHE = "stiche"  # Manuels Räumen (unten, _ringe_stiche) – nur das Räumen
+STICHE = "stiche"  # Manuels Räumen (unten, _ringe_stiche) – nur das Räumen, nur als Vorgabe
 ALLE_VARIANTEN = (*VARIANTEN, "adaptiv", STICHE)  # dazu FreeCADs Adaptiv-Kern (nur das Räumen)
+# Ohne Vorgabe rechnen diese – „stiche“ nicht: Manuels Räumen (Spezifikation Strategien 14) ist
+# am Testteil 20 % langsamer als adaptiv; Manuel, 2026-10-03: „wir lassen adaptiv“. Es bleibt
+# als Wahl in der Eigenschaft „Variante“.
+AUTOMATISCH = (*VARIANTEN, "adaptiv")
 RINGE = "ringe"  # als Vorgabe: nur die Ringe, die schnellste von ihnen – ohne Blick auf die Last
-# Manuels Räumen (2026-10-03, Spezifikation Strategien 14): Es gewinnt, wenn es die Last hält und
-# höchstens so viel langsamer ist als die schnellste Variante, die sie hält – die Bahn ist
-# lesbar, überall Gleichlauf, der Eingriff gleichmäßig. Am Testteil 12,7 statt 10,3 min (+23 %):
-# Das Zeitmodell hält vor und nach jedem Eilgang an, und die Stiche kehren im Eilgang außen
-# herum zurück (eine Steuerung mit Vorausschau im Eilgang, Siemens G64, hält dort nicht).
-STICHE_VORZUG = 1.25
 ECKE_BOGEN = 45.0  # Grad – ab so viel Richtungswechsel nach rechts (Gleichlauf) die Eckenbögen
 ECKE_BLICK = 2.0  # mm – so weit vor und nach der Ecke wird die Richtung gemessen
 SICHEL_VOLL = 0.3  # Anteil der Sichel an einer Ecke, der noch Material sein muss für Eckenbögen
@@ -1643,7 +1641,7 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     if w.variante == RINGE:
         varianten = VARIANTEN
     else:
-        varianten = (w.variante,) if w.variante in ALLE_VARIANTEN else ALLE_VARIANTEN
+        varianten = (w.variante,) if w.variante in ALLE_VARIANTEN else AUTOMATISCH
     taschen = {id(e): _tasche_um(e, konturen) for e in ebenen}
     if all(taschen[id(e)] is not None for e in ebenen) and w.variante != "adaptiv":
         # Nur Taschen: Die Ringe haben dort eine Art, von innen nach außen.
@@ -1727,15 +1725,6 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         else:
             variante = min(ueberlastet, key=ueberlastet.get)
             haelt = False
-    # Manuels Räumen hat den Vorzug: Hält es die Last und ist es höchstens STICHE_VORZUG mal so
-    # langsam wie die Gewinnerin, gewinnt es (lesbare Bahn, überall Gleichlauf, gleichmäßiger
-    # Eingriff – Manuel, 2026-10-03: „wir nehmen sie mit auf … definitiv“).
-    if STICHE in ergebnisse and variante != STICHE and len(ergebnisse) > 1:
-        ok, groesste = haelt_last(STICHE)
-        if ok and ergebnisse[STICHE][1] <= STICHE_VORZUG * ergebnisse[variante][1]:
-            variante, haelt = STICHE, True
-        elif not ok:
-            ueberlastet[STICHE] = groesste
     st, zeit = ergebnisse[variante]
     return Raeumbahn(
         st.punkte,

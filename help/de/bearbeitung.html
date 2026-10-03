@@ -215,23 +215,17 @@ nimmt zuletzt ein genauer Ring. Wären die Ringe schneller, halten die Last
 aber nicht, steht es dabei: „… – Ringe wären 43 % schneller, überlasten den
 Fräser aber (bis 4,1 ae)“. Wer die Ringe trotzdem will: in den Eigenschaften
 der Operation <b>Variante</b> „ringe“.</li>
-<li><b>Manuels Räumen – Stiche und Ringe (seit 0.151.0):</b> So würde ein Zerspaner
-fahren: Steht eine <b>Insel</b> im Material, zuerst die <b>Stiche</b> – die Versätze der Insel
-von außen nach innen, jeder nur dort, wo in seinem Streifen noch Material steht, aus der Luft
-hinein und in die Luft hinaus, zurück unten außen um das Rohteil herum im Eilgang –, bis das
-Band um die Insel überall gleich breit ist; dann die <b>Ringe</b> um die Insel, Band für Band
-bis zum genauen Ring am Aufmaß, ohne Abheben, gleitend von einem auf den nächsten. Eine
-<b>Wand am Rand</b> der Fläche (die Stufe auf der Insel) bekommt dieselben Stiche: ihre
-Versätze von der Inselkante her, jeder aus der Luft hinein und in die Luft hinaus; liegt
-zwischen zwei Stichen die Insel, hebt es dazwischen ab. Ohne Wand und Insel die Ringe vom
-Rohteilrand her. Überall Gleichlauf (das Material rechts); an scharfen Ecken zur Materialseite
-Eckenbögen statt des Drehens auf der Stelle, an engen Bögen von dem Material weg weniger
-Vorschub (die Last je Zeit bleibt bei ae). Ohne Vorgabe hat es den <b>Vorzug</b>: Es gewinnt,
-wenn es die Last hält und höchstens 25 % langsamer ist als die schnellste Variante – am
-Testteil 12,4 statt 10,3 min; darunter steht dann „adaptiv wäre 17 % schneller“. Die
-Rückläufe zählen im Zeitmodell mit Halt vor und nach jedem Eilgang; eine Steuerung mit
-Vorausschau im Eilgang (Siemens G64) hält dort nicht. Wer die Zeit will: <b>Variante</b>
-„adaptiv“.</li>
+<li><b>Manuels Räumen – Stiche und Ringe (seit 0.151.0, auf Wahl):</b> So würde ein
+Zerspaner fahren: zuerst die <b>Stiche</b> – die Versätze von Insel oder Wand von außen nach
+innen, jeder nur dort, wo in seinem Streifen noch Material steht, aus der Luft hinein und in
+die Luft hinaus, zurück unten außen um das Rohteil herum im Eilgang –, bis das Band um die
+Insel überall gleich breit ist; dann die <b>Ringe</b> um die Insel, Band für Band bis zum
+genauen Ring am Aufmaß, ohne Abheben, gleitend von einem auf den nächsten. Überall Gleichlauf
+(das Material rechts); an scharfen Ecken zur Materialseite Eckenbögen statt des Drehens auf der
+Stelle, an engen Bögen von dem Material weg weniger Vorschub (die Last je Zeit bleibt bei ae).
+Ohne Vorgabe rechnet es nicht mit: Am Testteil braucht es 12,4 statt 10,3 min, weil das
+Zeitmodell vor und nach jedem Eilgang anhält und die Stiche oft zurückfahren. Wer es will:
+<b>Variante</b> „stiche“ in den Eigenschaften der Operation.</li>
 <li><b>Dünne Lagen breit:</b> Eine Lage, die höchstens ein Zehntel des Fräserdurchmessers
 dick ist – der Millimeter Rohteil über einer Fläche –, nimmt das Räumen mit dem halben
 Fräserdurchmesser als Zeilenabstand und mit so viel weniger Vorschub, dass der Span nicht

@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-33 adaptiv-bleibt
+
+### EINGELESEN
+- Manuel, 2026-10-03, zum Bild der Insel oben (P-32): „Nee nimm das wieder raus wir lassen
+  adaptiv … Und es nächste Mal bitte erst mit mir besprechen.“ Danach: „ich geh ins Bett. Du
+  machst einfach mal ein paar Sachen, die du für richtig hältst, bis morgen früh.“
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (AUTOMATISCH ohne „stiche“, der Vorzug und STICHE_VORZUG weg),
+  `camaddon/gui_bearbeitung.py` (der Satz „adaptiv wäre … schneller“ weg), `translations/de|en.json`
+  (`ba.raeumen.stiche_vorzug` weg, `ra.eigenschaft.variante`), `help/de|en/bearbeitung.html`,
+  `tests/test_testteil.py` (adaptiv gewinnt wieder; „stiche“ auf Vorgabe geprüft),
+  `tests/test_raeumen.py` ((h) ohne „stiche“), Spezifikation Strategien (14.1 Regel 9, D-1
+  entschieden), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.151.2).
+
+### AKZEPTANZKRITERIUM
+- Ohne Vorgabe wählt das Räumen wie vor P-31 (adaptiv am Testteil, 10,3 min); „stiche“ nur,
+  wenn es in der Eigenschaft „Variante“ steht.
+
+### DONE
+- Umgesetzt; Testteil ohne Vorgabe: adaptiv 10,28 min, 5-mal abgehoben; auf Vorgabe „stiche“
+  12,4 min, hält, 0 Rampen.
+- Regel für mich (Memory): Was das Addon von sich aus wählt, wird vorher mit Manuel besprochen –
+  Vorschlag, Zahlen, sein Ja; erst dann bauen.
+
+### TESTS
+- `tests/test_testteil.py`, `tests/test_raeumen.py`, `tests/test_sprache.py`,
+  `tests/test_hilfe.py` – OK. black und ruff sauber.
+
+### NEXT
+- Nacht: Prüfungen der mitgeänderten Teile (Kontur, 3D-Schruppen), die Bilder für Bild 2 ff.
+  vorbereiten (Tasche Ø 6, Kontur, Mulde, Planfräsen, Nut, rundum) – nichts ändern, was Manuel
+  entscheiden soll.
+
 ## P-2026-10-03-32 stiche-auch-an-der-wand
 
 ### EINGELESEN

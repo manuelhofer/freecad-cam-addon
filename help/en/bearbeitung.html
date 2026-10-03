@@ -210,22 +210,17 @@ by an exact ring at the end. If the rings would be faster but do not keep the
 load, the line says so: “… – rings would be 43 % faster but overload the cutter
 (up to 4.1 ae)”. If you want the rings anyway: set <b>Variante</b> to “ringe”
 in the operation's properties.</li>
-<li><b>Manuel's clearing – passes and rings (since 0.151.0):</b> the way a machinist would
-cut. With an <b>island</b> in the material, first the <b>passes</b> – the offsets of the island
-from the outside inwards, each only where its strip still holds material, in from the air and
-out into the air, back below around the stock at rapid –, until the band around the island is
-equally wide everywhere; then the <b>rings</b> around the island, band by band down to the
-exact ring at the allowance, without lifting, gliding from one onto the next. A <b>wall at the
-edge</b> of the face (the step on the island) gets the same passes: its offsets from the island
-edge inwards, each in from the air and out into the air; where the island lies between two
-passes, it lifts in between. Without wall or island, the rings from the stock edge inwards.
-Climb milling throughout (material on the right); at sharp corners towards the material
-corner arcs instead of turning on the spot, at tight bends away from the material less feed (the
-load per time stays at ae). Without a choice it is <b>preferred</b>: it wins when it keeps the
-load and is at most 25 % slower than the fastest variant – on the test part 12.4 instead of
-10.3 min; the line then says “adaptive would be 17 % faster”. The returns count in the time
-model with a stop before and after every rapid; a control with look-ahead on rapids (Siemens
-G64) does not stop there. If you want the time: <b>Variant</b> “adaptiv”.</li>
+<li><b>Manuel's clearing – passes and rings (since 0.151.0, on request):</b> the way a
+machinist would cut: first the <b>passes</b> – the offsets of island or wall from the outside
+inwards, each only where its strip still holds material, in from the air and out into the
+air, back below around the stock at rapid –, until the band around the island is equally wide
+everywhere; then the <b>rings</b> around the island, band by band down to the exact ring at
+the allowance, without lifting, gliding from one onto the next. Climb milling throughout
+(material on the right); at sharp corners towards the material corner arcs instead of turning
+on the spot, at tight bends away from the material less feed (the load per time stays at ae).
+Without a choice it is not computed: on the test part it takes 12.4 instead of 10.3 min,
+because the time model stops before and after every rapid and the passes return often. If you
+want it: <b>Variant</b> “stiche” in the operation's properties.</li>
 <li><b>Thin layers wide:</b> a layer at most a tenth of the cutter diameter thick – the
 millimetre of stock above a face – is cleared with half the cutter diameter as stepover and
 with so much less feed that the chip does not get thicker than with the stepover of the

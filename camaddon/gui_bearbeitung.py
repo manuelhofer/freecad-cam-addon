@@ -765,11 +765,6 @@ class _Raeumen(_Strategie):
             prozent = int(round((1.0 - bahn.zeiten[variante] / bahn.zeit) * 100.0))
             last = dezimal(f"{ueberlastet[variante]:.1f}")
             text = tr("ba.raeumen.ueberlastet", text=text, prozent=prozent, last=last)
-        elif bahn.variante == rb.STICHE and 0 < bahn.zeiten.get("adaptiv", 0.0) < bahn.zeit:
-            # Manuels Räumen hat den Vorzug (raeumen_bahn.STICHE_VORZUG) – was es kostet, steht da.
-            prozent = int(round((1.0 - bahn.zeiten["adaptiv"] / bahn.zeit) * 100.0))
-            if prozent >= 1:
-                text = tr("ba.raeumen.stiche_vorzug", text=text, prozent=prozent)
         return text
 
     def lege_an(self, job, tc, werte, flaechen):

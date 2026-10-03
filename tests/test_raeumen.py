@@ -638,11 +638,11 @@ def drehsinn(bahn, anzahl=400):
 
 werte_h = werte_fuer(rohteil_a, 30.0, variante=None)
 bahn_h = raeumen(teil_a, 20.0, werte_h)
-# Ohne Vorgabe rechnet es auch Manuels Räumen („stiche“, Abschnitt (i)); am Zapfen ist das mit
-# seinen Rückläufen außen herum über die Hälfte langsamer als adaptiv – adaptiv gewinnt.
+# Manuels Räumen („stiche“, Abschnitt (j)) rechnet nur auf Vorgabe mit (Manuel, 2026-10-03:
+# „wir lassen adaptiv“).
 pruefe(
     bahn_h.variante == "adaptiv"
-    and set(bahn_h.zeiten) == {"rohteil", "morph", "inseln", "adaptiv", "stiche"},
+    and set(bahn_h.zeiten) == {"rohteil", "morph", "inseln", "adaptiv"},
     f"Zapfen, ohne Vorgabe: {bahn_h.variante} {bahn_h.zeiten}",
 )
 pruefe(bahn_h.zeit < bahn_a.zeit and not bahn_h.ueberlastet, f"Zapfen adaptiv: {bahn_h.zeit} min")
