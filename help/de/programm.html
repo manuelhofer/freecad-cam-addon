@@ -52,6 +52,18 @@ Bahn. Welche Spindel was tut, erkennt der Postprozessor an der Maschine: An welc
 die Werkzeugplätze hängen („Angetrieben von“), die ist der Antrieb; die andere ist die
 Hauptspindel. Die Namen stehen in „Maschine bearbeiten“; „Neue Maschine …“ fragt bei der
 Drehmaschine nach den Nummern.</p>
+<p><b>Zum Wechselpunkt</b> fährt das Programm bei Siemens mit „G0 SUPA D0 X… Z…“ – in
+Maschinenkoordinaten, ohne Werkzeugkorrektur; so steht es auch im Beispiel des
+Siemens-Handbuchs (Arbeitsvorbereitung, Werkzeugwechselroutine). Zwei andere Wege trägst du
+unter <b>Befehle …</b> bei „Zum Wechselpunkt (MKS)“ ein:</p>
+<ul>
+<li><b>F_HOME</b> – an einer Maschine mit ShopTurn: der ShopTurn-Zyklus, der zum
+Werkzeugwechselpunkt fährt, den du dort eingestellt hast. Ein Befehl ohne {achsen} steht
+einmal vor jedem Werkzeugwechsel und am Ende. Ob F_HOME in einem reinen G-Code-Programm (ohne
+ShopTurn-Programmkopf) deinen Punkt kennt, prüf in der Simulation der Steuerung.</li>
+<li><b>G75 {achsen} FP=1</b> – „Festpunkt anfahren“: der Werkzeugwechselpunkt aus den
+Maschinendaten (MD30600); die Werte hinter den Achsen zählen nicht.</li>
+</ul>
 <p><b>Vor dem ersten Lauf</b> das Programm in der Simulation deiner Steuerung ansehen: Die
 Befehle für C-Achse und Antrieb richten sich nach dem Siemens-Handbuch, an der Maschine legt
 der Hersteller manches anders fest.</p>

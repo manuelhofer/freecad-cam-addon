@@ -50,6 +50,18 @@ its C axis only orients it and never appears in the path. Which spindle does wha
 postprocessor tells from the machine: the spindle the tool stations hang on (“Driven by”) is
 the drive; the other one is the main spindle. The names are in “Edit machine”; “New
 machine …” asks for the numbers on the lathe.</p>
+<p><b>To the tool change point</b> the program moves with Siemens using “G0 SUPA D0 X… Z…” –
+in machine coordinates, without tool offset; that is also the example in the Siemens manual
+(job planning, tool change routine). Two other ways you enter under <b>Commands …</b> at “To
+the change point (MCS)”:</p>
+<ul>
+<li><b>F_HOME</b> – on a machine with ShopTurn: the ShopTurn cycle that moves to the tool
+change point set there. A command without {achsen} appears once before each tool change and
+at the end. Whether F_HOME knows your point in a plain G-code program (without a ShopTurn
+program header), check in the control's simulation.</li>
+<li><b>G75 {achsen} FP=1</b> – “approach fixed point”: the tool change point from the machine
+data (MD30600); the values after the axes do not count.</li>
+</ul>
 <p><b>Before the first run</b> look at the program in your control's simulation: the commands
 for the C axis and the drive follow the Siemens manual; on the machine the builder decides
 some things differently.</p>

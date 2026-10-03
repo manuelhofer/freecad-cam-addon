@@ -334,3 +334,25 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
     11 „Siemens-Befehle“).
   - Nicht nachgeprüft an einer echten Steuerung: `SPOS[n]`/`SPCOF(n)` nach dem
     Siemens-Programmierhandbuch; Manuel programmiert an der Maschine mit ShopTurn.
+- **P-2026-10-03-26 – SUPA nachgeprüft, F_HOME und G75 als Weg zum Wechselpunkt:** Manuel
+  (2026-10-03, mit dem Link auf das Programmierhandbuch Arbeitsvorbereitung 10/2015): „das mit
+  dem SUPA … ist das noch aktuell?“ – und „aber was ist mit F_HOME?“. Nachgelesen:
+  - Arbeitsvorbereitung 10/2015 (840D sl/828D), S. 109, Werkzeugwechselroutine:
+    `G0 G40 G60 G90 SUPA X450 Y300 Z300 D0` – „Werkzeugwechselpunkt anfahren“; S. 766 SUPA in
+    der Befehlsliste, nichts davon, dass es abgelöst wäre. Grundlagen 03/2010, S. 382: G53 <
+    G153 (dazu Basisframe) < SUPA (dazu DRF, überlagerte Bewegung, externe NV, PRESET).
+    Dazu S. 513: `SPCON(2)`, `SPOS[2]=…` – die Schreibweise aus P-2026-10-03-25 stimmt.
+  - G75 „Festpunkt anfahren“ (Grundlagen 03/2010, S. 406–408): `G75 X0 Z0 FP=1` fährt auf
+    Festpunkte aus MD30600 (MKS); die Werte hinter den Achsen zählen nicht; nicht mit
+    Radiuskorrektur oder aktiver Transformation.
+  - F_HOME steht in keinem der beiden Handbücher: der ShopTurn-Zyklus, der vor jedem
+    Werkzeugwechsel zum Werkzeugwechselpunkt fährt (Forum Practical Machinist, 2023, eine
+    Y-Drehmaschine mit ShopTurn: der Zyklus ist nicht einsehbar; die Hersteller-Haken in
+    CUST_TECHCYC.SPF laufen nur in ShopTurn-Programmen, nicht in G-Code; der Fragende ruft
+    F_HOME am Anfang eines G-Code-Programms aus Fusion 360 selbst auf und schreibt vor M6
+    `G0 SUPA Y0 D0`). Ob F_HOME ohne ShopTurn-Programmkopf den eingestellten Punkt kennt, ist
+    nicht nachgeprüft.
+  - Gebaut: Ein Befehl „Zum Wechselpunkt“ ohne `{achsen}` (F_HOME, M-Befehle) steht einmal vor
+    jedem Werkzeugwechsel und am Ende – auch ohne Wechselpunkt an der Maschine (bis -25 stand er
+    zweimal da: erst X allein, dann alle). Vorbelegt bleibt `G0 SUPA D0 {achsen}`: Es geht an
+    jeder 840D, auch ohne ShopTurn. Hilfe „Programm schreiben“ nennt beide anderen Wege.

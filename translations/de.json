@@ -1787,7 +1787,7 @@
     "pp.maschine.wechselpunkt": "Wechselpunkt {punkt} ({bezug})",
     "pp.maschine.ohne_wechselpunkt": "kein Wechselpunkt – in „Maschine bearbeiten“ unter „Home und Werkzeugwechsel“",
     "pp.feld.wechselpunkt_mks": "Zum Wechselpunkt (MKS)",
-    "pp.feld.wechselpunkt_mks.tooltip": "Vor jedem Werkzeugwechsel und am Ende: zum Wechselpunkt der Maschine in Maschinenkoordinaten. {achsen} sind die Achsen mit ihren Stellungen – zuerst allein die Achse, die das Werkzeug wegzieht.",
+    "pp.feld.wechselpunkt_mks.tooltip": "Vor jedem Werkzeugwechsel und am Ende: zum Wechselpunkt der Maschine in Maschinenkoordinaten. {achsen} sind die Achsen mit ihren Stellungen – zuerst allein die Achse, die das Werkzeug wegzieht. Ohne {achsen} steht der Befehl einmal da – etwa F_HOME (ShopTurn) oder M-Befehle des Herstellers.",
     "pp.feld.wechselpunkt_wks": "Zum Wechselpunkt (WKS)",
     "pp.feld.wechselpunkt_wks.tooltip": "Wie oben, wenn der Wechselpunkt in Werkstückkoordinaten zählt: ein Eilgang im Programm.",
     "dialog.wechsel": "Werkzeugwechsel ({einheit})",

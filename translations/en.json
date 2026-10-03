@@ -1787,7 +1787,7 @@
     "pp.maschine.wechselpunkt": "change point {punkt} ({bezug})",
     "pp.maschine.ohne_wechselpunkt": "no change point – in “Edit machine” under “Home and tool change”",
     "pp.feld.wechselpunkt_mks": "To the change point (MCS)",
-    "pp.feld.wechselpunkt_mks.tooltip": "Before every tool change and at the end: to the machine's change point in machine coordinates. {achsen} are the axes with their positions – first alone the axis that pulls the tool away.",
+    "pp.feld.wechselpunkt_mks.tooltip": "Before every tool change and at the end: to the machine's change point in machine coordinates. {achsen} are the axes with their positions – first alone the axis that pulls the tool away. Without {achsen} the command appears once – e.g. F_HOME (ShopTurn) or the builder's M codes.",
     "pp.feld.wechselpunkt_wks": "To the change point (WCS)",
     "pp.feld.wechselpunkt_wks.tooltip": "As above, when the change point counts in workpiece coordinates: a rapid in the program.",
     "dialog.wechsel": "Tool change ({einheit})",

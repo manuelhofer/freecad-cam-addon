@@ -145,6 +145,16 @@ pruefe(
     f"WKS: {lcnc_wks}",
 )
 pruefe(not any("SUPA" in z for z in siemens), "ohne Wechselpunkt trotzdem SUPA")
+# Ein Befehl ohne {achsen} (ShopTurns F_HOME kennt den Punkt selbst): einmal je Wechsel und am
+# Ende – auch ohne Wechselpunkt an der Maschine.
+f_home = pp.steuerung("siemens", {"wechselpunkt_mks": "F_HOME"})
+mit_f_home = pp.programm([rundum, zweites], f_home, dreh, "Welle").zeilen
+pruefe(
+    mit_f_home.count("F_HOME") == 3
+    and mit_f_home.index("F_HOME") < mit_f_home.index("T1 D1")
+    and not any("SUPA" in z for z in mit_f_home),
+    f"F_HOME: {[z for z in mit_f_home if 'F_HOME' in z or z.startswith('T')]}",
+)
 geaendert = pp.steuerung("fanuc", {"angetrieben_ein": "M{m}3 S{s}", "unbekannt": "x"})
 pruefe("M33 S3000" in pp.programm([rundum], geaendert, dreh).zeilen, "geänderter Befehl gilt nicht")
 vorschau = pp.programm([tasche, tasche], pp.steuerung("linuxcnc"), None, vorschau=2)

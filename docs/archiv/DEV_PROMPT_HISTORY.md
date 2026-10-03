@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-26 supa-f-home
+
+### EINGELESEN
+- Manuel, 2026-10-03: Link auf das Siemens-Programmierhandbuch Arbeitsvorbereitung (10/2015) –
+  „das mit dem SUPA … ist das noch aktuell?“, dann „aber was ist mit F_HOME?“. Spezifikation
+  Steuerung (12, P-2026-10-03-19).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`_zum_wechselpunkt`: ein Befehl ohne `{achsen}` einmal),
+  `tests/test_postprozessor.py` (F_HOME), Übersetzungen (Erklärung „Zum Wechselpunkt (MKS)“),
+  Hilfe `programm.html` (de/en), Spezifikation Steuerung (12), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.148.1).
+
+### AKZEPTANZKRITERIUM
+- Steht unter „Befehle …“ bei „Zum Wechselpunkt (MKS)“ `F_HOME`, schreibt das Programm F_HOME
+  einmal vor jedem Werkzeugwechsel und am Ende; vorbelegt bleibt `G0 SUPA D0 {achsen}`.
+
+### DONE
+- SUPA im Handbuch nachgeprüft (S. 109: genau so als Werkzeugwechselpunkt; S. 766 in der
+  Befehlsliste); G75 und F_HOME in Spezifikation und Hilfe; Befehl ohne `{achsen}` einmal.
+
+### TESTS
+- `tests/test_postprozessor.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuel: an seiner Steuerung ansehen, ob F_HOME in einem G-Code-Programm seinen
+  Werkzeugwechselpunkt kennt (Simulation), dann entscheiden, was vorbelegt sein soll.
+
 ## P-2026-10-03-25 hauptspindel-und-antrieb
 
 ### EINGELESEN

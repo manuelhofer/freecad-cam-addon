@@ -464,11 +464,16 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
 
 def _zum_wechselpunkt(s, info):
     """Die Sätze zum Wechselpunkt: zuerst die Achse, die das Werkzeug wegzieht (an der
-    Drehmaschine X, sonst Z), dann die anderen – leer ohne Wechselpunkt oder Befehl."""
-    if not info.wechselpunkt:
-        return []
+    Drehmaschine X, sonst Z), dann die anderen – leer ohne Wechselpunkt oder Befehl. Ein Befehl
+    ohne {achsen} kennt den Punkt selbst – etwa ShopTurns Zyklus F_HOME, der zum
+    Werkzeugwechselpunkt aus dem Programmkopf fährt (Manuel, 2026-10-03: „aber was ist mit
+    F_HOME?“): Er steht einmal da, auch ohne Wechselpunkt an der Maschine."""
     vorlage = s.wechselpunkt_wks if info.wechsel_wks else s.wechselpunkt_mks
     if not vorlage:
+        return []
+    if "{achsen}" not in vorlage:
+        return _zeilen(vorlage) if info.name else []
+    if not info.wechselpunkt:
         return []
     zuerst = "X" if info.drehmaschine else "Z"
 
