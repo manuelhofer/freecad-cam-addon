@@ -192,7 +192,7 @@ def schritte(h):
     yield 1500
     spieler = pruefung.abspieler
     fahrt = spieler.abfahrt
-    namen = [spieler.wahl_operation.itemText(i) for i in range(spieler.wahl_operation.count())]
+    namen = [o.name for o in fahrt.operationen] if fahrt is not None else []
     h.pruefe(len(namen) >= 4, f"Operationen im Abspieler: {namen}")
     h.bild("1_fenster", pruefung.form)
     for k, (job, bild) in enumerate(((ebene1, "2_schraege"), (ebene2, "3_45_grad"))):

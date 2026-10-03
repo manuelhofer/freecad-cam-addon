@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-55 abspieler-ebene
+
+### EINGELESEN
+- Bilder aus `szenario_schwenkteil`: im Abspieler „Räumen T1 (2)“, „Räumen T1 (3)“ – welche
+  Ebene, sagte nichts.
+
+### DATEIEN
+- `camaddon/abfahren.py` (`OperationAbfahrt.ebene`), `camaddon/gui_abfahren.py` (die Auswahl mit
+  „– Ebene …“), Übersetzungen (`ab.in_ebene`), `tests/gui/szenario_schwenken.py`,
+  `tests/gui/szenario_schwenkteil.py` (suchen nach dem Namen in der Abfahrt), Spezifikation
+  (15.3), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.158.2).
+
+### AKZEPTANZKRITERIUM
+- In „Auf der Maschine prüfen“ steht bei der Operation der Ebene „… – Ebene A−30 C0“; die
+  Befunde der Kollision nennen die Operation wie bisher.
+
+### DONE
+- Wie oben (Bild 5 im Schwenkteil-Szenario).
+
+### TESTS
+- `tests/test_abfahren.py`, `tests/test_sprache.py` – OK; Szenarien `szenario_schwenken`,
+  `szenario_schwenkteil` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1, D-2, D-4, D-5, E-2 … E-4.
+
 ## P-2026-10-03-54 pruefen-schneller
 
 ### EINGELESEN

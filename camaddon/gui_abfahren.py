@@ -699,7 +699,10 @@ class Abspieler(QtGui.QWidget):
         self.wahl_operation.clear()
         if not leer:
             for op in abfahrt.operationen:
-                self.wahl_operation.addItem(op.name)
+                text = op.name
+                if op.ebene:  # 3+2: welche Ebene – die Namen allein sagen es nicht
+                    text = tr("ab.in_ebene", operation=op.name, rundachsen=op.ebene)
+                self.wahl_operation.addItem(text)
         for widget in (
             self.wahl_operation,
             self.knopf_anfang,

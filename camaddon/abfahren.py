@@ -76,6 +76,7 @@ class OperationAbfahrt:
     saetze: int  # Befehle ihrer Bahn
     art: str = ""  # die Art der CAM-Operation: „Adaptive“, „Deburr“ … (js.operationsart)
     lage: object = None  # Lage des Bezugspunkts in der Aufnahme (halter.lage); None: gerade
+    ebene: str = ""  # in einer geschwenkten Ebene (3+2): ihre Rundachsen („A−30 C0“)
 
     @property
     def einspannung(self):
@@ -253,7 +254,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             befehle = pruefung.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
         except ValueError:
             continue  # die Reichweite sagt, warum
-        vorbereitet.append((op, tc, aufnahme, eingespannt, linear, befehle, ebene is not None))
+        vorbereitet.append((op, tc, aufnahme, eingespannt, linear, befehle, ebene))
         bewegt.update(pruefung.gefahrene_achsen(aufnahme))
     ergebnis.achsen = [a for a in pruefung.kette.achsen if a in bewegt]
     index = {a: i for i, a in enumerate(ergebnis.achsen)}
@@ -311,7 +312,8 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     anflug = False  # die nächste Station kommt vom Home- oder Wechselpunkt
     vorheriger_tc = None
     davor = None  # (Lösung, Linearachsen) der Operation davor – für den Wechselpunkt in WKS
-    for op, tc, aufnahme, eingespannt, linear, befehle, geschwenkt in vorbereitet:
+    for op, tc, aufnahme, eingespannt, linear, befehle, ebene in vorbereitet:
+        geschwenkt = ebene is not None
         loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         nummer = len(ergebnis.operationen)
         if nummer and tc is not vorheriger_tc:
@@ -331,6 +333,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 len(befehle),
                 js.operationsart(op),
                 eingespannt.lage,
+                getattr(ebene, "Rundachsen", "") if geschwenkt else "",
             )
         )
         if nummer == 0 and any(h is not None for h in home):

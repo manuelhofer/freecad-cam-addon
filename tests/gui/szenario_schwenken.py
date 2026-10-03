@@ -148,8 +148,12 @@ def schritte(h):
         return
     yield 1000
     spieler = pruefung.abspieler
-    namen = [spieler.wahl_operation.itemText(i) for i in range(spieler.wahl_operation.count())]
+    # In der Auswahl steht bei einer Operation der Ebene „… – Ebene A−30 C0“; gesucht wird nach
+    # dem Namen in der Abfahrt.
+    namen = [o.name for o in spieler.abfahrt.operationen]
+    texte = [spieler.wahl_operation.itemText(i) for i in range(spieler.wahl_operation.count())]
     h.pruefe(ops and ops[0].Label in namen, f"Operation der Ebene nicht im Abspieler: {namen}")
+    h.pruefe(ops and f"{ops[0].Label} – Ebene A−30 C0" in texte, f"Auswahl ohne die Ebene: {texte}")
     h.bild("4c_pruefen_fenster", pruefung.form)
     if ops and ops[0].Label in namen:
         spieler.springe_zu_operation(namen.index(ops[0].Label))

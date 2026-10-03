@@ -1062,6 +1062,7 @@
     "wv.laenge_spindelnase": "Gauge length",
     "wv.laenge_spindelnase.tooltip": "From the spindle nose (in a turret: from the tool mount) to the tip, with holder – as the presetter measures it. “Check on machine” uses it to see whether Z reaches. Empty, with a holder: holder length + overall length − clamping depth; without a holder the overall length.",
     "wv.laenge_spindelnase.platzhalter": "empty: overall length {wert}",
+    "ab.in_ebene": "{operation} – plane {rundachsen}",
     "ab.ohne_vorschub": "“{operation}” has no feed rate – moved at {vorschub}. The tool controller sets the feed (or “Cutting data into the job”).",
     "zeit.stunden": "{h} h {min} min",
     "zeit.minuten": "{min} min",

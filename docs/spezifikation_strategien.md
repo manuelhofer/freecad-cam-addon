@@ -2457,6 +2457,8 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   Bohrung, Tasche oben; Szenario `szenario_schwenkteil`): nichts stößt an. Fand dabei: Ohne
   Wechselpunkt wechselt die Maschine, wo sie steht – der Bohrer T2 (34 mm länger als T1)
   steckte dann im Teil; der Befund sagt das jetzt dazu (`kb.wechsel_ohne_punkt`, D-5).
+  **Im Abspieler:** P-2026-10-03-55 – die Operationen einer Ebene stehen in der Auswahl als
+  „Räumen T1 (3) – Ebene A−45 C−90“ (`OperationAbfahrt.ebene`).
 - **F5 Assistent:** in „Bearbeitung“ Schritt 1 an einer 5-Achs-Maschine „Ebene schwenken:
   Fläche anklicken“ – der neue Job mit der Ebene, die Rundachsen in einem Satz.
   **Gebaut anders:** P-2026-10-03-39 – ein eigener Befehl „Ebene schwenken (3+2) …“ statt eines

@@ -1062,6 +1062,7 @@
     "wv.laenge_spindelnase": "Länge ab Spindelnase",
     "wv.laenge_spindelnase.tooltip": "Von der Spindelnase (im Revolver: von der Werkzeugaufnahme) bis zur Spitze, mit Halter – so, wie das Voreinstellgerät sie misst. Damit rechnet „Auf der Maschine prüfen“, ob Z reicht. Leer gilt mit Halter: Halterlänge + Gesamtlänge − Spanntiefe; ohne Halter die Gesamtlänge.",
     "wv.laenge_spindelnase.platzhalter": "leer: Gesamtlänge {wert}",
+    "ab.in_ebene": "{operation} – Ebene {rundachsen}",
     "ab.ohne_vorschub": "„{operation}“ hat keinen Vorschub – abgefahren mit {vorschub}. Den Vorschub setzt der Werkzeug-Controller (oder „Schnittwerte in den Job“).",
     "zeit.stunden": "{h} h {min} min",
     "zeit.minuten": "{min} min",
