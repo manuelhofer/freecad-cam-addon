@@ -96,6 +96,20 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 
 ## Nächster Schritt (konkret)
 
+**Die Nacht vom 2026-10-03 auf den 04.** (Manuel: „bau weiter, fang von mir aus mit
+5-Achs-Strategien an … mach einfach weiter, bis ich guten Morgen sage“): 3+2 durchgängig
+(P-2026-10-03-36 bis -57, 0.154.0 → 0.158.4) – Ebene aus Fläche, Bohrungswand oder Winkeln,
+Knopf im Assistenten, Programm mit der gewählten Maschine (Siemens CYCLE800, sonst gerechnet),
+Bohren am Schwenkkopf, Kollision und Abfahren mit Schwenken, Bestückung je Aufspannung;
+Siemens-Bohrzyklen CYCLE81/83/85; der Kern für simultan (ohne TCPM, G93); „Auf der Maschine
+prüfen“ öffnet schneller. Zu entscheiden: Spezifikation Strategien 15.4 (D-1, D-2, D-4, D-5)
+und 16.4 (E-2 … E-4). **Zum Ausprobieren (3+2):** `beispiele/schwenkteil_5achs.FCStd`,
+„Beispielmaschine laden …“ → 5-Achs Tisch/Tisch; Oberseite anklicken → Bearbeitung → Job;
+die 30°-Schräge anklicken → **Ebene schwenken (3+2) …** → grün „Face…: 30° geschwenkt →
+A−30 C0“ → OK → der Assistent öffnet in der Ebene → Anlegen; Grundjob → **Programm schreiben**
+(Siemens: zweimal `CYCLE800(1,"",0,27,…)`, am Ende `CYCLE800()`); **Auf der Maschine prüfen**
+→ im Abspieler „… – Ebene A−30 C0“, der Tisch steht auf A−30.
+
 **Die Nacht vom 2026-10-02 auf den 03. ist abgearbeitet** (Manuel: „arbeite die Nacht durch …
 so viel wie möglich umsetzen und automatisch pushen“): T4 „Schlichten danach“
 (P-2026-10-02-90), die Werkzeugliste nach Katalog (-91, -92), T2 dünne Lagen breit (-93),
