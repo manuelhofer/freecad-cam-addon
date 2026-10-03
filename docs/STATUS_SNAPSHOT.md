@@ -104,45 +104,43 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
 
 **Fragen an Manuel** (gebaut ist je die Empfehlung; ändern ist ein kleiner Patch). Beantwortet
 am 2026-10-03: Zeilenabstand am Boden bleibt der halbe Ø; der Standardfräser bleibt bei vc 85 /
-fz 0,1 / ae 1,5 / ap 25; Ceratizit ist CoreLine WPC UNI (eingetragen).
+fz 0,1 / ae 1,5 / ap 25; Ceratizit ist CoreLine WPC UNI (eingetragen), Ø 2 und 2,5 bleiben
+weg; die Kiste bleibt nach Werkzeugart mit ein paar realen Werkzeugen je Art – die Hersteller
+sind nur die Quelle, keine Erweiterung nötig; „das Teil muss herauskommen“ ist Grundsatz 0.
 
-1. *Ceratizit Ø 2 und 2,5:* gibt es in der Reihe WPC UNI 5 × D nicht (Serverfehler für
-   1170302000/1170302500) – weggelassen. Hast du die als andere Reihe (Nummer)?
-2. *Andere Hersteller in die Kiste aufnehmen:* heute nur im Code (`werkzeugkiste.py`).
-   Vorschlag: du nennst Hersteller, Reihe und Katalog-Link, Claude trägt sie als Reihe ein;
-   eine eigene Katalogdatei zum Selbst-Erweitern wäre ein eigener Wunsch (W-014?). Reicht der
-   Vorschlag?
-3. *Jongen Ø 3:* gibt es in der Reihe 494W nicht – weggelassen. Ein anderer Ø 3 (z. B. Garant)?
-4. *Gühring 5596:* Der Shop zeigt die Größen erst im Browser; Nummern für M2, M2,5 und ab M12
+1. *Jongen Ø 3:* gibt es in der Reihe 494W nicht – weggelassen. Ein anderer Ø 3 (z. B. Garant)?
+2. *Gühring 5596:* Der Shop zeigt die Größen erst im Browser; Nummern für M2, M2,5 und ab M12
    sind ungeprüft (ab M12 heißt die Reihe vielleicht anders, DIN 376).
-5. *Materialstand, Fragen 3–5 in der Spezifikation Strategien 12.7* (kurze Lücken
+3. *Materialstand, Fragen 3–5 in der Spezifikation Strategien 12.7* (kurze Lücken
    durchfahren, schmaler Rand, Restmaterial): gebaut ist je die Empfehlung – so lassen?
-6. *Zwei Fräser an einer Wand (T3):* Die Kontur des Ø 12 fährt in die Tasche, wo er ohne
+4. *Zwei Fräser an einer Wand (T3):* Die Kontur des Ø 12 fährt in die Tasche, wo er ohne
    Aufmaß hineinpasst, „Restmaterial“ nimmt mit dem Ø 6 den Rest – mit einem Absatz, wo sie
    sich treffen. So lassen, oder je Kontur ein eigener Fräser (ein zweiter Kontur-Block)?
-7. *Form und Genauigkeit vor der Zeit* (dein Satz von heute, jetzt Grundsatz 0): Der Prüfstand
-   misst Rest, Schnitt ins Teil, Eilgang im Material und Last – nicht die Oberfläche (Grat,
-   Zeilen) und nicht, wie genau Raster und Vielecke die Zeichnung treffen. Soll das als
-   Nächstes gemessen werden (Grathöhe am Boden, Abweichung an der Wand), oder meinst du etwas
-   anderes mit „akkurat“?
-8. *Außerdem offen bei dir:* TCPM (W-001), W-005 E1–E7, D-14/D-22/D-24/D-27 (Durchsicht,
+5. *Außerdem offen bei dir:* TCPM (W-001), W-005 E1–E7, D-14/D-22/D-24/D-27 (Durchsicht,
    Abschnitt 6), D-23 (Ausspannlänge).
 
 **Danach, der Reihe nach:**
 
-1. Was Manuels Test ergibt; seine Antworten zu Ø 2/2,5 und „andere Hersteller“.
-2. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
+1. Was Manuels Test ergibt.
+2. **Das Teil muss herauskommen** (Grundsatz 0, Manuel 2026-10-03): Der Assistent sagt rot,
+   wenn eine gewählte Fläche am Ende keine genaue Bahn hat – Wände ohne Kontur und ohne
+   „Schlichten danach“ blieben im Aufmaß, ein Zapfen aus dem Räumen wäre ein Vieleck –, mit
+   dem Haken, der fehlt. *Fertig, wenn:* am Testteil mit abgehakter Kontur und abgehaktem
+   „Schlichten danach“ die Zeile steht und mit einem der Haken verschwindet.
+3. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
    (`hoehenfeld.je_zeile`); Ziel 10 s am Testteil.
-3. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
+4. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
    Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel).
-4. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
+5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
    Bereiche; Spannhöhe.
-5. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
-6. W-005 Programm für jede Steuerung (nach E1–E7); W-002 F2; W-003 V2b, V6, V7.
+6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
+7. W-005 Programm für jede Steuerung (nach E1–E7); W-002 F2; W-003 V2b, V6, V7.
 
 **Regeln dafür** (Manuel, 2026-10-02: „du hast zwei stunden damit verbracht sachen zu testen
-für was?“): je Änderung nur die eine Prüfdatei und das eine Szenario zum geänderten Teil –
-kein Lauf über alles, auch nicht im Hintergrund. Pushen, sobald sie grün sind (Manuel,
+für was?“; 2026-10-03: „ob das nötig ist oder nicht, musst dennoch du entscheiden … wenn es nötig
+ist, etwas zu testen, dann sollte das nicht verboten werden“): so viel prüfen wie nötig, kein
+Verbot – die Regel ist die eine Prüfdatei und das eine Szenario zum geänderten Teil, kein Lauf
+über alles, nichts im Hintergrund; jeder weitere Lauf beantwortet eine Frage, die Claude hat. Pushen, sobald sie grün sind (Manuel,
 2026-10-02 nachts: „so viel wie möglich umsetzen und automatisch pushen“), mit höherer Version
 in `package.xml`, wenn er es ausprobieren soll; danach bei GitHub nachsehen. Braucht ein Punkt
 seine Entscheidung: die Frage mit Auswahl oben aufschreiben und mit dem nächsten weitermachen.

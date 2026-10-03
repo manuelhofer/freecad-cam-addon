@@ -805,10 +805,12 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
     Gesamtlänge und Schaft je Bereich von den Seiten (Ø 3 … 19 nachgeschlagen). Ø 2 und 2,5 gibt
     es dort nicht – weggelassen (Frage an Manuel). Schnittwerte nennt die Seite nicht:
     Richtwerte für VHM-Bohrer mit Innenkühlung (vc 100 in P1, f je Ø), geschätzt.
-  - **Nicht gebaut:** andere Hersteller selbst in die Kiste aufnehmen („die Möglichkeit, andere
-    Hersteller in die Liste mit aufzunehmen“) – dafür bräuchte es eine eigene Katalogdatei oder
-    einen Editor für Reihen; Vorschlag: Manuel nennt Hersteller, Reihe und Katalog, Claude trägt
-    sie als Reihe ein. Offen als Wunsch.
+  - **Geklärt (Manuel, 2026-10-03):** „andere Hersteller aufnehmen“ war kein Wunsch nach
+    einer Erweiterung – gemeint war von Anfang an: die Herstellerseiten nach Werten durchsuchen
+    und je Werkzeugart ein paar reale Werkzeuge mit Werten und Bestell-Link zum Übernehmen
+    anbieten („ja, es ist halt jetzt von Ceratizit und Hoffmann und Jongen, aber das ist ja
+    egal“). Genau das ist der Baum. „Messerkopf“ fände er schöner als „Planfräser“ („aber
+    egal“) – gelassen.
 
 ## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
 

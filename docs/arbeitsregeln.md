@@ -120,16 +120,17 @@ ein ASCII-Entwurf des Dialogs reicht.
     writing“), und etwa `szenario_erster_start` scheitert – mit dem Code hat
     das nichts zu tun, der Lauf zählt trotzdem nicht (P-2026-09-27-33).
   - Reine Doku-Änderungen brauchen keinen Testlauf.
-  - **Harte Obergrenze** (Manuel, 2026-10-03: „deine Obsession mit Testen … du
-    testest mehr als dass du Code schreibst … kann man das nicht irgendwo
-    niederschreiben, dass es einfach zu viele Tests sind“): je Patch höchstens
-    **ein** Lauf einer Prüfdatei und höchstens **ein** Szenario-Lauf. Schlägt
-    er fehl: beheben und denselben Lauf wiederholen – kein zweiter zur
-    Sicherheit, kein Messlauf, kein Lauf, um eine Frage zu beantworten, kein
-    Szenario zu einem Teil, das nur nebenbei angepasst wurde. Was danach noch
-    kaputt sein könnte, findet Manuel oder ein späterer Lauf – das ist so
-    gewollt. Am 2026-10-03 früh waren es ein Messlauf, vier Prüfläufe und zwei
-    Szenarien für einen Patch – zu viel.
+  - **So viel wie nötig – die Entscheidung liegt beim Assistenten** (Manuel,
+    2026-10-03: „es schaut von hier aus nach SEHR viel Testen aus … ob das
+    nötig ist oder nicht, musst dennoch du entscheiden, du bist ja derjenige,
+    der eine Antwort auf eine Frage braucht … wenn es nötig ist, etwas zu
+    testen, dann sollte das nicht verboten werden“): Kein Verbot, keine
+    Obergrenze. Die Regel oben bleibt (die eine Prüfdatei, das eine Szenario,
+    nichts Volles, nichts im Hintergrund); jeder weitere Lauf braucht eine
+    Frage, die nur er beantwortet – eine Zahl für einen Bericht ist keine,
+    ein Szenario zu einem nur nebenbei angepassten Teil meist auch nicht.
+    Am 2026-10-03 früh waren es für einen Patch ein Messlauf, vier Prüfläufe
+    und zwei Szenarien – das war Manuels Anlass, es anzusprechen.
   - **Jeder Lauf mit Speicherdeckel** (Manuels Rechner, Linux mit systemd):
     `systemd-run --user --scope -q -p MemoryMax=16G -p MemorySwapMax=0 freecadcmd …`
     – so auch Szenarien und eigene Versuchsskripte. Wächst ein Lauf aus dem

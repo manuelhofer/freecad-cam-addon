@@ -15,12 +15,14 @@ entsteht.
   1.1.3, kein voller Lauf nach jedem Patch; reine Doku-Änderungen ohne Testlauf.
   Ohne grüne Prüfungen nur auf ausdrückliche Ansage. Lokal committen ist
   immer in Ordnung.
-- **Harte Obergrenze fürs Prüfen** (Manuel, 2026-10-03: „deine Obsession mit Testen … du
-  testest mehr als dass du Code schreibst“): je Patch **höchstens ein** Lauf der einen
-  Prüfdatei und **höchstens ein** Szenario-Lauf – schlägt er fehl: beheben, derselbe Lauf noch
-  einmal, sonst nichts. Keine Mess-, Kontroll- oder „zur Sicherheit“-Läufe, keine Läufe, um eine
-  Frage zu beantworten, keine Szenarien zu Teilen, die nur nebenbei angepasst wurden. Der Rest
-  bleibt ungeprüft, bis Manuel oder ein späterer Lauf es findet. Bauen geht vor Prüfen.
+- **Prüfen: so viel wie nötig, nach eigener Entscheidung** (Manuel, 2026-10-03: „es schaut
+  von hier aus nach SEHR viel Testen aus … ob das nötig ist oder nicht, musst dennoch du
+  entscheiden, du bist ja derjenige, der eine Antwort auf eine Frage braucht … wenn es nötig
+  ist, etwas zu testen, dann sollte das nicht verboten werden“): Kein Verbot und keine
+  Obergrenze. Die Regel aus den Arbeitsregeln (Abschnitt 5) bleibt: die eine Prüfdatei und das
+  eine Szenario zum geänderten Teil, nichts Volles, nichts im Hintergrund – und jeder weitere
+  Lauf nur, wenn er eine Frage beantwortet, die ich wirklich habe. Was ich dafür brauche,
+  starte ich; was ich nicht brauche, nicht.
 - **„Pusch jetzt“ heißt sofort** (Manuel, 2026-09-27: „wenn ich sage pusch
   jetzt dann auch puschen !!“): was committet ist, gleich pushen – ohne auf
   laufende Prüfungen zu warten; sie laufen danach, und was sie finden, wird

@@ -528,14 +528,24 @@ Für Manuels Maschine (Drehmaschine mit C und Y) zählen zuerst 4.1, 4.3 und
      Ergebnis** (Manuel, 2026-10-03: „wir haben ja als Spezifikation die Zeit
      als größten Faktor, was nicht ganz richtig ist … die Form des Bauteils
      und eben das Akkurate da schon auch mit reinnehmen … das Teil sollte
-     danach schon so ausschauen, wie's ausschauen soll“): Eine Bahn tritt nur
-     an, wenn das Teil danach ist, wie es gezeichnet ist – kein Rest, nirgends
-     ins Teil, die Wand im Aufmaß, die Last im Rahmen; erst unter denen
-     entscheidet die Zeit. Der Prüfstand (Abschnitt 9) hält das heute für
-     Rest, Schnitt ins Teil, Eilgang im Material und Last; was er noch nicht
-     misst: die Oberfläche (Grat am Boden, Zeilen an Wänden) und wie genau
-     eine Näherung (Raster 0,05 mm, Vielecke des Adaptiv-Kerns) die
-     Zeichnung trifft – offen (siehe 13.5, „Fertig, wenn“).
+     danach schon so ausschauen, wie's ausschauen soll“; auf Nachfrage: „es
+     hilft ja nichts, wenn man eine Platte mit einem Ø-20-Zapfen gezeichnet
+     hat, aber der Zapfen ist dann nicht rund, weil die Werkzeugwege so
+     schneller waren … die Werkzeugwege müssen SINNVOLL und SCHNELL sein,
+     aber sie müssen natürlich auch das Bauteil abbilden“). Das heißt:
+     Näherungen – das Raster (0,05 mm), die Vielecke des Adaptiv-Kerns, Ringe
+     aus dem Abstandsfeld – gibt es nur beim Schruppen und nur hinter dem
+     Aufmaß; **die letzte Bahn an jeder Fläche folgt der Zeichnung**: Wände
+     und Zapfen die Kontur oder „Schlichten danach“ mit den Bögen und Kanten
+     des Modells (G2/G3, kein Vieleck), Böden eben ohne Aufmaß, Bohrungen im
+     gezeichneten Durchmesser, Freiformflächen das 3D-Schlichten in der
+     gewählten Grathöhe. Nur Bahnen, die das Teil so hinterlassen, treten im
+     Wettbewerb an; unter ihnen entscheidet die Zeit. Der Prüfstand
+     (Abschnitt 9) hält das für Rest, Schnitt ins Teil, Eilgang im Material
+     und Last. *Offen:* Der Assistent sagt noch nicht, wenn eine gewählte
+     Fläche am Ende keine genaue Bahn hat (Kontur und „Schlichten danach“
+     abgehakt – die Wand bliebe im Aufmaß, der Zapfen wäre ein Vieleck aus
+     dem Räumen); das soll er, rot, mit dem Haken, der fehlt.
 
    Gebaut: die Zeilenrichtung des Planfräsens (beide gerechnet, die
    schnellere; P-2026-10-01-24); die Varianten des Räumens (vom Rohteil her

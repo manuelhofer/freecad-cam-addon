@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-03 grundsatz-teil-und-pruefregel
+
+### EINGELESEN
+- Manuel, 2026-10-03: Ø 2/2,5 „lass sie einfach raus“; zu Form und Genauigkeit: „es hilft ja
+  nichts, wenn man eine Platte mit einem Ø-20-Zapfen gezeichnet hat, aber der Zapfen ist dann
+  nicht rund, weil die Werkzeugwege so schneller waren … die Werkzeugwege müssen SINNVOLL und
+  SCHNELL sein, aber sie müssen natürlich auch das Bauteil abbilden“; zum Prüfen: „ich will
+  nicht, dass du da auf Krampf irgendwas beschränkst … ob das nötig ist oder nicht, musst
+  dennoch du entscheiden“, „wenn es nötig ist, etwas zu testen, dann sollte das nicht verboten
+  werden“; zur Kiste: „andere Hersteller aufnehmen“ war kein Erweiterungswunsch – gemeint: je
+  Werkzeugart ein paar reale Werkzeuge mit Werten und Bestell-Link („das ist ja egal“, von wem).
+
+### DATEIEN
+- `docs/spezifikation_strategien.md` (5, Grundsatz 0), `docs/spezifikation_werkzeugverwaltung.md`
+  (13), `docs/STATUS_SNAPSHOT.md`, `docs/arbeitsregeln.md` (5), `CLAUDE.md`
+
+### AKZEPTANZKRITERIUM
+Grundsatz 0 sagt, was „das Teil muss herauskommen“ heißt; die Prüfregel ist kein Verbot mehr;
+die Fragen an Manuel sind auf dem Stand seiner Antworten.
+
+### DONE
+- Grundsatz 0: Näherungen nur beim Schruppen hinter dem Aufmaß, die letzte Bahn an jeder Fläche
+  folgt der Zeichnung; offen und als nächster Schritt 2 im Snapshot: Der Assistent sagt rot,
+  wenn eine gewählte Fläche am Ende keine genaue Bahn hat.
+- Die „harte Obergrenze“ aus P-2026-10-03-02 in CLAUDE.md und Arbeitsregeln 5 zurückgenommen:
+  so viel prüfen wie nötig, die Entscheidung liegt beim Assistenten, jeder weitere Lauf
+  beantwortet eine Frage.
+- Snapshot: Fragen 1, 2 und 7 beantwortet und entfernt, „Danach“ neu nummeriert.
+
+### TESTS
+- Nur Doku.
+
+### NEXT
+- Schritt 2 im Snapshot (die rote Zeile für Flächen ohne genaue Bahn), wenn Manuel nichts
+  anderes vorzieht.
+
 ## P-2026-10-03-02 werkzeugverwaltung-klassen-baum
 
 ### EINGELESEN
