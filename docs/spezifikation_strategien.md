@@ -2499,3 +2499,65 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   jedem Wechsel auf ein längeres Werkzeug eine Berührung, die eine echte Maschine mit M6 nicht
   hat – jetzt mit dem Satz, dass es am Wechsel liegt. Vorschlag: die Beispielmaschinen bekommen
   einen Wechselpunkt Z ganz oben.
+
+## 16. 5 Achsen simultan (W-015, Entwurf zum Besprechen)
+
+Nicht gebaut – ein Vorschlag für Manuel. Simultan ändert, wie Bahnen entstehen und was im
+Programm steht; das bespreche ich vorher (Manuel, 2026-10-03: „es nächste Mal bitte erst mit mir
+besprechen“). 3+2 (Abschnitt 15) ist die Grundlage: Rundachsen zu einer Werkzeugachse
+(`schwenken.Maschine.loese`), Achsen zu einem Punkt ohne TCPM (`Abbildung`), Abfahren und
+Kollision mit Rundachsen je Station.
+
+### 16.1 Wofür
+
+- **Kugelfräser angestellt:** Senkrecht schneidet ein Kugelfräser auf flachen Stellen mit der
+  Spitze – dort ist die Schnittgeschwindigkeit 0. Um 10–15° angestellt schneidet er auf dem
+  Umfang: bessere Oberfläche, und er darf kürzer gespannt sein.
+- **Flanke (Swarf):** eine schräge, gerade oder verwundene Wand mit dem Mantel des Fräsers in
+  einem Zug statt in vielen Zeilen mit der Spitze.
+- **Kanten in 3D:** entgraten oder fasen, die Fase immer senkrecht zur Kante, auch wo die Kante
+  steigt.
+- **Wegkippen:** tiefe Taschen und steile Wände mit kurzem Werkzeug – der Halter kippt von der
+  Wand weg.
+
+### 16.2 Was dafür gebraucht wird
+
+- **Eine Bahn mit Achse:** je Punkt die Spitze und die Werkzeugachse (im Job). Neu gegenüber 3+2:
+  die Rundachsen *entlang* der Bahn stetig – keine Sprünge um 180° in C, am Pol (Achse
+  senkrecht) C halten –, innerhalb der Grenzen.
+- **Ins Programm, zwei Wege:**
+  - *Mit TCPM* – Siemens `TRAORI`: X, Y, Z sind die Spitze im Werkstück, die Orientierung als
+    Richtungsvektor `A3= B3= C3=` (oder Rundachsen); Drehpunkt und Werkzeuglänge rechnet die
+    Steuerung (Arbeitsvorbereitung 10/2015, S. 301 und 315–316; dort auch `LEAD=`/`TILT=`,
+    Voreil- und Seitwärtswinkel). Fanuc `G43.4`, Heidenhain `M128`; LinuxCNC hat es nicht von
+    Haus aus.
+  - *Ohne TCPM* – je Punkt die Achsen aus der Kette der Maschine, wie „Auf der Maschine prüfen“
+    sie schon rechnet. Das Programm gilt dann nur für diese Maschine, diese Werkzeuglänge und
+    diesen Nullpunkt.
+- **Vorschub:** G93 (1 ÷ Zeit) wie bei 4 Achsen.
+- **Prüfen:** Abfahren und Kollision haben die Rundachsen schon je Station; dazu die Lesart mit
+  TCPM (X, Y, Z = Spitze im Werkstück).
+
+### 16.3 Stufen (Vorschlag)
+
+- **S1 Kern:** Bahn mit Achse → Rundachsen stetig, Achsen ohne TCPM; Programm mit `TRAORI` und
+  ohne. Prüfung: eine Gerade mit kippender Achse an den drei 5-Achs-Beispielen – die Spitze bleibt
+  am gedrehten Werkstück auf der Bahn.
+- **S2 Kugelfräser angestellt** (Vorschlag für zuerst): das 3D-Schlichten, das es gibt, mit
+  Anstellwinkel. Beim Kugelfräser bleibt der Mittelpunkt der Kugel, wo er ist – nur die Achse
+  kippt um ihn; die Bahn muss nicht neu gerechnet werden, nur die Achse je Punkt (voreilend in
+  Vorschubrichtung, seitwärts quer dazu). Kleinstes Risiko, gleich nützlich; der Prüfstand misst
+  wie bisher.
+- **S3 Flanke:** eine Regelfläche (schräge oder verwundene Wand) mit dem Mantel.
+- **S4 Wegkippen**, wenn der Halter sonst anstößt.
+- **S5 Entgraten in 3D.**
+
+### 16.4 Zu entscheiden (Manuel)
+
+- **E-1 TCPM:** Hat deine Maschine `TRAORI` (Option 5-Achs-Transformation)? Dann zuerst mit
+  TRAORI; sonst alles ohne TCPM, an die Maschine gebunden.
+- **E-2 Zuerst:** S2 (Kugelfräser angestellt) oder S3 (Flanke)?
+- **E-3 Anstellwinkel:** fest mit einem Feld (z. B. 15° voreilend, 0° seitwärts) – oder aus der
+  Neigung der Fläche?
+- **E-4 Orientierung im Programm:** als Richtungsvektor (`A3= B3= C3=`, unabhängig von der
+  Kinematik) oder als Rundachsen (A, C)?

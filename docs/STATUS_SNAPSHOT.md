@@ -74,7 +74,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - **W-014 5 Achsen** – begonnen in der Nacht zum 2026-10-04 (Spezifikation Strategien 15): 3+2
   als Job je geschwenkter Ebene. F1 Rechenkern, F2 Ebene als Job, F3 Programm (Siemens CYCLE800,
   sonst ohne Zyklus), F4 auf der Maschine prüfen, F5 Befehl „Ebene schwenken (3+2) …“, F6 Materialstand über Ebenen gebaut.
-  Offen: simultan (Flanke, Anstellwinkel) und Manuels Entscheidungen D-1 bis D-4.
+  Nachgezogen bis P-2026-10-03-46: Schwenkhöhe, schräge Bohrungen, Programm mit der Maschine,
+  Bohren am Schwenkkopf, Knopf im Assistenten, Bestückung je Aufspannung.
+  Offen: Manuels Entscheidungen D-1 bis D-5.
+- **W-015 5 Achsen simultan** – Entwurf zum Besprechen (Spezifikation Strategien 16): Kern,
+  Kugelfräser angestellt, Flanke, Wegkippen; E-1 bis E-4 entscheidet Manuel. Nicht gebaut.
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
