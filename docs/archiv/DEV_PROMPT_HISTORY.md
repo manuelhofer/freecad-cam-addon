@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-50 ebene-aus-winkeln
+
+### EINGELESEN
+- Spezifikation Strategien 16 (S2 Kugelfräser angestellt): Mit fester Neigung bleibt es 3+2 –
+  das 3D-Schlichten in einer geneigten Ebene fräst mit gegen das Teil gekippter Achse.
+
+### DATEIEN
+- `camaddon/schwenken.py` (`normale_aus_winkeln`, `text_winkel`, `lege_an(…, winkel=)`),
+  `camaddon/gui_schwenken.py` („Oder Winkel“: Neigung, Richtung, „Übernehmen“; `_pruefen` für
+  Fläche und Winkel; Felder mit dem gewählten Dezimalzeichen), Übersetzungen (`sw.winkel`,
+  `sw.panel.winkel*`, `sw.panel.neigung*`, `sw.panel.richtung*`), Hilfe `schwenken.html` (de/en),
+  `tests/test_schwenken.py`, `tests/gui/szenario_schwenken.py`, Spezifikation (15.3, 16.3),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.157.0).
+
+### AKZEPTANZKRITERIUM
+- „15° nach 90°“ → grün „15° nach 90°: 15° geschwenkt → A15 C0“, OK legt den Job an (Fläche leer,
+  Ebene durch den Nullpunkt). Versuch: 3D-Schlichten der Kuppel senkrecht und 15° geneigt –
+  dieselbe Fläche, dieselbe Zeit.
+
+### DONE
+- Wie oben (Bild 8 im Szenario; Versuch: 3,43 / 3,45 min, Rest 0,0037 / 0,0035 mm).
+
+### TESTS
+- `tests/test_schwenken.py` – OK; Szenario `szenario_schwenken` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1 … D-5, E-1 … E-4, E8.
+
 ## P-2026-10-03-49 simultan-kern
 
 ### EINGELESEN

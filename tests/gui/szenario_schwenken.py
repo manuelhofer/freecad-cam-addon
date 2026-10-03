@@ -246,3 +246,26 @@ def schritte(h):
         )
         h.bild("7_bestueckung", b.form)
         b.reject()
+
+    # --- Ebene aus Winkeln: 15° geneigt, der Kopf nach +Y (angestellter Kugelfräser) -----------
+    Gui.Control.showDialog(gui_schwenken.SchwenkenPanel(grundjob))
+    yield 500
+    w = gui_schwenken.SchwenkenPanel.offen
+    h.pruefe(w is not None, "„Ebene schwenken“ ohne Fläche öffnet nicht")
+    if w is not None:
+        w.feld_neigung.setValue(15.0)
+        w.feld_richtung.setValue(90.0)
+        w.winkel_nehmen()
+        yield 300
+        h.pruefe(
+            w.ergebnis.text() == "15° nach 90°: 15° geschwenkt → A15 C0",
+            f"aus Winkeln: {w.ergebnis.text()!r}",
+        )
+        h.bild("8_aus_winkeln", w.form)
+        w.haken_bearbeiten.setChecked(False)
+        h.pruefe(w.accept() is True, "„OK“ aus Winkeln ging nicht")
+        yield 800
+        neu = [e for e in sw.ebenen_von(grundjob) if e.Flaeche == ""]
+        h.pruefe(
+            len(neu) == 1 and neu[0].Rundachsen == "A15 C0", f"Ebenen: {[e.Label for e in neu]}"
+        )

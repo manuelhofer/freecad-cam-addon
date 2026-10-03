@@ -126,6 +126,25 @@ def achse_der_wand(form, flaeche):
     return max(offen, key=lambda o: o[0].z)
 
 
+def normale_aus_winkeln(neigung, richtung):
+    """Die Werkzeugachse (Einheitsvektor im Grundjob), um `neigung` Grad gegen die Senkrechte
+    gekippt, der Kopf nach `richtung` Grad (von oben gesehen, 0 = +X, 90 = +Y)."""
+    n, r = math.radians(float(neigung)), math.radians(float(richtung))
+    return FreeCAD.Vector(math.sin(n) * math.cos(r), math.sin(n) * math.sin(r), math.cos(n))
+
+
+def text_winkel(neigung, richtung):
+    """„15° nach 90°“ – eine Ebene ohne Fläche, aus ihren Winkeln."""
+    from . import einheiten
+
+    zeichen = einheiten.gewaehltes_dezimalzeichen() or "."
+
+    def zahl(wert):
+        return f"{float(wert):.1f}".rstrip("0").rstrip(".").replace(".", zeichen).replace("-", "−")
+
+    return tr("sw.winkel", neigung=zahl(neigung), richtung=zahl(richtung))
+
+
 def normale_der(ebene_):
     """Die Werkzeugachse der Ebene im Grundjob (Z der Ebene)."""
     return ebene_.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
@@ -620,11 +639,13 @@ def _eigenschaften(job):
         job.setEditorMode(name, 1)  # nur lesen: gerechnet
 
 
-def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None):
+def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None, winkel=None):
     """Legt die geschwenkte Ebene der Fläche `flaeche` („Face12“, am Modell des Grundjobs) als
     neuen Job an (Spezifikation Strategien 15.1) – ohne eigene Transaktion: Das Modell liegt so,
     dass die Fläche nach oben zeigt und auf z 0 liegt, das Rohteil ist das des Grundjobs, mit
-    ihm gedreht (ein Klon); dazu die Eigenschaften „5-Achs“. `maschine`: sw.Maschine für die
+    ihm gedreht (ein Klon); dazu die Eigenschaften „5-Achs“. Statt einer Fläche `winkel`
+    (Neigung, Richtung in Grad, normale_aus_winkeln): die Ebene durch den Nullpunkt des
+    Grundjobs, etwa für einen angestellten Kugelfräser. `maschine`: sw.Maschine für die
     Rundachsen – ohne: Tisch/Tisch A, C. Gibt den Job zurück; ValueError mit einem Satz, wenn
     die Fläche nicht eben ist oder die Maschine sie nicht erreicht."""
     import Path.Main.Job as PathJob
@@ -633,16 +654,21 @@ def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None):
     from . import vierachs_rohteil as vr
 
     klon_grund = vr.modell(grundjob)
-    ebene_ = ebene_aus_flaeche(klon_grund.Shape, flaeche, x_richtung=x_richtung)
+    if winkel is not None:
+        ebene_ = ebene(normale_aus_winkeln(*winkel), FreeCAD.Vector(), x_richtung=x_richtung)
+        flaeche = ""
+    else:
+        ebene_ = ebene_aus_flaeche(klon_grund.Shape, flaeche, x_richtung=x_richtung)
+    bezeichnung = flaeche or text_winkel(*winkel)
     normale = normale_der(ebene_)
     if maschine is not None:
         loesungen = maschine.loese(normale)
         if not loesungen:
-            raise ValueError(tr("sw.fehler.keine_stellung", flaeche=flaeche))
+            raise ValueError(tr("sw.fehler.keine_stellung", flaeche=bezeichnung))
         rund = loesungen[0]
         if not all(a.erlaubt(rund[a.buchstabe]) for a in maschine.rundachsen):
             raise ValueError(
-                tr("sw.fehler.grenze", flaeche=flaeche, rundachsen=text_rundachsen(rund))
+                tr("sw.fehler.grenze", flaeche=bezeichnung, rundachsen=text_rundachsen(rund))
             )
     else:
         rund = rundachsen_ohne_maschine(normale)
@@ -671,7 +697,9 @@ def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None):
     job.Ebene = ebene_
     job.Flaeche = flaeche
     job.Rundachsen = text_rundachsen(rund)
-    job.Label = name or tr("sw.job", job=grundjob.Label, flaeche=flaeche, rundachsen=job.Rundachsen)
+    job.Label = name or tr(
+        "sw.job", job=grundjob.Label, flaeche=bezeichnung, rundachsen=job.Rundachsen
+    )
     dokument.recompute()
     return job
 

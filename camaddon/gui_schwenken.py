@@ -18,6 +18,7 @@ from . import schwenken as sw
 from . import symbol
 from . import vierachs_rohteil as vr
 from .gui_hilfe import kopfzeile
+from .gui_zahlen import zahlenformat
 from .sprache import tr
 
 GRUEN = "#4e9a06"
@@ -100,6 +101,7 @@ class SchwenkenPanel:
     def __init__(self, grundjob, flaeche=None):
         self.grundjob = grundjob
         self.flaeche = None
+        self.winkel = None  # (Neigung, Richtung) – statt einer Fläche
         self.lage = None
         self.rund = None
         self.vorhanden = None  # der Job einer gleichen Ebene, die es schon gibt
@@ -122,6 +124,25 @@ class SchwenkenPanel:
         raster.addRow(tr("sw.panel.maschine_titel"), self.maschine_text)
         self.flaeche_text = QtGui.QLabel(tr("sw.panel.anklicken"))
         raster.addRow(tr("sw.panel.flaeche"), self.flaeche_text)
+        # Oder ohne Fläche: Neigung und Richtung (angestellter Kugelfräser, Bohrung im Winkel).
+        winkel = QtGui.QWidget()
+        winkel_aufbau = QtGui.QHBoxLayout(winkel)
+        winkel_aufbau.setContentsMargins(0, 0, 0, 0)
+        self.feld_neigung = self._winkelfeld(0.0, 120.0, tr("sw.panel.neigung.tooltip"))
+        self.feld_richtung = self._winkelfeld(-180.0, 180.0, tr("sw.panel.richtung.tooltip"))
+        for beschriftung, feld in (
+            (tr("sw.panel.neigung"), self.feld_neigung),
+            (tr("sw.panel.richtung"), self.feld_richtung),
+        ):
+            winkel_aufbau.addWidget(QtGui.QLabel(beschriftung))
+            winkel_aufbau.addWidget(feld)
+        knopf_winkel = QtGui.QPushButton(tr("sw.panel.winkel_knopf"))
+        knopf_winkel.setToolTip(tr("sw.panel.winkel_knopf.tooltip"))
+        knopf_winkel.setAutoDefault(False)
+        knopf_winkel.clicked.connect(self.winkel_nehmen)
+        winkel_aufbau.addWidget(knopf_winkel)
+        winkel_aufbau.addStretch()
+        raster.addRow(tr("sw.panel.winkel"), winkel)
         aufbau.addLayout(raster)
         self.ergebnis = QtGui.QLabel("")
         self.ergebnis.setWordWrap(True)
@@ -150,15 +171,39 @@ class SchwenkenPanel:
         if gemeint in klone:
             QtCore.QTimer.singleShot(0, lambda: self.waehle(unterelement))
 
+    def _winkelfeld(self, von, bis, tooltip):
+        feld = QtGui.QDoubleSpinBox()
+        feld.setLocale(zahlenformat())
+        feld.setRange(von, bis)
+        feld.setDecimals(1)
+        feld.setSuffix(" °")
+        feld.setToolTip(tooltip)
+        return feld
+
     def waehle(self, flaeche):
         """Die Fläche (am Modell des Grundjobs): Ebene, Schwenkwinkel und Rundachsen zeigen."""
-        self.flaeche, self.lage, self.rund, self.vorhanden = flaeche, None, None, None
+        self.flaeche, self.winkel = flaeche, None
+        self.lage, self.rund, self.vorhanden = None, None, None
         self.flaeche_text.setText(flaeche)
         try:
             lage = sw.ebene_aus_flaeche(vr.modell(self.grundjob).Shape, flaeche)
         except ValueError as grund:
             self._zeige(str(grund), ROT)
             return
+        self._pruefen(flaeche, lage)
+
+    def winkel_nehmen(self):
+        """„Übernehmen“: die Ebene aus Neigung und Richtung statt aus einer Fläche."""
+        neigung, richtung = self.feld_neigung.value(), self.feld_richtung.value()
+        self.flaeche, self.winkel = None, (neigung, richtung)
+        self.lage, self.rund, self.vorhanden = None, None, None
+        bezeichnung = sw.text_winkel(neigung, richtung)
+        self.flaeche_text.setText(bezeichnung)
+        lage = sw.ebene(sw.normale_aus_winkeln(neigung, richtung), FreeCAD.Vector())
+        self._pruefen(bezeichnung, lage)
+
+    def _pruefen(self, flaeche, lage):
+        """Schwenkwinkel und Rundachsen der Ebene `lage` – grün, oder rot, warum nicht."""
         winkel = sw.schwenkwinkel(lage)
         if winkel < 0.01:
             self._zeige(tr("sw.panel.waagerecht", flaeche=flaeche), ROT)
@@ -218,7 +263,7 @@ class SchwenkenPanel:
         dokument = self.grundjob.Document
         dokument.openTransaction(tr("sw.titel"))
         try:
-            job = sw.lege_an(self.grundjob, self.flaeche, self.maschine)
+            job = sw.lege_an(self.grundjob, self.flaeche, self.maschine, winkel=self.winkel)
         except Exception as fehler:  # ein Satz statt eines halben Jobs
             dokument.abortTransaction()
             self._zeige(str(fehler), ROT)

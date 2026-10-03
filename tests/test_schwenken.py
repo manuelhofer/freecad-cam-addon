@@ -339,6 +339,18 @@ pruefe(sw.ist_ebene(planjob) and not sw.ist_ebene(grundjob), "Ebene am Job")
 pruefe(planjob.Grundjob == grundjob and planjob.Flaeche == schraege, "Grundjob, Fläche")
 pruefe(sw.rundachsen_von(planjob) == {"A": -NEIGUNG, "C": 0.0}, f"Rundachsen {planjob.Rundachsen}")
 pruefe(planjob.Ebene.isSame(e, 1e-9), "Ebene am Job nicht die der Fläche")
+# Ohne Fläche, aus Winkeln: 15° geneigt, der Kopf nach +Y – die Ebene durch den Nullpunkt.
+schief_job = sw.lege_an(grundjob, None, winkel=(15.0, 90.0))
+pruefe(
+    schief_job.Flaeche == ""
+    and sw.rundachsen_von(schief_job) == {"A": 15.0, "C": 0.0}
+    and "15° nach 90°" in schief_job.Label
+    and nahe_v(sw.normale_der(schief_job.Ebene), sw.normale_aus_winkeln(15.0, 90.0))
+    and nahe_v(sw.normale_aus_winkeln(15.0, 90.0), (0, math.sin(math.radians(15)), math.cos(math.radians(15))))
+    and nahe_v(schief_job.Ebene.Base, (0, 0, 0)),
+    f"aus Winkeln: {schief_job.Label}, {schief_job.Rundachsen}, {schief_job.Ebene}",
+)  # fmt: skip
+doc.removeObject(schief_job.Name)
 # Im Job der Ebene zeigt die Schräge nach oben und liegt auf z 0.
 klon = vr.modell(planjob)
 lokal = klon.Shape.getElement(schraege)

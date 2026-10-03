@@ -2480,6 +2480,10 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   **Keine doppelte Ebene:** P-2026-10-03-48 – gibt es zur angeklickten Fläche schon eine Ebene
   mit derselben Normalen (dieselbe Fläche, oder eine parallele), sagt das Fenster es, und OK
   öffnet sie (mit „Bearbeitung“ darin), statt einen zweiten Job anzulegen.
+  **Ebene aus Winkeln:** P-2026-10-03-50 – ohne passende Fläche Neigung und Richtung
+  (`normale_aus_winkeln`, `lege_an(…, winkel=)`), die Ebene durch den Nullpunkt des Grundjobs;
+  im Fenster „Oder Winkel“ mit „Übernehmen“. Für einen angestellten Kugelfräser, eine Bohrung
+  unter einem Winkel, oder um einen Halter von einer Wand wegzukippen.
 - **F6 danach:** der Materialstand über Ebenen hinweg, simultan (Flanke, Anstellwinkel).
   **Materialstand gebaut:** P-2026-10-03-40 – eine Ebene beginnt, wo nach dem Grundjob und den
   Ebenen davor noch Material steht: je Säule ihres Rasters von der Oberkante des gedrehten
@@ -2559,6 +2563,12 @@ Kollision mit Rundachsen je Station.
   kippt um ihn; die Bahn muss nicht neu gerechnet werden, nur die Achse je Punkt (voreilend in
   Vorschubrichtung, seitwärts quer dazu). Kleinstes Risiko, gleich nützlich; der Prüfstand misst
   wie bisher.
+  **Als 3+2 schon nutzbar (P-2026-10-03-50):** mit fester Neigung braucht es kein Simultan – eine
+  Ebene aus Winkeln („Ebene schwenken“ → „Oder Winkel“: Neigung, Richtung) und darin das
+  3D-Schlichten, das es gibt. Versuch an der Kuppel aus `test_schlichten3d` (Kugel Ø 6,
+  Grathöhe 0,01): senkrecht 3,43 min, Rest im Mittel 0,0037 mm; 15° nach +Y 3,45 min, 0,0035 mm
+  – dieselbe Fläche; auf der Kuppelspitze schneidet die Kugel mit Ø 1,55 statt mit der Spitze.
+  Simultan bliebe für eine Neigung, die der Vorschubrichtung folgt.
 - **S3 Flanke:** eine Regelfläche (schräge oder verwundene Wand) mit dem Mantel.
 - **S4 Wegkippen**, wenn der Halter sonst anstößt.
 - **S5 Entgraten in 3D.**
