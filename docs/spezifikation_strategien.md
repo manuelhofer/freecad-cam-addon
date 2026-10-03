@@ -2516,6 +2516,11 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
 - **D-1 Schwenkdatensatz:** Wie heißt er an einer Siemens mit Schwenkkopf/-tisch („TC1“)? Heute
   eine Einstellung beim Postprozessor, vorbelegt leer (ein Datensatz).
 - **D-2 Richtung:** CYCLE800 `_DIR` −1 (kleinerer Wert der ersten Rundachse) – oder +1?
+  Nachgedacht (2026-10-04 nachts): Mit `_DIR` wählt die Steuerung zwischen den zwei Stellungen
+  (etwa A−20 C10 oder A+20 C190); „Auf der Maschine prüfen“ fährt die Stellung, die das Addon
+  rechnet (der kleinste Schwenk). Fest −1 passt nur, wenn die erste Rundachse dabei den
+  kleineren Wert hat. **Vorschlag:** `_DIR` je Ebene passend zur gerechneten Stellung – dafür
+  die Frage: Welche Rundachse ist in deinem Schwenkdatensatz die erste (A oder C, bzw. B)?
 - **D-3 Ohne Zyklus:** Drehpunkt der Rundachsen aus der Maschine (die Baugruppe) – stimmt nur,
   wenn der Nullpunkt im Job zur Aufnahme passt wie in „Auf der Maschine prüfen“.
   **Entschieden** durch Manuels Antwort zu TCPM (Status, 2026-10-03 abends: „die G-Sätze ohne
