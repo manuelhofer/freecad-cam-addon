@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-42 ebene-aus-bohrung
+
+### EINGELESEN
+- Spezifikation Strategien 15 (F1, F5); `bohrung_bahn.bohrungen` (eine Bohrung ist eine
+  senkrechte Zylinderwand – in der Ebene ihrer Achse wird sie das).
+
+### DATEIEN
+- `camaddon/schwenken.py` (`ebene_aus_flaeche` nimmt auch eine Zylinderwand, `achse_der_wand`),
+  Übersetzungen (`sw.fehler.nicht_eben`, `sw.panel.text`, `sw.panel.anklicken`), Hilfe
+  `schwenken.html` (de/en), `tests/test_schwenken.py`, Spezifikation (15.3),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.154.3).
+
+### AKZEPTANZKRITERIUM
+- Die Wand einer schrägen Sacklochbohrung (30°, mit Bohrspitze) ergibt die Ebene senkrecht zur
+  Achse, zum Eintritt hin; eine Durchgangsbohrung die nach oben, eine Bohrung von unten die nach
+  unten; die Wand der Bohrung in der Schräge dieselbe Ebene wie die Schräge, darin ist sie eine
+  Bohrung. Eine Kugelfläche: der Satz, warum nicht.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_schwenken.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2 und D-1 … D-5; simultan zu besprechen; Siemens: G81 → CYCLE81 vorschlagen.
+
 ## P-2026-10-03-41 schwenken-sicher
 
 ### EINGELESEN

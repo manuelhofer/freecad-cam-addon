@@ -70,11 +70,44 @@ lokal.Placement = e.inverse().multiply(lokal.Placement)
 pruefe(nahe(lokal.BoundBox.ZMin, 0.0) and nahe(lokal.BoundBox.ZMax, 0.0), f"lokal {lokal.BoundBox}")
 pruefe(nahe_v(sw.aussennormale(lokal), (0, 0, 1)), "lokal nicht nach oben")
 try:
-    sw.ebene_aus_flaeche(Part.makeCylinder(5, 10), "Face1")
+    sw.ebene_aus_flaeche(Part.makeSphere(5), "Face1")
 except ValueError as grund:
-    pruefe("eben" in str(grund), f"Mantel: {grund}")
+    pruefe("eben" in str(grund), f"Kugel: {grund}")
 else:
-    pruefe(False, "Mantel als Ebene")
+    pruefe(False, "Kugel als Ebene")
+# Die Wand einer Bohrung: die Achse zum offenen Ende. Schräg (30° gegen Z) in einen Block
+# 60 × 40 × 30, 15 tief mit Bohrspitze; senkrecht durch; von unten, sacklochtief.
+
+
+def wand(form):
+    return next(
+        f"Face{i + 1}" for i, f in enumerate(form.Faces) if isinstance(f.Surface, Part.Cylinder)
+    )
+
+
+achse = V(math.sin(math.radians(30.0)), 0, math.cos(math.radians(30.0)))
+eintritt = V(30, 20, 30)
+grund = eintritt - achse * 15.0
+bohrung = Part.makeCylinder(3, 35, grund, achse).fuse(
+    Part.makeCone(3, 0, 3 / math.tan(math.radians(59.0)), grund, achse * -1)
+)
+schraeg = Part.makeBox(60, 40, 30).cut(bohrung)
+lage = sw.ebene_aus_flaeche(schraeg, wand(schraeg))
+pruefe(nahe_v(sw.normale_der(lage), achse, 1e-9), f"schräge Bohrung: {sw.normale_der(lage)}")
+pruefe(nahe(sw.schwenkwinkel(lage), 30.0, 1e-6), f"schräge Bohrung: {sw.schwenkwinkel(lage)}°")
+pruefe(
+    abs((lage.Base - eintritt).dot(achse)) < 3.0 * math.tan(math.radians(30.0)) + 1e-6,
+    f"schräge Bohrung: Ebene nicht am Eintritt ({lage.Base})",
+)
+durch = Part.makeBox(40, 40, 20).cut(Part.makeCylinder(4, 30, V(20, 20, -5)))
+lage = sw.ebene_aus_flaeche(durch, wand(durch))
+pruefe(nahe_v(sw.normale_der(lage), (0, 0, 1)), f"Durchgangsbohrung: {sw.normale_der(lage)}")
+unten = Part.makeBox(40, 40, 20).cut(Part.makeCylinder(4, 15, V(20, 20, -5)))
+lage = sw.ebene_aus_flaeche(unten, wand(unten))
+pruefe(
+    nahe_v(sw.normale_der(lage), (0, 0, -1)) and nahe(lage.Base.z, 0.0),
+    f"Bohrung von unten: {sw.normale_der(lage)}, {lage.Base}",
+)
 # Ebene parallel zu X: X des Grundjobs steht senkrecht – dann Y.
 seite = sw.ebene(V(1, 0, 0), V(100, 0, 0))
 pruefe(nahe_v(seite.Rotation.multVec(V(1, 0, 0)), (0, 1, 0)), "Seite: X der Ebene nicht Y")
@@ -531,6 +564,15 @@ if bohrungen:
         any(z.startswith(("G81", "G83")) and f"X{soll[0]:.3f} Y{soll[1]:.3f}" in z for z in lcnc),
         f"LinuxCNC: Bohrzyklus nicht gerechnet ({soll}): {[z for z in lcnc if z.startswith('G8')]}",
     )
+# Statt der Schräge die Wand der Bohrung angeklickt: dieselbe Ebene, die Bohrung darin senkrecht.
+wand_im_grundjob = wand(vr.modell(grundjob).Shape)
+ueber_wand = sw.lege_an(grundjob, wand_im_grundjob)
+doc.recompute()
+pruefe(
+    ueber_wand.Ebene.isSame(planjob.Ebene, 1e-6) and ueber_wand.Rundachsen == planjob.Rundachsen,
+    f"über die Wand: {ueber_wand.Ebene} statt {planjob.Ebene}",
+)
+pruefe(len(bb.bohrungen(vr.modell(ueber_wand).Shape)) == 1, "über die Wand: keine Bohrung")
 FreeCAD.closeDocument(doc.Name)
 
 if fehler:

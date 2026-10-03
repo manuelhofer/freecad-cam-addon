@@ -2446,6 +2446,11 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   „Face3: 30° geschwenkt → A−30 C0“; „OK“ legt den Job an (die Maschine des Grundjobs mit),
   zeigt sein Modell (die Fläche oben) und öffnet „Bearbeitung“ darin, die Fläche gewählt.
   Szenario `szenario_schwenken`: bis „Auf der Maschine prüfen“ auf der Tisch/Tisch-Maschine.
+  **Schräge Bohrungen:** P-2026-10-03-42 – statt einer ebenen Fläche geht auch die Wand einer
+  Bohrung (eines Zapfens): Z der Ebene ist ihre Achse zum offenen Ende (hinter dem Ende auf der
+  Achse, zwei Durchmesser weiter, kein Material; bei Durchgangsbohrungen das Ende, das mehr nach
+  oben zeigt), die Ebene geht durch die Mitte dieses Endes (`achse_der_wand`). Für Bohrungen, um
+  deren Eintritt keine ebene Fläche ist (in einer Rundung, an einem Zylinder).
 - **F6 danach:** der Materialstand über Ebenen hinweg, simultan (Flanke, Anstellwinkel).
   **Materialstand gebaut:** P-2026-10-03-40 – eine Ebene beginnt, wo nach dem Grundjob und den
   Ebenen davor noch Material steht: je Säule ihres Rasters von der Oberkante des gedrehten

@@ -8,8 +8,9 @@ Aufspannung, die die Maschine selbst dreht: ein eigener Job (lege_an), dessen Mo
 dass die gewählte Fläche nach oben zeigt – darin rechnet jede Strategie unverändert.
 
 - **Ebene** (`ebene_aus_flaeche`): ein Placement von der Ebene in den Grundjob – Z ist die
-  Außennormale der Fläche (die Werkzeugachse), X die Richtung von X des Grundjobs in der Ebene,
-  der Ursprung der Punkt der Ebene, der dem Ursprung des Grundjobs am nächsten liegt.
+  Außennormale der Fläche (die Werkzeugachse; an der Wand einer Bohrung ihre Achse zum offenen
+  Ende), X die Richtung von X des Grundjobs in der Ebene, der Ursprung der Punkt der Ebene, der
+  dem Ursprung des Grundjobs am nächsten liegt.
 - **Rundachsen** (`Maschine.loese`, `rundachsen_ohne_maschine`): die Stellung, in der die
   Werkzeugachse gegen das Werkstück die Normale ist – aus der Kette der Maschine
   (reichweite.Pruefung), sonst für einen Tisch/Tisch A (um X), C (um Z) mit dem Drehpunkt im
@@ -76,16 +77,49 @@ def ebene(normale, punkt, bezug=None, x_richtung=None):
 
 
 def ebene_aus_flaeche(form, name, bezug=None, x_richtung=None):
-    """Die Ebene der ebenen Fläche `name` („Face6“) von `form` (im Grundjob) – ValueError mit
-    einem Satz, wenn es sie nicht gibt oder sie nicht eben ist."""
+    """Die Ebene der ebenen Fläche `name` („Face6“) von `form` (im Grundjob) – oder, ist sie die
+    Wand einer Bohrung (eines Zapfens), die Ebene senkrecht zu ihrer Achse durch ihr offenes Ende
+    (achse_der_wand): Dann steht das Werkzeug in der Achse, auch wenn um den Eintritt keine ebene
+    Fläche ist. ValueError mit einem Satz, wenn es die Fläche nicht gibt oder sie beides nicht
+    ist."""
     nummer = int(name[4:]) - 1 if name.startswith("Face") and name[4:].isdigit() else -1
     if not 0 <= nummer < len(form.Faces):
         raise ValueError(tr("sw.fehler.flaeche", name=name))
     flaeche = form.Faces[nummer]
     normale = aussennormale(flaeche)
-    if normale is None:
+    if normale is not None:
+        return ebene(normale, flaeche.Vertexes[0].Point, bezug, x_richtung)
+    achse = achse_der_wand(form, flaeche)
+    if achse is None:
         raise ValueError(tr("sw.fehler.nicht_eben", name=name))
-    return ebene(normale, flaeche.Vertexes[0].Point, bezug, x_richtung)
+    return ebene(achse[0], achse[1], bezug, x_richtung)
+
+
+def achse_der_wand(form, flaeche):
+    """(Richtung, Punkt) für die Zylinderfläche einer Bohrung oder eines Zapfens: die Achse zum
+    offenen Ende hin und dessen Mitte. Offen ist ein Ende, hinter dem auf der Achse – zwei
+    Durchmesser weiter, über eine Bohrspitze hinaus – kein Material ist; sind es beide
+    (Durchgangsbohrung), das, das mehr nach oben zeigt. None, wenn sie kein Zylinder ist oder
+    kein Ende offen."""
+    import Part
+
+    zylinder = flaeche.Surface
+    if not isinstance(zylinder, Part.Cylinder):
+        return None
+    achse = FreeCAD.Vector(zylinder.Axis)
+    achse.normalize()
+    mitte = FreeCAD.Vector(zylinder.Center)
+    u0, _u1, v0, v1 = flaeche.ParameterRange
+    enden = [(flaeche.valueAt(u0, v) - mitte).dot(achse) for v in (v0, v1)]
+    weit = 2.0 * float(zylinder.Radius) + 1.0
+    offen = []
+    for t, seite in ((max(enden), 1.0), (min(enden), -1.0)):
+        punkt = mitte + achse * t
+        if not form.isInside(punkt + achse * (seite * weit), 1e-6, True):
+            offen.append((achse * seite, punkt))
+    if not offen:
+        return None
+    return max(offen, key=lambda o: o[0].z)
 
 
 def normale_der(ebene_):
