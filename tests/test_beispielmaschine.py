@@ -6,7 +6,8 @@
 # jede Achse fährt, und die Auswahl merkt sich die zuletzt geladene. Zuletzt
 # die Drehmaschine mit eigenen Maßen („Neue Maschine …“): Name, Wege,
 # Bettneigung, Plätze, Drehzahl und die schräge Achse – ebenso die 3-Achs-Fräse
-# mit Wegen, Drehzahl und Name (D-26) – und ungültige Maße. X und Z der Drehmaschine
+# mit Wegen, Drehzahl und Name (D-26), die 5-Achs-Fräsen dazu mit Schwenkbereichen – und
+# ungültige Maße. X und Z der Drehmaschine
 # zählen wie an der Maschine: ab Spindelachse und Spindelnase bis zur Mitte von P1.
 import math
 import os
@@ -315,6 +316,50 @@ pruefe(beispielmaschine.FraesenMasse().fehler() == [], "Vorgabe der Fräse ungü
 falsch = beispielmaschine.FraesenMasse(weg_y=(0.0, 0.0), drehzahl=0)
 felder = [feld for feld, _satz in falsch.fehler()]
 pruefe(felder == ["weg_y", "drehzahl"], f"ungültige Maße der Fräse: {felder}")
+
+# Die 5-Achs-Fräsen mit eigenen Maßen (D-26): Wege, Schwenkbereiche, Drehzahl, Name; die
+# Vorgaben sind die Beispiele.
+for art, schwenk in (
+    (beispielmaschine.TISCH_TISCH, (("A", -30.0, 110.0),)),
+    (beispielmaschine.KOPF_TISCH, (("B", -90.0, 45.0),)),
+    (beispielmaschine.KOPF_KOPF, (("A", -95.0, 95.0), ("B", -15.0, 105.0))),
+):
+    vorgabe = beispielmaschine.FuenfachsMasse.vorgabe(art)
+    pruefe(vorgabe.fehler() == [], f"Vorgabe {art} ungültig: {vorgabe.fehler()}")
+    masse = beispielmaschine.FuenfachsMasse(
+        art=art,
+        name="Meine 5-Achs",
+        weg_x=(-400.0, 410.0),
+        weg_y=(-220.0, 230.0),
+        weg_z=(-300.0, 120.0),
+        schwenk=schwenk,
+        drehzahl=12000.0,
+    )
+    asm, ma = beispielmaschine.lade(art, masse)
+    kette = kette_modul.lies_kette(asm)
+    grenzen = {a.gelenk.Label: (a.minimum, a.maximum) for a in kette.achsen}
+    erwartet = {"X": (-400.0, 410.0), "Y": (-220.0, 230.0), "Z": (-300.0, 120.0)}
+    erwartet.update({b: (unten, oben) for b, unten, oben in schwenk})
+    pruefe(
+        {k: grenzen.get(k) for k in erwartet} == erwartet,
+        f"Grenzen {art}: {grenzen}",
+    )
+    s1 = next(b for b in m.betriebsarten(ma) if b.NcName == "S1")
+    pruefe(s1.Drehzahl == 12000, f"S1 {art}: {s1.Drehzahl}")
+    pruefe(ma.Label == "Meine 5-Achs" and asm.Document.Label == "Meine 5-Achs", f"Name {art}")
+    App.closeDocument(asm.Document.Name)
+falsch = beispielmaschine.FuenfachsMasse(
+    art=beispielmaschine.KOPF_KOPF,
+    weg_x=(-10.0, 10.0),
+    weg_y=(-10.0, 10.0),
+    weg_z=(5.0, 10.0),
+    schwenk=(("A", 10.0, 90.0), ("B", -400.0, 0.0)),
+)
+felder = [feld for feld, _satz in falsch.fehler()]
+pruefe(
+    felder == ["weg_z", "schwenk_A", "schwenk_B", "drehzahl"],
+    f"ungültige Maße der 5-Achs-Fräse: {felder}",
+)
 
 # Ungültige Maße: je Feld ein Satz.
 falsch = beispielmaschine.DrehmaschinenMasse(

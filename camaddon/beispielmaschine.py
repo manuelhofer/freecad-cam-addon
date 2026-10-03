@@ -64,6 +64,7 @@ TISCH_TISCH = "tisch_tisch"
 KOPF_KOPF = "kopf_kopf"
 KOPF_TISCH = "kopf_tisch"
 ARTEN = (DREHMASCHINE, FRAESE_3, TISCH_TISCH, KOPF_KOPF, KOPF_TISCH)
+FUENFACHS = (TISCH_TISCH, KOPF_KOPF, KOPF_TISCH)
 
 _ZULETZT = "Beispielmaschine"  # Schlüssel in den Einstellungen: zuletzt gewählte Bauart
 
@@ -354,6 +355,68 @@ def _wege_fehler(masse, ohne_null=()):
     return ergebnis
 
 
+# Die Beispielwerte der 5-Achs-Fräsen: Wege in mm, die Schwenkachsen in Grad, Drehzahl.
+_FUENFACHS = {
+    TISCH_TISCH: {
+        "weg_x": (-320.0, 320.0),
+        "weg_y": (-200.0, 250.0),
+        "weg_z": (-260.0, 150.0),
+        "schwenk": (("A", -120.0, 120.0),),
+        "drehzahl": 18000.0,
+    },
+    KOPF_TISCH: {
+        "weg_x": (-320.0, 320.0),
+        "weg_y": (-150.0, 300.0),
+        "weg_z": (-280.0, 100.0),
+        "schwenk": (("B", -110.0, 110.0),),
+        "drehzahl": 18000.0,
+    },
+    KOPF_KOPF: {
+        "weg_x": (-560.0, 560.0),
+        "weg_y": (-650.0, 250.0),
+        "weg_z": (-250.0, 300.0),
+        "schwenk": (("A", -100.0, 100.0), ("B", -100.0, 100.0)),
+        "drehzahl": 24000.0,
+    },
+}
+GROESSTER_SCHWENK = 360.0  # Grad je Richtung
+
+
+@dataclass
+class FuenfachsMasse:
+    """Die Maße einer 5-Achs-Fräse (Durchsicht W-004, D-26) – vorbelegt wie ihr Beispiel
+    (`vorgabe`). Wege in mm, die Schwenkachsen als ((Buchstabe, Minimum, Maximum), …) in
+    Grad, alle gezählt ab der Stellung, in der die Maschine gebaut ist (Werkzeug senkrecht
+    über dem Tisch) – 0 muss darin liegen. Der Rundtisch C dreht endlos."""
+
+    art: str
+    name: str = ""  # leer: der Name des Beispiels
+    weg_x: tuple = (0.0, 0.0)
+    weg_y: tuple = (0.0, 0.0)
+    weg_z: tuple = (0.0, 0.0)
+    schwenk: tuple = ()
+    drehzahl: float = 0.0  # U/min der Spindel
+
+    @classmethod
+    def vorgabe(cls, art):
+        """Die Maße des Beispiels der Bauart."""
+        return cls(art=art, **_FUENFACHS[art])
+
+    def schwenkbereich(self, buchstabe):
+        """(Minimum, Maximum) der Schwenkachse `buchstabe`."""
+        return next((unten, oben) for b, unten, oben in self.schwenk if b == buchstabe)
+
+    def fehler(self):
+        """Was nicht passt, als Liste von (Feld, Satz); leer: alles gut."""
+        ergebnis = _wege_fehler(self)
+        for buchstabe, unten, oben in self.schwenk:
+            if not -GROESSTER_SCHWENK <= unten <= 0 <= oben <= GROESSTER_SCHWENK or unten == oben:
+                ergebnis.append((f"schwenk_{buchstabe}", tr("neu.schwenk_bereich")))
+        if self.drehzahl <= 0:
+            ergebnis.append(("drehzahl", tr("neu.drehzahl_fehlt")))
+        return ergebnis
+
+
 def _benenne(asm, ma, name):
     """Gibt Maschine und Dokument den eingetragenen Namen – leer bleibt der des Beispiels."""
     if name.strip():
@@ -459,37 +522,46 @@ def fraesmaschine(masse=None, spanneisen=True):
 def _fahrstaender(b, bett):
     """Fahrender Ständer (X) mit Stößel (Y) und Kopfschlitten (Z): Alle drei
     Linearachsen sitzen im Kopf, der Tisch bleibt für die Drehachsen frei.
-    Gibt (Kopfschlitten, X, Y, Z) zurück; die Wege von Y und Z begrenzt die
-    Maschine, je nach Kopf und Tisch."""
+    Gibt (Kopfschlitten, X, Y, Z) zurück; die Wege begrenzt die Maschine
+    (_fuenfachs_wege)."""
     staender = b.quader("Staender", 420, 420, 1050, x=440, y=760, z=250, farbe=GUSS)
     stoessel = b.quader("Stoessel", 300, 700, 220, x=500, y=380, z=1300, farbe=SCHLITTEN)
     kopf = b.quader("Kopfschlitten", 260, 200, 560, x=520, y=180, z=1000, farbe=KOPF)
     x = b.gelenk_wie_gebaut("X", "Slider", bett, "Face6", staender, "Face5", richtung=(1, 0, 0))
-    b.begrenze(x, -320, 320)
     y = b.gelenk_wie_gebaut("Y", "Slider", staender, "Face6", stoessel, "Face5", richtung=(0, 1, 0))
     z = b.gelenk_wie_gebaut("Z", "Slider", stoessel, "Face3", kopf, "Face4", richtung=(0, 0, 1))
     return kopf, x, y, z
 
 
-def _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz):
-    """Was alle 5-Achs-Beispiele gleich haben: X1, Y1, Z1, S1 und die Aufnahmen."""
+def _fuenfachs_wege(b, masse, x, y, z, **schwenk):
+    """Die Grenzen der Gelenke aus den Maßen: X, Y, Z und die Schwenkachsen (Buchstabe =
+    Gelenk)."""
+    for gelenk, weg in ((x, masse.weg_x), (y, masse.weg_y), (z, masse.weg_z)):
+        b.begrenze(gelenk, *weg)
+    for buchstabe, gelenk in schwenk.items():
+        b.begrenze(gelenk, *masse.schwenkbereich(buchstabe))
+
+
+def _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, drehzahl):
+    """Was alle 5-Achs-Beispiele mit Rundtisch gleich haben: X1, Y1, Z1, S1 und die
+    Aufnahmen."""
     _linear(ma, x, "X1", 30000, 15000, 5)
     _linear(ma, y, "Y1", 30000, 15000, 5)
     _linear(ma, z, "Z1", 30000, 15000, 5)
-    s1 = _spindel(ma, s, "S1", 18000, 2)
+    s1 = _spindel(ma, s, "S1", drehzahl, 2)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.rundtisch"))
 
 
-def fuenfachs_tisch_tisch():
+def fuenfachs_tisch_tisch(masse=None):
     """5-Achs-Fräse Tisch/Tisch: Schwenkbrücke (A, um X) mit Rundtisch (C);
-    X, Y, Z im Kopf. Gibt (Assembly, Maschine) zurück."""
+    X, Y, Z im Kopf. `masse` (FuenfachsMasse) ändert Wege, Schwenkbereich, Drehzahl und
+    Name. Gibt (Assembly, Maschine) zurück."""
+    masse = masse or FuenfachsMasse.vorgabe(TISCH_TISCH)
     b = _neu(TISCH_TISCH)
     bett = b.quader("Bett", 1300, 1200, 250, farbe=GUSS)
     b.fixieren(bett)
     kopf, x, y, z = _fahrstaender(b, bett)
-    b.begrenze(y, -200, 250)
-    b.begrenze(z, -260, 150)
     spindel, spindelnase = b.bauteil(
         "Spindel",
         b.zylinder("Spindelkoerper", 55, 160, x=650, y=280, z=840, farbe=SPINDEL),
@@ -526,7 +598,7 @@ def fuenfachs_tisch_tisch():
     a = b.gelenk_wie_gebaut(
         "A", "Revolute", lager_l, "Face2", wiege, "ZapfenLinks.Face3", richtung=(1, 0, 0)
     )
-    b.begrenze(a, -120, 120)
+    _fuenfachs_wege(b, masse, x, y, z, A=a)
     c = b.gelenk_wie_gebaut(
         "C",
         "Revolute",
@@ -541,20 +613,21 @@ def fuenfachs_tisch_tisch():
     ma = _maschine(asm, TISCH_TISCH)
     _positionieren(ma, a, "A1", 25)
     _positionieren(ma, c, "C1", 50, endlos=True)
-    _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz)
+    _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, masse.drehzahl)
+    _benenne(asm, ma, masse.name)
     asm.Document.recompute()
     return asm, ma
 
 
-def fuenfachs_kopf_tisch():
+def fuenfachs_kopf_tisch(masse=None):
     """5-Achs-Fräse Kopf/Tisch: Schwenkkopf (B, um Y) vorn am Kopfschlitten,
-    Rundtisch (C) im Maschinentisch; X, Y, Z im Kopf. Gibt (Assembly, Maschine) zurück."""
+    Rundtisch (C) im Maschinentisch; X, Y, Z im Kopf. `masse` (FuenfachsMasse) wie bei
+    fuenfachs_tisch_tisch. Gibt (Assembly, Maschine) zurück."""
+    masse = masse or FuenfachsMasse.vorgabe(KOPF_TISCH)
     b = _neu(KOPF_TISCH)
     bett = b.quader("Bett", 1300, 1200, 250, farbe=GUSS)
     b.fixieren(bett)
     kopf, x, y, z = _fahrstaender(b, bett)
-    b.begrenze(y, -150, 300)
-    b.begrenze(z, -280, 100)
     schwenkkopf = b.quader("Schwenkkopf", 200, 180, 300, x=550, y=0, z=950, farbe=KOPF)
     spindel, spindelnase = b.bauteil(
         "Spindel",
@@ -572,7 +645,7 @@ def fuenfachs_kopf_tisch():
     schwenk = b.gelenk_wie_gebaut(
         "B", "Revolute", kopf, "Face3", schwenkkopf, "Face4", richtung=(0, 1, 0)
     )
-    b.begrenze(schwenk, -110, 110)
+    _fuenfachs_wege(b, masse, x, y, z, B=schwenk)
     s = b.gelenk_wie_gebaut(
         "Spindelachse", "Revolute", schwenkkopf, "Face5", spindel, "Spindelkoerper.Face2"
     )
@@ -585,15 +658,18 @@ def fuenfachs_kopf_tisch():
     ma = _maschine(asm, KOPF_TISCH)
     _positionieren(ma, schwenk, "B1", 30)
     _positionieren(ma, c, "C1", 50, endlos=True)
-    _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz)
+    _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, masse.drehzahl)
+    _benenne(asm, ma, masse.name)
     asm.Document.recompute()
     return asm, ma
 
 
-def fuenfachs_kopf_kopf():
+def fuenfachs_kopf_kopf(masse=None):
     """5-Achs-Fräse Kopf/Kopf: Portal (Y) mit Querschlitten (X) und Stößel (Z),
     unten am Stößel ein Gabelkopf – A dreht um X, darin B um Y. Der Tisch
-    steht fest. Gibt (Assembly, Maschine) zurück."""
+    steht fest. `masse` (FuenfachsMasse) wie bei fuenfachs_tisch_tisch. Gibt (Assembly,
+    Maschine) zurück."""
+    masse = masse or FuenfachsMasse.vorgabe(KOPF_KOPF)
     b = _neu(KOPF_KOPF)
     bett = b.quader("Bett", 1600, 1500, 250, farbe=GUSS)
     b.fixieren(bett)
@@ -650,23 +726,19 @@ def fuenfachs_kopf_kopf():
     y = b.gelenk_wie_gebaut(
         "Y", "Slider", bett, "Face6", portal, "SaeuleLinks.Face5", richtung=(0, 1, 0)
     )
-    b.begrenze(y, -650, 250)
     x = b.gelenk_wie_gebaut(
         "X", "Slider", portal, "Traverse.Face3", querschlitten, "Face4", richtung=(1, 0, 0)
     )
-    b.begrenze(x, -560, 560)
     z = b.gelenk_wie_gebaut(
         "Z", "Slider", querschlitten, "Face3", stoessel, "Stoesselkoerper.Face4", richtung=(0, 0, 1)
     )
-    b.begrenze(z, -250, 300)
     a = b.gelenk_wie_gebaut(
         "A", "Revolute", stoessel, "GabelLinks.Face2", a_kopf, "AZapfen.Face3", richtung=(1, 0, 0)
     )
-    b.begrenze(a, -100, 100)
     schwenk = b.gelenk_wie_gebaut(
         "B", "Revolute", a_kopf, "GabelVorn.Face4", b_kopf, "BZapfen.Face3", richtung=(0, 1, 0)
     )
-    b.begrenze(schwenk, -100, 100)
+    _fuenfachs_wege(b, masse, x, y, z, A=a, B=schwenk)
     s = b.gelenk_wie_gebaut(
         "Spindelachse", "Revolute", b_kopf, "BGehaeuse.Face5", spindel, "Spindelkoerper.Face2"
     )
@@ -678,9 +750,10 @@ def fuenfachs_kopf_kopf():
     _linear(ma, z, "Z1", 30000, 15000, 4)
     _positionieren(ma, a, "A1", 30)
     _positionieren(ma, schwenk, "B1", 30)
-    s1 = _spindel(ma, s, "S1", 24000, 2)
+    s1 = _spindel(ma, s, "S1", masse.drehzahl, 2)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
+    _benenne(asm, ma, masse.name)
     asm.Document.recompute()
     return asm, ma
 
@@ -1067,7 +1140,7 @@ def zuletzt_gewaehlt():
 def lade(art, masse=None):
     """Baut die Beispielmaschine der Bauart in einem neuen Dokument und zeigt sie;
     gibt (Assembly, Maschine) zurück. `masse`: die eingetragenen Maße (Drehmaschine,
-    3-Achs-Fräse). Eine 3-Achs-Fräse mit eigenen Maßen hat nichts auf dem Tisch – die
+    3-Achs-Fräse, 5-Achs-Fräsen). Eine 3-Achs-Fräse mit eigenen Maßen hat nichts auf dem Tisch – die
     Spanneisen gehören nur zum reinen Beispiel (Manuel, 2026-10-01: „die können ja weg,
     zumindest wenn man eine neue 3-Achs-Maschine erstellt“)."""
     App.ParamGet(PARAMETER_PFAD).SetString(_ZULETZT, art)

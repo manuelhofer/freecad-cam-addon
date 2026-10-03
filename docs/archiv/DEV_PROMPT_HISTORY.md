@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-08 neue-fuenfachs-maschine
+
+### EINGELESEN
+- Durchsicht D-26: „offen: Tischgröße, 5-Achs mit Schwenkbereichen“ – „Neue Maschine …“ zeigte
+  bei den drei 5-Achs-Fräsen „Diese Bauart hat feste Maße“.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py` (`FuenfachsMasse` mit `vorgabe(art)`, `schwenkbereich`,
+  `fehler`; `FUENFACHS`, `GROESSTER_SCHWENK`; die drei Baupläne nehmen `masse`,
+  `_fuenfachs_wege`; `_fahrstaender` begrenzt X nicht mehr selbst), `camaddon/gui_neue_maschine.py`
+  (zwei Zeilen „Schwenken …“, `_schwenkfeld`, `_winkelwert`), Übersetzungen (`neu.schwenk*`,
+  `beispiel.auswahl.text`), Hilfe „Neue Maschine“ (de/en), `tests/test_beispielmaschine.py`,
+  `tests/gui/szenario_neue_maschine.py`, Durchsicht D-26, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.161.0).
+
+### AKZEPTANZKRITERIUM
+- „Neue Maschine …“ → „5-Achs-Fräse Tisch/Tisch (A/C)“: Name, Weg X/Y/Z, „Schwenken A: −120,0 °
+  bis 120,0 °“, Höchstdrehzahl 18000 – die Werte des Beispiels; Kopf/Kopf mit „Schwenken A“ und
+  „Schwenken B“. Gebaut mit eigenen Werten: die Gelenke haben genau diese Grenzen, S1 die
+  Drehzahl, Maschine und Dokument den Namen. Ein Schwenkbereich ohne 0 oder über 360° → rote
+  Zeile.
+
+### DONE
+- Wie oben. Ohne Eingabe baut jede Bauart genau wie vorher (die Vorgaben sind die alten Werte).
+
+### TESTS
+- `tests/test_beispielmaschine.py`, `tests/test_sprache.py` – OK; Szenario
+  `szenario_neue_maschine` – OK (Bilder `1b_fuenfachs_masse`, `1c_kopf_kopf_masse`). black und
+  ruff sauber.
+
+### NEXT
+- D-26 Tischgröße; Manuels Antworten zu D-1, D-2, D-4, D-5, E-2, E-3.
+
 ## P-2026-10-04-07 wechselzeit
 
 ### EINGELESEN

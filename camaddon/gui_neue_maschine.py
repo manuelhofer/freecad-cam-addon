@@ -5,8 +5,9 @@ Man wählt eine Bauart und bekommt sie fertig eingerichtet in einem neuen
 Dokument – bei der Drehmaschine mit den eigenen Maßen: Name, Bettneigung,
 Winkel der Y-Achse, Wege, Revolverplätze, Höchstdrehzahl (Manuel: „so, dass
 es ein Leichtes ist, so etwas zu erstellen“). Steht Y schräg, kommt die
-schräge Achse gleich mit (beispielmaschine.drehmaschine). Die übrigen
-Bauarten haben feste Maße. Danach öffnet sich „Maschine bearbeiten“.
+schräge Achse gleich mit (beispielmaschine.drehmaschine). Die Fräsen haben Name, Wege und
+Höchstdrehzahl, die 5-Achs-Fräsen dazu ihre Schwenkbereiche (D-26). Danach öffnet sich
+„Maschine bearbeiten“.
 
 Derselbe Dialog öffnet sich hinter dem Knopf „Neue Maschine …“ in der Meldung
 von „Maschine bearbeiten“ und „Maschine verfahren“, wenn es keine Baugruppe
@@ -175,6 +176,24 @@ class NeueMaschineDialog(QtGui.QDialog):
         self.wege_drehmaschine.setMinimumHeight(2 * self.fontMetrics().lineSpacing() + 4)
         formular.addRow(self.wege_drehmaschine)
 
+        # Die Schwenkachsen der 5-Achs-Fräsen (D-26): je eine Zeile von … bis in Grad, das
+        # Minus fest wie bei den Wegen. Welche Achse eine Zeile ist, sagt die Bauart.
+        self.felder_schwenk = []
+        self._schwenk_zeilen = []
+        for _ in range(2):
+            von = _schwenkfeld(negativ=True)
+            bis = _schwenkfeld(negativ=False)
+            zeile = QtGui.QWidget()
+            reihe = QtGui.QHBoxLayout(zeile)
+            reihe.setContentsMargins(0, 0, 0, 0)
+            reihe.addWidget(von)
+            reihe.addWidget(QtGui.QLabel(tr("neu.bis")))
+            reihe.addWidget(bis)
+            zeile.setToolTip(tr("neu.schwenk.tooltip"))
+            formular.addRow(tr("neu.schwenk", achse="A"), zeile)
+            self.felder_schwenk.append((von, bis))
+            self._schwenk_zeilen.append(zeile)
+
         self.feld_plaetze = QtGui.QSpinBox()
         self.feld_plaetze.setRange(*beispielmaschine.PLAETZE_BEREICH)
         self.feld_plaetze.setValue(vorgabe.plaetze)
@@ -269,6 +288,7 @@ class NeueMaschineDialog(QtGui.QDialog):
             self.feld_werkzeugantrieb,
         ]
         felder += [f for paar in self.felder_weg.values() for f in paar]
+        felder += [f for paar in self.felder_schwenk for f in paar]
         for feld in felder:
             feld.valueChanged.connect(lambda _wert: self.fehler.hide())
         for wahl in (self.wahl_revolver, self.wahl_vdi, self.wahl_x):
@@ -340,6 +360,18 @@ class NeueMaschineDialog(QtGui.QDialog):
                 feld.setVisible(drehmaschine)
                 self._formular.labelForField(feld).setVisible(drehmaschine)
             self.wege_drehmaschine.setVisible(drehmaschine)
+            schwenk = getattr(vorgabe, "schwenk", ())
+            for nummer, zeile in enumerate(self._schwenk_zeilen):
+                da = nummer < len(schwenk)
+                zeile.setVisible(da)
+                beschriftung = self._formular.labelForField(zeile)
+                beschriftung.setVisible(da)
+                if da:
+                    buchstabe, unten, oben = schwenk[nummer]
+                    beschriftung.setText(tr("neu.schwenk", achse=buchstabe))
+                    von, bis = self.felder_schwenk[nummer]
+                    von.setValue(abs(unten))
+                    bis.setValue(oben)
             # Wovon die Wege der Drehmaschine zählen, je Achse (P-2026-09-30-50).
             tooltips = {
                 "X": tr("neu.weg_x.drehmaschine.tooltip"),
@@ -365,8 +397,8 @@ class NeueMaschineDialog(QtGui.QDialog):
 
     def masse(self):
         """Die eingetragenen Maße – DrehmaschinenMasse bei der Drehmaschine, FraesenMasse
-        bei der 3-Achs-Fräse, sonst None. Ein Weg, der noch wie vorbelegt dasteht, gilt
-        genau – in inch ohne Rundung."""
+        bei der 3-Achs-Fräse, FuenfachsMasse bei den 5-Achs-Fräsen. Ein Weg, der noch wie
+        vorbelegt dasteht, gilt genau – in inch ohne Rundung."""
         art = self.gewaehlt()
         vorgabe = _vorgabe(art)
         if vorgabe is None:
@@ -383,6 +415,26 @@ class NeueMaschineDialog(QtGui.QDialog):
             )
             for achse, felder in self.felder_weg.items()
         }
+        if art in beispielmaschine.FUENFACHS:
+            schwenk = tuple(
+                (
+                    buchstabe,
+                    _winkelwert(von, unten, negativ=True),
+                    _winkelwert(bis, oben),
+                )
+                for (buchstabe, unten, oben), (von, bis) in zip(
+                    vorgabe.schwenk, self.felder_schwenk, strict=False
+                )
+            )
+            return beispielmaschine.FuenfachsMasse(
+                art=art,
+                name=self.feld_name.text().strip(),
+                weg_x=wege["X"],
+                weg_y=wege["Y"],
+                weg_z=wege["Z"],
+                schwenk=schwenk,
+                drehzahl=float(self.feld_drehzahl.value()),
+            )
         if art == beispielmaschine.FRAESE_3:
             return beispielmaschine.FraesenMasse(
                 name=self.feld_name.text().strip(),
@@ -458,12 +510,34 @@ def _winkelfeld(wert, bereich):
 
 
 def _vorgabe(art):
-    """Die Beispielmaße der Bauart – nur Drehmaschine und 3-Achs-Fräse haben welche."""
+    """Die Beispielmaße der Bauart; None, wenn sie keine hat."""
     if art == beispielmaschine.DREHMASCHINE:
         return beispielmaschine.DrehmaschinenMasse()
     if art == beispielmaschine.FRAESE_3:
         return beispielmaschine.FraesenMasse()
+    if art in beispielmaschine.FUENFACHS:
+        return beispielmaschine.FuenfachsMasse.vorgabe(art)
     return None
+
+
+def _schwenkfeld(negativ):
+    """Ein Ende eines Schwenkbereichs in Grad, eingetragen als Zahl ab 0 – `negativ`: mit
+    festem Minus davor, wie die Wege."""
+    feld = QtGui.QDoubleSpinBox()
+    feld.setLocale(zahlenformat())
+    feld.setDecimals(1)
+    feld.setRange(0.0, beispielmaschine.GROESSTER_SCHWENK)
+    feld.setPrefix("−" if negativ else "")
+    feld.setSuffix(" °")
+    return feld
+
+
+def _winkelwert(feld, vorgabe, negativ=False):
+    """Der Winkel eines Schwenkfelds in Grad; steht dort noch die Vorgabe, genau sie."""
+    vorzeichen = -1.0 if negativ else 1.0
+    if abs(feld.value() - vorgabe * vorzeichen) < 1e-9:
+        return vorgabe
+    return vorzeichen * feld.value()
 
 
 def _wert(feld, vorgabe, faktor=1.0, negativ=False):

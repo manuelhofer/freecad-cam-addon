@@ -1,7 +1,8 @@
 # „Neue Maschine …“ (W-001, Stufe 3b, Schritt 7): Der Knopf in der
 # Werkzeugleiste öffnet die Auswahl der Bauarten. Die 3-Achs-Fräse hat Wege
 # und Drehzahl, vorbelegt wie ihr Beispiel, ohne die Felder der Drehmaschine
-# (D-26); eine 5-Achs-Fräse „feste Maße“; die Drehmaschine alle Maße,
+# (D-26); die 5-Achs-Fräsen dazu je Schwenkachse „Schwenken A: −120 bis 120“; die
+# Drehmaschine alle Maße,
 # vorbelegt wie das Beispiel.
 # Ein Weg Y von 0 bis 0 geht nicht: Eine rote Zeile sagt warum, der Dialog
 # bleibt offen. Mit Name „Meine Drehmaschine“, Bettneigung 30°, Y schräg um
@@ -67,12 +68,38 @@ def schritte(h):
     h.pruefe("Spanneisen" in d.beschreibung.text(), f"Spanneisen: {d.beschreibung.text()!r}")
     h.bild("1_fraese_masse", d)
 
-    # Eine 5-Achs-Fräse: feste Maße.
+    # Die 5-Achs-Fräsen (D-26): Wege, Drehzahl und je Schwenkachse eine Zeile, vorbelegt wie
+    # ihr Beispiel – Tisch/Tisch „Schwenken A: −120 bis 120“.
     d.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.TISCH_TISCH))
     yield 200
-    h.pruefe(d.fest.isVisible() and not d.masse_bereich.isVisible(), "5-Achs: Maße sichtbar")
-    h.pruefe(d.masse() is None, "5-Achs: Maße statt None")
-    h.bild("1b_fuenfachs_feste_masse", d)
+    h.pruefe(d.masse_bereich.isVisible() and not d.fest.isVisible(), "5-Achs: keine Maße")
+    h.pruefe(not d.feld_bett.isVisible(), "5-Achs: Felder der Drehmaschine sichtbar")
+    zeilen = [
+        (d._formular.labelForField(z).text(), d.felder_schwenk[n][0].value())
+        for n, z in enumerate(d._schwenk_zeilen)
+        if z.isVisible()
+    ]
+    h.pruefe(zeilen == [("Schwenken A:", 120.0)], f"Tisch/Tisch: {zeilen}")
+    vorgabe = beispielmaschine.FuenfachsMasse.vorgabe(beispielmaschine.TISCH_TISCH)
+    h.pruefe(d.masse() == vorgabe, f"Vorbelegung Tisch/Tisch: {d.masse()}")
+    h.bild("1b_fuenfachs_masse", d)
+    d.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.KOPF_KOPF))
+    yield 200
+    zeilen = [d._formular.labelForField(z).text() for z in d._schwenk_zeilen if z.isVisible()]
+    h.pruefe(zeilen == ["Schwenken A:", "Schwenken B:"], f"Kopf/Kopf: {zeilen}")
+    # Getippt: B von −30 bis 100, Z bis 280 → so in den Maßen.
+    von_b, bis_b = d.felder_schwenk[1]
+    von_b.setValue(30.0)
+    bis_b.setValue(100.0)
+    d.felder_weg["Z"][1].setValue(280.0)
+    yield 100
+    masse = d.masse()
+    h.pruefe(
+        masse.schwenk == (("A", -100.0, 100.0), ("B", -30.0, 100.0))
+        and masse.weg_z == (-250.0, 280.0),
+        f"Kopf/Kopf getippt: {masse}",
+    )
+    h.bild("1c_kopf_kopf_masse", d)
 
     # Drehmaschine: die Maße, vorbelegt wie das Beispiel.
     d.liste.setCurrentRow(beispielmaschine.ARTEN.index(beispielmaschine.DREHMASCHINE))

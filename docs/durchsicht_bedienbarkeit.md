@@ -283,8 +283,9 @@ nutzt, hat meist eine 3-Achs-Fräse. **Vorschlag:** Wege X, Y, Z, Tischgröße,
 Höchstdrehzahl (bei 5-Achs dazu die Schwenkbereiche) wie bei der
 Drehmaschine. **Fertig, wenn:** eine 3-Achs-Fräse mit eigenen Wegen in einer
 Minute steht und „Auf der Maschine prüfen“ mit diesen Grenzen rechnet.
-*3-Achs-Fräse erledigt (P-2026-09-27-24); offen: Tischgröße, 5-Achs mit
-Schwenkbereichen.*
+*3-Achs-Fräse erledigt (P-2026-09-27-24); 5-Achs mit Wegen, Schwenkbereichen, Drehzahl und
+Name erledigt (P-2026-10-04-08: „Schwenken A: −120 bis 120“ je Schwenkachse, der Rundtisch C
+endlos). Offen: Tischgröße.*
 
 ### D-27 Die CAM-Bibliothek beim Speichern mitziehen (klein bis mittel) – erledigt (P-2026-10-03-15, ohne eigene Einstellung)
 **Heute:** OK in der Werkzeugverwaltung speichert nur dort; CAM sieht eine

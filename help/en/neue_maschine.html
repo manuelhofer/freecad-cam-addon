@@ -6,9 +6,8 @@ be looked at and changed.</p>
 
 <h3>Types</h3>
 <p>You can choose a lathe with Y axis and turret, a 3-axis mill and three
-5-axis mills (table/table, head/head, head/table). For the lathe and the
-3-axis mill you enter the main dimensions yourself; the 5-axis mills have
-fixed dimensions – for trying things out.</p>
+5-axis mills (table/table, head/head, head/table). For every type you enter
+the main dimensions yourself – for the 5-axis mills also how far they swivel.</p>
 <p>The table of the built 3-axis mill is empty. Whatever stands on your table
 (vice, clamps) you build as a body into the assembly and fix it to the table
 with a fixed joint – the collision check (“Check on machine”) then takes it
@@ -75,6 +74,16 @@ machine is built; 0 lies in between. “from” goes negative – the minus is
 already in the field, you type only the number. These become the limits of
 the joints – “Check on machine” works with them.</li>
 <li><b>Maximum speed</b> – of spindle S1.</li>
+</ul>
+<h3>The dimensions of the 5-axis mills</h3>
+<p>Name, travels and maximum speed as for the 3-axis mill, plus one row per swivel axis:</p>
+<ul>
+<li><b>Swivel A</b> (table/table), <b>Swivel B</b> (head/table), <b>A and B</b> (head/head)
+– from … to in degrees, counted from the home orientation: there the tool stands vertically
+above the table. As with the travels, the minus is already in the field. These become the
+limits of the joints – “Swivel plane (3+2)” only uses orientations within them, “Check on
+machine” reports what would have to go beyond.</li>
+<li>The <b>rotary table C</b> (table/table, head/table) turns endlessly.</li>
 </ul>
 <p>When you switch the type, its example values are back in the fields.</p>
 <p>The bodies are rough, the way a machine is built in the addon. Whatever
