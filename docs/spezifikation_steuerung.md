@@ -293,3 +293,13 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
     Transformationen (S6), Wochen-Build-Eintrag (S7), Musterausgaben als Dateien
     (`tests/daten/programm_*.nc`) – die Prüfung `tests/test_postprozessor.py` prüft die Sätze
     direkt.
+- **P-2026-10-03-19 – zum Wechselpunkt:** Vor jedem Werkzeugwechsel und am Ende fährt das
+  Programm zum Wechselpunkt der Maschine (Manuel, 2026-10-03: „der Werkzeugwechselpunkt sollte
+  MKS, also nicht WKS sein … oder es sollte wechselbar sein“). Er steht je Linearachse an der
+  Maschine (Home/Wechsel, Spezifikation Simulation 13; jetzt auch gesammelt unter „Home und
+  Werkzeugwechsel“), der Bezug an der Maschine (`WechselBezug`: MKS ab Werk, oder WKS). Die
+  Befehle `wechselpunkt_mks` (LinuxCNC, Fanuc, Haas, Mach `G53 G0 {achsen}`, Siemens
+  `G0 SUPA D0 {achsen}` – D0: der Punkt gilt für den Werkzeugträger) und `wechselpunkt_wks`
+  (`G0 {achsen}`) sind unter „Befehle …“ änderbar; zuerst allein die Achse, die das Werkzeug
+  wegzieht (Drehmaschine X, sonst Z), X im Durchmesser wie im Programm. In WKS fahren nur die
+  Achsen mit eigenem Wechselpunkt, in MKS gilt ohne ihn der Home-Punkt.
