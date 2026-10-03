@@ -572,6 +572,10 @@ class Pruefung:
         self.verfahren = vf.Verfahren(assembly, kette)
         self.kette = self.verfahren.kette
         self._in_assembly = assembly.Placement.inverse()
+        # Je Aufnahme ihr Glied, je Achse ihr Buchstabe – die Maschine ändert sich nicht,
+        # solange die Prüfung lebt; gesucht wurde sonst je Station (Abfahren: 12 000 ×).
+        self._glieder = {}
+        self._buchstaben = {}
         aufnahmen = [a for a in m.aufnahmen(maschine) if self._glied(a) is not None]
         # Die LCS der Aufnahmen beim Anlegen, in Koordinaten der Assembly.
         self._ausgang = {
@@ -599,7 +603,16 @@ class Pruefung:
     # --- Was die Maschine hergibt ---------------------------------------------------
 
     def _glied(self, aufnahme):
-        return self.kette.glied_von(aufnahme.Lcs) if aufnahme.Lcs is not None else None
+        if aufnahme not in self._glieder:
+            lcs = aufnahme.Lcs
+            self._glieder[aufnahme] = self.kette.glied_von(lcs) if lcs is not None else None
+        return self._glieder[aufnahme]
+
+    def programmbuchstabe(self, achse):
+        """Der Buchstabe der Rundachse im Programm (_programmbuchstabe), je Achse einmal."""
+        if achse not in self._buchstaben:
+            self._buchstaben[achse] = _programmbuchstabe(self.maschine, achse)
+        return self._buchstaben[achse]
 
     def _lage(self, aufnahme):
         """Das LCS der Aufnahme beim Anlegen, in Koordinaten der Assembly."""
@@ -639,7 +652,7 @@ class Pruefung:
             if revolver is not None and achse is revolver[0]:
                 wege[achse] = self.verfahren.weg_bei(achse, revolver[1])
                 continue
-            buchstabe = _programmbuchstabe(self.maschine, achse)
+            buchstabe = self.programmbuchstabe(achse)
             if buchstabe is not None:
                 wege[achse] = self.verfahren.weg_bei(achse, rund.get(buchstabe, 0.0))
         return wege
@@ -935,7 +948,7 @@ class Pruefung:
 
         kinematik = Kinematik(self, aufnahme, eingespannt, nullpunkt_des_jobs)
         sammler.beginne(op.Label, linear, drehachsen, kinematik, f"T{nummer}")
-        vorhanden = {_programmbuchstabe(self.maschine, a) for a in drehachsen} - {None}
+        vorhanden = {self.programmbuchstabe(a) for a in drehachsen} - {None}
         fremd = set()  # Rundachsen, um die das Programm dreht, die Maschine aber nicht hat
         try:
             befehle = self.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)

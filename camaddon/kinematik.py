@@ -74,13 +74,11 @@ class Kinematik:
     def rundachsen(self, stellungen):
         """Die Rundachsen im Programm bei diesen Stellungen: {"C": Grad} – nur die, die
         positionieren (keine Spindel, kein Revolver)."""
-        from .reichweite import _programmbuchstabe
-
         ergebnis = {}
         for achse, stellung in stellungen.items():
             if achse.art == LINEAR:
                 continue
-            buchstabe = _programmbuchstabe(self.pruefung.maschine, achse)
+            buchstabe = self.pruefung.programmbuchstabe(achse)
             if buchstabe is not None:
                 ergebnis[buchstabe] = stellung
         return ergebnis

@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-54 pruefen-schneller
+
+### EINGELESEN
+- Status „Beantwortet am 2026-10-03 abends“ (D-22): „das Abfahren ist bei großen Bahnen heute
+  schon langsam“. Gemessen mit cProfile beim Öffnen von „Auf der Maschine prüfen“ (Kuppel,
+  12 152 Punkte): 1,79 s, davon `am_werkstueck` 0,84 s – darin je Station die Suche nach dem
+  Buchstaben jeder Drehachse durch alle Betriebsarten (`_programmbuchstabe`, 36 727 Aufrufe) und
+  nach dem Glied jeder Aufnahme (`kette.glied_von`, 24 976 Aufrufe).
+
+### DATEIEN
+- `camaddon/reichweite.py` (`Pruefung._glied` und `programmbuchstabe` je Prüfung gemerkt),
+  `camaddon/kinematik.py`, `camaddon/schwenken.py` (nutzen `programmbuchstabe`),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.158.1).
+
+### AKZEPTANZKRITERIUM
+- Gleiche Ergebnisse, schneller: das Öffnen 1,79 → 1,28 s (mit Profiler), `am_werkstueck`
+  0,84 → 0,36 s.
+
+### DONE
+- Wie oben. Der Rest sind echte Rechnungen (Abfahren 0,6 s, Reichweite 0,24 s).
+
+### TESTS
+- `tests/test_reichweite.py`, `test_abfahren.py`, `test_kinematik.py`, `test_schwenken.py`,
+  `test_simultan.py`, `test_vierachs_pruefen.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1 … D-5, E-2 … E-4.
+
 ## P-2026-10-03-53 siemens-bohrzyklen
 
 ### EINGELESEN

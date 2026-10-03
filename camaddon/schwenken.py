@@ -241,8 +241,6 @@ class Maschine:
     des Grundjobs an der Werkstückaufnahme."""
 
     def __init__(self, pruefung, werkzeugaufnahme, laenge, nullpunkt):
-        from .reichweite import _programmbuchstabe
-
         self.pruefung = pruefung
         self.aufnahme = werkzeugaufnahme
         self.laenge = laenge
@@ -250,7 +248,7 @@ class Maschine:
         self.linear, self.drehachsen = pruefung.achsen_fuer(werkzeugaufnahme)
         self.rundachsen = []
         for achse in pruefung._dreh_wege(werkzeugaufnahme, self.drehachsen, {}):
-            buchstabe = _programmbuchstabe(pruefung.maschine, achse)
+            buchstabe = pruefung.programmbuchstabe(achse)
             if buchstabe is not None:
                 minimum, maximum = pruefung.verfahren.grenzen(achse)
                 self.rundachsen.append(Rundachse(achse, buchstabe, minimum, maximum))
