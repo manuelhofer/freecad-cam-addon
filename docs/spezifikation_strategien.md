@@ -1241,7 +1241,13 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   Der Nullpunkt ist gebaut (P-2026-10-01-21, 0.41.0): Block „Nullpunkt“ im
   Assistenten mit der Liste der 22 Punkte und drei Versatzfeldern; Teil und
   Rohteil rücken sofort (das Rohteil aus dem Modell merkt sich seine Lage nur
-  beim Anlegen – es wird mitgeschoben). Die Spannhöhe folgt mit S3f.
+  beim Anlegen – es wird mitgeschoben). **„Von unten gespannt“ gebaut (P-2026-10-04-10):**
+  Feld in Schritt 1 unter dem Rohteil, am Grundjob `CamAddonGespannt` (im Eigenschaften-Editor
+  änderbar); `spannung.pruefen` meldet je Operation die tiefste Stelle, an der die Spitze unter
+  das Rohteil fährt oder unter der Spannhöhe mit dem Fräser über den Umriss des Rohteils
+  (Hüllquader) hinausragt – eine Tasche im Teil bleibt still; Ebenen (3+2) im Grundjob
+  gerechnet. „Auf der Maschine prüfen“: Urteil „Spannung“ (grün/rot), die Sätze unter den
+  Hinweisen. Noch nicht: der Schraubstock als Körper im Bild und in der Kollision.
 
 ## 11. Maßstab: Manuels Platte (2026-10-01)
 

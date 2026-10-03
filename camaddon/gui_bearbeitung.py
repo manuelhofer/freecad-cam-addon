@@ -23,7 +23,7 @@ import FreeCAD
 import FreeCADGui
 from PySide import QtCore, QtGui
 
-from . import PARAMETER_PFAD, einheiten, symbol
+from . import PARAMETER_PFAD, einheiten, spannung, symbol
 from . import bahn as bn
 from . import bleistift as bst
 from . import bohren as bh
@@ -3122,6 +3122,20 @@ class BearbeitungPanel:
             eingabe.setPlaceholderText(groesse_zeigen(AUFMASS_ROHTEIL, einheiten.LAENGE) or "0")
         self.rohteilfelder = rohteil.widget
         ziel[0].addWidget(self.rohteilfelder)
+        # Von unten gespannt (S3h, Manuel 2026-10-01): so viel steckt im Schraubstock – auch beim
+        # Ändern einstellbar, es verschiebt nichts.
+        reihen_spannung = _Reihen()
+        self.felder_spannung = {}
+        _zahlenfeld(
+            self.felder_spannung,
+            "gespannt",
+            tr("ba.gespannt"),
+            tr("ba.gespannt.tooltip"),
+            reihen_spannung,
+            self._spannung_geaendert,
+        ).setPlaceholderText("0")
+        self.spannungfelder = reihen_spannung.widget
+        ziel[0].addWidget(self.spannungfelder)
         self.nullpunkt_titel = titel(tr("ba.nullpunkt"), tr("ba.nullpunkt.text"))
         self.nullpunkt_text = grautext(tr("ba.nullpunkt.text"))
         nullpunkt = _Reihen()
@@ -3656,6 +3670,7 @@ class BearbeitungPanel:
         job = PathJob.Create("Job", [self.teil])
         job.Label = tr("ba.job", teil=self.teil.Label)
         self._rohteil_setzen(job)
+        spannung.setze(job, self._gespannt())
         self.doc.recompute()
         if _globale_transaktionen():
             FreeCAD.setActiveTransaction(tr("ba.titel"), True)
@@ -3909,10 +3924,26 @@ class BearbeitungPanel:
         else:
             nullpunkt = tr("ba.nullpunkt.kurz", wahl=wahl)
         teile = [aufmass, nullpunkt]
+        if self._gespannt() > 0:
+            wert = groesse_zeigen(self._gespannt(), einheiten.LAENGE)
+            teile.append(tr("ba.gespannt.kurz", wert=f"{wert} {mm}"))
         eintrag = self.maschine() if hasattr(self, "wahl_maschine") else None
         if eintrag is not None:
             teile.insert(0, tr("ba.maschine.kurz", name=eintrag.name))
         self.rohteil_kurz.setText(" · ".join(teile))
+
+    def _gespannt(self):
+        """Von unten gespannt (mm) – leer oder ungültig 0."""
+        text = self.felder_spannung["gespannt"].text() if hasattr(self, "felder_spannung") else ""
+        try:
+            return max(groesse_lesen(text, einheiten.LAENGE), 0.0) if text.strip() else 0.0
+        except ValueError:
+            return 0.0
+
+    def _spannung_geaendert(self):
+        self._rohteil_kurz_zeigen()
+        if not self._fuellt and self.job is not None and not self.geschlossen:
+            spannung.setze(rw.grundjob_von(self.job), self._gespannt())
 
     def _rohteil_geaendert(self):
         self._rohteil_kurz_zeigen()
@@ -4062,6 +4093,10 @@ class BearbeitungPanel:
                 for feld, name in (("oben", "ExtZpos"), ("seite", "ExtXpos"), ("unten", "ExtZneg")):
                     wert = _mm(getattr(rohteil, name))
                     self.felder_rohteil[feld].setText(groesse_zeigen(wert, einheiten.LAENGE) or "0")
+            tiefe = spannung.gespannt(self.job)
+            self.felder_spannung["gespannt"].setText(
+                groesse_zeigen(tiefe, einheiten.LAENGE) if tiefe > 0 else ""
+            )
         finally:
             self._fuellt = False
         self.rohteilfelder.setEnabled(False)

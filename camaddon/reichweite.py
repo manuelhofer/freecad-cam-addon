@@ -168,6 +168,8 @@ class Ergebnis:
     hinweise: list = field(default_factory=list)  # fertige Sätze
     punkte: int = 0  # so viele Punkte wurden geprüft
     laengen: dict = field(default_factory=dict)  # Werkzeugnummer -> womit gerechnet (LAENGE_…)
+    gespannt: float = 0.0  # mm von unten im Schraubstock (spannung.py); 0: nicht geprüft
+    spannung: list = field(default_factory=list)  # [spannung.Befund] – Bahnen hinein
 
     def in_grenzen(self):
         return not self.ueberschreitungen
@@ -855,6 +857,13 @@ class Pruefung:
         for op, ebene in operationen_mit_ebene(job):
             self._pruefe_operation(op, nullpunkt_des_jobs, bibliothek, sammler, ebene)
         sammler.fertig()
+        from . import spannung
+
+        # Von unten gespannt (S3h): Bahnen in den Schraubstock – oben ein Urteil, die Sätze bei den
+        # Hinweisen.
+        ergebnis.gespannt = spannung.gespannt(job)
+        ergebnis.spannung = spannung.pruefen(job)
+        ergebnis.hinweise.extend(s for s in ergebnis.spannung if s not in ergebnis.hinweise)
         return ergebnis
 
     def befehle(self, op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs):

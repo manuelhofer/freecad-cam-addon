@@ -11,7 +11,8 @@
 # 1 Lage und 29 Zeilen, Sätze mit Bögen. Doppelklick darauf öffnet das Fenster mit ihren
 # Werten; „Übernehmen“ mit 1,5 mm Zustellung rechnet sie neu – vier Lagen. Dann „Auf der Maschine prüfen“ mit der Beispiel-Fräse (W-006 S3d): Der
 # Quader wird beim Abspielen abgetragen, am Ende steht die gewählte Fläche grün da, nirgends
-# ins Teil, der Absatz ohne Farbe.
+# ins Teil, der Absatz ohne Farbe. „Von unten gespannt“ 22 mm (S3h): am Job eingetragen, in Schritt 2
+# grau „22 mm gespannt“, die Prüfung meldet das Planfräsen neben dem Rohteil darunter.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -102,6 +103,21 @@ def schritte(h):
     plan.felder["zustellung"].setText("")
     yield from h.warte_auf(lambda: not panel._rohteil_uhr.isActive(), 3000)
     yield from h.warte_auf(lambda: plan.ergebnis.text().startswith("→ 1 Lage,"), 30000)
+
+    # Von unten gespannt (S3h): 22 mm – am Job eingetragen, in Schritt 2 grau dabei; die Spannung
+    # reicht bis Z 21, über die Planfläche (Z 20) hinaus – die Prüfung meldet es unten.
+    panel.felder_spannung["gespannt"].setText("22")
+    yield 200
+    from camaddon import spannung
+
+    h.pruefe(abs(spannung.gespannt(job) - 22.0) < 1e-9, f"gespannt: {spannung.gespannt(job)}")
+    h.pruefe("22 mm gespannt" in panel.rohteil_kurz.text(), f"{panel.rohteil_kurz.text()!r}")
+    vorher = panel._seite
+    panel.seite_zeigen(0)
+    yield 300
+    h.bild("1d_gespannt", panel.form)
+    panel.seite_zeigen(vorher)
+    yield 300
 
     # --- Nullpunkt: Ecke links vorne oben, um 10 in X verschoben, dann wie im Modell ------
     h.pruefe(panel.wahl_nullpunkt.count() == 23, f"{panel.wahl_nullpunkt.count()} Nullpunkte")
@@ -218,6 +234,18 @@ def schritte(h):
     yield 500
     h.bild("5_pruefen_farben")
     h.bild("5b_pruefen_fenster", pruef.form)
+    # Die Spannung (22 mm, bis Z 21): Das Planfräsen ragt an den offenen Seiten neben das Rohteil –
+    # oben rot „In den Schraubstock: „Planfräsen T1“ – warum?“, unten der Satz dazu.
+    urteil = pruef.urteil_spannung.text()
+    h.pruefe(
+        pruef.urteil_spannung.isVisible() and "In den Schraubstock: „Planfräsen T1“" in urteil,
+        f"Urteil Spannung: {urteil!r}",
+    )
+    hinweise = pruef.hinweise.text()
+    h.pruefe(
+        pruef.hinweise.isVisible() and "neben dem Rohteil" in hinweise and "Planfräsen" in hinweise,
+        f"Hinweis Spannung: {hinweise!r}",
+    )
     pruef.reject()
     yield 500
     FreeCAD.closeDocument(doc.Name)

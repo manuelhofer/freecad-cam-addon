@@ -52,7 +52,10 @@ creates the <b>job with the stock</b>: a block around the part with an
 <b>allowance</b> on top, at the sides and below (empty: 1 mm, like FreeCAD's
 job). The fields change the stock right away. “Cancel” takes everything
 back. Step 2 shows at the top in grey what applies here (“allowance 1 mm all round ·
-origin: centre top”).</li>
+origin: centre top”). <b>Clamped from below</b>: this much of the stock sits in the vise –
+“Check on machine” then reports every path that goes below it beside the stock (where the
+jaws are) or below the stock (a drill going through). Empty: nothing checked. You can change it
+any time, later also in the job's property editor (“CAM-Addon”, “Cam Addon Gespannt”).</li>
 <li><b>Stock: part from the document</b> – instead of the block a body you modelled as the
 stock (pre-machined, cast, welded): choose “Part from the document” and below it the
 <b>body</b>. The job takes it as it lies relative to the part in the model; the origin uses

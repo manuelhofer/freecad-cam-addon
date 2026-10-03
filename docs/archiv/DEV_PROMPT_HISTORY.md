@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-10 von-unten-gespannt
+
+### EINGELESEN
+- Spezifikation Strategien S3h (Manuel, 2026-10-01): „Dazu „von unten gespannt“ in der
+  Rohteil-Definition: so viel steckt im Schraubstock – die Prüfung zeigt es und meldet jede Bahn
+  darunter.“ – „Die Spannhöhe folgt mit S3f“, nie gebaut.
+
+### DATEIEN
+- `camaddon/spannung.py` (neu: `gespannt`, `setze`, `pruefen` → `Befund`), `camaddon/reichweite.py`
+  (`Ergebnis.gespannt`, `.spannung`; `pruefe_job` hängt die Sätze an die Hinweise),
+  `camaddon/gui_bearbeitung.py` (Feld „Von unten gespannt“ in Schritt 1, auch beim Ändern
+  einstellbar; „… gespannt“ in der grauen Zeile von Schritt 2), `camaddon/gui_reichweite.py`
+  (Urteil „Spannung“), Übersetzungen (`ba.gespannt*`, `sn.*`, `rw.urteil.spannung`,
+  `rw.spannung.*`), Hilfe „Bearbeitung“ und „Auf der Maschine prüfen“ (de/en),
+  `tests/test_spannung.py` (neu), `tests/gui/szenario_bearbeitung.py`, Spezifikation Strategien
+  S3h, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.163.0).
+
+### AKZEPTANZKRITERIUM
+- Block 40 × 30 × 20, Rohteil 1 mm rundum, 5 mm gespannt: Kontur außen bis Z 2 → „fährt neben
+  dem Rohteil … dort steckt es 5 mm tief im Schraubstock“; Tasche innen bis Z 2 → nichts;
+  Bohrzyklus bis Z −3 → „fährt unter das Rohteil“; ein Bogen, nur in der Mitte draußen → gemeldet.
+  Ohne Eintrag nichts. Im Assistenten 22 mm getippt → am Job 22 mm, Schritt 2 „22 mm gespannt“;
+  „Auf der Maschine prüfen“: „Spannung – In den Schraubstock: „Planfräsen T1“ – warum?“ rot.
+
+### DONE
+- Wie oben. Ohne Eintrag ändert sich nichts (keine Eigenschaft, keine Zeile).
+
+### TESTS
+- `tests/test_spannung.py` – OK; Szenario `szenario_bearbeitung` – OK (Bilder `1d_gespannt`,
+  `5b_pruefen_fenster`). black und ruff sauber.
+
+### NEXT
+- Der Schraubstock als Körper (Bild, Kollision); Manuels Antworten zu D-1, D-2, D-4, D-5, E-2,
+  E-3.
+
 ## P-2026-10-04-09 spindelleistung-gemerkte-maschine
 
 ### EINGELESEN

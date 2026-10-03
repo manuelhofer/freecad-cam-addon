@@ -379,6 +379,10 @@ class PruefPanel:
         # rechnerisch … min“) – aus dem Abfahren: Vorschub, Eilgang, je Operation.
         self.urteil_zeit = QtGui.QLabel()
         self.urteil_zeit.setToolTip(tr("rw.zeit.tooltip"))
+        # Von unten gespannt (S3h): nur, wenn am Job eingetragen.
+        self.urteil_spannung = QtGui.QLabel()
+        self.urteil_spannung.setToolTip(tr("sn.eigenschaft"))
+        self.urteil_spannung.linkActivated.connect(lambda _ziel: blaettere_zu(self.hinweise))
         self._beschriftung = {}
         for zeile, (text, urteil) in enumerate(
             (
@@ -386,6 +390,7 @@ class PruefPanel:
                 (tr("rw.urteil.kollision"), self.urteil_kollision),
                 (tr("rw.urteil.laenge"), self.urteil_laenge),
                 (tr("rw.urteil.schnittwerte"), self.urteil_schnittwerte),
+                (tr("rw.urteil.spannung"), self.urteil_spannung),
                 (tr("rw.urteil.zeit"), self.urteil_zeit),
             )
         ):
@@ -613,6 +618,16 @@ class PruefPanel:
             _zeige_urteil(self.urteil_laenge, tr("rw.laenge.gemessen"), GRUEN)
         for widget in (self.urteil_laenge, self._beschriftung[self.urteil_laenge]):
             widget.setVisible(bool(e.laengen))
+        if e.spannung:
+            namen = ", ".join(f"„{b.operation}“" for b in e.spannung)
+            warum = f'<a href="abschnitt:hinweise">{tr("rw.urteil.warum")}</a>'
+            text = f"{tr('rw.spannung.rein', operationen=namen)} – {warum}"
+            _zeige_urteil(self.urteil_spannung, text, ROT)
+        elif e.gespannt > 0:
+            frei = tr("rw.spannung.frei", gespannt=rw.weg_text(e.gespannt))
+            _zeige_urteil(self.urteil_spannung, frei, GRUEN)
+        for widget in (self.urteil_spannung, self._beschriftung[self.urteil_spannung]):
+            widget.setVisible(e.gespannt > 0)
         self._schnittwerte_zeigen()
 
     def _schnittwerte_zeigen(self):
