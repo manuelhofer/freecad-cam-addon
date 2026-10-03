@@ -2435,8 +2435,13 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   „Face3: 30° geschwenkt → A−30 C0“; „OK“ legt den Job an (die Maschine des Grundjobs mit),
   zeigt sein Modell (die Fläche oben) und öffnet „Bearbeitung“ darin, die Fläche gewählt.
   Szenario `szenario_schwenken`: bis „Auf der Maschine prüfen“ auf der Tisch/Tisch-Maschine.
-- **F6 danach** (zu besprechen): der Materialstand über Ebenen hinweg (heute beginnt eine Ebene
-  am ganzen Rohteil – sicher, aber mit Luft), simultan (Flanke, Anstellwinkel).
+- **F6 danach:** der Materialstand über Ebenen hinweg, simultan (Flanke, Anstellwinkel).
+  **Materialstand gebaut:** P-2026-10-03-40 – eine Ebene beginnt, wo nach dem Grundjob und den
+  Ebenen davor noch Material steht: je Säule ihres Rasters von der Oberkante des gedrehten
+  Rohteils hinab der erste Punkt (0,25 mm Schritt), der in allen Höhenfeldern davor unter der
+  Höhe liegt; eine Stufe höher als gefunden (lieber Material sehen). Die Kennung trägt die Stände
+  davor – ändert sich der Grundjob, rechnet die Ebene neu (gui_materialstand). Am Block: das
+  Räumen der Schräge nach dem Räumen der Oberseite 2,8 statt 3,2 min. Simultan: zu besprechen.
 
 ### 15.4 Zu entscheiden (Manuel)
 

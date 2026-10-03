@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-40 materialstand-ebene
+
+### EINGELESEN
+- Spezifikation Strategien 15.3, F6 (Materialstand über Ebenen). Dazu Bohren auf der Schräge
+  nachgeprüft (FreeCADs Bohr-Operation im Job der Ebene, ohne Zyklus gerechnet).
+
+### DATEIEN
+- `camaddon/materialstand.py` (`_ebene_davor`, `_von_oben_in_der_ebene`, `_im_stand`,
+  `_placement_text`, EBENE_SCHRITT; die Kennung einer Ebene trägt die Stände davor),
+  `tests/test_schwenken.py` (F6, Bohren auf der Schräge), Hilfe `schwenken.html` (de/en),
+  Spezifikation (F6), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.154.1).
+
+### AKZEPTANZKRITERIUM
+- Räumt der Grundjob die Oberseite, sieht die Ebene über der Schräge weniger Material, nirgends
+  mehr; knapp unter ihrer Oberkante steht im Grundjob Material, darüber keins; das Räumen der
+  Schräge wird kürzer.
+
+### DONE
+- Wie oben: 3,2 → 2,8 min; Stichprobe 95 % unter/über (am Rand des Rasters zählt die nächste
+  Zelle mit). Bohren auf der Schräge: eine Bohrung in der Ebene, G81 an der Stelle, ohne Zyklus
+  X, Y, Z, R gerechnet.
+
+### TESTS
+- `tests/test_schwenken.py`, `tests/test_materialstand.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Blick auf 3+2; simultan zu besprechen; Siemens: G81 → CYCLE81 vorschlagen.
+
 ## P-2026-10-03-39 befehl-ebene-schwenken
 
 ### EINGELESEN

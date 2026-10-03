@@ -11,6 +11,7 @@ ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
 
 import FreeCAD
+import numpy as np
 import Part
 import Path
 
@@ -377,6 +378,122 @@ pruefe(
     f"erster Satz am Werkstück nicht bei {soll}",
 )
 FreeCAD.closeDocument(asm.Document.Name)
+FreeCAD.closeDocument(doc.Name)
+
+# --- F6: was der Grundjob weggefräst hat, kennt die Ebene ------------------------------------------
+doc = FreeCAD.newDocument("Vorher")
+objekt = doc.addObject("Part::Feature", "Block")
+objekt.Shape = teil
+doc.recompute()
+grundjob = PathJob.Create("Job", [objekt])
+grundjob.Stock.ExtZpos = 3.0
+doc.recompute()
+planjob = sw.lege_an(grundjob, schraege)
+tc = js.controller_ohne_transaktion(doc, planjob, fraeser, einsatz)
+doc.recompute()
+op_ebene = ra.lege_an(planjob, tc, einsatz.ap, einsatz.ae, flaechen=[schraege])
+doc.recompute()
+vorher = mst.fuer(planjob, vor=op_ebene)  # vor dem Räumen der Schräge
+zeit_vorher = ra.rechne(op_ebene, planjob, planjob.Model.Group, 902.0, 270.0).zeit
+# Der Grundjob räumt die Oberseite (z 40): Über der Schräge fehlen dann 3 mm Rohteil.
+oben = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(vr.modell(grundjob).Shape.Faces)
+    if sw.aussennormale(f) is not None
+    and nahe(f.BoundBox.ZMin, 40.0)
+    and nahe(f.BoundBox.ZMax, 40.0)
+)
+tc_g = js.controller_ohne_transaktion(doc, grundjob, fraeser, einsatz)
+doc.recompute()
+ra.lege_an(grundjob, tc_g, einsatz.ap, einsatz.ae, flaechen=[oben])
+doc.recompute()
+stand_grund = mst.fuer(grundjob)
+nachher = mst.fuer(planjob, vor=op_ebene)
+pruefe(nachher is not None and nachher.kennung != vorher.kennung, "Kennung der Ebene gleich")
+if nachher is not None and stand_grund is not None:
+    endlich = np.isfinite(nachher.quader.h) & np.isfinite(vorher.quader.h)
+    pruefe(
+        np.all(nachher.quader.h[endlich] <= vorher.quader.h[endlich] + 1e-9),
+        "die Ebene sieht mehr Material als vorher",
+    )
+    weniger = float(np.max(vorher.quader.h[endlich] - nachher.quader.h[endlich]))
+    pruefe(weniger > 1.0, f"die Ebene sieht nicht, was der Grundjob weggeräumt hat: {weniger:.2f}")
+    # Stichprobe: knapp unter der Oberkante der Ebene steht im Grundjob Material, darüber nicht
+    # (2,5 mm: Am Rand des Rasters zählt die nächste Zelle mit – lieber Material sehen; an der
+    # Stirnseite des Rohteils liegt „darüber“ schräg vor ihm).
+    xs, ys = np.meshgrid(nachher.quader.x, nachher.quader.y, indexing="ij")
+    wahl = np.flatnonzero(np.isfinite(nachher.quader.h).ravel())[::97]
+    unter = über = 0
+    for k in wahl:
+        x_, y_, h_ = xs.ravel()[k], ys.ravel()[k], nachher.quader.h.ravel()[k]
+        for dz, zaehle in ((-0.5, "unter"), (2.5, "über")):
+            p_ = e.multVec(V(x_, y_, h_ + dz))
+            drin = mst._im_stand(stand_grund, np.array([[p_.x, p_.y, p_.z]]))[0]
+            if zaehle == "unter" and drin:
+                unter += 1
+            if zaehle == "über" and not drin:
+                über += 1
+    pruefe(unter >= 0.95 * len(wahl), f"unter der Oberkante: {unter} von {len(wahl)} im Material")
+    pruefe(über >= 0.95 * len(wahl), f"über der Oberkante: {über} von {len(wahl)} frei")
+zeit_nachher = ra.rechne(op_ebene, planjob, planjob.Model.Group, 902.0, 270.0).zeit
+pruefe(
+    zeit_nachher < zeit_vorher, f"Räumen der Schräge: {zeit_vorher:.2f} → {zeit_nachher:.2f} min"
+)
+print(f"Räumen der Schräge nach dem Grundjob: {zeit_vorher:.2f} → {zeit_nachher:.2f} min")
+FreeCAD.closeDocument(doc.Name)
+
+# --- Bohren auf der Schräge: FreeCADs Bohr-Operation im Job der Ebene ----------------------------
+from camaddon import bohren as bh  # noqa: E402
+from camaddon import bohrung_bahn as bb  # noqa: E402
+
+ORT = V(50.0, 13.0, 0.0)  # in der Ebene
+loch = Part.makeCylinder(4.25, 30.0, V(ORT.x, ORT.y, -15.0)).fuse(
+    Part.makeCone(
+        0.0,
+        4.25,
+        4.25 / math.tan(math.radians(59.0)),
+        V(ORT.x, ORT.y, -15.0 - 4.25 / math.tan(math.radians(59.0))),
+    )
+)
+loch.Placement = e.multiply(loch.Placement)
+mit_loch = teil.cut(loch).removeSplitter()
+b85 = wz.Werkzeug(
+    nummer=2, name="HSS 8,5", art=wz.BOHRER, durchmesser=8.5, schneiden=2, schneidenlaenge=60.0,
+    spitzenwinkel=118.0, schneidstoff=wz.HSS,
+)  # fmt: skip
+b85.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.BOHREN, vc=25.0, fz=0.1)]
+ue.uebergeben(wz.Bibliothek([fraeser, b85]))
+doc = FreeCAD.newDocument("Bohren")
+objekt = doc.addObject("Part::Feature", "Block")
+objekt.Shape = mit_loch
+doc.recompute()
+grundjob = PathJob.Create("Job", [objekt])
+grundjob.Stock.ExtZpos = 1.0
+doc.recompute()
+pruefe(not bb.bohrungen(vr.modell(grundjob).Shape), "die schräge Bohrung im Grundjob als Bohrung")
+planjob = sw.lege_an(grundjob, schraege)
+klon = vr.modell(planjob)
+bohrungen = bb.bohrungen(klon.Shape)
+pruefe(len(bohrungen) == 1, f"Bohrungen in der Ebene: {[b.name for b in bohrungen]}")
+if bohrungen:
+    tc = js.controller_ohne_transaktion(doc, planjob, b85, b85.schnittwerte[wz.ALLE][0])
+    bohr_op = bh.lege_an(planjob, tc, [bohrungen[0].name])
+    doc.recompute()
+    zyklen = [c for c in bohr_op.Path.Commands if c.Name in ("G81", "G83")]
+    pruefe(
+        len(zyklen) == 1
+        and nahe(zyklen[0].Parameters["X"], ORT.x, 1e-3)
+        and nahe(zyklen[0].Parameters["Y"], ORT.y, 1e-3)
+        and zyklen[0].Parameters["Z"] < -15.0,
+        f"Bohren in der Ebene: {[c.toGCode() for c in zyklen]}",
+    )
+    teile = pp.abschnitte(grundjob)
+    lcnc = pp.programm(teile, pp.steuerung("linuxcnc"), pp.Maschineninfo("5-Achs"), "B").zeilen
+    soll = teile[0].schwenkung.gesamt().punkt((ORT.x, ORT.y, float(zyklen[0].Parameters["Z"])))
+    pruefe(
+        any(z.startswith(("G81", "G83")) and f"X{soll[0]:.3f} Y{soll[1]:.3f}" in z for z in lcnc),
+        f"LinuxCNC: Bohrzyklus nicht gerechnet ({soll}): {[z for z in lcnc if z.startswith('G8')]}",
+    )
 FreeCAD.closeDocument(doc.Name)
 
 if fehler:

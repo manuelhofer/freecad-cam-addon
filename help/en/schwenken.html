@@ -35,6 +35,9 @@ point.</li>
 as it is clamped.</li>
 </ul>
 
+<p><b>What is already gone:</b> a plane starts where material is left after the base job and the
+planes before it (higher in the tree) – like every operation with material state. If the base
+job changes, the plane's operations recompute.</p>
+
 <h3>Not yet</h3>
-<p>What the base job has already milled away is not yet known to the plane: it starts from the
-whole stock – safe, but with air cutting. Simultaneous (flank, lead angle) comes later.</p>
+<p>Simultaneous – flank milling, finishing with lead angle – comes later.</p>

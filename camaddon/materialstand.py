@@ -321,7 +321,9 @@ def _traegt(op, vor):
 
 
 def _rohteil_kennung(job):
-    """Die Kennung des Rohteils: seine Art und Maße. ValueError ohne Rohteil."""
+    """Die Kennung des Rohteils: seine Art und Maße – bei einer geschwenkten Ebene (3+2) dazu
+    die Ebene und woraus der Stand ihres Grundjobs und der Ebenen davor gerechnet ist
+    (_ebene_davor). ValueError ohne Rohteil."""
     rohteil = getattr(job, "Stock", None)
     form = getattr(rohteil, "Shape", None)
     if form is None or form.isNull():
@@ -329,7 +331,38 @@ def _rohteil_kennung(job):
     bb = form.BoundBox
     werte = (bb.XMin, bb.XMax, bb.YMin, bb.YMax, bb.ZMin, bb.ZMax)
     art = "quader" if _ist_quader(rohteil) else f"form {form.Volume:.3f}"
-    return f"{art} " + " ".join(f"{w:.4f}" for w in werte)
+    kennung = f"{art} " + " ".join(f"{w:.4f}" for w in werte)
+    davor = _ebene_davor(job)
+    if davor:
+        from . import schwenken as sw
+
+        teile = [kennung, _placement_text(sw.ebene_von(job))]
+        teile += [f"{_placement_text(e)} {s.kennung if s else None}" for e, s in davor]
+        kennung += " ebene " + hashlib.sha1(" | ".join(map(str, teile)).encode()).hexdigest()
+    return kennung
+
+
+def _placement_text(placement):
+    if placement is None:
+        return "grund"
+    m = placement.toMatrix()
+    return " ".join(f"{v:.6f}" for v in m.A[:12])
+
+
+def _ebene_davor(job):
+    """Bei einer geschwenkten Ebene (3+2, schwenken): [(Placement Ebene → Grundjob oder None für
+    den Grundjob selbst, sein Materialstand nach allen Operationen oder None)] – der Grundjob und
+    die Ebenen, die vor dieser im Dokument stehen. Leer bei einem anderen Job."""
+    from . import schwenken as sw
+
+    if not sw.ist_ebene(job):
+        return []
+    grund = job.Grundjob
+    ergebnis = [(None, fuer(grund))]
+    ebenen = sw.ebenen_von(grund)
+    for ebene in ebenen[: ebenen.index(job)] if job in ebenen else ebenen:
+        ergebnis.append((sw.ebene_von(ebene), fuer(ebene)))
+    return ergebnis
 
 
 def _ist_quader(rohteil):
@@ -356,7 +389,93 @@ def _rohteil(job, kennung):
 
         netz = vf.vernetze(form, hf.VORSCHAU_TOLERANZ).netz
         quader.h = hf.hoehen(netz, quader.x, quader.y)
+    davor = _ebene_davor(job)
+    if davor:
+        from . import schwenken as sw
+
+        quader.h = _von_oben_in_der_ebene(quader, sw.ebene_von(job), davor)
     return Materialstand(quader, quader.h.copy(), kennung=(kennung,))
+
+
+EBENE_SCHRITT = 0.25  # mm – so fein sucht es in einer Ebene von oben das Material
+
+
+def _von_oben_in_der_ebene(quader, ebene, davor):
+    """Das Höhenfeld einer geschwenkten Ebene (3+2, W-014 F6): je Säule von ihrer Oberkante
+    (quader.h – das gedrehte Rohteil) hinab der erste Punkt, an dem nach dem Grundjob und den
+    Ebenen davor (`davor`, _ebene_davor) noch Material steht – in deren Höhenfeldern unter der
+    Höhe dort und im Kasten des Rohteils. Eine Stufe EBENE_SCHRITT höher als gefunden: lieber
+    Material sehen, wo keins ist. Ohne Stand davor (eine Rundachse drehte): das Rohteil."""
+    if any(stand is None for _lage, stand in davor):
+        return quader.h
+    h0 = quader.h
+    drin = np.isfinite(h0)
+    if not drin.any():
+        return h0
+    xs, ys = np.meshgrid(quader.x, quader.y, indexing="ij")
+    xs, ys = xs[drin], ys[drin]
+    oben = h0[drin]
+    unten = float(quader.z_von)
+    m = ebene.toMatrix()
+    r = np.array([[m.A11, m.A12, m.A13], [m.A21, m.A22, m.A23], [m.A31, m.A32, m.A33]])
+    b = np.array([m.A14, m.A24, m.A34])
+    # Je Stand davor: die Abbildung Grundjob → seine Koordinaten.
+    in_stand = []
+    for lage, stand in davor:
+        if lage is None:
+            in_stand.append((np.eye(3), np.zeros(3), stand))
+            continue
+        mi = lage.inverse().toMatrix()
+        ri = np.array(
+            [[mi.A11, mi.A12, mi.A13], [mi.A21, mi.A22, mi.A23], [mi.A31, mi.A32, mi.A33]]
+        )
+        in_stand.append((ri, np.array([mi.A14, mi.A24, mi.A34]), stand))
+    ergebnis = np.full(len(oben), -np.inf)
+    offen = np.ones(len(oben), dtype=bool)
+    z_von = float(np.max(oben))
+    anzahl = int(math.ceil((z_von - unten) / EBENE_SCHRITT)) + 1
+    for k in range(anzahl):
+        z = z_von - k * EBENE_SCHRITT
+        pruefen = offen & (z <= oben + 1e-9)
+        if not pruefen.any():
+            if not offen.any():
+                break
+            continue
+        p_ebene = np.stack([xs[pruefen], ys[pruefen], np.full(pruefen.sum(), z)], axis=1)
+        p_grund = p_ebene @ r.T + b
+        material = np.ones(len(p_grund), dtype=bool)
+        for ri, bi, stand in in_stand:
+            p = p_grund @ ri.T + bi
+            material &= _im_stand(stand, p)
+        treffer = np.flatnonzero(pruefen)[material]
+        ergebnis[treffer] = np.minimum(z + EBENE_SCHRITT, oben[treffer])
+        offen[treffer] = False
+        if z < unten:
+            break
+    h = np.full(h0.shape, -np.inf)
+    h[drin] = ergebnis
+    return h
+
+
+def _im_stand(stand, punkte):
+    """Je Punkt (n, 3) in Koordinaten des Stands: Steht dort Material – über dem Boden seines
+    Quaders und unter seiner Höhe (das Höchste der vier Zellen um ihn; außerhalb −inf)?"""
+    q = stand.quader
+    x, y, z = punkte[:, 0], punkte[:, 1], punkte[:, 2]
+    schritt_x, schritt_y = q.x[1] - q.x[0], q.y[1] - q.y[0]
+    fx = (x - q.x[0]) / schritt_x
+    fy = (y - q.y[0]) / schritt_y
+    hoehe = np.full(len(x), -np.inf)
+    for di in (0, 1):
+        i = np.floor(fx).astype(int) + di
+        for dj in (0, 1):
+            j = np.floor(fy).astype(int) + dj
+            gueltig = (i >= 0) & (i < len(q.x)) & (j >= 0) & (j < len(q.y))
+            werte = np.full(len(x), -np.inf)
+            werte[gueltig] = q.h[i[gueltig], j[gueltig]]
+            np.maximum(hoehe, werte, out=hoehe)
+    with np.errstate(invalid="ignore"):
+        return (z <= hoehe + 1e-9) & (z >= q.z_von - 1e-9)
 
 
 def _kopie(stand):
