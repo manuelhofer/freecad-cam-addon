@@ -2143,7 +2143,14 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
     wo er ohne Aufmaß hineinpasst –, und „Restmaterial“ nimmt mit dem Ø 6, was er nicht
     erreicht. Zwei Fräser an einer Wand statt einem: einfacher, aber mit einem Absatz, wo sie
     sich treffen. Je Kontur ein eigener Fräser wäre ein zweiter Kontur-Block; offen, bis Manuel
-    es so will.
+    es so will. *Entschieden (Manuel, 2026-10-03: „wenn dieser 0,0005 mm ist, definitiv zu
+    vernachlässigen … wenn das mehr ist, jede Kontur eigenen Fräser“), gemessen am Testteil
+    (P-2026-10-03-20; Job über den Assistenten wie `szenario_testteil`, die Bahnen von Kontur
+    T1 und Restmaterial T3 gegen 1 097 Punkte am Umriss der Tasche in drei Höhen):* Wo beide
+    die Wand erreichen (314 Punkte), bleibt 0,0000 mm stehen – es gibt keinen Absatz. Mehr als
+    geometrisch nötig bleibt nirgends (verglichen mit dem Umriss, 3 mm nach innen und zurück:
+    nur in den spitzen Ecken bis 3 mm, wohin ein Ø 6 nicht kommt); ins Teil höchstens
+    0,0097 mm (T3, die Toleranz der Bahn). Es bleibt bei zwei Fräsern an einer Wand.
 - **T4 Wände schlichten, ohne sie einzeln anzuklicken:** der Block „Schlichten danach“
   (Abschnitt 12.4, Option A – entschieden).
   **Gebaut:** P-2026-10-02-90, 0.127.0 (Abschnitt 12.4).

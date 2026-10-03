@@ -162,7 +162,8 @@ Beantwortet am 2026-10-03 (abends):
 
 - *Zwei Fräser an einer Wand:* Ist der Absatz, wo Kontur (Ø 12) und Restmaterial (Ø 6) sich
   treffen, im Bereich 0,0005 mm, bleibt es so; ist er mehr, bekommt jede Kontur ihren eigenen
-  Fräser. **Zu tun:** den Absatz am Testteil messen, danach entscheiden.
+  Fräser. **Gemessen (P-2026-10-03-20):** 0,0000 mm am Übergang, nirgends mehr als nötig – es
+  bleibt so (Spezifikation Strategien, T3).
 - *Materialstand:* über kurze Lücken fahren, nicht abheben (so gebaut). Idee von Manuel: über
   der Lücke schneller fahren – nur, wenn es trotz Bremsen und Beschleunigen Zeit bringt.
 - *TCPM:* bleibt aus. Es soll auf **allen** Maschinen gehen; die G-Sätze ohne TCPM geben
