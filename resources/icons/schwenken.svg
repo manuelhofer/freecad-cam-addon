@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Befehl „Ebene schwenken (3+2)“: ein Block mit schräger Fläche, der Fräser senkrecht darauf, ein Schwenkpfeil. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <path d="M6 58 V34 L26 22 H58 V58 Z" fill="#babdb6" stroke="#555753" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M6 34 L26 22" stroke="#204a87" stroke-width="4"/>
+  <g transform="rotate(-31 16 28)">
+    <rect x="12" y="4" width="8" height="18" rx="1" fill="#fce94f" stroke="#c4a000" stroke-width="2"/>
+    <path d="M16 22 V27" stroke="#c4a000" stroke-width="3"/>
+  </g>
+  <path d="M38 10 A18 18 0 0 1 54 24" fill="none" stroke="#cc0000" stroke-width="3"/>
+  <path d="M56 28 l-7 -4 l8 -4 z" fill="#cc0000"/>
+</svg>

@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-39 befehl-ebene-schwenken
+
+### EINGELESEN
+- Spezifikation Strategien 15.3, F5. Entschieden, den Assistenten „Bearbeitung“ (5600 Zeilen)
+  nicht umzubauen: ein eigener Befehl legt die Ebene an und öffnet den Assistenten im neuen Job –
+  der kann einen vorhandenen Job schon (W-012 M2).
+
+### DATEIEN
+- `camaddon/gui_schwenken.py` (neu), `camaddon/gui_start.py` (Befehl in Werkzeugleiste und Menü),
+  `camaddon/hilfe.py` (Thema „schwenken“), `help/de|en/schwenken.html` (neu),
+  `resources/icons/schwenken.svg` (neu), `camaddon/schwenken.py` (`lege_an`: die Maschine des
+  Grundjobs mit), Übersetzungen (`befehl.schwenken.*`, `sw.panel.*`, `sw.titel`, `sw.kein_job`),
+  `tests/gui/szenario_schwenken.py` (neu), Spezifikation (F5), `docs/aufbau.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.154.0).
+
+### AKZEPTANZKRITERIUM
+- Schräge anklicken → Fenster mit Grundjob, Maschine, „Face3: 30° geschwenkt → A−30 C0“ → OK →
+  Job der Ebene, Assistent darin mit der Fläche → Anlegen → Bahn auf der Schräge; „Auf der
+  Maschine prüfen“ am Grundjob fährt die Ebene auf der 5-Achs-Maschine ab, in den Grenzen.
+
+### DONE
+- Wie oben (Screenshots 1_fenster, 2_assistent_in_der_ebene, 3_angelegt, 4_auf_der_maschine,
+  4b_auf_der_maschine_nah).
+
+### TESTS
+- `szenario_schwenken`, `tests/test_schwenken.py`, `tests/test_hilfe.py`, `tests/test_sprache.py` –
+  OK. black und ruff sauber.
+
+### NEXT
+- Manuels Blick; F6 (Materialstand über Ebenen); Bohren auf der Schräge prüfen.
+
 ## P-2026-10-03-38 schwenken-pruefen
 
 ### EINGELESEN

@@ -2430,6 +2430,11 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   am gedrehten Werkstück genau auf der Bahn der Ebene, nirgends unter der Schräge.
 - **F5 Assistent:** in „Bearbeitung“ Schritt 1 an einer 5-Achs-Maschine „Ebene schwenken:
   Fläche anklicken“ – der neue Job mit der Ebene, die Rundachsen in einem Satz.
+  **Gebaut anders:** P-2026-10-03-39 – ein eigener Befehl „Ebene schwenken (3+2) …“ statt eines
+  Umbaus am Assistenten: schräge Fläche anklicken, das Fenster nennt Grundjob, Maschine und grün
+  „Face3: 30° geschwenkt → A−30 C0“; „OK“ legt den Job an (die Maschine des Grundjobs mit),
+  zeigt sein Modell (die Fläche oben) und öffnet „Bearbeitung“ darin, die Fläche gewählt.
+  Szenario `szenario_schwenken`: bis „Auf der Maschine prüfen“ auf der Tisch/Tisch-Maschine.
 - **F6 danach** (zu besprechen): der Materialstand über Ebenen hinweg (heute beginnt eine Ebene
   am ganzen Rohteil – sicher, aber mit Luft), simultan (Flanke, Anstellwinkel).
 

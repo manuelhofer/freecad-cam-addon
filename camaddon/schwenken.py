@@ -539,6 +539,11 @@ def lege_an(grundjob, flaeche, maschine=None, name=None, x_richtung=None):
         job.Stock = rohteil
         if alt is not None and alt is not rohteil:
             dokument.removeObject(alt.Name)
+    from . import reichweite as rw
+
+    maschine_datei = getattr(grundjob, rw.EIGENSCHAFT_MASCHINE, "")
+    if maschine_datei:
+        rw.merke_maschine(job, maschine_datei)  # dieselbe Maschine wie der Grundjob
     _eigenschaften(job)
     job.Grundjob = grundjob
     job.Ebene = ebene_
