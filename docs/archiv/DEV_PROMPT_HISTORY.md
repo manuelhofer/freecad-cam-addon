@@ -42,7 +42,10 @@ patch_naming:
   black und ruff sauber.
 
 ### NEXT
-- Ob weitere Szenarien seit P-2026-10-02-85 unbemerkt rot sind (einmal alle laufen lassen).
+- Nachgesehen (kein Lauf über alles): die sieben anderen Szenarien, die ein Kollisionsergebnis
+  prüfen (`szenario_rundum_drehmaschine`, `szenario_vierachs_drehteil`, `_mantelnut`, `_nocke`,
+  `_radialbohren`, `_sechskant`, `_schruppen`) – alle grün; der Bruch durch D-23 betraf nur
+  `szenario_kollision`.
 
 ## P-2026-10-03-56 simultan-g93
 
