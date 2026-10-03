@@ -513,6 +513,13 @@ Stange muss also längs Z liegen. Deshalb in drei Schritten:
   an dem man geklickt hat; „Umdrehen“ tauscht die Enden.
   *Klickweg:* Welle, Klick auf den Mantel nahe dem rechten Ende → das rechte
   Ende liegt vorne an der Stange, mittig; „Umdrehen“ → das linke.
+  *Gebaut (P-2026-10-04-01):* `vierachs_rohteil.vermesse(…, nahe, umgedreht)` nimmt eine runde
+  Fläche (Zylinder, Kegel, Kugel, Torus – `achse_der_runden`): ihre Achse nach vorne zu dem Ende
+  des Teils, das dem Klickpunkt näher liegt, das Ende bei a = 0, die Mitte der Fläche auf der
+  Achse (`Vermessung.rund`). Im Assistenten der Klickpunkt aus der Auswahl, der Knopf
+  „Umdrehen“ (nur an runden Flächen), „Achse der runden Fläche“ als Mitte; eine Freiform:
+  „weder eben noch rund“. Noch nicht: „Ändern“ eines solchen Jobs findet die Lage wieder,
+  wenn vorne eine ebene Stirnfläche ist (`einstellung`), sonst nicht.
 - **V2c – das Prüffenster.** Dreht ein Programm um eine Achse, die die
   Maschine nicht hat (A auf der Drehmaschine mit C), sagt es ein Hinweis statt
   eines schiefen Bildes. Der Vorschlag für den Nullpunkt steckt eine Stange

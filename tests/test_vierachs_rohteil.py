@@ -141,6 +141,46 @@ gedreht = FreeCAD.Rotation(FreeCAD.Vector(0, 0, 1), 90).multVec(p0)
 pruefe(gleich(p90, gedreht, 1e-6), f"Drehlage: {p90} statt {gedreht}")
 pruefe(nahe(vr.aufmass(l0, 80), 7, 0.01), f"Aufmaß {vr.aufmass(l0, 80)}")
 
+# --- Drehteil (V2b): eine runde Fläche gibt die Stangenachse ----------------------------------
+# Welle Ø 30 längs X von x 0 bis 80, am Ende x 80 eine Kegelspitze bis x 95. Geklickt auf den
+# Mantel nahe x 70: Die Achse X wird die Stangenachse, vorne liegt die Kegelspitze (a 0), das
+# Teil reicht bis a −95, Mitte auf der Achse, Ø 30 nötig. Nahe x 10: das andere Ende vorne;
+# „Umdrehen“ tauscht zurück. Kegel und Kugel geben ihre Achse ebenso; eine Freiform nicht.
+LAENGS_X = FreeCAD.Vector(1, 0, 0)
+drehteil = (
+    Part.makeCylinder(15, 80, FreeCAD.Vector(0, 0, 0), LAENGS_X)
+    .fuse(Part.makeCone(15, 0, 15, FreeCAD.Vector(80, 0, 0), LAENGS_X))
+    .removeSplitter()
+)
+dt_mantel = next(f for f in drehteil.Faces if isinstance(f.Surface, Part.Cylinder))
+dv = vr.vermesse(drehteil, dt_mantel, nahe=FreeCAD.Vector(70, 0, 15))
+pruefe(dv.rund and gleich(dv.normale, LAENGS_X), f"Mantel nahe x 70: Normale {dv.normale}")
+pruefe(nahe(dv.vorne, 0.0) and nahe(dv.hinten, -95.0), f"vorne/hinten {dv.vorne}, {dv.hinten}")
+pruefe(nahe(dv.noetig[vr.MITTE_FLAECHE], 30.0, 1e-3), f"nötig {dv.noetig}")
+pruefe(nahe(dv.kreis[1], 15.0, 1e-3), f"Ø der Fläche {2 * dv.kreis[1]}")
+dt_lage = vr.lage(dv, "A")
+dt_spitze = dt_lage.placement.multVec(FreeCAD.Vector(95, 0, 0))
+pruefe(
+    gleich(dt_spitze, FreeCAD.Vector(0, 0, 0)),
+    f"Kegelspitze nicht vorne auf der Achse: {dt_spitze}",
+)
+dv = vr.vermesse(drehteil, dt_mantel, nahe=FreeCAD.Vector(10, 0, 15))
+pruefe(gleich(dv.normale, LAENGS_X * -1) and nahe(dv.hinten, -95.0), f"nahe x 10: {dv.normale}")
+dv = vr.vermesse(drehteil, dt_mantel, nahe=FreeCAD.Vector(10, 0, 15), umgedreht=True)
+pruefe(gleich(dv.normale, LAENGS_X), f"umgedreht: {dv.normale}")
+dt_kegel = next(f for f in drehteil.Faces if isinstance(f.Surface, Part.Cone))
+pruefe(gleich(vr.vermesse(drehteil, dt_kegel).normale, LAENGS_X), "Kegel: Achse nicht LAENGS_X")
+dt_kugel = Part.makeSphere(10)
+pruefe(vr.vermesse(dt_kugel, dt_kugel.Faces[0]).rund, "Kugel: keine runde Fläche")
+dt_freiform = Part.BSplineSurface()
+dt_freiform.interpolate([[FreeCAD.Vector(i, j, 0.1 * i * j) for j in range(4)] for i in range(4)])
+try:
+    vr.vermesse(drehteil, dt_freiform.toShape())
+except ValueError:
+    pass
+else:
+    pruefe(False, "Freiform als Stirnfläche")
+
 # --- Vorschlag, Länge und Lage der Stange -----------------------------------------
 pruefe(vr.vorschlag_durchmesser(72) == 75, "Vorschlag für Ø 72")
 pruefe(vr.vorschlag_durchmesser(66) == 70, "Vorschlag für Ø 66")

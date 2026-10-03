@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-01 drehteil-am-mantel
+
+### EINGELESEN
+- Spezifikation Vierachs V2b (Drehteile): „Ein Klick auf eine runde Fläche … nimmt deren Achse
+  als Stangenachse … Vorne ist das Ende des Teils, an dem man geklickt hat; ‚Umdrehen‘ tauscht
+  die Enden.“ – offen seit 2026-09-27, in der Liste „Danach“ Punkt 7.
+
+### DATEIEN
+- `camaddon/vierachs_rohteil.py` (`achse_der_runden`, `vermesse(…, nahe, umgedreht)`,
+  `_vermesse_rund`, `Vermessung.rund`), `camaddon/gui_vierachs.py` (der Klickpunkt aus dem
+  Beobachter und der Auswahl – `klickpunkt` –, `waehle_flaeche(…, nahe)`, Knopf „Umdrehen“,
+  Texte für die runde Fläche), Übersetzungen (`va.umdrehen*`, `va.art.mantel`,
+  `va.mitte.achse`, `va.nicht_eben`, `va.anleitung`), Hilfe `vierachs.html` (de/en),
+  `tests/test_vierachs_rohteil.py`, `tests/gui/szenario_vierachs_rohteil.py` (statt „gewölbte
+  Fläche abgelehnt“: der Mantel legt die Welle), Spezifikation Vierachs (V2b),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.159.0).
+
+### AKZEPTANZKRITERIUM
+- Welle mit Kegelspitze, Mantel nahe der Spitze angeklickt: Achse = Stangenachse, die Spitze
+  vorne bei a 0 auf der Achse, Ø 30 nötig; nahe dem anderen Ende: das andere Ende vorne;
+  „Umdrehen“ tauscht; Kegel und Kugel ebenso; eine Freiform: „weder eben noch rund“. Im
+  Assistenten: „Welle, Face1 (rund Ø 60,0 mm, ihre Achse ist die Stangenachse)“, „Umdrehen“.
+
+### DONE
+- Wie oben (Bild 3b im Szenario). Offen: „Ändern“ findet die Lage nur wieder, wenn vorne eine
+  ebene Stirnfläche ist.
+
+### TESTS
+- `tests/test_vierachs_rohteil.py`, `tests/test_sprache.py`, `tests/test_hilfe.py` – OK;
+  Szenarien `szenario_vierachs_rohteil`, `szenario_vierachs_drehteil` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Blick darauf und auf 3+2; seine Antworten zu D-1, D-2, D-4, D-5, E-2 … E-4.
+
 ## P-2026-10-03-57 eilgang-im-eigenen-weg
 
 ### EINGELESEN

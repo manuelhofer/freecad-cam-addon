@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.158.4 (P-2026-10-03-57). Alles, was hier als gebaut steht,
+Stand 0.159.0 (P-2026-10-04-01). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -29,7 +29,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   mit der Querachse (P-2026-10-03-18, Manuels Y-Gedanke: auf ebenen Flächen hält C, Y fährt
   die Gerade – seit P-2026-10-03-22 mit jedem Fräser, seit -23 auch beim Schruppen); die Bahnen
   auch zwischen den Punkten nicht im Teil (Spirale -22, Zeilen -24). Offen:
-  V2b (Drehteile), V6, V7; das Prüffenster malt Fahrten über die Mitte noch nicht – an Manuels
+  V6, V7 (V2b Drehteile gebaut: P-2026-10-04-01); das Prüffenster malt Fahrten über die Mitte noch nicht – an Manuels
   Teil ohne Folgen gemessen (P-2026-10-03-25: alles grün, nirgends blau), erst für Teile weit
   neben der Achse (Spezifikation Vierachs, V5b „Offen“).
 - **W-004 Bedienung** – D-01 bis D-13, D-20, D-21, D-25, D-26, D-28 bis D-30, D-40 bis D-47
@@ -252,7 +252,7 @@ Beantwortet am 2026-10-03 (abends):
    steckt (das sagt `distToShape` zwischen Körpern heute mit 0). Nur mit einem Vergleich aller
    Befunde vorher/nachher; nicht nachts gebaut. „Auf der Maschine prüfen“ öffnet seit
    P-2026-10-03-54 schneller (12 000 Punkte: 1,8 → 1,3 s).
-7. W-002 F2; W-003 V2b, V6, V7; (das Schruppen rundum an steilen Stellen: gemessen, die Keile
+7. W-002 F2; W-003 V6, V7 (V2b gebaut, P-2026-10-04-01); (das Schruppen rundum an steilen Stellen: gemessen, die Keile
    sind größtenteils echt – P-2026-10-03-30);
    „ausweichen“ mit
    dem Y (Kugel nicht mit der Spitze, Anstellwinkel quer – Spezifikation Vierachs V4c+),

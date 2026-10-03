@@ -203,6 +203,15 @@ class BefehlVierachs:
         FreeCADGui.Control.showDialog(VierachsPanel(dokument, wahl))
 
 
+def klickpunkt(dokument):
+    """Wo die gewählte Fläche angeklickt wurde (Weltkoordinaten) – None ohne."""
+    for auswahl in FreeCADGui.Selection.getSelectionEx(dokument.Name, 0):
+        punkte = list(getattr(auswahl, "PickedPoints", None) or [])
+        if punkte:
+            return FreeCAD.Vector(punkte[0])
+    return None
+
+
 def gewaehlte_operation(dokument):
     """Die gewählte „Rundum schruppen“ oder „Rundum schlichten“ – oder, ist ein Job oder sein
     Ordner „Operations“ gewählt, sein „Rundum schruppen“ (dort lässt sich das Schlichten
@@ -343,7 +352,7 @@ class _Beobachter:
     def __init__(self, panel):
         self.panel = panel
 
-    def addSelection(self, _dokument, objekt, unterelement, _punkt):
+    def addSelection(self, _dokument, objekt, unterelement, punkt):
         if not unterelement:
             return
         # Erst wenn FreeCAD mit der Auswahl fertig ist – der Assistent ändert dabei das
@@ -351,7 +360,9 @@ class _Beobachter:
         if self.panel.seite == 2:
             QtCore.QTimer.singleShot(0, lambda: self.panel.flaeche_angeklickt(objekt, unterelement))
         else:
-            QtCore.QTimer.singleShot(0, self.panel.auswahl_lesen)
+            # Der Klickpunkt: An einer runden Fläche liegt das Ende vorne, an dem man klickt.
+            angeklickt = FreeCAD.Vector(*punkt) if punkt else None
+            QtCore.QTimer.singleShot(0, lambda: self.panel.auswahl_lesen(angeklickt))
 
 
 class _NurFlaechen:
@@ -465,6 +476,8 @@ class VierachsPanel:
         self.teil = None  # das Original, das in die Stange soll
         self.flaeche = None  # „FaceN“ der Stirnfläche
         self.vermessung = None
+        self._nahe = None  # an einer runden Fläche: wo sie angeklickt wurde (V2b)
+        self.umgedreht = False  # an einer runden Fläche: das andere Ende vorne („Umdrehen“)
         self.lage = None
         self.job = None
         self.mitte = vr.MITTE_AUTO  # bis man selbst eine Mitte wählt
@@ -542,7 +555,7 @@ class VierachsPanel:
         FreeCADGui.Selection.addObserver(self._beobachter)
         FreeCADGui.Selection.addSelectionGate(_NurFlaechen(self))
         if wahl is not None and wahl[1] is not None:
-            self.waehle_flaeche(*wahl)
+            self.waehle_flaeche(*wahl, nahe=klickpunkt(dokument))
         self._auffrischen()
 
     def _zum_aendern(self):
@@ -932,6 +945,14 @@ class VierachsPanel:
         self.teil_text.setWordWrap(True)
         raster.addWidget(beschriftung(tr("va.teil")), zeile, 0)
         raster.addWidget(self.teil_text, zeile, 1, 1, 2)
+        zeile += 1
+        # An einer runden Fläche (V2b): das andere Ende nach vorne.
+        self.knopf_umdrehen = QtGui.QPushButton(tr("va.umdrehen"))
+        self.knopf_umdrehen.setToolTip(tr("va.umdrehen.tooltip"))
+        self.knopf_umdrehen.setAutoDefault(False)
+        self.knopf_umdrehen.clicked.connect(lambda: self.umdrehen())
+        self.knopf_umdrehen.hide()
+        raster.addWidget(self.knopf_umdrehen, zeile, 1, QtCore.Qt.AlignLeft)
         zeile += 1
 
         # Maschine zuerst (Manuel, 2026-09-29: „vll sollte man als erstes die abfrage machen
@@ -1380,25 +1401,27 @@ class VierachsPanel:
 
     # --- Aktionen (auch für die Szenarien) --------------------------------------
 
-    def auswahl_lesen(self):
+    def auswahl_lesen(self, punkt=None):
         """Nimmt die angeklickte Fläche – aufgerufen, wenn man in der 3D-Ansicht klickt; nur
-        in Schritt 1."""
+        in Schritt 1. `punkt`: wo (Weltkoordinaten) – an einer runden Fläche das Ende vorne."""
         if self.geschlossen or self.seite != 1:
             return
         wahl = gewaehlte_flaeche(self.doc)
         if wahl is not None and wahl[1] is not None and wahl != (self.teil, self.flaeche):
-            self.waehle_flaeche(*wahl)
+            self.waehle_flaeche(*wahl, nahe=punkt)
 
-    def waehle_flaeche(self, teil, flaeche):
-        """Legt `teil` mit seiner Fläche `flaeche` („FaceN“) vorne in die Stange."""
+    def waehle_flaeche(self, teil, flaeche, nahe=None):
+        """Legt `teil` mit seiner Fläche `flaeche` („FaceN“) vorne in die Stange – eine runde
+        Fläche mit ihrer Achse als Stangenachse, das Ende nahe `nahe` vorne (V2b)."""
         teil = vr.original(teil)
         try:
             form = teil.Shape
             element = form.getElement(flaeche)
-            vermessung = vr.vermesse(form, element)
-        except ValueError:  # nicht eben (oder keine solche Fläche)
+            vermessung = vr.vermesse(form, element, nahe)
+        except ValueError:  # weder eben noch rund (oder keine solche Fläche)
             self._hinweis(tr("va.nicht_eben", flaeche=flaeche, teil=teil.Label))
             return
+        self._nahe, self.umgedreht = nahe, False
         if self.zu_aendern is not None and teil is not self.teil:
             self._hinweis(tr("va.aendern.anderes_teil", teil=self.teil.Label))
             return
@@ -1430,6 +1453,15 @@ class VierachsPanel:
         vorher = FreeCAD.Placement(vr.modell(self.job).Placement) if self.job else None
         if self._anwenden() and vorher is not None:
             self._zeige_bewegung(vorher)
+
+    def umdrehen(self):
+        """„Umdrehen“: An einer runden Fläche kommt das andere Ende des Teils nach vorne."""
+        if self.vermessung is None or not self.vermessung.rund or self.teil is None:
+            return
+        self.umgedreht = not self.umgedreht
+        element = self.teil.Shape.getElement(self.flaeche)
+        self.vermessung = vr.vermesse(self.teil.Shape, element, self._nahe, self.umgedreht)
+        self._anwenden()
 
     def plus90(self):
         """Dreht das Teil in der Stange um weitere 90°."""
@@ -4026,7 +4058,11 @@ class VierachsPanel:
             self.urteil.setText("")
             return
         einheit_laenge = einheiten.LAENGE
-        if mess.kreis is not None:
+        self.knopf_umdrehen.setVisible(mess.rund)
+        if mess.rund:  # V2b: eine runde Fläche, ihre Achse ist die Stangenachse
+            art = tr("va.art.mantel", d=groesse_fest(2 * mess.kreis[1], einheit_laenge, 1))
+            self.knopf_mitte_flaeche.setText(tr("va.mitte.achse"))
+        elif mess.kreis is not None:
             art = tr("va.art.rund", d=groesse_fest(2 * mess.kreis[1], einheit_laenge, 1))
             self.knopf_mitte_flaeche.setText(tr("va.mitte.flaeche"))
         else:

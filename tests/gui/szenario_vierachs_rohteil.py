@@ -2,7 +2,8 @@
 # einem Nocken bis 36 mm von der Achse; ihre Stirnfläche angeklickt, der Befehl
 # legt sie mittig vorne in eine Stange. Leer gilt der Vorschlag Ø 75; mit Ø 80
 # bleiben 4,0 mm rundum. „Ganzes Teil“ braucht nur Ø 66. Mit A liegt die
-# Stange in X, mit C in Z. Eine gewölbte Fläche wird abgelehnt. Abbrechen
+# Stange in X, mit C in Z. Der Mantel legt die Welle wie die Stirnfläche, „Umdrehen“ das
+# andere Ende nach vorn (V2b). Abbrechen
 # hinterlässt nichts; „Weiter“ und ohne „Rundum schruppen“ „Anlegen“ ist ein
 # Schritt Rückgängig.
 import os
@@ -32,10 +33,13 @@ def _stirnflaeche(teil):
     return beste[1]
 
 
-def _gewoelbte_flaeche(teil):
-    from camaddon import vierachs_rohteil as vr
-
-    return next(f"Face{i + 1}" for i, f in enumerate(teil.Shape.Faces) if not vr.ist_eben(f))
+def _mantel(teil):
+    """Der Mantel der Welle (Zylinder R 30)."""
+    return next(
+        f"Face{i + 1}"
+        for i, f in enumerate(teil.Shape.Faces)
+        if isinstance(f.Surface, Part.Cylinder) and abs(f.Surface.Radius - 30) < 1e-6
+    )
 
 
 def schritte(h):
@@ -138,11 +142,29 @@ def schritte(h):
     yield 500
     h.pruefe(panel.feld_drehlage.text() == "90", f"Drehlage: {panel.feld_drehlage.text()!r}")
 
-    # Eine gewölbte Fläche geht nicht – ein Satz sagt warum, der Job bleibt.
-    panel.waehle_flaeche(teil, _gewoelbte_flaeche(teil))
-    yield 200
-    h.pruefe("nicht eben" in panel.urteil.text(), f"gewölbt: {panel.urteil.text()!r}")
-    h.pruefe(panel.job is not None and panel.flaeche == stirn, "Job nach gewölbter Fläche weg")
+    # Der Mantel der Welle (rund, V2b): seine Achse wird die Stangenachse, oben angeklickt liegt
+    # das obere Ende vorne (a 0, mit A längs X), die Achse der Welle auf der Stangenachse;
+    # „Umdrehen“ legt das untere Ende nach vorn.
+    h.pruefe(panel.knopf_umdrehen.isHidden(), "„Umdrehen“ an der ebenen Stirnfläche")
+    panel.waehle_flaeche(teil, _mantel(teil), nahe=FreeCAD.Vector(30, 0, 90))
+    yield 300
+    oben = panel.lage.placement.multVec(FreeCAD.Vector(0, 0, 100))
+    unten = panel.lage.placement.multVec(FreeCAD.Vector(0, 0, 0))
+    h.pruefe(
+        panel.vermessung.rund
+        and oben.Length < 1e-6
+        and (unten - FreeCAD.Vector(-100, 0, 0)).Length < 1e-6,
+        f"Mantel: oben {oben}, unten {unten}",
+    )
+    h.pruefe(not panel.knopf_umdrehen.isHidden(), "kein „Umdrehen“ am Mantel")
+    h.pruefe("Stangenachse" in panel.teil_text.text(), f"Teil: {panel.teil_text.text()!r}")
+    h.bild("3b_mantel")
+    panel.knopf_umdrehen.click()
+    yield 300
+    h.pruefe(
+        (panel.vermessung.normale - FreeCAD.Vector(0, 0, -1)).Length < 1e-9,
+        f"umgedreht: {panel.vermessung.normale}",
+    )
 
     # Abbrechen: nichts bleibt, das Original ist wieder zu sehen.
     panel.reject()

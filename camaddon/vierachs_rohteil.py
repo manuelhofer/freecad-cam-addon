@@ -12,6 +12,10 @@ Buchstabe der Rundachse: A liegt in X, B in Y, C in Z (Abschnitt 4). So legt
 FreeCADs Bahnanzeige spätere Bahnen von selbst richtig um das Teil – sie
 dreht A um X, B um Y und C um Z.
 
+Eine runde Fläche (Zylinder, Kegel, Kugel, Torus – ein Drehteil, V2b) geht auch: Ihre Achse
+wird die Stangenachse, vorne liegt das Ende des Teils, an dem man geklickt hat (`nahe`), und
+„Umdrehen“ tauscht die Enden; die Mitte der Fläche ist ihre Achse.
+
 Teuer ist nur das Vermessen einer Fläche (Tessellierung, Hülle, kleinster
 Kreis); vermesse() macht es einmal, lage() rechnet daraus für jede Mitte,
 Drehlage und Rundachse sofort – der Assistent ruft es bei jeder Eingabe.
@@ -78,6 +82,7 @@ class Vermessung:
     noetig: dict  # Ø, den die Stange je Mitte mindestens braucht (mm)
     vorne: float  # a des vordersten Punkts (meist 0)
     hinten: float  # a des hintersten Punkts (negativ)
+    rund: bool = False  # eine runde Fläche (V2b): ihre Achse ist die Stangenachse
 
     @property
     def laenge(self):
@@ -236,14 +241,31 @@ def _quer(achse):
     return u, v
 
 
-def vermesse(form, flaeche):
+def achse_der_runden(flaeche):
+    """(Punkt auf der Achse, Richtung) einer runden Fläche – Zylinder, Kegel, Kugel, Torus –,
+    sonst None."""
+    flaeche_ = flaeche.Surface
+    if not isinstance(flaeche_, (Part.Cylinder, Part.Cone, Part.Sphere, Part.Toroid)):
+        return None
+    richtung = FreeCAD.Vector(flaeche_.Axis)
+    if richtung.Length < GENAU:
+        return None
+    richtung.normalize()
+    return FreeCAD.Vector(flaeche_.Center), richtung
+
+
+def vermesse(form, flaeche, nahe=None, umgedreht=False):
     """Vermisst Teil und Stirnfläche (Vermessung) – beide in Weltkoordinaten.
 
-    ValueError, wenn die Fläche nicht eben ist: Nur eine ebene Fläche liegt
-    vorne an der Stange an.
+    Eine runde Fläche (achse_der_runden, V2b): ihre Achse wird die Stangenachse, nach vorne
+    das Ende des Teils, das `nahe` (der angeklickte Punkt; ohne: die Mitte der Fläche) näher
+    liegt – `umgedreht`: das andere. ValueError, wenn die Fläche weder eben noch rund ist.
     """
     if not ist_eben(flaeche):
-        raise ValueError("Die Stirnfläche ist nicht eben.")
+        rund = achse_der_runden(flaeche)
+        if rund is None:
+            raise ValueError("Die Stirnfläche ist weder eben noch rund.")
+        return _vermesse_rund(form, flaeche, rund, nahe, umgedreht)
     normale = aussennormale(flaeche)
     u, v = _quer(normale)
     # Die Tessellierung enthält Ecken und Kanten – für den Umriss reicht das.
@@ -268,6 +290,41 @@ def vermesse(form, flaeche):
         noetig={MITTE_FLAECHE: 2 * weitester, MITTE_TEIL: 2 * r},
         vorne=max(laengs),
         hinten=min(laengs),
+    )
+
+
+def _vermesse_rund(form, flaeche, rund, nahe, umgedreht):
+    """vermesse() für eine runde Fläche mit der Achse `rund` (Punkt, Richtung)."""
+    auf_der_achse, achse = rund
+    punkte, _dreiecke = form.tessellate(TESSELLIERUNG)
+    punkte = list(punkte) + [ecke.Point for ecke in form.Vertexes]
+    t = [(p - auf_der_achse).dot(achse) for p in punkte]
+    bezug = FreeCAD.Vector(nahe) if nahe is not None else flaeche.CenterOfMass
+    vorne_plus = (bezug - auf_der_achse).dot(achse) >= (min(t) + max(t)) / 2
+    normale = achse if vorne_plus != bool(umgedreht) else achse * -1
+    u, v = _quer(normale)
+    hoehe = max(p.dot(normale) for p in punkte)  # das vordere Ende des Teils
+    laengs = [p.dot(normale) - hoehe for p in punkte]
+    huelle = konvexe_huelle([(p.dot(u), p.dot(v)) for p in punkte])
+    mitte_flaeche = (auf_der_achse.dot(u), auf_der_achse.dot(v))
+    x, y, r = kleinster_kreis(huelle)
+    weitester = max(math.hypot(p[0] - mitte_flaeche[0], p[1] - mitte_flaeche[1]) for p in huelle)
+    eigene, _ = flaeche.tessellate(TESSELLIERUNG)
+    radius = max(
+        ((p - auf_der_achse) - normale * (p - auf_der_achse).dot(normale)).Length
+        for p in list(eigene) + [ecke.Point for ecke in flaeche.Vertexes]
+    )
+    return Vermessung(
+        normale=normale,
+        quer=(u, v),
+        hoehe=hoehe,
+        kreis=(auf_der_achse + normale * (hoehe - auf_der_achse.dot(normale)), radius),
+        mitte_flaeche=mitte_flaeche,
+        mitte_teil=(x, y),
+        noetig={MITTE_FLAECHE: 2 * weitester, MITTE_TEIL: 2 * r},
+        vorne=max(laengs),
+        hinten=min(laengs),
+        rund=True,
     )
 
 
