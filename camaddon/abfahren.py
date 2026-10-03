@@ -239,7 +239,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         return ergebnis
     vorbereitet = []
     bewegt = set()  # die Achsen, die für eine der benutzten Werkzeugaufnahmen fahren
-    for op in rw._operationen(job):
+    for op, ebene in rw.operationen_mit_ebene(job):
         tc = getattr(op, "ToolController", None)
         aufnahme = pruefung.werkzeugaufnahme(getattr(tc, "ToolNumber", 0)) if tc else None
         if aufnahme is None:
@@ -248,7 +248,12 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         if len(linear) > 3:
             continue
         eingespannt = rw.einspannung(tc, bibliothek)
-        vorbereitet.append((op, tc, aufnahme, eingespannt, linear))
+        try:
+            # In einer geschwenkten Ebene die Sätze ohne Schwenkzyklus (3+2, schwenken).
+            befehle = pruefung.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
+        except ValueError:
+            continue  # die Reichweite sagt, warum
+        vorbereitet.append((op, tc, aufnahme, eingespannt, linear, befehle))
         bewegt.update(pruefung.gefahrene_achsen(aufnahme))
     ergebnis.achsen = [a for a in pruefung.kette.achsen if a in bewegt]
     index = {a: i for i, a in enumerate(ergebnis.achsen)}
@@ -306,7 +311,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     anflug = False  # die nächste Station kommt vom Home- oder Wechselpunkt
     vorheriger_tc = None
     davor = None  # (Lösung, Linearachsen) der Operation davor – für den Wechselpunkt in WKS
-    for op, tc, aufnahme, eingespannt, linear in vorbereitet:
+    for op, tc, aufnahme, eingespannt, linear, befehle in vorbereitet:
         loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         nummer = len(ergebnis.operationen)
         if nummer and tc is not vorheriger_tc:
@@ -323,7 +328,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 aufnahme,
                 eingespannt.laenge,
                 len(ergebnis.stationen),
-                len(op.Path.Commands),
+                len(befehle),
                 js.operationsart(op),
                 eingespannt.lage,
             )
@@ -332,7 +337,7 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
             anfahren(home, nummer, HOME)
             anflug = True
         ohne_vorschub = False
-        for schritt in rw._bahn(op.Path.Commands, lambda _name: None, rueckzug=True):
+        for schritt in rw._bahn(befehle, lambda _name: None, rueckzug=True):
             for punkt, rund in _punkte(schritt, loesung(schritt.rund)[0]):
                 geloest, dreh = loesung(rund)
                 stellungen = _stellungen(geloest, dreh, punkt, linear, index)

@@ -823,8 +823,11 @@ def _teil_form(job):
     """Das fertige Teil: die Modelle des Jobs als ein Körper, in Koordinaten des Jobs."""
     import Part
 
+    from .reichweite import grundjob_von
+
     formen = []
-    for objekt in getattr(getattr(job, "Model", None), "Group", []):
+    # Eine geschwenkte Ebene (3+2): das Teil, wie es gespannt ist – im Grundjob.
+    for objekt in getattr(getattr(grundjob_von(job), "Model", None), "Group", []):
         form = getattr(objekt, "Shape", None)
         if form is not None and not form.isNull():
             formen.append(form.copy())

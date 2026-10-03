@@ -2423,6 +2423,11 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   Grundjobs mit (D-4 unten).
 - **F4 Auf der Maschine prüfen:** Reichweite, Abfahren, Kollision für einen Job mit Ebene – die
   Sätze ohne Zyklus gerechnet, mit den Rundachsen der Ebene.
+  **Gebaut:** P-2026-10-03-38 – `reichweite.operationen_mit_ebene` (der Grundjob mit seinen
+  Ebenen), `Pruefung.befehle` (die Sätze ohne Zyklus mit dieser Maschine und diesem Werkzeug;
+  passen die Rundachsen am Job nicht zur Maschine, neu gelöst), `grundjob_von` für Nullpunkt,
+  Modell und Rohteil (Abfahren, Kollision). Am Tisch/Tisch-Beispiel: A1 auf −30°, die Spitze
+  am gedrehten Werkstück genau auf der Bahn der Ebene, nirgends unter der Schräge.
 - **F5 Assistent:** in „Bearbeitung“ Schritt 1 an einer 5-Achs-Maschine „Ebene schwenken:
   Fläche anklicken“ – der neue Job mit der Ebene, die Rundachsen in einem Satz.
 - **F6 danach** (zu besprechen): der Materialstand über Ebenen hinweg (heute beginnt eine Ebene

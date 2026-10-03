@@ -244,12 +244,36 @@ def punkt_text(punkt, x_durchmesser=False):
 # --- Nullpunkt des Jobs ------------------------------------------------------------------
 
 
+def grundjob_von(job):
+    """Der Job, in dem das Teil auf dem Tisch liegt: bei einer geschwenkten Ebene (3+2,
+    schwenken) ihr Grundjob, sonst der Job selbst – sein Nullpunkt, sein Modell und sein
+    Rohteil gelten auf der Maschine."""
+    from . import schwenken as sw
+
+    return job.Grundjob if sw.ist_ebene(job) else job
+
+
+def operationen_mit_ebene(job):
+    """[(Operation, Job der Ebene oder None)] – die aktiven Operationen des Jobs; ist er eine
+    geschwenkte Ebene, mit ihr; hat er Ebenen, folgen deren Operationen (wie im Programm,
+    postprozessor.abschnitte)."""
+    from . import schwenken as sw
+
+    if sw.ist_ebene(job):
+        return [(op, job) for op in _operationen(job)]
+    ergebnis = [(op, None) for op in _operationen(job)]
+    for ebene in sw.ebenen_von(job):
+        ergebnis += [(op, ebene) for op in _operationen(ebene)]
+    return ergebnis
+
+
 def vorschlag_nullpunkt(job):
     """Wo der Nullpunkt des Jobs von der Werkstückaufnahme aus liegt, wenn nichts
     eingetragen ist: das Rohteil mittig auf der Aufnahme, die Unterseite auf der
     Spannfläche. Eine runde Stange längs Z sitzt genau auf ihrer Achse und steckt mit
     ihrer Spannlänge im Futter (4-Achs-Bearbeitung an der Drehmaschine, W-003 V2c).
-    Ohne Rohteil der Ursprung."""
+    Ohne Rohteil der Ursprung. Für eine geschwenkte Ebene der ihres Grundjobs."""
+    job = grundjob_von(job)
     rohteil = getattr(job, "Stock", None)
     form = getattr(rohteil, "Shape", None)
     if form is None or form.isNull():
@@ -275,6 +299,7 @@ def _stange_laengs_z(rohteil):
 
 def eingetragener_nullpunkt(job):
     """Die am Job eingetragenen Werte: {"X": …, "Y": …, "Z": …} – fehlende gelten mit dem Vorschlag."""
+    job = grundjob_von(job)
     text = getattr(job, EIGENSCHAFT_NULLPUNKT, "") or ""
     try:
         werte = json.loads(text) if text else {}
@@ -293,7 +318,9 @@ def nullpunkt(job):
 
 
 def setze_nullpunkt(job, werte):
-    """Trägt den Nullpunkt am Job ein; `werte` wie bei eingetragener_nullpunkt(), {} löscht."""
+    """Trägt den Nullpunkt am Job ein; `werte` wie bei eingetragener_nullpunkt(), {} löscht.
+    Für eine geschwenkte Ebene am Grundjob – die Maschine sieht das Teil, wie es gespannt ist."""
+    job = grundjob_von(job)
     if EIGENSCHAFT_NULLPUNKT not in job.PropertiesList:
         if not werte:
             return
@@ -812,10 +839,34 @@ class Pruefung:
             nullpunkt_des_jobs = nullpunkt(job)
         sammler = _Sammler(self, ergebnis)
         self._bestueckung_pruefen(job, bibliothek, sammler)
-        for op in _operationen(job):
-            self._pruefe_operation(op, nullpunkt_des_jobs, bibliothek, sammler)
+        for op, ebene in operationen_mit_ebene(job):
+            self._pruefe_operation(op, nullpunkt_des_jobs, bibliothek, sammler, ebene)
         sammler.fertig()
         return ergebnis
+
+    def befehle(self, op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs):
+        """Die Sätze der Operation, wie die Maschine sie fährt: die eigenen – oder, in einer
+        geschwenkten Ebene (`ebene`: ihr Job), ohne Schwenkzyklus gerechnet (die Rundachsen der
+        Ebene, X, Y, Z im Grundjob ohne TCPM; schwenken.befehle_ohne_zyklus) – mit dieser
+        Maschine und diesem Werkzeug. ValueError mit einem Satz, wenn die Maschine die Ebene
+        nicht erreicht."""
+        befehle = list(op.Path.Commands)
+        if ebene is None:
+            return befehle
+        from . import schwenken as sw
+
+        maschine = sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs)
+        lage = sw.ebene_von(ebene)
+        normale = sw.normale_der(lage)
+        rund = sw.rundachsen_von(ebene)
+        buchstaben = {a.buchstabe for a in maschine.rundachsen}
+        if set(rund) != buchstaben or maschine.richtung(rund).dot(normale) < 1.0 - 1e-6:
+            loesungen = maschine.loese(normale)
+            if not loesungen:
+                raise ValueError(tr("sw.fehler.keine_stellung", flaeche=ebene.Flaeche))
+            rund = loesungen[0]
+        abbildung = maschine.abbildung(rund)
+        return sw.befehle_ohne_zyklus(befehle, sw.Schwenkung(lage, rund, abbildung))
 
     def _bestueckung_pruefen(self, job, bibliothek, sammler):
         """Stecken im Job zwei Werkzeuge auf einem Revolverplatz (W-002 Stufe G)? Die Maschine
@@ -827,7 +878,7 @@ class Pruefung:
             namen = ", ".join(mit_dezimalzeichen(bs.kurz(e), zeichen) for e in auf)
             sammler.hinweis(tr("rw.bestueckung.doppelt", platz=f"P{nummer}", werkzeuge=namen))
 
-    def _pruefe_operation(self, op, nullpunkt_des_jobs, bibliothek, sammler):
+    def _pruefe_operation(self, op, nullpunkt_des_jobs, bibliothek, sammler, ebene=None):
         tc = getattr(op, "ToolController", None)
         if tc is None:
             sammler.hinweis(tr("rw.ohne_controller", operation=op.Label))
@@ -887,7 +938,13 @@ class Pruefung:
         sammler.beginne(op.Label, linear, drehachsen, kinematik, f"T{nummer}")
         vorhanden = {_programmbuchstabe(self.maschine, a) for a in drehachsen} - {None}
         fremd = set()  # Rundachsen, um die das Programm dreht, die Maschine aber nicht hat
-        for schritt in _bahn(op.Path.Commands, sammler.unbekannt):
+        try:
+            befehle = self.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
+        except ValueError as grund:
+            sammler.hinweis(f"{op.Label}: {grund}")
+            sammler.ende_operation()
+            return
+        for schritt in _bahn(befehle, sammler.unbekannt):
             fremd |= {b for b, w in schritt.rund.items() if abs(w) > 1e-9} - vorhanden
             if schritt.art == "punkt":
                 sammler.punkt(schritt.ort, schritt.rund, *loesung(schritt.rund))

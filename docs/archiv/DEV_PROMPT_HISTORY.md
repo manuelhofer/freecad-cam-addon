@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-38 schwenken-pruefen
+
+### EINGELESEN
+- Spezifikation Strategien 15.3, F4.
+
+### DATEIEN
+- `camaddon/reichweite.py` (`grundjob_von`, `operationen_mit_ebene`, `Pruefung.befehle`; der
+  Nullpunkt einer Ebene ist der ihres Grundjobs), `camaddon/abfahren.py` (die Sätze aus
+  `Pruefung.befehle`), `camaddon/gui_abfahren.py` und `camaddon/kollision.py` (Modell und
+  Rohteil des Grundjobs), `tests/test_schwenken.py` (F4), Spezifikation (F4),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.153.1).
+
+### AKZEPTANZKRITERIUM
+- „Auf der Maschine prüfen“ für eine Ebene und für ihren Grundjob: die Rundachse auf dem
+  Winkel der Ebene, die Spitze am gedrehten Werkstück auf der Bahn der Ebene.
+
+### DONE
+- Wie oben; am Tisch/Tisch-Beispiel A1 −30°, über 50 Stationen im Vorschub, keine unter der
+  Schräge, der erste Satz auf 1e-5 mm am Werkstück.
+
+### TESTS
+- `tests/test_schwenken.py`, `tests/test_reichweite.py`, `tests/test_abfahren.py`,
+  `tests/test_kollision.py` – OK. black und ruff sauber.
+
+### NEXT
+- F5: im Assistenten „Bearbeitung“ eine Ebene schwenken.
+
 ## P-2026-10-03-37 schwenken-programm
 
 ### EINGELESEN

@@ -335,6 +335,48 @@ for s in (pp.steuerung("linuxcnc"), pp.steuerung("siemens", {"schwenkzyklus": Fa
         any(z.startswith("G1") and f"X{soll[0]:.3f}" in z for z in zeilen),
         f"{s.name}: erster Satz nicht gerechnet ({soll})",
     )
+
+# --- F4: auf der Maschine prüfen – Tisch/Tisch -------------------------------------------------
+from camaddon import abfahren as ab  # noqa: E402
+
+asm, ma = beispielmaschine.fuenfachs_tisch_tisch()
+p = rw.Pruefung(asm, ma)
+null = rw.nullpunkt(grundjob)
+pruefe(rw.nullpunkt(planjob) == null, "Nullpunkt der Ebene nicht der des Grundjobs")
+pruefe(rw.grundjob_von(planjob) is grundjob, "grundjob_von")
+ergebnis = p.pruefe_job(planjob, null)
+pruefe(
+    not [h for h in ergebnis.hinweise if "Ebene" in h or "Rundachsen" in h],
+    f"Prüfen der Ebene: {ergebnis.hinweise}",
+)
+a1 = [b for b in ergebnis.bereiche if b.name == "A1"]
+pruefe(
+    a1 and nahe(min(a1[0].von, a1[0].bis), -NEIGUNG, 1e-6),
+    f"A1: {[(b.name, b.von, b.bis) for b in ergebnis.bereiche]}",
+)
+fahrt = ab.abfahrt(p, grundjob, null)
+nummer = next(i for i, o in enumerate(fahrt.operationen) if o.name == op.Label)
+punkte = fahrt.am_werkstueck()
+zurueck_in_ebene = e.inverse()
+tiefste = math.inf
+anzahl = 0
+for station, am in zip(fahrt.stationen, punkte, strict=True):
+    if station.operation != nummer or station.ziel or station.eilgang or station.stellungen is None:
+        continue
+    lokal = zurueck_in_ebene.multVec(V(*am))
+    tiefste = min(tiefste, lokal.z)
+    anzahl += 1
+pruefe(anzahl > 50, f"Abfahren der Ebene: {anzahl} Stationen im Vorschub")
+pruefe(tiefste > -1e-6, f"Abfahren der Ebene: die Spitze {tiefste:.4f} mm unter der Schräge")
+# Der erste Satz im Vorschub der Operation: am gedrehten Werkstück genau dort, wo die Bahn der
+# Ebene ihn hat – durch den Grundjob, die Rundachsen und die Linearachsen ohne TCPM.
+erster_lokal = [float(erster.Parameters.get(k, 0.0)) for k in "XYZ"]
+soll = e.multVec(V(*erster_lokal))
+pruefe(
+    any(math.dist(am, soll) < 1e-5 for am in punkte),
+    f"erster Satz am Werkstück nicht bei {soll}",
+)
+FreeCAD.closeDocument(asm.Document.Name)
 FreeCAD.closeDocument(doc.Name)
 
 if fehler:

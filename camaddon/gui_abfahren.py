@@ -104,7 +104,9 @@ class Bild:
         self.modell_schalter = coin.SoSwitch()
         modell = coin.SoGroup()
         self._teil_materialien = []  # je Körper sein SoMaterial – am Ende grau
-        for objekt in getattr(getattr(job, "Model", None), "Group", []):
+        # Eine geschwenkte Ebene (3+2) zeigt das Teil, wie es gespannt ist: im Grundjob.
+        grund = rw.grundjob_von(job)
+        for objekt in getattr(getattr(grund, "Model", None), "Group", []):
             form = getattr(objekt, "Shape", None)
             if form is not None and not form.isNull():
                 knoten = self._flaechen(form, MODELL, 0.0)
@@ -122,7 +124,7 @@ class Bild:
         except Exception as fehler:  # ohne Abtrag geht alles andere weiter
             FreeCAD.Console.PrintLog(f"CAM-Addon: Restmaterial: {fehler}\n")
             self.abtrag = None
-        rohteil = getattr(getattr(job, "Stock", None), "Shape", None)
+        rohteil = getattr(getattr(grund, "Stock", None), "Shape", None)
         if self.abtrag is not None:
             werkstueck.addChild(self._restmaterial())
         elif rohteil is not None and not rohteil.isNull():
