@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.146.0 (P-2026-10-03-23). Alles, was hier als gebaut steht,
+Stand 0.147.0 (P-2026-10-03-24). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -27,7 +27,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   schlichten, Gleichlauf über C; die Spitze fährt über die Drehmitte hinaus, Kugel und Torus
   rechnen mit ihrer Form (P-2026-10-03-07, Manuels Teil neben der Achse); V5e die Spirale
   mit der Querachse (P-2026-10-03-18, Manuels Y-Gedanke: auf ebenen Flächen hält C, Y fährt
-  die Gerade – seit P-2026-10-03-22 mit jedem Fräser, seit -23 auch beim Schruppen). Offen:
+  die Gerade – seit P-2026-10-03-22 mit jedem Fräser, seit -23 auch beim Schruppen); die Bahnen
+  auch zwischen den Punkten nicht im Teil (Spirale -22, Zeilen -24). Offen:
   V2b (Drehteile), V6, V7; das Prüffenster malt Fahrten über die Mitte noch nicht
   (Spezifikation Vierachs, V5b „Offen“).
 - **W-004 Bedienung** – D-01 bis D-13, D-20, D-21, D-25, D-26, D-28 bis D-30, D-40 bis D-47

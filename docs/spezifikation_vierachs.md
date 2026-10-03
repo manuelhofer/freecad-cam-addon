@@ -890,7 +890,15 @@ bauen“):*
   und 0,38 mm (Scheibe) unter ihr – der Fräser schnitt ins Teil (der Sehnenfehler hob höchstens
   0,02). `vierachs_bahn._verfeinert` rechnet dort Zwischenpunkte (bis 32 je Schritt, bis
   dreimal), `_spirale`, `_zusammengefasst`, `_sehnenfehler` und `_a_knicke` rechnen mit
-  ungleichen Abständen: danach 0,0024 / 0,0033 mm.
+  ungleichen Abständen: danach 0,0024 / 0,0033 mm. *Ebenso die Zeilen über gewählten Flächen
+  (P-2026-10-03-24):* Sie laufen über den Winkel wie die Spirale und lagen an Manuels Teil
+  (alle Mantelflächen) bis 0,19 mm (Kugel R 5) und 0,30 mm (Scheibe R 6) unter der Hüllfläche;
+  `_verfeinert_je_fahrt` verfeinert alle Fahrten auf einmal (`_verfeinert` mit `stueck`: Punkte
+  zweier Fahrten sind keine Nachbarn): danach 0,0019 / 0,0023 mm, Rechenzeit 7,6 → 9,6 s (Kugel)
+  und 4,3 → 8,1 s (Scheibe). Linien längs brauchen es nicht – längs ist die Gerade eine Gerade im
+  Raum; ohne lagen sie 0,0019 / 0,0067 mm darunter (mit: 0,0007 / 0,0037, aber 4 s länger).
+  Prüfung: `test_vierachs_schlichten`, Abflachung bei x = 2 – ohne Verfeinerung schnitt der
+  Schaftfräser Ø 12 0,043 mm ins Teil, mit ihr nirgends.
   *Schruppen (P-2026-10-03-23):* `Schruppwerte.querachse`, `vierachs_bahn._schruppen_quer` – je
   Lage der Plan der Kugel mit dem Fräserradius auf ihrer Hüllfläche mit Aufmaß (Raster 1°,
   `_hinten_gerade`, die Ringe wie rundum), die Stellungen und Höhen des Fräsers aus seiner

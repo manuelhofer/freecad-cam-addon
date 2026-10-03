@@ -8,7 +8,8 @@
 # über der Abflachung einer Welle (V4): Zeilen hin und her, im Eilgang bis knapp über den Rest,
 # senkrecht hinein. Linien längs (V4c): auf der Abflachung Linien bei festem Winkel,
 # gegenläufig, nur über ihr, die Kugel nie im Teil; rundum auf der Welle mit Absatz jede
-# Linie auf der Hüllfläche.
+# Linie auf der Hüllfläche. An einer Abflachung nah an der Achse auch zwischen den Punkten
+# nirgends ins Teil – Spirale und Zeilen.
 # Dazu die Zeitgrenze.
 import math
 import os
@@ -368,6 +369,55 @@ print(
         f"D-Profil mit Querachse: {len(quer_d.punkte)} Punkte, {dauer_q:.1f} min (radial {dauer_r:.1f})"
     )
 )
+
+# --- Zwischen den Punkten (P-2026-10-03-22 und -24) ------------------------------------------
+# Die Abflachung nah an der Achse (x = 2): An ihren Rändern steigt die Hüllfläche von der Achse
+# aus gesehen steil und biegt – die Gerade zwischen zwei Punkten 0,5° auseinander lag unter
+# ihr, der Schaftfräser Ø 12 schnitt 0,04 mm ins Teil, in der Spirale wie in den Zeilen über
+# gewählten Flächen. Dicht zwischen den Punkten abgetastet (alle 0,05°): nirgends ins Teil.
+d_nah = (
+    Part.makeCylinder(20, 60, V(0, 0, -60))
+    .cut(Part.makeBox(40, 60, 80, V(2, -30, -70)))
+    .removeSplitter()
+)
+w_nah = math.sqrt(400.0 - 4.0)
+umriss_nah = np.vstack(
+    [
+        kreis_d[kreis_d[:, 0] <= 2.0][::3],
+        np.column_stack([np.full(1000, 2.0), np.linspace(-w_nah, w_nah, 1000)]),
+    ]
+)
+sicht_nah = vf.sicht(vf.vernetze(d_nah), LAENGS, RADIAL, vf.raster_a(-65.0, 5.0), vh.raster_phi())
+schaft_6 = ff.scheibe(6.0)
+werte_nah = replace(werte_d, form=schaft_6, schrittweite=2.0)
+bereich_nah = vf.bereich(sicht_nah, vf.mantelflaechen(sicht_nah), 6.0)
+netz_nah = vh.vernetze(d_nah, vb.TOLERANZ_SCHLICHTEN)
+for name_nah, werte_ in (
+    ("Spirale", werte_nah),
+    ("Zeilen", replace(werte_nah, bereich=bereich_nah)),
+):
+    bahn_nah = vb.schlichten(netz_nah, LAENGS, RADIAL, werte_)
+    phi_nah, r_nah = [], []
+    for von_, nach_ in zip(bahn_nah.punkte, bahn_nah.punkte[1:], strict=False):
+        if nach_.eilgang or nach_.eintauchen or not -33.0 < min(von_.a, nach_.a) < -27.0:
+            continue
+        t_ = np.arange(max(1, math.ceil(abs(nach_.phi - von_.phi) / 0.05)))
+        t_ = t_ / len(t_)
+        phi_nah.append(np.radians(von_.phi + t_ * (nach_.phi - von_.phi)))
+        r_nah.append(von_.r + t_ * (nach_.r - von_.r))
+    phi_nah, r_nah = np.concatenate(phi_nah), np.concatenate(r_nah)
+    tiefst = -math.inf
+    for k in range(0, len(phi_nah), 1000):
+        c = np.cos(phi_nah[k : k + 1000])[:, None]
+        s = np.sin(phi_nah[k : k + 1000])[:, None]
+        hoch = umriss_nah[None, :, 0] * c + umriss_nah[None, :, 1] * s
+        neben = np.abs(umriss_nah[None, :, 1] * c - umriss_nah[None, :, 0] * s)
+        stirn = r_nah[k : k + 1000, None] + schaft_6.hoehe(np.minimum(neben, 6.0))
+        tiefst = max(tiefst, float(np.max(np.where(neben <= 6.0, hoch - stirn, -math.inf))))
+    pruefe(
+        len(phi_nah) > 10000 and tiefst <= 0.0,
+        f"{name_nah} an der Abflachung x = 2: {tiefst:+.4f} mm ins Teil ({len(phi_nah)} Stellen)",
+    )
 
 # --- Ringgang vor der Wand (D-42) ----------------------------------------------------------
 # Die Welle mit Absatz von oben: Die Wand bei −30 schaut zum Futter. Mit 2 mm je Umdrehung

@@ -981,22 +981,30 @@ def _schlichten_zeilen(
         Gibt zurück, wo gefräst wurde."""
         nonlocal umdrehungen
         gefraest = np.zeros(ziel.shape, dtype=bool)
+        fahrten, jetzt = [], punkte[-1].phi
         for fahrt in _fahrten(wo):
             a, r, j, m = _folge(
                 fahrt, zeilen_a, ziel, lambda mm, jj, st: schritt_hoehe(mm, jj, st, ebene)
             )
-            winkel = _winkel(j, schritt_phi, punkte[-1].phi)
+            winkel = _winkel(j, schritt_phi, jetzt)
+            jetzt = float(winkel[-1])
             m0, j0 = fahrt[0][1], int(j[0]) % n
             oben = w.stange_radius if stand is None else max(float(stand[m0, j0]), float(r[0]))
-            _einfahrt(punkte, a, r, winkel, oben, True, w)
-            gehoben = r + _sehnenfehler(r)
-            fest = np.flatnonzero(_a_knicke(a) | _a_knicke(winkel)) + 1 if len(a) > 2 else []
-            for i in _zusammengefasst(gehoben, BAHN_TOLERANZ, abstand, list(fest)):
-                punkte.append(Punkt(False, float(a[i]), float(gehoben[i]), float(winkel[i])))
-            punkte.append(Punkt(True, float(a[-1]), sicher, float(winkel[-1])))
+            fahrten.append((a, r, winkel, oben))
             auf_zeile = m >= 0
             gefraest[m[auf_zeile], j[auf_zeile] % n] = True
             umdrehungen += float(np.sum(np.abs(np.diff(winkel)))) / 360.0
+        fein = _verfeinert_je_fahrt(
+            netz, laengs, radial, form, w, fahrten, teil_hinten, teil_vorne, radius
+        )
+        for (a, r, winkel, t), (*_, oben) in zip(fein, fahrten, strict=True):
+            _einfahrt(punkte, a, r, winkel, oben, True, w)
+            gehoben = r + _sehnenfehler(r, t)
+            knicke = _a_knicke(a, t) | _a_knicke(winkel, t) if len(a) > 2 else []
+            fest = np.flatnonzero(knicke) + 1
+            for i in _zusammengefasst(gehoben, BAHN_TOLERANZ, abstand, list(fest), t):
+                punkte.append(Punkt(False, float(a[i]), float(gehoben[i]), float(winkel[i])))
+            punkte.append(Punkt(True, float(a[-1]), sicher, float(winkel[-1])))
         return gefraest
 
     # Nach dem Schruppen: so hoch steht noch etwas (für die Einfahrt), und wie viel über der
@@ -1096,7 +1104,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
             form.nur_kugel,
         )
     else:
-        a, r, winkel, t = _verfeinert(
+        a, r, winkel, t, _ = _verfeinert(
             netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne
         )
         _spirale(punkte, a, r, winkel, 0, len(a) - 1, sicher, abstand, drehung, t)
@@ -1341,19 +1349,25 @@ def _schlichten_linien(
     )
 
 
-def _verfeinert(netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne):
+def _verfeinert(
+    netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne, stueck=None, unten=None
+):
     """Die Spirale (a, r, Winkel) mit Zwischenpunkten, wo die Hüllfläche sich zwischen zwei
     Punkten um mehr als SEHNE_FEIN nach außen wölbt (geschätzt: ein Viertel dessen, was ein Punkt
     über der Sehne seiner Nachbarn liegt – bei gleichen Abständen die zweite Differenz / 8):
     dort 2, 4 … FEIN_HOECHSTENS Teilschritte, die Hüllfläche je Zwischenpunkt genau
     (vierachs_huelle.je_stellung); bis zu FEIN_DURCHGAENGE Mal, denn an einem Knick der
     Hüllfläche (die Stirn springt von einer Fläche auf eine Kante) bleibt nach einem Durchgang
-    ein Rest. Gibt (a, r, Winkel, t) zurück – t die gebrochene Nummer je Punkt (für _spirale).
+    ein Rest. Gibt (a, r, Winkel, t, Stück) zurück – t die gebrochene Nummer je Punkt (für
+    _spirale). `stueck`: je Punkt die Nummer der Fahrt (_verfeinert_je_fahrt) – Punkte zweier
+    Fahrten sind keine Nachbarn; `unten`: tiefer nicht (ohne: Schlichtwerte.r_tiefste).
     Gefunden an Manuels Teil (P-2026-10-03-22): Von der Achse aus gesehen steigt die Hüllfläche
     an den Kanten seiner ebenen Seite um 3–4 mm je Grad und biegt dabei – die Gerade zwischen
     zwei Punkten 0,5° auseinander lag bis 0,22 mm (Kugel) und 0,38 mm (Schaftfräser) unter ihr,
     der Fräser schnitt ins Teil (der Sehnenfehler hebt höchstens SEHNE_HOECHSTENS)."""
     t = np.arange(len(r), dtype=float)
+    stueck = np.zeros(len(r), dtype=np.int64) if stueck is None else np.asarray(stueck)
+    unten = w.r_tiefste if unten is None else unten
     zugabe = w.aufmass + netz.toleranz
     geformt = form.mit_aufmass(zugabe)
     for _ in range(FEIN_DURCHGAENGE):
@@ -1362,9 +1376,12 @@ def _verfeinert(netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_v
         anteil = (t[1:-1] - t[:-2]) / (t[2:] - t[:-2])
         ueber = np.zeros(len(r))
         ueber[1:-1] = r[1:-1] - (r[:-2] + anteil * (r[2:] - r[:-2]))
+        innen = (stueck[:-2] == stueck[1:-1]) & (stueck[1:-1] == stueck[2:])
+        ueber[1:-1] = np.where(innen, ueber[1:-1], 0.0)
         wolbung = np.maximum(ueber[:-1], ueber[1:]) / 4.0  # je Schritt i … i + 1
         weite = np.diff(t)
         noetig = np.isfinite(wolbung) & (wolbung > SEHNE_FEIN) & (weite > FEIN_KLEINSTER * 2)
+        noetig &= stueck[:-1] == stueck[1:]
         if not noetig.any():
             break
         stufen = int(round(math.log2(FEIN_HOECHSTENS)))
@@ -1391,14 +1408,32 @@ def _verfeinert(netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_v
             + zugabe
         )
         r_z = np.where(np.isfinite(r_z), r_z, w.stange_radius)
-        r_z = np.maximum(r_z, w.r_tiefste)
+        r_z = np.maximum(r_z, unten)
         t_alle = np.concatenate([t, t_z])
         ordnung = np.argsort(t_alle, kind="stable")
         a = np.concatenate([a, a_z])[ordnung]
         r = np.concatenate([r, r_z])[ordnung]
         winkel = np.concatenate([winkel, winkel_z])[ordnung]
+        stueck = np.concatenate([stueck, stueck[welcher]])[ordnung]
         t = t_alle[ordnung]
-    return a, r, winkel, t
+    return a, r, winkel, t, stueck
+
+
+def _verfeinert_je_fahrt(netz, laengs, radial, form, w, fahrten, teil_hinten, teil_vorne, unten):
+    """_verfeinert für die Fahrten [(a, r, Winkel, …)] der Zeilen auf einmal – je Fahrt (a, r,
+    Winkel, t). Dort lag die Gerade zwischen zwei Punkten genauso unter der Hüllfläche wie bei
+    der Spirale, denn die Zeilen laufen über den Winkel: an Manuels Teil bis 0,19 mm (Kugel)
+    und 0,30 mm (Schaftfräser), danach 0,002 mm (P-2026-10-03-24). Linien längs brauchen es
+    nicht – längs ist die Gerade eine Gerade im Raum, dort lagen sie ohne schon 0,007 mm."""
+    if not fahrten:
+        return []
+    stueck = np.repeat(np.arange(len(fahrten)), [len(f[0]) for f in fahrten])
+    a, r, winkel = (np.concatenate([f[i] for f in fahrten]) for i in range(3))
+    a, r, winkel, t, stueck = _verfeinert(
+        netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne, stueck, unten
+    )
+    grenzen = np.flatnonzero(np.diff(stueck)) + 1
+    return list(zip(*(np.split(x, grenzen) for x in (a, r, winkel, t)), strict=True))
 
 
 def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1, t=None):

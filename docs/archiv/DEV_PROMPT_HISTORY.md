@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-24 zeilen-zwischen-den-punkten
+
+### EINGELESEN
+- Manuel, 2026-10-03: „dann mach mal weiter“. Offen aus P-2026-10-03-22: Haben die Zeilen über
+  gewählten Flächen und die Linien längs denselben Fehler zwischen den Punkten wie die Spirale?
+  Spezifikation Vierachs V5e.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`_verfeinert` mit `stueck` und `unten`, neu
+  `_verfeinert_je_fahrt`; `_schlichten_zeilen` rechnet erst alle Fahrten, verfeinert sie auf
+  einmal, gibt sie dann aus), `tests/test_vierachs_schlichten.py` (Abflachung bei x = 2,
+  Spirale und Zeilen), Spezifikation Vierachs V5e, `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.147.0).
+
+### AKZEPTANZKRITERIUM
+- Auch zwischen zwei Punkten der Zeilen liegt die Spitze nicht tiefer als die Hüllfläche (bis
+  auf die Vernetzung); die Linien längs bleiben, wie sie sind, wenn sie es nicht brauchen.
+
+### DONE
+- Gemessen an Manuels Teil (alle Mantelflächen gewählt), dicht zwischen den Punkten gegen die
+  Hüllfläche je Stellung: Zeilen vorher bis 0,19 mm (Kugel R 5) und 0,30 mm (Scheibe R 6) unter
+  ihr, jetzt 0,0019 / 0,0023; Rechenzeit 7,6 → 9,6 s und 4,3 → 8,1 s. Linien längs ohne
+  Verfeinerung 0,0019 / 0,0067 – bleiben so (mit ihr 0,0007 / 0,0037, aber 4 s länger). Eine
+  erste Messung zeigte bei den Linien 0,011 – das war die Rundung des Winkels auf 0,01° in der
+  Prüfung selbst (an der steilen Stelle 3,5 mm je Grad).
+
+### TESTS
+- `tests/test_vierachs_schlichten.py` – OK (die neue Prüfung schlägt ohne Verfeinerung mit
+  0,043 mm an). black und ruff sauber.
+
+### NEXT
+- Manuels Test an seinem Teil.
+
 ## P-2026-10-03-23 querachse-schruppen
 
 ### EINGELESEN
