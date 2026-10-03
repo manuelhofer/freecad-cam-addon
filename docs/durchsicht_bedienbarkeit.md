@@ -191,7 +191,7 @@ und auf der Einstellungsseite. **Fertig, wenn:** jeder Befehl im Menü steht und
 die Werkzeugleiste sieben Symbole hat.
 *Erledigt (P-2026-09-27-28).*
 
-### D-14 Kennwerte einer neuen Achse: Pflicht ohne Beispiel (zur Entscheidung)
+### D-14 Kennwerte einer neuen Achse: Pflicht ohne Beispiel – entschieden: graue Standardwerte, Hilfe je Steuerung (Manuel, 2026-10-03)
 **Heute:** Eilgang und Drehzahl sind Pflicht, die Felder zeigen „bitte
 eintragen“ bzw. „unbekannt“, bis man tippt – beim Werkzeug stehen dagegen graue
 Beispielwerte, die gelten, bis man eigene einträgt. **Vorschlag:** entweder
@@ -230,7 +230,7 @@ Auswahl gibt es schon). Ebenso für „Schnittwerte in den Job“ (D-02).
 anderen Dokuments prüft.
 *Erledigt (P-2026-09-27-18).*
 
-### D-22 Kollision von selbst prüfen (mittel, zur Entscheidung)
+### D-22 Kollision von selbst prüfen (mittel) – entschieden: bleibt auf Klick (Manuel, 2026-10-03: sonst startet das Abfahren noch träger)
 **Heute:** Man muss „Kollision prüfen“ klicken; nach jeder Änderung am
 Nullpunkt ist das Ergebnis weg („Noch nicht geprüft …“). **Vorschlag:** Die
 Prüfung startet nach dem Öffnen und nach jeder Änderung von selbst, mit
@@ -247,7 +247,7 @@ Vorschlag, bis man einen wählt – so wie die grauen Beispielmaße. **Fertig,
 wenn:** ein Werkzeug ohne gewählten Halter mit dem vorgeschlagenen geprüft
 wird und das Fenster es sagt.
 
-### D-24 Richtwerte für Schnittwerte (groß, zur Entscheidung)
+### D-24 Richtwerte für Schnittwerte (groß) – erledigt: „Richtwerte eintragen“ je Werkstoffklasse
 **Heute:** Neue und aus CAM übernommene Werkzeuge haben keine Einsätze („Jetzt
 je Werkzeug die Einsätze mit vc und fz aus dem Katalog eintragen.“,
 `szenario_aus_cam/1_meldung`); der Planer rechnet grau mit einem Beispiel

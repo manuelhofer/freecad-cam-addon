@@ -29,9 +29,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   (Drehteile), V6, V7; das Prüffenster malt Fahrten über die Mitte noch nicht (Spezifikation
   Vierachs, V5b „Offen“).
 - **W-004 Bedienung** – D-01 bis D-13, D-20, D-21, D-25, D-26, D-28 bis D-30, D-40 bis D-47
-  und D-50 bis D-57 erledigt. Offen zur Entscheidung ([Durchsicht](durchsicht_bedienbarkeit.md),
-  Abschnitt 6): D-14, D-22, D-24, D-27; D-23 wartet auf die Antwort zur Ausspannlänge; Reste
-  von D-20 und D-26.
+  und D-50 bis D-57 erledigt, D-24 mit „Richtwerte eintragen“ und den Werkstoffklassen.
+  Entschieden ([Durchsicht](durchsicht_bedienbarkeit.md), Abschnitt 6; Manuel, 2026-10-03):
+  D-22 bleibt auf Klick; zu bauen D-14 (graue Werte), D-23, D-27. Reste von D-20 und D-26.
 - **W-005 Programm für jede Steuerung** – E1–E7 entschieden (je Empfehlung, Manuel
   2026-10-03); gebaut: der eigene Postprozessor mit dem Fenster „Programm schreiben …“ (S1, S3,
   Teile von S2/S4; P-2026-10-03-10). Offen: Steuerung an der Maschine (S2), Glätten (S4), ohne
@@ -177,10 +177,9 @@ Beantwortet am 2026-10-03 (abends):
 - *An CAM übergeben (D-27):* ja – „OK“ und „Übernehmen“ übergeben mit, sobald einmal
   übergeben wurde. **Zu bauen.**
 - *Gewindebohrer:* Gühring 8330 (https://webshop.guehring.de/8330) in die Kiste; der Shop zeigt
-  die Größen erst im Browser – im Browser nachschlagen. Jongen Ø 3 und Gühring 5596 entfallen.
-
-Noch offen bei Manuel: D-24 (Richtwerte – mit „Richtwerte eintragen“ und den Klassen wohl
-erledigt, zum Abhaken).
+  die Größen erst im Browser – im Browser nachschlagen. Gühring 5596 bleibt, die Nummern für
+  M2, M2,5 und ab M12 dort ebenso nachschlagen (Manuel: „der geht genauso, ist auch gut“).
+  Jongen Ø 3 entfällt.
 
 **Danach, der Reihe nach:**
 
