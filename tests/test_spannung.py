@@ -4,7 +4,8 @@
 # Z 2 ragt dort neben das Rohteil – gemeldet; eine Tasche innen bis Z 2 nicht; ein Bohrzyklus bis
 # Z −3 fährt unter das Rohteil – gemeldet als „unter“; ein Bogen, dessen Enden innen liegen, der
 # aber in der Mitte hinausragt, zählt. Ohne Eintrag: nichts. „Auf der Maschine prüfen“ nennt die
-# Sätze unter den Hinweisen.
+# Sätze unter den Hinweisen; die Backen (vorn und hinten, 5 mm hoch) sind ein Körper, und die
+# Kollision meldet die Kontur an ihnen.
 import os
 import sys
 
@@ -73,9 +74,44 @@ asm, ma = beispielmaschine.fraesmaschine()
 ergebnis = rw.Pruefung(asm, ma).pruefe_job(job)
 pruefe(all(s in ergebnis.hinweise for s in saetze), f"Hinweise der Prüfung: {ergebnis.hinweise}")
 
-# Wieder 0: nichts mehr.
+# Die Backen: vorn und hinten (Y) am Rohteil, so lang wie es, 5 mm hoch ab seiner Unterseite.
+backen = spannung.schraubstock(job)
+pruefe(backen is not None and len(backen.Solids) == 2, f"Backen: {backen}")
+if backen is not None:
+    b = backen.BoundBox
+    soll = (box.XMin, box.YMin - spannung.BACKE, box.ZMin, box.XMax, box.YMax + spannung.BACKE)
+    ist = (b.XMin, b.YMin, b.ZMin, b.XMax, b.YMax)
+    pruefe(
+        all(abs(x - y) < 1e-6 for x, y in zip(ist, soll, strict=True))
+        and abs(b.ZMax - (box.ZMin + 5.0)) < 1e-6,
+        f"Backen bei {b}",
+    )
+
+# Die Kollision kennt sie: Die Kontur fährt im Vorschub in die vordere Backe; die Tasche nicht.
+from camaddon import abfahren as ab  # noqa: E402
+from camaddon import kollision as kb  # noqa: E402
+
+for op in (tasche, bohren, bogen):
+    op.Active = False
+doc.recompute()
+pruefung = rw.Pruefung(asm, ma)
+nullpunkt = rw.nullpunkt(job)
+fahrt = ab.abfahrt(pruefung, job, nullpunkt)
+kollision = kb.kollision(fahrt, job, nullpunkt)
+befunde = [(x.a, x.b, x.beruehrung) for x in kollision.befunde]
+print(ascii(befunde))
+pruefe(
+    any(x.b == "der Schraubstock" and x.beruehrung and not x.eilgang for x in kollision.befunde),
+    f"Kollision mit dem Schraubstock: {[x.text() for x in kollision.befunde]}",
+)
+for op in (tasche, bohren, bogen):
+    op.Active = True
+doc.recompute()
+
+# Wieder 0: nichts mehr – auch kein Schraubstock.
 spannung.setze(job, 0.0)
 pruefe(spannung.pruefen(job) == [], "nach 0 noch Sätze")
+pruefe(spannung.schraubstock(job) is None, "nach 0 noch Backen")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

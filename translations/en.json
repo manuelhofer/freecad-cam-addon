@@ -1191,6 +1191,7 @@
     "rw.laenge_halter": "{werkzeug}: calculated with {laenge}, estimated from holder and tool (holder length + overall length − clamping depth). More precise with the measured “gauge length” in the tool manager.",
     "rw.laenge_halter_gewinkelt": "{werkzeug}: calculated with {laenge}, estimated from holder and tool (holder outlet + overall length − clamping depth). More precise with the measured “length from reference point” in the tool manager.",
     "kb.teil": "the part",
+    "kb.schraubstock": "the vise",
     "kb.schneide": "the cutting part of {werkzeug}",
     "kb.hals": "the neck of {werkzeug}",
     "kb.schaft": "the shank of {werkzeug}",

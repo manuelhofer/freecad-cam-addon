@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-11 schraubstock-als-koerper
+
+### EINGELESEN
+- S3h „die Prüfung zeigt es“ – nach P-2026-10-04-10 meldete die Prüfung Bahnen in den
+  Schraubstock, zu sehen war er nicht, und die Kollision kannte ihn nicht.
+
+### DATEIEN
+- `camaddon/spannung.py` (`schraubstock`, `BACKE`), `camaddon/kollision.py` (Körper
+  `SCHRAUBSTOCK` auf der Werkstückseite), `camaddon/gui_abfahren.py` (die Backen im Bild),
+  Übersetzungen (`kb.schraubstock`), Hilfe „Auf der Maschine prüfen“ (de/en),
+  `tests/test_spannung.py`, Spezifikation Strategien S3h, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.164.0).
+
+### AKZEPTANZKRITERIUM
+- 5 mm gespannt: zwei Backen, 20 mm dick, vorn und hinten am Rohteil, so lang wie es, von seiner
+  Unterseite 5 mm hoch; die Kontur außen auf Z 2 → „berühren sich die Schneide von T1 und der
+  Schraubstock“ (im Vorschub). Ohne Eintrag kein Körper. Im Prüffenster stehen die Backen am
+  Rohteil.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_spannung.py` – OK; Szenario `szenario_bearbeitung` – OK (Bild
+  `4_pruefen_mittendrin`: die Backen am Rohteil). black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1, D-2, D-4, D-5, E-2, E-3.
+
 ## P-2026-10-04-10 von-unten-gespannt
 
 ### EINGELESEN

@@ -1191,6 +1191,7 @@
     "rw.laenge_halter": "{werkzeug}: gerechnet mit {laenge}, geschätzt aus Halter und Werkzeug (Halterlänge + Gesamtlänge − Spanntiefe). Genauer mit der gemessenen „Länge ab Spindelnase“ in der Werkzeugverwaltung.",
     "rw.laenge_halter_gewinkelt": "{werkzeug}: gerechnet mit {laenge}, geschätzt aus Halter und Werkzeug (Abgang des Halters + Gesamtlänge − Spanntiefe). Genauer mit der gemessenen „Länge ab Bezugspunkt“ in der Werkzeugverwaltung.",
     "kb.teil": "das Teil",
+    "kb.schraubstock": "der Schraubstock",
     "kb.schneide": "die Schneide von {werkzeug}",
     "kb.hals": "der Hals von {werkzeug}",
     "kb.schaft": "der Schaft von {werkzeug}",

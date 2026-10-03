@@ -11,7 +11,9 @@ Spitze des Werkzeugs im Grundjob – und meldet je Operation die tiefste Stelle,
   über dem Rohteil bleibt – eine Tasche im Teil –, hält ihn nichts auf.
 
 Wie das Rohteil liegt, sagt sein Hüllquader. Kreisbögen zählen mit ihren Punkten, Bohrzyklen
-mit dem Grund der Bohrung. Läuft ohne Oberfläche.
+mit dem Grund der Bohrung. schraubstock() gibt die Backen als Körper – fürs Bild und die
+Kollision in „Auf der Maschine prüfen“: vorn und hinten (in Y) am Rohteil, so lang wie es, so
+hoch wie gespannt. Läuft ohne Oberfläche.
 """
 
 import math
@@ -24,6 +26,7 @@ EIGENSCHAFT = "CamAddonGespannt"
 GENAU = 1e-6  # mm
 BOGEN_SCHRITT = math.radians(10.0)
 ZYKLEN = ("G73", "G81", "G82", "G83", "G85", "G86", "G89")
+BACKE = 20.0  # mm – so dick ist eine Backe des Schraubstocks im Bild und in der Kollision
 
 
 class Befund(str):
@@ -56,6 +59,25 @@ def setze(job, mm):
         job.addProperty("App::PropertyLength", EIGENSCHAFT, "CAM-Addon", tr("sn.eigenschaft"))
     if abs(gespannt(job) - mm) > GENAU:
         setattr(job, EIGENSCHAFT, max(mm, 0.0))
+
+
+def schraubstock(job):
+    """Die Backen des Schraubstocks als ein Körper in Koordinaten des Grundjobs – None, wenn
+    nichts gespannt ist oder es kein Rohteil gibt."""
+    import Part
+
+    from . import reichweite as rw
+
+    tiefe = gespannt(job)
+    rohteil = getattr(getattr(rw.grundjob_von(job), "Stock", None), "Shape", None)
+    if tiefe <= 0 or rohteil is None or rohteil.isNull():
+        return None
+    box = rohteil.BoundBox
+    backen = [
+        Part.makeBox(box.XLength, BACKE, tiefe, FreeCAD.Vector(box.XMin, y, box.ZMin))
+        for y in (box.YMin - BACKE, box.YMax)
+    ]
+    return Part.makeCompound(backen)
 
 
 def pruefen(job):

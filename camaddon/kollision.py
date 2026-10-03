@@ -89,6 +89,7 @@ RUND_PRUEFWINKEL = (37.1, 131.7)
 SCHNEIDE, HALS, SCHAFT, HALTER = "schneide", "hals", "schaft", "halter"
 KERN = "kern"  # die Schneide, um EINDRINGEN kleiner – nur gegen das Teil im Vorschub
 MASCHINE, TEIL = "maschine", "teil"
+SCHRAUBSTOCK = "schraubstock"  # die Backen, wenn der Job „von unten gespannt“ kennt (S3h)
 VORSCHUBWEGE = 200  # so viele gerade Vorschubwege merkt sich die Prüfung je Operation
 WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
 
@@ -409,6 +410,19 @@ class _Welt:
                 FreeCAD.Placement(FreeCAD.Vector(nullpunkt), FreeCAD.Rotation())
             )
             self.teil = Koerper(tr("kb.teil"), TEIL, form, self.werkstueck_glied, basis)
+        # Von unten gespannt (S3h): die Backen stehen am Rohteil wie das Teil – jedes Werkzeugteil
+        # zählt gegen sie, auch die Schneide im Vorschub.
+        from . import spannung
+
+        backen = spannung.schraubstock(job)
+        self.schraubstock = None
+        if backen is not None:
+            basis = p._lage(p.werkstueckaufnahme).multiply(
+                FreeCAD.Placement(FreeCAD.Vector(nullpunkt), FreeCAD.Rotation())
+            )
+            self.schraubstock = Koerper(
+                tr("kb.schraubstock"), SCHRAUBSTOCK, backen, self.werkstueck_glied, basis
+            )
 
         # Je Operation ihr Werkzeug; gleiche Werkzeuge nur einmal gebaut.
         self.werkzeuge = []
@@ -489,6 +503,8 @@ class _Welt:
         r = [k for k in self.maschine if k not in w and k not in s]
         if self.teil is not None:
             s.append(self.teil)
+        if self.schraubstock is not None:
+            s.append(self.schraubstock)
         paare = [
             _Paar(a, b)
             for a, b in [(a, b) for a in w for b in s + r] + [(a, b) for a in s for b in r]
@@ -580,6 +596,8 @@ class _Welt:
         koerper = list(self.maschine)
         if self.teil is not None:
             koerper.append(self.teil)
+        if self.schraubstock is not None:
+            koerper.append(self.schraubstock)
         for werkzeug in self.werkzeuge:
             koerper.extend(werkzeug)
         return koerper

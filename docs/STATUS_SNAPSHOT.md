@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.163.0 (P-2026-10-04-10). Alles, was hier als gebaut steht,
+Stand 0.164.0 (P-2026-10-04-11). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -246,8 +246,8 @@ Beantwortet am 2026-10-03 (abends):
    Rampen), Platte 41,88 → 35,20 min, nirgends in voller Breite (Spezifikation Strategien,
    Abschnitt 11). Der Konturgang um Inseln war dafür nicht nötig.
 5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
-   Bereiche. Spannhöhe: „Von unten gespannt“ gebaut (P-2026-10-04-10, Prüfung und Urteil);
-   offen der Schraubstock als Körper.
+   Bereiche. Spannhöhe: „Von unten gespannt“ gebaut (P-2026-10-04-10, Prüfung und Urteil; -11
+   der Schraubstock im Bild und in der Kollision).
 6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
    **Kollision schneller** (gemessen 2026-10-04 nachts, Schwenkteil, 10 799 Stationen): 75 s,
    davon 59 s in OpenCascades `distToShape` (22 389 Aufrufe, 2,6 ms), 15 s Python um die
@@ -255,7 +255,8 @@ Beantwortet am 2026-10-03 (abends):
    Teil, im Vorschub fast an jeder Stelle: 20 771 Aufrufe, 2,1 ms), 14 s Werkzeug gegen
    „Rundtisch“ (790 Aufrufe, 17 ms je Aufruf), der Rest unter 1 s. **Nachgemessen: Je Fläche
    vorfiltern bringt nichts** (am Schwenkteil 2,4 statt 2,1 ms je Abstand – OpenCascade filtert
-   selbst); „steckt ganz drin“ (`isInside`) kostet 0,3 ms. Was bliebe: weniger Abstände rechnen
+   selbst); „steckt ganz drin“ (`isInside`) kostet 0,3 ms; eine gröbere Toleranz für
+   `distToShape` (1e-3 statt 1e-7) ändert nichts (2026-10-04 nachgemessen). Was bliebe: weniger Abstände rechnen
    (bessere Schranken), nicht billigere. Frühere Idee: je Fläche des Teils
    vorfiltern (Hüllquader,
    näher zuerst, exakt mit Abbruch) – dann aber eigens prüfen, ob ein Werkzeugteil ganz im Teil

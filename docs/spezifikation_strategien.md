@@ -1247,7 +1247,10 @@ Wettbewerb gegen das Planfräsen (P-25; 0.44.0) gebaut.
   das Rohteil fährt oder unter der Spannhöhe mit dem Fräser über den Umriss des Rohteils
   (Hüllquader) hinausragt – eine Tasche im Teil bleibt still; Ebenen (3+2) im Grundjob
   gerechnet. „Auf der Maschine prüfen“: Urteil „Spannung“ (grün/rot), die Sätze unter den
-  Hinweisen. Noch nicht: der Schraubstock als Körper im Bild und in der Kollision.
+  Hinweisen. **Der Schraubstock als Körper (P-2026-10-04-11):** `spannung.schraubstock` – zwei
+  Backen vorn und hinten (Y) am Rohteil, 20 mm dick, so lang wie es und so hoch wie gespannt; im
+  Bild des Prüffensters und in der Kollision auf der Werkstückseite („der Schraubstock“: jedes
+  Werkzeugteil, auch die Schneide im Vorschub).
 
 ## 11. Maßstab: Manuels Platte (2026-10-01)
 

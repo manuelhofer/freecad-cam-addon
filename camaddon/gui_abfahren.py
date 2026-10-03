@@ -45,6 +45,7 @@ ROHTEIL = (0.85, 0.65, 0.35)
 # 2026-10-03: „nach dem Schruppen schaut ziemlich viel Blau an der einen Seite raus“ – es war
 # das Teil, nicht ein Schnitt hinein).
 MODELL = (0.55, 0.62, 0.52)
+SCHRAUBSTOCK = (0.30, 0.42, 0.62)  # die Backen, wenn der Job „von unten gespannt“ kennt (S3h)
 VORSCHUB_LINIE = (0.10, 0.35, 0.90)
 EILGANG_LINIE = (0.90, 0.15, 0.10)
 HALTER_MINDESTENS = 25.0  # mm Ø des angedeuteten Halters
@@ -129,6 +130,12 @@ class Bild:
             werkstueck.addChild(self._restmaterial())
         elif rohteil is not None and not rohteil.isNull():
             werkstueck.addChild(self._flaechen(rohteil, ROHTEIL, 0.75))
+        # Von unten gespannt (S3h): die Backen des Schraubstocks am Rohteil.
+        from . import spannung
+
+        backen = spannung.schraubstock(job)
+        if backen is not None:
+            werkstueck.addChild(self._flaechen(backen, SCHRAUBSTOCK, 0.0))
         # Die Bahn – beim Vergleich am Ende ausgeblendet, sonst verdeckt sie die Farben; ohne
         # den Haken „Bahn“ im Abspieler immer (Manuel, 2026-09-30: „irgendwo einen hacken für
         # werkzeugwege ausblenden“).
