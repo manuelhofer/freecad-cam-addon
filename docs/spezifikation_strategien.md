@@ -2139,6 +2139,20 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   der Fräser, hält keine Variante die Last – dort fräst weiter die Nut in Bögen.
   Der Kern rechnet bei gleicher Eingabe nicht immer dieselbe Bahn (±1,5 % Zeit); in einer
   Sitzung bleibt sein Ergebnis je Eingabe gemerkt.
+- **T5d Taschen: Ringe, die die Last halten – gelassen** (2026-10-03, nach zwei Anläufen, wie
+  im Nachtplan verabredet). Befund an der Tasche 40 × 30 (Ø 12, ae 1,5, 10 tief): Die Ringe mit
+  D-Versatz brauchen 0,88 min, greifen aber bis 4,1 ae – nicht in den Ecken der Tasche, sondern
+  an den scharfen Ecken der kleinen inneren Ringe (je weiter innen, desto spitzer das Rechteck);
+  adaptiv hält die Last und braucht 1,49 min. *Anlauf 1:* Ringe vom Kern der Tasche nach außen
+  (Kern = die Zellen, die am weitesten von der Wand liegen; Abstand geodätisch im Raster →
+  achteckige Ringe), außen vom genauen Ring an der Wand begrenzt: 1,44 min, Last 3,2 ae – hält
+  nicht und ist nicht schneller als adaptiv. Große Tasche 100 × 60: 3,75 statt 2,58 min, Last
+  2,7 statt 4,4. *Anlauf 2:* dasselbe mit euklidischem Abstand (Ringe wie ein Stadion, ohne
+  Ecken) – der Prototyp ist am Speicher gescheitert (`_abstand_bis` mit `weit = 1e9`), nicht
+  wiederholt. *Wer es wieder aufnimmt:* der Stadion-Ring ist der richtige Ansatz gegen die
+  Ecken; die Zeit gewinnt er nur, wenn er den Kern in einer Helix öffnet und die Ringe
+  spiralig ohne Absetzen verbindet (wie der Morph), sonst bleibt adaptiv vorn. Bis dahin: In
+  Taschen gewinnt adaptiv – das hält die Last, Manuels Vorgabe.
 - **Fertig, wenn (W-013):** der Assistent am Testteil – alle Flächen angeklickt – einen Job
   anlegt, der im Prüffenster ein Teil ohne Rest ergibt (bis auf Ecken, in die kein Fräser der
   Kiste kommt; die nennt er), das Schruppen höchstens 1,5 × Ziel braucht und keine Bahn die Last

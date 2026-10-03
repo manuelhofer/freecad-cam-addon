@@ -1,653 +1,210 @@
 # Status-Snapshot
 
 **Die einzige Stelle für den aktuellen Stand:** Projektstatus, nächster Schritt,
-Wunschliste, offene Bugs und Tasks.
+Wunschliste, offene Bugs und Tasks. Was fertig ist, steht nicht mehr hier, sondern im
+Verlauf ([archiv/DEV_PROMPT_HISTORY.md](archiv/DEV_PROMPT_HISTORY.md), ein Eintrag je
+Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekarte in
+`CHATSTART.md`).
 
 ## Projektstatus
-- **IN ARBEIT** – W-001, Stufen 1 bis 3, 3b (schräge Achse, „Neue Maschine …“, Punkt 11 unten) und 4a (Auf der Maschine prüfen, Punkt 13) fertig und automatisch geprüft; warten auf Manuels Test. Stufe 4b (Abfahren, Punkt 13; Manuel: „bau das mit der Maschine“): fertig und automatisch geprüft (P-2026-09-26-89 bis -91, 0.23.0). Stufe 4c (Kollision) mit Manuels Entscheidungen (P-2026-09-26-93): fertig und automatisch geprüft (P-2026-09-26-97 bis -99, 0.24.0). Beim Durchsehen nachgebessert (P-2026-09-27-02 bis -04): die Schneide von Nutenfräser (Schneidenbreite) und Lollipop (Kugel) in Abfahren und Kollision, kein Fehler mehr bei nur „,“ oder „-“ in einem Zahlenfeld, die Spaltenköpfe im Fenster „Halter“ ganz lesbar. Verfahrwege im Fenster „Maschine bearbeiten“ änderbar (P-2026-09-29-03, 0.26.1). Stufe 4e: Werkzeugspitze an einer Stelle gerechnet (`kinematik.py`), im Abspieler und an Überschreitungen (P-2026-09-29-10, 0.27.0); TCPM wählbar zurückgestellt (Frage an Manuel, ob seine Steuerung TRAORI/RTCP nutzt).
-- **IN ARBEIT** – W-002, Spezifikation als Entwurf (Entscheidungen von Claude, zur Besprechung); Stufen 1 bis 3 fertig und automatisch geprüft (Werkzeugverwaltung, Übergabe an CAM und in den Job, Schruppwerte planen), dazu die 26 Werkzeugarten (Plan-Stufe C); wartet auf Manuels Test. Stufe D (Halter, für W-001 4c) mit Manuels Entscheidungen ([spezifikation_halter.md](spezifikation_halter.md), P-2026-09-26-93) fertig und automatisch geprüft (P-2026-09-26-94 bis -96). Stufe E (die Richtung des Werkzeugs am Halter – gerade, angetrieben radial, Winkelkopf; Manuel 2026-09-30) fertig und automatisch geprüft (P-2026-09-30-10 bis -16, 0.29.0): Datenmodell und Vorlagen, Fenster „Halter“ mit Richtung und Bild, Reichweite/Abfahren/Kollision mit der Lage aus dem Halter, der Halterkopf vor dem Futter (Rundum), Beispiel-Drehmaschine mit Aufnahmen, gelber Satz im 4-Achs-Assistenten; wartet auf Manuels Test.
-- **IN ARBEIT** – W-003 4-Achs-Bearbeitung am runden Rohteil: Spezifikation mit Manuels Entscheidungen (P-2026-09-26-78), Stufe V1 „Teil in die Stange“ (P-2026-09-26-79), V2a „Achse von der Maschine“ und V2c (P-2026-09-27-37, -38), V3 „Rundum schruppen“ – Hüllfläche, Bahn, Operation, Schritt 2 „Was willst du machen?“, Prüffenster ohne TCPM (P-2026-09-27-45 bis -54, 0.26.0), nachträglich ändern per Doppelklick (V3h, P-2026-09-29-04, -06, 0.26.1/0.27.0), Überlauf und Ausspannlänge, Kugel-/Torus-Hinweis, Maschine zuerst (V3f, P-2026-09-29-07 bis -09), Rohteil/Fertigteil in der Simulation (V3g, -11, 0.27.0) – fertig und automatisch geprüft; wartet auf Manuels Test. Dabei die Kollisionsprüfung beschleunigt (über 20 Minuten → Sekunden, -50, -53) und der Rückzug im Eilgang kein Befund mehr (-51). V5 „Rundum schlichten“ mit Manuels Entscheidungen (2026-09-30: Spirale, jeder Fräser mit seiner Form, Schrittweite aus der Werkzeugtabelle, Abstände einmal für beide): Fräserform und Hüllfläche, Bahn, Operation, Assistent, Stufen, wo das Schruppen mehr stehen ließ, Abtrag und Schneide mit der Form (V5a–V5e, P-2026-09-30-01 bis -08, 0.28.0) – fertig und automatisch geprüft; wartet auf Manuels Test. Nach Manuel (2026-09-30: „mit den Grundvoraussetzungen anfangen“) die Richtung des Werkzeugs am Halter und die Beispiel-Drehmaschine mit Aufnahmen gebaut (W-002 Stufe E, 0.29.0): Schruppen T1 und Schlichten T2 mit radialem Halter gehen dort zusammen – Prüfen, Abspielen, Kollision, Farben (`szenario_rundum_drehmaschine`). Durchsicht 2 auf Bedienbarkeit und Logik ([durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md), Abschnitt 7, D-40 bis D-47): Ringgang vor jeder Wand (hinter einem Absatz blieben bis 6,4 mm, jetzt höchstens 0,33), „T3 öffnen …“ im gelben Satz, Stationen am Revolver, Drehung 0, Längen-Texte; keine versteckten Ausnahmen mehr (P-2026-09-30-17, -19 bis -23, 0.29.1) – fertig und automatisch geprüft; D-45 so gelassen (Empfehlung A). V4 „Flächen wählen“ (Plan P-2026-09-30-25): Rechenkern `vierachs_flaechen` und Bahnen nur im Bereich der gewählten Flächen (V4b, -26), Flächen im Assistenten mit Liste, Erreichbarkeit und Farben (V4a, -27), in Zeilen hin und her statt Spirale mit Eilgängen rundum (Manuel: „man kann ja auch einfach zurück drehen“, -28), 0.30.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Getrennte Flächen nacheinander, Rampe längs der ganzen Fahrt (-31), V4e Prüfen nur auf den gewählten Flächen (-32); auf Manuels Fragen: Installation ohne Pythons SSL über den Netzzugang des Addon-Managers (-33, -35), der Fräser steckt im Prüffenster im Halter (-34, -37), Postprozessoren von FreeCAD geprüft und in der Hilfe (-36); 0.31.0 – fertig und automatisch geprüft; wartet auf Manuels Test. F in jedem G93-Satz für jeden Postprozessor, auch Fanuc und UCCNC ohne Optionen (Manuel: „Es muss ja für alle funktionieren“, -39); neue Testregel (-40); 0.31.1. An Manuels Testteil (Loft, D-Profil, hinten neben der Achse): kein Fehlalarm Blau mehr, wo das Teil nicht rund um die Achse liegt (-44), das fertige Teil am Ende ausgeblendet (-45); Wege in „Neue Maschine“ bis 10 m (-46); 0.31.2. Haken „Bahn“ im Abspieler (-48); 0.31.3. X und Z der Drehmaschine zählen wie an der Maschine: bis zur Mitte der VDI-Aufnahme, X ab der Spindelachse, Z ab der Spindelnase (-50); 0.31.4. Revolverart in „Neue Maschine“: VDI in der Stirn oder am Umfang, Scheiben-Ø, VDI-Größe (-52); 0.31.5. X im Durchmesser oder Radius: Haken „zählt im Durchmesser (Ø)“ an der Betriebsart, „X als“ in „Neue Maschine“, alle Fenster zeigen X dann mit „Ø“ (-54); 0.31.6. Bestückung an der Maschine (W-002 Stufe F, Manuel: „passt“): Abschnitt „Bestückung“ in „Maschine bearbeiten“, der 4-Achs-Assistent gibt dem Controller die Nummer des Platzes, das Prüffenster meldet einen anders bestückten Platz (-56); 0.32.0; der Platz vorn in der Fräserliste (-58); 0.32.1. Auf Manuels Bilder: Höchstdrehzahl der Hauptspindel und der angetriebenen Werkzeuge getrennt (-60), Planaufmaß 0 grau als „0“ (-61), der Ordner „Operations“ öffnet „Rundum schruppen“ zum Ändern (-62); 0.32.2. Bestückung je Job (W-002 Stufe G; Manuel, 2026-09-30: „die bestückung sollte je nach job funktionieren … wird nicht dargestellt auf der maschine“, „jeder job hat seine eigene bestückung“): Rechenkern `bestueckung.py` – der Platz ist die Nummer der Controller –, Fenster „Bestückung“ mit dem Revolver und den Werkzeugen des Jobs in der 3D-Ansicht, beim Abfahren alle Werkzeuge des Jobs im Revolver, „Maschine bearbeiten“ ohne Bestückung (-65); 0.33.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Auf Manuels Wunsch (2026-09-30: „bessere frässtrategien … als in freecad“, „einfach solls sein gut erklärt“): Plan W-006 Frässtrategien ([spezifikation_strategien.md](spezifikation_strategien.md), Stufen S1–S7, E1–E7 zur Besprechung, -66) und Durchsicht 3 Bedienbarkeit (D-50 bis D-58, -67). Die kleinen Punkte der Durchsicht 3 (D-50 bis D-53, D-55 bis D-57, -69), VDI-Halter ohne Größe (Manuel: „also reicht VDI halter aus“, -70), Messung der Bahnrechnung mit Zahlen in W-006 und goldene Bahnen (S1, -71, -73), die Messung in zwei Durchgängen mit richtigen Zeiten (-75, -76), der Rest nach dem Schruppen blockweise, damit der Speicher nicht mit der Bahn wächst (-77); 0.33.1. Manuels Entscheidungen (2026-10-01, „Also ja“): W-006 E1–E7 je (a), D-54 (a), D-56 bleibt (P-2026-10-01-01). Haken „Teil“ im Abspieler – am Ende das fertige Teil grau unter der halb durchsichtigen Stange (-02); 0.33.2. Hilfeseite „So geht’s“ – der Weg vom Teil zum Programm in sechs Schritten, oben im Menü, mit Verweisen auf alle Seiten (D-54, -04); 0.33.3. Linien längs (V4c, W-006 S2): das Muster an „Rundum schlichten“ – Spirale oder Linien längs der Achse bei festem Winkel, gegenläufig, nur über den gewählten Flächen –, der Assistent schlägt es nach den Flächen vor, mit Grund (-06); 0.34.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Plan indexiert (V4c, W-006 S2): eigene Operation – die Rundachse steht, ein Fräser mit ebener Stirn fährt Zeilen längs und rückt mit dem Y quer, in Lagen bis auf die ebene Fläche; die Bahn trägt den Versatz quer, die Befehle das Y, der Abtrag rechnet den versetzten Fräser; im Assistenten ein dritter Haken mit Vorschlag und Grund (-08); über das Ende der Fläche hinaus fräst die Stirn nur, wo nichts höher steht als die Fläche (-10); Testregel nach Manuel („weniger testest mehr Produktivität“): nur die Prüfung und das Szenario zum geänderten Teil, in 1.1.3 (-09); 0.35.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Rundum entgraten (V4d, W-006 S2 damit fertig): eigene Operation – an den Außenkanten der gewählten Flächen fährt der Fasenfräser entlang (oder die Kugel bricht sie rund), die Rundachse dreht mit, die Spitze um die Fasenbreite unter der Kante; Innenkanten, Rundungen und Stirnen bleiben; der Abtrag lässt die Fase durch; im Assistenten der vierte Haken mit Vorschlag und Grund (-12); 0.36.0 – fertig und automatisch geprüft; wartet auf Manuels Test. W-006 S3 (2,5D) begonnen: der Plan S3a–S3g in der Spezifikation, die Hüllfläche von oben je Zeile (`hoehenfeld`), die Bahn mit Bögen G2/G3 (`bahn`) und „Planfräsen“ als Operation (`planfraesen`: Zeilen hin und her in Lagen, Überlauf, Halbkreise, Zeilen halten vor Absätzen, beim Austritt langsamer; FreeCADs Tiefen und Höhen) – automatisch geprüft, noch ohne Assistent (-14). Der Assistent „Bearbeitung (Fräsen)“ für den Quader (S3c, E4): eine Fläche anklicken, der Job mit dem Rohteil (Aufmaß je Seite) entsteht sofort, Flächen (ohne Wahl die Oberseite), Fräser und Einsatz aus der Werkzeugverwaltung, „→ 3 Lagen, 30 Zeilen, etwa 3 min“, Anlegen, Ändern per Doppelklick, Hilfe, Szenario (-15); 0.37.0. Prüffenster 2,5D (S3d): das Rohteil im Quader als Höhenfeld, jede Operation trägt mit der Form ihres Fräsers ab (auch FreeCADs eigene), am Ende der Vergleich mit der Oberseite des Teils in Farben, mit gewählten Flächen nur auf ihnen – die Simulation fand dabei die Reste des Planfräsens an Wänden (zwischen den Zeilen und in den Ecken), jetzt fährt der Fräser dort an der Wand entlang (-16); 0.38.0. Auf Manuels Punkte (2026-10-01): der Werkstoff steht je Zeile in der Schnittwert-Tabelle statt oben im Fenster (Auswahl je Zeile, „Alle Werkstoffe“ als Rückfall, keine „Eigene Werte anlegen/löschen“ mehr), in „Neue Maschine“ steht bei „von“ das Minus fest vor dem Feld, die Spanneisen der Beispiel-Fräse sehen aus wie Spanneisen (Eisen, Schraube, Mutter) (-17); 0.39.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Sein Testteil (Loft, D-Profil; am 2026-09-30 hochgeladen) liegt jetzt unter `beispiele/test4achsbearbeitung.FCStd`; eine über „Neue Maschine“ gebaute 3-Achs-Fräse hat keine Spanneisen mehr auf dem Tisch (nur die Beispiel-Fräse der Prüfungen), eigene Werkstoffe stehen in der Werkstoff-Spalte (-18); 0.39.1. Kontur (S3e): Wände anklicken – ihre Unterkanten werden Konturen, außen um einen Zapfen oder innen in einer Tasche –, Schruppen in Lagen mit Aufmaß so breit, wie Rohteil neben der Wand steht, Schlichten in einem Zug, tangentiales Ein- und Ausfahren, Gleichlauf, Bögen in den Ecken; im Assistenten je Strategie ein Block mit Haken (Planfräsen, Kontur), „Anlegen“ legt alle angehakten an (-19); 0.40.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Manuels Maßstab (Platte 200 × 200 mit Zapfen und Tasche, Ø 12 mit ae 1,5 / ap 25): die Zeiten je Strategie in der Spezifikation Abschnitt 11 (heute 79 min, mit ganzer Schneide 44, Untergrenze 31) – S3f wird „Räumen mit Versätzen“ (Spirale bei vollem ap, einmal hinein); dabei die Starttiefe auf das Rohteil gelegt (FreeCADs Vorgabe lag 1 mm über dem Modell: eine Lage Luft) (-20); 0.40.1. Der Nullpunkt frei setzbar (S3h, Manuel): im Assistenten die 22 Punkte des Rohteil-Quaders zur Wahl, um X, Y, Z verschiebbar, Teil und Rohteil rücken sofort (-21); 0.41.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Eilgang und Beschleunigung festgesetzt (W-001 4d, Manuel: „dauerhaft festsetzen“): 10 m/min, 1 m/s² je Linearachse, 1 U/s² je Rundachse, wo die Maschine nichts sagt; `fahrzeit.py` rechnet jeden Satz mit dem Trapezprofil, fährt durch Bögen und Rampen durch, hält an Ecken, um Eilgänge und am Ende – im Prüffenster (`abfahren`) und in der Schätzung des Assistenten „Bearbeitung“ (`bahn.zeit`); die Platte neu gerechnet (80 / 44 / ≈ 35 / 31 min) (-22); 0.42.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Manuels Standardfräser als die eine Definition (`werkzeuge.standardwerkzeug()`: Ø 12, ae 1,5 / ap 25 / fz 0,1 / vc 85, Rampe 3°; Manuel: „generell sollte dann jede Strategie und Szenario mit diesem Fräser und den Werten gerechnet und geprüft werden“): Regel in den Arbeitsregeln, alle 2,5D-Prüfungen und -Szenarien damit gerechnet – dabei gefunden und behoben, dass das Einfahren der Kontur in der Tasche bis in die gegenüberliegende Wand schwenkte (mit Ø 12 1,8 mm; die Hüllfläche blendet die eigenen Wände aus, jetzt hält das Ein- und Ausfahren den Abstand der Bahn), Ergebniszeile in Einzahl („→ 1 Lage, 23 Zeilen“) (-23); 0.42.1. Grundsatz 0 „Die Zeit entscheidet“ (Manuel: „immer den schnellsten Weg für das gewählte Werkzeug … immer die schnellste Strategie“) genau gefasst in der Spezifikation Strategien, Abschnitt 5: Varianten rechnen statt Regeln, alle Strategien treten mit derselben Zeit an, der Maßstab ist die Platte; erstes Stück gebaut: das Planfräsen rechnet beide Zeilenrichtungen und nimmt die schnellere, die Ergebniszeile sagt, wie viel langsamer die andere wäre, die Operation zeigt die Richtung (-24); 0.43.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Räumen (W-006 S3f; Manuel, 2026-10-01: „Bei so einem Teil erwarte ich sozusagen einen HSM-Werkzeugweg … von außen kreisend zur Mitte, immer volle Tiefe mit ae-Zustellung … Gleichlauf/Gegenlauf nicht vergessen“): `raeumen_bahn.py` räumt ebene Flächen und Taschenböden mit Ringen aus einem Abstandsfeld im Raster – volle Zustellung, schmales ae, ohne Wenden, Bögen in den Ecken, von außen nach innen (Oberseite: der erste Ring in der Luft neben dem Rohteil) oder einmal über die Rampe rundum und von innen nach außen (Tasche), eingetaucht nur im Freien, sonst tangential oder quer aus dem Freien hinein, Gleichlauf oder Gegenlauf; zwei Varianten gerechnet, die schnellere zählt; Operation `raeumen.Raeumen`; im Assistenten der Block „Räumen“ und der erste Wettbewerb der Strategien (Grundsatz 0): Planfräsen und Räumen rechnen beide, die schnellere bekommt den Haken, beide Zeilen sagen, um wie viel. Gemessen mit dem Standardfräser: Manuels 50 × 50 mit Zapfen 2,8 min statt 4,8 (Planfräsen), die Platte 33,3 statt 39,3, die Tasche 0,75 statt 3,0 (Kontur), Rechenzeit etwa eine Sekunde; die Simulation im Quader findet nichts im Teil und nichts stehen geblieben (-25); 0.44.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Der Prüfstand für Werkzeugwege (Manuel: „die Werkzeugwege müssen sinnvoll sein und immer zum kürzesten Bearbeitungsergebnis führen … Finde einen Weg, das sicherzustellen“): `pruefstand.py` und `tests/test_pruefstand.py` rechnen jede 2,5D-Strategie in jeder Variante mit dem Standardfräser an vier Maßstabsteilen, fahren sie im Quader ab und urteilen – nirgends ins Teil, nichts stehen geblieben, im Eilgang nichts abgetragen, nicht zu viel Luft –, keine Bahn darf langsamer werden als ihre Bestmarke (`tests/bestmarken.json`); er fand gleich drei Fehler, alle behoben (die Wandfahrt des Planfräsens quer durch den Zapfen, Abtrag im Eilgang beim Einfahren, Zwickel ohne Eingang) (-26). Die Morph-Spirale (Manuel: „im Viereck fahren anfangen, aber immer runder werden, so dass er am Ende nur um den Zapfen fährt“): ein harmonisches Feld zwischen Rohteil und Insel gibt die Ringe, ihr Abstand folgt dem Eingriff (nirgends mehr Material unter dem Fräser als beim geraden Schnitt mit ae), der letzte Ring ist der genaue Kreis um den Zapfen, alle Ringe eine Spirale ohne Absetzen – auf Manuels 50 × 50 2,69 min (Ringe um den Rest 2,75, Planfräsen 4,8), eine Einfahrt, keine Rampe. Der Prüfstand fand dabei, dass Oberseite und Taschenboden in einer Operation 20 mm ins Teil fuhren (jetzt eine Hüllfläche je Höhe, auch im Planfräsen). Im Assistenten rechnet er bei Oberseite und Taschenwand die Folgen – Planfräsen und Räumen der Böden gegen Räumen über alles – und die Kontur fährt nach dem Räumen nur noch das Aufmaß an der Wand; die Platte gesamt 34,7 min (Untergrenze 31) (-27); 0.45.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Gleichlauf richtig herum: Bei rechtsdrehender Spindel (M3) liegt im Gleichlauf das Material rechts der Fahrtrichtung (wie G41) – um einen Zapfen im Uhrzeigersinn, in einer Tasche gegen ihn; Kontur und Räumen fuhren bisher andersherum, also im Gegenlauf; jetzt richtig, Hilfe, Tooltips und Spezifikation (Grundsatz 4) nachgezogen; dabei den Ring um die Insel des Räumens in dieselbe Richtung gedreht (-28). Bohrung fräsen (W-006 S3g): zylindrische Bohrungen mit einem Schaftfräser, kleiner als sie – Helix hinab mit G2/G3 und Z, große Bohrungen in Lagen mit Ringen nach außen, die Wand in einem Zug mit Halbkreisen aus der Mitte, durchgehende 0,5 mm tiefer; Operation, Block im Assistenten mit „Bohrung Ø 20, durchgehend“ in der Liste und dem Wettbewerb gegen die Kontur (am Block mit zwei Bohrungen 1,33 min gegen 5,05); Räumt das Räumen den Boden schon (Platte), tritt sie nicht an. Der Prüfstand bekam das Bohrungsteil und fand gleich einen alten Fehler der Kontur (der Eilgang hinab streifte in kleinen runden Bohrungen Material) (-29); 0.46.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Bohren aus dem Assistenten (S3g): FreeCADs Bohr-Operation mit dem Bohrer aus der Werkzeugverwaltung, der den Durchmesser der Bohrung hat – nur durchgehende Bohrungen (eine Sackbohrung mit ebenem Grund kann ein Bohrer nicht), die Spitze unter den Grund, G81 oder in Hüben G83; im Assistenten der Block „Bohren“ (nur Bohrer zur Auswahl, der passende vorgewählt) und der Wettbewerb zu dritt: Bohren, Bohrung fräsen und Kontur auf denselben Bohrungen, die schnellste bekommt den Haken (-30); 0.47.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Gewinde bohren aus dem Assistenten (S3g): FreeCADs Gewinde-Operation (G84, links G74) mit dem Gewindebohrer, dessen Kernloch die Bohrung hat (M10 × 1,5 in Ø 8,5) – durchgehend um den Anschnitt hinaus, in einer Sackbohrung eine Steigung über dem Grund, je Tiefe eine Operation (FreeCAD fährt alle Löcher einer Operation gleich tief; beim Bohren jetzt genauso); den Haken setzt man selbst, das Kernloch macht der Wettbewerb davor. Dabei: Hübe beim Bohren erst ab 3 × D im Material (die Luft über dem Rohteil zählte mit – Ø 8,5 durch 20 mm bohrte in Hüben), ein roter Block verliert seinen Haken, wenn eine andere Strategie die Bohrung kann, rote Sätze mit Komma („Ø 8,5“ statt „Ø 8.50“) (-31); 0.48.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Entgraten im Quader (W-006 4.1 Punkt 8): eine eigene Operation mit dem Fasenfräser – die Oberkanten gewählter Wände, oder bei einer gewählten Fläche oben ihre Kanten, an denen eine Wand hinab geht (Außenkanten, Ränder von Taschen und Bohrungen); die Bahn so weit neben der Wand, dass der Kegel die Fase genau so breit schneidet (wie FreeCADs Deburr), im Gleichlauf, tangential hinein und heraus, vor Absätzen angehalten; im Assistenten der Block „Entgraten“ (Haken von Hand); das Prüffenster lässt die Fase durch (-32); 0.49.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Alle 51 Szenarien in 1.1.3 durchlaufen, alle grün – sechs waren veraltet (Werkstoff je Zeile seit 0.39.0, neue Vorschläge im 4-Achs-Assistenten, neun Befehle in der Leiste) und sind nachgezogen (-33). Zentrieren (NC-Anbohrer, oben Ø Bohrung + 0,4) und Senken (Kegelsenker in die Senkungen des Modells, in der Liste „Senkung Ø 12,4, 90°“) aus dem Assistenten; die Namen der Operationen bleiben eindeutig („Bohren T2 (2)“ statt FreeCADs „Bohren T001“); das Prüffenster rechnet Bohrer, Anbohrer und Senker als Kegel und die Zeit von G93-Spiralen ohne Anhalten je Satz – sie war siebenmal zu lang (-34); 0.50.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Restmaterial an Wänden: ein kleinerer Fräser fährt nur, wo sein Kreis aus dem Weg des großen ragt (Ecken innen, enge Stellen) – nach Ø 12 bleibt in einer scharfen Ecke R 6, nach Ø 4 R 2; im Assistenten der Block „Restmaterial“, der Ø davor von der Kontur (-35); 0.51.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Gewinde fräsen: eine eigene Operation mit dem Gewindefräser – welches Gewinde, sagen Kernloch und Steigung (ISO 965, 6H: Ø 8,5 mit 1,5 → M10 × 1,5), auf die Mitte der Toleranz gefräst, Halbkreis hinein, Helix, Halbkreis heraus, Gleichlauf; der Vorschub gilt an der Schneide (FreeCADs Gewindefräsen fährt ihn mit der Mitte – an der Schneide fast das Fünffache); ein Fräser mit zehn Zähnen braucht einen Umlauf statt neun; im Assistenten der Block „Gewinde fräsen“, er und „Gewinde bohren“ schließen sich aus; das Prüffenster lässt das Gewinde in seinem Ring durch. Dabei: Der Satz der Kontur hing seit 0.51.0 auch am Restmaterial (-36); 0.52.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Sackbohrungen mit Bohrspitze: Die Erkennung hielt Senkungen für Zylinderkopfschrauben und jede Sackbohrung aus FreeCADs „Bohrung“ (118°-Spitze) für durchgehend – „Bohrung fräsen“ und „Gewinde fräsen“ wären dort unter den Grund gefahren; jetzt mit Boden, der Winkel der Spitze gemerkt, und „Bohren“ bohrt solche Sackbohrungen mit einem Bohrer ihres Winkels bis genau zur Spitze des Modells (-37); 0.53.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Gezeichnete Fasen: Hat das Modell die Fase schon (FreeCADs „Fase“), fräst „Entgraten“ sie mit dem Fasenfräser genau – Breite und Winkel aus dem Modell, der Kegel liegt auf ihr; die Fläche oben anklicken genügt, der Haken ist vorgeschlagen (-38); 0.54.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Verrunden: Entgraten nimmt auch den Radienfräser – er rundet scharfe Kanten mit seinem Radius und fräst gezeichnete Rundungen (FreeCADs „Verrundung“) genau, der passende Fräser ist vorgewählt; „entgraten“ darf jetzt in der Kollisionsprüfung ins fertige Teil (-39); 0.55.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Alle 57 Szenarien auf 0.55.0 grün. Nut (W-006 4.1 Punkt 6): Langlöcher, eine Wand oder den Grund anklicken – nie in voller Breite mit ganzer Schneide: Helix, dann Kreise mit ae vorrückend (Trochoide, von Kreis zu Kreis hinten im Freien weiter), in einer kaum breiteren Nut eine Zickzack-Rampe mit höchstens D/2 in voller Breite und dem Vorschub für den dicken Span; zuletzt die Wand rundum; im Assistenten gegen Räumen (am Grund, Räumen meist schneller) und Kontur (an den Wänden, die Nut schneller); in der Liste „Nut 20 × 50, Grund 10“. Dabei gefunden, offen: Räumen lässt in Nuten 0,75 statt 0,3 mm an der Wand (-40); 0.56.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Reiben: FreeCADs Bohren mit G85 und der Reibahle im Ø der Bohrung, durchgehend 1 mm unter den Grund, mit Bohrspitze bis zum Grund der Wand; mit dem Haken bohrt „Bohren“ 0,15 bis 0,5 mm kleiner vor, „Bohrung fräsen“ und Kontur treten dort nicht an (-41); 0.57.0 – fertig und automatisch geprüft; wartet auf Manuels Test. 3D-Schlichten (W-006 4.2 Punkt 3, die erste 3D-Strategie): Freiformflächen in parallelen Zeilen mit dem Kugelfräser, die Spitze auf der Hüllfläche des ganzen Teils, gefräst nur, wo die gewählten Flächen die Höhe bestimmen, der Zeilenabstand aus der Grathöhe, längs X und Y gerechnet, die schnellere zählt; an einer Kuppel im Quader auf 0,02 mm fertig, nichts ins Teil (-42); 0.58.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Steil/Flach im 3D-Schlichten (W-006 4.2 Punkt 4): wo die Fläche steiler ist als 45°, Höhenlinien von oben nach unten im Gleichlauf statt Zeilen – an der Flanke einer Halbkugel 0,026 statt 0,056 mm Grat (-43); 0.59.0 – fertig und automatisch geprüft; wartet auf Manuels Test. Räumen lässt an Taschenwänden genau das Aufmaß stehen (0,3 statt 0,75 mm – der letzte Ring an der Wand genau, wie schon um Inseln); die Tasche des Prüfstands 0,1 min länger, die alte Bestmarke war zu schnell, weil Material stehen blieb (-44); 0.59.1 – fertig und automatisch geprüft; wartet auf Manuels Test. **3D-Schruppen** (W-006 4.2
-Punkt 1): das Rohteil über Freiformflächen in Lagen mit vollem ap wie das Räumen, dazwischen
-Zwischenlagen (1 mm) nur, wo über der Fläche noch Material steht – an der Kuppel Ø 40 1 Lage und
-9 Zwischenlagen, 5,4 min, auf der Kuppel 0,4 … 1,6 mm stehen (-45); 0.60.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. **Bleistift** (W-006 4.2 Punkt 6): die Kehlen
-nachfahren, wo die Kugel zwei Flächen zugleich berührt – aus dem Knick der Hüllfläche; an der
-Kuppel ein Ring bei r 21,45, 0,2 min (-46); 0.61.0 – fertig und automatisch geprüft; wartet auf
-Manuels Test. **Offene Nuten**: zum Rand hin offen (an einem oder beiden Enden), von außen in
-der Luft hinein ohne Helix, die Wände im Gleichlauf – Nut 16 × 60, 8 tief, 0,85 min (Kontur 2,2);
-dabei gefunden: Räumen schnitt auf dem Grund einer Nut zuerst in voller Breite (nur scheinbar
-schneller) – an Nutgründen treten Räumen und Planfräsen nicht mehr an (-47); 0.62.0 – fertig
-und automatisch geprüft; wartet auf Manuels Test. **3D-Schlichten als Spirale**: von der Mitte
-nach außen ohne Wenden, neben Zeilen längs X und Y gerechnet (nur mit Steil/Flach, sonst wären
-die Grate an Flanken höher) – die Kuppel 3,97 statt 4,51 min (-48); 0.63.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. **Nie in voller Breite**: Der Prüfstand misst jetzt
-den Eingriff je Satz (Breite aus Abtrag und Tiefe) und lässt eine Bahn durchfallen, die mehr als
-5 mm in voller Breite schneidet – er fand, dass mehrere Bestmarken darauf standen: Räumen biss
-mit dem Rechteck in Inseln (Platte 120 mm, 20 tief; jetzt Ringe aus dem Weg um die Inseln
-herum), sein letzter Ring lief am Absatz voll an der Wand, die erste Zeile des Planfräsens griff
-0,8 · Ø breit (jetzt höchstens so breit, dass Breite · Tiefe nicht über ae · ap liegt; vor einer
-Wand flachere Lagen), das 3D-Schruppen erbte den Biss in die Kuppel (4,8 ae, jetzt 1,6). Ehrlich
-gerechnet etwas langsamer: Platte gesamt 35,6 statt 34,8 min (-49); 0.64.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. **Restschlichten** (W-006 4.2 Punkt 8): mit dem
-kleineren Kugelfräser nur dort, wo der große davor nicht hinkam – aus den Flächen, die beide
-stehen lassen; an der Kuppel nach Ø 6 mit Ø 2 3,8 min statt 9,1 für alles, in der Kehle 0,18 statt
-0,44 mm (P-2026-10-02-01); 0.65.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
-**Restschruppen** (W-006 4.2 Punkt 2): mit dem kleineren Fräser nur, was der große beim
-3D-Schruppen stehen ließ – aus seiner Hüllfläche; zwischen zwei Kuppeln 0,28 min, das Tal 62 statt
-138 mm³; dabei der Morph des Räumens bei zwei Inseln nicht mehr fast endlos (P-2026-10-02-02);
-0.66.0 – fertig und automatisch geprüft; wartet auf Manuels Test. **Fläche entlang**
-(Flowline, W-006 4.2 Punkt 7): die vierte Richtung des 3D-Schlichtens – die Bahnen folgen den
-Kurven der Fläche, im Raum überall einen Zeilenabstand auseinander; an der Kuppel 4,29 statt
-4,93 min (Spirale), an einer Walze 7,2 statt 10,3 (Zeilen). Dabei behoben: An der Außenkante
-eines Teils schnitten Höhenlinien und Spirale 0,05 mm in die Seite – jetzt fährt das
-3D-Schlichten nur, wo der Fräser die Flächen berührt (P-2026-10-02-03); 0.67.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. **Äquidistant** (W-006 4.2 Punkt 5): die fünfte
-Richtung – Ringe vom Rand nach innen, im Raum überall einen Zeilenabstand auseinander, über alle
-gewählten Flächen, mit einem Gang über flache Grate; an der Kuppel der feinste Rest (0,017 statt
-0,020 mm), die Zeit gewinnt dort weiter die Fläche entlang (P-2026-10-02-04); 0.68.0 – fertig
-und automatisch geprüft; wartet auf Manuels Test. **Passfedernut** auf der Drehmaschine mit C
-und Y: Der Grund einer Nut auf der Welle bekam mit „Plan indexiert“ mit dem Fräser in Nutbreite
-gar keine Bahn, mit einem schmaleren blieben die Enden 4 mm stehen – jetzt fräst es sie wie die
-„Nut“ im Quader (Rampe in voller Breite oder Trochoide, die Wand rundum) bis an die Enden; „Auf
-der Maschine prüfen“ meldet am Nutgrund nicht mehr fälschlich „im Teil“ (P-2026-10-02-05);
-0.69.0 – fertig und automatisch geprüft; wartet auf Manuels Test. **Querbohrungen** auf der
-Drehmaschine: eine Bohrung quer zur Stange anklicken – „Plan indexiert“ fräst sie in der Helix,
-quer versetzt mit dem Y, durchgehende von beiden Seiten (P-2026-10-02-07); 0.70.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. **Radial bohren**: Gibt es einen Bohrer mit dem
-Durchmesser der gewählten Querbohrungen, wählt „Plan indexiert“ ihn vor und bohrt sie radial
-(tiefer als 3 × D in Hüben; durchgehende von beiden Seiten je mit der Spitze über die Mitte,
-Sackbohrungen nur mit gezeichneter Spitze) – „Radial bohren T2“; „Auf der Maschine prüfen“ kennt
-die Spitze als Grund (P-2026-10-02-08); 0.71.0 – fertig und automatisch geprüft; wartet auf
-Manuels Test. **Nut auf dem Mantel**: den Grund einer Nut um die Stange anklicken – „Plan
-indexiert“ fräst sie mit drehender Rundachse, in voller Breite mit der Rampe, breiter in Zeilen
-(„Rundum schruppen“ kam mit dem Fräser in Nutbreite gar nicht hinein; P-2026-10-02-09); 0.72.0
-– fertig und automatisch geprüft; wartet auf Manuels Test. **Fräser und Bohrer zugleich**: Sind
-neben Flächen oder Nuten auch Querbohrungen gewählt und gibt es einen Bohrer ihres
-Durchmessers, legt „Plan indexiert“ zwei Operationen in denselben Job an („Plan indexiert T1“,
-„Radial bohren T2“; P-2026-10-02-11); 0.73.0 – fertig und automatisch geprüft; wartet auf Manuels
-Test. **Flansch**: Bohrungen verschiedener Durchmesser zugleich – „Bohren“ nimmt, was sein
-Bohrer bohrt, „Bohrung fräsen“ den Rest (vorher ging „Anlegen“ gar nicht; P-2026-10-02-12);
-0.74.0 – fertig und automatisch geprüft; wartet auf Manuels Test. **Deckel**: Ein roter Block
-(„Bohrung fräsen“ an Bohrungen, die der Bohrer bohrt) verliert jetzt auch dann den Haken, wenn
-die Kontur andere Wände hat – „Anlegen“ ging sonst nicht (P-2026-10-02-13); 0.75.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. **Formplatte**: Freiformflächen neben Oberseite und
-Bohrungen bekommen jetzt 3D-Schruppen und 3D-Schlichten (vorher keine Operation;
-P-2026-10-02-14); 0.76.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
-**Lagerbock**: Die Kontur fährt gebohrte Bohrungen nicht mehr mit (P-2026-10-02-15); 0.77.0 –
-fertig und automatisch geprüft; wartet auf Manuels Test. **Höhe 0** statt „-5,6e-18“ in der Flächenliste (P-2026-10-02-16); 0.78.0. **Absatz**: Die Kontur fährt nur den Rest, den das
-Planfräsen an der Wand lässt, statt 12 Bahnen durch Luft (P-2026-10-02-17); 0.79.0 – fertig und
-automatisch geprüft; wartet auf Manuels Test. **Planfräsen bis an die Wand**: An einer Wand längs
-der Zeilen blieben 0,5 mm stehen, jetzt fährt eine Zeile an ihr entlang (P-2026-10-02-18); 0.80.0
-– fertig und automatisch geprüft; wartet auf Manuels Test. **Restmaterial von selbst** (Manuel:
-„Ja“): Sind gezeichnete Rundungen innen kleiner als der Fräser der Kontur und ist ein kleinerer da,
-hakt der Assistent „Restmaterial“ an (P-2026-10-02-19); 0.81.0 – fertig und automatisch geprüft;
-wartet auf Manuels Test. **M3 und M4** (Manuel: „Die kann beide Richtungen“): Steht der
-Werkzeug-Controller auf „Reverse“, fräsen alle 2,5D- und 3D-Bahnen mit Gleichlauf weiter im
-Gleichlauf – gespiegelt (P-2026-10-02-20); 0.82.0 – fertig und automatisch geprüft; wartet auf
-Manuels Test. **Planfräsen übereinander**: Die obere Fläche fräst nicht mehr die ganze Platte ab,
-wo der Boden derselben Operation ohnehin am Rohteil beginnt – Zapfen 15,6 → 13,5 min, Absatz
-5,1 → 4,3 min (P-2026-10-02-21); 0.83.0 – fertig und automatisch geprüft; wartet auf Manuels
-Test. **Offene Nut in Bögen** (Manuels Halbkreis): je Schritt ein Halbkreis im Gleichlauf von Wand
-zu Wand, quer zurück im Schnellvorschub, am Anfang Morph-Bögen vom geraden Rand; der Schritt so
-klein, dass der Fräser die Delle nicht weiter umschlingt als eine gerade Wand mit ae; offene Nuten
-jeder Breite (P-2026-10-02-22); 0.84.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
-**4-Achs-Gleichlauf über C** (Manuel: „es geht um alle Maschinen“): im Rahmen des Teils aus
-Werkzeugachse, Fahrt und Materialseite gerechnet (`spindel.ist_gleichlauf`); Spiralen,
-Mantelnut-Wände, Querbohrung und Passfedernut drehen φ mit M3 und M4 richtig, C über den Drehsinn
-der Maschine (P-2026-10-02-23); 0.85.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
-**Nur im Gleichlauf** (Manuel: „auswählbar, ob er abhebt und wieder von vorne anfängt“): Haken bei
-Planfräsen und Plan indexiert – jede Zeile im Gleichlauf, abheben, von vorne (P-2026-10-02-24);
-0.86.0 – fertig und automatisch geprüft; wartet auf Manuels Test. **Rundum entgraten im
-Gleichlauf**: je Kante die Seite des Materials aus den beiden Flächen, die Richtung jedes Stücks
-danach (P-2026-10-02-25); 0.87.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
-Den Haken „nur im Gleichlauf“ auch bei „Rundum schruppen“ mit gewählten Flächen
-(P-2026-10-02-26); 0.88.0 – fertig und automatisch geprüft; wartet auf Manuels Test.
-**Geschlossene Nut**: hinten, wo jeder Kreis durch schon freie Luft läuft, im Schnellvorschub –
-1,84 → 1,69 min an der Prüfplatte (P-2026-10-02-27); 0.89.0 – fertig und automatisch geprüft;
-wartet auf Manuels Test.
-Den Haken „nur im Gleichlauf“ auch bei „Linien längs“ (Rundum schlichten): jede Linie für sich,
-mit M3 vom Futter nach vorne (P-2026-10-02-28); 0.90.0 – fertig und automatisch geprüft; wartet
-auf Manuels Test. Voller Szenario-Lauf auf 0.88.0: alle 82 grün.
-**Die Zielzeit**: erst das Volumen, dann die Zeit, die der Fräser mit seinen Werten mindestens
-braucht – mit dem ap, das jede Stelle hergibt; grau im Assistenten „Bearbeitung“, dazu der
-schnellere Fräser aus der Werkzeugverwaltung (P-2026-10-02-29); 0.91.0 – fertig und automatisch
-geprüft; wartet auf Manuels Test.
-**Planfräsen mit großem Fräser sicher**: Die Zielzeit fand es – mit dem Planfräser Ø 50 (ae 35)
-fuhr die Wandfahrt am Zeilenende quer in den Zapfen; jetzt wird auch zwischen weit
-auseinanderliegenden Zeilen geprüft, der Ø 12 bleibt unverändert (P-2026-10-02-30); 0.92.0 –
-fertig und automatisch geprüft. Dasselbe für **Plan indexiert** (ein Stift zwischen zwei Zeilen
-wurde um 0,1 mm gestreift; P-2026-10-02-31); 0.93.0 – fertig und automatisch geprüft; voller
-Szenario-Lauf auf 0.93.0: alle 83 grün.
-**Bedienung des Assistenten „Bearbeitung“** (Manuel: „Warum machst du solange nicht die
-Bedienung schön??“): Rohteil und Nullpunkt eingeklappt mit einer Zeile, was gilt; was zur Wahl
-passt, oben – nicht angehakt nur mit seinem Ergebnis –, was nicht passt, knapp darunter mit dem
-Satz, was man anklicken muss; die Flächenliste so hoch wie ihre Einträge. Manuels Platte: von
-5101 auf unter 2000 Pixel (P-2026-10-02-32); 0.94.0 – fertig und automatisch geprüft; wartet
-auf Manuels Urteil, ob es so verständlicher ist. Im 4-Achs-Assistenten dasselbe: die Felder eines
-Abschnitts nur, solange er angehakt ist (P-2026-10-02-33); 0.95.0 – fertig und automatisch
-geprüft. Werkzeugverwaltung: ohne Schnittwerte statt einer leeren Tabelle der Satz, wie es
-weitergeht (P-2026-10-02-34); 0.96.0 – fertig und automatisch geprüft. Der schnellere Fräser
-nennt seine Zeit als „Ziel“ – die echte Bahn braucht länger (P-2026-10-02-35, 0.96.1). Nicht
-angehakte, passende Blöcke ohne die Erklärung, nur mit dem Ergebnis (P-2026-10-02-36, 0.96.2);
-was nicht passt, je eine Zeile „Name – was man anklicken muss“ (P-2026-10-02-37, 0.96.3),
-eingeklappt unter „Passt nicht zur Auswahl (16)“ wie „Rohteil und Nullpunkt“ (P-2026-10-02-38,
-0.96.4) – Manuels Platte jetzt 771 Pixel statt 5101. Alle 83 Szenarien auf 0.96.0 grün (danach je
-die Szenarien zum geänderten Teil). Die Drehrichtung am Werkzeug – rechts (M3) oder links (M4), vorbelegt
-nach der Art –, der Controller übernimmt sie, die Bahnen fahren den Gleichlauf danach (W-007,
-P-2026-10-02-40, 0.97.0). Der Assistent „Bearbeitung“ in drei Schritten – Aufspannung, Was soll weg?,
-Einstellungen – mit „Zurück“ und „Weiter“, „Anlegen“ aus jedem (W-009, P-2026-10-02-42, 0.98.0); in
-Schritt 1 die Aufspannung: „Fläche anklicken …“ legt die Unterseite fest, ↺/↻ 90° dreht X,
-Rohteil und Nullpunkt folgen (P-2026-10-02-43, 0.99.0) – wartet auf Manuels Test. Räumen mit „Wände danach
-schlichten“ und „Messstopp vor dem Schlichten“: drei Operationen – Räumen, Messstopp (M5, M0, die
-Spindel wieder an), Wände schlichten im Aufmaß (W-010, P-2026-10-02-44, 0.100.0). Hinter der
-Zeit von Planfräsen und Räumen „· 1,41 × Ziel“: wie weit ihr Weg über der Zielzeit ihres Fräsers
-mit ihren Werten liegt (Spezifikation Strategien 12.3, P-2026-10-02-45, 0.101.0). Die
-Werkzeugkiste der Hersteller: „Werkzeuge der Hersteller …“ legt 91 Werkzeuge an – Manuels Bohrer
-(Ceratizit), Gewindebohrer M2–M30 (Gühring 5596), Fräser Ø 3–20 (Jongen 494W), Entgrater (Garant
-208165), Messerkopf (CoroMill 345), je Art ein Beispiel, die Wendeplatten C/D/V/W/T/S/R –, mit
-Hersteller, Artikel-Nr., Bestellen und Katalog zum Öffnen und Richtwerten je Werkstoffklasse
-(W-007, P-2026-10-02-46, 0.102.0; Herstellerseiten gesperrt, Werte geschätzt). Ein neues
-Werkzeug bietet „Richtwerte eintragen“ an – je Werkstoffklasse, aus seinen Maßen
-(P-2026-10-02-47, 0.103.0). Home- und Werkzeugwechselpunkt je Linearachse in „Maschine
-bearbeiten“: Ist einer eingetragen, beginnt und endet das Abfahren im Prüffenster dort, und
-vor jedem Werkzeugwechsel fährt die Maschine zum Wechselpunkt, Z zuerst (W-008,
-P-2026-10-02-48, 0.104.0). Auf Manuels Blick auf die Schritte („die Menüführung ist gut“):
-Schritt 1 sagt „Klick die Fläche an, die du bearbeiten willst – dann legt das Addon den Job mit
-dem Rohteil an“, der Nullpunkt ist beim ersten Mal „Mitte oben“, danach der zuletzt angelegte,
-und im letzten Schritt steht „Anlegen“ unten, wo „Weiter“ stand (P-2026-10-02-49, 0.105.0).
-Ein einzelner Werkstoff bekommt trotz der Klassen eigene Schnittwerte: „+ Einsatz“ → „Eigene
-Werte für einen Werkstoff …“ kopiert die Zeilen, die bisher für ihn gelten, zum Ändern
-(P-2026-10-02-50, 0.106.0). Unter der Ziel-Zeile „Schnellere Fräser übernehmen“ – freiwillig:
-Ein Klick setzt den schnelleren Fräser und den für den Rest in die Strategien, danach rechnet
-die Ziel-Zeile mit dem angehakten Fräser (P-2026-10-02-51, 0.107.0). Die geschlossene Nut
-fährt Bögen statt Kreisen – nach der Helix Halbkreise von Wand zu Wand mit dem schonenden
-Schritt (Manuel: „Ja“); dadurch langsamer als mit den Kreisen (Nut 20 × 50: 1,20 statt
-0,80 min), an der Wand liegt die Kontur jetzt knapp vorn (P-2026-10-02-53, 0.108.0). Der
-Ø 12 plant mit großem ae bei kleinem ap: Einsatz „Planen“ mit ae 8,4, ap 1,2, fz 0,07 (Manuel:
-„Ja … Werte im Netz“); das Planfräsen nimmt den Einsatz, der für seine Flächen schneller ist,
-und die Zielzeit je Fräser seinen schnellsten (P-2026-10-02-54, 0.109.0). Der Schritt der
-Bögen folgt jetzt der Last (Manuel zu 12.1: „a: im Mittel … Sogar 25 %, solange es noch über r
-geht“): im Mittel ae je mm Weg, in der Mitte der Bögen kurz bis 1,7 ae, über 1,25 ae höchstens
-eine Fräserbreite am Stück, nie mehr als der halbe Fräser im Eingriff – Nut 20 × 50 31 statt 47
-Bögen, an der Wand die Nut wieder vorn (Kontur 28 % langsamer); offene Nut 16 × 60 1,25 statt
-1,68 min. Der Prüfstand misst die Last auf Bögen je Sehne und den Weg über 1,25 ae
-(P-2026-10-02-56, 0.110.0). Maschinen-Speicher (W-011, Manuel: „1 a“): Menü CAM-Addon →
-„Maschinen …“ zeigt die eigenen Maschinen mit Name, Art (aus den Achsen: Drehmaschine mit
-Revolver, 3-, 4-, 5-Achs-Fräse) und Datei; eine Maschine kommt von selbst dazu, wenn man sie
-speichert, auf ihr prüft oder sie im Assistenten wählt; Hinzufügen …, Bearbeiten, Suchen …
-(Datei verschoben), Entfernen (P-2026-10-02-58, 0.111.0). In Schritt 1 des Assistenten
-„Bearbeitung“ steht oben die Maschine – vorgewählt die vom letzten Mal; der Job merkt sie sich,
-„Auf der Maschine prüfen“ nimmt sie ohne Frage (P-2026-10-02-59, 0.112.0). Ist es eine
-Drehmaschine, sagt Schritt 1 rot, dass das Rohteil dort eine Stange ist, und „Weiter im
-4-Achs-Assistenten →“ nimmt Teil, Fläche und Maschine mit; der 4-Achs-Assistent bietet die
-Maschinen der Liste an (P-2026-10-02-60, 0.113.0). Das Rohteil kann ein konstruierter
-Körper sein: In Schritt 1 „Teil aus dem Dokument“ – der Job nimmt den Körper, wie er im
-Modell liegt, der Nullpunkt rechnet mit ihm (P-2026-10-02-61, 0.114.0). Materialstand (W-012,
-Manuel: „vor jeder neuen Schrupp-Aktion … schauen“): Die Nut rechnet mit dem, was die
-Operationen davor im Job und die angehakten Blöcke davor im Fenster schon weggenommen haben –
-an Manuels Klotz nach dem Räumen um den Zapfen ab −10 statt oben am Rohteil; grau darunter
-„noch 5,7 cm³ – 12,5 cm³ hat „Räumen T1“ schon weggenommen“; ändert sich davor etwas, rechnet sie
-von selbst neu (P-2026-10-02-64, 0.115.0). Nut und Bohrung fräsen tauchen jetzt auch angelegt mit
-dem Winkel am Fräser ein wie in der Vorschau (bis dahin 5°; P-2026-10-02-65, 0.115.1). Ein Teil,
-ein Job (Manuel, Frage 1: a): Klickt man am Teil eines vorhandenen Jobs eine weitere Fläche an,
-kommen die neuen Operationen in diesen Job – Schritt 1 sagt „In den Job „…“ – 1 Operation: …“,
-Maschine, Rohteil und Nullpunkt grau; „Neuer Job …“ für eine zweite Aufspannung
-(P-2026-10-02-66, 0.116.0). Die Eintauchstelle der geschlossenen Nut ist wählbar (Manuel, Frage 2:
-a): „Eintauchen bei“ mit Vorschlag, den Enden, der Mitte oder „Im Bild wählen …“ – die Helix
-taucht in jeder Lage dort ein; der Vorschlag nimmt eine Stelle, an der eine Bohrung oder Tasche
-die Nut schon geöffnet hat (P-2026-10-02-67, 0.117.0). Das Räumen rechnet ebenso mit dem
-Materialstand (M3; Manuel: „erst die Nut … dann den Zapfen“): je Lage nur, wo noch Material
-steht, über eine kurze Lücke im Weggefrästen im Vorschub hinweg, eine Lage ohne fällt aus; grau
-„noch 93,7 cm³ – 12,5 cm³ hat „Nut T1“ schon weggenommen“, ein zweites Räumen sagt „Hier ist
-nichts mehr zu tun …“. Manuels Klotz, Nut zuerst: 8,42 statt 8,48 min; ein Guss als Rohteil
-mit nur 1 mm Rand am Zapfen: 0,56 statt 25 min (P-2026-10-02-68, 0.118.0). Die Ziel-Zeile
-(„Weg müssen … cm³“, Zielzeit, Werkzeugkiste, „× Ziel“) rechnet mit dem, was nach den
-Operationen im Job noch steht (P-2026-10-02-69, 0.118.1). Das Planfräsen ebenso: Lagen ab dem
-höchsten erreichbaren Material, Zeilen nur, wo noch etwas steht, senkrecht hinein, wo nur ein
-Streifen am Rand steht; nach dem Räumen desselben Bodens „nichts mehr zu tun“; der Guss mit
-1 mm Rand am Zapfen: 2,4 statt 33 min (P-2026-10-02-70, 0.119.0). Das 3D-Schruppen ebenso:
-Ein zweites an derselben Kuppel nimmt nur die Treppe, 0,14 statt 4,99 min (P-2026-10-02-71,
-0.120.0). Die Kontur ebenso: Nach dem Räumen schlichtet sie am Zapfen nur noch, 0,18 statt
-12,8 min; der Guss mit 1 mm Rand: 0,72 statt 38 min (P-2026-10-02-72, 0.121.0). Im Prüffenster:
-Räumen, dann die Kontur im zweiten Lauf – am Ende 0,00 mm, nirgends ins Teil. Offen für Manuel:
-Fragen 3–5 in 12.7 (kurze Lücken durchfahren, schmaler Rand, Restmaterial – je mit Empfehlung,
-gebaut ist die Empfehlung) (P-2026-10-02-73). Nach Manuels Antwort auf Frage 4 fährt die Kontur mit
-Materialstand einmal beim Aufmaß an der Wand ab, dann schlichtet sie (P-2026-10-02-75, 0.122.0) – nicht
-doppelt, wenn sie in einer einzigen Lage selbst geschruppt und diese Bahn schon ganz gefahren hat (B-012,
-P-2026-10-02-84, 0.125.2). Die
-Werkstoff-Auswahl klappt höchstens 20 Zeilen hoch auf, mit Rollbalken und ganzen Namen (Manuel:
-„Alle Werkstoffe“ war nicht mehr zu erreichen) (P-2026-10-02-76, 0.122.1). Halter: VDI angetrieben
-radial und axial je mit ER16, ER20, ER25, ER32 als Untermenü in „Neu“ (P-2026-10-02-77, 0.123.0).
-Als Nächstes (Manuel, 2026-10-02 abends, Antworten in Spezifikation Strategien 12.1, 12.4, 12.7): Räumen nach der Last (Frage 6 – die schnellste Variante gewinnt, aber dauernd höchstens 1,25 ae, kurz bis 1,7: Ecken der Tasche und der Spalt am Zapfen in Bögen vorräumen, Adaptiv als weitere Variante); der Block „Schlichten danach“ (12.4 A); Lücken durchfahren oder abheben nach der Zeit (Frage 3). Offen bei Manuel: W-005 E1–E7, TCPM, Kollision von selbst, CAM mitziehen, Grenzwerte an der Maschine (Fragen 7–11); Netzzugang für die Herstellerwerte (W-007). Danach: Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min, Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel); der Einstieg (Rampe/Helix/senkrecht) nach Zeit, Startstelle und Reihenfolge der Bereiche, Spannhöhe; die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen); F2 (Nummer am Werkzeug freiwillig); W-005 Programm für jede Steuerung (Plan P-2026-09-30-42/-43, wartet auf seine E1–E7). Offen danach: V2b (Drehteile), V6, V7.
-- **IN ARBEIT** – W-013 Manuels Testteil für die 3-Achs-Fräse (2026-10-02: „das muss sinnvoll bearbeitet
-  werden auch mit mehreren arbeitsschritten“): das Teil, wie man es fräsen würde, und was der Assistent
-  daraus macht, gemessen in [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 13 –
-  mit 0.123.0 zusammen 29 min (Räumen 26 min, 3,4 × Ziel, 60-mal abgehoben), die kleine Tasche bleibt halb
-  stehen; Befunde B-006 bis B-009, Schritte T1–T5 (P-2026-10-02-78). B-006 behoben: Der Boden einer Tasche
-  räumt nur noch in ihrer Kontur (P-2026-10-02-79, 0.123.1). T1 gebaut: Räumen über mehrere Höhen – die
-  tiefste Fläche zuerst, jede höhere nur, wo noch Material steht, in Ringen um das, was noch steht; am
-  Testteil 12,4 statt 26,3 min, der Job 15 statt 29 (P-2026-10-02-80, 0.124.0) – fertig und automatisch
-  geprüft; wartet auf Manuels Test. T3 gebaut: Das Räumen sagt, in welche Tasche sein Fräser nicht passt
-  (-81); der neue Block „Rest räumen“ räumt sie mit dem größten Fräser, der hineinpasst, „Restmaterial“
-  bekommt den Haken für ihre Wände – am Testteil sechs Arbeitsschritte mit drei Werkzeugen (-82, 0.125.0) –
-  fertig und automatisch geprüft; wartet auf Manuels Test. T5 gebaut: die Variante „adaptiv“ (FreeCADs
-  Adaptiv-Kern) – die schnellste Variante gewinnt nur, wenn sie die Last hält; am Testteil 10,7 statt
-  12,4 min, 5-mal statt 56-mal abgehoben, Last bis 1,4 statt 5 ae, im Assistenten 1,48 × Ziel
-  (P-2026-10-02-89, 0.126.0) – wartet auf Manuels Test. T2 gebaut: dünne Lagen breit, ae = R mit
-  Spanausgleich – am Testteil 10,3 min (P-2026-10-02-93, 0.128.0). T4 gebaut: der Block „Schlichten danach“ –
-  Boden und Wände nach dem Räumen mit eigenem Fräser, auf Wunsch mit Messstopp (P-2026-10-02-90,
-  0.127.0) – wartet auf Manuels Test.
-- **Zuletzt geprüfte FreeCAD-Versionen:** 1.1.3 (stabil) und Wochen-Build
-  26.3.0 dev (2026-09-16) – alle Prüfungen und Szenarien grün; in 1.1.3 ist
-  der Export übersprungen (gibt es dort nicht). Im Lauf zu 0.33.1 stürzte 26.3
-  einmal beim Schließen des 4-Achs-Fensters ab (`closeDialog`, FreeCAD selbst);
-  zweimal wiederholt ohne Befund – bleibt im Blick. **1.1.4** (Manuel nutzt sie
-  seit 2026-09-29): Quelltext gegen 1.1.3 verglichen – nichts in CAM,
-  Assembly, PartDesign oder den Python-Schnittstellen des Addons
-  (P-2026-09-29-01); der volle Lauf (Arbeitsregeln, Abschnitt 9) folgt, sobald
-  conda-forge 1.1.4 hat. Auf Manuels Rechner (1.1.4 als Arch-Paket, mit
-  Python 3.14) am 2026-10-02 gelaufen – dabei gefunden und behoben (B-011):
-  FreeCAD stürzte ab, sobald nach „Hinsehen“ („Auf der Maschine prüfen“,
-  „Bestückung“) ein Dokument zuging; das Addon holt den Viewer der Ansicht
-  nicht mehr nach Python (P-2026-10-02-83, 0.125.1) – wartet auf Manuels Test.
-  Danach alle 71 Prüfungen (der Export übersprungen) und alle 98 Szenarien
-  grün (Stand P-2026-10-02-85; die 1.1.3 und der Wochen-Build liefen dabei
-  nicht mit – die gibt es auf Manuels Rechner nicht).
+
+Stand 0.128.1 (P-2026-10-02-94), gekürzt am 2026-10-03. Alles, was hier als gebaut steht,
+ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
+aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
+„Bearbeitung“ gesehen („die Menüführung ist gut“).
+
+- **W-001 Maschine aus Baugruppe** – gebaut bis Stufe 4e: Maschine bearbeiten und verfahren,
+  schräge Achse, „Neue Maschine …“, Auf der Maschine prüfen, Abfahren, Kollision, Zeit mit
+  Beschleunigung (`fahrzeit.py`), Werkzeugspitze (`kinematik.py`). Offen: TCPM wählbar –
+  Frage an Manuel, ob seine Steuerung TRAORI/RTCP nutzt.
+- **W-002 Werkzeugverwaltung** – gebaut bis Stufe G: Werkzeuge mit Einsätzen je Werkstoff,
+  Schruppwerte planen, 26 Werkzeugarten, Halter mit Richtung, Bestückung an der Maschine
+  und je Job, Drehrichtung M3/M4, Richtwerte eintragen, eigene Werte je Werkstoff. Offen:
+  F2 (Nummer am Werkzeug freiwillig).
+- **W-003 4-Achs-Bearbeitung** – gebaut: V1 Teil in die Stange, V2a/V2c Achse von der
+  Maschine, V3 Rundum schruppen, V4 Flächen wählen (Linien längs, Plan indexiert mit
+  Passfedernut, Mantelnut, Querbohrungen und Radial bohren, Rundum entgraten), V5 Rundum
+  schlichten, Gleichlauf über C. Offen: V2b (Drehteile), V6, V7.
+- **W-004 Bedienung** – D-01 bis D-13, D-20, D-21, D-25, D-26, D-28 bis D-30, D-40 bis D-47
+  und D-50 bis D-57 erledigt. Offen zur Entscheidung ([Durchsicht](durchsicht_bedienbarkeit.md),
+  Abschnitt 6): D-14, D-22, D-24, D-27; D-23 wartet auf die Antwort zur Ausspannlänge; Reste
+  von D-20 und D-26.
+- **W-005 Programm für jede Steuerung** – Plan steht (P-2026-09-30-42/-43), wartet auf
+  Manuels E1–E7.
+- **W-006 Frässtrategien** – 2,5D komplett (Planfräsen, Räumen mit Ringen, Morph, Inseln und
+  adaptiv, Kontur, Nut offen und geschlossen, Bohrung fräsen, Bohren, Zentrieren, Senken,
+  Reiben, Gewinde bohren und fräsen, Entgraten mit Fase und Rundung, Restmaterial), 3D
+  komplett (Schruppen, Restschruppen, Schlichten in fünf Richtungen mit Steil/Flach,
+  Bleistift, Restschlichten), Materialstand in jeder Schrupp-Operation, Prüfstand mit
+  Bestmarken, Zielzeit und „× Ziel“, Wettbewerb der Strategien im Assistenten. Offen: siehe
+  „Danach“ unten.
+- **W-007 Werkzeugkiste** – gebaut (91 Werkzeuge); Jongen 494W und Garant 208165 nach
+  Katalog und Datenblatt (P-2026-10-02-91), Gühring 5596 mit Shop-Link (-92). Ceratizit,
+  Gühring und Sandvik bleiben geschätzt (Fragen 3–5 unten).
+- **W-008 bis W-012** – gebaut: Home- und Wechselpunkt; der Assistent in drei Schritten mit
+  Aufspannung, Maschine zuerst, Rohteil aus dem Dokument, ein Teil – ein Job; Messstopp
+  (jetzt im Block „Schlichten danach“); Maschinen-Speicher; Materialstand mit wählbarer
+  Eintauchstelle.
+- **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
+  10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
+  räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
+  Werkzeugen. Offen: T5d (unten); die 1,5 × Ziel zeigt der Assistent fürs Räumen (1,48 vor
+  T2), für den ganzen Job ist sie nicht gemessen.
+- **FreeCAD-Versionen:** 1.1.4 auf Manuels Rechner (Arch-Paket, Python 3.14) – alle 71
+  Prüfungen und 98 Szenarien grün mit P-2026-10-02-85, seither je die Prüfung und das Szenario
+  zum geänderten Teil. 1.1.3 und Wochen-Build 26.3.0 dev (2026-09-16) zuletzt voll grün mit
+  0.96.0 (83 Szenarien); auf Manuels Rechner gibt es beide nicht (Einrichten lädt mehrere GB –
+  vorher fragen). Im Wochen-Build stürzte 26.3 einmal beim Schließen des 4-Achs-Fensters ab
+  (`closeDialog`, FreeCAD selbst) – bleibt im Blick.
 
 ## Nächster Schritt (konkret)
 
-**Jetzt – Plan für die Nacht vom 2026-10-02 auf den 03. (Manuel: „damit die Nacht durchgearbeitet
-wird“), der Reihe nach, je Punkt ein Patch mit Verlauf und Snapshot:**
+**Die Nacht vom 2026-10-02 auf den 03. ist abgearbeitet** (Manuel: „arbeite die Nacht durch …
+so viel wie möglich umsetzen und automatisch pushen“): T4 „Schlichten danach“
+(P-2026-10-02-90), die Werkzeugliste nach Katalog (-91, -92), T2 dünne Lagen breit (-93),
+die Vorschau schneller (-94: am Testteil 24 → 17 s Rechnen; der Rest sind die Hüllflächen je
+Block, `hoehenfeld.je_zeile`, 5,6 s in 68 Aufrufen), dieser Snapshot (P-2026-10-03-01). Um
+22:25 hat Linux die Sitzung beendet – ein Prototyp außerhalb des Addons fraß 57 GB; seither
+läuft jeder Rechenlauf mit Speicherdeckel (Regeln unten).
 
-1. ~~**T4 – der Block „Schlichten danach“**~~ – gebaut (P-2026-10-02-90, 0.127.0).
-1b. **Die Werkzeugliste** (Manuel, 2026-10-02 nachts: „kümmer dich auch um die werkzeugliste“; W-007,
-   [spezifikation_werkzeugverwaltung.md](spezifikation_werkzeugverwaltung.md), Abschnitt 13 „Nicht
-   erreicht“): Die Seiten der Hersteller waren beim Bau gesperrt, alle Schnittwerte sind geschätzt,
-   Bestellen und Katalog sind Suchen. Jetzt geht das Netz (WebFetch frei): je Reihe die echten
-   Artikelnummern, Bestell-Links, Katalog-PDFs und – wo die Hersteller sie nennen – Schnittwerte je
-   Werkstoffklasse; was es nicht gibt, bleibt geschätzt und so gekennzeichnet. Jongen 494W und Garant
-   208165 nach Katalog und Datenblatt: P-2026-10-02-91, 0.127.1.
-2. **T5d – Taschen:** Die Ringe halten in den Ecken einer Tasche die Last nicht (bis 4,1 ae), darum gewinnt
-   dort „adaptiv“ und braucht länger (Tasche 40 × 30: 1,49 statt 0,88 min). Manuel, Frage 6: „Ecken kann
-   man ja erstmal gesondert mit Bögen rausfahren … und dann wieder die Kontur der Tasche weiter“. *Fertig,
-   wenn:* eine Variante an der Tasche 40 × 30 die Last hält (`raeumen_bahn.last`) und höchstens 1,1 min
-   braucht. Gelingt das nach zwei Anläufen nicht: lassen, aufschreiben, weiter.
-3. ~~**T2 – die dünne Lage mit dem Einsatz „Planen“**~~ – gebaut ohne den Einsatz: ae = R mit Spanausgleich (P-2026-10-02-93, 0.128.0). Bisher: 1 mm mit ae 1,5 ist verschenkt (obere Stufe am
-   Testteil rund 1 min). Dazu müssen die Zielzeit (`zielzeit.ziel`) und die Last (`last`) denselben Einsatz
-   kennen, sonst stimmt „× Ziel“ nicht. ae höchstens der Radius (die Ringe setzen das voraus).
-4. **Vorschau schneller** (teils, P-2026-10-02-94, 0.128.1: am Testteil 24 → 17 s Rechnen, das Szenario 34 → 29 s; der Rest steckt in den Hüllflächen je Block): Am Testteil rechnet der Assistent rund 20 s. Messen, wo die Zeit bleibt; Ziel 10 s.
-5. **Snapshot kürzen** (nur Doku): Der Projektstatus ist weit über „ein Satz je Punkt“ hinaus.
+**T5d – Taschen, gelassen nach zwei Anläufen** (so stand es im Nachtplan): In der Tasche
+40 × 30 halten die Ringe die Last nicht (0,88 min, bis 4,1 ae – nicht in den Taschenecken,
+sondern an den scharfen Ecken der kleinen inneren Ringe), adaptiv hält sie (1,49 min).
+Anlauf 1, Ringe vom Kern der Tasche nach außen mit geodätischem Abstand (achteckig):
+1,44 min, Last 3,2 ae – hält nicht und ist nicht schneller. Anlauf 2, euklidischer Abstand
+(Ringe wie ein Stadion), ist am Speicher gescheitert (Fehler im Prototyp). Taschen bleiben
+adaptiv – das hält die Last und ist gebaut; der Ansatz steht in der [Spezifikation
+Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufnimmt.
 
-**Fragen an Manuel aus der Nacht** (je mit dem, was gebaut ist – ändern ist ein kleiner Patch):
+**Jetzt – Manuel testet.** Zuerst das Neue dieser Nacht am Testteil
+(`beispiele/testteil_3achs_fraese.FCStd`; Klickwege: Hilfe „So geht’s“):
 
-1. *Schlichten danach, Zeilenabstand am Boden:* gebaut als eigenes Feld, leer der halbe
-   Fräserdurchmesser – nicht das ae des Einsatzes „Schlichten“ (0,3 mm: am Boden über 300 Ringe auf
-   100 mm). So lassen?
-2. *Dein Fräser laut Jongen:* Der Katalog nennt für den 494W-12 (VU494M12B-HI06) beim Eckfräsen in
-   Baustahl vc 210, fz 0,07, ap 22,2, ae 5,4 – dein Standardfräser rechnet mit vc 85, fz 0,1,
-   ae 1,5. Die Kiste hat jetzt die Katalogwerte; dein Standardfräser (und damit alle Prüfungen)
-   bleibt, wie er ist. Sollen deine Standardwerte näher an den Katalog?
-3. *Ceratizit-Bohrer:* Die Nummern WL173060311 und 1170305000 · 0095923748 finde ich nirgends –
-   ein Foto vom Etikett oder ein Link? Bis dahin: Maße nach DIN 338, Werte geschätzt.
+1. **Räumen adaptiv:** Teil öffnen, Oberseite anklicken → Bearbeitung → Schritt 2 alle
+   Flächen anhaken → Schritt 3: beim Block „Räumen“ steht „→ 3 Flächen: … Lagen, adaptiv,
+   etwa 10 min · rund 1,5 × Ziel“. Wo Ringe schneller wären, aber den Fräser überlasten, hängt
+   „– Ringe wären 41 % schneller, überlasten den Fräser aber (bis 4,1 ae)“ dran (so an einer
+   Tasche 40 × 30). Im Prüffenster: nirgends ins Teil, nichts stehen geblieben.
+2. **Schlichten danach:** gleich unter „Räumen“ der Block „Schlichten danach“ mit Fräser,
+   Einsatz „Schlichten“, Zustellung an den Wänden, Zeilenabstand am Boden und den Haken
+   Boden, Wände, Messstopp davor → „→ … Wände (0,3 mm), etwa …“; mit „Aufmaß am Boden“ 0,5
+   beim Räumen und dem Haken „Messstopp davor“: „→ Boden (0,5 mm) und … Wände (0,3 mm), etwa …
+   – davor ein Messstopp“. „Anlegen“ → im Job hinter „Räumen T1“: „Messstopp“, „Boden
+   schlichten T…“, „Wände schlichten T…“; im Prüffenster ist der Boden am Ende 0,00 mm.
+3. **Werkzeugkiste:** Werkzeugverwaltung → „Werkzeuge der Hersteller …“ → Jongen 494W Ø 12
+   (VU494M12B-HI06): Einsätze „Schruppen“ (vc 210, fz 0,07, ap 22,2, ae 5,4 in Baustahl),
+   „Vollnut“ und „Dynamisch“ aus dem Katalog, „Katalog“ öffnet das PDF, „Bestellen“ die Suche;
+   Garant 208165 je Ø mit Datenblatt; Gühring 5596 mit dem Shop als „Bestellen“.
+4. **Dünne Lage:** am Testteil ist die obere Stufe (1 mm) im Prüffenster plan und ohne Rest;
+   im Räumen fährt diese Lage mit ae = Fräserradius (Hilfe „Bearbeitung“, „Dünne Lagen breit“).
+
+**Fragen an Manuel** (gebaut ist je die Empfehlung; ändern ist ein kleiner Patch):
+
+1. *Schlichten danach, Zeilenabstand am Boden:* eigenes Feld, leer der halbe
+   Fräserdurchmesser – nicht das ae des Einsatzes „Schlichten“ (0,3 mm wären am Boden über
+   300 Ringe auf 100 mm). So lassen?
+2. *Dein Fräser laut Jongen:* Der Katalog nennt für den 494W-12 beim Eckfräsen in Baustahl
+   vc 210, fz 0,07, ap 22,2, ae 5,4 – dein Standardfräser rechnet mit vc 85, fz 0,1, ae 1,5.
+   Die Kiste hat die Katalogwerte, dein Standardfräser (und damit alle Prüfungen) bleibt.
+   Sollen deine Standardwerte näher an den Katalog?
+3. *Ceratizit-Bohrer:* Die Nummern WL173060311 und 1170305000 · 0095923748 finde ich
+   nirgends – ein Foto vom Etikett oder ein Link? Bis dahin Maße nach DIN 338, Werte geschätzt.
 4. *Jongen Ø 3:* gibt es in der Reihe 494W nicht – weggelassen. Ein anderer Ø 3 (z. B. Garant)?
-5. *Gühring 5596:* Der Shop zeigt die Größen erst im Browser; Nummern für M2, M2,5 und ab M12 sind
-   ungeprüft (ab M12 heißt die Reihe vielleicht anders, DIN 376).
+5. *Gühring 5596:* Der Shop zeigt die Größen erst im Browser; Nummern für M2, M2,5 und ab M12
+   sind ungeprüft (ab M12 heißt die Reihe vielleicht anders, DIN 376).
+6. *Materialstand, Fragen 3–5 in der Spezifikation Strategien 12.7* (kurze Lücken
+   durchfahren, schmaler Rand, Restmaterial): gebaut ist je die Empfehlung – so lassen?
+7. *Zwei Fräser an einer Wand (T3):* Die Kontur des Ø 12 fährt in die Tasche, wo er ohne
+   Aufmaß hineinpasst, „Restmaterial“ nimmt mit dem Ø 6 den Rest – mit einem Absatz, wo sie
+   sich treffen. So lassen, oder je Kontur ein eigener Fräser (ein zweiter Kontur-Block)?
+8. *Außerdem offen bei dir:* TCPM (W-001), W-005 E1–E7, D-14/D-22/D-24/D-27 (Durchsicht,
+   Abschnitt 6), D-23 (Ausspannlänge).
 
-**Regeln dafür** (Manuel, 2026-10-02: „du hast zwei stunden damit verbracht sachen zu testen für was?“):
-je Änderung nur die eine Prüfdatei und das eine Szenario zum geänderten Teil – kein Lauf über alles, auch
-nicht im Hintergrund. Lokal committen; nicht pushen (wurde in dieser Sitzung abgelehnt – Manuel pusht
-morgens). Braucht ein Punkt Manuels Entscheidung: die Frage mit Auswahl hier aufschreiben und mit dem
-nächsten Punkt weitermachen. FreeCADs Adaptiv-Kern rechnet bei gleicher Eingabe nicht immer dieselbe Bahn
-(±1,5 % Zeit) – Vergleiche in Prüfungen mit Spielraum. Am Ende ein kurzer Bericht für Manuel: was er
-klicken soll und was er dann sehen muss.
+**Danach, der Reihe nach:**
 
-T5 (Adaptiv als Variante, die schnellste, die die Last hält) ist gebaut: P-2026-10-02-89, 0.126.0.
+1. Was Manuels Test ergibt.
+2. Die Vorschau weiter beschleunigen: die Hüllflächen einmal je Form statt je Block
+   (`hoehenfeld.je_zeile`); Ziel 10 s am Testteil.
+3. Planfräsen Zelle für Zelle mit Konturgang um Inseln (Versuch: Zapfen 5,7 → 3,8 min,
+   Spezifikation Strategien, Abschnitt 11; mit dem Ø 50 auf der Platte heute 2,17 × Ziel).
+4. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
+   Bereiche; Spannhöhe.
+5. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
+6. W-005 Programm für jede Steuerung (nach E1–E7); W-002 F2; W-003 V2b, V6, V7.
 
-**Geplant nach Manuels erstem Test (2026-09-26) – Reihenfolge A → B → C, Stufe A in Arbeit:**
-
-*Stufe A – Werkzeugverwaltung verfeinern*
-1. **Werkzeugname** neben der Nummer (Option A): frei, wie an der
-   Maschine (Leerzeichen bleiben). Leer gilt ein Name aus den Angaben,
-   grau gezeigt: „Schaftfräser T1 VHM D12 L30“ (Zahlen mit Punkt). Name in
-   Liste, Suche, als Werkzeugname in CAM, im Namen des Werkzeug-Controllers
-   („T1 Fräser VHM 12 – Schruppen“); „Aus CAM übernehmen“ füllt ihn;
-   doppelte Namen: Hinweis, erlaubt. NC-Aufruf `T="…"` nur mit eigenem
-   Postprozessor (FreeCADs rufen per Nummer). – *Fertig, 0.12.0
-   (P-2026-09-26-33).*
-2. **Neues Werkzeug mit Beispielwerten:** grau gezeigt, aber gültig
-   (Manuel: wer Ø 12 stehen lässt, will Ø 12), Durchmesser 12; das Bild
-   zeigt gleich die Form, beim Durchblättern immer. – *Fertig
-   (P-2026-09-26-37), mit grauen Beispielen für vc und Spandicke im
-   Planer.*
-3. **Planer:** Warngrenze ae 10 % von D bleibt Vorgabe (fest, egal wie
-   viele Schneiden, Manuel), am Werkzeug änderbar; Zeilen darüber rot
-   „mehr als deine Warngrenze“, aber wählbar; % je Zeile sichtbar. –
-   *Fertig (P-2026-09-26-40).*
-4. **Eingriffsbild:** Überschriften „ae – seitliche Zustellung (von
-   oben)“ / „ap – Zustelltiefe (von der Seite)“, Text je Größe eine Zeile.
-   – *Fertig (P-2026-09-26-41).*
-5. **ae und ap wahlweise in mm oder % von D** (ein Umschalter über der
-   Tabelle, intern mm, Wahl gemerkt). – *Fertig (P-2026-09-26-42).*
-6. **Bohrer: Spitzenwinkel** (fehlt, Manuel) – Feld, Bild, an CAM als
-   Spitzenwinkel des Bohrers; die Schneidenzahl bleibt (f je Umdrehung).
-   – *Fertig (P-2026-09-26-43). Stufe A damit komplett.*
-
-*Zwischendurch – zum Ausprobieren (nach A2, vor A3)*
-7. **Beispielmaschine laden:** Die Meldung „Hier gibt es noch keine
-   Baugruppe“ in „Maschine bearbeiten“ und „Maschine verfahren“ bekommt
-   den Knopf „Beispielmaschine laden“ (Manuel: wer das Addon ausprobiert,
-   soll nicht erst eine Maschine bauen müssen). Er öffnet ein neues
-   Dokument mit einer fertig eingerichteten Maschine und gleich danach den
-   Dialog. Grundlage: der Baukasten aus `tests/beispielmaschinen.py`. –
-   *Fertig (P-2026-09-26-38): Dreiachs-Fräsmaschine, Baukasten jetzt in
-   `camaddon/beispielmaschine.py`.*
-7b. **Beispielmaschinen zur Auswahl** (Manuel nach dem ersten Ausprobieren,
-   2026-09-26): „Beispielmaschine laden“ bietet die üblichen Sorten an –
-   Schrägbett-Drehmaschine mit Y-Achse (CLX-ähnlich; Z = Hauptspindel;
-   Revolver mit zwei angetriebenen Fräswerkzeugen: axial, bearbeitet in
-   Z-Richtung, und radial, 90° dazu), 3-Achs-Fräse, 5-Achs Tisch/Tisch
-   (A/C, Schwenkbrücke mit Rundtisch), 5-Achs Kopf/Kopf (A/B), 5-Achs
-   Kopf/Tisch (B am Kopf, C am Tisch). Nach Stufe B. – *Fertig
-   (P-2026-09-26-62): „Beispielmaschine laden …“ bietet die fünf Bauarten
-   mit je einem Satz dazu an; die Auswahl merkt sich die zuletzt geladene.*
-7c. **Update auf Knopfdruck** (Manuel: nicht jedes Addon soll beim Start
-   suchen): Knopf „Nach Updates suchen“ in der Werkzeugleiste; die Suche
-   beim Start ist ab Werk aus, in den Einstellungen einschaltbar. –
-   *Fertig (P-2026-09-26-50).*
-
-*Stufe B – Einheiten und Zahlenformat*
-8. Beim ersten Start (mit der Sprache) und in den Einstellungen des
-   Addons: **Maßsystem** mm oder inch und **Dezimaltrennzeichen** , oder
-   . – mit Beispielzahlen, vorbelegt aus FreeCADs Einstellungen
-   (Einheitensystem, Zahlenformat). – *Fertig (Dezimalzeichen
-   P-2026-09-26-45, Maßsystem P-2026-09-26-48).*
-9. Überall in der gewählten Einheit anzeigen und eingeben (mm/inch,
-   m/min/SFM, mm/min/ipm, cm³/min/in³/min), Umschalter in der
-   Werkzeugverwaltung; intern metrisch – verlustfrei, 1 in = 25,4 mm, 1/2"
-   bleibt 0,5 in. Eingabe nimmt Punkt und Komma (*fertig,
-   P-2026-09-26-45*). – *Fertig (P-2026-09-26-48); Beschleunigung, Ruck
-   und Werkstoffdaten bleiben metrisch.*
-
-*Stufe C – Werkzeugarten wie in InventorCAM (eigene Spezifikation zuerst)*
-10. Arten: Schaft-, Kugel-, Torus-, Konik-, Schwalbenschwanz-,
-   Lollipop-, Fasen-, Radien-, Plan-, Nuten-, Form-, Gewindefräser;
-   Bohren, Zentrierbohrer, NC-Anbohrer, Gewinde rechts/links, konische
-   und zylindrische Senkung, Reibahle, Bohrstange, Ausbohren/Spindeln;
-   Universal-Drehen, Einstechen, Gewinde (Drehen); Antasten. Drehwerkzeuge
-   gleich mit (Schnittwerte für später – FreeCAD 1.1.3 dreht nicht). Je Art: Maße,
-   Bild, Einsätze, was CAM davon kennt. Achtung: Das heutige
-   „Radiusfräser“ ist ein Kugelfräser – umbenennen; „Radienfräser“ ist eine
-   andere Art. – *Spezifikation: `docs/spezifikation_werkzeugarten.md`
-   (P-2026-09-26-53), sechs Stufen, Abschnitt 8. Auf Manuels Wunsch vor
-   Punkt 7b („ne, mach mal Werkzeugarten weiter“); 7b liegt fast fertig
-   im Stash „WIP Beispielmaschinen zur Auswahl“.* – *Fertig
-   (P-2026-09-26-54 bis -60): Kugelfräser statt „Radiusfräser“, alle 26
-   Arten mit ihren Feldern, Bilder (auch in der Auswahl), Einsätze und
-   Rechnen je Art, Übergabe an und Übernahme aus CAM für alle Arten (CAM
-   baut denselben Körper wie das Bild), die neuen Einsätze auf die
-   passenden Operationen im Job.*
-
-*Schräge Achse (W-001 Stufe 3b, Manuel 2026-09-26)*
-11. **Schrägbett mit schräger Y-Achse:** Fährt der Y-Schlitten schräg zum
-   X-Schlitten, rechnet die Steuerung ein rechtwinkliges Y auf beide um
-   (Siemens TRAANG) – für Y fahren beide. Eintrag „Schräge Achse“ in
-   „Maschine bearbeiten“ (Winkel eintragen, die Baugruppe folgt),
-   Erkennung, „Maschine verfahren“ wie im Programm, Übergabe an CAM,
-   Höchstvorschub; danach eine Vorlage mit Eingabemaske. – *Spezifikation:
-   Abschnitt 7c und Stufe 3b in
-   [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md)
-   (P-2026-09-26-65), sieben Schritte. Schritt 1 fertig (P-2026-09-26-66:
-   Bereich „Transformationen“ mit „+ Schräge Achse“, Winkel aus der
-   Baugruppe, Bild, Beispiel), Schritt 2 fertig (-67: Winkel eintragen, die
-   Führung dreht sich mit), Schritt 3 fertig (-68: Hinweis „Y1 steht 30,0°
-   schräg zu X1“, ein Klick legt an), Schritt 4 fertig (-69: „Maschine
-   verfahren“ wie im Programm, am Anschlag eine rote Zeile), Schritt 5
-   fertig (-71: an CAM rechtwinklig, Grenzen und Eilgang umgerechnet),
-   Schritt 6 fertig (-72: Höchstvorschub beim Planen), Schritt 7 fertig
-   (-75: Befehl „Neue Maschine …“, Maße der Drehmaschine). Stufe 3b damit
-   komplett.*
-
-*4-Achs-Bearbeitung (W-003, Manuel 2026-09-26)*
-12. **Teil in eine runde Stange, rundum schruppen und schlichten:**
-   Stirnfläche anklicken → das Teil sitzt mittig vorne in der Stange (z. B.
-   Ø 80); Flächen anklicken („alle Mantelflächen“, ein außermittiger
-   Zylinder); aus Fräser und Stange entstehen Schrupp- und Schlichtbahn –
-   egal ob A, B oder C, auch auf einer Drehmaschine mit C und Y. Assistent in
-   vier Schritten, eigener Rechenkern (1.1.3 und Wochen-Build), Ausgabe als
-   reine Achskoordinaten, alles einstellbar mit Vorschlägen. –
-   *Spezifikation: [spezifikation_vierachs.md](spezifikation_vierachs.md)
-   (P-2026-09-26-78), Stufen in Abschnitt 13. V1 „Teil in die Stange“, V2a,
-   V2c und V3 „Rundum schruppen“ fertig (P-2026-09-26-79, P-2026-09-27-37,
-   -38, -45 bis -54); nach Manuels Test V2b „Drehteile“ und V4 „Flächen
-   wählen“.*
-
-*Werkzeugbahn auf der Maschine (W-001 Stufe 4a, Manuel 2026-09-26)*
-13. **Reicht der Verfahrweg?** Job wählen → „Auf der Maschine prüfen“ →
-   „Alle Achsen bleiben in ihren Grenzen.“ oder je Überschreitung ein Satz
-   („X1 fährt in *Tasche* bis 312,00 mm, die Grenze ist 250,00 mm“); ein
-   Klick fährt die Maschine dorthin. Manuels Entscheidungen: die Bahn im
-   Job, Nullpunkt am LCS der Werkstückaufnahme plus Verschiebung je Job,
-   eigenes Feld „Länge ab Spindelnase“, 4a zuerst. – *Spezifikation:
-   [spezifikation_simulation.md](spezifikation_simulation.md), Abschnitte
-   5, 6 und 10 (P-2026-09-26-83), vier Schritte: Rechenkern, Fenster,
-   Länge ab Spindelnase, Version. Schritt 1 fertig (P-2026-09-26-84:
-   `reichweite.py`, an allen Beispielmaschinen nachgemessen), Schritt 2
-   fertig (-85: Befehl und Fenster, Klick fährt hin), Schritt 3 fertig
-   (-86: „Länge ab Spindelnase“ in der Werkzeugverwaltung), Version 0.22.0
-   (-87). Stufe 4a damit komplett. **4b „Abfahren“** – die Maschine fährt
-   die Bahn sichtbar ab, mit Werkzeug, Rohteil und Bahn – spezifiziert
-   (P-2026-09-26-88, Entscheidungen von Claude zur Besprechung); Schritt 1
-   fertig (-89: `abfahren.py`, Zeiten gegen Handrechnung), Schritt 2 fertig
-   (-90: Abspieler im Fenster, Körper in der 3D-Ansicht der Maschine),
-   Version 0.23.0 (-91). Stufe 4b damit komplett. **4c „Kollision“** –
-   Manuels Entscheidungen (P-2026-09-26-93): eigene Halter-Verwaltung
-   ([spezifikation_halter.md](spezifikation_halter.md): Kontur aus
-   Zylindern und Kegeln, eigenes Fenster, Länge ab Spindelnase gemessen,
-   sonst geschätzt), geprüft gegen fertiges Teil und Spannmittel, gemeldet
-   Berührung und Warnabstand. Halter fertig (P-2026-09-26-94 bis -96:
-   Datenmodell, Fenster „Halter“, Länge und Anzeige), 4c fertig (-97:
-   `kollision.py`, -98: Bereich „Kollision“ im Fenster), Version 0.24.0
-   (-99). Stufe 4c damit komplett; 4d (Bearbeitungszeit mit Beschleunigung)
-   bleibt Entwurf.*
-
-**Manuel probiert aus** – alles ist in 1.1.3 und im Wochen-Build
-automatisch geprüft, aber gesehen hat es nur Claude als Screenshot. Vorher
-das Repository öffentlich stellen (T-005), dann installiert die Zeile aus
-dem README; oder wie bisher mit GitHub Desktop aktualisieren.
-
-In dieser Reihenfolge (Klickwege in den Verlaufseinträgen):
-
-1. **Werkzeugverwaltung** (Werkzeugleiste „CAM-Addon“): Hilfe (?) →
-   „Schritt für Schritt: vom Katalog in den Job“ durchgehen – Werkstoff,
-   Werkzeug (oder „Aus CAM übernehmen“), Einsätze, **„Schruppwerte
-   planen…“** (P-2026-09-25-60, -73; Vergleich mit der Vollnut
-   P-2026-09-26-04), „Strategien vergleichen“ mit allen Einsätzen (-05),
-   Suche und Werkzeugbild (P-2026-09-25-71, P-2026-09-26-01), Kopieren
-   und anderen Durchmesser eintragen (-06), Eintauchwinkel (-08), **Zeile
-   kopieren** für Varianten (-12).
-2. **Werkzeugarten** (P-2026-09-26-53 bis -60): In der Werkzeugverwaltung
-   „Neu“ → „Art“ aufklappen: 26 Arten mit kleinen Bildern, gegliedert nach
-   Fräsen, Bohren, Drehen, Antasten. Je Art andere Felder und ein anderes
-   Bild (Gewindebohrer: Steigung statt Schneidenzahl), „+ Einsatz“ bietet
-   nur, was passt. „Speichern und an CAM übergeben“ nennt, was CAM nur
-   genähert kennt; in CAM unter Werkzeugbibliothek → „CAM-Addon“ steht jede
-   Art mit ihrer Form. „Aus CAM übernehmen“ → „Default“ holt alle 13
-   Werkzeuge. Im Job: Planfräser mit „Planen“ in eine Fläche →
-   „Schnittwerte in den Job“ setzt Schrittweite und Zustelltiefe.
-3. **CAM-Job:** „Schnittwerte in den Job“ → „Werkzeug-Controller
-   hinzufügen“ (P-2026-09-25-65) → Operation **Adaptiv** auf eine Bohrung → noch einmal
-   „Schnittwerte in den Job“ → Schrittweite, Zustelltiefe und Helixwinkel
-   (P-2026-09-25-61, P-2026-09-26-08), dazu „Am Rohteil eintragen“
-   (P-2026-09-25-72). Das ist der Weg „Loch auffräsen: einmal
-   helikal eintauchen, dann ebenenweise mit voller Schneide“. Die Spalte
-   zeigt die **Ebenen**; bei FreeCADs Rohteil (1 mm über dem Modell) meist
-   „2 Ebenen (25 + 1 mm)“ mit rotem Hinweis, wie die dünne entfällt
-   (P-2026-09-26-16). Basisgeometrie des Adaptivs: beim Sackloch der
-   Boden, bei der Durchgangsbohrung die untere Kreiskante (Hilfe,
-   P-2026-09-26-21); fehlt sie, sagt die Spalte „keine Bahn“ (-22). In der
-   Hilfe dazu „Eine Außenkontur schruppen“ (P-2026-09-26-13).
-4. **Maschine:** „Maschine bearbeiten“ (W-001 Stufen 1–2) und **„Maschine
-   verfahren“** (Stufe 3, P-2026-09-25-67, Revolverplätze -69): Laufen die Achsen richtig
-   herum, stimmt der Nullpunkt? In einem leeren FreeCAD bietet
-   „Beispielmaschine laden …“ fünf fertige Maschinen zum Ausprobieren
-   (P-2026-09-26-62) – etwa die Drehmaschine mit Revolver: T und C1
-   verfahren, P1/P2 angetrieben von S3.
-5. **Schräge Achse** (P-2026-09-26-65 bis -72): Beispiel-Drehmaschine →
-   „Maschine bearbeiten“ → unter „Transformationen“ „+ Schräge Achse“ →
-   Winkel 30 eintragen: In der 3D-Ansicht bleibt alles stehen, die
-   Beispielzeile zeigt „Y +10,0 mm → Y1 +11,5 mm, X1 −5,8 mm“; mit der Maus
-   auf dem Eintrag verweilen: X- und Y-Schlitten fahren zusammen hin und
-   her. OK → „Maschine verfahren“ steht auf „wie im Programm“: Y auf 10 →
-   beide Schlitten fahren; X auf 140, dann Y auf −40 → rote Zeile „… X1
-   steht an seiner Grenze 150,00 mm“. Im Wochen-Build „An CAM übergeben“:
-   der Bericht nennt die schräge Achse. Versteht man den Bereich ohne
-   Erklärung? Dann **„Neue Maschine …“** (P-2026-09-26-75): Drehmaschine,
-   Bettneigung 30°, Y schräg um 30°, 8 Plätze → „Maschine bauen“ → die
-   Maschine steht im neuen Dokument, „Maschine bearbeiten“ zeigt die
-   schräge Achse.
-6. **4-Achs-Bearbeitung, Teil in die Stange** (P-2026-09-26-79): ein Teil mit
-   ebener Stirnfläche öffnen (etwa eine Welle), die Stirnfläche anklicken →
-   Werkzeugleiste „CAM-Addon“ → **4-Achs-Bearbeitung** → das Teil fährt in
-   eine durchscheinende Stange und dreht sich einmal; Ø 80 eintragen →
-   „Passt – rundum mindestens … mm“; „ganzes Teil möglichst mittig“ und
-   Rundachse A/B/C umschalten (die Stange liegt in X, Y oder Z); „+90°“;
-   „Anlegen“ → Job „… – 4 Achsen“ mit Zylinder-Rohteil, ein Strg+Z nimmt
-   alles zurück. Versteht man das Fenster ohne Erklärung?
-7. **Auf der Maschine prüfen** (P-2026-09-26-84 bis -86): „Neue Maschine …“
-   → 3-Achs-Fräse bauen; ein Teil mit CAM-Job öffnen (etwa eine Tasche),
-   den Job im Baum wählen → Werkzeugleiste „CAM-Addon“ → **Auf der
-   Maschine prüfen** → das Fenster öffnet sich bei der Maschine, grün „Alle
-   Achsen bleiben in ihren Grenzen.“; unter „Nullpunkt des Jobs“ bei X 300
-   eintragen → rot eine Überschreitung von X1; draufklicken → der Tisch
-   fährt an den Anschlag; Schließen → alles zurück, das Teil ist wieder
-   vorn. In der Werkzeugverwaltung beim Werkzeug „Länge ab Spindelnase“
-   eintragen (mit Halter) → der Hinweis zur Länge verschwindet, Z rechnet
-   damit. Versteht man das Fenster ohne Erklärung, passt der Vorschlag für
-   den Nullpunkt? **Abfahren** (P-2026-09-26-89, -90): im selben Fenster
-   unter „Abfahren“ → in der Maschine liegen Rohteil (durchscheinend) und
-   Teil auf dem Tisch, darauf die Bahn (Vorschub blau, Eilgang rot), das
-   Werkzeug steckt in der Spindel; die **Lupe** neben dem Tempo holt
-   Werkstück und Werkzeug heran (P-2026-09-26-92);
-   **Abspielen** → die Maschine fährt, die Werkzeugspitze läuft die blaue
-   Linie entlang, Satz, Zeit und Achswerte laufen mit; Tempo ×20; den
-   Schieber ziehen; „einen Punkt zurück/weiter“; oben eine Operation wählen
-   → Sprung an ihren Anfang. Mit X 300 auf die Überschreitung klicken → der
-   Abspieler steht dort, X1 rot „am Anschlag“. Schließen → Werkzeug, Rohteil
-   und Bahn sind weg, die Maschine steht wie vorher. Passen Zeit und Tempo,
-   sieht man genug? **Halter** (P-2026-09-26-94 bis -96): Werkzeugverwaltung →
-   ein Werkzeug → „Halter …“ → „Neu“ → „Spannzangenfutter ER32 · SK40“ → Liste,
-   Kontur-Tabelle und Bild im Schnitt → OK → beim Werkzeug steht der Halter,
-   die leere Länge ab Spindelnase zeigt grau „leer: … mit Halter“; im Abfahren
-   steckt das Werkzeug in diesem Halter. **Kollision** (-97, -98): Die
-   3-Achs-Fräse hat jetzt zwei Spanneisen. Ein kurzes Werkzeug (Gesamtlänge
-   25 mm, ohne Halter) und eine Bahn dicht neben einem Spanneisen in die Tiefe
-   → „Kollision prüfen“ → rot „Es stößt etwas an:“, „In „…“ berühren sich
-   „Spindel“ und „Spanneisen_rechts“ …“ → Klick → die Maschine steht dort,
-   eine rote Kugel zeigt die Stelle. Warnabstand 10 → gelbe Sätze dazu.
-   Versteht man die Sätze, stimmen die Stellen?
-8. **Besprechen:** Entscheidungen der Werkzeugverwaltung
-   ([Spezifikation](spezifikation_werkzeugverwaltung.md), Abschnitt 11,
-   Nr. 13–23 sind von dieser Nacht); zu Stufe 4b und 4c Claudes
-   Einzelheiten ([Spezifikation](spezifikation_simulation.md), Abschnitt 5)
-   und zu den Haltern ([Spezifikation](spezifikation_halter.md),
-   Abschnitt 9, Nr. 4–7).
-
-Danach: Manuel testet 4a–4c und die Halter (Punkt 7 oben); offen sind W-001 4d (Bearbeitungszeit mit Beschleunigung) und W-003 V2 (4-Achs: Achse von der Maschine).
-
-Neu (2026-09-27): die Durchsicht **W-004** ([durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md)). Die kleinen Punkte D-01 bis D-08 sind erledigt (P-2026-09-27-09 bis -16), dazu auf Manuels Hinweis der Revolver der Beispiel-Drehmaschine mit Stationen und die Beispielmaschinen ohne Gelenkmarkierungen (P-2026-09-27-07, -08). In der empfohlenen Reihenfolge weiter (Manuel: „Besser weiter“): D-21 Job in allen offenen Dokumenten (-18), D-20 Maschine merken und selbst öffnen, Teil Prüffenster (-19), D-10 drei Urteile oben im Prüffenster (-20, -22), D-11 „T1 öffnen …“ an den Hinweisen (-21), D-25 Betriebsarten vorschlagen (-23), D-26 Maße der 3-Achs-Fräse (-24), D-30 unbenutzte fremde Controller entfernen (-26), D-12 „+ Einsatz“ beim neuen Werkzeug (-27), D-13 Menü „CAM-Addon“ (-28), D-29 „ap … übernehmen“ (-29), D-28 veraltete Schnittwerte im Prüffenster mit „übernehmen“ (-31; dafür merkt sich jeder Controller Einsatz und Werkstoff, -30), D-09 ein Werkzeug je Job statt „… L001“ (-32 Befund, -34). Neue Arbeitsregel: Neben `scripts/alle_tests.sh` läuft kein anderes FreeCAD (-33). Offen ohne Entscheidung: D-23 (wartet auf Manuels Antwort zur Ausspannlänge), Rest von D-20 und D-26; zur Entscheidung (Abschnitt 6 dort): D-14, D-22, D-24, D-27 und Frage 6 zu den Werkzeugnamen (D-09).
+**Regeln dafür** (Manuel, 2026-10-02: „du hast zwei stunden damit verbracht sachen zu testen
+für was?“): je Änderung nur die eine Prüfdatei und das eine Szenario zum geänderten Teil –
+kein Lauf über alles, auch nicht im Hintergrund. Pushen, sobald sie grün sind (Manuel,
+2026-10-02 nachts: „so viel wie möglich umsetzen und automatisch pushen“), mit höherer Version
+in `package.xml`, wenn er es ausprobieren soll; danach bei GitHub nachsehen. Braucht ein Punkt
+seine Entscheidung: die Frage mit Auswahl oben aufschreiben und mit dem nächsten weitermachen.
+FreeCADs Adaptiv-Kern rechnet bei gleicher Eingabe nicht immer dieselbe Bahn (±1,5 % Zeit) –
+Vergleiche in Prüfungen mit Spielraum. Jeder Rechenlauf und jedes Szenario mit Speicherdeckel:
+`systemd-run --user --scope -q -p MemoryMax=16G -p MemorySwapMax=0 …` (ein Lauf am Testteil
+braucht 222 MB; wächst einer aus dem Ruder, stirbt nur er, nicht die Sitzung). Am Ende jedes
+Laufs ein kurzer Bericht: was Manuel klicken soll und was er dann sehen muss.
 
 ## Wunschliste
 
-Ein Satz je Wunsch, W-ID fortlaufend.
+Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstatus.
 
-- **W-001 Maschine aus Baugruppe** – die Maschine als grobes 3D-Modell in
-  einer Assembly aufbauen, Slider- und Revolute-Gelenke als Achsen benennen
-  und mit Kenndaten versehen (Eilgang, Drehzahl, Schwenkbereich …), daraus
-  die CAM-Maschinendefinition von FreeCAD erzeugen; später Grundlage für
-  Simulation und Kollisionsprüfung. Spezifikation im Entwurf.
-- **W-002 Werkzeugverwaltung** – Werkstoffliste mit deutschen Bezeichnungen,
-  Zusammensetzung und Härte; Werkzeuge mit Schnittwerten (ae, ap, vc, fz) je
-  Werkstoff und Einsatz; Strategien vergleichen (Zeitspanvolumen,
-  Verschleiß). Spezifikation im Entwurf:
-  [spezifikation_werkzeugverwaltung.md](spezifikation_werkzeugverwaltung.md).
-- **W-003 4-Achs-Bearbeitung am runden Rohteil** – ein Teil mit einer
-  Stirnfläche vorne mittig in eine runde Stange legen, Flächen anklicken und
-  daraus Schrupp- und Schlichtbahnen für eine Rundachse (A, B oder C, auch
-  Drehmaschine mit C und Y) erzeugen lassen. Spezifikation:
-  [spezifikation_vierachs.md](spezifikation_vierachs.md).
-- **W-005 Programm für jede Steuerung** – die Steuerung einmal an der
-  Maschine wählen (LinuxCNC, Siemens, Fanuc, Haas …), die Befehle sind
-  vorbelegt und änderbar; ein Postprozessor des Addons schreibt damit das
-  Programm, auch an der Drehmaschine: X als Durchmesser, angetriebenes
-  Werkzeug, C-Achse ein und aus, Vorschub (Manuel 2026-09-30: „A sollte unsere
-  option sein“). Plan mit Entscheidungen E1–E5:
-  [spezifikation_steuerung.md](spezifikation_steuerung.md).
-- **W-007 Werkzeugkiste vorgefüllt** – Ceratizit-Bohrer Ø 2–19, Gühring-Gewindebohrer bis
-  M30, Jongen UNI-Mill Ø 3–20, Garant-Entgrater Ø 6–16, ein Messerkopf und je Werkzeugart ein
-  Beispiel – mit Artikelnummer, Bestell-Link, Bild, Katalog (PDF) und Schnittwerten je
-  Werkstoff, fehlende geschätzt; Drehrichtung am Werkzeug; ISO-Wendeplatten fürs Drehen
-  (Manuel, 2026-10-02): [spezifikation_werkzeugverwaltung.md](spezifikation_werkzeugverwaltung.md),
-  Abschnitte 13 und 14.
-- **W-008 Home-Punkt und Werkzeugwechselpunkt** an der Maschine, das Abfahren beginnt und
-  endet dort (Manuel, 2026-10-02): [spezifikation_simulation.md](spezifikation_simulation.md),
-  Abschnitt 13.
-- **W-009 Assistent „Bearbeitung“ in Schritten** – Aufspannung (Fläche unten, X-Richtung,
-  Rohteil, Nullpunkt), Was soll weg, Einstellungen (Manuel, 2026-10-02: „so kannst du das
-  keinem vorsetzen“): [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitte
-  12.5 und 12.6.
-- **W-010 Schlichten nach dem Räumen mit Messstopp** – in derselben Maske, der Halt mit den
-  Befehlen der Maschine (Siemens: F_HOME, M0) (Manuel, 2026-10-02):
-  [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 12.4.
-- **W-011 Maschinen-Speicher und Maschinenzuweisung** – mehrere eigene Maschinen (3-, 4-,
-  5-Achs, Drehmaschine mit Revolver) in einer Liste; beim Teil zuerst die Frage, auf welcher
-  Maschine, danach richtet sich alles (Drehmaschine: Stange statt Quader) (Manuel,
-  2026-10-02): entschieden – Option A, die Maschine ist die erste Frage beim Teil; dazu Rohteil
-  aus einem konstruierten Teil (Manuel: „Rohteil kann auch ein konstruiertes Teil sein“);
-  Schritte S1–S4 in
+- **W-001 Maschine aus Baugruppe** – die Maschine als grobes 3D-Modell in einer Assembly
+  aufbauen, Gelenke als Achsen mit Kenndaten, daraus FreeCADs Maschinendefinition; Grundlage
+  für Prüfen, Abfahren und Kollision:
   [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md),
-  Abschnitt 12 (P-2026-10-02-57).
-- **W-012 Materialstand** – vor jeder Schrupp-Operation schauen, was nach den Operationen davor
-  noch an Material steht, und nur das fräsen (Manuels Klotz: erst der Zapfen, dann beginnt die
-  Nut bei z −10); die geschlossene Nut taucht helikal an einer wählbaren Stelle ein, mit
-  Vorschlag (Manuel, 2026-10-02): [spezifikation_strategien.md](spezifikation_strategien.md),
-  Abschnitte 12.7 und 12.8 – entschieden: Frage 1 (a) derselbe Job, Frage 2 (a) Liste und
-  Anklicken; Schritte M1–M4 und E1 (alle gebaut, M4 mit Planfräsen, Kontur und 3D-Schruppen).
-- **W-013 Testteil für die 3-Achs-Fräse** – Manuels Teil mit Platte, Insel, Stufe, Tasche und Kugelmulde
-  (`beispiele/testteil_3achs_fraese.FCStd`) bearbeitet der Assistent sinnvoll und in mehreren
-  Arbeitsschritten (Manuel, 2026-10-02):
+  [spezifikation_simulation.md](spezifikation_simulation.md).
+- **W-002 Werkzeugverwaltung** – Werkstoffe, Werkzeuge mit Schnittwerten je Werkstoff und
+  Einsatz, Strategien vergleichen, Halter, Bestückung:
+  [spezifikation_werkzeugverwaltung.md](spezifikation_werkzeugverwaltung.md),
+  [spezifikation_werkzeugarten.md](spezifikation_werkzeugarten.md),
+  [spezifikation_halter.md](spezifikation_halter.md).
+- **W-003 4-Achs-Bearbeitung am runden Rohteil** – ein Teil vorne mittig in eine Stange
+  legen, Flächen anklicken, Schrupp- und Schlichtbahnen für A, B oder C, auch auf der
+  Drehmaschine mit C und Y: [spezifikation_vierachs.md](spezifikation_vierachs.md).
+- **W-004 Bedienung vereinfachen und automatisieren** – Durchsicht aller Fenster und Abläufe
+  (Manuel, 2026-09-27): [durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md).
+- **W-005 Programm für jede Steuerung** – die Steuerung einmal an der Maschine wählen, ein
+  Postprozessor des Addons schreibt das Programm, auch an der Drehmaschine (Manuel,
+  2026-09-30: „A sollte unsere option sein“): [spezifikation_steuerung.md](spezifikation_steuerung.md).
+- **W-006 Frässtrategien** – bessere Strategien als FreeCADs, einfach und gut erklärt; die
+  Zeit entscheidet, nie in voller Breite, die Last im Rahmen (Manuel, 2026-09-30 und
+  2026-10-01): [spezifikation_strategien.md](spezifikation_strategien.md).
+- **W-007 Werkzeugkiste vorgefüllt** – Manuels Werkzeuge mit Artikelnummer, Bestell-Link,
+  Katalog und Schnittwerten je Werkstoff, fehlende geschätzt (Manuel, 2026-10-02):
+  [spezifikation_werkzeugverwaltung.md](spezifikation_werkzeugverwaltung.md), Abschnitte 13
+  und 14.
+- **W-008 Home- und Werkzeugwechselpunkt** an der Maschine (Manuel, 2026-10-02):
+  [spezifikation_simulation.md](spezifikation_simulation.md), Abschnitt 13.
+- **W-009 Assistent „Bearbeitung“ in Schritten** – Aufspannung, Was soll weg, Einstellungen
+  (Manuel, 2026-10-02): [spezifikation_strategien.md](spezifikation_strategien.md), 12.5
+  und 12.6.
+- **W-010 Schlichten nach dem Räumen mit Messstopp** (Manuel, 2026-10-02):
+  [spezifikation_strategien.md](spezifikation_strategien.md), 12.4 – gebaut als Block
+  „Schlichten danach“.
+- **W-011 Maschinen-Speicher und Maschinenzuweisung** – die Maschine ist die erste Frage beim
+  Teil, Rohteil auch aus einem konstruierten Teil (Manuel, 2026-10-02):
+  [spezifikation_maschine_aus_baugruppe.md](spezifikation_maschine_aus_baugruppe.md),
+  Abschnitt 12.
+- **W-012 Materialstand** – jede Schrupp-Operation beginnt, wo noch Material steht; die
+  geschlossene Nut taucht an einer wählbaren Stelle ein (Manuel, 2026-10-02):
+  [spezifikation_strategien.md](spezifikation_strategien.md), 12.7 und 12.8.
+- **W-013 Testteil für die 3-Achs-Fräse** – Manuels Teil mit Platte, Insel, Stufe, Tasche und
+  Kugelmulde (`beispiele/testteil_3achs_fraese.FCStd`) bearbeitet der Assistent sinnvoll und
+  in mehreren Arbeitsschritten (Manuel, 2026-10-02):
   [spezifikation_strategien.md](spezifikation_strategien.md), Abschnitt 13.
-- **W-004 Bedienung vereinfachen und automatisieren** – Durchsicht aller
-  Fenster und Abläufe (2026-09-27, Manuels Auftrag): acht kleine Stellen
-  (D-01 bis D-08), einfacher bedienen (D-10 bis D-14), automatisieren (D-20
-  bis D-30) – etwa die eigene Maschine merken, Betriebsarten, Halter und
-  Richtwerte vorschlagen, CAM und Job von selbst aktuell halten. Befunde,
-  Reihenfolge und Fragen: [durchsicht_bedienbarkeit.md](durchsicht_bedienbarkeit.md).
-  D-01 bis D-08 erledigt (P-2026-09-27-09 bis -16); D-10, D-11, D-20
-  (Prüffenster), D-21, D-25, D-26 (3-Achs-Fräse) erledigt (P-2026-09-27-18
-  bis -24); D-09, D-12, D-13, D-28 bis D-30 erledigt (P-2026-09-27-26 bis
-  -34).
 
 ## Offene Bugs
 
-An Manuels Testteil gefunden (Spezifikation Strategien, Abschnitt 13.4, P-2026-10-02-78); B-006 (die
-Tasche räumt außerhalb ihrer Wände) und B-007 (eine Tasche, in die der Fräser nicht passt, fällt still aus)
-sind behoben (P-2026-10-02-79, -81, -82). B-010 (neun Szenarien schlugen in FreeCAD 1.1.4 fehl) ist
-erledigt: vier stürzten ab (B-011, -83), eins zeigte einen Fehler der Kontur (B-012, -84), drei waren
-veraltet, eins lief nur nicht aus einer Kopie ohne Git (-85). B-008 (12 mm „Rest“ im Prüffenster: zwei
-Zellen um ein Haar neben einer Wand, nicht die Naht der Mulde) ist behoben (-86, 0.125.3), B-009 auch (-87, 0.125.4).
-
+Keine. B-001 bis B-012 sind behoben (Befunde und Beleg im Verlauf); die nächste freie Nummer
+ist B-013.
 
 ## Offene Tasks
 
-- **T-005** Repo öffentlich stellen – Empfehlung Claude (P-2026-09-25-43:
-  Verlauf ohne Geheimnisse und ohne private Mail-Adressen, Lizenz LGPL).
-  Umstellen kann nur Manuel: GitHub → Settings → Danger Zone → Change
-  visibility → Public. Danach die Installationszeile aus dem README einmal
-  in FreeCAD ausprobieren.
-
-- **T-004** Fehler an FreeCAD melden: `Machine.from_dict` liest bei
-  Linearachsen einen Ursprung ≠ (0,0,0) als Richtung (Befund und Beleg in
-  P-2026-09-25-20, im Wochen-Build vom 2026-09-16 noch da). Solange er
-  besteht, übergibt das Addon Linearachsen mit Ursprung 0. **Der Bericht ist
-  fertig zum Einreichen:** [freecad_fehler_T-004.md](freecad_fehler_T-004.md)
+- **T-005** Repo öffentlich stellen – Empfehlung Claude (P-2026-09-25-43: Verlauf ohne
+  Geheimnisse und ohne private Mail-Adressen, Lizenz LGPL). Umstellen kann nur Manuel:
+  GitHub → Settings → Danger Zone → Change visibility → Public. Danach die
+  Installationszeile aus dem README einmal in FreeCAD ausprobieren.
+- **T-004** Fehler an FreeCAD melden: `Machine.from_dict` liest bei Linearachsen einen
+  Ursprung ≠ (0,0,0) als Richtung (Befund und Beleg in P-2026-09-25-20, im Wochen-Build vom
+  2026-09-16 noch da). Solange er besteht, übergibt das Addon Linearachsen mit Ursprung 0.
+  **Der Bericht ist fertig zum Einreichen:** [freecad_fehler_T-004.md](freecad_fehler_T-004.md)
   – einreichen kann nur Manuel (GitHub-Konto).

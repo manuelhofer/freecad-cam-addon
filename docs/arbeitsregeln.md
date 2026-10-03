@@ -120,6 +120,13 @@ ein ASCII-Entwurf des Dialogs reicht.
     writing“), und etwa `szenario_erster_start` scheitert – mit dem Code hat
     das nichts zu tun, der Lauf zählt trotzdem nicht (P-2026-09-27-33).
   - Reine Doku-Änderungen brauchen keinen Testlauf.
+  - **Jeder Lauf mit Speicherdeckel** (Manuels Rechner, Linux mit systemd):
+    `systemd-run --user --scope -q -p MemoryMax=16G -p MemorySwapMax=0 freecadcmd …`
+    – so auch Szenarien und eigene Versuchsskripte. Wächst ein Lauf aus dem
+    Ruder, beendet der Kernel nur ihn (exit 137). Ohne Deckel fraß am
+    2026-10-02 ein Versuchsskript 32 GB RAM und 25 GB Swap, und `systemd-oomd`
+    beendete die ganze Claude-Sitzung samt FreeCAD. Ein Lauf am Testteil
+    braucht 222 MB, der Deckel bremst nichts.
   - **Werkzeugwege mit Manuels Standardfräser** (Manuel, 2026-10-01: „generell
     sollte dann jede Strategie und Szenario mit diesem Fräser und den Werten
     gerechnet und geprüft werden, wenn es um Werkzeugwege geht“): Jede

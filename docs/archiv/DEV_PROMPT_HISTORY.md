@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-01 snapshot-gekuerzt
+
+### EINGELESEN
+- Plan der Nacht, Punkt 5 („Snapshot kürzen“) und Punkt 2 (T5d); Arbeitsregeln, Abschnitt 6
+  („Erledigtes wird hier entfernt, nicht abgehakt“). Manuel, 2026-10-03 früh: Linux hatte die
+  Sitzung um 22:25 beendet („weil du zu viel Ram benutzt hast .. kann man das irgendwie
+  limitieren ??“) – `journalctl`: `systemd-oomd` beendete die Claude-App (32 GB RAM, 25 GB Swap),
+  weil mein Prototyp zu T5d (`_abstand_bis(..., weit=1e9)`) als Kindprozess ohne Ende wuchs.
+
+### DATEIEN
+- `docs/STATUS_SNAPSHOT.md` (653 → 210 Zeilen), `docs/spezifikation_strategien.md` (13.5 T5d),
+  `docs/arbeitsregeln.md` (Abschnitt 5: Speicherdeckel)
+
+### AKZEPTANZKRITERIUM
+Der Snapshot nennt nur noch, was offen ist – ein Satz je Punkt –, nichts Offenes ist verloren,
+und T5d ist mit Befund und Ansatz aufgeschrieben.
+
+### DONE
+- Projektstatus: je Wunsch ein Absatz mit dem, was gebaut ist und was offen; die Verlaufsprosa
+  (jeder Patch seit 0.22.0 mit Zeiten) ist raus – sie steht im Verlauf.
+- Nächster Schritt: die Nacht als abgearbeitet, T5d gelassen (zwei Anläufe: geodätische
+  Kern-Ringe 1,44 min bei 3,2 ae, euklidische am Speicher gescheitert), die Klickliste für
+  Manuels Test auf das Neue der Nacht (Räumen adaptiv, Schlichten danach, Werkzeugkiste, dünne
+  Lage), alle offenen Fragen an ihn in einer Liste (1–8: Zeilenabstand am Boden, Standardfräser
+  nach Jongen, Ceratizit-Nummern, Jongen Ø 3, Gühring-Größen, Materialstand 12.7 Fragen 3–5,
+  zwei Fräser an einer Wand, TCPM/W-005/D-14…D-27/D-23), danach die Reihenfolge der nächsten
+  Arbeiten; die alte Klickliste vom 2026-09-26 (Werkzeugverwaltung bis Kollision) ist raus – die
+  Hilfe „So geht’s“ und die Verlaufseinträge haben sie.
+- Die Regel „nicht pushen – Manuel pusht morgens“ war überholt (Manuel, 2026-10-02 nachts:
+  „automatisch pushen“) – ersetzt.
+- Wunschliste: W-006 fehlte als Eintrag, ergänzt; W-004 ohne die erledigten D-Nummern.
+- Offene Bugs: keine (B-001 bis B-012 behoben, nächste Nummer B-013).
+- Speicherdeckel als Regel (Arbeitsregeln 5, Gedächtnis): `systemd-run --user --scope -q
+  -p MemoryMax=16G -p MemorySwapMax=0 …` – erprobt (1 GB Deckel, 3 GB angefordert: exit 137,
+  sonst nichts), gemessen (`test_testteil.py`: 222 MB in der Spitze). Manuel wollte keinen
+  knappen Deckel („6 gb is immernoch sehr wenig“) – 16 GB ist die Hälfte des Rechners.
+- `/tmp` war nach dem Neustart leer: der Scratch-Ordner mit allen Hilfsskripten (Prüf- und
+  Szenario-Starter, `analyse.py`, der T5d-Prototyp) ist weg – nicht wiederhergestellt.
+
+### TESTS
+- Nur Doku – kein Testlauf (Arbeitsregeln 5). Die Messung des Speichers war ein Lauf von
+  `tests/test_testteil.py` in FreeCAD 1.1.4 (OK).
+
+### NEXT
+- Bericht an Manuel; dann, was sein Test ergibt.
+
 ## P-2026-10-02-94 vorschau-schneller
 
 ### EINGELESEN
