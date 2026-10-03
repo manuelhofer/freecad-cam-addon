@@ -76,7 +76,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   sonst ohne Zyklus), F4 auf der Maschine prüfen, F5 Befehl „Ebene schwenken (3+2) …“, F6 Materialstand über Ebenen gebaut.
   Nachgezogen bis P-2026-10-03-46: Schwenkhöhe, schräge Bohrungen, Programm mit der Maschine,
   Bohren am Schwenkkopf, Knopf im Assistenten, Bestückung je Aufspannung.
-  Offen: Manuels Entscheidungen D-1 bis D-5.
+  Offen: Manuels Entscheidungen D-1, D-2, D-4, D-5 (D-3 durch die TCPM-Antwort entschieden).
 - **W-015 5 Achsen simultan** – Entwurf zum Besprechen (Spezifikation Strategien 16): Kern,
   Kugelfräser angestellt, Flanke, Wegkippen; E-2 bis E-4 entscheidet Manuel (E-1 TCPM: aus,
   schon beantwortet). Gebaut nur der

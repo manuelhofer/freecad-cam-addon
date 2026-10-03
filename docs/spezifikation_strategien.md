@@ -2506,6 +2506,9 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
 - **D-2 Richtung:** CYCLE800 `_DIR` −1 (kleinerer Wert der ersten Rundachse) – oder +1?
 - **D-3 Ohne Zyklus:** Drehpunkt der Rundachsen aus der Maschine (die Baugruppe) – stimmt nur,
   wenn der Nullpunkt im Job zur Aufnahme passt wie in „Auf der Maschine prüfen“.
+  **Entschieden** durch Manuels Antwort zu TCPM (Status, 2026-10-03 abends: „die G-Sätze ohne
+  TCPM geben dasselbe Teil (die Achsstellungen rechnet das Addon)“); seit P-2026-10-03-43
+  rechnet auch „Programm schreiben“ mit der gewählten Maschine.
 - **D-4 Ein Programm je Aufspannung:** „Programm schreiben“ für den Grundjob schreibt seine
   Ebenen gleich mit (je Ebene einmal geschwenkt) – oder lieber je Ebene ein Programm?
 - **D-5 Wechselpunkt der Beispielmaschinen:** Keine Beispielmaschine hat einen (P-2026-10-02-48:
