@@ -68,7 +68,7 @@ pruefe(
     genaehert
     == [
         "T6 Lollipopfräser",
-        "T9 Planfräser",
+        "T9 Messerkopf",
         "T11 Formfräser",
         "T14 Zentrierbohrer",
         "T19 Flachsenker",

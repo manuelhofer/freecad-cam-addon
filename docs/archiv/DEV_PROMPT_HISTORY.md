@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-12 messerkopf-statt-planfraeser
+
+### EINGELESEN
+- Manuel, 2026-10-03: „… ‚Messerkopf‘ oder wie du es benannt hast, Planfräser – wobei ich
+  Messerkopf schöner finde ^^ aber egal“.
+
+### DATEIEN
+- `translations/de.json` (Art und die Aufzählungen „Schaft-, Torusfräser oder Messerkopf“),
+  `help/de/bearbeitung.html`, `help/de/vierachs.html`, `camaddon/gui_bearbeitung.py`
+  (Docstring), `tests/test_cam_formen.py`, `tests/gui/szenario_zielzeit.py`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.138.0).
+
+### AKZEPTANZKRITERIUM
+Die Werkzeugart heißt in der deutschen Oberfläche „Messerkopf“: in der Werkzeugverwaltung, in
+der Gruppe der Werkzeugliste und der Kiste, in der Ziel-Zeile („T2 Messerkopf Ø 50“) und in den
+Tooltips und Fehlern, die Fräser mit ebener Stirn aufzählen. Der Schlüssel `planfraeser` bleibt,
+gespeicherte Werkzeuge ändern sich nicht; Englisch bleibt „Face mill“.
+
+### DONE
+- Nur Texte. Der Titel des Sandvik-Werkzeugs („CoroMill 345 Planfräser 45°“) bleibt, so heißt
+  es beim Hersteller; die Strategie heißt weiter „Planfräsen“.
+
+### TESTS
+- `tests/test_cam_formen.py` (OK). black und ruff sauber.
+
+### NEXT
+- Manuels Test der Stände 0.134–0.138.
+
 ## P-2026-10-03-11 werkzeugkiste-garant-hoffmann
 
 ### EINGELESEN

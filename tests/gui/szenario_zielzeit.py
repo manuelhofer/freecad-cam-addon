@@ -74,7 +74,7 @@ def schritte(h):
     raeumer = panel.raeumen.fraeser()
     if raeumer is not None and raeumer.art != wz.PLANFRAESER:
         h.pruefe(
-            "Schneller aus der Werkzeugkiste: T2 Planfräser Ø 50, danach T" in text,
+            "Schneller aus der Werkzeugkiste: T2 Messerkopf Ø 50, danach T" in text,
             f"kein schnellerer Fräser: {text!r}",
         )
     h.pruefe(bool(panel.ziel_text.toolTip()), "Ziel ohne Tooltip")
@@ -128,7 +128,7 @@ def schritte(h):
         print(ascii(f"Räumen: {panel.raeumen.ergebnis.text()}"))
         h.pruefe(panel.plan.aktiv(), "Planfräsen mit dem Planfräser nicht angehakt")
         h.pruefe(
-            "Ziel mit T2 Planfräser Ø 50" in panel.ziel_text.text()
+            "Ziel mit T2 Messerkopf Ø 50" in panel.ziel_text.text()
             and "Schneller aus der Werkzeugkiste" not in panel.ziel_text.text()
             and not panel.knopf_schneller.isVisible(),
             f"Ziel nach dem Übernehmen: {panel.ziel_text.text()!r}",

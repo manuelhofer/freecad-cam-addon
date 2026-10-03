@@ -133,7 +133,7 @@ def _ziel_minuten(minuten):
 
 
 def _ziel_werkzeug(werkzeug):
-    """„T2 Planfräser Ø 50“."""
+    """„T2 Messerkopf Ø 50“."""
     d = groesse_zeigen(werkzeug.durchmesser, einheiten.LAENGE) or "0"
     return tr("ba.ziel.werkzeug", nummer=werkzeug.nummer, art=wz.art_text(werkzeug.art), d=d)
 
