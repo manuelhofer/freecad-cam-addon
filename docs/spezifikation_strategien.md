@@ -2354,3 +2354,75 @@ Zapfen 50 × 50: 3,74 statt 2,43 min (adaptiv gewinnt).
   Schnellvorschub länger als 3 D). Gerade im Eilgang unten durchs Freie wäre schneller
   (Prototyp 3,38 min) – sicher nur, wenn die Steuerung G0 gerade fährt (Siemens, LinuxCNC:
   ja; Fanuc: nicht immer). Als Einstellung an der Maschine?
+
+## 15. 5 Achsen (W-014, 2026-10-03, Nacht)
+
+Manuel, 2026-10-03 abends: „es gibt noch genug zum Bauen … fang von mir aus mit 5-Achs-Strategien
+an … mach einfach weiter, bis ich guten Morgen sage“. Begonnen mit 4.4 Punkt 1 – **3+2 indexiert**
+–, weil alles Weitere (simultan, Anstellwinkel) darauf aufbaut und weil damit jede Strategie, die
+das Addon schon hat, auf schrägen Flächen fräsen kann. Was das Addon ohne Vorgabe wählt, bleibt
+unberührt (Manuel, 2026-10-03: „es nächste Mal bitte erst mit mir besprechen“): 3+2 entsteht nur,
+wenn jemand eine Ebene schwenkt.
+
+### 15.1 Das Bild
+
+Ein Zerspaner an einer 5-Achs-Fräse spannt das Teil einmal und **schwenkt die Ebene**: Die
+Rundachsen drehen das Teil (oder den Kopf), bis das Werkzeug senkrecht auf der schrägen Fläche
+steht; dann fräst er dort wie an einer 3-Achs-Maschine – planen, räumen, Kontur, bohren. Das ist
+im Addon schon fast da: Der Assistent „Bearbeitung“ kann das Teil im Job drehen („Unten liegt“,
+12.6) und eine zweite Aufspannung anlegen. **Eine geschwenkte Ebene ist eine Aufspannung, die
+die Maschine selbst dreht** – ein eigener Job, dessen Modell so liegt, dass die gewählte Fläche
+nach oben zeigt. Darin rechnet jede Strategie unverändert (auch FreeCADs Bohren), der
+Materialstand gilt, der Prüfstand misst.
+
+Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
+- **Grundjob** – der Job, in dem das Teil auf dem Tisch liegt, wie es gespannt ist;
+- **Ebene** – die Lage der Ebene im Grundjob (Placement: Ursprung und Achsen der Ebene in
+  Koordinaten des Grundjobs; Z der Ebene = die Außennormale der Fläche = die Werkzeugachse);
+- **Rundachsen** – die Stellung der Rundachsen dafür („A30 C90“), aus der Maschine gerechnet.
+
+### 15.2 Was gerechnet wird (`schwenken.py`)
+
+- **Ebene aus einer Fläche:** Z = Außennormale; X = die Richtung von X des Grundjobs in der Ebene
+  (steht X senkrecht auf der Fläche: Y); der Ursprung auf der Fläche (die Projektion des
+  Ursprungs des Grundjobs, oder der Punkt der Fläche, der ihm am nächsten liegt).
+- **Rundachsen:** die Stellung, in der die Werkzeugachse gegen das Werkstück die Normale der
+  Ebene ist – aus der Kette der Maschine (`reichweite.Pruefung`), numerisch über beide
+  Rundachsen (grob im Raster, dann genau); von mehreren Lösungen die innerhalb der Grenzen mit dem
+  kleinsten Schwenkwinkel. Ohne Maschine: Tisch/Tisch A (um X), C (um Z), Drehpunkt im Nullpunkt
+  des Grundjobs – A = arccos n_z, C = atan2(n_x, n_y).
+- **Programm ohne Schwenkzyklus** (für Steuerungen ohne: LinuxCNC, Mach): je Punkt der Ebene q →
+  p = Ebene · q im Grundjob → die Stellung der Achsen mit den Rundachsen der Ebene → der Punkt im
+  Programm, wie eine Steuerung ohne TCPM ihn liest (`kinematik`: X, Y, Z wie mit den Rundachsen
+  auf 0). Bögen bleiben Bögen, wenn die Ebene im Programm in XY liegt (Tisch/Tisch), sonst
+  Geraden.
+- **Programm mit Schwenkzyklus** (Siemens 840D: CYCLE800, Arbeitsvorbereitung 10/2015,
+  S. 678–681): `CYCLE800(1,"<Schwenkdatensatz>",0,27,X0,Y0,Z0,A,B,C,0,0,0,-1,0,1)` – Freifahren Z,
+  neu, Modus 27 = achsweise in der Reihenfolge Z, Y, X, Bezugspunkt = Ursprung der Ebene im
+  Grundjob, die Winkel aus der Lage der Ebene; danach die Sätze der Ebene, wie sie sind; am Ende
+  `CYCLE800()`. Die Steuerung rechnet Rundachsen und Werkzeuglänge selbst (TCARR aus dem
+  Schwenkdatensatz) – der Nullpunkt bleibt am Teil, wie der Bediener ihn kennt.
+
+### 15.3 Stufen (je ein Patch)
+
+- **F1 Rechenkern** (`schwenken.py`): Ebene aus Fläche, Rundachsen aus der Maschine und ohne,
+  Punkte ins Programm ohne Zyklus, CYCLE800-Winkel; Prüfung an einem Teil mit 30°-Schräge.
+- **F2 Ebene als Job:** `lege_an(grundjob, flaeche)` – Klon des Modells gedreht, Rohteil als
+  gedrehter Quader (der Materialstand liest ihn als Körper), Eigenschaften „5-Achs“. Jede
+  Strategie rechnet darin; Prüfung: Räumen der Schräge, im Grundjob nachgemessen.
+- **F3 Programm:** „Programm schreiben“ für einen Job mit Ebene – Siemens mit CYCLE800, die
+  anderen ohne Zyklus; der Grundjob mit seinen Ebenen in einem Programm.
+- **F4 Auf der Maschine prüfen:** Reichweite, Abfahren, Kollision für einen Job mit Ebene – die
+  Sätze ohne Zyklus gerechnet, mit den Rundachsen der Ebene.
+- **F5 Assistent:** in „Bearbeitung“ Schritt 1 an einer 5-Achs-Maschine „Ebene schwenken:
+  Fläche anklicken“ – der neue Job mit der Ebene, die Rundachsen in einem Satz.
+- **F6 danach** (zu besprechen): der Materialstand über Ebenen hinweg (heute beginnt eine Ebene
+  am ganzen Rohteil – sicher, aber mit Luft), simultan (Flanke, Anstellwinkel).
+
+### 15.4 Zu entscheiden (Manuel)
+
+- **D-1 Schwenkdatensatz:** Wie heißt er an einer Siemens mit Schwenkkopf/-tisch („TC1“)? Heute
+  eine Einstellung beim Postprozessor, vorbelegt leer (ein Datensatz).
+- **D-2 Richtung:** CYCLE800 `_DIR` −1 (kleinerer Wert der ersten Rundachse) – oder +1?
+- **D-3 Ohne Zyklus:** Drehpunkt der Rundachsen aus der Maschine (die Baugruppe) – stimmt nur,
+  wenn der Nullpunkt im Job zur Aufnahme passt wie in „Auf der Maschine prüfen“.

@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-35 schwenken-kern
+
+### EINGELESEN
+- Manuel, 2026-10-03 nachts: „es gibt noch genug zum Bauen … fang von mir aus mit 5-Achs-Strategien
+  an … mach einfach weiter, bis ich guten Morgen sage“. Spezifikation Strategien 4.4 (3+2,
+  Flanke, Anstellwinkel); Siemens Arbeitsvorbereitung 10/2015, S. 678–681 (CYCLE800).
+
+### DATEIEN
+- `camaddon/schwenken.py` (neu), `tests/test_schwenken.py` (neu), Spezifikation Strategien
+  (Abschnitt 15: das Bild – eine geschwenkte Ebene ist ein Job –, die Rechnung, Stufen F1–F6,
+  Entscheidungen D-1 bis D-3), `docs/aufbau.md`, Übersetzungen (`sw.fehler.*`),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.152.0).
+
+### AKZEPTANZKRITERIUM
+- An den drei 5-Achs-Beispielmaschinen: Rundachsen für eine Normale innerhalb der Grenzen, die
+  Werkzeugachse trifft sie auf 0,01°, und ein Punkt des Werkstücks, ins Programm ohne TCPM
+  gerechnet, ist mit diesen Rundachsen genau dort, wo die Spitze steht (kinematik).
+
+### DONE
+- Ebene aus einer ebenen Fläche (Z = Außennormale, X aus dem Grundjob, Ursprung am nächsten
+  zum Nullpunkt); CYCLE800-Winkel achsweise Z, Y, X (nachgebaut gleich der Lage); Rundachsen
+  ohne Maschine (Tisch/Tisch A, C, kleineres Drehen von C) und aus der Kette (Raster 10°,
+  Musterverfahren, am Pol die freie Achse auf 0, innerhalb der Grenzen, kleinster Schwenk);
+  Abbildung Grundjob → Programm aus zwei Lösungen der Linearachsen; Sätze ohne Zyklus – Bögen
+  und Bohrzyklen bleiben in XY, sonst Geraden (0,01 mm), Bohrzyklen quer: ein Satz statt
+  Bahn.
+- Tisch/Tisch, Kopf/Tisch, Kopf/Kopf: Spitze auf 1e-6 mm am Punkt, Tisch/Tisch mit der Ebene
+  in XY.
+
+### TESTS
+- `tests/test_schwenken.py` – OK. black und ruff sauber.
+
+### NEXT
+- F2: die Ebene als Job (`lege_an`), Rohteil als gedrehter Quader, eine Strategie darin.
+
 ## P-2026-10-03-34 kontur-eingang-an-der-ecke
 
 ### EINGELESEN

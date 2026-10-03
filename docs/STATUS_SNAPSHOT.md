@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.151.3 (P-2026-10-03-34). Alles, was hier als gebaut steht,
+Stand 0.152.0 (P-2026-10-03-35). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -71,6 +71,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Aufspannung, Maschine zuerst, Rohteil aus dem Dokument, ein Teil – ein Job; Messstopp
   (jetzt im Block „Schlichten danach“); Maschinen-Speicher; Materialstand mit wählbarer
   Eintauchstelle.
+- **W-014 5 Achsen** – begonnen in der Nacht zum 2026-10-04 (Spezifikation Strategien 15): 3+2
+  als Job je geschwenkter Ebene. F1 Rechenkern gebaut (`schwenken.py`); F2–F5 folgen.
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
