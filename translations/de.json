@@ -1752,6 +1752,7 @@
     "sw.panel.anklicken": "eine ebene Fläche oder die Wand einer Bohrung am Teil anklicken …",
     "sw.panel.waagerecht": "{flaeche} liegt waagerecht – dafür muss nichts schwenken; das macht der Grundjob.",
     "sw.panel.ergebnis": "{flaeche}: {winkel}° geschwenkt → {rundachsen}",
+    "sw.panel.vorhanden": "Die Ebene gibt es schon: „{job}“ – OK öffnet sie, statt eine zweite anzulegen.",
     "sw.panel.bearbeiten": "Danach gleich „Bearbeitung“ in der Ebene öffnen",
     "sw.panel.bearbeiten.tooltip": "Der Assistent öffnet im neuen Job, die Fläche gewählt – Strategien wählen und anlegen wie immer.",
     "pp.gruppe.schwenken": "Ebene schwenken (3+2)",

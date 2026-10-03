@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-48 ebene-vorhanden
+
+### EINGELESEN
+- `gui_schwenken.SchwenkenPanel` – zweimal dieselbe Schräge (etwa über den Knopf im Assistenten,
+  P-44) legte einen zweiten, gleichen Job an.
+
+### DATEIEN
+- `camaddon/gui_schwenken.py` (`vorhanden`: eine Ebene mit derselben Normalen; OK öffnet sie),
+  Übersetzungen (`sw.panel.vorhanden`), `tests/gui/szenario_schwenken.py`, Spezifikation (15.3),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.155.4).
+
+### AKZEPTANZKRITERIUM
+- Die Schräge ein zweites Mal: „Die Ebene gibt es schon: „Job Block – Ebene Face3 (A−30 C0)“ …“;
+  OK legt keinen Job an und öffnet den Assistenten in der vorhandenen Ebene.
+
+### DONE
+- Wie oben (Bild 6 im Szenario).
+
+### TESTS
+- Szenario `szenario_schwenken` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1 … D-5, E-1 … E-4 (Abschnitt 16), E8 (Steuerung).
+
 ## P-2026-10-03-47 vorschlaege-simultan-siemens
 
 ### EINGELESEN

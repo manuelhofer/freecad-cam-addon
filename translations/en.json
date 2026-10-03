@@ -1752,6 +1752,7 @@
     "sw.panel.anklicken": "click a flat face or the wall of a hole on the part …",
     "sw.panel.waagerecht": "{flaeche} lies horizontal – nothing to swivel; the base job does that.",
     "sw.panel.ergebnis": "{flaeche}: swivelled {winkel}° → {rundachsen}",
+    "sw.panel.vorhanden": "This plane exists already: “{job}” – OK opens it instead of creating a second one.",
     "sw.panel.bearbeiten": "Then open “Machining” in the plane",
     "sw.panel.bearbeiten.tooltip": "The assistant opens in the new job with the face selected – choose strategies and create as always.",
     "pp.gruppe.schwenken": "Swivel plane (3+2)",

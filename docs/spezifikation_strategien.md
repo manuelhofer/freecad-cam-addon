@@ -2477,6 +2477,9 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   **Im Bild:** P-2026-10-03-46 – öffnet der Assistent in einem Job einer Aufspannung mit Ebenen,
   sind nur dessen Teil und Bahnen sichtbar, die der anderen Jobs nicht (`gui_schwenken.zeige_job`;
   „Abbrechen“ stellt es zurück) – bis dahin lag im Grundjob das gedrehte Teil der Ebene im Bild.
+  **Keine doppelte Ebene:** P-2026-10-03-48 – gibt es zur angeklickten Fläche schon eine Ebene
+  mit derselben Normalen (dieselbe Fläche, oder eine parallele), sagt das Fenster es, und OK
+  öffnet sie (mit „Bearbeitung“ darin), statt einen zweiten Job anzulegen.
 - **F6 danach:** der Materialstand über Ebenen hinweg, simultan (Flanke, Anstellwinkel).
   **Materialstand gebaut:** P-2026-10-03-40 – eine Ebene beginnt, wo nach dem Grundjob und den
   Ebenen davor noch Material steht: je Säule ihres Rasters von der Oberkante des gedrehten

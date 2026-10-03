@@ -210,13 +210,23 @@ def schritte(h):
     h.pruefe(
         zweites is not None
         and zweites.flaeche == schraege
-        and zweites.ergebnis.text().endswith("A−30 C0"),
+        and "A−30 C0" in zweites.ergebnis.text()
+        and "gibt es schon" in zweites.ergebnis.text()
+        and zweites.vorhanden is planjob,
         "„Ebene schwenken“ aus dem Assistenten: "
         + (zweites.ergebnis.text() if zweites is not None else "kein Fenster"),
     )
     h.bild("6_schwenken_aus_assistent")
+    # OK legt keinen zweiten Job an, sondern öffnet den Assistenten in der vorhandenen Ebene.
     if zweites is not None:
-        zweites.reject()
+        zweites.accept()
+        yield from h.warte_auf(lambda: gui_bearbeitung.BearbeitungPanel.offen is not None, 15000)
+        h.pruefe(len(sw.ebenen_von(grundjob)) == 1, f"Ebenen: {len(sw.ebenen_von(grundjob))}")
+        dritter = gui_bearbeitung.BearbeitungPanel.offen
+        h.pruefe(dritter is not None and dritter.job is planjob, "Assistent nicht in der Ebene")
+        if dritter is not None:
+            dritter.reject()
+            yield 500
 
     # --- Bestückung: Grundjob und Ebene sind eine Aufspannung, ein Programm ---------------------
     from camaddon import gui_bestueckung

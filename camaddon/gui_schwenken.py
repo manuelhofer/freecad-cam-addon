@@ -102,6 +102,7 @@ class SchwenkenPanel:
         self.flaeche = None
         self.lage = None
         self.rund = None
+        self.vorhanden = None  # der Job einer gleichen Ebene, die es schon gibt
         self.maschine, maschinenname = maschine_fuer(grundjob)
         self.form = QtGui.QWidget()
         self.form.setWindowTitle(tr("sw.titel"))
@@ -151,7 +152,7 @@ class SchwenkenPanel:
 
     def waehle(self, flaeche):
         """Die Fläche (am Modell des Grundjobs): Ebene, Schwenkwinkel und Rundachsen zeigen."""
-        self.flaeche, self.lage, self.rund = flaeche, None, None
+        self.flaeche, self.lage, self.rund, self.vorhanden = flaeche, None, None, None
         self.flaeche_text.setText(flaeche)
         try:
             lage = sw.ebene_aus_flaeche(vr.modell(self.grundjob).Shape, flaeche)
@@ -177,15 +178,21 @@ class SchwenkenPanel:
             rund = sw.rundachsen_ohne_maschine(normale)
         self.lage, self.rund = lage, rund
         grad = f"{winkel:.1f}".rstrip("0").rstrip(".")
-        self._zeige(
-            tr(
-                "sw.panel.ergebnis",
-                flaeche=flaeche,
-                winkel=grad,
-                rundachsen=sw.text_rundachsen(rund),
-            ),
-            GRUEN,
+        text = tr(
+            "sw.panel.ergebnis", flaeche=flaeche, winkel=grad, rundachsen=sw.text_rundachsen(rund)
         )
+        # Eine parallele Fläche (dieselbe Normale) liegt in derselben Ebene: kein zweiter Job.
+        self.vorhanden = next(
+            (
+                e
+                for e in sw.ebenen_von(self.grundjob)
+                if sw.normale_der(sw.ebene_von(e)).dot(normale) > 1.0 - 1e-9
+            ),
+            None,
+        )
+        if self.vorhanden is not None:
+            text += ". " + tr("sw.panel.vorhanden", job=self.vorhanden.Label)
+        self._zeige(text, GRUEN)
 
     def _zeige(self, text, farbe):
         self.ergebnis.setText(text)
@@ -200,6 +207,14 @@ class SchwenkenPanel:
         if self.lage is None:
             self._zeige(self.ergebnis.text() or tr("sw.panel.anklicken"), ROT)
             return False
+        if self.vorhanden is not None:
+            job, flaeche = self.vorhanden, self.flaeche
+            _zeigen(job)
+            bearbeiten = self.haken_bearbeiten.isChecked()
+            self._schliessen()
+            if bearbeiten:
+                QtCore.QTimer.singleShot(0, lambda: _bearbeiten(job, flaeche))
+            return True
         dokument = self.grundjob.Document
         dokument.openTransaction(tr("sw.titel"))
         try:
