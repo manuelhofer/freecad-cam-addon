@@ -2569,6 +2569,8 @@ Kollision mit Rundachsen je Station.
   Grathöhe 0,01): senkrecht 3,43 min, Rest im Mittel 0,0037 mm; 15° nach +Y 3,45 min, 0,0035 mm
   – dieselbe Fläche; auf der Kuppelspitze schneidet die Kugel mit Ø 1,55 statt mit der Spitze.
   Simultan bliebe für eine Neigung, die der Vorschubrichtung folgt.
+  Szenario `szenario_angestellt` (P-2026-10-03-51): die Kuppel auf der Tisch/Tisch-Maschine, A15
+  die ganze Bahn, 5,4 min, Kollision frei.
 - **S3 Flanke:** eine Regelfläche (schräge oder verwundene Wand) mit dem Mantel.
 - **S4 Wegkippen**, wenn der Halter sonst anstößt.
 - **S5 Entgraten in 3D.**

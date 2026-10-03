@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-51 szenario-angestellt
+
+### EINGELESEN
+- P-50 (Ebene aus Winkeln), `tests/gui/szenario_schwenkteil.py` als Muster.
+
+### DATEIEN
+- `tests/gui/szenario_angestellt.py` (neu), Spezifikation (16.3), `docs/STATUS_SNAPSHOT.md`.
+
+### AKZEPTANZKRITERIUM
+- Kuppel, Ebene „15° nach 90°“ → A15 C0, 3D-Schlichten mit Kugel Ø 6 darin, „Auf der Maschine
+  prüfen“: Bild mitten in der Bahn, Kollision „Nichts berührt sich“.
+
+### DONE
+- Wie oben (5,4 min, A1 die ganze Bahn 15°).
+
+### TESTS
+- Szenario `szenario_angestellt` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Antworten zu D-1 … D-5, E-1 … E-4, E8.
+
 ## P-2026-10-03-50 ebene-aus-winkeln
 
 ### EINGELESEN
