@@ -104,9 +104,19 @@ def schritte(h):
     panel.feld_stange.setText("60")
     yield from h.warte_auf(lambda: not panel._uhr.isActive(), 3000)
     yield from h.warte_auf(lambda: not (panel.einfahren and panel.einfahren.laeuft()), 3000)
-    panel.accept()  # Weiter
+    # Unten rechts „Weiter“ wie oben (Manuel, 2026-10-03: „wenn ein Zurück steht, bitte auch ein
+    # Anlegen unten rechts, wo das Weiter stand“).
+    h.pruefe(
+        panel.knopf_weiter.text() == "Weiter" and panel.knopf_weiter.isEnabled(),
+        f"unten: {panel.knopf_weiter.text()!r}, frei {panel.knopf_weiter.isEnabled()}",
+    )
+    panel.knopf_weiter.click()  # Weiter
     yield 300
     h.pruefe(panel.seite == 2, f"Seite {panel.seite}")
+    h.pruefe(
+        panel.knopf_fertig.text() == "Anlegen" and panel.knopf_anlegen().text() == "Anlegen",
+        f"unten: {panel.knopf_fertig.text()!r}, oben {panel.knopf_anlegen().text()!r}",
+    )
     h.pruefe(panel.mit_schruppen.isChecked(), "„Rundum schruppen“ nicht angehakt")
     h.pruefe(panel.mit_schlichten.isChecked(), "„Rundum schlichten“ nicht angehakt")
     h.pruefe(panel.fraeser() is not None and panel.fraeser().nummer == 1, "Schruppen: nicht T1")
@@ -162,7 +172,8 @@ def schritte(h):
     yield from h.warte_auf(lambda: panel.vorschau is not None, 30000)
     h.pruefe(panel.lage_schruppen.isHidden(), f"gelb bei T1: {panel.lage_schruppen.text()!r}")
     job = panel.job
-    panel.accept()  # Anlegen
+    h.pruefe(panel.knopf_fertig.isEnabled(), "„Anlegen“ unten gesperrt")
+    panel.knopf_fertig.click()  # Anlegen, unten rechts
     yield 1500
     h.pruefe(gui_vierachs.VierachsPanel.offen is None, "Fenster nach „Anlegen“ offen")
     namen = [o.Label for o in job.Operations.Group if vo.ist_rundum(o)]
@@ -188,6 +199,16 @@ def schritte(h):
     h.pruefe(
         pruef.urteil.text() == "Alle Achsen bleiben in ihren Grenzen.",
         f"Urteil: {pruef.urteil.text()!r}",
+    )
+    # Die rechnerische Zeit (Manuel, 2026-10-03): gesamt, Vorschub, Eilgang, je Operation.
+    zeit = pruef.urteil_zeit.text()
+    h.pruefe(
+        zeit.startswith("rechnerisch ")
+        and "Vorschub" in zeit
+        and "Eilgang" in zeit
+        and "„Rundum schruppen T1“" in zeit
+        and "„Rundum schlichten T2“" in zeit,
+        f"Zeit: {zeit!r}",
     )
     hinweise = pruef.hinweise.text()
     h.pruefe("radial aus" not in hinweise, f"Hinweise: {hinweise!r}")

@@ -375,6 +375,10 @@ class PruefPanel:
         self.urteil_schnittwerte = QtGui.QLabel()
         self.urteil_schnittwerte.setToolTip(tr("rw.schnittwerte.tooltip"))
         self.urteil_schnittwerte.linkActivated.connect(self.schnittwerte_uebernehmen)
+        # Wie lange der Job rechnerisch dauert (Manuel, 2026-10-03: „ja, die Bearbeitung dauert
+        # rechnerisch … min“) – aus dem Abfahren: Vorschub, Eilgang, je Operation.
+        self.urteil_zeit = QtGui.QLabel()
+        self.urteil_zeit.setToolTip(tr("rw.zeit.tooltip"))
         self._beschriftung = {}
         for zeile, (text, urteil) in enumerate(
             (
@@ -382,6 +386,7 @@ class PruefPanel:
                 (tr("rw.urteil.kollision"), self.urteil_kollision),
                 (tr("rw.urteil.laenge"), self.urteil_laenge),
                 (tr("rw.urteil.schnittwerte"), self.urteil_schnittwerte),
+                (tr("rw.urteil.zeit"), self.urteil_zeit),
             )
         ):
             urteil.setWordWrap(True)
@@ -527,6 +532,27 @@ class PruefPanel:
             self.bild.nullpunkt = FreeCAD.Vector(nullpunkt)
             self.bild.folge()
         self.abspieler.zeige(self.abfahrt, zeit)
+        self._zeit_zeigen()
+
+    def _zeit_zeigen(self):
+        """„Rechnerisch 2 h 40 min – Vorschub 2 h 31 min, Eilgang 9 min · Rundum schruppen T1
+        2 h 12 min, …“ – ohne Bahn ein Strich."""
+        abfahrt = self.abfahrt
+        if abfahrt is None or not abfahrt.stationen:
+            self.urteil_zeit.setText("–")
+            return
+        vorschub, eilgang = abfahrt.anteile()
+        text = tr(
+            "rw.zeit",
+            dauer=ab.dauer_text(abfahrt.dauer),
+            vorschub=ab.dauer_text(vorschub),
+            eilgang=ab.dauer_text(eilgang),
+        )
+        je_operation = abfahrt.dauer_je_operation()
+        if len(je_operation) > 1:
+            teile = [f"„{name}“ {ab.dauer_text(s)}" for name, s in je_operation]
+            text = tr("rw.zeit.operationen", text=text, operationen=" · ".join(teile))
+        self.urteil_zeit.setText(text)
 
     def _abtragen(self, station):
         """Rohteil und Fertigteil (W-003 V3g): die Stange bis zu dieser Station abgetragen;

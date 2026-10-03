@@ -114,6 +114,27 @@ class Abfahrt:
         """Die ganze Zeit in s."""
         return self.stationen[-1].zeit if self.stationen else 0.0
 
+    def anteile(self):
+        """(Vorschub, Eilgang) in s – wie viel der Zeit die Maschine im Vorschub fährt und wie
+        viel im Eilgang (Manuel, 2026-10-03: „die Bearbeitung dauert rechnerisch … min“)."""
+        vorschub = eilgang = 0.0
+        for davor, station in zip(self.stationen, self.stationen[1:], strict=False):
+            dauer = station.zeit - davor.zeit
+            if station.eilgang:
+                eilgang += dauer
+            else:
+                vorschub += dauer
+        return vorschub, eilgang
+
+    def dauer_je_operation(self):
+        """[(Name, s)] je Operation in ihrer Reihenfolge – die Fahrt zu ihr (Home, Wechselpunkt)
+        zählt zu ihr."""
+        zeiten = [0.0] * len(self.operationen)
+        for davor, station in zip(self.stationen, self.stationen[1:], strict=False):
+            if 0 <= station.operation < len(zeiten):
+                zeiten[station.operation] += station.zeit - davor.zeit
+        return [(op.name, zeit) for op, zeit in zip(self.operationen, zeiten, strict=True)]
+
     def index_bei(self, zeit):
         """Die letzte Station, deren Zeit höchstens `zeit` ist (0 davor)."""
         return max(bisect.bisect_right(self._zeiten, zeit) - 1, 0)
@@ -363,6 +384,20 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         station.zeit = zeit
     ergebnis._fertig()
     return ergebnis
+
+
+def dauer_text(sekunden):
+    """Eine Dauer, wie man sie sagt: „2 h 40 min“, „12 min“, „2,5 min“, „45 s“."""
+    s = max(sekunden, 0.0)
+    zeichen = einheiten.gewaehltes_dezimalzeichen() or einheiten.PUNKT
+    if s >= 3600.0:
+        stunden, rest = divmod(round(s / 60.0), 60)
+        return tr("zeit.stunden", h=int(stunden), min=int(rest))
+    if s >= 600.0:
+        return tr("zeit.minuten", min=f"{s / 60.0:.0f}")
+    if s >= 60.0:
+        return tr("zeit.minuten", min=mit_dezimalzeichen(f"{s / 60.0:.1f}", zeichen))
+    return tr("zeit.sekunden", s=f"{s:.0f}")
 
 
 def zeit_text(sekunden):

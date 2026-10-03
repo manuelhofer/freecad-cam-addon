@@ -770,21 +770,26 @@ class VierachsPanel:
         self._knoepfe_beschriften()
 
     def _knoepfe_beschriften(self):
+        """OK oben und der Knopf unten rechts sagen dasselbe: in Schritt 1 „Weiter“, in Schritt 2
+        „Anlegen“ oder „Übernehmen“ – und sind zusammen gesperrt oder frei."""
         ok = self.knopf_anlegen()
-        if ok is None:
-            return
         if self.seite == 1:
-            ok.setText(tr("va.weiter"))
-            ok.setToolTip(tr("va.weiter.tooltip"))
-            ok.setEnabled(self.job is not None)
+            text, tooltip = tr("va.weiter"), tr("va.weiter.tooltip")
+            frei = self.job is not None
+            unten = getattr(self, "knopf_weiter", None)
         else:
             if self.zu_aendern is not None:
-                ok.setText(tr("va.uebernehmen"))
-                ok.setToolTip(tr("va.uebernehmen.tooltip"))
+                text, tooltip = tr("va.uebernehmen"), tr("va.uebernehmen.tooltip")
             else:
-                ok.setText(tr("va.anlegen"))
-                ok.setToolTip(tr("va.anlegen.tooltip"))
-            ok.setEnabled(self.job is not None and self._kann_anlegen())
+                text, tooltip = tr("va.anlegen"), tr("va.anlegen.tooltip")
+            frei = self.job is not None and self._kann_anlegen()
+            unten = getattr(self, "knopf_fertig", None)
+        for k in (ok, unten):
+            if k is None:
+                continue
+            k.setText(text)
+            k.setToolTip(tooltip)
+            k.setEnabled(frei)
 
     def knopf_anlegen(self):
         """Der Knopf „Anlegen“ (FreeCADs OK), oder None, solange das Fenster nicht steht."""
@@ -1001,6 +1006,13 @@ class VierachsPanel:
         self.urteil.setWordWrap(True)
         self.urteil.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         aufbau.addWidget(self.urteil)
+        # Unten rechts „Weiter“ wie im Assistenten „Bearbeitung“ (Manuel, 2026-10-03: „wenn ein
+        # Zurück steht, bitte auch ein Anlegen unten rechts, wo das Weiter stand“).
+        self.knopf_weiter = knopf(tr("va.weiter"), tr("va.weiter.tooltip"), self.accept)
+        zeile = QtGui.QHBoxLayout()
+        zeile.addStretch()
+        zeile.addWidget(self.knopf_weiter)
+        aufbau.addLayout(zeile)
         aufbau.addStretch()
         return ruhiges_mausrad(form)
 
@@ -1312,7 +1324,13 @@ class VierachsPanel:
         self.knopf_zurueck = knopf(
             tr("va.zurueck"), tr("va.zurueck.tooltip"), lambda: self.zeige_seite(1)
         )
-        aufbau.addWidget(self.knopf_zurueck, 0, QtCore.Qt.AlignLeft)
+        # Rechts daneben „Anlegen“ (beim Ändern „Übernehmen“) – dasselbe wie OK oben.
+        self.knopf_fertig = knopf(tr("va.anlegen"), tr("va.anlegen.tooltip"), self.accept)
+        zeile = QtGui.QHBoxLayout()
+        zeile.addWidget(self.knopf_zurueck)
+        zeile.addStretch()
+        zeile.addWidget(self.knopf_fertig)
+        aufbau.addLayout(zeile)
         aufbau.addStretch()
         return seite
 

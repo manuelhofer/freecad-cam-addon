@@ -12,6 +12,41 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-03-06 vierachs-anlegen-unten-und-zeit
+
+### EINGELESEN
+- Manuel, 2026-10-03, mit drei Bildern (Drehmaschine mit Y-Achse aus „Neue Maschine“, Schritt 2
+  des 4-Achs-Assistenten, das Prüffenster): „in der Maske mit dem Rundum bearbeiten steht unten
+  ein Zurück … wenn ein Zurück steht, bitte auch ein Anlegen unten rechts, wo das Weiter stand“;
+  „ich vermisse beim Test auf der Maschine eine theoretische Zeit … „ja, die Bearbeitung dauert
+  rechnerisch … min““. Spezifikation Vierachs (Assistent), Simulation (Abfahren).
+
+### DATEIEN
+- `camaddon/gui_vierachs.py` (`knopf_weiter`, `knopf_fertig`, `_knoepfe_beschriften`),
+  `camaddon/abfahren.py` (`Abfahrt.anteile`, `dauer_je_operation`, `dauer_text`),
+  `camaddon/gui_reichweite.py` (Zeile „Zeit“, `_zeit_zeigen`), `translations/de|en.json`,
+  `help/de|en/vierachs.html`, `help/de|en/reichweite.html`, `docs/STATUS_SNAPSHOT.md`,
+  `tests/gui/szenario_rundum_drehmaschine.py`, `package.xml` (0.132.0)
+
+### AKZEPTANZKRITERIUM
+Im 4-Achs-Assistenten gibt es unten rechts „Weiter“ (Schritt 1) und „Anlegen“ (Schritt 2), gleich
+beschriftet und gesperrt wie OK oben; das Prüffenster nennt die rechnerische Zeit des Jobs.
+
+### DONE
+- Die Knöpfe unten rufen dasselbe `accept` wie OK; `_knoepfe_beschriften` beschriftet und
+  sperrt beide zusammen (Weiter / Anlegen / Übernehmen).
+- Zeit aus dem Abfahren: gesamt, Vorschub und Eilgang (`anteile`: je Station, ob die Fahrt
+  dorthin Eilgang war), je Operation (`dauer_je_operation`, die Fahrt zu Home- und Wechselpunkt
+  zählt zur Operation); `dauer_text`: „2 h 40 min“, „12 min“, „2,5 min“, „45 s“.
+
+### TESTS
+- `tests/gui/szenario_rundum_drehmaschine.py` (OK, FreeCAD 1.1.4; Bild `4b_pruefen_fenster`:
+  „rechnerisch 25 min – Vorschub 24 min, Eilgang 1,1 min · „Rundum schruppen T1“ 12 min ·
+  „Rundum schlichten T2“ 13 min“ – passend zu 25:11,9 im Abspieler). black und ruff sauber.
+
+### NEXT
+- Manuels nächste Aufgabe.
+
 ## P-2026-10-03-05 hals-und-auskragung
 
 ### EINGELESEN
