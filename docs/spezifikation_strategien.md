@@ -2811,7 +2811,22 @@ Kollision mit Rundachsen je Station.
   Geschwindigkeit der Rundachse (`simultan.eilganggeschwindigkeit`; P-2026-10-04-47); und das
   Abfahren rechnete einen für die Kollision in 1°-Schritte geteilten G0 so, als hielte die
   Maschine an jedem Schritt (das Zurückschwenken 15,8 statt 1,7 s). Jetzt: 1,09 min.
-- **S5 Entgraten in 3D.**
+- **S5 Entgraten in 3D.** *Prototyp (2026-10-04, nicht im Addon – zum Besprechen):* am
+  Schwenkteil, Fasenfräser 90° (Ø 10, Spitze 0), Fase 0,5 mm. Je Punkt der Kante (alle 0,5 mm)
+  die Achse senkrecht zur Kante und 45° neben der Winkelhalbierenden der beiden Flächen (von den
+  zwei Lösungen die steilere), die Mitte der Fase 2 mm neben der Achse auf der Kegelflanke – die
+  Flanke liegt überall genau parallel zur Fase, die Fase auf beiden Flächen 0,5 mm, auch wo die
+  Kante steigt oder die Flächen nicht rechtwinklig stehen. 49 konvexe Kanten (ohne die
+  Unterkanten auf dem Tisch): 15 kann das heutige Entgraten (waagerecht, oben eben, Wand
+  senkrecht), 24 gingen neu ohne Verletzung (die 30° steigenden Kanten an der Schräge, die
+  Bohrungsränder darauf, die Kanten mit 45°/60°/120° Flächenwinkel, die senkrechten Ecken), an
+  10 in engen Nuten und kleinen Bohrungen stieße der Kegel Ø 10 bis 3,25 mm in die Gegenwand
+  (dort ein kleinerer Fräser oder die Fase weiter zur Spitze). Tisch/Tisch: A −90…90°, C 0…270°,
+  946 mm im Vorschub, 1,7 min mit 600 mm/min (G93). Offen für einen Bau: Kanten wählen (oder
+  Flächen, deren Kanten), Reihenfolge und Wege zwischen den Kanten, Kollision von Schaft und
+  Halter, das Prüffenster (die Fase im Abtrag), die Ecken am Ende einer Kante. Bild:
+  `entgraten_3d.png` (an Manuel geschickt). **Frage an Manuel:** so bauen – als eigene Operation
+  „Entgraten 3D (5 Achsen)“ für gewählte Kanten, im Assistenten ohne Haken?
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

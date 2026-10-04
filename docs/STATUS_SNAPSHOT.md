@@ -116,7 +116,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Tisch/Tisch-Maschine dreht C dabei rundherum – die Zeit kam vom Programm (1° wie 1 mm
   beim Schnittvorschub), seit P-2026-10-04-42 mit der halben Geschwindigkeit der Rundachse:
   rechte Kavitätenseite 3,00 → 1,52 min; seit P-2026-10-04-47 drehende Eilgänge als G1 im G93 und
-  das Schwenken in einem Zug: 1,09 min (senkrecht 1,03).
+  das Schwenken in einem Zug: 1,09 min (senkrecht 1,03). **S5 Entgraten in 3D – Prototyp zum
+  Besprechen** (Spezifikation Strategien 16.3 S5, Bild an Manuel 2026-10-04): am Schwenkteil 24
+  Kanten neu mit 5 Achsen (Fase 0,5 auf beiden Flächen), 10 bräuchten einen kleineren Fräser,
+  1,7 min.
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
