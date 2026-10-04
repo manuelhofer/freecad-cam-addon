@@ -493,6 +493,80 @@ def _messerkopf():
     )
 
 
+def _holex_kugel():
+    """HOLEX VHM-Vollradiusfräser TiAlN 207125, Ø 2 bis 12 – die günstige Kugel für Stahl,
+    Edelstahl, Guss und Alu (Manuel, 2026-10-04: der Diabolo ist nur fürs Hartfräsen und teuer)."""
+    groessen = []
+    for d, (schneide, gesamt, schaft, _fz) in kw.HOLEX_KUGEL_MASSE.items():
+        seite = kw.HOLEX_KUGEL_SEITE.format(d=d)
+        groessen.append(
+            {
+                "durchmesser": float(d),
+                "schneidenlaenge": float(schneide),
+                "gesamtlaenge": float(gesamt),
+                "schaft": float(schaft),
+                "name": f"207125 D{d}",
+                "artikel": f"207125 {d}",
+                "link": seite,
+                "katalog": seite,
+            }
+        )
+    return Reihe(
+        kennung="holex-kugel",
+        art=wz.KUGELFRAESER,
+        hersteller="Hoffmann Group",
+        titel="HOLEX VHM-Vollradiusfräser TiAlN, 2 Schneiden, Ø 2 bis 12",
+        quelle=(
+            "Hoffmann Group, hoffmann-group.com/DE/de/hom/p/207125-<Ø> (2026-10-04): Maße, fz "
+            "beim Kopierfräsen in Stahl, vc aus der Anwendertabelle (welche Gruppe welche "
+            "Werkstoffklasse ist, geschätzt), ae und ap höchstens 0,05 · D. Netto ab 23,93 € – "
+            "für P, M, K und N, nicht nur fürs Hartfräsen wie der Diabolo."
+        ),
+        groessen=tuple(groessen),
+        gemeinsam={"schneiden": 2, "schneidstoff": wz.VHM},
+        bezeichnung="HOLEX VHM-Vollradiusfräser TiAlN · Katalogwerte Kopieren, sonst Richtwerte",
+        katalogwerte=kw.holex_kugel_werte(),
+    )
+
+
+def _holex_torus():
+    """HOLEX Pro Steel VHM-Torusfräser HPC TiAlN 206357, Ø 6 bis 16 – günstig für Stahl,
+    Edelstahl und Guss (bisher gab es nur Jongen Ø 4 und 5 und einen GARANT Ø 10)."""
+    groessen = []
+    for (d, r), (schneide, gesamt, schaft, _fb, _fn) in kw.HOLEX_TORUS_MASSE.items():
+        seite = kw.HOLEX_TORUS_SEITE.format(
+            d=d, r=_zahl(r).replace(".", "%2C") if r % 1 else f"{int(r)}%2C0"
+        )
+        groessen.append(
+            {
+                "durchmesser": float(d),
+                "eckradius": float(r),
+                "schneidenlaenge": float(schneide),
+                "gesamtlaenge": float(gesamt),
+                "schaft": float(schaft),
+                "name": f"206357 D{d} R{_zahl(r)}",
+                "artikel": f"206357 {d}/{r:.1f}".replace(".", ","),
+                "link": seite,
+                "katalog": seite,
+            }
+        )
+    return Reihe(
+        kennung="holex-torus",
+        art=wz.TORUSFRAESER,
+        hersteller="Hoffmann Group",
+        titel="HOLEX Pro Steel VHM-Torusfräser HPC TiAlN, 4 Schneiden, Ø 6 bis 16",
+        quelle=(
+            "Hoffmann Group, hoffmann-group.com/DE/de/hom/p/206357-<Ø>@2F<R> (2026-10-04): Maße, "
+            "fz beim Besäumen und Nutenfräsen, vc aus der Anwendertabelle (welche Gruppe welche "
+            "Werkstoffklasse ist, geschätzt), Vollnut höchstens 0,05 · D tief. Netto ab 41,66 €."
+        ),
+        groessen=tuple(groessen),
+        gemeinsam={"schneiden": 4, "schneidstoff": wz.VHM},
+        bezeichnung="HOLEX Pro Steel VHM-Torusfräser HPC TiAlN · Katalogwerte Stahl, Inox, Guss",
+        katalogwerte=kw.holex_torus_werte(),
+    )
+
+
 def _beispiel(kennung, art, titel, quelle, werte, name, schneidstoff=wz.VHM):
     """Ein Beispiel einer Art – Maße nach Norm oder wie üblich, ohne belegten Hersteller."""
     werte = dict(werte, name=name, link=suche(titel))
@@ -771,6 +845,8 @@ def reihen():
         _schaftfraeser_r(),
         _entgrater(),
         _messerkopf(),
+        _holex_kugel(),
+        _holex_torus(),
         *_beispiele(),
         _drehen(),
         *_einstechen(),

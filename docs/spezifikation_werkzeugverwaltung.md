@@ -846,6 +846,24 @@ Netz suchen und direkt mit anbieten, wenn jemand einen Fräser erstellen will.�
     egal“). Genau das ist der Baum. „Messerkopf“ fände er schöner als „Planfräser“ („aber
     egal“) – gelassen.
 
+### 13.x Günstige Alternativen (Manuel, 2026-10-04)
+
+Manuel: „der eine rausgesuchte Rundfräser … ist für Hartfräsen geeignet … und nur für das ..
+außerdem teuer … vll kannst du für die Sachen, wo es aktuell nur einen einzigen Fräser gibt, die
+Datenbank noch etwas erweitern mit sinnvollen günstigen Alternativen und gerne auch ein paar
+mehr“. Nachgeschlagen auf hoffmann-group.com (Hoffmann Group, Marke HOLEX), je Größe die Seite:
+
+- **HOLEX VHM-Vollradiusfräser TiAlN 207125**, Ø 2 … 12, 2 Schneiden, für P, M, K, N (und H) –
+  netto ab 23,93 € (der GARANT Diabolo bis 65 HRC ab 97,47 €). Kopierfräsen nach der Seite: fz
+  je Größe in Stahl, vc aus der Anwendertabelle, ae und ap höchstens 0,05 · D (`holex-kugel`).
+- **HOLEX Pro Steel VHM-Torusfräser HPC TiAlN 206357**, Ø 6/0,5 … 16/1, 4 Schneiden, für P, M, K –
+  netto ab 41,66 €. Besäumen und Nutenfräsen: fz je Größe, vc aus der Anwendertabelle, Vollnut
+  höchstens 0,05 · D tief (`holex-torus`).
+- Welche Gruppe der Anwendertabelle welche Werkstoffklasse ist, nennt die Seite nicht – die
+  Zuordnung ist geschätzt; die Quelle der Reihe sagt es.
+- Noch einzeln und eher teuer: Lollipop, Gewindefräser, Planfräser (Sandvik), Fasenfräser –
+  nach und nach.
+
 ## 14. Die Drehrichtung am Werkzeug (Manuel, 2026-10-02)
 
 Manuel: „Natürlich muss man die Drehrichtung des Werkzeuges im Werkzeug angeben.“

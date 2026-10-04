@@ -331,3 +331,91 @@ GARANT_208165_MASSE = {
 }  # fmt: skip
 GARANT_208165_VC = {"P1": 115.0, "P2": 80.0, "M": 90.0, "K": 100.0, "N1": 300.0, "N3": 180.0,
                     "S": 50.0, "H": 35.0}  # fmt: skip
+
+
+# --- HOLEX VHM-Vollradiusfräser TiAlN 207125 (Hoffmann Group) ------------------------------------
+# Nachgeschlagen am 2026-10-04 auf hoffmann-group.com (je Größe die Seite „207125 <Ø>“): Maße,
+# 2 Schneiden, 30° Drall, Schaft h6 HA, für P, M, K, N (und H). Die günstige Kugel für alles
+# außer Hartfräsen (Manuel, 2026-10-04: der Diabolo „ist für Hartfräsen geeignet … und nur für
+# das .. außerdem teuer“). Netto-Preis am 2026-10-04: Ø 2–6 23,93 €, Ø 8 32,52 €, Ø 10 53,95 €,
+# Ø 12 70,05 € (der Diabolo ab 97,47 €).
+HOLEX_KUGEL_SEITE = "https://www.hoffmann-group.com/DE/de/hom/p/207125-{d}"
+# Ø → (Schneidenlänge Lc, Gesamtlänge L, Schaft DS, fz Kopierfräsen in Stahl < 900 N/mm²)
+HOLEX_KUGEL_MASSE = {
+    2: (5, 50, 6, 0.013),
+    3: (5, 50, 6, 0.013),
+    4: (8, 54, 6, 0.025),
+    5: (9, 54, 6, 0.025),
+    6: (10, 54, 6, 0.037),
+    8: (12, 58, 8, 0.051),
+    10: (14, 66, 10, 0.068),
+    12: (16, 73, 12, 0.09),
+}
+# vc (m/min) aus der Anwendertabelle der Seite – sie nennt Gruppen ohne Namen (N 350, N 250,
+# P 160/140/130/80/70, H 50, M 80/70, K 120, N 320); zugeordnet: N1 Alu 350, N2 Kupfer 250,
+# P1 160, P2 130, M 80, K 120, H 50 (geschätzt, welche Gruppe welche ist). fz je Klasse aus dem
+# fz für Stahl mal dem Faktor der Klasse (werkzeugkiste.FAKTOREN_HM). ae und ap höchstens
+# 0,05 · D (Kopieren, laut Seite).
+HOLEX_KUGEL_VC = {
+    "P1": 160.0,
+    "P2": 130.0,
+    "M": 80.0,
+    "K": 120.0,
+    "N1": 350.0,
+    "N2": 250.0,
+    "H": 50.0,
+}
+HOLEX_KUGEL_FZ = {"P1": 1.0, "P2": 0.8, "M": 0.7, "K": 1.0, "N1": 1.4, "N2": 1.2, "H": 0.5}
+
+
+def holex_kugel_werte():
+    """{Ø: {Klasse: {SCHLICHTEN: (vc, fz, ap, ae)}}} – Kopierfräsen nach der Seite."""
+    werte = {}
+    for d, (_lc, _l, _ds, fz) in HOLEX_KUGEL_MASSE.items():
+        zustellung = round(0.05 * d, 3)
+        werte[float(d)] = {
+            klasse: {
+                wz.SCHLICHTEN: (vc, round(fz * HOLEX_KUGEL_FZ[klasse], 4), zustellung, zustellung)
+            }
+            for klasse, vc in HOLEX_KUGEL_VC.items()
+        }
+    return werte
+
+
+# --- HOLEX Pro Steel VHM-Torusfräser HPC TiAlN 206357 (Hoffmann Group) ---------------------------
+# Nachgeschlagen am 2026-10-04 auf hoffmann-group.com (Seite „206357 <Ø>/<R>“): 4 Schneiden, für
+# Stahl, Edelstahl und Guss. Netto: Ø 6/0,5 41,66 €, Ø 8/0,5 56,22 €, Ø 10/1 85,17 €, Ø 12/1
+# 103,85 €, Ø 16/1 201,24 €.
+HOLEX_TORUS_SEITE = "https://www.hoffmann-group.com/DE/de/hom/p/206357-{d}%402F{r}"
+# (Ø, R) → (Schneidenlänge Lc, Gesamtlänge L, Schaft DS, fz Besäumen, fz Nutenfräsen)
+HOLEX_TORUS_MASSE = {
+    (6, 0.5): (13, 57, 6, 0.05, 0.04),
+    (8, 0.5): (19, 63, 8, 0.06, 0.05),
+    (10, 1.0): (22, 72, 10, 0.08, 0.06),
+    (12, 1.0): (26, 83, 12, 0.09, 0.07),
+    (16, 1.0): (32, 92, 16, 0.10, 0.08),
+}
+# vc aus der Anwendertabelle (P 260/240/180/160, M 80, K 250): P1 260, P2 180, M 80, K 250
+# (welche P-Gruppe welche Klasse ist, geschätzt). Vollnut höchstens 0,05 · D tief (laut Seite),
+# Besäumen bis zur Schneidenlänge – ae nennt sie dafür nicht (wie werkzeuge.vorlage).
+HOLEX_TORUS_VC = {"P1": 260.0, "P2": 180.0, "M": 80.0, "K": 250.0}
+HOLEX_TORUS_FZ = {"P1": 1.0, "P2": 0.8, "M": 0.7, "K": 1.0}
+
+
+def holex_torus_werte():
+    """{Ø: {Klasse: {Einsatz: (vc, fz, ap, ae)}}} – Besäumen (Schruppen) und Vollnut."""
+    werte = {}
+    for (d, _r), (_lc, _l, _ds, fz_besaeumen, fz_nut) in HOLEX_TORUS_MASSE.items():
+        werte[float(d)] = {
+            klasse: {
+                wz.SCHRUPPEN: (vc, round(fz_besaeumen * HOLEX_TORUS_FZ[klasse], 4), None, None),
+                wz.VOLLNUT: (
+                    vc,
+                    round(fz_nut * HOLEX_TORUS_FZ[klasse], 4),
+                    round(0.05 * d, 3),
+                    None,
+                ),
+            }
+            for klasse, vc in HOLEX_TORUS_VC.items()
+        }
+    return werte

@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-41 werkzeugkiste-guenstig
+
+### EINGELESEN
+- Manuel, 2026-10-04: „der eine rausgesuchte Rundfräser ... ist für Hartfräsen geeignet ... und
+  nur für das .. auserdem teuer ... vll kannst du für die sachen wo es aktuell nur einen einzigen
+  fräser gibt die datenbank noch etwas erweitern mit sinnvollen günstigen alternativen und gerne
+  auch ein paar mehr wenn du mal zeit zwischen druch hast.“
+
+### DATEIEN
+- `camaddon/katalogwerte.py` (`HOLEX_KUGEL_*`, `holex_kugel_werte`, `HOLEX_TORUS_*`,
+  `holex_torus_werte`), `camaddon/werkzeugkiste.py` (`_holex_kugel`, `_holex_torus`),
+  `docs/spezifikation_werkzeugverwaltung.md` (13.x), `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.180.0).
+
+### AKZEPTANZKRITERIUM
+- In der Werkzeugkiste ein günstiger Kugelfräser für Stahl/Inox/Guss/Alu in Ø 2 … 12 und ein
+  Torusfräser Ø 6 … 16, mit Artikel, Link und den Werten der Seite.
+
+### DONE
+- Nachgeschlagen auf hoffmann-group.com (im Browser, je Größe): HOLEX 207125 (Kugel, ab 23,93 €
+  netto) und HOLEX Pro Steel 206357 (Torus, ab 41,66 € netto). Die Kiste hat jetzt 106 + 5
+  Werkzeuge.
+
+### TESTS
+- `tests/test_werkzeugkiste.py` – OK. black und ruff sauber.
+
+### NEXT
+- Weitere: Lollipop, Gewindefräser, Planfräser, Fasenfräser günstig; Wegkippen am Rundtisch
+  besprechen.
+
 ## P-2026-10-04-40 freivorschub-aus-der-maschine
 
 ### EINGELESEN
