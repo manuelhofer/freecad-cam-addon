@@ -3,7 +3,7 @@
     <name>CAM Addon</name>
     <description>Makes FreeCAD CAM easier to use. Describe a machine as an assembly - axes, spindles, tool and workpiece mounts, inclined axes -, or create one ready-made (a lathe with your own dimensions, mills), move its axes by hand, hand it to CAM, check a CAM job's paths against its travel limits, watch the machine run through them, check for collisions of tool, holder and machine and whether the job's cutting data still match the tool manager. Tool manager with 26 tool types (milling, drilling, turning, probing), tool holders that also set how a tool stands to the machine (straight, driven radial, angle head), a material list, cutting data per material, a comparison of milling strategies and a planner for roughing values; hands tools, cutting data, step over and step down over to CAM and imports tools from CAM libraries. 4-axis machining: places a part in round bar stock as a CAM job, along the rotary axis of your machine, with all-round roughing and finishing for any cutter shape - all around or only over the faces you click.</description>
     <icon>resources/icons/camaddon.svg</icon>
-    <version>0.182.0</version>
+    <version>0.183.0</version>
     <date>2026-10-04</date>
     <maintainer>Manuel Hofer</maintainer>
     <license file="LICENSE">LGPL-2.1-or-later</license>

@@ -12,6 +12,22 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-45 assistent-zeit-im-freien
+
+### EINGELESEN
+- Offen aus P-39: Die Zeiten im Assistenten rechneten den Freivorschub nicht mit.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`IM_FREIEN_SCHNELL`, `_zeit_im_freien`), `docs/spezifikation_
+  strategien.md` (13b), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.183.0).
+
+### DONE
+- Gesehen (Screenshot `1_was_soll_weg` im Testteil-Szenario): Räumen „1,30 × Ziel“ (vorher
+  1,36), „Planfräsen wäre 103 % langsamer“ (vorher 127 %).
+
+### TESTS
+- `szenario_testteil`, `szenario_zielzeit`, `szenario_planen` – OK.
+
 ## P-2026-10-04-44 im-freien-schnell-schlichten
 
 ### EINGELESEN

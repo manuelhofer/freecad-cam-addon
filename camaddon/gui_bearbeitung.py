@@ -3132,6 +3132,8 @@ class _Block:
             self._merken(merk, schluessel)
             return
         self.zeit = self.s.zeit(self.vorschau, vorschub, senkrecht) if vorschub > 0 else None
+        if self.zeit is not None and self.s.kennung in IM_FREIEN_SCHNELL:
+            self.zeit = _zeit_im_freien(job, werkzeug, werte, self.vorschau, vorschub, senkrecht)
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
         self.ergebnis_basis = self.s.ergebnis_text(self.vorschau, zeit)
         self.ergebnis.setText(self.ergebnis_basis)
@@ -3173,6 +3175,39 @@ class _Block:
         self.ergebnis.setText("")
         self.material.setText("")
         self.hinweis.setText("")
+
+
+# Die Blöcke, deren Operationen im Freien mit dem Freivorschub fahren (freiwege) – ihre Zeit im
+# Assistenten rechnet ihn mit, und der Wettbewerb vergleicht so die Zeiten der Operationen.
+IM_FREIEN_SCHNELL = {
+    "planfraesen",
+    "raeumen",
+    "restraeumen",
+    "nut",
+    "kontur",
+    "entgraten",
+    "schruppen3d",
+    "restschruppen",
+    "schlichten3d",
+    "restschlichten",
+    "bleistift",
+}
+
+
+def _zeit_im_freien(job, werkzeug, werte, bahn, vorschub, eintauchen):
+    """Die Zeit der Vorschau (min) mit dem Freivorschub im Freien – wie die Operation fährt
+    (freiwege). Gerechnet im Materialstand, den der Assistent dem Block gibt; ohne ihn wie
+    bisher."""
+    from . import freiwege as fw
+
+    punkte = getattr(bahn, "punkte", None)
+    stand = werte.get("materialstand")
+    form = ff.von_werkzeug(werkzeug)
+    if not punkte or stand is None or form is None:
+        return bn.zeit(punkte or [], vorschub, eintauchen)
+    quader = mst._kopie(stand).quader
+    neu, _weg = fw.schneller(punkte, form, quader, vorschub, fw.freivorschub_fuer(job))
+    return bn.zeit(neu, vorschub, eintauchen)
 
 
 def _merk_schluessel(kennung, job, werkzeug, einsatz, werte, flaechen):

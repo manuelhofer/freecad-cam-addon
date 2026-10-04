@@ -2300,9 +2300,11 @@ das ist“; die Geschwindigkeit dafür gehört zur Maschine.
   Standard setzen in der Maschine beim Anlegen“, P-2026-10-04-40). Mit „Adaptiv – schneller
   Freivorschub“ am Räumen gilt dessen Wert, höchstens der der Maschine.
 - Gilt beim Rechnen der Operation (Räumen, Planfräsen, Kontur, Nut, 3D-Schruppen; seit
-  P-2026-10-04-44 auch 3D-Schlichten – nicht gekippt –, Bleistift, Entgraten) – die Zeiten
-  im Assistenten rechnen noch ohne (sie vergleichen Strategien; die Zeit der Operation und
-  „Auf der Maschine prüfen“ mit).
+  P-2026-10-04-44 auch 3D-Schlichten – nicht gekippt –, Bleistift, Entgraten). Seit
+  P-2026-10-04-45 rechnen die Zeiten im Assistenten ihn mit (`gui_bearbeitung._zeit_im_freien`,
+  im Materialstand, den der Assistent dem Block gibt; ohne ihn wie bisher) – der Wettbewerb
+  vergleicht so die Zeiten der Operationen. Am Testteil: Räumen 1,36 → 1,30 × Ziel, Planfräsen
+  127 → 103 % langsamer.
 - Gemessen: Testteil Räumen T1 10,27 → 9,59 min (2,8 m schnell); Zapfen Planfräsen 3,29 → 2,85
   min. Im Schnellen nichts abgetragen (nachgefahren, 0 mm³).
 
