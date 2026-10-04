@@ -494,6 +494,10 @@ class _Strategie:
         """Warum der Haken `feld` hier nicht geht (ein kurzer Satz) – None, wenn er geht."""
         return None
 
+    def haken_verborgen(self, feld, block):
+        """Fehlt der Haken `feld` hier ganz (er hätte an dieser Maschine nie Sinn)?"""
+        return False
+
     def zeit(self, bahn, vorschub, eintauchen):
         """Minuten der Vorschau (bahn.zeit über ihre Punkte, mm/min)."""
         return bn.zeit(bahn.punkte, vorschub, eintauchen)
@@ -2100,6 +2104,10 @@ class _Schlichten3D(_Strategie):
         # 5 Achsen simultan S2 (angestellt.py; Manuel, 2026-10-04: „Ja, so bauen“) – ohne Vorgabe.
         return (("anstellen", tr("ba.s3.anstellen"), tr("ba.s3.anstellen.tooltip"), False),)
 
+    def haken_verborgen(self, feld, block):
+        # Anstellen nur an einer 5-Achs-Maschine – an jeder anderen wäre der Haken nur Rauschen.
+        return feld == "anstellen" and not block.panel._fuenfachs()
+
     def haken_gesperrt(self, feld, block):
         if feld != "anstellen":
             return None
@@ -2735,6 +2743,10 @@ class _Block:
         for feld, kasten in getattr(self, "haken_felder", {}).items():
             grund = self.s.haken_gesperrt(feld, self)
             text, tooltip = self._haken_texte[feld]
+            verborgen = self.s.haken_verborgen(feld, self)
+            kasten.setVisible(not verborgen)
+            if verborgen:
+                grund = grund or ""
             kasten.setEnabled(grund is None)
             if grund is not None and kasten.isChecked():
                 kasten.setChecked(False)

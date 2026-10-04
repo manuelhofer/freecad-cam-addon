@@ -75,6 +75,8 @@ def schritte(h):
     text = block3d.ergebnis.text()
     h.pruefe(text.startswith("→ ") and ", Abstand 0,49, etwa " in text, f"3D-Schlichten: {text!r}")
     h.pruefe(not block3d.hinweis.text(), f"rot: {block3d.hinweis.text()!r}")
+    # Ohne 5-Achs-Maschine gibt es den Haken „Anstellen“ nicht (er wäre nur Rauschen).
+    h.pruefe(block3d.haken_felder["anstellen"].isHidden(), "„Anstellen“ an der 3-Achs-Fräse")
     schruppen = panel.schruppen3d
     yield from h.warte_auf(lambda: schruppen.vorschau is not None, 180000)
     h.pruefe(schruppen.aktiv(), "3D-Schruppen ohne Haken")

@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-28 anstellen-nur-an-5-achs
+
+### EINGELESEN
+- Im Bild aus Manuels Szenario `szenario_testteil_freivorschub` (3-Achs-Fräse): beim
+  3D-Schlichten der gesperrte Haken „Anstellen (5 Achsen simultan) – geht an einer
+  5-Achs-Maschine (oben wählen)“ – an jeder 3-Achs-Maschine nur Rauschen.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_Strategie.haken_verborgen`; der Haken nur an einer
+  5-Achs-Maschine), Hilfe „Bearbeitung“ (de/en), `tests/gui/szenario_mulde.py`, `package.xml`
+  (0.170.2).
+
+### AKZEPTANZKRITERIUM
+- Ohne 5-Achs-Maschine kein Haken „Anstellen“; an der 5-Achs-Maschine mit einem Schaftfräser
+  gesperrt, „– geht mit einem Kugelfräser“.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `szenario_mulde`, `szenario_kugel_angestellt` – OK. black und ruff sauber.
+
+### NEXT
+- Wegkippen weiter.
+
 ## P-2026-10-04-27 b014-aequidistant-stufe
 
 ### EINGELESEN
