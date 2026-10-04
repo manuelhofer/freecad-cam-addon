@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-48 kollision-schneller
+
+### EINGELESEN
+- Manuel, 2026-10-04: „wenn man so ne 4-Achs-Geschichte macht … dauert es durchaus lange, bis
+  die Maschine sich öffnet … es rechnen nur maximal 5 von meinen 24 Kernen … kann man das nicht
+  optimieren, dass alle genommen werden?“
+
+### DATEIEN
+- `camaddon/kollision.py` (`Koerper.mitte/halb`: der Hüllquader eines gedrehten Quaders als
+  R·c + t und |R|·h statt acht Ecken mit min/max; die Lage an die Form erst, wenn genau gerechnet
+  wird; der Abstand der Hüllquader in der Schleife ausgeschrieben), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.184.1).
+
+### DONE
+- Gemessen (Profil, 4-Achs-Schruppen, Welle Ø 60): Das Prüffenster öffnet nach 3,8 s; „Kollision
+  prüfen“ ist der lange Teil – reines Python (je Stelle die Hüllquader aller Körper, 10 Millionen
+  Aufrufe), auf einem Kern; der eigentliche Abstand (OpenCascade) nur 1,7 s. Echte Zeit 27,6 →
+  16,4 s. Auf alle Kerne verteilen hieße: die Stationen in Stücke teilen und in eigenen
+  FreeCAD-Prozessen prüfen – der nächste Schritt.
+
+### TESTS
+- `test_kollision`, `test_vierachs_pruefen`, `test_wegkippen`, `test_schwenken`,
+  `test_reichweite`, `test_abfahren` – OK.
+
 ## P-2026-10-04-47 wegkippen-eilgaenge
 
 ### EINGELESEN

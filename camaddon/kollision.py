@@ -258,6 +258,18 @@ class Koerper:
             for y in (box.YMin, box.YMax)
             for z in (box.ZMin, box.ZMax)
         ]
+        # Der Hüllquader als Mitte und halbe Kanten: gedreht ist sein Hüllquader Mitte R·c + t,
+        # halbe Kanten |R|·h – ohne die acht Ecken einzeln (kollision._stelle, je Stelle).
+        self.mitte = (
+            (box.XMin + box.XMax) / 2,
+            (box.YMin + box.YMax) / 2,
+            (box.ZMin + box.ZMax) / 2,
+        )
+        self.halb = (
+            (box.XMax - box.XMin) / 2,
+            (box.YMax - box.YMin) / 2,
+            (box.ZMax - box.ZMin) / 2,
+        )
 
 
 @dataclass(eq=False)
@@ -767,6 +779,7 @@ class _Welt:
             wege[achse] = self.verfahren.weg_bei(achse, wert)
         bewegung = {}
         huelle = {}
+        platzierung = {}  # Körper → seine Lage hier; an die Form erst, wenn genau gerechnet wird
 
         def lage(koerper):
             if koerper not in huelle:
@@ -774,19 +787,22 @@ class _Welt:
                 if glied not in bewegung:
                     bewegung[glied] = self.pruefung._glied_lage(glied, wege)
                 platz = bewegung[glied].multiply(koerper.basis)
-                koerper.form.Placement = platz
-                punkte = [platz.multVec(e) for e in koerper.ecken]
-                huelle[koerper] = (
-                    min(p.x for p in punkte),
-                    min(p.y for p in punkte),
-                    min(p.z for p in punkte),
-                    max(p.x for p in punkte),
-                    max(p.y for p in punkte),
-                    max(p.z for p in punkte),
-                )
+                platzierung[koerper] = platz
+                m = platz.toMatrix()
+                cx, cy, cz = koerper.mitte
+                hx, hy, hz = koerper.halb
+                x = m.A11 * cx + m.A12 * cy + m.A13 * cz + m.A14
+                y = m.A21 * cx + m.A22 * cy + m.A23 * cz + m.A24
+                z = m.A31 * cx + m.A32 * cy + m.A33 * cz + m.A34
+                ex = abs(m.A11) * hx + abs(m.A12) * hy + abs(m.A13) * hz
+                ey = abs(m.A21) * hx + abs(m.A22) * hy + abs(m.A23) * hz
+                ez = abs(m.A31) * hx + abs(m.A32) * hy + abs(m.A33) * hz
+                huelle[koerper] = (x - ex, y - ey, z - ez, x + ex, y + ey, z + ez)
             return huelle[koerper]
 
         def rechne_genau(k):
+            for koerper in (paare[k].a, paare[k].b):
+                koerper.form.Placement = platzierung[koerper]
             abstand, stelle = self._abstand(paare[k].a, paare[k].b)
             self._schranken[schluessel[k]] = (abstand, True)
             return abstand, stelle
@@ -803,7 +819,13 @@ class _Welt:
             reicht = BERUEHRT if paar.nur_vorschub else self.warn
             # Genau hier schon gerechnet (am Ende des letzten Abschnitts): auch gemerkt.
             schranke, ist_genau = self._schranken.get(schluessel[k], (-math.inf, False))
-            abstand = max(_luecke(lage(paar.a), lage(paar.b)), schranke)
+            # Der Abstand der Hüllquader (wie _luecke, hier ausgeschrieben – je Stelle viele Paare).
+            h1 = huelle.get(paar.a) or lage(paar.a)
+            h2 = huelle.get(paar.b) or lage(paar.b)
+            dx = max(h1[0] - h2[3], h2[0] - h1[3], 0.0)
+            dy = max(h1[1] - h2[4], h2[1] - h1[4], 0.0)
+            dz = max(h1[2] - h2[5], h2[2] - h1[5], 0.0)
+            abstand = max(math.sqrt(dx * dx + dy * dy + dz * dz), schranke)
             if abstand <= reicht and not ist_genau:  # vielleicht ein Befund
                 abstand, stelle = rechne_genau(k)
                 ist_genau = True
