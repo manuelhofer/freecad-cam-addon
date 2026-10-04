@@ -25,6 +25,7 @@ import Path.Op.Base as PathOp
 from . import angestellt as an
 from . import bahn as bn
 from . import fraeserform as ff
+from . import freiwege as fw
 from . import namen
 from . import planfraesen as pf
 from . import schlichten3d_bahn as sb
@@ -219,6 +220,10 @@ class Schlichten3D(PathOp.ObjectOp):
         punkte = ergebnis.punkte
         if _gekippt(obj):
             punkte = an.gerade(punkte)  # eine Achse je Satz: Bögen als Geraden, kurze Sätze
+        else:
+            # Im Freien mit dem Freivorschub, kurz vor dem Material langsam (freiwege, Manuel
+            # 2026-10-04: „gib Gas bis kurz davor … bei allen Strategien“).
+            punkte, _schnell = fw.fuer_operation(self.job, obj, punkte, self.horizFeed * 60.0)
         self.commandlist.extend(
             bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
         )

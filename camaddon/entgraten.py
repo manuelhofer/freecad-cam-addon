@@ -23,6 +23,7 @@ import Path.Op.Base as PathOp
 from . import bahn as bn
 from . import entgrat_bahn as eb
 from . import fraeserform as ff
+from . import freiwege as fw
 from . import hoehenfeld as hf
 from . import namen
 from . import planfraesen as pf
@@ -98,8 +99,11 @@ class Entgraten(PathOp.ObjectOp):
             FreeCAD.Console.PrintWarning(
                 f"{obj.Label}: {tr('eg.ausgelassen', anzahl=ergebnis.ausgelassen)}\n"
             )
+        # Im Freien mit dem Freivorschub, kurz vor dem Material langsam (freiwege, Manuel
+        # 2026-10-04: „gib Gas bis kurz davor … bei allen Strategien“).
+        punkte, _schnell = fw.fuer_operation(self.job, obj, ergebnis.punkte, self.horizFeed * 60.0)
         self.commandlist.extend(
-            bn.befehle(ergebnis.punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
+            bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
         )
 
 

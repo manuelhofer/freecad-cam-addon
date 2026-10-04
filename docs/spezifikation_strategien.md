@@ -2299,7 +2299,8 @@ das ist“; die Geschwindigkeit dafür gehört zur Maschine.
   (`maschine.VORSCHUB_MAX_VORGABE`; Manuel: „wenn nichts drinnen steht .. dann halt 10 m/min als
   Standard setzen in der Maschine beim Anlegen“, P-2026-10-04-40). Mit „Adaptiv – schneller
   Freivorschub“ am Räumen gilt dessen Wert, höchstens der der Maschine.
-- Gilt beim Rechnen der Operation (Räumen, Planfräsen, Kontur, Nut, 3D-Schruppen) – die Zeiten
+- Gilt beim Rechnen der Operation (Räumen, Planfräsen, Kontur, Nut, 3D-Schruppen; seit
+  P-2026-10-04-44 auch 3D-Schlichten – nicht gekippt –, Bleistift, Entgraten) – die Zeiten
   im Assistenten rechnen noch ohne (sie vergleichen Strategien; die Zeit der Operation und
   „Auf der Maschine prüfen“ mit).
 - Gemessen: Testteil Räumen T1 10,27 → 9,59 min (2,8 m schnell); Zapfen Planfräsen 3,29 → 2,85

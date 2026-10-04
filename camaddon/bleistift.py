@@ -19,6 +19,7 @@ import Path.Op.Base as PathOp
 
 from . import bahn as bn
 from . import bleistift_bahn as bb
+from . import freiwege as fw
 from . import namen
 from . import planfraesen as pf
 from . import vierachs_bahn as vb
@@ -86,8 +87,11 @@ class Bleistift(PathOp.ObjectOp):
             return
         obj.Linien = ergebnis.linien
         obj.Laenge = round(float(ergebnis.laenge), 1)
+        # Im Freien mit dem Freivorschub, kurz vor dem Material langsam (freiwege, Manuel
+        # 2026-10-04: „gib Gas bis kurz davor … bei allen Strategien“).
+        punkte, _schnell = fw.fuer_operation(self.job, obj, ergebnis.punkte, self.horizFeed * 60.0)
         self.commandlist.extend(
-            bn.befehle(ergebnis.punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
+            bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
         )
 
 

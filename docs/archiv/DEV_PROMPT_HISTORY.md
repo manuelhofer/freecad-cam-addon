@@ -12,6 +12,20 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-44 im-freien-schnell-schlichten
+
+### EINGELESEN
+- Manuel, 2026-10-04: „jetzt weiter programmieren, was noch zu tun ist“ – offen war „im Freien
+  schnell“ für 3D-Schlichten, Bleistift, Entgraten (bei allen Strategien).
+
+### DATEIEN
+- `camaddon/schlichten3d.py` (nicht bei gekippter Achse), `camaddon/bleistift.py`,
+  `camaddon/entgraten.py` (freiwege vor bahn.befehle), `docs/spezifikation_strategien.md` (13b),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.182.0).
+
+### TESTS
+- `test_schlichten3d`, `test_bleistift`, `test_entgraten` – OK.
+
 ## P-2026-10-04-43 hoffmann-anwendertabelle
 
 ### EINGELESEN
