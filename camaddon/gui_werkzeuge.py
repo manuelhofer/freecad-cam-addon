@@ -400,12 +400,17 @@ class WerkzeugDialog(QtGui.QDialog):
         gitter.setColumnStretch(1, 1)
         gitter.setColumnStretch(3, 1)
 
+        # Die Nummer ist freiwillig (W-002 F2): 0 zeigt „–“ – nicht geladen.
         self.feld_nummer = QtGui.QSpinBox()
-        self.feld_nummer.setRange(1, GROESSTE_NUMMER)
+        self.feld_nummer.setRange(0, GROESSTE_NUMMER)
         self.feld_nummer.setPrefix("T")
+        self.feld_nummer.setSpecialValueText("–")
         self.feld_nummer.setToolTip(tr("wv.nummer.tooltip"))
         self.feld_nummer.valueChanged.connect(self._nummer_geaendert)
         self.feld_nummer.editingFinished.connect(self._nach_nummer)
+        self.knopf_entladen = QtGui.QPushButton(tr("wv.nummer.entfernen"))
+        self.knopf_entladen.setToolTip(tr("wv.nummer.entfernen.tooltip"))
+        self.knopf_entladen.clicked.connect(self._entladen)
 
         # Die Arten nach Gruppen – „Fräsen“, „Bohren“ … als Überschrift, nicht wählbar.
         self.feld_art = QtGui.QComboBox()
@@ -540,7 +545,11 @@ class WerkzeugDialog(QtGui.QDialog):
         # Maße der Art ordnet _felder_anordnen() darunter an, zu zweit je Reihe.
         self._gitter = gitter
         gitter.addWidget(QtGui.QLabel(tr("wv.nummer")), 0, 0)
-        gitter.addWidget(self.feld_nummer, 0, 1)
+        nummer_zeile = QtGui.QHBoxLayout()
+        nummer_zeile.setContentsMargins(0, 0, 0, 0)
+        nummer_zeile.addWidget(self.feld_nummer, 1)
+        nummer_zeile.addWidget(self.knopf_entladen)
+        gitter.addLayout(nummer_zeile, 0, 1)
         gitter.addWidget(QtGui.QLabel(tr("wv.art")), 0, 2)
         gitter.addWidget(self.feld_art, 0, 3)
         gitter.addWidget(QtGui.QLabel(tr("wv.name")), 1, 0)
@@ -744,7 +753,8 @@ class WerkzeugDialog(QtGui.QDialog):
             self._schnittwerte_zeigen()
             return
         self._fuellt = True
-        self.feld_nummer.setValue(w.nummer)
+        self.feld_nummer.setValue(max(w.nummer, 0))
+        self.knopf_entladen.setEnabled(w.nummer > 0)
         self.feld_art.setCurrentIndex(self.feld_art.findData(w.art))
         for feld, eingabe in self._zahlenfelder.items():
             eingabe.setText(self._zeigen(feld, getattr(w, feld)))
@@ -948,7 +958,9 @@ class WerkzeugDialog(QtGui.QDialog):
                 )
             gleicher_name = self.bibliothek.mit_name(w.name, ausser=w)
             if gleicher_name is not None:
-                saetze.append(tr("wv.hinweis.name", name=w.name, nummer=gleicher_name.nummer))
+                saetze.append(
+                    tr("wv.hinweis.name", name=w.name, werkzeug=dezimal(wz.genannt(gleicher_name)))
+                )
         self.hinweis.setText("\n".join(saetze))
         self.hinweis.setVisible(bool(saetze))
 
@@ -1004,7 +1016,15 @@ class WerkzeugDialog(QtGui.QDialog):
         if self._fuellt or self.werkzeug is None:
             return
         self.werkzeug.nummer = int(wert)
+        self.knopf_entladen.setEnabled(self.werkzeug.nummer > 0)
         self._geaendert()
+
+    def _entladen(self):
+        """Nummer entfernen (W-002 F2): Das Werkzeug bleibt, belegt aber keine Nummer mehr."""
+        if self.werkzeug is None:
+            return
+        self.feld_nummer.setValue(0)
+        self._nach_nummer()
 
     def _nach_nummer(self):
         """Nach der Eingabe der Nummer: Liste neu sortieren, das Werkzeug bleibt gewählt."""

@@ -498,7 +498,15 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
      Name (`SoText2`, obenauf). Umlegen ist ein Schritt Rückgängig im Dokument
      des Jobs; Schließen merkt die Maschine am Job und kehrt zu ihm zurück.
    - Noch nicht: Werkzeuge, die im Revolver bleiben, ohne dass der Job sie braucht
-     (dann auch für die Kollision), und F2 (Nummer am Werkzeug freiwillig).
+     (dann auch für die Kollision).
+   - **F2 gebaut** (P-2026-10-04-35, Manuel: „kannst du bauen ja“): Nummer 0 heißt „nicht
+     geladen“ – im Feld „–“ (`setSpecialValueText`), daneben „Entladen“; in der Liste „–“, im
+     Satz der Kurzname („Schaftfräser Ø 12“, `wz.genannt`), sortiert zuletzt (`wz.nach_nummer`);
+     „jede Nummer nur einmal“ nur unter Werkzeugen mit Nummer (`mit_nummer(0)` ist None). Im
+     Job bekommt es ohne Revolver die Nummer, die es dort schon hat, sonst die kleinste, die
+     weder ein Controller des Jobs noch ein Werkzeug der Werkzeugverwaltung trägt
+     (`bestueckung.platz_fuer`, `job_schnittwerte.freie_nummer`) – nie T0; am Revolver den
+     ersten freien Platz. In FreeCADs Werkzeugbibliothek steht es hinter allen anderen.
 
 ## 11. Entscheidungen (Claude, zur Besprechung)
 

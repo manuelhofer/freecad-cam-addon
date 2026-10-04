@@ -114,8 +114,10 @@ doppelt = [(n, sorted(e.werkzeug.kennung for e in es)) for n, es in bs.doppelt(j
 pruefe(doppelt == [(1, sorted([fraeser.kennung, bohrer.kennung]))], f"doppelt: {doppelt}")
 tc_bohrer.ToolNumber = 5
 
-# Ohne Revolver die Nummer aus der Werkzeugverwaltung; alle Plätze belegt: None.
-pruefe(bs.platz_fuer(job, kugel, bibliothek, []) == 0, "ohne Revolver nicht die Nummer")
+# Ohne Revolver die Nummer aus der Werkzeugverwaltung – ohne Nummer eine freie (W-002 F2, unten);
+# alle Plätze belegt: None.
+pruefe(bs.platz_fuer(job, fraeser, bibliothek, []) == 3, "ohne Revolver nicht die Nummer")
+pruefe(bs.platz_fuer(job, kugel, bibliothek, []) > 0, "ohne Revolver und ohne Nummer: T0")
 pruefe(bs.platz_fuer(job, kugel, bibliothek, [1, 5]) is None, "voll, aber ein Platz")
 pruefe(bs.platz_fuer(job, kugel, bibliothek, [1, 5, 6]) == 6, "nicht der freie P6")
 pruefe(bs.platz_fuer(None, bohrer, bibliothek, PLAETZE) == 3, "ohne Job nicht die Nummer")
@@ -143,6 +145,18 @@ pruefe(bs.umbenannt("T3 Schruppen", 3, 5) == "T5 Schruppen", "T3 → T5")
 pruefe(bs.umbenannt("T33 Schruppen", 3, 5) == "T33 Schruppen", "T33 umbenannt")
 pruefe(bs.umbenannt("T3", 3, 5) == "T5", "nur „T3“")
 pruefe(bs.umbenannt("TC: 5mm Endmill", 1, 5) == "TC: 5mm Endmill", "fremder Name umbenannt")
+
+# Ohne Nummer (W-002 F2) und ohne Maschine: eine Nummer, die weder ein Controller des Jobs noch
+# ein Werkzeug der Werkzeugverwaltung trägt – nie T0.
+belegt = {int(tc.ToolNumber) for tc in js.werkzeug_controller(job)} | {3}
+frei = bs.platz_fuer(job, kugel, bibliothek, [])
+pruefe(frei > 0 and frei not in belegt, f"Kugel ohne Nummer: T{frei}, belegt {belegt}")
+tc_kugel = js.controller_ohne_transaktion(dok, job, kugel, einsatz(kugel))
+pruefe(
+    int(tc_kugel.ToolNumber) > 0 and int(tc_kugel.ToolNumber) not in belegt,
+    f"Controller ohne Nummer: {tc_kugel.ToolNumber}, {tc_kugel.Label}",
+)
+pruefe(bs.platz_fuer(job, kugel, bibliothek, []) == int(tc_kugel.ToolNumber), "nicht dieselbe")
 
 FreeCAD.closeDocument(dok.Name)
 sprache.setze_sprache(vorher_sprache)

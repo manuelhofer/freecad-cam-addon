@@ -140,7 +140,9 @@ def _ziel_minuten(minuten):
 def _ziel_werkzeug(werkzeug):
     """„T2 Messerkopf Ø 50“."""
     d = groesse_zeigen(werkzeug.durchmesser, einheiten.LAENGE) or "0"
-    return tr("ba.ziel.werkzeug", nummer=werkzeug.nummer, art=wz.art_text(werkzeug.art), d=d)
+    return tr(
+        "ba.ziel.werkzeug", nummer=wz.nummer_text(werkzeug), art=wz.art_text(werkzeug.art), d=d
+    )
 
 
 def _grau(text=""):
@@ -3013,7 +3015,7 @@ class _Block:
         vorher = self.fraeser()
         self._fraeser = [
             w
-            for w in sorted(bibliothek.werkzeuge, key=lambda w: w.nummer)
+            for w in sorted(bibliothek.werkzeuge, key=wz.nach_nummer)
             if w.durchmesser > 0
             and self.s.werkzeug_passt(w)
             and self._passende_einsaetze(w, werkstoff)
@@ -5106,7 +5108,7 @@ class BearbeitungPanel:
         flaechen = ", ".join(ausgelassen)
         rest = self.restraeumen
         if rest.aktiv() and rest.vorschau is not None:
-            werkzeug = f"T{rest.fraeser().nummer}"
+            werkzeug = wz.genannt(rest.fraeser())
             if len(ausgelassen) == 1:
                 neu = tr(
                     "ba.raeumen.ausgelassen.rest", text=text, flaeche=flaechen, d=d, t=werkzeug

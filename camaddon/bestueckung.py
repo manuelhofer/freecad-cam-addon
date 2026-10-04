@@ -125,14 +125,24 @@ def platz_fuer(job, werkzeug, bibliothek, nummern, vorgemerkt=None):
     """Die Nummer, mit der `werkzeug` (werkzeuge.Werkzeug) in diesem Job aufgerufen wird.
 
     `nummern`: die Platznummern des Revolvers der Maschine – leer ohne Revolver oder
-    ohne Maschine: dann seine Nummer aus der Werkzeugverwaltung (0 ohne). Mit Revolver:
+    ohne Maschine: dann seine Nummer aus der Werkzeugverwaltung (ohne Nummer die, die es im
+    Job schon hat, sonst die kleinste freie – W-002 F2). Mit Revolver:
     der Platz, den es im Job schon hat; sonst seine Nummer, wenn der Platz im Job frei
     ist; sonst der erste freie. `vorgemerkt`: {Nummer: Kennung} für Werkzeuge, die gleich
     mit in den Job kommen (Schruppen und Schlichten in einem Schritt). None, wenn alle
     Plätze belegt sind.
     """
     if not nummern:
-        return werkzeug.nummer
+        if werkzeug.nummer > 0:
+            return werkzeug.nummer
+        # Ohne Nummer (W-002 F2): der Platz, den es im Job schon hat, sonst eine freie Nummer.
+        eintrag = eintrag_von(job, werkzeug, bibliothek) if job is not None else None
+        if eintrag is not None and eintrag.nummern:
+            return eintrag.nummer
+        belegt = set(vorgemerkt or {}) | {w.nummer for w in bibliothek.werkzeuge}
+        if job is not None:
+            belegt |= set(auf_plaetzen(job, bibliothek))
+        return next(n for n in range(1, len(belegt) + 2) if n not in belegt)
     if job is not None:
         eintrag = eintrag_von(job, werkzeug, bibliothek)
         if eintrag is not None and eintrag.nummern:

@@ -436,8 +436,11 @@ def uebergeben(bibliothek):
     freecad_nach_nummer = freecad_werkstoffe()
     tools = []
     neue_ids = set()
+    # Ohne Nummer (W-002 F2) bekommt ein Werkzeug in FreeCADs Bibliothek eine hinter allen
+    # anderen – sie zählt dort nur die Reihe.
+    ohne_nummer = max([w.nummer for w in bibliothek.werkzeuge] + [0])
     for werkzeug in bibliothek.sortierte_werkzeuge():
-        kurz = f"T{werkzeug.nummer} {wz.art_text(werkzeug.art)}"
+        kurz = f"{wz.genannt(werkzeug)} {wz.art_text(werkzeug.art)}"
         if werkzeug.art not in FORMEN:
             bericht.ohne_form.append(kurz)
             continue
@@ -448,7 +451,11 @@ def uebergeben(bibliothek):
             bericht.naeherungen.append((kurz, wz.art_text(NAEHERUNGEN[werkzeug.art])))
         daten = toolbit_daten(werkzeug, werkstoffe_nach_kennung, freecad_nach_nummer, bericht)
         cam_assets.add_raw("toolbit", daten["id"], json.dumps(daten, indent=2).encode("utf-8"))
-        tools.append({"nr": werkzeug.nummer, "path": f"{daten['id']}.fctb"})
+        nr = werkzeug.nummer
+        if nr <= 0:
+            ohne_nummer += 1
+            nr = ohne_nummer
+        tools.append({"nr": nr, "path": f"{daten['id']}.fctb"})
         neue_ids.add(daten["id"])
         bericht.werkzeuge += 1
     for uri in cam_assets.list_assets(asset_type="toolbit", store="local"):

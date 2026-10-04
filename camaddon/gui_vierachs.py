@@ -1747,7 +1747,7 @@ class VierachsPanel:
         vorher = self.fraeser()
         self._fraeser = [
             w
-            for w in sorted(self.bibliothek.werkzeuge, key=lambda w: w.nummer)
+            for w in sorted(self.bibliothek.werkzeuge, key=wz.nach_nummer)
             if w.art in FRAESER_ARTEN
             and w.durchmesser > 0
             and self._passende_einsaetze(w, werkstoff)
@@ -2141,7 +2141,7 @@ class VierachsPanel:
         vorher = self.schlichtfraeser()
         self._schlichtfraeser = [
             w
-            for w in sorted(self.bibliothek.werkzeuge, key=lambda w: w.nummer)
+            for w in sorted(self.bibliothek.werkzeuge, key=wz.nach_nummer)
             if w.durchmesser > 0
             and ff.von_werkzeug(w) is not None
             and self._passende_einsaetze(w, werkstoff)
@@ -2297,7 +2297,7 @@ class VierachsPanel:
         vorher = self.planfraeser()
         self._planfraeser = [
             w
-            for w in sorted(self.bibliothek.werkzeuge, key=lambda w: w.nummer)
+            for w in sorted(self.bibliothek.werkzeuge, key=wz.nach_nummer)
             if w.durchmesser > 0
             and (self._ebene_stirn(w) or vplan.bohrer_von(w))
             and self._passende_einsaetze(w, werkstoff)
@@ -2741,7 +2741,7 @@ class VierachsPanel:
             n = dazu.bohrungen
             text += " " + tr(
                 "va.plan.dazu_bohren",
-                bohrer=f"T{bohrer.nummer}",
+                bohrer=wz.genannt(bohrer),
                 bohrungen=tr("va.plan.bohrung") if n == 1 else tr("va.plan.bohrungen_zahl", n=n),
                 seiten=(
                     tr("va.plan.seite") if dazu.seiten == 1 else tr("va.plan.seiten", n=dazu.seiten)
@@ -2764,7 +2764,7 @@ class VierachsPanel:
         vorher = self.entgratfraeser()
         self._entgratfraeser = [
             w
-            for w in sorted(self.bibliothek.werkzeuge, key=lambda w: w.nummer)
+            for w in sorted(self.bibliothek.werkzeuge, key=wz.nach_nummer)
             if vent.kann_entgraten(w) and self._passende_einsaetze(w, werkstoff)
         ]
         kennungen = [w.kennung for w in self._entgratfraeser]
@@ -2898,10 +2898,10 @@ class VierachsPanel:
             geht, vorschlag, grund = False, False, tr("va.entgraten.keine_kanten")
         elif werkzeug.art == wz.FASENFRAESER:
             geht, vorschlag = True, True
-            grund = tr("va.entgraten.vorschlag", kanten=len(kanten), werkzeug=f"T{werkzeug.nummer}")
+            grund = tr("va.entgraten.vorschlag", kanten=len(kanten), werkzeug=wz.genannt(werkzeug))
         else:
             geht, vorschlag = True, False
-            grund = tr("va.entgraten.kugel", kanten=len(kanten), werkzeug=f"T{werkzeug.nummer}")
+            grund = tr("va.entgraten.kugel", kanten=len(kanten), werkzeug=wz.genannt(werkzeug))
         geht = geht and self._entgraten_erlaubt
         self.entgrat_grund.setText(grund)
         war = self.entgraten_an()
@@ -3191,7 +3191,7 @@ class VierachsPanel:
         einspannung = rw.Einspannung(0.0, hl.lage(self.bibliothek.halter_von(werkzeug)))
         # Am Revolver der Platz, den es in diesem Job bekommt (W-002 Stufe G).
         nummer = self._programmnummer(werkzeug, self._vorgemerkt(werkzeug))
-        name = f"T{werkzeug.nummer}"
+        name = wz.genannt(werkzeug)
         if nummer is None:
             return html.escape(tr("va.lage.alle_belegt", werkzeug=name, maschine=eintrag.name))
         aufnahme, radial = pruefung.kommt_aus(nummer, richtung, einspannung)
@@ -3210,6 +3210,8 @@ class VierachsPanel:
             satz = tr("va.lage.nicht_radial_gerade", **werte)
         else:
             satz = tr("va.lage.nicht_radial", **werte)
+        if werkzeug.nummer <= 0:  # ohne Nummer findet der Verweis es nicht
+            return html.escape(satz, quote=False)
         verweis = html.escape(tr("rw.werkzeug_oeffnen", werkzeug=name), quote=False)
         return (
             f'{html.escape(satz, quote=False)} <a href="werkzeug:{werkzeug.nummer}">{verweis}</a>'

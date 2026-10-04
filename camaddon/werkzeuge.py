@@ -397,7 +397,7 @@ class Werkzeug:
 
     # Bleibt, auch wenn sich die T-Nummer ändert.
     kennung: str = field(default_factory=lambda: uuid.uuid4().hex)
-    nummer: int = 1  # T-Nummer
+    nummer: int = 1  # T-Nummer; 0: keine – nicht geladen (W-002 F2)
     # Wie das Werkzeug in der Steuerung heißt (T="Fräser VHM 12"); leer = beispielname().
     name: str = ""
     art: str = SCHAFTFRAESER
@@ -1271,10 +1271,25 @@ def zeile(werkzeug):
     """
     w = werkzeug
     teile = merkmale(w) + ([w.hersteller] if w.hersteller else [])
-    werte = {"nummer": w.nummer, "art": art_text(w.art), "werte": " · ".join(teile)}
+    werte = {"nummer": nummer_text(w), "art": art_text(w.art), "werte": " · ".join(teile)}
     if w.name:
         return tr("wv.zeile.name", name=w.name, **werte)
     return tr("wv.zeile", **werte)
+
+
+def nummer_text(werkzeug):
+    """„T3“ – oder „–“ für ein Werkzeug ohne Nummer (nicht geladen, W-002 F2)."""
+    return f"T{werkzeug.nummer}" if werkzeug.nummer > 0 else "–"
+
+
+def genannt(werkzeug):
+    """Wie ein Satz das Werkzeug nennt: „T3“ – ohne Nummer „Schaftfräser Ø 12“."""
+    return f"T{werkzeug.nummer}" if werkzeug.nummer > 0 else kurz(werkzeug)
+
+
+def nach_nummer(werkzeug):
+    """Sortierschlüssel: nach Nummer, die ohne Nummer zuletzt, dann nach Durchmesser."""
+    return (werkzeug.nummer <= 0, werkzeug.nummer, werkzeug.durchmesser)
 
 
 def zeile_ohne_nummer(werkzeug):
@@ -1345,7 +1360,7 @@ def beispielname(werkzeug):
     Maßsystem („D0.5 L1“ in inch).
     """
     w = werkzeug
-    teile = [art_text(w.art), f"T{w.nummer}"]
+    teile = [art_text(w.art)] + ([f"T{w.nummer}"] if w.nummer > 0 else [])
     if hat_feld(w, "schneidstoff"):
         teile.append(schneidstoff_text(w.schneidstoff))
     if hat_feld(w, "durchmesser") and w.durchmesser:
@@ -1448,7 +1463,10 @@ class Bibliothek:
         self.werkzeuge.remove(werkzeug)
 
     def mit_nummer(self, nummer, ausser=None):
-        """Ein anderes Werkzeug mit dieser T-Nummer, oder None."""
+        """Ein anderes Werkzeug mit dieser T-Nummer, oder None – ohne Nummer (0) keins: „Jede
+        Nummer nur einmal“ gilt nur unter Werkzeugen mit Nummer (W-002 F2)."""
+        if nummer <= 0:
+            return None
         return next((w for w in self.werkzeuge if w.nummer == nummer and w is not ausser), None)
 
     def mit_name(self, name, ausser=None):
@@ -1461,7 +1479,7 @@ class Bibliothek:
         )
 
     def sortierte_werkzeuge(self):
-        return sorted(self.werkzeuge, key=lambda w: (w.nummer, w.durchmesser))
+        return sorted(self.werkzeuge, key=nach_nummer)
 
     # --- Halter -----------------------------------------------------------------
 

@@ -113,11 +113,12 @@ def schritte(h):
     tippen(d.feld_gesamtlaenge, "")
     yield 100
     h.pruefe(d.werkzeug.gesamtlaenge == 0 and not d.hinweis.isVisible(), "Gesamtlänge leeren")
-    # Länge ab Spindelnase (für „Auf der Maschine prüfen“): bei jeder Art; leer grau die
-    # Gesamtlänge, eingetragen am Werkzeug.
+    # Länge ab Spindelnase (für „Auf der Maschine prüfen“): bei jeder Art; leer grau, was
+    # gilt – mit dem vorgeschlagenen Halter (ER25) aus ihm und dem Fräser, eingetragen am
+    # Werkzeug.
     h.pruefe(d.feld_laenge_spindelnase.isVisible(), "Länge ab Spindelnase fehlt")
     grau = d.feld_laenge_spindelnase.placeholderText()
-    h.pruefe(grau == "leer: Gesamtlänge 50", f"Länge ab Spindelnase leer: {grau!r}")
+    h.pruefe(grau == "leer: 101 mit ER25", f"Länge ab Spindelnase leer: {grau!r}")
     tippen(d.feld_laenge_spindelnase, "115")
     yield 100
     h.pruefe(d.werkzeug.laenge_spindelnase == 115, f"eingetragen: {d.werkzeug.laenge_spindelnase}")
@@ -168,6 +169,19 @@ def schritte(h):
     tippen(d.feld_name, "")
     yield 100
     h.pruefe(d.werkzeug.name == "" and not d.hinweis.isVisible(), "Name leeren")
+    # Entladen (W-002 F2): Die Nummer geht weg, das Werkzeug bleibt – „–“ im Feld, kein Hinweis;
+    # danach wieder T2.
+    h.pruefe(d.knopf_entladen.isEnabled(), "„Entladen“ gesperrt")
+    d.knopf_entladen.click()
+    yield 200
+    h.pruefe(
+        d.werkzeug.nummer == 0 and d.feld_nummer.text() == "–" and not d.knopf_entladen.isEnabled(),
+        f"entladen: {d.werkzeug.nummer}, {d.feld_nummer.text()!r}",
+    )
+    h.pruefe(not d.hinweis.isVisible(), f"Hinweis ohne Nummer: {d.hinweis.text()!r}")
+    h.bild("6a_entladen", d)
+    d.feld_nummer.setValue(2)
+    yield 100
 
     # Die Arten nach Gruppen (Spezifikation Werkzeugarten); jede zeigt ihre
     # Felder. Zurück beim Torusfräser ist alles wie vorher.

@@ -12,6 +12,42 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-35 werkzeugnummer-freiwillig
+
+### EINGELESEN
+- Manuel, 2026-10-04, zu F2 (Nummer am Werkzeug freiwillig, entschieden am 2026-09-30 mit
+  „passt“: F-E2 (a)): „kannst du bauen ja“.
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`nummer_text`, `genannt`, `nach_nummer`; `mit_nummer(0)` None;
+  Beispielname ohne T0), `camaddon/gui_werkzeuge.py` (Feld ab 0 mit „–“, Knopf „Entladen“),
+  `camaddon/bestueckung.py` (`platz_fuer` ohne Nummer), `camaddon/job_schnittwerte.py`
+  (`freie_nummer`, Controller nie T0), `camaddon/uebergabe_werkzeuge.py` (FreeCADs Bibliothek),
+  `camaddon/gui_bearbeitung.py`, `camaddon/gui_vierachs.py`, `camaddon/gui_halter.py` (Anzeige,
+  Sortierung), Übersetzungen (`wv.zeile`, `wv.zeile.name`, `ba.ziel.werkzeug`, `wv.hinweis.name`,
+  `wv.nummer.entfernen`), `tests/test_werkzeuge.py`, `tests/test_bestueckung.py`,
+  `tests/gui/szenario_werkzeugverwaltung.py`, `docs/spezifikation_werkzeugverwaltung.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.174.0).
+
+### AKZEPTANZKRITERIUM
+- In der Werkzeugverwaltung „Entladen“: Nummer „–“, das Werkzeug bleibt, kein Hinweis auf eine
+  doppelte Nummer; im Job nie T0.
+
+### DONE
+- Gesehen (Screenshot `6a_entladen`): „Nummer –“, „Entladen“ gesperrt, in der Liste
+  „– Torusfräser Ø 10,5 · z 4 · VHM“, der Beispielname ohne T. Ein Werkzeug ohne Nummer bekommt
+  im Job ohne Revolver eine freie Nummer (nicht die eines anderen Werkzeugs der Verwaltung).
+- Nebenbei: Das Szenario der Werkzeugverwaltung erwartete noch „leer: Gesamtlänge 50“ – seit der
+  Halter vorgeschlagen wird, steht dort „leer: 101 mit ER25“ (auch auf dem Stand davor rot).
+
+### TESTS
+- `tests/test_werkzeuge.py`, `tests/test_bestueckung.py`, `tests/test_uebergabe_werkzeuge.py`,
+  `tests/test_sprache.py`; `szenario_werkzeugverwaltung` – OK. black und ruff sauber.
+
+### NEXT
+- Wechselpunkt der Beispielmaschinen (D-5), im Freien mit Eilgang, Abfahren am Ende jeder
+  Bearbeitung, Programmkopf und Sprungmarken, Schwenkdatensatz an der Maschine (D-1, D-2).
+
 ## P-2026-10-04-34 planfraesen-ohne-rampen
 
 ### EINGELESEN

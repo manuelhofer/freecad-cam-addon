@@ -437,6 +437,22 @@ for art, soll in ((wz.SCHAFTFRAESER, True), (wz.BOHRER, True), (wz.GEWINDEBOHRER
                   (wz.DREHWERKZEUG, False), (wz.TASTER, False)):  # fmt: skip
     pruefe(wz.hat_feld(wz.Werkzeug(art=art), wz.DREHRICHTUNG) == soll, f"{art}: Feld Drehrichtung")
 
+# Die Nummer ist freiwillig (W-002 F2): 0 heißt „nicht geladen“ – in der Liste „–“, im Satz der
+# Kurzname, sortiert zuletzt, gespeichert wie eingetragen; „jede Nummer nur einmal“ gilt nur unter
+# Werkzeugen mit Nummer.
+ohne = wz.Werkzeug(nummer=0, durchmesser=8)
+mit = wz.Werkzeug(nummer=2, durchmesser=10)
+noch_ohne = wz.Werkzeug(nummer=0, durchmesser=6)
+liste = wz.Bibliothek([ohne, mit, noch_ohne])
+pruefe(wz.nummer_text(ohne) == "–" and wz.nummer_text(mit) == "T2", "Nummer als Text")
+pruefe(wz.genannt(ohne) == wz.kurz(ohne) and wz.genannt(mit) == "T2", "im Satz")
+pruefe(wz.zeile(ohne).startswith("–  "), f"Zeile: {wz.zeile(ohne)!r}")
+pruefe("T0" not in wz.beispielname(ohne), f"Beispielname: {wz.beispielname(ohne)}")
+pruefe(liste.mit_nummer(0, ausser=ohne) is None, "zwei ohne Nummer gelten als doppelt")
+pruefe(liste.sortierte_werkzeuge() == [mit, noch_ohne, ohne], "ohne Nummer nicht zuletzt")
+pruefe(liste.naechste_nummer() == 1, f"nächste Nummer {liste.naechste_nummer()}")
+pruefe(wz.Werkzeug.aus_dict(ohne.als_dict()).nummer == 0, "ohne Nummer nicht gespeichert")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

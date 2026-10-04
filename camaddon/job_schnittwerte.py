@@ -483,6 +483,26 @@ def werte(werkzeug, einsatz):
     return n, vf, senkrecht
 
 
+def freie_nummer(job, bibliothek=None):
+    """Die kleinste T-Nummer für ein Werkzeug ohne Nummer (W-002 F2) in diesem Job: keine,
+    die ein Controller des Jobs oder ein Werkzeug der Werkzeugverwaltung schon trägt – sonst
+    stünden später zwei Werkzeuge auf derselben Nummer."""
+    belegt = set()
+    for tc in getattr(getattr(job, "Tools", None), "Group", None) or []:
+        belegt.add(int(getattr(tc, "ToolNumber", 0) or 0))
+    if bibliothek is None:
+        try:
+            bibliothek = wz.Bibliothek.laden()
+        except Exception:
+            bibliothek = None
+    if bibliothek is not None:
+        belegt |= {w.nummer for w in bibliothek.werkzeuge}
+    nummer = 1
+    while nummer in belegt:
+        nummer += 1
+    return nummer
+
+
 def controller_name(werkzeug, einsatz, nummer=None):
     """„T3 Schruppen dynamisch“, mit eingetragenem Namen „T3 Fräser VHM 12 – Schruppen dynamisch“.
 
@@ -525,6 +545,7 @@ def controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff="", 
     from Path.Tool import Controller
     from Path.Tool.camassets import cam_assets
 
+    nummer = nummer or werkzeug.nummer or freie_nummer(job)
     # Controller.Create legt im aktiven Dokument an.
     FreeCAD.setActiveDocument(dokument.Name)
     bit = werkzeug_im_job(job, werkzeug)
@@ -558,6 +579,8 @@ def controller_fuer(dokument, job, werkzeug, einsatz, werkstoff, operation, numm
     """
     nummer = nummer or werkzeug.nummer
     bisher = getattr(operation, "ToolController", None)
+    if not nummer:  # ohne Nummer (W-002 F2): die des bisherigen Controllers, sonst eine freie
+        nummer = int(getattr(bisher, "ToolNumber", 0) or 0) or freie_nummer(job)
     bit = getattr(bisher, "Tool", None)
     if (
         bit is not None

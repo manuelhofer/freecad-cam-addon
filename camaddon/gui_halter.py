@@ -429,7 +429,7 @@ class HalterDialog(QtGui.QDialog):
             self.ok_hinweis.hide()
             return
         h = self.gewaehlt
-        nummer = f"T{self.werkzeug.nummer}"
+        nummer = wz.genannt(self.werkzeug)
         if h is None:
             text = tr("hd.ok.ohne", werkzeug=nummer)
         else:
@@ -547,7 +547,7 @@ class HalterDialog(QtGui.QDialog):
 
 def _nummern(werkzeuge):
     """„T3, T7“."""
-    return ", ".join(f"T{w.nummer}" for w in werkzeuge)
+    return ", ".join(wz.genannt(w) for w in werkzeuge)
 
 
 def _beispielwerkzeug(werkzeuge):
