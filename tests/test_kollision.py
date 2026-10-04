@@ -40,6 +40,7 @@ from camaddon import beispielmaschine, sprache
 from camaddon import fraeserform as ff
 from camaddon import halter as hl
 from camaddon import kollision as kb
+from camaddon import maschine as mschn
 from camaddon import reichweite as rw
 from camaddon import werkzeuge as wz
 
@@ -401,6 +402,10 @@ zweite = PathCustom.Create("Zweite")
 zweite.ToolController = tc2
 zweite.Gcode = ["G0 Z30", "G0 X50 Y30 Z30"]
 teil.recompute()
+# Die Beispielmaschine hat seit D-5 einen Wechselpunkt (Z ganz oben) – hier ohne ihn.
+mit_wechsel = [ba for ba in mschn.betriebsarten(ma) if getattr(ba, "WechselAn", False)]
+for ba in mit_wechsel:
+    ba.WechselAn = False
 for laenge, soll in ((60.0, "T2"), (45.0, None)):
     bibliothek = wz.Bibliothek([t1(), t1(nummer=2, gesamtlaenge=laenge)])
     bibliothek.halter_vorschlagen = False
@@ -419,6 +424,15 @@ for laenge, soll in ((60.0, "T2"), (45.0, None)):
         ),
         f"am Wechsel: {[b.text() for b in e.befunde]}",
     )
+# Mit dem Wechselpunkt der Beispielmaschine (D-5): Z fährt vor dem Wechsel ganz nach oben – das
+# längere T2 kommt von oben, nichts stößt an.
+for ba in mit_wechsel:
+    ba.WechselAn = True
+pruefe(mit_wechsel, "die Beispielmaschine hat keinen Wechselpunkt")
+bibliothek = wz.Bibliothek([t1(), t1(nummer=2, gesamtlaenge=60.0)])
+bibliothek.halter_vorschlagen = False
+e = kb.kollision(ab.abfahrt(p, job, nullpunkt, bibliothek), job, nullpunkt, bibliothek)
+pruefe(e.befunde == [], f"mit Wechselpunkt: {[b.text() for b in e.befunde]}")
 teil.removeObject(zweite.Name)
 
 # --- Eilgang durchs Rohteil (das Fenster prüft mit rohteil=True) ---------------------------------

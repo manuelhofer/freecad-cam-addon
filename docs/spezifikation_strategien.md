@@ -2596,6 +2596,10 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
 - **Verkettung:** Muss der Tisch zwischen zwei Bearbeitungen stark schwenken, erst zum
   Wechselpunkt, dort schwenken, dann wieder hin – die Wege dazu geprüft.
 - **D-5:** ja – die Beispielmaschinen bekommen einen Wechselpunkt, angefahren ohne Kollision.
+  **Gebaut** P-2026-10-04-36: Fräsen (3 Achsen und die drei 5-Achs-Bauarten) Z ganz oben (Ende
+  des Verfahrwegs, die Spindelnase 100 … 300 mm höher), die Drehmaschine X ganz außen; die anderen
+  Achsen bleiben stehen. Angefahren wie bisher (Spezifikation Simulation 13): erst die Achse vom
+  Teil weg, zurück zuerst die anderen. Gilt für neu angelegte Beispielmaschinen.
 - **Abfahren:** Am Ende jeder Bearbeitung fährt der Fräser ins Freie, von dort darf er überallhin.
   Die Zeit zählt bis zum Ende der Zerspanung.
 - **Eilgang durchs Rohteil** (Simulation 4c): bleibt so (Manuel: „habe ich ja eigentlich vorher

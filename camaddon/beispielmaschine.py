@@ -298,9 +298,15 @@ def _maschine(asm, art):
     return ma
 
 
-def _linear(ma, gelenk, nc_name, eilgang, vorschub_max, beschleunigung):
+def _linear(ma, gelenk, nc_name, eilgang, vorschub_max, beschleunigung, wechsel=None):
+    """Eine Linearachse; `wechsel`: ihre Stellung am Werkzeugwechselpunkt (MKS, wie der
+    Verfahrweg) – die Beispiele haben einen (D-5, Manuel 2026-10-04: „ja die brauchen einen
+    Werkzeugwechselpunkt … so dass keine Kollision passiert“): Ohne ihn meldete die Kollision
+    bei jedem Wechsel auf ein längeres Werkzeug eine Berührung, die es mit M6 nicht gibt."""
     achse = m.neue_betriebsart(ma, gelenk, m.ART_LINEAR, nc_name)
     achse.Eilgang, achse.VorschubMax, achse.Beschleunigung = eilgang, vorschub_max, beschleunigung
+    if wechsel is not None:
+        achse.WechselAn, achse.Wechsel = True, float(wechsel)
     return achse
 
 
@@ -510,7 +516,7 @@ def fraesmaschine(masse=None, spanneisen=True):
     ma = _maschine(asm, FRAESE_3)
     _linear(ma, x, "X1", 20000, 10000, 3)
     _linear(ma, y, "Y1", 20000, 10000, 3)
-    _linear(ma, z, "Z1", 15000, 10000, 3)
+    _linear(ma, z, "Z1", 15000, 10000, 3, wechsel=masse.weg_z[1])  # ganz oben
     s1 = _spindel(ma, s, "S1", masse.drehzahl, 1.5)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.tisch"))
@@ -542,12 +548,12 @@ def _fuenfachs_wege(b, masse, x, y, z, **schwenk):
         b.begrenze(gelenk, *masse.schwenkbereich(buchstabe))
 
 
-def _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, drehzahl):
+def _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, drehzahl, wechsel_z=None):
     """Was alle 5-Achs-Beispiele mit Rundtisch gleich haben: X1, Y1, Z1, S1 und die
     Aufnahmen."""
     _linear(ma, x, "X1", 30000, 15000, 5)
     _linear(ma, y, "Y1", 30000, 15000, 5)
-    _linear(ma, z, "Z1", 30000, 15000, 5)
+    _linear(ma, z, "Z1", 30000, 15000, 5, wechsel=wechsel_z)
     s1 = _spindel(ma, s, "S1", drehzahl, 2)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.rundtisch"))
@@ -613,7 +619,9 @@ def fuenfachs_tisch_tisch(masse=None):
     ma = _maschine(asm, TISCH_TISCH)
     _positionieren(ma, a, "A1", 25)
     _positionieren(ma, c, "C1", 50, endlos=True)
-    _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, masse.drehzahl)
+    _fuenfachs_werte(
+        ma, x, y, z, s, spindelnase, spannplatz, masse.drehzahl, wechsel_z=masse.weg_z[1]
+    )
     _benenne(asm, ma, masse.name)
     asm.Document.recompute()
     return asm, ma
@@ -658,7 +666,9 @@ def fuenfachs_kopf_tisch(masse=None):
     ma = _maschine(asm, KOPF_TISCH)
     _positionieren(ma, schwenk, "B1", 30)
     _positionieren(ma, c, "C1", 50, endlos=True)
-    _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, masse.drehzahl)
+    _fuenfachs_werte(
+        ma, x, y, z, s, spindelnase, spannplatz, masse.drehzahl, wechsel_z=masse.weg_z[1]
+    )
     _benenne(asm, ma, masse.name)
     asm.Document.recompute()
     return asm, ma
@@ -747,7 +757,7 @@ def fuenfachs_kopf_kopf(masse=None):
     ma = _maschine(asm, KOPF_KOPF)
     _linear(ma, x, "X1", 40000, 20000, 4)
     _linear(ma, y, "Y1", 40000, 20000, 3)
-    _linear(ma, z, "Z1", 30000, 15000, 4)
+    _linear(ma, z, "Z1", 30000, 15000, 4, wechsel=masse.weg_z[1])  # ganz oben
     _positionieren(ma, a, "A1", 30)
     _positionieren(ma, schwenk, "B1", 30)
     s1 = _spindel(ma, s, "S1", masse.drehzahl, 2)
@@ -1073,7 +1083,7 @@ def drehmaschine(masse=None):
     asm = b.fertig()
 
     ma = _maschine(asm, DREHMASCHINE)
-    x1 = _linear(ma, x, "X1", 30000, 10000, 6)
+    x1 = _linear(ma, x, "X1", 30000, 10000, 6, wechsel=masse.weg_x[1])  # ganz außen
     x1.Durchmesser = bool(masse.x_durchmesser)
     y1 = _linear(ma, y, "Y1", 12000, 5000, 4)
     _linear(ma, z, "Z1", 30000, 10000, 6)

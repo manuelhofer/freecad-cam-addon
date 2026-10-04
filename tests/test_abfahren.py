@@ -193,6 +193,8 @@ for ba in m.betriebsarten(ma):
         ba.Home, ba.HomeAn = heim[ba.NcName], True
         if ba.NcName == "X1":
             ba.Wechsel, ba.WechselAn = 200.0, True  # Y1 und Z1: wie Home
+        else:
+            ba.WechselAn = False  # die Beispielmaschine hat Z ganz oben (D-5) – hier wie Home
 wechsel = dict(heim, X1=200.0)
 erste = ["G0 X0 Y0 Z10", "G1 Z-5 F10", "G0 Z10"]
 zweite = ["G0 X50 Y30 Z10", "G1 Z-5 F10", "G0 Z10"]
@@ -311,6 +313,24 @@ FreeCAD.closeDocument(asm.Document.Name)
 asm, ma = beispielmaschine.drehmaschine()
 p = rw.Pruefung(asm, ma)
 teil, job = neuer_job([(["G0 X40 Y0 Z80"], 1), (["G0 X40 Y0 Z80"], 2)], "Drehteil")
+# Mit dem Wechselpunkt der Beispiel-Drehmaschine (D-5: X ganz außen) fährt sie vor dem Schalten
+# dorthin und kommt mit P2 zurück; danach ohne ihn – der Revolver schwenkt, wo er steht.
+mit_wechsel = [ba for ba in m.betriebsarten(ma) if getattr(ba, "WechselAn", False)]
+fahrt = ab.abfahrt(p, job)
+revolver = next(a for a in fahrt.achsen if vf.namen(ma, a) == "T")
+k = fahrt.achsen.index(revolver)
+plaetze = dict(vf.platzstellungen(p.verfahren, ma, revolver))
+x1 = next(a for a in fahrt.achsen if vf.namen(ma, a) == "X1")
+am_wechsel = [s for s in fahrt.stationen if s.ziel == ab.WECHSEL]
+pruefe(
+    mit_wechsel
+    and am_wechsel
+    and all(nahe(s.stellungen[fahrt.achsen.index(x1)], 425.0) for s in am_wechsel[:1])
+    and nahe(fahrt.stationen[-1].stellungen[k], plaetze["P2"]),
+    f"mit Wechselpunkt: {[(s.ziel, s.stellungen[k]) for s in fahrt.stationen]}",
+)
+for ba in mit_wechsel:
+    ba.WechselAn = False
 fahrt = ab.abfahrt(p, job)
 revolver = next(a for a in fahrt.achsen if vf.namen(ma, a) == "T")
 plaetze = dict(vf.platzstellungen(p.verfahren, ma, revolver))

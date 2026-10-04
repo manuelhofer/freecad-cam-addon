@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-36 wechselpunkt-beispielmaschinen
+
+### EINGELESEN
+- Manuel, 2026-10-04, zu D-5: „ja die brauchen einen werkzeug wechselpunkt .. der muss auch
+  angefahren werden ... und zwar so das keine kollison passietr imemr schön sinnvoll ... also ja“.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py` (`_linear(…, wechsel=)`: Fräsen Z ganz oben, Drehmaschine X
+  ganz außen), `tests/test_kollision.py` (der Abschnitt „ohne Wechselpunkt“ schaltet ihn ab; mit
+  ihm stößt das längere T2 nicht an), `tests/test_abfahren.py` (Home/Wechsel „wie Home“ und der
+  Revolver ohne Wechselpunkt; mit ihm fährt die Drehmaschine nach X 425 und kommt mit P2 zurück),
+  `docs/spezifikation_strategien.md` (15.4), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.175.0).
+
+### AKZEPTANZKRITERIUM
+- Auf einer neuen Beispielmaschine meldet „Kollision prüfen“ beim Wechsel auf ein längeres
+  Werkzeug nichts mehr; das Abfahren fährt vor jedem Wechsel zum Wechselpunkt.
+
+### DONE
+- Nachgerechnet: Am Wechselpunkt steht die Spindelnase der 3-Achs-Fräse 250 mm höher als bei
+  Z 0, der 5-Achs-Fräsen 100 … 300 mm; der Revolver der Drehmaschine 300 mm weiter außen. Gesehen
+  (`szenario_home`, Bild `2_wechsel`): die Spindel oben, der Eilgang senkrecht hinauf.
+
+### TESTS
+- `test_beispielmaschine`, `test_abfahren`, `test_kollision`, `test_postprozessor`,
+  `test_reichweite`, `test_vierachs_pruefen`, `test_schwenken`, `test_simultan`, `test_maschine`;
+  `szenario_home` – OK. black und ruff sauber.
+
+### NEXT
+- Im Freien mit Eilgang (alle Strategien), Abfahren am Ende jeder Bearbeitung, Programmkopf und
+  Sprungmarken, Verkettung mit Schwenken am Wechselpunkt, Schwenkdatensatz an der Maschine
+  (D-1, D-2).
+
 ## P-2026-10-04-35 werkzeugnummer-freiwillig
 
 ### EINGELESEN
