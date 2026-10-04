@@ -504,3 +504,12 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   und Mach lesen ASCII und brechen bei anderen Zeichen ab. Haken `nur_ascii` (an; an Siemens aus):
   `ascii_text` ersetzt (ä → ae, Ø → D, – → -, ° → Grad …), der Rest wird „?“. Der Prüfer meldet
   mit dem Haken jedes Zeichen außerhalb von ASCII (`ZEICHEN`).
+- **P-2026-10-04-62 – {werkzeug} im Wechsel; TRACYL nachgelesen:** Der Platzhalter `{werkzeug}` (der
+  Name des Werkzeugs, ASCII, ohne Anführungszeichen) für Steuerungen, die Werkzeuge über Namen
+  rufen – Siemens mit Werkzeugverwaltung `T="{werkzeug}" M6`; vorbelegt bleibt `T{t} M6`.
+  S6 nachgelesen (SINUMERIK live 13, „Cylinder surface transformation“, Siemens 2021): an der
+  Drehmaschine `TRACYL(d)` bzw. `TRACYL(d,2)` mit Nutwandkorrektur (braucht eine Y-Achse), Ebene
+  G19, Y die Abwicklung auf dem Bezugsdurchmesser d, Z axial, X im Durchmesser; `OFFN` die halbe
+  Nutbreite mit G41/G42, die Mittelbahn hin und zurück; `TRAFOOF` aus. Für die Bahnen des Addons
+  (Punkt für Punkt, G93) bringt sie keine Genauigkeit – zwischen zwei Punkten fährt C wie Y
+  linear; ihr Nutzen ist Handprogrammierung an der Maschine. Nicht gebaut.

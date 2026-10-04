@@ -76,7 +76,8 @@ class Glaetten:
 @dataclass(frozen=True)
 class Steuerung:
     """Die Befehle einer Steuerung. Platzhalter: {t} Werkzeugnummer, {s} Drehzahl, {m} 3 oder 4
-    (Drehrichtung), {n} Nummer des Antriebs, {h} Nummer der Hauptspindel, {name} Programmname.
+    (Drehrichtung), {n} Nummer des Antriebs, {h} Nummer der Hauptspindel, {name} Programmname,
+    {werkzeug} der Name des Werkzeugs (im Wechsel – Siemens mit Werkzeugverwaltung: T="{werkzeug}").
     Leer: der Befehl entfällt."""
 
     kennung: str
@@ -686,6 +687,13 @@ def _kommentar(s, text):
     return f"; {text}" if s.kommentar.strip() == ";" else f"({text})"
 
 
+def _werkzeugname(name, nummer):
+    """Der Name des Werkzeugs für {werkzeug} im Wechselbefehl: ASCII, ohne Anführungszeichen –
+    ohne Namen „T“ und die Nummer."""
+    name = ascii_text(str(name or "")).replace('"', "").strip()
+    return name or f"T{int(nummer or 0)}"
+
+
 def _fuellen(vorlage, **werte):
     """Ein Befehl mit seinen Platzhaltern – {t:02d} geht nur mit Zahlen."""
     if not vorlage:
@@ -809,7 +817,13 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
             if abschnitt.werkzeugname:
                 notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
             vorlage = s.wechsel_drehen if info.drehmaschine else s.wechsel_fraesen
-            zeilen.append(_fuellen(vorlage, t=int(abschnitt.werkzeug)))
+            zeilen.append(
+                _fuellen(
+                    vorlage,
+                    t=int(abschnitt.werkzeug),
+                    werkzeug=_werkzeugname(abschnitt.werkzeugname, abschnitt.werkzeug),
+                )
+            )
             # Ohne Befehl bringt der Wechsel die Länge mit (Siemens D1, Fanuc T0101).
             laenge_offen = _fuellen(
                 s.laenge_ein_drehen if info.drehmaschine else s.laenge_ein,

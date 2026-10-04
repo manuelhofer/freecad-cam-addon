@@ -225,6 +225,11 @@ for kennung in pp.STEUERUNGEN:
 mit_umlaut = pp.programm([tasche], pp.steuerung("fanuc", {"nur_ascii": False}), fraese, "Ö")
 befunde, _saetze = pp.nachlesen(mit_umlaut, pp.steuerung("fanuc", {"nur_ascii": True}), fraese)
 pruefe(any(b.art == prp.ZEICHEN for b in befunde), "Prüfer: Umlaut nicht gemeldet")
+# {werkzeug} im Wechsel: Siemens mit Werkzeugverwaltung ruft über Namen (P-2026-10-04-62).
+namen = pp.programm(
+    [tasche], pp.steuerung("siemens", {"wechsel_fraesen": 'T="{werkzeug}" M6'}), fraese, "P"
+).zeilen
+pruefe('T="Fraeser D 12" M6' in namen, f"Name im Wechsel: {[x for x in namen if 'M6' in x]}")
 # Der Satz fürs Fenster.
 text = pp.nachgelesen_text([prp.Befund(prp.LAENGE, 12, "G0 Z5.000")], 40)
 pruefe(text.startswith("Nachgelesen") and "Zeile 12" in text and "G0 Z5.000" in text, text)

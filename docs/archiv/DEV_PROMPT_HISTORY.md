@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-62 werkzeugname-im-wechsel
+
+### EINGELESEN
+- Weiter mit dem Postprozessor; S6 (Transformationen) nachgelesen.
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`{werkzeug}` im Wechsel, `_werkzeugname`),
+  `help/de|en/programm.html`, `tests/test_programm_pruefen.py`, `docs/spezifikation_steuerung.md`
+  (TRACYL nachgelesen, nicht gebaut), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.187.7).
+
+### DONE
+- Platzhalter `{werkzeug}` für Steuerungen, die Werkzeuge über Namen rufen (Siemens mit
+  Werkzeugverwaltung: T="{werkzeug}" M6). TRACYL (Siemens-Folien SINUMERIK live 13): G19, Y die
+  Abwicklung, X im Durchmesser, TRACYL(d,2) mit OFFN – für die Bahnen des Addons ohne Gewinn.
+
+### TESTS
+- `test_programm_pruefen`, `test_postprozessor` – OK.
+
 ## P-2026-10-04-61 tiefer-im-eilgang
 
 ### EINGELESEN
