@@ -12,6 +12,38 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-25 flanke-im-assistenten
+
+### EINGELESEN
+- P-24 hat die Flanke als Operation gebaut; Manuel: „Selbst anhaken, wenn schneller“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_Flanke`, Block „Flanke (5 Achsen simultan)“ hinter dem
+  3D-Schlichten; möglich nur an einer 5-Achs-Maschine; im Wettbewerb mit dem 3D-Schlichten; das
+  3D-Schlichten gibt die Wände ab, wenn es noch andere Flächen hat; die Flanke macht ihre Wände
+  fertig; kein „Ebene schwenken“ für Wände, die sie fräst; `_Strategie.zeit`; die Flächenliste
+  „schräge Wand aus Geraden … – Flanke oder 3D-Schlichten“), Übersetzungen, Hilfe „Bearbeitung“
+  (de/en), `tests/gui/szenario_flanke.py` (neu), Spezifikation Strategien 16.3,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.169.0).
+
+### AKZEPTANZKRITERIUM
+- Die Tasche mit 10° Formschräge, die 5-Achs-Maschine Tisch/Tisch, die acht Wände angeklickt: die
+  Flanke angehakt („→ 1 Umlauf, die Achse bis 10° geneigt, etwa 1 min – die schnellste;
+  3D-Schlichten wäre 690 % langsamer“), das 3D-Schlichten nicht, kein roter Satz, kein „Ebene
+  schwenken“; „Anlegen“: „Flanke T5“; im Prüffenster A −10°.
+
+### DONE
+- Wie oben. Ohne 5-Achs-Maschine steht die Flanke bei dem, was nicht passt („Geht an einer
+  5-Achs-Maschine – oben wählen.“).
+
+### TESTS
+- `tests/gui/szenario_flanke.py` (neu), `szenario_mulde`, `szenario_kugel_angestellt` – OK.
+  black und ruff sauber.
+
+### NEXT
+- Manuel probiert es aus (Tasche mit Formschräge, 5-Achs-Beispielmaschine); Wegkippen (S4) – zu
+  besprechen.
+
 ## P-2026-10-04-24 flanke
 
 ### EINGELESEN

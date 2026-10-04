@@ -32,6 +32,8 @@ from . import bohrung as bo
 from . import bohrung_bahn as bb
 from . import entgrat_bahn as eb
 from . import entgraten as eg
+from . import flanke as flop
+from . import flanke_bahn as flb
 from . import fraeserform as ff
 from . import gewinde as gw
 from . import gewinde_bahn as gfb
@@ -92,6 +94,7 @@ GEMERKT_SCHLICHTFRAESER = "BaSchlichtFraeser"  # … fürs Schlichten danach
 GEMERKT_NUTFRAESER = "BaNutFraeser"  # … für die Nut
 GEMERKT_BOHRFRAESER = "BaBohrFraeser"  # … fürs Bohrungsfräsen
 GEMERKT_BOHRER = "BaBohrer"  # … fürs Bohren
+GEMERKT_FLANKENFRAESER = "BaFlankenFraeser"  # … für die Flanke (5 Achsen simultan)
 GEMERKT_REIBAHLE = "BaReibahle"  # … fürs Reiben
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
 GEMERKT_GEWINDEFRAESER = "BaGewindefraeser"  # … fürs Gewindefräsen
@@ -325,6 +328,7 @@ def ist_bearbeitung(op):
     „Bleistift“?"""
     return (
         s3op.ist_schlichten3d(op)
+        or flop.ist_flanke(op)
         or r3op.ist_schruppen3d(op)
         or bst.ist_bleistift(op)
         or pf.ist_planfraesen(op)
@@ -489,6 +493,10 @@ class _Strategie:
     def haken_gesperrt(self, feld, block):
         """Warum der Haken `feld` hier nicht geht (ein kurzer Satz) – None, wenn er geht."""
         return None
+
+    def zeit(self, bahn, vorschub, eintauchen):
+        """Minuten der Vorschau (bahn.zeit über ihre Punkte, mm/min)."""
+        return bn.zeit(bahn.punkte, vorschub, eintauchen)
 
     def passt(self, form, name):
         """Kann die Strategie etwas mit der Fläche `name` von `form` anfangen?"""
@@ -2181,6 +2189,85 @@ class _Schlichten3D(_Strategie):
         }
 
 
+class _Flanke(_Strategie):
+    """Die Flanke (5 Achsen simultan, flanke_bahn; Manuel, 2026-10-04: „Ja, so bauen“, „selbst
+    anhaken, wenn schneller“): schräge Wände aus Geraden mit dem Mantel eines Schaftfräsers in
+    einem Umlauf – an einer 5-Achs-Maschine, im Wettbewerb mit dem 3D-Schlichten."""
+
+    kennung = "flanke"
+    gemerkt = GEMERKT_FLANKENFRAESER
+    einsatz_reihenfolge = (wz.SCHLICHTEN, wz.SCHRUPPEN)
+    bevorzugt = wz.SCHAFTFRAESER
+
+    def titel(self):
+        return tr("ba.fl")
+
+    def text(self):
+        return tr("ba.fl.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.fl.fraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.s3.einsatz.tooltip")
+
+    def felder(self):
+        return (("aufmass", tr("ba.aufmass"), tr("ba.fl.aufmass.tooltip")),)
+
+    def passt(self, form, name):
+        return flb.ist_wand(form, name)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return any(self.passt(form, n) for n in gewaehlte)  # die Zeit entscheidet (_wettbewerb)
+
+    def unmoeglich_text(self):
+        return tr("ba.fl.keine")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        return 0.0
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        form = ff.von_werkzeug(werkzeug)
+        if form is None or not form.eben:
+            raise ValueError(tr("fl.fehler.fraeser"))
+        radius = float(form.radius)
+        schneide = float(getattr(werkzeug, "schneidenlaenge", 0.0) or 0.0) or 4.0 * radius
+        return flop.bahn_fuer(
+            job,
+            job.Model.Group,
+            radius,
+            schneide,
+            flaechen,
+            aufmass=werte["aufmass"],
+            vorschub=werte.get("vorschub", 0.0),
+            eintauchen=werte.get("eintauchen", 0.0),
+        )
+
+    def zeit(self, bahn, vorschub, eintauchen):
+        return bahn.zeit  # mit dem Drehen der Achse (flanke_bahn._laenge_und_zeit)
+
+    def ergebnis_text(self, bahn, zeit):
+        umlaeufe = (
+            tr("ba.fl.umlauf") if bahn.umlaeufe == 1 else tr("ba.fl.umlaeufe", n=bahn.umlaeufe)
+        )
+        werte = {"umlaeufe": umlaeufe, "neigung": f"{bahn.neigung:.0f}", "zeit": zeit}
+        if bahn.lagen > 1:
+            return tr("ba.ergebnis_fl_lagen", lagen=bahn.lagen, **werte)
+        return tr("ba.ergebnis_fl", **werte)
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return flop.lege_an(job, tc, werte["aufmass"], flaechen=flaechen)
+
+    def aendere(self, op, tc, werte, flaechen):
+        flop.aendere(op, tc, werte["aufmass"], flaechen=flaechen)
+
+    def ist(self, op):
+        return flop.ist_flanke(op)
+
+    def werte_von(self, op):
+        return {"aufmass": float(op.Aufmass)}
+
+
 class _Restschlichten(_Schlichten3D):
     """Restschlichten: das 3D-Schlichten mit einem kleineren Fräser nur dort, wo der größere
     davor nicht hinkam (schlichten3d mit DurchmesserDavor) – nach dem 3D-Schlichten, den Haken
@@ -2456,6 +2543,7 @@ STRATEGIEN = (
     _Schruppen3D,
     _Restschruppen,
     _Schlichten3D,
+    _Flanke,
     _Restschlichten,
     _Bleistift,
     _Senken,
@@ -2909,7 +2997,7 @@ class _Block:
             self.schon_weg = isinstance(fehler, mst.SchonWeg)
             self._merken(merk, schluessel)
             return
-        self.zeit = bn.zeit(self.vorschau.punkte, vorschub, senkrecht) if vorschub > 0 else None
+        self.zeit = self.s.zeit(self.vorschau, vorschub, senkrecht) if vorschub > 0 else None
         zeit = _zeit_text(self.zeit) if self.zeit is not None else "?"
         self.ergebnis_basis = self.s.ergebnis_text(self.vorschau, zeit)
         self.ergebnis.setText(self.ergebnis_basis)
@@ -3081,6 +3169,7 @@ class BearbeitungPanel:
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
         self.reiben = next(b for b in self.bloecke if b.s.kennung == "reiben")
         self.schlichten3d = next(b for b in self.bloecke if b.s.kennung == "schlichten3d")
+        self.flanke = next(b for b in self.bloecke if b.s.kennung == "flanke")
         self.schruppen3d = next(b for b in self.bloecke if b.s.kennung == "schruppen3d")
         self.bleistift = next(b for b in self.bloecke if b.s.kennung == "bleistift")
         self.rest = next(b for b in self.bloecke if b.s.kennung == "rest")
@@ -3852,6 +3941,14 @@ class BearbeitungPanel:
             self._maschinen_fuellt = False
         self._maschine_gewaehlt()
 
+    def _fuenfachs(self):
+        """Ist eine 5-Achs-Maschine gewählt (für Anstellen und Flanke)?"""
+        try:
+            eintrag = self.maschine()
+        except AttributeError:  # die Wahl der Maschine gibt es noch nicht
+            return False
+        return eintrag is not None and eintrag.vorhanden and eintrag.art == msp.FRAESE_5
+
     def maschine(self):
         """Der Eintrag der gewählten Maschine (maschinenspeicher.Eintrag) – oder None."""
         datei = self.wahl_maschine.currentData() or ""
@@ -3886,6 +3983,9 @@ class BearbeitungPanel:
             rw.merke_maschine(self.job, eintrag.datei)
         for block in getattr(self, "bloecke", ()):
             block.haken_pruefen()  # Anstellen geht nur an einer 5-Achs-Maschine
+        if hasattr(self, "flanke") and self.job is not None and self.gewaehlte:
+            self._flaechen_zeigen()  # die Flanke auch
+            self.vorschau_starten()
         self._rohteil_kurz_zeigen()
 
     def nur_vierachs(self):
@@ -4389,6 +4489,9 @@ class BearbeitungPanel:
                 d = groesse_zeigen(senkung.durchmesser, einheiten.LAENGE) or "0"
                 winkel = f"{round(senkung.winkel, 1):g}"
                 text, farbe = tr("ba.flaeche.senkung", name=name, d=d, winkel=winkel), GRUEN
+            elif self.flanke.s.passt(form, name) and self._fuenfachs():
+                z = groesse_zeigen(form.Faces[nummer].BoundBox.ZMin, einheiten.LAENGE) or "0"
+                text, farbe = tr("ba.flaeche.flanke", name=name, z=z), GRUEN
             elif self.schlichten3d.s.passt(form, name):
                 z = groesse_zeigen(form.Faces[nummer].BoundBox.ZMin, einheiten.LAENGE) or "0"
                 text, farbe = tr("ba.flaeche.freiform", name=name, z=z), GRUEN
@@ -4424,6 +4527,9 @@ class BearbeitungPanel:
         """Ist eine gewählte Fläche schräg, die Zeile „geschwenkt fräsen“ – der Knopf nur, wenn
         der Job schon steht (ein neuer entsteht erst mit „Anlegen“)."""
         schraege = [n for n in self.gewaehlte if _schraeg(form, n) is not None]
+        if self._fuenfachs():
+            # Schräge Wände aus Geraden fräst die Flanke (5 Achsen simultan) ohne Schwenken.
+            schraege = [n for n in schraege if not self.flanke.s.passt(form, n)]
         if not schraege:
             return
         name = schraege[0]
@@ -4495,6 +4601,8 @@ class BearbeitungPanel:
                 if block is self.schlichten_danach:
                     # Mit dem Räumen (es steht davor in der Liste) – ein Haken von Hand bleibt.
                     moeglich = self.raeumen.aktiv()
+                if block is self.flanke and moeglich and not self._fuenfachs():
+                    moeglich, grund = False, tr("ba.fl.ohne_maschine")
                 block.moeglich = moeglich
                 block.haken.setEnabled(moeglich)
                 block.erklaerung.setText(
@@ -4753,6 +4861,8 @@ class BearbeitungPanel:
             self.restschlichten,
         ):
             return self._flaechen(block, form)
+        if block is self.flanke:
+            return self._flaechen(block, form) if not float(werte.get("aufmass", 0.0)) else []
         return []
 
     def _unfertige(self, form):
@@ -5440,6 +5550,14 @@ class BearbeitungPanel:
                 if anderer.aktiv() and not self._gleiche_flaechen(block, form, anderer):
                     weg |= set(self._eigene(anderer, form))
             return [f for f in flaechen if f not in weg]
+        if (
+            block is self.schlichten3d
+            and self.flanke.aktiv()
+            and not self._gleiche_flaechen(block, form, self.flanke)
+        ):
+            # Die schrägen Wände fräst die Flanke – das 3D-Schlichten den Rest (eine Kuppel).
+            flanke = set(self._eigene(self.flanke, form))
+            return [f for f in flaechen if f not in flanke]
         return flaechen
 
     def _bohrer_da(self, form, gerieben=False):
@@ -5817,6 +5935,7 @@ class BearbeitungPanel:
         return (
             (self.plan, self.raeumen, self.nut),
             (self.bohren, self.bohrung, self.kontur, self.nut),
+            (self.schlichten3d, self.flanke),
         )
 
     def _gegner(self, block):

@@ -722,6 +722,17 @@ missing. “Check on the machine”, the collision check and “Write program”
 per point (feed in G93); without a machine with two rotary axes the program writes the path
 vertical and says so. On a dome about 5 % longer. Properties of the operation: “Anstellwinkel”
 (15°), “Kippachse” (X or Y – from the machine).</li>
+<li><b>Flank (5-axis simultaneous)</b> – its own block below: sloped walls made of straight lines
+– a pocket or boss with draft, cones, sloped planes, 0.5° to 45° off vertical – are milled by the
+<b>side of an end mill</b> in one loop, its axis along the wall, its radius in front of it. The
+list then says “sloped wall of straight lines … – flank or 3D finishing”. On a <b>5-axis
+machine</b> both compete, the faster one gets the tick (on a pocket with 10° draft: one loop,
+about 1 min instead of 36 contours in 5 min). At the foot it cuts right into the corner at the
+floor; at sharp inside corners the radius of the cutter remains. If the wall is longer than the
+cutting length, it runs several levels. “Check on the machine”, the collision check and “Write
+program” compute the rotary axes per point (on the table/table machine: A stays, C turns once
+around). Without a machine with two rotary axes the program does not write the flank – run
+vertical the cutter would cut wrongly. The operation is called “Flank T5”.</li>
 </ul>
 
 <h3>14. Reaming</h3>

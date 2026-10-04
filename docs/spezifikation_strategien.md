@@ -2672,7 +2672,12 @@ Kollision mit Rundachsen je Station.
   der Schneide auf der Geraden; `simultan_operation` ist die Weiche für Anstellen und Flanke).
   Ohne Maschine mit zwei Rundachsen schreibt das Programm die Flanke nicht – senkrecht gefahren
   schnitte sie falsch. Die Tasche auf der Tisch/Tisch-Maschine: 0,69 min mit Anfahren und
-  Schwenken. Offen: der Block im Assistenten.
+  Schwenken. **Im Assistenten (P-2026-10-04-25):** der Block „Flanke (5 Achsen simultan)“ hinter
+  dem 3D-Schlichten – möglich nur an einer 5-Achs-Maschine, vorgeschlagen, sobald eine passende
+  Wand gewählt ist, im Wettbewerb mit dem 3D-Schlichten (die Zeit zählt das Drehen der Achse in
+  Grad wie mm); hat das 3D-Schlichten noch andere Flächen (eine Kuppel), gibt es ihr die Wände ab.
+  Die Flanke ohne Aufmaß macht ihre Wände fertig; „Ebene schwenken“ bietet der Assistent für sie
+  nicht an. Szenario `szenario_flanke`: die Tasche – Flanke 1 min, 3D-Schlichten 690 % langsamer.
 - **S4 Wegkippen**, wenn der Halter sonst anstößt.
 - **S5 Entgraten in 3D.**
 
