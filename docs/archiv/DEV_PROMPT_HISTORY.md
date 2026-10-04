@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-68 entgraten-3d-ecken
+
+### EINGELESEN
+- Weiter mit „Entgraten 3D“ (Manuel: „mach mal weiter“): Am Klotz hörte die Fase an jedem
+  Kantenende vor der Ecke auf (0,75 mm Fasenfräser, 3,25 mm Schaftfräser) – dort bliebe der Grat.
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py` (`_kappen`, `Kante3D.kappen`, `KAPPE`, `KAPPE_WEIT`, erlaubter
+  Bereich in `_verletzung`; Innenkanten mit der Probe ±(n1 − n2)), `help/de|en/bearbeitung.html`
+  („Ecken“), `tests/test_entgraten3d.py` (Stufe), `docs/spezifikation_strategien.md` (16.3 S5),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.188.3).
+
+### DONE
+- An einer Ecke läuft die Fase bis hinein, an einer Wand hört sie davor auf; Innenkanten werden
+  erkannt (vorher als „zu eng“ gezählt). Schwenkteil: 33 Kanten, 784 mm, 73 mm zu eng (vorher
+  341), Kollision ohne Befund.
+
+### TESTS
+- `test_entgraten3d` (Stufe: bis zur Ecke, vor der Wand, Block unberührt mit OpenCascade) – OK.
+  Kollision am Schwenkteil (Skript): 0 Befunde.
+
 ## P-2026-10-04-67 entgraten-3d-halter-spindel-tisch
 
 ### EINGELESEN

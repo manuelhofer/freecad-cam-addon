@@ -10,6 +10,7 @@
 # - unabhängig mit OpenCascade: Der Fräser (0,02 mm längs der Achse zurück) schneidet das Teil
 #   nur im Keil an der Kante (auf der Seite der Fase, nahe der Kante) – sonst beschädigte er es.
 # Die Nut ist schmaler als der Kegel: Dort fast es nur, wo es passt, und sagt den Rest („eng“).
+# Die Enden: An einer Ecke läuft die Fase bis hinein, an einer Wand hört sie vorher auf (Stufe).
 # Mit Halter und Spindel kippt der Kegel unten an den senkrechten Kanten nach oben – waagrecht
 # käme die Spindel dem Tisch zu nah.
 # Schaft, Halter und Spindel (P-2026-10-04-67): ihr Abstand zum Teil und zum Tisch gegen
@@ -76,20 +77,23 @@ KEGEL = e3.Fraeser3D(5.0, math.radians(45), 0.25, 10.0)
 FLACH = e3.Fraeser3D(5.0, 0.0, 5.0, 20.0)
 
 
-def keilpruefung(lage, e, t, schenkel, fraeser, form):
-    """Schneidet der Fräser (0,02 mm zurück) das Teil nur im Keil an der Kante? (größte
-    Abweichung in mm, 0: ja)"""
+def fraeserkoerper(lage, fraeser):
+    """Der Fräser als Körper, 0,02 mm längs der Achse zurück (die Berührung in der Fase)."""
     a = FreeCAD.Vector(*lage.achse)
     zurueck = 0.02 / (math.sin(fraeser.halbwinkel) if fraeser.kegel else 1.0)
     spitze = FreeCAD.Vector(*(lage.spitze + zurueck * lage.achse))
     if fraeser.kegel:
         koerper = Part.makeCone(fraeser.spitze, fraeser.radius, fraeser.kegelhoehe, spitze, a)
-        koerper = koerper.fuse(
+        return koerper.fuse(
             Part.makeCylinder(fraeser.radius, e3.SCHAFT, spitze + a * fraeser.kegelhoehe, a)
         )
-    else:
-        koerper = Part.makeCylinder(fraeser.radius, fraeser.hoehe, spitze, a)
-    gemeinsam = koerper.common(form)
+    return Part.makeCylinder(fraeser.radius, fraeser.hoehe, spitze, a)
+
+
+def keilpruefung(lage, e, t, schenkel, fraeser, form):
+    """Schneidet der Fräser (0,02 mm zurück) das Teil nur im Keil an der Kante? (größte
+    Abweichung in mm, 0: ja)"""
+    gemeinsam = fraeserkoerper(lage, fraeser).common(form)
     if gemeinsam.isNull() or gemeinsam.Volume < 1e-9:
         return 0.0
     punkte, _d = gemeinsam.tessellate(0.01)
@@ -215,6 +219,46 @@ for werte, text in (
         pruefe(False, f"{text}: kein Fehler")
     except ValueError:
         pass
+
+# --- Die Enden: an einer Ecke bis hinein, an einer Wand davor -----------------------------------
+# Eine Stufe: unten 60 × 40 × 10, rechts darauf ein Block 20 × 40 × 10. Die vordere Oberkante
+# der unteren Stufe endet links an einer Ecke (die Fase läuft durch, das Dreieck jenseits der
+# Fasenebene geht aus der linken Seite) und rechts an der Wand des Blocks (dort hört sie vorher
+# auf – der Block bleibt unberührt, unabhängig mit OpenCascade).
+block = Part.makeBox(20, 40, 10, V(40, 0, 10))
+stufe = Part.makeBox(60, 40, 10).fuse(block).removeSplitter()
+unten_oben = next(
+    f"Face{i + 1}"
+    for i, f in enumerate(stufe.Faces)
+    if abs(f.BoundBox.ZMin - 10) < 1e-6 and abs(f.BoundBox.ZMax - 10) < 1e-6
+)
+stufen_kanten = e3.kanten(stufe, [unten_oben])
+pruefe(len(stufen_kanten) == 3, f"Stufe: {len(stufen_kanten)} Kanten (ohne die Innenkante)")
+vorn = next(
+    k
+    for k in stufen_kanten
+    if k.kante.BoundBox.YMax < 1e-6 and abs(k.kante.BoundBox.ZMin - 10) < 1e-6
+)
+for werte, titel in (
+    (e3.Werte3D(KEGEL, 0.5, e3.FUENF, sicher=40.0), "Stufe 5 Achsen Kegel"),
+    (e3.Werte3D(FLACH, 0.5, e3.FUENF, sicher=40.0), "Stufe 5 Achsen flach"),
+    (e3.Werte3D(KEGEL, 0.5, e3.DREI, sicher=40.0), "Stufe 3 Achsen Kegel"),
+):
+    wolke_stufe = e3.wolke(stufe, stufen_kanten, werte.fraeser.hoehe + werte.fraeser.radius)
+    mit = [(p, lage) for p, lage, _g in e3._stellen_der_kante(vorn, werte, wolke_stufe) if lage]
+    xs = [float(e3._geometrie(vorn, p)[0][0]) for p, _lage in mit]
+    pruefe(
+        mit and min(xs) < 0.01 and 30.0 < max(xs) < 40.0 - 0.5,
+        f"{titel}: Fase von x {min(xs, default=-1):.2f} bis {max(xs, default=-1):.2f}",
+    )
+    schlimmste = 0.0
+    for p, lage in mit[:3] + mit[-6:]:
+        e, t, *_rest = e3._geometrie(vorn, p)
+        schlimmste = max(schlimmste, keilpruefung(lage, e, t, lage.schenkel, werte.fraeser, stufe))
+        im_block = fraeserkoerper(lage, werte.fraeser).common(block).Volume
+        pruefe(im_block < 1e-6, f"{titel}: schneidet in den Block ({im_block:.2e} mm³)")
+    pruefe(schlimmste < 0.03, f"{titel}: außerhalb der Fase {schlimmste:.3f} mm")
+    print(ascii(f"{titel}: Fase x {min(xs):.2f} .. {max(xs):.2f}, schlimmstens {schlimmste:.3f}"))
 
 # --- Schaft, Halter, Spindel gegen OpenCascade --------------------------------------------------
 from camaddon import halter as hl  # noqa: E402

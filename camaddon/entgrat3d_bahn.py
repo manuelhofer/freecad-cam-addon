@@ -22,7 +22,8 @@ der beiden Flächen; u1, u2 laufen in den Flächen von der Kante weg. Die Fase i
 
 Das Werkstück darf nicht beschädigt werden: Die Flächen nahe den Kanten werden dicht abgetastet
 (PUNKTABSTAND); an jeder Stelle darf kein Punkt in der Schneide liegen, außer im Fasenstreifen der
-beiden Flächen der Kante, zwischen ihren Enden. Sonst rutscht die Fase zur Spitze (Kegel) bzw. auf
+beiden Flächen der Kante, zwischen ihren Enden – und an einer Ecke im Dreieck der Fläche, die die
+Kante abschließt (_kappen): Dort läuft die Fase bis zur Ecke durch. Sonst rutscht die Fase zur Spitze (Kegel) bzw. auf
 die andere Seite der Stirn; geht keine Lage, bleibt die Stelle aus und das Ergebnis sagt, wie viel.
 
 Schaft und Halter (Aufbau, aus der Werkzeugverwaltung wie „Auf der Maschine prüfen“) bleiben
@@ -63,6 +64,8 @@ GLEICH_ACHSE = 1e-4  # rad – so wenig anders gilt die Achse als gleich (gerade
 GLEICH_ORT = 1e-3  # mm
 ANTEILE_KEGEL = (0.5, 0.35, 0.2, 0.08, 0.0)  # wo die Fase auf der Flanke liegt (0: an der Spitze)
 ANTEILE_FLACH = (0.5, 0.3, 0.7, 0.15, 0.85)  # wo die Fase auf der Stirn liegt (Anteil des Radius)
+KAPPE = 0.2  # so weit zeigt eine Fläche am Ende der Kante hinaus (cos), dann schließt sie sie ab
+KAPPE_WEIT = 3.0  # so weit (mal Schenkel und STREIFEN) vom Ende zählen ihre Punkte zur Fase
 SPRUNG = math.radians(5.0)  # dreht die Achse von Stelle zu Stelle mehr, endet der Lauf
 FUENF, DREI = "fuenf", "drei"
 
@@ -194,6 +197,8 @@ class Kante3D:
     flaechen: tuple  # (Part.Face, Part.Face)
     nummern: tuple  # ihre Nummern im Teil (0, 1, …)
     vorzeichen: tuple  # je Fläche ±1: normalAt mal das zeigt nach außen
+    # Je Ende (Anfang, Ende der Kurve) die Flächen, die die Kante dort abschließen (_kappen).
+    kappen: tuple = ((), ())
 
 
 def _normale(flaeche, p, vorzeichen=1.0):
@@ -247,13 +252,50 @@ def kanten(form, namen):
         winkel = math.degrees(math.acos(max(-1.0, min(1.0, float(n1 @ n2)))))
         if winkel < SCHARF:
             continue  # glatt
-        c = (n1 + n2) / np.linalg.norm(n1 + n2)
+        # Konvex: Von der Kante ein Stück über Fläche 1 hinaus (+n1) und von Fläche 2 weg (−n2)
+        # liegt Luft – an einer Innenkante (Boden an einer Wand) das Material der anderen Fläche.
+        # Die Winkelhalbierende der Normalen taugt dafür nicht: Sie zeigt an beiden ins Freie.
+        d = (n1 - n2) / np.linalg.norm(n1 - n2)
         p = np.array([mitte.x, mitte.y, mitte.z])
-        if form.isInside(FreeCAD.Vector(*(p + 0.05 * c)), 1e-6, False):
+        if any(form.isInside(FreeCAD.Vector(*(p + 0.05 * r)), 1e-6, False) for r in (d, -d)):
             continue  # Innenkante
         nummern = tuple(next(i for i, f in enumerate(form.Faces) if f.isSame(g)) for g in flaechen)
-        ergebnis.append(Kante3D(f"Edge{nummer + 1}", kante, tuple(flaechen), nummern, vorzeichen))
+        kappen = tuple(_kappen(form, form.Edges[nummer], nummern, ende) for ende in (0, 1))
+        ergebnis.append(
+            Kante3D(f"Edge{nummer + 1}", kante, tuple(flaechen), nummern, vorzeichen, kappen)
+        )
     return ergebnis
+
+
+def _kappen(form, kante, nummern, ende):
+    """Die Nummern der Flächen, die die Kante am Anfang (0) bzw. Ende (1) abschließen: Ihre
+    Außennormale zeigt dort über das Ende hinaus – eine Ecke des Teils, keine Wand, an der die
+    Kante endet. Dort darf die Fase durchlaufen und das Dreieck jenseits der Fasenebene aus der
+    Fläche nehmen (wie jede Fase, die bis zur Ecke geht); an einer Wand hört sie vorher auf."""
+    import FreeCAD
+    import Part
+
+    prm = kante.FirstParameter if ende == 0 else kante.LastParameter
+    p = kante.valueAt(prm)
+    t = kante.tangentAt(prm)
+    hinaus = np.array([t.x, t.y, t.z]) * (-1.0 if ende == 0 else 1.0)
+    hinaus /= np.linalg.norm(hinaus)
+    ecke = next((v for v in kante.Vertexes if v.Point.distanceToPoint(p) < 1e-6), None)
+    if ecke is None:
+        return ()
+    ergebnis = []
+    for flaeche in form.ancestorsOfType(ecke, Part.Face):
+        nummer = next((i for i, f in enumerate(form.Faces) if f.isSame(flaeche)), None)
+        if nummer is None or nummer in nummern or nummer in ergebnis:
+            continue
+        ecken, dreiecke = flaeche.tessellate(0.1)
+        if not dreiecke:
+            continue
+        mitte = sum((ecken[i] for i in dreiecke[0]), FreeCAD.Vector()) * (1.0 / 3.0)
+        n = _normale(flaeche, p, _nach_aussen(form, flaeche, mitte))
+        if float(n @ hinaus) > KAPPE:
+            ergebnis.append(nummer)
+    return tuple(ergebnis)
 
 
 # --- Die Punktwolke ----------------------------------------------------------------------------
@@ -574,13 +616,22 @@ def _verletzung(lage, e, t, k, w, wolke_, enden):
         return 0.0
     # Erlaubt: auf den Flächen der Kante, auf der Seite der Fase, nahe der Kante, zwischen ihren
     # Enden.
-    eigene = np.isin(wolke_.flaechen[nummern], k.nummern)
+    flaechen = wolke_.flaechen[nummern]
+    eigene = np.isin(flaechen, k.nummern)
     ueber = (x - e) @ lage.normale >= -lage.tiefe - RAND
     quer = (x - e) - np.outer((x - e) @ t, t)
-    nahe = np.linalg.norm(quer, axis=1) <= max(lage.schenkel) + STREIFEN
+    weit = max(lage.schenkel) + STREIFEN
+    nahe = np.linalg.norm(quer, axis=1) <= weit
     (p0, t0), (p1, t1) = enden
     zwischen = ((x - p0) @ t0 >= -RAND) & ((p1 - x) @ t1 >= -RAND)
-    erlaubt = eigene & ueber & nahe & zwischen
+    # Dazu an einer Ecke die Fläche, die die Kante abschließt (_kappen), nahe dem Ende.
+    kappe = np.zeros(len(x), dtype=bool)
+    for (p_e, _t_e), nummern_e in zip(enden, k.kappen, strict=True):
+        if nummern_e:
+            kappe |= np.isin(flaechen, nummern_e) & (
+                np.linalg.norm(x - p_e, axis=1) <= KAPPE_WEIT * weit
+            )
+    erlaubt = ueber & nahe & ((eigene & zwischen) | kappe)
     schlecht = innen & ~erlaubt
     if not schlecht.any():
         return 0.0

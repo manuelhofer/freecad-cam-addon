@@ -2887,6 +2887,19 @@ Kollision mit Rundachsen je Station.
   (vorher 5 s ohne den Aufbau). Steht das Werkzeug nicht in der Werkzeugverwaltung, ist seine
   Länge die Gesamtlänge des CAM-Werkzeugs (nicht ab Spindelnase) – dann ragt es mindestens die
   Schneide und 5 mm aus dem Halter wie beim vorgeschlagenen.
+  **Ecken und Innenkanten (P-2026-10-04-68):** Die Fase hörte an jedem Kantenende vor der Ecke
+  auf (am Klotz 0,75 mm mit dem Fasenfräser, 3,25 mm mit dem Schaftfräser) – dort blieb der Grat.
+  Jetzt darf der Fräser an einer Ecke die Fläche anschneiden, die die Kante abschließt
+  (`_kappen`: ihre Außennormale zeigt am Ende über die Kante hinaus, cos > 0,2), jenseits der
+  Fasenebene und nahe dem Ende – das Dreieck, das jede Fase bis zur Ecke herausnimmt. Endet die
+  Kante an einer Wand (Normale zurück zur Kante), bleibt alles wie zuvor: Die Fase hört davor
+  auf. Nachgeprüft an einer Stufe (`test_entgraten3d`): links bis x 0,00, rechts vor der Wand bei
+  35,5 (Kegel) bzw. 37 mm (Stirn), der Block darüber unberührt (OpenCascade). Dabei gefunden: Die
+  Erkennung der Innenkanten griff nie (die Probe auf der Winkelhalbierenden der Normalen liegt an
+  beiden Kantenarten im Freien) – Innenkanten standen als „zu eng“ im Ergebnis. Jetzt die Probe
+  ±(n1 − n2): an einer konvexen Kante beidseits Luft. Am Schwenkteil danach 33 Kanten, 784 mm,
+  73 mm zu eng (vorher 341 mm, fast alles Innenkanten), 70 mm zu nah am Tisch; Kollision ohne
+  Befund.
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

@@ -551,6 +551,10 @@ chamfer, and the line says how much and why (“too narrow”, “too steep”, 
 table”, “shank or holder would hit”). If the part sits higher (fixture) or the tool sticks out
 further, enter it in the tool manager – then more is possible. Clamps and the machine itself are
 checked by “Check collision”.</li>
+<li><b>Corners:</b> if the edge ends at a corner of the part, the chamfer runs right into it – the
+small triangle beyond the chamfer comes out of the neighbouring face, as with every chamfer up to
+a corner. If it ends at a wall (a step, a shoulder), it stops before it. Inner edges get no
+chamfer.</li>
 <li>The operation is called “Deburr 3D T3”. With 5 axes “Check on the machine”, the collision
 check and “Write program” compute the rotary axes per point.</li>
 </ul>
