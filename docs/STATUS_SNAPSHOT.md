@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.167.0 (P-2026-10-04-22). Alles, was hier als gebaut steht,
+Stand 0.167.1 (P-2026-10-04-23). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -85,7 +85,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Rundachse; Prüfen, Kollision und Programm mit den Rundachsen je Punkt (G93). An der Kuppel 6 %
   länger, nirgends mit der Spitze. Ohne den Haken bleibt alles wie bisher. Im Assistenten
   (P-2026-10-04-22): beim 3D-Schlichten der Haken „Anstellen (5 Achsen simultan)“, frei an einer
-  5-Achs-Maschine mit Kugelfräser. Offen: Flanke (S3), Wegkippen (S4).
+  5-Achs-Maschine mit Kugelfräser. Nachgerechnet auf allen drei 5-Achs-Beispielen (Tisch/Tisch
+  um X, Kopf/Tisch um Y, Kopf/Kopf um X): eine Rundachse kippt bis 29,4°, die andere steht.
+  Offen: Flanke (S3), Wegkippen (S4).
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei

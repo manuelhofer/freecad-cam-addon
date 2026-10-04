@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-23 simultan-schneller
+
+### EINGELESEN
+- Der angestellte Kugelfräser auf allen drei 5-Achs-Beispielen nachgerechnet (Kuppel, Ø 6):
+  Tisch/Tisch um X (A 0 … 29,4°, C steht), Kopf/Tisch um Y (B −29,4 … 0°, C steht), Kopf/Kopf
+  um X (A −29,4 … 0°, B steht); 4,50 … 4,54 min, keine Achse über ihre Grenze. Dabei: Die Sätze
+  für die Maschine (`angestellt.befehle`) brauchten 9 s – 8 s davon `Maschine.abbildung`
+  (42 848 Aufrufe), und das Prüffenster rechnet sie zweimal (Prüfen und Abfahren).
+
+### DATEIEN
+- `camaddon/simultan.py` (`abweichung`: bei gleichen Rundachsen 0 ohne Rechnen;
+  `programm_ohne_tcpm`: die Abbildung je Stellung einmal), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.167.1).
+
+### AKZEPTANZKRITERIUM
+- Dieselben Sätze, schneller.
+
+### DONE
+- An der Kuppel 9,3 → 1,8 s: Bleiben die Rundachsen in einem Satz stehen, fährt die Maschine
+  ohne TCPM genau die Gerade (dieselbe Abbildung an beiden Enden und in der Mitte); 9 255 von
+  10 686 Punkten stehen senkrecht.
+
+### TESTS
+- `tests/test_simultan.py`, `tests/test_angestellt.py` – OK, dieselben Zahlen (die Prüfdatei
+  18 statt 71 s). black und ruff sauber.
+
+### NEXT
+- Manuel probiert das Anstellen aus.
+
 ## P-2026-10-04-22 anstellen-im-assistenten
 
 ### EINGELESEN

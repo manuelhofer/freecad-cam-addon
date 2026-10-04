@@ -128,6 +128,8 @@ def abweichung(maschine, von, nach, rund_von, rund_nach, bezug=0.0):
     in der Mitte des Satzes `von` → `nach` (Punkt) neben der Geraden liegt, wenn die Maschine X,
     Y, Z und die Rundachsen (`rund_…`) linear fährt – ohne TCPM. None, wenn die Maschine an einer
     Stellung keine Abbildung hat."""
+    if rund_von == rund_nach:
+        return 0.0  # dieselbe Abbildung am Anfang, in der Mitte und am Ende: genau die Gerade
     mitte = {k: (rund_von[k] + rund_nach[k]) / 2 for k in rund_von}
     a0, a1, am = (maschine.abbildung(r) for r in (rund_von, rund_nach, mitte))
     if a0 is None or a1 is None or am is None:
@@ -219,8 +221,12 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0
         punkte, rund = verdichtet(maschine, punkte, rund, toleranz, bezug, eilgaenge)
     befehle = [Path.Command("G93")] if g93 else []
     vorschub, davor = 0.0, None
+    abbildungen = {}  # je Stellung einmal gerechnet – die meisten Punkte teilen sie
     for punkt, stellung in zip(punkte, rund, strict=True):
-        abbildung = maschine.abbildung(stellung)
+        schluessel = tuple(sorted(stellung.items()))
+        if schluessel not in abbildungen:
+            abbildungen[schluessel] = maschine.abbildung(stellung)
+        abbildung = abbildungen[schluessel]
         if abbildung is None:
             raise ValueError(tr("si.fehler.linear"))
         werte = dict(zip("XYZ", abbildung.punkt(punkt.spitze), strict=True))
