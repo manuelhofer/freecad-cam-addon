@@ -369,6 +369,10 @@ pruefe(len(fahrt.stationen) == 2, f"ohne Y, Stationen: {len(fahrt.stationen)}")
 pruefe(fahrt.stationen[0].stellungen is not None, "ohne Y: erster Punkt nicht erreichbar")
 pruefe(fahrt.stationen[1].stellungen is None, "ohne Y: Punkt quer daneben erreichbar?")
 pruefe(fahrt.wirksam(1) == fahrt.wirksam(0), "ohne Y: Maschine bleibt nicht stehen")
+# Die Spitze am Werkstück je Station: einmal gerechnet, beim zweiten Mal dieselbe Liste
+# (P-2026-10-04-20 – das Bild, der Abtrag und die Kollision fragen danach).
+erste = fahrt.am_werkstueck()
+pruefe(fahrt.am_werkstueck() is erste and len(erste) == len(fahrt.stationen), "nicht gemerkt")
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 

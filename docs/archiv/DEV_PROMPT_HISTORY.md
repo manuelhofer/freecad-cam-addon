@@ -35,6 +35,7 @@ patch_naming:
 
 ### TESTS
 - `tests/test_abfahren.py`, `tests/test_vierachs_pruefen.py` – OK. black und ruff sauber.
+  Nachgetragen: `tests/test_abfahren.py` – der zweite Aufruf gibt dieselbe Liste.
 
 ### NEXT
 - Manuels Entscheidungen.
