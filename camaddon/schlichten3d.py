@@ -73,6 +73,8 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Werkzeugachsen = []
         obj.Wegkippen = False
         obj.WegkippenBis = wk.WINKEL_MAX
+        obj.SpielHalter = wk.SPIEL_HALTER
+        obj.SpielSchaft = wk.SPIEL_SCHAFT
 
     def opOnDocumentRestored(self, obj):
         neu = self._eigenschaften(obj)
@@ -81,6 +83,9 @@ class Schlichten3D(PathOp.ObjectOp):
         elif "Wegkippen" in neu:
             obj.Wegkippen = False  # gespeichert vor dem Wegkippen: wie damals
             obj.WegkippenBis = wk.WINKEL_MAX
+        if "SpielHalter" in neu and "Anstellen" not in neu:
+            obj.SpielHalter = wk.SPIEL_HALTER
+            obj.SpielSchaft = wk.SPIEL_SCHAFT
         if "Grenzwinkel" in neu:
             obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
         if set(RICHTUNGEN) - set(obj.getEnumerationsOfProperty("Richtung")):
@@ -117,6 +122,8 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyVectorList", "Werkzeugachsen", tr("an.eigenschaft.achsen")),
             ("App::PropertyBool", "Wegkippen", tr("wk.eigenschaft.wegkippen")),
             ("App::PropertyAngle", "WegkippenBis", tr("wk.eigenschaft.bis")),
+            ("App::PropertyLength", "SpielHalter", tr("wk.eigenschaft.spiel_halter")),
+            ("App::PropertyLength", "SpielSchaft", tr("wk.eigenschaft.spiel_schaft")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE_5ACHS, text)
@@ -178,6 +185,8 @@ class Schlichten3D(PathOp.ObjectOp):
             schaft,
             auskragung,
             winkel_max=float(obj.WegkippenBis),
+            spiel_halter=float(obj.SpielHalter),
+            spiel_schaft=float(obj.SpielSchaft),
         )
         if ergebnis.anstoesse:
             FreeCAD.Console.PrintWarning(

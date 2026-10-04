@@ -1,9 +1,9 @@
 # Wegkippen, 5 Achsen simultan (W-015, Spezifikation Strategien 16.3 S4; Manuel, 2026-10-04: „Ja,
 # bauen“): eine Kavität 50 × 50, 30 tief, Ecken R 10, unten eine Rundung R 8; die 5-Achs-Maschine
-# Tisch/Tisch als zuletzt benutzte; ein Kugelfräser Ø 6 im Schrumpffutter, 23,5 mm Auskragung
-# (senkrecht bräuchte er gut 30). Die Rundungen anklicken → „Bearbeitung“: beim 3D-Schlichten die
+# Tisch/Tisch als zuletzt benutzte; ein Kugelfräser Ø 6 im Schrumpffutter, 27 mm Auskragung
+# (senkrecht bräuchte er mit 2 mm Spiel gut 32). Die Rundungen anklicken → „Bearbeitung“: beim 3D-Schlichten die
 # Haken „Anstellen“ und „Wegkippen“, frei. „Wegkippen“ setzen → „… – weggekippt reichen … mm
-# Auskragung (senkrecht 31,0); dein Fräser steht 23,5 heraus“. „Anlegen“: „3D-Schlichten T3“ mit
+# Auskragung (senkrecht 32); dein Fräser steht 27 heraus“. „Anlegen“: „3D-Schlichten T3“ mit
 # „Wegkippen“, je Satz eine Achse. „Auf der Maschine prüfen“: mitten in der Bahn steht der Tisch
 # schräg, die Achsen in ihren Grenzen.
 import os
@@ -57,7 +57,7 @@ def schritte(h):
     halter.kennung = "halter-schrumpf-szenario"
     bibliothek.halter.append(halter)
     t3.halter = halter.kennung
-    t3.laenge_spindelnase = float(halter.laenge) + 23.5
+    t3.laenge_spindelnase = float(halter.laenge) + 27.0
     bibliothek.speichern()
 
     doc = FreeCAD.newDocument("Kavitaet")
@@ -108,7 +108,7 @@ def schritte(h):
     )
     yield 800
     text = block.ergebnis.text()
-    h.pruefe("weggekippt reichen" in text and "dein Fräser steht 23,5 heraus" in text, f"{text!r}")
+    h.pruefe("weggekippt reichen" in text and "dein Fräser steht 27 heraus" in text, f"{text!r}")
     panel.seite_zeigen(2)
     yield 500
     h.bild("1_wegkippen", panel.form)

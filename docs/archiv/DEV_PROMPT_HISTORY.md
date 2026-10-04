@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-31 wegkippen-spiel
+
+### EINGELESEN
+- Manuel, 2026-10-04: „generell sollten wir auf Save gehen heißt mehr Spiel … oder müssen die
+  Kippneigung dementsprechend anpassen“ und „hier kann man das nicht einstellbar machen?“; zur
+  Zeit (C dreht rundherum): „eher irrelevant … hauptsache die Bahnen sind sinnvoll und
+  schnellstmöglich … dass keine Werkzeugbrüche entstehen“.
+
+### DATEIEN
+- `camaddon/wegkippen.py` (Spiel 2 mm am Halter, 0,5 am Schaft, im Körper und als Parameter;
+  `_gekippt` ohne Richtung senkrecht; nan zählt als Anstoßen; Mitten, die nach den Runden noch
+  anstoßen, zählen; `bedarf` aufgerundet + ZUGABE 1 mm), `camaddon/schlichten3d.py`
+  (Eigenschaften `SpielHalter`, `SpielSchaft`), Übersetzungen, Hilfe „Bearbeitung“ (de/en),
+  `tests/test_wegkippen.py`, `tests/gui/szenario_wegkippen.py`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.171.1).
+
+### AKZEPTANZKRITERIUM
+- Mit 2 mm / 0,5 mm: senkrecht 31,5–33 mm, ER16 bis 30° höchstens 31, Schrumpffutter höchstens
+  25,5; Gegenprobe Halter mindestens 1,9 mm; als Operation (kürzeste + 1 mm, auf ganze mm)
+  „Kollision prüfen“: weggekippt kein Halter am Teil.
+
+### DONE
+- Das Spiel einstellbar an der Operation; die Neigung folgt ihm von selbst. Beim Messen gefunden:
+  Stellen ohne Kipprichtung, die beim Nachprüfen weiter gekippt wurden, bekamen eine Achse der
+  Länge cos w – in der Basis daraus nan, und ein Punkt mit nan galt als „stößt nicht an“; jetzt
+  bleiben sie senkrecht, und nan zählt als Anstoßen. Das Neuberechnen der Operation dauert 3,5 s
+  (die Achsen 0,9 s); lang war nur die Prüfdatei, solange die Auskragung zum Spiel nicht passte.
+  Der Assistent zeigt die kürzeste Auskragung auf ganze mm aufgerundet und 1 mm dazu: Mit genau
+  der kürzesten blieben an der Kavität zwei Stellen senkrecht (Stichproben, ohne die Mitten).
+
+### TESTS
+- `tests/test_wegkippen.py` (2:21 min): senkrecht 32,02, ER16 30,28, Schrumpffutter 24,50;
+  Gegenprobe Halter 2,46 mm, Schaft 1,31 mm; Halter am Teil weggekippt 0, senkrecht 1.
+  `szenario_wegkippen`: „– weggekippt reichen 26 mm Auskragung (senkrecht 32); dein Fräser steht 27
+  heraus“ – OK. black und ruff sauber.
+
+### NEXT
+- Werkzeugbruch: die Last beim Räumen auch ohne adaptiv messen (die dreieckige Tasche am Testteil,
+  bis 4,5 ae ungemeldet).
+
 ## P-2026-10-04-30 wegkippen
 
 ### EINGELESEN

@@ -1,9 +1,10 @@
 # Prüft das Wegkippen (wegkippen.py, 5 Achsen simultan S4; Manuel, 2026-10-04: „Ja, bauen“): eine
 # Kavität 50 × 50, 30 tief, senkrechte Ecken R 10, unten eine Rundung R 8 (gewählt), Kugel Ø 6.
-# Senkrecht muss der Fräser gut 30 mm herausstehen (der Halter über den Rand); bis 30° gekippt
-# reichen mit ER16 höchstens 29,5 mm, mit dem Schrumpffutter Ø 21 höchstens 23 mm. Gegenprobe
-# mit den echten Körpern (distToShape): der Halter überall mindestens 0,9 mm vom Teil, der Schaft
-# nirgends drin. Dann als „3D-Schlichten“ mit „Wegkippen“, das Schrumpffutter, 23,5 mm Auskragung:
+# Mit 2 mm Spiel am Halter und 0,5 am Schaft (Manuel: „auf Save gehen“) muss der Fräser senkrecht
+# gut 32 mm herausstehen (der Halter über den Rand); bis 30° gekippt reichen mit ER16 höchstens
+# 31 mm, mit dem Schrumpffutter Ø 21 höchstens 25,5 mm. Gegenprobe mit den echten Körpern
+# (distToShape): der Halter überall mindestens 1,9 mm vom Teil, der Schaft nirgends drin. Dann als
+# „3D-Schlichten“ mit „Wegkippen“, das Schrumpffutter, die kürzeste Auskragung und 1 mm dazu:
 # Die Achse kippt, wo es nötig ist; „Kollision prüfen“ auf der Tisch/Tisch-Maschine (die rechte
 # Seite mit ihren Ecken) findet den Halter senkrecht am Teil, weggekippt nicht – auch nicht zwischen
 # zwei Stellen, wo das Maschinenprogramm Punkte mit gemittelter Achse einsetzt.
@@ -66,9 +67,9 @@ senkrecht = wk.kuerzeste_auskragung(teil, punkte, R, schrumpf, R, winkel_max=0)
 mit_er16 = wk.kuerzeste_auskragung(teil, punkte, R, er16, R, winkel_max=30)
 mit_schrumpf = wk.kuerzeste_auskragung(teil, punkte, R, schrumpf, R, winkel_max=30)
 print(ascii(f"senkrecht {senkrecht:.2f}, ER16 {mit_er16:.2f}, Schrumpffutter {mit_schrumpf:.2f}"))
-pruefe(30.0 <= senkrecht <= 31.5, f"senkrecht {senkrecht}")
-pruefe(mit_er16 <= 29.5, f"ER16 bis 30° {mit_er16}")
-pruefe(mit_schrumpf <= 23.0, f"Schrumpffutter bis 30° {mit_schrumpf}")
+pruefe(31.5 <= senkrecht <= 33.0, f"senkrecht {senkrecht}")
+pruefe(mit_er16 <= 31.0, f"ER16 bis 30° {mit_er16}")
+pruefe(mit_schrumpf <= 25.5, f"Schrumpffutter bis 30° {mit_schrumpf}")
 
 # Gegenprobe: an jeder vierten Stelle Halter und Schaft als Körper.
 mitten = punkte[::4] + np.array([0.0, 0.0, R])
@@ -89,7 +90,7 @@ for c, a in zip(mitten, wk._gekippt(richtung, winkel), strict=True):
     schaft = Part.makeCylinder(R - 0.05, mit_schrumpf - 1.6 * R, c + a * (0.6 * R), a)
     schaft_weg = min(schaft_weg, teil.distToShape(schaft)[0])
 print(ascii(f"Gegenprobe: Halter {halter_weg:.2f} mm, Schaft {schaft_weg:.3f} mm weg"))
-pruefe(halter_weg >= 0.9, f"Halter nur {halter_weg:.2f} mm vom Teil")
+pruefe(halter_weg >= 1.9, f"Halter nur {halter_weg:.2f} mm vom Teil")
 pruefe(schaft_weg > 1e-6, f"Schaft im Teil ({schaft_weg})")
 
 # --- Als Operation, mit „Kollision prüfen“ --------------------------------------------------------
@@ -111,7 +112,8 @@ bibliothek = wz.Bibliothek([t3])
 schrumpf.kennung = "halter-schrumpf-test"
 bibliothek.halter.append(schrumpf)
 t3.halter = schrumpf.kennung
-t3.laenge_spindelnase = float(schrumpf.laenge) + 23.5
+auskragung_soll = math.ceil(mit_schrumpf) + 1.0  # die kürzeste und 1 mm dazu, auf ganze mm
+t3.laenge_spindelnase = float(schrumpf.laenge) + auskragung_soll
 bibliothek.speichern()
 ue.uebergeben(bibliothek)
 doc = FreeCAD.newDocument("Wegkippen")
@@ -129,7 +131,9 @@ rechts = [n for n in rund if teil.getElement(n).BoundBox.Center.x > 70.0]
 pruefe(len(rechts) >= 3, f"rechts: {rechts}")
 op = s3op.lege_an(job, tc, 0.05, flaechen=rechts)
 halter_e, schaft_e, auskragung = wk.einspannung(tc)
-pruefe(abs(auskragung - 23.5) < 1e-6 and halter_e.kennung == schrumpf.kennung, "Einspannung")
+pruefe(
+    abs(auskragung - auskragung_soll) < 1e-6 and halter_e.kennung == schrumpf.kennung, "Einspannung"
+)
 op.Wegkippen = True
 op.recompute()
 achsen = np.array([tuple(v) for v in op.Werkzeugachsen])

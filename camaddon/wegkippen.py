@@ -41,11 +41,14 @@ import numpy as np
 
 RASTER = 0.5  # mm – das Höhenfeld des Teils
 TOLERANZ = 0.05  # mm – so fein wird das Teil vernetzt
-SPIEL_HALTER = 1.0  # mm – so weit bleibt der Halter vom Teil weg
-SPIEL_SCHAFT = 0.2  # mm – so weit der Schaft
+# mm – so weit bleiben Halter und Schaft vom Teil weg: die Vorgaben der Operation (Manuel,
+# 2026-10-04: „auf Save gehen“, „kann man das nicht einstellbar machen?“ – SpielHalter, SpielSchaft)
+SPIEL_HALTER = 2.0
+SPIEL_SCHAFT = 0.5
 WINKEL_MAX = 30.0  # Grad – so weit kippt die Achse höchstens
 WINKEL_SCHRITT = 1.0  # Grad
 RICHTUNGEN = 8  # so viele Richtungen ringsum, wenn die Steigung nicht reicht
+ZUGABE = 1.0  # mm – so viel mehr als die kürzeste Auskragung zeigt der Assistent (bedarf)
 GLAETTEN = 5.0  # mm – im Umkreis entlang der Bahn gilt die größte Neigung
 RING_ABSTAND = 2.0  # mm – so dicht liegen die Punkte auf Halter und Schaft
 BEWEGUNG = ("G0", "G00", "G1", "G01")
@@ -61,6 +64,8 @@ class Koerper:
     halter: np.ndarray
     schaft: np.ndarray
     auskragung: float
+    spiel_halter: float = SPIEL_HALTER  # mm
+    spiel_schaft: float = SPIEL_SCHAFT  # mm
 
 
 def _ringe(radius_bei, z_von, z_bis):
@@ -79,7 +84,15 @@ def _ringe(radius_bei, z_von, z_bis):
     return np.vstack(punkte) if punkte else np.zeros((0, 3))
 
 
-def koerper(halter, schaft_radius, kugel_radius, auskragung, bis=math.inf):
+def koerper(
+    halter,
+    schaft_radius,
+    kugel_radius,
+    auskragung,
+    bis=math.inf,
+    spiel_halter=SPIEL_HALTER,
+    spiel_schaft=SPIEL_SCHAFT,
+):
     """Koerper für einen Halter (halter.Halter, gerade) mit der Nase `auskragung` über der Spitze
     und einem Schaft mit `schaft_radius` (etwas kleiner gerechnet: Er läuft an Wänden entlang) –
     nur bis zur Höhe `bis` über der Spitze (darüber reicht nichts mehr ans Teil)."""
@@ -102,7 +115,7 @@ def koerper(halter, schaft_radius, kugel_radius, auskragung, bis=math.inf):
     halter_punkte = np.vstack([t for t in teile if len(t)]) if teile else np.zeros((0, 3))
     halter_punkte = halter_punkte[halter_punkte[:, 2] <= bis]
     schaft = _ringe(lambda _z: max(schaft_radius - 0.1, 0.1), 1.5 * kugel_radius, auskragung)
-    return Koerper(halter_punkte, schaft, auskragung)
+    return Koerper(halter_punkte, schaft, auskragung, spiel_halter, spiel_schaft)
 
 
 class Huelle:
@@ -138,6 +151,7 @@ class Huelle:
         z = self._breiter[schluessel]
         fx = (np.asarray(x) - self.x[0]) / self.raster
         fy = (np.asarray(y) - self.y[0]) / self.raster
+        fx, fy = np.nan_to_num(fx, nan=-1e9), np.nan_to_num(fy, nan=-1e9)
         i0, j0 = np.floor(fx).astype(int), np.floor(fy).astype(int)
         drin = (i0 >= 0) & (j0 >= 0) & (i0 < len(self.x) - 1) & (j0 < len(self.y) - 1)
         ergebnis = np.full(np.shape(fx), -np.inf)
@@ -229,19 +243,20 @@ def _breiter(z, zellen):
     return sliding_window_view(rand, 2 * zellen + 1, axis=1).max(axis=-1)
 
 
-def _bis(huelle, spitzen_z, halter, winkel_max):
+def _bis(huelle, spitzen_z, halter, winkel_max, spiel=SPIEL_HALTER):
     """Wie hoch über der Spitze (im Rahmen des Werkzeugs) ein Punkt des Halters höchstens liegen
     kann, um noch ans Teil zu reichen – bei der tiefsten Spitze und bis `winkel_max` gekippt."""
     if not np.isfinite(huelle.hoechste) or not len(spitzen_z):
         return math.inf
     radius = max((max(a.d_oben, a.d_unten) / 2 for a in halter.abschnitte), default=0.0)
     w = math.radians(winkel_max)
-    hoehe = huelle.hoechste + SPIEL_HALTER - float(np.min(spitzen_z))
+    hoehe = huelle.hoechste + spiel - float(np.min(spitzen_z))
     return (hoehe + radius * math.sin(w)) / max(math.cos(w), 0.1)
 
 
 def _basis(achsen):
     """Je Achse (n, 3) zwei Richtungen quer dazu (u, v)."""
+    achsen = achsen / np.linalg.norm(achsen, axis=1)[:, None]
     hilf = np.where(np.abs(achsen[:, 2:3]) < 0.9, [[0.0, 0.0, 1.0]], [[1.0, 0.0, 0.0]])
     u = np.cross(achsen, hilf)
     u /= np.linalg.norm(u, axis=1)[:, None]
@@ -259,10 +274,10 @@ def stoesst(huelle, mitten, achsen, koerper_, kugel_radius, mit_schaft):
     spitzen = mitten - kugel_radius * achsen
     u, v = _basis(achsen)
     for punkte, spiel, welche in (
-        (koerper_.halter, SPIEL_HALTER, np.arange(n)),
+        (koerper_.halter, koerper_.spiel_halter, np.arange(n)),
         (
             koerper_.schaft,
-            SPIEL_SCHAFT,
+            koerper_.spiel_schaft,
             np.flatnonzero(mit_schaft) if mit_schaft is not None else np.zeros(0, dtype=int),
         ),
     ):
@@ -277,16 +292,23 @@ def stoesst(huelle, mitten, achsen, koerper_, kugel_radius, mit_schaft):
                 + punkte[None, :, 2:3] * achsen[k, None, :]
             )
             unter = welt[..., 2] < huelle.hoehe(welt[..., 0], welt[..., 1], spiel) + spiel
+            unter |= ~np.isfinite(welt[..., 2])  # lieber anstoßen als nan übersehen
             ergebnis[k] |= unter.any(axis=1)
     return ergebnis
 
 
 def _gekippt(richtungen, winkel):
-    """Achsen (n, 3): z um `winkel` Grad (je Stelle) zur waagerechten Richtung (n, 2) gekippt."""
-    w = np.radians(np.asarray(winkel, dtype=float))
-    achsen = np.zeros((len(richtungen), 3))
-    achsen[:, 0] = np.sin(w) * richtungen[:, 0]
-    achsen[:, 1] = np.sin(w) * richtungen[:, 1]
+    """Achsen (n, 3, Länge 1): z um `winkel` Grad (je Stelle) zur waagerechten Richtung (n, 2)
+    gekippt – ohne Richtung (0, 0) senkrecht, gleich welcher Winkel (sonst entstünde eine Achse
+    der Länge cos w und mit ihr nan in _basis: ein Punkt mit nan gälte als „stößt nicht an“)."""
+    richtungen = np.asarray(richtungen, dtype=float).reshape(-1, 2)
+    laenge = np.linalg.norm(richtungen, axis=1)
+    ohne = laenge < 1e-9
+    r = np.where(ohne[:, None], 0.0, richtungen / np.where(ohne, 1.0, laenge)[:, None])
+    w = np.where(ohne, 0.0, np.radians(np.asarray(winkel, dtype=float)))
+    achsen = np.zeros((len(r), 3))
+    achsen[:, 0] = np.sin(w) * r[:, 0]
+    achsen[:, 1] = np.sin(w) * r[:, 1]
     achsen[:, 2] = np.cos(w)
     return achsen
 
@@ -421,12 +443,24 @@ def pruefen(huelle, mitten, koerper_, kugel_radius, winkel, richtung, roh, winke
             break
         for j in k[stoss]:
             for i in (j, j + 1):
-                if winkel[i] + 2.0 > winkel_max:
-                    geht[i] = False
+                if winkel[i] + 2.0 > winkel_max or np.linalg.norm(richtung[i]) < 1e-9:
+                    geht[i] = geht[i] and winkel[i] + 2.0 <= winkel_max
                     continue
                 versuch = _gekippt(richtung[i : i + 1], [winkel[i] + 2.0])
                 if not stoesst(huelle, mitten[i : i + 1], versuch, koerper_, kugel_radius, None)[0]:
                     winkel[i] += 2.0
+    # Was nach den Runden noch anstößt, zählt – an beiden Stellen.
+    achsen = _gekippt(richtung, winkel)
+    k = np.flatnonzero(nah & ((winkel[:-1] > 0) | (winkel[1:] > 0)))
+    if len(k):
+        mitte = (achsen[k] + achsen[k + 1]) / 2
+        mitte /= np.linalg.norm(mitte, axis=1)[:, None]
+        stoss = stoesst(
+            huelle, (mitten[k] + mitten[k + 1]) / 2, mitte, koerper_, kugel_radius,
+            np.ones(len(k), dtype=bool),
+        )  # fmt: skip
+        geht[k[stoss]] = False
+        geht[k[stoss] + 1] = False
     return winkel, richtung, geht
 
 
@@ -451,7 +485,17 @@ class Ergebnis:
     anstoesse: int  # Stellen, an denen auch WINKEL_MAX nicht reicht
 
 
-def achsen(befehle, form, kugel_radius, halter, schaft_radius, auskragung, winkel_max=WINKEL_MAX):
+def achsen(
+    befehle,
+    form,
+    kugel_radius,
+    halter,
+    schaft_radius,
+    auskragung,
+    winkel_max=WINKEL_MAX,
+    spiel_halter=SPIEL_HALTER,
+    spiel_schaft=SPIEL_SCHAFT,
+):
     """Ergebnis: je Befehl (Path.Command, senkrecht gerechnet) die Werkzeugachse – im Vorschub so
     wenig gekippt wie nötig, damit der Halter mit dieser `auskragung` (Nase über der Spitze) und
     der Schaft nirgends anstoßen; Eilgänge wie angestellt.achsen (hinauf mit der Achse davor,
@@ -475,8 +519,10 @@ def achsen(befehle, form, kugel_radius, halter, schaft_radius, auskragung, winke
     mitten = np.array([p for _i, p, _e in vorschub]) + np.array([0.0, 0.0, kugel_radius])
     halter_radius = max((max(a.d_oben, a.d_unten) / 2 for a in halter.abschnitte), default=10.0)
     huelle = Huelle(form, halter_radius + auskragung + 10.0)
-    bis = _bis(huelle, mitten[:, 2] - kugel_radius, halter, winkel_max)
-    koerper_ = koerper(halter, schaft_radius, kugel_radius, auskragung, bis)
+    bis = _bis(huelle, mitten[:, 2] - kugel_radius, halter, winkel_max, spiel_halter)
+    koerper_ = koerper(
+        halter, schaft_radius, kugel_radius, auskragung, bis, spiel_halter, spiel_schaft
+    )
     nase = halter.abschnitte[-1].d_unten / 2 if halter.abschnitte else halter_radius
     roh = noetig(huelle, mitten, koerper_, kugel_radius, nase, winkel_max)
     winkel, richtung = geglaettet(mitten, roh[0], roh[1])
@@ -520,6 +566,8 @@ def kuerzeste_auskragung(
     von=None,
     bis=80.0,
     genau=0.25,
+    spiel_halter=SPIEL_HALTER,
+    spiel_schaft=SPIEL_SCHAFT,
 ):
     """Die kürzeste Auskragung (mm, Nase über der Spitze), mit der an allen `punkte` (Spitzen,
     senkrecht gerechnet; (n, 3)) bis `winkel_max` gekippt nichts anstößt – inf, wenn auch `bis`
@@ -531,10 +579,12 @@ def kuerzeste_auskragung(
     nase = halter.abschnitte[-1].d_unten / 2 if halter.abschnitte else halter_radius
     unten = von if von is not None else 2 * kugel_radius
 
-    hoehe_bis = _bis(huelle, punkte[:, 2], halter, winkel_max)
+    hoehe_bis = _bis(huelle, punkte[:, 2], halter, winkel_max, spiel_halter)
 
     def reicht(laenge):
-        k = koerper(halter, schaft_radius, kugel_radius, laenge, hoehe_bis)
+        k = koerper(
+            halter, schaft_radius, kugel_radius, laenge, hoehe_bis, spiel_halter, spiel_schaft
+        )
         if winkel_max <= 0:
             return not stoesst(
                 huelle, mitten, np.tile([0.0, 0.0, 1.0], (len(mitten), 1)), k, kugel_radius, None
@@ -608,13 +658,29 @@ class Bedarf:
     auskragung: float  # mm – so weit steht er heraus
 
 
-def bedarf(form, punkte, kugel_radius, einspannung_, winkel_max=WINKEL_MAX, hoechstens=600):
+def bedarf(
+    form,
+    punkte,
+    kugel_radius,
+    einspannung_,
+    winkel_max=WINKEL_MAX,
+    hoechstens=600,
+    spiel_halter=SPIEL_HALTER,
+    spiel_schaft=SPIEL_SCHAFT,
+):
     """Bedarf an `punkte` (Spitzen, senkrecht gerechnet) – an höchstens `hoechstens` davon
-    (gleichmäßig ausgewählt), auf 0,25 mm."""
+    (gleichmäßig ausgewählt). Weggekippt auf ganze mm aufgerundet und ZUGABE dazu: Gerechnet ist an
+    Stichproben der Vorschau, ohne die Mitten zwischen zwei Stellen – mit genau der kürzesten
+    Auskragung blieben an der Kavität zwei Stellen senkrecht (auf Save gehen)."""
     halter, schaft, auskragung = einspannung_
     punkte = np.asarray(punkte, dtype=float)
     if len(punkte) > hoechstens:
         punkte = punkte[:: int(math.ceil(len(punkte) / hoechstens))]
-    senkrecht = kuerzeste_auskragung(form, punkte, kugel_radius, halter, schaft, winkel_max=0)
-    gekippt = kuerzeste_auskragung(form, punkte, kugel_radius, halter, schaft, winkel_max)
+    spiele = {"spiel_halter": spiel_halter, "spiel_schaft": spiel_schaft}
+    senkrecht = kuerzeste_auskragung(
+        form, punkte, kugel_radius, halter, schaft, winkel_max=0, **spiele
+    )
+    gekippt = kuerzeste_auskragung(form, punkte, kugel_radius, halter, schaft, winkel_max, **spiele)
+    if math.isfinite(gekippt):
+        gekippt = min(math.ceil(gekippt - 1e-9) + ZUGABE, max(senkrecht, gekippt))
     return Bedarf(senkrecht, gekippt, auskragung)
