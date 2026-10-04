@@ -265,6 +265,16 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
 - *S5 Entgraten in 3D:* beantwortet – bauen, mit jedem Fräser mit ebener Stirn und auch mit 3
   Achsen (P-2026-10-04-65).
 - *Siemens WORKPIECE:* Manuel (2026-10-04): „lass es raus“ – nicht gebaut.
+- *Zum Ausprobieren (0.188.8) – Entgraten 3D:* `beispiele/testteil_3achs_fraese.FCStd` öffnen,
+  die Flächen anklicken, deren Kanten eine Fase bekommen sollen → „Bearbeitung“ → Schritt 2:
+  „Entgraten 3D“ anhaken (steht nie von selbst), den Fasenfräser wählen → unten „→ … Kanten mit
+  Fase, etwa … min“ und was ohne Fase bleibt, mit Grund – „zu steil für den senkrechten Kegel“
+  (senkrechte Kanten), „der Halter stieße an – mit 15 mm Auskragung ginge es“ (so beim
+  vorgeschlagenen Halter; mit deinem eigenen in der Werkzeugverwaltung rechnet es damit) →
+  „Anlegen“ → „Kollision prüfen“: nichts rot. Die Fase läuft bis in die Ecken und rund um den
+  Rand der Kugelmulde (außer, wo die Insel daneben steht). Mit der 5-Achs-Beispielmaschine
+  (Schwenkteil): „Angestellt (5 Achsen)“ ist da und angehakt, dicht über dem Tisch kippt der
+  Kegel nach oben; was trotzdem nicht geht, heißt „zu nah am Tisch (das Teil höher spannen)“.
 - *Zum Ausprobieren (0.187.7):* an deiner Siemens ein Programm schreiben und in ihrer Simulation
   ansehen – neu seit 0.185.1: G43 bzw. D1 nach dem Wechselpunkt, DIAMON im Kopf an der
   Drehmaschine, „Nachgelesen …“ unter „Gespeichert“; TCPM bleibt aus.
