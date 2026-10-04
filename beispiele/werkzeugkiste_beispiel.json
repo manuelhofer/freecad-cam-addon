@@ -1,0 +1,92 @@
+{
+  "format": "camaddon-werkzeugkiste",
+  "version": 1,
+  "reihen": [
+    {
+      "kennung": "holex-207125",
+      "art": "kugelfraeser",
+      "hersteller": "Hoffmann Group",
+      "marke": "HOLEX",
+      "titel": "VHM-Vollradiusfräser TiAlN, 2 Schneiden",
+      "quelle": "hoffmann-group.com, Produktseiten 207125-<Ø>, abgerufen 2026-10-04",
+      "katalog": "https://www.hoffmann-group.com/DE/de/hom/p/207125-6",
+      "gemeinsam": {
+        "schneiden": 2,
+        "schneidstoff": "vhm",
+        "beschichtung": "TiAlN"
+      },
+      "schnittwerte": {
+        "P1": {"schlichten": {"vc": 140}},
+        "P2": {"schlichten": {"vc": 80}},
+        "M": {"schlichten": {"vc": 80}},
+        "K": {"schlichten": {"vc": 120}},
+        "N1": {"schlichten": {"vc": 350}},
+        "N2": {"schlichten": {"vc": 320}},
+        "H": {"schlichten": {"vc": 50}}
+      },
+      "groessen": [
+        {
+          "durchmesser": 6,
+          "schneidenlaenge": 10,
+          "gesamtlaenge": 54,
+          "schaft": 6,
+          "artikel": "207125 6",
+          "link": "https://www.hoffmann-group.com/DE/de/hom/p/207125-6",
+          "preis_netto": 23.93,
+          "schnittwerte": {
+            "P1": {"schlichten": {"fz": 0.037, "ap_d": 0.05, "ae_d": 0.05}}
+          }
+        },
+        {
+          "durchmesser": 10,
+          "schneidenlaenge": 14,
+          "gesamtlaenge": 66,
+          "schaft": 10,
+          "artikel": "207125 10",
+          "link": "https://www.hoffmann-group.com/DE/de/hom/p/207125-10",
+          "preis_netto": 53.95,
+          "schnittwerte": {
+            "P1": {"schlichten": {"fz": 0.068, "ap_d": 0.05, "ae_d": 0.05}}
+          }
+        }
+      ]
+    },
+    {
+      "kennung": "holex-206357",
+      "art": "torusfraeser",
+      "hersteller": "Hoffmann Group",
+      "marke": "HOLEX",
+      "titel": "Pro Steel VHM-Torusfräser HPC TiAlN, 4 Schneiden",
+      "quelle": "hoffmann-group.com, Produktseiten 206357-<Ø>/<R>, abgerufen 2026-10-04",
+      "gemeinsam": {
+        "schneiden": 4,
+        "schneidstoff": "vhm",
+        "beschichtung": "TiAlN"
+      },
+      "schnittwerte": {
+        "P1": {"schruppen": {"vc": 240}, "vollnut": {"vc": 240}},
+        "P2": {"schruppen": {"vc": 160}, "vollnut": {"vc": 160}},
+        "M": {"schruppen": {"vc": 80}, "vollnut": {"vc": 80}},
+        "K": {"schruppen": {"vc": 250}, "vollnut": {"vc": 250}}
+      },
+      "groessen": [
+        {
+          "durchmesser": 10,
+          "eckradius": 1.0,
+          "schneidenlaenge": 22,
+          "gesamtlaenge": 72,
+          "schaft": 10,
+          "artikel": "206357 10/1,0",
+          "link": "https://www.hoffmann-group.com/DE/de/hom/p/206357-10%402F1%2C0",
+          "preis_netto": 85.17,
+          "schnittwerte": {
+            "P1": {
+              "schruppen": {"fz": 0.08},
+              "vollnut": {"fz": 0.06, "ap": 0.5, "ae_d": 1.0}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

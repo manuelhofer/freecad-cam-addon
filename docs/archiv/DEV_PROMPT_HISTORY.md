@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-46 werkzeugkiste-json-format
+
+### EINGELESEN
+- Manuel, 2026-10-04: „die Werkzeuge sammeln musst ja nicht du machen ... gibt's einen
+  ‚Importer‘ … über JSON … dass ich das einer lokalen KI geben kann, die sucht die Sachen raus
+  und man kann die einlesen?“ – und: „mir schon mal sagen, wie die JSON-Datei ausschauen soll,
+  damit ich das schon mal dem KI-Agenten geben kann ... und dann mit Wegkippen weitermachen“.
+
+### DATEIEN
+- `docs/werkzeugkiste_json.md` (neu: das Format – Reihe, Größen, Werkzeugarten mit ihren Maßen,
+  Schnittwerte je Klasse und Einsatz, die Hoffmann-Spalten je Klasse, Auftrag an einen KI-
+  Agenten), `beispiele/werkzeugkiste_beispiel.json` (neu, echte Daten HOLEX 207125 und 206357),
+  `beispiele/README.md`.
+
+### NEXT
+- Der Import nach diesem Format (Ordner `CamAddon/werkzeugkiste/`, „Aus Datei einlesen …“ mit
+  Prüfung, „Vorlage speichern …“).
+
 ## P-2026-10-04-45 assistent-zeit-im-freien
 
 ### EINGELESEN
