@@ -92,7 +92,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Geraden mit dem Mantel eines Schaftfräsers in einem Umlauf; an der Tasche mit 10° Formschräge
   0,69 min auf der Maschine statt 4,26 min Kugel in Höhenlinien. Im Assistenten
   (P-2026-10-04-25): der Block „Flanke (5 Achsen simultan)“ an einer 5-Achs-Maschine, im
-  Wettbewerb mit dem 3D-Schlichten – die schnellere hat den Haken. Offen: Wegkippen (S4).
+  Wettbewerb mit dem 3D-Schlichten – die schnellere hat den Haken. **Zum Ausprobieren:**
+  `beispiele/tasche_formschraege.FCStd`, „Beispielmaschine laden …“ → 5-Achs Tisch/Tisch, die
+  acht schrägen Wände anklicken → Bearbeitung. Offen: Wegkippen (S4).
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
