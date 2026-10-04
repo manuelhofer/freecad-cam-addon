@@ -340,6 +340,32 @@ z_ohne = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), fraese, "M").ze
 k = z_ohne.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_ohne else -1
 pruefe(z_ohne[k + 1] == "G0 Z25.000", f"ohne Wechselpunkt: {z_ohne[k:]}")
 
+# --- Keine Dopplungen (P-2026-10-04-15): derselbe Eilgang zweimal hintereinander und „M5“ nach
+# „M5“ am Ende schreibt er nur einmal; zwei gleiche G1 bleiben (nicht angefasst).
+doppelt = pp.Abschnitt(
+    "Doppelt",
+    1,
+    1000.0,
+    False,
+    "None",
+    [
+        C("G0", {"X": 10.0, "Y": 5.0, "Z": 5.0}),
+        C("G0", {"X": 10.0, "Y": 5.0, "Z": 5.0}),
+        C("G1", {"Z": 0.0, "F": 5.0}),
+        C("G1", {"Z": 0.0}),
+        C("G0", {"Z": 5.0}),
+    ],
+    "Fräser",
+)
+for kennung in ("siemens", "linuxcnc"):
+    z = pp.programm([doppelt], pp.steuerung(kennung), pp.Maschineninfo("Fräse"), "D").zeilen
+    pruefe(z.count("G0 X10.000 Y5.000 Z5.000") == 1, f"{kennung}: Eilgang doppelt: {z}")
+    pruefe(z.count("G1 Z0.000") == 1, f"{kennung}: das zweite G1 fehlt: {z}")
+    pruefe(
+        not any(a == b == "M5" for a, b in zip(z, z[1:], strict=False)),
+        f"{kennung}: M5 nach M5: {z[-6:]}",
+    )
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

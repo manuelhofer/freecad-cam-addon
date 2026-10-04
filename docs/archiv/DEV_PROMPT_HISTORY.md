@@ -179,6 +179,8 @@ patch_naming:
 
 ### TESTS
 - `tests/test_postprozessor.py` – OK; Szenario `szenario_programm` – OK. black und ruff sauber.
+  Nachgetragen: `tests/test_postprozessor.py` „Keine Dopplungen“ (Siemens, LinuxCNC: der Eilgang
+  einmal, zwei gleiche G1 bleiben, kein M5 nach M5).
 
 ### NEXT
 - Manuels Durchsicht und Entscheidungen.
