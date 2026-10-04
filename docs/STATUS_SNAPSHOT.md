@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.170.0 (P-2026-10-04-26). Alles, was hier als gebaut steht,
+Stand 0.170.1 (P-2026-10-04-27). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -389,8 +389,8 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Keine. B-001 bis B-013 sind behoben (Befunde und Beleg im Verlauf); die nächste freie Nummer
-ist B-014.
+Keine. B-001 bis B-014 sind behoben (Befunde und Beleg im Verlauf); die nächste freie Nummer
+ist B-015.
 
 ## Offene Tasks
 

@@ -12,7 +12,8 @@
 # ist als 45°, bleibt an der Flanke höchstens 0,035 stehen, entlang der Fläche ebenso, mit Zeilen
 # allein mehr als 0,045. Eine Welle am Rand eines Blocks ohne Platte: nirgends ins Teil, auch nicht
 # an der Außenkante. In einer Mulde (Halbkugel R 12,5) heben die Höhenlinien am Rand nicht mehr ab
-# (B-013). Dann die Operation im Job: „3D-Schlichten T3“, Art „schlichten3d“.
+# (B-013). Äquidistant in einer Kavität mit runden Ecken nirgends ins Teil (B-014). Dann die
+# Operation im Job: „3D-Schlichten T3“, Art „schlichten3d“.
 import math
 import os
 import pathlib
@@ -276,6 +277,33 @@ print(
     ascii(f"Mulde: {b_mulde.hoehenlinien} Höhen, {huebe} Hübe im Vorschub, {b_mulde.zeit:.2f} min")
 )
 pruefe(huebe <= b_mulde.hoehenlinien + 1, f"Mulde: {huebe} Hübe bei {b_mulde.hoehenlinien} Höhen")
+
+# Eine Kavität 50 × 50, 30 tief, senkrechte Ecken R 10, unten eine Rundung R 8 (gewählt), die
+# Kugel Ø 6 äquidistant: In den Ecken springt die Hüllfläche an der senkrechten Wand – bilinear
+# lag die Kugel dort bis 0,09 mm in der Wand (B-014); jetzt nirgends tiefer als 0,01.
+block = Part.makeBox(120, 120, 45)
+kav = Part.makeBox(50, 50, 40, V(35, 35, 15))
+kav = kav.makeFillet(
+    10.0, [e for e in kav.Edges if abs(e.Vertexes[0].Point.z - e.Vertexes[-1].Point.z) > 1]
+)
+kav = kav.makeFillet(
+    8.0, [e for e in kav.Edges if abs(e.BoundBox.ZMax - 15) < 1e-6 and e.BoundBox.ZLength < 1e-6]
+)
+teil_k = block.cut(kav).removeSplitter()
+rund = [f"Face{i + 1}" for i in range(len(teil_k.Faces)) if s3.ist_freiform(teil_k, f"Face{i + 1}")]
+b_k = s3.planen(
+    teil_k,
+    rund,
+    s3.Schlichtwerte(form=ff.kugel(3.0), oben=45.0, sicher=50.0, richtung="aequidistant"),
+)
+tiefste = min(
+    teil_k.distToShape(Part.Vertex(V(p.x, p.y, p.z + 3.0)))[0] - 3.0
+    for p in b_k.punkte
+    if not p.eilgang
+)
+print(ascii(f"Kavität äquidistant: {len(b_k.punkte)} Punkte, tiefste {tiefste:.4f}"))
+pruefe(tiefste > -0.01, f"Kavität: {tiefste:.3f} mm ins Teil (B-014)")
+pruefe(len(b_k.punkte) > 3000, f"Kavität: nur {len(b_k.punkte)} Punkte")
 
 # --- Die Operation im Job -----------------------------------------------------------------------
 import Path.Main.Job as PathJob

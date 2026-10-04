@@ -93,6 +93,9 @@ SPIRALE = "spirale"
 FLAECHE = "flaeche"  # Richtung: entlang der Fläche (Flowline)
 AEQUI = "aequidistant"  # Richtung: Ringe im gleichen Abstand im Raum (3D-Offset)
 ABSTAND_RUNDEN = 12  # höchstens so oft hin und zurück, bis das Abstandsfeld steht
+STUFE = 5.0  # mm – liegen die vier Rasterpunkte um eine Stelle weiter auseinander, springt dort
+# die Hüllfläche (die Kugel stößt an eine Wand): dort genau gerechnet (B-014); oben an einer
+# Rundung, wo sie steil wird, bis etwa 3 mm
 GRAT_STEIGUNG = 0.5  # so flach muss ein Grat des Abstandsfelds längs laufen, damit er eine Bahn
 # bekommt – an der Ecke eines Rechtecks steigt er mit 0,71 und die Ringe laufen um ihn herum
 FLUSS_PROBEN = 64  # so viele Stellen je Kurve, an denen der Abstand quer gemessen wird
@@ -327,6 +330,7 @@ class _Raster:
     gewaehlt: np.ndarray  # die gewählten Flächen bestimmen die Höhe
     neigung: np.ndarray  # rad; nan, wo es keine gibt
     innen: np.ndarray = None  # der Fräser berührt die gewählten Flächen innen (_beruehrt)
+    genau: object = None  # _Genau: die Hüllfläche an einzelnen Stellen genau (B-014)
 
     def index(self, x, y):
         sx = self.xs[1] - self.xs[0]
@@ -363,7 +367,8 @@ def _raster(netz_alle, netz_rest, geformt, box, w, gewaehlt_netz=None):
     endlich = np.where(np.isfinite(alle), alle, np.nan)
     gx, gy = np.gradient(endlich, sx, sy)
     neigung = np.arctan(np.hypot(gx, gy))
-    return _Raster(xs, ys, alle + max(w.aufmass, 0.0), gewaehlt, neigung, innen)
+    genau = _Genau(netz_alle, netz_rest, geformt, max(w.aufmass, 0.0))
+    return _Raster(xs, ys, alle + max(w.aufmass, 0.0), gewaehlt, neigung, innen, genau)
 
 
 def _verschoben(d, n):
@@ -682,9 +687,13 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, ras
     return Schlichtbahn(punkte, zeilen, laengs_x, abstand, z_min, laenge, zeit, hoehen)
 
 
-def _bilinear(raster, x, y):
+def _bilinear(raster, x, y, stufe=None):
     """Die Hüllfläche aus dem Raster an (x, y), bilinear zwischen den vier Knoten – nan, wo einer
-    nichts trifft oder (x, y) außerhalb liegt."""
+    nichts trifft oder (x, y) außerhalb liegt. Mit `stufe` (mm): Wo die vier weiter auseinander
+    liegen, springt die Hüllfläche (die Kugel stößt an eine Wand) – bilinear läge die Spitze dort
+    zu tief (an einer Kavität mit runden Ecken bis 0,09 mm in der Wand) oder zu hoch, je nach
+    Seite (B-014): dort genau gerechnet (_Genau), und nur, wenn die gewählten Flächen die Höhe
+    bestimmen."""
     xs, ys, z = raster.xs, raster.ys, raster.z
     sx, sy = float(xs[1] - xs[0]), float(ys[1] - ys[0])
     fx = (np.asarray(x, dtype=float) - xs[0]) / sx
@@ -695,6 +704,12 @@ def _bilinear(raster, x, y):
     tx, ty = fx - i0, fy - j0
     ecken = (z[i0, j0], z[i0 + 1, j0], z[i0, j0 + 1], z[i0 + 1, j0 + 1])
     endlich = np.all([np.isfinite(e) for e in ecken], axis=0) & drin
+    sprung = None
+    if stufe is not None:
+        with np.errstate(invalid="ignore"):
+            spanne = np.maximum.reduce(ecken) - np.minimum.reduce(ecken)
+        sprung = endlich & (np.nan_to_num(spanne, nan=np.inf) > stufe)
+        endlich &= ~sprung
     with np.errstate(invalid="ignore"):
         wert = (
             ecken[0] * (1 - tx) * (1 - ty)
@@ -702,7 +717,67 @@ def _bilinear(raster, x, y):
             + ecken[2] * (1 - tx) * ty
             + ecken[3] * tx * ty
         )
-    return np.where(endlich, wert, np.nan)
+    wert = np.where(endlich, wert, np.nan)
+    if sprung is not None and sprung.any() and raster.genau is not None:
+        k = np.flatnonzero(np.atleast_1d(sprung))
+        xa, ya = np.atleast_1d(np.asarray(x, dtype=float)), np.atleast_1d(
+            np.asarray(y, dtype=float)
+        )
+        wert = np.atleast_1d(wert)
+        wert[k] = raster.genau.hoehen(xa[k], ya[k])
+    return wert
+
+
+class _Genau:
+    """Die Hüllfläche an einzelnen Stellen genau – gegen die Dreiecke im Umkreis des Fräsers
+    (hoehenfeld._je_zeile mit einem Teilnetz: gegen das ganze Netz 23 ms je Stelle). Nan, wo die
+    gewählten Flächen die Höhe nicht bestimmen (mit ihnen nicht höher als ohne sie)."""
+
+    def __init__(self, netz_alle, netz_rest, form, aufmass):
+        self.netze = [(n, _dreieck_kaesten(n)) for n in (netz_alle, netz_rest)]
+        self.form = form
+        self.aufmass = aufmass
+
+    def hoehen(self, x, y):
+        from . import hoehenfeld as hf
+
+        ergebnis = np.full(len(x), np.nan)
+        r = float(self.form.radius) + 1e-6
+        for k, (px, py) in enumerate(zip(x, y, strict=True)):
+            werte = []
+            for netz, kaesten in self.netze:
+                nah = (
+                    (kaesten[:, 0] <= px + r)
+                    & (kaesten[:, 1] >= px - r)
+                    & (kaesten[:, 2] <= py + r)
+                    & (kaesten[:, 3] >= py - r)
+                )
+                if not nah.any():
+                    werte.append(hf.KEIN_TREFFER)
+                    continue
+                dreiecke = netz.dreiecke[nah]
+                benutzt, neu = np.unique(dreiecke, return_inverse=True)
+                teil = vh.Netz(netz.punkte[benutzt], neu.reshape(dreiecke.shape), netz.toleranz)
+                werte.append(
+                    float(hf._je_zeile(teil, self.form, np.array([py]), px, 1.0, 1, True)[0, 0])
+                )
+            alle, rest = werte
+            if np.isfinite(alle) and alle > hf.KEIN_TREFFER and alle > rest + MASKE:
+                ergebnis[k] = alle + self.aufmass
+        return ergebnis
+
+
+def _dreieck_kaesten(netz):
+    """Je Dreieck (x_min, x_max, y_min, y_max)."""
+    p = netz.punkte[netz.dreiecke]
+    return np.column_stack(
+        [
+            p[:, :, 0].min(axis=1),
+            p[:, :, 0].max(axis=1),
+            p[:, :, 1].min(axis=1),
+            p[:, :, 1].max(axis=1),
+        ]
+    )
 
 
 def _vereinfacht3d(punkte):
@@ -999,7 +1074,7 @@ def _aequidistant(raster, w, abstand):
                 i = int(np.argmin(np.hypot(teil[:, 0] - ort[0], teil[:, 1] - ort[1])))
                 teil = np.vstack([np.roll(teil, -i, axis=0), np.roll(teil, -i, axis=0)[:1]])
             with np.errstate(invalid="ignore"):
-                z = _bilinear(raster, teil[:, 0], teil[:, 1])
+                z = _bilinear(raster, teil[:, 0], teil[:, 1], STUFE)
             gut = np.isfinite(z)
             for anfang, ende in _laeufe(gut, z, w.schritt):
                 raum = np.column_stack([teil[anfang : ende + 1], z[anfang : ende + 1]])
@@ -1020,7 +1095,7 @@ def _aequidistant(raster, w, abstand):
     # Grat entlang.
     for x, y in _grate(feld, maske, raster, np.linspace(erste, letzte, anzahl), abstand):
         with np.errstate(invalid="ignore"):
-            z = _bilinear(raster, x, y)
+            z = _bilinear(raster, x, y, STUFE)
         raum = np.column_stack([x, y, z])
         raum = raum[np.isfinite(raum[:, 2])]
         if len(raum) < 2:

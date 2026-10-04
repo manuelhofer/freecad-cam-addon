@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-27 b014-aequidistant-stufe
+
+### EINGELESEN
+- Beim Versuch zum Wegkippen (Kavität 50 × 50, 30 tief, senkrechte Ecken R 10, Boden-Rundung R 8,
+  Kugel Ø 6) nachgemessen, wie weit die Kugel des 3D-Schlichtens vom Teil weg ist: Zeilen,
+  Spirale und „entlang der Fläche“ nirgends ins Teil; **„äquidistant“ an 176 von 3 980 Stellen bis
+  0,088 mm in die Wand** – und „auto“ wählt dort äquidistant (die schnellste). Die Stellen liegen
+  in den runden Ecken: Die Ringpunkte holten ihre Höhe bilinear aus den vier Rasterpunkten um sie,
+  an der senkrechten Wand springt die Hüllfläche aber (gut 20 mm) – auf der einen Seite der Stufe
+  lag die Spitze so zu tief, auf der anderen zu hoch.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py` (`STUFE`, `_bilinear(…, stufe)`, `_Genau`, `_dreieck_kaesten`;
+  das Raster merkt sich die Netze), `tests/test_schlichten3d.py`, Spezifikation Strategien 4.2,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.170.1).
+
+### AKZEPTANZKRITERIUM
+- Die Kavität äquidistant: keine Stelle tiefer als 0,01 mm ins Teil; Kuppel, Halbkugel und Mulde
+  wie bisher.
+
+### DONE
+- Liegen die vier Rasterpunkte um einen Ringpunkt mehr als 5 mm auseinander (steile, glatte
+  Stellen oben an einer Rundung bis etwa 3 mm), rechnet äquidistant die Höhe dort genau – gegen
+  die Dreiecke im Umkreis des Fräsers (gegen das ganze Netz kostete es 23 ms je Stelle) – und
+  nimmt die Stelle nur, wo die gewählten Flächen die Höhe bestimmen (mit ihnen höher als ohne
+  sie, wie die Maske des Rasters). Zwei Versuche davor genügten nicht: solche Stellen einfach
+  weglassen (nichts mehr im Teil, aber die halbe Bahn weg und oben an den Rundungen in den Ecken
+  bis 0,48 mm Rest), oder nur Stellen, deren vier Rasterpunkte alle gewählt sind (noch weniger).
+  Ergebnis an der Kavität: 4 036 Punkte, nirgends im Teil; auf den Rundungen bleibt an 481 statt
+  1 060 von 8 000 Proben mehr als 0,05 mm (höchstens 0,34 mm – in den Ecken, wohin die Kugel
+  R 3 nicht reicht).
+
+### TESTS
+- `tests/test_schlichten3d.py` (neu: die Kavität) – OK; die Ausgaben bis auf die Rechenzeit gleich
+  wie vorher. black und ruff sauber. Auf Manuels Stand (P-26) nachgezogen.
+
+### NEXT
+- Wegkippen weiter (die schnelle Halterprüfung hielt in den Ecken das Spiel nicht ganz).
+
 ## P-2026-10-04-26 raeumen-freivorschub-auswahl
 
 ### EINGELESEN

@@ -326,7 +326,11 @@ eben). Kein OCL.
    Rechtecks), einmal den Grat entlang (`_grate`: der Grat des Abstandsfelds, längs flacher als
    0,5, wo der letzte Ring mehr als einen halben Abstand entfernt liegt; verkettet wie beim
    Bleistift) – an der Welle ohne ihn 0,04 mm in der Mitte. Tritt wie Spirale und Fläche
-   entlang nur mit Steil/Flach an. Gemessen (Kugel Ø 6, Grathöhe 0,01, 796 mm/min): Kuppel – 51
+   entlang nur mit Steil/Flach an. **B-014 (P-2026-10-04-27):** Liegen die vier Rasterpunkte um
+   einen Ringpunkt mehr als 5 mm auseinander (eine Stufe der Hüllfläche – die Kugel stößt an eine
+   senkrechte Wand), gilt dort die genaue Höhe gegen die Dreiecke im Umkreis, und die Stelle nur,
+   wo die gewählten Flächen die Höhe bestimmen – bilinear lag die Kugel in einer Kavität mit
+   runden Ecken bis 0,088 mm in der Wand. Gemessen (Kugel Ø 6, Grathöhe 0,01, 796 mm/min): Kuppel – 51
    Ringe, 5,07 min (Fläche entlang 4,29 bleibt), auf der Kuppel höchstens 0,017 statt 0,020;
    Halbkugel 4,91 min, an der Flanke 0,021 mm (Höhenlinien mit Zeilen 0,026, Fläche entlang
    0,034); Welle 6,7 min (Zeilen 6,41 bleiben). Offen: Ecken unter
