@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.188.8 (P-2026-10-04-73). Alles, was hier als gebaut steht,
+Stand 0.188.9 (P-2026-10-04-74). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -448,7 +448,10 @@ ist B-015.
 - **T-006 Alle Kerne nutzen** (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
   … kann man das nicht optimieren, dass alle genommen werden?“). Gemessen (4-Achs-Schruppen):
   das Prüffenster öffnet nach 3,8 s; der lange Teil ist „Kollision prüfen“ – reines Python je
-  Station, ein Kern; seit P-2026-10-04-48 27,6 → 16,4 s. Nächster Schritt: die Stationen in
+  Station, ein Kern; seit P-2026-10-04-48 27,6 → 16,4 s. Seit P-2026-10-04-74 schätzt sie mit
+  den gedrehten Hüllquadern enger nach unten und rechnet seltener genau: am Schwenkteil
+  (Entgraten 3D, gekippter Rundtisch) 60 → 25 s; der Rest ist Werkzeug gegen Teil, wo es nah
+  daran fährt (2,5–3 ms je Rechnung in OpenCascade). Nächster Schritt: die Stationen in
   Stücke teilen (mit Vorlauf an jeder Grenze) und parallel prüfen – entweder abgezweigt (fork,
   nur Linux, schnell gebaut, mit Zeitgrenze und Rückfall auf einen Kern) oder in eigenen
   FreeCAD-Prozessen (überall, aufwendiger); danach die Vorschau des 4-Achs-Assistenten messen.

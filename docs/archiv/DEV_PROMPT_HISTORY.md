@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-74 kollision-gedrehte-quader
+
+### EINGELESEN
+- T-006 („es rechnen nur maximal 5 von meinen 24 Kernen“): „Kollision prüfen“ am Schwenkteil
+  mit Entgraten 3D dauerte 60 s – 93 % in OpenCascade `distToShape`, Werkzeug gegen Rundtisch je
+  20 ms (Zylinder gegen Zylinder), 1400-mal, weil der Hüllquader des gekippten Tischs in
+  Weltachsen riesig ist.
+
+### DATEIEN
+- `camaddon/kollision.py` (`_quader_luecke`, `QUADER_NAH`, je Körper der gedrehte Hüllquader in
+  `_stelle`), `tests/test_kollision.py` (200 zufällige Paare gegen OpenCascade),
+  `docs/spezifikation_simulation.md`, `docs/STATUS_SNAPSHOT.md` (T-006), `package.xml` (0.188.9).
+
+### DONE
+- Die Schranke nach unten auch aus den gedrehten Hüllquadern: Schwenkteil 60 → 25 s, gleiches
+  Ergebnis; `test_entgraten3d` 2:20 → 0:39 min.
+
+### TESTS
+- `test_kollision`, `test_vierachs_pruefen`, `test_wegkippen`, `test_entgraten3d` – OK.
+
 ## P-2026-10-04-73 entgraten-3d-was-hilft
 
 ### EINGELESEN

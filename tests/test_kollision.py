@@ -478,6 +478,44 @@ befund = kb.Befund(True, True, "Eigene", "die Schneide von T1", "das Teil", 0.0,
                    {"X": 500.0, "Y": 30.0, "Z": 30.0}, anschlag="X1")  # fmt: skip
 pruefe("Am Anschlag dort: X1" in befund.text(), befund.text())
 
+# --- Die gedrehten Hüllquader: ihre Lücke ist nie größer als der wahre Abstand -----------------
+# (_quader_luecke schätzt nach unten, damit „Kollision prüfen“ seltener genau rechnet – am gekippten
+# Rundtisch des Schwenkteils 1400-mal weniger. Zufällige Paare gegen OpenCascade.)
+import random  # noqa: E402
+
+zufall = random.Random(5)
+groesser, getrennt = [], 0
+for _ in range(200):
+    quader = []
+    for _seite in range(2):
+        halb = tuple(zufall.uniform(1.0, 30.0) for _ in range(3))
+        lage = FreeCAD.Placement(
+            FreeCAD.Vector(*(zufall.uniform(-60.0, 60.0) for _ in range(3))),
+            FreeCAD.Rotation(*(zufall.uniform(-180.0, 180.0) for _ in range(3))),
+        )
+        form = Part.makeBox(
+            2 * halb[0], 2 * halb[1], 2 * halb[2], FreeCAD.Vector(*(-h for h in halb))
+        )
+        form.Placement = lage
+        m = lage.toMatrix()
+        quader.append(
+            (
+                form,
+                (
+                    (m.A14, m.A24, m.A34),
+                    ((m.A11, m.A21, m.A31), (m.A12, m.A22, m.A32), (m.A13, m.A23, m.A33)),
+                    halb,
+                ),
+            )
+        )
+    wahr = quader[0][0].distToShape(quader[1][0])[0]
+    luecke = kb._quader_luecke(quader[0][1], quader[1][1])
+    getrennt += luecke > 0.0
+    if luecke > wahr + 1e-6:
+        groesser.append((round(luecke, 3), round(wahr, 3)))
+pruefe(not groesser, f"Quaderlücke größer als der Abstand: {groesser[:3]}")
+pruefe(getrennt > 20, f"Quaderlücke nur {getrennt}-mal über 0")
+
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)
 assert not fehler, "\n".join(fehler)

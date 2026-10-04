@@ -247,7 +247,14 @@ Besprechung:
   als der Warnabstand ist oder den nächsten Schritt am kürzesten macht (und
   der mit der Schranke nicht ohnehin bis zur nächsten Station reicht, seit
   P-2026-09-27-53); sonst reicht eine Schranke nach unten – der Abstand der
-  Hüllquader oder der zuletzt genau gerechnete minus dem Weg seither. Ein
+  Hüllquader oder der zuletzt genau gerechnete minus dem Weg seither. Liegen die
+  Hüllquader in Weltachsen nah (bis 20 mm), dazu die gedrehten Hüllquader
+  (P-2026-10-04-74): die größte Lücke ihrer Schatten auf ihre sechs
+  Kantenrichtungen – an einem gekippten Rundtisch ist der Quader in Weltachsen
+  riesig, längs seiner Normalen bleibt er flach. Am Schwenkteil (Entgraten 3D,
+  alle Flächen) rechnet „Kollision prüfen“ Werkzeug gegen Rundtisch 47- statt
+  1400-mal genau (je 20 ms – Zylinder gegen Zylinder ist für OpenCascade teuer):
+  60 → 25 s. Ein
   Körper rund um seine Drehachse (Futter, Welle) bewegt sich mit ihr nicht;
   stecken zwei in einer Operation schon ineinander, rechnet es sie dort nicht
   weiter.

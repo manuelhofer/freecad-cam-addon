@@ -93,6 +93,7 @@ SCHNEIDE, HALS, SCHAFT, HALTER = "schneide", "hals", "schaft", "halter"
 KERN = "kern"  # die Schneide, um EINDRINGEN kleiner – nur gegen das Teil im Vorschub
 MASCHINE, TEIL = "maschine", "teil"
 SCHRAUBSTOCK = "schraubstock"  # die Backen, wenn der Job „von unten gespannt“ kennt (S3h)
+QUADER_NAH = 20.0  # mm – so nah (Quader in Weltachsen) wird mit den gedrehten Quadern nachgesehen
 VORSCHUBWEGE = 200  # so viele gerade Vorschubwege merkt sich die Prüfung je Operation
 WERKZEUG = (SCHNEIDE, HALS, SCHAFT, HALTER)
 
@@ -780,6 +781,7 @@ class _Welt:
             wege[achse] = self.verfahren.weg_bei(achse, wert)
         bewegung = {}
         huelle = {}
+        quader = {}  # Körper → (Mitte, Achsen, halbe Kanten) seines gedrehten Hüllquaders
         platzierung = {}  # Körper → seine Lage hier; an die Form erst, wenn genau gerechnet wird
 
         def lage(koerper):
@@ -799,6 +801,11 @@ class _Welt:
                 ey = abs(m.A21) * hx + abs(m.A22) * hy + abs(m.A23) * hz
                 ez = abs(m.A31) * hx + abs(m.A32) * hy + abs(m.A33) * hz
                 huelle[koerper] = (x - ex, y - ey, z - ez, x + ex, y + ey, z + ez)
+                quader[koerper] = (
+                    (x, y, z),
+                    ((m.A11, m.A21, m.A31), (m.A12, m.A22, m.A32), (m.A13, m.A23, m.A33)),
+                    koerper.halb,
+                )
             return huelle[koerper]
 
         def rechne_genau(k):
@@ -827,6 +834,10 @@ class _Welt:
             dy = max(h1[1] - h2[4], h2[1] - h1[4], 0.0)
             dz = max(h1[2] - h2[5], h2[2] - h1[5], 0.0)
             abstand = max(math.sqrt(dx * dx + dy * dy + dz * dz), schranke)
+            if abstand <= reicht + QUADER_NAH and not ist_genau:
+                # Enger: die gedrehten Hüllquader – an einem gekippten Rundtisch ist der Quader
+                # in Weltachsen riesig, längs seiner Normalen bleibt er flach.
+                abstand = max(abstand, _quader_luecke(quader[paar.a], quader[paar.b]))
             if abstand <= reicht and not ist_genau:  # vielleicht ein Befund
                 abstand, stelle = rechne_genau(k)
                 ist_genau = True
@@ -961,6 +972,30 @@ def _auf_wegen(anfang, ende, wege, genau=1e-6):
         elif t0 <= gedeckt + genau:
             gedeckt = max(gedeckt, t1)
     return gedeckt is not None and gedeckt >= laenge - genau
+
+
+def _quader_luecke(a, b):
+    """Ein Abstand, den zwei gedrehte Quader (Mitte, drei Achsen, halbe Kanten) mindestens
+    haben: die größte Lücke ihrer Schatten auf ihre sechs Kantenrichtungen – auf jeder Richtung
+    ist die Lücke der Schatten höchstens der Abstand (0: überall überdeckt)."""
+    (ca, achsen_a, ha), (cb, achsen_b, hb) = a, b
+    dx, dy, dz = cb[0] - ca[0], cb[1] - ca[1], cb[2] - ca[2]
+    beste = 0.0
+    for ux, uy, uz in achsen_a + achsen_b:
+        ra = (
+            ha[0] * abs(ux * achsen_a[0][0] + uy * achsen_a[0][1] + uz * achsen_a[0][2])
+            + ha[1] * abs(ux * achsen_a[1][0] + uy * achsen_a[1][1] + uz * achsen_a[1][2])
+            + ha[2] * abs(ux * achsen_a[2][0] + uy * achsen_a[2][1] + uz * achsen_a[2][2])
+        )
+        rb = (
+            hb[0] * abs(ux * achsen_b[0][0] + uy * achsen_b[0][1] + uz * achsen_b[0][2])
+            + hb[1] * abs(ux * achsen_b[1][0] + uy * achsen_b[1][1] + uz * achsen_b[1][2])
+            + hb[2] * abs(ux * achsen_b[2][0] + uy * achsen_b[2][1] + uz * achsen_b[2][2])
+        )
+        luecke = abs(dx * ux + dy * uy + dz * uz) - ra - rb
+        if luecke > beste:
+            beste = luecke
+    return beste
 
 
 def _luecke(h1, h2):
