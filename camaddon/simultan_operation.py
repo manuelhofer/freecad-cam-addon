@@ -16,9 +16,10 @@ from .sprache import tr
 def ist_simultan(op):
     """Hat die Operation eine Werkzeugachse je Satz?"""
     from . import angestellt as an
+    from . import entgraten3d as e3op
     from . import flanke as fl
 
-    return an.ist_angestellt(op) or fl.hat_achsen(op)
+    return an.ist_angestellt(op) or fl.hat_achsen(op) or e3op.hat_achsen(op)
 
 
 def im_job(job):
@@ -41,6 +42,7 @@ def befehle(op, maschine, tcpm=False, bei_null=False):
     gerechnet (`tcpm`: für eine Steuerung, die die Spitze führt – simultan.befehle_mit_tcpm); mit
     weniger der angestellte Kugelfräser senkrecht, die Flanke ein ValueError."""
     from . import angestellt as an
+    from . import entgraten3d as e3op
     from . import flanke as fl
 
     if len(getattr(maschine, "rundachsen", ())) < 2:
@@ -49,4 +51,6 @@ def befehle(op, maschine, tcpm=False, bei_null=False):
         raise ValueError(tr("fl.fehler.maschine", operation=op.Label))
     if an.ist_angestellt(op):
         return an.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)
+    if e3op.ist_entgraten3d(op):
+        return e3op.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)
     return fl.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)

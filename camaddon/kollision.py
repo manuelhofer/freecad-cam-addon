@@ -81,6 +81,7 @@ INS_TEIL_ERLAUBT = {
     "vierachs_entgraten",
     "gewindefraesen",
     "entgraten",
+    "entgraten3d",  # „Entgraten 3D“ – die Fase; dass sonst nichts verletzt wird, prüft ihre Bahn
 }
 MELDEN_ALLE = 0.1  # s: so oft ruft es den Fortschritt (und fragt, ob es weitergehen soll)
 # Grad: Deckt sich ein Körper um beide Winkel gedreht mit sich selbst, ist er rund um die

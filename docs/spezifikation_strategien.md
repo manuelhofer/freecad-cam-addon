@@ -2840,6 +2840,31 @@ Kollision mit Rundachsen je Station.
   Halter, das Prüffenster (die Fase im Abtrag), die Ecken am Ende einer Kante. Bild:
   `entgraten_3d.png` (an Manuel geschickt). **Frage an Manuel:** so bauen – als eigene Operation
   „Entgraten 3D (5 Achsen)“ für gewählte Kanten, im Assistenten ohne Haken?
+  **Manuel (2026-10-04):** „es gibt ja auch 90-Grad-Fräser, mit welchen man schon fast überall
+  hinkommt, und ja, es muss schon so sein, dass man nicht das Werkstück beschädigt“; „grundlegend
+  auf der 5-Achs sollte das ja mit jedem Fräser möglich sein, der unten flach ist … also bau das
+  nicht nur auf den 45-Grad-Fräser … aber mit einem 45-Grad-Fräser kann man schon sehr viel auch
+  auf einer Dreiachs-Maschine machen“.
+  **Gebaut (P-2026-10-04-65): Kern und Operation** – `entgrat3d_bahn.py`, `entgraten3d.py`
+  („Entgraten 3D T3“). Drei Wege: 5 Achsen mit Fasenfräser (jeder Spitzenwinkel; die Achse ⟂
+  Kante, 90° − α neben der Winkelhalbierenden, die Fase auf der Flanke) oder mit ebener Stirn
+  (Schaft, Torus – ihr ebener Teil –, Plan, Nut; die Achse auf der Fasenebene, die Fase neben der
+  Mitte der Stirn), beide symmetrisch mit der Breite auf jeder Fläche; 3 Achsen mit dem
+  Fasenfräser senkrecht – die Fase ist die Tangentialebene des Kegels durch die Kante (geht, bis
+  die Kante so steil steigt wie die Flanke), die Breite auf der Fläche, die nach oben schaut, der
+  andere Schenkel steht im Ergebnis. Das Werkstück wird nicht beschädigt: Die Flächen um die
+  Kanten werden dicht abgetastet (0,25 mm, Raster in numpy); an jeder Stelle (alle 0,5 mm) darf
+  kein Punkt im Werkzeug liegen (Schneide und 15 mm darüber) außer im Fasenstreifen der beiden
+  Flächen zwischen den Kantenenden, und nichts unter dem Tisch (die Unterkante des Teils); sonst
+  rutscht die Fase zur Spitze bzw. auf die andere Seite der Stirn, sonst bleibt die Stelle aus
+  (`Ausgelassen`, mit Grund im Ausgabefenster). Springt die Achse um mehr als 5°, beginnt ein
+  neuer Lauf; angefahren längs der Achse bis frei plus Sicherheitsabstand, vorher senkrecht von
+  der sicheren Höhe (geprüft), im Gleichlauf. Unabhängig nachgeprüft (`test_entgraten3d`): Der
+  Fräser schneidet das Teil (OpenCascade, 0,02 mm zurück) nur im Keil an der Kante. Am Schwenkteil
+  (alle Flächen, Fase 0,5): 5 Achsen Kegel 90° Ø 10 – 33 Kanten, 826 mm, 359 mm zu eng; Ø 6
+  834 mm; Schaftfräser Ø 10 – 31 Kanten; 3 Achsen – 23 Kanten, 535 mm, Schenkel 0,13 … 1,87.
+  Programm, „Auf der Maschine prüfen“, Kollision (darf ins Teil – die Fase steht nicht im Modell),
+  TCPM wie die Flanke. Der Assistent folgt.
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

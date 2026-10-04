@@ -19,6 +19,7 @@ def _ist_eben(objekt):
     from . import bleistift as bst
     from . import bohrung as bo
     from . import entgraten as eg
+    from . import entgraten3d as e3op
     from . import flanke as fl
     from . import gewindefraesen as gf
     from . import kontur as ko
@@ -39,6 +40,7 @@ def _ist_eben(objekt):
         or bst.ist_bleistift(objekt)
         or bo.ist_bohrungsfraesen(objekt)
         or eg.ist_entgraten(objekt)
+        or e3op.ist_entgraten3d(objekt)
         or gf.ist_gewindefraesen(objekt)
     )
 

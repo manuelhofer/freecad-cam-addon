@@ -2362,5 +2362,22 @@
     "pp.gross.fanuc": "The program is {mb} MB – it does not fit into the memory of many Fanuc controls: transfer it by DNC or run it from the memory card.",
     "pp.haken.nur_ascii": "Comments in ASCII only",
     "pp.haken.nur_ascii.erklaerung": "Umlauts and characters such as Ø, –, · in comments replaced (ä → ae, Ø → D). Fanuc, Haas and Mach read programs in the ASCII character set and stop with “Illegal character” on others. Off: as written (SINUMERIK Operate shows umlauts).",
-    "pp.befund.zeichen": "Line {zeile}: character outside ASCII – “{satz}”"
+    "pp.befund.zeichen": "Line {zeile}: character outside ASCII – “{satz}”",
+    "e3.fehler.werte": "Chamfer width and cutter need a value greater than 0.",
+    "e3.fehler.drei_flach": "On a 3-axis machine this only works with a chamfer mill – a cutter with a flat face would need a tilted axis.",
+    "e3.fehler.keine": "No edge to chamfer: select faces or edges with convex, sharp edges (not those on the table).",
+    "e3.fehler.nichts": "The cutter reaches none of the edges without damaging the part – a smaller cutter (or 5 axes) could.",
+    "e3.name": "Deburr 3D {werkzeug}",
+    "e3.eigenschaft.flaechen": "The faces (their convex, sharp edges) and edges that get a chamfer.",
+    "e3.eigenschaft.breite": "The chamfer on each face (with 3 axes: on the face looking up).",
+    "e3.eigenschaft.fuenf": "On: the tool tilted (5 axes) – chamfer mill or a cutter with a flat face, the chamfer symmetric. Off: chamfer mill vertical (3 axes), wherever it reaches.",
+    "e3.eigenschaft.kanten": "So many edges get a chamfer (fully or partly).",
+    "e3.eigenschaft.ausgelassen": "So much edge stays without chamfer – the tool would not get there without damaging the part.",
+    "e3.eigenschaft.schenkel": "The widest leg of the chamfer (with 3 axes it is mostly not symmetric).",
+    "e3.grund.eng": "too narrow (the tool would damage the part)",
+    "e3.grund.steil": "too steep for the vertical cone",
+    "e3.grund.keine": "without a fitting position",
+    "e3.grund.anfahrt": "not reachable",
+    "e3.ausgelassen": "{mm} mm of edge without chamfer: {gruende}.",
+    "e3.fehler.fraeser": "Deburr 3D needs a chamfer mill or a cutter with a flat face (end, bull-nose, face, slot mill) from the tool manager."
 }

@@ -66,6 +66,7 @@ EINSATZ_NACH_OPERATION = {
     "bleistift": (wz.SCHLICHTEN, wz.SCHRUPPEN),  # „Bleistift“ (W-006 4.2 Punkt 6)
     "kontur": (wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Kontur“ (W-006 S3e)
     "entgraten": (wz.FASEN, wz.VERRUNDEN),  # „Entgraten“ im Quader (W-006 4.1 Punkt 8)
+    "entgraten3d": (wz.FASEN, wz.SCHLICHTEN),  # „Entgraten 3D“ (W-015 S5)
     # Die Bohrung des Wochen-Builds kann auch Gewinde schneiden.
     "Drilling": (
         wz.BOHREN,

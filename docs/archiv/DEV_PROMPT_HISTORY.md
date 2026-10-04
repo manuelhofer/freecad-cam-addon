@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-65 entgraten-3d
+
+### EINGELESEN
+- Manuel, 2026-10-04, zum Prototyp S5: „es gibt ja auch 90-Grad-Fräser, mit welchen man schon
+  fast überall hinkommt, und ja, es muss schon so sein, dass man nicht das Werkstück beschädigt“;
+  zu WORKPIECE: „lass es raus“; dann: „grundlegend auf der 5-Achs sollte das ja mit jedem Fräser
+  möglich sein, der unten flach ist … also bau das nicht nur auf den 45-Grad-Fräser … aber mit
+  einem 45-Grad-Fräser kann man schon sehr viel auch auf einer Dreiachs-Maschine machen“.
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py` (neu: Kanten, Punktwolke, Fasenebene, Lagen für Kegel und Stirn,
+  3 Achsen, Schutz des Werkstücks und des Tischs, Läufe, Anfahrt), `camaddon/entgraten3d.py`
+  (neu: die Operation), `camaddon/simultan_operation.py`, `camaddon/kollision.py`
+  (`INS_TEIL_ERLAUBT`), `camaddon/restmaterial.py` (Fase im Quader), `camaddon/gui_vierachs_operation.py`,
+  `camaddon/job_schnittwerte.py` (Einsatz „Fasen“), `translations/de.json`, `en.json`,
+  `tests/test_entgraten3d.py` (neu), `docs/spezifikation_strategien.md` (16.3 S5),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.188.0).
+
+### DONE
+- „Entgraten 3D“: 5 Achsen mit Fasenfräser oder Fräser mit ebener Stirn, 3 Achsen mit dem
+  Fasenfräser senkrecht; das Werkstück wird nicht beschädigt (Punktwolke, Tisch), was nicht geht,
+  bleibt aus und steht da. Am Schwenkteil 33 Kanten (5 Achsen, Kegel 90° Ø 10), 23 (3 Achsen).
+
+### TESTS
+- `test_entgraten3d` (Geometrie je Weg, unabhängig mit OpenCascade: nur der Keil an der Kante;
+  Operation, Maschine, Programm an allen Steuerungen mit und ohne TCPM, 3 Achsen),
+  `test_flanke`, `test_job_schnittwerte`, `test_restmaterial`, `test_kollision`, `test_sprache` – OK.
+
 ## P-2026-10-04-64 haas-m134
 
 ### EINGELESEN

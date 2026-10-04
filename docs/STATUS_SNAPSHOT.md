@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.187.9 (P-2026-10-04-64). Alles, was hier als gebaut steht,
+Stand 0.188.0 (P-2026-10-04-65). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -122,7 +122,10 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   das Schwenken in einem Zug: 1,09 min (senkrecht 1,03). **S5 Entgraten in 3D – Prototyp zum
   Besprechen** (Spezifikation Strategien 16.3 S5, Bild an Manuel 2026-10-04): am Schwenkteil 24
   Kanten neu mit 5 Achsen (Fase 0,5 auf beiden Flächen), 10 bräuchten einen kleineren Fräser,
-  1,7 min.
+  1,7 min. **Gebaut (P-2026-10-04-65)** auf Manuels Antwort („nicht das Werkstück beschädigen“,
+  „nicht nur auf den 45-Grad-Fräser“, „auch auf einer Dreiachs-Maschine“): Operation „Entgraten
+  3D“ – 5 Achsen mit Fasenfräser oder Fräser mit ebener Stirn, 3 Achsen mit Fasenfräser senkrecht;
+  der Assistent folgt.
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
@@ -259,12 +262,9 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
 
 **Offen für Manuel (2026-10-04, abends):**
 
-- *S5 Entgraten in 3D (5 Achsen):* so bauen – eigene Operation für gewählte Kanten, im Assistenten
-  ohne Haken? Prototyp mit Bild: Spezifikation Strategien 16.3 S5.
-- *Siemens WORKPIECE (Rohteil für die Simulation der Steuerung):* Die Zahl und Bedeutung der
-  Parameter hängt an der Operate-Version (im Forum hing SinuTrain an einer falschen Zeile). Bitte
-  an der Steuerung im Programmeditor einmal ein Rohteil anlegen und die entstehende
-  `WORKPIECE(...)`-Zeile schicken – dann schreibt das Programm es genau so.
+- *S5 Entgraten in 3D:* beantwortet – bauen, mit jedem Fräser mit ebener Stirn und auch mit 3
+  Achsen (P-2026-10-04-65).
+- *Siemens WORKPIECE:* Manuel (2026-10-04): „lass es raus“ – nicht gebaut.
 - *Zum Ausprobieren (0.187.7):* an deiner Siemens ein Programm schreiben und in ihrer Simulation
   ansehen – neu seit 0.185.1: G43 bzw. D1 nach dem Wechselpunkt, DIAMON im Kopf an der
   Drehmaschine, „Nachgelesen …“ unter „Gespeichert“; TCPM bleibt aus.

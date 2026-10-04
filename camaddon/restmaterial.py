@@ -1207,6 +1207,7 @@ def fuer_quader(abfahrt, job, am_werkstueck):
     flaechen = set().union(*(vf.nummern(g) for g in gewaehlt)) if all(gewaehlt) else None
     box = form.BoundBox
     quader = Quader(box.XMin, box.XMax, box.YMin, box.YMax, box.ZMin, box.ZMax)
+    from . import entgraten3d as e3op
     from .entgraten import eindringtiefe, ist_entgraten
     from .gewindefraesen import ist_gewindefraesen
     from .gewindefraesen import ringe as gewinde_ringe
@@ -1217,6 +1218,8 @@ def fuer_quader(abfahrt, job, am_werkstueck):
         op = ops.get(abfahrt.operationen[k].name)
         if op is not None and ist_entgraten(op):
             fasen[k] = eindringtiefe(op) + FASE_SPIEL
+        elif op is not None and e3op.ist_entgraten3d(op):
+            fasen[k] = e3op.eindringtiefe(op) + FASE_SPIEL
         elif op is not None and _zentrier_fase(op) > 0:
             fasen[k] = _zentrier_fase(op) + FASE_SPIEL
         elif op is not None and ist_gewindefraesen(op):

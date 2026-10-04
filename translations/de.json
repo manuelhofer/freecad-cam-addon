@@ -2362,5 +2362,22 @@
     "pp.gross.fanuc": "Das Programm ist {mb} MB groß – in den Speicher vieler Fanuc-Steuerungen passt das nicht: per DNC übertragen bzw. von der Speicherkarte abarbeiten.",
     "pp.haken.nur_ascii": "Kommentare nur in ASCII",
     "pp.haken.nur_ascii.erklaerung": "Umlaute und Zeichen wie Ø, –, · in den Kommentaren ersetzt (ä → ae, Ø → D). Fanuc, Haas und Mach lesen Programme im ASCII-Zeichensatz und brechen bei anderen Zeichen mit „Illegal character“ ab. Aus: wie geschrieben (SINUMERIK Operate zeigt Umlaute).",
-    "pp.befund.zeichen": "Zeile {zeile}: Zeichen außerhalb von ASCII – „{satz}“"
+    "pp.befund.zeichen": "Zeile {zeile}: Zeichen außerhalb von ASCII – „{satz}“",
+    "e3.fehler.werte": "Fasenbreite und Fräser brauchen einen Wert größer 0.",
+    "e3.fehler.drei_flach": "An einer 3-Achs-Maschine geht das nur mit einem Fasenfräser – ein Fräser mit ebener Stirn bräuchte eine geschwenkte Achse.",
+    "e3.fehler.keine": "Keine Kante zu fasen: Wähle Flächen oder Kanten mit konvexen, scharfen Kanten (nicht die auf dem Tisch).",
+    "e3.fehler.nichts": "An keiner der Kanten kommt der Fräser hin, ohne das Teil zu verletzen – ein kleinerer Fräser (oder 5 Achsen) könnte es.",
+    "e3.name": "Entgraten 3D {werkzeug}",
+    "e3.eigenschaft.flaechen": "Die Flächen (ihre konvexen, scharfen Kanten) und Kanten, die eine Fase bekommen.",
+    "e3.eigenschaft.breite": "Die Fase auf jeder Fläche (mit 3 Achsen: auf der Fläche, die nach oben schaut).",
+    "e3.eigenschaft.fuenf": "An: das Werkzeug angestellt (5 Achsen) – Fasenfräser oder ein Fräser mit ebener Stirn, die Fase symmetrisch. Aus: Fasenfräser senkrecht (3 Achsen), überall wo er hinkommt.",
+    "e3.eigenschaft.kanten": "So viele Kanten bekommen eine Fase (ganz oder teilweise).",
+    "e3.eigenschaft.ausgelassen": "So viel Kante bleibt ohne Fase – dort käme das Werkzeug nicht hin, ohne das Teil zu verletzen.",
+    "e3.eigenschaft.schenkel": "Der breiteste Schenkel der Fase (mit 3 Achsen ist sie meist nicht symmetrisch).",
+    "e3.grund.eng": "zu eng (das Werkzeug verletzte das Teil)",
+    "e3.grund.steil": "zu steil für den senkrechten Kegel",
+    "e3.grund.keine": "ohne passende Stellung",
+    "e3.grund.anfahrt": "nicht anzufahren",
+    "e3.ausgelassen": "{mm} mm Kante ohne Fase: {gruende}.",
+    "e3.fehler.fraeser": "Entgraten 3D braucht einen Fasenfräser oder einen Fräser mit ebener Stirn (Schaft, Torus, Plan, Nut) aus der Werkzeugverwaltung."
 }
