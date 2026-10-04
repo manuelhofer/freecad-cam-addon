@@ -265,7 +265,10 @@ Beantwortet am 2026-10-03 (abends):
    Rampen), Platte 41,88 → 35,20 min, nirgends in voller Breite (Spezifikation Strategien,
    Abschnitt 11). Der Konturgang um Inseln war dafür nicht nötig.
 5. Der Einstieg (Rampe, Helix, senkrecht) nach Zeit; Startstelle und Reihenfolge der
-   Bereiche. Spannhöhe: „Von unten gespannt“ gebaut (P-2026-10-04-10, Prüfung und Urteil; -11
+   Bereiche. *Nachgemessen (2026-10-04 nachts):* Planfräsen um den Zapfen (50 × 50, 10 mm über
+   der Fläche): 6 Bereiche, jeder mit einer Rampe von 193 mm – 1,3 von 4,8 min; sie beginnen am
+   Rand des Rohteils, wo der Fräser nur 4 mm im Material steht (senkrecht daneben hinab und
+   seitlich hinein spart fast alles davon). Zum Besprechen mit Bild (`plan_zapfen_z20`). Spannhöhe: „Von unten gespannt“ gebaut (P-2026-10-04-10, Prüfung und Urteil; -11
    der Schraubstock im Bild und in der Kollision).
 6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).
    **Kollision schneller** (gemessen 2026-10-04 nachts, Schwenkteil, 10 799 Stationen): 75 s,
