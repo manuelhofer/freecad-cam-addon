@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.165.2 (P-2026-10-04-19). Alles, was hier als gebaut steht,
+Stand 0.165.3 (P-2026-10-04-20). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -281,7 +281,10 @@ Beantwortet am 2026-10-03 (abends):
    näher zuerst, exakt mit Abbruch) – dann aber eigens prüfen, ob ein Werkzeugteil ganz im Teil
    steckt (das sagt `distToShape` zwischen Körpern heute mit 0). Nur mit einem Vergleich aller
    Befunde vorher/nachher; nicht nachts gebaut. „Auf der Maschine prüfen“ öffnet seit
-   P-2026-10-03-54 schneller (12 000 Punkte: 1,8 → 1,3 s).
+   P-2026-10-03-54 schneller (12 000 Punkte: 1,8 → 1,3 s). An einem großen 4-Achs-Job (Welle Ø 60 × 100,
+   Rundum schlichten 0,2 mm: 263 679 Stationen, rechnerisch 3,4 h) öffnet es in etwa 10 s: Prüfen
+   1,8, Abfahren 3,9, die Spitze am Werkstück je Station 4 s (Kinematik je Station; seit
+   P-2026-10-04-20 einmal gerechnet und gemerkt – die Kollision rechnet sie nicht noch einmal).
 7. W-002 F2; W-003 V6, V7 (V2b gebaut, P-2026-10-04-01); (das Schruppen rundum an steilen Stellen: gemessen, die Keile
    sind größtenteils echt – P-2026-10-03-30);
    „ausweichen“ mit

@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-20 am-werkstueck-merken
+
+### EINGELESEN
+- Gemessen an einem großen 4-Achs-Job (Welle Ø 60 × 100, Rundum schruppen und schlichten mit
+  0,2 mm, Beispiel-Drehmaschine): 263 679 Stationen, Prüfen 1,8 s, Abfahren 3,9 s, „Abtrag
+  anlegen“ 4,1 s – davon 3,9 s `Abfahrt.am_werkstueck()` (die Kinematik je Station), der
+  Abtrag selbst 0,2 s. Das Bild rechnet es beim Öffnen, die Kollision (seit P-17 mit dem Rohteil)
+  noch einmal.
+
+### DATEIEN
+- `camaddon/abfahren.py` (`Abfahrt.am_werkstueck` einmal gerechnet und gemerkt),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.165.3). Der Code kam mit dem ersten Commit, Doku
+  und Version mit dem zweiten (das Skript dafür war an einem falschen Anker gescheitert).
+
+### AKZEPTANZKRITERIUM
+- Ein zweiter Aufruf gibt dieselbe Liste ohne Rechnen zurück; kommen Stationen dazu, wird neu
+  gerechnet.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_abfahren.py`, `tests/test_vierachs_pruefen.py` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels Entscheidungen.
+
 ## P-2026-10-04-19 kollision-am-anschlag
 
 ### EINGELESEN
