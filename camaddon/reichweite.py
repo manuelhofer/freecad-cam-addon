@@ -870,12 +870,18 @@ class Pruefung:
         """Die Sätze der Operation, wie die Maschine sie fährt: die eigenen – oder, in einer
         geschwenkten Ebene (`ebene`: ihr Job), ohne Schwenkzyklus gerechnet (die Rundachsen der
         Ebene, X, Y, Z im Grundjob ohne TCPM; schwenken.befehle_ohne_zyklus) – mit dieser
-        Maschine und diesem Werkzeug. ValueError mit einem Satz, wenn die Maschine die Ebene
-        nicht erreicht."""
+        Maschine und diesem Werkzeug; mit angestelltem Kugelfräser die Rundachsen je Punkt
+        (angestellt.befehle). ValueError mit einem Satz, wenn die Maschine die Ebene oder die
+        Achsen nicht erreicht."""
+        from . import angestellt as an
+        from . import schwenken as sw
+
         befehle = list(op.Path.Commands)
+        if ebene is None and an.ist_angestellt(op):
+            # Der Kugelfräser angestellt (5 Achsen simultan): die Rundachsen je Punkt.
+            return an.befehle(op, sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs))
         if ebene is None:
             return befehle
-        from . import schwenken as sw
 
         maschine = sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs)
         lage = sw.ebene_von(ebene)

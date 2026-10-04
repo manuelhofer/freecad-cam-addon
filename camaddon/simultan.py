@@ -13,7 +13,10 @@ entscheidet Manuel (Spezifikation 16.4); die Rundachsen entlang der Bahn braucht
 auch die Prüfung auf der Maschine. Ohne TCPM fährt die Maschine zwischen zwei Sätzen jede Achse
 linear; dreht sich dabei eine Rundachse, wandert die Spitze am Werkstück von der Geraden weg.
 programm_ohne_tcpm() setzt deshalb Punkte dazwischen, bis die Spitze in der Mitte jedes Satzes
-höchstens `toleranz` neben der Geraden liegt (`verdichtet`). Läuft ohne Oberfläche.
+höchstens `toleranz` neben der Geraden liegt (`verdichtet`). Mit `bezug` bleibt statt der
+Spitze ein Punkt so weit die Achse hinauf auf der Geraden – beim Kugelfräser ihre Mitte (der
+Kugelfräser angestellt, angestellt.py: Die Kugel fährt die Bahn, die Achse kippt um sie). Läuft
+ohne Oberfläche.
 """
 
 import math
@@ -114,10 +117,17 @@ def _nachfuehren(maschine, n, werte):
     return werte if 1.0 - float(d @ ziel) <= grenze else None
 
 
-def abweichung(maschine, von, nach, rund_von, rund_nach):
-    """Wie weit (mm) die Spitze am Werkstück in der Mitte des Satzes `von` → `nach` (Punkt) neben
-    der Geraden liegt, wenn die Maschine X, Y, Z und die Rundachsen (`rund_…`) linear fährt –
-    ohne TCPM. None, wenn die Maschine an einer Stellung keine Abbildung hat."""
+def bezugspunkt(punkt, bezug=0.0):
+    """Der Punkt `bezug` mm die Achse hinauf über der Spitze (beim Kugelfräser mit dem Radius:
+    die Mitte der Kugel)."""
+    return tuple(s + bezug * a for s, a in zip(punkt.spitze, punkt.achse, strict=True))
+
+
+def abweichung(maschine, von, nach, rund_von, rund_nach, bezug=0.0):
+    """Wie weit (mm) die Spitze am Werkstück – mit `bezug` der Punkt so weit die Achse hinauf –
+    in der Mitte des Satzes `von` → `nach` (Punkt) neben der Geraden liegt, wenn die Maschine X,
+    Y, Z und die Rundachsen (`rund_…`) linear fährt – ohne TCPM. None, wenn die Maschine an einer
+    Stellung keine Abbildung hat."""
     mitte = {k: (rund_von[k] + rund_nach[k]) / 2 for k in rund_von}
     a0, a1, am = (maschine.abbildung(r) for r in (rund_von, rund_nach, mitte))
     if a0 is None or a1 is None or am is None:
@@ -125,23 +135,30 @@ def abweichung(maschine, von, nach, rund_von, rund_nach):
     p0, p1 = a0.punkt(von.spitze), a1.punkt(nach.spitze)
     programm = [(u + v) / 2 for u, v in zip(p0, p1, strict=True)]
     d = [programm[i] - am.b[i] for i in range(3)]
-    spitze = [sum(am.a[k][i] * d[k] for k in range(3)) for i in range(3)]  # Aᵀ · (P − b)
-    soll = [(u + v) / 2 for u, v in zip(von.spitze, nach.spitze, strict=True)]
-    return math.dist(spitze, soll)
+    ist = [sum(am.a[k][i] * d[k] for k in range(3)) for i in range(3)]  # Aᵀ · (P − b)
+    if bezug:
+        achse = maschine.richtung(mitte)
+        ist = [ist[0] + bezug * achse.x, ist[1] + bezug * achse.y, ist[2] + bezug * achse.z]
+    soll = [
+        (u + v) / 2 for u, v in zip(bezugspunkt(von, bezug), bezugspunkt(nach, bezug), strict=True)
+    ]
+    return math.dist(ist, soll)
 
 
-def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ):
+def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False):
     """(Punkte, Rundachsen) – zwischen zwei Sätzen im Vorschub so viele Punkte auf der Geraden
     dazu (die Achse dazwischen gemittelt, die Rundachsen von davor aus nachgeführt), bis die
-    Spitze in der Mitte jedes Satzes höchstens `toleranz` neben ihr liegt (abweichung);
-    höchstens TIEFE-mal halbiert. Eilgänge bleiben, wie sie sind."""
+    Spitze – mit `bezug` der Punkt so weit die Achse hinauf – in der Mitte jedes Satzes
+    höchstens `toleranz` neben ihr liegt (abweichung); höchstens TIEFE-mal halbiert. Eilgänge
+    bleiben, wie sie sind – mit `eilgaenge` auch sie, wenn sich in ihnen die Achse dreht (über
+    dem Teil: Die Spitze bleibt auf der Geraden, statt auszuschwingen)."""
     if not punkte:
         return [], []
     neu_punkte, neu_rund = [punkte[0]], [rund[0]]
     buchstaben = [a.buchstabe for a in maschine.rundachsen]
 
     def halbieren(von, nach, r_von, r_nach, tiefe):
-        fehler = abweichung(maschine, von, nach, r_von, r_nach)
+        fehler = abweichung(maschine, von, nach, r_von, r_nach, bezug)
         if fehler is None or fehler <= toleranz or tiefe >= TIEFE:
             neu_punkte.append(nach)
             neu_rund.append(r_nach)
@@ -159,16 +176,25 @@ def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ):
             neu_rund.append(r_nach)
             return
         r_mitte = {b: sw._rund(w) for b, w in zip(buchstaben, werte, strict=True)}
+        bezug_mitte = [
+            (u + v) / 2
+            for u, v in zip(bezugspunkt(von, bezug), bezugspunkt(nach, bezug), strict=True)
+        ]
         mitte = Punkt(
-            tuple((u + v) / 2 for u, v in zip(von.spitze, nach.spitze, strict=True)),
+            (
+                bezug_mitte[0] - bezug * n.x,
+                bezug_mitte[1] - bezug * n.y,
+                bezug_mitte[2] - bezug * n.z,
+            ),
             (n.x, n.y, n.z),
+            eilgang=nach.eilgang,
             vorschub=nach.vorschub,
         )
         halbieren(von, mitte, r_von, r_mitte, tiefe + 1)
         halbieren(mitte, nach, r_mitte, r_nach, tiefe + 1)
 
     for i in range(1, len(punkte)):
-        if punkte[i].eilgang:
+        if punkte[i].eilgang and not (eilgaenge and rund[i] != rund[i - 1]):
             neu_punkte.append(punkte[i])
             neu_rund.append(rund[i])
         else:
@@ -176,21 +202,21 @@ def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ):
     return neu_punkte, neu_rund
 
 
-def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ):
+def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False):
     """[Path.Command] – die Bahn (Punkt …) mit den Rundachsen je Punkt und X, Y, Z, wie eine
     Steuerung ohne TCPM sie liest. Zwischen zwei Punkten fährt die Maschine jede Achse linear –
     die Spitze bleibt nur nahe der Geraden, wenn die Punkte dicht liegen. `g93`: der Vorschub
-    als 1 ÷ Zeit (G93 … G94): je Satz die Zeit aus dem Weg der Spitze am Werkstück und dem
-    Vorschub – dreht sich nur die Achse, zählt der größte Winkel in Grad wie mm; F wie
-    FreeCADs Bahnen ÷ 60 (1 ÷ Sekunden). `toleranz`: Sätze im Vorschub so dicht, dass die Spitze
+    als 1 ÷ Zeit (G93 … G94): je Satz die Zeit aus dem Weg der Spitze (mit `bezug` des Punkts
+    darüber) am Werkstück und dem Vorschub – dreht sich nur die Achse, zählt der größte Winkel
+    in Grad wie mm; F wie FreeCADs Bahnen ÷ 60 (1 ÷ Sekunden). `toleranz`: Sätze im Vorschub so dicht, dass die Spitze
     in ihrer Mitte höchstens so weit neben der Geraden liegt (verdichtet; 0 oder None: wie
-    gegeben). ValueError mit einem Satz wie rundachsen_entlang, oder wenn die Maschine keine drei
-    Linearachsen hat."""
+    gegeben), `bezug` und `eilgaenge` wie dort. ValueError mit einem Satz wie
+    rundachsen_entlang, oder wenn die Maschine keine drei Linearachsen hat."""
     import Path
 
     rund = rundachsen_entlang(maschine, [p.achse for p in punkte])
     if toleranz:
-        punkte, rund = verdichtet(maschine, punkte, rund, toleranz)
+        punkte, rund = verdichtet(maschine, punkte, rund, toleranz, bezug, eilgaenge)
     befehle = [Path.Command("G93")] if g93 else []
     vorschub, davor = 0.0, None
     for punkt, stellung in zip(punkte, rund, strict=True):
@@ -206,14 +232,14 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ):
                 weg = 0.0
                 if davor is not None:
                     weg = max(
-                        math.dist(davor[0], punkt.spitze),
+                        math.dist(davor[0], bezugspunkt(punkt, bezug)),
                         max(abs(stellung[k] - davor[1][k]) for k in stellung),
                     )
                 werte["F"] = 1.0 / max(weg / vorschub, KUERZESTE_ZEIT)
             elif punkt.vorschub > 0:
                 werte["F"] = vorschub
         befehle.append(Path.Command("G0" if punkt.eilgang else "G1", werte))
-        davor = (punkt.spitze, stellung)
+        davor = (bezugspunkt(punkt, bezug), stellung)
     if g93:
         befehle.append(Path.Command("G94"))
     return befehle

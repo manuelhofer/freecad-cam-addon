@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.165.3 (P-2026-10-04-20). Alles, was hier als gebaut steht,
+Stand 0.166.0 (P-2026-10-04-21). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -78,12 +78,13 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Nachgezogen bis P-2026-10-03-46: Schwenkhöhe, schräge Bohrungen, Programm mit der Maschine,
   Bohren am Schwenkkopf, Knopf im Assistenten, Bestückung je Aufspannung.
   Offen: Manuels Entscheidungen D-1, D-2, D-4, D-5 (D-3 durch die TCPM-Antwort entschieden).
-- **W-015 5 Achsen simultan** – Entwurf zum Besprechen (Spezifikation Strategien 16): Kern,
-  Kugelfräser angestellt, Flanke, Wegkippen; E-2 und E-3 entscheidet Manuel (E-1 TCPM: aus, schon
-  beantwortet; damit auch E-4: Rundachsen). Gebaut nur der
-  Kern S1 ohne TCPM und ohne Oberfläche (`simultan.py`, seit P-2026-10-04-13 mit Verdichten auf
-  0,005 mm); keine Strategie, nichts geändert, was das Addon wählt. Versuch an der Kuppel
-  (Spezifikation 16.3): „nur A, so wenig wie nötig“ kostet 6 % Zeit, nirgends vc = 0.
+- **W-015 5 Achsen simultan** – (Spezifikation Strategien 16) Kern S1 ohne TCPM (`simultan.py`,
+  Verdichten auf 0,005 mm). **S2 Kugelfräser angestellt** (Manuel, 2026-10-04: „Ja, so bauen“ –
+  E-2 und E-3 entschieden): P-2026-10-04-21 – „3D-Schlichten“ mit der Eigenschaft „Anstellen“
+  (`angestellt.py`): nur so viel wie nötig, mindestens 15° zwischen Achse und Normale, eine
+  Rundachse; Prüfen, Kollision und Programm mit den Rundachsen je Punkt (G93). An der Kuppel 6 %
+  länger, nirgends mit der Spitze. Ohne den Haken bleibt alles wie bisher. Offen: der Haken im
+  Assistenten, Flanke (S3), Wegkippen (S4).
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei

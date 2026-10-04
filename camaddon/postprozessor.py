@@ -43,6 +43,7 @@ import dataclasses
 import re
 from dataclasses import dataclass, field
 
+from . import angestellt as an
 from . import messstopp as ms
 from . import schwenken as sw
 from .sprache import tr
@@ -378,6 +379,7 @@ class Abschnitt:
     werkzeugname: str = ""
     # 3+2: die Schwenkung des Jobs (schwenken.Schwenkung) – die Befehle in Koordinaten der Ebene.
     schwenkung: object = None
+    hinweis: str = ""  # ein Satz zur Operation im Fenster und als Kommentar
 
 
 @dataclass
@@ -588,6 +590,10 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     zyklus = bool(s.schwenkzyklus and s.schwenken)
     for abschnitt in abschnitte:
         notiz(abschnitt.name)
+        if abschnitt.hinweis:
+            hinweise.append(f"{abschnitt.name}: {abschnitt.hinweis}")
+            if s.kommentare:
+                zeilen.append(_kommentar(s, abschnitt.hinweis))
         befehle_roh = abschnitt.befehle
         if abschnitt.schwenkung is not None and not zyklus:
             # Fährt die Maschine davor zum Wechselpunkt ganz oben, schwenkt sie dort – nicht
@@ -915,7 +921,8 @@ def abschnitte(job, maschine=None, mit_ebenen=True):
     (`mit_ebenen`), folgen deren Operationen – ein Programm für die Aufspannung (Spezifikation
     Strategien 15, F3). `maschine`: schwenken.Maschine für das Programm ohne Schwenkzyklus –
     oder eine Funktion Operation → schwenken.Maschine (oder None), je Werkzeug mit seiner Länge:
-    Am Schwenkkopf hängen die Punkte im Programm davon ab."""
+    Am Schwenkkopf hängen die Punkte im Programm davon ab. Mit ihr schreibt ein angestellter
+    Kugelfräser seine Rundachsen je Punkt (_angestellt), ohne sie senkrecht."""
     ergebnis = _abschnitte_des_jobs(job, maschine)
     if mit_ebenen and not sw.ist_ebene(job):
         for ebene in sw.ebenen_von(job):
@@ -936,6 +943,9 @@ def _abschnitte_des_jobs(job, maschine):
             if id(fuer_op) not in gerechnet:
                 gerechnet[id(fuer_op)] = (fuer_op, sw.schwenkung_fuer(job, fuer_op))
             schwenkung = gerechnet[id(fuer_op)][1]
+        befehle, hinweis = list(op.Path.Commands), ""
+        if not geschwenkt and an.ist_angestellt(op):
+            befehle, hinweis = _angestellt(op, maschine)
         tc = getattr(op, "ToolController", None)
         nummer = int(getattr(tc, "ToolNumber", 0) or 0) if tc is not None else 0
         drehzahl = float(getattr(tc, "SpindleSpeed", 0.0) or 0.0) if tc is not None else 0.0
@@ -948,12 +958,26 @@ def _abschnitte_des_jobs(job, maschine):
                 drehzahl if richtung != "None" else 0.0,
                 richtung == "Reverse",
                 str(getattr(op, "CoolantMode", "None")),
-                list(op.Path.Commands),
+                befehle,
                 getattr(werkzeug, "Label", "") if werkzeug is not None else "",
                 schwenkung,
+                hinweis,
             )
         )
     return ergebnis
+
+
+def _angestellt(op, maschine):
+    """(Befehle, Hinweis) einer Operation mit angestelltem Kugelfräser (5 Achsen simultan): mit
+    einer Maschine mit zwei Rundachsen die Rundachsen je Punkt (angestellt.befehle) – ohne sie
+    senkrecht, mit einem Satz: Die Kugel fährt dieselbe Bahn, nur mit der Spitze."""
+    fuer_op = maschine(op) if callable(maschine) else maschine
+    if fuer_op is None:
+        return list(op.Path.Commands), tr("pp.hinweis.angestellt_senkrecht")
+    try:
+        return an.befehle(op, fuer_op), ""
+    except ValueError as grund:
+        return list(op.Path.Commands), tr("pp.hinweis.angestellt_fehler", grund=str(grund))
 
 
 def maschineninfo(job):

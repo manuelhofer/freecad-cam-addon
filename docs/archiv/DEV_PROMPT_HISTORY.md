@@ -12,6 +12,52 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-21 kugel-angestellt
+
+### EINGELESEN
+- Manuel, 2026-10-04 früh („hast du nicht noch mehr zu machen ??“), auf die Frage E-2/E-3 mit den
+  Bildern der Kuppel: „Ja, so bauen (Empfehlung)“ – der Kugelfräser angestellt, nur so viel wie
+  nötig, mindestens 15° zwischen Achse und Flächennormale, eine Rundachse; ohne den Haken bleibt
+  alles wie heute.
+
+### DATEIEN
+- `camaddon/angestellt.py` (neu: `gerade`, `verboten`, `neigungen`, `normalen`, `achsen`,
+  `kippachse`, `punkte`, `befehle`), `camaddon/simultan.py` (`bezug`: beim Verdichten und für
+  G93 bleibt die Mitte der Kugel auf der Geraden; `eilgaenge`: auch Eilgänge mit drehender Achse
+  verdichtet), `camaddon/schlichten3d.py` (Eigenschaften `Anstellen`, `Anstellwinkel`,
+  `Kippachse`, `Werkzeugachsen`; `execute` rechnet die Achsen je Satz der fertigen Bahn),
+  `camaddon/reichweite.py` (`Pruefung.befehle`), `camaddon/postprozessor.py` (`Abschnitt.hinweis`,
+  `_angestellt`), `camaddon/gui_programm.py` (die Maschine auch für angestellte Operationen),
+  Übersetzungen, `tests/test_angestellt.py` (neu), Spezifikation Strategien 16.3/16.4, Aufbau,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.166.0).
+
+### AKZEPTANZKRITERIUM
+- Die Kuppel (Kugel Ø 6) mit „Anstellen“: wo die Kugel das Teil berührt, mindestens 15° zwischen
+  Achse und Normale, an den Flanken senkrecht; die Mitte der Kugel fährt die senkrechte Bahn. Auf
+  der Tisch/Tisch-Maschine kippt nur A, C steht; höchstens 15 % länger. „Programm schreiben“ mit
+  der Maschine G93 und A je Satz, ohne sie senkrecht mit einem Satz.
+
+### DONE
+- Die Bahn bleibt die des 3D-Schlichtens (die Kugel fährt sie); mit dem Haken in Sätzen zu
+  höchstens 0,5 mm, ohne Bögen, und je Satz die Werkzeugachse: im Vorschub aus der Normale am
+  Berührpunkt (`distToShape` von der Kugelmitte – 0,09 ms je Punkt an der Kuppel, 0,6 ms am
+  Testteil), so nah an senkrecht wie erlaubt, höchstens 2° je mm, sonst ein Sprung um die
+  ruhende Mitte; Eilgang hinauf mit der Achse davor, sonst mit der des nächsten Schnitts.
+  Restmaterial, Materialstand und das Bild lesen weiter die senkrechte Bahn – für die Kugel
+  dieselbe. Prüfen, Abfahren, Kollision und Programm setzen die Spitze um (Mitte − R · Achse):
+  vorher auf die Schwenkhöhe, schwenken, darüber; danach hinauf, Rundachsen auf 0.
+
+### TESTS
+- `tests/test_angestellt.py` (neu): kleinster Winkel 15,000°, Neigung bis 29,4°, 9 255 von 10 686
+  Vorschubsätzen senkrecht, A 0 … 29,4, C steht, 4,50 statt 4,25 min (+6 %); Programm mit G93
+  und A. `tests/test_simultan.py`, `tests/test_postprozessor.py` – OK. Einmal nachgemessen:
+  „Kollision prüfen“ an der Kuppel auf der Tisch/Tisch-Maschine – nichts (10 722 Stationen,
+  82 s). black und ruff sauber.
+
+### NEXT
+- Der Haken im Assistenten „Bearbeitung“ beim 3D-Schlichten (an einer 5-Achs-Maschine mit
+  Kugelfräser), Hilfe, Szenario.
+
 ## P-2026-10-04-20 am-werkstueck-merken
 
 ### EINGELESEN

@@ -2630,6 +2630,23 @@ Kollision mit Rundachsen je Station.
   Simultan bliebe für eine Neigung, die der Vorschubrichtung folgt.
   Szenario `szenario_angestellt` (P-2026-10-03-51): die Kuppel auf der Tisch/Tisch-Maschine, A15
   die ganze Bahn, 5,4 min, Kollision frei.
+  **Gebaut simultan (P-2026-10-04-21; Manuel, 2026-10-04: „Ja, so bauen“):** `angestellt.py` –
+  „3D-Schlichten“ mit der Eigenschaft `Anstellen` (dazu `Anstellwinkel` 15°, `Kippachse` X oder
+  Y). Die Kugel bleibt, wo sie ist: Die Operation speichert die senkrechte Bahn (in Sätzen zu
+  höchstens 0,5 mm, ohne Bögen) und je Satz die Werkzeugachse (`Werkzeugachsen`) – Restmaterial,
+  Materialstand, das Bild und ein Programm für eine 3-Achs-Maschine bleiben richtig. Im Vorschub
+  kommt die Achse aus der Normale am Berührpunkt (`distToShape` von der Kugelmitte): verboten
+  ist jede Neigung, bei der die Achse der Normale näher steht als der Winkel (`verboten`), die
+  Neigung bleibt so nah an 0 wie erlaubt und ändert sich höchstens um 2° je mm (`neigungen`);
+  muss sie schneller, springt sie um die ruhende Mitte. Ein Eilgang hinauf behält die Achse,
+  jeder andere nimmt die des nächsten Schnitts (die Achse dreht über dem Teil, die Spitze bleibt
+  auf der Geraden). Prüfen, Abfahren, Kollision und Programm setzen die Spitze um (Mitte − R ·
+  Achse) und rechnen die Rundachsen (`simultan.programm_ohne_tcpm` mit `bezug` = R: die Mitte
+  der Kugel bleibt beim Verdichten auf der Geraden, G93 nach ihrem Weg); davor auf die
+  Schwenkhöhe, schwenken, darüber; danach hinauf, die Rundachsen auf 0. „Programm schreiben“
+  ohne Maschine mit zwei Rundachsen: senkrecht, mit einem Satz. An der Kuppel (Tisch/Tisch, Ø 6):
+  A 0 … 29,4°, C steht, 4,50 statt 4,25 min, kleinster Winkel zur Normale 15,000°, „Kollision
+  prüfen“ frei. Offen: der Haken im Assistenten.
 - **S3 Flanke:** eine Regelfläche (schräge oder verwundene Wand) mit dem Mantel.
 - **S4 Wegkippen**, wenn der Halter sonst anstößt.
 - **S5 Entgraten in 3D.**
@@ -2662,12 +2679,13 @@ Draufsicht nach Schnitt-Ø je Variante, Seitenansicht mit dem Werkzeug (im Beric
 - **E-1 TCPM:** ~~Hat deine Maschine `TRAORI`?~~ Schon beantwortet (Status, „Beantwortet am
   2026-10-03 abends“): „TCPM bleibt aus. Es soll auf allen Maschinen gehen; die G-Sätze ohne TCPM
   geben dasselbe Teil … TCPM später als Haken.“ Der Kern S1 rechnet ohne TCPM.
-- **E-2 Zuerst:** S2 (Kugelfräser angestellt) oder S3 (Flanke)?
-- **E-3 Anstellwinkel:** fest mit einem Feld (z. B. 15° voreilend, 0° seitwärts) – oder aus der
-  Neigung der Fläche? Nach dem Versuch an der Kuppel (oben) **Empfehlung:** aus der Neigung der
-  Fläche, nur so viel wie nötig (Feld: der kleinste Winkel zwischen Achse und Fläche, 15°), und
-  nur in einer Ebene (eine Rundachse) – 6 % mehr Zeit statt 136 % (Richtung frei) oder 540 %
-  (fest voreilend auf der Spirale).
+- **E-2 Zuerst:** ~~S2 (Kugelfräser angestellt) oder S3 (Flanke)?~~ **Entschieden** (Manuel,
+  2026-10-04): S2 – gebaut (P-2026-10-04-21).
+- **E-3 Anstellwinkel:** ~~fest mit einem Feld – oder aus der Neigung der Fläche?~~
+  **Entschieden** (Manuel, 2026-10-04: „Ja, so bauen (Empfehlung)“): aus der Neigung der Fläche,
+  nur so viel wie nötig (Feld: der kleinste Winkel zwischen Achse und Flächennormale, 15°), nur in
+  einer Ebene (eine Rundachse) – 6 % mehr Zeit statt 136 % (Richtung frei) oder 540 % (fest
+  voreilend auf der Spirale).
 - **E-4 Orientierung im Programm:** ~~als Richtungsvektor oder als Rundachsen?~~ Mit E-1
   entschieden: ohne TCPM gehen nur Rundachsen (A, C) – Richtungsvektoren (`A3= B3= C3=`)
   brauchen TRAORI.

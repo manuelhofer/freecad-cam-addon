@@ -236,10 +236,13 @@ def abschnitte_mit_maschine(job, gewaehlt):
 
 def _abschnitte_und_kette(job, gewaehlt):
     """(abschnitte_mit_maschine, ohne Kette): ob eine Ebene ohne die Kette einer Maschine mit
-    zwei Rundachsen gerechnet ist – dann gilt der gedachte Tisch A, C um den Nullpunkt."""
+    zwei Rundachsen gerechnet ist – dann gilt der gedachte Tisch A, C um den Nullpunkt. Ein
+    angestellter Kugelfräser braucht die Maschine auch – ohne sie steht er senkrecht (das sagt
+    das Programm selbst)."""
+    from . import angestellt as an
     from . import schwenken as sw
 
-    if not (sw.ist_ebene(job) or sw.ebenen_von(job)):
+    if not (sw.ist_ebene(job) or sw.ebenen_von(job) or an.im_job(job)):
         return pp.abschnitte(job), False
     if gewaehlt is None:
         return pp.abschnitte(job), True
@@ -258,7 +261,7 @@ def _abschnitte_und_kette(job, gewaehlt):
 
         def gemerkt(op):
             maschine = fuer(op)
-            if maschine is None:
+            if maschine is None and not an.ist_angestellt(op):
                 ohne.append(op)
             return maschine
 

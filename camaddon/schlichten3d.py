@@ -3,6 +3,8 @@
 Zeilen, die Spitze auf der Hüllfläche des ganzen Teils, der Zeilenabstand aus der Grathöhe
 (schlichten3d_bahn). Mit dem Durchmesser des Fräsers davor (`DurchmesserDavor` > 0) ist sie
 „Restschlichten“ (W-006 4.2 Punkt 8): nur dort, wo der größere Fräser davor mehr stehen ließ.
+Mit `Anstellen` steht ein Kugelfräser angestellt (5 Achsen simultan, angestellt.py): Die Bahn
+bleibt die senkrechte (die Kugel fährt sie), dazu je Satz die Werkzeugachse (`Werkzeugachsen`).
 
 Wie „Bohrung fräsen“ eine eigene Operation (erbt FreeCADs ObjectOp) mit Werkzeug-Controller,
 Kühlmittel und FreeCADs Tiefen und Höhen. Beim Neuberechnen rechnet sie ihre Bahn aus dem
@@ -20,6 +22,7 @@ import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
+from . import angestellt as an
 from . import bahn as bn
 from . import fraeserform as ff
 from . import namen
@@ -32,6 +35,7 @@ from . import vierachs_schlichten as vs
 from .sprache import tr
 
 GRUPPE = "Fräsen"
+GRUPPE_5ACHS = "5-Achs"
 RICHTUNGEN = ("auto", "x", "y", "spirale", "flaeche", "aequidistant")
 
 
@@ -56,10 +60,22 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.DurchmesserDavor = 0.0  # 0: ganz schlichten; sonst Restschlichten
         obj.EckenradiusDavor = 0.0
+        self._anstellen_vorbelegen(obj)
         self._editormodi(obj)
 
+    @staticmethod
+    def _anstellen_vorbelegen(obj):
+        obj.Anstellen = False
+        obj.Anstellwinkel = an.WINKEL
+        obj.Kippachse = list(an.UM)
+        obj.Kippachse = an.UM[0]
+        obj.Werkzeugachsen = []
+
     def opOnDocumentRestored(self, obj):
-        if "Grenzwinkel" in self._eigenschaften(obj):
+        neu = self._eigenschaften(obj)
+        if "Anstellen" in neu:
+            self._anstellen_vorbelegen(obj)  # gespeichert vor dem Anstellen: senkrecht
+        if "Grenzwinkel" in neu:
             obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
         if set(RICHTUNGEN) - set(obj.getEnumerationsOfProperty("Richtung")):
             richtung = str(obj.Richtung)
@@ -88,12 +104,52 @@ class Schlichten3D(PathOp.ObjectOp):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
                 neu.append(name)
+        for typ, name, text in (
+            ("App::PropertyBool", "Anstellen", tr("an.eigenschaft.anstellen")),
+            ("App::PropertyAngle", "Anstellwinkel", tr("an.eigenschaft.winkel")),
+            ("App::PropertyEnumeration", "Kippachse", tr("an.eigenschaft.kippachse")),
+            ("App::PropertyVectorList", "Werkzeugachsen", tr("an.eigenschaft.achsen")),
+        ):
+            if name not in obj.PropertiesList:
+                obj.addProperty(typ, name, GRUPPE_5ACHS, text)
+                neu.append(name)
         return neu
 
     @staticmethod
     def _editormodi(obj):
         for name in ("Zeilen", "Hoehenlinien", "Umlaeufe", "Abstand"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
+        obj.setEditorMode("Werkzeugachsen", 2)  # gerechnet, je Satz – nicht zum Ansehen
+
+    def execute(self, obj):
+        """Wie jede Operation – mit `Anstellen` danach je Satz der fertigen Bahn die
+        Werkzeugachse (angestellt.achsen): Erst jetzt stehen alle Sätze fest, auch die, die
+        FreeCAD vorn und hinten anfügt."""
+        ergebnis = super().execute(obj)
+        achsen = []
+        if getattr(obj, "Anstellen", False) and obj.Active and getattr(obj, "Path", None):
+            achsen = self._achsen(obj)
+        obj.Werkzeugachsen = [FreeCAD.Vector(*a) for a in achsen]
+        return ergebnis
+
+    def _achsen(self, obj):
+        """Die Werkzeugachsen je Satz – leer (senkrecht), wenn es kein Kugelfräser ist."""
+        radius = an.radius_von(obj)
+        if radius is None:
+            FreeCAD.Console.PrintWarning(tr("an.nur_kugel", operation=obj.Label) + "\n")
+            return []
+        try:
+            form_teil = vs._teil(self.model)
+        except (AttributeError, ValueError):
+            return []
+        return an.achsen(
+            list(obj.Path.Commands),
+            form_teil,
+            radius,
+            aufmass=float(obj.Aufmass),
+            um=str(obj.Kippachse),
+            winkel=float(obj.Anstellwinkel),
+        )
 
     def opExecute(self, obj):
         try:
@@ -110,8 +166,11 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Zeilen, obj.Hoehenlinien = ergebnis.zeilen, ergebnis.hoehenlinien
         obj.Umlaeufe = ergebnis.umlaeufe
         obj.Abstand = round(float(ergebnis.abstand), 4)
+        punkte = ergebnis.punkte
+        if getattr(obj, "Anstellen", False):
+            punkte = an.gerade(punkte)  # eine Achse je Satz: Bögen als Geraden, kurze Sätze
         self.commandlist.extend(
-            bn.befehle(ergebnis.punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
+            bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
         )
 
 
