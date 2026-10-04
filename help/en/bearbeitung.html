@@ -712,6 +712,16 @@ spiral used to cut up to 0.05 mm into the side there.</li>
 equidistant, …”, “→ 6 contours and a spiral with 45 turns, …” or “→ 87 rows along X, …”. Rough first – “3D roughing” is
 ticked along with it (section 16) –, otherwise the ball cuts into solid material. The
 operation is called “3D finishing T3”.</li>
+<li><b>Tilt (5-axis simultaneous)</b>: vertical, a ball end mill cuts with its tip on flat
+spots – the cutting speed is 0 there and the surface suffers. With the tick it tilts only as far
+as needed for at least 15° between its axis and the surface, and only with one rotary axis (on
+the table/table machine A, C stays); where the surface is steeper it stays vertical. The ball
+stays where it is – only the axis tilts about its centre, the path is the same. The tick is free
+on a <b>5-axis machine</b> (chosen above) with a <b>ball end mill</b>; otherwise it says what is
+missing. “Check on the machine”, the collision check and “Write program” compute the rotary axes
+per point (feed in G93); without a machine with two rotary axes the program writes the path
+vertical and says so. On a dome about 5 % longer. Properties of the operation: “Anstellwinkel”
+(15°), “Kippachse” (X or Y – from the machine).</li>
 </ul>
 
 <h3>14. Reaming</h3>

@@ -2646,7 +2646,10 @@ Kollision mit Rundachsen je Station.
   Schwenkhöhe, schwenken, darüber; danach hinauf, die Rundachsen auf 0. „Programm schreiben“
   ohne Maschine mit zwei Rundachsen: senkrecht, mit einem Satz. An der Kuppel (Tisch/Tisch, Ø 6):
   A 0 … 29,4°, C steht, 4,50 statt 4,25 min, kleinster Winkel zur Normale 15,000°, „Kollision
-  prüfen“ frei. Offen: der Haken im Assistenten.
+  prüfen“ frei. **Im Assistenten (P-2026-10-04-22):** beim 3D-Schlichten (und Restschlichten)
+  der Haken „Anstellen (5 Achsen simultan)“ – frei an einer 5-Achs-Maschine mit Kugelfräser,
+  sonst gesperrt mit dem Grund hinter der Beschriftung; die Kippachse aus der Maschine (A → X,
+  B → Y). Szenario `szenario_kugel_angestellt`.
 - **S3 Flanke:** eine Regelfläche (schräge oder verwundene Wand) mit dem Mantel.
 - **S4 Wegkippen**, wenn der Halter sonst anstößt.
 - **S5 Entgraten in 3D.**

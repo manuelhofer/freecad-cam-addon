@@ -8,7 +8,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-Stand 0.166.0 (P-2026-10-04-21). Alles, was hier als gebaut steht,
+Stand 0.167.0 (P-2026-10-04-22). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -83,8 +83,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   E-2 und E-3 entschieden): P-2026-10-04-21 – „3D-Schlichten“ mit der Eigenschaft „Anstellen“
   (`angestellt.py`): nur so viel wie nötig, mindestens 15° zwischen Achse und Normale, eine
   Rundachse; Prüfen, Kollision und Programm mit den Rundachsen je Punkt (G93). An der Kuppel 6 %
-  länger, nirgends mit der Spitze. Ohne den Haken bleibt alles wie bisher. Offen: der Haken im
-  Assistenten, Flanke (S3), Wegkippen (S4).
+  länger, nirgends mit der Spitze. Ohne den Haken bleibt alles wie bisher. Im Assistenten
+  (P-2026-10-04-22): beim 3D-Schlichten der Haken „Anstellen (5 Achsen simultan)“, frei an einer
+  5-Achs-Maschine mit Kugelfräser. Offen: Flanke (S3), Wegkippen (S4).
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei

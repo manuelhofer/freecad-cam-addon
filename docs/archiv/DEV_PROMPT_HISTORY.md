@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-22 anstellen-im-assistenten
+
+### EINGELESEN
+- P-21 hat das Anstellen als Eigenschaft der Operation gebaut; im Assistenten „Bearbeitung“ fehlte
+  der Haken (Manuel: „Ein zusätzlicher Haken ‚Anstellen‘ … ohne den Haken bleibt alles wie heute“).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_Strategie.haken_gesperrt`, `_Block.haken_pruefen`; beim
+  3D-Schlichten und Restschlichten der Haken „anstellen“, gesperrt ohne 5-Achs-Maschine oder
+  Kugelfräser; `_kippachse`: A → X, B → Y), `camaddon/schlichten3d.py` (`stelle_an`),
+  Übersetzungen, Hilfe „Bearbeitung“ (de/en), `tests/gui/szenario_kugel_angestellt.py` (neu),
+  Spezifikation Strategien 16.3, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.167.0).
+
+### AKZEPTANZKRITERIUM
+- Die Kuppel, die 5-Achs-Maschine Tisch/Tisch gewählt, Kugel Ø 6: beim 3D-Schlichten der Haken
+  „Anstellen (5 Achsen simultan)“ frei und nicht gesetzt; mit dem Standardfräser gesperrt,
+  „– geht mit einem Kugelfräser“. Gesetzt → „Anlegen“: die Operation mit `Anstellen`, Kippachse
+  X, je Satz eine Achse; „Auf der Maschine prüfen“: A über 10° an mehr als 100 Stationen, C steht.
+
+### DONE
+- Wie oben. Ohne 5-Achs-Maschine steht hinter dem Haken „– geht an einer 5-Achs-Maschine (oben
+  wählen)“.
+
+### TESTS
+- `tests/gui/szenario_kugel_angestellt.py` (neu) – OK; Bilder: der Haken in Schritt 3, das
+  Werkstück auf dem geschwenkten Tisch. black und ruff sauber.
+
+### NEXT
+- Manuel probiert es aus; dann Flanke (S3) oder Wegkippen (S4) – zu besprechen.
+
 ## P-2026-10-04-21 kugel-angestellt
 
 ### EINGELESEN

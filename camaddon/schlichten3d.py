@@ -350,6 +350,14 @@ def aendere(obj, tc, grathoehe, aufmass=0.0, flaechen=None, davor=None):
         _endtiefe(obj, job)
 
 
+def stelle_an(obj, anstellen, kippachse=None):
+    """Setzt „Anstellen“ (der Kugelfräser angestellt, 5 Achsen simultan) – angestellt mit der
+    Kippachse `kippachse` („X“, „Y“; None: wie sie ist). Ohne eigene Transaktion."""
+    obj.Anstellen = bool(anstellen)
+    if anstellen and kippachse in an.UM:
+        obj.Kippachse = kippachse
+
+
 def _vorgeschlagener_name(name):
     """Ist `name` einer, wie lege_an ihn vergibt („3D-Schlichten T3“, „Restschlichten T4“) –
     auch mit „ (2)“?"""

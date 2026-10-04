@@ -486,6 +486,10 @@ class _Strategie:
         """((Name, Beschriftung, Tooltip, Vorgabe) …) der Ja/Nein-Felder."""
         return ()
 
+    def haken_gesperrt(self, feld, block):
+        """Warum der Haken `feld` hier nicht geht (ein kurzer Satz) – None, wenn er geht."""
+        return None
+
     def passt(self, form, name):
         """Kann die Strategie etwas mit der Fläche `name` von `form` anfangen?"""
         return False
@@ -2034,6 +2038,22 @@ class _Restschruppen(_Schruppen3D):
         return dict(super().werte_von(op), davor=float(op.DurchmesserDavor))
 
 
+def _kippachse(job):
+    """„X“ oder „Y“: um welche Achse des Jobs ein angestellter Kugelfräser kippt – die der ersten
+    schwenkenden Rundachse der Maschine des Jobs (A um X, B um Y), sonst „X“."""
+    datei = rw.gemerkte_maschine(job) if job is not None else ""
+    eintrag = msp.finde(msp.laden(), datei) if datei else None
+    for buchstabe in getattr(eintrag, "rundachsen", ()) or ():
+        if buchstabe in ("A", "B"):
+            return "X" if buchstabe == "A" else "Y"
+    return "X"
+
+
+def _job_der(op):
+    """Der Job der Operation – None, wenn sie in keinem steht."""
+    return next((j for j in js.jobs(op.Document) if op in js.operationen(j)), None)
+
+
 class _Schlichten3D(_Strategie):
     """Freiformflächen in parallelen Zeilen auf der Hüllfläche des ganzen Teils
     (schlichten3d_bahn) – am liebsten mit dem Kugelfräser; gegen keine Strategie im Wettbewerb."""
@@ -2061,6 +2081,24 @@ class _Schlichten3D(_Strategie):
             ("grathoehe", tr("ba.grathoehe"), tr("ba.grathoehe.tooltip")),
             ("aufmass", tr("ba.aufmass"), tr("ba.s3.aufmass.tooltip")),
         )
+
+    def haken(self):
+        # 5 Achsen simultan S2 (angestellt.py; Manuel, 2026-10-04: „Ja, so bauen“) – ohne Vorgabe.
+        return (("anstellen", tr("ba.s3.anstellen"), tr("ba.s3.anstellen.tooltip"), False),)
+
+    def haken_gesperrt(self, feld, block):
+        if feld != "anstellen":
+            return None
+        try:
+            eintrag = block.panel.maschine()
+        except AttributeError:  # die Wahl der Maschine gibt es noch nicht
+            eintrag = None
+        if eintrag is None or not eintrag.vorhanden or eintrag.art != msp.FRAESE_5:
+            return tr("ba.s3.anstellen.ohne_maschine")
+        werkzeug = block.fraeser()
+        if werkzeug is None or werkzeug.art != wz.KUGELFRAESER:
+            return tr("ba.s3.anstellen.ohne_kugel")
+        return None
 
     def werkzeug_passt(self, werkzeug):
         return werkzeug.art in self.ARTEN and ff.von_werkzeug(werkzeug) is not None
@@ -2124,16 +2162,23 @@ class _Schlichten3D(_Strategie):
         return tr("ba.ergebnis_s3", **werte)
 
     def lege_an(self, job, tc, werte, flaechen):
-        return s3op.lege_an(job, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
+        op = s3op.lege_an(job, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
+        s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(job))
+        return op
 
     def aendere(self, op, tc, werte, flaechen):
         s3op.aendere(op, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
+        s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(_job_der(op)))
 
     def ist(self, op):
         return s3op.ist_schlichten3d(op) and not s3op.ist_restschlichten(op)
 
     def werte_von(self, op):
-        return {"grathoehe": float(op.Grathoehe), "aufmass": float(op.Aufmass)}
+        return {
+            "grathoehe": float(op.Grathoehe),
+            "aufmass": float(op.Aufmass),
+            "anstellen": bool(getattr(op, "Anstellen", False)),
+        }
 
 
 class _Restschlichten(_Schlichten3D):
@@ -2204,7 +2249,7 @@ class _Restschlichten(_Schlichten3D):
         )
 
     def lege_an(self, job, tc, werte, flaechen):
-        return s3op.lege_an(
+        op = s3op.lege_an(
             job,
             tc,
             werte["grathoehe"],
@@ -2212,11 +2257,14 @@ class _Restschlichten(_Schlichten3D):
             flaechen=flaechen,
             davor=self.davor(werte),
         )
+        s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(job))
+        return op
 
     def aendere(self, op, tc, werte, flaechen):
         s3op.aendere(
             op, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen, davor=self.davor(werte)
         )
+        s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(_job_der(op)))
 
     def ist(self, op):
         return s3op.ist_restschlichten(op)
@@ -2226,6 +2274,7 @@ class _Restschlichten(_Schlichten3D):
             "davor": float(op.DurchmesserDavor),
             "grathoehe": float(op.Grathoehe),
             "aufmass": float(op.Aufmass),
+            "anstellen": bool(getattr(op, "Anstellen", False)),
         }
 
 
@@ -2496,12 +2545,14 @@ class _Block:
         for feld, text, tooltip in strategie.felder():
             _zahlenfeld(self.felder, feld, text, tooltip, self.reihen, self.panel.vorschau_starten)
         self.haken_felder = {}
+        self._haken_texte = {}  # Name → (Beschriftung, Tooltip) – gesperrt kommt der Grund dazu
         for feld, text, tooltip, vorgabe in strategie.haken():
             kasten = QtGui.QCheckBox(text)
             kasten.setToolTip(tooltip)
             kasten.setChecked(vorgabe)
             kasten.toggled.connect(lambda _an: self.panel.vorschau_starten())
             self.haken_felder[feld] = kasten
+            self._haken_texte[feld] = (text, tooltip)
             self.reihen.ganz(kasten)
         innen.addWidget(self.reihen.widget)
         # Die Eintauchstelle je geschlossener Nut (W-012 E1; Manuel: „an einer von mir aus
@@ -2560,6 +2611,20 @@ class _Block:
             return groesse_lesen(text, einheiten.LAENGE) if text.strip() else self.vorschlag(feld)
         except ValueError:
             return self.vorschlag(feld)
+
+    def haken_pruefen(self):
+        """Haken, die nur mit einer bestimmten Maschine oder einem bestimmten Fräser gehen
+        (Strategie.haken_gesperrt): gesperrt, abgehakt, der Grund hinter der Beschriftung."""
+        for feld, kasten in getattr(self, "haken_felder", {}).items():
+            grund = self.s.haken_gesperrt(feld, self)
+            text, tooltip = self._haken_texte[feld]
+            kasten.setEnabled(grund is None)
+            if grund is not None and kasten.isChecked():
+                kasten.setChecked(False)
+            kasten.setText(
+                text if grund is None else tr("ba.haken.gesperrt", text=text, grund=grund)
+            )
+            kasten.setToolTip(tooltip)
 
     def werte(self):
         werte = {feld: self.wert(feld) for feld in self.felder}
@@ -2767,6 +2832,7 @@ class _Block:
         self.einsatz_fuellen(werkstoff)
 
     def _fraeser_gewaehlt(self):
+        self.haken_pruefen()
         if not self.panel._fuellt:
             self.einsatz_fuellen(self.panel.werkstoff())
 
@@ -3818,6 +3884,8 @@ class BearbeitungPanel:
             self.seite_zeigen(self._seite)  # „Weiter“ geht auf der Drehmaschine nicht
         if eintrag is not None and self.job is not None and not self._aufspannung_fest():
             rw.merke_maschine(self.job, eintrag.datei)
+        for block in getattr(self, "bloecke", ()):
+            block.haken_pruefen()  # Anstellen geht nur an einer 5-Achs-Maschine
         self._rohteil_kurz_zeigen()
 
     def nur_vierachs(self):
