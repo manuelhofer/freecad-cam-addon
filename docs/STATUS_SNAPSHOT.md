@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.172.0 (P-2026-10-04-33). Alles, was hier als gebaut steht,
+Stand 0.173.0 (P-2026-10-04-34). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -300,7 +300,9 @@ Beantwortet am 2026-10-03 (abends):
    Bereiche. *Nachgemessen (2026-10-04 nachts):* Planfräsen um den Zapfen (50 × 50, 10 mm über
    der Fläche): 6 Bereiche, jeder mit einer Rampe von 193 mm – 1,3 von 4,8 min; sie beginnen am
    Rand des Rohteils, wo der Fräser nur 4 mm im Material steht (senkrecht daneben hinab und
-   seitlich hinein spart fast alles davon). Zum Besprechen mit Bild (`plan_zapfen_z20`).
+   seitlich hinein spart fast alles davon). **Gebaut P-2026-10-04-34** (Manuel: „lass sie weg
+   … unnötige Bewegungen und Luft fräsen … kannst du auch ohne mich einfach wegbügeln“): am
+   Zapfen 4,05 → 3,29 min, keine Rampe mehr.
    Spannhöhe: „Von unten gespannt“ gebaut (P-2026-10-04-10, Prüfung und Urteil; -11 der
    Schraubstock im Bild und in der Kollision).
 6. Die Bahnrechnung weiter beschleunigen (Rest über Stücke, mit neuen goldenen Bahnen).

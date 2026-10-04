@@ -16,8 +16,11 @@ in Lagen vom Rohteil bis auf die Fläche plus Aufmaß.
   (vierachs_bahn._fahrten): Am Ende einer Zeile ein Halbkreis (G2/G3) zur nächsten, wo beide
   Zeilen dort frei sind; sonst in der Tiefe quer hinüber, oder abheben. Die erste Zeile einer
   Lage beginnt an dem Ende, das in der Luft liegt.
-- Hinein: in der Luft (neben dem Rohteil) senkrecht mit dem Eintauchvorschub; im Material
-  über die Rampe mit dem Eintauchwinkel längs der ersten Zeile (vierachs_bahn._rampe).
+- Hinein: in der Luft (neben dem Rohteil) senkrecht mit dem Eintauchvorschub – beginnt die
+  Zeile mit der Mitte der Stirn neben dem Rohteil, so weit daneben, dass der Fräser frei ist,
+  und seitlich hinein; neben einer Zeile, die auf der Lage schon gefräst ist, senkrecht (nur
+  ihr Streifen ae steht unter der Stirn); sonst im Material über die Rampe mit dem
+  Eintauchwinkel längs der ersten Zeile (vierachs_bahn._rampe).
 - Beim Austritt aus dem Rohteil fährt die Zeile mit AUSTRITT_ANTEIL des Vorschubs (W-006 E6,
   erster Schritt: Grat beim Austritt).
 - Gleichlauf durchgehend (Grundsatz 4) kommt mit der Spirale von außen nach innen, sobald das
@@ -480,8 +483,9 @@ def _ebene(
             fahrten = [(raster, fahrt) for fahrt in fahrten]
         else:
             fahrten = _zellenfahrten(raster, mit_luecke)
+        gefraest = set()  # (x, y) der Stellen, die auf dieser Lage schon gefräst sind
         for raster_fahrt, fahrt in fahrten:
-            laenge += _fahrt(punkte, fahrt, raster_fahrt, lage, vorige, w)
+            laenge += _fahrt(punkte, fahrt, raster_fahrt, lage, vorige, w, gefraest)
             zeilen_gesamt += len({m for art, m, _js in fahrt if art == "zeile"})
         lagen_gesamt += 1
         vorige = lage
@@ -746,10 +750,12 @@ class _Raster:
         return (float(u), float(v)) if self.laengs_x else (float(v), float(u))
 
 
-def _fahrt(punkte, fahrt, raster, lage, vorige, w):
+def _fahrt(punkte, fahrt, raster, lage, vorige, w, gefraest=None):
     """Eine Fahrt (vierachs_bahn._fahrten mit Zeile = Zeile quer, Winkelschritt = Stelle
     längs, mit der Lücke an beiden Enden) an die Bahn: hinein über das erste Stück, die Zeilen,
-    zwischen ihnen Halbkreis oder Schritt, am Ende hinauf. Gibt die Länge im Vorschub zurück."""
+    zwischen ihnen Halbkreis oder Schritt, am Ende hinauf. `gefraest`: die Stellen (x, y), die
+    auf dieser Lage schon gefräst sind – die Fahrt trägt ihre ein. Gibt die Länge im Vorschub
+    zurück."""
     r_ = raster
     teile = []  # (art, m, js) mit js ohne die Lücke (0 … N − 1)
     for art, m, js in fahrt:
@@ -761,6 +767,10 @@ def _fahrt(punkte, fahrt, raster, lage, vorige, w):
     # Nur im Gleichlauf: Lief die vorige Zeile schon über den Anfang, steht dort nur noch ihr
     # Streifen ae – senkrecht hinein statt der Rampe von oben.
     nachbar = w.nur_gleichlauf and m0 > 0 and bool(r_.drin[m0 - 1, int(js0[0])])
+    # Auch hin und her: Ist die Zeile daneben auf dieser Lage am Anfang schon gefräst, steht
+    # unter der Stirn nur ihr Streifen ae (am Zapfen begann so die Zeile neben ihm mit 213 mm
+    # Rampe, obwohl die Zeile darüber schon gefahren war).
+    nachbar = nachbar or _neben_gefraest(r_, m0, int(js0[0]), gefraest)
     laenge = _einfahrt(punkte, r_, m0, js0, lage, vorige, w, nachbar)
     if w.nur_gleichlauf and len(js0) > 1:
         # Beginnt die Zeile an einer Wand, bliebe dort zwischen ihr und der vorigen die Ecke
@@ -781,7 +791,25 @@ def _fahrt(punkte, fahrt, raster, lage, vorige, w):
         laenge += _wandfahrt(punkte, r_, m, int(js[-1]), lage, teile, len(teile), ende=True)
     letzter = punkte[-1]
     punkte.append(bn.Punkt(True, letzter.x, letzter.y, w.sicher))
+    if gefraest is not None:
+        for art, m, js in teile:
+            if art == "zeile":
+                for j in np.atleast_1d(js):
+                    gefraest.add(_stelle(r_, m, int(j)))
     return laenge
+
+
+def _stelle(r_, m, j):
+    """Die Stelle j der Zeile m als (x, y), gerundet – Schlüssel für `gefraest`."""
+    x, y = r_.xy(r_.u_stellen[j], r_.v_zeilen[m])
+    return (round(x, 4), round(y, 4))
+
+
+def _neben_gefraest(r_, m, j, gefraest):
+    """Ist an der Stelle j die Zeile neben m (davor oder dahinter) schon gefräst?"""
+    if not gefraest:
+        return False
+    return any(0 <= m + d < len(r_.v_zeilen) and _stelle(r_, m + d, j) in gefraest for d in (-1, 1))
 
 
 def _wand(r_, m, j, richtung):
@@ -859,6 +887,22 @@ def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False):
     u = r_.u_stellen[js]
     v = float(r_.v_zeilen[m])
     x0, y0 = r_.xy(u[0], v)
+    # Liegt die Mitte der Stirn neben dem Rohteil (die Zeile beginnt im Überlauf), taucht der
+    # Fräser so weit daneben ein, dass er frei ist, und fährt seitlich hinein: Er berührte dort
+    # nur die Kante – am Zapfen begann so jede Lage mit 193 bis 254 mm Rampe (Manuel,
+    # 2026-10-04: „unnötige Bewegungen und Luft fräsen … das ist Quatsch“).
+    daneben = _daneben(r_, u, w)
+    if daneben is not None:
+        xd, yd = r_.xy(daneben, v)
+        punkte.append(bn.Punkt(True, xd, yd, w.sicher))
+        knapp = min(w.sicher, lage + w.sicherheit)  # in der Luft: im Eilgang bis knapp darüber
+        if knapp < w.sicher:
+            punkte.append(bn.Punkt(True, xd, yd, knapp))
+        punkte.append(bn.Punkt(False, xd, yd, lage, True))
+        punkt = bn.Punkt(False, x0, y0, lage)
+        laenge = bn.weg(punkte[-1], punkt)
+        punkte.append(punkt)
+        return laenge
     punkte.append(bn.Punkt(True, x0, y0, w.sicher))
     luft = not r_.im_rohteil[js[0]]
     oben = lage if luft else vorige
@@ -889,6 +933,21 @@ def _einfahrt(punkte, r_, m, js, lage, vorige, w, nachbar=False):
         laenge += bn.weg(punkte[-1], punkt)
         punkte.append(punkt)
     return laenge
+
+
+def _daneben(r_, u, w):
+    """Beginnt die Zeile (Stellen u längs, in Fahrtrichtung) mit der Mitte der Stirn neben dem
+    Rohteil, die Stelle längs, an der der ganze Fräser frei davon ist (höchstens die Zeile
+    selbst, sonst ein Stück zurück) – None, wenn die Mitte über dem Rohteil beginnt."""
+    if len(u) < 2:
+        return None
+    von, bis = r_.roh_u
+    r_voll = float(w.form.radius)
+    if u[-1] > u[0] and u[0] < von - GLEICH:
+        return min(float(u[0]), von - r_voll - GLEICH)
+    if u[-1] < u[0] and u[0] > bis + GLEICH:
+        return max(float(u[0]), bis + r_voll + GLEICH)
+    return None
 
 
 def _zeile(punkte, r_, m, js, lage, w, erste):

@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-34 planfraesen-ohne-rampen
+
+### EINGELESEN
+- Manuel, 2026-10-04, zu den Rampen am Zapfen (6 Bereiche, je 193 mm, 1,3 von 4,8 min): „versteh
+  ich nicht für was die langen rampen lass sie weg wenn mans ie nicht braucht ??? unnötige
+  bewegungen und luft fräsen .. das is quatsch ... und kannst du auch ohne mich einfach
+  wegbügeln !!!“ Dazu seine Entscheidungen zu D-1 … D-5, Abfahren, Programmkopf (Spezifikation
+  Strategien 15.4, „Entschieden“).
+
+### DATEIEN
+- `camaddon/planfraesen_bahn.py` (`_daneben`: beginnt die Zeile mit der Mitte der Stirn neben dem
+  Rohteil, taucht der Fräser so weit daneben ein, dass er frei ist – im Eilgang bis knapp über die
+  Lage –, und fährt seitlich hinein; `_neben_gefraest` und `gefraest` je Lage: Ist die Zeile
+  daneben am Anfang schon gefräst, senkrecht – auch hin und her, bisher nur im Gleichlauf),
+  `tests/bestmarken.json` (nur die schneller gewordenen), `docs/spezifikation_strategien.md`
+  (15.4 entschieden), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.173.0).
+
+### AKZEPTANZKRITERIUM
+- Am Zapfen keine Rampe mehr, schneller; keine Bahn langsamer als ihre Bestmarke.
+
+### DONE
+- Befund: Jede Lage begann am Rand, die Mitte der Stirn 6 mm neben dem Rohteil – der Fräser
+  berührte die Kante um 0,01 mm, das galt als „im Rohteil“ und gab 193 bis 254 mm Rampe. Die
+  Zeile neben dem Zapfen begann mitten in der Fläche, obwohl die Zeile darüber auf der Lage schon
+  gefahren war (die Regel dafür galt nur im Gleichlauf). Jetzt: Zapfen 4,05 → 3,29 min (13 → 0
+  Rampen, Luft 15 → 14 %), Platte oben und Tasche 41,81 → 41,38 (14 → 7 Rampen), Tasche oben
+  5,44 → 5,41. Die erste Zeile greift weiter 3,75 mm (Breite × Lagentiefe ≤ ae × ap,
+  P-2026-10-01-49) – jetzt von Anfang an voll tief statt in der Rampe.
+
+### TESTS
+- `tests/test_planfraesen.py`, `tests/test_pruefstand.py` (Bestmarken neu), `test_materialstand`,
+  `test_zielzeit`; `szenario_zapfen` – OK. black und ruff sauber.
+
+### NEXT
+- F2 (Nummer am Werkzeug freiwillig), Wechselpunkt der Beispielmaschinen (D-5), im Freien mit
+  Eilgang (alle Strategien), Abfahren am Ende jeder Bearbeitung, Programmkopf und Sprungmarken,
+  Schwenkdatensatz an der Maschine (D-1, D-2).
+
 ## P-2026-10-04-33 raeumen-ueberlast-vermeiden
 
 ### EINGELESEN

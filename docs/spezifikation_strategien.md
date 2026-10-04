@@ -2583,6 +2583,24 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   hat – jetzt mit dem Satz, dass es am Wechsel liegt. Vorschlag: die Beispielmaschinen bekommen
   einen Wechselpunkt Z ganz oben.
 
+**Entschieden (Manuel, 2026-10-04):**
+- **D-1, D-2:** Manuel hat keine 5-Achs-Maschine; es muss für alle gehen: „schau dir bitte im
+  Netz die typische Konfiguration an und übernehme das“, und `_DIR` „muss je nach Maschine
+  entschieden werden … das ist ja in der Maschinenkonfiguration eingerichtet“. → Schwenkdatensatz
+  (Name, welche Rundachse die erste ist, worauf sich die Richtung bezieht) gehört an die Maschine,
+  vorbelegt wie an Siemens-Maschinen üblich; `_DIR` je Ebene aus der geprüften Stellung.
+- **D-4:** ein Programm je Job – mit Sprungmarken je Bearbeitung (Siemens: Marken, die sich mit
+  GOTOF/GOTOB anspringen lassen; Heidenhain: LBL), sinnvoll benannt. Im Kopf des Programms: die
+  Marken mit ihrer Bearbeitung, die Werkzeuge mit Auskragung und Halter, Hinweise, wo es knapp
+  wird. Einzelne Programme je Bearbeitung fände Manuel „unglücklich“.
+- **Verkettung:** Muss der Tisch zwischen zwei Bearbeitungen stark schwenken, erst zum
+  Wechselpunkt, dort schwenken, dann wieder hin – die Wege dazu geprüft.
+- **D-5:** ja – die Beispielmaschinen bekommen einen Wechselpunkt, angefahren ohne Kollision.
+- **Abfahren:** Am Ende jeder Bearbeitung fährt der Fräser ins Freie, von dort darf er überallhin.
+  Die Zeit zählt bis zum Ende der Zerspanung.
+- **Eilgang durchs Rohteil** (Simulation 4c): bleibt so (Manuel: „habe ich ja eigentlich vorher
+  schon geklärt“).
+
 ## 16. 5 Achsen simultan (W-015, Entwurf zum Besprechen)
 
 Nicht gebaut – ein Vorschlag für Manuel. Simultan ändert, wie Bahnen entstehen und was im
