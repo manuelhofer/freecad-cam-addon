@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-49 pruefen-kugel-ueber-die-mitte
+
+### EINGELESEN
+- Manuel, 2026-10-04: „mach lieber mit werkzeugwegen weiter“. Offen aus W-003: das Prüffenster
+  malt Fahrten über die Mitte nicht (Spezifikation Vierachs, V5b).
+
+### DATEIEN
+- `camaddon/restmaterial.py` (`Stange.schnitte`: der Kugelfräser von seiner Mitte aus, als stünde
+  er auf dem Strahl durch sie), `tests/test_restmaterial.py` (Kugel um 60° gedreht, Spitze unter
+  der Drehmitte), `docs/spezifikation_vierachs.md` (V5b), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.184.2).
+
+### DONE
+- Gefunden beim Prototyp „Kugel quer anstellen“ (Querachse, ψ 15° neben der Normalen, nicht im
+  Addon): An Manuels 4-Achs-Teil blieb im Prüffenster an 1 % der Fläche bis 5 mm stehen – nicht
+  wegen der Bahn, sondern weil `schnitte` die Spitze unter der Drehmitte auf 0 setzte. Die Kugel
+  nimmt dasselbe weg, wie sie auch steht: jetzt gleich dem Rest ohne Anstellen (99 % unter
+  0,0053 mm). Am Testfall vorher bis 17 mm anders, jetzt gleich.
+
+### TESTS
+- `test_restmaterial`, `test_vierachs_schlichten` – OK.
+
 ## P-2026-10-04-48 kollision-schneller
 
 ### EINGELESEN

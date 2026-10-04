@@ -96,6 +96,16 @@ for name, form in (
     pruefe(abweichung < 0.002, f"{name}: {abweichung:.4f} mm neben der Stirn")
     pruefe(abs(st.r[np.argmin(np.abs(st.a + 20)), 90] - 35.0) < 1e-9, f"{name}: unter der Spitze")
     pruefe(st.r[np.abs(st.a + 20) > form.radius + 0.5].min() == 40.0, f"{name}: längs daneben")
+# Die Kugel quer versetzt und um 60° gedreht (die Querachse, angestellt): Ihre Mitte liegt bei 8
+# unter φ 0, die Spitze 1 mm unter der Drehmitte – sie nimmt dasselbe weg wie auf dem Strahl
+# (a 0,25: zwischen den Zeilen des Rasters, nicht genau am Rand der Kugel).
+gerade, gedreht = rm.Stange(20.0, -10.0, 10.0), rm.Stange(20.0, -10.0, 10.0)
+gerade.schnitte([0.25], [3.0], [0.0], ff.kugel(5.0))
+gedreht.schnitte([0.25], [-1.0], [60.0], ff.kugel(5.0), [-8.0 * math.sin(math.radians(60.0))])
+pruefe(
+    np.allclose(gerade.r, gedreht.r) and gerade.r.min() < 3.01,
+    f"Kugel gedreht: {np.abs(gerade.r - gedreht.r).max():.3f} mm anders",
+)
 
 # --- Eine Spirale auf Radius 38 -----------------------------------------------------------
 st = rm.Stange(40.0, -120.0, 1.0)

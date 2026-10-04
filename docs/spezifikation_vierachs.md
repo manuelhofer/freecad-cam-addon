@@ -1161,7 +1161,11 @@ die Abstände gelten für beide.
     weitergeführte Stufe des Teilendes an den steilen Kanten der flachen Seite).
     *Offen:* das Prüffenster malt den
     Abtrag weiter mit `restmaterial.Stange` – es kennt keine Fahrt über die
-    Mitte (die Spitze zählt dort als 0). *Gemessen an Manuels Teil (P-2026-10-03-25,
+    Mitte (die Spitze zählt dort als 0). *Für den Kugelfräser behoben (P-2026-10-04-49):*
+    Die Kugel nimmt weg, was um ihre Mitte liegt, wie das Werkzeug auch steht – `schnitte`
+    rechnet sie, als stünde sie auf dem Strahl durch ihre Mitte; eine um 60° gedrehte Kugel mit
+    der Spitze 1 mm unter der Drehmitte trägt genau so ab wie auf dem Strahl (vorher bis 17 mm
+    anders). Für Schaft-, Torus- und Scheibenfräser bleibt es offen. *Gemessen an Manuels Teil (P-2026-10-03-25,
     Schruppen Kugel Ø 10 und Schlichten 0,5 mm, ohne und mit Y):* Die Spitze kommt höchstens
     0,38 mm über die Mitte; nach dem Schlichten alles grün, nirgends blau, ohne Vergleich nur
     die letzten 3 mm hinten (das Teilende liegt nicht rund um die Achse); nach dem Schruppen

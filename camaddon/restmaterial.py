@@ -149,6 +149,13 @@ class Stange:
         r_t = np.asarray(r_t, dtype=float)
         phi_t = np.radians(np.asarray(phi_t_grad, dtype=float))
         q_t = np.zeros(len(a_t)) if q_t is None else np.asarray(q_t, dtype=float)
+        if form is not None and form.nur_kugel:
+            # Die Kugel nimmt weg, was um ihre Mitte liegt, wie das Werkzeug auch steht: als
+            # stünde es auf dem Strahl durch die Mitte (q = 0). So stimmt es auch, wenn die Spitze
+            # unter der Drehmitte liegt – die Querachse oder ein angestelltes Werkzeug.
+            mx = (r_t + radius) * np.cos(phi_t) - q_t * np.sin(phi_t)
+            my = (r_t + radius) * np.sin(phi_t) + q_t * np.cos(phi_t)
+            r_t, phi_t, q_t = np.hypot(mx, my) - radius, np.arctan2(my, mx), np.zeros(len(a_t))
         drin = r_t < self.radius  # darüber trifft er nichts
         if radius <= 0 or not drin.any():
             return
