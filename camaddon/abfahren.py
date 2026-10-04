@@ -101,6 +101,7 @@ class Abfahrt:
     _zeiten: list = field(default_factory=list, repr=False)
     _wirksam: list = field(default_factory=list, repr=False)
     _kinematiken: dict = field(default_factory=dict, repr=False)
+    _am_werkstueck: list = field(default=None, repr=False)  # am_werkstueck(), einmal gerechnet
 
     def kinematik(self, operation):
         """Die Kinematik (kinematik.Kinematik) für das Werkzeug der Operation mit diesem
@@ -201,13 +202,18 @@ class Abfahrt:
     def am_werkstueck(self):
         """Je Station, wo die Spitze am Werkstück steht, in Koordinaten des Jobs: ihr Punkt –
         mit Rundachsen um sie gedreht (ohne TCPM, kinematik.Kinematik.am_werkstueck). So
-        zeigt FreeCAD die Bahn: um das Teil herum, und sie dreht sich mit ihm."""
+        zeigt FreeCAD die Bahn: um das Teil herum, und sie dreht sich mit ihm. Einmal gerechnet
+        und gemerkt (an einem großen 4-Achs-Job 264 000 Stationen, 4 s) – das Bild, der Abtrag
+        und die Kollision fragen danach; nicht verändern."""
+        if self._am_werkstueck is not None and len(self._am_werkstueck) == len(self.stationen):
+            return self._am_werkstueck
         ergebnis = []
         for i, station in enumerate(self.stationen):
             if not any(station.rund.values()) or station.stellungen is None:
                 ergebnis.append(station.punkt)
                 continue
             ergebnis.append(self.kinematik(station.operation).am_werkstueck(self.stellungen_an(i)))
+        self._am_werkstueck = ergebnis
         return ergebnis
 
     def spitze(self, index, stellungen):
