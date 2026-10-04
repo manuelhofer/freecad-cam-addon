@@ -32,6 +32,11 @@ GENAU = 1e-13  # 1 − cos des Winkels zwischen Werkzeugachse und Ziel: genau ge
 DAEMPFUNG = 1e-9  # gegen die Singularität am Pol (Anteil an der Spur von JᵀJ)
 GROESSTER_SCHRITT = 10.0  # Grad je Rechenschritt – sonst springt es am Pol auf den anderen Ast
 KUERZESTE_ZEIT = 1e-3  # s – so kurz dauert ein Satz mit G93 mindestens
+# Im Vorschub dreht eine Rundachse höchstens mit diesem Anteil ihrer Geschwindigkeit aus der
+# Maschine (ohne Angabe export.VORGABE_DREHGESCHWINDIGKEIT) – bis P-2026-10-04-42 zählte 1° wie
+# 1 mm beim Schnittvorschub: Wegkippen in der Kavität dauerte so 3,00 statt 1,50 min (Manuel,
+# 2026-10-04: „Ja, mit halber Geschwindigkeit“). Die Spitze fährt nie schneller als der Vorschub.
+DREHANTEIL = 0.5
 TOLERANZ = 0.005  # mm – so weit darf die Spitze in der Mitte eines Satzes neben der Geraden liegen
 TIEFE = 10  # so oft halbiert verdichtet() einen Satz höchstens (1024 Stücke)
 
@@ -214,13 +219,38 @@ def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=F
     return neu_punkte, neu_rund
 
 
+def drehgeschwindigkeiten(maschine):
+    """{Buchstabe: °/s} – wie schnell jede Rundachse der Maschine (sw.Maschine) im Vorschub
+    höchstens dreht: DREHANTEIL ihrer Geschwindigkeit (U/min) aus der Betriebsart."""
+    from . import export
+    from . import maschine as m
+
+    betriebsarten = []
+    objekt = getattr(getattr(maschine, "pruefung", None), "maschine", None)
+    if objekt is not None:
+        try:
+            betriebsarten = [b for b in m.betriebsarten(objekt) if b.Art == m.ART_POSITIONIEREN]
+        except Exception:
+            betriebsarten = []
+    ergebnis = {}
+    for r in getattr(maschine, "rundachsen", []):
+        gelenk = getattr(r.achse, "gelenk", None)
+        ba = next((b for b in betriebsarten if b.Gelenk == gelenk), None)
+        u_min = (
+            float(getattr(ba, "Geschwindigkeit", 0.0) or 0.0) or export.VORGABE_DREHGESCHWINDIGKEIT
+        )
+        ergebnis[r.buchstabe] = u_min * 360.0 / 60.0 * DREHANTEIL
+    return ergebnis
+
+
 def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False):
     """[Path.Command] – die Bahn (Punkt …) mit den Rundachsen je Punkt und X, Y, Z, wie eine
     Steuerung ohne TCPM sie liest. Zwischen zwei Punkten fährt die Maschine jede Achse linear –
     die Spitze bleibt nur nahe der Geraden, wenn die Punkte dicht liegen. `g93`: der Vorschub
-    als 1 ÷ Zeit (G93 … G94): je Satz die Zeit aus dem Weg der Spitze (mit `bezug` des Punkts
-    darüber) am Werkstück und dem Vorschub – dreht sich nur die Achse, zählt der größte Winkel
-    in Grad wie mm; F wie FreeCADs Bahnen ÷ 60 (1 ÷ Sekunden). `toleranz`: Sätze im Vorschub so dicht, dass die Spitze
+    als 1 ÷ Zeit (G93 … G94): je Satz die längere Zeit aus dem Weg der Spitze (mit `bezug` des
+    Punkts darüber) am Werkstück und dem Vorschub und aus dem Winkel jeder Rundachse und ihrer
+    Geschwindigkeit im Vorschub (drehgeschwindigkeiten); F wie FreeCADs Bahnen ÷ 60 (1 ÷
+    Sekunden). `toleranz`: Sätze im Vorschub so dicht, dass die Spitze
     in ihrer Mitte höchstens so weit neben der Geraden liegt (verdichtet; 0 oder None: wie
     gegeben), `bezug` und `eilgaenge` wie dort. ValueError mit einem Satz wie
     rundachsen_entlang, oder wenn die Maschine keine drei Linearachsen hat."""
@@ -231,6 +261,7 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0
         punkte, rund = verdichtet(maschine, punkte, rund, toleranz, bezug, eilgaenge)
     befehle = [Path.Command("G93")] if g93 else []
     vorschub, davor = 0.0, None
+    drehen = drehgeschwindigkeiten(maschine) if g93 else {}
     abbildungen = {}  # je Stellung einmal gerechnet – die meisten Punkte teilen sie
     for punkt, stellung in zip(punkte, rund, strict=True):
         schluessel = tuple(sorted(stellung.items()))
@@ -245,13 +276,13 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0
             vorschub = float(punkt.vorschub)
         if not punkt.eilgang and vorschub > 0:
             if g93:
-                weg = 0.0
+                zeit = 0.0
                 if davor is not None:
-                    weg = max(
-                        math.dist(davor[0], bezugspunkt(punkt, bezug)),
-                        max(abs(stellung[k] - davor[1][k]) for k in stellung),
-                    )
-                werte["F"] = 1.0 / max(weg / vorschub, KUERZESTE_ZEIT)
+                    zeit = math.dist(davor[0], bezugspunkt(punkt, bezug)) / vorschub
+                    for k in stellung:
+                        winkel = abs(stellung[k] - davor[1][k])
+                        zeit = max(zeit, winkel / drehen.get(k, vorschub))  # unbekannt: 1° wie 1 mm
+                werte["F"] = 1.0 / max(zeit, KUERZESTE_ZEIT)
             elif punkt.vorschub > 0:
                 werte["F"] = vorschub
         befehle.append(Path.Command("G0" if punkt.eilgang else "G1", werte))

@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.180.0 (P-2026-10-04-41). Alles, was hier als gebaut steht,
+Stand 0.181.0 (P-2026-10-04-42). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -106,7 +106,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   nur wo der Halter mit der Auskragung sonst anstieße; darunter, wie weit der Fräser mindestens
   herausstehen muss. Kavität 30 tief, Schrumpffutter Ø 21: 26 statt 32 mm (2 mm Spiel am Halter,
   0,5 am Schaft, einstellbar: „SpielHalter“, „SpielSchaft“; P-2026-10-04-31). Auf der
-  Tisch/Tisch-Maschine dreht C dabei rundherum (19 statt 8 min) – zu besprechen.
+  Tisch/Tisch-Maschine dreht C dabei rundherum – die Zeit kam vom Programm (1° wie 1 mm
+  beim Schnittvorschub), seit P-2026-10-04-42 mit der halben Geschwindigkeit der Rundachse:
+  rechte Kavitätenseite 3,00 → 1,52 min (senkrecht 1,03).
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei

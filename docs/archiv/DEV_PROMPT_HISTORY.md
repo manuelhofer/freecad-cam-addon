@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-42 rundachse-im-vorschub
+
+### EINGELESEN
+- Manuel, 2026-10-04, zu „Rundtisch beim Wegkippen: einmal rundum, 19 statt 8 min“: „ja sollten
+  wir (reden)“; auf die Frage, die Drehung mit der Geschwindigkeit der Rundachse zu rechnen:
+  „Ja, mit halber Geschwindigkeit (Empfehlung)“.
+
+### DATEIEN
+- `camaddon/simultan.py` (`DREHANTEIL`, `drehgeschwindigkeiten`, G93-Zeit je Satz),
+  `docs/spezifikation_strategien.md` (16, S4), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.181.0).
+
+### AKZEPTANZKRITERIUM
+- Wegkippen an der Kavität (rechte Seite, Tisch/Tisch): deutlich schneller; die Spitze nie
+  schneller als der Vorschub.
+
+### DONE
+- Nachgemessen: Rundachsen viermal so schnell änderten nichts – die Zeit kam aus dem Programm (im
+  G93 1° wie 1 mm beim Schnittvorschub). Jetzt rechte Kavitätenseite 3,00 → 1,52 min (senkrecht
+  1,03; Rest 0,48 min Eilgänge zum Hochfahren und Schwenken).
+
+### TESTS
+- `tests/test_simultan.py`, `tests/test_angestellt.py`, `tests/test_flanke.py` – OK.
+
+### NEXT
+- Die Eilgänge zwischen den Bahnen beim Wegkippen (Hochfahren auf die Schwenkhöhe je Bahn).
+
 ## P-2026-10-04-41 werkzeugkiste-guenstig
 
 ### EINGELESEN

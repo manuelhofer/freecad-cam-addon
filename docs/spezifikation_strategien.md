@@ -2794,8 +2794,15 @@ Kollision mit Rundachsen je Station.
   Auskragung wie „Auf der Maschine prüfen“ (Werkzeugverwaltung, sonst der vorgeschlagene); reicht
   auch der größte Winkel nicht, ein Satz im Bericht. Im Assistenten der Haken „Wegkippen (5 Achsen
   simultan)“ (5-Achs-Maschine, Kugelfräser), hinter dem Ergebnis der Bedarf: „– weggekippt
-  reichen 22 mm Auskragung (senkrecht 31); dein Fräser steht 23,5 heraus“. **Offen:** Auf der
-  Tisch/Tisch-Maschine dreht C bei jedem Ring einmal herum – rechnerisch 19 statt 8 min.
+  reichen 22 mm Auskragung (senkrecht 31); dein Fräser steht 23,5 heraus“. Auf der Tisch/Tisch-
+  Maschine dreht C bei jedem Ring einmal herum – rechnerisch 19 statt 8 min. **Geklärt
+  P-2026-10-04-42:** Nicht die Maschine bremste (C 50 U/min, viermal so schnell: gleiche Zeit),
+  sondern das Programm: Im G93 zählte 1° Drehung wie 1 mm beim Schnittvorschub – an einer Ecke
+  dreht der Tisch 90°, die Spitze fährt 15 mm. Jetzt die längere Zeit aus Spitze ÷ Vorschub und
+  Winkel ÷ halber Geschwindigkeit der Rundachse aus der Maschine (`simultan.DREHANTEIL`,
+  `drehgeschwindigkeiten`; Manuel: „Ja, mit halber Geschwindigkeit“) – die Spitze fährt nie
+  schneller als der Vorschub. Rechte Kavitätenseite: 3,00 → 1,52 min (senkrecht 1,03); der Rest
+  sind Eilgänge zum Hochfahren und Schwenken zwischen den Bahnen (0,48 min).
 - **S5 Entgraten in 3D.**
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
