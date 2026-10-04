@@ -11,6 +11,15 @@ Stücke, zusammen mindestens MINDEST mm lang, fahren mit dem Freivorschub (G1 �
 auf vielen Steuerungen keine Gerade); die letzten VORLAUF mm vor dem nächsten Material bleiben
 langsam – das Bremsen davor macht die Vorausschau der Steuerung. Eilgänge, Eintauchen und
 Rampen bleiben, wie sie sind; ein Bogen wird nur ganz schnell oder gar nicht.
+
+Unten bleiben (unnoetiges Abheben weg, Manuel: „unnötige Bewegungen … kannst du auch ohne mich
+einfach wegbügeln“): Hebt die Bahn am Ende eines Laufs im Eilgang ab, fährt hinüber und taucht
+an einem Punkt auf derselben Höhe oder tiefer wieder ein (am Testteil beim 3D-Schruppen jeder
+Lagenwechsel in der Mulde: 15–23 mm hinauf und wieder hinab für 3–10 mm hinüber), fährt sie
+stattdessen auf ihrer Höhe hinüber – wenn der gerade Weg dort im Umkreis R + RAND frei ist und
+ganz über dem Rohteil liegt (daneben könnten Spannmittel stehen). Ist er dort nicht frei (am
+Ende einer Lage berührt der Fräser die Wand), hebt sie nur LINK_LUFT über das höchste Material im
+Umkreis R + RAND des Weges ab, statt bis zur Sicherheitshöhe.
 """
 
 import math
@@ -26,6 +35,10 @@ MINDEST = 5.0  # mm – kürzere freie Stücke lohnen das Beschleunigen nicht
 RAND = 1.0  # mm über den Radius hinaus muss es frei sein
 SEHNE = 1.0  # mm – so fein wird nachgesehen
 GLEICH = 0.05  # mm
+LINK_LUFT = (
+    2.0  # mm – so hoch über dem höchsten Material fährt ein Weg, der nicht unten bleibt (wie der
+)
+# Sicherheitsabstand der Strategien; das Raster des Materialstands ist 0,5 mm)
 
 
 def _frei(q, a, b, weite):
@@ -77,9 +90,15 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
         return list(punkte), 0.0
     anteil_frei = freivorschub / vorschub
     weite = float(form.radius) + RAND
-    # 1. Abfahren: je Satz seine Sehnen, je Sehne (Länge, frei, kommt in Frage).
+    punkte = list(punkte)
+    # 1. Abfahren: je Satz seine Sehnen, je Sehne (Länge, frei, kommt in Frage). Davor, wo die
+    # Bahn unnötig abhebt, unten bleiben (_abheben) – gegen das Material genau an dieser Stelle.
     saetze = []
-    for von, nach in zip(punkte, punkte[1:], strict=False):
+    i = 0
+    while i < len(punkte) - 1:
+        _unten_bleiben(punkte, i, quader, weite)
+        von, nach = punkte[i], punkte[i + 1]
+        i += 1
         sehnen = _sehnen(von, nach)
         frage = not nach.eilgang and not nach.eintauchen and abs(nach.z - von.z) <= GLEICH
         # Schon schneller als der Vorschub (ein Rückweg durchs Freie, den die Strategie geprüft
@@ -153,6 +172,77 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
             neu.append(bn.Punkt(False, b[0], b[1], nach.z, False, None, anteil))
         schnell_weg += sum(e[2] for e, f in zip(eintraege, flags, strict=True) if f)
     return neu, schnell_weg
+
+
+def _hoechstes(q, a, b, weite):
+    """Das höchste Material (z) im Umkreis `weite` um den Weg a → b (xy) – −inf ohne."""
+    x0, x1 = min(a[0], b[0]) - weite, max(a[0], b[0]) + weite
+    y0, y1 = min(a[1], b[1]) - weite, max(a[1], b[1]) + weite
+    i0, i1 = np.searchsorted(q.x, x0), np.searchsorted(q.x, x1, side="right")
+    j0, j1 = np.searchsorted(q.y, y0), np.searchsorted(q.y, y1, side="right")
+    if i1 <= i0 or j1 <= j0:
+        return -math.inf
+    gx, gy = np.meshgrid(q.x[i0:i1], q.y[j0:j1], indexing="ij")
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    laenge2 = dx * dx + dy * dy
+    if laenge2 > 1e-12:
+        t = np.clip(((gx - a[0]) * dx + (gy - a[1]) * dy) / laenge2, 0.0, 1.0)
+    else:
+        t = np.zeros_like(gx)
+    nah = np.hypot(gx - (a[0] + t * dx), gy - (a[1] + t * dy)) <= weite
+    return float(q.h[i0:i1, j0:j1][nah].max()) if nah.any() else -math.inf
+
+
+def _abheben(punkte, i):
+    """Hebt die Bahn nach dem Punkt i (im Vorschub) im Eilgang ab, fährt hinüber und hinab und
+    taucht senkrecht auf derselben Höhe oder tiefer wieder ein? Dann der Index des letzten
+    Eilgangs, sonst None."""
+    a = punkte[i]
+    if a.eilgang or i + 2 >= len(punkte):
+        return None
+    hoch = punkte[i + 1]
+    if not hoch.eilgang or math.hypot(hoch.x - a.x, hoch.y - a.y) > GLEICH or hoch.z <= a.z:
+        return None
+    j = i + 1
+    while j + 1 < len(punkte) and punkte[j + 1].eilgang:
+        j += 1
+    if j + 1 >= len(punkte):
+        return None  # das Ende der Bahn: hinauf bleibt
+    b, p = punkte[j], punkte[j + 1]
+    if p.bogen is not None or math.hypot(p.x - b.x, p.y - b.y) > GLEICH or p.z > a.z + GLEICH:
+        return None
+    if any(punkte[k].z < a.z - GLEICH for k in range(i + 1, j)):
+        return None
+    return j
+
+
+def _unten_bleiben(punkte, i, quader, weite):
+    """Ersetzt in `punkte` ein unnötiges Abheben nach Punkt i (_abheben) durch den Weg auf seiner
+    Höhe – wenn der frei ist und ganz über dem Rohteil liegt (`quader`: das Material genau hier)."""
+    j = _abheben(punkte, i)
+    if j is None:
+        return
+    a, b = punkte[i], punkte[j]
+    von, nach = (a.x, a.y, a.z), (b.x, b.y, a.z)
+    x0, x1 = min(von[0], nach[0]) - weite, max(von[0], nach[0]) + weite
+    y0, y1 = min(von[1], nach[1]) - weite, max(von[1], nach[1]) + weite
+    if x0 < quader.x[0] or x1 > quader.x[-1] or y0 < quader.y[0] or y1 > quader.y[-1]:
+        return  # nicht ganz über dem Rohteil
+    if _frei(quader, von, nach, weite):
+        ersatz = [bn.Punkt(False, b.x, b.y, a.z)]
+        if b.z < a.z - GLEICH:
+            ersatz.append(b)  # tiefer war Luft: im Eilgang dorthin, wie die Strategie es wollte
+        punkte[i + 1 : j + 1] = ersatz
+        return
+    # Nicht frei: nur so hoch, wie das Material im Umkreis es verlangt.
+    oben = max(punkte[k].z for k in range(i + 1, j + 1))
+    link = max(_hoechstes(quader, von, nach, weite), a.z) + LINK_LUFT
+    if link >= oben - GLEICH:
+        return
+    ersatz = [bn.Punkt(True, a.x, a.y, link), bn.Punkt(True, b.x, b.y, link)]
+    if b.z < link - GLEICH:
+        ersatz.append(b)
+    punkte[i + 1 : j + 1] = ersatz
 
 
 def freivorschub_fuer(job):

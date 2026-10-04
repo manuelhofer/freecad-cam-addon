@@ -2305,6 +2305,13 @@ das ist“; die Geschwindigkeit dafür gehört zur Maschine.
   im Materialstand, den der Assistent dem Block gibt; ohne ihn wie bisher) – der Wettbewerb
   vergleicht so die Zeiten der Operationen. Am Testteil: Räumen 1,36 → 1,30 × Ziel, Planfräsen
   127 → 103 % langsamer.
+- **Unten bleiben, knapp abheben (P-2026-10-04-59):** Hebt eine Bahn am Ende eines Laufs im
+  Eilgang ab, fährt hinüber und taucht senkrecht auf derselben Höhe oder tiefer wieder ein, fährt
+  sie auf ihrer Höhe hinüber, wenn der Weg dort im Umkreis R + 1 mm frei ist; sonst nur 2 mm
+  (`LINK_LUFT`) über das höchste Material in diesem Umkreis statt bis zur Sicherheitshöhe – beides
+  nur ganz über dem Rohteil (daneben könnten Spannmittel stehen). Am Testteil beim 3D-Schruppen
+  (jeder Lagenwechsel in der Mulde: 15–23 mm hinauf für 3–10 mm hinüber): Hub 315 → 37 mm,
+  Eilgang 417 → 143 mm, 0,53 → 0,50 min; Räumen und Kontur je ein Abheben niedriger.
 - Gemessen: Testteil Räumen T1 10,27 → 9,59 min (2,8 m schnell); Zapfen Planfräsen 3,29 → 2,85
   min. Im Schnellen nichts abgetragen (nachgefahren, 0 mm³).
 

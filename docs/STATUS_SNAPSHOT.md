@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.187.3 (P-2026-10-04-58). Alles, was hier als gebaut steht,
+Stand 0.187.4 (P-2026-10-04-59). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -126,7 +126,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
   Werkzeugen. Offen: T5d (unten); die 1,5 × Ziel zeigt der Assistent fürs Räumen (1,48 vor
-  T2), für den ganzen Job ist sie nicht gemessen. **Befund 2026-10-04 nachts (zum Besprechen,
+  T2), für den ganzen Job ist sie nicht gemessen. Seit P-2026-10-04-59 hebt die Bahn nur so weit
+  ab, wie das Material es verlangt (3D-Schruppen: Hub 315 → 37 mm). **Befund 2026-10-04 nachts (zum Besprechen,
   nichts geändert):** Das Räumen T1 fährt 3,5 m im Vorschub ohne Material (Materialstand Satz
   für Satz nachgefahren, Fräser genau) – davon 2,9 m die Verbindungen des Adaptiv-Kerns „durchs
   Freie“, die schon mit RUECKWEG 3 × Vorschub fahren (2 706 mm/min), 0,5 m mit dem

@@ -58,6 +58,58 @@ pruefe(erster is not None and -9.01 <= erster.x <= -7.99, f"vor dem Material: {s
 im_material = [p for p in neu if not p.eilgang and 0 < p.x <= 40]
 pruefe(all(p.anteil <= 1.0 for p in im_material), f"im Material schnell: {saetze}")
 pruefe(any(p.x > 46 and math.isclose(p.anteil, SCHNELL) for p in neu), f"dahinter: {saetze}")
+
+
+# Unten bleiben (P-2026-10-04-59): In einer schon auf z 5 geräumten Tasche (x, y 5 … 35) hebt die
+# Bahn bei x 15 ab, fährt nach x 25 und taucht auf z 4 ein – sie bleibt unten (der Weg auf z 5 ist
+# frei), taucht nur noch 1 mm. Mit einer stehen gebliebenen Rippe bei x 20 (oben z 10) hebt sie
+# nur bis 2 mm über die Rippe ab (LINK_LUFT), statt bis z 20; neben dem Rohteil wie bisher (dort
+# könnten Spannmittel stehen).
+def tasche(rippe=False):
+    q = quader()
+    gx, gy = q.x[:, None], q.y[None, :]
+    q.h[(gx > 5) & (gx < 35) & (gy > 5) & (gy < 35)] = 5.0
+    if rippe:
+        q.h[(gx > 19) & (gx < 21) & (gy > 5) & (gy < 35)] = 10.0
+    return q
+
+
+def abheben_bei(x0, x1, y=20.0):
+    return [
+        P(True, x0 - 5, y, 20),
+        P(True, x0 - 5, y, 5),
+        P(False, x0, y, 5),
+        P(True, x0, y, 20),
+        P(True, x1, y, 20),
+        P(True, x1, y, 7),
+        P(False, x1, y, 4, True),
+        P(False, x1 + 5, y, 4),
+        P(True, x1 + 5, y, 20),
+    ]
+
+
+unten, _w = fw.schneller(abheben_bei(15.0, 25.0), form, tasche(), VF)
+folge = [(p.eilgang, round(p.x, 1), round(p.z, 1)) for p in unten]
+pruefe(
+    not any(p.eilgang and p.z > 5 and 15 < p.x < 25 for p in unten)
+    and any(not p.eilgang and abs(p.x - 25) < 1e-6 and abs(p.z - 5) < 1e-6 for p in unten),
+    f"unten bleiben: {folge}",
+)
+oben, _w = fw.schneller(abheben_bei(15.0, 25.0), form, tasche(rippe=True), VF)
+hoehen = sorted({round(p.z, 3) for p in oben if p.eilgang and 15 <= p.x <= 25 and p.z > 5})
+pruefe(
+    hoehen
+    and max(hoehen) == 10.0 + fw.LINK_LUFT
+    and not any(p.z == 20 and p.x == 25 for p in oben),
+    f"über die Rippe: Eilgänge auf {hoehen}",
+)
+ganz_flach = quader()
+ganz_flach.h[:] = 5.0
+mitte, _w = fw.schneller(abheben_bei(15.0, 25.0), form, ganz_flach, VF)
+pruefe(not any(p.eilgang and p.z == 20 and p.x == 25 for p in mitte), "flach: nicht unten")
+ganz_flach.h[:] = 5.0
+rand, _w = fw.schneller(abheben_bei(15.0, 25.0, y=2.0), form, ganz_flach, VF)
+pruefe(any(p.eilgang and p.z == 20 and p.x == 25 for p in rand), "neben dem Rohteil nicht hoch")
 pruefe(30.0 <= weg <= 50.0, f"schneller Weg {weg:.1f} mm")
 # Kurz (frei nur von x −10 bis −7, wo R + 1 mm bis ans Material reicht): bleibt langsam.
 kurz = [P(True, -10, 20, 20), P(True, -10, 20, 5), P(False, 10, 20, 5), P(True, 10, 20, 20)]

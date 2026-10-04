@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-59 knapp-abheben
+
+### EINGELESEN
+- Manuel, 2026-10-04: „mach Werkzeugwege …“; seine Regel: unnötige Bewegungen ohne Rückfrage
+  wegbügeln. Am Testteil hob das 3D-Schruppen an jedem Lagenwechsel bis zur Sicherheitshöhe ab.
+
+### DATEIEN
+- `camaddon/freiwege.py` (`_abheben`, `_unten_bleiben`, `_hoechstes`, `LINK_LUFT`),
+  `tests/test_freiwege.py`, `docs/spezifikation_strategien.md` (Freivorschub),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.187.4).
+
+### DONE
+- Abheben, hinüber, wieder eintauchen auf gleicher Höhe oder tiefer: unten hinüber, wo frei,
+  sonst nur 2 mm über das höchste Material im Umkreis R + 1 mm – nur über dem Rohteil. Testteil,
+  3D-Schruppen: Hub 315 → 37 mm, Eilgang 417 → 143 mm, 0,53 → 0,50 min.
+
+### TESTS
+- `test_freiwege` (frei: unten; Rippe: 2 mm darüber; neben dem Rohteil: wie bisher),
+  `test_schruppen3d`, `test_testteil`, `test_pruefstand` – OK.
+
 ## P-2026-10-04-58 grosse-programme
 
 ### EINGELESEN
