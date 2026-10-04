@@ -2538,6 +2538,11 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   die Frage: Welche Rundachse ist in deinem Schwenkdatensatz die erste (A oder C, bzw. B)?
   Schon gebaut (P-2026-10-04-05): Bei gleich weitem Schwenk wählt `Maschine.loese` den kleineren
   Wert der ersten Rundachse (bisher entschied die Suchreihenfolge) – wie `_DIR` −1.
+  Beispiel, wo es auseinanderläuft (2026-10-04 nachts): Kopf/Tisch-Beispiel am Schwenkteil, die
+  45°-Fläche – Lösungen B45 C0 und B−45 C−180; das Addon prüft B45 C0 (der kleinere Schwenk),
+  mit `_DIR` −1 nähme die Steuerung womöglich B−45 C180 – eine Stellung, die keine Prüfung
+  gesehen hat. Ohne zu wissen, welche Achse „Rundachse 1“ ist, lässt sich `_DIR` nicht sicher
+  setzen.
 - **D-3 Ohne Zyklus:** Drehpunkt der Rundachsen aus der Maschine (die Baugruppe) – stimmt nur,
   wenn der Nullpunkt im Job zur Aufnahme passt wie in „Auf der Maschine prüfen“.
   **Entschieden** durch Manuels Antwort zu TCPM (Status, 2026-10-03 abends: „die G-Sätze ohne
