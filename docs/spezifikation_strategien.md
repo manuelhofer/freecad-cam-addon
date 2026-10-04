@@ -2250,6 +2250,24 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   Ecken; die Zeit gewinnt er nur, wenn er den Kern in einer Helix öffnet und die Ringe
   spiralig ohne Absetzen verbindet (wie der Morph), sonst bleibt adaptiv vorn. Bis dahin: In
   Taschen gewinnt adaptiv – das hält die Last, Manuels Vorgabe.
+- **T5e Überlast vermeiden statt nur melden** (Manuel, 2026-10-04: „Ja mach das so oder wenn es
+  nur ein kurzes Stück ist nur diesen einen Bereich neu aufteilen“).
+  **Gebaut:** P-2026-10-04-33, 0.172.0 – `raeumen_bahn.planen`: Hält keine Variante die Last,
+  wird jede, die schneller wäre, feiner gerechnet – die Ringe nur dort, wo sie sie sprengen
+  (zwischen zwei Ringe Teilstücke, 2/3/4 Schritte statt einem: `_teilstuecke`), der Adaptiv-Kern
+  auf engen Flächen mit 0,7 und 0,5 × seinem Schritt (`ADAPTIV_ENGER`) –, und zuletzt mit
+  gesenktem Vorschub in den Sätzen, die sie sprengen (`_gebremst`: je Satz bis auf 1,25 ae,
+  höchstens auf 0,3 × F; der Anteil steht im Programm als F). Es gewinnt die schnellste, die so
+  hält. Dazu zwei Fehler im Adaptiv-Kern behoben: In einer geschlossenen Tasche vom Rohteil aus
+  bekam er kein Material (das Raster liegt ganz darin, die Höhenlinie schloss sich nie – jetzt
+  endet das Material am Rand des Rasters), und findet er mit der Helix 0,8 R keinen Anfang,
+  versucht er 0,5 R (`ADAPTIV_HELIX_ENG`). Am Testteil, dreieckige Tasche mit dem Ø 6: vorher
+  Ringe bis 4,5 ae mit Warnung; adaptiv sprengt sie jetzt nur noch in der spitzen Ecke (2,3 ae,
+  gleich wie eng er rechnet); gewählt die Ringe mit 29 gebremsten Sätzen (bis 0,3 × F) – Last
+  1,49 ae, 0,27 min (adaptiv 0,34). Der Assistent sagt am Testteil beim „Rest räumen“ „an 27
+  Sätzen langsamer (bis 30 % Vorschub)“. **Offen (Manuels Bild, 2026-10-04):** den Bereich, der für die Ringe zu viel hat,
+  erst mit D-Bahnen wie in der Nut von der offenen Seite abräumen, bis die Ringe passen, dann
+  die Ringe weiter – statt neuer Ringe oder langsamer. Erst als Bild mit Zahlen.
 - **Fertig, wenn (W-013):** der Assistent am Testteil – alle Flächen angeklickt – einen Job
   anlegt, der im Prüffenster ein Teil ohne Rest ergibt (bis auf Ecken, in die kein Fräser der
   Kiste kommt; die nennt er), das Schruppen höchstens 1,5 × Ziel braucht und keine Bahn die Last

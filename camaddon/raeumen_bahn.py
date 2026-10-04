@@ -58,6 +58,7 @@ immer volle Tiefe, mit ae Zustellung“).
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
 
+import copy
 import dataclasses
 import hashlib
 import math
@@ -138,12 +139,16 @@ ADAPTIV_GENAU_VORSCHAU = (
 )
 ADAPTIV_HALTEN = 3.0  # × D – so weit fährt er unten durchs Freie, statt abzuheben
 ADAPTIV_HELIX = 0.8  # × R – der Radius der Helix ins Volle (unter R: in der Mitte bleibt nichts)
+ADAPTIV_HELIX_ENG = 0.5  # × R – die Helix, wenn die mit ADAPTIV_HELIX nicht in die Tasche passt
+ADAPTIV_ENGER = (0.7, 0.5)  # × ADAPTIV_SCHRITT, wo er eng arbeitet und die Last nicht hält
 ADAPTIV_ECKEN = 0.02  # mm – so genau folgen die Vielecke für den Kern den Höhenlinien
 RUECKWEG = 3.0  # × Vorschub: so schnell unten durchs Freie (G1, wie nut_bahn.RUECKWEG)
 # Der Kern rechnet bei gleicher Eingabe nicht jedes Mal dieselbe Bahn (an Manuels Platte 33,3 …
 # 33,7 min). Damit dieselbe Rechnung in einer Sitzung dieselbe Bahn gibt – die Vorschau, das
-# Anlegen, das Nachrechnen –, bleiben seine letzten Ergebnisse je Eingabe gemerkt.
-ADAPTIV_GEMERKT = 12
+# Anlegen, das Nachrechnen –, bleiben seine letzten Ergebnisse je Eingabe gemerkt. Je Fläche sind
+# es bis zu vier (die Helix kleiner, enger gerechnet): Mit 12 verdrängte „Rest räumen“ am Testteil
+# die des Räumens, und „adaptiv_frei“ rechnete eine andere Bahn als die Vorschau davor.
+ADAPTIV_GEMERKT = 48
 _ADAPTIV = OrderedDict()  # Prüfsumme der Eingabe → [(Start, Mitte der Helix, Stücke)]
 FREI_ZULAESSIG = 0.02  # Anteil der Stirn, der auf dem Weg durchs Freie Rohteil treffen darf
 # Die Last einer Bahn (last): der Querschnitt, den der Fräser je mm Weg abträgt, durch
@@ -152,6 +157,9 @@ FREI_ZULAESSIG = 0.02  # Anteil der Stirn, der auf dem Weg durchs Freie Rohteil 
 LAST_FENSTER = 3.0  # mm
 LAST_SEHNE = 1.0  # mm
 LAST_SPIEL = 1.06
+# Hält keine Bahn die Last – auch feiner gerechnet nicht –, senkt planen den Vorschub in den
+# Sätzen, wo sie sie sprengt (_gebremst): bis auf LAST_DAUERND, höchstens auf LAST_LANGSAMER.
+LAST_LANGSAMER = 0.3  # × Vorschub
 
 
 GLEICH = vb.GLEICH
@@ -182,6 +190,13 @@ class Raeumwerte:
     vorschub: float = 0.0  # mm/min – für die Zeit; 0: 1000
     eintauchen: float = 0.0  # mm/min senkrecht; 0: wie der Vorschub
     freivorschub: float = 0.0  # mm/min im Freien; 0: wie bisher RUECKWEG × Vorschub
+    # Wo die Ringe die Last nicht hielten ((x, y) …): Dort kommen zwischen zwei Ringe Teilstücke,
+    # `teilung` Schritte statt einem (_ringe_um_inseln; planen misst und teilt bei Bedarf).
+    verdichten: tuple = ()
+    teilung: int = 1
+    # Wo der Adaptiv-Kern eng arbeitet (_Stand.eng) und die Last nicht hält: × ADAPTIV_SCHRITT
+    # (planen misst und rechnet bei Bedarf enger).
+    adaptiv_enger: float = 1.0
 
 
 @dataclass
@@ -218,6 +233,8 @@ class Raeumbahn:
     haelt: bool = True  # die gewählte Variante hält die Last (False: keine hält sie)
     breit: dict = field(default_factory=dict)  # {z einer dünnen Lage: ihr ae} (bahn.DUENN)
     ecken: int = 0  # Ecken mit Eckenbögen (Manuels Räumen, _ringe_stiche)
+    verdichtet: int = 1  # so viele Schritte zwischen zwei Ringen, wo die Last es verlangte
+    gebremst: int = 0  # Sätze mit gesenktem Vorschub, wo sonst nichts die Last hielt
 
 
 # --- Das Raster: Hüllfläche, Rohteil, Freies ---------------------------------------------------
@@ -1657,7 +1674,10 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     folge += sorted((e for e in ebenen if taschen[id(e)] is not None), key=lambda e: -e.z)
     ergebnisse = {}
     davor = []  # wer vorher an den Flächen weggenommen hat (für den Satz, wenn nichts zu tun ist)
-    for variante in varianten:
+
+    def rechnen(variante, w):
+        """(Variante, _Stand) – None, wenn sie nirgends passt; die Variante wird „rohteil“, wo
+        eine vorgegebene nicht passt."""
         st = _Stand()
         # Mehrere Flächen: Jede sieht, was die davor in dieser Bahn schon weggenommen haben.
         material = _Material(w, stand) if len(folge) > 1 else None
@@ -1679,13 +1699,22 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
                 material.fahre(teil.punkte)
         if variante in ("morph", "adaptiv") and not eigen:
             if len(varianten) > 1:
-                continue  # passt nirgends: die anderen Varianten entscheiden
+                return None  # passt nirgends: die anderen Varianten entscheiden
             variante = "rohteil"  # vorgegeben, passt aber nicht: es waren die Ringe vom Rohteil
+        return variante, st
+
+    def zeit_von(st):
+        return bn.zeit(st.punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
+
+    for variante in varianten:
+        gerechnet = rechnen(variante, w)
+        if gerechnet is None:
+            continue
+        variante, st = gerechnet
         davor = st.davor
         if st.flaechen == 0:
             continue
-        zeit = bn.zeit(st.punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-        ergebnisse[variante] = (st, zeit)
+        ergebnisse[variante] = (st, zeit_von(st))
     if not ergebnisse:
         if davor:
             from . import materialstand as mst  # erst hier: es bringt den Job mit
@@ -1705,6 +1734,8 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     haelt = True
     lasten = {}
 
+    stellen = {}  # Variante → [(x, y)], wo sie die Last nicht hielt
+
     def haelt_last(v):
         """(hält sie die Last?, die größte Last) der Variante v – einmal gemessen."""
         if v not in lasten:
@@ -1714,7 +1745,8 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
                     0.0,
                 )  # er hält sie nach seiner Bauart – nur wo er kaum Platz hat nicht
             else:
-                groesste, lang = last(ergebnisse[v][0], w, stand)
+                stellen[v] = []
+                groesste, lang = last(ergebnisse[v][0], w, stand, stellen[v])
                 lasten[v] = (groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r, groesste)
         return lasten[v]
 
@@ -1738,6 +1770,64 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         if not ok:
             ueberlastet[variante] = groesste
             haelt = False
+    verdichtet = 1
+
+    def feiner(v):
+        """Die Variante v feiner gerechnet, so dass sie die Last hält – (_Stand, Teilung) oder
+        None. Die Ringe nur dort, wo sie sie sprengten: zwischen zwei Ringe Teilstücke
+        (_teilstuecke), zwei, drei, vier Schritte statt einem (Manuel, 2026-10-04: „wenn es nur
+        ein kurzes Stück ist nur diesen einen Bereich neu aufteilen“). Der Adaptiv-Kern nur auf
+        den Flächen, wo er eng arbeitet (_Stand.eng): mit 0,7 und 0,5 × seinem Schritt. Der Rest
+        der Bahn bleibt; gemessen wird mit dem ae der Vorgabe."""
+        if v == "inseln" and stellen.get(v):
+            orte = list(stellen[v])
+            versuche = [{"verdichten": None, "teilung": t} for t in (2, 3, 4)]
+        elif v == "adaptiv" and ergebnisse[v][0].eng:
+            orte = []
+            versuche = [{"adaptiv_enger": f} for f in ADAPTIV_ENGER]
+        else:
+            return None
+        for versuch in versuche:
+            if "verdichten" in versuch:
+                versuch["verdichten"] = tuple(orte)
+            w_fein = dataclasses.replace(w, **versuch)
+            gerechnet = rechnen(v, w_fein)
+            if gerechnet is None or gerechnet[0] != v or gerechnet[1].flaechen == 0:
+                return None
+            noch = []
+            groesste, lang = last(gerechnet[1], w_fein, stand, noch)
+            if groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r:
+                return gerechnet[1], versuch.get("teilung", 1)
+            orte += noch
+        return None
+
+    gebremst = 0
+    if not haelt:
+        # Hält keine die Last: die schnellste, die sie feiner gerechnet hält – oder, wo auch das
+        # nicht reicht, mit gesenktem Vorschub in den Sätzen, die sie sprengen (_gebremst).
+        # Beides macht eine Variante nur langsamer: Ist eine schon so schneller, bleibt es dabei.
+        # Hält auch so keine, bleibt die Bahn, wie sie war, und sagt es.
+        beste = None  # (Zeit, Variante, _Stand, Teilung, gebremste Sätze)
+        for v in sorted(ueberlastet, key=lambda v: ergebnisse[v][1]):
+            if beste is not None and ergebnisse[v][1] >= beste[0]:
+                break
+            fein = feiner(v)
+            if fein is not None:
+                zeit_fein = zeit_von(fein[0])
+                if beste is None or zeit_fein < beste[0]:
+                    beste = (zeit_fein, v, fein[0], fein[1], 0)
+            langsamer = _gebremst(ergebnisse[v][0], w, stand)
+            if langsamer is not None:
+                st_v = copy.copy(ergebnisse[v][0])
+                st_v.punkte = langsamer[0]
+                zeit_v = zeit_von(st_v)
+                if beste is None or zeit_v < beste[0]:
+                    beste = (zeit_v, v, st_v, 1, langsamer[1])
+        if beste is not None:
+            zeit_b, variante, st_b, verdichtet, gebremst = beste
+            ergebnisse[variante] = (st_b, zeit_b)
+            haelt = True
+            ueberlastet.pop(variante)
     st, zeit = ergebnisse[variante]
     return Raeumbahn(
         st.punkte,
@@ -1764,6 +1854,8 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
         haelt,
         st.breit,
         st.ecken,
+        verdichtet,
+        gebremst,
     )
 
 
@@ -2242,7 +2334,6 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
     try:
         import area  # FreeCADs libarea
 
-        kern = area.Adaptive2d()
         innen = area.AdaptiveOperationType.ClearingInside
         schneiden = area.AdaptiveMotionType.Cutting
         durchs_freie = area.AdaptiveMotionType.LinkClear
@@ -2256,31 +2347,54 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
     if np.isfinite(D).any():
         gebiet = np.minimum(gebiet, np.where(np.isfinite(D), D, _UNERREICHT) + r)
     grenzen = _vielecke(gebiet, feld, spiegeln)
-    material = _vielecke(feld.tiefe, feld, spiegeln)
+    # Das Material endet spätestens am Rand des Rasters: Um eine geschlossene Tasche liegt das
+    # Raster nur 2 · (3 R + ae) über sie hinaus, vom Rohteil aus ganz im Material – ohne den Rand
+    # schloss sich seine Höhenlinie nie, und der Kern bekam kein Material (am Testteil die
+    # dreieckige Tasche: nur Ringe, bis 4,5 ae). Reicht das Gebiet bis an den Rand, hielte der
+    # Kern das Material dahinter für Luft: Dann misst planen() nach.
+    tiefe = feld.tiefe.copy()
+    rand = np.zeros(tiefe.shape, dtype=bool)
+    rand[0, :] = rand[-1, :] = rand[:, 0] = rand[:, -1] = True
+    if (tiefe[rand] > 0).any():
+        tiefe[rand] = np.minimum(tiefe[rand], -feld.schritt)
+        if (gebiet[rand] > 0).any():
+            ablauf.st.eng = True
+    material = _vielecke(tiefe, feld, spiegeln)
     if not grenzen or not material:
         raise _KeinAdaptiv()
     # Hat die Mitte kaum Platz neben der Bahn – weniger als 2 ae bis ans Gesperrte, eine Nut kaum
     # breiter als der Fräser –, kann der Kern den Eingriff nicht halten: Dann misst planen() nach.
     frei = np.isfinite(D) & (D >= 0) & ablauf.erlaubt & feld.rohteil_zellen
-    if frei.any() and float(D[frei].max()) < 2.0 * ae:
-        ablauf.st.eng = True
-    kern.stepOverFactor = ADAPTIV_SCHRITT * ae / (2.0 * r)
-    kern.toolDiameter = 2.0 * r
-    kern.helixRampDiameter = 2.0 * ADAPTIV_HELIX * r
-    kern.keepToolDownDistRatio = ADAPTIV_HALTEN
-    kern.stockToLeave = 0.0
-    kern.tolerance = (
-        ADAPTIV_GENAU_VORSCHAU if schritt >= VORSCHAU_SCHRITT - GLEICH else ADAPTIV_GENAU
-    )
-    kern.forceInsideOut = False
-    kern.finishingProfile = True
-    kern.opType = innen
-    eingabe = repr(
-        (material, grenzen, kern.stepOverFactor, 2.0 * r, kern.helixRampDiameter, kern.tolerance)
-    )
-    schluessel = hashlib.blake2b(eingabe.encode("utf-8"), digest_size=16).hexdigest()
-    gebiete = _ADAPTIV.get(schluessel)
-    if gebiete is None:
+    eng = bool(frei.any() and float(D[frei].max()) < 2.0 * ae)
+    genau = ADAPTIV_GENAU_VORSCHAU if schritt >= VORSCHAU_SCHRITT - GLEICH else ADAPTIV_GENAU
+
+    def gebiete_fuer(helix, enger):
+        # Je Versuch ein frischer Kern: Ein zweites Execute auf demselben rechnet nicht dasselbe.
+        kern = area.Adaptive2d()
+        kern.toolDiameter = 2.0 * r
+        kern.keepToolDownDistRatio = ADAPTIV_HALTEN
+        kern.stockToLeave = 0.0
+        kern.tolerance = genau
+        kern.forceInsideOut = False
+        kern.finishingProfile = True
+        kern.opType = innen
+        kern.stepOverFactor = ADAPTIV_SCHRITT * enger * ae / (2.0 * r)
+        kern.helixRampDiameter = 2.0 * helix * r
+        eingabe = repr(
+            (
+                material,
+                grenzen,
+                kern.stepOverFactor,
+                2.0 * r,
+                kern.helixRampDiameter,
+                kern.tolerance,
+            )
+        )
+        schluessel = hashlib.blake2b(eingabe.encode("utf-8"), digest_size=16).hexdigest()
+        gebiete = _ADAPTIV.get(schluessel)
+        if gebiete is not None:
+            _ADAPTIV.move_to_end(schluessel)
+            return gebiete
         try:
             ergebnisse = kern.Execute(material, grenzen, lambda _wege: False)
         except Exception as fehler:
@@ -2303,8 +2417,18 @@ def _ringe_adaptiv(ablauf, feld, w, r, D, schritt):
         _ADAPTIV[schluessel] = gebiete
         while len(_ADAPTIV) > ADAPTIV_GEMERKT:
             _ADAPTIV.popitem(last=False)
-    else:
-        _ADAPTIV.move_to_end(schluessel)
+        return gebiete
+
+    # Findet der Kern mit der Helix ADAPTIV_HELIX keinen Anfang („Start point not found“: eine
+    # Tasche kaum größer als der Fräser), dann mit der kleineren – sonst blieben dort nur Ringe,
+    # die die Last nicht halten (am Testteil die dreieckige Tasche, Ø 6: bis 4,5 ae). Eng ist es
+    # dann auch: planen() misst nach und rechnet, hält er die Last nicht, enger (w.adaptiv_enger).
+    gebiete = gebiete_fuer(ADAPTIV_HELIX, w.adaptiv_enger if eng else 1.0)
+    if not any(stuecke for _start, _mitte, stuecke in gebiete):
+        eng = True
+        gebiete = gebiete_fuer(ADAPTIV_HELIX_ENG, w.adaptiv_enger)
+    if eng:
+        ablauf.st.eng = True
     gefahren = False
     for start, mitte, stuecke in gebiete:
         gefahren |= _adaptiv_gebiet(ablauf, feld, w, r, schritt, start, mitte, stuecke)
@@ -2467,14 +2591,18 @@ def _adaptiv_helix(ablauf, feld, w, start, mitte, radius, richtung, hoch, schrit
     return laenge
 
 
-def last(st, w, stand=None):
+def last(st, w, stand=None, stellen=None, saetze=None):
     """(größte Last, längster Weg am Stück über bahn.LAST_DAUERND in mm) der Bahn `st` (eine
     Raeumbahn oder ihr _Stand: `punkte` und `tiefen`) mit den Werten `w` – die
     Last ist der Querschnitt, den der Fräser je mm Weg abträgt, durch ae · Lagentiefe
     (Spezifikation Strategien 12.1), über LAST_FENSTER mm gemittelt. Die Bahn wird dazu im
     Quader des Rohteils abgefahren (oder im Materialstand `stand`); Eintauchen und Rampen
     tragen ab, zählen aber nicht – ihr Eingriff folgt dem Eintauchwinkel. Die Zellen am Rand
-    des Rohteils zählen halb: Sein Rand liegt auf ihren Mitten."""
+    des Rohteils zählen halb: Sein Rand liegt auf ihren Mitten. `stellen` (eine Liste): dazu die
+    Stellen (x, y), an denen die Last den Rahmen sprengt – kurz über LAST_KURZ · LAST_SPIEL, oder
+    länger als zwei Radien am Stück über bahn.LAST_DAUERND. `saetze` (ein dict): dazu je Satz
+    (Index des Punkts, zu dem er fährt) in einem Fenster, das den Rahmen sprengt, seine Last
+    ohne den Vorschubanteil – für _gebremst."""
     from . import materialstand as mst  # erst hier: es bringt den Job mit
     from . import restmaterial as rm
 
@@ -2494,8 +2622,8 @@ def last(st, w, stand=None):
     rand = r + 2.0 * max(sx, sy)
     nx, ny = q.h.shape
     groesste = lang = ueber = 0.0
-    fenster = []  # [(Weg, Volumen)] der letzten Stücke, zusammen ≥ LAST_FENSTER
-    for von, nach in zip(st.punkte, st.punkte[1:], strict=False):
+    fenster = []  # [(Weg, Volumen, Satz, Last ohne Anteil)] der letzten Stücke, ≥ LAST_FENSTER
+    for satz, (von, nach) in enumerate(zip(st.punkte, st.punkte[1:], strict=False), 1):
         sehnen = []
         for a, b in mst.sehnen(von, nach):
             n = max(1, int(math.ceil(math.dist(a[:2], b[:2]) / LAST_SEHNE)))
@@ -2526,7 +2654,9 @@ def last(st, w, stand=None):
             volumen = float((gesenkt * gewicht[i0:i1, j0:j1]).sum()) * zelle
             # Mit dem Vorschubanteil: Wo die Bahn langsamer fährt (enge Bögen, Austritt), ist die
             # Last je Zeit kleiner – sie zählt wie das Volumen je mm bei vollem Vorschub.
-            fenster.append((math.dist(a[:2], b[:2]), volumen * min(float(nach.anteil), 1.0)))
+            stueck = math.dist(a[:2], b[:2])
+            roh = volumen / stueck / (ae * tiefe) if stueck > _WINZIG else 0.0
+            fenster.append((stueck, volumen * min(float(nach.anteil), 1.0), satz, roh))
             weg = sum(f[0] for f in fenster)
             while len(fenster) > 1 and weg - fenster[0][0] >= LAST_FENSTER:
                 weg -= fenster.pop(0)[0]
@@ -2536,7 +2666,46 @@ def last(st, w, stand=None):
             groesste = max(groesste, last)
             ueber = ueber + fenster[-1][0] if last > bn.LAST_DAUERND else 0.0
             lang = max(lang, ueber)
+            if last > bn.LAST_KURZ * LAST_SPIEL or ueber > 2.0 * float(w.form.radius):
+                if stellen is not None:
+                    stellen.append((float(b[0]), float(b[1])))
+                if saetze is not None:
+                    for _weg, _vol, s, roh in fenster:
+                        saetze[s] = max(saetze.get(s, 0.0), roh)
     return groesste, lang
+
+
+def _gebremst(st, w, stand=None):
+    """Die Punkte der Bahn `st` mit gesenktem Vorschub, wo sie die Last sprengt – je Satz bis
+    auf bahn.LAST_DAUERND, höchstens auf LAST_LANGSAMER –, und wie viele Sätze es sind; None,
+    wenn sie auch so nicht hält. Der letzte Weg, wenn nichts anderes die Last hält: eine Ecke,
+    in die der Fräser nur längs der Wand kommt (am Testteil die Spitze der dreieckigen Tasche:
+    2,3 ae, wie eng der Adaptiv-Kern auch rechnet) – Manuel, 2026-10-04: „perfektionismus ist …
+    dass keine Werkzeugbrüche entstehen“."""
+    punkte = list(st.punkte)
+    gebremst = set()
+    probe = _Stand()
+    probe.tiefen, probe.breit = st.tiefen, getattr(st, "breit", {})
+    r = float(w.form.radius)
+    for _runde in range(4):
+        probe.punkte = punkte
+        saetze = {}
+        groesste, lang = last(probe, w, stand, None, saetze)
+        if groesste <= bn.LAST_KURZ * LAST_SPIEL and lang <= 2.0 * r:
+            return punkte, len(gebremst)
+        weiter = False
+        for satz, roh in saetze.items():
+            p = punkte[satz]
+            if roh <= bn.LAST_DAUERND:
+                continue
+            anteil = max(LAST_LANGSAMER, min(float(p.anteil), bn.LAST_DAUERND / roh))
+            if anteil < float(p.anteil) - 1e-3:
+                punkte[satz] = dataclasses.replace(p, anteil=anteil)
+                gebremst.add(satz)
+                weiter = True
+        if not weiter:
+            return None
+    return None
 
 
 # --- Manuels Räumen: Stiche und Ringe, Nut und Schleifen (2026-10-03) ---------------------------
@@ -3115,6 +3284,48 @@ def _ringe_morph(ablauf, feld, w, r, D, material_links, schritt, toleranz, genau
         _naechster_zuerst(ablauf, list(stufe), False, f"morph {nummer}", luft=True)
 
 
+def _teilstuecke(ablauf, feld, w, D, material_links, schritt, toleranz, j):
+    """Vor dem Ring auf Höhe j · ae: zwischen ihm und dem davor (j + 1) die Linien bei
+    (j + k ÷ teilung) · ae – nur die Stücke nahe den Stellen, an denen die Last den Rahmen sprengte
+    (w.verdichten, innerhalb zwei Radien und LAST_FENSTER), mit 3 mm Rand. Der Ring danach nimmt
+    dort nur noch, was zwischen dem letzten Teilstück und ihm steht (Manuel, 2026-10-04: „wenn es
+    nur ein kurzes Stück ist nur diesen einen Bereich neu aufteilen“)."""
+    ae = w.zeilenabstand
+    stellen = np.asarray(w.verdichten, dtype=float).reshape(-1, 2)
+    bereich = 2.0 * float(feld.r) + LAST_FENSTER
+    breit = max(1, int(round(3.0 / schritt)))
+    for k in range(w.teilung - 1, 0, -1):
+        niveau = (j + k / w.teilung) * ae
+        ringe, nur = [], {}
+        for punkte, geschlossen in _hoehenlinien(D, feld.xs, feld.ys, niveau):
+            if len(punkte) < 2:
+                continue
+            ring = _ring_aus_linie(
+                punkte, geschlossen, material_links, feld, niveau, D, schritt, toleranz
+            )
+            if ring is None:
+                continue
+            abstand = np.min(
+                np.hypot(
+                    ring.proben.x[:, None] - stellen[None, :, 0],
+                    ring.proben.y[:, None] - stellen[None, :, 1],
+                ),
+                axis=1,
+            )
+            nah = abstand <= bereich
+            if not nah.any():
+                continue
+            if geschlossen:
+                kern = np.concatenate([nah[-breit:], nah, nah[:breit]])
+                nah = np.convolve(kern, np.ones(2 * breit + 1), "same")[breit:-breit] > 0
+            else:
+                nah = np.convolve(nah, np.ones(2 * breit + 1), "same") > 0
+            nur[id(ring)] = nah
+            ringe.append(ring)
+        if ringe:
+            _naechster_zuerst(ablauf, ringe, True, f"feld {j}+{k}/{w.teilung}", nur)
+
+
 def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_rest, genaue=()):
     """Die Ringe des Feldes D (Abstand zum Gesperrten) von außen nach innen bis ans Gesperrte –
     alle, oder mit `nur_rest` nur die Stücke, unter deren Stirn noch etwas steht (nach den
@@ -3138,6 +3349,8 @@ def _ringe_um_inseln(ablauf, feld, w, D, material_links, schritt, toleranz, nur_
         hoechste = float(D[drin].max())
     j = int(math.ceil(hoechste / ae))
     while j >= 0:
+        if w.verdichten and w.teilung > 1 and not nur_rest and j * ae < hoechste:
+            _teilstuecke(ablauf, feld, w, D, material_links, schritt, toleranz, j)
         niveau = j * ae
         linien = _hoehenlinien(D, feld.xs, feld.ys, niveau)
         ringe = []

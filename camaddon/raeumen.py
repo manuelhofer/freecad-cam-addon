@@ -157,6 +157,8 @@ def gerechnet_text(ergebnis):
     """„adaptiv 1,4 min · inseln 0,8 min (Last 4,1 ae)“ – die Varianten mit ihrer Zeit, die
     gewählte vorn; in Klammern die Last derer, die schneller wären, sie aber nicht halten."""
     teile = [f"{ergebnis.variante} {ergebnis.zeit:.1f} min"]
+    if getattr(ergebnis, "gebremst", 0):
+        teile[0] += f" ({tr('ra.gerechnet.gebremst', saetze=ergebnis.gebremst)})"
     for name, zeit in ergebnis.zeiten.items():
         if name != ergebnis.variante:
             teil = f"{name} {zeit:.1f} min"

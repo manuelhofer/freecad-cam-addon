@@ -810,6 +810,14 @@ class _Raeumen(_Strategie):
             prozent = int(round((1.0 - bahn.zeiten[variante] / bahn.zeit) * 100.0))
             last = dezimal(f"{ueberlastet[variante]:.1f}")
             text = tr("ba.raeumen.ueberlastet", text=text, prozent=prozent, last=last)
+        if getattr(bahn, "gebremst", 0):
+            langsam = min(p.anteil for p in bahn.punkte if not p.eilgang)
+            text = tr(
+                "ba.raeumen.gebremst",
+                text=text,
+                saetze=bahn.gebremst,
+                prozent=int(round(langsam * 100.0)),
+            )
         return text
 
     def lege_an(self, job, tc, werte, flaechen):

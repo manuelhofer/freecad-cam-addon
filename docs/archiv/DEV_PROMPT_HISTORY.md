@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-33 raeumen-ueberlast-vermeiden
+
+### EINGELESEN
+- Manuel, 2026-10-04: „Ja mach das so oder wenn es nur ein kurzes Stück ist nur diesen einen
+  Bereich neu aufteilen???“ – die Überlast nicht nur melden, sondern vermeiden: kleinerer
+  Zeilenabstand oder nur den Bereich neu aufteilen. Später, mit Bild: den Bereich, der zu viel
+  hat, mit D-Bahnen wie in der Nut abräumen, bis die Ringe passen (nächster Schritt).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`planen`: `feiner` – die Ringe nur an den Stellen geteilt
+  (`_teilstuecke`, `Raeumwerte.verdichten/teilung`), der Adaptiv-Kern auf engen Flächen enger
+  (`Raeumwerte.adaptiv_enger`, `ADAPTIV_ENGER`); `_gebremst` – der Vorschub je Satz gesenkt
+  (`LAST_LANGSAMER`); `last(…, stellen, saetze)`; `Raeumbahn.verdichtet/gebremst`;
+  `_ringe_adaptiv`: das Material endet am Rand des Rasters, Helix 0,5 R wenn 0,8 R keinen Anfang
+  findet (`ADAPTIV_HELIX_ENG`), je Versuch ein frischer Kern, `ADAPTIV_GEMERKT` 12 → 48),
+  `camaddon/gui_bearbeitung.py` und `camaddon/raeumen.py` (der Satz „an … Sätzen langsamer“),
+  Übersetzungen (`ba.raeumen.gebremst`, `ra.gerechnet.gebremst`), `tests/test_testteil.py`,
+  `tests/gui/szenario_testteil_freivorschub.py` (wartet, bis keine Vorschau mehr aussteht),
+  `docs/spezifikation_strategien.md` (T5e), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.172.0).
+
+### AKZEPTANZKRITERIUM
+- Die dreieckige Tasche mit dem Ø 6 (vom Rohteil aus): die gewählte Bahn hält die Last
+  (gemessen ≤ 1,8 ae kurz, über 1,25 ae höchstens 2 R am Stück), adaptiv rechnet mit, der
+  gesenkte Vorschub steht im Programm als F, nie unter 0,3 × F. Wo eine Variante die Last hält,
+  ändert sich nichts.
+
+### DONE
+- Befund: Vom Rohteil aus bekam der Adaptiv-Kern in der geschlossenen Tasche kein Material (das
+  Raster liegt nur 2 · (3 R + ae) um sie, ganz im Rohteil – die Höhenlinie 0 schloss sich nie),
+  und mit der Helix 0,8 R fand er keinen Anfang. Beides behoben: Er räumt sie jetzt, sprengt die
+  Last aber in der spitzen Ecke – 2,27 ae, mit 1,0, 0,7, 0,5, 0,35, 0,25 × Schritt gleich (es ist
+  der Weg in die Ecke, nicht der Schritt). Die Teilstücke zwischen den Ringen brachten 4,5 →
+  3,6 ae. Bleibt der Vorschub: in 29 Sätzen gesenkt (bis 0,3 × F) halten die Ringe sie mit
+  1,49 ae, 0,27 min; adaptiv gebremst wäre langsamer (0,34). Am echten Job („Rest räumen T3“
+  nach Räumen T1) dasselbe: 0,19 min, 29 Sätze. Im Assistenten (Screenshot, „Rest räumen“): „1 Lage,
+  3 Ringe, etwa 1 min – an 27 Sätzen langsamer (bis 30 % Vorschub): Dort hielte der Fräser die
+  Last sonst nicht“ (die Vorschau rechnet im gröberen Raster).
+- Nebenbei gefunden: Der Adaptiv-Kern rechnet je nach Vorgeschichte im Prozess eine etwas andere
+  Bahn (bekannt, darum gemerkt). Mit den zusätzlichen Versuchen verdrängte „Rest räumen“ die
+  gemerkten Ergebnisse des Räumens, und „adaptiv_frei“ rechnete am Testteil 5778 statt 5801
+  Punkte – Manuels Szenario fiel. Gemerkt werden jetzt 48 statt 12.
+
+### TESTS
+- `tests/test_testteil.py` (die Tasche neu: hält, gebremst, F im Programm), `tests/test_raeumen.py`;
+  `szenario_testteil`, `szenario_testteil_freivorschub` – OK. black und ruff sauber.
+
+### NEXT
+- Manuels D-Bahnen (Bild 2026-10-04): den Bereich, der für die Ringe zu viel hat, von der
+  offenen Seite mit D-Bahnen abräumen, bis die Ringe passen – erst als Bild mit Zahlen.
+
 ## P-2026-10-04-32 raeumen-last-melden
 
 ### EINGELESEN

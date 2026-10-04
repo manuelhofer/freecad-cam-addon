@@ -204,23 +204,42 @@ pruefe(
 )
 pruefe(alle.ausgelassen == [TASCHENBODEN], f"ausgelassen: {alle.ausgelassen}")
 
-# Die dreieckige Tasche mit dem Ø 6 (wie „Rest räumen“ am Testteil, ae 0,6): Der Adaptiv-Kern passt
-# nicht hinein, es bleiben die Ringe – nach der Zeit gewählt wie bisher, aber jetzt gemessen: Sie
-# halten die Last nicht, und die Bahn sagt es (bis 0.171 ohne ein Wort – Werkzeugbruch).
+# Die dreieckige Tasche mit dem Ø 6 (wie „Rest räumen“ am Testteil, ae 0,6): Bis 0.171 gab es nur
+# die Ringe – bis 4,5 ae, ohne ein Wort (Werkzeugbruch). Der Adaptiv-Kern bekam vom Rohteil aus kein
+# Material (das Raster liegt ganz darin) und fand mit der Helix 0,8 R keinen Anfang; jetzt räumt er
+# sie, sprengt die Last aber in der spitzen Ecke (2,3 ae, wie eng er auch rechnet). So senkt planen
+# den Vorschub in den Sätzen, die sie sprengen, und die schnellste, die so hält, gewinnt.
 klein = rb.Raeumwerte(
     ff.scheibe(3.0), 12.0, 0.6, 0.3, OBEN, OBEN + 5.0, ROHTEIL, schneidenlaenge=12.0,
     eintauchwinkel=werkzeug.eintauchwinkel, vorschub=VF, eintauchen=VF * 0.3,
 )  # fmt: skip
 tasche = ebenen_bei(TASCHE)
 b_tasche = rb.planen(hf.netze_je_hoehe(teil, tasche), klein, tasche, ra.konturen_des_teils(teil))
-last_tasche = b_tasche.ueberlastet.get(b_tasche.variante, 0.0)
+last_tasche, lang_tasche = rb.last(b_tasche, klein)
+langsam = min(p.anteil for p in b_tasche.punkte if not p.eilgang)
 print(
-    f"Dreieck-Tasche mit Ø 6: {b_tasche.variante}, Varianten {sorted(b_tasche.zeiten)}, haelt {b_tasche.haelt}, Last {last_tasche:.2f} ae"
+    f"Dreieck-Tasche mit Ø 6: {b_tasche.variante}, Zeiten {b_tasche.zeiten}, haelt {b_tasche.haelt}, "
+    f"Last {last_tasche:.2f} ae, {lang_tasche:.1f} mm darüber, gebremst {b_tasche.gebremst} "
+    f"(bis {langsam:.2f})"
 )
 pruefe(
-    "adaptiv" not in b_tasche.zeiten and not b_tasche.haelt and last_tasche > bn.LAST_KURZ,
-    f"Dreieck-Tasche: {b_tasche.variante}, hält {b_tasche.haelt}, Last {last_tasche:.2f}",
+    "adaptiv" in b_tasche.zeiten
+    and b_tasche.haelt
+    and last_tasche <= bn.LAST_KURZ * rb.LAST_SPIEL
+    and lang_tasche <= 2 * 3.0
+    and 0 < b_tasche.gebremst < 100
+    and langsam >= rb.LAST_LANGSAMER - 1e-9
+    and b_tasche.zeit <= min(b_tasche.zeiten.values()) + 1e-9,
+    f"Dreieck-Tasche: {b_tasche.variante}, hält {b_tasche.haelt}, Last {last_tasche:.2f} ae, "
+    f"gebremst {b_tasche.gebremst}, {b_tasche.ueberlastet}",
 )
+# Der gesenkte Vorschub steht im Programm: F unter dem Vorschub.
+f_tasche = [
+    c.Parameters["F"] * 60.0
+    for c in bn.befehle(b_tasche.punkte, VF, VF * 0.3)
+    if "F" in c.Parameters
+]
+pruefe(min(f_tasche) < 0.5 * VF, f"F in der Tasche ab {min(f_tasche):.0f} mm/min")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

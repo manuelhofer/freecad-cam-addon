@@ -28,6 +28,7 @@ def schritte(h):
             and panel.raeumen.vorschau is not None
             and panel.raeumen.vorschau.flaechen == 3
             and all(b.vorschau is not None or not b.aktiv() for b in panel.bloecke)
+            and not panel._vorschau_uhr.isActive()  # kein Lauf steht mehr aus
         ):
             block = panel.raeumen
             job = panel.job
@@ -46,8 +47,9 @@ def schritte(h):
             h.bild("freivorschub_bisherig", panel.form)
             block.wahl_bahn.setCurrentIndex(block.wahl_bahn.findData(ra.ADAPTIV_FREI))
             yield from h.warte_auf(
-                lambda block=block, alt=alt: block.vorschau is not None
-                and block.vorschau is not alt,
+                lambda block=block, alt=alt, panel=panel: block.vorschau is not None
+                and block.vorschau is not alt
+                and not panel._vorschau_uhr.isActive(),
                 60000,
             )
             neu = block.vorschau
