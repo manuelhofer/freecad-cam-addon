@@ -518,8 +518,9 @@ def _holex_kugel():
         titel="HOLEX VHM-Vollradiusfräser TiAlN, 2 Schneiden, Ø 2 bis 12",
         quelle=(
             "Hoffmann Group, hoffmann-group.com/DE/de/hom/p/207125-<Ø> (2026-10-04): Maße, fz "
-            "beim Kopierfräsen in Stahl, vc aus der Anwendertabelle (welche Gruppe welche "
-            "Werkstoffklasse ist, geschätzt), ae und ap höchstens 0,05 · D. Netto ab 23,93 € – "
+            "beim Kopierfräsen in Stahl < 900 N/mm², vc aus der Anwendertabelle (P1 Stahl < 750, "
+            "P2 < 1100 N/mm², M INOX < 900, K GG(G), N1 Alu, N2 CuZn, H < 55 HRC), ae und ap "
+            "höchstens 0,05 · D. Netto ab 23,93 € – "
             "für P, M, K und N, nicht nur fürs Hartfräsen wie der Diabolo."
         ),
         groessen=tuple(groessen),
@@ -557,8 +558,9 @@ def _holex_torus():
         titel="HOLEX Pro Steel VHM-Torusfräser HPC TiAlN, 4 Schneiden, Ø 6 bis 16",
         quelle=(
             "Hoffmann Group, hoffmann-group.com/DE/de/hom/p/206357-<Ø>@2F<R> (2026-10-04): Maße, "
-            "fz beim Besäumen und Nutenfräsen, vc aus der Anwendertabelle (welche Gruppe welche "
-            "Werkstoffklasse ist, geschätzt), Vollnut höchstens 0,05 · D tief. Netto ab 41,66 €."
+            "fz beim Besäumen und Nutenfräsen, vc aus der Anwendertabelle (P1 Stahl < 750, P2 "
+            "< 1100 N/mm², M INOX < 900, K GG(G)), Vollnut höchstens 0,05 · D tief. Netto ab "
+            "41,66 €."
         ),
         groessen=tuple(groessen),
         gemeinsam={"schneiden": 4, "schneidstoff": wz.VHM},
@@ -949,6 +951,16 @@ def _einsatz(werkzeug, art, klasse, katalog=None):
         einsatz = _aus_katalog(werkzeug, art, katalog)
         if einsatz is not None:
             return einsatz
+    einsatz = _geschaetzt(werkzeug, art, klasse)
+    if einsatz is not None and katalog:
+        # Geschätzt nie schneller, als der Hersteller für diese Klasse angibt: Der HOLEX-
+        # Kugelfräser nennt in Stahl < 750 N/mm² vc 140 – geschätzt wäre das Schruppen 180.
+        einsatz.vc = min(einsatz.vc, max(werte[0] for werte in katalog.values()))
+    return einsatz
+
+
+def _geschaetzt(werkzeug, art, klasse):
+    """Der Einsatz aus den Grundwerten je Art und den Faktoren der Klasse (Richtwerte)."""
     hss = werkzeug.schneidstoff == wz.HSS
     faktor_vc, faktor_fz = (FAKTOREN_HSS if hss else FAKTOREN_HM)[klasse]
     d = werkzeug.durchmesser

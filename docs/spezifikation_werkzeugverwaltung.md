@@ -859,8 +859,10 @@ mehr“. Nachgeschlagen auf hoffmann-group.com (Hoffmann Group, Marke HOLEX), je
 - **HOLEX Pro Steel VHM-Torusfräser HPC TiAlN 206357**, Ø 6/0,5 … 16/1, 4 Schneiden, für P, M, K –
   netto ab 41,66 €. Besäumen und Nutenfräsen: fz je Größe, vc aus der Anwendertabelle, Vollnut
   höchstens 0,05 · D tief (`holex-torus`).
-- Welche Gruppe der Anwendertabelle welche Werkstoffklasse ist, nennt die Seite nicht – die
-  Zuordnung ist geschätzt; die Quelle der Reihe sagt es.
+- Die Anwendertabelle nennt je Spalte die Werkstoffgruppe (die Köpfe sind Bilder – Manuel zeigte
+  sie): P1 = Stahl < 750 N/mm², P2 = Stahl < 1100 N/mm², M = INOX < 900 N/mm², K = GG(G), N1 =
+  Alu, N2 = CuZn, H = < 55 HRC (P-2026-10-04-43; vorher geraten und zum Teil falsch – N2 hatte
+  den Wert von Alu-Guss, P1 den von Stahl < 500).
 - Noch einzeln und eher teuer: Lollipop, Gewindefräser, Planfräser (Sandvik), Fasenfräser –
   nach und nach.
 

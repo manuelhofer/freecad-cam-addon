@@ -351,18 +351,19 @@ HOLEX_KUGEL_MASSE = {
     10: (14, 66, 10, 0.068),
     12: (16, 73, 12, 0.09),
 }
-# vc (m/min) aus der Anwendertabelle der Seite – sie nennt Gruppen ohne Namen (N 350, N 250,
-# P 160/140/130/80/70, H 50, M 80/70, K 120, N 320); zugeordnet: N1 Alu 350, N2 Kupfer 250,
-# P1 160, P2 130, M 80, K 120, H 50 (geschätzt, welche Gruppe welche ist). fz je Klasse aus dem
-# fz für Stahl mal dem Faktor der Klasse (werkzeugkiste.FAKTOREN_HM). ae und ap höchstens
-# 0,05 · D (Kopieren, laut Seite).
+# vc (m/min) aus der Anwendertabelle der Seite: Alu 350, Alu-Guss > 10 % Si 250, Stahl < 500 /
+# < 750 / < 900 / < 1100 / < 1400 N/mm² 160 / 140 / 130 / 80 / 70, < 55 HRC 50, INOX < 900 /
+# > 900 N/mm² 80 / 70, GG(G) 120, CuZn 320 (die Spaltenköpfe sind Bilder – Manuel zeigte sie,
+# 2026-10-04). Je Klasse: P1 Stahl < 750, P2 (vergütet) Stahl < 1100, M INOX < 900, K GG(G),
+# N1 Alu, N2 CuZn, H < 55 HRC. fz je Klasse aus dem fz für Stahl < 900 N/mm² mal dem Faktor der
+# Klasse (werkzeugkiste.FAKTOREN_HM). ae und ap höchstens 0,05 · D (Kopieren, laut Seite).
 HOLEX_KUGEL_VC = {
-    "P1": 160.0,
-    "P2": 130.0,
+    "P1": 140.0,
+    "P2": 80.0,
     "M": 80.0,
     "K": 120.0,
     "N1": 350.0,
-    "N2": 250.0,
+    "N2": 320.0,
     "H": 50.0,
 }
 HOLEX_KUGEL_FZ = {"P1": 1.0, "P2": 0.8, "M": 0.7, "K": 1.0, "N1": 1.4, "N2": 1.2, "H": 0.5}
@@ -395,10 +396,11 @@ HOLEX_TORUS_MASSE = {
     (12, 1.0): (26, 83, 12, 0.09, 0.07),
     (16, 1.0): (32, 92, 16, 0.10, 0.08),
 }
-# vc aus der Anwendertabelle (P 260/240/180/160, M 80, K 250): P1 260, P2 180, M 80, K 250
-# (welche P-Gruppe welche Klasse ist, geschätzt). Vollnut höchstens 0,05 · D tief (laut Seite),
-# Besäumen bis zur Schneidenlänge – ae nennt sie dafür nicht (wie werkzeuge.vorlage).
-HOLEX_TORUS_VC = {"P1": 260.0, "P2": 180.0, "M": 80.0, "K": 250.0}
+# vc aus der Anwendertabelle: Stahl < 500 / < 750 / < 900 / < 1100 N/mm² 260 / 240 / 180 / 160,
+# INOX < 900 N/mm² 80, GG(G) 250 – je Klasse wie beim Kugelfräser: P1 Stahl < 750, P2 Stahl
+# < 1100, M INOX < 900, K GG(G). Vollnut höchstens 0,05 · D tief (laut Seite), Besäumen bis zur
+# Schneidenlänge – ae nennt sie dafür nicht (wie werkzeuge.vorlage).
+HOLEX_TORUS_VC = {"P1": 240.0, "P2": 160.0, "M": 80.0, "K": 250.0}
 HOLEX_TORUS_FZ = {"P1": 1.0, "P2": 0.8, "M": 0.7, "K": 1.0}
 
 

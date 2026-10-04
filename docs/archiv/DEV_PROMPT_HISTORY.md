@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-43 hoffmann-anwendertabelle
+
+### EINGELESEN
+- Manuel, 2026-10-04, mit Bild der Anwendertabelle von HOLEX 207125: „das stimmt so nicht ..
+  beim Hoffmann gibts diese Angabe immer ... das ist die Tabelle, die Zahlen unten sind die vc“.
+  Die Spaltenköpfe (Alu, Alu-Guss > 10 % Si, Stahl < 500 … < 1400 N, < 55 HRC, INOX < 900 /
+  > 900 N, GG(G), CuZn) sind Bilder – mein Auslesen hatte nur die Zahlen.
+
+### DATEIEN
+- `camaddon/katalogwerte.py` (HOLEX_KUGEL_VC, HOLEX_TORUS_VC nach den Spaltenköpfen),
+  `camaddon/werkzeugkiste.py` (Quellen; `_geschaetzt`: eine geschätzte Einsatzart nie schneller
+  als die höchste vc, die der Hersteller für die Klasse nennt), `docs/spezifikation_
+  werkzeugverwaltung.md` (13.x), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.181.1).
+
+### DONE
+- Kugel 207125: P1 160 → 140 (Stahl < 750), P2 130 → 80 (< 1100), N2 250 → 320 (CuZn; 250 war
+  Alu-Guss); M 80, K 120, N1 350, H 50 blieben. Torus 206357 (Köpfe am Torus nachgelesen): P1
+  260 → 240, P2 180 → 160; M 80, K 250. Das geschätzte Schruppen der Kugel in P1 lag bei vc 180
+  – jetzt höchstens 140.
+
+### TESTS
+- `tests/test_werkzeugkiste.py` – OK.
+
 ## P-2026-10-04-42 rundachse-im-vorschub
 
 ### EINGELESEN
