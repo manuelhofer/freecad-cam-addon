@@ -455,3 +455,10 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
     der Drehmaschine. Jetzt `kopf_drehmaschine` (statt `kopf` an der Drehmaschine), an Fanuc und
     Haas `G21 G40 G80 G97 G98`. Nicht an einer echten Steuerung nachgeprüft – vor dem ersten
     Lauf in der Simulation ansehen.
+- **P-2026-10-04-54 – G93 in jedem Satz, G90 an der Fanuc-/Haas-Drehmaschine:** Der Prüfer
+  verlangt in G93 F in jedem Satz im Vorschub (LinuxCNC und die meisten Steuerungen; die Bahnen
+  des Addons schreiben es so). Die Flanke und der angestellte Kugelfräser (5 Achsen simultan, an
+  allen Steuerungen, mit und ohne G93) und der echte 4-Achs-Job an der Drehmaschine lesen sich
+  sauber (in `test_flanke`, `test_angestellt`, `test_postprozessor`). An Fanuc und Haas entfällt
+  an der Drehmaschine ein G90 aus der Bahn (`g90_drehen`); G91 bleibt mit Hinweis – dort hieße es
+  U und W, die Steuerung hält mit Alarm an, statt falsch zu fahren.

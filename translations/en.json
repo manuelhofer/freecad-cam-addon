@@ -2343,5 +2343,6 @@
     "pp.befund.doppelt": "Line {zeile}: the same block twice – “{satz}”",
     "pp.befund.ende": "The program has no end (M30).",
     "pp.feld.kopf_drehmaschine": "Program start (lathe)",
-    "pp.feld.kopf_drehmaschine.tooltip": "The start of the program on a lathe instead of the one for a mill – empty: the same. On Fanuc and Haas lathes G90 is the turning cycle (not “absolute”) and there is no G49; hence a start of its own."
+    "pp.feld.kopf_drehmaschine.tooltip": "The start of the program on a lathe instead of the one for a mill – empty: the same. On Fanuc and Haas lathes G90 is the turning cycle (not “absolute”) and there is no G49; hence a start of its own.",
+    "pp.hinweis.g91_drehen": "{operation}: moves incrementally (G91) – on this lathe that is U and W; the control stops at that block with an alarm."
 }

@@ -295,6 +295,16 @@ pruefe(saetze_g93 and all(" F" in x for x in saetze_g93), "G93-Sätze ohne F ode
 pruefe(p_job.saetze > 100, f"Sätze: {p_job.saetze}")
 pruefe(pp.dateiname(job, pp.steuerung("siemens")).endswith(".mpf"), "Dateiname")
 print(ascii(f"Job: {p_job.saetze} Saetze, {len(p_job.zeilen)} Zeilen"))
+# Nachgelesen wie an der Steuerung (programm_pruefen): an jeder Steuerung nichts; an Fanuc und
+# Haas kein G90 (dort an der Drehmaschine der Längsdrehzyklus) – auch nicht aus der Bahn.
+for kennung in pp.STEUERUNGEN:
+    s = pp.steuerung(kennung)
+    p_k = pp.programm(teile, s, dreh, job.Label)
+    befunde, _saetze = pp.nachlesen(p_k, s, dreh)
+    pruefe(not befunde, f"Job {kennung}: {[(b.art, b.satz) for b in befunde[:3]]}")
+    if kennung in ("fanuc", "haas"):
+        g90 = [x for x in p_k.zeilen if "G90" in x.split() or "G91" in x.split()]
+        pruefe(not g90, f"Job {kennung}: {g90[:3]}")
 
 # --- Bohrzyklen (Spezifikation Steuerung, E8): Siemens CYCLE81/83/85 statt G81 ff. -------------
 # G98: Rückzug auf die Höhe davor (5), G99: auf R (2); Tiefbohren mit der ersten Tiefe R − Q.

@@ -190,6 +190,11 @@ pruefe(
     any(z.startswith("G93") or " G93" in z for z in zeilen) and any(" A" in z for z in zeilen),
     "im Programm kein G93 oder A",
 )
+# Nachgelesen wie an der Steuerung (programm_pruefen): an jeder Steuerung nichts.
+for kennung in pp.STEUERUNGEN:
+    s = pp.steuerung(kennung)
+    befunde, _saetze = pp.nachlesen(pp.programm(mit, s, pp.Maschineninfo(), "Kuppel"), s)
+    pruefe(not befunde, f"{kennung}: {[(b.art, b.satz) for b in befunde[:3]]}")
 
 FreeCAD.closeDocument(doc.Name)
 if fehler:

@@ -261,6 +261,14 @@ mit = pp.abschnitte(job, maschine)
 pruefe(
     len(mit) == 1 and any("A" in dict(b.Parameters) for b in mit[0].befehle), "mit Maschine ohne A"
 )
+# Nachgelesen wie an der Steuerung (programm_pruefen): an jeder Steuerung, mit und ohne G93,
+# nichts – Länge, Spindel, F (in G93 1 ÷ Zeit) in allen Sätzen.
+info5 = pp.maschineninfo_dokument(asm.Document)
+for kennung in pp.STEUERUNGEN:
+    for aenderung in ({}, {"g93": False}):
+        s = pp.steuerung(kennung, aenderung)
+        befunde, _saetze = pp.nachlesen(pp.programm(mit, s, info5, "Flanke"), s, info5)
+        pruefe(not befunde, f"{kennung} {aenderung}: {[(b.art, b.satz) for b in befunde[:3]]}")
 
 FreeCAD.closeDocument(doc.Name)
 if fehler:

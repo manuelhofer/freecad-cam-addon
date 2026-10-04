@@ -102,6 +102,9 @@ pruefe(arten(siemens, siemens=True) == [("laenge", 8)], f"Siemens: {arten(siemen
 # Ein Kreis in G18 (Z, X; I, K): Mitte bei Z 5, X 0 – vom Anfang 5, vom Ende 5.
 g18 = "%\nG18\nM3 S100\nG1 X0 Z0 F50\nG2 X0 Z10 I0 K5\nG2 X1 Z20 I0 K5\nM30"
 pruefe(arten(g18) == [("kreis", 6)], f"G18: {arten(g18)}")
+# In G93 gehört F in jeden Satz im Vorschub.
+g93 = "%\nM3 S100\nG93\nG1 X1 F2\nG1 X2\nG94\nG1 X3\nG1 X4 F100\nM30"
+pruefe(arten(g93) == [("vorschub", 5), ("vorschub", 7)], f"G93: {arten(g93)}")
 # Ohne G43 an einer Steuerung, die die Länge mit dem Wechsel nimmt: nichts.
 pruefe(arten("T1 M6\nM3 S1\nG0 Z5\nM30", laenge_mit_wechsel=True) == [], "mit dem Wechsel")
 
@@ -162,6 +165,13 @@ for kennung in ("fanuc", "haas"):
         "G90" not in woerter_k and "G49" not in woerter_k and "G18" in woerter_k,
         f"{kennung}-Drehmaschine: {woerter_k[:12]}",
     )
+# G90 aus der Bahn (FreeCADs Bohren) entfällt dort; G91 bleibt, mit Hinweis.
+mit_g90 = pp.Abschnitt("B", 1, 100.0, False, "None", [C("G90"), C("G0", {"X": 40.0, "Z": 2.0})])
+p_g90 = pp.programm([mit_g90], pp.steuerung("fanuc"), dreh, "W")
+pruefe(not any("G90" in x.split() for x in p_g90.zeilen), f"Fanuc G90: {p_g90.zeilen}")
+mit_g91 = pp.Abschnitt("B", 1, 100.0, False, "None", [C("G91"), C("G0", {"Z": -2.0})])
+p_g91 = pp.programm([mit_g91], pp.steuerung("haas"), dreh, "W")
+pruefe("G91" in p_g91.zeilen and any("G91" in h for h in p_g91.hinweise), f"G91: {p_g91.hinweise}")
 lcnc_dreh = pp.programm([welle], pp.steuerung("linuxcnc"), dreh, "W").zeilen
 pruefe("G0 G43 H1 X84.000 Z3.000 C0.000" in lcnc_dreh, f"LinuxCNC Drehmaschine: {lcnc_dreh}")
 # Der Satz fürs Fenster.

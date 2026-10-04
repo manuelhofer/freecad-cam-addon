@@ -2343,5 +2343,6 @@
     "pp.befund.doppelt": "Zeile {zeile}: derselbe Satz zweimal – „{satz}“",
     "pp.befund.ende": "Das Programm hat kein Ende (M30).",
     "pp.feld.kopf_drehmaschine": "Programmanfang (Drehmaschine)",
-    "pp.feld.kopf_drehmaschine.tooltip": "Der Anfang des Programms an der Drehmaschine statt des Anfangs für die Fräse – leer: derselbe. An Fanuc und Haas ist G90 an der Drehmaschine der Längsdrehzyklus (nicht „absolut“) und G49 gibt es dort nicht; darum ein eigener Anfang."
+    "pp.feld.kopf_drehmaschine.tooltip": "Der Anfang des Programms an der Drehmaschine statt des Anfangs für die Fräse – leer: derselbe. An Fanuc und Haas ist G90 an der Drehmaschine der Längsdrehzyklus (nicht „absolut“) und G49 gibt es dort nicht; darum ein eigener Anfang.",
+    "pp.hinweis.g91_drehen": "{operation}: fährt inkrementell (G91) – an dieser Drehmaschine heißt das U und W; die Steuerung hält an dem Satz mit Alarm an."
 }

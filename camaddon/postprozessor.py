@@ -100,6 +100,10 @@ class Steuerung:
     # (G-Code-System A) und Haas ist G90 an der Drehmaschine kein „absolut“, sondern der
     # Längsdrehzyklus (absolut/inkremental sagen X/U und Z/W), G49 gibt es dort nicht.
     kopf_drehmaschine: str = ""
+    # Kennt die Steuerung an der Drehmaschine G90/G91 als absolut/inkrementell? Nein an Fanuc
+    # und Haas: G90 aus einer Bahn (FreeCADs Bohren) entfällt dort, G91 bleibt mit Hinweis
+    # (die Steuerung hält mit Alarm an, statt inkrementell falsch zu fahren).
+    g90_drehen: bool = True
     kuehlung_flut: str = "M8"
     kuehlung_nebel: str = "M7"
     kuehlung_aus: str = "M9"
@@ -345,6 +349,7 @@ STEUERUNGEN = {
         ),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
+        g90_drehen=False,
         # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
         kopf_drehmaschine="%\nO0001 {kommentar_name}\nG21 G40 G80 G97 G98",
@@ -373,6 +378,7 @@ STEUERUNGEN = {
         glaetten_angebot=(Glaetten("g187", "G187 P3", False),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
+        g90_drehen=False,
         # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
         kopf_drehmaschine="%\nO00001 {kommentar_name}\nG21 G40 G80 G97 G98",
@@ -790,6 +796,10 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                     vorlage = s.vorschub_minute_drehen if info.drehmaschine else s.vorschub_minute
                     zeilen.append(vorlage)
                 continue
+            if info.drehmaschine and not s.g90_drehen and gross in ("G90", "G91"):
+                if gross == "G90":
+                    continue  # absolut ist dort, was X und Z schreiben
+                hinweise.append(tr("pp.hinweis.g91_drehen", operation=abschnitt.name))
             if info.drehmaschine and gross in ("G98", "G99") and s.vorschub_minute_drehen == "G98":
                 # An Fanuc- und Haas-Drehmaschinen heißt G98/G99 Vorschub je Minute/Umdrehung,
                 # nicht Rückzug im Bohrzyklus – weglassen.

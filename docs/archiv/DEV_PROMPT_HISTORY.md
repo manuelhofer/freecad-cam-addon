@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-54 g93-jeder-satz-g90-drehen
+
+### EINGELESEN
+- Weiter mit dem Postprozessor („bis ins Extreme“).
+
+### DATEIEN
+- `camaddon/programm_pruefen.py` (in G93 F in jedem Satz), `camaddon/postprozessor.py`
+  (`g90_drehen`, aus an Fanuc und Haas: G90 aus der Bahn entfällt an der Drehmaschine, G91 mit
+  Hinweis), `translations/de.json`, `en.json`, `tests/test_programm_pruefen.py`,
+  `tests/test_flanke.py`, `tests/test_angestellt.py`, `tests/test_postprozessor.py` (nachgelesen an
+  allen Steuerungen), `docs/spezifikation_steuerung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.186.1).
+
+### DONE
+- 5 Achsen simultan (Flanke, Kugel angestellt) und der 4-Achs-Job an der Drehmaschine an allen
+  Steuerungen nachgelesen: nichts. G90 aus FreeCADs Bahnen wäre an Fanuc/Haas-Drehmaschinen der
+  Längsdrehzyklus gewesen – entfällt dort jetzt.
+
+### TESTS
+- `test_programm_pruefen`, `test_postprozessor`, `test_flanke`, `test_angestellt`,
+  `test_sprache` – OK.
+
 ## P-2026-10-04-53 programm-nachlesen
 
 ### EINGELESEN

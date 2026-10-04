@@ -12,7 +12,8 @@ Geprüft (je Fund ein Befund mit Zeile und Satz):
 - LAENGE: eine Bewegung in Z (an der Drehmaschine jede) ohne eingeschaltete Werkzeuglänge – nach
   dem Wechsel bis G43 (Siemens: D0 bis D1 oder bis zum nächsten Wechsel).
 - SPINDEL: ein Satz im Vorschub (G1, G2, G3), während die Spindel steht.
-- VORSCHUB: ein Satz im Vorschub ohne gültiges F – keins seit G93/G94 oder F0.
+- VORSCHUB: ein Satz im Vorschub ohne gültiges F – keins seit G93/G94 oder F0; in G93 (1 ÷
+  Zeit) muss F in jedem Satz stehen (LinuxCNC und die meisten Steuerungen).
 - KREIS: ein Bogen, dessen Mitte vom Anfang und vom Ende verschieden weit liegt (mehr als
   KREIS_TOLERANZ) – die Steuerung bliebe mit Alarm stehen.
 - DOPPELT: derselbe Satz im Vorschub zweimal hintereinander (nichts zu fahren).
@@ -94,6 +95,7 @@ def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False):
     spindel = False
     laenge = True  # bis zum ersten Wechsel: wie eingerichtet
     ebene = "17"
+    g93 = False
     stand = {}
     davor = None
     ende = False
@@ -114,6 +116,7 @@ def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False):
                 ebene = code
             elif code in ("93", "94", "95"):
                 f = None
+                g93 = code == "93"
             elif code == "43" or code.startswith("43."):
                 laenge = True
             elif code == "49":
@@ -150,7 +153,7 @@ def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False):
         if bewegung in ("1", "2", "3"):
             if not spindel:
                 befunde.append(Befund(SPINDEL, nummer, roh))
-            if f is None:
+            if f is None or (g93 and "F" not in werte):
                 befunde.append(Befund(VORSCHUB, nummer, roh))
             if satz == davor:
                 befunde.append(Befund(DOPPELT, nummer, roh))
