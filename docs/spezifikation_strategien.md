@@ -2919,6 +2919,12 @@ Kollision mit Rundachsen je Station.
   keine Fase (mit dem vorgeschlagenen Halter: 10 mm Auskragung). Am Prüfklotz bekommt auch der
   Rand der Bohrung seine Fase. Die Halterprüfung siebt erst mit einer Hülle je Höhe und sucht je
   Stück (Testteil 10,2 → 7,1 s).
+  **Senkrecht heraus im Eilgang (P-2026-10-04-71):** Am Ende jedes Laufs fuhr das Werkzeug längs
+  der Achse im Vorschub heraus – am Testteil 21 Läufe, 52 mm Luft im Vorschub (etwa 10 s). Steht
+  die Achse senkrecht (3 Achsen), ist es ein reiner Z-Weg: jetzt gleich im Eilgang hinauf.
+  Schräg bleibt es im Vorschub – ein Eilgang fährt nicht an jeder Steuerung gerade (Fanuc ohne
+  lineare Eilganginterpolation), und der Fräser steht noch an der Fase. Eintauchen bleibt im
+  Vorschub ab dem Sicherheitsabstand.
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

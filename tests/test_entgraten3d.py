@@ -471,6 +471,14 @@ pruefe(
     and all(abs(a.z - 1.0) < 1e-9 for a in op.Werkzeugachsen if a.Length > 0),
     f"3 Achsen: {op.Kanten} Kanten",
 )
+# Senkrecht heraus im Eilgang, nicht im Vorschub (Luft): kein G1 gerade hinauf vor einem G0.
+wege = [b for b in op.Path.Commands if b.Name in ("G0", "G1") and "X" in b.Parameters]
+luft = [
+    i
+    for i, (a, b, c) in enumerate(zip(wege, wege[1:], wege[2:], strict=False))
+    if b.Name == "G1" and c.Name == "G0" and abs(b.x - a.x) + abs(b.y - a.y) < 1e-6 and b.z > a.z
+]
+pruefe(not luft, f"3 Achsen: {len(luft)}-mal im Vorschub hinauf")
 FreeCAD.closeDocument(doc.Name)
 
 if fehler:

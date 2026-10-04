@@ -65,6 +65,7 @@ GLEICH_ACHSE = 1e-4  # rad – so wenig anders gilt die Achse als gleich (gerade
 GLEICH_ORT = 1e-3  # mm
 ANTEILE_KEGEL = (0.5, 0.35, 0.2, 0.08, 0.0)  # wo die Fase auf der Flanke liegt (0: an der Spitze)
 ANTEILE_FLACH = (0.5, 0.3, 0.7, 0.15, 0.85)  # wo die Fase auf der Stirn liegt (Anteil des Radius)
+SENKRECHT = 1.0 - 1e-9  # z der Achse: so gilt sie als senkrecht
 GLATT_STUFEN = 2  # so viele Flächen weit zählen glatt anschließende zur Kante
 KAPPE = 0.2  # so weit zeigt eine Fläche am Ende der Kante hinaus (cos), dann schließt sie sie ab
 KAPPE_WEIT = 3.0  # so weit (mal Schenkel und STREIFEN) vom Ende zählen ihre Punkte zur Fase
@@ -994,7 +995,8 @@ def planen(form, namen, werte, schritt=SCHRITT, punktabstand=PUNKTABSTAND):
 
 def _verbinden(laeufe, w):
     """Die Läufe der Reihe nach (der nächste zuerst): über dem Anfang (_anfahrt), längs der Achse
-    `sicherheit` davor, eintauchen, der Lauf, längs der Achse heraus, hinauf."""
+    `sicherheit` davor, eintauchen, der Lauf, längs der Achse heraus, hinauf – senkrecht heraus
+    gleich im Eilgang."""
     punkte = []
     offen = list(laeufe)
     ort = None
@@ -1018,7 +1020,11 @@ def _verbinden(laeufe, w):
         punkte.append(stelle(erste.spitze, erste, eintauchen=True))
         for lage in lauf[1:]:
             punkte.append(stelle(lage.spitze, lage))
-        punkte.append(stelle(nach, letzte))
+        # Heraus: Steht die Achse senkrecht, ist es ein reiner Z-Weg – im Eilgang gleich hinauf
+        # (am Testteil 52 mm Luft im Vorschub). Schräg im Vorschub: Ein Eilgang fährt nicht an
+        # jeder Steuerung gerade (Fanuc ohne lineare Eilganginterpolation).
+        if float(letzte.achse[2]) < SENKRECHT:
+            punkte.append(stelle(nach, letzte))
         punkte.append(stelle(oben_nach, letzte, True))
         ort = letzte.spitze
     return punkte

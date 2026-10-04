@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-71 entgraten-3d-eilgang-heraus
+
+### EINGELESEN
+- „Luft im Vorschub“ (Arbeitsweise „Bahnen prüfen ohne Manuel“) an Manuels Testteil gemessen:
+  21 Läufe, je etwa 2,5 mm im Vorschub heraus – 52 mm.
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py` (`_verbinden`, `SENKRECHT`), `tests/test_entgraten3d.py`
+  (kein G1 gerade hinauf vor einem G0), `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.188.6).
+
+### DONE
+- Mit senkrechter Achse heraus im Eilgang; schräg weiter im Vorschub.
+
+### TESTS
+- `test_entgraten3d` – OK (Gegenprobe: der alte Stand fuhr 11-mal im Vorschub hinauf).
+
 ## P-2026-10-04-70 entgraten-3d-geschlossene-raender
 
 ### EINGELESEN
