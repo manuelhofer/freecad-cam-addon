@@ -208,7 +208,11 @@ patch_naming:
 
 ### TESTS
 - Szenarien `szenario_bearbeitung`, `szenario_testteil` – OK; Profil `szenario_vorschau_profil`
-  (Arbeitsordner). black und ruff sauber.
+  (Arbeitsordner). black und ruff sauber. Nachgetragen: `tests/test_vorschau_merk.py` – dieselben
+  Eingaben derselbe Schlüssel (auch nach Neuberechnen), anderes Feld, andere Fläche, anderer
+  Materialstand, anderes Werkzeug, verschobenes Teil, größeres Rohteil je ein anderer; ein Wert
+  mit Adresse keiner. Dazu liefen `szenario_raeumen_schlichten`, `szenario_zweiter_lauf`,
+  `szenario_nut_eintauchen`, `szenario_kontur_materialstand` – OK.
 
 ### NEXT
 - Manuels Durchsicht und Entscheidungen.
