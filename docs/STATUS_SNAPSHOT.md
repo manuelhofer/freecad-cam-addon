@@ -111,12 +111,15 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 Knopf im Assistenten, Programm mit der gewählten Maschine (Siemens CYCLE800, sonst gerechnet),
 Bohren am Schwenkkopf, Kollision und Abfahren mit Schwenken, Bestückung je Aufspannung;
 Siemens-Bohrzyklen CYCLE81/83/85; der Kern für simultan (ohne TCPM, G93); „Auf der Maschine
-prüfen“ öffnet schneller. Danach (P-2026-10-04-01 bis -13, → 0.164.2): Drehteil am Mantel (V2b),
+prüfen“ öffnet schneller. Danach (P-2026-10-04-01 bis -19, → 0.165.2): Drehteil am Mantel (V2b),
 Rundachsen-Gleichstand, Messstopp zum Wechselpunkt, Zeit für den Werkzeugwechsel, „Neue
 Maschine …“ mit Wegen und Schwenkbereichen der 5-Achs-Fräsen (D-26), Spindelleistung und die
 gemerkte Maschine im Planer (D-20), „Von unten gespannt“ mit Urteil und Schraubstock (S3h),
-B-013 (3D-Schlichten hob an Höhenlinien ab), der Kern verdichtet ohne TCPM; ein Versuch an der
-Kuppel für E-3 (Spezifikation 16.3). Zu entscheiden: Spezifikation Strategien 15.4 (D-1, D-2, D-4, D-5)
+B-013 (3D-Schlichten hob an Höhenlinien ab), der Kern verdichtet ohne TCPM, die Vorschau merkt
+sich je Block ihr Ergebnis, das Programm ohne doppelte Sätze, „Kollision prüfen“ mit Eilgängen
+durchs Rohteil (Quader und Stange – Entscheidung 4c-7 ergänzt, zur Bestätigung) und „am
+Anschlag“ im Befund; ein Versuch an der Kuppel für E-3 (Spezifikation 16.3), der Befund
+„Räumen fährt 3,5 m ohne Material“ (W-013). Zu entscheiden: Spezifikation Strategien 15.4 (D-1, D-2, D-4, D-5)
 und 16.4 (E-2, E-3). **Zum Ausprobieren (3+2):** `beispiele/schwenkteil_5achs.FCStd`,
 „Beispielmaschine laden …“ → 5-Achs Tisch/Tisch; Oberseite anklicken → Bearbeitung → Job;
 die 30°-Schräge anklicken → **Ebene schwenken (3+2) …** → grün „Face…: 30° geschwenkt →
