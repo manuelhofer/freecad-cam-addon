@@ -26,6 +26,7 @@ import Path.Op.Base as PathOp
 
 from . import bahn as bn
 from . import fahrzeit as fz
+from . import freiwege as fw
 from . import hoehenfeld as hf
 from . import kontur as ko
 from . import kontur_bahn as kb
@@ -144,9 +145,16 @@ class Raeumen(PathOp.ObjectOp):
             FreeCAD.Console.PrintWarning(
                 tr("ra.warnung.last", operation=obj.Label, last=f"{last:.1f}") + "\n"
             )
+        # Im Freien mit dem Freivorschub, kurz vor dem Material langsam (freiwege, Manuel
+        # 2026-10-04: „gib Gas bis kurz davor … bei allen Strategien“).
+        # Mit „Adaptiv – schneller Freivorschub“ ist er die Obergrenze, sonst die Vorgabe.
+        frei = float(obj.Freivorschub) * 60.0 if str(obj.Variante) == ADAPTIV_FREI else None
+        punkte, _schnell = fw.fuer_operation(
+            self.job, obj, ergebnis.punkte, self.horizFeed * 60.0, freivorschub=frei
+        )
         self.commandlist.extend(
             bn.befehle(
-                ergebnis.punkte,
+                punkte,
                 self.horizFeed * 60.0,  # CAM führt mm/s
                 vo.eintauchvorschub(self),
             )

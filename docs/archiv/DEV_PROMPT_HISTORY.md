@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-39 im-freien-schnell
+
+### EINGELESEN
+- Manuel, 2026-10-04: „also eilgang geschwindigkeit sollte ja in der maschine stehen ..
+  theoretisch ist das auch der schnellvorschub oder nicht ??? wenn es frei ist und da kein
+  material ist ... muss ich nicht langsam fahren gib gas bis kurz davor vors wieder langsam
+  weiter geht .. bei allen strategien .. egal was das ist ..“
+
+### DATEIEN
+- `camaddon/freiwege.py` (neu: `schneller`, `fuer_operation`), `camaddon/raeumen.py`,
+  `camaddon/planfraesen.py`, `camaddon/kontur.py`, `camaddon/nut.py`, `camaddon/schruppen3d.py`
+  (vor `bahn.befehle`), `tests/test_freiwege.py` (neu), `docs/spezifikation_strategien.md` (13b),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.178.0).
+
+### AKZEPTANZKRITERIUM
+- In der Luft der Freivorschub, 2 mm vor dem Material langsam, im Material der Schnittvorschub;
+  im Schnellen nichts abgetragen; Manuels „Adaptiv – schneller Freivorschub“ hält seine
+  Obergrenze, „automatisch“ danach wieder die Vorgabe.
+
+### DONE
+- Testteil Räumen T1 10,27 → 9,59 min (2,81 m schnell – die Verbindungen des Adaptiv-Kerns
+  durchs Freie, vorher 3 × F); Zapfen Planfräsen 3,29 → 2,85 min (0,32 m); 3D-Schruppen und
+  3D-Schlichten am Testteil unverändert (ihre Luftwege sind Eilgänge). Nachgefahren: 0 mm³
+  Abtrag im Schnellen. Je Satz auf einmal abgetragen: `test_raeumen` 45 statt 84 s.
+
+### TESTS
+- `tests/test_freiwege.py`, `test_raeumen`, `test_planfraesen`, `test_kontur`, `test_nut`,
+  `test_schruppen3d`; `szenario_testteil`, `szenario_testteil_freivorschub` – OK. black und ruff
+  sauber.
+
+### NEXT
+- Der Freivorschub aus der Maschine des Jobs (Höchstvorschub); die Zeiten im Assistenten mit;
+  3D-Schlichten, Bleistift, Entgraten (dort fast nur Eilgänge in der Luft).
+
 ## P-2026-10-04-38 sprungmarken-kopf
 
 ### EINGELESEN

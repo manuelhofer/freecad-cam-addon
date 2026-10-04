@@ -21,6 +21,7 @@ import Path
 import Path.Op.Base as PathOp
 
 from . import bahn as bn
+from . import freiwege as fw
 from . import kontur as ko
 from . import materialstand as mst
 from . import namen
@@ -111,8 +112,11 @@ class Nut(PathOp.ObjectOp):
             self.commandlist.append(Path.Command(f"({vo._ascii(str(fehler))})"))
             return
         obj.Nuten, obj.Lagen, obj.Boegen = ergebnis.nuten, ergebnis.lagen, ergebnis.boegen
+        # Im Freien mit dem Freivorschub, kurz vor dem Material langsam (freiwege, Manuel
+        # 2026-10-04: „gib Gas bis kurz davor … bei allen Strategien“).
+        punkte, _schnell = fw.fuer_operation(self.job, obj, ergebnis.punkte, self.horizFeed * 60.0)
         self.commandlist.extend(
-            bn.befehle(ergebnis.punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
+            bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
         )
 
 

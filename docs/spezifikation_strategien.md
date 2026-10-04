@@ -2278,6 +2278,30 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   Kiste kommt; die nennt er), das Schruppen höchstens 1,5 × Ziel braucht und keine Bahn die Last
   überschreitet.
 
+## 13b. Im Freien schnell – alle Strategien (P-2026-10-04-39)
+
+Manuel (2026-10-04): „wenn es frei ist und da kein Material ist … muss ich nicht langsam fahren,
+gib Gas bis kurz davor, bevor es wieder langsam weiter geht .. bei allen Strategien .. egal was
+das ist“; die Geschwindigkeit dafür gehört zur Maschine.
+
+- `freiwege.schneller`: Die Bahn der Operation wird im Materialstand vor ihr abgefahren (Sehnen
+  von 1 mm, `restmaterial.Quader`). Eine Sehne auf gleicher Höhe im Vorschub ist frei, wenn im
+  Umkreis R + 1 mm nichts über der Spitze steht – das Teil zählt als Material, an Wänden und über
+  dem Aufmaß bleibt der Schnittvorschub; geprüft wird gegen den Stand vor dem Satz (was er selbst
+  wegnimmt, zählt noch). Wege, die die Strategie schon als frei schneller fährt (Rückwege mit
+  3 × F), gelten als frei. Freie Stücke ab 5 mm fahren mit dem Freivorschub – G1, nicht G0
+  (der fährt auf vielen Steuerungen keine Gerade) –, die letzten 2 mm vor dem nächsten Material
+  langsam (das Bremsen davor macht die Vorausschau der Steuerung). Eilgänge, Eintauchen und
+  Rampen bleiben; ein Bogen nur ganz.
+- Der Freivorschub: 10 m/min (wie „Adaptiv – schneller Freivorschub“); mit dieser Wahl am
+  Räumen dessen eingestellter Wert als Obergrenze. Noch nicht: der Höchstvorschub der Maschine
+  des Jobs.
+- Gilt beim Rechnen der Operation (Räumen, Planfräsen, Kontur, Nut, 3D-Schruppen) – die Zeiten
+  im Assistenten rechnen noch ohne (sie vergleichen Strategien; die Zeit der Operation und
+  „Auf der Maschine prüfen“ mit).
+- Gemessen: Testteil Räumen T1 10,27 → 9,59 min (2,8 m schnell); Zapfen Planfräsen 3,29 → 2,85
+  min. Im Schnellen nichts abgetragen (nachgefahren, 0 mm³).
+
 ## 14. Manuels Räumen: Stiche und Ringe, Nut und Schleifen (2026-10-03)
 
 Manuel sah die Bahn des Räumens am Testteil (Bild je Lage: Reihenfolge in Farbe, Eilgang rot,

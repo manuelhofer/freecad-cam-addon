@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.177.0 (P-2026-10-04-38). Alles, was hier als gebaut steht,
+Stand 0.178.0 (P-2026-10-04-39). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -116,9 +116,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   für Satz nachgefahren, Fräser genau) – davon 2,9 m die Verbindungen des Adaptiv-Kerns „durchs
   Freie“, die schon mit RUECKWEG 3 × Vorschub fahren (2 706 mm/min), 0,5 m mit dem
   Schnittvorschub; zusammen etwa 1,6 min von 10. Die anderen fünf Arbeitsschritte fahren keine
-  Läufe über 20 mm durch die Luft. Möglich: die langen Verbindungen noch schneller (bis zum
-  Höchstvorschub der Maschine) – nach Manuels Idee, wenn es trotz Bremsen Zeit bringt; geschätzt
-  höchstens knapp 1 min. **Ebenso (zum Besprechen):** In der dreieckigen Tasche passt der
+  Läufe über 20 mm durch die Luft. **Seit P-2026-10-04-39 im Freien mit dem Freivorschub** (alle
+  Strategien, `freiwege`): Räumen T1 10,27 → 9,59 min. **Ebenso (zum Besprechen):** In der dreieckigen Tasche passt der
   Adaptiv-Kern mit dem Ø 6 nicht; das Räumen fällt auf Ringe zurück und nimmt über 16 mm am
   Stück bis 4,5 ae (Prüfstand: Eingriff bis 5,1 ae) – gegen „die Last im Rahmen“. **Seit
   P-2026-10-04-32 gemeldet** (Manuel: „dass keine Werkzeugbrüche entstehen“): gemessen auch ohne
