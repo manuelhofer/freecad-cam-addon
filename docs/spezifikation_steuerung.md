@@ -520,3 +520,6 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   Steuerungen); `tcpm_bei_null` (Haas): auf der Schwenkhöhe die Rundachsen auf 0, über den ersten
   Punkt, G234, dann im G1 senkrecht auf ihn hinab und auf seine Stellung. G254 (DWO) gehört nicht
   dazu – „G234 cannot be used at the same time as G254“.
+- **P-2026-10-04-64 – Haas: angetriebenes Werkzeug rückwärts:** Nachgelesen (haascnc.com, M133):
+  M133 vorwärts, M134 rückwärts, M135 aus, P die Drehzahl; M154/M155 C-Achse ein/aus. Das Programm
+  schrieb immer M133 – jetzt `M13{m} P{s}` (M133 bzw. M134 nach der Drehrichtung).

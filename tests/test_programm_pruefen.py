@@ -230,6 +230,12 @@ namen = pp.programm(
     [tasche], pp.steuerung("siemens", {"wechsel_fraesen": 'T="{werkzeug}" M6'}), fraese, "P"
 ).zeilen
 pruefe('T="Fraeser D 12" M6' in namen, f"Name im Wechsel: {[x for x in namen if 'M6' in x]}")
+# Haas: angetriebenes Werkzeug vorwärts M133, rückwärts M134 (P die Drehzahl).
+links = pp.Abschnitt("Links", 1, 1200.0, True, "None", list(welle.befehle))
+z_haas = pp.programm([welle, links], pp.steuerung("haas"), dreh, "W").zeilen
+pruefe(
+    "M133 P3000" in z_haas and "M134 P1200" in z_haas, f"Haas: {[x for x in z_haas if 'M13' in x]}"
+)
 # Der Satz fürs Fenster.
 text = pp.nachgelesen_text([prp.Befund(prp.LAENGE, 12, "G0 Z5.000")], 40)
 pruefe(text.startswith("Nachgelesen") and "Zeile 12" in text and "G0 Z5.000" in text, text)

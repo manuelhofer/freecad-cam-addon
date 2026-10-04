@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-64 haas-m134
+
+### EINGELESEN
+- Die Haas-Befehle an der Drehmaschine nachgelesen (M133/M135, M154/M155).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (Haas `M13{m} P{s}`), `tests/test_programm_pruefen.py`,
+  `docs/spezifikation_steuerung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.187.9).
+
+### DONE
+- Das angetriebene Werkzeug rückwärts schrieb an Haas M133 (vorwärts) – jetzt M134.
+
+### TESTS
+- `test_programm_pruefen`, `test_postprozessor` – OK.
+
 ## P-2026-10-04-63 tcpm-haas
 
 ### EINGELESEN

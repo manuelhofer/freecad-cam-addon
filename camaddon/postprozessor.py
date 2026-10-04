@@ -404,7 +404,7 @@ STEUERUNGEN = {
         "T{t}{t:02d}",
         "M{m} S{s}",
         "M5",
-        "M133 P{s}",
+        "M13{m} P{s}",  # M133 vorwärts, M134 rückwärts, P die Drehzahl (haascnc.com, M133)
         "M135",
         "M154",
         "M155",
