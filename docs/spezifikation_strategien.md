@@ -2900,6 +2900,13 @@ Kollision mit Rundachsen je Station.
   ±(n1 − n2): an einer konvexen Kante beidseits Luft. Am Schwenkteil danach 33 Kanten, 784 mm,
   73 mm zu eng (vorher 341 mm, fast alles Innenkanten), 70 mm zu nah am Tisch; Kollision ohne
   Befund.
+  **Ruhige Spitze (P-2026-10-04-69):** Im Screenshot des Szenarios sprang die Spitze unten an der
+  Schräge des Klotzes von Stelle zu Stelle zwischen zwei Anteilen hin und her (0,9 mm, ein
+  Sägezahn) – die Halterprüfung hielt dort knapp mal und mal nicht. Jetzt kommt die Lage der
+  Stelle davor zuerst dran: ihre Achse, ihr Anteil (bei der Stirn auch die Seite). Am Schwenkteil
+  358 statt 555 Sätze, 4,0 statt 4,3 min, Kollision ohne Befund. `test_entgraten3d` zählt je Lauf,
+  wie oft die Spitze quer zur Laufrichtung umkehrt (höchstens 2 – an den Ecken gleitet die Fase
+  zur Spitze); mit dem alten Stand bis 15.
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

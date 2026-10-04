@@ -390,6 +390,36 @@ for kennung in pp.STEUERUNGEN:
         s = pp.steuerung(kennung, aenderung)
         befunde, _saetze = pp.nachlesen(pp.programm(mit, s, info5, "E"), s, info5)
         pruefe(not befunde, f"{kennung} {aenderung}: {[(b.art, b.satz) for b in befunde[:3]]}")
+# Keine Zappler: In einem Lauf (zwischen zwei Eilgängen) kehrt die Spitze quer zur Laufrichtung
+# höchstens zweimal um (zu Beginn und am Ende gleitet die Fase an einer Ecke zur Spitze) – vorher
+# sprang sie unten an der Schräge von Stelle zu Stelle zwischen zwei Lagen hin und her.
+
+
+def umkehren(op):
+    """Je Lauf: wie oft die Spitze quer zur Richtung vom Anfang zum Ende umkehrt."""
+    laeufe, lauf = [], []
+    for befehl in op.Path.Commands:
+        if "X" not in befehl.Parameters:
+            continue
+        punkt = np.array([befehl.x, befehl.y, befehl.z])
+        if befehl.Name == "G0":
+            laeufe.append(lauf)
+            lauf = []
+        lauf.append(punkt)
+    laeufe.append(lauf)
+    ergebnis = []
+    for lauf in laeufe:
+        if len(lauf) < 3 or np.linalg.norm(lauf[-1] - lauf[0]) < 1e-6:
+            continue
+        d = (lauf[-1] - lauf[0]) / np.linalg.norm(lauf[-1] - lauf[0])
+        quer = [w - (w @ d) * d for w in np.diff(np.array(lauf), axis=0)]
+        quer = [w for w in quer if np.linalg.norm(w) > 0.05]
+        ergebnis.append(sum(1 for a, b in zip(quer, quer[1:], strict=False) if a @ b < 0))
+    return ergebnis
+
+
+zappler = umkehren(op)
+pruefe(max(zappler, default=0) <= 2, f"Zappler: Umkehren je Lauf {sorted(zappler)[-5:]}")
 # Die Kollision an der Maschine: nichts berührt, nichts kommt näher als 1 mm – Schaft, Halter und
 # Spindel inbegriffen, auch beim Anfahren und zwischen den Kanten.
 fahrt = ab.abfahrt(pruefung, job, rw.nullpunkt(job), bibliothek)

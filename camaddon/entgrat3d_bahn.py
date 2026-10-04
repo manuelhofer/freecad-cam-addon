@@ -401,6 +401,13 @@ class Lage:
     normale: np.ndarray  # der Fase
     tiefe: float  # die Fase liegt so weit unter der Kante (längs normale)
     schenkel: tuple  # (s1, s2)
+    anteil: float = 0.0  # wo die Fase am Fräser liegt (ANTEILE_KEGEL, ANTEILE_FLACH)
+    seite: float = 0.0  # Stirn: auf welcher Seite ihrer Mitte (±1 längs q1 → q2)
+
+
+def _zuerst(werte, wert):
+    """`werte` mit `wert` vorn (wenn er dabei ist), sonst in ihrer Reihenfolge."""
+    return sorted(werte, key=lambda x: x != wert)
 
 
 def _geometrie(k, parameter):
@@ -461,7 +468,10 @@ def _fase(e, t, n1, n2, u1, u2, w):
 
 def _lagen(e, t, n_p, d, s1, s2, u1, u2, w, vorher=None):
     """Die möglichen Lagen (Lage) für diese Fase, die beste zuerst – erst beim Abholen gerechnet
-    (meist passt eine der ersten)."""
+    (meist passt eine der ersten). Mit der Lage der Stelle davor (`vorher`) zuerst die ihr
+    nächste Achse und dort ihr Anteil: Sonst sprang die Spitze an einer Kante, an der eine
+    Prüfung knapp mal hält und mal nicht, von Stelle zu Stelle zwischen zwei Anteilen (am Klotz
+    unten an der Schräge, 0,9 mm hin und her)."""
     f = w.fraeser
     z = np.array([0.0, 0.0, 1.0])
     q1, q2 = e + s1 * u1, e + s2 * u2
@@ -477,7 +487,7 @@ def _lagen(e, t, n_p, d, s1, s2, u1, u2, w, vorher=None):
             # Stetig: die eine Seite der Fase. Dort senkrecht zur Kante, sonst um nP gekippt
             # (NEIGEN, nach oben zuerst) – mit einer Stelle davor so nah wie möglich an ihr.
             seiten = [g, -g]
-            ziel = vorher if vorher is not None else z
+            ziel = vorher.achse if vorher is not None else z
             seite = max(seiten, key=lambda s: float((math.cos(alpha) * s) @ ziel))
             quer = np.cross(n_p, seite)
             achsen = []
@@ -489,7 +499,8 @@ def _lagen(e, t, n_p, d, s1, s2, u1, u2, w, vorher=None):
                     paar.append(math.sin(alpha) * n_p + math.cos(alpha) * richtung)
                 achsen.extend(sorted(paar, key=lambda a: -float(a[2])))
             if vorher is not None:
-                achsen.sort(key=lambda a: -float(a @ vorher))
+                achsen.sort(key=lambda a: -float(a @ vorher.achse))
+        anteile = _zuerst(ANTEILE_KEGEL, vorher.anteil if vorher is not None else None)
         for a in achsen:
             a = a / np.linalg.norm(a)
             radial = n_p - (n_p @ a) * a
@@ -503,23 +514,26 @@ def _lagen(e, t, n_p, d, s1, s2, u1, u2, w, vorher=None):
             unten, oben = f.spitze + halb, f.radius - halb
             if oben < unten:
                 continue
-            for anteil in ANTEILE_KEGEL:
+            for anteil in anteile:
                 rho = unten + anteil * (oben - unten)
                 h = (rho - f.spitze) / math.tan(alpha)
                 spitze = m - h * a - rho * w_r
-                yield Lage(spitze, a, n_p, d, (s1, s2))
+                yield Lage(spitze, a, n_p, d, (s1, s2), anteil)
     else:
         a = n_p
         r_eben = f.spitze
+        paare = []
         for anteil in ANTEILE_FLACH:
             mitte = anteil * r_eben
             if mitte + 0.5 * breit > r_eben or mitte - 0.5 * breit < 0.1 * r_eben:
                 continue
-            seiten = [g, -g]
-            seiten.sort(key=lambda v: -float(v[2]))
-            for v in seiten:
-                spitze = m + mitte * v
-                yield Lage(spitze, a, n_p, d, (s1, s2))
+            for vz in sorted((1.0, -1.0), key=lambda vz: -float(vz * g[2])):  # oben zuerst
+                paare.append((anteil, vz))
+        if vorher is not None:
+            paare = _zuerst(paare, (vorher.anteil, vorher.seite))
+        for anteil, vz in paare:
+            spitze = m + anteil * r_eben * vz * g
+            yield Lage(spitze, a, n_p, d, (s1, s2), anteil, vz)
 
 
 def _tisch(spitze, achse, w):
@@ -688,7 +702,7 @@ def _stellen_der_kante(k, w, wolke_, schritt=SCHRITT, grob=None):
         if gewaehlt is None:
             ergebnis.append((prm, None, grund))
             continue
-        vorher = gewaehlt.achse
+        vorher = gewaehlt
         ergebnis.append((prm, gewaehlt, None))
     return ergebnis
 

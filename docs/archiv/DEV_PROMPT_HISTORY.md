@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-69 entgraten-3d-ruhige-spitze
+
+### EINGELESEN
+- Screenshot des Szenarios „Entgraten 3D“ angesehen: unten an der Schräge ein Sägezahn in der
+  Bahn – die Spitze sprang zwischen zwei Anteilen (Zappler, Arbeitsweise „Bahnen prüfen ohne
+  Manuel“).
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py` (`Lage.anteil`, `Lage.seite`, `_zuerst`; `_lagen` mit der Lage
+  davor), `camaddon/entgraten3d.py` (eine Stelle nicht als „0 mm“), `tests/test_entgraten3d.py`
+  (Umkehren je Lauf), `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.188.4).
+
+### DONE
+- Die Lage der Stelle davor zuerst: ein gerader Satz statt Sägezahn. Schwenkteil 358 statt 555
+  Sätze, 4,0 statt 4,3 min, Kollision ohne Befund.
+
+### TESTS
+- `test_entgraten3d` – OK (Gegenprobe: mit dem alten Stand bis 15 Umkehren je Lauf).
+
 ## P-2026-10-04-68 entgraten-3d-ecken
 
 ### EINGELESEN

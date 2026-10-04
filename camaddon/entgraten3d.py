@@ -146,7 +146,7 @@ def ausgelassen_text(bahn):
         e3.HALTER: tr("e3.grund.halter"),
     }
     teile = [
-        f"{mm:.0f} mm {texte.get(grund, grund)}"
+        f"{max(mm, 1.0):.0f} mm {texte.get(grund, grund)}"  # eine Stelle (0,5 mm) nicht als „0 mm“
         for grund, mm in sorted(bahn.gruende.items(), key=lambda x: -x[1])
         if mm >= 0.5
     ]
