@@ -547,7 +547,8 @@ Flächen (nicht die auf dem Tisch); den Haken setzt man selbst.</p>
 <ul>
 <li><b>Angestellt (5 Achsen)</b> – nur an einer 5-Achs-Maschine, dort angehakt: Das Werkzeug
 steht für jede Stelle der Kante richtig – senkrecht zur Kante, die Fase gleich breit auf beiden
-Flächen. Mit einem <b>Fasenfräser</b> (jeder Spitzenwinkel) liegt seine Flanke in der Fase; mit
+Flächen; dicht über dem Tisch kippt der Fasenfräser um die Fase nach oben (bis 60°), die Fase
+bleibt dieselbe. Mit einem <b>Fasenfräser</b> (jeder Spitzenwinkel) liegt seine Flanke in der Fase; mit
 einem Fräser mit <b>ebener Stirn</b> (Schaft, Torus – ihr ebener Teil –, Plan, Nut) liegt die
 Stirn in der Fase, die Fase neben ihrer Mitte.</li>
 <li>Ohne Haken (und an einer 3-Achs-Maschine): der Fasenfräser <b>senkrecht</b> – auch an
@@ -555,11 +556,15 @@ steigenden Kanten, solange sie nicht steiler steigen als seine Flanke. Die Fase 
 nicht symmetrisch: Die Fasenbreite gilt auf der Fläche, die nach oben schaut; den anderen
 Schenkel nennt das Ergebnis.</li>
 <li><b>Das Werkstück wird nicht beschädigt:</b> Das Addon tastet die Flächen um die Kanten
-dicht ab und prüft jede Stelle mit dem ganzen Werkzeug (Schneide und Schaft darüber); nur der
-Fasenstreifen darf darin liegen, nichts unter der Unterkante des Teils (dort ist der Tisch).
-Passt es nicht, rutscht die Fase zur Spitze bzw. auf die andere Seite der Stirn – geht auch das
-nicht, bleibt die Stelle ohne Fase, und die Zeile sagt, wie viel und warum („zu eng“, „zu
-steil“). Spannmittel und Halter prüft „Kollision prüfen“.</li>
+dicht ab und prüft jede Stelle mit der Schneide; nur der Fasenstreifen darf darin liegen.
+<b>Schaft und Halter</b> – aus der Werkzeugverwaltung, ohne gewählten der vorgeschlagene, wie
+bei „Kollision prüfen“ – bleiben 1,5 mm vom ganzen Teil, und alles samt Spindel bleibt 1,5 mm
+über der Unterkante des Teils (dort ist der Tisch). Passt es nicht, rutscht die Fase zur Spitze
+bzw. auf die andere Seite der Stirn – geht auch das nicht, bleibt die Stelle ohne Fase, und die
+Zeile sagt, wie viel und warum („zu eng“, „zu steil“, „zu nah am Tisch“, „Schaft oder Halter
+stieße an“). Steht das Teil höher (Spannmittel) oder ragt das Werkzeug weiter heraus, trag es in
+der Werkzeugverwaltung ein – dann geht mehr. Spannmittel und die Maschine selbst prüft
+„Kollision prüfen“.</li>
 <li>Die Operation heißt „Entgraten 3D T3“. Mit 5 Achsen rechnen „Auf der Maschine prüfen“,
 die Kollision und „Programm schreiben“ die Rundachsen je Punkt.</li>
 </ul>

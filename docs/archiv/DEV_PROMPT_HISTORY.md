@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-67 entgraten-3d-halter-spindel-tisch
+
+### EINGELESEN
+- Weiter mit „Entgraten 3D“ (Manuel: „mach mal weiter“): „Kollision prüfen“ an einem echten
+  5-Achs-Job (Schwenkteil, alle Flächen, Fasenfräser 90° Ø 10, Tisch/Tisch) fand 2 Berührungen
+  (Spindel und Halter im Rundtisch, wo der Kegel an einer senkrechten Kante dicht über dem Tisch
+  waagrecht lag) und 4 Stellen unter 1 mm (Halter 0,79 mm am Teil, Schneide 1 mm über dem Tisch).
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py` (`Aufbau`, `aufbau`, `_tisch`, `_umriss`, `_aufbau_im_teil`,
+  grobe Wolke, Kanten in der Wolke mit abgetastet, Kippen um nP – `NEIGEN`, Gründe `TISCH`,
+  `HALTER`, Lagen erst beim Abholen), `camaddon/entgraten3d.py` (`aufbau_von`, `rechne` und
+  `vorschau` mit Schaft und Halter aus der Werkzeugverwaltung), `translations/de.json`, `en.json`,
+  `help/de|en/bearbeitung.html` (9, „Entgraten 3D“), `tests/test_entgraten3d.py`,
+  `docs/spezifikation_strategien.md` (16.3 S5), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.188.2).
+
+### DONE
+- Schaft und Halter bleiben 1,5 mm vom ganzen Teil, alles samt Spindel 1,5 mm über dem Tisch; der
+  Kegel kippt dafür um die Fasennormale (bis 60°, die Fase bleibt dieselbe). Am Schwenkteil danach
+  33 Kanten, 768 mm Fase, „Kollision prüfen“ ohne Befund; 11,7 s.
+
+### TESTS
+- `test_entgraten3d` (gekippte Lagen: Kegel liegt an, Mantellinie über die ganze Fase, Keil mit
+  OpenCascade; Aufbau gegen OpenCascade in 60 Stichproben, Tisch genau; Kollision am Klotz-Job
+  frei), `test_sprache`, Szenario `szenario_entgraten3d` – OK. Kollision am Schwenkteil
+  (Skript): 0 Befunde.
+
 ## P-2026-10-04-66 entgraten-3d-assistent
 
 ### EINGELESEN

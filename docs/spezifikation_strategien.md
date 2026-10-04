@@ -2871,6 +2871,22 @@ Kollision mit Rundachsen je Station.
   den der Assistent selbst abgehakt hat, weil er nicht ging, kommt zurück, wenn er wieder geht.
   Die Vorschau gröber (Stellen alle 1 mm, Punkte alle 0,35 mm): „→ 8 Kanten mit Fase, etwa 1 min.
   48 mm Kante ohne Fase: 48 mm zu eng …“. Hilfe „Bearbeitung“, Abschnitt 9.
+  **Schaft, Halter, Spindel (P-2026-10-04-67):** „Kollision prüfen“ am Schwenkteil (Tisch/Tisch)
+  fand 2 Berührungen und 4 Stellen unter 1 mm: Spindel und Halter im Rundtisch, wo der Kegel an
+  einer senkrechten Kante dicht über dem Tisch waagrecht lag, der Halter 0,79 mm am Teil. Jetzt
+  rechnet die Bahn den Aufbau mit (`Aufbau`: Schaft und Halter als Kegelstümpfe aus der
+  Werkzeugverwaltung wie die Kollision – `wegkippen.einspannung`, ohne gewählten der
+  vorgeschlagene; darüber die Spindel, Radius 60 mm, nur gegen den Tisch): Schaft und Halter
+  bleiben 1,5 mm vom ganzen Teil (grob abgetastet, 1 mm), alles samt Spindel 1,5 mm über dem
+  Tisch. Der Kegel darf dafür um die Normale der Fase kippen (in 5°-Schritten bis 60°, nach oben
+  zuerst, stetig von Stelle zu Stelle): Seine Mantellinie läuft dann schräg über die Fase, die
+  Ebene bleibt dieselbe – gekippt wird nur für Tisch und Halter, nicht wo schon die Schneide
+  anstößt. Neue Gründe „zu nah am Tisch (das Teil höher spannen)“ und „Schaft oder Halter
+  stieße an“. Danach am Schwenkteil: 33 Kanten, 768 mm (vorher 826 mm, davon einige nur mit
+  Kollision), 70 mm zu nah am Tisch; „Kollision prüfen“ ohne Befund. 11,7 s für alle Flächen
+  (vorher 5 s ohne den Aufbau). Steht das Werkzeug nicht in der Werkzeugverwaltung, ist seine
+  Länge die Gesamtlänge des CAM-Werkzeugs (nicht ab Spindelnase) – dann ragt es mindestens die
+  Schneide und 5 mm aus dem Halter wie beim vorgeschlagenen.
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

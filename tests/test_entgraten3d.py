@@ -2,12 +2,19 @@
 # Entgraten in 3D (W-015 S5, entgrat3d_bahn): ein Klotz 60 × 40 × 20 mit 30°-Schräge, einer Nut
 # 6 mm breit und einer Bohrung Ø 10. Je Weg (5 Achsen mit Fasenfräser 90°, 5 Achsen mit
 # Schaftfräser, 3 Achsen mit Fasenfräser) für jede Stelle:
-# - die Geometrie: 5 Achsen – die Achse senkrecht zur Kante, die Fase symmetrisch, ihre Enden auf
-#   dem Kegelmantel bzw. in der Stirn; 3 Achsen – die Achse senkrecht, die Breite auf der Fläche,
-#   die nach oben schaut;
+# - die Geometrie: 5 Achsen – der Kegel liegt an der Fase an (a · nP = sin α), die Fase
+#   symmetrisch, die Mantellinie durch ihre Mitte trifft beide Ränder auf dem Kegelmantel
+#   (senkrecht zur Kante genau an der Kante gegenüber, um nP gekippt längs der Kante versetzt),
+#   bzw. die Enden in der Stirn; 3 Achsen – die Achse senkrecht, die Breite auf der Fläche, die
+#   nach oben schaut;
 # - unabhängig mit OpenCascade: Der Fräser (0,02 mm längs der Achse zurück) schneidet das Teil
 #   nur im Keil an der Kante (auf der Seite der Fase, nahe der Kante) – sonst beschädigte er es.
 # Die Nut ist schmaler als der Kegel: Dort fast es nur, wo es passt, und sagt den Rest („eng“).
+# Mit Halter und Spindel kippt der Kegel unten an den senkrechten Kanten nach oben – waagrecht
+# käme die Spindel dem Tisch zu nah.
+# Schaft, Halter und Spindel (P-2026-10-04-67): ihr Abstand zum Teil und zum Tisch gegen
+# OpenCascade; im Job prüft die Kollision an der 5-Achs-Maschine – nichts berührt, nichts kommt
+# näher als 1 mm (die Kollisionsprüfung fand am Schwenkteil Spindel und Halter im Rundtisch).
 # Ausführen: freecadcmd tests/test_entgraten3d.py
 
 import math
@@ -93,40 +100,59 @@ def keilpruefung(lage, e, t, schenkel, fraeser, form):
     return float(max(np.max(ueber), np.max(weit), 0.0))
 
 
-def durchgehen(werte, titel, stichproben=6):
-    """Je Kante einige Stellen: Geometrie und Keil; gibt (Kanten mit Fase, eng in mm)."""
+def durchgehen(werte, titel, stichproben=6, grob=None):
+    """Je Kante einige Stellen (und einige gekippte): Geometrie und Keil; gibt (Kanten mit Fase,
+    eng in mm, gekippte Stellen)."""
     wolke = e3.wolke(teil, kanten, werte.fraeser.hoehe + werte.fraeser.radius)
-    gefast, eng = 0, 0.0
+    gefast, eng, gekippt = 0, 0.0, 0
     schlimmste = 0.0
     for k in kanten:
-        stellen = e3._stellen_der_kante(k, werte, wolke)
+        stellen = e3._stellen_der_kante(k, werte, wolke, e3.SCHRITT, grob)
         mit = [(p, lage) for p, lage, _g in stellen if lage is not None]
         schritt = k.kante.Length / max(len(stellen) - 1, 1)
         eng += schritt * sum(1 for _p, lage, g in stellen if g == e3.ENG)
         if mit:
             gefast += 1
-        for p, lage in mit[:: max(1, len(mit) // stichproben)]:
+        # Dazu die gekippten (um nP, nicht senkrecht zur Kante) – sie sind selten.
+        schief = [
+            (p, lage)
+            for p, lage in mit
+            if werte.art == e3.FUENF and abs(lage.achse @ e3._geometrie(k, p)[1]) > 1e-6
+        ]
+        gekippt += len(schief)
+        auswahl = mit[:: max(1, len(mit) // stichproben)] + schief[:: max(1, len(schief) // 3)]
+        for p, lage in auswahl:
             e, t, n1, n2, u1, u2 = e3._geometrie(k, p)
             a = lage.achse
             if werte.art == e3.FUENF:
-                pruefe(
-                    abs(float(a @ t)) < 1e-6, f"{titel} {k.name}: Achse nicht ⟂ Kante ({a @ t:.2e})"
-                )
                 pruefe(
                     abs(lage.schenkel[0] - werte.breite) < 1e-9
                     and abs(lage.schenkel[1] - werte.breite) < 1e-9,
                     f"{titel} {k.name}: Schenkel {lage.schenkel}",
                 )
                 q = [e + lage.schenkel[0] * u1, e + lage.schenkel[1] * u2]
+                n_p = lage.normale
+                mitte, quer_ = 0.5 * (q[0] + q[1]), (q[1] - q[0]) / np.linalg.norm(q[1] - q[0])
+                if werte.fraeser.kegel:
+                    sin_a = math.sin(werte.fraeser.halbwinkel)
+                    pruefe(
+                        abs(float(a @ n_p) - sin_a) < 1e-6,
+                        f"{titel} {k.name}: Kegel liegt nicht an ({a @ n_p:.4f})",
+                    )
+                    mantel = a - (a @ n_p) * n_p
+                    mantel /= np.linalg.norm(mantel)
                 for qi in q:
+                    if werte.fraeser.kegel:
+                        # Wo die Mantellinie durch die Mitte den Rand der Fase trifft.
+                        qi = mitte + float((qi - mitte) @ quer_) / float(mantel @ quer_) * mantel
                     rel = qi - lage.spitze
                     h = float(rel @ a)
                     radial = float(np.linalg.norm(rel - h * a))
                     if werte.fraeser.kegel:
                         soll = float(werte.fraeser.radius_bei(np.array([h]))[0])
                         pruefe(
-                            abs(radial - soll) < 1e-6,
-                            f"{titel} {k.name}: Fase nicht am Mantel {radial} {soll}",
+                            abs(radial - soll) < 1e-6 and -1e-9 <= h <= werte.fraeser.kegelhoehe,
+                            f"{titel} {k.name}: Fase nicht am Mantel {radial} {soll} (h {h:.3f})",
                         )
                     else:
                         pruefe(
@@ -145,10 +171,11 @@ def durchgehen(werte, titel, stichproben=6):
             pruefe(tief < 0.03, f"{titel} {k.name}: beschädigt das Teil um {tief:.3f} mm")
     print(
         ascii(
-            f"{titel}: {gefast} Kanten mit Fase, eng {eng:.0f} mm, schlimmstens {schlimmste:.3f} mm"
+            f"{titel}: {gefast} Kanten mit Fase, eng {eng:.0f} mm, schlimmstens {schlimmste:.3f} mm,"
+            f" {gekippt} Stellen gekippt"
         )
     )
-    return gefast, eng
+    return gefast, eng, gekippt
 
 
 fuenf_kegel = durchgehen(e3.Werte3D(KEGEL, 0.5, e3.FUENF, sicher=40.0), "5 Achsen Kegel")
@@ -174,7 +201,10 @@ pruefe(
 )
 eintauchen = [p for p in bahn.punkte if p.eintauchen]
 pruefe(len(eintauchen) >= bahn.kanten, f"Eintauchen: {len(eintauchen)}")
-pruefe(set(bahn.gruende) <= {e3.ENG, e3.STEIL, e3.KEINE_STELLUNG, e3.ANFAHRT}, f"{bahn.gruende}")
+pruefe(
+    set(bahn.gruende) <= {e3.ENG, e3.STEIL, e3.KEINE_STELLUNG, e3.ANFAHRT, e3.TISCH, e3.HALTER},
+    f"{bahn.gruende}",
+)
 # 3 Achsen mit einem Fräser mit ebener Stirn geht nicht; ohne Kanten auch nicht.
 for werte, text in (
     (e3.Werte3D(FLACH, 0.5, e3.DREI), "3 Achsen flach"),
@@ -186,6 +216,67 @@ for werte, text in (
     except ValueError:
         pass
 
+# --- Schaft, Halter, Spindel gegen OpenCascade --------------------------------------------------
+from camaddon import halter as hl  # noqa: E402
+
+halter = hl.vorschlag(10.0)
+aufbau = e3.aufbau(halter, 5.0, 12.0, KEGEL)
+pruefe(
+    aufbau.stuecke[0] == (KEGEL.schneidhoehe, 12.0, 5.0, 5.0)
+    and abs(aufbau.kopf - 12.0 - halter.laenge) < 1e-9
+    and abs(aufbau.stuecke[-1][1] - aufbau.kopf) < 1e-9,
+    f"Aufbau {aufbau}",
+)
+mit_aufbau = e3.Werte3D(KEGEL, 0.5, e3.FUENF, sicher=40.0, tisch=0.0, aufbau=aufbau)
+grob = e3.wolke(teil, kanten, 300.0, e3.GROB, e3.RASTER_GROB)
+weit_unten = Part.makePlane(800, 800, V(-400, -400, -500))
+
+
+def drehkoerper(spitze, achse, stuecke):
+    a = V(*achse)
+    teile = []
+    for h0, h1, r0, r1 in stuecke:
+        p = V(*(spitze + h0 * achse))
+        if abs(r0 - r1) > 1e-9:
+            teile.append(Part.makeCone(r0, r1, h1 - h0, p, a))
+        else:
+            teile.append(Part.makeCylinder(r0, h1 - h0, p, a))
+    return Part.makeCompound(teile)
+
+
+rng = np.random.default_rng(7)
+falsch, nah_dran = [], 0
+for _ in range(60):
+    spitze = rng.uniform((-20.0, -20.0, 2.0), (80.0, 60.0, 45.0))
+    achse = rng.normal(size=3)
+    achse[2] = abs(achse[2])
+    achse /= np.linalg.norm(achse)
+    koerper = drehkoerper(spitze, achse, aufbau.stuecke)
+    drin = any(koerper.common(teil).Volume > 1e-6 for koerper in koerper.Solids)
+    abstand = 0.0 if drin else koerper.distToShape(teil)[0]
+    tief = e3._aufbau_im_teil(spitze, achse, mit_aufbau, grob)
+    nah_dran += abstand < e3.ABSTAND
+    if (abstand > e3.ABSTAND + 0.1 and tief > 0) or (abstand < e3.ABSTAND - 0.1 and tief <= 0):
+        falsch.append((np.round(spitze, 1), np.round(achse, 2), round(abstand, 2), round(tief, 2)))
+    # Der Tisch (z 0): der tiefste Punkt von Schneide, Schaft, Halter und Spindel.
+    kegel = [
+        (0.0, KEGEL.kegelhoehe, KEGEL.spitze, KEGEL.radius),
+        (KEGEL.kegelhoehe, KEGEL.schneidhoehe, KEGEL.radius, KEGEL.radius),
+    ]
+    kopf = [(aufbau.kopf, aufbau.kopf + e3.KOPF_LAENGE, e3.KOPF_RADIUS, e3.KOPF_RADIUS)]
+    ganz = drehkoerper(spitze, achse, kegel + list(aufbau.stuecke) + kopf)
+    tiefste = -500.0 + ganz.distToShape(weit_unten)[0]
+    soll = max(0.0, e3.ABSTAND - tiefste)
+    if abs(e3._tisch(spitze, achse, mit_aufbau) - soll) > 1e-3:
+        falsch.append(("Tisch", np.round(achse, 2), round(soll, 3)))
+pruefe(not falsch, f"Aufbau gegen OpenCascade: {falsch[:4]}")
+pruefe(0 < nah_dran < 60, f"Stichproben am Teil: {nah_dran}")
+print(ascii(f"Aufbau: 60 Stichproben, {nah_dran} am Teil, {len(falsch)} falsch"))
+# Mit Halter und Spindel: unten an den senkrechten Kanten kippt der Kegel nach oben (waagrecht
+# käme die Spindel dem Tisch zu nah) – die Fase bleibt dieselbe, das Teil heil.
+mit_halter = durchgehen(mit_aufbau, "5 Achsen Kegel mit Halter", grob=grob)
+pruefe(mit_halter[2] > 0, "unten an den senkrechten Kanten nicht gekippt?")
+
 # --- Die Operation im Job ----------------------------------------------------------------------
 import pathlib  # noqa: E402
 import tempfile  # noqa: E402
@@ -193,9 +284,11 @@ import tempfile  # noqa: E402
 import Path.Main.Job as PathJob  # noqa: E402
 from Path.Tool.camassets import user_asset_store  # noqa: E402
 
+from camaddon import abfahren as ab  # noqa: E402
 from camaddon import beispielmaschine  # noqa: E402
 from camaddon import entgraten3d as e3op  # noqa: E402
 from camaddon import job_schnittwerte as js  # noqa: E402
+from camaddon import kollision as kb  # noqa: E402
 from camaddon import postprozessor as pp  # noqa: E402
 from camaddon import reichweite as rw  # noqa: E402
 from camaddon import schwenken as sw  # noqa: E402
@@ -216,7 +309,9 @@ fase = wz.Werkzeug(
 )
 fase.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.FASEN, vc=100.0, fz=0.05)]
 user_asset_store.set_dir(pathlib.Path(tempfile.mkdtemp()))
-ue.uebergeben(wz.Bibliothek([wz.standardwerkzeug(), fase]))
+bibliothek = wz.Bibliothek([wz.standardwerkzeug(), fase])
+bibliothek.speichern()  # die Operation liest Halter und Länge daraus (wie die Kollision)
+ue.uebergeben(bibliothek)
 doc = FreeCAD.newDocument("Entgraten3D")
 objekt = doc.addObject("Part::Feature", "Teil")
 objekt.Shape = teil
@@ -229,7 +324,8 @@ doc.recompute()
 op = e3op.lege_an(job, tc, flaechen=namen)
 doc.recompute()
 pruefe(op.Label == "Entgraten 3D T3", f"Name {op.Label}")
-pruefe(op.Kanten >= 15 and len(op.Werkzeugachsen) == len(op.Path.Commands), f"Kanten {op.Kanten}")
+# Mit Halter und Spindel bleiben unten am Tisch zwei Kanten ohne Fase (13 statt 15).
+pruefe(op.Kanten >= 12 and len(op.Werkzeugachsen) == len(op.Path.Commands), f"Kanten {op.Kanten}")
 pruefe(so.ist_simultan(op) and js.operationsart(op) == "entgraten3d", "nicht simultan / Art")
 asm, ma = beispielmaschine.fuenfachs_tisch_tisch()
 pruefung = rw.Pruefung(asm, ma)
@@ -250,6 +346,12 @@ for kennung in pp.STEUERUNGEN:
         s = pp.steuerung(kennung, aenderung)
         befunde, _saetze = pp.nachlesen(pp.programm(mit, s, info5, "E"), s, info5)
         pruefe(not befunde, f"{kennung} {aenderung}: {[(b.art, b.satz) for b in befunde[:3]]}")
+# Die Kollision an der Maschine: nichts berührt, nichts kommt näher als 1 mm – Schaft, Halter und
+# Spindel inbegriffen, auch beim Anfahren und zwischen den Kanten.
+fahrt = ab.abfahrt(pruefung, job, rw.nullpunkt(job), bibliothek)
+kollision = kb.kollision(fahrt, job, rw.nullpunkt(job), bibliothek)
+pruefe(not kollision.befunde, f"Kollision: {[b.text() for b in kollision.befunde[:3]]}")
+print(ascii(f"Job: {op.Kanten} Kanten, {len(fahrt.stationen)} Stationen, Kollision frei"))
 # Mit 3 Achsen: die Achse senkrecht, keine Simultan-Operation.
 op.FuenfAchsen = False
 doc.recompute()

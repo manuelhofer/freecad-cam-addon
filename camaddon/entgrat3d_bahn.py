@@ -21,10 +21,15 @@ der beiden Flächen; u1, u2 laufen in den Flächen von der Kante weg. Die Fase i
   zum Werkzeug schaut (wie beim Entgraten an der Fräse), die andere steht im Ergebnis.
 
 Das Werkstück darf nicht beschädigt werden: Die Flächen nahe den Kanten werden dicht abgetastet
-(PUNKTABSTAND); an jeder Stelle darf kein Punkt im Werkzeug liegen (Schneide und SCHAFT mm
-darüber), außer im Fasenstreifen der beiden Flächen der Kante, zwischen ihren Enden. Sonst
-rutscht die Fase zur Spitze (Kegel) bzw. auf die andere Seite der Stirn; geht keine Lage, bleibt
-die Stelle aus und das Ergebnis sagt, wie viel.
+(PUNKTABSTAND); an jeder Stelle darf kein Punkt in der Schneide liegen, außer im Fasenstreifen der
+beiden Flächen der Kante, zwischen ihren Enden. Sonst rutscht die Fase zur Spitze (Kegel) bzw. auf
+die andere Seite der Stirn; geht keine Lage, bleibt die Stelle aus und das Ergebnis sagt, wie viel.
+
+Schaft und Halter (Aufbau, aus der Werkzeugverwaltung wie „Auf der Maschine prüfen“) bleiben
+ABSTAND vom ganzen Teil (grob abgetastet, GROB), alles samt Spindel ABSTAND über dem Tisch – die
+Kollisionsprüfung fand am Schwenkteil Spindel und Halter im Rundtisch, wo der Kegel an einer
+senkrechten Kante dicht über dem Tisch waagrecht lag. Der Kegel darf dafür um die Normale der
+Fase kippen (NEIGEN): Seine Mantellinie läuft dann schräg über die Fase, die Ebene bleibt dieselbe.
 
 Läuft ohne Oberfläche.
 """
@@ -41,7 +46,17 @@ PUNKTABSTAND = 0.25  # mm – so dicht wird das Teil um die Kanten abgetastet
 RASTER = 2.0  # mm – Zellen für die Suche in der Punktwolke
 RAND = 0.02  # mm – so tief darf ein Punkt (Rundung) im Werkzeug liegen
 STREIFEN = 0.3  # mm – so weit über die Fase hinaus zählt ein Punkt der Kantenflächen noch zu ihr
-SCHAFT = 15.0  # mm – so weit über der Schneide gehört der Körper noch zur Prüfung
+SCHAFT = 15.0  # mm – ohne Aufbau: so weit über der Schneide gehört der Körper noch zur Prüfung
+# mm – so viel Luft lassen Schaft und Halter zum Teil und das ganze Werkzeug zum Tisch (mehr als
+# die Warnung der Kollisionsprüfung, 1 mm)
+ABSTAND = 1.5
+GROB = 1.0  # mm – so dicht wird das ganze Teil für Schaft und Halter abgetastet
+RASTER_GROB = 8.0  # mm – die Zellen dafür
+# Die Spindel über dem Halter, nur gegen den Tisch (die Maschine kennt die Bahn nicht; die
+# Beispielmaschinen haben 45 bis 55 mm).
+KOPF_RADIUS = 60.0
+KOPF_LAENGE = 150.0
+NEIGEN = (0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60)  # Grad – so kippt der Kegel um nP
 SICHERHEIT = 2.0  # mm – so weit längs der Achse beginnt das Eintauchen
 SCHARF = 15.0  # Grad – flacher geknickte Kanten sind glatt, keine Fase
 GLEICH_ACHSE = 1e-4  # rad – so wenig anders gilt die Achse als gleich (gerade Stücke zusammen)
@@ -83,9 +98,49 @@ class Fraeser3D:
         return np.full(h.shape, self.radius)
 
     @property
+    def schneidhoehe(self):
+        """So hoch über der Spitze reicht die Schneide."""
+        return max(self.schneide, self.kegelhoehe)
+
+    @property
     def hoehe(self):
-        """So hoch über der Spitze wird der Körper geprüft."""
-        return max(self.schneide, self.kegelhoehe) + SCHAFT
+        """So hoch über der Spitze wird der Körper ohne Aufbau geprüft."""
+        return self.schneidhoehe + SCHAFT
+
+
+@dataclass
+class Aufbau:
+    """Was über der Schneide sitzt: Schaft und Halter als Kegelstümpfe (h0, h1, r0, r1 – mm über
+    der Spitze, von unten nach oben), ab `kopf` die Spindel (KOPF_RADIUS, nur gegen den Tisch)."""
+
+    stuecke: list
+    kopf: float
+
+
+def aufbau(halter, schaft, auskragung, fraeser):
+    """Der Aufbau aus einem geraden Halter (halter.Halter), dem Radius des Schafts und der
+    Auskragung (von der Nase des Halters bis zur Spitze, mm) – wie wegkippen.einspannung sie
+    liefert."""
+    unten = fraeser.schneidhoehe
+    stuecke = []
+    if auskragung > unten and schaft > 0:
+        stuecke.append((unten, float(auskragung), float(schaft), float(schaft)))
+    kopf = float(auskragung) + float(halter.laenge)
+    h = kopf
+    for a in halter.abschnitte:  # von der Spindelnase zum Werkzeug hin
+        if a.laenge <= 0:
+            continue
+        h0, h1 = h - a.laenge, h
+        h = h0
+        if h1 <= unten:
+            continue
+        r0, r1 = a.d_unten / 2.0, a.d_oben / 2.0
+        if h0 < unten:  # reichte in die Schneide – dort steckt kein Halter
+            r0 = r0 + (r1 - r0) * (unten - h0) / (h1 - h0)
+            h0 = unten
+        stuecke.append((float(h0), float(h1), float(r0), float(r1)))
+    stuecke.sort()
+    return Aufbau(stuecke, kopf)
 
 
 @dataclass
@@ -97,9 +152,10 @@ class Werte3D:
     sicherheit: float = SICHERHEIT
     gleichlauf: bool = True
     vorschub: float = 0.0  # mm/min – für die Zeit
-    # z des Tischs: Kein Teil des Werkzeugs darf darunter (er steht nicht im Modell); None: die
-    # Unterkante des Teils.
+    # z des Tischs: Kein Teil des Werkzeugs kommt ihm näher als ABSTAND (er steht nicht im
+    # Modell); None: die Unterkante des Teils.
     tisch: float = None
+    aufbau: Aufbau = None  # None: nur die Schneide und SCHAFT mm darüber
 
 
 @dataclass
@@ -125,6 +181,7 @@ class Bahn3D:
 
 
 ENG, STEIL, KEINE_STELLUNG, ANFAHRT = "eng", "steil", "keine", "anfahrt"
+TISCH, HALTER = "tisch", "halter"
 
 
 # --- Die Kanten ------------------------------------------------------------------------------
@@ -203,13 +260,14 @@ def kanten(form, namen):
 
 
 class Wolke:
-    """Punkte auf den Flächen (je Punkt die Nummer seiner Fläche), in Zellen von RASTER mm."""
+    """Punkte auf den Flächen (je Punkt die Nummer seiner Fläche), in Zellen von `raster` mm."""
 
-    def __init__(self, punkte, flaechen):
+    def __init__(self, punkte, flaechen, raster=RASTER):
         self.punkte = np.asarray(punkte, dtype=float).reshape(-1, 3)
         self.flaechen = np.asarray(flaechen, dtype=np.int64)
+        self.raster = float(raster)
         self._unten = self.punkte.min(axis=0) if len(self.punkte) else np.zeros(3)
-        zellen = np.floor((self.punkte - self._unten) / RASTER).astype(np.int64)
+        zellen = np.floor((self.punkte - self._unten) / self.raster).astype(np.int64)
         self._n = zellen.max(axis=0) + 1 if len(zellen) else np.ones(3, dtype=np.int64)
         schluessel = (zellen[:, 0] * self._n[1] + zellen[:, 1]) * self._n[2] + zellen[:, 2]
         self._ordnung = np.argsort(schluessel, kind="stable")
@@ -219,8 +277,8 @@ class Wolke:
         """Die Nummern der Punkte in den Zellen, die den Quader unten … oben berühren."""
         if not len(self.punkte):
             return np.zeros(0, dtype=np.int64)
-        a = np.floor((np.asarray(unten) - self._unten) / RASTER).astype(np.int64)
-        b = np.floor((np.asarray(oben) - self._unten) / RASTER).astype(np.int64)
+        a = np.floor((np.asarray(unten) - self._unten) / self.raster).astype(np.int64)
+        b = np.floor((np.asarray(oben) - self._unten) / self.raster).astype(np.int64)
         a = np.maximum(a, 0)
         b = np.minimum(b, self._n - 1)
         if np.any(b < a):
@@ -237,11 +295,11 @@ class Wolke:
         return np.concatenate(teile) if teile else np.zeros(0, dtype=np.int64)
 
 
-def wolke(form, kanten_, reichweite, punktabstand=PUNKTABSTAND):
+def wolke(form, kanten_, reichweite, punktabstand=PUNKTABSTAND, raster=RASTER):
     """Die Wolke der Flächen, die näher als `reichweite` an einer der Kanten liegen – Punkte
-    etwa alle `punktabstand` mm."""
+    etwa alle `punktabstand` mm, auch auf ihren Kanten (eine gerade hat sonst nur ihre Enden)."""
     if not kanten_:
-        return Wolke(np.zeros((0, 3)), np.zeros(0))
+        return Wolke(np.zeros((0, 3)), np.zeros(0), raster)
     boxen = [k.kante.BoundBox for k in kanten_]
     punkte, nummern = [], []
     for nummer, flaeche in enumerate(form.Faces):
@@ -275,11 +333,18 @@ def wolke(form, kanten_, reichweite, punktabstand=PUNKTABSTAND):
             + (r1 * (1 - r2))[:, None] * b[welches]
             + (r1 * r2)[:, None] * c[welches]
         )
-        punkte.append(np.vstack([p, e]))
-        nummern.append(np.full(len(p) + len(e), nummer))
+        rand = [
+            [q.x, q.y, q.z]
+            for kante in flaeche.Edges
+            if kante.Length > 1e-9
+            for q in kante.discretize(Distance=punktabstand)
+        ]
+        alle = np.vstack([p, e] + ([np.array(rand)] if rand else []))
+        punkte.append(alle)
+        nummern.append(np.full(len(alle), nummer))
     if not punkte:
-        return Wolke(np.zeros((0, 3)), np.zeros(0))
-    return Wolke(np.vstack(punkte), np.concatenate(nummern))
+        return Wolke(np.zeros((0, 3)), np.zeros(0), raster)
+    return Wolke(np.vstack(punkte), np.concatenate(nummern), raster)
 
 
 # --- Die Stellung an einem Punkt ----------------------------------------------------------------
@@ -353,7 +418,8 @@ def _fase(e, t, n1, n2, u1, u2, w):
 
 
 def _lagen(e, t, n_p, d, s1, s2, u1, u2, w, vorher=None):
-    """Die möglichen Lagen (Lage) für diese Fase, die beste zuerst."""
+    """Die möglichen Lagen (Lage) für diese Fase, die beste zuerst – erst beim Abholen gerechnet
+    (meist passt eine der ersten)."""
     f = w.fraeser
     z = np.array([0.0, 0.0, 1.0])
     q1, q2 = e + s1 * u1, e + s2 * u2
@@ -361,21 +427,27 @@ def _lagen(e, t, n_p, d, s1, s2, u1, u2, w, vorher=None):
     g = q2 - q1
     breit = float(np.linalg.norm(g))
     g = g / breit if breit > 1e-9 else np.cross(n_p, t)
-    ergebnis = []
     if f.kegel:
         alpha = f.halbwinkel
         if w.art == DREI:
             achsen = [z]
         else:
-            achsen = [
-                math.sin(alpha) * n_p + math.cos(alpha) * g,
-                math.sin(alpha) * n_p - math.cos(alpha) * g,
-            ]
+            # Stetig: die eine Seite der Fase. Dort senkrecht zur Kante, sonst um nP gekippt
+            # (NEIGEN, nach oben zuerst) – mit einer Stelle davor so nah wie möglich an ihr.
+            seiten = [g, -g]
+            ziel = vorher if vorher is not None else z
+            seite = max(seiten, key=lambda s: float((math.cos(alpha) * s) @ ziel))
+            quer = np.cross(n_p, seite)
+            achsen = []
+            for grad in NEIGEN:
+                paar = []
+                for vz in (1.0, -1.0) if grad else (1.0,):
+                    th = math.radians(grad) * vz
+                    richtung = math.cos(th) * seite + math.sin(th) * quer
+                    paar.append(math.sin(alpha) * n_p + math.cos(alpha) * richtung)
+                achsen.extend(sorted(paar, key=lambda a: -float(a[2])))
             if vorher is not None:
                 achsen.sort(key=lambda a: -float(a @ vorher))
-            else:
-                achsen.sort(key=lambda a: -float(a[2]))
-            achsen = achsen[:1]  # stetig: die eine Seite
         for a in achsen:
             a = a / np.linalg.norm(a)
             radial = n_p - (n_p @ a) * a
@@ -393,7 +465,7 @@ def _lagen(e, t, n_p, d, s1, s2, u1, u2, w, vorher=None):
                 rho = unten + anteil * (oben - unten)
                 h = (rho - f.spitze) / math.tan(alpha)
                 spitze = m - h * a - rho * w_r
-                ergebnis.append(Lage(spitze, a, n_p, d, (s1, s2)))
+                yield Lage(spitze, a, n_p, d, (s1, s2))
     else:
         a = n_p
         r_eben = f.spitze
@@ -405,29 +477,87 @@ def _lagen(e, t, n_p, d, s1, s2, u1, u2, w, vorher=None):
             seiten.sort(key=lambda v: -float(v[2]))
             for v in seiten:
                 spitze = m + mitte * v
-                ergebnis.append(Lage(spitze, a, n_p, d, (s1, s2)))
-    return ergebnis
+                yield Lage(spitze, a, n_p, d, (s1, s2))
 
 
-def _unter_dem_tisch(spitze, achse, fraeser, tisch):
-    """So tief (mm) reicht das Werkzeug unter den Tisch – 0: nicht (oder kein Tisch)."""
-    if tisch is None or tisch == -math.inf:
+def _tisch(spitze, achse, w):
+    """So viel (mm) kommt das Werkzeug – Schneide, Schaft, Halter, Spindel – dem Tisch näher als
+    ABSTAND; 0: nicht (oder kein Tisch). Je Stück liegt der tiefste Punkt an einem seiner Enden."""
+    if w.tisch is None or w.tisch == -math.inf:
         return 0.0
-    quer = math.sqrt(max(0.0, 1.0 - float(achse[2]) ** 2))
-    oben = spitze + fraeser.hoehe * achse
-    tiefste = min(float(spitze[2]) - fraeser.spitze * quer, float(oben[2]) - fraeser.radius * quer)
-    return max(0.0, tisch - tiefste)
+    f = w.fraeser
+    az = float(achse[2])
+    quer = math.sqrt(max(0.0, 1.0 - az * az))
+    ecken = [(0.0, f.spitze if f.kegel else f.radius), (f.kegelhoehe, f.radius)]
+    ecken.append((f.schneidhoehe if w.aufbau is not None else f.hoehe, f.radius))
+    if w.aufbau is not None:
+        for h0, h1, r0, r1 in w.aufbau.stuecke:
+            ecken.extend(((h0, r0), (h1, r1)))
+        ecken.extend(((w.aufbau.kopf, KOPF_RADIUS), (w.aufbau.kopf + KOPF_LAENGE, KOPF_RADIUS)))
+    tiefste = float(spitze[2]) + min(h * az - r * quer for h, r in ecken)
+    return max(0.0, w.tisch + ABSTAND - tiefste)
+
+
+def _umriss(aufbau, fraeser):
+    """Der Umriss des Aufbaus im Halbschnitt: [((h, r), (h, r))] – Mäntel, Stufen, oben zu."""
+    segmente = []
+    vorher = None
+    for h0, h1, r0, r1 in aufbau.stuecke:
+        if vorher is None:
+            unten = fraeser.radius if abs(h0 - fraeser.schneidhoehe) < 1e-6 else 0.0
+            if r0 > unten:  # die Stufe über der Schneide (oder der Boden)
+                segmente.append(((h0, min(unten, r0)), (h0, r0)))
+        else:
+            segmente.append((vorher, (h0, r0)))
+        segmente.append(((h0, r0), (h1, r1)))
+        vorher = (h1, r1)
+    if vorher is not None:
+        segmente.append((vorher, (vorher[0], 0.0)))
+    return segmente
+
+
+def _aufbau_im_teil(spitze, achse, w, grob):
+    """So viel (mm) kommen Schaft und Halter dem Teil näher als ABSTAND; 0: nicht."""
+    if w.aufbau is None or grob is None or not w.aufbau.stuecke:
+        return 0.0
+    stuecke = w.aufbau.stuecke
+    h_unten = min(s[0] for s in stuecke)
+    h_oben = max(s[1] for s in stuecke)
+    r_max = max(max(s[2], s[3]) for s in stuecke) + ABSTAND
+    ecken = np.array([spitze + h_unten * achse, spitze + h_oben * achse])
+    nummern = grob.nah(ecken.min(axis=0) - r_max, ecken.max(axis=0) + r_max)
+    if not len(nummern):
+        return 0.0
+    rel = grob.punkte[nummern] - spitze
+    h = rel @ achse
+    radial = np.linalg.norm(rel - np.outer(h, achse), axis=1)
+    nah = (h > h_unten - ABSTAND) & (h < h_oben + ABSTAND) & (radial < r_max)
+    if not nah.any():
+        return 0.0
+    h, radial = h[nah], radial[nah]
+    tief = np.zeros(len(h))
+    for h0, h1, r0, r1 in stuecke:  # drinnen
+        im = (h >= h0) & (h <= h1)
+        if im.any():
+            r = r0 + (h[im] - h0) / max(h1 - h0, 1e-9) * (r1 - r0)
+            tief[im] = np.maximum(tief[im], r - radial[im] + ABSTAND)
+    p = np.stack([h, radial], axis=1)
+    for (ha, ra), (hb, rb) in _umriss(w.aufbau, w.fraeser):  # draußen, zu nah
+        a = np.array([ha, ra])
+        ab = np.array([hb, rb]) - a
+        lang = float(ab @ ab)
+        s = np.clip(((p - a) @ ab) / lang, 0.0, 1.0) if lang > 1e-12 else np.zeros(len(p))
+        abstand = np.linalg.norm(p - (a + np.outer(s, ab)), axis=1)
+        tief = np.maximum(tief, ABSTAND - abstand)
+    return float(max(0.0, tief.max()))
 
 
 def _verletzung(lage, e, t, k, w, wolke_, enden):
-    """Wie tief (mm) das Werkzeug in dieser Lage in das Teil (oder unter den Tisch) schnitte –
-    außerhalb des Fasenstreifens; 0: nirgends."""
+    """Wie tief (mm) die Schneide in dieser Lage in das Teil schnitte – außerhalb des
+    Fasenstreifens; 0: nirgends."""
     f = w.fraeser
     a = lage.achse
-    hoehe = f.hoehe
-    tisch = _unter_dem_tisch(lage.spitze, a, f, w.tisch)
-    if tisch > RAND:
-        return tisch
+    hoehe = f.schneidhoehe if w.aufbau is not None else f.hoehe
     ecken = np.array([lage.spitze, lage.spitze + hoehe * a])
     unten = ecken.min(axis=0) - f.radius
     oben = ecken.max(axis=0) + f.radius
@@ -460,8 +590,11 @@ def _verletzung(lage, e, t, k, w, wolke_, enden):
 # --- Die Bahn ---------------------------------------------------------------------------------
 
 
-def _stellen_der_kante(k, w, wolke_, schritt=SCHRITT):
-    """[(Parameter, Lage oder None, Grund)] entlang der Kante, etwa alle `schritt` mm."""
+def _stellen_der_kante(k, w, wolke_, schritt=SCHRITT, grob=None):
+    """[(Parameter, Lage oder None, Grund)] entlang der Kante, etwa alle `schritt` mm. Je Lage
+    zuerst der Tisch (TISCH), dann die Schneide (ENG), dann Schaft und Halter (HALTER, in der
+    groben Wolke). Ohne Lage der Grund: TISCH, wenn er im Weg war (höher spannen hilft dann am
+    meisten), sonst HALTER, sonst ENG."""
     kurve = k.kante
     anzahl = max(2, int(math.ceil(kurve.Length / schritt)) + 1)
     parameter = np.linspace(kurve.FirstParameter, kurve.LastParameter, anzahl)
@@ -481,15 +614,28 @@ def _stellen_der_kante(k, w, wolke_, schritt=SCHRITT):
         if grund is not None:
             ergebnis.append((prm, None, grund))
             continue
-        gewaehlt, tiefste = None, math.inf
+        gewaehlt, grund = None, KEINE_STELLUNG
+        erste = None  # die Achse der ersten Lagen
         for lage in _lagen(e, t, n_p, d, s1, s2, u1, u2, w, vorher):
-            tief = _verletzung(lage, e, t, k, w, wolke_, enden)
-            if tief <= 0.0:
-                gewaehlt = lage
-                break
-            tiefste = min(tiefste, tief)
+            if erste is None:
+                erste = lage.achse
+            elif grund == ENG and not np.array_equal(lage.achse, erste):
+                break  # gekippt wird für Tisch und Halter – nicht, wo schon die Schneide anstößt
+            if _tisch(lage.spitze, lage.achse, w) > 0.0:  # zuerst: der ist billig
+                grund = TISCH
+                continue
+            if _verletzung(lage, e, t, k, w, wolke_, enden) > 0.0:
+                if grund == KEINE_STELLUNG:
+                    grund = ENG
+                continue
+            if _aufbau_im_teil(lage.spitze, lage.achse, w, grob) > 0.0:
+                if grund in (KEINE_STELLUNG, ENG):
+                    grund = HALTER
+                continue
+            gewaehlt = lage
+            break
         if gewaehlt is None:
-            ergebnis.append((prm, None, ENG if tiefste < math.inf else KEINE_STELLUNG))
+            ergebnis.append((prm, None, grund))
             continue
         vorher = gewaehlt.achse
         ergebnis.append((prm, gewaehlt, None))
@@ -523,31 +669,42 @@ def _winkel(a, b):
     return math.acos(max(-1.0, min(1.0, float(a @ b))))
 
 
-def _stelle_frei(wolke_, fraeser, spitze, achse, tisch=-math.inf):
-    """Berührt das Werkzeug mit der Spitze hier und dieser Achse nichts vom Teil (und bleibt über
-    dem Tisch)?"""
-    if _unter_dem_tisch(spitze, achse, fraeser, tisch) > RAND:
-        return False
-    ecken = np.array([spitze, spitze + fraeser.hoehe * achse])
+def _schneide_frei(wolke_, fraeser, hoehe, spitze, achse):
+    """Berührt die Schneide (bis `hoehe` über der Spitze) nichts von der Wolke?"""
+    ecken = np.array([spitze, spitze + hoehe * achse])
     nummern = wolke_.nah(ecken.min(axis=0) - fraeser.radius, ecken.max(axis=0) + fraeser.radius)
     if not len(nummern):
         return True
     rel = wolke_.punkte[nummern] - spitze
     h = rel @ achse
     radial = np.linalg.norm(rel - np.outer(h, achse), axis=1)
-    return not np.any((h > -RAND) & (h < fraeser.hoehe) & (radial < fraeser.radius_bei(h) - RAND))
+    return not np.any((h > -RAND) & (h < hoehe) & (radial < fraeser.radius_bei(h) - RAND))
 
 
-def _frei(wolke_, fraeser, von, bis, achse, tisch=-math.inf):
-    """Berührt das Werkzeug (Achse fest) auf dem Weg der Spitze von → bis nichts vom Teil?"""
+def _stelle_frei(spitze, achse, w, wolke_, grob=None):
+    """Berührt das Werkzeug mit der Spitze hier und dieser Achse nichts vom Teil, bleiben Schaft
+    und Halter ABSTAND davon und alles ABSTAND über dem Tisch?"""
+    f = w.fraeser
+    if _tisch(spitze, achse, w) > 0.0:
+        return False
+    hoehe = f.schneidhoehe if w.aufbau is not None else f.hoehe
+    if not _schneide_frei(wolke_, f, hoehe, spitze, achse):
+        return False
+    if grob is not None and not _schneide_frei(grob, f, hoehe, spitze, achse):
+        return False  # weiter weg von den Kanten
+    return _aufbau_im_teil(spitze, achse, w, grob) <= 0.0
+
+
+def _frei(von, bis, achse, w, wolke_, grob=None):
+    """Bleibt das Werkzeug (Achse fest) auf dem Weg der Spitze von → bis frei (_stelle_frei)?"""
     laenge = float(np.linalg.norm(bis - von))
     return all(
-        _stelle_frei(wolke_, fraeser, von + s * (bis - von), achse, tisch)
+        _stelle_frei(von + s * (bis - von), achse, w, wolke_, grob)
         for s in np.linspace(0.0, 1.0, max(2, int(math.ceil(laenge)) + 1))
     )
 
 
-def _anfahrt(lage, w, wolke_):
+def _anfahrt(lage, w, wolke_, grob=None):
     """(oben, vor) – `vor`: längs der Achse so weit zurück, dass das Werkzeug nichts berührt,
     und `sicherheit` dazu (das Eintauchen von dort bleibt im Körper der Schnittstellung – ein
     Kegel oder Zylinder, längs seiner Achse zurückgezogen, liegt in sich selbst); `oben`: auf der
@@ -555,17 +712,17 @@ def _anfahrt(lage, w, wolke_):
     keiner frei ist."""
     a = lage.achse
     zurueck = 0.0
-    while not _stelle_frei(wolke_, w.fraeser, lage.spitze + zurueck * a, a, w.tisch):
+    while not _stelle_frei(lage.spitze + zurueck * a, a, w, wolke_, grob):
         zurueck += 0.5
         if zurueck > w.fraeser.hoehe:
             return None
     vor = lage.spitze + (zurueck + w.sicherheit) * a
     oben = np.array([vor[0], vor[1], max(w.sicher, float(vor[2]))])
-    if _frei(wolke_, w.fraeser, oben, vor, a, w.tisch):
+    if _frei(oben, vor, a, w, wolke_, grob):
         return oben, vor
     if a[2] > 0.1:
         weit = vor + a * max(0.0, (w.sicher - float(vor[2])) / float(a[2]))
-        if _frei(wolke_, w.fraeser, weit, vor, a, w.tisch):
+        if _frei(weit, vor, a, w, wolke_, grob):
             return weit, vor
     return None
 
@@ -623,12 +780,17 @@ def planen(form, namen, werte, schritt=SCHRITT, punktabstand=PUNKTABSTAND):
     if not kanten_:
         raise ValueError(tr("e3.fehler.keine"))
     wolke_ = wolke(form, kanten_, w.fraeser.hoehe + w.fraeser.radius, punktabstand)
+    grob = None
+    if w.aufbau is not None and w.aufbau.stuecke:
+        reich = max(s[1] for s in w.aufbau.stuecke)
+        reich += max(max(s[2], s[3]) for s in w.aufbau.stuecke) + ABSTAND
+        grob = wolke(form, kanten_, reich, max(GROB, punktabstand), RASTER_GROB)
     laeufe, gruende = [], {}
     laenge = 0.0
     gefast = 0
     schenkel = []
     for k in kanten_:
-        stellen = _stellen_der_kante(k, w, wolke_, schritt)
+        stellen = _stellen_der_kante(k, w, wolke_, schritt, grob)
         teile, ohne = _laeufe(stellen, k.kante)
         for grund, mm in ohne.items():
             gruende[grund] = gruende.get(grund, 0.0) + mm
@@ -636,7 +798,8 @@ def planen(form, namen, werte, schritt=SCHRITT, punktabstand=PUNKTABSTAND):
             gefast += 1
         for lauf in teile:
             lauf = _gleichlauf(lauf, w)
-            hinein, heraus = _anfahrt(lauf[0], w, wolke_), _anfahrt(lauf[-1], w, wolke_)
+            hinein = _anfahrt(lauf[0], w, wolke_, grob)
+            heraus = _anfahrt(lauf[-1], w, wolke_, grob)
             mm = (len(lauf) - 1) * k.kante.Length / max(len(stellen) - 1, 1)  # längs der Kante
             if hinein is None or heraus is None:
                 gruende[ANFAHRT] = gruende.get(ANFAHRT, 0.0) + mm

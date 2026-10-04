@@ -142,6 +142,8 @@ def ausgelassen_text(bahn):
         e3.STEIL: tr("e3.grund.steil"),
         e3.KEINE_STELLUNG: tr("e3.grund.keine"),
         e3.ANFAHRT: tr("e3.grund.anfahrt"),
+        e3.TISCH: tr("e3.grund.tisch"),
+        e3.HALTER: tr("e3.grund.halter"),
     }
     teile = [
         f"{mm:.0f} mm {texte.get(grund, grund)}"
@@ -175,15 +177,39 @@ def fraeser_von(werkzeug):
     raise ValueError(tr("e3.fehler.fraeser"))
 
 
+def aufbau_von(fraeser, einspannung):
+    """entgrat3d_bahn.Aufbau aus (Halter, Schaft-Radius, Auskragung) wie wegkippen.einspannung
+    – None ohne. ValueError mit einem Satz bei einem gewinkelten Halter."""
+    if einspannung is None:
+        return None
+    from . import halter as hl
+
+    halter, schaft, auskragung = einspannung
+    if halter.gewinkelt:
+        raise ValueError(tr("e3.fehler.gewinkelt"))
+    # Reicht die Länge nicht einmal über die Schneide hinaus, ist sie die Gesamtlänge des
+    # CAM-Werkzeugs (es steht nicht in der Werkzeugverwaltung), nicht die ab Spindelnase – dann
+    # wie im vorgeschlagenen Halter.
+    auskragung = max(float(auskragung), fraeser.schneidhoehe + hl.VORSCHLAG_ZUGABE)
+    return e3.aufbau(halter, schaft, auskragung, fraeser)
+
+
 def rechne(obj, job, modell, vorschub=0.0):
-    """Die Bahn (entgrat3d_bahn.Bahn3D) für die Operation `obj` im Job. ValueError mit einem
-    Satz, wenn es nicht geht."""
+    """Die Bahn (entgrat3d_bahn.Bahn3D) für die Operation `obj` im Job – mit Schaft und Halter
+    wie „Auf der Maschine prüfen“ (aus der Werkzeugverwaltung, ohne gewählten der vorgeschlagene).
+    ValueError mit einem Satz, wenn es nicht geht."""
+    from . import wegkippen as wk
     from .werkzeuge_aus_cam import vom_controller
 
+    fraeser = fraeser_von(vom_controller(obj.ToolController))
+    try:
+        einspannung = wk.einspannung(obj.ToolController)
+    except ValueError:
+        raise ValueError(tr("e3.fehler.gewinkelt")) from None
     return bahn_fuer(
         job,
         modell,
-        fraeser_von(vom_controller(obj.ToolController)),
+        fraeser,
         float(obj.Fasenbreite),
         vo.flaechen(obj),
         fuenf=bool(obj.FuenfAchsen),
@@ -191,6 +217,7 @@ def rechne(obj, job, modell, vorschub=0.0):
         sicherheit=float(obj.Sicherheitsabstand),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         vorschub=vorschub,
+        aufbau=aufbau_von(fraeser, einspannung),
     )
 
 
@@ -205,9 +232,11 @@ def bahn_fuer(
     sicherheit=e3.SICHERHEIT,
     gleichlauf=True,
     vorschub=0.0,
+    aufbau=None,
 ):
-    """Die Bahn „Entgraten 3D“ an den Flächen und Kanten `flaechen` des Modells. ValueError mit
-    einem Satz, wenn es nicht geht."""
+    """Die Bahn „Entgraten 3D“ an den Flächen und Kanten `flaechen` des Modells; `aufbau`
+    (entgrat3d_bahn.Aufbau): Schaft und Halter, None ohne. ValueError mit einem Satz, wenn es
+    nicht geht."""
     form_teil = vs._teil(modell)
     if sicher is None:
         sicher = pf.rohteil_von_oben(job)[4] + sicherheit + 3.0
@@ -219,6 +248,7 @@ def bahn_fuer(
         sicherheit=sicherheit,
         gleichlauf=gleichlauf,
         vorschub=vorschub,
+        aufbau=aufbau,
     )
     return e3.planen(form_teil, list(flaechen), werte)
 
@@ -227,16 +257,28 @@ VORSCHAU_SCHRITT = 1.0  # mm – im Assistenten gröber
 VORSCHAU_PUNKTABSTAND = 0.35  # mm
 
 
-def vorschau(job, werkzeug, breite, flaechen, fuenf=True, vorschub=0.0):
-    """Die Bahn grob – für Kanten, Zeit und ob es geht, im Assistenten. ValueError wie
-    bahn_fuer()."""
+def vorschau(job, werkzeug, breite, flaechen, fuenf=True, vorschub=0.0, bibliothek=None):
+    """Die Bahn grob – für Kanten, Zeit und ob es geht, im Assistenten; Schaft und Halter aus der
+    Werkzeugverwaltung (ohne `bibliothek` gelesen). ValueError wie bahn_fuer()."""
+    from . import wegkippen as wk
+
+    if bibliothek is None:
+        try:
+            bibliothek = wz.Bibliothek.laden()
+        except (wz.BeschaedigteDatei, OSError):
+            bibliothek = None
     form_teil = vs._teil(job.Model.Group)
+    fraeser = fraeser_von(werkzeug)
+    einspannung = wk.einspannung_werkzeug(werkzeug, bibliothek)
+    if einspannung is None:
+        raise ValueError(tr("e3.fehler.gewinkelt"))
     werte = e3.Werte3D(
-        fraeser=fraeser_von(werkzeug),
+        fraeser=fraeser,
         breite=breite,
         art=e3.FUENF if fuenf else e3.DREI,
         sicher=pf.rohteil_von_oben(job)[4] + e3.SICHERHEIT + 3.0,
         vorschub=vorschub,
+        aufbau=aufbau_von(fraeser, einspannung),
     )
     return e3.planen(form_teil, list(flaechen), werte, VORSCHAU_SCHRITT, VORSCHAU_PUNKTABSTAND)
 

@@ -532,7 +532,9 @@ there it may go into the part as deep as the tip stands.</li>
 table); you set the tick yourself.</p>
 <ul>
 <li><b>Tilted (5 axes)</b> – only on a 5-axis machine, ticked there: the tool stands right for
-every point of the edge – perpendicular to the edge, the chamfer equally wide on both faces.
+every point of the edge – perpendicular to the edge, the chamfer equally wide on both faces;
+close above the table the chamfer mill tilts upwards about the chamfer (up to 60°), the chamfer
+stays the same.
 With a <b>chamfer mill</b> (any point angle) its flank lies in the chamfer; with a cutter with a
 <b>flat face</b> (end, bull-nose – its flat part –, face, slot mill) the face lies in the chamfer,
 the chamfer beside its centre.</li>
@@ -540,11 +542,15 @@ the chamfer beside its centre.</li>
 rising edges as long as they do not rise steeper than its flank. The chamfer is then mostly not
 symmetric: the chamfer width applies on the face looking up; the result names the other leg.</li>
 <li><b>The part is not damaged:</b> the add-on samples the faces around the edges densely and
-checks every point with the whole tool (cutting part and shank above); only the chamfer strip may
-lie inside it, nothing below the bottom of the part (the table is there). If it does not fit,
-the chamfer slides towards the tip or to the other side of the face – if that does not work
-either, the spot stays without chamfer, and the line says how much and why (“too narrow”, “too
-steep”). Clamps and holder are checked by “Check collision”.</li>
+checks every point with the cutting part; only the chamfer strip may lie inside it. <b>Shank and
+holder</b> – from the tool manager, without a chosen one the proposed one, as in “Check
+collision” – keep 1.5 mm from the whole part, and everything including the spindle keeps 1.5 mm
+above the bottom of the part (the table is there). If it does not fit, the chamfer slides towards
+the tip or to the other side of the face – if that does not work either, the spot stays without
+chamfer, and the line says how much and why (“too narrow”, “too steep”, “too close to the
+table”, “shank or holder would hit”). If the part sits higher (fixture) or the tool sticks out
+further, enter it in the tool manager – then more is possible. Clamps and the machine itself are
+checked by “Check collision”.</li>
 <li>The operation is called “Deburr 3D T3”. With 5 axes “Check on the machine”, the collision
 check and “Write program” compute the rotary axes per point.</li>
 </ul>
