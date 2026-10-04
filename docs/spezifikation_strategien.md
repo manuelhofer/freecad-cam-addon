@@ -2265,9 +2265,14 @@ Wo die 26 min des Räumens bleiben – jede Fläche für sich, vom Rohteil her:
   Ringe bis 4,5 ae mit Warnung; adaptiv sprengt sie jetzt nur noch in der spitzen Ecke (2,3 ae,
   gleich wie eng er rechnet); gewählt die Ringe mit 29 gebremsten Sätzen (bis 0,3 × F) – Last
   1,49 ae, 0,27 min (adaptiv 0,34). Der Assistent sagt am Testteil beim „Rest räumen“ „an 27
-  Sätzen langsamer (bis 30 % Vorschub)“. **Offen (Manuels Bild, 2026-10-04):** den Bereich, der für die Ringe zu viel hat,
-  erst mit D-Bahnen wie in der Nut von der offenen Seite abräumen, bis die Ringe passen, dann
-  die Ringe weiter – statt neuer Ringe oder langsamer. Erst als Bild mit Zahlen.
+  Sätzen langsamer (bis 30 % Vorschub)“. **Zurückgelegt (Manuels Bild, 2026-10-04):** den Bereich, der für die Ringe zu viel
+  hat, erst mit D-Bahnen wie in der Nut von der offenen Seite abräumen, bis die Ringe passen.
+  An seiner Skizze nachgebaut (Rohteil 120 × 70, Insel 60 × 30, Ø 12, ae 1,5; Untergrenze
+  5,0 min): adaptiv 6,29 min und hält die Last, Stiche 7,95, Ringe vom Rohteil 6,91 (bis 2,75
+  ae), Ringe um die Insel 8,95 (bis 3,9 ae, an den Rohteilkanten); D-Bahnen geschätzt 6,2 min.
+  Ohne Vorgabe nimmt das Addon dort adaptiv – Manuel: „adaptiv: 6,29 min, hält die Last << ??
+  dann das ?“. Wieder aufnehmen, wenn ein Teil kommt, an dem Ringe gewinnen und an einer
+  offenen Seite überlasten.
 - **Fertig, wenn (W-013):** der Assistent am Testteil – alle Flächen angeklickt – einen Job
   anlegt, der im Prüffenster ein Teil ohne Rest ergibt (bis auf Ecken, in die kein Fräser der
   Kiste kommt; die nennt er), das Schruppen höchstens 1,5 × Ziel braucht und keine Bahn die Last

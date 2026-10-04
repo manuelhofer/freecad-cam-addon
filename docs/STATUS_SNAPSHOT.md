@@ -125,8 +125,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   ae): zu eng für diesen Fräser, Bruchgefahr …“), beim Neuberechnen eine Warnung im Bericht.
   **Seit P-2026-10-04-33 vermieden** (Spezifikation Strategien T5e): feiner gerechnet, wo es
   reicht, sonst mit gesenktem Vorschub in den Sätzen, die die Last sprengen – am Testteil die
-  Ringe mit 29 Sätzen bis 0,3 × F, Last 1,49 ae. **Nächster Schritt:** Manuels D-Bahnen für den
-  Bereich, der für die Ringe zu viel hat – erst als Bild mit Zahlen.
+  Ringe mit 29 Sätzen bis 0,3 × F, Last 1,49 ae. Manuels D-Bahnen (Bild 2026-10-04) an seiner
+  Skizze geprüft: adaptiv ist dort schneller und hält die Last – zurückgelegt (Spezifikation
+  Strategien T5e).
 - **FreeCAD-Versionen:** 1.1.4 auf Manuels Rechner (Arch-Paket, Python 3.14) – alle 71
   Prüfungen und 98 Szenarien grün mit P-2026-10-02-85, seither je die Prüfung und das Szenario
   zum geänderten Teil. 1.1.3 und Wochen-Build 26.3.0 dev (2026-09-16) zuletzt voll grün mit
