@@ -379,7 +379,7 @@ class SchnittwerteJobDialog(QtGui.QDialog):
         if einsatz is None:
             n = vf = ""
         else:
-            werte_n, werte_vf, _senkrecht = js.werte(werkzeug, einsatz)
+            werte_n, werte_vf, _senkrecht = js.werte_im_job(werkzeug, einsatz, self.job)
             n = _zahl(werte_n) if werte_n else ""
             vf = groesse_fest(werte_vf, einheiten.VORSCHUB, 0) if werte_vf else ""
         self.tabelle.setItem(zeile, N, QtGui.QTableWidgetItem(n))

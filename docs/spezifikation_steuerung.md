@@ -480,3 +480,13 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   10 699 (Punkte ohnehin alle 0,5 mm); der Gewinn ist die Genauigkeit zwischen den Punkten und F
   in mm/min. Nicht an einer echten Steuerung geprüft – die Kinematik muss in der Steuerung
   eingerichtet sein; vor dem ersten Lauf in ihrer Simulation ansehen.
+- **P-2026-10-04-56 – Drehzahl über der Höchstdrehzahl der Maschine:** Die Schnittwerte rechneten
+  n aus vc und Ø ohne Grenze – ein Fräser Ø 2 mit vc 350 käme auf 55 700 U/min. Die Steuerung
+  begrenzt nur S, F bleibt: an einer Spindel mit 8000 U/min das Siebenfache an fz, Bruchgefahr.
+  Jetzt an zwei Stellen: `job_schnittwerte.werte_im_job` (die Höchstdrehzahl der gemerkten
+  Maschine aus dem Maschinenspeicher, `drehzahl_grenze`) beim Setzen der Controller, beim
+  Vergleich mit der Werkzeugverwaltung und in den Zeiten der Assistenten – n auf die Grenze, die
+  Vorschübe im selben Maß; und im Programm als Absicherung (`Maschineninfo.drehzahl_max`): liegt S
+  einer Bearbeitung darüber (ein älterer Job, ein Controller von Hand), schreibt es S auf die
+  Grenze und alle F dieser Bearbeitung (auch G93 und die Bohrzyklen) im selben Maß, mit Hinweis
+  und Kommentar.

@@ -1848,12 +1848,11 @@ class VierachsPanel:
         self._querachse_vorschlagen()
         self._vorschau_starten()
 
-    @staticmethod
-    def _schnittwerte_text(werkzeug, einsatz):
+    def _schnittwerte_text(self, werkzeug, einsatz):
         """„n 3979 1/min · vf 955 mm/min“ – leer ohne Fräser oder Einsatz."""
         if werkzeug is None or einsatz is None:
             return ""
-        n, vf, _senkrecht = js.werte(werkzeug, einsatz)
+        n, vf, _senkrecht = js.werte_im_job(werkzeug, einsatz, self.job)
         return tr("va.schnittwerte", n=f"{n:.0f}", vf=groesse_fest(vf, einheiten.VORSCHUB, 0))
 
     # --- Flächen (V4) ---------------------------------------------------------------------
@@ -2314,7 +2313,9 @@ class VierachsPanel:
         was hinten nicht erreicht wird."""
         from .reichweite import weg_text
 
-        _n, vorschub, _senkrecht = js.werte(self.schlichtfraeser(), self.schlichteinsatz())
+        _n, vorschub, _senkrecht = js.werte_im_job(
+            self.schlichtfraeser(), self.schlichteinsatz(), self.job
+        )
         zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
         if bahn.linien:
             text = tr("va.schlichten.ergebnis_linien", linien=f"{bahn.linien}", zeit=zeit)
@@ -2734,7 +2735,7 @@ class VierachsPanel:
         hinten nicht erreicht wird."""
         from .reichweite import weg_text
 
-        _n, vorschub, _senkrecht = js.werte(self.planfraeser(), self.planeinsatz())
+        _n, vorschub, _senkrecht = js.werte_im_job(self.planfraeser(), self.planeinsatz(), self.job)
         zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
         if getattr(bahn, "seiten", 0):
             n = bahn.bohrungen
@@ -2774,7 +2775,7 @@ class VierachsPanel:
         dazu = self.vorschau_planbohren
         bohrer = self.bohrer_dazu()
         if dazu is not None and bohrer is not None:
-            _n, f_bohren, _s = js.werte(bohrer, self._bohreinsatz(bohrer))
+            _n, f_bohren, _s = js.werte_im_job(bohrer, self._bohreinsatz(bohrer), self.job)
             n = dazu.bohrungen
             text += " " + tr(
                 "va.plan.dazu_bohren",
@@ -2984,7 +2985,9 @@ class VierachsPanel:
         hinten nicht erreicht wird."""
         from .reichweite import weg_text
 
-        _n, vorschub, _senkrecht = js.werte(self.entgratfraeser(), self.entgrateinsatz())
+        _n, vorschub, _senkrecht = js.werte_im_job(
+            self.entgratfraeser(), self.entgrateinsatz(), self.job
+        )
         zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
         if bahn.ausgelassen:
             text = tr(

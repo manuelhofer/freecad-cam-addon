@@ -3089,7 +3089,7 @@ class _Block:
         if werkzeug is None or einsatz is None:
             self.schnittwerte.setText("")
         else:
-            n, vf, _senkrecht = js.werte(werkzeug, einsatz)
+            n, vf, _senkrecht = js.werte_im_job(werkzeug, einsatz, self.panel.job)
             self.schnittwerte.setText(
                 tr("va.schnittwerte", n=f"{n:.0f}", vf=groesse_fest(vf, einheiten.VORSCHUB, 0))
             )
@@ -3114,7 +3114,7 @@ class _Block:
         if werkzeug is None or einsatz is None:
             self.hinweis.setText(tr("va.planfraeser.keiner"))
             return
-        _n, vorschub, senkrecht = js.werte(werkzeug, einsatz)
+        _n, vorschub, senkrecht = js.werte_im_job(werkzeug, einsatz, self.panel.job)
         werte = dict(self.werte(), vorschub=vorschub, eintauchen=senkrecht, **(zusatz or {}))
         # Woraus nichts anders ist als beim letzten Mal, kommt dasselbe heraus – nur das ändert
         # sich, wovon die Vorschau abhängt (am Testteil warm 4,2 s je Lauf für alle Blöcke).
@@ -5438,7 +5438,7 @@ class BearbeitungPanel:
                 werkzeug.durchmesser / 2,
                 ae,
                 ap,
-                js.werte(werkzeug, einsatz)[1],
+                js.werte_im_job(werkzeug, einsatz, self.job)[1],
             )
             if not (0 < ziel.zeit < math.inf):
                 continue

@@ -2352,5 +2352,6 @@
     "pp.feld.tcpm_ein.tooltip": "Schaltet TCPM vor der Bahn ein ({t}: Werkzeugnummer) – Siemens TRAORI, Fanuc G43.4 H{t}, Haas G234 H{t}. Leer: ohne TCPM.",
     "pp.feld.tcpm_aus": "TCPM aus",
     "pp.feld.tcpm_aus.tooltip": "Schaltet TCPM nach der Bahn ab – Siemens TRAFOOF, Fanuc und Haas G49 (danach schreibt das Programm die Werkzeuglänge im nächsten Satz mit Z wieder ein).",
-    "pp.hinweis.tcpm_fehler": "TCPM ging nicht ({grund}) – ohne TCPM geschrieben."
+    "pp.hinweis.tcpm_fehler": "TCPM ging nicht ({grund}) – ohne TCPM geschrieben.",
+    "pp.hinweis.drehzahl_begrenzt": "{operation}: S {s} liegt über der Höchstdrehzahl der Maschine ({max}) – geschrieben mit S {max} und den Vorschüben auf {prozent} %, der Span je Zahn bleibt."
 }

@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-56 drehzahl-begrenzen
+
+### EINGELESEN
+- Weiter mit dem Postprozessor („bis ins Extreme“) – beim Durchgehen gefunden.
+
+### DATEIEN
+- `camaddon/job_schnittwerte.py` (`werte_im_job`, `drehzahl_grenze`, `_job_von`; `_setze_werte`
+  und `vergleiche` damit), `camaddon/postprozessor.py` (`Maschineninfo.drehzahl_max`; S und F
+  einer Bearbeitung über der Grenze im selben Maß, mit Hinweis), `camaddon/gui_bearbeitung.py`,
+  `camaddon/gui_vierachs.py`, `camaddon/gui_job_schnittwerte.py` (Werte und Zeiten mit der Grenze),
+  `translations/de.json`, `en.json`, `tests/test_job_schnittwerte.py`,
+  `tests/test_programm_pruefen.py`, `docs/spezifikation_steuerung.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.187.1).
+
+### DONE
+- Die Drehzahl war nie auf die Maschine begrenzt: Die Steuerung hätte S begrenzt und F gelassen
+  – fz um das Verhältnis größer. Jetzt n auf die Höchstdrehzahl, die Vorschübe im selben Maß –
+  beim Setzen der Controller und im Programm als Absicherung.
+
+### TESTS
+- `test_job_schnittwerte` (Grenze halb so groß: n und vf halbiert, auch am TC), 
+  `test_programm_pruefen` (S 30000 an 12000: S12000, F × 0,4, Hinweis), `test_postprozessor`,
+  `test_sprache`; Szenarien `szenario_testteil`, `szenario_vierachs_schlichten` – OK.
+
 ## P-2026-10-04-55 tcpm-haken
 
 ### EINGELESEN

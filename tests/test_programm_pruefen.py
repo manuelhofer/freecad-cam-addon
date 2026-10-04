@@ -174,6 +174,20 @@ p_g91 = pp.programm([mit_g91], pp.steuerung("haas"), dreh, "W")
 pruefe("G91" in p_g91.zeilen and any("G91" in h for h in p_g91.hinweise), f"G91: {p_g91.hinweise}")
 lcnc_dreh = pp.programm([welle], pp.steuerung("linuxcnc"), dreh, "W").zeilen
 pruefe("G0 G43 H1 X84.000 Z3.000 C0.000" in lcnc_dreh, f"LinuxCNC Drehmaschine: {lcnc_dreh}")
+# Über der Höchstdrehzahl der Maschine: S auf sie, die Vorschübe im selben Maß – fz bleibt
+# (sonst begrenzte die Steuerung nur S, und der Span je Zahn wüchse).
+schnell = pp.Abschnitt("Klein", 3, 30000.0, False, "None", list(tasche.befehle), "Ø 2")
+begrenzt_info = pp.Maschineninfo("Fräse", drehzahl_max=12000.0)
+p_s = pp.programm([schnell], pp.steuerung("linuxcnc"), begrenzt_info, "P")
+pruefe(
+    "M3 S12000" in p_s.zeilen
+    and any("F120.000" in x for x in p_s.zeilen)  # G1 F300 × 0,4
+    and any("F240.000" in x for x in p_s.zeilen)  # G2 F600 × 0,4
+    and any("30000" in h and "12000" in h for h in p_s.hinweise),
+    f"Drehzahl begrenzt: {[x for x in p_s.zeilen if 'S' in x or 'F' in x]}, {p_s.hinweise}",
+)
+p_frei = pp.programm([tasche], pp.steuerung("linuxcnc"), begrenzt_info, "P")
+pruefe("M3 S2000" in p_frei.zeilen and not p_frei.hinweise, f"unter der Grenze: {p_frei.hinweise}")
 # Der Satz fürs Fenster.
 text = pp.nachgelesen_text([prp.Befund(prp.LAENGE, 12, "G0 Z5.000")], 40)
 pruefe(text.startswith("Nachgelesen") and "Zeile 12" in text and "G0 Z5.000" in text, text)

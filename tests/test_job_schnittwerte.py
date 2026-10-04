@@ -407,6 +407,26 @@ pruefe(
     tc.SpindleSpeed == round(n) and round(mm_min(tc.HorizFeed)) == round(vf),
     f"Werte: {tc.SpindleSpeed}, {tc.HorizFeed}",
 )
+# Über der Höchstdrehzahl der Maschine des Jobs (P-2026-10-04-56): n auf sie, die Vorschübe im
+# selben Maß – fz bleibt; vergleiche() rechnet ebenso (sonst hieße der TC gleich „veraltet“).
+js.drehzahl_grenze, echte_grenze = (lambda _job: round(n) / 2.0), js.drehzahl_grenze
+try:
+    begrenzt = js.werte_im_job(fraeser, einsaetze[1], job)
+    pruefe(
+        abs(begrenzt[0] - round(n) / 2.0) < 1e-9
+        and abs(begrenzt[1] - vf * round(n) / 2.0 / n) < 1e-6,
+        f"begrenzt: {begrenzt}, ohne {n}, {vf}",
+    )
+    js.controller_fuer(dok, job, fraeser, einsaetze[1], "1.4301", kontur)
+    pruefe(
+        tc.SpindleSpeed == round(round(n) / 2.0)
+        and abs(mm_min(tc.HorizFeed) - round(vf * round(n) / 2.0 / n)) <= 1,
+        f"TC begrenzt: {tc.SpindleSpeed}, {tc.HorizFeed}",
+    )
+finally:
+    js.drehzahl_grenze = echte_grenze
+pruefe(js.werte_im_job(fraeser, einsaetze[1], None) == js.werte(fraeser, einsaetze[1]), "ohne Job")
+js.controller_fuer(dok, job, fraeser, einsaetze[1], "1.4301", kontur)  # wieder ohne Grenze
 # Benutzt auch die Tasche den TC, bekommt die Kontur einen neuen; der alte bleibt, wie er war.
 tasche.ToolController = tc
 neu = js.controller_fuer(dok, job, fraeser, einsaetze[0], "1.4301", kontur)

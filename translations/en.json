@@ -2352,5 +2352,6 @@
     "pp.feld.tcpm_ein.tooltip": "Switches TCPM on before the path ({t}: tool number) – Siemens TRAORI, Fanuc G43.4 H{t}, Haas G234 H{t}. Empty: without TCPM.",
     "pp.feld.tcpm_aus": "TCPM off",
     "pp.feld.tcpm_aus.tooltip": "Switches TCPM off after the path – Siemens TRAFOOF, Fanuc and Haas G49 (afterwards the program switches the tool length on again in the next block with Z).",
-    "pp.hinweis.tcpm_fehler": "TCPM did not work ({grund}) – written without TCPM."
+    "pp.hinweis.tcpm_fehler": "TCPM did not work ({grund}) – written without TCPM.",
+    "pp.hinweis.drehzahl_begrenzt": "{operation}: S {s} is above the machine's top speed ({max}) – written with S {max} and the feeds at {prozent} %, the chip per tooth stays."
 }

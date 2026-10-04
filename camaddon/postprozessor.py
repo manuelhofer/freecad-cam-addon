@@ -447,6 +447,10 @@ class Maschineninfo:
     hauptspindel_name: str = ""  # ihr NC-Name („S4“)
     antrieb_c: dict = field(default_factory=dict)  # Nummer des Antriebs → seine C-Achse („C1“)
     schwenkdatensatz: str = ""  # Name des Schwenkdatensatzes (CYCLE800 _TC); leer: der einzige
+    # U/min – die Höchstdrehzahl der Spindel, die das Werkzeug antreibt; 0: unbekannt. Darüber
+    # schreibt das Programm sie und die Vorschübe im selben Maß kleiner (fz bleibt): Die
+    # Steuerung begrenzte sonst nur S, und der Span je Zahn wüchse um das Verhältnis.
+    drehzahl_max: float = 0.0
 
 
 @dataclass
@@ -785,12 +789,30 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 zeilen.extend(_zeilen(_fuellen(s.c_ein, h=_haupt(info))))
                 c_an = True
         antrieb = info.angetrieben.get(int(abschnitt.werkzeug or 0)) if info.drehmaschine else None
-        soll = (antrieb or "haupt", round(abschnitt.drehzahl, 3), abschnitt.rueckwaerts)
-        if abschnitt.drehzahl > 0 and soll != spindel_an:
+        drehzahl_ab, faktor = abschnitt.drehzahl, 1.0
+        if (
+            info.drehzahl_max > 0
+            and drehzahl_ab > info.drehzahl_max + 0.5
+            and (antrieb or not info.drehmaschine)
+        ):
+            # Über der Höchstdrehzahl: S auf sie, die Vorschübe im selben Maß (fz bleibt).
+            faktor = info.drehzahl_max / drehzahl_ab
+            hinweis = tr(
+                "pp.hinweis.drehzahl_begrenzt",
+                operation=abschnitt.name,
+                s=f"{drehzahl_ab:.0f}",
+                max=f"{info.drehzahl_max:.0f}",
+                prozent=f"{faktor * 100:.0f}",
+            )
+            hinweise.append(hinweis)
+            notiz(hinweis)
+            drehzahl_ab = info.drehzahl_max
+        soll = (antrieb or "haupt", round(drehzahl_ab, 3), abschnitt.rueckwaerts)
+        if drehzahl_ab > 0 and soll != spindel_an:
             if spindel_an is not None:
                 zeilen.extend(_spindel_aus(s, spindel_an))
             m = 4 if abschnitt.rueckwaerts else 3
-            drehzahl = f"{abschnitt.drehzahl:.0f}"
+            drehzahl = f"{drehzahl_ab:.0f}"
             if antrieb:
                 zeilen.append(_fuellen(s.angetrieben_ein, m=m, s=drehzahl, n=antrieb))
                 _hersteller(s, "angetrieben_ein", hinweise, gesehen, zeilen)
@@ -855,7 +877,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 laenge_offen = ""
             vorlage = getattr(s, ZYKLUS_FELDER.get(gross, ""), "") if zyklen_als_befehl else ""
             if vorlage:
-                zeilen.extend(_zyklus_als_befehl(s, vorlage, parameter, stand, auf_r))
+                zeilen.extend(_zyklus_als_befehl(s, vorlage, parameter, stand, auf_r, faktor))
                 saetze += 1
                 continue
             woerter = [gross]
@@ -875,7 +897,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 if adresse == "F" and gross in ("G0", "G00") and wert == 0.0:
                     continue  # FreeCADs Bohren schreibt „G0 … F0“ – modal hielte F0 den G1 danach an
                 if adresse == "F":
-                    wert *= 60.0
+                    wert *= 60.0 * faktor
                     if g93 and not s.g93:
                         # Ohne G93 (S5): F in mm/min so, dass die Zeit des Satzes stimmt – der Weg
                         # aus X, Y, Z und den Rundachsen in Grad (Spezifikation, Abschnitt 5).
@@ -914,10 +936,11 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     return Programm(_nummeriert(zeilen, s), hinweise, saetze)
 
 
-def _zyklus_als_befehl(s, vorlage, parameter, stand, auf_r):
+def _zyklus_als_befehl(s, vorlage, parameter, stand, auf_r, faktor=1.0):
     """Ein Bohrzyklus (G81 ff.) als Befehl der Steuerung: über das Loch („G0 X… Y…“), der
     Vorschub, dann `vorlage` mit {rtp} {rfp} {dp} {fdep} {q} {dtb} {f} (Steuerung.bohren …).
-    `stand` folgt: X, Y des Lochs, Z die Rückzugsebene."""
+    `stand` folgt: X, Y des Lochs, Z die Rückzugsebene; `faktor`: der Vorschub so viel kleiner
+    (die Drehzahl war über der Höchstdrehzahl)."""
     zeilen = []
     lage = [a for a in ("X", "Y") if a in parameter]
     neu = [a for a in lage if stand.get(a) is None or abs(stand[a] - float(parameter[a])) > 1e-9]
@@ -928,7 +951,7 @@ def _zyklus_als_befehl(s, vorlage, parameter, stand, auf_r):
     r = float(parameter.get("R", davor if davor is not None else tief))
     rtp = r if auf_r or davor is None else max(davor, r)
     q = float(parameter.get("Q", 0.0))
-    f = float(parameter.get("F", 0.0)) * 60.0
+    f = float(parameter.get("F", 0.0)) * 60.0 * faktor
     if f > 0:
         zeilen.append(_wort(s, "F", _zahl(f)))
     werte = {
@@ -1310,6 +1333,12 @@ def _info_aus(dok, m, msp):
         }
         info.wechsel_wks = m.wechsel_bezug(maschine) == m.WECHSEL_WKS
         info.schwenkdatensatz = m.schwenkdatensatz(maschine)
+        try:
+            from . import schruppwerte as srw
+
+            info.drehzahl_max = float(srw.grenzen_der_maschine(maschine)[0])
+        except Exception:
+            info.drehzahl_max = 0.0
         spindeln = m.spindeln(maschine)
         info.hauptspindel = m.nc_nummer(spindeln.haupt)
         if spindeln.haupt is not None:
