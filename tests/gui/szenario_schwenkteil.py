@@ -140,7 +140,14 @@ def schritte(h):
     teile = pp.abschnitte(grundjob)
     siemens = pp.programm(teile, pp.steuerung("siemens"), pp.Maschineninfo("5-Achs"), "Schwenkteil")
     zyklen = [z for z in siemens.zeilen if z.startswith("CYCLE800(1")]
-    h.pruefe(len(zyklen) == 2, f"CYCLE800: {zyklen}")
+    # Je Bearbeitung in einer Ebene ein vollständiger Einstieg hinter ihrer Sprungmarke (D-4,
+    # P-2026-10-04-38): die zweite Ebene hat zwei – dreimal CYCLE800; ohne Marken zweimal.
+    h.pruefe(len(zyklen) == 3, f"CYCLE800: {zyklen}")
+    ohne_marken = pp.programm(
+        teile, pp.steuerung("siemens", {"marken": False}), pp.Maschineninfo("5-Achs"), "S"
+    ).zeilen
+    zyklen_ohne = [z for z in ohne_marken if z.startswith("CYCLE800(1")]
+    h.pruefe(len(zyklen_ohne) == 2, f"CYCLE800 ohne Marken: {zyklen_ohne}")
     with open(
         os.path.join(os.environ.get("CAMADDON_AUSGABE", ordner), "schwenkteil.mpf"), "w"
     ) as d:
@@ -178,6 +185,20 @@ def schritte(h):
             datei.write(text)
         h.bild("0_programm", d)
         h.pruefe("keine zwei Rundachsen" not in d.hinweise.text(), f"{d.hinweise.text()!r}")
+        # Siemens: die Gruppe „5 Achsen simultan“ – TCPM aus (Manuel: „TCPM bleibt aus … später
+        # als Haken“), TRAORI und TRAFOOF vorbelegt (P-2026-10-04-55).
+        d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("siemens"))
+        yield 800
+        tcpm = d.haken.get("tcpm")
+        h.pruefe(tcpm is not None and not tcpm.isChecked(), "Haken TCPM fehlt oder ist an")
+        felder = {k: e.text() for k, (_t, e) in d.felder.items() if k in ("tcpm_ein", "tcpm_aus")}
+        h.pruefe(felder == {"tcpm_ein": "TRAORI", "tcpm_aus": "TRAFOOF"}, f"TCPM: {felder}")
+        if tcpm is not None:
+            d.einstellungen.ensureWidgetVisible(tcpm)
+            yield 300
+        h.bild("0b_tcpm", d)
+        d.wahl_steuerung.setCurrentIndex(d.wahl_steuerung.findData("linuxcnc"))
+        yield 800
         # Ohne Maschine: der gedachte Tisch A, C um den Nullpunkt – ein Hinweis sagt es.
         d.wahl_maschine.setCurrentIndex(0)
         yield 800

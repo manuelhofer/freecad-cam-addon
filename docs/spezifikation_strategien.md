@@ -2695,7 +2695,8 @@ Kollision mit Rundachsen je Station.
   `programm_ohne_tcpm`. `tests/test_simultan.py`: an allen drei Beispielen kippt die Achse von
   −20° über die Senkrechte auf +20° ohne Umschlag (Tisch/Tisch: A −20 → 20, C bleibt 90) und
   läuft 120° auf einem Kegel (C stetig bis −210°); die Spitze liegt am gedrehten Werkstück unter
-  0,001 µm neben der Bahn, keine Rundachse springt. Offen: `TRAORI` (E-1), ob C über ±180°
+  0,001 µm neben der Bahn, keine Rundachse springt. `TRAORI` (E-1) seit P-2026-10-04-55 als
+  Haken „TCPM“ in „Programm schreiben“ (Spezifikation Steuerung, 12). Offen: ob C über ±180°
   hinaus programmiert werden darf (Modulo-Achse an der Steuerung?), die Strategien.
   **G93 (P-2026-10-03-56):** `programm_ohne_tcpm(…, g93=True)` – je Satz 1 ÷ Zeit aus dem Weg der
   Spitze am Werkstück (dreht sich nur die Achse: der größte Winkel in Grad wie mm); am Beispiel

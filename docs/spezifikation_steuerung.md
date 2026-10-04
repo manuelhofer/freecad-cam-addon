@@ -462,3 +462,21 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   sauber (in `test_flanke`, `test_angestellt`, `test_postprozessor`). An Fanuc und Haas entfällt
   an der Drehmaschine ein G90 aus der Bahn (`g90_drehen`); G91 bleibt mit Hinweis – dort hieße es
   U und W, die Steuerung hält mit Alarm an, statt falsch zu fahren.
+- **P-2026-10-04-55 – TCPM als Haken (5 Achsen simultan):** Manuel (2026-10-03, E-1): „TCPM
+  bleibt aus. Es soll auf allen Maschinen gehen … TCPM später als Haken.“ Gebaut: der Haken
+  „TCPM – die Steuerung führt die Spitze“ (`tcpm`, aus) in der Gruppe „5 Achsen simultan“, die
+  Befehle `tcpm_ein`/`tcpm_aus` – Siemens `TRAORI`/`TRAFOOF`, Fanuc `G43.4 H{t}`/`G49`, Haas
+  `G234 H{t}`/`G49`, LinuxCNC und Mach leer (dort hängt es an der Konfiguration). Mit dem Haken
+  schreibt das Programm Bahnen mit Werkzeugachse je Satz (Kugel angestellt, Flanke, Wegkippen)
+  über `simultan.befehle_mit_tcpm`: wie ohne TCPM auf die Schwenkhöhe und geschwenkt, dann TCPM
+  ein, die Spitze im Werkstück (Grundjob) mit den Rundachsen je Punkt, F in mm/min (kein G93),
+  TCPM aus, hinauf, Rundachsen in die Grundstellung. Verdichtet wird nur, wo der Punkt über der
+  Spitze (Mitte der Kugel, oberes Ende der Schneide) zwischen zwei Sätzen weiter als 0,005 mm von
+  seiner Geraden abwiche, wenn die Steuerung die Spitze gerade führt und die Rundachsen linear
+  dreht (`abweichung(…, tcpm=True)`). Nach `G49` schaltet der nächste Satz mit Z die Länge wieder
+  mit G43 ein. Gerechnet wird erst beim Schreiben (`Abschnitt.befehle_tcpm`); geht es nicht, ohne
+  TCPM mit Hinweis. Gemessen: Flanke an der Tasche mit Formschräge 244 statt 245 Sätze (gerade
+  Wände – ohne TCPM war kaum etwas zu verdichten), Kugel angestellt an der Kuppel 10 695 statt
+  10 699 (Punkte ohnehin alle 0,5 mm); der Gewinn ist die Genauigkeit zwischen den Punkten und F
+  in mm/min. Nicht an einer echten Steuerung geprüft – die Kinematik muss in der Steuerung
+  eingerichtet sein; vor dem ersten Lauf in ihrer Simulation ansehen.

@@ -190,11 +190,25 @@ pruefe(
     any(z.startswith("G93") or " G93" in z for z in zeilen) and any(" A" in z for z in zeilen),
     "im Programm kein G93 oder A",
 )
-# Nachgelesen wie an der Steuerung (programm_pruefen): an jeder Steuerung nichts.
+# Nachgelesen wie an der Steuerung (programm_pruefen): an jeder Steuerung nichts – auch mit TCPM
+# (Haken): die Spitze im Werkstück, F in mm/min; verdichtet nur, wo die Mitte der Kugel sonst
+# von ihrer Geraden abwiche – nicht mehr Sätze als ohne (die Bahn hat ohnehin Punkte alle 0,5 mm:
+# 10 695 statt 10 699).
 for kennung in pp.STEUERUNGEN:
-    s = pp.steuerung(kennung)
-    befunde, _saetze = pp.nachlesen(pp.programm(mit, s, pp.Maschineninfo(), "Kuppel"), s)
-    pruefe(not befunde, f"{kennung}: {[(b.art, b.satz) for b in befunde[:3]]}")
+    for aenderung in ({}, {"tcpm": True}):
+        s = pp.steuerung(kennung, aenderung)
+        befunde, _saetze = pp.nachlesen(pp.programm(mit, s, pp.Maschineninfo(), "Kuppel"), s)
+        pruefe(not befunde, f"{kennung} {aenderung}: {[(b.art, b.satz) for b in befunde[:3]]}")
+ohne_tcpm = pp.programm(mit, pp.steuerung("siemens"), pp.Maschineninfo(), "Kuppel")
+mit_tcpm = pp.programm(mit, pp.steuerung("siemens", {"tcpm": True}), pp.Maschineninfo(), "K")
+print(ascii(f"Kuppel: {ohne_tcpm.saetze} Saetze ohne TCPM, {mit_tcpm.saetze} mit"))
+pruefe(
+    "TRAORI" in mit_tcpm.zeilen
+    and "TRAFOOF" in mit_tcpm.zeilen
+    and mit_tcpm.saetze <= ohne_tcpm.saetze
+    and not any("TCPM" in h for h in mit_tcpm.hinweise),
+    f"TCPM: {mit_tcpm.saetze} Sätze, ohne {ohne_tcpm.saetze}, {mit_tcpm.hinweise}",
+)
 
 FreeCAD.closeDocument(doc.Name)
 if fehler:

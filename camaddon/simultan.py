@@ -135,14 +135,29 @@ def bezugspunkt(punkt, bezug=0.0):
     return tuple(s + b * a for s, a in zip(punkt.spitze, punkt.achse, strict=True))
 
 
-def abweichung(maschine, von, nach, rund_von, rund_nach, bezug=0.0):
+def abweichung(maschine, von, nach, rund_von, rund_nach, bezug=0.0, tcpm=False):
     """Wie weit (mm) die Spitze am Werkstück – mit `bezug` der Punkt so weit die Achse hinauf –
     in der Mitte des Satzes `von` → `nach` (Punkt) neben der Geraden liegt, wenn die Maschine X,
-    Y, Z und die Rundachsen (`rund_…`) linear fährt – ohne TCPM. None, wenn die Maschine an einer
-    Stellung keine Abbildung hat."""
+    Y, Z und die Rundachsen (`rund_…`) linear fährt – ohne TCPM. Mit `tcpm` führt die Steuerung
+    die Spitze auf der Geraden und dreht die Rundachsen linear: Abweichen kann nur der Punkt
+    `bezug` darüber (die Mitte der Kugel, das obere Ende der Schneide). None, wenn die Maschine an
+    einer Stellung keine Abbildung hat."""
     if rund_von == rund_nach:
         return 0.0  # dieselbe Abbildung am Anfang, in der Mitte und am Ende: genau die Gerade
     mitte = {k: (rund_von[k] + rund_nach[k]) / 2 for k in rund_von}
+    if tcpm:
+        if not any(_bezuege(bezug)):
+            return 0.0
+        achse = maschine.richtung(mitte)
+        spitze = [(u + v) / 2 for u, v in zip(von.spitze, nach.spitze, strict=True)]
+        groesste = 0.0
+        for b in _bezuege(bezug):
+            ist = [spitze[0] + b * achse.x, spitze[1] + b * achse.y, spitze[2] + b * achse.z]
+            soll = [
+                (u + v) / 2 for u, v in zip(bezugspunkt(von, b), bezugspunkt(nach, b), strict=True)
+            ]
+            groesste = max(groesste, math.dist(ist, soll))
+        return groesste
     a0, a1, am = (maschine.abbildung(r) for r in (rund_von, rund_nach, mitte))
     if a0 is None or a1 is None or am is None:
         return None
@@ -161,20 +176,20 @@ def abweichung(maschine, von, nach, rund_von, rund_nach, bezug=0.0):
     return groesste
 
 
-def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False):
+def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False, tcpm=False):
     """(Punkte, Rundachsen) – zwischen zwei Sätzen im Vorschub so viele Punkte auf der Geraden
     dazu (die Achse dazwischen gemittelt, die Rundachsen von davor aus nachgeführt), bis die
     Spitze – mit `bezug` der Punkt so weit die Achse hinauf – in der Mitte jedes Satzes
     höchstens `toleranz` neben ihr liegt (abweichung); höchstens TIEFE-mal halbiert. Eilgänge
     bleiben, wie sie sind – mit `eilgaenge` auch sie, wenn sich in ihnen die Achse dreht (über
-    dem Teil: Die Spitze bleibt auf der Geraden, statt auszuschwingen)."""
+    dem Teil: Die Spitze bleibt auf der Geraden, statt auszuschwingen). `tcpm`: wie abweichung."""
     if not punkte:
         return [], []
     neu_punkte, neu_rund = [punkte[0]], [rund[0]]
     buchstaben = [a.buchstabe for a in maschine.rundachsen]
 
     def halbieren(von, nach, r_von, r_nach, tiefe):
-        fehler = abweichung(maschine, von, nach, r_von, r_nach, bezug)
+        fehler = abweichung(maschine, von, nach, r_von, r_nach, bezug, tcpm)
         if fehler is None or fehler <= toleranz or tiefe >= TIEFE:
             neu_punkte.append(nach)
             neu_rund.append(r_nach)
@@ -371,6 +386,79 @@ def befehle_auf_maschine(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOL
         )
     )
     return davor + saetze + danach
+
+
+TCPM_EIN = "TCPM_EIN"  # Satz-Namen für den Postprozessor: hier schaltet er TCPM ein bzw. aus
+TCPM_AUS = "TCPM_AUS"
+
+
+def befehle_mit_tcpm(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERANZ):
+    """Die Sätze einer Bahn mit Achse (Punkt …) für eine Steuerung mit TCPM (Siemens TRAORI,
+    Fanuc G43.4, Haas G234 – Manuel, 2026-10-03: „TCPM später als Haken“) – Path.Command und
+    (Name, Werte) für die Marken TCPM_EIN und TCPM_AUS: wie
+    befehle_auf_maschine auf die Schwenkhöhe und geschwenkt, dann TCPM_EIN, die Spitze im
+    Werkstück (Grundjob) mit den Rundachsen je Punkt, F in mm/s (kein G93 – die Steuerung führt
+    die Spitze mit F), TCPM_AUS, hinauf und die Rundachsen in die Grundstellung. Verdichtet nur,
+    wo der Punkt `bezug` über der Spitze zwischen zwei Sätzen weiter als `toleranz` von seiner
+    Geraden abwiche (abweichung mit tcpm). ValueError mit einem Satz wie rundachsen_entlang."""
+    import Path
+
+    if not punkte:
+        return []
+    rund = rundachsen_entlang(maschine, [p.achse for p in punkte])
+    if toleranz:
+        punkte, rund = verdichtet(maschine, punkte, rund, toleranz, bezug, True, tcpm=True)
+    rundachsen = [a.buchstabe for a in maschine.rundachsen]
+    saetze, vorschub, davor = [], 0.0, None
+    for punkt, stellung in zip(punkte, rund, strict=True):
+        werte = dict(zip("XYZ", (float(v) for v in punkt.spitze), strict=True))
+        werte.update(stellung)
+        if punkt.vorschub > 0:
+            vorschub = float(punkt.vorschub)
+        lage = tuple(round(werte[k], 4) for k in ("X", "Y", "Z", *rundachsen))
+        if lage == davor and not punkt.eilgang:
+            continue  # dieselbe Spitze, dieselbe Stellung – nichts zu fahren
+        davor = lage
+        if not punkt.eilgang and vorschub > 0:
+            werte["F"] = vorschub
+        saetze.append(Path.Command("G0" if punkt.eilgang else "G1", werte))
+    rund_anfang = {b: float(rund[0][b]) for b in rundachsen}
+    rund_ende = {b: float(rund[-1][b]) for b in rundachsen}
+    # Ohne TCPM davor und danach: die Lage im Programm wie befehle_auf_maschine sie schreibt.
+    erster = _im_programm(maschine, punkte[0], rund[0])
+    letzter = _im_programm(maschine, punkte[-1], rund[-1])
+    hoehe = None
+    if rohteil is not None and not rohteil.isNull():
+        hoehe = max(
+            sw.schwenkhoehe(rohteil, maschine.abbildung, rund_anfang),
+            sw.schwenkhoehe(rohteil, maschine.abbildung, rund_ende),
+        )
+    davor = []
+    if hoehe is not None:
+        davor.append(Path.Command("G0", {"Z": max(hoehe, erster[2])}))
+    davor.append(Path.Command("G0", dict(rund_anfang)))
+    if hoehe is not None:
+        davor.append(Path.Command("G0", {"X": erster[0], "Y": erster[1]}))
+    danach = []
+    if hoehe is not None:
+        danach.append(Path.Command("G0", {"Z": max(hoehe, letzter[2])}))
+    danach.append(
+        Path.Command(
+            "G0",
+            {a.buchstabe: _grundstellung(a, rund_ende[a.buchstabe]) for a in maschine.rundachsen},
+        )
+    )
+    # Die Marken als (Name, Werte) – ein Path.Command nimmt nur G-Code; der Postprozessor liest
+    # beides (postprozessor._befehl).
+    return davor + [(TCPM_EIN, {})] + saetze + [(TCPM_AUS, {})] + danach
+
+
+def _im_programm(maschine, punkt, stellung):
+    """(X, Y, Z) des Punkts im Programm ohne TCPM bei dieser Stellung der Rundachsen."""
+    abbildung = maschine.abbildung(stellung)
+    if abbildung is None:
+        raise ValueError(tr("si.fehler.linear"))
+    return tuple(float(v) for v in abbildung.punkt(punkt.spitze))
 
 
 def _grundstellung(achse, wert):

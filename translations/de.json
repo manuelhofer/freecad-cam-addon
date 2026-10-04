@@ -2344,5 +2344,13 @@
     "pp.befund.ende": "Das Programm hat kein Ende (M30).",
     "pp.feld.kopf_drehmaschine": "Programmanfang (Drehmaschine)",
     "pp.feld.kopf_drehmaschine.tooltip": "Der Anfang des Programms an der Drehmaschine statt des Anfangs für die Fräse – leer: derselbe. An Fanuc und Haas ist G90 an der Drehmaschine der Längsdrehzyklus (nicht „absolut“) und G49 gibt es dort nicht; darum ein eigener Anfang.",
-    "pp.hinweis.g91_drehen": "{operation}: fährt inkrementell (G91) – an dieser Drehmaschine heißt das U und W; die Steuerung hält an dem Satz mit Alarm an."
+    "pp.hinweis.g91_drehen": "{operation}: fährt inkrementell (G91) – an dieser Drehmaschine heißt das U und W; die Steuerung hält an dem Satz mit Alarm an.",
+    "pp.gruppe.simultan": "5 Achsen simultan",
+    "pp.haken.tcpm": "TCPM – die Steuerung führt die Spitze",
+    "pp.haken.tcpm.erklaerung": "An: Bahnen mit Werkzeugachse je Satz (Kugel angestellt, Flanke, Wegkippen) stehen im Programm als Spitze im Werkstück mit den Rundachsen, F in mm/min – die Steuerung rechnet die Maschinenachsen und hält die Spitze auf der Geraden (Siemens TRAORI, Fanuc G43.4, Haas G234). Kürzer und genauer, braucht aber die Option an der Steuerung und die richtige Kinematik in ihr. Aus: das Addon rechnet X, Y, Z der Maschine selbst, in G93 – geht an jeder 5-Achs-Maschine.",
+    "pp.feld.tcpm_ein": "TCPM ein",
+    "pp.feld.tcpm_ein.tooltip": "Schaltet TCPM vor der Bahn ein ({t}: Werkzeugnummer) – Siemens TRAORI, Fanuc G43.4 H{t}, Haas G234 H{t}. Leer: ohne TCPM.",
+    "pp.feld.tcpm_aus": "TCPM aus",
+    "pp.feld.tcpm_aus.tooltip": "Schaltet TCPM nach der Bahn ab – Siemens TRAFOOF, Fanuc und Haas G49 (danach schreibt das Programm die Werkzeuglänge im nächsten Satz mit Z wieder ein).",
+    "pp.hinweis.tcpm_fehler": "TCPM ging nicht ({grund}) – ohne TCPM geschrieben."
 }

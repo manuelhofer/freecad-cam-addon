@@ -293,10 +293,11 @@ def punkte(befehle, achsen_je_satz):
     return ergebnis
 
 
-def befehle(op, maschine, rohteil=None):
+def befehle(op, maschine, rohteil=None, tcpm=False):
     """Die Sätze der Operation, wie `maschine` (schwenken.Maschine) sie fährt: die Rundachsen je
     Punkt, die Spitze und das obere Ende der Schneide auf der Geraden (simultan.
-    befehle_auf_maschine). ValueError mit einem Satz, wenn es nicht geht."""
+    befehle_auf_maschine; mit `tcpm` simultan.befehle_mit_tcpm). ValueError mit einem Satz, wenn
+    es nicht geht."""
     from . import angestellt as an
 
     if rohteil is None:
@@ -307,4 +308,5 @@ def befehle(op, maschine, rohteil=None):
         raise ValueError(tr("an.fehler.veraltet", operation=op.Label))
     schneide = float(getattr(op, "Schneide", 0.0) or 0.0)
     bezug = (0.0, schneide) if schneide > 0 else 0.0
-    return si.befehle_auf_maschine(maschine, punkte(alle, achsen_je_satz), rohteil, bezug)
+    schreiben = si.befehle_mit_tcpm if tcpm else si.befehle_auf_maschine
+    return schreiben(maschine, punkte(alle, achsen_je_satz), rohteil, bezug)

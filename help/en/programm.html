@@ -159,6 +159,24 @@ and checked for collisions (in the player “… – plane A−30 C0”): a plan
 positions, say A−20 C10 and A+20 C190 – CYCLE800 chooses between them with the direction
 (<code>_DIR</code>). If it takes the other one, nobody has checked it.</p>
 
+<a name="simultan"></a>
+<h3>5-axis simultaneous</h3>
+<p>Paths with a tool axis per block – the ball mill tilted, the flank, tilting away – are written
+in two ways:</p>
+<ul>
+<li><b>Without TCPM</b> (preset): the add-on computes the rotary axes and the machine's X, Y, Z
+for every point itself. Between two blocks the machine moves each axis straight – so it inserts
+enough points that the tip stays within 0.005 mm of the path, and writes the feed as 1 ÷ time
+(G93). Works on every 5-axis machine whose kinematics in “Edit machine” are right.</li>
+<li><b>TCPM – the control guides the tip</b>: the program holds the tip on the workpiece with the
+rotary axes, F in mm/min; the control computes the machine axes and keeps the tip on the line.
+Siemens “TRAORI” … “TRAFOOF”, Fanuc “G43.4 H1” … “G49”, Haas “G234 H1” … “G49” (afterwards the
+next block with Z switches the tool length on again with G43). Points in between only where the
+ball centre or the top of the cutting edge would otherwise leave its line. Shorter and more exact
+– but needs the option on the control and the right kinematics in it. On LinuxCNC and Mach the
+field is empty (there it depends on the machine configuration).</li>
+</ul>
+
 <a name="bohren"></a>
 <h3>Drilling cycles</h3>
 <p>FreeCAD's drilling writes <b>G81</b> (drill), <b>G82</b> (with dwell), <b>G83</b> (deep,

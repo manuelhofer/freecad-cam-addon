@@ -45,6 +45,7 @@ from dataclasses import dataclass, field
 
 from . import messstopp as ms
 from . import schwenken as sw
+from . import simultan as si
 from . import simultan_operation as so
 from .sprache import tr
 
@@ -153,6 +154,13 @@ class Steuerung:
     schwenken: str = ""
     schwenken_aus: str = ""
     schwenkzyklus: bool = True
+    # 5 Achsen simultan mit TCPM (Manuel, 2026-10-03: „TCPM bleibt aus … später als Haken“): die
+    # Steuerung führt die Spitze – im Programm die Spitze im Werkstück und die Rundachsen je
+    # Punkt, F in mm/min statt G93 ({t}: Werkzeugnummer). Aus oder leer: ohne TCPM, die
+    # Rundachsen und X, Y, Z der Maschine gerechnet, in G93 (simultan.befehle_auf_maschine).
+    tcpm: bool = False
+    tcpm_ein: str = ""
+    tcpm_aus: str = ""
     # Bohrzyklen (Spezifikation Steuerung, E8): FreeCADs G81, G82, G83, G73 und G85 als Befehl
     # der Steuerung – je Bohrung über dem Loch („G0 X… Y…“), dann der Befehl mit {rtp}
     # Rückzugsebene (G98: die Höhe davor, G99: R), {rfp} Bezugsebene (R), {dp} Tiefe (Z),
@@ -206,6 +214,8 @@ BEFEHLSFELDER = (
     "kuehlung_aus",
     "schwenken",
     "schwenken_aus",
+    "tcpm_ein",
+    "tcpm_aus",
     "bohren",
     "bohren_verweilen",
     "tiefbohren",
@@ -232,6 +242,7 @@ HAKEN = (
     "c_achse",
     "g93",
     "schwenkzyklus",
+    "tcpm",
 )
 
 _KOPF_FRAESEN = "%\n{kommentar_name}\nG17 G21 G40 G49 G80 G90"
@@ -310,6 +321,10 @@ STEUERUNGEN = {
         # ersten zwei Buchstaben, höchstens 32 Zeichen).
         marke="{marke}:",
         schwenken_aus="CYCLE800()",
+        # TRAORI: Transformation mit Orientierung – X, Y, Z sind die Spitze im Werkstück, die
+        # Rundachsen stehen je Satz; TRAFOOF schaltet sie ab (Grundlagen, „Fünfachs-Transformation“).
+        tcpm_ein="TRAORI",
+        tcpm_aus="TRAFOOF",
         # G81 ff. gibt es nur im ISO-Sprachmodus G291 (Grundlagen 03/2010, S. 535); nach dem
         # Handbuch (Arbeitsvorbereitung 10/2015, S. 651–663): CYCLE81(RTP, RFP, SDIS, DP),
         # CYCLE82(…, DPR, DTB), CYCLE83(…, DPR, FDEP, FDPR, _DAM, DTB, DTS, FRF, VARI) mit
@@ -349,6 +364,9 @@ STEUERUNGEN = {
         ),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
+        # G43.4: Werkzeugspitzensteuerung Typ 1 (Rundachsen im Satz); G49 schaltet sie ab.
+        tcpm_ein="G43.4 H{t}",
+        tcpm_aus="G49",
         g90_drehen=False,
         # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
@@ -378,6 +396,9 @@ STEUERUNGEN = {
         glaetten_angebot=(Glaetten("g187", "G187 P3", False),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
+        # G234: Tool Center Point Control (TCPC); G49 schaltet sie ab.
+        tcpm_ein="G234 H{t}",
+        tcpm_aus="G49",
         g90_drehen=False,
         # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
@@ -448,6 +469,9 @@ class Abschnitt:
     einspannung: str = ""
     knapp: str = ""
     messstopp: bool = False  # ein Messstopp: keine Bearbeitung – kein erzwungener Wechsel
+    # 5 Achsen simultan: eine Funktion ohne Argumente, die die Sätze für eine Steuerung mit TCPM
+    # gibt (simultan.befehle_mit_tcpm) – erst beim Schreiben gerechnet, nur mit Haken „TCPM“.
+    befehle_tcpm: object = None
 
 
 @dataclass
@@ -506,6 +530,8 @@ def feld_text(feld):
         "kuehlung_aus": (tr("pp.feld.kuehlung_aus"), tr("pp.feld.kuehlung_aus.tooltip")),
         "schwenken": (tr("pp.feld.schwenken"), tr("pp.feld.schwenken.tooltip")),
         "schwenken_aus": (tr("pp.feld.schwenken_aus"), tr("pp.feld.schwenken_aus.tooltip")),
+        "tcpm_ein": (tr("pp.feld.tcpm_ein"), tr("pp.feld.tcpm_ein.tooltip")),
+        "tcpm_aus": (tr("pp.feld.tcpm_aus"), tr("pp.feld.tcpm_aus.tooltip")),
         "bohren": (tr("pp.feld.bohren"), tr("pp.feld.bohren.tooltip")),
         "bohren_verweilen": (
             tr("pp.feld.bohren_verweilen"),
@@ -528,6 +554,7 @@ def haken_text(feld):
         "c_achse": (tr("pp.haken.c_achse"), tr("pp.haken.c_achse.erklaerung")),
         "g93": (tr("pp.haken.g93"), tr("pp.haken.g93.erklaerung")),
         "schwenkzyklus": (tr("pp.haken.schwenkzyklus"), tr("pp.haken.schwenkzyklus.erklaerung")),
+        "tcpm": (tr("pp.haken.tcpm"), tr("pp.haken.tcpm.erklaerung")),
     }.get(feld, (feld, ""))
 
 
@@ -686,6 +713,13 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
             if s.kommentare:
                 zeilen.append(_kommentar(s, abschnitt.hinweis))
         befehle_roh = abschnitt.befehle
+        if s.tcpm and s.tcpm_ein and abschnitt.befehle_tcpm is not None:
+            try:
+                befehle_roh = abschnitt.befehle_tcpm()
+            except ValueError as grund:
+                hinweise.append(
+                    f"{abschnitt.name}: {tr('pp.hinweis.tcpm_fehler', grund=str(grund))}"
+                )
         if abschnitt.schwenkung is not None and not zyklus:
             # Fährt die Maschine davor zum Wechselpunkt ganz oben, schwenkt sie dort – nicht
             # erst wieder hinunter auf die Schwenkhöhe.
@@ -785,6 +819,13 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                         laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
                     continue
             gross = name_.upper()
+            if gross in (si.TCPM_EIN, si.TCPM_AUS):
+                ein = gross == si.TCPM_EIN
+                zeilen.extend(_zeilen(_fuellen(s.tcpm_ein if ein else s.tcpm_aus, t=werkzeug or 0)))
+                if not ein and s.laenge_ein and not info.drehmaschine:
+                    # G49 hebt mit TCPM auch die Länge auf: im nächsten Satz mit Z wieder an.
+                    laenge_offen = _fuellen(s.laenge_ein, t=int(werkzeug or 0))
+                continue
             if gross == "G93":
                 g93 = True
                 if s.g93:
@@ -1073,8 +1114,10 @@ def _abschnitte_des_jobs(job, maschine):
                 gerechnet[id(fuer_op)] = (fuer_op, sw.schwenkung_fuer(job, fuer_op))
             schwenkung = gerechnet[id(fuer_op)][1]
         befehle, hinweis = list(op.Path.Commands), ""
+        befehle_tcpm = None
         if not geschwenkt and so.ist_simultan(op):
             befehle, hinweis = _simultan(op, maschine)
+            befehle_tcpm = _simultan_tcpm(op, maschine)
         tc = getattr(op, "ToolController", None)
         nummer = int(getattr(tc, "ToolNumber", 0) or 0) if tc is not None else 0
         drehzahl = float(getattr(tc, "SpindleSpeed", 0.0) or 0.0) if tc is not None else 0.0
@@ -1093,6 +1136,7 @@ def _abschnitte_des_jobs(job, maschine):
                 hinweis,
                 *_einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt),
                 ms.ist_messstopp(op),
+                befehle_tcpm,
             )
         )
     return ergebnis
@@ -1168,6 +1212,15 @@ def _simultan(op, maschine):
         if senkrecht:
             return list(op.Path.Commands), tr("pp.hinweis.angestellt_fehler", grund=str(grund))
         return [], tr("pp.hinweis.flanke_fehler", grund=str(grund))
+
+
+def _simultan_tcpm(op, maschine):
+    """Eine Funktion ohne Argumente, die die Sätze der Operation für eine Steuerung mit TCPM gibt
+    (simultan_operation.befehle mit tcpm) – None ohne Maschine mit zwei Rundachsen."""
+    fuer_op = maschine(op) if callable(maschine) else maschine
+    if fuer_op is None or len(getattr(fuer_op, "rundachsen", ())) < 2:
+        return None
+    return lambda: so.befehle(op, fuer_op, tcpm=True)
 
 
 def maschineninfo(job):

@@ -2344,5 +2344,13 @@
     "pp.befund.ende": "The program has no end (M30).",
     "pp.feld.kopf_drehmaschine": "Program start (lathe)",
     "pp.feld.kopf_drehmaschine.tooltip": "The start of the program on a lathe instead of the one for a mill – empty: the same. On Fanuc and Haas lathes G90 is the turning cycle (not “absolute”) and there is no G49; hence a start of its own.",
-    "pp.hinweis.g91_drehen": "{operation}: moves incrementally (G91) – on this lathe that is U and W; the control stops at that block with an alarm."
+    "pp.hinweis.g91_drehen": "{operation}: moves incrementally (G91) – on this lathe that is U and W; the control stops at that block with an alarm.",
+    "pp.gruppe.simultan": "5-axis simultaneous",
+    "pp.haken.tcpm": "TCPM – the control guides the tip",
+    "pp.haken.tcpm.erklaerung": "On: paths with a tool axis per block (ball mill tilted, flank, tilting away) are in the program as the tip on the workpiece with the rotary axes, F in mm/min – the control computes the machine axes and keeps the tip on the line (Siemens TRAORI, Fanuc G43.4, Haas G234). Shorter and more exact, but needs the option on the control and the right kinematics in it. Off: the add-on computes the machine's X, Y, Z itself, in G93 – works on every 5-axis machine.",
+    "pp.feld.tcpm_ein": "TCPM on",
+    "pp.feld.tcpm_ein.tooltip": "Switches TCPM on before the path ({t}: tool number) – Siemens TRAORI, Fanuc G43.4 H{t}, Haas G234 H{t}. Empty: without TCPM.",
+    "pp.feld.tcpm_aus": "TCPM off",
+    "pp.feld.tcpm_aus.tooltip": "Switches TCPM off after the path – Siemens TRAFOOF, Fanuc and Haas G49 (afterwards the program switches the tool length on again in the next block with Z).",
+    "pp.hinweis.tcpm_fehler": "TCPM did not work ({grund}) – written without TCPM."
 }

@@ -72,6 +72,7 @@ GRUPPEN = (
     ("c_achse", "c_achse", ("c_achse", "c_ein", "c_aus")),
     ("vorschub", "vorschub", ("g93", "vorschub_zeit", "vorschub_minute", "vorschub_minute_drehen")),
     ("schwenken", "schwenken", ("schwenkzyklus", "schwenken", "schwenken_aus")),
+    ("simultan", "simultan", ("tcpm", "tcpm_ein", "tcpm_aus")),
     (
         "bohren",
         "bohren",
@@ -93,6 +94,9 @@ NUR_DREHEN = {
     "c_aus",
 }
 NUR_FRAESEN = {
+    "tcpm",
+    "tcpm_ein",
+    "tcpm_aus",
     "wechsel_fraesen",
     "laenge_ein",
     "vorschub_minute",
@@ -120,6 +124,8 @@ HAKEN_VON = {
     "vorschub_minute_drehen": "g93",
     "schwenken": "schwenkzyklus",
     "schwenken_aus": "schwenkzyklus",
+    "tcpm_ein": "tcpm",
+    "tcpm_aus": "tcpm",
 }
 
 
@@ -138,6 +144,7 @@ def gruppen_titel(gruppe):
         "c_achse": tr("pp.gruppe.c_achse"),
         "vorschub": tr("pp.gruppe.vorschub"),
         "schwenken": tr("pp.gruppe.schwenken"),
+        "simultan": tr("pp.gruppe.simultan"),
         "bohren": tr("pp.gruppe.bohren"),
         "glaetten": tr("pp.gruppe.glaetten"),
     }[gruppe]

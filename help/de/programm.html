@@ -165,6 +165,25 @@ Kollision geprüft hat (im Abspieler „… – Ebene A−30 C0“): Zu einer Eb
 Stellungen, etwa A−20 C10 und A+20 C190 – zwischen ihnen wählt CYCLE800 mit der Richtung
 (<code>_DIR</code>). Nimmt sie die andere, hat diese niemand geprüft.</p>
 
+<a name="simultan"></a>
+<h3>5 Achsen simultan</h3>
+<p>Bahnen mit einer Werkzeugachse je Satz – der Kugelfräser angestellt, die Flanke, das
+Wegkippen – schreibt das Programm auf zwei Wegen:</p>
+<ul>
+<li><b>Ohne TCPM</b> (vorbelegt): Das Addon rechnet für jeden Punkt die Rundachsen und X, Y, Z
+der Maschine selbst. Zwischen zwei Sätzen fährt die Maschine jede Achse gerade – darum legt es so
+viele Punkte dazwischen, dass die Spitze höchstens 0,005 mm neben der Bahn bleibt, und schreibt
+den Vorschub als 1 ÷ Zeit (G93). Geht an jeder 5-Achs-Maschine, deren Kinematik in „Maschine
+bearbeiten“ stimmt.</li>
+<li><b>TCPM – die Steuerung führt die Spitze</b>: Im Programm steht die Spitze im Werkstück mit
+den Rundachsen, F in mm/min; die Steuerung rechnet die Maschinenachsen und hält die Spitze auf der
+Geraden. Siemens „TRAORI“ … „TRAFOOF“, Fanuc „G43.4 H1“ … „G49“, Haas „G234 H1“ … „G49“ (danach
+schaltet der nächste Satz mit Z die Werkzeuglänge mit G43 wieder ein). Punkte dazwischen nur, wo
+die Mitte der Kugel bzw. das obere Ende der Schneide sonst von ihrer Geraden abwiche. Kürzer und
+genauer – braucht aber die Option an der Steuerung und die richtige Kinematik darin. An LinuxCNC
+und Mach ist das Feld leer (dort hängt es an der Konfiguration der Maschine).</li>
+</ul>
+
 <a name="bohren"></a>
 <h3>Bohrzyklen</h3>
 <p>FreeCADs Bohren schreibt <b>G81</b> (bohren), <b>G82</b> (mit Verweilen), <b>G83</b>

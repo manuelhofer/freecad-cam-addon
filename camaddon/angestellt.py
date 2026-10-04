@@ -281,11 +281,12 @@ def punkte(befehle, achsen_je_satz, radius):
     return ergebnis
 
 
-def befehle(op, maschine, rohteil=None):
+def befehle(op, maschine, rohteil=None, tcpm=False):
     """Die Sätze der Operation, wie `maschine` (schwenken.Maschine) sie fährt: die Spitze um die
     Mitte der Kugel gekippt (punkte), die Mitte auf der Geraden (simultan.befehle_auf_maschine
-    mit dem Radius als Bezug; `rohteil` ohne: das des Jobs). ValueError mit einem Satz, wenn es
-    nicht geht."""
+    mit dem Radius als Bezug; `rohteil` ohne: das des Jobs); mit `tcpm` für eine Steuerung, die
+    die Spitze führt (simultan.befehle_mit_tcpm). ValueError mit einem Satz, wenn es nicht
+    geht."""
     if rohteil is None:
         rohteil = rohteil_von(op)
     radius = radius_von(op)
@@ -295,7 +296,8 @@ def befehle(op, maschine, rohteil=None):
     achsen_je_satz = [tuple(v) for v in op.Werkzeugachsen]
     if len(achsen_je_satz) != len(alle):
         raise ValueError(tr("an.fehler.veraltet", operation=op.Label))
-    return si.befehle_auf_maschine(maschine, punkte(alle, achsen_je_satz, radius), rohteil, radius)
+    schreiben = si.befehle_mit_tcpm if tcpm else si.befehle_auf_maschine
+    return schreiben(maschine, punkte(alle, achsen_je_satz, radius), rohteil, radius)
 
 
 def rohteil_von(op):

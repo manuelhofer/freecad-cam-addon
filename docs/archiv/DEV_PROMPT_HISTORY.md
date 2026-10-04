@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-55 tcpm-haken
+
+### EINGELESEN
+- Manuel, 2026-10-03 (E-1): „TCPM bleibt aus … TCPM später als Haken.“ Und 2026-10-04: „mach
+  Werkzeugwege für 5-Achs simultan? … oder verbessere die Postprozessoren bis ins Extreme??“
+
+### DATEIEN
+- `camaddon/simultan.py` (`befehle_mit_tcpm`, `abweichung`/`verdichtet` mit `tcpm`,
+  `TCPM_EIN`/`TCPM_AUS`), `camaddon/angestellt.py`, `camaddon/flanke.py`,
+  `camaddon/simultan_operation.py` (`tcpm`), `camaddon/postprozessor.py` (Haken `tcpm`,
+  `tcpm_ein`/`tcpm_aus`, `Abschnitt.befehle_tcpm`, `_simultan_tcpm`; nach G49 die Länge wieder),
+  `camaddon/gui_programm.py` (Gruppe „5 Achsen simultan“), `translations/de.json`, `en.json`,
+  `help/de|en/programm.html` (Anker `simultan`), `tests/test_flanke.py`, `tests/test_angestellt.py`,
+  `tests/gui/szenario_schwenkteil.py` (TCPM-Schritt; CYCLE800 je Marke – Erwartung seit -38
+  veraltet), `docs/spezifikation_steuerung.md`, `docs/spezifikation_strategien.md` (16 S1),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.187.0).
+
+### DONE
+- TCPM als Haken (aus): Siemens TRAORI/TRAFOOF, Fanuc G43.4/G49, Haas G234/G49 – die Spitze im
+  Werkstück, F in mm/min, verdichtet nur für den Punkt über der Spitze. Flanke 244 statt 245,
+  Kuppel 10 695 statt 10 699 Sätze; nachgelesen an allen Steuerungen sauber.
+
+### TESTS
+- `test_flanke` (TCPM an Siemens/Fanuc/Haas: Befehle, kein G93 dazwischen, erster Satz = Spitze
+  der Bahn, nachgelesen), `test_angestellt`, `test_simultan`, `test_postprozessor`,
+  `test_programm_pruefen`, `test_wegkippen`, `test_sprache`; Szenario `szenario_schwenkteil`
+  (Gruppe im Fenster, TCPM aus, TRAORI/TRAFOOF) – OK.
+
 ## P-2026-10-04-54 g93-jeder-satz-g90-drehen
 
 ### EINGELESEN

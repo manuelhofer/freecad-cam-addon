@@ -269,6 +269,38 @@ for kennung in pp.STEUERUNGEN:
         s = pp.steuerung(kennung, aenderung)
         befunde, _saetze = pp.nachlesen(pp.programm(mit, s, info5, "Flanke"), s, info5)
         pruefe(not befunde, f"{kennung} {aenderung}: {[(b.art, b.satz) for b in befunde[:3]]}")
+# Mit TCPM (Haken; Manuel: „TCPM später als Haken“): die Spitze im Werkstück, F in mm/min, kein
+# G93 dazwischen; der erste Satz im Vorschub ist genau die Spitze der Bahn; nicht mehr Sätze.
+erster_g1 = next(c for c in op.Path.Commands if c.Name in ("G1", "G01"))
+ohne_tcpm = pp.programm(mit, pp.steuerung("siemens"), info5, "Flanke")
+for kennung, ein, aus in (
+    ("siemens", "TRAORI", "TRAFOOF"),
+    ("fanuc", "G43.4 H5", "G49"),
+    ("haas", "G234 H5", "G49"),
+):
+    s = pp.steuerung(kennung, {"tcpm": True})
+    p_t = pp.programm(mit, s, info5, "Flanke")
+    z_t = p_t.zeilen
+    k0 = z_t.index(ein) if ein in z_t else -1
+    k1 = z_t.index(aus, k0) if k0 >= 0 and aus in z_t[k0:] else -1
+    innen = z_t[k0:k1]
+    g1 = next((x for x in innen if x.startswith("G1")), "")
+    pruefe(
+        k0 >= 0 and k1 > k0 and not any("G93" in x for x in innen) and " F" in g1,
+        f"{kennung} TCPM: {z_t[max(k0, 0):max(k0, 0) + 6]}",
+    )
+    werte = {w[0]: float(w[1:]) for w in g1.split()[1:] if w[0] in "XYZ"}
+    soll = {k: float(erster_g1.Parameters[k]) for k in "XYZ" if k in erster_g1.Parameters}
+    pruefe(
+        werte and all(abs(werte[k] - soll[k]) < 1e-3 for k in soll),
+        f"{kennung} TCPM: erster Satz {g1!r}, Bahn {soll}",
+    )
+    befunde, _saetze = pp.nachlesen(p_t, s, info5)
+    pruefe(not befunde, f"{kennung} TCPM nachgelesen: {[(b.art, b.satz) for b in befunde[:3]]}")
+    if kennung == "siemens":
+        print(ascii(f"Flanke: {ohne_tcpm.saetze} Saetze ohne TCPM, {p_t.saetze} mit"))
+        # Gerade Wände, die Achse hält: ohne TCPM war nichts zu verdichten – nicht mehr Sätze.
+        pruefe(p_t.saetze <= ohne_tcpm.saetze, f"TCPM {p_t.saetze} Sätze, ohne {ohne_tcpm.saetze}")
 
 FreeCAD.closeDocument(doc.Name)
 if fehler:
