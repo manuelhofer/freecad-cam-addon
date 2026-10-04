@@ -20,7 +20,7 @@ import numpy as np
 from . import bahn as bn
 from . import fahrzeit as fz
 
-FREIVORSCHUB = fz.EILGANG  # mm/min – ohne Maschine, wie „Adaptiv – schneller Freivorschub“
+FREIVORSCHUB = fz.EILGANG  # mm/min – ohne Maschine (oder ohne ihren Höchstvorschub)
 VORLAUF = 2.0  # mm vor dem Material bleibt der Schnittvorschub
 MINDEST = 5.0  # mm – kürzere freie Stücke lohnen das Beschleunigen nicht
 RAND = 1.0  # mm über den Radius hinaus muss es frei sein
@@ -155,9 +155,28 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
     return neu, schnell_weg
 
 
+def freivorschub_fuer(job):
+    """Der Freivorschub (mm/min) für einen Job: der kleinste Höchstvorschub der Linearachsen
+    seiner Maschine (die gemerkte – maschinenspeicher kennt ihn, ohne die Datei zu öffnen);
+    ohne Maschine oder ohne eingetragenen Höchstvorschub FREIVORSCHUB (Manuel, 2026-10-04: „die
+    Eilganggeschwindigkeit sollte ja in der Maschine stehen … wenn nichts drinnen steht, dann
+    halt 10 m/min“)."""
+    from . import maschinenspeicher as msp
+    from . import reichweite as rw
+
+    try:
+        pfad = rw.gemerkte_maschine(job)
+        eintrag = msp.finde(msp.laden(), pfad) if pfad else None
+    except Exception:
+        eintrag = None
+    vorschub = float(getattr(eintrag, "vorschub", 0.0) or 0.0)
+    return vorschub if vorschub > 0 else FREIVORSCHUB
+
+
 def fuer_operation(job, op, punkte, vorschub, form=None, freivorschub=None):
     """schneller() für die Operation `op` im Job: das Material vor ihr (materialstand), ihr
-    Fräser – unverändert ohne Rohteil im Quader oder ohne Form."""
+    Fräser, der Freivorschub ihrer Maschine (`freivorschub`: höchstens so viel) – unverändert
+    ohne Rohteil im Quader oder ohne Form."""
     from . import materialstand as mst
     from . import vierachs_schlichten as vs
 
@@ -167,4 +186,6 @@ def fuer_operation(job, op, punkte, vorschub, form=None, freivorschub=None):
     if stand is None:
         return list(punkte), 0.0
     quader = mst._kopie(stand).quader
-    return schneller(punkte, form, quader, vorschub, freivorschub or FREIVORSCHUB)
+    maschine = freivorschub_fuer(job)
+    frei = min(freivorschub, maschine) if freivorschub else maschine
+    return schneller(punkte, form, quader, vorschub, frei)

@@ -460,12 +460,20 @@ def transformationen(maschine):
     return [o for o in maschine.Group if ist_transformation(o)]
 
 
+# Der Höchstvorschub einer neuen Linearachse, solange keiner eingetragen ist (mm/min) – mit ihm
+# fahren die Bahnen im Freien (freiwege; Manuel, 2026-10-04: „wenn nichts drinnen steht ..
+# dann halt 10 m/min als Standard setzen in der Maschine beim Anlegen“).
+VORSCHUB_MAX_VORGABE = 10000.0
+
+
 def neue_betriebsart(maschine, gelenk, art, nc_name):
     objekt = maschine.newObject("App::FeaturePython", "Betriebsart")
     Betriebsart(objekt)
     objekt.Gelenk = gelenk
     objekt.Art = art
     objekt.NcName = nc_name
+    if art == ART_LINEAR and not float(getattr(objekt, "VorschubMax", 0.0) or 0.0):
+        objekt.VorschubMax = VORSCHUB_MAX_VORGABE
     beschrifte(objekt)
     return objekt
 

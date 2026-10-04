@@ -2293,9 +2293,12 @@ das ist“; die Geschwindigkeit dafür gehört zur Maschine.
   (der fährt auf vielen Steuerungen keine Gerade) –, die letzten 2 mm vor dem nächsten Material
   langsam (das Bremsen davor macht die Vorausschau der Steuerung). Eilgänge, Eintauchen und
   Rampen bleiben; ein Bogen nur ganz.
-- Der Freivorschub: 10 m/min (wie „Adaptiv – schneller Freivorschub“); mit dieser Wahl am
-  Räumen dessen eingestellter Wert als Obergrenze. Noch nicht: der Höchstvorschub der Maschine
-  des Jobs.
+- Der Freivorschub: der kleinste Höchstvorschub der Linearachsen der Maschine des Jobs (die
+  gemerkte, aus dem Maschinen-Speicher – ohne die Datei zu öffnen); ohne Maschine oder Wert
+  10 m/min. Eine neue Linearachse bekommt beim Anlegen 10 m/min, solange keiner eingetragen ist
+  (`maschine.VORSCHUB_MAX_VORGABE`; Manuel: „wenn nichts drinnen steht .. dann halt 10 m/min als
+  Standard setzen in der Maschine beim Anlegen“, P-2026-10-04-40). Mit „Adaptiv – schneller
+  Freivorschub“ am Räumen gilt dessen Wert, höchstens der der Maschine.
 - Gilt beim Rechnen der Operation (Räumen, Planfräsen, Kontur, Nut, 3D-Schruppen) – die Zeiten
   im Assistenten rechnen noch ohne (sie vergleichen Strategien; die Zeit der Operation und
   „Auf der Maschine prüfen“ mit).

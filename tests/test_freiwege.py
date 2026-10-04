@@ -105,6 +105,21 @@ for von, nach in zip(neu, neu[1:], strict=False):
             abtrag += float((vor - q.h).clip(min=0).sum()) * zelle
 pruefe(abtrag < 1e-6, f"im Schnellen abgetragen: {abtrag:.3f} mm³")
 
+# --- Der Freivorschub aus der Maschine (Manuel: „wenn nichts drinnen steht .. dann halt 10 m/min“)
+from camaddon import PARAMETER_PFAD  # noqa: E402
+from camaddon import maschinenspeicher as msp  # noqa: E402
+from camaddon import reichweite as rw  # noqa: E402
+
+datei = os.path.join(os.path.dirname(msp.datei_pfad()), "freiwege_maschine.FCStd")
+for hoechst, soll in ((6000.0, 6000.0), (0.0, fw.FREIVORSCHUB)):
+    msp.speichern([msp.Eintrag("Fräse", datei, vorschub=hoechst)])
+    FreeCAD.ParamGet(PARAMETER_PFAD).SetString(rw.ZULETZT_MASCHINE, datei)
+    pruefe(
+        fw.freivorschub_fuer(None) == soll,
+        f"Freivorschub {fw.freivorschub_fuer(None)} statt {soll}",
+    )
+FreeCAD.ParamGet(PARAMETER_PFAD).SetString(rw.ZULETZT_MASCHINE, "")
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

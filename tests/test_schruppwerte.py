@@ -174,7 +174,9 @@ import beispielmaschinen  # noqa: E402
 from camaddon import maschine as m  # noqa: E402
 
 asm, ma = beispielmaschinen.drehmaschine_komplett()
-if sw.grenzen_der_maschine(ma) != (4000, 0):
+# Ohne eingetragenen Höchstvorschub hat jede neue Linearachse die Vorgabe 10 m/min (Manuel,
+# 2026-10-04: „wenn nichts drinnen steht .. dann halt 10 m/min als Standard … beim Anlegen“).
+if sw.grenzen_der_maschine(ma) != (4000, m.VORSCHUB_MAX_VORGABE):
     fehler.append(f"ohne Antrieb und Vorschub: {sw.grenzen_der_maschine(ma)}")
 dok = asm.Document
 angetrieben = m.neue_betriebsart(ma, dok.getObject("Revolverachse"), m.ART_SPINDEL, "S5")

@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-40 freivorschub-aus-der-maschine
+
+### EINGELESEN
+- Manuel, 2026-10-04: „Freivorschub aus der Maschine … ja und wenn nichts drinnen steht .. dann
+  halt 10m/min als standart setzten in der maschine beim anlegen ...“
+
+### DATEIEN
+- `camaddon/freiwege.py` (`freivorschub_fuer`: der kleinste Höchstvorschub der gemerkten
+  Maschine aus dem Maschinen-Speicher), `camaddon/maschine.py` (`VORSCHUB_MAX_VORGABE`,
+  `neue_betriebsart` setzt ihn an neuen Linearachsen), `tests/test_freiwege.py`,
+  `tests/test_schruppwerte.py` (eine neue Maschine hat jetzt 10 m/min statt 0),
+  `docs/spezifikation_strategien.md` (13b), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.179.0).
+
+### AKZEPTANZKRITERIUM
+- Maschine mit 6000 mm/min Höchstvorschub: frei mit 6000; ohne Wert: 10000.
+
+### TESTS
+- `tests/test_freiwege.py`, `test_maschine`, `test_schruppwerte`, `test_maschinenspeicher`,
+  `test_beispielmaschine`, `test_schraege_achse`; `szenario_maschine_bearbeiten` – OK.
+
+### NEXT
+- Werkzeugkiste: günstige Alternativen, wo es nur einen Fräser gibt; Wegkippen am Rundtisch
+  besprechen (mit Zahlen).
+
 ## P-2026-10-04-39 im-freien-schnell
 
 ### EINGELESEN
