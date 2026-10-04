@@ -2805,7 +2805,11 @@ Kollision mit Rundachsen je Station.
   Winkel ÷ halber Geschwindigkeit der Rundachse aus der Maschine (`simultan.DREHANTEIL`,
   `drehgeschwindigkeiten`; Manuel: „Ja, mit halber Geschwindigkeit“) – die Spitze fährt nie
   schneller als der Vorschub. Rechte Kavitätenseite: 3,00 → 1,52 min (senkrecht 1,03); der Rest
-  sind Eilgänge zum Hochfahren und Schwenken zwischen den Bahnen (0,48 min).
+  waren Eilgänge (0,48 min): Ein Eilgang mit drehender Achse wurde verdichtet (gut 30 G0), und an
+  jedem G0 hält die Maschine an – jetzt G1 im G93 mit dem Eilgang der Maschine und der vollen
+  Geschwindigkeit der Rundachse (`simultan.eilganggeschwindigkeit`; P-2026-10-04-47); und das
+  Abfahren rechnete einen für die Kollision in 1°-Schritte geteilten G0 so, als hielte die
+  Maschine an jedem Schritt (das Zurückschwenken 15,8 statt 1,7 s). Jetzt: 1,09 min.
 - **S5 Entgraten in 3D.**
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,

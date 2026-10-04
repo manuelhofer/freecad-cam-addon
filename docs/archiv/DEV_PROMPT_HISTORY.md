@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-47 wegkippen-eilgaenge
+
+### EINGELESEN
+- Offen aus P-42: beim Wegkippen 0,48 min Eilgänge (rechte Kavitätenseite).
+
+### DATEIEN
+- `camaddon/simultan.py` (`eilganggeschwindigkeit`, `drehgeschwindigkeiten(…, anteil)`; ein
+  Eilgang mit drehender Achse als G1 im G93 mit Eilgang- und voller Drehgeschwindigkeit),
+  `camaddon/abfahren.py` (ein in Drehschritte geteilter Eilgang: einmal anfahren, einmal
+  bremsen), `docs/spezifikation_strategien.md` (16, S4), `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.184.0).
+
+### DONE
+- Gemessen: die Wege zwischen den Bahnen je 3,3 → 0,1–0,2 s (gut 30 G0 mit Halt an jedem), das
+  Zurückschwenken am Ende 15,8 → 1,7 s (ein G0, in 1°-Schritten für die Kollision, rechnete
+  jeden Schritt vom Stand in den Stand). Eine gröbere Toleranz für Eilgänge brachte nichts
+  (3,3 → 3,0 s) – nicht übernommen. Rechte Kavitätenseite: 1,52 → 1,09 min (senkrecht 1,03).
+
+### TESTS
+- `test_abfahren`, `test_vierachs_pruefen`, `test_simultan`, `test_angestellt`, `test_flanke`,
+  `test_kollision`, `test_postprozessor`, `test_schwenken`, `test_reichweite`, `test_wegkippen`
+  (Halter weggekippt nicht am Teil) – OK.
+
+### NEXT
+- Manuel, 2026-10-04: die 4-Achs-Rechnung nutzt nur bis 5 von 24 Kernen – „kann man das nicht
+  optimieren, dass alle genommen werden?“ – messen, wo die Zeit beim Öffnen hängt, dann verteilen.
+- Der Import der Werkzeugkiste nach `docs/werkzeugkiste_json.md`.
+
 ## P-2026-10-04-46 werkzeugkiste-json-format
 
 ### EINGELESEN

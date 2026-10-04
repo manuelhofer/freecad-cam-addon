@@ -219,9 +219,9 @@ def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=F
     return neu_punkte, neu_rund
 
 
-def drehgeschwindigkeiten(maschine):
+def drehgeschwindigkeiten(maschine, anteil=DREHANTEIL):
     """{Buchstabe: °/s} – wie schnell jede Rundachse der Maschine (sw.Maschine) im Vorschub
-    höchstens dreht: DREHANTEIL ihrer Geschwindigkeit (U/min) aus der Betriebsart."""
+    höchstens dreht: `anteil` ihrer Geschwindigkeit (U/min) aus der Betriebsart."""
     from . import export
     from . import maschine as m
 
@@ -239,8 +239,29 @@ def drehgeschwindigkeiten(maschine):
         u_min = (
             float(getattr(ba, "Geschwindigkeit", 0.0) or 0.0) or export.VORGABE_DREHGESCHWINDIGKEIT
         )
-        ergebnis[r.buchstabe] = u_min * 360.0 / 60.0 * DREHANTEIL
+        ergebnis[r.buchstabe] = u_min * 360.0 / 60.0 * anteil
     return ergebnis
+
+
+def eilganggeschwindigkeit(maschine):
+    """mm/s – der langsamste Eilgang der Linearachsen der Maschine (sw.Maschine); ohne Angabe
+    export.VORGABE_EILGANG."""
+    from . import export
+    from . import maschine as m
+
+    objekt = getattr(getattr(maschine, "pruefung", None), "maschine", None)
+    werte = []
+    if objekt is not None:
+        try:
+            werte = [
+                float(getattr(b, "Eilgang", 0.0) or 0.0)
+                for b in m.betriebsarten(objekt)
+                if b.Art == m.ART_LINEAR
+            ]
+        except Exception:
+            werte = []
+    werte = [w for w in werte if w > 0]
+    return (min(werte) if werte else export.VORGABE_EILGANG) / 60.0
 
 
 def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False):
@@ -262,6 +283,11 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0
     befehle = [Path.Command("G93")] if g93 else []
     vorschub, davor = 0.0, None
     drehen = drehgeschwindigkeiten(maschine) if g93 else {}
+    # Ein Eilgang, in dem sich eine Rundachse dreht (verdichtet: viele kurze Sätze), als G1 im G93
+    # mit der Geschwindigkeit des Eilgangs – an jedem G0 hielte die Maschine an: Beim Wegkippen
+    # dauerte der Weg zwischen zwei Bahnen so 3,3 statt 0,3 s.
+    eil_dreh = drehgeschwindigkeiten(maschine, 1.0) if g93 else {}
+    eil_linear = eilganggeschwindigkeit(maschine) if g93 else 0.0
     abbildungen = {}  # je Stellung einmal gerechnet – die meisten Punkte teilen sie
     for punkt, stellung in zip(punkte, rund, strict=True):
         schluessel = tuple(sorted(stellung.items()))
@@ -285,7 +311,19 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0
                 werte["F"] = 1.0 / max(zeit, KUERZESTE_ZEIT)
             elif punkt.vorschub > 0:
                 werte["F"] = vorschub
-        befehle.append(Path.Command("G0" if punkt.eilgang else "G1", werte))
+        drehend = (
+            g93
+            and punkt.eilgang
+            and davor is not None
+            and any(abs(stellung[k] - davor[1][k]) > 1e-9 for k in stellung)
+        )
+        if drehend:
+            zeit = math.dist(davor[0], bezugspunkt(punkt, bezug)) / eil_linear
+            for k in stellung:
+                winkel = abs(stellung[k] - davor[1][k])
+                zeit = max(zeit, winkel / eil_dreh.get(k, eil_linear))
+            werte["F"] = 1.0 / max(zeit, KUERZESTE_ZEIT)
+        befehle.append(Path.Command("G0" if punkt.eilgang and not drehend else "G1", werte))
         davor = (bezugspunkt(punkt, bezug), stellung)
     if g93:
         befehle.append(Path.Command("G94"))

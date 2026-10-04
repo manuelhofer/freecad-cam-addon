@@ -372,6 +372,10 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         # In einer Ebene beginnt die Operation dort, wo die davor endete: hoch auf die
         # Schwenkhöhe, schwenken – das fährt die Maschine mit, und die Kollision prüft es.
         start = vorher[:2] if geschwenkt and vorher is not None else None
+        # Ein Eilgang, für die Kollision in Schritte geteilt (eine Rundachse in 1°), fährt die
+        # Maschine in einem Zug: einmal anfahren, einmal bremsen – nicht an jedem Schritt (das
+        # Zurückschwenken nach dem Wegkippen dauerte so 15,8 statt 1,7 s).
+        eil_schritt, eil_anfang, eil_bisher = None, None, 0.0
         for schritt in rw._bahn(befehle, lambda _name: None, rueckzug=True, start=start):
             for punkt, rund in _punkte(schritt, loesung(schritt.rund)[0]):
                 geloest, dreh = loesung(rund)
@@ -388,7 +392,18 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
                 wirksam = _wirksam(vorher, stellungen, len(index))
                 if vorher is not None:
                     eilgang = _eilgangzeit(vorher[2], wirksam, tempo, beschleunigung)
-                    if schritt.eilgang:
+                    geteilt = schritt.eilgang and schritt.anteil < 1.0 - 1e-12
+                    if not geteilt:
+                        eil_schritt = None
+                    if geteilt:
+                        # Ein Teil eines Eilgangs, in dem eine Rundachse dreht (reichweite._bahn
+                        # teilt ihn in DREH_SCHRITT): die Zeit vom Anfang des Satzes bis hier.
+                        if eil_schritt != schritt.satz:
+                            eil_schritt, eil_anfang, eil_bisher = schritt.satz, vorher[2], 0.0
+                        bis_hier = _eilgangzeit(eil_anfang, wirksam, tempo, beschleunigung)
+                        saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=max(bis_hier - eil_bisher, 0.0)))
+                        eil_bisher = max(bis_hier, eil_bisher)
+                    elif schritt.eilgang:
                         saetze.append(fz.Satz(0.0, 0.0, 0.0, fest=eilgang))
                     elif schritt.invers and schritt.vorschub > 0:
                         # G93: F = 1 ÷ Zeit des Satzes in Minuten, FreeCAD führt es ÷ 60 –
