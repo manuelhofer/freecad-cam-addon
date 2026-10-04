@@ -61,6 +61,7 @@ EINSATZ_NACH_OPERATION = {
     "raeumen": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN),  # „Räumen“ (W-006 S3f)
     "nut": (wz.DYNAMISCH, wz.SCHRUPPEN, wz.VOLLNUT),  # „Nut“ (W-006 4.1 Punkt 6)
     "schlichten3d": (wz.SCHLICHTEN, wz.SCHRUPPEN),  # „3D-Schlichten“ (W-006 4.2 Punkt 3)
+    "flanke": (wz.SCHLICHTEN, wz.SCHRUPPEN),  # „Flanke“ (5 Achsen simultan, W-015 S3)
     "schruppen3d": (wz.SCHRUPPEN, wz.PLANEN, wz.SCHLICHTEN),  # „3D-Schruppen“ (4.2 Punkt 1)
     "bleistift": (wz.SCHLICHTEN, wz.SCHRUPPEN),  # „Bleistift“ (W-006 4.2 Punkt 6)
     "kontur": (wz.SCHRUPPEN, wz.SCHLICHTEN),  # „Kontur“ (W-006 S3e)

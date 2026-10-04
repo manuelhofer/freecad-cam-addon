@@ -117,10 +117,17 @@ def _nachfuehren(maschine, n, werte):
     return werte if 1.0 - float(d @ ziel) <= grenze else None
 
 
+def _bezuege(bezug):
+    """`bezug` als Tupel: eine Zahl oder mehrere (die erste fährt auf der Geraden, alle zählen
+    für die Abweichung – an der Flanke die Spitze und das obere Ende der Schneide)."""
+    return tuple(bezug) if isinstance(bezug, (tuple, list)) else (float(bezug or 0.0),)
+
+
 def bezugspunkt(punkt, bezug=0.0):
     """Der Punkt `bezug` mm die Achse hinauf über der Spitze (beim Kugelfräser mit dem Radius:
-    die Mitte der Kugel)."""
-    return tuple(s + bezug * a for s, a in zip(punkt.spitze, punkt.achse, strict=True))
+    die Mitte der Kugel; mehrere Bezüge: der erste)."""
+    b = _bezuege(bezug)[0]
+    return tuple(s + b * a for s, a in zip(punkt.spitze, punkt.achse, strict=True))
 
 
 def abweichung(maschine, von, nach, rund_von, rund_nach, bezug=0.0):
@@ -137,14 +144,16 @@ def abweichung(maschine, von, nach, rund_von, rund_nach, bezug=0.0):
     p0, p1 = a0.punkt(von.spitze), a1.punkt(nach.spitze)
     programm = [(u + v) / 2 for u, v in zip(p0, p1, strict=True)]
     d = [programm[i] - am.b[i] for i in range(3)]
-    ist = [sum(am.a[k][i] * d[k] for k in range(3)) for i in range(3)]  # Aᵀ · (P − b)
-    if bezug:
-        achse = maschine.richtung(mitte)
-        ist = [ist[0] + bezug * achse.x, ist[1] + bezug * achse.y, ist[2] + bezug * achse.z]
-    soll = [
-        (u + v) / 2 for u, v in zip(bezugspunkt(von, bezug), bezugspunkt(nach, bezug), strict=True)
-    ]
-    return math.dist(ist, soll)
+    spitze = [sum(am.a[k][i] * d[k] for k in range(3)) for i in range(3)]  # Aᵀ · (P − b)
+    achse = maschine.richtung(mitte) if any(_bezuege(bezug)) else None
+    groesste = 0.0
+    for b in _bezuege(bezug):
+        ist = spitze
+        if b:
+            ist = [spitze[0] + b * achse.x, spitze[1] + b * achse.y, spitze[2] + b * achse.z]
+        soll = [(u + v) / 2 for u, v in zip(bezugspunkt(von, b), bezugspunkt(nach, b), strict=True)]
+        groesste = max(groesste, math.dist(ist, soll))
+    return groesste
 
 
 def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False):
@@ -182,11 +191,12 @@ def verdichtet(maschine, punkte, rund, toleranz=TOLERANZ, bezug=0.0, eilgaenge=F
             (u + v) / 2
             for u, v in zip(bezugspunkt(von, bezug), bezugspunkt(nach, bezug), strict=True)
         ]
+        erster = _bezuege(bezug)[0]
         mitte = Punkt(
             (
-                bezug_mitte[0] - bezug * n.x,
-                bezug_mitte[1] - bezug * n.y,
-                bezug_mitte[2] - bezug * n.z,
+                bezug_mitte[0] - erster * n.x,
+                bezug_mitte[1] - erster * n.y,
+                bezug_mitte[2] - erster * n.z,
             ),
             (n.x, n.y, n.z),
             eilgang=nach.eilgang,
@@ -249,3 +259,55 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0
     if g93:
         befehle.append(Path.Command("G94"))
     return befehle
+
+
+def befehle_auf_maschine(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERANZ):
+    """Die Sätze einer Bahn mit Achse (Punkt …), wie `maschine` sie fährt: ohne TCPM, die
+    Rundachsen je Punkt, der Vorschub in G93, auch Eilgänge mit drehender Achse verdichtet
+    (programm_ohne_tcpm) – davor auf die Schwenkhöhe (über dem Raum, den das Rohteil `rohteil`
+    beim Schwenken überstreicht; schwenken.schwenkhoehe), geschwenkt und über den ersten Punkt;
+    danach wieder hinauf und die Rundachsen auf 0 (wie 3+2 ohne Zyklus; endlose auf das nächste
+    Vielfache von 360°). ValueError mit einem Satz wie programm_ohne_tcpm."""
+    import Path
+
+    if not punkte:
+        return []
+    saetze = programm_ohne_tcpm(
+        maschine, punkte, g93=True, toleranz=toleranz, bezug=bezug, eilgaenge=True
+    )
+    bewegt = [b for b in saetze if b.Name in ("G0", "G1")]
+    erster, letzter = bewegt[0].Parameters, bewegt[-1].Parameters
+    rundachsen = [a.buchstabe for a in maschine.rundachsen]
+    rund_anfang = {b: float(erster[b]) for b in rundachsen}
+    rund_ende = {b: float(letzter[b]) for b in rundachsen}
+    hoehe = None
+    if rohteil is not None and not rohteil.isNull():
+        hoehe = max(
+            sw.schwenkhoehe(rohteil, maschine.abbildung, rund_anfang),
+            sw.schwenkhoehe(rohteil, maschine.abbildung, rund_ende),
+        )
+    davor = []
+    if hoehe is not None:
+        davor.append(Path.Command("G0", {"Z": max(hoehe, float(erster["Z"]))}))
+    davor.append(Path.Command("G0", dict(rund_anfang)))
+    if hoehe is not None:
+        davor.append(Path.Command("G0", {"X": float(erster["X"]), "Y": float(erster["Y"])}))
+    danach = []
+    if hoehe is not None:
+        danach.append(Path.Command("G0", {"Z": max(hoehe, float(letzter["Z"]))}))
+    danach.append(
+        Path.Command(
+            "G0",
+            {a.buchstabe: _grundstellung(a, rund_ende[a.buchstabe]) for a in maschine.rundachsen},
+        )
+    )
+    return davor + saetze + danach
+
+
+def _grundstellung(achse, wert):
+    """Wohin die Rundachse am Ende zurück soll: 0 – eine endlose Achse (ohne Grenzen) auf das
+    Vielfache von 360°, das ihr am nächsten liegt; dort steht sie wie bei 0 (die Flanke dreht C
+    rundherum, zurück wäre eine ganze Umdrehung umsonst)."""
+    if achse.minimum is None and achse.maximum is None:
+        return 360.0 * round(wert / 360.0)
+    return 0.0

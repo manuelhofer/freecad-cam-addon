@@ -34,7 +34,6 @@ import math
 import FreeCAD
 
 from . import bahn as bn
-from . import schwenken as sw
 from . import simultan as si
 from .sprache import tr
 
@@ -244,14 +243,6 @@ def ist_angestellt(op):
     return bool(getattr(op, "Anstellen", False)) and bool(getattr(op, "Werkzeugachsen", None))
 
 
-def im_job(job):
-    """Steht im Job eine aktive Operation mit angestelltem Kugelfräser?"""
-    return any(
-        getattr(op, "Active", True) and ist_angestellt(op)
-        for op in getattr(getattr(job, "Operations", None), "Group", [])
-    )
-
-
 def radius_von(op):
     """Der Radius des Kugelfräsers der Operation – None, wenn er keiner ist."""
     from . import vierachs_operation as vo
@@ -289,15 +280,12 @@ def punkte(befehle, achsen_je_satz, radius):
 
 
 def befehle(op, maschine, rohteil=None):
-    """Die Sätze der Operation, wie `maschine` (schwenken.Maschine) sie fährt: ohne TCPM, die
-    Rundachsen je Punkt, der Vorschub in G93 – davor auf die Schwenkhöhe (über dem Raum, den das
-    Rohteil `rohteil` beim Schwenken überstreicht; ohne: das des Jobs), geschwenkt und über den
-    ersten Punkt; danach wieder hinauf und die Rundachsen auf 0. ValueError mit einem Satz, wenn
-    es nicht geht."""
-    import Path
-
+    """Die Sätze der Operation, wie `maschine` (schwenken.Maschine) sie fährt: die Spitze um die
+    Mitte der Kugel gekippt (punkte), die Mitte auf der Geraden (simultan.befehle_auf_maschine
+    mit dem Radius als Bezug; `rohteil` ohne: das des Jobs). ValueError mit einem Satz, wenn es
+    nicht geht."""
     if rohteil is None:
-        rohteil = _rohteil_von(op)
+        rohteil = rohteil_von(op)
     radius = radius_von(op)
     if radius is None:
         raise ValueError(tr("an.fehler.kugel", operation=op.Label))
@@ -305,35 +293,10 @@ def befehle(op, maschine, rohteil=None):
     achsen_je_satz = [tuple(v) for v in op.Werkzeugachsen]
     if len(achsen_je_satz) != len(alle):
         raise ValueError(tr("an.fehler.veraltet", operation=op.Label))
-    bahn = punkte(alle, achsen_je_satz, radius)
-    if not bahn:
-        return []
-    saetze = si.programm_ohne_tcpm(maschine, bahn, g93=True, bezug=radius, eilgaenge=True)
-    bewegt = [b for b in saetze if b.Name in ("G0", "G1")]
-    erster, letzter = bewegt[0].Parameters, bewegt[-1].Parameters
-    rundachsen = [a.buchstabe for a in maschine.rundachsen]
-    rund_anfang = {b: float(erster[b]) for b in rundachsen}
-    rund_ende = {b: float(letzter[b]) for b in rundachsen}
-    hoehe = None
-    if rohteil is not None and not rohteil.isNull():
-        hoehe = max(
-            sw.schwenkhoehe(rohteil, maschine.abbildung, rund_anfang),
-            sw.schwenkhoehe(rohteil, maschine.abbildung, rund_ende),
-        )
-    davor = []
-    if hoehe is not None:
-        davor.append(Path.Command("G0", {"Z": max(hoehe, float(erster["Z"]))}))
-    davor.append(Path.Command("G0", dict(rund_anfang)))
-    if hoehe is not None:
-        davor.append(Path.Command("G0", {"X": float(erster["X"]), "Y": float(erster["Y"])}))
-    danach = []
-    if hoehe is not None:
-        danach.append(Path.Command("G0", {"Z": max(hoehe, float(letzter["Z"]))}))
-    danach.append(Path.Command("G0", dict.fromkeys(rundachsen, 0.0)))
-    return davor + saetze + danach
+    return si.befehle_auf_maschine(maschine, punkte(alle, achsen_je_satz, radius), rohteil, radius)
 
 
-def _rohteil_von(op):
+def rohteil_von(op):
     """Die Form des Rohteils im Job der Operation – None ohne."""
     for gruppe in op.InList:
         for job in [gruppe, *gruppe.InList]:

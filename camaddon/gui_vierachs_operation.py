@@ -19,6 +19,7 @@ def _ist_eben(objekt):
     from . import bleistift as bst
     from . import bohrung as bo
     from . import entgraten as eg
+    from . import flanke as fl
     from . import gewindefraesen as gf
     from . import kontur as ko
     from . import nut as nu
@@ -33,6 +34,7 @@ def _ist_eben(objekt):
         or ra.ist_raeumen(objekt)
         or nu.ist_nut(objekt)
         or s3op.ist_schlichten3d(objekt)
+        or fl.ist_flanke(objekt)
         or r3op.ist_schruppen3d(objekt)
         or bst.ist_bleistift(objekt)
         or bo.ist_bohrungsfraesen(objekt)

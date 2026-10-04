@@ -2651,6 +2651,28 @@ Kollision mit Rundachsen je Station.
   sonst gesperrt mit dem Grund hinter der Beschriftung; die Kippachse aus der Maschine (A → X,
   B → Y). Szenario `szenario_kugel_angestellt`.
 - **S3 Flanke:** eine Regelfläche (schräge oder verwundene Wand) mit dem Mantel.
+  **Versuch (2026-10-04 morgens, für Manuel):** Block 80 × 60 × 30, Tasche 40 × 24, 20 tief, Wände
+  mit 10° Formschräge, Ecken R 6 → R 9,5 (Kegel), gleicher Vorschub 1000 mm/min: 3-Achs mit dem
+  3D-Schlichten des Addons, Kugel Ø 6 in 36 Höhenlinien 4,26 min (Ø 10: 25, 2,68 min); Flanke mit
+  Schaftfräser Ø 10 ein Umlauf, 0,45 min auf der Tisch/Tisch-Maschine (A −10° fest, C einmal
+  herum), in den Kegel-Ecken höchstens 0,0012 mm daneben, „Kollision prüfen“ frei; am Fuß bleibt
+  keine Rundung der Kugel stehen. 3-Achs ginge es auch in einem Umlauf – nur mit einem
+  Konikfräser von genau 10°. Manuel: „Ja, so bauen“, und „selbst anhaken, wenn schneller“.
+  **Gebaut (P-2026-10-04-24):** `flanke_bahn.py` – Wände (`ist_wand`): Ebene (auch als B-Spline,
+  `findPlane`), Kegel, schräger Zylinder oder eine Fläche mit gerader Parameterlinie, nach oben
+  offen, 0,5° bis 45° aus der Senkrechten. Die Mantellinie: an der Ebene die Fallinie, am Kegel zur
+  Spitze, am Zylinder die Achse. Die unteren Kanten der Wände zu Zügen (`zuege`); Normalen mehr als
+  1° auseinander teilen den Umlauf. Je Stelle (alle 0,2 mm an gekrümmten, 2 mm an geraden Kanten
+  einer Ebene) die Spitze um Radius und Aufmaß vor dem Fuß, die Stirn nie tiefer als er; schnitte
+  der Fräser (0,002 mm kleiner) dort ins Teil – eine scharfe Innenecke –, fällt die Stelle weg, die
+  Grenze wird halbiert. Gleichlauf (das Material rechts), Lagen, wenn die Wand länger ist als die
+  Schneide; An- und Abfahren die Achse entlang 2 mm vor der Wand. `flanke.py` – die Operation
+  speichert die Spitzen und je Satz die Achse; „Auf der Maschine prüfen“, die Kollision und das
+  Programm rechnen die Rundachsen (`simultan.befehle_auf_maschine`, die Spitze und das obere Ende
+  der Schneide auf der Geraden; `simultan_operation` ist die Weiche für Anstellen und Flanke).
+  Ohne Maschine mit zwei Rundachsen schreibt das Programm die Flanke nicht – senkrecht gefahren
+  schnitte sie falsch. Die Tasche auf der Tisch/Tisch-Maschine: 0,69 min mit Anfahren und
+  Schwenken. Offen: der Block im Assistenten.
 - **S4 Wegkippen**, wenn der Halter sonst anstößt.
 - **S5 Entgraten in 3D.**
 

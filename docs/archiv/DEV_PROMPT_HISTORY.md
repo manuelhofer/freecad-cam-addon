@@ -12,6 +12,49 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-24 flanke
+
+### EINGELESEN
+- Manuel, 2026-10-04 (morgens), nach dem Versuch an einer Tasche mit 10° Formschräge (Kugel Ø 6 in
+  36 Höhenlinien 4,26 min, Flanke mit Schaftfräser Ø 10 ein Umlauf 0,45 min, in den Kegel-Ecken
+  höchstens 0,0012 mm daneben, Kollision frei): „Ja, so bauen“ – und „Selbst anhaken, wenn
+  schneller“ (der Block im Assistenten kommt mit dem nächsten Patch).
+
+### DATEIEN
+- `camaddon/flanke_bahn.py` (neu: `ist_wand`, `mantellinie`, `zuege`, `planen`),
+  `camaddon/flanke.py` (neu: die Operation, `befehle`), `camaddon/simultan_operation.py` (neu:
+  die Weiche für Anstellen und Flanke), `camaddon/simultan.py` (`befehle_auf_maschine` – vorher in
+  angestellt.py –, mehrere Bezüge für die Abweichung, endlose Rundachsen am Ende auf das nächste
+  Vielfache von 360°), `camaddon/angestellt.py`, `camaddon/reichweite.py`,
+  `camaddon/postprozessor.py` (`_simultan`: die Flanke ohne Maschine nicht geschrieben),
+  `camaddon/gui_programm.py`, `camaddon/job_schnittwerte.py` (Art „flanke“),
+  `camaddon/gui_vierachs_operation.py`, Übersetzungen, `tests/test_flanke.py` (neu),
+  Spezifikation Strategien 16.3, Aufbau, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.168.0).
+
+### AKZEPTANZKRITERIUM
+- Die Tasche mit Kegel-Ecken: ein Umlauf, Achse 10°, kein Fräser im Teil, die Wand bis 0,002 mm;
+  mit scharfen Ecken je Wand ein Umlauf, der Fräser R vor der Nachbarwand; ein Zapfen im
+  Gleichlauf außen herum; 12 mm Schneide: zwei Lagen. Auf der Tisch/Tisch-Maschine A −10°, C
+  einmal herum, unter einer Minute; an der 3-Achs-Fräse ein Satz; ohne Maschine nicht im Programm.
+
+### DONE
+- Mantellinie: an einer Ebene (auch als B-Spline, `findPlane`) die Fallinie, am Kegel die Linie
+  zur Spitze, am Zylinder die Achse, sonst die gerade Parameterlinie. Die unteren Kanten der
+  gewählten Wände zu Zügen; scharfe Kanten (Normalen > 1°) teilen den Umlauf. Stellen alle 0,2 mm
+  an gekrümmten, 2 mm an geraden Kanten einer Ebene; wo der Fräser (0,002 kleiner) ins Teil
+  schnitte, fällt die Stelle weg, die Grenze halbiert. Lagen, wenn die Wand länger ist als die
+  Schneide. An- und Abfahren die Achse entlang, 2 mm vor der Wand. Die Zeit zählt das Drehen um
+  die Senkrechte in Grad wie mm (G93). Am Ende fuhr C eine ganze Umdrehung zurück (38 s) – jetzt
+  auf −360°, dieselbe Stellung.
+
+### TESTS
+- `tests/test_flanke.py` (neu): A 1 Umlauf, Wand −0,0000 … 0,0011 mm; B 4 Umläufe, bis x 24,85; C
+  Gleichlauf; D 2 Lagen; Maschine A −10,000°, C 0 … −360°, 0,69 min. `tests/test_angestellt.py`,
+  `tests/test_simultan.py`, `tests/test_postprozessor.py` – OK. black und ruff sauber.
+
+### NEXT
+- Der Block „Flanke (5 Achsen simultan)“ im Assistenten, im Wettbewerb mit dem 3D-Schlichten.
+
 ## P-2026-10-04-23 simultan-schneller
 
 ### EINGELESEN

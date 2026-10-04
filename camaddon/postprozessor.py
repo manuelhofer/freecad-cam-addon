@@ -43,9 +43,9 @@ import dataclasses
 import re
 from dataclasses import dataclass, field
 
-from . import angestellt as an
 from . import messstopp as ms
 from . import schwenken as sw
+from . import simultan_operation as so
 from .sprache import tr
 
 STELLEN = 3  # Nachkommastellen der Koordinaten und des Vorschubs je Minute
@@ -921,8 +921,8 @@ def abschnitte(job, maschine=None, mit_ebenen=True):
     (`mit_ebenen`), folgen deren Operationen – ein Programm für die Aufspannung (Spezifikation
     Strategien 15, F3). `maschine`: schwenken.Maschine für das Programm ohne Schwenkzyklus –
     oder eine Funktion Operation → schwenken.Maschine (oder None), je Werkzeug mit seiner Länge:
-    Am Schwenkkopf hängen die Punkte im Programm davon ab. Mit ihr schreibt ein angestellter
-    Kugelfräser seine Rundachsen je Punkt (_angestellt), ohne sie senkrecht."""
+    Am Schwenkkopf hängen die Punkte im Programm davon ab. Mit ihr schreiben Operationen mit
+    Werkzeugachse je Satz (Kugelfräser angestellt, Flanke) ihre Rundachsen je Punkt (_simultan)."""
     ergebnis = _abschnitte_des_jobs(job, maschine)
     if mit_ebenen and not sw.ist_ebene(job):
         for ebene in sw.ebenen_von(job):
@@ -944,8 +944,8 @@ def _abschnitte_des_jobs(job, maschine):
                 gerechnet[id(fuer_op)] = (fuer_op, sw.schwenkung_fuer(job, fuer_op))
             schwenkung = gerechnet[id(fuer_op)][1]
         befehle, hinweis = list(op.Path.Commands), ""
-        if not geschwenkt and an.ist_angestellt(op):
-            befehle, hinweis = _angestellt(op, maschine)
+        if not geschwenkt and so.ist_simultan(op):
+            befehle, hinweis = _simultan(op, maschine)
         tc = getattr(op, "ToolController", None)
         nummer = int(getattr(tc, "ToolNumber", 0) or 0) if tc is not None else 0
         drehzahl = float(getattr(tc, "SpindleSpeed", 0.0) or 0.0) if tc is not None else 0.0
@@ -967,17 +967,23 @@ def _abschnitte_des_jobs(job, maschine):
     return ergebnis
 
 
-def _angestellt(op, maschine):
-    """(Befehle, Hinweis) einer Operation mit angestelltem Kugelfräser (5 Achsen simultan): mit
-    einer Maschine mit zwei Rundachsen die Rundachsen je Punkt (angestellt.befehle) – ohne sie
-    senkrecht, mit einem Satz: Die Kugel fährt dieselbe Bahn, nur mit der Spitze."""
+def _simultan(op, maschine):
+    """(Befehle, Hinweis) einer Operation mit Werkzeugachse je Satz (5 Achsen simultan): mit
+    einer Maschine mit zwei Rundachsen die Rundachsen je Punkt (simultan_operation.befehle).
+    Ohne sie der angestellte Kugelfräser senkrecht, mit einem Satz (die Kugel fährt dieselbe
+    Bahn, nur mit der Spitze) – die Flanke gar nicht, mit einem Satz."""
     fuer_op = maschine(op) if callable(maschine) else maschine
+    senkrecht = so.senkrecht_moeglich(op)
     if fuer_op is None:
-        return list(op.Path.Commands), tr("pp.hinweis.angestellt_senkrecht")
+        if senkrecht:
+            return list(op.Path.Commands), tr("pp.hinweis.angestellt_senkrecht")
+        return [], tr("pp.hinweis.flanke_ohne_maschine")
     try:
-        return an.befehle(op, fuer_op), ""
+        return so.befehle(op, fuer_op), ""
     except ValueError as grund:
-        return list(op.Path.Commands), tr("pp.hinweis.angestellt_fehler", grund=str(grund))
+        if senkrecht:
+            return list(op.Path.Commands), tr("pp.hinweis.angestellt_fehler", grund=str(grund))
+        return [], tr("pp.hinweis.flanke_fehler", grund=str(grund))
 
 
 def maschineninfo(job):
