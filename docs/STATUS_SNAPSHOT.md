@@ -257,6 +257,18 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
    „Schlichten danach“.“ Haken bei „Schlichten danach“ → die Zeile ist weg. Ebenso, wenn du
    die Kontur abhakst, solange eine Wand gewählt ist.
 
+**Offen für Manuel (2026-10-04, abends):**
+
+- *S5 Entgraten in 3D (5 Achsen):* so bauen – eigene Operation für gewählte Kanten, im Assistenten
+  ohne Haken? Prototyp mit Bild: Spezifikation Strategien 16.3 S5.
+- *Siemens WORKPIECE (Rohteil für die Simulation der Steuerung):* Die Zahl und Bedeutung der
+  Parameter hängt an der Operate-Version (im Forum hing SinuTrain an einer falschen Zeile). Bitte
+  an der Steuerung im Programmeditor einmal ein Rohteil anlegen und die entstehende
+  `WORKPIECE(...)`-Zeile schicken – dann schreibt das Programm es genau so.
+- *Zum Ausprobieren (0.187.7):* an deiner Siemens ein Programm schreiben und in ihrer Simulation
+  ansehen – neu seit 0.185.1: G43 bzw. D1 nach dem Wechselpunkt, DIAMON im Kopf an der
+  Drehmaschine, „Nachgelesen …“ unter „Gespeichert“; TCPM bleibt aus.
+
 **Fragen an Manuel** (gebaut ist je die Empfehlung; ändern ist ein kleiner Patch). Beantwortet
 am 2026-10-03: hinten ein gerades Stück der Abstechlänge (gebaut, 0.134.0); W-005 nach den
 Empfehlungen der Spezifikation (wird gebaut); Zeilenabstand am Boden bleibt der halbe Ø; der Standardfräser bleibt bei vc 85 /
