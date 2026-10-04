@@ -237,8 +237,9 @@ class Wolke:
         return np.concatenate(teile) if teile else np.zeros(0, dtype=np.int64)
 
 
-def wolke(form, kanten_, reichweite):
-    """Die Wolke der Flächen, die näher als `reichweite` an einer der Kanten liegen."""
+def wolke(form, kanten_, reichweite, punktabstand=PUNKTABSTAND):
+    """Die Wolke der Flächen, die näher als `reichweite` an einer der Kanten liegen – Punkte
+    etwa alle `punktabstand` mm."""
     if not kanten_:
         return Wolke(np.zeros((0, 3)), np.zeros(0))
     boxen = [k.kante.BoundBox for k in kanten_]
@@ -263,7 +264,7 @@ def wolke(form, kanten_, reichweite):
         d = np.array(dreiecke, dtype=np.int64)
         a, b, c = e[d[:, 0]], e[d[:, 1]], e[d[:, 2]]
         flaechen_ = 0.5 * np.linalg.norm(np.cross(b - a, c - a), axis=1)
-        anzahl = np.maximum(1, np.ceil(flaechen_ / PUNKTABSTAND**2).astype(np.int64))
+        anzahl = np.maximum(1, np.ceil(flaechen_ / punktabstand**2).astype(np.int64))
         # Je Dreieck gleichmäßig verteilte Punkte (baryzentrisch, ein festes Muster je Anzahl).
         welches = np.repeat(np.arange(len(d)), anzahl)
         rng = np.random.default_rng(nummer)
@@ -459,10 +460,10 @@ def _verletzung(lage, e, t, k, w, wolke_, enden):
 # --- Die Bahn ---------------------------------------------------------------------------------
 
 
-def _stellen_der_kante(k, w, wolke_):
-    """[(Parameter, Lage oder None, Grund)] entlang der Kante."""
+def _stellen_der_kante(k, w, wolke_, schritt=SCHRITT):
+    """[(Parameter, Lage oder None, Grund)] entlang der Kante, etwa alle `schritt` mm."""
     kurve = k.kante
-    anzahl = max(2, int(math.ceil(kurve.Length / SCHRITT)) + 1)
+    anzahl = max(2, int(math.ceil(kurve.Length / schritt)) + 1)
     parameter = np.linspace(kurve.FirstParameter, kurve.LastParameter, anzahl)
 
     def ende(prm, richtung):
@@ -605,9 +606,10 @@ def _gleichlauf(lauf, w):
     return lauf if rechts == bool(w.gleichlauf) else list(reversed(lauf))
 
 
-def planen(form, namen, werte):
-    """Die Bahn (Bahn3D) für die gewählten Flächen und Kanten `namen` von `form`. ValueError mit
-    einem Satz, wenn es nichts zu fasen gibt."""
+def planen(form, namen, werte, schritt=SCHRITT, punktabstand=PUNKTABSTAND):
+    """Die Bahn (Bahn3D) für die gewählten Flächen und Kanten `namen` von `form` – die Stellen
+    etwa alle `schritt` mm, das Teil alle `punktabstand` mm abgetastet (gröber für die Vorschau im
+    Assistenten). ValueError mit einem Satz, wenn es nichts zu fasen gibt."""
     w = werte
     if w.tisch is None:
         from dataclasses import replace
@@ -620,13 +622,13 @@ def planen(form, namen, werte):
     kanten_ = kanten(form, namen)
     if not kanten_:
         raise ValueError(tr("e3.fehler.keine"))
-    wolke_ = wolke(form, kanten_, w.fraeser.hoehe + w.fraeser.radius)
+    wolke_ = wolke(form, kanten_, w.fraeser.hoehe + w.fraeser.radius, punktabstand)
     laeufe, gruende = [], {}
     laenge = 0.0
     gefast = 0
     schenkel = []
     for k in kanten_:
-        stellen = _stellen_der_kante(k, w, wolke_)
+        stellen = _stellen_der_kante(k, w, wolke_, schritt)
         teile, ohne = _laeufe(stellen, k.kante)
         for grund, mm in ohne.items():
             gruende[grund] = gruende.get(grund, 0.0) + mm

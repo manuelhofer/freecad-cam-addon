@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-66 entgraten-3d-assistent
+
+### EINGELESEN
+- Weiter mit „Entgraten 3D“ (Manuel: „mach mal weiter“).
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (`_Entgraten3D`, `GEMERKT_ENTGRATEN3D`; selbst abgehakte Haken
+  kommen zurück), `camaddon/entgraten3d.py` (`vorschau`, `passt`), `camaddon/entgrat3d_bahn.py`
+  (Schritt und Punktabstand wählbar), `translations/de.json`, `en.json`,
+  `help/de|en/bearbeitung.html` (9, „Entgraten 3D“), `tests/gui/szenario_entgraten3d.py` (neu),
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.188.1).
+
+### DONE
+- Der Block „Entgraten 3D“ im Assistenten: Fasenfräser vorgewählt, „Angestellt (5 Achsen)“ an
+  einer 5-Achs-Maschine angehakt, das Ergebnis mit dem, was ohne Fase bleibt.
+
+### TESTS
+- Szenarien `szenario_entgraten3d` (neu), `szenario_kugel_angestellt`, `szenario_testteil`;
+  `test_sprache` – OK.
+
 ## P-2026-10-04-65 entgraten-3d
 
 ### EINGELESEN

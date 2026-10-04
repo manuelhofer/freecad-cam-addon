@@ -540,6 +540,30 @@ Viertelkreis sein (Führung = Ø − 2 × Radius) – sonst bliebe oben eine Stu
 Dort darf es so tief ins Teil gehen, wie die Spitze steht.</li>
 </ul>
 
+<h4>Entgraten 3D</h4>
+<p>Für Kanten im Raum – steigende Kanten, Bohrungsränder in Schrägen, Kanten mit beliebigem
+Winkel: der Block <b>Entgraten 3D</b>. Er bricht die konvexen, scharfen Kanten der gewählten
+Flächen (nicht die auf dem Tisch); den Haken setzt man selbst.</p>
+<ul>
+<li><b>Angestellt (5 Achsen)</b> – nur an einer 5-Achs-Maschine, dort angehakt: Das Werkzeug
+steht für jede Stelle der Kante richtig – senkrecht zur Kante, die Fase gleich breit auf beiden
+Flächen. Mit einem <b>Fasenfräser</b> (jeder Spitzenwinkel) liegt seine Flanke in der Fase; mit
+einem Fräser mit <b>ebener Stirn</b> (Schaft, Torus – ihr ebener Teil –, Plan, Nut) liegt die
+Stirn in der Fase, die Fase neben ihrer Mitte.</li>
+<li>Ohne Haken (und an einer 3-Achs-Maschine): der Fasenfräser <b>senkrecht</b> – auch an
+steigenden Kanten, solange sie nicht steiler steigen als seine Flanke. Die Fase ist dann meist
+nicht symmetrisch: Die Fasenbreite gilt auf der Fläche, die nach oben schaut; den anderen
+Schenkel nennt das Ergebnis.</li>
+<li><b>Das Werkstück wird nicht beschädigt:</b> Das Addon tastet die Flächen um die Kanten
+dicht ab und prüft jede Stelle mit dem ganzen Werkzeug (Schneide und Schaft darüber); nur der
+Fasenstreifen darf darin liegen, nichts unter der Unterkante des Teils (dort ist der Tisch).
+Passt es nicht, rutscht die Fase zur Spitze bzw. auf die andere Seite der Stirn – geht auch das
+nicht, bleibt die Stelle ohne Fase, und die Zeile sagt, wie viel und warum („zu eng“, „zu
+steil“). Spannmittel und Halter prüft „Kollision prüfen“.</li>
+<li>Die Operation heißt „Entgraten 3D T3“. Mit 5 Achsen rechnen „Auf der Maschine prüfen“,
+die Kollision und „Programm schreiben“ die Rundachsen je Punkt.</li>
+</ul>
+
 <h3>10. Zentrieren und Senken</h3>
 <ul>
 <li><b>Zentrieren</b>: für Bohrungen, mit einem <b>NC-Anbohrer</b> aus der

@@ -32,6 +32,7 @@ from . import bohrung as bo
 from . import bohrung_bahn as bb
 from . import entgrat_bahn as eb
 from . import entgraten as eg
+from . import entgraten3d as e3op
 from . import flanke as flop
 from . import flanke_bahn as flb
 from . import fraeserform as ff
@@ -99,6 +100,7 @@ GEMERKT_REIBAHLE = "BaReibahle"  # … fürs Reiben
 GEMERKT_GEWINDEBOHRER = "BaGewindebohrer"  # … fürs Gewinde
 GEMERKT_GEWINDEFRAESER = "BaGewindefraeser"  # … fürs Gewindefräsen
 GEMERKT_FASENFRAESER = "BaFasenfraeser"  # … fürs Entgraten
+GEMERKT_ENTGRATEN3D = "BaEntgraten3D"  # … fürs Entgraten 3D
 GEMERKT_ANBOHRER = "BaAnbohrer"  # … fürs Zentrieren
 GEMERKT_SENKER = "BaSenker"  # … fürs Senken
 GEMERKT_RESTFRAESER = "BaRestFraeser"  # … fürs Restmaterial
@@ -1702,6 +1704,93 @@ class _Entgraten(_Strategie):
         return {"breite": float(op.Breite), "tiefer": float(op.Tiefer)}
 
 
+class _Entgraten3D(_Strategie):
+    """Fasen an Kanten im Raum (W-015 S5; Manuel, 2026-10-04: „nicht das Werkstück beschädigen“,
+    „nicht nur auf den 45-Grad-Fräser“, „auch auf einer Dreiachs-Maschine“): an einer 5-Achs-Maschine
+    angestellt (Fasenfräser oder ebene Stirn), sonst der Fasenfräser senkrecht – den Haken setzt
+    man selbst."""
+
+    kennung = "entgraten3d"
+    gemerkt = GEMERKT_ENTGRATEN3D
+    einsatz_reihenfolge = (wz.FASEN, wz.SCHLICHTEN)
+    bevorzugt = wz.FASENFRAESER
+
+    def titel(self):
+        return tr("ba.e3")
+
+    def text(self):
+        return tr("ba.e3.text")
+
+    def fraeser_tooltip(self):
+        return tr("ba.e3.fraeser.tooltip")
+
+    def einsatz_tooltip(self):
+        return tr("ba.fasen_einsatz.tooltip")
+
+    def felder(self):
+        return (("breite", tr("ba.e3.breite"), tr("ba.e3.breite.tooltip")),)
+
+    def haken(self):
+        return (("fuenf", tr("ba.e3.fuenf"), tr("ba.e3.fuenf.tooltip"), True),)
+
+    def haken_verborgen(self, feld, block):
+        return feld == "fuenf" and not block.panel._fuenfachs()
+
+    def werkzeug_passt(self, werkzeug):
+        return werkzeug.art == wz.FASENFRAESER or werkzeug.art in e3op.FLACH
+
+    def passt(self, form, name):
+        return e3op.passt(form, name)
+
+    def vorgeschlagen(self, form, gewaehlte):
+        return False  # welche Kante eine Fase bekommt, sagt die Zeichnung
+
+    def unmoeglich_text(self):
+        return tr("ba.e3.keine")
+
+    def vorschlag(self, feld, werkzeug, einsatz):
+        return e3op.BREITE if feld == "breite" else 0.0
+
+    def _fuenf(self, werte):
+        return bool(werte.get("fuenf", False))
+
+    def vorschau(self, job, werkzeug, werte, flaechen):
+        return e3op.vorschau(
+            job,
+            werkzeug,
+            werte["breite"],
+            flaechen,
+            fuenf=self._fuenf(werte),
+            vorschub=werte.get("vorschub", 0.0),
+        )
+
+    def zeit(self, bahn, vorschub, eintauchen):
+        return bahn.laenge / vorschub if vorschub > 0 else bahn.zeit
+
+    def ergebnis_text(self, bahn, zeit):
+        kanten_ = tr("ba.e3.kante") if bahn.kanten == 1 else tr("ba.e3.kanten", n=bahn.kanten)
+        text = tr("ba.ergebnis_e3", kanten=kanten_, zeit=zeit)
+        if bahn.schenkel[1] - bahn.schenkel[0] > 0.01:
+            von = groesse_zeigen(bahn.schenkel[0], einheiten.LAENGE, 2) or "0"
+            bis = groesse_zeigen(bahn.schenkel[1], einheiten.LAENGE, 2) or "0"
+            text += tr("ba.e3.schenkel", von=von, bis=bis)
+        if bahn.ausgelassen >= 0.5:
+            text += " " + e3op.ausgelassen_text(bahn)
+        return text
+
+    def lege_an(self, job, tc, werte, flaechen):
+        return e3op.lege_an(job, tc, werte["breite"], self._fuenf(werte), flaechen=flaechen)
+
+    def aendere(self, op, tc, werte, flaechen):
+        e3op.aendere(op, tc, werte["breite"], self._fuenf(werte), flaechen=flaechen)
+
+    def ist(self, op):
+        return e3op.ist_entgraten3d(op)
+
+    def werte_von(self, op):
+        return {"breite": float(op.Fasenbreite), "fuenf": bool(op.FuenfAchsen)}
+
+
 def _kegel_ergebnis(bahn, zeit):
     stellen = tr("ba.zahl.stelle") if bahn.stellen == 1 else tr("ba.zahl.stellen", n=bahn.stellen)
     tiefe = groesse_zeigen(bahn.tiefe, einheiten.LAENGE, 2) or "0"
@@ -2633,6 +2722,7 @@ STRATEGIEN = (
     _Gewinde,
     _Gewindefraesen,
     _Entgraten,
+    _Entgraten3D,
 )
 
 
@@ -2816,8 +2906,15 @@ class _Block:
             if verborgen:
                 grund = grund or ""
             kasten.setEnabled(grund is None)
+            # Selbst abgehakt, weil er nicht ging – geht er wieder (eine andere Maschine), kommt
+            # der Haken zurück (Entgraten 3D: „angestellt“ ist an einer 5-Achs-Maschine an).
+            selbst_ab = self.__dict__.setdefault("_selbst_abgehakt", set())
             if grund is not None and kasten.isChecked():
                 kasten.setChecked(False)
+                selbst_ab.add(feld)
+            elif grund is None and feld in selbst_ab:
+                selbst_ab.discard(feld)
+                kasten.setChecked(True)
             kasten.setText(
                 text if grund is None else tr("ba.haken.gesperrt", text=text, grund=grund)
             )
@@ -3334,6 +3431,7 @@ class BearbeitungPanel:
         self.gewinde = next(b for b in self.bloecke if b.s.kennung == "gewinde")
         self.gewindefraesen = next(b for b in self.bloecke if b.s.kennung == "gewindefraesen")
         self.entgraten = next(b for b in self.bloecke if b.s.kennung == "entgraten")
+        self.entgraten3d = next(b for b in self.bloecke if b.s.kennung == "entgraten3d")
         self.zentrieren = next(b for b in self.bloecke if b.s.kennung == "zentrieren")
         self.senken = next(b for b in self.bloecke if b.s.kennung == "senken")
         self.reiben = next(b for b in self.bloecke if b.s.kennung == "reiben")
@@ -4765,7 +4863,7 @@ class BearbeitungPanel:
                     moeglich = moeglich and self._gewindebohrer_da(form)
                 if block is self.gewindefraesen:
                     moeglich = moeglich and self._gewindefraeser_da(form)
-                if block in (self.entgraten, self.zentrieren):
+                if block in (self.entgraten, self.entgraten3d, self.zentrieren):
                     moeglich = moeglich and bool(block._fraeser)
                 if block is self.senken:
                     moeglich = moeglich and self._senker_da(form)
@@ -5026,6 +5124,7 @@ class BearbeitungPanel:
             self.gewinde,
             self.gewindefraesen,
             self.entgraten,
+            self.entgraten3d,
             self.senken,
             self.reiben,
             self.schlichten3d,

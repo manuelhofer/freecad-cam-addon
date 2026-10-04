@@ -2379,5 +2379,17 @@
     "e3.grund.keine": "ohne passende Stellung",
     "e3.grund.anfahrt": "nicht anzufahren",
     "e3.ausgelassen": "{mm} mm Kante ohne Fase: {gruende}.",
-    "e3.fehler.fraeser": "Entgraten 3D braucht einen Fasenfräser oder einen Fräser mit ebener Stirn (Schaft, Torus, Plan, Nut) aus der Werkzeugverwaltung."
+    "e3.fehler.fraeser": "Entgraten 3D braucht einen Fasenfräser oder einen Fräser mit ebener Stirn (Schaft, Torus, Plan, Nut) aus der Werkzeugverwaltung.",
+    "ba.e3": "Entgraten 3D",
+    "ba.e3.text": "Bricht die konvexen Kanten der gewählten Flächen auch im Raum – steigende Kanten, Bohrungen in Schrägen, Kanten mit beliebigem Winkel. An einer 5-Achs-Maschine angestellt (Fasenfräser oder ein Fräser mit ebener Stirn, die Fase gleich breit auf beiden Flächen), sonst der Fasenfräser senkrecht. Wo das Werkzeug das Teil verletzen würde, bleibt die Kante ohne Fase – das steht dann hier.",
+    "ba.e3.fraeser.tooltip": "Ein Fasenfräser (jeder Spitzenwinkel) – mit 5 Achsen auch ein Fräser mit ebener Stirn (Schaft, Torus, Plan, Nut), angestellt.",
+    "ba.e3.breite": "Fasenbreite",
+    "ba.e3.breite.tooltip": "So breit wird die Fase auf jeder Fläche (mit 3 Achsen: auf der Fläche, die nach oben schaut – die andere zeigt das Ergebnis).",
+    "ba.e3.fuenf": "Angestellt (5 Achsen)",
+    "ba.e3.fuenf.tooltip": "An: Das Werkzeug steht für jede Kante richtig (senkrecht zur Kante, die Fase symmetrisch) – auch mit einem Fräser mit ebener Stirn. Aus: der Fasenfräser senkrecht wie an einer 3-Achs-Maschine.",
+    "ba.e3.keine": "Wähle Flächen mit Kanten zum Brechen (konvex, scharf) und lege einen Fasenfräser in der Werkzeugverwaltung an.",
+    "ba.e3.kante": "1 Kante",
+    "ba.e3.kanten": "{n} Kanten",
+    "ba.ergebnis_e3": "→ {kanten} mit Fase, etwa {zeit}.",
+    "ba.e3.schenkel": " Die Fase ist nicht symmetrisch: Schenkel {von} … {bis} mm."
 }

@@ -223,6 +223,32 @@ def bahn_fuer(
     return e3.planen(form_teil, list(flaechen), werte)
 
 
+VORSCHAU_SCHRITT = 1.0  # mm – im Assistenten gröber
+VORSCHAU_PUNKTABSTAND = 0.35  # mm
+
+
+def vorschau(job, werkzeug, breite, flaechen, fuenf=True, vorschub=0.0):
+    """Die Bahn grob – für Kanten, Zeit und ob es geht, im Assistenten. ValueError wie
+    bahn_fuer()."""
+    form_teil = vs._teil(job.Model.Group)
+    werte = e3.Werte3D(
+        fraeser=fraeser_von(werkzeug),
+        breite=breite,
+        art=e3.FUENF if fuenf else e3.DREI,
+        sicher=pf.rohteil_von_oben(job)[4] + e3.SICHERHEIT + 3.0,
+        vorschub=vorschub,
+    )
+    return e3.planen(form_teil, list(flaechen), werte, VORSCHAU_SCHRITT, VORSCHAU_PUNKTABSTAND)
+
+
+def passt(form, name):
+    """Hat die Fläche `name` konvexe, scharfe Kanten zum Fasen?"""
+    try:
+        return bool(e3.kanten(form, [name]))
+    except Exception:
+        return False
+
+
 def lege_an(job, tc, breite=BREITE, fuenf=True, name=None, flaechen=()):
     """Legt „Entgraten 3D“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Gibt die
     Operation zurück."""

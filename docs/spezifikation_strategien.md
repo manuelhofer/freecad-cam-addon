@@ -2864,7 +2864,13 @@ Kollision mit Rundachsen je Station.
   (alle Flächen, Fase 0,5): 5 Achsen Kegel 90° Ø 10 – 33 Kanten, 826 mm, 359 mm zu eng; Ø 6
   834 mm; Schaftfräser Ø 10 – 31 Kanten; 3 Achsen – 23 Kanten, 535 mm, Schenkel 0,13 … 1,87.
   Programm, „Auf der Maschine prüfen“, Kollision (darf ins Teil – die Fase steht nicht im Modell),
-  TCPM wie die Flanke. Der Assistent folgt.
+  TCPM wie die Flanke. **Im Assistenten (P-2026-10-04-66):** der Block „Entgraten 3D“ nach dem
+  Entgraten, nie von selbst angehakt (welche Kante eine Fase bekommt, sagt die Zeichnung);
+  Fasenfräser vorgewählt (mit dem Haken auch ein Fräser mit ebener Stirn), Fasenbreite (grau 0,5),
+  der Haken „Angestellt (5 Achsen)“ nur an einer 5-Achs-Maschine und dort angehakt – ein Haken,
+  den der Assistent selbst abgehakt hat, weil er nicht ging, kommt zurück, wenn er wieder geht.
+  Die Vorschau gröber (Stellen alle 1 mm, Punkte alle 0,35 mm): „→ 8 Kanten mit Fase, etwa 1 min.
+  48 mm Kante ohne Fase: 48 mm zu eng …“. Hilfe „Bearbeitung“, Abschnitt 9.
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

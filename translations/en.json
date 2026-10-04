@@ -2379,5 +2379,17 @@
     "e3.grund.keine": "without a fitting position",
     "e3.grund.anfahrt": "not reachable",
     "e3.ausgelassen": "{mm} mm of edge without chamfer: {gruende}.",
-    "e3.fehler.fraeser": "Deburr 3D needs a chamfer mill or a cutter with a flat face (end, bull-nose, face, slot mill) from the tool manager."
+    "e3.fehler.fraeser": "Deburr 3D needs a chamfer mill or a cutter with a flat face (end, bull-nose, face, slot mill) from the tool manager.",
+    "ba.e3": "Deburr 3D",
+    "ba.e3.text": "Breaks the convex edges of the selected faces also in space – rising edges, holes in slopes, edges at any angle. On a 5-axis machine tilted (chamfer mill or a cutter with a flat face, the chamfer equally wide on both faces), otherwise the chamfer mill vertical. Where the tool would damage the part, the edge stays without chamfer – it then says so here.",
+    "ba.e3.fraeser.tooltip": "A chamfer mill (any point angle) – with 5 axes also a cutter with a flat face (end, bull-nose, face, slot mill), tilted.",
+    "ba.e3.breite": "Chamfer width",
+    "ba.e3.breite.tooltip": "The chamfer gets this wide on each face (with 3 axes: on the face looking up – the result shows the other).",
+    "ba.e3.fuenf": "Tilted (5 axes)",
+    "ba.e3.fuenf.tooltip": "On: the tool stands right for each edge (perpendicular to the edge, the chamfer symmetric) – also with a cutter with a flat face. Off: the chamfer mill vertical as on a 3-axis machine.",
+    "ba.e3.keine": "Select faces with edges to break (convex, sharp) and create a chamfer mill in the tool manager.",
+    "ba.e3.kante": "1 edge",
+    "ba.e3.kanten": "{n} edges",
+    "ba.ergebnis_e3": "→ {kanten} with chamfer, about {zeit}.",
+    "ba.e3.schenkel": " The chamfer is not symmetric: legs {von} … {bis} mm."
 }

@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.188.0 (P-2026-10-04-65). Alles, was hier als gebaut steht,
+Stand 0.188.1 (P-2026-10-04-66). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -125,7 +125,7 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   1,7 min. **Gebaut (P-2026-10-04-65)** auf Manuels Antwort („nicht das Werkstück beschädigen“,
   „nicht nur auf den 45-Grad-Fräser“, „auch auf einer Dreiachs-Maschine“): Operation „Entgraten
   3D“ – 5 Achsen mit Fasenfräser oder Fräser mit ebener Stirn, 3 Achsen mit Fasenfräser senkrecht;
-  der Assistent folgt.
+  im Assistenten der Block „Entgraten 3D“ (P-2026-10-04-66).
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
