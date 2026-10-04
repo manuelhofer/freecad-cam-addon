@@ -108,6 +108,12 @@ def schritte(h):
         panel.querachse_grund.text().startswith("Die Maschine hat die Achse quer"),
         f"Grund: {panel.querachse_grund.text()!r}",
     )
+    # Darunter „Kugel 15° anstellen“ – frei und angehakt (Manuel, 2026-10-04: „pauschal
+    # angehakt“).
+    h.pruefe(
+        panel.schlichten_anstellen.isEnabled() and panel.schlichten_anstellen.isChecked(),
+        "„Kugel 15° anstellen“ nicht angehakt",
+    )
     h.bild("1_schruppen_und_schlichten", panel.form)
 
     # Nur schruppen – das Schlichten kommt nachträglich.
@@ -162,14 +168,15 @@ def schritte(h):
         f"Rest höchstens: {schlichten.RestHoechstens}",
     )
     h.pruefe(abs(schlichten.Schrittweite.Value - 0.3) < 1e-9, f"{schlichten.Schrittweite}")
-    # Die Operation fährt mit der Querachse: die Sätze tragen das Y; an der runden Welle ist es
-    # nahe 0 (die Normale ist der Strahl), hinten am Absatz kommt die Kugel mit dem Y um die
-    # Kante.
+    # Die Operation fährt mit der Querachse, die Kugel angestellt: die Sätze tragen das Y; an der
+    # runden Welle steht es (r + R) · sin 15° neben der Mitte – Ø 40: 5,95, Ø 60: 8,54; um die
+    # Kanten am Absatz 4,3 … 11,9 –, nie auf ihr (dort schnitte die Kugel mit der Spitze).
     h.pruefe(bool(schlichten.Querachse), "Querachse nicht an der Operation")
+    h.pruefe(bool(schlichten.Anstellen), "Anstellen nicht an der Operation")
     saetze = [b for b in schlichten.Path.Commands if b.Name == "G1"]
     h.pruefe(saetze and all("Y" in b.Parameters for b in saetze), f"Sätze ohne Y: {len(saetze)}")
     y_werte = [abs(b.Parameters["Y"]) for b in saetze]
-    h.pruefe(max(y_werte) > 0.5 and min(y_werte) < 0.01, f"Y: {min(y_werte)} … {max(y_werte)}")
+    h.pruefe(min(y_werte) > 3.0 and max(y_werte) < 15.0, f"Y: {min(y_werte)} … {max(y_werte)}")
 
     # --- Doppelklick aufs Schlichten: ändern --------------------------------------------------
     schlichten.ViewObject.Proxy.doubleClicked(schlichten.ViewObject)
@@ -186,6 +193,7 @@ def schritte(h):
     )
     h.pruefe(panel.schlichtfraeser() is not None and panel.schlichtfraeser().nummer == 2, "T2?")
     h.pruefe(panel.schlichten_querachse.isChecked(), "beim Ändern: Haken Querachse weg")
+    h.pruefe(panel.schlichten_anstellen.isChecked(), "beim Ändern: Haken Anstellen weg")
     texte = {k: f.text() for k, f in panel.felder_schlichten.items()}
     h.pruefe(not any(texte.values()), f"Felder: {texte}")
     panel.felder_schlichten["schrittweite"].setText("0,5")

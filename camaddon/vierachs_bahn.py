@@ -122,6 +122,10 @@ QUER_SEITLICH = 0.5  # mm – fünf Punkte weit; längs rückt die Spirale dabei
 # … bei Schaft- und Torusfräsern (geprüft am Weg der Spitze): Seitlich verschoben läge die
 # ebene Stirn in einer Kehle tiefer – so wenig nur.
 QUER_SEITLICH_SPITZE = 0.02  # mm
+# Grad – so weit steht die Kugel mit der Querachse neben der Normalen, in Vorschubrichtung geneigt
+# (ziehend): Sie schneidet nicht mit der Spitze (Manuel, 2026-10-04: „als Haken, der aber pauschal
+# angehakt ist“) – wie das Anstellen beim 5-Achs-Schlichten (angestellt.WINKEL).
+ANSTELLEN_QUER = 15.0
 TOLERANZ_SCHLICHTEN = 0.005  # mm – so fein wird das Teil fürs Schlichten vernetzt
 BAHN_TOLERANZ = 0.002  # mm – so weit darf die zusammengefasste Bahn über den Punkten liegen
 # mm – höchstens so viel hebt der Sehnenfehler einen Punkt: Er gilt für Rundungen; an einer
@@ -211,6 +215,9 @@ class Schlichtwerte:
     # jedem Punkt längs der Normalen der Hüllfläche – auf einer ebenen Fläche hält die
     # Rundachse, die Querachse (bei C das Y) fährt die Gerade. Nur mit dem Kugelfräser.
     querachse: bool = False
+    # Grad – mit der Querachse steht die Kugel so weit neben der Normalen, in Vorschubrichtung
+    # geneigt (ANSTELLEN_QUER); 0: auf der Normalen, sie schneidet mit der Spitze.
+    anstellen: float = 0.0
 
 
 @dataclass
@@ -1102,6 +1109,7 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
             schritt_phi,
             umrechnen,
             form.nur_kugel,
+            w.anstellen if form.nur_kugel else 0.0,
         )
     else:
         a, r, winkel, t, _ = _verfeinert(
@@ -1459,7 +1467,7 @@ def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1, t=None)
     punkte.append(Punkt(True, float(a[bis]), sicher, float(winkel[bis] + versatz)))
 
 
-def normale_quer(r, winkel, radius, a=None):
+def normale_quer(r, winkel, radius, a=None, neigung=0.0):
     """Die Spirale mit der Querachse (V5e): Je Punkt steht die Werkzeugachse längs der
     Normalen der Hüllfläche – im Querschnitt. Die Mitte der Kugel liegt auf dem Strahl φ im
     Abstand ρ = r + R von der Achse; die Normale der Kurve ρ(φ) hat den Winkel ψ = φ − β mit
@@ -1472,7 +1480,9 @@ def normale_quer(r, winkel, radius, a=None):
     Y-Achse fahren, ohne C zu bewegen“). Gibt (ψ in Grad, Spitze längs der Werkzeugachse,
     Versatz quer) je Punkt zurück; `winkel` in Grad, fortlaufend; `a`: die Stellen längs –
     wo ein Ring beginnt oder endet, springt die Hüllfläche, dort wird nicht über die Grenze
-    hinweg abgeleitet."""
+    hinweg abgeleitet. `neigung` (Grad): Die Werkzeugachse steht so weit neben der Normalen –
+    ψ = φ − β + Neigung, die Mitte quer um ρ · sin(β − Neigung); positiv zu wachsendem φ hin
+    (die Kugel schneidet dann nicht mit der Spitze, ANSTELLEN_QUER)."""
     rho = np.asarray(r, dtype=float) + radius
     phi = np.radians(np.asarray(winkel, dtype=float))
     if len(rho) < 2:
@@ -1498,10 +1508,11 @@ def normale_quer(r, winkel, radius, a=None):
             innen = np.convolve(stueck, kern, mode="valid")
             stueck = np.concatenate([stueck[:QUER_GLATT], innen, stueck[-QUER_GLATT:]])
         beta[von:bis] = stueck
-    psi = np.degrees(phi - beta)
     # ψ muss nicht genau die Normale sein: Die Kugelmitte liegt für jedes ψ auf der
     # Hüllfläche (x + R und q sind ihre Lage im Rahmen unter ψ) – ψ bestimmt nur, wie das
     # Werkzeug dabei steht, und ob die Gerade über eine Ebene eine ist.
+    beta = beta - math.radians(neigung)
+    psi = np.degrees(phi - beta)
     return psi, rho * np.cos(beta) - radius, rho * np.sin(beta)
 
 
@@ -1519,34 +1530,53 @@ def _ableitung(werte, stellen):
 
 
 def _spirale_quer(
-    punkte, a, r, winkel, sicher, abstand, drehung, radius, schritt_phi, umrechnen, kugel
+    punkte,
+    a,
+    r,
+    winkel,
+    sicher,
+    abstand,
+    drehung,
+    radius,
+    schritt_phi,
+    umrechnen,
+    kugel,
+    anstellen=0.0,
 ):
     """Hängt die ganze Spirale mit der Querachse an `punkte` (_quer_plan, normale_quer): die
     Rundachse steht auf ψ, die Spitze bei x längs der Werkzeugachse, quer um q versetzt.
     `umrechnen`: (a, x, q, ψ) → (ψ, x, q) – die Stellungen des Fräsers mit der Höhe aus seiner
     Hüllfläche (vierachs_quer.stellungen); auch für die Kugel, denn ihre Zwischenstellungen
     (_uebergaenge) liegen nicht auf ihr. Geprüft wird der Weg der Kugelmitte (`kugel`) bzw. der
-    Spitze. Gibt die tiefste Spitze zurück."""
-    a_p, x_p, q_p, psi_p, fest, eingefuegt = _quer_plan(a, r, winkel, radius, schritt_phi)
+    Spitze. `anstellen`: die Kugel so viele Grad neben der Normalen (Schlichtwerte.anstellen).
+    Gibt die tiefste Spitze zurück."""
+    neigung = math.copysign(float(anstellen), drehung) if kugel else 0.0
+    a_p, x_p, q_p, psi_p, fest, eingefuegt = _quer_plan(a, r, winkel, radius, schritt_phi, neigung)
     pruef_radius = radius if kugel else 0.0
-    if not kugel:
+    if not kugel or neigung:
+        # Angestellt steht der Schaft der Kugel schräg: In einer Innenecke des Querschnitts käme
+        # er der zweiten Wand näher als die Kugel – die Hüllfläche in genau dieser Stellung
+        # rechnet ihn mit (dort hebt die Kugel ab, statt in die Wand zu schneiden).
         psi_p, x_p, q_p = umrechnen(a_p, x_p, q_p, psi_p)
     elif eingefuegt.any():  # die Kugel: ihr Plan liegt auf der Hüllfläche, die Übergänge nicht
         w = np.flatnonzero(eingefuegt)
         psi_w, x_w, q_w = umrechnen(a_p[w], x_p[w], q_p[w], psi_p[w])
         psi_p, x_p, q_p = psi_p.copy(), x_p.copy(), q_p.copy()
         psi_p[w], x_p[w], q_p[w] = psi_w, x_w, q_w
-    _quer_ausgeben(punkte, a_p, x_p, q_p, psi_p, fest, sicher, abstand, drehung, pruef_radius)
+    _quer_ausgeben(
+        punkte, a_p, x_p, q_p, psi_p, fest, sicher, abstand, drehung, pruef_radius, neigung
+    )
     return float(np.min(x_p))
 
 
-def _quer_plan(a, r, winkel, radius, schritt_phi):
+def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0):
     """Der Plan der Spirale mit der Querachse für eine Kugel mit `radius` (normale_quer):
     (a, Spitze x, Versatz q, ψ in Grad, Punkte, die bleiben, eingefügte Zwischenstellungen). Springt ψ zwischen zwei Punkten um
     mehr als QUER_SPRUNG Schritte (eine Innenecke: dort liegt die Kugel in der Ecke, die Normale
     ist nicht eindeutig; um eine Außenkante rollt sie mit 1–3° je Punkt, das bleibt), dreht das
-    Werkzeug um die ruhende Kugelmitte in Schritten von `schritt_phi`."""
-    psi, x, q = normale_quer(r, winkel, radius, a)
+    Werkzeug um die ruhende Kugelmitte in Schritten von `schritt_phi`. `neigung`: die Kugel so
+    viele Grad neben der Normalen (normale_quer)."""
+    psi, x, q = normale_quer(r, winkel, radius, a, neigung)
     rho = np.asarray(r, dtype=float) + radius
     phi = np.radians(np.asarray(winkel, dtype=float))
     teile_a, teile_x, teile_q, teile_psi, fest = [], [], [], [], []
@@ -1635,10 +1665,11 @@ def _uebergaenge(a, x, q, psi, fest, radius):
     )
 
 
-def _quer_ausgeben(punkte, a, x, q, psi, fest, sicher, abstand, drehung, radius):
+def _quer_ausgeben(punkte, a, x, q, psi, fest, sicher, abstand, drehung, radius, neigung=0.0):
     """Hängt die Stellungen (a, x, q, ψ) an `punkte`: im Eilgang über den Anfang, die Punkte
-    zusammengefasst (_zusammen_quer, geprüft am Weg des Punkts `radius` über der Spitze), am Ende
-    radial hinaus. Der Winkel zählt weiter, wo die Rundachse steht."""
+    zusammengefasst (_zusammen_quer, geprüft am Weg des Punkts `radius` über der Spitze, längs der
+    Normalen ψ − `neigung`), am Ende radial hinaus. Der Winkel zählt weiter, wo die Rundachse
+    steht."""
     weiter = punkte[-1].phi
     if drehung > 0:
         versatz = 360.0 * math.ceil((weiter - psi[0]) / 360.0 - 1e-9)
@@ -1647,7 +1678,7 @@ def _quer_ausgeben(punkte, a, x, q, psi, fest, sicher, abstand, drehung, radius)
     anfahren = Punkt(True, float(a[0]), sicher, float(psi[0] + versatz), q=float(q[0]))
     if anfahren != punkte[-1]:
         punkte.append(anfahren)
-    for i in _zusammen_quer(x, q, psi, radius, BAHN_TOLERANZ, abstand, fest):
+    for i in _zusammen_quer(x, q, psi, radius, BAHN_TOLERANZ, abstand, fest, neigung):
         punkte.append(
             Punkt(False, float(a[i]), float(x[i]), float(psi[i] + versatz), q=float(q[i]))
         )
@@ -1657,7 +1688,7 @@ def _quer_ausgeben(punkte, a, x, q, psi, fest, sicher, abstand, drehung, radius)
     )
 
 
-def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=()):
+def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=(), neigung=0.0):
     """Die Punkte, die von der Spirale mit der Querachse bleiben (wie _zusammengefasst, nur
     im Rahmen des Teils gemessen). Die Maschine fährt zwischen zwei Punkten x, q und ψ
     zugleich geradlinig; die Kugelmitte läuft dabei im Teil auf der Kurve Rot(ψ(t)) · (x(t) +
@@ -1667,13 +1698,15 @@ def _zusammen_quer(x, q, psi, radius, toleranz, hoechstens, fest=()):
     QUER_SEITLICH – quer heißt nur: an einer anderen Stelle derselben Bahn. Je Lauf das
     längste Stück, das passt (verdoppeln, dann halbieren), höchstens `hoechstens` Punkte;
     die Punkte in `fest` bleiben (Ringe, Innenecken). Mit radius 0 (die Spitze eines Fräsers,
-    der keine Kugel ist) seitlich höchstens QUER_SEITLICH_SPITZE."""
+    der keine Kugel ist) seitlich höchstens QUER_SEITLICH_SPITZE. Steht die Kugel um `neigung`
+    neben der Normalen (normale_quer), zählt längs und quer zur Normalen ψ − `neigung`."""
     seitlich_hoechstens = QUER_SEITLICH if radius > 0 else QUER_SEITLICH_SPITZE
     n = len(x)
     rad = np.radians(np.asarray(psi, dtype=float))
-    c, s = np.cos(rad), np.sin(rad)
-    mitte_x = (x + radius) * c - q * s
-    mitte_y = (x + radius) * s + q * c
+    mitte_x = (x + radius) * np.cos(rad) - q * np.sin(rad)
+    mitte_y = (x + radius) * np.sin(rad) + q * np.cos(rad)
+    normale = rad - math.radians(neigung)
+    c, s = np.cos(normale), np.sin(normale)
     x = np.asarray(x, dtype=float)
     q = np.asarray(q, dtype=float)
     psi = np.asarray(psi, dtype=float)

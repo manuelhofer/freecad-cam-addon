@@ -328,6 +328,51 @@ dauer_q, dauer_r = vb.dauer(quer_d, 1000.0), vb.dauer(radial_d, 1000.0)
 pruefe(
     0.8 * dauer_r <= dauer_q <= 1.3 * dauer_r, f"quer: {dauer_q:.1f} min, radial {dauer_r:.1f} min"
 )
+# Angestellt (Manuel, 2026-10-04: „als Haken, der aber pauschal angehakt ist“): Die Kugelmitte
+# bleibt genau R vom Teil, die Werkzeugachse steht 15° neben der Normalen – in Vorschubrichtung
+# (φ wächst, ψ steht weiter) –, C dreht nie zurück, die Zeit fast gleich.
+an_d = vb.schlichten(
+    netz_d, LAENGS, RADIAL, replace(werte_d, querachse=True, anstellen=vb.ANSTELLEN_QUER)
+)
+im_vorschub = [p for p in an_d.punkte if not p.eilgang]
+psi_a = np.radians([p.phi for p in im_vorschub])
+x_a = np.array([p.r for p in im_vorschub])
+q_a = np.array([p.q for p in im_vorschub])
+a_a = np.array([p.a for p in im_vorschub])
+mx_a = (x_a + 5.0) * np.cos(psi_a) - q_a * np.sin(psi_a)
+my_a = (x_a + 5.0) * np.sin(psi_a) + q_a * np.cos(psi_a)
+auf_flaeche = np.abs(my_a) <= w_d
+ecke_y = np.where(my_a > 0, w_d, -w_d)
+abstand_a = np.where(
+    mx_a > 6.0,
+    np.where(auf_flaeche, mx_a - 6.0, np.hypot(mx_a - 6.0, my_a - ecke_y)),
+    np.hypot(mx_a, my_a) - 20.0,
+)
+normale_a = np.where(
+    mx_a > 6.0,
+    np.where(auf_flaeche, 0.0, np.arctan2(my_a - ecke_y, mx_a - 6.0)),
+    np.arctan2(my_a, mx_a),
+)
+neben = np.degrees(np.angle(np.exp(1j * (psi_a - normale_a))))
+im_teil_a = (a_a < -0.5) & (a_a > -59.5)
+pruefe(
+    abstand_a[im_teil_a].min() >= 5.0 - 1e-3 and abstand_a[im_teil_a].max() <= 5.0 + 0.2,
+    f"angestellt: Kugelmitte {abstand_a[im_teil_a].min():.4f} … {abstand_a[im_teil_a].max():.4f}",
+)
+vorwaerts = np.sign(an_d.punkte[-2].phi - an_d.punkte[1].phi)
+# Wo die Normale eindeutig ist – auf dem Rund und mitten auf der Ebene; an den Kanten rollt die
+# Kugel, dort ist die Normale geglättet (QUER_GLATT), mit und ohne Anstellen gleich.
+eindeutig = im_teil_a & ((mx_a < 5.9) | ((np.abs(my_a) < w_d - 5.5) & (mx_a > 5.9)))
+pruefe(
+    eindeutig.sum() > 100
+    and float(np.max(np.abs(neben[eindeutig] * vorwaerts - vb.ANSTELLEN_QUER))) < 0.15,
+    f"angestellt: {eindeutig.sum()} Punkte, neben der Normalen "
+    f"{np.percentile(neben[eindeutig] * vorwaerts, [0, 50, 100])}°",
+)
+schritte_a = np.diff([p.phi for p in an_d.punkte]) * vorwaerts
+pruefe(float(np.min(schritte_a)) >= -1e-9, f"angestellt: C zurück {np.min(schritte_a):.3f}°")
+dauer_a = vb.dauer(an_d, 1000.0)
+pruefe(abs(dauer_a / dauer_q - 1.0) < 0.03, f"angestellt: {dauer_a:.2f} min, quer {dauer_q:.2f}")
 # Schaft- und Torusfräser mit der Querachse (P-2026-10-03-22, vierachs_quer): der Plan von der
 # Kugel mit ihrem Radius, die Höhe aus ihrer eigenen Hüllfläche. Auf der Abflachung steht C,
 # die Stirn liegt flach auf (Spitze bei 6,005), Y fährt; nirgends ins D-Profil (je Stellung:

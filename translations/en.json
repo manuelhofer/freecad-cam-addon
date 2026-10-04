@@ -2323,5 +2323,8 @@
     "ba.nut.vorschlag.stelle": "Suggestion: X {x} Y {y} – least material there",
     "ba.nut.ende": "End X {x} Y {y}",
     "ba.nut.mitte": "Middle X {x} Y {y}",
-    "ba.nut.angeklickt": "clicked X {x} Y {y}"
+    "ba.nut.angeklickt": "clicked X {x} Y {y}",
+    "va.anstellen": "Tilt the ball 15° (not cutting with the tip)",
+    "va.anstellen.tooltip": "With the cross axis the tool axis otherwise stands exactly on the surface normal – the ball then cuts with its tip, where the cutting speed is 0. Tilted it stands 15° beside it, leaning in the feed direction: Y runs offset, the rotary axis 15° further. The ball centre and so the surface stay the same, the time almost too.",
+    "vs.eigenschaft.anstellen": "With the cross axis and a ball mill: the tool axis 15° beside the surface normal, leaning in the feed direction – the ball does not cut with its tip. Off: exactly on the normal."
 }

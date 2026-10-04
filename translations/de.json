@@ -2323,5 +2323,8 @@
     "ba.nut.vorschlag.stelle": "Vorschlag: X {x} Y {y} – dort steht am wenigsten",
     "ba.nut.ende": "Ende X {x} Y {y}",
     "ba.nut.mitte": "Mitte X {x} Y {y}",
-    "ba.nut.angeklickt": "angeklickt X {x} Y {y}"
+    "ba.nut.angeklickt": "angeklickt X {x} Y {y}",
+    "va.anstellen": "Kugel 15° anstellen (nicht mit der Spitze)",
+    "va.anstellen.tooltip": "Mit der Querachse steht die Werkzeugachse sonst genau auf der Normalen der Fläche – die Kugel schneidet dann mit der Spitze, wo die Schnittgeschwindigkeit 0 ist. Angestellt steht sie 15° daneben, in Vorschubrichtung geneigt: Y fährt versetzt, die Rundachse 15° weiter. Die Kugelmitte und damit die Fläche bleiben gleich, die Zeit fast auch.",
+    "vs.eigenschaft.anstellen": "Mit der Querachse und dem Kugelfräser: die Werkzeugachse 15° neben der Normalen der Fläche, in Vorschubrichtung geneigt – die Kugel schneidet nicht mit der Spitze. Aus: genau auf der Normalen."
 }

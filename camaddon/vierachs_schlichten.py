@@ -95,6 +95,7 @@ class RundumSchlichten(PathOp.ObjectOp):
                 ("App::PropertyEnumeration", "Muster", tr("vs.eigenschaft.muster")),
                 ("App::PropertyBool", "NurGleichlauf", tr("pf.eigenschaft.nur_gleichlauf")),
                 ("App::PropertyBool", "Querachse", tr("vs.eigenschaft.querachse")),
+                ("App::PropertyBool", "Anstellen", tr("vs.eigenschaft.anstellen")),
             )
             + vo.abstand_eigenschaften()
             + vo.flaechen_eigenschaften()
@@ -107,6 +108,8 @@ class RundumSchlichten(PathOp.ObjectOp):
         )
         if "Muster" in neu:
             obj.Muster = list(MUSTER_WERTE)  # die Werte der Aufzählung; gewählt ist der erste
+        if "Anstellen" in neu:
+            obj.Anstellen = True  # auch in älteren Operationen (Manuel: „pauschal angehakt“)
         return neu
 
     @staticmethod
@@ -195,6 +198,7 @@ def rechne(obj, job, modell):
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
         nur_gleichlauf=bool(getattr(obj, "NurGleichlauf", False)),
         querachse=bool(getattr(obj, "Querachse", False)),
+        anstellen=bool(getattr(obj, "Anstellen", True)),
     )
 
 
@@ -231,6 +235,7 @@ def bahn_fuer(
     gleichlauf=True,
     nur_gleichlauf=False,
     querachse=False,
+    anstellen=True,
 ):
     """Die Schlichtbahn für Modell und Stange des Jobs. `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand); `schruppen`: [(Bahn, Fräserradius, Aufmaß)] der Schruppbahnen
@@ -239,7 +244,8 @@ def bahn_fuer(
     rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN; `gleichlauf`: die Spirale im Gleichlauf
     für M3 (spindel.fuer_m3 mit dem Controller); `nur_gleichlauf`: Linien längs jede für sich im
     Gleichlauf statt hin und her (P-2026-10-02-28); `querachse`: die Spirale mit der Querachse
-    (vierachs_bahn.Schlichtwerte.querachse, nur mit dem Kugelfräser). ValueError mit einem
+    (vierachs_bahn.Schlichtwerte.querachse, nur mit dem Kugelfräser); `anstellen`: die Kugel
+    dabei vierachs_bahn.ANSTELLEN_QUER neben der Normalen. ValueError mit einem
     Satz, wenn es nicht geht."""
     if not schruppen:
         raise ValueError(tr("vs.fehler.ohne_schruppen"))
@@ -255,6 +261,7 @@ def bahn_fuer(
         gleichlauf=gleichlauf,
         nur_gleichlauf=nur_gleichlauf,
         querachse=querachse,
+        anstellen=vb.ANSTELLEN_QUER if anstellen else 0.0,
     )
     teil = vh.vernetze(form_teil, vb.TOLERANZ_SCHLICHTEN)
     return vb.schlichten(teil, laengs, radial, werte)
@@ -274,6 +281,7 @@ def vorschau(
     muster=vb.SPIRALE,
     nur_gleichlauf=False,
     querachse=False,
+    anstellen=True,
 ):
     """Die Schlichtbahn grob – für Umdrehungen, Zeit und ob es geht, im Assistenten, bevor es
     die Operationen gibt: ohne den Rest nach dem Schruppen, gröber vernetzt, alle
@@ -288,6 +296,7 @@ def vorschau(
         muster=muster,
         nur_gleichlauf=nur_gleichlauf,
         querachse=querachse,
+        anstellen=vb.ANSTELLEN_QUER if anstellen else 0.0,
     )
     teil = vh.vernetze(form_teil, VORSCHAU_TOLERANZ)
     return vb.schlichten(teil, laengs, radial, werte, VORSCHAU_SCHRITT_PHI)
@@ -455,14 +464,15 @@ def lege_an(
     muster=vb.SPIRALE,
     nur_gleichlauf=False,
     querachse=False,
+    anstellen=True,
 ):
     """Legt „Rundum schlichten“ im Job an – ohne eigene Transaktion, die hält der Aufrufer (der
     Assistent). `achse`: vierachs_achsen.Stangenachse; `abstaende`: (Überlauf, Abstand zum
     Futter, Sicherheitsabstand) – ohne: die Vorschläge; `halter`: so weit reicht der Halter
     seitlich über die Werkzeugachse (halter.seitlich); `flaechen`: die gewählten Flächen
     („Face3“ …), leer: rundum; `muster`: vierachs_bahn.SPIRALE oder LINIEN; `nur_gleichlauf`:
-    Linien längs jede für sich im Gleichlauf (P-2026-10-02-28). Gibt die
-    Operation zurück. Angelegt wie „Rundum schruppen“ (vierachs_operation.lege_an), mit
+    Linien längs jede für sich im Gleichlauf (P-2026-10-02-28); `querachse`, `anstellen` wie bei
+    bahn_fuer. Gibt die Operation zurück. Angelegt wie „Rundum schruppen“ (vierachs_operation.lege_an), mit
     DoNotSetDefaultValues."""
     dokument = job.Document
     obj = dokument.addObject("Path::FeaturePython", "RundumSchlichten")
@@ -489,6 +499,7 @@ def lege_an(
     obj.Muster = muster_wert(muster)
     obj.NurGleichlauf = bool(nur_gleichlauf)
     obj.Querachse = bool(querachse)
+    obj.Anstellen = bool(anstellen)
     obj.Label = namen.eindeutig(
         obj.Document, name or tr("vs.name", werkzeug=f"T{tc.ToolNumber}"), obj
     )
@@ -510,6 +521,7 @@ def aendere(
     muster=None,
     nur_gleichlauf=None,
     querachse=None,
+    anstellen=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `abstaende`, `halter`, `flaechen`, `muster` und `nur_gleichlauf` wie bei
@@ -532,6 +544,8 @@ def aendere(
         obj.NurGleichlauf = bool(nur_gleichlauf)
     if querachse is not None and bool(querachse) != bool(getattr(obj, "Querachse", False)):
         obj.Querachse = bool(querachse)
+    if anstellen is not None and bool(anstellen) != bool(getattr(obj, "Anstellen", True)):
+        obj.Anstellen = bool(anstellen)
 
 
 def _vorgeschlagener_name(name):

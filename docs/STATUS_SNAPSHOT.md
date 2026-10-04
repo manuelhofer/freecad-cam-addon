@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.184.2 (P-2026-10-04-49). Alles, was hier als gebaut steht,
+Stand 0.185.0 (P-2026-10-04-50). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -34,7 +34,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   rechnen mit ihrer Form (P-2026-10-03-07, Manuels Teil neben der Achse); V5e die Spirale
   mit der Querachse (P-2026-10-03-18, Manuels Y-Gedanke: auf ebenen Flächen hält C, Y fährt
   die Gerade – seit P-2026-10-03-22 mit jedem Fräser, seit -23 auch beim Schruppen); die Bahnen
-  auch zwischen den Punkten nicht im Teil (Spirale -22, Zeilen -24). Offen:
+  auch zwischen den Punkten nicht im Teil (Spirale -22, Zeilen -24); die Kugel mit der Querachse
+  15° angestellt, nicht mit der Spitze (P-2026-10-04-50, Haken, angehakt). Offen:
   V6, V7 (V2b Drehteile gebaut: P-2026-10-04-01); das Prüffenster malt Fahrten über die Mitte noch nicht (mit dem Kugelfräser seit
   P-2026-10-04-49 schon) – an Manuels
   Teil ohne Folgen gemessen (P-2026-10-03-25: alles grün, nirgends blau), erst für Teile weit
@@ -329,9 +330,9 @@ Beantwortet am 2026-10-03 (abends):
    P-2026-10-04-20 einmal gerechnet und gemerkt – die Kollision rechnet sie nicht noch einmal).
 7. W-002 F2; W-003 V6, V7 (V2b gebaut, P-2026-10-04-01); (das Schruppen rundum an steilen Stellen: gemessen, die Keile
    sind größtenteils echt – P-2026-10-03-30);
-   „ausweichen“ mit
-   dem Y (Kugel nicht mit der Spitze, Anstellwinkel quer – Spezifikation Vierachs V4c+),
-   Vorläufer fürs 5-Achs-Fräsen.
+   ~~„ausweichen“ mit
+   dem Y (Kugel nicht mit der Spitze, Anstellwinkel quer – Spezifikation Vierachs V4c+)~~ –
+   P-2026-10-04-50: „Kugel 15° anstellen“ beim Rundum-Schlichten mit der Querachse, angehakt.
 
 **Regeln dafür** (Manuel, 2026-10-02: „du hast zwei stunden damit verbracht sachen zu testen
 für was?“; 2026-10-03: „ob das nötig ist oder nicht, musst dennoch du entscheiden … wenn es nötig

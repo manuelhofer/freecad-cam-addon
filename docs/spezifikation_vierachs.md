@@ -828,7 +828,20 @@ bauen“):*
   (B). Mit Y lässt sich aber der Winkel von Werkzeug und Fläche quer wählen – C auf φ_Normale
   + δ, das Y bringt das Werkzeug wieder auf den Punkt –, so schneidet eine Kugel nicht mit der
   Spitze (Schnittgeschwindigkeit 0): der Vorläufer des Anstellwinkels beim 5-Achs-Fräsen.
-  Offen, als eigene Stufe zu planen.
+  **Gebaut (P-2026-10-04-50; Manuel, 2026-10-04: „ja als Haken bitte, der aber pauschal angehakt
+  ist“):** „Rundum schlichten“ mit der Querachse und dem Kugelfräser stellt die Kugel
+  `vierachs_bahn.ANSTELLEN_QUER` (15°) neben die Normale, in Vorschubrichtung geneigt (ziehend):
+  `normale_quer(…, neigung)` – ψ = φ − β + Neigung, die Mitte quer um ρ · sin(β − Neigung). Die
+  Kugelmitte bleibt, wo sie war; die Höhe rechnet die Hüllfläche in genau dieser Stellung
+  (`vierachs_quer.stellungen`) – sie zählt den schrägen Schaft mit, in einer Innenecke des
+  Querschnitts hebt die Kugel dort ab, statt in die zweite Wand zu schneiden. Zusammengefasst wird
+  längs der echten Normalen (`_zusammen_quer(…, neigung)`). An der Operation die Eigenschaft
+  `Anstellen` (an, auch in älteren Operationen), im Assistenten der Haken „Kugel 15° anstellen
+  (nicht mit der Spitze)“ unter „Mit der Querachse (Y)“ – frei mit Querachse und Kugelfräser,
+  angehakt. Gemessen: Welle Ø 60, Kugel Ø 10, 1 mm/U: 21,21 → 21,35 min, Y steht konstant 9,1 mm
+  neben der Mitte; Manuels 4-Achs-Teil, Kugel Ø 10, 0,5 mm/U: 40,99 → 41,11 min, Y −33…+32 →
+  −36…+27 mm, 151 000 statt 153 000 Sätze, C dreht 4° statt 62° zurück, Rest im Prüffenster
+  gleich (99 % unter 0,005 mm); die Operation rechnet 25 statt 12 s.
 - **V5e – Die Spirale mit der Querachse** (P-2026-10-03-18; Manuel, 2026-10-03: „mein Gedanke
   war eigentlich ein anderer: das Spiralisieren um das Bauteil herum nicht nur mit X und Z
   und C, sondern eben auch Y mitnehmen … berechnet man Drehung und Koordinaten so, dass die

@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-50 kugel-quer-anstellen
+
+### EINGELESEN
+- Offen aus W-003 (Spezifikation Vierachs V4c+): „ausweichen“ mit dem Y – die Kugel nicht mit der
+  Spitze. Vorschlag mit Bild und Zahlen; Manuel, 2026-10-04: „ja als Haken bitte, der aber
+  pauschal angehakt ist, hast du das auch schon bei meinem Probeteil getestet?“ (ja – die Zahlen
+  „Dein 4-Achs-Teil“ sind von seinem Teil).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`ANSTELLEN_QUER`, `Schlichtwerte.anstellen`, `normale_quer(…,
+  neigung)`, `_spirale_quer`: angestellt die Höhe aus der Hüllfläche je Stellung,
+  `_zusammen_quer(…, neigung)` längs der echten Normalen), `camaddon/vierachs_schlichten.py`
+  (Eigenschaft `Anstellen`, an; `bahn_fuer`, `vorschau`, `lege_an`, `aendere`),
+  `camaddon/gui_vierachs.py` (Haken „Kugel 15° anstellen“), `translations/de.json`, `en.json`,
+  `tests/test_vierachs_schlichten.py`, `tests/gui/szenario_vierachs_schlichten.py`,
+  `docs/spezifikation_vierachs.md` (V4c+), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.185.0).
+
+### DONE
+- Die Kugel steht 15° neben der Normalen, in Vorschubrichtung geneigt; die Kugelmitte bleibt,
+  die Höhe aus der Hüllfläche in dieser Stellung (der schräge Schaft zählt mit). Manuels Teil:
+  40,99 → 41,11 min, Rest gleich, C dreht 4° statt 62° zurück; Rechnen 25 statt 12 s. Welle Ø 60:
+  +0,7 %, Y konstant 9,1 mm. Im Assistenten frei mit Querachse und Kugelfräser, angehakt.
+
+### TESTS
+- `test_vierachs_schlichten` (D-Profil: Kugelmitte R vom Teil, auf Rund und Ebene 15° neben der
+  Normalen in Vorschubrichtung, C nie zurück, Zeit ±3 %), `test_vierachs_schlichten_op`,
+  `test_sprache`; Szenario `szenario_vierachs_schlichten` (Haken angehakt, Y nie auf der Mitte) – OK.
+
 ## P-2026-10-04-49 pruefen-kugel-ueber-die-mitte
 
 ### EINGELESEN
