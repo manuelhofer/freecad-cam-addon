@@ -450,8 +450,13 @@ ist B-015.
   das Prüffenster öffnet nach 3,8 s; der lange Teil ist „Kollision prüfen“ – reines Python je
   Station, ein Kern; seit P-2026-10-04-48 27,6 → 16,4 s. Seit P-2026-10-04-74 schätzt sie mit
   den gedrehten Hüllquadern enger nach unten und rechnet seltener genau: am Schwenkteil
-  (Entgraten 3D, gekippter Rundtisch) 60 → 25 s; der Rest ist Werkzeug gegen Teil, wo es nah
-  daran fährt (2,5–3 ms je Rechnung in OpenCascade). Nächster Schritt: die Stationen in
+  (Entgraten 3D, gekippter Rundtisch) 60 → 25 s, ein 3+2-Job (Räumen und Bohren in zwei Ebenen)
+  97 → 83 s. Der Rest ist Werkzeug gegen Teil, wo es nah daran fährt (2,5–3 ms je Rechnung in
+  OpenCascade) – am 3+2-Job fast ganz der Kern der Schneide im Vorschub an der fertigen Fläche
+  (Abstand 0,05 mm, 22 000-mal). *Verworfen (2026-10-04):* eine Schranke aus einer Punktwolke des
+  Teils (wie Entgraten 3D) – sie liegt nie über dem wahren Abstand, entscheidet 0,05 mm aber nie
+  und kostet in Python so viel wie OpenCascade: 3+2 83 → 212 s. Weiter geht es nur mit mehreren
+  Prozessen (die Stationen in Stücke) – der Kern selbst ist gleich teuer. Nächster Schritt: die Stationen in
   Stücke teilen (mit Vorlauf an jeder Grenze) und parallel prüfen – entweder abgezweigt (fork,
   nur Linux, schnell gebaut, mit Zeitgrenze und Rückfall auf einen Kern) oder in eigenen
   FreeCAD-Prozessen (überall, aufwendiger); danach die Vorschau des 4-Achs-Assistenten messen.
