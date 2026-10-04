@@ -470,6 +470,14 @@ class Abtrag:
             self.stange.fahre_stuecke(self._punkte[stuecke - 1], self._punkte[stuecke], fraeser)
         self.bis = max(self.bis, index + 1)
 
+    def eilgaenge_ins_material(self, eilgang, schwelle=EILGANG_SCHWELLE):
+        """[(Station, Tiefe in mm)] – die Eilgänge, die von der Stange etwas wegnähmen, das dort
+        noch steht (_eilgaenge_im_material)."""
+        return _eilgaenge_im_material(
+            self.stange, "r", self._punkte, self.operation, self.gueltig, self.fraeser, eilgang,
+            schwelle,
+        )  # fmt: skip
+
     def vergleich(self):
         """Das Restmaterial gegen das fertige Teil (Vergleich) – die Radien des Teils und, mit
         gewählten Flächen, deren Zellen rechnet es beim ersten Mal."""
@@ -582,6 +590,45 @@ def _kegel_radien(radien, stange, kegel, delta):
     for i, j in zip(*np.nonzero(geht), strict=True):
         alt = radien[zeilen[i], spalten[j]]
         radien[zeilen[i], spalten[j]] = r[i, j] if np.isnan(alt) else min(alt, r[i, j])
+
+
+def _eilgaenge_im_material(koerper, feld, punkte, operation, gueltig, fraeser, eilgang, schwelle):
+    """[(Station, Tiefe in mm)] – die Eilgänge (`eilgang`: je Station, ob die Maschine sie im
+    Eilgang anfährt), die vom Rohteil `koerper` (Quader oder Stange; `feld`: sein Höhen- bzw.
+    Radienfeld, „h“ oder „r“) mehr als `schwelle` wegnähmen: der Reihe nach auf einer eigenen
+    Kopie abgefahren – die Vorschübe zwischen zwei Eilgängen gebündelt, jeder Eilgang für sich
+    mit der Form seines Fräsers. Die Kollision kennt das Rohteil sonst nicht."""
+    import copy
+
+    kopie = copy.deepcopy(koerper)
+    kopie.zuruecksetzen()
+    vorschub = []  # Stationen, deren Stück im Vorschub noch zu fahren ist
+    ergebnis = []
+
+    def vorschub_fahren():
+        if not vorschub:
+            return
+        stationen = np.asarray(vorschub)
+        for nummer, form in fraeser.items():
+            k = stationen[operation[stationen] == nummer]
+            if len(k):
+                kopie.fahre_stuecke(punkte[k - 1], punkte[k], form)
+        vorschub.clear()
+
+    for k in range(1, len(punkte)):
+        if not (gueltig[k - 1] and gueltig[k] and operation[k - 1] == operation[k]):
+            continue
+        if not eilgang[k]:
+            vorschub.append(k)
+            continue
+        vorschub_fahren()
+        vorher = getattr(kopie, feld).copy()
+        kopie.fahre_stuecke(punkte[k - 1 : k], punkte[k : k + 1], fraeser[int(operation[k])])
+        weg = vorher - getattr(kopie, feld)
+        tiefe = float(np.max(weg)) if weg.size else 0.0
+        if tiefe > schwelle:
+            ergebnis.append((k, tiefe))
+    return ergebnis
 
 
 def fuer(abfahrt, job, am_werkstueck):
@@ -1021,49 +1068,12 @@ class QuaderAbtrag:
         self.bis = max(self.bis, index + 1)
 
     def eilgaenge_ins_material(self, eilgang, schwelle=EILGANG_SCHWELLE):
-        """[(Station, Tiefe in mm, (x, y))] – die Eilgänge, die Material wegnähmen, das dort noch
-        steht: der Reihe nach abgefahren, auf einer eigenen Kopie des Quaders – die Vorschübe
-        zwischen zwei Eilgängen gebündelt, jeder Eilgang für sich mit der Form seines Fräsers.
-        `eilgang`: je Station, ob die Maschine sie im Eilgang anfährt. Senkt ein Eilgang das
-        Höhenfeld irgendwo um mehr als `schwelle`, fährt er durchs Material (die Kollision kennt
-        das Rohteil sonst nicht)."""
-        import copy
-
-        quader = copy.deepcopy(self.quader)
-        quader.zuruecksetzen()
-        vorschub = []  # Stationen, deren Stück im Vorschub noch zu fahren ist
-        ergebnis = []
-
-        def vorschub_fahren():
-            if not vorschub:
-                return
-            stationen = np.asarray(vorschub)
-            for nummer, fraeser in self.fraeser.items():
-                k = stationen[self.operation[stationen] == nummer]
-                if len(k):
-                    quader.fahre_stuecke(self.punkte[k - 1], self.punkte[k], fraeser)
-            vorschub.clear()
-
-        for k in range(1, len(self.punkte)):
-            if not (
-                self.gueltig[k - 1]
-                and self.gueltig[k]
-                and self.operation[k - 1] == self.operation[k]
-            ):
-                continue
-            if not eilgang[k]:
-                vorschub.append(k)
-                continue
-            vorschub_fahren()
-            vorher = quader.h.copy()
-            fraeser = self.fraeser[int(self.operation[k])]
-            quader.fahre_stuecke(self.punkte[k - 1 : k], self.punkte[k : k + 1], fraeser)
-            weg = vorher - quader.h
-            tiefe = float(weg.max()) if weg.size else 0.0
-            if tiefe > schwelle:
-                i, j = np.unravel_index(int(np.argmax(weg)), weg.shape)
-                ergebnis.append((k, tiefe, (float(quader.x[i]), float(quader.y[j]))))
-        return ergebnis
+        """[(Station, Tiefe in mm)] – die Eilgänge, die Material wegnähmen, das dort noch steht
+        (_eilgaenge_im_material)."""
+        return _eilgaenge_im_material(
+            self.quader, "h", self.punkte, self.operation, self.gueltig, self.fraeser, eilgang,
+            schwelle,
+        )  # fmt: skip
 
     def _in_ringen(self, nummer):
         """Die Zellen in den Kreisen der Operation `nummer` (ringe) – einmal gerechnet."""

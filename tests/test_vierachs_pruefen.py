@@ -5,7 +5,8 @@
 # Hinweis zur Werkzeuglage. Die Kollisionsprüfung findet mit 125 mm ab Bezugspunkt nichts
 # (auch nicht beim Rückzug nach der Lage und vor dem Futter – die Stange ragt so weit
 # heraus, dass der Kopf des Halters Platz hat); mit 50 mm reichte der Halter (Nase 55 mm)
-# über die Spitze hinaus – er stößt ans Teil. T2 ohne Halter steht gerade (axial)
+# über die Spitze hinaus – er stößt ans Teil; kein Eilgang durch die Stange (die Gegenprobe
+# mit Schnitten als Eilgang findet sie). T2 ohne Halter steht gerade (axial)
 # auf P2: Ein Hinweis sagt, dass die Bahn ein radiales Werkzeug aus +X braucht.
 import math
 import os
@@ -157,6 +158,29 @@ print(
         f"Kollision: {len(fahrt.stationen)} Stationen, {kollision.stellen} Stellen in "
         f"{dauer_kollision:.1f} s"
     )
+)
+
+# --- Eilgang durch die Stange (das Fenster prüft mit rohteil=True) ---------------------------
+# Die Rundum-Bahn fährt im Eilgang nur außen herum: kein Befund. Gegenprobe am Abtrag der Stange:
+# Stücke, die in der Stange schneiden, als Eilgang gefahren – sie nähmen bis 2,5 mm weg.
+from camaddon import restmaterial as rm  # noqa: E402
+
+mit_rohteil = kb.kollision(fahrt, job, nullpunkt, bib, rohteil=True)
+pruefe(not mit_rohteil.befunde, f"mit Rohteil: {[b.text() for b in mit_rohteil.befunde][:3]}")
+abtrag = rm.fuer(fahrt, job, fahrt.am_werkstueck())
+eilgang = [s.eilgang for s in fahrt.stationen]
+drin = [
+    k
+    for k in range(1, len(eilgang))
+    if not eilgang[k] and abtrag.gueltig[k] and abtrag.a[k] < -5.0 and abtrag.r[k] < 24.0
+]
+falsch = list(eilgang)
+for k in drin[:20]:
+    falsch[k] = True
+treffer = abtrag.eilgaenge_ins_material(falsch)
+pruefe(
+    len(treffer) >= 10 and max(t for _k, t in treffer) > 1.0,
+    f"Gegenprobe an der Stange: {treffer[:3]}",
 )
 
 # --- Mit 50 mm ab Bezugspunkt: Der Halter (Nase 55 mm) stößt ans Teil ----------------------

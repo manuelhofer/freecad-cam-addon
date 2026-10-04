@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-18 eilgang-durch-die-stange
+
+### EINGELESEN
+- P-2026-10-04-17 prüfte Eilgänge durchs Rohteil nur im Kasten; Manuels Drehmaschine fräst mit
+  der Stange (Rundum schruppen/schlichten), deren Abtrag (`restmaterial.Abtrag`) genauso gebaut
+  ist (`stange.r` statt `quader.h`).
+
+### DATEIEN
+- `camaddon/restmaterial.py` (`_eilgaenge_im_material` für Quader und Stange;
+  `Abtrag.eilgaenge_ins_material`), `camaddon/kollision.py` (`_eilgaenge_ins_rohteil` mit
+  `restmaterial.fuer`), Spezifikation Simulation 4c, Hilfe „Auf der Maschine prüfen“ (de/en),
+  `tests/test_vierachs_pruefen.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.165.1).
+
+### AKZEPTANZKRITERIUM
+- Welle Ø 40 in der Stange Ø 50, Rundum schruppen: mit `rohteil=True` kein Befund; Schnitte in
+  der Stange (a < −5) als Eilgang markiert: gemeldet (bis 2,5 mm).
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_vierachs_pruefen.py`, `tests/test_kollision.py` – OK; Szenarien
+  `szenario_rundum_drehmaschine`, `szenario_vierachs_schruppen`, `szenario_vierachs_nocke` –
+  OK. black und ruff sauber.
+
+### NEXT
+- Manuel bestätigt die Ergänzung der Entscheidung 7.
+
 ## P-2026-10-04-17 eilgang-durchs-rohteil
 
 ### EINGELESEN

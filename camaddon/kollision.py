@@ -381,19 +381,19 @@ def kollision(
 def _eilgaenge_ins_rohteil(abfahrt, job):
     """[Befund] – je Operation der Eilgang, der am tiefsten durch Rohteil fährt, das dort noch
     steht. Die Abstände oben kennen nur das fertige Teil; was vom Rohteil noch steht, weiß der
-    Abtrag im Quader (restmaterial.fuer_quader: ein Kasten als Rohteil, Werkzeuge von oben, keine
-    Rundachse) – sonst nichts."""
+    Abtrag (restmaterial.fuer: die Stange eines 4-Achs-Jobs, oder der Quader – ein Kasten als
+    Rohteil, Werkzeuge von oben, keine Rundachse) – sonst nichts."""
     from . import restmaterial as rm
 
     try:
-        abtrag = rm.fuer_quader(abfahrt, job, abfahrt.am_werkstueck())
+        abtrag = rm.fuer(abfahrt, job, abfahrt.am_werkstueck())
     except Exception as fehler:  # ohne Abtrag bleibt die Prüfung, wie sie war
         FreeCAD.Console.PrintLog(f"CAM-Addon: Eilgänge ins Rohteil: {fehler}\n")
         return []
     if abtrag is None:
         return []
     schlimmste = {}
-    for k, tiefe, _stelle in abtrag.eilgaenge_ins_material([s.eilgang for s in abfahrt.stationen]):
+    for k, tiefe in abtrag.eilgaenge_ins_material([s.eilgang for s in abfahrt.stationen]):
         nummer = abfahrt.stationen[k].operation
         if nummer not in schlimmste or tiefe > schlimmste[nummer][1]:
             schlimmste[nummer] = (k, tiefe)

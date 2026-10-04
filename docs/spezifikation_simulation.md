@@ -219,9 +219,11 @@ Besprechung:
     (`restmaterial.QuaderAbtrag.eilgaenge_ins_material`): Nimmt ein Eilgang mit der Form seines
     Fräsers mehr als 0,1 mm Rohteil weg, das dort noch steht, ist das eine Berührung („… fährt
     die Schneide von T1 im Eilgang durch Rohteil, das dort noch steht – bis … tief“). Der
-    Vorschub zählt nicht – kein Fehlalarm in einer gefrästen Tasche (Entscheidung 7). Nur für
-    Jobs, deren Abtrag geht (Kasten, Werkzeuge von oben, keine Rundachse). Am Testteil und am
-    Schwenkteil: keiner; ein eingeschleuster Eilgang quer durchs Rohteil: gefunden.
+    Vorschub zählt nicht – kein Fehlalarm in einer gefrästen Tasche (Entscheidung 7). Für Jobs,
+    deren Abtrag geht: der Kasten (Werkzeuge von oben, keine Rundachse) und seit P-2026-10-04-18
+    die Stange eines 4-Achs-Jobs (`Abtrag.eilgaenge_ins_material`); 3+2 bleibt ohne. Am Testteil,
+    am Schwenkteil und an der Welle (Rundum schruppen): keiner; ein eingeschleuster Eilgang quer
+    durchs Rohteil, Schnitte in der Stange als Eilgang: gefunden.
 - **Melden:** Berührung – Abstand 0 oder ineinander – rot; näher als der
   **Warnabstand** gelb. Der Warnabstand ist 1 mm und im Fenster einstellbar.
 - **Wie gerechnet wird:** Werkzeug und Halter als Drehkörper, Maschinenteile
