@@ -495,3 +495,7 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   (Radius) führe ein Durchmesser-X doppelt so weit. Jetzt steht im Kopf an der Drehmaschine
   `durchmesser_ein` bzw. `radius_ein` passend zu „X im Durchmesser“: LinuxCNC `G7`/`G8`,
   Siemens `DIAMON`/`DIAMOF`; Fanuc und Haas legen es per Parameter fest (leer).
+- **P-2026-10-04-58 – große Programme:** Nach dem Speichern sagt das Fenster bei Siemens und Fanuc
+  ab 2 MB, dass das Programm oft nicht in den NC-Speicher passt – von extern abarbeiten, EXTCALL
+  bzw. DNC (`groesse_text`). An Manuels Welle mit 0,2 mm Schrittweite (263 679 Stationen) wird es
+  mehrere MB groß.

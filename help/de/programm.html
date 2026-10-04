@@ -27,7 +27,9 @@ Steuerung es läse, und sagt unter „Gespeichert …“, ob etwas auffällt –
 Werkzeuglänge fährt, Vorschub bei stehender Spindel oder ohne F, ein Kreis, dessen Mitte vom
 Anfang und vom Ende verschieden weit liegt (die Steuerung bliebe mit Alarm stehen), derselbe Satz
 zweimal, kein M30. Rot mit Zeilennummer, wenn etwas gefunden ist. Es ersetzt nicht die Simulation
-an der Steuerung vor dem ersten Lauf.</li>
+an der Steuerung vor dem ersten Lauf. Ist das Programm größer als 2 MB, sagt es bei Siemens und
+Fanuc dazu, dass es oft nicht in den NC-Speicher passt – dann „von extern abarbeiten“ (USB,
+CF-Karte, Netz), mit EXTCALL aus einem kleinen Hauptprogramm bzw. per DNC.</li>
 </ol>
 
 <h3>Die Einstellungen</h3>

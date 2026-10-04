@@ -2357,5 +2357,7 @@
     "pp.feld.durchmesser_ein": "Read X as diameter",
     "pp.feld.durchmesser_ein.tooltip": "Written in the start when the machine counts X as diameter – so the control reads X the way the program writes it (LinuxCNC G7, Siemens DIAMON). Empty for controls that set it by parameter (Fanuc, Haas).",
     "pp.feld.radius_ein": "Read X as radius",
-    "pp.feld.radius_ein.tooltip": "Written in the start when the machine counts X as radius (LinuxCNC G8, Siemens DIAMOF). Empty for controls that set it by parameter."
+    "pp.feld.radius_ein.tooltip": "Written in the start when the machine counts X as radius (LinuxCNC G8, Siemens DIAMOF). Empty for controls that set it by parameter.",
+    "pp.gross.siemens": "The program is {mb} MB – it often does not fit into the NC memory: on the control “execute from external” (USB, CF card, network) or call it with EXTCALL from a small main program.",
+    "pp.gross.fanuc": "The program is {mb} MB – it does not fit into the memory of many Fanuc controls: transfer it by DNC or run it from the memory card."
 }

@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-58 grosse-programme
+
+### EINGELESEN
+- Weiter mit dem Postprozessor („bis ins Extreme“).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`groesse_text`, `GROSS`), `camaddon/gui_programm.py` (nach dem
+  Speichern), `translations/de.json`, `en.json`, `help/de|en/programm.html`,
+  `tests/test_programm_pruefen.py`, `docs/spezifikation_steuerung.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.187.3).
+
+### DONE
+- Ab 2 MB bei Siemens und Fanuc der Hinweis: von extern abarbeiten, EXTCALL bzw. DNC.
+
+### TESTS
+- `test_programm_pruefen`, `test_sprache`; Szenario `szenario_programm` – OK.
+
 ## P-2026-10-04-57 durchmesser-radius-im-kopf
 
 ### EINGELESEN

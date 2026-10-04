@@ -197,6 +197,16 @@ pruefe(
 )
 p_frei = pp.programm([tasche], pp.steuerung("linuxcnc"), begrenzt_info, "P")
 pruefe("M3 S2000" in p_frei.zeilen and not p_frei.hinweise, f"unter der Grenze: {p_frei.hinweise}")
+# Groß (über 2 MB): an Siemens und Fanuc der Hinweis, es von extern bzw. per DNC zu fahren.
+gross = pp.Programm(["G1 X1.000 Y2.000 Z3.000 F100.000"] * 80000, [], 80000)
+pruefe(
+    "MB" in pp.groesse_text(gross, pp.steuerung("siemens"))
+    and "EXTCALL" in pp.groesse_text(gross, pp.steuerung("siemens"))
+    and "DNC" in pp.groesse_text(gross, pp.steuerung("fanuc"))
+    and pp.groesse_text(gross, pp.steuerung("linuxcnc")) == ""
+    and pp.groesse_text(pp.Programm(["M30"], [], 0), pp.steuerung("siemens")) == "",
+    f"groß: {pp.groesse_text(gross, pp.steuerung('siemens'))!r}",
+)
 # Der Satz fürs Fenster.
 text = pp.nachgelesen_text([prp.Befund(prp.LAENGE, 12, "G0 Z5.000")], 40)
 pruefe(text.startswith("Nachgelesen") and "Zeile 12" in text and "G0 Z5.000" in text, text)

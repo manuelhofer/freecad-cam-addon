@@ -1381,6 +1381,24 @@ def _info_aus(dok, m, msp):
 
 
 NACHGELESEN_HOECHSTENS = 6  # so viele Befunde nennt nachgelesen() einzeln
+# Bytes – größer passt ein Programm an Siemens und Fanuc oft nicht in den NC-Speicher (840D sl,
+# 828D: wenige MB; Fanuc 0i: 0,5–2 MB): dann von extern abarbeiten bzw. per DNC.
+GROSS = 2_000_000
+GROSS_STEUERUNGEN = ("siemens", "fanuc")
+
+
+def groesse_text(programm, s):
+    """„… 3,4 MB“ für die Meldung nach dem Speichern – und bei Siemens und Fanuc über GROSS der
+    Hinweis, es von extern abzuarbeiten; leer bei kleinen Programmen."""
+    groesse = len(programm.text.encode("utf-8"))
+    if groesse <= GROSS or s.kennung not in GROSS_STEUERUNGEN:
+        return ""
+    from . import einheiten
+
+    mb = f"{groesse / 1e6:.1f}".replace(".", einheiten.gewaehltes_dezimalzeichen() or ".")
+    if s.kennung == "siemens":
+        return tr("pp.gross.siemens", mb=mb)
+    return tr("pp.gross.fanuc", mb=mb)
 
 
 def nachlesen(programm, s, info=None):

@@ -2357,5 +2357,7 @@
     "pp.feld.durchmesser_ein": "X im Durchmesser lesen",
     "pp.feld.durchmesser_ein.tooltip": "Steht im Kopf, wenn die Maschine X im Durchmesser zählt – so liest die Steuerung X so, wie das Programm es schreibt (LinuxCNC G7, Siemens DIAMON). Leer bei Steuerungen, die es per Parameter festlegen (Fanuc, Haas).",
     "pp.feld.radius_ein": "X im Radius lesen",
-    "pp.feld.radius_ein.tooltip": "Steht im Kopf, wenn die Maschine X im Radius zählt (LinuxCNC G8, Siemens DIAMOF). Leer bei Steuerungen, die es per Parameter festlegen."
+    "pp.feld.radius_ein.tooltip": "Steht im Kopf, wenn die Maschine X im Radius zählt (LinuxCNC G8, Siemens DIAMOF). Leer bei Steuerungen, die es per Parameter festlegen.",
+    "pp.gross.siemens": "Das Programm ist {mb} MB groß – in den NC-Speicher passt das oft nicht: an der Steuerung „von extern abarbeiten“ (USB, CF-Karte, Netz) oder aus einem kleinen Hauptprogramm mit EXTCALL aufrufen.",
+    "pp.gross.fanuc": "Das Programm ist {mb} MB groß – in den Speicher vieler Fanuc-Steuerungen passt das nicht: per DNC übertragen bzw. von der Speicherkarte abarbeiten."
 }

@@ -827,6 +827,7 @@ class ProgrammDialog(QtGui.QDialog):
             tr("pp.gespeichert", datei=pfad, saetze=programm.saetze, zeilen=len(programm.zeilen))
             + "\n"
             + pp.nachgelesen_text(befunde, saetze)
+            + "".join("\n" + x for x in [pp.groesse_text(programm, self.steuerung())] if x)
         )
         return pfad
 

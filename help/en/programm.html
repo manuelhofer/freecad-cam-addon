@@ -26,7 +26,9 @@ control would and says below “Saved …” whether anything stands out – a b
 length, feed with the spindle stopped or without F, an arc whose centre is at a different
 distance from start and end (the control would stop with an alarm), the same block twice, no
 M30. Red with the line number if something is found. It does not replace the simulation on the
-control before the first run.</li>
+control before the first run. If the program is larger than 2 MB, it adds for Siemens and Fanuc
+that it often does not fit into the NC memory – then “execute from external” (USB, CF card,
+network), EXTCALL from a small main program, or DNC.</li>
 </ol>
 
 <h3>The settings</h3>
