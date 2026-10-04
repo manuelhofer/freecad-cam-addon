@@ -102,6 +102,12 @@ class Steuerung:
     # Zum Wechselpunkt der Maschine – {achsen}: „X200.000 Z300.000“; in MKS bzw. WKS.
     wechselpunkt_mks: str = "G53 G0 {achsen}"
     wechselpunkt_wks: str = "G0 {achsen}"
+    # Die Werkzeuglänge nach dem Wechsel an der Fräse ({t}: Werkzeugnummer) – im ersten Satz
+    # danach, der Z fährt („G0 G43 H1 Z15.000“): Allein stünde sie am Wechselpunkt oben, und
+    # manche Steuerung führe dort um die Länge hinauf. Leer: die Steuerung nimmt sie mit dem
+    # Wechsel (Siemens: D1). Ohne sie stünde die Spitze um die ganze Werkzeuglänge tiefer als
+    # programmiert (bis P-2026-10-04-51 fehlte sie – der Kopf hebt sie mit G49 sogar auf).
+    laenge_ein: str = ""
     # Die Sprungmarke vor jeder Bearbeitung (D-4) – {marke}: ihr Name („RAEUMEN_T1“), {n}: ihre
     # Nummer (1, 2 …). Leer: nur der Kommentar (die Steuerung kennt keine Marken).
     marke: str = ""
@@ -163,6 +169,7 @@ BEFEHLSFELDER = (
     "kopf_drehen",
     "ende",
     "wechsel_fraesen",
+    "laenge_ein",
     "wechsel_drehen",
     "wechselpunkt_mks",
     "wechselpunkt_wks",
@@ -236,6 +243,7 @@ STEUERUNGEN = {
         # LinuxCNC: G64 P (Toleranz der Bahn) Q (gerade Stücke zusammenfassen).
         glaetten_angebot=(Glaetten("g64", "G64 P{toleranz} Q{toleranz}", True),),
         wechselpunkt_vorschlaege=_MKS,
+        laenge_ein="G43 H{t}",
     ),
     "siemens": Steuerung(
         "siemens",
@@ -320,6 +328,7 @@ STEUERUNGEN = {
             Glaetten("g051", "G05.1 Q1", False, True),
         ),
         wechselpunkt_vorschlaege=_MKS,
+        laenge_ein="G43 H{t}",
     ),
     "haas": Steuerung(
         "haas",
@@ -344,6 +353,7 @@ STEUERUNGEN = {
         # Ohne G187 gilt die Glättung aus Einstellung 191 der Maschine.
         glaetten_angebot=(Glaetten("g187", "G187 P3", False),),
         wechselpunkt_vorschlaege=_MKS,
+        laenge_ein="G43 H{t}",
     ),
     "mach": Steuerung(
         "mach",
@@ -366,6 +376,7 @@ STEUERUNGEN = {
         "G94",
         glaetten_angebot=(Glaetten("g64", "G64", True),),
         wechselpunkt_vorschlaege=_MKS,
+        laenge_ein="G43 H{t}",
     ),
 }
 VORGABE = "linuxcnc"  # ohne Wahl: wie LinuxCNC (Spezifikation Steuerung, Abschnitt 4)
@@ -431,6 +442,7 @@ def feld_text(feld):
         "ende": (tr("pp.feld.ende"), tr("pp.feld.ende.tooltip")),
         "wechsel_fraesen": (tr("pp.feld.wechsel_fraesen"), tr("pp.feld.wechsel_fraesen.tooltip")),
         "wechsel_drehen": (tr("pp.feld.wechsel_drehen"), tr("pp.feld.wechsel_drehen.tooltip")),
+        "laenge_ein": (tr("pp.feld.laenge_ein"), tr("pp.feld.laenge_ein.tooltip")),
         "wechselpunkt_mks": (
             tr("pp.feld.wechselpunkt_mks"),
             tr("pp.feld.wechselpunkt_mks.tooltip"),
@@ -623,6 +635,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     zyklen_als_befehl = not info.drehmaschine and any(getattr(s, f) for f in ZYKLUS_FELDER.values())
     geschwenkt = None  # die Schwenkung, in der die Maschine gerade steht
     zyklus = bool(s.schwenkzyklus and s.schwenken)
+    laenge_offen = ""  # die Werkzeuglänge – kommt in den ersten Satz nach dem Wechsel mit Z
     for nummer_ab, abschnitt in enumerate(abschnitte):
         # Jede Bearbeitung ein vollständiger Einstieg hinter ihrer Marke (D-4): Wechselpunkt,
         # Werkzeug, Spindel, Kühlung und Ebene neu – auch mit demselben Werkzeug wie davor.
@@ -664,6 +677,8 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
             vorlage = s.wechsel_drehen if info.drehmaschine else s.wechsel_fraesen
             zeilen.append(_fuellen(vorlage, t=int(abschnitt.werkzeug)))
+            if s.laenge_ein and not info.drehmaschine:
+                laenge_offen = _fuellen(s.laenge_ein, t=int(abschnitt.werkzeug))
             werkzeug = abschnitt.werkzeug
             gewechselt = True
         if not sw.gleiche(geschwenkt, abschnitt.schwenkung) or (
@@ -743,6 +758,10 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 auf_r = gross == "G99"
             if zyklen_als_befehl and gross in ("G80", "G98", "G99"):
                 continue  # die Zyklen der Steuerung kennen sie nicht (Siemens: ISO-Modus)
+            if laenge_offen and gross not in BEWEGUNG and "Z" in parameter:
+                # Ein Bohrzyklus als erster Satz mit Z: die Länge davor in einer eigenen Zeile.
+                zeilen.append(laenge_offen)
+                laenge_offen = ""
             vorlage = getattr(s, ZYKLUS_FELDER.get(gross, ""), "") if zyklen_als_befehl else ""
             if vorlage:
                 zeilen.extend(_zyklus_als_befehl(s, vorlage, parameter, stand, auf_r))
@@ -750,6 +769,9 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 continue
             woerter = [gross]
             bewegung = gross in BEWEGUNG
+            if laenge_offen and bewegung and "Z" in parameter:
+                woerter.append(laenge_offen)
+                laenge_offen = ""
             weg = _weg(stand, parameter) if bewegung else 0.0
             if bewegung:
                 stand.update({a: float(parameter[a]) for a in WEG_ADRESSEN if a in parameter})

@@ -423,4 +423,12 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
     Werkzeug aus der Werkzeugverwaltung nur der Name); „ACHTUNG – knapp: T3 in „Tief“ fräst 26.0 mm
     tief und steht nur 27.0 mm heraus“, wenn eine Bearbeitung ohne Rundachse und Ebene tiefer
     fräst (Oberkante Rohteil bis zur tiefsten Stelle im Vorschub) als die Auskragung weniger 2 mm.
-
+- **P-2026-10-04-51 – die Werkzeuglänge (G43):** Gefunden beim Durchsehen für TCPM: Der Kopf
+  hebt die Längenkorrektur mit `G49` auf, der Wechsel schrieb nur `T1 M6` – an LinuxCNC, Fanuc,
+  Haas und Mach stünde die Spitze danach um die ganze Werkzeuglänge tiefer als programmiert
+  (FreeCADs `linuxcnc_post` schreibt `G43 H` nach dem Wechsel; im Programm des Testteils fehlte
+  es). Jetzt der Befehl „Werkzeuglänge ein (Fräse)“ (`laenge_ein`, vorbelegt `G43 H{t}`, an
+  Siemens leer: D1 kommt mit dem Wechsel) im ersten Satz nach dem Wechsel, der Z fährt – `G0 G43
+  H1 Z15.000`; allein in einer Zeile führe eine Fanuc am Wechselpunkt oben um die Länge hinauf.
+  Ist der erste Satz mit Z ein Bohrzyklus, steht die Länge in der Zeile davor. Nicht an der
+  Drehmaschine (dort trägt T0101 die Korrektur).

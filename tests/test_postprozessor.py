@@ -68,6 +68,35 @@ pruefe(z[-4:] == ["M5", "M9", "M30", "%"], f"Ende: {z[-4:]}")
 pruefe(prog.saetze == 3 and not prog.hinweise, f"Sätze {prog.saetze}, Hinweise {prog.hinweise}")
 ohne = pp.programm([tasche], pp.steuerung("linuxcnc"), None, "Platte")
 pruefe(ohne.hinweise and "Ohne Maschine" in ohne.hinweise[0], f"ohne Maschine: {ohne.hinweise}")
+# Die Werkzeuglänge (P-2026-10-04-51): Der Kopf hebt sie mit G49 auf – nach dem Wechsel schaltet
+# der erste Satz mit Z sie ein, an LinuxCNC, Fanuc, Haas und Mach mit G43 H; Siemens nimmt D1
+# mit dem Wechsel. Ohne sie stünde die Spitze um die Werkzeuglänge tiefer.
+pruefe("G0 G43 H3 X10.000 Y5.000 Z5.000" in z, f"LinuxCNC ohne G43: {z[3:12]}")
+for kennung in ("fanuc", "haas", "mach"):
+    zeilen_k = pp.programm([tasche], pp.steuerung(kennung), pp.Maschineninfo("Fräse"), "P").zeilen
+    mit_z = [x for x in zeilen_k if x.startswith(("G0 ", "G1 ")) and " Z" in x]
+    pruefe(
+        mit_z and "G43 H3" in mit_z[0] and sum("G43" in x for x in zeilen_k) == 1,
+        f"{kennung}: G43 {[x for x in zeilen_k if 'G43' in x]}",
+    )
+siemens_t = pp.programm([tasche], pp.steuerung("siemens"), pp.Maschineninfo("Fräse"), "P").zeilen
+pruefe(not any("G43" in x for x in siemens_t), "Siemens mit G43")
+# Erst X und Y, dann Z: G43 kommt in den Satz mit Z; zwei Werkzeuge: je Wechsel einmal.
+xy_zuerst = dataclasses.replace(
+    tasche,
+    befehle=[C("G0", {"X": 10.0, "Y": 5.0}), C("G0", {"Z": 5.0}), C("G1", {"Z": -2.0, "F": 5.0})],
+)
+zwei = pp.programm(
+    [xy_zuerst, dataclasses.replace(xy_zuerst, name="Zwei", werkzeug=4)],
+    pp.steuerung("linuxcnc"),
+    pp.Maschineninfo("Fräse"),
+    "P",
+).zeilen
+pruefe(
+    [x for x in zwei if "G43" in x] == ["G0 G43 H3 Z5.000", "G0 G43 H4 Z5.000"]
+    and "G0 X10.000 Y5.000" in zwei,
+    f"zwei Werkzeuge: {[x for x in zwei if 'G43' in x or 'M6' in x]}",
+)
 
 # --- Drehmaschine mit C4 und angetriebenem T1 an S3 -------------------------------------------
 dreh = pp.Maschineninfo("Drehmaschine", True, True, {"C": "C4"}, {1: "3"})
@@ -338,7 +367,7 @@ k = z_sie.index("; MESSSTOPP") if "; MESSSTOPP" in z_sie else -1
 pruefe(z_sie[k + 1 : k + 3] == ["F_HOME", "M5"], f"Siemens F_HOME: {z_sie[k:]}")
 z_ohne = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), fraese, "M").zeilen
 k = z_ohne.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_ohne else -1
-pruefe(z_ohne[k + 1] == "G0 Z25.000", f"ohne Wechselpunkt: {z_ohne[k:]}")
+pruefe(z_ohne[k + 1] == "G0 G43 H2 Z25.000", f"ohne Wechselpunkt: {z_ohne[k:]}")
 
 # --- Keine Dopplungen (P-2026-10-04-15): derselbe Eilgang zweimal hintereinander und „M5“ nach
 # „M5“ am Ende schreibt er nur einmal; zwei gleiche G1 bleiben (nicht angefasst).

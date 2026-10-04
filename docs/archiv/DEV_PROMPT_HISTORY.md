@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-51 werkzeuglaenge-g43
+
+### EINGELESEN
+- Manuel, 2026-10-04: „mach mal weiter bis ich mich wieder melde … mach Werkzeugwege für 5-Achs
+  simultan? … oder verbessere die Postprozessoren bis ins Extreme??“
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`Steuerung.laenge_ein`, vorbelegt `G43 H{t}` an LinuxCNC, Fanuc,
+  Haas, Mach; im ersten Satz mit Z nach dem Wechsel), `camaddon/gui_programm.py` (Feld in
+  „Werkzeugwechsel“, nur an der Fräse), `translations/de.json`, `en.json`,
+  `help/de|en/programm.html`, `tests/test_postprozessor.py`, `tests/test_schwenken.py` (liest
+  „G0 G43 H1 Z61.000“ als Höhe), `docs/spezifikation_steuerung.md` (12), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.185.1).
+
+### DONE
+- Gefunden: Nach `T1 M6` fehlte die Längenkorrektur, der Kopf hebt sie mit `G49` auf – an
+  LinuxCNC, Fanuc, Haas und Mach stünde die Spitze um die Werkzeuglänge tiefer (im Programm des
+  Testteils nachgesehen). Jetzt `G0 G43 H1 Z15.000` im ersten Satz mit Z nach jedem Wechsel.
+
+### TESTS
+- `test_postprozessor` (G43 je Steuerung genau einmal je Wechsel, im Satz mit Z; Siemens ohne),
+  `test_schwenken`, `test_programmkopf`, `test_angestellt`, `test_flanke`, `test_sprache`;
+  Szenario `szenario_programm` – OK.
+
 ## P-2026-10-04-50 kugel-quer-anstellen
 
 ### EINGELESEN

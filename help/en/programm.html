@@ -52,6 +52,11 @@ on the lathe), at the end spindle and coolant off, M30.</li>
 <ul>
 <li><b>Tool change</b> – on a mill “T1 M6”, on a lathe as the control wants it: Siemens
 “T1 D1”, Fanuc “T0101”, Haas “T101”.</li>
+<li><b>Tool length on (mill)</b> – after the change, the length offset of the new tool: on
+LinuxCNC, Fanuc, Haas and Mach “G43 H1”, in the first block afterwards that moves Z
+(“G0 G43 H1 Z15.000”) – alone on a line some controls would move up by the tool length at the
+change point. Siemens takes the length with the change (D1), the field is empty there. Without
+it the tip would be lower than programmed by the whole tool length.</li>
 <li><b>Move to the change point</b> – before each tool change and at the end, first alone the
 axis that pulls the tool away (X on a lathe, Z otherwise). You enter the point in “Edit
 machine” under “Home and tool change”, in machine coordinates (MCS) or from the job's origin

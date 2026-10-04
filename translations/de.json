@@ -2326,5 +2326,7 @@
     "ba.nut.angeklickt": "angeklickt X {x} Y {y}",
     "va.anstellen": "Kugel 15° anstellen (nicht mit der Spitze)",
     "va.anstellen.tooltip": "Mit der Querachse steht die Werkzeugachse sonst genau auf der Normalen der Fläche – die Kugel schneidet dann mit der Spitze, wo die Schnittgeschwindigkeit 0 ist. Angestellt steht sie 15° daneben, in Vorschubrichtung geneigt: Y fährt versetzt, die Rundachse 15° weiter. Die Kugelmitte und damit die Fläche bleiben gleich, die Zeit fast auch.",
-    "vs.eigenschaft.anstellen": "Mit der Querachse und dem Kugelfräser: die Werkzeugachse 15° neben der Normalen der Fläche, in Vorschubrichtung geneigt – die Kugel schneidet nicht mit der Spitze. Aus: genau auf der Normalen."
+    "vs.eigenschaft.anstellen": "Mit der Querachse und dem Kugelfräser: die Werkzeugachse 15° neben der Normalen der Fläche, in Vorschubrichtung geneigt – die Kugel schneidet nicht mit der Spitze. Aus: genau auf der Normalen.",
+    "pp.feld.laenge_ein": "Werkzeuglänge ein (Fräse)",
+    "pp.feld.laenge_ein.tooltip": "Schaltet nach dem Werkzeugwechsel die Längenkorrektur des neuen Werkzeugs ein ({t}: Werkzeugnummer) – im ersten Satz danach, der Z fährt. Ohne sie stünde die Spitze um die ganze Werkzeuglänge tiefer als programmiert. Leer, wo die Steuerung sie mit dem Wechsel nimmt (Siemens: D1)."
 }

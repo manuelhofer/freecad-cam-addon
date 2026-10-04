@@ -42,6 +42,7 @@ GRUPPEN = (
         "wechsel",
         (
             "wechsel_fraesen",
+            "laenge_ein",
             "wechsel_drehen",
             "wechselpunkt",
             "wechselpunkt_mks",
@@ -85,6 +86,7 @@ NUR_DREHEN = {
 }
 NUR_FRAESEN = {
     "wechsel_fraesen",
+    "laenge_ein",
     "vorschub_minute",
     "schwenkzyklus",
     "schwenken",

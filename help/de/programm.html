@@ -53,6 +53,11 @@ Maßsystem, Ebene (an der Drehmaschine G18), am Ende Spindel und Kühlung aus, M
 <ul>
 <li><b>Werkzeugwechsel</b> – an der Fräse „T1 M6“, an der Drehmaschine wie die Steuerung es
 will: Siemens „T1 D1“, Fanuc „T0101“, Haas „T101“.</li>
+<li><b>Werkzeuglänge ein (Fräse)</b> – nach dem Wechsel die Längenkorrektur des neuen Werkzeugs:
+an LinuxCNC, Fanuc, Haas und Mach „G43 H1“, im ersten Satz danach, der Z fährt
+(„G0 G43 H1 Z15.000“) – allein in einer Zeile führe manche Steuerung am Wechselpunkt oben um die
+Werkzeuglänge hinauf. Siemens nimmt die Länge mit dem Wechsel (D1), das Feld ist dort leer. Ohne
+sie stünde die Spitze um die ganze Werkzeuglänge tiefer als programmiert.</li>
 <li><b>Zum Wechselpunkt fahren</b> – vor jedem Werkzeugwechsel und am Ende, zuerst allein die
 Achse, die das Werkzeug wegzieht (an der Drehmaschine X, sonst Z). Den Punkt trägst du in
 „Maschine bearbeiten“ unter „Home und Werkzeugwechsel“ ein, in Maschinenkoordinaten (MKS) oder

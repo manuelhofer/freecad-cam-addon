@@ -474,7 +474,9 @@ for s in (pp.steuerung("linuxcnc"), pp.steuerung("siemens", {"schwenkzyklus": Fa
     for k, z in enumerate(zeilen):
         if z.startswith("G0 A"):
             davor = zeilen[k - 1]
-            hoch = float(davor.split("Z")[1]) if davor.startswith("G0 Z") else -math.inf
+            # „G0 Z61.000“ – nach einem Wechsel „G0 G43 H1 Z61.000“ (die Werkzeuglänge).
+            nur_z = davor.startswith("G0 ") and not any(f" {a}" in davor for a in "XYABC")
+            hoch = float(davor.split("Z")[1]) if nur_z and "Z" in davor else -math.inf
             pruefe(
                 hoch >= schwenkung.hoehe - 1e-3 and hoch > rohteil_grund.BoundBox.ZMax + 10.0,
                 f"{s.name}: vor {z!r} nicht hoch genug: {davor!r}",
