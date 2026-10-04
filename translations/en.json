@@ -2328,5 +2328,7 @@
     "va.anstellen.tooltip": "With the cross axis the tool axis otherwise stands exactly on the surface normal – the ball then cuts with its tip, where the cutting speed is 0. Tilted it stands 15° beside it, leaning in the feed direction: Y runs offset, the rotary axis 15° further. The ball centre and so the surface stay the same, the time almost too.",
     "vs.eigenschaft.anstellen": "With the cross axis and a ball mill: the tool axis 15° beside the surface normal, leaning in the feed direction – the ball does not cut with its tip. Off: exactly on the normal.",
     "pp.feld.laenge_ein": "Tool length on (mill)",
-    "pp.feld.laenge_ein.tooltip": "Switches on the length offset of the new tool after the tool change ({t}: tool number) – in the first block afterwards that moves Z. Without it the tip would be lower than programmed by the whole tool length. Empty where the control takes it with the change (Siemens: D1)."
+    "pp.feld.laenge_ein.tooltip": "Switches on the length offset of the new tool after the tool change ({t}: tool number) – in the first block afterwards that moves Z. Without it the tip would be lower than programmed by the whole tool length. Empty where the control takes it with the change (Siemens: D1).",
+    "pp.feld.laenge_wieder": "Tool length after the change point",
+    "pp.feld.laenge_wieder.tooltip": "If the program moves to the change point without a tool change following (measuring stop, another plane without the swivel cycle), this command switches the length on again in the next block. Siemens moves to the change point with “SUPA D0” – D0 switches the tool offset off; without “D1” afterwards it would keep milling without length. Empty where the move to the change point keeps the length (G53)."
 }

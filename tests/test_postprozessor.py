@@ -365,6 +365,19 @@ fhome = pp.steuerung("siemens", {"wechselpunkt_mks": "F_HOME"})
 z_sie = pp.programm([bohren, messen], fhome, mit_wp, "M").zeilen
 k = z_sie.index("; MESSSTOPP") if "; MESSSTOPP" in z_sie else -1
 pruefe(z_sie[k + 1 : k + 3] == ["F_HOME", "M5"], f"Siemens F_HOME: {z_sie[k:]}")
+# Siemens fährt den Wechselpunkt mit „SUPA D0“ – D0 schaltet die Korrektur ab: Folgt kein Wechsel
+# (Sprungmarken aus, dasselbe Werkzeug fräst weiter), schaltet der nächste Satz mit Z „D1“ wieder
+# ein (P-2026-10-04-51); mit Wechsel kommt D1 mit M6, kein „D1“ dazu.
+weiter = dataclasses.replace(tasche, name="Weiter", werkzeug=2)
+ohne_marken = pp.steuerung("siemens", {"marken": False})
+z_d1 = pp.programm([bohren, messen, weiter], ohne_marken, mit_wp, "M").zeilen
+k = z_d1.index("; MESSSTOPP") if "; MESSSTOPP" in z_d1 else -1
+nach_stopp = [x for x in z_d1[k:] if x.startswith(("G0", "G1")) and " Z" in x and "SUPA" not in x]
+pruefe(
+    k >= 0 and z_d1[k + 1].startswith("G0 SUPA D0") and nach_stopp and " D1 " in nach_stopp[0],
+    f"Siemens nach SUPA D0 ohne D1: {z_d1[k:k + 12]}",
+)
+pruefe(sum(" D1" in x for x in z_d1) == 1, f"D1 zu oft: {[x for x in z_d1 if 'D1' in x]}")
 z_ohne = pp.programm([bohren, messen], pp.steuerung("linuxcnc"), fraese, "M").zeilen
 k = z_ohne.index("(MESSSTOPP)") if "(MESSSTOPP)" in z_ohne else -1
 pruefe(z_ohne[k + 1] == "G0 G43 H2 Z25.000", f"ohne Wechselpunkt: {z_ohne[k:]}")

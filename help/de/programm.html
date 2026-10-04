@@ -58,6 +58,9 @@ an LinuxCNC, Fanuc, Haas und Mach „G43 H1“, im ersten Satz danach, der Z fä
 („G0 G43 H1 Z15.000“) – allein in einer Zeile führe manche Steuerung am Wechselpunkt oben um die
 Werkzeuglänge hinauf. Siemens nimmt die Länge mit dem Wechsel (D1), das Feld ist dort leer. Ohne
 sie stünde die Spitze um die ganze Werkzeuglänge tiefer als programmiert.</li>
+<li><b>Werkzeuglänge nach dem Wechselpunkt</b> – Siemens fährt den Wechselpunkt mit „SUPA D0“;
+D0 schaltet die Werkzeugkorrektur ab. Folgt kein Wechsel (Messstopp, eine andere Ebene ohne
+Schwenkzyklus, Sprungmarken aus), schreibt das Programm „D1“ in den nächsten Satz mit Z.</li>
 <li><b>Zum Wechselpunkt fahren</b> – vor jedem Werkzeugwechsel und am Ende, zuerst allein die
 Achse, die das Werkzeug wegzieht (an der Drehmaschine X, sonst Z). Den Punkt trägst du in
 „Maschine bearbeiten“ unter „Home und Werkzeugwechsel“ ein, in Maschinenkoordinaten (MKS) oder

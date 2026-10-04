@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.185.1 (P-2026-10-04-51). Alles, was hier als gebaut steht,
+Stand 0.185.2 (P-2026-10-04-52). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -55,7 +55,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Siemens-Handbuch nachgeprüft, F_HOME (ShopTurn) und G75 als eintragbarer Weg zum Wechselpunkt
   (-26); die Einstellungen als Haken mit Erklärung in Gruppen, Glätten je Steuerung (S4),
   Vorschub ohne G93 (S5), Satznummern (-27); die Werkzeuglänge `G43 H` nach dem Wechsel an
-  LinuxCNC, Fanuc, Haas und Mach (P-2026-10-04-51 – fehlte bis dahin). Offen: Steuerung an der Maschine
+  LinuxCNC, Fanuc, Haas und Mach (P-2026-10-04-51 – fehlte bis dahin), an Siemens `D1` nach
+  `SUPA D0`, wenn kein Wechsel folgt (-52). Offen: Steuerung an der Maschine
   (S2), Transformationen (S6), Wochen-Build (S7); die Rundachse
   zwischen zwei Operationen nicht über viele Umdrehungen auf 0 zurückdrehen (Manuel probiert,
   was seine Maschine macht).

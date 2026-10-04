@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-52 siemens-d1-nach-supa
+
+### EINGELESEN
+- Weiter mit dem Postprozessor (Manuel: „verbessere die Postprozessoren bis ins Extreme“).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`Steuerung.laenge_wieder`, Siemens `D1`; nach dem Wechselpunkt
+  ohne folgenden Wechsel im nächsten Satz mit Z), `camaddon/gui_programm.py`,
+  `translations/de.json`, `en.json`, `help/de|en/programm.html`, `tests/test_postprozessor.py`,
+  `docs/spezifikation_steuerung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.185.2).
+
+### DONE
+- Siemens fährt den Wechselpunkt mit `G0 SUPA D0` – D0 schaltet die Werkzeugkorrektur ab. Nach
+  einem Messstopp oder einer Ebene ohne Schwenkzyklus (mit Sprungmarken aus) fräste das Programm
+  ohne Länge weiter. Jetzt `D1` im nächsten Satz mit Z; mit einem Wechsel kommt D1 mit M6.
+
+### TESTS
+- `test_postprozessor` (Messstopp an Siemens ohne Sprungmarken: D1 genau einmal, im Satz mit Z),
+  `test_schwenken`, `test_programmkopf`, `test_sprache` – OK.
+
 ## P-2026-10-04-51 werkzeuglaenge-g43
 
 ### EINGELESEN

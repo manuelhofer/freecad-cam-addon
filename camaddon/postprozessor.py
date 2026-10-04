@@ -108,6 +108,10 @@ class Steuerung:
     # Wechsel (Siemens: D1). Ohne sie stünde die Spitze um die ganze Werkzeuglänge tiefer als
     # programmiert (bis P-2026-10-04-51 fehlte sie – der Kopf hebt sie mit G49 sogar auf).
     laenge_ein: str = ""
+    # … und wieder nach dem Wechselpunkt, wenn kein Wechsel folgt (Messstopp, eine andere Ebene
+    # ohne Zyklus): Siemens fährt ihn mit „SUPA D0“ – D0 schaltet die Korrektur ab, danach
+    # fräste das Programm ohne Länge weiter. Leer: der Weg dorthin lässt sie stehen (G53).
+    laenge_wieder: str = ""
     # Die Sprungmarke vor jeder Bearbeitung (D-4) – {marke}: ihr Name („RAEUMEN_T1“), {n}: ihre
     # Nummer (1, 2 …). Leer: nur der Kommentar (die Steuerung kennt keine Marken).
     marke: str = ""
@@ -172,6 +176,7 @@ BEFEHLSFELDER = (
     "laenge_ein",
     "wechsel_drehen",
     "wechselpunkt_mks",
+    "laenge_wieder",
     "wechselpunkt_wks",
     "marke",
     "spindel_ein",
@@ -267,6 +272,7 @@ STEUERUNGEN = {
         # SUPA: Maschinenkoordinaten ohne Verschiebungen; D0 ohne Werkzeugkorrektur – der
         # Wechselpunkt gilt für den Werkzeugträger.
         wechselpunkt_mks="G0 SUPA D0 {achsen}",
+        laenge_wieder="D1",  # nach „SUPA D0“ ohne Wechsel: die Schneide wieder an
         gleich_bei_nummer=True,
         nur_buchstabe=False,
         # Programmierhandbuch Arbeitsvorbereitung 10/2015 (S. 470–471: CTOL) und Grundlagen
@@ -443,6 +449,7 @@ def feld_text(feld):
         "wechsel_fraesen": (tr("pp.feld.wechsel_fraesen"), tr("pp.feld.wechsel_fraesen.tooltip")),
         "wechsel_drehen": (tr("pp.feld.wechsel_drehen"), tr("pp.feld.wechsel_drehen.tooltip")),
         "laenge_ein": (tr("pp.feld.laenge_ein"), tr("pp.feld.laenge_ein.tooltip")),
+        "laenge_wieder": (tr("pp.feld.laenge_wieder"), tr("pp.feld.laenge_wieder.tooltip")),
         "wechselpunkt_mks": (
             tr("pp.feld.wechselpunkt_mks"),
             tr("pp.feld.wechselpunkt_mks.tooltip"),
@@ -677,8 +684,11 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
             vorlage = s.wechsel_drehen if info.drehmaschine else s.wechsel_fraesen
             zeilen.append(_fuellen(vorlage, t=int(abschnitt.werkzeug)))
-            if s.laenge_ein and not info.drehmaschine:
-                laenge_offen = _fuellen(s.laenge_ein, t=int(abschnitt.werkzeug))
+            laenge_offen = (
+                _fuellen(s.laenge_ein, t=int(abschnitt.werkzeug))
+                if s.laenge_ein and not info.drehmaschine
+                else ""  # der Wechsel bringt die Länge mit (Siemens D1, Drehmaschine T0101)
+            )
             werkzeug = abschnitt.werkzeug
             gewechselt = True
         if not sw.gleiche(geschwenkt, abschnitt.schwenkung) or (
@@ -690,7 +700,10 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 if spindel_an is not None:
                     zeilen.extend(_spindel_aus(s, spindel_an))
                     spindel_an = None
-                zeilen.extend(_zum_wechselpunkt(s, info))
+                weg = _zum_wechselpunkt(s, info)
+                zeilen.extend(weg)
+                if weg and s.laenge_wieder and werkzeug:
+                    laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
             if geschwenkt is not None and abschnitt.schwenkung is None:
                 zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, _wechselpunkt_oben(s, info)))
             if abschnitt.schwenkung is not None:
@@ -737,6 +750,8 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 weg = _zum_wechselpunkt(s, info)
                 if weg:
                     zeilen.extend(weg)
+                    if s.laenge_wieder and werkzeug:
+                        laenge_offen = _fuellen(s.laenge_wieder, t=int(werkzeug))
                     continue
             gross = name_.upper()
             if gross == "G93":
@@ -769,7 +784,9 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 continue
             woerter = [gross]
             bewegung = gross in BEWEGUNG
-            if laenge_offen and bewegung and "Z" in parameter:
+            if laenge_offen and bewegung and ("Z" in parameter or info.drehmaschine):
+                # An der Fräse im Satz mit Z (in X und Y oben fährt nichts an), an der
+                # Drehmaschine im ersten Satz – dort zählt die Korrektur auch in X.
                 woerter.append(laenge_offen)
                 laenge_offen = ""
             weg = _weg(stand, parameter) if bewegung else 0.0

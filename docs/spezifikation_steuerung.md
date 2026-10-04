@@ -432,3 +432,7 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   H1 Z15.000`; allein in einer Zeile führe eine Fanuc am Wechselpunkt oben um die Länge hinauf.
   Ist der erste Satz mit Z ein Bohrzyklus, steht die Länge in der Zeile davor. Nicht an der
   Drehmaschine (dort trägt T0101 die Korrektur).
+  Ebenso an Siemens: Der Wechselpunkt `G0 SUPA D0 …` schaltet mit D0 die Korrektur ab – folgte
+  kein Wechsel (Messstopp; eine andere Ebene ohne Zyklus; Sprungmarken aus), fräste das Programm
+  ohne Länge weiter. Jetzt „Werkzeuglänge nach dem Wechselpunkt“ (`laenge_wieder`, an Siemens
+  `D1`) im nächsten Satz mit Z (an der Drehmaschine im nächsten Fahrsatz).

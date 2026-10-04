@@ -47,6 +47,7 @@ GRUPPEN = (
             "wechselpunkt",
             "wechselpunkt_mks",
             "wechselpunkt_wks",
+            "laenge_wieder",
         ),
     ),
     (
@@ -99,6 +100,7 @@ NUR_FRAESEN = {
 }
 # Befehle, die nur mit ihrem Haken gelten.
 HAKEN_VON = {
+    "laenge_wieder": "wechselpunkt",
     "wechselpunkt_mks": "wechselpunkt",
     "wechselpunkt_wks": "wechselpunkt",
     "kuehlung_flut": "kuehlung",

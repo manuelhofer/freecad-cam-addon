@@ -57,6 +57,9 @@ LinuxCNC, Fanuc, Haas and Mach “G43 H1”, in the first block afterwards that 
 (“G0 G43 H1 Z15.000”) – alone on a line some controls would move up by the tool length at the
 change point. Siemens takes the length with the change (D1), the field is empty there. Without
 it the tip would be lower than programmed by the whole tool length.</li>
+<li><b>Tool length after the change point</b> – Siemens moves to the change point with “SUPA
+D0”; D0 switches the tool offset off. If no tool change follows (measuring stop, another plane
+without the swivel cycle, jump labels off), the program writes “D1” into the next block with Z.</li>
 <li><b>Move to the change point</b> – before each tool change and at the end, first alone the
 axis that pulls the tool away (X on a lathe, Z otherwise). You enter the point in “Edit
 machine” under “Home and tool change”, in machine coordinates (MCS) or from the job's origin
