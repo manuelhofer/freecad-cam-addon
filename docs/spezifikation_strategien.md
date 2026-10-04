@@ -2601,7 +2601,9 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
 - **D-4:** ein Programm je Job – mit Sprungmarken je Bearbeitung (Siemens: Marken, die sich mit
   GOTOF/GOTOB anspringen lassen; Heidenhain: LBL), sinnvoll benannt. Im Kopf des Programms: die
   Marken mit ihrer Bearbeitung, die Werkzeuge mit Auskragung und Halter, Hinweise, wo es knapp
-  wird. Einzelne Programme je Bearbeitung fände Manuel „unglücklich“.
+  wird. Einzelne Programme je Bearbeitung fände Manuel „unglücklich“. **Gebaut** P-2026-10-04-38
+  (Spezifikation Steuerung, Abschnitt 12): jede Marke ein vollständiger Einstieg (Manuel: „Ja,
+  jede Marke vollständig“).
 - **Verkettung:** Muss der Tisch zwischen zwei Bearbeitungen stark schwenken, erst zum
   Wechselpunkt, dort schwenken, dann wieder hin – die Wege dazu geprüft.
 - **D-5:** ja – die Beispielmaschinen bekommen einen Wechselpunkt, angefahren ohne Kollision.

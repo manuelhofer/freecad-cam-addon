@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-38 sprungmarken-kopf
+
+### EINGELESEN
+- Manuel, 2026-10-04, zu D-4: ein Programm je Job, „um es später im Programm leichter zu finden
+  / suchen zu können … Sprungpunkte setzen … mit GOTO anspringen … oben im Kommentar des
+  Programms schon gut Infos“; der Kopf mit „Werkzeugen mit deren Ausspannlängen zum Halter,
+  Halter … wenn's knapp wird … muss darauf hingewiesen werden“; die Verkettung: „wenn sich der
+  Tisch extrem schwenken muss … immer auf den Werkzeugwechselpunkt fahren und dann erst den Tisch
+  … drehen“. Auf die Frage, ob jede Marke ein vollständiger Einstieg ist: „Ja, jede Marke
+  vollständig (Empfehlung)“.
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`Steuerung.marke`/`marken`, `markenname`, `_kopfzeilen`,
+  `_einspannung_und_knapp`, `Abschnitt.einspannung/knapp/messstopp`, der vollständige Einstieg,
+  Marken ohne Satznummer), `camaddon/abfahren.py` (vor jeder Bearbeitung zum Wechselpunkt),
+  Übersetzungen, `tests/test_programmkopf.py` (neu), `docs/spezifikation_steuerung.md` (12),
+  `docs/spezifikation_strategien.md` (15.4), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.177.0).
+
+### AKZEPTANZKRITERIUM
+- Siemens: im Kopf Marken, Werkzeuge mit Auskragung und Halter, „knapp“ nur wo es knapp ist;
+  hinter jeder Marke Wechselpunkt, T… M6, Spindel – auch mit demselben Werkzeug; ohne Haken wie
+  bisher. Fanuc N1, N2.
+
+### DONE
+- Gesehen (Programmfenster, Screenshot `1_siemens`): Kopf mit „Sprungmarken“ und „Werkzeuge“,
+  „RUNDUM_SCHRUPPEN_T1:“, danach `G0 SUPA D0 X850.000`, `T1 D1`. Am Testteil-Job: sechs Marken
+  (RAEUMEN_T1 … OP_3D_SCHLICHTEN_T5), vor jeder Wechselpunkt und Werkzeug. Die Verkettung beim
+  Schwenken ist damit auch erledigt: Jede Bearbeitung beginnt am Wechselpunkt, geschwenkt wird
+  dort.
+
+### TESTS
+- `tests/test_programmkopf.py`, `tests/test_postprozessor.py`, `tests/test_abfahren.py`,
+  `tests/test_kollision.py`, `tests/test_vierachs_pruefen.py`, `tests/test_schwenken.py`,
+  `tests/test_reichweite.py`, `tests/test_sprache.py`; `szenario_programm` – OK. black und ruff
+  sauber.
+
+### NEXT
+- Im Freien mit Eilgang (alle Strategien, Manuel: „gib Gas bis kurz davor“).
+
 ## P-2026-10-04-37 schwenkdatensatz-richtung
 
 ### EINGELESEN

@@ -331,9 +331,13 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         geschwenkt = ebene is not None
         loesung = pruefung.loeser(aufnahme, eingespannt, nullpunkt_des_jobs)
         nummer = len(ergebnis.operationen)
-        if nummer and tc is not vorheriger_tc:
+        # Vor jeder Bearbeitung zum Wechselpunkt – wie das Programm, in dem jede hinter ihrer
+        # Sprungmarke ein vollständiger Einstieg ist (D-4); gewechselt wird nur, wo sich das
+        # Werkzeug ändert (die Wechselzeit). Der Messstopp fährt selbst dorthin (unten), und wer
+        # schon vom Wechselpunkt kommt, muss nicht noch einmal.
+        if nummer:
             ziel = _wechsel_ziel(wechsel, wechsel_wks, vorher, davor, index)
-            if any(w is not None for w in ziel):
+            if any(w is not None for w in ziel) and not anflug and not ms.ist_messstopp(op):
                 zurueckziehen(ziel, nummer - 1, WECHSEL)
                 anflug = True
             if getattr(tc, "ToolNumber", None) != getattr(vorheriger_tc, "ToolNumber", None):

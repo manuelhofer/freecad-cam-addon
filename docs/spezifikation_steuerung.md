@@ -402,3 +402,25 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   - S5: ohne G93 F in mm/min = Weg ÷ Zeit des Satzes, der Weg aus X, Y, Z, A, B, C (Rundachsen
     in Grad, X als Radius, ein Bogen als Sehne); G93 und G94 entfallen dann. Geprüft: X42 Z3 C0 →
     X38 Z0 C90 in ⅓ min gibt F270.416.
+- **P-2026-10-04-38 – Sprungmarken und Kopf (D-4):** Manuel (2026-10-04): „um es später im
+  Programm leichter zu finden … zumindest (für Siemens) Sprungpunkte setzen … die lassen sich ja
+  bei Siemens immer mit GOTO anspringen … oben im Kommentar des Programms schon gut Infos, was man
+  anspringen kann“; in den Kopf „Werkzeuge mit deren Ausspannlängen zum Halter, Halter … wenn's
+  knapp wird, muss darauf hingewiesen werden“; jede Marke ein vollständiger Einstieg („Ja, jede
+  Marke vollständig“).
+  - Haken „Sprungmarke je Bearbeitung“ (`marken`, an) und der Befehl „Sprungmarke“ (`marke`):
+    Siemens `{marke}:` (Name aus der Bearbeitung: groß, Umlaute ausgeschrieben, nur Buchstaben,
+    Ziffern und „_“, zwei Buchstaben vorn, höchstens 32 Zeichen, eindeutig – `markenname`), Fanuc
+    und Haas `N{n}` für die Satzsuche, LinuxCNC und Mach nur der Kommentar. Marken bekommen keine
+    Satznummer.
+  - Hinter jeder Marke ein vollständiger Einstieg: Spindel aus, zum Wechselpunkt, `T… M6`,
+    Spindel, Kühlung, die Ebene (CYCLE800) neu – auch mit demselben Werkzeug wie davor; ein
+    Messstopp nicht. „Auf der Maschine prüfen“ fährt ebenso vor jeder Bearbeitung zum
+    Wechselpunkt (die Wechselzeit zählt nur, wo sich das Werkzeug ändert).
+  - Der Kopf (mit „Kommentare“): die Marken mit ihrer Bearbeitung; je Werkzeug „T3 Kugel 6 –
+    Auskragung 27 mm, Schrumpffutter Ø6 · SK40“ (wie „Auf der Maschine prüfen“ sie rechnet,
+    `wegkippen.einspannung`; der vorgeschlagene Halter mit „vorgeschlagen, keiner gewählt“; ohne
+    Werkzeug aus der Werkzeugverwaltung nur der Name); „ACHTUNG – knapp: T3 in „Tief“ fräst 26.0 mm
+    tief und steht nur 27.0 mm heraus“, wenn eine Bearbeitung ohne Rundachse und Ebene tiefer
+    fräst (Oberkante Rohteil bis zur tiefsten Stelle im Vorschub) als die Auskragung weniger 2 mm.
+
