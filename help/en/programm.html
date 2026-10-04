@@ -49,6 +49,10 @@ number of the drive, {h} number of the main spindle, {achsen} the axes of the ch
 <li><b>Comments</b> – before each section the name of the operation and the tool (“; Rotary
 roughing T1”), at the start the name of the job. Off: blocks only – some controls dislike long
 comments.</li>
+<li><b>Comments in ASCII only</b> – umlauts and characters such as Ø, –, · in comments
+replaced (ä → ae, Ø → D, – → -). Fanuc, Haas and Mach read programs in the ASCII character set
+and stop with “Illegal character” on others; on LinuxCNC as a precaution as well. Off on Siemens –
+SINUMERIK Operate shows umlauts.</li>
 <li><b>Block numbers</b> – N10, N20 … before each block, not before “%”, the program number and
 comments. They are not needed; some operators use them to jump in the program.</li>
 <li><b>Program start, start on the lathe, program end</b> – the fixed lines: units, plane (G18

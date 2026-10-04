@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-60 kommentare-ascii
+
+### EINGELESEN
+- Weiter mit dem Postprozessor („bis ins Extreme“).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (Haken `nur_ascii`, `ascii_text`, `ASCII_ERSATZ`; der Prüfer bekommt
+  ihn), `camaddon/programm_pruefen.py` (`ZEICHEN`), `camaddon/gui_programm.py`,
+  `translations/de.json`, `en.json`, `help/de|en/programm.html`, `tests/test_programm_pruefen.py`,
+  `docs/spezifikation_steuerung.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.187.5).
+
+### DONE
+- Kommentare an LinuxCNC, Fanuc, Haas und Mach nur noch in ASCII (Umlaute und Ø, –, · ersetzt);
+  Siemens behält sie. Der Prüfer meldet Zeichen außerhalb von ASCII.
+
+### TESTS
+- `test_programm_pruefen`, `test_postprozessor`, `test_programmkopf`, `test_flanke`,
+  `test_angestellt`, `test_schwenken`, `test_sprache`; Szenarien `szenario_programm`,
+  `szenario_schwenkteil` – OK.
+
 ## P-2026-10-04-59 knapp-abheben
 
 ### EINGELESEN

@@ -141,6 +141,9 @@ class Steuerung:
     # Die Haken (Manuel, 2026-10-03: „die Optionen im Postprozessor besser beschreiben,
     # darstellen, mit Haken machen“; Spezifikation Steuerung, Abschnitte 7 und 8).
     kommentare: bool = True  # Operation und Werkzeug als Kommentar
+    # Kommentare nur in ASCII (ä → ae, Ø → D, – → -): Fanuc, Haas und Mach lesen Programme im
+    # ASCII-Zeichensatz und brechen bei anderen Zeichen mit „Illegal character“ ab.
+    nur_ascii: bool = True
     satznummern: bool = False  # N10, N20 … vor jedem Satz
     kuehlung: bool = True  # M8/M7 und M9 wie an der Operation
     wechselpunkt: bool = True  # vor jedem Werkzeugwechsel und am Ende zum Wechselpunkt
@@ -242,6 +245,7 @@ ZYKLUS_FELDER = {
 # Die Haken – (Name, Typ) wie in Steuerung; im Fenster je eine Zeile mit Erklärung.
 HAKEN = (
     "kommentare",
+    "nur_ascii",
     "satznummern",
     "kuehlung",
     "wechselpunkt",
@@ -307,6 +311,7 @@ STEUERUNGEN = {
         # Wechselpunkt gilt für den Werkzeugträger.
         wechselpunkt_mks="G0 SUPA D0 {achsen}",
         laenge_wieder="D1",  # nach „SUPA D0“ ohne Wechsel: die Schneide wieder an
+        nur_ascii=False,  # SINUMERIK Operate zeigt Umlaute
         durchmesser_ein="DIAMON",
         radius_ein="DIAMOF",
         gleich_bei_nummer=True,
@@ -564,6 +569,7 @@ def haken_text(feld):
     """(Name, Erklärung) eines Hakens fürs Fenster – die Schlüssel wörtlich."""
     return {
         "kommentare": (tr("pp.haken.kommentare"), tr("pp.haken.kommentare.erklaerung")),
+        "nur_ascii": (tr("pp.haken.nur_ascii"), tr("pp.haken.nur_ascii.erklaerung")),
         "satznummern": (tr("pp.haken.satznummern"), tr("pp.haken.satznummern.erklaerung")),
         "kuehlung": (tr("pp.haken.kuehlung"), tr("pp.haken.kuehlung.erklaerung")),
         "wechselpunkt": (tr("pp.haken.wechselpunkt"), tr("pp.haken.wechselpunkt.erklaerung")),
@@ -638,8 +644,45 @@ def _zahl(wert, stellen=STELLEN):
     return "0." + "0" * stellen if text.startswith("-") and float(text) == 0.0 else text
 
 
+ASCII_ERSATZ = (
+    ("ä", "ae"),
+    ("ö", "oe"),
+    ("ü", "ue"),
+    ("Ä", "Ae"),
+    ("Ö", "Oe"),
+    ("Ü", "Ue"),
+    ("ß", "ss"),
+    ("Ø", "D"),
+    ("ø", "D"),
+    ("–", "-"),
+    ("—", "-"),
+    ("·", "-"),
+    ("×", "x"),
+    ("°", " Grad"),
+    ("„", '"'),
+    ("“", '"'),
+    ("”", '"'),
+    ("‚", "'"),
+    ("‘", "'"),
+    ("’", "'"),
+    ("…", "..."),
+    ("−", "-"),
+    ("≈", "~"),
+    ("µ", "u"),
+)
+
+
+def ascii_text(text):
+    """Der Text nur mit ASCII-Zeichen – Umlaute und Zeichen wie Ø, –, · ersetzt, der Rest „?“."""
+    for alt, neu in ASCII_ERSATZ:
+        text = text.replace(alt, neu)
+    return text.encode("ascii", "replace").decode("ascii")
+
+
 def _kommentar(s, text):
     text = text.replace("(", "[").replace(")", "]")
+    if s.nur_ascii:
+        text = ascii_text(text)
     return f"; {text}" if s.kommentar.strip() == ";" else f"({text})"
 
 
@@ -1413,6 +1456,7 @@ def nachlesen(programm, s, info=None):
         siemens=s.kennung == "siemens",
         drehmaschine=info.drehmaschine,
         laenge_mit_wechsel=not laenge,
+        nur_ascii=s.nur_ascii,
     )
     return pruefung.befunde, pruefung.saetze
 
@@ -1438,6 +1482,7 @@ def _befund_text(art, zeile, satz):
         "kreis": lambda: tr("pp.befund.kreis", zeile=zeile, satz=satz),
         "doppelt": lambda: tr("pp.befund.doppelt", zeile=zeile, satz=satz),
         "ende": lambda: tr("pp.befund.ende"),
+        "zeichen": lambda: tr("pp.befund.zeichen", zeile=zeile, satz=satz),
     }[art]()
 
 

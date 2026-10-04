@@ -499,3 +499,8 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   ab 2 MB, dass das Programm oft nicht in den NC-Speicher passt – von extern abarbeiten, EXTCALL
   bzw. DNC (`groesse_text`). An Manuels Welle mit 0,2 mm Schrittweite (263 679 Stationen) wird es
   mehrere MB groß.
+- **P-2026-10-04-60 – Kommentare nur in ASCII:** Im Kopf und an den Bearbeitungen standen
+  Umlaute und Zeichen wie Ø, –, · („Schaftfräser … – Auskragung 31 mm, ER25 · SK40“). Fanuc, Haas
+  und Mach lesen ASCII und brechen bei anderen Zeichen ab. Haken `nur_ascii` (an; an Siemens aus):
+  `ascii_text` ersetzt (ä → ae, Ø → D, – → -, ° → Grad …), der Rest wird „?“. Der Prüfer meldet
+  mit dem Haken jedes Zeichen außerhalb von ASCII (`ZEICHEN`).

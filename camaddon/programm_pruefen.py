@@ -18,6 +18,7 @@ Geprüft (je Fund ein Befund mit Zeile und Satz):
   KREIS_TOLERANZ) – die Steuerung bliebe mit Alarm stehen.
 - DOPPELT: derselbe Satz im Vorschub zweimal hintereinander (nichts zu fahren).
 - ENDE: kein Programmende (M30 oder M2).
+- ZEICHEN: ein Zeichen außerhalb von ASCII (mit `nur_ascii`: Fanuc, Haas, Mach brechen ab).
 
 Läuft ohne Oberfläche und ohne FreeCAD.
 """
@@ -27,13 +28,14 @@ import re
 from dataclasses import dataclass, field
 
 KREIS_TOLERANZ = 0.002  # mm – so weit dürfen die Abstände zur Mitte am Anfang und Ende abweichen
-LAENGE, SPINDEL, VORSCHUB, KREIS, DOPPELT, ENDE = (
+LAENGE, SPINDEL, VORSCHUB, KREIS, DOPPELT, ENDE, ZEICHEN = (
     "laenge",
     "spindel",
     "vorschub",
     "kreis",
     "doppelt",
     "ende",
+    "zeichen",
 )
 
 
@@ -84,10 +86,11 @@ def _zerlegen(satz):
     return g, m, werte
 
 
-def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False):
+def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False, nur_ascii=False):
     """Pruefung des Programms `text`. `siemens`: Kommentare mit „;“, die Länge kommt mit dem
     Wechsel (D1) und geht mit D0; `laenge_mit_wechsel`: auch sonst nimmt der Wechsel die Länge
-    mit (eine Steuerung ohne G43); `drehmaschine`: die Länge zählt in jeder Achse."""
+    mit (eine Steuerung ohne G43); `drehmaschine`: die Länge zählt in jeder Achse; `nur_ascii`:
+    jedes Zeichen außerhalb von ASCII ist ein Befund."""
     pruefung = Pruefung()
     befunde = pruefung.befunde
     bewegung = None  # "0", "1", "2", "3"
@@ -100,6 +103,8 @@ def pruefe(text, siemens=False, drehmaschine=False, laenge_mit_wechsel=False):
     davor = None
     ende = False
     for nummer, roh in enumerate(text.splitlines(), start=1):
+        if nur_ascii and not roh.isascii():
+            befunde.append(Befund(ZEICHEN, nummer, roh))
         satz = _ohne_kommentar(roh, siemens)
         if not satz or satz.startswith("%"):
             continue

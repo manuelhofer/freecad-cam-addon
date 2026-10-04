@@ -207,6 +207,24 @@ pruefe(
     and pp.groesse_text(pp.Programm(["M30"], [], 0), pp.steuerung("siemens")) == "",
     f"groß: {pp.groesse_text(gross, pp.steuerung('siemens'))!r}",
 )
+# Kommentare nur in ASCII (P-2026-10-04-60): Fanuc, Haas, Mach, LinuxCNC – „Fräser Ø 12“ wird
+# „Fraeser D 12“; Siemens behält die Umlaute. Der Prüfer meldet sonst jedes Zeichen.
+for kennung in pp.STEUERUNGEN:
+    s = pp.steuerung(kennung)
+    p_a = pp.programm([tasche], s, fraese, "Größe – Ø")
+    nicht_ascii = [x for x in p_a.zeilen if not x.isascii()]
+    if kennung == "siemens":
+        pruefe(nicht_ascii, "Siemens: Umlaute ersetzt")
+    else:
+        pruefe(
+            not nicht_ascii and any("Fraeser D 12" in x for x in p_a.zeilen),
+            f"{kennung}: {nicht_ascii}",
+        )
+    befunde, _saetze = pp.nachlesen(p_a, s, fraese)
+    pruefe(not befunde, f"{kennung} ASCII: {[(b.art, b.satz) for b in befunde]}")
+mit_umlaut = pp.programm([tasche], pp.steuerung("fanuc", {"nur_ascii": False}), fraese, "Ö")
+befunde, _saetze = pp.nachlesen(mit_umlaut, pp.steuerung("fanuc", {"nur_ascii": True}), fraese)
+pruefe(any(b.art == prp.ZEICHEN for b in befunde), "Prüfer: Umlaut nicht gemeldet")
 # Der Satz fürs Fenster.
 text = pp.nachgelesen_text([prp.Befund(prp.LAENGE, 12, "G0 Z5.000")], 40)
 pruefe(text.startswith("Nachgelesen") and "Zeile 12" in text and "G0 Z5.000" in text, text)

@@ -50,6 +50,10 @@ Wechselpunkts; „|“ trennt Zeilen.</p>
 <li><b>Kommentare</b> – vor jedem Abschnitt der Name der Operation und des Werkzeugs
 („; Rundum schruppen T1“), am Anfang der Name des Jobs. Aus: nur Sätze – manche Steuerungen
 mögen keine langen Kommentare.</li>
+<li><b>Kommentare nur in ASCII</b> – Umlaute und Zeichen wie Ø, –, · in den Kommentaren
+ersetzt (ä → ae, Ø → D, – → -). Fanuc, Haas und Mach lesen Programme im ASCII-Zeichensatz und
+brechen bei anderen Zeichen mit „Illegal character“ ab; an LinuxCNC vorsichtshalber ebenso. An
+Siemens aus – SINUMERIK Operate zeigt Umlaute.</li>
 <li><b>Satznummern</b> – N10, N20 … vor jedem Satz, nicht vor „%“, der Programmnummer und
 Kommentaren. Nötig sind sie nicht; manche Bediener springen damit im Programm.</li>
 <li><b>Programmanfang, Anfang an der Drehmaschine, Programmende</b> – die festen Zeilen:

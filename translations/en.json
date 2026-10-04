@@ -2359,5 +2359,8 @@
     "pp.feld.radius_ein": "Read X as radius",
     "pp.feld.radius_ein.tooltip": "Written in the start when the machine counts X as radius (LinuxCNC G8, Siemens DIAMOF). Empty for controls that set it by parameter.",
     "pp.gross.siemens": "The program is {mb} MB – it often does not fit into the NC memory: on the control “execute from external” (USB, CF card, network) or call it with EXTCALL from a small main program.",
-    "pp.gross.fanuc": "The program is {mb} MB – it does not fit into the memory of many Fanuc controls: transfer it by DNC or run it from the memory card."
+    "pp.gross.fanuc": "The program is {mb} MB – it does not fit into the memory of many Fanuc controls: transfer it by DNC or run it from the memory card.",
+    "pp.haken.nur_ascii": "Comments in ASCII only",
+    "pp.haken.nur_ascii.erklaerung": "Umlauts and characters such as Ø, –, · in comments replaced (ä → ae, Ø → D). Fanuc, Haas and Mach read programs in the ASCII character set and stop with “Illegal character” on others. Off: as written (SINUMERIK Operate shows umlauts).",
+    "pp.befund.zeichen": "Line {zeile}: character outside ASCII – “{satz}”"
 }
