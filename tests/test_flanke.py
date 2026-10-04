@@ -284,7 +284,8 @@ for kennung, ein, aus in (
     k0 = z_t.index(ein) if ein in z_t else -1
     k1 = z_t.index(aus, k0) if k0 >= 0 and aus in z_t[k0:] else -1
     innen = z_t[k0:k1]
-    g1 = next((x for x in innen if x.startswith("G1")), "")
+    # Der erste Satz im Schnittvorschub (an Haas davor der Weg unter TCPM hinab, im Eilgang-F).
+    g1 = next((x for x in innen if x.startswith("G1") and float(x.split("F")[-1]) < 5000), "")
     pruefe(
         k0 >= 0 and k1 > k0 and not any("G93" in x for x in innen) and " F" in g1,
         f"{kennung} TCPM: {z_t[max(k0, 0):max(k0, 0) + 6]}",
@@ -297,6 +298,30 @@ for kennung, ein, aus in (
     )
     befunde, _saetze = pp.nachlesen(p_t, s, info5)
     pruefe(not befunde, f"{kennung} TCPM nachgelesen: {[(b.art, b.satz) for b in befunde[:3]]}")
+
+    # Unter TCPM dreht kein Eilgang (die Spitze hielte keine Steuerung sicher): Ein G0 trägt die
+    # Rundachsen des Satzes davor. Haas: G234 erst bei Rundachsen auf 0.
+    def rund_von(zeile):
+        # „A-10.000“ (Fanuc, Haas) oder „A1=-10.000“ (Siemens) – je Achse der Wert.
+        werte_r = {}
+        for w in zeile.split():
+            if w[:1] in ("A", "C") and len(w) > 1 and (w[1] in "-.0123456789" or w[1:3] == "1="):
+                werte_r[w[0]] = float(w.split("=")[-1] if "=" in w else w[1:])
+        return werte_r
+
+    vorher = {}
+    for zeile in innen[1:]:
+        if zeile.startswith("G0 ") and vorher and rund_von(zeile) != vorher:
+            pruefe(False, f"{kennung}: Eilgang dreht unter TCPM: {zeile!r} nach {vorher}")
+            break
+        if zeile.startswith(("G0", "G1")) and rund_von(zeile):
+            vorher = rund_von(zeile)
+    if kennung == "haas":
+        davor = [x for x in z_t[:k0] if rund_von(x)]
+        pruefe(
+            davor and all(v == 0.0 for v in rund_von(davor[-1]).values()),
+            f"Haas: Rundachsen vor G234 nicht auf 0: {davor[-1:]}",
+        )
     if kennung == "siemens":
         print(ascii(f"Flanke: {ohne_tcpm.saetze} Saetze ohne TCPM, {p_t.saetze} mit"))
         # Gerade Wände, die Achse hält: ohne TCPM war nichts zu verdichten – nicht mehr Sätze.

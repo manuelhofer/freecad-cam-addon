@@ -36,7 +36,7 @@ def senkrecht_moeglich(op):
     return an.ist_angestellt(op)
 
 
-def befehle(op, maschine, tcpm=False):
+def befehle(op, maschine, tcpm=False, bei_null=False):
     """Die Sätze der Operation für `maschine` (schwenken.Maschine): mit zwei Rundachsen je Punkt
     gerechnet (`tcpm`: für eine Steuerung, die die Spitze führt – simultan.befehle_mit_tcpm); mit
     weniger der angestellte Kugelfräser senkrecht, die Flanke ein ValueError."""
@@ -48,5 +48,5 @@ def befehle(op, maschine, tcpm=False):
             return list(op.Path.Commands)
         raise ValueError(tr("fl.fehler.maschine", operation=op.Label))
     if an.ist_angestellt(op):
-        return an.befehle(op, maschine, tcpm=tcpm)
-    return fl.befehle(op, maschine, tcpm=tcpm)
+        return an.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)
+    return fl.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)

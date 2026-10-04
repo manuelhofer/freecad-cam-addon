@@ -513,3 +513,10 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   Nutbreite mit G41/G42, die Mittelbahn hin und zurück; `TRAFOOF` aus. Für die Bahnen des Addons
   (Punkt für Punkt, G93) bringt sie keine Genauigkeit – zwischen zwei Punkten fährt C wie Y
   linear; ihr Nutzen ist Handprogrammierung an der Maschine. Nicht gebaut.
+- **P-2026-10-04-63 – TCPM nach der Haas-Anleitung (G234) nachgeschärft:** „The rotary axes must
+  be at 0 before commanding G234“ und „Tool tip position is not maintained during rapid rotary
+  moves. Do not program rapid moves while TCPC is active“ (haascnc.com, G234). Jetzt: Unter TCPM
+  wird ein Eilgang mit drehender Rundachse G1 mit der Eilganggeschwindigkeit (an allen
+  Steuerungen); `tcpm_bei_null` (Haas): auf der Schwenkhöhe die Rundachsen auf 0, über den ersten
+  Punkt, G234, dann im G1 senkrecht auf ihn hinab und auf seine Stellung. G254 (DWO) gehört nicht
+  dazu – „G234 cannot be used at the same time as G254“.

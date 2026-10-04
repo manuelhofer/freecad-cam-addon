@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-63 tcpm-haas
+
+### EINGELESEN
+- Die Haas-Seite zu G234 nachgelesen (TCPM-Befehle aus -55 prüfen).
+
+### DATEIEN
+- `camaddon/simultan.py` (`befehle_mit_tcpm`: drehende Eilgänge als G1, `bei_null`),
+  `camaddon/angestellt.py`, `camaddon/flanke.py`, `camaddon/simultan_operation.py`,
+  `camaddon/postprozessor.py` (`tcpm_bei_null`, an Haas), `help/de|en/programm.html`,
+  `tests/test_flanke.py`, `docs/spezifikation_steuerung.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.187.8).
+
+### DONE
+- Unter TCPM dreht kein Eilgang mehr (G1 mit Eilganggeschwindigkeit); an Haas G234 erst bei
+  Rundachsen auf 0, dann im G1 hinab und auf die Stellung.
+
+### TESTS
+- `test_flanke` (kein drehender G0 unter TCPM; Haas vor G234 auf 0), `test_angestellt`,
+  `test_simultan` – OK.
+
 ## P-2026-10-04-62 werkzeugname-im-wechsel
 
 ### EINGELESEN

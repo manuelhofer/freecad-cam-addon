@@ -170,6 +170,9 @@ class Steuerung:
     tcpm: bool = False
     tcpm_ein: str = ""
     tcpm_aus: str = ""
+    # TCPM bei Rundachsen auf 0 einschalten und erst danach auf die Stellung drehen (Haas G234:
+    # „The rotary axes must be at 0 before commanding G234“).
+    tcpm_bei_null: bool = False
     # Bohrzyklen (Spezifikation Steuerung, E8): FreeCADs G81, G82, G83, G73 und G85 als Befehl
     # der Steuerung – je Bohrung über dem Loch („G0 X… Y…“), dann der Befehl mit {rtp}
     # Rückzugsebene (G98: die Höhe davor, G99: R), {rfp} Bezugsebene (R), {dp} Tiefe (Z),
@@ -416,6 +419,7 @@ STEUERUNGEN = {
         # G234: Tool Center Point Control (TCPC); G49 schaltet sie ab.
         tcpm_ein="G234 H{t}",
         tcpm_aus="G49",
+        tcpm_bei_null=True,
         g90_drehen=False,
         # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
         # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
@@ -784,7 +788,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
         befehle_roh = abschnitt.befehle
         if s.tcpm and s.tcpm_ein and abschnitt.befehle_tcpm is not None:
             try:
-                befehle_roh = abschnitt.befehle_tcpm()
+                befehle_roh = abschnitt.befehle_tcpm(bei_null=s.tcpm_bei_null)
             except ValueError as grund:
                 hinweise.append(
                     f"{abschnitt.name}: {tr('pp.hinweis.tcpm_fehler', grund=str(grund))}"
@@ -1314,7 +1318,7 @@ def _simultan_tcpm(op, maschine):
     fuer_op = maschine(op) if callable(maschine) else maschine
     if fuer_op is None or len(getattr(fuer_op, "rundachsen", ())) < 2:
         return None
-    return lambda: so.befehle(op, fuer_op, tcpm=True)
+    return lambda bei_null=False: so.befehle(op, fuer_op, tcpm=True, bei_null=bei_null)
 
 
 def maschineninfo(job):

@@ -186,7 +186,11 @@ Siemens “TRAORI” … “TRAFOOF”, Fanuc “G43.4 H1” … “G49”, Haas
 next block with Z switches the tool length on again with G43). Points in between only where the
 ball centre or the top of the cutting edge would otherwise leave its line. Shorter and more exact
 – but needs the option on the control and the right kinematics in it. On LinuxCNC and Mach the
-field is empty (there it depends on the machine configuration).</li>
+field is empty (there it depends on the machine configuration). Under TCPM no rapid rotates: where
+a rotary axis turns, G1 with the rapid speed is written (no control reliably holds the tip in a
+rapid). On Haas G234 is switched on with the rotary axes at 0 (as Haas requires), then the tip
+moves straight down to the first point in G1 while the rotary axes turn to their position. “Check
+on the machine” shows the path without TCPM.</li>
 </ul>
 
 <a name="bohren"></a>

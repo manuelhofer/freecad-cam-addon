@@ -193,7 +193,11 @@ Geraden. Siemens „TRAORI“ … „TRAFOOF“, Fanuc „G43.4 H1“ … „G49
 schaltet der nächste Satz mit Z die Werkzeuglänge mit G43 wieder ein). Punkte dazwischen nur, wo
 die Mitte der Kugel bzw. das obere Ende der Schneide sonst von ihrer Geraden abwiche. Kürzer und
 genauer – braucht aber die Option an der Steuerung und die richtige Kinematik darin. An LinuxCNC
-und Mach ist das Feld leer (dort hängt es an der Konfiguration der Maschine).</li>
+und Mach ist das Feld leer (dort hängt es an der Konfiguration der Maschine). Unter TCPM dreht
+kein Eilgang: Dreht sich eine Rundachse, steht G1 mit der Eilganggeschwindigkeit (im Eilgang hält
+keine Steuerung sicher die Spitze). An Haas schaltet G234 bei Rundachsen auf 0 ein (so verlangt es
+Haas), danach fährt die Spitze im G1 senkrecht auf den ersten Punkt hinab und die Rundachsen auf
+ihre Stellung. „Auf der Maschine prüfen“ zeigt die Bahn ohne TCPM.</li>
 </ul>
 
 <a name="bohren"></a>

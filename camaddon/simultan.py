@@ -392,7 +392,7 @@ TCPM_EIN = "TCPM_EIN"  # Satz-Namen für den Postprozessor: hier schaltet er TCP
 TCPM_AUS = "TCPM_AUS"
 
 
-def befehle_mit_tcpm(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERANZ):
+def befehle_mit_tcpm(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERANZ, bei_null=False):
     """Die Sätze einer Bahn mit Achse (Punkt …) für eine Steuerung mit TCPM (Siemens TRAORI,
     Fanuc G43.4, Haas G234 – Manuel, 2026-10-03: „TCPM später als Haken“) – Path.Command und
     (Name, Werte) für die Marken TCPM_EIN und TCPM_AUS: wie
@@ -400,7 +400,12 @@ def befehle_mit_tcpm(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERAN
     Werkstück (Grundjob) mit den Rundachsen je Punkt, F in mm/s (kein G93 – die Steuerung führt
     die Spitze mit F), TCPM_AUS, hinauf und die Rundachsen in die Grundstellung. Verdichtet nur,
     wo der Punkt `bezug` über der Spitze zwischen zwei Sätzen weiter als `toleranz` von seiner
-    Geraden abwiche (abweichung mit tcpm). ValueError mit einem Satz wie rundachsen_entlang."""
+    Geraden abwiche (abweichung mit tcpm). Ein Eilgang, in dem sich eine Rundachse dreht, wird G1
+    mit der Eilganggeschwindigkeit: Im Eilgang hält keine Steuerung sicher die Spitze (Haas: „Tool
+    tip position is not maintained during rapid rotary moves“). `bei_null`: TCPM bei Rundachsen
+    auf 0 einschalten (Haas: „The rotary axes must be at 0 before commanding G234“) – davor über
+    dem ersten Punkt auf der Schwenkhöhe, danach im G1 auf ihn hinab und auf seine Stellung.
+    ValueError mit einem Satz wie rundachsen_entlang."""
     import Path
 
     if not punkte:
@@ -409,7 +414,8 @@ def befehle_mit_tcpm(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERAN
     if toleranz:
         punkte, rund = verdichtet(maschine, punkte, rund, toleranz, bezug, True, tcpm=True)
     rundachsen = [a.buchstabe for a in maschine.rundachsen]
-    saetze, vorschub, davor = [], 0.0, None
+    eil = eilganggeschwindigkeit(maschine)  # mm/s
+    saetze, vorschub, davor, stellung_davor = [], 0.0, None, None
     for punkt, stellung in zip(punkte, rund, strict=True):
         werte = dict(zip("XYZ", (float(v) for v in punkt.spitze), strict=True))
         werte.update(stellung)
@@ -419,6 +425,14 @@ def befehle_mit_tcpm(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERAN
         if lage == davor and not punkt.eilgang:
             continue  # dieselbe Spitze, dieselbe Stellung – nichts zu fahren
         davor = lage
+        dreht = stellung_davor is not None and any(
+            abs(stellung[k] - stellung_davor[k]) > 1e-9 for k in stellung
+        )
+        stellung_davor = stellung
+        if punkt.eilgang and dreht:
+            werte["F"] = eil
+            saetze.append(Path.Command("G1", werte))
+            continue
         if not punkt.eilgang and vorschub > 0:
             werte["F"] = vorschub
         saetze.append(Path.Command("G0" if punkt.eilgang else "G1", werte))
@@ -434,11 +448,23 @@ def befehle_mit_tcpm(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERAN
             sw.schwenkhoehe(rohteil, maschine.abbildung, rund_ende),
         )
     davor = []
-    if hoehe is not None:
-        davor.append(Path.Command("G0", {"Z": max(hoehe, erster[2])}))
-    davor.append(Path.Command("G0", dict(rund_anfang)))
-    if hoehe is not None:
-        davor.append(Path.Command("G0", {"X": erster[0], "Y": erster[1]}))
+    if bei_null:
+        # Rundachsen auf 0: die Lage im Programm ist die im Werkstück – über dem ersten Punkt.
+        null = dict.fromkeys(rundachsen, 0.0)
+        spitze = punkte[0].spitze
+        oben = max(hoehe if hoehe is not None else spitze[2], float(spitze[2]))
+        davor.append(Path.Command("G0", {"Z": oben}))
+        davor.append(Path.Command("G0", null))
+        davor.append(Path.Command("G0", {"X": float(spitze[0]), "Y": float(spitze[1])}))
+        start = dict(saetze[0].Parameters)
+        start["F"] = eil
+        saetze[0] = Path.Command("G1", start)  # unter TCPM hinab und auf die Stellung
+    else:
+        if hoehe is not None:
+            davor.append(Path.Command("G0", {"Z": max(hoehe, erster[2])}))
+        davor.append(Path.Command("G0", dict(rund_anfang)))
+        if hoehe is not None:
+            davor.append(Path.Command("G0", {"X": erster[0], "Y": erster[1]}))
     danach = []
     if hoehe is not None:
         danach.append(Path.Command("G0", {"Z": max(hoehe, letzter[2])}))
