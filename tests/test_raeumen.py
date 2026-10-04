@@ -892,6 +892,11 @@ doc.recompute()
 
 # Speichern und Laden: dieselbe Bahn.
 anzahl = len(op.Path.Commands)
+befehle_bisher = [(b.Name, dict(b.Parameters)) for b in op.Path.Commands]
+# Eine Datei wie vor der neuen Wahl: kein Freivorschub, nur die bisherigen Enum-Einträge.
+op.Variante = list(ra.VARIANTEN[:-1])
+op.Variante = "automatisch"
+op.removeProperty("Freivorschub")
 pfad = os.path.join(tempfile.mkdtemp(), "raeumen.FCStd")
 doc.saveAs(pfad)
 FreeCAD.closeDocument(doc.Name)
@@ -901,7 +906,52 @@ op.touch()
 doc.recompute()
 pruefe(len(op.Path.Commands) == anzahl, f"nach dem Laden {len(op.Path.Commands)} statt {anzahl}")
 pruefe(op.getEditorMode("Ringe") == ["ReadOnly"], "Ringe nach dem Laden")
+pruefe(str(op.Variante) == "automatisch", "alte Datei: Variante geändert")
+pruefe(ra.ADAPTIV_FREI in op.getEnumerationsOfProperty("Variante"), "alte Datei: neue Wahl fehlt")
+pruefe(
+    [(b.Name, dict(b.Parameters)) for b in op.Path.Commands] == befehle_bisher,
+    "alte Datei: Bahn oder Vorschübe geändert",
+)
 print(ascii(f"Operation: {anzahl} Befehle"))
+
+# Neue Wahl: ausschließlich freie Vorschübe ändern; Vorgabe speichern, neu laden und rechnen.
+ra.aendere(op, op.ToolController, schruppen.ap, schruppen.ae, 0.3,
+           variante=ra.ADAPTIV_FREI, freivorschub=5000.0)  # fmt: skip
+doc.recompute()
+befehle_frei = [(b.Name, dict(b.Parameters)) for b in op.Path.Commands]
+pruefe(len(befehle_frei) == len(befehle_bisher), "Freivorschub: andere Anzahl Befehle")
+geaendert = 0
+for (alt_name, alt), (neu_name, neu) in zip(befehle_bisher, befehle_frei, strict=False):
+    pruefe(alt_name == neu_name and {k: v for k, v in alt.items() if k != "F"}
+           == {k: v for k, v in neu.items() if k != "F"},
+           "Freivorschub: Geometrie geändert")  # fmt: skip
+    if alt.get("F", 0.0) <= VF / 60.0 or alt_name not in ("G1", "G2", "G3"):
+        pruefe(neu == alt, "Freivorschub: Schnitt oder Eilgang geändert")
+    elif neu.get("F") != alt.get("F"):
+        geaendert += 1
+    pruefe(neu.get("F", 0.0) <= 5000.0 / 60.0 + 1e-6, "Freivorschub über Vorgabe")
+pruefe(geaendert > 0, "Freivorschub: kein freier Satz geändert")
+doc.saveAs(pfad)
+FreeCAD.closeDocument(doc.Name)
+doc = FreeCAD.openDocument(pfad)
+op = next(o for o in doc.Objects if ra.ist_raeumen(o))
+op.touch()
+doc.recompute()
+pruefe(str(op.Variante) == ra.ADAPTIV_FREI, "Freivorschub: Wahl nach Laden verloren")
+pruefe(abs(float(op.Freivorschub) * 60.0 - 5000.0) < 1e-6, "Freivorschub: Wert verloren")
+pruefe([(b.Name, dict(b.Parameters)) for b in op.Path.Commands] == befehle_frei,
+       "Freivorschub: andere Bahn nach Laden")  # fmt: skip
+ra.aendere(op, op.ToolController, schruppen.ap, schruppen.ae, 0.3, variante="automatisch")
+doc.recompute()
+pruefe([(b.Name, dict(b.Parameters)) for b in op.Path.Commands] == befehle_bisher,
+       "zurück auf bisherig: andere Bahn")  # fmt: skip
+try:
+    ra.bahn_fuer(op.Proxy.job, op.Proxy.job.Model.Group, form, schruppen.ap, schruppen.ae,
+                variante=ra.ADAPTIV_FREI, freivorschub=0)  # fmt: skip
+except ValueError:
+    pass
+else:
+    pruefe(False, "Freivorschub 0 akzeptiert")
 
 if fehler:
     raise AssertionError("\n".join(fehler))

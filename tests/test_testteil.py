@@ -15,6 +15,7 @@
 # zusammen fällt sie aus, und die Bahn nennt sie (B-007).
 import os
 import sys
+from dataclasses import replace
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -135,6 +136,31 @@ print(
     f"Raeumen ueber drei Hoehen: {bahn.variante} {bahn.zeit:.2f} min ({bahn.zeiten}), "
     f"{abgehoben(bahn)}-mal abgehoben, Last bis {groesste:.2f} ae – {ps.zeile(k)}"
 )
+# Lokaler Versuch: Höherer Vorschub nur auf den nachgeprüften freien Adaptiv-Verbindungen.
+# Der Kern bleibt in derselben Sitzung gemerkt: Geometrie, Schnittvorschübe und Abtrag sind
+# exakt dieselben; der Prüfstand oben verlangt bereits 0 Abtrag im Schnellvorschub.
+schneller = rb.planen(
+    hf.netze_je_hoehe(teil, ebenen_bei(PLATTE, INSEL, STUFE)),
+    replace(werte_fuer(), freivorschub=10000.0),
+    ebenen_bei(PLATTE, INSEL, STUFE),
+    ra.konturen_des_teils(teil),
+)
+pruefe(schneller.variante == bahn.variante, "Freivorschub: andere Schnittvariante")
+pruefe(len(schneller.punkte) == len(bahn.punkte), "Freivorschub: andere Punktzahl")
+if len(schneller.punkte) == len(bahn.punkte):
+    for alt, neu in zip(bahn.punkte, schneller.punkte, strict=True):
+        pruefe(replace(neu, anteil=alt.anteil) == alt, "Freivorschub: Bahngeometrie geändert")
+        if alt.eilgang or alt.anteil <= 1.0:
+            pruefe(neu == alt, "Freivorschub: Schnitt oder Eilgang geändert")
+        pruefe(neu.anteil * VF <= 10000.0 + 1e-6, "Freivorschub: Vorgabe überschritten")
+pruefe(k.schnell_abtrag == 0.0, "Freivorschub: freie Verbindungen tragen Material ab")
+pruefe(schneller.zeit < bahn.zeit - 0.1, "Freivorschub: spart am Testteil keine 6 Sekunden")
+kommandos = bn.befehle(schneller.punkte, VF, VF * 0.3)
+pruefe(
+    max(b.Parameters.get("F", 0.0) for b in kommandos) <= 10000.0 / 60.0 + 1e-6,
+    "Freivorschub: Path-Befehle überschreiten die Vorgabe",
+)
+print(f"Freivorschub 10 m/min: {schneller.zeit:.2f} statt {bahn.zeit:.2f} min, gleiche Schnitte")
 # Manuels Räumen auf Vorgabe: hält die Last, keine Rampe, nichts stehen geblieben – nur langsamer.
 stiche = raeumen(PLATTE, INSEL, STUFE, variante=rb.STICHE)
 pruefe(

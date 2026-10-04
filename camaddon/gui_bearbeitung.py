@@ -759,6 +759,8 @@ class _Raeumen(_Strategie):
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
             stand=werte.get("materialstand"),
+            variante=werte.get("variante"),
+            freivorschub=werte.get("freivorschub", ra.FREIVORSCHUB),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -804,6 +806,8 @@ class _Raeumen(_Strategie):
             werte["aufmass_boden"],
             werte["gleichlauf"],
             flaechen=flaechen,
+            variante=werte.get("variante", "automatisch"),
+            freivorschub=werte.get("freivorschub", ra.FREIVORSCHUB),
         )
 
     def aendere(self, op, tc, werte, flaechen):
@@ -816,6 +820,8 @@ class _Raeumen(_Strategie):
             werte["aufmass_boden"],
             werte["gleichlauf"],
             flaechen=flaechen,
+            variante=werte.get("variante"),
+            freivorschub=werte.get("freivorschub"),
         )
 
     def ist(self, op):
@@ -2629,6 +2635,29 @@ class _Block:
         self.reihen.reihe(tr("va.einsatz"), strategie.einsatz_tooltip(), self.wahl_einsatz)
         self.schnittwerte = _grau()
         self.reihen.ganz(self.schnittwerte)
+        if strategie.kennung == "raeumen":
+            self.wahl_bahn = QtGui.QComboBox()
+            self.wahl_bahn.addItem(tr("ba.raeumen.bisherig"), "automatisch")
+            self.wahl_bahn.addItem(tr("ba.raeumen.schnell_frei"), ra.ADAPTIV_FREI)
+            self.reihen.reihe(tr("ba.raeumen.bahn"), tr("ba.raeumen.bahn.tooltip"), self.wahl_bahn)
+            self.freivorschub = QtGui.QLineEdit()
+            self.freivorschub.setValidator(Zahlenpruefer(self.freivorschub))
+            self.freivorschub.setPlaceholderText(
+                groesse_zeigen(ra.FREIVORSCHUB, einheiten.VORSCHUB)
+            )
+            self.freivorschub.textChanged.connect(lambda _text: self.panel.vorschau_starten())
+            self.freivorschub_zeile = mit_einheit(
+                self.freivorschub, einheiten.einheit(einheiten.VORSCHUB)
+            )
+            self.reihen.reihe(
+                tr("ba.raeumen.freivorschub"),
+                tr("ba.raeumen.freivorschub.tooltip"),
+                self.freivorschub_zeile,
+            )
+            self.freivorschub_etikett = self.reihen._beschriftungen[-1]
+            self.freivorschub_zeile.hide()
+            self.freivorschub_etikett.hide()
+            self.wahl_bahn.currentIndexChanged.connect(lambda _i: self._raeumwahl_geaendert())
         self.felder = {}
         for feld, text, tooltip in strategie.felder():
             _zahlenfeld(self.felder, feld, text, tooltip, self.reihen, self.panel.vorschau_starten)
@@ -2719,7 +2748,32 @@ class _Block:
         werte.update({feld: kasten.isChecked() for feld, kasten in self.haken_felder.items()})
         if self.s.kennung == "nut":
             werte["eintauchen_bei"] = dict(self.eintauchen)
+        elif self.s.kennung == "raeumen":
+            werte["variante"] = self.wahl_bahn.currentData()
+            text = self.freivorschub.text().strip()
+            try:
+                werte["freivorschub"] = (
+                    groesse_lesen(text, einheiten.VORSCHUB) if text else ra.FREIVORSCHUB
+                )
+            except ValueError:  # unfertige Eingabe: die Vorschau nennt den ungültigen Vorschub
+                werte["freivorschub"] = 0.0
         return werte
+
+    def _raeumwahl_geaendert(self):
+        schnell = self.wahl_bahn.currentData() == ra.ADAPTIV_FREI
+        self.freivorschub_zeile.setVisible(schnell)
+        self.freivorschub_etikett.setVisible(schnell)
+        self.panel.vorschau_starten()
+
+    def raeumwahl_von(self, op):
+        """Die gespeicherte Räumwahl zeigen; auch eine bisher vorgegebene Variante bleibt."""
+        variante = str(op.Variante)
+        bisher = "automatisch" if variante == ra.ADAPTIV_FREI else variante
+        self.wahl_bahn.setItemData(0, bisher)
+        if bisher != "automatisch":
+            self.wahl_bahn.setItemText(0, tr("ba.raeumen.bisherig_variante", variante=bisher))
+        self.wahl_bahn.setCurrentIndex(1 if variante == ra.ADAPTIV_FREI else 0)
+        self.freivorschub.setText(groesse_zeigen(float(op.Freivorschub) * 60.0, einheiten.VORSCHUB))
 
     # --- Die Eintauchstelle der Nut (W-012 E1) ---
 
@@ -4401,6 +4455,8 @@ class BearbeitungPanel:
                 wert = float(wert)
                 if abs(wert - block.vorschlag(feld)) > 1e-6:
                     block.felder[feld].setText(groesse_zeigen(wert, einheiten.LAENGE) or "0")
+            if block is self.raeumen:
+                block.raeumwahl_von(op)
         finally:
             self._fuellt = False
         self._flaechen_zeigen()

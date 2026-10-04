@@ -179,6 +179,14 @@ floor along (it is not ticked by itself for that – the contour stays the
 proposal; set the tick when the pocket is to be cleared).</li>
 <li><b>Cutter</b> and <b>application</b> as for face milling – “Roughing”
 preselected.</li>
+<li><b>Toolpath generation</b> in step 3: <b>Existing toolpath generation</b> stays
+preselected and computes as before. You can also select <b>Adaptive – faster clear links</b>:
+the same adaptive cutting path, faster only on verified, already cleared connections.
+Below it, <b>Clear-link feed at most</b> sets the maximum (empty: 10000 mm/min).
+Set it no higher than your machine permits in G1; cutting feeds stay unchanged. Thin layers
+retain chip-thickness compensation, which also reduces this value. The selection and value
+are saved with the operation and shown again when you double-click it. Other operations
+retain their defaults.</li>
 <li><b>Stepdown per layer</b> (ap – full, up to the cutting edge length),
 <b>row spacing</b> (ae, this far the rings step, at most the radius),
 <b>allowance at walls</b> (empty: 0.3 mm – stays on walls and islands, for the

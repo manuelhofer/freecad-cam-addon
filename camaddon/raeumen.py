@@ -18,11 +18,14 @@ zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operation
 Läuft ohne Oberfläche.
 """
 
+import math
+
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
 
 from . import bahn as bn
+from . import fahrzeit as fz
 from . import hoehenfeld as hf
 from . import kontur as ko
 from . import kontur_bahn as kb
@@ -40,7 +43,9 @@ GRUPPE = "Fräsen"  # die Gruppe der Eigenschaften
 ZUSTELLUNG = 2.0  # mm – Vorschlag, solange nichts anderes gesagt ist
 AUFMASS = 0.3  # mm – bleibt an Wänden und Inseln stehen
 AUSTRITT = 50  # % des Vorschubs beim Austritt aus dem Rohteil
-VARIANTEN = ("automatisch", rb.RINGE) + rb.ALLE_VARIANTEN
+ADAPTIV_FREI = "adaptiv_frei"  # nur auf Wahl; die bisherige automatische Auswahl bleibt gleich
+FREIVORSCHUB = fz.EILGANG  # mm/min, einstellbare Obergrenze für die freien G1-Verbindungen
+VARIANTEN = ("automatisch", rb.RINGE) + rb.ALLE_VARIANTEN + (ADAPTIV_FREI,)
 
 
 class Raeumen(PathOp.ObjectOp):
@@ -84,6 +89,7 @@ class Raeumen(PathOp.ObjectOp):
             ("App::PropertyLength", "AufmassBoden", tr("ra.eigenschaft.aufmass_boden")),
             ("App::PropertyBool", "Gleichlauf", tr("ra.eigenschaft.gleichlauf")),
             ("App::PropertyEnumeration", "Variante", tr("ra.eigenschaft.variante")),
+            ("App::PropertySpeed", "Freivorschub", tr("ra.eigenschaft.freivorschub")),
             ("App::PropertyLength", "Einfahrradius", tr("ko.eigenschaft.einfahrradius")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyAngle", "Eintauchwinkel", tr("vo.eigenschaft.eintauchwinkel")),
@@ -100,6 +106,13 @@ class Raeumen(PathOp.ObjectOp):
                 neu.append(name)
                 if name == "Variante":
                     obj.Variante = list(VARIANTEN)
+                elif name == "Freivorschub":
+                    obj.Freivorschub = FREIVORSCHUB / 60.0  # FreeCAD speichert mm/s
+        # Auch alte Dateien bekommen die zusätzliche Wahl, ohne ihre bisherige zu verlieren.
+        if obj.getEnumerationsOfProperty("Variante") != list(VARIANTEN):
+            variante = str(obj.Variante)
+            obj.Variante = list(VARIANTEN)
+            obj.Variante = variante if variante in VARIANTEN else "automatisch"
         return neu
 
     @staticmethod
@@ -107,8 +120,10 @@ class Raeumen(PathOp.ObjectOp):
         for name in ("Ebenen", "Lagen", "Ringe", "Laeufe", "Gerechnet"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         obj.setEditorMode("Materialstand", 2)  # woraus gerechnet (gui_materialstand)
+        obj.setEditorMode("Freivorschub", 0 if str(obj.Variante) == ADAPTIV_FREI else 2)
 
     def opExecute(self, obj):
+        self._editormodi(obj)
         try:
             if not self.horizFeed or self.horizFeed <= 0:
                 raise ValueError(tr("vo.fehler.vorschub"))
@@ -181,6 +196,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vorschub=vorschub,
         eintauchen=eintauchen,
         stand=stand,
+        freivorschub=float(obj.Freivorschub) * 60.0,
     )
 
 
@@ -207,6 +223,7 @@ def bahn_fuer(
     vorschub=0.0,
     eintauchen=0.0,
     stand=None,
+    freivorschub=FREIVORSCHUB,
 ):
     """Die Bahn „Räumen“ für Modell und Rohteil des Jobs. `flaechen`: die gewählten Flächen
     („Face6“ …) – geräumt werden die ebenen nach oben darunter; leer: die Oberseite des Teils.
@@ -215,6 +232,9 @@ def bahn_fuer(
     für die Zeit, nach der die Variante fällt; `stand`: der Materialstand davor (materialstand)
     – was die Operationen davor weggenommen haben, fräst es nicht noch einmal. ValueError mit
     einem Satz, wenn es nicht geht."""
+    schnell_frei = variante == ADAPTIV_FREI
+    if schnell_frei and (not math.isfinite(freivorschub) or freivorschub <= 0):
+        raise ValueError(tr("ra.fehler.freivorschub"))
     form_teil = vs._teil(modell)
     x_von, x_bis, y_von, y_bis, z_oben = pf.rohteil_von_oben(job)
     if oben is None:
@@ -235,7 +255,7 @@ def bahn_fuer(
         rohteil=(x_von, x_bis, y_von, y_bis),
         aufmass_boden=aufmass_boden,
         gleichlauf=gleichlauf,
-        variante=variante,
+        variante="adaptiv" if schnell_frei else variante,
         einfahrradius=einfahrradius,
         schneidenlaenge=schneidenlaenge,
         sicherheit=sicherheit,
@@ -243,6 +263,7 @@ def bahn_fuer(
         austritt=austritt,
         vorschub=vorschub,
         eintauchen=eintauchen,
+        freivorschub=freivorschub if schnell_frei else 0.0,
     )
     netz = hf.netze_je_hoehe(form_teil, ebenen, toleranz)
     return rb.planen(netz, werte, ebenen, konturen_des_teils(form_teil), schritt, stand)
@@ -271,6 +292,8 @@ def vorschau(
     vorschub=0.0,
     eintauchen=0.0,
     stand=None,
+    variante=None,
+    freivorschub=FREIVORSCHUB,
 ):
     """Die Bahn grob – für Lagen, Ringe, Zeit und ob es geht, im Assistenten: gröber vernetzt,
     gröberes Raster. ValueError wie bahn_fuer()."""
@@ -290,6 +313,8 @@ def vorschau(
         vorschub=vorschub,
         eintauchen=eintauchen,
         stand=stand,
+        variante=variante,
+        freivorschub=freivorschub,
     )
 
 
@@ -303,6 +328,8 @@ def lege_an(
     gleichlauf=True,
     name=None,
     flaechen=(),
+    variante="automatisch",
+    freivorschub=FREIVORSCHUB,
 ):
     """Legt „Räumen“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Tiefen und
     Höhen wie FreeCADs Operationen (planfraesen._hoehen); die Endtiefe ist die tiefste Fläche
@@ -325,6 +352,8 @@ def lege_an(
     obj.Aufmass = aufmass
     obj.AufmassBoden = aufmass_boden
     obj.Gleichlauf = bool(gleichlauf)
+    obj.Variante = variante
+    obj.Freivorschub = freivorschub / 60.0
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(
@@ -360,6 +389,8 @@ def aendere(
     aufmass_boden=0.0,
     gleichlauf=True,
     flaechen=None,
+    variante=None,
+    freivorschub=None,
 ):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
@@ -373,6 +404,10 @@ def aendere(
     obj.Aufmass = aufmass
     obj.AufmassBoden = aufmass_boden
     obj.Gleichlauf = bool(gleichlauf)
+    if variante is not None:
+        obj.Variante = variante
+    if freivorschub is not None:
+        obj.Freivorschub = freivorschub / 60.0
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
     job = getattr(obj.Proxy, "job", None)

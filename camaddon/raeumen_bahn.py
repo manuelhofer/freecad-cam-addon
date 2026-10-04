@@ -181,6 +181,7 @@ class Raeumwerte:
     austritt: float = AUSTRITT_ANTEIL
     vorschub: float = 0.0  # mm/min – für die Zeit; 0: 1000
     eintauchen: float = 0.0  # mm/min senkrecht; 0: wie der Vorschub
+    freivorschub: float = 0.0  # mm/min im Freien; 0: wie bisher RUECKWEG × Vorschub
 
 
 @dataclass
@@ -2341,8 +2342,13 @@ def _adaptiv_gebiet(ablauf, feld, w, r, schritt, start, mitte, stuecke):
         if not schneidet:
             weg = np.vstack([[ort], ecken])
             if unten and frei and _weg_frei(ablauf, feld, weg, schritt):
+                # G1 hält den geprüften Weg auch auf Steuerungen mit achsparallelem G0.
+                # Ein vorgegebener Freivorschub gilt ausschließlich für diese vom Kern als
+                # frei bezeichneten und am Materialstand nachgeprüften Verbindungen.
+                vorschub = w.vorschub if w.vorschub > 0 else 1000.0
+                anteil = w.freivorschub / vorschub if w.freivorschub > 0 else RUECKWEG
                 for x, y in ecken:
-                    punkte.append(bn.Punkt(False, float(x), float(y), lage, False, None, RUECKWEG))
+                    punkte.append(bn.Punkt(False, float(x), float(y), lage, False, None, anteil))
                 st.anschluesse += 1
             elif unten:
                 punkte.append(bn.Punkt(True, ort[0], ort[1], ablauf.knapp))

@@ -12,6 +12,72 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-26 raeumen-freivorschub-auswahl
+
+### EINGELESEN
+- Manuel: nach dem lokalen Versuch die schnellere Variante zusätzlich anbieten und jetzt
+  ausdrücklich pushen; die bisherige Bahnerzeugung und andere Strategien behalten.
+- Arbeitsregeln, Status, Strategien 13.5, `raeumen`, `_Raeumen`/`_Block`, Sprachdateien,
+  Hilfe, `test_testteil`, `test_raeumen`, `test_pruefstand` und `szenario_testteil`.
+- Vor dem Push GitHub geprüft: inzwischen Flanke und Formschräge auf main, Version 0.169.0;
+  die zwei unveröffentlichten lokalen Versuchscommits werden darauf als ein Patch übernommen,
+  alle zwischenzeitlichen Änderungen bleiben erhalten. Ihre lokalen Patch-IDs 24/25 waren
+  inzwischen auf main anderweitig vergeben; dieser veröffentlichte Patch bekommt die 26.
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py`, `camaddon/raeumen.py`, `camaddon/gui_bearbeitung.py`,
+  Übersetzungen de/en, Hilfe `bearbeitung.html` de/en, `tests/test_testteil.py`,
+  `tests/test_raeumen.py`, `tests/gui/szenario_testteil_freivorschub.py`, `package.xml`,
+  Status und dieser Eintrag.
+
+### AKZEPTANZKRITERIUM
+- Nach Updates schauen → 0.170.0 installieren → Bearbeitung (Fräsen) → Schritt 3 → Räumen
+  → Bahnerzeugung → „Adaptiv – schneller Freivorschub“ wählen → die Vorschau wird schneller,
+  Wahl und Obergrenze bleiben nach Speichern/Laden erhalten, während die bisherige
+  Bahnerzeugung Standard bleibt und Manuel den Dialog ohne Erklärung versteht.
+
+### DONE
+- Zwei Möglichkeiten beim Räumen: bisherig oder ausdrücklich adaptiv mit schnellerem
+  Freivorschub; das zusätzliche Feld erscheint nur bei der neuen Wahl. Keine zusätzliche
+  Variante im automatischen Wettbewerb, keine neuen Vorgaben anderer Bearbeitungen.
+- Gespeichert als `Variante=adaptiv_frei` und `Freivorschub` (FreeCAD mm/s, Oberfläche mit
+  dem gewählten Maßsystem). Leer: 10 m/min aus dem vorhandenen Fahrzeitmodell; Tooltip und
+  Hilfe: höchstens den zulässigen G1-Vorschub der eigenen Maschine einstellen. Ungültige und
+  nicht positive Werte werden für die neue Variante abgewiesen.
+- Nur `LinkClear`-Verbindungen des Adaptiv-Kerns, zusätzlich von `_weg_frei` am Material
+  geprüft, bekommen den höheren Vorschub; G1 bleibt erhalten. Keine Schnittgeometrie, kein
+  Schnittvorschub und kein Eilgang geändert; dünne Lagen behalten den Spandickenausgleich.
+- Am Testteil im fairen A/B-Vergleich mit derselben gemerkten Adaptiv-Lösung 10,2797 →
+  9,5863 min (41,6 s / 6,7 %) einschließlich Beschleunigen/Bremsen mit 1 m/s²;
+  Materialhöhen im 0,5-mm-Raster bitgleich, Rest/Einschnitt/Abtrag im Schnellvorschub 0.
+  Normierte Last 1,424 × ae, 4,869 mm am Stück über 1,25 × ae, unverändert.
+- Verworfener Versuch: freie Verbindungen mit strikt materialfreien Sehnen abkürzen,
+  nur 0,13 s Gewinn; nicht übernommen. Die 8 min Zielzeit ist nicht erreicht.
+- Alte Dateien bekommen die zusätzliche Enum-Wahl, ihre bisherige Wahl bleibt. Auch manuell
+  vorgegebene Varianten bleiben beim Öffnen/Übernehmen erhalten.
+- Version 0.170.0, Datum 2026-10-04. Lokale Messbilder und Vorschaukopien bleiben außerhalb
+  des Repositorys; veröffentlicht werden Code, Prüfungen, Übersetzungen und Hilfe.
+
+### TESTS
+- FreeCAD 1.1.3: `test_testteil.py` inklusive A/B-/Path-Vorschubprüfung, `test_raeumen.py`,
+  `test_pruefstand.py`, `test_sprache.py`, ursprüngliches `szenario_testteil` und neue
+  `szenario_testteil_freivorschub` bestanden. Keine Assertion, Testgrenze oder Bestmarke
+  gelockert. Läufe mit Speicherdeckel; Screenshots angesehen.
+- Gegenproben: alte Datei ohne Freivorschub → exakt gleiche Path-Befehle; neue Wahl mit
+  5 m/min speichern/laden/rechnen → exakt gleiche neue Befehle; zurück auf bisherig → exakt
+  gleiche ursprüngliche Befehle. Das neue GUI-Szenario prüft zusätzlich identische andere
+  Bearbeitungen, über 6 s Zeitgewinn und Speichern/Laden/Doppelklick.
+- Zwei Dokumentationskonflikte beim Zusammenführen auf main aufgelöst; Flanke und die übrigen
+  zwischenzeitlichen Änderungen übernommen. Keine Konflikte in der Bahnberechnung.
+- Der erste lokale GUI-Vergleich blieb nach einer manuellen Path-Änderung in `doc.isTouched()`
+  hängen; die neue Prüfung wählt stattdessen die echte Oberfläche, keine Assertion deaktiviert.
+- Vorhandene Befunde bleiben eigene Themen: Black in `szenario_kugel_angestellt.py`,
+  Wochen-Build-API `helixRampDiameter`, Face26-Hinweis beim isolierten Doppelklick auf Räumen T1.
+  Im vollständigen Testteil-Job räumt T3 die kleine Tasche. Manuel prüft die Bedienbarkeit.
+
+### NEXT
+- Manuel installiert das Update und prüft den Klickweg; das 8-min-Ziel bleibt offen.
+
 ## P-2026-10-04-25 flanke-im-assistenten
 
 ### EINGELESEN
