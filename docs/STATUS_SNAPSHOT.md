@@ -408,6 +408,17 @@ ist B-015.
 
 ## Offene Tasks
 
+- **T-006 Alle Kerne nutzen** (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
+  … kann man das nicht optimieren, dass alle genommen werden?“). Gemessen (4-Achs-Schruppen):
+  das Prüffenster öffnet nach 3,8 s; der lange Teil ist „Kollision prüfen“ – reines Python je
+  Station, ein Kern; seit P-2026-10-04-48 27,6 → 16,4 s. Nächster Schritt: die Stationen in
+  Stücke teilen (mit Vorlauf an jeder Grenze) und parallel prüfen – entweder abgezweigt (fork,
+  nur Linux, schnell gebaut, mit Zeitgrenze und Rückfall auf einen Kern) oder in eigenen
+  FreeCAD-Prozessen (überall, aufwendiger); danach die Vorschau des 4-Achs-Assistenten messen.
+- **T-007 Werkzeugkiste: Import** nach `docs/werkzeugkiste_json.md` (Format steht, P-2026-10-04-46):
+  Ordner `CamAddon/werkzeugkiste/`, „Aus Datei einlesen …“ mit Prüfung, „Vorlage speichern …“.
+  Danach weitere Hersteller-Reihen (Manuel: „zum Schluss“).
+
 - **T-005** Repo öffentlich stellen – Empfehlung Claude (P-2026-09-25-43: Verlauf ohne
   Geheimnisse und ohne private Mail-Adressen, Lizenz LGPL). Umstellen kann nur Manuel:
   GitHub → Settings → Danger Zone → Change visibility → Public. Danach die
