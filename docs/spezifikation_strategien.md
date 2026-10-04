@@ -2679,6 +2679,18 @@ Kollision mit Rundachsen je Station.
   Die Flanke ohne Aufmaß macht ihre Wände fertig; „Ebene schwenken“ bietet der Assistent für sie
   nicht an. Szenario `szenario_flanke`: die Tasche – Flanke 1 min, 3D-Schlichten 690 % langsamer.
 - **S4 Wegkippen**, wenn der Halter sonst anstößt.
+  **Versuch (2026-10-04 morgens, nicht im Addon):** Kavität 30 tief mit Boden-Rundung R 8 (Ecken
+  R 10), Kugel Ø 6, das 3D-Schlichten des Addons auf den Rundungen; je Stelle (jede 15., 267) die
+  kleinste Auskragung, bei der der Halter (1 mm Spiel) und der Schaft nirgends anstoßen – die Achse
+  um die Kugelmitte zur Mitte der Kavität gekippt, nur so weit wie nötig. Senkrecht immer gut
+  30 mm (31,0): Der Halter muss über den Rand, wie schlank er auch ist. Spannzangenfutter ER16
+  (Mutter Ø 28) bis 30° gekippt: 28,0 / 27,4 / 27,0 mm bei 80 / 50 / 36 mm Breite – 1,45-mal so
+  steif (∝ 1/L³). Schrumpffutter Ø 21 (Vorlage „schrumpf_6“), 50 × 50, bis 30°: 21,7 mm – 2,9-mal
+  so steif. Das Rechnen: 90 s für 267 Stellen (je Stelle eine Suche mit `distToShape` des
+  Halters) – für eine ganze Bahn (4 000 Punkte) etwa 20 min; gebaut bräuchte es eine schnellere
+  Prüfung (Höhenfeld des Teils statt Körper). Die Zeit mit Kippen ist nicht gemessen. Bild
+  `22_wegkippen.png` an Manuel; Empfehlung: jetzt nicht bauen – es lohnt sich nur mit schlankem
+  Halter, und eine Bahn rechnete zu lange.
 - **S5 Entgraten in 3D.**
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
