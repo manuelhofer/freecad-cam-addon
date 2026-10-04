@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-29 wegkippen-zwischenstand
+
+### EINGELESEN
+- Manuel, 2026-10-04: „Ja, bauen“ (Wegkippen, S4), dann „ja pusch das erstmal und dann mach
+  weiter“.
+
+### DATEIEN
+- `camaddon/wegkippen.py` (neu, noch nirgends eingebunden), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.170.3).
+
+### AKZEPTANZKRITERIUM
+- Zwischenstand: Das Modul ändert nichts am Addon (niemand ruft es auf).
+
+### DONE
+- Die schnelle Prüfung des Halters: das Teil als Höhenfeld (das Höchste der vier Rasterpunkte um
+  eine Stelle), Halter und Schaft als Punkte auf Ringen, je Stelle die kleinste Neigung ins Freie
+  oder den Abfall hinab (in 5°, dann fein), entlang der Bahn geglättet; `kuerzeste_auskragung`.
+  An der Kavität 50 × 50 (30 tief): senkrecht 31,0 mm wie genau gerechnet, in 0,1 s; bis 30°
+  gekippt 27,0 mm (ER16) und 19,4 mm (Schrumpffutter) in 2 s. **Noch nicht gut genug:** Die
+  Gegenprobe mit den echten Körpern (`distToShape`) fand den Halter an einigen Ecken-Stellen nur
+  0,02 bis 0,47 mm vom Teil statt mit 1 mm Spiel – die Punkte auf den Ringen liegen zu weit
+  auseinander für die Kante oben an der Kavität.
+
+### TESTS
+- Keine Prüfdatei (nicht eingebunden); black und ruff sauber.
+
+### NEXT
+- Die Prüfung dichter oder mit Spiel für den Abstand der Punkte, gegen die echten Körper
+  nachgeprüft; dann der Haken „Wegkippen“ beim 3D-Schlichten.
+
 ## P-2026-10-04-28 anstellen-nur-an-5-achs
 
 ### EINGELESEN

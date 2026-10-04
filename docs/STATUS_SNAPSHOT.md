@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.170.2 (P-2026-10-04-28). Alles, was hier als gebaut steht,
+Stand 0.170.3 (P-2026-10-04-29). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -100,7 +100,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   (P-2026-10-04-25): der Block „Flanke (5 Achsen simultan)“ an einer 5-Achs-Maschine, im
   Wettbewerb mit dem 3D-Schlichten – die schnellere hat den Haken. **Zum Ausprobieren:**
   `beispiele/tasche_formschraege.FCStd`, „Beispielmaschine laden …“ → 5-Achs Tisch/Tisch, die
-  acht schrägen Wände anklicken → Bearbeitung. Offen: Wegkippen (S4).
+  acht schrägen Wände anklicken → Bearbeitung. **S4 Wegkippen** (Manuel: „Ja, bauen“): in Arbeit –
+  `wegkippen.py` (P-2026-10-04-29, noch nicht eingebunden).
 - **W-013 Manuels Testteil** – T1, T1b, T2, T3, T4 und T5 gebaut: das Räumen aller Höhen
   10,3 min (vorher 26,3), adaptiv, wo Ringe die Last nicht halten, dünne Lagen breit, „Rest
   räumen“ mit dem Ø 6, „Schlichten danach“; der Job sechs Arbeitsschritte mit drei
