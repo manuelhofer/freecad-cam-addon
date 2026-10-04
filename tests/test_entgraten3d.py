@@ -21,6 +21,7 @@
 import math
 import os
 import sys
+from dataclasses import replace
 
 ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ADDON)
@@ -356,6 +357,29 @@ print(ascii(f"Aufbau: 60 Stichproben, {nah_dran} am Teil, {len(falsch)} falsch")
 # käme die Spindel dem Tisch zu nah) – die Fase bleibt dieselbe, das Teil heil.
 mit_halter = durchgehen(mit_aufbau, "5 Achsen Kegel mit Halter", grob=grob)
 pruefe(mit_halter[2] > 0, "unten an den senkrechten Kanten nicht gekippt?")
+# An der Stufe stößt der Halter (12 mm ausgespannt) vor dem Block an; das Ergebnis nennt die
+# Auskragung, mit der es ginge – und mit ihr geht es.
+stufen_werte = e3.Werte3D(KEGEL, 0.5, e3.DREI, sicher=40.0, tisch=0.0, aufbau=aufbau)
+kurz = e3.planen(stufe, [unten_oben], stufen_werte)
+pruefe(
+    kurz.gruende.get(e3.HALTER, 0) > 0 and kurz.auskragung > aufbau.auskragung,
+    f"Stufe, 12 mm ausgespannt: {kurz.gruende}, Auskragung {kurz.auskragung}",
+)
+lang = e3.planen(
+    stufe,
+    [unten_oben],
+    replace(stufen_werte, aufbau=aufbau.laenger(kurz.auskragung - aufbau.auskragung)),
+)
+pruefe(
+    not lang.gruende.get(e3.HALTER) and lang.laenge > kurz.laenge,
+    f"Stufe mit {kurz.auskragung} mm: {lang.gruende}, {lang.laenge:.1f} mm",
+)
+print(
+    ascii(
+        f"Stufe: 12 mm ausgespannt {kurz.laenge:.1f} mm Fase, mit {kurz.auskragung:.0f} mm"
+        f" {lang.laenge:.1f} mm"
+    )
+)
 
 # --- Die Operation im Job ----------------------------------------------------------------------
 import pathlib  # noqa: E402

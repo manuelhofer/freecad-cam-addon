@@ -36,7 +36,7 @@ Läuft ohne Oberfläche.
 """
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import numpy as np
 
@@ -58,6 +58,7 @@ RASTER_GROB = 8.0  # mm – die Zellen dafür
 # Beispielmaschinen haben 45 bis 55 mm).
 KOPF_RADIUS = 60.0
 KOPF_LAENGE = 150.0
+AUSKRAGUNG_MEHR = (5.0, 10.0, 15.0, 20.0, 30.0)  # mm – so viel länger ausgespannt wird probiert
 NEIGEN = (0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60)  # Grad – so kippt der Kegel um nP
 SICHERHEIT = 2.0  # mm – so weit längs der Achse beginnt das Eintauchen
 SCHARF = 15.0  # Grad – flacher geknickte Kanten sind glatt, keine Fase
@@ -121,7 +122,24 @@ class Aufbau:
 
     stuecke: list
     kopf: float
+    auskragung: float = 0.0  # mm von der Nase des Halters bis zur Spitze
+    quelle: tuple = field(default=None, repr=False, compare=False)  # (Halter, Schaft, Fräser)
     _huelle: tuple = field(default=None, repr=False, compare=False)
+
+    def nur_schaft(self):
+        """Nur der Schaft (von der Schneide bis zur Nase des Halters) – None ohne."""
+        stuecke = [s for s in self.stuecke if s[1] <= self.auskragung + 1e-9]
+        if not stuecke:
+            return None
+        return Aufbau(stuecke, self.kopf, self.auskragung)
+
+    def laenger(self, mehr):
+        """Derselbe Aufbau mit `mehr` mm mehr Auskragung (der Schaft länger, Halter und Spindel
+        höher) – None ohne Quelle."""
+        if self.quelle is None:
+            return None
+        halter, schaft, fraeser = self.quelle
+        return aufbau(halter, schaft, self.auskragung + mehr, fraeser)
 
     def huelle(self, h):
         """Je Höhe h (numpy) ein Radius, außerhalb dessen kein Punkt ABSTAND an Schaft oder
@@ -164,7 +182,7 @@ def aufbau(halter, schaft, auskragung, fraeser):
             h0 = unten
         stuecke.append((float(h0), float(h1), float(r0), float(r1)))
     stuecke.sort()
-    return Aufbau(stuecke, kopf)
+    return Aufbau(stuecke, kopf, float(auskragung), (halter, schaft, fraeser))
 
 
 @dataclass
@@ -202,10 +220,13 @@ class Bahn3D:
     schenkel: tuple = (0.0, 0.0)  # (kleinster, größter) Schenkel – bei 3 Achsen ungleich
     neigung: float = 0.0  # Grad – die größte Neigung der Achse gegen z
     zeit: float = 0.0  # min im Vorschub
+    # Stieß Schaft oder Halter an: mit so viel Auskragung (mm) nirgends mehr – 0: nicht nötig
+    # oder auch mit AUSKRAGUNG_MEHR nicht.
+    auskragung: float = 0.0
 
 
 ENG, STEIL, KEINE_STELLUNG, ANFAHRT = "eng", "steil", "keine", "anfahrt"
-TISCH, HALTER = "tisch", "halter"
+TISCH, HALTER, SCHAFT_NAH = "tisch", "halter", "schaft"
 
 
 # --- Die Kanten ------------------------------------------------------------------------------
@@ -739,9 +760,10 @@ def _verletzung(lage, e, t, k, w, wolke_, enden):
 
 def _stellen_der_kante(k, w, wolke_, schritt=SCHRITT, grob=None):
     """[(Parameter, Lage oder None, Grund)] entlang der Kante, etwa alle `schritt` mm. Je Lage
-    zuerst der Tisch (TISCH), dann die Schneide (ENG), dann Schaft und Halter (HALTER, in der
-    groben Wolke). Ohne Lage der Grund: TISCH, wenn er im Weg war (höher spannen hilft dann am
-    meisten), sonst HALTER, sonst ENG."""
+    zuerst der Tisch (TISCH), dann die Schneide (ENG), dann Schaft und Halter (in der groben
+    Wolke: SCHAFT_NAH, wenn schon der Schaft zu nah kommt – länger ausspannen hilft dann nicht –,
+    sonst HALTER). Ohne Lage der Grund: TISCH, wenn er im Weg war (höher spannen hilft dann am
+    meisten), sonst HALTER, sonst SCHAFT_NAH, sonst ENG."""
     kurve = k.kante
     anzahl = max(2, int(math.ceil(kurve.Length / schritt)) + 1)
     parameter = np.linspace(kurve.FirstParameter, kurve.LastParameter, anzahl)
@@ -781,8 +803,13 @@ def _stellen_der_kante(k, w, wolke_, schritt=SCHRITT, grob=None):
                     grund = ENG
                 continue
             if _aufbau_im_teil(lage.spitze, lage.achse, w, grob) > 0.0:
-                if grund in (KEINE_STELLUNG, ENG):
-                    grund = HALTER
+                # Schon der Schaft (länger ausspannen hilft dann nicht) oder nur der Halter?
+                schaft = w.aufbau.nur_schaft() if w.aufbau is not None else None
+                am_schaft = schaft is not None and (
+                    _aufbau_im_teil(lage.spitze, lage.achse, replace(w, aufbau=schaft), grob) > 0.0
+                )
+                if grund in (KEINE_STELLUNG, ENG) or (grund == SCHAFT_NAH and not am_schaft):
+                    grund = SCHAFT_NAH if am_schaft else HALTER
                 continue
             gewaehlt = lage
             break
@@ -933,8 +960,6 @@ def planen(form, namen, werte, schritt=SCHRITT, punktabstand=PUNKTABSTAND):
     Assistenten). ValueError mit einem Satz, wenn es nichts zu fasen gibt."""
     w = werte
     if w.tisch is None:
-        from dataclasses import replace
-
         w = replace(w, tisch=float(form.BoundBox.ZMin))
     if w.breite <= 0 or w.fraeser.radius <= 0:
         raise ValueError(tr("e3.fehler.werte"))
@@ -946,16 +971,19 @@ def planen(form, namen, werte, schritt=SCHRITT, punktabstand=PUNKTABSTAND):
     wolke_ = wolke(form, kanten_, w.fraeser.hoehe + w.fraeser.radius, punktabstand)
     grob = None
     if w.aufbau is not None and w.aufbau.stuecke:
-        reich = max(s[1] for s in w.aufbau.stuecke)
+        reich = max(s[1] for s in w.aufbau.stuecke) + AUSKRAGUNG_MEHR[-1]
         reich += max(max(s[2], s[3]) for s in w.aufbau.stuecke) + ABSTAND
         grob = wolke(form, kanten_, reich, max(GROB, punktabstand), RASTER_GROB)
     laeufe, gruende = [], {}
     laenge = 0.0
     gefast = 0
     schenkel = []
+    am_halter = []  # (Kante, [Nummern der Stellen]), an denen der Halter anstieß
     for k in kanten_:
         stellen = _stellen_der_kante(k, w, wolke_, schritt, grob)
         teile, ohne = _laeufe(stellen, k.kante)
+        if ohne.get(HALTER):
+            am_halter.append((k, [i for i, s in enumerate(stellen) if s[2] == HALTER]))
         for grund, mm in ohne.items():
             gruende[grund] = gruende.get(grund, 0.0) + mm
         if teile:
@@ -990,7 +1018,29 @@ def planen(form, namen, werte, schritt=SCHRITT, punktabstand=PUNKTABSTAND):
         (min(schenkel), max(schenkel)) if schenkel else (0.0, 0.0),
         neigung,
         laenge / vorschub,
+        _auskragung_noetig(am_halter, w, wolke_, schritt, grob),
     )
+
+
+def _auskragung_noetig(am_halter, w, wolke_, schritt, grob):
+    """Mit wie viel Auskragung (mm) alle Stellen, an denen der Halter anstieß (`am_halter`: je
+    Kante ihre Nummern), eine Fase bekämen – AUSKRAGUNG_MEHR länger probiert; 0: nicht nötig
+    oder auch so nicht (dann stieße der längere Schaft an)."""
+    if not am_halter or w.aufbau is None:
+        return 0.0
+    for mehr in AUSKRAGUNG_MEHR:
+        laenger = w.aufbau.laenger(mehr)
+        if laenger is None:
+            return 0.0
+        w_mehr = replace(w, aufbau=laenger)
+        if all(
+            stellen[i][1] is not None
+            for k, nummern in am_halter
+            for stellen in (_stellen_der_kante(k, w_mehr, wolke_, schritt, grob),)
+            for i in nummern
+        ):
+            return laenger.auskragung
+    return 0.0
 
 
 def _verbinden(laeufe, w, wolke_=None, grob=None):

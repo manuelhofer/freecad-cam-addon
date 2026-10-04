@@ -143,7 +143,12 @@ def ausgelassen_text(bahn):
         e3.KEINE_STELLUNG: tr("e3.grund.keine"),
         e3.ANFAHRT: tr("e3.grund.anfahrt"),
         e3.TISCH: tr("e3.grund.tisch"),
-        e3.HALTER: tr("e3.grund.halter"),
+        e3.SCHAFT_NAH: tr("e3.grund.schaft"),
+        e3.HALTER: (
+            tr("e3.grund.halter_bis", mm=f"{bahn.auskragung:.0f}")
+            if bahn.auskragung > 0
+            else tr("e3.grund.halter")
+        ),
     }
     teile = [
         f"{max(mm, 1.0):.0f} mm {texte.get(grund, grund)}"  # eine Stelle (0,5 mm) nicht als „0 mm“

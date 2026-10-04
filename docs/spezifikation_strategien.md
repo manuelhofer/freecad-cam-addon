@@ -2932,6 +2932,12 @@ Kollision mit Rundachsen je Station.
   Prüfung nachgeprüft. Nicht über `freiwege` – das rechnet nur mit dem Fräserradius, der Halter
   (am vorgeschlagenen 10 mm über der Spitze) striche dort an der Insel vorbei. Testteil: Eilgang
   728 → 411 mm, 2,88 → 2,84 min; „Kollision prüfen“ an der 3-Achs-Beispielmaschine ohne Befund.
+  **Was hilft (P-2026-10-04-73):** „Schaft oder Halter stieße an“ sagte nicht, was man tun kann.
+  Jetzt zwei Gründe: „der Schaft käme dem Teil zu nah (ein schlankerer Fräser)“ – länger
+  ausspannen hilft nicht, der Schaft wird nur länger – und „der Halter stieße an“; dafür probiert
+  die Bahn 5, 10, 15, 20, 30 mm mehr Auskragung und nennt die erste, mit der alle diese Stellen
+  eine Fase bekämen („– mit 15 mm Auskragung ginge es“). Testteil (vorgeschlagener Halter, 10 mm
+  ausgespannt): 40 mm Halter – mit 15 mm ginge es –, 8 mm Schaft.
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

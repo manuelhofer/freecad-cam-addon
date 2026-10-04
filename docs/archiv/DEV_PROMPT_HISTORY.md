@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-73 entgraten-3d-was-hilft
+
+### EINGELESEN
+- Testteil, 3 Achsen: 49 mm „Schaft oder Halter stieße an“ – ohne zu sagen, was hilft.
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py` (`SCHAFT_NAH`, `Aufbau.nur_schaft`, `Aufbau.laenger`,
+  `Aufbau.auskragung`, `_auskragung_noetig`, `Bahn3D.auskragung`), `camaddon/entgraten3d.py`,
+  `translations/de.json`, `en.json`, `help/de|en/bearbeitung.html`, `tests/test_entgraten3d.py`
+  (Stufe mit 12 mm ausgespannt), `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.188.8).
+
+### DONE
+- Schaft und Halter als eigene Gründe; beim Halter die Auskragung, mit der es ginge. Testteil:
+  40 mm Halter (mit 15 mm ginge es), 8 mm Schaft.
+
+### TESTS
+- `test_entgraten3d` (Stufe: 12 mm ausgespannt 95,5 mm Fase, mit den genannten 17 mm 107 mm, kein
+  Halter mehr), `test_sprache` – OK.
+
 ## P-2026-10-04-72 entgraten-3d-tief-hinueber
 
 ### EINGELESEN
