@@ -103,6 +103,20 @@ pruefe(
     and not any(p.z == 20 and p.x == 25 for p in oben),
     f"über die Rippe: Eilgänge auf {hoehen}",
 )
+# Tiefer im Eilgang: Über der geräumten Tasche (z 5) geht der Eilgang weiter hinab bis 2 mm über
+# ihr, nicht nur bis z 12 – getaucht wird nur noch von z 7 auf z 4.
+eintauchen = [
+    P(True, 20, 20, 30),
+    P(True, 20, 20, 12),
+    P(False, 20, 20, 4, True),
+    P(False, 25, 20, 4),
+]
+tiefer, _w = fw.schneller(eintauchen, form, tasche(), VF)
+pruefe(
+    [(p.eilgang, round(p.z, 3)) for p in tiefer[:4]]
+    == [(True, 30.0), (True, 12.0), (True, 5.0 + fw.LINK_LUFT), (False, 4.0)],
+    f"tiefer im Eilgang: {[(p.eilgang, round(p.z, 3)) for p in tiefer]}",
+)
 ganz_flach = quader()
 ganz_flach.h[:] = 5.0
 mitte, _w = fw.schneller(abheben_bei(15.0, 25.0), form, ganz_flach, VF)

@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-61 tiefer-im-eilgang
+
+### EINGELESEN
+- Seine Regel: Luft fräsen und langsame Wege durchs Freie ohne Rückfrage weg. An der Platte
+  tauchte das Räumen viermal 23 mm im Eintauchvorschub durch die schon geräumte Tasche.
+
+### DATEIEN
+- `camaddon/freiwege.py` (`_tiefer_im_eilgang`), `tests/test_freiwege.py`,
+  `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.187.6).
+
+### DONE
+- Vor einem senkrechten Eintauchen geht der Eilgang bis 2 mm über das Material unter der Stirn
+  (gegen den Materialstand an genau dieser Stelle der Bahn). Platte: Eintauchen durch Luft
+  133 → 89 mm.
+
+### TESTS
+- `test_freiwege`, `test_raeumen`, `test_schruppen3d`, `test_planfraesen`, `test_kontur`,
+  `test_testteil`, `test_pruefstand` – OK.
+
 ## P-2026-10-04-60 kommentare-ascii
 
 ### EINGELESEN

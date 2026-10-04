@@ -19,7 +19,10 @@ Lagenwechsel in der Mulde: 15–23 mm hinauf und wieder hinab für 3–10 mm hin
 stattdessen auf ihrer Höhe hinüber – wenn der gerade Weg dort im Umkreis R + RAND frei ist und
 ganz über dem Rohteil liegt (daneben könnten Spannmittel stehen). Ist er dort nicht frei (am
 Ende einer Lage berührt der Fräser die Wand), hebt sie nur LINK_LUFT über das höchste Material im
-Umkreis R + RAND des Weges ab, statt bis zur Sicherheitshöhe.
+Umkreis R + RAND des Weges ab, statt bis zur Sicherheitshöhe. Und: Folgt auf einen senkrechten
+Eilgang hinab ein senkrechtes Eintauchen, geht der Eilgang bis LINK_LUFT über das Material dort
+– die Bahn weiß nicht, was sie selbst schon geräumt hat (an der Platte tauchte das Räumen viermal
+23 mm durch die schon geräumte Tasche).
 """
 
 import math
@@ -97,6 +100,7 @@ def schneller(punkte, form, quader, vorschub, freivorschub=FREIVORSCHUB):
     i = 0
     while i < len(punkte) - 1:
         _unten_bleiben(punkte, i, quader, weite)
+        _tiefer_im_eilgang(punkte, i, quader, float(form.radius))
         von, nach = punkte[i], punkte[i + 1]
         i += 1
         sehnen = _sehnen(von, nach)
@@ -191,6 +195,33 @@ def _hoechstes(q, a, b, weite):
         t = np.zeros_like(gx)
     nah = np.hypot(gx - (a[0] + t * dx), gy - (a[1] + t * dy)) <= weite
     return float(q.h[i0:i1, j0:j1][nah].max()) if nah.any() else -math.inf
+
+
+def _tiefer_im_eilgang(punkte, i, quader, radius):
+    """Endet der Eilgang zu Punkt i + 1 über einem senkrechten Eintauchen (Punkt i + 2): ein
+    Eilgang senkrecht hinab bis LINK_LUFT über das höchste Material unter der Stirn (`radius` und
+    eine halbe Zelle des Rasters – senkrecht hinab streift der Fräser nur, was unter ihr liegt;
+    taucht er neben einer Wand mit Aufmaß ein, zählt sie nicht) – nur über dem Rohteil, nie
+    tiefer als das Eintauchen endet."""
+    weite = radius + 0.5 * float(quader.x[1] - quader.x[0])
+    if i + 2 >= len(punkte):
+        return
+    oben, ein = punkte[i + 1], punkte[i + 2]
+    if not oben.eilgang or ein.eilgang or ein.bogen is not None:
+        return
+    if math.hypot(ein.x - oben.x, ein.y - oben.y) > GLEICH or ein.z >= oben.z - GLEICH:
+        return
+    if not (
+        quader.x[0] <= oben.x - weite
+        and oben.x + weite <= quader.x[-1]
+        and quader.y[0] <= oben.y - weite
+        and oben.y + weite <= quader.y[-1]
+    ):
+        return
+    stelle = (oben.x, oben.y, oben.z)
+    ziel = max(_hoechstes(quader, stelle, stelle, weite) + LINK_LUFT, ein.z)
+    if ziel < oben.z - GLEICH:
+        punkte.insert(i + 2, bn.Punkt(True, oben.x, oben.y, ziel))
 
 
 def _abheben(punkte, i):

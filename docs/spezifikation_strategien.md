@@ -2312,6 +2312,12 @@ das ist“; die Geschwindigkeit dafür gehört zur Maschine.
   nur ganz über dem Rohteil (daneben könnten Spannmittel stehen). Am Testteil beim 3D-Schruppen
   (jeder Lagenwechsel in der Mulde: 15–23 mm hinauf für 3–10 mm hinüber): Hub 315 → 37 mm,
   Eilgang 417 → 143 mm, 0,53 → 0,50 min; Räumen und Kontur je ein Abheben niedriger.
+- **Tiefer im Eilgang (P-2026-10-04-61):** Endet ein Eilgang über einem senkrechten Eintauchen,
+  geht er senkrecht weiter hinab bis 2 mm über das Material unter der Stirn (Radius und eine
+  halbe Zelle des Rasters – eine Wand mit Aufmaß daneben zählt nicht). Die Bahn weiß nicht, was
+  sie selbst schon geräumt hat: An der Platte (Räumen über Oberseite und Tasche in einer Bahn)
+  tauchte sie viermal 23 mm mit 298 mm/min durch die schon geräumte Tasche – Eintauchen durch
+  Luft 133 → 89 mm (an zwei Stellen ohne Aufmaß zur Wand bleibt es vorsichtig).
 - Gemessen: Testteil Räumen T1 10,27 → 9,59 min (2,8 m schnell); Zapfen Planfräsen 3,29 → 2,85
   min. Im Schnellen nichts abgetragen (nachgefahren, 0 mm³).
 
