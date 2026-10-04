@@ -139,6 +139,11 @@ class Raeumen(PathOp.ObjectOp):
         obj.Ebenen, obj.Lagen = ergebnis.flaechen, ergebnis.lagen
         obj.Ringe, obj.Laeufe = ergebnis.ringe, ergebnis.laeufe
         obj.Gerechnet = gerechnet_text(ergebnis)
+        if not ergebnis.haelt:  # keine Bahn hält die Last – Werkzeugbruch, laut sagen
+            last = ergebnis.ueberlastet.get(ergebnis.variante, 0.0)
+            FreeCAD.Console.PrintWarning(
+                tr("ra.warnung.last", operation=obj.Label, last=f"{last:.1f}") + "\n"
+            )
         self.commandlist.extend(
             bn.befehle(
                 ergebnis.punkte,

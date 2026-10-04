@@ -204,6 +204,24 @@ pruefe(
 )
 pruefe(alle.ausgelassen == [TASCHENBODEN], f"ausgelassen: {alle.ausgelassen}")
 
+# Die dreieckige Tasche mit dem Ø 6 (wie „Rest räumen“ am Testteil, ae 0,6): Der Adaptiv-Kern passt
+# nicht hinein, es bleiben die Ringe – nach der Zeit gewählt wie bisher, aber jetzt gemessen: Sie
+# halten die Last nicht, und die Bahn sagt es (bis 0.171 ohne ein Wort – Werkzeugbruch).
+klein = rb.Raeumwerte(
+    ff.scheibe(3.0), 12.0, 0.6, 0.3, OBEN, OBEN + 5.0, ROHTEIL, schneidenlaenge=12.0,
+    eintauchwinkel=werkzeug.eintauchwinkel, vorschub=VF, eintauchen=VF * 0.3,
+)  # fmt: skip
+tasche = ebenen_bei(TASCHE)
+b_tasche = rb.planen(hf.netze_je_hoehe(teil, tasche), klein, tasche, ra.konturen_des_teils(teil))
+last_tasche = b_tasche.ueberlastet.get(b_tasche.variante, 0.0)
+print(
+    f"Dreieck-Tasche mit Ø 6: {b_tasche.variante}, Varianten {sorted(b_tasche.zeiten)}, haelt {b_tasche.haelt}, Last {last_tasche:.2f} ae"
+)
+pruefe(
+    "adaptiv" not in b_tasche.zeiten and not b_tasche.haelt and last_tasche > bn.LAST_KURZ,
+    f"Dreieck-Tasche: {b_tasche.variante}, hält {b_tasche.haelt}, Last {last_tasche:.2f}",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

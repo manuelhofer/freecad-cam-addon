@@ -1697,7 +1697,8 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
     # einem Rahmen bleiben“). Nachgemessen wird der Reihe nach (last), bis eine hält – auch
     # „adaptiv“, wo er kaum Platz hatte (_Stand.eng): In einer Nut, kaum breiter als der Fräser,
     # fährt er in voller Breite durch. Hält keine, gewinnt die mit der kleinsten Last, und die Bahn
-    # sagt es (`haelt`). Ohne den Adaptiv-Kern (oder mit einer Vorgabe) bleibt es bei der Zeit.
+    # sagt es (`haelt`). Ohne den Adaptiv-Kern (oder mit einer Vorgabe) bleibt es bei der Zeit –
+    # die Last misst es trotzdem und sagt es (außer bei „ringe“).
     reihe = sorted(ergebnisse, key=lambda v: ergebnisse[v][1])
     variante = reihe[0]
     ueberlastet = {}
@@ -1725,6 +1726,17 @@ def planen(netz, werte, ebenen, konturen=(), schritt=SCHRITT, stand=None):
             ueberlastet[variante] = groesste
         else:
             variante = min(ueberlastet, key=ueberlastet.get)
+            haelt = False
+    elif w.variante != RINGE:
+        # Ohne den Adaptiv-Kern (er passte nicht, oder eine Vorgabe) gibt es keine Bahn, die die
+        # Last nach ihrer Bauart hält: Es bleibt bei der Zeit – gemessen wird trotzdem, und hält
+        # sie die Last nicht, sagt die Bahn es (`haelt`). An Manuels Testteil räumte der Ø 6 die
+        # dreieckige Tasche mit bis 4,5 ae, ohne ein Wort (Werkzeugbruch; Manuel, 2026-10-04:
+        # „perfektionismus ist … dass keine Werkzeugbrüche entstehen“). Nur „ringe“ heißt
+        # ausdrücklich ohne Blick auf die Last.
+        ok, groesste = haelt_last(variante)
+        if not ok:
+            ueberlastet[variante] = groesste
             haelt = False
     st, zeit = ergebnisse[variante]
     return Raeumbahn(

@@ -12,6 +12,44 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-32 raeumen-last-melden
+
+### EINGELESEN
+- Manuel, 2026-10-04: „perfektionismus ist wenn die werkzeugwege sehr gut sind .. und da keine
+  werkzeugbrüche entstehen !!!“ – dazu der offene Befund der Nacht: Am Testteil räumt der Ø 6 die
+  dreieckige Tasche mit bis 4,5 ae, ohne Wort (die Last wurde nur gemessen, wenn „adaptiv“ unter
+  den Varianten war; in die Tasche passt er nicht).
+
+### DATEIEN
+- `camaddon/raeumen_bahn.py` (`planen`: ohne den Adaptiv-Kern wird die Last der gewählten
+  Variante trotzdem gemessen – `haelt`, `ueberlastet`; außer bei der Vorgabe „ringe“),
+  `camaddon/raeumen.py` (Warnung im Bericht, wenn die Bahn die Last nicht hält),
+  `camaddon/gui_bearbeitung.py` (das Räumen und „Rest räumen“: gewinnen Ringe, gilt die genaue
+  Bahn statt der groben Vorschau), Übersetzungen (`ra.warnung.last`, „Bruchgefahr“ im Satz),
+  `tests/test_testteil.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.171.2).
+
+### AKZEPTANZKRITERIUM
+- Die dreieckige Tasche mit dem Ø 6: nur „inseln“, `haelt` falsch, Last über 1,7 ae; im
+  Assistenten beim „Rest räumen“ der Satz mit der Last und „Bruchgefahr“. Welche Variante gewählt
+  wird, ändert sich nicht.
+
+### DONE
+- Gemessen: genau 4,49 ae (ohne Materialstand) bzw. 4,52 ae (mit) und 14 mm am Stück über der
+  Dauerlast; die grobe Vorschau des Assistenten rechnete eine etwas andere Ringbahn und maß nur
+  1,74 ae – der Assistent hätte „passt“ gesagt. Darum rechnet er, wenn Ringe gewinnen, die genaue
+  Bahn (am Testteil 0,1 s). Im Assistenten am Testteil jetzt: „Rest räumen → 1 Lage, 3 Ringe, etwa
+  1 min – keine Bahn hält hier die Last (bis 3,7 ae): zu eng für diesen Fräser, Bruchgefahr – ein
+  kleinerer Fräser oder Zeilenabstand“. Manuels Stiche am Testteil halten die Last (jetzt
+  gemessen, nicht nur angenommen).
+
+### TESTS
+- `tests/test_testteil.py` (neu: die Tasche), `tests/test_raeumen.py`, `tests/test_sprache.py`;
+  `szenario_testteil`, `szenario_testteil_freivorschub` – OK. black und ruff sauber.
+
+### NEXT
+- Zu besprechen: Was soll das Addon in so einer Tasche tun – einen kleineren Zeilenabstand in den
+  Ecken, einen kleineren Fräser vorschlagen, oder nur warnen?
+
 ## P-2026-10-04-31 wegkippen-spiel
 
 ### EINGELESEN

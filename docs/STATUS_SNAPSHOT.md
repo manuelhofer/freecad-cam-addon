@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.171.1 (P-2026-10-04-31). Alles, was hier als gebaut steht,
+Stand 0.171.2 (P-2026-10-04-32). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -119,11 +119,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Höchstvorschub der Maschine) – nach Manuels Idee, wenn es trotz Bremsen Zeit bringt; geschätzt
   höchstens knapp 1 min. **Ebenso (zum Besprechen):** In der dreieckigen Tasche passt der
   Adaptiv-Kern mit dem Ø 6 nicht; das Räumen fällt auf Ringe zurück und nimmt über 16 mm am
-  Stück bis 4,5 ae (Prüfstand: Eingriff bis 5,1 ae) – gegen „die Last im Rahmen“. Gemeldet wird
-  es nicht: `raeumen_bahn.planen` misst die Last nur, wenn „adaptiv“ gerechnet werden konnte;
-  sonst gewinnt die schnellste Variante, und `Raeumbahn.haelt` bleibt True. Die Last trotzdem
-  messen und `haelt` setzen hieße am Testteil eine rote Zeile beim „Rest räumen“ (das Szenario
-  erwartet keine) – Manuel entscheidet.
+  Stück bis 4,5 ae (Prüfstand: Eingriff bis 5,1 ae) – gegen „die Last im Rahmen“. **Seit
+  P-2026-10-04-32 gemeldet** (Manuel: „dass keine Werkzeugbrüche entstehen“): gemessen auch ohne
+  den Adaptiv-Kern, im Assistenten an der genauen Bahn („… keine Bahn hält hier die Last (bis 3,7
+  ae): zu eng für diesen Fräser, Bruchgefahr …“), beim Neuberechnen eine Warnung im Bericht. Die
+  Wahl der Bahn ist dieselbe – was das Addon dort besser tun soll, ist zu besprechen.
 - **FreeCAD-Versionen:** 1.1.4 auf Manuels Rechner (Arch-Paket, Python 3.14) – alle 71
   Prüfungen und 98 Szenarien grün mit P-2026-10-02-85, seither je die Prüfung und das Szenario
   zum geänderten Teil. 1.1.3 und Wochen-Build 26.3.0 dev (2026-09-16) zuletzt voll grün mit

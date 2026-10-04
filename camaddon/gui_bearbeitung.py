@@ -749,7 +749,7 @@ class _Raeumen(_Strategie):
         return 0.0  # Aufmaß am Boden: die Fläche ist fertig
 
     def vorschau(self, job, werkzeug, werte, flaechen):
-        return ra.vorschau(
+        argumente = (
             job,
             job.Model.Group,
             ff.von_werkzeug(werkzeug),
@@ -757,15 +757,27 @@ class _Raeumen(_Strategie):
             werte["zeilenabstand"],
             werte["aufmass"],
             flaechen,
-            aufmass_boden=werte["aufmass_boden"],
-            gleichlauf=werte["gleichlauf"],
-            schneidenlaenge=float(werkzeug.schneidenlaenge or 0.0),
-            vorschub=werte.get("vorschub", 0.0),
-            eintauchen=werte.get("eintauchen", 0.0),
-            stand=werte.get("materialstand"),
-            variante=werte.get("variante"),
-            freivorschub=werte.get("freivorschub", ra.FREIVORSCHUB),
         )
+        weiter = {
+            "aufmass_boden": werte["aufmass_boden"],
+            "gleichlauf": werte["gleichlauf"],
+            "schneidenlaenge": float(werkzeug.schneidenlaenge or 0.0),
+            "vorschub": werte.get("vorschub", 0.0),
+            "eintauchen": werte.get("eintauchen", 0.0),
+            "stand": werte.get("materialstand"),
+            "variante": werte.get("variante"),
+            "freivorschub": werte.get("freivorschub", ra.FREIVORSCHUB),
+        }
+        bahn = ra.vorschau(*argumente, **weiter)
+        if bahn.variante == "adaptiv" or weiter["variante"] == rb.RINGE:
+            return bahn  # adaptiv hält die Last nach seiner Bauart; „ringe“ ohne Blick auf sie
+        # Ringe: Die grobe Vorschau rechnet eine etwas andere Bahn und kann die Last unterschätzen
+        # – am Testteil maß sie in der dreieckigen Tasche (Ø 6) 1,7 ae, die genaue Bahn, die die
+        # Maschine fährt, 4,5 ae (Werkzeugbruch; Manuel, 2026-10-04). Dann gilt die genaue.
+        try:
+            return ra.bahn_fuer(*argumente, **weiter)
+        except ValueError:
+            return bahn
 
     def ergebnis_text(self, bahn, zeit):
         lagen = tr("ba.zahl.lage") if bahn.lagen == 1 else tr("ba.zahl.lagen", n=bahn.lagen)
