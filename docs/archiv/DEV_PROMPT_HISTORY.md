@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-30 wegkippen
+
+### EINGELESEN
+- Manuel, 2026-10-04: „Ja, bauen“ (S4 Wegkippen) und „pusch das erstmal und dann mach weiter“;
+  der Zwischenstand P-29 hielt das Spiel des Halters an senkrechten Wänden nicht.
+
+### DATEIEN
+- `camaddon/wegkippen.py` (Höhenfeld auf ganzen Vielfachen des Rasters, um das Spiel seitlich im
+  Kreis verbreitert; `geglaettet` mittelt die Kippvektoren; `pruefen` prüft jede Stelle und die
+  Mitte zwischen zwei Stellen nach; `einspannung`, `einspannung_werkzeug`, `bedarf`),
+  `camaddon/schlichten3d.py` (Eigenschaften `Wegkippen`, `WegkippenBis`; `stelle_weg`),
+  `camaddon/angestellt.py` (`ist_angestellt` auch mit Wegkippen), `camaddon/reichweite.py`
+  (`laenge_des_werkzeugs`), `camaddon/gui_bearbeitung.py` (der Haken „Wegkippen (5 Achsen
+  simultan)“ beim 3D-Schlichten und Restschlichten, nur an der 5-Achs-Maschine; der Bedarf hinter
+  dem Ergebnis), Übersetzungen, Hilfe „Bearbeitung“ (de/en), `tests/test_wegkippen.py` (neu),
+  `tests/gui/szenario_wegkippen.py` (neu), Spezifikation Strategien 16.3, Aufbau,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.171.0).
+
+### AKZEPTANZKRITERIUM
+- Kavität 50 × 50, 30 tief (Ecken R 10, Boden-Rundung R 8), Kugel Ø 6: senkrecht 30–31,5 mm,
+  bis 30° mit ER16 höchstens 29,5, mit Schrumpffutter Ø 21 höchstens 23; Gegenprobe mit den echten
+  Körpern: Halter mindestens 0,9 mm weg, Schaft frei. Als Operation (Schrumpffutter, 23,5 mm):
+  „Kollision prüfen“ findet den Halter senkrecht am Teil, weggekippt nicht.
+
+### DONE
+- Gefunden und behoben: Das Spiel des Halters galt nur senkrecht – neben einer senkrechten Wand lag
+  unter ihm der Boden, er kam bis 0,02 mm heran; jetzt ist das Höhenfeld dafür um das Spiel
+  seitlich verbreitert. Die kürzeste Auskragung und die Achsen der Operation rechneten mit leicht
+  verschobenem Raster – um Haaresbreite verschieden; jetzt auf ganzen Vielfachen. Die erste
+  Fassung des Glättens nahm die Neigung einer Stelle mit der Richtung einer anderen (nie geprüft,
+  104 Stellen nur 0,41–0,5 mm frei) und ließ die Richtung springen – zwischen zwei Stellen setzt
+  das Maschinenprogramm Punkte mit gemittelter Achse ein, dort berührte der Halter das Teil
+  (Satz 2193); jetzt gemittelte Kippvektoren, jede Stelle und jede Mitte nachgeprüft: am ganzen
+  Maschinenprogramm nirgends näher als 0,8 mm. Im Assistenten: „… – weggekippt reichen 22 mm
+  Auskragung (senkrecht 31); dein Fräser steht 23,5 heraus“ (zu kurz: was fehlt). Die Zeit: Auf
+  der Tisch/Tisch-Maschine dreht C bei jedem Ring einmal herum – rechnerisch 19 statt 8 min.
+
+### TESTS
+- `tests/test_wegkippen.py` (neu, 2 min): senkrecht 31,00, ER16 28,26, Schrumpffutter 21,90;
+  Gegenprobe Halter 1,47 mm, Schaft 1,31 mm; die rechte Seite als Operation: 1 584 Sätze, 1 377
+  gekippt, bis 28°, C −506 … 0; Halter am Teil weggekippt 0, senkrecht 1.
+  `tests/test_angestellt.py`; `szenario_wegkippen` (neu), `szenario_kugel_angestellt`,
+  `szenario_mulde` – OK. black und ruff sauber.
+
+### NEXT
+- Manuel probiert es aus. Die Zeit (C rundherum) – zu besprechen, ob das Wegkippen die Richtung
+  dafür ruhiger halten soll.
+
 ## P-2026-10-04-29 wegkippen-zwischenstand
 
 ### EINGELESEN

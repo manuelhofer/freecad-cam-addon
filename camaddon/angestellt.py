@@ -239,8 +239,10 @@ def kippachse(maschine):
 
 
 def ist_angestellt(op):
-    """Hat die Operation Werkzeugachsen (eine Bahn mit angestelltem Kugelfräser)?"""
-    return bool(getattr(op, "Anstellen", False)) and bool(getattr(op, "Werkzeugachsen", None))
+    """Hat die Operation Werkzeugachsen (eine Bahn mit angestelltem oder weggekipptem
+    Kugelfräser, wegkippen.py)?"""
+    gekippt = getattr(op, "Anstellen", False) or getattr(op, "Wegkippen", False)
+    return bool(gekippt) and bool(getattr(op, "Werkzeugachsen", None))
 
 
 def radius_von(op):

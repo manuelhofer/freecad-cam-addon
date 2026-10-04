@@ -32,6 +32,7 @@ from . import spindel as sp
 from . import vierachs_bahn as vb
 from . import vierachs_operation as vo
 from . import vierachs_schlichten as vs
+from . import wegkippen as wk
 from .sprache import tr
 
 GRUPPE = "Fräsen"
@@ -70,11 +71,16 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Kippachse = list(an.UM)
         obj.Kippachse = an.UM[0]
         obj.Werkzeugachsen = []
+        obj.Wegkippen = False
+        obj.WegkippenBis = wk.WINKEL_MAX
 
     def opOnDocumentRestored(self, obj):
         neu = self._eigenschaften(obj)
         if "Anstellen" in neu:
             self._anstellen_vorbelegen(obj)  # gespeichert vor dem Anstellen: senkrecht
+        elif "Wegkippen" in neu:
+            obj.Wegkippen = False  # gespeichert vor dem Wegkippen: wie damals
+            obj.WegkippenBis = wk.WINKEL_MAX
         if "Grenzwinkel" in neu:
             obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
         if set(RICHTUNGEN) - set(obj.getEnumerationsOfProperty("Richtung")):
@@ -109,6 +115,8 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyAngle", "Anstellwinkel", tr("an.eigenschaft.winkel")),
             ("App::PropertyEnumeration", "Kippachse", tr("an.eigenschaft.kippachse")),
             ("App::PropertyVectorList", "Werkzeugachsen", tr("an.eigenschaft.achsen")),
+            ("App::PropertyBool", "Wegkippen", tr("wk.eigenschaft.wegkippen")),
+            ("App::PropertyAngle", "WegkippenBis", tr("wk.eigenschaft.bis")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE_5ACHS, text)
@@ -127,7 +135,7 @@ class Schlichten3D(PathOp.ObjectOp):
         FreeCAD vorn und hinten anfügt."""
         ergebnis = super().execute(obj)
         achsen = []
-        if getattr(obj, "Anstellen", False) and obj.Active and getattr(obj, "Path", None):
+        if _gekippt(obj) and obj.Active and getattr(obj, "Path", None):
             achsen = self._achsen(obj)
         obj.Werkzeugachsen = [FreeCAD.Vector(*a) for a in achsen]
         return ergebnis
@@ -142,6 +150,8 @@ class Schlichten3D(PathOp.ObjectOp):
             form_teil = vs._teil(self.model)
         except (AttributeError, ValueError):
             return []
+        if getattr(obj, "Wegkippen", False):
+            return self._wegkippen(obj, form_teil, radius)
         return an.achsen(
             list(obj.Path.Commands),
             form_teil,
@@ -150,6 +160,37 @@ class Schlichten3D(PathOp.ObjectOp):
             um=str(obj.Kippachse),
             winkel=float(obj.Anstellwinkel),
         )
+
+    @staticmethod
+    def _wegkippen(obj, form_teil, radius):
+        """Die Werkzeugachsen fürs Wegkippen (wegkippen.achsen) – mit Halter und Auskragung, wie
+        „Auf der Maschine prüfen“ sie nimmt; reicht auch der größte Winkel nicht, ein Satz."""
+        try:
+            halter, schaft, auskragung = wk.einspannung(obj.ToolController)
+        except ValueError as grund:
+            FreeCAD.Console.PrintWarning(f"{obj.Label}: {grund}\n")
+            return []
+        ergebnis = wk.achsen(
+            list(obj.Path.Commands),
+            form_teil,
+            radius,
+            halter,
+            schaft,
+            auskragung,
+            winkel_max=float(obj.WegkippenBis),
+        )
+        if ergebnis.anstoesse:
+            FreeCAD.Console.PrintWarning(
+                tr(
+                    "wk.anstoesse",
+                    operation=obj.Label,
+                    stellen=ergebnis.anstoesse,
+                    auskragung=f"{auskragung:.1f}",
+                    winkel=f"{float(obj.WegkippenBis):.0f}",
+                )
+                + "\n"
+            )
+        return ergebnis.achsen
 
     def opExecute(self, obj):
         try:
@@ -167,7 +208,7 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Umlaeufe = ergebnis.umlaeufe
         obj.Abstand = round(float(ergebnis.abstand), 4)
         punkte = ergebnis.punkte
-        if getattr(obj, "Anstellen", False):
+        if _gekippt(obj):
             punkte = an.gerade(punkte)  # eine Achse je Satz: Bögen als Geraden, kurze Sätze
         self.commandlist.extend(
             bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
@@ -350,12 +391,22 @@ def aendere(obj, tc, grathoehe, aufmass=0.0, flaechen=None, davor=None):
         _endtiefe(obj, job)
 
 
+def _gekippt(obj):
+    """Kippt die Achse – angestellt oder weggekippt?"""
+    return bool(getattr(obj, "Anstellen", False) or getattr(obj, "Wegkippen", False))
+
+
 def stelle_an(obj, anstellen, kippachse=None):
     """Setzt „Anstellen“ (der Kugelfräser angestellt, 5 Achsen simultan) – angestellt mit der
     Kippachse `kippachse` („X“, „Y“; None: wie sie ist). Ohne eigene Transaktion."""
     obj.Anstellen = bool(anstellen)
     if anstellen and kippachse in an.UM:
         obj.Kippachse = kippachse
+
+
+def stelle_weg(obj, wegkippen):
+    """Setzt „Wegkippen“ (5 Achsen simultan, wegkippen.py). Ohne eigene Transaktion."""
+    obj.Wegkippen = bool(wegkippen)
 
 
 def _vorgeschlagener_name(name):

@@ -2695,6 +2695,24 @@ Kollision mit Rundachsen je Station.
   Prüfung (Höhenfeld des Teils statt Körper). Die Zeit mit Kippen ist nicht gemessen. Bild
   `22_wegkippen.png` an Manuel; Empfehlung: jetzt nicht bauen – es lohnt sich nur mit schlankem
   Halter, und eine Bahn rechnete zu lange.
+  **Gebaut (Manuel: „Ja, bauen“; P-2026-10-04-29/-30):** `wegkippen.py` – das Teil als Höhenfeld
+  (`Huelle`: hoehenfeld.hoehen, 0,5 mm, auf ganzen Vielfachen; gefragt das Höchste der vier
+  Rasterpunkte, für das Spiel im Kreis um es verbreitert – sonst kam der Halter neben einer
+  senkrechten Wand bis 0,02 mm heran), Halter und Schaft als Punkte auf Ringen (`koerper`, über
+  dem Teil weggelassen); je Stelle die kleinste Neigung ins Freie (die Richtungen zu den
+  Rasterpunkten im Umkreis des Halters, nach ihrer Tiefe gewichtet) oder den Abfall hinab, was
+  weniger braucht (`noetig`, 5°-Schritte, dann 1°); senkrecht zählt der Schaft nicht.
+  Geglättet über gemittelte Kippvektoren (die Richtung dreht stetig) und nachgeprüft (`pruefen`):
+  jede Stelle, und die Mitte zwischen zwei Stellen mit der gemittelten Achse – dort setzt das
+  Maschinenprogramm Punkte ein, und dort hatte der Halter das Teil berührt, als die Richtung
+  sprang. `kuerzeste_auskragung` sucht halbierend. An der Kavität (30 tief): senkrecht 31,0;
+  bis 30° ER16 28,3, Schrumpffutter 21,9 mm; am Maschinenprogramm nirgends näher als 0,8 mm.
+  „3D-Schlichten“ mit der Eigenschaft `Wegkippen` (und `WegkippenBis`, 30°): Halter und
+  Auskragung wie „Auf der Maschine prüfen“ (Werkzeugverwaltung, sonst der vorgeschlagene); reicht
+  auch der größte Winkel nicht, ein Satz im Bericht. Im Assistenten der Haken „Wegkippen (5 Achsen
+  simultan)“ (5-Achs-Maschine, Kugelfräser), hinter dem Ergebnis der Bedarf: „– weggekippt
+  reichen 22 mm Auskragung (senkrecht 31); dein Fräser steht 23,5 heraus“. **Offen:** Auf der
+  Tisch/Tisch-Maschine dreht C bei jedem Ring einmal herum – rechnerisch 19 statt 8 min.
 - **S5 Entgraten in 3D.**
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,

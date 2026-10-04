@@ -2067,6 +2067,25 @@ def _kippachse(job):
     return "X"
 
 
+def _wegkippen_bedarf(job, werkzeug, bahn, form):
+    """wegkippen.Bedarf für die Vorschau: wie weit der Kugelfräser an der Bahn mindestens
+    herausstehen muss – senkrecht und weggekippt – und wie weit er heraussteht (Halter und Länge
+    aus der Werkzeugverwaltung, wie „Auf der Maschine prüfen“). None, wenn es nicht geht."""
+    from . import vierachs_schlichten as vs
+    from . import wegkippen as wk
+
+    try:
+        bibliothek = wz.Bibliothek.laden()
+    except (wz.BeschaedigteDatei, OSError):
+        bibliothek = None
+    einspannung = wk.einspannung_werkzeug(werkzeug, bibliothek)
+    punkte = [(p.x, p.y, p.z) for p in bahn.punkte if not p.eilgang]
+    if einspannung is None or not punkte:
+        return None
+    teil = vs._teil(job.Model.Group)
+    return wk.bedarf(teil, punkte, float(form.radius), einspannung)
+
+
 def _job_der(op):
     """Der Job der Operation – None, wenn sie in keinem steht."""
     return next((j for j in js.jobs(op.Document) if op in js.operationen(j)), None)
@@ -2102,14 +2121,17 @@ class _Schlichten3D(_Strategie):
 
     def haken(self):
         # 5 Achsen simultan S2 (angestellt.py; Manuel, 2026-10-04: „Ja, so bauen“) – ohne Vorgabe.
-        return (("anstellen", tr("ba.s3.anstellen"), tr("ba.s3.anstellen.tooltip"), False),)
+        return (
+            ("anstellen", tr("ba.s3.anstellen"), tr("ba.s3.anstellen.tooltip"), False),
+            ("wegkippen", tr("ba.s3.wegkippen"), tr("ba.s3.wegkippen.tooltip"), False),
+        )
 
     def haken_verborgen(self, feld, block):
-        # Anstellen nur an einer 5-Achs-Maschine – an jeder anderen wäre der Haken nur Rauschen.
-        return feld == "anstellen" and not block.panel._fuenfachs()
+        # Anstellen und Wegkippen nur an einer 5-Achs-Maschine – sonst wären sie nur Rauschen.
+        return feld in ("anstellen", "wegkippen") and not block.panel._fuenfachs()
 
     def haken_gesperrt(self, feld, block):
-        if feld != "anstellen":
+        if feld not in ("anstellen", "wegkippen"):
             return None
         try:
             eintrag = block.panel.maschine()
@@ -2143,7 +2165,7 @@ class _Schlichten3D(_Strategie):
         form = ff.von_werkzeug(werkzeug)
         if form is None:
             raise ValueError(tr("s3.fehler.form"))
-        return s3op.vorschau(
+        bahn = s3op.vorschau(
             job,
             job.Model.Group,
             form,
@@ -2153,8 +2175,26 @@ class _Schlichten3D(_Strategie):
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
         )
+        if werte.get("wegkippen") and form.nur_kugel:
+            bahn.wegkippen = _wegkippen_bedarf(job, werkzeug, bahn, form)
+        return bahn
 
     def ergebnis_text(self, bahn, zeit):
+        text = self._ergebnis_text(bahn, zeit)
+        bedarf = getattr(bahn, "wegkippen", None)
+        if bedarf is None:
+            return text
+        werte = {
+            "text": text,
+            "senkrecht": groesse_zeigen(bedarf.senkrecht, einheiten.LAENGE, 1) or "0",
+            "gekippt": groesse_zeigen(bedarf.gekippt, einheiten.LAENGE, 1) or "0",
+            "auskragung": groesse_zeigen(bedarf.auskragung, einheiten.LAENGE, 1) or "0",
+        }
+        if bedarf.auskragung < bedarf.gekippt:
+            return tr("ba.s3.wegkippen.zu_kurz", **werte)
+        return tr("ba.s3.wegkippen.bedarf", **werte)
+
+    def _ergebnis_text(self, bahn, zeit):
         zeilen = tr("ba.zahl.zeile") if bahn.zeilen == 1 else tr("ba.zahl.zeilen", n=bahn.zeilen)
         werte = {
             "zeilen": zeilen,
@@ -2186,11 +2226,13 @@ class _Schlichten3D(_Strategie):
     def lege_an(self, job, tc, werte, flaechen):
         op = s3op.lege_an(job, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(job))
+        s3op.stelle_weg(op, werte.get("wegkippen", False))
         return op
 
     def aendere(self, op, tc, werte, flaechen):
         s3op.aendere(op, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen)
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(_job_der(op)))
+        s3op.stelle_weg(op, werte.get("wegkippen", False))
 
     def ist(self, op):
         return s3op.ist_schlichten3d(op) and not s3op.ist_restschlichten(op)
@@ -2200,6 +2242,7 @@ class _Schlichten3D(_Strategie):
             "grathoehe": float(op.Grathoehe),
             "aufmass": float(op.Aufmass),
             "anstellen": bool(getattr(op, "Anstellen", False)),
+            "wegkippen": bool(getattr(op, "Wegkippen", False)),
         }
 
 
@@ -2359,6 +2402,7 @@ class _Restschlichten(_Schlichten3D):
             davor=self.davor(werte),
         )
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(job))
+        s3op.stelle_weg(op, werte.get("wegkippen", False))
         return op
 
     def aendere(self, op, tc, werte, flaechen):
@@ -2366,6 +2410,7 @@ class _Restschlichten(_Schlichten3D):
             op, tc, werte["grathoehe"], werte["aufmass"], flaechen=flaechen, davor=self.davor(werte)
         )
         s3op.stelle_an(op, werte.get("anstellen", False), _kippachse(_job_der(op)))
+        s3op.stelle_weg(op, werte.get("wegkippen", False))
 
     def ist(self, op):
         return s3op.ist_restschlichten(op)
@@ -2376,6 +2421,7 @@ class _Restschlichten(_Schlichten3D):
             "grathoehe": float(op.Grathoehe),
             "aufmass": float(op.Aufmass),
             "anstellen": bool(getattr(op, "Anstellen", False)),
+            "wegkippen": bool(getattr(op, "Wegkippen", False)),
         }
 
 

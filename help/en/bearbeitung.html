@@ -730,6 +730,16 @@ what is missing. “Check on the machine”, the collision check and “Write pr
 per point (feed in G93); without a machine with two rotary axes the program writes the path
 vertical and says so. On a dome about 5 % longer. Properties of the operation: “Anstellwinkel”
 (15°), “Kippachse” (X or Y – from the machine).</li>
+<li><b>Tilt away (5-axis simultaneous)</b>: in a deep cavity a vertical cutter must stick out so
+far that the holder clears the rim – at 30 mm depth a good 30 mm, however slim the holder. With
+the tick the axis tilts about the centre of the ball away from the wall (up to 30°), only where the
+holder would otherwise hit with the stick-out of your cutter; the path stays the same. Below the
+block it says how far the cutter must stick out at least – vertical and tilted away – and how far
+yours sticks out (holder and length from spindle nose from the tool manager). In a cavity 30 deep:
+with a shrink-fit holder Ø 21, 22 instead of 31 mm will do (almost three times as stiff), with an
+ER16 collet chuck hardly less (28.6). Like “Tilt”, the tick is there on a 5-axis machine and free
+with a ball end mill; with both set, tilting away applies. “Check collision” shows whether the
+holder stays clear. The operation property “WegkippenBis” changes the largest angle.</li>
 <li><b>Flank (5-axis simultaneous)</b> – its own block below: sloped walls made of straight lines
 – a pocket or boss with draft, cones, sloped planes, 0.5° to 45° off vertical – are milled by the
 <b>side of an end mill</b> in one loop, its axis along the wall, its radius in front of it. The

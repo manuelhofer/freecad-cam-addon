@@ -11,17 +11,25 @@ Anstellen (angestellt.py, dort auch die Sätze für die Maschine).
 
 **Wie:** Das Teil als Höhenfeld (`Huelle`: hoehenfeld.hoehen – je Rasterpunkt die oberste Höhe;
 gefragt wird das Höchste der vier Rasterpunkte um eine Stelle, lieber zu vorsichtig). Halter und Schaft als Punkte auf Ringen um die
-Achse (`koerper`). Ein Punkt, der tiefer liegt als das Höhenfeld dort plus Spiel, stößt an. Je
+Achse (`koerper`). Ein Punkt, der tiefer liegt als das Höhenfeld dort plus Spiel, stößt an – das
+Höhenfeld dafür um das Spiel auch seitlich verbreitert (sonst fuhr der Halter neben einer
+senkrechten Wand bis 0,02 mm heran: unter ihm lag nur der Boden). Je
 Stelle der Bahn die kleinste Neigung (WINKEL_SCHRITT bis `winkel_max`): ins Freie (die Richtungen
 zu den Rasterpunkten im Umkreis des Halters, gewichtet mit ihrer Tiefe) oder den Abfall hinab
 (die Steigung des Höhenfelds, über den Halbmesser des Halters aufs Höchste gebracht), was weniger
 Neigung braucht – geht beides nicht, die erste von RICHTUNGEN, die geht. Senkrecht zählt
 nur der Halter: Ein Schaft bis zum Ø der Kugel stößt senkrecht nirgends an, wo die Kugel nicht
 schon anstieße (das Höhenfeld meldete an jeder senkrechten Wand Fehlalarm). Entlang der Bahn
-geglättet (`geglaettet`): je Stelle die größte Neigung im Umkreis GLAETTEN, in der Richtung der
-Stelle, die sie braucht – die Achse kippt rechtzeitig, nicht ruckartig. Wo auch WINKEL_MAX nicht
-reicht, bleibt die Neigung, die am wenigsten anstößt nicht bekannt – die Stelle bleibt senkrecht
-und zählt als `anstoesse` (die Kollision sagt es).
+geglättet (`geglaettet`): je Stelle die größte Neigung im Umkreis GLAETTEN, die Richtung über die
+Kippvektoren dort gemittelt – die Achse kippt rechtzeitig und dreht stetig; dann nachgeprüft
+(`pruefen`), auch die Mitte zwischen zwei Stellen, wo das Maschinenprogramm Punkte mit der
+gemittelten Achse einsetzt. Wo auch WINKEL_MAX nicht
+reicht, bleibt die Stelle senkrecht und zählt als `anstoesse` (die Operation sagt es, die
+Kollision zeigt wo).
+
+**Die Zeit:** Auf einer Tisch/Tisch-Maschine dreht C bei jedem Ring um die Kavität einmal herum –
+G93 zählt die Grad wie mm, an der Kavität 30 tief 19 statt 8 min (dafür ist der Fräser bis
+dreimal so steif).
 
 Läuft ohne Oberfläche.
 """
@@ -105,18 +113,29 @@ class Huelle:
         from . import vierachs_flaechen as vf
 
         box = form.BoundBox
-        self.x = np.arange(box.XMin - rand, box.XMax + rand + raster, raster)
-        self.y = np.arange(box.YMin - rand, box.YMax + rand + raster, raster)
+        # Auf ganzen Vielfachen des Rasters: Mit anderem Rand dieselben Punkte (die kürzeste
+        # Auskragung und die Achsen der Operation rechnen sonst um Haaresbreite verschieden).
+        x0, x1 = math.floor((box.XMin - rand) / raster), math.ceil((box.XMax + rand) / raster)
+        y0, y1 = math.floor((box.YMin - rand) / raster), math.ceil((box.YMax + rand) / raster)
+        self.x = np.arange(x0, x1 + 1) * raster
+        self.y = np.arange(y0, y1 + 1) * raster
         netz = vf.vernetze(form, toleranz).netz
         z = hf.hoehen(netz, self.x, self.y)
         self.z = np.where(z <= hf.KEIN_TREFFER + 1.0, -np.inf, z)
         self.hoechste = float(np.max(self.z)) if np.isfinite(self.z).any() else -math.inf
         self.raster = raster
         self._abfall = {}
+        self._breiter = {0.0: self.z}
 
-    def hoehe(self, x, y):
+    def hoehe(self, x, y, seitlich=0.0):
         """Die Höhe an (x, y) (Arrays): das Höchste der vier Rasterpunkte um die Stelle – lieber
-        zu vorsichtig; außerhalb −∞."""
+        zu vorsichtig; mit `seitlich` (mm) das Höchste im Umkreis so weit: Ein Punkt neben einer
+        senkrechten Wand hat unter sich nur den Boden, er soll aber auch seitlich Abstand
+        halten. Außerhalb −∞."""
+        schluessel = round(float(seitlich), 6)
+        if schluessel not in self._breiter:
+            self._breiter[schluessel] = _im_kreis(self.z, seitlich / self.raster)
+        z = self._breiter[schluessel]
         fx = (np.asarray(x) - self.x[0]) / self.raster
         fy = (np.asarray(y) - self.y[0]) / self.raster
         i0, j0 = np.floor(fx).astype(int), np.floor(fy).astype(int)
@@ -124,8 +143,7 @@ class Huelle:
         ergebnis = np.full(np.shape(fx), -np.inf)
         i, j = i0[drin], j0[drin]
         ergebnis[drin] = np.maximum(
-            np.maximum(self.z[i, j], self.z[i + 1, j]),
-            np.maximum(self.z[i, j + 1], self.z[i + 1, j + 1]),
+            np.maximum(z[i, j], z[i + 1, j]), np.maximum(z[i, j + 1], z[i + 1, j + 1])
         )
         return ergebnis
 
@@ -177,6 +195,25 @@ def _ins_freie(huelle, x, y, radius, schritt=1.0):
         d[laenge > 1e-9] /= laenge[laenge > 1e-9, None]
         d[laenge <= 1e-9] = 0.0
         ergebnis[k0 : k0 + 256] = d
+    return ergebnis
+
+
+def _im_kreis(z, zellen):
+    """Das Höchste im Kreis mit `zellen` Rasterpunkten Halbmesser um jeden Rasterpunkt."""
+    if zellen <= 0:
+        return z
+    n = int(math.ceil(zellen - 1e-9))
+    ergebnis = z.copy()
+    for di in range(-n, n + 1):
+        for dj in range(-n, n + 1):
+            if (di or dj) and di * di + dj * dj <= zellen * zellen + 1e-9:
+                verschoben = np.full(z.shape, -np.inf)
+                quelle_i = slice(max(di, 0), z.shape[0] + min(di, 0))
+                ziel_i = slice(max(-di, 0), z.shape[0] + min(-di, 0))
+                quelle_j = slice(max(dj, 0), z.shape[1] + min(dj, 0))
+                ziel_j = slice(max(-dj, 0), z.shape[1] + min(-dj, 0))
+                verschoben[ziel_i, ziel_j] = z[quelle_i, quelle_j]
+                np.maximum(ergebnis, verschoben, out=ergebnis)
     return ergebnis
 
 
@@ -239,7 +276,7 @@ def stoesst(huelle, mitten, achsen, koerper_, kugel_radius, mit_schaft):
                 + punkte[None, :, 1:2] * v[k, None, :]
                 + punkte[None, :, 2:3] * achsen[k, None, :]
             )
-            unter = welt[..., 2] < huelle.hoehe(welt[..., 0], welt[..., 1]) + spiel
+            unter = welt[..., 2] < huelle.hoehe(welt[..., 0], welt[..., 1], spiel) + spiel
             ergebnis[k] |= unter.any(axis=1)
     return ergebnis
 
@@ -327,16 +364,81 @@ def noetig(huelle, mitten, koerper_, kugel_radius, halter_radius, winkel_max=WIN
 
 def geglaettet(punkte, winkel, richtung, umkreis=GLAETTEN):
     """(Neigung, Richtung) entlang der Bahn geglättet: je Stelle die größte Neigung im Umkreis
-    `umkreis` (mm Weg), mit der Richtung der Stelle, die sie braucht."""
+    `umkreis` (mm Weg), die Richtung gemittelt über die Kippvektoren dort (sin Neigung ·
+    Richtung, das Gewicht fällt bis zum Rand des Umkreises auf 0) – die Richtung dreht stetig,
+    statt zu springen (zwischen zwei Stellen, deren Richtung sprang, stieß der Halter an).
+    Geprüft ist das noch nicht: pruefen()."""
     weg = np.concatenate([[0.0], np.cumsum(np.linalg.norm(np.diff(punkte, axis=0), axis=1))])
+    vektoren = np.sin(np.radians(winkel))[:, None] * richtung
     neu_w, neu_r = winkel.copy(), richtung.copy()
     for i in range(len(punkte)):
         a = np.searchsorted(weg, weg[i] - umkreis)
         b = np.searchsorted(weg, weg[i] + umkreis, "right")
-        k = a + int(np.argmax(winkel[a:b]))
-        if winkel[k] > neu_w[i]:
-            neu_w[i], neu_r[i] = winkel[k], richtung[k]
+        gewicht = np.maximum(0.0, 1.0 - np.abs(weg[a:b] - weg[i]) / umkreis)
+        mittel = (gewicht[:, None] * vektoren[a:b]).sum(axis=0)
+        neu_w[i] = float(np.max(winkel[a:b]))
+        if np.linalg.norm(mittel) > 1e-9 and neu_w[i] > 0:
+            neu_r[i] = mittel / np.linalg.norm(mittel)
     return neu_w, neu_r
+
+
+def pruefen(huelle, mitten, koerper_, kugel_radius, winkel, richtung, roh, winkel_max):
+    """(Neigung, Richtung, geht) – die geglätteten Achsen nachgeprüft: Stößt eine Stelle an, kippt
+    sie in ihrer Richtung weiter (bis `winkel_max`), sonst gilt ihre eigene Lösung `roh` (Neigung,
+    Richtung, geht aus noetig()). Dann die Mitte zwischen zwei nahen Stellen mit der gemittelten
+    Achse (so setzt das Maschinenprogramm dort Punkte ein, simultan.verdichtet): Stößt sie an,
+    kippen beide Nachbarn um 2° weiter, solange sie dabei frei bleiben."""
+    winkel, richtung = winkel.copy(), richtung.copy()
+    geht = roh[2].copy()
+    stoss = stoesst(huelle, mitten, _gekippt(richtung, winkel), koerper_, kugel_radius, winkel > 0)
+    for i in np.flatnonzero(stoss):
+        w = _ab(
+            huelle,
+            mitten[i : i + 1],
+            richtung[i : i + 1],
+            winkel[i],
+            koerper_,
+            kugel_radius,
+            winkel_max,
+        )
+        if np.isfinite(w):
+            winkel[i] = w
+        else:
+            winkel[i], richtung[i] = roh[0][i], roh[1][i]
+    nah = np.linalg.norm(np.diff(mitten, axis=0), axis=1) < 3.0
+    for _runde in range(10):
+        achsen = _gekippt(richtung, winkel)
+        k = np.flatnonzero(nah & ((winkel[:-1] > 0) | (winkel[1:] > 0)))
+        if not len(k):
+            break
+        mitte = (achsen[k] + achsen[k + 1]) / 2
+        mitte /= np.linalg.norm(mitte, axis=1)[:, None]
+        stoss = stoesst(
+            huelle, (mitten[k] + mitten[k + 1]) / 2, mitte, koerper_, kugel_radius,
+            np.ones(len(k), dtype=bool),
+        )  # fmt: skip
+        if not stoss.any():
+            break
+        for j in k[stoss]:
+            for i in (j, j + 1):
+                if winkel[i] + 2.0 > winkel_max:
+                    geht[i] = False
+                    continue
+                versuch = _gekippt(richtung[i : i + 1], [winkel[i] + 2.0])
+                if not stoesst(huelle, mitten[i : i + 1], versuch, koerper_, kugel_radius, None)[0]:
+                    winkel[i] += 2.0
+    return winkel, richtung, geht
+
+
+def _ab(huelle, mitte, richtung, von, koerper_, kugel_radius, winkel_max):
+    """Die kleinste Neigung ab `von` in `richtung` (je eine Stelle), bei der nichts anstößt – inf,
+    wenn keine bis `winkel_max` geht."""
+    for w in np.arange(von + WINKEL_SCHRITT, winkel_max + 1e-9, WINKEL_SCHRITT):
+        if not stoesst(
+            huelle, mitte, _gekippt(richtung, [w]), koerper_, kugel_radius, np.ones(1, dtype=bool)
+        )[0]:
+            return float(w)
+    return math.inf
 
 
 @dataclass
@@ -376,8 +478,11 @@ def achsen(befehle, form, kugel_radius, halter, schaft_radius, auskragung, winke
     bis = _bis(huelle, mitten[:, 2] - kugel_radius, halter, winkel_max)
     koerper_ = koerper(halter, schaft_radius, kugel_radius, auskragung, bis)
     nase = halter.abschnitte[-1].d_unten / 2 if halter.abschnitte else halter_radius
-    winkel, richtung, geht = noetig(huelle, mitten, koerper_, kugel_radius, nase, winkel_max)
-    winkel, richtung = geglaettet(mitten, winkel, richtung)
+    roh = noetig(huelle, mitten, koerper_, kugel_radius, nase, winkel_max)
+    winkel, richtung = geglaettet(mitten, roh[0], roh[1])
+    winkel, richtung, geht = pruefen(
+        huelle, mitten, koerper_, kugel_radius, winkel, richtung, roh, winkel_max
+    )
     je_satz = {
         i: tuple(a) for (i, _p, _e), a in zip(vorschub, _gekippt(richtung, winkel), strict=True)
     }
@@ -447,3 +552,69 @@ def kuerzeste_auskragung(
         else:
             unten = mitte
     return bis
+
+
+def einspannung(tc, bibliothek=None):
+    """(Halter, Schaft-Radius, Auskragung) des Werkzeugs am Controller – wie „Auf der Maschine
+    prüfen“: der Halter aus der Werkzeugverwaltung (ohne gewählten der vorgeschlagene), die Länge
+    bis zur Aufnahme; die Auskragung ist sie ohne den Halter (Nase bis Spitze). ValueError mit
+    einem Satz bei einem gewinkelten Halter."""
+    from . import halter as hl
+    from . import reichweite as rw
+    from . import werkzeuge as wz
+    from .sprache import tr
+
+    if bibliothek is None:
+        try:
+            bibliothek = wz.Bibliothek.laden()
+        except (wz.BeschaedigteDatei, OSError):
+            bibliothek = None
+    laenge = rw.werkzeuglaenge(tc, bibliothek)[0]
+    masse = rw.werkzeugmasse(tc, bibliothek, laenge)
+    halter = rw.werkzeughalter(tc, bibliothek) or hl.vorschlag(masse.schaft or masse.durchmesser)
+    if halter.gewinkelt:
+        raise ValueError(tr("wk.fehler.gewinkelt"))
+    schaft = (masse.schaft or masse.durchmesser) / 2
+    return halter, schaft, float(laenge) - float(halter.laenge)
+
+
+def einspannung_werkzeug(werkzeug, bibliothek):
+    """(Halter, Schaft-Radius, Auskragung) eines Werkzeugs der Werkzeugverwaltung – wie
+    einspannung() für den Assistenten, der noch keinen Controller hat. None mit einem gewinkelten
+    Halter oder ohne Halter."""
+    from . import halter as hl
+    from . import reichweite as rw
+    from . import werkzeuge as wz
+
+    halter = bibliothek.halter_fuer_pruefung(werkzeug) if bibliothek is not None else None
+    if halter is None:
+        halter = hl.vorschlag(wz.schaft_fuer_cam(werkzeug) or werkzeug.durchmesser)
+    if halter.gewinkelt:
+        return None
+    if bibliothek is not None:
+        laenge = rw.laenge_des_werkzeugs(werkzeug, bibliothek)[0]
+    else:
+        laenge = wz.laenge_mit_vorschlag(werkzeug, halter)
+    schaft = (wz.schaft_fuer_cam(werkzeug) or werkzeug.durchmesser) / 2
+    return halter, schaft, float(laenge) - float(halter.laenge)
+
+
+@dataclass
+class Bedarf:
+    """Wie weit ein Fräser an einer Bahn mindestens herausstehen muss (für den Assistenten)."""
+
+    senkrecht: float  # mm
+    gekippt: float  # mm, bis winkel_max gekippt
+    auskragung: float  # mm – so weit steht er heraus
+
+
+def bedarf(form, punkte, kugel_radius, einspannung_, winkel_max=WINKEL_MAX, hoechstens=600):
+    """Bedarf an `punkte` (Spitzen, senkrecht gerechnet) – an höchstens `hoechstens` davon
+    (gleichmäßig ausgewählt), auf 0,25 mm."""
+    halter, schaft, auskragung = einspannung_
+    punkte = np.asarray(punkte, dtype=float)
+    if len(punkte) > hoechstens:
+        punkte = punkte[:: int(math.ceil(len(punkte) / hoechstens))]
+    senkrecht = kuerzeste_auskragung(form, punkte, kugel_radius, halter, schaft, winkel_max=0)
+    gekippt = kuerzeste_auskragung(form, punkte, kugel_radius, halter, schaft, winkel_max)
+    return Bedarf(senkrecht, gekippt, auskragung)

@@ -375,21 +375,26 @@ def werkzeuglaenge(tc, bibliothek):
     """
     werkzeug = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
     if werkzeug is not None:
-        if werkzeug.laenge_spindelnase:
-            return werkzeug.laenge_spindelnase, LAENGE_SPINDELNASE
-        halter = bibliothek.halter_fuer_pruefung(werkzeug)
-        if hl.ist_vorschlag(halter):
-            return wz.laenge_mit_vorschlag(werkzeug, halter), LAENGE_VORSCHLAG
-        if halter is not None:
-            return wz.laenge_mit_halter(werkzeug, halter), LAENGE_HALTER
-        if werkzeug.gesamtlaenge:
-            return werkzeug.gesamtlaenge, LAENGE_GESAMT
-        return wz.geschaetzte_laenge(werkzeug), LAENGE_GESCHAETZT
+        return laenge_des_werkzeugs(werkzeug, bibliothek)
     laenge = getattr(getattr(tc, "Tool", None), "Length", None)
     try:
         return float(laenge.getValueAs("mm")), LAENGE_CAM
     except AttributeError:
         return float(laenge or 0.0), LAENGE_CAM
+
+
+def laenge_des_werkzeugs(werkzeug, bibliothek):
+    """(Länge in mm, Quelle) eines Werkzeugs der Werkzeugverwaltung, wie werkzeuglaenge()."""
+    if werkzeug.laenge_spindelnase:
+        return werkzeug.laenge_spindelnase, LAENGE_SPINDELNASE
+    halter = bibliothek.halter_fuer_pruefung(werkzeug)
+    if hl.ist_vorschlag(halter):
+        return wz.laenge_mit_vorschlag(werkzeug, halter), LAENGE_VORSCHLAG
+    if halter is not None:
+        return wz.laenge_mit_halter(werkzeug, halter), LAENGE_HALTER
+    if werkzeug.gesamtlaenge:
+        return werkzeug.gesamtlaenge, LAENGE_GESAMT
+    return wz.geschaetzte_laenge(werkzeug), LAENGE_GESCHAETZT
 
 
 @dataclass
