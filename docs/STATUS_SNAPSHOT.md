@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.175.0 (P-2026-10-04-36). Alles, was hier als gebaut steht,
+Stand 0.176.0 (P-2026-10-04-37). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -83,7 +83,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   sonst ohne Zyklus), F4 auf der Maschine prüfen, F5 Befehl „Ebene schwenken (3+2) …“, F6 Materialstand über Ebenen gebaut.
   Nachgezogen bis P-2026-10-03-46: Schwenkhöhe, schräge Bohrungen, Programm mit der Maschine,
   Bohren am Schwenkkopf, Knopf im Assistenten, Bestückung je Aufspannung.
-  Offen: Manuels Entscheidungen D-1, D-2, D-4, D-5 (D-3 durch die TCPM-Antwort entschieden).
+  D-1 … D-5 entschieden (2026-10-04); gebaut D-1, D-2 (P-2026-10-04-37), D-5 (-36); offen D-4
+  (Sprungmarken und Kopf im Programm).
 - **W-015 5 Achsen simultan** – (Spezifikation Strategien 16) Kern S1 ohne TCPM (`simultan.py`,
   Verdichten auf 0,005 mm). **S2 Kugelfräser angestellt** (Manuel, 2026-10-04: „Ja, so bauen“ –
   E-2 und E-3 entschieden): P-2026-10-04-21 – „3D-Schlichten“ mit der Eigenschaft „Anstellen“

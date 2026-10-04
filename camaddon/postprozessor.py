@@ -259,7 +259,7 @@ STEUERUNGEN = {
         # _DIR, _FR_I, _DMODE) – Freifahren Maschinenachse Z, Schwenkdatensatz "" (nur einer),
         # neu, Modus 27 (achsweise, Reihenfolge Z, Y, X), Bezugspunkt vor der Drehung, die
         # Winkel, Richtung −1, G17. Zurück: CYCLE800() (Grundlagen, Beispiel N10).
-        schwenken='CYCLE800(1,"",0,27,{x0},{y0},{z0},{a},{b},{c},0,0,0,-1,0,1)',
+        schwenken='CYCLE800(1,"{tc}",0,27,{x0},{y0},{z0},{a},{b},{c},0,0,0,{dir},0,1)',
         schwenken_aus="CYCLE800()",
         # G81 ff. gibt es nur im ISO-Sprachmodus G291 (Grundlagen 03/2010, S. 535); nach dem
         # Handbuch (Arbeitsvorbereitung 10/2015, S. 651–663): CYCLE81(RTP, RFP, SDIS, DP),
@@ -363,6 +363,7 @@ class Maschineninfo:
     hauptspindel: str = ""  # ihre Nummer („4“ bei S4/C4); leer: keine bekannt
     hauptspindel_name: str = ""  # ihr NC-Name („S4“)
     antrieb_c: dict = field(default_factory=dict)  # Nummer des Antriebs → seine C-Achse („C1“)
+    schwenkdatensatz: str = ""  # Name des Schwenkdatensatzes (CYCLE800 _TC); leer: der einzige
 
 
 @dataclass
@@ -639,7 +640,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 rund = sw.text_rundachsen(abschnitt.schwenkung.rund, programm=True)
                 notiz(tr("pp.ebene", rundachsen=rund))
                 if zyklus:
-                    zeilen.extend(_schwenken_ein(s, abschnitt.schwenkung))
+                    zeilen.extend(_schwenken_ein(s, abschnitt.schwenkung, info))
             geschwenkt = abschnitt.schwenkung
         mit_rundachse = any(set(p) & set(ROTATION) for _n, p in befehle)
         if info.drehmaschine and mit_rundachse and not c_an and s.c_achse:
@@ -788,11 +789,16 @@ def _zyklus_als_befehl(s, vorlage, parameter, stand, auf_r):
     return zeilen
 
 
-def _schwenken_ein(s, schwenkung):
+def _schwenken_ein(s, schwenkung, info=None):
     """Der Schwenkzyklus für die Ebene (Steuerung.schwenken)."""
     (x0, y0, z0), (a, b, c) = sw.zyklus_winkel(schwenkung.ebene)
     werte = {"x0": x0, "y0": y0, "z0": z0, "a": a, "b": b, "c": c}
-    return _zeilen(_fuellen(s.schwenken, **{k: _zahl(v) for k, v in werte.items()}))
+    werte = {k: _zahl(v) for k, v in werte.items()}
+    # D-1, D-2: der Schwenkdatensatz der Maschine und die Vorzugsrichtung, mit der die Steuerung
+    # die geprüfte Stellung nimmt.
+    werte["tc"] = info.schwenkdatensatz if info is not None else ""
+    werte["dir"] = str(int(getattr(schwenkung, "richtung", -1) or -1))
+    return _zeilen(_fuellen(s.schwenken, **werte))
 
 
 def _schwenken_aus(s, schwenkung, zyklus, oben=False):
@@ -1072,6 +1078,7 @@ def _info_aus(dok, m, msp):
             b.upper(): w for b, w in m.wechselpunkt(maschine).items() if b.upper() in "XYZ"
         }
         info.wechsel_wks = m.wechsel_bezug(maschine) == m.WECHSEL_WKS
+        info.schwenkdatensatz = m.schwenkdatensatz(maschine)
         spindeln = m.spindeln(maschine)
         info.hauptspindel = m.nc_nummer(spindeln.haupt)
         if spindeln.haupt is not None:

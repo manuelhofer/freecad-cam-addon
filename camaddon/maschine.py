@@ -220,6 +220,45 @@ WECHSEL_WKS = "WKS"
 WECHSEL_BEZUEGE = (WECHSEL_MKS, WECHSEL_WKS)
 
 
+# Der Schwenkdatensatz für den Schwenkzyklus der Steuerung (Siemens CYCLE800 _TC): sein Name –
+# leer: die Maschine hat einen einzigen –, und worauf sich die Vorzugsrichtung _DIR bezieht
+# (Rundachse 1 oder 2; bei der Inbetriebnahme im Schwenkdatensatz eingestellt). Manuel,
+# 2026-10-04: „das muss je nach Maschine entschieden werden … das ist ja in der
+# Maschinenkonfiguration eingerichtet“.
+SCHWENK_BEZUEGE = (1, 2)
+
+
+def schwenkdatensatz(maschine):
+    """Der Name des Schwenkdatensatzes (CYCLE800 _TC) – leer: der einzige der Maschine."""
+    return str(getattr(maschine, "Schwenkdatensatz", "") or "").strip()
+
+
+def schwenk_bezug(maschine):
+    """Auf welche Rundachse (1 oder 2) sich die Vorzugsrichtung (_DIR) bezieht – ohne Angabe 1."""
+    try:
+        wert = int(getattr(maschine, "SchwenkBezug", 1) or 1)
+    except (TypeError, ValueError):
+        return 1
+    return wert if wert in SCHWENK_BEZUEGE else 1
+
+
+def setze_schwenkdaten(maschine, datensatz, bezug):
+    """Trägt Schwenkdatensatz und Richtungsbezug ein (legt die Eigenschaften an, wo nötig)."""
+    if "Schwenkdatensatz" not in maschine.PropertiesList:
+        maschine.addProperty(
+            "App::PropertyString",
+            "Schwenkdatensatz",
+            "Maschine",
+            tr("eigenschaft.schwenkdatensatz"),
+        )
+    if "SchwenkBezug" not in maschine.PropertiesList:
+        maschine.addProperty(
+            "App::PropertyInteger", "SchwenkBezug", "Maschine", tr("eigenschaft.schwenk_bezug")
+        )
+    maschine.Schwenkdatensatz = str(datensatz or "").strip()
+    maschine.SchwenkBezug = int(bezug) if int(bezug) in SCHWENK_BEZUEGE else 1
+
+
 def wechselzeit(maschine):
     """Wie lange ein Werkzeugwechsel dauert (s) – 0 ohne Angabe."""
     return max(0.0, float(getattr(maschine, "Wechselzeit", 0.0) or 0.0))

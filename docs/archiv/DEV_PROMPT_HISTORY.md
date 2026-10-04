@@ -12,6 +12,46 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-37 schwenkdatensatz-richtung
+
+### EINGELESEN
+- Manuel, 2026-10-04, zu D-1: „ich habe keine 5 ach maschine und es muss ja für alle
+  funktionieren .. von daher schau dir bitte im netz die typische konfiguration an und übernehme
+  das“; zu D-2: „das muss je nach maschine entschieden werden auserdem ist das ja in der maschinen
+  konfiguration eingerichtet würde ich sagen !!!“.
+- Nachgelesen (CYCLE800, Siemens-Programmierhandbuch, Zusammenfassung zappettiniconsulting.com):
+  _TC „“ bei einem einzigen Schwenkdatensatz, „0“ wählt ab; _DIR −1 die Stellung mit dem
+  kleineren, +1 mit dem größeren Wert der Rundachse; ob Rundachse 1 oder 2 zählt, stellt die
+  Inbetriebnahme im Schwenkdatensatz ein.
+
+### DATEIEN
+- `camaddon/maschine.py` (`schwenkdatensatz`, `schwenk_bezug`, `setze_schwenkdaten`),
+  `camaddon/schwenken.py` (`siemens_reihenfolge`, `zyklus_richtung`, `Schwenkung.richtung`),
+  `camaddon/postprozessor.py` (Siemens `CYCLE800(1,"{tc}",…,{dir},0,1)`,
+  `Maschineninfo.schwenkdatensatz`), `camaddon/gui_maschine.py` (die zwei Zeilen),
+  Übersetzungen, `tests/test_schwenken.py`, `tests/gui/szenario_schwenkdatensatz.py` (neu),
+  `docs/spezifikation_strategien.md` (15.4), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.176.0).
+
+### AKZEPTANZKRITERIUM
+- Kopf/Tisch, 45°-Fläche: Rundachse 1 ist B, `_DIR` +1 (die geprüfte Stellung B45 C0);
+  Tisch/Tisch A−45 C−90: −1 auf A, +1 auf C. „TC1“ und Rundachse 2 in „Maschine bearbeiten“
+  stehen an der Maschine und im Programm.
+
+### DONE
+- Gesehen (Screenshot `1_schwenkdatensatz`): „Schwenkdatensatz TC1“, „Richtung bezogen auf
+  Rundachse 2“ unter „Home und Werkzeugwechsel“; an der 3-Achs-Fräse fehlen die Zeilen.
+- Ohne Maschine bleibt es bei `"",…,-1` wie bisher.
+
+### TESTS
+- `tests/test_schwenken.py`, `tests/test_postprozessor.py`, `tests/test_sprache.py`,
+  `tests/test_maschine.py`; `szenario_schwenkdatensatz` – OK. black und ruff sauber.
+
+### NEXT
+- D-4: Sprungmarken je Bearbeitung (jede ein vollständiger Einstieg: Werkzeug, Spindel, Kühlung
+  – Manuel: „Ja, jede Marke vollständig“), Kopf mit Marken, Werkzeugen (Auskragung, Halter) und
+  Hinweisen, wo es knapp wird; Abfahren ins Freie am Ende jeder Bearbeitung; im Freien mit
+  Eilgang (alle Strategien).
+
 ## P-2026-10-04-36 wechselpunkt-beispielmaschinen
 
 ### EINGELESEN

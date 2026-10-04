@@ -3,6 +3,7 @@
 # Punkte ins Programm ohne Schwenkzyklus (die Spitze steht am gedrehten Werkstück, wo sie soll)
 # und die Winkel für CYCLE800. F2: die Ebene als Job – das Modell mit der Schräge oben, das Rohteil
 # des Grundjobs mit gedreht, und das Räumen fräst die Schräge wie jede Fläche nach oben.
+import dataclasses
 import math
 import os
 import sys
@@ -155,6 +156,23 @@ for bauplan in (
         # Rundachse zuerst – wie CYCLE800 mit _DIR −1.
         erste = maschine.loese(V(1, 0, 1).normalize())[0]
         pruefe(erste == {"A": -45.0, "C": -90.0}, f"Gleichstand: {erste}")
+    # D-1, D-2: Rundachse 1 und 2 wie im Siemens-Schwenkdatensatz – Tisch/Tisch die, die die
+    # andere trägt, zuerst; Kopf/Tisch die des Kopfs. _DIR so, dass die Steuerung die geprüfte
+    # Stellung nimmt: am Kopf/Tisch für die 45°-Fläche B45 C0 (nicht B−45 C−180) – also +1 auf
+    # Rundachse 1 (B); am Tisch/Tisch A−45 C−90 – −1 auf A, auf C (−90 = 270° gegen 90°) +1.
+    reihe = [a.buchstabe for a in sw.siemens_reihenfolge(maschine)]
+    n45 = V(1, 0, 1).normalize()
+    erste = maschine.loese(n45)[0]
+    richtungen = [sw.zyklus_richtung(maschine, n45, erste, bezug) for bezug in (1, 2)]
+    soll = {
+        "fuenfachs_tisch_tisch": (["A", "C"], [-1, 1]),
+        "fuenfachs_kopf_tisch": (["B", "C"], [1, -1]),
+    }.get(bauplan.__name__)
+    if soll is not None:
+        pruefe(
+            (reihe, richtungen) == soll,
+            f"{bauplan.__name__}: Rundachsen {reihe}, _DIR {richtungen} bei {erste}",
+        )
     for normale in (n_soll, V(1, 0, 1).normalize(), V(0, 0, 1)):
         loesungen = maschine.loese(normale)
         if not loesungen:
@@ -428,6 +446,14 @@ pruefe(
     "CYCLE800 nach dem Spindelstart",
 )
 pruefe("CYCLE800()" in siemens[-5:], f"Ende: {siemens[-6:]}")
+# Mit dem Schwenkdatensatz der Maschine und der Richtung der geprüften Stellung (D-1, D-2).
+info_tc = pp.Maschineninfo("5-Achs", schwenkdatensatz="TC1")
+teile_plus = [
+    dataclasses.replace(t, schwenkung=dataclasses.replace(t.schwenkung, richtung=1)) for t in teile
+]
+mit_tc = pp.programm(teile_plus, pp.steuerung("siemens"), info_tc, "Block").zeilen
+zyklus_tc = f'CYCLE800(1,"TC1",0,27,{x0},{y0},{z0},0.000,0.000,30.000,0,0,0,1,0,1)'
+pruefe(zyklus_tc in mit_tc, f"kein {zyklus_tc}: {[z for z in mit_tc if 'CYCLE' in z]}")
 pruefe("; Ebene geschwenkt: A-30 C0" in siemens, "Kommentar zur Ebene")
 erster = next(c for c in op.Path.Commands if c.Name in ("G1", "G01"))
 pruefe(

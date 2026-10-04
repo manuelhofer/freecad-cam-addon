@@ -397,6 +397,10 @@ class Schwenkung:
     # Ohne Schwenkzyklus: Z im Programm, auf das das Werkzeug vor dem Schwenken fährt – über dem
     # Raum, den das Rohteil beim Schwenken überstreicht (schwenkhoehe); None: keine Fahrt davor.
     hoehe: float = None
+    # Mit Schwenkzyklus: die Vorzugsrichtung (CYCLE800 _DIR) – −1 die Stellung mit dem kleineren
+    # Wert der Bezugsrundachse, +1 die mit dem größeren –, so dass die Steuerung die Stellung
+    # nimmt, die „Auf der Maschine prüfen“ gefahren ist (zyklus_richtung).
+    richtung: int = -1
 
     def gesamt(self):
         """Die Abbildung Ebene → Programm."""
@@ -772,7 +776,62 @@ def schwenkung_fuer(job, maschine=None):
     hoehe = None
     if rohteil is not None and not rohteil.isNull():
         hoehe = schwenkhoehe(rohteil, abbildung_bei, rund)
-    return Schwenkung(ebene_von(job), rund, abbildung_bei(rund), hoehe=hoehe)
+    richtung = -1
+    if maschine is not None:
+        from . import maschine as m
+
+        bezug = m.schwenk_bezug(getattr(maschine.pruefung, "maschine", None))
+        richtung = zyklus_richtung(maschine, normale_der(ebene_von(job)), rund, bezug)
+    return Schwenkung(ebene_von(job), rund, abbildung_bei(rund), hoehe=hoehe, richtung=richtung)
+
+
+def siemens_reihenfolge(maschine):
+    """Die Rundachsen der Maschine (sw.Maschine) als Rundachse 1, 2 wie im Schwenkdatensatz
+    einer Siemens-Steuerung: Drehen beide das Werkstück (Tisch/Tisch) oder beide das Werkzeug
+    (Kopf/Kopf), ist die erste die, die die zweite trägt – vom Bett aus zuerst; gemischt
+    (Kopf/Tisch) dreht die erste das Werkzeug, die zweite das Werkstück."""
+    p = maschine.pruefung
+    werkzeug = list(p.verfahren.pfad(p._glied(maschine.aufnahme)))
+    stueck = list(p.verfahren.pfad(p._glied(p.werkstueckaufnahme)))
+    kopf = sorted(
+        (a for a in maschine.rundachsen if a.achse in werkzeug),
+        key=lambda a: werkzeug.index(a.achse),
+    )
+    tisch = sorted(
+        (a for a in maschine.rundachsen if a.achse in stueck and a.achse not in werkzeug),
+        key=lambda a: stueck.index(a.achse),
+    )
+    return kopf + tisch
+
+
+def _vergleichswert(rundachse, wert):
+    """Wie der Schwenkzyklus Werte einer Rundachse vergleicht: eine endlose (Modulo) in
+    0 … 360°, eine begrenzte, wie sie ist."""
+    if rundachse.minimum is None and rundachse.maximum is None:
+        return wert % 360.0
+    return wert
+
+
+def zyklus_richtung(maschine, normale, rund, bezug=1):
+    """Die Vorzugsrichtung (CYCLE800 _DIR) für die Stellung `rund`: −1, wenn sie unter den
+    erlaubten Stellungen zur Normale den kleineren Wert der Bezugsrundachse (`bezug`: 1 oder 2,
+    siemens_reihenfolge) hat, +1, wenn den größeren – so nimmt die Steuerung dieselbe Stellung,
+    die das Addon geprüft hat. −1, wenn es keine andere gibt."""
+    reihe = siemens_reihenfolge(maschine)
+    if len(reihe) < bezug:
+        return -1
+    achse = reihe[bezug - 1]
+    andere = [
+        r
+        for r in maschine.loese(normale)
+        if all(a.erlaubt(r[a.buchstabe]) for a in maschine.rundachsen)
+        and any(abs(r[k] - rund.get(k, 0.0)) > 1e-3 for k in r)
+    ]
+    if not andere or achse.buchstabe not in rund:
+        return -1
+    hier = _vergleichswert(achse, rund[achse.buchstabe])
+    werte = [_vergleichswert(achse, r[achse.buchstabe]) for r in andere]
+    return -1 if all(hier <= w + 1e-6 for w in werte) else 1
 
 
 def ebenen_von(grundjob):

@@ -2589,6 +2589,15 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
   entschieden werden … das ist ja in der Maschinenkonfiguration eingerichtet“. → Schwenkdatensatz
   (Name, welche Rundachse die erste ist, worauf sich die Richtung bezieht) gehört an die Maschine,
   vorbelegt wie an Siemens-Maschinen üblich; `_DIR` je Ebene aus der geprüften Stellung.
+  **Gebaut** P-2026-10-04-37: An der Maschine „Schwenkdatensatz“ (CYCLE800 _TC; leer – so
+  übergibt man ihn, wenn die Maschine nur einen hat; „0“ wählte ihn ab) und „Richtung bezogen
+  auf“ Rundachse 1 oder 2 (bei der Inbetriebnahme im Schwenkdatensatz eingestellt), beide in
+  „Maschine bearbeiten“ unter „Home und Werkzeugwechsel“, nur an Maschinen mit zwei
+  Rundachsen. Rundachse 1 und 2 wie im Siemens-Schwenkdatensatz (`sw.siemens_reihenfolge`):
+  Tisch/Tisch und Kopf/Kopf die, die die andere trägt, zuerst; Kopf/Tisch die des Kopfs zuerst.
+  `_DIR` je Ebene (`sw.zyklus_richtung`): −1, wenn die geprüfte Stellung unter den erlaubten den
+  kleineren Wert der Bezugsrundachse hat (eine endlose in 0 … 360°), sonst +1. Am Kopf/Tisch,
+  45°-Fläche: B45 C0 geprüft → `_DIR` +1 (fest −1 hätte B−45 C−180 genommen).
 - **D-4:** ein Programm je Job – mit Sprungmarken je Bearbeitung (Siemens: Marken, die sich mit
   GOTOF/GOTOB anspringen lassen; Heidenhain: LBL), sinnvoll benannt. Im Kopf des Programms: die
   Marken mit ihrer Bearbeitung, die Werkzeuge mit Auskragung und Halter, Hinweise, wo es knapp

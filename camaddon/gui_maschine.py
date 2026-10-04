@@ -345,6 +345,42 @@ class MaschinenPanel:
                 aufbau.addWidget(feld, 1)
             durchmesser = " Ø" if faktor != 1.0 else ""
             self.punkte_formular.addRow(f"{m.name_von(ba)}{durchmesser}", zeile)
+        self._schwenkdaten_zeilen()
+
+    def _schwenkdaten_zeilen(self):
+        """Schwenkdatensatz und Richtungsbezug (D-1, D-2) – nur an Maschinen mit zwei
+        Rundachsen, die positionieren (5 Achsen)."""
+        self.feld_schwenkdatensatz = self.wahl_schwenk_bezug = None
+        rund = [ba for ba in m.betriebsarten(self.maschine) if ba.Art == m.ART_POSITIONIEREN]
+        if len(rund) < 2:
+            return
+        self.feld_schwenkdatensatz = QtGui.QLineEdit(m.schwenkdatensatz(self.maschine))
+        self.feld_schwenkdatensatz.setPlaceholderText(tr("dialog.schwenkdatensatz.platzhalter"))
+        self.feld_schwenkdatensatz.setToolTip(tr("dialog.schwenkdatensatz.tooltip"))
+        self.feld_schwenkdatensatz.editingFinished.connect(self._schwenkdaten_gesetzt)
+        self.punkte_formular.addRow(tr("dialog.schwenkdatensatz"), self.feld_schwenkdatensatz)
+        self.wahl_schwenk_bezug = QtGui.QComboBox()
+        for nummer in m.SCHWENK_BEZUEGE:
+            self.wahl_schwenk_bezug.addItem(tr("dialog.schwenk_bezug.ohne", nummer=nummer), nummer)
+        self.wahl_schwenk_bezug.setCurrentIndex(
+            max(0, self.wahl_schwenk_bezug.findData(m.schwenk_bezug(self.maschine)))
+        )
+        self.wahl_schwenk_bezug.setToolTip(tr("dialog.schwenk_bezug.tooltip"))
+        self.wahl_schwenk_bezug.currentIndexChanged.connect(self._schwenkdaten_gesetzt)
+        ruhiges_mausrad(self.wahl_schwenk_bezug)
+        self.punkte_formular.addRow(tr("dialog.schwenk_bezug"), self.wahl_schwenk_bezug)
+
+    def _schwenkdaten_gesetzt(self, *_):
+        if self.feld_schwenkdatensatz is None or self.wahl_schwenk_bezug is None:
+            return
+        datensatz = self.feld_schwenkdatensatz.text().strip()
+        bezug = int(self.wahl_schwenk_bezug.currentData() or 1)
+        if datensatz == m.schwenkdatensatz(self.maschine) and bezug == m.schwenk_bezug(
+            self.maschine
+        ):
+            return
+        m.setze_schwenkdaten(self.maschine, datensatz, bezug)
+        self._auffrischen()
 
     def _punktfeld(self, ba, name, leer, tooltip, faktor):
         """Ein Feld für Home oder Wechsel der Achse `ba`: Zahl – oder leer, dann ist „…An“ aus;
