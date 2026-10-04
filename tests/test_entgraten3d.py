@@ -220,6 +220,42 @@ for werte, text in (
     except ValueError:
         pass
 
+# --- Ein geschlossener Rand: die Kugelmulde -------------------------------------------------------
+# Wie am Testteil: oben ein Zylinderband von 0,01 mm, darunter glatt die Kugel. Der Rand ist ein
+# Kreis – Anfang und Ende ein Punkt; vorher war er ganz „zu eng“ (zwischen den Enden lag nichts,
+# und die Kugel zählte nicht zur Kante).
+mulde = Part.makeBox(60, 60, 10).cut(Part.makeCylinder(12.5, 0.02, V(30, 30, 9.99)))
+mulde = mulde.cut(Part.makeSphere(12.5, V(30, 30, 9.99))).removeSplitter()
+rand = [
+    k
+    for k in e3.kanten(mulde, [f"Face{i + 1}" for i in range(len(mulde.Faces))])
+    if isinstance(k.kante.Curve, Part.Circle) and abs(k.kante.BoundBox.ZMin - 10) < 1e-6
+]
+pruefe(
+    len(rand) == 1 and len(rand[0].glatt) >= 3, f"Muldenrand: {[(k.name, k.glatt) for k in rand]}"
+)
+for werte, titel in (
+    (e3.Werte3D(KEGEL, 0.5, e3.FUENF, sicher=40.0), "Mulde 5 Achsen Kegel"),
+    (e3.Werte3D(KEGEL, 0.5, e3.DREI, sicher=40.0), "Mulde 3 Achsen Kegel"),
+):
+    if not rand:
+        break
+    k = rand[0]
+    wolke_mulde = e3.wolke(mulde, rand, werte.fraeser.hoehe + werte.fraeser.radius)
+    stellen = e3._stellen_der_kante(k, werte, wolke_mulde)
+    mit = [(p, lage) for p, lage, _g in stellen if lage is not None]
+    teile, _ohne = e3._laeufe(stellen, k.kante)
+    pruefe(
+        len(mit) == len(stellen) and len(teile) == 1,
+        f"{titel}: {len(mit)} von {len(stellen)} Stellen, {len(teile)} Läufe",
+    )
+    schlimmste = 0.0
+    for p, lage in mit[:: max(1, len(mit) // 8)]:
+        e, t, *_rest = e3._geometrie(k, p)
+        schlimmste = max(schlimmste, keilpruefung(lage, e, t, lage.schenkel, werte.fraeser, mulde))
+    pruefe(schlimmste < 0.03, f"{titel}: außerhalb der Fase {schlimmste:.3f} mm")
+    print(ascii(f"{titel}: {len(mit)} von {len(stellen)} Stellen, schlimmstens {schlimmste:.3f}"))
+
 # --- Die Enden: an einer Ecke bis hinein, an einer Wand davor -----------------------------------
 # Eine Stufe: unten 60 × 40 × 10, rechts darauf ein Block 20 × 40 × 10. Die vordere Oberkante
 # der unteren Stufe endet links an einer Ecke (die Fase läuft durch, das Dreieck jenseits der

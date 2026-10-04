@@ -2907,6 +2907,18 @@ Kollision mit Rundachsen je Station.
   358 statt 555 Sätze, 4,0 statt 4,3 min, Kollision ohne Befund. `test_entgraten3d` zählt je Lauf,
   wie oft die Spitze quer zur Laufrichtung umkehrt (höchstens 2 – an den Ecken gleitet die Fase
   zur Spitze); mit dem alten Stand bis 15.
+  **Geschlossene Ränder, glatte Nachbarn (P-2026-10-04-70):** An Manuels Testteil (3 Achsen,
+  Fasenfräser 90° Ø 10) war der ganze Rand der Kugelmulde „zu eng“ – zwei Fehler: Ein
+  geschlossener Rand (Kreis) hat Anfang und Ende im selben Punkt, „zwischen den Enden“ ließ
+  fast nichts der eigenen Flächen zu (gilt für jeden Bohrungs- und Taschenrand als voller Kreis);
+  und unter dem Rand liegt dort ein Zylinderband von 0,01 mm, erst darunter die Kugel – sie zählte
+  nicht zur Kante. Jetzt hat ein geschlossener Rand keine Enden, und Flächen, die glatt an die
+  beiden der Kante anschließen (Normalen weniger als 15° auseinander, bis zwei Flächen weit),
+  gehören zur Fase; ein Lauf über die Naht des Kreises bleibt einer. Testteil danach: 20 von 30
+  Außenkanten, 717 mm (vorher 19, 677 mm); am Muldenrand nur noch, wo die Insel daneben steht,
+  keine Fase (mit dem vorgeschlagenen Halter: 10 mm Auskragung). Am Prüfklotz bekommt auch der
+  Rand der Bohrung seine Fase. Die Halterprüfung siebt erst mit einer Hülle je Höhe und sucht je
+  Stück (Testteil 10,2 → 7,1 s).
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

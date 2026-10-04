@@ -51,6 +51,7 @@ SCHAFT = 15.0  # mm – ohne Aufbau: so weit über der Schneide gehört der Kör
 # mm – so viel Luft lassen Schaft und Halter zum Teil und das ganze Werkzeug zum Tisch (mehr als
 # die Warnung der Kollisionsprüfung, 1 mm)
 ABSTAND = 1.5
+HUELLE_SCHRITT = 0.25  # mm – das Gitter der Hülle des Aufbaus
 GROB = 1.0  # mm – so dicht wird das ganze Teil für Schaft und Halter abgetastet
 RASTER_GROB = 8.0  # mm – die Zellen dafür
 # Die Spindel über dem Halter, nur gegen den Tisch (die Maschine kennt die Bahn nicht; die
@@ -64,6 +65,7 @@ GLEICH_ACHSE = 1e-4  # rad – so wenig anders gilt die Achse als gleich (gerade
 GLEICH_ORT = 1e-3  # mm
 ANTEILE_KEGEL = (0.5, 0.35, 0.2, 0.08, 0.0)  # wo die Fase auf der Flanke liegt (0: an der Spitze)
 ANTEILE_FLACH = (0.5, 0.3, 0.7, 0.15, 0.85)  # wo die Fase auf der Stirn liegt (Anteil des Radius)
+GLATT_STUFEN = 2  # so viele Flächen weit zählen glatt anschließende zur Kante
 KAPPE = 0.2  # so weit zeigt eine Fläche am Ende der Kante hinaus (cos), dann schließt sie sie ab
 KAPPE_WEIT = 3.0  # so weit (mal Schenkel und STREIFEN) vom Ende zählen ihre Punkte zur Fase
 SPRUNG = math.radians(5.0)  # dreht die Achse von Stelle zu Stelle mehr, endet der Lauf
@@ -118,6 +120,24 @@ class Aufbau:
 
     stuecke: list
     kopf: float
+    _huelle: tuple = field(default=None, repr=False, compare=False)
+
+    def huelle(self, h):
+        """Je Höhe h (numpy) ein Radius, außerhalb dessen kein Punkt ABSTAND an Schaft oder
+        Halter heranreicht (das größte Stück im Fenster ± ABSTAND, plus ABSTAND) – zum Aussieben
+        vor der genauen Rechnung."""
+        if self._huelle is None:
+            unten = min(s[0] for s in self.stuecke) - ABSTAND
+            oben = max(s[1] for s in self.stuecke) + ABSTAND
+            gitter = np.arange(unten, oben + 2 * HUELLE_SCHRITT, HUELLE_SCHRITT)
+            radius = np.zeros(len(gitter))
+            for h0, h1, r0, r1 in self.stuecke:
+                im = (gitter >= h0 - ABSTAND - HUELLE_SCHRITT) & (gitter <= h1 + ABSTAND)
+                radius[im] = np.maximum(radius[im], max(r0, r1))
+            self._huelle = (unten, radius + ABSTAND)
+        unten, radius = self._huelle
+        i = np.clip(((np.asarray(h) - unten) / HUELLE_SCHRITT).astype(np.int64), 0, len(radius) - 2)
+        return np.maximum(radius[i], radius[i + 1])
 
 
 def aufbau(halter, schaft, auskragung, fraeser):
@@ -199,6 +219,9 @@ class Kante3D:
     vorzeichen: tuple  # je Fläche ±1: normalAt mal das zeigt nach außen
     # Je Ende (Anfang, Ende der Kurve) die Flächen, die die Kante dort abschließen (_kappen).
     kappen: tuple = ((), ())
+    # Die beiden Flächen und die, die glatt an sie anschließen (_glatt) – die Fase darf über die
+    # Grenze hinweg (am Testteil hat der Rand der Kugelmulde ein Zylinderband von 0,01 mm).
+    glatt: tuple = ()
 
 
 def _normale(flaeche, p, vorzeichen=1.0):
@@ -216,6 +239,22 @@ def _nach_aussen(form, flaeche, p):
     return -1.0 if form.isInside(probe, 1e-6, False) else 1.0
 
 
+def _aussen(form, nummer, gemerkt):
+    """±1 wie _nach_aussen für die Fläche `nummer`, an einem Punkt in ihrem Inneren (der Mitte
+    eines Dreiecks) – je Fläche einmal, in `gemerkt`."""
+    import FreeCAD
+
+    if nummer not in gemerkt:
+        flaeche = form.Faces[nummer]
+        ecken, dreiecke = flaeche.tessellate(0.1)
+        if not dreiecke:
+            gemerkt[nummer] = 1.0
+        else:
+            mitte = sum((ecken[i] for i in dreiecke[0]), FreeCAD.Vector()) * (1.0 / 3.0)
+            gemerkt[nummer] = _nach_aussen(form, flaeche, mitte)
+    return gemerkt[nummer]
+
+
 def kanten(form, namen):
     """[Kante3D] – die konvexen, scharfen Kanten der gewählten Flächen („Face3“: ihre Kanten) und
     Kanten („Edge7“), ohne die auf dem Tisch (an einer Fläche ganz unten, die nach unten zeigt)."""
@@ -223,6 +262,7 @@ def kanten(form, namen):
     import Part
 
     z_unten = form.BoundBox.ZMin
+    gemerkt = {}  # je Fläche ±1 (_aussen)
     gesucht = []
     for name in namen:
         if name.startswith("Face"):
@@ -260,19 +300,50 @@ def kanten(form, namen):
         if any(form.isInside(FreeCAD.Vector(*(p + 0.05 * r)), 1e-6, False) for r in (d, -d)):
             continue  # Innenkante
         nummern = tuple(next(i for i, f in enumerate(form.Faces) if f.isSame(g)) for g in flaechen)
-        kappen = tuple(_kappen(form, form.Edges[nummer], nummern, ende) for ende in (0, 1))
+        glatt = _glatt(form, nummern, gemerkt)
+        kappen = tuple(_kappen(form, form.Edges[nummer], glatt, ende, gemerkt) for ende in (0, 1))
         ergebnis.append(
-            Kante3D(f"Edge{nummer + 1}", kante, tuple(flaechen), nummern, vorzeichen, kappen)
+            Kante3D(f"Edge{nummer + 1}", kante, tuple(flaechen), nummern, vorzeichen, kappen, glatt)
         )
     return ergebnis
 
 
-def _kappen(form, kante, nummern, ende):
+def _glatt(form, nummern, gemerkt, stufen=GLATT_STUFEN):
+    """Die Nummern der Flächen `nummern` und der Flächen, die über eine Kante glatt an sie
+    anschließen (die Außennormalen an ihrer Mitte weniger als SCHARF auseinander) – bis zu
+    `stufen` Flächen weit."""
+    import Part
+
+    gefunden = list(nummern)
+    rand = list(nummern)
+    for _stufe in range(stufen):
+        neu = []
+        for nummer in rand:
+            flaeche = form.Faces[nummer]
+            for kante in flaeche.Edges:
+                if kante.Length < 1e-9:
+                    continue
+                mitte = kante.valueAt(0.5 * (kante.FirstParameter + kante.LastParameter))
+                for nachbar in form.ancestorsOfType(kante, Part.Face):
+                    andere = next((i for i, f in enumerate(form.Faces) if f.isSame(nachbar)), None)
+                    if andere is None or andere in gefunden or andere in neu:
+                        continue
+                    n_a = _normale(flaeche, mitte, _aussen(form, nummer, gemerkt))
+                    n_b = _normale(nachbar, mitte, _aussen(form, andere, gemerkt))
+                    if float(n_a @ n_b) > math.cos(math.radians(SCHARF)):
+                        neu.append(andere)
+        gefunden.extend(neu)
+        rand = neu
+        if not rand:
+            break
+    return tuple(gefunden)
+
+
+def _kappen(form, kante, nummern, ende, gemerkt):
     """Die Nummern der Flächen, die die Kante am Anfang (0) bzw. Ende (1) abschließen: Ihre
     Außennormale zeigt dort über das Ende hinaus – eine Ecke des Teils, keine Wand, an der die
     Kante endet. Dort darf die Fase durchlaufen und das Dreieck jenseits der Fasenebene aus der
     Fläche nehmen (wie jede Fase, die bis zur Ecke geht); an einer Wand hört sie vorher auf."""
-    import FreeCAD
     import Part
 
     prm = kante.FirstParameter if ende == 0 else kante.LastParameter
@@ -288,11 +359,7 @@ def _kappen(form, kante, nummern, ende):
         nummer = next((i for i, f in enumerate(form.Faces) if f.isSame(flaeche)), None)
         if nummer is None or nummer in nummern or nummer in ergebnis:
             continue
-        ecken, dreiecke = flaeche.tessellate(0.1)
-        if not dreiecke:
-            continue
-        mitte = sum((ecken[i] for i in dreiecke[0]), FreeCAD.Vector()) * (1.0 / 3.0)
-        n = _normale(flaeche, p, _nach_aussen(form, flaeche, mitte))
+        n = _normale(flaeche, p, _aussen(form, nummer, gemerkt))
         if float(n @ hinaus) > KAPPE:
             ergebnis.append(nummer)
     return tuple(ergebnis)
@@ -580,14 +647,25 @@ def _aufbau_im_teil(spitze, achse, w, grob):
     h_unten = min(s[0] for s in stuecke)
     h_oben = max(s[1] for s in stuecke)
     r_max = max(max(s[2], s[3]) for s in stuecke) + ABSTAND
-    ecken = np.array([spitze + h_unten * achse, spitze + h_oben * achse])
-    nummern = grob.nah(ecken.min(axis=0) - r_max, ecken.max(axis=0) + r_max)
-    if not len(nummern):
+    # Je Stück sein eigener Quader – der weite Flansch oben liegt meist über allem.
+    teile = []
+    for h0, h1, r0, r1 in stuecke:
+        r = max(r0, r1) + ABSTAND
+        ecken = np.array([spitze + (h0 - ABSTAND) * achse, spitze + (h1 + ABSTAND) * achse])
+        teil = grob.nah(ecken.min(axis=0) - r, ecken.max(axis=0) + r)
+        if len(teil):
+            teile.append(teil)
+    if not teile:
         return 0.0
+    nummern = np.unique(np.concatenate(teile)) if len(teile) > 1 else teile[0]
     rel = grob.punkte[nummern] - spitze
     h = rel @ achse
     radial = np.linalg.norm(rel - np.outer(h, achse), axis=1)
     nah = (h > h_unten - ABSTAND) & (h < h_oben + ABSTAND) & (radial < r_max)
+    if not nah.any():
+        return 0.0
+    h, radial = h[nah], radial[nah]
+    nah = radial < w.aufbau.huelle(h)
     if not nah.any():
         return 0.0
     h, radial = h[nah], radial[nah]
@@ -631,16 +709,19 @@ def _verletzung(lage, e, t, k, w, wolke_, enden):
     # Erlaubt: auf den Flächen der Kante, auf der Seite der Fase, nahe der Kante, zwischen ihren
     # Enden.
     flaechen = wolke_.flaechen[nummern]
-    eigene = np.isin(flaechen, k.nummern)
+    eigene = np.isin(flaechen, k.glatt or k.nummern)
     ueber = (x - e) @ lage.normale >= -lage.tiefe - RAND
     quer = (x - e) - np.outer((x - e) @ t, t)
     weit = max(lage.schenkel) + STREIFEN
     nahe = np.linalg.norm(quer, axis=1) <= weit
-    (p0, t0), (p1, t1) = enden
-    zwischen = ((x - p0) @ t0 >= -RAND) & ((p1 - x) @ t1 >= -RAND)
-    # Dazu an einer Ecke die Fläche, die die Kante abschließt (_kappen), nahe dem Ende.
     kappe = np.zeros(len(x), dtype=bool)
-    for (p_e, _t_e), nummern_e in zip(enden, k.kappen, strict=True):
+    if enden is None:  # eine geschlossene Kante (ein Kreis) hat keine Enden
+        zwischen = np.ones(len(x), dtype=bool)
+    else:
+        (p0, t0), (p1, t1) = enden
+        zwischen = ((x - p0) @ t0 >= -RAND) & ((p1 - x) @ t1 >= -RAND)
+    # Dazu an einer Ecke die Fläche, die die Kante abschließt (_kappen), nahe dem Ende.
+    for (p_e, _t_e), nummern_e in zip(enden or (), k.kappen if enden else (), strict=True):
         if nummern_e:
             kappe |= np.isin(flaechen, nummern_e) & (
                 np.linalg.norm(x - p_e, axis=1) <= KAPPE_WEIT * weit
@@ -671,6 +752,11 @@ def _stellen_der_kante(k, w, wolke_, schritt=SCHRITT, grob=None):
         return np.array([p.x, p.y, p.z]), tt / np.linalg.norm(tt)
 
     enden = (ende(parameter[0], 1.0), ende(parameter[-1], 1.0))
+    if float(np.linalg.norm(enden[0][0] - enden[1][0])) < 1e-6:
+        # Geschlossen (der Rand einer Bohrung, einer Mulde): Anfang und Ende sind ein Punkt –
+        # „zwischen den Enden“ ließe sonst fast nichts der eigenen Flächen zu (am Testteil war
+        # der ganze Rand der Kugelmulde „zu eng“).
+        enden = None
     ergebnis = []
     vorher = None
     for prm in parameter:
@@ -710,7 +796,8 @@ def _stellen_der_kante(k, w, wolke_, schritt=SCHRITT, grob=None):
 def _laeufe(stellen, kurve):
     """[[Lage …]] – zusammenhängende Stücke mit Lage; dazu {Grund: mm} ohne. Springt die Achse
     zwischen zwei Stellen um mehr als SPRUNG, beginnt ein neues Stück – dazwischen stünde das
-    Werkzeug ungeprüft."""
+    Werkzeug ungeprüft. An einer geschlossenen Kante hängen das letzte und das erste Stück
+    über die Naht zusammen (ein Lauf, eine Anfahrt)."""
     laeufe, aktuell, gruende = [], [], {}
     schritt = kurve.Length / max(len(stellen) - 1, 1)
     for _prm, lage, grund in stellen:
@@ -727,6 +814,17 @@ def _laeufe(stellen, kurve):
         aktuell.append(lage)
     if len(aktuell) >= 2:
         laeufe.append(aktuell)
+    erste, letzte = (stellen[0][1], stellen[-1][1]) if stellen else (None, None)
+    if (
+        len(laeufe) >= 2
+        and erste is not None
+        and letzte is not None
+        and laeufe[0][0] is erste
+        and laeufe[-1][-1] is letzte
+        and float(np.linalg.norm(erste.spitze - letzte.spitze)) < 1e-6
+        and _winkel(erste.achse, letzte.achse) <= SPRUNG
+    ):
+        laeufe = [laeufe[-1] + laeufe[0][1:]] + laeufe[1:-1]
     return laeufe, gruende
 
 

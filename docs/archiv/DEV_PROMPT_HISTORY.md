@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-70 entgraten-3d-geschlossene-raender
+
+### EINGELESEN
+- „Entgraten 3D“ mit 3 Achsen an Manuels Testteil durchgespielt (Arbeitsweise „Bahnen prüfen
+  ohne Manuel“, Maßstab W-013): der ganze Rand der Kugelmulde „zu eng“.
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py` (geschlossene Kanten ohne Enden; `_glatt`, `Kante3D.glatt`;
+  `_aussen` je Fläche gemerkt; `_laeufe` über die Naht; `Aufbau.huelle`, Halterprüfung je Stück),
+  `tests/test_entgraten3d.py` (Kugelmulde mit Band), `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.188.5).
+
+### DONE
+- Geschlossene Ränder und glatt anschließende Flächen: Testteil 20 Kanten, 717 mm (vorher 19,
+  677 mm); der Muldenrand bis auf die Stelle an der Insel; am Prüfklotz der Bohrungsrand.
+
+### TESTS
+- `test_entgraten3d` (Mulde: 159 von 159 Stellen, ein Lauf, OpenCascade 0,000 mm) – OK.
+
 ## P-2026-10-04-69 entgraten-3d-ruhige-spitze
 
 ### EINGELESEN
