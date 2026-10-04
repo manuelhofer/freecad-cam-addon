@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-53 programm-nachlesen
+
+### EINGELESEN
+- Weiter mit dem Postprozessor (Manuel: „verbessere die Postprozessoren bis ins Extreme“; er
+  kann G-Code nicht selbst prüfen).
+
+### DATEIEN
+- `camaddon/programm_pruefen.py` (neu), `camaddon/postprozessor.py` (`nachlesen`,
+  `nachgelesen_text`, `_befund_text`; `laenge_ein_drehen` an LinuxCNC; `kopf_drehmaschine` an
+  Fanuc und Haas), `camaddon/gui_programm.py` (nach dem Speichern nachgelesen; die neuen Felder),
+  `translations/de.json`, `en.json`, `help/de|en/programm.html`, `tests/test_programm_pruefen.py`
+  (neu), `docs/spezifikation_steuerung.md` (12), `docs/STATUS_SNAPSHOT.md`, `package.xml`
+  (0.186.0).
+
+### DONE
+- Das Programm wird nach dem Speichern nachgelesen wie an der Steuerung: Länge, Spindel, F,
+  Kreise, Dopplungen, M30. Am alten LinuxCNC-Programm 12 271 Sätze ohne Länge gefunden; die
+  heutigen Programme von Testteil, Platte und Schwenkteil an allen fünf Steuerungen: nichts.
+- Dabei gefunden und behoben: LinuxCNC an der Drehmaschine ohne G43; Fanuc und Haas an der
+  Drehmaschine mit dem Fräs-Kopf (G90 ist dort der Längsdrehzyklus, G49 gibt es nicht).
+
+### TESTS
+- `test_programm_pruefen` (kaputte Sätze je Art, Siemens D0/D1, G18-Kreis; Tasche an allen
+  Steuerungen mit/ohne Marken/Satznummern sauber; Drehmaschine an allen sauber, LinuxCNC mit G43,
+  Fanuc/Haas ohne G90/G49), `test_postprozessor`, `test_schwenken`, `test_sprache`; Szenario
+  `szenario_programm` („Nachgelesen … nichts gefunden“ im Screenshot) – OK.
+
 ## P-2026-10-04-52 siemens-d1-nach-supa
 
 ### EINGELESEN

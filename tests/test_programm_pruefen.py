@@ -1,0 +1,175 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Das Programm nachlesen wie die Steuerung (programm_pruefen, P-2026-10-04-53): Absichtlich
+# kaputte Sätze findet es alle – ohne Werkzeuglänge (nach dem Wechsel bis G43; an Siemens nach
+# D0 bis D1), Vorschub bei stehender Spindel, ohne F oder mit F0, ein Kreis, dessen Mitte vom
+# Anfang und Ende verschieden weit liegt (auch in G18), derselbe Satz zweimal, kein M30. Was der
+# Postprozessor für eine Tasche an jeder Steuerung und für eine Welle an der Drehmaschine
+# schreibt, liest sich sauber; an der LinuxCNC-Drehmaschine mit G43 im ersten Fahrsatz, an Fanuc
+# und Haas ohne G90 (dort der Längsdrehzyklus) und G49 im Kopf.
+# Ausführen: freecadcmd tests/test_programm_pruefen.py
+
+import os
+import sys
+
+ADDON = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ADDON)
+
+import Path
+
+from camaddon import postprozessor as pp
+from camaddon import programm_pruefen as prp
+from camaddon import sprache
+
+fehler = []
+
+
+def pruefe(bedingung, text):
+    if not bedingung:
+        fehler.append(text)
+
+
+def arten(text, **werte):
+    return [(b.art, b.zeile) for b in prp.pruefe(text, **werte).befunde]
+
+
+sprache.setze_sprache("de")
+C = Path.Command
+
+# --- Kaputte Sätze ----------------------------------------------------------------------------
+kaputt = "\n".join(
+    [
+        "%",
+        "G17 G21 G90",
+        "T1 M6",
+        "G0 X0 Y0 Z5",  # 4: ohne Länge
+        "G43 H1",
+        "G1 Z-1 F100",  # 6: Spindel steht
+        "M3 S1000",
+        "G2 X10 Y0 I5 J0",
+        "G2 X20 Y1 I5 J0",  # 9: Radius 5 / 5,099
+        "G1 X30 F0",  # 10: F0
+        "G1 X30 F0",  # 11: F0 und doppelt
+        "%",
+    ]
+)
+pruefe(
+    arten(kaputt)
+    == [
+        ("laenge", 4),
+        ("spindel", 6),
+        ("kreis", 9),
+        ("vorschub", 10),
+        ("vorschub", 11),
+        ("doppelt", 11),
+        ("ende", 0),
+    ],
+    f"kaputt: {arten(kaputt)}",
+)
+# Mit der Länge im Satz (G0 G43 H1 Z5) und M30 ist es sauber; X und Y oben ohne Länge auch.
+sauber = "\n".join(
+    [
+        "%",
+        "(Kommentar mit X10 und Z-5)",
+        "N10 G17 G21 G49",
+        "T1 M6",
+        "G0 X10 Y10",
+        "G0 G43 H1 Z5",
+        "M3 S1000",
+        "G1 Z-1 F100",
+        "G3 X20 Y10 I5 J0",
+        "G53 G0 Z0",
+        "M5",
+        "M30",
+    ]
+)
+pruefe(arten(sauber) == [], f"sauber: {arten(sauber)}")
+# Siemens: der Wechsel bringt D1; SUPA D0 schaltet ab, D1 wieder an; Kommentare mit „;“.
+siemens = "\n".join(
+    [
+        "; X1 Z-9 Kommentar",
+        "T1 M6",
+        "M3 S1000",
+        "G0 X0 Y0 Z5",
+        "G1 Z-1 F100",
+        "G0 SUPA D0 Z300",
+        "G0 X10 Y10",
+        "G0 Z5",  # 8: nach D0 ohne Länge
+        "G0 D1 Z5",
+        "M30",
+    ]
+)
+pruefe(arten(siemens, siemens=True) == [("laenge", 8)], f"Siemens: {arten(siemens, siemens=True)}")
+# Ein Kreis in G18 (Z, X; I, K): Mitte bei Z 5, X 0 – vom Anfang 5, vom Ende 5.
+g18 = "%\nG18\nM3 S100\nG1 X0 Z0 F50\nG2 X0 Z10 I0 K5\nG2 X1 Z20 I0 K5\nM30"
+pruefe(arten(g18) == [("kreis", 6)], f"G18: {arten(g18)}")
+# Ohne G43 an einer Steuerung, die die Länge mit dem Wechsel nimmt: nichts.
+pruefe(arten("T1 M6\nM3 S1\nG0 Z5\nM30", laenge_mit_wechsel=True) == [], "mit dem Wechsel")
+
+# --- Was der Postprozessor schreibt ---------------------------------------------------------
+tasche = pp.Abschnitt(
+    "Tasche",
+    3,
+    2000.0,
+    False,
+    "Flood",
+    [
+        C("G0", {"X": 10.0, "Y": 5.0}),
+        C("G0", {"Z": 5.0}),
+        C("G1", {"Z": -2.0, "F": 5.0}),
+        C("G2", {"X": 20.0, "Y": 5.0, "I": 5.0, "J": 0.0, "F": 10.0}),
+        C("G1", {"X": 20.0, "Y": 15.0}),
+    ],
+    "Fräser Ø 12",
+)
+zweite = pp.Abschnitt("Zwei", 4, 3000.0, False, "None", list(tasche.befehle), "Fräser Ø 6")
+fraese = pp.Maschineninfo("Fräse", wechselpunkt={"Z": 0.0})
+for kennung in pp.STEUERUNGEN:
+    for aenderung in ({}, {"marken": False}, {"satznummern": True}):
+        s = pp.steuerung(kennung, aenderung)
+        programm = pp.programm([tasche, zweite], s, fraese, "P")
+        befunde, saetze = pp.nachlesen(programm, s, fraese)
+        pruefe(
+            not befunde and saetze >= 10,
+            f"{kennung} {aenderung}: {[(b.art, b.satz) for b in befunde]} ({saetze} Sätze)",
+        )
+# Die Drehmaschine: LinuxCNC schaltet die Korrektur mit G43 im ersten Fahrsatz ein, die
+# anderen mit dem Wechsel (T0101, T1 D1).
+dreh = pp.Maschineninfo("Drehmaschine", True, True, {"C": "C4"}, {1: "3"})
+welle = pp.Abschnitt(
+    "Rundum",
+    1,
+    3000.0,
+    False,
+    "None",
+    [
+        C("G0", {"X": 42.0, "Z": 3.0, "C": 0.0}),
+        C("G93"),
+        C("G1", {"X": 38.0, "Z": 0.0, "C": 90.0, "F": 0.05}),
+        C("G94"),
+        C("G0", {"X": 42.0}),
+    ],
+)
+for kennung in pp.STEUERUNGEN:
+    s = pp.steuerung(kennung)
+    programm = pp.programm([welle], s, dreh, "W")
+    befunde, _saetze = pp.nachlesen(programm, s, dreh)
+    pruefe(not befunde, f"Drehmaschine {kennung}: {[(b.art, b.satz) for b in befunde]}")
+# An Fanuc- und Haas-Drehmaschinen ist G90 der Längsdrehzyklus, G49 gibt es nicht: ein eigener
+# Anfang ohne beide (P-2026-10-04-53).
+for kennung in ("fanuc", "haas"):
+    woerter_k = " ".join(pp.programm([welle], pp.steuerung(kennung), dreh, "W").zeilen).split()
+    pruefe(
+        "G90" not in woerter_k and "G49" not in woerter_k and "G18" in woerter_k,
+        f"{kennung}-Drehmaschine: {woerter_k[:12]}",
+    )
+lcnc_dreh = pp.programm([welle], pp.steuerung("linuxcnc"), dreh, "W").zeilen
+pruefe("G0 G43 H1 X84.000 Z3.000 C0.000" in lcnc_dreh, f"LinuxCNC Drehmaschine: {lcnc_dreh}")
+# Der Satz fürs Fenster.
+text = pp.nachgelesen_text([prp.Befund(prp.LAENGE, 12, "G0 Z5.000")], 40)
+pruefe(text.startswith("Nachgelesen") and "Zeile 12" in text and "G0 Z5.000" in text, text)
+pruefe("nichts gefunden" in pp.nachgelesen_text([], 40), "gut")
+
+if fehler:
+    raise AssertionError("\n".join(fehler))
+print()  # FreeCADCmd 1.1.3 schreibt Fortschritt ohne Zeilenende davor
+print("OK", os.path.basename(__file__))

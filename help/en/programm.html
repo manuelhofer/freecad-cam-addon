@@ -21,6 +21,12 @@ choice, so does the machine – for the next job on it, it is preselected.</li>
 change right away.</li>
 <li><b>Save</b> writes the whole program to the file (suggested: next to the document, with
 the control's extension – .ngc, .mpf, .nc, .tap).</li>
+<li><b>Read back</b>: afterwards the add-on reads the saved program block by block as the
+control would and says below “Saved …” whether anything stands out – a block moving without tool
+length, feed with the spindle stopped or without F, an arc whose centre is at a different
+distance from start and end (the control would stop with an alarm), the same block twice, no
+M30. Red with the line number if something is found. It does not replace the simulation on the
+control before the first run.</li>
 </ol>
 
 <h3>The settings</h3>
@@ -45,6 +51,10 @@ comments.</li>
 comments. They are not needed; some operators use them to jump in the program.</li>
 <li><b>Program start, start on the lathe, program end</b> – the fixed lines: units, plane (G18
 on the lathe), at the end spindle and coolant off, M30.</li>
+<li><b>Program start (lathe)</b> – if set, it replaces the program start on a lathe. On Fanuc
+and Haas lathes G90 is the turning cycle (not “absolute” – X/U and Z/W say that there), there is
+no G49: preset “G21 G40 G80 G97 G98” (metric, no nose radius compensation and cycle, constant
+speed, feed per minute).</li>
 </ul>
 
 <a name="wechsel"></a>

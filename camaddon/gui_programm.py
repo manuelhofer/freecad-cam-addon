@@ -36,7 +36,11 @@ GELB = "#c4a000"
 
 # Die Gruppen der Einstellungen: (Gruppe, Anker in der Hilfe, Haken und Befehle darin).
 GRUPPEN = (
-    ("programm", "programm", ("kommentare", "satznummern", "kopf", "kopf_drehen", "ende")),
+    (
+        "programm",
+        "programm",
+        ("kommentare", "satznummern", "kopf", "kopf_drehmaschine", "kopf_drehen", "ende"),
+    ),
     (
         "wechsel",
         "wechsel",
@@ -44,6 +48,7 @@ GRUPPEN = (
             "wechsel_fraesen",
             "laenge_ein",
             "wechsel_drehen",
+            "laenge_ein_drehen",
             "wechselpunkt",
             "wechselpunkt_mks",
             "wechselpunkt_wks",
@@ -76,8 +81,10 @@ GRUPPEN = (
 )
 # Was nur an der Drehmaschine bzw. nur an der Fräse gilt – sonst nicht gezeigt.
 NUR_DREHEN = {
+    "kopf_drehmaschine",
     "kopf_drehen",
     "wechsel_drehen",
+    "laenge_ein_drehen",
     "angetrieben_ein",
     "angetrieben_aus",
     "vorschub_minute_drehen",
@@ -795,9 +802,13 @@ class ProgrammDialog(QtGui.QDialog):
             self.ergebnis.setStyleSheet("color: #cc0000;")
             return None
         steuerung_merken(self.job, self.kennung())
-        self.ergebnis.setStyleSheet("")
+        # Nachgelesen, wie die Steuerung es läse: Werkzeuglänge, Spindel, Vorschub, Kreise.
+        befunde, saetze = pp.nachlesen(programm, self.steuerung(), self.info)
+        self.ergebnis.setStyleSheet("color: #cc0000;" if befunde else "")
         self.ergebnis.setText(
             tr("pp.gespeichert", datei=pfad, saetze=programm.saetze, zeilen=len(programm.zeilen))
+            + "\n"
+            + pp.nachgelesen_text(befunde, saetze)
         )
         return pfad
 

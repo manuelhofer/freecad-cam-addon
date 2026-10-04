@@ -22,6 +22,12 @@ die Wahl, ebenso die Maschine – beim nächsten Job auf ihr ist sie vorgewählt
 siehst du sofort.</li>
 <li><b>Speichern</b> schreibt das ganze Programm in die Datei (vorgeschlagen: neben dem
 Dokument, mit der Endung der Steuerung – .ngc, .mpf, .nc, .tap).</li>
+<li><b>Nachgelesen</b>: Danach liest das Addon das gespeicherte Programm Satz für Satz, wie die
+Steuerung es läse, und sagt unter „Gespeichert …“, ob etwas auffällt – ein Satz, der ohne
+Werkzeuglänge fährt, Vorschub bei stehender Spindel oder ohne F, ein Kreis, dessen Mitte vom
+Anfang und vom Ende verschieden weit liegt (die Steuerung bliebe mit Alarm stehen), derselbe Satz
+zweimal, kein M30. Rot mit Zeilennummer, wenn etwas gefunden ist. Es ersetzt nicht die Simulation
+an der Steuerung vor dem ersten Lauf.</li>
 </ol>
 
 <h3>Die Einstellungen</h3>
@@ -46,6 +52,10 @@ mögen keine langen Kommentare.</li>
 Kommentaren. Nötig sind sie nicht; manche Bediener springen damit im Programm.</li>
 <li><b>Programmanfang, Anfang an der Drehmaschine, Programmende</b> – die festen Zeilen:
 Maßsystem, Ebene (an der Drehmaschine G18), am Ende Spindel und Kühlung aus, M30.</li>
+<li><b>Programmanfang (Drehmaschine)</b> – steht er da, ersetzt er an der Drehmaschine den
+Programmanfang. An Fanuc und Haas ist G90 an der Drehmaschine der Längsdrehzyklus (nicht
+„absolut“ – das sagen dort X/U und Z/W), G49 gibt es nicht: vorbelegt „G21 G40 G80 G97 G98“
+(metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl, Vorschub je Minute).</li>
 </ul>
 
 <a name="wechsel"></a>

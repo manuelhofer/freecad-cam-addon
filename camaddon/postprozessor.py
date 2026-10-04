@@ -96,6 +96,10 @@ class Steuerung:
     vorschub_zeit: str  # G93
     vorschub_minute: str  # G94 an der Fräse
     vorschub_minute_drehen: str  # an der Drehmaschine
+    # Der Programmanfang an der Drehmaschine statt `kopf` – leer: `kopf` auch dort. An Fanuc
+    # (G-Code-System A) und Haas ist G90 an der Drehmaschine kein „absolut“, sondern der
+    # Längsdrehzyklus (absolut/inkremental sagen X/U und Z/W), G49 gibt es dort nicht.
+    kopf_drehmaschine: str = ""
     kuehlung_flut: str = "M8"
     kuehlung_nebel: str = "M7"
     kuehlung_aus: str = "M9"
@@ -108,6 +112,9 @@ class Steuerung:
     # Wechsel (Siemens: D1). Ohne sie stünde die Spitze um die ganze Werkzeuglänge tiefer als
     # programmiert (bis P-2026-10-04-51 fehlte sie – der Kopf hebt sie mit G49 sogar auf).
     laenge_ein: str = ""
+    # … an der Drehmaschine, im ersten Fahrsatz nach dem Wechsel: LinuxCNC nimmt die Korrektur
+    # (X und Z) auch dort erst mit G43; Fanuc, Haas und Mach mit T0101, Siemens mit T1 D1.
+    laenge_ein_drehen: str = ""
     # … und wieder nach dem Wechselpunkt, wenn kein Wechsel folgt (Messstopp, eine andere Ebene
     # ohne Zyklus): Siemens fährt ihn mit „SUPA D0“ – D0 schaltet die Korrektur ab, danach
     # fräste das Programm ohne Länge weiter. Leer: der Weg dorthin lässt sie stehen (G53).
@@ -170,11 +177,13 @@ class Steuerung:
 # Felder, die man im Fenster ändern kann – in dieser Reihenfolge, mit ihrem Text.
 BEFEHLSFELDER = (
     "kopf",
+    "kopf_drehmaschine",
     "kopf_drehen",
     "ende",
     "wechsel_fraesen",
     "laenge_ein",
     "wechsel_drehen",
+    "laenge_ein_drehen",
     "wechselpunkt_mks",
     "laenge_wieder",
     "wechselpunkt_wks",
@@ -249,6 +258,7 @@ STEUERUNGEN = {
         glaetten_angebot=(Glaetten("g64", "G64 P{toleranz} Q{toleranz}", True),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
+        laenge_ein_drehen="G43 H{t}",
     ),
     "siemens": Steuerung(
         "siemens",
@@ -335,6 +345,9 @@ STEUERUNGEN = {
         ),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
+        # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
+        # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
+        kopf_drehmaschine="%\nO0001 {kommentar_name}\nG21 G40 G80 G97 G98",
     ),
     "haas": Steuerung(
         "haas",
@@ -360,6 +373,9 @@ STEUERUNGEN = {
         glaetten_angebot=(Glaetten("g187", "G187 P3", False),),
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
+        # Drehmaschine: metrisch, ohne Schneidenradiuskorrektur und Zyklus, feste Drehzahl,
+        # Vorschub je Minute – ohne G90 (Längsdrehzyklus) und G49.
+        kopf_drehmaschine="%\nO00001 {kommentar_name}\nG21 G40 G80 G97 G98",
     ),
     "mach": Steuerung(
         "mach",
@@ -444,12 +460,20 @@ def feld_text(feld):
     Sprachprüfung sie findet."""
     return {
         "kopf": (tr("pp.feld.kopf"), tr("pp.feld.kopf.tooltip")),
+        "kopf_drehmaschine": (
+            tr("pp.feld.kopf_drehmaschine"),
+            tr("pp.feld.kopf_drehmaschine.tooltip"),
+        ),
         "kopf_drehen": (tr("pp.feld.kopf_drehen"), tr("pp.feld.kopf_drehen.tooltip")),
         "ende": (tr("pp.feld.ende"), tr("pp.feld.ende.tooltip")),
         "wechsel_fraesen": (tr("pp.feld.wechsel_fraesen"), tr("pp.feld.wechsel_fraesen.tooltip")),
         "wechsel_drehen": (tr("pp.feld.wechsel_drehen"), tr("pp.feld.wechsel_drehen.tooltip")),
         "laenge_ein": (tr("pp.feld.laenge_ein"), tr("pp.feld.laenge_ein.tooltip")),
         "laenge_wieder": (tr("pp.feld.laenge_wieder"), tr("pp.feld.laenge_wieder.tooltip")),
+        "laenge_ein_drehen": (
+            tr("pp.feld.laenge_ein_drehen"),
+            tr("pp.feld.laenge_ein_drehen.tooltip"),
+        ),
         "wechselpunkt_mks": (
             tr("pp.feld.wechselpunkt_mks"),
             tr("pp.feld.wechselpunkt_mks.tooltip"),
@@ -616,7 +640,8 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
             zeilen.append(_kommentar(s, text))
 
     kommentar_name = _kommentar(s, name or tr("pp.programm")) if s.kommentare else ""
-    for zeile in _zeilen(_fuellen(s.kopf, kommentar_name=kommentar_name, name=name)):
+    kopf = s.kopf_drehmaschine if info.drehmaschine and s.kopf_drehmaschine else s.kopf
+    for zeile in _zeilen(_fuellen(kopf, kommentar_name=kommentar_name, name=name)):
         zeilen.append(zeile)
     if info.drehmaschine:
         zeilen.extend(_zeilen(s.kopf_drehen))
@@ -684,10 +709,10 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
                 notiz(f"T{abschnitt.werkzeug} {abschnitt.werkzeugname}")
             vorlage = s.wechsel_drehen if info.drehmaschine else s.wechsel_fraesen
             zeilen.append(_fuellen(vorlage, t=int(abschnitt.werkzeug)))
-            laenge_offen = (
-                _fuellen(s.laenge_ein, t=int(abschnitt.werkzeug))
-                if s.laenge_ein and not info.drehmaschine
-                else ""  # der Wechsel bringt die Länge mit (Siemens D1, Drehmaschine T0101)
+            # Ohne Befehl bringt der Wechsel die Länge mit (Siemens D1, Fanuc T0101).
+            laenge_offen = _fuellen(
+                s.laenge_ein_drehen if info.drehmaschine else s.laenge_ein,
+                t=int(abschnitt.werkzeug),
             )
             werkzeug = abschnitt.werkzeug
             gewechselt = True
@@ -1247,6 +1272,49 @@ def _info_aus(dok, m, msp):
                 info.angetrieben[int(aufnahme.Platz)] = nummer
         return info
     return Maschineninfo()
+
+
+NACHGELESEN_HOECHSTENS = 6  # so viele Befunde nennt nachgelesen() einzeln
+
+
+def nachlesen(programm, s, info=None):
+    """Das fertige Programm (Programm) wie die Steuerung `s` es läse nachgelesen
+    (programm_pruefen): (Befunde, Bewegungssätze)."""
+    from . import programm_pruefen as prp
+
+    info = info or Maschineninfo()
+    laenge = s.laenge_ein_drehen if info.drehmaschine else s.laenge_ein
+    pruefung = prp.pruefe(
+        programm.text,
+        siemens=s.kennung == "siemens",
+        drehmaschine=info.drehmaschine,
+        laenge_mit_wechsel=not laenge,
+    )
+    return pruefung.befunde, pruefung.saetze
+
+
+def nachgelesen_text(befunde, saetze):
+    """Ein Satz fürs Fenster: „Nachgelesen: nichts gefunden …“ oder die Befunde mit Zeile."""
+    if not befunde:
+        return tr("pp.nachgelesen.gut", saetze=saetze)
+    zeilen = [tr("pp.nachgelesen.befunde", anzahl=len(befunde))]
+    for befund in befunde[:NACHGELESEN_HOECHSTENS]:
+        zeilen.append(_befund_text(befund.art, befund.zeile, befund.satz.strip()))
+    if len(befunde) > NACHGELESEN_HOECHSTENS:
+        zeilen.append(tr("pp.nachgelesen.mehr", anzahl=len(befunde) - NACHGELESEN_HOECHSTENS))
+    return "\n".join(zeilen)
+
+
+def _befund_text(art, zeile, satz):
+    """Ein Befund (programm_pruefen) als Satz – die Schlüssel wörtlich für die Sprachprüfung."""
+    return {
+        "laenge": lambda: tr("pp.befund.laenge", zeile=zeile, satz=satz),
+        "spindel": lambda: tr("pp.befund.spindel", zeile=zeile, satz=satz),
+        "vorschub": lambda: tr("pp.befund.vorschub", zeile=zeile, satz=satz),
+        "kreis": lambda: tr("pp.befund.kreis", zeile=zeile, satz=satz),
+        "doppelt": lambda: tr("pp.befund.doppelt", zeile=zeile, satz=satz),
+        "ende": lambda: tr("pp.befund.ende"),
+    }[art]()
 
 
 def dateiname(job, s):

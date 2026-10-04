@@ -2330,5 +2330,18 @@
     "pp.feld.laenge_ein": "Tool length on (mill)",
     "pp.feld.laenge_ein.tooltip": "Switches on the length offset of the new tool after the tool change ({t}: tool number) – in the first block afterwards that moves Z. Without it the tip would be lower than programmed by the whole tool length. Empty where the control takes it with the change (Siemens: D1).",
     "pp.feld.laenge_wieder": "Tool length after the change point",
-    "pp.feld.laenge_wieder.tooltip": "If the program moves to the change point without a tool change following (measuring stop, another plane without the swivel cycle), this command switches the length on again in the next block. Siemens moves to the change point with “SUPA D0” – D0 switches the tool offset off; without “D1” afterwards it would keep milling without length. Empty where the move to the change point keeps the length (G53)."
+    "pp.feld.laenge_wieder.tooltip": "If the program moves to the change point without a tool change following (measuring stop, another plane without the swivel cycle), this command switches the length on again in the next block. Siemens moves to the change point with “SUPA D0” – D0 switches the tool offset off; without “D1” afterwards it would keep milling without length. Empty where the move to the change point keeps the length (G53).",
+    "pp.feld.laenge_ein_drehen": "Tool offset on (lathe)",
+    "pp.feld.laenge_ein_drehen.tooltip": "Switches on the offset of the new tool (X and Z) after the tool change on a lathe – in the first motion block afterwards. LinuxCNC needs G43 for it; Fanuc, Haas and Mach take it with T0101, Siemens with T1 D1 – empty there.",
+    "pp.nachgelesen.gut": "Read back as the control would: nothing found – in all {saetze} motion blocks tool length, spindle and feed are on, the arcs close.",
+    "pp.nachgelesen.befunde": "Read back as the control would: {anzahl} findings – please look at them before the first run:",
+    "pp.nachgelesen.mehr": "… and {anzahl} more.",
+    "pp.befund.laenge": "Line {zeile}: moves without tool length – “{satz}”",
+    "pp.befund.spindel": "Line {zeile}: feed with the spindle stopped – “{satz}”",
+    "pp.befund.vorschub": "Line {zeile}: feed without a valid F – “{satz}”",
+    "pp.befund.kreis": "Line {zeile}: arc with different radii at start and end – “{satz}”",
+    "pp.befund.doppelt": "Line {zeile}: the same block twice – “{satz}”",
+    "pp.befund.ende": "The program has no end (M30).",
+    "pp.feld.kopf_drehmaschine": "Program start (lathe)",
+    "pp.feld.kopf_drehmaschine.tooltip": "The start of the program on a lathe instead of the one for a mill – empty: the same. On Fanuc and Haas lathes G90 is the turning cycle (not “absolute”) and there is no G49; hence a start of its own."
 }

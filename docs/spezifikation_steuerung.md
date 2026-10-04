@@ -436,3 +436,22 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   kein Wechsel (Messstopp; eine andere Ebene ohne Zyklus; Sprungmarken aus), fräste das Programm
   ohne Länge weiter. Jetzt „Werkzeuglänge nach dem Wechselpunkt“ (`laenge_wieder`, an Siemens
   `D1`) im nächsten Satz mit Z (an der Drehmaschine im nächsten Fahrsatz).
+- **P-2026-10-04-53 – das Programm nachlesen; die Drehmaschine an LinuxCNC, Fanuc und Haas:**
+  - `camaddon/programm_pruefen.py`: liest den Text des Programms wie eine Steuerung – modal
+    Bewegungsart, F, Spindel (auch `M1=3`, Haas `M133`), Werkzeug und seine Länge (G43/G49, M6,
+    Siemens D0/D1, an der Drehmaschine T0101), Ebene, G93/G94 – und meldet: Bewegung in Z (an der
+    Drehmaschine jede) ohne Länge, Vorschub bei stehender Spindel, ohne F oder F0, Kreise mit
+    verschiedenen Radien am Anfang und Ende (über 0,002 mm), doppelte Sätze, kein M30.
+    `postprozessor.nachlesen` und `nachgelesen_text`; „Programm schreiben“ zeigt es nach dem
+    Speichern unter „Gespeichert …“ (rot mit Zeilen, wenn etwas gefunden ist). Am alten
+    LinuxCNC-Programm des Testteils (vor -51): 12 271 Sätze ohne Länge; mit -51 bis -53 an
+    Testteil, Platte und Schwenkteil (3+2) an allen fünf Steuerungen, mit und ohne Sprungmarken:
+    nichts.
+  - LinuxCNC übernimmt die Korrektur auch an der Drehmaschine erst mit G43:
+    `laenge_ein_drehen` (vorbelegt `G43 H{t}` nur an LinuxCNC), im ersten Fahrsatz nach dem
+    Wechsel.
+  - An Fanuc (G-Code-System A) und Haas ist G90 an der Drehmaschine der Längsdrehzyklus, G49
+    gibt es dort nicht – der Kopf der Fräse (`G17 G21 G40 G49 G80 G90`) stand bis hier auch an
+    der Drehmaschine. Jetzt `kopf_drehmaschine` (statt `kopf` an der Drehmaschine), an Fanuc und
+    Haas `G21 G40 G80 G97 G98`. Nicht an einer echten Steuerung nachgeprüft – vor dem ersten
+    Lauf in der Simulation ansehen.
