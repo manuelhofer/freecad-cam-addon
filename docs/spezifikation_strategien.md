@@ -2925,6 +2925,13 @@ Kollision mit Rundachsen je Station.
   Schräg bleibt es im Vorschub – ein Eilgang fährt nicht an jeder Steuerung gerade (Fanuc ohne
   lineare Eilganginterpolation), und der Fräser steht noch an der Fase. Eintauchen bleibt im
   Vorschub ab dem Sicherheitsabstand.
+  **Tief hinüber (P-2026-10-04-72):** Zwischen zwei Läufen ging es jedes Mal auf die sichere
+  Höhe. Mit senkrechter Achse jetzt nur so hoch, wie Schneide, Schaft und Halter über allem auf
+  dem Weg ABSTAND haben: je Punkt der groben Wolke aus seinem Abstand zum Weg und dem Umriss des
+  Werkzeugs (ab welcher Höhe über der Spitze es so breit ist), der Weg dann mit der vollen
+  Prüfung nachgeprüft. Nicht über `freiwege` – das rechnet nur mit dem Fräserradius, der Halter
+  (am vorgeschlagenen 10 mm über der Spitze) striche dort an der Insel vorbei. Testteil: Eilgang
+  728 → 411 mm, 2,88 → 2,84 min; „Kollision prüfen“ an der 3-Achs-Beispielmaschine ohne Befund.
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

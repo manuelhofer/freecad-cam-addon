@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-72 entgraten-3d-tief-hinueber
+
+### EINGELESEN
+- Unnötiges Abheben (Arbeitsweise „Unnötiges ohne Rückfrage weg“): am Testteil zwischen allen
+  21 Läufen auf die sichere Höhe.
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py` (`_verbinden` mit `_verbindung`), `tests/test_entgraten3d.py`
+  (3 Achsen: tief hinüber, Kollision frei), `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.188.7).
+
+### DONE
+- Mit senkrechter Achse zwischen den Läufen nur so hoch wie nötig – mit Schaft und Halter
+  gerechnet und nachgeprüft. Testteil: Eilgang 728 → 411 mm, Kollision ohne Befund.
+
+### TESTS
+- `test_entgraten3d` – OK (Klotz, 3 Achsen: 10-mal tief hinüber, Kollision frei); Kollision am
+  Testteil (Skript, 3-Achs-Beispielmaschine): 0 Befunde.
+
 ## P-2026-10-04-71 entgraten-3d-eilgang-heraus
 
 ### EINGELESEN

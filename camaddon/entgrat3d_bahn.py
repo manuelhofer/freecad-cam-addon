@@ -974,7 +974,7 @@ def planen(form, namen, werte, schritt=SCHRITT, punktabstand=PUNKTABSTAND):
             laenge += mm
     if not laeufe:
         raise ValueError(tr("e3.fehler.nichts"))
-    punkte = _verbinden(laeufe, w)
+    punkte = _verbinden(laeufe, w, wolke_, grob)
     neigung = max(
         math.degrees(math.acos(max(-1.0, min(1.0, float(lage.achse[2])))))
         for lauf, _hinein, _heraus in laeufe
@@ -993,13 +993,22 @@ def planen(form, namen, werte, schritt=SCHRITT, punktabstand=PUNKTABSTAND):
     )
 
 
-def _verbinden(laeufe, w):
+def _verbinden(laeufe, w, wolke_=None, grob=None):
     """Die Läufe der Reihe nach (der nächste zuerst): über dem Anfang (_anfahrt), längs der Achse
     `sicherheit` davor, eintauchen, der Lauf, längs der Achse heraus, hinauf – senkrecht heraus
-    gleich im Eilgang."""
+    gleich im Eilgang. Zwischen zwei Läufen mit senkrechter Achse nur so hoch, wie Schneide,
+    Schaft und Halter über allem auf dem Weg ABSTAND haben (_verbindung) – nicht jedes Mal auf
+    die sichere Höhe."""
     punkte = []
     offen = list(laeufe)
     ort = None
+    davor = None  # (Punkt nach dem Herausfahren, Lage) des Laufs davor
+
+    def stelle(p, lage, eilgang=False, eintauchen=False):
+        return Stelle(
+            tuple(float(v) for v in p), tuple(float(v) for v in lage.achse), eilgang, eintauchen
+        )
+
     while offen:
         if ort is None:
             k = 0
@@ -1009,12 +1018,12 @@ def _verbinden(laeufe, w):
             )
         lauf, (oben, vor), (oben_nach, nach) = offen.pop(k)
         erste, letzte = lauf[0], lauf[-1]
-
-        def stelle(p, lage, eilgang=False, eintauchen=False):
-            return Stelle(
-                tuple(float(v) for v in p), tuple(float(v) for v in lage.achse), eilgang, eintauchen
-            )
-
+        if davor is not None:
+            hoehe = _verbindung(davor[0], davor[1], vor, erste, w, wolke_, grob)
+            if hoehe is not None:
+                von = davor[0]
+                punkte[-1] = stelle((von[0], von[1], hoehe), davor[1], True)
+                oben = np.array([vor[0], vor[1], hoehe])
         punkte.append(stelle(oben, erste, True))
         punkte.append(stelle(vor, erste, True))
         punkte.append(stelle(erste.spitze, erste, eintauchen=True))
@@ -1026,5 +1035,55 @@ def _verbinden(laeufe, w):
         if float(letzte.achse[2]) < SENKRECHT:
             punkte.append(stelle(nach, letzte))
         punkte.append(stelle(oben_nach, letzte, True))
+        davor = (nach, letzte)
         ort = letzte.spitze
     return punkte
+
+
+def _verbindung(von, lage_von, nach, lage_nach, w, wolke_, grob):
+    """Die Höhe (z der Spitze) für den Weg im Eilgang von über `von` nach über `nach` – beide
+    Achsen senkrecht: so tief, dass kein Punkt der groben Wolke Schneide, Schaft oder Halter
+    näher als ABSTAND kommt (je Punkt aus seinem Abstand zum Weg und dem Umriss des Werkzeugs),
+    höchstens die sichere Höhe; der Weg dort mit _frei nachgeprüft. None: bleibt oben."""
+    if grob is None or not len(grob.punkte):
+        return None
+    if float(lage_von.achse[2]) < SENKRECHT or float(lage_nach.achse[2]) < SENKRECHT:
+        return None
+    f = w.fraeser
+    oben = max(f.hoehe if w.aufbau is None else max(s[1] for s in w.aufbau.stuecke), 1.0)
+    gitter = np.arange(0.0, oben + HUELLE_SCHRITT, HUELLE_SCHRITT)
+    radius = np.where(
+        gitter <= (f.hoehe if w.aufbau is None else f.schneidhoehe), f.radius_bei(gitter), 0.0
+    )
+    for h0, h1, r0, r1 in w.aufbau.stuecke if w.aufbau is not None else ():
+        im = (gitter >= h0) & (gitter <= h1)
+        radius[im] = np.maximum(radius[im], r0 + (gitter[im] - h0) / max(h1 - h0, 1e-9) * (r1 - r0))
+    breit = np.maximum.accumulate(radius + ABSTAND)  # ab dieser Höhe so breit
+    a, b = np.asarray(von, dtype=float), np.asarray(nach, dtype=float)
+    unten_z = max(float(a[2]), float(b[2]))
+    weite = float(breit[-1])
+    z0 = float(grob.punkte[:, 2].min())
+    z1 = float(grob.punkte[:, 2].max())
+    nummern = grob.nah(
+        [min(a[0], b[0]) - weite, min(a[1], b[1]) - weite, z0],
+        [max(a[0], b[0]) + weite, max(a[1], b[1]) + weite, z1],
+    )
+    hoehe = unten_z
+    if len(nummern):
+        q = grob.punkte[nummern]
+        ab = b[:2] - a[:2]
+        lang = float(ab @ ab)
+        t = np.clip(((q[:, :2] - a[:2]) @ ab) / lang, 0.0, 1.0) if lang > 1e-12 else 0.0
+        rho = np.linalg.norm(q[:, :2] - (a[:2] + np.outer(np.atleast_1d(t), ab)), axis=1)
+        nah = rho < weite
+        if nah.any():
+            ab_hier = gitter[np.searchsorted(breit, rho[nah])]  # so hoch über der Spitze breit
+            hoehe = max(hoehe, float(np.max(q[nah, 2] - ab_hier)) + ABSTAND)
+    if hoehe >= w.sicher - GLEICH_ORT:
+        return None
+    achse = np.array([0.0, 0.0, 1.0])
+    if not _frei(
+        np.array([a[0], a[1], hoehe]), np.array([b[0], b[1], hoehe]), achse, w, wolke_, grob
+    ):
+        return None
+    return hoehe

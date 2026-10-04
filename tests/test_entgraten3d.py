@@ -479,6 +479,21 @@ luft = [
     if b.Name == "G1" and c.Name == "G0" and abs(b.x - a.x) + abs(b.y - a.y) < 1e-6 and b.z > a.z
 ]
 pruefe(not luft, f"3 Achsen: {len(luft)}-mal im Vorschub hinauf")
+# Zwischen den Läufen nur so hoch wie nötig (Schneide, Schaft, Halter mit Abstand über allem auf
+# dem Weg) – mindestens einmal unter der sicheren Höhe hinüber; die Kollision bleibt frei.
+tief = [
+    b
+    for a, b in zip(wege, wege[1:], strict=False)
+    if a.Name == b.Name == "G0"
+    and abs(a.z - b.z) < 1e-6
+    and abs(a.x - b.x) + abs(a.y - b.y) > 1.0
+    and b.z < float(op.SafeHeight) - 1.0
+]
+pruefe(tief, f"3 Achsen: hinüber immer auf der sicheren Höhe ({float(op.SafeHeight):.1f})")
+fahrt3 = ab.abfahrt(pruefung, job, rw.nullpunkt(job), bibliothek)
+kollision3 = kb.kollision(fahrt3, job, rw.nullpunkt(job), bibliothek)
+pruefe(not kollision3.befunde, f"3 Achsen, Kollision: {[b.text() for b in kollision3.befunde[:3]]}")
+print(ascii(f"3 Achsen: {op.Kanten} Kanten, {len(tief)}-mal tief hinueber, Kollision frei"))
 FreeCAD.closeDocument(doc.Name)
 
 if fehler:
