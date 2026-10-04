@@ -51,6 +51,10 @@ comments.</li>
 comments. They are not needed; some operators use them to jump in the program.</li>
 <li><b>Program start, start on the lathe, program end</b> – the fixed lines: units, plane (G18
 on the lathe), at the end spindle and coolant off, M30.</li>
+<li><b>Read X as diameter / radius</b> (lathe) – depending on how the machine counts X (“Edit
+machine”), the start holds LinuxCNC “G7” or “G8”, Siemens “DIAMON” or “DIAMOF”: the control then
+reads X the way the program writes it – even if it is set up otherwise. Fanuc and Haas set it by
+parameter; empty there.</li>
 <li><b>Program start (lathe)</b> – if set, it replaces the program start on a lathe. On Fanuc
 and Haas lathes G90 is the turning cycle (not “absolute” – X/U and Z/W say that there), there is
 no G49: preset “G21 G40 G80 G97 G98” (metric, no nose radius compensation and cycle, constant

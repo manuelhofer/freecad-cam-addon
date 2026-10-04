@@ -172,6 +172,15 @@ pruefe(not any("G90" in x.split() for x in p_g90.zeilen), f"Fanuc G90: {p_g90.ze
 mit_g91 = pp.Abschnitt("B", 1, 100.0, False, "None", [C("G91"), C("G0", {"Z": -2.0})])
 p_g91 = pp.programm([mit_g91], pp.steuerung("haas"), dreh, "W")
 pruefe("G91" in p_g91.zeilen and any("G91" in h for h in p_g91.hinweise), f"G91: {p_g91.hinweise}")
+# Wie X zu lesen ist, steht im Kopf – passend zur Maschine (P-2026-10-04-57).
+for kennung, durchmesser, radius in (("linuxcnc", "G7", "G8"), ("siemens", "DIAMON", "DIAMOF")):
+    z_d = pp.programm([welle], pp.steuerung(kennung), dreh, "W").zeilen
+    dreh_r = pp.Maschineninfo("Drehmaschine", True, False, {"C": "C4"}, {1: "3"})
+    z_r = pp.programm([welle], pp.steuerung(kennung), dreh_r, "W").zeilen
+    pruefe(
+        durchmesser in z_d and radius not in z_d and radius in z_r and durchmesser not in z_r,
+        f"{kennung}: Durchmesser/Radius {z_d[:8]} / {z_r[:8]}",
+    )
 lcnc_dreh = pp.programm([welle], pp.steuerung("linuxcnc"), dreh, "W").zeilen
 pruefe("G0 G43 H1 X84.000 Z3.000 C0.000" in lcnc_dreh, f"LinuxCNC Drehmaschine: {lcnc_dreh}")
 # Über der Höchstdrehzahl der Maschine: S auf sie, die Vorschübe im selben Maß – fz bleibt

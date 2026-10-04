@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-57 durchmesser-radius-im-kopf
+
+### EINGELESEN
+- Weiter mit dem Postprozessor („bis ins Extreme“).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`durchmesser_ein`/`radius_ein`: LinuxCNC G7/G8, Siemens
+  DIAMON/DIAMOF), `camaddon/gui_programm.py`, `translations/de.json`, `en.json`,
+  `help/de|en/programm.html`, `tests/test_programm_pruefen.py`, `docs/spezifikation_steuerung.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.187.2).
+
+### DONE
+- An der Drehmaschine sagt der Kopf jetzt, wie X zu lesen ist – passend zu „X im Durchmesser“ der
+  Maschine; vorher hing es an der Grundeinstellung der Steuerung.
+
+### TESTS
+- `test_programm_pruefen` (G7/G8, DIAMON/DIAMOF je Einstellung), `test_postprozessor`,
+  `test_sprache`; Szenario `szenario_programm` – OK.
+
 ## P-2026-10-04-56 drehzahl-begrenzen
 
 ### EINGELESEN

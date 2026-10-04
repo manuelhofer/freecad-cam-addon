@@ -490,3 +490,8 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   einer Bearbeitung darüber (ein älterer Job, ein Controller von Hand), schreibt es S auf die
   Grenze und alle F dieser Bearbeitung (auch G93 und die Bohrzyklen) im selben Maß, mit Hinweis
   und Kommentar.
+- **P-2026-10-04-57 – wie X zu lesen ist:** E4 (a) schreibt X, wie die Maschine es zählt – das
+  Programm sagte der Steuerung aber nicht, wie sie es lesen soll; eine LinuxCNC-Drehmaschine in G8
+  (Radius) führe ein Durchmesser-X doppelt so weit. Jetzt steht im Kopf an der Drehmaschine
+  `durchmesser_ein` bzw. `radius_ein` passend zu „X im Durchmesser“: LinuxCNC `G7`/`G8`,
+  Siemens `DIAMON`/`DIAMOF`; Fanuc und Haas legen es per Parameter fest (leer).

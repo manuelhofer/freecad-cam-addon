@@ -105,6 +105,11 @@ class Steuerung:
     # und Haas: G90 aus einer Bahn (FreeCADs Bohren) entfällt dort, G91 bleibt mit Hinweis
     # (die Steuerung hält mit Alarm an, statt inkrementell falsch zu fahren).
     g90_drehen: bool = True
+    # Wie X an der Drehmaschine zu lesen ist – passend zu „X im Durchmesser“ der Maschine in den
+    # Kopf geschrieben, damit die Steuerung es so liest, wie das Programm es schreibt (LinuxCNC
+    # G7/G8, Siemens DIAMON/DIAMOF). Leer: ein Parameter der Maschine (Fanuc, Haas).
+    durchmesser_ein: str = ""
+    radius_ein: str = ""
     kuehlung_flut: str = "M8"
     kuehlung_nebel: str = "M7"
     kuehlung_aus: str = "M9"
@@ -191,6 +196,8 @@ BEFEHLSFELDER = (
     "kopf",
     "kopf_drehmaschine",
     "kopf_drehen",
+    "durchmesser_ein",
+    "radius_ein",
     "ende",
     "wechsel_fraesen",
     "laenge_ein",
@@ -274,6 +281,8 @@ STEUERUNGEN = {
         wechselpunkt_vorschlaege=_MKS,
         laenge_ein="G43 H{t}",
         laenge_ein_drehen="G43 H{t}",
+        durchmesser_ein="G7",
+        radius_ein="G8",
     ),
     "siemens": Steuerung(
         "siemens",
@@ -298,6 +307,8 @@ STEUERUNGEN = {
         # Wechselpunkt gilt für den Werkzeugträger.
         wechselpunkt_mks="G0 SUPA D0 {achsen}",
         laenge_wieder="D1",  # nach „SUPA D0“ ohne Wechsel: die Schneide wieder an
+        durchmesser_ein="DIAMON",
+        radius_ein="DIAMOF",
         gleich_bei_nummer=True,
         nur_buchstabe=False,
         # Programmierhandbuch Arbeitsvorbereitung 10/2015 (S. 470–471: CTOL) und Grundlagen
@@ -499,6 +510,8 @@ def feld_text(feld):
             tr("pp.feld.kopf_drehmaschine.tooltip"),
         ),
         "kopf_drehen": (tr("pp.feld.kopf_drehen"), tr("pp.feld.kopf_drehen.tooltip")),
+        "durchmesser_ein": (tr("pp.feld.durchmesser_ein"), tr("pp.feld.durchmesser_ein.tooltip")),
+        "radius_ein": (tr("pp.feld.radius_ein"), tr("pp.feld.radius_ein.tooltip")),
         "ende": (tr("pp.feld.ende"), tr("pp.feld.ende.tooltip")),
         "wechsel_fraesen": (tr("pp.feld.wechsel_fraesen"), tr("pp.feld.wechsel_fraesen.tooltip")),
         "wechsel_drehen": (tr("pp.feld.wechsel_drehen"), tr("pp.feld.wechsel_drehen.tooltip")),
@@ -682,6 +695,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
         zeilen.append(zeile)
     if info.drehmaschine:
         zeilen.extend(_zeilen(s.kopf_drehen))
+        zeilen.extend(_zeilen(s.durchmesser_ein if info.x_durchmesser else s.radius_ein))
     for glaetten in s.glaetten_an():
         zeilen.extend(_zeilen(_fuellen(glaetten.befehl, toleranz=_zahl(s.toleranz))))
         if glaetten.option:

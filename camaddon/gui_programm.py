@@ -39,7 +39,16 @@ GRUPPEN = (
     (
         "programm",
         "programm",
-        ("kommentare", "satznummern", "kopf", "kopf_drehmaschine", "kopf_drehen", "ende"),
+        (
+            "kommentare",
+            "satznummern",
+            "kopf",
+            "kopf_drehmaschine",
+            "kopf_drehen",
+            "durchmesser_ein",
+            "radius_ein",
+            "ende",
+        ),
     ),
     (
         "wechsel",
@@ -82,6 +91,8 @@ GRUPPEN = (
 )
 # Was nur an der Drehmaschine bzw. nur an der Fräse gilt – sonst nicht gezeigt.
 NUR_DREHEN = {
+    "durchmesser_ein",
+    "radius_ein",
     "kopf_drehmaschine",
     "kopf_drehen",
     "wechsel_drehen",

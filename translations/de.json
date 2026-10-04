@@ -2353,5 +2353,9 @@
     "pp.feld.tcpm_aus": "TCPM aus",
     "pp.feld.tcpm_aus.tooltip": "Schaltet TCPM nach der Bahn ab – Siemens TRAFOOF, Fanuc und Haas G49 (danach schreibt das Programm die Werkzeuglänge im nächsten Satz mit Z wieder ein).",
     "pp.hinweis.tcpm_fehler": "TCPM ging nicht ({grund}) – ohne TCPM geschrieben.",
-    "pp.hinweis.drehzahl_begrenzt": "{operation}: S {s} liegt über der Höchstdrehzahl der Maschine ({max}) – geschrieben mit S {max} und den Vorschüben auf {prozent} %, der Span je Zahn bleibt."
+    "pp.hinweis.drehzahl_begrenzt": "{operation}: S {s} liegt über der Höchstdrehzahl der Maschine ({max}) – geschrieben mit S {max} und den Vorschüben auf {prozent} %, der Span je Zahn bleibt.",
+    "pp.feld.durchmesser_ein": "X im Durchmesser lesen",
+    "pp.feld.durchmesser_ein.tooltip": "Steht im Kopf, wenn die Maschine X im Durchmesser zählt – so liest die Steuerung X so, wie das Programm es schreibt (LinuxCNC G7, Siemens DIAMON). Leer bei Steuerungen, die es per Parameter festlegen (Fanuc, Haas).",
+    "pp.feld.radius_ein": "X im Radius lesen",
+    "pp.feld.radius_ein.tooltip": "Steht im Kopf, wenn die Maschine X im Radius zählt (LinuxCNC G8, Siemens DIAMOF). Leer bei Steuerungen, die es per Parameter festlegen."
 }

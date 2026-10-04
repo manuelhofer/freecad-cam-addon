@@ -52,6 +52,10 @@ mögen keine langen Kommentare.</li>
 Kommentaren. Nötig sind sie nicht; manche Bediener springen damit im Programm.</li>
 <li><b>Programmanfang, Anfang an der Drehmaschine, Programmende</b> – die festen Zeilen:
 Maßsystem, Ebene (an der Drehmaschine G18), am Ende Spindel und Kühlung aus, M30.</li>
+<li><b>X im Durchmesser / Radius lesen</b> (Drehmaschine) – je nachdem, wie die Maschine X
+zählt („Maschine bearbeiten“), steht im Kopf LinuxCNC „G7“ bzw. „G8“, Siemens „DIAMON“ bzw.
+„DIAMOF“: Die Steuerung liest X dann so, wie das Programm es schreibt – auch wenn sie von Haus aus
+anders eingestellt ist. Fanuc und Haas legen es per Parameter fest; dort leer.</li>
 <li><b>Programmanfang (Drehmaschine)</b> – steht er da, ersetzt er an der Drehmaschine den
 Programmanfang. An Fanuc und Haas ist G90 an der Drehmaschine der Längsdrehzyklus (nicht
 „absolut“ – das sagen dort X/U und Z/W), G49 gibt es nicht: vorbelegt „G21 G40 G80 G97 G98“

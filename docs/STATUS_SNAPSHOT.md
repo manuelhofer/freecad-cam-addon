@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.187.1 (P-2026-10-04-56). Alles, was hier als gebaut steht,
+Stand 0.187.2 (P-2026-10-04-57). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -60,7 +60,8 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   der Steuerung (Länge, Spindel, F, Kreise – -53), an der Drehmaschine LinuxCNC mit G43 und
   Fanuc/Haas ohne G90/G49 im Kopf (-53); TCPM als Haken für 5 Achsen simultan (TRAORI,
   G43.4, G234 – aus; -55); über der Höchstdrehzahl der Maschine n und F im selben Maß
-  kleiner – beim Setzen der Werte und im Programm (-56). Offen: Steuerung an der Maschine
+  kleiner – beim Setzen der Werte und im Programm (-56); an der Drehmaschine G7/G8 bzw.
+  DIAMON/DIAMOF im Kopf passend zur Maschine (-57). Offen: Steuerung an der Maschine
   (S2), Transformationen (S6), Wochen-Build (S7); die Rundachse
   zwischen zwei Operationen nicht über viele Umdrehungen auf 0 zurückdrehen (Manuel probiert,
   was seine Maschine macht).

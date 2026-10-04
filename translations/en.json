@@ -2353,5 +2353,9 @@
     "pp.feld.tcpm_aus": "TCPM off",
     "pp.feld.tcpm_aus.tooltip": "Switches TCPM off after the path – Siemens TRAFOOF, Fanuc and Haas G49 (afterwards the program switches the tool length on again in the next block with Z).",
     "pp.hinweis.tcpm_fehler": "TCPM did not work ({grund}) – written without TCPM.",
-    "pp.hinweis.drehzahl_begrenzt": "{operation}: S {s} is above the machine's top speed ({max}) – written with S {max} and the feeds at {prozent} %, the chip per tooth stays."
+    "pp.hinweis.drehzahl_begrenzt": "{operation}: S {s} is above the machine's top speed ({max}) – written with S {max} and the feeds at {prozent} %, the chip per tooth stays.",
+    "pp.feld.durchmesser_ein": "Read X as diameter",
+    "pp.feld.durchmesser_ein.tooltip": "Written in the start when the machine counts X as diameter – so the control reads X the way the program writes it (LinuxCNC G7, Siemens DIAMON). Empty for controls that set it by parameter (Fanuc, Haas).",
+    "pp.feld.radius_ein": "Read X as radius",
+    "pp.feld.radius_ein.tooltip": "Written in the start when the machine counts X as radius (LinuxCNC G8, Siemens DIAMOF). Empty for controls that set it by parameter."
 }
