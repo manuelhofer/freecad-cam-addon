@@ -1202,6 +1202,7 @@
     "kb.naehe": "In “{operation}”, {a} and {b} come within {abstand} of each other (block {satz}, at {punkt}).",
     "kb.naehe.eilgang": "In “{operation}”, {a} and {b} come within {abstand} of each other during a rapid move (block {satz}, at {punkt}).",
     "kb.wechsel_ohne_punkt": "This happens right at the tool change: the machine has no tool change point, so it changes where it stands – and {werkzeug} reaches further down than the tool before. A tool change point (Z at the top) in “Edit machine” under “Home and tool change” moves away first.",
+    "kb.anschlag": "At its limit there: {achsen} – the machine cannot reach the spot, the check uses the axis at the limit; sort out the limits first (“Axes” above).",
     "kb.ohne_halter": "{werkzeug}: checked without holder – choose the holder with the tool in the tool manager.",
     "kb.schon_beruehrt": "{a} and {b} already touch in the home position – the collision check skips this pair.",
     "kb.kein_teil": "The job has no model – nothing was checked against the part.",

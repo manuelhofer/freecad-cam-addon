@@ -8,7 +8,8 @@
 # - Eilgang nach einem Vorschub: der Rückzug vom Taschenboden ist kein Befund, der Eilgang
 #   hinunter auf den Boden schon;
 # - Eilgang durchs Rohteil, das über der Tasche noch steht (mit rohteil=True wie im Fenster):
-#   ein Befund mit der Tiefe; im Vorschub hinab nicht;
+#   ein Befund mit der Tiefe; im Vorschub hinab nicht; steht eine Achse am Anschlag, sagt der
+#   Befund es dazu;
 # - Halter ER16 (Mutter Ø 28) bei 80 mm Länge ab Spindelnase, 1 mm zu tief neben
 #   der Tasche: Der Halter berührt das Teil;
 # - kurzes Werkzeug (25 mm) neben dem rechten Spanneisen (die Schraube 60 mm hoch, oben bei
@@ -449,6 +450,19 @@ for bahn, soll in (
     )
     e = kb.kollision(fahrt, job, nullpunkt, bibliothek)
     pruefe(not any(b.ins_rohteil for b in e.befunde), "ohne rohteil=True ein Rohteil-Befund")
+
+# --- Am Anschlag: Muss eine Achse über ihre Grenze, sagt der Befund es dazu ------------------------
+# (Kopf/Tisch am Schwenkteil: X1 müsste bis 526 statt 320 – die Kollision rechnet mit X1 an der
+# Grenze, die Berührung dort folgt aus ihr, nicht aus der Bahn.)
+op.Gcode = ["G0 X50 Y30 Z30", "G0 X500 Y30 Z30"]
+teil.recompute()
+fahrt = ab.abfahrt(p, job, nullpunkt, bibliothek)
+letzte = len(fahrt.stationen) - 1
+pruefe(kb._am_anschlag(fahrt, p.verfahren, letzte - 1, letzte, 1.0) == ["X1"], "X1 am Anschlag")
+pruefe(kb._am_anschlag(fahrt, p.verfahren, 0, 1, 0.0) == [], "am Anfang am Anschlag")
+befund = kb.Befund(True, True, "Eigene", "die Schneide von T1", "das Teil", 0.0, 0.0, 1, 2,
+                   {"X": 500.0, "Y": 30.0, "Z": 30.0}, anschlag="X1")  # fmt: skip
+pruefe("Am Anschlag dort: X1" in befund.text(), befund.text())
 
 FreeCAD.closeDocument(teil.Name)
 FreeCAD.closeDocument(asm.Document.Name)

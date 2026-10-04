@@ -224,6 +224,12 @@ Besprechung:
     die Stange eines 4-Achs-Jobs (`Abtrag.eilgaenge_ins_material`); 3+2 bleibt ohne. Am Testteil,
     am Schwenkteil und an der Welle (Rundum schruppen): keiner; ein eingeschleuster Eilgang quer
     durchs Rohteil, Schnitte in der Stange als Eilgang: gefunden.
+  - **Am Anschlag (P-2026-10-04-19):** Müsste an der Stelle eines Befunds eine Achse über ihre
+    Grenze, rechnet die Kollision mit ihr an der Grenze – der Befund folgt dann aus der Grenze,
+    nicht aus der Bahn. Er sagt es dazu: „Am Anschlag dort: X1, Z1 – die Maschine erreicht die
+    Stelle nicht …“ (`_am_anschlag`, wie „am Anschlag“ im Abspieler). Gefunden an der
+    Kopf/Tisch-Beispielmaschine am Schwenkteil: Für die 45°-Ebene müsste X1 bis 526 statt 320 –
+    die Kollision meldete „ins fertige Teil“.
 - **Melden:** Berührung – Abstand 0 oder ineinander – rot; näher als der
   **Warnabstand** gelb. Der Warnabstand ist 1 mm und im Fenster einstellbar.
 - **Wie gerechnet wird:** Werkzeug und Halter als Drehkörper, Maschinenteile

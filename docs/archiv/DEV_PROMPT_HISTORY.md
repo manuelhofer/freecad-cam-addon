@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-19 kollision-am-anschlag
+
+### EINGELESEN
+- 3+2 am Schwenkteil auf der dritten Bauart, Kopf/Tisch (B/C), durchgefahren (bisher nur
+  Tisch/Tisch und Kopf/Kopf): Ebenen B−30 C−90 und B45 C0, Siemens CYCLE800, LinuxCNC `G0 B… C…`.
+  Für die 45°-Ebene müsste X1 bis 526 statt 320 mm (der Schwenkkopf dreht etwa 410 mm über der
+  Spitze) – „Achsen“ sagt es; die Kollision meldete dazu „fährt ins fertige Teil“, gerechnet mit
+  X1 an der Grenze.
+
+### DATEIEN
+- `camaddon/kollision.py` (`_am_anschlag`, `Befund.anschlag`, Nachsatz `kb.anschlag`),
+  Übersetzungen, Hilfe „Auf der Maschine prüfen“ (de/en), Spezifikation Simulation 4c,
+  `tests/test_kollision.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.165.2).
+
+### AKZEPTANZKRITERIUM
+- Eine Bahn auf X 500 an der Beispiel-Fräse: `_am_anschlag` → „X1“; am Anfang nichts. Kopf/Tisch
+  am Schwenkteil: „… fährt die Schneide von T1 ins fertige Teil … Am Anschlag dort: X1, Z1 – die
+  Maschine erreicht die Stelle nicht …“.
+
+### DONE
+- Wie oben.
+
+### TESTS
+- `tests/test_kollision.py`, `tests/test_sprache.py` – OK; Szenario `szenario_kollision` – OK.
+  black und ruff sauber.
+
+### NEXT
+- Manuels Entscheidungen.
+
 ## P-2026-10-04-18 eilgang-durch-die-stange
 
 ### EINGELESEN

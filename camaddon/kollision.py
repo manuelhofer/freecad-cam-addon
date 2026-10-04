@@ -294,6 +294,9 @@ class Befund:
     wechsel: str = ""
     # Ein Eilgang durch Rohteil, das dort noch steht (_eilgaenge_ins_rohteil): so tief (mm).
     ins_rohteil: float = 0.0
+    # Achsen, die dort am Anschlag stehen („X1, Z1“): Die Maschine erreicht die Stelle nicht – die
+    # Kollision rechnet mit der Achse an der Grenze, der Befund folgt aus ihr, nicht aus der Bahn.
+    anschlag: str = ""
 
     def text(self):
         werte = {
@@ -316,6 +319,8 @@ class Befund:
             text = tr("kb.naehe.eilgang", **werte) if self.eilgang else tr("kb.naehe", **werte)
         if self.wechsel:
             text += " " + tr("kb.wechsel_ohne_punkt", werkzeug=self.wechsel)
+        if self.anschlag:
+            text += " " + tr("kb.anschlag", achsen=self.anschlag)
         return text
 
 
@@ -863,6 +868,7 @@ class _Welt:
                 and jetzt.laenge > vorher.laenge + 1e-6
             ):
                 wechsel = f"T{nummer}"
+        anschlag = ", ".join(_am_anschlag(abfahrt, self.verfahren, i, naechste, s))
         self.schlimmste[schluessel] = Befund(
             beruehrung=abstand <= BERUEHRT,
             eilgang=ziel.eilgang,
@@ -878,7 +884,24 @@ class _Welt:
             ins_teil=paar.nur_vorschub,
             x_durchmesser=abfahrt.pruefung.x_durchmesser,
             wechsel=wechsel,
+            anschlag=anschlag,
         )
+
+
+def _am_anschlag(abfahrt, verfahren, i, naechste, s):
+    """Die Namen der Achsen („X1“), die beim Anteil `s` zwischen Station i und der nächsten
+    über ihre Grenze müssten – dort steht die Maschine am Anschlag (wie im Abspieler)."""
+    from .verfahren import namen
+
+    von, nach = abfahrt.wirksam(i), abfahrt.wirksam(naechste)
+    ergebnis = []
+    for achse, a, b in zip(abfahrt.achsen, von, nach, strict=True):
+        if a is None and b is None:
+            continue
+        wert = b if a is None else a if b is None else a + s * (b - a)
+        if abs(verfahren.begrenzt(achse, wert) - wert) > 1e-6:
+            ergebnis.append(namen(abfahrt.pruefung.maschine, achse))
+    return ergebnis
 
 
 def _zaehlt(paar, k, abstand, s, anfang):
