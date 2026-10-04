@@ -141,7 +141,11 @@ Hüben. Ohne Maschine nur für einen Tisch A (um X) mit Rundtisch C, den Drehpun
 Grundjobs.</li>
 </ul>
 <p><b>Vor dem ersten Lauf</b> in der Simulation der Steuerung ansehen: Ob der Schwenkdatensatz,
-die Richtung und das Freifahren zur Maschine passen, legt der Maschinenhersteller fest.</p>
+die Richtung und das Freifahren zur Maschine passen, legt der Maschinenhersteller fest. Und ob die
+Steuerung <b>dieselbe Schwenkstellung</b> nimmt, die „Auf der Maschine prüfen“ gefahren und auf
+Kollision geprüft hat (im Abspieler „… – Ebene A−30 C0“): Zu einer Ebene gibt es meist zwei
+Stellungen, etwa A−20 C10 und A+20 C190 – zwischen ihnen wählt CYCLE800 mit der Richtung
+(<code>_DIR</code>). Nimmt sie die andere, hat diese niemand geprüft.</p>
 
 <a name="bohren"></a>
 <h3>Bohrzyklen</h3>

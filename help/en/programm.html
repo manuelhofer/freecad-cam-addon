@@ -136,7 +136,10 @@ they are written out as rapid and feed moves, G83 in pecks. Without a machine on
 (about X) with rotary table C, the pivot at the base job's zero point.</li>
 </ul>
 <p><b>Before the first run</b> look at it in the control's simulation: whether the swivel data
-set, the direction and the retract suit the machine is decided by the machine builder.</p>
+set, the direction and the retract suit the machine is decided by the machine builder. And whether the control takes <b>the same swivel position</b> that “Check on machine” ran
+and checked for collisions (in the player “… – plane A−30 C0”): a plane usually has two
+positions, say A−20 C10 and A+20 C190 – CYCLE800 chooses between them with the direction
+(<code>_DIR</code>). If it takes the other one, nobody has checked it.</p>
 
 <a name="bohren"></a>
 <h3>Drilling cycles</h3>
