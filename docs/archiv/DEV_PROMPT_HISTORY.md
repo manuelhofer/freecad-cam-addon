@@ -276,6 +276,8 @@ patch_naming:
 ### TESTS
 - `tests/test_schlichten3d.py`, `tests/test_restschlichten.py` – OK; Szenario `szenario_mulde` –
   OK („nirgends ins Teil“, auch am Rand). black und ruff sauber.
+  Nachgetragen: `tests/test_schlichten3d.py` mit einer Mulde (Halbkugel R 12,5, Kugel Ø 8) – 11
+  Höhen, höchstens so viele Hübe wie Höhen (+1); ohne das Füllen (Gegenprobe) wieder 65.
 
 ### NEXT
 - Manuels Durchsicht der Bahnen (Kontur, Mulde, Nut, Planen, Tasche).

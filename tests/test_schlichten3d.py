@@ -11,7 +11,8 @@
 # nach oben, im Raum gleich weit; im Quader alle so gut wie die Zeilen. Steil/Flach an einer Halbkugel R 15 (am Fuß senkrecht): Mit Höhenlinien, wo es steiler
 # ist als 45°, bleibt an der Flanke höchstens 0,035 stehen, entlang der Fläche ebenso, mit Zeilen
 # allein mehr als 0,045. Eine Welle am Rand eines Blocks ohne Platte: nirgends ins Teil, auch nicht
-# an der Außenkante. Dann die Operation im Job: „3D-Schlichten T3“, Art „schlichten3d“.
+# an der Außenkante. In einer Mulde (Halbkugel R 12,5) heben die Höhenlinien am Rand nicht mehr ab
+# (B-013). Dann die Operation im Job: „3D-Schlichten T3“, Art „schlichten3d“.
 import math
 import os
 import pathlib
@@ -247,6 +248,34 @@ for richtung in ("auto", "spirale", "x", "aequidistant"):
     pruefe(np.percentile(innen_w, 99) < 0.03, f"Welle {richtung}: Rest {np.max(innen_w):.3f}")
     print(ascii(f"Welle {richtung}: {bahn_w.zeit:.2f} min, ins Teil {np.min(rest_w):.3f}, Rest "
                 f"bis {np.percentile(innen_w, 99):.3f} (99 %)"))  # fmt: skip
+
+# --- Eine Mulde: die Höhenlinien am Rand ohne Hübe (B-013) --------------------------------------
+# Platte 60 × 60 × 20, darin eine Halbkugel R 12,5 von oben (wie die Mulde im Testteil), die
+# Kugel Ø 8: Am oberen Rand berührt die Kugel an den Ecken der Vernetzung die Kante statt der
+# Fläche – bis P-2026-10-04-12 zerfiel dort jede Höhenlinie und hob im Vorschub um gut 1 mm ab
+# (am Testteil 65 Hübe). Jetzt hebt nur der Übergang zur nächsten Höhe (LUFT).
+platte_m = Part.makeBox(60, 60, 20)
+mulde = platte_m.cut(Part.makeSphere(12.5, V(30, 30, 20))).removeSplitter()
+schale = [
+    f"Face{i + 1}"
+    for i, f in enumerate(mulde.Faces)
+    if isinstance(f.Surface, (Part.Sphere, Part.Toroid)) and f.BoundBox.ZMin < 19.0
+]
+pruefe(len(schale) >= 1, f"Mulde: {schale}")
+w_mulde = s3.Schlichtwerte(
+    form=ff.kugel(4.0), oben=20.0, sicher=25.0, vorschub=900.0, eintauchen=270.0
+)
+b_mulde = s3.planen(mulde, schale, w_mulde)
+p = b_mulde.punkte
+huebe = sum(
+    1
+    for a, c in zip(p, p[1:], strict=False)
+    if not c.eilgang and c.z - a.z > 0.05 and abs(c.x - a.x) + abs(c.y - a.y) < 1e-9
+)
+print(
+    ascii(f"Mulde: {b_mulde.hoehenlinien} Höhen, {huebe} Hübe im Vorschub, {b_mulde.zeit:.2f} min")
+)
+pruefe(huebe <= b_mulde.hoehenlinien + 1, f"Mulde: {huebe} Hübe bei {b_mulde.hoehenlinien} Höhen")
 
 # --- Die Operation im Job -----------------------------------------------------------------------
 import Path.Main.Job as PathJob
