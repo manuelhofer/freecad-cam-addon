@@ -97,7 +97,11 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Höchstvorschub der Maschine) – nach Manuels Idee, wenn es trotz Bremsen Zeit bringt; geschätzt
   höchstens knapp 1 min. **Ebenso (zum Besprechen):** In der dreieckigen Tasche passt der
   Adaptiv-Kern mit dem Ø 6 nicht; das Räumen fällt auf Ringe zurück und nimmt über 16 mm am
-  Stück bis 4,5 ae (Prüfstand: Eingriff bis 5,1 ae) – gegen „die Last im Rahmen“.
+  Stück bis 4,5 ae (Prüfstand: Eingriff bis 5,1 ae) – gegen „die Last im Rahmen“. Gemeldet wird
+  es nicht: `raeumen_bahn.planen` misst die Last nur, wenn „adaptiv“ gerechnet werden konnte;
+  sonst gewinnt die schnellste Variante, und `Raeumbahn.haelt` bleibt True. Die Last trotzdem
+  messen und `haelt` setzen hieße am Testteil eine rote Zeile beim „Rest räumen“ (das Szenario
+  erwartet keine) – Manuel entscheidet.
 - **FreeCAD-Versionen:** 1.1.4 auf Manuels Rechner (Arch-Paket, Python 3.14) – alle 71
   Prüfungen und 98 Szenarien grün mit P-2026-10-02-85, seither je die Prüfung und das Szenario
   zum geänderten Teil. 1.1.3 und Wochen-Build 26.3.0 dev (2026-09-16) zuletzt voll grün mit
