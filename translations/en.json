@@ -2382,6 +2382,7 @@
     "e3.grund.halter": "the holder would hit",
     "e3.grund.halter_bis": "the holder would hit – with {mm} mm stick-out it would work",
     "e3.grund.schaft": "the shank would come too close to the part (a slimmer cutter)",
+    "e3.grund.von_oben": "cannot be chamfered with the vertical cone (edge underneath the part or bent too flat for its angle)",
     "e3.fehler.gewinkelt": "Deburr 3D works with a straight holder – not with an angle head.",
     "e3.ausgelassen": "{mm} mm of edge without chamfer: {gruende}.",
     "e3.fehler.fraeser": "Deburr 3D needs a chamfer mill or a cutter with a flat face (end, bull-nose, face, slot mill) from the tool manager.",

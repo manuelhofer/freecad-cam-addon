@@ -144,6 +144,7 @@ def ausgelassen_text(bahn):
         e3.ANFAHRT: tr("e3.grund.anfahrt"),
         e3.TISCH: tr("e3.grund.tisch"),
         e3.SCHAFT_NAH: tr("e3.grund.schaft"),
+        e3.VON_OBEN: tr("e3.grund.von_oben"),
         e3.HALTER: (
             tr("e3.grund.halter_bis", mm=f"{bahn.auskragung:.0f}")
             if bahn.auskragung > 0

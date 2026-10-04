@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-04-75 entgraten-3d-von-oben
+
+### EINGELESEN
+- Die Vorschau des Assistenten an beiden Beispielteilen gemessen (2,7–8,1 s); am Schwenkteil mit
+  3 Achsen „283 mm ohne passende Stellung“ – sagt nicht, warum.
+
+### DATEIEN
+- `camaddon/entgrat3d_bahn.py` (`VON_OBEN`), `camaddon/entgraten3d.py`, `translations/de.json`,
+  `en.json`, `tests/test_entgraten3d.py`, `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.188.10).
+
+### DONE
+- Mit 3 Achsen der Grund „mit dem senkrechten Kegel nicht zu fasen (Kante unten am Teil oder für
+  seinen Winkel zu flach geknickt)“.
+
+### TESTS
+- `test_entgraten3d`, `test_sprache` – OK.
+
 ## P-2026-10-04-74 kollision-gedrehte-quader
 
 ### EINGELESEN

@@ -207,7 +207,17 @@ pruefe(
 eintauchen = [p for p in bahn.punkte if p.eintauchen]
 pruefe(len(eintauchen) >= bahn.kanten, f"Eintauchen: {len(eintauchen)}")
 pruefe(
-    set(bahn.gruende) <= {e3.ENG, e3.STEIL, e3.KEINE_STELLUNG, e3.ANFAHRT, e3.TISCH, e3.HALTER},
+    set(bahn.gruende)
+    <= {
+        e3.ENG,
+        e3.STEIL,
+        e3.KEINE_STELLUNG,
+        e3.ANFAHRT,
+        e3.TISCH,
+        e3.HALTER,
+        e3.SCHAFT_NAH,
+        e3.VON_OBEN,
+    },
     f"{bahn.gruende}",
 )
 # 3 Achsen mit einem Fräser mit ebener Stirn geht nicht; ohne Kanten auch nicht.

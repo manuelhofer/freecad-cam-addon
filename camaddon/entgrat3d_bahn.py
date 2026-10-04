@@ -226,7 +226,7 @@ class Bahn3D:
 
 
 ENG, STEIL, KEINE_STELLUNG, ANFAHRT = "eng", "steil", "keine", "anfahrt"
-TISCH, HALTER, SCHAFT_NAH = "tisch", "halter", "schaft"
+TISCH, HALTER, SCHAFT_NAH, VON_OBEN = "tisch", "halter", "schaft", "von_oben"
 
 
 # --- Die Kanten ------------------------------------------------------------------------------
@@ -547,7 +547,11 @@ def _fase(e, t, n1, n2, u1, u2, w):
         if beste is None or n_p @ (n1 + n2) > beste @ (n1 + n2):
             beste = n_p
     if beste is None:
-        return None, 0, 0, 0, KEINE_STELLUNG
+        # Keine Tangentialebene des senkrechten Kegels durch die Kante schneidet beide Flächen
+        # ab: eine Kante unten am Teil (eine Fläche schaut nach unten), oder sie ist flacher
+        # geknickt, als seine Flanke steht (eine 45°-Schräge an der Oberseite: die Flanke des
+        # 90°-Kegels liegt auf ihr).
+        return None, 0, 0, 0, VON_OBEN
     # Die Breite auf der Fläche, die zum Werkzeug schaut (wie das Entgraten an der Fräse).
     oben = u1 if n1 @ z >= n2 @ z else u2
     d = -w.breite * float(beste @ oben)

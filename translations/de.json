@@ -2382,6 +2382,7 @@
     "e3.grund.halter": "der Halter stieße an",
     "e3.grund.halter_bis": "der Halter stieße an – mit {mm} mm Auskragung ginge es",
     "e3.grund.schaft": "der Schaft käme dem Teil zu nah (ein schlankerer Fräser)",
+    "e3.grund.von_oben": "mit dem senkrechten Kegel nicht zu fasen (Kante unten am Teil oder für seinen Winkel zu flach geknickt)",
     "e3.fehler.gewinkelt": "Entgraten 3D rechnet mit einem geraden Halter – mit einem Winkelkopf geht es nicht.",
     "e3.ausgelassen": "{mm} mm Kante ohne Fase: {gruende}.",
     "e3.fehler.fraeser": "Entgraten 3D braucht einen Fasenfräser oder einen Fräser mit ebener Stirn (Schaft, Torus, Plan, Nut) aus der Werkzeugverwaltung.",

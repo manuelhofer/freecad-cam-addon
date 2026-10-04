@@ -2937,7 +2937,10 @@ Kollision mit Rundachsen je Station.
   ausspannen hilft nicht, der Schaft wird nur länger – und „der Halter stieße an“; dafür probiert
   die Bahn 5, 10, 15, 20, 30 mm mehr Auskragung und nennt die erste, mit der alle diese Stellen
   eine Fase bekämen („– mit 15 mm Auskragung ginge es“). Testteil (vorgeschlagener Halter, 10 mm
-  ausgespannt): 40 mm Halter – mit 15 mm ginge es –, 8 mm Schaft.
+  ausgespannt): 40 mm Halter – mit 15 mm ginge es –, 8 mm Schaft. Mit 3 Achsen heißt, was der
+  senkrechte Kegel nicht fasen kann (keine seiner Tangentialebenen durch die Kante schneidet beide
+  Flächen ab), jetzt so: „mit dem senkrechten Kegel nicht zu fasen (Kante unten am Teil oder für
+  seinen Winkel zu flach geknickt)“ – vorher „ohne passende Stellung“ (Schwenkteil: 281 mm).
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je
