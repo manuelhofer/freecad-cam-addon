@@ -1309,6 +1309,11 @@ die Abstände gelten für beide.
 
 - Luftschnitte überspringen, Zeit je Operation, zweiter Durchlauf auf
   demselben Job, Warnung „Modell im Job verändert“, Gleich- oder Gegenlauf.
+- *Luftschnitte nachgemessen (2026-10-04 nachts):* Welle Ø 60 × 100 in der Stange Ø 80, Rundum
+  schruppen (ap 3, 5 mm/U) und schlichten (Kugel Ø 6, 0,2 mm), Beispiel-Drehmaschine: Die
+  Bahn in Blöcken zu 60 Stücken über dem Abtrag der Stange gefahren – ohne Abtrag beim Schruppen
+  1 % der Vorschubzeit (0,5 von 41 min), beim Schlichten 3 % (5,4 von 162 min, vor allem der
+  Überlauf vorn und hinten). Überspringen lohnt kaum.
 - *Klickweg:* Schritt 4 zeigt die Zeiten; ein zweiter Durchlauf auf dem Job
   beginnt bei Schritt 2.
 
