@@ -121,6 +121,27 @@ NUR_FRAESEN = {
     "spaenebrechen",
     "reiben",
 }
+# Was es im Heidenhain-Klartext nicht gibt (die Satznummern schreibt er immer, die Länge nimmt
+# TOOL CALL mit, G93 und die Bohrzyklen übersetzt er selbst; 3+2 dort gerechnet) – nicht gezeigt.
+NUR_GCODE = {
+    "satznummern",
+    "g93",
+    "vorschub_zeit",
+    "vorschub_minute",
+    "vorschub_minute_drehen",
+    "laenge_ein",
+    "laenge_ein_drehen",
+    "laenge_wieder",
+    "kopf_drehmaschine",
+    "schwenkzyklus",
+    "schwenken",
+    "schwenken_aus",
+    "bohren",
+    "bohren_verweilen",
+    "tiefbohren",
+    "spaenebrechen",
+    "reiben",
+}
 # Befehle, die nur mit ihrem Haken gelten.
 HAKEN_VON = {
     "laenge_wieder": "wechselpunkt",
@@ -262,6 +283,18 @@ def abschnitte_mit_maschine(job, gewaehlt):
     Maschine prüfen“. Liegt sie nur in ihrer Datei, wird sie dafür verborgen geöffnet und wieder
     geschlossen. Ohne Maschine mit zwei Rundachsen wie bisher (Tisch A, C um den Nullpunkt)."""
     return _abschnitte_und_kette(job, gewaehlt)[0]
+
+
+def _rohteil(job):
+    """((xmin, ymin, zmin), (xmax, ymax, zmax)) des Rohteils im Job – fürs BLK FORM im Klartext;
+    None ohne."""
+    try:
+        box = job.Stock.Shape.BoundBox
+    except AttributeError:
+        return None
+    if not box.isValid():
+        return None
+    return (box.XMin, box.YMin, box.ZMin), (box.XMax, box.YMax, box.ZMax)
 
 
 def _abschnitte_und_kette(job, gewaehlt):
@@ -436,6 +469,8 @@ class ProgrammDialog(QtGui.QDialog):
         zeile = QtGui.QHBoxLayout()
         zeile.addWidget(QtGui.QLabel(tr("pp.datei")))
         self.feld_datei = QtGui.QLineEdit()
+        # Klartext: der Name im BEGIN/END PGM folgt der Datei – die Vorschau zeigt ihn neu.
+        self.feld_datei.editingFinished.connect(self._datei_geaendert)
         zeile.addWidget(self.feld_datei, 1)
         zeile.addWidget(knopf("…", tr("pp.datei.waehlen"), self._datei_waehlen))
         aufbau.addLayout(zeile)
@@ -592,6 +627,8 @@ class ProgrammDialog(QtGui.QDialog):
         Wechselpunkt in MKS oder WKS."""
         drehen = self.info.drehmaschine
         if (feld in NUR_DREHEN and not drehen) or (feld in NUR_FRAESEN and drehen):
+            return False
+        if feld in NUR_GCODE and self.steuerung().dialekt == "klartext":
             return False
         if feld == "wechselpunkt_mks":
             return not self.info.wechsel_wks
@@ -780,7 +817,15 @@ class ProgrammDialog(QtGui.QDialog):
             gewaehlt = self._maschinen[k] if 0 <= k < len(self._maschinen) else None
             self._teile, self._ohne_kette = _abschnitte_und_kette(self.job, gewaehlt)
         s = self.steuerung()
-        programm = pp.programm(self._teile, s, self.info, self.job.Label, vorschau)
+        programm = pp.programm(
+            self._teile,
+            s,
+            self.info,
+            self.job.Label,
+            vorschau,
+            datei=self.feld_datei.text().strip(),
+            rohteil=_rohteil(self.job),
+        )
         if self._ohne_kette and not (s.schwenkzyklus and s.schwenken):
             # Sonst stillschweigend: der gedachte Tisch A, C um den Nullpunkt (schwenken).
             programm.hinweise.append(tr("pp.hinweis.ebene_ohne_kette"))
@@ -802,6 +847,11 @@ class ProgrammDialog(QtGui.QDialog):
         )
         if pfad:
             self.feld_datei.setText(pfad)
+            self._datei_geaendert()
+
+    def _datei_geaendert(self):
+        if self.job is not None and self.steuerung().dialekt == "klartext":
+            self.vorschau_rechnen()
 
     def speichern(self):
         """Schreibt das ganze Programm in die Datei; gibt den Pfad zurück (None, wenn es nicht

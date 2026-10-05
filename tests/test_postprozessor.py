@@ -299,6 +299,8 @@ print(ascii(f"Job: {p_job.saetze} Saetze, {len(p_job.zeilen)} Zeilen"))
 # Haas kein G90 (dort an der Drehmaschine der Längsdrehzyklus) – auch nicht aus der Bahn.
 for kennung in pp.STEUERUNGEN:
     s = pp.steuerung(kennung)
+    if s.dialekt == "klartext":
+        continue  # Heidenhain-Klartext nur an der Fräse – unten eigens
     p_k = pp.programm(teile, s, dreh, job.Label)
     befunde, _saetze = pp.nachlesen(p_k, s, dreh)
     pruefe(not befunde, f"Job {kennung}: {[(b.art, b.satz) for b in befunde[:3]]}")
@@ -357,6 +359,107 @@ pruefe(
 )
 dreh_b = pp.programm([bohren], pp.steuerung("siemens"), dreh, "B").zeilen
 pruefe(any(x.startswith("G81 ") for x in dreh_b), "Drehmaschine: G81 nicht behalten")
+
+# --- Heidenhain im Klartext (P-2026-10-05-01; Manuel: „Heidenhain muss mit rein … vor allem
+# iTNC 530“): Sätze wie im Programm einer iTNC 530 – BEGIN/END PGM wie die Datei, BLK FORM,
+# TOOL CALL mit Drehzahl, M3 allein, L mit Vorzeichen, FMAX, CC/C, M91 zum Wechselpunkt; die
+# Bohrzyklen ausgeschrieben (G98: zurück auf die Höhe davor, G99: auf R); Satznummern ab 0.
+import re  # noqa: E402
+
+from camaddon import klartext as kt  # noqa: E402
+from camaddon import programm_pruefen as prp  # noqa: E402
+
+kreise = pp.Abschnitt(
+    "Kreise",
+    3,
+    2000.0,
+    False,
+    "Flood",
+    [
+        C("G0", {"Z": 15.0}),
+        C("G0", {"X": 10.0, "Y": 5.0}),
+        C("G1", {"Z": -2.0, "F": 5.0}),
+        C("G2", {"X": 20.0, "Y": 5.0, "I": 5.0, "J": 0.0, "F": 10.0}),
+        C("G3", {"X": 20.0, "Y": 5.0, "I": -5.0, "J": 0.0}),  # Vollkreis
+        C("G2", {"X": 25.0, "Y": 10.0, "Z": -4.0, "I": 5.0, "J": 0.0}),  # Schraube
+        C("G0", {"Z": 15.0}),
+    ],
+    "Fräser Ø 12",
+)
+wp = pp.Maschineninfo("Fräse", wechselpunkt={"Z": 0.0, "X": -200.0})
+hh = pp.steuerung("heidenhain")
+p_hh = pp.programm(
+    [kreise, bohren], hh, wp, "Teil", datei="/x/Teil_1.h", rohteil=((0, 0, -20), (60, 40, 0))
+)
+z_hh = p_hh.zeilen
+saetze_hh = [re.sub(r"^\d+ ", "", x) for x in z_hh]
+pruefe(
+    all(x.startswith(f"{i} ") for i, x in enumerate(z_hh)),
+    f"Heidenhain Nummern: {z_hh[:3]}",
+)
+pruefe(
+    saetze_hh[0] == "BEGIN PGM Teil_1 MM"
+    and saetze_hh[-1] == "END PGM Teil_1 MM"
+    and saetze_hh[-2] == "M30"
+    and saetze_hh[1:3] == ["BLK FORM 0.1 Z X+0.000 Y+0.000 Z-20.000", "BLK FORM 0.2 X+60.000 Y+40.000 Z+0.000"],
+    f"Heidenhain Anfang/Ende: {saetze_hh[:3]} … {saetze_hh[-2:]}",
+)  # fmt: skip
+k = saetze_hh.index("TOOL CALL 3 Z S2000") if "TOOL CALL 3 Z S2000" in saetze_hh else -1
+pruefe(k > 0 and saetze_hh[k + 1 : k + 3] == ["M3", "M8"], f"TOOL CALL: {saetze_hh[k - 2 : k + 4]}")
+pruefe(
+    "L Z+0.000 R0 FMAX M91" in saetze_hh and "L X-200.000 Z+0.000 R0 FMAX M91" in saetze_hh,
+    f"Wechselpunkt M91: {saetze_hh[:16]}",
+)
+for satz in (
+    "L Z-2.000 R0 F300",
+    "CC X+15.000 Y+5.000",
+    "C X+20.000 Y+5.000 DR- R0 F600",
+    "C X+10.000 Y+5.000 DR+ R0",  # der Vollkreis in zwei Hälften
+    "L Z-8.000 R0 F120",  # G81
+    "L Z-20.000 R0",  # G83 bis zur Tiefe
+    "L Z-17.500 R0 FMAX",  # G83: im Eilgang bis knapp über die letzte Tiefe
+    "L Z-6.000 R0 F60",  # G85 hinein …
+):
+    pruefe(satz in saetze_hh, f"Heidenhain fehlt „{satz}“")
+g85 = saetze_hh.index("L Z-6.000 R0 F60") if "L Z-6.000 R0 F60" in saetze_hh else -1
+pruefe(saetze_hh[g85 + 1] == "L Z+2.000 R0", f"G85 im Vorschub heraus: {saetze_hh[g85:g85 + 3]}")
+pruefe(
+    not any(x.split()[0] in ("G0", "G1", "G2", "G3", "G81", "G83", "G85") for x in saetze_hh),
+    "Heidenhain: G-Code übrig",
+)
+pruefe(any("Schraube" in h for h in p_hh.hinweise), f"Schraube: {p_hh.hinweise}")
+befunde, saetze = pp.nachlesen(p_hh, hh, wp)
+pruefe(not befunde and saetze > 20, f"Heidenhain nachgelesen: {[(b.art, b.satz) for b in befunde]}")
+pruefe(
+    pp.dateiname(job, hh).endswith(".h") and pp.dateiname(job, pp.steuerung("heidenhain_tnc640")).endswith(".h"),
+    "Heidenhain Endung",
+)  # fmt: skip
+# Der Prüfer findet: einen falschen Kreis, eine springende Nummer, F fehlt, die Spindel steht.
+kaputt = "\n".join(
+    [
+        "0 BEGIN PGM K MM",
+        "1 TOOL CALL 1 Z S1000",
+        "2 L X+0.000 Y+0.000 Z+5.000 R0 FMAX",
+        "3 L Z-1.000 R0",
+        "4 M3",
+        "5 L X+10.000 R0 F100",
+        "6 CC X+15.000 Y+0.000",
+        "7 C X+15.000 Y+6.000 DR+ R0",
+        "9 M30",
+        "10 END PGM K MM",
+    ]
+)
+arten = {b.art for b in kt.pruefe(kaputt).befunde}
+pruefe(
+    {prp.SPINDEL, prp.VORSCHUB, prp.KREIS, kt.NUMMER} <= arten,
+    f"Klartext-Prüfer: {sorted(arten)}",
+)
+# An der Drehmaschine: der Hinweis, dass Klartext hier für Fräsen gebaut ist.
+p_hd = pp.programm([kreise], hh, dreh, "W")
+pruefe(
+    any("Fräsmaschinen" in h for h in p_hd.hinweise), f"Heidenhain Drehmaschine: {p_hd.hinweise}"
+)
+print(ascii(f"Heidenhain: {len(z_hh)} Saetze, {saetze} nachgelesen"))
 
 # --- Messstopp (Spezifikation Strategien 12.4): zum Messen an den Wechselpunkt ----------------
 # Mit Wechselpunkt Z 150 (MKS) statt „G0 Z25“ der Weg dorthin, dann M5, M0, M3; an der Siemens

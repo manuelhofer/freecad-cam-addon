@@ -523,3 +523,25 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
 - **P-2026-10-04-64 – Haas: angetriebenes Werkzeug rückwärts:** Nachgelesen (haascnc.com, M133):
   M133 vorwärts, M134 rückwärts, M135 aus, P die Drehzahl; M154/M155 C-Achse ein/aus. Das Programm
   schrieb immer M133 – jetzt `M13{m} P{s}` (M133 bzw. M134 nach der Drehrichtung).
+- **P-2026-10-05-01 – Heidenhain im Klartext (iTNC 530, TNC 640/620/320):** Manuel (2026-10-05):
+  „Heidenhain muss mit rein, aber gibt ja verschiedene, vor allem iTNC 530“ – E1 um Heidenhain
+  erweitert. Nachgelesen an einem Programm für die iTNC 530 (Nachwuchsstiftung Maschinenbau,
+  „Fussteil Pos. 1“): Satznummern ab 0, `BEGIN PGM name MM`/`END PGM name MM`, `BLK FORM 0.1 Z …`/
+  `0.2 …`, Kommentare `;…`, `TOOL CALL 10 Z S5000 F2000`, `M3` allein, `L X+55 Y+35 FMAX`,
+  `CC X+39.5 Y+0`/`C X+34 Y-13.955 DR+`, `M30`. Die Drehzahl ändert TOOL CALL (iTNC-530-Handbuch:
+  ohne Werkzeugnummer möglich – geschrieben wird mit Nummer, wie CAM-Postprozessoren es tun). Gebaut
+  als Dialekt (`Steuerung.dialekt = "klartext"`): Der Postprozessor schreibt wie für jede
+  Steuerung, `klartext.uebersetzen` macht am Schluss Klartext – G0 → `L … R0 FMAX`, G1 → `L … R0
+  F…` (F nur bei Änderung), G2/G3 in XY → `CC` + `C … DR-`/`DR+` (Vollkreis in zwei Hälften),
+  Schraube und XZ/YZ in Geraden (0,002 mm), `G53` → `M91`, Bohrzyklen G81/82/83/73/85
+  ausgeschrieben (G98/G99), Verweilen mit Zyklus 9, die Drehzahl in den TOOL CALL, Satznummern,
+  BEGIN/END PGM mit dem Dateinamen (nur Buchstaben, Ziffern, „_“), BLK FORM aus dem Rohteil des
+  Jobs. Die Befehle der Steuerung schon als Klartext: Wechsel `TOOL CALL {t} Z`, Wechselpunkt
+  `L {achsen} R0 FMAX M91` (M92 zur Wahl), Marken als Gliederung `* - {marke}`, Glätten Zyklus 32
+  (`CYCL DEF 32.0 TOLERANZ`/`32.1 T…`, deutsche Texte), TCPM iTNC 530 `M128`/`M129`, TNC 640
+  `FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS`/`FUNCTION RESET TCPM`. Kein G93 im Klartext: F in
+  mm/min wie S5 (die Zeit des Satzes stimmt). 3+2 gerechnet (PLANE SPATIAL später). Nachgelesen mit
+  einem eigenen Prüfer (`klartext.pruefe`: Nummern, BEGIN/END, TOOL CALL vor dem ersten Weg,
+  Drehzahl und M3, F, Kreise mit CC, M30). Im Fenster ohne die G-Code-Felder (G93, Satznummern,
+  G43, Bohrzyklen, Schwenkzyklus); die Vorschau folgt dem Dateinamen. Nur für Fräsmaschinen – an
+  einer Drehmaschine ein Hinweis (CNC PILOT spricht eine andere Sprache).

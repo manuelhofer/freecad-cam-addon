@@ -16,12 +16,13 @@ die gewählte in einer Datei, merkt sich der Job sie. Darunter steht, was der Po
 ihr weiß: Drehmaschine oder Fräse, X im Durchmesser, die Hauptspindel und ihre C-Achse
 („Hauptspindel S4, C-Achse C4“), welche Plätze angetrieben sind („T1…T12 → S1 (C1)“). Ohne
 Maschine schreibt er wie für eine Fräse.</li>
-<li><b>Steuerung</b>: LinuxCNC, Siemens 840D, Fanuc, Haas oder Mach3/Mach4. Der Job merkt sich
+<li><b>Steuerung</b>: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4 oder Heidenhain im
+Klartext – iTNC 530 oder TNC 640/620/320 (<a href="#heidenhain">unten</a>). Der Job merkt sich
 die Wahl, ebenso die Maschine – beim nächsten Job auf ihr ist sie vorgewählt.</li>
 <li><b>Links die Einstellungen, rechts die Vorschau</b> mit den ersten Sätzen – jede Änderung
 siehst du sofort.</li>
 <li><b>Speichern</b> schreibt das ganze Programm in die Datei (vorgeschlagen: neben dem
-Dokument, mit der Endung der Steuerung – .ngc, .mpf, .nc, .tap).</li>
+Dokument, mit der Endung der Steuerung – .ngc, .mpf, .nc, .tap, .h).</li>
 <li><b>Nachgelesen</b>: Danach liest das Addon das gespeicherte Programm Satz für Satz, wie die
 Steuerung es läse, und sagt unter „Gespeichert …“, ob etwas auffällt – ein Satz, der ohne
 Werkzeuglänge fährt, Vorschub bei stehender Spindel oder ohne F, ein Kreis, dessen Mitte vom
@@ -241,6 +242,40 @@ abweichen – vorbelegt 0,01 mm. Kleiner ist genauer, aber langsamer.</p>
 <p><b>Vor dem ersten Lauf</b> das Programm in der Simulation deiner Steuerung ansehen: Die
 Befehle für C-Achse, Antrieb und Glätten richten sich nach den Handbüchern der Steuerung; an der
 Maschine legt der Hersteller manches anders fest.</p>
+
+<a name="heidenhain"></a>
+<h3>Heidenhain (Klartext)</h3>
+<p>Für die <b>iTNC 530</b> und die <b>TNC 640, 620 und 320</b> schreibt der Postprozessor
+Klartext – so, wie man ihn an der Steuerung eingibt:</p>
+<ul>
+<li>Jeder Satz mit Nummer ab 0, vorn <b>BEGIN PGM</b>, hinten <b>END PGM</b> mit dem Namen der
+Datei (ohne .h – Heidenhain verlangt, dass beide gleich heißen; nur Buchstaben, Ziffern und
+„_“). Mit Rohteil im Job dazu <b>BLK FORM</b> für die Grafik der Steuerung.</li>
+<li><b>TOOL CALL 3 Z S3183</b> ruft das Werkzeug mit seiner Drehzahl, danach <b>M3</b> allein –
+die Länge kommt mit TOOL CALL aus der Werkzeugtabelle der Steuerung (dort muss sie stimmen).
+Eine andere Drehzahl mit demselben Werkzeug: TOOL CALL noch einmal.</li>
+<li>Geraden als <b>L X+… Y+… Z+… R0 F…</b>, Eilgang mit <b>FMAX</b>, jede Zahl mit Vorzeichen;
+Kreise in XY als <b>CC</b> (Mitte) und <b>C … DR-</b> (im Uhrzeigersinn) bzw. <b>DR+</b>, ein
+Vollkreis in zwei Hälften. Eine Schraube oder ein Bogen in XZ/YZ wird in Geraden geschrieben
+(höchstens 0,002 mm daneben) – ein Hinweis sagt es.</li>
+<li>Zum Wechselpunkt in Maschinenkoordinaten mit <b>M91</b> („L Z+0 R0 FMAX M91“); M92 (vom
+Maschinenhersteller festgelegter Punkt) steht zur Wahl.</li>
+<li>Die Bohrzyklen sind ausgeschrieben – Bohren, Tiefbohren mit Rückzug, Spanbrechen, Reiben
+in L-Sätzen, Verweilen mit Zyklus 9.</li>
+<li>Die Sprungmarken sind <b>Gliederungssätze</b> („* - RAEUMEN_T1“): In der Gliederung der
+Steuerung springst du zu einer Bearbeitung, mit Satzvorlauf startest du dort.</li>
+<li>Glätten mit <b>Zyklus 32 Toleranz</b>; 5 Achsen simultan mit TCPM an der iTNC 530 mit
+<b>M128</b>/M129, an der TNC 640 mit <b>FUNCTION TCPM</b>/FUNCTION RESET TCPM. Ohne TCPM steht
+der Vorschub in mm/min so, dass jeder Satz so lange dauert, wie er soll (kein G93 im Klartext).
+3+2 rechnet der Postprozessor selbst (die Rundachsen und X, Y, Z im Programm) – PLANE SPATIAL
+kommt später.</li>
+<li>Die Texte der Zyklen stehen wie an einer deutschen Steuerung („CYCL DEF 32.0 TOLERANZ“); an
+einer englisch eingestellten Steuerung im Fenster auf „TOLERANCE“ ändern.</li>
+<li>Nachgelesen wird der Klartext: Nummern, BEGIN und END PGM, TOOL CALL vor dem ersten Weg,
+Drehzahl und M3 vor dem Vorschub, F, die Kreise, M30.</li>
+</ul>
+<p>Klartext ist hier für Fräsmaschinen gebaut; an einer Drehmaschine (CNC PILOT, MANUALplus)
+gilt eine andere Sprache.</p>
 
 <h3>Noch nicht</h3>
 <p>Zylinder- und Polartransformation (TRACYL, TRANSMIT) – geplant, siehe Spezifikation

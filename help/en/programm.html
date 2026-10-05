@@ -15,12 +15,13 @@ chosen one is in a file, the job remembers it. Below it says what the postproces
 lathe or mill, X as diameter, the main spindle and its C axis (“main spindle S4, C axis C4”),
 which stations are driven (“T1…T12 → S1 (C1)”). Without a machine it writes as for a
 mill.</li>
-<li><b>Control</b>: LinuxCNC, Siemens 840D, Fanuc, Haas or Mach3/Mach4. The job remembers the
+<li><b>Control</b>: LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4 or Heidenhain
+conversational – iTNC 530 or TNC 640/620/320 (<a href="#heidenhain">below</a>). The job remembers the
 choice, so does the machine – for the next job on it, it is preselected.</li>
 <li><b>Settings on the left, preview on the right</b> with the first blocks – you see every
 change right away.</li>
 <li><b>Save</b> writes the whole program to the file (suggested: next to the document, with
-the control's extension – .ngc, .mpf, .nc, .tap).</li>
+the control's extension – .ngc, .mpf, .nc, .tap, .h).</li>
 <li><b>Read back</b>: afterwards the add-on reads the saved program block by block as the
 control would and says below “Saved …” whether anything stands out – a block moving without tool
 length, feed with the spindle stopped or without F, an arc whose centre is at a different
@@ -234,6 +235,40 @@ preset 0.01 mm. Smaller is more accurate but slower.</p>
 <p><b>Before the first run</b> look at the program in your control's simulation: the commands
 for the C axis, the drive and smoothing follow the control's manuals; on the machine the
 builder decides some things differently.</p>
+
+<a name="heidenhain"></a>
+<h3>Heidenhain (conversational)</h3>
+<p>For the <b>iTNC 530</b> and the <b>TNC 640, 620 and 320</b> the postprocessor writes
+conversational (Klartext) – the way you enter it on the control:</p>
+<ul>
+<li>Every block numbered from 0, <b>BEGIN PGM</b> at the start, <b>END PGM</b> at the end with
+the file's name (without .h – Heidenhain requires both to match; letters, digits and “_” only).
+With a stock in the job also <b>BLK FORM</b> for the control's graphics.</li>
+<li><b>TOOL CALL 3 Z S3183</b> calls the tool with its speed, then <b>M3</b> on its own – the
+length comes with TOOL CALL from the control's tool table (it must be right there). Another
+speed with the same tool: TOOL CALL again.</li>
+<li>Lines as <b>L X+… Y+… Z+… R0 F…</b>, rapid with <b>FMAX</b>, every number with its sign;
+arcs in XY as <b>CC</b> (centre) and <b>C … DR-</b> (clockwise) or <b>DR+</b>, a full circle in
+two halves. A helix or an arc in XZ/YZ is written as lines (at most 0.002 mm off) – a note says
+so.</li>
+<li>To the tool change point in machine coordinates with <b>M91</b> (“L Z+0 R0 FMAX M91”); M92
+(a point set by the machine builder) is offered.</li>
+<li>Drilling cycles are written out – drilling, peck drilling with retract, chip breaking,
+reaming as L blocks, dwell with cycle 9.</li>
+<li>The jump labels are <b>structure blocks</b> (“* - RAEUMEN_T1”): in the control's structure
+view you jump to an operation, with mid-program startup you start there.</li>
+<li>Smoothing with <b>cycle 32 tolerance</b>; 5-axis simultaneous with TCPM on the iTNC 530 with
+<b>M128</b>/M129, on the TNC 640 with <b>FUNCTION TCPM</b>/FUNCTION RESET TCPM. Without TCPM the
+feed is in mm/min so that every block takes as long as it should (no G93 in conversational).
+3+2 is computed by the postprocessor (rotary axes and X, Y, Z in the program) – PLANE SPATIAL
+comes later.</li>
+<li>Cycle texts are written as on a German control (“CYCL DEF 32.0 TOLERANZ”); on a control set
+to English change them to “TOLERANCE” in the window.</li>
+<li>Read back reads the conversational: numbers, BEGIN and END PGM, TOOL CALL before the first
+move, speed and M3 before feed, F, the arcs, M30.</li>
+</ul>
+<p>Conversational is built here for milling machines; a lathe (CNC PILOT, MANUALplus) uses
+another language.</p>
 
 <h3>Not yet</h3>
 <p>Cylinder and polar transformation (TRACYL, TRANSMIT) – planned, see specification

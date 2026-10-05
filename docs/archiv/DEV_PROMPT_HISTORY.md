@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-01 heidenhain-klartext
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Heidenhain muss mit rein, aber gibt ja verschiedene, vor allem iTNC 530 –
+  und ja, Kanten anklicken muss sein.“ Syntax nachgelesen an einem iTNC-530-Programm
+  (Nachwuchsstiftung Maschinenbau) und im iTNC-530-Handbuch (TOOL CALL für die Drehzahl).
+
+### DATEIEN
+- `camaddon/klartext.py` (neu: uebersetzen, pruefe), `camaddon/postprozessor.py` (`dialekt`,
+  „heidenhain“ und „heidenhain_tnc640“, `programm(…, datei, rohteil)`, nachlesen, dateiname),
+  `camaddon/gui_programm.py` (`NUR_GCODE`, Datei und Rohteil, Vorschau nach dem Dateinamen),
+  `translations/de.json`, `en.json`, `help/de|en/programm.html` (Heidenhain),
+  `tests/test_postprozessor.py`, `tests/test_programm_pruefen.py`,
+  `tests/gui/szenario_programm_heidenhain.py` (neu), `docs/spezifikation_steuerung.md` (12),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.189.0).
+
+### DONE
+- Heidenhain iTNC 530 und TNC 640/620/320 im Klartext, mit eigenem Nachlesen.
+
+### TESTS
+- `test_postprozessor`, `test_programm_pruefen`, `test_flanke`, `test_angestellt`,
+  `test_entgraten3d`, `test_schwenken` (alle Steuerungen, mit und ohne TCPM), `test_sprache`,
+  Szenarien `szenario_programm_heidenhain` (neu), `szenario_programm` – OK.
+
 ## P-2026-10-04-75 entgraten-3d-von-oben
 
 ### EINGELESEN

@@ -154,6 +154,8 @@ welle = pp.Abschnitt(
 )
 for kennung in pp.STEUERUNGEN:
     s = pp.steuerung(kennung)
+    if s.dialekt == "klartext":
+        continue  # Heidenhain-Klartext gibt es nur für die Fräse (mit Hinweis, test_postprozessor)
     programm = pp.programm([welle], s, dreh, "W")
     befunde, _saetze = pp.nachlesen(programm, s, dreh)
     pruefe(not befunde, f"Drehmaschine {kennung}: {[(b.art, b.satz) for b in befunde]}")

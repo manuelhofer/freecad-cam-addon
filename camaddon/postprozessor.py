@@ -183,6 +183,9 @@ class Steuerung:
     tiefbohren: str = ""
     spaenebrechen: str = ""
     reiben: str = ""
+    # „gcode“ oder „klartext“ (Heidenhain): Klartext schreibt der Postprozessor erst als G-Code und
+    # übersetzt ihn am Schluss (klartext.uebersetzen) – ohne G93, Satznummern ab 0 immer.
+    dialekt: str = "gcode"
 
     def ersetzt(self, **werte):
         """Eine Kopie mit geänderten Befehlen."""
@@ -449,6 +452,53 @@ STEUERUNGEN = {
         laenge_ein="G43 H{t}",
     ),
 }
+# Heidenhain im Klartext (Manuel, 2026-10-05: „Heidenhain muss mit rein, aber gibt ja verschiedene,
+# vor allem iTNC 530“): die Befehle, die der Postprozessor einsetzt, schon als Klartext; seine
+# Bahn übersetzt klartext.uebersetzen. iTNC 530 schaltet TCPM mit M128/M129, die TNC 640, 620 und
+# 320 mit FUNCTION TCPM. Zyklus 32 (Toleranz) zum Glätten; die Texte der Zyklen wie an einer
+# deutschen Steuerung.
+_HEIDENHAIN = {
+    "endung": ".h",
+    "kommentar": "; ",
+    "kopf": "",
+    "ende": "M5\nM9\nM30",
+    "kopf_drehen": "",
+    "wechsel_fraesen": "TOOL CALL {t} Z",
+    "wechsel_drehen": "TOOL CALL {t} Z",
+    "spindel_ein": "M{m} S{s}",
+    "spindel_aus": "M5",
+    "angetrieben_ein": "",
+    "angetrieben_aus": "",
+    "c_ein": "",
+    "c_aus": "",
+    "vorschub_zeit": "",
+    "vorschub_minute": "",
+    "vorschub_minute_drehen": "",
+    "wechselpunkt_mks": "L {achsen} R0 FMAX M91",
+    "wechselpunkt_wks": "L {achsen} R0 FMAX",
+    "wechselpunkt_vorschlaege": ("L {achsen} R0 FMAX M91", "L {achsen} R0 FMAX M92"),
+    "marke": "* - {marke}",
+    "glaetten_angebot": (
+        Glaetten("zyklus32", "CYCL DEF 32.0 TOLERANZ\nCYCL DEF 32.1 T{toleranz}", True),
+    ),
+    "g93": False,
+    "dialekt": "klartext",
+}
+
+STEUERUNGEN["heidenhain"] = Steuerung(
+    "heidenhain",
+    "Heidenhain iTNC 530 (Klartext)",
+    tcpm_ein="M128",
+    tcpm_aus="M129",
+    **_HEIDENHAIN,
+)
+STEUERUNGEN["heidenhain_tnc640"] = Steuerung(
+    "heidenhain_tnc640",
+    "Heidenhain TNC 640/620/320 (Klartext)",
+    tcpm_ein="FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS",
+    tcpm_aus="FUNCTION RESET TCPM",
+    **_HEIDENHAIN,
+)
 VORGABE = "linuxcnc"  # ohne Wahl: wie LinuxCNC (Spezifikation Steuerung, Abschnitt 4)
 
 
@@ -734,11 +784,22 @@ def _befehl(eintrag):
     return eintrag.Name, dict(eintrag.Parameters)
 
 
-def programm(abschnitte, s, info=None, name="", vorschau=None):
+def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil=None):
     """Das Programm (Programm) für die Abschnitte mit der Steuerung `s` und der Maschine
-    `info`. `vorschau`: höchstens so viele Bewegungssätze, dann ein Hinweis – fürs Fenster."""
+    `info`. `vorschau`: höchstens so viele Bewegungssätze, dann ein Hinweis – fürs Fenster.
+    Klartext (Heidenhain): `datei` gibt den Namen im BEGIN/END PGM (wie die Datei, sonst `name`),
+    `rohteil` ((xmin, ymin, zmin), (xmax, ymax, zmax)) das BLK FORM."""
     info = info or Maschineninfo()
     zeilen, hinweise = [], []
+    if s.dialekt == "klartext":
+        if info.drehmaschine:
+            hinweise.append(tr("pp.hinweis.klartext_drehen"))
+        s = s.ersetzt(g93=False, satznummern=False)
+        fertig = _klartext_fertig(s, name, datei, rohteil, hinweise)
+    else:
+
+        def fertig(zeilen_, saetze_):
+            return Programm(_nummeriert(zeilen_, s), hinweise, saetze_)
 
     def notiz(text):
         if s.kommentare:
@@ -991,9 +1052,8 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
             if bewegung:
                 saetze += 1
                 if vorschau is not None and saetze >= vorschau:
-                    zeilen = _nummeriert(zeilen, s)
                     zeilen.append(_kommentar(s, tr("pp.vorschau_ende")))
-                    return Programm(zeilen, hinweise, saetze)
+                    return fertig(zeilen, saetze)
         if kuehlung:
             zeilen.append(s.kuehlung_aus)
     if spindel_an is not None:
@@ -1008,7 +1068,29 @@ def programm(abschnitte, s, info=None, name="", vorschau=None):
     for zeile in _zeilen(s.ende):
         if not (zeilen and zeile == zeilen[-1]):  # „M5“ nach „M5“: schon aus
             zeilen.append(zeile)
-    return Programm(_nummeriert(zeilen, s), hinweise, saetze)
+    return fertig(zeilen, saetze)
+
+
+def _klartext_fertig(s, name, datei, rohteil, hinweise):
+    """Für Klartext: eine Funktion, die die Zeilen übersetzt (klartext.uebersetzen) und das
+    Programm gibt – mit BEGIN/END PGM wie die Datei, BLK FORM aus dem Rohteil."""
+    import os
+
+    from . import klartext as kt
+    from .sprache import aktuelle_sprache
+
+    pgm = os.path.splitext(os.path.basename(datei))[0] if datei else name
+
+    def fertig(zeilen, saetze):
+        uebersetzt = kt.uebersetzen(zeilen, pgm, rohteil, aktuelle_sprache() == "de")
+        for art, wert in uebersetzt.hinweise:
+            if art == "schrauben":
+                hinweise.append(tr("pp.hinweis.klartext_schrauben", anzahl=wert))
+            else:
+                hinweise.append(tr("pp.hinweis.klartext_unbekannt", saetze=" | ".join(wert)))
+        return Programm(uebersetzt.zeilen, hinweise, saetze)
+
+    return fertig
 
 
 def _zyklus_als_befehl(s, vorlage, parameter, stand, auf_r, faktor=1.0):
@@ -1467,6 +1549,11 @@ def nachlesen(programm, s, info=None):
     (programm_pruefen): (Befunde, Bewegungssätze)."""
     from . import programm_pruefen as prp
 
+    if s.dialekt == "klartext":
+        from . import klartext as kt
+
+        pruefung = kt.pruefe(programm.text)
+        return pruefung.befunde, pruefung.saetze
     info = info or Maschineninfo()
     laenge = s.laenge_ein_drehen if info.drehmaschine else s.laenge_ein
     pruefung = prp.pruefe(
@@ -1501,6 +1588,7 @@ def _befund_text(art, zeile, satz):
         "doppelt": lambda: tr("pp.befund.doppelt", zeile=zeile, satz=satz),
         "ende": lambda: tr("pp.befund.ende"),
         "zeichen": lambda: tr("pp.befund.zeichen", zeile=zeile, satz=satz),
+        "nummer": lambda: tr("pp.befund.nummer", zeile=zeile, satz=satz),
     }[art]()
 
 
@@ -1511,6 +1599,10 @@ def dateiname(job, s):
 
     ordner = os.path.dirname(getattr(job.Document, "FileName", "") or "") or os.path.expanduser("~")
     name = re.sub(r"[^\w\-]+", "_", job.Label).strip("_") or "programm"
+    if s.dialekt == "klartext":  # der Name steht im BEGIN/END PGM – nur Buchstaben, Ziffern, „_“
+        from . import klartext as kt
+
+        name = kt.pgm_name(job.Label)
     return os.path.join(ordner, name + s.endung)
 
 

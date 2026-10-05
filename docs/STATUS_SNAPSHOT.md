@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.188.10 (P-2026-10-04-75). Alles, was hier als gebaut steht,
+Stand 0.189.0 (P-2026-10-05-01). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -62,7 +62,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   G43.4, G234 – aus; -55); über der Höchstdrehzahl der Maschine n und F im selben Maß
   kleiner – beim Setzen der Werte und im Programm (-56); an der Drehmaschine G7/G8 bzw.
   DIAMON/DIAMOF im Kopf passend zur Maschine (-57); Kommentare in ASCII außer an Siemens
-  (-60). Offen: Steuerung an der Maschine
+  (-60); Heidenhain iTNC 530 und TNC 640/620/320 im Klartext mit eigenem Nachlesen (Manuel,
+  2026-10-05: „Heidenhain muss mit rein“; P-2026-10-05-01). Offen: PLANE SPATIAL für 3+2 an
+  Heidenhain, Steuerung an der Maschine
   (S2), Transformationen (S6), Wochen-Build (S7); die Rundachse
   zwischen zwei Operationen nicht über viele Umdrehungen auf 0 zurückdrehen (Manuel probiert,
   was seine Maschine macht).
