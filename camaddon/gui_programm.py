@@ -490,6 +490,18 @@ class ProgrammDialog(QtGui.QDialog):
         self.wahl_steuerung.currentIndexChanged.connect(self._steuerung_gewaehlt)
         raster.addWidget(QtGui.QLabel(tr("pp.steuerung")), 2, 0)
         raster.addWidget(self.wahl_steuerung, 2, 1)
+        # An der Stirnseite der Drehmaschine: wie C hilft, wo Y nicht reicht (stirnseite; Manuel,
+        # 2026-10-05: „beides sollte auswählbar sein“) – je Job.
+        from . import stirnseite as st
+
+        self.wahl_stirn = QtGui.QComboBox()
+        self.wahl_stirn.addItem(tr("pp.stirn.mit"), st.MIT)
+        self.wahl_stirn.addItem(tr("pp.stirn.schritte"), st.SCHRITTE)
+        self.wahl_stirn.setToolTip(tr("pp.stirn.tooltip"))
+        self.wahl_stirn.currentIndexChanged.connect(self._stirn_gewaehlt)
+        self.stirn_titel = QtGui.QLabel(tr("pp.stirn"))
+        raster.addWidget(self.stirn_titel, 3, 0)
+        raster.addWidget(self.wahl_stirn, 3, 1)
         raster.setColumnStretch(1, 1)
         aufbau.addLayout(raster)
 
@@ -628,9 +640,36 @@ class ProgrammDialog(QtGui.QDialog):
         else:
             self.info = pp.Maschineninfo()
         self.maschine_text.setText(self._maschine_beschreiben())
+        self._stirn_zeigen()
         if not self._fuellt:
             self._einstellungen_bauen()
             self.vorschau_rechnen()
+
+    def _stirn_zeigen(self):
+        """Die Wahl für die Stirnseite – nur an einer Drehmaschine mit C an der Hauptspindel,
+        gewählt, was sich der Job gemerkt hat."""
+        from . import stirnseite as st
+
+        da = self.info.stirn is not None and self.job is not None
+        self.stirn_titel.setVisible(da)
+        self.wahl_stirn.setVisible(da)
+        if da:
+            self.wahl_stirn.blockSignals(True)
+            try:
+                self.wahl_stirn.setCurrentIndex(
+                    max(0, self.wahl_stirn.findData(st.modus(self.job)))
+                )
+            finally:
+                self.wahl_stirn.blockSignals(False)
+
+    def _stirn_gewaehlt(self, *_):
+        from . import stirnseite as st
+
+        if self.job is None or self._fuellt:
+            return
+        st.setze_modus(self.job, self.wahl_stirn.currentData() or st.MIT)
+        self._teile = None  # die Abschnitte neu – sie tragen den Modus
+        self.vorschau_rechnen()
 
     def _maschine_beschreiben(self):
         i = self.info

@@ -29,7 +29,7 @@ from .sprache import tr
 # Einheiten neben dem Feld – bei den übrigen Kennwerten steht die Einheit
 # schon im Namen. Beschleunigung und Ruck hängen davon ab, ob die Achse fährt
 # oder dreht.
-EINHEIT_LINEAR = {"Beschleunigung": "m/s²", "Ruck": "m/s³"}
+EINHEIT_LINEAR = {"Beschleunigung": "m/s²", "Ruck": "m/s³", "YNutzen": "%"}
 EINHEIT_DREH = {"Vdi": "mm", "Beschleunigung": "U/s²", "Ruck": "U/s³"}
 # Kennwerte, die in mm/min gespeichert sind – gezeigt in mm/min oder ipm.
 VORSCHUEBE = ("Eilgang", "VorschubMax")
@@ -101,6 +101,8 @@ class DetailKasten(QtGui.QFrame):
 
         feste_einheiten = EINHEIT_LINEAR if linear else EINHEIT_DREH
         for eigenschaft, pflicht in m.WERTE[ba.Art]:
+            if eigenschaft == "YNutzen" and m.programmname(ba).upper() != "Y":
+                continue  # nur die Y-Achse fährt an der Stirnseite quer (stirnseite)
             text = m.wert_text(eigenschaft)
             if eigenschaft in feste_einheiten:
                 text += f" ({feste_einheiten[eigenschaft]})"

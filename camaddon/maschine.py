@@ -66,6 +66,7 @@ WERTE = {
         ("Beschleunigung", False),
         ("Ruck", False),
         ("Durchmesser", False),
+        ("YNutzen", False),  # nur an Y gezeigt (gui_details): an der Stirnseite (stirnseite)
     ],
     ART_POSITIONIEREN: [
         ("Endlos", False),
@@ -131,6 +132,7 @@ def wert_text(eigenschaft):
         "Ruck": tr("wert.ruck"),
         "Endlos": tr("wert.endlos"),
         "NachDin": tr("wert.nach_din"),
+        "YNutzen": tr("wert.y_nutzen"),
         "Durchmesser": tr("wert.durchmesser"),
         "Geschwindigkeit": tr("wert.geschwindigkeit"),
         "Drehzahl": tr("wert.drehzahl"),
@@ -358,6 +360,11 @@ class Betriebsart(_Proxy):
             objekt.NachDin = True
         if "Gegenlaeufig" in objekt.PropertiesList:
             objekt.removeProperty("Gegenlaeufig")
+        # So viel Prozent ihres Wegs fährt Y an der Stirnseite, bevor C hilft (Manuel,
+        # 2026-10-05: „bis zu einem Verfahrweg von maximal 85 %“, einstellbar).
+        if "YNutzen" not in objekt.PropertiesList:
+            objekt.addProperty("App::PropertyFloat", "YNutzen", "Werte", tr("eigenschaft.y_nutzen"))
+            objekt.YNutzen = 85.0
 
     @staticmethod
     def _nur_passende_werte_zeigen(objekt):

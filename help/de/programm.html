@@ -153,6 +153,22 @@ die Bahnen rechnen den Radius, im Programm steht das Doppelte.</li>
 </ul>
 
 <a name="rundachse"></a>
+<h3>Stirnseite (Drehmaschine)</h3>
+<p>Fräst ein Werkzeug axial an der Stirnseite – Planfräsen, Taschen, Konturen, Nuten, Zapfen,
+Gravur, Bohrungen neben der Mitte –, fährt das Programm mit X und Y, solange Y in dem Anteil
+ihres Wegs bleibt, den du an der Y-Achse einstellst („Maschine bearbeiten“ → Y: „Y an der
+Stirnseite nutzen bis … %“, vorbelegt 85 %); C steht dabei auf 0. Weiter hinaus – oder hinter
+der Drehmitte, wohin X nicht kommt – dreht C das Teil. Wie, wählst du oben unter
+<b>Stirnseite</b>, je Job:</p>
+<ul>
+<li><b>C dreht beim Fräsen mit</b> – C dreht gerade so weit, dass die Stelle am Rand liegt; X, Y
+und C fahren zusammen (G93), ohne Absatz.</li>
+<li><b>C in Schritten, dann Y</b> – das Werkzeug fährt auf die sichere Höhe der Operation, C dreht
+die Stelle auf die Mitte, das Werkzeug taucht wieder ein; beim Fräsen steht C (es kann geklemmt
+werden).</li>
+</ul>
+<p>Das Prüffenster rechnet genauso. Erreicht die Maschine eine Stelle mit keiner Stellung von C,
+sagt es das.</p>
 <h3>Rundachse</h3>
 <ul>
 <li><b>Moduloachse</b> – eine Rundachse, die an der Maschine endlos dreht (in „Maschine

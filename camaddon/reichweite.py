@@ -908,6 +908,15 @@ class Pruefung:
             # 5 Achsen simultan (Kugelfräser angestellt, Flanke): die Rundachsen je Punkt.
             return so.befehle(op, sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs))
         if ebene is None:
+            # An der Stirnseite der Drehmaschine: Y, so weit es reicht, sonst hilft C (stirnseite).
+            from . import stirnseite as st
+
+            if st.ist_stirn(op, befehle):
+                rahmen = st.rahmen(self, aufnahme, eingespannt, nullpunkt_des_jobs)
+                if rahmen is not None:
+                    job = st.job_von(op)
+                    modus = st.modus(job) if job is not None else st.MIT
+                    return st.befehle(befehle, rahmen, modus, st.sicher_z(op))
             return befehle
 
         maschine = sw.Maschine(self, aufnahme, eingespannt, nullpunkt_des_jobs)

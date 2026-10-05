@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-20 stirnseite-y-und-c
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Ich habe das Teil gefräst auf der Maschine mit 0.193.3 … von Form und Lage
+  gut“; „wenn wir jetzt planfräsen … dass die Werkzeug-Z-Achse parallel zur Hauptspindel-Z-Achse
+  liegt … gibt es zwei Modi: komplett mit der Y-Achse oder interpoliert mit der C-Achse … immer
+  wenn es möglich ist, sollte die Y-Achse benutzt werden, bis zu einem Verfahrweg von maximal
+  85 % … danach muss die C-Achse arbeiten und sich drehen“. Gefragt (Bild mit seiner CLX550:
+  Y1 ±60 → ±51, X1 bis −30 im Ø): „1 und 2, beides sollte auswählbar sein“; für alles an der
+  Stirn („Taschen und Konturen, Planfräsen, Bohrungen außer Mitte, Nuten, Zapfen, Gravur … alles
+  Mögliche“); „einstellbar, vorbelegt 85 %“.
+
+### DATEIEN
+- `camaddon/stirnseite.py` (neu: Rahmen, rahmen, befehle – MIT und SCHRITTE, Modus am Job),
+  `camaddon/reichweite.py` (`Pruefung.befehle`), `camaddon/postprozessor.py`
+  (`Maschineninfo.stirn`, `Abschnitt.stirn`), `camaddon/maschine.py` (Wert „YNutzen“ an Y),
+  `camaddon/gui_details.py`, `camaddon/gui_programm.py` (Wahl „Stirnseite“),
+  `translations/de.json`, `en.json`, `help/de|en/achsen.html`, `help/de|en/programm.html`,
+  `tests/test_stirnseite.py` (neu), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.0).
+
+### DONE
+- Fräsen an der Stirnseite der Drehmaschine (C an der Hauptspindel): X, Y, solange Y im
+  eingestellten Anteil bleibt (C auf 0); weiter hinaus oder hinter der Drehmitte dreht C –
+  „C dreht beim Fräsen mit“ (X, Y, C in G93, höchstens 0,5° je Satz) oder „C in Schritten,
+  dann Y“ (hoch, C dreht, eintauchen). Für alle Operationen mit Bahn in X, Y, Z (auch FreeCADs),
+  Bögen, Bohrzyklen. Prüffenster und Programm rechnen gleich.
+- Nicht geändert: Bahnen in FreeCAD. Offen: die oberen Schrupplagen mit Querachse (Y-Sprung je
+  Z-Schritt, C dreht an Innenecken kurz zurück).
+
+### TESTS
+- `test_stirnseite` (beide Modi: Abweichung von der Bahn auch zwischen den Sätzen, Rahmen, C
+  je Satz ≤ 0,5°, C nur im Eilgang oben; Bohrung; unerreichbar; Rahmen aus der
+  Beispiel-Drehmaschine, YNutzen; Kinematik; Job: Prüffenster ohne Grenze, abgefahren auf der
+  Bahn, Siemens-Programm Y ≤ 51 mit SPOS und C, nach DIN gelesen auf der Bahn),
+  `test_reichweite`, `test_abfahren`, `test_kollision`, `test_vierachs_pruefen`,
+  `test_schwenken`, `test_postprozessor`, `test_rundachsen_din`, `test_maschine`,
+  `test_beispielmaschine`, `test_spannung`, `test_sprache`, `test_hilfe`; Szenarien
+  `szenario_programm`, `szenario_maschine_bearbeiten` – OK.
+
 ## P-2026-10-05-19 vierachs-ruhiger-schwenken
 
 ### EINGELESEN

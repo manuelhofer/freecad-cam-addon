@@ -150,6 +150,20 @@ paths compute the radius, the program shows twice that.</li>
 </ul>
 
 <a name="rundachse"></a>
+<h3>Face (lathe)</h3>
+<p>When a tool mills axially on the face – facing, pockets, contours, slots, bosses, engraving,
+holes off centre –, the program moves X and Y as long as Y stays within the share of its travel
+you set on the Y axis (“Edit machine” → Y: “Use Y on the face up to … %”, default 85 %); C stays at
+0. Further out – or behind the spindle axis, where X does not reach – C turns the part. How, you
+choose above under <b>Face</b>, per job:</p>
+<ul>
+<li><b>C turns along while milling</b> – C turns just far enough that the spot lies at the edge;
+X, Y and C move together (G93), without a step.</li>
+<li><b>C in steps, then Y</b> – the tool moves to the clearance height of the operation, C turns
+the spot to the centre, the tool plunges again; while milling C stands (it can be clamped).</li>
+</ul>
+<p>The check window computes the same way. If the machine cannot reach a spot at any position of
+C, it says so.</p>
 <h3>Rotary axis</h3>
 <ul>
 <li><b>Modulo axis</b> – a rotary axis that turns endlessly on the machine (in “Edit machine”:

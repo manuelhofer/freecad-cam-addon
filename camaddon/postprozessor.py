@@ -559,6 +559,9 @@ class Maschineninfo:
     # (verfahren.im_programm_umgekehrt) – für Bahnen, die mit den Stellungen der Maschine rechnen:
     # 3+2 ohne Zyklus, 5 Achsen simultan (_rund_umdrehen).
     umgekehrt: set = field(default_factory=set)
+    # Die Drehmaschine mit C an der Hauptspindel: wo die Spitze bei C 0 hinkommt (stirnseite.Rahmen,
+    # Y bis zum eingestellten Anteil) – an der Stirnseite hilft C, wo Y nicht reicht. None: nie.
+    stirn: object = None
 
 
 @dataclass
@@ -591,6 +594,9 @@ class Abschnitt:
     ruesten: str = ""
     # Eine Rundum-Operation: (Rundachse, Drehsinn), mit dem ihre Bahn gerechnet ist (_c_nach_din).
     drehsinn: tuple = ()
+    # An der Stirnseite (stirnseite.ist_stirn): (Modus, sichere Höhe) – an der Drehmaschine mit
+    # C rechnet das Programm sie um (stirnseite.befehle).
+    stirn: tuple = ()
 
 
 @dataclass
@@ -987,6 +993,16 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                 befehle_roh = sw.befehle_ohne_zyklus(
                     befehle_roh, abschnitt.schwenkung, schon_oben=oben
                 )
+            except ValueError as grund:
+                hinweise.append(f"{abschnitt.name}: {grund}")
+                zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))
+                continue
+        if abschnitt.stirn and info.stirn is not None:
+            # An der Stirnseite: Y, so weit es reicht, sonst hilft C (stirnseite).
+            from . import stirnseite as st
+
+            try:
+                befehle_roh = st.befehle(befehle_roh, info.stirn, *abschnitt.stirn)
             except ValueError as grund:
                 hinweise.append(f"{abschnitt.name}: {grund}")
                 zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))
@@ -1448,6 +1464,7 @@ def abschnitte(job, maschine=None, mit_ebenen=True):
 def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False):
     from . import job_schnittwerte as js
     from . import magazin as mg
+    from . import stirnseite as st
     from . import vierachs_operation as vo
 
     ergebnis = []
@@ -1481,6 +1498,9 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
         drehsinn = getattr(op, "Drehsinn", None)
         rundachse = str(getattr(op, "Rundachse", "") or "")
         rundum = vo.ist_rundum(op) and drehsinn in (1, -1) and rundachse
+        stirn = ()
+        if not geschwenkt and st.ist_stirn(op, befehle):
+            stirn = (st.modus(job), st.sicher_z(op))
         ergebnis.append(
             Abschnitt(
                 op.Label,
@@ -1499,6 +1519,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 ruesten_art,
                 ruesten,
                 (rundachse, int(drehsinn)) if rundum else (),
+                stirn,
             )
         )
     return ergebnis
@@ -1696,6 +1717,14 @@ def _info_aus(dok, m, msp):
                     info.modulo.add(buchstabe)  # endlos: an der Steuerung eine Moduloachse
                 info.rundachsen.setdefault(buchstabe, ba.NcName.strip() or buchstabe)
                 info.nach_din.setdefault(buchstabe, bool(getattr(ba, "NachDin", True)))
+        try:
+            from . import reichweite as rw
+            from . import stirnseite as st
+
+            pruefung = rw.Pruefung(objekt, maschine)
+            info.stirn = st.rahmen(pruefung, pruefung.werkzeugaufnahme(1), 100.0)
+        except Exception:
+            info.stirn = None
         try:
             from . import kette as kette_modul
             from . import verfahren as vf
