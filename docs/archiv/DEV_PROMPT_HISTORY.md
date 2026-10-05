@@ -12,6 +12,21 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-29 texte-durchsicht-3
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Mach weiter mit allen Texten, nur Texten …“ (Fortsetzung von -27/-28).
+
+### DATEIEN
+- `translations/de.json`, `en.json`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.9).
+
+### ERGEBNIS
+- Klarer gefasst: Reiben, Gewinde bohren, Restmaterial, welche Schnittwerte-Zeile gilt (ohne
+  Werkstoff „Alle Werkstoffe“, sonst P1 – wie `Werkzeug.einsaetze`), Nur Gleichlauf rundum,
+  Moduloachse („+“-Feld), schräge Planfläche, Querachse, Fasenbreite.
+- Einheitlich „Den Haken setzt du selbst“ statt „man“.
+- Geprüft: `test_sprache`.
+
 ## P-2026-10-05-28 texte-durchsicht-2
 
 ### EINGELESEN
