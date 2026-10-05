@@ -547,6 +547,11 @@ class Abschnitt:
     # 5 Achsen simultan: eine Funktion ohne Argumente, die die Sätze für eine Steuerung mit TCPM
     # gibt (simultan.befehle_mit_tcpm) – erst beim Schreiben gerechnet, nur mit Haken „TCPM“.
     befehle_tcpm: object = None
+    # Mit Magazin der Maschine (W-002 Stufe H3): der Name an der Steuerung für {werkzeug} im
+    # Wechsel (Siemens T="…") und was an der Maschine zu tun ist (magazin.ruesten: Art, Satz).
+    name_steuerung: str = ""
+    ruesten_art: str = ""
+    ruesten: str = ""
 
 
 @dataclass
@@ -818,6 +823,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
             hinweise.append(tr("pp.hinweis.option", befehl=glaetten.befehl.split("\n")[0]))
     if not info.name:
         hinweise.append(tr("pp.hinweis.ohne_maschine"))
+    hinweise.extend(_ruest_hinweise(abschnitte))
     vergeben = set()
     marken = [markenname(a.name, vergeben) for a in abschnitte] if s.marken else []
     if s.kommentare:
@@ -886,7 +892,9 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                 _fuellen(
                     vorlage,
                     t=int(abschnitt.werkzeug),
-                    werkzeug=_werkzeugname(abschnitt.werkzeugname, abschnitt.werkzeug),
+                    werkzeug=_werkzeugname(
+                        abschnitt.name_steuerung or abschnitt.werkzeugname, abschnitt.werkzeug
+                    ),
                 )
             )
             # Ohne Befehl bringt der Wechsel die Länge mit (Siemens D1, Fanuc T0101).
@@ -1267,21 +1275,29 @@ def abschnitte(job, maschine=None, mit_ebenen=True):
     oder eine Funktion Operation → schwenken.Maschine (oder None), je Werkzeug mit seiner Länge:
     Am Schwenkkopf hängen die Punkte im Programm davon ab. Mit ihr schreiben Operationen mit
     Werkzeugachse je Satz (Kugelfräser angestellt, Flanke) ihre Rundachsen je Punkt (_simultan)."""
-    ergebnis = _abschnitte_des_jobs(job, maschine)
-    if mit_ebenen and not sw.ist_ebene(job):
-        for ebene in sw.ebenen_von(job):
-            ergebnis += _abschnitte_des_jobs(ebene, maschine)
-    return ergebnis
-
-
-def _abschnitte_des_jobs(job, maschine):
-    ergebnis = []
+    from . import magazin as mg
     from . import werkzeuge as wz
 
     try:
         bibliothek = wz.Bibliothek.laden()
     except Exception:
         bibliothek = None
+    # Das Magazin der Maschine des Jobs (W-002 Stufe H3): Name an der Steuerung, Rüstliste.
+    datei = mg.maschine_von(job)
+    magazin = mg.des_jobs(None, bibliothek, datei) if bibliothek is not None and datei else None
+    revolver = magazin is not None and mg.mit_revolver(datei)
+    ergebnis = _abschnitte_des_jobs(job, maschine, bibliothek, magazin, revolver)
+    if mit_ebenen and not sw.ist_ebene(job):
+        for ebene in sw.ebenen_von(job):
+            ergebnis += _abschnitte_des_jobs(ebene, maschine, bibliothek, magazin, revolver)
+    return ergebnis
+
+
+def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False):
+    from . import job_schnittwerte as js
+    from . import magazin as mg
+
+    ergebnis = []
     geschwenkt = sw.ist_ebene(job)
     gerechnet = {}  # id(Maschine) → (Maschine, Schwenkung): je Werkzeug einmal
     for op in getattr(getattr(job, "Operations", None), "Group", []):
@@ -1303,6 +1319,12 @@ def _abschnitte_des_jobs(job, maschine):
         drehzahl = float(getattr(tc, "SpindleSpeed", 0.0) or 0.0) if tc is not None else 0.0
         richtung = str(getattr(tc, "SpindleDir", "Forward")) if tc is not None else "Forward"
         werkzeug = getattr(tc, "Tool", None) if tc is not None else None
+        name_steuerung, ruesten_art, ruesten = "", "", ""
+        if magazin is not None and tc is not None and nummer:
+            aus_verwaltung = js.werkzeug_von(tc, bibliothek)
+            im = magazin.eintrag_von(aus_verwaltung) if aus_verwaltung is not None else None
+            name_steuerung = im.name if im is not None else ""
+            ruesten_art, ruesten = mg.ruesten(aus_verwaltung, magazin, nummer, revolver)
         ergebnis.append(
             Abschnitt(
                 op.Label,
@@ -1317,6 +1339,9 @@ def _abschnitte_des_jobs(job, maschine):
                 *_einspannung_und_knapp(job, op, tc, nummer, bibliothek, geschwenkt),
                 ms.ist_messstopp(op),
                 befehle_tcpm,
+                name_steuerung,
+                ruesten_art,
+                ruesten,
             )
         )
     return ergebnis
@@ -1626,6 +1651,32 @@ def markenname(name, vergeben):
     return kandidat
 
 
+def _ruest_hinweise(abschnitte):
+    """Die Sätze im Fenster, wenn das Magazin der Maschine etwas anderes sagt als der Job
+    (W-002 Stufe H3): ein Werkzeug mit anderer Nummer (das Programm riefe ein anderes), eins,
+    das an der Steuerung fehlt, eins, das einzusetzen ist – je Art ein Satz mit den Nummern."""
+    from . import magazin as mg
+
+    je_art = {}
+    for abschnitt in abschnitte:
+        if abschnitt.ruesten_art and abschnitt.werkzeug:
+            nummern = je_art.setdefault(abschnitt.ruesten_art, [])
+            if abschnitt.werkzeug not in nummern:
+                nummern.append(abschnitt.werkzeug)
+
+    def nummern(art):
+        return ", ".join(f"T{n}" for n in je_art.get(art, []))
+
+    saetze = []
+    if nummern(mg.UMNUMMERIEREN):
+        saetze.append(tr("pp.hinweis.umnummerieren", werkzeuge=nummern(mg.UMNUMMERIEREN)))
+    if nummern(mg.ANLEGEN):
+        saetze.append(tr("pp.hinweis.anlegen", werkzeuge=nummern(mg.ANLEGEN)))
+    if nummern(mg.EINSETZEN):
+        saetze.append(tr("pp.hinweis.einsetzen", werkzeuge=nummern(mg.EINSETZEN)))
+    return saetze
+
+
 def _kopfzeilen(s, abschnitte, marken):
     """Der Kopf des Programms (D-4, als Kommentare): die Sprungmarken mit ihrer Bearbeitung, die
     Werkzeuge mit Auskragung und Halter, und wo es knapp wird."""
@@ -1642,6 +1693,10 @@ def _kopfzeilen(s, abschnitte, marken):
         zeilen.append(_kommentar(s, tr("pp.kopf.werkzeuge")))
         for nummer, abschnitt in werkzeuge.items():
             text = abschnitt.einspannung or abschnitt.werkzeugname
+            if abschnitt.name_steuerung:
+                text = f'"{abschnitt.name_steuerung}" {text}'
+            if abschnitt.ruesten:  # die Rüstliste (W-002 Stufe H3)
+                text = f"{text} – {abschnitt.ruesten}"
             zeilen.append(_kommentar(s, f"  T{nummer} {text}".rstrip()))
     for abschnitt in abschnitte:
         if abschnitt.knapp:

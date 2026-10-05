@@ -466,17 +466,17 @@ def zylinder(radius, von, bis, farbe, transparenz=0.0):
     return teil
 
 
-def werkzeug_knoten(laenge, masse, halter):
+def werkzeug_knoten(laenge, masse, halter, transparenz=0.0):
     """Das Werkzeug im LCS seiner Aufnahme – dieselben Körper, die die Kollision prüft
     (kollision.werkzeugkoerper): Schneide gelb, Hals und Schaft grau, der Halter mit seiner
     Kontur. Ohne Halter ist einer angedeutet, durchscheinend von der Gesamtlänge bis zur
-    Aufnahme."""
+    Aufnahme. `transparenz`: das ganze Werkzeug durchscheinend (0 … 1)."""
     from pivy import coin
 
     teil = coin.SoSeparator()
     farben = {kb.SCHNEIDE: SCHNEIDE, kb.HALS: SCHAFT, kb.SCHAFT: SCHAFT, kb.HALTER: HALTER_ECHT}
     for art, form in kb.werkzeugkoerper(masse, laenge, halter):
-        teil.addChild(flaechen(form, farben[art], 0.0))
+        teil.addChild(flaechen(form, farben[art], transparenz))
     gesamt = min(masse.gesamt, laenge) if masse.gesamt > 0 else laenge
     if halter is None and laenge - gesamt > 0.5:
         radius = max(2 * masse.schaft, HALTER_MINDESTENS) / 2

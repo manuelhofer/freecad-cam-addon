@@ -6,13 +6,16 @@
 # gelb „… steht nicht im Magazin „3-Achs-Fräse“ …“ und der Knopf „Ins Magazin übernehmen“.
 # Geklickt: Er steht im Magazin als T1 (die kleinste freie), der Satz ist weg, gespeichert.
 # „Anlegen“: Der Controller des VHM 12 hat T1 – die Nummer des Magazins, nicht die T3 der
-# Werkzeugverwaltung.
+# Werkzeugverwaltung. Rüstliste (Stufe H3): Im Magazin heißt er dann T8 – das Programm sagt
+# „umnummerieren“; „Bestückung“ zeigt „T1 VHM 12 … – im Magazin T8“, „Nummern aus dem Magazin“
+# macht den Controller zu „T8 …“, danach „nicht beladen – einsetzen“; Rückgängig: wieder T1.
 import os
 import tempfile
 
 import FreeCAD
 import FreeCADGui as Gui
 import Part
+from PySide import QtCore
 
 
 def schritte(h):
@@ -24,10 +27,12 @@ def schritte(h):
         erster.accept()
     yield 500
 
-    from camaddon import beispielmaschine, gui_bearbeitung
+    from camaddon import beispielmaschine, gui_bearbeitung, gui_bestueckung
     from camaddon import hoehenfeld as hf
     from camaddon import job_schnittwerte as js
+    from camaddon import magazin as mg
     from camaddon import maschinenspeicher as msp
+    from camaddon import postprozessor as pp
     from camaddon import werkzeuge as wz
 
     msp.speichern([])
@@ -120,5 +125,60 @@ def schritte(h):
         if js.werkzeug_von(tc, wz.Bibliothek.laden()) is not None
     }
     h.pruefe(nummern.get(vhm12.kennung) == 1, f"Nummern im Job: {nummern}")
+
+    # --- Die Rüstliste (Stufe H3): An der Steuerung heißt der VHM 12 jetzt T8 -----------------
+    bibliothek = wz.Bibliothek.laden()
+    bibliothek.magazin_fuer(pfad_fraese).eintrag_von(vhm12).nummer = 8
+    bibliothek.speichern()
+    abschnitte = [a for a in pp.abschnitte(job) if a.werkzeug == 1]
+    h.pruefe(
+        abschnitte and abschnitte[0].ruesten_art == mg.UMNUMMERIEREN,
+        f"Programm: {[(a.werkzeug, a.ruesten) for a in abschnitte]}",
+    )
+    FreeCAD.setActiveDocument(doc.Name)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400  # 1.1.3 verarbeitet die Auswahl verzögert
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_Bestueckung"))
+    yield from h.warte_auf(
+        lambda: gui_bestueckung.BestueckungsPanel.offen is not None or h.modal() is not None,
+        60000,
+    )
+    yield 800
+    bs_panel = gui_bestueckung.BestueckungsPanel.offen
+    h.pruefe(bs_panel is not None, f"„Bestückung“ geht nicht auf: {h.modal()}")
+    if bs_panel is None:
+        return
+    liste = bs_panel.ruestliste.text()
+    h.pruefe(
+        bs_panel.ruestliste.isVisible()
+        and "Magazin „3-Achs-Fräse“" in bs_panel.ruest_titel.text()
+        and "T1&nbsp;&nbsp;VHM 12" in liste
+        and "im Magazin T8" in liste,
+        f"Rüstliste: {bs_panel.ruest_titel.text()!r} {liste!r}",
+    )
+    h.pruefe(bs_panel.knopf_nummern.isEnabled(), "„Nummern aus dem Magazin“ gesperrt")
+    h.bild("3_ruestliste", bs_panel.form)
+    bs_panel.knopf_nummern.click()
+    yield 800
+    tc = next(t for t in job.Tools.Group if js.werkzeug_von(t, bibliothek) == vhm12)
+    h.pruefe(
+        tc.ToolNumber == 8 and tc.Label.startswith("T8 "),
+        f"umnummeriert: {tc.ToolNumber} {tc.Label!r}",
+    )
+    liste = bs_panel.ruestliste.text()
+    h.pruefe(
+        "T8&nbsp;&nbsp;VHM 12" in liste and "nicht beladen – einsetzen" in liste,
+        f"Rüstliste danach: {liste!r}",
+    )
+    h.pruefe(not bs_panel.knopf_nummern.isEnabled(), "Knopf nach dem Umnummerieren noch frei")
+    h.bild("4_umnummeriert", bs_panel.form)
+    bs_panel.reject()
+    yield 800
+    # Rückgängig im Job: wieder T1.
+    doc.undo()
+    doc.recompute()
+    yield 300
+    h.pruefe(tc.ToolNumber == 1, f"Rückgängig: T{tc.ToolNumber}")
     FreeCAD.closeDocument(doc.Name)
     yield 300

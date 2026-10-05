@@ -2774,7 +2774,7 @@ class VierachsPanel:
             n = dazu.bohrungen
             text += " " + tr(
                 "va.plan.dazu_bohren",
-                bohrer=wz.genannt(bohrer),
+                bohrer=mg.genannt(bohrer, self._magazin()),
                 bohrungen=tr("va.plan.bohrung") if n == 1 else tr("va.plan.bohrungen_zahl", n=n),
                 seiten=(
                     tr("va.plan.seite") if dazu.seiten == 1 else tr("va.plan.seiten", n=dazu.seiten)
@@ -2929,10 +2929,18 @@ class VierachsPanel:
             geht, vorschlag, grund = False, False, tr("va.entgraten.keine_kanten")
         elif werkzeug.art == wz.FASENFRAESER:
             geht, vorschlag = True, True
-            grund = tr("va.entgraten.vorschlag", kanten=len(kanten), werkzeug=wz.genannt(werkzeug))
+            grund = tr(
+                "va.entgraten.vorschlag",
+                kanten=len(kanten),
+                werkzeug=mg.genannt(werkzeug, self._magazin()),
+            )
         else:
             geht, vorschlag = True, False
-            grund = tr("va.entgraten.kugel", kanten=len(kanten), werkzeug=wz.genannt(werkzeug))
+            grund = tr(
+                "va.entgraten.kugel",
+                kanten=len(kanten),
+                werkzeug=mg.genannt(werkzeug, self._magazin()),
+            )
         geht = geht and self._entgraten_erlaubt
         self.entgrat_grund.setText(grund)
         war = self.entgraten_an()
@@ -3241,7 +3249,7 @@ class VierachsPanel:
         einspannung = rw.Einspannung(0.0, hl.lage(self.bibliothek.halter_von(werkzeug)))
         # Am Revolver der Platz, den es in diesem Job bekommt (W-002 Stufe G).
         nummer = self._programmnummer(werkzeug, self._vorgemerkt(werkzeug))
-        name = wz.genannt(werkzeug)
+        name = mg.genannt(werkzeug, self._magazin())
         if nummer is None:
             return html.escape(tr("va.lage.alle_belegt", werkzeug=name, maschine=eintrag.name))
         aufnahme, radial = pruefung.kommt_aus(nummer, richtung, einspannung)

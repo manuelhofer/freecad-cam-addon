@@ -5378,7 +5378,7 @@ class BearbeitungPanel:
         flaechen = ", ".join(ausgelassen)
         rest = self.restraeumen
         if rest.aktiv() and rest.vorschau is not None:
-            werkzeug = wz.genannt(rest.fraeser())
+            werkzeug = mg.genannt(rest.fraeser(), self.magazin())
             if len(ausgelassen) == 1:
                 neu = tr(
                     "ba.raeumen.ausgelassen.rest", text=text, flaeche=flaechen, d=d, t=werkzeug

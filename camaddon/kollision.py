@@ -46,6 +46,13 @@ der Schranke nicht ohnehin bis zur nächsten Station reicht. Stecken zwei in
 einer Operation schon ineinander, rechnet es sie dort nicht weiter – schlimmer
 wird der Befund nicht.
 
+Am Revolver stecken auch die anderen Werkzeuge (W-002 Stufe H4; Manuel, 2026-10-05: „die
+Kollisionsprüfung mit allem, was beladen ist“): Sie drehen mit dem Revolver und fahren mit ihm –
+die des Jobs auf ihrem Platz (ihre Nummer), dazu, was laut Magazin der Maschine beladen ist
+(magazin, `platz`), wo der Job keins hat. Jedes ihrer Teile zählt gegen Teil, Spannmittel und
+Maschine wie das Werkzeug, das gerade arbeitet – auch die Schneide im Vorschub: Sie schneidet
+nicht. Ohne Durchmesser (Drehwerkzeuge aus dem Magazin) fehlt ihre Form – sie fehlen dann.
+
 Läuft ohne Oberfläche.
 """
 
@@ -526,6 +533,8 @@ class _Welt:
                         )
                     ergebnis.hinweise.append(rw.Hinweis(satz, nummer))
             self.werkzeuge.append(gebaut[schluessel])
+        # Die übrigen Werkzeuge im Revolver (W-002 Stufe H4): Platz-Aufnahme → [Körper].
+        self.beladen = _beladen(p, job, bibliothek)
 
         self._paare = {}  # Glied der Werkzeugaufnahme -> Paare ohne Werkzeug
         self._schon_gemessen = {}  # (a, b) -> berühren sich in der Grundstellung?
@@ -553,7 +562,8 @@ class _Welt:
         return werkzeug - gemeinsam, werkstueck - gemeinsam
 
     def paare(self, operation):
-        """Die Paare, die in dieser Operation zählen."""
+        """Die Paare, die in dieser Operation zählen – mit den Werkzeugen, die auf den anderen
+        Plätzen des Revolvers stecken (H4)."""
         werkzeug = self.werkzeuge[operation]
         glied = werkzeug[0].glied if werkzeug else None
         if glied not in self._paare:
@@ -569,6 +579,14 @@ class _Welt:
                     continue
                 nur_eilgang = koerper.art == SCHNEIDE and anderer.art == TEIL
                 paare.append(_Paar(koerper, anderer, nur_eilgang))
+        aufnahme = self.abfahrt.operationen[operation].aufnahme
+        for platz, koerper_liste in self.beladen.items():
+            if platz is aufnahme:
+                continue  # dort steckt das Werkzeug, das gerade arbeitet
+            for koerper in koerper_liste:
+                if koerper.glied is not glied:
+                    continue  # nur auf demselben Revolver wie das arbeitende
+                paare.extend(_Paar(koerper, anderer) for anderer in gegen_werkzeug)
         return paare + maschinenpaare
 
     def _maschinenpaare(self, werkzeug_glied):
@@ -676,6 +694,8 @@ class _Welt:
             koerper.append(self.schraubstock)
         for werkzeug in self.werkzeuge:
             koerper.extend(werkzeug)
+        for beladen in self.beladen.values():
+            koerper.extend(beladen)
         return koerper
 
     def abschnitt(self, i):
@@ -1065,6 +1085,60 @@ def _teil_form(job):
         if form is not None and not form.isNull():
             formen.append(form.copy())
     return Part.makeCompound(formen) if formen else None
+
+
+def _beladen(pruefung, job, bibliothek):
+    """{Platz-Aufnahme: [Körper]} – was außer dem arbeitenden Werkzeug im Revolver steckt (W-002
+    Stufe H4): die Werkzeuge des Jobs auf dem Platz ihrer Nummer und, wo der Job keins hat, die
+    laut Magazin der Maschine dort beladenen. Leer ohne Revolver."""
+    from . import bestueckung as bs
+    from . import magazin as mg
+
+    if not pruefung.mit_revolver():
+        return {}
+    plaetze = {nummer: pruefung.werkzeugaufnahme(nummer) for nummer in pruefung.platznummern()}
+    ergebnis = {}
+    im_job = set()
+
+    def stecke(nummer, masse, laenge, halter):
+        aufnahme = plaetze.get(nummer)
+        if aufnahme is None or aufnahme in ergebnis or masse is None or laenge <= 0:
+            return
+        glied, basis = pruefung._glied(aufnahme), pruefung._lage(aufnahme)
+        ergebnis[aufnahme] = [
+            Koerper(_beladen_name(art, nummer, halter), art, form, glied, basis)
+            for art, form in werkzeugkoerper(masse, laenge, halter)
+        ]
+
+    for eintrag in bs.eintraege(job, bibliothek) if job is not None else []:
+        if eintrag.werkzeug is not None:
+            im_job.add(eintrag.werkzeug.kennung)
+        tc = eintrag.controller[0]
+        laenge = rw.einspannung(tc, bibliothek).laenge
+        halter = rw.werkzeughalter(tc, bibliothek)
+        for nummer in eintrag.nummern:
+            stecke(nummer, rw.werkzeugmasse(tc, bibliothek, laenge), laenge, halter)
+    if bibliothek is None:
+        return ergebnis
+    maschine = getattr(pruefung, "maschine", None)
+    datei = getattr(getattr(maschine, "Document", None), "FileName", "") or mg.maschine_von(job)
+    magazin = mg.des_jobs(None, bibliothek, datei) if datei else None
+    for eintrag in magazin.eintraege if magazin is not None else []:
+        werkzeug = bibliothek.werkzeug_mit_kennung(eintrag.werkzeug)
+        if eintrag.platz <= 0 or werkzeug is None or werkzeug.kennung in im_job:
+            continue
+        if not werkzeug.durchmesser:
+            continue  # ohne Durchmesser keine Form (ein Drehwerkzeug)
+        laenge = rw.laenge_des_werkzeugs(werkzeug, bibliothek)[0]
+        halter = bibliothek.halter_fuer_pruefung(werkzeug)
+        stecke(eintrag.platz, rw.masse_des_werkzeugs(werkzeug), laenge, halter)
+    return ergebnis
+
+
+def _beladen_name(art, nummer, halter):
+    """„die Schneide von T2 (steckt im Revolver)“ – ein Teil eines Werkzeugs, das gerade nicht
+    arbeitet."""
+    return tr("kb.im_revolver", koerper=_werkzeug_name(art, nummer, halter))
 
 
 def _werkzeug_name(art, nummer, halter):

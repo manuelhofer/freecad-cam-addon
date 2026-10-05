@@ -186,6 +186,60 @@ def lege_um(job, eintrag, nummer, bibliothek):
     return geaendert
 
 
+def nummern_nach_magazin(eintraege_, magazin, nummern=()):
+    """{id(Eintrag): Nummer} – wie „Nummern aus dem Magazin“ (W-002 Stufe H3, E4) die Werkzeuge
+    des Jobs nummeriert. An der Fräse (`nummern` leer): die aus dem Magazin; am Revolver
+    (`nummern`: seine Plätze) der Platz, auf dem es beladen ist. Die übrigen behalten ihre
+    Nummer, wenn sie frei ist und kein Werkzeug des Magazins sie hat (am Revolver: auf dem Platz
+    keins beladen ist) – sonst die kleinste solche (am Revolver der erste freie Platz, auf dem
+    nichts beladen ist, sonst der erste freie)."""
+    ziel = {}
+    if nummern:
+        reserviert = {e.platz for e in magazin.eintraege if e.platz > 0}
+    else:
+        reserviert = {e.nummer for e in magazin.eintraege}
+    for eintrag in eintraege_:
+        im = magazin.eintrag_von(eintrag.werkzeug) if eintrag.werkzeug is not None else None
+        if im is None:
+            continue
+        if not nummern:
+            ziel[id(eintrag)] = im.nummer
+        elif im.platz > 0 and im.platz in nummern:
+            ziel[id(eintrag)] = im.platz
+    vergeben = set(ziel.values())
+    rest = [e for e in eintraege_ if id(e) not in ziel]
+    for eintrag in rest:  # erst die, die ihre Nummer behalten können
+        n = eintrag.nummer
+        if n > 0 and n not in vergeben and n not in reserviert and (not nummern or n in nummern):
+            ziel[id(eintrag)] = n
+            vergeben.add(n)
+    for eintrag in rest:
+        if id(eintrag) in ziel:
+            continue
+        if nummern:
+            frei = [n for n in sorted(nummern) if n not in vergeben]
+            n = next((n for n in frei if n not in reserviert), frei[0] if frei else eintrag.nummer)
+        else:
+            n = 1
+            while n in vergeben or n in reserviert:
+                n += 1
+        ziel[id(eintrag)] = n
+        vergeben.add(n)
+    return ziel
+
+
+def nummern_aus_magazin(job, bibliothek, magazin, nummern=()):
+    """„Nummern aus dem Magazin“ (E4): die Controller des Jobs (und seiner Aufspannung) nach
+    nummern_nach_magazin – ihre Namen folgen („T7 Schruppen“ → „T3 Schruppen“). In der
+    Transaktion des Aufrufers; gibt die geänderten Controller zurück."""
+    alle = eintraege(job, bibliothek)
+    ziel = nummern_nach_magazin(alle, magazin, nummern)
+    geaendert = []
+    for eintrag in alle:
+        geaendert += _nummer_setzen(eintrag.controller, ziel[id(eintrag)])
+    return geaendert
+
+
 def _nummer_setzen(controller, nummer):
     geaendert = []
     for tc in controller:

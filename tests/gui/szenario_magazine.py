@@ -4,12 +4,15 @@
 # ohne Nummer). Werkzeugverwaltung → „Magazine …“ → „Neu“: ein Magazin für die Maschine, mit ihrem
 # Namen, „Gilt für diese Maschine“ angehakt, die Plätze vom Revolver; „Aus den Nummern“: T1 und T2,
 # „Werkzeug dazu“: das ohne Nummer als T3. T2 auf T1 gestellt: unten rot „T1 steht zweimal“;
-# zurück. T1 beladen auf P4. Schließen, OK: gespeichert – frisch gelesen ist alles da.
+# zurück. T1 beladen auf P4. Schließen, OK: gespeichert – frisch gelesen ist alles da. Dann
+# die Rüstliste am Revolver, „Nummern aus dem Magazin“ und das Beladene im Bild (unten).
 import os
 import tempfile
 
 import FreeCAD
 import FreeCADGui as Gui
+import Part  # noqa: F401 – für „Part::Box“
+from PySide import QtCore
 
 
 def schritte(h):
@@ -96,5 +99,83 @@ def schritte(h):
             and t2.platz == 0,
             f"Einträge: {gilt.eintraege}",
         )
+
+    # --- Die Rüstliste am Revolver (Stufe H3) und was im Revolver steckt (H4) ------------------
+    # Die Fase beladen auf P6 (der Job braucht sie nicht). Ein Job mit dem Anbohrer (im Magazin,
+    # nicht beladen: der erste freie Platz ohne Beladung, P1) und dem VHM 12 als T3 (beladen auf
+    # P4). „Bestückung“: T1 „nicht beladen – auf P1 einsetzen“, T3 „beladen auf P4 – Nummern aus
+    # dem Magazin“; im Bild der Anbohrer und der VHM 12, die Fase durchscheinend auf P6.
+    # „Nummern aus dem Magazin“: der VHM 12 auf P4.
+    from Path.Main import Job as PathJob
+
+    from camaddon import bestueckung as bs
+    from camaddon import gui_bestueckung
+    from camaddon import job_schnittwerte as js
+    from camaddon import reichweite as rw
+    from camaddon import uebergabe_werkzeuge as ue
+
+    gelesen.magazin_fuer(pfad_maschine).eintrag_von(ohne).platz = 6
+    for w in gelesen.werkzeuge:
+        w.schnittwerte[wz.ALLE] = [wz.Einsatz(art=wz.DYNAMISCH, ae=1, ap=5, vc=100, fz=0.05)]
+    gelesen.speichern()
+    ue.uebergeben(gelesen)
+    anbohrer_neu = gelesen.werkzeug_mit_kennung(anbohrer.kennung)
+    fraeser_neu = gelesen.werkzeug_mit_kennung(fraeser.kennung)
+    jobdok = FreeCAD.newDocument("Welle")
+    teil = jobdok.addObject("Part::Box", "Teil")
+    jobdok.recompute()
+    job = PathJob.Create("Job", [teil])
+    rw.merke_maschine(job, pfad_maschine)
+    platz = bs.platz_fuer(job, anbohrer_neu, gelesen, list(range(1, 13)))
+    h.pruefe(platz == 1, f"Anbohrer: P{platz}")
+    for w, nummer in ((anbohrer_neu, platz), (fraeser_neu, 3)):
+        js.controller_ohne_transaktion(jobdok, job, w, w.schnittwerte[wz.ALLE][0], nummer=nummer)
+    jobdok.recompute()
+    yield 300
+    FreeCAD.setActiveDocument(jobdok.Name)
+    Gui.Selection.clearSelection()
+    Gui.Selection.addSelection(job)
+    yield 400  # 1.1.3 verarbeitet die Auswahl verzögert
+    QtCore.QTimer.singleShot(0, lambda: Gui.runCommand("CamAddon_Bestueckung"))
+    yield from h.warte_auf(lambda: gui_bestueckung.BestueckungsPanel.offen is not None)
+    yield 800
+    panel = gui_bestueckung.BestueckungsPanel.offen
+    h.pruefe(panel is not None, "„Bestückung“ geht nicht auf")
+    if panel is None:
+        return
+    liste = panel.ruestliste.text()
+    h.pruefe(
+        "T1&nbsp;&nbsp;" in liste
+        and "nicht beladen – auf P1 einsetzen" in liste
+        and "T3&nbsp;&nbsp;VHM 12" in liste
+        and "beladen auf P4 – Nummern aus dem Magazin" in liste,
+        f"Rüstliste: {liste!r}",
+    )
+    h.pruefe(
+        panel.bild is not None
+        and sorted(panel.bild.werkzeuge) == [1, 3]
+        and sorted(panel.bild.beladen) == [6],
+        f"im Revolver: {panel.bild and sorted(panel.bild.werkzeuge)}, "
+        f"beladen {panel.bild and sorted(panel.bild.beladen)}",
+    )
+    p6 = next(w for p, w in panel.wahlen.items() if p.Platz == 6)
+    h.pruefe(
+        p6.currentText().startswith("– frei – (laut Magazin beladen: Fasenfräser"),
+        f"P6: {p6.currentText()!r}",
+    )
+    h.bild("2_ruestliste_revolver", panel.form)
+    h.bild("3_revolver_beladen")
+    panel.knopf_nummern.click()
+    yield 800
+    nummern = sorted(e.nummer for e in bs.eintraege(job, gelesen))  # ohne FreeCADs eigenen
+    h.pruefe(nummern == [1, 4], f"nach „Nummern aus dem Magazin“: {nummern}")
+    h.pruefe(
+        "T4&nbsp;&nbsp;VHM 12" in panel.ruestliste.text()
+        and "beladen auf P4<" in panel.ruestliste.text(),
+        f"Rüstliste danach: {panel.ruestliste.text()!r}",
+    )
+    panel.reject()
+    yield 500
+    FreeCAD.closeDocument(jobdok.Name)
     FreeCAD.closeDocument(asm.Document.Name)
     yield 300

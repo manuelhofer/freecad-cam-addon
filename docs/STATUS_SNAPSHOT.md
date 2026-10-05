@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.191.0 (P-2026-10-05-05). Alles, was hier als gebaut steht,
+Stand 0.192.0 (P-2026-10-05-06). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -29,7 +29,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   am Werkzeug freiwillig („Entladen“, F2, P-2026-10-04-35); Magazine je Maschine in der
   Werkzeugverwaltung (Stufe H1, P-2026-10-05-04), die Nummern im Job aus dem Magazin (H2,
   P-2026-10-05-05: Listen mit dem Magazin vorn, gelb „nicht im Magazin“ mit „Ins Magazin
-  übernehmen“) – H3 Rüstliste, H4 Kollision mit der Beladung folgen.
+  übernehmen“), Rüstliste im Fenster „Bestückung“ und im Programmkopf mit „Nummern aus dem
+  Magazin“ (H3) und die Kollision mit allem, was im Revolver steckt (H4; beides
+  P-2026-10-05-06) – Stufe H fertig.
 - **W-003 4-Achs-Bearbeitung** – gebaut: V1 Teil in die Stange, V2a/V2c Achse von der
   Maschine, V3 Rundum schruppen, V4 Flächen wählen (Linien längs, Plan indexiert mit
   Passfedernut, Mantelnut, Querbohrungen und Radial bohren, Rundum entgraten), V5 Rundum
@@ -277,6 +279,10 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
   …“), die anderen darunter mit „nicht im Magazin“. Eins von unten wählen: gelber Satz und „Ins
   Magazin übernehmen“ → geklickt: der Satz ist weg. „Anlegen“: Die Controller heißen „T<Nummer
   aus dem Magazin> …“.
+  Seit 0.192.0: In der Werkzeugverwaltung die Nummer eines Werkzeugs im Magazin ändern → den Job
+  wählen → „Bestückung“ → unten die Rüstliste, rot „im Magazin T…“ → „Nummern aus dem Magazin“ →
+  die Controller heißen danach so; „Programm schreiben“: im Kopf hinter jedem Werkzeug „beladen
+  auf P…“ bzw. „nicht beladen – einsetzen“.
 - *Zum Ausprobieren (0.189.1) – Heidenhain:* einen Job wählen → „Programm schreiben …“ →
   Steuerung „Heidenhain iTNC 530 (Klartext)“ → rechts „0 BEGIN PGM <Datei> MM“, „BLK FORM …“,
   „TOOL CALL 1 Z S…“, „M3“, „L X+… R0 F…“, Kreise „CC …“/„C … DR+“ → „Speichern“ → darunter

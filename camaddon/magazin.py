@@ -14,6 +14,12 @@ Platz aus dem Magazin, sonst der erste freie, auf dem nichts beladen ist
 In den Listen der Assistenten (E7 a) stehen die Werkzeuge des Magazins vorn, beladene zuerst,
 mit ihrer Nummer im Magazin („T3 · P5“); die übrigen danach, „nicht im Magazin“.
 
+Die Rüstliste (Stufe H3, ruesten): je Werkzeug des Jobs, was an der Maschine zu tun ist –
+nichts (beladen), einsetzen (im Magazin, nicht beladen), an der Steuerung anlegen (nicht im
+Magazin) oder umnummerieren (der Job ruft es mit einer anderen Nummer, als das Magazin sagt –
+das Programm riefe an der Maschine ein anderes Werkzeug; „Nummern aus dem Magazin“, E4,
+bestueckung.nummern_aus_magazin). Im Fenster „Bestückung“ und im Kopf des Programms.
+
 Läuft ohne Oberfläche.
 """
 
@@ -21,6 +27,8 @@ from . import werkzeuge as wz
 from .sprache import tr
 
 BELADEN, IM_MAGAZIN, NICHT_IM_MAGAZIN = 0, 1, 2
+# Was an der Maschine zu tun ist (ruesten) – in dieser Reihenfolge wichtig.
+UMNUMMERIEREN, ANLEGEN, EINSETZEN, GERUESTET = "umnummerieren", "anlegen", "einsetzen", "geruestet"
 
 
 def maschine_des_jobs(job):
@@ -91,6 +99,44 @@ def mit_revolver(maschine):
 
     eintrag = msp.finde(msp.laden(), maschine) if maschine else None
     return bool(eintrag is not None and eintrag.revolver)
+
+
+def maschine_von(job):
+    """Die Datei der Maschine des Jobs – bei einer geschwenkten Ebene (3+2) die ihres
+    Grundjobs, wenn sie selbst keine hat."""
+    return maschine_des_jobs(job) or maschine_des_jobs(getattr(job, "Grundjob", None))
+
+
+def ruesten(werkzeug, magazin, nummer, revolver=False):
+    """(Art, Satz): was an der Maschine für das Werkzeug zu tun ist, das der Job als `nummer`
+    aufruft (am Revolver: der Platz) – GERUESTET „beladen auf P5“, EINSETZEN „nicht beladen –
+    einsetzen“, ANLEGEN „nicht im Magazin – an der Steuerung anlegen und vermessen“,
+    UMNUMMERIEREN „im Magazin T3“ bzw. „beladen auf P5“ (der Job ruft es anders). `werkzeug`
+    None (nicht aus der Werkzeugverwaltung): ANLEGEN. ("", "") ohne Magazin."""
+    if magazin is None:
+        return "", ""
+    eintrag = magazin.eintrag_von(werkzeug) if werkzeug is not None else None
+    if eintrag is None:
+        return ANLEGEN, tr("mg.ruesten.anlegen")
+    if revolver:
+        if eintrag.platz > 0 and eintrag.platz != nummer:
+            return UMNUMMERIEREN, tr("mg.ruesten.anderer_platz", platz=eintrag.platz)
+    elif eintrag.nummer != nummer:
+        return UMNUMMERIEREN, tr("mg.ruesten.andere_nummer", nummer=eintrag.nummer)
+    if eintrag.platz > 0:
+        return GERUESTET, tr("mg.ruesten.beladen", platz=eintrag.platz)
+    if revolver:
+        return EINSETZEN, tr("mg.ruesten.einsetzen_platz", platz=nummer)
+    return EINSETZEN, tr("mg.ruesten.einsetzen")
+
+
+def genannt(werkzeug, magazin):
+    """Wie ein Satz das Werkzeug nennt: mit Magazin „T3“ mit der Nummer dort, nicht darin seine
+    Art („Schaftfräser Ø 12“); ohne Magazin wie werkzeuge.genannt."""
+    if magazin is None:
+        return wz.genannt(werkzeug)
+    eintrag = magazin.eintrag_von(werkzeug)
+    return f"T{eintrag.nummer}" if eintrag is not None else wz.kurz(werkzeug)
 
 
 def rang(werkzeug, magazin):

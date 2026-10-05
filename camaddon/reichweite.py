@@ -447,20 +447,9 @@ class Werkzeugmasse:
 def werkzeugmasse(tc, bibliothek, laenge):
     """Die Maße des Werkzeugs eines Controllers: aus der Werkzeugverwaltung (eingetragen,
     sonst geschätzt wie für CAM), sonst vom CAM-Werkzeug; `laenge` gilt, wo nichts steht."""
-    from . import fraeserform as ff
-
     w = js.werkzeug_von(tc, bibliothek) if bibliothek is not None else None
     if w is not None and w.durchmesser:
-        return Werkzeugmasse(
-            durchmesser=w.durchmesser,
-            schneide=wz.schneide(w) or 2 * w.durchmesser,
-            hals_d=wz.mass(w, "hals_d") if wz.mass(w, "hals_laenge") else 0.0,
-            hals_laenge=wz.mass(w, "hals_laenge") if wz.mass(w, "hals_d") else 0.0,
-            schaft=wz.schaft_fuer_cam(w),
-            gesamt=wz.laenge_fuer_cam(w),
-            kugel=w.art == wz.LOLLIPOPFRAESER,
-            stirn=ff.von_werkzeug(w),
-        )
+        return masse_des_werkzeugs(w)
     bit = getattr(tc, "Tool", None)
     durchmesser = _mm(getattr(bit, "Diameter", None)) or 5.0
     schneide = (
@@ -489,6 +478,22 @@ def _stirn_vom_bit(tc):
     except AttributeError:  # kein ToolBit, wie CAM es anlegt
         return None
     return ff.von_werkzeug(werkzeug) if werkzeug is not None else None
+
+
+def masse_des_werkzeugs(w):
+    """Die Maße eines Werkzeugs der Werkzeugverwaltung (mit Durchmesser), wie werkzeugmasse()."""
+    from . import fraeserform as ff
+
+    return Werkzeugmasse(
+        durchmesser=w.durchmesser,
+        schneide=wz.schneide(w) or 2 * w.durchmesser,
+        hals_d=wz.mass(w, "hals_d") if wz.mass(w, "hals_laenge") else 0.0,
+        hals_laenge=wz.mass(w, "hals_laenge") if wz.mass(w, "hals_d") else 0.0,
+        schaft=wz.schaft_fuer_cam(w),
+        gesamt=wz.laenge_fuer_cam(w),
+        kugel=w.art == wz.LOLLIPOPFRAESER,
+        stirn=ff.von_werkzeug(w),
+    )
 
 
 def werkzeughalter(tc, bibliothek):

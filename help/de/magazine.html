@@ -47,3 +47,17 @@ muss; <b>Ins Magazin übernehmen</b> trägt es ein (mit der Nummer, die es im Jo
 der nächsten freien) und speichert die Werkzeugverwaltung.</li>
 <li>Was ein Job schon hat, behält seine Nummer.</li>
 </ul>
+
+<h3>Rüstliste, Programm, Kollision</h3>
+<ul>
+<li>Im Fenster <a href="bestueckung.html">Bestückung</a> steht die <b>Rüstliste</b>: je Werkzeug
+des Jobs beladen, einsetzen, an der Steuerung anlegen – oder rot, wenn der Job es mit einer
+anderen Nummer ruft als das Magazin (ein älterer Job, ein geändertes Magazin). <b>Nummern aus
+dem Magazin</b> nummeriert den Job danach.</li>
+<li>Im <b>Kopf des Programms</b> steht hinter jedem Werkzeug dasselbe („T5 … – beladen auf P3“);
+im Fenster „Programm schreiben“ je ein gelber Satz, was anzulegen, einzusetzen oder
+umzunummerieren ist. Mit {werkzeug} im Werkzeugwechsel (Siemens T="{werkzeug}") schreibt das
+Programm den <b>Name an der Steuerung</b>, wo er eingetragen ist.</li>
+<li>Am <b>Revolver</b> prüft die <a href="reichweite.html">Kollision</a> auch, was laut Magazin
+beladen ist und der Job nicht braucht – es dreht mit.</li>
+</ul>

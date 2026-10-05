@@ -17,14 +17,17 @@ die offene, sonst die, die sich der Job gemerkt hat (gui_reichweite.maschine_fue
 Schließen merkt sie sich am Job und kehrt zu seinem Dokument zurück.
 """
 
+import html
+
 import FreeCAD
 import FreeCADGui
-from PySide import QtGui
+from PySide import QtCore, QtGui
 
 from . import bestueckung as bs
 from . import gui_abfahren, gui_reichweite, symbol
 from . import job_schnittwerte as js
 from . import kette as kette_modul
+from . import magazin as mg
 from . import maschine as m
 from . import reichweite as rw
 from . import werkzeuge as wz
@@ -70,20 +73,27 @@ class BefehlBestueckung:
 class Revolverbild:
     """Die Werkzeuge des Jobs auf ihren Plätzen in der 3D-Ansicht der Maschine – dieselben
     Körper wie beim Abfahren (gui_abfahren.werkzeug_knoten) –, dazu an jedem Platz sein Name.
-    Nichts davon steht im Dokument."""
+    Mit `magazin` auch, was dort laut Magazin beladen ist und der Job nicht braucht –
+    durchscheinend (W-002 Stufe H4: die Kollision prüft es mit). Nichts davon steht im
+    Dokument."""
 
-    def __init__(self, ansicht, plaetze, auf, bibliothek):
+    DURCHSCHEINEND = 0.6  # ein beladenes Werkzeug, das der Job nicht braucht
+
+    def __init__(self, ansicht, plaetze, auf, bibliothek, magazin=None):
         from pivy import coin
 
         self.ansicht = ansicht
         self.wurzel = coin.SoSeparator()
         self._lagen = []  # [(Platz, SoTransform)]
         self.werkzeuge = {}  # Platznummer → gezeigter Eintrag
+        self.beladen = {}  # Platznummer → Werkzeug aus dem Magazin, das der Job nicht braucht
+        im_job = {e.werkzeug.kennung for es in auf.values() for e in es if e.werkzeug is not None}
         for platz in plaetze:
             knoten = coin.SoSeparator()
             lage = coin.SoTransform()
             knoten.addChild(lage)
             hier = auf.get(platz.Platz, [])
+            dort = _beladen_auf(magazin, bibliothek, platz.Platz, im_job) if not hier else None
             if hier:
                 tc = hier[0].controller[0]
                 laenge = rw.werkzeuglaenge(tc, bibliothek)[0]
@@ -91,6 +101,17 @@ class Revolverbild:
                 halter = rw.werkzeughalter(tc, bibliothek)
                 knoten.addChild(gui_abfahren.werkzeug_knoten(laenge, masse, halter))
                 self.werkzeuge[platz.Platz] = hier[0]
+            elif dort is not None:
+                laenge = rw.laenge_des_werkzeugs(dort, bibliothek)[0]
+                knoten.addChild(
+                    gui_abfahren.werkzeug_knoten(
+                        laenge,
+                        rw.masse_des_werkzeugs(dort),
+                        bibliothek.halter_fuer_pruefung(dort),
+                        self.DURCHSCHEINEND,
+                    )
+                )
+                self.beladen[platz.Platz] = dort
             knoten.addChild(_name(coin, m.name_von(platz)))
             self.wurzel.addChild(knoten)
             self._lagen.append((platz, lage))
@@ -114,6 +135,18 @@ class Revolverbild:
         wurzel = self.ansicht.getSceneGraph()
         if wurzel.findChild(self.wurzel) >= 0:
             wurzel.removeChild(self.wurzel)
+
+
+def _beladen_auf(magazin, bibliothek, platz, im_job):
+    """Das Werkzeug, das laut Magazin auf `platz` beladen ist – None, wenn keins, wenn es der
+    Job ohnehin hat (`im_job`: Kennungen) oder wenn es keinen Durchmesser hat (keine Form)."""
+    if magazin is None or bibliothek is None:
+        return None
+    eintrag = magazin.auf_platz(platz)
+    werkzeug = bibliothek.werkzeug_mit_kennung(eintrag.werkzeug) if eintrag is not None else None
+    if werkzeug is None or werkzeug.kennung in im_job or not werkzeug.durchmesser:
+        return None
+    return werkzeug
 
 
 def _name(coin, text):
@@ -220,6 +253,23 @@ class BestueckungsPanel:
         aufbau.addWidget(self.doppelt)
         self.ohne_platz = _satz(ROT)
         aufbau.addWidget(self.ohne_platz)
+        # Die Rüstliste (W-002 Stufe H3): je Werkzeug, was an der Maschine zu tun ist – mit dem
+        # Magazin der Maschine; „Nummern aus dem Magazin“ nummeriert den Job danach (E4).
+        self.ruest_titel = QtGui.QLabel()
+        schrift = self.ruest_titel.font()
+        schrift.setBold(True)
+        self.ruest_titel.setFont(schrift)
+        aufbau.addWidget(self.ruest_titel)
+        self.ruestliste = QtGui.QLabel()
+        self.ruestliste.setWordWrap(True)
+        self.ruestliste.setTextFormat(QtCore.Qt.RichText)
+        aufbau.addWidget(self.ruestliste)
+        self.knopf_nummern = QtGui.QPushButton(tr("bs.nummern_aus_magazin"))
+        self.knopf_nummern.setToolTip(tr("bs.nummern_aus_magazin.tooltip"))
+        self.knopf_nummern.clicked.connect(self.nummern_aus_magazin)
+        aufbau.addWidget(self.knopf_nummern)
+        self.ohne_magazin = _satz(GRAU)
+        aufbau.addWidget(self.ohne_magazin)
         self.knopf_hinsehen = QtGui.QPushButton(tr("bs.hinsehen"))
         self.knopf_hinsehen.setToolTip(tr("bs.hinsehen.tooltip"))
         self.knopf_hinsehen.clicked.connect(self.hinsehen)
@@ -246,11 +296,20 @@ class BestueckungsPanel:
         self.aufspannung.setVisible(len(jobs) > 1)
         auf = bs.auf_plaetzen(self.job, self.bibliothek, self.eintraege)
         nummern = {platz.Platz for platz in self.plaetze}
+        magazin = self.magazin()
+        im_job = {e.werkzeug.kennung for e in self.eintraege if e.werkzeug is not None}
         for platz, wahl in self.wahlen.items():
             hier = auf.get(platz.Platz, [])
             wahl.blockSignals(True)
             wahl.clear()
-            wahl.addItem(tr("bs.frei"), -1)
+            # Frei für den Job – laut Magazin steckt dort vielleicht eins, das er nicht braucht.
+            beladen = magazin.auf_platz(platz.Platz) if magazin is not None else None
+            dort = self.bibliothek.werkzeug_mit_kennung(beladen.werkzeug) if beladen else None
+            if dort is not None and dort.kennung not in im_job:
+                frei = tr("bs.frei_beladen", werkzeug=dezimal(wz.kurz(dort)))
+            else:
+                frei = tr("bs.frei")
+            wahl.addItem(frei, -1)
             # Frei machen geht nur, wo nichts steckt – jedes Werkzeug des Jobs braucht einen Platz.
             wahl.model().item(0).setEnabled(not hier)
             for index, eintrag in enumerate(self.eintraege):
@@ -266,7 +325,11 @@ class BestueckungsPanel:
             wahl.setCurrentIndex(self.eintraege.index(hier[0]) + 1 if hier else 0)
             wahl.blockSignals(False)
         if not self.plaetze:
-            self.hinweis.setText(tr("bs.kein_revolver", maschine=self.maschine.Label))
+            name = self.maschine.Label
+            if self.magazin() is not None:
+                self.hinweis.setText(tr("bs.kein_revolver_magazin", maschine=name))
+            else:
+                self.hinweis.setText(tr("bs.kein_revolver", maschine=name))
         elif not self.eintraege:
             self.hinweis.setText(tr("bs.keine_werkzeuge"))
         else:
@@ -289,7 +352,86 @@ class BestueckungsPanel:
         ]
         self.ohne_platz.setText(tr("bs.nicht_im_revolver", werkzeuge=", ".join(ohne)))
         self.ohne_platz.setVisible(bool(ohne))
+        self._ruestliste_fuellen()
         self._bild_neu(auf)
+
+    # --- Rüstliste (W-002 Stufe H3) ------------------------------------------------------
+
+    def magazin(self):
+        """Das Magazin, das für die Maschine des Fensters gilt – None ohne."""
+        pfad = self.assembly.Document.FileName
+        if not pfad or self.bibliothek is None:
+            return None
+        return mg.des_jobs(None, self.bibliothek, pfad)
+
+    def _nummern(self):
+        """Die Plätze des Revolvers – leer an einer Maschine ohne Revolver."""
+        return [platz.Platz for platz in self.plaetze]
+
+    def ruestzeilen(self):
+        """[(Nummer, Eintrag, Art, Satz)] – die Werkzeuge des Jobs nach Nummer, mit dem, was an
+        der Maschine zu tun ist (magazin.ruesten). Leer ohne Magazin."""
+        magazin = self.magazin()
+        if magazin is None:
+            return []
+        revolver = bool(self.plaetze)
+        zeilen = []
+        for eintrag in sorted(self.eintraege, key=lambda e: e.nummer):
+            art, satz = mg.ruesten(eintrag.werkzeug, magazin, eintrag.nummer, revolver)
+            zeilen.append((eintrag.nummer, eintrag, art, satz))
+        return zeilen
+
+    def _ruestliste_fuellen(self):
+        from .gui_kollision import GELB
+
+        magazin = self.magazin()
+        farben = {
+            mg.GERUESTET: GRAU.name(),
+            mg.EINSETZEN: GELB,
+            mg.ANLEGEN: GELB,
+            mg.UMNUMMERIEREN: ROT,
+        }
+        zeilen = []
+        for nummer, eintrag, art, satz in self.ruestzeilen():
+            werkzeug = html.escape(dezimal(bs.text(eintrag)), quote=False)
+            zeilen.append(
+                f"T{nummer}&nbsp;&nbsp;{werkzeug} – "
+                f'<span style="color: {farben[art]};">{html.escape(satz, quote=False)}</span>'
+            )
+        mit = magazin is not None and bool(self.eintraege)
+        self.ruest_titel.setText(
+            tr("bs.ruestliste", magazin=magazin.name or tr("mg.ohne_name")) if mit else ""
+        )
+        self.ruest_titel.setVisible(mit)
+        self.ruestliste.setText("<br>".join(zeilen))
+        self.ruestliste.setVisible(mit)
+        self.knopf_nummern.setVisible(mit)
+        if mit:
+            ziel = bs.nummern_nach_magazin(self.eintraege, magazin, self._nummern())
+            self.knopf_nummern.setEnabled(any(e.nummern != [ziel[id(e)]] for e in self.eintraege))
+        self.ohne_magazin.setText(
+            tr("bs.ohne_magazin") if magazin is None and self.eintraege else ""
+        )
+        self.ohne_magazin.setVisible(bool(self.ohne_magazin.text()))
+
+    def nummern_aus_magazin(self):
+        """„Nummern aus dem Magazin“ (E4): der Job nummeriert wie das Magazin
+        (bestueckung.nummern_aus_magazin) – ein Schritt Rückgängig. Gibt die geänderten
+        Controller zurück."""
+        magazin = self.magazin()
+        if magazin is None:
+            return []
+        dokument = self.job.Document
+        dokument.openTransaction(tr("bs.nummern_aus_magazin"))
+        try:
+            geaendert = bs.nummern_aus_magazin(self.job, self.bibliothek, magazin, self._nummern())
+        except Exception:
+            dokument.abortTransaction()
+            raise
+        dokument.commitTransaction()
+        dokument.recompute()
+        self.fuellen()
+        return geaendert
 
     def _gewaehlt(self, platz, wahl, index):
         """Das gewählte Werkzeug zieht auf `platz` um – ein Schritt Rückgängig."""
@@ -321,7 +463,7 @@ class BestueckungsPanel:
         ansicht = gui_abfahren.ansicht_von(self.assembly.Document)
         if ansicht is None or not self.plaetze:
             return
-        self.bild = Revolverbild(ansicht, self.plaetze, auf, self.bibliothek)
+        self.bild = Revolverbild(ansicht, self.plaetze, auf, self.bibliothek, self.magazin())
 
     def _bild_weg(self):
         if self.bild is not None:

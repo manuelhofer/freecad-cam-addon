@@ -258,6 +258,13 @@ Besprechung:
   Körper rund um seine Drehachse (Futter, Welle) bewegt sich mit ihr nicht;
   stecken zwei in einer Operation schon ineinander, rechnet es sie dort nicht
   weiter.
+- **Was sonst im Revolver steckt** (W-002 Stufe H4, P-2026-10-05-06): Am Revolver drehen die
+  anderen Werkzeuge mit – die des Jobs auf dem Platz ihrer Nummer, dazu, was laut Magazin der
+  Maschine beladen ist, wo der Job keins hat (`kollision._beladen`). Jedes ihrer Teile zählt
+  gegen dieselben Körper wie das arbeitende Werkzeug, auch die Schneide im Vorschub (sie
+  schneidet nicht); im Satz „… von T2 (steckt im Revolver)“. Ohne Durchmesser (Drehwerkzeuge aus
+  dem Magazin) fehlt ihre Form – sie fehlen. An der Beispiel-Drehmaschine (Rundum schruppen,
+  1639 Stationen) bleibt die Prüfung bei 1,4 s; ein Werkzeug Ø 300 auf P2 stößt an die Spindel.
 - **Ergebnis** wie 4a, je Operation und Paar das Schlimmste als Satz: „In
   „Tasche“ berührt der Halter von T3 („SK40 ER32 A70“) das Teil (Satz 12,
   bei X 50, Y 30, Z −15).“ – „In „Kontur“ kommt der Fräskopf dem

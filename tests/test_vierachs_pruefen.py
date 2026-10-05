@@ -7,7 +7,9 @@
 # heraus, dass der Kopf des Halters Platz hat); mit 50 mm reichte der Halter (Nase 55 mm)
 # über die Spitze hinaus – er stößt ans Teil; kein Eilgang durch die Stange (die Gegenprobe
 # mit Schnitten als Eilgang findet sie). T2 ohne Halter steht gerade (axial)
-# auf P2: Ein Hinweis sagt, dass die Bahn ein radiales Werkzeug aus +X braucht.
+# auf P2: Ein Hinweis sagt, dass die Bahn ein radiales Werkzeug aus +X braucht. Was laut
+# Magazin sonst im Revolver steckt (H4), dreht mit: ein Werkzeug Ø 300 auf P2 stößt an die
+# Spindel, eins Ø 16 nicht.
 import math
 import os
 import sys
@@ -182,6 +184,27 @@ pruefe(
     len(treffer) >= 10 and max(t for _k, t in treffer) > 1.0,
     f"Gegenprobe an der Stange: {treffer[:3]}",
 )
+
+# --- Was sonst im Revolver steckt (W-002 Stufe H4) -----------------------------------------
+# Laut Magazin der (gespeicherten) Maschine steckt auf P2 ein Werkzeug Ø 300: Es dreht mit dem
+# Revolver und stößt an die Spindel, während T1 schruppt. Ein übliches (Ø 16, 125 mm) nicht.
+import tempfile  # noqa: E402
+
+asm.Document.saveAs(os.path.join(tempfile.mkdtemp(), "drehmaschine.FCStd"))
+for durchmesser, stoesst in ((300.0, True), (16.0, False)):
+    mit_magazin = wz.Bibliothek.aus_dict(bib.als_dict())
+    gross = mit_magazin.neues_werkzeug()
+    gross.nummer, gross.durchmesser, gross.laenge_spindelnase = 0, durchmesser, 125.0
+    gross.halter = halter.kennung
+    magazin = mit_magazin.neues_magazin("Drehmaschine", asm.Document.FileName)
+    magazin.hinzufuegen(gross, 20).platz = 2
+    befunde = kb.kollision(ab.abfahrt(p, job, nullpunkt, mit_magazin), job, nullpunkt, mit_magazin)
+    texte = [b.text() for b in befunde.beruehrungen]
+    im_revolver = [t for t in texte if "von T2 (steckt im Revolver)" in t and "T1" in t]
+    pruefe(
+        bool(im_revolver) == stoesst and (stoesst or not texte),
+        f"Ø {durchmesser} auf P2: {texte[:2]}",
+    )
 
 # --- Mit 50 mm ab Bezugspunkt: Der Halter (Nase 55 mm) stößt ans Teil ----------------------
 t1.laenge_spindelnase = 50.0

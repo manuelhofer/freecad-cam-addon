@@ -563,8 +563,25 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    Programm ruft es mit einer freien Nummer auf – an der Steuerung muss es noch angelegt werden“;
    im Assistenten „Bearbeitung“ mit Knopf, im 4-Achs-Assistenten als Verweis „Ins Magazin
    übernehmen“ (`magazin.uebernehmen`: mit der Nummer im Job, wenn sie im Magazin frei ist, sonst
-   der nächsten freien; gespeichert). Ohne Magazin bleibt alles wie bisher. Offen in H3: Sätze,
-   die ein Werkzeug „T2“ nennen (`wz.genannt`), nennen noch die Nummer der Werkzeugverwaltung.
+   der nächsten freien; gespeichert). Ohne Magazin bleibt alles wie bisher.
+
+   **Gebaut H3 und H4** (P-2026-10-05-06, 0.192.0): `magazin.ruesten` – je Werkzeug des Jobs
+   GERUESTET („beladen auf P5“), EINSETZEN („nicht beladen – einsetzen“, am Revolver „auf P3“),
+   ANLEGEN („nicht im Magazin – an der Steuerung anlegen und vermessen“; auch ein Werkzeug, das
+   nicht aus der Werkzeugverwaltung kommt) und UMNUMMERIEREN (der Job ruft es anders, als das
+   Magazin sagt – „im Magazin T8“, am Revolver „beladen auf P4“). Fenster „Bestückung“: unten die
+   Rüstliste (grau, gelb, rot) und „Nummern aus dem Magazin“ (E4,
+   `bestueckung.nummern_aus_magazin`/`nummern_nach_magazin`: Fräse – die Nummer im Magazin; Revolver
+   – der beladene Platz; die übrigen behalten ihre Nummer, wenn das Magazin sie nicht vergibt
+   (am Revolver: dort nichts beladen), sonst die kleinste freie; ein Schritt Rückgängig); ohne
+   Magazin ein grauer Satz, wo man eins anlegt; „– frei – (laut Magazin beladen: …)“ und das
+   Beladene durchscheinend im Bild. Programm (`postprozessor.Abschnitt.name_steuerung`,
+   `ruesten_art`, `ruesten`): im Kopf hinter jedem Werkzeug der Name an der Steuerung und was zu
+   tun ist; im Fenster je Art ein Satz (umnummerieren, anlegen, einsetzen); {werkzeug} im
+   Wechsel ist der Name an der Steuerung, wo eingetragen. Die Sätze der Assistenten nennen ein
+   Werkzeug mit seiner Nummer im Magazin (`magazin.genannt`). H4 die Kollision mit allem, was im
+   Revolver steckt – Spezifikation Simulation, 4c. Eine Rüstliste für mehrere Jobs (ein
+   Auftrag mit mehreren Aufspannungen) gibt es nicht – je Job eine.
 
 ## 11. Entscheidungen (Claude, zur Besprechung)
 

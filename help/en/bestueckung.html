@@ -37,3 +37,20 @@ manager applies.</p>
 <p>If two tools of the job sit in one station – say because a controller was
 changed by hand –, “Check on machine” says so; the machine would take only one.
 This window shows the same sentence in red, and you move one of them.</p>
+
+<h3>Setup list – with the machine's magazine</h3>
+<p>If the machine has a <a href="magazine.html">magazine</a>, the <b>setup list</b> is shown at the
+bottom: for each tool of the job, what to do at the machine – also on a mill without a turret.</p>
+<ul>
+<li>grey “loaded on P5” – nothing to do;</li>
+<li>yellow “not loaded – load it” (on a turret “load it on P3”) – it is in the magazine but not
+in the changer or turret;</li>
+<li>yellow “not in the magazine – set it up and measure it in the control”;</li>
+<li>red “T8 in the magazine” or “loaded on P4” – the job calls it with another number than the
+magazine says: the machine would take a different tool. <b>Numbers from the magazine</b>
+renumbers the job accordingly (on a turret: the pocket it is loaded on); the others keep their
+number if the magazine does not use it, otherwise they get a free one. One undo step.</li>
+</ul>
+<p>What the magazine says is loaded on a station the job does not use is shown in the choice
+(“– free – (loaded per magazine: …)”) and translucent in the view – the collision check
+includes it.</p>

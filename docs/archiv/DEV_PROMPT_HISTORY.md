@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-06 ruestliste-revolverkollision
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Mach mal weiter, bis du fertig bist“ – Stufe H3 (Rüstliste im Fenster
+  „Bestückung“ und im Programmkopf, „Nummern aus dem Magazin“, E4) und H4 (Kollision mit allem,
+  was beladen ist).
+
+### DATEIEN
+- `camaddon/magazin.py` (`ruesten`, `genannt`, `maschine_von`), `camaddon/bestueckung.py`
+  (`nummern_nach_magazin`, `nummern_aus_magazin`), `camaddon/gui_bestueckung.py` (Rüstliste,
+  Knopf, „frei – laut Magazin beladen“, Beladenes im Bild), `camaddon/gui_abfahren.py`
+  (`werkzeug_knoten` mit Transparenz), `camaddon/postprozessor.py` (`Abschnitt.name_steuerung`,
+  `ruesten_art`, `ruesten`; Kopf, `_ruest_hinweise`, {werkzeug}), `camaddon/kollision.py`
+  (`_beladen`), `camaddon/reichweite.py` (`masse_des_werkzeugs`), `camaddon/gui_vierachs.py`,
+  `camaddon/gui_bearbeitung.py` (`mg.genannt`), `translations/de.json`, `en.json`,
+  `help/de|en/bestueckung.html`, `reichweite.html`, `programm.html`, `magazine.html`,
+  `tests/test_magazin.py`, `tests/test_vierachs_pruefen.py`, `tests/gui/szenario_magazine.py`,
+  `tests/gui/szenario_magazin_bearbeitung.py`, `docs/spezifikation_werkzeugverwaltung.md`,
+  `docs/spezifikation_simulation.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.192.0).
+
+### DONE
+- Stufe H3 und H4 der Magazine – Stufe H fertig.
+
+### TESTS
+- `test_magazin`, `test_postprozessor`, `test_programmkopf`, `test_kollision`,
+  `test_vierachs_pruefen`, `test_sprache`, `test_hilfe`; Szenarien `szenario_magazine`,
+  `szenario_magazin_bearbeitung`, `szenario_bestueckung` – OK.
+
 ## P-2026-10-05-05 magazin-nummern
 
 ### EINGELESEN
