@@ -3,7 +3,10 @@
 sollte in der Werkzeugverwaltung geschnürt werden“, „man kann beliebig viele Magazine machen“,
 „die Maschine muss aber schon bestehen“).
 
-Links die Magazine (Neu, Kopieren, Löschen), rechts das gewählte: Name, Maschine aus dem
+Links die Magazine, je Maschine aufklappbar darunter (Manuel, 2026-10-05: „dass erstmal die
+Maschine da steht … mit einem Plus aufklappbar, sozusagen als Kategorie, und man dann die
+verschiedenen Magazine zu der Maschine sehen kann“), darunter Neu, Kopieren, Löschen; rechts das
+gewählte: Name, Maschine aus dem
 Maschinenspeicher, ob es für sie gilt, wie viele Plätze Wechsler bzw. Revolver haben, und je
 Werkzeug eine Zeile – T-Nummer, Werkzeug aus der Werkzeugverwaltung, Name an der Steuerung,
 beladen auf Platz (leer: nicht beladen). Es ändert die Bibliothek des Werkzeugdialogs; gespeichert
@@ -12,7 +15,7 @@ Platz zweimal, ein Platz über der Zahl der Plätze).
 """
 
 import FreeCADGui
-from PySide import QtGui
+from PySide import QtCore, QtGui
 
 from . import maschinenspeicher as msp
 from . import werkzeuge as wz
@@ -26,6 +29,9 @@ GROESSTE_NUMMER = 9999
 GROESSTE_PLATZ = 999
 ROT = "#cc0000"
 SPALTE_T, SPALTE_WERKZEUG, SPALTE_NAME, SPALTE_PLATZ = range(4)
+ROLLE = (
+    QtCore.Qt.UserRole
+)  # an einer Zeile des Baums: ("maschine", Datei) oder ("magazin", Kennung)
 BREITEN = {SPALTE_T: 90, SPALTE_NAME: 190, SPALTE_PLATZ: 130}  # Pixel; das Werkzeug füllt den Rest
 
 
@@ -90,6 +96,7 @@ class MagazinDialog(QtGui.QDialog):
         self.maschinen = msp.laden()
         self.magazin = None
         self._fuellt = False
+        self._offen = set()  # die Maschinen (Datei), deren Magazine aufgeklappt sind
         self.setWindowTitle(tr("mg.titel"))
         self.resize(*FENSTER_GROESSE)
         aufbau = QtGui.QVBoxLayout(self)
@@ -125,8 +132,12 @@ class MagazinDialog(QtGui.QDialog):
         rahmen = QtGui.QWidget()
         aufbau = QtGui.QVBoxLayout(rahmen)
         aufbau.setContentsMargins(0, 0, 0, 0)
-        self.liste = QtGui.QListWidget()
-        self.liste.currentRowChanged.connect(self._magazin_gewaehlt)
+        self.liste = QtGui.QTreeWidget()
+        self.liste.setHeaderHidden(True)
+        self.liste.setRootIsDecorated(True)
+        self.liste.currentItemChanged.connect(self._zeile_gewaehlt)
+        self.liste.itemExpanded.connect(lambda z: self._offen.add(z.data(0, ROLLE)[1]))
+        self.liste.itemCollapsed.connect(lambda z: self._offen.discard(z.data(0, ROLLE)[1]))
         aufbau.addWidget(self.liste, 1)
         zeile = QtGui.QHBoxLayout()
         self.knopf_neu = knopf(tr("mg.neu"), tr("mg.neu.tooltip"), self.magazin_anlegen)
@@ -201,45 +212,129 @@ class MagazinDialog(QtGui.QDialog):
 
     # --- Liste ----------------------------------------------------------------------------
 
+    def _maschinenname(self, datei):
+        eintrag = msp.finde(self.maschinen, datei) if datei else None
+        if eintrag is not None:
+            return eintrag.name
+        if datei:  # nicht (mehr) im Maschinenspeicher: der Dateiname
+            import os
+
+            return os.path.splitext(os.path.basename(datei))[0]
+        return tr("mg.ohne_maschine")
+
     def _titel(self, magazin):
-        eintrag = msp.finde(self.maschinen, magazin.maschine) if magazin.maschine else None
-        maschine = eintrag.name if eintrag is not None else tr("mg.ohne_maschine")
+        """Die Zeile eines Magazins unter seiner Maschine: sein Name, ✓ wenn es für sie gilt."""
         gilt = "" if not magazin.maschine or not magazin.gilt else " ✓"
-        name = magazin.name or tr("mg.ohne_name")
-        if name == maschine:  # heißt wie die Maschine: einmal genügt
-            return f"{name}{gilt}"
-        return f"{name} – {maschine}{gilt}"
+        return f"{magazin.name or tr('mg.ohne_name')}{gilt}"
+
+    def _gruppen(self):
+        """[(Datei, [Magazin])] – je Maschine ihre Magazine, in der Reihenfolge des
+        Maschinenspeichers; Maschinen, die es dort nicht gibt, danach; ohne Maschine zuletzt."""
+        reihe = [m.datei for m in self.maschinen]
+        dateien = []
+        for magazin in self.bibliothek.magazine:
+            datei = magazin.maschine or ""
+            gleich = next((d for d in dateien if msp.gleiche_datei(d, datei)), None)
+            if gleich is None and datei not in dateien:
+                dateien.append(datei)
+
+        def rang(datei):
+            if not datei:
+                return (2, 0)
+            k = next((i for i, r in enumerate(reihe) if msp.gleiche_datei(r, datei)), None)
+            return (0, k) if k is not None else (1, 0)
+
+        dateien.sort(key=rang)
+        return [
+            (
+                datei,
+                [
+                    m
+                    for m in self.bibliothek.magazine
+                    if (m.maschine or "") == datei
+                    or (datei and m.maschine and msp.gleiche_datei(m.maschine, datei))
+                ],
+            )
+            for datei in dateien
+        ]
 
     def _liste_fuellen(self, auswahl=None):
+        """Der Baum: je Maschine eine Zeile (fett, mit der Zahl ihrer Magazine), aufklappbar,
+        darunter ihre Magazine. Aufgeklappt bleibt, was aufgeklappt war, und die Maschine des
+        gewählten Magazins."""
         self._fuellt = True
+        gewaehlt = None
         try:
             self.liste.clear()
-            for magazin in self.bibliothek.magazine:
-                self.liste.addItem(self._titel(magazin))
+            for datei, magazine in self._gruppen():
+                oben = QtGui.QTreeWidgetItem([f"{self._maschinenname(datei)} ({len(magazine)})"])
+                oben.setData(0, ROLLE, ("maschine", datei))
+                schrift = oben.font(0)
+                schrift.setBold(True)
+                oben.setFont(0, schrift)
+                oben.setToolTip(0, datei or tr("mg.ohne_maschine"))
+                self.liste.addTopLevelItem(oben)
+                for magazin in magazine:
+                    zeile = QtGui.QTreeWidgetItem([self._titel(magazin)])
+                    zeile.setData(0, ROLLE, ("magazin", magazin.kennung))
+                    oben.addChild(zeile)
+                    if magazin is auswahl:
+                        gewaehlt = zeile
+                        self._offen.add(datei)
+                oben.setExpanded(datei in self._offen)
+            if gewaehlt is not None:
+                self.liste.setCurrentItem(gewaehlt)
         finally:
             self._fuellt = False
-        if auswahl is not None and auswahl in self.bibliothek.magazine:
-            self.liste.setCurrentRow(self.bibliothek.magazine.index(auswahl))
-        self._magazin_gewaehlt(self.liste.currentRow())
+        self._zeile_gewaehlt(self.liste.currentItem())
 
-    def _magazin_gewaehlt(self, zeile):
+    def _zeile_gewaehlt(self, zeile, _vorher=None):
         if self._fuellt:
             return
-        magazine = self.bibliothek.magazine
-        self.magazin = magazine[zeile] if 0 <= zeile < len(magazine) else None
+        art, wert = zeile.data(0, ROLLE) if zeile is not None else ("", "")
+        self.magazin = (
+            next((m for m in self.bibliothek.magazine if m.kennung == wert), None)
+            if art == "magazin"
+            else None
+        )
         self.rechts.setEnabled(self.magazin is not None)
         self.knopf_kopieren.setEnabled(self.magazin is not None)
         self.knopf_loeschen.setEnabled(self.magazin is not None)
         self._magazin_zeigen()
 
+    def gewaehlte_maschine(self):
+        """Die Maschine (Datei) der gewählten Zeile – der Maschine selbst oder ihres Magazins;
+        None ohne Wahl."""
+        zeile = self.liste.currentItem()
+        if zeile is None:
+            return None
+        if zeile.parent() is not None:
+            zeile = zeile.parent()
+        return zeile.data(0, ROLLE)[1]
+
     def magazin_anlegen(self):
-        """„Neu“: ein Magazin – für die erste Maschine, für die noch keins gilt."""
-        frei = next(
-            (m for m in self.maschinen if self.bibliothek.magazin_fuer(m.datei) is None), None
-        )
-        maschine = frei.datei if frei is not None else ""
-        name = frei.name if frei is not None else tr("mg.neu.name")
-        magazin = self.bibliothek.neues_magazin(name, maschine)
+        """„Neu“: ein Magazin – ist eine Maschine gewählt (ihre Zeile im Baum), für sie; sonst
+        für die erste Maschine, für die noch keins gilt."""
+        zeile = self.liste.currentItem()
+        datei = None
+        if zeile is not None and zeile.parent() is None:
+            datei = zeile.data(0, ROLLE)[1]
+        if datei:
+            name = self._maschinenname(datei)
+        else:
+            frei = next(
+                (m for m in self.maschinen if self.bibliothek.magazin_fuer(m.datei) is None),
+                None,
+            )
+            datei = frei.datei if frei is not None else ""
+            name = frei.name if frei is not None else tr("mg.neu.name")
+        vorhanden = {m.name for m in self.bibliothek.magazine}
+        if name in vorhanden:  # ein zweites für dieselbe Maschine: „… 2“
+            k = 2
+            while f"{name} {k}" in vorhanden:
+                k += 1
+            name = f"{name} {k}"
+        magazin = self.bibliothek.neues_magazin(name, datei)
         self._liste_fuellen(magazin)
         return magazin
 
@@ -362,9 +457,9 @@ class MagazinDialog(QtGui.QDialog):
             self._titel_auffrischen()
 
     def _titel_auffrischen(self):
-        zeile = self.liste.currentRow()
-        if self.magazin is not None and zeile >= 0:
-            self.liste.item(zeile).setText(self._titel(self.magazin))
+        zeile = self.liste.currentItem()
+        if self.magazin is not None and zeile is not None and zeile.parent() is not None:
+            zeile.setText(0, self._titel(self.magazin))
 
     def _maschine_gewaehlt(self, _index):
         if self.magazin is None or self._fuellt:

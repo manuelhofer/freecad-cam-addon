@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-21 magazine-je-maschine
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Ich hätte gerne links über ‚Neu‘, wo die Magazine drinstehen, wenn ich ein
+  Magazin angelegt habe oder mehrere, dass erstmal die Maschine dasteht … und die dann mit einem
+  Plus aufklappbar ist, sozusagen als Kategorie, und man dann die verschiedenen Magazine zu der
+  Maschine sehen kann.“
+
+### DATEIEN
+- `camaddon/gui_magazine.py` (Baum statt Liste: `_gruppen`, `_liste_fuellen`, `_zeile_gewaehlt`,
+  `gewaehlte_maschine`, „Neu“ für die gewählte Maschine, Namen „… 2“),
+  `tests/gui/szenario_magazine.py`, `help/de|en/magazine.html`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.194.1).
+
+### DONE
+- Links je Maschine eine Zeile (fett, „(3)“), aufklappbar; darunter ihre Magazine, ✓ beim
+  gültigen; ohne Maschine zuletzt. Aufgeklappt bleibt, was offen war, und die Maschine des
+  gewählten Magazins. Eine Maschine gewählt: rechts nichts, „Neu“ legt eins für sie an.
+
+### TESTS
+- Szenarien `szenario_magazine` (Baum, Neu für die Maschine, zu- und aufklappen),
+  `szenario_magazin_vierachs`; `test_hilfe` – OK.
+
 ## P-2026-10-05-20 stirnseite-y-und-c
 
 ### EINGELESEN

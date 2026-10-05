@@ -4,7 +4,9 @@
 # ohne Nummer). Werkzeugverwaltung → „Magazine …“ → „Neu“: ein Magazin für die Maschine, mit ihrem
 # Namen, „Gilt für diese Maschine“ angehakt, die Plätze vom Revolver; „Aus den Nummern“: T1 und T2,
 # „Werkzeug dazu“: das ohne Nummer als T3. T2 auf T1 gestellt: unten rot „T1 steht zweimal“;
-# zurück. T1 beladen auf P4. Schließen, OK: gespeichert – frisch gelesen ist alles da. Dann
+# zurück. T1 beladen auf P4. Links ein Baum: die Maschine, aufklappbar, darunter ihre Magazine;
+# die Maschine gewählt, legt „Neu“ eins für sie an. Schließen, OK: gespeichert – frisch gelesen
+# ist alles da. Dann
 # die Rüstliste am Revolver, „Nummern aus dem Magazin“ und das Beladene im Bild (unten).
 import os
 import tempfile
@@ -80,6 +82,52 @@ def schritte(h):
     m.tabelle.cellWidget(1, gui_magazine.SPALTE_NAME).textEdited.emit("ANBOHRER_D10")
     yield 300
     h.bild("1_magazin", m)
+
+    # Der Baum links (Manuel, 2026-10-05: „dass erstmal die Maschine da steht … mit einem Plus
+    # aufklappbar … die verschiedenen Magazine zu der Maschine“): eine Kopie und – die Maschine
+    # gewählt – „Neu“ für sie: oben die Maschine mit (3), aufgeklappt darunter die drei Magazine.
+    kopie = m.magazin_kopieren()
+    yield 200
+    oben = m.liste.topLevelItem(0)
+    m.liste.setCurrentItem(oben)
+    yield 200
+    h.pruefe(
+        m.magazin is None and not m.rechts.isEnabled() and not m.knopf_loeschen.isEnabled(),
+        "Maschine gewählt: rechts noch ein Magazin",
+    )
+    h.pruefe(m.gewaehlte_maschine() == pfad_maschine, f"gewählt: {m.gewaehlte_maschine()!r}")
+    drittes = m.magazin_anlegen()
+    yield 300
+    oben = m.liste.topLevelItem(0)
+    kinder = [oben.child(i).text(0) for i in range(oben.childCount())]
+    h.pruefe(
+        m.liste.topLevelItemCount() == 1
+        and oben.text(0) == f"{eintrag.name} (3)"
+        and oben.isExpanded()
+        and drittes.maschine == pfad_maschine
+        and drittes.name == f"{eintrag.name} 2"
+        and not drittes.gilt
+        and kinder[0] == f"{eintrag.name} ✓"
+        and len(kinder) == 3,
+        f"Baum: {oben.text(0)!r} {kinder} offen {oben.isExpanded()}",
+    )
+    h.bild("1a_baum", m)
+    oben.setExpanded(False)
+    yield 200
+    h.bild("1b_baum_zu", m)
+    for weg in (drittes, kopie):
+        m.liste.setCurrentItem(
+            next(
+                oben.child(i)
+                for i in range(oben.childCount())
+                if oben.child(i).data(0, gui_magazine.ROLLE)[1] == weg.kennung
+            )
+        )
+        yield 100
+        m.magazin_loeschen(fragen=False)
+        yield 200
+        oben = m.liste.topLevelItem(0)
+    h.pruefe(oben.childCount() == 1, f"nach dem Löschen: {oben.childCount()} Magazine")
     m.accept()
     yield 300
     d.accept()
