@@ -552,10 +552,9 @@ class Maschineninfo:
     # Die Rundachsen (Buchstaben), die an der Maschine endlos drehen – an der Steuerung eine
     # Moduloachse: Steuerung.rundachse_plus/_minus.
     modulo: set = field(default_factory=set)
-    # Buchstabe → Drehsinn der Rundachsen, die die Stange drehen (vierachs_achsen.von_maschine,
-    # mit dem Haken „dreht nach DIN 66217“): Rechnet eine Rundum-Operation andersherum – ohne
-    # Maschine als nach DIN (−1) –, ein Hinweis.
-    drehsinn: dict = field(default_factory=dict)
+    # Buchstabe → zählt die Steuerung die Rundachse nach DIN 66217 (Haken „dreht nach DIN 66217“
+    # an ihrer Betriebsart)? Ohne Angabe ja (_c_nach_din).
+    nach_din: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -586,7 +585,7 @@ class Abschnitt:
     name_steuerung: str = ""
     ruesten_art: str = ""
     ruesten: str = ""
-    # Eine Rundum-Operation: (Rundachse, Drehsinn), mit dem ihre Bahn gerechnet ist.
+    # Eine Rundum-Operation: (Rundachse, Drehsinn), mit dem ihre Bahn gerechnet ist (_c_nach_din).
     drehsinn: tuple = ()
 
 
@@ -853,6 +852,25 @@ def _modulo_wort(s, adresse, wert, davor):
     return f"{adresse}={_fuellen(vorlage, wert=zahl)}"
 
 
+def _c_umdrehen(abschnitt, info):
+    """Die Rundachse einer Rundum-Operation, deren Werte das Programm umdreht – sonst "".
+
+    Die Bahn trägt −Drehsinn · φ (vierachs_bahn.befehle) – so zeigt FreeCAD sie richtig um das
+    Teil: Es dreht bei +C das Teil rechtsherum. Nach DIN 66217 beschreibt +C aber, wie sich das
+    Werkzeug um das Werkstück dreht; das Werkstück dreht dabei andersherum – an der Drehmaschine,
+    von vorn auf das Futter geschaut, im Uhrzeigersinn (Manuel, 2026-10-05: „wenn ich vom Werkzeug
+    aus auf die Spindel schaue, erhöht sich die Gradzahl, wenn ich das Futter rechtsrum drehe“;
+    „die Werkzeugwege waren komplett fein – das Einzige, was du anpassen musst, ist der
+    Postprozessor“). Nach DIN schreibt das Programm also C = φ: umgedreht, wo die Bahn mit
+    Drehsinn +1 gerechnet ist. Ohne den Haken „dreht nach DIN 66217“ zählt die Maschine wie
+    FreeCAD: C = −φ."""
+    if not abschnitt.drehsinn:
+        return ""
+    buchstabe, drehsinn = abschnitt.drehsinn
+    soll = -1 if info.nach_din.get(buchstabe, True) else 1  # der Drehsinn, der C = Programm gibt
+    return buchstabe if drehsinn != soll else ""
+
+
 def _befehl(eintrag):
     """(Name, {Adresse: Wert}) aus einem Path.Command oder einem Paar."""
     if isinstance(eintrag, tuple):
@@ -925,23 +943,6 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
             hinweise.append(f"{abschnitt.name}: {abschnitt.hinweis}")
             if s.kommentare:
                 zeilen.append(_kommentar(s, abschnitt.hinweis))
-        umgedreht = ""  # die Rundachse, deren Werte das Programm umdreht
-        if abschnitt.drehsinn:
-            buchstabe, drehsinn = abschnitt.drehsinn
-            soll = info.drehsinn.get(buchstabe, -1)  # ohne Maschine: nach DIN 66217
-            if soll != drehsinn:
-                # Die Bahn rechnet −Drehsinn · φ: mit dem Drehsinn der Maschine umgedreht stimmt
-                # sie (Manuel, 2026-10-05: „ich kann keinen Drehsinn ändern … pusch mal schnell“).
-                umgedreht = buchstabe
-                satz = tr(
-                    "pp.hinweis.drehsinn_anders",
-                    operation=abschnitt.name,
-                    achse=buchstabe,
-                    soll=soll,
-                )
-                hinweise.append(satz)
-                if s.kommentare:
-                    zeilen.append(_kommentar(s, satz))
         befehle_roh = abschnitt.befehle
         if s.tcpm and s.tcpm_ein and abschnitt.befehle_tcpm is not None:
             try:
@@ -966,10 +967,11 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                 zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))
                 continue
         befehle = [_befehl(b) for b in befehle_roh]
-        if umgedreht:
+        umdrehen = _c_umdrehen(abschnitt, info)
+        if umdrehen:
             for _name, werte in befehle:
-                if umgedreht in werte:
-                    werte[umgedreht] = -werte[umgedreht]
+                if umdrehen in werte:
+                    werte[umdrehen] = -werte[umdrehen]
         gewechselt = False
         if abschnitt.werkzeug and (abschnitt.werkzeug != werkzeug or einstieg):
             if spindel_an is not None:
@@ -1649,6 +1651,7 @@ def _info_aus(dok, m, msp):
                 ):
                     info.modulo.add(buchstabe)  # endlos: an der Steuerung eine Moduloachse
                 info.rundachsen.setdefault(buchstabe, ba.NcName.strip() or buchstabe)
+                info.nach_din.setdefault(buchstabe, bool(getattr(ba, "NachDin", True)))
         for spindel, c in spindeln.antriebe:
             if c is not None and m.nc_nummer(spindel):
                 info.antrieb_c[m.nc_nummer(spindel)] = c.NcName.strip()
@@ -1659,12 +1662,6 @@ def _info_aus(dok, m, msp):
             nummer = re.sub(r"\D", "", getattr(spindel, "NcName", "") or "")
             if nummer and aufnahme.Platz:
                 info.angetrieben[int(aufnahme.Platz)] = nummer
-        try:
-            from . import vierachs_achsen as va
-
-            info.drehsinn = {a.buchstabe: a.drehsinn for a in va.von_maschine(objekt, maschine)}
-        except Exception:
-            info.drehsinn = {}
         return info
     return Maschineninfo()
 

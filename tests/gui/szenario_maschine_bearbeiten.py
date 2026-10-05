@@ -8,10 +8,8 @@
 # (Manuel, 2026-09-29: „man müsste schon auch editieren können … die
 # verfahrwege“). Mit dem Haken „zählt im Durchmesser (Ø)“ steht der Verfahrweg
 # doppelt da (0 … Ø 400), das Gelenk behält den Radius (P-2026-09-30-54). Bei C4 steht unter
-# „endlos“ der Haken „dreht nach DIN 66217“, vorbelegt an (Manuel, 2026-10-05: C drehte an
-# seiner Maschine andersherum als im Modell; „der Haken muss raus, wenn nicht nach DIN gedreht
-# wird“). Noch ohne Werkstückaufnahme weiß das Addon nicht, ob C im Tisch sitzt – es zählt wie
-# das Gelenk; ohne Haken andersherum.
+# „endlos“ der Haken „dreht nach DIN 66217“, vorbelegt an (Manuel, 2026-10-05: „der Haken muss
+# raus, wenn nicht nach DIN gedreht wird“) – danach schreibt der Postprozessor C.
 import os
 import sys
 
@@ -106,8 +104,6 @@ def schritte(h):
     )
 
     # C4: unter „endlos“ der Haken „dreht nach DIN 66217“, angehakt.
-    from camaddon import verfahren as vf
-
     c4 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "C4")
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "C4"))
     yield 300
@@ -126,9 +122,6 @@ def schritte(h):
         haken.setChecked(False)
         yield 300
         h.pruefe(not c4.NachDin, "Haken nicht übernommen")
-        kette = vf.Verfahren(asm).kette
-        gelenk = next(a for a in kette.achsen if a.gelenk == c4.Gelenk)
-        h.pruefe(vf.gegenlaeufig(gelenk), "die Achse zählt nicht andersherum")
         haken.setChecked(True)
         yield 300
 

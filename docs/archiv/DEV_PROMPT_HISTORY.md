@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-16 nur-postprozessor-nach-din
+
+### EINGELESEN
+- Manuel, 2026-10-05, zu 0.193.2: „Die Werkzeugwege sind komplett für den Arsch … die
+  Werkzeugwege waren komplett fein! Das Einzige, was du anpassen hättest müssen, wäre der
+  Postprozessor … kannst du einfach den alten Stand wiederholen und den Postprozessor so
+  anpassen, dass er die Wege richtig interpretiert … schnell“.
+- Ursache: FreeCAD zeichnet eine Bahn so, als drehe +C das Teil rechtsherum (Path.BoundBox:
+  G1 X10 C90 → Y −10). 0.193.2 legte neue Rundum-Bahnen nach DIN ab (C = +φ) und rechnete die
+  Maschine nach DIN – im Bild und im Prüffenster gespiegelt.
+
+### DATEIEN
+- Zurück auf den Stand von 0.193.0 (b2d5161): `verfahren.py`, `reichweite.py`,
+  `vierachs_achsen.py`, `vierachs_operation.py`, `vierachs_schlichten.py`, `vierachs_plan.py`,
+  `vierachs_entgraten.py`, Hilfe, Prüfungen dazu; `tests/test_drehsinn_gegenlaeufig.py` weg.
+- `camaddon/postprozessor.py` (`_c_umdrehen`, `Maschineninfo.nach_din`, `Abschnitt.drehsinn`),
+  `camaddon/maschine.py` (Haken „NachDin“, vorbelegt an; „Gegenlaeufig“ fällt weg),
+  `camaddon/gui_details.py`, `translations/de.json`, `en.json`, `tests/test_postprozessor.py`,
+  `tests/gui/szenario_maschine_bearbeiten.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.193.3).
+
+### DONE
+- Bahnen, Bild, Prüffenster wie in 0.193.0. Nur der Postprozessor schreibt C der Rundum-Bahnen
+  nach DIN 66217 (C = φ); ohne den Haken „dreht nach DIN 66217“ an der Rundachse wie die Bahn.
+
+### TESTS
+- `test_postprozessor`, `test_sprache` – OK.
+
 ## P-2026-10-05-15 rundachsen-nach-din
 
 ### EINGELESEN

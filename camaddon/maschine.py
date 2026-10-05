@@ -349,10 +349,10 @@ class Betriebsart(_Proxy):
                 ("App::PropertyFloat", "Leistung", tr("eigenschaft.leistung")),
             ],
         )
-        # Dreht eine Rundachse nach DIN 66217 (verfahren.gegenlaeufig)? Vorbelegt an; aus, wenn
-        # die Maschine andersherum dreht (Manuel, 2026-10-05: „es muss einstellbar bleiben … der
-        # Haken muss raus, wenn nicht nach DIN gedreht wird“). 0.193.1 hatte stattdessen
-        # „Gegenlaeufig“ (gegen das Gelenk) – das fällt weg.
+        # Zählt die Steuerung die Rundachse nach DIN 66217 (postprozessor: C der Rundum-Bahnen)?
+        # Vorbelegt an; aus, wenn die Maschine andersherum dreht (Manuel, 2026-10-05: „es muss
+        # einstellbar bleiben … der Haken muss raus, wenn nicht nach DIN gedreht wird“). 0.193.1
+        # hatte „Gegenlaeufig“ – das fällt weg.
         if "NachDin" not in objekt.PropertiesList:
             objekt.addProperty("App::PropertyBool", "NachDin", "Werte", tr("eigenschaft.nach_din"))
             objekt.NachDin = True

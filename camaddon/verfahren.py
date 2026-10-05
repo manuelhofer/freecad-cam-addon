@@ -69,7 +69,7 @@ class Verfahren:
             for a in self.achsen
         }
         self.start = {a: gelenkstellung(a.gelenk, a.art) for a in self.achsen}
-        self._vorzeichen = {a: _vorzeichen(a, self.kette) for a in self.achsen}
+        self._vorzeichen = {a: _vorzeichen(a) for a in self.achsen}
         self.weg = dict.fromkeys(self.achsen, 0.0)  # seit dem Ausgang, in Achsrichtung
         self._platz_lage = {}  # Revolverplatz -> Lage beim Öffnen
         # Je Bauteil die Achsen vom Bett nach außen.
@@ -212,22 +212,13 @@ def platzstellungen(verfahren, maschine, achse):
     return ergebnis
 
 
-def plusrichtung(achse, kette=None):
-    """Wohin das Kind-Glied einer Linearachse fährt (bzw. um welche Richtung es sich
-    rechtsherum dreht), wenn ihre Stellung wächst – in Weltkoordinaten. Das ist die
-    Plus-Richtung der Achse, wie sie im Fenster und im Programm zählt. `kette`: die Kette der
-    Maschine, wenn schon gelesen (gegenlaeufig)."""
-    return achse.richtung * _vorzeichen(achse, kette)
+def plusrichtung(achse):
+    """Wohin das Kind-Glied einer Linearachse fährt, wenn ihre Stellung wächst – in
+    Weltkoordinaten. Das ist die Plus-Richtung der Achse, wie sie im Fenster zählt."""
+    return achse.richtung * _vorzeichen(achse)
 
 
-def _vorzeichen(achse, kette=None):
-    """+1, wenn ein Weg in Achsrichtung die Stellung wachsen lässt, sonst −1: bei Linearachsen
-    wie am Gelenk, bei Rundachsen wie an der Steuerung (gegenlaeufig)."""
-    vorzeichen = _gelenk_vorzeichen(achse)
-    return -vorzeichen if gegenlaeufig(achse, kette) else vorzeichen
-
-
-def _gelenk_vorzeichen(achse):
+def _vorzeichen(achse):
     """+1, wenn ein Weg in Achsrichtung die Stellung am Gelenk wachsen lässt, sonst −1.
 
     Die Achsrichtung ist die Z-Achse der Seite am Eltern-Glied. Bewegt sich
@@ -242,90 +233,6 @@ def _gelenk_vorzeichen(achse):
     gleich = achse.richtung.dot(z1)
     kind_ist_seite2 = _seite_des_kinds(achse) == 2
     return 1.0 if (gleich >= 0) == kind_ist_seite2 else -1.0
-
-
-# Um welche Linearachse eine Rundachse dreht (DIN 66217).
-_UM = {"A": "X", "B": "Y", "C": "Z"}
-
-
-def gegenlaeufig(achse, kette=None):
-    """Zählt die Steuerung diese Rundachse andersherum als das Gelenk in der Baugruppe?
-
-    Nach DIN 66217 beschreibt ein positiver Wert, wie sich das Werkzeug um das Werkstück dreht:
-    +A, +B, +C rechtsherum um +X, +Y, +Z. Eine Achse im Kopf dreht so das Werkzeug; eine im
-    Tisch dreht das Werkstück, also andersherum – an der Drehmaschine C, von vorn auf das Futter
-    geschaut, im Uhrzeigersinn (Manuel, 2026-10-05: „wenn ich vom Werkzeug aus auf die Spindel
-    schaue, erhöht sich die Gradzahl, wenn ich das Futter rechtsrum drehe“; vorher zählte jede
-    Rundachse wie ihr Gelenk, und die Bahn kam an seiner Maschine gespiegelt heraus). Liegt das
-    Gelenk andersherum, zählt die Achse gegen das Gelenk (_gegen_das_gelenk). Ohne den Haken
-    „NachDin“ an ihrer Betriebsart „Positionieren“ dreht die Maschine gegen die Norm
-    (Manuel: „es muss einstellbar bleiben“). Linearachsen nie."""
-    if achse.art == LINEAR:
-        return False
-    ba = _positionieren(achse.gelenk)
-    if ba is None:
-        return False
-    abweichend = not getattr(ba, "NachDin", True)
-    return _gegen_das_gelenk(achse, ba, kette) != abweichend
-
-
-def _positionieren(gelenk):
-    """Die Betriebsart „Positionieren“ am Gelenk, oder None."""
-    return next(
-        (
-            objekt
-            for objekt in getattr(gelenk, "InList", []) or []
-            if getattr(objekt, "Gelenk", None) == gelenk
-            and getattr(objekt, "Art", "") == m.ART_POSITIONIEREN
-        ),
-        None,
-    )
-
-
-def _gegen_das_gelenk(achse, ba, kette):
-    """Dreht die Rundachse nach DIN 66217 andersherum als ihr Gelenk (gegenlaeufig)? Gemessen an
-    der Linearachse, um die sie dreht – ihre Plus-Richtung ist +X, +Y oder +Z, wohin das Werkzeug
-    gegenüber dem Werkstück fährt (fehlt eine, aus den beiden anderen). Nein, wo das nicht
-    feststeht: ohne Buchstaben A/B/C, ohne Rolle (Tisch oder Kopf), schräg zur Linearachse,
-    die C-Achse eines Werkzeugantriebs (sie richtet nur das Werkzeug aus)."""
-    buchstabe = m.programmname(ba).upper()[:1]
-    maschine = next((o for o in ba.InList if getattr(o, "Typ", None) == m.TYP_MASCHINE), None)
-    if buchstabe not in _UM or maschine is None or m.spindeln(maschine).ist_antrieb_c(ba):
-        return False
-    try:
-        if kette is None:
-            kette = kette_modul.lies_kette(m.assembly_von(maschine))
-        rollen, _meldungen = m.rollen(kette, maschine)
-    except Exception:
-        return False
-    rolle = rollen.get(achse.gelenk)
-    um = _din_richtungen(kette, maschine, rollen).get(_UM[buchstabe])
-    if rolle is None or um is None:
-        return False
-    gleich = (achse.richtung * _gelenk_vorzeichen(achse)).dot(um)
-    if abs(gleich) < 0.5:
-        return False
-    return (gleich > 0) == (rolle == m.TISCH)
-
-
-def _din_richtungen(kette, maschine, rollen):
-    """{"X": Richtung, …}: wohin das Werkzeug gegenüber dem Werkstück fährt, wenn X, Y, Z
-    wachsen – in Weltkoordinaten. Eine Linearachse im Tisch fährt das Werkstück, also zählt
-    sie andersherum. Fehlt genau eine, ergibt sie sich aus den beiden anderen (rechtshändig)."""
-    richtungen = {}
-    for ba in m.betriebsarten(maschine):
-        buchstabe = m.programmname(ba).upper()[:1]
-        if ba.Art != m.ART_LINEAR or buchstabe not in "XYZ" or buchstabe in richtungen:
-            continue
-        achse = kette.achse_von(ba.Gelenk)
-        if achse is None or achse.gelenk not in rollen:
-            continue
-        richtung = achse.richtung * _gelenk_vorzeichen(achse)
-        richtungen[buchstabe] = -richtung if rollen[achse.gelenk] == m.TISCH else richtung
-    for fehlt, a, b in (("X", "Y", "Z"), ("Y", "Z", "X"), ("Z", "X", "Y")):
-        if fehlt not in richtungen and a in richtungen and b in richtungen:
-            richtungen[fehlt] = richtungen[a].cross(richtungen[b])
-    return richtungen
 
 
 def _seite_des_kinds(achse):

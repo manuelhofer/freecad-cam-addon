@@ -69,7 +69,7 @@ class RundumSchlichten(PathOp.ObjectOp):
         obj.Rundachse = "C"
         obj.Stangenachse = FreeCAD.Vector(0, 0, 1)
         obj.Werkzeugrichtung = FreeCAD.Vector(1, 0, 0)
-        obj.Drehsinn = -1  # nach DIN 66217 (vierachs_achsen.Stangenachse)
+        obj.Drehsinn = 1
         obj.QuerAufNull = True
         obj.Schrittweite = 0.1
         obj.Aufmass = AUFMASS

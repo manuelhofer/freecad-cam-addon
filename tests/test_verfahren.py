@@ -1,6 +1,5 @@
 # Prüft „Maschine verfahren“ (verfahren.py) an den Beispielmaschinen: Stellung
-# gezählt wie am Gelenk – C4 der Drehmaschine wie an der Steuerung nach DIN 66217, gegen ihr
-# Gelenk: +90° drehen das Futter am Gelenk um −90° –, Grenzen, mehrere Achsen hintereinander (auch C auf
+# gezählt wie am Gelenk, Grenzen, mehrere Achsen hintereinander (auch C auf
 # der Schwenkbrücke A), die Stellung bleibt beim Neuberechnen, die
 # Grundstellung ist exakt – und ein Gelenk, dessen bewegtes Teil auf Seite 1
 # steht, zählt trotzdem richtig herum.
@@ -60,14 +59,10 @@ pruefe(v.setze(x, -20) == 0, "X1 unter die Grenze")
 soll = {"X1": 120, "Z1": 80, "T": 45, "C4": 90}
 for name, wert in soll.items():
     v.setze(achsen[name], wert)
-pruefe(nahe(v.stellung(c), 90), f"C4 im Fenster: {v.stellung(c)}")
-soll["C4"] = -90  # am Gelenk
 ist = stellungen(achsen)
 pruefe(all(nahe(ist[n], s) for n, s in soll.items()), f"mehrere Achsen: {ist}")
 drehung = futter.Placement.Rotation.multiply(futter_vorher.Rotation.inverted())
-gedreht = math.degrees(drehung.Angle) * (1 if drehung.Axis.dot(c.richtung) > 0 else -1)
-gedreht = (gedreht + 180.0) % 360.0 - 180.0
-pruefe(nahe(gedreht, -90), f"Futter um die Achse gedreht um {gedreht}")
+pruefe(nahe(math.degrees(drehung.Angle), 90), f"Futter gedreht um {math.degrees(drehung.Angle)}")
 
 # Die Assembly lässt die Stellung stehen.
 asm.solve()

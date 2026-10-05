@@ -74,8 +74,7 @@ pruefe(
 )
 schnitte = [b for b in befehle if b.Name == "G1"]
 pruefe(all("F" in b.Parameters and b.Parameters["F"] > 0 for b in schnitte), "G1 ohne F")
-# Mit M3 steigt φ (Gleichlauf); nach DIN 66217 ist C = φ (Drehsinn −1).
-pruefe(max(b.Parameters["C"] for b in schnitte) > 3600, "C dreht nicht mehrmals herum")
+pruefe(min(b.Parameters["C"] for b in schnitte) < -3600, "C dreht nicht mehrmals herum")
 # Über dem Teil (Z −106,3 … 6,3) bleibt X über 30,3: Radius 30 plus Aufmaß.
 ueber = [b.Parameters["X"] for b in schnitte if -106.3 <= b.Parameters["Z"] <= 6.3]
 pruefe(min(ueber) >= 30.3, f"zu tief: {min(ueber)}")

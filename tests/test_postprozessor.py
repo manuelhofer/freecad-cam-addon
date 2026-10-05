@@ -136,6 +136,19 @@ pruefe(
     and siemens_4.index("M1=5") < siemens_4.index("SPCOF(4)"),
     f"Siemens S4/C4 und S1: {siemens_4}",
 )
+# Eine Rundum-Bahn trägt −Drehsinn · φ – so zeigt FreeCAD sie. Nach DIN 66217 dreht +C das
+# Werkstück andersherum (Manuel, 2026-10-05: Futter von vorn im Uhrzeigersinn; „das Einzige, was
+# du anpassen musst, ist der Postprozessor“): Mit Drehsinn +1 schreibt das Programm C umgedreht,
+# mit −1 wie die Bahn; ohne den Haken „dreht nach DIN 66217“ wie die Bahn.
+mit_drehsinn = dataclasses.replace(rundum, drehsinn=("C", 1))
+din = pp.programm([mit_drehsinn], pp.steuerung("siemens"), manuel, "Welle").zeilen
+pruefe("G1 X76.000 Z0.000 C4=-90.000 F3.00000" in din, f"nach DIN nicht umgedreht: {din}")
+gegen = dataclasses.replace(rundum, drehsinn=("C", -1))
+din = pp.programm([gegen], pp.steuerung("siemens"), manuel, "Welle").zeilen
+pruefe("G1 X76.000 Z0.000 C4=90.000 F3.00000" in din, f"Drehsinn −1 umgedreht: {din}")
+ohne_din = dataclasses.replace(manuel, nach_din={"C": False})
+wie_bahn = pp.programm([mit_drehsinn], pp.steuerung("siemens"), ohne_din, "Welle").zeilen
+pruefe("G1 X76.000 Z0.000 C4=90.000 F3.00000" in wie_bahn, f"ohne DIN umgedreht: {wie_bahn}")
 # Eine endlos drehende C-Achse ist an der Siemens eine Moduloachse (Manuel, 2026-10-05: „Fehler
 # 16830 … falsche Position bei Achse/Spindel C4 programmiert“): die Position im Bereich 0 … unter
 # 360°, die Richtung der Bahn mit ACP/ACN – nie −90 oder −450. Ohne Moduloachse und an LinuxCNC
