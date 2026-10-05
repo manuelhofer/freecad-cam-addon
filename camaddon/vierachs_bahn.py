@@ -1623,18 +1623,33 @@ def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0):
     psi, x, q = normale_quer(r, winkel, radius, a, neigung)
     rho = np.asarray(r, dtype=float) + radius
     phi = np.radians(np.asarray(winkel, dtype=float))
-    teile_a, teile_x, teile_q, teile_psi, fest = [], [], [], [], []
+    teile_a, teile_x, teile_q, teile_psi, teile_neu, fest = [], [], [], [], [], []
     anzahl = 0
     for k in range(len(psi)):
         if k > 0:
             sprung = psi[k] - psi[k - 1]
             schritte = int(math.ceil(abs(sprung) / schritt_phi - 1e-9))
             if schritte > QUER_SPRUNG:
-                zwischen = psi[k - 1] + sprung * np.arange(1, schritte) / schritte
-                beta = phi[k - 1] - np.radians(zwischen)
-                teile_a.append(np.full(schritte - 1, a[k - 1]))
-                teile_x.append(rho[k - 1] * np.cos(beta) - radius)
-                teile_q.append(rho[k - 1] * np.sin(beta))
+                t = np.arange(1, schritte) / schritte
+                zwischen = psi[k - 1] + sprung * t
+                um_kante = _um_die_kante(a, x, q, psi, k, radius, t, zwischen)
+                if um_kante is not None:
+                    # Um eine Außenkante: Der Berührpunkt bleibt liegen, die Mitte wandert mit
+                    # (Manuel, 2026-10-05: „es hackt … an den Kanten“ – um die ruhende Mitte
+                    # gedreht und dann weiter, pendelte Y alle fünf Sätze zurück).
+                    a_t, x_t, q_t = um_kante
+                    teile_neu.append(np.ones(schritte - 1, dtype=bool))
+                else:
+                    # In einer Innenecke: Die Kugel liegt in der Ecke, das Werkzeug dreht um
+                    # die ruhende Mitte.
+                    beta = phi[k - 1] - np.radians(zwischen)
+                    a_t = np.full(schritte - 1, a[k - 1])
+                    x_t = rho[k - 1] * np.cos(beta) - radius
+                    q_t = rho[k - 1] * np.sin(beta)
+                    teile_neu.append(np.zeros(schritte - 1, dtype=bool))
+                teile_a.append(a_t)
+                teile_x.append(x_t)
+                teile_q.append(q_t)
                 teile_psi.append(zwischen)
                 fest.extend(range(anzahl - 1, anzahl + schritte))
                 anzahl += schritte - 1
@@ -1642,6 +1657,7 @@ def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0):
         teile_x.append(x[k : k + 1])
         teile_q.append(q[k : k + 1])
         teile_psi.append(psi[k : k + 1])
+        teile_neu.append(np.zeros(1, dtype=bool))
         anzahl += 1
     a_alle, x_alle, q_alle, psi_alle, fest, eingefuegt = _uebergaenge(
         np.concatenate(teile_a),
@@ -1650,13 +1666,42 @@ def _quer_plan(a, r, winkel, radius, schritt_phi, neigung=0.0):
         np.concatenate(teile_psi),
         fest,
         radius,
+        np.concatenate(teile_neu),
     )
     fest.extend((np.flatnonzero(_a_knicke(a_alle)) + 1).tolist())
     fest = sorted({i for i in fest if 0 < i < len(a_alle) - 1})
     return a_alle, x_alle, q_alle, psi_alle, fest, eingefuegt
 
 
-def _uebergaenge(a, x, q, psi, fest, radius):
+def _um_die_kante(a, x, q, psi, k, radius, t, zwischen):
+    """Die Zwischenstellungen von Punkt k − 1 zu k des Plans, wenn die Kugel dort um eine
+    Außenkante rollt – ihr Berührpunkt (die Mitte um den Radius gegen die Normale ψ) wandert
+    weniger als ihre Mitte: Der Berührpunkt zieht gerade von einem zum anderen, ψ dreht in den
+    Schritten `zwischen` (Anteile `t`), die Mitte steht um den Radius darüber. (a, x, q) – oder
+    None in einer Innenecke (dort ruht die Mitte, _quer_plan)."""
+
+    def mitte(i):
+        w = math.radians(psi[i])
+        u = (math.cos(w), math.sin(w))
+        return (
+            (x[i] + radius) * u[0] - q[i] * u[1],
+            (x[i] + radius) * u[1] + q[i] * u[0],
+        ), u
+
+    (c1, u1), (c2, u2) = mitte(k - 1), mitte(k)
+    p1 = (c1[0] - radius * u1[0], c1[1] - radius * u1[1])
+    p2 = (c2[0] - radius * u2[0], c2[1] - radius * u2[1])
+    if math.dist(p1, p2) > math.dist(c1, c2):
+        return None
+    w = np.radians(zwischen)
+    cu, su = np.cos(w), np.sin(w)
+    cx = p1[0] + t * (p2[0] - p1[0]) + radius * cu
+    cy = p1[1] + t * (p2[1] - p1[1]) + radius * su
+    a_t = a[k - 1] + t * (a[k] - a[k - 1])
+    return a_t, cx * cu + cy * su - radius, cy * cu - cx * su
+
+
+def _uebergaenge(a, x, q, psi, fest, radius, eingefuegt=None):
     """Wo die Mitte der Kugel zwischen zwei Punkten des Plans springt – viel weiter als die
     Schritte um sie herum (QUER_SPRUNG_MITTE) –, Zwischenstellungen auf der Geraden
     zwischen den beiden Mitten, alle QUER_UEBERGANG; ihre Höhe rechnet danach die Hüllfläche
@@ -1664,8 +1709,10 @@ def _uebergaenge(a, x, q, psi, fest, radius):
     aus sieht die Spirale dort nicht jede Stelle der Hüllfläche, die Mitte springt (an Manuels
     Teil hinten um gut 1 mm – die Gerade darüber schnitt 0,05 mm ins Teil, P-2026-10-03-22).
     Gibt (a, x, q, ψ, fest, eingefügt) zurück, die Nummern in `fest` verschoben, `eingefügt` je
-    Punkt, ob er dazukam."""
-    eingefuegt = np.zeros(len(a), dtype=bool)
+    Punkt, ob er dazukam – mit denen, die schon `eingefuegt` waren (um eine Außenkante)."""
+    eingefuegt = (
+        np.zeros(len(a), dtype=bool) if eingefuegt is None else np.asarray(eingefuegt, dtype=bool)
+    )
     if len(a) < 2:
         return a, x, q, psi, fest, eingefuegt
     rad = np.radians(psi)

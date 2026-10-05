@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-23 querachse-um-die-kante
+
+### EINGELESEN
+- Weiter an Manuels „es hackt … an den Kanten“: Beim Schlichten mit Querachse drehte der Plan
+  an jeder Außenkante, wo ψ zwischen zwei Punkten mehr als 2° kippt, das Werkzeug erst um die
+  ruhende Kugelmitte und sprang dann zum nächsten Punkt – Y pendelte alle fünf Sätze um im
+  Mittel 0,11 mm zurück (an seinem Teil 972 Stellen).
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`_um_die_kante`, `_quer_plan`, `_uebergaenge(…, eingefuegt)`),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.3).
+
+### DONE
+- Wandert der Berührpunkt weniger als die Mitte (Außenkante), rollt die Kugel um ihn: der
+  Berührpunkt zieht gerade weiter, ψ dreht, die Mitte steht um den Radius darüber; die Höhe
+  rechnet danach die Hüllfläche des Fräsers. In Innenecken bleibt es beim Drehen um die Mitte.
+- Sein Teil: Sägezahn beim Schlichten 972 → 6, beim Schruppen 91 → 37; Y-Pendler 7468 → 842;
+  Sätze unter 4 ms 306 → 46; 110 000 → 92 000 Sätze. Nachgerechnet wie seine Maschine: 0 mm²
+  ins Teil, ≤ 2 mm² stehen.
+
+### TESTS
+- `test_vierachs_bahn`, `test_vierachs_schlichten`, `test_restmaterial`, `test_vierachs_plan`,
+  `test_vierachs_frei`, `test_vierachs_schlichten_op`, `test_vierachs_operation`,
+  `test_vierachs_entgraten` – OK.
+
 ## P-2026-10-05-22 querachse-halten-nur-auf-ebenen
 
 ### EINGELESEN
