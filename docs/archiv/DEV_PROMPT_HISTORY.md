@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-31 texte-sinn-2
+
+### EINGELESEN
+- Fortsetzung von -30 (Manuel: Sinnhaftigkeit prüfen, besser erklären).
+
+### DATEIEN
+- `help/de|en/bearbeitung.html`, `help/de|en/vierachs.html`, `translations/de.json`, `en.json`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.11).
+
+### ERGEBNIS
+- Hilfe „Bearbeitung“: Die Einleitung nennt alle Bearbeitungen (vorher nur die Hälfte). Die
+  Abschnitte 13–19 standen rückwärts (19, 18 … 13) – jetzt aufsteigend. Messstopp: Der
+  Postprozessor des Addons fährt längst an den Wechselpunkt („bis dahin … Kommentar“ war
+  veraltet). „Nachträglich ändern“ nennt alle Operationen, die der Assistent öffnet, und sagt,
+  dass Bohren, Reiben, Gewinde bohren, Zentrieren und Senken FreeCADs Fenster öffnen.
+  „Wand bei Radius“ → „auf Endmaß“, „lässt … durch“ → „meldet … nicht als Schnitt ins Teil“.
+- Hilfe „4-Achs“: „Was (noch) nicht geht“ behauptete, Plan indexiert und Entgraten kämen erst –
+  beides gibt es; jetzt Drehen/Abstechen und der Verweis auf die Stirnseite. Überlauf mit dem
+  Vorschlag Abstechbreite + 0,5 (Beispielrechnung 75,5 statt 78,5). Die Einleitung nennt Plan
+  indexiert und Entgraten. „Im Programm“ sagt, dass es um FreeCADs eigene Postprozessoren geht
+  (der des Addons schreibt X im Durchmesser, Moduloachse mit ACP/ACN).
+- Tooltip Messstopp: mit dem Postprozessor des Addons an den Wechselpunkt.
+- Geprüft: `test_hilfe`, `test_sprache`.
+
 ## P-2026-10-05-30 texte-sinn-1
 
 ### EINGELESEN

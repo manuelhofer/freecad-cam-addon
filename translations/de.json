@@ -2016,7 +2016,7 @@
     "ba.schlichten_danach.waende_haken": "Wände",
     "ba.schlichten_danach.waende_haken.tooltip": "Die Wände um die geräumten Flächen im Aufmaß nachfahren – Zapfen, Inseln, Absätze, Taschen – bis auf den fertigen Boden: eine Kontur mit Breite = Aufmaß, nur der Zug an der Wand.",
     "ba.schlichten_danach.messstopp": "Messstopp davor",
-    "ba.schlichten_danach.messstopp.tooltip": "Vor dem Schlichten hält das Programm an: Z fährt hoch, die Spindel steht (M5, M0) – messen, dann Start; die Spindel läuft mit der Drehzahl des Schlichtens wieder an. Eine eigene Operation „Messstopp“.",
+    "ba.schlichten_danach.messstopp.tooltip": "Vor dem Schlichten hält das Programm an: Z fährt hoch (mit dem Postprozessor des Addons an den Wechselpunkt), die Spindel steht (M5, M0) – messen, dann Start; die Spindel läuft mit der Drehzahl des Schlichtens wieder an. Eine eigene Operation „Messstopp“.",
     "ba.schlichten_danach.nichts": "Hier ist nichts zu schlichten: Das Räumen lässt am Boden kein Aufmaß, und Wände im Aufmaß gibt es nicht – oder die Kontur fährt sie.",
     "ba.schlichten_danach.boden": "Boden ({aufmass})",
     "ba.schlichten_danach.waende": "{waende} ({aufmass})",

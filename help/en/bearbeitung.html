@@ -20,10 +20,13 @@ part to the operations has three steps; at the top it says which one you are in 
 machining with its time), the <b>settings</b> of the ticked ones; in the last step
 <b>Create</b> stands at the bottom instead of “Next →”. “Create” (also “OK” of the task)
 works from every step – with what is suggested. The machinings: <b>Face milling</b> and
-<b>Clearing</b> for flat faces facing up, <b>Drilling</b> and <b>Hole milling</b> for
-cylindrical holes, <b>Contour</b> for walls, <b>Tapping</b> in core holes,
-<b>Deburr</b> on top edges, <b>Spot drilling</b> and <b>Countersinking</b> at holes,
-<b>Rest material</b> with the smaller cutter. “Create” creates all ticked ones. For a round stock
+<b>Clearing</b> (with <b>Clear the rest</b> and <b>Finish afterwards</b>) for flat faces facing
+up; <b>Contour</b> and <b>Rest material</b> for walls; <b>Slot</b> for elongated holes;
+<b>Drilling</b>, <b>Hole milling</b>, <b>Reaming</b>, <b>Spot drilling</b> and
+<b>Countersinking</b> at holes; <b>Tapping</b> and <b>Thread milling</b> in core holes;
+<b>Deburr</b> on top edges and <b>Deburr 3D</b> on edges in space; for freeform faces
+<b>3D roughing</b>, <b>3D finishing</b>, <b>Pencil</b>, <b>Rest roughing</b> and <b>Rest
+finishing</b>, on a 5-axis machine also <b>Flank</b>. “Create” creates all ticked ones. For a round stock
 with a rotary axis there is <a href="vierachs.html">4-axis machining</a>.</p>
 
 <h3>1. Setup: machine, part and stock</h3>
@@ -288,9 +291,9 @@ leaves a floor allowance, a clearing without floor allowance finishes it in one 
 cleared faces in the allowance, down to the finished floor – no step remains at the bottom;
 “Stepdown at the walls”, empty: the ap of the application; walls the contour runs, it
 finishes itself) and <b>Measuring stop before</b> (Z moves above the stock, the spindle stops –
-M5, M0; measure, then start, the spindle runs up again with the finishing speed; a subroutine
-such as Siemens “F_HOME” is written only by the add-on's own post processor, until then the
-program carries the comment (MESSSTOPP)). The result line: “→ Floor (0.5 mm) and 1 wall
+M5, M0; measure, then start, the spindle runs up again with the finishing speed; with the
+add-on's post processor the program moves to the machine's tool change point for measuring, on
+Siemens e.g. with F_HOME – FreeCAD's own post processors only move Z up). The result line: “→ Floor (0.5 mm) and 1 wall
 (0.3 mm), about 1 min – with a measuring stop before”. “Create” adds operations of their own:
 “Measuring stop”, “Finish floor T1” (a clearing) and “Finish walls T1” (a contour with width =
 allowance) – each one is changed on its own afterwards.</li>
@@ -399,7 +402,7 @@ rings step outwards in large holes), <b>allowance for finishing</b> (empty:
 <li>The path: down in a <b>helix</b> (G2/G3 with Z, as steep as the tool's
 plunge angle), once around at the bottom so the bottom is flat; in large holes
 <b>rings outwards</b> per layer, each with a half circle onto the next; finally
-the wall at the radius in one go, with half circles in from the middle and out
+the wall at final size in one go, with half circles in from the middle and out
 again. Through holes 0.5 mm deeper so no burr remains. Several holes in the
 order of the shortest path.</li>
 <li>Grey below: “→ 2 holes, 2 layers, 24 turns, about 1 min”. Red says why it
@@ -432,7 +435,7 @@ go</b>.</li>
 <li>The path: roughing in layers from the top of the stock down to the bottom
 edge of the wall – per layer as many passes side by side as material stands
 beside the wall, from the outside towards the wall (last at radius plus
-allowance); then finishing once at the radius over the full height in one go
+allowance); then finishing once at final size over the full height in one go
 (at most the cutting edge length per go). All in <b>climb milling</b> (spindle
 clockwise, M3): the material on the right of the direction of travel – around
 a boss clockwise, in a pocket counter-clockwise. Outer corners become arcs (G2/G3),
@@ -523,7 +526,7 @@ recognises like chamfers; the rounding mill with their radius is preselected, an
 “the rounding as modelled: R 2”. Its hollow must be a full quarter circle (pilot = Ø − 2 ×
 radius) – otherwise a step would remain on top. Chamfer width and “tip deeper” do not apply to
 the rounding mill.</li>
-<li>The operation is called “Deburr T3”. “Check on the machine” lets the chamfer pass:
+<li>The operation is called “Deburr T3”. “Check on the machine” does not report the chamfer as a cut into the part:
 there it may go into the part as deep as the tip stands.</li>
 </ul>
 
@@ -579,7 +582,7 @@ counts). The model says the countersink comes: the tick is proposed.</li>
 before drilling, countersinking after. Grey below: “→ 1 spot, 4.2 mm deep, about
 1 min”.</li>
 <li>“Check on the machine” computes drills, spot drills and countersink tools with their
-tip, not as cylinders; it lets the small chamfer of spot drilling pass.</li>
+tip, not as cylinders; it does not report the small chamfer of spot drilling as a cut into the part.</li>
 </ul>
 
 <h3>11. Rest material</h3>
@@ -634,91 +637,95 @@ the operation's property “Zaehne” shows what it calculates with.</li>
 <li>Grey below: “→ 2 × M10x1.5, 2 turns, about 1 min”. Red says why it does not work: the
 hole is no core hole for the pitch (with the core hole it would need), the cutter is too
 large, its neck too thick, it does not reach deep enough.</li>
-<li>The operation is called “Thread milling T7”. “Check on the machine” lets the thread pass:
+<li>The operation is called “Thread milling T7”. “Check on the machine” does not report the thread as a cut into the part:
 around each hole it may go into the part up to the tip of the tooth, not beside it.</li>
 </ul>
 
-<h3>19. Rest roughing</h3>
+<h3>13. Slot</h3>
 <ul>
-<li>After 3D roughing, rough with a <b>smaller cutter</b> (flat face) only what the large one
-left – in narrow gaps between freeform faces, in corners and fillets it could not get down into.
-You set the tick yourself; preselected is the largest cutter smaller than the one of 3D
-roughing.</li>
-<li><b>Cutter before Ø</b> (empty: the one of 3D roughing in the window, with its shape): what
-remains is computed from its envelope – as deep as its flat face got. Entered by hand, the cutter
-before counts as a flat end mill. The other fields as in 3D roughing.</li>
-<li>There it runs layers like 3D roughing (full depth of cut, intermediate layers for the
-steps), but only where material stands above the layer that the small one reaches. The steps the
-large one left on the faces remain for finishing.</li>
-<li>If there is no rest anywhere, it says so in red. The operation is called “Rest roughing T5”
-and comes after 3D roughing.</li>
+<li>For <b>slots</b> – two straight walls with semicircles at the ends: click a wall or the
+floor, the list says “slot 20 × 50, bottom 10” or “…, through”; one wall means the whole
+slot. With an end mill no wider than the slot – fastest at 50 to 75 % of its width; one that
+fits is preselected.</li>
+<li>The path <b>never cuts at full width with the whole flute</b>. If the slot is wider than
+the cutter: down in a <b>helix</b> at one end, once all round at the bottom, then in
+<b>arcs</b> up to the semicircle at the other end – each arc a semicircle, climb milling from
+one wall forward through the material to the other (a dent forms in the middle), back across
+the free side at high feed (3 × vf) and a little forward along the wall into the next; in
+layers of ap, the next layer back. How far the arcs advance follows the <b>load</b>: per arc
+the cutter removes on average as much material per mm of path as on a straight path with ae.
+On every arc the engagement grows from the wall to the middle and falls again – in the middle
+briefly up to 1.7 ae, above 1.25 ae never for longer than one cutter width of path, and never
+more than half the cutter engaged. In the slot 20 wide with the Ø 12 and ae 1.5 that is
+0.97 mm per arc. If it is barely wider (the arcs would
+have a radius under a quarter of the cutter radius): down in a <b>zigzag ramp</b> along the slot, each pass at most so deep that
+at full width it never cuts more than ap and never more than half the diameter – with the
+feed lowered so the chip stays as thick as with the application's small ae.</li>
+<li>Finally the <b>wall once all round</b> climb milling (counter-clockwise, G3), with
+semicircles in from the centre of one end and out again, in passes of at most the flute
+length. Through slots 0.5 mm deeper.</li>
+<li>Fields as for “Hole milling”: <b>stepdown per layer</b> (ap of the arcs), <b>row
+spacing</b> (ae – it gives the step of the arcs), <b>allowance for finishing</b>, the ticks
+<b>finish the wall</b> and <b>climb milling</b>. If the cutter mills the slot at full width,
+the application “Full slot” is preselected when it has one.</li>
+<li>Grey below: “→ 1 slot, 1 layer, 31 arcs, about 1 min” or “→ 1 slot at full width
+with a ramp, about 1 min”. Red says why it does not work: the cutter is wider than the slot,
+or a closed slot is wider than nearly two cutters – a core would stay in the middle of the
+helix (a larger cutter, or “Clearing”).</li>
+<li><b>Plunge at</b> (one row per closed slot): where the helix plunges – in every layer
+there. To choose: the <b>suggestion</b> (where the least material is, because a hole or pocket
+crosses the slot; otherwise alternating at the ends – then there is no way back), the two
+<b>ends</b> and the <b>middle</b> with their coordinates at the origin, or <b>Pick in view …</b>
+and click a point on the floor of the slot. If the point is not at an end, the arcs run from it
+to one end, back through the cleared slot at rapid feed, and then to the other. The full-width
+slot (no room for a helix) starts its ramp at the end nearest to the point.</li>
+<li><b>Only where material is left</b> (material state): the slot takes into account what the
+operations before it in the job have already removed – and the ticked strategies before it in
+the same window (face milling, clearing). A block already cleared around the boss down to −10,
+the slot 15 deep: the layers and the helix start at −10, not at the top of the stock – no path
+through air. Grey below it then says what is left to do: “5.6 cm³ left – “Clearing T1” already
+removed 11.1 cm³”; if nothing is left, red says “Nothing left to do here …”. If you change an
+operation before it (depth, cutter, deleted, moved), the slot recomputes by itself – otherwise
+its rapid move could go where there is material again.</li>
+<li><b>Open slots</b>: open towards the edge – at one end (a semicircle and two walls ending
+at the edge) or at both (two parallel walls with the floor between). The list says “open slot
+16 × 60, floor 12”. Behind the open end there is air: there the cutter goes down and enters
+from outside – no helix, no plunge. Then it mills in <b>arcs</b>: each arc a semicircle, climb
+milling from one wall forward through the material to the other – a dent forms in the middle
+–, back across the free side at high feed (3 × vf), and a little forward along the wall into
+the next arc. The first arcs blend gradually from the straight edge into the semicircle. How
+far the arcs advance follows the load as above: in a narrow slot every arc sweeps the whole
+width on a short path – the step is smaller than ae (in the slot 16 with the Ø 12 0.58 mm), in
+wide ones somewhat larger. Every layer starts outside, so an open slot may be any width. It finishes the walls climb milling: in along one
+wall, across outside (or round the semicircle), out along the other. Plate 60 × 40, slot 16
+wide, 8 deep, all the way through: 1.25 min (the contour at the walls 2.2). The line says
+“→ 1 slot, 1 layer, 118 arcs, about …”.</li>
+<li><b>Time decides</b>: at the walls the slot competes with the contour (in the slot
+20 × 50, 10 deep, the slot is ahead – the contour's line says “28 % slower than Slot”; in the
+open slot 16 × 60 it is 21 %). On the floor clearing and face milling compute as
+well but do not compete: in the slot they would first cut full width – more than ae, only
+seemingly faster (at the open slot 0.19 min, three times faster than ae · ap allows, and with
+a rapid into material). Their line says so.</li>
+<li>The operation is called “Slot T1”; the final depth is the deepest floor (through: 0.5 mm
+below).</li>
 </ul>
 
-<h3>18. Rest finishing</h3>
+<h3>14. Reaming</h3>
 <ul>
-<li>After 3D finishing, finish again with a <b>smaller ball end mill</b> (or bull nose) only
-where the large one could not reach – in fillets, tight curves and corners of the freeform faces.
-You set the tick yourself; preselected is the largest ball end mill smaller than the one of 3D
-finishing.</li>
-<li><b>Cutter before Ø</b> (empty: the one of 3D finishing in the window, with its shape): from
-it, the surface the large one left is computed against the one the small one reaches – where the
-large one left more than 0.01 mm, there is rest. Entered by hand, the cutter before counts as a
-ball end mill. <b>Scallop height</b> and <b>stock</b> as in 3D finishing.</li>
-<li>There it runs like 3D finishing: contour lines where it is steep, rows or a spiral
-elsewhere – the fastest counts; by the radius of the small cutter and one row spacing beyond the
-rest, so that nothing remains.</li>
-<li>Grey below: “→ 10 contours and a spiral with …, about 4 min” (dome Ø 40 on the plate,
-ball Ø 2 after ball Ø 6 – the whole dome with Ø 2 would need 9 min). In the fillet at the foot
-0.18 instead of 0.44 mm remain. If there is no rest anywhere, it says so in red. The operation is
-called “Rest finishing T4”.</li>
-</ul>
-
-<h3>17. Pencil</h3>
-<ul>
-<li>For the <b>fillets</b> at freeform faces: where the ball end mill touches the selected face
-and its neighbour at once – at the foot of a dome on the plate, in a groove. The rows of 3D
-finishing end there; between their ends a rest remains, which the pencil pass takes in one
-go.</li>
-<li>You set the tick yourself (click the face, tick “Pencil”); the ball end mill of 3D finishing
-is preselected. <b>Allowance</b> (empty: 0): this much stays in the fillet. <b>Width per
-side</b> (empty: 0 – the fillet only): it runs further passes this wide on each side of the
-fillet, spaced for a 0.01 mm scallop – for the rest a larger cutter left in the corner before.
-From outside towards the fillet, the fillet last; on a steep side the passes are equally far
-apart in space.</li>
-<li>The fillet is found on the cutter's envelope: where it kinks upwards (the slope jumps by more
-than 17°), the cutter touches two faces. The line lies exactly there, not on the raster; the
-height is computed at every point.</li>
-<li>Grey below: “→ 1 fillet, 135 mm long, about 1 min” (the dome Ø 40 with a ball Ø 6: the
-ring at r 21.45 around the centre). If there is no fillet, it says so in red. The operation is
-called “Pencil T3” and comes after 3D finishing.</li>
-</ul>
-
-<h3>16. 3D roughing</h3>
-<ul>
-<li>For <b>freeform faces</b> as with 3D finishing: click them, and next to “3D finishing”
-“3D roughing” is ticked too – with the cutter for clearing (end mill or bull-nose, flat tip). It
-clears the stock above the faces before the ball finishes.</li>
-<li>The path: <b>layers</b> from the top down to the lowest point of the faces plus allowance,
-each at full step-down with a narrow ae – the rings as in Clearing, climb milling. Where the
-envelope of the part lies above the layer, the cutter stays out: in every layer the dome is an
-island with allowance.</li>
-<li>Above a freeform face each full layer would leave a <b>step</b> as high as the step-down.
-So it then runs <b>intermediate layers</b> (empty: 1 mm apart) up to the previous layer – only
-where material still stands above the face, from the outside up to the face. As an intermediate
-layer is thin, its rings may lie further apart (as much material per mm as in the full layer, at
-most half the diameter). 0 means no intermediate layers.</li>
-<li>What remains is the <b>allowance</b> (also on the floor below) and the steps: on the dome
-0.4 to 1.6 mm normal to the face. In a hollow (bowl) more remains under the flat tip – the arc
-under the cutter.</li>
-<li>Grey below: “→ 1 layer and 9 intermediate layers, 26 rings, about 5 min” (standard cutter,
-the dome Ø 40 on the plate 60 × 60). In a bowl the full layer finds nothing, then only the
-intermediate layers count. The operation is called “3D roughing T1”.</li>
-<li><b>Only where material is left</b> (material state): like clearing, 3D roughing takes into
-account what the operations before it in the job and the ticked strategies before it in the
-window have already removed. Then every layer runs like an intermediate layer – only where
-material the cutter reaches is left – starting at the highest such material. A second 3D
-roughing on the same dome thus only takes the steps (0.14 instead of 4.99 min); if nothing is
-left: red “Nothing left to do here …”.</li>
+<li>For holes that must be to size (H7): with a <b>reamer</b> from the tool management that has
+the diameter of the hole – the matching one is preselected. You set the tick yourself: whether
+a hole is reamed is not in the model.</li>
+<li>With the tick <b>“Drilling” pre-drills smaller</b>: a drill 0.15 to 0.5 mm undersize (for
+Ø 10 one of Ø 9.5 to 9.85 – the largest is preselected), the line says “… – pre-drilled for
+reaming, with Ø 9.8”. “Hole milling” and the contour do not compete in these holes – they
+would mill to size, leaving the reamer nothing to do.</li>
+<li>Created is <b>FreeCAD's Drilling with G85</b>: in at feed and out again at feed (pulled out
+at rapid the reamer would leave marks). Through holes 1 mm below the bottom, blind holes with
+a drill tip to the bottom of the wall; no drill can pre-drill a blind hole with a flat bottom –
+reaming does not work there. The operation is called “Reaming T4” and comes after drilling and
+countersinking.</li>
+<li>Grey below: “→ 1 hole, about 1 min”. Red says why it does not work (no reamer with this
+diameter, flat bottom).</li>
 </ul>
 
 <h3>15. 3D finishing</h3>
@@ -798,100 +805,98 @@ around). Without a machine with two rotary axes the program does not write the f
 vertical the cutter would cut wrongly. The operation is called “Flank T5”.</li>
 </ul>
 
-<h3>14. Reaming</h3>
+<h3>16. 3D roughing</h3>
 <ul>
-<li>For holes that must be to size (H7): with a <b>reamer</b> from the tool management that has
-the diameter of the hole – the matching one is preselected. You set the tick yourself: whether
-a hole is reamed is not in the model.</li>
-<li>With the tick <b>“Drilling” pre-drills smaller</b>: a drill 0.15 to 0.5 mm undersize (for
-Ø 10 one of Ø 9.5 to 9.85 – the largest is preselected), the line says “… – pre-drilled for
-reaming, with Ø 9.8”. “Hole milling” and the contour do not compete in these holes – they
-would mill to size, leaving the reamer nothing to do.</li>
-<li>Created is <b>FreeCAD's Drilling with G85</b>: in at feed and out again at feed (pulled out
-at rapid the reamer would leave marks). Through holes 1 mm below the bottom, blind holes with
-a drill tip to the bottom of the wall; no drill can pre-drill a blind hole with a flat bottom –
-reaming does not work there. The operation is called “Reaming T4” and comes after drilling and
-countersinking.</li>
-<li>Grey below: “→ 1 hole, about 1 min”. Red says why it does not work (no reamer with this
-diameter, flat bottom).</li>
+<li>For <b>freeform faces</b> as with 3D finishing: click them, and next to “3D finishing”
+“3D roughing” is ticked too – with the cutter for clearing (end mill or bull-nose, flat tip). It
+clears the stock above the faces before the ball finishes.</li>
+<li>The path: <b>layers</b> from the top down to the lowest point of the faces plus allowance,
+each at full step-down with a narrow ae – the rings as in Clearing, climb milling. Where the
+envelope of the part lies above the layer, the cutter stays out: in every layer the dome is an
+island with allowance.</li>
+<li>Above a freeform face each full layer would leave a <b>step</b> as high as the step-down.
+So it then runs <b>intermediate layers</b> (empty: 1 mm apart) up to the previous layer – only
+where material still stands above the face, from the outside up to the face. As an intermediate
+layer is thin, its rings may lie further apart (as much material per mm as in the full layer, at
+most half the diameter). 0 means no intermediate layers.</li>
+<li>What remains is the <b>allowance</b> (also on the floor below) and the steps: on the dome
+0.4 to 1.6 mm normal to the face. In a hollow (bowl) more remains under the flat tip – the arc
+under the cutter.</li>
+<li>Grey below: “→ 1 layer and 9 intermediate layers, 26 rings, about 5 min” (standard cutter,
+the dome Ø 40 on the plate 60 × 60). In a bowl the full layer finds nothing, then only the
+intermediate layers count. The operation is called “3D roughing T1”.</li>
+<li><b>Only where material is left</b> (material state): like clearing, 3D roughing takes into
+account what the operations before it in the job and the ticked strategies before it in the
+window have already removed. Then every layer runs like an intermediate layer – only where
+material the cutter reaches is left – starting at the highest such material. A second 3D
+roughing on the same dome thus only takes the steps (0.14 instead of 4.99 min); if nothing is
+left: red “Nothing left to do here …”.</li>
 </ul>
 
-<h3>13. Slot</h3>
+<h3>17. Pencil</h3>
 <ul>
-<li>For <b>slots</b> – two straight walls with semicircles at the ends: click a wall or the
-floor, the list says “slot 20 × 50, bottom 10” or “…, through”; one wall means the whole
-slot. With an end mill no wider than the slot – fastest at 50 to 75 % of its width; one that
-fits is preselected.</li>
-<li>The path <b>never cuts at full width with the whole flute</b>. If the slot is wider than
-the cutter: down in a <b>helix</b> at one end, once all round at the bottom, then in
-<b>arcs</b> up to the semicircle at the other end – each arc a semicircle, climb milling from
-one wall forward through the material to the other (a dent forms in the middle), back across
-the free side at high feed (3 × vf) and a little forward along the wall into the next; in
-layers of ap, the next layer back. How far the arcs advance follows the <b>load</b>: per arc
-the cutter removes on average as much material per mm of path as on a straight path with ae.
-On every arc the engagement grows from the wall to the middle and falls again – in the middle
-briefly up to 1.7 ae, above 1.25 ae never for longer than one cutter width of path, and never
-more than half the cutter engaged. In the slot 20 wide with the Ø 12 and ae 1.5 that is
-0.97 mm per arc. If it is barely wider (the arcs would
-have a radius under a quarter of the cutter radius): down in a <b>zigzag ramp</b> along the slot, each pass at most so deep that
-at full width it never cuts more than ap and never more than half the diameter – with the
-feed lowered so the chip stays as thick as with the application's small ae.</li>
-<li>Finally the <b>wall once all round</b> climb milling (counter-clockwise, G3), with
-semicircles in from the centre of one end and out again, in passes of at most the flute
-length. Through slots 0.5 mm deeper.</li>
-<li>Fields as for “Hole milling”: <b>stepdown per layer</b> (ap of the arcs), <b>row
-spacing</b> (ae – it gives the step of the arcs), <b>allowance for finishing</b>, the ticks
-<b>finish the wall</b> and <b>climb milling</b>. If the cutter mills the slot at full width,
-the application “Full slot” is preselected when it has one.</li>
-<li>Grey below: “→ 1 slot, 1 layer, 31 arcs, about 1 min” or “→ 1 slot at full width
-with a ramp, about 1 min”. Red says why it does not work: the cutter is wider than the slot,
-or a closed slot is wider than nearly two cutters – a core would stay in the middle of the
-helix (a larger cutter, or “Clearing”).</li>
-<li><b>Plunge at</b> (one row per closed slot): where the helix plunges – in every layer
-there. To choose: the <b>suggestion</b> (where the least material is, because a hole or pocket
-crosses the slot; otherwise alternating at the ends – then there is no way back), the two
-<b>ends</b> and the <b>middle</b> with their coordinates at the origin, or <b>Pick in view …</b>
-and click a point on the floor of the slot. If the point is not at an end, the arcs run from it
-to one end, back through the cleared slot at rapid feed, and then to the other. The full-width
-slot (no room for a helix) starts its ramp at the end nearest to the point.</li>
-<li><b>Only where material is left</b> (material state): the slot takes into account what the
-operations before it in the job have already removed – and the ticked strategies before it in
-the same window (face milling, clearing). A block already cleared around the boss down to −10,
-the slot 15 deep: the layers and the helix start at −10, not at the top of the stock – no path
-through air. Grey below it then says what is left to do: “5.6 cm³ left – “Clearing T1” already
-removed 11.1 cm³”; if nothing is left, red says “Nothing left to do here …”. If you change an
-operation before it (depth, cutter, deleted, moved), the slot recomputes by itself – otherwise
-its rapid move could go where there is material again.</li>
-<li><b>Open slots</b>: open towards the edge – at one end (a semicircle and two walls ending
-at the edge) or at both (two parallel walls with the floor between). The list says “open slot
-16 × 60, floor 12”. Behind the open end there is air: there the cutter goes down and enters
-from outside – no helix, no plunge. Then it mills in <b>arcs</b>: each arc a semicircle, climb
-milling from one wall forward through the material to the other – a dent forms in the middle
-–, back across the free side at high feed (3 × vf), and a little forward along the wall into
-the next arc. The first arcs blend gradually from the straight edge into the semicircle. How
-far the arcs advance follows the load as above: in a narrow slot every arc sweeps the whole
-width on a short path – the step is smaller than ae (in the slot 16 with the Ø 12 0.58 mm), in
-wide ones somewhat larger. Every layer starts outside, so an open slot may be any width. It finishes the walls climb milling: in along one
-wall, across outside (or round the semicircle), out along the other. Plate 60 × 40, slot 16
-wide, 8 deep, all the way through: 1.25 min (the contour at the walls 2.2). The line says
-“→ 1 slot, 1 layer, 118 arcs, about …”.</li>
-<li><b>Time decides</b>: at the walls the slot competes with the contour (in the slot
-20 × 50, 10 deep, the slot is ahead – the contour's line says “28 % slower than Slot”; in the
-open slot 16 × 60 it is 21 %). On the floor clearing and face milling compute as
-well but do not compete: in the slot they would first cut full width – more than ae, only
-seemingly faster (at the open slot 0.19 min, three times faster than ae · ap allows, and with
-a rapid into material). Their line says so.</li>
-<li>The operation is called “Slot T1”; the final depth is the deepest floor (through: 0.5 mm
-below).</li>
+<li>For the <b>fillets</b> at freeform faces: where the ball end mill touches the selected face
+and its neighbour at once – at the foot of a dome on the plate, in a groove. The rows of 3D
+finishing end there; between their ends a rest remains, which the pencil pass takes in one
+go.</li>
+<li>You set the tick yourself (click the face, tick “Pencil”); the ball end mill of 3D finishing
+is preselected. <b>Allowance</b> (empty: 0): this much stays in the fillet. <b>Width per
+side</b> (empty: 0 – the fillet only): it runs further passes this wide on each side of the
+fillet, spaced for a 0.01 mm scallop – for the rest a larger cutter left in the corner before.
+From outside towards the fillet, the fillet last; on a steep side the passes are equally far
+apart in space.</li>
+<li>The fillet is found on the cutter's envelope: where it kinks upwards (the slope jumps by more
+than 17°), the cutter touches two faces. The line lies exactly there, not on the raster; the
+height is computed at every point.</li>
+<li>Grey below: “→ 1 fillet, 135 mm long, about 1 min” (the dome Ø 40 with a ball Ø 6: the
+ring at r 21.45 around the centre). If there is no fillet, it says so in red. The operation is
+called “Pencil T3” and comes after 3D finishing.</li>
+</ul>
+
+<h3>18. Rest finishing</h3>
+<ul>
+<li>After 3D finishing, finish again with a <b>smaller ball end mill</b> (or bull nose) only
+where the large one could not reach – in fillets, tight curves and corners of the freeform faces.
+You set the tick yourself; preselected is the largest ball end mill smaller than the one of 3D
+finishing.</li>
+<li><b>Cutter before Ø</b> (empty: the one of 3D finishing in the window, with its shape): from
+it, the surface the large one left is computed against the one the small one reaches – where the
+large one left more than 0.01 mm, there is rest. Entered by hand, the cutter before counts as a
+ball end mill. <b>Scallop height</b> and <b>stock</b> as in 3D finishing.</li>
+<li>There it runs like 3D finishing: contour lines where it is steep, rows or a spiral
+elsewhere – the fastest counts; by the radius of the small cutter and one row spacing beyond the
+rest, so that nothing remains.</li>
+<li>Grey below: “→ 10 contours and a spiral with …, about 4 min” (dome Ø 40 on the plate,
+ball Ø 2 after ball Ø 6 – the whole dome with Ø 2 would need 9 min). In the fillet at the foot
+0.18 instead of 0.44 mm remain. If there is no rest anywhere, it says so in red. The operation is
+called “Rest finishing T4”.</li>
+</ul>
+
+<h3>19. Rest roughing</h3>
+<ul>
+<li>After 3D roughing, rough with a <b>smaller cutter</b> (flat face) only what the large one
+left – in narrow gaps between freeform faces, in corners and fillets it could not get down into.
+You set the tick yourself; preselected is the largest cutter smaller than the one of 3D
+roughing.</li>
+<li><b>Cutter before Ø</b> (empty: the one of 3D roughing in the window, with its shape): what
+remains is computed from its envelope – as deep as its flat face got. Entered by hand, the cutter
+before counts as a flat end mill. The other fields as in 3D roughing.</li>
+<li>There it runs layers like 3D roughing (full depth of cut, intermediate layers for the
+steps), but only where material stands above the layer that the small one reaches. The steps the
+large one left on the faces remain for finishing.</li>
+<li>If there is no rest anywhere, it says so in red. The operation is called “Rest roughing T5”
+and comes after 3D roughing.</li>
 </ul>
 
 <h3>Changing it later</h3>
-<p><b>Double-click</b> “Face milling …”, “Clearing …”, “Slot …”, “Hole milling …”, “Contour …”, “Deburr …” or “Thread milling …” in the tree – or right-click,
-<b>Edit</b>; or select the operation or its job and press the “Machining
+<p><b>Double-click</b> an operation of the add-on in the tree – face milling, clearing, slot,
+hole milling, contour, rest material, deburr, deburr 3D, thread milling, 3D roughing, 3D
+finishing, pencil, rest roughing, rest finishing, flank – or right-click, <b>Edit</b>; or select the operation or its job and press the “Machining
 (milling)” button – to open the window with faces, cutter, application and
 values of the operation, with its block only. <b>Apply</b> changes it – one undo step; another
 cutter gets its own tool controller, the old one is removed if no operation
-uses it any more.</p>
+uses it any more. Drilling, reaming, tapping, spot drilling and countersinking are FreeCAD's own
+operations – double-clicking opens FreeCAD's window.</p>
 
 <h3>What comes next</h3>
 <p>Choosing the entry (ramp, helix, vertical) by time; trochoids in tight corners of

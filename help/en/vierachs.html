@@ -3,7 +3,8 @@
 rotary axis (A or B) just as on a lathe with a C axis and driven tools. The
 wizard gets you there in two steps: <b>placing the part in the bar</b> and
 then <b>“What do you want to do?”</b> – <b>All-round roughing</b> and
-<b>All-round finishing</b>, all around or only over the faces you click.</p>
+<b>All-round finishing</b> (all around or only over the faces you click), <b>Indexed
+facing</b> for flat faces, slots and cross holes, and <b>All-round deburring</b>.</p>
 
 <h3>How it works</h3>
 <ol>
@@ -160,9 +161,10 @@ computes without the cross axis – layers and time are almost the same.</li>
 <p><b>Distances</b> – apply to roughing and finishing:</p>
 <ul>
 <li><b>Overrun</b> – how far the centre of the cutter runs past the back of the
-part so that it leaves it completely and the rear edge gets finished. Empty,
-each cutter uses its radius + 0.5 mm (grey “radius + 0.5”, 6.5 mm for a 12 mm
-cutter); a number applies to both.</li>
+part, continuing the profile of the part's end straight: the rear edge gets finished, and
+the parting blade meets a straight section when parting off instead of a slope it would run
+off on. Behind it the material stays – it holds the part. Empty: the parting width + 0.5 mm
+(3.5 mm for 3 mm), the same for every cutter; a number applies to both.</li>
 <li><b>Chuck distance</b> – how far the edge of the cutter stays in front of
 the clamping face (5 mm suggested). If the cutter has a holder in the tool
 manager that reaches further sideways beyond the tool axis than the cutter –
@@ -171,8 +173,8 @@ in front of the chuck. <b>Safety distance</b> – how far above and in front of
 the bar it moves in rapid (2 mm suggested).</li>
 </ul>
 <p><b>How far the bar sticks out of the chuck</b> follows from this – it is
-stated in grey: “The bar has to stick out 78.5 mm from the chuck: facing
-allowance 1.0 + part 60.0 + overrun 6.5 + cutter radius 6.0 + chuck distance
+stated in grey: “The bar has to stick out 75.5 mm from the chuck: facing
+allowance 1.0 + part 60.0 + overrun 3.5 + cutter radius 6.0 + chuck distance
 5.0.” The wizard creates the bar that long (plus the clamping length in the
 chuck); clamp it that way on the machine. The cutter that needs more room
 behind the part counts; if its holder reaches further than the cutter, it says
@@ -196,15 +198,16 @@ is computed with its shape, not like an end mill. In front of every <b>wall</b> 
 only touch it on part of the circumference. Between layers it goes out radially
 and back to the front in rapid. It is calculated against the whole part,
 meshed to 0.02 mm: the error goes into the allowance, never into the part.</p>
-<p><b>In the program</b> – please read before the first run:</p>
+<p><b>In the program</b> – please read before the first run. The add-on's post processor
+(<a href="programm.html">Write program</a>) takes care of all this itself; the points apply
+when you use one of FreeCAD's own post processors:</p>
 <ul>
 <li><b>X in diameter or in radius</b> – the way your machine counts (the
 box “counts in diameter (Ø)” on the axis, “X as” in “New machine”); the check
-window shows it the same way. FreeCAD's own post processors always write X as
-a radius, though: if your machine counts in diameter, switch the program header
-to radius (Siemens <code>DIAMOF</code>) until the add-on's post processor
-writes X in diameter – otherwise the tool would go to half the distance from
-the axis. With A and B, Z is the distance from the axis.</li>
+window shows it the same way, and the add-on's post processor writes it that way.
+FreeCAD's own post processors always write X as a radius, though: if your machine counts in
+diameter, switch the program header to radius then (Siemens <code>DIAMOF</code>) – otherwise
+the tool would go to half the distance from the axis. With A and B, Z is the distance from the axis.</li>
 <li>The <b>feed</b> is given after <b>G93</b> (1 ÷ time) – so the cutter runs
 at the use case's feed on the workpiece, however far it is from the axis.
 G94 follows. The post processor must write F in every block and output
@@ -225,7 +228,9 @@ drive, otherwise the machine builder's M codes). On Fanuc lathes with G code
 system A, <b>G94 is a facing cycle</b> and feed per minute is G98 – there an
 adapted post processor is needed.</li>
 <li>The <b>rotary axis</b> keeps counting (−3600° and more): it must run
-without modulo, otherwise it would not turn round several times.</li>
+without modulo, otherwise it would not turn round several times. If it is a modulo axis on
+your control, enter the commands for it in the add-on's post processor (Siemens
+ACP/ACN).</li>
 <li>At the start the tool moves out radially to the safety distance, then to
 the front of the bar and across to the centre (Y0 – not if the machine has no
 Y axis).</li>
@@ -388,8 +393,8 @@ the operation counts them under “Ausgelassen”.</li>
 <li>From edge to edge in rapid; where one begins where the previous one ended,
 it continues without lifting – once around a flat with its walls. A ring all
 round (the shoulder of a step) is one turn of the rotary axis.</li>
-<li>In grey below: “→ 4 edges, about 1 min”. “Check on machine” lets the
-operation have its chamfer – that deep at the edges is not blue –, and the
+<li>In grey below: “→ 4 edges, about 1 min”. “Check on machine” does not
+report the chamfer as a cut into the part – that deep at the edges is not blue –, and the
 collision check knows it is meant to cut into the finished part.</li>
 </ul>
 
@@ -436,9 +441,7 @@ every new job.</li>
 
 <h3>What does not work (yet)</h3>
 <ul>
-<li>Milling a flat really flat (“indexed facing”) and deburring edges – that
-comes in a next stage. Until then the spiral mills it with the cutter pointing
-at the axis: where it is not straight above the flat, a little more stays.</li>
-<li>Turning, facing the end and parting off are done by the machine –
-FreeCAD does not turn.</li>
+<li>Turning and parting off – FreeCAD does not turn; you program that on the machine.
+The same goes for facing the end by turning. It can be milled with an axial tool: how Y and C
+move there is described under <a href="programm.html">Write program</a>, “Face”.</li>
 </ul>

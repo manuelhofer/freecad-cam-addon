@@ -2016,7 +2016,7 @@
     "ba.schlichten_danach.waende_haken": "Walls",
     "ba.schlichten_danach.waende_haken.tooltip": "Run along the walls around the cleared faces in the allowance – bosses, islands, steps, pockets – down to the finished floor: a contour with width = allowance, only the pass along the wall.",
     "ba.schlichten_danach.messstopp": "Measuring stop before",
-    "ba.schlichten_danach.messstopp.tooltip": "Before finishing the program stops: Z moves up, the spindle stops (M5, M0) – measure, then start; the spindle runs up again with the finishing speed. An operation of its own, “Measuring stop”.",
+    "ba.schlichten_danach.messstopp.tooltip": "Before finishing the program stops: Z moves up (with the add-on's post processor to the tool change point), the spindle stops (M5, M0) – measure, then start; the spindle runs up again with the finishing speed. An operation of its own, “Measuring stop”.",
     "ba.schlichten_danach.nichts": "Nothing to finish here: clearing leaves no floor allowance, and there are no walls in the allowance – or the contour runs them.",
     "ba.schlichten_danach.boden": "Floor ({aufmass})",
     "ba.schlichten_danach.waende": "{waende} ({aufmass})",

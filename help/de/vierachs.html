@@ -4,7 +4,8 @@ dreht – auf einer Fräse mit Rundachse (A oder B) genauso wie auf einer
 Drehmaschine mit C-Achse und angetriebenen Werkzeugen. Der Assistent führt in
 zwei Schritten dorthin: <b>das Teil in die Stange legen</b> und dann
 <b>„Was willst du machen?“</b> – <b>Rundum schruppen</b> und <b>Rundum
-schlichten</b>, rundum oder nur über den Flächen, die du anklickst.</p>
+schlichten</b> (rundum oder nur über den Flächen, die du anklickst), <b>Plan indexiert</b>
+für ebene Flächen, Nuten und Querbohrungen und <b>Rundum entgraten</b>.</p>
 
 <h3>So geht's</h3>
 <ol>
@@ -166,10 +167,11 @@ Lagen und Zeit sind fast gleich.</li>
 </ul>
 <p><b>Abstände</b> – gelten für Schruppen und Schlichten:</p>
 <ul>
-<li><b>Überlauf</b> – so weit läuft die Mitte des Fräsers hinter das Teil,
-damit er es ganz verlässt und die Kante hinten fertig wird. Leer gilt je
-Fräser sein Radius + 0,5 mm (grau „Radius + 0,5“, beim 12er also 6,5 mm); eine
-Zahl gilt für beide.</li>
+<li><b>Überlauf</b> – so weit fährt die Mitte des Fräsers hinter das Teil und fräst
+dabei das Profil des Teilendes gerade weiter: Die Kante hinten wird fertig, und das
+Stechschwert trifft beim Abstechen auf ein gerades Stück statt auf eine Schräge, an der es
+verläuft. Dahinter bleibt das Material – es hält das Teil. Leer gilt die Abstechbreite +
+0,5 mm (bei 3 mm also 3,5 mm), für jeden Fräser gleich; eine Zahl gilt für beide.</li>
 <li><b>Abstand zum Futter</b> – so weit bleibt der Rand des Fräsers vor der
 Spannfläche (Vorschlag 5 mm). Hat der Fräser in der Werkzeugverwaltung einen
 Halter, der seitlich weiter über die Werkzeugachse reicht als der Fräser – etwa
@@ -178,8 +180,8 @@ vor dem Futter. <b>Sicherheitsabstand</b> – so weit über und vor der Stange
 fährt er im Eilgang (Vorschlag 2 mm).</li>
 </ul>
 <p><b>Wie weit die Stange aus dem Futter ragt,</b> folgt daraus – grau steht es
-als Satz da: „Die Stange muss 78,5 mm aus dem Futter ragen: Planaufmaß 1,0 +
-Teil 60,0 + Überlauf 6,5 + Fräserradius 6,0 + Abstand zum Futter 5,0.“ So lang
+als Satz da: „Die Stange muss 75,5 mm aus dem Futter ragen: Planaufmaß 1,0 +
+Teil 60,0 + Überlauf 3,5 + Fräserradius 6,0 + Abstand zum Futter 5,0.“ So lang
 legt der Assistent die Stange an (dazu die Spannlänge im Futter); so weit
 spannst du sie an der Maschine aus. Es zählt der Fräser, der hinten mehr Platz
 braucht; reicht sein Halter weiter als er, steht statt des Fräserradius „Halter
@@ -203,15 +205,16 @@ rundum bis an die Wand; sonst träfe er sie nur auf einem Teil des Umfangs.
 Zwischen den Lagen geht es radial hinaus und im Eilgang nach vorne. Gerechnet
 wird gegen das ganze Teil, auf 0,02 mm genau vernetzt: Der Rechenfehler geht
 ins Aufmaß, nie ins Teil.</p>
-<p><b>Im Programm</b> – bitte vor dem ersten Lauf lesen:</p>
+<p><b>Im Programm</b> – bitte vor dem ersten Lauf lesen. Der Postprozessor des Addons
+(<a href="programm.html">Programm schreiben</a>) erledigt das alles selbst; die Punkte gelten,
+wenn du einen von FreeCADs eigenen Postprozessoren nimmst:</p>
 <ul>
 <li><b>X im Durchmesser oder im Radius</b> – so, wie deine Maschine zählt
 (Haken „zählt im Durchmesser (Ø)“ an der Achse, „X als“ in „Neue Maschine“);
-das Prüffenster zeigt es genauso. FreeCADs eigene Postprozessoren schreiben X
-aber immer als Radius: Zählt deine Maschine im Durchmesser, stell den
-Programmkopf auf Radius (Siemens <code>DIAMOF</code>), bis der Postprozessor
-des Addons X im Durchmesser schreibt – sonst führe das Werkzeug auf den halben
-Abstand zur Achse. Bei A und B ist Z der Abstand zur Achse.</li>
+das Prüffenster zeigt es genauso, und der Postprozessor des Addons schreibt es so.
+FreeCADs eigene Postprozessoren schreiben X aber immer als Radius: Zählt deine Maschine im
+Durchmesser, stell dann den Programmkopf auf Radius (Siemens <code>DIAMOF</code>) – sonst
+führe das Werkzeug auf den halben Abstand zur Achse. Bei A und B ist Z der Abstand zur Achse.</li>
 <li>Der <b>Vorschub</b> steht nach <b>G93</b> (1 ÷ Zeit) – so fährt der
 Fräser am Werkstück mit dem Vorschub des Einsatzes, egal wie weit er von der
 Achse weg ist. Danach kommt G94. Der Postprozessor muss F in jedem Satz
@@ -233,7 +236,9 @@ M-Befehle des Maschinenherstellers). Bei Fanuc-Drehmaschinen mit
 G-Code-System A ist <b>G94 ein Plandrehzyklus</b> und Vorschub je Minute
 heißt G98 – dort braucht es einen angepassten Postprozessor.</li>
 <li>Die <b>Rundachse</b> zählt fortlaufend weiter (−3600° und mehr): Sie muss
-ohne Modulo-Rechnung fahren, sonst dreht sie nicht mehrmals herum.</li>
+ohne Modulo-Rechnung fahren, sonst dreht sie nicht mehrmals herum. Ist sie an deiner
+Steuerung eine Moduloachse, trägst du im Postprozessor des Addons die Befehle dafür ein
+(Siemens ACP/ACN).</li>
 <li>Am Anfang fährt das Werkzeug radial auf Sicherheitsabstand, dann nach
 vorne vor die Stange und quer auf die Mitte (Y0 – nicht, wenn die Maschine
 keine Y-Achse hat).</li>
@@ -388,7 +393,7 @@ grau darunter. Mit nur einem Kugelfräser bleibt der Haken aus, der Satz sagt,
 dass er die Kanten rund bricht, wenn du ihn setzt.</li>
 <li><b>Fräser</b> – Fasen- oder Kugelfräser; <b>Einsatz</b> – vorgewählt
 „Fasen“, er gibt Drehzahl und Vorschub.</li>
-<li><b>Fasenbreite</b> – so breit wird die Fase an einer rechten Kante mit dem
+<li><b>Fasenbreite</b> – so breit wird die Fase an einer rechtwinkligen Kante mit dem
 90°-Fasenfräser (mit ebener Spitze auf der flachen Seite um deren Radius
 breiter), beziehungsweise der Kantenbruch mit der Kugel; leer 0,3 mm.</li>
 <li>Was keinen Grat hat, bleibt: Innenkanten, Rundungen, die tangential
@@ -399,8 +404,8 @@ Futter), lässt er sie aus; die Operation zählt sie unter „Ausgelassen“.</l
 <li>Von Kante zu Kante im Eilgang; wo eine beginnt, wo die vorige endet, geht
 es ohne Abheben weiter – um eine Abflachung mit ihren Wänden einmal herum. Ein
 Ring rundum (der Absatz einer Stufe) ist eine Umdrehung der Rundachse.</li>
-<li>Grau darunter: „→ 4 Kanten, etwa 1 min“. „Auf der Maschine prüfen“ lässt
-der Operation die Fase durch – so tief ist an den Kanten nicht blau –, und die
+<li>Grau darunter: „→ 4 Kanten, etwa 1 min“. „Auf der Maschine prüfen“ meldet
+die Fase nicht als Schnitt ins Teil – so tief ist an den Kanten nicht blau –, und die
 Kollisionsprüfung weiß, dass sie ins fertige Teil schneiden soll.</li>
 </ul>
 
@@ -449,10 +454,7 @@ neuen Job gibt, nimmt der Assistent heraus.</li>
 
 <h3>Was (noch) nicht geht</h3>
 <ul>
-<li>Eine ebene Abflachung wirklich eben fräsen („Plan indexiert“) und Kanten
-entgraten – das kommt in einer nächsten Stufe. Bis dahin fräst die Spirale sie
-mit dem Fräser, der zur Achse zeigt: Wo er nicht senkrecht über ihr steht,
-bleibt etwas mehr stehen.</li>
-<li>Drehen, Planen der Stirnseite und Abstechen macht die Maschine – FreeCAD
-dreht nicht.</li>
+<li>Drehen und Abstechen – FreeCAD dreht nicht; das programmierst du an der Maschine.
+Ebenso das Plandrehen der Stirnseite. Fräsen lässt sie sich mit einem axialen Werkzeug: Wie Y
+und C dort fahren, steht unter <a href="programm.html">Programm schreiben</a>, „Stirnseite“.</li>
 </ul>
