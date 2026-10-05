@@ -254,12 +254,24 @@ def im_programm_umgekehrt(achse, kette=None):
     „NachDin“ an der Betriebsart zählt die Steuerung gegen die Norm. Lässt sich die Norm nicht
     anwenden (schräge Achse, keine Rolle), zählt sie wie das Gelenk – der Haken dreht dann um.
     Linearachsen nie."""
-    if achse.art == LINEAR:
-        return False
+    return programm_vorzeichen(achse, kette) < 0
+
+
+def programm_vorzeichen(achse, kette=None):
+    """+1 oder −1: so steht die Stellung dieser Achse im Programm und an der Steuerung
+    (im_programm_umgekehrt) – fürs Anzeigen und Eintragen von Rundachsen (Prüffenster,
+    „Maschine verfahren“, Schwenkbereich), damit dort steht, was die Steuerung zeigt. Die Lage
+    des Gelenks zur Norm wird je Achse einmal gemessen; der Haken jedes Mal gelesen."""
+    if achse.art == LINEAR or getattr(achse, "gelenk", None) is None:
+        return 1
     ba = _positionieren(achse.gelenk)
     if ba is None:
-        return False
-    return bool(_gelenk_gegen_din(achse, ba, kette)) == bool(getattr(ba, "NachDin", True))
+        return 1
+    gegen = getattr(achse, "_gegen_din", "?")
+    if gegen == "?":
+        gegen = _gelenk_gegen_din(achse, ba, kette)
+        achse._gegen_din = gegen
+    return -1 if bool(gegen) == bool(getattr(ba, "NachDin", True)) else 1
 
 
 def _positionieren(gelenk):

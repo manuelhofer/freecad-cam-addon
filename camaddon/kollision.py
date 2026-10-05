@@ -310,6 +310,7 @@ class Befund:
     stelle: object = None  # FreeCAD.Vector: wo, in Koordinaten der Assembly
     ins_teil: bool = False  # die Schneide fährt im Vorschub ins fertige Teil
     x_durchmesser: bool = False  # X im Programm als Durchmesser (Drehmaschine)
+    umgekehrt: frozenset = frozenset()  # Rundachsen, die das Programm umgekehrt schreibt
     # Gleich nach einem Werkzeugwechsel ohne Wechselpunkt: das neue Werkzeug („T2“) – die
     # Maschine wechselt, wo sie steht, ein längeres steckt dann im Teil.
     wechsel: str = ""
@@ -325,7 +326,7 @@ class Befund:
             "a": self.a,
             "b": self.b,
             "satz": self.satz,
-            "punkt": rw.punkt_text(self.punkt, self.x_durchmesser),
+            "punkt": rw.punkt_text(self.punkt, self.x_durchmesser, self.umgekehrt),
         }
         if self.ins_rohteil > 0:
             text = tr("kb.ins_rohteil", tiefe=rw.weg_text(self.ins_rohteil), **werte)
@@ -440,6 +441,7 @@ def _eilgaenge_ins_rohteil(abfahrt, job):
                 satz=station.satz,
                 punkt=rw._programmpunkt(station.punkt, station.rund),
                 x_durchmesser=abfahrt.pruefung.x_durchmesser,
+                umgekehrt=abfahrt.pruefung.umgekehrt,
                 ins_rohteil=tiefe,
             )
         )
@@ -937,6 +939,7 @@ class _Welt:
             stelle=stelle,
             ins_teil=paar.nur_vorschub,
             x_durchmesser=abfahrt.pruefung.x_durchmesser,
+            umgekehrt=abfahrt.pruefung.umgekehrt,
             wechsel=wechsel,
             anschlag=anschlag,
         )

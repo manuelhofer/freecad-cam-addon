@@ -38,6 +38,21 @@ GROESSTE_PLATZNUMMER = 999
 VORSCHUB = einheiten.VORSCHUB
 
 
+def _programm_vorzeichen(ba):
+    """Wie die Steuerung die Rundachse der Betriebsart zählt (verfahren.programm_vorzeichen):
+    −1 andersherum als ihr Gelenk, sonst +1 – mit der Kette, wie die Maschine gerade ist."""
+    from . import kette as kette_modul
+    from . import verfahren as vf
+
+    maschine = next((o for o in ba.InList if getattr(o, "Typ", "") == m.TYP_MASCHINE), None)
+    try:
+        kette = kette_modul.lies_kette(m.assembly_von(maschine))
+        achse = kette.achse_von(ba.Gelenk)
+        return vf.programm_vorzeichen(achse, kette) if achse is not None else 1
+    except Exception:
+        return 1
+
+
 class DetailKasten(QtGui.QFrame):
     """Überschrift und Formular zur gewählten Zeile.
 
@@ -99,6 +114,8 @@ class DetailKasten(QtGui.QFrame):
         if ba.Art in (m.ART_LINEAR, m.ART_POSITIONIEREN) and ba.Gelenk is not None:
             # Im Durchmesser zeigen die Felder das Doppelte – wie die Steuerung (P-2026-09-30-54).
             faktor = 2.0 if linear and getattr(ba, "Durchmesser", False) else 1.0
+            if not linear and _programm_vorzeichen(ba) < 0:
+                faktor = -1.0  # wie die Steuerung zählt (DIN 66217): von/bis vom Datenblatt
             self._verfahrweg(ba.Gelenk, linear, lage, faktor)
             if ba.Art == m.ART_LINEAR:
                 self._punkte(ba, faktor)
@@ -109,7 +126,9 @@ class DetailKasten(QtGui.QFrame):
     def _verfahrweg(self, gelenk, linear, lage, faktor=1.0):
         """Zwei Zeilen „… von“ und „… bis“ für die Begrenzung am Gelenk (mm bzw. °);
         leer: keine Grenze. Darunter grau, was die Zahlen heißen. `faktor` 2: Die Achse zählt
-        im Durchmesser – die Felder zeigen das Doppelte, das Gelenk bekommt den Radius."""
+        im Durchmesser – die Felder zeigen das Doppelte, das Gelenk bekommt den Radius. −1: Die
+        Rundachse zählt an der Steuerung andersherum als ihr Gelenk – die Felder zeigen, was die
+        Steuerung zeigt (wie im Datenblatt), „von“ ist das Ende „Max“ am Gelenk."""
         erklaerung = QtGui.QLabel()
         erklaerung.setWordWrap(True)
         erklaerung.setStyleSheet("color: gray;")
@@ -135,8 +154,9 @@ class DetailKasten(QtGui.QFrame):
         else:
             titel = {"Min": tr("dialog.schwenkbereich.min"), "Max": tr("dialog.schwenkbereich.max")}
         for ende in ("Min", "Max"):
+            am_gelenk = {"Min": "Max", "Max": "Min"}[ende] if faktor < 0 else ende
             self.formular.addRow(
-                titel[ende], self._grenzfeld(gelenk, ende, linear, erklaeren, faktor)
+                titel[ende], self._grenzfeld(gelenk, am_gelenk, linear, erklaeren, faktor)
             )
         erklaeren()
         self.formular.addRow(erklaerung)
@@ -154,7 +174,7 @@ class DetailKasten(QtGui.QFrame):
             if linear:
                 text = groesse_zeigen(zahl * faktor, einheiten.LAENGE, metrisch_stellen=4)
             else:
-                text = zahl_zeigen(round(zahl, 4))
+                text = zahl_zeigen(round(zahl * faktor, 4))
             text = text or "0"
         feld = QtGui.QLineEdit(text)
         feld.setValidator(Zahlenpruefer(feld, mit_minus=True))
@@ -171,7 +191,7 @@ class DetailKasten(QtGui.QFrame):
                     if linear:
                         neu = groesse_lesen(text, einheiten.LAENGE) / faktor
                     else:
-                        neu = zahl_lesen(text)
+                        neu = zahl_lesen(text) / faktor
                 except ValueError:  # nur „-“ oder „,“: bleibt wie es war
                     return
                 self._setze(gelenk, name + ende, neu)

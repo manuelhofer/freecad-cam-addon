@@ -61,9 +61,7 @@ def schritte(h):
     doc.recompute()
     FreeCAD.setActiveDocument(doc.Name)
     kuppel = next(
-        f"Face{i + 1}"
-        for i, f in enumerate(teil.Shape.Faces)
-        if isinstance(f.Surface, Part.Sphere)
+        f"Face{i + 1}" for i, f in enumerate(teil.Shape.Faces) if isinstance(f.Surface, Part.Sphere)
     )
     Gui.activateWorkbench("CAMWorkbench")
     Gui.ActiveDocument.ActiveView.viewIsometric()

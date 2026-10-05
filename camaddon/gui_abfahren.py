@@ -902,10 +902,14 @@ class Abspieler(QtGui.QWidget):
         except Exception as fehler:  # eine halb eingerichtete Maschine soll nicht stören
             FreeCAD.Console.PrintLog(f"CAM-Addon: Spitze: {fehler}\n")
             return ""
-        text = html.escape(tr("ab.spitze", punkt=rw.punkt_text(spitze, pruefung.x_durchmesser)))
+        text = html.escape(
+            tr("ab.spitze", punkt=rw.punkt_text(spitze, pruefung.x_durchmesser, pruefung.umgekehrt))
+        )
         if self.angehalten:
             soll = rw.punkt_text(
-                rw._programmpunkt(station.punkt, station.rund), pruefung.x_durchmesser
+                rw._programmpunkt(station.punkt, station.rund),
+                pruefung.x_durchmesser,
+                pruefung.umgekehrt,
             )
             text += (
                 f" <span style='color:{ROT}'>{html.escape(tr('ab.spitze_soll', punkt=soll))}</span>"

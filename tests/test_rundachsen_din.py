@@ -7,7 +7,8 @@
 # schreibt „Programm schreiben“ (3+2 ohne Zyklus) für eine Ebene A/B/C; mit ihnen steht die
 # Werkzeugachse nach DIN – R_Tisch⁻¹ · R_Kopf · Z, die Achsen vom Bett aus – auf der Normale. Mit
 # Schwenkzyklus nimmt die Vorzugsrichtung (CYCLE800 _DIR) die geschriebene Stellung. Ohne den
-# Haken „dreht nach DIN 66217“ zählt die Achse wie ihr Gelenk. Die Drehmaschine: C umgekehrt.
+# Haken „dreht nach DIN 66217“ zählt die Achse wie ihr Gelenk. Der Schwenkbereich aus „Neue
+# Maschine“ zählt wie die Steuerung, das Prüffenster zeigt ihn so. Die Drehmaschine: C umgekehrt.
 import os
 import sys
 
@@ -125,6 +126,21 @@ for bauplan in (bm.fuenfachs_tisch_tisch, bm.fuenfachs_kopf_tisch, bm.fuenfachs_
         )
         ba.NachDin = True
     FreeCAD.closeDocument(asm.Document.Name)
+
+# „Neue Maschine“ Tisch/Tisch mit A −120 … 30 (wie im Datenblatt): Das Gelenk bekommt −30 … 120
+# (es dreht rechtsherum um +X, die Steuerung zählt andersherum); das Prüffenster sagt −120 … 30.
+masse = bm.FuenfachsMasse.vorgabe(bm.TISCH_TISCH)
+masse.schwenk = (("A", -120.0, 30.0),)
+asm, ma = bm.fuenfachs_tisch_tisch(masse)
+p = rw.Pruefung(asm, ma)
+a = next(x for x in p.kette.achsen if p.programmbuchstabe(x) == "A")
+pruefe(
+    vf.programm_vorzeichen(a) == -1 and (a.minimum, a.maximum) == (-30.0, 120.0),
+    f"A am Gelenk {a.minimum} … {a.maximum}",
+)
+text = rw.Bereich(a, "A1", 10.0, 20.0).text()
+pruefe("−120" in text and "30" in text and "−20" in text, f"Bereich: {text}")
+FreeCAD.closeDocument(asm.Document.Name)
 
 # Die Drehmaschine: C dreht das Werkstück – im Programm umgekehrt (C von vorn im Uhrzeigersinn).
 asm, ma = bm.drehmaschine()

@@ -73,7 +73,8 @@ begrenzt <b>Schruppwerte planen</b> die Schnittleistung.</li>
 (Positionieren) sind die Begrenzung (Min/Max) des Gelenks in der Assembly – hier
 änderst du sie direkt. Ein leeres Feld heißt: keine Grenze. Gezählt wird wie am
 Gelenk, also die Stellung des <b>Schlittens</b>, nicht die der Werkzeugspitze:
-0 ist die Stellung, in der die Baugruppe gebaut ist. Der graue Satz darunter
+0 ist die Stellung, in der die Baugruppe gebaut ist; der Schwenkbereich zählt wie die
+Steuerung (siehe unten) – trag ihn ein wie im Datenblatt. Der graue Satz darunter
 sagt, wie weit der erste Werkzeugplatz dabei vom Werkstückplatz weg ist – auch
 an den Grenzen. Wohin die Spitze mit einem bestimmten Werkzeug kommt, rechnet
 „Auf der Maschine prüfen“ mit der Werkzeuglänge aus.</li>
@@ -83,6 +84,15 @@ steht X überall doppelt da, mit „Ø“ davor: im Verfahrweg hier, in „Masch
 verfahren“ und im Prüffenster. Eingetippt wird dann auch der Durchmesser, und
 der Postprozessor des Addons schreibt X so. Gerechnet wird im Radius; das
 Gelenk behält seine Grenzen im Radius.</li>
+<li><b>dreht nach DIN 66217</b> (Positionieren, vorbelegt an) – wie die Steuerung die Rundachse
+zählt. Nach der Norm beschreiben +A, +B, +C, wie sich das Werkzeug um das Werkstück dreht,
+rechtsherum um +X, +Y, +Z. Eine Achse im Kopf dreht so das Werkzeug; eine im Tisch dreht das
+Werkstück andersherum – an der Drehmaschine C, von vorn auf das Futter geschaut, <b>im
+Uhrzeigersinn</b>, am Rundtisch C von oben geschaut ebenso. So schreibt der Postprozessor jede
+Rundachse, egal wie herum das Gelenk in der Baugruppe liegt; so zeigen sie „Maschine verfahren“
+und das Prüffenster, und so trägst du den Schwenkbereich ein. Die Bahnen in FreeCAD bleiben, wie
+sie sind. Prüfen: an der Maschine die Achse ein Stück ins Plus fahren und hinschauen, dann in
+„Maschine verfahren“ dasselbe – dreht deine Maschine andersherum, nimm den Haken heraus.</li>
 <li><b>Home-Punkt</b> und <b>Werkzeugwechsel</b> (Linear) – wo die Achse steht, wenn die
 Maschine am Home-Punkt bzw. zum Werkzeugwechsel steht, gezählt wie der Verfahrweg. Hat eine
 Achse einen Home-Punkt, beginnt und endet das Abfahren im Prüffenster dort; vor jedem

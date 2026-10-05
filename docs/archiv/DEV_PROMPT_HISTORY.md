@@ -12,6 +12,37 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-18 rundachsen-anzeigen-wie-die-steuerung
+
+### EINGELESEN
+- Zweiter Schritt zu Manuels „dass die Leute die Möglichkeiten haben, die sie benötigen, um
+  richtig einstellen zu können“: Schwenkbereich, Prüffenster und „Maschine verfahren“ zählten
+  Rundachsen wie das Gelenk – ein Bereich vom Datenblatt (A −120 … 30) landete an einer
+  Tischachse gespiegelt, und das Prüffenster nannte andere Werte als das Programm.
+
+### DATEIEN
+- `camaddon/verfahren.py` (`programm_vorzeichen`), `camaddon/reichweite.py` (`stellung_text`,
+  `Bereich.text`, `punkt_text(…, umgekehrt)`, `Pruefung.umgekehrt`), `camaddon/gui_verfahren.py`
+  (Regler, Feld, Grenzen), `camaddon/gui_details.py` (Schwenkbereich), `camaddon/gui_abfahren.py`,
+  `camaddon/kollision.py`, `camaddon/beispielmaschine.py` (Schwenkbereich aus „Neue Maschine“),
+  `camaddon/gui_programm.py` (Sprachschlüssel wörtlich – test_sprache schlug in 0.193.4 fehl),
+  `translations/de.json`, `en.json`, `help/de|en/achsen.html`, `tests/test_rundachsen_din.py`,
+  `tests/test_beispielmaschine.py`, `tests/test_reichweite.py`,
+  `tests/gui/szenario_verfahren.py`, `tests/gui/szenario_maschine_bearbeiten.py`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.193.5).
+
+### DONE
+- Rundachsen überall, wo man sie liest oder einträgt, wie die Steuerung: „Maschine verfahren“
+  (C4 auf +90° dreht das Futter von vorn im Uhrzeigersinn), Prüffenster (Stellungen, Grenzen,
+  Punkte), Abspieler, Kollisionen, Schwenkbereich in „Maschine bearbeiten“ und „Neue Maschine“.
+  Gerechnet wird weiter wie am Gelenk; Bahnen und Bild unverändert.
+
+### TESTS
+- `test_rundachsen_din`, `test_beispielmaschine`, `test_reichweite`, `test_kollision`,
+  `test_abfahren`, `test_vierachs_pruefen`, `test_verfahren`, `test_kinematik`,
+  `test_schwenken`, `test_sprache`, `test_hilfe`; Szenarien `szenario_verfahren`,
+  `szenario_maschine_bearbeiten` – OK.
+
 ## P-2026-10-05-17 alle-rundachsen-nach-din
 
 ### EINGELESEN

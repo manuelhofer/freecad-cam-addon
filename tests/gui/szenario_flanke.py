@@ -131,7 +131,8 @@ def schritte(h):
     h.pruefe(flanke.fraeser() is not None and flanke.fraeser().nummer == 5, "Flanke nicht T5")
     text = flanke.ergebnis.text()
     h.pruefe(
-        text.startswith("→ 1 Umlauf, die Achse bis 10° geneigt, etwa ") and "die schnellste" in text,
+        text.startswith("→ 1 Umlauf, die Achse bis 10° geneigt, etwa ")
+        and "die schnellste" in text,
         f"Flanke: {text!r}",
     )
     h.pruefe(flanke.zeit < s3.zeit, f"Flanke {flanke.zeit} min, 3D {s3.zeit} min")

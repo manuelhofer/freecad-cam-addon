@@ -102,6 +102,7 @@ class Ueberschreitung:
     werkzeug: str = ""
     durchmesser: bool = False  # die Achse zählt im Durchmesser (X einer Drehmaschine)
     x_durchmesser: bool = False  # X im Programm als Durchmesser
+    umgekehrt: frozenset = frozenset()  # Rundachsen, die das Programm umgekehrt schreibt
 
     def text(self):
         """„X1 fährt in „Tasche“ bis 312,00 mm, die Grenze ist 250,00 mm (bei X 450, Y 0, Z −5).
@@ -113,13 +114,13 @@ class Ueberschreitung:
             operation=self.operation,
             stellung=stellung_text(self.achse, self.stellung, self.durchmesser),
             grenze=stellung_text(self.achse, self.grenze, self.durchmesser),
-            punkt=punkt_text(self.punkt, self.x_durchmesser),
+            punkt=punkt_text(self.punkt, self.x_durchmesser, self.umgekehrt),
         )
         if self.an_grenze is not None:
             text += " " + tr(
                 "rw.ueberschreitung.spitze",
                 werkzeug=self.werkzeug,
-                punkt=punkt_text(self.an_grenze, self.x_durchmesser),
+                punkt=punkt_text(self.an_grenze, self.x_durchmesser, self.umgekehrt),
             )
         return text
 
@@ -137,13 +138,17 @@ class Bereich:
     def text(self):
         """„X1 braucht −120,00 mm … 140,00 mm, die Grenzen sind −170,00 mm … 150,00 mm.“"""
         d = self.durchmesser
+        von, bis = self.von, self.bis
+        minimum, maximum = self.achse.minimum, self.achse.maximum
+        if vf.programm_vorzeichen(self.achse) < 0:  # an der Steuerung andersherum gezählt
+            von, bis, minimum, maximum = bis, von, maximum, minimum
         return tr(
             "rw.bereich",
             achse=self.name,
-            von=stellung_text(self.achse, self.von, d),
-            bis=stellung_text(self.achse, self.bis, d),
-            minimum=_grenze_text(self.achse, self.achse.minimum, d),
-            maximum=_grenze_text(self.achse, self.achse.maximum, d),
+            von=stellung_text(self.achse, von, d),
+            bis=stellung_text(self.achse, bis, d),
+            minimum=_grenze_text(self.achse, minimum, d),
+            maximum=_grenze_text(self.achse, maximum, d),
         )
 
 
@@ -211,7 +216,9 @@ def stellung_text(achse, wert, durchmesser=False):
     zählt im Durchmesser, wie X an einer Drehmaschine – dann „Ø 550,00 mm“, so wie die
     Steuerung es zeigt (Manuel, 2026-09-30); gerechnet wird immer im Radius."""
     if achse.art != LINEAR:
-        return winkel_text(wert)
+        # Wie an der Steuerung (DIN 66217, verfahren.programm_vorzeichen) – gerechnet wird wie
+        # am Gelenk.
+        return winkel_text(wert * vf.programm_vorzeichen(achse))
     if durchmesser:
         return einheiten.DURCHMESSER + weg_text(2.0 * wert)
     return weg_text(wert)
@@ -221,9 +228,10 @@ def _grenze_text(achse, grenze, durchmesser=False):
     return tr("rw.keine_grenze") if grenze is None else stellung_text(achse, grenze, durchmesser)
 
 
-def punkt_text(punkt, x_durchmesser=False):
+def punkt_text(punkt, x_durchmesser=False, umgekehrt=()):
     """Ein Punkt im Programm: „X 450, Y 0, Z −5“ – Rundachsen nur, wenn sie nicht 0 sind.
-    `x_durchmesser`: X steht im Programm als Durchmesser („X Ø 900“)."""
+    `x_durchmesser`: X steht im Programm als Durchmesser („X Ø 900“). `umgekehrt`: Rundachsen,
+    die das Programm mit dem anderen Vorzeichen schreibt (Pruefung.umgekehrt)."""
     stellen = einheiten.stellen(einheiten.LAENGE, 2)
 
     def laenge(buchstabe):
@@ -236,9 +244,9 @@ def punkt_text(punkt, x_durchmesser=False):
 
     teile = [f"{buchstabe} {laenge(buchstabe)}" for buchstabe in ("X", "Y", "Z")]
     teile += [
-        f"{buchstabe} {_zahl(punkt[buchstabe], 3, True)}"
+        f"{buchstabe} {_zahl(-punkt[b] if b in umgekehrt else punkt[b], 3, True)}"
         for buchstabe in RUNDACHSEN
-        if punkt.get(buchstabe)
+        if punkt.get(b := buchstabe)
     ]
     return ", ".join(teile)
 
@@ -583,6 +591,15 @@ class Pruefung:
         self.maschine = maschine
         self.verfahren = vf.Verfahren(assembly, kette)
         self.kette = self.verfahren.kette
+        # Die Rundachsen, die die Steuerung andersherum zählt als ihr Gelenk (DIN 66217): Die
+        # Texte zeigen Stellungen und Punkte so, wie sie im Programm stehen.
+        self.umgekehrt = frozenset(
+            b
+            for a in self.kette.achsen
+            if vf.programm_vorzeichen(a, self.kette) < 0
+            for b in [_programmbuchstabe(maschine, a)]
+            if b
+        )
         self._in_assembly = assembly.Placement.inverse()
         # Je Aufnahme ihr Glied, je Achse ihr Buchstabe – die Maschine ändert sich nicht,
         # solange die Prüfung lebt; gesucht wurde sonst je Station (Abfahren: 12 000 ×).
@@ -1169,6 +1186,7 @@ class _Sammler:
             stellungen=stellungen,
             durchmesser=achse in self.pruefung.durchmesser,
             x_durchmesser=self.pruefung.x_durchmesser,
+            umgekehrt=self.pruefung.umgekehrt,
         )
 
     def ende_operation(self):
@@ -1177,7 +1195,11 @@ class _Sammler:
                 tr(
                     "rw.unerreichbar",
                     operation=self.operation,
-                    punkt=punkt_text(self._erster_unerreichbarer, self.pruefung.x_durchmesser),
+                    punkt=punkt_text(
+                        self._erster_unerreichbarer,
+                        self.pruefung.x_durchmesser,
+                        self.pruefung.umgekehrt,
+                    ),
                     anzahl=self._unerreichbar,
                     gesamt=self._punkte_hier,
                 )

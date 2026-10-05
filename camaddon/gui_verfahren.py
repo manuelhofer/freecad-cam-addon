@@ -78,13 +78,18 @@ class BefehlMaschineVerfahren:
 
 def _anzeige(achse, wert, faktor=1.0):
     """Stellung fürs Feld: Linearachsen in mm oder inch, Drehachsen in Grad. `faktor` 2: Die
-    Achse zählt im Durchmesser (X einer Drehmaschine) – gefahren wird im Radius."""
-    return einheiten.anzeige(wert * faktor, einheiten.LAENGE) if achse.art == LINEAR else wert
+    Achse zählt im Durchmesser (X einer Drehmaschine) – gefahren wird im Radius; −1: Die
+    Rundachse zählt an der Steuerung andersherum als am Gelenk (DIN 66217)."""
+    if achse.art == LINEAR:
+        return einheiten.anzeige(wert * faktor, einheiten.LAENGE)
+    return wert * faktor
 
 
 def _metrisch(achse, wert, faktor=1.0):
     """Stellung aus dem Feld zurück in mm bzw. Grad – so fährt die Achse."""
-    return einheiten.metrisch(wert, einheiten.LAENGE) / faktor if achse.art == LINEAR else wert
+    if achse.art == LINEAR:
+        return einheiten.metrisch(wert, einheiten.LAENGE) / faktor
+    return wert / faktor
 
 
 def _zahl(wert, stellen):
@@ -93,7 +98,7 @@ def _zahl(wert, stellen):
 
 def _vor(faktor):
     """Was vor einer Zahl im Durchmesser steht: „Ø “."""
-    return einheiten.DURCHMESSER if faktor != 1.0 else ""
+    return einheiten.DURCHMESSER if faktor > 1.0 else ""
 
 
 def _weg(wert, faktor=1.0):
@@ -119,6 +124,12 @@ class VerfahrPanel:
         # Achsen im Durchmesser (X einer Drehmaschine): Feld und Grenzen zeigen das Doppelte.
         self.durchmesser = {
             a for a in verfahren.achsen if m.ist_durchmesser(self.maschine, a.gelenk)
+        }
+        # Rundachsen, die die Steuerung andersherum zählt als ihr Gelenk (DIN 66217): Regler und
+        # Feld zeigen, was die Steuerung zeigt (Manuel, 2026-10-05: an seiner Maschine stieg C,
+        # wenn das Futter von vorn im Uhrzeigersinn drehte).
+        self.umgekehrt = {
+            a for a in verfahren.achsen if vf.programm_vorzeichen(a, verfahren.kette) < 0
         }
         self.zeilen = {}  # Achse -> (Regler, Zahlenfeld)
         self.programmzeilen = {}  # "x"/"y" -> (Regler, Zahlenfeld) – wie im Programm
@@ -349,17 +360,21 @@ class VerfahrPanel:
         faktor = self._faktor(achse)
         stellung = self.verfahren.stellung(achse)
         unten, oben = self._bereich(achse, stellung)
+        rf = self._reglerfaktor(achse)
+        unten, oben = sorted((unten * rf, oben * rf))
 
         name = fett(vf.namen(self.maschine, achse))
         name.setToolTip(tr("vf.gelenk.tooltip", gelenk=achse.gelenk.Label))
         regler = RuhigerRegler(QtCore.Qt.Horizontal)
         regler.setRange(round(unten * SCHRITTE_JE_EINHEIT), round(oben * SCHRITTE_JE_EINHEIT))
-        regler.setValue(round(stellung * SCHRITTE_JE_EINHEIT))
+        regler.setValue(round(stellung * rf * SCHRITTE_JE_EINHEIT))
         regler.setToolTip(tr("vf.regler.tooltip"))
         feld = QtGui.QDoubleSpinBox()
         feld.setLocale(zahlenformat())
         feld.setDecimals(stellen)
         minimum, maximum = self.verfahren.grenzen(achse)
+        if faktor < 0:
+            minimum, maximum = maximum, minimum
         feld.setRange(
             _anzeige(achse, minimum, faktor) if minimum is not None else -FELD_GRENZE,
             _anzeige(achse, maximum, faktor) if maximum is not None else FELD_GRENZE,
@@ -368,7 +383,9 @@ class VerfahrPanel:
         feld.setSuffix(f" {einheit}")
         feld.setValue(_anzeige(achse, stellung, faktor))
         feld.setKeyboardTracking(False)  # erst nach Enter oder Verlassen fahren
-        regler.valueChanged.connect(lambda wert, a=achse: self.setze(a, wert / SCHRITTE_JE_EINHEIT))
+        regler.valueChanged.connect(
+            lambda wert, a=achse, f=rf: self.setze(a, wert * f / SCHRITTE_JE_EINHEIT)
+        )
         feld.valueChanged.connect(
             lambda wert, a=achse, f=faktor: self.setze(a, _metrisch(a, wert, f))
         )
@@ -408,8 +425,15 @@ class VerfahrPanel:
         return unten, oben
 
     def _faktor(self, achse):
-        """2, wenn die Achse im Durchmesser zählt – sonst 1."""
-        return 2.0 if achse in self.durchmesser else 1.0
+        """2, wenn die Achse im Durchmesser zählt; −1, wenn die Steuerung sie andersherum zählt
+        als ihr Gelenk – sonst 1."""
+        if achse in self.durchmesser:
+            return 2.0
+        return -1.0 if achse in self.umgekehrt else 1.0
+
+    def _reglerfaktor(self, achse):
+        """−1, wenn der Regler andersherum läuft als das Gelenk – wie das Feld."""
+        return -1.0 if achse in self.umgekehrt else 1.0
 
     def _programmfaktor(self, welche):
         """Wie _faktor für X und Y des Programms: X zählt wie der Schlitten, der es trägt."""
@@ -418,6 +442,8 @@ class VerfahrPanel:
     def _grenzen_text(self, achse, einheit, stellen):
         minimum, maximum = self.verfahren.grenzen(achse)
         faktor = self._faktor(achse)
+        if faktor < 0:
+            minimum, maximum = maximum, minimum
 
         def zahl(wert):
             return _vor(faktor) + _zahl(_anzeige(achse, wert, faktor), stellen)
@@ -521,7 +547,7 @@ class VerfahrPanel:
         regler, feld = self.zeilen[achse]
         for element in (regler, feld):
             element.blockSignals(True)
-        regler.setValue(round(stellung * SCHRITTE_JE_EINHEIT))
+        regler.setValue(round(stellung * self._reglerfaktor(achse) * SCHRITTE_JE_EINHEIT))
         feld.setValue(_anzeige(achse, stellung, self._faktor(achse)))
         for element in (regler, feld):
             element.blockSignals(False)

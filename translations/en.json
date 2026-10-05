@@ -2096,7 +2096,7 @@
     "dialog.wechsel.tooltip": "Where the axis is for the tool change – counted like the travel. Empty: at the home position.",
     "dialog.grenze.tooltip": "How far the axis may move – the limit on the assembly joint. Empty: no limit.",
     "dialog.verfahrweg.null": "Counted as on the joint: the position of the slide, not the tool tip.",
-    "dialog.schwenkbereich.null": "Counted as on the joint, in degrees; does not apply while “endless” is ticked.",
+    "dialog.schwenkbereich.null": "Counted like the control (DIN 66217, tick “turns per DIN 66217”), in degrees – as in the data sheet; does not apply while “endless” is ticked.",
     "dialog.verfahrweg.lage": "{achse} is now at {stellung}; {aufnahme} is {abstand} away from the workpiece mount (along {achse}).",
     "dialog.verfahrweg.lage_grenzen": "At the limits it is {von} and {bis}.",
     "dialog.verfahrweg.spitze": "Where the tip gets to with a tool is shown by “Check on machine”.",

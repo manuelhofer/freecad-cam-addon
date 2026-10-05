@@ -173,6 +173,39 @@ def schritte(h):
     h.pruefe(
         texte == ["Alles vollständig – keine Hinweise."], f"Hinweise nach dem Ausfüllen: {texte}"
     )
+
+    # Der Schwenkbereich von C4 zählt wie die Steuerung (DIN 66217) – wie im Datenblatt
+    # eingetragen −10 … 30; dreht das Gelenk andersherum, bekommt es −30 … 10.
+    from camaddon import kette as kette_modul
+    from camaddon import verfahren as vf
+
+    c4 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "C4")
+    kette = kette_modul.lies_kette(asm)
+    vz = vf.programm_vorzeichen(kette.achse_von(c4.Gelenk), kette)
+    panel.achsen.setCurrentItem(eintrag(panel.achsen, "C4"))
+    yield 300
+    tippen(panel.details.feld(6), "-10")
+    yield 300
+    tippen(panel.details.feld(7), "30")
+    yield 300
+    gelenk = c4.Gelenk
+    am_gelenk = (
+        round(float(gelenk.AngleMin.getValueAs("deg")), 6),
+        round(float(gelenk.AngleMax.getValueAs("deg")), 6),
+    )
+    h.pruefe(
+        am_gelenk == ((-30.0, 10.0) if vz < 0 else (-10.0, 30.0)),
+        f"C4 am Gelenk {am_gelenk} (Vorzeichen {vz})",
+    )
+    h.pruefe(
+        (panel.details.feld(6).text(), panel.details.feld(7).text()) == ("-10", "30"),
+        f"C4 im Feld: {panel.details.feld(6).text()!r} … {panel.details.feld(7).text()!r}",
+    )
+    h.bild("4a_c4_schwenkbereich", panel.form)
+    tippen(panel.details.feld(6), "")
+    yield 300
+    tippen(panel.details.feld(7), "")
+    yield 300
     h.pruefe(not panel.knopf_vorschlagen.isEnabled(), "„Vorschlagen“ ohne Gelenk ohne Betriebsart")
     panel.aufnahmen.setCurrentItem(eintrag(panel.aufnahmen, "P3"))
     yield 300

@@ -337,7 +337,13 @@ for art, schwenk in (
     )
     asm, ma = beispielmaschine.lade(art, masse)
     kette = kette_modul.lies_kette(asm)
-    grenzen = {a.gelenk.Label: (a.minimum, a.maximum) for a in kette.achsen}
+    # Die Schwenkbereiche zählen wie die Steuerung (DIN 66217): A im Tisch dreht das Gelenk
+    # rechtsherum um +X, die Steuerung andersherum – am Gelenk gespiegelt.
+    grenzen = {}
+    for a in kette.achsen:
+        v = vf.programm_vorzeichen(a, kette)
+        ende = (a.minimum, a.maximum)
+        grenzen[a.gelenk.Label] = ende if v > 0 or None in ende else (-ende[1], -ende[0])
     erwartet = {"X": (-400.0, 410.0), "Y": (-220.0, 230.0), "Z": (-300.0, 120.0)}
     erwartet.update({b: (unten, oben) for b, unten, oben in schwenk})
     pruefe(

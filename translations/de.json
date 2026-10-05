@@ -2096,7 +2096,7 @@
     "dialog.wechsel.tooltip": "Wo die Achse zum Werkzeugwechsel steht – gezählt wie der Verfahrweg. Leer: am Home-Punkt.",
     "dialog.grenze.tooltip": "Wie weit die Achse fahren darf – die Begrenzung am Gelenk der Baugruppe. Leer: keine Grenze.",
     "dialog.verfahrweg.null": "Gezählt wie am Gelenk: die Stellung des Schlittens, nicht die Werkzeugspitze.",
-    "dialog.schwenkbereich.null": "Gezählt wie am Gelenk, in Grad; gilt nicht, solange „endlos“ angehakt ist.",
+    "dialog.schwenkbereich.null": "Gezählt wie an der Steuerung (DIN 66217, Haken „dreht nach DIN 66217“), in Grad – wie im Datenblatt; gilt nicht, solange „endlos“ angehakt ist.",
     "dialog.verfahrweg.lage": "Jetzt steht {achse} auf {stellung}; {aufnahme} ist dabei {abstand} von der Werkstückaufnahme weg (längs {achse}).",
     "dialog.verfahrweg.lage_grenzen": "An den Grenzen sind es {von} und {bis}.",
     "dialog.verfahrweg.spitze": "Wohin die Spitze mit einem Werkzeug kommt, zeigt „Auf der Maschine prüfen“.",

@@ -539,13 +539,18 @@ def _fahrstaender(b, bett):
     return kopf, x, y, z
 
 
-def _fuenfachs_wege(b, masse, x, y, z, **schwenk):
+def _fuenfachs_wege(b, masse, x, y, z, gespiegelt=(), **schwenk):
     """Die Grenzen der Gelenke aus den Maßen: X, Y, Z und die Schwenkachsen (Buchstabe =
-    Gelenk)."""
+    Gelenk). Die Schwenkbereiche zählen wie die Steuerung (Datenblatt); `gespiegelt`: die
+    Schwenkachsen, deren Gelenk andersherum dreht – eine Achse im Tisch, deren Gelenk rechtsherum
+    um +X/+Y dreht, zählt nach DIN 66217 gegen das Gelenk (verfahren.programm_vorzeichen)."""
     for gelenk, weg in ((x, masse.weg_x), (y, masse.weg_y), (z, masse.weg_z)):
         b.begrenze(gelenk, *weg)
     for buchstabe, gelenk in schwenk.items():
-        b.begrenze(gelenk, *masse.schwenkbereich(buchstabe))
+        unten, oben = masse.schwenkbereich(buchstabe)
+        if buchstabe in gespiegelt:
+            unten, oben = -oben, -unten
+        b.begrenze(gelenk, unten, oben)
 
 
 def _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, drehzahl, wechsel_z=None):
@@ -604,7 +609,7 @@ def fuenfachs_tisch_tisch(masse=None):
     a = b.gelenk_wie_gebaut(
         "A", "Revolute", lager_l, "Face2", wiege, "ZapfenLinks.Face3", richtung=(1, 0, 0)
     )
-    _fuenfachs_wege(b, masse, x, y, z, A=a)
+    _fuenfachs_wege(b, masse, x, y, z, gespiegelt=("A",), A=a)  # A dreht den Tisch
     c = b.gelenk_wie_gebaut(
         "C",
         "Revolute",

@@ -512,9 +512,9 @@ teil, job, op = neuer_job(["G0 X0 Y0 Z50 A0", "G1 A130 F500", "G0 A0"], "Schwenk
 e = p.pruefe_job(job, FreeCAD.Vector())
 a1 = [u for u in e.ueberschreitungen if u.name == "A1"]
 pruefe(
-    len(a1) == 1
-    and nahe(a1[0].stellung, 130)
-    and a1[0].text().endswith("die Grenze ist 120.0° (bei X 0, Y 0, Z 50, A 130).")
+    len(a1) == 1 and nahe(a1[0].stellung, 130)
+    # Der Text wie die Steuerung (DIN 66217): A im Tisch zählt dort andersherum als das Gelenk.
+    and a1[0].text().endswith("die Grenze ist −120.0° (bei X 0, Y 0, Z 50, A −130).")
     and bereich(e, "A1") == (0.0, 130.0),
     f"A 130: {texte(e)} {bereich(e, 'A1')}",
 )

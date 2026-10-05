@@ -1,7 +1,9 @@
 # „Maschine verfahren“ (W-001 Stufe 3) an der fertig beschriebenen
 # Beispiel-Drehmaschine: je Achse ein Regler (C4, Z1, X1, T), X1 bleibt an
-# seiner Grenze 200 mm stehen, C4 dreht das Futter; Abbrechen fährt alles
-# zurück, OK behält die Stellung als einen Schritt Rückgängig.
+# seiner Grenze 200 mm stehen, C4 dreht das Futter – gezählt wie die Steuerung (DIN 66217):
+# Regler und Feld auf +90°, das Gelenk (rechtsherum vom Futter weg) auf −90°, das Futter von vorn
+# gesehen im Uhrzeigersinn; Abbrechen fährt alles zurück, OK behält die Stellung als einen
+# Schritt Rückgängig.
 import os
 import sys
 
@@ -56,7 +58,10 @@ def schritte(h):
     regler_c.setValue(900)  # 90°
     yield 200
     h.pruefe(abs(feld_c.value() - 90) < 1e-9, f"C4 im Feld: {feld_c.value()}")
-    h.pruefe(abs(vf.gelenkstellung(c.gelenk, c.art) - 90) < 1e-6, "C4 steht nicht auf 90°")
+    h.pruefe(
+        abs(vf.gelenkstellung(c.gelenk, c.art) + 90) < 1e-6,
+        f"C4 am Gelenk {vf.gelenkstellung(c.gelenk, c.art)} statt −90° (DIN 66217)",
+    )
     # Revolverplatz wählen: P4 dreht an die Stelle von P1.
     t = panel.achse("T")
     h.pruefe(t in panel.platzwahl, "keine Platzwahl beim Revolver")
