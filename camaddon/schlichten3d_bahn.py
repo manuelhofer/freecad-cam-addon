@@ -25,6 +25,8 @@ hinein, auch nicht an Nachbarflächen.
   Steil/Flach: Ihr Abstand liegt in der Ebene, an jeder Flanke einer Kuppel quer zur Steigung;
   ohne Höhenlinien blieben dort höhere Grate als bei Zeilen (an der Halbkugel 0,15 statt
   0,056 mm), die schnellere Zeit wäre nicht dasselbe Ergebnis.
+- **Im Winkel** (Richtung „winkel“, nur auf Wahl): Zeilen unter `winkel` Grad zu X – das Teil um
+  −winkel um Z gedreht, längs x gerechnet wie sonst (mit Höhenlinien), die Bahn zurückgedreht.
 - **Richtung:** längs x, längs y und die Spirale gerechnet, die schnellste zählt (Grundsatz 0). Im Zickzack
   Zeile für Zeile hin und zurück; zwischen nahen Enden gleitet er hinüber (LUFT über der
   Hüllfläche beider Zeilen dazwischen), sonst Rückzug im Eilgang. Lücken in einer Zeile, kürzer
@@ -62,7 +64,7 @@ Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -92,6 +94,8 @@ VORSCHAU_RASTER = 0.5  # mm – im Assistenten
 SPIRALE = "spirale"
 FLAECHE = "flaeche"  # Richtung: entlang der Fläche (Flowline)
 AEQUI = "aequidistant"  # Richtung: Ringe im gleichen Abstand im Raum (3D-Offset)
+WINKEL = "winkel"  # Richtung: Zeilen im Winkel `Schlichtwerte.winkel` zu X
+WINKEL_VORGABE = 45.0  # Grad
 ABSTAND_RUNDEN = 12  # höchstens so oft hin und zurück, bis das Abstandsfeld steht
 STUFE = 5.0  # mm – liegen die vier Rasterpunkte um eine Stelle weiter auseinander, springt dort
 # die Hüllfläche (die Kugel stößt an eine Wand): dort genau gerechnet (B-014); oben an einer
@@ -112,8 +116,9 @@ class Schlichtwerte:
     grathoehe: float = GRATHOEHE
     aufmass: float = 0.0  # bleibt auf den Flächen stehen
     richtung: str = (
-        "auto"  # „auto“ (die schnellste), „x“, „y“, „spirale“, „flaeche“, „aequidistant“
+        "auto"  # „auto“ (die schnellste), „x“, „y“, „spirale“, „flaeche“, „aequidistant“, „winkel“
     )
+    winkel: float = WINKEL_VORGABE  # Grad zu X – die Zeilen bei Richtung „winkel“
     grenzwinkel: float = GRENZWINKEL  # Grad – steiler: Höhenlinien; 0: nur Zeilen
     gleichlauf: bool = True  # Höhenlinien mit dem Material rechts (M3)
     sicherheit: float = vb.SICHERHEIT
@@ -143,6 +148,7 @@ class Schlichtbahn:
     umlaeufe: int = 0  # die Umläufe der Spirale
     flaeche: bool = False  # entlang der Fläche (dann `zeilen` die Kurven)
     aequidistant: bool = False  # Ringe im gleichen Abstand (dann `zeilen` die Ringe)
+    winkel: float = None  # Zeilen im Winkel: Grad zu X (dann `laengs_x` im gedrehten Teil)
 
 
 # --- Flächen --------------------------------------------------------------------------------
@@ -1176,6 +1182,8 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     """Die Bahn „3D-Schlichten“ (Schlichtbahn) über die Flächen `namen` von `form_teil` mit den
     Werten `werte`. ValueError mit einem Satz, wenn es nicht geht."""
     w = werte
+    if w.richtung == WINKEL:
+        return _im_winkel(form_teil, namen, w, toleranz)
     if w.form is None or w.form.radius <= 0:
         raise ValueError(tr("s3.fehler.form"))
     if w.grathoehe <= 0:
@@ -1245,3 +1253,32 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     if beste is None:
         raise ValueError(tr("s3.fehler.nichts"))
     return beste
+
+
+def _im_winkel(form_teil, namen, w, toleranz):
+    """Zeilen im Winkel `w.winkel` zu X: das Teil um −Winkel um Z gedreht, längs X gerechnet –
+    mit Höhenlinien, Maske und Rest wie sonst –, die Bahn zurückgedreht. 0° ist längs X, 90°
+    längs Y (gerechnet wie dort)."""
+    import FreeCAD
+
+    winkel = w.winkel % 180.0
+    if min(winkel, 180.0 - winkel) < 1e-6:
+        return replace(planen(form_teil, namen, replace(w, richtung="x"), toleranz), winkel=0.0)
+    if abs(winkel - 90.0) < 1e-6:
+        return replace(planen(form_teil, namen, replace(w, richtung="y"), toleranz), winkel=90.0)
+    gedreht = form_teil.copy()
+    gedreht.rotate(FreeCAD.Vector(), FreeCAD.Vector(0, 0, 1), -winkel)
+    bahn = planen(gedreht, namen, replace(w, richtung="x"), toleranz)
+    c, s = math.cos(math.radians(winkel)), math.sin(math.radians(winkel))
+
+    def zurueck(x, y):
+        return c * x - s * y, s * x + c * y
+
+    punkte = []
+    for p in bahn.punkte:
+        x, y = zurueck(p.x, p.y)
+        bogen = p.bogen
+        if bogen is not None:  # gedreht bleibt der Umlaufsinn
+            bogen = (*zurueck(bogen[0], bogen[1]), bogen[2])
+        punkte.append(replace(p, x=x, y=y, bogen=bogen))
+    return replace(bahn, punkte=punkte, winkel=winkel)

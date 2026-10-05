@@ -284,7 +284,11 @@ eben). Kein OCL.
    zur Fläche (`Form.mit_aufmass`); im Eilgang nur bis über das Rohteil.
    Gemessen: Kuppel Ø 40, 10 hoch, Kugel Ø 6 – 87 Zeilen, 3,5 min, 1,7 s
    Rechenzeit; im Quader −0,007 … +0,022 mm auf der Kuppel (`test_schlichten3d`,
-   `szenario_schlichten3d`). Offen: einseitig, Winkel, Bögen an den Umkehrpunkten;
+   `szenario_schlichten3d`). **Im Winkel** (P-2026-10-05-08, nur auf Wahl – Richtung „winkel“,
+   Eigenschaft „Winkel“, Vorgabe 45°): das Teil um −Winkel um Z gedreht, längs X gerechnet (mit
+   Höhenlinien, Maske und Rest wie sonst), die Bahn zurückgedreht; 0° und 90° sind längs X und
+   Y. „auto“ rechnet ihn nicht mit – was ohne Vorgabe gewinnt, bleibt. Kuppel, 30°: 4,39 min, 87
+   Zeilen, im Quader −0,008 … 0,020 mm. Offen: einseitig, Bögen an den Umkehrpunkten;
    „Z-konstant“ für die steilen Stellen (Punkt 4).
 4. **Z-konstant** (Höhenlinien) für steile Bereiche, **Steil/Flach**: über
    einem Grenzwinkel Höhenlinien, darunter Zeilen – in einer Operation.

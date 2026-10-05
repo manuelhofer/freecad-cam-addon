@@ -12,6 +12,27 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-08 schlichten3d-winkel
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Kümmer dich erstmal wieder um Werkzeugwege“, „ich meinte, dass du weiter
+  machst – oder sind alle 3D-Strategien fertig?“ Die acht des Katalogs sind gebaut; offen sind
+  Punkte in ihnen. Vorher die Bahnen des Testteils nachgesehen (neuer Job): keine Zappler; die
+  Luft im Schnittvorschub der Kontur und des letzten Rings beim Räumen ist das Aufmaß von
+  0,3 mm unter dem Raster des Materialstands (0,5 mm) – keine Luft.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py` (`WINKEL`, `Schlichtwerte.winkel`, `_im_winkel`,
+  `Schlichtbahn.winkel`), `camaddon/schlichten3d.py` (Richtung „winkel“, Eigenschaft „Winkel“),
+  `translations/de.json`, `en.json`, `tests/test_schlichten3d.py`,
+  `docs/spezifikation_strategien.md` (4.2 Punkt 3), `docs/STATUS_SNAPSHOT.md`, `package.xml`.
+
+### DONE
+- 3D-Schlichten: Zeilen im Winkel, nur auf Wahl.
+
+### TESTS
+- `test_schlichten3d`, `test_sprache` – OK.
+
 ## P-2026-10-05-07 bedienung-wege
 
 ### EINGELESEN

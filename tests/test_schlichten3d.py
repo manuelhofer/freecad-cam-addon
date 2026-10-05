@@ -121,6 +121,31 @@ drehung = sum(
     if math.hypot(a.x - b.x, a.y - b.y) < 2.0
 )
 pruefe(drehung < 0, f"entlang der Fläche gegen den Uhrzeigersinn ({drehung:.0f})")
+# Zeilen im Winkel (Richtung „winkel“, nur auf Wahl): ohne Höhenlinien laufen die Schnitte unter
+# 30° zu X; 0° ist längs X, 90° längs Y – dieselbe Bahn.
+im_winkel = s3.planen(teil, kugel, werte(richtung="winkel", winkel=30.0))
+nur_winkel = s3.planen(teil, kugel, werte(richtung="winkel", winkel=30.0, grenzwinkel=0.0))
+laengen = {}
+pv = nur_winkel.punkte
+for a, b in zip(pv, pv[1:], strict=False):
+    lang = math.hypot(b.x - a.x, b.y - a.y)
+    if not b.eilgang and lang > 0.5:
+        grad = round(math.degrees(math.atan2(b.y - a.y, b.x - a.x)) % 180.0)
+        laengen[grad] = laengen.get(grad, 0.0) + lang
+um_30 = sum(v for g, v in laengen.items() if abs(g - 30) <= 2)
+pruefe(
+    nur_winkel.winkel == 30.0 and um_30 > 0.8 * sum(laengen.values()),
+    f"im Winkel 30°: {um_30:.0f} von {sum(laengen.values()):.0f} mm",
+)
+pruefe(70 <= nur_winkel.zeilen <= 100, f"im Winkel: {nur_winkel.zeilen} Zeilen")
+pruefe(im_winkel.hoehenlinien > 0, "im Winkel ohne Höhenlinien (Steil/Flach)")
+for grad, gleich in ((0.0, nur_x), (90.0, nur_y), (180.0, nur_x)):
+    b_ = s3.planen(teil, kugel, werte(richtung="winkel", winkel=grad))
+    pruefe(
+        abs(b_.zeit - gleich.zeit) < 1e-9 and b_.laengs_x == gleich.laengs_x,
+        f"{grad}°: {b_.zeit:.3f} statt {gleich.zeit:.3f} min",
+    )
+print(ascii(f"im Winkel 30°: {im_winkel.zeit:.2f} min ({im_winkel.zeilen} Zeilen)"))
 try:
     s3.planen(teil, andere, werte())
 except ValueError as grund:
@@ -149,6 +174,7 @@ for name, geprueft in (
     ("längs x", nur_x),
     ("Spirale", spirale),
     ("äquidistant", aequi),
+    ("im Winkel 30°", im_winkel),
 ):
     q, soll = quader_nach(geprueft)
     xs, ys = np.meshgrid(q.x, q.y, indexing="ij")

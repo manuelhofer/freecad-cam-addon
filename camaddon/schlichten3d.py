@@ -38,7 +38,7 @@ from .sprache import tr
 
 GRUPPE = "Fräsen"
 GRUPPE_5ACHS = "5-Achs"
-RICHTUNGEN = ("auto", "x", "y", "spirale", "flaeche", "aequidistant")
+RICHTUNGEN = ("auto", "x", "y", "spirale", "flaeche", "aequidistant", "winkel")
 
 
 class Schlichten3D(PathOp.ObjectOp):
@@ -59,6 +59,7 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Richtung = list(RICHTUNGEN)
         obj.Richtung = "auto"
         obj.Grenzwinkel = sb.GRENZWINKEL
+        obj.Winkel = sb.WINKEL_VORGABE
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.DurchmesserDavor = 0.0  # 0: ganz schlichten; sonst Restschlichten
         obj.EckenradiusDavor = 0.0
@@ -89,6 +90,8 @@ class Schlichten3D(PathOp.ObjectOp):
             obj.SpielSchaft = wk.SPIEL_SCHAFT
         if "Grenzwinkel" in neu:
             obj.Grenzwinkel = 0.0  # gespeichert vor Steil/Flach: wie damals nur Zeilen
+        if "Winkel" in neu:
+            obj.Winkel = sb.WINKEL_VORGABE  # gilt nur mit der Richtung „winkel“
         if set(RICHTUNGEN) - set(obj.getEnumerationsOfProperty("Richtung")):
             richtung = str(obj.Richtung)
             obj.Richtung = list(RICHTUNGEN)  # gespeichert vor einer neuen Richtung: die Wahl dazu
@@ -105,6 +108,7 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyLength", "Aufmass", tr("s3.eigenschaft.aufmass")),
             ("App::PropertyEnumeration", "Richtung", tr("s3.eigenschaft.richtung")),
             ("App::PropertyAngle", "Grenzwinkel", tr("s3.eigenschaft.grenzwinkel")),
+            ("App::PropertyAngle", "Winkel", tr("s3.eigenschaft.winkel")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyInteger", "Zeilen", tr("s3.eigenschaft.zeilen")),
             ("App::PropertyInteger", "Hoehenlinien", tr("s3.eigenschaft.hoehenlinien")),
@@ -243,6 +247,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         vo.flaechen(obj),
         aufmass=float(obj.Aufmass),
         richtung=str(obj.Richtung),
+        winkel=float(obj.Winkel),
         grenzwinkel=float(obj.Grenzwinkel),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
         sicher=float(obj.SafeHeight),
@@ -282,6 +287,7 @@ def bahn_fuer(
     richtung="auto",
     grenzwinkel=sb.GRENZWINKEL,
     oben=None,
+    winkel=sb.WINKEL_VORGABE,
     sicher=None,
     sicherheit=vb.SICHERHEIT,
     vorschub=0.0,
@@ -308,6 +314,7 @@ def bahn_fuer(
         grathoehe=grathoehe,
         aufmass=aufmass,
         richtung=richtung,
+        winkel=winkel,
         grenzwinkel=grenzwinkel,
         sicherheit=sicherheit,
         schritt=schritt,
