@@ -2567,7 +2567,16 @@ class _Bleistift(_Strategie):
         return tr("ba.bs.einsatz.tooltip")
 
     def felder(self):
-        return (("aufmass", tr("ba.aufmass"), tr("ba.bs.aufmass.tooltip")),)
+        return (
+            ("aufmass", tr("ba.aufmass"), tr("ba.bs.aufmass.tooltip")),
+            ("breite", tr("ba.bs.breite"), tr("ba.bs.breite.tooltip")),
+        )
+
+    @staticmethod
+    def _bahnen(werkzeug, werte):
+        """Bahnen je Seite aus dem Feld „Breite je Seite“ (bleistift.bahnen_fuer)."""
+        form = ff.von_werkzeug(werkzeug) if werkzeug is not None else None
+        return bst.bahnen_fuer(werte.get("breite", 0.0), form)
 
     def werkzeug_passt(self, werkzeug):
         return werkzeug.art in self.ARTEN and ff.von_werkzeug(werkzeug) is not None
@@ -2593,6 +2602,7 @@ class _Bleistift(_Strategie):
             aufmass=werte["aufmass"],
             vorschub=werte.get("vorschub", 0.0),
             eintauchen=werte.get("eintauchen", 0.0),
+            bahnen=self._bahnen(werkzeug, werte),
         )
 
     def ergebnis_text(self, bahn, zeit):
@@ -2602,16 +2612,18 @@ class _Bleistift(_Strategie):
         return tr("ba.ergebnis_bs", kehlen=kehlen, laenge=f"{laenge} {einheit}", zeit=zeit)
 
     def lege_an(self, job, tc, werte, flaechen):
-        return bst.lege_an(job, tc, werte["aufmass"], flaechen=flaechen)
+        bahnen = bst.bahnen_fuer(werte.get("breite", 0.0), bst.vs.form_des_controllers(tc))
+        return bst.lege_an(job, tc, werte["aufmass"], flaechen=flaechen, bahnen=bahnen)
 
     def aendere(self, op, tc, werte, flaechen):
-        bst.aendere(op, tc, werte["aufmass"], flaechen=flaechen)
+        bahnen = bst.bahnen_fuer(werte.get("breite", 0.0), bst.vs.form_des_controllers(tc))
+        bst.aendere(op, tc, werte["aufmass"], flaechen=flaechen, bahnen=bahnen)
 
     def ist(self, op):
         return bst.ist_bleistift(op)
 
     def werte_von(self, op):
-        return {"aufmass": float(op.Aufmass)}
+        return {"aufmass": float(op.Aufmass), "breite": bst.breite_von(op)}
 
 
 class _Senken(_Strategie):

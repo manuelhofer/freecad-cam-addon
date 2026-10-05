@@ -359,8 +359,15 @@ eben). Kein OCL.
    10,005, 135 mm, 0,2 min; im Quader am Ring und an der Berührstelle der Kuppel fertig,
    nirgends ins Teil; die Halbkugel R 15 (am Fuß senkrecht) bei r 17,75; eine Kuppel ohne
    Platte: keine Kehle, ein Satz. Im Assistenten der Block „Bleistift“ nach dem
-   3D-Schlichten, den Haken setzt man selbst (`szenario_bleistift`). Offen: mehrere
-   Bahnen nebeneinander (Restschlichten mit dem kleineren Fräser, Punkt 8).
+   3D-Schlichten, den Haken setzt man selbst (`szenario_bleistift`). **Mehrere Bahnen**
+   (P-2026-10-05-10, nur auf Wahl – Eigenschaft „BahnenJeSeite“, „Seitenabstand“; im Assistenten
+   „Breite je Seite“ in mm, daraus die Bahnen aufgerundet): je Seite neben der Kehle, quer im
+   Zeilenabstand für 0,01 mm Grat – im Raum gemessen (an einer steilen Seite quer weniger weit:
+   ein Schritt mit dem Höhenunterschied, nachgerechnet), die Höhe genau an der geglätteten
+   Stelle; von außen zur Kehle, abwechselnd links und rechts, die Kehle zuletzt, dazwischen ein
+   kurzer Hub 2 mm über dem Höheren (statt über das Rohteil). Kuppel mit drei je Seite: auf der
+   Platte Ringe bei r 21,93 / 22,42 / 22,91, an der Kuppel im Raum 0,49 hinauf, 1,29 min (eine
+   Kehle 0,19), nirgends ins Teil (`test_bleistift`, `szenario_bleistift`).
 7. **Fläche entlang** (Flowline) – Zeilen folgen den Flächenkurven (UV);
    für Kegel, Rohre, Übergänge. Aufwand mittel bis groß. Gebaut (P-2026-10-02-03, 0.67.0)
    als vierte Richtung des 3D-Schlichtens („flaeche“): je gewählter Fläche die Kurven

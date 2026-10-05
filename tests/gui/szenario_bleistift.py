@@ -4,6 +4,7 @@
 # setzt man selbst. Angehakt: T3 vorgewählt, „→ 1 Kehle, 135 mm lang, etwa … min“ (der Ring am
 # Fuß der Kuppel, wo die Kugel Platte und Kuppel zugleich berührt). „Anlegen“: „3D-Schruppen T1“,
 # „3D-Schlichten T3“, „Bleistift T3“. „Auf der Maschine prüfen“: am Ende nirgends ins Teil.
+# Mit „Breite je Seite“ 1,5: vier Bahnen je Seite neben der Kehle, neun Ringe.
 import FreeCAD
 import FreeCADGui as Gui
 import Part
@@ -81,6 +82,18 @@ def schritte(h):
     h.pruefe(text.startswith("→ 1 Kehle, 13") and " mm lang, etwa " in text, f"Bleistift: {text!r}")
     h.pruefe(not bleistift.hinweis.text(), f"rot: {bleistift.hinweis.text()!r}")
     h.bild("1_bleistift", panel.form)
+    # Breite je Seite 1,5 mm: vier Bahnen je Seite im Abstand 0,49 (Grat 0,01) – neun Ringe.
+    bleistift.felder["breite"].setText("1,5")
+    yield from h.warte_auf(lambda: bleistift.ergebnis.text() != text, 180000)
+    yield from h.warte_auf(lambda: bleistift.vorschau is not None, 180000)
+    yield 800
+    breit = bleistift.vorschau
+    h.pruefe(
+        breit is not None and breit.bahnen == 9 and breit.laenge > 8 * 130.0,
+        f"Breite 1,5: {breit and breit.bahnen} Bahnen, {breit and breit.laenge:.0f} mm – "
+        f"{bleistift.ergebnis.text()!r}",
+    )
+    h.bild("1b_bleistift_breit", panel.form)
 
     # --- Anlegen ------------------------------------------------------------------------------
     h.pruefe(panel.accept() is True, "„Anlegen“ ging nicht")
@@ -92,7 +105,10 @@ def schritte(h):
         f"Operationen: {[o.Label for o in ops]}",
     )
     if ops:
-        h.pruefe(ops[-1].Linien == 1, f"Kehlen: {ops[-1].Linien}")
+        h.pruefe(
+            ops[-1].Linien == 1 and ops[-1].BahnenJeSeite == 4,
+            f"Kehlen: {ops[-1].Linien}, je Seite {ops[-1].BahnenJeSeite}",
+        )
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 800

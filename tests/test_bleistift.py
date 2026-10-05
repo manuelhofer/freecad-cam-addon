@@ -5,7 +5,9 @@
 # Platte und Kuppel mit 0,3 Aufmaß) nirgends ins Teil; am Ring ist die Platte fertig, an der
 # Kuppel dort, wo die Kugel sie berührt (r 19,15), auch. (b) Eine Halbkugel R 15 auf der Platte
 # (am Fuß senkrecht): der Ring bei r = √(18² − 3²) = 17,75. (c) Eine Kuppel ohne Platte: keine
-# Kehle – ein Satz. (d) Die Operation im Job: „Bleistift T3“, Art „bleistift“.
+# Kehle – ein Satz. (d) Die Operation im Job: „Bleistift T3“, Art „bleistift“. (a2) Drei Bahnen je
+# Seite: Ringe auf der Platte im Zeilenabstand, an der Kuppel im Raum gleich weit, die Kehle
+# zuletzt.
 import math
 import os
 import pathlib
@@ -93,6 +95,58 @@ beruehrt = (rr > 19.05) & (rr < 19.25)  # dort berührt die Kugel die Kuppel
 pruefe(np.max(rest[beruehrt]) < 0.1, f"an der Kuppel: {np.max(rest[beruehrt]):.3f}")
 fern = rr > soll_r + 3.5
 pruefe(np.all(np.abs(rest[fern] - 0.3) < 1e-9), "fern der Kehle angeschnitten")
+
+# --- (a2) Drei Bahnen je Seite: auf der Platte Ringe im Abstand nach außen, an der Kuppel im Raum
+# gleich weit hinauf; von außen zur Kehle, die Kehle zuletzt; nirgends ins Teil.
+abstand3 = bs.sb.zeilenabstand(form, bs.GRATHOEHE)
+bahn3 = bs.planen(teil, kuppel, werte(bahnen=3))
+pruefe(
+    bahn3.linien == 1 and bahn3.bahnen == 7 and bahn3.ringe == 7,
+    f"drei je Seite: {bahn3.linien} Kehlen, {bahn3.bahnen} Bahnen, {bahn3.ringe} Ringe",
+)
+laeufe, lauf = [], []
+for p in bahn3.punkte:
+    if p.eilgang:
+        if lauf:
+            laeufe.append(np.array(lauf))
+        lauf = []
+    else:
+        lauf.append((p.x, p.y, p.z))
+radien = [float(np.median(np.hypot(lf[:, 0] - 30, lf[:, 1] - 30))) for lf in laeufe]
+hoehen = [float(np.median(lf[:, 2])) for lf in laeufe]
+pruefe(len(laeufe) == 7 and abs(radien[-1] - soll_r) < 0.05, f"Kehle zuletzt: r {radien}")
+auf_platte = sorted(r_ for r_, z_ in zip(radien, hoehen, strict=True) if r_ > soll_r + 0.1)
+pruefe(
+    len(auf_platte) == 3
+    and all(abs(r_ - (soll_r + k * abstand3)) < 0.05 for k, r_ in enumerate(auf_platte, 1)),
+    f"auf der Platte r {auf_platte} statt Schritten von {abstand3:.3f}",
+)
+an_kuppel = sorted(
+    ((r_, z_) for r_, z_ in zip(radien, hoehen, strict=True) if r_ < soll_r - 0.1), reverse=True
+)
+schritte = [
+    math.dist(a_, b_) for a_, b_ in zip([(soll_r, 10.0)] + an_kuppel, an_kuppel, strict=False)
+]
+pruefe(
+    len(an_kuppel) == 3 and all(abs(s_ - abstand3) < 0.2 * abstand3 for s_ in schritte),
+    f"an der Kuppel im Raum {[round(s_, 3) for s_ in schritte]} statt {abstand3:.3f}",
+)
+pruefe(max(radien[0], radien[1]) > soll_r + 2.5 * abstand3 or min(radien[0], radien[1]) < r.min() - 1.0,
+       f"nicht von außen begonnen: {radien[:2]}")  # fmt: skip
+q3 = rm.Quader(0, 60, 0, 60, 0, 20.5, schritt=0.25)
+q3.h[:] = np.minimum(soll + 0.3, 20.5)
+for von, nach in zip(bahn3.punkte, bahn3.punkte[1:], strict=False):
+    stuecke = ps._stuecke(von, nach)
+    q3.fahre_stuecke([s_[0] for s_ in stuecke], [s_[1] for s_ in stuecke], form)
+rest3 = q3.h - soll
+pruefe(np.min(rest3) > -0.02, f"drei je Seite ins Teil: {np.min(rest3):.3f}")
+breiter = (rr > soll_r + 0.2) & (rr < soll_r + 2.5 * abstand3)  # neben der Kehle auf der Platte
+pruefe(np.max(rest3[breiter]) < 0.05, f"neben der Kehle: {np.max(rest3[breiter]):.3f}")
+print(
+    ascii(
+        f"drei je Seite: {bahn3.zeit:.2f} min (eine: {bahn.zeit:.2f}), r {[round(x, 2) for x in radien]}"
+    )
+)
 
 # --- (b) Die Halbkugel: am Fuß senkrecht ----------------------------------------------------------
 halb = Part.makeSphere(15, V(30, 30, 10)).common(Part.makeBox(60, 60, 20, V(0, 0, 10)))

@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-10 bleistift-bahnen
+
+### EINGELESEN
+- Offener Punkt im Katalog (Spezifikation Strategien 4.2 Punkt 6): mehrere Bahnen nebeneinander.
+
+### DATEIEN
+- `camaddon/bleistift_bahn.py` (`bahnen`, `seitlich`, `_daneben`, `_hub`, `_fahren` je Kehle),
+  `camaddon/bleistift.py` (Eigenschaften „BahnenJeSeite“, „Seitenabstand“, `bahnen_fuer`,
+  `breite_von`), `camaddon/gui_bearbeitung.py` (Feld „Breite je Seite“), `translations/de.json`,
+  `en.json`, `help/de|en/bearbeitung.html`, `tests/test_bleistift.py`,
+  `tests/gui/szenario_bleistift.py`, `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.192.4).
+
+### DONE
+- Bleistift mit Bahnen je Seite neben der Kehle, nur auf Wahl.
+
+### TESTS
+- `test_bleistift`, `test_sprache`, `test_hilfe`; Szenario `szenario_bleistift` – OK.
+
 ## P-2026-10-05-09 schlichten3d-einseitig
 
 ### EINGELESEN

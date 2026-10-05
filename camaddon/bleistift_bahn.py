@@ -18,6 +18,12 @@ dort, zwischen ihren Enden bleibt ein Rest. Der Bleistift fährt den Knick in ei
 - **Fahren:** Linie für Linie, die nächste zuerst (von ihrem näheren Ende, ein Ring ab der
   nächsten Stelle), im Eilgang über dem Rohteil hin, senkrecht hinab im Eintauchvorschub, auf
   der Linie im Vorschub, hinauf.
+- **Bahnen je Seite** (`bahnen`, Vorgabe 0 – nur die Kehle): daneben je Seite so viele Bahnen,
+  quer im Abstand `seitlich` (0: der Zeilenabstand des Fräsers bei der Grathöhe GRATHOEHE) – im
+  Raum gemessen: An einer steilen Seite rückt die nächste Bahn quer weniger weit, damit sie im
+  Raum nicht weiter weg liegt (_daneben). Von außen zur Kehle, abwechselnd links und rechts, die
+  Kehle zuletzt; zwischen zwei Bahnen einer Kehle ein kurzer Hub (SICHERHEIT über dem Höheren
+  der beiden Enden und der Hüllfläche dazwischen) statt bis über das Rohteil.
 
 Gerechnet in x, y, z des Jobs (bahn.Punkt). Läuft ohne Oberfläche.
 """
@@ -43,6 +49,7 @@ MINDESTLAENGE = 2.0  # mm – kürzere Linien fallen weg
 ABSTAND = 0.5  # mm – so dicht wird die Höhe auf der Linie genau gerechnet
 TOLERANZ_GERADE = 0.003  # mm – so weit darf ein ausgelassener Punkt von der Geraden liegen
 GLAETTEN = 2  # Zellen je Seite – über so viele wird die Linie gemittelt
+GRATHOEHE = 0.01  # mm – daraus der Abstand der Bahnen neben der Kehle, wenn keiner vorgegeben ist
 
 
 @dataclass
@@ -57,6 +64,8 @@ class Bleistiftwerte:
     raster: float = RASTER
     vorschub: float = 0.0  # mm/min – für die Zeit; 0: 1000
     eintauchen: float = 0.0
+    bahnen: int = 0  # je Seite so viele Bahnen neben der Kehle
+    seitlich: float = 0.0  # mm – ihr Abstand im Raum; 0: aus GRATHOEHE und der Form
 
 
 @dataclass
@@ -68,7 +77,8 @@ class Bleistiftbahn:
     laenge: float  # mm im Vorschub
     zeit: float  # Minuten (bahn.zeit)
     z_min: float
-    ringe: int = 0  # davon geschlossen
+    ringe: int = 0  # davon geschlossen (Bahnen, nicht Kehlen)
+    bahnen: int = 0  # Bahnen zusammen – mit denen neben den Kehlen
 
 
 def _verschoben(a, di, dj):
@@ -280,7 +290,8 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
     raster = sb._raster(netz_alle, netz_rest, geformt, box, w)
     schritt = float(raster.xs[1] - raster.xs[0])
     maske, versatz = knicke(raster.z, raster.gewaehlt, schritt)
-    linien = []
+    linien = []  # je Kehle die Bahnen in ihrer Reihenfolge: [(raum, geschlossen), …]
+    seitlich = w.seitlich if w.seitlich > 0 else sb.zeilenabstand(w.form, GRATHOEHE)
     for zellen, geschlossen in _linien(maske):
         i = np.array([c[0] for c in zellen])
         j = np.array([c[1] for c in zellen])
@@ -298,16 +309,75 @@ def planen(form_teil, namen, werte, toleranz=TOLERANZ_NETZ):
         z = huelle_an(netz_alle, geformt, dicht[:, 0], dicht[:, 1])
         if not np.all(np.isfinite(z)):
             continue
-        z = z + aufmass
-        raum = np.column_stack([dicht, z])
-        linien.append((raum[_vereinfacht3d(raum)], geschlossen))
+        raum = np.column_stack([dicht, z + aufmass])
+        bahnen = [(raum[_vereinfacht3d(raum)], geschlossen)]
+        if w.bahnen > 0:
+            seiten = [_daneben(dicht, z, geschlossen, s, seitlich, w.bahnen, netz_alle, geformt)
+                      for s in (1.0, -1.0)]  # fmt: skip
+            neben = []
+            for k in range(w.bahnen - 1, -1, -1):  # von außen zur Kehle
+                for seite in seiten:
+                    if k < len(seite):
+                        teil = np.column_stack([seite[k][:, :2], seite[k][:, 2] + aufmass])
+                        neben.append((teil[_vereinfacht3d(teil)], geschlossen))
+            bahnen = neben + bahnen
+        linien.append(bahnen)
     if not linien:
         raise ValueError(tr("bs.fehler.keine_kehle"))
-    return _fahren(linien, w)
+    return _fahren(linien, w, netz_alle, geformt, aufmass)
 
 
-def _fahren(linien, w):
-    """Die Linien abfahren, die nächste zuerst."""
+def _daneben(dicht, z, geschlossen, seite, seitlich, anzahl, netz, form):
+    """Die Bahnen neben einer Kehle auf einer Seite (`seite` +1: links der Laufrichtung, −1:
+    rechts): [Punkte (n, 3)] von innen nach außen, höchstens `anzahl`. Quer zur Linie (in der
+    Ebene) so weit, dass die nächste Bahn im Raum `seitlich` neben der vorigen liegt – an einer
+    steilen Seite quer weniger weit (ein Schritt mit dem Höhenunterschied, dann nachgerechnet).
+    Eine Bahn, an der der Fräser irgendwo nichts trifft, beendet die Seite."""
+    zug = np.vstack([dicht[-1:], dicht, dicht[:1]]) if geschlossen else dicht
+    tangente = np.gradient(zug, axis=0)
+    if geschlossen:
+        tangente = tangente[1:-1]
+    laenge = np.hypot(tangente[:, 0], tangente[:, 1])
+    laenge[laenge < 1e-12] = 1.0
+    normale = np.column_stack([-tangente[:, 1], tangente[:, 0]]) / laenge[:, None] * seite
+    weit = np.zeros(len(dicht))
+    z_vorher = np.asarray(z, dtype=float)
+    ergebnis = []
+    for _k in range(anzahl):
+        versuch = weit + seitlich
+        xy = dicht + normale * versuch[:, None]
+        z_versuch = huelle_an(netz, form, xy[:, 0], xy[:, 1])
+        if not np.all(np.isfinite(z_versuch)):
+            break
+        # Im Raum soll die Bahn `seitlich` neben der vorigen liegen: quer nur so weit, wie es
+        # bei diesem Anstieg dafür reicht.
+        dz = z_versuch - z_vorher
+        weit = weit + seitlich * seitlich / np.sqrt(seitlich * seitlich + dz * dz)
+        xy = _geglaettet(dicht + normale * weit[:, None], geschlossen)
+        z_neu = huelle_an(netz, form, xy[:, 0], xy[:, 1])  # genau dort, wo die Bahn liegt
+        if not np.all(np.isfinite(z_neu)):
+            break
+        ergebnis.append(np.column_stack([xy, z_neu]))
+        z_vorher = z_neu
+    return ergebnis
+
+
+def _hub(von, nach, w, netz, form, aufmass):
+    """Wie hoch der kurze Hub zwischen zwei Bahnen einer Kehle geht: SICHERHEIT über dem
+    Höheren der beiden Enden und der Hüllfläche dazwischen (fünf Stellen)."""
+    t = np.linspace(0.0, 1.0, 5)
+    x = von[0] + (nach[0] - von[0]) * t
+    y = von[1] + (nach[1] - von[1]) * t
+    unter = huelle_an(netz, form, x, y)
+    hoechstes = (
+        float(np.max(unter[np.isfinite(unter)])) + aufmass if np.isfinite(unter).any() else w.oben
+    )
+    return min(w.sicher, max(hoechstes, von[2], nach[2]) + w.sicherheit)
+
+
+def _fahren(linien, w, netz=None, form=None, aufmass=0.0):
+    """Die Kehlen abfahren, die nächste zuerst; je Kehle ihre Bahnen der Reihe nach (von außen
+    zur Kehle), dazwischen ein kurzer Hub, die nächste Bahn vom näheren Ende."""
     knapp = min(w.sicher, w.oben + w.sicherheit)
     offen = list(linien)
     ort = None
@@ -315,12 +385,14 @@ def _fahren(linien, w):
     laenge = 0.0
     z_min = math.inf
     ringe = 0
+    zaehlen = sum(len(gruppe) for gruppe in linien)
     while offen:
         if ort is None:
             k, umkehren, beginn = 0, False, 0
         else:
             beste = None
-            for n, (raum, geschlossen) in enumerate(offen):
+            for n, gruppe in enumerate(offen):
+                raum, geschlossen = gruppe[0]
                 abstand = np.hypot(raum[:, 0] - ort[0], raum[:, 1] - ort[1])
                 if geschlossen:
                     m = int(np.argmin(abstand))
@@ -332,24 +404,38 @@ def _fahren(linien, w):
                 if beste is None or kandidat < beste:
                     beste = kandidat
             _, k, umkehren, beginn = beste
-        raum, geschlossen = offen.pop(k)
-        if geschlossen:
-            raum = np.vstack([np.roll(raum, -beginn, axis=0), np.roll(raum, -beginn, axis=0)[:1]])
-            ringe += 1
-        elif umkehren:
-            raum = raum[::-1]
-        x0, y0, z0 = (float(v) for v in raum[0])
-        punkte.append(bn.Punkt(True, x0, y0, w.sicher if ort is None else knapp))
-        punkte.append(bn.Punkt(True, x0, y0, z0 + w.sicherheit))
-        punkte.append(bn.Punkt(False, x0, y0, z0, True))
-        for x, y, z in raum[1:]:
-            punkt = bn.Punkt(False, float(x), float(y), float(z))
-            laenge += bn.weg(punkte[-1], punkt)
-            punkte.append(punkt)
-        z_min = min(z_min, float(raum[:, 2].min()))
+        gruppe = offen.pop(k)
+        for nummer, (raum, geschlossen) in enumerate(gruppe):
+            if (
+                nummer
+            ):  # die nächste Bahn derselben Kehle: vom näheren Ende bzw. der nächsten Stelle
+                abstand = np.hypot(raum[:, 0] - ort[0], raum[:, 1] - ort[1])
+                beginn = int(np.argmin(abstand)) if geschlossen else 0
+                umkehren = not geschlossen and abstand[-1] < abstand[0]
+            if geschlossen:
+                gerollt = np.roll(raum, -beginn, axis=0)
+                raum = np.vstack([gerollt, gerollt[:1]])
+                ringe += 1
+            elif umkehren:
+                raum = raum[::-1]
+            x0, y0, z0 = (float(v) for v in raum[0])
+            if nummer:
+                letzter = punkte[-1]
+                hoch = _hub((letzter.x, letzter.y, letzter.z), (x0, y0, z0), w, netz, form, aufmass)
+                punkte.append(bn.Punkt(True, letzter.x, letzter.y, hoch))
+                punkte.append(bn.Punkt(True, x0, y0, hoch))
+            else:
+                punkte.append(bn.Punkt(True, x0, y0, w.sicher if ort is None else knapp))
+                punkte.append(bn.Punkt(True, x0, y0, z0 + w.sicherheit))
+            punkte.append(bn.Punkt(False, x0, y0, z0, True))
+            for x, y, z in raum[1:]:
+                punkt = bn.Punkt(False, float(x), float(y), float(z))
+                laenge += bn.weg(punkte[-1], punkt)
+                punkte.append(punkt)
+            z_min = min(z_min, float(raum[:, 2].min()))
+            ort = (punkte[-1].x, punkte[-1].y)
         letzter = punkte[-1]
         punkte.append(bn.Punkt(True, letzter.x, letzter.y, knapp))
-        ort = (letzter.x, letzter.y)
     punkte.append(bn.Punkt(True, punkte[-1].x, punkte[-1].y, w.sicher))
     zeit = bn.zeit(punkte, w.vorschub if w.vorschub > 0 else 1000.0, w.eintauchen or None)
-    return Bleistiftbahn(punkte, len(linien), laenge, zeit, z_min, ringe)
+    return Bleistiftbahn(punkte, len(linien), laenge, zeit, z_min, ringe, zaehlen)

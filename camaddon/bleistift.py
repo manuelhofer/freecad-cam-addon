@@ -13,6 +13,8 @@ zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operation
 Läuft ohne Oberfläche.
 """
 
+import math
+
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
@@ -59,6 +61,8 @@ class Bleistift(PathOp.ObjectOp):
             ("App::PropertyStringList", "Flaechen", tr("s3.eigenschaft.flaechen")),
             ("App::PropertyLength", "Aufmass", tr("s3.eigenschaft.aufmass")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
+            ("App::PropertyInteger", "BahnenJeSeite", tr("bs.eigenschaft.bahnen")),
+            ("App::PropertyLength", "Seitenabstand", tr("bs.eigenschaft.seitlich")),
             ("App::PropertyInteger", "Linien", tr("bs.eigenschaft.linien")),
             ("App::PropertyLength", "Laenge", tr("bs.eigenschaft.laenge")),
         ):
@@ -112,6 +116,8 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         sicherheit=float(obj.Sicherheitsabstand),
         vorschub=vorschub,
         eintauchen=eintauchen,
+        bahnen=max(0, int(getattr(obj, "BahnenJeSeite", 0) or 0)),
+        seitlich=float(getattr(obj, "Seitenabstand", 0.0) or 0.0),
     )
 
 
@@ -128,6 +134,8 @@ def bahn_fuer(
     eintauchen=0.0,
     toleranz=bb.TOLERANZ_NETZ,
     raster=bb.RASTER,
+    bahnen=0,
+    seitlich=0.0,
 ):
     """Die Bahn „Bleistift“ an den Kehlen der Flächen `flaechen`. ValueError mit einem Satz,
     wenn es nicht geht."""
@@ -146,6 +154,8 @@ def bahn_fuer(
         raster=raster,
         vorschub=vorschub,
         eintauchen=eintauchen,
+        bahnen=bahnen,
+        seitlich=seitlich,
     )
     return bb.planen(form_teil, list(flaechen), werte, toleranz)
 
@@ -163,7 +173,30 @@ def vorschau(job, modell, form, flaechen, **weiter):
     )
 
 
-def lege_an(job, tc, aufmass=0.0, name=None, flaechen=()):
+def bahnen_fuer(breite, form, seitlich=0.0):
+    """So viele Bahnen je Seite decken `breite` mm neben der Kehle ab – im Abstand `seitlich`
+    (0: aus der Grathöhe und der Form, wie bleistift_bahn); 0 bei Breite 0."""
+    if breite <= 0 or form is None:
+        return 0
+    abstand = seitlich if seitlich > 0 else bb.sb.zeilenabstand(form, bb.GRATHOEHE)
+    return max(1, int(math.ceil(breite / abstand - 1e-9)))
+
+
+def breite_von(obj):
+    """Wie breit die Bahnen je Seite neben der Kehle reichen (mm) – fürs Ändern im Assistenten."""
+    bahnen = int(getattr(obj, "BahnenJeSeite", 0) or 0)
+    if bahnen <= 0:
+        return 0.0
+    seitlich = float(getattr(obj, "Seitenabstand", 0.0) or 0.0)
+    if seitlich <= 0:
+        form = vs.form_des_controllers(obj.ToolController)
+        if form is None:
+            return 0.0
+        seitlich = bb.sb.zeilenabstand(form, bb.GRATHOEHE)
+    return round(bahnen * seitlich, 3)
+
+
+def lege_an(job, tc, aufmass=0.0, name=None, flaechen=(), bahnen=0):
     """Legt „Bleistift“ im Job an – ohne eigene Transaktion, die hält der Aufrufer. Die
     Endtiefe ist der tiefste Punkt der Flächen. Gibt die Operation zurück."""
     dokument = job.Document
@@ -180,6 +213,7 @@ def lege_an(job, tc, aufmass=0.0, name=None, flaechen=()):
     obj.CoolantMode = job.SetupSheet.CoolantMode
     pf._hoehen(obj, proxy, job)
     obj.Aufmass = aufmass
+    obj.BahnenJeSeite = max(0, int(bahnen))
     obj.Flaechen = list(flaechen)
     _endtiefe(obj, job)
     obj.Label = namen.eindeutig(
@@ -199,7 +233,7 @@ def _endtiefe(obj, job):
     s3op._endtiefe(obj, job)
 
 
-def aendere(obj, tc, aufmass=0.0, flaechen=None):
+def aendere(obj, tc, aufmass=0.0, flaechen=None, bahnen=None):
     """Gibt der Operation einen (anderen) Werkzeug-Controller und neue Werte – ohne eigene
     Transaktion; `flaechen` ohne bleibt. Der Name folgt dem Werkzeug, solange es der
     vorgeschlagene ist."""
@@ -208,6 +242,8 @@ def aendere(obj, tc, aufmass=0.0, flaechen=None):
     obj.ToolController = tc
     obj.OpToolDiameter = tc.Tool.Diameter
     obj.Aufmass = aufmass
+    if bahnen is not None:
+        obj.BahnenJeSeite = max(0, int(bahnen))
     if flaechen is not None and list(flaechen) != list(obj.Flaechen):
         obj.Flaechen = list(flaechen)
     job = getattr(obj.Proxy, "job", None)
