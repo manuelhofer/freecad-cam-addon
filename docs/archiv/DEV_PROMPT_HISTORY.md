@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-22 querachse-halten-nur-auf-ebenen
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Kannst du weiter arbeiten, bis ich mich melde?“ – die Bahnen weiter
+  glätten („wenn es an der Bahn noch Sachen zu verbessern gibt, ja gerne“).
+- An seinem Teil nachgesehen: Das Halten auf ebenen Flächen aus P-2026-10-05-19 griff auch dort,
+  wo der Fräser langsam kippt (0,1° je Punkt) – C hielt zwei, drei Punkte und sprang dann, Y
+  pendelte zurück. Versucht und verworfen: die oberen Schrupplagen auf der Hülle aus Teil und
+  Lagenzylinder planen – Sägezahn 667 → 599, C kehrte öfter um (245 statt 193).
+
+### DATEIEN
+- `camaddon/vierachs_quer.py` (`_halten`: mindestens 6 Punkte innerhalb von 0,1°, auf dem Raster
+  bis 0,05°), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.2).
+
+### DONE
+- Sein Teil: Sägezahn in Y beim Schruppen 667 → 91 (ursprünglich 3706), beim Schlichten
+  1156 → 972; Sätze unter 4 ms 686 → 306; C kehrt um 193 → 185. Nachgerechnet wie seine
+  Maschine: 0 mm² ins Teil, ≤ 2 mm² stehen.
+
+### TESTS
+- `test_vierachs_bahn`, `test_vierachs_schlichten`, `test_restmaterial`, `test_vierachs_plan`,
+  `test_vierachs_frei`, `test_vierachs_schlichten_op` – OK.
+
 ## P-2026-10-05-21 magazine-je-maschine
 
 ### EINGELESEN

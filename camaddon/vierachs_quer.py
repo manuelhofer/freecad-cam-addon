@@ -31,9 +31,12 @@ from . import vierachs_huelle as vh
 
 PSI_RASTER = 0.25  # Grad – darauf rastet die Richtung der Werkzeugachse ein
 # Grad – so wenig ändert sich ψ über eine ebene Fläche (die Vernetzung: an einer Abflachung
-# ±0,035°); dort hält die Rundachse genau (_halten), über mindestens HALTEN_PUNKTE Punkte.
+# ±0,035°, Punkt für Punkt); dort hält die Rundachse genau (_halten), über mindestens
+# HALTEN_PUNKTE Punkte. Auf einer flachen Rundung wandert ψ um 0,1° und mehr je Punkt – über so
+# viele Punkte nie weniger als HALTEN.
 HALTEN = 0.1
-HALTEN_PUNKTE = 3
+HALTEN_PUNKTE = 6
+HALTEN_RASTER = 0.05  # Grad – so nah am Raster rastet sie dort ein
 
 
 def stellungen(
@@ -105,9 +108,11 @@ def stellungen(
 
 
 def _halten(psi, psi_raster):
-    """ψ, wo es über mehrere Punkte um weniger als HALTEN schwankt (eine ebene Fläche – Manuel,
-    2026-10-03: „die lange Gerade … mit der Y-Achse fahren, ohne C zu bewegen“), genau auf einem
-    Wert: auf dem Raster, wenn er so nahe liegt, sonst ihrer Mitte. Sonst ψ, wie es ist."""
+    """ψ, wo es über mehrere Punkte nur um weniger als HALTEN rauscht, ohne zu wandern (eine
+    ebene Fläche – Manuel, 2026-10-03: „die lange Gerade … mit der Y-Achse fahren, ohne C zu
+    bewegen“), genau auf einem Wert: auf dem Raster, wenn er so nahe liegt (HALTEN_RASTER),
+    sonst ihrer Mitte. Auf einer flachen Rundung kippt der Fräser langsam – dort bleibt ψ, wie es
+    ist: Hielte C, sprünge es danach, und Y pendelte zurück. Sonst ψ, wie es ist."""
     psi = np.array(psi, dtype=float)
     n = len(psi)
     i = 0
@@ -119,7 +124,7 @@ def _halten(psi, psi_raster):
         if j - i + 1 >= HALTEN_PUNKTE:
             mitte = 0.5 * (unten + oben)
             gerastet = round(mitte / psi_raster) * psi_raster
-            psi[i : j + 1] = gerastet if abs(gerastet - mitte) < HALTEN else mitte
+            psi[i : j + 1] = gerastet if abs(gerastet - mitte) < HALTEN_RASTER else mitte
         i = j + 1
     return psi
 
