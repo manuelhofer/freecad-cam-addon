@@ -56,6 +56,14 @@ with a <a href="magazine.html">magazine</a> the “name in the control” where 
 <li><b>Comments</b> – before each section the name of the operation and the tool (“; Rotary
 roughing T1”), at the start the name of the job. Off: blocks only – some controls dislike long
 comments.</li>
+<li><b>Blank for the simulation</b> (Siemens) – the job's stock as WORKPIECE in the header,
+so the simulation on the control shows the right blank: on the mill a box
+“WORKPIECE(,"",,"BOX",240,Z top,Z bottom,ZB,X0,Y0,X1,Y1)”, on the lathe the bar
+“WORKPIECE(,,,"CYLINDER",192,Z front,Z back,ZB,Ø)” – 240 and 192: the dimensions absolute. On a
+mill with paths around a rotary axis it writes none. The WORKPIECE parameters changed with the
+versions of SINUMERIK Operate: enter a blank in the header of a new G-code program on your
+control and compare the line it writes with the add-on's – if it differs, enter the control's
+(with the placeholders) under “Blank”.</li>
 <li><b>Comments in ASCII only</b> – umlauts and characters such as Ø, –, · in comments
 replaced (ä → ae, Ø → D, – → -). Fanuc, Haas and Mach read programs in the ASCII character set
 and stop with “Illegal character” on others; on LinuxCNC as a precaution as well. Off on Siemens –

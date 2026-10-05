@@ -12,6 +12,30 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-13 siemens-workpiece
+
+### EINGELESEN
+- Manuel, 2026-10-05: „WORKPIECE muss doch mit rein!“; dazu: „Ich glaube nicht, dass die
+  Werkzeugbahn, die ausgegeben wird, das Bauteil herstellt … es plant in der Simulation alles weg“.
+  Nachgefahren: das Siemens-Programm seines Teils (Scheibe Ø 40, Zapfen Ø 15 bei 10) wie eine
+  Steuerung gelesen (X Durchmesser, Z, C mit ACP/ACN) und in Querschnitten nachgefahren – es
+  ergibt das Teil (Bild an Manuel). Vermutete Ursachen an der Maschine: der angetriebene Fräser
+  axial statt radial in der Werkzeugliste, Z0 (im Programm an der angeklickten Fläche, der Zapfen
+  ragt bis Z+20), das Rohteil der Simulation.
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`rohteil`, `rohteil_fraesen`, `rohteil_drehen`, `_rohteil_befehl`),
+  `camaddon/gui_programm.py`, `translations/de.json`, `en.json`, `help/de|en/programm.html`,
+  `tests/test_postprozessor.py`, `docs/spezifikation_steuerung.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.193.0).
+
+### DONE
+- Siemens WORKPIECE im Kopf (Quader bzw. Stange), Haken vorbelegt an.
+
+### TESTS
+- `test_postprozessor`, `test_sprache`, `test_hilfe`; Szenarien `szenario_programm`,
+  `szenario_programm_heidenhain` – OK.
+
 ## P-2026-10-05-12 vierachs-im-freien-schnell
 
 ### EINGELESEN

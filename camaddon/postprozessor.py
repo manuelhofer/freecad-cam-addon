@@ -190,6 +190,13 @@ class Steuerung:
     # Maschine endlos drehen (Maschineninfo.modulo).
     rundachse_plus: str = ""
     rundachse_minus: str = ""
+    # Das Rohteil für die Simulation der Steuerung (Manuel, 2026-10-05: „WORKPIECE muss doch mit
+    # rein!“) – aus dem Rohteil des Jobs: {z0} oben bzw. vorn, {z1} unten bzw. hinten, {zb} das
+    # Bearbeitungsmaß (hier {z1}), {x0} {y0} {x1} {y1} die Ecken des Quaders, {d} der Ø der
+    # Stange. Leer oder Haken aus: keins (Heidenhain schreibt sein BLK FORM selbst).
+    rohteil_fraesen: str = ""
+    rohteil_drehen: str = ""
+    rohteil: bool = True
     # „gcode“ oder „klartext“ (Heidenhain): Klartext schreibt der Postprozessor erst als G-Code und
     # übersetzt ihn am Schluss (klartext.uebersetzen) – ohne G93, Satznummern ab 0 immer.
     dialekt: str = "gcode"
@@ -213,6 +220,8 @@ BEFEHLSFELDER = (
     "kopf",
     "kopf_drehmaschine",
     "kopf_drehen",
+    "rohteil_fraesen",
+    "rohteil_drehen",
     "durchmesser_ein",
     "radius_ein",
     "ende",
@@ -263,6 +272,7 @@ HAKEN = (
     "kommentare",
     "nur_ascii",
     "satznummern",
+    "rohteil",
     "kuehlung",
     "wechselpunkt",
     "marken",
@@ -330,6 +340,11 @@ STEUERUNGEN = {
         # Moduloachse (Alarm 16830 sonst): absolut im Bereich, positiv bzw. negativ drehend.
         rundachse_plus="ACP({wert})",
         rundachse_minus="ACN({wert})",
+        # Rohteil (SINUMERIK Operate, „Rohteil definieren“): Typ, dann ein Bit-Wert – Bit 4/5:
+        # X/Y absolut, Bit 6: Länge Z absolut, Bit 7: Bearbeitungsmaß absolut (240 = alle,
+        # 192 = Z und ZB) –, dann Z0, Z1, ZB und die Maße.
+        rohteil_fraesen='WORKPIECE(,"",,"BOX",240,{z0},{z1},{zb},{x0},{y0},{x1},{y1})',
+        rohteil_drehen='WORKPIECE(,,,"CYLINDER",192,{z0},{z1},{zb},{d})',
         nur_ascii=False,  # SINUMERIK Operate zeigt Umlaute
         durchmesser_ein="DIAMON",
         radius_ein="DIAMOF",
@@ -590,6 +605,8 @@ def feld_text(feld):
             tr("pp.feld.kopf_drehmaschine.tooltip"),
         ),
         "kopf_drehen": (tr("pp.feld.kopf_drehen"), tr("pp.feld.kopf_drehen.tooltip")),
+        "rohteil_fraesen": (tr("pp.feld.rohteil_fraesen"), tr("pp.feld.rohteil_fraesen.tooltip")),
+        "rohteil_drehen": (tr("pp.feld.rohteil_drehen"), tr("pp.feld.rohteil_drehen.tooltip")),
         "durchmesser_ein": (tr("pp.feld.durchmesser_ein"), tr("pp.feld.durchmesser_ein.tooltip")),
         "radius_ein": (tr("pp.feld.radius_ein"), tr("pp.feld.radius_ein.tooltip")),
         "ende": (tr("pp.feld.ende"), tr("pp.feld.ende.tooltip")),
@@ -648,6 +665,7 @@ def haken_text(feld):
         "kommentare": (tr("pp.haken.kommentare"), tr("pp.haken.kommentare.erklaerung")),
         "nur_ascii": (tr("pp.haken.nur_ascii"), tr("pp.haken.nur_ascii.erklaerung")),
         "satznummern": (tr("pp.haken.satznummern"), tr("pp.haken.satznummern.erklaerung")),
+        "rohteil": (tr("pp.haken.rohteil"), tr("pp.haken.rohteil.erklaerung")),
         "kuehlung": (tr("pp.haken.kuehlung"), tr("pp.haken.kuehlung.erklaerung")),
         "wechselpunkt": (tr("pp.haken.wechselpunkt"), tr("pp.haken.wechselpunkt.erklaerung")),
         "marken": (tr("pp.haken.marken"), tr("pp.haken.marken.erklaerung")),
@@ -799,6 +817,26 @@ def _wort(s, adresse, zahl):
     return f"{adresse}{zahl}"
 
 
+def _rohteil_befehl(s, info, rohteil, abschnitte):
+    """Das Rohteil für die Simulation der Steuerung (Steuerung.rohteil_fraesen/_drehen) aus
+    `rohteil` ((x, y, z) unten, (x, y, z) oben – der Quader um das Rohteil des Jobs). An der
+    Drehmaschine die Stange längs Z (rund in X und Y, sonst keins); an einer Fräse mit Bahnen
+    um eine Rundachse keins – die Stange dort ist kein Quader."""
+    (x0, y0, z0), (x1, y1, z1) = rohteil
+    if info.drehmaschine:
+        if not s.rohteil_drehen or abs((x1 - x0) - (y1 - y0)) > 0.01:
+            return ""
+        werte = {"z0": z1, "z1": z0, "zb": z0, "d": x1 - x0}
+        return _fuellen(s.rohteil_drehen, **{k: _zahl(v) for k, v in werte.items()})
+    if not s.rohteil_fraesen:
+        return ""
+    for abschnitt in abschnitte:
+        if any(set(_befehl(b)[1]) & set(ROTATION) for b in abschnitt.befehle):
+            return ""
+    werte = {"z0": z1, "z1": z0, "zb": z0, "x0": x0, "y0": y0, "x1": x1, "y1": y1}
+    return _fuellen(s.rohteil_fraesen, **{k: _zahl(v) for k, v in werte.items()})
+
+
 def _modulo_wort(s, adresse, wert, davor):
     """„C4=ACN(270.000)“ – eine Moduloachse: die Position im Bereich 0 … unter 360°, die Vorlage
     nach der Drehrichtung der Bahn (`davor`: der fortlaufende Winkel davor; ohne: positiv)."""
@@ -844,6 +882,8 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
     if info.drehmaschine:
         zeilen.extend(_zeilen(s.kopf_drehen))
         zeilen.extend(_zeilen(s.durchmesser_ein if info.x_durchmesser else s.radius_ein))
+    if s.rohteil and rohteil is not None:
+        zeilen.extend(_zeilen(_rohteil_befehl(s, info, rohteil, abschnitte)))
     for glaetten in s.glaetten_an():
         zeilen.extend(_zeilen(_fuellen(glaetten.befehl, toleranz=_zahl(s.toleranz))))
         if glaetten.option:

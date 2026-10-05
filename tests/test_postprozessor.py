@@ -196,6 +196,51 @@ pruefe(
     ),
     "Hinweis bei einem Eilgang (dort ist die Richtung gleich)",
 )
+# Das Rohteil für die Simulation (Manuel, 2026-10-05: „WORKPIECE muss doch mit rein!“): an der
+# Fräse ein Quader, an der Drehmaschine die Stange – aus dem Rohteil des Jobs; Haken aus oder eine
+# andere Steuerung: keins; an der Fräse mit Bahnen um eine Rundachse auch keins.
+quader = ((-30.0, -20.0, 0.0), (30.0, 20.0, 25.0))
+mit_rohteil = pp.programm([tasche], pp.steuerung("siemens"), rohteil=quader).zeilen
+pruefe(
+    'WORKPIECE(,"",,"BOX",240,25.000,0.000,0.000,-30.000,-20.000,30.000,20.000)' in mit_rohteil
+    and mit_rohteil.index("G17 G71 G90 G40")
+    < mit_rohteil.index(
+        'WORKPIECE(,"",,"BOX",240,25.000,0.000,0.000,-30.000,-20.000,30.000,20.000)'
+    )
+    < min(i for i, z in enumerate(mit_rohteil) if z.startswith(("G0 ", "G1 "))),
+    f"Siemens Rohteil Fräse: {mit_rohteil[:8]}",
+)
+stange_box = ((-22.5, -22.5, -80.0), (22.5, 22.5, 21.0))
+dreh_rohteil = pp.programm([rundum], pp.steuerung("siemens"), dreh, "Welle", rohteil=stange_box)
+pruefe(
+    'WORKPIECE(,,,"CYLINDER",192,21.000,-80.000,-80.000,45.000)' in dreh_rohteil.zeilen,
+    f"Siemens Rohteil Drehmaschine: {dreh_rohteil.zeilen[:8]}",
+)
+befunde, _saetze = pp.nachlesen(dreh_rohteil, pp.steuerung("siemens"), dreh)
+pruefe(not befunde, f"Rohteil nachgelesen: {[(b.art, b.satz) for b in befunde]}")
+ohne_haken = pp.steuerung("siemens").ersetzt(rohteil=False)
+pruefe(
+    not any("WORKPIECE" in z for z in pp.programm([tasche], ohne_haken, rohteil=quader).zeilen),
+    "Rohteil trotz Haken aus",
+)
+pruefe(
+    not any(
+        "WORKPIECE" in z
+        for z in pp.programm([tasche], pp.steuerung("linuxcnc"), rohteil=quader).zeilen
+    ),
+    "Rohteil an LinuxCNC",
+)
+fraese_4 = pp.Maschineninfo("Fräse 4 Achsen", False, False, {"A": "A1"})
+rund_4 = dataclasses.replace(
+    rundum, befehle=[C("G0", {"X": 0.0, "Y": 0.0, "Z": 30.0, "A": 0.0}), C("G1", {"A": 90.0})]
+)
+pruefe(
+    not any(
+        "WORKPIECE" in z
+        for z in pp.programm([rund_4], pp.steuerung("siemens"), fraese_4, rohteil=quader).zeilen
+    ),
+    "Quader an der Fräse mit Rundachse",
+)
 haas = pp.programm([rundum], pp.steuerung("haas"), dreh, "Welle").zeilen
 pruefe("T101" in haas and "M154" in haas and "M133 P3000" in haas, f"Haas: {haas[:9]}")
 pruefe("G98" in haas and "G94" not in haas, "Haas: G98 statt G94 an der Drehmaschine")

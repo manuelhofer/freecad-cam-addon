@@ -47,6 +47,9 @@ GRUPPEN = (
             "kopf",
             "kopf_drehmaschine",
             "kopf_drehen",
+            "rohteil",
+            "rohteil_fraesen",
+            "rohteil_drehen",
             "durchmesser_ein",
             "radius_ein",
             "ende",
@@ -94,6 +97,7 @@ GRUPPEN = (
 )
 # Was nur an der Drehmaschine bzw. nur an der Fräse gilt – sonst nicht gezeigt.
 NUR_DREHEN = {
+    "rohteil_drehen",
     "durchmesser_ein",
     "radius_ein",
     "kopf_drehmaschine",
@@ -108,6 +112,7 @@ NUR_DREHEN = {
     "c_aus",
 }
 NUR_FRAESEN = {
+    "rohteil_fraesen",
     "tcpm",
     "tcpm_ein",
     "tcpm_aus",
@@ -126,6 +131,9 @@ NUR_FRAESEN = {
 # Was es im Heidenhain-Klartext nicht gibt (die Satznummern schreibt er immer, die Länge nimmt
 # TOOL CALL mit, G93 und die Bohrzyklen übersetzt er selbst; 3+2 dort gerechnet) – nicht gezeigt.
 NUR_GCODE = {
+    "rohteil",
+    "rohteil_fraesen",
+    "rohteil_drehen",
     "satznummern",
     "g93",
     "vorschub_zeit",
@@ -146,6 +154,8 @@ NUR_GCODE = {
 }
 # Befehle, die nur mit ihrem Haken gelten.
 HAKEN_VON = {
+    "rohteil_fraesen": "rohteil",
+    "rohteil_drehen": "rohteil",
     "laenge_wieder": "wechselpunkt",
     "wechselpunkt_mks": "wechselpunkt",
     "wechselpunkt_wks": "wechselpunkt",

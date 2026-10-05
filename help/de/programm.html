@@ -63,6 +63,14 @@ brechen bei anderen Zeichen mit „Illegal character“ ab; an LinuxCNC vorsicht
 Siemens aus – SINUMERIK Operate zeigt Umlaute.</li>
 <li><b>Satznummern</b> – N10, N20 … vor jedem Satz, nicht vor „%“, der Programmnummer und
 Kommentaren. Nötig sind sie nicht; manche Bediener springen damit im Programm.</li>
+<li><b>Rohteil für die Simulation</b> (Siemens) – im Kopf das Rohteil des Jobs als WORKPIECE,
+damit die Simulation an der Steuerung das richtige Rohteil zeigt: an der Fräse ein Quader
+„WORKPIECE(,"",,"BOX",240,Z oben,Z unten,ZB,X0,Y0,X1,Y1)“, an der Drehmaschine die Stange
+„WORKPIECE(,,,"CYLINDER",192,Z vorn,Z hinten,ZB,Ø)“ – 240 bzw. 192: die Maße absolut. An einer
+Fräse mit Bahnen um eine Rundachse schreibt es keins. Die Parameter von WORKPIECE haben sich
+mit den Versionen von SINUMERIK Operate geändert: Gib an deiner Steuerung im Kopf eines neuen
+G-Code-Programms ein Rohteil ein und vergleiche die Zeile, die sie schreibt, mit der des
+Addons – weicht sie ab, trag die der Steuerung (mit den Platzhaltern) unter „Rohteil“ ein.</li>
 <li><b>Programmanfang, Anfang an der Drehmaschine, Programmende</b> – die festen Zeilen:
 Maßsystem, Ebene (an der Drehmaschine G18), am Ende Spindel und Kühlung aus, M30.</li>
 <li><b>X im Durchmesser / Radius lesen</b> (Drehmaschine) – je nachdem, wie die Maschine X

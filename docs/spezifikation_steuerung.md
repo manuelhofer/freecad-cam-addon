@@ -557,3 +557,15 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   Bahnen des Addons drehen je Satz höchstens 90°); im Eilgang nicht – dort ist die Richtung gleich.
   Das Nachlesen liest `C4=ACN(…)` mit. Andere Steuerungen (Fanuc „Rollover“, Heidenhain) bleiben,
   wie sie sind, bis jemand dort eine Moduloachse meldet.
+- **P-2026-10-05-13 – Siemens WORKPIECE:** Manuel (2026-10-05): „WORKPIECE muss doch mit rein!“
+  (am 2026-10-04 noch „lass es raus“). Im Kopf das Rohteil des Jobs (`programm(rohteil=…)`, der
+  Quader um `job.Stock`): Fräse `WORKPIECE(,"",,"BOX",240,{z0},{z1},{zb},{x0},{y0},{x1},{y1})`,
+  Drehmaschine (Stange längs Z, rund in X und Y) `WORKPIECE(,,,"CYLINDER",192,{z0},{z1},{zb},{d})`;
+  an einer Fräse mit Bahnen um eine Rundachse keins. Haken „Rohteil für die Simulation“
+  (vorbelegt an), die Befehle änderbar. Hergeleitet aus der Programmieranleitung 840D sl
+  („Rohteil definieren“: WORKPIECE("<WP>","<RefP>","<NPV>","<Typ>",<Par5>…<Par12>), Par5
+  bitcodiert – Bit 4/5 X/Y absolut, Bit 6 Länge Z absolut, Bit 7 Bearbeitungsmaß absolut, Bit 12
+  Gegenspindel) und zwei Beispielen (828D `WORKPIECE(,,"","CYLINDER",192,2,-120,-100,90)`, 840D
+  `WORKPIECE(,,,"CYLINDER",0,0,-200,-150,100)`: Z0, Länge, Bearbeitungsmaß, Ø). An einer echten
+  Steuerung nicht geprüft – die Parameter änderten sich mit den Versionen von Operate; die Hilfe
+  sagt, wie man sie mit der Zeile vergleicht, die die Steuerung selbst schreibt.
