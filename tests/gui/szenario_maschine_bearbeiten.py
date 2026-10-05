@@ -8,8 +8,10 @@
 # (Manuel, 2026-09-29: „man müsste schon auch editieren können … die
 # verfahrwege“). Mit dem Haken „zählt im Durchmesser (Ø)“ steht der Verfahrweg
 # doppelt da (0 … Ø 400), das Gelenk behält den Radius (P-2026-09-30-54). Bei C4 steht unter
-# „endlos“ der Haken „dreht gegenläufig“ (Manuel, 2026-10-05: C drehte an seiner Maschine
-# andersherum als im Modell); angehakt zählt die Achse andersherum.
+# „endlos“ der Haken „dreht nach DIN 66217“, vorbelegt an (Manuel, 2026-10-05: C drehte an
+# seiner Maschine andersherum als im Modell; „der Haken muss raus, wenn nicht nach DIN gedreht
+# wird“). Noch ohne Werkstückaufnahme weiß das Addon nicht, ob C im Tisch sitzt – es zählt wie
+# das Gelenk; ohne Haken andersherum.
 import os
 import sys
 
@@ -103,7 +105,7 @@ def schritte(h):
         (s4.Drehzahl, s4.Leistung) == (4000, 7.5), f"S4: {s4.Drehzahl} U/min, {s4.Leistung} kW"
     )
 
-    # C4: unter „endlos“ der Haken „dreht gegenläufig“.
+    # C4: unter „endlos“ der Haken „dreht nach DIN 66217“, angehakt.
     from camaddon import verfahren as vf
 
     c4 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "C4")
@@ -113,20 +115,21 @@ def schritte(h):
     beschriftung = panel.details.formular.itemAt(2, QtGui.QFormLayout.LabelRole)
     h.pruefe(
         isinstance(haken, QtGui.QCheckBox)
-        and "gegenläufig" in beschriftung.widget().text()
+        and "nach DIN 66217" in beschriftung.widget().text()
+        and haken.isChecked()
         and c4.Geschwindigkeit == 100,
         f"C4: {type(haken).__name__} {beschriftung and beschriftung.widget().text()!r}, "
         f"{c4.Geschwindigkeit} °/s",
     )
     if isinstance(haken, QtGui.QCheckBox):
-        haken.setChecked(True)
+        h.bild("2a_c4_nach_din", panel.form)
+        haken.setChecked(False)
         yield 300
-        h.pruefe(c4.Gegenlaeufig, "Haken nicht übernommen")
+        h.pruefe(not c4.NachDin, "Haken nicht übernommen")
         kette = vf.Verfahren(asm).kette
         gelenk = next(a for a in kette.achsen if a.gelenk == c4.Gelenk)
         h.pruefe(vf.gegenlaeufig(gelenk), "die Achse zählt nicht andersherum")
-        h.bild("2a_c4_gegenlaeufig", panel.form)
-        haken.setChecked(False)
+        haken.setChecked(True)
         yield 300
 
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))

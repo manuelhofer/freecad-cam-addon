@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-15 rundachsen-nach-din
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Ja, mach das so, wie es normal ist, sonst passen die Ausgaben ja nicht“;
+  „es muss einstellbar bleiben … der Haken muss raus, wenn nicht nach DIN gedreht wird“; an der
+  Maschine: „er fräst das gewollte Bauteil weg“; „ich kann keinen Drehsinn ändern … pusch mal
+  schnell“.
+- Nachgemessen an allen Beispielmaschinen: Jede Rundachse im Tisch zählte wie ihr Gelenk –
+  rechtsherum um +X/+Y/+Z, gegen DIN 66217; die im Kopf stimmten. Sein Teil
+  (`test4achsbearbeitung.FCStd`, Y −13 … +27): beide Rundum-Operationen mit Drehsinn 1, also
+  C = −φ – gespiegelt.
+
+### DATEIEN
+- `camaddon/verfahren.py` (`gegenlaeufig`, `_gegen_das_gelenk`, `_din_richtungen`,
+  `_gelenk_vorzeichen`), `camaddon/maschine.py` (Haken „NachDin“ statt „Gegenlaeufig“),
+  `camaddon/gui_details.py`, `camaddon/vierachs_achsen.py` (Drehsinn ohne Maschine −1),
+  `camaddon/vierachs_operation.py`, `vierachs_schlichten.py`, `vierachs_plan.py`,
+  `vierachs_entgraten.py`, `camaddon/postprozessor.py` (dreht C bei falschem Drehsinn selbst um),
+  `camaddon/reichweite.py`, `translations/de.json`, `en.json`, `help/de|en/achsen.html`,
+  `tests/test_drehsinn_gegenlaeufig.py`, `test_vierachs_achsen.py`, `test_verfahren.py`,
+  `test_kinematik.py`, `test_vierachs_operation.py`, `test_vierachs_schlichten_op.py`,
+  `tests/gui/szenario_maschine_bearbeiten.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.193.2).
+
+### DONE
+- Rundachsen zählen nach DIN 66217, egal wie das Gelenk liegt: im Kopf dreht +A/+B/+C das
+  Werkzeug rechtsherum um +X/+Y/+Z, im Tisch das Werkstück andersherum (Drehmaschine: C von vorn
+  im Uhrzeigersinn). Haken „dreht nach DIN 66217“, vorbelegt an; aus: andersherum.
+- Ohne Maschine Drehsinn −1. „Programm schreiben“ dreht C einer Operation mit anderem Drehsinn
+  selbst um und sagt es; das Prüffenster nennt sie.
+
+### TESTS
+- `test_drehsinn_gegenlaeufig`, `test_vierachs_achsen`, `test_verfahren`, `test_kinematik`,
+  `test_schwenken`, `test_reichweite`, `test_abfahren`, `test_simultan`, `test_angestellt`,
+  `test_wegkippen`, `test_entgraten3d`, `test_beispielmaschine`, `test_maschine`, `test_kette`,
+  `test_vierachs_operation`, `test_vierachs_schlichten_op`, `test_vierachs_plan`,
+  `test_vierachs_entgraten`, `test_vierachs_flaechen`, `test_vierachs_bahn`, `test_postprozessor`,
+  `test_sprache` – OK. `test_flanke` schlug schon vorher fehl (liest `C=ACP(…)` nicht, seit
+  P-2026-10-05-11) – folgt.
+
 ## P-2026-10-05-14 rundachse-gegenlaeufig
 
 ### EINGELESEN

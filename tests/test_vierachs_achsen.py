@@ -30,11 +30,12 @@ def pruefe(bedingung, text):
 
 X, Y, Z = FreeCAD.Vector(1, 0, 0), FreeCAD.Vector(0, 1, 0), FreeCAD.Vector(0, 0, 1)
 
-# Ohne Maschine: wie bisher der Buchstabe; das Werkzeug bei A und B von oben, bei C aus X.
+# Ohne Maschine: wie bisher der Buchstabe; das Werkzeug bei A und B von oben, bei C aus X. Der
+# Drehsinn nach DIN 66217: Die Rundachse dreht das Werkstück linksherum um die Stange (−1).
 for buchstabe, soll, von in (("A", X, Z), ("B", Y, Z), ("C", Z, X)):
     achse = va.zugewiesen(buchstabe)
     pruefe(
-        (achse.buchstabe, achse.maschine, achse.drehsinn) == (buchstabe, "", 1)
+        (achse.buchstabe, achse.maschine, achse.drehsinn) == (buchstabe, "", -1)
         and achse.laengs == soll,
         f"{buchstabe} ohne Maschine: {achse}",
     )

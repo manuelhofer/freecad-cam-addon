@@ -69,7 +69,7 @@ WERTE = {
     ],
     ART_POSITIONIEREN: [
         ("Endlos", False),
-        ("Gegenlaeufig", False),
+        ("NachDin", False),
         ("Geschwindigkeit", False),  # leer: export.VORGABE_DREHGESCHWINDIGKEIT (D-14)
         ("Beschleunigung", False),
         ("Ruck", False),
@@ -130,7 +130,7 @@ def wert_text(eigenschaft):
         "Beschleunigung": tr("wert.beschleunigung"),
         "Ruck": tr("wert.ruck"),
         "Endlos": tr("wert.endlos"),
-        "Gegenlaeufig": tr("wert.gegenlaeufig"),
+        "NachDin": tr("wert.nach_din"),
         "Durchmesser": tr("wert.durchmesser"),
         "Geschwindigkeit": tr("wert.geschwindigkeit"),
         "Drehzahl": tr("wert.drehzahl"),
@@ -345,14 +345,19 @@ class Betriebsart(_Proxy):
                 ("App::PropertyFloat", "Home", tr("eigenschaft.home")),
                 ("App::PropertyBool", "WechselAn", tr("eigenschaft.wechsel_an")),
                 ("App::PropertyFloat", "Wechsel", tr("eigenschaft.wechsel")),
-                # Eine Rundachse, deren positive Werte das Teil andersherum drehen als das Gelenk
-                # in der Baugruppe (Manuel, 2026-10-05: „dreht an der Maschine definitiv in die
-                # falsche Richtung … macht gegenüber von der Geraden ein Loch“).
-                ("App::PropertyBool", "Gegenlaeufig", tr("eigenschaft.gegenlaeufig")),
                 # Nennleistung einer Spindel – für „Schruppwerte planen“ (Durchsicht D-20).
                 ("App::PropertyFloat", "Leistung", tr("eigenschaft.leistung")),
             ],
         )
+        # Dreht eine Rundachse nach DIN 66217 (verfahren.gegenlaeufig)? Vorbelegt an; aus, wenn
+        # die Maschine andersherum dreht (Manuel, 2026-10-05: „es muss einstellbar bleiben … der
+        # Haken muss raus, wenn nicht nach DIN gedreht wird“). 0.193.1 hatte stattdessen
+        # „Gegenlaeufig“ (gegen das Gelenk) – das fällt weg.
+        if "NachDin" not in objekt.PropertiesList:
+            objekt.addProperty("App::PropertyBool", "NachDin", "Werte", tr("eigenschaft.nach_din"))
+            objekt.NachDin = True
+        if "Gegenlaeufig" in objekt.PropertiesList:
+            objekt.removeProperty("Gegenlaeufig")
 
     @staticmethod
     def _nur_passende_werte_zeigen(objekt):

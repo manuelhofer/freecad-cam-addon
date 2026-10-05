@@ -553,7 +553,8 @@ class Maschineninfo:
     # Moduloachse: Steuerung.rundachse_plus/_minus.
     modulo: set = field(default_factory=set)
     # Buchstabe → Drehsinn der Rundachsen, die die Stange drehen (vierachs_achsen.von_maschine,
-    # mit dem Haken „gegenläufig“): Rechnet eine Rundum-Operation andersherum, ein Hinweis.
+    # mit dem Haken „dreht nach DIN 66217“): Rechnet eine Rundum-Operation andersherum – ohne
+    # Maschine als nach DIN (−1) –, ein Hinweis.
     drehsinn: dict = field(default_factory=dict)
 
 
@@ -924,10 +925,20 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
             hinweise.append(f"{abschnitt.name}: {abschnitt.hinweis}")
             if s.kommentare:
                 zeilen.append(_kommentar(s, abschnitt.hinweis))
+        umgedreht = ""  # die Rundachse, deren Werte das Programm umdreht
         if abschnitt.drehsinn:
             buchstabe, drehsinn = abschnitt.drehsinn
-            if info.drehsinn.get(buchstabe, drehsinn) != drehsinn:
-                satz = tr("pp.hinweis.drehsinn_anders", operation=abschnitt.name, achse=buchstabe)
+            soll = info.drehsinn.get(buchstabe, -1)  # ohne Maschine: nach DIN 66217
+            if soll != drehsinn:
+                # Die Bahn rechnet −Drehsinn · φ: mit dem Drehsinn der Maschine umgedreht stimmt
+                # sie (Manuel, 2026-10-05: „ich kann keinen Drehsinn ändern … pusch mal schnell“).
+                umgedreht = buchstabe
+                satz = tr(
+                    "pp.hinweis.drehsinn_anders",
+                    operation=abschnitt.name,
+                    achse=buchstabe,
+                    soll=soll,
+                )
                 hinweise.append(satz)
                 if s.kommentare:
                     zeilen.append(_kommentar(s, satz))
@@ -955,6 +966,10 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                 zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))
                 continue
         befehle = [_befehl(b) for b in befehle_roh]
+        if umgedreht:
+            for _name, werte in befehle:
+                if umgedreht in werte:
+                    werte[umgedreht] = -werte[umgedreht]
         gewechselt = False
         if abschnitt.werkzeug and (abschnitt.werkzeug != werkzeug or einstieg):
             if spindel_an is not None:

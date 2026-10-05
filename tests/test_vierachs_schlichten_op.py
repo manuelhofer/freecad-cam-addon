@@ -108,7 +108,9 @@ namen = [b.Name for b in befehle]
 pruefe(namen[2:5] == ["G0", "G0", "G93"] and namen[-1] == "G94", f"Befehle: {namen[:6]}")
 schnitte = [b for b in befehle if b.Name == "G1"]
 pruefe(all(b.Parameters.get("F", 0) > 0 for b in schnitte), "G1 ohne F")
-pruefe(min(b.Parameters["C"] for b in schnitte) < -3600 * 30, "C dreht nicht oft genug")
+pruefe(
+    max(b.Parameters["C"] for b in schnitte) > 3600 * 30, "C dreht nicht oft genug"
+)  # DIN: C = φ
 ueber = [b.Parameters["X"] for b in schnitte if -100 <= b.Parameters["Z"] <= 0]
 pruefe(min(ueber) >= 29.999 and max(ueber) <= 30.01, f"über dem Teil: {min(ueber)} … {max(ueber)}")
 # Hinten: die Mitte des Kugelfräsers 3,5 mm hinter dem Teil (Überlauf Radius + 0,5).

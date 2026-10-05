@@ -998,13 +998,16 @@ class Pruefung:
         for buchstabe in sorted(fremd):
             sammler.rundachse_fehlt(buchstabe, sorted(vorhanden))
         # Rechnet eine Rundum-Operation mit dem anderen Drehsinn als die Rundachse der Maschine
-        # (Haken „gegenläufig“), käme ihre Bahn an der Maschine gespiegelt heraus.
+        # (DIN 66217, Haken „dreht nach DIN 66217“), käme ihre Bahn an der Maschine gespiegelt
+        # heraus.
         buchstabe = str(getattr(op, "Rundachse", "") or "")
         drehsinn = getattr(op, "Drehsinn", None)
         if _ist_rundum(op) and drehsinn in (1, -1):
             soll = self._drehsinn(buchstabe)
             if soll is not None and soll != drehsinn:
-                sammler.hinweis(tr("rw.drehsinn_anders", operation=op.Label, buchstabe=buchstabe))
+                sammler.hinweis(
+                    tr("rw.drehsinn_anders", operation=op.Label, buchstabe=buchstabe, soll=soll)
+                )
         sammler.ende_operation()
 
     def _drehsinn(self, buchstabe):

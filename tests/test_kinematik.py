@@ -2,7 +2,8 @@
 # stellungen(punkt) und programm(stellungen) geben den Punkt zurück. An der
 # Beispiel-Fräse (Werkzeug 50 mm): X1 an der Grenze −250 heißt, die Spitze steht bei
 # X 250. An der Beispiel-Drehmaschine mit C (ohne TCPM): programm() bleibt der Punkt,
-# am_werkstueck() ist er um −C gedreht, rundachsen() sagt C.
+# am_werkstueck() ist er um +C gedreht – nach DIN 66217 dreht +C das Werkzeug rechtsherum um +Z
+# des Werkstücks (das Futter dreht dazu andersherum) –, rundachsen() sagt C.
 import os
 import sys
 
@@ -61,7 +62,7 @@ for punkt, c in [((30, 0, -10), 0.0), ((30, 0, -10), 90.0), ((22.5, 0, -40), -37
     if stellungen is None:
         continue
     pruefe(nah(k.programm(stellungen), punkt), f"programm {punkt}, C {c}")
-    soll = FreeCAD.Rotation(V(0, 0, 1), -c).multVec(V(*punkt))
+    soll = FreeCAD.Rotation(V(0, 0, 1), c).multVec(V(*punkt))
     pruefe(
         nah(k.am_werkstueck(stellungen), tuple(soll)),
         f"am Werkstück {k.am_werkstueck(stellungen)} statt {tuple(soll)} (C {c})",

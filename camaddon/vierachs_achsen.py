@@ -40,7 +40,10 @@ class Stangenachse:
     buchstabe: str  # so heißt die Rundachse im Programm: A, B oder C
     laengs: FreeCAD.Vector  # Stangenachse nach vorne, in den Achsen des Jobs
     maschine: str = ""  # die Maschine, von der sie kommt; leer: zugewiesen
-    drehsinn: int = 1  # +1: ein positiver Wert dreht das Teil rechtshändig um `laengs`
+    # +1: ein positiver Wert dreht das Teil rechtshändig um `laengs`. Nach DIN 66217 dreht die
+    # Rundachse der Stange das Werkstück linksherum (das Werkzeug dreht gegenüber dem Teil
+    # rechtsherum) – ohne Maschine −1.
+    drehsinn: int = -1
     quer: bool = True  # hat die Maschine eine Linearachse quer zur Stange (bei C das Y)?
 
 
@@ -74,7 +77,7 @@ def von_maschine(assembly, maschine, kette=None):
             continue  # eine Spindel, die nicht positionieren kann
         laengs = _nach_vorne(gerade(in_job.multVec(achse.richtung)))
         # Wohin dreht ein positiver Wert das Teil – um `laengs` oder andersherum?
-        plus = in_job.multVec(vf.plusrichtung(achse))
+        plus = in_job.multVec(vf.plusrichtung(achse, pruefung.kette))
         drehsinn = 1 if plus.dot(laengs) > 0 else -1
         achse_der_stange = Stangenachse(buchstabe, laengs, maschine.Label, drehsinn)
         quer = achsbuchstabe(laengs.cross(radial(achse_der_stange)))
