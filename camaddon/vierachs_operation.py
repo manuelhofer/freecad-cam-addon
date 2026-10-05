@@ -25,6 +25,7 @@ import Path
 import Path.Op.Base as PathOp
 
 from . import fraeserform as ff
+from . import freiwege as fw
 from . import namen
 from . import spindel as sp
 from . import vierachs_achsen as va
@@ -127,6 +128,7 @@ class RundumSchruppen(PathOp.ObjectOp):
                 self.horizFeed * 60.0,  # CAM führt mm/s
                 obj.QuerAufNull,
                 eintauchvorschub(self),
+                fw.freivorschub_fuer(self.job),  # im Freien schnell (vierachs_bahn._frei)
             )
         )
 

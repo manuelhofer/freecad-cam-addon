@@ -2316,7 +2316,11 @@ class VierachsPanel:
         _n, vorschub, _senkrecht = js.werte_im_job(
             self.schlichtfraeser(), self.schlichteinsatz(), self.job
         )
-        zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
+        zeit = (
+            _zeit_text(vb.dauer(bahn, vorschub, freivorschub=self._freivorschub()))
+            if vorschub > 0
+            else "?"
+        )
         if bahn.linien:
             text = tr("va.schlichten.ergebnis_linien", linien=f"{bahn.linien}", zeit=zeit)
         else:
@@ -2734,7 +2738,11 @@ class VierachsPanel:
         from .reichweite import weg_text
 
         _n, vorschub, _senkrecht = js.werte_im_job(self.planfraeser(), self.planeinsatz(), self.job)
-        zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
+        zeit = (
+            _zeit_text(vb.dauer(bahn, vorschub, freivorschub=self._freivorschub()))
+            if vorschub > 0
+            else "?"
+        )
         if getattr(bahn, "seiten", 0):
             n = bahn.bohrungen
             text = tr(
@@ -2992,7 +3000,11 @@ class VierachsPanel:
         _n, vorschub, _senkrecht = js.werte_im_job(
             self.entgratfraeser(), self.entgrateinsatz(), self.job
         )
-        zeit = _zeit_text(vb.dauer(bahn, vorschub)) if vorschub > 0 else "?"
+        zeit = (
+            _zeit_text(vb.dauer(bahn, vorschub, freivorschub=self._freivorschub()))
+            if vorschub > 0
+            else "?"
+        )
         if bahn.ausgelassen:
             text = tr(
                 "va.entgraten.ergebnis_ausgelassen",
@@ -3277,6 +3289,13 @@ class VierachsPanel:
         return (
             f'{html.escape(satz, quote=False)} <a href="werkzeug:{werkzeug.nummer}">{verweis}</a>'
         )
+
+    def _freivorschub(self):
+        """Der Freivorschub der Maschine des Jobs (freiwege) – für die Zeit der Vorschau: Wo die
+        Bahn durchs Freie fährt, fährt sie mit ihm (vierachs_bahn._frei)."""
+        from . import freiwege as fw
+
+        return fw.freivorschub_fuer(self.job) if self.job is not None else fw.FREIVORSCHUB
 
     def _maschinen_datei(self):
         """Die Datei der gewählten Maschine – "" ohne (oder ungespeichert)."""

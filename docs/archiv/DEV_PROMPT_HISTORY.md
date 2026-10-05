@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-12 vierachs-im-freien-schnell
+
+### EINGELESEN
+- Manuel, 2026-10-05: Scheibe Ø 40 mit Zapfen in der Stange Ø 40 – „er bearbeitet beim Schruppen
+  auch die D40 und beim Schlichten auch“; „Durchmesser 40 muss passen je nach Bearbeitung … es muss
+  ja für alle Teile funktionieren, also nicht pauschalisieren bitte“.
+
+### DATEIEN
+- `camaddon/vierachs_bahn.py` (`Punkt.frei`, `_frei`, `_material_oben`, Schruppen und Schlichten
+  in der Spirale, `befehle`/`dauer` mit `freivorschub`), `camaddon/vierachs_operation.py`,
+  `camaddon/vierachs_schlichten.py` (Freivorschub der Maschine), `camaddon/gui_vierachs.py` (die
+  Zeit mit ihm), `tests/test_vierachs_frei.py` (neu), `docs/spezifikation_vierachs.md` (V7),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.192.6).
+
+### DONE
+- Rundum schruppen und schlichten: im Freien mit dem Freivorschub, je Punkt gerechnet.
+
+### TESTS
+- `test_vierachs_frei` (neu), `test_vierachs_bahn`, `test_vierachs_schlichten`,
+  `test_vierachs_operation`, `test_vierachs_schlichten_op`; Szenario
+  `szenario_rundum_drehmaschine` – OK.
+
 ## P-2026-10-05-11 siemens-moduloachse
 
 ### EINGELESEN

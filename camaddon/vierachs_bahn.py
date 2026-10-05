@@ -71,6 +71,15 @@ befehle() macht daraus Path-Befehle: X, Y und Z der Spitze im Rahmen der
 Maschine – die Rundachse dreht das Teil darunter, so zeigt FreeCAD die Bahn –,
 die Rundachse mit ihrem Buchstaben und der Vorschub nach G93.
 
+Im Freien schnell (Manuel, 2026-10-05: eine Scheibe Ø 40 in der Stange Ø 40 – „er bearbeitet
+beim Schruppen auch die Ø 40 und beim Schlichten auch“; „nicht pauschalisieren“): Je Punkt wird
+gerechnet, ob dort noch Material steht – beim Schruppen in der Spirale, ob die Hüllfläche unter
+der Stange liegt; beim Schlichten in der Spirale, ob der Rest nach dem Schruppen (ohne Schruppen:
+die Stange) irgendwo unter dem Fräser über die Bahn reicht (_nicht_tiefer). Wo
+nicht, ist das Stück frei (Punkt.frei, _frei): zusammen mindestens freiwege.MINDEST mm lang, bis
+freiwege.VORLAUF mm vor dem nächsten Material – befehle() schreibt dort den Freivorschub der
+Maschine. Die Bahn bleibt, wo sie ist; nur schneller.
+
 Läuft ohne Oberfläche.
 """
 
@@ -93,6 +102,7 @@ UEBERLAUF_ZUGABE = 0.5  # mm – Überlauf = Abstechbreite + das
 ABSTECHBREITE = 3.0  # mm – wie vierachs_rohteil.ABSTECHBREITE, ohne Job
 RAND = 0.005  # mm – zum Aufmaß dazu, für Rundungen im Raster
 GLEICH = 1e-9  # mm – so wenig Unterschied gilt als derselbe Radius
+LEER = 1e-3  # mm – so knapp über dem Material gilt eine Stelle als frei (nichts weg)
 # So tief bliebe ein Hindernis zwischen zwei Zeilen im Abstand g höchstens unentdeckt, wenn nur
 # auf den Zeilen geprüft wird: g² ÷ (8 R). Mehr – ein großer Fräser mit großem ae – und auch
 # dazwischen wird geprüft, ob der Weg von Zeile zu Zeile frei ist (_zwischen; P-2026-10-02-30:
@@ -338,6 +348,7 @@ class Punkt:
     eintauchen: bool = False
     q: float = 0.0
     anteil: float = 1.0  # so viel vom Vorschub (die Nut in voller Breite: weniger)
+    frei: bool = False  # hierher durchs Freie: mit dem Freivorschub (_frei)
 
 
 @dataclass
@@ -496,10 +507,17 @@ def schruppen(netz, laengs, radial, werte, schritt_a=vh.SCHRITT_A, schritt_phi=v
         return Bahn(punkte, lagen, r_min, hinten_frei)
     versatz = 0  # die Spirale einer Lage beginnt, wo die letzte endete
     for lage in range(1, lagen + 1):
-        r = np.maximum(boden(versatz), w.stange_radius - lage * w.zustellung)
+        unten = boden(versatz)
+        r = np.maximum(unten, w.stange_radius - lage * w.zustellung)
         phi = drehung * (versatz + k) * schritt_phi
-        for i in _knicke(r, int(round(HOECHSTENS_GRAD / schritt_phi)), a):
-            punkte.append(Punkt(False, float(a[i]), float(r[i]), float(phi[i])))
+        # Frei, wo die Hüllfläche nicht unter der Stange liegt: Dort steht nie etwas. (Dass die
+        # Lage davor schon bis auf die Hüllfläche kam, reicht nicht – an steilen Flanken lässt
+        # die Spirale bis 0,7 mm stehen, nachgefahren im Modell der Stange.)
+        frei = _frei(a, r, phi, unten >= w.stange_radius - LEER)
+        bleiben = set(_knicke(r, int(round(HOECHSTENS_GRAD / schritt_phi)), a).tolist())
+        bleiben.update(np.flatnonzero(frei[:-1] != frei[1:]).tolist())
+        for i in sorted(bleiben):
+            punkte.append(Punkt(False, float(a[i]), float(r[i]), float(phi[i]), frei=bool(frei[i])))
         versatz += int(k[-1])
         punkte.append(Punkt(True, a_ende, sicher, float(phi[-1])))
         punkte.append(Punkt(True, a_anfang, sicher, float(phi[-1])))
@@ -1115,7 +1133,8 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         a, r, winkel, t, _ = _verfeinert(
             netz, laengs, radial, form, w, a, r, winkel, teil_hinten, teil_vorne
         )
-        _spirale(punkte, a, r, winkel, 0, len(a) - 1, sicher, abstand, drehung, t)
+        frei = _frei(a, r, winkel, r >= _material_oben(w, form, a, winkel) - LEER)
+        _spirale(punkte, a, r, winkel, 0, len(a) - 1, sicher, abstand, drehung, t, frei)
         r_min = float(np.min(r))
     punkte.append(Punkt(True, a_anfang, sicher, punkte[-1].phi))
     return Schlichtbahn(
@@ -1127,6 +1146,17 @@ def schlichten(netz, laengs, radial, werte, schritt_phi=SCHRITT_PHI_SCHLICHTEN):
         rest_ueber,
         querachse=quer,
     )
+
+
+def _material_oben(w, form, a, winkel):
+    """Wie hoch die Spitze an den Punkten (a, Winkel in Grad) stehen muss, damit der Fräser das
+    Material vor dem Schlichten gerade berührt: der Rest nach dem Schruppen (_nicht_tiefer),
+    ohne ihn – und außerhalb seines Rasters – die Stange."""
+    a = np.asarray(a, dtype=float)
+    if w.rest is None:
+        return np.full(len(a), float(w.stange_radius))
+    oben = _nicht_tiefer(w.rest, form, 0.0, a, np.radians(np.asarray(winkel, dtype=float)))
+    return np.where(np.isfinite(oben), oben, float(w.stange_radius))
 
 
 def _rest_ueber(w, form, r, a, phi):
@@ -1444,11 +1474,12 @@ def _verfeinert_je_fahrt(netz, laengs, radial, form, w, fahrten, teil_hinten, te
     return list(zip(*(np.split(x, grenzen) for x in (a, r, winkel, t)), strict=True))
 
 
-def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1, t=None):
+def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1, t=None, frei=None):
     """Hängt das Stück von..bis der Spirale an `punkte`: im Eilgang über den Anfang, hinein,
     die Spirale mit Sehnenfehler und zusammengefasst, radial hinaus. Der Winkel zählt weiter,
     wo die Rundachse steht – sie dreht nicht zurück (`drehung`: −1, wenn er fällt). `t`: mit
-    Zwischenpunkten (_verfeinert) die gebrochene Nummer je Punkt."""
+    Zwischenpunkten (_verfeinert) die gebrochene Nummer je Punkt; `frei` je Punkt (_frei): das
+    Stück dorthin durchs Freie."""
     weiter = punkte[-1].phi
     if drehung > 0:
         versatz = 360.0 * math.ceil((weiter - winkel[von]) / 360.0 - 1e-9)
@@ -1461,9 +1492,22 @@ def _spirale(punkte, a, r, winkel, von, bis, sicher, abstand, drehung=1, t=None)
     if anfahren != punkte[-1]:
         punkte.append(anfahren)
     ringe = np.flatnonzero(_a_knicke(a[von : bis + 1], teil_t)) + 1
-    for i in _zusammengefasst(stueck, BAHN_TOLERANZ, abstand, ringe.tolist(), teil_t):
+    fest = ringe.tolist()
+    teil_frei = None
+    if frei is not None:
+        teil_frei = np.asarray(frei[von : bis + 1], dtype=bool)
+        fest += np.flatnonzero(teil_frei[:-1] != teil_frei[1:]).tolist()  # die Wechsel bleiben
+    for i in _zusammengefasst(stueck, BAHN_TOLERANZ, abstand, sorted(set(fest)), teil_t):
         j = von + i
-        punkte.append(Punkt(False, float(a[j]), float(stueck[i]), float(winkel[j] + versatz)))
+        punkte.append(
+            Punkt(
+                False,
+                float(a[j]),
+                float(stueck[i]),
+                float(winkel[j] + versatz),
+                frei=bool(teil_frei[i]) if teil_frei is not None and i > 0 else False,
+            )
+        )
     punkte.append(Punkt(True, float(a[bis]), sicher, float(winkel[bis] + versatz)))
 
 
@@ -1885,6 +1929,29 @@ def _hinten_gerade(huelle, teil_hinten):
     return vh.Huelle(huelle.a, huelle.phi, r)
 
 
+def _frei(a, r, phi, leer):
+    """Je Punkt i: Ist das Stück dorthin frei (Punkt.frei)? `leer` je Punkt: steht dort nichts
+    mehr über der Spitze? Frei ist ein Stück zwischen zwei leeren Punkten in einem Lauf, der
+    zusammen mindestens freiwege.MINDEST mm lang ist – bis freiwege.VORLAUF mm vor seinem Ende:
+    Davor bremst die Steuerung auf den Schnittvorschub (wie bei den Strategien im Quader)."""
+    from . import freiwege as fw
+
+    a, r, phi = (np.asarray(x, dtype=float) for x in (a, r, phi))
+    frei = np.zeros(len(a), dtype=bool)
+    if len(a) < 2:
+        return frei
+    mitte = np.maximum((r[1:] + r[:-1]) / 2, 0.0)
+    laenge = np.sqrt(np.diff(a) ** 2 + np.diff(r) ** 2 + (mitte * np.radians(np.diff(phi))) ** 2)
+    leer = np.asarray(leer, dtype=bool)
+    for von, bis in _stuecke(leer[1:] & leer[:-1]):
+        lauf = laenge[von : bis + 1]
+        if float(lauf.sum()) < fw.MINDEST:
+            continue
+        bis_zum_ende = np.cumsum(lauf[::-1])[::-1] - lauf  # vom Ende des Stücks bis zum Material
+        frei[von + 1 : bis + 2] = bis_zum_ende >= fw.VORLAUF
+    return frei
+
+
 def _knicke(r, abstand, a=None, phi=None):
     """Die Stellen der Spirale, die bleiben: Anfang, Ende, wo der Radius sich ändert, wo ein
     Ring beginnt oder endet (`a` ändert dort seine Steigung), wo die Rundachse umkehrt
@@ -1910,7 +1977,15 @@ def _a_knicke(a, t=None):
 
 
 def befehle(
-    bahn, laengs, radial, buchstabe, drehsinn, vorschub, quer_auf_null=True, eintauchen=None
+    bahn,
+    laengs,
+    radial,
+    buchstabe,
+    drehsinn,
+    vorschub,
+    quer_auf_null=True,
+    eintauchen=None,
+    freivorschub=None,
 ):
     """Die Bahn als Path-Befehle.
 
@@ -1924,6 +1999,7 @@ def befehle(
     deshalb steht hier F ÷ 60. `quer_auf_null`: die Achse quer (bei C das Y) am
     Anfang auf 0, damit das Werkzeug auf der Mitte steht. `eintauchen`: der Vorschub
     (mm/min) zu Punkten, an denen der Fräser senkrecht eintaucht; ohne: `vorschub`.
+    `freivorschub` (mm/min): zu freien Punkten (Punkt.frei); ohne: wie die anderen.
     """
     import Path
 
@@ -1968,7 +2044,7 @@ def befehle(
             if weg < 1e-6:
                 continue
             werte = lage(punkt)
-            f = (eintauchen if punkt.eintauchen and eintauchen else vorschub) * punkt.anteil
+            f = _vorschub_zu(punkt, vorschub, eintauchen, freivorschub)
             werte["F"] = f_vorher = _anderes_f(f / weg / 60.0, f_vorher)
             ergebnis.append(Path.Command("G1", werte))
         vorher = punkt
@@ -2011,12 +2087,19 @@ def _weg(von, nach):
     return math.hypot(laengs, sehne)
 
 
-def dauer(bahn, vorschub, eintauchen=None):
-    """So lange fährt die Bahn im Vorschub (Minuten) – ohne Eilgänge; `eintauchen` wie bei
-    befehle()."""
+def _vorschub_zu(punkt, vorschub, eintauchen=None, freivorschub=None):
+    """Der Vorschub (mm/min) zum Punkt: frei der Freivorschub, eintauchend der Eintauchvorschub,
+    sonst der Vorschub – mal Punkt.anteil (nicht im Freien)."""
+    if punkt.frei and freivorschub:
+        return freivorschub
+    return (eintauchen if punkt.eintauchen and eintauchen else vorschub) * punkt.anteil
+
+
+def dauer(bahn, vorschub, eintauchen=None, freivorschub=None):
+    """So lange fährt die Bahn im Vorschub (Minuten) – ohne Eilgänge; `eintauchen` und
+    `freivorschub` wie bei befehle()."""
     zeit = 0.0
     for von, nach in zip(bahn.punkte, bahn.punkte[1:], strict=False):
         if not nach.eilgang:
-            f = (eintauchen if nach.eintauchen and eintauchen else vorschub) * nach.anteil
-            zeit += _weg(von, nach) / f
+            zeit += _weg(von, nach) / _vorschub_zu(nach, vorschub, eintauchen, freivorschub)
     return zeit

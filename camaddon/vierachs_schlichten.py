@@ -33,6 +33,7 @@ import Path
 import Path.Op.Base as PathOp
 
 from . import fraeserform as ff
+from . import freiwege as fw
 from . import namen
 from . import restmaterial as rm
 from . import spindel as sp
@@ -156,6 +157,7 @@ class RundumSchlichten(PathOp.ObjectOp):
                 self.horizFeed * 60.0,  # CAM führt mm/s
                 obj.QuerAufNull,
                 vo.eintauchvorschub(self),
+                fw.freivorschub_fuer(self.job),  # im Freien schnell (vierachs_bahn._frei)
             )
         )
 

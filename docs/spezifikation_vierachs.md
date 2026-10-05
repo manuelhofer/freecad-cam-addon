@@ -1331,6 +1331,22 @@ die Abstände gelten für beide.
   Bahn in Blöcken zu 60 Stücken über dem Abtrag der Stange gefahren – ohne Abtrag beim Schruppen
   1 % der Vorschubzeit (0,5 von 41 min), beim Schlichten 3 % (5,4 von 162 min, vor allem der
   Überlauf vorn und hinten). Überspringen lohnt kaum.
+- *Im Freien schnell (P-2026-10-05-12; Manuel, 2026-10-05):* Eine Scheibe Ø 40 × 10 mit Zapfen
+  Ø 15 × 20 (10 neben der Mitte) in der Stange Ø 40 – „er bearbeitet beim Schruppen auch die Ø 40
+  und beim Schlichten auch“, „nicht pauschalisieren“. Jede Lage des Schruppens ist eine Spirale
+  über die ganze Länge; über der Scheibe hob sie auf die Hüllfläche plus Aufmaß (r 20,3) – über
+  der Stange, 6 m im Vorschub ohne Material. Jetzt je Punkt gerechnet (`vierachs_bahn._frei`,
+  `Punkt.frei`): beim Schruppen frei, wo die Hüllfläche nicht unter der Stange liegt; beim
+  Schlichten, wo der Rest nach dem Schruppen (`_nicht_tiefer`, ohne Schruppen die Stange) unter
+  dem Fräser nirgends über die Bahn reicht. Freie Läufe ab 5 mm mit dem Freivorschub der Maschine
+  (freiwege), die letzten 2 mm vor dem Material langsam; die Bahn bleibt, wo sie ist. Verworfen:
+  „frei, wo die Lage davor schon bis auf die Hüllfläche kam“ – im Modell der Stange nachgefahren
+  ließ die Spirale an den Flanken des Zapfens bis 0,7 mm stehen. Gemessen (Vorschub 1000 bzw. 800,
+  Freivorschub 10 m/min): Scheibe in Ø 40 Schruppen 10,7 → 5,3 min, Schlichten 9,0 → 4,9 min; in
+  Ø 45 unverändert (der Ø 40 wird geschlichtet); Welle Ø 50 mit Absatz in Ø 50 Schruppen 4,8 →
+  2,1, Schlichten 18,0 → 6,7 min; in Ø 60 unverändert. Kein freier Lauf nimmt im Modell etwas weg
+  (`test_vierachs_frei`). Noch nicht: die Zeilen (gewählte Flächen), die Querachse und die Linien
+  längs.
 - *Klickweg:* Schritt 4 zeigt die Zeiten; ein zweiter Durchlauf auf dem Job
   beginnt bei Schritt 2.
 
