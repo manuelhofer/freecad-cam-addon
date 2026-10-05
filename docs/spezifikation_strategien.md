@@ -322,6 +322,16 @@ eben). Kein OCL.
    schnellere Zeit wäre nicht dasselbe Ergebnis. Gemessen (`test_schlichten3d`): die
    Kuppel 3,97 statt 4,51 min (45 Umläufe, im Quader −0,007 … 0,024 mm), die Halbkugel
    mit Steil/Flach 3,69 statt 4,2 min bei 0,026 mm an der Flanke.
+   **Versuch zum Besprechen (2026-10-05): Höhenlinien als Rampe.** Statt jede Höhe einzeln zu
+   umfahren und senkrecht auf die nächste zu setzen (die Absätze liegen übereinander – eine Naht
+   an der Wand), sinkt der Fräser im Umlauf stetig von Ring k auf Ring k+1: z gleichmäßig, die
+   Lage auf der Strecke zwischen beiden Ringen dort, wo die Hüllfläche genau diese Höhe hat (nie
+   darunter); oben ein voller Ring, unten einer. Nur wo jede Höhe ein geschlossener Ring ist
+   (Mulde, Zapfen); zerfällt eine Höhe in Stücke, bliebe es dort bei Höhenlinien. Gemessen an der
+   Kugelmulde R 12,5 (Kugel Ø 6, Grat 0,01, 45°): 1,06 statt 1,01 min, 1 statt 27 senkrechte
+   Absätze, Rest an der Wand gleich (senkrecht gemessen 0,038 … 0,052), am obersten Rand 0,087
+   statt 0,068 (dort ist die Hüllfläche unruhig, wo die Kugel die Kante berührt). Bild:
+   `rampe_mulde_vergleich.png` (an Manuel). Nicht gebaut – Entscheidung bei Manuel.
 5. **Äquidistant** (3D-Offset, gleichbleibende Grathöhe auf jeder Neigung) –
    die feinste Schlichtstrategie. Aufwand groß; nach 3 und 4. Gebaut (P-2026-10-02-04,
    0.68.0) als fünfte Richtung des 3D-Schlichtens („aequidistant“): Auf der Hüllfläche im
@@ -342,8 +352,10 @@ eben). Kein OCL.
    runden Ecken bis 0,088 mm in der Wand. Gemessen (Kugel Ø 6, Grathöhe 0,01, 796 mm/min): Kuppel – 51
    Ringe, 5,07 min (Fläche entlang 4,29 bleibt), auf der Kuppel höchstens 0,017 statt 0,020;
    Halbkugel 4,91 min, an der Flanke 0,021 mm (Höhenlinien mit Zeilen 0,026, Fläche entlang
-   0,034); Welle 6,7 min (Zeilen 6,41 bleiben). Offen: Ecken unter
-   90° bekommen keinen eigenen Gang (an der Welle zwei Stellen mit 0,03 mm).
+   0,034); Welle 6,7 min (Zeilen 6,41 bleiben). Ecken unter 90° ohne eigenen Gang:
+   *nachgemessen 2026-10-05* – an der Welle liegt der Rest gleichmäßig verteilt (99 % unter
+   0,016 mm), die 0,03 mm sind eine einzelne Zelle bei (56, 4), nicht die Winkelhalbierenden der
+   Ecken; ein eigener Gang dort brächte nichts – gelassen.
 6. **Bleistift** (Kehlen) – dort, wo zwei Flächen sich treffen und der Fräser
    nicht hinkam. Aufwand mittel (Abtrag: rot/gelb-Stellen als Bahn). Gebaut
    (P-2026-10-01-46, 0.61.0) – nicht aus dem Abtrag, sondern aus der Hüllfläche:
