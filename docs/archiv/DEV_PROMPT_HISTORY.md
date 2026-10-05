@@ -12,6 +12,36 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-30 texte-sinn-1
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Ich wollte, dass du Sinnhaftigkeit auch prüfst, oder ob man da einfach
+  viele Sachen besser erklären kann!!“
+
+### DATEIEN
+- `translations/de.json`, `en.json` (44 Texte), `help/de|en/bearbeitung.html`,
+  `help/de|en/neue_maschine.html`, `help/de|en/magazine.html`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.194.10).
+
+### ERGEBNIS
+Alle längeren Texte der Oberfläche (1106) gelesen und gegen den Code gehalten. Geändert, was
+nicht (mehr) stimmte oder nichts erklärte:
+- Räumen: „Bisherige Bahnerzeugung“ → „Automatisch“ (sagt, was es tut); „Adaptiv – schneller
+  durchs Freie“ mit Tooltip, was dabei schneller wird; Freivorschub verständlich.
+- Veraltet: Überlauf rundum (Abstechbreite + 0,5 statt Fräserradius + 0,5, seit
+  P-2026-10-03-08), Abspielen „ohne Beschleunigung“ (rechnet längst mit), „Neu“ im Magazin
+  (seit dem Maschinenbaum für die gewählte Maschine), „Plan indexiert“ (auch Mantelnuten),
+  „Anlegen“ im 4-Achs-Assistenten (nicht nur Schruppen/Schlichten), Werkzeuge im Job kommen auch
+  aus „Bearbeitung“, kein Git (nur, wenn als Git-Ordner installiert).
+- Falsch: Räumen-Einsatz „Schruppen (schmales ae, volles ap)“ (Schruppen ist ae = ap = D/2),
+  G93 „F ist die Zeit“ (der Kehrwert), CYCLE800-Platzhalter {a} um Z (stand missverständlich),
+  DIN-Haken „nur C der Rundum-Bahnen“ (gilt für jede Rundachse und jede Ausgabe).
+- Unklar umformuliert: „Ohne genaue Bahn am Ende“ → „Nicht fertig: …“, „Wand bei Radius“ →
+  „auf Endmaß“, schräge Fläche, Vollschnitt in der Nut, geriebene Bohrungen, Bögen der Nut,
+  Anstellen, Anlegen/Rückgängig. „Prüfungen“ (unsere Tests) aus der Beschreibung der 3-Achs-Fräse.
+- Hilfe an die neuen Wörter angepasst.
+- Geprüft: `test_sprache`.
+
 ## P-2026-10-05-29 texte-durchsicht-3
 
 ### EINGELESEN

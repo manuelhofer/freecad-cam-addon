@@ -179,10 +179,11 @@ floor along (it is not ticked by itself for that – the contour stays the
 proposal; set the tick when the pocket is to be cleared).</li>
 <li><b>Cutter</b> and <b>application</b> as for face milling – “Roughing”
 preselected.</li>
-<li><b>Toolpath generation</b> in step 3: <b>Existing toolpath generation</b> stays
-preselected and computes as before. You can also select <b>Adaptive – faster clear links</b>:
-the same adaptive cutting path, faster only on verified, already cleared connections.
-Below it, <b>Clear-link feed at most</b> sets the maximum (empty: 10000 mm/min).
+<li><b>Toolpath</b> in step 3: <b>Automatic</b> is preselected – clearing computes adaptive and
+ring paths and takes the fastest one that does not overload the cutter. If you choose
+<b>Adaptive – faster through cleared areas</b>, it is always adaptive; where the cutter moves
+through already cleared material to the next spot and is verified not to cut anywhere, it uses
+the clear feed there instead of the cutting feed. Below it, <b>Clear-link feed at most</b> sets the maximum (empty: 10000 mm/min).
 Set it no higher than your machine permits in G1; cutting feeds stay unchanged. Thin layers
 retain chip-thickness compensation, which also reduces this value. The selection and value
 are saved with the operation and shown again when you double-click it. Other operations
@@ -325,8 +326,8 @@ only behind the allowance; the last path on every selected face follows the draw
 bosses the contour or “Finish afterwards” with the arcs of the model, floors without allowance,
 holes in the drawn diameter. If a selected face would end without such a path – clearing
 leaves 0.5 mm on the floor and nothing finishes it, the contour is unticked –, it is shown in
-red below the steps: “No exact final path – the part would not be as drawn there: Face3. Tick
-for it: “Finish afterwards”.” With the tick the line disappears.</p>
+red below the steps: “Not finished: Face3 – no ticked strategy runs along them exactly at the
+end … Tick for it: “Finish afterwards”.” With the tick the line disappears.</p>
 
 <h3>The target</h3>
 <p>Above the strategies, in grey, it says how much has to go and how long the cutter of

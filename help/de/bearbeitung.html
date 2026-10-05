@@ -184,10 +184,11 @@ Boden dazu (angehakt wird es dafür nicht von selbst – die Kontur bleibt der
 Vorschlag; setz den Haken, wenn die Tasche ausgeräumt werden soll).</li>
 <li><b>Fräser</b> und <b>Einsatz</b> wie beim Planfräsen – vorgewählt
 „Schruppen“.</li>
-<li><b>Bahnerzeugung</b> in Schritt 3: <b>Bisherige Bahnerzeugung</b> bleibt
-vorgewählt und rechnet wie bisher. Zusätzlich kannst du <b>Adaptiv – schneller
-Freivorschub</b> wählen: dieselbe adaptive Schnittbahn, schneller nur auf nachgeprüften,
-bereits freigeräumten Verbindungen. Darunter steht <b>Freivorschub höchstens</b>
+<li><b>Bahn</b> in Schritt 3: <b>Automatisch</b> ist vorgewählt – das Räumen rechnet adaptiv
+und mit Ringen und nimmt die schnellste Bahn, die den Fräser nicht überlastet. Wählst du
+<b>Adaptiv – schneller durchs Freie</b>, rechnet es immer adaptiv; wo der Fräser durch schon
+Freigeräumtes zur nächsten Stelle fährt und geprüft nirgends schneidet, fährt er dort mit dem
+Freivorschub statt im Arbeitsvorschub. Darunter steht dann <b>Freivorschub höchstens</b>
 (leer: 10000 mm/min). Stelle ihn höchstens so hoch ein, wie deine Maschine im G1 fahren
 darf; Schnittvorschübe bleiben gleich. Auf dünnen Lagen reduziert der Spandickenausgleich
 auch diesen Wert. Die Wahl und der Wert werden mit der Operation gespeichert und beim
@@ -336,8 +337,8 @@ nur hinter dem Aufmaß; die letzte Bahn an jeder gewählten Fläche folgt der Ze
 und Zapfen die Kontur oder „Schlichten danach“ mit den Bögen des Modells, Böden ohne Aufmaß,
 Bohrungen im gezeichneten Durchmesser. Hätte eine gewählte Fläche am Ende keine solche Bahn –
 das Räumen lässt 0,5 mm am Boden und nichts schlichtet ihn, die Kontur ist abgehakt –, steht
-es rot unter den Schritten: „Ohne genaue Bahn am Ende – das Teil wäre dort nicht, wie
-gezeichnet: Face3. Dafür anhaken: „Schlichten danach“.“ Mit dem Haken ist die Zeile weg.</p>
+es rot unter den Schritten: „Nicht fertig: Face3 – keine angehakte Strategie fährt sie am
+Ende genau … Dafür anhaken: „Schlichten danach“.“ Mit dem Haken ist die Zeile weg.</p>
 
 <h3>Das Ziel</h3>
 <p>Über den Strategien steht grau, wie viel weg muss und wie lange der Fräser des Räumens
