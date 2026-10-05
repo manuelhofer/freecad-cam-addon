@@ -12,6 +12,24 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-28 texte-durchsicht-2
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Mach weiter mit allen Texten, nur Texten … schau, ob sie Sinn ergeben, ob
+  man was besser erklären kann.“
+
+### DATEIEN
+- `translations/de.json`, `en.json`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.8).
+
+### ERGEBNIS
+- Tooltips der Knöpfe Neue Maschine, 4-Achs, Werkzeugverwaltung und Bestückung sagen, was dahinter
+  liegt (Maschinenarten, Magazine, Rüstliste); die Einleitung im Fenster Magazine erklärt, was ein
+  Magazin ist.
+- Lange Sätze aufgeteilt: Bohren, Gewindefräsen, Planfräsen, 3D-Schlichten, Planen und Entgraten
+  an der Stange, Nur Gleichlauf, Zustellung übernehmen, Betriebsarten vorschlagen, Home-Punkt,
+  TCPM-Haken. Inhalt gleich, nur verständlicher.
+- Geprüft: `test_sprache`.
+
 ## P-2026-10-05-27 texte-durchsicht-1
 
 ### EINGELESEN

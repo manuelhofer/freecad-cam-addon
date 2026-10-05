@@ -3,7 +3,7 @@
     <name>CAM Addon</name>
     <description>Makes CAM in FreeCAD easier - from the part to the finished NC program. Describe your machine or create one ready-made, manage tools with holders, cutting data and magazines, machine parts with assistants for 2.5D, 3D, 4-axis and 5-axis milling, check travel limits, collisions and material removal on the machine, and write programs for LinuxCNC, Siemens, Fanuc, Haas, Mach and Heidenhain.</description>
     <icon>resources/icons/camaddon.svg</icon>
-    <version>0.194.7</version>
+    <version>0.194.8</version>
     <date>2026-10-05</date>
     <maintainer>Manuel Hofer</maintainer>
     <license file="LICENSE">LGPL-2.1-or-later</license>
