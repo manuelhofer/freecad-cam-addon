@@ -401,6 +401,7 @@ class Schwenkung:
     # Wert der Bezugsrundachse, +1 die mit dem größeren –, so dass die Steuerung die Stellung
     # nimmt, die „Auf der Maschine prüfen“ gefahren ist (zyklus_richtung).
     richtung: int = -1
+    richtung_achse: str = ""  # der Buchstabe der Bezugsrundachse dazu (postprozessor dreht um)
 
     def gesamt(self):
         """Die Abbildung Ebene → Programm."""
@@ -776,13 +777,22 @@ def schwenkung_fuer(job, maschine=None):
     hoehe = None
     if rohteil is not None and not rohteil.isNull():
         hoehe = schwenkhoehe(rohteil, abbildung_bei, rund)
-    richtung = -1
+    richtung, richtung_achse = -1, ""
     if maschine is not None:
         from . import maschine as m
 
         bezug = m.schwenk_bezug(getattr(maschine.pruefung, "maschine", None))
         richtung = zyklus_richtung(maschine, normale_der(ebene_von(job)), rund, bezug)
-    return Schwenkung(ebene_von(job), rund, abbildung_bei(rund), hoehe=hoehe, richtung=richtung)
+        reihe = siemens_reihenfolge(maschine)
+        richtung_achse = reihe[bezug - 1].buchstabe if len(reihe) >= bezug else ""
+    return Schwenkung(
+        ebene_von(job),
+        rund,
+        abbildung_bei(rund),
+        hoehe=hoehe,
+        richtung=richtung,
+        richtung_achse=richtung_achse,
+    )
 
 
 def siemens_reihenfolge(maschine):

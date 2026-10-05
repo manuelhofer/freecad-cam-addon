@@ -88,7 +88,8 @@ def schritte(h):
         "Drehmaschine" in maschine
         and "X im Durchmesser" in maschine
         and "Hauptspindel S1, C-Achse C1" in maschine
-        and "T1…T12 → S3 (C3)" in maschine,
+        and "T1…T12 → S3 (C3)" in maschine
+        and "C1 nach DIN 66217" in maschine,  # wie die Rundachse zählt (2026-10-05)
         f"Maschine: {maschine!r}",
     )
     eintraege = [d.wahl_maschine.itemText(k) for k in range(d.wahl_maschine.count())]

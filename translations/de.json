@@ -12,6 +12,8 @@
     "pp.maschine.fraesen": "Fräsmaschine",
     "pp.maschine.x_d": "X im Durchmesser",
     "pp.maschine.x_r": "X im Radius",
+    "pp.maschine.nach_din": "{achsen} nach DIN 66217 (+C: das Werkzeug dreht um das Werkstück rechtsherum, das Werkstück andersherum)",
+    "pp.maschine.gegen_din": "{achsen} gegen DIN 66217 (Haken in „Maschine bearbeiten“ aus)",
     "pp.maschine.rundachse": "{buchstabe} heißt {name}",
     "pp.maschine.angetrieben": "angetrieben: {plaetze}",
     "pp.maschine.hauptspindel": "Hauptspindel {s}, C-Achse {c}",

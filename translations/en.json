@@ -12,6 +12,8 @@
     "pp.maschine.fraesen": "milling machine",
     "pp.maschine.x_d": "X as diameter",
     "pp.maschine.x_r": "X as radius",
+    "pp.maschine.nach_din": "{achsen} per DIN 66217 (+C: the tool turns right-handed around the workpiece, the workpiece the other way)",
+    "pp.maschine.gegen_din": "{achsen} against DIN 66217 (tick off in “Edit machine”)",
     "pp.maschine.rundachse": "{buchstabe} is called {name}",
     "pp.maschine.angetrieben": "driven: {plaetze}",
     "pp.maschine.hauptspindel": "main spindle {s}, C axis {c}",

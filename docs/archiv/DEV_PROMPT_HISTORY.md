@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-17 alle-rundachsen-nach-din
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Ich möchte, dass generell solche Fehler nicht vorhanden sind … du musst
+  schauen, ob die Postprozessoren das richtig machen und dass die Leute die Möglichkeiten haben,
+  die sie benötigen, um richtig einstellen zu können!“
+- Durchgesehen: Rundachsenwerte kommen aus den Rundum-Bahnen (seit 0.193.3 nach DIN), aus 3+2
+  ohne Zyklus und aus 5 Achsen simultan mit/ohne TCPM – diese rechnen mit den Stellungen der
+  Maschine, und jede Tischachse der Beispiele zählt dort gegen DIN 66217 (Tisch/Tisch: eine um
+  +30° um X geschwenkte Ebene hieß A−30, nach DIN A+30). Schwenkzyklen (CYCLE800, PLANE,
+  G68.2) beschreiben die Ebene – unabhängig davon, bis auf die Vorzugsrichtung _DIR.
+
+### DATEIEN
+- `camaddon/verfahren.py` (`im_programm_umgekehrt`, `_gelenk_gegen_din`, `_din_richtungen`),
+  `camaddon/postprozessor.py` (`Maschineninfo.umgekehrt`, `_rund_umdrehen`, _DIR in
+  `_schwenken_ein`, Kommentar zur Ebene), `camaddon/schwenken.py`
+  (`Schwenkung.richtung_achse`), `camaddon/gui_programm.py` (Zeile „C4 nach DIN 66217“),
+  `translations/de.json`, `en.json`, `tests/test_rundachsen_din.py` (neu),
+  `tests/test_schwenken.py`, `tests/gui/szenario_programm.py`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.193.4).
+
+### DONE
+- Jedes Programm schreibt Rundachsen nach DIN 66217 – Bahnen, Bild und Prüffenster bleiben,
+  wie sie rechnen; ohne den Haken „dreht nach DIN 66217“ zählt die Achse wie ihr Gelenk.
+  Ohne Maschine: 3+2 Tisch/Tisch A/C nach DIN. CYCLE800 _DIR passend umgedreht.
+- „Programm schreiben“ sagt bei der Maschine, wie jede Rundachse zählt.
+- Offen (nächster Schritt): Schwenkbereich, Prüffenster und „Maschine verfahren“ zeigen
+  Rundachsen noch wie das Gelenk.
+
+### TESTS
+- `test_rundachsen_din` (Werkzeugachse nach DIN aus dem Programm an allen drei 5-Achs-Beispielen,
+  _DIR, Haken aus, Drehmaschine), `test_schwenken`, `test_postprozessor`, `test_simultan`,
+  `test_angestellt`, `test_flanke`, `test_sprache`; Szenario `szenario_programm` – OK.
+
 ## P-2026-10-05-16 nur-postprozessor-nach-din
 
 ### EINGELESEN

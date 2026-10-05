@@ -553,8 +553,12 @@ class Maschineninfo:
     # Moduloachse: Steuerung.rundachse_plus/_minus.
     modulo: set = field(default_factory=set)
     # Buchstabe → zählt die Steuerung die Rundachse nach DIN 66217 (Haken „dreht nach DIN 66217“
-    # an ihrer Betriebsart)? Ohne Angabe ja (_c_nach_din).
+    # an ihrer Betriebsart)? Ohne Angabe ja (_c_umdrehen).
     nach_din: dict = field(default_factory=dict)
+    # Die Rundachsen (Buchstaben), deren Stellung das Programm mit dem anderen Vorzeichen schreibt
+    # (verfahren.im_programm_umgekehrt) – für Bahnen, die mit den Stellungen der Maschine rechnen:
+    # 3+2 ohne Zyklus, 5 Achsen simultan (_rund_umdrehen).
+    umgekehrt: set = field(default_factory=set)
 
 
 @dataclass
@@ -852,6 +856,23 @@ def _modulo_wort(s, adresse, wert, davor):
     return f"{adresse}={_fuellen(vorlage, wert=zahl)}"
 
 
+def _rund_umdrehen(abschnitt, info):
+    """Die Rundachsen, deren Werte das Programm in diesem Abschnitt mit dem anderen Vorzeichen
+    schreibt: eine Rundum-Bahn nach _c_umdrehen; sonst die Rundachsen, die an der Maschine gegen
+    ihr Gelenk zählen (Maschineninfo.umgekehrt). Ohne Maschine die Ebene einer Tisch/Tisch-A/C
+    (schwenken.rundachsen_ohne_maschine dreht das Werkstück mit +A, +C rechtsherum – nach
+    DIN 66217 andersherum)."""
+    if abschnitt.drehsinn:
+        buchstabe = _c_umdrehen(abschnitt, info)
+        return {buchstabe} if buchstabe else set()
+    if info.rundachsen:
+        return set(info.umgekehrt)
+    schwenkung = abschnitt.schwenkung
+    if schwenkung is not None and set(schwenkung.rund) == {"A", "C"}:
+        return {"A", "C"}
+    return set()
+
+
 def _c_umdrehen(abschnitt, info):
     """Die Rundachse einer Rundum-Operation, deren Werte das Programm umdreht – sonst "".
 
@@ -967,11 +988,11 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                 zeilen.append(_kommentar(s, f"{abschnitt.name}: {grund}"))
                 continue
         befehle = [_befehl(b) for b in befehle_roh]
-        umdrehen = _c_umdrehen(abschnitt, info)
+        umdrehen = _rund_umdrehen(abschnitt, info)
         if umdrehen:
             for _name, werte in befehle:
-                if umdrehen in werte:
-                    werte[umdrehen] = -werte[umdrehen]
+                for buchstabe in umdrehen & set(werte):
+                    werte[buchstabe] = -werte[buchstabe]
         gewechselt = False
         if abschnitt.werkzeug and (abschnitt.werkzeug != werkzeug or einstieg):
             if spindel_an is not None:
@@ -1016,10 +1037,14 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
             if geschwenkt is not None and abschnitt.schwenkung is None:
                 zeilen.extend(_schwenken_aus(s, geschwenkt, zyklus, _wechselpunkt_oben(s, info)))
             if abschnitt.schwenkung is not None:
-                rund = sw.text_rundachsen(abschnitt.schwenkung.rund, programm=True)
+                umgekehrt = _rund_umdrehen(abschnitt, info)
+                rund = sw.text_rundachsen(
+                    {b: -w if b in umgekehrt else w for b, w in abschnitt.schwenkung.rund.items()},
+                    programm=True,
+                )
                 notiz(tr("pp.ebene", rundachsen=rund))
                 if zyklus:
-                    zeilen.extend(_schwenken_ein(s, abschnitt.schwenkung, info))
+                    zeilen.extend(_schwenken_ein(s, abschnitt.schwenkung, info, umgekehrt))
             geschwenkt = abschnitt.schwenkung
         mit_rundachse = any(set(p) & set(ROTATION) for _n, p in befehle)
         if info.drehmaschine and mit_rundachse and not c_an and s.c_achse:
@@ -1242,15 +1267,20 @@ def _zyklus_als_befehl(s, vorlage, parameter, stand, auf_r, faktor=1.0):
     return zeilen
 
 
-def _schwenken_ein(s, schwenkung, info=None):
-    """Der Schwenkzyklus für die Ebene (Steuerung.schwenken)."""
+def _schwenken_ein(s, schwenkung, info=None, umgekehrt=()):
+    """Der Schwenkzyklus für die Ebene (Steuerung.schwenken). `umgekehrt`: die Rundachsen, die
+    das Programm umgekehrt schreibt – zählt die Bezugsrundachse der Vorzugsrichtung so, ist der
+    kleinere Wert an der Steuerung der größere."""
     (x0, y0, z0), (a, b, c) = sw.zyklus_winkel(schwenkung.ebene)
     werte = {"x0": x0, "y0": y0, "z0": z0, "a": a, "b": b, "c": c}
     werte = {k: _zahl(v) for k, v in werte.items()}
     # D-1, D-2: der Schwenkdatensatz der Maschine und die Vorzugsrichtung, mit der die Steuerung
     # die geprüfte Stellung nimmt.
     werte["tc"] = info.schwenkdatensatz if info is not None else ""
-    werte["dir"] = str(int(getattr(schwenkung, "richtung", -1) or -1))
+    richtung = int(getattr(schwenkung, "richtung", -1) or -1)
+    if getattr(schwenkung, "richtung_achse", "") in umgekehrt:
+        richtung = -richtung
+    werte["dir"] = str(richtung)
     return _zeilen(_fuellen(s.schwenken, **werte))
 
 
@@ -1652,6 +1682,20 @@ def _info_aus(dok, m, msp):
                     info.modulo.add(buchstabe)  # endlos: an der Steuerung eine Moduloachse
                 info.rundachsen.setdefault(buchstabe, ba.NcName.strip() or buchstabe)
                 info.nach_din.setdefault(buchstabe, bool(getattr(ba, "NachDin", True)))
+        try:
+            from . import kette as kette_modul
+            from . import verfahren as vf
+
+            kette = kette_modul.lies_kette(objekt)
+            for achse in kette.achsen:
+                ba = vf._positionieren(achse.gelenk)
+                if ba is None or spindeln.ist_antrieb_c(ba):
+                    continue
+                buchstabe = m.programmname(ba).upper()[:1]
+                if buchstabe in ROTATION and vf.im_programm_umgekehrt(achse, kette):
+                    info.umgekehrt.add(buchstabe)
+        except Exception:
+            info.umgekehrt = set()
         for spindel, c in spindeln.antriebe:
             if c is not None and m.nc_nummer(spindel):
                 info.antrieb_c[m.nc_nummer(spindel)] = c.NcName.strip()

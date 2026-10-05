@@ -235,6 +235,92 @@ def _vorzeichen(achse):
     return 1.0 if (gleich >= 0) == kind_ist_seite2 else -1.0
 
 
+# --- Wie die Steuerung eine Rundachse zählt (nur fürs Programm) ---------------------------------
+
+# Um welche Linearachse eine Rundachse dreht (DIN 66217).
+_UM = {"A": "X", "B": "Y", "C": "Z"}
+
+
+def im_programm_umgekehrt(achse, kette=None):
+    """Schreibt das Programm die Stellung dieser Rundachse mit dem anderen Vorzeichen?
+
+    Die Stellung zählt wie das Gelenk – so rechnen Bahnen, Bild, Prüffenster und Abfahren, und so
+    bleibt es (Manuel, 2026-10-05: „die Werkzeugwege waren komplett fein … das Einzige, was du
+    anpassen musst, ist der Postprozessor“). Die Steuerung zählt nach DIN 66217: +A, +B, +C
+    beschreiben, wie sich das Werkzeug um das Werkstück dreht – rechtsherum um +X, +Y, +Z. Eine
+    Achse im Kopf dreht so das Werkzeug, eine im Tisch das Werkstück andersherum (an der
+    Drehmaschine C, von vorn auf das Futter geschaut, im Uhrzeigersinn). Dreht das Gelenk
+    andersherum (_gelenk_gegen_din), schreibt das Programm die Stellung umgekehrt. Ohne den Haken
+    „NachDin“ an der Betriebsart zählt die Steuerung gegen die Norm. Lässt sich die Norm nicht
+    anwenden (schräge Achse, keine Rolle), zählt sie wie das Gelenk – der Haken dreht dann um.
+    Linearachsen nie."""
+    if achse.art == LINEAR:
+        return False
+    ba = _positionieren(achse.gelenk)
+    if ba is None:
+        return False
+    return bool(_gelenk_gegen_din(achse, ba, kette)) == bool(getattr(ba, "NachDin", True))
+
+
+def _positionieren(gelenk):
+    """Die Betriebsart „Positionieren“ am Gelenk, oder None."""
+    return next(
+        (
+            objekt
+            for objekt in getattr(gelenk, "InList", []) or []
+            if getattr(objekt, "Gelenk", None) == gelenk
+            and getattr(objekt, "Art", "") == m.ART_POSITIONIEREN
+        ),
+        None,
+    )
+
+
+def _gelenk_gegen_din(achse, ba, kette):
+    """Dreht das Gelenk dieser Rundachse gegen DIN 66217 (im_programm_umgekehrt)? Gemessen an der
+    Linearachse, um die sie dreht – deren Plus-Richtung ist +X, +Y oder +Z, wohin das Werkzeug
+    gegenüber dem Werkstück fährt (fehlt eine, aus den beiden anderen). None, wo das nicht
+    feststeht: ohne Buchstaben A/B/C, ohne Rolle (Tisch oder Kopf), schräg zur Linearachse,
+    die C-Achse eines Werkzeugantriebs (sie richtet nur das Werkzeug aus)."""
+    buchstabe = m.programmname(ba).upper()[:1]
+    maschine = next((o for o in ba.InList if getattr(o, "Typ", None) == m.TYP_MASCHINE), None)
+    if buchstabe not in _UM or maschine is None or m.spindeln(maschine).ist_antrieb_c(ba):
+        return None
+    try:
+        if kette is None:
+            kette = kette_modul.lies_kette(m.assembly_von(maschine))
+        rollen, _meldungen = m.rollen(kette, maschine)
+    except Exception:
+        return None
+    rolle = rollen.get(achse.gelenk)
+    um = _din_richtungen(kette, maschine, rollen).get(_UM[buchstabe])
+    if rolle is None or um is None:
+        return None
+    gleich = plusrichtung(achse).dot(um)
+    if abs(gleich) < 0.5:
+        return None
+    return (gleich > 0) == (rolle == m.TISCH)
+
+
+def _din_richtungen(kette, maschine, rollen):
+    """{"X": Richtung, …}: wohin das Werkzeug gegenüber dem Werkstück fährt, wenn X, Y, Z
+    wachsen – in Weltkoordinaten. Eine Linearachse im Tisch fährt das Werkstück, also zählt
+    sie andersherum. Fehlt genau eine, ergibt sie sich aus den beiden anderen (rechtshändig)."""
+    richtungen = {}
+    for ba in m.betriebsarten(maschine):
+        buchstabe = m.programmname(ba).upper()[:1]
+        if ba.Art != m.ART_LINEAR or buchstabe not in "XYZ" or buchstabe in richtungen:
+            continue
+        achse = kette.achse_von(ba.Gelenk)
+        if achse is None or achse.gelenk not in rollen:
+            continue
+        richtung = plusrichtung(achse)
+        richtungen[buchstabe] = -richtung if rollen[achse.gelenk] == m.TISCH else richtung
+    for fehlt, a, b in (("X", "Y", "Z"), ("Y", "Z", "X"), ("Z", "X", "Y")):
+        if fehlt not in richtungen and a in richtungen and b in richtungen:
+            richtungen[fehlt] = richtungen[a].cross(richtungen[b])
+    return richtungen
+
+
 def _seite_des_kinds(achse):
     """Auf welcher Seite des Gelenks (1 oder 2) das Kind-Glied hängt.
 

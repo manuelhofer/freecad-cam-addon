@@ -650,6 +650,19 @@ class ProgrammDialog(QtGui.QDialog):
             )
         for buchstabe, name in sorted(rundachsen.items()):
             teile.append(tr("pp.maschine.rundachse", buchstabe=buchstabe, name=name))
+        # Wie die Rundachsen zählen (Manuel, 2026-10-05: „dass die Leute die Möglichkeiten
+        # haben, die sie benötigen, um richtig einstellen zu können“).
+        for nach_din, schluessel in (
+            (True, "pp.maschine.nach_din"),
+            (False, "pp.maschine.gegen_din"),
+        ):
+            achsen = [
+                name
+                for buchstabe, name in sorted(i.rundachsen.items())
+                if i.nach_din.get(buchstabe, True) == nach_din
+            ]
+            if achsen:
+                teile.append(tr(schluessel, achsen=", ".join(achsen)))
         if i.angetrieben:
             je_antrieb = {}
             for t, n in sorted(i.angetrieben.items()):

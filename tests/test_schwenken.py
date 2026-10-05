@@ -454,7 +454,9 @@ teile_plus = [
 mit_tc = pp.programm(teile_plus, pp.steuerung("siemens"), info_tc, "Block").zeilen
 zyklus_tc = f'CYCLE800(1,"TC1",0,27,{x0},{y0},{z0},0.000,0.000,30.000,0,0,0,1,0,1)'
 pruefe(zyklus_tc in mit_tc, f"kein {zyklus_tc}: {[z for z in mit_tc if 'CYCLE' in z]}")
-pruefe("; Ebene geschwenkt: A-30 C0" in siemens, "Kommentar zur Ebene")
+# Nach DIN 66217 (+A: das Werkzeug dreht gegenüber dem Werkstück rechtsherum um +X): die Schräge
+# (Normale Rx(30°)·Z = (0, −0,5, 0,866)) heißt A+30 – das Modell dreht das Werkstück mit A−30.
+pruefe("; Ebene geschwenkt: A30 C0" in siemens, "Kommentar zur Ebene")
 erster = next(c for c in op.Path.Commands if c.Name in ("G1", "G01"))
 pruefe(
     any(z.startswith("G1") and f"X{erster.Parameters['X']:.3f}" in z for z in siemens),
@@ -468,7 +470,7 @@ for s in (pp.steuerung("linuxcnc"), pp.steuerung("siemens", {"schwenkzyklus": Fa
     zeilen = pp.programm(teile, s, info, "Block").zeilen
     pruefe(not any("CYCLE800" in z for z in zeilen), f"{s.name} ohne Zyklus: CYCLE800")
     ein = next((z for z in zeilen if z.startswith("G0 A")), "")
-    pruefe(ein.startswith("G0 A-30.000 C0.000"), f"{s.name}: Rundachsen {ein!r}")
+    pruefe(ein.startswith("G0 A30.000 C0.000"), f"{s.name}: Rundachsen {ein!r}")  # DIN
     pruefe(zeilen.count("G0 A0.000 C0.000") == 1, f"{s.name}: Rundachsen nicht zurück")
     # Vor jedem Schwenken hoch genug, dass sich das Rohteil frei dreht – auch ohne Wechselpunkt.
     for k, z in enumerate(zeilen):
