@@ -48,8 +48,11 @@ patch_naming:
   `test_wegkippen`, `test_entgraten3d`, `test_beispielmaschine`, `test_maschine`, `test_kette`,
   `test_vierachs_operation`, `test_vierachs_schlichten_op`, `test_vierachs_plan`,
   `test_vierachs_entgraten`, `test_vierachs_flaechen`, `test_vierachs_bahn`, `test_postprozessor`,
-  `test_sprache` – OK. `test_flanke` schlug schon vorher fehl (liest `C=ACP(…)` nicht, seit
-  P-2026-10-05-11) – folgt.
+  `test_sprache`, `test_flanke` (liest jetzt `C=ACP(…)`, schlug seit P-2026-10-05-11 fehl);
+  Szenario `szenario_maschine_bearbeiten` – OK.
+- Nachgerechnet an Manuels Teil (`~/freecad/test4achsbearbeitung.FCStd`, CLX550): das
+  Siemens-Programm gelesen wie seine Maschine (+C nach DIN, mit Y) – mit 0.193.2 in drei
+  Querschnitten 0 mm² ins Teil, ≤ 2 mm² stehen geblieben; das bisherige fräst die Wölbung weg.
 
 ## P-2026-10-05-14 rundachse-gegenlaeufig
 

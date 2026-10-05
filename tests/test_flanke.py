@@ -302,11 +302,13 @@ for kennung, ein, aus in (
     # Unter TCPM dreht kein Eilgang (die Spitze hielte keine Steuerung sicher): Ein G0 trägt die
     # Rundachsen des Satzes davor. Haas: G234 erst bei Rundachsen auf 0.
     def rund_von(zeile):
-        # „A-10.000“ (Fanuc, Haas) oder „A1=-10.000“ (Siemens) – je Achse der Wert.
+        # „A-10.000“ (Fanuc, Haas), „A1=-10.000“ oder an einer Moduloachse „C=ACP(10.000)“
+        # (Siemens, P-2026-10-05-11) – je Achse der Wert.
         werte_r = {}
         for w in zeile.split():
-            if w[:1] in ("A", "C") and len(w) > 1 and (w[1] in "-.0123456789" or w[1:3] == "1="):
-                werte_r[w[0]] = float(w.split("=")[-1] if "=" in w else w[1:])
+            if w[:1] in ("A", "C") and len(w) > 1 and (w[1] in "-.0123456789=" or w[1:3] == "1="):
+                wert = w.split("=")[-1] if "=" in w else w[1:]
+                werte_r[w[0]] = float(wert.split("(")[-1].rstrip(")"))
         return werte_r
 
     vorher = {}
