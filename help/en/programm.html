@@ -79,7 +79,14 @@ speed, feed per minute).</li>
 LinuxCNC, Fanuc, Haas and Mach “G43 H1”, in the first block afterwards that moves Z
 (“G0 G43 H1 Z15.000”) – alone on a line some controls would move up by the tool length at the
 change point. Siemens takes the length with the change (D1), the field is empty there. Without
-it the tip would be lower than programmed by the whole tool length.</li>
+it the tip would be lower than programmed by the whole tool length.<br>
+<b>Where the value comes from:</b> on every control from its own tool table – measured on the
+presetter or touched off on the machine. The program only switches the offset on and says which
+entry applies: “H1” length register 1 (LinuxCNC, Fanuc, Haas, Mach – the add-on uses H = tool
+number; if your machine numbers them differently, change the field), “D1” cutting edge 1 of the
+tool (Siemens), TOOL CALL fetches it itself (Heidenhain). The length in the add-on's tool manager
+is not in the program – it is used for “Check on the machine” and “Check collision” and should
+therefore match the machine.</li>
 <li><b>Tool length after the change point</b> – Siemens moves to the change point with “SUPA
 D0”; D0 switches the tool offset off. If no tool change follows (measuring stop, another plane
 without the swivel cycle, jump labels off), the program writes “D1” into the next block with Z.</li>

@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-03 hilfe-werkzeuglaenge
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Generell kommen die Längen immer aus der Werkzeugtabelle der Maschine,
+  sollten sie zumindest … oder???“ – ja; die Hilfe sagte nur, wie die Korrektur eingeschaltet wird.
+
+### DATEIEN
+- `help/de|en/programm.html` (Werkzeugwechsel: woher der Wert kommt),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.189.2).
+
+### DONE
+- In der Hilfe: der Wert kommt an jeder Steuerung aus ihrer Werkzeugtabelle; H = Werkzeugnummer;
+  die Länge in der Werkzeugverwaltung nur für Prüfen und Kollision.
+
+### TESTS
+- Keine (nur Hilfe).
+
 ## P-2026-10-05-02 entgraten-3d-kanten-anklicken
 
 ### EINGELESEN

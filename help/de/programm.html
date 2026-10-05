@@ -80,7 +80,14 @@ will: Siemens „T1 D1“, Fanuc „T0101“, Haas „T101“.</li>
 an LinuxCNC, Fanuc, Haas und Mach „G43 H1“, im ersten Satz danach, der Z fährt
 („G0 G43 H1 Z15.000“) – allein in einer Zeile führe manche Steuerung am Wechselpunkt oben um die
 Werkzeuglänge hinauf. Siemens nimmt die Länge mit dem Wechsel (D1), das Feld ist dort leer. Ohne
-sie stünde die Spitze um die ganze Werkzeuglänge tiefer als programmiert.</li>
+sie stünde die Spitze um die ganze Werkzeuglänge tiefer als programmiert.<br>
+<b>Woher der Wert kommt:</b> an jeder Steuerung aus ihrer eigenen Werkzeugtabelle – gemessen am
+Voreinstellgerät oder an der Maschine angetastet. Das Programm schaltet die Korrektur nur ein
+und sagt, welcher Eintrag gilt: „H1“ der Längenspeicher 1 (LinuxCNC, Fanuc, Haas, Mach – das
+Addon nimmt H = Werkzeugnummer; führt deine Maschine sie anders, das Feld ändern), „D1“ die
+Schneide 1 des Werkzeugs (Siemens), TOOL CALL holt sie selbst (Heidenhain). Die Länge in der
+Werkzeugverwaltung des Addons steht nicht im Programm – sie gilt für „Auf der Maschine prüfen“
+und „Kollision prüfen“ und sollte deshalb zur Maschine passen.</li>
 <li><b>Werkzeuglänge nach dem Wechselpunkt</b> – Siemens fährt den Wechselpunkt mit „SUPA D0“;
 D0 schaltet die Werkzeugkorrektur ab. Folgt kein Wechsel (Messstopp, eine andere Ebene ohne
 Schwenkzyklus, Sprungmarken aus), schreibt das Programm „D1“ in den nächsten Satz mit Z.</li>
