@@ -69,6 +69,7 @@ WERTE = {
     ],
     ART_POSITIONIEREN: [
         ("Endlos", False),
+        ("Gegenlaeufig", False),
         ("Geschwindigkeit", False),  # leer: export.VORGABE_DREHGESCHWINDIGKEIT (D-14)
         ("Beschleunigung", False),
         ("Ruck", False),
@@ -129,6 +130,7 @@ def wert_text(eigenschaft):
         "Beschleunigung": tr("wert.beschleunigung"),
         "Ruck": tr("wert.ruck"),
         "Endlos": tr("wert.endlos"),
+        "Gegenlaeufig": tr("wert.gegenlaeufig"),
         "Durchmesser": tr("wert.durchmesser"),
         "Geschwindigkeit": tr("wert.geschwindigkeit"),
         "Drehzahl": tr("wert.drehzahl"),
@@ -343,6 +345,10 @@ class Betriebsart(_Proxy):
                 ("App::PropertyFloat", "Home", tr("eigenschaft.home")),
                 ("App::PropertyBool", "WechselAn", tr("eigenschaft.wechsel_an")),
                 ("App::PropertyFloat", "Wechsel", tr("eigenschaft.wechsel")),
+                # Eine Rundachse, deren positive Werte das Teil andersherum drehen als das Gelenk
+                # in der Baugruppe (Manuel, 2026-10-05: „dreht an der Maschine definitiv in die
+                # falsche Richtung … macht gegenüber von der Geraden ein Loch“).
+                ("App::PropertyBool", "Gegenlaeufig", tr("eigenschaft.gegenlaeufig")),
                 # Nennleistung einer Spindel – für „Schruppwerte planen“ (Durchsicht D-20).
                 ("App::PropertyFloat", "Leistung", tr("eigenschaft.leistung")),
             ],

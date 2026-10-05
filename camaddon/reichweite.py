@@ -581,6 +581,8 @@ class Pruefung:
 
     def __init__(self, assembly, maschine, werkstueckaufnahme=None, kette=None):
         self.maschine = maschine
+        self.assembly = assembly
+        self._drehsinne = None  # {Buchstabe: Drehsinn} der Rundachsen der Stange (_drehsinn)
         self.verfahren = vf.Verfahren(assembly, kette)
         self.kette = self.verfahren.kette
         self._in_assembly = assembly.Placement.inverse()
@@ -995,7 +997,28 @@ class Pruefung:
                 sammler.punkt(punkt, schritt.rund, geloest, dreh)
         for buchstabe in sorted(fremd):
             sammler.rundachse_fehlt(buchstabe, sorted(vorhanden))
+        # Rechnet eine Rundum-Operation mit dem anderen Drehsinn als die Rundachse der Maschine
+        # (Haken „gegenläufig“), käme ihre Bahn an der Maschine gespiegelt heraus.
+        buchstabe = str(getattr(op, "Rundachse", "") or "")
+        drehsinn = getattr(op, "Drehsinn", None)
+        if _ist_rundum(op) and drehsinn in (1, -1):
+            soll = self._drehsinn(buchstabe)
+            if soll is not None and soll != drehsinn:
+                sammler.hinweis(tr("rw.drehsinn_anders", operation=op.Label, buchstabe=buchstabe))
         sammler.ende_operation()
+
+    def _drehsinn(self, buchstabe):
+        """Der Drehsinn der Rundachse `buchstabe`, die an dieser Maschine die Stange dreht
+        (vierachs_achsen.von_maschine) – None ohne."""
+        if self._drehsinne is None:
+            from . import vierachs_achsen as va
+
+            try:
+                achsen = va.von_maschine(self.assembly, self.maschine, self.verfahren.kette)
+            except Exception:
+                achsen = []
+            self._drehsinne = {a.buchstabe: a.drehsinn for a in achsen}
+        return self._drehsinne.get(buchstabe)
 
 
 def _ist_rundum(op):

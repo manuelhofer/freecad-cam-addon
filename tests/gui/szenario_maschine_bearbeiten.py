@@ -7,7 +7,9 @@
 # darunter, wie weit der Werkzeugplatz dabei von der Werkstückaufnahme weg ist
 # (Manuel, 2026-09-29: „man müsste schon auch editieren können … die
 # verfahrwege“). Mit dem Haken „zählt im Durchmesser (Ø)“ steht der Verfahrweg
-# doppelt da (0 … Ø 400), das Gelenk behält den Radius (P-2026-09-30-54).
+# doppelt da (0 … Ø 400), das Gelenk behält den Radius (P-2026-09-30-54). Bei C4 steht unter
+# „endlos“ der Haken „dreht gegenläufig“ (Manuel, 2026-10-05: C drehte an seiner Maschine
+# andersherum als im Modell); angehakt zählt die Achse andersherum.
 import os
 import sys
 
@@ -81,7 +83,7 @@ def schritte(h):
         ("Z", m.ART_LINEAR, "Z1", ["30000"]),
         ("X", m.ART_LINEAR, "X1", ["24000"]),
         ("Spindel", m.ART_SPINDEL, "S4", ["4000", None, "7,5"]),  # Nennleistung (D-20)
-        ("Spindel", m.ART_POSITIONIEREN, "C4", [None, "100"]),
+        ("Spindel", m.ART_POSITIONIEREN, "C4", [None, None, "100"]),
         ("Revolverachse", m.ART_REVOLVER, "T", []),
     ):
         panel.achsen.setCurrentItem(eintrag(panel.achsen, gelenk))
@@ -100,6 +102,32 @@ def schritte(h):
     h.pruefe(
         (s4.Drehzahl, s4.Leistung) == (4000, 7.5), f"S4: {s4.Drehzahl} U/min, {s4.Leistung} kW"
     )
+
+    # C4: unter „endlos“ der Haken „dreht gegenläufig“.
+    from camaddon import verfahren as vf
+
+    c4 = next(b for b in m.betriebsarten(panel.maschine) if b.NcName == "C4")
+    panel.achsen.setCurrentItem(eintrag(panel.achsen, "C4"))
+    yield 300
+    haken = panel.details.feld(2)
+    beschriftung = panel.details.formular.itemAt(2, QtGui.QFormLayout.LabelRole)
+    h.pruefe(
+        isinstance(haken, QtGui.QCheckBox)
+        and "gegenläufig" in beschriftung.widget().text()
+        and c4.Geschwindigkeit == 100,
+        f"C4: {type(haken).__name__} {beschriftung and beschriftung.widget().text()!r}, "
+        f"{c4.Geschwindigkeit} °/s",
+    )
+    if isinstance(haken, QtGui.QCheckBox):
+        haken.setChecked(True)
+        yield 300
+        h.pruefe(c4.Gegenlaeufig, "Haken nicht übernommen")
+        kette = vf.Verfahren(asm).kette
+        gelenk = next(a for a in kette.achsen if a.gelenk == c4.Gelenk)
+        h.pruefe(vf.gegenlaeufig(gelenk), "die Achse zählt nicht andersherum")
+        h.bild("2a_c4_gegenlaeufig", panel.form)
+        haken.setChecked(False)
+        yield 300
 
     panel.achsen.setCurrentItem(eintrag(panel.achsen, "X1"))
     yield 300

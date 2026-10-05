@@ -232,7 +232,25 @@ def _vorzeichen(achse):
     z1 = seite1.Rotation.multVec(Z)
     gleich = achse.richtung.dot(z1)
     kind_ist_seite2 = _seite_des_kinds(achse) == 2
-    return 1.0 if (gleich >= 0) == kind_ist_seite2 else -1.0
+    vorzeichen = 1.0 if (gleich >= 0) == kind_ist_seite2 else -1.0
+    return -vorzeichen if gegenlaeufig(achse) else vorzeichen
+
+
+def gegenlaeufig(achse):
+    """Zählt die Steuerung diese Rundachse andersherum als das Gelenk in der Baugruppe? Der
+    Haken „Gegenläufig“ an ihrer Betriebsart „Positionieren“ (Manuel, 2026-10-05: an seiner
+    Maschine drehte C „in die falsche Richtung“). Nach DIN 66217 beschreibt ein positiver Wert,
+    wie sich das Werkzeug um das Werkstück dreht – dreht das Werkstück selbst, dreht es
+    andersherum. Linearachsen nie."""
+    if achse.art == LINEAR:
+        return False
+    gelenk = achse.gelenk
+    return any(
+        getattr(objekt, "Gelenk", None) == gelenk
+        and getattr(objekt, "Art", "") == m.ART_POSITIONIEREN
+        and getattr(objekt, "Gegenlaeufig", False)
+        for objekt in getattr(gelenk, "InList", []) or []
+    )
 
 
 def _seite_des_kinds(achse):

@@ -12,6 +12,39 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-14 rundachse-gegenlaeufig
+
+### EINGELESEN
+- Manuel, 2026-10-05, am 4-Achs-Testteil: „Die Gerade wird richtig gefahren … aber nachdem er die
+  Gerade gefahren hat, dreht er an der Maschine definitiv in die falsche Richtung … und macht
+  gegenüber von der Geraden irgendwie ein Loch“; dann: „Wenn ich vom Werkzeug aus auf die Spindel
+  schaue, erhöht sich die Gradzahl, wenn ich das Futter rechtsrum drehe.“
+- Nachgemessen an einer Kopie seiner `clx550.FCStd`: C4 +90° dreht das Futter rechtshändig um
+  die Achse vom Futter weg – von vorn gesehen gegen den Uhrzeigersinn. An seiner Maschine (und
+  nach DIN 66217 für ein drehendes Werkstück) im Uhrzeigersinn: Die Bahn kam gespiegelt heraus.
+
+### DATEIEN
+- `camaddon/maschine.py` (Betriebsart „Gegenlaeufig“ bei Positionieren), `camaddon/verfahren.py`
+  (`gegenlaeufig`, `_vorzeichen`), `camaddon/gui_details.py`, `camaddon/reichweite.py`
+  (`Pruefung._drehsinn`, Hinweis `rw.drehsinn_anders`), `camaddon/postprozessor.py`
+  (`Maschineninfo.drehsinn`, `Abschnitt.drehsinn`, Hinweis `pp.hinweis.drehsinn_anders`),
+  `translations/de.json`, `en.json`, `help/de|en/achsen.html`,
+  `tests/test_drehsinn_gegenlaeufig.py` (neu), `tests/gui/szenario_maschine_bearbeiten.py`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.193.1).
+
+### DONE
+- Haken „dreht gegenläufig (positiv andersherum)“ an jeder Positionier-Achse: Die Achse zählt
+  andersherum – im Modell (Maschine verfahren, Prüffenster, Abfahren) und im Drehsinn der
+  4-Achs-Bearbeitung, also auch im Programm.
+- Rechnet eine Rundum-Operation mit dem anderen Drehsinn als die Maschine, sagen es das
+  Prüffenster und „Programm schreiben“ (auch als Kommentar im Programm).
+- Offen (Frage an Manuel): die Beispielmaschinen nach DIN 66217 vorbelegen.
+
+### TESTS
+- `test_drehsinn_gegenlaeufig` (C umgekehrt, am Teil exakt wie ohne Haken, mit altem Drehsinn
+  gespiegelt und Hinweis), `test_postprozessor`, `test_sprache`, `test_hilfe`; Szenario
+  `szenario_maschine_bearbeiten` – OK.
+
 ## P-2026-10-05-13 siemens-workpiece
 
 ### EINGELESEN

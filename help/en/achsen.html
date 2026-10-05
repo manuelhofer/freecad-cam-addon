@@ -78,6 +78,15 @@ is shown doubled everywhere, with “Ø” in front: in the travel here, in “M
 machine” and in the check window. You then also type the diameter, and the
 add-on's post processor writes X that way. Calculations use the radius; the
 joint keeps its limits as a radius.</li>
+<li><b>turns counter (positive the other way)</b> (Positioning) – when a positive value on the
+control turns the part the other way than the joint in the assembly. Per DIN 66217, +C describes
+how the tool turns around the workpiece; if the workpiece itself turns (spindle, rotary table), it
+turns the other way – on a lathe with C, looking at the chuck from the front, <b>clockwise</b>.
+How to check: on the machine, move C a bit into plus and look at the chuck from the front; then do
+the same in “Move machine”. If they turn different ways, tick it. Without it, rotary paths
+come out mirrored on the machine. Rotary operations already created still compute with the old
+direction – the check window and “Write program” say so; apply them again in 4-axis machining or
+switch “Drehsinn” on the operation (1 ↔ −1).</li>
 <li><b>Home position</b> and <b>Tool change</b> (Linear) – where the axis is when the machine
 is at home or at the tool change, counted like the travel. If an axis has a home position,
 traversing in the check window starts and ends there; before every tool change the machine

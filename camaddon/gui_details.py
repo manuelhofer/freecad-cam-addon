@@ -89,7 +89,7 @@ class DetailKasten(QtGui.QFrame):
             text = m.wert_text(eigenschaft)
             if eigenschaft in feste_einheiten:
                 text += f" ({feste_einheiten[eigenschaft]})"
-            if eigenschaft in ("Endlos", "Durchmesser"):
+            if eigenschaft in ("Endlos", "Gegenlaeufig", "Durchmesser"):
                 feld = self._schalter(ba, eigenschaft)
             else:
                 feld = self._zahlenfeld(ba, eigenschaft, pflicht, _vorgabe(eigenschaft, linear))

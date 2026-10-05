@@ -552,6 +552,9 @@ class Maschineninfo:
     # Die Rundachsen (Buchstaben), die an der Maschine endlos drehen – an der Steuerung eine
     # Moduloachse: Steuerung.rundachse_plus/_minus.
     modulo: set = field(default_factory=set)
+    # Buchstabe → Drehsinn der Rundachsen, die die Stange drehen (vierachs_achsen.von_maschine,
+    # mit dem Haken „gegenläufig“): Rechnet eine Rundum-Operation andersherum, ein Hinweis.
+    drehsinn: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -582,6 +585,8 @@ class Abschnitt:
     name_steuerung: str = ""
     ruesten_art: str = ""
     ruesten: str = ""
+    # Eine Rundum-Operation: (Rundachse, Drehsinn), mit dem ihre Bahn gerechnet ist.
+    drehsinn: tuple = ()
 
 
 @dataclass
@@ -919,6 +924,13 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
             hinweise.append(f"{abschnitt.name}: {abschnitt.hinweis}")
             if s.kommentare:
                 zeilen.append(_kommentar(s, abschnitt.hinweis))
+        if abschnitt.drehsinn:
+            buchstabe, drehsinn = abschnitt.drehsinn
+            if info.drehsinn.get(buchstabe, drehsinn) != drehsinn:
+                satz = tr("pp.hinweis.drehsinn_anders", operation=abschnitt.name, achse=buchstabe)
+                hinweise.append(satz)
+                if s.kommentare:
+                    zeilen.append(_kommentar(s, satz))
         befehle_roh = abschnitt.befehle
         if s.tcpm and s.tcpm_ein and abschnitt.befehle_tcpm is not None:
             try:
@@ -1375,6 +1387,7 @@ def abschnitte(job, maschine=None, mit_ebenen=True):
 def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False):
     from . import job_schnittwerte as js
     from . import magazin as mg
+    from . import vierachs_operation as vo
 
     ergebnis = []
     geschwenkt = sw.ist_ebene(job)
@@ -1404,6 +1417,9 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
             im = magazin.eintrag_von(aus_verwaltung) if aus_verwaltung is not None else None
             name_steuerung = im.name if im is not None else ""
             ruesten_art, ruesten = mg.ruesten(aus_verwaltung, magazin, nummer, revolver)
+        drehsinn = getattr(op, "Drehsinn", None)
+        rundachse = str(getattr(op, "Rundachse", "") or "")
+        rundum = vo.ist_rundum(op) and drehsinn in (1, -1) and rundachse
         ergebnis.append(
             Abschnitt(
                 op.Label,
@@ -1421,6 +1437,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 name_steuerung,
                 ruesten_art,
                 ruesten,
+                (rundachse, int(drehsinn)) if rundum else (),
             )
         )
     return ergebnis
@@ -1627,6 +1644,12 @@ def _info_aus(dok, m, msp):
             nummer = re.sub(r"\D", "", getattr(spindel, "NcName", "") or "")
             if nummer and aufnahme.Platz:
                 info.angetrieben[int(aufnahme.Platz)] = nummer
+        try:
+            from . import vierachs_achsen as va
+
+            info.drehsinn = {a.buchstabe: a.drehsinn for a in va.von_maschine(objekt, maschine)}
+        except Exception:
+            info.drehsinn = {}
         return info
     return Maschineninfo()
 
