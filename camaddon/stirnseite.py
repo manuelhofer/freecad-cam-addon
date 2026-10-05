@@ -426,7 +426,9 @@ class _Umrechnung:
                 weiter = 0.5 * (t + weiter)
             # Die Zeit des Satzes: der Weg am Teil – mindestens der Bogen, den der Punkt um die
             # Achse zieht, so dreht C nicht schneller, als der Vorschub dort läuft.
-            rho = math.hypot(q[0] - self.r.mitte[0], q[1] - self.r.mitte[1])
+            # Durch die Drehmitte, wenn X nicht dahinter kommt, dreht C dort um 180° – wenigstens
+            # so langsam wie auf 1 mm Radius.
+            rho = max(1.0, math.hypot(q[0] - self.r.mitte[0], q[1] - self.r.mitte[1]))
             weg = max(math.dist(vorher, q), rho * abs(math.radians(neu - winkel)))
             self._g1(*q, neu, weg, f)
             f = None

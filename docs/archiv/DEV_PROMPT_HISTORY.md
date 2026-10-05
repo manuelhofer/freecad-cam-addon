@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-25 stirnseite-drehmitte
+
+### EINGELESEN
+- Nachgeprüft an der Stirnseite (P-2026-10-05-20): Kommt X nicht hinter die Drehmitte, muss C
+  dort um 180° drehen, wenn eine Bahn durch die Mitte geht – mit der Zeit aus dem Weg am Teil
+  (fast null) schlagartig.
+
+### DATEIEN
+- `camaddon/stirnseite.py` (die Zeit eines Satzes, in dem C dreht, wenigstens wie auf 1 mm Radius),
+  `tests/test_stirnseite.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.5).
+
+### DONE
+- Durch die Mitte dreht C nicht schneller als auf 1 mm Radius; am Teil bleibt die Bahn auf der
+  Geraden. Die 4-Achs-Operationen des Addons rechnet die Stirnseite nie um (nachgesehen: alle vier
+  Arten in `ist_rundum`).
+
+### TESTS
+- `test_stirnseite` – OK.
+
 ## P-2026-10-05-24 heidenhain-plane-spatial
 
 ### EINGELESEN

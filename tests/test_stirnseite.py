@@ -106,6 +106,32 @@ pruefe(
 ende = punkte[-1]
 pruefe(abs(ende[0] + 40) < 1e-6 and abs(ende[1] - 20) < 1e-6, f"mit: Ende {ende[:2]}")
 
+# --- Durch die Drehmitte, X nicht dahinter (x_min 0): C dreht dort um 180°, wenigstens so langsam
+# wie auf 1 mm Radius – am Teil weiter auf der Geraden.
+null = st.Rahmen(0.0, 100.0, -51.0, 51.0)
+quer = [
+    C("G0", {"X": 20.0, "Y": 0.0, "Z": 2.0}),
+    C("G1", {"Z": 0.0, "F": 10.0}),
+    C("G1", {"X": -20.0, "Y": 0.0}),
+]
+raus = st.befehle(quer, null, st.MIT)
+punkte = am_teil(null, raus, dicht=20)
+weit = max(abstand_gerade(p, (20, 0), (-20, 0)) for p in punkte)
+pruefe(weit < 0.005, f"Mitte: {weit:.4f} mm neben der Geraden")
+pruefe(all(null.enthaelt(p[3], p[4]) for p in punkte), "Mitte: außerhalb des Rahmens")
+stand_c, dreh = 0.0, []
+for b_ in raus:
+    if b_.Name == "G1" and "C" in b_.Parameters and "F" in b_.Parameters:
+        delta = abs(float(b_.Parameters["C"]) - stand_c)
+        zeit = 1.0 / (float(b_.Parameters["F"]) * 60.0)  # min
+        dreh.append((delta, zeit))
+        stand_c = float(b_.Parameters["C"])
+gross = [(d, z) for d, z in dreh if d > 10.0]
+pruefe(
+    gross and all(z >= 1.0 * math.radians(d) / (10.0 * 60.0) - 1e-9 for d, z in gross),
+    f"Mitte: C {[round(d, 1) for d, _ in gross]}° in {[round(z * 60000, 1) for _, z in gross]} ms",
+)
+
 # --- C in Schritten: ein Kreis Ø 140 ---------------------------------------------------------
 kreis = [
     C("G0", {"X": 70.0, "Y": 0.0, "Z": 5.0}),
