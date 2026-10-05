@@ -380,6 +380,11 @@ class WerkzeugDialog(QtGui.QDialog):
         # Die Werkzeugkiste der Hersteller (W-007): Reihen echter Werkzeuge mit Werten.
         self.knopf_kiste = knopf(tr("wv.kiste"), tr("wv.kiste.tooltip"), self.kiste_zeigen)
         aufbau.addWidget(self.knopf_kiste)
+        # Je Maschine, was ihre Steuerung kennt und was beladen ist (W-002 Stufe H).
+        self.knopf_magazine = knopf(
+            tr("wv.magazine"), tr("wv.magazine.tooltip"), self.magazine_zeigen
+        )
+        aufbau.addWidget(self.knopf_magazine)
         return rahmen
 
     def _bereich_werkzeug(self):
@@ -1263,6 +1268,15 @@ class WerkzeugDialog(QtGui.QDialog):
         self._liste_aufbauen(auswahl=bericht.neu[0] if bericht.neu else self.werkzeug)
         QtCore.QTimer.singleShot(0, lambda: self.kiste_bericht_zeigen(bericht))
         return bericht
+
+    def magazine_zeigen(self):
+        """„Magazine …“: die Magazine dieser Bibliothek – gespeichert wird mit OK oder
+        Übernehmen hier. Gibt das Fenster zurück."""
+        from . import gui_magazine
+
+        self._felder_uebernehmen()
+        self.magazine = gui_magazine.oeffnen(self)
+        return self.magazine
 
     def kiste_bericht_zeigen(self, bericht):
         QtGui.QMessageBox.information(

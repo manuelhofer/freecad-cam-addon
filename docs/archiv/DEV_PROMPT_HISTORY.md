@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-04 magazine
+
+### EINGELESEN
+- Manuel, 2026-10-05: T-Nummern je Maschine statt am Werkzeug; drei Ebenen Werkzeugverwaltung –
+  Magazin (was die Steuerung kennt) – Beladung (Wechsler, Revolver). Entschieden: E1, E2, E3 (a),
+  E4, E7 (a); Einlesen weg (Spezifikation Werkzeugverwaltung, 7.).
+
+### DATEIEN
+- `camaddon/werkzeuge.py` (`Magazin`, `MagazinEintrag`, `Bibliothek.magazine`, `magazin_fuer`,
+  `magazin_gilt`, `neues_magazin`, `kopiere_magazin`; `entferne` auch aus den Magazinen),
+  `camaddon/gui_magazine.py` (neu), `camaddon/gui_werkzeuge.py` („Magazine …“), `camaddon/hilfe.py`,
+  `help/de|en/magazine.html` (neu), `help/de|en/werkzeuge.html`, `so_gehts.html`,
+  `translations/de.json`, `en.json`, `tests/test_werkzeuge.py`, `tests/gui/szenario_magazine.py`
+  (neu), `docs/spezifikation_werkzeugverwaltung.md` (7.), `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.190.0).
+
+### DONE
+- Stufe H1: Magazine je Maschine in der Werkzeugverwaltung.
+
+### TESTS
+- `test_werkzeuge` (Magazine), `test_hilfe`, `test_sprache`, Szenario `szenario_magazine` – OK.
+
 ## P-2026-10-05-03 hilfe-werkzeuglaenge
 
 ### EINGELESEN

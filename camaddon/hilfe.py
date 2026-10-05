@@ -27,6 +27,7 @@ THEMEN = [
     "werkstoffe",
     "werkzeuge",
     "halter",
+    "magazine",
     "schnittwerte",
     "strategien",
     "schruppwerte",

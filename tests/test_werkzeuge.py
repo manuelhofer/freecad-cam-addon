@@ -453,6 +453,60 @@ pruefe(liste.sortierte_werkzeuge() == [mit, noch_ohne, ohne], "ohne Nummer nicht
 pruefe(liste.naechste_nummer() == 1, f"nächste Nummer {liste.naechste_nummer()}")
 pruefe(wz.Werkzeug.aus_dict(ohne.als_dict()).nummer == 0, "ohne Nummer nicht gespeichert")
 
+# --- Magazine (W-002 Stufe H; Manuel, 2026-10-05): je Maschine, welche Werkzeuge ihre Steuerung
+# mit welcher T-Nummer kennt und was beladen ist. Beliebig viele, je Maschine gilt eins; die
+# Maschine über ihre Datei (auch anders geschrieben dieselbe); gespeichert mit der Bibliothek.
+fraeser12 = wz.Werkzeug(nummer=1, durchmesser=12)
+anbohrer = wz.Werkzeug(nummer=2, art=wz.NC_ANBOHRER, durchmesser=10)
+bib = wz.Bibliothek([fraeser12, anbohrer])
+fraese = os.path.join(ordner, "fraese.FCStd")
+dreh = os.path.join(ordner, "clx550.FCStd")
+m_fraese = bib.neues_magazin("DMU", fraese)
+m_dreh = bib.neues_magazin("CLX 550", dreh)
+m_fraese.hinzufuegen(fraeser12, 1)
+m_fraese.hinzufuegen(anbohrer, 2)
+m_dreh.hinzufuegen(anbohrer, 1)  # an der anderen Maschine ist T1 der Anbohrer
+m_dreh.eintrag_von(anbohrer).platz = 5
+m_dreh.eintrag_von(anbohrer).name = "ANBOHRER_D10"
+pruefe(
+    bib.magazin_fuer(fraese) is m_fraese
+    and bib.magazin_fuer(os.path.join(ordner, ".", "clx550.FCStd")) is m_dreh
+    and bib.magazin_fuer(os.path.join(ordner, "andere.FCStd")) is None,
+    "Magazin je Maschine",
+)
+pruefe(
+    m_fraese.eintrag_von(fraeser12).nummer == 1 and m_dreh.eintrag_von(anbohrer).nummer == 1,
+    "T1 je Maschine verschieden",
+)
+pruefe(
+    m_dreh.naechste_nummer() == 2 and m_dreh.auf_platz(5) is m_dreh.eintrag_von(anbohrer),
+    "nächste Nummer, Platz",
+)
+# Eine Kopie gilt erst mit dem Haken; dann gilt das alte nicht mehr.
+alu = bib.kopiere_magazin(m_dreh, "CLX 550 Alu")
+pruefe(not alu.gilt and bib.magazin_fuer(dreh) is m_dreh, "Kopie gilt schon")
+bib.magazin_gilt(alu)
+pruefe(bib.magazin_fuer(dreh) is alu and not m_dreh.gilt and m_fraese.gilt, "gilt umgeschaltet")
+# Gespeichert und gelesen: alles wie vorher.
+pfad_m = os.path.join(ordner, "magazine", wz.DATEINAME)
+bib.speichern(pfad_m)
+wieder = wz.Bibliothek.laden(pfad_m)
+pruefe(
+    [m.als_dict() for m in wieder.magazine] == [m.als_dict() for m in bib.magazine],
+    "Magazine nach dem Laden anders",
+)
+e = wieder.magazin_fuer(dreh).eintrag_von(anbohrer)
+pruefe(e.nummer == 1 and e.platz == 5 and e.name == "ANBOHRER_D10", f"Eintrag: {e}")
+# Ältere Dateien ohne Magazine: leer.
+pruefe(wz.Bibliothek.aus_dict({"werkzeuge": []}).magazine == [], "ohne Magazine")
+# Ein gelöschtes Werkzeug verschwindet auch aus den Magazinen.
+bib.entferne(anbohrer)
+pruefe(
+    all(m.eintrag_von(anbohrer) is None for m in bib.magazine)
+    and m_fraese.eintrag_von(fraeser12) is not None,
+    "gelöschtes Werkzeug noch im Magazin",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print("OK", os.path.basename(__file__))

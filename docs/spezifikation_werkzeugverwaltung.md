@@ -508,6 +508,46 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
      (`bestueckung.platz_fuer`, `job_schnittwerte.freie_nummer`) – nie T0; am Revolver den
      ersten freien Platz. In FreeCADs Werkzeugbibliothek steht es hinter allen anderen.
 
+7. **Magazine je Maschine** (Stufe H) – Manuel, 2026-10-05: „bei der einen ist T1 ein 12er
+   Fräser und bei der anderen ist T1 ein NC-Anbohrer … bei Siemens könnte man auch Namen
+   verwenden … wäre es nicht sinnvoll, dass man in der Werkzeugverwaltung ein Paket
+   zusammenbaut, … für die Maschine CLX 550 abspeichern kann und das Paket auch laden, wenn man
+   etwas ergänzen will“; dann: „die Beladung ist das, was im Werkzeugwechsler oder auf dem Revolver
+   ist, und das Magazin ist das, was in der Steuerung als mögliche Werkzeuge hinterlegt ist, und die
+   Werkzeugverwaltung ist eben alle Werkzeuge, die es gibt … eine Fräsmaschine braucht auch keine
+   Drehwerkzeuge“.
+
+   **Das Modell – drei Ebenen:**
+   - **Werkzeugverwaltung:** alle Werkzeuge, die es gibt (Schränke, Regal).
+   - **Magazin** (`werkzeuge.Magazin`): was in der Steuerung einer Maschine als Werkzeug angelegt
+     ist – je Eintrag die T-Nummer, das Werkzeug (Kennung), wahlweise der Name an der Steuerung
+     (Siemens `T="…"`). Es gehört zu einer **bestehenden** Maschine (ihre Datei aus dem
+     Maschinenspeicher). Beliebig viele; je Maschine **gilt** eins (`Bibliothek.magazin_fuer`).
+   - **Beladung:** je Eintrag der Platz im Wechsler bzw. Revolver, auf dem er steckt (0: nicht
+     beladen); die Zahl der Plätze am Magazin, sonst die Stationen des Revolvers der Maschine.
+
+   **Entschieden** (Manuel, 2026-10-05): E1 im Werkzeugverwaltungsfenster geschnürt; E2 beliebig
+   viele; E3 (a) ein Werkzeug, das nicht im Magazin der Maschine steht, bekommt im Job eine freie
+   Nummer, dazu ein gelber Satz („… ist an der CLX 550 nicht angelegt – in der Steuerung anlegen
+   und vermessen“) und „ins Magazin übernehmen“; E4 bestehende Jobs nur auf Knopfdruck neu
+   nummerieren; E5 Einlesen der Werkzeugtabelle der Steuerung – „lassen wir mal weg“; E7 (a) der
+   Assistent bietet zuerst die Werkzeuge des Magazins an, beladene vorne, die übrigen darunter mit
+   „nicht im Magazin“.
+
+   **Schritte:** H1 Magazine in der Werkzeugverwaltung (Modell, Fenster „Magazine …“); H2 die
+   Nummern im Job aus dem Magazin (E3, E7); H3 die Rüstliste (im Fenster „Bestückung“ und im Kopf
+   des Programms: was zu beladen, was anzulegen ist) und „Nummern aus dem Magazin“ (E4); H4 die
+   Kollision mit allem, was beladen ist.
+
+   **Gebaut H1** (P-2026-10-05-04, 0.190.0): `Magazin`, `MagazinEintrag` in `werkzeuge.py`, mit
+   der Bibliothek gespeichert (`magazine`, ältere Dateien: leer); ein gelöschtes Werkzeug
+   verschwindet auch aus den Magazinen. Fenster `gui_magazine.py` („Magazine …“ unter der
+   Werkzeugliste): links die Magazine (Neu – für die erste Maschine ohne eins, mit ihrem Namen –,
+   Kopieren – gilt erst mit Haken –, Löschen), rechts Name, Maschine, „Gilt für diese Maschine“,
+   Plätze, die Tabelle T / Werkzeug / Name an der Steuerung / Beladen auf; „Werkzeug dazu“, „Aus den
+   Nummern“, „Entfernen“; unten rot: eine Nummer zweimal, zwei auf einem Platz, ein Platz über der
+   Zahl der Plätze. Gespeichert mit OK/Übernehmen der Werkzeugverwaltung. Hilfe „Magazine“.
+
 ## 11. Entscheidungen (Claude, zur Besprechung)
 
 Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.

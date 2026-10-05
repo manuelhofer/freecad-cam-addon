@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.189.2 (P-2026-10-05-03). Alles, was hier als gebaut steht,
+Stand 0.190.0 (P-2026-10-05-04). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -26,7 +26,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
 - **W-002 Werkzeugverwaltung** – gebaut bis Stufe G: Werkzeuge mit Einsätzen je Werkstoff,
   Schruppwerte planen, 26 Werkzeugarten, Halter mit Richtung, Bestückung an der Maschine
   und je Job, Drehrichtung M3/M4, Richtwerte eintragen, eigene Werte je Werkstoff, die Nummer
-  am Werkzeug freiwillig („Entladen“, F2, P-2026-10-04-35).
+  am Werkzeug freiwillig („Entladen“, F2, P-2026-10-04-35); Magazine je Maschine in der
+  Werkzeugverwaltung (Stufe H1, P-2026-10-05-04 – H2 Nummern im Job, H3 Rüstliste, H4 Kollision
+  mit der Beladung folgen).
 - **W-003 4-Achs-Bearbeitung** – gebaut: V1 Teil in die Stange, V2a/V2c Achse von der
   Maschine, V3 Rundum schruppen, V4 Flächen wählen (Linien längs, Plan indexiert mit
   Passfedernut, Mantelnut, Querbohrungen und Radial bohren, Rundum entgraten), V5 Rundum

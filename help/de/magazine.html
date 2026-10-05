@@ -1,0 +1,33 @@
+<h2>Magazine</h2>
+<p>Dieselbe Nummer heißt an jeder Maschine etwas anderes: An der einen ist T1 ein Fräser Ø 12, an
+der anderen ein NC-Anbohrer. Deshalb gibt es drei Ebenen:</p>
+<ul>
+<li><b>Werkzeugverwaltung</b> – alle Werkzeuge, die es gibt, in allen Schränken.</li>
+<li><b>Magazin</b> – was in der Steuerung einer Maschine als Werkzeug angelegt ist: je Werkzeug
+die <b>T-Nummer</b>, mit der das Programm es aufruft, und wahlweise sein <b>Name an der
+Steuerung</b> (Siemens mit Werkzeugverwaltung: T="Name"). Eine Fräse kennt keine
+Drehwerkzeuge, eine Drehmaschine andere Nummern.</li>
+<li><b>Beladung</b> – welche Werkzeuge des Magazins gerade im Werkzeugwechsler bzw. auf dem
+Revolver stecken: „beladen auf P5“. Was nicht beladen ist, muss der Bediener vor dem Lauf
+einsetzen.</li>
+</ul>
+
+<h3>Das Fenster</h3>
+<ol>
+<li>Werkzeugverwaltung öffnen, links unten <b>Magazine …</b>.</li>
+<li><b>Neu</b> legt ein Magazin an – für die erste Maschine im Maschinenspeicher, die noch keins
+hat. Die Maschine muss es dort schon geben („Maschinen …“). Es kann beliebig viele Magazine
+geben; je Maschine <b>gilt</b> eins (Haken „Gilt für diese Maschine“). <b>Kopieren</b> macht einen
+zweiten Stand derselben Maschine, der erst gilt, wenn du den Haken setzt.</li>
+<li><b>Plätze</b>: wie viele der Wechsler bzw. Revolver hat – „–“ heißt: wie die Maschine sagt
+(am Revolver seine Stationen).</li>
+<li>Je Zeile ein Werkzeug: <b>T</b>, <b>Werkzeug</b> aus der Werkzeugverwaltung, <b>Name an der
+Steuerung</b> (leer: über die Nummer), <b>Beladen auf</b> (leer: nicht beladen). <b>Werkzeug
+dazu</b> fügt eine Zeile mit der nächsten freien Nummer an, <b>Aus den Nummern</b> übernimmt alle
+Werkzeuge mit Nummer aus der Werkzeugverwaltung, <b>Entfernen</b> nimmt Zeilen heraus.</li>
+<li>Unten rot, was nicht zusammenpasst: eine Nummer zweimal, zwei Werkzeuge auf einem Platz, ein
+Platz, den es nicht gibt.</li>
+<li>Gespeichert wird mit <b>OK</b> oder <b>Übernehmen</b> der Werkzeugverwaltung.</li>
+</ol>
+<p>Ein Werkzeug, das du aus der Werkzeugverwaltung löschst, verschwindet auch aus den
+Magazinen.</p>

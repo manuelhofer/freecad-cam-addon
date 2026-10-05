@@ -1423,13 +1423,113 @@ class BeschaedigteDatei(Exception):
         self.beiseite = beiseite
 
 
+# --- Magazine (W-002 Stufe H) ----------------------------------------------------
+# Manuel, 2026-10-05: „bei der einen [Maschine] ist T1 ein 12er Fräser und bei der anderen ist T1
+# ein NC-Anbohrer“; „die Beladung ist das, was im Werkzeugwechsler oder auf dem Revolver ist, und
+# das Magazin ist das, was in der Steuerung als mögliche Werkzeuge hinterlegt ist, und die
+# Werkzeugverwaltung ist eben alle Werkzeuge, die es gibt“. Ein Magazin gehört zu einer Maschine
+# (ihre Datei aus dem Maschinenspeicher); es gibt beliebig viele, je Maschine gilt eins.
+
+
+@dataclass
+class MagazinEintrag:
+    """Ein Werkzeug, das in der Steuerung einer Maschine angelegt ist."""
+
+    nummer: int  # die T-Nummer, mit der das Programm es aufruft
+    werkzeug: str  # Kennung des Werkzeugs in der Werkzeugverwaltung
+    name: str = ""  # der Name an der Steuerung (Siemens T="…"); leer: keiner
+    platz: int = 0  # beladen auf diesem Platz im Wechsler/Revolver; 0: nicht beladen
+
+    def als_dict(self):
+        return dataclasses.asdict(self)
+
+    @classmethod
+    def aus_dict(cls, daten):
+        return cls(
+            _zahl(daten.get("nummer"), int, 0),
+            str(daten.get("werkzeug") or ""),
+            str(daten.get("name") or ""),
+            _zahl(daten.get("platz"), int, 0),
+        )
+
+
+@dataclass
+class Magazin:
+    """Die Werkzeuge, die in der Steuerung einer Maschine angelegt sind, und welche davon
+    beladen sind (Wechsler, Revolver)."""
+
+    name: str = ""
+    maschine: str = ""  # die Datei der Maschine (Maschinenspeicher); leer: keine
+    plaetze: int = 0  # Plätze im Wechsler bzw. Revolver; 0: wie die Maschine sagt
+    gilt: bool = True  # das Magazin, das für die Maschine gilt (je Maschine eins)
+    eintraege: list = field(default_factory=list)  # [MagazinEintrag]
+    kennung: str = field(default_factory=lambda: uuid.uuid4().hex)
+
+    def eintrag_von(self, werkzeug):
+        """Der Eintrag eines Werkzeugs (oder seiner Kennung), oder None."""
+        kennung = getattr(werkzeug, "kennung", werkzeug)
+        return next((e for e in self.eintraege if e.werkzeug == kennung), None)
+
+    def mit_nummer(self, nummer):
+        return next((e for e in self.eintraege if e.nummer == nummer), None)
+
+    def auf_platz(self, platz):
+        return next((e for e in self.eintraege if platz and e.platz == platz), None)
+
+    def naechste_nummer(self, auch=()):
+        """Die kleinste T-Nummer, die im Magazin (und in `auch`) noch frei ist."""
+        belegt = {e.nummer for e in self.eintraege} | set(auch)
+        nummer = 1
+        while nummer in belegt:
+            nummer += 1
+        return nummer
+
+    def sortierte_eintraege(self):
+        return sorted(self.eintraege, key=lambda e: (e.nummer <= 0, e.nummer))
+
+    def hinzufuegen(self, werkzeug, nummer=None):
+        """Nimmt das Werkzeug auf – mit `nummer` oder der nächsten freien; ist es schon da, der
+        Eintrag, wie er ist."""
+        eintrag = self.eintrag_von(werkzeug)
+        if eintrag is None:
+            eintrag = MagazinEintrag(nummer or self.naechste_nummer(), werkzeug.kennung)
+            self.eintraege.append(eintrag)
+        return eintrag
+
+    def als_dict(self):
+        return {
+            "kennung": self.kennung,
+            "name": self.name,
+            "maschine": self.maschine,
+            "plaetze": self.plaetze,
+            "gilt": self.gilt,
+            "eintraege": [e.als_dict() for e in self.sortierte_eintraege()],
+        }
+
+    @classmethod
+    def aus_dict(cls, daten):
+        return cls(
+            str(daten.get("name") or ""),
+            str(daten.get("maschine") or ""),
+            _zahl(daten.get("plaetze"), int, 0),
+            bool(daten.get("gilt", True)),
+            [
+                MagazinEintrag.aus_dict(e)
+                for e in _liste(daten.get("eintraege"))
+                if isinstance(e, dict)
+            ],
+            str(daten.get("kennung") or uuid.uuid4().hex),
+        )
+
+
 class Bibliothek:
     """Werkzeuge, Halter und eigene Werkstoffe des Benutzers."""
 
-    def __init__(self, werkzeuge=None, eigene_werkstoffe=None, halter=None):
+    def __init__(self, werkzeuge=None, eigene_werkstoffe=None, halter=None, magazine=None):
         self.werkzeuge = list(werkzeuge or [])
         self.eigene_werkstoffe = list(eigene_werkstoffe or [])
         self.halter = list(halter or [])
+        self.magazine = list(magazine or [])  # [Magazin] – je Maschine, was ihre Steuerung kennt
         # Ohne gewählten Halter prüfen Reichweite und Kollision mit dem vorgeschlagenen
         # (halter.vorschlag, D-23); aus nur in Prüfungen, die das Werkzeug allein meinen.
         self.halter_vorschlagen = True
@@ -1460,7 +1560,10 @@ class Bibliothek:
         return kopie
 
     def entferne(self, werkzeug):
+        """Nimmt das Werkzeug heraus – auch aus den Magazinen."""
         self.werkzeuge.remove(werkzeug)
+        for magazin in self.magazine:
+            magazin.eintraege = [e for e in magazin.eintraege if e.werkzeug != werkzeug.kennung]
 
     def mit_nummer(self, nummer, ausser=None):
         """Ein anderes Werkzeug mit dieser T-Nummer, oder None – ohne Nummer (0) keins: „Jede
@@ -1545,6 +1648,42 @@ class Bibliothek:
             nummer += 1
         return f"{name} ({nummer})"
 
+    # --- Magazine ----------------------------------------------------------------
+
+    def magazin_fuer(self, maschine):
+        """Das Magazin, das für die Maschine (ihre Datei) gilt, oder None."""
+        if not maschine:
+            return None
+        from .maschinenspeicher import gleiche_datei
+
+        passende = [m for m in self.magazine if gleiche_datei(m.maschine, maschine)]
+        return next((m for m in passende if m.gilt), passende[0] if passende else None)
+
+    def magazin_gilt(self, magazin):
+        """Lässt `magazin` für seine Maschine gelten – die anderen derselben Maschine nicht."""
+        from .maschinenspeicher import gleiche_datei
+
+        for anderes in self.magazine:
+            if anderes is not magazin and gleiche_datei(anderes.maschine, magazin.maschine):
+                anderes.gilt = False
+        magazin.gilt = True
+
+    def neues_magazin(self, name, maschine=""):
+        """Legt ein Magazin an – es gilt für seine Maschine, wenn dort noch keins gilt."""
+        magazin = Magazin(name=name, maschine=maschine, gilt=self.magazin_fuer(maschine) is None)
+        self.magazine.append(magazin)
+        return magazin
+
+    def kopiere_magazin(self, magazin, name):
+        """Eine Kopie mit neuer Kennung – sie gilt (noch) nicht."""
+        kopie = Magazin.aus_dict(magazin.als_dict())
+        kopie.kennung, kopie.name, kopie.gilt = uuid.uuid4().hex, name, False
+        self.magazine.append(kopie)
+        return kopie
+
+    def werkzeug_mit_kennung(self, kennung):
+        return next((w for w in self.werkzeuge if w.kennung == kennung), None)
+
     # --- Werkstoffe -------------------------------------------------------------
 
     def alle_werkstoffe(self):
@@ -1559,6 +1698,7 @@ class Bibliothek:
             "werkstoffe": [w.als_dict() for w in self.eigene_werkstoffe],
             "werkzeuge": [w.als_dict() for w in self.sortierte_werkzeuge()],
             "halter": [h.als_dict() for h in self.sortierte_halter()],
+            "magazine": [m.als_dict() for m in self.magazine],
         }
 
     @classmethod
@@ -1572,6 +1712,8 @@ class Bibliothek:
             ],
             # Erst seit P-2026-09-26-94 – in älteren Dateien gibt es keine Halter.
             [hl.Halter.aus_dict(h) for h in _liste(daten.get("halter")) if isinstance(h, dict)],
+            # Erst seit P-2026-10-05-04.
+            [Magazin.aus_dict(m) for m in _liste(daten.get("magazine")) if isinstance(m, dict)],
         )
 
     def kopie(self):

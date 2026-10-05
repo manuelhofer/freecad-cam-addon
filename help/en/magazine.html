@@ -1,0 +1,30 @@
+<h2>Magazines</h2>
+<p>The same number means something different on every machine: on one, T1 is a Ø 12 end mill, on
+the other a spot drill. That is why there are three levels:</p>
+<ul>
+<li><b>Tool manager</b> – all tools there are, in all cabinets.</li>
+<li><b>Magazine</b> – what is set up as tools in a machine's control: per tool the <b>T
+number</b> the program calls it with and, optionally, its <b>name in the control</b> (Siemens
+with tool management: T="name"). A mill knows no turning tools, a lathe other numbers.</li>
+<li><b>Loading</b> – which tools of the magazine currently sit in the tool changer or on the
+turret: “loaded on P5”. What is not loaded the operator has to put in before the run.</li>
+</ul>
+
+<h3>The window</h3>
+<ol>
+<li>Open the tool manager, bottom left <b>Magazines …</b>.</li>
+<li><b>New</b> creates a magazine – for the first machine in the machine storage that has none
+yet. The machine must already be there (“Machines …”). There can be any number of magazines; one
+<b>applies</b> per machine (tick “Applies to this machine”). <b>Copy</b> makes a second setup of
+the same machine that applies only once you tick it.</li>
+<li><b>Pockets</b>: how many the changer or turret has – “–” means: as the machine says (on a
+turret its stations).</li>
+<li>One tool per row: <b>T</b>, <b>Tool</b> from the tool manager, <b>Name in the control</b>
+(empty: by number), <b>Loaded on</b> (empty: not loaded). <b>Add tool</b> appends a row with the
+next free number, <b>From the numbers</b> takes all tools with a number from the tool manager,
+<b>Remove</b> takes rows out.</li>
+<li>Red at the bottom, what does not fit: a number twice, two tools on one pocket, a pocket that
+does not exist.</li>
+<li>Saved with <b>OK</b> or <b>Apply</b> of the tool manager.</li>
+</ol>
+<p>A tool you delete from the tool manager also disappears from the magazines.</p>
