@@ -548,6 +548,24 @@ Grundloch, dann ebenenweise mit voller Schneidenlänge).
    Nummern“, „Entfernen“; unten rot: eine Nummer zweimal, zwei auf einem Platz, ein Platz über der
    Zahl der Plätze. Gespeichert mit OK/Übernehmen der Werkzeugverwaltung. Hilfe „Magazine“.
 
+   **Gebaut H2** (P-2026-10-05-05, 0.191.0): `magazin.py` – das Magazin gilt für die Maschine des
+   Jobs (`EIGENSCHAFT_MASCHINE`, nicht die zuletzt benutzte) bzw. die im Assistenten gewählte.
+   An der Fräse (`magazin.nummer`): die Nummer, die das Werkzeug im Job schon hat; sonst die aus
+   dem Magazin; sonst (E3 a) die kleinste, die weder im Magazin noch im Job noch bei den gleich
+   mit angelegten vergeben ist – `job_schnittwerte.controller_ohne_transaktion`/`controller_fuer`
+   und `freie_nummer` (auch keine Nummer des Magazins). Am Revolver (`bestueckung.platz_fuer`)
+   bleibt die Nummer im Job der Platz: der, auf dem es beladen ist, wenn er im Job frei ist; sonst
+   der erste freie, auf dem kein anderes Werkzeug beladen ist (sind alle beladen, der erste freie).
+   Listen (E7 a, `magazin.sortiert`/`zeile`): beladen vorn („T5 · P3“), dann das Magazin nach
+   Nummer, dann der Rest „– … – nicht im Magazin“; am Revolver vorn der Platz im Job
+   („P4 · T11 …“). Der zuletzt benutzte Fräser ist nur vorgewählt, wenn er im Magazin steht; sonst
+   gewinnt nach dem Einsatz eins aus dem Magazin. E3 a: gelb „… steht nicht im Magazin „…“: Das
+   Programm ruft es mit einer freien Nummer auf – an der Steuerung muss es noch angelegt werden“;
+   im Assistenten „Bearbeitung“ mit Knopf, im 4-Achs-Assistenten als Verweis „Ins Magazin
+   übernehmen“ (`magazin.uebernehmen`: mit der Nummer im Job, wenn sie im Magazin frei ist, sonst
+   der nächsten freien; gespeichert). Ohne Magazin bleibt alles wie bisher. Offen in H3: Sätze,
+   die ein Werkzeug „T2“ nennen (`wz.genannt`), nennen noch die Nummer der Werkzeugverwaltung.
+
 ## 11. Entscheidungen (Claude, zur Besprechung)
 
 Je Entscheidung: was gewählt ist, die Alternative, und was sie kostet.

@@ -43,6 +43,7 @@ from . import hoehenfeld as hf
 from . import job_schnittwerte as js
 from . import kontur as ko
 from . import kontur_bahn as kb
+from . import magazin as mg
 from . import maschinenspeicher as msp
 from . import materialstand as mst
 from . import messstopp as ms
@@ -68,6 +69,7 @@ from . import werkzeuge as wz
 from . import werkzeugform as wf
 from . import zielzeit as zz
 from .gui_hilfe import kopfzeile
+from .gui_kollision import GELB
 from .gui_maschine import _EnterBleibtImDialog
 from .gui_teile import ROT, knopf, mit_einheit, ruhiges_mausrad
 from .gui_vierachs import (
@@ -2806,6 +2808,21 @@ class _Block:
         self.reihen.reihe(tr("va.einsatz"), strategie.einsatz_tooltip(), self.wahl_einsatz)
         self.schnittwerte = _grau()
         self.reihen.ganz(self.schnittwerte)
+        # Steht der Fräser nicht im Magazin der Maschine (W-002 Stufe H2, E3 a): gelb, was das
+        # heißt, und ein Knopf, der ihn dort einträgt.
+        self.magazin_zeile = QtGui.QWidget()
+        magazin = QtGui.QVBoxLayout(self.magazin_zeile)
+        magazin.setContentsMargins(0, 0, 0, 0)
+        self.magazin_satz = QtGui.QLabel()
+        self.magazin_satz.setWordWrap(True)
+        self.magazin_satz.setStyleSheet(f"color: {GELB};")
+        magazin.addWidget(self.magazin_satz)
+        self.knopf_magazin = knopf(
+            tr("mg.uebernehmen"), tr("mg.uebernehmen.tooltip"), self.ins_magazin
+        )
+        magazin.addWidget(self.knopf_magazin, 0, QtCore.Qt.AlignLeft)
+        self.magazin_zeile.hide()
+        self.reihen.ganz(self.magazin_zeile)
         if strategie.kennung == "raeumen":
             self.wahl_bahn = QtGui.QComboBox()
             self.wahl_bahn.addItem(tr("ba.raeumen.bisherig"), "automatisch")
@@ -3115,9 +3132,11 @@ class _Block:
         bisher gewählte, beim Ändern der der Operation, sonst der zuletzt benutzte, sonst
         einer mit dem ersten Einsatz der Reihenfolge, sonst ein Schaftfräser."""
         vorher = self.fraeser()
+        # Mit Magazin der Maschine (W-002 Stufe H2, E7 a) dessen Werkzeuge vorn, beladene zuerst.
+        magazin = self.panel.magazin()
         self._fraeser = [
             w
-            for w in sorted(bibliothek.werkzeuge, key=wz.nach_nummer)
+            for w in mg.sortiert(bibliothek.werkzeuge, magazin)
             if w.durchmesser > 0
             and self.s.werkzeug_passt(w)
             and self._passende_einsaetze(w, werkstoff)
@@ -3129,7 +3148,10 @@ class _Block:
             wahl = kennungen.index(vorher.kennung)
         elif self.vorwahl in kennungen:
             wahl = kennungen.index(self.vorwahl)
-        elif gemerkt in kennungen:
+        elif gemerkt in kennungen and (
+            magazin is None
+            or mg.rang(self._fraeser[kennungen.index(gemerkt)], magazin) != mg.NICHT_IM_MAGAZIN
+        ):
             wahl = kennungen.index(gemerkt)
         else:
             wahl = min(
@@ -3139,6 +3161,7 @@ class _Block:
                         e.art == erster
                         for e in self._passende_einsaetze(self._fraeser[i], werkstoff)
                     ),
+                    mg.rang(self._fraeser[i], magazin) == mg.NICHT_IM_MAGAZIN,
                     self._fraeser[i].art != self.s.bevorzugt,
                     i,
                 ),
@@ -3148,17 +3171,39 @@ class _Block:
         try:
             self.wahl_fraeser.clear()
             for werkzeug in self._fraeser:
-                self.wahl_fraeser.addItem(dezimal(wz.zeile(werkzeug)))
+                self.wahl_fraeser.addItem(dezimal(mg.zeile(werkzeug, magazin)))
             if self._fraeser:
                 self.wahl_fraeser.setCurrentIndex(wahl)
         finally:
             self.panel._fuellt = False
+        self.magazin_pruefen()
         self.einsatz_fuellen(werkstoff)
 
     def _fraeser_gewaehlt(self):
         self.haken_pruefen()
         if not self.panel._fuellt:
+            self.magazin_pruefen()
             self.einsatz_fuellen(self.panel.werkstoff())
+
+    def magazin_pruefen(self):
+        """Der gelbe Satz, wenn der gewählte Fräser nicht im Magazin der Maschine steht (E3 a):
+        Das Programm ruft ihn mit einer freien Nummer auf, an der Steuerung fehlt er."""
+        werkzeug = self.fraeser()
+        text = mg.fehlt_text(werkzeug, self.panel.magazin()) if werkzeug is not None else ""
+        self.magazin_satz.setText(text)
+        self.magazin_zeile.setVisible(bool(text))
+
+    def ins_magazin(self):
+        """„Ins Magazin übernehmen“: der gewählte Fräser ins Magazin der Maschine – mit der
+        Nummer, die er im Job schon hat, sonst der nächsten freien –, die Werkzeugverwaltung
+        gespeichert, die Listen neu. Gibt den Eintrag zurück – None, wenn es nicht geht."""
+        magazin = self.panel.magazin()
+        werkzeug = self.fraeser()
+        if magazin is None or werkzeug is None:
+            return None
+        eintrag = mg.uebernehmen(self.panel.bibliothek, magazin, werkzeug, self.panel.job)
+        self.panel._bearbeitung_fuellen()
+        return eintrag
 
     def einsatz_fuellen(self, werkstoff):
         """Die Einsätze des Fräsers; vorgewählt nach der Reihenfolge der Strategie; beim
@@ -4238,6 +4283,14 @@ class BearbeitungPanel:
         datei = self.wahl_maschine.currentData() or ""
         return msp.finde(msp.laden(), datei) if datei else None
 
+    def magazin(self):
+        """Das Magazin, das für die gewählte Maschine gilt (W-002 Stufe H2) – None ohne."""
+        wahl = getattr(self, "wahl_maschine", None)  # die Wahl der Maschine gibt es noch nicht
+        datei = (wahl.currentData() or "") if wahl is not None else ""
+        if not datei or self.bibliothek is None:
+            return None
+        return mg.des_jobs(None, self.bibliothek, datei)
+
     def _maschine_gewaehlt(self):
         """Die Wahl gilt: am Job gemerkt (und als zuletzt benutzt), der Satz darunter, die
         graue Zeile in Schritt 2."""
@@ -4267,6 +4320,8 @@ class BearbeitungPanel:
             rw.merke_maschine(self.job, eintrag.datei)
         for block in getattr(self, "bloecke", ()):
             block.haken_pruefen()  # Anstellen geht nur an einer 5-Achs-Maschine
+            if self.bibliothek is not None:  # das Magazin der Maschine (W-002 Stufe H2)
+                block.fraeser_fuellen(self.bibliothek, self.werkstoff())
         if hasattr(self, "flanke") and self.job is not None and self.gewaehlte:
             self._flaechen_zeigen()  # die Flanke auch
             self.vorschau_starten()

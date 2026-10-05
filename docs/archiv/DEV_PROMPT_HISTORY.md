@@ -12,6 +12,32 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-05 magazin-nummern
+
+### EINGELESEN
+- Manuel, 2026-10-05: „E3 a ja, E7 a ja“ – Stufe H2: Nummern im Job aus dem Magazin der
+  Maschine; ein Werkzeug, das dort fehlt, bekommt eine freie Nummer, gelb dazu und „ins Magazin
+  übernehmen“; die Listen bieten das Magazin zuerst an, beladene vorn.
+
+### DATEIEN
+- `camaddon/magazin.py` (neu), `camaddon/job_schnittwerte.py` (`_aus_magazin`, `freie_nummer`),
+  `camaddon/bestueckung.py` (`platz_fuer` mit Magazin und `maschine`), `camaddon/gui_bearbeitung.py`
+  (`magazin()`, Liste, gelbe Zeile mit Knopf, Liste neu bei anderer Maschine),
+  `camaddon/gui_vierachs.py` (`_magazin`, `_zeile`, `_sortiert`, gelber Satz mit Verweis
+  „magazin:…“), `translations/de.json`, `en.json`, `help/de|en/magazine.html`,
+  `tests/test_magazin.py` (neu), `tests/gui/szenario_magazin_bearbeitung.py` (neu),
+  `tests/gui/szenario_magazin_vierachs.py` (neu), `docs/spezifikation_werkzeugverwaltung.md` (7.),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.191.0).
+
+### DONE
+- Stufe H2 der Magazine: Nummern im Job aus dem Magazin, E3 a, E7 a – in „Bearbeitung“ und
+  „4-Achs-Bearbeitung“.
+
+### TESTS
+- `test_magazin`, `test_bestueckung`, `test_sprache`; Szenarien `szenario_magazin_bearbeitung`,
+  `szenario_magazin_vierachs`, `szenario_rundum_drehmaschine` (4-Achs ohne Magazin wie bisher),
+  `szenario_bestueckung` – OK.
+
 ## P-2026-10-05-04 magazine
 
 ### EINGELESEN

@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.190.0 (P-2026-10-05-04). Alles, was hier als gebaut steht,
+Stand 0.191.0 (P-2026-10-05-05). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -27,8 +27,9 @@ aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Ass
   Schruppwerte planen, 26 Werkzeugarten, Halter mit Richtung, Bestückung an der Maschine
   und je Job, Drehrichtung M3/M4, Richtwerte eintragen, eigene Werte je Werkstoff, die Nummer
   am Werkzeug freiwillig („Entladen“, F2, P-2026-10-04-35); Magazine je Maschine in der
-  Werkzeugverwaltung (Stufe H1, P-2026-10-05-04 – H2 Nummern im Job, H3 Rüstliste, H4 Kollision
-  mit der Beladung folgen).
+  Werkzeugverwaltung (Stufe H1, P-2026-10-05-04), die Nummern im Job aus dem Magazin (H2,
+  P-2026-10-05-05: Listen mit dem Magazin vorn, gelb „nicht im Magazin“ mit „Ins Magazin
+  übernehmen“) – H3 Rüstliste, H4 Kollision mit der Beladung folgen.
 - **W-003 4-Achs-Bearbeitung** – gebaut: V1 Teil in die Stange, V2a/V2c Achse von der
   Maschine, V3 Rundum schruppen, V4 Flächen wählen (Linien längs, Plan indexiert mit
   Passfedernut, Mantelnut, Querbohrungen und Radial bohren, Rundum entgraten), V5 Rundum
@@ -269,6 +270,13 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
 - *S5 Entgraten in 3D:* beantwortet – bauen, mit jedem Fräser mit ebener Stirn und auch mit 3
   Achsen (P-2026-10-04-65).
 - *Siemens WORKPIECE:* Manuel (2026-10-04): „lass es raus“ – nicht gebaut.
+- *Zum Ausprobieren (0.191.0) – Magazine:* Werkzeugverwaltung → „Magazine …“ → „Neu“ für
+  deine Fräse (sie muss unter „Maschinen …“ stehen) → „Aus den Nummern“, ein paar Nummern so
+  ändern, wie sie an der Steuerung heißen, einem „Beladen auf“ geben → OK. Dann ein Teil →
+  „Bearbeitung“ mit dieser Fräse → Schritt 3: In „Fräser“ stehen die des Magazins vorn („T5 · P3
+  …“), die anderen darunter mit „nicht im Magazin“. Eins von unten wählen: gelber Satz und „Ins
+  Magazin übernehmen“ → geklickt: der Satz ist weg. „Anlegen“: Die Controller heißen „T<Nummer
+  aus dem Magazin> …“.
 - *Zum Ausprobieren (0.189.1) – Heidenhain:* einen Job wählen → „Programm schreiben …“ →
   Steuerung „Heidenhain iTNC 530 (Klartext)“ → rechts „0 BEGIN PGM <Datei> MM“, „BLK FORM …“,
   „TOOL CALL 1 Z S…“, „M3“, „L X+… R0 F…“, Kreise „CC …“/„C … DR+“ → „Speichern“ → darunter

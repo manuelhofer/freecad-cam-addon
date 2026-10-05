@@ -52,6 +52,7 @@ from . import bestueckung as bs
 from . import fraeserform as ff
 from . import halter as hl
 from . import job_schnittwerte as js
+from . import magazin as mg
 from . import maschine as m
 from . import uebergabe_werkzeuge as ue
 from . import vierachs_achsen as va
@@ -1759,7 +1760,7 @@ class VierachsPanel:
         vorher = self.fraeser()
         self._fraeser = [
             w
-            for w in sorted(self.bibliothek.werkzeuge, key=wz.nach_nummer)
+            for w in self._sortiert()
             if w.art in FRAESER_ARTEN
             and w.durchmesser > 0
             and self._passende_einsaetze(w, werkstoff)
@@ -1770,7 +1771,7 @@ class VierachsPanel:
             wahl = kennungen.index(vorher.kennung)
         elif self._vorwahl in kennungen:  # beim Ändern: der Fräser der Operation
             wahl = kennungen.index(self._vorwahl)
-        elif gemerkt in kennungen:
+        elif gemerkt in kennungen and self._im_magazin(gemerkt):
             wahl = kennungen.index(gemerkt)
         else:
             arten = [w.art for w in self._fraeser]
@@ -1779,9 +1780,7 @@ class VierachsPanel:
         try:
             self.wahl_fraeser.clear()
             for werkzeug in self._fraeser:
-                self.wahl_fraeser.addItem(
-                    self._platz_vorsatz(werkzeug) + dezimal(wz.zeile(werkzeug))
-                )
+                self.wahl_fraeser.addItem(self._zeile(werkzeug))
             if self._fraeser:
                 self.wahl_fraeser.setCurrentIndex(wahl)
         finally:
@@ -2176,7 +2175,7 @@ class VierachsPanel:
         vorher = self.schlichtfraeser()
         self._schlichtfraeser = [
             w
-            for w in sorted(self.bibliothek.werkzeuge, key=wz.nach_nummer)
+            for w in self._sortiert()
             if w.durchmesser > 0
             and ff.von_werkzeug(w) is not None
             and self._passende_einsaetze(w, werkstoff)
@@ -2187,7 +2186,7 @@ class VierachsPanel:
             wahl = kennungen.index(vorher.kennung)
         elif self._vorwahl_schlichten in kennungen:  # beim Ändern: der Fräser der Operation
             wahl = kennungen.index(self._vorwahl_schlichten)
-        elif gemerkt in kennungen:
+        elif gemerkt in kennungen and self._im_magazin(gemerkt):
             wahl = kennungen.index(gemerkt)
         else:
             rang = {wz.KUGELFRAESER: 0, wz.TORUSFRAESER: 1}
@@ -2204,9 +2203,7 @@ class VierachsPanel:
         try:
             self.wahl_schlichtfraeser.clear()
             for werkzeug in self._schlichtfraeser:
-                self.wahl_schlichtfraeser.addItem(
-                    self._platz_vorsatz(werkzeug) + dezimal(wz.zeile(werkzeug))
-                )
+                self.wahl_schlichtfraeser.addItem(self._zeile(werkzeug))
             if self._schlichtfraeser:
                 self.wahl_schlichtfraeser.setCurrentIndex(wahl)
         finally:
@@ -2335,7 +2332,7 @@ class VierachsPanel:
         vorher = self.planfraeser()
         self._planfraeser = [
             w
-            for w in sorted(self.bibliothek.werkzeuge, key=wz.nach_nummer)
+            for w in self._sortiert()
             if w.durchmesser > 0
             and (self._ebene_stirn(w) or vplan.bohrer_von(w))
             and self._passende_einsaetze(w, werkstoff)
@@ -2346,7 +2343,7 @@ class VierachsPanel:
             wahl = kennungen.index(vorher.kennung)
         elif self._vorwahl_plan in kennungen:  # beim Ändern: der Fräser der Operation
             wahl = kennungen.index(self._vorwahl_plan)
-        elif gemerkt in kennungen:
+        elif gemerkt in kennungen and self._im_magazin(gemerkt):
             wahl = kennungen.index(gemerkt)
         else:
             wahl = min(
@@ -2363,9 +2360,7 @@ class VierachsPanel:
         try:
             self.wahl_planfraeser.clear()
             for werkzeug in self._planfraeser:
-                self.wahl_planfraeser.addItem(
-                    self._platz_vorsatz(werkzeug) + dezimal(wz.zeile(werkzeug))
-                )
+                self.wahl_planfraeser.addItem(self._zeile(werkzeug))
             if self._planfraeser:
                 self.wahl_planfraeser.setCurrentIndex(wahl)
         finally:
@@ -2432,7 +2427,7 @@ class VierachsPanel:
                 self.mit_planbohrer.setText(
                     tr(
                         "va.plan.mit_bohrer",
-                        bohrer=self._platz_vorsatz(bohrer) + dezimal(wz.zeile(bohrer)),
+                        bohrer=self._zeile(bohrer),
                     )
                 )
                 if not self._planbohrer_von_hand:
@@ -2655,7 +2650,7 @@ class VierachsPanel:
                 geht, grund = True, tr(
                     "va.plan.vorschlag_bohren",
                     flaechen=namen,
-                    bohrer=self._platz_vorsatz(bohrer) + dezimal(wz.zeile(bohrer)),
+                    bohrer=self._zeile(bohrer),
                 )
             elif nur_bohrungen:
                 geht, grund = True, tr("va.plan.vorschlag_bohrung", flaechen=namen)
@@ -2802,7 +2797,7 @@ class VierachsPanel:
         vorher = self.entgratfraeser()
         self._entgratfraeser = [
             w
-            for w in sorted(self.bibliothek.werkzeuge, key=wz.nach_nummer)
+            for w in self._sortiert()
             if vent.kann_entgraten(w) and self._passende_einsaetze(w, werkstoff)
         ]
         kennungen = [w.kennung for w in self._entgratfraeser]
@@ -2811,7 +2806,7 @@ class VierachsPanel:
             wahl = kennungen.index(vorher.kennung)
         elif self._vorwahl_entgraten in kennungen:  # beim Ändern: der Fräser der Operation
             wahl = kennungen.index(self._vorwahl_entgraten)
-        elif gemerkt in kennungen:
+        elif gemerkt in kennungen and self._im_magazin(gemerkt):
             wahl = kennungen.index(gemerkt)
         else:
             wahl = min(
@@ -2827,9 +2822,7 @@ class VierachsPanel:
         try:
             self.wahl_entgratfraeser.clear()
             for werkzeug in self._entgratfraeser:
-                self.wahl_entgratfraeser.addItem(
-                    self._platz_vorsatz(werkzeug) + dezimal(wz.zeile(werkzeug))
-                )
+                self.wahl_entgratfraeser.addItem(self._zeile(werkzeug))
             if self._entgratfraeser:
                 self.wahl_entgratfraeser.setCurrentIndex(wahl)
         finally:
@@ -3217,6 +3210,23 @@ class VierachsPanel:
             etikett.setVisible(bool(text))
 
     def _lage_text(self, werkzeug):
+        """Die gelben Sätze zu `werkzeug` auf der gewählten Maschine: nicht in ihrem Magazin
+        (W-002 Stufe H2, E3 a – mit „ins Magazin übernehmen“), dann wie es sitzt (_lage_satz)."""
+        saetze = []
+        magazin = self._magazin()
+        fehlt = mg.fehlt_text(werkzeug, magazin) if werkzeug is not None else ""
+        if fehlt:
+            verweis = html.escape(tr("mg.uebernehmen"), quote=False)
+            saetze.append(
+                f'{html.escape(fehlt, quote=False)} <a href="magazin:{werkzeug.kennung}">'
+                f"{verweis}</a>"
+            )
+        lage = self._lage_satz(werkzeug)
+        if lage:
+            saetze.append(lage)
+        return "<br>".join(saetze)
+
+    def _lage_satz(self, werkzeug):
         """Der Satz zu `werkzeug` auf der gewählten Maschine (reichweite.Pruefung.kommt_aus):
         leer, wenn es radial aus der Richtung der Bahn kommt – oder ohne offene Maschine."""
         from . import reichweite as rw
@@ -3257,6 +3267,43 @@ class VierachsPanel:
             f'{html.escape(satz, quote=False)} <a href="werkzeug:{werkzeug.nummer}">{verweis}</a>'
         )
 
+    def _maschinen_datei(self):
+        """Die Datei der gewählten Maschine – "" ohne (oder ungespeichert)."""
+        eintrag = self.maschinenwahl()
+        if isinstance(eintrag, str):
+            return eintrag
+        if isinstance(eintrag, va.Maschinenwahl):
+            return eintrag.assembly.Document.FileName or ""
+        return ""
+
+    def _magazin(self):
+        """Das Magazin, das für die gewählte Maschine gilt (W-002 Stufe H2) – None ohne."""
+        datei = self._maschinen_datei()
+        if not datei or self.bibliothek is None:
+            return None
+        return mg.des_jobs(None, self.bibliothek, datei)
+
+    def _im_magazin(self, kennung):
+        """Steht das Werkzeug mit `kennung` im Magazin der Maschine – oder gibt es keins? Der
+        zuletzt benutzte Fräser ist nur dann vorgewählt (E7 a)."""
+        magazin = self._magazin()
+        return magazin is None or any(e.werkzeug == kennung for e in magazin.eintraege)
+
+    def _sortiert(self):
+        """Die Werkzeuge der Werkzeugverwaltung in der Reihenfolge der Listen (E7 a): mit
+        Magazin die beladenen vorn, dann die übrigen des Magazins, dann die anderen."""
+        return mg.sortiert(self.bibliothek.werkzeuge, self._magazin())
+
+    def _zeile(self, werkzeug):
+        """Die Listenzeile eines Werkzeugs: am Revolver vorn der Platz im Job (_platz_vorsatz),
+        dann mit Magazin seine Nummer dort („T3 · P5“, „– … nicht im Magazin“, magazin.zeile),
+        ohne Magazin die aus der Werkzeugverwaltung."""
+        vorsatz = self._platz_vorsatz(werkzeug)
+        magazin = self._magazin()
+        if magazin is None:
+            return vorsatz + dezimal(wz.zeile(werkzeug))
+        return vorsatz + dezimal(mg.zeile(werkzeug, magazin, platz=not vorsatz))
+
     def _platz_vorsatz(self, werkzeug):
         """„P3 · “ vor einem Fräser, der in diesem Job auf P3 steckt oder dorthin käme (W-002
         Stufe G) – vorn, damit es die schmale Liste nicht abschneidet. Nur an einer Maschine
@@ -3277,7 +3324,14 @@ class VierachsPanel:
             return None
         pruefung = self._pruefung_fuer(self.maschinenwahl())
         nummern = pruefung.platznummern() if pruefung is not None else []
-        return bs.platz_fuer(self.job, werkzeug, self.bibliothek, nummern, vorgemerkt)
+        return bs.platz_fuer(
+            self.job,
+            werkzeug,
+            self.bibliothek,
+            nummern,
+            vorgemerkt,
+            maschine=self._maschinen_datei() or None,
+        )
 
     def _vorgemerkt(self, werkzeug):
         """{Nummer: Kennung} der Fräser, die vor `werkzeug` mit ihm zusammen neu in den Job
@@ -3487,8 +3541,25 @@ class VierachsPanel:
             dialog.gespeichert.connect(self._werkzeuge_gespeichert)
 
     def _werkzeug_oeffnen(self, ziel):
-        """„werkzeug:3“ im gelben Satz: die Werkzeugverwaltung bei T3 (D-41)."""
-        self.werkzeugverwaltung(int(ziel.split(":", 1)[1]))
+        """„werkzeug:3“ im gelben Satz: die Werkzeugverwaltung bei T3 (D-41); „magazin:…“:
+        das Werkzeug ins Magazin der Maschine (E3 a)."""
+        art, wert = ziel.split(":", 1)
+        if art == "magazin":
+            self.ins_magazin(wert)
+        else:
+            self.werkzeugverwaltung(int(wert))
+
+    def ins_magazin(self, kennung):
+        """„Ins Magazin übernehmen“ (W-002 Stufe H2, E3 a): das Werkzeug ins Magazin der
+        gewählten Maschine, die Werkzeugverwaltung gespeichert, die Listen neu. Gibt den
+        Eintrag zurück – None, wenn es nicht geht."""
+        magazin = self._magazin()
+        werkzeug = self.bibliothek.werkzeug_mit_kennung(kennung) if self.bibliothek else None
+        if magazin is None or werkzeug is None:
+            return None
+        eintrag = mg.uebernehmen(self.bibliothek, magazin, werkzeug, self.job)
+        self._bearbeitung_fuellen()
+        return eintrag
 
     def _werkzeuge_gespeichert(self):
         if VierachsPanel.offen is self and self.seite == 2:

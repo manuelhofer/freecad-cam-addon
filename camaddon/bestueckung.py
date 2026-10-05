@@ -121,7 +121,7 @@ def eintrag_von(job, werkzeug, bibliothek):
     return next((e for e in eintraege(job, bibliothek) if e.schluessel == schluessel), None)
 
 
-def platz_fuer(job, werkzeug, bibliothek, nummern, vorgemerkt=None):
+def platz_fuer(job, werkzeug, bibliothek, nummern, vorgemerkt=None, maschine=None):
     """Die Nummer, mit der `werkzeug` (werkzeuge.Werkzeug) in diesem Job aufgerufen wird.
 
     `nummern`: die Platznummern des Revolvers der Maschine – leer ohne Revolver oder
@@ -131,7 +131,17 @@ def platz_fuer(job, werkzeug, bibliothek, nummern, vorgemerkt=None):
     ist; sonst der erste freie. `vorgemerkt`: {Nummer: Kennung} für Werkzeuge, die gleich
     mit in den Job kommen (Schruppen und Schlichten in einem Schritt). None, wenn alle
     Plätze belegt sind.
+
+    Hat die Maschine des Jobs (oder `maschine`, ihre Datei) ein Magazin (W-002 Stufe H2), gilt
+    dessen Nummer (magazin.nummer). Am Revolver der Platz, auf dem es dort beladen ist, wenn
+    der im Job frei ist; sonst der erste freie, auf dem kein anderes Werkzeug beladen ist
+    (sind alle beladen, der erste freie – dann rüstet der Bediener um).
     """
+    from . import magazin as mg
+
+    magazin = mg.des_jobs(job, bibliothek, maschine)
+    if magazin is not None and not nummern:
+        return mg.nummer(magazin, job, werkzeug, vorgemerkt)
     if not nummern:
         if werkzeug.nummer > 0:
             return werkzeug.nummer
@@ -151,9 +161,15 @@ def platz_fuer(job, werkzeug, bibliothek, nummern, vorgemerkt=None):
     else:
         belegt = set()
     belegt |= {n for n, kennung in (vorgemerkt or {}).items() if kennung != werkzeug.kennung}
-    if werkzeug.nummer in nummern and werkzeug.nummer not in belegt:
-        return werkzeug.nummer
-    return next((n for n in sorted(nummern) if n not in belegt), None)
+    wunsch, beladen = werkzeug.nummer, set()
+    if magazin is not None:
+        eintrag = magazin.eintrag_von(werkzeug)
+        wunsch = eintrag.platz if eintrag is not None else 0
+        beladen = {e.platz for e in magazin.eintraege if e.werkzeug != werkzeug.kennung}
+    if wunsch in nummern and wunsch not in belegt:
+        return wunsch
+    frei = [n for n in sorted(nummern) if n not in belegt]
+    return next((n for n in frei if n not in beladen), frei[0] if frei else None)
 
 
 def lege_um(job, eintrag, nummer, bibliothek):

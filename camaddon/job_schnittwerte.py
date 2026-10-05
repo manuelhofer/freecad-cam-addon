@@ -535,10 +535,27 @@ def freie_nummer(job, bibliothek=None):
             bibliothek = None
     if bibliothek is not None:
         belegt |= {w.nummer for w in bibliothek.werkzeuge}
+        from . import magazin as mg
+
+        magazin = mg.des_jobs(job, bibliothek)  # mit Magazin: auch keine, die dort vergeben ist
+        if magazin is not None:
+            belegt |= {e.nummer for e in magazin.eintraege}
     nummer = 1
     while nummer in belegt:
         nummer += 1
     return nummer
+
+
+def _aus_magazin(job, werkzeug):
+    """Die T-Nummer aus dem Magazin der Maschine des Jobs (W-002 Stufe H2, magazin.nummer) –
+    None ohne Magazin und am Revolver (dort gibt der Assistent den Platz vor,
+    bestueckung.platz_fuer)."""
+    from . import magazin as mg
+
+    magazin = mg.des_jobs(job)
+    if magazin is None or mg.mit_revolver(mg.maschine_des_jobs(job)):
+        return None
+    return mg.nummer(magazin, job, werkzeug)
 
 
 def controller_name(werkzeug, einsatz, nummer=None):
@@ -583,7 +600,7 @@ def controller_ohne_transaktion(dokument, job, werkzeug, einsatz, werkstoff="", 
     from Path.Tool import Controller
     from Path.Tool.camassets import cam_assets
 
-    nummer = nummer or werkzeug.nummer or freie_nummer(job)
+    nummer = nummer or _aus_magazin(job, werkzeug) or werkzeug.nummer or freie_nummer(job)
     # Controller.Create legt im aktiven Dokument an.
     FreeCAD.setActiveDocument(dokument.Name)
     bit = werkzeug_im_job(job, werkzeug)
@@ -615,7 +632,7 @@ def controller_fuer(dokument, job, werkzeug, einsatz, werkstoff, operation, numm
     nimmt der Aufrufer heraus, wenn ihn danach keine Operation mehr benutzt
     (controller_weg). `nummer`: die T-Nummer im Programm, siehe controller_name().
     """
-    nummer = nummer or werkzeug.nummer
+    nummer = nummer or _aus_magazin(job, werkzeug) or werkzeug.nummer
     bisher = getattr(operation, "ToolController", None)
     if not nummer:  # ohne Nummer (W-002 F2): die des bisherigen Controllers, sonst eine freie
         nummer = int(getattr(bisher, "ToolNumber", 0) or 0) or freie_nummer(job)
