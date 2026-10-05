@@ -103,9 +103,10 @@ already taken, that is shown right below the fields.</li>
 12"); write it exactly as on the machine, spaces included. Empty: the name
 shown in grey, made from the data, applies: “End mill T1 Carbide D12 L30”.
 CAM names the tool like this. A name another tool already has is reported –
-but allowed (sister tool). The name only becomes the tool call in the NC
-program with a suitable post processor: FreeCAD's own ones call tools by
-number.</li>
+but allowed (sister tool). The name becomes the tool call in the NC program
+with the add-on's post processor when the tool change names it (Siemens with tool
+management: T="{werkzeug}", see <a href="programm.html">Write program</a>); FreeCAD's own
+post processors call tools by number.</li>
 <li><b>Type</b> – 26 types as in InventorCAM, grouped into <b>Milling</b>
 (end, ball end, bull nose, tapered, dovetail, lollipop, chamfer, corner
 rounding, face, slot, form mill, thread mill), <b>Drilling</b> (drill,
@@ -182,7 +183,7 @@ turn.</li>
 <b>suggestions</b>: per use case vc and fz, with material and operation
 (full slot → slot, dynamic roughing → adaptive, finishing → profile …). In the
 tool controller, the feeds and speeds button then suggests them for the
-stock material. The stable version 1.1.3 only takes the tools.</li>
+stock material. The stable version 1.1 only takes the tools.</li>
 <li>Each hand-over <b>replaces</b> the previous one: tools that no longer exist
 here disappear from the library. Tools you created in CAM yourself are left
 alone.</li>
@@ -197,7 +198,7 @@ drawn there.</li>
 <h3>Cutting data into the job</h3>
 <p>The command <b>Cutting data into the job</b> in the toolbar sets spindle
 speed and feed of a CAM job's <b>tool controllers</b> – in one step that
-Ctrl+Z undoes. This works in every FreeCAD version, including 1.1.3.</p>
+Ctrl+Z undoes. This works in every FreeCAD version, including the stable 1.1.</p>
 <ul>
 <li>The <b>material</b> comes from the job's stock if it has a material with a
 number (e.g. X5CrNi18-10 = 1.4301); otherwise the values for all materials
@@ -252,6 +253,9 @@ computes nothing.</li>
 </ul>
 
 <h3>Opening up a hole or pocket</h3>
+<p>Both are simpler with the <a href="bearbeitung.html">Machining (milling)</a> wizard –
+clearing, hole milling and contour compute the path themselves. This and the next section
+show the way with FreeCAD's own Adaptive operation.</p>
 <p>Plunge helically once to the step-down depth, then clear the level with a
 small ae and the full flute length – that is what the <b>Adaptive</b>
 operation does when its step down is the flute length:</p>

@@ -224,7 +224,11 @@ working position for it.</li>
 program, C1 → C), otherwise at 0. The check works like a control <b>without
 TCPM</b>: X, Y and Z are the machine's axes – the linear axes stand as if the
 rotary axes were at 0, and the rotary axis turns the workpiece underneath.
-That is how FreeCAD shows the path, too. Endless axes have no limit.</li>
+That is how FreeCAD shows the path, too. Paths with a tool axis per point (ball mill
+tilted, flank, tilting away, deburr 3D) get their rotary axes per point from the machine – as
+in the program without TCPM; a swivelled plane (3+2) stands in the position the program
+writes; on the face of a lathe C turns as described under <a href="programm.html">Write
+program</a> (“Face”). Endless axes have no limit.</li>
 <li><b>Inclined axis:</b> the path is rectangular; the check uses the real
 directions of the slides – the same numbers as moving “as in the program”.</li>
 <li>The directions of the LCS matter: see <a href="aufnahmen.html">Tool and

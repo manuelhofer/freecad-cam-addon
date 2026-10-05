@@ -177,7 +177,7 @@ eine <b>Moduloachse</b>: Sie nimmt absolute Positionen nur von 0 bis unter 360°
 rundum zählen den Winkel fortlaufend (−90, −450 …) – an einer Siemens hält das mit <b>Alarm
 16830</b> „falsche Position bei Achse/Spindel C4 programmiert“. Deshalb schreibt das Programm
 für eine solche Achse die Position im Bereich mit der Drehrichtung der Bahn: Siemens
-„C4=ACN(270.000)“ (negativ drehend) bzw. „ACP(…)“ (positiv). Leer: fortlaufend wie bisher – für
+„C4=ACN(270.000)“ (negativ drehend) bzw. „ACP(…)“ (positiv). Leer: der Winkel fortlaufend – für
 eine Steuerung, an der die Achse keine Moduloachse ist.</li>
 <li>Dreht ein Vorschubsatz eine ganze Umdrehung oder mehr, sagt ein Hinweis es – ACP/ACN fahren
 höchstens bis unter 360°. Die Bahnen des Addons drehen je Satz höchstens 90°.</li>
@@ -186,8 +186,8 @@ höchstens bis unter 360°. Die Bahnen des Addons drehen je Satz höchstens 90°
 <a name="vorschub"></a>
 <h3>Vorschub</h3>
 <ul>
-<li><b>Vorschub 1 ÷ Zeit (G93)</b> – in Bahnen, in denen die Rundachse mitfährt, ist F die
-Zeit je Satz (1 ÷ Minuten). So stimmt der Vorschub am Werkzeug, egal wie weit es von der Achse
+<li><b>Vorschub 1 ÷ Zeit (G93)</b> – in Bahnen, in denen die Rundachse mitfährt, ist F der
+Kehrwert der Zeit je Satz (1 ÷ Minuten). So stimmt der Vorschub am Werkzeug, egal wie weit es von der Achse
 weg ist. Danach zurück auf Vorschub je Minute: an der Fräse G94, an Fanuc- und
 Haas-Drehmaschinen G98 (dort ist G94 ein Plandrehzyklus).</li>
 <li><b>Ohne G93</b> (Haken aus) – für Steuerungen, die G93 nicht können: F in mm/min, so
@@ -322,8 +322,8 @@ Steuerung springst du zu einer Bearbeitung, mit Satzvorlauf startest du dort.</l
 <li>Glätten mit <b>Zyklus 32 Toleranz</b>; 5 Achsen simultan mit TCPM an der iTNC 530 mit
 <b>M128</b>/M129, an der TNC 640 mit <b>FUNCTION TCPM</b>/FUNCTION RESET TCPM. Ohne TCPM steht
 der Vorschub in mm/min so, dass jeder Satz so lange dauert, wie er soll (kein G93 im Klartext).
-3+2 rechnet der Postprozessor selbst (die Rundachsen und X, Y, Z im Programm) – PLANE SPATIAL
-kommt später.</li>
+3+2 mit PLANE SPATIAL (siehe <a href="#schwenken">Ebene schwenken</a>); ohne Schwenkzyklus
+rechnet der Postprozessor die Rundachsen und X, Y, Z selbst.</li>
 <li>Die Texte der Zyklen stehen wie an einer deutschen Steuerung („CYCL DEF 32.0 TOLERANZ“); an
 einer englisch eingestellten Steuerung im Fenster auf „TOLERANCE“ ändern.</li>
 <li>Nachgelesen wird der Klartext: Nummern, BEGIN und END PGM, TOOL CALL vor dem ersten Weg,

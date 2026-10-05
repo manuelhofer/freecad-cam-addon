@@ -12,6 +12,34 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-32 texte-sinn-3
+
+### EINGELESEN
+- Fortsetzung von -30/-31 (Manuel: Sinnhaftigkeit prüfen, besser erklären).
+
+### DATEIEN
+- `help/de|en/`: `programm.html`, `reichweite.html`, `werkzeuge.html`, `schwenken.html`,
+  `so_gehts.html`, `strategien.html`, `schnittwerte.html`, `werkstoffe.html`, `aufnahmen.html`;
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.12).
+
+### ERGEBNIS
+Alle übrigen Hilfeseiten gelesen und gegen den Stand gehalten:
+- Programm schreiben: Heidenhain „PLANE SPATIAL kommt später“ widersprach dem Abschnitt darüber
+  (seit 0.194.4 da); G93 „F ist die Zeit“ → der Kehrwert; „fortlaufend wie bisher“ → „der Winkel
+  fortlaufend“.
+- Ebene schwenken: „Noch nicht – simultan kommt danach“ war überholt (Anstellen, Flanke,
+  Wegkippen gibt es) → Abschnitt „Simultan“ mit Verweis; Heidenhain PLANE SPATIAL ergänzt (auch
+  in „So geht’s“).
+- Auf der Maschine prüfen: Rundachsen bei 5-Achs-Bahnen, geschwenkten Ebenen und der Stirnseite
+  ergänzt (stand nur für Rundum-Bahnen da).
+- Werkzeuge: Werkzeugname im Programm geht mit dem Postprozessor des Addons; „1.1.3“ → „1.1“;
+  Loch/Tasche/Außenkontur mit Adaptiv verweisen zuerst auf den Assistenten „Bearbeitung“.
+- Strategien vergleichen: dynamisches Fräsen heißt im Assistenten Räumen/Bohrung fräsen.
+- Schnittwerte, Werkstoffe: „Alle Werkstoffe“ gilt erst, wenn auch die Werkstoffklasse keine Zeile
+  hat (wie `Werkzeug.einsaetze`).
+- Aufnahmen: welches Werkzeug auf einem Platz sitzt, legt die Bestückung fest.
+- Geprüft: `test_hilfe`, `test_sprache`.
+
 ## P-2026-10-05-31 texte-sinn-2
 
 ### EINGELESEN

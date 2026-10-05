@@ -27,7 +27,7 @@ away, the face selected – choose strategies and create as always. If the plane
 already (the same face, or a parallel one), the window says so, and OK opens it instead of
 creating a second one.</li>
 <li><b>Write program</b> for the base job: its planes go into the program, each swivelled once
-– with Siemens by CYCLE800, otherwise computed from the selected machine
+– with Siemens by CYCLE800, with Heidenhain by PLANE SPATIAL, otherwise computed from the selected machine
 (<a href="programm.html#schwenken">Write program</a>). <b>Check on machine</b> for the base job
 runs the planes too, with the retract and swivel in between; the player shows “… – plane
 A−30 C0”. Base job and planes share one <a href="bestueckung.html">tool loading</a>.</li>
@@ -50,6 +50,8 @@ as it is clamped.</li>
 planes before it (higher in the tree) – like every operation with material state. If the base
 job changes, the plane's operations recompute.</p>
 
-<h3>Not yet</h3>
-<p>Simultaneous – flank milling, a lead angle that follows the feed direction – comes later. A
-fixed lead angle works already: “Or angles” (above).</p>
+<h3>Simultaneous</h3>
+<p>A swivelled plane stays fixed while milling. Where the tool axis should change from point to
+point – the ball mill tilted, tilting away in a cavity, the flank on an inclined wall –, use the
+<a href="bearbeitung.html">Machining</a> wizard (3D finishing, flank), 5-axis simultaneous. A
+fixed lead angle also works here: “Or angles” (above).</p>

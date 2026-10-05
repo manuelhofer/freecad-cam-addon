@@ -172,7 +172,7 @@ control: it takes absolute positions only from 0 to below 360°. The rotary path
 on (−90, −450 …) – a Siemens stops with <b>alarm 16830</b> “wrong position programmed for
 axis/spindle C4”. So the program writes the position within the range with the direction of the
 path for such an axis: Siemens “C4=ACN(270.000)” (turning negative) or “ACP(…)” (positive).
-Empty: counted on as before – for a control where the axis is not a modulo axis.</li>
+Empty: the angle counted on – for a control where the axis is not a modulo axis.</li>
 <li>If a feed block turns a full revolution or more, a note says so – ACP/ACN move less than
 360° at most. The add-on's paths turn at most 90° per block.</li>
 </ul>
@@ -180,8 +180,8 @@ Empty: counted on as before – for a control where the axis is not a modulo axi
 <a name="vorschub"></a>
 <h3>Feed</h3>
 <ul>
-<li><b>Feed 1 ÷ time (G93)</b> – in paths where the rotary axis moves along, F is the time per
-block (1 ÷ minutes). So the feed at the tool is right however far it is from the axis. Then
+<li><b>Feed 1 ÷ time (G93)</b> – in paths where the rotary axis moves along, F is the inverse of the
+time per block (1 ÷ minutes). So the feed at the tool is right however far it is from the axis. Then
 back to feed per minute: G94 on a mill, G98 on Fanuc and Haas lathes (there G94 is a facing
 cycle).</li>
 <li><b>Without G93</b> (tick off) – for controls that cannot do G93: F in mm/min, computed so
@@ -312,8 +312,8 @@ view you jump to an operation, with mid-program startup you start there.</li>
 <li>Smoothing with <b>cycle 32 tolerance</b>; 5-axis simultaneous with TCPM on the iTNC 530 with
 <b>M128</b>/M129, on the TNC 640 with <b>FUNCTION TCPM</b>/FUNCTION RESET TCPM. Without TCPM the
 feed is in mm/min so that every block takes as long as it should (no G93 in conversational).
-3+2 is computed by the postprocessor (rotary axes and X, Y, Z in the program) – PLANE SPATIAL
-comes later.</li>
+3+2 with PLANE SPATIAL (see <a href="#schwenken">Swivel plane</a>); without the swivel cycle
+the postprocessor computes the rotary axes and X, Y, Z itself.</li>
 <li>Cycle texts are written as on a German control (“CYCL DEF 32.0 TOLERANZ”); on a control set
 to English change them to “TOLERANCE” in the window.</li>
 <li>Read back reads the conversational: numbers, BEGIN and END PGM, TOOL CALL before the first
