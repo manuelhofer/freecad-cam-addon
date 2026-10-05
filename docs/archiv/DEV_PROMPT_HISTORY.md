@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-07 bedienung-wege
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Schau mal nochmal nach, ob du irgendwas zum Erleichtern des Bedienens
+  findest … dass irgendein Bedienelement oder eine Abfrage besser gemacht werden könnte.“
+  Durchgesehen: die Rückfragen (meist schon ohne Frage, wenn es eindeutig ist) und die Wege
+  zwischen Assistent, Prüfen, Bestückung und Programm.
+
+### DATEIEN
+- `camaddon/gui_reichweite.py` (`job_merken`, `job_fuer`, `gewaehlter_job` bei einem Teil in
+  mehreren Jobs: der zuletzt benutzte; Knopf „Programm schreiben …“), `camaddon/gui_programm.py`
+  (`datei_vorschlag`, `datei_merken`, „Ordner öffnen“, Tooltip mit Heidenhain),
+  `camaddon/gui_bestueckung.py`, `camaddon/gui_bearbeitung.py`, `camaddon/gui_vierachs.py`
+  (Job merken), `translations/de.json`, `en.json`, `help/de|en/programm.html`,
+  `reichweite.html`, `bestueckung.html`, `tests/gui/szenario_bedienung.py` (neu),
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.192.1).
+
+### DONE
+- Ohne Auswahl nehmen „Auf der Maschine prüfen“, „Bestückung“ und „Programm schreiben“ den Job,
+  an dem zuletzt gearbeitet wurde, statt des ersten; ist ein Teil angeklickt, das in mehreren
+  Jobs steckt, ebenso.
+- „Programm schreiben …“ direkt aus dem Prüffenster, für denselben Job.
+- Das Programm kommt dorthin, wo das des Jobs zuletzt hinkam, sonst in den Ordner der Maschine;
+  „Ordner öffnen“ nach dem Speichern.
+
+### TESTS
+- Szenarien `szenario_bedienung` (neu), `szenario_programm_heidenhain`; `test_sprache`,
+  `test_hilfe` – OK.
+
 ## P-2026-10-05-06 ruestliste-revolverkollision
 
 ### EINGELESEN

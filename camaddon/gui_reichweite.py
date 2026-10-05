@@ -73,7 +73,7 @@ class BefehlAufMaschinePruefen:
         if dokument is None:
             return
         jobs = js.jobs(dokument)
-        job = gewaehlter_job(jobs) or jobs[0]
+        job = job_fuer(jobs)
         gewaehlt = maschine_fuer(job, hauptfenster)
         if gewaehlt is None:
             return
@@ -211,14 +211,40 @@ def offene_maschinen(zuerst=None):
     return sorted(ergebnis, key=lambda e: e[0].Document is not zuerst)
 
 
+_ZULETZT = {}  # Name des Dokuments → Name des Jobs, an dem zuletzt gearbeitet wurde
+
+
+def job_merken(job):
+    """Merkt den Job, an dem gerade gearbeitet wird (ein Assistent hat angelegt oder geändert,
+    ein Fenster zeigt ihn): Ist keiner gewählt, nehmen „Auf der Maschine prüfen“, „Bestückung“ und
+    „Programm schreiben“ ihn (job_fuer) – nicht einfach den ersten im Dokument."""
+    if job is not None and getattr(job, "Document", None) is not None:
+        _ZULETZT[job.Document.Name] = job.Name
+
+
+def _zuletzt(jobs):
+    """Unter `jobs` der, an dem zuletzt gearbeitet wurde – oder None."""
+    for job in jobs:
+        if _ZULETZT.get(job.Document.Name) == job.Name:
+            return job
+    return None
+
+
 def gewaehlter_job(jobs):
     """Der gewählte Job – auch über eine gewählte Operation oder ihren Controller, in jedem
-    offenen Dokument – oder None."""
+    offenen Dokument – oder None. Ist ein Teil angeklickt, das in mehreren Jobs steckt (zwei
+    Aufspannungen), der davon, an dem zuletzt gearbeitet wurde."""
     for objekt in FreeCADGui.Selection.getSelection("*"):
-        for job in jobs:
-            if objekt is job or job in objekt.InListRecursive:
-                return job
+        treffer = [job for job in jobs if objekt is job or job in objekt.InListRecursive]
+        if treffer:
+            return _zuletzt(treffer) or treffer[0]
     return None
+
+
+def job_fuer(jobs):
+    """Der Job, den ein Fenster zeigt: der gewählte, sonst der, an dem zuletzt gearbeitet wurde,
+    sonst der erste."""
+    return gewaehlter_job(jobs) or _zuletzt(jobs) or jobs[0]
 
 
 def maschinen_text(assembly, maschine):
@@ -399,6 +425,11 @@ class PruefPanel:
             urteile.addWidget(self._beschriftung[urteil], zeile, 0, QtCore.Qt.AlignTop)
             urteile.addWidget(urteil, zeile, 1)
         aufbau.addLayout(urteile)
+        # Gleich weiter zum Programm dieses Jobs – ohne ihn noch einmal zu wählen.
+        self.knopf_programm = QtGui.QPushButton(tr("befehl.programm.titel"))
+        self.knopf_programm.setToolTip(tr("rw.programm.tooltip"))
+        self.knopf_programm.clicked.connect(self.programm_schreiben)
+        aufbau.addWidget(self.knopf_programm, 0, QtCore.Qt.AlignLeft)
         self.liste = QtGui.QListWidget()
         self.liste.setWordWrap(True)
         # So hoch wie ihre Sätze, nicht höher – sonst schöbe sie die Bereiche und
@@ -431,6 +462,16 @@ class PruefPanel:
 
     # --- Job und Nullpunkt ----------------------------------------------------------
 
+    def programm_schreiben(self):
+        """„Programm schreiben …“ für den Job dieses Fensters; dieses bleibt offen. Gibt das
+        Fenster zurück."""
+        from .gui_programm import ProgrammDialog
+
+        dialog = ProgrammDialog(self.jobs, self.job())
+        dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        dialog.show()
+        return dialog
+
     def job(self):
         return self.jobs[self.wahl_job.currentIndex()]
 
@@ -446,6 +487,7 @@ class PruefPanel:
         self._nullpunkt_merken()
         self._maschine_merken()
         self._job = self.job()
+        job_merken(self._job)
         eingetragen = rw.eingetragener_nullpunkt(self._job)
         vorschlag = rw.vorschlag_nullpunkt(self._job)
         stellen = einheiten.stellen(einheiten.LAENGE, 3)

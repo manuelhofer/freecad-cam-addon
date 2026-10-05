@@ -906,6 +906,9 @@ class VierachsPanel:
         """Bewegung anhalten, Auswahl-Hilfen abmelden."""
         VierachsPanel.offen = None
         self.geschlossen = True
+        from .gui_reichweite import job_merken
+
+        job_merken(self.job)  # Prüfen, Bestückung und Programm nehmen ihn ohne Auswahl
         self._uhr.stop()
         self._vorschau_uhr.stop()
         if self.einfahren:

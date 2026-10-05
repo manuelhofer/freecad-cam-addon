@@ -61,7 +61,7 @@ class BefehlBestueckung:
         if dokument is None:
             return
         jobs = js.jobs(dokument)
-        job = gui_reichweite.gewaehlter_job(jobs) or jobs[0]
+        job = gui_reichweite.job_fuer(jobs)
         gewaehlt = gui_reichweite.maschine_fuer(job, hauptfenster)
         if gewaehlt is None:
             return
@@ -281,6 +281,7 @@ class BestueckungsPanel:
 
     def _job_gewechselt(self):
         self.job = self.jobs[max(self.wahl_job.currentIndex(), 0)]
+        gui_reichweite.job_merken(self.job)
         self.fuellen()
         self.hinsehen()
 

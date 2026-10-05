@@ -7,7 +7,8 @@ milling machines; on a lathe with C axis and driven tools several things were mi
 <h3>How to</h3>
 <ol>
 <li>Select the job in the tree (or one of its operations), then <b>Write program …</b> in
-the CAM-Addon toolbar.</li>
+the CAM-Addon toolbar – or the <b>Write program …</b> button in the “Check on machine”
+window. If no job is selected, the window takes the one you last worked on (created in the assistant, shown in one of the windows).</li>
 <li><b>Machine</b>: choose the machine – any open one, even one not saved yet (“… – not
 saved”), and the remembered ones. Preselected is the one the job remembered when it was
 checked on the machine or in the 4-axis assistant; if it has none, the first open one. If the
@@ -20,8 +21,10 @@ conversational – iTNC 530 or TNC 640/620/320 (<a href="#heidenhain">below</a>)
 choice, so does the machine – for the next job on it, it is preselected.</li>
 <li><b>Settings on the left, preview on the right</b> with the first blocks – you see every
 change right away.</li>
-<li><b>Save</b> writes the whole program to the file (suggested: next to the document, with
-the control's extension – .ngc, .mpf, .nc, .tap, .h).</li>
+<li><b>Save</b> writes the whole program to the file – suggested is the one the job's program
+last went to, otherwise the folder a program for its machine last went to (its share, say),
+otherwise next to the document; with the control's extension (.ngc, .mpf, .nc, .tap, .h).
+Afterwards <b>Open folder</b> opens the folder in the file manager.</li>
 <li><b>Read back</b>: afterwards the add-on reads the saved program block by block as the
 control would and says below “Saved …” whether anything stands out – a block moving without tool
 length, feed with the spindle stopped or without F, an arc whose centre is at a different

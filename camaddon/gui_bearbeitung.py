@@ -4014,6 +4014,9 @@ class BearbeitungPanel:
     def _vor_dem_schliessen(self):
         BearbeitungPanel.offen = None
         self.geschlossen = True
+        from .gui_reichweite import job_merken
+
+        job_merken(self.job)  # Prüfen, Bestückung und Programm nehmen ihn ohne Auswahl
         self._vorschau_uhr.stop()
         self._rohteil_uhr.stop()
         self._nullpunkt_uhr.stop()

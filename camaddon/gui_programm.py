@@ -31,6 +31,7 @@ from .gui_zahlen import zahlenformat
 from .sprache import tr
 
 EIGENSCHAFT_STEUERUNG = "CamAddonSteuerung"  # am Job: die Kennung der Steuerung
+EIGENSCHAFT_DATEI = "CamAddonProgrammdatei"  # am Job: wohin sein Programm zuletzt kam
 VORSCHAU_SAETZE = 300  # so viele Bewegungssätze zeigt die Vorschau
 GELB = "#c4a000"
 
@@ -229,6 +230,52 @@ def steuerung_des_jobs(job):
     return kennung if kennung in pp.STEUERUNGEN else pp.VORGABE
 
 
+def datei_vorschlag(job, s):
+    """Wohin das Programm kommt: dorthin, wo es für diesen Job zuletzt gespeichert wurde (mit der
+    Endung der Steuerung `s`); sonst in den Ordner, in den zuletzt ein Programm für seine
+    Maschine kam (etwa die Freigabe der Maschine); sonst neben das Dokument (pp.dateiname)."""
+    vorschlag = pp.dateiname(job, s)
+    gemerkt = getattr(job, EIGENSCHAFT_DATEI, "") if job is not None else ""
+    if gemerkt and os.path.isdir(os.path.dirname(gemerkt)):
+        stamm = os.path.splitext(os.path.basename(gemerkt))[0]
+        if s.dialekt == "klartext":  # der Name steht im BEGIN/END PGM
+            from . import klartext as kt
+
+            stamm = kt.pgm_name(stamm)
+        return os.path.join(os.path.dirname(gemerkt), stamm + s.endung)
+    pfad = rw.gemerkte_maschine(job) if job is not None else ""
+    ordner = _ordner_je_maschine().get(os.path.normcase(pfad)) if pfad else None
+    if ordner and os.path.isdir(ordner):
+        return os.path.join(ordner, os.path.basename(vorschlag))
+    return vorschlag
+
+
+def datei_merken(job, pfad):
+    """Merkt, wohin das Programm des Jobs gespeichert wurde – am Job (ausgeblendete
+    Eigenschaft) und den Ordner je Maschine (datei_vorschlag)."""
+    if job is None or not pfad:
+        return
+    if EIGENSCHAFT_DATEI not in job.PropertiesList:
+        job.addProperty(
+            "App::PropertyString", EIGENSCHAFT_DATEI, "CAM-Addon", tr("pp.eigenschaft.datei")
+        )
+        job.setEditorMode(EIGENSCHAFT_DATEI, 2)
+    if getattr(job, EIGENSCHAFT_DATEI) != pfad:
+        setattr(job, EIGENSCHAFT_DATEI, pfad)
+    maschine = rw.gemerkte_maschine(job)
+    if maschine:
+        ordner = _ordner_je_maschine()
+        ordner[os.path.normcase(maschine)] = os.path.dirname(pfad)
+        _parameter().SetString("ProgrammOrdnerJeMaschine", json.dumps(ordner))
+
+
+def _ordner_je_maschine():
+    try:
+        return json.loads(_parameter().GetString("ProgrammOrdnerJeMaschine", "") or "{}")
+    except ValueError:
+        return {}
+
+
 def steuerung_merken(job, kennung):
     """Merkt die Steuerung am Job (ausgeblendete Eigenschaft), je Maschine und als letzte."""
     if job is not None:
@@ -265,13 +312,13 @@ class BefehlProgrammSchreiben:
 
     def Activated(self):
         from .gui_job_schnittwerte import dokument_mit_job
-        from .gui_reichweite import gewaehlter_job
+        from .gui_reichweite import job_fuer
 
         dokument = dokument_mit_job(tr("pp.titel"), tr("pp.kein_job"))
         if dokument is None:
             return
         jobs = js.jobs(dokument)
-        dialog = ProgrammDialog(jobs, gewaehlter_job(jobs) or jobs[0])
+        dialog = ProgrammDialog(jobs, job_fuer(jobs))
         dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         dialog.show()
 
@@ -391,6 +438,7 @@ class ProgrammDialog(QtGui.QDialog):
         self.info = pp.Maschineninfo()
         self._maschinen = []  # [(Name, Pfad, Dokument)] – pp.maschinen_zur_wahl()
         self._ungespeichert = False  # die gewählte Maschine liegt in keiner Datei
+        self.gespeichert = ""  # die zuletzt gespeicherte Datei – für „Ordner öffnen“
         self._teile = None  # die Abschnitte des Jobs, je gewählter Maschine einmal gerechnet
         self._ohne_kette = False  # eine Ebene ohne die Kette einer 5-Achs-Maschine gerechnet
         self._fuellt = False
@@ -478,6 +526,11 @@ class ProgrammDialog(QtGui.QDialog):
         self.ergebnis.setWordWrap(True)
         aufbau.addWidget(self.ergebnis)
         knoepfe = QtGui.QDialogButtonBox(QtGui.QDialogButtonBox.Close)
+        # Nach dem Speichern: der Ordner im Dateimanager – zum Kopieren auf Stick oder Freigabe.
+        self.knopf_ordner = knoepfe.addButton(tr("pp.ordner"), QtGui.QDialogButtonBox.ActionRole)
+        self.knopf_ordner.setToolTip(tr("pp.ordner.tooltip"))
+        self.knopf_ordner.clicked.connect(self.ordner_oeffnen)
+        self.knopf_ordner.hide()
         self.knopf_speichern = knoepfe.addButton(
             tr("pp.speichern"), QtGui.QDialogButtonBox.ActionRole
         )
@@ -495,6 +548,9 @@ class ProgrammDialog(QtGui.QDialog):
         if not 0 <= index < len(self.jobs):
             return
         self.job = self.jobs[index]
+        from .gui_reichweite import job_merken
+
+        job_merken(self.job)
         self._fuellt = True
         try:
             self._maschinen_fuellen()
@@ -617,7 +673,7 @@ class ProgrammDialog(QtGui.QDialog):
         if not self._fuellt:
             steuerung_merken(self.job, self.kennung())
         self._einstellungen_bauen()
-        self.feld_datei.setText(pp.dateiname(self.job, self.steuerung()))
+        self.feld_datei.setText(datei_vorschlag(self.job, self.steuerung()))
         self.vorschau_rechnen()
 
     # --- Einstellungen ------------------------------------------------------------------
@@ -871,6 +927,9 @@ class ProgrammDialog(QtGui.QDialog):
             self.ergebnis.setStyleSheet("color: #cc0000;")
             return None
         steuerung_merken(self.job, self.kennung())
+        datei_merken(self.job, pfad)
+        self.gespeichert = pfad
+        self.knopf_ordner.show()
         # Nachgelesen, wie die Steuerung es läse: Werkzeuglänge, Spindel, Vorschub, Kreise.
         befunde, saetze = pp.nachlesen(programm, self.steuerung(), self.info)
         self.ergebnis.setStyleSheet("color: #cc0000;" if befunde else "")
@@ -881,6 +940,12 @@ class ProgrammDialog(QtGui.QDialog):
             + "".join("\n" + x for x in [pp.groesse_text(programm, self.steuerung())] if x)
         )
         return pfad
+
+    def ordner_oeffnen(self):
+        """Der Ordner der zuletzt gespeicherten Datei im Dateimanager des Systems."""
+        ordner = os.path.dirname(self.gespeichert or self.feld_datei.text().strip())
+        if ordner and os.path.isdir(ordner):
+            QtGui.QDesktopServices.openUrl(QtCore.QUrl.fromLocalFile(ordner))
 
     def done(self, ergebnis):
         ProgrammDialog.offen = None

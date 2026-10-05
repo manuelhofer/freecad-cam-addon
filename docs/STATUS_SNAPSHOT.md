@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.192.0 (P-2026-10-05-06). Alles, was hier als gebaut steht,
+Stand 0.192.1 (P-2026-10-05-07). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -272,6 +272,12 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
 - *S5 Entgraten in 3D:* beantwortet – bauen, mit jedem Fräser mit ebener Stirn und auch mit 3
   Achsen (P-2026-10-04-65).
 - *Siemens WORKPIECE:* Manuel (2026-10-04): „lass es raus“ – nicht gebaut.
+- *Zum Ausprobieren (0.192.1) – Wege zwischen den Fenstern:* ein Teil mit zwei Jobs (zwei
+  Aufspannungen): im zweiten etwas anlegen, dann ohne den Job anzuklicken „Auf der Maschine
+  prüfen“ → es zeigt den zweiten Job (bisher immer den ersten). Unter „Zeit“ der Knopf
+  „Programm schreiben …“ → das Programm desselben Jobs. Einmal woandershin speichern (etwa auf
+  die Freigabe der Maschine) → „Ordner öffnen“ zeigt den Ordner; beim nächsten Mal steht die Datei
+  wieder dort, für andere Jobs auf derselben Maschine derselbe Ordner.
 - *Zum Ausprobieren (0.191.0) – Magazine:* Werkzeugverwaltung → „Magazine …“ → „Neu“ für
   deine Fräse (sie muss unter „Maschinen …“ stehen) → „Aus den Nummern“, ein paar Nummern so
   ändern, wie sie an der Steuerung heißen, einem „Beladen auf“ geben → OK. Dann ein Teil →
