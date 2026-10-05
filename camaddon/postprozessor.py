@@ -849,11 +849,15 @@ def _rohteil_befehl(s, info, rohteil, abschnitte):
 def _modulo_wort(s, adresse, wert, davor):
     """„C4=ACN(270.000)“ – eine Moduloachse: die Position im Bereich 0 … unter 360°, die Vorlage
     nach der Drehrichtung der Bahn (`davor`: der fortlaufende Winkel davor; ohne: positiv)."""
-    zahl = _zahl(wert % 360.0)
-    if float(zahl) >= 360.0:  # gerundet genau eine Umdrehung: 0
-        zahl = _zahl(0.0)
+    zahl = _modulo_zahl(wert)
     vorlage = s.rundachse_minus if davor is not None and wert < davor else s.rundachse_plus
     return f"{adresse}={_fuellen(vorlage, wert=zahl)}"
+
+
+def _modulo_zahl(wert):
+    """Die Position einer Moduloachse, wie sie im Programm steht: 0 … unter 360°."""
+    zahl = _zahl(wert % 360.0)
+    return _zahl(0.0) if float(zahl) >= 360.0 else zahl  # gerundet genau eine Umdrehung: 0
 
 
 def _rund_umdrehen(abschnitt, info):
@@ -1175,6 +1179,16 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                 if adresse == "X" and info.drehmaschine and info.x_durchmesser:
                     wert *= 2.0
                 if adresse in info.modulo and s.rundachse_plus and s.rundachse_minus:
+                    vorher = davor.get(adresse)
+                    if (
+                        vorher is not None
+                        and abs(wert - vorher) < 180.0
+                        and _modulo_zahl(wert) == _modulo_zahl(vorher)
+                    ):
+                        # Dieselbe Position: nicht schreiben. „ACP“ zur Stelle, an der die Achse
+                        # schon steht, fährt nicht – aber ein Rundungsrest unter der letzten
+                        # Stelle hieße sonst, gelesen wie eine Steuerung, eine ganze Umdrehung.
+                        continue
                     woerter.append(
                         _modulo_wort(s, _adresse(s, adresse, info), wert, davor.get(adresse))
                     )

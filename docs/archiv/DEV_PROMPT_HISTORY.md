@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-19 vierachs-ruhiger-schwenken
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Kann man die Bewegungen etwas smoother machen? Es hackt ziemlich extrem
+  beim Schwenken, vor allem an den Kanten … und Drehrichtung kommt aus der Steuerung“ (M3/M4 der
+  angetriebenen Werkzeuge: kein Haken nötig).
+- Sein Programm (`test4achsbearbeitung.FCStd`, Querachse beim Schruppen und Schlichten)
+  ausgewertet: ψ rastete auf 0,25° ein – wo der Fräser langsamer kippte, hielt C Punkt um Punkt
+  oder sprang um 0,25°, Y pendelte jedes Mal ±0,15 mm zurück (Sägezahn: 3706 Stellen beim
+  Schruppen, 6479 beim Schlichten); um Kanten rechnete G93 die Zeit aus dem Weg der Spitze (fast
+  0) – C kurz 77 U/min statt 15, Sätze unter 4 ms: 11 407.
+
+### DATEIEN
+- `camaddon/vierachs_quer.py` (`stellungen`: ψ selbst, die Spitze aus den beiden Rasterstellungen
+  gemittelt; `_halten` auf ebenen Flächen), `camaddon/vierachs_bahn.py` (`_weg_im_vorschub`,
+  `befehle`/`dauer` mit `fraeser_radius`), `camaddon/vierachs_operation.py`,
+  `vierachs_schlichten.py`, `vierachs_plan.py`, `vierachs_entgraten.py`, `camaddon/gui_vierachs.py`
+  (Zeit mit Radius), `camaddon/postprozessor.py` (`_modulo_zahl`: gleiche Position nicht
+  schreiben), `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.193.6).
+
+### DONE
+- Sägezahn: Schruppen 3706 → 667, Schlichten 6479 → 1156 Stellen; auf ebenen Flächen hält C
+  genau. Um Kanten läuft die Stirn höchstens mit dem Vorschub: C höchstens ~30 U/min (vorher
+  77), größter Tempo-Sprung 45 statt 89 U/min, Sätze unter 4 ms 686 statt 11 407.
+- Nachgerechnet wie seine Maschine (DIN, mit Y): weiter 0 mm² ins Teil, ≤ 2 mm² stehen.
+- Offen: in den oberen Schrupplagen mit Querachse springt Y alle paar Sätze, wo die Spirale in
+  Z weiterrückt; an Innenecken dreht C kurz zurück (193 Stellen).
+
+### TESTS
+- `test_vierachs_bahn`, `test_vierachs_schlichten`, `test_vierachs_operation`,
+  `test_vierachs_schlichten_op`, `test_vierachs_frei`, `test_vierachs_plan`,
+  `test_vierachs_entgraten`, `test_restmaterial`, `test_postprozessor`; Szenario
+  `szenario_vierachs_schlichten` – OK.
+
 ## P-2026-10-05-18 rundachsen-anzeigen-wie-die-steuerung
 
 ### EINGELESEN

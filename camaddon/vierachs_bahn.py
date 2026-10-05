@@ -1986,6 +1986,7 @@ def befehle(
     quer_auf_null=True,
     eintauchen=None,
     freivorschub=None,
+    fraeser_radius=0.0,
 ):
     """Die Bahn als Path-Befehle.
 
@@ -2000,6 +2001,8 @@ def befehle(
     Anfang auf 0, damit das Werkzeug auf der Mitte steht. `eintauchen`: der Vorschub
     (mm/min) zu Punkten, an denen der Fräser senkrecht eintaucht; ohne: `vorschub`.
     `freivorschub` (mm/min): zu freien Punkten (Punkt.frei); ohne: wie die anderen.
+    `fraeser_radius`: Kippt der Fräser um eine Kante, läuft seine Stirn höchstens mit dem
+    Vorschub (_weg_im_vorschub).
     """
     import Path
 
@@ -2040,7 +2043,7 @@ def befehle(
         if punkt.eilgang:
             ergebnis.append(Path.Command("G0", lage(punkt)))
         else:
-            weg = _weg(vorher, punkt)
+            weg = _weg_im_vorschub(vorher, punkt, fraeser_radius)
             if weg < 1e-6:
                 continue
             werte = lage(punkt)
@@ -2087,6 +2090,19 @@ def _weg(von, nach):
     return math.hypot(laengs, sehne)
 
 
+def _weg_im_vorschub(von, nach, fraeser_radius=0.0):
+    """Der Weg, den der Vorschub von einem Punkt zum nächsten fährt (mm): der der Spitze
+    (_weg) – kippt der Fräser dabei um eine Kante, mindestens der seines Umfangs um sie,
+    Radius · Drehwinkel. Sonst rechnete G93 das Kippen fast ohne Zeit, und die Rundachse
+    peitschte herum (Manuel, 2026-10-05: „es hackt ziemlich extrem beim Schwenken, vor allem an
+    den Kanten“ – in seinem Programm C kurz 75 U/min statt sonst 15). Auf einem Bogen um die
+    Achse fährt die Spitze ohnehin weiter."""
+    weg = _weg(von, nach)
+    if fraeser_radius > 0.0:
+        weg = max(weg, fraeser_radius * abs(math.radians(nach.phi - von.phi)))
+    return weg
+
+
 def _vorschub_zu(punkt, vorschub, eintauchen=None, freivorschub=None):
     """Der Vorschub (mm/min) zum Punkt: frei der Freivorschub, eintauchend der Eintauchvorschub,
     sonst der Vorschub – mal Punkt.anteil (nicht im Freien)."""
@@ -2095,11 +2111,12 @@ def _vorschub_zu(punkt, vorschub, eintauchen=None, freivorschub=None):
     return (eintauchen if punkt.eintauchen and eintauchen else vorschub) * punkt.anteil
 
 
-def dauer(bahn, vorschub, eintauchen=None, freivorschub=None):
-    """So lange fährt die Bahn im Vorschub (Minuten) – ohne Eilgänge; `eintauchen` und
-    `freivorschub` wie bei befehle()."""
+def dauer(bahn, vorschub, eintauchen=None, freivorschub=None, fraeser_radius=0.0):
+    """So lange fährt die Bahn im Vorschub (Minuten) – ohne Eilgänge; `eintauchen`,
+    `freivorschub` und `fraeser_radius` wie bei befehle()."""
     zeit = 0.0
     for von, nach in zip(bahn.punkte, bahn.punkte[1:], strict=False):
         if not nach.eilgang:
-            zeit += _weg(von, nach) / _vorschub_zu(nach, vorschub, eintauchen, freivorschub)
+            weg = _weg_im_vorschub(von, nach, fraeser_radius)
+            zeit += weg / _vorschub_zu(nach, vorschub, eintauchen, freivorschub)
     return zeit

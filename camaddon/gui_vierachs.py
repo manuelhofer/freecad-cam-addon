@@ -454,6 +454,11 @@ class _Reihen:
         return max((e.sizeHint().width() for e in self._beschriftungen), default=0)
 
 
+def _radius(fraeser):
+    """Der Radius des Fräsers (Werkzeugverwaltung) – 0 ohne."""
+    return float(getattr(fraeser, "durchmesser", 0.0) or 0.0) / 2.0
+
+
 def _zeit_text(minuten):
     """„56 min“, „2 h 44 min“ – auf ganze Minuten."""
     gesamt = max(1, int(round(minuten)))
@@ -2317,7 +2322,14 @@ class VierachsPanel:
             self.schlichtfraeser(), self.schlichteinsatz(), self.job
         )
         zeit = (
-            _zeit_text(vb.dauer(bahn, vorschub, freivorschub=self._freivorschub()))
+            _zeit_text(
+                vb.dauer(
+                    bahn,
+                    vorschub,
+                    freivorschub=self._freivorschub(),
+                    fraeser_radius=_radius(self.schlichtfraeser()),
+                )
+            )
             if vorschub > 0
             else "?"
         )
@@ -2739,7 +2751,14 @@ class VierachsPanel:
 
         _n, vorschub, _senkrecht = js.werte_im_job(self.planfraeser(), self.planeinsatz(), self.job)
         zeit = (
-            _zeit_text(vb.dauer(bahn, vorschub, freivorschub=self._freivorschub()))
+            _zeit_text(
+                vb.dauer(
+                    bahn,
+                    vorschub,
+                    freivorschub=self._freivorschub(),
+                    fraeser_radius=_radius(self.planfraeser()),
+                )
+            )
             if vorschub > 0
             else "?"
         )
@@ -3001,7 +3020,14 @@ class VierachsPanel:
             self.entgratfraeser(), self.entgrateinsatz(), self.job
         )
         zeit = (
-            _zeit_text(vb.dauer(bahn, vorschub, freivorschub=self._freivorschub()))
+            _zeit_text(
+                vb.dauer(
+                    bahn,
+                    vorschub,
+                    freivorschub=self._freivorschub(),
+                    fraeser_radius=_radius(self.entgratfraeser()),
+                )
+            )
             if vorschub > 0
             else "?"
         )

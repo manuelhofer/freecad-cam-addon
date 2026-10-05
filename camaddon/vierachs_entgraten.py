@@ -113,6 +113,7 @@ class RundumEntgraten(PathOp.ObjectOp):
                 self.horizFeed * 60.0,  # CAM führt mm/s
                 obj.QuerAufNull,
                 vo.eintauchvorschub(self),
+                fraeser_radius=float(obj.OpToolDiameter) / 2,
             )
         )
 

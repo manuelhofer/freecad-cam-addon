@@ -158,6 +158,7 @@ class RundumSchlichten(PathOp.ObjectOp):
                 obj.QuerAufNull,
                 vo.eintauchvorschub(self),
                 fw.freivorschub_fuer(self.job),  # im Freien schnell (vierachs_bahn._frei)
+                fraeser_radius=float(obj.OpToolDiameter) / 2,
             )
         )
 
