@@ -141,6 +141,20 @@ NC name from the machine, a number with “=” (“C4=90.000”); otherwise its
 paths compute the radius, the program shows twice that.</li>
 </ul>
 
+<a name="rundachse"></a>
+<h3>Rotary axis</h3>
+<ul>
+<li><b>Modulo axis</b> – a rotary axis that turns endlessly on the machine (in “Edit machine”:
+“endlessly rotatable”; the main spindle's C axis always) is usually a <b>modulo axis</b> in the
+control: it takes absolute positions only from 0 to below 360°. The rotary paths count the angle
+on (−90, −450 …) – a Siemens stops with <b>alarm 16830</b> “wrong position programmed for
+axis/spindle C4”. So the program writes the position within the range with the direction of the
+path for such an axis: Siemens “C4=ACN(270.000)” (turning negative) or “ACP(…)” (positive).
+Empty: counted on as before – for a control where the axis is not a modulo axis.</li>
+<li>If a feed block turns a full revolution or more, a note says so – ACP/ACN move less than
+360° at most. The add-on's paths turn at most 90° per block.</li>
+</ul>
+
 <a name="vorschub"></a>
 <h3>Feed</h3>
 <ul>

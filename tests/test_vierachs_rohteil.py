@@ -111,6 +111,16 @@ pruefe(vr.welche_mitte(mess, vr.MITTE_AUTO, 80) == vr.MITTE_FLAECHE, "Ø 80: run
 pruefe(vr.welche_mitte(mess, vr.MITTE_AUTO, 70) == vr.MITTE_TEIL, "Ø 70: ganzes Teil")
 pruefe(vr.welche_mitte(mess, vr.MITTE_AUTO, 0) == vr.MITTE_FLAECHE, "ohne Ø: runde Fläche")
 
+# Manuels Teil (2026-10-05): Scheibe Ø 40 × 10 mit Zapfen Ø 15 × 20, 10 neben der Mitte; die
+# Fläche mit dem Zapfen angeklickt – in der Stange Ø 40 passt es genau (gerechnet braucht es
+# 40,00000000000001; das zählte als „passt nicht“).
+scheibe = Part.makeCylinder(20, 10).fuse(Part.makeCylinder(7.5, 20, FreeCAD.Vector(10, 0, 10)))
+scheibe = scheibe.removeSplitter()
+mit_zapfen = next(f for f in scheibe.Faces if vr.ist_eben(f) and abs(f.BoundBox.ZMin - 10.0) < 1e-6)
+l40 = vr.berechne(scheibe, mit_zapfen, "C", durchmesser=40.0)
+pruefe(vr.aufmass(l40, 40.0) == 0.0, f"Stange Ø 40: Aufmaß {vr.aufmass(l40, 40.0)!r}")
+pruefe(vr.aufmass(l40, 39.9) < 0, "Stange Ø 39,9 passt")
+
 for buchstabe, (laengs, _radial) in vr.ACHSEN.items():
     for mitte in (vr.MITTE_FLAECHE, vr.MITTE_TEIL):
         gewaehlt = vr.lage(mess, buchstabe, mitte, drehlage=0.0, durchmesser=80)

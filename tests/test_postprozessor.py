@@ -136,6 +136,66 @@ pruefe(
     and siemens_4.index("M1=5") < siemens_4.index("SPCOF(4)"),
     f"Siemens S4/C4 und S1: {siemens_4}",
 )
+# Eine endlos drehende C-Achse ist an der Siemens eine Moduloachse (Manuel, 2026-10-05: „Fehler
+# 16830 … falsche Position bei Achse/Spindel C4 programmiert“): die Position im Bereich 0 … unter
+# 360°, die Richtung der Bahn mit ACP/ACN – nie −90 oder −450. Ohne Moduloachse und an LinuxCNC
+# bleibt der Winkel fortlaufend.
+spirale = pp.Abschnitt(
+    "Rundum schruppen T1",
+    1,
+    3000.0,
+    False,
+    "None",
+    [
+        C("G0", {"X": 42.0, "Z": 3.0, "C": 0.0}),
+        C("G93"),
+        C("G1", {"X": 38.0, "Z": 0.0, "C": -90.0, "F": 0.05}),
+        C("G1", {"Z": -1.0, "C": -180.0, "F": 0.05}),
+        C("G1", {"Z": -2.0, "C": -270.0, "F": 0.05}),
+        C("G1", {"Z": -3.0, "C": -360.0, "F": 0.05}),
+        C("G1", {"Z": -4.0, "C": -450.0, "F": 0.05}),
+        C("G1", {"Z": -5.0, "C": -360.0, "F": 0.05}),
+        C("G94"),
+        C("G0", {"X": 42.0}),
+    ],
+)
+modulo = dataclasses.replace(manuel, modulo={"C"})
+mit_modulo = pp.programm([spirale], pp.steuerung("siemens"), modulo, "Welle")
+c_woerter = [w for z in mit_modulo.zeilen for w in z.split() if w.startswith("C4=")]
+pruefe(
+    c_woerter
+    == [
+        "C4=ACP(0.000)",
+        "C4=ACN(270.000)",
+        "C4=ACN(180.000)",
+        "C4=ACN(90.000)",
+        "C4=ACN(0.000)",
+        "C4=ACN(270.000)",
+        "C4=ACP(0.000)",
+    ],
+    f"Siemens Moduloachse: {c_woerter}",
+)
+befunde, _saetze = pp.nachlesen(mit_modulo, pp.steuerung("siemens"), modulo)
+pruefe(not befunde, f"Moduloachse nachgelesen: {[(b.art, b.satz) for b in befunde]}")
+ohne_modulo = pp.programm([spirale], pp.steuerung("siemens"), manuel, "Welle").zeilen
+pruefe(any("C4=-450.000" in z for z in ohne_modulo), "ohne Moduloachse nicht fortlaufend")
+lcnc_modulo = pp.programm([spirale], pp.steuerung("linuxcnc"), modulo, "Welle").zeilen
+pruefe(any("C-450.000" in z for z in lcnc_modulo), "LinuxCNC nicht fortlaufend")
+weit = dataclasses.replace(
+    spirale,
+    befehle=[C("G0", {"X": 42.0, "Z": 3.0, "C": 0.0}), C("G1", {"C": -400.0, "F": 0.05})],
+)
+pruefe(
+    any("Umdrehung" in h for h in pp.programm([weit], pp.steuerung("siemens"), modulo).hinweise),
+    "kein Hinweis bei einer ganzen Umdrehung in einem Satz",
+)
+eilgang = dataclasses.replace(spirale, befehle=[C("G0", {"C": 0.0}), C("G0", {"C": -4000.0})])
+pruefe(
+    not any(
+        "Umdrehung" in h for h in pp.programm([eilgang], pp.steuerung("siemens"), modulo).hinweise
+    ),
+    "Hinweis bei einem Eilgang (dort ist die Richtung gleich)",
+)
 haas = pp.programm([rundum], pp.steuerung("haas"), dreh, "Welle").zeilen
 pruefe("T101" in haas and "M154" in haas and "M133 P3000" in haas, f"Haas: {haas[:9]}")
 pruefe("G98" in haas and "G94" not in haas, "Haas: G98 statt G94 an der Drehmaschine")

@@ -183,6 +183,13 @@ class Steuerung:
     tiefbohren: str = ""
     spaenebrechen: str = ""
     reiben: str = ""
+    # Eine endlos drehende Rundachse als Moduloachse (0 … unter 360°; Manuel, 2026-10-05, Siemens:
+    # „Fehler 16830 … falsche Position bei Achse/Spindel C4 programmiert“): {wert} die Position
+    # im Bereich, je nach Drehrichtung der Bahn (Siemens ACP/ACN). Leer: der Winkel fortlaufend,
+    # wie ihn die Bahn zählt (−450°, eine Achse ohne Modulo). Nur für Rundachsen, die an der
+    # Maschine endlos drehen (Maschineninfo.modulo).
+    rundachse_plus: str = ""
+    rundachse_minus: str = ""
     # „gcode“ oder „klartext“ (Heidenhain): Klartext schreibt der Postprozessor erst als G-Code und
     # übersetzt ihn am Schluss (klartext.uebersetzen) – ohne G93, Satznummern ab 0 immer.
     dialekt: str = "gcode"
@@ -223,6 +230,8 @@ BEFEHLSFELDER = (
     "angetrieben_aus",
     "c_ein",
     "c_aus",
+    "rundachse_plus",
+    "rundachse_minus",
     "vorschub_zeit",
     "vorschub_minute",
     "vorschub_minute_drehen",
@@ -318,6 +327,9 @@ STEUERUNGEN = {
         # Wechselpunkt gilt für den Werkzeugträger.
         wechselpunkt_mks="G0 SUPA D0 {achsen}",
         laenge_wieder="D1",  # nach „SUPA D0“ ohne Wechsel: die Schneide wieder an
+        # Moduloachse (Alarm 16830 sonst): absolut im Bereich, positiv bzw. negativ drehend.
+        rundachse_plus="ACP({wert})",
+        rundachse_minus="ACN({wert})",
         nur_ascii=False,  # SINUMERIK Operate zeigt Umlaute
         durchmesser_ein="DIAMON",
         radius_ein="DIAMOF",
@@ -522,6 +534,9 @@ class Maschineninfo:
     # schreibt das Programm sie und die Vorschübe im selben Maß kleiner (fz bleibt): Die
     # Steuerung begrenzte sonst nur S, und der Span je Zahn wüchse um das Verhältnis.
     drehzahl_max: float = 0.0
+    # Die Rundachsen (Buchstaben), die an der Maschine endlos drehen – an der Steuerung eine
+    # Moduloachse: Steuerung.rundachse_plus/_minus.
+    modulo: set = field(default_factory=set)
 
 
 @dataclass
@@ -598,6 +613,8 @@ def feld_text(feld):
         "spindel_ein": (tr("pp.feld.spindel_ein"), tr("pp.feld.spindel_ein.tooltip")),
         "spindel_aus": (tr("pp.feld.spindel_aus"), tr("pp.feld.spindel_aus.tooltip")),
         "angetrieben_ein": (tr("pp.feld.angetrieben_ein"), tr("pp.feld.angetrieben_ein.tooltip")),
+        "rundachse_plus": (tr("pp.feld.rundachse_plus"), tr("pp.feld.rundachse_plus.tooltip")),
+        "rundachse_minus": (tr("pp.feld.rundachse_minus"), tr("pp.feld.rundachse_minus.tooltip")),
         "angetrieben_aus": (tr("pp.feld.angetrieben_aus"), tr("pp.feld.angetrieben_aus.tooltip")),
         "c_ein": (tr("pp.feld.c_ein"), tr("pp.feld.c_ein.tooltip")),
         "c_aus": (tr("pp.feld.c_aus"), tr("pp.feld.c_aus.tooltip")),
@@ -780,6 +797,16 @@ def _wort(s, adresse, zahl):
     if s.gleich_bei_nummer and re.search(r"\d$", adresse):
         return f"{adresse}={zahl}"
     return f"{adresse}{zahl}"
+
+
+def _modulo_wort(s, adresse, wert, davor):
+    """„C4=ACN(270.000)“ – eine Moduloachse: die Position im Bereich 0 … unter 360°, die Vorlage
+    nach der Drehrichtung der Bahn (`davor`: der fortlaufende Winkel davor; ohne: positiv)."""
+    zahl = _zahl(wert % 360.0)
+    if float(zahl) >= 360.0:  # gerundet genau eine Umdrehung: 0
+        zahl = _zahl(0.0)
+    vorlage = s.rundachse_minus if davor is not None and wert < davor else s.rundachse_plus
+    return f"{adresse}={_fuellen(vorlage, wert=zahl)}"
 
 
 def _befehl(eintrag):
@@ -1032,6 +1059,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                 woerter.append(laenge_offen)
                 laenge_offen = ""
             weg = _weg(stand, parameter) if bewegung else 0.0
+            davor = dict(stand)  # fortlaufend – für die Drehrichtung einer Moduloachse
             if bewegung:
                 stand.update({a: float(parameter[a]) for a in WEG_ADRESSEN if a in parameter})
             for adresse in ADRESSEN:
@@ -1052,6 +1080,17 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                     continue
                 if adresse == "X" and info.drehmaschine and info.x_durchmesser:
                     wert *= 2.0
+                if adresse in info.modulo and s.rundachse_plus and s.rundachse_minus:
+                    woerter.append(
+                        _modulo_wort(s, _adresse(s, adresse, info), wert, davor.get(adresse))
+                    )
+                    # Im Eilgang ist die Richtung gleich – im Vorschub (G93: die Zeit des Satzes)
+                    # führe ACP/ACN weniger als die Bahn.
+                    weit = davor.get(adresse) is not None and abs(wert - davor[adresse]) >= 359.999
+                    if weit and gross not in ("G0", "G00") and "modulo_weit" not in gesehen:
+                        gesehen.add("modulo_weit")
+                        hinweise.append(tr("pp.hinweis.modulo_weit", achse=adresse))
+                    continue
                 woerter.append(_wort(s, _adresse(s, adresse, info), _zahl(wert)))
             zeile = " ".join(woerter)
             if gross in ("G0", "G00") and zeilen and zeilen[-1] == zeile:
@@ -1533,6 +1572,10 @@ def _info_aus(dok, m, msp):
         for ba in positionieren:
             buchstabe = m.programmname(ba).upper()
             if buchstabe in ROTATION and not spindeln.ist_antrieb_c(ba):
+                if buchstabe not in info.rundachsen and (
+                    getattr(ba, "Endlos", False) or ba is spindeln.haupt_c
+                ):
+                    info.modulo.add(buchstabe)  # endlos: an der Steuerung eine Moduloachse
                 info.rundachsen.setdefault(buchstabe, ba.NcName.strip() or buchstabe)
         for spindel, c in spindeln.antriebe:
             if c is not None and m.nc_nummer(spindel):

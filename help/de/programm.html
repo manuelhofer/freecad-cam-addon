@@ -144,6 +144,21 @@ ihrem NC-Namen aus der Maschine, eine Nummer mit „=“ („C4=90.000“); sons
 die Bahnen rechnen den Radius, im Programm steht das Doppelte.</li>
 </ul>
 
+<a name="rundachse"></a>
+<h3>Rundachse</h3>
+<ul>
+<li><b>Moduloachse</b> – eine Rundachse, die an der Maschine endlos dreht (in „Maschine
+bearbeiten“: „endlos drehbar“; die C-Achse der Hauptspindel immer), ist an der Steuerung meist
+eine <b>Moduloachse</b>: Sie nimmt absolute Positionen nur von 0 bis unter 360°. Die Bahnen
+rundum zählen den Winkel fortlaufend (−90, −450 …) – an einer Siemens hält das mit <b>Alarm
+16830</b> „falsche Position bei Achse/Spindel C4 programmiert“. Deshalb schreibt das Programm
+für eine solche Achse die Position im Bereich mit der Drehrichtung der Bahn: Siemens
+„C4=ACN(270.000)“ (negativ drehend) bzw. „ACP(…)“ (positiv). Leer: fortlaufend wie bisher – für
+eine Steuerung, an der die Achse keine Moduloachse ist.</li>
+<li>Dreht ein Vorschubsatz eine ganze Umdrehung oder mehr, sagt ein Hinweis es – ACP/ACN fahren
+höchstens bis unter 360°. Die Bahnen des Addons drehen je Satz höchstens 90°.</li>
+</ul>
+
 <a name="vorschub"></a>
 <h3>Vorschub</h3>
 <ul>

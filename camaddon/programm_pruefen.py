@@ -66,7 +66,8 @@ def _zerlegen(satz):
     """(G-Befehle, M-Befehle, {Adresse: Zahl}) eines Satzes."""
     g, m, werte = [], [], {}
     for teil in satz.split():
-        treffer = re.fullmatch(r"([A-Z]+)(\d*)=(-?[\d.]+)", teil.upper())
+        # Siemens: „C4=12.5“, eine Moduloachse auch „C4=ACN(270.000)“ (ACP, ACN, DC, AC, IC).
+        treffer = re.fullmatch(r"([A-Z]+)(\d*)=(?:ACP|ACN|DC|AC|IC)?\(?(-?[\d.]+)\)?", teil.upper())
         if treffer:
             werte[treffer.group(1) + treffer.group(2)] = float(treffer.group(3))
             continue

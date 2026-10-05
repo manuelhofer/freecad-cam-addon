@@ -545,3 +545,15 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   Drehzahl und M3, F, Kreise mit CC, M30). Im Fenster ohne die G-Code-Felder (G93, Satznummern,
   G43, Bohrzyklen, Schwenkzyklus); die Vorschau folgt dem Dateinamen. Nur für Fräsmaschinen – an
   einer Drehmaschine ein Hinweis (CNC PILOT spricht eine andere Sprache).
+- **P-2026-10-05-11 – Moduloachse (Siemens ACP/ACN):** Manuel (2026-10-05) an seiner Siemens:
+  „Fehler 16830 Kanal 1 Satz N170 falsche Position bei Achse/Spindel C4 programmiert“. Die Bahnen
+  rundum zählen den Winkel fortlaufend (−90, −450 …); eine endlos drehende Achse ist an der
+  Steuerung meist eine Moduloachse und nimmt absolut nur 0 … unter 360°. Jetzt: Die Maschine sagt,
+  welche Rundachse endlos dreht („Endlos“ an der Betriebsart, die C-Achse der Hauptspindel immer –
+  `Maschineninfo.modulo`); für sie schreibt das Programm die Position im Bereich mit der
+  Drehrichtung der Bahn – die neuen Befehle `rundachse_plus`/`rundachse_minus` (Gruppe „Rundachse“,
+  Siemens `ACP({wert})`/`ACN({wert})`, sonst leer: fortlaufend wie bisher): `C4=ACN(270.000)`.
+  Dreht ein Vorschubsatz eine Umdrehung oder mehr, ein Hinweis (ACP/ACN fahren unter 360°; die
+  Bahnen des Addons drehen je Satz höchstens 90°); im Eilgang nicht – dort ist die Richtung gleich.
+  Das Nachlesen liest `C4=ACN(…)` mit. Andere Steuerungen (Fanuc „Rollover“, Heidenhain) bleiben,
+  wie sie sind, bis jemand dort eine Moduloachse meldet.

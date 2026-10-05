@@ -12,6 +12,31 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-11 siemens-moduloachse
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Fehler 16830 Kanal 1 Satz N170 falsche Position bei Achse/Spindel C4
+  programmiert … irgendwas muss noch umgestellt werden“. Und: Scheibe Ø 40 mit Zapfen, Stange
+  Ø 40 – „Passt nicht: Das Teil braucht Ø 40“ („nicht pauschalisieren“).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`Steuerung.rundachse_plus/_minus`, Siemens ACP/ACN,
+  `Maschineninfo.modulo`, `_modulo_wort`, Hinweis bei einer Umdrehung im Vorschub),
+  `camaddon/gui_programm.py` (Gruppe „Rundachse“), `camaddon/programm_pruefen.py` (liest
+  `C4=ACN(…)`), `camaddon/vierachs_rohteil.py` (`aufmass`: Rechenreste zählen nicht),
+  `translations/de.json`, `en.json`, `help/de|en/programm.html`, `tests/test_postprozessor.py`,
+  `tests/test_vierachs_rohteil.py`, `docs/spezifikation_steuerung.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.192.5).
+
+### DONE
+- Siemens: endlos drehende Rundachse als Moduloachse (ACP/ACN) – Alarm 16830.
+- Stange genau so groß wie das Teil: „Passt“.
+
+### TESTS
+- `test_postprozessor`, `test_vierachs_rohteil`, `test_sprache`, `test_hilfe`; Szenario
+  `szenario_programm`; das ganze Siemens-Programm eines Rundum-Jobs: alle 45 981 C-Wörter mit
+  ACP/ACN im Bereich – OK.
+
 ## P-2026-10-05-10 bleistift-bahnen
 
 ### EINGELESEN

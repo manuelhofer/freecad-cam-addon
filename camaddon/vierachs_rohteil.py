@@ -374,8 +374,11 @@ def berechne(form, flaeche, achse, mitte=MITTE_AUTO, drehlage=0.0, durchmesser=0
 
 
 def aufmass(lage_, durchmesser):
-    """So viel bleibt rundum mindestens stehen (mm); negativ: das Teil passt nicht."""
-    return (durchmesser - lage_.durchmesser) / 2
+    """So viel bleibt rundum mindestens stehen (mm); negativ: das Teil passt nicht. Reste der
+    Rechnung (das Teil braucht 40,00000000000001) zählen nicht: genau so groß passt (Manuel,
+    2026-10-05: Scheibe Ø 40 in der Stange Ø 40 – „passt nicht“)."""
+    rest = (durchmesser - lage_.durchmesser) / 2
+    return 0.0 if abs(rest) < GENAU else rest
 
 
 def vorschlag_durchmesser(noetig, zoll=False):

@@ -14,7 +14,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.192.4 (P-2026-10-05-10). Alles, was hier als gebaut steht,
+Stand 0.192.5 (P-2026-10-05-11). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
@@ -272,6 +272,11 @@ Strategien](spezifikation_strategien.md), 13.5 T5d, falls es jemand wieder aufni
 - *S5 Entgraten in 3D:* beantwortet – bauen, mit jedem Fräser mit ebener Stirn und auch mit 3
   Achsen (P-2026-10-04-65).
 - *Siemens WORKPIECE:* Manuel (2026-10-04): „lass es raus“ – nicht gebaut.
+- *Zum Ausprobieren (0.192.5) – Siemens, Alarm 16830:* den Job mit „Rundum schruppen/schlichten“
+  wählen → „Programm schreiben …“ → Siemens 840D → rechts in den Sätzen steht die Rundachse jetzt
+  als „C4=ACN(270.000)“ bzw. „ACP(…)“, nie mehr negativ oder über 360. Links unter „Rundachse“ die
+  beiden Befehle (leer: fortlaufend wie vorher). An der Maschine das Programm zuerst in der
+  Simulation laufen lassen. Dazu: Stange Ø 40 für ein Teil Ø 40 heißt jetzt „Passt“.
 - *Zum Ausprobieren (0.192.1) – Wege zwischen den Fenstern:* ein Teil mit zwei Jobs (zwei
   Aufspannungen): im zweiten etwas anlegen, dann ohne den Job anzuklicken „Auf der Maschine
   prüfen“ → es zeigt den zweiten Job (bisher immer den ersten). Unter „Zeit“ der Knopf
