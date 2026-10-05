@@ -5,7 +5,9 @@
 # Block „Entgraten 3D“ ist nicht angehakt (welche Kante eine Fase bekommt, sagt die Zeichnung);
 # anhaken: der Fasenfräser vorgewählt, „Angestellt (5 Achsen)“ angehakt, unten „→ … Kanten mit
 # Fase, etwa …“ und was ohne Fase bleibt (in der Nut zu eng). „Anlegen“: „Entgraten 3D T3“ mit je
-# Satz einer Achse, 5 Achsen.
+# Satz einer Achse, 5 Achsen. Dazu eine Kante angeklickt (Manuel, 2026-10-05: „Kanten anklicken
+# muss sein“): die senkrechte vorn links – in der Liste „Edge… Kante, 20 mm – Fase mit
+# „Entgraten 3D““, der Block angehakt, in der Operation steht sie unter den Flächen.
 import math
 import os
 import tempfile
@@ -30,6 +32,7 @@ def schritte(h):
     from camaddon import entgraten3d as e3op
     from camaddon import maschinenspeicher as msp
     from camaddon import reichweite as rw
+    from camaddon import vierachs_rohteil as vr
     from camaddon import werkzeuge as wz
 
     ordner = tempfile.mkdtemp()
@@ -117,6 +120,33 @@ def schritte(h):
     # Das Entgraten an der Fräse hält die schmale Schräge für eine gezeichnete Fase (120°) – hier
     # nicht gewollt.
     panel.entgraten.haken.setChecked(False)
+    # Eine Kante anklicken – wie im 3D: durch das Tor des Assistenten und seinen Beobachter.
+    klon = vr.modell(job)
+    ecke = next(
+        f"Edge{i + 1}"
+        for i, k in enumerate(klon.Shape.Edges)
+        if k.BoundBox.XMax < 1e-6 and k.BoundBox.YMax < 1e-6 and abs(k.Length - 20) < 1e-6
+    )
+    Gui.Selection.addSelection(doc.Name, klon.Name, ecke)
+    yield 1000
+    eintraege = [panel.flaechen_liste.item(i).text() for i in range(panel.flaechen_liste.count())]
+    h.pruefe(panel.kanten == [ecke], f"Kanten: {panel.kanten} statt {ecke}")
+    h.pruefe(any(e.startswith(ecke) and "Fase" in e for e in eintraege), f"Liste: {eintraege}")
+    h.pruefe(block.aktiv(), "Kante angeklickt – „Entgraten 3D“ nicht angehakt")
+    # Im Bild grün – je Kante eine Farbe, die angeklickte anders als die übrigen.
+    linien = list(getattr(klon.ViewObject, "LineColorArray", []) or [])
+    nummer = int(ecke[4:]) - 1
+    h.pruefe(
+        len(linien) == len(klon.Shape.Edges)
+        and linien[nummer][1] > linien[nummer][0]
+        and tuple(linien[nummer]) != tuple(linien[(nummer + 1) % len(linien)]),
+        f"Kante nicht gefärbt: {linien[:3]}",
+    )
+    panel.seite_zeigen(1)
+    Gui.ActiveDocument.ActiveView.viewIsometric()
+    Gui.SendMsgToActiveView("ViewFit")
+    yield 500
+    h.bild("0_kante_angeklickt")
     block.haken.setChecked(True)
     yield from h.warte_auf(
         lambda: all(
@@ -152,6 +182,7 @@ def schritte(h):
         f"{op.Label}, 5 Achsen {op.FuenfAchsen}, {op.Kanten} Kanten",
     )
     h.pruefe(len(op.Werkzeugachsen) == len(op.Path.Commands) > 10, "Achsen je Satz")
+    h.pruefe(ecke in list(op.Flaechen), f"Kante nicht in der Operation: {list(op.Flaechen)}")
     Gui.Selection.clearSelection()
     Gui.SendMsgToActiveView("ViewFit")
     yield 800

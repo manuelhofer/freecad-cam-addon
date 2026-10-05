@@ -12,6 +12,25 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-02 entgraten-3d-kanten-anklicken
+
+### EINGELESEN
+- Manuel, 2026-10-05: „… und ja, Kanten anklicken muss sein“.
+
+### DATEIEN
+- `camaddon/gui_bearbeitung.py` (Auswahltor mit Kanten, `kanten`, `kante_umschalten`, `_wahl`,
+  `nimmt_kanten`, Liste und Farbe der Kanten, Wiederherstellen beim Ändern),
+  `translations/de.json`, `en.json`, `help/de|en/bearbeitung.html`,
+  `tests/gui/szenario_entgraten3d.py` (Kante angeklickt), `docs/spezifikation_strategien.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.189.1).
+
+### DONE
+- Kanten im Assistenten anklicken – für „Entgraten 3D“.
+
+### TESTS
+- Szenario `szenario_entgraten3d` (die Kante durch Tor und Beobachter, Liste, Haken, Farbe,
+  Operation), `test_sprache` – OK.
+
 ## P-2026-10-05-01 heidenhain-klartext
 
 ### EINGELESEN

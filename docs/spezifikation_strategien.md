@@ -2941,6 +2941,14 @@ Kollision mit Rundachsen je Station.
   senkrechte Kegel nicht fasen kann (keine seiner Tangentialebenen durch die Kante schneidet beide
   Flächen ab), jetzt so: „mit dem senkrechten Kegel nicht zu fasen (Kante unten am Teil oder für
   seinen Winkel zu flach geknickt)“ – vorher „ohne passende Stellung“ (Schwenkteil: 281 mm).
+  **Kanten anklicken (P-2026-10-05-02; Manuel, 2026-10-05: „ja, Kanten anklicken muss sein“):**
+  Im Assistenten lassen sich mit Job auch Kanten anklicken (das Auswahltor lässt „Edge…“ des
+  Teils im Job durch). Sie stehen in einer eigenen Liste (`kanten`) neben den Flächen – nur
+  „Entgraten 3D“ bekommt sie (`nimmt_kanten`), alle anderen Strategien sehen weiter nur Flächen;
+  in der Liste „Edge12 Kante, 20 mm – Fase mit „Entgraten 3D““ (grün) bzw. „keine Kante zum Fasen
+  – innen, glatt oder unten auf dem Tisch“ (rot), im 3D die Kante grün (LineColorArray). Sind
+  Kanten angeklickt, ist der Block angehakt; nur Kanten und keine Fläche: die anderen Blöcke nicht.
+  In der Operation stehen sie unter `Flaechen` („Edge12“), beim Ändern kommen sie zurück.
 
 **Versuch an der Kuppel (2026-10-04 nachts, nicht im Addon):** Kuppel R 25 aus `test_schlichten3d`,
 Kugelfräser Ø 6, die Bahn, die das Addon wählt (eine Spirale, 46 Umläufe, 10 660 Punkte zu je

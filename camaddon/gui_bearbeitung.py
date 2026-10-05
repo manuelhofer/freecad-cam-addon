@@ -446,18 +446,19 @@ class _Beobachter:
 
 
 class _NurFlaechen:
-    """Anklicken lassen sich nur Flächen – mit Job nur die des Teils darin."""
+    """Anklicken lassen sich Flächen – mit Job nur die des Teils darin, und dort auch Kanten (für
+    „Entgraten 3D“; Manuel, 2026-10-05: „Kanten anklicken muss sein“)."""
 
     def __init__(self, panel):
         self.panel = panel
 
     def allow(self, _dokument, objekt, unterelement):
         weg = unterelement.split(".") if unterelement else []
-        if not weg or not weg[-1].startswith("Face"):
+        if not weg or not weg[-1].startswith(("Face", "Edge")):
             return False
         job = self.panel.job
         if job is None:
-            return True
+            return weg[-1].startswith("Face")  # ohne Job beginnt ein Klick auf eine Fläche
         klon = vr.modell(job).Name
         return getattr(objekt, "Name", "") == klon or klon in weg
 
@@ -471,6 +472,7 @@ class _Strategie:
 
     kennung = ""
     gemerkt = ""  # Parameter: der zuletzt gewählte Fräser
+    nimmt_kanten = False  # bekommt auch angeklickte Kanten („Edge12“) – nur Entgraten 3D
     einsatz_reihenfolge = ()  # welcher Einsatz vorgewählt ist
     bevorzugt = wz.SCHAFTFRAESER  # diese Art vorgewählt, wenn sonst nichts entscheidet
 
@@ -1712,6 +1714,7 @@ class _Entgraten3D(_Strategie):
 
     kennung = "entgraten3d"
     gemerkt = GEMERKT_ENTGRATEN3D
+    nimmt_kanten = True
     einsatz_reihenfolge = (wz.FASEN, wz.SCHLICHTEN)
     bevorzugt = wz.FASENFRAESER
 
@@ -1743,7 +1746,9 @@ class _Entgraten3D(_Strategie):
         return e3op.passt(form, name)
 
     def vorgeschlagen(self, form, gewaehlte):
-        return False  # welche Kante eine Fase bekommt, sagt die Zeichnung
+        # Welche Kante eine Fase bekommt, sagt die Zeichnung – hat man Kanten angeklickt, dann
+        # dafür (Manuel, 2026-10-05: „Kanten anklicken muss sein“).
+        return any(str(n).startswith("Edge") and self.passt(form, n) for n in gewaehlte)
 
     def unmoeglich_text(self):
         return tr("ba.e3.keine")
@@ -3384,6 +3389,7 @@ class BearbeitungPanel:
         self.teil = None
         self.bibliothek = None
         self.gewaehlte = []  # die Flächen („Face6“ …) – leer: die Oberseite
+        self.kanten = []  # angeklickte Kanten („Edge12“ …) – nur für „Entgraten 3D“
         self.operation = operation  # die erste angelegte Operation – oder die, die man ändert
         self.operationen = []  # alle angelegten
         self.zu_aendern = operation
@@ -3990,6 +3996,15 @@ class BearbeitungPanel:
             if wahl is not None:
                 self._beginnen(wahl, angeklicktes_teil(self.doc))
             return
+        weg = unterelement.split(".") if unterelement else []
+        if weg and weg[-1].startswith("Edge"):
+            teil, _flaeche = _entlang(self.doc, self.doc.getObject(objekt), ".".join(weg[:-1]))
+            klon = vr.modell(self.job)
+            if teil is None or vr.original(teil) is not vr.original(klon):
+                return
+            FreeCADGui.Selection.clearSelection()
+            self.kante_umschalten(weg[-1])
+            return
         teil, flaeche = _entlang(self.doc, self.doc.getObject(objekt), unterelement)
         klon = vr.modell(self.job)
         if teil is None or flaeche is None or vr.original(teil) is not vr.original(klon):
@@ -4094,6 +4109,7 @@ class BearbeitungPanel:
             self.gewaehlte = [flaeche]
         else:
             self.gewaehlte = []
+        self.kanten = []
         FreeCADGui.Selection.clearSelection()
         self._bearbeitung_fuellen()
         self._flaechen_zeigen()
@@ -4147,6 +4163,7 @@ class BearbeitungPanel:
             self.gewaehlte = [flaeche]
         else:
             self.gewaehlte = []
+        self.kanten = []
         FreeCADGui.Selection.clearSelection()
         self._bearbeitung_fuellen()
         self._flaechen_zeigen()
@@ -4654,7 +4671,9 @@ class BearbeitungPanel:
             self._fuellt = False
         for b in self.bloecke:
             b.zustand_zeigen()
-        self.gewaehlte = list(getattr(op, "Flaechen", ()) or ())
+        namen = list(getattr(op, "Flaechen", ()) or ())
+        self.gewaehlte = [n for n in namen if not n.startswith("Edge")]
+        self.kanten = [n for n in namen if n.startswith("Edge")]
         self._bearbeitung_fuellen()
         self._fuellt = True
         try:
@@ -4678,8 +4697,30 @@ class BearbeitungPanel:
 
     # --- Flächen --------------------------------------------------------------------------
 
+    def kante_umschalten(self, name):
+        """Nimmt die Kante `name` („Edge12“) dazu – oder heraus, wenn sie schon gewählt ist. Mit
+        Kanten arbeitet nur „Entgraten 3D“."""
+        if not name or self.job is None:
+            return
+        if name in self.kanten:
+            self.kanten.remove(name)
+        else:
+            self.kanten.append(name)
+        self._flaechen_zeigen()
+        self.vorschau_starten()
+
+    def _wahl(self, block):
+        """Was der Block bekommt: die gewählten Flächen – „Entgraten 3D“ dazu die Kanten."""
+        if getattr(block.s, "nimmt_kanten", False):
+            return list(self.gewaehlte) + list(self.kanten)
+        return self.gewaehlte
+
     def flaeche_umschalten(self, name):
-        """Nimmt die Fläche `name` („Face6“) dazu – oder heraus, wenn sie schon gewählt ist."""
+        """Nimmt die Fläche `name` („Face6“) dazu – oder heraus, wenn sie schon gewählt ist; eine
+        Kante („Edge12“) wie kante_umschalten."""
+        if name and str(name).startswith("Edge"):
+            self.kante_umschalten(name)
+            return
         if not name or self.job is None:
             return
         if name in self.gewaehlte:
@@ -4698,6 +4739,7 @@ class BearbeitungPanel:
 
     def flaechen_leeren(self):
         self.gewaehlte = []
+        self.kanten = []
         self._flaechen_zeigen()
         self.vorschau_starten()
 
@@ -4709,7 +4751,7 @@ class BearbeitungPanel:
         """Die Liste der gewählten Flächen, der Satz darunter, die Farben am Teil – und die
         Haken der Blöcke, wie die Wahl sie nahelegt."""
         self.flaechen_liste.clear()
-        self.flaechen_liste.setVisible(bool(self.gewaehlte))
+        self.flaechen_liste.setVisible(bool(self.gewaehlte or self.kanten))
         self.schwenken_zeile.hide()
         if self.job is None:
             self.flaechen_text.setText("")
@@ -4777,19 +4819,35 @@ class BearbeitungPanel:
             self.flaechen_liste.addItem(eintrag)
             if nummer >= 0:
                 farben[nummer] = farbe
+        kanten_farben = {}
+        for name in self.kanten:
+            nummer = int(name[4:]) - 1 if name[4:].isdigit() else -1
+            if 0 <= nummer < len(form.Edges) and self.entgraten3d.s.passt(form, name):
+                laenge = groesse_zeigen(form.Edges[nummer].Length, einheiten.LAENGE) or "0"
+                text, farbe = tr("ba.kante.fase", name=name, laenge=laenge), GRUEN
+            else:
+                text, farbe = tr("ba.kante.nichts", name=name), ROT
+            eintrag = QtGui.QListWidgetItem(dezimal(text))
+            eintrag.setData(QtCore.Qt.UserRole, name)
+            eintrag.setForeground(QtGui.QColor(farbe))
+            self.flaechen_liste.addItem(eintrag)
+            if nummer >= 0:
+                kanten_farben[nummer] = farbe
         # Die Liste so hoch wie ihre Einträge – höchstens fünf, dann rollt sie.
         zeile = max(self.flaechen_liste.sizeHintForRow(0), 1)
         rand = 2 * self.flaechen_liste.frameWidth() + 4
         self.flaechen_liste.setFixedHeight(
             min(5, max(1, self.flaechen_liste.count())) * zeile + rand
         )
-        if not self.gewaehlte:
+        if not self.gewaehlte and self.kanten:
+            self.flaechen_text.setText(tr("ba.flaechen.nur_kanten"))
+        elif not self.gewaehlte:
             namen = ", ".join(hf.oberseite(form)) or "–"
             self.flaechen_text.setText(tr("ba.flaechen.oberseite", namen=namen))
         else:
             self.flaechen_text.setText(tr("ba.flaechen.nur"))
         self._schwenken_zeigen(form)
-        self._farben_zeigen(farben)
+        self._farben_zeigen(farben, kanten_farben)
         self._haken_vorschlagen(form)
 
     def _schwenken_zeigen(self, form):
@@ -4846,7 +4904,7 @@ class BearbeitungPanel:
         self._fuellt = True
         try:
             for block in self.bloecke:
-                moeglich = block.s.moeglich(form, self.gewaehlte)
+                moeglich = block.s.moeglich(form, self._wahl(block))
                 grund = None
                 if block is self.bohren:
                     moeglich = moeglich and self._bohrer_da(form, gerieben)
@@ -4880,9 +4938,11 @@ class BearbeitungPanel:
                 if not moeglich:
                     block.haken.setChecked(False)
                 elif not block.von_hand:
-                    vorschlag = block.s.vorgeschlagen(form, self.gewaehlte)
+                    vorschlag = block.s.vorgeschlagen(form, self._wahl(block))
                     if block is self.bohrung and self._von_raeumen_geraeumt(form):
                         vorschlag = False  # Räumen + Kontur ist dort die Folge
+                    if self.kanten and not self.gewaehlte and block is not self.entgraten3d:
+                        vorschlag = False  # nur Kanten gewählt: die sollen eine Fase bekommen
                     block.haken.setChecked(vorschlag)
                 block.zustand_zeigen()
         finally:
@@ -4944,10 +5004,10 @@ class BearbeitungPanel:
                 self._fuellt = False
         self.vorschau_starten()
 
-    def _farben_zeigen(self, farben):
-        """Färbt die Flächen des Teils im Job (wie gui_vierachs._farben_zeigen) – nur die
-        Anzeige; _farben_zurueck() stellt sie wieder her."""
-        if not farben or self.job is None:
+    def _farben_zeigen(self, farben, kanten=None):
+        """Färbt die Flächen (und die angeklickten Kanten) des Teils im Job (wie
+        gui_vierachs._farben_zeigen) – nur die Anzeige; _farben_zurueck() stellt sie wieder her."""
+        if (not farben and not kanten) or self.job is None:
             self._farben_zurueck()
             return
         klon = vr.modell(self.job)
@@ -4956,11 +5016,14 @@ class BearbeitungPanel:
             return
         if self._farben_vorher is None:
             aussehen = getattr(ansicht, "ShapeAppearance", None)
+            linien = getattr(ansicht, "LineColorArray", None)
             self._farben_vorher = (
                 klon,
                 list(ansicht.DiffuseColor),
                 list(aussehen) if aussehen is not None else None,
+                list(linien) if linien is not None else None,
             )
+        self._kanten_faerben(ansicht, klon, kanten or {})
         grund = self._farben_vorher[1]
         anzahl = len(klon.Shape.Faces)
         if len(grund) != anzahl:
@@ -4972,15 +5035,33 @@ class BearbeitungPanel:
                 neu[nummer] = (*(int(farbe[i : i + 2], 16) / 255 for i in (1, 3, 5)), alpha)
         ansicht.DiffuseColor = neu
 
+    def _kanten_faerben(self, ansicht, klon, kanten):
+        """Die angeklickten Kanten in ihrer Farbe (LineColorArray), die anderen wie vorher."""
+        if not hasattr(ansicht, "LineColorArray") or self._farben_vorher[3] is None:
+            return
+        anzahl = len(klon.Shape.Edges)
+        grund = list(self._farben_vorher[3])
+        if len(grund) != anzahl:
+            grund = [tuple(grund[0]) if grund else tuple(ansicht.LineColor)] * anzahl
+        alpha = grund[0][3] if grund and len(grund[0]) > 3 else 0.0
+        neu = list(grund)
+        for nummer, farbe in kanten.items():
+            if nummer < anzahl:
+                neu[nummer] = (*(int(farbe[i : i + 2], 16) / 255 for i in (1, 3, 5)), alpha)
+        with contextlib.suppress(TypeError, ValueError):  # ohne Farbe je Kante: wie vorher
+            ansicht.LineColorArray = neu
+
     def _farben_zurueck(self):
         if self._farben_vorher is None:
             return
-        klon, farben, aussehen = self._farben_vorher
+        klon, farben, aussehen, linien = self._farben_vorher
         self._farben_vorher = None
         try:
             ansicht = klon.ViewObject
             if ansicht is None:
                 return
+            if linien is not None and hasattr(ansicht, "LineColorArray"):
+                ansicht.LineColorArray = linien
             if aussehen is not None:
                 ansicht.ShapeAppearance = aussehen
             else:
@@ -5859,9 +5940,9 @@ class BearbeitungPanel:
             return self._bohrbare(form, gerieben=self._gerieben(form))
         merk = getattr(self, "_flaechen_merk", None)
         if merk is None:
-            return block.s.flaechen_fuer(form, self.gewaehlte)
+            return block.s.flaechen_fuer(form, self._wahl(block))
         if id(block) not in merk:
-            merk[id(block)] = list(block.s.flaechen_fuer(form, self.gewaehlte))
+            merk[id(block)] = list(block.s.flaechen_fuer(form, self._wahl(block)))
         return list(merk[id(block)])
 
     def _gerieben(self, form):
