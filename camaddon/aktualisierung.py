@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 """Nach Updates schauen – mit Git oder ohne (P-2026-09-25-24, P-2026-09-25-57).
 
-Ist der Addon-Ordner ein Git-Klon (Anleitung mit GitHub Desktop im README),
+Ist der Addon-Ordner ein Git-Klon (etwa mit GitHub Desktop geholt),
 fragt das Addon per Git bei GitHub nach. Angemeldet wird mit dem, was auf dem
 Rechner schon eingerichtet ist (Git bzw. GitHub Desktop); im Addon liegt kein
 Schlüssel. So geht es auch, solange das Repository privat ist – der

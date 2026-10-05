@@ -12,6 +12,28 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-26 texte-kuerzer
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Kümmer dich noch um ein paar unwichtige Texte … Der Info-Text ist nicht
+  gut geschrieben … und auch der Text auf der Projektseite, da steht so viel … schau, ob man
+  Texte noch verbessern kann, dass sie verständlicher sind.“
+
+### DATEIEN
+- `translations/de.json`, `en.json` (`ueber.text`), `README.md`, `package.xml` (Beschreibung,
+  0.194.6), `camaddon/aktualisierung.py` (Kommentar), `docs/STATUS_SNAPSHOT.md`.
+
+### DONE
+- „Über das CAM-Addon“: statt „Bisher: …“ (Stand vom Anfang) fünf Punkte – Maschine,
+  Werkzeuge, Bearbeitung, Prüfen, Programm – und der Einstieg.
+- README: von rund 2 800 auf etwa 500 Wörter – was es kann in sieben Punkten, Installieren,
+  Aktualisieren, Lizenz; der Abschnitt fürs private Repository fällt weg (es ist öffentlich),
+  die Einzelheiten stehen in der Hilfe im Addon.
+- Die Beschreibung im Addon-Manager in zwei Sätzen.
+
+### TESTS
+- `test_sprache`, `test_hilfe` – OK.
+
 ## P-2026-10-05-25 stirnseite-drehmitte
 
 ### EINGELESEN
