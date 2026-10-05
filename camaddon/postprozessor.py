@@ -508,6 +508,19 @@ _HEIDENHAIN = {
     "glaetten_angebot": (
         Glaetten("zyklus32", "CYCL DEF 32.0 TOLERANZ\nCYCL DEF 32.1 T{toleranz}", True),
     ),
+    # 3+2 (Spezifikation Steuerung, „PLANE SPATIAL“): der Nullpunkt auf den Ursprung der Ebene
+    # (Zyklus 7), dann die Raumwinkel – SPA um X, SPB um Y, SPC um Z, maschinenfest in dieser
+    # Reihenfolge; das sind die Winkel von CYCLE800 achsweise Z, Y, X ({c} {b} {a}). TURN fährt
+    # die Rundachsen, MB MAX zieht vorher ganz zurück; SEQ wie CYCLE800 _DIR. Die Vorzeichen setzt
+    # klartext.uebersetzen.
+    "schwenken": (
+        "CYCL DEF 7.0 NULLPUNKT\nCYCL DEF 7.1 X{x0}\nCYCL DEF 7.2 Y{y0}\nCYCL DEF 7.3 Z{z0}\n"
+        "PLANE SPATIAL SPA{c} SPB{b} SPC{a} TURN MB MAX FMAX SEQ{seq}"
+    ),
+    "schwenken_aus": (
+        "PLANE RESET TURN MB MAX FMAX\nCYCL DEF 7.0 NULLPUNKT\nCYCL DEF 7.1 X0\n"
+        "CYCL DEF 7.2 Y0\nCYCL DEF 7.3 Z0"
+    ),
     "g93": False,
     "dialekt": "klartext",
 }
@@ -1311,6 +1324,7 @@ def _schwenken_ein(s, schwenkung, info=None, umgekehrt=()):
     if getattr(schwenkung, "richtung_achse", "") in umgekehrt:
         richtung = -richtung
     werte["dir"] = str(richtung)
+    werte["seq"] = "+" if richtung > 0 else "-"  # Heidenhain PLANE … SEQ
     return _zeilen(_fuellen(s.schwenken, **werte))
 
 

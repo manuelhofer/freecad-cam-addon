@@ -488,6 +488,45 @@ for s in (pp.steuerung("linuxcnc"), pp.steuerung("siemens", {"schwenkzyklus": Fa
         any(z.startswith("G1") and f"X{soll[0]:.3f}" in z for z in zeilen),
         f"{s.name}: erster Satz nicht gerechnet ({soll})",
     )
+# Heidenhain (iTNC 530, TNC 640): PLANE SPATIAL – der Nullpunkt auf den Ursprung der Ebene
+# (Zyklus 7), die Raumwinkel SPA/SPB/SPC um X, Y, Z maschinenfest; Rz(SPC)·Ry(SPB)·Rx(SPA)·Z ist
+# die Normale der Ebene. Am Ende PLANE RESET und der Nullpunkt zurück; nachgelesen ohne Befund.
+from camaddon import klartext as kt  # noqa: E402
+
+for kennung in ("heidenhain", "heidenhain_tnc640"):
+    s_h = pp.steuerung(kennung)
+    programm_h = pp.programm(teile, s_h, info, "Block")
+    zeilen = programm_h.zeilen
+    plane = [z for z in zeilen if z.split(" ", 1)[-1].startswith("PLANE SPATIAL")]
+    nullpunkt = [z for z in zeilen if "CYCL DEF 7.1 X" in z]
+    pruefe(len(plane) == 1 and len(nullpunkt) == 2, f"{kennung}: {plane} {nullpunkt}")
+    if plane:
+        werte = {
+            w[:3]: float(w[3:])
+            for w in plane[0].split()
+            if w[:3] in ("SPA", "SPB", "SPC") and w[3:4] in ("+", "-")
+        }
+        r = (
+            FreeCAD.Rotation(V(0, 0, 1), werte["SPC"])
+            .multiply(FreeCAD.Rotation(V(0, 1, 0), werte["SPB"]))
+            .multiply(FreeCAD.Rotation(V(1, 0, 0), werte["SPA"]))
+        )
+        normale_h = r.multVec(V(0, 0, 1))
+        soll_n = e.Rotation.multVec(V(0, 0, 1))
+        pruefe(
+            (normale_h - soll_n).Length < 1e-4 and "SPA+30.000" in plane[0] and " SEQ" in plane[0],
+            f"{kennung}: {plane[0]!r} → {normale_h}, Ebene {soll_n}",
+        )
+        x0 = f"X{kt.zahl(e.Base.x)}"
+        pruefe(x0 in nullpunkt[0], f"{kennung}: Nullpunkt {nullpunkt[0]!r} ohne {x0}")
+    pruefe(
+        any(z.split(" ", 1)[-1].startswith("PLANE RESET") for z in zeilen)
+        and nullpunkt[-1].endswith("CYCL DEF 7.1 X+0.000"),
+        f"{kennung}: nicht zurück: {zeilen[-12:]}",
+    )
+    befunde, _saetze = pp.nachlesen(programm_h, s_h, info)
+    pruefe(not befunde, f"{kennung}: nachgelesen {[(b.art, b.satz) for b in befunde[:3]]}")
+
 # Mit Wechselpunkt Z in MKS (ganz oben) schwenkt die Maschine dort – nicht erst wieder hinunter
 # auf die Schwenkhöhe, weder hin noch zurück.
 oben = pp.Maschineninfo("5-Achs")

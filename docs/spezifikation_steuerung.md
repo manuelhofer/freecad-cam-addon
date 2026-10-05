@@ -540,7 +540,7 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   `L {achsen} R0 FMAX M91` (M92 zur Wahl), Marken als Gliederung `* - {marke}`, Glätten Zyklus 32
   (`CYCL DEF 32.0 TOLERANZ`/`32.1 T…`, deutsche Texte), TCPM iTNC 530 `M128`/`M129`, TNC 640
   `FUNCTION TCPM F TCP AXIS POS PATHCTRL AXIS`/`FUNCTION RESET TCPM`. Kein G93 im Klartext: F in
-  mm/min wie S5 (die Zeit des Satzes stimmt). 3+2 gerechnet (PLANE SPATIAL später). Nachgelesen mit
+  mm/min wie S5 (die Zeit des Satzes stimmt). 3+2 gerechnet (PLANE SPATIAL seit P-2026-10-05-24). Nachgelesen mit
   einem eigenen Prüfer (`klartext.pruefe`: Nummern, BEGIN/END, TOOL CALL vor dem ersten Weg,
   Drehzahl und M3, F, Kreise mit CC, M30). Im Fenster ohne die G-Code-Felder (G93, Satznummern,
   G43, Bohrzyklen, Schwenkzyklus); die Vorschau folgt dem Dateinamen. Nur für Fräsmaschinen – an
@@ -569,3 +569,12 @@ der Steuerung nachgeprüft (Quelle im Hilfetext).
   `WORKPIECE(,,,"CYLINDER",0,0,-200,-150,100)`: Z0, Länge, Bearbeitungsmaß, Ø). An einer echten
   Steuerung nicht geprüft – die Parameter änderten sich mit den Versionen von Operate; die Hilfe
   sagt, wie man sie mit der Zeile vergleicht, die die Steuerung selbst schreibt.
+- **P-2026-10-05-24 – Heidenhain PLANE SPATIAL für 3+2:** Der Schwenkzyklus an Heidenhain (iTNC 530,
+  TNC 640/620/320), vorbelegt an wie CYCLE800: `CYCL DEF 7.0 NULLPUNKT` mit `7.1 X…`/`7.2 Y…`/
+  `7.3 Z…` auf den Ursprung der Ebene, dann `PLANE SPATIAL SPA… SPB… SPC… TURN MB MAX FMAX SEQ±` –
+  die Raumwinkel um X, Y, Z der Maschine in dieser Reihenfolge, also Rz(SPC)·Ry(SPB)·Rx(SPA);
+  gleich der Drehung von CYCLE800 achsweise Z, Y′, X″ (SPA = {c}, SPB = {b}, SPC = {a}). SEQ wie
+  `_DIR` (+ die Stellung mit dem größeren Wert der ersten Rundachse). Zurück `PLANE RESET TURN MB
+  MAX FMAX` und Zyklus 7 auf 0. Die Vorzeichen setzt `klartext.uebersetzen`. Nicht an einer
+  Heidenhain-Steuerung ausprobiert – vor dem ersten Lauf in ihrer Simulation ansehen.
+

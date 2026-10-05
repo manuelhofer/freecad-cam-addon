@@ -129,7 +129,7 @@ NUR_FRAESEN = {
     "reiben",
 }
 # Was es im Heidenhain-Klartext nicht gibt (die Satznummern schreibt er immer, die Länge nimmt
-# TOOL CALL mit, G93 und die Bohrzyklen übersetzt er selbst; 3+2 dort gerechnet) – nicht gezeigt.
+# TOOL CALL mit, G93 und die Bohrzyklen übersetzt er selbst) – nicht gezeigt.
 NUR_GCODE = {
     "rohteil",
     "rohteil_fraesen",
@@ -143,9 +143,6 @@ NUR_GCODE = {
     "laenge_ein_drehen",
     "laenge_wieder",
     "kopf_drehmaschine",
-    "schwenkzyklus",
-    "schwenken",
-    "schwenken_aus",
     "bohren",
     "bohren_verweilen",
     "tiefbohren",

@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-24 heidenhain-plane-spatial
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Kannst du weiter arbeiten, bis ich mich melde?“ – aus dem Projektstand
+  das offene „PLANE SPATIAL für 3+2 an Heidenhain“ (bisher 3+2 dort nur gerechnet, mit den
+  Achswerten der Maschine).
+
+### DATEIEN
+- `camaddon/postprozessor.py` (`_HEIDENHAIN`: schwenken, schwenken_aus; `{seq}`),
+  `camaddon/klartext.py` (`_mit_vorzeichen`), `camaddon/gui_programm.py` (Schwenkzyklus auch im
+  Klartext zu sehen), `help/de|en/programm.html`, `docs/spezifikation_steuerung.md`,
+  `tests/test_schwenken.py`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.4).
+
+### DONE
+- Heidenhain 3+2 mit dem Schwenkzyklus (vorbelegt an): Zyklus 7 auf den Ursprung der Ebene,
+  `PLANE SPATIAL SPA… SPB… SPC… TURN MB MAX FMAX SEQ±`, zurück mit `PLANE RESET` und Zyklus 7
+  auf 0; Haken aus: gerechnet wie bisher. Nicht an einer Heidenhain ausprobiert.
+
+### TESTS
+- `test_schwenken` (Rz(SPC)·Ry(SPB)·Rx(SPA)·Z = Normale der Ebene, Nullpunkt, zurück, nachgelesen
+  ohne Befund – iTNC 530 und TNC 640), `test_postprozessor`, `test_sprache`, `test_hilfe`;
+  Szenario `szenario_programm_heidenhain` – OK.
+
 ## P-2026-10-05-23 querachse-um-die-kante
 
 ### EINGELESEN

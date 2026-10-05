@@ -209,7 +209,12 @@ Ebene „CYCLE800(1,"",0,27,X0,Y0,Z0,A,B,C,0,0,0,-1,0,1)“: Freifahren in Z, de
 X, der Ursprung der Ebene im Grundjob, Richtung −1. Danach stehen die Sätze in Koordinaten der
 Ebene; die Steuerung rechnet Rundachsen und Werkzeuglänge selbst, der Nullpunkt bleibt am Teil.
 Zurück mit „CYCLE800()“. Quelle: Siemens-Programmierhandbuch Arbeitsvorbereitung 10/2015,
-S. 678–681.</li>
+S. 678–681.<br>
+An <b>Heidenhain</b> (iTNC 530, TNC 640/620/320) ebenso vorbelegt: der Nullpunkt auf den Ursprung
+der Ebene („CYCL DEF 7.0 NULLPUNKT“, „7.1 X…“ bis „7.3 Z…“), dann „PLANE SPATIAL SPA… SPB… SPC…
+TURN MB MAX FMAX SEQ±“ – die Raumwinkel um X, Y, Z der Maschine, dieselben wie bei CYCLE800,
+„MB MAX“ zieht vor dem Schwenken ganz zurück, „SEQ“ wählt die Stellung wie <code>_DIR</code>.
+Zurück mit „PLANE RESET TURN MB MAX FMAX“ und dem Nullpunkt auf 0.</li>
 <li><b>Ohne Zyklus</b> (Haken aus, oder die Steuerung hat keinen Befehl dafür: LinuxCNC, Mach,
 Fanuc, Haas) – vorher zum Wechselpunkt und auf die <b>Schwenkhöhe</b> (über dem Raum, den das
 Rohteil beim Schwenken überstreicht, + 20 mm), dann „G0 A… C…“, über den ersten Punkt und die

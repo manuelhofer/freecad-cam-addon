@@ -202,7 +202,12 @@ plane swivelled once, back at the end.</p>
 the quotes; empty if the machine has only one), new, axis by axis about Z, Y, X, the plane's
 origin in the base job, direction −1. Then the blocks are in plane coordinates; the control
 computes rotary axes and tool length itself, the zero point stays on the part. Back with
-“CYCLE800()”. Source: Siemens programming manual job planning 10/2015, pp. 678–681.</li>
+“CYCLE800()”. Source: Siemens programming manual job planning 10/2015, pp. 678–681.<br>
+On <b>Heidenhain</b> (iTNC 530, TNC 640/620/320) likewise by default: the datum on the origin of
+the plane (“CYCL DEF 7.0 NULLPUNKT”, “7.1 X…” to “7.3 Z…”), then “PLANE SPATIAL SPA… SPB… SPC…
+TURN MB MAX FMAX SEQ±” – the spatial angles about X, Y, Z of the machine, the same as for
+CYCLE800; “MB MAX” retracts fully before tilting, “SEQ” picks the position like
+<code>_DIR</code>. Back with “PLANE RESET TURN MB MAX FMAX” and the datum at 0.</li>
 <li><b>Without cycle</b> (tick off, or the control has no command for it: LinuxCNC, Mach, Fanuc,
 Haas) – first to the change point and to the <b>swivel height</b> (above the space the stock
 sweeps while swivelling, + 20 mm), then “G0 A… C…”, over the first point and down along the tool

@@ -71,6 +71,16 @@ def zahl(wert, stellen=STELLEN):
     return "+" + "0." + "0" * stellen if float(text) == 0.0 else text
 
 
+def _mit_vorzeichen(roh):
+    """„CYCL DEF 7.1 X+12.500“, „PLANE SPATIAL SPA+30.000 …“ – die Zahlen nach X, Y, Z, SPA, SPB,
+    SPC mit ihrem Vorzeichen, wie der Klartext sie verlangt."""
+    return re.sub(
+        r"(?<![A-Z])(SPA|SPB|SPC|X|Y|Z)([-+]?\d+(?:\.\d+)?)",
+        lambda m: f"{m.group(1)}{zahl(float(m.group(2)))}",
+        roh,
+    )
+
+
 def vorschub(wert):
     """„F318“ – ab 10 mm/min ganz, darunter mit einer Stelle (nie F0)."""
     wert = max(float(wert), 0.1)
@@ -181,6 +191,8 @@ class _Uebersetzer:
             self._klartext_gerade(roh)
             return
         if roh.upper().startswith(KLARTEXT):
+            if roh.startswith(("CYCL DEF 7.", "PLANE SPATIAL")):
+                roh = _mit_vorzeichen(roh)
             self.aus.append(roh)
             if roh.startswith("CYCL DEF") or roh.startswith("PLANE"):
                 self.wechsel_offen = None
