@@ -288,8 +288,13 @@ eben). Kein OCL.
    Eigenschaft „Winkel“, Vorgabe 45°): das Teil um −Winkel um Z gedreht, längs X gerechnet (mit
    Höhenlinien, Maske und Rest wie sonst), die Bahn zurückgedreht; 0° und 90° sind längs X und
    Y. „auto“ rechnet ihn nicht mit – was ohne Vorgabe gewinnt, bleibt. Kuppel, 30°: 4,39 min, 87
-   Zeilen, im Quader −0,008 … 0,020 mm. Offen: einseitig, Bögen an den Umkehrpunkten;
-   „Z-konstant“ für die steilen Stellen (Punkt 4).
+   Zeilen, im Quader −0,008 … 0,020 mm. **Einseitig** (P-2026-10-05-09, nur auf Wahl –
+   Eigenschaft „Einseitig“): jede Zeile in dieselbe Richtung, zurück im Eilgang 2 mm über dem
+   Höchsten der Hüllfläche zwischen beiden Zeilen, im Eilgang hinab bis 2 mm über den Anfang,
+   dann eintauchen. Kuppel längs X ohne Höhenlinien: 5,02 statt 3,58 min im Zickzack (zuerst 6,84
+   – der Fräser tauchte von über der Kuppel bis an ihren Fuß im Eintauchvorschub), im Quader
+   −0,007 … 0,022 mm. Offen: Bögen an den Umkehrpunkten; „Z-konstant“ für die steilen Stellen
+   (Punkt 4).
 4. **Z-konstant** (Höhenlinien) für steile Bereiche, **Steil/Flach**: über
    einem Grenzwinkel Höhenlinien, darunter Zeilen – in einer Operation.
    *Besser:* Surface und Waterline getrennt lassen Rippen und Stufen. Aufwand

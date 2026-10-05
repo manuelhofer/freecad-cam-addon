@@ -2192,6 +2192,7 @@
     "ba.flaeche.fase": "{name}  gezeichnete Fase oder Rundung",
     "s3.eigenschaft.grenzwinkel": "Steil/Flach: Wo es steiler ist (Grad), fährt er Höhenlinien, wo es flacher ist, Zeilen; 0: nur Zeilen.",
     "s3.eigenschaft.winkel": "Zeilen im Winkel: so viele Grad zu X laufen die Zeilen, wenn die Richtung „winkel“ ist (0: längs X, 90: längs Y). Mit Steil/Flach wie sonst Höhenlinien an den steilen Stellen.",
+    "s3.eigenschaft.einseitig": "Einseitig: Die Zeilen laufen alle in dieselbe Richtung (zurück im Eilgang knapp über dem Teil) statt im Zickzack – in jeder Zeile gleiche Schnittbedingungen; dauert länger. Gilt für Zeilen (längs X, längs Y, im Winkel).",
     "s3.eigenschaft.hoehenlinien": "Höhen mit Höhenlinien (Ergebnis).",
     "s3.eigenschaft.umlaeufe": "Umläufe der Spirale (Ergebnis).",
     "ba.ergebnis_s3_steil": "→ {n} Höhenlinien und {zeilen} längs {richtung}, Abstand {abstand}, etwa {zeit}",

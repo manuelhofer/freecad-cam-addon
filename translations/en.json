@@ -2192,6 +2192,7 @@
     "ba.flaeche.fase": "{name}  modelled chamfer or fillet",
     "s3.eigenschaft.grenzwinkel": "Steep/shallow: where it is steeper (degrees) it runs contours, where shallower rows; 0: rows only.",
     "s3.eigenschaft.winkel": "Rows at an angle: the rows run at this many degrees to X when the direction is “winkel” (0: along X, 90: along Y). With steep/shallow, contours on the steep parts as usual.",
+    "s3.eigenschaft.einseitig": "One-way: all rows run in the same direction (back in rapid just above the part) instead of zigzag – the same cutting conditions in every row; takes longer. Applies to rows (along X, along Y, at an angle).",
     "s3.eigenschaft.hoehenlinien": "Levels with contours (result).",
     "s3.eigenschaft.umlaeufe": "Turns of the spiral (result).",
     "ba.ergebnis_s3_steil": "→ {n} contours and {zeilen} along {richtung}, spacing {abstand}, about {zeit}",

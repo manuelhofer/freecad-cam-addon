@@ -146,6 +146,23 @@ for grad, gleich in ((0.0, nur_x), (90.0, nur_y), (180.0, nur_x)):
         f"{grad}°: {b_.zeit:.3f} statt {gleich.zeit:.3f} min",
     )
 print(ascii(f"im Winkel 30°: {im_winkel.zeit:.2f} min ({im_winkel.zeilen} Zeilen)"))
+# Einseitig: jeder Schnitt längs der Zeile in +x; zurück im Eilgang knapp über dem Teil (nicht
+# auf der sicheren Höhe), länger als im Zickzack.
+einseitig = s3.planen(teil, kugel, werte(richtung="x", grenzwinkel=0.0, einseitig=True))
+pe = einseitig.punkte
+rueckwaerts = sum(
+    a.x - b.x
+    for a, b in zip(pe, pe[1:], strict=False)
+    if not b.eilgang and abs(b.y - a.y) < 1e-9 and b.x < a.x - 1e-6
+)
+zurueck = [b.z for a, b in zip(pe, pe[1:], strict=False) if b.eilgang and b.x < a.x - 1.0]
+pruefe(rueckwaerts < 1e-6, f"einseitig: {rueckwaerts:.1f} mm gegen die Richtung geschnitten")
+pruefe(
+    einseitig.zeilen == nur_zeilen.zeilen and zurueck and max(zurueck) < 25.0 - 1e-6,
+    f"einseitig: {einseitig.zeilen} Zeilen, zurück auf {max(zurueck or [0]):.1f}",
+)
+pruefe(einseitig.zeit > nur_zeilen.zeit, "einseitig nicht länger als im Zickzack")
+print(ascii(f"einseitig {einseitig.zeit:.2f} min, Zickzack {nur_zeilen.zeit:.2f} min"))
 try:
     s3.planen(teil, andere, werte())
 except ValueError as grund:
@@ -175,6 +192,7 @@ for name, geprueft in (
     ("Spirale", spirale),
     ("äquidistant", aequi),
     ("im Winkel 30°", im_winkel),
+    ("einseitig", einseitig),
 ):
     q, soll = quader_nach(geprueft)
     xs, ys = np.meshgrid(q.x, q.y, indexing="ij")

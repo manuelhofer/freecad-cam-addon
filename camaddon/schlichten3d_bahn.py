@@ -27,6 +27,9 @@ hinein, auch nicht an Nachbarflächen.
   0,056 mm), die schnellere Zeit wäre nicht dasselbe Ergebnis.
 - **Im Winkel** (Richtung „winkel“, nur auf Wahl): Zeilen unter `winkel` Grad zu X – das Teil um
   −winkel um Z gedreht, längs x gerechnet wie sonst (mit Höhenlinien), die Bahn zurückgedreht.
+- **Einseitig** (nur auf Wahl): jede Zeile in dieselbe Richtung (+x bzw. +y, im Winkel längs der
+  gedrehten x), zurück im Eilgang `sicherheit` über dem Höchsten der Hüllfläche zwischen beiden
+  Zeilen, hinab mit dem Eintauchvorschub – gleiche Schnittbedingungen in jeder Zeile.
 - **Richtung:** längs x, längs y und die Spirale gerechnet, die schnellste zählt (Grundsatz 0). Im Zickzack
   Zeile für Zeile hin und zurück; zwischen nahen Enden gleitet er hinüber (LUFT über der
   Hüllfläche beider Zeilen dazwischen), sonst Rückzug im Eilgang. Lücken in einer Zeile, kürzer
@@ -119,6 +122,7 @@ class Schlichtwerte:
         "auto"  # „auto“ (die schnellste), „x“, „y“, „spirale“, „flaeche“, „aequidistant“, „winkel“
     )
     winkel: float = WINKEL_VORGABE  # Grad zu X – die Zeilen bei Richtung „winkel“
+    einseitig: bool = False  # die Zeilen alle in dieselbe Richtung statt im Zickzack
     grenzwinkel: float = GRENZWINKEL  # Grad – steiler: Höhenlinien; 0: nur Zeilen
     gleichlauf: bool = True  # Höhenlinien mit dem Material rechts (M3)
     sicherheit: float = vb.SICHERHEIT
@@ -675,6 +679,8 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, ras
             z0 = float(z[k, behalten[0]])
             if vorher is None:
                 laenge += _verbinden(punkte, x0, y0, z0, w, raster)
+            elif w.einseitig and vorher[0] != k:
+                laenge += _zurueck(punkte, vorher, (k, behalten[0]), z, u_werte, v_werte, w, xy)
             else:
                 laenge += _hinueber(punkte, vorher, (k, behalten[0]), z, u_werte, v_werte, w, xy)
             for i in behalten[1:]:
@@ -684,7 +690,7 @@ def _eine_richtung(netz_alle, netz_rest, box, w, laengs_x, abstand, geformt, ras
                 punkte.append(punkt)
             z_min = min(z_min, float(np.min(z[k, idx])))
             vorher = (k, behalten[-1])
-        rueckwaerts = not rueckwaerts
+        rueckwaerts = not rueckwaerts and not w.einseitig
     if not punkte:
         return None
     letzter = punkte[-1]
@@ -1174,6 +1180,31 @@ def _hinueber(punkte, von, nach, z, u_werte, v_werte, w, xy):
     punkte.append(bn.Punkt(True, x0, y0, w.sicher))
     punkte.append(bn.Punkt(True, x1, y1, w.sicher))
     punkte.append(bn.Punkt(True, x1, y1, min(w.sicher, max(z1, w.oben) + w.sicherheit)))
+    punkte.append(bn.Punkt(False, x1, y1, z1, True))
+    return bn.weg(punkte[-2], punkte[-1])
+
+
+def _zurueck(punkte, von, nach, z, u_werte, v_werte, w, xy):
+    """Einseitig: vom Ende (Zeile, Index) `von` zurück zum Anfang `nach` der nächsten Zeile – im
+    Eilgang `w.sicherheit` über dem Höchsten der Hüllfläche zwischen beiden Zeilen (über das
+    Rohteil, wo sie nichts trifft), im Eilgang hinab bis `w.sicherheit` über den Anfang (dort
+    liegt die Hüllfläche genau auf seiner Höhe), das letzte Stück mit dem Eintauchvorschub.
+    Gibt die Länge im Vorschub zurück."""
+    k0, i0 = von
+    k1, i1 = nach
+    x0, y0 = xy(float(u_werte[i0]), float(v_werte[k0]))
+    x1, y1 = xy(float(u_werte[i1]), float(v_werte[k1]))
+    z1 = float(z[k1, i1])
+    a, b = min(i0, i1), max(i0, i1)
+    zwischen = z[min(k0, k1) : max(k0, k1) + 1, a : b + 1]
+    hoechstes = (
+        float(np.max(zwischen[np.isfinite(zwischen)])) if np.isfinite(zwischen).any() else w.oben
+    )
+    hoch = min(w.sicher, max(hoechstes, punkte[-1].z, z1) + w.sicherheit)
+    punkte.append(bn.Punkt(True, x0, y0, hoch))
+    punkte.append(bn.Punkt(True, x1, y1, hoch))
+    if hoch > z1 + w.sicherheit:
+        punkte.append(bn.Punkt(True, x1, y1, z1 + w.sicherheit))
     punkte.append(bn.Punkt(False, x1, y1, z1, True))
     return bn.weg(punkte[-2], punkte[-1])
 

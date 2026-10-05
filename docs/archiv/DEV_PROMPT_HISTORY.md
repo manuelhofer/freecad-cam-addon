@@ -12,6 +12,23 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-09 schlichten3d-einseitig
+
+### EINGELESEN
+- Offener Punkt im Katalog (Spezifikation Strategien 4.2 Punkt 3): Zeilen einseitig.
+
+### DATEIEN
+- `camaddon/schlichten3d_bahn.py` (`Schlichtwerte.einseitig`, `_zurueck`),
+  `camaddon/schlichten3d.py` (Eigenschaft „Einseitig“), `translations/de.json`, `en.json`,
+  `tests/test_schlichten3d.py`, `docs/spezifikation_strategien.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.192.3).
+
+### DONE
+- 3D-Schlichten: Zeilen einseitig, nur auf Wahl.
+
+### TESTS
+- `test_schlichten3d`, `test_sprache` – OK.
+
 ## P-2026-10-05-08 schlichten3d-winkel
 
 ### EINGELESEN

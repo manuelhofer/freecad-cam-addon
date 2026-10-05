@@ -60,6 +60,7 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Richtung = "auto"
         obj.Grenzwinkel = sb.GRENZWINKEL
         obj.Winkel = sb.WINKEL_VORGABE
+        obj.Einseitig = False
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.DurchmesserDavor = 0.0  # 0: ganz schlichten; sonst Restschlichten
         obj.EckenradiusDavor = 0.0
@@ -109,6 +110,7 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyEnumeration", "Richtung", tr("s3.eigenschaft.richtung")),
             ("App::PropertyAngle", "Grenzwinkel", tr("s3.eigenschaft.grenzwinkel")),
             ("App::PropertyAngle", "Winkel", tr("s3.eigenschaft.winkel")),
+            ("App::PropertyBool", "Einseitig", tr("s3.eigenschaft.einseitig")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyInteger", "Zeilen", tr("s3.eigenschaft.zeilen")),
             ("App::PropertyInteger", "Hoehenlinien", tr("s3.eigenschaft.hoehenlinien")),
@@ -248,6 +250,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         aufmass=float(obj.Aufmass),
         richtung=str(obj.Richtung),
         winkel=float(obj.Winkel),
+        einseitig=bool(obj.Einseitig),
         grenzwinkel=float(obj.Grenzwinkel),
         oben=min(float(obj.StartDepth), pf.rohteil_von_oben(job)[4]),
         sicher=float(obj.SafeHeight),
@@ -288,6 +291,7 @@ def bahn_fuer(
     grenzwinkel=sb.GRENZWINKEL,
     oben=None,
     winkel=sb.WINKEL_VORGABE,
+    einseitig=False,
     sicher=None,
     sicherheit=vb.SICHERHEIT,
     vorschub=0.0,
@@ -315,6 +319,7 @@ def bahn_fuer(
         aufmass=aufmass,
         richtung=richtung,
         winkel=winkel,
+        einseitig=einseitig,
         grenzwinkel=grenzwinkel,
         sicherheit=sicherheit,
         schritt=schritt,
