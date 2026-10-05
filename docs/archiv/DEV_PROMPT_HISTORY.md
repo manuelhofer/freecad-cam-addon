@@ -12,6 +12,29 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-05-27 texte-durchsicht-1
+
+### EINGELESEN
+- Manuel, 2026-10-05: „Mach weiter mit allen Texten, nur Texten … schau, ob sie Sinn ergeben, ob
+  man was besser erklären kann.“
+
+### DATEIEN
+- `translations/de.json`, `en.json`, `help/de|en/so_gehts.html`, `help/de|en/bearbeitung.html`,
+  `help/de|en/programm.html`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.194.7).
+
+### DONE
+- Durchgesehen (maschinell): interne Kürzel, Deutsch im Englischen, Rechtschreibung (hunspell),
+  Sätze ab 45 Wörtern. Die elf längsten Texte neu (Räum-Variante, Nut, Entgraten, Richtwerte,
+  Ziel, Bohrung fräsen, Plan indexiert, Restmaterial, Kontur, Räumen, „keine Ebene“) – kurze
+  Sätze, das Wichtige zuerst; „sprungartig“ → „ruckartig“.
+- Hilfe: „Manuels Räumen“ → „Räumen mit Stichen und Ringen“, Verweise auf die interne
+  Spezifikation raus. „So geht’s“: 5-Achs-Fräsen, Magazine, Heidenhain und DIN 66217 dazu;
+  die 4-Achs-Bearbeitung beginnt mit dem Anklicken der vorderen Fläche (stand: „das Teil im
+  Baum wählen“).
+
+### TESTS
+- `test_hilfe` – OK.
+
 ## P-2026-10-05-26 texte-kuerzer
 
 ### EINGELESEN

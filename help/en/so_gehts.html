@@ -7,7 +7,7 @@ you are looking at.</p>
 
 <h3>1 Build the machine</h3>
 <p><b>New machine …</b> builds a fully set-up machine in a new document – a lathe
-with Y axis and turret or a 3-axis mill, with your dimensions (travels, speed,
+with Y axis and turret, a 3-axis or a 5-axis mill, with your dimensions (travels, speed,
 turret stations, bed inclination). Save the document: you store the machine once
 and load it for every job. You turn an assembly of your own into a machine with
 <b>Edit machine</b> – axes, spindles, tool and workpiece mounts; <b>Move machine</b>
@@ -22,16 +22,18 @@ operating modes</a>, <a href="aufnahmen.html">Mounts</a>,
 the spindle nose, its <b>holder</b> and its <b>cutting data</b> per material and
 application – vc and fz from the catalogue, speed and feed are calculated by the
 addon. Length and holder are needed later by the check on the machine, the cutting
-data by the jobs.<br>
+data by the jobs. In <b>Magazines</b> you set, per machine, under which number a tool sits
+there.<br>
 More: <a href="werkzeuge.html">Tools</a>, <a href="halter.html">Holders</a>,
 <a href="magazine.html">Magazines</a>,
 <a href="schnittwerte.html">Cutting data</a>, <a href="werkstoffe.html">Materials</a>.</p>
 
 <h3>3 Part and machining</h3>
-<p>A part from round bar: select the part in the tree, then <b>4-axis
-machining</b> – the assistant puts it into the bar, sets up the CAM job and asks
-“What do you want to do?”: all-round roughing, all-round finishing – with cutter,
-application and stepdown from the tool management.<br>
+<p>A part from round bar: click the flat face that should sit at the front of the bar
+(usually the end face), then <b>4-axis machining</b> – the assistant puts the part into the
+bar, sets up the CAM job and asks “What do you want to do?”: all-round roughing and finishing,
+selected faces, flats, cross holes, slots, deburring – with cutter, application and stepdown
+from the tool management.<br>
 A part in a block on a mill: click a face of the part, then <b>Machining
 (milling)</b> – the assistant creates job and stock, shows at the top how much has to
 go and how long the cutter needs for it at least (the target), below it the strategies
@@ -66,8 +68,9 @@ More: <a href="reichweite.html">Check on machine</a>.</p>
 <h3>6 Write the program</h3>
 <p>Select the job, then <b>Write program …</b> in the toolbar: the addon's
 postprocessor writes all operations with the commands of your control (LinuxCNC,
-Siemens 840D, Fanuc, Haas, Mach3/Mach4) – on a lathe with X as diameter, C axis on and
-off and the command for the driven tool. More: <a href="programm.html">Write
+Siemens 840D, Fanuc, Haas, Mach3/Mach4, Heidenhain iTNC 530 and TNC 640) – on a lathe with
+X as diameter, C axis on and off and the command for the driven tool; rotary axes per
+DIN 66217. More: <a href="programm.html">Write
 program</a>. FreeCAD's own <b>Post Process</b> command in the CAM menu still works.</p>
 
 <h3>All help pages</h3>

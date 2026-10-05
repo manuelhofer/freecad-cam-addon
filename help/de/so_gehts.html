@@ -7,7 +7,7 @@ weitere Teil bleiben die Schritte 3 bis 6. In jedem Fenster öffnet der Knopf
 
 <h3>1 Maschine bauen</h3>
 <p><b>Neue Maschine …</b> baut eine fertig eingerichtete Maschine in einem neuen
-Dokument – eine Drehmaschine mit Y-Achse und Revolver oder eine 3-Achs-Fräse, mit
+Dokument – eine Drehmaschine mit Y-Achse und Revolver, eine 3-Achs- oder eine 5-Achs-Fräse, mit
 deinen Maßen (Wege, Drehzahl, Revolverplätze, Bettneigung). Speichere das Dokument:
 Die Maschine legst du einmal ab und lädst sie für jeden Job. Eine eigene Baugruppe
 machst du mit <b>Maschine bearbeiten</b> zur Maschine – Achsen, Spindeln, Werkzeug-
@@ -23,16 +23,18 @@ und Betriebsarten</a>, <a href="aufnahmen.html">Aufnahmen</a>,
 Spindelnase, seinem <b>Halter</b> und seinen <b>Schnittwerten</b> je Werkstoff und
 Einsatz – vc und fz aus dem Katalog, Drehzahl und Vorschub rechnet das Addon. Länge
 und Halter braucht später die Prüfung auf der Maschine, die Schnittwerte brauchen
-die Jobs.<br>
+die Jobs. In <b>Magazine</b> legst du je Maschine fest, unter welcher Nummer ein Werkzeug dort
+steckt.<br>
 Mehr: <a href="werkzeuge.html">Werkzeuge</a>, <a href="halter.html">Halter</a>,
 <a href="magazine.html">Magazine</a>,
 <a href="schnittwerte.html">Schnittwerte</a>, <a href="werkstoffe.html">Werkstoffe</a>.</p>
 
 <h3>3 Teil und Bearbeitung</h3>
-<p>Ein Teil aus der runden Stange: das Teil im Baum wählen, dann
-<b>4-Achs-Bearbeitung</b> – der Assistent legt es in die Stange, richtet den CAM-Job
-ein und fragt „Was willst du machen?“: Rundum schruppen, Rundum schlichten – mit
-Fräser, Einsatz und Zustellung aus der Werkzeugverwaltung.<br>
+<p>Ein Teil aus der runden Stange: die ebene Fläche anklicken, die vorne an der Stange liegen
+soll (meist die Stirnseite), dann <b>4-Achs-Bearbeitung</b> – der Assistent legt das Teil in
+die Stange, richtet den CAM-Job ein und fragt „Was willst du machen?“: Rundum schruppen und
+schlichten, gewählte Flächen, Abflachungen, Querbohrungen, Nuten, Entgraten – mit Fräser,
+Einsatz und Zustellung aus der Werkzeugverwaltung.<br>
 Ein Teil im Quader auf der Fräse: eine Fläche des Teils anklicken, dann
 <b>Bearbeitung (Fräsen)</b> – der Assistent legt Job und Rohteil an, zeigt oben, wie viel
 weg muss und wie lange der Fräser dafür mindestens braucht (das Ziel), darunter die
@@ -68,8 +70,9 @@ Mehr: <a href="reichweite.html">Auf der Maschine prüfen</a>.</p>
 <h3>6 Programm schreiben</h3>
 <p>Den Job wählen, dann in der Werkzeugleiste <b>Programm schreiben …</b>: Der
 Postprozessor des Addons schreibt alle Operationen mit den Befehlen deiner Steuerung
-(LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4) – an der Drehmaschine mit X im
-Durchmesser, C-Achse ein und aus und dem Befehl für das angetriebene Werkzeug. Mehr:
+(LinuxCNC, Siemens 840D, Fanuc, Haas, Mach3/Mach4, Heidenhain iTNC 530 und TNC 640) – an der
+Drehmaschine mit X im Durchmesser, C-Achse ein und aus und dem Befehl für das angetriebene
+Werkzeug; Rundachsen nach DIN 66217. Mehr:
 <a href="programm.html">Programm schreiben</a>. FreeCADs eigener Befehl <b>Post
 Process</b> im Menü CAM geht weiterhin.</p>
 
