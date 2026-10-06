@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-06-05 grob-g550-simultanbeispiel
+
+### EINGELESEN
+- Manuel, 2026-10-06: „nun kannst du gerne versuchen noch 5 achs simultan werkzeugwege
+  zu erstellen“; sichtbare Tests auf dem zweiten Bildschirm.
+- Spezifikation Strategien 16, G550-Spezifikation; vorhandene Flanken-, Simultan-,
+  Kinematik-, Kollisions- und Postprozessor-APIs samt zugehörigen Prüfungen.
+  FreeCAD-CAM speichert die bestehende Addon-Flankenoperation; keine neue Strategie nötig.
+
+### DATEIEN
+- `beispiele/grob_g550_simultan/` (Job, Maschine mit Winkelaufnahme, Beispielwerkzeug und
+  Halter, CAM-Assets, Messung, Startskript, Makro und Beschreibung), `beispiele/README.md`,
+  `docs/spezifikation_grob_g550.md`, `docs/STATUS_SNAPSHOT.md`,
+  `package.xml` (0.196.0), diese Datei.
+
+### AKZEPTANZKRITERIUM
+`beispiele/grob_g550_simultan/starten.sh` starten → das Prüffenster zeigt auf dem zweiten
+Bildschirm die G550 mit dem Job und ohne Kollisionen oder Grenzüberschreitungen, und
+beim Abfahren bewegen sich X/Y/Z/A/B gemeinsam.
+
+### DONE
+- Vorhandene Flankenstrategie: Tasche mit acht 10°-Wänden im Block 80 × 60 × 30,
+  vorgefrästes Rohteil mit 0,3 mm Wandaufmaß, ein Schlichtumlauf mit Manuels Standard-D12
+  und dessen Schlichtwerten. Gesamtlänge hier 70 mm; angenäherter gerader Halter,
+  gerechnete Länge ab Spindelnase 112 mm, daher sichtbarer Schätzhinweis.
+- Winkelaufnahme am Rundtisch und passender Spannplatz richten die Tasche zur
+  waagerechten Spindel. Fuß und Wand sind in der Kollisionsprüfung enthalten.
+- Der erste Versuch mit flach liegendem Teil hatte konstantes A und Kollisionen bei der
+  Rückfahrt, zusätzlich eine unpassende Richtungswarnung: B-015 dokumentiert.
+- Startskript legt das Profil vorher an, das Makro kontrolliert den wirksamen Pfad vor
+  dem Laden der Beispielbibliothek und öffnet auf DP-1. Eine JSON-Datei im persönlichen
+  Profil wird dafür nicht verändert; T-008 aus dem ersten Versuch bleibt offen.
+
+### TEST
+- FreeCAD 1.1.4, bestehendes und geprüftes Testprofil, Speicherdeckel 16 GB: 299
+  Bahnkommandos, 252 Vorschubbewegungen mit Änderungen in allen fünf Achsen (Schwelle
+  0,00001 je Achse), A/B je −10° … +10°, 304 Simulationsstationen, keine Modellkollision,
+  keine Annäherung unter 1 mm, keine überschrittene Achsgrenze; etwa 12 s modelliert.
+- Probeausgabe Siemens und vorhandener Nachleser ohne Befund; kein Programm an einer
+  echten Maschine geprüft, keine NC-Datei zur Fertigung geliefert.
+- Öffnen der gespeicherten Dateien mit dem mitgelieferten Startskript: Prüffenster,
+  Teil/Bahn und Maschinenansicht als Screenshot gesehen; Kollisionsprüfung erneut grün,
+  Fensterzentrum nachweislich auf DP-1, Abspieler gestartet. Fenster für Manuel offen.
+- Black (334 Python-/Makrodateien), Ruff, Shellsyntax und `git diff --check` ohne Befund;
+  Hash der persönlichen Werkzeugdatei seit der Schutzkorrektur unverändert.
+
+### NEXT
+- Manuel kann im geöffneten Fenster die Fahrt anhalten und Stellungen anschauen;
+  B-015 und T-008 offen, lokal committet, kein Push beauftragt.
+
 ## P-2026-10-06-04 grob-g550-hubplatte-freistellen
 
 ### EINGELESEN

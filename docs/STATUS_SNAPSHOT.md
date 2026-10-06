@@ -8,6 +8,12 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
+**G550-Simultanbeispiel:** fertiger Flanken-Schlichtjob mit D12 auf Winkelaufnahme unter
+`beispiele/grob_g550_simultan/`; 252 Vorschubbewegungen ändern X/Y/Z/A/B gemeinsam,
+Modellprüfung ohne Kollisionen oder Grenzüberschreitungen, etwa 12 s gerechnet. Startskript
+öffnet Maschine, Job und Prüffenster im eigenen Profil auf dem zweiten Bildschirm
+(P-2026-10-06-05). Persönliche Werkzeugbibliothek noch nicht wiederhergestellt: T-008.
+
 **GROB G550 als Beispielmaschine:** gebaut, waagerechte Spindel auf X/Z und Hubtisch Y mit
 A/B; „Neue Maschine …“ → GROB G550 oder `beispiele/grob_g550.FCStd` direkt öffnen; Achsbewegungen,
 Grenzen, 3+2-Ausrichtung und Oberfläche in 1.1.4 geprüft, Manuels Klickprüfung steht aus
@@ -20,8 +26,8 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.195.1 (P-2026-10-06-04). Alles, was hier als gebaut steht,
-ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
+Stand 0.196.0 (P-2026-10-06-05). Alles, was hier als gebaut steht,
+ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).
 
@@ -488,8 +494,14 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
-Keine. B-001 bis B-014 sind behoben (Befunde und Beleg im Verlauf); die nächste freie Nummer
-ist B-015.
+- **B-015 G550: Rückfahrt bei flacher Aufspannung und Richtungswarnung.** Beim Simultanversuch
+  mit flacher Tasche direkt auf dem Rundtisch kollidierten Spindelseite/Wiege und Tisch
+  auf der Rückfahrt; außerdem wurde die Werkzeugrichtung für die wechselnde
+  Simultanstellung unpassend als quer gemeldet. Der vorzeigbare Job verwendet eine
+  Winkelaufnahme und ist kollisionsfrei im Modell. Die flache Aufspannung ist nicht
+  behoben: [G550-Spezifikation](spezifikation_grob_g550.md), P-2026-10-06-05.
+
+B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-016.
 
 ## Offene Tasks
 

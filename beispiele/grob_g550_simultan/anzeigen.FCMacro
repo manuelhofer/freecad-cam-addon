@@ -1,0 +1,182 @@
+import json
+import os
+import traceback
+from pathlib import Path
+
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide import QtCore, QtGui
+
+OUT = Path(os.environ["CAMADDON_GROB_BEISPIEL"]).resolve()
+BASE = OUT.parent.parent
+profil = Path(os.environ["FREECAD_USER_HOME"]).resolve()
+assert (
+    profil.is_dir() and Path(App.getUserAppDataDir()).resolve() == profil
+), "Kein isoliertes GUI-Profil"
+QA = Path(os.environ.get("CAMADDON_GROB_PRUEFUNG", str(profil / "pruefung")))
+QA.mkdir(exist_ok=True)
+fenster = Gui.getMainWindow()
+fenster.showNormal()
+screens = QtGui.QApplication.screens()
+primary = QtGui.QApplication.primaryScreen()
+secondary = next((s for s in screens if s is not primary), primary)
+rect = secondary.availableGeometry()
+if fenster.windowHandle() is not None:
+    fenster.windowHandle().setScreen(secondary)
+fenster.setGeometry(
+    rect.x() + 20, rect.y() + 40, min(1200, rect.width() - 40), min(900, rect.height() - 60)
+)
+fenster.setWindowTitle("FreeCAD – G550 5-Achs-Simultanbeispiel")
+
+
+def fehler():
+    """Schreibt die Ausnahme in das eigene Testprofil."""
+    (QA / "gui_ergebnis.txt").write_text(traceback.format_exc())
+
+
+def laden():
+    """Lädt die Beispieldaten ausschließlich in das isolierte Profil."""
+    try:
+        modal = QtGui.QApplication.activeModalWidget()
+        if modal is not None and hasattr(modal, "liste") and hasattr(modal, "wahl_dezimalzeichen"):
+            modal.liste.setCurrentIndex(modal.liste.findData("de"))
+            modal.wahl_dezimalzeichen.setCurrentIndex(modal.wahl_dezimalzeichen.findData(","))
+            modal.accept()
+        from camaddon import (
+            PARAMETER_PFAD,
+            sprache,
+        )
+        from camaddon import (
+            beispielmaschine as bm,
+        )
+        from camaddon import (
+            maschinenspeicher as ms,
+        )
+        from camaddon import (
+            reichweite as rw,
+        )
+        from camaddon import (
+            werkzeuge as wz,
+        )
+
+        sprache.setze_sprache("de")
+        from Path.Tool.camassets import user_asset_store
+
+        user_asset_store.set_dir(OUT / "assets")
+        wz.Bibliothek.laden(str(OUT / "beispiel_werkzeuge.json")).speichern()
+        md = App.openDocument(str(OUT / "g550_winkelaufnahme.FCStd"))
+        colors = {
+            "Bett": bm.GUSS,
+            "Sattelboden": bm.SCHLITTEN,
+            "Spindelstaender": bm.GUSS,
+            "ZSchlitten": bm.KOPF,
+            "Spindelkoerper": bm.SPINDEL,
+            "Tischstaender": bm.GUSS,
+            "Hubplatte": bm.SCHLITTEN,
+            "Tragarm": bm.SCHLITTEN,
+            "ALager": bm.GUSS,
+            "AZapfen": bm.SPINDEL,
+            "Tischtraeger": bm.KOPF,
+            "Tischscheibe": bm.TISCH,
+            "WinkelaufnahmeFuss": (0.68, 0.42, 0.18),
+            "WinkelaufnahmeWand": (0.68, 0.42, 0.18),
+        }
+        for n, c in colors.items():
+            obj = md.getObject(n)
+            if obj is not None:
+                obj.ViewObject.ShapeColor = c
+        for obj in md.Objects:
+            if obj.TypeId in (
+                "Assembly::AssemblyObject",
+                "App::Part",
+                "Part::Box",
+                "Part::Cylinder",
+            ):
+                obj.Visibility = True
+        md.getObject("Joints").Visibility = False
+        md.Label = "G550 mit Winkelaufnahme"
+        if os.environ.get("CAMADDON_GROB_SPEICHERN") == "1":
+            md.save()
+        doc = App.openDocument(str(OUT / "g550_simultan.FCStd"))
+        job = doc.getObject("Job")
+        job.Label = "G550 – Flanke, 5 Achsen simultan"
+        rw.merke_maschine(job, str(OUT / "g550_winkelaufnahme.FCStd"))
+        ms.merken_datei(str(OUT / "g550_winkelaufnahme.FCStd"))
+        App.ParamGet(PARAMETER_PFAD).SetString(
+            rw.ZULETZT_MASCHINE, str(OUT / "g550_winkelaufnahme.FCStd")
+        )
+        Gui.activateWorkbench("CAMWorkbench")
+        for obj in doc.Objects:
+            if obj.TypeId == "Part::Feature":
+                obj.ViewObject.ShapeColor = (0.8, 0.81, 0.84)
+        doc.getObject("Vorgefraest").Visibility = False
+        for obj in job.Model.Group:
+            obj.Visibility = True
+        doc.getObject("Tasche").Visibility = False
+        if job.ViewObject.Proxy is None:
+            from Path.Main.Gui.Job import ViewProvider
+
+            ViewProvider(job.ViewObject)
+        doc.recompute()
+        if os.environ.get("CAMADDON_GROB_SPEICHERN") == "1":
+            doc.save()
+        Gui.Selection.clearSelection()
+        Gui.Selection.addSelection(job)
+        Gui.activeDocument().activeView().viewIsometric()
+        Gui.activeDocument().activeView().fitAll()
+        fenster.grab().save(str(QA / "1_werkzeugwege.png"))
+        Gui.runCommand("CamAddon_AufMaschinePruefen")
+        QtCore.QTimer.singleShot(1800, pruefen)
+    except Exception:
+        fehler()
+
+
+def pruefen():
+    """Prüft Reichweite und Kollision und zeigt eine Station auf der Maschine."""
+    try:
+        from camaddon import gui_reichweite
+
+        panel = gui_reichweite.PruefPanel.offen
+        assert panel is not None
+        assert not panel.ergebnis.ueberschreitungen
+        panel.kollision.pruefen()
+        assert panel.kollision.ergebnis is not None and not panel.kollision.ergebnis.beruehrungen
+        fahrt = panel.abfahrt
+        relevant = [i for i, s in enumerate(fahrt.stationen) if not s.ziel and len(s.rund) >= 2]
+        assert len(relevant) > 100
+        panel.abspieler.springe_zu_station(relevant[len(relevant) // 3])
+        Gui.getDocument(panel.assembly.Document.Name).activeView().viewIsometric()
+        Gui.getDocument(panel.assembly.Document.Name).activeView().fitAll()
+        QtCore.QTimer.singleShot(600, bild)
+    except Exception:
+        fehler()
+
+
+def bild():
+    """Speichert die Ansicht, prüft den Bildschirm und startet den Abspieler."""
+    try:
+        from camaddon import gui_reichweite
+
+        panel = gui_reichweite.PruefPanel.offen
+        fenster.grab().save(str(QA / "2_simultan_auf_der_g550.png"))
+        g = fenster.frameGeometry()
+        assert secondary.geometry().contains(g.center()), "Fenster nicht auf dem zweiten Bildschirm"
+        (QA / "gui_ergebnis.txt").write_text(
+            json.dumps(
+                {
+                    "status": "OK",
+                    "fenster": [g.x(), g.y(), g.width(), g.height()],
+                    "bildschirm": fenster.windowHandle().screen().name(),
+                    "kollisionen": len(panel.kollision.ergebnis.beruehrungen),
+                    "stationen": len(panel.abfahrt.stationen),
+                },
+                ensure_ascii=False,
+                indent=2,
+            )
+        )
+        panel.abspieler.umschalten()
+    except Exception:
+        fehler()
+
+
+QtCore.QTimer.singleShot(2000, laden)

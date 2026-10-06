@@ -1,0 +1,10 @@
+{
+  "label": "CAM-Addon",
+  "tools": [
+    {
+      "nr": 1,
+      "path": "camaddon_e1ec1a3dc846495d9ed1a610ca5bccc7.fctb"
+    }
+  ],
+  "version": 1
+}

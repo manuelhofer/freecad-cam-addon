@@ -1,0 +1,33 @@
+{
+  "X": [
+    27.97217800333789,
+    52.027821996661714
+  ],
+  "Y": [
+    19.841889945406223,
+    34.00000023249626
+  ],
+  "Z": [
+    -57.52741540464714,
+    81.42127247704613
+  ],
+  "A": [
+    -10.0,
+    10.0
+  ],
+  "B": [
+    -10.0,
+    10.0
+  ],
+  "simultane_saetze": 252,
+  "saetze": 299,
+  "alle_fuenf_gleichzeitig": 252,
+  "zeit_min": 0.1926268808616737,
+  "kollisionen": [],
+  "hinweise": [],
+  "programm_befunde": [],
+  "ueberschreitungen": [],
+  "reichweite_hinweise": [
+    "T1 „VHM 12“: gerechnet mit 112.00 mm, geschätzt aus Halter und Werkzeug (Halterlänge + Gesamtlänge − Spanntiefe). Genauer mit der gemessenen „Länge ab Spindelnase“ in der Werkzeugverwaltung."
+  ]
+}

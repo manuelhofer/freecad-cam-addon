@@ -43,3 +43,29 @@ Beispiel um die gebaute Stellung 0 verteilt; sie sind keine belegten MKS-Endlage
 konkreten Maschine. Die Spindel ist mit der angebotenen HSK-A63-Variante 16.000 U/min vorbelegt.
 Beschleunigungen und Hochlaufzeit bleiben unbekannt. Die Vorlage ist zum Erklären und
 Ausprobieren gedacht; eine konkrete Maschine braucht ihre tatsächlichen Maße und Kenndaten.
+
+## Beispieljob: fünf Achsen simultan
+
+Manuel, 2026-10-06: „nun kannst du gerne versuchen noch 5 achs simultan werkzeugwege
+zu erstellen“. Dafür liegt unter `beispiele/grob_g550_simultan/` ein fertiger Job:
+D12 schlichtet acht Wände mit 10° Formschräge an einer vorgefrästen Tasche auf einer
+Winkelaufnahme. Die vorhandene Flankenstrategie und der Simultankern rechnen die Bahn;
+es wurde kein zweiter Bahnalgorithmus eingeführt.
+
+**Akzeptanzkriterium:** `beispiele/grob_g550_simultan/starten.sh` starten → das Prüffenster
+zeigt auf dem zweiten Bildschirm die G550 mit dem Job und ohne Kollisionen oder
+Grenzüberschreitungen, und beim Abfahren bewegen sich X/Y/Z/A/B gemeinsam.
+
+252 Vorschubbewegungen ändern alle fünf Achsen gleichzeitig; A/B laufen je zwischen
+−10° und +10°. 304 Simulationsstationen, keine Modellkollision, keine Annäherung unter
+1 mm und keine überschrittene Achsgrenze; rechnerisch etwa 12 s. Werkzeuglänge 112 mm
+aus angenähertem Halter und Werkzeug geschätzt. Aufbau, Maße, Öffnen und Grenzen der
+Prüfung stehen in [der Beispielbeschreibung](../beispiele/grob_g550_simultan/README.md).
+
+**B-015, offen:** Beim ersten Versuch mit einer flachen Tasche direkt auf dem Rundtisch
+traten auf der Rückfahrt Kontakte zwischen Spindelseite/Wiege und Tisch auf. Die Bahn
+schwenkte A auf eine konstante Stellung, während B drehte; damit bewegten sich nicht
+alle fünf Achsen gemeinsam. Außerdem wurde eine quer zur Spindel stehende Werkzeugrichtung
+gemeldet, obwohl sich die Simultanrichtung während der Bahn ändert. Sichere Rückfahrt
+und Richtungsprüfung für diese waagerechte Maschinenanordnung gesondert untersuchen;
+der gespeicherte Job nutzt die geprüfte Winkelaufnahme.
