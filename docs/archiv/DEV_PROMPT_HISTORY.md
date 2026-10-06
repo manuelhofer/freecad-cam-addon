@@ -12,6 +12,33 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-06-04 grob-g550-hubplatte-freistellen
+
+### EINGELESEN
+- Beim beauftragten G550-Simultanversuch kollidierte die angenäherte Hubplatte mit dem
+  Bett: Die Unterkante lag bei 650 mm und wurde bei Y > 350 mm unter die Bettoberkante
+  von 300 mm gefahren. G550-Spezifikation, Baukasten und Beispielmaschinenprüfung gelesen.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`, `tests/test_beispielmaschine.py`,
+  `beispiele/grob_g550.FCStd`, `docs/spezifikation_grob_g550.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.195.1), diese Datei.
+
+### AKZEPTANZKRITERIUM
+G550 öffnen → „Maschine verfahren“ → Y auf +510 mm: Die Hubplatte bleibt über dem Bett.
+
+### DONE / TEST
+- Unterkante von 650 auf 900 mm angehoben, Höhe von 1.000 auf 750 mm verkürzt;
+  die Oberkante und die Achsenanordnung bleiben erhalten. Gespeichertes Beispiel erneuert.
+- `test_beispielmaschine` und `test_umgebung` in FreeCAD 1.1.4 mit vorher angelegtem,
+  überprüftem Testprofil grün; neue Prüfung vergleicht die weltweiten Hüllquader am
+  unteren Y-Ende. Die frühere Form verfehlt dieses Kriterium: 650 − 510 < 300.
+- Die korrigierte Form ist im sichtbaren G550-Simultanversuch auf DP-1 geladen.
+
+### NEXT
+- Simultanjob als getrenntes Beispiel ablegen; T-008 (ursprüngliche Werkzeugbibliothek)
+  bleibt offen. Lokal committen, kein Push beauftragt.
+
 ## P-2026-10-06-03 testprofil-vor-start-anlegen
 
 ### EINGELESEN

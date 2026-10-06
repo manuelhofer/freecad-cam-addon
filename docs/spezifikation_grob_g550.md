@@ -18,6 +18,10 @@ Spindeldrehzahl. B dreht endlos. Die Beschreibung erklärt, welcher Körper welc
 In Stellung A = 0 ist der Tisch waagerecht; A = −90 stellt seine Spannfläche zur Spindel.
 Die Achsen werden wie die übrigen Beispiele nach DIN 66217 angezeigt.
 
+Die Hubplatte lässt unter sich Platz für den vollständigen Y-Weg: Bei Y = +510 mm
+bleibt ihre Unterkante 90 mm über dem Bett. Das gespeicherte Beispiel und die Vorlage
+verwenden dieselbe korrigierte Form (P-2026-10-06-04).
+
 **Akzeptanzkriterium:** „Neue Maschine …“ → GROB G550 → Bauen → „Maschine verfahren“:
 X bewegt die Spindel seitlich, Z vor/zurück, Y den Tisch hoch/runter und A/B schwenken bzw.
 drehen den Tisch innerhalb der eingetragenen Grenzen; Manuel versteht die Auswahl ohne Erklärung.

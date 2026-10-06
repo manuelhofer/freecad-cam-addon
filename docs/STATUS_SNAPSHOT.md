@@ -12,6 +12,7 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 A/B; „Neue Maschine …“ → GROB G550 oder `beispiele/grob_g550.FCStd` direkt öffnen; Achsbewegungen,
 Grenzen, 3+2-Ausrichtung und Oberfläche in 1.1.4 geprüft, Manuels Klickprüfung steht aus
 (P-2026-10-06-02; Quellen: [spezifikation_grob_g550.md](spezifikation_grob_g550.md)).
+Die Hubplatte bleibt jetzt auch am unteren Y-Ende über dem Bett (P-2026-10-06-04).
 
 **Zusätzliche Räumwahl:** Schritt 3 → Räumen → Bahnerzeugung → „Adaptiv – schneller
 Freivorschub“, mit einstellbarer Obergrenze und gespeicherter Auswahl; bisherige Bahnerzeugung
@@ -19,7 +20,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.195.0 (P-2026-10-06-02). Alles, was hier als gebaut steht,
+Stand 0.195.1 (P-2026-10-06-04). Alles, was hier als gebaut steht,
 ist automatisch geprüft – gesehen hat es nur Claude als Screenshot. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).

@@ -642,7 +642,9 @@ def grob_g550(masse=None):
     hub, _ = b.bauteil(
         "YSchlitten",
         [
-            b.quader("Hubplatte", 700, 300, 1000, x=950, y=2000, z=650, farbe=SCHLITTEN),
+            # Unten Platz für den ganzen Y-Weg lassen: Die frühere Platte begann bei 650
+            # und schnitt bei Y > 350 ins Bett (gefunden beim Simultan-Beispiel).
+            b.quader("Hubplatte", 700, 300, 750, x=950, y=2000, z=900, farbe=SCHLITTEN),
             b.quader("Tragarm", 250, 700, 380, x=650, y=1600, z=960, farbe=SCHLITTEN),
             b.zylinder("ALager", 190, 200, x=700, y=1600, z=1150, achse=(1, 0, 0), farbe=GUSS),
         ],

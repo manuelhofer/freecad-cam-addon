@@ -220,6 +220,17 @@ for teil, soll in (
 ):
     pruefe(weg(teil).isEqual(soll, 1e-6), f"G550 {teil}: {weg(teil)} statt {soll}")
 v.grundstellung()
+# Die Hubplatte bleibt auch am unteren Y-Ende über dem Bett; die Oberkante der
+# Führung bleibt wie gebaut. Gegenprobe am alten Beispiel: 650 − 510 < 300.
+v.setze(achsen["Y"], 510)
+hub = doc.getObject("Hubplatte")
+hubform = hub.Shape.copy()
+hubform.Placement = hub.getGlobalPlacement()
+pruefe(
+    hubform.BoundBox.ZMin > doc.getObject("Bett").Shape.BoundBox.ZMax,
+    "G550: Hubplatte am unteren Y-Ende im Bett",
+)
+v.grundstellung()
 pruefe(vf.programm_vorzeichen(achsen["A"], kette) == -1, "G550: A gegen DIN")
 pruefe(vf.programm_vorzeichen(achsen["B"], kette) == -1, "G550: B gegen DIN")
 pruefe(v.grenzen(achsen["A"]) == (-45.0, 185.0), f"G550: A {v.grenzen(achsen['A'])}")
