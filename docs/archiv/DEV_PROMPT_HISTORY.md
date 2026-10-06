@@ -12,6 +12,26 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-06-01 w016-drehmaschine-quader-aufgeschrieben
+
+### EINGELESEN
+- Manuel, 2026-10-06: „Ich wollte jetzt mit der CLX 550 etwas fräsen – jetzt steht hier, dass das
+  nicht geht, da es eine Drehmaschine ist … Ich kann aber auch vierkantige Teile auf der
+  Drehmaschine einspannen – Vierbackenfutter – und mit der C- und Y-Achse fräsen … darum schreib
+  das mal auf, … demnächst, noch nichts bearbeiten, nur dokumentieren und vielleicht schon ein
+  paar Ideen aufschreiben, wie das zu verwirklichen ist.“
+
+### DATEIEN
+- `docs/spezifikation_drehmaschine_quader.md` (neu), `CHATSTART.md` (Zeile in der Tabelle),
+  `docs/STATUS_SNAPSHOT.md` (Wunschliste W-016). Kein Code, keine neue Version.
+
+### ERGEBNIS
+- W-016 aufgeschrieben: Wunsch, heutiger Stand, Befund (Postprozessor und Prüffenster rechnen
+  jede Bahn ohne Rundachse an der Drehmaschine schon als Stirnseite – gesperrt ist nur der
+  Assistent), Teilaufgaben Q1–Q7 mit Ideen, Fragen E1–E5 mit Empfehlungen, Reihenfolge,
+  „Fertig, wenn“.
+- Geprüft: nichts (nur Doku).
+
 ## P-2026-10-05-32 texte-sinn-3
 
 ### EINGELESEN

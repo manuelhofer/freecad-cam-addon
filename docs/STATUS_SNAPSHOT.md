@@ -474,6 +474,11 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 - **W-015 5 Achsen simultan** – die Werkzeugachse entlang der Bahn (Kugel angestellt, Flanke,
   Wegkippen), Entwurf zum Besprechen: [spezifikation_strategien.md](spezifikation_strategien.md),
   Abschnitt 16.
+- **W-016 Eckige Teile auf der Drehmaschine fräsen** – ein Quader im Futter (Drei-, Vierbacken),
+  gefräst an der Stirnseite (Y, so weit es reicht, dann C) und an den Seiten (C stellt, Y quer);
+  der Assistent „Bearbeitung“ weist die Drehmaschine heute ab (Manuel, 2026-10-06: „nur
+  dokumentieren und vielleicht schon ein paar Ideen aufschreiben“ – noch nicht bauen):
+  [spezifikation_drehmaschine_quader.md](spezifikation_drehmaschine_quader.md).
 
 ## Offene Bugs
 
