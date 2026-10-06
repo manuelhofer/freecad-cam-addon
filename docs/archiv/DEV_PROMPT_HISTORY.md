@@ -12,6 +12,40 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-06-03 testprofil-vor-start-anlegen
+
+### EINGELESEN
+- Beim Versuch „5-Achs-Simultanbahnen auf der G550“ eigener Fehler: Der angegebene
+  `FREECAD_USER_HOME`-Ordner existierte nicht. FreeCADCmd fiel auf das persönliche Profil
+  zurück; die Testbibliothek ersetzte die persönliche Werkzeugverwaltung. Die folgenden
+  Versuche überschrieben auch die einfache `.bak`. Manuel ist informiert und nach einer
+  Sicherung oder noch geöffneten ursprünglichen Werkzeugliste gefragt.
+- `freecadcmd --get-config UserAppData` zeigt den Rückfall. Nach dem Anlegen des Ordners
+  zeigt es denselben Testordner. Die Oberflächenprüfung hatte ihren Ordner mit `mktemp`
+  schon angelegt; betroffen waren direkte FreeCADCmd-Versuche.
+
+### DATEIEN
+- `scripts/tests_ausfuehren.sh`, `tests/test_umgebung.py`, `docs/arbeitsregeln.md`,
+  `docs/STATUS_SNAPSHOT.md`, diese Datei.
+
+### AKZEPTANZKRITERIUM
+Die Prüfungen laufen in einem vorher angelegten temporären FreeCAD-Profil, und
+`test_umgebung` erkennt einen Rückfall auf das persönliche Profil.
+
+### DONE / TEST
+- Prüfläufer legt ein Profil an und entfernt es nach dem Lauf; `test_umgebung` prüft den
+  wirksamen Pfad. Die Arbeitsregeln nennen die notwendige Kontrolle vor Schreibvorgängen.
+- Gegenprobe: fehlender Profilordner → persönliches UserAppData; vorhandener Ordner →
+  Test-UserAppData. `test_umgebung` im vorhandenen Profil grün. Seit dem Fix ist die persönliche
+  JSON-Datei per Hash unverändert; die ursprüngliche Fassung wurde damit nicht wiederhergestellt.
+- Erreichbare FreeCAD-Verzeichnisse, freie Exportordner, Trash, Cache und temporäre Ordner
+  lieferten keine ursprüngliche Bibliothek. Keine Snapper-Konfiguration vorhanden; eine
+  Auflistung ungemounteter Btrfs-Snapshots benötigt zusätzliche Systemrechte. T-008 bleibt offen.
+
+### NEXT
+- Ursprüngliche Werkzeugbibliothek aus einer Sicherung bzw. dem noch geöffneten Fenster
+  wiederherstellen; die Beispieldaten liegen separat im Arbeitsbereich.
+
 ## P-2026-10-06-02 grob-g550-beispielmaschine
 
 ### EINGELESEN

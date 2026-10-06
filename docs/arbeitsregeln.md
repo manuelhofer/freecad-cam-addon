@@ -88,6 +88,11 @@ ein ASCII-Entwurf des Dialogs reicht.
 
 ## 5. Nach der Änderung: Pflichtprüfung
 
+- **Eigene Testprofile:** Vor jedem FreeCAD-Test den Profilordner anlegen und mit
+  `FREECAD_USER_HOME` übergeben. FreeCAD ignoriert einen fehlenden Ordner und verwendet
+  dann das persönliche Profil. Vor Beispieldaten-Schreibvorgängen muss
+  `FreeCAD.getUserAppDataDir()` mit dem Testordner übereinstimmen. Der Prüfläufer legt ein
+  vorhandenes temporäres Profil an; persönliche Werkzeugbibliotheken sind keine Testdaten.
 - **Einheitlich und ohne Befund:** `black .` formatiert, `ruff check .` meldet
   nichts (Einstellungen in `pyproject.toml`, wie bei FreeCAD: Zeilenlänge
   100). Ein `# noqa` braucht eine Begründung in derselben Zeile.

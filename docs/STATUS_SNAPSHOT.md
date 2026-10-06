@@ -492,6 +492,11 @@ ist B-015.
 
 ## Offene Tasks
 
+- **T-008 Werkzeugbibliothek wiederherstellen:** Ein FreeCADCmd-Versuch vom 2026-10-06
+  überschrieb Manuels Werkzeugverwaltung, weil `FREECAD_USER_HOME` auf einen fehlenden
+  Ordner zeigte; die normale `.bak` enthält ebenfalls Beispieldaten. Eine ursprüngliche
+  Sicherung bzw. eine noch geöffnete Werkzeugliste wird benötigt (P-2026-10-06-03).
+
 - **T-006 Alle Kerne nutzen** (Manuel, 2026-10-04: „es rechnen nur maximal 5 von meinen 24 Kernen
   … kann man das nicht optimieren, dass alle genommen werden?“). Gemessen (4-Achs-Schruppen):
   das Prüffenster öffnet nach 3,8 s; der lange Teil ist „Kollision prüfen“ – reines Python je

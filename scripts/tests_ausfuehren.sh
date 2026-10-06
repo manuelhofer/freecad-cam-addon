@@ -16,10 +16,16 @@ if [ ! -x "$fc" ]; then
     exit 2
 fi
 
+# FREECAD_USER_HOME greift nur bei einem vorhandenen Ordner. Ohne ihn schreiben
+# Bibliotheksprüfungen in die echte Werkzeugverwaltung des angemeldeten Benutzers.
+profil="$(mktemp -d)" || exit 2
+trap 'rm -rf "$profil"' 0
+mkdir -p "$profil/Mod"
+
 fehler=0
 for test in "$repo"/tests/test_*.py; do
     name="$(basename "$test")"
-    ausgabe="$(QT_QPA_PLATFORM=offscreen "$fc" "$test" 2>&1)"
+    ausgabe="$(QT_QPA_PLATFORM=offscreen FREECAD_USER_HOME="$profil" "$fc" "$test" 2>&1)"
     if printf '%s\n' "$ausgabe" | grep -Eq "(^|[[:space:]])OK $name\$"; then
         echo "ok     $name"
     elif printf '%s\n' "$ausgabe" | grep -Eq "(^|[[:space:]])UEBERSPRUNGEN $name:"; then

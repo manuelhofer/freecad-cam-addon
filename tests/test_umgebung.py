@@ -8,6 +8,12 @@ import Part  # noqa: F401 – lädt das Part-Modul, damit es den Objekttyp „Pa
 from Path.Main import Job  # noqa: F401 – der Import selbst ist die Prüfung
 
 print("FreeCAD", ".".join(FreeCAD.Version()[:3]), FreeCAD.Version()[3])
+profil = os.environ.get("FREECAD_USER_HOME")
+if profil:
+    assert os.path.isdir(profil), "Testprofil muss vor dem Start vorhanden sein"
+    assert os.path.realpath(FreeCAD.getUserAppDataDir()) == os.path.realpath(
+        profil
+    ), "FreeCAD verwendet das Benutzerprofil statt des angeforderten Testprofils"
 
 dok = FreeCAD.newDocument("Pruefung")
 dok.UndoMode = 1
