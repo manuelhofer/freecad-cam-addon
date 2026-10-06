@@ -12,6 +12,58 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-06-02 grob-g550-beispielmaschine
+
+### EINGELESEN
+- Manuel, 2026-10-06: „als Beispiel Maschine noch eine grob g550 nach bauen von der Form und
+  den verfahr Optionen … liegende Spindel und Tisch, der hoch runter fährt … wie die allerdings
+  die y achse macht weiß ich jetzt gar nicht … ist das machbar“.
+- `CLAUDE.md`, `CHATSTART.md`, Arbeitsregeln, Snapshot, `git log`, Spezifikation Maschine,
+  Maschinenbaukasten und vorhandene Prüfungen. Duplicate-Check: keine G550 im Code/Verlauf.
+- Herstellerseite G550, Hersteller-Achszeichnung und GROB-Broschüre (Seiten 6 und 11),
+  Quellen mit Datum in `docs/spezifikation_grob_g550.md`. FreeCADs Assembly kann die erforderlichen
+  Gelenke; der vorhandene Baukasten und der 3+2-Kern tragen die neue Anordnung.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`, `translations/de.json`, `translations/en.json`,
+  `help/de/neue_maschine.html`, `help/en/neue_maschine.html`, `tests/test_beispielmaschine.py`,
+  `tests/gui/szenario_grob_g550.py`, `beispiele/grob_g550.FCStd`, `beispiele/README.md`,
+  `docs/spezifikation_grob_g550.md`, `CHATSTART.md`, `docs/aufbau.md`,
+  `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.195.0).
+
+### AKZEPTANZKRITERIUM
+„Neue Maschine …“ → GROB G550 → Bauen → „Maschine verfahren“: X bewegt die Spindel seitlich,
+Z vor/zurück, Y den Tisch hoch/runter und A/B schwenken bzw. drehen den Tisch innerhalb der
+eingetragenen Grenzen; Manuel versteht die Auswahl ohne Erklärung.
+
+### DONE
+- Zusätzliche Bauart mit X/Z im Kopf, Y/A/B im Tisch, waagerechter Spindel, offenem Bett,
+  Hubständer, einseitigem Schwenklager und sichtbaren Tischnuten, damit das Drehen erkennbar ist.
+- Wege 800/1.020/970 mm, A −185 … +45° nach DIN 66217, B endlos, Tisch Ø 770 mm,
+  Eilgang 65/50/80 m/min, A/B 25/50 U/min; auswählbare Spindel mit Vorgabe 16.000 U/min.
+  Bestehende Felder für eigene Wege, A-Bereich, Drehzahl und Name verwenden.
+- Körpermaße, Drehpunktabstände und MKS-Endlagen angenähert und in Auswahl, Hilfe und
+  Spezifikation erklärt; unbekannte Beschleunigung und Hochlaufzeit bleiben 0 (= unbekannt).
+  Kein präzises Abbild einer konkreten Maschine; keine Änderung am Rechenkern.
+- Die gleiche Baugruppe als direkt öffnbare `.FCStd` mit Farben gespeichert.
+
+### TEST
+- In FreeCAD 1.1.4: `test_beispielmaschine` grün, einschließlich Rollen, Achsbewegungen,
+  Grenzen, DIN-Vorzeichen, Aufnahmeausrichtung und 3+2-Lösung ohne TCPM für die Tischoberseite.
+- `szenario_grob_g550` grün: Auswahl, Bauen, echte Zahlenfelder in „Maschine verfahren“,
+  X/Z bewegen die Spindel, negatives Y hebt den Tisch, A −90/B −45 mit Spannfläche zur Spindel.
+  Screenshots angesehen; zweiter Lauf zum Speichern der Beispieldatei und für die freie Ansicht.
+- `test_sprache`, `test_hilfe`, Black über alle Python-Dateien und `ruff check .` grün.
+- Gespeicherte `beispiele/grob_g550.FCStd` in einem neuen FreeCADCmd-Lauf wieder geöffnet:
+  alle Betriebsarten und Aufnahmen erhalten, keine Warnung, Y bewegt den Tisch wie gebaut.
+- Einmal `test_umgebung` zur frischen lokalen Arbeitskopie; alle FreeCAD-Läufe mit 16-GB-Deckel
+  und eigenem Profil. Kein Wochen-Build: verwendet unveränderte Assembly-Schnittstellen.
+- Manuels Bedienprüfung steht aus. Kein NC-Programm an einer echten G550 geprüft.
+
+### NEXT
+- Manuel öffnet die Beispieldatei oder baut die Vorlage, probiert Y/A/B aus und beurteilt
+  Form und Bedienung; lokal committet, nicht gepusht.
+
 ## P-2026-10-06-01 w016-drehmaschine-quader-aufgeschrieben
 
 ### EINGELESEN

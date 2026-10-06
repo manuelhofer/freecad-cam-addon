@@ -6,12 +6,27 @@ be looked at and changed.</p>
 
 <h3>Types</h3>
 <p>You can choose a lathe with Y axis and turret, a 3-axis mill and three
-5-axis mills (table/table, head/head, head/table). For every type you enter
+5-axis mills (table/table, head/head, head/table), and the horizontal
+<b>GROB G550 (A/B)</b> example. For every type you enter
 the main dimensions yourself – for the 5-axis mills also how far they swivel.</p>
 <p>The table of the built 3-axis mill is empty. Whatever stands on your table
 (vice, clamps) you build as a body into the assembly and fix it to the table
 with a fixed joint – the collision check (“Check on machine”) then takes it
 into account.</p>
+
+<h3>GROB G550 – horizontal spindle and lifting table</h3>
+<p><b>X</b> moves the spindle unit sideways; <b>Z</b> moves the spindle forwards and backwards.
+<b>Y</b> raises and lowers the entire table including its rotary axes. <b>A</b> tilts the table;
+<b>B</b> rotates it about the normal of its clamping surface. At A = 0 the table is horizontal;
+at A = −90 its clamping surface faces the spindle. Try this under <b>Move machine</b>.
+For machining on the top of the table, <b>Swivel plane (3+2)</b> aligns the face with the
+horizontal spindle.</p>
+<p>The defaults are X/Y/Z travel of 800/1,020/970 mm, a table diameter of 770 mm,
+A from −185 to +45 degrees, and a 16,000 rpm spindle. B rotates endlessly.
+Bodies and distances are approximate; travel limits are measured from the built position 0
+and do not describe a particular G550. Travel limits, the A range, spindle speed and name
+are adjustable. Enter your machine's actual dimensions and specifications in the assembly
+and under <b>Edit machine</b> afterwards.</p>
 
 <h3>The dimensions of the lathe</h3>
 <ul>

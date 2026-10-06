@@ -14,7 +14,8 @@ gewählte in einem neuen Dokument an, ihr Maschinenobjekt schon ausgefüllt:
 - 3-Achs-Fräse: Kreuztisch X/Y, Fräskopf Z;
 - 5-Achs Tisch/Tisch: Schwenkbrücke A mit Rundtisch C, X, Y, Z im Kopf;
 - 5-Achs Kopf/Kopf: Portal mit Gabelkopf A/B, der Tisch steht;
-- 5-Achs Kopf/Tisch: Schwenkkopf B, Rundtisch C.
+- 5-Achs Kopf/Tisch: Schwenkkopf B, Rundtisch C;
+- GROB G550: waagerechte Spindel auf X/Z, Hubtisch Y mit Schwenken A und Drehen B.
 
 Die Achsen heißen wie an Siemens-Steuerungen (X1, Y1, Z1, A1 …, Spindel S1);
 umbenennen geht in „Maschine bearbeiten“. Jedes Gelenk zeigt in die Richtung
@@ -63,8 +64,9 @@ FRAESE_3 = "fraese3"
 TISCH_TISCH = "tisch_tisch"
 KOPF_KOPF = "kopf_kopf"
 KOPF_TISCH = "kopf_tisch"
-ARTEN = (DREHMASCHINE, FRAESE_3, TISCH_TISCH, KOPF_KOPF, KOPF_TISCH)
-FUENFACHS = (TISCH_TISCH, KOPF_KOPF, KOPF_TISCH)
+GROB_G550 = "grob_g550"
+ARTEN = (DREHMASCHINE, FRAESE_3, TISCH_TISCH, KOPF_KOPF, KOPF_TISCH, GROB_G550)
+FUENFACHS = (TISCH_TISCH, KOPF_KOPF, KOPF_TISCH, GROB_G550)
 
 _ZULETZT = "Beispielmaschine"  # Schlüssel in den Einstellungen: zuletzt gewählte Bauart
 
@@ -261,6 +263,7 @@ def titel(art):
         TISCH_TISCH: tr("beispiel.tisch_tisch"),
         KOPF_KOPF: tr("beispiel.kopf_kopf"),
         KOPF_TISCH: tr("beispiel.kopf_tisch"),
+        GROB_G550: tr("beispiel.grob_g550"),
     }[art]
 
 
@@ -272,6 +275,7 @@ def beschreibung(art):
         TISCH_TISCH: tr("beispiel.tisch_tisch.beschreibung"),
         KOPF_KOPF: tr("beispiel.kopf_kopf.beschreibung"),
         KOPF_TISCH: tr("beispiel.kopf_tisch.beschreibung"),
+        GROB_G550: tr("beispiel.grob_g550.beschreibung"),
     }[art]
 
 
@@ -283,6 +287,7 @@ def _dokument(art):
         TISCH_TISCH: tr("beispiel.tisch_tisch.dokument"),
         KOPF_KOPF: tr("beispiel.kopf_kopf.dokument"),
         KOPF_TISCH: tr("beispiel.kopf_tisch.dokument"),
+        GROB_G550: tr("beispiel.grob_g550.dokument"),
     }[art]
 
 
@@ -363,6 +368,15 @@ def _wege_fehler(masse, ohne_null=()):
 
 # Die Beispielwerte der 5-Achs-Fräsen: Wege in mm, die Schwenkachsen in Grad, Drehzahl.
 _FUENFACHS = {
+    GROB_G550: {
+        # Hersteller: 800/1.020/970 mm, A −185…+45°. Die Verteilung der linearen
+        # Wege um 0 ist eine Beispielstellung, keine belegte MKS-Lage (Spezifikation G550).
+        "weg_x": (-400.0, 400.0),
+        "weg_y": (-510.0, 510.0),
+        "weg_z": (-485.0, 485.0),
+        "schwenk": (("A", -185.0, 45.0),),
+        "drehzahl": 16000.0,
+    },
     TISCH_TISCH: {
         "weg_x": (-320.0, 320.0),
         "weg_y": (-200.0, 250.0),
@@ -392,8 +406,10 @@ GROESSTER_SCHWENK = 360.0  # Grad je Richtung
 class FuenfachsMasse:
     """Die Maße einer 5-Achs-Fräse (Durchsicht W-004, D-26) – vorbelegt wie ihr Beispiel
     (`vorgabe`). Wege in mm, die Schwenkachsen als ((Buchstabe, Minimum, Maximum), …) in
-    Grad, alle gezählt ab der Stellung, in der die Maschine gebaut ist (Werkzeug senkrecht
-    über dem Tisch) – 0 muss darin liegen. Der Rundtisch C dreht endlos."""
+    Grad, alle gezählt ab der Stellung, in der die Maschine gebaut ist – 0 muss darin liegen.
+    Bei der G550 steht die Spindel waagerecht und der Tisch in A=0 waagerecht, bei den übrigen
+    Beispielen steht das Werkzeug senkrecht über dem Tisch. Der Rundtisch C bzw. B dreht endlos.
+    """
 
     art: str
     name: str = ""  # leer: der Name des Beispiels
@@ -562,6 +578,126 @@ def _fuenfachs_werte(ma, x, y, z, s, spindelnase, spannplatz, drehzahl, wechsel_
     s1 = _spindel(ma, s, "S1", drehzahl, 2)
     m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
     m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.rundtisch"))
+
+
+def grob_g550(masse=None):
+    """Grobe G550: Spindel waagerecht auf X/Z, Tisch auf Y, darin A und endlos B.
+
+    Welt-Z ist die Höhe des Modells, NC-Y dagegen eine Tischachse: Ihr Plus senkt den Tisch,
+    damit das Werkzeug relativ zum Werkstück nach oben fährt. NC-Z fährt die Spindel in
+    Welt−Y zurück. A=0 zeigt die Spannfläche nach oben, A=−90 zur Spindel (DIN 66217).
+    Körpermaße und Drehpunktabstände sind angenähert; Quellen: docs/spezifikation_grob_g550.md.
+    Gibt (Assembly, Maschine) zurück.
+    """
+    masse = masse or FuenfachsMasse.vorgabe(GROB_G550)
+    b = _neu(GROB_G550)
+    bett = b.quader("Bett", 2600, 3200, 300, farbe=GUSS)
+    b.fixieren(bett)
+    sattel, _ = b.bauteil(
+        "XSattel",
+        [
+            b.quader("Sattelboden", 800, 1800, 250, x=900, z=300, farbe=SCHLITTEN),
+            b.quader("Spindelstaender", 800, 450, 750, x=900, z=550, farbe=GUSS),
+        ],
+    )
+    schlitten = b.quader("ZSchlitten", 500, 1100, 250, x=1050, y=50, z=950, farbe=KOPF)
+    spindel, spindelnase = b.bauteil(
+        "Spindel",
+        b.zylinder(
+            "Spindelkoerper",
+            100,
+            500,
+            x=1300,
+            y=1150,
+            z=1150,
+            achse=(0, -1, 0),
+            farbe=SPINDEL,
+        ),
+        lcs_name="Spindelnase",
+    )
+    x = b.gelenk_wie_gebaut(
+        "X", "Slider", bett, "Face6", sattel, "Sattelboden.Face5", richtung=(1, 0, 0)
+    )
+    z = b.gelenk_wie_gebaut(
+        "Z",
+        "Slider",
+        sattel,
+        "Spindelstaender.Face6",
+        schlitten,
+        "Face5",
+        richtung=(0, -1, 0),
+    )
+    s = b.gelenk_wie_gebaut(
+        "Spindelachse",
+        "Revolute",
+        schlitten,
+        "Face4",
+        spindel,
+        "Spindelkoerper.Face2",
+        richtung=(0, -1, 0),
+    )
+
+    staender = b.quader("Tischstaender", 1000, 350, 2000, x=800, y=2300, z=300, farbe=GUSS)
+    b.gelenk_wie_gebaut("Tischstaender_fest", "Fixed", bett, "Face6", staender, "Face5")
+    hub, _ = b.bauteil(
+        "YSchlitten",
+        [
+            b.quader("Hubplatte", 700, 300, 1000, x=950, y=2000, z=650, farbe=SCHLITTEN),
+            b.quader("Tragarm", 250, 700, 380, x=650, y=1600, z=960, farbe=SCHLITTEN),
+            b.zylinder("ALager", 190, 200, x=700, y=1600, z=1150, achse=(1, 0, 0), farbe=GUSS),
+        ],
+    )
+    y = b.gelenk_wie_gebaut(
+        "Y", "Slider", staender, "Face3", hub, "Hubplatte.Face4", richtung=(0, 0, -1)
+    )
+    wiege, _ = b.bauteil(
+        "Wiege",
+        [
+            b.zylinder("AZapfen", 130, 350, x=900, y=1600, z=1150, achse=(1, 0, 0), farbe=SPINDEL),
+            b.quader("Tischtraeger", 440, 500, 120, x=1080, y=1350, z=1030, farbe=KOPF),
+        ],
+    )
+    a = b.gelenk_wie_gebaut(
+        "A", "Revolute", hub, "ALager.Face3", wiege, "AZapfen.Face3", richtung=(1, 0, 0)
+    )
+    # Tisch und Spannplatz bleiben als ein Part zusammen; seine Z-Achse ist die Normale
+    # der Spannfläche. B dreht tatsächlich um die senkrechte NC-Y-Achse, nicht um NC-Z.
+    tisch, spannplatz = b.bauteil(
+        "Rundtisch",
+        [
+            b.zylinder("Tischscheibe", 385, 100, x=1300, y=1600, z=1150, farbe=TISCH),
+            # Angedeutete Nuten machen das Drehen von B auch ohne Werkstück sichtbar.
+            *[
+                b.quader(f"Tischnut{i}", 520, 12, 1, x=1040, y=1594 + versatz, z=1250, farbe=GUSS)
+                for i, versatz in enumerate((-240, -120, 0, 120, 240), 1)
+            ],
+        ],
+        lcs_name="Spannplatz",
+        lcs_hoehe=100,
+    )
+    dreh = b.gelenk_wie_gebaut(
+        "B",
+        "Revolute",
+        wiege,
+        "Tischtraeger.Face6",
+        tisch,
+        "Tischscheibe.Face3",
+        richtung=(0, 0, 1),
+    )
+    _fuenfachs_wege(b, masse, x, y, z, gespiegelt=("A",), A=a)
+    asm = b.fertig()
+    ma = _maschine(asm, GROB_G550)
+    _linear(ma, x, "X1", 65000, 0, 0)
+    _linear(ma, y, "Y1", 50000, 0, 0)
+    _linear(ma, z, "Z1", 80000, 0, 0, wechsel=masse.weg_z[1])
+    _positionieren(ma, a, "A1", 25)
+    _positionieren(ma, dreh, "B1", 50, endlos=True)
+    s1 = _spindel(ma, s, "S1", masse.drehzahl, 0)
+    m.neue_aufnahme(ma, spindelnase, m.AUFNAHME_WERKZEUG, tr("beispiel.spindel"), spindel=s1)
+    m.neue_aufnahme(ma, spannplatz, m.AUFNAHME_WERKSTUECK, tr("beispiel.rundtisch"))
+    _benenne(asm, ma, masse.name)
+    asm.Document.recompute()
+    return asm, ma
 
 
 def fuenfachs_tisch_tisch(masse=None):
@@ -1143,6 +1279,7 @@ BAUPLAENE = {
     TISCH_TISCH: fuenfachs_tisch_tisch,
     KOPF_KOPF: fuenfachs_kopf_kopf,
     KOPF_TISCH: fuenfachs_kopf_tisch,
+    GROB_G550: grob_g550,
 }
 
 

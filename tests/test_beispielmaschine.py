@@ -1,8 +1,8 @@
 # Prüft die Beispielmaschinen zum Ausprobieren (W-001): Der Löser lässt alle
 # Teile, wo sie gebaut sind; X1, Y1, Z1, S1 und beide Aufnahmen sind
 # eingerichtet, ohne Warnung; Verfahren bewegt Tisch, Sattel und Kopf in
-# Achsrichtung und hält die Grenzen ein. Dann alle fünf Bauarten zur Auswahl
-# (Drehmaschine, 3-Achs, drei 5-Achs): jede mit ihren Achsen, ohne Warnung,
+# Achsrichtung und hält die Grenzen ein. Dann alle Bauarten zur Auswahl
+# (Drehmaschine, 3-Achs, drei senkrechte 5-Achs, G550): jede mit ihren Achsen, ohne Warnung,
 # jede Achse fährt, und die Auswahl merkt sich die zuletzt geladene. Zuletzt
 # die Drehmaschine mit eigenen Maßen („Neue Maschine …“): Name, Wege,
 # Bettneigung, Plätze, Drehzahl und die schräge Achse – ebenso die 3-Achs-Fräse
@@ -18,7 +18,7 @@ sys.path.insert(0, ADDON)
 
 import FreeCAD as App
 
-from camaddon import PARAMETER_PFAD, beispielmaschine, schraege_achse, sprache
+from camaddon import PARAMETER_PFAD, beispielmaschine, schraege_achse, schwenken, sprache
 from camaddon import halter as hl
 from camaddon import kette as kette_modul
 from camaddon import maschine as m
@@ -100,6 +100,7 @@ ACHSEN = {
     beispielmaschine.TISCH_TISCH: ["A1", "C1", "S1", "X1", "Y1", "Z1"],
     beispielmaschine.KOPF_KOPF: ["A1", "B1", "S1", "X1", "Y1", "Z1"],
     beispielmaschine.KOPF_TISCH: ["B1", "C1", "S1", "X1", "Y1", "Z1"],
+    beispielmaschine.GROB_G550: ["A1", "B1", "S1", "X1", "Y1", "Z1"],
 }
 pruefe(list(ACHSEN) == list(beispielmaschine.ARTEN), f"Bauarten {beispielmaschine.ARTEN}")
 # lade() merkt sich die Bauart in den Einstellungen – danach wie vorher.
@@ -183,6 +184,67 @@ for art in beispielmaschine.ARTEN:
         pruefe(quer < 1e-6 and abs(laengs) < 1e-6, f"P1 auf X 0, Z 0: quer {quer}, längs {laengs}")
         v.grundstellung()
     App.closeDocument(doc.Name)
+
+# Die G550 hat X/Z am Werkzeug, Y/A/B am Tisch. Welt-Z ist die Höhe, NC-Y dagegen
+# die relative Bewegung: Positives Y senkt das Werkstück unter dem waagerechten Werkzeug.
+asm, ma = beispielmaschine.grob_g550()
+doc = asm.Document
+kette = kette_modul.lies_kette(asm)
+rollen, _ = m.rollen(kette, ma)
+achsen = {a.gelenk.Label: a for a in kette.achsen}
+pruefe(
+    {n: rollen.get(achsen[n].gelenk) for n in ("X", "Y", "Z", "A", "B")}
+    == {"X": m.KOPF, "Y": m.TISCH, "Z": m.KOPF, "A": m.TISCH, "B": m.TISCH},
+    "G550: Achsen auf der falschen Seite",
+)
+v = vf.Verfahren(asm, kette)
+gebaut = {
+    n: App.Placement(doc.getObject(n).Placement)
+    for n in (
+        "XSattel",
+        "ZSchlitten",
+        "Spindel",
+        "Tischstaender",
+        "YSchlitten",
+        "Wiege",
+        "Rundtisch",
+    )
+}
+v.setze_alle({achsen["X"]: 60, achsen["Z"]: 100, achsen["Y"]: 40})
+for teil, soll in (
+    ("XSattel", App.Vector(60, 0, 0)),
+    ("Spindel", App.Vector(60, -100, 0)),
+    ("Rundtisch", App.Vector(0, 0, -40)),
+    ("Wiege", App.Vector(0, 0, -40)),
+    ("Tischstaender", App.Vector()),
+):
+    pruefe(weg(teil).isEqual(soll, 1e-6), f"G550 {teil}: {weg(teil)} statt {soll}")
+v.grundstellung()
+pruefe(vf.programm_vorzeichen(achsen["A"], kette) == -1, "G550: A gegen DIN")
+pruefe(vf.programm_vorzeichen(achsen["B"], kette) == -1, "G550: B gegen DIN")
+pruefe(v.grenzen(achsen["A"]) == (-45.0, 185.0), f"G550: A {v.grenzen(achsen['A'])}")
+pruefe(v.grenzen(achsen["B"]) == (None, None), "G550: B nicht endlos")
+pruefe(doc.getObject("Tischscheibe").Radius == 385, "G550: Tischdurchmesser")
+aufnahmen = {a.Art: a for a in m.aufnahmen(ma)}
+werkzeug = m.globale_platzierung(aufnahmen[m.AUFNAHME_WERKZEUG].Lcs)
+richtung = werkzeug.Rotation.multVec(App.Vector(0, 0, 1))
+pruefe(richtung.isEqual(App.Vector(0, -1, 0), 1e-6), f"G550: Spindel {richtung}")
+v.setze(achsen["A"], 90)  # An der Steuerung A = −90: Tischoberseite zur Spindel.
+v.setze(achsen["B"], 45)
+spannplatz = m.globale_platzierung(aufnahmen[m.AUFNAHME_WERKSTUECK].Lcs)
+normal = spannplatz.Rotation.multVec(App.Vector(0, 0, 1))
+pruefe(normal.isEqual(richtung, 1e-6), f"G550: Spannfläche bei A−90 B−45 {normal}")
+v.grundstellung()
+# Der gemeinsame 3+2-Kern muss die Tischoberseite zur waagerechten Spindel ausrichten.
+p = rw.Pruefung(asm, ma)
+sm = schwenken.Maschine(p, p.werkzeugaufnahme(1), 125.0, (0, 0, 0))
+loesungen = sm.loese((0, 0, 1))
+passend = [r for r in loesungen if all(a.erlaubt(r[a.buchstabe]) for a in sm.rundachsen)]
+pruefe(bool(passend), f"G550: 3+2 erreicht die Tischoberseite nicht: {loesungen}")
+if passend:
+    pruefe(sm.richtung(passend[0]).dot(App.Vector(0, 0, 1)) > 0.999999, "G550: 3+2 falsch")
+    pruefe(sm.abbildung(passend[0]) is not None, "G550: keine Abbildung ohne TCPM")
+App.closeDocument(doc.Name)
 
 # --- Drehmaschine mit eigenen Maßen („Neue Maschine …“) ----------------------------------
 masse = beispielmaschine.DrehmaschinenMasse(
@@ -323,6 +385,7 @@ for art, schwenk in (
     (beispielmaschine.TISCH_TISCH, (("A", -30.0, 110.0),)),
     (beispielmaschine.KOPF_TISCH, (("B", -90.0, 45.0),)),
     (beispielmaschine.KOPF_KOPF, (("A", -95.0, 95.0), ("B", -15.0, 105.0))),
+    (beispielmaschine.GROB_G550, (("A", -30.0, 110.0),)),
 ):
     vorgabe = beispielmaschine.FuenfachsMasse.vorgabe(art)
     pruefe(vorgabe.fehler() == [], f"Vorgabe {art} ungültig: {vorgabe.fehler()}")
