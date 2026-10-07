@@ -2563,5 +2563,6 @@
     "s5p.fehler.rampenwinkel": "Der Werkzeugdatensatz erlaubt keine Rampeneinfahrt. Eintauchwinkel zuordnen.",
     "s5p.fehler.rampe": "Eintrittswinkel {winkel}° über der Werkzeuggrenze {grenze}°.",
     "s5p.fehler.bahnveraendert": "Die neu berechnete Bahn weicht von der geprüften Variante ab; Übernahme zurückgenommen.",
-    "s5p.fehler.luftzug": "Ein ganzer Schnittzug fährt ohne Abtrag in der Luft."
+    "s5p.fehler.luftzug": "Ein ganzer Schnittzug fährt ohne Abtrag in der Luft.",
+    "rm.simultan_vorschau": "Die Farben zeigen die Materialvorschau; die genaue Grathöhe prüft „5-Achs-Schlichten vergleichen“."
 }

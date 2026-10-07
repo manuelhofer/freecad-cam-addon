@@ -122,6 +122,10 @@ class Bild:
         # Kasten als Rohteil mit Werkzeugen senkrecht von oben ebenso (W-006 S3d).
         try:
             self.abtrag = rm.fuer(abfahrt, job, punkte)
+            if self.abtrag is None:
+                from . import simultan_restbild
+
+                self.abtrag = simultan_restbild.fuer(abfahrt, job, punkte)
         except Exception as fehler:  # ohne Abtrag geht alles andere weiter
             FreeCAD.Console.PrintLog(f"CAM-Addon: Restmaterial: {fehler}\n")
             self.abtrag = None
@@ -196,7 +200,10 @@ class Bild:
         self._rest_zeigen(vergleich)
         self._bahn_schalten()
         self._teil_schalten()
-        return _rest_satz(vergleich, self.abtrag.aufmass, self._im_quader())
+        text = _rest_satz(vergleich, self.abtrag.aufmass, self._im_quader())
+        if getattr(self.abtrag, "vorschau_simultan", False):
+            text += " " + tr("rm.simultan_vorschau")
+        return text
 
     def zeige_bahn(self, an):
         """Die Bahn zeigen (Haken „Bahn“ im Abspieler) – am Ende mit den Farben nie."""

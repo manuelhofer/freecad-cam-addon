@@ -8,6 +8,17 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
+**In Arbeit:** Manuel fordert eine weitergehende allgemeine 5-Achs-Planung (2026-10-07).
+Nächster Schritt: die Werkzeuganstellung über den ganzen Bahnverlauf voraussehen und die
+zusätzliche Variante mit der vollständigen Maschinenzeit bewerten. Eine universelle
+Optimalitätsgarantie ist kein belegtes Ergebnis.
+
+**5-Achs-Materialansicht:** Beim fein geplanten Kugelschlichten im Quader verwendet das
+Prüffenster jetzt den gleichen farbigen Rohteil-/Sollteil-Vergleich wie bei 4 Achsen;
+Kugelmitte aus tatsächlicher Kinematik, senkrechte Vorbearbeitung, Teil/Bahn und
+Zurückspulen. Vorschau mit 0,5-mm-Raster; die genaue Qualitätszulassung bleibt im
+Simultanvergleich (P-2026-10-07-04).
+
 **Komplexes 5-Achs-Schlichten mit Materialprüfung:** „3D-Schlichten“ auswählen → CAM-Addon →
 „5-Achs-Schlichten vergleichen …“: eingerichtete Kugelfräser, fünf Bahnrichtungen und
 Anstellung um X/Y oder frei gemeinsam prüfen. Der Materialstand nach der Vorbearbeitung,

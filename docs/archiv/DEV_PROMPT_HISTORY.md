@@ -12,6 +12,54 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-07-04 simultan-rohteilvergleich-zeigen
+
+### EINGELESEN
+- Manuel: „der vergleich rohteil fertigteil is bei der 4 achs geschichte deutlich schöner“.
+  CHATSTART, Arbeitsregeln, Snapshot, Aufbau, Strategien 16 und Simulation; vorhandener
+  Quader-/Stangenabtrag und Abspieler. Wunsch vor Implementierung in 16.7 beschrieben.
+- Die Darstellung war vorhanden; `fuer_quader` weist Rundachsbewegungen ab. FreeCADs
+  CAM-Simulator ersetzt den Materialvergleich im vorhandenen Maschinen-Abspieler nicht.
+  Wiederverwendung der bisherigen Oberfläche und Farben statt einer zweiten Oberfläche.
+
+### DATEIEN
+- `camaddon/simultan_restbild.py` (neu), `gui_abfahren.py`, Übersetzungen DE/EN;
+  `tests/test_simultan_restbild.py`, `tests/gui/szenario_simultan_restbild.py` (neu),
+  Hilfe Reichweite DE/EN, Beispiel-README, Aufbau, Spezifikation, Snapshot,
+  `package.xml` (0.198.1), diese Datei.
+
+### AKZEPTANZKRITERIUM
+Den geprüften Freiformjob auf der Maschine öffnen → zum Ende fahren → abgetragenes Rohteil
+mit Materialfarben und Sollteil wie beim 4-Achs-Vergleich sehen, mit „Teil“/„Bahn“ umschalten
+und zum Anfang zurückgehen können.
+
+### DONE
+- Quader-Materialvorschau für fein geplantes Simultankugelschlichten und senkrechte
+  Vorbearbeitung; tatsächliche Kugelmitten aus Vorwärtskinematik statt falsch als senkrecht
+  gelesener Werkzeugspitzen. Kontinuierliche Kugel-/Schaftstrecken, rückwärts zurücksetzen.
+- Vorhandene Materialfarben, graues Sollteil, Bahn-/Teil-Haken, Schieber und Legende;
+  gröberes Anzeigeraster ausdrücklich von der feinen Grathöhenzulassung unterschieden.
+- Im ersten Entwurf lag der Vorschau-Fallback in `restmaterial.fuer`; vor dem Abschluss
+  auf `gui_abfahren.Bild` begrenzt, damit das Bild die allgemeine Kollisionsprüfung nicht
+  verändert. Keine Bahn-, Vorschub-, NC- oder goldene Referenzänderung.
+- Erste GUI-Prüfungen fanden Fehler im Prüfskript (Coin-Multifeld, falsches Dokument,
+  Bildschirm und durch große Maschinenkörper verdecktes Detailbild); berichtigt.
+  Detailbilder zeigen native 3D-Geometrie mit ausgeblendeten Maschinenkörpern.
+
+### TEST
+- KI, FreeCAD 1.1.4, eigene vorher angelegte Profile mit geprüftem AppData-Pfad, 16-GiB-Deckel:
+  numerischer Materialvergleich, tatsächlicher Mittenversatz, vorwärts/rückwärts und
+  reproduzierbarer Endstand; 5,14 s für diese Bildberechnungen, Vorschau-Rest 0,02066 mm.
+- GUI-Szenario sichtbar auf DP-1: Endfarben, graues Sollteil/deckendes Material, Bahn,
+  Zurückspulen, Native-3D-Bild; ohne Addon-Ausnahmen. Manuel beurteilt die Gestaltung selbst.
+- Formatierung, Ruff, Sprachschlüssel und Hilfelinks geprüft. Die genaue 0,01705-mm-
+  NC-Restgrenze und goldenen Zeit-/Speicherreferenzen aus P03 bleiben unverändert.
+
+### NEXT
+- Weitergehende 5-Achs-Planung: Anstellung über den ganzen Bahnverlauf voraussehen und
+  die zusätzliche Variante nach vollständiger Maschinenzeit bewerten; beliebige
+  Hinterschnitte/Aufspannungen und universelle Optimalität sind weiterhin kein Ergebnis.
+
 ## P-2026-10-07-03 simultan-material-und-referenz-pruefen
 
 ### EINGELESEN

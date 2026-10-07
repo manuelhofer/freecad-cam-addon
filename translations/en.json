@@ -2563,5 +2563,6 @@
     "s5p.fehler.rampenwinkel": "The tool data does not allow ramp entry. Assign a ramp angle.",
     "s5p.fehler.rampe": "Entry angle {winkel}° exceeds the tool limit {grenze}°.",
     "s5p.fehler.bahnveraendert": "The recalculated path differs from the checked candidate; the application was rolled back.",
-    "s5p.fehler.luftzug": "An entire cutting pass runs through air without removing material."
+    "s5p.fehler.luftzug": "An entire cutting pass runs through air without removing material.",
+    "rm.simultan_vorschau": "The colours show the material preview; “Compare 5-axis finishing” checks the precise scallop height."
 }

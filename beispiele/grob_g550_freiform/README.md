@@ -19,6 +19,13 @@ Vergleichen das Prüffenster schließen, im Baum **3D-Schlichten T4** auswählen
 bereits zugewiesen. Der Vergleich verändert sie erst mit **Übernehmen**; Strg+Z stellt
 die vorherige Einstellung wieder her.
 
+Den Schieber ganz nach rechts ziehen: Das abgetragene Rohteil liegt in den gleichen
+Materialfarben wie beim 4-Achs-Vergleich über dem grauen Sollteil. **Teil** blendet
+das Sollteil aus und zeigt die Materialvorschau deckend; zurückspulen stellt das Rohteil
+wieder her. Die Kugelmitte folgt der tatsächlichen Anstellung. Diese Ansicht hat ein
+0,5-mm-Raster und dient zum Ansehen; für die genaue 0,02-mm-Grenze gelten die feineren
+Material- und NC-Prüfungen des Vergleichs.
+
 Die FCStd-Dateien lassen sich auch direkt öffnen. Für das genaue Abfahren mit diesen
 Werkzeug- und Haltermaßen das Startskript verwenden. Es setzt den Maschinenpfad auf
 den aktuellen Speicherort. Der Erzeuger `erstellen.py` dient zum Nachbauen in einem

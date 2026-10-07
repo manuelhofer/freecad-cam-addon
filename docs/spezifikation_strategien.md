@@ -3135,3 +3135,32 @@ Vergleich mit NC-Reserve ohne Speicherinstrumentierung 754,81 s.
 Das belegt die angebotenen Varianten und die eingerichtete Modellmaschine; eine echte
 G550 wurde damit nicht betrieben. Hinterschnitte, weitere Aufspannungen und beliebige
 Rohteilformen sind weiterhin offen.
+
+### 16.7 Rohteil/Fertigteil beim Simultanschlichten (gebaut, P-2026-10-07-04)
+
+Manuel: Der Vergleich ist bei vier Achsen deutlich schöner. Dort wird das Rohteil beim
+Abfahren abgetragen und am Ende mit Materialfarben über dem Sollteil gezeigt; bei fünf
+Achsen blieb bisher wegen der Rundachsbewegung nur der unveränderte transparente Kasten.
+Die vorhandene Darstellung und Bedienung werden wiederverwendet: Schieber, „Bahn“ und
+„Teil“, am Ende grün/gelb/rot/blau mit der vorhandenen Legende. Die Kugelmitten kommen
+aus der tatsächlichen Maschinenkinematik; die Werkzeugspitze darf bei einer angestellten
+Kugel nicht als Mitte eines senkrechten Werkzeugs gelesen werden. Ungeeignete
+Voroperationen/Hinterschnitte bekommen damit keinen falschen Materialnachweis.
+
+Die vorhandene Oberfläche bleibt gleich:
+
+```text
+[Abspielen]  [<]  ======== Schieber ========  [>]
+[x] Bahn  [x] Teil
+Am Ende bleiben … mm …  Grün: Aufmaß · Gelb: mehr · Rot: Rest · Blau: im Teil
+Die Farben zeigen die Materialvorschau; die genaue Grathöhe prüft der Vergleich.
+```
+
+**Akzeptanzkriterium:** Den geprüften Freiformjob auf der Maschine öffnen → zum Ende fahren
+→ abgetragenes Rohteil mit Materialfarben und Sollteil wie beim 4-Achs-Vergleich sehen,
+mit „Teil“/„Bahn“ umschalten und zum Anfang zurückgehen können.
+
+`simultan_restbild` nutzt den vorhandenen Quader-Abspieler und seine Materialfarben mit
+0,5-mm-Anzeigeraster; die Kugelmitte kommt aus der Spitze und der tatsächlichen Achse.
+Das ist ein Bild, keine zusätzliche Qualitätszulassung oder Erweiterung der allgemeinen
+Kollisionsprüfung. Die feinere Material-/NC-Prüfung aus 16.6 bleibt maßgebend.
