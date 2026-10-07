@@ -232,6 +232,18 @@ pruefe(
 )
 v.grundstellung()
 pruefe(vf.programm_vorzeichen(achsen["A"], kette) == -1, "G550: A gegen DIN")
+v.setze(achsen["Y"], 510)
+for x in (-400, 400):
+    v.setze(achsen["X"], x)
+    boden = doc.getObject("Sattelboden")
+    bodenform = boden.Shape.copy()
+    bodenform.Placement = boden.getGlobalPlacement()
+    for name in ("Hubplatte", "Tragarm", "ALager"):
+        teil = doc.getObject(name)
+        form = teil.Shape.copy()
+        form.Placement = teil.getGlobalPlacement()
+        pruefe(bodenform.distToShape(form)[0] > 1.0, f"G550: X-Sattel bei X {x}/Y 510 an {name}")
+v.grundstellung()
 pruefe(vf.programm_vorzeichen(achsen["B"], kette) == -1, "G550: B gegen DIN")
 pruefe(v.grenzen(achsen["A"]) == (-45.0, 185.0), f"G550: A {v.grenzen(achsen['A'])}")
 pruefe(v.grenzen(achsen["B"]) == (None, None), "G550: B nicht endlos")

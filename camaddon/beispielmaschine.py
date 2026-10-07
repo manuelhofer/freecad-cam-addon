@@ -596,7 +596,9 @@ def grob_g550(masse=None):
     sattel, _ = b.bauteil(
         "XSattel",
         [
-            b.quader("Sattelboden", 800, 1800, 250, x=900, z=300, farbe=SCHLITTEN),
+            # Der X-Sattel endet vor dem Bewegungsraum des Hubtischs. Die frühere
+            # 1800-mm-Platte lag bei tiefem Y und seitlichem X unter dem A-Lager.
+            b.quader("Sattelboden", 800, 1150, 250, x=900, z=300, farbe=SCHLITTEN),
             b.quader("Spindelstaender", 800, 450, 750, x=900, z=550, farbe=GUSS),
         ],
     )

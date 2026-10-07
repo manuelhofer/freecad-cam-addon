@@ -12,6 +12,35 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-07-01 grob-g550-x-sattel-vor-tisch
+
+### EINGELESEN
+- Der beauftragte komplexe Freiformversuch fand „XSattel / YSchlitten“, 0 mm Abstand.
+  Der angenäherte Sattelboden reichte bis Y = 1.800 in den Raum des A-Lagers. Bei tiefem
+  Y und seitlichem X überschneiden sich die Beispielkörper trotz erlaubter Achsstellungen.
+- G550-Spezifikation, Baukasten und Beispielmaschinenprüfung.
+
+### DATEIEN
+- `camaddon/beispielmaschine.py`, `tests/test_beispielmaschine.py`,
+  `beispiele/grob_g550.FCStd`, `beispiele/grob_g550_simultan/g550_winkelaufnahme.FCStd`,
+  `docs/spezifikation_grob_g550.md`, `docs/STATUS_SNAPSHOT.md`, `package.xml` (0.196.1),
+  diese Datei.
+
+### AKZEPTANZKRITERIUM
+G550 → „Maschine verfahren“ → Y +510 und X jeweils −400/+400: X-Sattel und Hubschlitten
+bleiben mit mehr als 1 mm Abstand voneinander getrennt.
+
+### DONE / TEST
+- Sattelboden von 1.800 auf 1.150 mm verkürzt, vor den Tischbereich; unveränderte
+  Achsenanordnung, Aufnahmeorte und Verfahrwege. Beide gespeicherten Beispiele erneuert.
+- Neue Gegenprobe mit echten Formen für Hubplatte, Tragarm und A-Lager bei X ±400/Y +510;
+  `test_beispielmaschine` und `test_umgebung` in FreeCAD 1.1.4 grün, eigenes geprüftes Profil.
+- Derselbe Freiformjob besteht danach die genaue Modellkollision einschließlich Schruppen,
+  Schlichten, Aufspannung und Eilgang durch Rohteil. Es sind Beispielmaße, keine vermessene G550.
+
+### NEXT
+- Simultanvergleich als getrennte Änderung abschließen; lokal committen, kein Push beauftragt.
+
 ## P-2026-10-06-05 grob-g550-simultanbeispiel
 
 ### EINGELESEN

@@ -22,6 +22,11 @@ Die Hubplatte lässt unter sich Platz für den vollständigen Y-Weg: Bei Y = +51
 bleibt ihre Unterkante 90 mm über dem Bett. Das gespeicherte Beispiel und die Vorlage
 verwenden dieselbe korrigierte Form (P-2026-10-06-04).
 
+Der X-Sattelboden endet nach 1.150 mm vor dem Tischbereich. Die frühere 1.800-mm-Platte
+ragte bei tiefem Y und seitlichem X unter das A-Lager; der komplexe Freiformversuch fand
+diese Modellkollision. Endstellungen X ±400/Y +510 bleiben jetzt zwischen X-Sattel und
+Hubplatte/Tragarm/A-Lager frei (P-2026-10-07-01). Die Kinematik und ihre Wege bleiben gleich.
+
 **Akzeptanzkriterium:** „Neue Maschine …“ → GROB G550 → Bauen → „Maschine verfahren“:
 X bewegt die Spindel seitlich, Z vor/zurück, Y den Tisch hoch/runter und A/B schwenken bzw.
 drehen den Tisch innerhalb der eingetragenen Grenzen; Manuel versteht die Auswahl ohne Erklärung.
