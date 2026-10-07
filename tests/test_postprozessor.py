@@ -639,6 +639,39 @@ for kennung in ("siemens", "linuxcnc"):
         f"{kennung}: M5 nach M5: {z[-6:]}",
     )
 
+# Fein geprüfte Simultanbahnen: lineare und Moduloachsen nicht auf drei Stellen runden;
+# die Glättung muss innerhalb des reservierten Qualitätsbudgets bleiben.
+fein = pp.Abschnitt(
+    "Fein",
+    1,
+    2000,
+    False,
+    befehle=[
+        C("G0", {"X": 0.0, "Z": 10.0, "C": 0.0}),
+        C("G1", {"X": 1.1234564, "Z": 9.9999994, "C": 0.0000006, "F": 5.0}),
+    ],
+    koordinatenstellen=6,
+)
+feines_programm = pp.programm(
+    [fein],
+    pp.steuerung("siemens"),
+    pp.Maschineninfo("Fräse", rundachsen={"C": "C4"}, modulo={"C"}),
+)
+pruefe(
+    any("X1.123456" in z and "C4=ACP(0.000001)" in z for z in feines_programm.zeilen),
+    "Feine Koordinaten oder kleine Moduloachsfahrt verloren",
+)
+pruefe("CTOL=0.000100" in feines_programm.zeilen, "Zu große Glättung der geprüften Bahn")
+feiner_klartext = pp.programm([fein], pp.steuerung("heidenhain"), pp.Maschineninfo("Fräse"))
+pruefe(
+    any("X+1.123456" in z and "C+0.000001" in z for z in feiner_klartext.zeilen),
+    "Klartext hat die feine Bahn erneut gerundet",
+)
+pruefe(
+    any("CYCL DEF 32.1 T0.000100" in z for z in feiner_klartext.zeilen),
+    "Zu große Klartext-Glättung der geprüften Bahn",
+)
+
 if fehler:
     raise AssertionError("\n".join(fehler))
 print()

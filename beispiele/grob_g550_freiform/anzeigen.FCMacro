@@ -129,6 +129,7 @@ def laden():
         for obj in job.Model.Group:
             obj.Visibility = True
         App.setActiveDocument(doc.Name)
+        fenster.setActiveWindow(Gui.getDocument(doc.Name).mdiViewsOfType("Gui::View3DInventor")[0])
         if os.environ.get("CAMADDON_GROB_SPEICHERN") == "1":
             doc.save()
         Gui.Selection.clearSelection()
@@ -177,6 +178,7 @@ def pruefen():
         Gui.getDocument(panel.assembly.Document.Name).activeView().viewIsometric()
         panel.abspieler.knopf_hinsehen.click()
         App.setActiveDocument(panel.assembly.Document.Name)
+        fenster.setActiveWindow(Gui.getDocument(md.Name).mdiViewsOfType("Gui::View3DInventor")[0])
         Gui.getDocument(panel.assembly.Document.Name).activeView().fitAll()
         Gui.updateGui()
         Gui.getDocument(md.Name).activeView().saveImage(
@@ -188,7 +190,7 @@ def pruefen():
 
 
 def bild():
-    """Speichert die Ansicht, prüft den Bildschirm und startet den Abspieler."""
+    """Speichert die Ansicht und prüft den Bildschirm; die Fahrt bleibt zum Ansehen stehen."""
     try:
         from camaddon import gui_reichweite
 
@@ -209,7 +211,7 @@ def bild():
                 indent=2,
             )
         )
-        panel.abspieler.umschalten()
+        panel.abspieler.anhalten()
     except Exception:
         fehler()
 

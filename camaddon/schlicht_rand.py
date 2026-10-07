@@ -17,16 +17,38 @@ from .sprache import tr
 SCHRITT = 0.2
 
 
-def ergaenzen(bahn, form, namen, radius, aufmass, sicher, oben, sicherheit, vorschub, eintauchen):
+def ergaenzen(
+    bahn,
+    form,
+    namen,
+    radius,
+    aufmass,
+    sicher,
+    oben,
+    sicherheit,
+    vorschub,
+    eintauchen,
+    schritt=SCHRITT,
+):
     """Randzüge ergänzen; Spitze senkrecht gespeichert, die Kugelmitte exakt am Rand."""
     punkte = list(bahn.punkte)
     for name in namen:
         face = form.getElement(name)
         for wire in face.Wires:
             zug = []
+            letzter_rand = None
             for edge in wire.OrderedEdges:
-                anzahl = max(2, int(math.ceil(edge.Length / SCHRITT)) + 1)
-                for p in edge.discretize(Number=anzahl):
+                if edge.Length < 1e-9:
+                    continue  # analytische Kugelflächen haben am Pol eine entartete Kante
+                anzahl = max(2, int(math.ceil(edge.Length / schritt)) + 1)
+                orte = edge.discretize(Number=anzahl)
+                # discretize folgt der Kurvenparametrisierung, nicht der Orientierung
+                # im Draht. Sonst verbinden Geraden gegenüberliegende Randpunkte.
+                if edge.Orientation == "Reversed":
+                    orte.reverse()
+                if letzter_rand is not None and (orte[0] - letzter_rand).Length > 1e-5:
+                    raise ValueError(tr("s5p.fehler.rand"))
+                for p in orte:
                     u, v = face.Surface.parameter(p)
                     n = face.normalAt(u, v)
                     if n.z < 0:
@@ -43,6 +65,7 @@ def ergaenzen(bahn, form, namen, radius, aufmass, sicher, oben, sicherheit, vors
                     punkt = bn.Punkt(False, mitte.x, mitte.y, mitte.z - radius)
                     if not zug or bn.weg(zug[-1], punkt) > 1e-6:
                         zug.append(punkt)
+                letzter_rand = orte[-1]
             if len(zug) < 2:
                 continue
             erster = zug[0]

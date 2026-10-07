@@ -610,6 +610,7 @@ class Abschnitt:
     # An der Stirnseite (stirnseite.ist_stirn): (Modus, sichere Höhe) – an der Drehmaschine mit
     # C rechnet das Programm sie um (stirnseite.befehle).
     stirn: tuple = ()
+    koordinatenstellen: int = STELLEN  # fein geprüfte Simultanbahnen reservieren 6 Stellen
 
 
 @dataclass
@@ -865,18 +866,18 @@ def _rohteil_befehl(s, info, rohteil, abschnitte):
     return _fuellen(s.rohteil_fraesen, **{k: _zahl(v) for k, v in werte.items()})
 
 
-def _modulo_wort(s, adresse, wert, davor):
+def _modulo_wort(s, adresse, wert, davor, stellen=STELLEN):
     """„C4=ACN(270.000)“ – eine Moduloachse: die Position im Bereich 0 … unter 360°, die Vorlage
     nach der Drehrichtung der Bahn (`davor`: der fortlaufende Winkel davor; ohne: positiv)."""
-    zahl = _modulo_zahl(wert)
+    zahl = _modulo_zahl(wert, stellen)
     vorlage = s.rundachse_minus if davor is not None and wert < davor else s.rundachse_plus
     return f"{adresse}={_fuellen(vorlage, wert=zahl)}"
 
 
-def _modulo_zahl(wert):
+def _modulo_zahl(wert, stellen=STELLEN):
     """Die Position einer Moduloachse, wie sie im Programm steht: 0 … unter 360°."""
-    zahl = _zahl(wert % 360.0)
-    return _zahl(0.0) if float(zahl) >= 360.0 else zahl  # gerundet genau eine Umdrehung: 0
+    zahl = _zahl(wert % 360.0, stellen)
+    return _zahl(0.0, stellen) if float(zahl) >= 360.0 else zahl  # gerundet genau eine Umdrehung: 0
 
 
 def _rund_umdrehen(abschnitt, info):
@@ -928,12 +929,16 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
     Klartext (Heidenhain): `datei` gibt den Namen im BEGIN/END PGM (wie die Datei, sonst `name`),
     `rohteil` ((xmin, ymin, zmin), (xmax, ymax, zmax)) das BLK FORM."""
     info = info or Maschineninfo()
+    koordinatenstellen = max((a.koordinatenstellen for a in abschnitte), default=STELLEN)
+    if koordinatenstellen > STELLEN:
+        # Fein geprüfte Bahnen haben nur einen kleinen Vorrat für die Steuerungsglättung.
+        s = s.ersetzt(toleranz=min(s.toleranz, 0.0001))
     zeilen, hinweise = [], []
     if s.dialekt == "klartext":
         if info.drehmaschine:
             hinweise.append(tr("pp.hinweis.klartext_drehen"))
         s = s.ersetzt(g93=False, satznummern=False)
-        fertig = _klartext_fertig(s, name, datei, rohteil, hinweise)
+        fertig = _klartext_fertig(s, name, datei, rohteil, hinweise, koordinatenstellen)
     else:
 
         def fertig(zeilen_, saetze_):
@@ -953,7 +958,9 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
     if s.rohteil and rohteil is not None:
         zeilen.extend(_zeilen(_rohteil_befehl(s, info, rohteil, abschnitte)))
     for glaetten in s.glaetten_an():
-        zeilen.extend(_zeilen(_fuellen(glaetten.befehl, toleranz=_zahl(s.toleranz))))
+        zeilen.extend(
+            _zeilen(_fuellen(glaetten.befehl, toleranz=_zahl(s.toleranz, koordinatenstellen)))
+        )
         if glaetten.option:
             hinweise.append(tr("pp.hinweis.option", befehl=glaetten.befehl.split("\n")[0]))
     if not info.name:
@@ -977,6 +984,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
     zyklus = bool(s.schwenkzyklus and s.schwenken)
     laenge_offen = ""  # die Werkzeuglänge – kommt in den ersten Satz nach dem Wechsel mit Z
     for nummer_ab, abschnitt in enumerate(abschnitte):
+        stellen = abschnitt.koordinatenstellen
         # Jede Bearbeitung ein vollständiger Einstieg hinter ihrer Marke (D-4): Wechselpunkt,
         # Werkzeug, Spindel, Kühlung und Ebene neu – auch mit demselben Werkzeug wie davor.
         einstieg = bool(s.marken and abschnitt.werkzeug and not abschnitt.messstopp)
@@ -1212,14 +1220,16 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                     if (
                         vorher is not None
                         and abs(wert - vorher) < 180.0
-                        and _modulo_zahl(wert) == _modulo_zahl(vorher)
+                        and _modulo_zahl(wert, stellen) == _modulo_zahl(vorher, stellen)
                     ):
                         # Dieselbe Position: nicht schreiben. „ACP“ zur Stelle, an der die Achse
                         # schon steht, fährt nicht – aber ein Rundungsrest unter der letzten
                         # Stelle hieße sonst, gelesen wie eine Steuerung, eine ganze Umdrehung.
                         continue
                     woerter.append(
-                        _modulo_wort(s, _adresse(s, adresse, info), wert, davor.get(adresse))
+                        _modulo_wort(
+                            s, _adresse(s, adresse, info), wert, davor.get(adresse), stellen
+                        )
                     )
                     # Im Eilgang ist die Richtung gleich – im Vorschub (G93: die Zeit des Satzes)
                     # führe ACP/ACN weniger als die Bahn.
@@ -1228,7 +1238,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
                         gesehen.add("modulo_weit")
                         hinweise.append(tr("pp.hinweis.modulo_weit", achse=adresse))
                     continue
-                woerter.append(_wort(s, _adresse(s, adresse, info), _zahl(wert)))
+                woerter.append(_wort(s, _adresse(s, adresse, info), _zahl(wert, stellen)))
             zeile = " ".join(woerter)
             if gross in ("G0", "G00") and zeilen and zeilen[-1] == zeile:
                 continue  # derselbe Eilgang noch einmal (absolut): nichts zu fahren
@@ -1255,7 +1265,7 @@ def programm(abschnitte, s, info=None, name="", vorschau=None, datei="", rohteil
     return fertig(zeilen, saetze)
 
 
-def _klartext_fertig(s, name, datei, rohteil, hinweise):
+def _klartext_fertig(s, name, datei, rohteil, hinweise, stellen=STELLEN):
     """Für Klartext: eine Funktion, die die Zeilen übersetzt (klartext.uebersetzen) und das
     Programm gibt – mit BEGIN/END PGM wie die Datei, BLK FORM aus dem Rohteil."""
     import os
@@ -1266,7 +1276,7 @@ def _klartext_fertig(s, name, datei, rohteil, hinweise):
     pgm = os.path.splitext(os.path.basename(datei))[0] if datei else name
 
     def fertig(zeilen, saetze):
-        uebersetzt = kt.uebersetzen(zeilen, pgm, rohteil, aktuelle_sprache() == "de")
+        uebersetzt = kt.uebersetzen(zeilen, pgm, rohteil, aktuelle_sprache() == "de", stellen)
         for art, wert in uebersetzt.hinweise:
             if art == "schrauben":
                 hinweise.append(tr("pp.hinweis.klartext_schrauben", anzahl=wert))
@@ -1534,6 +1544,7 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 ruesten,
                 (rundachse, int(drehsinn)) if rundum else (),
                 stirn,
+                koordinatenstellen=6 if float(getattr(op, "BahnGrathoehe", 0.0)) > 0 else STELLEN,
             )
         )
     return ergebnis

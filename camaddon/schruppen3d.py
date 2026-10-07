@@ -89,6 +89,7 @@ class Schruppen3D(PathOp.ObjectOp):
             ("App::PropertyLength", "DurchmesserDavor", tr("r3.eigenschaft.davor")),
             ("App::PropertyLength", "EckenradiusDavor", tr("r3.eigenschaft.eckenradius_davor")),
             ("App::PropertyString", "Materialstand", tr("ms.eigenschaft.materialstand")),
+            ("App::PropertyBool", "Rampenanlauf", tr("s5p.eigenschaft.rampen")),
         ):
             if name not in obj.PropertiesList:
                 obj.addProperty(typ, name, GRUPPE, text)
@@ -120,7 +121,12 @@ class Schruppen3D(PathOp.ObjectOp):
         )
         # Im Freien mit dem Freivorschub, kurz vor dem Material langsam (freiwege, Manuel
         # 2026-10-04: „gib Gas bis kurz davor … bei allen Strategien“).
-        punkte, _schnell = fw.fuer_operation(self.job, obj, ergebnis.punkte, self.horizFeed * 60.0)
+        if obj.Rampenanlauf:
+            punkte = ergebnis.punkte
+        else:
+            punkte, _schnell = fw.fuer_operation(
+                self.job, obj, ergebnis.punkte, self.horizFeed * 60.0
+            )
         self.commandlist.extend(
             bn.befehle(punkte, self.horizFeed * 60.0, vo.eintauchvorschub(self))
         )
@@ -137,7 +143,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     stand = mst.fuer(job, vor=obj)
     if "Materialstand" in obj.PropertiesList:
         obj.Materialstand = mst.kennung_vor(job, obj)
-    return bahn_fuer(
+    bahn = bahn_fuer(
         job,
         modell,
         form,
@@ -157,6 +163,11 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         davor=form_davor(obj),
         stand=stand,
     )
+    if getattr(obj, "Rampenanlauf", False):
+        from . import schlicht_anlauf
+
+        schlicht_anlauf.ergaenzen(bahn, job, obj, form.radius, vorschub, eintauchen)
+    return bahn
 
 
 def form_davor(obj):

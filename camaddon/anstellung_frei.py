@@ -37,7 +37,9 @@ def richtungen(normalen, winkel=an.WINKEL):
     return ergebnis
 
 
-def achsen(befehle, form, radius, aufmass=0.0, winkel=an.WINKEL, normalen_cache=None):
+def achsen(
+    befehle, form, radius, aufmass=0.0, winkel=an.WINKEL, normalen_cache=None, fortschritt=None
+):
     """Werkzeugachsen je Satz; Eilgänge heben mit der bisherigen Richtung ab."""
     stellen, stand = [], [None, None, None]
     for i, befehl in enumerate(befehle):
@@ -52,7 +54,14 @@ def achsen(befehle, form, radius, aufmass=0.0, winkel=an.WINKEL, normalen_cache=
             stellen.append((i, tuple(stand), name in an.EILGANG))
     schnitte = [s for s in stellen if not s[2]]
     normalen = an.vorausblick(
-        an.normalen(form, [p for _i, p, _e in schnitte], radius, aufmass, cache=normalen_cache)
+        an.normalen(
+            form,
+            [p for _i, p, _e in schnitte],
+            radius,
+            aufmass,
+            cache=normalen_cache,
+            fortschritt=fortschritt,
+        )
     )
     # Ein kleiner Winkelvorrat für die Interpolation zwischen Kontaktpunkten.
     je_satz = dict(

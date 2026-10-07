@@ -18,6 +18,8 @@ zugleich ihre Art für „Schnittwerte in den Job“ (job_schnittwerte.operation
 Läuft ohne Oberfläche.
 """
 
+from dataclasses import replace
+
 import FreeCAD
 import Path
 import Path.Op.Base as PathOp
@@ -117,6 +119,7 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyAngle", "Winkel", tr("s3.eigenschaft.winkel")),
             ("App::PropertyBool", "Einseitig", tr("s3.eigenschaft.einseitig")),
             ("App::PropertyBool", "Randgang", tr("s5p.eigenschaft.randgang")),
+            ("App::PropertyLength", "BahnGrathoehe", tr("s5p.eigenschaft.bahngrat")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyInteger", "Zeilen", tr("s3.eigenschaft.zeilen")),
             ("App::PropertyInteger", "Hoehenlinien", tr("s3.eigenschaft.hoehenlinien")),
@@ -148,6 +151,7 @@ class Schlichten3D(PathOp.ObjectOp):
         for name in ("Zeilen", "Hoehenlinien", "Umlaeufe", "Abstand"):
             obj.setEditorMode(name, 1)  # nur lesen: das Ergebnis
         obj.setEditorMode("Werkzeugachsen", 2)  # gerechnet, je Satz – nicht zum Ansehen
+        obj.setEditorMode("BahnGrathoehe", 2)  # vom geprüften Vergleich, Ziel bleibt Grathoehe
 
     def execute(self, obj):
         """Wie jede Operation – mit `Anstellen` danach je Satz der fertigen Bahn die
@@ -248,11 +252,13 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     form = vs.form_des_controllers(obj.ToolController)
     if form is None:
         raise ValueError(tr("s3.fehler.form"))
+    fein = float(getattr(obj, "BahnGrathoehe", 0.0))
+    weiter = {"schritt": 0.1, "raster": 0.1, "toleranz": 0.001} if fein > 0 else {}
     bahn = bahn_fuer(
         job,
         modell,
         form,
-        float(obj.Grathoehe),
+        min(float(obj.Grathoehe), fein) if fein > 0 else float(obj.Grathoehe),
         vo.flaechen(obj),
         aufmass=float(obj.Aufmass),
         richtung=str(obj.Richtung),
@@ -266,6 +272,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         eintauchen=eintauchen,
         davor=form_davor(obj),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
+        **weiter,
     )
     if getattr(obj, "Randgang", False):
         from . import schlicht_rand
@@ -283,7 +290,16 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
             float(obj.Sicherheitsabstand),
             vorschub,
             eintauchen,
+            schritt=0.05 if fein > 0 else schlicht_rand.SCHRITT,
         )
+    if fein > 0:
+        # Ein Teil des Qualitätsbudgets bleibt für Vernetzung, Sehnen und Achsinterpolation.
+        # Diese Anhebung ist kein erlaubter Einschnitt; der unabhängige Prüfer muss die
+        # gesamte fertige Bahn gegen BRep und Grathöhe bestehen lassen.
+        bahn.punkte = [replace(p, z=p.z + 0.004) for p in bahn.punkte]
+        from . import schlicht_anlauf
+
+        schlicht_anlauf.ergaenzen(bahn, job, obj, form.radius, vorschub, eintauchen)
     return bahn
 
 

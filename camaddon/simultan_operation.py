@@ -45,6 +45,10 @@ def befehle(op, maschine, tcpm=False, bei_null=False):
     from . import entgraten3d as e3op
     from . import flanke as fl
 
+    cache = getattr(op, "_pruefprogramm", None)
+    if cache is not None and cache[0] == pruefschluessel(maschine, tcpm, bei_null):
+        return list(cache[1])
+
     if len(getattr(maschine, "rundachsen", ())) < 2:
         if senkrecht_moeglich(op):
             return list(op.Path.Commands)
@@ -54,3 +58,24 @@ def befehle(op, maschine, tcpm=False, bei_null=False):
     if e3op.ist_entgraten3d(op):
         return e3op.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)
     return fl.befehle(op, maschine, tcpm=tcpm, bei_null=bei_null)
+
+
+def pruefschluessel(maschine, tcpm=False, bei_null=False):
+    """Schlüssel eines nur in der unveränderten Variantenansicht gespeicherten Programms.
+
+    Erreichbarkeit und Abfahrt lesen dasselbe Programm; die inverse Kinematik muss
+    dafür nicht dreimal gerechnet werden. Reale CAM-Objekte bekommen diesen Cache
+    nicht. Werkzeugaufnahme, Einspannung und Nullpunkt sind Teil des Schlüssels.
+    """
+    from . import reichweite as rw
+
+    einspannung = rw._einspannung(maschine.laenge)
+    return (
+        id(maschine.pruefung),
+        maschine.aufnahme.Name,
+        einspannung.laenge,
+        repr(einspannung.lage),
+        tuple(maschine.nullpunkt),
+        tcpm,
+        bei_null,
+    )

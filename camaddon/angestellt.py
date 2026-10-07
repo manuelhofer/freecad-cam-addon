@@ -137,7 +137,7 @@ def neigungen(wege, verbote, aenderung=AENDERUNG):
     return ergebnis
 
 
-def normalen(form, spitzen, radius, aufmass=0.0, kontakt=KONTAKT, cache=None):
+def normalen(form, spitzen, radius, aufmass=0.0, kontakt=KONTAKT, cache=None, fortschritt=None):
     """[(x, y, z) oder None] – je Spitze der Kugel (senkrecht, Radius `radius`) die Normale der
     Fläche, wo sie das Teil `form` berührt; None, wo sie es nicht berührt (mehr als `kontakt`
     weg – über dem Teil). `aufmass`: so viel bleibt stehen, die Kugel berührt um es weiter
@@ -146,7 +146,9 @@ def normalen(form, spitzen, radius, aufmass=0.0, kontakt=KONTAKT, cache=None):
 
     ergebnis = []
     cache = {} if cache is None else cache
-    for x, y, z in spitzen:
+    for i, (x, y, z) in enumerate(spitzen):
+        if fortschritt is not None and i % 256 == 0 and not fortschritt(i / max(1, len(spitzen))):
+            raise ValueError(tr("s5p.fehler.unvollstaendig"))
         key = (radius, aufmass, kontakt, round(x, 9), round(y, 9), round(z, 9))
         if key in cache:
             ergebnis.append(cache[key])
@@ -190,6 +192,7 @@ def achsen(
     aenderung=AENDERUNG,
     vorausschau=False,
     normalen_cache=None,
+    fortschritt=None,
 ):
     """[(x, y, z)] je Befehl (Path.Command, senkrecht gerechnet): die Werkzeugachse im Job –
     KEINE bei einem Satz ohne Bewegung. Im Vorschub aus der Fläche am Berührpunkt (verboten,
@@ -198,7 +201,9 @@ def achsen(
     if um == "frei":
         from . import anstellung_frei
 
-        return anstellung_frei.achsen(befehle, form, radius, aufmass, winkel, normalen_cache)
+        return anstellung_frei.achsen(
+            befehle, form, radius, aufmass, winkel, normalen_cache, fortschritt
+        )
     stellen = []  # (Index des Befehls, Punkt, Eilgang)
     stand = [None, None, None]
     for i, befehl in enumerate(befehle):
@@ -210,7 +215,14 @@ def achsen(
         if None not in stand:
             stellen.append((i, tuple(stand), name in EILGANG))
     vorschub = [s for s in stellen if not s[2]]
-    flaeche = normalen(form, [p for _i, p, _e in vorschub], radius, aufmass, cache=normalen_cache)
+    flaeche = normalen(
+        form,
+        [p for _i, p, _e in vorschub],
+        radius,
+        aufmass,
+        cache=normalen_cache,
+        fortschritt=fortschritt,
+    )
     if vorausschau:
         flaeche = vorausblick(flaeche)
     wege, davor = [], None
@@ -334,7 +346,17 @@ def befehle(op, maschine, rohteil=None, tcpm=False, bei_null=False):
     punkte_ = punkte(alle, achsen_je_satz, radius)
     if tcpm:
         return si.befehle_mit_tcpm(maschine, punkte_, rohteil, radius, bei_null=bei_null)
-    return si.befehle_auf_maschine(maschine, punkte_, rohteil, radius)
+    toleranz = (
+        min(si.TOLERANZ, 0.00025) if float(getattr(op, "BahnGrathoehe", 0.0)) > 0 else si.TOLERANZ
+    )
+    return si.befehle_auf_maschine(
+        maschine,
+        punkte_,
+        rohteil,
+        radius,
+        toleranz=toleranz,
+        materialdaten=getattr(op, "_pruefmaterial", None),
+    )
 
 
 def rohteil_von(op):

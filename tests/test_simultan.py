@@ -78,6 +78,28 @@ for bauplan in (
     p = rw.Pruefung(asm, ma)
     tc = op.ToolController
     maschine = sw.Maschine(p, p.werkzeugaufnahme(tc.ToolNumber), rw.einspannung(tc, None), null)
+    # Beim G93-Umschreiben darf eine ursprüngliche Freifahrt nicht als Schnitt gelten.
+    materialdaten = []
+    probe = [
+        si.Punkt(kippen[0].spitze, kippen[0].achse, eilgang=True),
+        si.Punkt(kippen[10].spitze, kippen[10].achse, eilgang=True),
+        si.Punkt(kippen[11].spitze, kippen[11].achse, vorschub=30.0),
+    ]
+    markiert = si.programm_ohne_tcpm(maschine, probe, g93=True, materialdaten=materialdaten)
+    unveraendert = si.programm_ohne_tcpm(maschine, probe, g93=True)
+    pruefe(
+        [c.toGCode() for c in markiert] == [c.toGCode() for c in unveraendert],
+        "Materialdaten ändern NC-Befehle",
+    )
+    pruefe(len(markiert) == len(materialdaten), "Materialdaten passen nicht zu NC-Sätzen")
+    pruefe(
+        any(c.Name == "G1" and daten[0] for c, daten in zip(markiert, materialdaten, strict=True)),
+        "Umgeschriebener Eilgang nicht erhalten",
+    )
+    pruefe(
+        any(not eil and feed == 30.0 for eil, feed in materialdaten),
+        "Schnittvorschub nicht erhalten",
+    )
     for bahn_name, bahn in (("kippen", kippen), ("Kegel", kegel)):
         try:
             rund = si.rundachsen_entlang(maschine, [b.achse for b in bahn])

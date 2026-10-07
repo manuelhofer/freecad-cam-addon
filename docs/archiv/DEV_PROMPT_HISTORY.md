@@ -12,6 +12,130 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-07-03 simultan-material-und-referenz-pruefen
+
+### EINGELESEN
+- Manuel fordert die geltenden Prüfkriterien, Weiterarbeit bis zum Abschluss und ausdrücklich
+  sämtliche Speed-/Zeitprüfungen, besonders die goldene Bahn. CHATSTART, Arbeitsregeln,
+  Snapshot, Strategienspezifikation 7/8/9/16 und vorhandene Material-, Bahn-, Kinematik-,
+  Kollisions-, Zeit-, Postprozessor- und Referenzprüfungen.
+- P-2026-10-07-02 prüfte 19 × 19 Oberflächenpunkte mit 0,05 mm zusätzlicher Toleranz;
+  das belegte weder die verlangten 0,02 mm noch einen vollständig sinnvollen Abtrag.
+  Qualitätskorrektur vor Implementierung in Spezifikation 16.6 beschrieben, Dialogskizze
+  aus 16.5 bleibt mit „Restgrenze“ und „Material und Modellkollision geprüft“ erhalten.
+- FreeCAD bietet keine passende vollständige Materialzulassung des angestellten Kugelfräsers
+  über die vorhandene Kollisionsprüfung. Keine doppelte Bahnerzeugung: vorhandene Richtungen
+  verwenden und unabhängig nachprüfen. Versionsprüfung 1.1.4 bereits P-2026-10-02-85.
+
+### DATEIEN
+- `camaddon/simultan_abtrag.py`, `schlicht_anlauf.py` (neu), `simultan_planung.py`,
+  `simultan.py`, `simultan_operation.py`, `angestellt.py`, `anstellung_frei.py`,
+  `schlicht_rand.py`, `schlichten3d.py`, `schruppen3d.py`, `postprozessor.py`, `klartext.py`;
+  `tests/test_simultan_abtrag.py`, `tests/gui/szenario_simultan_planung.py` (neu),
+  `tests/test_simultan.py`, `tests/test_simultan_planung.py`, `tests/test_simultan_nc.py`,
+  `tests/test_postprozessor.py`, neue Freiform- und NC-Referenzen;
+  `beispiele/grob_g550_freiform/` mit neuem Prüfer und Siemens-Programm, Hilfe DE/EN,
+  Übersetzungen DE/EN, Aufbau, Spezifikation, Snapshot, `package.xml` (0.198.0), diese Datei.
+
+### AKZEPTANZKRITERIUM
+Freiformjob wählen → „5-Achs-Schlichten vergleichen“ → nur eine Variante ohne Abtrags-,
+Oberflächen-, Eintritts-, Last- oder Kollisionsbefund übernehmen, dabei die verlangte
+Grathöhe ohne zusätzliche Toleranz einhalten und Rückgängig erhalten.
+
+### DONE
+- Unabhängiger Quader-Materialstand ab dem Rohteil mit wirklicher Vorbearbeitung;
+  analytische kontinuierliche Kugel- und senkrechte Schaft-Sweeps, Einsatzgrenzen aus
+  der Werkzeugverwaltung, Eintritt, Rampenwinkel, Last über 3 mm, Eilgang/Freivorschub,
+  Luftquote und vollständige Züge ohne Abtrag. Nicht darstellbare Rohteile, Vorbearbeitungen,
+  Hinterschnitte und fehlende Einsatzwerte abweisen; Schlichten muss letzter aktiver Schritt sein.
+- Ganze Flächendreiecke mit konservativen Kugelkapseln prüfen; Zellen an Überlappungen
+  unterteilen, nie eine ungeklärte Zelle als bedeckt werten. Unabhängige Vernetzungsreserve
+  verbraucht Qualitätsbudget. Genauer BRep-Abstand der ganzen Schnittstrecken auch für
+  Einschnitte zwischen Materialstrahlen. Tatsächliche Vorwärtskinematik und Zwischenstellungen
+  der NC-Sätze nachfahren, einschließlich An-/Abfahren, Kontaktwinkel und Rundachsenfahrt.
+- Ursprung von Eilgang und Freivorschub nach der NC-Verdichtung mitführen: ein drehender
+  Eilgang bleibt für die Materialprüfung ein Eilgang, obwohl die Ausgabe G1/G93 verwendet.
+  Die optionale Zusatzliste verändert die ausgegebenen Maschinenbefehle nicht.
+- NC-Ausgabe fein geprüfter Bahnen mit sechs Koordinatenstellen, auch an Moduloachsen
+  und durch den Klartext-Übersetzer;
+  Steuerungsglättung höchstens 0,0001 mm. 0,00011 mm vom Qualitätsbudget zusätzlich
+  reservieren, statt nach der Prüfung Rundung/Glättung ungeprüft aufzuschlagen. Vorherige
+  Ausgabe mit drei Stellen ließ im Beispiel 0,0019 mm Einschnitt und sechs offene Zellen.
+  Eigener Rücklesetest für tatsächlich ausgeschriebene Achsnamen, Vorzeichen und ACP/ACN,
+  Material, BRep-Abstand, nachgelesene Sätze und Hash des vollständigen NC-Texts.
+- Beim geprüften Schlichten feiner rechnen, Qualitätsreserve und Rampenanlauf auf der
+  Hüllbahn. Beispiel-Schruppen fährt mit optionalem `Rampenanlauf` und 2,5° ins Material
+  (Werkzeug erlaubt 3°); alte Jobs ohne Haken behalten ihre Bahn. Leere Schruppzüge entfernen,
+  Freivorschub nur im nachgewiesenen Freien bzw. bereits geschnittenen Rampenabschnitt.
+- Maschinenprogramm nur in unveränderten Python-Varianten zwischenspeichern: Erreichbarkeit,
+  Abfahrt und Kollision müssen die inverse Kinematik nicht dreimal rechnen. Kein Cache am
+  echten CAM-Objekt. Beim Übernehmen nachrechnen und Punkte, Achsen, Vorschubart und Feed
+  gegen die geprüfte Variante vergleichen; Abweichung bricht die Transaktion ab.
+- Eingabeschutz umfasst Modell, Rohteil, Vorbahnen, Maschine und Werkzeug-/Halterbibliothek.
+  Geometriefingerabdruck ignoriert nur Anzeige-Netze und OCCTs veränderliches Checked-Bit;
+  echte Geometrie und Lage bleiben geschützt. Help/Fehlertexte in DE/EN ergänzt.
+- Komplexen Beispieljob, vollständigen Variantenbericht und nachgelesenes Siemens-Programm
+  neu gespeichert. Goldene Punkte/Achsen/Eilgang und NC-Sätze mit sechs Nachkommastellen,
+  Zeitbestmarke +0,5 %, Rechenzeit und Python-Spitzenspeicher jeweils ×2; die Referenz wird
+  erst nach Qualitäts-, Übernahme-, Rückgängig- und Veraltet-Prüfungen geschrieben.
+
+### TEST
+- FreeCAD 1.1.4, vorher angelegte und im Prozess überprüfte eigene Profile, Speicherdeckel
+  16 GB, Ein-Kern-BLAS für reproduzierbare Laufzeiten. Persönliche Werkzeugdatei per SHA256
+  unverändert; T-008 aus dem vorherigen Arbeitsstand bleibt offen.
+- Vollvergleich aller 45 Varianten: nur Kugel Ø 4/entlang der Fläche/frei erreicht hier die
+  Qualitätszulassung. 682,8439 s ganzer Job, Restgrenze 0,0169394 mm bei 0,02 mm, 550.457
+  gedeckte Flächenzellen, mindestens 16,8156° Kontaktwinkel, Schlichtlast 2,75587 mm² unter
+  7,5 mm². Verfahrgrenzen, Modellkollision und 1 mm Warnabstand ohne Befund. Siemens:
+  damals 54.085 nachgelesene Bewegungen, keine NC-Befunde. Vollvergleich/Prüfung/Export 1.214,62 s,
+  nativer Prozess-Spitzenspeicher 3.738,28 MiB. Der frühere X-Sieger ist wegen fehlender
+  vollständiger Flächenabdeckung ersetzt, keine ungültige Zeitbestmarke fortgeschrieben.
+- Erste vollständige Referenzprüfung grün: 41.135 Punkte und 41.463 Maschinenbefehle,
+  feinere Materialprüfung mit 0,05 mm und Restabweichung unter 0,002 mm; Neu-Rechnung,
+  Rückgängig und geänderte Eingaben geprüft. Instrumentierter Vergleich 1.220,90 s,
+  Python-Spitzenspeicher 401,89 MiB; gesamter Referenzprozess 1.438,71 s/4.019,18 MiB nativ.
+- Referenz-Gegenprüfung ohne Schreibflag und mit Speicherinstrumentierung grün:
+  unveränderte Punkte/Achsen/NC-Sätze und Maschinenzeit, 1.242,78 s unter 2.441,79 s Budget,
+  401,884 MiB unter 803,774 MiB Budget. Gesamter Prozess 1.464,57 s/4.371,19 MiB nativ.
+- Abschließende Referenz-Gegenprüfung mit NC-Reserve ohne Schreibflag grün, 754,81 s;
+  erneut feinere Materialprüfung, Neu-Rechnung, Rückgängig und geänderte Eingaben bestanden.
+  Siemens-Textreferenz mit sechs Stellen geschrieben und anschließend ohne Schreibflag
+  grün verglichen: 54.082 Bewegungen, kein NC-Befund, 550.457 gedeckte Zellen,
+  Rest einschließlich Netz-/NC-Reserve 0,0170499 mm, BRep-Abstandsuntergrenze 0,0003827 mm.
+  `test_postprozessor` einschließlich alter Ausgaben, kleiner Moduloachsfahrt und erhaltener
+  Klartext-Genauigkeit/Glättung grün.
+- Gegenproben grün: analytischer Sweep gegen 20.001 unabhängige Kugelstellungen, waagerechter
+  Schaft-Sweep, Lücke innerhalb einer Zelle trotz gedeckter Ecken, 0,01-mm-Zapfen zwischen
+  Strahlen, umgekehrte OCC-Randkante, Eilgang, Freivorschub, senkrechter Eintritt, zu steile
+  Rampe, Last, Luftquote und kurzer kompletter Luftzug; Geometrie-/Lageänderung erkannt,
+  bloßer Darstellungsnetzaufbau bleibt zulässig. `test_simultan` belegt gleiche NC-Sätze mit
+  und ohne Zusatzdaten auf Tisch/Tisch, Kopf/Tisch und Kopf/Kopf.
+- `test_schruppen3d`, `test_schlichten3d`, `test_angestellt`, bestehende vier goldene Bahnen,
+  `test_sprache`, `test_hilfe` grün. Native Werkzeug-Sketch-Erzeugung meldet beim Aufbau in
+  einzelnen bestehenden Tests vorübergehende Solverdiagnostik; deren Assertions bestehen.
+  Black und Ruff ohne Befund. Kein unnötiger erneuter Voll-/Versionslauf.
+- GUI-Szenario grün: Berechnen aller 15 Varianten am kleineren Kugelkappenjob, Übernehmen,
+  identische Eingaben beim Vergleich und Rückgängig; Screenshots angesehen. Gespeichertes
+  komplexes Beispiel nach der letzten NC-Korrektur über Startmakro auf DP-1 abgefahren,
+  54.154 Stationen, keine Grenzen
+  oder Kollisionen. FreeCAD-eigene 3D-Aufnahmen angesehen; Qt-Fensteraufnahmen enthalten
+  unter Xwayland die OpenGL-Fläche nicht. Manuels Klickprüfung und echte Maschine stehen aus.
+- Fehler im eigenen Entwurf gefunden und korrigiert: Schaft-Sweep verlor waagerechte Schnitte
+  am tangentialen Eintritt; OCC-Randparametrisierung statt Drahtorientierung erzeugte einen
+  Diagonalschnitt in die Kappe; vertikale Rückfahrt führte beim erneuten Rampenanlauf ins
+  Material; übersehene Checked-/Anzeigemerkmale sperrten gültige GUI-Übernahme; die Reserve
+  einer feineren Randvernetzung wurde zunächst mit dem gröberen Wert geprüft. Leere
+  Schlichtzüge dürfen wegen grobem Materialraster nicht entfernt werden (zwei fehlende Zellen).
+  Ein zunächst ungemessenes 600-s-Laufbudget war für die strengere Prüfung ungeeignet und
+  wurde durch die gemessene neue Qualitätsreferenz ersetzt; kein fehlgeschlagener Lauf als grün gezählt.
+
+### NEXT
+- Manuel: Beispiel öffnen, „3D-Schlichten T4“ wählen → vergleichen → geprüfte Variante
+  übernehmen → Strg+Z; Maschine und Bahnen im Prüffenster ansehen. Automatische Prüfung
+  des definierten Falls abgeschlossen; allgemeine Hinterschnitte, weitere Aufspannungen und
+  globale Optimalität für beliebige Teile sind nicht erreicht. Keine reale Maschinenfreigabe.
+- Lokal als P-2026-10-07-03 gespeichert; kein Push beauftragt.
+
 ## P-2026-10-07-02 komplexe-freiform-simultan-vergleichen
 
 ### EINGELESEN

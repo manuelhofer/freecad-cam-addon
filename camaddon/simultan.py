@@ -279,7 +279,9 @@ def eilganggeschwindigkeit(maschine):
     return (min(werte) if werte else export.VORGABE_EILGANG) / 60.0
 
 
-def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False):
+def programm_ohne_tcpm(
+    maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0, eilgaenge=False, materialdaten=None
+):
     """[Path.Command] – die Bahn (Punkt …) mit den Rundachsen je Punkt und X, Y, Z, wie eine
     Steuerung ohne TCPM sie liest. Zwischen zwei Punkten fährt die Maschine jede Achse linear –
     die Spitze bleibt nur nahe der Geraden, wenn die Punkte dicht liegen. `g93`: der Vorschub
@@ -288,7 +290,9 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0
     Geschwindigkeit im Vorschub (drehgeschwindigkeiten); F wie FreeCADs Bahnen ÷ 60 (1 ÷
     Sekunden). `toleranz`: Sätze im Vorschub so dicht, dass die Spitze
     in ihrer Mitte höchstens so weit neben der Geraden liegt (verdichtet; 0 oder None: wie
-    gegeben), `bezug` und `eilgaenge` wie dort. ValueError mit einem Satz wie
+    gegeben), `bezug` und `eilgaenge` wie dort. Die optionale Liste `materialdaten`
+    erhält je NC-Satz (ursprünglicher Eilgang, Schnittvorschub in mm/s), auch nach
+    Verdichtung und Umwandlung eines Eilgangs in G1/G93. ValueError mit einem Satz wie
     rundachsen_entlang, oder wenn die Maschine keine drei Linearachsen hat."""
     import Path
 
@@ -296,6 +300,8 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0
     if toleranz:
         punkte, rund = verdichtet(maschine, punkte, rund, toleranz, bezug, eilgaenge)
     befehle = [Path.Command("G93")] if g93 else []
+    if materialdaten is not None:
+        materialdaten[:] = [(True, 0.0)] if g93 else []
     vorschub, davor = 0.0, None
     drehen = drehgeschwindigkeiten(maschine) if g93 else {}
     # Ein Eilgang, in dem sich eine Rundachse dreht (verdichtet: viele kurze Sätze), als G1 im G93
@@ -339,13 +345,19 @@ def programm_ohne_tcpm(maschine, punkte, g93=False, toleranz=TOLERANZ, bezug=0.0
                 zeit = max(zeit, winkel / eil_dreh.get(k, eil_linear))
             werte["F"] = 1.0 / max(zeit, KUERZESTE_ZEIT)
         befehle.append(Path.Command("G0" if punkt.eilgang and not drehend else "G1", werte))
+        if materialdaten is not None:
+            materialdaten.append((punkt.eilgang, vorschub))
         davor = (bezugspunkt(punkt, bezug), stellung)
     if g93:
         befehle.append(Path.Command("G94"))
+        if materialdaten is not None:
+            materialdaten.append((True, 0.0))
     return befehle
 
 
-def befehle_auf_maschine(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERANZ):
+def befehle_auf_maschine(
+    maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOLERANZ, materialdaten=None
+):
     """Die Sätze einer Bahn mit Achse (Punkt …), wie `maschine` sie fährt: ohne TCPM, die
     Rundachsen je Punkt, der Vorschub in G93, auch Eilgänge mit drehender Achse verdichtet
     (programm_ohne_tcpm) – davor auf die Schwenkhöhe (über dem Raum, den das Rohteil `rohteil`
@@ -357,7 +369,13 @@ def befehle_auf_maschine(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOL
     if not punkte:
         return []
     saetze = programm_ohne_tcpm(
-        maschine, punkte, g93=True, toleranz=toleranz, bezug=bezug, eilgaenge=True
+        maschine,
+        punkte,
+        g93=True,
+        toleranz=toleranz,
+        bezug=bezug,
+        eilgaenge=True,
+        materialdaten=materialdaten,
     )
     bewegt = [b for b in saetze if b.Name in ("G0", "G1")]
     erster, letzter = bewegt[0].Parameters, bewegt[-1].Parameters
@@ -385,6 +403,8 @@ def befehle_auf_maschine(maschine, punkte, rohteil=None, bezug=0.0, toleranz=TOL
             {a.buchstabe: _grundstellung(a, rund_ende[a.buchstabe]) for a in maschine.rundachsen},
         )
     )
+    if materialdaten is not None:
+        materialdaten[:] = [(True, 0.0)] * len(davor) + materialdaten + [(True, 0.0)] * len(danach)
     return davor + saetze + danach
 
 

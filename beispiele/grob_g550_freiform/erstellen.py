@@ -99,7 +99,9 @@ def erstellen(ordner):
         for k in kugeln
     ]
     t2 = controller[0]
-    r3.lege_an(job, t1, 5, 1.5, aufmass=0.3, flaechen=faces)
+    grob = r3.lege_an(job, t1, 5, 1.5, aufmass=0.3, flaechen=faces)
+    grob.Rampenanlauf = True
+    grob.Eintauchwinkel = 2.5
     s3.lege_an(job, t2, 0.02, flaechen=faces)
     doc.recompute()
     return doc, bib

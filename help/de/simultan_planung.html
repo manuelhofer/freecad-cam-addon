@@ -15,27 +15,38 @@ darf sich die Achse in beide Richtungen neigen; sie behält ihre vorige Richtung
 Kontaktwinkel reicht. Beide Rundachsen müssen nicht ständig fahren: Die erreichbare, schnellere
 Bearbeitung zählt. Ein genauer Randgang ergänzt die offenen Flächenränder.</p>
 <h3>Die Prüfungen</h3>
-<p>Zuerst werden die Erreichbarkeit der gewählten Fläche an Stichproben und der kleinste Winkel
-zwischen Werkzeugachse und Kontaktflächennormale geprüft, auch zwischen Bahnpunkten. Der
-Standardwinkel beträgt 15°. Dann wird die Fahrt auf der tatsächlichen Maschinenkinematik
-gerechnet. Die Zeit umfasst den <b>ganzen Job</b>, einschließlich weiterer Operationen und
-An-/Abfahren; Grenzen und Rundachsbewegungen werden berücksichtigt.</p>
-<p>Die schnellsten noch geeigneten Varianten werden nacheinander genau auf Kollisionen geprüft:
-Maschinenkörper, Teil, Aufnahme, Werkzeug, Schaft und Halter, sowie Eilgänge durch noch
-vorhandenes Rohteil. Eine unterbrochene oder unvollständige Prüfung gilt nicht als bestanden.</p>
+<p>Der Materialvergleich beginnt beim Rohteil und fährt die vorherigen Operationen ab.
+Die Kugel wird über ganze Schnittstrecken geprüft; ganze Flächenzellen müssen innerhalb
+von Grathöhe und Aufmaß abgedeckt sein. Eine feinere unabhängige Modellvernetzung prüft
+auch die Ränder. Ihre Unsicherheit verbraucht Qualitätsbudget: Die Grathöhe wird nicht erhöht.</p>
+<p>Restmaterial, Einschnitt, Eilgang oder Freivorschub im Material, senkrechter Eintritt,
+zu steile Rampen, zu viel Luft und Last über ae × ap weisen eine Variante ab. Ein ganzer
+Schnittzug ohne Abtrag wird auch dann abgewiesen, wenn die gesamte Luftquote niedrig ist.
+Zusätzlich prüft der Vergleich
+den BRep-Abstand der Kugelstrecken, Mindestkontaktwinkel, Maschineninterpolation,
+Verfahrgrenzen und die genaue Modellkollision von Werkzeug, Halter, Aufnahme und Maschine.
+Die Zeit umfasst den ganzen Job einschließlich An-/Abfahren.</p>
+<p>Unterstützt ist ein Quader mit von oben erreichbaren Flächen und senkrechter Vorbearbeitung
+mit Schaft- oder Kugelfräser; die gewählte Schlichtoperation muss die letzte aktive
+Operation im Job sein. Ein nicht darstellbarer Materialstand bleibt ausdrücklich
+ungeprüft. Die Einsatzgrenzen müssen aus der zugeordneten Werkzeugverwaltung bekannt sein.</p>
+<p>Die fein geprüfte Bahn verwendet beim Programmieren sechs Nachkommastellen und begrenzt
+die Glättungstoleranz auf höchstens 0,0001 mm. Der Vergleich reserviert dafür einen Teil
+der Grathöhe; eine gröbere Rundung oder Glättung wäre vom Prüfergebnis nicht gedeckt.</p>
 <h3>Die Tabelle lesen</h3>
-<p><b>Restprobe</b> ist der größte Abstand der Oberflächenproben zur überstrichenen Kugelhülle.
-Als Zulassung gilt Grathöhe plus Aufmaß plus 0,05 mm Rechentoleranz für Vernetzung und
-Interpolation. Dies ist eine Stichprobenprüfung, keine vollständige Vermessung der Oberfläche.
-Eine abgewiesene Zeile nennt den Grund; lange Texte stehen auch im Tooltip.</p>
-<p><b>Kollisionsprüfung noch offen</b> bedeutet keine Freigabe. Sobald die schnellste vollständig
-geprüfte Variante gefunden ist, brauchen langsamere keine weitere Kollisionsrechnung: Sie können
-sie zeitlich nicht unterbieten. Verglichen wird nur die angebotene endliche Auswahl.</p>
+<p><b>Restgrenze</b> enthält den größten gemessenen Höhenrest einschließlich der reservierten
+Vernetzungsunsicherheit. Die Prüfung der kompletten Flächenzellen kommt zusätzlich hinzu.
+Die Materialprüfung verwendet ein Raster von 0,1 mm und eine Modellvernetzung von höchstens 0,001 mm;
+sie ist kein Nachweis für beliebige Hinterschnitte. Lange Befundtexte stehen im Tooltip.</p>
+<p><b>Kollisionsprüfung noch offen</b> bedeutet keine Freigabe. Die schnellsten geeigneten
+Varianten werden nacheinander geprüft; nach einer gültigen kann keine langsamere gewinnen.
+Es gilt die angebotene endliche Auswahl.</p>
 <h3>Übernehmen und Rückgängig</h3>
 <p><b>5-Achs-Schlichtvariante übernehmen</b> wird erst nach der vollständigen Prüfung aktiv.
 Es setzt Werkzeugcontroller, Bahnrichtung, Anstellung und Randgang der bestehenden Operation
 und rechnet sie neu. <b>Strg+Z</b> stellt die vorherigen Einstellungen wieder her. Abbrechen
-ändert den Job nicht. Wurde der Job seit der Prüfung geändert, ist ein neuer Vergleich nötig.</p>
+ändert den Job nicht. Wurden Job, Maschine oder Werkzeug-/Halterbibliothek seit der Prüfung
+geändert, ist ein neuer Vergleich nötig.</p>
 <h3>Grenzen dieses ersten Schritts</h3>
 <p>Die vorhandene 3D-Strategie bearbeitet von oben erreichbare Flächen. Hinterschnitte,
 automatisch geplante zusätzliche Aufspannungen und eine global beste Lösung für beliebige

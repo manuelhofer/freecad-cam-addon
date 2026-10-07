@@ -1,0 +1,26 @@
+{
+  "sha256": "8e9aa0d0b77179fca412d2335b296b5f12663c47180ad53ef81569f91c6c9a37",
+  "nc_saetze": 54082,
+  "material": {
+    "rest": 0.016439893039059683,
+    "einschnitt": 0.0013650952627024537,
+    "eilgang_abtrag": 0.0,
+    "schnell_abtrag": 0.0,
+    "schnellweg": 4.000000382552617,
+    "luftweg": 63.52094408941872,
+    "vorschubweg": 8074.529619404651,
+    "volumen": 2344.0628190842076,
+    "last_max": 2.755869897139198,
+    "eintauchungen": 0,
+    "luftzuege": 0,
+    "rampenwinkel_max": 0.0,
+    "eintritte": [],
+    "eilgaenge": [],
+    "raster": 0.1,
+    "unsicherheit": 0.0005,
+    "flaechenzellen": 550457,
+    "ungedeckt": 0,
+    "gruende": []
+  },
+  "brep_abstand_mm": 0.00038270313357313766
+}

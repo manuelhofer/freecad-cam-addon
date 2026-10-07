@@ -71,12 +71,12 @@ def zahl(wert, stellen=STELLEN):
     return "+" + "0." + "0" * stellen if float(text) == 0.0 else text
 
 
-def _mit_vorzeichen(roh):
+def _mit_vorzeichen(roh, stellen=STELLEN):
     """„CYCL DEF 7.1 X+12.500“, „PLANE SPATIAL SPA+30.000 …“ – die Zahlen nach X, Y, Z, SPA, SPB,
     SPC mit ihrem Vorzeichen, wie der Klartext sie verlangt."""
     return re.sub(
         r"(?<![A-Z])(SPA|SPB|SPC|X|Y|Z)([-+]?\d+(?:\.\d+)?)",
-        lambda m: f"{m.group(1)}{zahl(float(m.group(2)))}",
+        lambda m: f"{m.group(1)}{zahl(float(m.group(2)), stellen)}",
         roh,
     )
 
@@ -111,7 +111,8 @@ def _woerter(zeile):
 
 
 class _Uebersetzer:
-    def __init__(self, deutsch):
+    def __init__(self, deutsch, stellen=STELLEN):
+        self.stellen = stellen
         self.aus = []
         self.hinweise = []
         self.texte = TEXTE[bool(deutsch)]
@@ -143,7 +144,7 @@ class _Uebersetzer:
             if ziel.get(achse) is not None and (
                 self.pos[achse] is None or abs(self.pos[achse] - ziel[achse]) > 1e-9
             ):
-                teile.append(f"{achse}{zahl(ziel[achse])}")
+                teile.append(f"{achse}{zahl(ziel[achse], self.stellen)}")
         if not teile and m is None:
             return
         satz = "L " + " ".join(teile) + (" " if teile else "") + "R0"
@@ -192,7 +193,7 @@ class _Uebersetzer:
             return
         if roh.upper().startswith(KLARTEXT):
             if roh.startswith(("CYCL DEF 7.", "PLANE SPATIAL")):
-                roh = _mit_vorzeichen(roh)
+                roh = _mit_vorzeichen(roh, self.stellen)
             self.aus.append(roh)
             if roh.startswith("CYCL DEF") or roh.startswith("PLANE"):
                 self.wechsel_offen = None
@@ -208,7 +209,7 @@ class _Uebersetzer:
         """Ein L-Satz aus den Befehlen der Steuerung (Wechselpunkt): die Zahlen mit Vorzeichen."""
 
         def mit_vorzeichen(m):
-            return f"{m.group(1)}{zahl(float(m.group(2)))}"
+            return f"{m.group(1)}{zahl(float(m.group(2)), self.stellen)}"
 
         satz = re.sub(r"\b([XYZABC])([-+]?\d+\.?\d*)", mit_vorzeichen, roh)
         maschine = bool(re.search(r"\bM9[12]\b", satz))
@@ -263,7 +264,7 @@ class _Uebersetzer:
         ziel = self._ziel(werte)
         if maschine:
             # Maschinenkoordinaten: im Klartext M91 – wo das Werkstück dann steht, weiß keiner.
-            teile = [f"{a}{zahl(werte[a])}" for a in ACHSEN if a in werte]
+            teile = [f"{a}{zahl(werte[a], self.stellen)}" for a in ACHSEN if a in werte]
             if teile:
                 self.aus.append("L " + " ".join(teile) + " R0 FMAX M91")
                 self.saetze += 1
@@ -339,14 +340,16 @@ class _Uebersetzer:
 
     def _kreis_xy(self, mitte, anfang, ende, uhrzeiger, ziel):
         richtung = "DR-" if uhrzeiger else "DR+"
-        cc = f"CC X{zahl(mitte[0])} Y{zahl(mitte[1])}"
+        cc = f"CC X{zahl(mitte[0], self.stellen)} Y{zahl(mitte[1], self.stellen)}"
         voll = math.hypot(ende[0] - anfang[0], ende[1] - anfang[1]) < 1e-6
         punkte = [ende]
         if voll:  # ein Vollkreis: zwei Hälften
             punkte = [(2 * mitte[0] - anfang[0], 2 * mitte[1] - anfang[1]), ende]
         for px, py in punkte:
             self.aus.append(cc)
-            self.aus.append(f"C X{zahl(px)} Y{zahl(py)} {richtung} R0{self._f()}")
+            self.aus.append(
+                f"C X{zahl(px, self.stellen)} Y{zahl(py, self.stellen)} {richtung} R0{self._f()}"
+            )
             self.saetze += 1
             self.pos["X"], self.pos["Y"] = px, py
         for achse in ("A", "B", "C"):
@@ -431,18 +434,20 @@ class _Uebersetzer:
         self.gerade({"Z": rueck}, True)
 
 
-def uebersetzen(zeilen, pgm, rohteil=None, deutsch=True):
+def uebersetzen(zeilen, pgm, rohteil=None, deutsch=True, stellen=STELLEN):
     """Uebersetzt: die Zeilen des Programms (wie postprozessor.programm sie ohne Satznummern
     schreibt) als Klartext mit Nummern, BEGIN/END PGM `pgm` und – mit `rohteil` ((xmin, ymin,
     zmin), (xmax, ymax, zmax)) – BLK FORM; `deutsch`: die Texte der Zyklen wie an einer deutschen
-    Steuerung."""
+    Steuerung; `stellen`: Genauigkeit der Koordinaten, auch für fein geprüfte Bahnen."""
     name = pgm_name(pgm)
-    u = _Uebersetzer(deutsch)
+    u = _Uebersetzer(deutsch, stellen)
     u.aus.append(f"BEGIN PGM {name} MM")
     if rohteil is not None:
         (x0, y0, z0), (x1, y1, z1) = rohteil
-        u.aus.append(f"BLK FORM 0.1 Z X{zahl(x0)} Y{zahl(y0)} Z{zahl(z0)}")
-        u.aus.append(f"BLK FORM 0.2 X{zahl(x1)} Y{zahl(y1)} Z{zahl(z1)}")
+        u.aus.append(
+            f"BLK FORM 0.1 Z X{zahl(x0, stellen)} Y{zahl(y0, stellen)} Z{zahl(z0, stellen)}"
+        )
+        u.aus.append(f"BLK FORM 0.2 X{zahl(x1, stellen)} Y{zahl(y1, stellen)} Z{zahl(z1, stellen)}")
     for zeile in zeilen:
         u.zeile(zeile)
     if not any(re.fullmatch(r"M(30|2)", z) or re.search(r"\bM(30|2)$", z) for z in u.aus):

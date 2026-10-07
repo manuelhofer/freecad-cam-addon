@@ -3061,10 +3061,77 @@ sonst folgt sie dem Rand des erlaubten Kegels; die Luftsätze bereiten den näch
 Die gespeicherte Operation erhält `Randgang`, die freie Kippachse und den gewählten Controller.
 Der Vergleich berücksichtigt auch FreeCADs abschließenden Rückzug auf die Freifahrhöhe.
 
-**Am komplexen Beispiel:** Quader 50 × 40 × 30 → B-Spline-Fläche mit Mulde, Sattel und
+**Erster Versuch (P-2026-10-07-02, durch 16.6 ersetzt):** Quader 50 × 40 × 30 → B-Spline-Fläche mit Mulde, Sattel und
 Erhebung, D12 schruppen mit 0,3 mm Aufmaß, danach Kugel schlichten. 45 Kombinationen,
 Kugel Ø 4/Zeilen X/frei gewinnt: gesamter Job 581,34 s; größte Oberflächenprobe 0,0298 mm,
 kleinster Kontaktwinkel 16,03°; 167 Vorschubbewegungen ändern alle fünf Achsen zusammen,
 Modellprüfung ohne Befund. [Beispiel und vollständiger Bericht](../beispiele/grob_g550_freiform/README.md).
 Übernahme, identische gespeicherte Bahn, Rückgängig und Schutz vor veralteten Eingaben
 in FreeCAD 1.1.4 geprüft. Der Mittelpunkt der Kugel bleibt beim Anstellen erhalten.
+
+
+### 16.6 Qualitätsprüfung des Simultanvergleichs (gebaut, P-2026-10-07-03)
+
+Manuel fragt nach allen geltenden Prüfkriterien und beauftragt, die Lücken zu schließen.
+Die bisherige Zulassung durch 19 × 19 Proben mit zusätzlicher Toleranz von 0,05 mm
+belegt die verlangte Grathöhe nicht; auch `kollision(..., rohteil=True)` liefert für den
+angestellten Kugelfräser bisher keinen Materialvergleich. Der Versionscheck für 1.1.4
+war bereits mit P-2026-10-02-85 durchgeführt; ein erneuter Versionswechsel liegt nicht vor.
+
+**Akzeptanzkriterium:** Freiformjob wählen → „5-Achs-Schlichten vergleichen“ → nur eine
+Variante ohne Abtrags-, Oberflächen-, Eintritts-, Last- oder Kollisionsbefund übernehmen,
+dabei die verlangte Grathöhe ohne zusätzliche Toleranz einhalten und Rückgängig erhalten.
+
+Die unabhängige Prüfung verfolgt den Quader nach den vorherigen Operationen; sie prüft
+den kontinuierlichen Kugelschnitt, ganze Flächenzellen einschließlich der Ränder,
+BRep-Abstand der Schnittstrecken und die tatsächliche Maschineninterpolation. Die
+Vernetzungsunsicherheit verbraucht Qualitätsbudget, statt es zu erhöhen. Nicht darstellbare
+Rohteile, Hinterschnitte oder fehlende Einsatzwerte bleiben ausdrücklich ungeprüft.
+Im Dialog bleibt die Tabelle; „Restprobe“ wird „Restgrenze“, „vollständig geprüft“ wird
+„Material und Modellkollision geprüft“. Eingabeschutz umfasst auch Maschine und Halterbibliothek.
+
+**Gebaut:** Materialraster 0,1 mm, unabhängige Vernetzung höchstens 0,001 mm, bei dünnen
+Randzellen bis 0,00025 mm. Ganze Dreiecke müssen innerhalb einer konservativ verkleinerten
+Kugelkapsel liegen; überlappende Schnitte werden mit unterteilten Zellen geprüft,
+unbewiesene Zellen abgewiesen. Zusätzlich genauer BRep-Abstand der vollständigen
+Schnittstrecken, tatsächliche Maschinenstellungen und ihre Zwischenstellungen.
+Die Herkunft von Eilgang/Freivorschub bleibt auch nach Verdichtung und G1/G93-Umwandlung
+erhalten. Ganze Vorschubzüge ohne Abtrag werden unabhängig von der Luftquote abgewiesen.
+Die frühere Zugabe von 0,05 mm zur verlangten Grathöhe entfällt.
+Fein geprüfte Bahnen werden mit sechs Koordinatenstellen geschrieben, auch Moduloachsen
+und bei der Klartext-Übersetzung;
+die Glättungstoleranz beträgt höchstens 0,0001 mm. 0,00011 mm bleiben dafür im Qualitätsbudget
+reserviert. Der NC-Rücklesetest prüft die ausgeschriebenen Wörter mit Achsnamen,
+Vorzeichen und Modulo-Drehrichtung; die alte Rundung auf drei Stellen erzeugte hier
+0,0019 mm Einschnitt und sechs offene Flächenzellen.
+
+Der neue optionale Rampenanlauf korrigiert die senkrechten Einfahrten des Beispiel-Schruppens,
+mit dem tatsächlichen Werkzeug-Eintauchwinkel und Freivorschub nur im nachgewiesenen Freien.
+Alte Schruppjobs behalten ohne diesen Haken ihre bisherige Bahn. Der Simultanvergleich
+rechnet feiner und mit eigenem Qualitätsbudget; alte ungeprüfte Schlichtjobs bleiben erhalten.
+
+**Beleg am komplexen Beispiel:** 45 Varianten, Kugel Ø 4/entlang der Fläche/frei; ganzer Job
+682,84 s. Restgrenze mit Vernetzungsreserve 0,01694 mm bei verlangten 0,02 mm, 550.457
+vollständig abgedeckte Flächenzellen, mindestens 16,82° Kontaktwinkel, Last beim Schlichten
+2,756 mm² unter ae × ap = 7,5 mm². Achsgrenzen, Modellkollision und 1 mm Warnabstand ohne
+Befund; 54.082 Bewegungen im nachgelesenen Siemens-Beispielprogramm. Die gelesene NC-Bahn
+erreicht mit Vernetzungs-, Rundungs- und Glättungsreserve 0,01705 mm Restgrenze und eine
+konservative BRep-Abstandsuntergrenze von 0,000383 mm, ohne offene Zelle.
+Der frühere Sieger „Zeilen X“ fällt an der vollständigen Flächenprüfung durch.
+
+**Referenz und Leistung:** `tests/golden/freiform_simultan.json` hält 41.135 Punkte mit
+Werkzeugachsen/Eilgang und 41.463 Maschinenbefehle mit sechs Nachkommastellen, dazu eine Zeitbestmarke
+682,84 s (+0,5 %), gemessene Vergleichszeit 1.220,90 s und Python-Spitzenspeicher 401,89 MiB
+(je ×2 Budget). Der Referenztest prüft zusätzlich Materialraster 0,05 mm, Übernahme,
+identische neu berechnete Bahn/NC-Sätze, Rückgängig und veraltete Eingaben.
+Der Vollvergleich benötigt hier 20 min 15 s und nativ 3,65 GiB Prozess-Spitzenspeicher;
+die instrumentierte Referenzprüfung dauert länger als der uninstrumentierte Lauf.
+Das Szenario rechnet, übernimmt und macht rückgängig; sichtbar auf dem zweiten Bildschirm.
+`test_simultan_nc.py` ergänzt die Referenz des tatsächlichen Siemens-Programmtexts und
+prüft die nachgelesene Maschinenbahn mit reservierter Glättungs- und Interpolationstoleranz.
+Beide Referenzen anschließend ohne Schreibflag verglichen: keine Bahn-/NC-Abweichung,
+Maschinenzeit innerhalb +0,5 %, 1.242,78 s und 401,884 MiB unter den Budgets; abschließender
+Vergleich mit NC-Reserve ohne Speicherinstrumentierung 754,81 s.
+Das belegt die angebotenen Varianten und die eingerichtete Modellmaschine; eine echte
+G550 wurde damit nicht betrieben. Hinterschnitte, weitere Aufspannungen und beliebige
+Rohteilformen sind weiterhin offen.

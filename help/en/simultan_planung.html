@@ -13,25 +13,31 @@ Each is inclined about X, about Y or in a freely changing direction. Free inclin
 the previous direction while it satisfies the contact angle. Both rotary axes need not move
 all the time: reachability and time decide. A precise boundary pass completes open face edges.</p>
 <h3>Checks and results</h3>
-<p>Surface reachability is sampled, and the minimum angle between the tool axis and contact
-surface normal is checked, including points between path nodes. The default is 15°. The
-actual machine motion is then calculated with rotary motion and travel limits. Time refers
-to the <b>entire job</b>, including other operations and entry/exit moves.</p>
-<p>The fastest eligible variants undergo detailed collision checks in order: machine bodies,
-part, fixture, cutter, shank and holder, plus rapid motion through remaining stock. An
-interrupted or incomplete check cannot pass.</p>
-<p><b>Remaining sample</b> is the largest distance of the sampled surface points from the swept
-ball envelope. The acceptance threshold is scallop height plus allowance plus 0.05 mm
-calculation tolerance for meshing and interpolation. Sampling is not a complete surface
-measurement. Rejected rows show their reason; long text is also available as a tooltip.</p>
-<p><b>Collision check pending</b> does not mean approval. Once the fastest fully checked variant
-passes, slower ones cannot beat it and need no further collision calculation. The result is
-limited to the finite selection offered.</p>
+<p>The material check starts with the stock and replays preceding operations. It checks
+continuous ball sweeps and complete surface cells, including boundaries. Mesh uncertainty
+uses part of the requested scallop budget; it never increases that limit.</p>
+<p>Residual material, gouging, rapid or travel feed through stock, vertical entry, steep ramps,
+excessive air cuts and load above ae × ap reject a variant. An entire pass without material
+removal is rejected even if the overall air fraction is low. Further checks cover BRep sweep clearance,
+contact angle, machine interpolation, travel limits and model collisions of tool, holder,
+fixture and machine. Timing includes the entire job and approach/retract movements.</p>
+<p>This check supports top-accessible surfaces in box stock with preceding vertical flat
+or ball tools; the selected finishing operation must be the last active operation
+in the job. Unsupported material states remain explicitly unchecked. Engagement limits
+must be available from the assigned tool library.</p>
+<p>The finely checked path uses six decimal places in the NC output and limits smoothing
+tolerance to at most 0.0001 mm. The comparison reserves part of the scallop budget for this;
+coarser rounding or smoothing would not be covered by its result.</p>
+<p><b>Residual bound</b> includes the maximum measured height residual and reserved mesh
+uncertainty. Complete surface cells are checked separately. Material resolution is 0.1 mm
+with independent model meshing at 0.001 mm or finer; this does not certify arbitrary undercuts.</p>
+<p><b>Collision check pending</b> is not an approval. Eligible variants are checked in time
+order; once a valid one is found, slower variants cannot win. Selection is finite.</p>
 <h3>Apply and undo</h3>
 <p><b>Apply 5-axis finishing variant</b> becomes available only after a complete check. It sets
 the tool controller, path direction, inclination and boundary pass on the existing operation
 and recomputes it. <b>Ctrl+Z</b> restores the previous settings. Cancel leaves the job unchanged.
-If the job has changed since inspection, run the comparison again.</p>
+If the job, machine or tool/holder library has changed since inspection, run the comparison again.</p>
 <h3>Scope of this first step</h3>
 <p>The existing 3D strategy handles surfaces accessible from above. Undercuts, automatically
 planned additional setups and a globally optimal solution for arbitrary parts are not covered
