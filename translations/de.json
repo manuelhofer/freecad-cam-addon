@@ -1874,7 +1874,7 @@
     "ba.zahl.adaptiv": "adaptiv",
     "an.eigenschaft.anstellen": "Kugelfräser angestellt (5 Achsen simultan): Die Achse kippt nur so weit wie nötig um die Mitte der Kugel, damit er nicht mit der Spitze schneidet – die Bahn bleibt dieselbe.",
     "an.eigenschaft.winkel": "So weit steht die Werkzeugachse mindestens von der Fläche weg (zwischen Achse und Flächennormale); steilere Stellen fährt er senkrecht.",
-    "an.eigenschaft.kippachse": "Um diese Achse des Jobs kippt das Werkzeug – an der Maschine mit einer Rundachse, die andere steht.",
+    "an.eigenschaft.kippachse": "X oder Y: um diese Achse kippen. „frei“: die vorige Richtung halten, solange der Kontaktwinkel reicht. „frei_gesamt“: die Richtungsfolge über die ganze Bahn voraussehen; Maschinenzeit und Kollision im Simultanvergleich prüfen.",
     "an.eigenschaft.achsen": "Die Werkzeugachse je Satz der Bahn (gerechnet).",
     "an.nur_kugel": "{operation}: Anstellen geht nur mit einem Kugelfräser – die Bahn bleibt senkrecht.",
     "an.fehler.kugel": "„{operation}“ ist angestellt, hat aber keinen Kugelfräser mehr – bitte neu berechnen.",
@@ -2521,7 +2521,7 @@
     "s5p.uebernehmen": "5-Achs-Schlichtvariante übernehmen",
     "s5p.titel": "5-Achs-Schlichten vergleichen …",
     "s5p.tooltip": "3D-Schlichten auswählen: Werkzeuge, Bahnrichtungen und Anstellung für die Maschine vergleichen.",
-    "s5p.text": "Für „{operation}“ auf „{maschine}“: alle Kugelfräser des Jobs mit fünf Bahnrichtungen und drei Anstellungen vergleichen. Die Grathöhe bleibt gleich. Erst die vollständig geprüfte Variante lässt sich übernehmen.",
+    "s5p.text": "Für „{operation}“ auf „{maschine}“: alle Kugelfräser des Jobs mit fünf Bahnrichtungen und vier Anstellungen vergleichen. Die Grathöhe bleibt gleich. Erst die vollständig geprüfte Variante lässt sich übernehmen.",
     "s5p.werkzeug": "Werkzeug",
     "s5p.bahn": "Bahn",
     "s5p.anstellung": "Anstellung",
@@ -2564,5 +2564,7 @@
     "s5p.fehler.rampe": "Eintrittswinkel {winkel}° über der Werkzeuggrenze {grenze}°.",
     "s5p.fehler.bahnveraendert": "Die neu berechnete Bahn weicht von der geprüften Variante ab; Übernahme zurückgenommen.",
     "s5p.fehler.luftzug": "Ein ganzer Schnittzug fährt ohne Abtrag in der Luft.",
-    "rm.simultan_vorschau": "Die Farben zeigen die Materialvorschau; die genaue Grathöhe prüft „5-Achs-Schlichten vergleichen“."
+    "rm.simultan_vorschau": "Die Farben zeigen die Materialvorschau; die genaue Grathöhe prüft „5-Achs-Schlichten vergleichen“.",
+    "s5p.um.frei_gesamt": "Frei, ganze Bahn",
+    "s5p.fehler.richtungsfolge": "Keine durchgehende Werkzeugrichtung innerhalb der Kontaktwinkel gefunden."
 }

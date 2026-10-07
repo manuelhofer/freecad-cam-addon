@@ -1874,7 +1874,7 @@
     "ba.zahl.adaptiv": "adaptive",
     "an.eigenschaft.anstellen": "Ball end mill tilted (5-axis simultaneous): the axis tilts only as far as needed about the centre of the ball, so it does not cut with its tip – the path stays the same.",
     "an.eigenschaft.winkel": "At least this far the tool axis stands off the surface (between axis and surface normal); steeper spots run vertical.",
-    "an.eigenschaft.kippachse": "The tool tilts about this axis of the job – on the machine with one rotary axis, the other one stays.",
+    "an.eigenschaft.kippachse": "X or Y: tilt about this axis. “frei”: retain the previous direction while the contact angle permits it. “frei_gesamt”: plan the direction sequence over the whole path; check machine time and collisions in the simultaneous comparison.",
     "an.eigenschaft.achsen": "The tool axis per block of the path (computed).",
     "an.nur_kugel": "{operation}: tilting only works with a ball end mill – the path stays vertical.",
     "an.fehler.kugel": "“{operation}” is tilted but no longer has a ball end mill – please recompute.",
@@ -2521,7 +2521,7 @@
     "s5p.uebernehmen": "Apply 5-axis finishing variant",
     "s5p.titel": "Compare 5-axis finishing …",
     "s5p.tooltip": "Select a 3D finishing operation: compare tools, paths and inclination on the machine.",
-    "s5p.text": "For “{operation}” on “{maschine}”: compare all ball mills in the job with five paths and three inclinations. The scallop height stays the same. Only a fully checked variant can be applied.",
+    "s5p.text": "For “{operation}” on “{maschine}”: compare all ball mills in the job with five paths and four inclinations. The scallop height stays the same. Only a fully checked variant can be applied.",
     "s5p.werkzeug": "Tool",
     "s5p.bahn": "Path",
     "s5p.anstellung": "Inclination",
@@ -2564,5 +2564,7 @@
     "s5p.fehler.rampe": "Entry angle {winkel}° exceeds the tool limit {grenze}°.",
     "s5p.fehler.bahnveraendert": "The recalculated path differs from the checked candidate; the application was rolled back.",
     "s5p.fehler.luftzug": "An entire cutting pass runs through air without removing material.",
-    "rm.simultan_vorschau": "The colours show the material preview; “Compare 5-axis finishing” checks the precise scallop height."
+    "rm.simultan_vorschau": "The colours show the material preview; “Compare 5-axis finishing” checks the precise scallop height.",
+    "s5p.um.frei_gesamt": "Free, whole path",
+    "s5p.fehler.richtungsfolge": "No continuous tool direction within the contact angle limits was found."
 }

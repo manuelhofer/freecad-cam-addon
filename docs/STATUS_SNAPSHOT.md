@@ -8,10 +8,23 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
-**In Arbeit:** Manuel fordert eine weitergehende allgemeine 5-Achs-Planung (2026-10-07).
-Nächster Schritt: die Werkzeuganstellung über den ganzen Bahnverlauf voraussehen und die
-zusätzliche Variante mit der vollständigen Maschinenzeit bewerten. Eine universelle
-Optimalitätsgarantie ist kein belegtes Ergebnis.
+**PAUSIERT für Manuels Reboot (2026-10-07).** Zwischenstand sichern, nicht veröffentlichen.
+Manuel lehnt die gezeigte Bahn als praktisch unsinnvoll ab; sein Screenshot zeigt
+„3D-Schruppen T1“, Satz 833/12644, 0:28,9 min, viele kreuzende Leerwege/Rampen.
+Nächster Schritt: Schruppfolge und Gesamtjob am realen Bedienbild analysieren und sinnvoll
+planen; bestandene Raster-/Kollisionsprüfungen sind keine Bestätigung der besten Strategie.
+Die neue freie Richtungsfolge ist ein Zwischenstand. Letzte exakte Wiederholung des
+**tatsächlichen** vollständigen NC-Exports weicht weiterhin von der neuen Textreferenz ab,
+auch mit eingefrorener Maschine; Ursache noch offen. Keine Freigabe des neuen Standes.
+Details und dauerhafte Prüfdaten: `../../ergebnisse/zwischenstand-2026-10-07/`.
+Die gespeicherte Maschinenansicht/-stellung samt FCBak bleibt erhalten.
+
+
+**Unfertige weitergehende 5-Achs-Planung:** Zusätzlich wird „Frei, ganze Bahn“ über die ganze
+Richtungsfolge geplant und mit vollständiger Maschinenzeit sowie denselben Zulassungsprüfungen
+bewertet (P-2026-10-07-05). Die Voraussicht minimiert Winkelaufwand in einem endlichen
+Richtungsgraphen; die globale Maschinenzeit beliebiger Teile ist damit weiterhin nicht gelöst.
+Automatische Aufspannungen und dreidimensionaler Materialstand für Hinterschnitte bleiben offen.
 
 **5-Achs-Materialansicht:** Beim fein geplanten Kugelschlichten im Quader verwendet das
 Prüffenster jetzt den gleichen farbigen Rohteil-/Sollteil-Vergleich wie bei 4 Achsen;
@@ -21,7 +34,7 @@ Simultanvergleich (P-2026-10-07-04).
 
 **Komplexes 5-Achs-Schlichten mit Materialprüfung:** „3D-Schlichten“ auswählen → CAM-Addon →
 „5-Achs-Schlichten vergleichen …“: eingerichtete Kugelfräser, fünf Bahnrichtungen und
-Anstellung um X/Y oder frei gemeinsam prüfen. Der Materialstand nach der Vorbearbeitung,
+Anstellung um X/Y, örtlich frei oder frei über die ganze Bahn gemeinsam prüfen. Der Materialstand nach der Vorbearbeitung,
 ganze Flächenzellen innerhalb der Grathöhe, Einschnitt, Eintritt, Last, Luftfahrten und
 Kontaktwinkel sind Zulassungsbedingungen; gesamte Maschinenzeit und genaue Kollision
 entscheiden. Vergleich ohne Änderung, Übernahme mit Rückgängig und Schutz auch bei
@@ -33,6 +46,12 @@ verlangten 0,02 mm; NC-Bahn einschließlich Rundungs-/Glättungsreserve 0,01705 
 Materialprüfung für Quader, senkrechte Vorbearbeitung und letzte aktive Schlichtoperation;
 goldene Punkte/Achsen/NC-Sätze und vollständiger Siemens-Programmtext, Zeitbestmarke sowie
 Rechenzeit- und Python-Speicherbudgets erfolgreich gegen die Referenzen geprüft.
+Zusätzliche ganze Richtungsfolge am selben Freiformteil: 682,55 s statt 682,84 s,
+Restgrenze 0,01694 mm, separate goldene Bahnreferenz; 1288,57 s instrumentierte Prüfzeit,
+401,89 MiB Python-Spitzenspeicher. Das gespeicherte Beispiel bleibt der ursprüngliche
+45-Varianten-Maßstab; der aktuelle Dialog bietet zusätzlich die ganze Richtungsfolge.
+Auch gespeicherte Achswerte und tatsächlicher NC-Text sind separat referenziert und
+vollständig nachgelesen: 53.916 Bewegungen, Restgrenze mit allen Reserven 0,01704942 mm.
 Noch keine allgemeine Lösung für Hinterschnitte, weitere Aufspannungen oder globale Optimalität.
 
 **G550-Simultanbeispiel:** fertiger Flanken-Schlichtjob mit D12 auf Winkelaufnahme unter

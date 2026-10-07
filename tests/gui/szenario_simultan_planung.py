@@ -150,8 +150,8 @@ def schritte(h):
         panel.reject()
         return
     h.pruefe(
-        panel.tabelle.topLevelItemCount() == 15,
-        "Nicht alle fünf Richtungen und drei Anstellungen angezeigt",
+        panel.tabelle.topLevelItemCount() == 20,
+        "Nicht alle fünf Richtungen und vier Anstellungen angezeigt",
     )
     h.pruefe(panel.uebernehmen.isEnabled(), "Geprüfte Übernahme gesperrt")
     h.bild("2_geprueft")

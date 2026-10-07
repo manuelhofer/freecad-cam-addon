@@ -12,7 +12,10 @@ Haltermaße, Werkzeuglänge und Schnittwerte deiner eingerichteten Werkzeuge.</p
 <p>Zeilen längs X und Y, eine Spirale, Bahnen entlang der Fläche und Bahnen mit gleichem Abstand.
 Jede wird um X, um Y oder mit frei veränderlicher Richtung angestellt. Beim freien Anstellen
 darf sich die Achse in beide Richtungen neigen; sie behält ihre vorige Richtung, solange der
-Kontaktwinkel reicht. Beide Rundachsen müssen nicht ständig fahren: Die erreichbare, schnellere
+Kontaktwinkel reicht. <b>Frei, ganze Bahn</b> plant zusätzlich die gesamte Richtungsfolge
+im Voraus und sucht unter ihren angebotenen Richtungen nach möglichst wenig Kippbewegung.
+Das ist ein weiterer Kandidat; die vollständige Maschinenzeit und dieselben Prüfungen
+entscheiden, ob er gewinnt. Beide Rundachsen müssen nicht ständig fahren: Die erreichbare, schnellere
 Bearbeitung zählt. Ein genauer Randgang ergänzt die offenen Flächenränder.</p>
 <h3>Die Prüfungen</h3>
 <p>Der Materialvergleich beginnt beim Rohteil und fährt die vorherigen Operationen ab.

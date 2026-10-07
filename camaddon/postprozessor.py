@@ -868,9 +868,11 @@ def _rohteil_befehl(s, info, rohteil, abschnitte):
 
 def _modulo_wort(s, adresse, wert, davor, stellen=STELLEN):
     """„C4=ACN(270.000)“ – eine Moduloachse: die Position im Bereich 0 … unter 360°, die Vorlage
-    nach der Drehrichtung der Bahn (`davor`: der fortlaufende Winkel davor; ohne: positiv)."""
+    nach der Drehrichtung der Bahn (`davor`: der fortlaufende Winkel davor; ohne: ab Null)."""
     zahl = _modulo_zahl(wert, stellen)
-    vorlage = s.rundachse_minus if davor is not None and wert < davor else s.rundachse_plus
+    vorlage = (
+        s.rundachse_minus if wert < (davor if davor is not None else 0.0) else s.rundachse_plus
+    )
     return f"{adresse}={_fuellen(vorlage, wert=zahl)}"
 
 

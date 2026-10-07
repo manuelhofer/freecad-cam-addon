@@ -3164,3 +3164,48 @@ mit „Teil“/„Bahn“ umschalten und zum Anfang zurückgehen können.
 0,5-mm-Anzeigeraster; die Kugelmitte kommt aus der Spitze und der tatsächlichen Achse.
 Das ist ein Bild, keine zusätzliche Qualitätszulassung oder Erweiterung der allgemeinen
 Kollisionsprüfung. Die feinere Material-/NC-Prüfung aus 16.6 bleibt maßgebend.
+
+### 16.8 Anstellung über die ganze Bahn voraussehen (Zwischenstand, P-2026-10-07-05)
+
+Manuel fordert eine globale optimale Bearbeitung beliebiger Teile. Physische Erreichbarkeit,
+Werkzeuge, Aufspannung und Qualitätsgrenze müssen das Problem begrenzen; geschlossene
+Innenräume und nicht erreichbare Hinterschnitte können keine Fräsbahn erhalten. Der bisherige
+freie Kandidat hält örtlich seine vorige Richtung, bis der Kontaktwinkel sie verbietet,
+ohne spätere Flächenneigungen zu berücksichtigen.
+
+Als zusätzlicher Kandidat wird die ganze Folge gemeinsam geplant: acht Richtungen um den
+Kontaktkegel, die bisherige freie Folge, eine vom Ende aus geplante freie Folge und senkrecht,
+wo der Kontaktwinkel dies erlaubt. Dynamische Programmierung minimiert die Summe der
+Richtungsänderungen in diesem endlichen Graphen; unzulässige End- und Zwischenwinkel sperren
+Verbindungen. Das ist keine globale Minimierung der realen Maschinenzeit. Die vollständige
+Maschinenzeit entscheidet danach zwischen diesem und den bisherigen Kandidaten; die gleichen
+Material-, BRep-, Kinematik-, Last- und Kollisionsprüfungen bleiben die Zulassung.
+Eine zusätzliche Tabellenzeile je Werkzeug/Bahnrichtung zeigt „Frei, ganze Bahn“.
+
+Die neue erste Anstellung deckte bei der NC-Nachprüfung eine bislang immer positiv
+geschriebene erste Modulo-Rundachsbewegung auf: −39° wurden von der Nullstellung aus
+als +321° ausgegeben. Ohne bereits bekannte Rundstellung muss die erste Ausgabe daher
+das Vorzeichen des geplanten Winkels berücksichtigen; danach entscheidet der tatsächliche
+Winkel davor. Der vollständige Programmtext muss dieselbe Anfahrt wie das Zeitmodell haben.
+
+```text
+Werkzeug | Bahnrichtung | Anstellung        | Jobzeit | Befund
+Kugel …  | entlang …    | Richtung frei     | …       | …
+Kugel …  | entlang …    | Frei, ganze Bahn  | …       | …
+```
+
+**Akzeptanzkriterium:** 3D-Schlichten wählen → „5-Achs-Schlichten vergleichen“ → auch
+„Frei, ganze Bahn“ mit vollständiger Maschinenzeit und denselben Zulassungsprüfungen
+vergleichen, die schnellste zugelassene Variante rückgängig machbar übernehmen und ihre
+geplante Anfahrt im NC erhalten können.
+
+Gegen vollständiges Auszählen des Richtungsgraphen geprüft; eine örtliche Sackgasse mit
+wechselnder Flächenneigung kostet 68° statt der vorausschauenden 34°. Am komplexen
+Freiformbeispiel reduziert die zusätzliche Variante die Maschinenzeit nur von 682,84391 s
+auf 682,54859 s. Alle 550.457 Flächenzellen abgedeckt, Restgrenze 0,01694 mm bei 0,02 mm;
+Übernahme, Neuberechnung und Rückgängig stimmen mit der geprüften Richtungsfolge überein.
+Separate Referenz `tests/golden/freiform_simultan_gesamt.json`, instrumentiert 1288,57 s
+und 401,89 MiB Python-Spitzenspeicher, innerhalb der bisherigen Budgets.
+Die gespeicherten Achswerte und der tatsächliche Siemens-Export erhalten zusätzlich eine
+eigene Referenz; 53.916 Bewegungen, ausgeschriebene Restgrenze mit allen Reserven
+0,01704942 mm und BRep-Mindestabstand 0,00038221 mm bei reservierten 0,00036 mm.

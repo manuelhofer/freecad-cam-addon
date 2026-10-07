@@ -48,6 +48,8 @@ def pruefung():
     plan = None
     schreiben = os.environ.get("GOLDENE_BAHNEN_SCHREIBEN") == "1"
     speicher_messen = os.environ.get("SIMULTAN_SPEICHER_MESSEN") == "1"
+    anstellung = os.environ.get("SIMULTAN_TEST_ANSTELLUNG", "frei")
+    assert anstellung in ("frei", "frei_gesamt")
     if speicher_messen:
         tracemalloc.start()
     beginn = time.monotonic()
@@ -71,7 +73,7 @@ def pruefung():
         return True
 
     for aktueller_plan, variante in sp.vergleichen(
-        op, p, bib, richtungen=("flaeche",), anstellungen=("frei",), fortschritt=fortschritt
+        op, p, bib, richtungen=("flaeche",), anstellungen=(anstellung,), fortschritt=fortschritt
     ):
         plan = aktueller_plan
         print("VARIANTE", variante.werkzeug.ToolNumber, variante.grund, flush=True)
@@ -117,7 +119,7 @@ def pruefung():
     bib.halter[0].name = original
     bib.speichern()
     sp.uebernehmen(op, plan)
-    assert op.ToolController.ToolNumber == 4 and str(op.Kippachse) == "frei"
+    assert op.ToolController.ToolNumber == 4 and str(op.Kippachse) == anstellung
     assert op.Randgang and op.Anstellen and len(op.Werkzeugachsen) == len(op.Path.Commands)
     # Die übernommene und neu gerechnete Operation führt dieselbe Kugelmitte wie die geprüfte.
     aktuell = an.punkte(list(op.Path.Commands), [tuple(a) for a in op.Werkzeugachsen], 2.0)
@@ -145,7 +147,11 @@ def pruefung():
         plan.beste.operation._pruefprogramm[1]
     ), "Anderes Maschinenprogramm nach Übernahme"
     werte = np.round(np.array([(*p.spitze, *p.achse, int(p.eilgang)) for p in aktuell]), 6)
-    golden = ADDON / "tests/golden/freiform_simultan.json"
+    golden = ADDON / (
+        "tests/golden/freiform_simultan_gesamt.json"
+        if anstellung == "frei_gesamt"
+        else "tests/golden/freiform_simultan.json"
+    )
     ist = {
         "punkte": len(werte),
         "sha256": hashlib.sha256(werte.astype("<f8").tobytes()).hexdigest(),
@@ -157,6 +163,8 @@ def pruefung():
         "rechenzeit_s": rechenzeit,
         "spitzenspeicher_python_mb": spitze_mb,
     }
+    if os.environ.get("SIMULTAN_TEST_DOKUMENT"):
+        doc.saveAs(os.environ["SIMULTAN_TEST_DOKUMENT"])
     if not schreiben:
         soll = json.loads(golden.read_text())
         assert ist["sha256"] == soll["sha256"], "Gespeicherte Referenzbahn verändert"

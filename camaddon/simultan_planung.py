@@ -36,7 +36,7 @@ from . import vierachs_schlichten as vs
 from .sprache import tr
 
 RICHTUNGEN = ("x", "y", "spirale", "flaeche", "aequidistant")
-ANSTELLUNGEN = ("X", "Y", "frei")
+ANSTELLUNGEN = ("X", "Y", "frei", "frei_gesamt")
 
 
 class _Ansicht:

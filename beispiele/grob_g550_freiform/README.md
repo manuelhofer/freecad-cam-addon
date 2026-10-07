@@ -1,3 +1,6 @@
+> Zwischenstand vor Reboot: Manuel lehnt die gezeigte Schrupp-/Gesamtstrategie ab.
+> Neue Richtungsfolge und NC-Referenz noch nicht abschließend freigegeben.
+
 # Freiform auf der G550: Werkzeug, Bahn und Anstellung vergleichen
 
 Der Job beginnt mit einem Quader 50 × 40 × 30 mm. Sein Sollteil hat eine interpolierte
@@ -37,6 +40,15 @@ ausdrücklich eingerichteten Testprofil; er läuft beim Import nicht automatisch
 Anstellung um X, um Y oder frei mit beiden Kippkomponenten. Die größeren Kugeln erreichen
 hier einen Flächenrand nicht ohne Verletzung einer Gegenfläche. Mehrere Anstellungen
 verfehlen den Mindestkontaktwinkel auch zwischen Bahnpunkten und werden abgewiesen.
+
+Seit P-2026-10-07-05 bietet der aktuelle Dialog zusätzlich **Frei, ganze Bahn** an.
+Diese Variante plant die Richtungsfolge mit Blick auf spätere Flächenneigungen. Am selben
+Teil ist sie mit 682,55 s nur 0,30 s schneller als der gespeicherte Maßstab, bei derselben
+0,01694-mm-Restgrenze und vollständiger Material-/Modellzulassung. Die ursprünglichen
+Dateien und ihre 45-Varianten-Referenz bleiben als Maßstab erhalten; die zusätzliche
+Richtungsfolge hat eine eigene goldene Referenz.
+Die zusätzliche gespeicherte Bahn und ihr Siemens-Export sind ebenfalls unabhängig
+nachgeprüft: 53.916 Bewegungen und 0,01704942 mm Restgrenze einschließlich aller Reserven.
 
 | Ergebnis | Wert |
 | --- | --- |

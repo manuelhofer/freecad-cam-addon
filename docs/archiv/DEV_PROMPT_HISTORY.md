@@ -12,6 +12,83 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-07-05 zwischenstand-5achs-vor-neustart
+
+### EINGELESEN
+- Abschluss dieser Arbeit ausdrücklich unterbrochen: Manuel verlangt Zwischenstand vor Reboot und lehnt die dargestellte Strategie ab. Kein freigegebener Release.
+- Manuel fordert weitergehende globale Bearbeitungsoptimierung und Weiterarbeit mit allen
+  Qualitäts-, Zeit- und goldenen Prüfungen. CHATSTART, Arbeitsregeln, Snapshot, Strategien
+  16, vorhandene freie Anstellung, Simultanvergleich, Maschinenzeit und NC-Nachprüfung.
+- Vor Implementierung als 16.8 mit Tabellenzeile und Akzeptanzsatz beschrieben.
+  Kein vorhandener gleicher Richtungsgraph im Projekt/Git; FreeCADs Surface-Kern plant
+  keine solche vollständige freie Richtungsfolge. Vorhandene Bahn- und Qualitätsprüfer verwenden.
+
+### DATEIEN
+- `camaddon/anstellung_gesamt.py` (neu), `anstellung_frei.py`, `angestellt.py`,
+  `simultan_planung.py`, `gui_simultan_planung.py`, `postprozessor.py`;
+  `tests/test_anstellung_gesamt.py`, `test_simultan_gesamt.py` (neu),
+  Planungs-/NC-/Postprozessorprüfungen, GUI-Szenario, separate Bahn-/NC-Referenzen;
+  Hilfe/Übersetzungen DE/EN, Beispiel-README, Aufbau, Spezifikation, Snapshot,
+  `package.xml` bleibt 0.198.1; neue Funktion noch nicht freigegeben, diese Datei.
+
+### AKZEPTANZKRITERIUM
+3D-Schlichten wählen → „5-Achs-Schlichten vergleichen“ → auch „Frei, ganze Bahn“ mit
+vollständiger Maschinenzeit und denselben Zulassungsprüfungen vergleichen, die schnellste
+zugelassene Variante rückgängig machbar übernehmen und ihre geplante Anfahrt im NC erhalten.
+
+### DONE
+- Dynamische Programmierung über acht Kegelrichtungen, freie Vor-/Rückfolge und erlaubte
+  Senkrechte; global kleinster Winkelaufwand in diesem endlichen Graphen, einschließlich
+  Zwischenkontaktwinkel. Kein Beweis einer global kleinsten realen Maschinenzeit.
+- Zusätzlicher unverändernder Vergleichskandidat, vorhandene Qualitäts-/Kollisionszulassung
+  und gesamte Maschinenzeit entscheiden; persistentes Enum mit Wiederherstellung alter
+  Einstellungen und reproduzierbarer Neuberechnung. Abbrechen bleibt wirksam.
+- Die universelle Forderung ist weiterhin nicht erfüllt: Höhenquader und von oben
+  erreichbare Flächen, keine allgemeinen Hinterschnitte/Aufspannungen; geschlossene
+  Innenräume aus massivem Rohteil sind mit einem Fräser physisch nicht erreichbar.
+- Der neue negative erste Steuerungswinkel deckte ein NC-Problem auf: mangels vorherigen
+  Winkels immer ACP, −39° wurden +321°. Erste Moduloanstellung berücksichtigt jetzt den
+  Nullwinkel; alle folgenden Stellungen weiterhin die tatsächliche vorige Stellung.
+- Eigenen Testentwurf korrigiert: fehlende GUI-Bezeichnung; FCStd-Speicherrundung von
+  Path/VectorList verursacht 0,000001 mm Unterschied zur rohen Rechenreferenz; separate
+  strenge Referenzen für rohe Rechnung, gespeicherte Darstellung und tatsächlichen Export.
+  Ein isolierter NC-Abschnitt ohne Home definiert an seiner ersten Moduloachse die Phase;
+  der vollständige Export erhält dagegen die geplante erste Drehrichtung ab Null.
+- Im NC-Prüfstand den tatsächlichen Export referenzieren, nach unabhängiger Prüfung
+  seiner gelesenen Wörter; kein zweiter Export bereits gelesener Wörter als Referenz.
+
+### TEST
+- KI, FreeCAD 1.1.4, eigene vorher angelegte geprüfte Profile, 16-GiB-Deckel:
+  kürzesten Graphenweg unabhängig vollständig ausgezählt; örtliche Sackgasse 68° → 34°,
+  Luftnormalen, normierte Richtungen, gesperrte Verbindungen und Abbrechen geprüft.
+- Komplexe Freiform: größere Kugeln abgewiesen, Materialstand/Voroperation, ganze
+  550.457 Flächenzellen, BRep, Kontaktwinkel, tatsächliche Maschinenstellungen, Eingriff,
+  Last, Luft und Modellkollision; keine offene Zelle/Befunde. Übernahme, geometrisch gleiche
+  Neuberechnung, Rückgängig und Ablehnung veralteter Eingaben/Halterdaten bestehen.
+- Jobzeit 682,54859 s statt 682,84391 s: nur 0,29532 s schneller. Restgrenze 0,01694 mm
+  bei 0,02 mm; feineres 0,05-mm-Materialraster ebenfalls ohne Befund. Instrumentiert
+  1288,57 s und 401,89 MiB Python-Spitzenspeicher; innerhalb der bisherigen Budgets.
+- GUI sichtbar auf DP-1: 20 Varianten am kleinen Testteil, neue Zeile, geprüfte Übernahme
+  und Rückgängig; Hilfe, Übersetzungen, Black und Ruff ohne Befund. Den Materialvergleich
+  im eigenen Profil auf DP-1 zum Ansehen offen gelassen; persönliche Bibliothek unverändert.
+- NC: gespeicherte und ausgeschriebene Koordinaten vollständig nachgelesen und geometrisch
+  geprüft, dieselben Flächenzellen ohne Lücken; BRep-Mindestabstand 0,00038221 mm
+  bei reservierten 0,00036 mm. Ausgeschriebene Restgrenze einschließlich Vernetzung und
+  NC-Reserve 0,01704942 mm. Erste negative Anstellung und übrige Postprozessorfälle geprüft.
+
+### OFFEN BEIM ZWISCHENSPEICHERN
+- Praktische Strategie von Manuel abgelehnt, Screenshot gesichert. Zuerst 3D-Schruppen,
+  Rampen/Leerwege und den Gesamtjob sinnvoll planen; Goldens belegen Wiederholbarkeit,
+  keine globale oder praktisch optimale Strategie.
+- Letzte exakte Wiederholung des tatsächlichen Gesamtexports weicht von der neuen
+  NC-Textreferenz ab, auch bei eingefrorener Originalmaschine. Nicht geklärt, nicht freigegeben.
+- Geänderte Maschinenansicht/-stellung und originale FCBak erhalten; Prüflogs, temporäres
+  Prüfdokument und Screenshot dauerhaft außerhalb /tmp gesichert. Benutzer fordert Reboot.
+
+### NEXT
+- Allgemeiner dreidimensionaler Materialstand, Zugänglichkeit und zusätzliche Aufspannungen
+  bleiben offen; dieser Patch liefert Voraussicht als weiteren geprüften Kandidaten.
+
 ## P-2026-10-07-04 simultan-rohteilvergleich-zeigen
 
 ### EINGELESEN

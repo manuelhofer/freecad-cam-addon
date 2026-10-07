@@ -41,7 +41,7 @@ WINKEL = 15.0  # Grad – so weit steht die Achse mindestens von der Flächennor
 LAENGE = 0.5  # mm – so lang ist ein Satz im Vorschub höchstens (eine Achse je Satz)
 AENDERUNG = 2.0  # Grad je mm – so schnell ändert sich die Neigung längs der Bahn höchstens
 KONTAKT = 0.05  # mm – so nah muss die Kugel dem Teil sein, damit seine Fläche zählt
-UM = ("X", "Y", "frei")  # frei: beide Kippkomponenten, im Simultanvergleich geprüft
+UM = ("X", "Y", "frei", "frei_gesamt")  # beide freien Kandidaten im Simultanvergleich prüfen
 SENKRECHT = (0.0, 0.0, 1.0)
 KEINE = (0.0, 0.0, 0.0)  # in `Werkzeugachsen`: ein Satz ohne Bewegung
 BEWEGUNG = ("G0", "G00", "G1", "G01")
@@ -198,11 +198,18 @@ def achsen(
     KEINE bei einem Satz ohne Bewegung. Im Vorschub aus der Fläche am Berührpunkt (verboten,
     neigungen); ein Eilgang nach oben behält die Achse davor, jeder andere nimmt die des nächsten
     Vorschubs."""
-    if um == "frei":
+    if um in ("frei", "frei_gesamt"):
         from . import anstellung_frei
 
         return anstellung_frei.achsen(
-            befehle, form, radius, aufmass, winkel, normalen_cache, fortschritt
+            befehle,
+            form,
+            radius,
+            aufmass,
+            winkel,
+            normalen_cache,
+            fortschritt,
+            gesamt=um == "frei_gesamt",
         )
     stellen = []  # (Index des Befehls, Punkt, Eilgang)
     stand = [None, None, None]

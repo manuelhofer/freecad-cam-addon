@@ -10,7 +10,10 @@ does not import catalog tools or change your tool library. It uses the configure
 holder, tool length and cutting data.</p>
 <p>The paths are rows along X or Y, a spiral, paths along the surface and equally spaced paths.
 Each is inclined about X, about Y or in a freely changing direction. Free inclination retains
-the previous direction while it satisfies the contact angle. Both rotary axes need not move
+the previous direction while it satisfies the contact angle. <b>Free, whole path</b> also
+plans the complete direction sequence ahead, seeking the least change among its available
+directions. It is an additional candidate; actual machine time and the same checks decide
+whether it wins. Both rotary axes need not move
 all the time: reachability and time decide. A precise boundary pass completes open face edges.</p>
 <h3>Checks and results</h3>
 <p>The material check starts with the stock and replays preceding operations. It checks

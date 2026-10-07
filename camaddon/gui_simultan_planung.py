@@ -30,7 +30,12 @@ def richtung_text(richtung):
 
 def anstellung_text(um):
     """Die angebotene Anstellung in der aktuellen Sprache."""
-    return {"X": tr("s5p.um.X"), "Y": tr("s5p.um.Y"), "frei": tr("s5p.um.frei")}[um]
+    return {
+        "X": tr("s5p.um.X"),
+        "Y": tr("s5p.um.Y"),
+        "frei": tr("s5p.um.frei"),
+        "frei_gesamt": tr("s5p.um.frei_gesamt"),
+    }[um]
 
 
 def ausgewaehlt():

@@ -173,6 +173,12 @@ spirale = pp.Abschnitt(
     ],
 )
 modulo = dataclasses.replace(manuel, modulo={"C"})
+negativer_anfang = dataclasses.replace(spirale, befehle=[C("G0", {"C": -90.0})])
+anfang_programm = pp.programm([negativer_anfang], pp.steuerung("siemens"), modulo, "Anfang")
+pruefe(
+    any("C4=ACN(270.000)" in z for z in anfang_programm.zeilen),
+    "Erste negative Rundstellung fährt von Null eine unnötige positive Umdrehung",
+)
 mit_modulo = pp.programm([spirale], pp.steuerung("siemens"), modulo, "Welle")
 c_woerter = [w for z in mit_modulo.zeilen for w in z.split() if w.startswith("C4=")]
 pruefe(

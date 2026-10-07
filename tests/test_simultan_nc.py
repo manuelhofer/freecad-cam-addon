@@ -42,7 +42,9 @@ def pruefung():
     user_asset_store.set_dir(out / "assets")
     bib = wz.Bibliothek.laden(str(out / "beispiel_werkzeuge.json"))
     bib.speichern()
-    doc = App.openDocument(str(out / "freiform_5achs.FCStd"))
+    doc = App.openDocument(
+        os.environ.get("SIMULTAN_NC_DOKUMENT", str(out / "freiform_5achs.FCStd"))
+    )
     md = App.openDocument(str(out / "g550_winkelaufnahme.FCStd"))
     p = rw.Pruefung(md.Assembly, md.Maschine)
     op = doc.Schlichten3D
@@ -56,6 +58,25 @@ def pruefung():
 
     mas = maschine(op)
     quelle = so.befehle(virtuell, mas)
+    if str(op.Kippachse) == "frei_gesamt":
+        import numpy as np
+
+        from camaddon import angestellt as an
+
+        referenz = json.loads((ROOT / "tests/golden/freiform_simultan_gesamt.json").read_text())
+        punkte = an.punkte(list(op.Path.Commands), [tuple(a) for a in op.Werkzeugachsen], 2)
+        geladene_werte = np.round(
+            np.array([(*p.spitze, *p.achse, int(p.eilgang)) for p in punkte]), 6
+        )
+        # FreeCAD speichert Path/VectorList mit begrenzter Stellenzahl. Die geladene
+        # Darstellung bekommt nach der vollständigen NC-Prüfung ihre eigene exakte Referenz.
+        # Die rohe Rechenreferenz bleibt im Planungsprüfstand unverändert streng.
+        assert len(geladene_werte) == referenz["punkte"]
+        assert np.max(np.abs(geladene_werte[::97] - np.asarray(referenz["stichprobe"]))) <= 0.000002
+        bisher = json.loads((ROOT / "tests/golden/freiform_simultan.json").read_text())
+        assert referenz["zeit_s"] <= bisher["zeit_s"] * 1.005
+        assert referenz["rechenzeit_s"] <= bisher["rechenzeit_s"] * 2
+        assert referenz["spitzenspeicher_python_mb"] <= bisher["spitzenspeicher_python_mb"] * 2
     virtuell._pruefprogramm = (so.pruefschluessel(mas), tuple(quelle))
     # Erst nur diese Operation schreiben, ohne Wechselpunkt: jeder Fahrsatz kommt
     # aus der Quelle. Die gelesenen Wörter, nicht die originalen Doublewerte, nachfahren.
@@ -96,7 +117,12 @@ def pruefung():
                 if modulo:
                     achse, richtung, zahl = modulo.groups()
                     wert = float(zahl)
-                    vorher = stand.get(achse, 0.0) * (-1 if achse in info.umgekehrt else 1)
+                    # Der einzelne Abschnitt enthält absichtlich keinen Home-Anlauf.
+                    # Seine erste Moduloachse legt nur die Phase fest, keine vorherige
+                    # Umdrehung; sie auf die Quelle beziehen, danach die echte Folge lesen.
+                    vorher = stand.get(achse, round(float(c.Parameters[achse]), 6)) * (
+                        -1 if achse in info.umgekehrt else 1
+                    )
                     wert += math.floor(vorher / 360) * 360
                     while richtung == "P" and wert < vorher - 1e-10:
                         wert += 360
@@ -124,6 +150,10 @@ def pruefung():
     virtuell._pruefprogramm = (so.pruefschluessel(mas), tuple(gelesen))
     job = sp._job_mit(doc.Job, op, virtuell)
     fahrt = ab.abfahrt(p, job, rw.nullpunkt(job), bib)
+    if str(op.Kippachse) == "frei_gesamt":
+        assert (
+            fahrt.dauer <= referenz["zeit_s"] * 1.005
+        ), "Zeitbestmarke nach NC-Rundung überschritten"
     nummer = next(i for i, o in enumerate(rw._operationen(job)) if o is virtuell)
     bahn = sa.maschinenbahn(fahrt, nummer, 2, materialdaten=daten)
     stand_material = sa.Pruefstand(job, virtuell, bib)
@@ -142,13 +172,37 @@ def pruefung():
     print("NC_BREP", abstand, flush=True)
     assert abstand >= reserve, abstand
     # Ganzen Job mit denselben gelesenen Achswerten schreiben und nachlesen.
+    if str(op.Kippachse) == "frei_gesamt":
+        # Den tatsächlichen Export referenzieren, nicht einen zweiten Export bereits
+        # gelesener Wörter; dessen Geometrie wurde direkt darüber unabhängig geprüft.
+        virtuell._pruefprogramm = (so.pruefschluessel(mas), tuple(quelle))
     programm = pp.programm(
         pp.abschnitte(job, maschine), steuerung, pp.maschineninfo_dokument(md), "G550_FREIFORM"
     )
+    if str(op.Kippachse) == "frei_gesamt":
+        assert (
+            "B1=ACN(320.869207)" in programm.text
+        ), "Erste Anstellung von Home in falscher Drehrichtung"
     befunde, saetze = pp.nachlesen(programm, steuerung, pp.maschineninfo_dokument(md))
     assert not befunde, befunde
     ist = {"sha256": hashlib.sha256(programm.text.encode()).hexdigest(), "nc_saetze": saetze}
-    golden = ROOT / "tests/golden/freiform_simultan_nc.json"
+    if str(op.Kippachse) == "frei_gesamt":
+        ist["geladene_punkte_sha256"] = hashlib.sha256(
+            geladene_werte.astype("<f8").tobytes()
+        ).hexdigest()
+        ist["geladene_befehle_sha256"] = hashlib.sha256(
+            json.dumps(
+                [
+                    (c.Name, sorted((k, round(float(v), 6)) for k, v in c.Parameters.items()))
+                    for c in quelle
+                ]
+            ).encode()
+        ).hexdigest()
+    golden = ROOT / (
+        "tests/golden/freiform_simultan_gesamt_nc.json"
+        if str(op.Kippachse) == "frei_gesamt"
+        else "tests/golden/freiform_simultan_nc.json"
+    )
     schreiben = os.environ.get("GOLDENE_BAHNEN_SCHREIBEN") == "1"
     if schreiben:
         golden.write_text(json.dumps(ist, indent=2) + "\n")

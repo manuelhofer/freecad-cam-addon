@@ -38,7 +38,15 @@ def richtungen(normalen, winkel=an.WINKEL):
 
 
 def achsen(
-    befehle, form, radius, aufmass=0.0, winkel=an.WINKEL, normalen_cache=None, fortschritt=None
+    befehle,
+    form,
+    radius,
+    aufmass=0.0,
+    winkel=an.WINKEL,
+    normalen_cache=None,
+    fortschritt=None,
+    *,
+    gesamt=False,
 ):
     """Werkzeugachsen je Satz; Eilgänge heben mit der bisherigen Richtung ab."""
     stellen, stand = [], [None, None, None]
@@ -63,10 +71,14 @@ def achsen(
             fortschritt=fortschritt,
         )
     )
-    # Ein kleiner Winkelvorrat für die Interpolation zwischen Kontaktpunkten.
-    je_satz = dict(
-        zip((i for i, _p, _e in schnitte), richtungen(normalen, winkel + 2.0), strict=True)
-    )
+    if gesamt:
+        from . import anstellung_gesamt
+
+        folge = anstellung_gesamt.richtungen(normalen, winkel, fortschritt)
+    else:
+        # Ein kleiner Winkelvorrat für die Interpolation zwischen Kontaktpunkten.
+        folge = richtungen(normalen, winkel + 2.0)
+    je_satz = dict(zip((i for i, _p, _e in schnitte), folge, strict=True))
     naechste, kommend = {}, None
     for i, _p, eilgang in reversed(stellen):
         if not eilgang:
