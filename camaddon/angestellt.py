@@ -41,7 +41,7 @@ WINKEL = 15.0  # Grad – so weit steht die Achse mindestens von der Flächennor
 LAENGE = 0.5  # mm – so lang ist ein Satz im Vorschub höchstens (eine Achse je Satz)
 AENDERUNG = 2.0  # Grad je mm – so schnell ändert sich die Neigung längs der Bahn höchstens
 KONTAKT = 0.05  # mm – so nah muss die Kugel dem Teil sein, damit seine Fläche zählt
-UM = ("X", "Y")  # um diese Achse des Jobs kippt die Werkzeugachse
+UM = ("X", "Y", "frei")  # frei: beide Kippkomponenten, im Simultanvergleich geprüft
 SENKRECHT = (0.0, 0.0, 1.0)
 KEINE = (0.0, 0.0, 0.0)  # in `Werkzeugachsen`: ein Satz ohne Bewegung
 BEWEGUNG = ("G0", "G00", "G1", "G01")
@@ -137,7 +137,7 @@ def neigungen(wege, verbote, aenderung=AENDERUNG):
     return ergebnis
 
 
-def normalen(form, spitzen, radius, aufmass=0.0, kontakt=KONTAKT):
+def normalen(form, spitzen, radius, aufmass=0.0, kontakt=KONTAKT, cache=None):
     """[(x, y, z) oder None] – je Spitze der Kugel (senkrecht, Radius `radius`) die Normale der
     Fläche, wo sie das Teil `form` berührt; None, wo sie es nicht berührt (mehr als `kontakt`
     weg – über dem Teil). `aufmass`: so viel bleibt stehen, die Kugel berührt um es weiter
@@ -145,27 +145,60 @@ def normalen(form, spitzen, radius, aufmass=0.0, kontakt=KONTAKT):
     import Part
 
     ergebnis = []
+    cache = {} if cache is None else cache
     for x, y, z in spitzen:
+        key = (radius, aufmass, kontakt, round(x, 9), round(y, 9), round(z, 9))
+        if key in cache:
+            ergebnis.append(cache[key])
+            continue
         mitte = FreeCAD.Vector(x, y, z + radius)
         try:
             abstand, paare, _info = form.distToShape(Part.Vertex(mitte))
         except Exception:  # eine Form, mit der OpenCascade nicht rechnen kann: senkrecht
+            cache[key] = None
             ergebnis.append(None)
             continue
         if not paare or abstand < 1e-9 or abstand > radius + aufmass + kontakt:
+            cache[key] = None
             ergebnis.append(None)
             continue
         n = mitte - paare[0][0]
         n.normalize()
-        ergebnis.append((n.x, n.y, n.z))
+        cache[key] = (n.x, n.y, n.z)
+        ergebnis.append(cache[key])
     return ergebnis
 
 
-def achsen(befehle, form, radius, aufmass=0.0, um="X", winkel=WINKEL, aenderung=AENDERUNG):
+def vorausblick(normalen):
+    """In Luftsätzen die Richtung der nächsten Kontaktstelle schon vorbereiten."""
+    ergebnis, danach = list(normalen), None
+    for i in range(len(ergebnis) - 1, -1, -1):
+        if ergebnis[i] is not None:
+            danach = ergebnis[i]
+        else:
+            ergebnis[i] = danach
+    return ergebnis
+
+
+def achsen(
+    befehle,
+    form,
+    radius,
+    aufmass=0.0,
+    um="X",
+    winkel=WINKEL,
+    aenderung=AENDERUNG,
+    vorausschau=False,
+    normalen_cache=None,
+):
     """[(x, y, z)] je Befehl (Path.Command, senkrecht gerechnet): die Werkzeugachse im Job –
     KEINE bei einem Satz ohne Bewegung. Im Vorschub aus der Fläche am Berührpunkt (verboten,
     neigungen); ein Eilgang nach oben behält die Achse davor, jeder andere nimmt die des nächsten
     Vorschubs."""
+    if um == "frei":
+        from . import anstellung_frei
+
+        return anstellung_frei.achsen(befehle, form, radius, aufmass, winkel, normalen_cache)
     stellen = []  # (Index des Befehls, Punkt, Eilgang)
     stand = [None, None, None]
     for i, befehl in enumerate(befehle):
@@ -177,7 +210,9 @@ def achsen(befehle, form, radius, aufmass=0.0, um="X", winkel=WINKEL, aenderung=
         if None not in stand:
             stellen.append((i, tuple(stand), name in EILGANG))
     vorschub = [s for s in stellen if not s[2]]
-    flaeche = normalen(form, [p for _i, p, _e in vorschub], radius, aufmass)
+    flaeche = normalen(form, [p for _i, p, _e in vorschub], radius, aufmass, cache=normalen_cache)
+    if vorausschau:
+        flaeche = vorausblick(flaeche)
     wege, davor = [], None
     for _i, p, _e in vorschub:
         wege.append(math.dist(davor, p) if davor is not None else 0.0)

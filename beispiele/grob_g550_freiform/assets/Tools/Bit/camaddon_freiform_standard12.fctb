@@ -1,0 +1,52 @@
+{
+  "version": 2,
+  "id": "camaddon_freiform_standard12",
+  "name": "VHM 12",
+  "shape": "endmill.fcstd",
+  "shape-type": "Endmill",
+  "parameter": {
+    "Diameter": "12.0 mm",
+    "ShankDiameter": "12.0 mm",
+    "Flutes": 4,
+    "CuttingEdgeHeight": "26.0 mm",
+    "Length": "85 mm"
+  },
+  "attribute": {
+    "SpindleDirection": "Forward",
+    "Material": "Carbide",
+    "Chipload": "0.07 mm"
+  },
+  "camaddon": {
+    "kennung": "freiform_standard12",
+    "nummer": 1
+  },
+  "presets": [
+    {
+      "name": "Planen",
+      "material_hint": null,
+      "op_type_hint": "pocket",
+      "surface_speed": 85.0,
+      "chipload": 0.07,
+      "vert_feed_ratio": 0.33,
+      "notes": "ae 8.4 mm, ap 1.2 mm (CAM-Addon)"
+    },
+    {
+      "name": "Schruppen",
+      "material_hint": null,
+      "op_type_hint": "pocket",
+      "surface_speed": 85.0,
+      "chipload": 0.1,
+      "vert_feed_ratio": 0.33,
+      "notes": "ae 1.5 mm, ap 25 mm (CAM-Addon)"
+    },
+    {
+      "name": "Schlichten",
+      "material_hint": null,
+      "op_type_hint": "profile",
+      "surface_speed": 85.0,
+      "chipload": 0.1,
+      "vert_feed_ratio": 0.33,
+      "notes": "ae 0.3 mm, ap 25 mm (CAM-Addon)"
+    }
+  ]
+}

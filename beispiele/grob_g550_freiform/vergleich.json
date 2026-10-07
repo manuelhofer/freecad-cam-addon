@@ -1,0 +1,465 @@
+{
+  "varianten": [
+    {
+      "werkzeug": 2,
+      "richtung": "x",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "x",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "x",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "y",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "y",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "y",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "spirale",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "spirale",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "spirale",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "flaeche",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "flaeche",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "flaeche",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "aequidistant",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "aequidistant",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 2,
+      "richtung": "aequidistant",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "x",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "x",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "x",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "y",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "y",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "y",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "spirale",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "spirale",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "spirale",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "flaeche",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "flaeche",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "flaeche",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "aequidistant",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "aequidistant",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 3,
+      "richtung": "aequidistant",
+      "anstellung": "frei",
+      "zeit_s": null,
+      "restprobe_mm": null,
+      "kontaktwinkel_grad": 0.0,
+      "grund": "Der Kugelfräser erreicht einen Flächenrand nicht ohne Verletzung einer Gegenfläche.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "x",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": 0.029781249795460596,
+      "kontaktwinkel_grad": 7.446451026651341,
+      "grund": "Kontaktwinkel zu klein: 7.45°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "x",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": 0.029781249795460596,
+      "kontaktwinkel_grad": 1.607200359654989,
+      "grund": "Kontaktwinkel zu klein: 1.61°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "x",
+      "anstellung": "frei",
+      "zeit_s": 581.3424705831137,
+      "restprobe_mm": 0.029781249795460596,
+      "kontaktwinkel_grad": 16.027165426391058,
+      "grund": "",
+      "kollision_geprueft": true
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "y",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": 0.03944566948617778,
+      "kontaktwinkel_grad": 14.197938880733085,
+      "grund": "Kontaktwinkel zu klein: 14.20°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "y",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": 0.03944566948617778,
+      "kontaktwinkel_grad": 14.46788875250981,
+      "grund": "Kontaktwinkel zu klein: 14.47°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "y",
+      "anstellung": "frei",
+      "zeit_s": 583.3157618327665,
+      "restprobe_mm": 0.03944566948617778,
+      "kontaktwinkel_grad": 16.926136151882123,
+      "grund": "",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "spirale",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": 0.03432966289218786,
+      "kontaktwinkel_grad": 12.689394783113608,
+      "grund": "Kontaktwinkel zu klein: 12.69°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "spirale",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": 0.03432966289218786,
+      "kontaktwinkel_grad": 0.9874372062385849,
+      "grund": "Kontaktwinkel zu klein: 0.99°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "spirale",
+      "anstellung": "frei",
+      "zeit_s": 665.7107074545168,
+      "restprobe_mm": 0.03432966289218786,
+      "kontaktwinkel_grad": 16.926669748174625,
+      "grund": "",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "flaeche",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": 0.02407278618042552,
+      "kontaktwinkel_grad": 13.27205368734914,
+      "grund": "Kontaktwinkel zu klein: 13.27°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "flaeche",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": 0.02407278618042552,
+      "kontaktwinkel_grad": 1.0329467194042485,
+      "grund": "Kontaktwinkel zu klein: 1.03°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "flaeche",
+      "anstellung": "frei",
+      "zeit_s": 582.4245539304998,
+      "restprobe_mm": 0.02407278618042552,
+      "kontaktwinkel_grad": 16.648007400801564,
+      "grund": "",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "aequidistant",
+      "anstellung": "X",
+      "zeit_s": null,
+      "restprobe_mm": 0.03734944076272617,
+      "kontaktwinkel_grad": 13.57087982508979,
+      "grund": "Kontaktwinkel zu klein: 13.57°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "aequidistant",
+      "anstellung": "Y",
+      "zeit_s": null,
+      "restprobe_mm": 0.03734944076272617,
+      "kontaktwinkel_grad": 11.147985023916698,
+      "grund": "Kontaktwinkel zu klein: 11.15°.",
+      "kollision_geprueft": false
+    },
+    {
+      "werkzeug": 4,
+      "richtung": "aequidistant",
+      "anstellung": "frei",
+      "zeit_s": 582.3471225564525,
+      "restprobe_mm": 0.03734944076272617,
+      "kontaktwinkel_grad": 16.617220524325614,
+      "grund": "",
+      "kollision_geprueft": false
+    }
+  ],
+  "beste": {
+    "werkzeug": 4,
+    "richtung": "x",
+    "anstellung": "frei",
+    "zeit_s": 581.3424705831137,
+    "restprobe_mm": 0.029781249795460596,
+    "kontaktwinkel_grad": 16.027165426391058,
+    "saetze_schlichten": 12260,
+    "alle_fuenf_gleichzeitig": 167,
+    "stationen_job": 14721
+  }
+}

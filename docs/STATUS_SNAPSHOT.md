@@ -8,6 +8,15 @@ Patch mit dem, was man sehen muss) und je Thema in seiner Spezifikation (Lesekar
 
 ## Projektstatus
 
+**Komplexes 5-Achs-Schlichten, erster Schritt:** „3D-Schlichten“ auswählen → CAM-Addon →
+„5-Achs-Schlichten vergleichen …“: eingerichtete Kugelfräser, fünf Bahnrichtungen und
+Anstellung um X/Y oder frei gemeinsam prüfen. Oberflächenproben und Kontaktwinkel sind
+Zulassungsbedingungen, gesamte Maschinenzeit und genaue Kollision entscheiden. Vergleich
+ohne Änderung, Übernahme mit Rückgängig und Schutz vor veralteter Prüfung (P-2026-10-07-02).
+Beispiel `beispiele/grob_g550_freiform/`: Quader → Mulde/Sattel/Erhebung, 45 Varianten,
+Kugel Ø 4/Zeilen X/frei, rechnerisch 9 min 41 s, Modellprüfung ohne Befund.
+Noch keine allgemeine Lösung für Hinterschnitte, weitere Aufspannungen oder globale Optimalität.
+
 **G550-Simultanbeispiel:** fertiger Flanken-Schlichtjob mit D12 auf Winkelaufnahme unter
 `beispiele/grob_g550_simultan/`; 252 Vorschubbewegungen ändern X/Y/Z/A/B gemeinsam,
 Modellprüfung ohne Kollisionen oder Grenzüberschreitungen, etwa 12 s gerechnet. Startskript
@@ -28,7 +37,7 @@ bleibt Standard, alte Jobs und andere Bearbeitungen rechnen wie zuvor (P-2026-10
 Am Testteil modelliert 9,59 statt 10,28 min; die 8 min Zielzeit sind noch nicht erreicht.
 Manuels Klickprüfung steht aus.
 
-Stand 0.196.1 (P-2026-10-07-01). Alles, was hier als gebaut steht,
+Stand 0.197.0 (P-2026-10-07-02). Alles, was hier als gebaut steht,
 ist automatisch geprüft und vom jeweiligen Assistenten als Screenshot gesehen. **Manuels Test steht
 aus** für alles seit 0.100.0; zuletzt hat er am 2026-10-02 die Schritte des Assistenten
 „Bearbeitung“ gesehen („die Menüführung ist gut“).

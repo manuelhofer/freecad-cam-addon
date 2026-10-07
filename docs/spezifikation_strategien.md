@@ -2687,11 +2687,10 @@ Was der Job dazu weiß (Eigenschaften in der Gruppe „5-Achs“):
 - **Eilgang durchs Rohteil** (Simulation 4c): bleibt so (Manuel: „habe ich ja eigentlich vorher
   schon geklärt“).
 
-## 16. 5 Achsen simultan (W-015, Entwurf zum Besprechen)
+## 16. 5 Achsen simultan (W-015)
 
-Nicht gebaut – ein Vorschlag für Manuel. Simultan ändert, wie Bahnen entstehen und was im
-Programm steht; das bespreche ich vorher (Manuel, 2026-10-03: „es nächste Mal bitte erst mit mir
-besprechen“). 3+2 (Abschnitt 15) ist die Grundlage: Rundachsen zu einer Werkzeugachse
+Die gebauten Schritte stehen in 16.3. Simultan ändert, wie Bahnen entstehen und was im
+Programm steht. 3+2 (Abschnitt 15) ist die Grundlage: Rundachsen zu einer Werkzeugachse
 (`schwenken.Maschine.loese`), Achsen zu einem Punkt ohne TCPM (`Abbildung`), Abfahren und
 Kollision mit Rundachsen je Station.
 
@@ -3016,3 +3015,56 @@ Draufsicht nach Schnitt-Ø je Variante, Seitenansicht mit dem Werkzeug (im Beric
 - **E-4 Orientierung im Programm:** ~~als Richtungsvektor oder als Rundachsen?~~ Mit E-1
   entschieden: ohne TCPM gehen nur Rundachsen (A, C) – Richtungsvektoren (`A3= B3= C3=`)
   brauchen TRAORI.
+
+### 16.5 Komplexe Freiformteile: Bahn, Werkzeug und Anstellung gemeinsam wählen
+
+Manuel, 2026-10-07: „… eine 5 achs Strategie … die ein komplex Teil in der best möglichen
+Art und Weise abbilden kann?“ → „Dann Fang an!“ Das G550-Flankenbeispiel allein belegt
+das nicht. Der erste konkrete Schritt ist ein Vergleich am bestehenden 3D-Schlichten.
+
+Heute entscheidet die senkrecht gerechnete Bahnlänge über die Wahl; Anstellung und
+Maschinenzeit kommen danach. Das berücksichtigt nicht, ob ein großer Fräser enge
+Freiformbereiche erreicht oder welche Rundachsbewegung eine kurze Bahn verlangt.
+
+Geplanter Klickweg:
+
+```text
+3D-Schlichtoperation wählen → CAM-Addon → 5-Achs-Schlichten vergleichen …
+Werkzeug       Bahn               Anstellung     Zeit       Prüfung
+Kugel 12       Zeilen X           um X           –          Fläche nicht erreicht
+Kugel 6        entlang Fläche     Richtung frei  …          Kollisionsprüfung offen
+…
+[Varianten berechnen und prüfen]
+[5-Achs-Schlichtvariante übernehmen]  erst nach vollständiger Prüfung
+```
+
+**Akzeptanzkriterium:** An der Freiformfläche mit Mulde, Sattel und Erhebung den Vergleich
+starten → ungeeignete Fräser und Bahnen werden begründet abgewiesen, die schnellste vollständig
+geprüfte Kombination unter den angebotenen Varianten wird rückgängig machbar übernommen.
+
+- Alle Kugelfräser, die bereits als Controller im Job eingerichtet sind; gleiche Grathöhe.
+- Zeilen X/Y, Spirale, entlang der Fläche und gleicher Abstand; Anstellung um X/Y oder
+  frei mit beiden Kippkomponenten. Kein Zwang, beide Rundachsen ständig zu bewegen.
+- Vor der Zeitwahl: Oberflächen-Stichproben, Mindestwinkel zur Kontaktfläche auch zwischen
+  Bahnpunkten, erreichbare Maschinenfahrt und Verfahrgrenzen. Dann genaue Kollisionsprüfung
+  einschließlich An-/Abfahren, weiterer Joboperationen und Eilgang durch Rohteil.
+- Nur innerhalb dieser endlichen Varianten: keine globale Optimalität und keine vollständige
+  Oberflächenzertifizierung durch die Stichproben. Gewählte Flächen bleiben heute die von oben
+  erreichbaren Flächen der vorhandenen 3D-Strategie; Hinterschnitte und zusätzliche Aufspannungen
+  brauchen weitere Arbeit. Das ist der Beginn der Erweiterung für komplexe Teile.
+
+**Gebaut (P-2026-10-07-02, 0.197.0):** `simultan_planung.py` vergleicht eingerichtete
+Kugelfräser, fünf Bahnrichtungen und Anstellung um X/Y oder frei. `schlicht_rand.py`
+führt die Kugel genau an offenen Flächenrändern; zu große Fräser werden vor Gegenflächen
+abgewiesen. `anstellung_frei.py` behält die Richtung, solange der Kontaktwinkel reicht,
+sonst folgt sie dem Rand des erlaubten Kegels; die Luftsätze bereiten den nächsten Kontakt vor.
+Die gespeicherte Operation erhält `Randgang`, die freie Kippachse und den gewählten Controller.
+Der Vergleich berücksichtigt auch FreeCADs abschließenden Rückzug auf die Freifahrhöhe.
+
+**Am komplexen Beispiel:** Quader 50 × 40 × 30 → B-Spline-Fläche mit Mulde, Sattel und
+Erhebung, D12 schruppen mit 0,3 mm Aufmaß, danach Kugel schlichten. 45 Kombinationen,
+Kugel Ø 4/Zeilen X/frei gewinnt: gesamter Job 581,34 s; größte Oberflächenprobe 0,0298 mm,
+kleinster Kontaktwinkel 16,03°; 167 Vorschubbewegungen ändern alle fünf Achsen zusammen,
+Modellprüfung ohne Befund. [Beispiel und vollständiger Bericht](../beispiele/grob_g550_freiform/README.md).
+Übernahme, identische gespeicherte Bahn, Rückgängig und Schutz vor veralteten Eingaben
+in FreeCAD 1.1.4 geprüft. Der Mittelpunkt der Kugel bleibt beim Anstellen erhalten.

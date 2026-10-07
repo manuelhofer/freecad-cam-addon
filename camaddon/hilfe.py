@@ -36,6 +36,7 @@ THEMEN = [
     "vierachs",
     "bearbeitung",
     "schwenken",
+    "simultan_planung",
     "programm",
 ]
 

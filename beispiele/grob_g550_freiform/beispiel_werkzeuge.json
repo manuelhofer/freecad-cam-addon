@@ -1,0 +1,293 @@
+{
+  "format": 1,
+  "werkstoffe": [],
+  "werkzeuge": [
+    {
+      "kennung": "freiform_standard12",
+      "nummer": 1,
+      "art": "schaftfraeser",
+      "durchmesser": 12.0,
+      "schneiden": 4,
+      "schneidenlaenge": 26.0,
+      "eckradius": 0.0,
+      "gesamtlaenge": 85,
+      "laenge_spindelnase": 0.0,
+      "halter": "62d58f9d7e0e41b1b301a032ebdb8234",
+      "schaft": 0.0,
+      "eintauchwinkel": 3.0,
+      "spitzenwinkel": 0.0,
+      "spitzen_d": 0.0,
+      "kegelwinkel": 0.0,
+      "flankenwinkel": 0.0,
+      "hals_d": 0.0,
+      "hals_laenge": 0.0,
+      "profilradius": 0.0,
+      "steigung": 0.0,
+      "schneidenbreite": 0.0,
+      "einstellwinkel": 0.0,
+      "plattenwinkel": 0.0,
+      "stechtiefe": 0.0,
+      "ausfuehrung": "",
+      "drehrichtung": "",
+      "ae_warngrenze": 10.0,
+      "schneidstoff": "vhm",
+      "bezeichnung": "",
+      "hersteller": "",
+      "artikel": "",
+      "link": "",
+      "katalog": "",
+      "name": "VHM 12",
+      "schnittwerte": {
+        "*": [
+          {
+            "art": "planen",
+            "name": "",
+            "ae": 8.4,
+            "ap": 1.2,
+            "vc": 85.0,
+            "fz": 0.07
+          },
+          {
+            "art": "schruppen",
+            "name": "",
+            "ae": 1.5,
+            "ap": 25.0,
+            "vc": 85.0,
+            "fz": 0.1
+          },
+          {
+            "art": "schlichten",
+            "name": "",
+            "ae": 0.3,
+            "ap": 25.0,
+            "vc": 85.0,
+            "fz": 0.1
+          }
+        ]
+      }
+    },
+    {
+      "kennung": "freiform_kugel12",
+      "nummer": 2,
+      "art": "kugelfraeser",
+      "durchmesser": 12,
+      "schneiden": 4,
+      "schneidenlaenge": 26.0,
+      "eckradius": 6.0,
+      "gesamtlaenge": 85.0,
+      "laenge_spindelnase": 0.0,
+      "halter": "62d58f9d7e0e41b1b301a032ebdb8234",
+      "schaft": 0.0,
+      "eintauchwinkel": 3.0,
+      "spitzenwinkel": 0.0,
+      "spitzen_d": 0.0,
+      "kegelwinkel": 0.0,
+      "flankenwinkel": 0.0,
+      "hals_d": 0.0,
+      "hals_laenge": 0.0,
+      "profilradius": 0.0,
+      "steigung": 0.0,
+      "schneidenbreite": 0.0,
+      "einstellwinkel": 0.0,
+      "plattenwinkel": 0.0,
+      "stechtiefe": 0.0,
+      "ausfuehrung": "",
+      "drehrichtung": "",
+      "ae_warngrenze": 10.0,
+      "schneidstoff": "vhm",
+      "bezeichnung": "",
+      "hersteller": "",
+      "artikel": "",
+      "link": "",
+      "katalog": "",
+      "name": "Kugel 12",
+      "schnittwerte": {
+        "*": [
+          {
+            "art": "planen",
+            "name": "",
+            "ae": 8.4,
+            "ap": 1.2,
+            "vc": 85.0,
+            "fz": 0.07
+          },
+          {
+            "art": "schruppen",
+            "name": "",
+            "ae": 1.5,
+            "ap": 25.0,
+            "vc": 85.0,
+            "fz": 0.1
+          },
+          {
+            "art": "schlichten",
+            "name": "",
+            "ae": 0.3,
+            "ap": 25.0,
+            "vc": 85.0,
+            "fz": 0.1
+          }
+        ]
+      }
+    },
+    {
+      "kennung": "freiform_kugel6",
+      "nummer": 3,
+      "art": "kugelfraeser",
+      "durchmesser": 6,
+      "schneiden": 4,
+      "schneidenlaenge": 26.0,
+      "eckradius": 3.0,
+      "gesamtlaenge": 85.0,
+      "laenge_spindelnase": 0.0,
+      "halter": "62d58f9d7e0e41b1b301a032ebdb8234",
+      "schaft": 0.0,
+      "eintauchwinkel": 3.0,
+      "spitzenwinkel": 0.0,
+      "spitzen_d": 0.0,
+      "kegelwinkel": 0.0,
+      "flankenwinkel": 0.0,
+      "hals_d": 0.0,
+      "hals_laenge": 0.0,
+      "profilradius": 0.0,
+      "steigung": 0.0,
+      "schneidenbreite": 0.0,
+      "einstellwinkel": 0.0,
+      "plattenwinkel": 0.0,
+      "stechtiefe": 0.0,
+      "ausfuehrung": "",
+      "drehrichtung": "",
+      "ae_warngrenze": 10.0,
+      "schneidstoff": "vhm",
+      "bezeichnung": "",
+      "hersteller": "",
+      "artikel": "",
+      "link": "",
+      "katalog": "",
+      "name": "Kugel 6",
+      "schnittwerte": {
+        "*": [
+          {
+            "art": "planen",
+            "name": "",
+            "ae": 8.4,
+            "ap": 1.2,
+            "vc": 85.0,
+            "fz": 0.07
+          },
+          {
+            "art": "schruppen",
+            "name": "",
+            "ae": 1.5,
+            "ap": 25.0,
+            "vc": 85.0,
+            "fz": 0.1
+          },
+          {
+            "art": "schlichten",
+            "name": "",
+            "ae": 0.3,
+            "ap": 25.0,
+            "vc": 85.0,
+            "fz": 0.1
+          }
+        ]
+      }
+    },
+    {
+      "kennung": "freiform_kugel4",
+      "nummer": 4,
+      "art": "kugelfraeser",
+      "durchmesser": 4,
+      "schneiden": 4,
+      "schneidenlaenge": 26.0,
+      "eckradius": 2.0,
+      "gesamtlaenge": 85.0,
+      "laenge_spindelnase": 0.0,
+      "halter": "62d58f9d7e0e41b1b301a032ebdb8234",
+      "schaft": 0.0,
+      "eintauchwinkel": 3.0,
+      "spitzenwinkel": 0.0,
+      "spitzen_d": 0.0,
+      "kegelwinkel": 0.0,
+      "flankenwinkel": 0.0,
+      "hals_d": 0.0,
+      "hals_laenge": 0.0,
+      "profilradius": 0.0,
+      "steigung": 0.0,
+      "schneidenbreite": 0.0,
+      "einstellwinkel": 0.0,
+      "plattenwinkel": 0.0,
+      "stechtiefe": 0.0,
+      "ausfuehrung": "",
+      "drehrichtung": "",
+      "ae_warngrenze": 10.0,
+      "schneidstoff": "vhm",
+      "bezeichnung": "",
+      "hersteller": "",
+      "artikel": "",
+      "link": "",
+      "katalog": "",
+      "name": "Kugel 4",
+      "schnittwerte": {
+        "*": [
+          {
+            "art": "planen",
+            "name": "",
+            "ae": 8.4,
+            "ap": 1.2,
+            "vc": 85.0,
+            "fz": 0.07
+          },
+          {
+            "art": "schruppen",
+            "name": "",
+            "ae": 1.5,
+            "ap": 25.0,
+            "vc": 85.0,
+            "fz": 0.1
+          },
+          {
+            "art": "schlichten",
+            "name": "",
+            "ae": 0.3,
+            "ap": 25.0,
+            "vc": 85.0,
+            "fz": 0.1
+          }
+        ]
+      }
+    }
+  ],
+  "halter": [
+    {
+      "kennung": "62d58f9d7e0e41b1b301a032ebdb8234",
+      "name": "Gerader Beispielhalter (angenähert)",
+      "bezeichnung": "Beispielmaße – nach Katalog prüfen",
+      "spanntiefe": 28.0,
+      "abschnitte": [
+        {
+          "laenge": 16.0,
+          "d_oben": 63.0,
+          "d_unten": 63.0
+        },
+        {
+          "laenge": 34.0,
+          "d_oben": 48.0,
+          "d_unten": 42.0
+        },
+        {
+          "laenge": 20.0,
+          "d_oben": 42.0,
+          "d_unten": 42.0
+        }
+      ],
+      "richtung": "gerade",
+      "winkel": 90.0,
+      "drehung": 0.0,
+      "versatz": 0.0,
+      "kopf_d": 0.0
+    }
+  ],
+  "magazine": []
+}

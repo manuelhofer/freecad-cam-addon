@@ -61,6 +61,7 @@ class Schlichten3D(PathOp.ObjectOp):
         obj.Grenzwinkel = sb.GRENZWINKEL
         obj.Winkel = sb.WINKEL_VORGABE
         obj.Einseitig = False
+        obj.Randgang = False
         obj.Sicherheitsabstand = vb.SICHERHEIT
         obj.DurchmesserDavor = 0.0  # 0: ganz schlichten; sonst Restschlichten
         obj.EckenradiusDavor = 0.0
@@ -97,6 +98,10 @@ class Schlichten3D(PathOp.ObjectOp):
             richtung = str(obj.Richtung)
             obj.Richtung = list(RICHTUNGEN)  # gespeichert vor einer neuen Richtung: die Wahl dazu
             obj.Richtung = richtung
+        if set(an.UM) - set(obj.getEnumerationsOfProperty("Kippachse")):
+            kippachse = str(obj.Kippachse)
+            obj.Kippachse = list(an.UM)
+            obj.Kippachse = kippachse
         self._editormodi(obj)
 
     @staticmethod
@@ -111,6 +116,7 @@ class Schlichten3D(PathOp.ObjectOp):
             ("App::PropertyAngle", "Grenzwinkel", tr("s3.eigenschaft.grenzwinkel")),
             ("App::PropertyAngle", "Winkel", tr("s3.eigenschaft.winkel")),
             ("App::PropertyBool", "Einseitig", tr("s3.eigenschaft.einseitig")),
+            ("App::PropertyBool", "Randgang", tr("s5p.eigenschaft.randgang")),
             ("App::PropertyLength", "Sicherheitsabstand", tr("pf.eigenschaft.sicherheit")),
             ("App::PropertyInteger", "Zeilen", tr("s3.eigenschaft.zeilen")),
             ("App::PropertyInteger", "Hoehenlinien", tr("s3.eigenschaft.hoehenlinien")),
@@ -173,6 +179,7 @@ class Schlichten3D(PathOp.ObjectOp):
             aufmass=float(obj.Aufmass),
             um=str(obj.Kippachse),
             winkel=float(obj.Anstellwinkel),
+            vorausschau=bool(getattr(obj, "Randgang", False)),
         )
 
     @staticmethod
@@ -241,7 +248,7 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
     form = vs.form_des_controllers(obj.ToolController)
     if form is None:
         raise ValueError(tr("s3.fehler.form"))
-    return bahn_fuer(
+    bahn = bahn_fuer(
         job,
         modell,
         form,
@@ -260,6 +267,24 @@ def rechne(obj, job, modell, vorschub=0.0, eintauchen=0.0):
         davor=form_davor(obj),
         gleichlauf=sp.fuer_m3(True, obj.ToolController),
     )
+    if getattr(obj, "Randgang", False):
+        from . import schlicht_rand
+
+        if not form.nur_kugel:
+            raise ValueError(tr("s5p.fehler.kugel"))
+        schlicht_rand.ergaenzen(
+            bahn,
+            vs._teil(modell),
+            vo.flaechen(obj),
+            form.radius,
+            float(obj.Aufmass),
+            float(obj.SafeHeight),
+            pf.rohteil_von_oben(job)[4],
+            float(obj.Sicherheitsabstand),
+            vorschub,
+            eintauchen,
+        )
+    return bahn
 
 
 def form_davor(obj):

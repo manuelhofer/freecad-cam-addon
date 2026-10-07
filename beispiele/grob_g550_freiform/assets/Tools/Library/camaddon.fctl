@@ -1,0 +1,22 @@
+{
+  "label": "CAM-Addon",
+  "tools": [
+    {
+      "nr": 1,
+      "path": "camaddon_freiform_standard12.fctb"
+    },
+    {
+      "nr": 2,
+      "path": "camaddon_freiform_kugel12.fctb"
+    },
+    {
+      "nr": 3,
+      "path": "camaddon_freiform_kugel6.fctb"
+    },
+    {
+      "nr": 4,
+      "path": "camaddon_freiform_kugel4.fctb"
+    }
+  ],
+  "version": 1
+}

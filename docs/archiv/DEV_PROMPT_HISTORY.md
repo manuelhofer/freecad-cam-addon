@@ -12,6 +12,68 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-07-02 komplexe-freiform-simultan-vergleichen
+
+### EINGELESEN
+- Manuel: „… eine 5 achs Strategie … die ein komplex Teil in der best möglichen Art und
+  Weise abbilden kann?“ → „Dann Fang an!“; CHATSTART, Arbeitsregeln, Snapshot, Aufbau,
+  Spezifikation Strategien 16, vorhandene Anstellungs-/Schlicht-/Simultan-/Prüf-APIs.
+- Die vorhandene 3D-Strategie wählt vor der Maschinenrechnung, und die vorhandene
+  Anstellung allein belegt weder Flächenabdeckung noch die schnellste sichere Maschinenfahrt.
+  Ergänzung beschrieben und skizziert in 16.5. Kein zweiter 3D-Flächenalgorithmus nötig.
+
+### DATEIEN
+- `simultan_planung.py`, `anstellung_frei.py`, `schlicht_rand.py`,
+  `gui_simultan_planung.py` (unter `camaddon/`, neu), `angestellt.py`, `schlichten3d.py`,
+  `gui_start.py`, `hilfe.py`, deutsche/englische Texte und Hilfe,
+  `tests/test_simultan_planung.py`, `beispiele/grob_g550_freiform/`, `beispiele/README.md`,
+  Aufbau, Spezifikation, Snapshot, `package.xml` (0.197.0), diese Datei.
+
+### AKZEPTANZKRITERIUM
+Am Freiformjob „3D-Schlichten“ wählen → „5-Achs-Schlichten vergleichen …“: ungeeignete
+Fräser/Bahnen werden begründet abgewiesen, die schnellste vollständig geprüfte Kombination
+der angebotenen Varianten lässt sich mit Rückgängig übernehmen.
+
+### DONE
+- Werkzeugcontroller des Jobs × fünf Richtungen × X/Y/frei vergleichen; feste Grathöhe,
+  Oberflächenproben und Kontaktwinkel auch zwischen Punkten, komplette Maschinenfahrt mit
+  Grenzen und Zeit. Dann genaue Kollision nach Zeit sortiert; ungeprüfte/unvollständige Fälle
+  nicht übernehmen. Langsamere müssen nach einem bestandenen schnelleren Fall nicht geprüft werden.
+- Freie Achse mit beiden Kippkomponenten, auf dem erlaubten Kontaktkegel möglichst nahe
+  an der vorigen Richtung; Winkelvorrat für Interpolation, Luftsätze mit Vorausblick.
+  Keine Pflicht, beide Rundachsen dauernd zu bewegen. Exakte Normalen je Form/Punkt im Vergleich
+  zwischengespeichert, keine globale Cache-Speicherung.
+- Randgang aus BRep-Punkt + Kugelradius × Normale; Gegenflächenkontakt weist den Fräser ab.
+  `Randgang` für alte Operationen aus, alte X/Y-Anstellung bleibt ohne Vorausblick wie vorher.
+- Unveränderte Objektansichten zum Prüfen, Eingabefingerabdruck gegen veraltete Ergebnisse,
+  Übernahme in einer Transaktion. Automatische Operationsnamen passen zum neuen Werkzeug.
+  FreeCADs ObjectOp-Fußsatz auf ClearanceHeight ist auch im virtuellen Prüfkandidaten enthalten.
+- Vollständiger Beispieljob vom Quader zum Freiformteil mit D12-Schruppen und Kugel-Schlichten,
+  Vergleichsbericht, Erzeuger und Start im kontrollierten eigenen Profil auf dem zweiten Bildschirm.
+
+### TEST
+- FreeCAD 1.1.4, vorhandene und überprüfte Profile, Speicherdeckel 16 GB: komplexe B-Spline-
+  Fläche 50 × 40 mit Mulde/Sattel/Erhebung. Großes Werkzeug zunächst 0,6–0,86 mm nicht erreicht;
+  kleinere Werkzeuge zeigten Randlücken. Der genaue Randgang schließt diese, zu große Kugeln
+  werden weiter abgewiesen. Früher Versuch ohne ausdrücklich gesetzten Asset-Ordner beim
+  Wiederöffnen hatte falsche Werkzeuggeometrien; diese Zahlen wurden verworfen.
+- Korrekt geladene Werkzeugdateien: 45 Kombinationen. Kugel Ø 4/X/frei, 581,34 s ganzer Job,
+  0,0298 mm größte Restprobe, 16,03° kleinster Kontaktwinkel; 12.260 Schlichtbefehle,
+  167 Bewegungen mit allen fünf Achsen gleichzeitig; keine Grenzen, Kollisionen oder Warnabstände.
+- `test_simultan_planung` grün: Vergleich ändert keine Eingaben, verwirft große Fräser,
+  geprüfte und neu gerechnete gespeicherte Bahn identisch, Strg+Z und veraltete Prüfung geprüft.
+  Gegenprobe fand zunächst den fehlenden nativen Fußsatz; dieser wurde vor dem grünen Lauf ergänzt.
+- Bestehendes `test_angestellt`, `test_sprache`, `test_hilfe` grün; Black und Ruff ohne Befund.
+  GUI: neuer Dialog auf DP-1, Übernehmen ohne Prüfung gesperrt; gespeicherter Job vom mitgelieferten
+  Startskript geladen und Modellprüfung erneut ohne Kollisionen. Screenshots angesehen.
+- Persönliche Werkzeugdatei per Hash unverändert. T-008 bleibt offen; keine Wiederherstellung
+  erfunden. Lokal committen, kein Push beauftragt.
+
+### NEXT
+- Manuel kann das Beispiel abfahren oder eigene 3D-Schlichtoperationen vergleichen. Weitere
+  Arbeit: vollständige Flächenabdeckung/Abtrag, Hinterschnitte, zusätzliche Aufspannungen und
+  weitere Orientierungsvarianten; keine globale Optimalität oder echte Maschinenfreigabe behauptet.
+
 ## P-2026-10-07-01 grob-g550-x-sattel-vor-tisch
 
 ### EINGELESEN

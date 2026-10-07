@@ -27,6 +27,7 @@ from . import (
     gui_programm,
     gui_reichweite,
     gui_schwenken,
+    gui_simultan_planung,
     gui_sprachwahl,
     gui_verfahren,
     gui_vierachs,
@@ -56,6 +57,7 @@ WERKZEUGLEISTE = [
     "CamAddon_Vierachs",
     "CamAddon_Bearbeitung",
     "CamAddon_Schwenken",
+    "CamAddon_SimultanPlanen",
     "CamAddon_ProgrammSchreiben",
 ]
 # Das Menü: oben „So geht’s“ (D-54), dann alle Befehle mit Text – auch „Nach Updates
@@ -75,6 +77,7 @@ MENUE = [
     "CamAddon_Vierachs",
     "CamAddon_Bearbeitung",
     "CamAddon_Schwenken",
+    "CamAddon_SimultanPlanen",
     "CamAddon_ProgrammSchreiben",
     "Separator",
     "CamAddon_UpdateSuchen",
@@ -99,6 +102,7 @@ def starten():
             "CamAddon_Vierachs": gui_vierachs.BefehlVierachs(),
             "CamAddon_Bearbeitung": gui_bearbeitung.BefehlBearbeitung(),
             "CamAddon_Schwenken": gui_schwenken.BefehlSchwenken(),
+            "CamAddon_SimultanPlanen": gui_simultan_planung.BefehlSimultanPlanen(),
             "CamAddon_ProgrammSchreiben": gui_programm.BefehlProgrammSchreiben(),
             "CamAddon_Ueber": BefehlUeber(),
             "CamAddon_UpdateSuchen": gui_aktualisierung.BefehlUpdateSuchen(),

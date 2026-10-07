@@ -1,0 +1,44 @@
+<h2>5-Achs-Schlichten vergleichen</h2>
+<p>Dieser Vergleich wählt Werkzeug, Bahn und Anstellung gemeinsam für die Maschine deines
+Jobs. Wähle im Baum eine <b>3D-Schlichtoperation</b>, dann im Menü CAM-Addon
+<b>5-Achs-Schlichten vergleichen …</b>. Der Job muss seine Maschine mit zwei Rundachsen haben.
+Die gewünschte Grathöhe, die Flächen und das Aufmaß stehen vorher in der Operation.</p>
+<h3>Welche Werkzeuge kommen infrage?</h3>
+<p>Alle Kugelfräser, die bereits unter Werkzeuge im Job eingerichtet sind. Lege dort weitere
+geeignete Fräser an, wenn ein großer enge Stellen nicht erreicht. Der Vergleich importiert
+keine Katalogwerkzeuge und verändert keine Werkzeugverwaltung. Er verwendet die Geometrie,
+Haltermaße, Werkzeuglänge und Schnittwerte deiner eingerichteten Werkzeuge.</p>
+<h3>Was wird verglichen?</h3>
+<p>Zeilen längs X und Y, eine Spirale, Bahnen entlang der Fläche und Bahnen mit gleichem Abstand.
+Jede wird um X, um Y oder mit frei veränderlicher Richtung angestellt. Beim freien Anstellen
+darf sich die Achse in beide Richtungen neigen; sie behält ihre vorige Richtung, solange der
+Kontaktwinkel reicht. Beide Rundachsen müssen nicht ständig fahren: Die erreichbare, schnellere
+Bearbeitung zählt. Ein genauer Randgang ergänzt die offenen Flächenränder.</p>
+<h3>Die Prüfungen</h3>
+<p>Zuerst werden die Erreichbarkeit der gewählten Fläche an Stichproben und der kleinste Winkel
+zwischen Werkzeugachse und Kontaktflächennormale geprüft, auch zwischen Bahnpunkten. Der
+Standardwinkel beträgt 15°. Dann wird die Fahrt auf der tatsächlichen Maschinenkinematik
+gerechnet. Die Zeit umfasst den <b>ganzen Job</b>, einschließlich weiterer Operationen und
+An-/Abfahren; Grenzen und Rundachsbewegungen werden berücksichtigt.</p>
+<p>Die schnellsten noch geeigneten Varianten werden nacheinander genau auf Kollisionen geprüft:
+Maschinenkörper, Teil, Aufnahme, Werkzeug, Schaft und Halter, sowie Eilgänge durch noch
+vorhandenes Rohteil. Eine unterbrochene oder unvollständige Prüfung gilt nicht als bestanden.</p>
+<h3>Die Tabelle lesen</h3>
+<p><b>Restprobe</b> ist der größte Abstand der Oberflächenproben zur überstrichenen Kugelhülle.
+Als Zulassung gilt Grathöhe plus Aufmaß plus 0,05 mm Rechentoleranz für Vernetzung und
+Interpolation. Dies ist eine Stichprobenprüfung, keine vollständige Vermessung der Oberfläche.
+Eine abgewiesene Zeile nennt den Grund; lange Texte stehen auch im Tooltip.</p>
+<p><b>Kollisionsprüfung noch offen</b> bedeutet keine Freigabe. Sobald die schnellste vollständig
+geprüfte Variante gefunden ist, brauchen langsamere keine weitere Kollisionsrechnung: Sie können
+sie zeitlich nicht unterbieten. Verglichen wird nur die angebotene endliche Auswahl.</p>
+<h3>Übernehmen und Rückgängig</h3>
+<p><b>5-Achs-Schlichtvariante übernehmen</b> wird erst nach der vollständigen Prüfung aktiv.
+Es setzt Werkzeugcontroller, Bahnrichtung, Anstellung und Randgang der bestehenden Operation
+und rechnet sie neu. <b>Strg+Z</b> stellt die vorherigen Einstellungen wieder her. Abbrechen
+ändert den Job nicht. Wurde der Job seit der Prüfung geändert, ist ein neuer Vergleich nötig.</p>
+<h3>Grenzen dieses ersten Schritts</h3>
+<p>Die vorhandene 3D-Strategie bearbeitet von oben erreichbare Flächen. Hinterschnitte,
+automatisch geplante zusätzliche Aufspannungen und eine global beste Lösung für beliebige
+Teile sind damit noch nicht abgedeckt. Die Kollision gilt für die eingerichteten Modellmaße;
+ein ungefähres Maschinenmodell liefert eine Modellprüfung. Für eine reale Maschine braucht
+der Job ihre tatsächlichen Maße und die richtige Werkzeuglänge.</p>
