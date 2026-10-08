@@ -12,6 +12,56 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-10 bahnachsen-gemeinsam-pruefen
+
+### EINGELESEN
+- Manuel: alle Strategien für alle Maschinen; reale Schwenkbereiche, Unerreichbares
+  auslassen. Native Gegenprobe: reale C-Maschine schreibt gewöhnliche A30-Bahn ohne
+  Hinweis. Vorbeschreibung/Skizze in Strategien 16.17; vorhandener Reichweitenkern.
+
+### DATEIEN
+- Gemeinsamer Maschinenzugang, Export/Programmhelper, Abspieler, Materialstand/
+  Nachrechnen/räumlicher Rest, kleine feste-Ebenen-Korrektur im Reichweitenweg;
+  native Prüfung/GUI, DE/EN/Programmhilfe, Doku/Verlauf/Snapshot;
+  `package.xml` 0.201.3, 2026-10-08.
+
+### AKZEPTANZKRITERIUM
+Gewöhnliche, Rundum- und Simultanoperationen mit tatsächlicher Maschine exportieren →
+nur vorhandene Achsen innerhalb aktueller Grenzen werden gefahren, andere Operationen
+bleiben ausdrücklich unbearbeitet und ihr Material bleibt stehen.
+
+### DONE
+- Vorhandenen Bahn-/Kreis-/Bereichskern für alle gemeinsamen Verbraucher verwenden;
+  innere Kreisextrema, tatsächliche Linearbewegung und vorhandene Rundachsen prüfen.
+- Rundgrenzen auch vor bekannter XYZ-Lage und bei G91 prüfen; keine Begrenzung einer
+  Schnittbewegung auf den Anschlag, keine direkte Verbindung über ausgelassene Teile.
+- Tatsächliche Jobzuordnung auch im direkten Export; fehlende Zuordnung/Aufnahme
+  wird bei einer verlangten Maschine nicht durch gedachten Maschinenzugang ersetzt.
+- Gültige Ausgabe bleibt identisch. Ungültige ganze Operation/Ebene wird aus Export,
+  Abspieler und angenommenem Materialabtrag herausgenommen; andere Operationen bleiben.
+- Materialnachrechnen und Materialcache teilen den Zugangsschlüssel. Für nicht
+  allgemeingültig nachlesbare Simultanvorbearbeitung bleibt ursprüngliches Rohteil.
+
+### TEST
+- Sechs Arten mit Standardfräser: gültige gewöhnliche Bahn identisch, fremde Achse
+  ausgelassen; echte C-Grenze, lineare Grenze und Kreisinnenextrema; automatische
+  Jobzuordnung/fehlende Datei; Source-NC unverändert. Abspieler enthält keinen
+  ausgelassenen Bereich. Absolute/relative Runde vor bekannter XYZ geprüft.
+- Materialnachrechnen war zunächst noch beim alten Schlüssel und rechnete zweimal;
+  angeglichen, bestehende Material-/Ebenen-/Simultanprüfung vollständig bestanden.
+- Neue GUI DP-1: gewöhnlicher Bereich mit fremder A-Achse ausdrücklich unbearbeitet,
+  andere Operation im Programm/Abspieler. Sprache und G550-Export exakt referenzgleich.
+- Goldene gemeinsame Folge ohne Referenzschreiben: 46,470163 s, 5948 Punkte,
+  6181 NC-Sätze, SHA 83a7f0968c79a088a898befb0c6425db21c7808f0bf112742529e8b92cb489a5;
+  213,721 s / 240,444 MiB Python gegenüber 210,395 s / 240,434 MiB Referenz.
+  Feine Zulassung, Übernahme/Undo/Abbruch bestanden; keine leere Fahrt als Sieger.
+- Black/Ruff/Diff grün; Belege `../ergebnisse/bahnzugang-2026-10-08/`;
+  persönlicher Werkzeugbestand unverändert. Eigene Profile/16-GB-Deckel, kein Push.
+
+### NEXT
+- Auslassen innerhalb einer zusammenhängenden Simultanoperation mit qualifizierten
+  separaten An-/Rückzügen; allgemeine kontinuierliche Material-/Aufspannungsplanung.
+
 ## P-2026-10-08-09 ausgelassene-ebenen-im-material-erhalten
 
 ### EINGELESEN

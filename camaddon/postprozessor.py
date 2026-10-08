@@ -1490,6 +1490,8 @@ def abschnitte(job, maschine=None, mit_ebenen=True):
 def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False):
     from . import job_schnittwerte as js
     from . import magazin as mg
+    from . import maschinenzugang as mz
+    from . import reichweite as rw
     from . import stirnseite as st
     from . import vierachs_operation as vo
 
@@ -1500,12 +1502,26 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
         if not getattr(op, "Active", True) or getattr(op, "Path", None) is None:
             continue
         schwenkung = None
+        fuer_op = maschine(op) if callable(maschine) else maschine
+        zugeordnet = bool(
+            getattr(job, rw.EIGENSCHAFT_MASCHINE, "")
+            or getattr(rw.grundjob_von(job), rw.EIGENSCHAFT_MASCHINE, "")
+        )
+        if fuer_op is None and maschine is None and zugeordnet:
+            geladen = mz._maschine(job, op)
+            fuer_op = geladen if geladen is not False else None
         if geschwenkt:
-            fuer_op = maschine(op) if callable(maschine) else maschine
             if id(fuer_op) not in gerechnet:
                 gerechnet[id(fuer_op)] = (fuer_op, sw.schwenkung_fuer(job, fuer_op))
             schwenkung = gerechnet[id(fuer_op)][1]
         befehle, hinweis = list(op.Path.Commands), ""
+        if (
+            fuer_op is None
+            and (zugeordnet or maschine is not None)
+            and any(set(c.Parameters) & set("XYZABC") for c in befehle)
+        ):
+            befehle = []
+            hinweis = tr("pp.hinweis.simultan_ausgelassen", grund=tr("mz.fehler.zuordnung"))
         if geschwenkt and (fuer_op is None or schwenkung is None or schwenkung.abbildung is None):
             befehle = []
             hinweis = tr("pp.hinweis.ebene_ausgelassen", ebene=job.Flaeche or job.Label)
@@ -1518,8 +1534,24 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
             schwenkung = None
         befehle_tcpm = None
         if not geschwenkt and so.ist_simultan(op):
-            befehle, hinweis = _simultan(op, maschine)
-            befehle_tcpm = _simultan_tcpm(op, maschine)
+            befehle, hinweis = _simultan(op, fuer_op)
+            befehle_tcpm = _simultan_tcpm(op, fuer_op)
+        if befehle and fuer_op is not None:
+            try:
+                if geschwenkt and schwenkung is not None:
+                    gefahren = sw.befehle_ohne_zyklus(befehle, schwenkung, schon_oben=True)
+                elif so.ist_simultan(op):
+                    gefahren = befehle
+                else:
+                    gefahren = fuer_op.pruefung.befehle(
+                        op, None, fuer_op.aufnahme, fuer_op.laenge, fuer_op.nullpunkt
+                    )
+                grund = mz.bahn_grund(fuer_op, gefahren, op.Label)
+            except (ValueError, RuntimeError) as fehler:
+                grund = str(fehler)
+            if grund:
+                befehle, schwenkung, befehle_tcpm = [], None, None
+                hinweis = tr("pp.hinweis.simultan_ausgelassen", grund=grund)
         tc = getattr(op, "ToolController", None)
         nummer = int(getattr(tc, "ToolNumber", 0) or 0) if tc is not None else 0
         drehzahl = float(getattr(tc, "SpindleSpeed", 0.0) or 0.0) if tc is not None else 0.0

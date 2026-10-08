@@ -4,6 +4,14 @@ writes all active operations of the job in their order – the addon's and FreeC
 knows from the machine what a lathe needs differently. FreeCAD's postprocessors are built for
 milling machines; on a lathe with C axis and driven tools several things were missing there.</p>
 
+<p><b>Actual machine limits:</b> The shared output checks existing axes and loaded
+linear/rotary travel limits for every strategy. An invalid operation is reported as
+<b>unmachined – omitted</b> with its reason; other reachable operations remain.
+Its cut is neither played nor assumed to have removed preceding stock. Omission
+currently applies to complete operations or planes; a cutting path is not clipped
+at a limit and connected directly across the gap. The affected area remains
+explicitly unfinished. Circular arcs also check interior axis extrema.</p>
+
 <h3>How to</h3>
 <ol>
 <li>Select the job in the tree (or one of its operations), then <b>Write program …</b> in

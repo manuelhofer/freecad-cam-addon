@@ -47,7 +47,7 @@ def nachrechnen(dokument):
         if not anfang:
             continue
         ops = mst.operationen_vor(job)
-        kennungen = [mst._kennung_op(op) for op in ops]
+        kennungen = [mst._kennung_zugang(job, op) for op in ops]
         for k, op in enumerate(ops):
             ziel = mit_materialstand(op)
             if ziel is None:
@@ -60,7 +60,7 @@ def nachrechnen(dokument):
             if op is not ziel:  # die Nachbearbeitung trägt ihre Bahn weiter
                 op.touch()
                 op.recompute()
-            kennungen[k] = mst._kennung_op(op)
+            kennungen[k] = mst._kennung_zugang(job, op)
             neu.append(ziel)
     return neu
 

@@ -361,10 +361,8 @@ def _abschnitte_und_kette(job, gewaehlt):
     from . import schwenken as sw
     from . import simultan_operation as so
 
-    if not (sw.ist_ebene(job) or sw.ebenen_von(job) or so.im_job(job)):
-        return pp.abschnitte(job), False
     if gewaehlt is None:
-        return pp.abschnitte(job), True
+        return pp.abschnitte(job), bool(sw.ist_ebene(job) or sw.ebenen_von(job) or so.im_job(job))
     _name, pfad, dok = gewaehlt
     verborgen = None
     if dok is None:

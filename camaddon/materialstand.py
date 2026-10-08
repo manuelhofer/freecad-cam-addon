@@ -41,6 +41,7 @@ import numpy as np
 
 from . import fraeserform as ff
 from . import hoehenfeld as hf
+from . import maschinenzugang as mz
 from . import reichweite as rw
 from . import restmaterial as rm
 from .sprache import tr
@@ -251,7 +252,7 @@ def fuer(job, vor=None, dazu=()):
     except ValueError:
         return None
     davor = operationen_vor(job, vor)
-    schritte = [(_kennung_op(op), op) for op in davor]
+    schritte = [(_kennung_zugang(job, op), op) for op in davor]
     schritte += [(_kennung_bahn(name, punkte, fraeser), (name, punkte, fraeser))
                  for name, punkte, fraeser in dazu]  # fmt: skip
     kennungen = [anfang] + [k for k, _w in schritte]
@@ -277,6 +278,14 @@ def fuer(job, vor=None, dazu=()):
             name, punkte, fraeser = was
             _fahre_punkte(stand.quader, punkte, _grosszuegig(fraeser))
         else:
+            if mz.operation_erreichbar(job, was) is False:
+                stand.kennung = stand.kennung + (kennung,)
+                _merken(_kopie(stand))
+                continue
+            from . import simultan_operation as so
+
+            if so.ist_simultan(was):
+                return None  # Keine aus der senkrechten Ersatzbahn angenommene Vorbearbeitung.
             name = was.Label
             fraeser = _grosszuegig(rm._fraeser(was.ToolController))
             if not _fahre_befehle(stand.quader, was.Path.Commands, fraeser):
@@ -296,7 +305,11 @@ def kennung_vor(job, vor):
         anfang = _rohteil_kennung(job)
     except ValueError:
         return ""
-    return "|".join([anfang] + [_kennung_op(op) for op in operationen_vor(job, vor)])
+    return "|".join([anfang] + [_kennung_zugang(job, op) for op in operationen_vor(job, vor)])
+
+
+def _kennung_zugang(job, op):
+    return _kennung_op(op) + f" zugang {mz.operation_erreichbar(job, op)}"
 
 
 def operationen_vor(job, vor=None):

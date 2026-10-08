@@ -307,7 +307,7 @@ def kennung(job, schritt=0.5):
                     tuple(tuple(a) for a in getattr(op, "Werkzeugachsen", ())),
                     bool(getattr(op, "Anstellen", False)),
                     bool(getattr(op, "Wegkippen", False)),
-                    mz.ebene_erreichbar(davor, op),
+                    mz.operation_erreichbar(davor, op),
                 )
             )
     return hashlib.sha256(repr(daten).encode()).hexdigest()
@@ -339,7 +339,7 @@ def fuer_ebene(job, schritt=0.5, fortschritt=None):
             return np.array(tuple(lage.multVec(Vector(*p)))) if lage else np.asarray(p)
 
         for op in ms.operationen_vor(davor):
-            if mz.ebene_erreichbar(davor, op) is False:
+            if mz.operation_erreichbar(davor, op) is False:
                 material.ausgelassen += ((op.Label, davor.Label),)
                 continue  # Nicht gefahrener Schnitt darf keinen freien Raum vortäuschen.
             if so.ist_simultan(op):

@@ -3571,3 +3571,50 @@ ausgelassenes Material separat rot und expliziter Programmhinweis bei weiter
 enthaltener anderer Ebene. Erste Aufnahme zeigte die alte aktive Ansicht; jetzt
 die eigene 3D-View erfasst und das MDI-Vergleichsfenster sichtbar ausgewählt.
 Sprachprüfung und G550-Kaltexport referenzgleich.
+
+### 16.17 Gemeinsame Bahnprüfung für tatsächliche Achsen (P-2026-10-08-10)
+
+Native Gegenprobe: Ein gewöhnlicher Abschnitt mit A30 wird für eine tatsächlich
+C-positionierende Maschine unverändert und ohne Hinweis ausgegeben. Einzelne
+Strategien dürfen sich nicht auf die Prüfung der Simultan- oder Ebenenart verlassen.
+
+Die gemeinsame Ausgabe prüft die tatsächlich gefahrenen Sätze gegen dieselbe
+Kinematik und die eingelesenen Achsgrenzen wie „Auf der Maschine prüfen“. Nicht
+vorhandene Rundachsen und unerreichbare Stellungen lassen den zugehörigen Bereich
+als ganze Operation ausdrücklich unbearbeitet aus. Andere Operationen bleiben.
+Kreisbögen prüfen auch die inneren Achsextrema. Dieselbe Entscheidung geht in den
+Materialstand ein; ein nicht ausgegebener Schnitt erzeugt keinen angenommenen
+Abtrag. Für gültige Bahnen bleibt die Ausgabe identisch. Feinere Unterteilung einer
+zusammenhängenden Schnittbahn verlangt eigene qualifizierte An- und Rückzüge.
+
+```text
+Operation 1: [gültige vorhandene Achsen und Stellungen]
+Operation 2: unbearbeitet – ausgelassen: [fremde Achse / Verfahrgrenze]
+Rest: Bereich der Operation 2 bleibt stehen
+```
+
+Duplicate-Check: Gemeinsame Reichweitenprüfung ist vorhanden, der normale Export
+wendet sie bislang nicht an. Ihre vorhandenen Bahn-/Kreis- und Bereichskerne werden
+wiederverwendet; kein eigener Maschinen- oder Bogenersatz.
+
+**Akzeptanzkriterium:** Gewöhnliche, Rundum- und Simultanoperationen mit einer
+zugeordneten Maschine exportieren → ausschließlich vorhandene, innerhalb der
+aktuellen Grenzen liegende Achsbewegungen werden geschrieben, andere Operationen
+bleiben ausdrücklich unbearbeitet und ihr Material wird nicht als entfernt gezählt.
+
+
+**Gebaut und geprüft:** Alle sechs Maschinen, gültige gewöhnliche Bahnen unverändert,
+fremde Rundachse als unbearbeitet ausgelassen; reale C-Grenze, lineare Achse und
+innere Kreisextrema geprüft. Absolute/relative Rundbewegungen werden schon vor
+bekannter XYZ-Lage gegen die gelesenen Grenzen geprüft. Jobzuordnung wird auch im
+direkten Export benutzt; unlesbare Zuordnung erlaubt keine gedachte Bewegung.
+Export/Abspieler/Materialfolge teilen dieselbe Prüfung. Ausgelassene Operationen
+fehlen im Abspieler und senken kein Material. Materialnachrechnen verwendet denselben
+Zugangsschlüssel; bestehende Material-/Ebenen-/Simultanprüfungen bestanden.
+GUI DP-1 mit zwei gewöhnlichen Bereichen: fehlende A-Achse sichtbar ausgelassen,
+anderer Bereich im Programm und Abspieler. G550-Kaltexport exakt referenzgleich.
+Gemeinsame Schrupp-/Schlichtfolge einschließlich goldenem NC, feiner Zulassung,
+Übernahme/Undo/Abbruch unverändert: 46,470 s Bearbeitung, 6181 NC-Sätze; Rechnung
+213,721 s / 240,444 MiB Python, Referenz 210,395 s / 240,434 MiB. Keine neue
+Referenz geschrieben. Granularität bleibt ganze Operation/Ebene; automatische
+sichere Teilbahnunterteilung und allgemeine kontinuierliche Materialfolge offen.

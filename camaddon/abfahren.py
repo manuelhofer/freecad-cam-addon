@@ -247,6 +247,9 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
     Platz am Revolver, zu viele Linearachsen), fehlen – das sagt schon die
     Reichweite (reichweite.Pruefung.pruefe_job).
     """
+    from . import maschinenzugang as mz
+    from . import schwenken as sw
+
     if nullpunkt_des_jobs is None:
         nullpunkt_des_jobs = rw.nullpunkt(job)
     ergebnis = Abfahrt(pruefung, achsen=[], nullpunkt=nullpunkt_des_jobs)
@@ -266,8 +269,18 @@ def abfahrt(pruefung, job, nullpunkt_des_jobs=None, bibliothek=None):
         try:
             # In einer geschwenkten Ebene die Sätze ohne Schwenkzyklus (3+2, schwenken).
             befehle = pruefung.befehle(op, ebene, aufnahme, eingespannt, nullpunkt_des_jobs)
-        except ValueError:
-            continue  # die Reichweite sagt, warum
+            m_bahn = sw.Maschine(pruefung, aufnahme, eingespannt, nullpunkt_des_jobs)
+            grund = mz.bahn_grund(m_bahn, befehle, op.Label)
+            if grund:
+                ergebnis.hinweise.append(
+                    f"{op.Label}: " + tr("pp.hinweis.simultan_ausgelassen", grund=grund)
+                )
+                continue
+        except ValueError as fehler:
+            ergebnis.hinweise.append(
+                f"{op.Label}: " + tr("pp.hinweis.simultan_ausgelassen", grund=str(fehler))
+            )
+            continue
         vorbereitet.append((op, tc, aufnahme, eingespannt, linear, befehle, ebene))
         bewegt.update(pruefung.gefahrene_achsen(aufnahme))
     ergebnis.achsen = [a for a in pruefung.kette.achsen if a in bewegt]

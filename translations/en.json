@@ -2587,5 +2587,9 @@
     "si.fehler.maschine": "A readable machine is required for these tool directions.",
     "pp.hinweis.simultan_ohne_maschine": "unmachined – omitted: A readable machine is required for the stored tool directions.",
     "pp.hinweis.simultan_ausgelassen": "unmachined – omitted: {grund}",
-    "pp.hinweis.ebene_ausgelassen": "unmachined – plane {ebene} omitted: Not reachable with the selected machine, tool setup and current rotary limits."
+    "pp.hinweis.ebene_ausgelassen": "unmachined – plane {ebene} omitted: Not reachable with the selected machine, tool setup and current rotary limits.",
+    "mz.fehler.achse": "The machine does not have these rotary axes: {achsen}.",
+    "mz.fehler.befehle": "These motions cannot be fully checked: {befehle}.",
+    "mz.fehler.zuordnung": "The assigned machine or tool mount cannot be read.",
+    "mz.fehler.rundgrenze": "{achse} {wert}° is outside the loaded rotary limits."
 }

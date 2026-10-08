@@ -2587,5 +2587,9 @@
     "si.fehler.maschine": "Für diese Werkzeugrichtungen fehlt eine lesbare Maschine.",
     "pp.hinweis.simultan_ohne_maschine": "unbearbeitet – ausgelassen: Für die gespeicherten Werkzeugrichtungen fehlt eine lesbare Maschine.",
     "pp.hinweis.simultan_ausgelassen": "unbearbeitet – ausgelassen: {grund}",
-    "pp.hinweis.ebene_ausgelassen": "unbearbeitet – Ebene {ebene} ausgelassen: Mit der gewählten Maschine, Einspannung und den aktuellen Schwenkgrenzen nicht erreichbar."
+    "pp.hinweis.ebene_ausgelassen": "unbearbeitet – Ebene {ebene} ausgelassen: Mit der gewählten Maschine, Einspannung und den aktuellen Schwenkgrenzen nicht erreichbar.",
+    "mz.fehler.achse": "Die Maschine hat diese Rundachsen nicht: {achsen}.",
+    "mz.fehler.befehle": "Diese Bewegungen lassen sich nicht vollständig prüfen: {befehle}.",
+    "mz.fehler.zuordnung": "Die zugeordnete Maschine oder Werkzeugaufnahme ist nicht lesbar.",
+    "mz.fehler.rundgrenze": "{achse} {wert}° liegt außerhalb der eingelesenen Schwenkgrenzen."
 }

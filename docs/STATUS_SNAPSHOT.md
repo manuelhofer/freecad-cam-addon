@@ -20,8 +20,12 @@ T-Nummer, Länge und Halterachse gehen in die Kinematik ein, vor OK frisch geles
 unerreichbare Operationen ausdrücklich unbearbeitet aus; keine senkrechte Ersatzbahn
 (Strategien 16.15). Ebenenbereiche (0.201.2) werden auch nach geänderten Anschlägen
 im gemeinsamen Export ausgelassen und im räumlichen Rest erhalten (Strategien 16.16).
-Nächster Schritt: dieselbe Prüfung für alle in den Bahnen verwendeten Maschinenachsen
-und feinere, sicher getrennte Teilbereiche innerhalb einer Simultanoperation.
+**Gemeinsamer Maschinenzugang (0.201.3):** Alle Bahnachsen aus der tatsächlichen
+Maschine für Export, Abspieler und Materialstand; sechs Maschinen, Kreisextrema,
+absolute/relative Rundbewegung, Materialnachrechnen und goldene Gesamtfolge samt
+Zeit/Speicher geprüft (Strategien 16.17). Granularität: ganze Operation/Ebene.
+Nächster Schritt: sicher getrennte Teilbereiche innerhalb einer Simultanoperation
+und allgemeiner Materialstand für kontinuierliche Umorientierung.
 Maschinenweite Vorgabe: Richtungen und Grenzen aus der tatsächlich gewählten
 Maschine; unerreichbare Bereiche mit Grund auslassen und als unbearbeitet kennzeichnen.
 

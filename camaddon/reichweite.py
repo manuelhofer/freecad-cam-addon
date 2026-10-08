@@ -927,7 +927,7 @@ class Pruefung:
         abbildung = maschine.abbildung(rund)
         rohteil = getattr(getattr(ebene.Grundjob, "Stock", None), "Shape", None)
         hoehe = None
-        if rohteil is not None and not rohteil.isNull():
+        if maschine.rundachsen and rohteil is not None and not rohteil.isNull():
             hoehe = sw.schwenkhoehe(rohteil, maschine.abbildung, rund)
         return sw.befehle_ohne_zyklus(befehle, sw.Schwenkung(lage, rund, abbildung, hoehe=hoehe))
 
