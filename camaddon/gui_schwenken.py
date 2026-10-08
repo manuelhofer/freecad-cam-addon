@@ -69,15 +69,18 @@ def gewaehlt(dokument):
 
 
 def maschine_fuer(job):
-    """(sw.Maschine, Name) – die Maschine des Jobs (offen oder aus ihrer Datei), sonst die erste
-    offene mit zwei Rundachsen, die positionieren; (None, "") ohne."""
+    """Die verbindliche Jobmaschine, sonst genau eine offene; keine Ersatz-Rundachsen."""
     from .gui_reichweite import _maschine_des_jobs, offene_maschinen
 
-    kandidaten = []
     eigene = _maschine_des_jobs(job)
     if eigene is not None:
-        kandidaten.append(eigene)
-    kandidaten += offene_maschinen(job.Document)
+        kandidaten = [eigene]
+    elif getattr(job, rw.EIGENSCHAFT_MASCHINE, ""):
+        return None, ""  # Eine unlesbare Zuordnung nicht durch eine andere Fräse ersetzen.
+    else:
+        kandidaten = offene_maschinen(job.Document)
+        if len(kandidaten) != 1:
+            return None, ""
     for assembly, maschine in kandidaten:
         try:
             pruefung = rw.Pruefung(assembly, maschine)
@@ -85,11 +88,10 @@ def maschine_fuer(job):
             if aufnahme is None:
                 continue
             ergebnis = sw.Maschine(pruefung, aufnahme, 0.0, rw.nullpunkt(job))
-        except Exception as fehler:  # eine kaputte Maschine: die nächste
+        except Exception as fehler:  # Keine unlesbare Definition durch eine andere ersetzen.
             FreeCAD.Console.PrintLog(f"CAM-Addon: Schwenken: {fehler}\n")
             continue
-        if len(ergebnis.rundachsen) >= 2:
-            return ergebnis, maschine.Label
+        return ergebnis, maschine.Label
     return None, ""
 
 
@@ -105,6 +107,7 @@ class SchwenkenPanel:
         self.lage = None
         self.rund = None
         self.vorhanden = None  # der Job einer gleichen Ebene, die es schon gibt
+        self._knoepfe = None
         self.maschine, maschinenname = maschine_fuer(grundjob)
         self.form = QtGui.QWidget()
         self.form.setWindowTitle(tr("sw.titel"))
@@ -122,13 +125,16 @@ class SchwenkenPanel:
         )
         self.maschine_text.setWordWrap(True)
         raster.addRow(tr("sw.panel.maschine_titel"), self.maschine_text)
+        self.grenzen_text = QtGui.QLabel(self._grenzen_text())
+        self.grenzen_text.setWordWrap(True)
+        raster.addRow(tr("sw.panel.grenzen"), self.grenzen_text)
         self.flaeche_text = QtGui.QLabel(tr("sw.panel.anklicken"))
         raster.addRow(tr("sw.panel.flaeche"), self.flaeche_text)
         # Oder ohne Fläche: Neigung und Richtung (angestellter Kugelfräser, Bohrung im Winkel).
         winkel = QtGui.QWidget()
         winkel_aufbau = QtGui.QHBoxLayout(winkel)
         winkel_aufbau.setContentsMargins(0, 0, 0, 0)
-        self.feld_neigung = self._winkelfeld(0.0, 120.0, tr("sw.panel.neigung.tooltip"))
+        self.feld_neigung = self._winkelfeld(0.0, 180.0, tr("sw.panel.neigung.tooltip"))
         self.feld_richtung = self._winkelfeld(-180.0, 180.0, tr("sw.panel.richtung.tooltip"))
         for beschriftung, feld in (
             (tr("sw.panel.neigung"), self.feld_neigung),
@@ -158,6 +164,32 @@ class SchwenkenPanel:
             self.waehle(flaeche)
 
     # --- Auswahl -------------------------------------------------------------------------
+
+    def _grenzen_text(self):
+        if self.maschine is None:
+            return tr("sw.panel.maschine_fehlt")
+        if not self.maschine.rundachsen:
+            return tr("sw.panel.feste_achse")
+        zeichen = zahlenformat().decimalPoint()
+
+        def zahl(wert):
+            if wert is None:
+                return tr("sw.panel.offene_grenze")
+            return f"{wert:g}°".replace(".", zeichen).replace("-", "−")
+
+        return "; ".join(
+            (
+                tr("sw.panel.grenzachse_offen", achse=a.buchstabe)
+                if a.minimum is None and a.maximum is None
+                else tr(
+                    "sw.panel.grenzachse",
+                    achse=a.buchstabe,
+                    von=zahl(a.minimum),
+                    bis=zahl(a.maximum),
+                )
+            )
+            for a in self.maschine.rundachsen
+        )
 
     def addSelection(self, dokument, objekt, unterelement, _punkt):
         if not unterelement or not unterelement.startswith("Face"):
@@ -204,9 +236,10 @@ class SchwenkenPanel:
 
     def _pruefen(self, flaeche, lage):
         """Schwenkwinkel und Rundachsen der Ebene `lage` – grün, oder rot, warum nicht."""
+        self.lage, self.rund, self.vorhanden = None, None, None
         winkel = sw.schwenkwinkel(lage)
-        if winkel < 0.01:
-            self._zeige(tr("sw.panel.waagerecht", flaeche=flaeche), ROT)
+        if self.maschine is None:
+            self._zeige(tr("sw.panel.maschine_fehlt"), ROT)
             return
         normale = sw.normale_der(lage)
         if self.maschine is not None:
@@ -219,13 +252,13 @@ class SchwenkenPanel:
                 text = tr("sw.fehler.grenze", flaeche=flaeche, rundachsen=sw.text_rundachsen(rund))
                 self._zeige(text, ROT)
                 return
-        else:
-            rund = sw.rundachsen_ohne_maschine(normale)
         self.lage, self.rund = lage, rund
         grad = f"{winkel:.1f}".rstrip("0").rstrip(".")
         text = tr(
             "sw.panel.ergebnis", flaeche=flaeche, winkel=grad, rundachsen=sw.text_rundachsen(rund)
         )
+        if not rund:
+            text = tr("sw.panel.fest_erreichbar", flaeche=flaeche)
         # Eine parallele Fläche (dieselbe Normale) liegt in derselben Ebene: kein zweiter Job.
         self.vorhanden = next(
             (
@@ -235,6 +268,8 @@ class SchwenkenPanel:
             ),
             None,
         )
+        if winkel < 0.01 and all(abs(w) < 1e-6 for w in rund.values()):
+            self.vorhanden = self.grundjob
         if self.vorhanden is not None:
             text += ". " + tr("sw.panel.vorhanden", job=self.vorhanden.Label)
         self._zeige(text, GRUEN)
@@ -242,15 +277,40 @@ class SchwenkenPanel:
     def _zeige(self, text, farbe):
         self.ergebnis.setText(text)
         self.ergebnis.setStyleSheet(f"color: {farbe};")
+        self._ok_freigeben()
 
     # --- Knöpfe --------------------------------------------------------------------------
 
     def getStandardButtons(self):
         return QtGui.QDialogButtonBox.Ok | QtGui.QDialogButtonBox.Cancel
 
+    def modifyStandardButtons(self, knoepfe):
+        """FreeCADs OK nur für eine mit der gewählten Maschine zulässige Richtung freigeben."""
+        self._knoepfe = knoepfe
+        self._ok_freigeben()
+
+    def _ok_freigeben(self):
+        if self._knoepfe is not None:
+            self._knoepfe.button(QtGui.QDialogButtonBox.Ok).setEnabled(self.lage is not None)
+
     def accept(self):
         if self.lage is None:
             self._zeige(self.ergebnis.text() or tr("sw.panel.anklicken"), ROT)
+            return False
+        # Ein geänderter Maschinenbezug oder Anschlag darf die im Fenster zuvor
+        # berechnete Freigabe nicht weiterverwenden.
+        self.maschine, name = maschine_fuer(self.grundjob)
+        self.maschine_text.setText(
+            tr("sw.panel.maschine", maschine=name)
+            if self.maschine is not None
+            else tr("sw.panel.ohne_maschine")
+        )
+        self.grenzen_text.setText(self._grenzen_text())
+        if self.flaeche is not None:
+            self.waehle(self.flaeche)
+        else:
+            self.winkel_nehmen()
+        if self.lage is None:
             return False
         if self.vorhanden is not None:
             job, flaeche = self.vorhanden, self.flaeche

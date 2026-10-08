@@ -1935,10 +1935,9 @@
     "sw.panel.grundjob": "Grundjob:",
     "sw.panel.maschine_titel": "Maschine:",
     "sw.panel.maschine": "{maschine} – die Rundachsen aus ihrer Kette",
-    "sw.panel.ohne_maschine": "keine mit zwei Rundachsen – gerechnet wie ein Tisch A (um X) mit Rundtisch C, Drehpunkt im Nullpunkt",
+    "sw.panel.ohne_maschine": "Keine eindeutig zugeordnete, lesbare Maschine.",
     "sw.panel.flaeche": "Fläche:",
     "sw.panel.anklicken": "eine ebene Fläche oder die Wand einer Bohrung am Teil anklicken …",
-    "sw.panel.waagerecht": "{flaeche} liegt waagerecht – dafür muss nichts schwenken; das macht der Grundjob.",
     "sw.panel.ergebnis": "{flaeche}: {winkel}° geschwenkt → {rundachsen}",
     "sw.panel.vorhanden": "Die Ebene gibt es schon: „{job}“ – OK öffnet sie, statt eine zweite anzulegen.",
     "sw.winkel": "{neigung}° nach {richtung}°",
@@ -2580,5 +2579,12 @@
     "s5f.fehler.schruppen": "Direkt vor dem Schlichten muss eine aktive 3D-Schruppoperation stehen.",
     "s5f.uebernehmen": "Geprüfte Folge übernehmen",
     "rm3.fehler.geometrie": "Der räumliche Materialstand braucht einen gültigen Rohteilkörper und eindeutige Werkzeugmaße.",
-    "rm3.fehler.raster": "Das räumliche Materialraster ist zu groß. Eine gröbere Auflösung wählen."
+    "rm3.fehler.raster": "Das räumliche Materialraster ist zu groß. Eine gröbere Auflösung wählen.",
+    "sw.panel.maschine_fehlt": "Die Maschine am Job festlegen. Ohne ihre eingelesenen Achsen und Grenzen wird keine Bearbeitungsrichtung freigegeben.",
+    "sw.panel.grenzen": "Positionierende Rundachsen",
+    "sw.panel.feste_achse": "Feste Spindelrichtung; keine positionierenden Rundachsen.",
+    "sw.panel.offene_grenze": "keine Grenze eingetragen",
+    "sw.panel.grenzachse": "{achse}: {von} bis {bis}",
+    "sw.panel.fest_erreichbar": "{flaeche}: mit der festen Spindelrichtung erreichbar, ohne Schwenken.",
+    "sw.panel.grenzachse_offen": "{achse}: keine Grenzen eingetragen"
 }

@@ -3381,3 +3381,56 @@ Verfahrwege und tatsächlichen Schwenkbereiche. Erreichbare Richtungen werden da
 abgeleitet; unerreichbare Bereiche werden mit Grund ausgelassen und ausdrücklich
 als unbearbeitet ausgewiesen. Sie zählen niemals als abgetragen oder als fertiges
 Teil. Die folgende Zugänglichkeits-/Gesamtplanung darf keine G550-Vorgaben festlegen.
+
+
+### 16.13 Gewählte Maschine und ihre Grenzen verbindlich verwenden (P-2026-10-08-06)
+
+Manuel fordert maschinenneutrale Strategien aus den tatsächlichen Achsen und
+Schwenkbereichen, mit ausdrücklich unbearbeiteten nicht erreichbaren Bereichen.
+Der bestehende Schwenkdialog überspringt jedoch eine Maschine mit weniger als zwei
+Rundachsen und kann dann eine andere offene Maschine oder einen fiktiven A/C-Tisch
+verwenden. Eine 3-Achs-Fräse kann ihre feste Spindelrichtung bearbeiten; eine
+4-Achs-Maschine nur ihre tatsächlich erreichbaren Richtungen. Beide dürfen keine
+zusätzlichen Rundachsen erhalten.
+
+Die gewählte/gespeicherte Maschine bleibt verbindlich. Ohne Zuordnung kommt nur
+eine eindeutig einzelne offene Maschine in Frage; fehlt sie oder ist die Definition
+unlesbar, bleibt Übernehmen gesperrt. Rundachsen samt eingelesenen Grenzen werden
+im Dialog gezeigt. Eine feste passende Spindelrichtung braucht keine Schwenkbewegung;
+andere Richtungen werden mit Grund abgewiesen. Neigung/Richtung beschreiben die
+Werkzeugrichtung im Job, nicht ein pauschales Maschinenlimit; die volle Kugel ist
+0…180° möglich, die reale Achskette und ihre Grenzen entscheiden über die Zulassung.
+
+```text
+Maschine: [tatsächlich dem Job zugeordnete Maschine]
+Rundachsen: [A von … bis … / B …] oder [Feste Spindelrichtung]
+Fläche / Werkzeugrichtung wählen
+[Erreichbar ohne Schwenken / Erreichbar mit … / Nicht erreichbar: …]
+[OK nur bei zugelassener Richtung]
+```
+
+Duplicate-/FreeCAD-Check: der Ausschluss `len(rundachsen) >= 2` ist weiterhin im
+aktuellen Helper; kein verbindlicher Mehrmaschinen-Test. Die vorhandene Achskette,
+Grenzen und inverse Kinematik werden verwendet, keine Maschinenannahmen neu gebaut.
+
+**Akzeptanzkriterium:** Job mit gewählter 3-/4-/5-Achs-Maschine bei zusätzlich offener
+anderer Maschine öffnen → der Schwenkdialog behält die Jobmaschine, zeigt deren echte
+Rundachsen/Grenzen und erlaubt ausschließlich mit ihr erreichbare Richtungen.
+
+Ohne positionierende Rundachsen schreibt ein nur anders ausgerichteter CAM-Bezug
+seine realen XYZ-Punkte ohne Schwenkzyklus und ohne erfundenen Z-Schwenkanlauf.
+Eine passende bereits waagerechte Richtung verwendet den Grundjob.
+
+
+**Gebaut und geprüft:** Native Gegenprobe bestätigt zuvor die unerlaubte Ersatzwahl
+G550 statt gespeicherter 3-Achs-Fräse. Jetzt bleibt die echte Zuordnung auch mit
+0/1 Rundachsen erhalten; fehlende oder mehrdeutige Zuordnung gesperrt. Alle sechs
+Beispielmaschinen samt realen Richtungen/Grenzen geprüft. Neuer und bisheriger
+vollständiger Dialog auf DP-1 OK; Anschlagänderung vor OK wirksam, kein halber Job.
+Echter 3-Achs-Ebenenjob mit Standardfräser schreibt nur transformierte XYZ, Siemens
+und LinuxCNC nachgelesen; der bisherige G550-Export bleibt exakt referenzgleich.
+Das alte GUI-Szenario verwendete bloß generische Maschineninformationen und ein
+festes falsches NC-Vorzeichen; alter und neuer Abschnittsexport waren bytegleich.
+Die Prüfung liest jetzt reale Definition, NC-Drehsinne und das ganze Programm.
+Automatische Zugänglichkeit und unbearbeitete Teilbereiche sind weiterhin der nächste
+Baustein; die jetzige Freigabe prüft eine einzelne vorgegebene Werkzeugrichtung.

@@ -21,7 +21,7 @@ Schnittgeschwindigkeit 0) – bei 15° mit Ø 1,55 statt 0 (Kugel Ø 6).</li>
 <li>Das Fenster zeigt den Grundjob, die Maschine und grün, wie weit die Ebene geschwenkt ist und
 wohin die Rundachsen fahren: „Face12: 30° geschwenkt → A−30 C0“. Eine andere Fläche anklicken,
 solange es offen ist, nimmt diese. Rot steht, warum es nicht geht (weder eben noch die Wand einer
-Bohrung, waagerecht, die Rundachsen kämen nicht hin).</li>
+Bohrung oder die eingelesenen Rundachsen kämen nicht hin).</li>
 <li><b>OK</b> legt den Job der Ebene an („Job … – Ebene Face12 (A−30 C0)“): das Modell gedreht,
 das Rohteil des Grundjobs mit gedreht. Mit dem Haken öffnet gleich der Assistent
 <b>Bearbeitung</b> darin, die Fläche gewählt – Strategien wählen und anlegen wie immer. Gibt es
@@ -34,6 +34,13 @@ Grundjob fährt auch die Ebenen ab, mit dem Hochfahren und Schwenken dazwischen;
 steht „… – Ebene A−30 C0“. Grundjob und Ebenen teilen eine <a href="bestueckung.html">Bestückung</a>.</li>
 </ol>
 
+<p><b>3 oder 4 Achsen:</b> Auch eine feste Spindelrichtung oder nur eine positionierende
+Rundachse wird aus der tatsächlichen Maschine gelesen. Was damit nicht erreichbar ist,
+bleibt gesperrt; OK ist nur für eine zulässige Richtung frei. Eine passende waagerechte
+Fläche verwendet den Grundjob. Ein anders ausgerichteter Bezug ohne Rundachsen schreibt
+nur die umgerechneten XYZ-Bewegungen, keinen erfundenen Schwenkzyklus. Bei geänderten
+Anschlägen oder einer anderen Jobmaschine wird die Freigabe vor OK neu geprüft.</p>
+
 <h3>Wie gerechnet wird</h3>
 <ul>
 <li><b>Die Ebene:</b> Z ist die Normale der Fläche aus dem Material heraus – die Werkzeugachse;
@@ -41,7 +48,9 @@ X ist X des Grundjobs, in die Ebene gelegt; der Ursprung ist der Punkt der Ebene
 Nullpunkt des Grundjobs am nächsten liegt.</li>
 <li><b>Die Rundachsen:</b> aus der Kette der Maschine – die Stellung, in der das Werkzeug gegen
 das Werkstück senkrecht auf der Fläche steht, innerhalb der Grenzen, mit dem kleinsten
-Schwenk. Ohne Maschine wie ein Tisch A (um X) mit Rundtisch C, der Drehpunkt im Nullpunkt.</li>
+Schwenk. Die dem Job zugeordnete Maschine bleibt verbindlich, auch wenn eine andere
+5-Achs-Maschine offen ist. Die eingelesenen Grenzen stehen im Fenster. Ohne lesbare
+Zuordnung wird keine fiktive Maschine angenommen.</li>
 <li><b>Der Nullpunkt</b> der Ebene auf der Maschine ist der des Grundjobs: Die Maschine sieht das
 Teil, wie es gespannt ist.</li>
 </ul>

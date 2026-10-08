@@ -126,11 +126,41 @@ def schritte(h):
     h.bild("3_angelegt")
 
     # --- Das Programm des Grundjobs ----------------------------------------------------------------
-    teile = pp.abschnitte(grundjob)
-    siemens = pp.programm(teile, pp.steuerung("siemens"), pp.Maschineninfo("5-Achs"), "Block").text
+    # Die reale Definition enthält auch den NC-Drehsinn der Gelenke. Eine
+    # Maschineninfo nur mit einem Namen ist eine generische A/C-Annahme und
+    # darf hier keine fest vorgegebenen Vorzeichen begründen.
+    p = rw.Pruefung(asm, _maschine)
+
+    def maschine(operation):
+        tc = operation.ToolController
+        return sw.Maschine(
+            p,
+            p.werkzeugaufnahme(tc.ToolNumber),
+            rw.einspannung(tc, bibliothek),
+            rw.nullpunkt(grundjob),
+        )
+
+    teile = pp.abschnitte(grundjob, maschine)
+    info = pp.maschineninfo_dokument(asm.Document)
+    siemens = pp.programm(teile, pp.steuerung("siemens"), info, "Block").text
     h.pruefe('CYCLE800(1,"",0,27,' in siemens and "CYCLE800()" in siemens, "Siemens ohne CYCLE800")
-    lcnc = pp.programm(teile, pp.steuerung("linuxcnc"), pp.Maschineninfo("5-Achs"), "Block").text
-    h.pruefe("G0 A-30.000 C0.000" in lcnc and "G0 A0.000 C0.000" in lcnc, "LinuxCNC ohne A, C")
+    lcnc = pp.programm(teile, pp.steuerung("linuxcnc"), info, "Block").text
+    for buchstabe, wert in sw.rundachsen_von(planjob).items():
+        geschrieben = -wert if buchstabe in info.umgekehrt else wert
+        if abs(geschrieben) < 0.0005:
+            geschrieben = 0.0  # Der Postprozessor normalisiert −0 wie alle Zahlenfelder.
+        h.pruefe(
+            any("G0" in z and f"{buchstabe}{geschrieben:.3f}" in z for z in lcnc.splitlines()),
+            f"LinuxCNC ohne richtige {buchstabe}-Stellung",
+        )
+        h.pruefe(
+            any("G0" in z and f"{buchstabe}0.000" in z for z in lcnc.splitlines()),
+            f"LinuxCNC ohne {buchstabe}-Rückkehr",
+        )
+    befunde, _saetze = pp.nachlesen(
+        pp.programm(teile, pp.steuerung("linuxcnc"), info, "Block"), pp.steuerung("linuxcnc"), info
+    )
+    h.pruefe(not befunde, f"LinuxCNC-Nachlesen: {befunde}")
 
     # --- Auf der Maschine prüfen: der Grundjob mit der Ebene auf der 5-Achs-Fräse --------------------
     from PySide import QtCore

@@ -1506,6 +1506,12 @@ def _abschnitte_des_jobs(job, maschine, bibliothek, magazin=None, revolver=False
                 gerechnet[id(fuer_op)] = (fuer_op, sw.schwenkung_fuer(job, fuer_op))
             schwenkung = gerechnet[id(fuer_op)][1]
         befehle, hinweis = list(op.Path.Commands), ""
+        if geschwenkt and fuer_op is not None and schwenkung is not None and not schwenkung.rund:
+            # Eine feste Spindel hat nur einen anders gerechneten CAM-Bezug, keinen
+            # Schwenkzyklus. Alle örtlichen An-/Rückzüge in die echten XYZ-Koordinaten
+            # bringen; weder Rundachsen noch einen zusätzlichen Z-Schwenkanlauf erfinden.
+            befehle = sw.befehle_ohne_zyklus(befehle, schwenkung, schon_oben=True)
+            schwenkung = None
         befehle_tcpm = None
         if not geschwenkt and so.ist_simultan(op):
             befehle, hinweis = _simultan(op, maschine)

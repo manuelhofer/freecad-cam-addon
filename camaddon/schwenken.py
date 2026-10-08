@@ -274,7 +274,10 @@ class Maschine:
         n.normalize()
         achsen = self.rundachsen
         if not achsen:
-            return []
+            # Eine feste Spindel kann ihre eigene Richtung bearbeiten; sie bekommt
+            # dafür keine erfundenen Rundachsen. Andere Richtungen bleiben unmöglich.
+            grenze = 1.0 - math.cos(math.radians(WINKEL_GENAU))
+            return [{}] if 1.0 - self.richtung({}).dot(n) <= grenze else []
 
         def fehler(werte):
             rund = {a.buchstabe: w for a, w in zip(achsen, werte, strict=True)}

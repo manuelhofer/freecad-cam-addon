@@ -12,6 +12,69 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-06 jobmaschine-und-schwenkgrenzen-behalten
+
+### EINGELESEN
+- Manuel: alle Strategien für alle Maschinen; Grenzen aus der eingelesenen Maschine,
+  nicht erreichbare Bereiche auslassen und als unbearbeitet ausweisen. Aktueller
+  Snapshot, Strategien 16.13 vor der Änderung, Schwenk-/Maschinen-/NC-Kerne und Hilfe.
+- Duplicate-Check: bisheriger Helper seit P-2026-10-03-39 verwirft Maschinen mit
+  weniger als zwei Rundachsen. Native GUI-Gegenprobe mit gespeicherter 3-Achs-Fräse
+  und offener G550 bestätigt: fälschlich G550 gewählt. Vorbeschreibung samt Skizze.
+
+### DATEIEN
+- `gui_schwenken.py`, `schwenken.py`, begrenzte NC-Ergänzung in `postprozessor.py`;
+  DE/EN-Texte und Hilfe; neue Maschinenprüfung und GUI-Szenario; Spezifikation,
+  bestehendes GUI-Szenario mit realer Maschineninfo; Aufbau, Snapshot, dieser Verlauf;
+  `package.xml` 0.200.1, Datum 2026-10-08.
+
+### AKZEPTANZKRITERIUM
+Job mit gewählter 3-/4-/5-Achs-Maschine bei zusätzlich offener anderer Maschine öffnen →
+der Schwenkdialog behält die Jobmaschine, zeigt deren echte Rundachsen/Grenzen und erlaubt
+ ausschließlich mit ihr erreichbare Richtungen.
+
+### DONE
+- Die gespeicherte Jobmaschine wird weder wegen weniger Rundachsen noch wegen einer
+  unlesbaren Datei durch eine andere offene Maschine ersetzt. Ohne Zuordnung ist nur
+  eine eindeutig einzelne offene Maschine zulässig; keine fiktive A/C-Ersatzkinematik im Dialog.
+- Null Rundachsen erlauben die tatsächliche feste Spindelrichtung; eine Rundachse nur
+  ihre erreichbaren Richtungen. Rundachsen und eingelesene Anschläge sichtbar.
+  Die Polar-Neigung einer Werkzeugrichtung umfasst 0…180°, die wirklichen Gelenkgrenzen
+  entscheiden. Keine G550-Vorgabe im Planer.
+- Vor OK werden Maschine, aktuelle Anschläge und Flächenrichtung erneut gelesen;
+  veraltete Freigabe kann keinen Job anlegen. Standard-OK bleibt bei fehlender oder
+  unzulässiger Richtung gesperrt. Passende parallele Bearbeitung verwendet den Grundjob.
+- Ein anders ausgerichteter CAM-Bezug ohne Rundachsen liefert echte umgerechnete XYZ,
+  keinen Schwenkzyklus oder erfundenen zusätzlichen Z-Schwenkanlauf.
+- Diese Korrektur ist die verbindliche Richtungsvorprüfung; automatische Zellen-/Flächenwahl,
+  allgemeines Auslassen mit Restbericht und kontinuierlicher räumlicher Simultanabtrag folgen.
+
+### TEST
+- Alle sechs nativen Beispielmaschinen: Drehmaschine/C, 3-Achs, Tisch/Tisch A/C,
+  Kopf/Kopf A/B, Kopf/Tisch C/B und G550 A/B. Tatsächliche Achsen, Nullstellung,
+  feste Richtung und geänderte native Gelenkgrenzen geprüft.
+- Neuer echter 3-Achs-Ebenenjob mit Standardfräser, reale Räumoperation, XYZ exakt gegen
+  die berechnete Abbildung; Siemens/LinuxCNC nachgelesen, ohne fiktive Rundachsen/CYCLE800.
+- Neuer Dialog vollständig auf DP-1: 3-Achs bleibt trotz offener G550, unmögliche Richtung
+  gesperrt, passende Richtung verwendet den Grundjob, Dreh-/4-Achs-Zuordnung bleibt,
+  5-Achs-Anschlag nach der Berechnung geändert und bei OK wirksam; unlesbare und
+  mehrdeutige Maschine gesperrt, keine Geometrieänderung. Screenshot gesehen.
+- Eigene Prüfannahme korrigiert: exakte Volumengleichheit 4000 scheiterte an Fließkomma;
+  geringe Rundungsreserve plus unveränderter vollständiger BRep-Geometrieschlüssel geprüft.
+  Unbenutzten früheren Textschlüssel nach Sprachprüfungsbefund aus DE/EN entfernt.
+- Sprachprüfung und frisch geladener tatsächlicher G550-Export exakt gegen bestehende
+  NC-Referenz. Im bisherigen GUI-Szenario war das LinuxCNC-Vorzeichen hart auf
+  A−30 gesetzt, obwohl der generische Export seit vorher A+30 schreibt. Isolierter
+  alter und neuer Abschnittsexport bytegleich; das Szenario verwendet jetzt die
+  tatsächliche Maschine und prüft ihre NC-Drehsinne sowie das Nachlesen.
+  Eigene neue Vorzeichenprobe normalisiert auch −0 wie der Postprozessor.
+  Vollständiger korrigierter Lauf inklusive Anlegen, Programm und Abspieler OK.
+- Eigene vorab angelegte Testprofile, 16-GiB-Speicherdeckel ohne Swap, keine persönliche
+  Bibliothek ersetzt. Format/Ruff/Diffprüfung ohne Befund. Kein Push.
+
+### NEXT
+Werkzeugbezogene Zugänglichkeit und ausdrücklich unbearbeitete Bereiche der Gesamtplanung.
+
 ## P-2026-10-08-05 raeumliches-material-zwischen-ebenen
 
 ### EINGELESEN

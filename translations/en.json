@@ -1935,10 +1935,9 @@
     "sw.panel.grundjob": "Base job:",
     "sw.panel.maschine_titel": "Machine:",
     "sw.panel.maschine": "{maschine} – the rotary axes from its chain",
-    "sw.panel.ohne_maschine": "none with two rotary axes – computed like an A table (about X) with rotary table C, pivot at the zero point",
+    "sw.panel.ohne_maschine": "No unambiguous, readable machine assigned.",
     "sw.panel.flaeche": "Face:",
     "sw.panel.anklicken": "click a flat face or the wall of a hole on the part …",
-    "sw.panel.waagerecht": "{flaeche} lies horizontal – nothing to swivel; the base job does that.",
     "sw.panel.ergebnis": "{flaeche}: swivelled {winkel}° → {rundachsen}",
     "sw.panel.vorhanden": "This plane exists already: “{job}” – OK opens it instead of creating a second one.",
     "sw.winkel": "{neigung}° towards {richtung}°",
@@ -2580,5 +2579,12 @@
     "s5f.fehler.schruppen": "An active 3D roughing operation must directly precede finishing.",
     "s5f.uebernehmen": "Apply checked sequence",
     "rm3.fehler.geometrie": "The spatial material model needs a valid stock solid and unambiguous tool dimensions.",
-    "rm3.fehler.raster": "The spatial material grid is too large. Choose a coarser resolution."
+    "rm3.fehler.raster": "The spatial material grid is too large. Choose a coarser resolution.",
+    "sw.panel.maschine_fehlt": "Assign the machine to the job. No machining direction is enabled without its loaded axes and limits.",
+    "sw.panel.grenzen": "Positioning rotary axes",
+    "sw.panel.feste_achse": "Fixed spindle direction; no positioning rotary axes.",
+    "sw.panel.offene_grenze": "no limit specified",
+    "sw.panel.grenzachse": "{achse}: {von} to {bis}",
+    "sw.panel.fest_erreichbar": "{flaeche}: reachable with the fixed spindle direction, without swivelling.",
+    "sw.panel.grenzachse_offen": "{achse}: no limits specified"
 }

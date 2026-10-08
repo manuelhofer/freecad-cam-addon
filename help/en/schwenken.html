@@ -20,7 +20,7 @@ on top (where the cutting speed is 0) – at 15° with Ø 1.55 instead of 0 (bal
 <li>The window shows the base job, the machine and in green how far the plane is swivelled and
 where the rotary axes go: “Face12: swivelled 30° → A−30 C0”. Clicking another face while it is
 open takes that one. Red says why it does not work (neither flat nor the wall of a hole,
-horizontal, the rotary axes cannot get there).</li>
+the loaded rotary axes cannot get there).</li>
 <li><b>OK</b> creates the plane's job (“Job … – plane Face12 (A−30 C0)”): the model rotated, the
 base job's stock rotated with it. With the tick the <b>Machining</b> assistant opens in it right
 away, the face selected – choose strategies and create as always. If the plane exists
@@ -33,6 +33,12 @@ runs the planes too, with the retract and swivel in between; the player shows �
 A−30 C0”. Base job and planes share one <a href="bestueckung.html">tool loading</a>.</li>
 </ol>
 
+<p><b>3 or 4 axes:</b> A fixed spindle direction or a single positioning rotary axis is
+also read from the actual machine. Unreachable directions remain disabled; OK is enabled
+only for a permissible direction. A matching horizontal face uses the base job. A different
+CAM frame without rotary axes writes only transformed XYZ motions, with no imaginary
+swivel cycle. Changes to stops or the job machine are checked again before OK.</p>
+
 <h3>How it is computed</h3>
 <ul>
 <li><b>The plane:</b> Z is the face normal out of the material – the tool axis; X is the base
@@ -40,8 +46,9 @@ job's X laid into the plane; the origin is the point of the plane closest to the
 zero point.</li>
 <li><b>The rotary axes:</b> from the machine's chain – the position in which the tool stands
 perpendicular on the face relative to the workpiece, within the limits, with the smallest
-swivel. Without a machine like an A table (about X) with rotary table C, pivot at the zero
-point.</li>
+swivel. The machine assigned to the job remains binding even if another 5-axis
+machine is open. Its loaded limits are shown in the window. Without a readable
+assignment, no imaginary machine is assumed.</li>
 <li><b>The zero point</b> of the plane on the machine is the base job's: the machine sees the part
 as it is clamped.</li>
 </ul>
