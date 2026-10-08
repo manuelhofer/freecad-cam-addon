@@ -17,6 +17,7 @@ from . import reichweite as rw
 from . import schwenken as sw
 from . import symbol
 from . import vierachs_rohteil as vr
+from . import werkzeuge as wz
 from .gui_hilfe import kopfzeile
 from .gui_zahlen import zahlenformat
 from .sprache import tr
@@ -68,10 +69,16 @@ def gewaehlt(dokument):
     return (grund[0], None) if len(grund) == 1 else (None, None)
 
 
-def maschine_fuer(job):
+def maschine_fuer(job, controller=None):
     """Die verbindliche Jobmaschine, sonst genau eine offene; keine Ersatz-Rundachsen."""
     from .gui_reichweite import _maschine_des_jobs, offene_maschinen
 
+    controller = (
+        controller if controller is not None else next(iter(js.werkzeug_controller(job)), None)
+    )
+    if controller is None or controller not in js.werkzeug_controller(job):
+        return None, ""
+    bibliothek = wz.Bibliothek.laden()
     eigene = _maschine_des_jobs(job)
     if eigene is not None:
         kandidaten = [eigene]
@@ -84,10 +91,12 @@ def maschine_fuer(job):
     for assembly, maschine in kandidaten:
         try:
             pruefung = rw.Pruefung(assembly, maschine)
-            aufnahme = pruefung.werkzeugaufnahme(1)
+            aufnahme = pruefung.werkzeugaufnahme(int(controller.ToolNumber))
             if aufnahme is None:
                 continue
-            ergebnis = sw.Maschine(pruefung, aufnahme, 0.0, rw.nullpunkt(job))
+            ergebnis = sw.Maschine(
+                pruefung, aufnahme, rw.einspannung(controller, bibliothek), rw.nullpunkt(job)
+            )
         except Exception as fehler:  # Keine unlesbare Definition durch eine andere ersetzen.
             FreeCAD.Console.PrintLog(f"CAM-Addon: Schwenken: {fehler}\n")
             continue
@@ -108,7 +117,21 @@ class SchwenkenPanel:
         self.rund = None
         self.vorhanden = None  # der Job einer gleichen Ebene, die es schon gibt
         self._knoepfe = None
-        self.maschine, maschinenname = maschine_fuer(grundjob)
+        self.werkzeugwahl = QtGui.QComboBox()
+        self.werkzeugwahl.setToolTip(tr("sw.panel.werkzeug.tooltip"))
+        for tc in js.werkzeug_controller(grundjob):
+            self.werkzeugwahl.addItem(tc.Label, tc.Name)
+        for obj in FreeCADGui.Selection.getSelection():
+            tc = getattr(obj, "ToolController", obj)
+            index = self.werkzeugwahl.findData(getattr(tc, "Name", ""))
+            if index >= 0:
+                self.werkzeugwahl.setCurrentIndex(index)
+                break
+        self.maschine, maschinenname = (
+            maschine_fuer(grundjob, self._controller())
+            if self._controller() is not None
+            else (None, "")
+        )
         self.form = QtGui.QWidget()
         self.form.setWindowTitle(tr("sw.titel"))
         aufbau = QtGui.QVBoxLayout(self.form)
@@ -125,6 +148,7 @@ class SchwenkenPanel:
         )
         self.maschine_text.setWordWrap(True)
         raster.addRow(tr("sw.panel.maschine_titel"), self.maschine_text)
+        raster.addRow(tr("sw.panel.werkzeug"), self.werkzeugwahl)
         self.grenzen_text = QtGui.QLabel(self._grenzen_text())
         self.grenzen_text.setWordWrap(True)
         raster.addRow(tr("sw.panel.grenzen"), self.grenzen_text)
@@ -160,12 +184,39 @@ class SchwenkenPanel:
         aufbau.addStretch()
         FreeCADGui.Selection.addObserver(self)
         SchwenkenPanel.offen = self
+        self.werkzeugwahl.currentIndexChanged.connect(self._werkzeug_wechsel)
         if flaeche:
             self.waehle(flaeche)
 
     # --- Auswahl -------------------------------------------------------------------------
 
+    def _controller(self):
+        name = self.werkzeugwahl.currentData()
+        return self.grundjob.Document.getObject(name) if name else None
+
+    def _maschine_neu(self):
+        tc = self._controller()
+        self.maschine, name = maschine_fuer(self.grundjob, tc) if tc is not None else (None, "")
+        self.maschine_text.setText(
+            tr("sw.panel.maschine", maschine=name)
+            if self.maschine is not None
+            else tr("sw.panel.ohne_maschine")
+        )
+        self.grenzen_text.setText(self._grenzen_text())
+
+    def _werkzeug_wechsel(self, _index):
+        self._maschine_neu()
+        if self.flaeche is not None:
+            self.waehle(self.flaeche)
+        elif self.winkel is not None:
+            self.winkel_nehmen()
+        else:
+            self.lage, self.rund, self.vorhanden = None, None, None
+            self._zeige(tr("sw.panel.anklicken"), ROT)
+
     def _grenzen_text(self):
+        if self._controller() is None:
+            return tr("sw.panel.werkzeug_fehlt")
         if self.maschine is None:
             return tr("sw.panel.maschine_fehlt")
         if not self.maschine.rundachsen:
@@ -239,7 +290,14 @@ class SchwenkenPanel:
         self.lage, self.rund, self.vorhanden = None, None, None
         winkel = sw.schwenkwinkel(lage)
         if self.maschine is None:
-            self._zeige(tr("sw.panel.maschine_fehlt"), ROT)
+            self._zeige(
+                (
+                    tr("sw.panel.werkzeug_fehlt")
+                    if self._controller() is None
+                    else tr("sw.panel.maschine_fehlt")
+                ),
+                ROT,
+            )
             return
         normale = sw.normale_der(lage)
         if self.maschine is not None:
@@ -299,13 +357,7 @@ class SchwenkenPanel:
             return False
         # Ein geänderter Maschinenbezug oder Anschlag darf die im Fenster zuvor
         # berechnete Freigabe nicht weiterverwenden.
-        self.maschine, name = maschine_fuer(self.grundjob)
-        self.maschine_text.setText(
-            tr("sw.panel.maschine", maschine=name)
-            if self.maschine is not None
-            else tr("sw.panel.ohne_maschine")
-        )
-        self.grenzen_text.setText(self._grenzen_text())
+        self._maschine_neu()
         if self.flaeche is not None:
             self.waehle(self.flaeche)
         else:

@@ -14,6 +14,10 @@ mit 0/1 Rundachsen, zeigt reale Anschläge und liest sie vor OK erneut. Alle sec
 Beispielmaschinen, neuer/bisheriger Dialog auf DP-1 und NC ohne fiktive Achsen geprüft
 (Strategien 16.13). Als Nächstes: Zugang je tatsächlichem Werkzeug und Halter,
 Bereiche auslassen mit ausdrücklich unbearbeitetem Restbericht.
+**Werkzeugzugang (0.201.0):** Schwenkdialog wählt das tatsächliche Jobwerkzeug;
+T-Nummer, Länge und Halterachse gehen in die Kinematik ein, vor OK frisch gelesen
+(Strategien 16.14). Nächster Schritt: keine senkrechte Ersatzbahn bei unerreichbarer
+Simultanrichtung; Bereiche ausdrücklich unbearbeitet ausweisen.
 Maschinenweite Vorgabe: Richtungen und Grenzen aus der tatsächlich gewählten
 Maschine; unerreichbare Bereiche mit Grund auslassen und als unbearbeitet kennzeichnen.
 
@@ -528,6 +532,10 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
 
 ## Offene Bugs
 
+- **B-016 Job-Undo lässt Rohteilklon zurück:** Nach der Rücknahme eines geschwenkten
+  Ebenenjobs bleibt ein unbenutzter nativer `Clone002` ohne Ebenenjob im Dokument;
+  eigenständig bereinigen (P-2026-10-08-07, GUI-Beleg Werkzeugzugang).
+
 - **B-015 G550: Rückfahrt bei flacher Aufspannung und Richtungswarnung.** Beim Simultanversuch
   mit flacher Tasche direkt auf dem Rundtisch kollidierten Spindelseite/Wiege und Tisch
   auf der Rückfahrt; außerdem wurde die Werkzeugrichtung für die wechselnde
@@ -535,7 +543,7 @@ Ein Satz je Wunsch, W-ID fortlaufend; was davon gebaut ist, steht im Projektstat
   Winkelaufnahme und ist kollisionsfrei im Modell. Die flache Aufspannung ist nicht
   behoben: [G550-Spezifikation](spezifikation_grob_g550.md), P-2026-10-06-05.
 
-B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-016.
+B-001 bis B-014 sind behoben (Belege im Verlauf); nächste freie Nummer B-017.
 
 ## Offene Tasks
 

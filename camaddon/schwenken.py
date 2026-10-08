@@ -256,13 +256,15 @@ class Maschine:
     def richtung(self, rund):
         """Die Werkzeugachse (von der Spitze weg) in Koordinaten des Grundjobs bei den
         Rundachsen `rund` ({"A": Grad, …})."""
+        from . import reichweite as rw
+
         p = self.pruefung
         wege = p._dreh_wege(self.aufnahme, self.drehachsen, rund)
         werkzeug = p._glied_lage(p._glied(self.aufnahme), wege).multiply(p._lage(self.aufnahme))
         werkstueck = p._glied_lage(p._glied(p.werkstueckaufnahme), wege).multiply(
             p._lage(p.werkstueckaufnahme)
         )
-        z = werkzeug.Rotation.multVec(FreeCAD.Vector(0, 0, 1))
+        z = werkzeug.Rotation.multVec(rw._einspannung(self.laenge).achse())
         return werkstueck.Rotation.inverted().multVec(z)
 
     def loese(self, normale):

@@ -3434,3 +3434,46 @@ festes falsches NC-Vorzeichen; alter und neuer Abschnittsexport waren bytegleich
 Die Prüfung liest jetzt reale Definition, NC-Drehsinne und das ganze Programm.
 Automatische Zugänglichkeit und unbearbeitete Teilbereiche sind weiterhin der nächste
 Baustein; die jetzige Freigabe prüft eine einzelne vorgegebene Werkzeugrichtung.
+
+
+### 16.14 Tatsächliches Werkzeug für den Maschinenzugang (P-2026-10-08-07)
+
+Die Jobmaschine bleibt nun verbindlich. Ihr Richtungsplaner verwendete jedoch die
+Z-Achse der Aufnahme und im Dialog grundsätzlich Aufnahme/Nummer 1, ohne die
+gewählte Einspannung. Bei einem gewinkelten Halter stimmt das nicht mit der echten
+Werkzeugachse überein. Native Gegenprobe an der 3-Achs-Fräse: Richtungsplaner Z,
+Vorwärtskinematik X, 90° Unterschied.
+
+Die Werkzeugrichtung verwendet dieselbe Einspannung mit Halterlage wie die
+Kinematik. Im Schwenkdialog steht das tatsächlich gewählte Jobwerkzeug; seine Nummer
+bestimmt die Aufnahme, seine reale Länge und Halterlage gehen in den Maschinenzugang
+ein. Wechseln des Werkzeugs rechnet die Freigabe neu. Vor OK werden aktuelle Werkzeug-,
+Halter- und Maschinenwerte gelesen. Ohne Jobwerkzeug ist die Richtung nicht freigegeben.
+Das ist die Voraussetzung für den folgenden Bericht über bearbeitbare und ausgelassene
+Bereiche; ein nomineller Spindelzugang darf kein falscher Werkzeugzugang sein.
+
+```text
+Maschine: [Jobmaschine]
+Werkzeug: [T… tatsächlich eingespanntes Werkzeug ▼]
+Positionierende Rundachsen: [eingelesene Grenzen / feste Spindelrichtung]
+Fläche / Werkzeugrichtung
+[Erreichbar mit diesem Werkzeug / nicht erreichbar]
+```
+
+Duplicate-Check: vorhandene Einspannung kennt ihre Achse, aber `Maschine.richtung`
+verwendet sie nicht; keine Werkzeugwahl im Schwenkdialog. Die bestehende öffentliche
+FreeCAD-Kinematik und Addon-Einspannung werden verwendet, ohne neue Winkelannahmen.
+
+**Akzeptanzkriterium:** Im Job ein gerades und ein gewinkelt eingespanntes Werkzeug
+wählen → der Schwenkdialog verwendet jeweils dessen Aufnahme und tatsächliche Achse,
+zeigt entsprechend verschiedene erreichbare Richtungen und prüft vor OK die aktuelle
+Halterlage statt der nominellen Spindelrichtung.
+
+
+**Gebaut und geprüft:** Alle sechs Maschinenarten mit 0/45/90°-Einspannung und
+Achsenstellungen 0/20° gegen die tatsächliche Vorwärtskinematik geprüft. GUI auf
+DP-1: Werkzeugwechsel, aktuelle externe Halteränderung, echte seitliche Ebene ohne
+fiktive Rundachse, Job-Undo, getrennte Revolverplätze 1/8 und fehlendes Werkzeug.
+Beim Job-Undo bleibt ein unbenutzter nativer Rohteilklon übrig; der Ebenenjob selbst
+wird entfernt, diese Ressourcenbereinigung ist gesondert offen. Sprachprüfung und
+frischer G550-Export referenzgleich, persönliche Werkzeugbibliothek unverändert.

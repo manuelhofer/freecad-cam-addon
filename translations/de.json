@@ -2586,5 +2586,8 @@
     "sw.panel.offene_grenze": "keine Grenze eingetragen",
     "sw.panel.grenzachse": "{achse}: {von} bis {bis}",
     "sw.panel.fest_erreichbar": "{flaeche}: mit der festen Spindelrichtung erreichbar, ohne Schwenken.",
-    "sw.panel.grenzachse_offen": "{achse}: keine Grenzen eingetragen"
+    "sw.panel.grenzachse_offen": "{achse}: keine Grenzen eingetragen",
+    "sw.panel.werkzeug": "Werkzeug im Job",
+    "sw.panel.werkzeug.tooltip": "Aufnahme, Länge und Halterlage dieses Werkzeugs bestimmen die tatsächliche Werkzeugrichtung.",
+    "sw.panel.werkzeug_fehlt": "Ein Werkzeug im Job einrichten und auswählen. Ohne seine Aufnahme und Halterlage wird keine Richtung freigegeben."
 }

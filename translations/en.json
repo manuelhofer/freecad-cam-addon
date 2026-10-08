@@ -2586,5 +2586,8 @@
     "sw.panel.offene_grenze": "no limit specified",
     "sw.panel.grenzachse": "{achse}: {von} to {bis}",
     "sw.panel.fest_erreichbar": "{flaeche}: reachable with the fixed spindle direction, without swivelling.",
-    "sw.panel.grenzachse_offen": "{achse}: no limits specified"
+    "sw.panel.grenzachse_offen": "{achse}: no limits specified",
+    "sw.panel.werkzeug": "Tool in the job",
+    "sw.panel.werkzeug.tooltip": "This tool’s mount, length and holder placement determine its actual tool direction.",
+    "sw.panel.werkzeug_fehlt": "Set up and select a tool in the job. No direction is enabled without its mount and holder placement."
 }

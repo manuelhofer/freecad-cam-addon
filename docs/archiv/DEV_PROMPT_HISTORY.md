@@ -12,6 +12,45 @@ patch_naming:
 
 # Verlauf (LOG/ARCHIV)
 
+## P-2026-10-08-07 werkzeugachse-und-aufnahme-pruefen
+
+### EINGELESEN
+- Manuel: tatsächliche Maschine, Schwenkbereiche, unerreichbare Bearbeitung auslassen.
+  Richtungsplaner, Einspannung, Aufnahmeauswahl und Schwenkdialog; Strategien 16.14
+  mit Vorbeschreibung und Skizze vor Produktänderung.
+- Native Gegenprobe: bei 90°-Einspannung prüfte der Planer Z, die reale Werkzeugachse
+  aus Vorwärtskinematik war X. Die bestehende Einspannung kennt bereits ihre Achse.
+
+### DATEIEN
+- `schwenken.py`, `gui_schwenken.py`, neue Richtungsprüfung/GUI; DE/EN-Texte und Hilfe,
+  Spezifikation/Aufbau/Snapshot/Verlauf, `package.xml` 0.201.0, 2026-10-08.
+
+### AKZEPTANZKRITERIUM
+Im Job ein gerades und ein gewinkelt eingespanntes Werkzeug wählen → der Schwenkdialog
+verwendet dessen Aufnahme und tatsächliche Achse, zeigt entsprechend verschiedene
+zulässige Richtungen und liest vor OK die aktuelle Halterlage erneut.
+
+### DONE
+- Richtungsplanung verwendet die kanonische Einspannungsachse derselben Kinematik.
+- Tatsächliche Jobwerkzeugwahl, Werkzeugnummer statt Aufnahme 1, Länge und Halterlage;
+  Werkzeugwechsel prüft neu, vor OK werden auch externe Halteränderungen gelesen.
+- Ohne Werkzeug kein fiktiver Spindelzugang. Spätere Strategien wählen ihre Werkzeuge
+  wie gewohnt und prüfen jede Operation mit ihrer eigenen Einspannung.
+
+### TEST
+- Sechs Maschinenarten × drei Einspannungswinkel × zwei Rundstellungen gegen reale
+  Vorwärtskinematik; feste Richtung erreichbar, Querachse gesperrt.
+- Native GUI DP-1: gerade/gewinkelte Richtung, aktuelle Halteränderung invalidiert OK,
+  echte seitliche Ebene, Undo entfernt ihren Job, Revolverplätze 1/8 getrennt,
+  kein Werkzeug gesperrt. Undo hinterlässt einen unbenutzten nativen Rohteilklon;
+  als B-016 separat aufgenommen, keine Ressourcenbereinigung nebenbei.
+- Sprache OK, frischer G550-Export exakt 36b3599008fdd6e1b879ced5dcd056f66e21ea875b721ce26ebe6f2ad88c474d.
+- Belege: `../ergebnisse/werkzeugzugang-2026-10-08/`; Black/Ruff/Diff geprüft.
+
+### NEXT
+- Maschinenzugang für Bahnteile und expliziter Bericht über unbearbeitete Bereiche;
+  keine Ersatzbewegung außerhalb der tatsächlich erreichbaren Richtungen. Kein Push.
+
 ## P-2026-10-08-06 jobmaschine-und-schwenkgrenzen-behalten
 
 ### EINGELESEN

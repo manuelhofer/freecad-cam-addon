@@ -17,7 +17,10 @@ With no suitable face: <b>Or angles</b> – tilt and direction (“15° towards 
 vertical, the head towards +Y), then <b>Apply</b>. 3D finishing, say, then mills with a <b>tilted
 ball end mill</b>: the same surface in the same time, only the ball no longer cuts with its tip
 on top (where the cutting speed is 0) – at 15° with Ø 1.55 instead of 0 (ball Ø 6).</li>
-<li>The window shows the base job, the machine and in green how far the plane is swivelled and
+<li>Under <b>Tool in the job</b>, choose the tool whose direction should be checked. Its T number
+selects the mount (the turret slot); its length and angled holder determine the actual tool axis.
+Changing the tool checks the direction again.
+The window shows the base job, the machine and in green how far the plane is swivelled and
 where the rotary axes go: “Face12: swivelled 30° → A−30 C0”. Clicking another face while it is
 open takes that one. Red says why it does not work (neither flat nor the wall of a hole,
 the loaded rotary axes cannot get there).</li>
@@ -37,7 +40,9 @@ A−30 C0”. Base job and planes share one <a href="bestueckung.html">tool load
 also read from the actual machine. Unreachable directions remain disabled; OK is enabled
 only for a permissible direction. A matching horizontal face uses the base job. A different
 CAM frame without rotary axes writes only transformed XYZ motions, with no imaginary
-swivel cycle. Changes to stops or the job machine are checked again before OK.</p>
+swivel cycle. Changes to stops, the job machine, tool or holder are checked again before OK.
+Without a job tool, OK remains disabled. Subsequent machining selects its tools as usual;
+each operation is checked with its own tool setup.</p>
 
 <h3>How it is computed</h3>
 <ul>

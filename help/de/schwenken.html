@@ -18,7 +18,10 @@ Neigung und Richtung („15° nach 90°“: 15° gegen die Senkrechte, der Kopf 
 <b>Übernehmen</b>. So fräst etwa das 3D-Schlichten mit <b>angestelltem Kugelfräser</b>: dieselbe
 Fläche in derselben Zeit, nur schneidet die Kugel oben nicht mehr mit der Spitze (dort ist die
 Schnittgeschwindigkeit 0) – bei 15° mit Ø 1,55 statt 0 (Kugel Ø 6).</li>
-<li>Das Fenster zeigt den Grundjob, die Maschine und grün, wie weit die Ebene geschwenkt ist und
+<li>Unter <b>Werkzeug im Job</b> das Werkzeug wählen, für das die Richtung geprüft werden soll.
+Seine T-Nummer bestimmt die Aufnahme (am Revolver den Platz); Länge und gewinkelter Halter
+bestimmen die tatsächliche Werkzeugachse. Ein Werkzeugwechsel prüft die Richtung erneut.
+Das Fenster zeigt den Grundjob, die Maschine und grün, wie weit die Ebene geschwenkt ist und
 wohin die Rundachsen fahren: „Face12: 30° geschwenkt → A−30 C0“. Eine andere Fläche anklicken,
 solange es offen ist, nimmt diese. Rot steht, warum es nicht geht (weder eben noch die Wand einer
 Bohrung oder die eingelesenen Rundachsen kämen nicht hin).</li>
@@ -39,7 +42,9 @@ Rundachse wird aus der tatsächlichen Maschine gelesen. Was damit nicht erreichb
 bleibt gesperrt; OK ist nur für eine zulässige Richtung frei. Eine passende waagerechte
 Fläche verwendet den Grundjob. Ein anders ausgerichteter Bezug ohne Rundachsen schreibt
 nur die umgerechneten XYZ-Bewegungen, keinen erfundenen Schwenkzyklus. Bei geänderten
-Anschlägen oder einer anderen Jobmaschine wird die Freigabe vor OK neu geprüft.</p>
+Anschlägen, einer anderen Jobmaschine oder geänderten Werkzeug-/Halterwerten wird die Freigabe
+vor OK neu geprüft. Ohne Werkzeug im Job bleibt OK gesperrt. Die spätere Bearbeitung wählt
+ihre Werkzeuge wie gewohnt; jede Operation wird mit ihrer eigenen Einspannung geprüft.</p>
 
 <h3>Wie gerechnet wird</h3>
 <ul>
